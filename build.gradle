@@ -1572,13 +1572,20 @@ tasks.register('checkCpfStackSupport', Exec) {
             'cpf-tools/scripts/check-cpf-stack-support.ps1'
 }
 
+tasks.register('checkAdminDataSafety', Exec) {
+    group = 'verification'
+    description = 'ADM/BZA transaction/fail-closed/PII/status/query ownership/V61 정합성을 검증합니다.'
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+            'cpf-tools/scripts/check-admin-data-safety.ps1'
+}
+
 tasks.register('qualityGate') {
     group = 'verification'
     description = 'CPF verification or deployment task.'
     dependsOn subprojects.collect { "${it.path}:compileJava" }
     dependsOn subprojects.collect { "${it.path}:test" }
     dependsOn ':cpf-admin:frontendVerify', ':cpf-biz-admin:frontendVerify', 'checkModernFrontend'
-    dependsOn 'verifyCpfFinalSourceGates', 'verifyVersionConsistency', 'checkUtf8', 'checkMojibake', 'checkLegacyName', 'checkSqlStandard', 'checkSqlCanonical', 'checkJavaFormat', 'checkJava25Standard', 'checkDocumentLinks', 'checkTransactionIdStandard', 'checkSecuritySeedStandard', 'checkSampleStandard', 'checkCpfRequestProtection', 'checkFeatureEvidence', 'checkServiceCallBoundary', 'checkArchitectureOwnership', 'checkBaseHierarchy', 'checkFullLayerTaxonomy', 'exportArchitectureInventory', 'exportRequirementTraceability', 'checkDomainGenerator', 'checkDomainCapabilityMatrix', 'checkAccLifecycle', 'checkDomainRemoval', 'checkRepositoryHygiene', 'checkSpringEventUsage', 'checkProfileLoading', 'checkRuntimeConfigStandard', 'checkLogManagementStandard', 'checkOpenApiSourceCoverage', 'checkSampleCoverage', 'checkEvidencePathExistence', 'checkDeployEnv', 'checkDeployInventory', 'checkPackagedDependencies', 'remoteDeployDryRun', 'checkReportMatrixEvidenceConsistency', 'admUiSmoke', 'admLogPolicyUiStaticSmoke', 'bzaUiSmoke', 'checkContractCompatibility', 'checkR13ProductHardening', 'checkAdminContactModel', 'checkBzaSafeDefaults', 'checkCpfStackSupport'
+    dependsOn 'verifyCpfFinalSourceGates', 'verifyVersionConsistency', 'checkUtf8', 'checkMojibake', 'checkLegacyName', 'checkSqlStandard', 'checkSqlCanonical', 'checkJavaFormat', 'checkJava25Standard', 'checkDocumentLinks', 'checkTransactionIdStandard', 'checkSecuritySeedStandard', 'checkSampleStandard', 'checkCpfRequestProtection', 'checkFeatureEvidence', 'checkServiceCallBoundary', 'checkArchitectureOwnership', 'checkBaseHierarchy', 'checkFullLayerTaxonomy', 'exportArchitectureInventory', 'exportRequirementTraceability', 'checkDomainGenerator', 'checkDomainCapabilityMatrix', 'checkAccLifecycle', 'checkDomainRemoval', 'checkRepositoryHygiene', 'checkSpringEventUsage', 'checkProfileLoading', 'checkRuntimeConfigStandard', 'checkLogManagementStandard', 'checkOpenApiSourceCoverage', 'checkSampleCoverage', 'checkEvidencePathExistence', 'checkDeployEnv', 'checkDeployInventory', 'checkPackagedDependencies', 'remoteDeployDryRun', 'checkReportMatrixEvidenceConsistency', 'admUiSmoke', 'admLogPolicyUiStaticSmoke', 'bzaUiSmoke', 'checkContractCompatibility', 'checkR13ProductHardening', 'checkAdminContactModel', 'checkBzaSafeDefaults', 'checkCpfStackSupport', 'checkAdminDataSafety'
 }
 
 

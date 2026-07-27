@@ -2,12 +2,14 @@ package com.cpf.bizadmin.backoffice.service;
 
 import com.cpf.bizadmin.backoffice.repository.BzaBackofficeRepository;
 import com.cpf.bizadmin.audit.service.BzaBusinessAuditService;
+import com.cpf.bizadmin.common.model.BzaEmploymentStatus;
 import com.cpf.core.api.util.CpfStrings;
 import com.cpf.core.api.page.CpfPage;
 import com.cpf.core.api.page.CpfPageRequest;
 import com.cpf.core.api.error.CpfNotFoundException;
 import com.cpf.core.api.error.CpfValidationException;
 import com.cpf.core.api.logging.CpfTransactionContext;
+import com.cpf.core.api.security.CpfSensitiveData;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,7 +29,6 @@ import java.util.UUID;
 public class BzaBackofficeService extends com.cpf.bizadmin.common.base.BzaBaseService {
     private static final Set<String> APPROVAL_ACTIONS = Set.of(
             "SUBMIT", "APPROVE", "AGREE", "REJECT", "WITHDRAW", "CANCEL", "RESUBMIT");
-
     private final BzaBackofficeRepository repository;
     private final BzaBusinessAuditService auditService;
 
@@ -74,11 +75,26 @@ public class BzaBackofficeService extends com.cpf.bizadmin.common.base.BzaBaseSe
     }
 
     public List<Map<String, Object>> findEmployees(String organizationCode, String status) {
-        return repository.findEmployees(blankToNull(organizationCode), blankToNull(status));
+        return repository.findEmployees(blankToNull(organizationCode), normalizeEmploymentStatusFilter(status)).stream()
+                .map(this::maskEmployee).toList();
     }
 
     public CpfPage<Map<String,Object>> findEmployeesPage(String organizationCode,String status,Integer page,Integer size) {
-        return repository.employeePage(blankToNull(organizationCode),blankToNull(status),CpfPageRequest.of(page,size));
+        CpfPage<Map<String,Object>> result = repository.employeePage(
+                blankToNull(organizationCode), normalizeEmploymentStatusFilter(status), CpfPageRequest.of(page,size));
+        return new CpfPage<>(result.content().stream().map(this::maskEmployee).toList(),
+                result.totalElements(), result.page(), result.size());
+    }
+
+    public Map<String,Object> findEmployeeRaw(String employeeNo, String operatorId, String reason) {
+        String id = required(employeeNo, "employeeNo").toUpperCase(Locale.ROOT);
+        Map<String,Object> raw = repository.findEmployee(id)
+                .orElseThrow(() -> new CpfNotFoundException("직원을 찾을 수 없습니다. employeeNo=" + id));
+        audit(required(operatorId,"operatorId"), "EMPLOYEE_PII_RAW_VIEW", "bza_employee", id,
+                required(reason,"reason"), null, Map.of("rawView", true));
+        Map<String,Object> response = new LinkedHashMap<>(raw);
+        response.put("rawViewAllowed", true);
+        return response;
     }
 
     @Transactional(transactionManager = "bzaTransactionManager")
@@ -88,20 +104,35 @@ public class BzaBackofficeService extends com.cpf.bizadmin.common.base.BzaBaseSe
         if (request.leaveDate()!=null && request.joinDate()!=null && request.leaveDate().isBefore(request.joinDate())) {
             throw new CpfValidationException("leaveDate는 joinDate보다 빠를 수 없습니다.");
         }
+        Map<String,Object> before=repository.findEmployee(employeeNo).orElse(null);
+        if (before!=null && request.expectedVersion()==null) {
+            throw new CpfValidationException("직원 수정에는 expectedVersion이 필요합니다.");
+        }
+        String status=BzaEmploymentStatus.parse(defaultText(request.employmentStatus(),"EMPLOYED")).name();
         Map<String,Object> values=new LinkedHashMap<>();
         values.put("employeeNo",employeeNo); values.put("adminUserId",request.adminUserId());
         values.put("organizationCode",required(request.organizationCode(),"organizationCode").toUpperCase(Locale.ROOT));
-        values.put("employeeName",required(request.employeeName(),"employeeName")); values.put("positionCode",blankToNull(request.positionCode()));
-        values.put("jobTitleCode",blankToNull(request.jobTitleCode())); values.put("managerEmployeeNo",blankToNull(request.managerEmployeeNo()));
-        values.put("employmentStatus",defaultText(request.employmentStatus(),"EMPLOYED").toUpperCase(Locale.ROOT));
-        values.put("joinDate",request.joinDate()); values.put("leaveDate",request.leaveDate()); values.put("email",blankToNull(request.email()));
-        values.put("mobileNo",blankToNull(request.mobileNo())); values.put("officePhoneNo",blankToNull(request.officePhoneNo()));
+        values.put("employeeName",required(request.employeeName(),"employeeName"));
+        values.put("positionCode",blankToNull(request.positionCode()));
+        values.put("jobTitleCode",blankToNull(request.jobTitleCode()));
+        values.put("managerEmployeeNo",blankToNull(request.managerEmployeeNo()));
+        values.put("employmentStatus",status);
+        values.put("joinDate",request.joinDate()); values.put("leaveDate",request.leaveDate());
+
+        String existingEmail=before==null?null:stringValue(before.get("email"));
+        String existingMobile=before==null?null:stringValue(before.get("mobileNo"));
+        String existingOffice=before==null?null:stringValue(before.get("officePhoneNo"));
+        values.put("email",resolveContact(request.email(),request.clearEmail(),existingEmail,true,"email"));
+        values.put("mobileNo",resolveContact(request.mobileNo(),request.clearMobileNo(),existingMobile,false,"mobileNo"));
+        values.put("officePhoneNo",resolveContact(request.officePhoneNo(),request.clearOfficePhoneNo(),existingOffice,false,"officePhoneNo"));
         values.put("useYn",yn(request.useYn(),"Y"));
         values.put("expectedVersion",request.expectedVersion()); values.put("requestUser",user);
+
         int changed=repository.saveEmployee(values);
         if(changed!=1) throw new CpfValidationException("직원 정보가 다른 관리자에 의해 변경되었거나 expectedVersion이 올바르지 않습니다.");
-        audit(user,"EMPLOYEE_SAVE","bza_employee",employeeNo,required(request.reason(),"reason"),null,values);
-        return values;
+        Map<String,Object> after=repository.findEmployee(employeeNo).orElse(values);
+        audit(user,"EMPLOYEE_SAVE","bza_employee",employeeNo,required(request.reason(),"reason"),before,after);
+        return maskEmployee(after);
     }
 
     public List<Map<String, Object>> findEffectivePermissions(String loginId) {
@@ -232,6 +263,32 @@ public class BzaBackofficeService extends com.cpf.bizadmin.common.base.BzaBaseSe
         return value == null || value.isBlank() ? fallback : value.trim();
     }
 
+    private String normalizeEmploymentStatusFilter(String value) {
+        String normalized = blankToNull(value);
+        if (normalized == null) return null;
+        return BzaEmploymentStatus.parse(normalized).name();
+    }
+
+    private Map<String,Object> maskEmployee(Map<String,Object> row) {
+        Map<String,Object> masked=new LinkedHashMap<>(row);
+        masked.put("email", CpfSensitiveData.maskEmail(stringValue(row.get("email"))));
+        masked.put("mobileNo", CpfSensitiveData.maskPhone(stringValue(row.get("mobileNo"))));
+        masked.put("officePhoneNo", CpfSensitiveData.maskPhone(stringValue(row.get("officePhoneNo"))));
+        masked.put("rawViewAllowed", false);
+        return masked;
+    }
+
+    private String resolveContact(String requested, boolean clear, String existing, boolean email, String field) {
+        if(clear) return null;
+        if(requested==null || requested.isBlank()) return existing;
+        return email ? CpfSensitiveData.normalizeEmail(requested,field)
+                : CpfSensitiveData.normalizePhone(requested,field);
+    }
+
+    private String stringValue(Object value) {
+        return value==null?null:String.valueOf(value);
+    }
+
     private String blankToNull(String value) {
         return value == null || value.isBlank() ? null : value.trim();
     }
@@ -276,7 +333,18 @@ public class BzaBackofficeService extends com.cpf.bizadmin.common.base.BzaBaseSe
             String employeeNo, Long adminUserId, String organizationCode, String employeeName,
             String positionCode, String jobTitleCode, String managerEmployeeNo, String employmentStatus,
             LocalDate joinDate, LocalDate leaveDate, String email, String mobileNo, String officePhoneNo,
+            boolean clearEmail, boolean clearMobileNo, boolean clearOfficePhoneNo,
             String useYn, Long expectedVersion, String requestUser, String reason) {
+        public EmployeeRequest(
+                String employeeNo, Long adminUserId, String organizationCode, String employeeName,
+                String positionCode, String jobTitleCode, String managerEmployeeNo, String employmentStatus,
+                LocalDate joinDate, LocalDate leaveDate, String email, String mobileNo, String officePhoneNo,
+                String useYn, Long expectedVersion, String requestUser, String reason) {
+            this(employeeNo, adminUserId, organizationCode, employeeName, positionCode, jobTitleCode,
+                    managerEmployeeNo, employmentStatus, joinDate, leaveDate, email, mobileNo, officePhoneNo,
+                    false, false, false, useYn, expectedVersion, requestUser, reason);
+        }
+
         /** 기존 Consumer의 생성자 계약을 유지하면서 내부 전화번호를 선택 필드로 확장합니다. */
         public EmployeeRequest(
                 String employeeNo, Long adminUserId, String organizationCode, String employeeName,
@@ -285,7 +353,7 @@ public class BzaBackofficeService extends com.cpf.bizadmin.common.base.BzaBaseSe
                 String useYn, Long expectedVersion, String requestUser, String reason) {
             this(employeeNo, adminUserId, organizationCode, employeeName, positionCode, jobTitleCode,
                     managerEmployeeNo, employmentStatus, joinDate, leaveDate, email, mobileNo, null,
-                    useYn, expectedVersion, requestUser, reason);
+                    false, false, false, useYn, expectedVersion, requestUser, reason);
         }
     }
 

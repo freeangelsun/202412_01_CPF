@@ -1,4 +1,61 @@
-# CPF Codex 2차 집중 검수 Checklist — 2026-07-27
+# CPF Codex Independent Review Checklist
+
+## CURRENT B closure review target
+
+이 구현은 ChatGPT의 1차 개발 결과다. 완료 보고를 신뢰하지 말고 최신 Git Diff, 영향도 Ledger, 실제 Consumer, DB, Generator, Frontend, Runtime과 Evidence를 독립 검증한다. 결함과 누락은 보고만 하지 말고 올바른 Owner에서 수정·보완한 뒤 동일 검증을 재실행한다.
+
+### ADM
+- [ ] DATABASE product mode에서 DB down/write error가 503/fail-closed인지
+- [ ] MEMORY는 local/test/demo/library explicit mode에서만 동작하는지
+- [ ] create Identity/Profile/Role partial row 0
+- [ ] operationId same-request retry idempotent / other operator conflict
+- [ ] PENDING + no-role default
+- [ ] failed login count/LOCKED가 예외 때문에 rollback되지 않는지
+- [ ] ACTIVE 전환/Unlock에 Role·expectedVersion 정책이 안전한지
+- [ ] Raw contact permission + reason + POST body + no-store + audit
+
+### BZA
+- [ ] employee status Catalog and legacy ACTIVE migration
+- [ ] admin account status Catalog, PENDING/no-role create
+- [ ] login failure LOCKED/version, ACTIVE/use/lock consistency
+- [ ] Directory/Assignment existing behavior regression 없음
+- [ ] masked list and raw PII authorization/audit
+- [ ] audit snapshot raw PII/secret 0
+- [ ] BZA Java inline SQL 0
+- [ ] BZA `com.cpf.core.common.*` direct import 0
+- [ ] Query key/resource 1:1 and unused/orphan resource inventory
+
+### DB V61
+- [ ] Source/mirror checksum
+- [ ] V59→V60→V61 upgrade
+- [ ] Runtime ADM/BZA CRUD/auth
+- [ ] rollback/reapply
+- [ ] fresh install parity
+- [ ] nullable role safe rollback; fake role 0
+- [ ] EMPLOYED reverse mutation 없음
+- [ ] constraints/indexes/manifest/verify
+
+### Frontend/Browser
+- [ ] Masked 기본 표시
+- [ ] Raw 권한 없음 403
+- [ ] 권한 있음 + 사유 → raw
+- [ ] reason URL/history/access log 비노출
+- [ ] explicit clear
+- [ ] expectedVersion conflict UX
+- [ ] 신규 관리자 PENDING/no-role UX
+
+### 영향 재검증
+- [ ] cpf-core/admin/bza full compile/test
+- [ ] frontend test/typecheck/lint/build
+- [ ] V59/V60 기존 기능 regression
+- [ ] final evidence latest SHA
+
+이 Checklist는 이후 ChatGPT 개발이 더 진행되면 그 최신 Diff 기준으로 다시 생성한다.
+
+---
+
+## Historical checklist preserved
+
 
 ## 목적
 

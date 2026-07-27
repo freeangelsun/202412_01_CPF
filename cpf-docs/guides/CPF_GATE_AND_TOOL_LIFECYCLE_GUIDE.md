@@ -214,36 +214,16 @@ OFFLINE에서도 수동 JAR 복사를 표준으로 삼지 않고 Gradle이 검�
 
 이 기준은 ChatGPT/Codex/다른 PC 세션 모두 동일하게 적용한다.
 
-## 13. 20260727 Artifact/Stack Gate 분류
+## 13. ADM/BZA Data Safety Gate
 
-| Entry | 분류 | 상위 Level | Side Effect | 배포 |
-|---|---|---|---|---|
-| `checkCpfStackSupport` | `DEV_ONLY` + `CI_RELEASE` | QUICK | 없음 | Runtime 제외 |
-| `aggregateQualityBuild` | `CI_RELEASE` | VERIFY | build 산출물 | Runtime 제외 |
-| `publishCpfStagingPlatformArtifacts` | 내부 Tool | VERIFY 내부 | 격리 staging 변경 | Runtime 제외 |
-| `publishCpfVerifiedLocalPlatformArtifacts` | `DEV_ONLY` | VERIFY | Shared Local Maven 변경 | Runtime 제외 |
-| `verifyCpfLocalArtifactPropagation` | `DEV_ONLY` | VERIFY | 없음 | Runtime 제외 |
-| `publishCpfPlatformArtifacts` | `CI_RELEASE` | Release | Remote Registry 변경 | Runtime 제외 |
-| `buildCpfOfflineArtifactBundle` | `CI_RELEASE` + `PRODUCT_ADMIN_TOOL` | Release/Distribution | Offline Bundle 생성 | 별도 관리/배포 Tool 산출물 |
-| `promote-cpf-verified-local-artifacts.ps1` | 내부 Tool | VERIFY 내부 | Shared Local Maven 변경 | Runtime 제외 |
-| `verify-local-artifact-propagation.ps1` | `DEV_ONLY` + `CI_RELEASE` | VERIFY | 없음 | Runtime 제외 |
+`cpf-tools/scripts/check-admin-data-safety.ps1`
 
-저수준 Staging/Promotion Task는 사용자가 개별 실행하는 Public Tool로 홍보하지 않는다.
-상위 검증 Entry가 호출하는 내부 Tool로 관리한다.
+- 분류: `DEV_ONLY`, `CI_RELEASE`
+- Runtime 제품 배포: 제외
+- 목적: ADM/BZA fail-closed, 상태/PII/SQL Ownership, V61 lifecycle 정적 회귀 방지
+- 옵션: `-RootPath`; 생략 시 Repository Root 자동 계산
+- Side Effect: 없음(Read-only)
+- 실패 시: Source/DB/Migration/Query Resource를 올바른 Owner에서 수정한 뒤 재실행
+- 실제 DB/Browser 검증을 대체하지 않음
 
-## 14. Artifact Gate 삭제·통합 시 주의
-
-Artifact 관련 Gate는 단순 파일 존재검사로 축소하면 안 된다. 최소 보호 Requirement는 다음과 같다.
-
-- Exact coordinate/version
-- POM identity
-- Gradle module metadata identity
-- Platform BOM exact constraint
-- Gradle Plugin Marker → Implementation exact version
-- SHA-256
-- Source Commit Manifest
-- Promotion State
-- REMOTE Local fallback 금지
-
-향후 더 강한 Release Gate가 위 Requirement를 완전히 흡수하면 작은 Gate를 삭제할 수 있으나,
-Caller와 Requirement Coverage를 확인하지 않고 Script만 제거하지 않는다.
+상세 운영/개발 계약은 `CPF_ADMIN_DATA_SAFETY_GUIDE.md`를 정본으로 사용한다.

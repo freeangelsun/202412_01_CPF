@@ -1,4 +1,51 @@
-# CPF ChatGPT → Codex 인수인계 — 2026-07-27
+# CPF ChatGPT → Next Session / Codex Handover
+
+## CURRENT HANDOVER — Change Set B
+
+### 기준
+- Start remote SHA: `00780dc14ef621578f6f7ca61ef1d0c9973c60e6`
+- Patch: `CPF_20260727_05_ROOT_PATCH`
+- Commit/Push: 없음
+- QA source: `CPF_NEXT_QA_REQUIREMENTS_CHATGPT_FIRST_CODEX_REVIEW_20260727_05.md`
+
+### 구현 완료
+- ADM product DB fail-closed + explicit demo memory
+- ADM create transaction/idempotency/PENDING/no-role
+- ADM/BZA masked/raw PII boundary
+- BZA employment/account status split
+- BZA admin PENDING/no-role
+- Audit redaction
+- BZA inline SQL/internal Core boundary 제거
+- Public SQL Catalog
+- MariaDB V61 forward/safe rollback/fresh generated lifecycle
+- Data Safety Gate/Guide
+
+### 외부 미검증
+- Java25/Gradle9 full build
+- pwsh Gate
+- MariaDB upgrade/rollback/reapply/fresh/runtime
+- Browser
+- A-V Local/Offline/Remote runtime artifact verification
+
+### 다음 작업
+`S — Final Supported Stack Migration`을 먼저 완결한다. TRANSITION을 제품 상태로 남기지 않는다. 그 후 C/D/E/U/DB/T 순서.
+
+### 절대 회귀시키지 말 것
+- PENDING 일반 관리자에 자동 Role/ACTIVE 부여
+- Product DB Memory fallback
+- Raw PII GET query reason
+- BZA inline Vendor SQL
+- External module의 `com.cpf.core.common.*` import
+- fake role을 넣는 rollback
+- 폐기된 글로벌 거래 식별자 용어
+
+### Codex 검수 원칙
+ChatGPT 완료 보고를 신뢰하지 않는다. 최신 Diff/Consumer/DB/UI/Evidence를 독립 검증하고 결함을 직접 수정한 뒤 동일 검증을 재실행한다.
+
+---
+
+## Historical handover preserved
+
 
 > ## 현재 적용 기준 안내
 >

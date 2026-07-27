@@ -3,6 +3,8 @@ package com.cpf.admin.opr.controller;
 import com.cpf.admin.opr.dto.AdmMenu;
 import com.cpf.admin.opr.dto.AdmOperator;
 import com.cpf.admin.opr.dto.AdmOperatorCreateRequest;
+import com.cpf.admin.opr.dto.AdmOperatorContactUpdateRequest;
+import com.cpf.admin.opr.dto.AdmOperatorStatusUpdateRequest;
 import com.cpf.admin.opr.dto.AdmOperatorPasswordResetRequest;
 import com.cpf.admin.opr.dto.AdmOperatorRoleUpdateRequest;
 import com.cpf.admin.opr.dto.AdmPasswordChangeRequest;
@@ -12,12 +14,14 @@ import com.cpf.admin.opr.service.AdmOperatorService;
 import com.cpf.admin.opr.service.AdmAuditLogService;
 import com.cpf.admin.opr.service.AdmSessionService;
 import com.cpf.core.api.logging.CpfTransactionContext;
+import com.cpf.core.api.security.CpfSensitiveDataAccessRequest;
 import com.cpf.core.api.execution.CpfOnlineTransaction;
 import com.cpf.core.api.error.CpfValidationException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.CacheControl;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -59,16 +63,80 @@ public class AdmOperatorController extends com.cpf.admin.common.base.AdmBaseCont
     @Operation(operationId = "admOperatorCreateOperator", summary = "Create operator", description = "Creates an ADM operator after password policy validation.")
     public ResponseEntity<AdmOperator> createOperator(@RequestBody AdmOperatorCreateRequest request, HttpServletRequest servletRequest) {
         String reason = auditLogService.requireReason(request.reason());
-        AdmOperator operator = operatorService.createOperator(request);
-        auditLogService.record(
+        String actor = requestUser(servletRequest, request.requestUser());
+        AdmOperator operator = auditLogService.executeAudited(
                 CpfTransactionContext.transactionId(),
-                requestUser(servletRequest, request.requestUser()),
+                actor,
                 "OPERATOR_CREATE",
                 "adm_operator",
-                operator.operatorId(),
+                request.operatorId(),
                 reason,
-                servletRequest.getRemoteAddr());
+                null,
+                servletRequest.getRemoteAddr(),
+                () -> operatorService.createOperator(request),
+                value -> "operatorId=" + value.operatorId() + ",accountStatus=" + value.accountStatus());
         return ResponseEntity.ok(operator);
+    }
+
+    @PostMapping("/{operatorId}/contacts/raw")
+    @CpfOnlineTransaction(id = "OADMOP0048", name = "ADMOperatorRawContact")
+    @Operation(operationId = "admOperatorRawContact", summary = "운영자 연락처 원문 조회",
+            description = "별도 PII_RAW 권한과 사유가 있는 경우에만 연락처 원문을 반환하고 감사 로그를 남깁니다.")
+    public ResponseEntity<AdmOperator> rawContact(
+            @PathVariable String operatorId,
+            @RequestBody CpfSensitiveDataAccessRequest request,
+            HttpServletRequest servletRequest) {
+        String actor = requestUser(servletRequest, null);
+        String auditReason = auditLogService.requireReason(request.reason());
+        AdmOperator operator = operatorService.findOperatorRaw(operatorId);
+        auditLogService.record(
+                CpfTransactionContext.transactionId(), actor, "OPERATOR_PII_RAW_VIEW",
+                "adm_operator_profile", operatorId, auditReason,
+                null, "rawContactViewed=true", "PII 원문 조회", servletRequest.getRemoteAddr());
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(operator);
+    }
+
+    @PutMapping("/{operatorId}/contacts")
+    @CpfOnlineTransaction(id = "OADMOP0049", name = "ADMOperatorContactUpdate")
+    @Operation(operationId = "admOperatorUpdateContact", summary = "운영자 연락처 수정",
+            description = "Directory/Profile 연락처를 낙관적 잠금으로 수정합니다. 빈 값은 보존하고 clear 플래그만 명시적 삭제로 처리합니다.")
+    public ResponseEntity<AdmOperator> updateContact(
+            @PathVariable String operatorId,
+            @RequestBody AdmOperatorContactUpdateRequest request,
+            HttpServletRequest servletRequest) {
+        String actor = requestUser(servletRequest, request.requestUser());
+        String reason = auditLogService.requireReason(request.reason());
+        AdmOperator before = operatorService.findOperators().stream()
+                .filter(value -> value.operatorId().equals(operatorId)).findFirst().orElse(null);
+        AdmOperator result = auditLogService.executeAudited(
+                CpfTransactionContext.transactionId(), actor, "OPERATOR_CONTACT_UPDATE",
+                "adm_operator_profile", operatorId, reason, String.valueOf(before),
+                servletRequest.getRemoteAddr(),
+                () -> operatorService.updateContact(operatorId, request),
+                value -> "operatorId=" + value.operatorId() + ",versionNo=" + value.versionNo());
+        return ResponseEntity.ok(result);
+    }
+
+    @PutMapping("/{operatorId}/status")
+    @CpfOnlineTransaction(id = "OADMOP0050", name = "ADMOperatorStatusUpdate")
+    @Operation(operationId = "admOperatorUpdateStatus", summary = "운영자 계정 상태 변경",
+            description = "PENDING_ACTIVATION/ACTIVE/LOCKED/SUSPENDED/DISABLED 상태를 낙관적 잠금으로 변경합니다.")
+    public ResponseEntity<AdmOperator> updateStatus(
+            @PathVariable String operatorId,
+            @RequestBody AdmOperatorStatusUpdateRequest request,
+            HttpServletRequest servletRequest) {
+        String actor = requestUser(servletRequest, request.requestUser());
+        String reason = auditLogService.requireReason(request.reason());
+        AdmOperator before = operatorService.findOperators().stream()
+                .filter(value -> value.operatorId().equals(operatorId)).findFirst().orElse(null);
+        AdmOperator result = auditLogService.executeAudited(
+                CpfTransactionContext.transactionId(), actor, "OPERATOR_STATUS_UPDATE",
+                "adm_operator", operatorId, reason, String.valueOf(before),
+                servletRequest.getRemoteAddr(),
+                () -> operatorService.updateAccountStatus(operatorId, request),
+                value -> "operatorId=" + value.operatorId() + ",accountStatus=" + value.accountStatus()
+                        + ",versionNo=" + value.versionNo());
+        return ResponseEntity.ok(result);
     }
 
     @PostMapping("/{operatorId}/password")

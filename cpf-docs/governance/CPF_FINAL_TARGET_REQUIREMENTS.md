@@ -229,7 +229,11 @@ cpfDB, cmnDB, admDB, bzaDB, batDB, refDB
 
 Product Meta에는 System/Module Registry, 표준 Error/Response Code, Menu/Permission, Runtime Type Catalog, Masking/Retention Policy 등 실제 실행에 필요한 최소 데이터만 둔다. Password, Token, Private Key와 개인정보 원문은 Seed에 넣지 않는다.
 
-### 8.3 Migration
+### 8.3 Query Ownership
+
+업무/관리 Module의 Vendor SQL은 Java String literal에 두지 않고 Owner가 식별 가능한 Query ID와 `cpf-tools/db/vendor/<vendor>/runtime/<owner>` Resource로 관리한다. 업무/관리/Generated Domain은 `com.cpf.core.common.*` 내부 구현을 직접 참조하지 않고 Public API/SPI를 사용한다. Query Resource는 Owner, Consumer, Parameter/Result Contract와 Vendor별 검증 근거를 가져야 한다.
+
+### 8.4 Migration
 
 - 적용된 Flyway Migration은 불변
 - 신규 변경은 새 Version Migration으로 제공
@@ -395,6 +399,10 @@ ADM은 HR 원장을 소유하지 않지만 금융권 운영 승인과 Immutable 
 기본 DB Adapter를 제공할 수 있으나 LDAP/AD/IAM/HR 연계를 위한 확장 Port를 허용하며 실제 Password, Token, Private Key를 Profile에 저장하지 않는다.
 운영자 연락처는 인증 Identity 컬럼이 아니라 `adm_operator_profile` 등 Directory/Profile 경계가 소유한다. 휴대폰은 `연락처(휴대폰)`, 사내/내선 전화는 `내부 전화번호`로 구분하고 둘 다 선택값/문자열로 저장하여 국가번호와 선행 0을 보존한다. 목록·다운로드·로그·Evidence에서는 개인정보 Masking/Audit 정책을 적용한다.
 
+ADM 제품 Runtime은 영속 DB를 fail-closed로 사용한다. DB 오류를 메모리 저장소 성공으로 변환하지 않으며, MEMORY 저장소는 `local/test/demo/library` 등 명시적 비제품 Profile에서만 허용한다. 일반 운영자 생성은 `PENDING_ACTIVATION`, Role 미부여, 비밀번호 변경 필요를 기본으로 하고 Identity/Profile/Role Mapping은 하나의 Transaction 경계와 생성 `operationId` 멱등성으로 보호한다.
+
+기본 운영자 API는 연락처 Masked Projection만 반환한다. Raw PII는 별도 권한·사유·`transactionId`·감사가 필요하고 조회 사유는 URL query string이 아니라 POST body로 전달하며 응답은 `Cache-Control: no-store`를 사용한다.
+
 ADM 위험조치는 단순 RBAC 버튼 권한만으로 실행하지 않는다. 다음을 만족하는 독립 Approval Runtime을 `cpf-admin`이 소유한다.
 
 - 승인 정책 Version과 시행일/만료일
@@ -418,6 +426,10 @@ BZA는 고객 업무 관리자와 업무 결재를 소유한다. `bza_admin_user
 - 직원, 사번, 조직 소속, 직급, 직책, 재직 상태
 - 업무 이메일, `연락처(휴대폰)`, `내부 전화번호`를 서로 다른 선택 Profile 값으로 관리하고 전화번호는 숫자형으로 저장하지 않음
 - 신규 직원 재직 상태의 Safe Default는 `EMPLOYED`; 기존 데이터는 Migration 정책 없이 임의 변환하지 않음
+- 직원 재직 상태와 관리자 인증 계정 상태는 서로 다른 Catalog로 관리하며 `ACTIVE`를 직원 재직상태와 혼용하지 않음
+- 일반 BZA 관리자 생성은 `PENDING_ACTIVATION`, Role 미부여, 비밀번호 변경 필요를 기본으로 하며 Role 유효성 확인 후에만 `ACTIVE` 전환
+- BZA 기본 직원 목록/API는 이메일·휴대폰·내부전화 Masked Projection을 사용하고 Raw 조회는 별도 `PII_RAW` 권한·사유·Audit·`no-store`를 요구
+- BZA Audit Snapshot은 PII를 Masking하고 Password/Secret/Token/Credential/Attachment 원문을 Redaction한 canonical snapshot으로 Hash Chain을 구성
 - 겸직/복수 조직/파견/직무대행을 표현할 수 있는 유효기간 기반 Assignment
 - 직원 한 명의 복수 Role을 지원하는 User-Role Mapping과 역할 유효기간
 - 조직개편·인사변경 후에도 과거 결재가 변하지 않도록 결재 생성 시 조직·직급·직책·결재자 Snapshot 보존

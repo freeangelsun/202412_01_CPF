@@ -11,3 +11,8 @@ spring:
       username: ${ADM_DATASOURCE_USERNAME:${ADM_DB_USERNAME:cpf_adm_app}}
       password: ${ADM_DATASOURCE_PASSWORD:${ADM_DB_PASSWORD:__REPLACE_BY_ENV__}}
       jndi-name: ${ADM_DATASOURCE_JNDI_NAME:java:comp/env/jdbc/cpfAdminDataSource}
+
+cpf:
+  adm:
+    persistence:
+      mode: ${CPF_ADM_PERSISTENCE_MODE:DATABASE}

@@ -12,10 +12,18 @@ public record AdmOperatorCreateRequest(
         String operatorName,
         String mobileNo,
         String officePhoneNo,
+        String operationId,
         String password,
         List<String> roleIds,
         String requestUser,
         String reason) {
+
+    /** operationId 도입 전 연락처 Consumer 호환 생성자입니다. */
+    public AdmOperatorCreateRequest(
+            String operatorId, String operatorName, String mobileNo, String officePhoneNo,
+            String password, List<String> roleIds, String requestUser, String reason) {
+        this(operatorId, operatorName, mobileNo, officePhoneNo, null, password, roleIds, requestUser, reason);
+    }
 
     /** 연락처 필드 추가 전 Consumer의 생성자 계약을 유지합니다. */
     public AdmOperatorCreateRequest(
@@ -25,6 +33,6 @@ public record AdmOperatorCreateRequest(
             List<String> roleIds,
             String requestUser,
             String reason) {
-        this(operatorId, operatorName, null, null, password, roleIds, requestUser, reason);
+        this(operatorId, operatorName, null, null, null, password, roleIds, requestUser, reason);
     }
 }

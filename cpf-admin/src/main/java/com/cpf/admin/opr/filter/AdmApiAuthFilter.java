@@ -380,6 +380,15 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
         if (HttpMethod.POST.matches(method) && path.endsWith("/unlock")) {
             return "PASSWORD_UNLOCK";
         }
+        if (HttpMethod.POST.matches(method) && path.endsWith("/contacts/raw")) {
+            return "OPERATOR_PII_RAW";
+        }
+        if (HttpMethod.PUT.matches(method) && path.endsWith("/contacts")) {
+            return "OPERATOR_CONTACT_UPDATE";
+        }
+        if (HttpMethod.PUT.matches(method) && path.endsWith("/status")) {
+            return "OPERATOR_STATUS_UPDATE";
+        }
         if (HttpMethod.PUT.matches(method) && path.endsWith("/roles")) {
             return "OPERATOR_ROLE_UPDATE";
         }

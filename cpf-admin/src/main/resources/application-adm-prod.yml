@@ -15,3 +15,8 @@ spring:
 logging:
   level:
     com.cpf.admin: INFO
+
+cpf:
+  adm:
+    persistence:
+      mode: DATABASE

@@ -1,5 +1,7 @@
 package com.cpf.bizadmin.auth.service;
 
+import com.cpf.bizadmin.common.model.BzaAdminAccountStatus;
+
 import com.cpf.bizadmin.auth.repository.BzaAuthRepository;
 import com.cpf.bizadmin.audit.service.BzaBusinessAuditService;
 import com.cpf.bizadmin.auth.repository.BzaAuthRepository.BzaOperatorRow;
@@ -85,7 +87,7 @@ public class BzaAuthService extends com.cpf.bizadmin.common.base.BzaBaseService 
             recordLogin(null, loginId, "FAIL", "등록되지 않은 업무 관리자", clientIp, userAgent);
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "업무 관리자 계정을 확인할 수 없습니다.");
         }
-        if (!"Y".equals(operator.useYn()) || "Y".equals(operator.lockYn())) {
+        if (!BzaAdminAccountStatus.ACTIVE.name().equals(operator.accountStatus()) || !"Y".equals(operator.useYn()) || "Y".equals(operator.lockYn())) {
             recordLogin(operator.adminUserId(), loginId, "FAIL", "사용 중지 또는 잠금 상태", clientIp, userAgent);
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "업무 관리자 계정이 사용할 수 없는 상태입니다.");
         }
@@ -134,7 +136,7 @@ public class BzaAuthService extends com.cpf.bizadmin.common.base.BzaBaseService 
         }
         BzaOperatorRow operator = authRepository.findOperatorByLoginId(state.loginId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "업무 관리자 계정 상태가 유효하지 않습니다."));
-        if (!"Y".equals(operator.useYn()) || "Y".equals(operator.lockYn())) {
+        if (!BzaAdminAccountStatus.ACTIVE.name().equals(operator.accountStatus()) || !"Y".equals(operator.useYn()) || "Y".equals(operator.lockYn())) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "업무 관리자 계정 상태가 유효하지 않습니다.");
         }
         if (authRepository.revokeRefreshToken(refreshHash) != 1) {
@@ -328,7 +330,7 @@ auditService.record(operator.loginId(), "SESSION_REVOKE", "bza_refresh_token", S
     }
 
     private void requireActiveOperator(BzaOperatorRow operator) {
-        if (!"Y".equals(operator.useYn()) || "Y".equals(operator.lockYn())) {
+        if (!BzaAdminAccountStatus.ACTIVE.name().equals(operator.accountStatus()) || !"Y".equals(operator.useYn()) || "Y".equals(operator.lockYn())) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "업무 관리자 계정 상태가 유효하지 않습니다.");
         }
     }
@@ -389,6 +391,7 @@ auditService.record(operator.loginId(), "SESSION_REVOKE", "bza_refresh_token", S
         response.put("loginId", operator.loginId());
         response.put("operatorName", operator.adminName());
         response.put("roleCode", operator.roleCode());
+        response.put("accountStatus", operator.accountStatus());
         response.put("useYn", operator.useYn());
         response.put("lockYn", operator.lockYn());
         response.put("failCount", operator.loginFailCount());

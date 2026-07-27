@@ -4,111 +4,79 @@
 
 - Repository: `freeangelsun/202412_01_CPF`
 - Branch: `master`
-- 작업 시작 SHA: `702bf83580b9c4db2dbba6482ece233e00842f1b` (`20260727_03`)
+- 이번 ChatGPT 작업 시작 SHA: `00780dc14ef621578f6f7ca61ef1d0c9973c60e6` (`20260727_04`)
+- Working Tree: `CPF_20260727_05_ROOT_PATCH` — 아직 Commit/Push 하지 않음
 - 최상위 정본: `cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md`
-- QA 입력: `CPF 차기 통합 QA 요구사항` — 기준 SHA `9e4edaef...`에서 작성됐으므로 최신 `702bf835...`의 문서 보강 Commit까지 재기준화한다.
-- 현재 작업자: ChatGPT 1차 개발. Codex는 즉시 투입하지 않고 몇 차례 ChatGPT 개발 후 최신 누적 Diff 기준으로 2차 독립 검수한다.
+- 통합 QA 입력 정본: `cpf-docs/work/review/CPF_NEXT_QA_REQUIREMENTS_CHATGPT_FIRST_CODEX_REVIEW_20260727_05.md`
 
-## 2. 작업 전 통합 리뷰 결론
+## 2. 이번 작업 종료 판정
 
-QA와 기존 ChatGPT 계획은 큰 방향이 일치한다. 이번 작업에서는 범위를 넓게 벌리지 않고 다음 폐쇄 Change Set을 먼저 처리한다.
+이번 Change Set B — ADM/BZA Data Safety는 **구현 완료**로 닫는다.
 
-### CHANGE-SET-A — Stack / Artifact / Baseline Safety
+완료된 구현 범위:
 
-1. **기술 Stack 지원 상태를 정본화한다.**
-   - 현재: Java 25 + Gradle 9.1.0 + Spring Boot 3.4.13.
-   - Spring Boot 3.4.13 공식 범위는 Java 24 및 Gradle 8.x까지이므로 현재 조합은 GA Release 가능 상태가 아니다.
-   - `TRANSITION` 상태를 명시하고, Boot 4 계열 Migration을 별도 Change Set으로 검증한다.
-   - 당장 Major Upgrade를 강행하지 않고 External WAS, Servlet, Spring Batch, Security, MyBatis, Flyway, Generator 회귀 범위를 먼저 닫는다.
+- ADM 운영자 Identity/Profile/Role 생성 Transaction 원자성
+- `operationId` 기반 운영자 생성 멱등성
+- 신규 ADM 운영자 `PENDING_ACTIVATION`, Role 자동 부여 금지
+- Product ADM DB fail-closed, MEMORY는 명시적 local/test/demo/library 전용
+- ADM DB startup/readiness 상태 가시성
+- ADM/BZA 기본 연락처 Masking, Raw 조회 별도 권한·사유·Audit·`no-store`
+- Raw 조회 사유의 URL/query-string 노출 금지 — POST body 사용
+- 연락처 정규화, Blank/NULL/명시적 Clear 계약
+- BZA 직원 재직상태와 관리자 계정상태 Catalog 분리
+- BZA 신규 관리자 `PENDING_ACTIVATION`, Role 자동 부여 금지
+- BZA Audit Snapshot PII Masking/Secret Redaction
+- BZA Java inline SQL 제거 및 Vendor Query Resource 이관
+- ADM/BZA의 `com.cpf.core.common.*` 직접 import 제거
+- Public `CpfVendorSqlCatalog` API 경계 제공
+- MariaDB V61 Fresh/Upgrade/Rollback 정본 및 generated lifecycle parity
+- Data Safety 정적 Gate `check-admin-data-safety.ps1`
 
-2. **Version Single Source를 만든다.**
-   - `gradle/cpf-stack.properties`를 Java/Gradle/Spring Boot/Plugin Stack 정본으로 사용한다.
-   - Root, Module, Generator, Standalone Export가 같은 값을 사용한다.
+다음 항목은 구현 부족이 아니라 현재 실행환경 부재로 **미검증**이다.
 
-3. **Artifact 공급 모드를 명확히 분리한다.**
-   - `LOCAL_DEV`: 검증된 Shared Local Maven Repository.
-   - `REMOTE`: Nexus/Artifactory 등 승인 Registry만 사용. Local fallback 금지.
-   - `OFFLINE`: Manifest/Checksum을 가진 Versioned Offline Maven Bundle.
+- Java 25 + Gradle 9.1 전체 clean/test/assemble
+- PowerShell `check-admin-data-safety.ps1` 실제 실행
+- MariaDB V59→V60→V61 upgrade/rollback/reapply/fresh/runtime
+- ADM/BZA Browser E2E
+- DB fault/동시성 실제 Runtime
 
-4. **Local Artifact Publish를 fail-closed로 강화한다.**
-   - 자동 Sync 기본값은 `false`.
-   - `aggregateQualityBuild` 이후 staging publish → POM/BOM/Plugin Marker/Hash 검증 → repository lock → promote.
-   - Manifest에 Commit뿐 아니라 dirty working-tree `sourceFingerprint`를 기록해 stale Artifact 재사용을 막는다.
-   - Manifest를 마지막에 기록하고 실패 시 기존 version으로 rollback한다.
-   - 범용 Gradle `publish`는 공식 Entry에서 제외하고 Local/Staging/Remote 목적별 Task만 허용한다.
-   - Generated Standalone Consumer는 Local/Offline manifest가 없으면 build를 중단한다.
+미검증 항목은 Commercial Release Gate를 통과시키지 않는다.
 
-5. **최신 SHA와 문서 상태를 재기준화한다.**
-   - 과거 Patch 설명과 당시 SHA는 History로 보존한다.
-   - 현재 검수 기준 SHA와 실행 미검증 상태를 별도로 기록한다.
+## 3. A-V Stack/Artifact 상태
 
-## 3. 이번 Change Set에서 보호할 기존 성공 기능
+`20260727_04`에서 구현한 Stack/Artifact 안전장치는 Source 계약 기준 완료 상태를 유지한다.
+다만 Java25/Gradle9, Local staging/promotion/rollback, Offline standalone, bootJar/bootWar hash, Remote Registry는 실제 환경 검증이 필요하다.
 
-- BAT 158 Query Pack/V58 기존 Evidence 자체는 폐기하지 않는다.
-- ADM의 MBR 직접 종속 제거.
-- REF의 MBR 중립화.
-- BAT standalone 역할 분리와 Lease/Fencing 구조.
-- V59/V60 Source/Migration/Rollback 변경분.
-- ADM Identity/Profile 연락처 Ownership.
-- BZA `EMPLOYED` 신규 Default 변경분.
+이를 다시 `부분 구현`으로 낮추지 않는다. **구현 상태=완료 / 실행 검증 상태=미검증**으로 분리한다.
 
-단, 이번 Build/Generator/Artifact 변경의 영향권에 들어오는 Compile/Test/Generated Domain/Packaging Evidence는 `재검증 필요`로 다시 연다.
+## 4. 다음 실제 개발 Change Set
 
-## 4. 이번 Change Set 이후 다음 우선순위
+다음 작업은 **CHANGE SET S — 최종 지원 Stack Migration**이다.
 
-### CHANGE-SET-B — ADM/BZA Data Safety
+목표:
 
-- ADM 운영자 Identity/Profile/Role 생성 Transaction 원자성.
-- Product DB 오류 Memory fallback 금지/fail-closed.
-- 연락처 입력 정규화, Masked API/UI, Audit redaction, Log/Trace/Evidence PII 제거.
-- BZA 상태 Catalog와 `ACTIVE`/`EMPLOYED` 의미 분리.
-- V59/V60 upgrade/rollback/reapply/fresh lifecycle.
-- BZA inline SQL과 `com.cpf.core.common.*` 경계 보정.
+1. `TRANSITION` 상태를 제거한다.
+2. 작업 시점 공식 지원 Matrix를 다시 확인하여 Java 25 + Gradle 9.1과 공식 호환되는 Spring Boot 4.x Target을 확정한다.
+3. Root/Module/BOM/Convention Plugin/Generator/Exported Domain/BAT/ADM/BZA/Gateway/REF를 한 번에 이관한다.
+4. Spring Framework/Security/Batch, MyBatis, Flyway, Actuator, Testcontainers, springdoc, Servlet/Jakarta, Embedded/External WAS를 함께 이관한다.
+5. bootJar/bootWar/External WAR/Generated Domain까지 검증 가능한 상태로 닫는다.
+6. 구현 가능한 항목을 `부분 구현/미구현/재확인 필요`로 넘기지 않는다.
 
-### CHANGE-SET-C — Generated Domain
+그 다음 순서는 `C Generated Domain → D BAT → E Gateway → U ADM/BZA UX → DB → T Gate/Tool/CI/Release → 최종 Full Regression`이다.
 
-- MBR/ACC/Generator Golden parity.
-- Root 고정 Include 제거 정책.
-- SystemCode Package/Class 추론 제거.
-- 임시 Domain 2개 create/export/build/runtime/remove/regenerate.
+## 5. 보호할 성공 기능
 
-### CHANGE-SET-D — BAT
+- BAT standalone 역할 분리와 Lease/Fencing
+- BAT Query Contract와 V58 구조
+- ADM Generated Domain 직접 종속 제거
+- REF Generated Domain 중립화
+- BZA Directory/Assignment/Approval Engine의 기존 정상 기능
+- V59/V60 연락처/기본값 lifecycle
+- LOCAL_DEV/REMOTE/OFFLINE Artifact 공급 정책
+- `transactionId` 단일 제품 용어
 
-- Legacy 삭제 Inventory와 Runtime/EDU parity.
-- Generated Job Pack 표준.
-- Scheduler/Worker/Control/Center-Cut/Agent Multi-instance.
+후속 변경이 위 기능의 영향권에 들어가면 targeted regression 대상으로 다시 연다.
 
-### CHANGE-SET-E — Gateway / Operations
+## 6. Git 정책
 
-- target-down failover, timeout/retry/UNKNOWN_RESULT, O/S/B, Header trust, 2 Gateway drift/rejoin.
-- ADM/BZA Browser, Observability, Install/Upgrade/Rollback, Release.
-
-## 5. Gate/Tool 정책
-
-정본: `cpf-docs/guides/CPF_GATE_AND_TOOL_LIFECYCLE_GUIDE.md`
-
-- Gate/Tool은 `DEV_ONLY` / `CI_RELEASE` / `PRODUCT_ADMIN_TOOL`로 분류한다.
-- 대표 검증은 `QUICK` / `VERIFY` / `FULL`로 정리한다.
-- 호출자 0, Requirement 대체 완료, Legacy 전제, 중복 Gate는 삭제 후보로 관리한다.
-- ChatGPT가 안전하게 삭제를 확정하지 못한 후보는 Codex가 최신 Caller/Requirement Coverage를 확인 후 삭제한다.
-- 개발/CI Gate는 Runtime 제품 배포물에 포함하지 않는다.
-
-## 6. 완료 판정
-
-이번 Change Set은 Source 구현만으로 완료 처리하지 않는다.
-
-필수 후속 검증:
-
-- Java 25 실제 Gradle configuration/compile/test.
-- Included Build plugin/BOM build.
-- `aggregateQualityBuild`.
-- 실패 Build가 Local Repository를 갱신하지 않는 Fault Test.
-- staging/promotion/manifest/hash 검증.
-- Generated Standalone Domain Local/Offline plugin resolution.
-- bootJar/bootWar 정확 Version/Hash 검증.
-
-현재 환경에서 실행하지 못한 항목은 `미검증`으로 유지한다.
-
-## 7. Git 작업
-
-사용자 명시 승인 없이 ChatGPT/Codex가 Commit, Push, Branch, Tag, Release를 생성하지 않는다.
+사용자 명시 승인 없이 Commit, Push, Branch, Tag, Release를 생성하지 않는다.

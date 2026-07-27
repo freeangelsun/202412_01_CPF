@@ -1,6 +1,6 @@
 package com.cpf.bizadmin.auth.repository;
 
-import com.cpf.core.common.database.CpfVendorSqlCatalog;
+import com.cpf.core.api.database.CpfVendorSqlCatalog;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.env.Environment;
@@ -45,21 +45,7 @@ public class BzaAuthRepository {
      * 로그인 ID로 업무 관리자 계정을 조회합니다.
      */
     public Optional<BzaOperatorRow> findOperatorByLoginId(String loginId) {
-        List<BzaOperatorRow> rows = jdbc().query("""
-                SELECT admin_user_id,
-                       admin_login_id,
-                       admin_name,
-                       password_hash,
-                       role_code,
-                       use_yn,
-                       lock_yn,
-                       login_fail_count,
-                       password_change_required_yn,
-                       password_expire_at,
-                       last_login_at
-                  FROM bza_admin_user
-                 WHERE admin_login_id = :loginId
-                """, new MapSqlParameterSource("loginId", loginId), this::mapOperator);
+        List<BzaOperatorRow> rows = jdbc().query(sql.required("auth-repository-find-operator-by-login-id-01"), new MapSqlParameterSource("loginId", loginId), this::mapOperator);
         return rows.stream().findFirst().map(row -> {
             List<String> roleCodes = findEffectiveRoleCodes(row.adminUserId(), row.roleCode());
             return row.withPermissions(findMenus(roleCodes), findButtons(roleCodes));
@@ -95,38 +81,7 @@ public class BzaAuthRepository {
      * 업무 관리자 로그인 이력을 저장합니다.
      */
     public void insertLoginHistory(LoginHistoryWrite row) {
-        jdbc().update("""
-                INSERT INTO bza_login_history (
-                    admin_user_id,
-                    login_domain,
-                    admin_login_id,
-                    login_result,
-                    failure_reason,
-                    client_ip,
-                    user_agent,
-                    transaction_id,
-                    module_id,
-                    was_id,
-                    server_instance_id,
-                    created_by,
-                    updated_by
-                )
-                VALUES (
-                    :adminUserId,
-                    :loginDomain,
-                    :adminLoginId,
-                    :loginResult,
-                    :failureReason,
-                    :clientIp,
-                    :userAgent,
-                    :transactionId,
-                    :moduleId,
-                    :wasId,
-                    :serverInstanceId,
-                    'BZA_AUTH',
-                    'BZA_AUTH'
-                )
-                """, new MapSqlParameterSource()
+        jdbc().update(sql.required("auth-repository-insert-login-history-01"), new MapSqlParameterSource()
                 .addValue("adminUserId", row.adminUserId())
                 .addValue("loginDomain", row.loginDomain())
                 .addValue("adminLoginId", row.adminLoginId())
@@ -144,28 +99,7 @@ public class BzaAuthRepository {
      * refresh token hash를 저장합니다.
      */
     public void insertRefreshToken(RefreshTokenWrite row) {
-        jdbc().update("""
-                INSERT INTO bza_refresh_token (
-                    admin_user_id,
-                    login_domain,
-                    refresh_token_hash,
-                    transaction_id,
-                    expire_at,
-                    revoked_yn,
-                    created_by,
-                    updated_by
-                )
-                VALUES (
-                    :adminUserId,
-                    :loginDomain,
-                    :refreshTokenHash,
-                    :transactionId,
-                    :expireAt,
-                    'N',
-                    'BZA_AUTH',
-                    'BZA_AUTH'
-                )
-                """, new MapSqlParameterSource()
+        jdbc().update(sql.required("auth-repository-insert-refresh-token-01"), new MapSqlParameterSource()
                 .addValue("adminUserId", row.adminUserId())
                 .addValue("loginDomain", row.loginDomain())
                 .addValue("refreshTokenHash", row.refreshTokenHash())
@@ -177,19 +111,7 @@ public class BzaAuthRepository {
      * refresh token hash로 저장된 token 상태를 조회합니다.
      */
     public Optional<RefreshTokenRow> findRefreshToken(String refreshTokenHash) {
-        List<RefreshTokenRow> rows = jdbc().query("""
-                SELECT rt.refresh_token_hash,
-                       rt.admin_user_id,
-                       rt.login_domain,
-                       rt.expire_at,
-                       rt.revoked_yn,
-                       rt.transaction_id,
-                       u.admin_login_id
-                  FROM bza_refresh_token rt
-                  JOIN bza_admin_user u
-                    ON u.admin_user_id = rt.admin_user_id
-                 WHERE rt.refresh_token_hash = :refreshTokenHash
-                """, new MapSqlParameterSource("refreshTokenHash", refreshTokenHash), this::mapRefreshToken);
+        List<RefreshTokenRow> rows = jdbc().query(sql.required("auth-repository-find-refresh-token-01"), new MapSqlParameterSource("refreshTokenHash", refreshTokenHash), this::mapRefreshToken);
         return rows.stream().findFirst();
     }
 
@@ -217,15 +139,7 @@ public class BzaAuthRepository {
     }
 
     public void insertBusinessAudit(Map<String, ?> values) {
-        jdbc().update("""
-                INSERT INTO bza_business_audit (
-                    transaction_id, actor_id, action_type, target_type, target_id,
-                    reason, before_data, after_data, created_by, updated_by
-                ) VALUES (
-                    :transactionId, :actorId, :actionType, :targetType, :targetId,
-                    :reason, :beforeData, :afterData, :actorId, :actorId
-                )
-                """, values);
+        jdbc().update(sql.required("auth-repository-insert-business-audit-01"), values);
     }
 
     /** 기존 저장값이 그대로일 때만 강화된 비밀번호 hash로 교체합니다. */
@@ -234,7 +148,7 @@ public class BzaAuthRepository {
             String previousHash,
             String newHash,
             String updatedBy) {
-        return jdbc().update(sql.required("auth-update-password-hash-if-unchanged"), new MapSqlParameterSource()
+        return jdbc().update(sql.required("auth-repository-update-password-hash-if-unchanged-01"), new MapSqlParameterSource()
                 .addValue("adminUserId", adminUserId)
                 .addValue("previousHash", previousHash)
                 .addValue("newHash", newHash)
@@ -271,25 +185,15 @@ public class BzaAuthRepository {
     private List<String> findEffectiveRoleCodes(long adminUserId, String legacyRoleCode) {
         Set<String> roles = new LinkedHashSet<>();
         Integer assignmentCount = jdbc().queryForObject(
-                "SELECT COUNT(*) FROM bza_user_role WHERE admin_user_id = :adminUserId",
+                sql.required("auth-repository-find-effective-role-codes-03"),
                 new MapSqlParameterSource("adminUserId", adminUserId), Integer.class);
-        List<String> effective = jdbc().queryForList("""
-                SELECT ur.role_code
-                  FROM bza_user_role ur
-                  JOIN bza_role r ON r.role_code = ur.role_code AND r.use_yn = 'Y'
-                 WHERE ur.admin_user_id = :adminUserId
-                   AND (ur.valid_from IS NULL OR ur.valid_from <= CURRENT_TIMESTAMP(3))
-                   AND (ur.valid_to IS NULL OR ur.valid_to > CURRENT_TIMESTAMP(3))
-                 ORDER BY ur.primary_yn DESC, ur.role_code
-                """, new MapSqlParameterSource("adminUserId", adminUserId), String.class);
+        List<String> effective = jdbc().queryForList(sql.required("auth-repository-find-effective-role-codes-01"), new MapSqlParameterSource("adminUserId", adminUserId), String.class);
         roles.addAll(effective);
 
         // 다중 Role 이력이 한 번도 없는 구형 DB/계정만 legacy role_code를 fallback으로 사용합니다.
         // 이력이 존재하는 계정에서 만료/회수된 Role이 legacy 컬럼 때문에 부활하지 않게 합니다.
         if ((assignmentCount == null || assignmentCount == 0) && legacyRoleCode != null && !legacyRoleCode.isBlank()) {
-            Integer activeLegacy = jdbc().queryForObject("""
-                    SELECT COUNT(*) FROM bza_role WHERE role_code = :roleCode AND use_yn = 'Y'
-                    """, new MapSqlParameterSource("roleCode", legacyRoleCode), Integer.class);
+            Integer activeLegacy = jdbc().queryForObject(sql.required("auth-repository-find-effective-role-codes-02"), new MapSqlParameterSource("roleCode", legacyRoleCode), Integer.class);
             if (activeLegacy != null && activeLegacy > 0) roles.add(legacyRoleCode);
         }
         return List.copyOf(roles);
@@ -297,20 +201,7 @@ public class BzaAuthRepository {
 
     private List<String> findMenus(List<String> roleCodes) {
         if (roleCodes.isEmpty()) return List.of();
-        List<String> rows = jdbc().queryForList("""
-                SELECT p.menu_code
-                  FROM bza_permission p
-                  JOIN bza_role r ON r.role_code = p.role_code AND r.use_yn = 'Y'
-                  JOIN bza_menu m ON m.menu_code = p.menu_code AND m.use_yn = 'Y'
-                 WHERE p.role_code IN (:roleCodes)
-                   AND p.use_yn = 'Y'
-                   AND p.environment_code IN ('ALL', :environmentCode)
-                   AND m.environment_code IN ('ALL', :environmentCode)
-                 GROUP BY p.menu_code
-                HAVING SUM(CASE WHEN p.allow_yn = 'N' THEN 1 ELSE 0 END) = 0
-                   AND SUM(CASE WHEN p.allow_yn = 'Y' THEN 1 ELSE 0 END) > 0
-                 ORDER BY p.menu_code
-                """, new MapSqlParameterSource()
+        List<String> rows = jdbc().queryForList(sql.required("auth-repository-find-menus-01"), new MapSqlParameterSource()
                 .addValue("roleCodes", roleCodes)
                 .addValue("environmentCode", environmentCode), String.class);
         return rows.stream().map(BzaAuthRepository::normalizeMenuCode).distinct().toList();
@@ -318,20 +209,7 @@ public class BzaAuthRepository {
 
     private List<String> findButtons(List<String> roleCodes) {
         if (roleCodes.isEmpty()) return List.of();
-        List<Map<String, Object>> rows = jdbc().queryForList("""
-                SELECT p.menu_code AS menuCode, p.button_code AS buttonCode
-                  FROM bza_permission p
-                  JOIN bza_role r ON r.role_code = p.role_code AND r.use_yn = 'Y'
-                  JOIN bza_menu m ON m.menu_code = p.menu_code AND m.use_yn = 'Y'
-                 WHERE p.role_code IN (:roleCodes)
-                   AND p.use_yn = 'Y'
-                   AND p.environment_code IN ('ALL', :environmentCode)
-                   AND m.environment_code IN ('ALL', :environmentCode)
-                 GROUP BY p.menu_code, p.button_code
-                HAVING SUM(CASE WHEN p.allow_yn = 'N' THEN 1 ELSE 0 END) = 0
-                   AND SUM(CASE WHEN p.allow_yn = 'Y' THEN 1 ELSE 0 END) > 0
-                 ORDER BY p.menu_code, p.button_code
-                """, new MapSqlParameterSource()
+        List<Map<String, Object>> rows = jdbc().queryForList(sql.required("auth-repository-find-buttons-01"), new MapSqlParameterSource()
                 .addValue("roleCodes", roleCodes)
                 .addValue("environmentCode", environmentCode));
         List<String> permissions = new ArrayList<>();
@@ -374,6 +252,7 @@ public class BzaAuthRepository {
                 rs.getString("admin_name"),
                 rs.getString("password_hash"),
                 rs.getString("role_code"),
+                rs.getString("account_status"),
                 rs.getString("use_yn"),
                 rs.getString("lock_yn"),
                 rs.getInt("login_fail_count"),
@@ -405,6 +284,7 @@ public class BzaAuthRepository {
             String adminName,
             String passwordHash,
             String roleCode,
+            String accountStatus,
             String useYn,
             String lockYn,
             int loginFailCount,
@@ -420,6 +300,7 @@ public class BzaAuthRepository {
                     adminName,
                     passwordHash,
                     roleCode,
+                    accountStatus,
                     useYn,
                     lockYn,
                     loginFailCount,

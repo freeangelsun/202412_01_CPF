@@ -2,6 +2,7 @@ package com.cpf.bizadmin.backoffice.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
@@ -18,6 +19,9 @@ class BzaEmployeeRequestContactContractTest {
 
         assertEquals("+82-10-1234-5678", request.mobileNo());
         assertEquals("02-1234-5678 (1234)", request.officePhoneNo());
+        assertFalse(request.clearEmail());
+        assertFalse(request.clearMobileNo());
+        assertFalse(request.clearOfficePhoneNo());
     }
 
     @Test

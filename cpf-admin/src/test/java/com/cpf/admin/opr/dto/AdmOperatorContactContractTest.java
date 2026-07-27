@@ -2,6 +2,7 @@ package com.cpf.admin.opr.dto;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -29,7 +30,10 @@ class AdmOperatorContactContractTest {
 
         assertNull(operator.mobileNo());
         assertNull(operator.officePhoneNo());
+        assertEquals("ACTIVE", operator.accountStatus());
+        assertFalse(operator.rawViewAllowed());
         assertNull(request.mobileNo());
         assertNull(request.officePhoneNo());
+        assertNull(request.operationId());
     }
 }

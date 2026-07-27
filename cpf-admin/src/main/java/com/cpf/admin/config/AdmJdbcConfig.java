@@ -21,13 +21,21 @@ import javax.sql.DataSource;
 @Configuration
 public class AdmJdbcConfig {
     @Bean(name = "admDataSource")
-    public DataSource admDataSource(Environment environment) throws NamingException {
-        return CpfDataSources.resolve(environment, "spring.datasource.adm");
+    public DataSource admDataSource(
+            Environment environment,
+            AdmPersistencePolicy persistencePolicy) throws NamingException {
+        return persistencePolicy.memoryEnabled()
+                ? new AdmMemoryDataSource()
+                : CpfDataSources.resolve(environment, "spring.datasource.adm");
     }
 
     @Bean(name = "admTransactionManager")
-    public PlatformTransactionManager admTransactionManager(@Qualifier("admDataSource") DataSource admDataSource) {
-        return new DataSourceTransactionManager(admDataSource);
+    public PlatformTransactionManager admTransactionManager(
+            @Qualifier("admDataSource") DataSource admDataSource,
+            AdmPersistencePolicy persistencePolicy) {
+        return persistencePolicy.memoryEnabled()
+                ? new AdmMemoryTransactionManager()
+                : new DataSourceTransactionManager(admDataSource);
     }
 
     @Bean(name = "admJdbcTemplate")

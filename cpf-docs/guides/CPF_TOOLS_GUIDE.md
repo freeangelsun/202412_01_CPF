@@ -215,91 +215,19 @@ Generated Domain/독립 WAS의 CPF Library 공급은 다음 세 모드를 제품
 CI/STG/PROD에서는 개발자 Local Repository fallback을 사용하지 않는다.
 `OFFLINE`도 수동 JAR 복사가 아니라 Gradle이 검증된 Bundle을 자동 선택·패키징하는 방식으로 구현한다.
 
-## 18. Artifact 공급·배포 Tool
-
-상세 정본:
-
-- `cpf-docs/guides/CPF_ARTIFACT_SUPPLY_AND_CICD_GUIDE.md`
-
-주요 Entry:
+## 18. ADM/BZA Data Safety 빠른 검수
 
 ```powershell
-# 현재 기술 Stack 정본/지원상태 확인
-.\gradlew.bat checkCpfStackSupport
-
-# Public Artifact를 공개하기 전 전체 품질 집계
-.\gradlew.bat aggregateQualityBuild --no-daemon --max-workers=1
-
-# LOCAL_DEV: Quality → staging → 검증 → Shared Local promotion
-.\gradlew.bat publishCpfVerifiedLocalPlatformArtifacts `
-  -PcpfArtifactMode=LOCAL_DEV --no-daemon --max-workers=1
-
-# LOCAL_DEV promoted set 재검증
-.\gradlew.bat verifyCpfLocalArtifactPropagation `
-  -PcpfArtifactMode=LOCAL_DEV --no-daemon --max-workers=1
-
-# Registry가 없는 환경용 Offline Bundle 생성
-.\gradlew.bat buildCpfOfflineArtifactBundle `
-  -PcpfArtifactMode=LOCAL_DEV --no-daemon --max-workers=1
-
-# Jenkins/CI: 승인 Remote Registry 전용 publish
-$env:CPF_ARTIFACT_MODE='REMOTE'
-$env:CPF_ARTIFACT_REPOSITORY_URL='https://nexus.example/repository/cpf-releases/'
-.\gradlew.bat publishCpfPlatformArtifacts --no-daemon --max-workers=1
+pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\check-admin-data-safety.ps1
 ```
 
-### 18.1 주요 옵션
+다른 작업경로를 검증할 때:
 
-| 설정 | Default | 의미 |
-|---|---|---|
-| `-PcpfArtifactMode` / `CPF_ARTIFACT_MODE` | `LOCAL_DEV` | `LOCAL_DEV`, `REMOTE`, `OFFLINE` |
-| `-PcpfLocalArtifactRepository` | `${user.home}/.cpf/repository` | 검증 Local Maven Repository |
-| `CPF_LOCAL_ARTIFACT_REPOSITORY` | 위와 동일 | Local 경로 환경변수 |
-| `-PcpfArtifactRepositoryUrl` / `CPF_ARTIFACT_REPOSITORY_URL` | 없음 | Remote Nexus/Artifactory URL. Gradle Property 우선 |
-| `CPF_ARTIFACT_REPOSITORY_USER` | 없음 | Remote 사용자 |
-| `CPF_ARTIFACT_REPOSITORY_PASSWORD` | 없음 | Remote 비밀번호. 로그/Evidence 원문 금지 |
-| `-PcpfOfflineArtifactRepository` | 없음 | Offline Bundle의 `repository` 경로 |
-| `CPF_OFFLINE_ARTIFACT_REPOSITORY` | 없음 | Offline 경로 환경변수 |
-| `-PcpfAutoLocalArtifactSync` | `false` | Root build 성공 후 검증 Local publish 자동 실행 여부 |
+```powershell
+pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\check-admin-data-safety.ps1 -RootPath C:\dev\202412_01_CPF
+```
 
-`REMOTE`/`OFFLINE`은 필요한 공급원이 없으면 실패하며 Local Repository로 fallback하지 않는다.
+이 Tool은 DB를 변경하지 않는 정적 Gate다. Product DB fail-closed, PII Masking/Raw 경계, 상태 Catalog, BZA Query Resource, V61 Migration/Rollback/Bundle parity를 검사한다.
 
-### 18.2 직접 사용을 피할 저수준 Task
-
-- `publishCpfLocalPlatformArtifacts`
-- `publishCpfStagingPlatformArtifacts`
-
-이 둘은 상위 검증/승격 흐름의 내부 Task다. 일반 개발자는 `publishCpfVerifiedLocalPlatformArtifacts`를 사용한다.
-
-## 19. Batch Scheduler/Execution 이해
-
-배치 Job/Schedule/실행 인스턴스의 생성 시점과 설정 Owner는 다음 Guide를 정본으로 사용한다.
-
-- `cpf-docs/guides/CPF_BATCH_SCHEDULER_INSTANCE_LIFECYCLE_GUIDE.md`
-
-핵심:
-
-- Job 실행시간/Calendar 정책: `bat_schedule` DB
-- Scheduler DB polling 주기: `cpf.batch.scheduler.dispatch-ms` Property
-- CPF 실행 인스턴스: 예정시각 도래 시 `bat_execution` 생성
-- Spring Batch `JobInstance`: Worker의 `JobLauncher.run()` 시 생성
-
-
-## Artifact Publication 안전 규칙
-
-- 범용 Gradle `publish`는 CPF 공식 배포 Entry로 사용하지 않는다.
-- Local 개발은 `publishCpfVerifiedLocalPlatformArtifacts`, Remote CI/CD는 `publishCpfPlatformArtifacts`, Offline은 `buildCpfOfflineArtifactBundle`을 사용한다.
-- BAT의 모호한 `publishStandaloneArtifacts`는 사용 금지이며 대상이 명시된 Task만 사용한다.
-- `REMOTE`/`OFFLINE`에서 개발자 Local Repository fallback은 금지한다.
-
-
-### `create-domain-repository.ps1` Artifact 공급 옵션
-
-| 옵션 | 기본/우선순위 | 용도 |
-|---|---|---|
-| `-ArtifactMode AUTO|LOCAL_DEV|REMOTE|OFFLINE` | `AUTO` | 공급 방식 선택 |
-| `-LocalArtifactRepository` | 환경변수 → `~/.cpf/repository` | Local 개발용 검증 Maven Repository |
-| `-RemoteArtifactRepository` | `CPF_ARTIFACT_REPOSITORY_URL` | Nexus/Artifactory 등 승인 Remote Registry |
-| `-OfflineArtifactRepository` | `CPF_OFFLINE_ARTIFACT_REPOSITORY` | Registry 없는 서버/폐쇄망용 Offline Maven Repository |
-
-서버/CI에서는 `REMOTE` 또는 `OFFLINE`을 명시하며 개발자 Local Repository로 fallback하지 않는다.
+실제 MariaDB upgrade/rollback/reapply, Java25 Gradle, Browser 검증은 별도로 실행해야 한다.
+상세: `cpf-docs/guides/CPF_ADMIN_DATA_SAFETY_GUIDE.md`.

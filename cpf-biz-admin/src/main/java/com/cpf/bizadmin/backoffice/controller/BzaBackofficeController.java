@@ -3,11 +3,13 @@ package com.cpf.bizadmin.backoffice.controller;
 import com.cpf.bizadmin.backoffice.service.BzaBackofficeService;
 import com.cpf.core.api.execution.CpfOnlineTransaction;
 import com.cpf.core.api.page.CpfPage;
+import com.cpf.core.api.security.CpfSensitiveDataAccessRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.CacheControl;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -70,6 +72,18 @@ public class BzaBackofficeController extends com.cpf.bizadmin.common.base.BzaBas
             @RequestParam(required=false) String organizationCode,@RequestParam(required=false) String status,
             @RequestParam(required=false) Integer page,@RequestParam(required=false) Integer size) {
         return ResponseEntity.ok(backofficeService.findEmployeesPage(organizationCode,status,page,size));
+    }
+
+    @PostMapping("/employees/{employeeNo}/contacts/raw")
+    @CpfOnlineTransaction(id = "OBZAEM1102", name = "BzaEmployeeRawContact")
+    @Operation(operationId = "bzaBackofficeEmployeeRawContact", summary = "직원 연락처 원문 조회",
+            description = "PII_RAW 권한과 사유가 있는 경우에만 원문 연락처를 반환하고 감사 기록을 남깁니다.")
+    public ResponseEntity<Map<String,Object>> employeeRawContact(
+            @PathVariable String employeeNo,
+            @RequestBody CpfSensitiveDataAccessRequest request,
+            @RequestAttribute("bza.operatorId") String operatorId) {
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore())
+                .body(backofficeService.findEmployeeRaw(employeeNo,operatorId,request.reason()));
     }
 
     @PostMapping("/employees")

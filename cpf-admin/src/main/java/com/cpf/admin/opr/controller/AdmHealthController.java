@@ -1,5 +1,6 @@
 package com.cpf.admin.opr.controller;
 
+import com.cpf.admin.config.AdmPersistencePolicy;
 import com.cpf.core.api.logging.CpfTransactionContext;
 import com.cpf.core.api.logging.CpfServerIdentity;
 import io.swagger.v3.oas.annotations.Operation;
@@ -25,14 +26,17 @@ public class AdmHealthController extends com.cpf.admin.common.base.AdmBaseContro
     private final JdbcTemplate admJdbcTemplate;
     private final JdbcTemplate cpfJdbcTemplate;
     private final Environment environment;
+    private final AdmPersistencePolicy persistencePolicy;
 
     public AdmHealthController(
             @Qualifier("admJdbcTemplate") JdbcTemplate admJdbcTemplate,
             @Qualifier("cpfJdbcTemplate") JdbcTemplate cpfJdbcTemplate,
-            Environment environment) {
+            Environment environment,
+            AdmPersistencePolicy persistencePolicy) {
         this.admJdbcTemplate = admJdbcTemplate;
         this.cpfJdbcTemplate = cpfJdbcTemplate;
         this.environment = environment;
+        this.persistencePolicy = persistencePolicy;
     }
 
     @GetMapping("/liveness")
@@ -47,8 +51,13 @@ public class AdmHealthController extends com.cpf.admin.common.base.AdmBaseContro
         Map<String, Object> checks = new LinkedHashMap<>();
         checks.put("admDB", checkDatabase(admJdbcTemplate));
         checks.put("cpfDB", checkDatabase(cpfJdbcTemplate));
-        boolean ready = "UP".equals(checks.get("admDB")) && "UP".equals(checks.get("cpfDB"));
+        boolean admDbUp = "UP".equals(checks.get("admDB"));
+        boolean ready = (admDbUp || persistencePolicy.memoryEnabled()) && "UP".equals(checks.get("cpfDB"));
         Map<String, Object> response = base(ready ? "UP" : "DOWN", checks);
+        response.put("dataSourceMode", persistencePolicy.mode().name());
+        response.put("fallbackActive", persistencePolicy.memoryEnabled() && !admDbUp);
+        response.put("degraded", persistencePolicy.memoryEnabled() && !admDbUp);
+        response.put("reasonCode", persistencePolicy.memoryEnabled() && !admDbUp ? "ADM_DB_UNAVAILABLE_MEMORY_MODE" : null);
         response.put("transactionContextMissingCount", CpfTransactionContext.missingCount());
         return ResponseEntity.status(ready ? HttpStatus.OK : HttpStatus.SERVICE_UNAVAILABLE).body(response);
     }

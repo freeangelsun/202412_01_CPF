@@ -1,3 +1,34 @@
+# CPF Codex/ChatGPT Continuity State
+
+## CURRENT — 2026-07-27 Change Set B closure
+
+- Remote baseline before patch: `00780dc14ef621578f6f7ca61ef1d0c9973c60e6` (`20260727_04`)
+- Current output: `CPF_20260727_05_ROOT_PATCH`, 미Commit/미Push
+- Change Set B implementation: **완료**
+- External Java25/DB/Browser/A-V runtime validation: **미검증**
+- Next closed development unit: **S — Final Supported Stack Migration**
+
+### 반드시 보호할 결정
+
+1. ADM Product = DATABASE fail-closed. MEMORY는 explicit non-product profile only.
+2. 일반 ADM/BZA 관리자 = PENDING_ACTIVATION + Role 미부여.
+3. ADM 운영자 생성은 operationId 멱등 + Identity/Profile/Role Transaction.
+4. 직원 재직상태와 관리자 계정상태는 다른 Catalog.
+5. 기본 PII는 Masked. Raw는 별도 permission/reason/transactionId/audit, POST body, no-store.
+6. BZA Java inline SQL 및 `com.cpf.core.common.*` direct import를 다시 만들지 않는다.
+7. V61 rollback은 fake role/data-loss를 강제하지 않는다.
+8. MariaDB만 구현된 변경을 5 Vendor 완료로 확대 해석하지 않는다.
+9. 폐기된 글로벌/Root/Child 거래 ID 용어 신규 사용 금지. 제품 용어는 `transactionId`.
+10. 이후 변경이 이번 B의 Consumer/DB/API/UI에 영향을 주면 B validation을 targeted reopen한다.
+
+### Codex 인계
+
+Codex는 지금 문서의 `완료` 표기를 완료 근거로 사용하지 않는다. 실제 최신 Git Diff와 Ledger를 대조하고 Java25 Gradle, MariaDB lifecycle, Browser, fault를 독립 실행한다. 결함은 보고만 하지 말고 올바른 Owner에서 수정 후 동일 검증을 재실행한다.
+
+---
+
+## Historical continuity preserved
+
 # CPF Codex / ChatGPT Continuity State
 
 ## 기준

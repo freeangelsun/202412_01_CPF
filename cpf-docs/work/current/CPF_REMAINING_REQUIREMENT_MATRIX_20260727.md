@@ -1,160 +1,69 @@
-# CPF 통합 잔여 Requirement Matrix — 2026-07-27
+# CPF 통합 Requirement Closure Matrix — 2026-07-27
 
-## 기준
+## 1. 기준
 
-- 현재 작업 기준 SHA: `702bf83580b9c4db2dbba6482ece233e00842f1b` (`20260727_03`)
-- 입력: `CPF_FINAL_TARGET_REQUIREMENTS.md`, QA 통합 요구, Codex Continuity, 최신 Git 재검토, 사용자 추가 요구
-- 상태: `구현 확인`, `이번 패치 구현·미검증`, `부분 구현`, `미구현`, `통합검증 예정`, `재확인 필요`
-- 원칙: 이전 실행 Evidence와 이후 변경 영향이 겹치지 않으면 무조건 재실행하지 않는다. 반대로 이후 ChatGPT/Codex 변경의 직접·간접 영향권에 들어온 과거 PASS는 `재검증 필요`로 다시 연다.
+- 작업 시작 SHA: `00780dc14ef621578f6f7ca61ef1d0c9973c60e6` (`20260727_04`)
+- 현재 산출물: `CPF_20260727_05_ROOT_PATCH` — 미Commit
+- 최상위 정본: `CPF_FINAL_TARGET_REQUIREMENTS.md`
+- QA: `CPF_NEXT_QA_REQUIREMENTS_CHATGPT_FIRST_CODEX_REVIEW_20260727_05.md`
 
-## A. Generated Domain / Platform 분리
+이 Matrix는 **구현 상태**와 **실행 검증 상태**를 분리한다.
+선택한 Change Set의 구현을 `부분 구현`으로 종료하지 않는다. 외부 환경이 없어 실행하지 못한 항목만 `미검증`으로 표시한다.
 
-| ID | 상태 | 최신 판정 / 남은 작업 | 다음 검증 |
-|---|---|---|---|
-| GEN-PLAT-001 | 부분 구현 | ADM MBR 결합은 제거 확인. `CpfSystemCodes.inferFromTypeName` 등 package/type 추론 잔존 여부를 실제 Consumer 기준으로 마감 필요 | source consumer search + core focused test |
-| GEN-PLAT-002 | 구현 확인/재확인 | `CpfTargetServiceResolver` 고정 `/mbr`/port 추정은 제거 확인. 다른 path/port/class-name 추론 잔존 전수검색 필요 | 저비용 static gate |
-| GEN-PLAT-003 | 구현 확인/재확인 | DB Installer가 Profile metadata 기반 Generated Domain 분류 사용. 새 Domain 추가 시 중앙 코드 변경 0인지 임시 2 Domain으로 확인 필요 | PAY/INS install path |
-| GEN-PLAT-004 | 미완료 | Root `settings.gradle`에 MBR/ACC 고정 include. MBR 1개 Golden vs MBR/ACC 2 Reference 정책 확정 필요 | architecture decision + build |
-| GEN-PLAT-005 | 미완료 | MBR/ACC가 현 Generator normalized tree/hash parity 아님 | generator-first migration |
-| GEN-PLAT-006 | 부분 구현 | Generator sample/DB 기능 존재하나 현재 Golden Reference와 parity 미완료 | temp domain CRUD/runtime |
-| GEN-PLAT-007 | 통합검증 예정 | 임시 2 Domain create/build/5-vendor render/MariaDB/remove/regenerate 전체 필요 | 첫 Domain 성공 후 두 번째만 수행 |
-| GEN-PLAT-008 | 미검증 | Generated Domain 삭제 시 Platform 독립성 최종 Evidence 없음 | remove-one-domain focused build/boot |
-| GEN-PLAT-009 | 부분 구현 | ADM MBR 전용 기능 제거. 범용 Capability 기반 업무대상 관리 완결성 부족 | ADM capability flow |
-| GEN-PLAT-010 | 부분 구현 | REF MBR service-call 제거/Echo 전환 확인. Generated Domain dependency 0 Gate 필요 | REF focused test/boot |
+## 2. Change Set B — 구현 Closure
 
-## B. BAT Legacy Migration
-
-| ID | 상태 | 최신 판정 / 남은 작업 | 다음 검증 |
-|---|---|---|---|
-| BAT-MIG-001 | 부분 구현 | Legacy migration map 존재, 삭제 146개 파일 전체 disposition 최종 대조 필요 | static inventory only |
-| BAT-MIG-002 | 부분 구현 | Standalone Runtime 구현 대폭 보강. Legacy 기능 parity 최종 미확정 | feature-level targeted tests |
-| BAT-MIG-003~005 | 부분 구현 | REF Batch EDU 일부 이관. 삭제된 교육 기능 전체 실행 parity 미확정 | EDU catalog/test focused |
-| BAT-MIG-006 | 부분 구현 | Job Pack Generator 존재/보강 이력 있으나 QA 필수 sample parity 재확인 필요 | generator jobpack test |
-| BAT-MIG-007 | 구현 확인/재확인 | `cpf-batch/src/**` 제거 확인. stale Gate/Docs/empty dir 0 재확인 | low-cost static gate |
-| BAT-MIG-008 | 이전 부분 검증 | 5 standalone artifact build 성공 이력 있음. 이번 패치와 BAT runtime source 직접 영향 없음 | 전체 반복 금지; artifact federation 관련 publish만 |
-| BAT-MIG-009 | 통합검증 예정 | 2 Scheduler/2 Worker/2 Center-Cut 실제 topology 미검증 | 최종 multi-instance |
-| BAT-MIG-010 | 부분 구현 | ADM→BAT Owner API 전환 진행. 전체 Control Plane UX/approval/evidence 미완료 | ADM/BAT focused integration |
-
-## C. Gateway Resilience
-
-| ID | 상태 | 남은 작업 |
+| Requirement | 구현 상태 | 결과 |
 |---|---|---|
-| GWY-001~004 | 부분 구현 | 실제 Target A down → B failover/outlier/recovery process evidence 필요 |
-| GWY-005~009 | 부분 구현 | timeout taxonomy/retry budget/non-idempotent loss/UNKNOWN_RESULT/storm 방지 실제 fault 검증 필요 |
-| GWY-010~012 | 부분 구현 | O/S/B 외부→S 차단과 우회 시나리오 실제 검증 필요 |
-| GWY-013~016 | 부분 구현 | Header trust/transactionId/W3C/Forwarded spoofing focused 검증 필요 |
-| GWY-017~021 | 부분 구현 | 2 Gateway route version/drift/rejoin/state recovery 미검증 |
-| GWY-022 | 통합검증 예정 | Runtime Fault Evidence 묶음 필요 |
+| B-001 ADM 생성 Transaction 원자성 | 완료 | Identity/Profile/Role을 `admTransactionManager` 경계에서 처리. `operationId` unique 멱등 생성 |
+| B-002 Product DB Fail-closed | 완료 | DATABASE 기본/제품 필수. DB 오류를 Memory 성공으로 전환하지 않음. MEMORY는 명시 Demo Profile 전용 |
+| B-003 ADM Identity/Profile 분리 | 완료 | 인증 Identity와 Display/연락처 Profile 분리 유지, Profile Projection |
+| B-004 BZA 직원/조직 | 완료 | 기존 Directory의 hierarchy/assignment/position/job-title/responsibility/history 기능을 보호하고 안전상태 계약 연결 |
+| B-005 상태 분리 | 완료 | `BzaEmploymentStatus` / `BzaAdminAccountStatus` 별도 Catalog |
+| B-006 안전한 Default | 완료 | 직원 EMPLOYED, 관리자 PENDING_ACTIVATION, 신규 관리자 Role 자동 부여 없음, 연락처 optional/NULL |
+| B-007 연락처 PII | 완료 | 문자열/정규화/Masking/Raw 권한/사유/Audit/Redaction |
+| B-008 Masked/Raw API | 완료 | 기본 Masked, Raw는 별도 POST body reason + 권한 + Audit + `Cache-Control: no-store` |
+| B-009 BZA inline SQL 제거 | 완료 | BZA Java inline SQL 0, Vendor Query Resource와 Query ID로 이관 |
+| B-010 Core Internal Boundary | 완료 | ADM/BZA `com.cpf.core.common.*` 직접 import 0, Public DB Catalog 사용 |
+| B-011 V59 Contact Lifecycle 연계 | 완료 | V59 계약을 유지하고 V61 상태/PII 계약과 Fresh/Upgrade 정본 연결 |
+| B-012 V60 Safe Default 연계 | 완료 | V60 EMPLOYED default를 유지하고 V61에서 legacy ACTIVE를 명시 Migration으로 정규화 |
+| B-013 ADM/BZA UI | 완료 | Masked 목록, Raw 조회, 상태 Catalog, expectedVersion, 명시 clear, PENDING 관리자 UX 연결 |
+| B-014 구현 완료조건 | 완료 | Source/API/DB/Migration/Rollback/Frontend/Test/Gate/Guide/Evidence 경계까지 반영 |
 
-## D. ADM/BZA
+## 3. Change Set B — 실행 검증
 
-| ID | 상태 | 최신 판정 / 남은 작업 |
+| 검증 | 상태 | 완료 조건 |
 |---|---|---|
-| ADM-001 | 부분 구현 | Control Plane 기능은 다수 존재하나 Gateway/BAT/Recovery/Deployment까지 Browser-operable 완결성 미확정 |
-| ADM-002 | 부분 구현 | MBR 전용 결합 제거 확인. Registry/Capability 기반 일반화 최종 필요 |
-| ADM-003 | 이번 패치 구현·미검증 | 연락처는 `adm_operator_profile` 소유, `연락처(휴대폰)`/`내부 전화번호` 분리. 나머지 Directory 연계/Masking 완결성은 계속 P1 |
-| ADM-004 | 부분 구현 | Approval/Break-glass 기반은 있으나 QA 위험조치 전체 coverage 재대조 필요 |
-| BZA-001 | 부분 구현 | 조직/직원/Assignment 기반 존재. 연락처 내부전화 이번 패치 추가, 전체 모델/이력 Browser 검증 필요 |
-| BZA-002~004 | 부분 구현 | Role/Permission/Approval/업무대상 Capability 구현을 QA 시나리오와 대조 필요 |
-| BZA-005 | 이번 패치 구현·미검증 | 신규 직원 미입력 재직상태 `EMPLOYED`로 정렬; DB V60 runtime 미검증 |
-| BZA-006 | 부분 구현 | 연락처 문자열/분리 보강. Masking/raw permission/download audit 전체 검증 필요 |
-| UI-001~005 | 부분 구현 | Server paging/오류/권한/접근성/permission manifest parity Browser 검증 필요 |
+| 저비용 Static Contract | 완료 | Java parser/중복 선언, TS/Vue syntax, SQL ownership, V61 hash/parity, PII URL leak, internal import 검사 |
+| Java 25 full Gradle | 미검증 | `clean test assemble` 및 영향 Module test 0 failure |
+| PowerShell Gate | 미검증 | `check-admin-data-safety.ps1` PASS |
+| MariaDB V59→V60→V61 Upgrade | 미검증 | schema/data/runtime probe PASS |
+| V61 Rollback/Reapply | 미검증 | safe rollback 후 reapply, fake Role/data loss 없음 |
+| Fresh Install | 미검증 | Latest schema == migration final contract |
+| ADM/BZA Runtime DB Fault | 미검증 | Product fail-closed, partial row 0, readiness DOWN |
+| Browser E2E | 미검증 | Masked/Raw/Reason/Permission/Conflict/Status 흐름 PASS |
 
-## E. Build / Artifact / Deploy
+`미검증`은 구현을 미완료로 되돌리는 의미가 아니다. Commercial Release 판정만 차단한다.
 
-| ID | 상태 | 최신 판정 / 남은 작업 |
-|---|---|---|
-| BUILD-001~002 | 구현 확인/재확인 | Tooling이 `cpf-tools/build/*`로 이동. isolated publish/consumer 재검증 필요 |
-| CPF-BUILD-LOCAL-001 | 보강 구현·미검증 | auto-sync 기본 off, aggregate quality + isolated staging + manifest/hash/sourceFingerprint 검증 후 Shared Local promotion, Generator current-HEAD manifest 재사용 | 실제 Java25/PowerShell/standalone focused validation |
-| BUILD-003~004 | 부분 구현 | cleanup 안전성 보정 이력 있음. 최신 기준 garbage/hygiene 최종 감사 필요 |
-| BUILD-005 | 재확인 필요 | IDE Problems의 실제 오류 vs SQL extension/Language Server stale 분류를 최종 개발 환경에서 확인 |
-| 독립 Artifact Federation | 보강 구현·미검증 | `LOCAL_DEV`/`REMOTE`/`OFFLINE` 배타 공급. REMOTE/OFFLINE Local fallback 금지, Local은 PROMOTED manifest 기반 | generated standalone build/package |
-| ART-SUPPLY-LOCAL | 부분 구현/후속 | `LOCAL_DEV`는 동일 Repo Project Dependency 또는 shared local CPF repository로 최신 개발 artifact 사용 | source change → domain package focused verify |
-| ART-SUPPLY-REMOTE | 부분 구현/후속 | CI/CD는 승인된 Nexus/Artifactory 등 고정 Version만 사용. Local fallback 금지/fail-closed 필요 | CI isolated repository test |
-| ART-SUPPLY-OFFLINE | 구현·미검증 | Registry 없는 환경용 PROMOTED manifest/checksum/BOM 포함 Offline Maven Bundle 생성과 Standalone fail-closed resolution 구현 | offline consumer package test |
+## 4. A-V Stack/Artifact
 
-## F. DB / Query / Migration
+A-V Source 안전장치는 `20260727_04`에서 구현 완료. 다음 실제 검증은 Java25/Gradle9.1, staging/promotion rollback, Local/Offline standalone, bootJar/bootWar hash, Remote Registry이다. 실행하지 않은 항목은 미검증으로 유지한다.
 
-| ID | 상태 | 최신 판정 / 남은 작업 |
-|---|---|---|
-| DB-001 | 정책 유지 | 모든 DB 변경은 Canonical → Generator/Template → Vendor → Migration/Rollback → Sync/Verify → Runtime 순서 |
-| DB-002~003 | 부분 구현 | BAT query pack 중앙화 대폭 진행. Platform/BZA 잔여 inline/vendor SQL 및 unused resource 감사 필요 |
-| DB-004 | 부분 구현 | 5 Vendor runtime template parity 존재하나 실DB 지원 완료는 MariaDB만. 복사/치환 완료 처리 금지 |
-| DB-005 | 미검증 | 전체 Historical Migration chain 미검증 |
-| DB-006 | 부분 구현 | Generated Domain DB template 존재. Golden parity/2 Domain lifecycle 필요 |
-| DB-007 | 부분 구현 | multi-datasource ownership 결함 일부 수정. failover/read replica consistency 미검증 |
-| DB-008 | 부분 검증 | BAT 158/158 MariaDB PREPARE 과거 통과. 이번 패치로 재실행하지 않음 |
-| V59 Contact | 이번 패치 구현·미검증 | `adm_operator_profile` + BZA office phone; sync/upgrade/rollback/reapply 필요 |
-| V60 Safe Default | 이번 패치 구현·미검증 | BZA 신규 employee default EMPLOYED; sync/lifecycle 필요 |
+## 5. 후속 Change Set 계약
 
-## G. Defaults / Message / Config
+아래는 아직 이번 작업의 상태 판정 대상이 아닌 **다음 폐쇄 개발 단위**다. 착수하면 구현 가능한 항목을 남기지 않고 완료한 뒤 다음 단계로 이동한다.
 
-| ID | 상태 | 남은 작업 |
-|---|---|---|
-| DEF-001~003 | 부분 구현 | EDU/OpenAPI defaults 전수 parity, nullable 선택값 규칙 확대 |
-| DEF-004~005 | 부분 구현 | Message placeholder parity, 상태 Code catalog 전수 검증 |
-| DEF-006 | 부분 구현 | Config metadata Type/Default/Secret/Dynamic/Restart/Risk/Deprecation 완결성 |
+1. `S` — Spring Boot 4.x 공식 지원 Stack 완전 Migration
+2. `C` — Generated Domain Golden/MBR/ACC/Installer/SystemCode 추론 제거/2 Domain lifecycle
+3. `D` — BAT Legacy disposition, Runtime/EDU parity, JobPack, Multi-instance
+4. `E` — Gateway target-down/timeout/retry/UNKNOWN_RESULT/O-S-B/Header trust/2 Gateway
+5. `U` — ADM/BZA commercial UX, Browser, approval/risky action/observability
+6. `DB` — 5 Vendor, Historical Migration, runtime SQL, Backup/Restore/DR
+7. `T` — Gate/Tool Inventory/삭제, QUICK/VERIFY/FULL, CI, SBOM/License/CVE/Signature/Provenance
+8. 최종 Full Regression — Browser/Multi-instance/Fault/Historical/Release Evidence
 
-## H. Runtime / Browser / Multi-instance / Fault
+## 6. 완료 왜곡 금지
 
-| ID | 상태 | 비고 |
-|---|---|---|
-| TEST-001 | 재검증 필요 | 후반 대규모 변경 이후 최신 Commit 전체 clean/test/assemble 최종 Evidence 없음. 이번 ChatGPT patch 적용 후에는 변경 영향 범위를 먼저 검증하고 최종 통합 Commit에서 1회 수행 |
-| TEST-002 | 부분 검증 | 이전 MBR/ADM/BZA/REF/ACC/GWY 실제 boot 기록 존재. BAT 5 Runtime/Generated 2 Domain 최종 필요 |
-| TEST-003 | 미검증 | ADM/BZA Browser E2E |
-| TEST-004 | 미검증 | Multi-instance |
-| TEST-005 | 미검증 | Fault Injection |
-| TEST-006 | 부분 구현/미검증 | 영역별 UNKNOWN_RESULT Recovery 실제 E2E 필요 |
-| TEST-007 | 정책 유지 | 최신 SHA Evidence만 현재 검증으로 인정 |
-
-## I. Governance / Productization
-
-- Repository/Source Access Governance, CODEOWNERS/SoD/Break-glass: **부분 구현/후속**
-- Deployment Cell rolling/canary/blue-green/rollback/reconcile: **부분 구현/후속**
-- SBOM/License/CVE/Signature/Release: **부분 구현/최종 제품화 검증**
-- EDU/OpenAPI/JavaDoc/Guide/Evidence 정합성: **지속 관리**
-- Repository Hygiene: **지속 관리 + 최종 통합 검증**
-
-## Codex 크레딧 절약 규칙
-
-1. Codex 실제 투입 직전 최신 master의 누적 ChatGPT 변경과 Change Ledger를 기준으로 집중 검증 범위를 다시 산정한다.
-2. 과거 BAT 158 PREPARE, V58 lifecycle, 기존 single-runtime boot는 직접 영향이 없으면 반복하지 않는다.
-3. 실패가 공통 API/BOM/Generator/DB canonical로 확산될 때만 Consumer 검증 범위를 넓힌다. 단, 이후 변경 영향권에 들어온 과거 PASS는 재검증 대상으로 다시 연다.
-4. Browser/Multi-instance/Fault는 기능 구조가 안정된 최종 통합 기준 Commit에서 묶어 실행한다.
-5. 실행하지 않은 것은 `미검증`으로 남기며 PASS로 추정하지 않는다.
-
-
-## J. Gate / Tool / Manual / Distribution
-
-| ID | 상태 | 최신 판정 / 남은 작업 |
-|---|---|---|
-| TOOL-GATE-001 | 미구현/준비 | 전체 PowerShell/Gradle Gate Inventory 작성 및 Owner/Caller/Requirement 연결 필요 |
-| TOOL-GATE-002 | 미구현/준비 | 각 Gate를 `DEV_ONLY` / `CI_RELEASE` / `PRODUCT_ADMIN_TOOL`로 분류 |
-| TOOL-GATE-003 | 미구현/준비 | 중복/Legacy/무호출/일회성 Gate를 안전하게 통합·삭제. 삭제 전 Consumer와 대체 Requirement coverage 확인 |
-| TOOL-GATE-004 | 부분 구현/후속 | 개발 대표 Entry를 `QUICK` / `VERIFY` / `FULL`로 표준화하고 고비용 검증을 QUICK에서 제외 |
-| TOOL-GATE-005 | 부분 구현/후속 | 가능한 기본 Gate를 Gradle/JVM Portable Entry로 정본화하고 PowerShell은 Windows Wrapper 역할로 정리 |
-| TOOL-GATE-006 | 미구현/준비 | 공식 Tool별 옵션/Default/환경변수/입출력/Side Effect/실패/복구/Example 문서와 Script Help 일치 |
-| TOOL-GATE-007 | 미구현/준비 | Runtime 배포물에서 `DEV_ONLY`/`CI_RELEASE` Script 제외. 필요한 `PRODUCT_ADMIN_TOOL`만 관리 Tool 패키지로 제공 |
-| TOOL-GATE-008 | 지속 관리 | ChatGPT가 삭제를 확정하지 못한 Gate는 삭제 후보로 기록하고 미래 Codex가 최신 master 실제 호출자/coverage 확인 후 제거 |
-
-정본: `cpf-docs/guides/CPF_GATE_AND_TOOL_LIFECYCLE_GUIDE.md`
-
-
-## K. 20260727_04 QA 병합 신규 P0
-
-| ID | 상태 | 최신 판정 / 남은 작업 |
-|---|---|---|
-| STACK-001 | 부분 구현 | 현재 Java 25/Gradle 9.1.0/Boot 3.4.13은 공식 지원 Matrix 밖. `gradle/cpf-stack.properties` 단일 정본과 `TRANSITION` Release 차단을 이번 Change Set에서 구현. Boot 4 계열 실제 Migration/Runtime은 후속 |
-| STACK-002 | 이번 패치 구현·미검증 | Root/Module/Generator/Standalone plugin version literal 제거 및 Stack 정본 사용. 전체 Repo static gate와 Gradle configuration 재검증 필요 |
-| ART-001 | 이번 패치 구현·미검증 | `aggregateQualityBuild`와 검증된 Local publish orchestration 추가. 실패 build no-publish 실제 Fault Test 필요 |
-| ART-002 | 이번 패치 구현·미검증 | Local 자동 Sync 기본 opt-in으로 변경. `LOCAL_DEV`에서만 허용 |
-| ART-003 | 부분 구현·미검증 | isolated staging → POM/module/BOM/Plugin Marker/Hash 검증 → publisher lock → manifest barrier → version-dir promote/rollback 구현. 진정한 Remote server-side atomic promotion과 Windows concurrent consumer는 후속 |
-| ART-004 | 부분 구현 | Snapshot immutable 정책은 아직 후속. Local 개발 Snapshot과 Release immutable repository 분리 필요 |
-| ART-005~006 | 이번 패치 구현·미검증 | Artifact identity/hash/marker/BOM 검증 강화. bootJar/bootWar 내부 exact hash 연동은 후속 |
-| ART-007~008 | 이번 패치 구현·미검증 | CPF repository content filter와 LOCAL_DEV/REMOTE/OFFLINE fail-closed mode 추가. Standalone property/env precedence 실검증 필요 |
-| ART-009~010 | 미구현/부분 | 실제 Remote Registry authentication/timeout/promotion 및 release signature/provenance 통합은 후속 CI/Release Change Set |
-| BASE-001 | 이번 패치 구현 | Current Request/Matrix/Continuity/Review/Handover를 최신 `702bf835...` 이후 Change Set 기준으로 재기준화 |
-| BASE-002 | 미구현 | GitHub CI Required Checks/Branch Protection은 Repository 설정과 Workflow 구현 필요 |
-| BASE-003 | 정책 반영 | 이후 Build/Generator/Artifact 변경 영향권의 과거 PASS는 재검증 필요로 재개방 |
-| TOOL-GATE-001 | 부분 구현 | Gate/Tool Lifecycle 정본 존재. 전체 Inventory와 중복/Legacy 삭제는 후속. Codex 투입 전 삭제 후보를 다시 최신 Source로 계산 |
-| ART-SUPPLY-OFFLINE | 이번 패치 구현·미검증 | `buildCpfOfflineArtifactBundle` 및 Manifest/Checksum Bundle 추가. 실제 외부 서버/Standalone Domain 소비 검증 필요 |
+- 외부 실행 미검증을 PASS로 쓰지 않는다.
+- 미래 Change Set을 현재 완료로 선기록하지 않는다.
+- 과거 Evidence를 현재 SHA PASS로 승계하지 않는다.
+- 구현된 Change Set을 문서 관성 때문에 다시 `부분 구현`으로 낮추지 않는다.

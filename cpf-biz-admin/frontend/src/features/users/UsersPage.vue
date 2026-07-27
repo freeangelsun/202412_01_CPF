@@ -1,11 +1,31 @@
 <script setup lang="ts">
 import { onMounted,reactive,ref } from "vue";import { bzaApi,hasBzaPermission } from "../auth/session";
-interface Row{adminUserId:number;adminLoginId:string;adminName:string;roleCode:string;useYn:string;lockYn?:string;passwordChangeRequiredYn?:string;}
+interface Row{adminUserId:number;adminLoginId:string;adminName:string;roleCode?:string;accountStatus:string;versionNo:number;useYn:string;lockYn?:string;passwordChangeRequiredYn?:string;}
 interface Page<T>{content:T[];totalElements:number;page:number;size:number;}
 const rows=ref<Row[]>([]),page=ref(0),size=ref(20),total=ref(0),error=ref(""),open=ref(false),editing=ref(false);const form=reactive<any>({});
 async function load(){try{const r=await bzaApi<Page<Row>>(`/api/bza/admin-users/page?page=${page.value}&size=${size.value}`);rows.value=r.content;total.value=r.totalElements;}catch(e){error.value=e instanceof Error?e.message:String(e);}}
-function edit(row?:Row){editing.value=!!row;Object.assign(form,{loginId:row?.adminLoginId||"",adminName:row?.adminName||"",roleCode:row?.roleCode||"BZA_VIEWER",rawPassword:"",useYn:row?.useYn||"Y",lockYn:row?.lockYn||"N",passwordChangeRequiredYn:row?.passwordChangeRequiredYn||"Y",reason:"BZA 사용자 변경"});open.value=true;}
-async function save(){const body={...form};if(editing.value)delete body.roleCode;if(!body.rawPassword)delete body.rawPassword;try{if(editing.value){body.roleCode=rows.value.find(r=>r.adminLoginId===body.loginId)?.roleCode;}await bzaApi('/api/bza/admin-users',{method:'POST',body:JSON.stringify(body)});open.value=false;await load();}catch(e){error.value=e instanceof Error?e.message:String(e);}}
+function edit(row?:Row){
+  editing.value=!!row;
+  Object.assign(form,{
+    loginId:row?.adminLoginId||"",
+    adminName:row?.adminName||"",
+    rawPassword:"",
+    accountStatus:row?.accountStatus||"PENDING_ACTIVATION",
+    useYn:row?.useYn||"Y",
+    lockYn:row?.lockYn||"N",
+    passwordChangeRequiredYn:row?.passwordChangeRequiredYn||"Y",
+    expectedVersion:row?.versionNo,
+    reason:"BZA 사용자 변경"
+  });
+  open.value=true;
+}
+async function save(){
+  const body={...form};
+  if(!body.rawPassword)delete body.rawPassword;
+  if(!editing.value){delete body.expectedVersion;body.accountStatus="PENDING_ACTIVATION";}
+  try{await bzaApi('/api/bza/admin-users',{method:'POST',body:JSON.stringify(body)});open.value=false;await load();}
+  catch(e){error.value=e instanceof Error?e.message:String(e);}
+}
 onMounted(load);
 </script>
-<template><section class="card"><div class="card-head"><div><p class="eyebrow">USER</p><h2>BZA 사용자</h2><p class="hint">기존 사용자의 Role은 사용자 Role 이력 화면에서만 변경합니다.</p></div><button v-if="hasBzaPermission('AUTHORIZATION','WRITE')" class="primary" @click="edit()">등록</button></div><p v-if="error" class="error-banner">{{error}}</p><div class="table-wrap"><table><thead><tr><th>ID</th><th>이름</th><th>Primary Role</th><th>사용</th><th>잠금</th><th></th></tr></thead><tbody><tr v-for="r in rows" :key="r.adminUserId"><td>{{r.adminLoginId}}</td><td>{{r.adminName}}</td><td>{{r.roleCode}}</td><td>{{r.useYn}}</td><td>{{r.lockYn}}</td><td><button v-if="hasBzaPermission('AUTHORIZATION','WRITE')" class="ghost" @click="edit(r)">수정</button></td></tr></tbody></table></div><div class="pager"><button :disabled="page===0" @click="page--;load()">이전</button><span>{{page+1}}</span><button :disabled="(page+1)*size>=total" @click="page++;load()">다음</button></div><dialog :open="open" class="modal"><form class="modal-card" @submit.prevent="save"><h3>사용자 {{editing?'수정':'등록'}}</h3><label>로그인 ID<input v-model="form.loginId" :readonly="editing" required></label><label>이름<input v-model="form.adminName" required></label><label>Primary Role<select v-model="form.roleCode" :disabled="editing"><option>BZA_ADMIN</option><option>BZA_OPERATOR</option><option>BZA_VIEWER</option></select></label><small v-if="editing">Role 변경은 사용자 Role 화면에서 이력/유효기간/Operation ID와 함께 처리합니다.</small><label>비밀번호<input v-model="form.rawPassword" type="password" autocomplete="new-password"></label><label>사용<select v-model="form.useYn"><option>Y</option><option>N</option></select></label><label>잠금<select v-model="form.lockYn"><option>N</option><option>Y</option></select></label><label>강제 비밀번호 변경<select v-model="form.passwordChangeRequiredYn"><option>Y</option><option>N</option></select></label><label>사유<textarea v-model="form.reason" required></textarea></label><div class="dialog-actions"><button type="button" @click="open=false">취소</button><button class="primary">저장</button></div></form></dialog></section></template>
+<template><section class="card"><div class="card-head"><div><p class="eyebrow">USER</p><h2>BZA 사용자</h2><p class="hint">기존 사용자의 Role은 사용자 Role 이력 화면에서만 변경합니다.</p></div><button v-if="hasBzaPermission('AUTHORIZATION','WRITE')" class="primary" @click="edit()">등록</button></div><p v-if="error" class="error-banner">{{error}}</p><div class="table-wrap"><table><thead><tr><th>ID</th><th>이름</th><th>Primary Role</th><th>계정 상태</th><th>사용</th><th>잠금</th><th></th></tr></thead><tbody><tr v-for="r in rows" :key="r.adminUserId"><td>{{r.adminLoginId}}</td><td>{{r.adminName}}</td><td>{{r.roleCode||"-"}}</td><td>{{r.accountStatus}}</td><td>{{r.useYn}}</td><td>{{r.lockYn}}</td><td><button v-if="hasBzaPermission('AUTHORIZATION','WRITE')" class="ghost" @click="edit(r)">수정</button></td></tr></tbody></table></div><div class="pager"><button :disabled="page===0" @click="page--;load()">이전</button><span>{{page+1}}</span><button :disabled="(page+1)*size>=total" @click="page++;load()">다음</button></div><dialog :open="open" class="modal"><form class="modal-card" @submit.prevent="save"><h3>사용자 {{editing?'수정':'등록'}}</h3><label>로그인 ID<input v-model="form.loginId" :readonly="editing" required></label><label>이름<input v-model="form.adminName" required></label><p class="hint">신규 관리자는 Role 없이 PENDING_ACTIVATION으로 생성됩니다. Role은 사용자 Role 이력에서 명시적으로 부여한 뒤 활성화합니다.</p><label>계정 상태<select v-model="form.accountStatus" :disabled="!editing"><option>PENDING_ACTIVATION</option><option>ACTIVE</option><option>LOCKED</option><option>SUSPENDED</option><option>DISABLED</option></select></label><label>비밀번호<input v-model="form.rawPassword" type="password" autocomplete="new-password"></label><label>사용<select v-model="form.useYn"><option>Y</option><option>N</option></select></label><label>잠금<select v-model="form.lockYn"><option>N</option><option>Y</option></select></label><label>강제 비밀번호 변경<select v-model="form.passwordChangeRequiredYn"><option>Y</option><option>N</option></select></label><label>사유<textarea v-model="form.reason" required></textarea></label><div class="dialog-actions"><button type="button" @click="open=false">취소</button><button class="primary">저장</button></div></form></dialog></section></template>

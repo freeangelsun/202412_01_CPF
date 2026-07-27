@@ -2,6 +2,7 @@ package com.cpf.bizadmin.operation.service;
 
 import com.cpf.bizadmin.operation.repository.BzaOperationRepository;
 import com.cpf.bizadmin.audit.service.BzaBusinessAuditService;
+import com.cpf.bizadmin.common.model.BzaAdminAccountStatus;
 import com.cpf.core.api.error.CpfValidationException;
 import com.cpf.core.api.logging.CpfTransactionContext;
 import com.cpf.core.api.page.CpfPage;
@@ -31,11 +32,30 @@ public class BzaOperationService extends com.cpf.bizadmin.common.base.BzaBaseSer
 
  @Transactional(transactionManager="bzaTransactionManager")
  public Map<String,Object> saveAdminUser(AdminUserRequest r,String operatorId){
-   String login=required(r.loginId(),"loginId"), actor=required(operatorId,"operatorId"); Map<String,Object> before=repository.findAdminUser(login).orElse(null);
-   String role=code(r.roleCode(),"roleCode");
-   if(before!=null && !role.equalsIgnoreCase(String.valueOf(before.get("roleCode")))) throw new CpfValidationException("기존 사용자의 Role은 사용자 Role 이력 화면에서 변경해야 합니다.");
-   Map<String,Object> v=new LinkedHashMap<>(); v.put("loginId",login);v.put("adminName",required(r.adminName(),"adminName"));v.put("passwordHash",hashPassword(r.rawPassword(),before==null));v.put("roleCode",role);v.put("useYn",yn(r.useYn(),"Y"));v.put("lockYn",yn(r.lockYn(),"N"));v.put("passwordChangeRequiredYn",yn(r.passwordChangeRequiredYn(),before==null?"Y":"N"));v.put("requestUser",actor);
-   repository.saveAdminUser(v); if(before==null)repository.ensureInitialUserRole(login,role,actor); audit(actor,"ADMIN_USER_SAVE","bza_admin_user",login,required(r.reason(),"reason"),before,withoutSecret(v)); return withoutSecret(v);
+   String login=required(r.loginId(),"loginId"), actor=required(operatorId,"operatorId");
+   Map<String,Object> before=repository.findAdminUser(login).orElse(null);
+   boolean create=before==null;
+   if(create && r.roleCode()!=null && !r.roleCode().isBlank()) {
+     throw new CpfValidationException("신규 관리자는 Role을 자동 부여하지 않습니다. 생성 후 사용자 Role 이력에서 명시적으로 부여하십시오.");
+   }
+   if(!create && r.expectedVersion()==null) throw new CpfValidationException("관리자 수정에는 expectedVersion이 필요합니다.");
+   String accountStatus=BzaAdminAccountStatus.parse(
+           create?"PENDING_ACTIVATION":defaultText(r.accountStatus(),String.valueOf(before.get("accountStatus")))).name();
+   if("ACTIVE".equals(accountStatus) && repository.countEffectiveRoles(login)==0)
+     throw new CpfValidationException("Role이 없는 관리자는 ACTIVE로 전환할 수 없습니다.");
+   Map<String,Object> v=new LinkedHashMap<>();
+   v.put("loginId",login); v.put("adminName",required(r.adminName(),"adminName"));
+   v.put("passwordHash",hashPassword(r.rawPassword(),create));
+   v.put("accountStatus",accountStatus);
+   String useYn = "DISABLED".equals(accountStatus) ? "N" : yn(r.useYn(),"Y");
+   v.put("useYn",useYn);
+   v.put("lockYn","LOCKED".equals(accountStatus)?"Y":"N");
+   v.put("passwordChangeRequiredYn",yn(r.passwordChangeRequiredYn(),create?"Y":"N"));
+   v.put("expectedVersion",r.expectedVersion()); v.put("requestUser",actor);
+   int changed=create?repository.insertAdminUser(v):repository.updateAdminUser(v);
+   if(changed!=1) throw new CpfValidationException("관리자 정보가 다른 관리자에 의해 변경되었습니다. 다시 조회하십시오.");
+   audit(actor,"ADMIN_USER_SAVE","bza_admin_user",login,required(r.reason(),"reason"),before,withoutSecret(v));
+   return withoutSecret(v);
  }
 
  @Transactional(transactionManager="bzaTransactionManager") public Map<String,Object> saveMenu(MenuRequest r,String operatorId){
@@ -58,7 +78,16 @@ public class BzaOperationService extends com.cpf.bizadmin.common.base.BzaBaseSer
  private void audit(String actor,String action,String type,String id,String reason,Object before,Object after){auditService.record(actor,action,type,id,reason,before,after);}
  private Map<String,Object> withoutSecret(Map<String,Object> v){Map<String,Object>r=new LinkedHashMap<>(v);r.remove("passwordHash");return r;}
  private String required(String v,String f){return CpfStrings.requireText(v,f);} private String code(String v,String f){return required(v,f).toUpperCase(Locale.ROOT);} private String defaultText(String v,String d){return v==null||v.isBlank()?d:v.trim();} private String blank(String v){return v==null||v.isBlank()?null:v.trim();} private String yn(String v,String d){String x=defaultText(v,d).toUpperCase(Locale.ROOT);if(!Set.of("Y","N").contains(x))throw new CpfValidationException("Y/N 값이 올바르지 않습니다.");return x;}
- public record AdminUserRequest(String loginId,String adminName,String roleCode,String rawPassword,String useYn,String lockYn,String passwordChangeRequiredYn,String requestUser,String reason){}
+ public record AdminUserRequest(
+         String loginId,String adminName,String roleCode,String rawPassword,
+         String accountStatus,String useYn,String lockYn,String passwordChangeRequiredYn,
+         Long expectedVersion,String requestUser,String reason){
+   public AdminUserRequest(String loginId,String adminName,String roleCode,String rawPassword,
+                           String useYn,String lockYn,String passwordChangeRequiredYn,
+                           String requestUser,String reason){
+     this(loginId,adminName,roleCode,rawPassword,null,useYn,lockYn,passwordChangeRequiredYn,null,requestUser,reason);
+   }
+ }
  public record MenuRequest(String menuCode,String menuName,String parentMenuCode,String moduleCode,String routePath,String iconCode,String environmentCode,String apiPath,Integer sortOrder,String useYn,Long expectedVersion,String requestUser,String reason){}
  public record RoleRequest(String roleCode,String roleName,String writeAllowedYn,String dataScope,String useYn,Long expectedVersion,String requestUser,String reason){}
  public record PermissionRequest(Long permissionId,String roleCode,String menuCode,String buttonCode,String permissionType,String httpMethod,String apiPattern,String domainCode,String environmentCode,String dataScope,String allowYn,String useYn,Long expectedVersion,String requestUser,String reason){}

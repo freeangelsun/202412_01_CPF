@@ -176,3 +176,37 @@ WHERE
         )
     )
     OR LOWER(table_schema) = 'exsdb';
+
+-- V61 admin data safety status verification
+SELECT 'VERIFY adm_operator account safety columns' AS verify_item,
+       CASE WHEN COUNT(*) = 3 THEN 'PASS' ELSE 'FAIL' END AS result
+  FROM information_schema.columns
+ WHERE LOWER(table_schema)='admdb' AND LOWER(table_name)='adm_operator'
+   AND UPPER(column_name) IN ('ACCOUNT_STATUS','VERSION_NO','CREATE_OPERATION_ID');
+
+SELECT 'VERIFY bza_admin_user account safety columns' AS verify_item,
+       CASE WHEN COUNT(*) = 2 THEN 'PASS' ELSE 'FAIL' END AS result
+  FROM information_schema.columns
+ WHERE LOWER(table_schema)='bzadb' AND LOWER(table_name)='bza_admin_user'
+   AND LOWER(column_name) IN ('account_status','version_no');
+
+SELECT 'VERIFY BZA employee status default' AS verify_item,
+       CASE WHEN MAX(UPPER(TRIM(BOTH '\'' FROM COALESCE(column_default,'')))) = 'EMPLOYED' THEN 'PASS' ELSE 'FAIL' END AS result
+  FROM information_schema.columns
+ WHERE LOWER(table_schema)='bzadb' AND LOWER(table_name)='bza_employee' AND LOWER(column_name)='employment_status';
+
+SELECT 'VERIFY ADM contact ownership' AS verify_item,
+       CASE WHEN
+         (SELECT COUNT(*) FROM information_schema.columns WHERE LOWER(table_schema)='admdb' AND LOWER(table_name)='adm_operator' AND UPPER(column_name) IN ('MOBILE_NO','OFFICE_PHONE_NO')) = 0
+         AND
+         (SELECT COUNT(*) FROM information_schema.columns WHERE LOWER(table_schema)='admdb' AND LOWER(table_name)='adm_operator_profile' AND UPPER(column_name) IN ('MOBILE_NO','OFFICE_PHONE_NO')) = 2
+       THEN 'PASS' ELSE 'FAIL' END AS result;
+
+SELECT 'VERIFY V61 status catalog constraints' AS verify_item,
+       CASE WHEN
+         (SELECT COUNT(*) FROM information_schema.table_constraints WHERE LOWER(table_schema)='admdb' AND LOWER(table_name)='adm_operator' AND constraint_name='ck_adm_operator_status') = 1
+         AND
+         (SELECT COUNT(*) FROM information_schema.table_constraints WHERE LOWER(table_schema)='bzadb' AND LOWER(table_name)='bza_admin_user' AND constraint_name='ck_bza_admin_user_status') = 1
+         AND
+         (SELECT COUNT(*) FROM information_schema.table_constraints WHERE LOWER(table_schema)='bzadb' AND LOWER(table_name)='bza_employee' AND constraint_name='ck_bza_employee_status') = 1
+       THEN 'PASS' ELSE 'FAIL' END AS result;

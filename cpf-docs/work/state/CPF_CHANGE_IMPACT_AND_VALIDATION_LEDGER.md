@@ -1,5 +1,31 @@
 # CPF Change Impact and Validation Ledger
 
+## 2026-07-27 — Change Set B closure / start SHA 00780dc14ef621578f6f7ca61ef1d0c9973c60e6
+
+| Change ID | Requirement | Owner | 직접 영향 | Consumer/간접 영향 | DB/UI/Security | 구현 | 검증 | Evidence |
+|---|---|---|---|---|---|---|---|---|
+| CHG-20260727-ADM-DATA-SAFETY-001 | B-001~003,006 | cpf-admin | persistence/config/operator service/dto/controller/health | auth/session/audit/frontend | admDB V61, PII, fail-closed | 완료 | Static 완료 / Runtime 미검증 | `CPF_CHATGPT_STATIC_VALIDATION_20260727_05.txt` |
+| CHG-20260727-PII-001 | B-007~008 | cpf-core + ADM/BZA | sensitive data API/raw request/masked projection | frontend/audit/permission | PII raw reason, no-store, audit | 완료 | Static 완료 / Browser 미검증 | 동일 |
+| CHG-20260727-BZA-STATUS-001 | B-004~006,013 | cpf-biz-admin | employment/admin status/service/auth/UI | directory/approval/support | bzaDB V61, status constraints | 완료 | Static 완료 / Runtime 미검증 | 동일 |
+| CHG-20260727-BZA-SQL-OWNERSHIP-001 | B-009~010 | cpf-core + cpf-biz-admin + cpf-tools | Public SQL Catalog, BZA repositories/resources | all BZA repository consumers | MariaDB runtime query resources | 완료 | inline/internal static 0 / DB runtime 미검증 | 동일 |
+| CHG-20260727-DB-V61-001 | B-011~012 | cpf-tools/db | canonical schema, V61 forward/rollback/checksum/bundles/verify | ADM/BZA runtime | MariaDB lifecycle | 완료 | Hash/parity 완료 / actual DB 미검증 | 동일 |
+
+### Reopened regression targets
+
+이번 변경으로 다음 과거 PASS는 영향권에 들어가므로 향후 targeted regression 대상으로 다시 연다.
+
+- cpf-core public API compile/test
+- cpf-admin compile/test/frontend/auth/runtime
+- cpf-biz-admin compile/test/frontend/auth/approval/directory/support
+- MariaDB Fresh/Upgrade/Rollback/Verify manifest
+- permission seed/API-method parity
+
+BAT Query Pack/Gateway/Generated Domain Source는 직접 변경하지 않았으므로 매 작은 작업마다 고비용 전체 실행하지 않는다. 단 Stack/DB/Final Regression 영향권에 들어오면 재개방한다.
+
+---
+
+## Historical Ledger preserved from 00780dc baseline
+
 이 문서는 작업마다 초기화하지 않는 누적 변경/검증 Ledger다.
 
 ## 상태 정의

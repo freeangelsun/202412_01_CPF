@@ -22,12 +22,15 @@
     </div>
     <div v-if="Array.isArray(operatorResult)" class="table-wrap">
       <table>
-        <thead><tr><th>운영자 ID</th><th>이름</th><th>연락처(휴대폰)</th><th>내부 전화번호</th><th>역할</th><th>잠금</th></tr></thead>
+        <thead><tr><th>운영자 ID</th><th>이름</th><th>계정 상태</th><th>연락처(휴대폰)</th><th>내부 전화번호</th><th>역할</th><th>잠금</th><th>관리</th></tr></thead>
         <tbody>
           <tr v-for="operator in operatorResult" :key="operator.operatorId">
             <td>{{ operator.operatorId }}</td><td>{{ operator.operatorName }}</td>
+            <td>{{ operator.accountStatus }}</td>
             <td>{{ operator.mobileNo || "-" }}</td><td>{{ operator.officePhoneNo || "-" }}</td>
-            <td>{{ (operator.roleIds || []).join(", ") }}</td><td>{{ operator.locked ? "Y" : "N" }}</td>
+            <td>{{ (operator.roleIds || []).join(", ") || "-" }}</td><td>{{ operator.locked ? "Y" : "N" }}</td>
+            <td><button type="button" @click="viewOperatorRaw(operator)">원문 보기</button>
+                <button v-if="operator.accountStatus !== 'ACTIVE' && (operator.roleIds || []).length" type="button" @click="activateOperator(operator)">활성화</button></td>
           </tr>
         </tbody>
       </table>

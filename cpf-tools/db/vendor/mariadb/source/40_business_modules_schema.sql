@@ -268,7 +268,9 @@ CREATE TABLE IF NOT EXISTS bza_admin_user (
     admin_login_id VARCHAR(80) NOT NULL COMMENT '업무 관리자 로그인 ID',
     admin_name VARCHAR(100) NOT NULL COMMENT '업무 관리자명',
     password_hash VARCHAR(300) NULL COMMENT '업무 관리자 비밀번호 hash',
-    role_code VARCHAR(50) NOT NULL COMMENT '호환용 기본 역할 코드; 실제 권한은 bza_user_role 다중 매핑을 정본으로 사용',
+    role_code VARCHAR(50) NULL COMMENT '호환용 대표 역할 코드; 신규 계정은 Role 미부여가 기본이며 실제 권한은 bza_user_role 다중 매핑이 정본',
+    account_status VARCHAR(30) NOT NULL DEFAULT 'PENDING_ACTIVATION' COMMENT '계정 상태: PENDING_ACTIVATION/ACTIVE/LOCKED/SUSPENDED/DISABLED',
+    version_no BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 버전',
     use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
     lock_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '잠금 여부',
     login_fail_count INT NOT NULL DEFAULT 0 COMMENT '로그인 실패 횟수',
@@ -281,7 +283,9 @@ CREATE TABLE IF NOT EXISTS bza_admin_user (
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (admin_user_id),
     UNIQUE KEY uk_bza_admin_user_login (admin_login_id),
-    INDEX ix_bza_admin_user_role (role_code, use_yn)
+    INDEX ix_bza_admin_user_role (role_code, use_yn),
+    INDEX ix_bza_admin_user_status (account_status, use_yn),
+    CONSTRAINT ck_bza_admin_user_status CHECK (account_status IN ('PENDING_ACTIVATION','ACTIVE','LOCKED','SUSPENDED','DISABLED'))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 업무 관리자 사용자';
 
 CREATE TABLE IF NOT EXISTS bza_login_history (
@@ -507,6 +511,7 @@ CREATE TABLE IF NOT EXISTS bza_employee (
     CONSTRAINT fk_bza_employee_job_title FOREIGN KEY (job_title_code)
         REFERENCES bza_job_title(job_title_code) ON DELETE SET NULL,
     CONSTRAINT ck_bza_employee_use CHECK (use_yn IN ('Y','N')),
+    CONSTRAINT ck_bza_employee_status CHECK (employment_status IN ('EMPLOYED','ON_LEAVE','SECONDMENT','DISPATCHED','RETIRED','TERMINATED')),
     CONSTRAINT ck_bza_employee_employment_period CHECK (
         leave_date IS NULL OR join_date IS NULL OR leave_date >= join_date
     )

@@ -1079,6 +1079,9 @@ CREATE TABLE IF NOT EXISTS adm_operator (
     OPERATOR_ID VARCHAR(50) NOT NULL COMMENT '운영자 ID',
     OPERATOR_NAME VARCHAR(100) NOT NULL COMMENT '운영자명',
     PASSWORD_HASH VARCHAR(512) NOT NULL COMMENT '비밀번호 해시',
+    ACCOUNT_STATUS VARCHAR(30) NOT NULL DEFAULT 'PENDING_ACTIVATION' COMMENT '계정 상태: PENDING_ACTIVATION/ACTIVE/LOCKED/SUSPENDED/DISABLED',
+    VERSION_NO BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 버전',
+    CREATE_OPERATION_ID VARCHAR(100) NULL COMMENT '운영자 생성 멱등 Operation ID',
     LOCKED_YN CHAR(1) NOT NULL DEFAULT 'N' COMMENT '잠금 여부',
     FAIL_COUNT INT NOT NULL DEFAULT 0 COMMENT '로그인 실패 횟수',
     PASSWORD_CHANGED_AT DATETIME NULL COMMENT '비밀번호 변경일시',
@@ -1092,8 +1095,11 @@ CREATE TABLE IF NOT EXISTS adm_operator (
     updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (OPERATOR_ID),
+    UNIQUE KEY uk_adm_operator_create_operation (CREATE_OPERATION_ID),
     INDEX ix_adm_operator_use (USE_YN),
-    INDEX ix_adm_operator_lock (LOCKED_YN, FAIL_COUNT)
+    INDEX ix_adm_operator_status (ACCOUNT_STATUS, USE_YN),
+    INDEX ix_adm_operator_lock (LOCKED_YN, FAIL_COUNT),
+    CONSTRAINT ck_adm_operator_status CHECK (ACCOUNT_STATUS IN ('PENDING_ACTIVATION','ACTIVE','LOCKED','SUSPENDED','DISABLED'))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 운영자';
 
 CREATE TABLE IF NOT EXISTS adm_role (
@@ -1439,6 +1445,8 @@ CREATE TABLE IF NOT EXISTS adm_organization (
 
 CREATE TABLE IF NOT EXISTS adm_operator_profile (
     OPERATOR_ID VARCHAR(50) NOT NULL COMMENT '운영자 ID',
+    DISPLAY_NAME VARCHAR(100) NULL COMMENT 'Directory/Profile 표시 이름',
+    DISPLAY_NAME VARCHAR(100) NULL COMMENT 'Directory/Profile 표시 이름',
     EMPLOYEE_NO VARCHAR(50) NULL COMMENT '외부/내부 사번',
     EXTERNAL_SUBJECT VARCHAR(200) NULL COMMENT 'LDAP/IAM 등 외부 Identity Subject',
     ORGANIZATION_CODE VARCHAR(50) NULL COMMENT '대표 운영 조직 코드',
@@ -1447,8 +1455,11 @@ CREATE TABLE IF NOT EXISTS adm_operator_profile (
     JOB_TITLE_CODE VARCHAR(50) NULL COMMENT '직책 코드',
     JOB_TITLE_NAME VARCHAR(100) NULL COMMENT '직책명 Snapshot/표시값',
     EMAIL VARCHAR(200) NULL COMMENT '업무 이메일',
+    MOBILE_NO VARCHAR(50) NULL COMMENT '연락처(휴대폰); 숫자형이 아닌 문자열로 국가번호와 선행 0을 보존',
+    OFFICE_PHONE_NO VARCHAR(50) NULL COMMENT '내부 전화번호/내선; 휴대폰 연락처와 분리',
     EFFECTIVE_FROM DATETIME(3) NULL COMMENT 'Profile 적용 시작시각',
     EFFECTIVE_TO DATETIME(3) NULL COMMENT 'Profile 적용 종료시각',
+    VERSION_NO BIGINT NOT NULL DEFAULT 0 COMMENT 'Profile 낙관적 잠금 버전',
     created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
     created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
     updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
@@ -1745,6 +1756,7 @@ CREATE TABLE IF NOT EXISTS adm_audit_delivery (
     CONSTRAINT ck_adm_audit_delivery_operation CHECK (OPERATION_STATUS IN ('REQUESTED','SUCCEEDED','FAILED','UNKNOWN')),
     CONSTRAINT ck_adm_audit_delivery_status CHECK (DELIVERY_STATUS IN ('PENDING','RETRY','FAILED','DELIVERED'))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 필수 감사 Delivery 원장';
+
 -- ============================================================================
 -- cpf-tools/db/vendor/mariadb/source/35_bat_schema.sql
 -- ============================================================================
@@ -2942,7 +2954,9 @@ CREATE TABLE IF NOT EXISTS bza_admin_user (
     admin_login_id VARCHAR(80) NOT NULL COMMENT '업무 관리자 로그인 ID',
     admin_name VARCHAR(100) NOT NULL COMMENT '업무 관리자명',
     password_hash VARCHAR(300) NULL COMMENT '업무 관리자 비밀번호 hash',
-    role_code VARCHAR(50) NOT NULL COMMENT '호환용 기본 역할 코드; 실제 권한은 bza_user_role 다중 매핑을 정본으로 사용',
+    role_code VARCHAR(50) NULL COMMENT '호환용 대표 역할 코드; 신규 계정은 Role 미부여가 기본이며 실제 권한은 bza_user_role 다중 매핑이 정본',
+    account_status VARCHAR(30) NOT NULL DEFAULT 'PENDING_ACTIVATION' COMMENT '계정 상태: PENDING_ACTIVATION/ACTIVE/LOCKED/SUSPENDED/DISABLED',
+    version_no BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 버전',
     use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
     lock_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '잠금 여부',
     login_fail_count INT NOT NULL DEFAULT 0 COMMENT '로그인 실패 횟수',
@@ -2955,7 +2969,9 @@ CREATE TABLE IF NOT EXISTS bza_admin_user (
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (admin_user_id),
     UNIQUE KEY uk_bza_admin_user_login (admin_login_id),
-    INDEX ix_bza_admin_user_role (role_code, use_yn)
+    INDEX ix_bza_admin_user_role (role_code, use_yn),
+    INDEX ix_bza_admin_user_status (account_status, use_yn),
+    CONSTRAINT ck_bza_admin_user_status CHECK (account_status IN ('PENDING_ACTIVATION','ACTIVE','LOCKED','SUSPENDED','DISABLED'))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 업무 관리자 사용자';
 
 CREATE TABLE IF NOT EXISTS bza_login_history (
@@ -3156,11 +3172,12 @@ CREATE TABLE IF NOT EXISTS bza_employee (
     position_code VARCHAR(50) NULL COMMENT '직급 코드',
     job_title_code VARCHAR(50) NULL COMMENT '직책 코드',
     manager_employee_no VARCHAR(50) NULL COMMENT '상위 관리자 직원 번호',
-    employment_status VARCHAR(30) NOT NULL DEFAULT 'ACTIVE' COMMENT '재직 상태',
+    employment_status VARCHAR(30) NOT NULL DEFAULT 'EMPLOYED' COMMENT '재직 상태; 신규 직원 기본값 EMPLOYED',
     join_date DATE NULL COMMENT '입사일',
     leave_date DATE NULL COMMENT '퇴사일',
     email VARCHAR(200) NULL COMMENT '업무 이메일',
-    mobile_no VARCHAR(50) NULL COMMENT '업무 휴대폰 번호',
+    mobile_no VARCHAR(50) NULL COMMENT '연락처(휴대폰); 숫자형이 아닌 문자열로 국가번호와 선행 0을 보존',
+    office_phone_no VARCHAR(50) NULL COMMENT '내부 전화번호/내선; 휴대폰 연락처와 분리',
     use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
     version_no BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 버전',
     created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
@@ -3180,6 +3197,7 @@ CREATE TABLE IF NOT EXISTS bza_employee (
     CONSTRAINT fk_bza_employee_job_title FOREIGN KEY (job_title_code)
         REFERENCES bza_job_title(job_title_code) ON DELETE SET NULL,
     CONSTRAINT ck_bza_employee_use CHECK (use_yn IN ('Y','N')),
+    CONSTRAINT ck_bza_employee_status CHECK (employment_status IN ('EMPLOYED','ON_LEAVE','SECONDMENT','DISPATCHED','RETIRED','TERMINATED')),
     CONSTRAINT ck_bza_employee_employment_period CHECK (
         leave_date IS NULL OR join_date IS NULL OR leave_date >= join_date
     )

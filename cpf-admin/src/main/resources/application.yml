@@ -43,6 +43,8 @@ cpf:
     module-id: ADM
     was-id: ${WAS_ID:admAP01}
   adm:
+    persistence:
+      mode: ${CPF_ADM_PERSISTENCE_MODE:DATABASE}
     bootstrap:
       enabled: ${CPF_ADM_BOOTSTRAP_ENABLED:false}
       allow-prod: ${CPF_ADM_BOOTSTRAP_ALLOW_PROD:false}

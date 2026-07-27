@@ -60,7 +60,9 @@ public class BzaApiAuthFilter extends OncePerRequestFilter {
                         org.springframework.http.HttpStatus.FORBIDDEN,
                         "등록되지 않은 BZA API 권한 Resource입니다."));
         String action = "GET".equalsIgnoreCase(request.getMethod()) ? "READ" : "WRITE";
-        if (path.contains("/download")) {
+        if (path.endsWith("/contacts/raw")) {
+            action = "PII_RAW";
+        } else if (path.contains("/download")) {
             action = "DOWNLOAD";
         }
         return new Permission(menu, action);

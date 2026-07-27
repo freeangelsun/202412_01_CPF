@@ -5,7 +5,6 @@ import com.cpf.bizadmin.common.model.BzaAdminAccountStatus;
 import com.cpf.bizadmin.auth.repository.BzaAuthRepository;
 import com.cpf.bizadmin.audit.service.BzaBusinessAuditService;
 import com.cpf.bizadmin.auth.repository.BzaAuthRepository.BzaOperatorRow;
-import com.cpf.bizadmin.auth.repository.BzaAuthRepository.LoginHistoryWrite;
 import com.cpf.bizadmin.auth.repository.BzaAuthRepository.RefreshTokenRow;
 import com.cpf.bizadmin.auth.repository.BzaAuthRepository.RefreshTokenWrite;
 import com.cpf.common.sec.crypto.CmnCryptoService;
@@ -46,6 +45,7 @@ public class BzaAuthService extends com.cpf.bizadmin.common.base.BzaBaseService 
     private final CpfPasswordService passwordHashingPort;
     private final BzaAuthRepository authRepository;
     private final BzaBusinessAuditService auditService;
+    private final BzaLoginTransactionService loginTransactionService;
     private final String jwtSecret;
     private final long accessTokenTtlSeconds;
     private final long refreshTokenTtlSeconds;
@@ -58,6 +58,7 @@ public class BzaAuthService extends com.cpf.bizadmin.common.base.BzaBaseService 
             CpfPasswordService passwordHashingPort,
             BzaAuthRepository authRepository,
             BzaBusinessAuditService auditService,
+            BzaLoginTransactionService loginTransactionService,
             @Value("${cpf.bza.security.jwt-secret:${CPF_BZA_JWT_SECRET:}}") String jwtSecret,
             @Value("${cpf.bza.security.access-token-ttl-seconds:600}") long accessTokenTtlSeconds,
             @Value("${cpf.bza.security.refresh-token-ttl-seconds:7200}") long refreshTokenTtlSeconds,
@@ -68,6 +69,7 @@ public class BzaAuthService extends com.cpf.bizadmin.common.base.BzaBaseService 
         this.passwordHashingPort = passwordHashingPort;
         this.authRepository = authRepository;
         this.auditService = auditService;
+        this.loginTransactionService = loginTransactionService;
         this.jwtSecret = jwtSecret;
         this.accessTokenTtlSeconds = accessTokenTtlSeconds;
         this.refreshTokenTtlSeconds = refreshTokenTtlSeconds;
@@ -81,45 +83,58 @@ public class BzaAuthService extends com.cpf.bizadmin.common.base.BzaBaseService 
     public LoginResult login(LoginRequest request, String clientIp, String userAgent) {
         String loginId = CpfStrings.requireText(request.loginId(), "loginId");
         String password = CpfStrings.requireText(request.password(), "password");
+        String operationId = CpfStrings.requireText(request.operationId(), "operationId");
+        if (operationId.length() > 100) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "로그인 operationId는 100자를 초과할 수 없습니다.");
+        }
         BzaOperatorRow operator = authRepository.findOperatorByLoginId(loginId).orElse(null);
 
         if (operator == null) {
-            recordLogin(null, loginId, "FAIL", "등록되지 않은 업무 관리자", clientIp, userAgent);
+            loginTransactionService.recordFailure(failureCommand(null, loginId, "등록되지 않은 업무 관리자", clientIp, userAgent, false));
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "업무 관리자 계정을 확인할 수 없습니다.");
         }
         if (!BzaAdminAccountStatus.ACTIVE.name().equals(operator.accountStatus()) || !"Y".equals(operator.useYn()) || "Y".equals(operator.lockYn())) {
-            recordLogin(operator.adminUserId(), loginId, "FAIL", "사용 중지 또는 잠금 상태", clientIp, userAgent);
+            loginTransactionService.recordFailure(failureCommand(operator.adminUserId(), loginId, "사용 중지 또는 잠금 상태", clientIp, userAgent, false));
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "업무 관리자 계정이 사용할 수 없는 상태입니다.");
         }
         if (!CpfStrings.hasText(operator.passwordHash())) {
-            recordLogin(operator.adminUserId(), loginId, "FAIL", "비밀번호 hash 미등록", clientIp, userAgent);
+            loginTransactionService.recordFailure(failureCommand(operator.adminUserId(), loginId, "비밀번호 hash 미등록", clientIp, userAgent, false));
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "업무 관리자 비밀번호가 초기화되지 않았습니다.");
         }
         CpfPasswordVerification verification = verifyPassword(password, operator.passwordHash());
         if (!verification.matched()) {
-            authRepository.increaseLoginFailCount(operator.adminUserId());
-            recordLogin(operator.adminUserId(), loginId, "FAIL", "비밀번호 불일치", clientIp, userAgent);
+            loginTransactionService.recordFailure(failureCommand(operator.adminUserId(), loginId, "비밀번호 불일치", clientIp, userAgent, true));
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "업무 관리자 인증에 실패했습니다.");
         }
 
-        authRepository.markLoginSuccess(operator.adminUserId());
-        if (verification.rehashRequired()) {
-            authRepository.updatePasswordHashIfUnchanged(
-                    operator.adminUserId(), operator.passwordHash(), hashPassword(password), "BZA_PASSWORD_UPGRADE");
-        }
-        recordLogin(operator.adminUserId(), loginId, "SUCCESS", null, clientIp, userAgent);
-
-        String accessToken = createAccessToken(operator);
         String refreshToken = cryptoService.secureRandomToken(48);
         String refreshHash = cryptoService.sha256Base64Url(refreshToken);
         Instant refreshExpireAt = Instant.now().plusSeconds(refreshTokenTtlSeconds);
-        authRepository.insertRefreshToken(new RefreshTokenWrite(
-                operator.adminUserId(),
-                LOGIN_DOMAIN,
+        String upgradedHash = verification.rehashRequired() ? hashPassword(password) : null;
+        CpfServerIdentity.Identity identity = CpfServerIdentity.current();
+        loginTransactionService.commitSuccess(new BzaLoginTransactionService.LoginSuccessCommand(
+                operationId,
+                operator,
+                operator.passwordHash(),
+                upgradedHash,
                 refreshHash,
+                refreshExpireAt,
+                clientIp,
+                userAgent,
                 CpfTransactionContext.transactionId(),
-                refreshExpireAt));
-        return new LoginResult(accessToken, refreshToken, "Bearer", accessTokenTtlSeconds, refreshExpireAt, toOperatorResponse(operator));
+                moduleId,
+                wasId,
+                identity.serverInstanceId()));
+
+        // 성공 Transaction 이후 DB 상태를 다시 읽어 failCount/lastLogin/rehash 및 최신 Role을 JWT/응답에 반영합니다.
+        // 이 조회가 실패해 응답 결과불명이 되더라도 동일 operationId 재시도는 기존 refresh session을 폐기하고
+        // 새 session 하나만 유효하게 회전시키므로 raw token 유실이 중복 활성 세션으로 이어지지 않습니다.
+        BzaOperatorRow committedOperator = authRepository.findOperatorByLoginId(loginId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+                        "로그인 commit 이후 업무 관리자 상태를 다시 확인할 수 없습니다."));
+        requireActiveOperator(committedOperator);
+        return new LoginResult(createAccessToken(committedOperator), refreshToken, "Bearer", accessTokenTtlSeconds,
+                refreshExpireAt, toOperatorResponse(committedOperator));
     }
 
     /**
@@ -147,7 +162,7 @@ public class BzaAuthService extends com.cpf.bizadmin.common.base.BzaBaseService 
         Instant rotatedExpireAt = Instant.now().plusSeconds(refreshTokenTtlSeconds);
         authRepository.insertRefreshToken(new RefreshTokenWrite(
                 operator.adminUserId(), LOGIN_DOMAIN, rotatedHash,
-                CpfTransactionContext.transactionId(), rotatedExpireAt));
+                CpfTransactionContext.transactionId(), null, rotatedExpireAt));
         return new LoginResult(createAccessToken(operator), rotatedToken, "Bearer", accessTokenTtlSeconds,
                 rotatedExpireAt, toOperatorResponse(operator));
     }
@@ -363,26 +378,12 @@ auditService.record(operator.loginId(), "SESSION_REVOKE", "bza_refresh_token", S
         }
     }
 
-    private void recordLogin(
-            Long adminUserId,
-            String loginId,
-            String result,
-            String failureReason,
-            String clientIp,
-            String userAgent) {
+    private BzaLoginTransactionService.LoginFailureCommand failureCommand(
+            Long adminUserId, String loginId, String reason, String clientIp, String userAgent, boolean increaseFailCount) {
         CpfServerIdentity.Identity identity = CpfServerIdentity.current();
-        authRepository.insertLoginHistory(new LoginHistoryWrite(
-                adminUserId,
-                LOGIN_DOMAIN,
-                loginId,
-                result,
-                failureReason,
-                clientIp,
-                userAgent,
-                CpfTransactionContext.transactionId(),
-                moduleId,
-                wasId,
-                identity.serverInstanceId()));
+        return new BzaLoginTransactionService.LoginFailureCommand(
+                adminUserId, loginId, reason, clientIp, userAgent, increaseFailCount,
+                CpfTransactionContext.transactionId(), moduleId, wasId, identity.serverInstanceId());
     }
 
     private Map<String, Object> toOperatorResponse(BzaOperatorRow operator) {
@@ -403,7 +404,7 @@ auditService.record(operator.loginId(), "SESSION_REVOKE", "bza_refresh_token", S
         return response;
     }
 
-    public record LoginRequest(String loginId, String password) {
+    public record LoginRequest(String loginId, String password, String operationId) {
     }
 
     public record RefreshRequest(String refreshToken) {

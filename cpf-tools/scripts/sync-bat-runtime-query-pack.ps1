@@ -13,22 +13,11 @@ $Root = (Resolve-Path -LiteralPath $Root).Path
 $contractPath = Join-Path $Root "cpf-tools\db\metadata\bat-runtime-query-contract.json"
 $contract = Get-Content -Raw -Encoding UTF8 -LiteralPath $contractPath | ConvertFrom-Json
 $templateRoot = Join-Path $Root ($contract.authoringTemplateRoot -replace "/", "\")
-$vendors = @("mariadb", "mysql", "postgresql", "oracle", "sqlserver")
+$vendors = @("mariadb", "postgresql", "oracle")
 $utf8NoBom = [System.Text.UTF8Encoding]::new($false)
 
 $vendorTokens = @{
     mariadb = @{
-        "@NOW@" = "CURRENT_TIMESTAMP"
-        "@NOW3@" = "CURRENT_TIMESTAMP(3)"
-        "@NOW6@" = "CURRENT_TIMESTAMP(6)"
-        "@LIMIT_100@" = "LIMIT 100"
-        "@LIMIT_20@" = "LIMIT 20"
-        "@LIMIT_500@" = "LIMIT 500"
-        "@LIMIT_PARAM@" = "LIMIT ?"
-        "@NOW6_MINUS_30_SECONDS@" = "DATE_SUB(CURRENT_TIMESTAMP(6), INTERVAL 30 SECOND)"
-        "@NOW3_MINUS_SECONDS_PARAM@" = "DATE_SUB(CURRENT_TIMESTAMP(3), INTERVAL ? SECOND)"
-    }
-    mysql = @{
         "@NOW@" = "CURRENT_TIMESTAMP"
         "@NOW3@" = "CURRENT_TIMESTAMP(3)"
         "@NOW6@" = "CURRENT_TIMESTAMP(6)"
@@ -60,17 +49,6 @@ $vendorTokens = @{
         "@LIMIT_PARAM@" = "FETCH FIRST ? ROWS ONLY"
         "@NOW6_MINUS_30_SECONDS@" = "CURRENT_TIMESTAMP(6) - INTERVAL '30' SECOND"
         "@NOW3_MINUS_SECONDS_PARAM@" = "CURRENT_TIMESTAMP(3) - NUMTODSINTERVAL(?, 'SECOND')"
-    }
-    sqlserver = @{
-        "@NOW@" = "SYSUTCDATETIME()"
-        "@NOW3@" = "SYSUTCDATETIME()"
-        "@NOW6@" = "SYSUTCDATETIME()"
-        "@LIMIT_100@" = "OFFSET 0 ROWS FETCH NEXT 100 ROWS ONLY"
-        "@LIMIT_20@" = "OFFSET 0 ROWS FETCH NEXT 20 ROWS ONLY"
-        "@LIMIT_500@" = "OFFSET 0 ROWS FETCH NEXT 500 ROWS ONLY"
-        "@LIMIT_PARAM@" = "OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY"
-        "@NOW6_MINUS_30_SECONDS@" = "DATEADD(SECOND, -30, SYSUTCDATETIME())"
-        "@NOW3_MINUS_SECONDS_PARAM@" = "DATEADD(SECOND, (0 - ?), SYSUTCDATETIME())"
     }
 }
 

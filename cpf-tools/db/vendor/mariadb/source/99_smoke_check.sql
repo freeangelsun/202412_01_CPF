@@ -46,7 +46,7 @@ FROM information_schema.tables
 WHERE LOWER(table_schema) = 'admdb' AND table_type = 'BASE TABLE';
 
 SELECT 'bzaDB.table_count' AS check_name,
-       IF(COUNT(*) = 27, 1, 0) AS passed
+       IF(COUNT(*) = 28, 1, 0) AS passed
 FROM information_schema.tables
 WHERE LOWER(table_schema) = 'bzadb' AND table_type = 'BASE TABLE';
 
@@ -203,4 +203,23 @@ SELECT 'VERIFY V61 status catalog constraints' AS verify_item,
          AND
          (SELECT COUNT(*) FROM information_schema.table_constraints WHERE LOWER(table_schema)='bzadb' AND LOWER(table_name)='bza_employee' AND constraint_name='ck_bza_employee_status') = 1
        THEN 'PASS' ELSE 'FAIL' END AS result;
+
+-- V62/V63 BZA idempotency and login-operation verification
+SELECT 'VERIFY V62 bootstrap operation id' AS verify_item,
+       CASE WHEN COUNT(*) = 1 THEN 'PASS' ELSE 'FAIL' END AS result
+  FROM information_schema.columns
+ WHERE LOWER(table_schema)='bzadb' AND LOWER(table_name)='bza_admin_user'
+   AND LOWER(column_name)='create_operation_id';
+
+SELECT 'VERIFY V63 login operation table' AS verify_item,
+       CASE WHEN COUNT(*) = 1 THEN 'PASS' ELSE 'FAIL' END AS result
+  FROM information_schema.tables
+ WHERE LOWER(table_schema)='bzadb' AND LOWER(table_name)='bza_login_operation'
+   AND table_type='BASE TABLE';
+
+SELECT 'VERIFY V63 refresh login operation link' AS verify_item,
+       CASE WHEN COUNT(*) = 1 THEN 'PASS' ELSE 'FAIL' END AS result
+  FROM information_schema.columns
+ WHERE LOWER(table_schema)='bzadb' AND LOWER(table_name)='bza_refresh_token'
+   AND LOWER(column_name)='login_operation_id';
 

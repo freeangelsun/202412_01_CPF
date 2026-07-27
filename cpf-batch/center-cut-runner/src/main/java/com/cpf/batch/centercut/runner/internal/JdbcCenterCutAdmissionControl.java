@@ -1,7 +1,7 @@
 package com.cpf.batch.centercut.runner.internal;
 
-import com.cpf.core.common.database.CpfVendorSqlCatalog;
-import org.springframework.core.env.Environment;
+import com.cpf.core.api.database.CpfVendorSqlCatalog;
+import com.cpf.core.api.database.CpfVendorSqlCatalogProvider;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,9 +12,9 @@ public class JdbcCenterCutAdmissionControl {
     private final JdbcTemplate jdbc;
     private final CpfVendorSqlCatalog sql;
 
-    public JdbcCenterCutAdmissionControl(JdbcTemplate jdbc, Environment environment) {
+    public JdbcCenterCutAdmissionControl(JdbcTemplate jdbc, CpfVendorSqlCatalogProvider sqlCatalogProvider) {
         this.jdbc = jdbc;
-        this.sql = CpfVendorSqlCatalog.create(environment, "bat");
+        this.sql = sqlCatalogProvider.forModule("bat");
     }
 
     @Transactional

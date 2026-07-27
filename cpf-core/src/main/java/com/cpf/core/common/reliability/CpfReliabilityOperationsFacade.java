@@ -4,13 +4,18 @@ import com.cpf.core.api.reliability.CpfReliabilityOperationsPort;
 import com.cpf.core.common.exception.CpfValidationException;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.jdbc.core.ColumnMapRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.PreparedStatement;
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -49,9 +54,8 @@ public class CpfReliabilityOperationsFacade implements CpfReliabilityOperationsP
         appendEquals(sql, args, "scope", scope);
         appendEquals(sql, args, "record_status", status);
         appendLike(sql, args, "idempotency_key", key);
-        sql.append(" ORDER BY idempotency_seq DESC LIMIT ?");
-        args.add(safeLimit(limit));
-        return jdbc().queryForList(sql.toString(), args.toArray());
+        sql.append(" ORDER BY idempotency_seq DESC");
+        return queryForListLimited(sql.toString(), args, limit);
     }
 
     @Override
@@ -75,9 +79,8 @@ public class CpfReliabilityOperationsFacade implements CpfReliabilityOperationsP
         appendEquals(sql, args, "outbox_status", status);
         appendEquals(sql, args, "transaction_id", transactionId);
         appendEquals(sql, args, "topic", topic);
-        sql.append(" ORDER BY outbox_id DESC LIMIT ?");
-        args.add(safeLimit(limit));
-        return jdbc().queryForList(sql.toString(), args.toArray());
+        sql.append(" ORDER BY outbox_id DESC");
+        return queryForListLimited(sql.toString(), args, limit);
     }
 
     @Override
@@ -94,9 +97,8 @@ public class CpfReliabilityOperationsFacade implements CpfReliabilityOperationsP
         List<Object> args = new ArrayList<>();
         appendEquals(sql, args, "inbox_status", status);
         appendLike(sql, args, "idempotency_key", key);
-        sql.append(" ORDER BY inbox_id DESC LIMIT ?");
-        args.add(safeLimit(limit));
-        return jdbc().queryForList(sql.toString(), args.toArray());
+        sql.append(" ORDER BY inbox_id DESC");
+        return queryForListLimited(sql.toString(), args, limit);
     }
 
     @Override
@@ -119,9 +121,8 @@ public class CpfReliabilityOperationsFacade implements CpfReliabilityOperationsP
         appendEquals(sql, args, "replay_status", status);
         appendEquals(sql, args, "transaction_id", transactionId);
         appendEquals(sql, args, "topic", topic);
-        sql.append(" ORDER BY dlq_id DESC LIMIT ?");
-        args.add(safeLimit(limit));
-        return jdbc().queryForList(sql.toString(), args.toArray());
+        sql.append(" ORDER BY dlq_id DESC");
+        return queryForListLimited(sql.toString(), args, limit);
     }
 
     @Override
@@ -144,9 +145,8 @@ public class CpfReliabilityOperationsFacade implements CpfReliabilityOperationsP
         appendEquals(sql, args, "transfer_status", status);
         appendEquals(sql, args, "transaction_id", transactionId);
         appendEquals(sql, args, "endpoint_code", endpointCode);
-        sql.append(" ORDER BY history_id DESC LIMIT ?");
-        args.add(safeLimit(limit));
-        return jdbc().queryForList(sql.toString(), args.toArray());
+        sql.append(" ORDER BY history_id DESC");
+        return queryForListLimited(sql.toString(), args, limit);
     }
 
     @Override
@@ -169,25 +169,55 @@ public class CpfReliabilityOperationsFacade implements CpfReliabilityOperationsP
         appendEquals(sql, args, "unknown_type", type);
         appendEquals(sql, args, "unknown_status", status);
         appendEquals(sql, args, "transaction_id", transactionId);
-        sql.append(" ORDER BY unknown_seq DESC LIMIT ?");
-        args.add(safeLimit(limit));
-        return jdbc().queryForList(sql.toString(), args.toArray());
+        sql.append(" ORDER BY unknown_seq DESC");
+        return queryForListLimited(sql.toString(), args, limit);
+    }
+
+    @Override
+    public Optional<Map<String, Object>> findUnknownResult(String unknownId) {
+        if (!available()) return Optional.empty();
+        List<Map<String,Object>> rows = jdbc().queryForList("""
+                SELECT unknown_seq, unknown_id, unknown_type, unknown_status, transaction_id,
+                       segment_id, external_key, failure_code, failure_message, next_action,
+                       detected_at, resolved_at, resolved_by, audit_reason, created_at, updated_at
+                FROM cpf_unknown_result
+                WHERE unknown_id = ?
+                """, required(unknownId, "unknownId"));
+        return rows.stream().findFirst();
+    }
+
+    @Override
+    @Transactional(transactionManager = "cpfTransactionManager")
+    public UnknownResultRecord recordUnknownResult(UnknownResultCommand command) {
+        String unknownId = required(command.unknownId(), "unknownId");
+        int inserted = jdbc().update("""
+                INSERT INTO cpf_unknown_result (
+                    unknown_id, unknown_type, unknown_status, transaction_id, segment_id, external_key,
+                    failure_code, failure_message, next_action, created_by, updated_by
+                ) VALUES (?, ?, 'CHECK_PENDING', ?, ?, ?, ?, ?, ?, ?, ?)
+                """, unknownId, required(command.type(), "type"), command.transactionId(), command.segmentId(),
+                command.externalKey(), command.failureCode(), command.failureMessage(), command.nextAction(),
+                hasText(command.createdBy()) ? command.createdBy().trim() : "CPF",
+                hasText(command.createdBy()) ? command.createdBy().trim() : "CPF");
+        if (inserted != 1) throw new IllegalStateException("Unknown result 등록에 실패했습니다. unknownId=" + unknownId);
+        return new UnknownResultRecord(unknownId, "CHECK_PENDING");
     }
 
     @Override
     @Transactional(transactionManager = "cpfTransactionManager")
     public ChangeResult requestDlqReplay(String messageId, String operatorId, String reason) {
         Map<String, Object> before = findOne("cpf_broker_dlq", "message_id", messageId);
+        Timestamp now = Timestamp.from(Instant.now());
         int updated = jdbc().update("""
                 UPDATE cpf_broker_dlq
                 SET replay_status = 'REQUESTED',
-                    replay_requested_at = CURRENT_TIMESTAMP(3),
+                    replay_requested_at = ?,
                     replay_count = replay_count + 1,
                     updated_by = ?,
-                    updated_at = CURRENT_TIMESTAMP
+                    updated_at = ?
                 WHERE message_id = ?
                   AND replay_status IN ('WAITING', 'FAILED')
-                """, required(operatorId, "requestUser"), required(messageId, "messageId"));
+                """, now, required(operatorId, "requestUser"), now, required(messageId, "messageId"));
         if (updated != 1) {
             throw new CpfValidationException("DLQ가 없거나 현재 상태에서는 재처리를 요청할 수 없습니다.");
         }
@@ -203,9 +233,9 @@ public class CpfReliabilityOperationsFacade implements CpfReliabilityOperationsP
                     published_at = NULL,
                     failure_message = NULL,
                     updated_by = ?,
-                    updated_at = CURRENT_TIMESTAMP
+                    updated_at = ?
                 WHERE message_id = ?
-                """, operatorId, messageId);
+                """, operatorId, now, messageId);
         if (requeued != 1) {
             throw new CpfValidationException("DLQ 원본 outbox가 없어 실제 재처리를 시작할 수 없습니다.");
         }
@@ -226,23 +256,25 @@ public class CpfReliabilityOperationsFacade implements CpfReliabilityOperationsP
         Map<String, Object> before = findOne("cpf_unknown_result", "unknown_id", unknownId);
         boolean resolved = Set.of("CONFIRMED_SUCCESS", "CONFIRMED_FAILURE", "RESOLVED")
                 .contains(normalizedStatus);
+        Timestamp now = Timestamp.from(Instant.now());
+        String requestUser = required(operatorId, "requestUser");
         int updated = jdbc().update("""
                 UPDATE cpf_unknown_result
                 SET unknown_status = ?,
-                    resolved_at = CASE WHEN ? = 'Y' THEN CURRENT_TIMESTAMP(3) ELSE NULL END,
-                    resolved_by = CASE WHEN ? = 'Y' THEN ? ELSE NULL END,
+                    resolved_at = ?,
+                    resolved_by = ?,
                     audit_reason = ?,
                     updated_by = ?,
-                    updated_at = CURRENT_TIMESTAMP
+                    updated_at = ?
                 WHERE unknown_id = ?
                   AND unknown_status NOT IN ('CONFIRMED_SUCCESS', 'CONFIRMED_FAILURE', 'RESOLVED')
                 """,
                 normalizedStatus,
-                resolved ? "Y" : "N",
-                resolved ? "Y" : "N",
-                required(operatorId, "requestUser"),
+                resolved ? now : null,
+                resolved ? requestUser : null,
                 required(reason, "reason"),
-                operatorId,
+                requestUser,
+                now,
                 required(unknownId, "unknownId"));
         if (updated != 1) {
             throw new CpfValidationException("결과 미확정 건이 없거나 이미 최종 처리됐습니다.");
@@ -252,7 +284,7 @@ public class CpfReliabilityOperationsFacade implements CpfReliabilityOperationsP
 
     private Map<String, Object> findOne(String table, String keyColumn, String key) {
         List<Map<String, Object>> rows = jdbc().queryForList(
-                "SELECT * FROM " + table + " WHERE " + keyColumn + " = ? LIMIT 1",
+                "SELECT * FROM " + table + " WHERE " + keyColumn + " = ?",
                 required(key, keyColumn));
         if (rows.isEmpty()) {
             throw new CpfValidationException("운영 대상을 찾을 수 없습니다.");
@@ -284,6 +316,18 @@ public class CpfReliabilityOperationsFacade implements CpfReliabilityOperationsP
             sql.append(" AND ").append(column).append(" LIKE ?");
             args.add('%' + value.trim() + '%');
         }
+    }
+
+    private List<Map<String, Object>> queryForListLimited(String sql, List<Object> args, int limit) {
+        int maxRows = safeLimit(limit);
+        return jdbc().query(connection -> {
+            PreparedStatement statement = connection.prepareStatement(sql);
+            for (int i = 0; i < args.size(); i++) {
+                statement.setObject(i + 1, args.get(i));
+            }
+            statement.setMaxRows(maxRows);
+            return statement;
+        }, new ColumnMapRowMapper());
     }
 
     private int safeLimit(int limit) {

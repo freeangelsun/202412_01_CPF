@@ -14,6 +14,8 @@ import com.cpf.core.common.servicecall.CpfServiceRegistry;
 import com.cpf.core.common.servicecall.CpfServiceRegistryRepository;
 import com.cpf.core.api.servicecall.CpfServiceRegistryQueryPort;
 import com.cpf.core.api.servicecall.CpfServiceRegistryControlPort;
+import com.cpf.core.api.servicecall.CpfServiceCallExecutor;
+import com.cpf.core.common.servicecall.CpfServiceCallExecutorAdapter;
 import com.cpf.core.common.servicecall.CpfServiceRegistryQueryFacade;
 import com.cpf.core.common.servicecall.CpfServiceRegistryControlFacade;
 import com.cpf.core.common.logging.segment.TransactionSegmentService;
@@ -131,6 +133,12 @@ public class CpfServiceCallAutoConfiguration {
                 segmentServiceProvider.getIfAvailable(),
                 reconciliationPortProvider.getIfAvailable(),
                 lineageRecorderProvider.getIfAvailable());
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(CpfServiceCallExecutor.class)
+    public CpfServiceCallExecutor cpfServiceCallExecutor(CpfServiceCallEngine serviceCallEngine) {
+        return new CpfServiceCallExecutorAdapter(serviceCallEngine);
     }
 
     @Bean

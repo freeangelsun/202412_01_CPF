@@ -1,8 +1,8 @@
 package com.cpf.batch.worker.internal;
 
 import com.cpf.batch.runtime.SensitiveTextSanitizer;
-import com.cpf.core.common.database.CpfVendorSqlCatalog;
-import org.springframework.core.env.Environment;
+import com.cpf.core.api.database.CpfVendorSqlCatalog;
+import com.cpf.core.api.database.CpfVendorSqlCatalogProvider;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -13,9 +13,9 @@ public class JdbcWorkerExecutionRepository {
     private final JdbcTemplate jdbc;
     private final CpfVendorSqlCatalog sql;
 
-    public JdbcWorkerExecutionRepository(JdbcTemplate jdbc, Environment environment) {
+    public JdbcWorkerExecutionRepository(JdbcTemplate jdbc, CpfVendorSqlCatalogProvider sqlCatalogProvider) {
         this.jdbc = jdbc;
-        this.sql = CpfVendorSqlCatalog.create(environment, "bat");
+        this.sql = sqlCatalogProvider.forModule("bat");
     }
 
     public Work load(long executionId) {

@@ -1,8 +1,8 @@
 package com.cpf.batch.control.internal;
 
 import com.cpf.batch.api.*;
-import com.cpf.core.common.database.CpfVendorSqlCatalog;
-import org.springframework.core.env.Environment;
+import com.cpf.core.api.database.CpfVendorSqlCatalog;
+import com.cpf.core.api.database.CpfVendorSqlCatalogProvider;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,9 +16,9 @@ public class JdbcRuntimeRegistry {
     private final JdbcTemplate jdbc;
     private final CpfVendorSqlCatalog sql;
 
-    public JdbcRuntimeRegistry(JdbcTemplate jdbc, Environment environment) {
+    public JdbcRuntimeRegistry(JdbcTemplate jdbc, CpfVendorSqlCatalogProvider sqlCatalogProvider) {
         this.jdbc = jdbc;
-        this.sql = CpfVendorSqlCatalog.create(environment, "bat");
+        this.sql = sqlCatalogProvider.forModule("bat");
     }
 
     @Transactional

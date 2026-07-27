@@ -2,8 +2,8 @@ package com.cpf.batch.scheduler;
 
 import com.cpf.batch.scheduler.internal.JdbcSchedulerLeaderRepository;
 import com.cpf.common.calendar.CmnBusinessCalendar;
-import com.cpf.core.common.database.CpfVendorSqlCatalog;
-import org.springframework.core.env.Environment;
+import com.cpf.core.api.database.CpfVendorSqlCatalog;
+import com.cpf.core.api.database.CpfVendorSqlCatalogProvider;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -38,12 +38,12 @@ public class SchedulerDispatchService {
             JdbcTemplate jdbc,
             CmnBusinessCalendar calendar,
             PlatformTransactionManager transactionManager,
-            Environment environment) {
+            CpfVendorSqlCatalogProvider sqlCatalogProvider) {
         this.coordinator = coordinator;
         this.jdbc = jdbc;
         this.calendar = calendar;
         this.transaction = new TransactionTemplate(transactionManager);
-        this.sql = CpfVendorSqlCatalog.create(environment, "bat");
+        this.sql = sqlCatalogProvider.forModule("bat");
     }
 
     @Scheduled(fixedDelayString = "${cpf.batch.scheduler.dispatch-ms:1000}")

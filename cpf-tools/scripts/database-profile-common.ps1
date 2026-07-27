@@ -1,12 +1,10 @@
 Set-StrictMode -Version Latest
 
-$script:CpfSupportedDatabaseVendors = @("mariadb", "mysql", "postgresql", "oracle", "sqlserver")
+$script:CpfSupportedDatabaseVendors = @("mariadb", "postgresql", "oracle")
 $script:CpfDefaultDatabasePorts = @{
     mariadb = 3306
-    mysql = 3306
     postgresql = 5432
     oracle = 1521
-    sqlserver = 1433
 }
 
 function Get-CpfDatabaseProfile {
@@ -31,12 +29,13 @@ function Resolve-CpfProfileSecret {
         $SecretSpec,
         [Parameter(Mandatory = $true)]
         [string] $DisplayName,
+        # 호출부 호환성을 위한 Parameter입니다. CPF 제품 정책상 inline dev secret은 해석하지 않습니다.
         [bool] $AllowDevDefault = $false
     )
 
     if ($SecretSpec -is [string]) {
         if (-not [string]::IsNullOrWhiteSpace([string]$SecretSpec)) {
-            return [string]$SecretSpec
+            throw "$DisplayName 에 평문 Secret을 직접 지정할 수 없습니다. env/fallbackEnv 또는 외부 Secret Provider를 사용하세요."
         }
     } else {
         $envProperty = $SecretSpec.PSObject.Properties["env"]
@@ -53,10 +52,8 @@ function Resolve-CpfProfileSecret {
             if (-not [string]::IsNullOrWhiteSpace($value)) { return $value }
         }
 
-        if ($AllowDevDefault) {
-            $devDefaultProperty = $SecretSpec.PSObject.Properties["devDefault"]
-            $devDefault = if ($null -ne $devDefaultProperty) { [string]$devDefaultProperty.Value } else { "" }
-            if (-not [string]::IsNullOrWhiteSpace($devDefault)) { return $devDefault }
+        if ($AllowDevDefault -and $null -ne $SecretSpec.PSObject.Properties["devDefault"]) {
+            throw "$DisplayName 에 devDefault 평문 Secret을 사용할 수 없습니다. env/fallbackEnv를 사용하세요."
         }
     }
 

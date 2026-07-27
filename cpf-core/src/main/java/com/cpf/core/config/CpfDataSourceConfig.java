@@ -1,5 +1,6 @@
 package com.cpf.core.config;
 
+import com.cpf.core.api.database.CpfVendorSqlCatalogProvider;
 import com.cpf.core.common.database.CpfDataSourceResolver;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -35,6 +36,12 @@ public class CpfDataSourceConfig {
             Environment environment,
             @Qualifier("cpfJndiTemplate") JndiTemplate jndiTemplate) throws NamingException {
         return CpfDataSourceResolver.resolve(environment, "spring.datasource.cpf", jndiTemplate);
+    }
+
+    /** Public SQL Catalog 계약과 Spring 기반 내부 Resource 로더를 연결합니다. */
+    @Bean
+    public CpfVendorSqlCatalogProvider cpfVendorSqlCatalogProvider(Environment environment) {
+        return moduleCode -> com.cpf.core.common.database.CpfVendorSqlCatalog.create(environment, moduleCode);
     }
 
     @Bean(name = "cpfTransactionManager")

@@ -24,7 +24,7 @@ dependencies {
     implementation project(':cpf-batch:contract')
 
     // ADM REST API와 정적 관리 화면을 제공합니다.
-    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
 
     // ADM 소유 DB와 CPF 플랫폼 read-model만 JdbcTemplate으로 조회합니다.
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
@@ -33,7 +33,7 @@ dependencies {
     runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
     providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
 
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
 }
 
 tasks.named('test') {

@@ -1,2 +1,0 @@
-USE `@CPF_SCHEMA_NAME@`;
-SELECT '@CPF_SYSTEM_CODE@' AS system_code, '@CPF_DOMAIN@' AS domain_name;

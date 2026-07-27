@@ -1,5 +1,6 @@
 package com.cpf.bizadmin.backoffice.service;
 
+import com.cpf.bizadmin.backoffice.dto.BzaEmployeeRawContactResponse;
 import com.cpf.bizadmin.backoffice.repository.BzaBackofficeRepository;
 import com.cpf.bizadmin.audit.service.BzaBusinessAuditService;
 import com.cpf.bizadmin.common.model.BzaEmploymentStatus;
@@ -15,20 +16,15 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 
 /** BZA 조직·직원·실효 권한·결재 상태 전이를 담당합니다. */
 @Service
 public class BzaBackofficeService extends com.cpf.bizadmin.common.base.BzaBaseService {
-    private static final Set<String> APPROVAL_ACTIONS = Set.of(
-            "SUBMIT", "APPROVE", "AGREE", "REJECT", "WITHDRAW", "CANCEL", "RESUBMIT");
     private final BzaBackofficeRepository repository;
     private final BzaBusinessAuditService auditService;
 
@@ -86,15 +82,19 @@ public class BzaBackofficeService extends com.cpf.bizadmin.common.base.BzaBaseSe
                 result.totalElements(), result.page(), result.size());
     }
 
-    public Map<String,Object> findEmployeeRaw(String employeeNo, String operatorId, String reason) {
+    @Transactional(transactionManager = "bzaTransactionManager", readOnly = false)
+    public BzaEmployeeRawContactResponse findEmployeeRaw(String employeeNo, String operatorId, String reason) {
         String id = required(employeeNo, "employeeNo").toUpperCase(Locale.ROOT);
-        Map<String,Object> raw = repository.findEmployee(id)
+        String actor = required(operatorId, "operatorId");
+        String safeReason = CpfSensitiveData.sanitizeAuditReason(reason);
+        Map<String,Object> raw = repository.findEmployeeRawContact(id)
                 .orElseThrow(() -> new CpfNotFoundException("직원을 찾을 수 없습니다. employeeNo=" + id));
-        audit(required(operatorId,"operatorId"), "EMPLOYEE_PII_RAW_VIEW", "bza_employee", id,
-                required(reason,"reason"), null, Map.of("rawView", true));
-        Map<String,Object> response = new LinkedHashMap<>(raw);
-        response.put("rawViewAllowed", true);
-        return response;
+
+        // 감사 기록이 실패하면 Transaction이 rollback되고 원문 응답 생성까지 도달하지 않습니다.
+        audit(actor, "EMPLOYEE_PII_RAW_VIEW", "bza_employee", id, safeReason, null, Map.of("rawView", true));
+        return new BzaEmployeeRawContactResponse(
+                id, stringValue(raw.get("email")), stringValue(raw.get("mobileNo")),
+                stringValue(raw.get("officePhoneNo")), true, CpfTransactionContext.transactionId());
     }
 
     @Transactional(transactionManager = "bzaTransactionManager")
@@ -139,98 +139,8 @@ public class BzaBackofficeService extends com.cpf.bizadmin.common.base.BzaBaseSe
         return repository.findEffectivePermissions(required(loginId, "loginId"));
     }
 
-    @Transactional(transactionManager = "bzaTransactionManager")
-    public Map<String, Object> createApproval(ApprovalCreateRequest request, String operatorId) {
-        throw new CpfValidationException("Legacy 직접 결재 생성은 서비스 계층에서도 금지됩니다. 정책 기반 Approval Engine을 사용하십시오.");
-    }
-
-    public List<Map<String, Object>> findApprovals(String status, String employeeNo, int limit) {
-        return repository.findApprovals(blankToNull(status), blankToNull(employeeNo), Math.max(1, Math.min(limit, 500)));
-    }
-
-    public Map<String, Object> findApproval(long approvalId) {
-        Map<String, Object> document = new LinkedHashMap<>(repository.findApproval(approvalId)
-                .orElseThrow(() -> new CpfNotFoundException("결재 문서를 찾을 수 없습니다. approvalId=" + approvalId)));
-        document.put("lines", repository.findApprovalLines(approvalId));
-        document.put("history", repository.findApprovalHistory(approvalId));
-        return document;
-    }
-
-    @Transactional(transactionManager = "bzaTransactionManager")
-    public Map<String, Object> act(long approvalId, ApprovalActionRequest request, String operatorId) {
-        throw new CpfValidationException("Legacy 직접 결재 상태변경은 서비스 계층에서도 금지됩니다. 정책 기반 Approval Engine을 사용하십시오.");
-    }
-
     public List<Map<String, Object>> findAudits(int limit) {
         return repository.findBusinessAudits(Math.max(1, Math.min(limit, 500)));
-    }
-
-    private Transition transition(
-            String action,
-            String status,
-            String actor,
-            String requester,
-            long approvalId,
-            int currentStep,
-            String comment) {
-        return switch (action) {
-            case "SUBMIT" -> {
-                requireStatus(status, Set.of("DRAFT"), action);
-                yield new Transition("IN_REVIEW", 1);
-            }
-            case "RESUBMIT" -> {
-                requireStatus(status, Set.of("REJECTED", "WITHDRAWN"), action);
-                yield new Transition("IN_REVIEW", 1);
-            }
-            case "APPROVE", "AGREE" -> {
-                requireStatus(status, Set.of("IN_REVIEW"), action);
-                if (actor.equalsIgnoreCase(requester)) {
-                    throw new CpfValidationException("요청자는 자신의 결재 문서를 승인할 수 없습니다.");
-                }
-                int changed = repository.decideLine(approvalId, currentStep, actor, "APPROVED", blankToNull(comment));
-                if (changed != 1) {
-                    throw new CpfValidationException("현재 단계의 결재 대상자가 아니거나 이미 처리된 결재입니다.");
-                }
-                if (repository.countWaitingAtStep(approvalId, currentStep) > 0) {
-                    yield new Transition("IN_REVIEW", currentStep);
-                }
-                Integer nextStep = repository.nextStep(approvalId, currentStep);
-                yield nextStep == null
-                        ? new Transition("APPROVED", currentStep)
-                        : new Transition("IN_REVIEW", nextStep);
-            }
-            case "REJECT" -> {
-                requireStatus(status, Set.of("IN_REVIEW"), action);
-                int changed = repository.decideLine(approvalId, currentStep, actor, "REJECTED", blankToNull(comment));
-                if (changed != 1) {
-                    throw new CpfValidationException("현재 단계의 결재 대상자가 아니거나 이미 처리된 결재입니다.");
-                }
-                yield new Transition("REJECTED", currentStep);
-            }
-            case "WITHDRAW" -> {
-                requireRequester(actor, requester);
-                requireStatus(status, Set.of("IN_REVIEW"), action);
-                yield new Transition("WITHDRAWN", currentStep);
-            }
-            case "CANCEL" -> {
-                requireRequester(actor, requester);
-                requireStatus(status, Set.of("DRAFT", "REJECTED", "WITHDRAWN"), action);
-                yield new Transition("CANCELED", currentStep);
-            }
-            default -> throw new CpfValidationException("지원하지 않는 결재 행위입니다. action=" + action);
-        };
-    }
-
-    private void requireStatus(String status, Set<String> allowed, String action) {
-        if (!allowed.contains(status)) {
-            throw new CpfValidationException("현재 상태에서는 결재 행위를 수행할 수 없습니다. status=" + status + ", action=" + action);
-        }
-    }
-
-    private void requireRequester(String actor, String requester) {
-        if (!actor.equalsIgnoreCase(requester)) {
-            throw new CpfValidationException("결재 요청자만 이 행위를 수행할 수 있습니다.");
-        }
     }
 
     private void audit(
@@ -293,35 +203,12 @@ public class BzaBackofficeService extends com.cpf.bizadmin.common.base.BzaBaseSe
         return value == null || value.isBlank() ? null : value.trim();
     }
 
-    /**
-     * 기존 사람별 직접 결재선 API가 신규 정책 엔진의 의미를 과장하지 않도록
-     * 현재 구현 가능한 ALL 규칙만 표준 값으로 정규화합니다.
-     *
-     * <p>ANY/N_OF_M, 조직/Role Target, 병렬 부서합의는 정책/참여자 Snapshot 엔진이
-     * 구현된 뒤 별도 경로로 처리해야 합니다. 현재 direct-line 경로에서 값을 받아 놓고
-     * ALL처럼 처리하면 잘못된 완료 판정이 되므로 fail-closed 합니다.</p>
-     */
-    private String normalizeLegacyDirectLineRule(String value) {
-        String normalized = defaultText(value, "ALL").toUpperCase(Locale.ROOT);
-        if ("ALL_APPROVE".equals(normalized)) {
-            return "ALL";
-        }
-        if (!"ALL".equals(normalized)) {
-            throw new CpfValidationException(
-                    "기존 직접 결재선은 ALL만 지원합니다. ANY/N_OF_M/부서합의는 정책 기반 Approval Engine을 사용해야 합니다.");
-        }
-        return normalized;
-    }
-
     private String yn(String value, String fallback) {
         String resolved = defaultText(value, fallback).toUpperCase(Locale.ROOT);
         if (!Set.of("Y", "N").contains(resolved)) {
             throw new CpfValidationException("Y/N 값이 올바르지 않습니다. value=" + value);
         }
         return resolved;
-    }
-
-    private record Transition(String afterStatus, int currentStep) {
     }
 
     public record OrganizationRequest(
@@ -357,28 +244,5 @@ public class BzaBackofficeService extends com.cpf.bizadmin.common.base.BzaBaseSe
         }
     }
 
-    public record ApprovalLineRequest(Integer stepNo, String approverEmployeeNo, String decisionRule) {
-    }
 
-    public record ApprovalCreateRequest(
-            String approvalType,
-            String businessDomain,
-            String title,
-            String requesterEmployeeNo,
-            String approvalMode,
-            LocalDateTime dueAt,
-            String payloadJson,
-            String attachmentGroupId,
-            List<ApprovalLineRequest> lines,
-            String requestUser,
-            String reason) {
-    }
-
-    public record ApprovalActionRequest(
-            String action,
-            String actorEmployeeNo,
-            String idempotencyKey,
-            String reason,
-            String comment) {
-    }
 }

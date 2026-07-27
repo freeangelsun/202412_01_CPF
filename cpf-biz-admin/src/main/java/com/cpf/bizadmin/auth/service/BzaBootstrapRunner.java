@@ -1,7 +1,7 @@
 package com.cpf.bizadmin.auth.service;
 
 import com.cpf.bizadmin.auth.repository.BzaAuthRepository;
-import com.cpf.core.common.security.password.CpfPasswordHashingPort;
+import com.cpf.core.api.security.password.CpfPasswordService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
@@ -17,12 +17,12 @@ public class BzaBootstrapRunner implements ApplicationRunner {
     private static final Logger log = LoggerFactory.getLogger(BzaBootstrapRunner.class);
 
     private final Environment environment;
-    private final CpfPasswordHashingPort passwordHashingPort;
+    private final CpfPasswordService passwordHashingPort;
     private final BzaAuthRepository authRepository;
 
     public BzaBootstrapRunner(
             Environment environment,
-            CpfPasswordHashingPort passwordHashingPort,
+            CpfPasswordService passwordHashingPort,
             BzaAuthRepository authRepository) {
         this.environment = environment;
         this.passwordHashingPort = passwordHashingPort;
@@ -38,12 +38,15 @@ public class BzaBootstrapRunner implements ApplicationRunner {
         String operatorName = require("cpf.bza.bootstrap.operator-name");
         String password = require("cpf.bza.bootstrap.password");
         String roleCode = environment.getProperty("cpf.bza.bootstrap.role-code", "BZA_MANAGER");
+        String operationId = environment.getProperty("cpf.bza.bootstrap.operation-id", "BZA-BOOTSTRAP-" + loginId.toUpperCase(java.util.Locale.ROOT));
+        if (operationId.length() > 100) throw new IllegalStateException("BZA bootstrap operationId는 100자를 초과할 수 없습니다.");
         requireStrongPassword(loginId, password);
         char[] chars = password.toCharArray();
         try {
-            int inserted = authRepository.bootstrapOperator(
-                    loginId, operatorName, passwordHashingPort.hash(chars), roleCode);
-            log.info("BZA 최초 운영자 bootstrap 결과를 기록했습니다. loginId={}, created={}", loginId, inserted == 1);
+            BzaAuthRepository.BootstrapResult result = authRepository.bootstrapOperator(
+                    loginId, operatorName, passwordHashingPort.hash(chars), roleCode, operationId, java.time.Instant.now().plusSeconds(90L * 24 * 60 * 60));
+            log.info("BZA 최초 운영자 bootstrap 결과를 기록했습니다. loginId={}, operationId={}, created={}, adminUserId={}",
+                    loginId, operationId, result.created(), result.adminUserId());
         } finally {
             Arrays.fill(chars, '\0');
         }

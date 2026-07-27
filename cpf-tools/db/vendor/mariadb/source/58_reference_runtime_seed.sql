@@ -188,15 +188,16 @@ WHERE @cpf_edu_execution_id IS NOT NULL
         AND target_instance_id = 'local-batch-01'
   );
 
-INSERT INTO batDB.bat_business_day_calendar (
-    calendar_id, business_date, holiday_yn, business_day_yn, description, created_by, updated_by
+INSERT INTO cmnDB.cmn_business_calendar_day (
+    calendar_id, business_date, business_day_yn, day_type, institution_code, reason, created_by, updated_by
 ) VALUES
-    ('DEFAULT', CURRENT_DATE, 'N', 'Y', '로컬 smoke 검증용 기본 영업일', 'SYSTEM', 'SYSTEM'),
-    ('DEFAULT', DATE_ADD(CURRENT_DATE, INTERVAL 1 DAY), 'N', 'Y', '로컬 smoke 검증용 다음 영업일', 'SYSTEM', 'SYSTEM')
+    ('DEFAULT', CURRENT_DATE, 'Y', 'BUSINESS', NULL, '로컬 smoke 검증용 기본 영업일', 'SYSTEM', 'SYSTEM'),
+    ('DEFAULT', DATE_ADD(CURRENT_DATE, INTERVAL 1 DAY), 'Y', 'BUSINESS', NULL, '로컬 smoke 검증용 다음 영업일', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE
-    holiday_yn = VALUES(holiday_yn),
     business_day_yn = VALUES(business_day_yn),
-    description = VALUES(description),
+    day_type = VALUES(day_type),
+    institution_code = VALUES(institution_code),
+    reason = VALUES(reason),
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 -- Notification delivery fixture는 module별 독립 seed 실행에서 BAT session variable에

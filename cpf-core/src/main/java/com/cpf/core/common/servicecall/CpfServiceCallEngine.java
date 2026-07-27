@@ -10,6 +10,7 @@ import com.cpf.core.api.lineage.CpfLineageRecord;
 import com.cpf.core.api.lineage.CpfLineageRecorder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.time.Instant;
@@ -137,6 +138,9 @@ public class CpfServiceCallEngine {
                         ? ServiceCallResult.unknown(target, elapsed, attempt, failureCode, failureMessage)
                         : ServiceCallResult.failure(target, httpStatus, elapsed, attempt, failureCode, failureMessage);
                 recordLineage(effectiveRequest, target, resultState, attempt, elapsed);
+                if (!isRetryable(httpStatus, ex)) {
+                    return lastFailure;
+                }
                 excludeForFailover(target, excludedInstanceIds);
                 if (!target.failoverEnabled() && attempt >= maxAttempts) {
                     return lastFailure;
@@ -194,7 +198,21 @@ public class CpfServiceCallEngine {
         if (ex instanceof WebClientResponseException responseException) {
             return responseException.getStatusCode().value();
         }
+        if (ex instanceof RestClientResponseException responseException) {
+            return responseException.getStatusCode().value();
+        }
         return null;
+    }
+
+    /** 명백한 Client 오류는 다른 인스턴스로 보내도 결과가 바뀌지 않으므로 재시도하지 않습니다. */
+    private boolean isRetryable(Integer httpStatus, RuntimeException ex) {
+        if (httpStatus == null) {
+            return true;
+        }
+        if (httpStatus == 408 || httpStatus == 425 || httpStatus == 429) {
+            return true;
+        }
+        return httpStatus >= 500;
     }
 
     private String safeMessage(RuntimeException ex) {

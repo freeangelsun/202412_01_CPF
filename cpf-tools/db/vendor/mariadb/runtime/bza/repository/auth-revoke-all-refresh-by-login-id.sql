@@ -1,0 +1,1 @@
+UPDATE bza_refresh_token SET revoked_yn='Y', revoked_at=CURRENT_TIMESTAMP, updated_by='BZA_SECURITY_CHANGE', updated_at=CURRENT_TIMESTAMP WHERE admin_user_id IN (SELECT admin_user_id FROM bza_admin_user WHERE admin_login_id=:loginId) AND revoked_yn='N'

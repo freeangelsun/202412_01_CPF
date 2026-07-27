@@ -5,7 +5,6 @@ import com.cpf.core.api.page.CpfPage;
 import com.cpf.core.api.page.CpfPageRequest;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -24,9 +23,9 @@ public class BzaOperationRepository {
 
     public BzaOperationRepository(
             @Qualifier("bzaJdbcTemplate") ObjectProvider<NamedParameterJdbcTemplate> jdbcTemplateProvider,
-            Environment environment) {
+            com.cpf.core.api.database.CpfVendorSqlCatalogProvider sqlCatalogProvider) {
         this.jdbcTemplateProvider = jdbcTemplateProvider;
-        this.sql = CpfVendorSqlCatalog.create(environment, "bza");
+        this.sql = sqlCatalogProvider.forModule("bza");
     }
 
     public List<Map<String,Object>> findAdminUsers(){ return adminUserPage(new CpfPageRequest(0,200)).content(); }

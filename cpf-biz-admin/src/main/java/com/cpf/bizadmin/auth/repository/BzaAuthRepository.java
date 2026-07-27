@@ -1,9 +1,11 @@
 package com.cpf.bizadmin.auth.repository;
 
 import com.cpf.core.api.database.CpfVendorSqlCatalog;
+import com.cpf.core.api.database.CpfVendorSqlCatalogProvider;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.env.Environment;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -35,9 +37,10 @@ public class BzaAuthRepository {
 
     public BzaAuthRepository(
             @Qualifier("bzaJdbcTemplate") ObjectProvider<NamedParameterJdbcTemplate> jdbcTemplateProvider,
+            CpfVendorSqlCatalogProvider sqlCatalogProvider,
             Environment environment) {
         this.jdbcTemplateProvider = jdbcTemplateProvider;
-        this.sql = CpfVendorSqlCatalog.create(environment, "bza");
+        this.sql = sqlCatalogProvider.forModule("bza");
         this.environmentCode = resolveEnvironmentCode(environment);
     }
 
@@ -52,14 +55,113 @@ public class BzaAuthRepository {
         });
     }
 
-    /** 환경변수로 승인된 최초 BZA 운영자를 기존 계정이 없을 때만 생성합니다. */
-    public int bootstrapOperator(String loginId, String operatorName, String passwordHash, String roleCode) {
-        return jdbc().update(sql.required("auth-bootstrap-operator"), new MapSqlParameterSource()
-                .addValue("loginId", loginId)
-                .addValue("operatorName", operatorName)
-                .addValue("passwordHash", passwordHash)
-                .addValue("roleCode", roleCode));
+    /** 환경변수로 승인된 최초 BZA 운영자를 operationId 기준으로 멱등 생성합니다. */
+    public BootstrapResult bootstrapOperator(String loginId, String operatorName, String passwordHash, String roleCode,
+                                             String operationId, Instant passwordExpireAt) {
+        String op = requireText(operationId, "operationId");
+        Optional<BootstrapResult> existingOperation = findBootstrapOperation(op);
+        if (existingOperation.isPresent()) {
+            return requireSameLogin(existingOperation.get(), loginId);
+        }
+        Optional<BootstrapResult> existingLogin = findBootstrapLogin(loginId);
+        if (existingLogin.isPresent()) {
+            BootstrapResult current = existingLogin.get();
+            if (current.operationId() == null || current.operationId().isBlank()) {
+                try {
+                    jdbc().update(sql.required("auth-bootstrap-operator-bind-operation"), new MapSqlParameterSource()
+                            .addValue("loginId", loginId).addValue("operationId", op));
+                } catch (DuplicateKeyException duplicate) {
+                    return requireSameLogin(findBootstrapOperation(op).orElseThrow(() -> duplicate), loginId);
+                }
+                return requireSameLogin(findBootstrapOperation(op)
+                        .orElseThrow(() -> new IllegalStateException("BZA bootstrap operation binding 결과를 찾을 수 없습니다.")), loginId);
+            }
+            if (op.equals(current.operationId())) return current;
+            throw new IllegalStateException("동일 BZA loginId가 다른 operationId로 이미 생성되었습니다. loginId=" + loginId);
+        }
+        try {
+            jdbc().update(sql.required("auth-bootstrap-operator"), new MapSqlParameterSource()
+                    .addValue("loginId", loginId).addValue("operatorName", operatorName)
+                    .addValue("passwordHash", passwordHash).addValue("roleCode", roleCode)
+                    .addValue("operationId", op).addValue("passwordExpireAt", Timestamp.from(passwordExpireAt)));
+        } catch (DuplicateKeyException duplicate) {
+            Optional<BootstrapResult> raced = findBootstrapOperation(op);
+            if (raced.isPresent()) return requireSameLogin(raced.get(), loginId);
+            throw new IllegalStateException("BZA bootstrap 생성 충돌이 발생했습니다. loginId=" + loginId, duplicate);
+        }
+        BootstrapResult created = findBootstrapOperation(op)
+                .orElseThrow(() -> new IllegalStateException("BZA bootstrap 생성 결과를 찾을 수 없습니다. operationId=" + op));
+        return new BootstrapResult(created.adminUserId(), created.loginId(), created.operationId(), true);
     }
+
+    /** 결과불명 재시도에서 operationId로 관리자 생성 결과를 조회합니다. */
+    public Optional<BootstrapResult> findBootstrapOperation(String operationId) {
+        List<Map<String,Object>> rows = jdbc().queryForList(sql.required("auth-bootstrap-operator-find-operation"),
+                new MapSqlParameterSource("operationId", requireText(operationId, "operationId")));
+        return rows.stream().findFirst().map(this::bootstrapResult);
+    }
+
+    private Optional<BootstrapResult> findBootstrapLogin(String loginId) {
+        List<Map<String,Object>> rows = jdbc().queryForList(sql.required("auth-bootstrap-operator-find-login"),
+                new MapSqlParameterSource("loginId", requireText(loginId, "loginId")));
+        return rows.stream().findFirst().map(this::bootstrapResult);
+    }
+
+    private BootstrapResult bootstrapResult(Map<String,Object> row) {
+        Number id=(Number)row.get("adminUserId");
+        return new BootstrapResult(id.longValue(), String.valueOf(row.get("loginId")),
+                row.get("operationId")==null?null:String.valueOf(row.get("operationId")), false);
+    }
+
+    private BootstrapResult requireSameLogin(BootstrapResult result,String loginId){
+        if(!result.loginId().equals(loginId)) throw new IllegalStateException("operationId가 다른 BZA loginId에 이미 사용되었습니다. operationId="+result.operationId());
+        return result;
+    }
+
+    private static String requireText(String value,String field){
+        if(value==null||value.isBlank()) throw new IllegalArgumentException(field+"는 필수입니다.");
+        return value.trim();
+    }
+
+    public record BootstrapResult(long adminUserId,String loginId,String operationId,boolean created) {}
+
+
+    /** 로그인 operationId를 성공 Transaction 안에서 먼저 등록해 동시 재시도를 직렬화합니다. */
+    public boolean insertLoginOperation(String operationId, long adminUserId, String loginId) {
+        try {
+            jdbc().update(sql.required("auth-login-operation-insert"), new MapSqlParameterSource()
+                    .addValue("operationId", requireText(operationId, "operationId"))
+                    .addValue("adminUserId", adminUserId)
+                    .addValue("loginId", requireText(loginId, "loginId")));
+            return true;
+        } catch (DuplicateKeyException duplicate) {
+            return false;
+        }
+    }
+
+    /** 동일 operationId의 로그인 처리 상태를 row lock으로 조회합니다. */
+    public Optional<LoginOperationState> lockLoginOperation(String operationId) {
+        List<Map<String,Object>> rows = jdbc().queryForList(sql.required("auth-login-operation-lock"),
+                new MapSqlParameterSource("operationId", requireText(operationId, "operationId")));
+        return rows.stream().findFirst().map(row -> new LoginOperationState(
+                String.valueOf(row.get("operationId")),
+                ((Number) row.get("adminUserId")).longValue(),
+                String.valueOf(row.get("loginId")),
+                String.valueOf(row.get("status"))));
+    }
+
+    public void markLoginOperationSuccess(String operationId) {
+        jdbc().update(sql.required("auth-login-operation-success"),
+                new MapSqlParameterSource("operationId", requireText(operationId, "operationId")));
+    }
+
+    /** 결과불명 로그인 재시도 시 같은 operationId가 만든 기존 refresh session을 먼저 폐기합니다. */
+    public void revokeRefreshTokensByLoginOperationId(String operationId) {
+        jdbc().update(sql.required("auth-revoke-refresh-by-login-operation"),
+                new MapSqlParameterSource("operationId", requireText(operationId, "operationId")));
+    }
+
+    public record LoginOperationState(String operationId, long adminUserId, String loginId, String status) {}
 
     /**
      * 비밀번호 실패 횟수를 증가시킵니다.
@@ -104,6 +206,7 @@ public class BzaAuthRepository {
                 .addValue("loginDomain", row.loginDomain())
                 .addValue("refreshTokenHash", row.refreshTokenHash())
                 .addValue("transactionId", row.transactionId())
+                .addValue("loginOperationId", row.loginOperationId())
                 .addValue("expireAt", Timestamp.from(row.expireAt())));
     }
 
@@ -168,6 +271,20 @@ public class BzaAuthRepository {
     public void revokeAllRefreshTokens(long adminUserId) {
         jdbc().update(sql.required("auth-revoke-all-refresh-tokens"),
                 new MapSqlParameterSource("adminUserId", adminUserId));
+    }
+
+
+    /** 상태 변경 등 loginId 기반 운영 조치 후 기존 refresh session을 모두 폐기합니다. */
+    public void revokeAllRefreshTokensByLoginId(String loginId) {
+        jdbc().update(sql.required("auth-revoke-all-refresh-by-login-id"),
+                new MapSqlParameterSource("loginId", requireText(loginId, "loginId")));
+    }
+
+    /** Role/Permission 변경 시 해당 Role을 실제 보유한 모든 계정의 refresh session을 폐기합니다. */
+    public void revokeRefreshTokensByRoleCode(String roleCode) {
+        List<Long> userIds = jdbc().queryForList(sql.required("auth-find-user-ids-by-role-code"),
+                new MapSqlParameterSource("roleCode", requireText(roleCode, "roleCode")), Long.class);
+        userIds.stream().distinct().forEach(this::revokeAllRefreshTokens);
     }
 
     /**
@@ -341,6 +458,7 @@ public class BzaAuthRepository {
             String loginDomain,
             String refreshTokenHash,
             String transactionId,
+            String loginOperationId,
             Instant expireAt) {
     }
 }

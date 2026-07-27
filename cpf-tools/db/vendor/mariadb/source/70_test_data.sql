@@ -366,14 +366,16 @@ ON DUPLICATE KEY UPDATE
 
 
 INSERT INTO bza_user_role (
-    admin_user_id, role_code, valid_from, valid_to, primary_yn, created_by, updated_by
+    admin_user_id, role_code, valid_from, valid_to, primary_yn, grant_reason, operation_id, created_by, updated_by
 )
-SELECT admin_user_id, 'BZA_MANAGER', CURRENT_TIMESTAMP(3), NULL, 'Y', 'SYSTEM', 'SYSTEM'
+SELECT admin_user_id, 'BZA_MANAGER', CURRENT_TIMESTAMP(3), NULL, 'Y',
+       'CPF_TEST_SEED', 'CPF-TEST-BZA-ROLE-MANAGER-0001', 'SYSTEM', 'SYSTEM'
 FROM bza_admin_user
 WHERE admin_login_id = 'bza-admin'
 ON DUPLICATE KEY UPDATE
     valid_to = NULL,
     primary_yn = 'Y',
+    grant_reason = VALUES(grant_reason),
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP(3);
 

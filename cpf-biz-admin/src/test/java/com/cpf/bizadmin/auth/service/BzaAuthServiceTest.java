@@ -2,7 +2,6 @@ package com.cpf.bizadmin.auth.service;
 
 import com.cpf.bizadmin.auth.repository.BzaAuthRepository;
 import com.cpf.bizadmin.auth.repository.BzaAuthRepository.BzaOperatorRow;
-import com.cpf.bizadmin.auth.repository.BzaAuthRepository.LoginHistoryWrite;
 import com.cpf.bizadmin.auth.repository.BzaAuthRepository.RefreshTokenRow;
 import com.cpf.bizadmin.auth.repository.BzaAuthRepository.RefreshTokenWrite;
 import com.cpf.bizadmin.audit.service.BzaBusinessAuditService;
@@ -14,7 +13,6 @@ import com.cpf.core.api.security.password.CpfPasswordService;
 import com.cpf.core.api.security.password.CpfPasswordVerification;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -42,12 +40,14 @@ class BzaAuthServiceTest {
     private final CpfPasswordService passwordHashingPort = mock(CpfPasswordService.class);
     private final BzaAuthRepository authRepository = mock(BzaAuthRepository.class);
     private final BzaBusinessAuditService auditService = mock(BzaBusinessAuditService.class);
+    private final BzaLoginTransactionService loginTransactionService = mock(BzaLoginTransactionService.class);
     private final BzaAuthService service = new BzaAuthService(
             jwtService,
             cryptoService,
             passwordHashingPort,
             authRepository,
             auditService,
+            loginTransactionService,
             "bza-test-secret-must-be-at-least-32-characters",
             600,
             7200,
@@ -66,22 +66,13 @@ class BzaAuthServiceTest {
         when(cryptoService.sha256Base64Url(RAW_REFRESH_TOKEN)).thenReturn(REFRESH_TOKEN_HASH);
 
         BzaAuthService.LoginResult result = service.login(
-                new BzaAuthService.LoginRequest("biz-admin", "password"),
+                new BzaAuthService.LoginRequest("biz-admin", "password", "login-op-1"),
                 "127.0.0.1",
                 "unit-test");
 
-        ArgumentCaptor<RefreshTokenWrite> refreshCaptor = ArgumentCaptor.forClass(RefreshTokenWrite.class);
-        ArgumentCaptor<LoginHistoryWrite> historyCaptor = ArgumentCaptor.forClass(LoginHistoryWrite.class);
-        verify(authRepository).markLoginSuccess(100L);
-        verify(authRepository).insertRefreshToken(refreshCaptor.capture());
-        verify(authRepository).insertLoginHistory(historyCaptor.capture());
-
+        verify(loginTransactionService).commitSuccess(any(BzaLoginTransactionService.LoginSuccessCommand.class));
         assertThat(result.accessToken()).isEqualTo("access-token");
         assertThat(result.refreshToken()).isEqualTo(RAW_REFRESH_TOKEN);
-        assertThat(refreshCaptor.getValue().refreshTokenHash()).isEqualTo(REFRESH_TOKEN_HASH);
-        assertThat(refreshCaptor.getValue().refreshTokenHash()).isNotEqualTo(RAW_REFRESH_TOKEN);
-        assertThat(historyCaptor.getValue().loginResult()).isEqualTo("SUCCESS");
-        assertThat(historyCaptor.getValue().failureReason()).isNull();
     }
 
     @Test
@@ -93,18 +84,15 @@ class BzaAuthServiceTest {
                 .thenReturn(CpfPasswordVerification.rejected());
 
         assertThatThrownBy(() -> service.login(
-                new BzaAuthService.LoginRequest("biz-admin", "wrong"),
+                new BzaAuthService.LoginRequest("biz-admin", "wrong", "login-op-2"),
                 "127.0.0.1",
                 "unit-test"))
                 .isInstanceOf(ResponseStatusException.class)
                 .hasMessageContaining("401");
 
-        ArgumentCaptor<LoginHistoryWrite> historyCaptor = ArgumentCaptor.forClass(LoginHistoryWrite.class);
-        verify(authRepository).increaseLoginFailCount(100L);
-        verify(authRepository).insertLoginHistory(historyCaptor.capture());
+        verify(loginTransactionService).recordFailure(any(BzaLoginTransactionService.LoginFailureCommand.class));
+        verify(loginTransactionService, never()).commitSuccess(any(BzaLoginTransactionService.LoginSuccessCommand.class));
         verify(authRepository, never()).insertRefreshToken(any(RefreshTokenWrite.class));
-        assertThat(historyCaptor.getValue().loginResult()).isEqualTo("FAIL");
-        assertThat(historyCaptor.getValue().failureReason()).isEqualTo("비밀번호 불일치");
     }
 
     @Test
@@ -139,6 +127,7 @@ class BzaAuthServiceTest {
                 "업무 관리자",
                 "password-hash",
                 "BZA_MANAGER",
+                "ACTIVE",
                 "Y",
                 "N",
                 0,
@@ -208,6 +197,7 @@ class BzaAuthServiceTest {
                 "업무 관리자",
                 "password-hash",
                 "BIZ_MANAGER",
+                "ACTIVE",
                 useYn,
                 lockYn,
                 failCount,

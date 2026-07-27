@@ -44,6 +44,7 @@ function Write-Utf8 {
 $package = "com.cpf.$domain.batch"
 $packagePath = $package.Replace('.', '\')
 $className = "${SystemCode}JobPackProvider"
+$domainJobName = $domain.ToUpperInvariant() + "_STANDARD_JOB"
 $Dollar = '$'
 
 $buildGradle = @"
@@ -54,6 +55,8 @@ dependencies {
     implementation platform("com.cpf:cpf-bom:${Dollar}{cpfPlatformVersion}")
     implementation "com.cpf.core:cpf-core:${Dollar}{cpfPlatformVersion}"
     implementation "com.cpf.batch:cpf-batch-contract:${Dollar}{cpfPlatformVersion}"
+    implementation project(':cpf-$domain')
+    implementation 'org.springframework.batch:spring-batch-core'
     testImplementation 'org.junit.jupiter:junit-jupiter:5.11.4'
     testImplementation 'org.assertj:assertj-core:3.26.3'
 }
@@ -67,13 +70,28 @@ package $package;
 
 import com.cpf.batch.api.JobPackManifest;
 import com.cpf.batch.spi.BusinessJobProvider;
+import org.springframework.batch.core.Job;
+import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Map;
 
-/** Generated Job Pack entry. 고객 업무 Job/Step/Center-Cut Provider는 이 독립 Repository에서 확장합니다. */
+/** Generated Job Pack entry. 생성된 표준 Job을 BAT Runtime이 실제 발견·실행할 수 있게 등록합니다. */
+@Component
 public final class $className implements BusinessJobProvider {
+    private final Map<String, Job> jobs;
+
+    public $className(List<Job> discoveredJobs) {
+        Job standard = discoveredJobs.stream()
+                .filter(job -> "$domainJobName".equals(job.getName()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Generated standard job bean is missing: $domainJobName"));
+        this.jobs = Map.of(standard.getName(), standard);
+    }
+
     @Override
-    public JobPackManifest manifest() {
+    public JobPackManifest manifest() { return generatedManifest(); }
+
+    static JobPackManifest generatedManifest() {
         return new JobPackManifest(
                 "$SystemCode-JOBPACK",
                 "$SystemCode",
@@ -82,21 +100,21 @@ public final class $className implements BusinessJobProvider {
                 "CALCULATED_BY_RELEASE_PIPELINE",
                 null,
                 "[$PlatformVersion,2.0.0)",
-                List.of("GENERAL"),
-                List.of(),
+                List.of("GENERAL", "SPRING_BATCH"),
+                List.of(new JobPackManifest.JobDefinition(
+                        "$domainJobName", "${DomainName} 표준 배치", true, List.of(), null, null)),
                 Map.of("generatedDomain", "$domain"));
     }
 
     @Override
     public Object resolveJob(String jobId) {
-        throw new IllegalArgumentException("Unknown jobId: " + jobId);
+        Job job = jobs.get(jobId);
+        if (job == null) throw new IllegalArgumentException("Unknown jobId: " + jobId);
+        return job;
     }
 }
 "@
 Write-Utf8 -Path (Join-Path $stagingRoot "src/main/java/$packagePath/$className.java") -Content $providerSource
-Write-Utf8 -Path (Join-Path $stagingRoot "src/main/resources/META-INF/services/com.cpf.batch.spi.BusinessJobProvider") `
-    -Content "$package.$className`n"
-
 $providerTest = @"
 package $package;
 
@@ -106,7 +124,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 class ${className}Test {
     @Test
     void exposesGeneratedDomainOwnership() {
-        var manifest = new $className().manifest();
+        var manifest = $className.generatedManifest();
+        assertThat(manifest.jobs()).extracting("jobId").containsExactly("$domainJobName");
         assertThat(manifest.jobPackId()).isEqualTo("$SystemCode-JOBPACK");
         assertThat(manifest.ownerDomain()).isEqualTo("$SystemCode");
         assertThat(manifest.metadata()).containsEntry("generatedDomain", "$domain");

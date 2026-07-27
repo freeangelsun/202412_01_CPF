@@ -22,7 +22,7 @@ import java.util.regex.Pattern;
  * <p>모든 Vendor Pack은 동일한 statement key와 parameter contract를 유지해야 하며
  * Controller/Application/Domain 코드는 Vendor를 분기하지 않습니다.</p>
  */
-public final class CpfVendorSqlCatalog {
+public final class CpfVendorSqlCatalog implements com.cpf.core.api.database.CpfVendorSqlCatalog {
     private static final Pattern SAFE_TOKEN = Pattern.compile("[a-z][a-z0-9_-]{1,63}");
 
     private final CpfDatabaseVendor vendor;
@@ -60,6 +60,7 @@ public final class CpfVendorSqlCatalog {
      * @param statementKey 중앙 Pack statement key
      * @return trim된 SQL text
      */
+    @Override
     public String required(String statementKey) {
         String safeKey = requireSafeToken(statementKey, "statementKey");
         return cache.computeIfAbsent(safeKey, this::readExternal);
@@ -71,6 +72,7 @@ public final class CpfVendorSqlCatalog {
      * @param statementKey 중앙 Pack statement key
      * @return {@code runtime/<module>/repository/<statement>.sql}
      */
+    @Override
     public String resourcePath(String statementKey) {
         String safeKey = requireSafeToken(statementKey, "statementKey");
         return externalRelativePath(safeKey).toString().replace('\\', '/');
@@ -81,6 +83,7 @@ public final class CpfVendorSqlCatalog {
      *
      * @return 선택된 CPF DB Vendor
      */
+    @Override
     public CpfDatabaseVendor vendor() {
         return vendor;
     }

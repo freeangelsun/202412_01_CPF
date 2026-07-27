@@ -1,8 +1,6 @@
 package com.cpf.gateway.config;
 
-import com.cpf.core.common.execution.CpfExecutionCatalogPort;
-import com.cpf.core.common.gateway.CpfGatewayAuthorizationPort;
-import com.cpf.core.common.gateway.CpfGatewayRouteCatalog;
+import com.cpf.core.api.gateway.CpfGatewayAuthorizationPort;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,11 +11,6 @@ import org.springframework.web.client.RestClient;
 @Configuration
 @EnableScheduling
 public class CpfGatewayConfiguration {
-
-    @Bean
-    public CpfGatewayRouteCatalog cpfGatewayRouteCatalog(CpfExecutionCatalogPort executionCatalog) {
-        return new CpfGatewayRouteCatalog(executionCatalog);
-    }
 
     @Bean
     @ConditionalOnMissingBean

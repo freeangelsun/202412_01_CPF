@@ -2,6 +2,7 @@ package com.cpf.core.api.reliability;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * CPF 신뢰성 상태 조회와 운영 명령을 제공하는 공개 포트입니다.
@@ -19,10 +20,19 @@ public interface CpfReliabilityOperationsPort {
 
     List<Map<String, Object>> findUnknownResults(String type, String status, String transactionId, int limit);
 
+    Optional<Map<String, Object>> findUnknownResult(String unknownId);
+
+    UnknownResultRecord recordUnknownResult(UnknownResultCommand command);
+
     ChangeResult requestDlqReplay(String messageId, String operatorId, String reason);
 
     ChangeResult resolveUnknown(String unknownId, String targetStatus, String operatorId, String reason);
 
-    record ChangeResult(Map<String, Object> before, Map<String, Object> after, String reason) {
-    }
+    record ChangeResult(Map<String, Object> before, Map<String, Object> after, String reason) { }
+
+    record UnknownResultCommand(
+            String unknownId, String type, String transactionId, String segmentId, String externalKey,
+            String failureCode, String failureMessage, String nextAction, String createdBy) { }
+
+    record UnknownResultRecord(String unknownId, String status) { }
 }

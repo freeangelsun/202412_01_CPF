@@ -634,3 +634,13 @@ ChatGPT 구현 보고를 완료 근거로 사용하지 않는다.
 이전 세션의 Push 승인은 승계되지 않는다. 사용자 명시 승인 없이 Commit/Push/Branch/Tag/Release 금지.
 
 - 상세 QA 입력 보존본: `cpf-docs/work/review/CPF_QA_INPUT_20260727_04.md`
+
+## 2026-07-28 Completion Continuity
+
+다음 기준은 이전 상태보다 우선한다.
+
+1. Base master는 `2daef3b7d2f82745d42d9b19804dde4bcac60edb`이며 Completion Patch 적용 Commit은 아직 생성되지 않았다.
+2. 공식 DB Vendor는 MariaDB/PostgreSQL/Oracle 3종만 유지한다. MySQL/MSSQL 선택/산출물은 제거한다.
+3. 구현 가능한 QA/Remaining Gap은 Completion Patch에 반영했다. 다음 단계는 `CPF_CURRENT_WORK_REQUEST.md`의 실제 통합 검증이다.
+4. Runtime Evidence 없는 항목을 완료 검증으로 승계하지 않는다.
+5. 사용자 승인 없는 Commit/Push/Branch 생성은 금지한다.

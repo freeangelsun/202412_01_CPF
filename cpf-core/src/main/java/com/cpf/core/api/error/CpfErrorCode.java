@@ -3,9 +3,10 @@ package com.cpf.core.api.error;
 import org.springframework.http.HttpStatus;
 
 /**
- * 업무 Domain에서 사용할 수 있는 CPF 공개 표준 오류 코드입니다.
+ * 업무 Domain과 CPF 외부 Module에서 사용할 수 있는 공개 표준 오류 코드입니다.
  *
- * <p>Runtime 내부 오류 정의를 외부 모듈에 노출하지 않으면서 동일한 상태/메시지 계약을 유지합니다.</p>
+ * <p>외부 Consumer는 {@code com.cpf.core.common.*} 내부 구현 대신 이 계약을 사용합니다.
+ * HTTP 상태, 외부 메시지와 메시지 코드는 CPF 공통 예외 처리기에서 동일하게 해석됩니다.</p>
  */
 public enum CpfErrorCode {
     INVALID_PARAMETER(com.cpf.core.common.exception.CpfErrorCode.INVALID_PARAMETER),
@@ -18,7 +19,8 @@ public enum CpfErrorCode {
     BUSINESS_RULE_VIOLATION(com.cpf.core.common.exception.CpfErrorCode.BUSINESS_RULE_VIOLATION),
     EXTERNAL_SERVICE_ERROR(com.cpf.core.common.exception.CpfErrorCode.EXTERNAL_SERVICE_ERROR),
     INTERNAL_SERVER_ERROR(com.cpf.core.common.exception.CpfErrorCode.INTERNAL_SERVER_ERROR),
-    DATABASE_ERROR(com.cpf.core.common.exception.CpfErrorCode.DATABASE_ERROR);
+    DATABASE_ERROR(com.cpf.core.common.exception.CpfErrorCode.DATABASE_ERROR),
+    INFRASTRUCTURE_UNAVAILABLE(com.cpf.core.common.exception.CpfErrorCode.INFRASTRUCTURE_UNAVAILABLE);
 
     private final com.cpf.core.common.exception.CpfErrorCode delegate;
 

@@ -1,13 +1,17 @@
 package com.cpf.admin.opr.service;
 
+import com.cpf.admin.config.AdmPersistencePolicy;
 import com.cpf.admin.config.AdmSecurityProperties;
 import com.cpf.admin.opr.dto.AdmLoginResponse;
 import com.cpf.admin.opr.dto.AdmMenu;
 import com.cpf.admin.opr.dto.AdmOperator;
 import com.cpf.admin.opr.dto.AdmSession;
 import com.cpf.common.sec.crypto.CmnCryptoService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.cpf.core.api.error.CpfBusinessException;
+import com.cpf.core.api.error.CpfErrorCode;
+import com.cpf.core.api.logging.CpfTransactionContext;
+import com.cpf.core.api.reliability.CpfReliabilityOperationsPort;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -15,8 +19,8 @@ import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.Base64;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -25,39 +29,51 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 /**
- * ADM 운영자 세션을 발급, 조회, 폐기, 정리하는 서비스입니다.
+ * ADM Session의 발급·검증·폐기를 담당합니다.
  *
- * <p>세션 token 원문은 운영 화면이나 DB에 노출하지 않고 hash로 저장합니다. DB가 준비된 환경에서는
- * adm_operator_session을 기준으로 조회하고, 로컬 초기 기동처럼 DB가 아직 준비되지 않은 경우에는
- * 메모리 fallback으로 ADM 화면 확인이 가능하도록 합니다.</p>
+ * <p><b>DATABASE 정책:</b> DB가 유일한 인증 정본입니다. 발급은 DB commit 이후 token을 반환하고, 조회·폐기·정리
+ * 중 DB 장애는 미인증/성공으로 축소하지 않고 503 계열 운영 오류로 fail-closed 합니다. 명시적인 MEMORY 정책은
+ * test/local 격리 환경에서만 별도 사용합니다.</p>
+ * <p><b>다중 인스턴스:</b> 요청마다 DB의 현재 계정상태/Role/폐기 상태를 확인하므로 WAS 로컬 메모리 cache로
+ * 권한을 유지하지 않습니다. 상태·Role·비밀번호 변경은 같은 DB Transaction 책임에서 관련 Session을 무효화합니다.</p>
+ * <p><b>복구:</b> Session 폐기 결과불명은 token 원문 없이 CPF Unknown Result에 기록하고 기존 Reliability 운영 API의
+ * RETRY_PENDING으로 재폐기할 수 있습니다. Readiness는 sessionStore 장애를 별도 reasonCode로 노출합니다.</p>
+ * <p><b>Thread Safety/보안:</b> Service는 공유 mutable 인증 정본을 보유하지 않으며 원문 token을 로그/Evidence/재처리
+ * payload에 저장하지 않습니다.</p>
  */
 @Service
 public class AdmSessionService extends com.cpf.admin.common.base.AdmBaseService {
-    private static final Logger log = LoggerFactory.getLogger(AdmSessionService.class);
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+    private static final int SESSION_LIST_LIMIT = 500;
 
     private final AdmSecurityProperties properties;
     private final JdbcTemplate admJdbcTemplate;
     private final CmnCryptoService cryptoService;
-    private final ConcurrentMap<String, AdmSession> sessions = new ConcurrentHashMap<>();
+    private final AdmPersistencePolicy persistencePolicy;
+    private final ConcurrentMap<String, AdmSession> memorySessions = new ConcurrentHashMap<>();
+    private volatile CpfReliabilityOperationsPort reliabilityOperationsPort;
 
     public AdmSessionService(
             AdmSecurityProperties properties,
             @Qualifier("admJdbcTemplate") JdbcTemplate admJdbcTemplate,
-            CmnCryptoService cryptoService) {
+            CmnCryptoService cryptoService,
+            AdmPersistencePolicy persistencePolicy) {
         this.properties = properties;
         this.admJdbcTemplate = admJdbcTemplate;
         this.cryptoService = cryptoService;
+        this.persistencePolicy = persistencePolicy;
+    }
+
+    /** CPF reliability runtime이 존재할 때 Session revoke 결과불명 기록에 연결합니다. */
+    @Autowired(required = false)
+    void setReliabilityOperationsPort(CpfReliabilityOperationsPort port) {
+        this.reliabilityOperationsPort = port;
     }
 
     /**
-     * 인증된 운영자에게 ADM bearer 세션을 발급합니다.
+     * 인증된 운영자에게 bearer 세션을 발급합니다.
      *
-     * <p>발급된 token은 응답으로 한 번만 전달하고, 저장소에는 hash와 역할 목록, 만료 시각을 기록합니다.</p>
-     *
-     * @param operator 인증된 운영자
-     * @param menus 운영자 역할에 허용된 ADM 메뉴 목록
-     * @return 로그인 응답
+     * @throws CpfBusinessException DATABASE 모드에서 세션 저장에 실패한 경우. 이 경우 token은 응답되지 않습니다.
      */
     public AdmLoginResponse issue(AdmOperator operator, List<AdmMenu> menus) {
         String token = newToken();
@@ -70,151 +86,173 @@ public class AdmSessionService extends com.cpf.admin.common.base.AdmBaseService 
                 operator.passwordChangeRequired() || operator.passwordExpired(),
                 issuedAt,
                 expiresAt);
-        sessions.put(token, session);
-        persistSession(session);
+
+        if (persistencePolicy.memoryEnabled()) {
+            memorySessions.put(token, session);
+        } else {
+            persistSession(session);
+        }
         return new AdmLoginResponse(token, "Bearer", properties.getSessionTtlSeconds(), operator, menus);
     }
 
     /**
-     * 요청 token이 유효한 ADM 세션인지 확인합니다.
+     * bearer token의 현재 유효성을 확인합니다.
      *
-     * <p>메모리 캐시에서 먼저 찾고, 없으면 token hash로 DB 세션을 조회합니다. 만료된 세션은 즉시 폐기
-     * 처리하여 같은 token이 다시 사용되지 않게 합니다.</p>
+     * <p>DATABASE 모드에서는 세션 row뿐 아니라 현재 운영자 {@code USE_YN}, {@code ACCOUNT_STATUS},
+     * {@code LOCKED_YN}과 현재 role mapping을 함께 확인합니다.</p>
      *
-     * @param token ADM bearer token 원문
-     * @return 유효 세션
+     * @throws CpfBusinessException DATABASE 모드에서 세션 저장소를 조회할 수 없는 경우
      */
     public Optional<AdmSession> findValidSession(String token) {
         if (token == null || token.isBlank()) {
             return Optional.empty();
         }
-        AdmSession session = sessions.get(token);
-        if (session == null) {
-            return findDbSession(token);
+        if (persistencePolicy.memoryEnabled()) {
+            AdmSession session = memorySessions.get(token);
+            if (session == null) {
+                return Optional.empty();
+            }
+            if (!session.expiresAt().isAfter(LocalDateTime.now())) {
+                memorySessions.remove(token, session);
+                return Optional.empty();
+            }
+            return Optional.of(session);
         }
-        if (session.expiresAt().isBefore(LocalDateTime.now())) {
-            sessions.remove(token);
-            revokeDbSession(token);
-            return Optional.empty();
-        }
-        return Optional.of(session);
+        return findDbSession(token);
     }
 
     /**
      * 로그아웃 또는 강제 폐기 요청으로 세션을 폐기합니다.
-     *
-     * @param token 폐기할 ADM bearer token 원문
+     * DATABASE 모드의 DB 실패는 성공으로 반환하지 않습니다.
      */
     public void revoke(String token) {
-        if (token != null) {
-            sessions.remove(token);
-            revokeDbSession(token);
+        if (token == null || token.isBlank()) {
+            return;
         }
+        if (persistencePolicy.memoryEnabled()) {
+            memorySessions.remove(token);
+            return;
+        }
+        revokeDbSession(token);
     }
 
     /**
-     * 비밀번호 변경이나 관리자 초기화가 완료된 운영자의 기존 세션을 모두 폐기합니다.
-     *
-     * @param operatorId 세션을 폐기할 운영자 ID
-     * @return 메모리와 DB에서 폐기한 세션 수의 최댓값
+     * 운영자의 모든 세션을 폐기합니다. 비밀번호/role/계정 상태 변경 Transaction에서 호출됩니다.
      */
     public int revokeOperatorSessions(String operatorId) {
         if (operatorId == null || operatorId.isBlank()) {
             return 0;
         }
-        int memoryRevoked = 0;
-        for (Map.Entry<String, AdmSession> entry : sessions.entrySet()) {
-            if (operatorId.equals(entry.getValue().operatorId()) && sessions.remove(entry.getKey(), entry.getValue())) {
-                memoryRevoked++;
+        if (persistencePolicy.memoryEnabled()) {
+            int revoked = 0;
+            for (Map.Entry<String, AdmSession> entry : memorySessions.entrySet()) {
+                if (operatorId.equals(entry.getValue().operatorId())
+                        && memorySessions.remove(entry.getKey(), entry.getValue())) {
+                    revoked++;
+                }
             }
+            return revoked;
         }
         try {
-            int dbRevoked = admJdbcTemplate.update("""
+            return admJdbcTemplate.update("""
                     UPDATE adm_operator_session
-                    SET REVOKED_YN = 'Y',
-                        UPDATED_BY = ?,
-                        UPDATED_AT = CURRENT_TIMESTAMP
-                    WHERE OPERATOR_ID = ?
-                      AND REVOKED_YN = 'N'
+                       SET REVOKED_YN = 'Y',
+                           UPDATED_BY = ?,
+                           UPDATED_AT = CURRENT_TIMESTAMP
+                     WHERE OPERATOR_ID = ?
+                       AND REVOKED_YN = 'N'
                     """, operatorId, operatorId);
-            return Math.max(memoryRevoked, dbRevoked);
         } catch (DataAccessException ex) {
-            log.debug("ADM 운영자 세션 일괄 폐기 DB 처리를 건너뜁니다. operatorId={}, reason={}",
-                    operatorId, ex.getMessage());
-            return memoryRevoked;
+            recordRevocationUnknown("OPERATOR_ID", operatorId, "adm_operator_session.revokeOperator", ex);
+            throw unavailable("adm_operator_session.revokeOperator", ex);
         }
     }
 
+    /** 운영자가 확인할 수 있는 세션 목록입니다. DB 장애는 빈 목록으로 위장하지 않습니다. */
     public List<Map<String, Object>> findSessions(String operatorId) {
+        if (persistencePolicy.memoryEnabled()) {
+            return memorySessions.values().stream()
+                    .filter(session -> operatorId == null || operatorId.isBlank() || session.operatorId().equals(operatorId))
+                    .limit(SESSION_LIST_LIMIT)
+                    .map(session -> {
+                        Map<String, Object> row = new LinkedHashMap<>();
+                        row.put("SESSION_ID", "IN_MEMORY");
+                        row.put("OPERATOR_ID", session.operatorId());
+                        row.put("ROLE_IDS", String.join(",", session.roleIds()));
+                        row.put("ISSUED_AT", session.issuedAt());
+                        row.put("EXPIRE_AT", session.expiresAt());
+                        row.put("REVOKED_YN", "N");
+                        return row;
+                    })
+                    .toList();
+        }
         try {
+            List<Map<String, Object>> rows;
             if (operatorId != null && !operatorId.isBlank()) {
-                return admJdbcTemplate.queryForList("""
+                rows = admJdbcTemplate.queryForList("""
                         SELECT SESSION_ID, OPERATOR_ID, ROLE_IDS, ISSUED_AT, EXPIRE_AT,
                                REVOKED_YN, CLIENT_IP, USER_AGENT, CREATED_AT, UPDATED_AT
-                        FROM adm_operator_session
-                        WHERE OPERATOR_ID = ?
-                        ORDER BY EXPIRE_AT DESC
-                        LIMIT 500
+                          FROM adm_operator_session
+                         WHERE OPERATOR_ID = ?
+                         ORDER BY EXPIRE_AT DESC
                         """, operatorId.trim());
+            } else {
+                rows = admJdbcTemplate.queryForList("""
+                        SELECT SESSION_ID, OPERATOR_ID, ROLE_IDS, ISSUED_AT, EXPIRE_AT,
+                               REVOKED_YN, CLIENT_IP, USER_AGENT, CREATED_AT, UPDATED_AT
+                          FROM adm_operator_session
+                         ORDER BY EXPIRE_AT DESC
+                        """);
             }
-            return admJdbcTemplate.queryForList("""
-                    SELECT SESSION_ID, OPERATOR_ID, ROLE_IDS, ISSUED_AT, EXPIRE_AT,
-                           REVOKED_YN, CLIENT_IP, USER_AGENT, CREATED_AT, UPDATED_AT
-                    FROM adm_operator_session
-                    ORDER BY EXPIRE_AT DESC
-                    LIMIT 500
-                    """);
+            return rows.stream().limit(SESSION_LIST_LIMIT).toList();
         } catch (DataAccessException ex) {
-            log.debug("ADM session DB list skipped. reason={}", ex.getMessage());
-            return sessions.values().stream()
-                    .filter(session -> operatorId == null || operatorId.isBlank() || session.operatorId().equals(operatorId))
-                    .map(session -> Map.<String, Object>of(
-                            "SESSION_ID", "IN_MEMORY",
-                            "OPERATOR_ID", session.operatorId(),
-                            "ROLE_IDS", String.join(",", session.roleIds()),
-                            "ISSUED_AT", session.issuedAt(),
-                            "EXPIRE_AT", session.expiresAt(),
-                            "REVOKED_YN", "N"))
-                    .toList();
+            throw unavailable("adm_operator_session.list", ex);
         }
     }
 
     public int revokeSession(String sessionId) {
+        if (sessionId == null || sessionId.isBlank()) {
+            return 0;
+        }
+        if (persistencePolicy.memoryEnabled()) {
+            int before = memorySessions.size();
+            memorySessions.entrySet().removeIf(entry -> sessionId.equals(entry.getKey()));
+            return before - memorySessions.size();
+        }
         try {
             return admJdbcTemplate.update("""
                     UPDATE adm_operator_session
-                    SET REVOKED_YN = 'Y',
-                        UPDATED_BY = 'ADM',
-                        UPDATED_AT = CURRENT_TIMESTAMP
-                    WHERE SESSION_ID = ?
+                       SET REVOKED_YN = 'Y',
+                           UPDATED_BY = 'ADM',
+                           UPDATED_AT = CURRENT_TIMESTAMP
+                     WHERE SESSION_ID = ?
+                       AND REVOKED_YN = 'N'
                     """, sessionId);
         } catch (DataAccessException ex) {
-            log.debug("ADM session DB revoke by id skipped. sessionId={}, reason={}", sessionId, ex.getMessage());
-            return 0;
+            recordRevocationUnknown("SESSION_ID", sessionId, "adm_operator_session.revokeById", ex);
+            throw unavailable("adm_operator_session.revokeById", ex);
         }
     }
 
     public int cleanupExpiredSessions() {
-        sessions.entrySet().removeIf(entry -> entry.getValue().expiresAt().isBefore(LocalDateTime.now()));
+        if (persistencePolicy.memoryEnabled()) {
+            int before = memorySessions.size();
+            memorySessions.entrySet().removeIf(entry -> !entry.getValue().expiresAt().isAfter(LocalDateTime.now()));
+            return before - memorySessions.size();
+        }
         try {
             return admJdbcTemplate.update("""
                     UPDATE adm_operator_session
-                    SET REVOKED_YN = 'Y',
-                        UPDATED_BY = 'ADM',
-                        UPDATED_AT = CURRENT_TIMESTAMP
-                    WHERE REVOKED_YN = 'N'
-                      AND EXPIRE_AT <= CURRENT_TIMESTAMP
+                       SET REVOKED_YN = 'Y',
+                           UPDATED_BY = 'ADM',
+                           UPDATED_AT = CURRENT_TIMESTAMP
+                     WHERE REVOKED_YN = 'N'
+                       AND EXPIRE_AT <= CURRENT_TIMESTAMP
                     """);
         } catch (DataAccessException ex) {
-            log.debug("ADM expired session cleanup skipped. reason={}", ex.getMessage());
-            return 0;
+            recordRevocationUnknown("CLEANUP", "EXPIRED", "adm_operator_session.cleanup", ex);
+            throw unavailable("adm_operator_session.cleanup", ex);
         }
-    }
-
-    private String newToken() {
-        byte[] bytes = new byte[32];
-        SECURE_RANDOM.nextBytes(bytes);
-        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
     }
 
     private void persistSession(AdmSession session) {
@@ -224,15 +262,6 @@ public class AdmSessionService extends com.cpf.admin.common.base.AdmBaseService 
                         SESSION_ID, TOKEN_HASH, OPERATOR_ID, ROLE_IDS, ISSUED_AT, EXPIRE_AT,
                         REVOKED_YN, CREATED_BY, UPDATED_BY
                     ) VALUES (?, ?, ?, ?, ?, ?, 'N', ?, ?)
-                    ON DUPLICATE KEY UPDATE
-                        TOKEN_HASH = VALUES(TOKEN_HASH),
-                        OPERATOR_ID = VALUES(OPERATOR_ID),
-                        ROLE_IDS = VALUES(ROLE_IDS),
-                        ISSUED_AT = VALUES(ISSUED_AT),
-                        EXPIRE_AT = VALUES(EXPIRE_AT),
-                        REVOKED_YN = 'N',
-                        UPDATED_BY = VALUES(UPDATED_BY),
-                        UPDATED_AT = CURRENT_TIMESTAMP
                     """,
                     UUID.randomUUID().toString(),
                     tokenHash(session.token()),
@@ -243,42 +272,55 @@ public class AdmSessionService extends com.cpf.admin.common.base.AdmBaseService 
                     session.operatorId(),
                     session.operatorId());
         } catch (DataAccessException ex) {
-            log.debug("ADM session DB persistence skipped. operatorId={}, reason={}", session.operatorId(), ex.getMessage());
+            throw unavailable("adm_operator_session.issue", ex);
         }
     }
 
     private Optional<AdmSession> findDbSession(String token) {
         try {
-            return admJdbcTemplate.query("""
-                            SELECT s.OPERATOR_ID, s.ROLE_IDS, s.ISSUED_AT, s.EXPIRE_AT,
+            Optional<SessionRow> stored = admJdbcTemplate.query("""
+                            SELECT s.OPERATOR_ID, s.ISSUED_AT, s.EXPIRE_AT,
                                    o.PASSWORD_CHANGE_REQUIRED_YN
-                            FROM adm_operator_session s
-                            JOIN adm_operator o ON o.OPERATOR_ID = s.OPERATOR_ID
-                            WHERE s.TOKEN_HASH = ?
-                              AND s.REVOKED_YN = 'N'
-                              AND s.EXPIRE_AT > CURRENT_TIMESTAMP
-                              AND o.USE_YN = 'Y'
-                            ORDER BY s.EXPIRE_AT DESC
-                            LIMIT 1
+                              FROM adm_operator_session s
+                              JOIN adm_operator o ON o.OPERATOR_ID = s.OPERATOR_ID
+                             WHERE s.TOKEN_HASH = ?
+                               AND s.REVOKED_YN = 'N'
+                               AND s.EXPIRE_AT > CURRENT_TIMESTAMP
+                               AND o.USE_YN = 'Y'
+                               AND o.ACCOUNT_STATUS = 'ACTIVE'
+                               AND o.LOCKED_YN = 'N'
                             """,
                     rs -> {
                         if (!rs.next()) {
-                            return Optional.<AdmSession>empty();
+                            return Optional.empty();
                         }
-                        AdmSession session = new AdmSession(
-                                 token,
-                                 rs.getString("OPERATOR_ID"),
-                                 parseRoleIds(rs.getString("ROLE_IDS")),
-                                 "Y".equals(rs.getString("PASSWORD_CHANGE_REQUIRED_YN")),
-                                 rs.getTimestamp("ISSUED_AT").toLocalDateTime(),
-                                rs.getTimestamp("EXPIRE_AT").toLocalDateTime());
-                        sessions.put(token, session);
-                        return Optional.of(session);
-                    },
-                    tokenHash(token));
+                        return Optional.of(new SessionRow(
+                                rs.getString("OPERATOR_ID"),
+                                "Y".equals(rs.getString("PASSWORD_CHANGE_REQUIRED_YN")),
+                                rs.getTimestamp("ISSUED_AT").toLocalDateTime(),
+                                rs.getTimestamp("EXPIRE_AT").toLocalDateTime()));
+                    }, tokenHash(token));
+            if (stored.isEmpty()) {
+                return Optional.empty();
+            }
+            SessionRow row = stored.get();
+            List<String> currentRoles = admJdbcTemplate.queryForList("""
+                    SELECT r.ROLE_ID
+                      FROM adm_operator_role r
+                      JOIN adm_role role ON role.ROLE_ID = r.ROLE_ID
+                     WHERE r.OPERATOR_ID = ?
+                       AND role.USE_YN = 'Y'
+                     ORDER BY r.ROLE_ID
+                    """, String.class, row.operatorId());
+            return Optional.of(new AdmSession(
+                    token,
+                    row.operatorId(),
+                    List.copyOf(currentRoles),
+                    row.passwordChangeRequired(),
+                    row.issuedAt(),
+                    row.expiresAt()));
         } catch (DataAccessException ex) {
-            log.debug("ADM session DB lookup skipped. reason={}", ex.getMessage());
-            return Optional.empty();
+            throw unavailable("adm_operator_session.lookup", ex);
         }
     }
 
@@ -286,27 +328,84 @@ public class AdmSessionService extends com.cpf.admin.common.base.AdmBaseService 
         try {
             admJdbcTemplate.update("""
                     UPDATE adm_operator_session
-                    SET REVOKED_YN = 'Y',
-                        UPDATED_BY = 'ADM',
-                        UPDATED_AT = CURRENT_TIMESTAMP
-                    WHERE TOKEN_HASH = ?
+                       SET REVOKED_YN = 'Y',
+                           UPDATED_BY = 'ADM',
+                           UPDATED_AT = CURRENT_TIMESTAMP
+                     WHERE TOKEN_HASH = ?
+                       AND REVOKED_YN = 'N'
                     """, tokenHash(token));
         } catch (DataAccessException ex) {
-            log.debug("ADM session DB revoke skipped. reason={}", ex.getMessage());
+            recordRevocationUnknown("TOKEN_HASH", tokenHash(token), "adm_operator_session.revoke", ex);
+            throw unavailable("adm_operator_session.revoke", ex);
         }
     }
 
-    private List<String> parseRoleIds(String roleIds) {
-        if (roleIds == null || roleIds.isBlank()) {
-            return List.of();
+    /** UNKNOWN_RESULT 운영 재처리에서 token 원문 없이 Session 폐기를 다시 실행합니다. */
+    public int retryRevocation(String externalKey) {
+        if (persistencePolicy.memoryEnabled()) throw new IllegalStateException("MEMORY 모드에는 DB Session revoke 재처리가 필요하지 않습니다.");
+        if (externalKey == null || !externalKey.contains(":")) throw new IllegalArgumentException("Session revoke externalKey 형식이 올바르지 않습니다.");
+        String[] parts = externalKey.split(":", 2);
+        return switch (parts[0]) {
+            case "TOKEN_HASH" -> admJdbcTemplate.update("""
+                    UPDATE adm_operator_session SET REVOKED_YN='Y', UPDATED_BY='ADM_RETRY', UPDATED_AT=CURRENT_TIMESTAMP
+                    WHERE TOKEN_HASH=? AND REVOKED_YN='N'
+                    """, parts[1]);
+            case "SESSION_ID" -> admJdbcTemplate.update("""
+                    UPDATE adm_operator_session SET REVOKED_YN='Y', UPDATED_BY='ADM_RETRY', UPDATED_AT=CURRENT_TIMESTAMP
+                    WHERE SESSION_ID=? AND REVOKED_YN='N'
+                    """, parts[1]);
+            case "OPERATOR_ID" -> admJdbcTemplate.update("""
+                    UPDATE adm_operator_session SET REVOKED_YN='Y', UPDATED_BY='ADM_RETRY', UPDATED_AT=CURRENT_TIMESTAMP
+                    WHERE OPERATOR_ID=? AND REVOKED_YN='N'
+                    """, parts[1]);
+            case "CLEANUP" -> cleanupExpiredSessionsWithoutUnknown();
+            default -> throw new IllegalArgumentException("지원하지 않는 Session revoke 재처리 유형입니다. type=" + parts[0]);
+        };
+    }
+
+    private int cleanupExpiredSessionsWithoutUnknown() {
+        return admJdbcTemplate.update("""
+                UPDATE adm_operator_session SET REVOKED_YN='Y', UPDATED_BY='ADM_RETRY', UPDATED_AT=CURRENT_TIMESTAMP
+                WHERE REVOKED_YN='N' AND EXPIRE_AT <= CURRENT_TIMESTAMP
+                """);
+    }
+
+    private void recordRevocationUnknown(String keyType, String keyValue, String component, DataAccessException source) {
+        CpfReliabilityOperationsPort port = reliabilityOperationsPort;
+        if (port == null) return;
+        try {
+            String unknownId = "ADMSESS-" + UUID.randomUUID();
+            port.recordUnknownResult(new CpfReliabilityOperationsPort.UnknownResultCommand(
+                    unknownId, "ADM_SESSION_REVOKE", CpfTransactionContext.transactionId(), null,
+                    keyType + ":" + keyValue, "SESSION_STORE_UNAVAILABLE",
+                    component + " failed: " + source.getClass().getSimpleName(),
+                    "RETRY_ADM_SESSION_REVOKE", "ADM"));
+        } catch (RuntimeException reliabilityFailure) {
+            source.addSuppressed(reliabilityFailure);
         }
-        return Arrays.stream(roleIds.split(","))
-                .map(String::trim)
-                .filter(roleId -> !roleId.isBlank())
-                .toList();
+    }
+
+    private CpfBusinessException unavailable(String component, DataAccessException ex) {
+        return new CpfBusinessException(
+                CpfErrorCode.INFRASTRUCTURE_UNAVAILABLE,
+                "ADM 필수 Session Store를 사용할 수 없습니다.",
+                Map.of("0", component, "1", ex.getClass().getSimpleName()));
+    }
+
+    private String newToken() {
+        byte[] bytes = new byte[32];
+        SECURE_RANDOM.nextBytes(bytes);
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
     }
 
     private String tokenHash(String token) {
         return cryptoService.sha256Hex(token);
+    }
+
+    private record SessionRow(
+            String operatorId,
+            boolean passwordChangeRequired,
+            LocalDateTime issuedAt,
+            LocalDateTime expiresAt) {
     }
 }

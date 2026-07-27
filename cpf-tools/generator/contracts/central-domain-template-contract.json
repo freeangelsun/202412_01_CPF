@@ -4,10 +4,8 @@
   "templateRoot": "cpf-tools/db/vendor/{vendor}/domain-template",
   "supportedVendors": [
     "mariadb",
-    "mysql",
     "postgresql",
-    "oracle",
-    "sqlserver"
+    "oracle"
   ],
   "requiredTemplates": [
     "provision/01_provision.sql.template",
@@ -148,10 +146,6 @@
         "jdbcDriver": "org.mariadb.jdbc:mariadb-java-client",
         "flywayDatabase": "org.flywaydb:flyway-mysql"
       },
-      "mysql": {
-        "jdbcDriver": "com.mysql:mysql-connector-j",
-        "flywayDatabase": "org.flywaydb:flyway-mysql"
-      },
       "postgresql": {
         "jdbcDriver": "org.postgresql:postgresql",
         "flywayDatabase": "org.flywaydb:flyway-database-postgresql"
@@ -159,10 +153,6 @@
       "oracle": {
         "jdbcDriver": "com.oracle.database.jdbc:ojdbc11",
         "flywayDatabase": "org.flywaydb:flyway-database-oracle"
-      },
-      "sqlserver": {
-        "jdbcDriver": "com.microsoft.sqlserver:mssql-jdbc",
-        "flywayDatabase": "org.flywaydb:flyway-sqlserver"
       }
     }
   },

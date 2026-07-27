@@ -1,6 +1,6 @@
 param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..\..").Path,
-    [ValidateSet("", "mariadb", "mysql", "postgresql", "oracle", "sqlserver")]
+    [ValidateSet("", "mariadb", "postgresql", "oracle")]
     [string] $Vendor = "",
     [switch] $Quiet
 )
@@ -290,13 +290,13 @@ foreach ($currentVendor in $vendors) {
             [System.Text.Encoding]::UTF8
         )
         # Provision owns the physical database/container only where the vendor
-        # supports it. PostgreSQL/SQL Server create a database here and create
+        # supports it. PostgreSQL creates a database here and creates
         # the application schema during Install. Oracle provisioning is a
         # DBA-owned connectivity check. Requiring CPF_SCHEMA_NAME in every
         # Provision template incorrectly collapses these lifecycle boundaries.
         $requiredProvisionToken = switch ($currentVendor) {
-            { $_ -in @("mariadb", "mysql") } { "@CPF_SCHEMA_NAME@"; break }
-            { $_ -in @("postgresql", "sqlserver") } { "@CPF_DATABASE_NAME@"; break }
+            { $_ -eq "mariadb" } { "@CPF_SCHEMA_NAME@"; break }
+            { $_ -eq "postgresql" } { "@CPF_DATABASE_NAME@"; break }
             default { $null }
         }
         if ($null -ne $requiredProvisionToken -and

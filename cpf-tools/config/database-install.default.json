@@ -5,19 +5,17 @@
   "description": "Git-tracked CPF local development DB install profile. Every platform module owns an independent DB connection profile. EXS is not a fixed platform module; create external/EXS with the Golden Generated Domain generator when required.",
   "supportedVendors": [
     "mariadb",
-    "mysql",
     "postgresql",
-    "oracle",
-    "sqlserver"
+    "oracle"
   ],
   "policy": {
     "promptForMissingValues": false,
-    "allowInlineDevDefaults": true,
+    "allowInlineDevDefaults": false,
     "failClosedOnMissingVendorPack": true,
     "failClosedOnPartialDatabase": true,
     "autoDropDatabase": false,
     "autoResetDatabase": false,
-    "allowMixedVendorConfiguration": true,
+    "allowMixedVendorConfiguration": false,
     "allowMixedHostConfiguration": true
   },
   "modules": {
@@ -49,8 +47,7 @@
         "userHost": "%",
         "password": {
           "env": "CPF_CPF_DB_MIGRATION_PASSWORD",
-          "fallbackEnv": "CPF_DB_MIGRATION_PASSWORD",
-          "devDefault": "CpfCPFMig#2026"
+          "fallbackEnv": "CPF_DB_MIGRATION_PASSWORD"
         }
       },
       "runtime": {
@@ -58,8 +55,7 @@
         "userHost": "%",
         "password": {
           "env": "CPF_CPF_DB_RUNTIME_PASSWORD",
-          "fallbackEnv": "CPF_DB_APP_PASSWORD",
-          "devDefault": "CpfCPFApp#2026"
+          "fallbackEnv": "CPF_DB_APP_PASSWORD"
         }
       },
       "seed": {
@@ -96,8 +92,7 @@
         "userHost": "%",
         "password": {
           "env": "CPF_CMN_DB_MIGRATION_PASSWORD",
-          "fallbackEnv": "CPF_DB_MIGRATION_PASSWORD",
-          "devDefault": "CpfCMNMig#2026"
+          "fallbackEnv": "CPF_DB_MIGRATION_PASSWORD"
         }
       },
       "runtime": {
@@ -105,8 +100,7 @@
         "userHost": "%",
         "password": {
           "env": "CPF_CMN_DB_RUNTIME_PASSWORD",
-          "fallbackEnv": "CPF_DB_APP_PASSWORD",
-          "devDefault": "CpfCMNApp#2026"
+          "fallbackEnv": "CPF_DB_APP_PASSWORD"
         }
       },
       "seed": {
@@ -143,8 +137,7 @@
         "userHost": "%",
         "password": {
           "env": "CPF_ADM_DB_MIGRATION_PASSWORD",
-          "fallbackEnv": "CPF_DB_MIGRATION_PASSWORD",
-          "devDefault": "CpfADMMig#2026"
+          "fallbackEnv": "CPF_DB_MIGRATION_PASSWORD"
         }
       },
       "runtime": {
@@ -152,8 +145,7 @@
         "userHost": "%",
         "password": {
           "env": "CPF_ADM_DB_RUNTIME_PASSWORD",
-          "fallbackEnv": "CPF_DB_APP_PASSWORD",
-          "devDefault": "CpfADMApp#2026"
+          "fallbackEnv": "CPF_DB_APP_PASSWORD"
         }
       },
       "seed": {
@@ -190,8 +182,7 @@
         "userHost": "%",
         "password": {
           "env": "CPF_BZA_DB_MIGRATION_PASSWORD",
-          "fallbackEnv": "CPF_DB_MIGRATION_PASSWORD",
-          "devDefault": "CpfBZAMig#2026"
+          "fallbackEnv": "CPF_DB_MIGRATION_PASSWORD"
         }
       },
       "runtime": {
@@ -199,8 +190,7 @@
         "userHost": "%",
         "password": {
           "env": "CPF_BZA_DB_RUNTIME_PASSWORD",
-          "fallbackEnv": "CPF_DB_APP_PASSWORD",
-          "devDefault": "CpfBZAApp#2026"
+          "fallbackEnv": "CPF_DB_APP_PASSWORD"
         }
       },
       "seed": {
@@ -237,8 +227,7 @@
         "userHost": "%",
         "password": {
           "env": "CPF_BAT_DB_MIGRATION_PASSWORD",
-          "fallbackEnv": "CPF_DB_MIGRATION_PASSWORD",
-          "devDefault": "CpfBATMig#2026"
+          "fallbackEnv": "CPF_DB_MIGRATION_PASSWORD"
         }
       },
       "runtime": {
@@ -246,8 +235,7 @@
         "userHost": "%",
         "password": {
           "env": "CPF_BAT_DB_RUNTIME_PASSWORD",
-          "fallbackEnv": "CPF_DB_APP_PASSWORD",
-          "devDefault": "CpfBATApp#2026"
+          "fallbackEnv": "CPF_DB_APP_PASSWORD"
         }
       },
       "seed": {
@@ -284,8 +272,7 @@
         "userHost": "%",
         "password": {
           "env": "CPF_REF_DB_MIGRATION_PASSWORD",
-          "fallbackEnv": "CPF_DB_MIGRATION_PASSWORD",
-          "devDefault": "CpfREFMig#2026"
+          "fallbackEnv": "CPF_DB_MIGRATION_PASSWORD"
         }
       },
       "runtime": {
@@ -293,8 +280,7 @@
         "userHost": "%",
         "password": {
           "env": "CPF_REF_DB_RUNTIME_PASSWORD",
-          "fallbackEnv": "CPF_DB_APP_PASSWORD",
-          "devDefault": "CpfREFApp#2026"
+          "fallbackEnv": "CPF_DB_APP_PASSWORD"
         }
       },
       "seed": {
@@ -332,8 +318,7 @@
         "userHost": "%",
         "password": {
           "env": "CPF_MBR_DB_MIGRATION_PASSWORD",
-          "fallbackEnv": "CPF_DB_MIGRATION_PASSWORD",
-          "devDefault": "CpfMBRMig#2026"
+          "fallbackEnv": "CPF_DB_MIGRATION_PASSWORD"
         }
       },
       "runtime": {
@@ -341,8 +326,7 @@
         "userHost": "%",
         "password": {
           "env": "CPF_MBR_DB_RUNTIME_PASSWORD",
-          "fallbackEnv": "CPF_DB_APP_PASSWORD",
-          "devDefault": "CpfMBRApp#2026"
+          "fallbackEnv": "CPF_DB_APP_PASSWORD"
         }
       },
       "seed": {
@@ -380,8 +364,7 @@
         "userHost": "%",
         "password": {
           "env": "CPF_ACC_DB_MIGRATION_PASSWORD",
-          "fallbackEnv": "CPF_DB_MIGRATION_PASSWORD",
-          "devDefault": "CpfACCMig#2026"
+          "fallbackEnv": "CPF_DB_MIGRATION_PASSWORD"
         }
       },
       "runtime": {
@@ -389,8 +372,7 @@
         "userHost": "%",
         "password": {
           "env": "CPF_ACC_DB_RUNTIME_PASSWORD",
-          "fallbackEnv": "CPF_DB_APP_PASSWORD",
-          "devDefault": "CpfACCApp#2026"
+          "fallbackEnv": "CPF_DB_APP_PASSWORD"
         }
       },
       "seed": {

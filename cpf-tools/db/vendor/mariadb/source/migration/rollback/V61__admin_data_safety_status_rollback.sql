@@ -1,12 +1,14 @@
--- V61 safe rollback: V61에서 추가한 상태/버전/멱등 컬럼과 제약을 제거합니다.
--- ACTIVE -> EMPLOYED 정규화는 의미 보존 데이터 변경이므로 역변환하지 않습니다.
--- role_code는 V61 이후 Role 미부여 PENDING 계정이 존재할 수 있으므로 nullable을 유지합니다.
--- nullable 완화는 V60 코드와 호환되며 가짜 Role 주입이나 사용자 삭제를 하지 않습니다.
+-- V61 exact rollback to the V60-compatible schema.
+-- 운영 순서: V60 호환 Binary 배포 -> 본 DB rollback -> V60 smoke. 현재 V61 Binary 상태에서 DB만 rollback하는 것은 금지합니다.
+-- role_code NULL 계정이 있으면 NOT NULL 복원에서 명시적으로 실패합니다. 임의 Role 주입/계정 삭제로 우회하지 않습니다.
 USE bzaDB;
 ALTER TABLE bza_employee DROP CONSTRAINT IF EXISTS ck_bza_employee_status;
+ALTER TABLE bza_employee
+    ADD CONSTRAINT ck_bza_employee_status CHECK (employment_status IN ('ACTIVE','EMPLOYED','ON_LEAVE','SECONDMENT','DISPATCHED','RETIRED','TERMINATED'));
 ALTER TABLE bza_admin_user DROP CONSTRAINT IF EXISTS ck_bza_admin_user_status;
 ALTER TABLE bza_admin_user DROP INDEX IF EXISTS ix_bza_admin_user_status;
 ALTER TABLE bza_admin_user
+    MODIFY COLUMN role_code VARCHAR(50) NOT NULL COMMENT '호환용 기본 역할 코드; 실제 권한은 bza_user_role 다중 매핑 정본',
     DROP COLUMN IF EXISTS version_no,
     DROP COLUMN IF EXISTS account_status;
 

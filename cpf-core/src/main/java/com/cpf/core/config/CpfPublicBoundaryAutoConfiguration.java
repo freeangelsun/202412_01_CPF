@@ -2,11 +2,14 @@ package com.cpf.core.config;
 
 import com.cpf.core.api.broker.CpfBrokerClient;
 import com.cpf.core.api.filetransfer.CpfFileTransferClient;
+import com.cpf.core.api.gateway.CpfGatewayRouteProvider;
 import com.cpf.core.api.servicecall.CpfServiceCaller;
 import com.cpf.core.common.broker.CpfBrokerClientAdapter;
 import com.cpf.core.common.broker.CpfBrokerOutboxPort;
 import com.cpf.core.common.filetransfer.CpfFileTransferClientAdapter;
 import com.cpf.core.common.filetransfer.CpfFileTransferEngine;
+import com.cpf.core.common.execution.CpfExecutionCatalogPort;
+import com.cpf.core.common.gateway.CpfGatewayRouteProviderAdapter;
 import com.cpf.core.common.servicecall.CpfServiceCallEngine;
 import com.cpf.core.common.servicecall.CpfServiceCallerAdapter;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -22,6 +25,9 @@ public class CpfPublicBoundaryAutoConfiguration {
 
     @Bean @ConditionalOnBean(CpfFileTransferEngine.class) @ConditionalOnMissingBean(CpfFileTransferClient.class)
     CpfFileTransferClient cpfFileTransferClient(CpfFileTransferEngine engine){ return new CpfFileTransferClientAdapter(engine); }
+
+    @Bean @ConditionalOnBean(CpfExecutionCatalogPort.class) @ConditionalOnMissingBean(CpfGatewayRouteProvider.class)
+    CpfGatewayRouteProvider cpfGatewayRouteProvider(CpfExecutionCatalogPort catalog){ return new CpfGatewayRouteProviderAdapter(catalog); }
 
     @Bean @ConditionalOnBean(CpfServiceCallEngine.class) @ConditionalOnMissingBean(CpfServiceCaller.class)
     CpfServiceCaller cpfServiceCaller(CpfServiceCallEngine engine){ return new CpfServiceCallerAdapter(engine); }

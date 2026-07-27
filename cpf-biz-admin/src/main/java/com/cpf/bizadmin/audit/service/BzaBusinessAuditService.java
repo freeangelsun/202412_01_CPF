@@ -2,12 +2,13 @@ package com.cpf.bizadmin.audit.service;
 
 import com.cpf.bizadmin.common.base.BzaBaseService;
 import com.cpf.core.api.database.CpfVendorSqlCatalog;
+import com.cpf.core.api.database.CpfVendorSqlCatalogProvider;
 import com.cpf.core.api.logging.CpfTransactionContext;
+import com.cpf.core.api.security.CpfSensitiveData;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -40,24 +41,25 @@ public class BzaBusinessAuditService extends BzaBaseService {
     public BzaBusinessAuditService(
             @Qualifier("bzaJdbcTemplate") ObjectProvider<NamedParameterJdbcTemplate> provider,
             ObjectMapper mapper,
-            Environment environment) {
+            CpfVendorSqlCatalogProvider sqlCatalogProvider) {
         this.provider = provider;
         this.mapper = mapper;
-        this.sql = CpfVendorSqlCatalog.create(environment, "bza");
+        this.sql = sqlCatalogProvider.forModule("bza");
     }
 
     @Transactional(transactionManager = "bzaTransactionManager")
     public Map<String,Object> record(String actor,String action,String targetType,String targetId,String reason,Object before,Object after) {
-        require(actor,"actor"); require(action,"action"); require(targetType,"targetType"); require(targetId,"targetId"); require(reason,"reason");
+        require(actor,"actor"); require(action,"action"); require(targetType,"targetType"); require(targetId,"targetId");
+        String safeReason = CpfSensitiveData.sanitizeAuditReason(reason);
         ensureLockRow();
         Map<String,Object> lock=jdbc().queryForMap(sql.required("business-audit-service-record-02"),new MapSqlParameterSource("id",LOCK_ID));
         String previous=Objects.toString(lock.get("currentHash"),GENESIS);
         String transactionId=CpfTransactionContext.transactionId();
         String beforeJson=canonical(before), afterJson=canonical(after);
-        String hash=sha256(String.join("|",previous,nullable(transactionId),actor,action,targetType,targetId,reason,nullable(beforeJson),nullable(afterJson)));
+        String hash=sha256(String.join("|",previous,nullable(transactionId),actor,action,targetType,targetId,safeReason,nullable(beforeJson),nullable(afterJson)));
         MapSqlParameterSource p=new MapSqlParameterSource()
                 .addValue("transactionId",transactionId).addValue("actor",actor).addValue("action",action)
-                .addValue("targetType",targetType).addValue("targetId",targetId).addValue("reason",reason)
+                .addValue("targetType",targetType).addValue("targetId",targetId).addValue("reason",safeReason)
                 .addValue("beforeData",beforeJson).addValue("afterData",afterJson).addValue("previous",previous).addValue("hash",hash);
         KeyHolder keyHolder=new GeneratedKeyHolder();
         jdbc().update(sql.required("business-audit-service-record-01"),p,keyHolder,new String[]{"audit_id"});
@@ -121,14 +123,19 @@ public class BzaBusinessAuditService extends BzaBaseService {
                 String key=name.toLowerCase(Locale.ROOT);
                 if(isSecret(key)) object.put(name,"[REDACTED]");
                 else if(isPii(key)) object.put(name,"[MASKED]");
+                else if(child != null && child.isTextual()) object.put(name, CpfSensitiveData.sanitizeAuditText(child.asText()));
                 else redact(child,name);
             }
         }else if(node instanceof ArrayNode array){
-            array.forEach(child->redact(child,fieldName));
+            for(int i=0;i<array.size();i++){
+                JsonNode child=array.get(i);
+                if(child!=null&&child.isTextual()) array.set(i,mapper.getNodeFactory().textNode(CpfSensitiveData.sanitizeAuditText(child.asText())));
+                else redact(child,fieldName);
+            }
         }
     }
-    private boolean isPii(String key){return key.contains("email")||key.contains("mobile")||key.contains("phone")||key.contains("contact");}
-    private boolean isSecret(String key){return key.contains("password")||key.contains("secret")||key.contains("token")||key.contains("credential")||key.contains("attachment");}
+    private boolean isPii(String key){return key.contains("email")||key.contains("mobile")||key.contains("phone")||key.contains("contact")||key.contains("address")||key.contains("resident")||key.equals("rrn")||key.equals("ssn");}
+    private boolean isSecret(String key){return key.contains("password")||key.contains("secret")||key.contains("token")||key.contains("credential")||key.contains("authorization")||key.contains("apikey")||key.contains("privatekey")||key.contains("attachment");}
     private static String sha256(String text){try{byte[]b=MessageDigest.getInstance("SHA-256").digest(text.getBytes(StandardCharsets.UTF_8));return java.util.HexFormat.of().formatHex(b);}catch(Exception e){throw new IllegalStateException("SHA-256 unavailable",e);}}
     private static String nullable(Object v){return v==null?"":String.valueOf(v);} private static void require(String v,String f){if(v==null||v.isBlank())throw new IllegalArgumentException(f+"는 필수입니다.");}
     private NamedParameterJdbcTemplate jdbc(){NamedParameterJdbcTemplate j=provider.getIfAvailable();if(j==null)throw new IllegalStateException("BZA datasource가 구성되지 않았습니다.");return j;}

@@ -21,17 +21,17 @@ dependencies {
     implementation project(':cpf-common')
 
     // 참조 업무와 교육 샘플 REST API를 제공합니다.
-    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
 
     // 업무 DB 기반 샘플 어댑터가 JdbcTemplate으로 실제 테이블을 다루는 방법을 보여줍니다.
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
 
     // 배치 유형별 샘플과 ADM 배치 관제 연동 예제를 제공합니다.
-    implementation 'org.springframework.boot:spring-boot-starter-batch'
+    implementation 'org.springframework.boot:spring-boot-starter-batch-jdbc'
 
     // 로컬 교육 실행에서 MariaDB를 사용할 수 있게 합니다.
 
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
 }
 
 tasks.named('test') {

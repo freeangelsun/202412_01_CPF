@@ -1,7 +1,7 @@
 package com.cpf.gateway.route;
 
-import com.cpf.core.common.gateway.CpfGatewayRoute;
-import com.cpf.core.common.gateway.CpfGatewayRouteCatalog;
+import com.cpf.core.api.gateway.CpfGatewayRoute;
+import com.cpf.core.api.gateway.CpfGatewayRouteProvider;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,11 +19,11 @@ import java.util.concurrent.atomic.AtomicReference;
 public class CpfGatewayRouteSnapshot {
     private static final Logger log = LoggerFactory.getLogger(CpfGatewayRouteSnapshot.class);
 
-    private final CpfGatewayRouteCatalog catalog;
+    private final CpfGatewayRouteProvider provider;
     private final AtomicReference<Snapshot> current = new AtomicReference<>(new Snapshot(Map.of(), Instant.EPOCH));
 
-    public CpfGatewayRouteSnapshot(CpfGatewayRouteCatalog catalog) {
-        this.catalog = catalog;
+    public CpfGatewayRouteSnapshot(CpfGatewayRouteProvider provider) {
+        this.provider = provider;
     }
 
     @PostConstruct
@@ -34,7 +34,7 @@ public class CpfGatewayRouteSnapshot {
     @Scheduled(fixedDelayString = "${cpf.gateway.route-refresh-millis:30000}")
     public void refresh() {
         try {
-            current.set(new Snapshot(catalog.loadPublicRoutes(), Instant.now()));
+            current.set(new Snapshot(provider.loadPublicRoutes(), Instant.now()));
         } catch (RuntimeException ex) {
             log.error("Gateway route snapshot 갱신에 실패해 마지막 정상본을 유지합니다.", ex);
         }
@@ -45,7 +45,7 @@ public class CpfGatewayRouteSnapshot {
     }
 
     public CpfGatewayRoute resolve(String executionId) {
-        return catalog.resolve(current.get().routes(), executionId);
+        return provider.resolve(current.get().routes(), executionId);
     }
 
     public record Snapshot(Map<String, CpfGatewayRoute> routes, Instant loadedAt) {

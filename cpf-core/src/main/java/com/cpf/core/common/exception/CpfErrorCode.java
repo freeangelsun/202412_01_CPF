@@ -27,7 +27,9 @@ public enum CpfErrorCode implements CpfErrorDefinition {
     INTERNAL_SERVER_ERROR("ECPF990000", "MCPF990000", HttpStatus.INTERNAL_SERVER_ERROR,
             "처리 중 오류가 발생했습니다.", "서버 내부 오류가 발생했습니다. error={0}"),
     DATABASE_ERROR("ECPF990001", "MCPF990001", HttpStatus.INTERNAL_SERVER_ERROR,
-            "처리 중 오류가 발생했습니다.", "데이터베이스 처리 오류가 발생했습니다. sqlState={0}");
+            "처리 중 오류가 발생했습니다.", "데이터베이스 처리 오류가 발생했습니다. sqlState={0}"),
+    INFRASTRUCTURE_UNAVAILABLE("ECPF990002", "MCPF990002", HttpStatus.SERVICE_UNAVAILABLE,
+            "일시적으로 서비스를 사용할 수 없습니다.", "필수 인프라 사용이 불가능합니다. component={0}, reason={1}");
 
     private final String statusCode;
     private final String messageCode;

@@ -5,7 +5,6 @@ import com.cpf.core.api.page.CpfPage;
 import com.cpf.core.api.page.CpfPageRequest;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -21,9 +20,9 @@ public class BzaDirectoryRepository {
  private final CpfVendorSqlCatalog sql;
  public BzaDirectoryRepository(
          @Qualifier("bzaJdbcTemplate")ObjectProvider<NamedParameterJdbcTemplate> provider,
-         Environment environment){
+         com.cpf.core.api.database.CpfVendorSqlCatalogProvider sqlCatalogProvider){
    this.provider=provider;
-   this.sql=CpfVendorSqlCatalog.create(environment,"bza");
+   this.sql=sqlCatalogProvider.forModule("bza");
  }
 
  public List<Map<String,Object>> findPositions(){return positionPage(new CpfPageRequest(0,200)).content();}

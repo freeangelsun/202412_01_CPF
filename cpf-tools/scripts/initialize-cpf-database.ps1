@@ -140,14 +140,39 @@ $fullPlatformSelection = $selectedKeys.Count -eq $enabledKeys.Count -and
 
 Write-Host "CPF DB selected modules: $($selectedKeys -join ', ')"
 
-# 현재 플랫폼 전체 Vendor Pack은 MariaDB만 실행 검증되어 있습니다.
-# 다른 Vendor 값은 Profile/Generator 계약에는 허용하지만 절대로 MariaDB SQL로 fallback하지 않습니다.
-$unsupportedExecution = @($selectedKeys | Where-Object { $moduleProfiles[$_].vendor -ne "mariadb" })
-if ($unsupportedExecution.Count -gt 0) {
-    $details = $unsupportedExecution | ForEach-Object {
-        "$_=$($moduleProfiles[$_].vendor)"
+# 한 번의 플랫폼 설치는 단일 DB Vendor를 사용합니다. 서로 다른 Vendor를 한 Platform Pack에 혼합하면
+# migration/backup/rollback/운영 Runbook의 원자성이 깨지므로 명시적으로 금지합니다.
+$selectedVendors = @($selectedKeys | ForEach-Object { $moduleProfiles[$_].vendor } | Sort-Object -Unique)
+if ($selectedVendors.Count -ne 1) {
+    throw "한 번의 CPF Platform DB 설치에는 하나의 Vendor만 사용할 수 있습니다: $($selectedVendors -join ', ')"
+}
+$selectedVendor = $selectedVendors[0]
+if ($selectedVendor -in @('postgresql','oracle')) {
+    $runner = Join-Path $PSScriptRoot 'invoke-official-db-vendor-sql.ps1'
+    if (-not (Test-Path -LiteralPath $runner -PathType Leaf)) { throw "Official DB vendor runner가 없습니다: $runner" }
+    $manifest = Get-Content (Join-Path $Root 'cpf-tools/db/vendor-pack-manifest.json') -Raw -Encoding UTF8 | ConvertFrom-Json -Depth 30
+    $entry = $manifest.vendors.$selectedVendor
+    if ($null -eq $entry -or $selectedVendor -notin @($manifest.supportedVendors)) { throw "공식 Vendor Pack이 readiness 상태가 아닙니다: $selectedVendor" }
+    foreach ($k in @('provision','emptyInstall','productSeed','optionalSampleSeed','testSeed','verify')) {
+        $f = Join-Path $Root ([string]$entry.lifecycle.$k)
+        if (-not (Test-Path -LiteralPath $f -PathType Leaf)) { throw "Vendor lifecycle artifact가 없습니다: vendor=$selectedVendor key=$k path=$f" }
     }
-    throw "Platform DB Vendor Pack 실행 미구현/미검증입니다. MariaDB로 fallback하지 않습니다: $($details -join ', ')"
+    if ($RequireRun) {
+        $moduleArgs = @($selectedKeys)
+        foreach ($mode in @('provision','install')) { & pwsh -NoProfile -ExecutionPolicy Bypass -File $runner -Vendor $selectedVendor -Mode $mode -ProfilePath $ProfilePath -Modules $moduleArgs; if ($LASTEXITCODE -ne 0) { throw "$selectedVendor $mode 실패" } }
+        $effectiveSeedMode = $SeedMode
+        if ($effectiveSeedMode -eq 'profile') { $effectiveSeedMode = 'product' }
+        if ($effectiveSeedMode -in @('product','all')) { & pwsh -NoProfile -ExecutionPolicy Bypass -File $runner -Vendor $selectedVendor -Mode productSeed -ProfilePath $ProfilePath -Modules $moduleArgs; if ($LASTEXITCODE -ne 0) { throw "$selectedVendor productSeed 실패" } }
+        if ($effectiveSeedMode -eq 'all') {
+            foreach ($mode in @('optionalSampleSeed','testSeed')) { & pwsh -NoProfile -ExecutionPolicy Bypass -File $runner -Vendor $selectedVendor -Mode $mode -ProfilePath $ProfilePath -Modules $moduleArgs; if ($LASTEXITCODE -ne 0) { throw "$selectedVendor $mode 실패" } }
+        }
+        & pwsh -NoProfile -ExecutionPolicy Bypass -File $runner -Vendor $selectedVendor -Mode verify -ProfilePath $ProfilePath -Modules $moduleArgs
+        if ($LASTEXITCODE -ne 0) { throw "$selectedVendor verify 실패" }
+    }
+    $summary = [ordered]@{ baselineCommit = ''; vendor = $selectedVendor; modules = $selectedKeys; requireRun = [bool]$RequireRun; status = if ($RequireRun) { '완료' } else { '미검증' }; profile = [IO.Path]::GetFileName($ProfilePath); generatedAt = (Get-Date).ToString('o') }
+    $summary | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath (Join-Path $ResultDir 'database-profile-install-result.sanitized.json') -Encoding UTF8
+    if (-not $RequireRun) { Write-Host "CPF $selectedVendor lifecycle static validation PASS. 실제 DB 실행은 -RequireRun에서 수행합니다." }
+    return
 }
 
 $logicalToKey = @{}

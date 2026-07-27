@@ -263,7 +263,7 @@ export function createAdmState() {
           reason: "로그 정책 변경",
           requestUser: ""
         },
-        operatorForm: { operatorId: "", operatorName: "", mobileNo: "", officePhoneNo: "", password: "", reason: "운영자 등록" },
+        operatorForm: { operatorId: "", operatorName: "", operationId: crypto.randomUUID(), mobileNo: "", officePhoneNo: "", password: "", reason: "운영자 등록" },
         messageForm: {
           messageId: null,
           messageCode: "MCPF990099",
@@ -380,6 +380,12 @@ export function createAdmState() {
         logLevelResult: {} as Record<string, any>,
         logPolicyResult: {} as Record<string, any>,
         operatorResult: {} as Record<string, any>,
+        operatorRawResult: {} as Record<string, any>,
+        operatorRawOpen: false,
+        operatorRawReason: "",
+        operatorRawTarget: null as Record<string, any> | null,
+        operatorRawError: "",
+        operatorRawLoading: false,
         messageResult: {} as Record<string, any>,
         codeResult: {} as Record<string, any>,
         configResult: {} as Record<string, any>,
@@ -431,6 +437,12 @@ export function resetAdmSensitiveState(state: Record<string, any>) {
   state.logLevelResult = {};
   state.logPolicyResult = {};
   state.operatorResult = {};
+  state.operatorRawResult = {};
+  state.operatorRawOpen = false;
+  state.operatorRawReason = "";
+  state.operatorRawTarget = null;
+  state.operatorRawError = "";
+  state.operatorRawLoading = false;
   state.messageResult = {};
   state.codeResult = {};
   state.configResult = {};

@@ -5,10 +5,10 @@ dependencies {
     implementation project(':cpf-batch:runtime-common')
     implementation project(':cpf-core')
     implementation project(':cpf-common')
-    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
-    implementation 'org.springframework.boot:spring-boot-starter-batch'
+    implementation 'org.springframework.boot:spring-boot-starter-batch-jdbc'
     testImplementation project(':cpf-batch:testkit')
 }
 tasks.named('bootJar') { archiveFileName = "cpf-batch-worker-${project.version}.jar" }

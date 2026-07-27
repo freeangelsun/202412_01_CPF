@@ -28,6 +28,11 @@ function Invoke-CpfDatabaseArtifactStep {
 }
 
 Invoke-CpfDatabaseArtifactStep "build-all-install-sql.ps1" "DB bundle generation failed."
+Invoke-CpfDatabaseArtifactStep "generate-official-db-vendor-source.ps1" "Official DB vendor canonical source generation failed."
+Invoke-CpfDatabaseArtifactStep "build-official-db-vendor-packs.ps1" "Official DB vendor lifecycle pack generation failed."
+Invoke-CpfDatabaseArtifactStep "sync-platform-runtime-query-packs.ps1" "Platform Runtime Query Pack synchronization failed."
+Invoke-CpfDatabaseArtifactStep "sync-bat-runtime-query-pack.ps1" "BAT Runtime Query Pack synchronization failed."
+Invoke-CpfDatabaseArtifactStep "check-query-contract-integrity.ps1" "Runtime Query Contract integrity failed."
 Invoke-CpfDatabaseArtifactStep "generate-migration-checksums.ps1" "DB migration checksum generation failed." @("-Apply")
 Invoke-CpfDatabaseArtifactStep "generate-database-schema-manifest.ps1" "DB schema manifest generation failed."
 Invoke-CpfDatabaseArtifactStep "check-database-schema-drift.ps1" "DB schema drift check failed."
@@ -46,4 +51,4 @@ if (Test-Path -LiteralPath $generatedSync -PathType Leaf) {
     }
 }
 
-Write-Host "CPF DB artifacts synchronized. Canonical vendor source -> lifecycle pack -> schema manifest parity PASS."
+Write-Host "CPF DB artifacts synchronized. Canonical JSON -> official 3-vendor source -> lifecycle pack -> schema manifest parity PASS."

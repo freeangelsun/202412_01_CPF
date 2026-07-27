@@ -30,6 +30,7 @@ export const authenticated = computed(() => Boolean(bzaSession.accessToken && bz
 
 let refreshInFlight: Promise<void> | null = null;
 let sessionGeneration = 0;
+let pendingLoginOperationId: string | null = null;
 
 function setTokens(result: Record<string, unknown>): void {
   bzaSession.accessToken = typeof result.accessToken === "string" && result.accessToken
@@ -135,12 +136,15 @@ export async function loginBza(loginId: string, password: string): Promise<void>
   clearBzaSession();
   bzaSession.busy = true;
   bzaSession.message = "";
+  const operationId = pendingLoginOperationId || crypto.randomUUID();
+  pendingLoginOperationId = operationId;
   try {
     const result = await raw<Record<string, unknown>>("/api/bza/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ loginId, password })
+      body: JSON.stringify({ loginId, password, operationId })
     });
+    pendingLoginOperationId = null;
     setTokens(result);
     if (!bzaSession.accessToken || !bzaSession.refreshToken) {
       clearBzaSession();
@@ -148,6 +152,14 @@ export async function loginBza(loginId: string, password: string): Promise<void>
     }
     bzaSession.operator = (result.operator || null) as BzaOperator | null;
     if (!bzaSession.operator) await loadBzaOperator();
+  } catch (error) {
+    const httpError = error as Error & { status?: number };
+    // 4xx는 서버가 요청 결과를 확정한 것이므로 다음 시도는 새 operationId를 사용합니다.
+    // 통신실패/5xx는 결과불명일 수 있어 동일 operationId를 재사용합니다.
+    if (httpError.status && httpError.status >= 400 && httpError.status < 500) {
+      pendingLoginOperationId = null;
+    }
+    throw error;
   } finally {
     bzaSession.busy = false;
   }

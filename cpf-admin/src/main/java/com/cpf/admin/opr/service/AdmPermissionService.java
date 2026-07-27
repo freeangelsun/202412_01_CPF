@@ -9,13 +9,18 @@ import com.cpf.admin.opr.dto.AdmMenuSaveRequest;
 import com.cpf.admin.opr.dto.AdmRoleManagement;
 import com.cpf.admin.opr.dto.AdmRoleSaveRequest;
 import com.cpf.admin.opr.dto.AdmStatusUpdateRequest;
+import com.cpf.admin.config.AdmPersistencePolicy;
 import com.cpf.core.api.util.CpfStrings;
-import com.cpf.core.common.exception.CpfNotFoundException;
-import com.cpf.core.common.exception.CpfValidationException;
+import com.cpf.core.api.error.CpfBusinessException;
+import com.cpf.core.api.error.CpfErrorCode;
+import com.cpf.core.api.error.CpfNotFoundException;
+import com.cpf.core.api.error.CpfValidationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -33,9 +38,13 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
     private static final Logger log = LoggerFactory.getLogger(AdmPermissionService.class);
 
     private final JdbcTemplate admJdbcTemplate;
+    private final AdmPersistencePolicy persistencePolicy;
 
-    public AdmPermissionService(@Qualifier("admJdbcTemplate") JdbcTemplate admJdbcTemplate) {
+    public AdmPermissionService(
+            @Qualifier("admJdbcTemplate") JdbcTemplate admJdbcTemplate,
+            AdmPersistencePolicy persistencePolicy) {
         this.admJdbcTemplate = admJdbcTemplate;
+        this.persistencePolicy = persistencePolicy;
     }
 
     public List<AdmRoleManagement> findRoles() {
@@ -53,8 +62,7 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
                     stringTime(rs.getTimestamp("CREATED_AT")),
                     stringTime(rs.getTimestamp("UPDATED_AT"))));
         } catch (DataAccessException ex) {
-            log.debug("ADM role management list skipped. reason={}", ex.getMessage());
-            return List.of();
+            return readFailure("adm_role.list", ex, List.of());
         }
     }
 
@@ -72,8 +80,10 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
                     rs.getString("USE_YN"),
                     stringTime(rs.getTimestamp("CREATED_AT")),
                     stringTime(rs.getTimestamp("UPDATED_AT"))), roleId);
-        } catch (DataAccessException ex) {
+        } catch (EmptyResultDataAccessException ex) {
             throw new CpfNotFoundException("ADM 역할을 찾을 수 없습니다. roleId=" + roleId);
+        } catch (DataAccessException ex) {
+            throw unavailable("adm_role.find", ex);
         }
     }
 
@@ -140,8 +150,7 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
                     rs.getTimestamp("CREATED_AT"),
                     rs.getTimestamp("UPDATED_AT")));
         } catch (DataAccessException ex) {
-            log.debug("ADM menu management list skipped. reason={}", ex.getMessage());
-            return List.of();
+            return readFailure("adm_menu.list", ex, List.of());
         }
     }
 
@@ -159,8 +168,10 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
                     rs.getString("USE_YN"),
                     rs.getTimestamp("CREATED_AT"),
                     rs.getTimestamp("UPDATED_AT")), menuId);
-        } catch (DataAccessException ex) {
+        } catch (EmptyResultDataAccessException ex) {
             throw new CpfNotFoundException("ADM 메뉴를 찾을 수 없습니다. menuId=" + menuId);
+        } catch (DataAccessException ex) {
+            throw unavailable("adm_menu.find", ex);
         }
     }
 
@@ -244,8 +255,7 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
                     ORDER BY MENU_ID, SORT_ORDER, BUTTON_ID
                     """, (rs, rowNum) -> button(rs));
         } catch (DataAccessException ex) {
-            log.debug("ADM button management list skipped. reason={}", ex.getMessage());
-            return List.of();
+            return readFailure("adm_button.list", ex, List.of());
         }
     }
 
@@ -257,8 +267,10 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
                     FROM adm_button
                     WHERE BUTTON_ID = ?
                     """, (rs, rowNum) -> button(rs), buttonId);
-        } catch (DataAccessException ex) {
+        } catch (EmptyResultDataAccessException ex) {
             throw new CpfNotFoundException("ADM 버튼을 찾을 수 없습니다. buttonId=" + buttonId);
+        } catch (DataAccessException ex) {
+            throw unavailable("adm_button.find", ex);
         }
     }
 
@@ -348,8 +360,7 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
                     rs.getTimestamp("CREATED_AT"),
                     rs.getTimestamp("UPDATED_AT")));
         } catch (DataAccessException ex) {
-            log.debug("ADM API permission list skipped. reason={}", ex.getMessage());
-            return List.of();
+            return readFailure("adm_api_permission.list", ex, List.of());
         }
     }
 
@@ -371,8 +382,10 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
                     rs.getString("USE_YN"),
                     rs.getTimestamp("CREATED_AT"),
                     rs.getTimestamp("UPDATED_AT")), apiPermissionId);
-        } catch (DataAccessException ex) {
+        } catch (EmptyResultDataAccessException ex) {
             throw new CpfNotFoundException("ADM API 권한을 찾을 수 없습니다. apiPermissionId=" + apiPermissionId);
+        } catch (DataAccessException ex) {
+            throw unavailable("adm_api_permission.find", ex);
         }
     }
 
@@ -462,8 +475,7 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
                     ORDER BY r.ROLE_ID, a.API_GROUP_CODE, a.HTTP_METHOD, a.API_PATH
                     """);
         } catch (DataAccessException ex) {
-            log.debug("ADM API permission matrix skipped. reason={}", ex.getMessage());
-            return List.of();
+            return readFailure("adm_api_permission.matrix", ex, List.of());
         }
     }
 
@@ -475,8 +487,10 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
                     WHERE ROLE_ID = ?
                       AND API_PERMISSION_ID = ?
                     """, roleId, apiPermissionId);
-        } catch (DataAccessException ex) {
+        } catch (EmptyResultDataAccessException ex) {
             return Map.of();
+        } catch (DataAccessException ex) {
+            return readFailure("adm_role_api_permission.find", ex, Map.of());
         }
     }
 
@@ -486,15 +500,26 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
             String allowYn,
             String requestUser) {
         String user = requestUser(requestUser);
-        admJdbcTemplate.update("""
-                INSERT INTO adm_role_api_permission (
-                    ROLE_ID, API_PERMISSION_ID, ALLOW_YN, CREATED_BY, UPDATED_BY
-                ) VALUES (?, ?, ?, ?, ?)
-                ON DUPLICATE KEY UPDATE
-                    ALLOW_YN = VALUES(ALLOW_YN),
-                    UPDATED_BY = VALUES(UPDATED_BY),
-                    UPDATED_AT = CURRENT_TIMESTAMP
-                """, roleId, apiPermissionId, yn(allowYn), user, user);
+        String normalizedAllow = yn(allowYn);
+        int updated = admJdbcTemplate.update("""
+                UPDATE adm_role_api_permission
+                   SET ALLOW_YN = ?, UPDATED_BY = ?, UPDATED_AT = CURRENT_TIMESTAMP
+                 WHERE ROLE_ID = ? AND API_PERMISSION_ID = ?
+                """, normalizedAllow, user, roleId, apiPermissionId);
+        if (updated == 0) {
+            try {
+                admJdbcTemplate.update("""
+                        INSERT INTO adm_role_api_permission (ROLE_ID, API_PERMISSION_ID, ALLOW_YN, CREATED_BY, UPDATED_BY)
+                        VALUES (?, ?, ?, ?, ?)
+                        """, roleId, apiPermissionId, normalizedAllow, user, user);
+            } catch (DuplicateKeyException race) {
+                admJdbcTemplate.update("""
+                        UPDATE adm_role_api_permission
+                           SET ALLOW_YN = ?, UPDATED_BY = ?, UPDATED_AT = CURRENT_TIMESTAMP
+                         WHERE ROLE_ID = ? AND API_PERMISSION_ID = ?
+                        """, normalizedAllow, user, roleId, apiPermissionId);
+            }
+        }
         return findRoleApiPermission(roleId, apiPermissionId);
     }
 
@@ -513,8 +538,7 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
                     ORDER BY r.ROLE_ID, m.SORT_ORDER, m.MENU_ID
                     """);
         } catch (DataAccessException ex) {
-            log.debug("ADM menu permission matrix skipped. reason={}", ex.getMessage());
-            return List.of();
+            return readFailure("adm_role_menu.matrix", ex, List.of());
         }
     }
 
@@ -532,8 +556,7 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
                     ORDER BY r.ROLE_ID, b.MENU_ID, b.SORT_ORDER, b.BUTTON_ID
                     """);
         } catch (DataAccessException ex) {
-            log.debug("ADM button permission matrix skipped. reason={}", ex.getMessage());
-            return List.of();
+            return readFailure("adm_role_button.matrix", ex, List.of());
         }
     }
 
@@ -545,8 +568,10 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
                     WHERE ROLE_ID = ?
                       AND MENU_ID = ?
                     """, roleId, menuId);
-        } catch (DataAccessException ex) {
+        } catch (EmptyResultDataAccessException ex) {
             return Map.of();
+        } catch (DataAccessException ex) {
+            return readFailure("adm_role_menu.find", ex, Map.of());
         }
     }
 
@@ -558,8 +583,10 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
                     WHERE ROLE_ID = ?
                       AND BUTTON_ID = ?
                     """, roleId, buttonId);
-        } catch (DataAccessException ex) {
+        } catch (EmptyResultDataAccessException ex) {
             return Map.of();
+        } catch (DataAccessException ex) {
+            return readFailure("adm_role_button.find", ex, Map.of());
         }
     }
 
@@ -571,16 +598,28 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
             String deleteYn,
             String requestUser) {
         String user = CpfStrings.defaultIfBlank(requestUser, "ADM");
-        admJdbcTemplate.update("""
-                INSERT INTO adm_role_menu (ROLE_ID, MENU_ID, READ_YN, WRITE_YN, DELETE_YN, CREATED_BY, UPDATED_BY)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-                ON DUPLICATE KEY UPDATE
-                    READ_YN = VALUES(READ_YN),
-                    WRITE_YN = VALUES(WRITE_YN),
-                    DELETE_YN = VALUES(DELETE_YN),
-                    UPDATED_BY = VALUES(UPDATED_BY),
-                    UPDATED_AT = CURRENT_TIMESTAMP
-                """, roleId, menuId, yn(readYn), yn(writeYn), yn(deleteYn), user, user);
+        String read = yn(readYn);
+        String write = yn(writeYn);
+        String delete = yn(deleteYn);
+        int updated = admJdbcTemplate.update("""
+                UPDATE adm_role_menu
+                   SET READ_YN = ?, WRITE_YN = ?, DELETE_YN = ?, UPDATED_BY = ?, UPDATED_AT = CURRENT_TIMESTAMP
+                 WHERE ROLE_ID = ? AND MENU_ID = ?
+                """, read, write, delete, user, roleId, menuId);
+        if (updated == 0) {
+            try {
+                admJdbcTemplate.update("""
+                        INSERT INTO adm_role_menu (ROLE_ID, MENU_ID, READ_YN, WRITE_YN, DELETE_YN, CREATED_BY, UPDATED_BY)
+                        VALUES (?, ?, ?, ?, ?, ?, ?)
+                        """, roleId, menuId, read, write, delete, user, user);
+            } catch (DuplicateKeyException race) {
+                admJdbcTemplate.update("""
+                        UPDATE adm_role_menu
+                           SET READ_YN = ?, WRITE_YN = ?, DELETE_YN = ?, UPDATED_BY = ?, UPDATED_AT = CURRENT_TIMESTAMP
+                         WHERE ROLE_ID = ? AND MENU_ID = ?
+                        """, read, write, delete, user, roleId, menuId);
+            }
+        }
         return findMenuPermission(roleId, menuId);
     }
 
@@ -590,14 +629,26 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
             String allowYn,
             String requestUser) {
         String user = CpfStrings.defaultIfBlank(requestUser, "ADM");
-        admJdbcTemplate.update("""
-                INSERT INTO adm_role_button (ROLE_ID, BUTTON_ID, ALLOW_YN, CREATED_BY, UPDATED_BY)
-                VALUES (?, ?, ?, ?, ?)
-                ON DUPLICATE KEY UPDATE
-                    ALLOW_YN = VALUES(ALLOW_YN),
-                    UPDATED_BY = VALUES(UPDATED_BY),
-                    UPDATED_AT = CURRENT_TIMESTAMP
-                """, roleId, buttonId, yn(allowYn), user, user);
+        String allow = yn(allowYn);
+        int updated = admJdbcTemplate.update("""
+                UPDATE adm_role_button
+                   SET ALLOW_YN = ?, UPDATED_BY = ?, UPDATED_AT = CURRENT_TIMESTAMP
+                 WHERE ROLE_ID = ? AND BUTTON_ID = ?
+                """, allow, user, roleId, buttonId);
+        if (updated == 0) {
+            try {
+                admJdbcTemplate.update("""
+                        INSERT INTO adm_role_button (ROLE_ID, BUTTON_ID, ALLOW_YN, CREATED_BY, UPDATED_BY)
+                        VALUES (?, ?, ?, ?, ?)
+                        """, roleId, buttonId, allow, user, user);
+            } catch (DuplicateKeyException race) {
+                admJdbcTemplate.update("""
+                        UPDATE adm_role_button
+                           SET ALLOW_YN = ?, UPDATED_BY = ?, UPDATED_AT = CURRENT_TIMESTAMP
+                         WHERE ROLE_ID = ? AND BUTTON_ID = ?
+                        """, allow, user, roleId, buttonId);
+            }
+        }
         return findButtonPermission(roleId, buttonId);
     }
 
@@ -623,7 +674,7 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
                         current);
             }
         } catch (DataAccessException ex) {
-            throw new CpfValidationException("상위 메뉴를 찾을 수 없습니다. parentMenuId=" + parentMenuId);
+            throw unavailable("adm_menu.parent", ex);
         }
     }
 
@@ -668,6 +719,20 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
             Timestamp updatedAt) {
         return new AdmApiPermission(apiPermissionId, apiGroupCode, httpMethod, apiPath, apiName,
                 permissionCode, menuId, buttonId, useYn, stringTime(createdAt), stringTime(updatedAt));
+    }
+
+    private <T> T readFailure(String component, DataAccessException ex, T memoryFallback) {
+        if (persistencePolicy.memoryEnabled()) {
+            return memoryFallback;
+        }
+        throw unavailable(component, ex);
+    }
+
+    private CpfBusinessException unavailable(String component, DataAccessException ex) {
+        return new CpfBusinessException(
+                CpfErrorCode.INFRASTRUCTURE_UNAVAILABLE,
+                "ADM 권한 저장소를 사용할 수 없습니다.",
+                Map.of("0", component, "1", ex.getClass().getSimpleName()));
     }
 
     private String requestUser(String requestUser) {

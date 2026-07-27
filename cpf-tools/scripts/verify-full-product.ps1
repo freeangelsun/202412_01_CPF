@@ -77,6 +77,11 @@ try{
         @('SQL canonical','cpf-tools/scripts/check-sql-canonical.ps1'),
         @('SQL standard','cpf-tools/scripts/check-sql-standard.ps1'),
         @('DB vendor parity','cpf-tools/scripts/check-db-vendor-pack-parity.ps1'),
+        @('Offline DB resource pack','cpf-tools/scripts/check-offline-db-resource-pack.ps1'),
+        @('Official DB vendor readiness','cpf-tools/scripts/check-official-db-vendor-readiness.ps1'),
+        @('Runtime query contract integrity','cpf-tools/scripts/check-query-contract-integrity.ps1'),
+        @('ADM/BZA data safety','cpf-tools/scripts/check-admin-data-safety.ps1'),
+        @('Data-safety schema contract','cpf-tools/scripts/check-data-safety-schema-contract.ps1'),
         @('R12 product hardening','cpf-tools/scripts/check-r12-product-hardening.ps1'),
         @('Migration checksum immutable','cpf-tools/scripts/check-migration-checksums.ps1'),
         @('DB profile/generated domain','cpf-tools/scripts/check-database-profile-standard.ps1')
@@ -112,6 +117,7 @@ try{
 
     if($WithDatabase){
         if(-not(Pwsh 'CPF all DB initialize/verify' 'cpf-tools/scripts/initialize-cpf-database.ps1' @('-All','-RequireRun'))){$allOk=$false}
+        if(-not(Pwsh 'Data-safety migration recovery' 'cpf-tools/scripts/smoke-data-safety-migration-recovery.ps1' @('-Root',$Root,'-RequireRun'))){$allOk=$false}
     }else{Skip 'CPF all DB initialize/verify' 'use -WithDatabase'}
 
     if($WithBrowser){

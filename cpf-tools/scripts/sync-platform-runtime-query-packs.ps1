@@ -14,19 +14,10 @@ $Root = (Resolve-Path -LiteralPath $Root).Path
 $contractPath = Join-Path $Root "cpf-tools\db\metadata\platform-runtime-query-contract.json"
 $contract = Get-Content -Raw -Encoding UTF8 -LiteralPath $contractPath | ConvertFrom-Json
 $utf8NoBom = [System.Text.UTF8Encoding]::new($false)
-$expectedVendors = @("mariadb", "mysql", "postgresql", "oracle", "sqlserver")
+$expectedVendors = @("mariadb", "postgresql", "oracle")
 
 $vendorTokens = @{
     mariadb = @{
-        "@NOW@" = "CURRENT_TIMESTAMP"
-        "@NOW3@" = "CURRENT_TIMESTAMP(3)"
-        "@NOW6@" = "CURRENT_TIMESTAMP(6)"
-        "@LIMIT_POSITIONAL@" = "LIMIT ?"
-        "@LIMIT_NAMED@" = "LIMIT :limit"
-        "@COALESCE_CREATED_BY@" = "IFNULL(#{createdBy}, 'CPF')"
-        "@COALESCE_UPDATED_BY@" = "IFNULL(#{updatedBy}, 'CPF')"
-    }
-    mysql = @{
         "@NOW@" = "CURRENT_TIMESTAMP"
         "@NOW3@" = "CURRENT_TIMESTAMP(3)"
         "@NOW6@" = "CURRENT_TIMESTAMP(6)"
@@ -48,15 +39,6 @@ $vendorTokens = @{
         "@NOW@" = "CURRENT_TIMESTAMP"
         "@NOW3@" = "CURRENT_TIMESTAMP(3)"
         "@NOW6@" = "CURRENT_TIMESTAMP(6)"
-        "@LIMIT_POSITIONAL@" = "OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY"
-        "@LIMIT_NAMED@" = "OFFSET 0 ROWS FETCH NEXT :limit ROWS ONLY"
-        "@COALESCE_CREATED_BY@" = "COALESCE(#{createdBy}, 'CPF')"
-        "@COALESCE_UPDATED_BY@" = "COALESCE(#{updatedBy}, 'CPF')"
-    }
-    sqlserver = @{
-        "@NOW@" = "CURRENT_TIMESTAMP"
-        "@NOW3@" = "SYSUTCDATETIME()"
-        "@NOW6@" = "SYSUTCDATETIME()"
         "@LIMIT_POSITIONAL@" = "OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY"
         "@LIMIT_NAMED@" = "OFFSET 0 ROWS FETCH NEXT :limit ROWS ONLY"
         "@COALESCE_CREATED_BY@" = "COALESCE(#{createdBy}, 'CPF')"

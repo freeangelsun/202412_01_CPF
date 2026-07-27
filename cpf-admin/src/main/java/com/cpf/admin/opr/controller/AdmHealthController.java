@@ -52,12 +52,17 @@ public class AdmHealthController extends com.cpf.admin.common.base.AdmBaseContro
         checks.put("admDB", checkDatabase(admJdbcTemplate));
         checks.put("cpfDB", checkDatabase(cpfJdbcTemplate));
         boolean admDbUp = "UP".equals(checks.get("admDB"));
-        boolean ready = (admDbUp || persistencePolicy.memoryEnabled()) && "UP".equals(checks.get("cpfDB"));
+        String sessionStore = persistencePolicy.memoryEnabled() ? "MEMORY" : (admDbUp ? "UP" : "DOWN");
+        checks.put("sessionStore", sessionStore);
+        boolean sessionReady = persistencePolicy.memoryEnabled() || "UP".equals(sessionStore);
+        boolean ready = sessionReady && "UP".equals(checks.get("cpfDB"));
         Map<String, Object> response = base(ready ? "UP" : "DOWN", checks);
         response.put("dataSourceMode", persistencePolicy.mode().name());
         response.put("fallbackActive", persistencePolicy.memoryEnabled() && !admDbUp);
         response.put("degraded", persistencePolicy.memoryEnabled() && !admDbUp);
-        response.put("reasonCode", persistencePolicy.memoryEnabled() && !admDbUp ? "ADM_DB_UNAVAILABLE_MEMORY_MODE" : null);
+        response.put("reasonCode", !sessionReady ? "ADM_SESSION_STORE_UNAVAILABLE"
+                : persistencePolicy.memoryEnabled() && !admDbUp ? "ADM_DB_UNAVAILABLE_MEMORY_MODE" : null);
+        response.put("alertRequired", !sessionReady);
         response.put("transactionContextMissingCount", CpfTransactionContext.missingCount());
         return ResponseEntity.status(ready ? HttpStatus.OK : HttpStatus.SERVICE_UNAVAILABLE).body(response);
     }

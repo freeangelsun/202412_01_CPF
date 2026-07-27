@@ -1,14 +1,17 @@
 package com.cpf.gateway.service;
 
 import com.cpf.core.channel.application.CpfChannelPolicyService;
+import com.cpf.core.api.servicecall.CpfServiceCallCommand;
+import com.cpf.core.api.servicecall.CpfServiceCallExecutor;
+import com.cpf.core.api.servicecall.CpfServiceCallFailedException;
+import com.cpf.core.api.servicecall.CpfServiceCallOutcome;
+import com.cpf.core.api.servicecall.CpfServiceCallTarget;
+
 import com.cpf.core.channel.model.CpfChannelPolicyDecision;
-import com.cpf.core.common.gateway.CpfGatewayAuthorizationPort;
-import com.cpf.core.common.gateway.CpfGatewayRoute;
-import com.cpf.core.common.header.CpfHeaderNames;
-import com.cpf.core.common.logging.ServerInstanceIdentity;
-import com.cpf.core.common.servicecall.CpfEndpointResolver;
-import com.cpf.core.common.servicecall.ServiceCallRequest;
-import com.cpf.core.common.servicecall.ServiceCallResolvedTarget;
+import com.cpf.core.api.gateway.CpfGatewayAuthorizationPort;
+import com.cpf.core.api.gateway.CpfGatewayRoute;
+import com.cpf.core.api.header.CpfHeaderNames;
+import com.cpf.core.api.runtime.CpfInstanceIdentity;
 import com.cpf.gateway.route.CpfGatewayRouteSnapshot;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -35,19 +38,19 @@ public class CpfGatewayProxyService {
             CpfHeaderNames.INGRESS_TYPE.toLowerCase(Locale.ROOT));
 
     private final CpfGatewayRouteSnapshot snapshot;
-    private final CpfEndpointResolver endpointResolver;
+    private final CpfServiceCallExecutor serviceCallEngine;
     private final CpfGatewayAuthorizationPort authorizationPort;
     private final CpfChannelPolicyService channelPolicyService;
     private final RestClient restClient;
 
     public CpfGatewayProxyService(
             CpfGatewayRouteSnapshot snapshot,
-            CpfEndpointResolver endpointResolver,
+            CpfServiceCallExecutor serviceCallEngine,
             CpfGatewayAuthorizationPort authorizationPort,
             CpfChannelPolicyService channelPolicyService,
             RestClient restClient) {
         this.snapshot = snapshot;
-        this.endpointResolver = endpointResolver;
+        this.serviceCallEngine = serviceCallEngine;
         this.authorizationPort = authorizationPort;
         this.channelPolicyService = channelPolicyService;
         this.restClient = restClient;
@@ -69,30 +72,49 @@ public class CpfGatewayProxyService {
         if (!authorizationPort.isAllowed(route, trustedHeaders)) {
             throw new SecurityException("Gateway route 실행 권한이 없습니다. permission=" + route.requiredPermission());
         }
-        ServiceCallResolvedTarget target = endpointResolver.resolve(ServiceCallRequest.builder(route.serviceId())
+        CpfServiceCallCommand callRequest = CpfServiceCallCommand.builder(route.serviceId())
                 .httpMethod(route.httpMethod())
                 .requestPath(route.endpoint())
                 .attribute("standardExecutionId", route.standardExecutionId())
-                .build());
-        URI targetUri = URI.create(trimTrailingSlash(target.baseUrl()) + normalizePath(route.endpoint()));
+                .build();
         HttpHeaders outboundHeaders = outboundHeaders(inboundHeaders, route);
+        CpfServiceCallOutcome<ResponseEntity<byte[]>> result = serviceCallEngine.invoke(callRequest, target ->
+                invokeTarget(target, route, outboundHeaders, body));
+        if (!"SUCCESS".equals(result.status()) || result.responseBody() == null) {
+            throw new CpfServiceCallFailedException(result);
+        }
+        return withGatewayResponseHeaders(result.responseBody(), route);
+    }
+
+
+    private ResponseEntity<byte[]> invokeTarget(
+            CpfServiceCallTarget target,
+            CpfGatewayRoute route,
+            HttpHeaders outboundHeaders,
+            byte[] body) {
+        URI targetUri = URI.create(trimTrailingSlash(target.baseUrl()) + normalizePath(route.endpoint()));
+        // retrieve/toEntity는 4xx/5xx를 RestClientResponseException으로 변환합니다.
+        // ServiceCallEngine이 5xx/timeout/429만 retry/failover하고 일반 4xx는 즉시 종료합니다.
         return restClient.method(httpMethod(route.httpMethod()))
                 .uri(targetUri)
                 .headers(headers -> headers.putAll(outboundHeaders))
                 .body(body == null ? new byte[0] : body)
-                .exchange((request, response) -> {
-                    byte[] responseBody = response.bodyTo(byte[].class);
-                    HttpHeaders responseHeaders = new HttpHeaders();
-                    response.getHeaders().forEach((name, values) -> {
-                        if (!HOP_BY_HOP.contains(name.toLowerCase(Locale.ROOT))) {
-                            responseHeaders.put(name, values);
-                        }
-                    });
-                    responseHeaders.set(CpfHeaderNames.GATEWAY_INSTANCE_ID,
-                            ServerInstanceIdentity.current().serverInstanceId());
-                    responseHeaders.set(CpfHeaderNames.GATEWAY_ROUTE_ID, route.standardExecutionId());
-                    return new ResponseEntity<>(responseBody, responseHeaders, response.getStatusCode());
-                });
+                .retrieve()
+                .toEntity(byte[].class);
+    }
+
+    private ResponseEntity<byte[]> withGatewayResponseHeaders(
+            ResponseEntity<byte[]> downstream, CpfGatewayRoute route) {
+        HttpHeaders responseHeaders = new HttpHeaders();
+        downstream.getHeaders().forEach((name, values) -> {
+            if (!HOP_BY_HOP.contains(name.toLowerCase(Locale.ROOT))) {
+                responseHeaders.put(name, values);
+            }
+        });
+        responseHeaders.set(CpfHeaderNames.GATEWAY_INSTANCE_ID, CpfInstanceIdentity.current().serverInstanceId());
+        responseHeaders.set(CpfHeaderNames.GATEWAY_ROUTE_ID, route.standardExecutionId());
+        responseHeaders.set(CpfHeaderNames.GATEWAY_ROUTE_VERSION, route.routeVersion());
+        return new ResponseEntity<>(downstream.getBody(), responseHeaders, downstream.getStatusCode());
     }
 
     private HttpHeaders outboundHeaders(HttpHeaders inbound, CpfGatewayRoute route) {
@@ -104,7 +126,7 @@ public class CpfGatewayProxyService {
             }
         });
         result.set(CpfHeaderNames.STANDARD_EXECUTION_ID, route.standardExecutionId());
-        result.set(CpfHeaderNames.GATEWAY_INSTANCE_ID, ServerInstanceIdentity.current().serverInstanceId());
+        result.set(CpfHeaderNames.GATEWAY_INSTANCE_ID, CpfInstanceIdentity.current().serverInstanceId());
         result.set(CpfHeaderNames.GATEWAY_ROUTE_ID, route.standardExecutionId());
         result.set(CpfHeaderNames.GATEWAY_ROUTE_VERSION, route.routeVersion());
         result.set(CpfHeaderNames.INGRESS_TYPE, "CPF_GATEWAY");

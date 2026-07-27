@@ -6,6 +6,10 @@ import com.cpf.core.common.logging.segment.TransactionSegmentService;
 import com.cpf.core.common.reconciliation.CpfReconciliationPort;
 import com.cpf.core.common.reconciliation.CpfUnknownResultRecord;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpHeaders;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
+
+import java.nio.charset.StandardCharsets;
 
 import java.util.List;
 import java.util.Map;
@@ -242,6 +246,61 @@ class CpfServiceCallEngineTest {
 
         assertThat(result.status()).isEqualTo("SUCCESS");
         verify(engine).invoke(org.mockito.ArgumentMatchers.eq(request), any(Function.class));
+    }
+
+
+    @Test
+    void nonRetryableClientErrorDoesNotFailoverToAnotherInstance() {
+        CpfEndpointResolver resolver = mock(CpfEndpointResolver.class);
+        CpfServiceCallLogWriter logWriter = mock(CpfServiceCallLogWriter.class);
+        CpfServiceCallProperties properties = new CpfServiceCallProperties();
+        properties.setDefaultRetryCount(2);
+        properties.setRetryBackoffMillis(0);
+        ServiceCallResolvedTarget first = target("MBR-1", "http://localhost:18081");
+        when(resolver.resolve(any(), any())).thenReturn(first);
+        when(logWriter.isCircuitOpen(any(), anyLong())).thenReturn(false);
+        CpfServiceCallEngine engine = new CpfServiceCallEngine(resolver, logWriter, properties);
+
+        ServiceCallResult<String> result = engine.invoke(
+                ServiceCallRequest.builder("MBR").endpointCode("MBR_API").retryCount(2).build(),
+                selected -> { throw httpError(400, "BAD_REQUEST"); });
+
+        assertThat(result.status()).isEqualTo("FAILED");
+        assertThat(result.httpStatus()).isEqualTo(400);
+        assertThat(result.attemptCount()).isEqualTo(1);
+        verify(resolver, times(1)).resolve(any(), any());
+    }
+
+    @Test
+    void retryableServerErrorFailsOverToNextHealthyInstance() {
+        CpfEndpointResolver resolver = mock(CpfEndpointResolver.class);
+        CpfServiceCallLogWriter logWriter = mock(CpfServiceCallLogWriter.class);
+        CpfServiceCallProperties properties = new CpfServiceCallProperties();
+        properties.setDefaultRetryCount(1);
+        properties.setRetryBackoffMillis(0);
+        ServiceCallResolvedTarget first = target("MBR-1", "http://localhost:18081");
+        ServiceCallResolvedTarget second = target("MBR-2", "http://localhost:28081");
+        when(resolver.resolve(any(), any())).thenReturn(first, second);
+        when(logWriter.isCircuitOpen(any(), anyLong())).thenReturn(false);
+        CpfServiceCallEngine engine = new CpfServiceCallEngine(resolver, logWriter, properties);
+        AtomicInteger attempts = new AtomicInteger();
+
+        ServiceCallResult<String> result = engine.invoke(
+                ServiceCallRequest.builder("MBR").endpointCode("MBR_API").retryCount(1).build(),
+                selected -> {
+                    if (attempts.incrementAndGet() == 1) throw httpError(503, "UNAVAILABLE");
+                    return selected.instanceId() + ":OK";
+                });
+
+        assertThat(result.status()).isEqualTo("SUCCESS");
+        assertThat(result.attemptCount()).isEqualTo(2);
+        assertThat(result.target().instanceId()).isEqualTo("MBR-2");
+        verify(resolver, times(2)).resolve(any(), any());
+    }
+
+    private WebClientResponseException httpError(int status, String statusText) {
+        return WebClientResponseException.create(
+                status, statusText, HttpHeaders.EMPTY, new byte[0], StandardCharsets.UTF_8);
     }
 
     private ServiceCallResolvedTarget target(String instanceId, String baseUrl) {

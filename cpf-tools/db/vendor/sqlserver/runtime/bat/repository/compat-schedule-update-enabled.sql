@@ -1,5 +1,0 @@
-UPDATE bat_schedule
-SET enabled_yn = ?,
-    updated_by = ?,
-    updated_at = SYSUTCDATETIME()
-WHERE schedule_id = ?

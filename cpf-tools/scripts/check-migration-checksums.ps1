@@ -1,31 +1,65 @@
-param([string]$Root=(Resolve-Path "$PSScriptRoot\..\..").Path)
-$ErrorActionPreference='Stop'; Set-StrictMode -Version Latest
-function Check-Pack([string]$Dir){
-  $manifest=Join-Path $Dir 'checksums.sha256'; if(-not(Test-Path $manifest)){throw "checksum manifest missing: $manifest"}
-  $seen=@{}; $entries=@{}
-  foreach($line in Get-Content -LiteralPath $manifest){if($line -match '^([0-9a-fA-F]{64}) \*(V(\d+)__.+\.sql)$'){$hash=$Matches[1].ToLower();$file=$Matches[2];$ver=[int]$Matches[3];if($seen.ContainsKey($ver)){throw "duplicate Flyway version V$ver in $manifest"};$seen[$ver]=$file;$entries[$file]=$hash}}
-  foreach($file in Get-ChildItem -LiteralPath $Dir -Filter 'V*.sql' -File){
-    if($file.Name -notmatch '^V(\d+)__'){throw "invalid migration name: $($file.Name)"};$ver=[int]$Matches[1]
-    if(-not $entries.ContainsKey($file.Name)){throw "migration missing from checksum manifest: $($file.FullName)"}
-    $actual=(Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash.ToLower();if($actual-ne$entries[$file.Name]){throw "migration checksum mismatch: $($file.FullName)"}
-  }
-  Write-Host "[PASS] migration checksum pack: $Dir"
+param([string]$Root = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path)
+$ErrorActionPreference = 'Stop'
+Set-StrictMode -Version Latest
+
+function Check-Pack([string]$Dir) {
+    $manifest = Join-Path $Dir 'checksums.sha256'
+    if (-not (Test-Path -LiteralPath $manifest -PathType Leaf)) { throw "checksum manifest missing: $manifest" }
+    $seen = @{}
+    $entries = @{}
+    foreach ($line in Get-Content -LiteralPath $manifest -Encoding UTF8) {
+        if ($line -match '^([0-9a-fA-F]{64}) \*(V(\d+)__.+\.sql)$') {
+            $hash = $Matches[1].ToLowerInvariant()
+            $fileName = $Matches[2]
+            $version = [int]$Matches[3]
+            if ($seen.ContainsKey($version)) { throw "duplicate Flyway version V$version in $manifest" }
+            $seen[$version] = $fileName
+            $entries[$fileName] = $hash
+        }
+    }
+    $migrationFiles = @(Get-ChildItem -LiteralPath $Dir -Filter 'V*.sql' -File)
+    if ($migrationFiles.Count -eq 0) { throw "migration SQL missing: $Dir" }
+    foreach ($file in $migrationFiles) {
+        if (-not $entries.ContainsKey($file.Name)) { throw "migration missing from checksum manifest: $($file.FullName)" }
+        $actual = (Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+        if ($actual -ne $entries[$file.Name]) { throw "migration checksum mismatch: $($file.FullName)" }
+    }
+    foreach ($entry in $entries.Keys) {
+        if (-not (Test-Path -LiteralPath (Join-Path $Dir $entry) -PathType Leaf)) { throw "checksum manifest points to missing migration: $Dir/$entry" }
+    }
+    Write-Host "[PASS] migration checksum pack: $Dir"
 }
-$source=Join-Path $Root 'cpf-tools/db/vendor/mariadb/source/migration/flyway';$runtime=Join-Path $Root 'cpf-tools/db/vendor/mariadb/migration/flyway'
-Check-Pack $source;Check-Pack $runtime
-# 현재 canonical source 파일은 runtime lifecycle과 byte-identical 해야 합니다.
-foreach($f in Get-ChildItem -LiteralPath $source -Filter 'V*.sql' -File){$r=Join-Path $runtime $f.Name;if(-not(Test-Path $r)){throw "runtime lifecycle missing canonical migration: $($f.Name)"};if((Get-FileHash $f.FullName -Algorithm SHA256).Hash-ne(Get-FileHash $r -Algorithm SHA256).Hash){throw "source/runtime migration drift: $($f.Name)"}}
+
+$source = Join-Path $Root 'cpf-tools/db/vendor/mariadb/source/migration/flyway'
+$runtime = Join-Path $Root 'cpf-tools/db/vendor/mariadb/migration/flyway'
+Check-Pack $source
+Check-Pack $runtime
+foreach ($file in Get-ChildItem -LiteralPath $source -Filter 'V*.sql' -File) {
+    $runtimeFile = Join-Path $runtime $file.Name
+    if (-not (Test-Path -LiteralPath $runtimeFile -PathType Leaf)) { throw "runtime lifecycle missing canonical migration: $($file.Name)" }
+    if ((Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash -ne (Get-FileHash -LiteralPath $runtimeFile -Algorithm SHA256).Hash) {
+        throw "source/runtime migration drift: $($file.Name)"
+    }
+}
 Write-Host '[PASS] MariaDB source/runtime migration parity'
 
-# Rollback도 canonical source에 존재하는 파일은 runtime vendor pack에 같은 내용으로 존재해야 합니다.
-$sourceRollback=Join-Path $Root 'cpf-tools/db/vendor/mariadb/source/migration/rollback'
-$runtimeRollback=Join-Path $Root 'cpf-tools/db/vendor/mariadb/rollback'
-if(Test-Path $sourceRollback){
-  if(-not(Test-Path $runtimeRollback)){throw "runtime rollback directory missing: $runtimeRollback"}
-  foreach($f in Get-ChildItem -LiteralPath $sourceRollback -Filter '*.sql' -File){
-    $r=Join-Path $runtimeRollback $f.Name
-    if(-not(Test-Path $r)){throw "runtime rollback missing canonical artifact: $($f.Name)"}
-    if((Get-FileHash $f.FullName -Algorithm SHA256).Hash-ne(Get-FileHash $r -Algorithm SHA256).Hash){throw "source/runtime rollback drift: $($f.Name)"}
-  }
-  Write-Host '[PASS] MariaDB source/runtime rollback parity'
+$sourceRollback = Join-Path $Root 'cpf-tools/db/vendor/mariadb/source/migration/rollback'
+$runtimeRollback = Join-Path $Root 'cpf-tools/db/vendor/mariadb/rollback'
+if (Test-Path -LiteralPath $sourceRollback -PathType Container) {
+    foreach ($file in Get-ChildItem -LiteralPath $sourceRollback -Filter '*.sql' -File) {
+        $runtimeFile = Join-Path $runtimeRollback $file.Name
+        if (-not (Test-Path -LiteralPath $runtimeFile -PathType Leaf)) { throw "runtime rollback missing canonical artifact: $($file.Name)" }
+        if ((Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash -ne (Get-FileHash -LiteralPath $runtimeFile -Algorithm SHA256).Hash) {
+            throw "source/runtime rollback drift: $($file.Name)"
+        }
+    }
+    Write-Host '[PASS] MariaDB source/runtime rollback parity'
 }
+
+$logicalDatabases = @('cpfDB','cmnDB','admDB','bzaDB','batDB','mbrDB','accDB','refDB')
+foreach ($vendor in @('postgresql','oracle')) {
+    foreach ($logicalDatabase in $logicalDatabases) {
+        Check-Pack (Join-Path $Root "cpf-tools/db/vendor/$vendor/migration/flyway/$logicalDatabase")
+    }
+}
+Write-Host '[PASS] Official DB migration checksum integrity'

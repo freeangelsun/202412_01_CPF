@@ -1,6 +1,6 @@
 param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..\..").Path,
-    [ValidateSet("mariadb", "mysql", "postgresql", "oracle", "sqlserver")]
+    [ValidateSet("mariadb", "postgresql", "oracle")]
     [string] $Vendor = $env:CPF_DB_VENDOR,
     [string] $ResultDir = "",
     [switch] $RequireExecutable,

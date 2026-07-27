@@ -1,8 +1,11 @@
 package com.cpf.admin.opr.filter;
 
+import com.cpf.admin.config.AdmPersistencePolicy;
 import com.cpf.admin.config.AdmSecurityProperties;
 import com.cpf.admin.opr.dto.AdmSession;
 import com.cpf.admin.opr.service.AdmSessionService;
+import com.cpf.core.api.error.CpfBusinessException;
+import com.cpf.core.api.error.CpfErrorCode;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -134,14 +137,17 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
     private final AdmSecurityProperties properties;
     private final AdmSessionService sessionService;
     private final JdbcTemplate admJdbcTemplate;
+    private final AdmPersistencePolicy persistencePolicy;
 
     public AdmApiAuthFilter(
             AdmSecurityProperties properties,
             AdmSessionService sessionService,
-            @Qualifier("admJdbcTemplate") JdbcTemplate admJdbcTemplate) {
+            @Qualifier("admJdbcTemplate") JdbcTemplate admJdbcTemplate,
+            AdmPersistencePolicy persistencePolicy) {
         this.properties = properties;
         this.sessionService = sessionService;
         this.admJdbcTemplate = admJdbcTemplate;
+        this.persistencePolicy = persistencePolicy;
     }
 
     @Override
@@ -160,28 +166,35 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
             return;
         }
 
-        Optional<AdmSession> session = sessionService.findValidSession(resolveBearerToken(request));
-        if (session.isEmpty()) {
-            writeJson(response, HttpServletResponse.SC_UNAUTHORIZED, "ADM 인증이 필요합니다.");
-            return;
+        try {
+            Optional<AdmSession> session = sessionService.findValidSession(resolveBearerToken(request));
+            if (session.isEmpty()) {
+                writeJson(response, HttpServletResponse.SC_UNAUTHORIZED, "ADM 인증이 필요합니다.");
+                return;
+            }
+
+            AdmSession authenticatedSession = session.get();
+            request.setAttribute("adm.operatorId", authenticatedSession.operatorId());
+
+            boolean selfPasswordChange = isSelfPasswordChange(authenticatedSession, request.getMethod(), path);
+            if (authenticatedSession.passwordChangeRequired()
+                    && !isPasswordChangeOnlyRequest(authenticatedSession, request.getMethod(), path)) {
+                writeJson(response, HttpServletResponse.SC_FORBIDDEN, "비밀번호를 먼저 변경해야 합니다.");
+                return;
+            }
+
+            if (!selfPasswordChange && !hasPermission(authenticatedSession, request.getMethod(), path)) {
+                writeJson(response, HttpServletResponse.SC_FORBIDDEN, "ADM 권한이 필요한 작업입니다.");
+                return;
+            }
+
+            filterChain.doFilter(request, response);
+        } catch (CpfBusinessException ex) {
+            // Filter 단계의 인프라 장애는 MVC ControllerAdvice까지 전달되지 않을 수 있으므로 여기서 503으로 고정합니다.
+            response.setHeader("X-Error-Code", CpfErrorCode.INFRASTRUCTURE_UNAVAILABLE.statusCode());
+            response.setHeader("X-Message-Code", CpfErrorCode.INFRASTRUCTURE_UNAVAILABLE.messageCode());
+            writeJson(response, HttpServletResponse.SC_SERVICE_UNAVAILABLE, "ADM 인증/권한 저장소를 사용할 수 없습니다.");
         }
-
-        AdmSession authenticatedSession = session.get();
-        request.setAttribute("adm.operatorId", authenticatedSession.operatorId());
-
-        boolean selfPasswordChange = isSelfPasswordChange(authenticatedSession, request.getMethod(), path);
-        if (authenticatedSession.passwordChangeRequired()
-                && !isPasswordChangeOnlyRequest(authenticatedSession, request.getMethod(), path)) {
-            writeJson(response, HttpServletResponse.SC_FORBIDDEN, "비밀번호를 먼저 변경해야 합니다.");
-            return;
-        }
-
-        if (!selfPasswordChange && !hasPermission(authenticatedSession, request.getMethod(), path)) {
-            writeJson(response, HttpServletResponse.SC_FORBIDDEN, "ADM 권한이 필요한 작업입니다.");
-            return;
-        }
-
-        filterChain.doFilter(request, response);
     }
 
     private boolean isPublicHealthRequest(String method, String path) {
@@ -206,7 +219,8 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
     private boolean hasPermission(AdmSession session, String method, String path) {
         String menuId = resolveMenuId(path);
         if (menuId == null) {
-            return true;
+            // /adm/api/**는 명시적으로 공개된 health/login을 제외하고 manifest 미등록 시 기본 거부합니다.
+            return false;
         }
 
         Optional<Boolean> dbApiPermission = hasDbApiPermission(session.roleIds(), method, path);
@@ -214,26 +228,25 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
             return dbApiPermission.get();
         }
 
-        Optional<Boolean> dbMenuPermission = hasDbMenuPermission(session.roleIds(), menuId, method);
-        if (dbMenuPermission.isPresent() && !dbMenuPermission.get()) {
-            return false;
-        }
-
         String buttonId = resolveButtonId(method, path);
         Optional<Boolean> dbButtonPermission = hasDbButtonPermission(session.roleIds(), buttonId);
         if (dbButtonPermission.isPresent()) {
             return dbButtonPermission.get();
         }
+
+        Optional<Boolean> dbMenuPermission = hasDbMenuPermission(session.roleIds(), menuId, method);
         if (dbMenuPermission.isPresent()) {
             return dbMenuPermission.get();
         }
 
+        if (persistencePolicy.databaseRequired()) {
+            // DB 권한 Resource 자체가 없으면 신규 API가 자동 허용되는 것을 막습니다.
+            return false;
+        }
+
+        // MEMORY는 명시적인 local/test/demo/library 모드에서만 사용하는 개발 편의 정책입니다.
         List<String> roles = session.roleIds();
         if (roles.contains("ADM_ADMIN")) {
-            return true;
-        }
-        boolean readOnly = HttpMethod.GET.matches(method) || HttpMethod.HEAD.matches(method);
-        if (readOnly) {
             return true;
         }
         if ("OPERATOR".equals(menuId) || "PERMISSION".equals(menuId) || "PASSWORD".equals(menuId) || "SECURITY".equals(menuId)) {
@@ -247,44 +260,47 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
             return Optional.of(false);
         }
         String placeholders = String.join(",", roleIds.stream().map(role -> "?").toList());
-        List<Object> args = new ArrayList<>();
-        args.addAll(roleIds);
+        List<Object> args = new ArrayList<>(roleIds);
         args.add(method);
         args.add("ANY");
         try {
             List<Map<String, Object>> permissions = admJdbcTemplate.queryForList("""
-                    SELECT a.API_PATH, a.HTTP_METHOD, COALESCE(MAX(ra.ALLOW_YN), 'N') AS ALLOW_YN
-                    FROM adm_api_permission a
-                    LEFT JOIN adm_role_api_permission ra
-                           ON ra.API_PERMISSION_ID = a.API_PERMISSION_ID
-                          AND ra.ROLE_ID IN (%s)
-                    WHERE a.USE_YN = 'Y'
-                      AND a.HTTP_METHOD IN (?, ?)
-                    GROUP BY a.API_PERMISSION_ID, a.API_PATH, a.HTTP_METHOD
+                    SELECT a.API_PATH, a.HTTP_METHOD, ra.ALLOW_YN
+                      FROM adm_api_permission a
+                      LEFT JOIN adm_role_api_permission ra
+                        ON ra.API_PERMISSION_ID = a.API_PERMISSION_ID
+                       AND ra.ROLE_ID IN (%s)
+                     WHERE a.USE_YN = 'Y'
+                       AND a.HTTP_METHOD IN (?, ?)
                     """.formatted(placeholders), args.toArray());
             int highestSpecificity = -1;
-            boolean allowedAtHighestSpecificity = false;
+            boolean allowAtHighest = false;
+            boolean denyAtHighest = false;
             for (Map<String, Object> permission : permissions) {
                 String apiPath = String.valueOf(permission.get("API_PATH"));
-                if (matchesApiPattern(apiPath, path)) {
-                    String permissionMethod = String.valueOf(permission.get("HTTP_METHOD"));
-                    int specificity = apiPath.replace("*", "").length()
-                            + (method.equalsIgnoreCase(permissionMethod) ? 10_000 : 0);
-                    if (specificity > highestSpecificity) {
-                        highestSpecificity = specificity;
-                        allowedAtHighestSpecificity = "Y".equals(String.valueOf(permission.get("ALLOW_YN")));
-                    } else if (specificity == highestSpecificity) {
-                        allowedAtHighestSpecificity = allowedAtHighestSpecificity
-                                || "Y".equals(String.valueOf(permission.get("ALLOW_YN")));
-                    }
+                if (!matchesApiPattern(apiPath, path)) {
+                    continue;
+                }
+                String permissionMethod = String.valueOf(permission.get("HTTP_METHOD"));
+                int specificity = apiPath.replace("*", "").length()
+                        + (method.equalsIgnoreCase(permissionMethod) ? 10_000 : 0);
+                String allowYn = permission.get("ALLOW_YN") == null ? "N" : String.valueOf(permission.get("ALLOW_YN"));
+                if (specificity > highestSpecificity) {
+                    highestSpecificity = specificity;
+                    allowAtHighest = "Y".equals(allowYn);
+                    denyAtHighest = !"Y".equals(allowYn);
+                } else if (specificity == highestSpecificity) {
+                    allowAtHighest |= "Y".equals(allowYn);
+                    denyAtHighest |= !"Y".equals(allowYn);
                 }
             }
             if (highestSpecificity < 0) {
                 return Optional.empty();
             }
-            return Optional.of(allowedAtHighestSpecificity);
+            // 동일 specificity에서는 명시적 Deny가 Allow보다 우선합니다.
+            return Optional.of(allowAtHighest && !denyAtHighest);
         } catch (DataAccessException ex) {
-            return Optional.empty();
+            return onPermissionDataAccess("adm_api_permission", ex);
         }
     }
 
@@ -311,7 +327,7 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
                     """.formatted(placeholders, permissionColumn), Integer.class, args);
             return Optional.of(count != null && count > 0);
         } catch (DataAccessException ex) {
-            return Optional.empty();
+            return onPermissionDataAccess("adm_role_menu", ex);
         }
     }
 
@@ -337,8 +353,18 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
                     """.formatted(placeholders), Integer.class, args);
             return Optional.of(count != null && count > 0);
         } catch (DataAccessException ex) {
+            return onPermissionDataAccess("adm_role_button", ex);
+        }
+    }
+
+    private Optional<Boolean> onPermissionDataAccess(String component, DataAccessException ex) {
+        if (persistencePolicy.memoryEnabled()) {
             return Optional.empty();
         }
+        throw new CpfBusinessException(
+                CpfErrorCode.INFRASTRUCTURE_UNAVAILABLE,
+                "ADM 권한 저장소를 사용할 수 없습니다.",
+                Map.of("0", component, "1", ex.getClass().getSimpleName()));
     }
 
     private String permissionColumn(String method) {

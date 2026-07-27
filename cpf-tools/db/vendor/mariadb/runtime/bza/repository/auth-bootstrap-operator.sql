@@ -1,7 +1,7 @@
 INSERT INTO bza_admin_user (
-    admin_login_id, admin_name, password_hash, role_code, account_status, version_no, use_yn, lock_yn,
+    admin_login_id, admin_name, password_hash, role_code, account_status, version_no, create_operation_id, use_yn, lock_yn,
     login_fail_count, password_change_required_yn, password_expire_at, created_by, updated_by
-)
-SELECT :loginId, :operatorName, :passwordHash, :roleCode, 'ACTIVE', 0, 'Y', 'N', 0, 'Y',
-       DATE_ADD(NOW(), INTERVAL 90 DAY), 'BOOTSTRAP', 'BOOTSTRAP'
-WHERE NOT EXISTS (SELECT 1 FROM bza_admin_user WHERE admin_login_id = :loginId)
+) VALUES (
+    :loginId, :operatorName, :passwordHash, :roleCode, 'ACTIVE', 0, :operationId, 'Y', 'N',
+    0, 'Y', :passwordExpireAt, 'BOOTSTRAP', 'BOOTSTRAP'
+);

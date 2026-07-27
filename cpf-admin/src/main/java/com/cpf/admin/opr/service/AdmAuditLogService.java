@@ -1,13 +1,14 @@
 package com.cpf.admin.opr.service;
 
 import com.cpf.admin.opr.audit.AdmMandatoryAuditContext;
-import com.cpf.core.api.error.CpfValidationException;
 import com.cpf.core.api.logging.CpfTransactionContext;
+import com.cpf.core.api.security.CpfSensitiveData;
 import com.cpf.core.api.util.CpfStrings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.ColumnMapRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -33,8 +34,8 @@ public class AdmAuditLogService extends com.cpf.admin.common.base.AdmBaseService
         if(CpfStrings.hasText(actionType)){sql.append(" AND ACTION_TYPE=?");args.add(actionType.trim());}
         if(CpfStrings.hasText(targetType)){sql.append(" AND TARGET_TYPE=?");args.add(targetType.trim());}
         if(CpfStrings.hasText(targetId)){sql.append(" AND TARGET_ID=?");args.add(targetId.trim());}
-        sql.append(" ORDER BY AUDIT_ID DESC LIMIT ?");args.add(Math.max(1,Math.min(limit,500)));
-        try{return jdbc.queryForList(sql.toString(),args.toArray());}
+        sql.append(" ORDER BY AUDIT_ID DESC"); int capped=Math.max(1,Math.min(limit,500));
+        try{return jdbc.query(sql.toString(),ps->{for(int i=0;i<args.size();i++)ps.setObject(i+1,args.get(i));ps.setMaxRows(capped);},new ColumnMapRowMapper());}
         catch(DataAccessException ex){throw new IllegalStateException("ADM 감사 로그 조회 실패. 정상 0건과 DB 장애를 구분합니다.",ex);}
     }
     public List<Map<String,Object>> findDeliveries(String state,int limit){return delivery.findDeliveries(state,limit);}
@@ -54,8 +55,8 @@ public class AdmAuditLogService extends com.cpf.admin.common.base.AdmBaseService
         var c=command(tx,operator,action,targetType,targetId,resolvedReason,before,ip);
         if(mandatory==null){delivery.record(c,after,diff);return;}
         try{delivery.enrichReservation(mandatory,c);delivery.completeOperation(mandatory,"SUCCEEDED",after,diff);AdmMandatoryAuditContext.markCompleted();}
-        catch(RuntimeException ex){log.error("ADM audit 상세 완료 기록 실패. deliveryId={}, transactionId={}, reason={}",mandatory,CpfTransactionContext.transactionId(),ex.getClass().getSimpleName());}
+        catch(RuntimeException ex){log.error("ADM audit 상세 완료 기록 실패. deliveryId={}, transactionId={}, reason={}",mandatory,CpfTransactionContext.transactionId(),ex.getClass().getSimpleName());throw ex;}
     }
-    public String requireReason(String reason){if(!CpfStrings.hasText(reason))throw new CpfValidationException("감사 사유는 필수입니다.");return reason.trim();}
+    public String requireReason(String reason){return CpfSensitiveData.sanitizeAuditReason(reason);}
     private AdmAuditDeliveryService.AuditCommand command(String tx,String operator,String action,String targetType,String targetId,String reason,String before,String ip){return new AdmAuditDeliveryService.AuditCommand(CpfStrings.hasText(tx)?tx:CpfTransactionContext.transactionId(),CpfTransactionContext.traceId(),operator,action,targetType,targetId,requireReason(reason),before,ip);}
 }

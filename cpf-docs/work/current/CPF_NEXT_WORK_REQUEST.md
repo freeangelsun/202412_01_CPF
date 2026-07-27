@@ -1,5 +1,3 @@
 # CPF Next Work Request
 
-별도 기능 Milestone을 선등록하지 않는다.
-최종 통합 검증에서 실제 결함이 발견될 때에만 해당 Root Cause와 Consumer/SQL/Test/Guide/Evidence를 함께 수정한다.
-GA Gate가 모두 PASS하면 Release 정본화 단계로 전환한다.
+현재 정본은 `CPF_CURRENT_WORK_REQUEST.md`입니다. 새 기능 개발목록을 별도로 누적하지 않습니다. Completion Patch 적용 후 남은 작업은 최신 SHA 기준 통합 Runtime 검증과 Evidence 정본화입니다.

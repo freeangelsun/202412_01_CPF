@@ -56,7 +56,9 @@ function Read-XmlWithoutExternalResolution {
 foreach ($scriptName in @(
     "sync-platform-runtime-query-packs.ps1",
     "check-platform-runtime-query-packs.ps1",
-    "smoke-platform-runtime-query-packs-mariadb.ps1"
+    "smoke-platform-runtime-query-packs-mariadb.ps1",
+    "smoke-platform-runtime-query-packs-official-db.ps1",
+    "check-query-contract-integrity.ps1"
 )) {
     $scriptPath = Join-Path $Root "cpf-tools\scripts\$scriptName"
     if (-not (Test-Path -LiteralPath $scriptPath -PathType Leaf)) {
@@ -112,10 +114,11 @@ foreach ($module in @($contract.modules)) {
         }
     }
     $actualSourceKeys = @($sourceKeys | Sort-Object -CaseSensitive -Unique)
-    if (($actualSourceKeys -join "`n") -cne ($activeKeys -join "`n")) {
+    $missingActiveSourceKeys = @($activeKeys | Where-Object { $actualSourceKeys -cnotcontains $_ })
+    if ($missingActiveSourceKeys.Count -gt 0) {
         Add-Failure (
-            "Active catalog key/source mismatch: module=$moduleCode " +
-            "contract=$($activeKeys -join ',') source=$($actualSourceKeys -join ',')"
+            "ACTIVE catalog key has no source consumer: module=$moduleCode " +
+            "missing=$($missingActiveSourceKeys -join ',')"
         )
     }
 
@@ -174,8 +177,9 @@ foreach ($module in @($contract.modules)) {
                 ForEach-Object { $_.BaseName } |
                 Sort-Object -CaseSensitive
         )
-        if (($actualKeys -join "`n") -cne ($contractKeys -join "`n")) {
-            Add-Failure "Platform Runtime statement key parity mismatch: module=$moduleCode vendor=$vendor"
+        $missingContractKeys = @($contractKeys | Where-Object { $actualKeys -cnotcontains $_ })
+        if ($missingContractKeys.Count -gt 0) {
+            Add-Failure "Platform Runtime contract SQL missing: module=$moduleCode vendor=$vendor keys=$($missingContractKeys -join ',')"
         }
         foreach ($key in $contractKeys) {
             $sqlPath = Join-Path $repositoryRoot "$key.sql"
@@ -194,24 +198,20 @@ foreach ($module in @($contract.modules)) {
                     )
                 }
             }
-            if ($vendor -notin @("mariadb", "mysql") -and
+            if ($vendor -ne "mariadb" -and
                     $sql -match "(?i)\bON\s+DUPLICATE\s+KEY\b") {
                 Add-Failure "MySQL-family UPSERT leaked: module=$moduleCode vendor=$vendor key=$key"
             }
-            if ($vendor -in @("mariadb", "mysql") -and
+            if ($vendor -eq "mariadb" -and
                     $sql -match "(?i)\b(?:ON\s+CONFLICT|MERGE\s+INTO)\b") {
                 Add-Failure "Non-MySQL UPSERT leaked: module=$moduleCode vendor=$vendor key=$key"
             }
-            if ($vendor -in @("oracle", "sqlserver") -and
+            if ($vendor -eq "oracle" -and
                     $sql -match "(?i)\bLIMIT\s+(?:\d+|\?|:[A-Za-z])") {
                 Add-Failure "LIMIT syntax leaked: module=$moduleCode vendor=$vendor key=$key"
             }
             if ($vendor -eq "oracle" -and $sql -match "(?i)\bTOP\s*(?:\(|\d)") {
                 Add-Failure "SQL Server TOP syntax leaked: module=$moduleCode vendor=$vendor key=$key"
-            }
-            if ($vendor -eq "sqlserver" -and
-                    $sql -match "(?i)\bCURRENT_TIMESTAMP\s*\(\s*\d+\s*\)") {
-                Add-Failure "SQL Server timestamp precision syntax leaked: module=$moduleCode key=$key"
             }
             if ($vendor -ne "postgresql" -and $sql -match "(?i)\bON\s+CONFLICT\b") {
                 Add-Failure "PostgreSQL UPSERT leaked: module=$moduleCode vendor=$vendor key=$key"
@@ -319,6 +319,9 @@ try {
 } catch {
     Add-Failure "TransactionSegmentMapper static validation failed: $($_.Exception.Message)"
 }
+
+$integrityScript = Join-Path $Root "cpf-tools\scripts\check-query-contract-integrity.ps1"
+try { & $integrityScript -Root $Root } catch { Add-Failure ("Query Contract integrity gate failed: " + $_.Exception.Message) }
 
 $inlineStatementCount = 0
 foreach ($inlineItem in $inlineInventory) {

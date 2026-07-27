@@ -1,5 +1,6 @@
 package com.cpf.bizadmin.backoffice.controller;
 
+import com.cpf.bizadmin.backoffice.dto.BzaEmployeeRawContactResponse;
 import com.cpf.bizadmin.backoffice.service.BzaBackofficeService;
 import com.cpf.core.api.execution.CpfOnlineTransaction;
 import com.cpf.core.api.page.CpfPage;
@@ -7,6 +8,8 @@ import com.cpf.core.api.security.CpfSensitiveDataAccessRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.CacheControl;
@@ -78,7 +81,7 @@ public class BzaBackofficeController extends com.cpf.bizadmin.common.base.BzaBas
     @CpfOnlineTransaction(id = "OBZAEM1102", name = "BzaEmployeeRawContact")
     @Operation(operationId = "bzaBackofficeEmployeeRawContact", summary = "직원 연락처 원문 조회",
             description = "PII_RAW 권한과 사유가 있는 경우에만 원문 연락처를 반환하고 감사 기록을 남깁니다.")
-    public ResponseEntity<Map<String,Object>> employeeRawContact(
+    public ResponseEntity<BzaEmployeeRawContactResponse> employeeRawContact(
             @PathVariable String employeeNo,
             @RequestBody CpfSensitiveDataAccessRequest request,
             @RequestAttribute("bza.operatorId") String operatorId) {
@@ -106,12 +109,13 @@ public class BzaBackofficeController extends com.cpf.bizadmin.common.base.BzaBas
 
     @GetMapping("/approvals")
     @CpfOnlineTransaction(id = "OBZAAP0001", name = "BzaApprovalList")
-    @Operation(operationId = "bzaBackofficeFindApprovals", summary = "결재 문서 목록 조회")
+    @Operation(operationId = "bzaBackofficeFindApprovals", summary = "Legacy 결재 목록 API(410)",
+            description = "직접 결재 API는 영구 폐기되었습니다. 정책 기반 /api/bza/approval/** API를 사용합니다.")
     public ResponseEntity<List<Map<String, Object>>> approvals(
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String employeeNo,
             @RequestParam(defaultValue = "100") int limit) {
-        return ResponseEntity.ok(backofficeService.findApprovals(status, employeeNo, limit));
+        throw legacyApprovalGone();
     }
 
     @PostMapping("/approvals")
@@ -119,19 +123,17 @@ public class BzaBackofficeController extends com.cpf.bizadmin.common.base.BzaBas
     @Operation(operationId = "bzaBackofficeCreateApproval", summary = "결재 문서 작성",
             description = "업무 중립 결재 문서와 순차·병렬 결재선을 DRAFT 상태로 생성합니다.")
     public ResponseEntity<Map<String, Object>> createApproval(
-            @RequestBody BzaBackofficeService.ApprovalCreateRequest request,
+            @RequestBody(required = false) Map<String, Object> request,
             @RequestAttribute("bza.operatorId") String operatorId) {
-        throw new ResponseStatusException(
-                HttpStatus.GONE,
-                "Legacy 직접 결재 생성 API는 폐기되었습니다. /api/bza/approval/submissions 정책 기반 API를 사용하세요.");
+        throw legacyApprovalGone();
     }
 
     @GetMapping("/approvals/{approvalId}")
     @CpfOnlineTransaction(id = "OBZAAP0003", name = "BzaApprovalDetail")
-    @Operation(operationId = "bzaBackofficeFindApproval", summary = "결재 문서 상세 조회",
-            description = "결재 문서, 결재선, 상태 변경 이력을 함께 조회합니다.")
+    @Operation(operationId = "bzaBackofficeFindApproval", summary = "Legacy 결재 상세 API(410)",
+            description = "직접 결재 API는 영구 폐기되었습니다. 정책 기반 /api/bza/approval/** API를 사용합니다.")
     public ResponseEntity<Map<String, Object>> approval(@PathVariable long approvalId) {
-        return ResponseEntity.ok(backofficeService.findApproval(approvalId));
+        throw legacyApprovalGone();
     }
 
     @PostMapping("/approvals/{approvalId}/actions")
@@ -140,11 +142,15 @@ public class BzaBackofficeController extends com.cpf.bizadmin.common.base.BzaBas
             description = "제출·승인·합의·반려·회수·취소·재제출을 상태표, 낙관적 잠금, 중복 방지 키로 보호합니다.")
     public ResponseEntity<Map<String, Object>> actApproval(
             @PathVariable long approvalId,
-            @RequestBody BzaBackofficeService.ApprovalActionRequest request,
+            @RequestBody(required = false) Map<String, Object> request,
             @RequestAttribute("bza.operatorId") String operatorId) {
-        throw new ResponseStatusException(
+        throw legacyApprovalGone();
+    }
+
+    private ResponseStatusException legacyApprovalGone() {
+        return new ResponseStatusException(
                 HttpStatus.GONE,
-                "Legacy 직접 결재 상태변경 API는 폐기되었습니다. /api/bza/approval/submissions/{id}/decisions 정책 기반 API를 사용하세요.");
+                "Legacy 직접 결재 API는 폐기되었습니다. 정책 기반 /api/bza/approval/** API를 사용하세요.");
     }
 
     @GetMapping("/audits")

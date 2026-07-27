@@ -80,8 +80,17 @@ pluginManagement {
 
 rootProject.name = 'cpf-core-platform-framework'
 
-include 'cpf-core', 'cpf-common', 'cpf-member', 'cpf-reference'
-include 'cpf-admin', 'cpf-biz-admin', 'cpf-gateway', 'cpf-account'
+include 'cpf-core', 'cpf-common'
+include 'cpf-admin', 'cpf-biz-admin', 'cpf-gateway'
+
+// MBR/ACC/REF는 플랫폼 필수 subproject가 아니라 Generator/EDU 검증용 reference domain입니다.
+// 제품 build에는 강제하지 않고, 명시적 검증 시에만 mount합니다.
+def includeReferenceDomains = providers.gradleProperty('cpfIncludeReferenceDomains')
+        .orElse(providers.environmentVariable('CPF_INCLUDE_REFERENCE_DOMAINS'))
+        .orElse('false').get().toBoolean()
+if (includeReferenceDomains) {
+    include 'cpf-member', 'cpf-account', 'cpf-reference'
+}
 include ':cpf-batch:contract'
 include ':cpf-batch:runtime-common'
 include ':cpf-batch:control-server'
@@ -95,12 +104,12 @@ include ':cpf-batch:testkit'
 
 project(':cpf-core').projectDir = file('cpf-core')
 project(':cpf-common').projectDir = file('cpf-common')
-project(':cpf-member').projectDir = file('cpf-member')
-project(':cpf-reference').projectDir = file('cpf-reference')
+if (findProject(':cpf-member') != null) project(':cpf-member').projectDir = file('cpf-member')
+if (findProject(':cpf-reference') != null) project(':cpf-reference').projectDir = file('cpf-reference')
 project(':cpf-admin').projectDir = file('cpf-admin')
 project(':cpf-biz-admin').projectDir = file('cpf-biz-admin')
 project(':cpf-gateway').projectDir = file('cpf-gateway')
-project(':cpf-account').projectDir = file('cpf-account')
+if (findProject(':cpf-account') != null) project(':cpf-account').projectDir = file('cpf-account')
 
 // Published dependency BOM and convention plugin are cpf-tools-owned isolated builds.
 // cpf-tools/build is tracked tooling source; each nested build output remains ignored.

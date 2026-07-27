@@ -15,7 +15,7 @@ $syncScript = Join-Path $Root "cpf-tools\scripts\sync-bat-runtime-query-pack.ps1
 
 $contractPath = Join-Path $Root "cpf-tools\db\metadata\bat-runtime-query-contract.json"
 $contract = Get-Content -Raw -Encoding UTF8 -LiteralPath $contractPath | ConvertFrom-Json
-$vendors = @("mariadb", "mysql", "postgresql", "oracle", "sqlserver")
+$vendors = @("mariadb", "postgresql", "oracle")
 $keys = @($contract.statements | ForEach-Object { [string] $_.key } | Sort-Object)
 $failures = [System.Collections.Generic.List[string]]::new()
 $inlineSqlPattern = '(?is)(?:"""|")\s*(?:SELECT|INSERT|UPDATE|DELETE|MERGE)\b'
@@ -37,13 +37,10 @@ foreach ($vendor in $vendors) {
         if ($sql -match "@[A-Z0-9_]+@") {
             $failures.Add("Unresolved token: vendor=$vendor key=$key")
         }
-        if ($vendor -notin @("mariadb", "mysql") -and $sql -match "(?i)\bON\s+DUPLICATE\s+KEY\b") {
-            $failures.Add("MySQL-family UPSERT leaked: vendor=$vendor key=$key")
+        if ($vendor -ne "mariadb" -and $sql -match "(?i)\bON\s+DUPLICATE\s+KEY\b") {
+            $failures.Add("MariaDB UPSERT leaked: vendor=$vendor key=$key")
         }
-        if ($vendor -eq "sqlserver" -and $sql -match "(?i)\bCURRENT_TIMESTAMP\s*\(") {
-            $failures.Add("SQL Server CURRENT_TIMESTAMP precision syntax leaked: key=$key")
-        }
-        if ($vendor -in @("oracle", "sqlserver") -and $sql -match "(?i)\bLIMIT\s+\d+\b") {
+        if ($vendor -eq "oracle" -and $sql -match "(?i)\bLIMIT\s+\d+\b") {
             $failures.Add("LIMIT syntax leaked: vendor=$vendor key=$key")
         }
         if ($vendor -eq "oracle" -and $sql -match "(?i)\bON\s+CONFLICT\b") {

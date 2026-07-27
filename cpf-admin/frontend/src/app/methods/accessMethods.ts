@@ -129,17 +129,81 @@ export const accessMethods: Record<string, any> = {
           return;
         }
         if (!this.requireReason(this.operatorForm.reason)) return;
-        this.operatorResult = await this.sendJson("/adm/api/operators", "POST", {
+        const operationId = this.operatorForm.operationId || crypto.randomUUID();
+        this.operatorForm.operationId = operationId;
+        const payload = {
           operatorId: this.operatorForm.operatorId,
           operatorName: this.operatorForm.operatorName,
+          operationId,
           mobileNo: this.operatorForm.mobileNo || null,
           officePhoneNo: this.operatorForm.officePhoneNo || null,
           password: this.operatorForm.password,
-          roleIds: this.operatorForm.roleIds?.length ? this.operatorForm.roleIds : ["ADM_VIEWER"],
           requestUser: this.currentOperator.operatorId,
           reason: this.operatorForm.reason
+        };
+        try {
+          this.operatorResult = await this.sendJson("/adm/api/operators", "POST", payload);
+          this.operatorForm.operationId = crypto.randomUUID();
+        } catch (error) {
+          // 전송 결과가 불명확한 경우 새 operationId를 만들지 않고 동일 ID로 결과를 먼저 확인합니다.
+          try {
+            this.operatorResult = await this.getJson(`/adm/api/operators/operations/${encodeURIComponent(operationId)}`);
+            this.operatorForm.operationId = crypto.randomUUID();
+          } catch (_lookupError) {
+            throw error;
+          }
+        }
+        this.setMessage("운영자를 등록했습니다. Role을 부여한 뒤 ACTIVE로 전환해야 로그인할 수 있습니다.");
+      },
+  clearOperatorRaw() {
+        this.operatorRawResult = {};
+        this.operatorRawReason = "";
+        this.operatorRawTarget = null;
+        this.operatorRawError = "";
+        this.operatorRawLoading = false;
+      },
+  openOperatorRaw(operator: any) {
+        this.clearOperatorRaw();
+        this.operatorRawTarget = operator;
+        this.operatorRawOpen = true;
+      },
+  closeOperatorRaw() {
+        this.operatorRawOpen = false;
+        this.clearOperatorRaw();
+      },
+  async viewOperatorRaw() {
+        const operator = this.operatorRawTarget;
+        const reason = (this.operatorRawReason || "").trim();
+        if (!operator?.operatorId || !this.requireReason(reason)) return;
+        this.operatorRawResult = {};
+        this.operatorRawError = "";
+        this.operatorRawLoading = true;
+        try {
+          this.operatorRawResult = await this.sendJson(`/adm/api/operators/${encodeURIComponent(operator.operatorId)}/contacts/raw`, "POST", { reason });
+        } catch (error: any) {
+          this.operatorRawResult = {};
+          const status = Number(error?.status || error?.response?.status || 0);
+          const transactionId = error?.transactionId || error?.data?.transactionId || "";
+          if (status === 403) this.operatorRawError = "원문 연락처 조회 권한이 없습니다.";
+          else if (status === 409) this.operatorRawError = "대상 상태가 변경되었습니다. 목록을 새로고침한 뒤 다시 시도하세요.";
+          else if (status === 503) this.operatorRawError = "권한/감사/DB 저장소를 사용할 수 없습니다. 잠시 후 동일 사유로 다시 시도하세요.";
+          else this.operatorRawError = error?.message || "원문 연락처 조회에 실패했습니다.";
+          if (transactionId) this.operatorRawError += ` (transactionId: ${transactionId})`;
+          throw error;
+        } finally {
+          this.operatorRawLoading = false;
+        }
+      },
+  async activateOperator(operator: any) {
+        const reason = (this.operatorForm.reason || "").trim();
+        if (!this.requireReason(reason)) return;
+        this.operatorResult = await this.sendJson(`/adm/api/operators/${encodeURIComponent(operator.operatorId)}/status`, "PUT", {
+          accountStatus: "ACTIVE",
+          expectedVersion: operator.versionNo,
+          requestUser: this.currentOperator.operatorId,
+          reason
         });
-        this.setMessage("운영자를 등록했습니다.");
+        await this.loadOperators();
       },
   async loadPasswordPolicy() {
         this.passwordResult = await this.getJson("/adm/api/operators/password-policy");

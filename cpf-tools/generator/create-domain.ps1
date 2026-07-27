@@ -16,7 +16,7 @@ param(
     [ValidateSet("Y", "N")]
     [string] $Database = "Y",
     [Alias("DbVendor")]
-    [ValidateSet("mariadb", "mysql", "postgresql", "oracle", "sqlserver")]
+    [ValidateSet("mariadb", "postgresql", "oracle")]
     [string] $DatabaseVendor = "mariadb",
     [string] $DatabaseHost = "127.0.0.1",
     [int] $DatabasePort = 0,
@@ -96,7 +96,7 @@ $supportedDatabaseVendors = @($centralTemplateContract.supportedVendors |
         ForEach-Object { ([string]$_).Trim().ToLowerInvariant() } |
         Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
         Sort-Object -Unique)
-if ($supportedDatabaseVendors.Count -ne 5) {
+if ($supportedDatabaseVendors.Count -ne 3) {
     throw "Generated Domain 중앙 Template의 지원 Vendor 계약이 유효하지 않습니다."
 }
 $minimalDomainModel = [string]$centralTemplateContract.verifyContract.model
@@ -286,14 +286,14 @@ $DatabaseVendor = $DatabaseVendor.ToLowerInvariant()
 if ($DatabaseVendor -notin $supportedDatabaseVendors) {
     throw "중앙 Template 계약이 지원하지 않는 DatabaseVendor입니다: $DatabaseVendor"
 }
-$vendorPortDefaults = @{ mariadb = 3306; mysql = 3306; postgresql = 5432; oracle = 1521; sqlserver = 1433 }
+$vendorPortDefaults = @{ mariadb = 3306; postgresql = 5432; oracle = 1521 }
 if ($DatabasePort -le 0) { $DatabasePort = [int]$vendorPortDefaults[$DatabaseVendor] }
 if ([string]::IsNullOrWhiteSpace($DatabaseName)) {
     $DatabaseName = if ($DatabaseVendor -eq "oracle") { "FREEPDB1" } else { $SchemaName }
 }
 if ([string]::IsNullOrWhiteSpace($DatabaseSchema)) { $DatabaseSchema = $SchemaName }
 if ([string]::IsNullOrWhiteSpace($DatabaseAdminUsername)) {
-    $DatabaseAdminUsername = if ($DatabaseVendor -eq "postgresql") { "postgres" } elseif ($DatabaseVendor -eq "oracle") { "SYSTEM" } elseif ($DatabaseVendor -eq "sqlserver") { "sa" } else { "root" }
+    $DatabaseAdminUsername = if ($DatabaseVendor -eq "postgresql") { "postgres" } elseif ($DatabaseVendor -eq "oracle") { "SYSTEM" } else { "root" }
 }
 if ([string]::IsNullOrWhiteSpace($DatabaseMigrationUsername)) {
     $DatabaseMigrationUsername = if ($DatabaseVendor -eq "oracle") {
@@ -1271,7 +1271,7 @@ public class ${FeatureClassPrefix}SearchValidator {
 "@
 
 $batchDependency = if ($BatchEnabled) {
-    "    implementation 'org.springframework.boot:spring-boot-starter-batch'"
+    "    implementation 'org.springframework.boot:spring-boot-starter-batch-jdbc'"
 } else {
     ""
 }
@@ -1314,8 +1314,8 @@ $cpfConventionPlugin = if ($DependencyModel -eq "published-artifact") {
 
 $databaseDependencies = if ($DatabaseEnabled) {
 @"
-    implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.4'
-    implementation 'org.flywaydb:flyway-core'
+    implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:4.0.0'
+    implementation 'org.springframework.boot:spring-boot-starter-flyway'
     runtimeOnly cpfJdbcDriverByVendor[cpfDbVendor]
     runtimeOnly cpfFlywayDatabaseByVendor[cpfDbVendor]
 "@
@@ -1519,12 +1519,12 @@ $databaseVendorSelection
 dependencies {
 $platformDependencies
 $batchContractDependency
-    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
 $databaseDependencies
 $batchDependency
     providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
 }
 
 tasks.named('test') {
@@ -2487,16 +2487,14 @@ $domainDatabaseProfile = @"
       "username": "$DatabaseMigrationUsername",
       "password": {
         "env": "${ModuleUpper}_DB_MIGRATION_PASSWORD",
-        "fallbackEnv": "CPF_DB_MIGRATION_PASSWORD",
-        "devDefault": "Cpf${ModuleUpper}Mig#2026"
+        "fallbackEnv": "CPF_DB_MIGRATION_PASSWORD"
       }
     },
     "runtime": {
       "username": "$DatabaseRuntimeUsername",
       "password": {
         "env": "${ModuleUpper}_DB_RUNTIME_PASSWORD",
-        "fallbackEnv": "CPF_DB_APP_PASSWORD",
-        "devDefault": "Cpf${ModuleUpper}App#2026"
+        "fallbackEnv": "CPF_DB_APP_PASSWORD"
       }
     }
   },
@@ -2759,7 +2757,7 @@ if ($ProvisionDatabase) {
     }
 
     # DB 접속/계정/Vendor는 생성된 Git-tracked Domain Profile을 단일 정본으로 사용합니다.
-    # Secret은 Profile의 env/fallback/devDefault 정책으로 initialize-domain-database.ps1가 해석합니다.
+    # Secret은 Profile의 env/fallback Secret 정책으로 initialize-domain-database.ps1가 해석합니다.
     & pwsh -NoProfile -ExecutionPolicy Bypass -File $dbInitializer `
         -DomainName $module `
         -SystemCode $SystemCode `

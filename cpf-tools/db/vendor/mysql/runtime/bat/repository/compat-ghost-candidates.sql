@@ -1,5 +1,0 @@
-SELECT *
-FROM bat_execution
-WHERE execution_status IN ('RUNNING', 'CLAIMED', 'CLAIMING')
-  AND last_heartbeat_at < DATE_SUB(CURRENT_TIMESTAMP(3), INTERVAL ? SECOND)
-ORDER BY last_heartbeat_at

@@ -1,6 +1,7 @@
 package com.cpf.bizadmin.operation.service;
 
 import com.cpf.bizadmin.operation.repository.BzaOperationRepository;
+import com.cpf.bizadmin.auth.repository.BzaAuthRepository;
 import com.cpf.bizadmin.audit.service.BzaBusinessAuditService;
 import com.cpf.bizadmin.common.model.BzaAdminAccountStatus;
 import com.cpf.core.api.error.CpfValidationException;
@@ -18,8 +19,8 @@ import java.util.*;
 @Service
 public class BzaOperationService extends com.cpf.bizadmin.common.base.BzaBaseService {
  private static final Set<String> HTTP_METHODS=Set.of("GET","POST","PUT","PATCH","DELETE","ALL");
- private final BzaOperationRepository repository; private final CpfPasswordService passwordHashingPort; private final BzaBusinessAuditService auditService;
- public BzaOperationService(BzaOperationRepository repository,CpfPasswordService passwordHashingPort,BzaBusinessAuditService auditService){this.repository=repository;this.passwordHashingPort=passwordHashingPort;this.auditService=auditService;}
+ private final BzaOperationRepository repository; private final CpfPasswordService passwordHashingPort; private final BzaBusinessAuditService auditService; private final BzaAuthRepository authRepository;
+ public BzaOperationService(BzaOperationRepository repository,CpfPasswordService passwordHashingPort,BzaBusinessAuditService auditService,BzaAuthRepository authRepository){this.repository=repository;this.passwordHashingPort=passwordHashingPort;this.auditService=auditService;this.authRepository=authRepository;}
  public List<Map<String,Object>> findAdminUsers(){return repository.findAdminUsers();}
  public CpfPage<Map<String,Object>> findAdminUsersPage(Integer page,Integer size){return repository.adminUserPage(CpfPageRequest.of(page,size));}
  public List<Map<String,Object>> findMenus(){return repository.findMenus();}
@@ -41,6 +42,7 @@ public class BzaOperationService extends com.cpf.bizadmin.common.base.BzaBaseSer
    if(!create && r.expectedVersion()==null) throw new CpfValidationException("관리자 수정에는 expectedVersion이 필요합니다.");
    String accountStatus=BzaAdminAccountStatus.parse(
            create?"PENDING_ACTIVATION":defaultText(r.accountStatus(),String.valueOf(before.get("accountStatus")))).name();
+   if(!create) validateStatusTransition(String.valueOf(before.get("accountStatus")),accountStatus);
    if("ACTIVE".equals(accountStatus) && repository.countEffectiveRoles(login)==0)
      throw new CpfValidationException("Role이 없는 관리자는 ACTIVE로 전환할 수 없습니다.");
    Map<String,Object> v=new LinkedHashMap<>();
@@ -54,6 +56,7 @@ public class BzaOperationService extends com.cpf.bizadmin.common.base.BzaBaseSer
    v.put("expectedVersion",r.expectedVersion()); v.put("requestUser",actor);
    int changed=create?repository.insertAdminUser(v):repository.updateAdminUser(v);
    if(changed!=1) throw new CpfValidationException("관리자 정보가 다른 관리자에 의해 변경되었습니다. 다시 조회하십시오.");
+   if(!create) authRepository.revokeAllRefreshTokensByLoginId(login);
    audit(actor,"ADMIN_USER_SAVE","bza_admin_user",login,required(r.reason(),"reason"),before,withoutSecret(v));
    return withoutSecret(v);
  }
@@ -65,14 +68,25 @@ public class BzaOperationService extends com.cpf.bizadmin.common.base.BzaBaseSer
  }
 
  @Transactional(transactionManager="bzaTransactionManager") public Map<String,Object> saveRole(RoleRequest r,String operatorId){
-   String key=code(r.roleCode(),"roleCode"),actor=required(operatorId,"operatorId");Map<String,Object> before=repository.findRole(key).orElse(null);Map<String,Object> v=new LinkedHashMap<>();v.put("roleCode",key);v.put("roleName",required(r.roleName(),"roleName"));v.put("writeAllowedYn",yn(r.writeAllowedYn(),"N"));v.put("dataScope",code(defaultText(r.dataScope(),"OWN"),"dataScope"));v.put("useYn",yn(r.useYn(),"Y"));v.put("requestUser",actor);v.put("expectedVersion",r.expectedVersion());int changed=before==null?repository.insertRole(v):repository.updateRole(requireVersion(v,r.expectedVersion(),"role"));if(changed!=1)throw new CpfValidationException("Role이 다른 관리자에 의해 변경되었습니다. 다시 조회하십시오.");audit(actor,"ROLE_SAVE","bza_role",key,required(r.reason(),"reason"),before,v);return v;
+   String key=code(r.roleCode(),"roleCode"),actor=required(operatorId,"operatorId");Map<String,Object> before=repository.findRole(key).orElse(null);Map<String,Object> v=new LinkedHashMap<>();v.put("roleCode",key);v.put("roleName",required(r.roleName(),"roleName"));v.put("writeAllowedYn",yn(r.writeAllowedYn(),"N"));v.put("dataScope",code(defaultText(r.dataScope(),"OWN"),"dataScope"));v.put("useYn",yn(r.useYn(),"Y"));v.put("requestUser",actor);v.put("expectedVersion",r.expectedVersion());int changed=before==null?repository.insertRole(v):repository.updateRole(requireVersion(v,r.expectedVersion(),"role"));if(changed!=1)throw new CpfValidationException("Role이 다른 관리자에 의해 변경되었습니다. 다시 조회하십시오.");authRepository.revokeRefreshTokensByRoleCode(key);audit(actor,"ROLE_SAVE","bza_role",key,required(r.reason(),"reason"),before,v);return v;
  }
 
  @Transactional(transactionManager="bzaTransactionManager") public Map<String,Object> savePermission(PermissionRequest r,String operatorId){
    String actor=required(operatorId,"operatorId"),method=blank(r.httpMethod());if(method!=null){method=method.toUpperCase(Locale.ROOT);if(!HTTP_METHODS.contains(method))throw new CpfValidationException("허용되지 않은 HTTP 메서드입니다.");}
-   Map<String,Object> before=repository.findPermission(r.permissionId()).orElse(null);Map<String,Object> v=new LinkedHashMap<>();v.put("permissionId",r.permissionId());v.put("roleCode",code(r.roleCode(),"roleCode"));v.put("menuCode",code(r.menuCode(),"menuCode"));v.put("buttonCode",code(r.buttonCode(),"buttonCode"));v.put("permissionType",code(defaultText(r.permissionType(),"BUTTON"),"permissionType"));v.put("httpMethod",method);v.put("apiPattern",blank(r.apiPattern()));v.put("domainCode",blank(r.domainCode()));v.put("environmentCode",code(defaultText(r.environmentCode(),"ALL"),"environmentCode"));v.put("dataScope",code(defaultText(r.dataScope(),"ROLE"),"dataScope"));v.put("allowYn",yn(r.allowYn(),"N"));v.put("useYn",yn(r.useYn(),"Y"));v.put("requestUser",actor);v.put("expectedVersion",r.expectedVersion());int changed=before==null?repository.insertPermission(v):repository.updatePermission(requireVersion(v,r.expectedVersion(),"permission"));if(changed!=1)throw new CpfValidationException("Permission이 다른 관리자에 의해 변경되었습니다. 다시 조회하십시오.");audit(actor,"PERMISSION_SAVE","bza_permission",String.valueOf(r.permissionId()),required(r.reason(),"reason"),before,v);return v;
+   Map<String,Object> before=repository.findPermission(r.permissionId()).orElse(null);Map<String,Object> v=new LinkedHashMap<>();v.put("permissionId",r.permissionId());v.put("roleCode",code(r.roleCode(),"roleCode"));v.put("menuCode",code(r.menuCode(),"menuCode"));v.put("buttonCode",code(r.buttonCode(),"buttonCode"));v.put("permissionType",code(defaultText(r.permissionType(),"BUTTON"),"permissionType"));v.put("httpMethod",method);v.put("apiPattern",blank(r.apiPattern()));v.put("domainCode",blank(r.domainCode()));v.put("environmentCode",code(defaultText(r.environmentCode(),"ALL"),"environmentCode"));v.put("dataScope",code(defaultText(r.dataScope(),"ROLE"),"dataScope"));v.put("allowYn",yn(r.allowYn(),"N"));v.put("useYn",yn(r.useYn(),"Y"));v.put("requestUser",actor);v.put("expectedVersion",r.expectedVersion());int changed=before==null?repository.insertPermission(v):repository.updatePermission(requireVersion(v,r.expectedVersion(),"permission"));if(changed!=1)throw new CpfValidationException("Permission이 다른 관리자에 의해 변경되었습니다. 다시 조회하십시오.");authRepository.revokeRefreshTokensByRoleCode(String.valueOf(v.get("roleCode")));audit(actor,"PERMISSION_SAVE","bza_permission",String.valueOf(r.permissionId()),required(r.reason(),"reason"),before,v);return v;
  }
 
+ private void validateStatusTransition(String currentValue,String nextValue){
+   BzaAdminAccountStatus current=BzaAdminAccountStatus.parse(currentValue),next=BzaAdminAccountStatus.parse(nextValue);
+   if(current==next)return;
+   Map<BzaAdminAccountStatus,Set<BzaAdminAccountStatus>> allowed=Map.of(
+     BzaAdminAccountStatus.PENDING_ACTIVATION,Set.of(BzaAdminAccountStatus.ACTIVE,BzaAdminAccountStatus.DISABLED),
+     BzaAdminAccountStatus.ACTIVE,Set.of(BzaAdminAccountStatus.LOCKED,BzaAdminAccountStatus.SUSPENDED,BzaAdminAccountStatus.DISABLED),
+     BzaAdminAccountStatus.LOCKED,Set.of(BzaAdminAccountStatus.ACTIVE,BzaAdminAccountStatus.SUSPENDED,BzaAdminAccountStatus.DISABLED),
+     BzaAdminAccountStatus.SUSPENDED,Set.of(BzaAdminAccountStatus.ACTIVE,BzaAdminAccountStatus.DISABLED),
+     BzaAdminAccountStatus.DISABLED,Set.of(BzaAdminAccountStatus.PENDING_ACTIVATION));
+   if(!allowed.getOrDefault(current,Set.of()).contains(next))throw new CpfValidationException("허용되지 않은 관리자 상태 전이입니다: "+current+" -> "+next);
+ }
  private Map<String,Object> requireVersion(Map<String,Object> v,Long version,String name){if(version==null)throw new CpfValidationException(name+" 수정에는 expectedVersion이 필요합니다.");return v;}
  private String hashPassword(String raw,boolean create){if(raw==null||raw.isBlank()){if(create)throw new CpfValidationException("신규 사용자의 rawPassword는 필수입니다.");return null;}if(raw.length()<12)throw new CpfValidationException("비밀번호는 12자 이상이어야 합니다.");char[] c=raw.toCharArray();try{return passwordHashingPort.hash(c);}finally{Arrays.fill(c,'\0');}}
  private void audit(String actor,String action,String type,String id,String reason,Object before,Object after){auditService.record(actor,action,type,id,reason,before,after);}

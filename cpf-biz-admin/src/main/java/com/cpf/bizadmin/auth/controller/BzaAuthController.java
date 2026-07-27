@@ -3,6 +3,8 @@ package com.cpf.bizadmin.auth.controller;
 import com.cpf.bizadmin.auth.service.BzaAuthService;
 import com.cpf.core.api.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpHeaders;
@@ -36,7 +38,15 @@ public class BzaAuthController extends com.cpf.bizadmin.common.base.BzaBaseContr
 
     @PostMapping("/login")
     @CpfOnlineTransaction(id = "OBZAAU0001", name = "BzaLogin")
-    @Operation(operationId = "bzaAuthLogin", summary = "업무 관리자 로그인", description = "BZA 전용 JWT access token과 DB hash 저장형 refresh token을 발급합니다.")
+    @Operation(operationId = "bzaAuthLogin", summary = "업무 관리자 로그인",
+            description = "operationId가 필수입니다. 성공 흐름은 계정 갱신·성공 이력·Refresh Session을 하나의 bzaDB Transaction으로 commit합니다. 응답 유실 시 동일 operationId를 재사용하면 기존 Refresh Session을 폐기하고 하나의 활성 Session으로 회전합니다. 인증 실패 횟수와 실패 이력은 별도 Transaction으로 commit됩니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "로그인 성공 또는 결과불명 재시도의 안전한 Session 회전"),
+            @ApiResponse(responseCode = "400", description = "operationId/loginId/password 누락"),
+            @ApiResponse(responseCode = "401", description = "계정 상태 또는 인증 실패"),
+            @ApiResponse(responseCode = "409", description = "operationId가 다른 사용자 요청에 재사용됨"),
+            @ApiResponse(responseCode = "503", description = "bzaDB 장애로 성공/실패 이력을 안전하게 확정할 수 없음")
+    })
     public ResponseEntity<BzaAuthService.LoginResult> login(
             @RequestBody BzaAuthService.LoginRequest request,
             HttpServletRequest servletRequest) {

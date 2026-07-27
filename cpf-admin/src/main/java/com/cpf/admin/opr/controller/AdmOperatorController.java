@@ -3,6 +3,7 @@ package com.cpf.admin.opr.controller;
 import com.cpf.admin.opr.dto.AdmMenu;
 import com.cpf.admin.opr.dto.AdmOperator;
 import com.cpf.admin.opr.dto.AdmOperatorCreateRequest;
+import com.cpf.admin.opr.dto.AdmOperatorRawContactResponse;
 import com.cpf.admin.opr.dto.AdmOperatorContactUpdateRequest;
 import com.cpf.admin.opr.dto.AdmOperatorStatusUpdateRequest;
 import com.cpf.admin.opr.dto.AdmOperatorPasswordResetRequest;
@@ -18,6 +19,8 @@ import com.cpf.core.api.security.CpfSensitiveDataAccessRequest;
 import com.cpf.core.api.execution.CpfOnlineTransaction;
 import com.cpf.core.api.error.CpfValidationException;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
@@ -60,7 +63,14 @@ public class AdmOperatorController extends com.cpf.admin.common.base.AdmBaseCont
 
     @PostMapping
     @CpfOnlineTransaction(id = "OADMOP0031", name = "ADMOperatorCreate")
-    @Operation(operationId = "admOperatorCreateOperator", summary = "Create operator", description = "Creates an ADM operator after password policy validation.")
+    @Operation(operationId = "admOperatorCreateOperator", summary = "운영자 생성",
+            description = "operationId는 필수이며 결과불명 재시도에서 동일 값을 재사용합니다. 일반 운영자 생성 요청은 Role 동시부여를 허용하지 않습니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "생성 성공 또는 동일 operationId의 동일 생성 결과"),
+            @ApiResponse(responseCode = "400", description = "비밀번호/필수값/Role 동시부여 정책 위반"),
+            @ApiResponse(responseCode = "409", description = "operationId 충돌 또는 동시 생성 충돌"),
+            @ApiResponse(responseCode = "503", description = "DB/Audit 저장소 장애로 결과 확정 불가")
+    })
     public ResponseEntity<AdmOperator> createOperator(@RequestBody AdmOperatorCreateRequest request, HttpServletRequest servletRequest) {
         String reason = auditLogService.requireReason(request.reason());
         String actor = requestUser(servletRequest, request.requestUser());
@@ -78,22 +88,37 @@ public class AdmOperatorController extends com.cpf.admin.common.base.AdmBaseCont
         return ResponseEntity.ok(operator);
     }
 
+    @GetMapping("/operations/{operationId}")
+    @CpfOnlineTransaction(id = "OADMOP0051", name = "ADMOperatorCreateResult")
+    @Operation(operationId = "admOperatorFindCreateResult", summary = "operationId로 운영자 생성 결과 조회",
+            description = "생성 응답 유실이나 timeout 결과불명 시 최초 요청의 동일 operationId로 생성 결과를 조회합니다.")
+    public ResponseEntity<AdmOperator> findCreateResult(@PathVariable String operationId) {
+        return ResponseEntity.ok(operatorService.findOperatorByCreateOperationId(operationId));
+    }
+
     @PostMapping("/{operatorId}/contacts/raw")
     @CpfOnlineTransaction(id = "OADMOP0048", name = "ADMOperatorRawContact")
     @Operation(operationId = "admOperatorRawContact", summary = "운영자 연락처 원문 조회",
-            description = "별도 PII_RAW 권한과 사유가 있는 경우에만 연락처 원문을 반환하고 감사 로그를 남깁니다.")
-    public ResponseEntity<AdmOperator> rawContact(
+            description = "PII_RAW 권한과 사유를 검증하고 감사 DB 기록이 성공한 경우에만 mobileNo/officePhoneNo 최소 Projection을 no-store로 반환합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "감사 완료된 최소 Raw Projection"),
+            @ApiResponse(responseCode = "400", description = "감사 사유 누락/형식 오류"),
+            @ApiResponse(responseCode = "403", description = "PII_RAW 권한 없음"),
+            @ApiResponse(responseCode = "409", description = "동시 변경으로 조회 계약 충돌"),
+            @ApiResponse(responseCode = "503", description = "DB 또는 Audit 저장 실패. Raw 데이터는 반환하지 않음")
+    })
+    public ResponseEntity<AdmOperatorRawContactResponse> rawContact(
             @PathVariable String operatorId,
             @RequestBody CpfSensitiveDataAccessRequest request,
             HttpServletRequest servletRequest) {
         String actor = requestUser(servletRequest, null);
         String auditReason = auditLogService.requireReason(request.reason());
-        AdmOperator operator = operatorService.findOperatorRaw(operatorId);
-        auditLogService.record(
+        AdmOperatorRawContactResponse result = auditLogService.executeAudited(
                 CpfTransactionContext.transactionId(), actor, "OPERATOR_PII_RAW_VIEW",
-                "adm_operator_profile", operatorId, auditReason,
-                null, "rawContactViewed=true", "PII 원문 조회", servletRequest.getRemoteAddr());
-        return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(operator);
+                "adm_operator_profile", operatorId, auditReason, null, servletRequest.getRemoteAddr(),
+                () -> operatorService.findOperatorRaw(operatorId),
+                value -> "operatorId=" + value.operatorId() + ",rawContactViewed=true");
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(result);
     }
 
     @PutMapping("/{operatorId}/contacts")
@@ -120,7 +145,13 @@ public class AdmOperatorController extends com.cpf.admin.common.base.AdmBaseCont
     @PutMapping("/{operatorId}/status")
     @CpfOnlineTransaction(id = "OADMOP0050", name = "ADMOperatorStatusUpdate")
     @Operation(operationId = "admOperatorUpdateStatus", summary = "운영자 계정 상태 변경",
-            description = "PENDING_ACTIVATION/ACTIVE/LOCKED/SUSPENDED/DISABLED 상태를 낙관적 잠금으로 변경합니다.")
+            description = "expectedVersion 기반 CAS와 상태 Transition Matrix를 적용하고 같은 운영 변경 책임에서 기존 Session을 무효화합니다. Role 없는 ACTIVE 전환은 거부합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "상태 변경과 Session 무효화 성공"),
+            @ApiResponse(responseCode = "400", description = "허용되지 않은 상태 전이 또는 Role 없는 ACTIVE"),
+            @ApiResponse(responseCode = "409", description = "expectedVersion 충돌"),
+            @ApiResponse(responseCode = "503", description = "DB/Session 저장소 장애로 원자 처리 실패")
+    })
     public ResponseEntity<AdmOperator> updateStatus(
             @PathVariable String operatorId,
             @RequestBody AdmOperatorStatusUpdateRequest request,
@@ -163,7 +194,6 @@ public class AdmOperatorController extends com.cpf.admin.common.base.AdmBaseCont
                 operatorId,
                 reason,
                 servletRequest.getRemoteAddr());
-        sessionService.revokeOperatorSessions(operatorId);
         return ResponseEntity.ok(operator);
     }
 
@@ -198,7 +228,6 @@ public class AdmOperatorController extends com.cpf.admin.common.base.AdmBaseCont
                 String.valueOf(operator),
                 "비밀번호 초기화",
                 servletRequest.getRemoteAddr());
-        sessionService.revokeOperatorSessions(operatorId);
         return ResponseEntity.ok(operator);
     }
 

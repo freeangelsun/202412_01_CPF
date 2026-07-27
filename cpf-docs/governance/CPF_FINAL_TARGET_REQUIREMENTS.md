@@ -534,7 +534,7 @@ create → optional DB bootstrap → CRUD/Search/Paging/Validation/Commit/Rollba
 - CI/STG/PROD의 `REMOTE` 모드는 Remote Artifact가 없을 때 개발자 Local Repository로 fallback하지 않고 fail-closed한다. Shared Local Repository 자동 갱신은 개발 편의용 opt-in이며, Quality Gate를 통과한 staging artifact를 검증한 뒤 승격한다.
 - Generated `bootJar`/`bootWar`는 필요한 `cpf-core`, `cpf-common` 및 선택 Capability의 Public Contract JAR가 실제 패키지 내부에 포함됐는지 Gate로 검증한다.
 
-MariaDB는 필수 실검증 대상이다. PostgreSQL, Oracle과 SQL Server는 Vendor별 Script, Dialect, Type, Paging, Lock, Migration과 Runtime Evidence가 있을 때만 지원 완료로 표기한다.
+CPF의 공식 지원 DB Vendor는 MariaDB, PostgreSQL, Oracle 3종으로 한정한다. MySQL과 Microsoft SQL Server(MSSQL)는 제품 지원 범위와 Generator/Tool 선택값에서 제거한다. 세 공식 Vendor 모두 Vendor-native Script, Dialect, Type, Paging, Lock, Canonical Schema/Seed, Migration, Upgrade/Rollback, Runtime Query와 Runtime Evidence가 있을 때만 Release 검증 완료로 표기한다.
 
 ## 18. Reliability와 Observability
 
@@ -568,7 +568,7 @@ MariaDB는 필수 실검증 대상이다. PostgreSQL, Oracle과 SQL Server는 Ve
 
 ### 18.1 DB Vendor source ownership 정본
 
-Platform DB의 canonical source, domain-template, install/seed/migration/rollback/verify는 모두 `cpf-tools/db/vendor/<vendor>` Owner 경계 안에서 동일하게 관리한다. 특정 Vendor만 별도 `cpf-tools/db/source/<vendor>` 경로를 갖지 않는다. 아직 구현되지 않은 Vendor는 빈 성공 산출물이나 MariaDB 복사본을 제공하지 않고 `database-vendor-coverage.json`에서 `미구현`으로 fail-closed한다.
+Platform DB의 canonical source, domain-template, install/seed/migration/rollback/verify는 모두 `cpf-tools/db/vendor/<vendor>` Owner 경계 안에서 동일하게 관리한다. 특정 Vendor만 별도 `cpf-tools/db/source/<vendor>` 경로를 갖지 않는다. 공식 3 Vendor의 산출물은 Canonical Schema/Seed에서 Vendor-native 형태로 생성·동기화한다. 다른 Vendor SQL의 단순 복사·치환을 완료 근거로 사용하지 않으며, lifecycle/readiness 또는 Runtime Evidence가 부족하면 Release Gate에서 fail-closed한다.
 
 DB/SQL/Metadata 변경 후 `sync-database-artifacts.ps1`은 각 하위 gate의 실제 process exit code를 판정해야 하며 과거 native `$LASTEXITCODE` 잔존값을 성공/실패로 오판해서는 안 된다.
 

@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS cpf_schema_installation (
     INDEX ix_cpf_schema_installation_system (system_code),
     INDEX ix_cpf_schema_installation_version (product_version, install_state),
     CONSTRAINT ck_cpf_schema_installation_vendor
-        CHECK (database_vendor IN ('MARIADB', 'MYSQL', 'POSTGRESQL', 'ORACLE', 'SQLSERVER')),
+        CHECK (database_vendor IN ('MARIADB', 'POSTGRESQL', 'ORACLE')),
     CONSTRAINT ck_cpf_schema_installation_state
         CHECK (install_state IN ('PRODUCT_SEEDED'))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci

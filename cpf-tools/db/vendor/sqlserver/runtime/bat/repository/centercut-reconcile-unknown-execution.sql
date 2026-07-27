@@ -1,8 +1,0 @@
-UPDATE bat_center_cut_execution
-SET unknown_count = CASE WHEN unknown_count - ? < 0 THEN 0 ELSE unknown_count - ? END,
-    execution_state = 'RUNNING',
-    completed_at = NULL,
-    last_error_message = NULL,
-    updated_at = SYSUTCDATETIME()
-WHERE center_cut_execution_id = ?
-  AND execution_state = 'UNKNOWN_RESULT'

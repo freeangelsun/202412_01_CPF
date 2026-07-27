@@ -271,6 +271,7 @@ CREATE TABLE IF NOT EXISTS bza_admin_user (
     role_code VARCHAR(50) NULL COMMENT '호환용 대표 역할 코드; 신규 계정은 Role 미부여가 기본이며 실제 권한은 bza_user_role 다중 매핑이 정본',
     account_status VARCHAR(30) NOT NULL DEFAULT 'PENDING_ACTIVATION' COMMENT '계정 상태: PENDING_ACTIVATION/ACTIVE/LOCKED/SUSPENDED/DISABLED',
     version_no BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 버전',
+    create_operation_id VARCHAR(100) NULL COMMENT '관리자 생성 멱등 Operation ID',
     use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
     lock_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '잠금 여부',
     login_fail_count INT NOT NULL DEFAULT 0 COMMENT '로그인 실패 횟수',
@@ -283,6 +284,7 @@ CREATE TABLE IF NOT EXISTS bza_admin_user (
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (admin_user_id),
     UNIQUE KEY uk_bza_admin_user_login (admin_login_id),
+    UNIQUE KEY uk_bza_admin_user_create_operation (create_operation_id),
     INDEX ix_bza_admin_user_role (role_code, use_yn),
     INDEX ix_bza_admin_user_status (account_status, use_yn),
     CONSTRAINT ck_bza_admin_user_status CHECK (account_status IN ('PENDING_ACTIVATION','ACTIVE','LOCKED','SUSPENDED','DISABLED'))
@@ -320,6 +322,7 @@ CREATE TABLE IF NOT EXISTS bza_refresh_token (
     login_domain VARCHAR(30) NOT NULL DEFAULT 'BZA' COMMENT '로그인 도메인',
     refresh_token_hash VARCHAR(300) NOT NULL COMMENT 'refresh token hash',
     transaction_id CHAR(34) NULL COMMENT '발급 전역 transactionId',
+    login_operation_id VARCHAR(100) NULL COMMENT '로그인 멱등 Operation ID',
     expire_at DATETIME NOT NULL COMMENT '만료 일시',
     revoked_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '폐기 여부',
     revoked_at DATETIME NULL COMMENT '폐기 일시',
@@ -330,10 +333,28 @@ CREATE TABLE IF NOT EXISTS bza_refresh_token (
     PRIMARY KEY (refresh_token_id),
     UNIQUE KEY uk_bza_refresh_token_hash (refresh_token_hash),
     INDEX ix_bza_refresh_token_user (admin_user_id, revoked_yn, expire_at),
+    INDEX ix_bza_refresh_token_login_operation (login_operation_id, revoked_yn),
     CONSTRAINT fk_bza_refresh_token_user
         FOREIGN KEY (admin_user_id) REFERENCES bza_admin_user(admin_user_id)
         ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 업무 관리자 refresh token hash 저장소';
+
+CREATE TABLE IF NOT EXISTS bza_login_operation (
+    operation_id VARCHAR(100) NOT NULL COMMENT '로그인 멱등 Operation ID',
+    admin_user_id BIGINT NOT NULL COMMENT '업무 관리자 사용자 순번',
+    admin_login_id VARCHAR(80) NOT NULL COMMENT '업무 관리자 로그인 ID',
+    operation_status VARCHAR(20) NOT NULL DEFAULT 'PROCESSING' COMMENT 'PROCESSING/SUCCESS',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (operation_id),
+    INDEX ix_bza_login_operation_user_time (admin_user_id, created_at),
+    CONSTRAINT fk_bza_login_operation_user
+        FOREIGN KEY (admin_user_id) REFERENCES bza_admin_user(admin_user_id)
+        ON DELETE CASCADE,
+    CONSTRAINT ck_bza_login_operation_status CHECK (operation_status IN ('PROCESSING','SUCCESS'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 로그인 멱등 처리 이력';
 
 CREATE TABLE IF NOT EXISTS bza_menu (
     menu_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '업무 메뉴 순번',

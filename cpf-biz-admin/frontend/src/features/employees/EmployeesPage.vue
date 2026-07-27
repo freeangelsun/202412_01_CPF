@@ -21,6 +21,6 @@ const fields = [
 <template>
   <CrudTable title="직원" endpoint="/api/bza/backoffice/employees" menu-code="EMPLOYEE"
     raw-endpoint-template="/api/bza/backoffice/employees/{id}/contacts/raw"
-    raw-id-field="employeeNo" :raw-fields="['employeeNo','employeeName','email','mobileNo','officePhoneNo']"
+    raw-id-field="employeeNo" :raw-fields="['employeeNo','email','mobileNo','officePhoneNo']"
     :columns="columns" :fields="fields" />
 </template>

@@ -5,8 +5,8 @@ import com.cpf.admin.opr.service.AdmAuditLogService;
 import com.cpf.admin.opr.service.AdmBatchJobLogService;
 import com.cpf.admin.opr.service.AdmReliabilityService;
 import com.cpf.core.api.logging.CpfTraceRecoveryPort;
-import com.cpf.core.common.execution.CpfOnlineTransaction;
-import com.cpf.core.common.logging.TransactionContext;
+import com.cpf.core.api.execution.CpfOnlineTransaction;
+import com.cpf.core.api.logging.CpfTransactionContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -196,7 +196,7 @@ public class AdmReliabilityController extends com.cpf.admin.common.base.AdmBaseC
         CpfTraceRecoveryPort.TraceRecoveryStatus before = traceRecoveryPort.status();
         CpfTraceRecoveryPort.TraceRecoveryRunResult result = traceRecoveryPort.recoverReadyEvents();
         auditLogService.record(
-                TransactionContext.getOrCreateTransactionId(),
+                CpfTransactionContext.transactionId(),
                 operatorId,
                 "TRANSACTION_LOG_RECOVERY_RUN",
                 "cpf_transaction_log_recovery",
@@ -225,7 +225,7 @@ public class AdmReliabilityController extends com.cpf.admin.common.base.AdmBaseC
         CpfTraceRecoveryPort.TraceRecoveryStatus before = traceRecoveryPort.status();
         CpfTraceRecoveryPort.PoisonRetryResult result = traceRecoveryPort.retryPoison(target, recoveryEventId);
         auditLogService.record(
-                TransactionContext.getOrCreateTransactionId(),
+                CpfTransactionContext.transactionId(),
                 operatorId,
                 "TRACE_RECOVERY_POISON_RETRY",
                 "CPF_TRACE_RECOVERY",
@@ -243,7 +243,7 @@ public class AdmReliabilityController extends com.cpf.admin.common.base.AdmBaseC
     @Operation(
             operationId = "resolveAdmUnknownResult",
             summary = "결과 미확정 수동 처리",
-            description = "감사 사유와 변경 전후 상태를 기록하고 이미 끝난 건의 중복 처리를 차단합니다.")
+            description = "감사 사유와 변경 전후 상태를 기록합니다. ADM_SESSION_REVOKE 유형에 RETRY_PENDING을 지정하면 실제 Session 폐기를 재실행하고 성공 후 RESOLVED로 전환합니다.")
     public ResponseEntity<AdmReliabilityService.ChangeResult> resolveUnknown(
             @PathVariable String unknownId,
             @RequestBody AdmReliabilityActionRequest request,
@@ -267,7 +267,7 @@ public class AdmReliabilityController extends com.cpf.admin.common.base.AdmBaseC
             String targetId,
             AdmReliabilityService.ChangeResult result) {
         auditLogService.record(
-                TransactionContext.getOrCreateTransactionId(),
+                CpfTransactionContext.transactionId(),
                 operatorId,
                 action,
                 targetType,

@@ -4,7 +4,7 @@ dependencies {
     implementation project(':cpf-batch:contract')
     implementation project(':cpf-batch:runtime-common')
     implementation project(':cpf-core')
-    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     testImplementation project(':cpf-batch:testkit')

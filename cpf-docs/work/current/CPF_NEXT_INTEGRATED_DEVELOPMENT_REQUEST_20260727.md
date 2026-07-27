@@ -4,265 +4,268 @@
 
 - Repository: `freeangelsun/202412_01_CPF`
 - Branch: `master`
-- 현재 준비 기준 SHA: `9e4edaef24dce901fdcf722e2e6d8c0cf0a623ba` (`20260727_02`)
+- 현재 작업 시작 SHA: `702bf83580b9c4db2dbba6482ece233e00842f1b` (`20260727_03`)
 - 최상위 정본: `cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md`
-- QA 입력: `CPF 다음 통합 개발·QA 요구사항`
-- 원칙: 문서 완료 표시보다 실제 Git Source/API/SQL/Test/Runtime/Evidence를 우선한다.
+- QA 입력: `CPF 차기 통합 QA 요구사항` (`9e4edaef...` 기준 작성)
+- 실제 상태 정본: Source/API/SQL/Test/Runtime/Evidence
+- 상세 QA 입력 보존: `cpf-docs/work/review/CPF_QA_INPUT_20260727_04.md`
 
-이 요청서는 QA 요구, Codex 사용량 제한 중단분, 최신 master 재검토 결과와 사용자 추가 요구를 하나의 후속 목록으로 합친다.
-현재 `20260727_02`까지 ChatGPT 1차 변경이 Push되었고, QA 최종 개선요청은 아직 대기 중이다.
-다음 실제 개발 시작 전 QA 최종 요구를 이 문서와 병합하고 중복을 제거한다.
+QA 기준 SHA 이후 `20260727_03` Gate/Tool 문서가 추가 Push되었으므로 모든 요구는 `702bf835...`에서 다시 계산한다.
 
-이미 검증된 범위를 무조건 다시 실행하지 않는다. 다만 이후 ChatGPT/Codex 변경의 직접·간접 영향권에 들어온 과거 PASS는
-`재검증 필요`로 다시 연다. 변경 영향이 없고 최신 Evidence가 유효한 항목은 재사용한다.
+## 2. 작업 원칙
 
-## 2. 이번 ChatGPT 1차 구현 범위
+1. 작업 전에 이전 Codex/ChatGPT 구현을 품질·Architecture·Ownership 관점에서 먼저 리뷰한다.
+2. 기존 성공 구현은 보호하고, 잘못된 구조만 올바른 Owner로 이관한다.
+3. 하나의 Change Set을 Source/Test/Guide/Gate까지 가능한 범위에서 닫고 다음 축으로 넘어간다.
+4. 이후 변경의 영향권에 들어온 과거 PASS는 `재검증 필요`로 다시 연다.
+5. 직접 영향 없는 고비용 Evidence를 습관적으로 전부 반복하지 않는다.
+6. 실행하지 않은 검증은 `미검증`이다.
+7. 사용자 승인 없이 Commit/Push/Branch/Tag/Release를 생성하지 않는다.
 
-### CPF-BUILD-LOCAL-001 — 공통 Artifact 자동 전파
+## 3. 작업 전 리뷰 결론
+
+### Codex `20260727_01`
+
+대체로 올바른 방향:
+
+- BAT Runtime 역할 분리
+- Lease/Fencing
+- ADM MBR Ownership 제거
+- REF MBR 중립화
+- Query Contract/Runtime SQL Template
+- Build Tooling `cpf-tools/build` 이동
+
+남은 위험:
+
+- Generated Domain Golden parity
+- BAT EDU parity
+- Gateway Fault/Multi-instance
+- 대규모 변경 이후 최종 regression
+
+### ChatGPT `20260727_02`
+
+방향은 적절했으나 QA를 반영해 다음을 재보강한다.
+
+- Artifact 공개 전 Quality 기준
+- Local auto-sync side effect
+- partial/mixed mutable artifact
+- exact POM/BOM/Plugin Marker/Hash
+- REMOTE Local fallback 금지
+- Server/Offline 공급 모델
+
+상세 리뷰:
+`cpf-docs/work/review/CPF_CHATGPT_PRE_IMPLEMENTATION_REVIEW_20260727_04.md`
+
+## 4. 통합 우선순위
+
+### CHANGE-SET-A — Stack / Artifact / Baseline Safety
+
+상태: **ChatGPT Source 보강 진행 / Runtime 미검증**
+
+관련 QA:
+
+- `QA-STACK-001~003`
+- `QA-ART-001~010`
+- `QA-BASE-001~003`
 
 목표:
 
-1. `cpf-core`, `cpf-common`, BAT public contract/testkit, CPF BOM, Domain Convention Plugin을 동일 CPF build에서 생성한다.
-2. 원격 Artifact Registry가 없는 로컬 개발에서는 `${user.home}/.cpf/repository`를 기본 공유 Maven Repository로 사용한다.
-3. `CPF_LOCAL_ARTIFACT_REPOSITORY` 또는 Gradle property `cpfLocalArtifactRepository`로 경로를 변경할 수 있다.
-4. 원격 `CPF_ARTIFACT_REPOSITORY_URL`이 있으면 원격을 우선하되 로컬 fallback도 사용할 수 있다.
-5. CPF Root의 `build`가 성공한 경우에만 로컬 환경의 public artifact를 자동 동기화하며, 실패한 build는 shared repository에 publish하지 않는다.
-6. `-PcpfAutoLocalArtifactSync=false`로 특수 검증/CI에서 자동 동기화를 끌 수 있다.
-7. 독립 Generated Domain 생성 시 원격 Repository가 없으면 Generator가 CPF local public artifact를 먼저 publish한다.
-8. 생성된 독립 Repository는 shared local Repository를 자동 탐색한다.
-9. Generated Domain은 `com.cpf.domain-conventions`를 사용하여 Java 25/reproducible archive/repository 규칙을 공유한다.
-10. Generated Domain의 `bootJar`와 `bootWar` 모두 `cpf-core`, `cpf-common` 및 필요한 BAT contract JAR 포함 여부를 검증한다.
-11. Root 배포 Gate도 가능한 `bootWar`에 대해 `WEB-INF/lib` 포함 여부를 확인한다.
+- 현재 지원 범위 밖 Stack을 숨기지 않고 `TRANSITION` 관리
+- Version Single Source
+- `LOCAL_DEV / REMOTE / OFFLINE` 배타 공급
+- REMOTE Local fallback 금지
+- Local auto-sync 기본 off
+- Aggregate Quality → isolated staging → artifact verify → manifest barrier promotion
+- Remote `cpfInternal` 전용 publish
+- Offline Maven Bundle
+- 최신 SHA 문서 재기준화
 
-판정: **이번 ChatGPT 구현 대상**.
+Spring Boot 4 실제 Migration은 별도 Stack Migration Change Set으로 수행한다.
+현재 Candidate는 4.1.0이며 External WAS/Servlet 6.1/Spring Batch/MyBatis/Flyway/Generated Domain compatibility를 먼저 검증한다.
 
-### CPF-ADMIN-CONTACT-001 — ADM/BZA 연락처 의미 분리
+### CHANGE-SET-B — ADM/BZA Data Safety
 
-표시/계약:
+관련 QA:
 
-- 휴대폰 번호는 UI에서 `연락처(휴대폰)`으로 표시한다.
-- `내부 전화번호`를 별도 선택 필드로 제공한다.
-- 전화번호는 숫자 DB Type을 사용하지 않는다.
-- 미입력은 `NULL`/null로 유지한다.
-- ADM 운영자와 BZA 직원 모두 동일 의미를 사용한다.
-- ADM 연락처는 인증 Identity인 `adm_operator`가 아니라 Directory/Profile인 `adm_operator_profile`이 소유한다. 운영자 API는 편의를 위해 Profile 연락처를 Projection한다.
-- 기존 Java record 생성자 Consumer가 깨지지 않도록 호환 생성자를 유지한다.
+- `QA-ADM-DB-001~005`
+- `QA-PII-001~008`
+- `QA-BZA-STATUS-001~005`
+- `QA-DB59/60`
+- `QA-SQL-001~004`
 
-DB:
+목표:
 
-- `adm_operator_profile.MOBILE_NO`
-- `adm_operator_profile.OFFICE_PHONE_NO`
-- `adm_operator` 인증 Identity에는 연락처 컬럼을 추가하지 않는다.
-- `bza_employee.mobile_no`는 연락처(휴대폰) 의미로 유지
-- `bza_employee.office_phone_no` 신규
-- 신규 Migration `V59__admin_contact_model.sql`
-- Rollback `V59__admin_contact_model_rollback.sql`
+- ADM Identity/Profile/Role 생성 Transaction 원자성
+- Product DB 오류 fail-closed, Memory fallback 명시 Demo/Test 전용
+- 연락처 Masked API/UI, raw 권한/사유/Audit
+- Audit/Log/Trace/Evidence PII redaction
+- Blank → NULL
+- Employment Status/Account Status 분리
+- V59/V60 upgrade/rollback/reapply/fresh
+- BZA inline SQL/Vendor SQL 및 Core Internal import 정리
 
-판정: **이번 ChatGPT 구현 대상**.
+### CHANGE-SET-C — Generated Domain Golden
 
-### CPF-BZA-DEFAULT-001 — 직원 Safe Default 정렬
+관련 QA: `QA-GEN-001~010`
 
-QA의 직원 기본 재직 상태는 `EMPLOYED`인데 최신 Source/DDL은 `ACTIVE`였다.
-기존 Row를 일괄 변환하지 않고 신규 입력/DDL Default만 `EMPLOYED`로 정렬한다.
+목표:
 
-- `BzaBackofficeService` 미입력 기본값 `EMPLOYED`
-- `bza_employee.employment_status` DDL Default `EMPLOYED`
-- `V60__bza_employee_safe_defaults.sql`
-- Rollback은 기존 Default `ACTIVE` 복원
+- MBR/ACC/신규 Domain normalized parity
+- Root fixed include 정책 제거
+- Package/Class/Port 기반 SystemCode 추론 제거
+- 임시 Domain 2개 create/export/build/package/runtime/remove/regenerate
+- Local/Remote/Offline Artifact Mode 동일 계약
+- Generator/DB/Install 동적 발견
 
-판정: **이번 ChatGPT 구현 대상 / 실행 미검증**.
+### CHANGE-SET-D — BAT Runtime / EDU / Job Pack
 
-## 3. Codex 중단분 최신 master 재분류
+관련 QA: `QA-BAT-001~007`
 
-| Requirement | 최신 master 판정 | 후속 |
-|---|---|---|
-| 고정 `/mbr`/port 기반 Target 추정 제거 | 구현 확인됨 | 관련 Core/GWY 표적 Test만 필요 |
-| Generated Domain DB Installer 동적 발견 | 구현 확인됨 | 신규 임시 Domain 2개 설치 경로로 재확인 |
-| ADM의 MBR 전용 Controller/Service/UI 결합 제거 | 구현 확인됨 | ADM focused test |
-| REF의 MBR Service Call 예제 제거 | 구현 흔적 확인 | REF self-contained Gate 재확인 |
-| BAT `cpf-batch/src/**` Legacy 제거 | Source 제거 확인 | 기능/EDU Inventory parity 재확인 |
-| Build Tooling `cpf-tools/build/*` 이동 | 구현 확인됨 | 이번 local artifact 변경과 함께 재검증 |
-| BAT 158 Query Pack | 이전 실제 MariaDB PREPARE 완료 | 이번 변경과 직접 무관하므로 전체 재실행 금지 |
-| MBR/ACC Golden normalized parity | **미완료** | Generator-first 이관 P0 |
-| `settings.gradle`의 MBR/ACC Root 고정 Include 정책 | **미완료** | Golden Reference 정책 확정 후 수정 |
-| `CpfSystemCodes.inferFromTypeName` type/package 추론 | **잔존/Consumer 재확인 필요** | 실제 Consumer 0 확인 후 제거 또는 Registry 계약으로 치환 |
-| Historical Migration 전체 Chain | 미검증 | 최종 통합 검증 시 수행 |
-| Browser/Multi-instance/Fault | 미검증 | 관련 기능 안정화 후 통합 검증 |
+목표:
 
-## 4. 남은 P0
+- 삭제 Legacy File 전체 disposition
+- Runtime 기능 parity
+- REF EDU 실행 parity
+- Generated Domain Job Pack 표준
+- Restart/Rerun/Checkpoint/Idempotency/Unknown Result
+- Scheduler/Worker/Center-Cut 실제 Multi-instance
 
-### P0-A Generated Domain Golden 구조
+Batch Scheduler lifecycle 정본:
+`cpf-docs/guides/CPF_BATCH_SCHEDULER_INSTANCE_LIFECYCLE_GUIDE.md`
 
-- MBR/ACC를 동일 Capability의 normalized Generator-owned tree로 정규화한다.
-- MBR 하나만 Golden Reference로 둘지, ACC를 두 번째 Generated Reference Instance로 둘지 정본화한다.
-- 고객 업무 Legacy 구현은 Generator-owned 영역과 분리한다.
-- 임시 `payment/PAY`, `insurance/INS`를 생성해 normalized tree/hash, bootJar/bootWar, DB sample, 삭제/재생성을 검증한다.
-- Generated Domain 삭제가 Platform build/menu/health/route를 깨지 않도록 한다.
-- `CpfSystemCodes` 등 package/type/path/port 추론 잔재를 Consumer 확인 후 제거한다.
+### CHANGE-SET-E — Gateway / Operations
 
-### P0-B BAT Legacy 기능/EDU parity
+관련 QA: `QA-GWY-001~009`, UI/ADM/BZA/OBS/LIFE
 
-- `CPF_LEGACY_BATCH_MIGRATION_MAP.md`와 삭제된 146개 파일을 Standalone Runtime/REF EDU/Generator Job Pack으로 양방향 대조한다.
-- 설명만 있고 실행 불가능한 EDU는 완료 처리하지 않는다.
-- BAT 실제 5 Runtime 다중 Process topology는 최종 통합 검증으로 남긴다.
+목표:
 
-### P0-C Gateway Resilience
+- target-down failover
+- timeout/retry budget
+- non-idempotent UNKNOWN_RESULT/reconciliation
+- O/S/B 경계
+- Header trust
+- 2 Gateway drift/rejoin
+- ADM/BZA Browser/Accessibility
+- transactionId timeline
+- Install/Upgrade/Rollback/Deployment Cell
 
-- Target A down → B failover
-- Outlier/ejection/recovery
-- connect/read/overall timeout
-- retry budget/idempotency
-- `UNKNOWN_RESULT`와 reconciliation
-- O/S/B 경계 및 외부→S 우회 차단
-- header trust boundary
-- 2 Gateway route version/drift
+## 5. Artifact 공급 최종 방향
 
-현재 Module Test/단일 Runtime boot 성공만으로 위 항목을 완료 처리하지 않는다.
+### LOCAL_DEV
 
-### P0-D ADM/BZA 운영 완결성
+```text
+같은 Repo Domain
+→ Project Dependency로 Core/Common 변경 자동 반영
 
-- Generated Domain capability 기반 범용 관리
-- 직원/조직 Assignment, Role/Permission, Approval
-- 위험조치 승인/Audit
-- Server paging/filter/sort
-- Browser 접근성/오류/partial failure
-- 개인정보 masking/download audit
-- 이번 연락처 변경은 위 전체 항목 중 연락처 의미 모델만 닫는다.
+독립 Domain
+→ 검증 Shared Local Maven Repository
+→ current HEAD PROMOTED manifest가 있으면 재사용
+→ 없거나 stale이면 verified publish
+```
 
-## 5. 남은 P1
+### REMOTE
 
-- Platform Module inline/vendor SQL 중앙화
-- 5 Vendor Source/Template/Contract parity
-- Historical migration/rollback/reapply
-- Runtime SQL 실제 계정 검증
-- Config metadata
-- Message/Code catalog
-- Repository/Source access governance
-- Deployment Cell
-- Browser E2E
-- Multi-instance/Fault/UNKNOWN_RESULT 통합 검증
-- SBOM/License/CVE/Signature
-- 최종 Repository Hygiene와 최신 SHA Evidence
+```text
+Jenkins Platform Build
+→ 검증된 Version
+→ Nexus/Artifactory cpfInternal
+→ 업무 Domain이 고정 Version 소비
+```
 
-## 6. DB 변경 절대 순서
+Local fallback 금지.
 
-`Canonical Source/Metadata → Generator/Template 영향 확인 → Vendor 영향 확인 → Migration → Rollback → Generated lifecycle artifact → Verify/Manifest → Runtime Consumer → Evidence`
+### OFFLINE
 
-이번 V59/V60은 MariaDB 실검증 Vendor의 canonical source/migration까지 준비한다.
-`sync-database-artifacts.ps1`와 실제 MariaDB 적용을 실행하지 않은 상태에서 DB 완료로 표시하지 않는다.
-다른 4개 Vendor는 현재 Platform Schema source가 실DB 정본 수준으로 존재하지 않으므로 SQL을 임의 복제하지 않는다.
-정식 Vendor projection/compiler 또는 검증된 Vendor-specific source를 마련한 뒤 완료 처리한다.
+```text
+Verified CPF Maven Set
+→ Version/SourceSHA/Hash/Manifest Offline Bundle
+→ 폐쇄망 서버에서 OFFLINE Repository로 사용
+→ Domain bootJar/bootWar에 자동 포함
+```
 
-## 7. Codex 크레딧 절약형 검증 원칙
+개별 JAR 수동 복사는 정상 절차가 아니다.
 
-Codex는 다음 순서로 검증한다.
+상세:
+`cpf-docs/guides/CPF_ARTIFACT_SUPPLY_AND_CICD_GUIDE.md`
 
-### A. ChatGPT 변경 범위 — 반드시 재검증
+## 6. Gate / Tool / Manual
 
-1. `publishCpfLocalPlatformArtifacts`
-2. `verifyCpfLocalArtifactPropagation`
-3. 임시 Generated Domain 1~2개 `create-domain-repository.ps1`
-4. 생성 Repository `clean test verifyCpfPackagedDependencies`
-5. ADM/BZA 변경 Module compile/test
-6. ADM/BZA Frontend typecheck/build
-7. `check-admin-contact-model.ps1`
-8. DB artifact sync
-9. MariaDB V59 Upgrade → 확인 → Rollback → Reapply
-10. `check-bza-safe-defaults.ps1` 및 V60 Default Upgrade → Rollback → Reapply
+정본:
+`cpf-docs/guides/CPF_GATE_AND_TOOL_LIFECYCLE_GUIDE.md`
 
-### B. Codex 중단점 — 이어서 검증
+향후 전체 Gate를 다음으로 분류한다.
 
-- MBR/ACC Golden parity
-- REF self-contained dependency 0
-- `CpfSystemCodes` inference Consumer
-- BAT EDU migration parity
+- `DEV_ONLY`
+- `CI_RELEASE`
+- `PRODUCT_ADMIN_TOOL`
 
-### C. 지금 다시 하지 않는 고비용 검증
+대표 Entry 목표:
 
-다음은 이번 변경과 직접 관련 없는 이상 무조건 반복하지 않는다.
+- `QUICK`
+- `VERIFY`
+- `FULL`
 
-- BAT 158 SQL 전체 PREPARE
-- 기존 V58 lifecycle
-- 이미 성공한 전체 416 Test의 무조건 재실행
-- 전체 Browser E2E
-- 전체 Multi-instance/Fault suite
+중복/Legacy/Caller 0/일회성 Gate는 Requirement coverage를 확인 후 통합·삭제한다.
+개발/CI Gate는 Runtime 제품 배포물에 포함하지 않는다.
 
-단, A/B 검증에서 공통계약 회귀가 발견되면 영향 범위에 맞춰 확대한다.
+공식 Tool은 옵션/Default/환경변수/입출력/Side Effect/실패/복구/예제를 문서화한다.
 
-## 8. 완료 금지
+## 7. 보호할 기존 성공 기능
 
-- ChatGPT가 만든 patch를 Build 없이 완료 처리
-- local Maven Repository에 파일이 있다는 이유만으로 bootJar/bootWar 포함을 추정
-- Generated output만 수동 수정
-- V59 SQL 존재만으로 DB 완료
-- 휴대폰/내부 전화번호를 한 Column으로 재통합
-- 전화번호를 numeric type으로 변경
-- 기존 검증 성공을 변경 후 성공으로 자동 승계
-- Codex에게 처음부터 모든 검증을 다시 시켜 크레딧을 소모
+- BAT 158 Query Pack과 기존 MariaDB PREPARE Evidence
+- V58 lifecycle Evidence
+- BAT Lease/Fencing 구조
+- ADM MBR 직접 결합 제거
+- REF MBR 중립화
+- ADM Identity/Profile 연락처 Ownership
+- V59/V60 Source/Migration/Rollback
 
-## 9. 이번 작업 인계 파일
+단 이후 변경 영향이 생기면 해당 PASS는 다시 연다.
 
-- `cpf-docs/work/current/CPF_NEXT_INTEGRATED_DEVELOPMENT_REQUEST_20260727.md`
-- `cpf-docs/work/state/CPF_CHANGE_IMPACT_AND_VALIDATION_LEDGER.md`
-- `cpf-docs/work/state/CPF_CODEX_CONTINUITY_STATE.md`
-- `cpf-docs/work/review/CPF_CHATGPT_1ST_IMPLEMENTATION_REPORT_20260727.md`
-- `cpf-docs/work/review/CPF_CODEX_2ND_REVIEW_CHECKLIST_20260727.md`
-- `cpf-docs/evidence/CPF_NEXT_INTEGRATED_EVIDENCE_INDEX_20260727.md`
+## 8. 현재 재검증 필요
 
+CHANGE-SET-A 영향:
 
-## 통합 잔여 Requirement Matrix
+- Java25 전체 compile/test
+- Included BOM/Convention Plugin
+- Generated standalone Domain
+- bootJar/bootWar
+- Local Artifact publish/promotion
+- Generator create/export/package
 
-- `cpf-docs/work/current/CPF_REMAINING_REQUIREMENT_MATRIX_20260727.md`
-- QA 전체 항목을 구현 확인/부분 구현/미완료/통합검증 예정으로 재분류한 정본이며, 다음 검수는 이 Matrix와 Change Ledger를 함께 사용한다.
+즉시 전수 반복하지 않는 것:
 
+- BAT 158 SQL PREPARE
+- V58 SQL lifecycle
 
-## 10. 다음 개발 추가 준비 Requirement — Artifact 공급 3모드
+최종 aggregate/historical migration에서 영향이 생기면 다시 연다.
 
-### CPF-ARTIFACT-SUPPLY-001
+## 9. Codex 투입 시점
 
-Generated Domain/독립 WAS는 다음 세 Artifact 공급 모드를 동일 Gradle Dependency 계약으로 지원한다.
+Codex는 지금 바로 투입하지 않는다.
+ChatGPT가 위 Change Set을 몇 차례 더 수행한 후 최신 master의 누적 Diff를 기준으로 다음 문서를 재생성한다.
 
-1. `LOCAL_DEV`
-   - 같은 Repository에서는 Project Dependency로 최신 Core/Common Source 변경을 자동 반영한다.
-   - 독립 Repository에서는 shared local CPF repository를 사용할 수 있다.
-2. `REMOTE`
-   - Jenkins/CI/STG/PROD는 승인된 Nexus/Artifactory 등에서 고정 CPF Version을 사용한다.
-   - Remote artifact가 없을 때 개발자/서버 Local repository로 fallback하지 않고 fail-closed한다.
-3. `OFFLINE`
-   - Registry가 없는 고객 환경을 위해 version/manifest/checksum/BOM을 포함한 CPF Offline Library Bundle을 제공한다.
-   - 업무 Domain이 JAR을 수동 복사하지 않고 Gradle이 Bundle의 검증된 artifact를 선택해 bootJar/bootWar/lib에 자동 포함한다.
+- Implementation Report
+- Change Impact Ledger
+- Codex Review Checklist
+- Handover
+- Continuity
+- Evidence Index
+- Unverified Scenario List
 
-서버 CI/CD에서 업무 Domain 빌드 때 CPF 최신 Source를 무조건 다시 Checkout/Compile하여 결과물이 변하는 구조는 표준으로 사용하지 않는다.
-동일 업무 Source + 동일 CPF Version은 재현 가능한 동일 Dependency Set을 가져야 한다.
+Codex는 ChatGPT 보고를 완료 근거로 사용하지 않고 최신 Git/Consumer/DB/Generator/UI/Runtime을 독립 검증한다.
 
-## 11. 다음 개발 추가 준비 Requirement — Gate·PowerShell·Tool Lifecycle
+## 10. 완료 금지
 
-정본: `cpf-docs/guides/CPF_GATE_AND_TOOL_LIFECYCLE_GUIDE.md`
+다음 상태에서는 완제품으로 완료 처리하지 않는다.
 
-다음 작업에서 전체 Gate/PowerShell/Gradle Task를 Inventory하고 아래를 수행한다.
-
-- `DEV_ONLY` / `CI_RELEASE` / `PRODUCT_ADMIN_TOOL` 역할 분류
-- 중복/Legacy/무호출/일회성 Gate 통합 또는 삭제
-- 삭제 전 실제 호출자, 보호 Requirement, 대체 Gate, CI/Guide 참조를 확인
-- 개발 대표 Entry `QUICK` / 작업단위 `VERIFY` / 통합 `FULL` 정립
-- 가능한 기본 Gate는 Gradle/JVM Portable Entry를 정본화하고 PowerShell은 Windows Wrapper로 사용
-- 공식 Tool의 모든 옵션/Default/환경변수/Side Effect/실패/복구/예제를 Guide와 Script Help에 일치시킴
-- `DEV_ONLY`/`CI_RELEASE`는 Runtime 배포물에 포함하지 않음
-- 설치/Upgrade/Rollback/DB Verify/Generator/Offline Bundle 관리 등 `PRODUCT_ADMIN_TOOL`만 별도 관리 Tool 패키지 제공 가능
-
-ChatGPT가 안전하게 삭제 여부를 확정하지 못한 Gate는 `삭제 후보/재확인 필요`로 문서화하고, 향후 Codex가 최신 master에서 실제 Consumer와 Requirement coverage를 검증한 뒤 제거한다.
-
-## 12. Codex 투입 시점 보정
-
-Codex는 즉시 투입하지 않고 ChatGPT 개발을 여러 차례 더 진행한 뒤 사용한다.
-따라서 현재 `CPF_CODEX_2ND_REVIEW_CHECKLIST_20260727.md`는 중간 Checklist이며 최종 요청서가 아니다.
-Codex 투입 직전 최신 master 기준으로 다음을 다시 계산한다.
-
-- ChatGPT 이후 변경 전체 Diff
-- 과거 PASS 중 변경 영향으로 재검증해야 하는 항목
-- 신규 미검증 항목
-- 통합검증 예정 항목
-- Gate/Tool 삭제 후보와 Manual 누락
-- Artifact `LOCAL_DEV`/`REMOTE`/`OFFLINE` 공급 회귀
-
-Codex 비용은 ChatGPT 1차 구현 결함의 대규모 재개발보다 독립 QA, 실제 Runtime/DB/Browser/Multi-instance 검증에 우선 사용한다.
+- 공식 지원 가능한 Stack 미확정
+- Partial/Mutable Artifact 혼합 위험 미해소
+- ADM Partial DB Write/fail-open
+- PII 원문 목록/Audit
+- V59/V60 lifecycle 미검증
+- Generated Domain 특별취급
+- BAT 삭제 기능 미대체
+- Gateway Fault 미검증
+- Browser/Multi-instance 미검증
+- 최신 SHA Evidence 부재

@@ -366,6 +366,8 @@ DB Secret은 Process 범위에서만 주입하고 Console, Evidence, 문서, Git
 
 # ChatGPT 1차 개발 인계 추가 — 2026-07-27
 
+> **역사 기록 주의:** 이 절은 `fb95e15f...` 기준 1차 Patch 당시 상태를 보존한 History다. Artifact 공급/자동 Sync/Codex 즉시 검증 정책은 아래 `2026-07-27 ChatGPT 2차 개발 Continuity`가 현재 정본이며, 상충 시 아래 최신 절을 따른다.
+
 ## 기준과 권한
 
 - 이번 ChatGPT 작업 시작 기준: `fb95e15f90856adcff39040a50b128aa40f5ef43` (`20260727_01`)
@@ -404,7 +406,7 @@ DB Secret은 Process 범위에서만 주입하고 Console, Evidence, 문서, Git
 
 - shared local Maven repository 기본값 `${user.home}/.cpf/repository`
 - `CPF_LOCAL_ARTIFACT_REPOSITORY` / `-PcpfLocalArtifactRepository` override
-- 원격 `CPF_ARTIFACT_REPOSITORY_URL` 우선 + local fallback
+- [역사 기록/폐기된 정책] 원격 `CPF_ARTIFACT_REPOSITORY_URL` 우선 + local fallback — **20260727_04부터 금지. REMOTE/OFFLINE은 fail-closed**
 - Root `build` 성공 시에만 local auto publication (`-PcpfAutoLocalArtifactSync=false` opt-out); 실패 build는 shared local repository publish 금지
 - `publishCpfLocalPlatformArtifacts`
 - `verifyCpfLocalArtifactPropagation`
@@ -532,3 +534,72 @@ ChatGPT가 안전하게 삭제를 확정하지 못한 Gate는 억지로 보존 �
 - 이 Continuity State
 
 QA 최종 개선요청이 도착하면 기존 준비 Requirement와 병합하고 중복을 제거한 뒤 구현한다.
+
+## 2026-07-27 ChatGPT 2차 개발 Continuity — 시작 SHA `702bf83580b9c4db2dbba6482ece233e00842f1b`
+
+### 현재 상황
+
+- 사용자가 `20260727_03` 문서 Patch까지 master에 Push했다.
+- 이후 `CPF 차기 통합 QA 요구사항`을 전달했다.
+- QA는 `9e4edaef...` 기준으로 작성됐으므로 최신 `702bf835...`를 시작 기준으로 재산정했다.
+- 이번 ChatGPT 작업은 `CHANGE-SET-A — Stack / Artifact / Baseline Safety`에 한정한다.
+- Codex는 아직 투입하지 않는다. 이후 몇 차례 ChatGPT 개발을 더 수행한 최신 master에서 Checklist를 다시 생성한다.
+
+### QA 병합 결론
+
+우선순위:
+
+1. Stack/Artifact/Baseline Safety
+2. ADM/BZA DB 원자성·PII·Status·V59/V60·SQL Boundary
+3. Generated Domain Golden normalization
+4. BAT Legacy/EDU parity
+5. Gateway Fault/Multi-instance
+6. ADM/BZA Browser/Observability/Lifecycle/Release
+
+### 이번 변경의 핵심 정책
+
+- 현재 Java25/Gradle9.1/Boot3.4.13은 `TRANSITION`이며 Commercial GA로 완료 처리 금지.
+- Java25/Gradle9 목표를 유지하고 Boot 4.x는 별도 Migration Change Set에서 검증한다.
+- Stack Version은 `gradle/cpf-stack.properties`가 정본이다.
+- Artifact 공급은 `LOCAL_DEV / REMOTE / OFFLINE` 중 하나만 사용한다.
+- REMOTE/OFFLINE은 개발자 Local Repository fallback 금지.
+- Local auto-sync 기본값은 false.
+- Local public artifact는 `aggregate quality → isolated staging → identity/hash verify → manifest barrier promotion` 이후에만 공개한다.
+- Remote publish는 `cpfInternal` 전용 task만 사용하여 Local Repository를 건드리지 않는다.
+- Offline은 개별 JAR 복사가 아니라 versioned Maven Bundle을 사용한다.
+
+### Batch Scheduler 인스턴스 정책 확인
+
+현재 BAT는 자정 일괄 Job Instance 선생성 구조가 아니다.
+
+- `bat_schedule`: Cron/Calendar/Window/Timezone/next_fire_at DB 정본
+- `cpf.batch.scheduler.dispatch-ms`: DB polling interval Property
+- due 시 `bat_schedule_trigger` + CPF `bat_execution READY` 생성
+- Worker가 `JobLauncher.run()`할 때 Spring Batch JobInstance/JobExecution 생성
+
+상세 정본:
+`cpf-docs/guides/CPF_BATCH_SCHEDULER_INSTANCE_LIFECYCLE_GUIDE.md`
+
+### 검증 재개방
+
+이번 Build/BOM/Plugin/Generator 변경 때문에 다음 과거 PASS는 다시 검증 대상이다.
+
+- 전체 Java compile/test
+- Included Build BOM/Plugin
+- Generated standalone Domain
+- bootJar/bootWar
+- Artifact publication/package
+
+BAT 158 SQL/V58 자체는 직접 변경하지 않았으므로 즉시 전체 반복하지 않는다. 최종 aggregate/historical lifecycle에서만 필요한 범위를 다시 확인한다.
+
+### Codex 후속 필수
+
+Codex를 실제 투입할 때는 현재 문서를 그대로 쓰지 말고 **그 시점 최신 master의 누적 ChatGPT Diff**로 Checklist를 재산정한다.
+특히 이후 ChatGPT 변경으로 영향받은 기존 PASS를 다시 연다.
+ChatGPT 구현 보고를 완료 근거로 사용하지 않는다.
+
+### Git 권한
+
+이전 세션의 Push 승인은 승계되지 않는다. 사용자 명시 승인 없이 Commit/Push/Branch/Tag/Release 금지.
+
+- 상세 QA 입력 보존본: `cpf-docs/work/review/CPF_QA_INPUT_20260727_04.md`

@@ -2,7 +2,7 @@
 
 ## 기준
 
-- 기준 SHA: `9e4edaef24dce901fdcf722e2e6d8c0cf0a623ba` (`20260727_02`)
+- 현재 작업 기준 SHA: `702bf83580b9c4db2dbba6482ece233e00842f1b` (`20260727_03`)
 - 입력: `CPF_FINAL_TARGET_REQUIREMENTS.md`, QA 통합 요구, Codex Continuity, 최신 Git 재검토, 사용자 추가 요구
 - 상태: `구현 확인`, `이번 패치 구현·미검증`, `부분 구현`, `미구현`, `통합검증 예정`, `재확인 필요`
 - 원칙: 이전 실행 Evidence와 이후 변경 영향이 겹치지 않으면 무조건 재실행하지 않는다. 반대로 이후 ChatGPT/Codex 변경의 직접·간접 영향권에 들어온 과거 PASS는 `재검증 필요`로 다시 연다.
@@ -65,13 +65,13 @@
 | ID | 상태 | 최신 판정 / 남은 작업 |
 |---|---|---|
 | BUILD-001~002 | 구현 확인/재확인 | Tooling이 `cpf-tools/build/*`로 이동. isolated publish/consumer 재검증 필요 |
-| CPF-BUILD-LOCAL-001 | 이번 패치 구현·미검증 | 성공한 CPF build 후 shared local Maven sync, Generator standalone local resolution, BOM/Convention Plugin, bootJar/bootWar dependency Gate 추가 | Codex focused artifact validation |
+| CPF-BUILD-LOCAL-001 | 보강 구현·미검증 | auto-sync 기본 off, aggregate quality + isolated staging + manifest/hash/sourceFingerprint 검증 후 Shared Local promotion, Generator current-HEAD manifest 재사용 | 실제 Java25/PowerShell/standalone focused validation |
 | BUILD-003~004 | 부분 구현 | cleanup 안전성 보정 이력 있음. 최신 기준 garbage/hygiene 최종 감사 필요 |
 | BUILD-005 | 재확인 필요 | IDE Problems의 실제 오류 vs SQL extension/Language Server stale 분류를 최종 개발 환경에서 확인 |
-| 독립 Artifact Federation | 이번 패치 구현·미검증 | Remote registry 우선 + local fallback. 상용은 승인된 Registry 사용 | generated standalone build/package |
+| 독립 Artifact Federation | 보강 구현·미검증 | `LOCAL_DEV`/`REMOTE`/`OFFLINE` 배타 공급. REMOTE/OFFLINE Local fallback 금지, Local은 PROMOTED manifest 기반 | generated standalone build/package |
 | ART-SUPPLY-LOCAL | 부분 구현/후속 | `LOCAL_DEV`는 동일 Repo Project Dependency 또는 shared local CPF repository로 최신 개발 artifact 사용 | source change → domain package focused verify |
 | ART-SUPPLY-REMOTE | 부분 구현/후속 | CI/CD는 승인된 Nexus/Artifactory 등 고정 Version만 사용. Local fallback 금지/fail-closed 필요 | CI isolated repository test |
-| ART-SUPPLY-OFFLINE | 미구현/준비 | Registry 없는 환경용 version/manifest/checksum/BOM 포함 Offline Library Bundle과 Gradle 자동 packaging 필요 | offline consumer package test |
+| ART-SUPPLY-OFFLINE | 구현·미검증 | Registry 없는 환경용 PROMOTED manifest/checksum/BOM 포함 Offline Maven Bundle 생성과 Standalone fail-closed resolution 구현 | offline consumer package test |
 
 ## F. DB / Query / Migration
 
@@ -138,3 +138,23 @@
 | TOOL-GATE-008 | 지속 관리 | ChatGPT가 삭제를 확정하지 못한 Gate는 삭제 후보로 기록하고 미래 Codex가 최신 master 실제 호출자/coverage 확인 후 제거 |
 
 정본: `cpf-docs/guides/CPF_GATE_AND_TOOL_LIFECYCLE_GUIDE.md`
+
+
+## K. 20260727_04 QA 병합 신규 P0
+
+| ID | 상태 | 최신 판정 / 남은 작업 |
+|---|---|---|
+| STACK-001 | 부분 구현 | 현재 Java 25/Gradle 9.1.0/Boot 3.4.13은 공식 지원 Matrix 밖. `gradle/cpf-stack.properties` 단일 정본과 `TRANSITION` Release 차단을 이번 Change Set에서 구현. Boot 4 계열 실제 Migration/Runtime은 후속 |
+| STACK-002 | 이번 패치 구현·미검증 | Root/Module/Generator/Standalone plugin version literal 제거 및 Stack 정본 사용. 전체 Repo static gate와 Gradle configuration 재검증 필요 |
+| ART-001 | 이번 패치 구현·미검증 | `aggregateQualityBuild`와 검증된 Local publish orchestration 추가. 실패 build no-publish 실제 Fault Test 필요 |
+| ART-002 | 이번 패치 구현·미검증 | Local 자동 Sync 기본 opt-in으로 변경. `LOCAL_DEV`에서만 허용 |
+| ART-003 | 부분 구현·미검증 | isolated staging → POM/module/BOM/Plugin Marker/Hash 검증 → publisher lock → manifest barrier → version-dir promote/rollback 구현. 진정한 Remote server-side atomic promotion과 Windows concurrent consumer는 후속 |
+| ART-004 | 부분 구현 | Snapshot immutable 정책은 아직 후속. Local 개발 Snapshot과 Release immutable repository 분리 필요 |
+| ART-005~006 | 이번 패치 구현·미검증 | Artifact identity/hash/marker/BOM 검증 강화. bootJar/bootWar 내부 exact hash 연동은 후속 |
+| ART-007~008 | 이번 패치 구현·미검증 | CPF repository content filter와 LOCAL_DEV/REMOTE/OFFLINE fail-closed mode 추가. Standalone property/env precedence 실검증 필요 |
+| ART-009~010 | 미구현/부분 | 실제 Remote Registry authentication/timeout/promotion 및 release signature/provenance 통합은 후속 CI/Release Change Set |
+| BASE-001 | 이번 패치 구현 | Current Request/Matrix/Continuity/Review/Handover를 최신 `702bf835...` 이후 Change Set 기준으로 재기준화 |
+| BASE-002 | 미구현 | GitHub CI Required Checks/Branch Protection은 Repository 설정과 Workflow 구현 필요 |
+| BASE-003 | 정책 반영 | 이후 Build/Generator/Artifact 변경 영향권의 과거 PASS는 재검증 필요로 재개방 |
+| TOOL-GATE-001 | 부분 구현 | Gate/Tool Lifecycle 정본 존재. 전체 Inventory와 중복/Legacy 삭제는 후속. Codex 투입 전 삭제 후보를 다시 최신 Source로 계산 |
+| ART-SUPPLY-OFFLINE | 이번 패치 구현·미검증 | `buildCpfOfflineArtifactBundle` 및 Manifest/Checksum Bundle 추가. 실제 외부 서버/Standalone Domain 소비 검증 필요 |

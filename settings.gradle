@@ -3,9 +3,78 @@
  * 품질 gate는 offline 실행을 기본으로 보장해야 하므로 외부 Build Scan 플러그인은 필수 경로에서 제외합니다.
  */
 pluginManagement {
+    def cpfStackProperties = new Properties()
+    def cpfStackFile = file('gradle/cpf-stack.properties')
+    if (!cpfStackFile.isFile()) {
+        throw new GradleException("CPF stack properties is missing: ${cpfStackFile}")
+    }
+    cpfStackFile.withInputStream { cpfStackProperties.load(it) }
+
+    plugins {
+        id 'org.springframework.boot' version cpfStackProperties.getProperty('springBootVersion')
+        id 'io.spring.dependency-management' version cpfStackProperties.getProperty('springDependencyManagementVersion')
+    }
+
+    def cpfArtifactMode = providers.gradleProperty('cpfArtifactMode')
+            .orElse(providers.environmentVariable('CPF_ARTIFACT_MODE'))
+            .orElse(providers.gradleProperty('cpfArtifactRepositoryUrl').map { 'REMOTE' })
+            .orElse(providers.environmentVariable('CPF_ARTIFACT_REPOSITORY_URL').map { 'REMOTE' })
+            .orElse('LOCAL_DEV')
+            .get()
+            .trim()
+            .toUpperCase(Locale.ROOT)
+    if (!(cpfArtifactMode in ['LOCAL_DEV', 'REMOTE', 'OFFLINE'])) {
+        throw new GradleException("Unsupported CPF artifact mode: ${cpfArtifactMode}")
+    }
+    def cpfRemoteRepo = providers.gradleProperty('cpfArtifactRepositoryUrl')
+            .orElse(providers.environmentVariable('CPF_ARTIFACT_REPOSITORY_URL')).orNull
+    def cpfLocalRepo = providers.gradleProperty('cpfLocalArtifactRepository')
+            .orElse(providers.environmentVariable('CPF_LOCAL_ARTIFACT_REPOSITORY'))
+            .orElse(new File(System.getProperty('user.home'), '.cpf/repository').absolutePath)
+            .get()
+    def cpfOfflineRepo = providers.gradleProperty('cpfOfflineArtifactRepository')
+            .orElse(providers.environmentVariable('CPF_OFFLINE_ARTIFACT_REPOSITORY'))
+            .orNull
+    if (cpfArtifactMode == 'REMOTE' && !cpfRemoteRepo) {
+        throw new GradleException('CPF_ARTIFACT_MODE=REMOTE requires cpfArtifactRepositoryUrl or CPF_ARTIFACT_REPOSITORY_URL.')
+    }
+    if (cpfArtifactMode == 'OFFLINE' && !cpfOfflineRepo) {
+        throw new GradleException('CPF_ARTIFACT_MODE=OFFLINE requires cpfOfflineArtifactRepository or CPF_OFFLINE_ARTIFACT_REPOSITORY.')
+    }
+
     repositories {
-        gradlePluginPortal()
-        mavenCentral()
+        if (cpfArtifactMode == 'REMOTE') {
+            maven {
+                name = 'cpfRemotePlugin'
+                url = uri(cpfRemoteRepo)
+                content { includeGroupByRegex 'com[.]cpf([.].*)?' }
+                def cpfRepoUser = providers.environmentVariable('CPF_ARTIFACT_REPOSITORY_USER').orNull
+                if (cpfRepoUser) {
+                    credentials {
+                        username = cpfRepoUser
+                        password = providers.environmentVariable('CPF_ARTIFACT_REPOSITORY_PASSWORD').orNull
+                    }
+                }
+            }
+        } else if (cpfArtifactMode == 'OFFLINE') {
+            maven {
+                name = 'cpfOfflinePlugin'
+                url = uri(file(cpfOfflineRepo))
+                content { includeGroupByRegex 'com[.]cpf([.].*)?' }
+            }
+        } else {
+            maven {
+                name = 'cpfLocalPlugin'
+                url = uri(file(cpfLocalRepo))
+                content { includeGroupByRegex 'com[.]cpf([.].*)?' }
+            }
+        }
+        gradlePluginPortal {
+            content { excludeGroupByRegex 'com[.]cpf([.].*)?' }
+        }
+        mavenCentral {
+            content { excludeGroupByRegex 'com[.]cpf([.].*)?' }
+        }
     }
 }
 

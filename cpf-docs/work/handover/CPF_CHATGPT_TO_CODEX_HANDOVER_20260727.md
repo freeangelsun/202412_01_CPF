@@ -1,5 +1,13 @@
 # CPF ChatGPT → Codex 인수인계 — 2026-07-27
 
+> ## 현재 적용 기준 안내
+>
+> 이 문서의 앞부분은 `fb95e15f...` 기준 ChatGPT 1차 Patch의 **역사적 인수인계**다.
+> 현재 개발 기준은 `702bf83580b9c4db2dbba6482ece233e00842f1b (20260727_03)` 이후 누적 변경이며,
+> Artifact 정책은 `LOCAL_DEV / REMOTE / OFFLINE` 배타 공급, Local auto-sync 기본 off,
+> verified staging → manifest-barrier promotion 정책을 따른다.
+> Codex 투입 직전에는 최신 master와 누적 Ledger를 기준으로 이 문서를 다시 갱신해야 한다.
+
 ## 1. 기준
 
 - Repository: `freeangelsun/202412_01_CPF`
@@ -171,3 +179,74 @@ Codex도 사용자의 해당 시점 명시 승인 범위에서만 Commit/Push한
 `cpf-docs/guides/CPF_GATE_AND_TOOL_LIFECYCLE_GUIDE.md`
 
 새 세션은 반드시 `CPF_CURRENT_WORK_REQUEST.md`, `CPF_REMAINING_REQUIREMENT_MATRIX_20260727.md`, `CPF_CODEX_CONTINUITY_STATE.md`와 위 Guide를 함께 읽고 시작한다.
+
+# 20260727_04 누적 개발 후속 Handover 보강
+
+> 이 절은 향후 Codex 투입 시 반드시 최신 master 기준으로 다시 계산할 정책을 기록한다. 현재 즉시 Codex를 실행하라는 의미가 아니다.
+
+## 1. 최신 ChatGPT Change Set
+
+시작 SHA: `702bf83580b9c4db2dbba6482ece233e00842f1b`
+
+- `CHG-20260727-STACK-001`
+- `CHG-20260727-ARTIFACT-002`
+- `CHG-20260727-BASE-001`
+- `CHG-20260727-DOC-BAT-001`
+
+상세:
+
+- `cpf-docs/work/review/CPF_CHATGPT_PRE_IMPLEMENTATION_REVIEW_20260727_04.md`
+- `cpf-docs/work/review/CPF_CHATGPT_2ND_IMPLEMENTATION_REPORT_20260727.md`
+- `cpf-docs/work/state/CPF_CHANGE_IMPACT_AND_VALIDATION_LEDGER.md`
+
+## 2. 반드시 독립 검수할 영향권
+
+- Stack canonical property / plugin resolution
+- Root + Included Build publication task wiring
+- `aggregateQualityBuild`
+- failed quality → Shared Local no-change
+- staging POM/module/BOM/plugin marker/hash
+- manifest barrier promotion/rollback
+- concurrent publisher
+- Generated Domain current-HEAD manifest reuse
+- Local/Remote/Offline fail-closed
+- Remote publish가 Local Repository를 변경하지 않는지
+- Offline Bundle standalone build
+- bootJar/bootWar exact CPF dependency
+
+## 3. 과거 PASS 재개방
+
+이번 변경 영향으로 다음은 기존 PASS를 복사하지 않는다.
+
+- 전체 compile/test
+- Included BOM/Plugin build
+- Generated standalone build/package
+- bootJar/bootWar
+
+반면 BAT 158 Query Pack/V58은 Source 직접 영향이 없으면 고비용 검증을 습관적으로 반복하지 않는다.
+단 최종 clean regression/historical migration 영향이 생기면 재개방한다.
+
+## 4. Gate/Tool 정리
+
+Codex는 최종 단계에서 PowerShell/Gradle Gate Inventory를 실제 Caller 기준으로 작성한다.
+
+- `DEV_ONLY`
+- `CI_RELEASE`
+- `PRODUCT_ADMIN_TOOL`
+
+중복/Legacy/무호출 Gate는 Requirement 대체 여부를 확인 후 삭제한다.
+ChatGPT가 삭제를 확정하지 못한 항목은 문서에 `삭제 후보/재확인 필요`로 남기며, 검증 없이 보존하지도 삭제하지도 않는다.
+
+## 5. 완료 처리 금지
+
+- Boot3.4.13/Java25/Gradle9.1 지원 문제 미해결
+- 실제 Local promotion 미실행
+- Remote Registry 미실행
+- Offline standalone 미실행
+- Windows concurrent publish/consumer 미실행
+- Generated Domain 2개 미실행
+- Browser/Multi-instance/Fault 미실행
+
+위 항목은 Source가 존재해도 완료가 아니다.
+
+- 상세 QA 입력 보존본: `cpf-docs/work/review/CPF_QA_INPUT_20260727_04.md`

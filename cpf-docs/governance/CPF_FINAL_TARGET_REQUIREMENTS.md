@@ -518,7 +518,8 @@ create → optional DB bootstrap → CRUD/Search/Paging/Validation/Commit/Rollba
 - Generator는 선택적으로 DB bootstrap을 orchestration할 수 있으나 공식 `initialize-domain-database.ps1`를 호출해야 한다.
 - MBR 등 Reference Instance와 임의 LNG/ING/TST 생성 결과를 이름 Normalize 후 Source/DB/Test 구조 parity로 비교하는 Quality Gate를 둔다.
 - 독립 Generated Domain/독립 WAS는 CPF Public Artifact를 임의 Source/JAR 복사로 포함하지 않고 CPF BOM + Convention Plugin + Versioned Maven Artifact 계약으로 소비한다.
-- 원격 Artifact Registry가 없는 Local 개발은 CPF Root build가 동기화하는 Shared Local Maven Repository를 사용할 수 있어야 하며, Generated Repository는 같은 Repository를 자동 해석한다.
+- CPF Artifact 공급은 `LOCAL_DEV` / `REMOTE` / `OFFLINE` 세 모드를 같은 BOM/Version 계약으로 지원한다. `LOCAL_DEV`는 검증된 Shared Local Maven Repository, `REMOTE`는 Nexus/Artifactory 등 승인 Registry, `OFFLINE`은 Manifest/Checksum을 포함한 Versioned Offline Maven Bundle을 사용한다.
+- CI/STG/PROD의 `REMOTE` 모드는 Remote Artifact가 없을 때 개발자 Local Repository로 fallback하지 않고 fail-closed한다. Shared Local Repository 자동 갱신은 개발 편의용 opt-in이며, Quality Gate를 통과한 staging artifact를 검증한 뒤 승격한다.
 - Generated `bootJar`/`bootWar`는 필요한 `cpf-core`, `cpf-common` 및 선택 Capability의 Public Contract JAR가 실제 패키지 내부에 포함됐는지 Gate로 검증한다.
 
 MariaDB는 필수 실검증 대상이다. PostgreSQL, Oracle과 SQL Server는 Vendor별 Script, Dialect, Type, Paging, Lock, Migration과 Runtime Evidence가 있을 때만 지원 완료로 표기한다.
@@ -580,7 +581,8 @@ DB/SQL/Metadata 변경 후 `sync-database-artifacts.ps1`은 각 하위 gate의 �
 - Upgrade와 Rollback/Forward Recovery
 - Backup, Restore와 DR
 - JAR와 WAR
-- CPF Public Artifact의 Local/Remote Repository Federation과 Version/BOM 정합성
+- Java/Gradle/Spring Boot/Spring Framework 등 핵심 Build Runtime은 공식 지원 Matrix 안의 조합만 GA Release로 허용하며, 지원 범위 밖 조합은 명시적 `TRANSITION` 상태로 관리하고 Commercial Release Gate를 차단한다.
+- CPF Public Artifact의 `LOCAL_DEV`/`REMOTE`/`OFFLINE` Repository Federation, Version/BOM/Plugin Marker/Hash/Manifest 정합성
 - 독립 배포 Artifact는 Runtime에 필요한 CPF Public Dependency를 self-contained packaging하거나 제품이 명시한 Shared Runtime 방식으로 결정적으로 해석해야 하며, 개발자 수동 JAR 복사를 정상 배포 절차로 사용하지 않음
 - ADM/BZA Static Artifact
 - Docker/Kubernetes는 실제 검증 후 지원 표기

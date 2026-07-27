@@ -1,3 +1,27 @@
+<#
+.SYNOPSIS
+Generated Domain을 독립 Repository로 생성하고 선택 Artifact 공급모드로 Build/검증합니다.
+.DESCRIPTION
+Domain 생성 → Export → Federation 검증 → 선택 시 Job Pack 생성 → standalone test/package를 수행합니다.
+LOCAL_DEV는 현재 Source fingerprint와 일치하는 PROMOTED Local CPF Artifact를 재사용하며 stale하면 검증 Publish를 수행합니다.
+REMOTE/OFFLINE은 Local fallback 없이 fail-closed합니다.
+.PARAMETER ArtifactMode
+AUTO, LOCAL_DEV, REMOTE, OFFLINE. AUTO는 명시 환경 설정을 우선하고 없으면 LOCAL_DEV입니다.
+.PARAMETER LocalArtifactRepository
+LOCAL_DEV Maven Repository. 미지정 시 CPF_LOCAL_ARTIFACT_REPOSITORY 또는 ~/.cpf/repository.
+.PARAMETER RemoteArtifactRepository
+REMOTE Nexus/Artifactory URL. 미지정 시 CPF_ARTIFACT_REPOSITORY_URL.
+.PARAMETER OfflineArtifactRepository
+OFFLINE Maven Repository 경로. 미지정 시 CPF_OFFLINE_ARTIFACT_REPOSITORY.
+.PARAMETER SkipBuild
+생성/Export만 수행하고 standalone Build를 생략합니다.
+.PARAMETER DryRun
+변경 없이 계산된 Domain/Artifact 설정을 출력합니다.
+.EXAMPLE
+pwsh -File .\cpf-tools\generator\create-domain-repository.ps1 -DomainName payment -SystemCode PAY -ArtifactMode LOCAL_DEV
+.EXAMPLE
+pwsh -File .\cpf-tools\generator\create-domain-repository.ps1 -DomainName payment -SystemCode PAY -ArtifactMode REMOTE -RemoteArtifactRepository https://nexus.example/repository/cpf-releases/
+#>
 param(
     [Parameter(Mandatory = $true)]
     [ValidatePattern('^[a-zA-Z][a-zA-Z0-9]{1,29}$')]
@@ -17,6 +41,11 @@ param(
     [int] $Port = 8080,
     [string] $Capabilities = "database,local-call",
     [string] $OutputRoot = "build/domain-repositories",
+    [ValidateSet("AUTO", "LOCAL_DEV", "REMOTE", "OFFLINE")]
+    [string] $ArtifactMode = "AUTO",
+    [string] $LocalArtifactRepository = "",
+    [string] $RemoteArtifactRepository = "",
+    [string] $OfflineArtifactRepository = "",
     [switch] $Batch,
     [switch] $CenterCut,
     [switch] $SkipBuild,
@@ -26,6 +55,33 @@ param(
 $ErrorActionPreference = "Stop"
 $Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
 $repositoryRoot = (Resolve-Path "$PSScriptRoot\..\..").Path
+if (-not [string]::IsNullOrWhiteSpace($LocalArtifactRepository)) {
+    $env:CPF_LOCAL_ARTIFACT_REPOSITORY = [IO.Path]::GetFullPath($LocalArtifactRepository)
+}
+if (-not [string]::IsNullOrWhiteSpace($RemoteArtifactRepository)) {
+    $env:CPF_ARTIFACT_REPOSITORY_URL = $RemoteArtifactRepository.Trim()
+}
+$effectiveArtifactMode = if (-not [string]::IsNullOrWhiteSpace($ArtifactMode) -and $ArtifactMode -ne 'AUTO') {
+    $ArtifactMode.Trim().ToUpperInvariant()
+} elseif (-not [string]::IsNullOrWhiteSpace($env:CPF_ARTIFACT_MODE)) {
+    $env:CPF_ARTIFACT_MODE.Trim().ToUpperInvariant()
+} elseif (-not [string]::IsNullOrWhiteSpace($env:CPF_ARTIFACT_REPOSITORY_URL)) {
+    "REMOTE"
+} else {
+    "LOCAL_DEV"
+}
+$env:CPF_ARTIFACT_MODE = $effectiveArtifactMode
+if ($effectiveArtifactMode -eq "REMOTE" -and [string]::IsNullOrWhiteSpace($env:CPF_ARTIFACT_REPOSITORY_URL)) {
+    throw "ArtifactMode=REMOTE에는 CPF_ARTIFACT_REPOSITORY_URL이 필요합니다."
+}
+if ($effectiveArtifactMode -eq "OFFLINE") {
+    if (-not [string]::IsNullOrWhiteSpace($OfflineArtifactRepository)) {
+        $env:CPF_OFFLINE_ARTIFACT_REPOSITORY = [IO.Path]::GetFullPath($OfflineArtifactRepository)
+    }
+    if ([string]::IsNullOrWhiteSpace($env:CPF_OFFLINE_ARTIFACT_REPOSITORY)) {
+        throw "ArtifactMode=OFFLINE에는 -OfflineArtifactRepository 또는 CPF_OFFLINE_ARTIFACT_REPOSITORY가 필요합니다."
+    }
+}
 $domain = $DomainName.Trim().ToLowerInvariant()
 $systemCodeNormalized = $SystemCode.Trim().ToUpperInvariant()
 $module = "cpf-$domain"
@@ -52,26 +108,40 @@ function Invoke-CheckedPowerShell {
 }
 
 function Invoke-CpfLocalArtifactPublish {
-    if (-not [string]::IsNullOrWhiteSpace($env:CPF_ARTIFACT_REPOSITORY_URL)) {
-        return
-    }
+    if ($effectiveArtifactMode -ne 'LOCAL_DEV') { return }
     $localRepository = if (-not [string]::IsNullOrWhiteSpace($env:CPF_LOCAL_ARTIFACT_REPOSITORY)) {
         [IO.Path]::GetFullPath($env:CPF_LOCAL_ARTIFACT_REPOSITORY)
     } else {
         [IO.Path]::GetFullPath((Join-Path $HOME ".cpf/repository"))
     }
     $env:CPF_LOCAL_ARTIFACT_REPOSITORY = $localRepository
-    $gradle = if ($IsWindows) {
-        Join-Path $repositoryRoot "gradlew.bat"
-    } else {
-        Join-Path $repositoryRoot "gradlew"
+
+    $platformProperties = @{}
+    foreach ($line in Get-Content -LiteralPath (Join-Path $repositoryRoot 'gradle/cpf-platform.properties') -Encoding UTF8) {
+        $trimmed = $line.Trim()
+        if ([string]::IsNullOrWhiteSpace($trimmed) -or $trimmed.StartsWith('#')) { continue }
+        $index = $trimmed.IndexOf('=')
+        if ($index -gt 0) { $platformProperties[$trimmed.Substring(0,$index).Trim()] = $trimmed.Substring($index+1).Trim() }
     }
-    if (-not (Test-Path -LiteralPath $gradle -PathType Leaf)) {
-        throw "CPF Gradle Wrapper가 없습니다: $gradle"
+    $sourcePlatformVersion = [string]$platformProperties['platformVersion']
+    if ($sourcePlatformVersion -ne $PlatformVersion) {
+        throw "LOCAL_DEV standalone generation must use current CPF platformVersion. requested=$PlatformVersion current=$sourcePlatformVersion"
     }
+
+    # 이미 현재 HEAD와 정확히 일치하는 PROMOTED manifest가 있으면 고비용 aggregate build를 반복하지 않습니다.
+    $verifier = Join-Path $repositoryRoot 'cpf-tools/scripts/verify-local-artifact-propagation.ps1'
+    & pwsh -NoProfile -ExecutionPolicy Bypass -File $verifier -Root $repositoryRoot -LocalRepository $localRepository -RequireManifest *> $null
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "CPF local artifacts already match current source; verified publication is reused: $localRepository"
+        return
+    }
+
+    $gradle = if ($IsWindows) { Join-Path $repositoryRoot "gradlew.bat" } else { Join-Path $repositoryRoot "gradlew" }
+    if (-not (Test-Path -LiteralPath $gradle -PathType Leaf)) { throw "CPF Gradle Wrapper가 없습니다: $gradle" }
     Push-Location $repositoryRoot
     try {
-        & $gradle publishCpfLocalPlatformArtifacts --no-daemon --max-workers=1 --console=plain
+        & $gradle publishCpfVerifiedLocalPlatformArtifacts --no-daemon --max-workers=1 --console=plain `
+            -PcpfArtifactMode=LOCAL_DEV "-PcpfLocalArtifactRepository=$localRepository"
         if ($LASTEXITCODE -ne 0) {
             throw "CPF local artifact publish failed. exitCode=$LASTEXITCODE repository=$localRepository"
         }
@@ -202,8 +272,11 @@ if ($DryRun) {
         schemaName = $effectiveSchemaName
         tablePrefix = $effectiveTablePrefix
         port = $Port
-        artifactRepository = if (-not [string]::IsNullOrWhiteSpace($env:CPF_ARTIFACT_REPOSITORY_URL)) {
+        artifactMode = $effectiveArtifactMode
+        artifactRepository = if ($effectiveArtifactMode -eq 'REMOTE') {
             $env:CPF_ARTIFACT_REPOSITORY_URL
+        } elseif ($effectiveArtifactMode -eq 'OFFLINE') {
+            $env:CPF_OFFLINE_ARTIFACT_REPOSITORY
         } elseif (-not [string]::IsNullOrWhiteSpace($env:CPF_LOCAL_ARTIFACT_REPOSITORY)) {
             $env:CPF_LOCAL_ARTIFACT_REPOSITORY
         } else {

@@ -152,3 +152,12 @@ QA의 `BZA-005`는 직원 신규 기본 재직 상태를 `EMPLOYED`로 요구하
 
 - `cpf-docs/work/current/CPF_REMAINING_REQUIREMENT_MATRIX_20260727.md`
 - QA 전체 항목을 구현 확인/부분 구현/미완료/통합검증 예정으로 재분류한 정본이며, 다음 검수는 이 Matrix와 Change Ledger를 함께 사용한다.
+
+## 현재 기준 상태 보정 — 20260727_04
+
+이 문서의 `fb95e15f...` Baseline은 **20260727_02 Patch를 만들 당시의 역사적 시작점**이다.
+현재 master 검수 기준은 `702bf83580b9c4db2dbba6482ece233e00842f1b` (`20260727_03`)이며,
+이후 변경은 `CPF_CHATGPT_2ND_IMPLEMENTATION_REPORT_20260727.md`와 누적 Ledger를 따른다.
+
+이전 "구현" 표시는 현재 latest SHA에서 Runtime 검증 완료를 의미하지 않는다.
+Build/BOM/Plugin/Generator/Artifact 공급이 다시 변경되었으므로 관련 과거 PASS는 `재검증 필요` 상태로 다시 연다.

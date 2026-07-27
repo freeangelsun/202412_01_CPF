@@ -69,6 +69,23 @@ if ([string]::IsNullOrWhiteSpace($Root)) {
     $Root = (Resolve-Path -LiteralPath $Root).Path
 }
 $Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
+$cpfStackPropertiesPath = Join-Path $Root "gradle/cpf-stack.properties"
+if (-not (Test-Path -LiteralPath $cpfStackPropertiesPath -PathType Leaf)) {
+    throw "CPF Stack 정본이 없습니다: $cpfStackPropertiesPath"
+}
+$cpfStackProperties = @{}
+foreach ($line in Get-Content -LiteralPath $cpfStackPropertiesPath -Encoding UTF8) {
+    $trimmed = $line.Trim()
+    if ([string]::IsNullOrWhiteSpace($trimmed) -or $trimmed.StartsWith('#')) { continue }
+    $index = $trimmed.IndexOf('=')
+    if ($index -le 0) { continue }
+    $cpfStackProperties[$trimmed.Substring(0, $index).Trim()] = $trimmed.Substring($index + 1).Trim()
+}
+$springBootVersion = [string]$cpfStackProperties['springBootVersion']
+$dependencyManagementVersion = [string]$cpfStackProperties['springDependencyManagementVersion']
+if ([string]::IsNullOrWhiteSpace($springBootVersion) -or [string]::IsNullOrWhiteSpace($dependencyManagementVersion)) {
+    throw "CPF Stack 정본의 Spring plugin version이 유효하지 않습니다: $cpfStackPropertiesPath"
+}
 $centralTemplateContractPath = Join-Path $Root "cpf-tools/generator/contracts/central-domain-template-contract.json"
 if (-not (Test-Path -LiteralPath $centralTemplateContractPath -PathType Leaf)) {
     throw "Generated Domain 중앙 Template 계약이 없습니다: $centralTemplateContractPath"
@@ -1280,12 +1297,12 @@ $batchContractDependency = if (($BatchEnabled -or $CenterCutEnabled) -and
 }
 
 $springBootPlugin = if ($DependencyModel -eq "published-artifact") {
-    "    id 'org.springframework.boot' version '3.4.13'"
+    "    id 'org.springframework.boot' version '$springBootVersion'"
 } else {
     "    id 'org.springframework.boot'"
 }
 $dependencyManagementPlugin = if ($DependencyModel -eq "published-artifact") {
-    "    id 'io.spring.dependency-management' version '1.1.7'"
+    "    id 'io.spring.dependency-management' version '$dependencyManagementVersion'"
 } else {
     "    id 'io.spring.dependency-management'"
 }

@@ -1,7 +1,7 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '3.4.13' apply false
-    id 'io.spring.dependency-management' version '1.1.7' apply false
+    id 'org.springframework.boot' apply false
+    id 'io.spring.dependency-management' apply false
 }
 
 def cpfPlatformProperties = new Properties()
@@ -9,30 +9,57 @@ file('gradle/cpf-platform.properties').withInputStream { cpfPlatformProperties.l
 ext.cpfPlatformVersion = cpfPlatformProperties.getProperty('platformVersion')
 ext.cpfCompatibleRange = cpfPlatformProperties.getProperty('compatibleRange')
 
+def cpfStackProperties = new Properties()
+file('gradle/cpf-stack.properties').withInputStream { cpfStackProperties.load(it) }
+ext.cpfJavaVersion = (findProperty('cpfJavaVersion') ?: System.getenv('CPF_JAVA_VERSION')
+        ?: cpfStackProperties.getProperty('javaVersion')).toString().toInteger()
+ext.cpfSpringBootVersion = cpfStackProperties.getProperty('springBootVersion')
+ext.cpfSpringDependencyManagementVersion = cpfStackProperties.getProperty('springDependencyManagementVersion')
+ext.cpfStackState = cpfStackProperties.getProperty('stackState', 'UNKNOWN').toUpperCase(Locale.ROOT)
+ext.cpfTargetSpringBootVersion = cpfStackProperties.getProperty('springBootTargetVersion')
+
 if (ext.cpfPlatformVersion == null || ext.cpfPlatformVersion.isBlank()) {
     throw new GradleException('gradle/cpf-platform.properties의 platformVersion은 필수입니다.')
 }
 
 // 독립 Domain/Standalone WAS가 같은 CPF build의 public artifact를 즉시 소비할 수 있도록
-// 원격 Artifact Registry가 없어도 사용자별 공용 local Maven repository를 정본 fallback으로 사용합니다.
-// build/ 아래 임시 repository와 달리 Repository 간 공유가 가능하며 CPF source tree에는 산출물을 남기지 않습니다.
+// LOCAL_DEV는 사용자별 공용 local Maven repository를 사용하고 REMOTE/OFFLINE은 명시된 공급원만 사용합니다.
+// CI/STG/PROD가 개발자 local repository로 우회하지 않도록 artifact mode를 fail-closed로 분리합니다.
 def cpfLocalArtifactRepositoryProvider = providers.gradleProperty('cpfLocalArtifactRepository')
         .orElse(providers.environmentVariable('CPF_LOCAL_ARTIFACT_REPOSITORY'))
         .orElse(new File(System.getProperty('user.home'), '.cpf/repository').absolutePath)
 ext.cpfLocalArtifactRepository = file(cpfLocalArtifactRepositoryProvider.get()).absolutePath
-ext.cpfRemoteArtifactRepository = System.getenv('CPF_ARTIFACT_REPOSITORY_URL')
+ext.cpfArtifactStagingRepository = file("${buildDir}/cpf-artifact-staging/repository").absolutePath
+ext.cpfRemoteArtifactRepository = providers.gradleProperty('cpfArtifactRepositoryUrl')
+        .orElse(providers.environmentVariable('CPF_ARTIFACT_REPOSITORY_URL')).orNull
+ext.cpfOfflineArtifactRepository = providers.gradleProperty('cpfOfflineArtifactRepository')
+        .orElse(providers.environmentVariable('CPF_OFFLINE_ARTIFACT_REPOSITORY')).orNull
+ext.cpfArtifactMode = providers.gradleProperty('cpfArtifactMode')
+        .orElse(providers.environmentVariable('CPF_ARTIFACT_MODE'))
+        .orElse(rootProject.ext.cpfRemoteArtifactRepository == null ? 'LOCAL_DEV' : 'REMOTE')
+        .get().trim().toUpperCase(Locale.ROOT)
+if (!(rootProject.ext.cpfArtifactMode in ['LOCAL_DEV', 'REMOTE', 'OFFLINE'])) {
+    throw new GradleException("Unsupported CPF artifact mode: ${rootProject.ext.cpfArtifactMode}")
+}
+if (rootProject.ext.cpfArtifactMode == 'REMOTE' && !rootProject.ext.cpfRemoteArtifactRepository) {
+    throw new GradleException('CPF_ARTIFACT_MODE=REMOTE requires cpfArtifactRepositoryUrl or CPF_ARTIFACT_REPOSITORY_URL.')
+}
+if (rootProject.ext.cpfArtifactMode == 'OFFLINE' && !rootProject.ext.cpfOfflineArtifactRepository) {
+    throw new GradleException('CPF_ARTIFACT_MODE=OFFLINE requires cpfOfflineArtifactRepository or CPF_OFFLINE_ARTIFACT_REPOSITORY.')
+}
 
 allprojects { targetProject ->
     def componentVersion = cpfPlatformProperties.getProperty("component.${targetProject.name}", 'inherit')
     version = componentVersion == 'inherit' ? rootProject.ext.cpfPlatformVersion : componentVersion
 
     repositories {
-        // 원격 CPF Registry가 있으면 그것을 우선하고, 로컬 개발/독립 Domain build는
-        // ${user.home}/.cpf/repository(또는 CPF_LOCAL_ARTIFACT_REPOSITORY)를 공용 fallback으로 사용합니다.
-        if (rootProject.ext.cpfRemoteArtifactRepository) {
+        // CPF artifact 공급원은 LOCAL_DEV / REMOTE / OFFLINE 중 하나만 사용합니다.
+        // CI/STG/PROD에서 Remote가 비어 있다고 개발자 local repository로 fallback하지 않습니다.
+        if (rootProject.ext.cpfArtifactMode == 'REMOTE') {
             maven {
                 name = 'cpfRemote'
                 url = uri(rootProject.ext.cpfRemoteArtifactRepository)
+                content { includeGroupByRegex 'com[.]cpf([.].*)?' }
                 def cpfRepoUser = System.getenv('CPF_ARTIFACT_REPOSITORY_USER')
                 if (cpfRepoUser) {
                     credentials {
@@ -41,12 +68,22 @@ allprojects { targetProject ->
                     }
                 }
             }
+        } else if (rootProject.ext.cpfArtifactMode == 'OFFLINE') {
+            maven {
+                name = 'cpfOffline'
+                url = uri(file(rootProject.ext.cpfOfflineArtifactRepository))
+                content { includeGroupByRegex 'com[.]cpf([.].*)?' }
+            }
+        } else {
+            maven {
+                name = 'cpfLocal'
+                url = uri(rootProject.ext.cpfLocalArtifactRepository)
+                content { includeGroupByRegex 'com[.]cpf([.].*)?' }
+            }
         }
-        maven {
-            name = 'cpfLocal'
-            url = uri(rootProject.ext.cpfLocalArtifactRepository)
+        mavenCentral {
+            content { excludeGroupByRegex 'com[.]cpf([.].*)?' }
         }
-        mavenCentral()
     }
 }
 
@@ -61,17 +98,17 @@ subprojects {
     java {
         // CPF의 소스·컴파일·배포 바이트코드 기준을 Java 25 LTS 하나로 고정합니다.
         toolchain {
-            languageVersion = JavaLanguageVersion.of(25)
+            languageVersion = JavaLanguageVersion.of(rootProject.ext.cpfJavaVersion)
         }
-        sourceCompatibility = JavaVersion.VERSION_25
-        targetCompatibility = JavaVersion.VERSION_25
+        sourceCompatibility = JavaVersion.toVersion(rootProject.ext.cpfJavaVersion)
+        targetCompatibility = JavaVersion.toVersion(rootProject.ext.cpfJavaVersion)
         withSourcesJar()
         withJavadocJar()
     }
 
     dependencyManagement {
         imports {
-            mavenBom 'org.springframework.boot:spring-boot-dependencies:3.4.13'
+            mavenBom "org.springframework.boot:spring-boot-dependencies:${rootProject.ext.cpfSpringBootVersion}"
         }
     }
 
@@ -90,25 +127,54 @@ subprojects {
     }
 
     plugins.withId('maven-publish') {
-        publishing {
-            repositories {
-                if (findByName('cpfLocal') == null) {
-                    maven {
-                        name = 'cpfLocal'
-                        url = uri(rootProject.ext.cpfLocalArtifactRepository)
+        targetProject.afterEvaluate {
+            publishing {
+                repositories {
+                    if (findByName('cpfLocal') == null) {
+                        maven {
+                            name = 'cpfLocal'
+                            url = uri(rootProject.ext.cpfLocalArtifactRepository)
+                        }
                     }
-                }
-                if (findByName('cpfInternal') == null) {
-                    maven {
-                        name = 'cpfInternal'
-                        def repo = rootProject.ext.cpfRemoteArtifactRepository
-                        url = uri(repo ?: layout.buildDirectory.dir('repository'))
-                        if (repo) {
-                            credentials {
-                                username = System.getenv('CPF_ARTIFACT_REPOSITORY_USER')
-                                password = System.getenv('CPF_ARTIFACT_REPOSITORY_PASSWORD')
+                    if (findByName('cpfStaging') == null) {
+                        maven {
+                            name = 'cpfStaging'
+                            url = uri(rootProject.ext.cpfArtifactStagingRepository)
+                        }
+                    }
+                    if (findByName('cpfInternal') == null) {
+                        maven {
+                            name = 'cpfInternal'
+                            def repo = rootProject.ext.cpfRemoteArtifactRepository
+                            url = uri(repo ?: layout.buildDirectory.dir('repository'))
+                            if (repo) {
+                                credentials {
+                                    username = System.getenv('CPF_ARTIFACT_REPOSITORY_USER')
+                                    password = System.getenv('CPF_ARTIFACT_REPOSITORY_PASSWORD')
+                                }
                             }
                         }
+                    }
+                }
+            }
+            targetProject.tasks.matching { task -> task.name.endsWith('ToCpfLocalRepository') }.configureEach {
+                doFirst {
+                    if (rootProject.ext.cpfArtifactMode != 'LOCAL_DEV') {
+                        throw new GradleException('Shared CPF local publication is allowed only in CPF_ARTIFACT_MODE=LOCAL_DEV.')
+                    }
+                }
+            }
+            targetProject.tasks.matching { task -> task.name.endsWith('ToCpfStagingRepository') }.configureEach {
+                doFirst {
+                    if (rootProject.ext.cpfArtifactMode != 'LOCAL_DEV') {
+                        throw new GradleException('CPF local verification staging is allowed only in CPF_ARTIFACT_MODE=LOCAL_DEV.')
+                    }
+                }
+            }
+            targetProject.tasks.matching { task -> task.name.endsWith('ToCpfInternalRepository') }.configureEach {
+                doFirst {
+                    if (rootProject.ext.cpfArtifactMode != 'REMOTE' || !rootProject.ext.cpfRemoteArtifactRepository) {
+                        throw new GradleException('Remote CPF publication is fail-closed and requires CPF_ARTIFACT_MODE=REMOTE plus cpfArtifactRepositoryUrl or CPF_ARTIFACT_REPOSITORY_URL.')
                     }
                 }
             }
@@ -117,7 +183,7 @@ subprojects {
 
     tasks.withType(JavaCompile).configureEach {
         // 실행 JDK와 무관하게 Java 25 API 및 class major 69 산출물만 허용합니다.
-        options.release = 25
+        options.release = rootProject.ext.cpfJavaVersion
         options.encoding = 'UTF-8'
     }
 
@@ -769,9 +835,6 @@ File cpfResultDir() {
     return file((findProperty('cpfResultDir') ?: 'build/cpf-evidence/current').toString())
 }
 
-ext.cpfJavaVersion = (findProperty('cpfJavaVersion') ?: System.getenv('CPF_JAVA_VERSION') ?: '25')
-        .toString()
-        .toInteger()
 
 Map<String, String> cpfReadEnvFile(File envFile) {
     if (!envFile.exists()) {
@@ -1502,15 +1565,31 @@ tasks.register('checkBzaSafeDefaults', Exec) {
             'cpf-tools/scripts/check-bza-safe-defaults.ps1'
 }
 
+tasks.register('checkCpfStackSupport', Exec) {
+    group = 'verification'
+    description = 'CPF Java/Gradle/Spring Boot 단일 Stack 정본과 현재 지원상태를 검증합니다.'
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+            'cpf-tools/scripts/check-cpf-stack-support.ps1'
+}
+
 tasks.register('qualityGate') {
     group = 'verification'
     description = 'CPF verification or deployment task.'
     dependsOn subprojects.collect { "${it.path}:compileJava" }
     dependsOn subprojects.collect { "${it.path}:test" }
     dependsOn ':cpf-admin:frontendVerify', ':cpf-biz-admin:frontendVerify', 'checkModernFrontend'
-    dependsOn 'verifyCpfFinalSourceGates', 'verifyVersionConsistency', 'checkUtf8', 'checkMojibake', 'checkLegacyName', 'checkSqlStandard', 'checkSqlCanonical', 'checkJavaFormat', 'checkJava25Standard', 'checkDocumentLinks', 'checkTransactionIdStandard', 'checkSecuritySeedStandard', 'checkSampleStandard', 'checkCpfRequestProtection', 'checkFeatureEvidence', 'checkServiceCallBoundary', 'checkArchitectureOwnership', 'checkBaseHierarchy', 'checkFullLayerTaxonomy', 'exportArchitectureInventory', 'exportRequirementTraceability', 'checkDomainGenerator', 'checkDomainCapabilityMatrix', 'checkAccLifecycle', 'checkDomainRemoval', 'checkRepositoryHygiene', 'checkSpringEventUsage', 'checkProfileLoading', 'checkRuntimeConfigStandard', 'checkLogManagementStandard', 'checkOpenApiSourceCoverage', 'checkSampleCoverage', 'checkEvidencePathExistence', 'checkDeployEnv', 'checkDeployInventory', 'checkPackagedDependencies', 'remoteDeployDryRun', 'checkReportMatrixEvidenceConsistency', 'admUiSmoke', 'admLogPolicyUiStaticSmoke', 'bzaUiSmoke', 'checkContractCompatibility', 'checkR13ProductHardening', 'checkAdminContactModel', 'checkBzaSafeDefaults'
+    dependsOn 'verifyCpfFinalSourceGates', 'verifyVersionConsistency', 'checkUtf8', 'checkMojibake', 'checkLegacyName', 'checkSqlStandard', 'checkSqlCanonical', 'checkJavaFormat', 'checkJava25Standard', 'checkDocumentLinks', 'checkTransactionIdStandard', 'checkSecuritySeedStandard', 'checkSampleStandard', 'checkCpfRequestProtection', 'checkFeatureEvidence', 'checkServiceCallBoundary', 'checkArchitectureOwnership', 'checkBaseHierarchy', 'checkFullLayerTaxonomy', 'exportArchitectureInventory', 'exportRequirementTraceability', 'checkDomainGenerator', 'checkDomainCapabilityMatrix', 'checkAccLifecycle', 'checkDomainRemoval', 'checkRepositoryHygiene', 'checkSpringEventUsage', 'checkProfileLoading', 'checkRuntimeConfigStandard', 'checkLogManagementStandard', 'checkOpenApiSourceCoverage', 'checkSampleCoverage', 'checkEvidencePathExistence', 'checkDeployEnv', 'checkDeployInventory', 'checkPackagedDependencies', 'remoteDeployDryRun', 'checkReportMatrixEvidenceConsistency', 'admUiSmoke', 'admLogPolicyUiStaticSmoke', 'bzaUiSmoke', 'checkContractCompatibility', 'checkR13ProductHardening', 'checkAdminContactModel', 'checkBzaSafeDefaults', 'checkCpfStackSupport'
 }
 
+
+tasks.register('aggregateQualityBuild') {
+    group = 'verification'
+    description = 'Artifact publish 전에 compile/test/frontend/generator/architecture gate와 모든 module assemble을 닫는 집계 Gate입니다.'
+    dependsOn 'qualityGate'
+    dependsOn subprojects.collect { "${it.path}:assemble" }
+    dependsOn gradle.includedBuild('cpf-platform-bom').task(':check'),
+            gradle.includedBuild('cpf-gradle-plugin').task(':check')
+}
 
 // 최종 배포 문서가 안정된 뒤에만 실행하는 Publication Gate입니다.
 // 일반 개발 qualityGate가 조기 DOCX/PDF 산출물에 종속되지 않도록 책임을 분리합니다.
@@ -1544,57 +1623,126 @@ tasks.register('verifyCpfFinalSourceGates') {
 }
 
 
+tasks.register('prepareCpfArtifactStaging') {
+    group = 'publishing'
+    description = 'Removes only CPF root-module artifact groups from the isolated publication staging repository.'
+    doLast {
+        [
+                'com/cpf/core',
+                'com/cpf/common',
+                'com/cpf/batch',
+                '_cpf'
+        ].each { relative -> delete file("${rootProject.ext.cpfArtifactStagingRepository}/${relative}") }
+    }
+}
+
+subprojects { candidate ->
+    candidate.plugins.withId('maven-publish') {
+        candidate.tasks.matching { task -> task.name.endsWith('ToCpfStagingRepository') }.configureEach {
+            dependsOn rootProject.tasks.named('prepareCpfArtifactStaging')
+        }
+    }
+}
+
 tasks.register('publishCpfLocalPlatformArtifacts') {
     group = 'publishing'
-    description = 'Publishes CPF public artifacts to the shared local Maven repository used by independent/generated Domain repositories.'
+    description = 'Low-level local Maven publish. 일반 사용자는 publishCpfVerifiedLocalPlatformArtifacts를 사용합니다.'
     dependsOn ':cpf-core:publishAllPublicationsToCpfLocalRepository',
             ':cpf-common:publishAllPublicationsToCpfLocalRepository',
             ':cpf-batch:publishStandaloneArtifactsToCpfLocal',
-            gradle.includedBuild('cpf-platform-bom').task(':publishAllPublicationsToCpfLocalRepository'),
-            gradle.includedBuild('cpf-gradle-plugin').task(':publishAllPublicationsToCpfLocalRepository')
+            gradle.includedBuild('cpf-platform-bom').task(':publishCpfBomToLocal'),
+            gradle.includedBuild('cpf-gradle-plugin').task(':publishCpfPluginToLocal')
     doLast {
         logger.lifecycle("CPF local artifact synchronization complete: ${rootProject.ext.cpfLocalArtifactRepository}")
     }
 }
 
+tasks.register('publishCpfStagingPlatformArtifacts') {
+    group = 'publishing'
+    description = 'Publishes the complete CPF public artifact set only to the isolated build staging repository.'
+    dependsOn ':cpf-core:publishAllPublicationsToCpfStagingRepository',
+            ':cpf-common:publishAllPublicationsToCpfStagingRepository',
+            ':cpf-batch:publishStandaloneArtifactsToCpfStaging',
+            gradle.includedBuild('cpf-platform-bom').task(':publishCpfBomToStaging'),
+            gradle.includedBuild('cpf-gradle-plugin').task(':publishCpfPluginToStaging')
+}
+
+tasks.register('promoteCpfVerifiedLocalArtifacts', Exec) {
+    group = 'publishing'
+    description = 'Verifies the staged CPF Maven set and transactionally promotes it behind the manifest barrier.'
+    dependsOn 'aggregateQualityBuild', 'publishCpfStagingPlatformArtifacts'
+    doFirst {
+        if (rootProject.ext.cpfArtifactMode != 'LOCAL_DEV') {
+            throw new GradleException('Local artifact promotion is allowed only in CPF_ARTIFACT_MODE=LOCAL_DEV.')
+        }
+        commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+                'cpf-tools/scripts/promote-cpf-verified-local-artifacts.ps1',
+                '-StagingRepository', rootProject.ext.cpfArtifactStagingRepository,
+                '-LocalRepository', rootProject.ext.cpfLocalArtifactRepository
+    }
+}
+
+tasks.register('publishCpfVerifiedLocalPlatformArtifacts') {
+    group = 'publishing'
+    description = 'Quality gate + isolated staging + POM/hash/BOM/plugin verification + manifest-barrier local promotion.'
+    dependsOn 'promoteCpfVerifiedLocalArtifacts'
+}
+
 tasks.register('verifyCpfLocalArtifactPropagation', Exec) {
     group = 'verification'
     description = 'Publishes and verifies the shared local CPF Maven repository used by independent/generated Domains.'
-    dependsOn tasks.named('publishCpfLocalPlatformArtifacts')
+    dependsOn tasks.named('publishCpfVerifiedLocalPlatformArtifacts')
     commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
-            'cpf-tools/scripts/verify-local-artifact-propagation.ps1'
+            'cpf-tools/scripts/verify-local-artifact-propagation.ps1',
+            '-LocalRepository', rootProject.ext.cpfLocalArtifactRepository,
+            '-RequireManifest'
+}
+
+tasks.register('buildCpfOfflineArtifactBundle', Exec) {
+    group = 'distribution'
+    description = 'Builds a versioned offline CPF Maven bundle with manifest/checksums for registry-less server environments.'
+    dependsOn tasks.named('publishCpfVerifiedLocalPlatformArtifacts')
+    doFirst {
+        commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+                'cpf-tools/scripts/build-cpf-offline-artifact-bundle.ps1',
+                '-LocalRepository', rootProject.ext.cpfLocalArtifactRepository
+    }
 }
 
 tasks.register('publishCpfPlatformArtifacts') {
     group = 'publishing'
-    description = 'Publishes CPF public platform artifacts required by independent Domain repositories and remote BAT deployment.'
-    dependsOn ':cpf-core:publish', ':cpf-common:publish', ':cpf-batch:publishStandaloneArtifacts',
-            gradle.includedBuild('cpf-platform-bom').task(':publish'),
-            gradle.includedBuild('cpf-gradle-plugin').task(':publish')
+    description = 'Publishes CPF public platform artifacts only to the configured remote internal repository.'
+    doFirst {
+        if (rootProject.ext.cpfArtifactMode != 'REMOTE') {
+            throw new GradleException('publishCpfPlatformArtifacts requires CPF_ARTIFACT_MODE=REMOTE.')
+        }
+    }
+    dependsOn ':cpf-core:publishAllPublicationsToCpfInternalRepository',
+            ':cpf-common:publishAllPublicationsToCpfInternalRepository',
+            ':cpf-batch:publishStandaloneArtifactsToCpfInternal',
+            gradle.includedBuild('cpf-platform-bom').task(':publishCpfBomToInternal'),
+            gradle.includedBuild('cpf-gradle-plugin').task(':publishCpfPluginToInternal')
 }
 
-// 로컬에서 `gradlew build`가 성공하면 최신 CPF public JAR/BOM/Convention Plugin을
-// 독립 Generated Domain이 소비하는 shared local repository에 전파합니다.
-// Gradle finalizer는 실패 뒤에도 실행될 수 있으므로 publish task 자체를 finalizer dependency로 두지 않습니다.
-// 대신 build 성공 상태를 확인한 뒤 별도 Gradle invocation으로 publish하여 실패한 build의 artifact가
-// shared repository를 오염시키지 않게 합니다. CI/원격 Registry 또는 특수 검증에서는
-// -PcpfAutoLocalArtifactSync=false 로 자동 동기화를 끌 수 있습니다.
+// LOCAL_DEV에서 명시적으로 -PcpfAutoLocalArtifactSync=true를 사용한 경우에만 build 성공 후
+// 검증된 CPF public JAR/BOM/Convention Plugin을 shared local repository에 전파합니다.
+// 기본값은 false이며 CI/REMOTE/OFFLINE에서는 자동 동기화가 절대 실행되지 않습니다.
 def cpfAutoLocalArtifactSync = providers.gradleProperty('cpfAutoLocalArtifactSync')
         .map { it.toBoolean() }
-        .orElse(rootProject.ext.cpfRemoteArtifactRepository == null)
+        .orElse(false)
 def rootBuildTask = tasks.named('build')
 tasks.register('syncCpfLocalArtifactsAfterSuccessfulBuild', Exec) {
     group = 'publishing'
-    description = 'Publishes CPF public artifacts only after the root build has completed successfully.'
+    description = 'Opt-in LOCAL_DEV convenience wrapper. Starts verified publication only after root build success.'
     onlyIf {
         def state = rootBuildTask.get().state
-        cpfAutoLocalArtifactSync.get() && state.executed && state.failure == null && !state.skipped
+        cpfAutoLocalArtifactSync.get() && rootProject.ext.cpfArtifactMode == 'LOCAL_DEV' && state.executed && state.failure == null && !state.skipped
     }
     doFirst {
         def windows = System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows')
         def wrapper = file(windows ? 'gradlew.bat' : 'gradlew').absolutePath
-        commandLine wrapper, 'publishCpfLocalPlatformArtifacts', '--no-daemon', '--max-workers=1',
-                '-PcpfAutoLocalArtifactSync=false',
+        commandLine wrapper, 'publishCpfVerifiedLocalPlatformArtifacts', '--no-daemon', '--max-workers=1',
+                '-PcpfAutoLocalArtifactSync=false', '-PcpfArtifactMode=LOCAL_DEV',
                 "-PcpfLocalArtifactRepository=${rootProject.ext.cpfLocalArtifactRepository}"
     }
 }
@@ -1602,15 +1750,17 @@ tasks.named('build').configure {
     finalizedBy tasks.named('syncCpfLocalArtifactsAfterSuccessfulBuild')
 }
 
-
 tasks.register('commercialReleaseGate', Exec) {
     group = 'release'
     description = 'Final commercial release requires clean master, resolved licenses, Ed25519 signatures and current CVE report.'
-    dependsOn 'validateReleaseMetadata'
+    dependsOn 'validateReleaseMetadata', 'checkCpfStackSupport'
     def releaseDir = layout.buildDirectory.dir("release/${rootProject.ext.cpfPlatformVersion}")
     def publicKey = providers.gradleProperty('releasePublicKey').orElse(providers.environmentVariable('CPF_RELEASE_PUBLIC_KEY'))
     def vulnerabilityReport = providers.gradleProperty('vulnerabilityReport').orElse(providers.environmentVariable('CPF_VULNERABILITY_REPORT'))
     doFirst {
+        if (rootProject.ext.cpfStackState != 'SUPPORTED_GA') {
+            throw new GradleException("Commercial release is blocked while cpf stackState=${rootProject.ext.cpfStackState}. Complete the supported stack migration first.")
+        }
         if (!publicKey.isPresent()) throw new GradleException('releasePublicKey/CPF_RELEASE_PUBLIC_KEY is required.')
         if (!vulnerabilityReport.isPresent()) throw new GradleException('vulnerabilityReport/CPF_VULNERABILITY_REPORT is required.')
         commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',

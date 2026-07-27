@@ -154,3 +154,34 @@ ChatGPT가 삭제 여부를 확정하지 못한 Gate는 실제 호출자/Require
 - [ ] `OFFLINE` consumer가 수동 JAR 복사 없이 Gradle로 package
 - [ ] bootJar/bootWar/lib에 필요한 CPF Library 실제 포함
 - [ ] 동일 Domain Source + 동일 CPF Version의 Dependency Set 재현성 확인
+
+## 20260727_04 이후 재생성 규칙
+
+현재 Checklist는 **최종 Codex 실행본이 아니다.** 이후 ChatGPT 개발이 더 누적된 뒤 Codex 투입 직전 최신 master에서 다시 작성한다.
+
+반드시 추가할 검수축:
+
+### Stack
+
+- `gradle/cpf-stack.properties`와 Wrapper/Root/Module/Generator/Standalone 일치
+- Boot 3.4.13 + Java25 + Gradle9.1을 GA로 오표기하지 않음
+- Boot 4.x Migration 시 External WAS/Servlet6.1/Spring Batch/MyBatis/Flyway/Generated Domain 회귀
+
+### Artifact
+
+- `aggregateQualityBuild` 실패 시 Shared Local 변경 0
+- Root/Included Build staging task 실제 존재/실행
+- exact POM/module/BOM/plugin marker/hash
+- manifest sourceCommit / promotionState
+- promotion 중 실패 rollback
+- concurrent publisher
+- Local current-HEAD reuse
+- REMOTE publish Local side effect 0
+- REMOTE missing URL fail-closed
+- OFFLINE bundle standalone plugin/dependency resolution
+- bootJar/bootWar 내부 exact CPF version/hash
+
+### 이전 PASS 재개방
+
+Build/BOM/Plugin/Generator 영향권의 과거 PASS는 다시 실행한다.
+BAT 158 SQL/V58처럼 직접 영향 없는 고비용 Evidence는 무조건 반복하지 않는다.

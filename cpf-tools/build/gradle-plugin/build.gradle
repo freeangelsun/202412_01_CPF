@@ -6,14 +6,58 @@ gradlePlugin { plugins { cpfDomain { id='com.cpf.domain-conventions'; implementa
 def cpfLocalRepo=providers.gradleProperty('cpfLocalArtifactRepository')
         .orElse(providers.environmentVariable('CPF_LOCAL_ARTIFACT_REPOSITORY'))
         .orElse(new File(System.getProperty('user.home'), '.cpf/repository').absolutePath)
+def cpfStagingRepo=file('../../../build/cpf-artifact-staging/repository').absolutePath
+def cpfRemoteRepo=providers.gradleProperty('cpfArtifactRepositoryUrl')
+        .orElse(providers.environmentVariable('CPF_ARTIFACT_REPOSITORY_URL'))
+def cpfArtifactMode=providers.gradleProperty('cpfArtifactMode')
+        .orElse(providers.environmentVariable('CPF_ARTIFACT_MODE'))
+        .orElse(cpfRemoteRepo.isPresent() ? 'REMOTE' : 'LOCAL_DEV')
+        .map { it.toUpperCase(Locale.ROOT) }
 publishing {
   repositories {
     maven { name='cpfLocal'; url=uri(cpfLocalRepo.get()) }
+    maven { name='cpfStaging'; url=uri(cpfStagingRepo) }
     maven {
       name='cpfInternal'
-      def repo=System.getenv('CPF_ARTIFACT_REPOSITORY_URL')
+      def repo=cpfRemoteRepo.orNull
       url=uri(repo ?: layout.buildDirectory.dir('repository'))
       if(repo)credentials{username=System.getenv('CPF_ARTIFACT_REPOSITORY_USER');password=System.getenv('CPF_ARTIFACT_REPOSITORY_PASSWORD')}
     }
   }
+}
+
+tasks.register('prepareCpfPluginStaging') {
+  doLast {
+    delete file("${cpfStagingRepo}/com/cpf/build/cpf-gradle-plugin/${version}")
+    delete file("${cpfStagingRepo}/com/cpf/domain-conventions/com.cpf.domain-conventions.gradle.plugin/${version}")
+  }
+}
+tasks.matching { it.name.endsWith('ToCpfStagingRepository') }.configureEach { dependsOn 'prepareCpfPluginStaging' }
+
+tasks.matching { it.name.endsWith('ToCpfLocalRepository') }.configureEach {
+  doFirst { if (cpfArtifactMode.get() != 'LOCAL_DEV') throw new GradleException('CPF plugin local publication is allowed only in LOCAL_DEV mode.') }
+}
+tasks.matching { it.name.endsWith('ToCpfStagingRepository') }.configureEach {
+  doFirst { if (cpfArtifactMode.get() != 'LOCAL_DEV') throw new GradleException('CPF plugin staging publication is allowed only in LOCAL_DEV mode.') }
+}
+tasks.matching { it.name.endsWith('ToCpfInternalRepository') }.configureEach {
+  doFirst {
+    if (cpfArtifactMode.get() != 'REMOTE' || !cpfRemoteRepo.isPresent()) {
+      throw new GradleException('Remote CPF plugin publication requires CPF_ARTIFACT_MODE=REMOTE and cpfArtifactRepositoryUrl or CPF_ARTIFACT_REPOSITORY_URL.')
+    }
+  }
+}
+tasks.register('publishCpfPluginToLocal') {
+  dependsOn tasks.matching { it.name.endsWith('ToCpfLocalRepository') }
+}
+tasks.register('publishCpfPluginToStaging') {
+  dependsOn tasks.matching { it.name.endsWith('ToCpfStagingRepository') }
+}
+tasks.register('publishCpfPluginToInternal') {
+  doFirst {
+    if (cpfArtifactMode.get() != 'REMOTE' || !cpfRemoteRepo.isPresent()) {
+      throw new GradleException('Remote CPF plugin publish requires CPF_ARTIFACT_MODE=REMOTE and cpfArtifactRepositoryUrl or CPF_ARTIFACT_REPOSITORY_URL.')
+    }
+  }
+  dependsOn tasks.matching { it.name.endsWith('ToCpfInternalRepository') }
 }

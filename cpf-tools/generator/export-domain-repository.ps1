@@ -14,6 +14,26 @@ param(
 $ErrorActionPreference = "Stop"
 $Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
 $repositoryRoot = (Resolve-Path "$PSScriptRoot\..\..").Path
+$cpfStackPropertiesPath = Join-Path $repositoryRoot "gradle/cpf-stack.properties"
+if (-not (Test-Path -LiteralPath $cpfStackPropertiesPath -PathType Leaf)) {
+    throw "CPF Stack 정본이 없습니다: $cpfStackPropertiesPath"
+}
+$cpfStackProperties = @{}
+foreach ($line in Get-Content -LiteralPath $cpfStackPropertiesPath -Encoding UTF8) {
+    $trimmed = $line.Trim()
+    if ([string]::IsNullOrWhiteSpace($trimmed) -or $trimmed.StartsWith('#')) { continue }
+    $index = $trimmed.IndexOf('=')
+    if ($index -le 0) { continue }
+    $cpfStackProperties[$trimmed.Substring(0, $index).Trim()] = $trimmed.Substring($index + 1).Trim()
+}
+$springBootVersion = [string]$cpfStackProperties['springBootVersion']
+$dependencyManagementVersion = [string]$cpfStackProperties['springDependencyManagementVersion']
+$javaVersion = [string]$cpfStackProperties['javaVersion']
+if ([string]::IsNullOrWhiteSpace($springBootVersion) -or
+        [string]::IsNullOrWhiteSpace($dependencyManagementVersion) -or
+        [string]::IsNullOrWhiteSpace($javaVersion)) {
+    throw "CPF Stack 정본 값이 유효하지 않습니다: $cpfStackPropertiesPath"
+}
 $source = Join-Path $repositoryRoot $DomainModule
 if (-not (Test-Path -LiteralPath $source -PathType Container)) {
     throw "Domain module not found: $source"
@@ -85,59 +105,99 @@ try {
 
     $settings = @"
 pluginManagement {
-    repositories {
-        def cpfPluginRepo = System.getenv('CPF_ARTIFACT_REPOSITORY_URL')
-        if (cpfPluginRepo) {
-            maven {
-                url = uri(cpfPluginRepo)
-                def cpfRepoUser = System.getenv('CPF_ARTIFACT_REPOSITORY_USER')
-                if (cpfRepoUser) {
-                    credentials {
-                        username = cpfRepoUser
-                        password = System.getenv('CPF_ARTIFACT_REPOSITORY_PASSWORD')
-                    }
-                }
-            }
+    def artifactMode = providers.gradleProperty('cpfArtifactMode')
+            .orElse(providers.environmentVariable('CPF_ARTIFACT_MODE'))
+            .orElse(providers.gradleProperty('cpfArtifactRepositoryUrl').map { 'REMOTE' })
+            .orElse(providers.environmentVariable('CPF_ARTIFACT_REPOSITORY_URL').map { 'REMOTE' })
+            .orElse('LOCAL_DEV').get().trim().toUpperCase(Locale.ROOT)
+    def remoteRepo = providers.gradleProperty('cpfArtifactRepositoryUrl')
+            .orElse(providers.environmentVariable('CPF_ARTIFACT_REPOSITORY_URL')).orNull
+    def localRepo = providers.gradleProperty('cpfLocalArtifactRepository')
+            .orElse(providers.environmentVariable('CPF_LOCAL_ARTIFACT_REPOSITORY'))
+            .orElse(new File(System.getProperty('user.home'), '.cpf/repository').absolutePath).get()
+    def offlineRepo = providers.gradleProperty('cpfOfflineArtifactRepository')
+            .orElse(providers.environmentVariable('CPF_OFFLINE_ARTIFACT_REPOSITORY')).orNull
+    if (!(artifactMode in ['LOCAL_DEV','REMOTE','OFFLINE'])) throw new GradleException("Unsupported CPF artifact mode: `${artifactMode}")
+    if (artifactMode == 'REMOTE' && !remoteRepo) throw new GradleException('CPF_ARTIFACT_MODE=REMOTE requires cpfArtifactRepositoryUrl or CPF_ARTIFACT_REPOSITORY_URL.')
+    if (artifactMode == 'OFFLINE' && !offlineRepo) throw new GradleException('CPF_ARTIFACT_MODE=OFFLINE requires cpfOfflineArtifactRepository or CPF_OFFLINE_ARTIFACT_REPOSITORY.')
+    if (artifactMode == 'LOCAL_DEV' || artifactMode == 'OFFLINE') {
+        def fileRepo = artifactMode == 'OFFLINE' ? offlineRepo : localRepo
+        def manifest = new File(fileRepo, '_cpf/manifests/$PlatformVersion.json')
+        if (!manifest.isFile()) throw new GradleException("CPF artifact manifest is missing or publication is incomplete: `${manifest}")
+        def manifestJson = new groovy.json.JsonSlurper().parse(manifest)
+        if (manifestJson.platformVersion != '$PlatformVersion' || manifestJson.promotionState != 'PROMOTED') {
+            throw new GradleException("CPF artifact manifest is not a promoted $PlatformVersion set: `${manifest}")
         }
-        def cpfLocalPluginRepo = System.getenv('CPF_LOCAL_ARTIFACT_REPOSITORY') ?:
-                new File(System.getProperty('user.home'), '.cpf/repository').absolutePath
-        maven { url = uri(cpfLocalPluginRepo) }
-        gradlePluginPortal()
-        mavenCentral()
+    }
+    repositories {
+        if (artifactMode == 'REMOTE') {
+            maven {
+                url = uri(remoteRepo)
+                content { includeGroupByRegex 'com\\.cpf(\\..*)?' }
+                def cpfRepoUser = System.getenv('CPF_ARTIFACT_REPOSITORY_USER')
+                if (cpfRepoUser) credentials { username = cpfRepoUser; password = System.getenv('CPF_ARTIFACT_REPOSITORY_PASSWORD') }
+            }
+        } else if (artifactMode == 'OFFLINE') {
+            maven { url = uri(offlineRepo); content { includeGroupByRegex 'com\\.cpf(\\..*)?' } }
+        } else {
+            maven { url = uri(localRepo); content { includeGroupByRegex 'com\\.cpf(\\..*)?' } }
+        }
+        gradlePluginPortal { content { excludeGroupByRegex 'com\\.cpf(\\..*)?' } }
+        mavenCentral { content { excludeGroupByRegex 'com\\.cpf(\\..*)?' } }
     }
 }
 rootProject.name = 'cpf-domain-$domainName'
 include '$DomainModule'
 "@
     Write-Utf8 -Path (Join-Path $stagingRoot "settings.gradle") -Content $settings
+    $stackTarget = Join-Path $stagingRoot "gradle/cpf-stack.properties"
+    $stackTargetParent = Split-Path -Parent $stackTarget
+    if (-not (Test-Path -LiteralPath $stackTargetParent)) { New-Item -ItemType Directory -Force -Path $stackTargetParent | Out-Null }
+    Copy-Item -LiteralPath $cpfStackPropertiesPath -Destination $stackTarget -Force
 
     $rootBuild = @"
 plugins { id 'base' }
+def cpfStackProperties = new Properties()
+file('gradle/cpf-stack.properties').withInputStream { cpfStackProperties.load(it) }
 ext.cpfPlatformVersion = '$PlatformVersion'
-ext.cpfJavaVersion = 25
+ext.cpfJavaVersion = cpfStackProperties.getProperty('javaVersion').toInteger()
+ext.cpfSpringBootVersion = cpfStackProperties.getProperty('springBootVersion')
 allprojects {
     repositories {
-        def cpfRepo = System.getenv('CPF_ARTIFACT_REPOSITORY_URL')
-        if (cpfRepo) {
+        def artifactMode = providers.gradleProperty('cpfArtifactMode')
+                .orElse(providers.environmentVariable('CPF_ARTIFACT_MODE'))
+                .orElse(providers.gradleProperty('cpfArtifactRepositoryUrl').map { 'REMOTE' })
+                .orElse(providers.environmentVariable('CPF_ARTIFACT_REPOSITORY_URL').map { 'REMOTE' })
+                .orElse('LOCAL_DEV').get().trim().toUpperCase(Locale.ROOT)
+        def remoteRepo = providers.gradleProperty('cpfArtifactRepositoryUrl')
+                .orElse(providers.environmentVariable('CPF_ARTIFACT_REPOSITORY_URL')).orNull
+        def localRepo = providers.gradleProperty('cpfLocalArtifactRepository')
+                .orElse(providers.environmentVariable('CPF_LOCAL_ARTIFACT_REPOSITORY'))
+                .orElse(new File(System.getProperty('user.home'), '.cpf/repository').absolutePath).get()
+        def offlineRepo = providers.gradleProperty('cpfOfflineArtifactRepository')
+                .orElse(providers.environmentVariable('CPF_OFFLINE_ARTIFACT_REPOSITORY')).orNull
+        if (artifactMode == 'REMOTE') {
+            if (!remoteRepo) throw new GradleException('CPF_ARTIFACT_MODE=REMOTE requires cpfArtifactRepositoryUrl or CPF_ARTIFACT_REPOSITORY_URL.')
             maven {
-                url = uri(cpfRepo)
+                url = uri(remoteRepo)
+                content { includeGroupByRegex 'com\\.cpf(\\..*)?' }
                 def cpfRepoUser = System.getenv('CPF_ARTIFACT_REPOSITORY_USER')
-                if (cpfRepoUser) {
-                    credentials {
-                        username = cpfRepoUser
-                        password = System.getenv('CPF_ARTIFACT_REPOSITORY_PASSWORD')
-                    }
-                }
+                if (cpfRepoUser) credentials { username = cpfRepoUser; password = System.getenv('CPF_ARTIFACT_REPOSITORY_PASSWORD') }
             }
+        } else if (artifactMode == 'OFFLINE') {
+            if (!offlineRepo) throw new GradleException('CPF_ARTIFACT_MODE=OFFLINE requires cpfOfflineArtifactRepository or CPF_OFFLINE_ARTIFACT_REPOSITORY.')
+            maven { url = uri(offlineRepo); content { includeGroupByRegex 'com\\.cpf(\\..*)?' } }
+        } else if (artifactMode == 'LOCAL_DEV') {
+            maven { url = uri(localRepo); content { includeGroupByRegex 'com\\.cpf(\\..*)?' } }
+        } else {
+            throw new GradleException("Unsupported CPF artifact mode: `${artifactMode}")
         }
-        def cpfLocalRepo = System.getenv('CPF_LOCAL_ARTIFACT_REPOSITORY') ?:
-                new File(System.getProperty('user.home'), '.cpf/repository').absolutePath
-        maven { url = uri(cpfLocalRepo) }
-        mavenCentral()
+        mavenCentral { content { excludeGroupByRegex 'com\\.cpf(\\..*)?' } }
     }
 }
 "@
     Write-Utf8 -Path (Join-Path $stagingRoot "build.gradle") -Content $rootBuild
+    Write-Utf8 -Path (Join-Path $stagingRoot "gradle.properties") -Content "cpfJavaVersion=$javaVersion`n"
 
     $buildFile = Join-Path $stagingModule "build.gradle"
     $buildText = Get-Content -LiteralPath $buildFile -Raw -Encoding UTF8
@@ -160,11 +220,11 @@ implementation platform('com.cpf:cpf-bom:$PlatformVersion')
     $buildText = [regex]::Replace(
             $buildText,
             "(?m)^(\s*id\s+'org\.springframework\.boot')\s*$",
-            "`$1 version '3.4.13'")
+            "`$1 version '$springBootVersion'")
     $buildText = [regex]::Replace(
             $buildText,
             "(?m)^(\s*id\s+'io\.spring\.dependency-management')\s*$",
-            "`$1 version '1.1.7'")
+            "`$1 version '$dependencyManagementVersion'")
     $buildText = $buildText.Replace(
             '${rootProject.projectDir}/cpf-tools/db/vendor',
             '${rootProject.projectDir}/cpf-db/vendor')

@@ -480,3 +480,55 @@ Codex는 전체 CPF를 다시 검수하지 말고 다음을 먼저 실행한다.
 - focused test에서 공통계약 회귀가 발견될 때만 범위를 확대한다.
 - Browser/Multi-instance/Fault는 기능 안정화 후 최종 통합 기준 Commit에서 묶어서 실행한다.
 - 실행하지 않은 검증은 `미검증`으로 유지한다.
+
+---
+
+## 2026-07-27 ChatGPT 문서 정리 추가 인수사항 — 기준 `9e4edaef24dce901fdcf722e2e6d8c0cf0a623ba`
+
+### 현재 운영상 중요 보정
+
+- Codex는 즉시 투입하지 않는다. ChatGPT가 몇 차례 더 개발한 뒤 독립 QA/실환경 검증에 투입한다.
+- 따라서 현재 Codex Checklist/Handover는 최종본이 아니며, Codex 투입 직전 최신 master 전체 Diff와 누적 Change Ledger를 기준으로 다시 작성해야 한다.
+- 과거 PASS는 무조건 유지하지 않는다. 이후 Source/DB/Generator/Build/Gate 변경의 직접·간접 영향권에 들어오면 `재검증 필요`로 다시 연다.
+- 반대로 변경과 무관한 고비용 Browser/Multi-instance/Fault/전체 DB 검증을 습관적으로 반복하지 않는다.
+
+### Artifact 공급 정책
+
+Generated Domain/독립 WAS의 CPF Library 공급은 `LOCAL_DEV` / `REMOTE` / `OFFLINE` 3모드로 정리한다.
+
+- `LOCAL_DEV`: 개발 Source 변경 즉시 반영
+- `REMOTE`: Jenkins/CI가 승인된 Nexus/Artifactory 등 고정 Version 사용
+- `OFFLINE`: Registry 없는 환경에서 manifest/checksum/BOM을 가진 Offline CPF Library Bundle 사용
+
+CI/STG/PROD는 Local Repository fallback을 허용하지 않고 fail-closed한다.
+업무 Domain이 CPF JAR을 수동 복사하는 방식을 표준으로 사용하지 않는다.
+
+### Gate/PowerShell/Tool 정리 정책
+
+정본: `cpf-docs/guides/CPF_GATE_AND_TOOL_LIFECYCLE_GUIDE.md`
+
+향후 모든 작업자는 다음을 유지한다.
+
+1. Gate/Tool Inventory 작성
+2. `DEV_ONLY` / `CI_RELEASE` / `PRODUCT_ADMIN_TOOL` 분류
+3. 중복/Legacy/무호출/일회성 Gate는 실제 Caller와 Requirement 대체 여부 확인 후 통합/삭제
+4. 개발 대표 Gate `QUICK` / 작업단위 `VERIFY` / 통합 `FULL` 체계화
+5. 공식 Tool은 옵션/Default/환경변수/Side Effect/실패/복구/예제까지 문서화
+6. 개발/CI Gate는 Runtime 배포물에 포함하지 않음
+7. 고객 관리자에게 필요한 설치/Upgrade/Rollback/Generator/Verify Tool만 별도 관리 Tool로 제공 가능
+
+ChatGPT가 안전하게 삭제를 확정하지 못한 Gate는 억지로 보존 완료 처리하지 않고 `삭제 후보/재확인 필요`로 남긴다.
+향후 Codex는 최신 master에서 실제 Consumer, CI 참조, Requirement coverage를 확인한 뒤 필요하면 삭제한다.
+
+### 새 세션 필수 확인
+
+새 ChatGPT/Codex 세션은 이전 대화만 믿지 말고 다음을 먼저 읽는다.
+
+- `cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md`
+- `cpf-docs/work/current/CPF_CURRENT_WORK_REQUEST.md`
+- `cpf-docs/work/current/CPF_NEXT_INTEGRATED_DEVELOPMENT_REQUEST_20260727.md`
+- `cpf-docs/work/current/CPF_REMAINING_REQUIREMENT_MATRIX_20260727.md`
+- `cpf-docs/guides/CPF_GATE_AND_TOOL_LIFECYCLE_GUIDE.md`
+- 이 Continuity State
+
+QA 최종 개선요청이 도착하면 기존 준비 Requirement와 병합하고 중복을 제거한 뒤 구현한다.

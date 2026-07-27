@@ -4,14 +4,17 @@
 
 - Repository: `freeangelsun/202412_01_CPF`
 - Branch: `master`
-- 작업 시작 기준 SHA: `fb95e15f90856adcff39040a50b128aa40f5ef43` (`20260727_01`)
+- 현재 준비 기준 SHA: `9e4edaef24dce901fdcf722e2e6d8c0cf0a623ba` (`20260727_02`)
 - 최상위 정본: `cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md`
 - QA 입력: `CPF 다음 통합 개발·QA 요구사항`
 - 원칙: 문서 완료 표시보다 실제 Git Source/API/SQL/Test/Runtime/Evidence를 우선한다.
 
 이 요청서는 QA 요구, Codex 사용량 제한 중단분, 최신 master 재검토 결과와 사용자 추가 요구를 하나의 후속 목록으로 합친다.
-이미 검증된 범위를 무조건 다시 실행하지 않는다. 변경 영향이 없고 최신 Evidence가 유효한 항목은 재사용하며,
-ChatGPT가 변경한 범위와 Codex가 중단한 범위만 우선 재검증한다.
+현재 `20260727_02`까지 ChatGPT 1차 변경이 Push되었고, QA 최종 개선요청은 아직 대기 중이다.
+다음 실제 개발 시작 전 QA 최종 요구를 이 문서와 병합하고 중복을 제거한다.
+
+이미 검증된 범위를 무조건 다시 실행하지 않는다. 다만 이후 ChatGPT/Codex 변경의 직접·간접 영향권에 들어온 과거 PASS는
+`재검증 필요`로 다시 연다. 변경 영향이 없고 최신 Evidence가 유효한 항목은 재사용한다.
 
 ## 2. 이번 ChatGPT 1차 구현 범위
 
@@ -211,3 +214,55 @@ Codex는 다음 순서로 검증한다.
 
 - `cpf-docs/work/current/CPF_REMAINING_REQUIREMENT_MATRIX_20260727.md`
 - QA 전체 항목을 구현 확인/부분 구현/미완료/통합검증 예정으로 재분류한 정본이며, 다음 검수는 이 Matrix와 Change Ledger를 함께 사용한다.
+
+
+## 10. 다음 개발 추가 준비 Requirement — Artifact 공급 3모드
+
+### CPF-ARTIFACT-SUPPLY-001
+
+Generated Domain/독립 WAS는 다음 세 Artifact 공급 모드를 동일 Gradle Dependency 계약으로 지원한다.
+
+1. `LOCAL_DEV`
+   - 같은 Repository에서는 Project Dependency로 최신 Core/Common Source 변경을 자동 반영한다.
+   - 독립 Repository에서는 shared local CPF repository를 사용할 수 있다.
+2. `REMOTE`
+   - Jenkins/CI/STG/PROD는 승인된 Nexus/Artifactory 등에서 고정 CPF Version을 사용한다.
+   - Remote artifact가 없을 때 개발자/서버 Local repository로 fallback하지 않고 fail-closed한다.
+3. `OFFLINE`
+   - Registry가 없는 고객 환경을 위해 version/manifest/checksum/BOM을 포함한 CPF Offline Library Bundle을 제공한다.
+   - 업무 Domain이 JAR을 수동 복사하지 않고 Gradle이 Bundle의 검증된 artifact를 선택해 bootJar/bootWar/lib에 자동 포함한다.
+
+서버 CI/CD에서 업무 Domain 빌드 때 CPF 최신 Source를 무조건 다시 Checkout/Compile하여 결과물이 변하는 구조는 표준으로 사용하지 않는다.
+동일 업무 Source + 동일 CPF Version은 재현 가능한 동일 Dependency Set을 가져야 한다.
+
+## 11. 다음 개발 추가 준비 Requirement — Gate·PowerShell·Tool Lifecycle
+
+정본: `cpf-docs/guides/CPF_GATE_AND_TOOL_LIFECYCLE_GUIDE.md`
+
+다음 작업에서 전체 Gate/PowerShell/Gradle Task를 Inventory하고 아래를 수행한다.
+
+- `DEV_ONLY` / `CI_RELEASE` / `PRODUCT_ADMIN_TOOL` 역할 분류
+- 중복/Legacy/무호출/일회성 Gate 통합 또는 삭제
+- 삭제 전 실제 호출자, 보호 Requirement, 대체 Gate, CI/Guide 참조를 확인
+- 개발 대표 Entry `QUICK` / 작업단위 `VERIFY` / 통합 `FULL` 정립
+- 가능한 기본 Gate는 Gradle/JVM Portable Entry를 정본화하고 PowerShell은 Windows Wrapper로 사용
+- 공식 Tool의 모든 옵션/Default/환경변수/Side Effect/실패/복구/예제를 Guide와 Script Help에 일치시킴
+- `DEV_ONLY`/`CI_RELEASE`는 Runtime 배포물에 포함하지 않음
+- 설치/Upgrade/Rollback/DB Verify/Generator/Offline Bundle 관리 등 `PRODUCT_ADMIN_TOOL`만 별도 관리 Tool 패키지 제공 가능
+
+ChatGPT가 안전하게 삭제 여부를 확정하지 못한 Gate는 `삭제 후보/재확인 필요`로 문서화하고, 향후 Codex가 최신 master에서 실제 Consumer와 Requirement coverage를 검증한 뒤 제거한다.
+
+## 12. Codex 투입 시점 보정
+
+Codex는 즉시 투입하지 않고 ChatGPT 개발을 여러 차례 더 진행한 뒤 사용한다.
+따라서 현재 `CPF_CODEX_2ND_REVIEW_CHECKLIST_20260727.md`는 중간 Checklist이며 최종 요청서가 아니다.
+Codex 투입 직전 최신 master 기준으로 다음을 다시 계산한다.
+
+- ChatGPT 이후 변경 전체 Diff
+- 과거 PASS 중 변경 영향으로 재검증해야 하는 항목
+- 신규 미검증 항목
+- 통합검증 예정 항목
+- Gate/Tool 삭제 후보와 Manual 누락
+- Artifact `LOCAL_DEV`/`REMOTE`/`OFFLINE` 공급 회귀
+
+Codex 비용은 ChatGPT 1차 구현 결함의 대규모 재개발보다 독립 QA, 실제 Runtime/DB/Browser/Multi-instance 검증에 우선 사용한다.

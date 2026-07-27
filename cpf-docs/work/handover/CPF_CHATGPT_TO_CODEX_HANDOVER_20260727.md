@@ -145,3 +145,29 @@ Codex도 사용자의 해당 시점 명시 승인 범위에서만 Commit/Push한
 
 - `cpf-docs/work/current/CPF_REMAINING_REQUIREMENT_MATRIX_20260727.md`
 - QA 전체 항목을 구현 확인/부분 구현/미완료/통합검증 예정으로 재분류한 정본이며, 다음 검수는 이 Matrix와 Change Ledger를 함께 사용한다.
+
+---
+
+## 향후 세션/Codex 인계 보강 — 2026-07-27 `20260727_02` 이후
+
+이 Handover는 현재 시점의 중간 자료이며 최종 Codex 투입본이 아니다.
+사용자는 ChatGPT로 몇 차례 더 개발한 뒤 Codex를 사용할 계획이다.
+따라서 미래 Codex 요청서는 그 시점 최신 master 기준으로 다시 작성한다.
+
+### 반드시 이어갈 정책
+
+1. 과거 PASS라도 이후 변경의 영향권에 들어오면 재검증 대상으로 다시 연다.
+2. 변경과 무관한 고비용 검증은 무조건 재실행하지 않는다.
+3. `LOCAL_DEV` / `REMOTE` / `OFFLINE` Artifact 공급 모델을 제품 표준으로 완성한다.
+4. CI/STG/PROD에서 개발자 Local Repository fallback을 허용하지 않는다.
+5. Gate/PowerShell/Gradle Task를 Inventory하고 `DEV_ONLY` / `CI_RELEASE` / `PRODUCT_ADMIN_TOOL`로 분류한다.
+6. 중복/Legacy/무호출/일회성 Gate는 실제 Caller와 Requirement 대체 확인 후 삭제한다.
+7. 개발용 Gate는 Runtime 제품 배포물에 포함하지 않는다.
+8. 제품 관리자에게 필요한 설치/Upgrade/Rollback/DB Verify/Generator/Artifact 관리 Tool만 별도 관리 Tool로 제공 가능하다.
+9. 공식 Tool의 옵션/Default/환경변수/입출력/Side Effect/실패/복구/실행 예제를 문서화한다.
+10. ChatGPT가 삭제 확신을 갖지 못한 Gate는 `삭제 후보/재확인 필요`로 남기고, Codex가 최신 master의 실제 Consumer와 coverage를 확인해 제거한다.
+
+정본 Guide:
+`cpf-docs/guides/CPF_GATE_AND_TOOL_LIFECYCLE_GUIDE.md`
+
+새 세션은 반드시 `CPF_CURRENT_WORK_REQUEST.md`, `CPF_REMAINING_REQUIREMENT_MATRIX_20260727.md`, `CPF_CODEX_CONTINUITY_STATE.md`와 위 Guide를 함께 읽고 시작한다.

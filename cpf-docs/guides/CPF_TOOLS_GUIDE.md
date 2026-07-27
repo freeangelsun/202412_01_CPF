@@ -169,3 +169,48 @@ Runner의 결과는 sanitized Evidence로 저장하고, 다른 PC의 과거 PASS
 - `check-frontend-route-targets.ps1`: ADM/BZA lazy route 실파일과 외부 Runtime URL을 확인한다.
 - `check-r10-cleanup.ps1`: EXS baseline, Core Batch legacy, root log/ZIP/temp와 stale source를 확인한다.
 - `check-r10-product-standard.ps1`: Calendar/Log/Foundation API/Generated Domain 동기화 등 현재 제품 Guardrail을 확인한다.
+
+## 14. Gate·Tool Lifecycle 정본
+
+Gate/PowerShell/Gradle Tool의 역할 분류, 삭제 기준, 최종 배포 포함/제외 기준은 다음 문서를 정본으로 사용한다.
+
+- `cpf-docs/guides/CPF_GATE_AND_TOOL_LIFECYCLE_GUIDE.md`
+
+특히 모든 Gate/Tool은 `DEV_ONLY`, `CI_RELEASE`, `PRODUCT_ADMIN_TOOL` 중 하나로 분류해야 한다.
+개발용 Gate를 운영 Runtime 배포물에 포함하지 않으며, 고객 관리자에게 필요한 설치/Upgrade/Rollback/Generator/Verify 기능만 별도 관리 Tool로 제공한다.
+
+## 15. 공식 Tool 옵션 문서화 기준
+
+`cpf-tools`의 정식 사용자 진입 Script는 Script 존재만으로 완료 처리하지 않는다.
+각 Tool Guide에는 필수/선택 옵션, Default, 조합 제약, 환경변수, 입력/출력, 변경 영향, 정상/실패 예제, 재실행 가능 여부, 복구 방법을 기록한다.
+
+새 옵션을 추가하거나 Default를 변경하면 다음을 같은 작업 단위에서 갱신한다.
+
+1. Script의 comment-based help/usage
+2. `CPF_TOOLS_GUIDE.md` 또는 기능별 상세 Guide
+3. Generator/CI 사용 예제
+4. 관련 Test/Gate
+
+문서와 실제 옵션이 다르면 제품 결함이다.
+
+## 16. 개발 Gate 대표 Entry
+
+개발자가 개별 Gate를 모두 기억하지 않도록 다음 3단계 Aggregate Gate를 제품 목표로 한다.
+
+- `QUICK`: 개발 중 반복 가능한 저비용 정적 Gate
+- `VERIFY`: 작업 단위 종료 시 영향 Module/Packaging/Focused lifecycle 검증
+- `FULL`: Release 후보 기준 DB/Browser/Multi-instance/Fault/Generator lifecycle 통합 검증
+
+최종 구현 시 가능한 범위에서 Gradle/JVM Portable Entry를 정본으로 하고 PowerShell은 Windows 편의 Wrapper로 제공한다.
+상세 포함/제외 기준은 `CPF_GATE_AND_TOOL_LIFECYCLE_GUIDE.md`를 따른다.
+
+## 17. Artifact 공급 모드
+
+Generated Domain/독립 WAS의 CPF Library 공급은 다음 세 모드를 제품 표준으로 정리한다.
+
+- `LOCAL_DEV`: 로컬 CPF Source 변경을 개발 Domain에 자동 반영
+- `REMOTE`: CI/CD가 Nexus/Artifactory 등 승인된 Registry의 고정 버전을 사용
+- `OFFLINE`: Registry가 없는 환경에서 manifest/checksum을 가진 Offline Library Bundle을 사용
+
+CI/STG/PROD에서는 개발자 Local Repository fallback을 사용하지 않는다.
+`OFFLINE`도 수동 JAR 복사가 아니라 Gradle이 검증된 Bundle을 자동 선택·패키징하는 방식으로 구현한다.

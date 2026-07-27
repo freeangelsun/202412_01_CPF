@@ -112,3 +112,45 @@ A/C 검증과 별도로 다음만 이어서 조사한다.
 
 - `cpf-docs/work/current/CPF_REMAINING_REQUIREMENT_MATRIX_20260727.md`
 - QA 전체 항목을 구현 확인/부분 구현/미완료/통합검증 예정으로 재분류한 정본이며, 다음 검수는 이 Matrix와 Change Ledger를 함께 사용한다.
+
+---
+
+## G. 이 Checklist의 현재 지위
+
+이 문서는 **중간 Checklist**다. Codex는 즉시 투입되지 않으며 ChatGPT 개발이 추가로 진행될 예정이다.
+실제 Codex 착수 시 이 문서를 그대로 실행하지 말고 최신 master와 누적 Change Ledger를 기준으로 재작성한다.
+
+특히 다음 원칙을 반영한다.
+
+- 이후 ChatGPT 변경 영향권에 들어온 과거 PASS는 `재검증 필요`로 다시 연다.
+- 변경과 무관한 고비용 검증은 자동 반복하지 않는다.
+- ChatGPT 1차 구현을 Codex가 대규모 재개발하는 상황은 결함으로 보고 원인/Architecture를 함께 분석한다.
+
+## H. 미래 Codex Gate·Tool 정리 검수
+
+정본: `cpf-docs/guides/CPF_GATE_AND_TOOL_LIFECYCLE_GUIDE.md`
+
+- [ ] 최신 master의 PowerShell Script/Gradle Gate Inventory 작성
+- [ ] `DEV_ONLY` / `CI_RELEASE` / `PRODUCT_ADMIN_TOOL` 분류
+- [ ] 상위 Aggregate/CI/Guide/다른 Script 실제 Caller 확인
+- [ ] 보호 Requirement와 대체 Gate 확인
+- [ ] 중복/Legacy/무호출/일회성 Gate 삭제 후보 확정
+- [ ] 삭제 시 stale 문서/Task/CI 참조도 함께 제거
+- [ ] `QUICK` / `VERIFY` / `FULL` Aggregate가 실제 하위 Gate와 일치하는지 검증
+- [ ] 공식 Tool의 옵션/Default/환경변수/입출력/Side Effect/실패/복구/예제 누락 확인
+- [ ] Script Help와 Guide 옵션 불일치 검출
+- [ ] Runtime 배포물에 `DEV_ONLY`/`CI_RELEASE` Script가 포함되지 않는지 확인
+- [ ] 관리 Tool 패키지에는 필요한 `PRODUCT_ADMIN_TOOL`만 포함되는지 확인
+
+ChatGPT가 삭제 여부를 확정하지 못한 Gate는 실제 호출자/Requirement coverage를 확인해 안전하면 Codex가 제거한다.
+무근거 대량 삭제는 금지한다.
+
+## I. 미래 Codex Artifact 공급 검수
+
+- [ ] `LOCAL_DEV` Source 변경 → Domain package 자동 반영
+- [ ] `REMOTE` CI build가 승인된 Registry의 고정 Version만 사용
+- [ ] `REMOTE` artifact 미존재 시 Local Repository fallback 없이 실패
+- [ ] `OFFLINE` Bundle에 version/manifest/checksum/BOM 존재
+- [ ] `OFFLINE` consumer가 수동 JAR 복사 없이 Gradle로 package
+- [ ] bootJar/bootWar/lib에 필요한 CPF Library 실제 포함
+- [ ] 동일 Domain Source + 동일 CPF Version의 Dependency Set 재현성 확인

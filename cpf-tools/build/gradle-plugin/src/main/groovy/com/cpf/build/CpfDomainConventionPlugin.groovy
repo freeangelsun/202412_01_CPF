@@ -8,9 +8,18 @@ class CpfDomainConventionPlugin implements Plugin<Project> {
  void apply(Project project) {
   project.pluginManager.apply(JavaPlugin)
   project.extensions.configure(JavaPluginExtension) { toolchain.languageVersion.set(JavaLanguageVersion.of(25));withSourcesJar();withJavadocJar() }
+  def remoteRepo=System.getenv('CPF_ARTIFACT_REPOSITORY_URL')
+  if(remoteRepo) project.repositories.maven {
+    name='cpfRemote'
+    url=project.uri(remoteRepo)
+    def repoUser=System.getenv('CPF_ARTIFACT_REPOSITORY_USER')
+    if(repoUser) credentials{username=repoUser;password=System.getenv('CPF_ARTIFACT_REPOSITORY_PASSWORD')}
+  }
+  def localRepo=project.providers.gradleProperty('cpfLocalArtifactRepository')
+          .orElse(project.providers.environmentVariable('CPF_LOCAL_ARTIFACT_REPOSITORY'))
+          .orElse(new File(System.getProperty('user.home'), '.cpf/repository').absolutePath)
+  project.repositories.maven { name='cpfLocal'; url=project.uri(localRepo.get()) }
   project.repositories.mavenCentral()
-  def repo=System.getenv('CPF_ARTIFACT_REPOSITORY_URL')
-  if(repo) project.repositories.maven { url=project.uri(repo);credentials{username=System.getenv('CPF_ARTIFACT_REPOSITORY_USER');password=System.getenv('CPF_ARTIFACT_REPOSITORY_PASSWORD')} }
   project.dependencyLocking { lockAllConfigurations() }
   project.tasks.withType(JavaCompile).configureEach { options.release.set(25);options.encoding='UTF-8' }
   project.tasks.withType(AbstractArchiveTask).configureEach { preserveFileTimestamps=false;reproducibleFileOrder=true }

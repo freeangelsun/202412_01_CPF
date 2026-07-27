@@ -1289,6 +1289,11 @@ $dependencyManagementPlugin = if ($DependencyModel -eq "published-artifact") {
 } else {
     "    id 'io.spring.dependency-management'"
 }
+$cpfConventionPlugin = if ($DependencyModel -eq "published-artifact") {
+    "    id 'com.cpf.domain-conventions' version '$PlatformVersion'"
+} else {
+    "    id 'com.cpf.domain-conventions'"
+}
 
 $databaseDependencies = if ($DatabaseEnabled) {
 @"
@@ -1469,12 +1474,19 @@ $batchTransactionBean
 }
 "@
 
+$packagedDependencyPrefixes = @("'cpf-core-'", "'cpf-common-'")
+if (($BatchEnabled -or $CenterCutEnabled)) {
+    $packagedDependencyPrefixes += "'cpf-batch-contract-'"
+}
+$packagedDependencyPrefixesGradle = $packagedDependencyPrefixes -join ", "
+
 $buildGradle = @"
 plugins {
     id 'java'
     id 'war'
 $springBootPlugin
 $dependencyManagementPlugin
+$cpfConventionPlugin
 }
 
 group = '$BasePackage'
@@ -1520,6 +1532,38 @@ tasks.named('bootJar') {
 
 tasks.named('bootWar') {
     enabled = true
+}
+
+def cpfRequiredPackagedDependencyPrefixes = [$packagedDependencyPrefixesGradle]
+
+def cpfAssertPackagedDependencies = { File archiveFile, String libraryRoot ->
+    if (!archiveFile.isFile()) {
+        throw new GradleException("CPF packaged artifact가 없습니다: `${archiveFile}")
+    }
+    def entries = []
+    new java.util.zip.ZipFile(archiveFile).withCloseable { zip ->
+        entries = zip.entries().collect { it.name }
+    }
+    def missing = cpfRequiredPackagedDependencyPrefixes.findAll { prefix ->
+        !entries.any { entry -> entry.startsWith("`${libraryRoot}/`${prefix}") && entry.endsWith('.jar') }
+    }
+    if (!missing.isEmpty()) {
+        throw new GradleException("CPF public dependency가 실행 Artifact에 포함되지 않았습니다. artifact=`${archiveFile.name}, missing=`${missing}")
+    }
+}
+
+tasks.register('verifyCpfPackagedDependencies') {
+    group = 'verification'
+    description = 'bootJar/bootWar에 동일 CPF public dependency가 실제 포함되는지 검증합니다.'
+    dependsOn tasks.named('bootJar'), tasks.named('bootWar')
+    doLast {
+        cpfAssertPackagedDependencies(tasks.named('bootJar').get().archiveFile.get().asFile, 'BOOT-INF/lib')
+        cpfAssertPackagedDependencies(tasks.named('bootWar').get().archiveFile.get().asFile, 'WEB-INF/lib')
+    }
+}
+
+tasks.named('check') {
+    dependsOn tasks.named('verifyCpfPackagedDependencies')
 }
 "@
 

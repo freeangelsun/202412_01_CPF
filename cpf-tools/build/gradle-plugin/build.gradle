@@ -3,4 +3,17 @@ def props=new Properties();file('../../../gradle/cpf-platform.properties').withI
 group='com.cpf.build';version=props.getProperty('platformVersion','1.0.0-SNAPSHOT')
 repositories { mavenCentral(); gradlePluginPortal() }
 gradlePlugin { plugins { cpfDomain { id='com.cpf.domain-conventions'; implementationClass='com.cpf.build.CpfDomainConventionPlugin'; displayName='CPF Domain Conventions' } } }
-publishing { repositories { maven { def repo=System.getenv('CPF_ARTIFACT_REPOSITORY_URL');url=uri(repo ?: layout.buildDirectory.dir('repository'));if(repo)credentials{username=System.getenv('CPF_ARTIFACT_REPOSITORY_USER');password=System.getenv('CPF_ARTIFACT_REPOSITORY_PASSWORD')} } } }
+def cpfLocalRepo=providers.gradleProperty('cpfLocalArtifactRepository')
+        .orElse(providers.environmentVariable('CPF_LOCAL_ARTIFACT_REPOSITORY'))
+        .orElse(new File(System.getProperty('user.home'), '.cpf/repository').absolutePath)
+publishing {
+  repositories {
+    maven { name='cpfLocal'; url=uri(cpfLocalRepo.get()) }
+    maven {
+      name='cpfInternal'
+      def repo=System.getenv('CPF_ARTIFACT_REPOSITORY_URL')
+      url=uri(repo ?: layout.buildDirectory.dir('repository'))
+      if(repo)credentials{username=System.getenv('CPF_ARTIFACT_REPOSITORY_USER');password=System.getenv('CPF_ARTIFACT_REPOSITORY_PASSWORD')}
+    }
+  }
+}

@@ -375,6 +375,8 @@ CREATE TABLE IF NOT EXISTS adm_operator_profile (
     JOB_TITLE_CODE VARCHAR(50) NULL COMMENT '직책 코드',
     JOB_TITLE_NAME VARCHAR(100) NULL COMMENT '직책명 Snapshot/표시값',
     EMAIL VARCHAR(200) NULL COMMENT '업무 이메일',
+    MOBILE_NO VARCHAR(50) NULL COMMENT '연락처(휴대폰); 숫자형이 아닌 문자열로 국가번호와 선행 0을 보존',
+    OFFICE_PHONE_NO VARCHAR(50) NULL COMMENT '내부 전화번호/내선; 휴대폰 연락처와 분리',
     EFFECTIVE_FROM DATETIME(3) NULL COMMENT 'Profile 적용 시작시각',
     EFFECTIVE_TO DATETIME(3) NULL COMMENT 'Profile 적용 종료시각',
     created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',

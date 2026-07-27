@@ -132,6 +132,8 @@ export const accessMethods: Record<string, any> = {
         this.operatorResult = await this.sendJson("/adm/api/operators", "POST", {
           operatorId: this.operatorForm.operatorId,
           operatorName: this.operatorForm.operatorName,
+          mobileNo: this.operatorForm.mobileNo || null,
+          officePhoneNo: this.operatorForm.officePhoneNo || null,
           password: this.operatorForm.password,
           roleIds: this.operatorForm.roleIds?.length ? this.operatorForm.roleIds : ["ADM_VIEWER"],
           requestUser: this.currentOperator.operatorId,

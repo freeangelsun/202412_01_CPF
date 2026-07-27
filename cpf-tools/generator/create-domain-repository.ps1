@@ -51,6 +51,35 @@ function Invoke-CheckedPowerShell {
     }
 }
 
+function Invoke-CpfLocalArtifactPublish {
+    if (-not [string]::IsNullOrWhiteSpace($env:CPF_ARTIFACT_REPOSITORY_URL)) {
+        return
+    }
+    $localRepository = if (-not [string]::IsNullOrWhiteSpace($env:CPF_LOCAL_ARTIFACT_REPOSITORY)) {
+        [IO.Path]::GetFullPath($env:CPF_LOCAL_ARTIFACT_REPOSITORY)
+    } else {
+        [IO.Path]::GetFullPath((Join-Path $HOME ".cpf/repository"))
+    }
+    $env:CPF_LOCAL_ARTIFACT_REPOSITORY = $localRepository
+    $gradle = if ($IsWindows) {
+        Join-Path $repositoryRoot "gradlew.bat"
+    } else {
+        Join-Path $repositoryRoot "gradlew"
+    }
+    if (-not (Test-Path -LiteralPath $gradle -PathType Leaf)) {
+        throw "CPF Gradle Wrapper가 없습니다: $gradle"
+    }
+    Push-Location $repositoryRoot
+    try {
+        & $gradle publishCpfLocalPlatformArtifacts --no-daemon --max-workers=1 --console=plain
+        if ($LASTEXITCODE -ne 0) {
+            throw "CPF local artifact publish failed. exitCode=$LASTEXITCODE repository=$localRepository"
+        }
+    } finally {
+        Pop-Location
+    }
+}
+
 if (Test-Path -LiteralPath $temporaryModule) {
     throw "Root temporary module already exists: $temporaryModule"
 }
@@ -173,12 +202,25 @@ if ($DryRun) {
         schemaName = $effectiveSchemaName
         tablePrefix = $effectiveTablePrefix
         port = $Port
+        artifactRepository = if (-not [string]::IsNullOrWhiteSpace($env:CPF_ARTIFACT_REPOSITORY_URL)) {
+            $env:CPF_ARTIFACT_REPOSITORY_URL
+        } elseif (-not [string]::IsNullOrWhiteSpace($env:CPF_LOCAL_ARTIFACT_REPOSITORY)) {
+            $env:CPF_LOCAL_ARTIFACT_REPOSITORY
+        } else {
+            (Join-Path $HOME ".cpf/repository")
+        }
     } | ConvertTo-Json -Depth 10
     return
 }
 
 $primaryFailure = $null
 try {
+    # 독립 Repository가 생성 직후 같은 CPF build의 public JAR/BOM을 사용하도록
+    # 원격 Registry가 없는 로컬 환경에서는 공용 local Maven repository를 먼저 동기화합니다.
+    if (-not $SkipBuild) {
+        Invoke-CpfLocalArtifactPublish
+    }
+
     Invoke-CheckedPowerShell -Script $createScript -Arguments ($generatorArguments + "-Apply")
 
     Invoke-CheckedPowerShell -Script $exportScript -Arguments @(
@@ -213,7 +255,7 @@ try {
         }
         Push-Location $orchestrationTarget
         try {
-            & $gradle clean test --no-daemon --console=plain
+            & $gradle clean test verifyCpfPackagedDependencies --refresh-dependencies --no-daemon --max-workers=1 --console=plain
             if ($LASTEXITCODE -ne 0) {
                 throw "Standalone domain repository build failed. exitCode=$LASTEXITCODE"
             }

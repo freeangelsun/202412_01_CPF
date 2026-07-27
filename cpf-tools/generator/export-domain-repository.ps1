@@ -99,6 +99,9 @@ pluginManagement {
                 }
             }
         }
+        def cpfLocalPluginRepo = System.getenv('CPF_LOCAL_ARTIFACT_REPOSITORY') ?:
+                new File(System.getProperty('user.home'), '.cpf/repository').absolutePath
+        maven { url = uri(cpfLocalPluginRepo) }
         gradlePluginPortal()
         mavenCentral()
     }
@@ -127,6 +130,9 @@ allprojects {
                 }
             }
         }
+        def cpfLocalRepo = System.getenv('CPF_LOCAL_ARTIFACT_REPOSITORY') ?:
+                new File(System.getProperty('user.home'), '.cpf/repository').absolutePath
+        maven { url = uri(cpfLocalRepo) }
         mavenCentral()
     }
 }

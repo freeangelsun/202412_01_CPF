@@ -393,6 +393,7 @@ BZA는 고객·상품·주문 같은 추정성 원장을 임의 소유하지 않
 ADM은 HR 원장을 소유하지 않지만 금융권 운영 승인과 Immutable Audit에 필요한 운영자 조직 문맥을 확보해야 한다.
 `adm_operator`는 인증 Identity로 유지하고 조직·직급·직책·사번·외부 Directory Subject 등은 별도 Profile/Directory 경계에서 관리한다.
 기본 DB Adapter를 제공할 수 있으나 LDAP/AD/IAM/HR 연계를 위한 확장 Port를 허용하며 실제 Password, Token, Private Key를 Profile에 저장하지 않는다.
+운영자 연락처는 인증 Identity 컬럼이 아니라 `adm_operator_profile` 등 Directory/Profile 경계가 소유한다. 휴대폰은 `연락처(휴대폰)`, 사내/내선 전화는 `내부 전화번호`로 구분하고 둘 다 선택값/문자열로 저장하여 국가번호와 선행 0을 보존한다. 목록·다운로드·로그·Evidence에서는 개인정보 Masking/Audit 정책을 적용한다.
 
 ADM 위험조치는 단순 RBAC 버튼 권한만으로 실행하지 않는다. 다음을 만족하는 독립 Approval Runtime을 `cpf-admin`이 소유한다.
 
@@ -415,6 +416,8 @@ BZA는 고객 업무 관리자와 업무 결재를 소유한다. `bza_admin_user
 
 - 조직 Hierarchy와 조직 유형, 사용기간
 - 직원, 사번, 조직 소속, 직급, 직책, 재직 상태
+- 업무 이메일, `연락처(휴대폰)`, `내부 전화번호`를 서로 다른 선택 Profile 값으로 관리하고 전화번호는 숫자형으로 저장하지 않음
+- 신규 직원 재직 상태의 Safe Default는 `EMPLOYED`; 기존 데이터는 Migration 정책 없이 임의 변환하지 않음
 - 겸직/복수 조직/파견/직무대행을 표현할 수 있는 유효기간 기반 Assignment
 - 직원 한 명의 복수 Role을 지원하는 User-Role Mapping과 역할 유효기간
 - 조직개편·인사변경 후에도 과거 결재가 변하지 않도록 결재 생성 시 조직·직급·직책·결재자 Snapshot 보존
@@ -514,6 +517,9 @@ create → optional DB bootstrap → CRUD/Search/Paging/Validation/Commit/Rollba
 - DB Capability 사용 시 `${TablePrefix}_sample_item` 한 개의 Golden Sample Table과 CRUD/Search/Paging/Validation/Idempotency/Optimistic Lock/Commit/Rollback Example을 생성한다.
 - Generator는 선택적으로 DB bootstrap을 orchestration할 수 있으나 공식 `initialize-domain-database.ps1`를 호출해야 한다.
 - MBR 등 Reference Instance와 임의 LNG/ING/TST 생성 결과를 이름 Normalize 후 Source/DB/Test 구조 parity로 비교하는 Quality Gate를 둔다.
+- 독립 Generated Domain/독립 WAS는 CPF Public Artifact를 임의 Source/JAR 복사로 포함하지 않고 CPF BOM + Convention Plugin + Versioned Maven Artifact 계약으로 소비한다.
+- 원격 Artifact Registry가 없는 Local 개발은 CPF Root build가 동기화하는 Shared Local Maven Repository를 사용할 수 있어야 하며, Generated Repository는 같은 Repository를 자동 해석한다.
+- Generated `bootJar`/`bootWar`는 필요한 `cpf-core`, `cpf-common` 및 선택 Capability의 Public Contract JAR가 실제 패키지 내부에 포함됐는지 Gate로 검증한다.
 
 MariaDB는 필수 실검증 대상이다. PostgreSQL, Oracle과 SQL Server는 Vendor별 Script, Dialect, Type, Paging, Lock, Migration과 Runtime Evidence가 있을 때만 지원 완료로 표기한다.
 
@@ -574,6 +580,8 @@ DB/SQL/Metadata 변경 후 `sync-database-artifacts.ps1`은 각 하위 gate의 �
 - Upgrade와 Rollback/Forward Recovery
 - Backup, Restore와 DR
 - JAR와 WAR
+- CPF Public Artifact의 Local/Remote Repository Federation과 Version/BOM 정합성
+- 독립 배포 Artifact는 Runtime에 필요한 CPF Public Dependency를 self-contained packaging하거나 제품이 명시한 Shared Runtime 방식으로 결정적으로 해석해야 하며, 개발자 수동 JAR 복사를 정상 배포 절차로 사용하지 않음
 - ADM/BZA Static Artifact
 - Docker/Kubernetes는 실제 검증 후 지원 표기
 - Rolling, Canary와 Blue-Green

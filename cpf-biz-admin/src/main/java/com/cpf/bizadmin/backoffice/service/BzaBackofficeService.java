@@ -93,9 +93,10 @@ public class BzaBackofficeService extends com.cpf.bizadmin.common.base.BzaBaseSe
         values.put("organizationCode",required(request.organizationCode(),"organizationCode").toUpperCase(Locale.ROOT));
         values.put("employeeName",required(request.employeeName(),"employeeName")); values.put("positionCode",blankToNull(request.positionCode()));
         values.put("jobTitleCode",blankToNull(request.jobTitleCode())); values.put("managerEmployeeNo",blankToNull(request.managerEmployeeNo()));
-        values.put("employmentStatus",defaultText(request.employmentStatus(),"ACTIVE").toUpperCase(Locale.ROOT));
+        values.put("employmentStatus",defaultText(request.employmentStatus(),"EMPLOYED").toUpperCase(Locale.ROOT));
         values.put("joinDate",request.joinDate()); values.put("leaveDate",request.leaveDate()); values.put("email",blankToNull(request.email()));
-        values.put("mobileNo",blankToNull(request.mobileNo())); values.put("useYn",yn(request.useYn(),"Y"));
+        values.put("mobileNo",blankToNull(request.mobileNo())); values.put("officePhoneNo",blankToNull(request.officePhoneNo()));
+        values.put("useYn",yn(request.useYn(),"Y"));
         values.put("expectedVersion",request.expectedVersion()); values.put("requestUser",user);
         int changed=repository.saveEmployee(values);
         if(changed!=1) throw new CpfValidationException("직원 정보가 다른 관리자에 의해 변경되었거나 expectedVersion이 올바르지 않습니다.");
@@ -274,8 +275,19 @@ public class BzaBackofficeService extends com.cpf.bizadmin.common.base.BzaBaseSe
     public record EmployeeRequest(
             String employeeNo, Long adminUserId, String organizationCode, String employeeName,
             String positionCode, String jobTitleCode, String managerEmployeeNo, String employmentStatus,
-            LocalDate joinDate, LocalDate leaveDate, String email, String mobileNo,
-            String useYn, Long expectedVersion, String requestUser, String reason) { }
+            LocalDate joinDate, LocalDate leaveDate, String email, String mobileNo, String officePhoneNo,
+            String useYn, Long expectedVersion, String requestUser, String reason) {
+        /** 기존 Consumer의 생성자 계약을 유지하면서 내부 전화번호를 선택 필드로 확장합니다. */
+        public EmployeeRequest(
+                String employeeNo, Long adminUserId, String organizationCode, String employeeName,
+                String positionCode, String jobTitleCode, String managerEmployeeNo, String employmentStatus,
+                LocalDate joinDate, LocalDate leaveDate, String email, String mobileNo,
+                String useYn, Long expectedVersion, String requestUser, String reason) {
+            this(employeeNo, adminUserId, organizationCode, employeeName, positionCode, jobTitleCode,
+                    managerEmployeeNo, employmentStatus, joinDate, leaveDate, email, mobileNo, null,
+                    useYn, expectedVersion, requestUser, reason);
+        }
+    }
 
     public record ApprovalLineRequest(Integer stepNo, String approverEmployeeNo, String decisionRule) {
     }

@@ -360,3 +360,123 @@ DB Secret은 Process 범위에서만 주입하고 Console, Evidence, 문서, Git
 - Root에 Stale Evidence, 조기 DOCX, 중복 README, Release Notes, 작업용 Apply/Checksum 파일을 복원하지 않는다.
 - 실행하지 않은 Build/DB/Runtime/Multi-instance/Browser/Upgrade/Rollback/Recovery를 `완료`로 기록하지 않는다.
 - 이번 요청에서는 사용자가 정상 완료 후 Commit/Push를 명시적으로 승인했다. 실패 또는 미완성 상태에서는 Push하지 않는다.
+
+
+---
+
+# ChatGPT 1차 개발 인계 추가 — 2026-07-27
+
+## 기준과 권한
+
+- 이번 ChatGPT 작업 시작 기준: `fb95e15f90856adcff39040a50b128aa40f5ef43` (`20260727_01`)
+- 이전 Continuity의 마지막 `Commit/Push 승인` 문구는 **당시 Codex 작업 세션에 한정된 승인**이다.
+- 이번 ChatGPT 작업에는 Commit/Push/Branch 승인이 승계되지 않았다.
+- ChatGPT는 GitHub `master`를 수정하지 않고 Root 상대경로 patch bundle만 작성한다.
+- QA 통합 요구사항과 사용자 추가 요구는 `CPF_NEXT_INTEGRATED_DEVELOPMENT_REQUEST_20260727.md`에 합산했다.
+
+## 이전 Codex 결과 최신 Source 재분류
+
+### 구현 확인됨 — 무조건 재조사 금지, 변경 영향만 집중 재검증
+
+1. `CpfTargetServiceResolver`의 고정 `/mbr`/port 기반 Target 추정 제거.
+2. DB Installer의 Profile/Generated Domain metadata 기반 동적 분류/초기화 경로.
+3. ADM의 MBR 전용 Controller/Service/Remote Adapter/UI 제거.
+4. REF의 MBR Service Call DTO/Client 제거 및 neutral Echo 대체 구조.
+5. BAT Legacy `cpf-batch/src/**` 물리 제거와 standalone BAT 구조.
+6. Build Tooling의 `cpf-tools/build/{gradle-plugin,platform-bom}` 이동.
+7. ACC/Generator DataSource namespace 격리.
+
+### 미완료/재확인 필요 — 다음 개발 연속 P0
+
+1. MBR/ACC normalized Generator Golden parity.
+2. Root `settings.gradle`의 MBR/ACC 고정 include 정책.
+3. `CpfSystemCodes.inferFromTypeName` package/type-name 추론의 실제 Consumer와 제거/대체 계약.
+4. REF self-contained dependency-0 focused gate.
+5. BAT Legacy EDU 기능 parity와 Job Pack Generator 완결성.
+6. Gateway Failover/Timeout/UNKNOWN_RESULT/O-S-B/Header/Multi-instance 실제 Fault 검증.
+7. ADM/BZA Browser, Multi-instance, Historical Migration 전체 Chain.
+
+## ChatGPT 신규 변경 CHG-20260727-ARTIFACT-001
+
+사용자 요구: CPF를 로컬 또는 배포 환경에서 빌드할 때 Core/Common/BAT public contract/BOM/Convention Plugin이 독립 Generated Domain과 standalone WAS에 동일 version으로 자동 공급되고, 생성된 bootJar/bootWar가 필요한 CPF JAR를 실제 포함해야 한다.
+
+구현 방향:
+
+- shared local Maven repository 기본값 `${user.home}/.cpf/repository`
+- `CPF_LOCAL_ARTIFACT_REPOSITORY` / `-PcpfLocalArtifactRepository` override
+- 원격 `CPF_ARTIFACT_REPOSITORY_URL` 우선 + local fallback
+- Root `build` 성공 시에만 local auto publication (`-PcpfAutoLocalArtifactSync=false` opt-out); 실패 build는 shared local repository publish 금지
+- `publishCpfLocalPlatformArtifacts`
+- `verifyCpfLocalArtifactPropagation`
+- BOM/Convention Plugin/BAT public artifacts local publication
+- Generator가 standalone repository 생성 전 local public artifact 자동 publish
+- 독립 Generated Domain이 local repository를 자동 resolve
+- Generated Domain `bootJar`/`bootWar`에 CPF Core/Common/BAT contract 포함 Gate
+- standalone build는 `--refresh-dependencies`로 같은 SNAPSHOT version의 최신 local artifact를 재해석
+
+상태: **Source 구현 / 실행 미검증**.
+
+Codex는 전체 CPF를 다시 검수하지 말고 다음을 먼저 실행한다.
+
+1. `publishCpfLocalPlatformArtifacts`
+2. `verifyCpfLocalArtifactPropagation`
+3. 임시 Generated Domain 1개 생성/독립 build/package
+4. 성공 시 두 번째 Domain parity/repeatability
+5. bootJar/bootWar ZIP dependency 확인
+
+## ChatGPT 신규 변경 CHG-20260727-CONTACT-001
+
+사용자 요구:
+
+- 휴대폰 UI 표기는 `연락처(휴대폰)`
+- `내부 전화번호`를 별도 필드로 관리
+- ADM 운영자와 BZA 직원에 동일 의미 적용
+
+구현:
+
+- ADM `mobileNo`, `officePhoneNo` DTO/Service/UI
+- BZA `officePhoneNo` Service/Repository/UI
+- 기존 Java record Consumer 호환 생성자 유지
+- 선택값 blank → null
+- MariaDB canonical source에 `adm_operator_profile.MOBILE_NO`, `adm_operator_profile.OFFICE_PHONE_NO`, `bza_employee.office_phone_no`; 인증 Identity `adm_operator`에는 연락처를 두지 않음
+- 신규 `V59__admin_contact_model.sql` 및 rollback
+- static parity gate `check-admin-contact-model.ps1`
+
+상태: **Source/SQL 구현 / 실행 미검증**.
+
+추가 QA 보정 `CHG-20260727-BZA-DEFAULT-001`:
+
+- 신규 직원 `employmentStatus` 미입력 기본값 `EMPLOYED`
+- Canonical DDL default `EMPLOYED`
+- V60 forward/rollback 추가
+- 기존 Row 데이터는 변경하지 않음
+
+중요: DB Generated bundle/manifest를 이 환경에서 `sync-database-artifacts.ps1`로 실행 재생성하지 못했다. Codex의 첫 DB 단계에서 canonical source를 기준으로 sync하고 실제 Diff를 검토한 뒤 V59 lifecycle을 실행한다. 실행 전에는 DB 완료로 올리지 않는다.
+
+## ChatGPT 검증 환경 제약
+
+현재 ChatGPT 실행 컨테이너에는 완전한 CPF checkout이 없고 GitHub 직접 clone도 DNS 차단으로 실패했다. Java는 21이며 CPF 기준 Java 25가 아니다. `pwsh`도 없다.
+
+따라서 다음은 실행하지 않았으며 PASS가 아니다.
+
+- Java 25 Gradle compile/test
+- included-build publication
+- local Maven artifact 실제 생성
+- Generated Domain 실제 standalone build
+- bootJar/bootWar ZIP 검증
+- Frontend npm test/typecheck/build
+- PowerShell AST/runtime
+- DB artifact sync
+- MariaDB V59 Upgrade/Rollback/Reapply/Fresh
+- Browser/Multi-instance/Fault
+
+실행하지 않은 결과를 기존 Codex Evidence로 자동 승계하지 않는다.
+
+## 다음 Codex 크레딧 절약형 검증 원칙
+
+- `CPF_CHANGE_IMPACT_AND_VALIDATION_LEDGER.md`의 Change ID부터 시작한다.
+- ChatGPT 변경 파일의 직접/간접 Consumer만 우선 검증한다.
+- 이전에 실제 성공했고 이번 Diff와 무관한 BAT 158/158 PREPARE, V58 lifecycle, 단일 Runtime 전체 재기동은 기본적으로 반복하지 않는다.
+- focused test에서 공통계약 회귀가 발견될 때만 범위를 확대한다.
+- Browser/Multi-instance/Fault는 기능 안정화 후 최종 통합 기준 Commit에서 묶어서 실행한다.
+- 실행하지 않은 검증은 `미검증`으로 유지한다.

@@ -13,11 +13,39 @@ if (ext.cpfPlatformVersion == null || ext.cpfPlatformVersion.isBlank()) {
     throw new GradleException('gradle/cpf-platform.properties의 platformVersion은 필수입니다.')
 }
 
+// 독립 Domain/Standalone WAS가 같은 CPF build의 public artifact를 즉시 소비할 수 있도록
+// 원격 Artifact Registry가 없어도 사용자별 공용 local Maven repository를 정본 fallback으로 사용합니다.
+// build/ 아래 임시 repository와 달리 Repository 간 공유가 가능하며 CPF source tree에는 산출물을 남기지 않습니다.
+def cpfLocalArtifactRepositoryProvider = providers.gradleProperty('cpfLocalArtifactRepository')
+        .orElse(providers.environmentVariable('CPF_LOCAL_ARTIFACT_REPOSITORY'))
+        .orElse(new File(System.getProperty('user.home'), '.cpf/repository').absolutePath)
+ext.cpfLocalArtifactRepository = file(cpfLocalArtifactRepositoryProvider.get()).absolutePath
+ext.cpfRemoteArtifactRepository = System.getenv('CPF_ARTIFACT_REPOSITORY_URL')
+
 allprojects { targetProject ->
     def componentVersion = cpfPlatformProperties.getProperty("component.${targetProject.name}", 'inherit')
     version = componentVersion == 'inherit' ? rootProject.ext.cpfPlatformVersion : componentVersion
 
     repositories {
+        // 원격 CPF Registry가 있으면 그것을 우선하고, 로컬 개발/독립 Domain build는
+        // ${user.home}/.cpf/repository(또는 CPF_LOCAL_ARTIFACT_REPOSITORY)를 공용 fallback으로 사용합니다.
+        if (rootProject.ext.cpfRemoteArtifactRepository) {
+            maven {
+                name = 'cpfRemote'
+                url = uri(rootProject.ext.cpfRemoteArtifactRepository)
+                def cpfRepoUser = System.getenv('CPF_ARTIFACT_REPOSITORY_USER')
+                if (cpfRepoUser) {
+                    credentials {
+                        username = cpfRepoUser
+                        password = System.getenv('CPF_ARTIFACT_REPOSITORY_PASSWORD')
+                    }
+                }
+            }
+        }
+        maven {
+            name = 'cpfLocal'
+            url = uri(rootProject.ext.cpfLocalArtifactRepository)
+        }
         mavenCentral()
     }
 }
@@ -64,10 +92,16 @@ subprojects {
     plugins.withId('maven-publish') {
         publishing {
             repositories {
+                if (findByName('cpfLocal') == null) {
+                    maven {
+                        name = 'cpfLocal'
+                        url = uri(rootProject.ext.cpfLocalArtifactRepository)
+                    }
+                }
                 if (findByName('cpfInternal') == null) {
                     maven {
                         name = 'cpfInternal'
-                        def repo = System.getenv('CPF_ARTIFACT_REPOSITORY_URL')
+                        def repo = rootProject.ext.cpfRemoteArtifactRepository
                         url = uri(repo ?: layout.buildDirectory.dir('repository'))
                         if (repo) {
                             credentials {
@@ -918,31 +952,59 @@ Map cpfCheckPackagedDependencies(String moduleCode, File resultDir) {
     def projectPath = cpfDeployProjectPath(moduleCode)
     def evidenceName = cpfDeployEvidenceName(moduleCode)
     def batTarget = cpfRequestedBatRuntimeTarget(moduleCode)
-    def jarFile = project(projectPath).tasks.named('bootJar').get().archiveFile.get().asFile
-    if (!jarFile.exists()) {
-        throw new GradleException("bootJar output is missing: ${jarFile}")
+    def moduleProject = project(projectPath)
+    def requiredPrefixes = ['cpf-core-']
+    if (!(moduleCode in ['BAT', 'GWY'])) {
+        requiredPrefixes << 'cpf-common-'
     }
-    def entries = []
-    new java.util.zip.ZipFile(jarFile).withCloseable { zip ->
-        entries = zip.entries().collect { it.name }
+
+    def inspectArtifact = { File artifact, String libraryRoot ->
+        if (!artifact.exists()) {
+            throw new GradleException("CPF packaged artifact output is missing: ${artifact}")
+        }
+        def entries = []
+        new java.util.zip.ZipFile(artifact).withCloseable { zip ->
+            entries = zip.entries().collect { it.name }
+        }
+        def missing = requiredPrefixes.findAll { prefix ->
+            !entries.any { entry -> entry.startsWith("${libraryRoot}/${prefix}") && entry.endsWith('.jar') }
+        }
+        return [
+                artifact: artifact.path.replace('\\', '/'),
+                libraryRoot: libraryRoot,
+                missing: missing
+        ]
     }
-    def containsCore = entries.any { it ==~ /BOOT-INF\/lib\/cpf-core-.*\.jar/ }
-    def containsCommon = entries.any { it ==~ /BOOT-INF\/lib\/cpf-common-.*\.jar/ }
+
+    def jarFile = moduleProject.tasks.named('bootJar').get().archiveFile.get().asFile
+    def jarInspection = inspectArtifact(jarFile, 'BOOT-INF/lib')
+    def warTask = moduleProject.tasks.findByName('bootWar')
+    def warInspection = null
+    if (warTask != null && warTask.enabled) {
+        def warFile = warTask.archiveFile.get().asFile
+        if (warFile.exists()) {
+            warInspection = inspectArtifact(warFile, 'WEB-INF/lib')
+        }
+    }
+
     def failures = []
-    if (!containsCore) {
-        failures << 'bootJar에 cpf-core 의존성이 포함되지 않았습니다.'
+    if (!jarInspection.missing.isEmpty()) {
+        failures << "bootJar에 CPF public dependency가 누락되었습니다: ${jarInspection.missing.join(', ')}"
     }
-    if (!(moduleCode in ['BAT', 'GWY']) && !containsCommon) {
-        failures << 'bootJar에 cpf-common 의존성이 포함되지 않았습니다.'
+    if (warInspection != null && !warInspection.missing.isEmpty()) {
+        failures << "bootWar에 CPF public dependency가 누락되었습니다: ${warInspection.missing.join(', ')}"
     }
     def result = [
             generatedAt: new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSSZ"),
             module     : moduleCode,
             runtimeRole: batTarget?.runtimeRole,
             status     : failures.isEmpty() ? 'DONE' : 'FAILED',
-            artifact   : jarFile.path.replace('\\', '/'),
-            containsCore: containsCore,
-            containsCommon: containsCommon,
+            artifact   : jarInspection.artifact,
+            bootJar    : jarInspection,
+            bootWar    : warInspection,
+            containsCore: jarInspection.missing.find { it == 'cpf-core-' } == null,
+            containsCommon: moduleCode in ['BAT', 'GWY'] ||
+                    jarInspection.missing.find { it == 'cpf-common-' } == null,
             failures   : failures
     ]
     cpfWriteJson(new File(resultDir, "packaged-dependencies-${evidenceName}.sanitized.json"), result)
@@ -1183,10 +1245,14 @@ tasks.register('checkDeployInventory') {
 
 tasks.register('checkPackagedDependencies') {
     group = 'verification'
-    description = 'CPF verification or deployment task.'
+    description = 'bootJar와 사용 가능한 bootWar가 동일 CPF public dependency를 포함하는지 검증합니다.'
     def moduleCode = cpfRequestedModule()
     def projectPath = cpfDeployProjectPath(moduleCode)
+    def moduleProject = rootProject.findProject(projectPath)
     dependsOn "${projectPath}:bootJar"
+    if (moduleProject?.tasks?.findByName('bootWar') != null) {
+        dependsOn "${projectPath}:bootWar"
+    }
     doLast {
         cpfCheckPackagedDependencies(moduleCode, cpfResultDir())
     }
@@ -1422,13 +1488,27 @@ tasks.register('checkR13ProductHardening', Exec) {
             'cpf-tools/scripts/check-r13-product-hardening.ps1'
 }
 
+tasks.register('checkAdminContactModel', Exec) {
+    group = 'verification'
+    description = 'ADM/BZA 연락처(휴대폰)와 내부 전화번호 Source/API/UI/DB 정합성을 검증합니다.'
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+            'cpf-tools/scripts/check-admin-contact-model.ps1'
+}
+
+tasks.register('checkBzaSafeDefaults', Exec) {
+    group = 'verification'
+    description = 'BZA 직원 safe default가 EMPLOYED 정본과 일치하는지 검증합니다.'
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+            'cpf-tools/scripts/check-bza-safe-defaults.ps1'
+}
+
 tasks.register('qualityGate') {
     group = 'verification'
     description = 'CPF verification or deployment task.'
     dependsOn subprojects.collect { "${it.path}:compileJava" }
     dependsOn subprojects.collect { "${it.path}:test" }
     dependsOn ':cpf-admin:frontendVerify', ':cpf-biz-admin:frontendVerify', 'checkModernFrontend'
-    dependsOn 'verifyCpfFinalSourceGates', 'verifyVersionConsistency', 'checkUtf8', 'checkMojibake', 'checkLegacyName', 'checkSqlStandard', 'checkSqlCanonical', 'checkJavaFormat', 'checkJava25Standard', 'checkDocumentLinks', 'checkTransactionIdStandard', 'checkSecuritySeedStandard', 'checkSampleStandard', 'checkCpfRequestProtection', 'checkFeatureEvidence', 'checkServiceCallBoundary', 'checkArchitectureOwnership', 'checkBaseHierarchy', 'checkFullLayerTaxonomy', 'exportArchitectureInventory', 'exportRequirementTraceability', 'checkDomainGenerator', 'checkDomainCapabilityMatrix', 'checkAccLifecycle', 'checkDomainRemoval', 'checkRepositoryHygiene', 'checkSpringEventUsage', 'checkProfileLoading', 'checkRuntimeConfigStandard', 'checkLogManagementStandard', 'checkOpenApiSourceCoverage', 'checkSampleCoverage', 'checkEvidencePathExistence', 'checkDeployEnv', 'checkDeployInventory', 'checkPackagedDependencies', 'remoteDeployDryRun', 'checkReportMatrixEvidenceConsistency', 'admUiSmoke', 'admLogPolicyUiStaticSmoke', 'bzaUiSmoke', 'checkContractCompatibility', 'checkR13ProductHardening'
+    dependsOn 'verifyCpfFinalSourceGates', 'verifyVersionConsistency', 'checkUtf8', 'checkMojibake', 'checkLegacyName', 'checkSqlStandard', 'checkSqlCanonical', 'checkJavaFormat', 'checkJava25Standard', 'checkDocumentLinks', 'checkTransactionIdStandard', 'checkSecuritySeedStandard', 'checkSampleStandard', 'checkCpfRequestProtection', 'checkFeatureEvidence', 'checkServiceCallBoundary', 'checkArchitectureOwnership', 'checkBaseHierarchy', 'checkFullLayerTaxonomy', 'exportArchitectureInventory', 'exportRequirementTraceability', 'checkDomainGenerator', 'checkDomainCapabilityMatrix', 'checkAccLifecycle', 'checkDomainRemoval', 'checkRepositoryHygiene', 'checkSpringEventUsage', 'checkProfileLoading', 'checkRuntimeConfigStandard', 'checkLogManagementStandard', 'checkOpenApiSourceCoverage', 'checkSampleCoverage', 'checkEvidencePathExistence', 'checkDeployEnv', 'checkDeployInventory', 'checkPackagedDependencies', 'remoteDeployDryRun', 'checkReportMatrixEvidenceConsistency', 'admUiSmoke', 'admLogPolicyUiStaticSmoke', 'bzaUiSmoke', 'checkContractCompatibility', 'checkR13ProductHardening', 'checkAdminContactModel', 'checkBzaSafeDefaults'
 }
 
 
@@ -1464,13 +1544,62 @@ tasks.register('verifyCpfFinalSourceGates') {
 }
 
 
+tasks.register('publishCpfLocalPlatformArtifacts') {
+    group = 'publishing'
+    description = 'Publishes CPF public artifacts to the shared local Maven repository used by independent/generated Domain repositories.'
+    dependsOn ':cpf-core:publishAllPublicationsToCpfLocalRepository',
+            ':cpf-common:publishAllPublicationsToCpfLocalRepository',
+            ':cpf-batch:publishStandaloneArtifactsToCpfLocal',
+            gradle.includedBuild('cpf-platform-bom').task(':publishAllPublicationsToCpfLocalRepository'),
+            gradle.includedBuild('cpf-gradle-plugin').task(':publishAllPublicationsToCpfLocalRepository')
+    doLast {
+        logger.lifecycle("CPF local artifact synchronization complete: ${rootProject.ext.cpfLocalArtifactRepository}")
+    }
+}
+
+tasks.register('verifyCpfLocalArtifactPropagation', Exec) {
+    group = 'verification'
+    description = 'Publishes and verifies the shared local CPF Maven repository used by independent/generated Domains.'
+    dependsOn tasks.named('publishCpfLocalPlatformArtifacts')
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+            'cpf-tools/scripts/verify-local-artifact-propagation.ps1'
+}
+
 tasks.register('publishCpfPlatformArtifacts') {
     group = 'publishing'
     description = 'Publishes CPF public platform artifacts required by independent Domain repositories and remote BAT deployment.'
-    dependsOn ':cpf-core:publish', ':cpf-common:publish', ':cpf-batch:publishStandaloneArtifacts'
-    doLast {
-        logger.lifecycle('Publish CPF BOM and Gradle convention plugin from cpf-tools/build included builds using their own publish tasks.')
+    dependsOn ':cpf-core:publish', ':cpf-common:publish', ':cpf-batch:publishStandaloneArtifacts',
+            gradle.includedBuild('cpf-platform-bom').task(':publish'),
+            gradle.includedBuild('cpf-gradle-plugin').task(':publish')
+}
+
+// 로컬에서 `gradlew build`가 성공하면 최신 CPF public JAR/BOM/Convention Plugin을
+// 독립 Generated Domain이 소비하는 shared local repository에 전파합니다.
+// Gradle finalizer는 실패 뒤에도 실행될 수 있으므로 publish task 자체를 finalizer dependency로 두지 않습니다.
+// 대신 build 성공 상태를 확인한 뒤 별도 Gradle invocation으로 publish하여 실패한 build의 artifact가
+// shared repository를 오염시키지 않게 합니다. CI/원격 Registry 또는 특수 검증에서는
+// -PcpfAutoLocalArtifactSync=false 로 자동 동기화를 끌 수 있습니다.
+def cpfAutoLocalArtifactSync = providers.gradleProperty('cpfAutoLocalArtifactSync')
+        .map { it.toBoolean() }
+        .orElse(rootProject.ext.cpfRemoteArtifactRepository == null)
+def rootBuildTask = tasks.named('build')
+tasks.register('syncCpfLocalArtifactsAfterSuccessfulBuild', Exec) {
+    group = 'publishing'
+    description = 'Publishes CPF public artifacts only after the root build has completed successfully.'
+    onlyIf {
+        def state = rootBuildTask.get().state
+        cpfAutoLocalArtifactSync.get() && state.executed && state.failure == null && !state.skipped
     }
+    doFirst {
+        def windows = System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows')
+        def wrapper = file(windows ? 'gradlew.bat' : 'gradlew').absolutePath
+        commandLine wrapper, 'publishCpfLocalPlatformArtifacts', '--no-daemon', '--max-workers=1',
+                '-PcpfAutoLocalArtifactSync=false',
+                "-PcpfLocalArtifactRepository=${rootProject.ext.cpfLocalArtifactRepository}"
+    }
+}
+tasks.named('build').configure {
+    finalizedBy tasks.named('syncCpfLocalArtifactsAfterSuccessfulBuild')
 }
 
 

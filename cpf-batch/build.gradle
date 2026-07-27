@@ -17,3 +17,19 @@ tasks.register('publishStandaloneArtifacts') {
       ':cpf-batch:center-cut-runner:publish', ':cpf-batch:host-agent:publish'
     )
 }
+
+
+tasks.register('publishStandaloneArtifactsToCpfLocal') {
+    group = 'publishing'
+    description = 'Publishes BAT public libraries and executable artifacts only to the shared CPF local repository.'
+    dependsOn(
+      ':cpf-batch:contract:publishAllPublicationsToCpfLocalRepository',
+      ':cpf-batch:runtime-common:publishAllPublicationsToCpfLocalRepository',
+      ':cpf-batch:testkit:publishAllPublicationsToCpfLocalRepository',
+      ':cpf-batch:control-server:publishAllPublicationsToCpfLocalRepository',
+      ':cpf-batch:scheduler:publishAllPublicationsToCpfLocalRepository',
+      ':cpf-batch:worker:publishAllPublicationsToCpfLocalRepository',
+      ':cpf-batch:center-cut-runner:publishAllPublicationsToCpfLocalRepository',
+      ':cpf-batch:host-agent:publishAllPublicationsToCpfLocalRepository'
+    )
+}

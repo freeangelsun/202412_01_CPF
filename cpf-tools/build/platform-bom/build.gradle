@@ -11,11 +11,18 @@ dependencies {
         api "com.cpf.batch:cpf-batch-testkit:${version}"
     }
 }
+def cpfLocalRepo = providers.gradleProperty('cpfLocalArtifactRepository')
+        .orElse(providers.environmentVariable('CPF_LOCAL_ARTIFACT_REPOSITORY'))
+        .orElse(new File(System.getProperty('user.home'), '.cpf/repository').absolutePath)
 publishing {
   publications { cpfBom(MavenPublication) { from components.javaPlatform; artifactId='cpf-bom' } }
-  repositories { maven {
-    def repo=System.getenv('CPF_ARTIFACT_REPOSITORY_URL')
-    url=uri(repo ?: layout.buildDirectory.dir('repository'))
-    if(repo) credentials { username=System.getenv('CPF_ARTIFACT_REPOSITORY_USER'); password=System.getenv('CPF_ARTIFACT_REPOSITORY_PASSWORD') }
-  } }
+  repositories {
+    maven { name='cpfLocal'; url=uri(cpfLocalRepo.get()) }
+    maven {
+      name='cpfInternal'
+      def repo=System.getenv('CPF_ARTIFACT_REPOSITORY_URL')
+      url=uri(repo ?: layout.buildDirectory.dir('repository'))
+      if(repo) credentials { username=System.getenv('CPF_ARTIFACT_REPOSITORY_USER'); password=System.getenv('CPF_ARTIFACT_REPOSITORY_PASSWORD') }
+    }
+  }
 }

@@ -263,7 +263,7 @@ export function createAdmState() {
           reason: "로그 정책 변경",
           requestUser: ""
         },
-        operatorForm: { operatorId: "", operatorName: "", password: "", reason: "운영자 등록" },
+        operatorForm: { operatorId: "", operatorName: "", mobileNo: "", officePhoneNo: "", password: "", reason: "운영자 등록" },
         messageForm: {
           messageId: null,
           messageCode: "MCPF990099",

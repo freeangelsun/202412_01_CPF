@@ -87,7 +87,7 @@ public class BzaBackofficeRepository {
                        position_code AS positionCode, job_title_code AS jobTitleCode,
                        manager_employee_no AS managerEmployeeNo, employment_status AS employmentStatus,
                        join_date AS joinDate, leave_date AS leaveDate, email, mobile_no AS mobileNo,
-                       use_yn AS useYn, version_no AS versionNo,
+                       office_phone_no AS officePhoneNo, use_yn AS useYn, version_no AS versionNo,
                        created_at AS createdAt, updated_at AS updatedAt
                   FROM bza_employee
                  WHERE (:organizationCode IS NULL OR organization_code = :organizationCode)
@@ -101,13 +101,13 @@ public class BzaBackofficeRepository {
         Long count=jdbc().queryForObject("SELECT COUNT(*) FROM bza_employee WHERE employee_no=:employeeNo",new MapSqlParameterSource("employeeNo",employeeNo),Long.class);
         if (count==null||count==0) {
             return jdbc().update("""
-                    INSERT INTO bza_employee(employee_no,admin_user_id,organization_code,employee_name,position_code,job_title_code,manager_employee_no,employment_status,join_date,leave_date,email,mobile_no,use_yn,version_no,created_by,updated_by)
-                    VALUES(:employeeNo,:adminUserId,:organizationCode,:employeeName,:positionCode,:jobTitleCode,:managerEmployeeNo,:employmentStatus,:joinDate,:leaveDate,:email,:mobileNo,:useYn,0,:requestUser,:requestUser)
+                    INSERT INTO bza_employee(employee_no,admin_user_id,organization_code,employee_name,position_code,job_title_code,manager_employee_no,employment_status,join_date,leave_date,email,mobile_no,office_phone_no,use_yn,version_no,created_by,updated_by)
+                    VALUES(:employeeNo,:adminUserId,:organizationCode,:employeeName,:positionCode,:jobTitleCode,:managerEmployeeNo,:employmentStatus,:joinDate,:leaveDate,:email,:mobileNo,:officePhoneNo,:useYn,0,:requestUser,:requestUser)
                     """,values);
         }
         return jdbc().update("""
                 UPDATE bza_employee SET admin_user_id=:adminUserId,organization_code=:organizationCode,employee_name=:employeeName,position_code=:positionCode,job_title_code=:jobTitleCode,
-                       manager_employee_no=:managerEmployeeNo,employment_status=:employmentStatus,join_date=:joinDate,leave_date=:leaveDate,email=:email,mobile_no=:mobileNo,use_yn=:useYn,
+                       manager_employee_no=:managerEmployeeNo,employment_status=:employmentStatus,join_date=:joinDate,leave_date=:leaveDate,email=:email,mobile_no=:mobileNo,office_phone_no=:officePhoneNo,use_yn=:useYn,
                        version_no=version_no+1,updated_by=:requestUser,updated_at=CURRENT_TIMESTAMP(3)
                  WHERE employee_no=:employeeNo AND version_no=:expectedVersion
                 """,values);
@@ -123,7 +123,7 @@ public class BzaBackofficeRepository {
     public CpfPage<Map<String,Object>> employeePage(String organizationCode,String status,CpfPageRequest page) {
         MapSqlParameterSource q=new MapSqlParameterSource().addValue("organizationCode",organizationCode).addValue("status",status).addValue("limit",page.size()).addValue("offset",page.offset());
         Long total=jdbc().queryForObject("SELECT COUNT(*) FROM bza_employee WHERE (:organizationCode IS NULL OR organization_code=:organizationCode) AND (:status IS NULL OR employment_status=:status)",q,Long.class);
-        List<Map<String,Object>> rows=jdbc().queryForList("SELECT employee_id AS employeeId,employee_no AS employeeNo,admin_user_id AS adminUserId,organization_code AS organizationCode,employee_name AS employeeName,position_code AS positionCode,job_title_code AS jobTitleCode,manager_employee_no AS managerEmployeeNo,employment_status AS employmentStatus,join_date AS joinDate,leave_date AS leaveDate,email,mobile_no AS mobileNo,use_yn AS useYn,version_no AS versionNo,updated_at AS updatedAt FROM bza_employee WHERE (:organizationCode IS NULL OR organization_code=:organizationCode) AND (:status IS NULL OR employment_status=:status) ORDER BY organization_code,employee_no LIMIT :limit OFFSET :offset",q);
+        List<Map<String,Object>> rows=jdbc().queryForList("SELECT employee_id AS employeeId,employee_no AS employeeNo,admin_user_id AS adminUserId,organization_code AS organizationCode,employee_name AS employeeName,position_code AS positionCode,job_title_code AS jobTitleCode,manager_employee_no AS managerEmployeeNo,employment_status AS employmentStatus,join_date AS joinDate,leave_date AS leaveDate,email,mobile_no AS mobileNo,office_phone_no AS officePhoneNo,use_yn AS useYn,version_no AS versionNo,updated_at AS updatedAt FROM bza_employee WHERE (:organizationCode IS NULL OR organization_code=:organizationCode) AND (:status IS NULL OR employment_status=:status) ORDER BY organization_code,employee_no LIMIT :limit OFFSET :offset",q);
         return new CpfPage<>(rows,total==null?0:total,page.page(),page.size());
     }
 

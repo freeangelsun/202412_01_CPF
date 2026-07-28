@@ -64,3 +64,26 @@ cpf-docs/evidence/**
 ### CPF transient runtime directories ###
 /tmp/
 /temp/
+*.tmp
+*.bak
+*.orig
+*.rej
+*.patch
+*.zip
+*.7z
+*.tar
+*.gz
+*.class
+*.hprof
+*.stackdump
+*.pid
+*.pid.lock
+*.swp
+*~
+hs_err_pid*.log
+replay_pid*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+Thumbs.db
+.DS_Store

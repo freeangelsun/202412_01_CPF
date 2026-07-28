@@ -1,5 +1,6 @@
 package com.cpf.admin.opr.controller;
 
+import com.cpf.admin.opr.dto.AdmNotificationDeliveryAttemptResponse;
 import com.cpf.admin.opr.dto.AdmNotificationDeliveryLogResponse;
 import com.cpf.admin.opr.dto.AdmNotificationRuleRequest;
 import com.cpf.admin.opr.dto.AdmNotificationRuleResponse;
@@ -99,6 +100,20 @@ public class AdmNotificationController extends com.cpf.admin.common.base.AdmBase
         return ResponseEntity.ok(notificationService.findDeliveryLogs(limit));
     }
 
+    @GetMapping("/delivery-logs/{deliveryId}/attempts")
+    @CpfOnlineTransaction(id = "OADMNT0019", name = "ADMNotificationDeliveryAttemptList")
+    @Operation(
+            operationId = "admNotificationFindDeliveryAttempts",
+            summary = "운영 알림 Provider Attempt 이력 조회",
+            description = "재시도 전후 모든 Provider 호출 Attempt와 결과 불명 원인을 immutable 이력으로 조회합니다.")
+    public ResponseEntity<List<AdmNotificationDeliveryAttemptResponse>> findDeliveryAttempts(
+            @PathVariable long deliveryId,
+            @RequestParam(defaultValue = "100") int limit,
+            HttpServletRequest servletRequest) {
+        operator(servletRequest, null);
+        return ResponseEntity.ok(notificationService.findDeliveryAttempts(deliveryId, limit));
+    }
+
     @PostMapping("/rules/{ruleId}/test-send")
     @CpfOnlineTransaction(id = "OADMNT0016", name = "ADMNotificationTestSend")
     @Operation(
@@ -119,12 +134,13 @@ public class AdmNotificationController extends com.cpf.admin.common.base.AdmBase
     @Operation(operationId = "admNotificationRetryDelivery", summary = "운영 알림 발송 재시도")
     public ResponseEntity<Map<String, Object>> retryDelivery(
             @PathVariable long deliveryId,
+            @RequestParam long expectedVersion,
             @RequestParam String reason,
             @RequestParam(required = false) String requestUser,
             HttpServletRequest servletRequest) {
         String operatorId = operator(servletRequest, requestUser);
         return ResponseEntity.ok(notificationService.retryDelivery(
-                deliveryId, reason, operatorId, servletRequest.getRemoteAddr()));
+                deliveryId, expectedVersion, reason, operatorId, servletRequest.getRemoteAddr()));
     }
 
     @PostMapping("/delivery-logs/{deliveryId}/cancel")
@@ -132,12 +148,13 @@ public class AdmNotificationController extends com.cpf.admin.common.base.AdmBase
     @Operation(operationId = "admNotificationCancelDelivery", summary = "운영 알림 발송 취소")
     public ResponseEntity<Map<String, Object>> cancelDelivery(
             @PathVariable long deliveryId,
+            @RequestParam long expectedVersion,
             @RequestParam String reason,
             @RequestParam(required = false) String requestUser,
             HttpServletRequest servletRequest) {
         String operatorId = operator(servletRequest, requestUser);
         return ResponseEntity.ok(notificationService.cancelDelivery(
-                deliveryId, reason, operatorId, servletRequest.getRemoteAddr()));
+                deliveryId, expectedVersion, reason, operatorId, servletRequest.getRemoteAddr()));
     }
 
     private String operator(HttpServletRequest request, String claimedOperator) {

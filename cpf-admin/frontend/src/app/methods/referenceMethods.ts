@@ -35,7 +35,18 @@ export const referenceMethods: Record<string, any> = {
           this.getJson("/adm/api/notifications/rules"),
           this.getJson("/adm/api/notifications/delivery-logs?limit=50")
         ]);
-        this.notificationResult = { rules, deliveryLogs };
+        this.notificationResult = {
+          ...this.notificationResult,
+          rules: Array.isArray(rules) ? rules : [],
+          deliveryLogs: Array.isArray(deliveryLogs) ? deliveryLogs : []
+        };
+        if (this.selectedNotificationDelivery) {
+          const current = this.notificationResult.deliveryLogs.find(
+            (item) => Number(item.deliveryId) === Number(this.selectedNotificationDelivery.deliveryId)
+          );
+          this.selectedNotificationDelivery = current || null;
+          if (current) await this.selectNotificationDelivery(current);
+        }
       },
   selectNotificationRule(rule) {
         this.notificationForm.ruleId = rule.ruleId || rule.rule_id;
@@ -46,6 +57,62 @@ export const referenceMethods: Record<string, any> = {
         this.notificationForm.severity = rule.severity || "INFO";
         this.notificationForm.receiverGroup = rule.receiverGroup || rule.receiver_group || "";
         this.notificationForm.useYn = rule.useYn || rule.use_yn || "Y";
+      },
+  async selectNotificationDelivery(delivery) {
+        this.selectedNotificationDelivery = delivery;
+        this.notificationDeliveryForm.deliveryId = delivery.deliveryId;
+        this.notificationDeliveryForm.expectedVersion = delivery.version;
+        this.notificationDeliveryForm.deliveryStatus = delivery.deliveryStatus || "";
+        this.notificationDeliveryForm.operationId = delivery.operationId || "";
+        const attempts = await this.getJson(
+          `/adm/api/notifications/delivery-logs/${delivery.deliveryId}/attempts?limit=100`
+        );
+        this.notificationResult = {
+          ...this.notificationResult,
+          attempts: Array.isArray(attempts) ? attempts : []
+        };
+      },
+  notificationDeliveryActionAllowed(action) {
+        const status = this.notificationDeliveryForm.deliveryStatus;
+        if (action === "retry") return ["FAILED", "UNKNOWN_RESULT", "CANCELLED"].includes(status);
+        if (action === "cancel") return ["READY", "RETRY", "UNKNOWN_RESULT"].includes(status);
+        return false;
+      },
+  async retryNotificationDelivery() {
+        if (!this.notificationDeliveryForm.deliveryId
+            || this.notificationDeliveryForm.expectedVersion === null
+            || !this.notificationDeliveryActionAllowed("retry")
+            || !this.requireReason(this.notificationDeliveryForm.reason)) return;
+        const params = this.buildParams({
+          expectedVersion: this.notificationDeliveryForm.expectedVersion,
+          reason: this.notificationDeliveryForm.reason,
+          requestUser: this.currentOperator.operatorId
+        });
+        const action = await this.sendJson(
+          `/adm/api/notifications/delivery-logs/${this.notificationDeliveryForm.deliveryId}/retry?${params.toString()}`,
+          "POST"
+        );
+        this.notificationResult = { ...this.notificationResult, action };
+        await this.loadNotifications();
+        this.setMessage("알림 발송 재시도를 요청했습니다.");
+      },
+  async cancelNotificationDelivery() {
+        if (!this.notificationDeliveryForm.deliveryId
+            || this.notificationDeliveryForm.expectedVersion === null
+            || !this.notificationDeliveryActionAllowed("cancel")
+            || !this.requireReason(this.notificationDeliveryForm.reason)) return;
+        const params = this.buildParams({
+          expectedVersion: this.notificationDeliveryForm.expectedVersion,
+          reason: this.notificationDeliveryForm.reason,
+          requestUser: this.currentOperator.operatorId
+        });
+        const action = await this.sendJson(
+          `/adm/api/notifications/delivery-logs/${this.notificationDeliveryForm.deliveryId}/cancel?${params.toString()}`,
+          "POST"
+        );
+        this.notificationResult = { ...this.notificationResult, action };
+        await this.loadNotifications();
+        this.setMessage("알림 발송을 취소했습니다.");
       },
   notificationPayload() {
         return {
@@ -72,10 +139,15 @@ export const referenceMethods: Record<string, any> = {
       },
   async disableNotificationRule() {
         if (!this.notificationForm.ruleId || !this.requireReason(this.notificationForm.reason)) return;
-        this.notificationResult = await this.sendJson(`/adm/api/notifications/rules/${this.notificationForm.ruleId}/disable`, "PUT", {
+        const params = this.buildParams({
           reason: this.notificationForm.reason,
           requestUser: this.currentOperator.operatorId
         });
+        const action = await this.sendJson(
+          `/adm/api/notifications/rules/${this.notificationForm.ruleId}/disable?${params.toString()}`,
+          "PUT"
+        );
+        this.notificationResult = { ...this.notificationResult, action };
         await this.loadNotifications();
         this.setMessage("알림 규칙을 비활성화했습니다.");
       },

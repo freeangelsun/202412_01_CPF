@@ -1,5 +1,6 @@
 package com.cpf.admin.opr.service;
 
+import com.cpf.admin.opr.dto.AdmNotificationDeliveryAttemptResponse;
 import com.cpf.admin.opr.dto.AdmNotificationDeliveryLogResponse;
 import com.cpf.admin.opr.dto.AdmNotificationRuleRequest;
 import com.cpf.admin.opr.dto.AdmNotificationRuleResponse;
@@ -158,8 +159,10 @@ public class AdmNotificationService extends com.cpf.admin.common.base.AdmBaseSer
     public List<AdmNotificationDeliveryLogResponse> findDeliveryLogs(int limit) {
         return queryWithMaxRows("""
                 SELECT delivery_id, rule_id, event_type, target_type, target_id,
-                       receiver, delivery_status, delivery_message, requested_at, delivered_at,
-                       created_at, updated_at
+                       receiver, delivery_status, delivery_message,
+                       operation_id, request_hash, attempt_count, max_attempts,
+                       next_attempt_at, lease_owner, lease_until, version, last_error_code,
+                       created_by, updated_by, requested_at, delivered_at, created_at, updated_at
                 FROM cpf_notification_delivery_log
                 ORDER BY requested_at DESC, delivery_id DESC
                 """, resolveLimit(limit), (rs, rowNum) -> new AdmNotificationDeliveryLogResponse(
@@ -170,7 +173,18 @@ public class AdmNotificationService extends com.cpf.admin.common.base.AdmBaseSer
                 rs.getString("target_id"),
                 maskReceiver(rs.getString("receiver")),
                 rs.getString("delivery_status"),
-                rs.getString("delivery_message"),
+                redactSensitiveText(rs.getString("delivery_message")),
+                rs.getString("operation_id"),
+                rs.getString("request_hash"),
+                rs.getInt("attempt_count"),
+                rs.getInt("max_attempts"),
+                toLocalDateTime(rs.getTimestamp("next_attempt_at")),
+                rs.getString("lease_owner"),
+                toLocalDateTime(rs.getTimestamp("lease_until")),
+                rs.getLong("version"),
+                rs.getString("last_error_code"),
+                rs.getString("created_by"),
+                rs.getString("updated_by"),
                 toLocalDateTime(rs.getTimestamp("requested_at")),
                 toLocalDateTime(rs.getTimestamp("delivered_at")),
                 toLocalDateTime(rs.getTimestamp("created_at")),
@@ -207,15 +221,51 @@ public class AdmNotificationService extends com.cpf.admin.common.base.AdmBaseSer
         return response;
     }
 
+    /**
+     * 선택한 발송 건의 Provider 호출 Attempt를 시간순으로 조회합니다.
+     *
+     * <p>각 Attempt는 immutable 이력이며 재시도 성공 후에도 이전 실패·결과 불명 이력을
+     * 덮어쓰지 않습니다.</p>
+     */
+    public List<AdmNotificationDeliveryAttemptResponse> findDeliveryAttempts(long deliveryId, int limit) {
+        return cpfJdbcTemplate.query(connection -> {
+            PreparedStatement statement = connection.prepareStatement("""
+                    SELECT delivery_id, attempt_no, operation_id, worker_id, attempt_status,
+                           provider_status, provider_message, started_at, completed_at,
+                           lease_version, created_by, created_at
+                    FROM cpf_notification_delivery_attempt
+                    WHERE delivery_id = ?
+                    ORDER BY attempt_no DESC
+                    """);
+            statement.setLong(1, deliveryId);
+            statement.setMaxRows(resolveLimit(limit));
+            return statement;
+        }, (rs, rowNum) -> new AdmNotificationDeliveryAttemptResponse(
+                rs.getLong("delivery_id"),
+                rs.getInt("attempt_no"),
+                rs.getString("operation_id"),
+                rs.getString("worker_id"),
+                rs.getString("attempt_status"),
+                rs.getString("provider_status"),
+                redactSensitiveText(rs.getString("provider_message")),
+                toLocalDateTime(rs.getTimestamp("started_at")),
+                toLocalDateTime(rs.getTimestamp("completed_at")),
+                rs.getLong("lease_version"),
+                rs.getString("created_by"),
+                toLocalDateTime(rs.getTimestamp("created_at"))));
+    }
+
     @Transactional
     public Map<String, Object> retryDelivery(
             long deliveryId,
+            long expectedVersion,
             String reason,
             String operatorId,
             String clientIp) {
         String auditReason = auditLogService.requireReason(reason);
         String requestUser = required(operatorId, "operatorId");
-        Map<String, Object> result = notificationOutboxService.retry(deliveryId, requestUser);
+        Map<String, Object> before = notificationOutboxService.findStatus(deliveryId);
+        Map<String, Object> result = notificationOutboxService.retry(deliveryId, expectedVersion, requestUser);
         auditLogService.record(
                 CpfTransactionContext.transactionId(),
                 requestUser,
@@ -223,7 +273,7 @@ public class AdmNotificationService extends com.cpf.admin.common.base.AdmBaseSer
                 "cpf_notification_delivery_log",
                 String.valueOf(deliveryId),
                 auditReason,
-                null,
+                String.valueOf(before),
                 String.valueOf(result),
                 null,
                 clientIp);
@@ -233,12 +283,14 @@ public class AdmNotificationService extends com.cpf.admin.common.base.AdmBaseSer
     @Transactional
     public Map<String, Object> cancelDelivery(
             long deliveryId,
+            long expectedVersion,
             String reason,
             String operatorId,
             String clientIp) {
         String auditReason = auditLogService.requireReason(reason);
         String requestUser = required(operatorId, "operatorId");
-        Map<String, Object> result = notificationOutboxService.cancel(deliveryId, requestUser);
+        Map<String, Object> before = notificationOutboxService.findStatus(deliveryId);
+        Map<String, Object> result = notificationOutboxService.cancel(deliveryId, expectedVersion, requestUser);
         auditLogService.record(
                 CpfTransactionContext.transactionId(),
                 requestUser,
@@ -246,7 +298,7 @@ public class AdmNotificationService extends com.cpf.admin.common.base.AdmBaseSer
                 "cpf_notification_delivery_log",
                 String.valueOf(deliveryId),
                 auditReason,
-                null,
+                String.valueOf(before),
                 String.valueOf(result),
                 null,
                 clientIp);
@@ -443,6 +495,16 @@ public class AdmNotificationService extends com.cpf.admin.common.base.AdmBaseSer
 
     private Long objectLong(Object value) {
         return value == null ? null : longValue(value);
+    }
+
+    private String redactSensitiveText(String value) {
+        if (!CpfStrings.hasText(value)) {
+            return value;
+        }
+        return value
+                .replaceAll("(?i)authorization\\s*[:=]\\s*bearer\\s+[A-Za-z0-9._~+/=-]+", "Authorization: [REDACTED]")
+                .replaceAll("(?i)bearer\\s+[A-Za-z0-9._~+/=-]+", "Bearer [REDACTED]")
+                .replaceAll("(?i)(password|passwd|secret|access[_-]?token|refresh[_-]?token)\\s*[:=]\\s*\\S+", "$1=[REDACTED]");
     }
 
     private String maskReceiver(String value) {

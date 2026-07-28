@@ -218,6 +218,13 @@ export function createAdmState() {
           reason: "알림 규칙 변경",
           requestUser: ""
         },
+        notificationDeliveryForm: {
+          deliveryId: null,
+          expectedVersion: null,
+          deliveryStatus: "",
+          operationId: "",
+          reason: "알림 발송 운영 조치"
+        },
         downloadForm: {
           downloadType: "TRANSACTION_LOGS",
           targetType: "LOG_LIST",
@@ -374,7 +381,8 @@ export function createAdmState() {
         auditResult: {} as Record<string, any>,
         batchResult: {} as Record<string, any>,
         centerCutResult: {} as Record<string, any>,
-        notificationResult: {} as Record<string, any>,
+        notificationResult: { rules: [], deliveryLogs: [], attempts: [], action: {} } as Record<string, any>,
+        selectedNotificationDelivery: null as Record<string, any> | null,
         downloadResult: {} as Record<string, any>,
         cacheResult: {} as Record<string, any>,
         responseCodeResult: {} as Record<string, any>,
@@ -431,7 +439,8 @@ export function resetAdmSensitiveState(state: Record<string, any>) {
   state.remoteLogBundleGrant = {};
   state.batchResult = {};
   state.centerCutResult = {};
-  state.notificationResult = {};
+  state.notificationResult = { rules: [], deliveryLogs: [], attempts: [], action: {} };
+  state.selectedNotificationDelivery = null;
   state.downloadResult = {};
   state.cacheResult = {};
   state.responseCodeResult = {};

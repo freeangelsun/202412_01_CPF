@@ -58,25 +58,8 @@ try {
     }
 
     Invoke-CpfGate 'Enterprise QA closing static gate' {
-        & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\check-enterprise-qa-closing.ps1
-    }
-    Invoke-CpfGate 'Runtime Control public API boundary' {
-        & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\check-runtime-control-public-boundary.ps1
-    }
-    Invoke-CpfGate 'Notification authentication and portable SQL' {
-        & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\check-notification-portable-sql.ps1
-    }
-    Invoke-CpfGate 'Local development runtime topology' {
-        & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\check-local-runtime-topology.ps1
-    }
-
-    Invoke-CpfGate 'Enterprise QA closing static gate' {
         & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\check-enterprise-qa-closing.ps1 -Root $RepoRoot
     }
-    Invoke-CpfGate 'ADM Runtime Capability consumer gate' {
-        & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\check-runtime-capability-consumers.ps1 -Root $RepoRoot
-    }
-
     Invoke-CpfGate 'Public API/SPI boundary' {
         & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\check-r11-public-boundary.ps1
     }
@@ -227,6 +210,25 @@ try {
         Invoke-CpfGate 'GitHub branch/source governance' {
             & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\verify-github-governance.ps1
         }
+    }
+
+    $finalLedgerPath = Join-Path $RepoRoot 'cpf-tools/verification/20260729_02/CPF_FINAL_QA_MASTER_LEDGER_20260729.csv'
+    if (-not (Test-Path -LiteralPath $finalLedgerPath -PathType Leaf)) {
+        throw "Merged full-QA ledger not found: $finalLedgerPath"
+    }
+    $finalLedgerRows = @(Import-Csv -LiteralPath $finalLedgerPath)
+    $notCompleted = @($finalLedgerRows | Where-Object { $_.closing_status -ne '완료' })
+    if ($notCompleted.Count -gt 0) {
+        $statusSummary = ($notCompleted | Group-Object closing_status | Sort-Object Name | ForEach-Object {
+            "$($_.Name)=$($_.Count)"
+        }) -join ', '
+        $sampleIds = @($notCompleted | Select-Object -First 20 -ExpandProperty id) -join ', '
+        throw "Final completion is blocked because merged QA ledger has non-completed items. total=$($notCompleted.Count), status=[$statusSummary], sample=[$sampleIds]"
+    }
+    $missingClosingEvidence = @($finalLedgerRows | Where-Object { [string]::IsNullOrWhiteSpace($_.closing_evidence) })
+    if ($missingClosingEvidence.Count -gt 0) {
+        $sampleIds = @($missingClosingEvidence | Select-Object -First 20 -ExpandProperty id) -join ', '
+        throw "Final completion is blocked because closing evidence is missing. total=$($missingClosingEvidence.Count), sample=[$sampleIds]"
     }
 
     Write-Host 'Selected CPF final completion gates PASS.'

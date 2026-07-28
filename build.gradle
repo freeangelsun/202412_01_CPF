@@ -87,7 +87,7 @@ allprojects { targetProject ->
     }
 }
 
-subprojects {
+subprojects { targetProject ->
     apply plugin: 'java'
     apply plugin: 'io.spring.dependency-management'
 

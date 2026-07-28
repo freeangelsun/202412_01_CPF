@@ -19,7 +19,7 @@
       "cpf-tools/db/vendor/oracle/source/*_schema.sql"
     ]
   },
-  "tableCount": 165,
+  "tableCount": 166,
   "tables": [
     {
       "name": "BATCH_JOB_EXECUTION",
@@ -20274,6 +20274,158 @@
       ],
       "checks": [],
       "comment": "CPF 운영 알림 발송 로그",
+      "module": "cpf",
+      "logicalDatabase": "cpfDB"
+    },
+    {
+      "name": "cpf_notification_delivery_attempt",
+      "columns": [
+        {
+          "name": "delivery_id",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "알림 발송 ID"
+        },
+        {
+          "name": "attempt_no",
+          "type": "INT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Provider 호출 시도 순번"
+        },
+        {
+          "name": "operation_id",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "멱등 작업 ID"
+        },
+        {
+          "name": "worker_id",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "호출 소유 Worker"
+        },
+        {
+          "name": "attempt_status",
+          "type": "VARCHAR(30)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Attempt 처리 상태"
+        },
+        {
+          "name": "provider_status",
+          "type": "VARCHAR(80)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Provider 결과 코드"
+        },
+        {
+          "name": "provider_message",
+          "type": "VARCHAR(2000)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "민감정보 제거 Provider 결과"
+        },
+        {
+          "name": "started_at",
+          "type": "DATETIME(3)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Provider 호출 시작 일시"
+        },
+        {
+          "name": "completed_at",
+          "type": "DATETIME(3)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Provider 결과 확정 일시"
+        },
+        {
+          "name": "lease_version",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Claim 시점 CAS Version"
+        },
+        {
+          "name": "created_by",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": "'CPF'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "기록 주체"
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "기록 일시"
+        }
+      ],
+      "primaryKey": [
+        "delivery_id",
+        "attempt_no"
+      ],
+      "uniqueKeys": [],
+      "indexes": [
+        {
+          "name": "ix_cpf_notification_attempt_operation",
+          "columns": [
+            "operation_id",
+            "attempt_no"
+          ]
+        },
+        {
+          "name": "ix_cpf_notification_attempt_status",
+          "columns": [
+            "attempt_status",
+            "started_at"
+          ]
+        }
+      ],
+      "foreignKeys": [
+        {
+          "name": "fk_cpf_notification_attempt_delivery",
+          "columns": [
+            "delivery_id"
+          ],
+          "refTable": "cpf_notification_delivery_log",
+          "refColumns": [
+            "delivery_id"
+          ],
+          "onDelete": "CASCADE",
+          "onUpdate": null
+        }
+      ],
+      "checks": [],
+      "comment": "Durable Notification Provider 호출 Attempt 불변 이력",
       "module": "cpf",
       "logicalDatabase": "cpfDB"
     },

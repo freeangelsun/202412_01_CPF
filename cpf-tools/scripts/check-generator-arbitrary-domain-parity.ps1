@@ -87,7 +87,8 @@ try {
     Copy-Item -LiteralPath (Join-Path $contractRoot "domain-metadata.schema.json") `
         -Destination $sandboxContractRoot
 
-    foreach ($vendor in @("mariadb", "mysql", "postgresql", "oracle", "sqlserver")) {
+    # CPF 공식 지원 DB Vendor 3종만 Golden Template parity 대상으로 사용합니다.
+    foreach ($vendor in @("mariadb", "postgresql", "oracle")) {
         $targetVendorRoot = Join-Path $sandboxRoot "cpf-tools/db/vendor/$vendor"
         New-Item -ItemType Directory -Force -Path $targetVendorRoot | Out-Null
         Copy-Item -LiteralPath (Join-Path $vendorRoot "$vendor/domain-template") `

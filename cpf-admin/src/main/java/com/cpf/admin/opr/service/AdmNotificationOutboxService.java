@@ -2,6 +2,7 @@ package com.cpf.admin.opr.service;
 
 import com.cpf.admin.opr.dto.AdmNotificationRuleResponse;
 import com.cpf.admin.opr.dto.AdmNotificationTestSendRequest;
+import com.cpf.admin.opr.exception.AdmNotificationVersionConflictException;
 import com.cpf.admin.opr.dto.NotificationSendResult;
 import com.cpf.core.api.error.CpfValidationException;
 import com.cpf.core.api.util.CpfStrings;
@@ -27,6 +28,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 /**
  * 운영 알림을 원 업무 트랜잭션과 분리하는 Durable Outbox입니다.
@@ -39,6 +41,10 @@ import java.util.UUID;
 public class AdmNotificationOutboxService {
     private static final String SENSITIVE_PATTERN =
             "(?i).*(password|passwd|secret|private[ _-]?key|authorization:|bearer\\s+|access[_-]?token|refresh[_-]?token).*";
+    private static final Pattern SENSITIVE_VALUE_PATTERN = Pattern.compile(
+            "(?i)authorization\\s*[:=]\\s*bearer\\s+[A-Za-z0-9._~+/=-]+"
+                    + "|bearer\\s+[A-Za-z0-9._~+/=-]+"
+                    + "|(password|passwd|secret|private[ _-]?key|access[_-]?token|refresh[_-]?token)\\s*[:=]\\s*\\S+");
 
     private final JdbcTemplate jdbcTemplate;
     private final NotificationSender notificationSender;
@@ -119,10 +125,21 @@ public class AdmNotificationOutboxService {
         return key.longValue();
     }
 
+    /**
+     * 운영 조치 전후 Audit와 CAS 판단에 사용할 현재 Durable Outbox 상태를 조회합니다.
+     *
+     * @param deliveryId 발송 ID
+     * @return operation·retry·lease·version을 포함한 현재 상태 Snapshot
+     */
+    public Map<String, Object> findStatus(long deliveryId) {
+        return statusMap(deliveryId);
+    }
+
     /** due 항목을 claim하고 Provider 호출·결과 확정을 수행합니다. */
     public int processDue(String workerId, int requestedLimit) {
         String owner = required(workerId, "workerId");
         int limit = Math.max(1, Math.min(requestedLimit, 100));
+        transactionTemplate.executeWithoutResult(status -> recoverExpiredProcessing(owner));
         List<Candidate> candidates = transactionTemplate.execute(status -> findCandidates(limit));
         if (candidates == null || candidates.isEmpty()) {
             return 0;
@@ -159,26 +176,54 @@ public class AdmNotificationOutboxService {
         return processed;
     }
 
-    public Map<String, Object> retry(long deliveryId, String operatorId) {
+    /**
+     * 실패·결과 불명·취소 상태의 알림을 운영자가 명시적으로 재시도합니다.
+     *
+     * @param deliveryId 발송 ID
+     * @param expectedVersion 화면 조회 시점의 CAS Version
+     * @param operatorId 인증된 ADM 운영자
+     * @return 변경 후 최신 운영 상태
+     */
+    public Map<String, Object> retry(long deliveryId, long expectedVersion, String operatorId) {
+        if (expectedVersion < 0) {
+            throw new CpfValidationException("expectedVersion은 0 이상이어야 합니다.");
+        }
         int updated = jdbcTemplate.update("""
                 UPDATE cpf_notification_delivery_log
                 SET delivery_status = 'RETRY',
                     next_attempt_at = ?,
                     lease_owner = NULL,
                     lease_until = NULL,
+                    last_error_code = NULL,
                     version = version + 1,
                     updated_by = ?,
                     updated_at = CURRENT_TIMESTAMP
                 WHERE delivery_id = ?
+                  AND version = ?
                   AND delivery_status IN ('FAILED', 'UNKNOWN_RESULT', 'CANCELLED')
-                """, Timestamp.from(Instant.now()), required(operatorId, "operatorId"), deliveryId);
+                """,
+                Timestamp.from(Instant.now()),
+                required(operatorId, "operatorId"),
+                deliveryId,
+                expectedVersion);
         if (updated != 1) {
-            throw new CpfValidationException("재시도 가능한 알림 발송 건이 아닙니다. deliveryId=" + deliveryId);
+            throwVersionConflict(deliveryId, expectedVersion, "재시도");
         }
-        return statusMap(deliveryId, "RETRY");
+        return statusMap(deliveryId);
     }
 
-    public Map<String, Object> cancel(long deliveryId, String operatorId) {
+    /**
+     * 대기·재시도·결과 불명 상태의 알림을 운영자가 취소합니다.
+     *
+     * @param deliveryId 발송 ID
+     * @param expectedVersion 화면 조회 시점의 CAS Version
+     * @param operatorId 인증된 ADM 운영자
+     * @return 변경 후 최신 운영 상태
+     */
+    public Map<String, Object> cancel(long deliveryId, long expectedVersion, String operatorId) {
+        if (expectedVersion < 0) {
+            throw new CpfValidationException("expectedVersion은 0 이상이어야 합니다.");
+        }
         int updated = jdbcTemplate.update("""
                 UPDATE cpf_notification_delivery_log
                 SET delivery_status = 'CANCELLED',
@@ -189,12 +234,66 @@ public class AdmNotificationOutboxService {
                     updated_by = ?,
                     updated_at = CURRENT_TIMESTAMP
                 WHERE delivery_id = ?
+                  AND version = ?
                   AND delivery_status IN ('READY', 'RETRY', 'UNKNOWN_RESULT')
-                """, required(operatorId, "operatorId"), deliveryId);
+                """,
+                required(operatorId, "operatorId"),
+                deliveryId,
+                expectedVersion);
         if (updated != 1) {
-            throw new CpfValidationException("취소 가능한 알림 발송 건이 아닙니다. deliveryId=" + deliveryId);
+            throwVersionConflict(deliveryId, expectedVersion, "취소");
         }
-        return statusMap(deliveryId, "CANCELLED");
+        return statusMap(deliveryId);
+    }
+
+
+    /**
+     * Lease가 만료된 PROCESSING 건은 Provider 호출 전/후 어느 지점에서 소유권을 잃었는지
+     * 판별할 수 없으므로 자동 재발송하지 않고 UNKNOWN_RESULT로 격리합니다.
+     *
+     * <p>자동으로 READY/RETRY로 되돌리면 Provider는 성공했지만 결과 DB 반영 전에 Worker가
+     * 종료된 경우 동일 알림이 중복 발송될 수 있습니다. 운영자는 상태 조회 후 Provider 이력과
+     * operationId를 대조해 재시도 또는 취소를 명시적으로 결정해야 합니다.</p>
+     */
+    int recoverExpiredProcessing(String owner) {
+        Timestamp now = Timestamp.from(Instant.now());
+
+        // complete()와 동일하게 Parent Outbox row를 먼저 확정한 뒤 Attempt row를 갱신합니다.
+        // 반대 순서로 잠그면 정상 결과 확정과 Lease 복구가 교차할 때 DB deadlock 가능성이 있습니다.
+        int recovered = jdbcTemplate.update("""
+                UPDATE cpf_notification_delivery_log
+                SET delivery_status = 'UNKNOWN_RESULT',
+                    delivery_message = 'Worker lease expired before delivery result was committed',
+                    next_attempt_at = NULL,
+                    lease_owner = NULL,
+                    lease_until = NULL,
+                    last_error_code = 'LEASE_EXPIRED_UNKNOWN_RESULT',
+                    version = version + 1,
+                    updated_by = ?,
+                    updated_at = ?
+                WHERE delivery_status = 'PROCESSING'
+                  AND lease_until IS NOT NULL
+                  AND lease_until < ?
+                """, owner, now, now);
+
+        // V68 적용 이전에 이미 PROCESSING이었던 row는 Attempt row가 없을 수 있으므로
+        // Parent 격리는 유지하되 존재하는 미완료 Attempt만 결과 불명으로 확정합니다.
+        jdbcTemplate.update("""
+                UPDATE cpf_notification_delivery_attempt
+                SET attempt_status = 'UNKNOWN_RESULT',
+                    provider_status = 'LEASE_EXPIRED_UNKNOWN_RESULT',
+                    provider_message = 'Worker lease expired before delivery result was committed',
+                    completed_at = ?
+                WHERE completed_at IS NULL
+                  AND delivery_id IN (
+                      SELECT delivery_id
+                      FROM cpf_notification_delivery_log
+                      WHERE delivery_status = 'UNKNOWN_RESULT'
+                        AND last_error_code = 'LEASE_EXPIRED_UNKNOWN_RESULT'
+                        AND updated_by = ?
+                  )
+                """, now, owner);
+        return recovered;
     }
 
     private List<Candidate> findCandidates(int limit) {
@@ -240,8 +339,8 @@ public class AdmNotificationOutboxService {
         if (updated != 1) {
             return null;
         }
-        return jdbcTemplate.queryForObject("""
-                SELECT d.delivery_id, d.target_type, d.target_id, d.receiver, d.payload_body,
+        ClaimedDelivery claimed = jdbcTemplate.queryForObject("""
+                SELECT d.delivery_id, d.operation_id, d.target_type, d.target_id, d.receiver, d.payload_body,
                        d.attempt_count, d.max_attempts, d.version, d.created_by,
                        r.rule_id, r.event_type, r.event_sub_type, r.channel_code, r.template_code,
                        r.severity, r.receiver_group, r.use_yn, r.created_by AS rule_created_by,
@@ -252,6 +351,7 @@ public class AdmNotificationOutboxService {
                 WHERE d.delivery_id = ? AND d.lease_owner = ? AND d.delivery_status = 'PROCESSING'
                 """, (rs, rowNum) -> new ClaimedDelivery(
                 rs.getLong("delivery_id"),
+                rs.getString("operation_id"),
                 rs.getString("target_type"),
                 rs.getString("target_id"),
                 rs.getString("receiver"),
@@ -272,8 +372,26 @@ public class AdmNotificationOutboxService {
                         rs.getString("rule_created_by"),
                         toLocalDateTime(rs.getTimestamp("rule_created_at")),
                         rs.getString("rule_updated_by"),
-                        toLocalDateTime(rs.getTimestamp("rule_updated_at")))),
-                candidate.deliveryId(), owner);
+                        toLocalDateTime(rs.getTimestamp("rule_updated_at")))));
+        int attemptInserted = jdbcTemplate.update("""
+                INSERT INTO cpf_notification_delivery_attempt (
+                    delivery_id, attempt_no, operation_id, worker_id, attempt_status,
+                    provider_status, provider_message, started_at, completed_at,
+                    lease_version, created_by
+                ) VALUES (?, ?, ?, ?, 'PROCESSING', NULL, NULL, ?, NULL, ?, ?)
+                """,
+                claimed.deliveryId(),
+                claimed.attemptCount(),
+                claimed.operationId(),
+                owner,
+                Timestamp.from(now),
+                claimed.version(),
+                owner);
+        if (attemptInserted != 1) {
+            throw new IllegalStateException(
+                    "알림 Provider Attempt 이력 생성에 실패했습니다. deliveryId=" + claimed.deliveryId());
+        }
+        return claimed;
     }
 
     private void complete(ClaimedDelivery delivery, String owner, NotificationSendResult result) {
@@ -291,6 +409,7 @@ public class AdmNotificationOutboxService {
         } else {
             finalStatus = "FAILED";
         }
+        String safeProviderMessage = sanitizeProviderMessage(defaultText(result.deliveryMessage(), finalStatus));
         int updated = jdbcTemplate.update("""
                 UPDATE cpf_notification_delivery_log
                 SET delivery_status = ?,
@@ -309,7 +428,7 @@ public class AdmNotificationOutboxService {
                   AND lease_owner = ?
                 """,
                 finalStatus,
-                truncate(defaultText(result.deliveryMessage(), finalStatus), 2000),
+                safeProviderMessage,
                 deliveredAt,
                 nextAttemptAt,
                 result.success() ? null : truncate(providerCode, 80),
@@ -320,13 +439,77 @@ public class AdmNotificationOutboxService {
         if (updated != 1) {
             throw new IllegalStateException("알림 발송 결과 CAS 확정에 실패했습니다. deliveryId=" + delivery.deliveryId());
         }
+        int attemptUpdated = jdbcTemplate.update("""
+                UPDATE cpf_notification_delivery_attempt
+                SET attempt_status = ?,
+                    provider_status = ?,
+                    provider_message = ?,
+                    completed_at = ?
+                WHERE delivery_id = ?
+                  AND attempt_no = ?
+                  AND lease_version = ?
+                  AND attempt_status = 'PROCESSING'
+                  AND completed_at IS NULL
+                """,
+                finalStatus,
+                truncate(providerCode, 80),
+                safeProviderMessage,
+                Timestamp.from(Instant.now()),
+                delivery.deliveryId(),
+                delivery.attemptCount(),
+                delivery.version());
+        if (attemptUpdated != 1) {
+            throw new IllegalStateException(
+                    "알림 Provider Attempt 결과 확정에 실패했습니다. deliveryId=" + delivery.deliveryId()
+                            + ", attemptNo=" + delivery.attemptCount());
+        }
     }
 
-    private Map<String, Object> statusMap(long deliveryId, String status) {
-        Map<String, Object> response = new LinkedHashMap<>();
-        response.put("deliveryId", deliveryId);
-        response.put("deliveryStatus", status);
-        return response;
+    private Map<String, Object> statusMap(long deliveryId) {
+        return jdbcTemplate.queryForObject("""
+                SELECT delivery_id, operation_id, request_hash, delivery_status,
+                       attempt_count, max_attempts, next_attempt_at, lease_owner,
+                       lease_until, version, last_error_code, updated_by, updated_at
+                FROM cpf_notification_delivery_log
+                WHERE delivery_id = ?
+                """, (rs, rowNum) -> {
+            Map<String, Object> response = new LinkedHashMap<>();
+            response.put("deliveryId", rs.getLong("delivery_id"));
+            response.put("operationId", rs.getString("operation_id"));
+            response.put("requestHash", rs.getString("request_hash"));
+            response.put("deliveryStatus", rs.getString("delivery_status"));
+            response.put("attemptCount", rs.getInt("attempt_count"));
+            response.put("maxAttempts", rs.getInt("max_attempts"));
+            response.put("nextAttemptAt", toLocalDateTime(rs.getTimestamp("next_attempt_at")));
+            response.put("leaseOwner", rs.getString("lease_owner"));
+            response.put("leaseUntil", toLocalDateTime(rs.getTimestamp("lease_until")));
+            response.put("version", rs.getLong("version"));
+            response.put("lastErrorCode", rs.getString("last_error_code"));
+            response.put("updatedBy", rs.getString("updated_by"));
+            response.put("updatedAt", toLocalDateTime(rs.getTimestamp("updated_at")));
+            return response;
+        }, deliveryId);
+    }
+
+    private void throwVersionConflict(long deliveryId, long expectedVersion, String action) {
+        List<CurrentState> current = jdbcTemplate.query("""
+                SELECT delivery_status, version
+                FROM cpf_notification_delivery_log
+                WHERE delivery_id = ?
+                """,
+                (rs, rowNum) -> new CurrentState(
+                        rs.getString("delivery_status"),
+                        rs.getLong("version")),
+                deliveryId);
+        if (current.isEmpty()) {
+            throw new CpfValidationException("알림 발송 건을 찾을 수 없습니다. deliveryId=" + deliveryId);
+        }
+        CurrentState row = current.getFirst();
+        throw new AdmNotificationVersionConflictException(
+                "알림 발송 " + action + " 충돌입니다. deliveryId=" + deliveryId
+                        + ", expectedVersion=" + expectedVersion
+                        + ", actualVersion=" + row.version()
+                        + ", actualStatus=" + row.status());
     }
 
     private void validatePayload(String payload) {
@@ -352,6 +535,14 @@ public class AdmNotificationOutboxService {
     private String safeMessage(Throwable throwable) {
         String message = throwable.getMessage();
         return truncate(throwable.getClass().getSimpleName() + (message == null ? "" : ": " + message), 2000);
+    }
+
+    String sanitizeProviderMessage(String value) {
+        String safe = truncate(value, 2000);
+        if (safe == null) {
+            return null;
+        }
+        return SENSITIVE_VALUE_PATTERN.matcher(safe).replaceAll("[REDACTED]");
     }
 
     private String truncate(String value, int max) {
@@ -400,8 +591,12 @@ public class AdmNotificationOutboxService {
     private record Candidate(long deliveryId, long version) {
     }
 
+    private record CurrentState(String status, long version) {
+    }
+
     private record ClaimedDelivery(
             long deliveryId,
+            String operationId,
             String targetType,
             String targetId,
             String receiver,

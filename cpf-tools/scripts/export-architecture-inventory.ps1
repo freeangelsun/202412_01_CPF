@@ -19,7 +19,8 @@ New-Item -ItemType Directory -Force -Path $ResultDir | Out-Null
 
 $modules = @(
     'cpf-core', 'cpf-common', 'cpf-member', 'cpf-admin', 'cpf-biz-admin',
-    'cpf-batch', 'cpf-account', 'cpf-reference', 'cpf-external', 'cpf-gateway'
+    'cpf-batch', 'cpf-account', 'cpf-reference', 'cpf-gateway',
+    'cpf-local-runtime', 'cpf-local-batch-runtime'
 )
 $trackedExtensions = @('.java', '.kt', '.groovy', '.xml', '.yml', '.yaml', '.properties', '.sql', '.json', '.js', '.css', '.html', '.md', '.ps1', '.gradle')
 $items = [System.Collections.Generic.List[object]]::new()

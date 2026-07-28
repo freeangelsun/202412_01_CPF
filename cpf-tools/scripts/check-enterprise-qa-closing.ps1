@@ -24,7 +24,7 @@ if(($vendors -join ',') -ne 'mariadb,postgresql,oracle'){throw "official DB vend
 foreach($t in @(
  'cpf_runtime_version','cpf_runtime_instance_group','cpf_runtime_group_member','cpf_runtime_instance_state',
  'cpf_control_operation','cpf_runtime_change','cpf_runtime_delivery','cpf_runtime_change_audit',
- 'cpf_cache_refresh_checkpoint')){
+ 'cpf_cache_refresh_checkpoint','cpf_notification_delivery_attempt')){
     if(-not($schema.tables.name -contains $t)){throw "canonical table missing: $t"}
 }
 
@@ -47,6 +47,9 @@ foreach($rel in @(
  'cpf-core\src\main\java\com\cpf\core\api\runtimecontrol\CpfRuntimeVersionConflictException.java',
  'cpf-core\src\main\java\com\cpf\core\api\runtimecontrol\CpfRuntimeCapabilityCatalog.java')){Require-File $rel|Out-Null}
 
+& pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'check-runtime-control-public-boundary.ps1') -Root $Root
+if($LASTEXITCODE -ne 0){throw "runtime control public boundary gate failed: $LASTEXITCODE"}
+
 # ADM Runtime Control 14 Capability는 Catalog뿐 아니라 실제 Consumer와 ADM surface가 있어야 한다.
 & pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'check-runtime-capability-consumers.ps1') -Root $Root
 if($LASTEXITCODE -ne 0){throw "runtime capability consumer gate failed: $LASTEXITCODE"}
@@ -57,8 +60,11 @@ Require-Text 'cpf-admin\src\main\java\com\cpf\admin\opr\controller\AdmNotificati
  'com.cpf.core.common.','defaultValue = "ADM"')
 Require-Text 'cpf-admin\src\main\java\com\cpf\admin\opr\service\AdmNotificationService.java' @(
  'com.cpf.core.api.error.CpfValidationException','com.cpf.core.api.logging.CpfTransactionContext',
- 'GeneratedKeyHolder','new String[] {"rule_id"}','setMaxRows','notificationOutboxService.enqueueTest') @(
+ 'GeneratedKeyHolder','new String[] {"rule_id"}','setMaxRows','notificationOutboxService.enqueueTest','findDeliveryAttempts') @(
  'com.cpf.core.common.','ON DUPLICATE KEY','LAST_INSERT_ID','LIMIT ?','CURRENT_TIMESTAMP(3)')
+
+& pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'check-notification-portable-sql.ps1') -Root $Root
+if($LASTEXITCODE -ne 0){throw "notification portable SQL and durable recovery gate failed: $LASTEXITCODE"}
 
 # Local Web single-JVM and separate local Batch process.
 foreach($rel in @(
@@ -67,6 +73,9 @@ foreach($rel in @(
  'cpf-local-batch-runtime\build.gradle',
  'cpf-local-batch-runtime\src\main\java\com\cpf\local\batch\CpfLocalBatchRuntimeApplication.java',
  'cpf-tools\scripts\start-cpf-local.ps1','cpf-tools\scripts\stop-cpf-local.ps1')){Require-File $rel|Out-Null}
+
+& pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'check-local-runtime-topology.ps1') -Root $Root
+if($LASTEXITCODE -ne 0){throw "local runtime topology gate failed: $LASTEXITCODE"}
 
 # Gateway trust boundary.
 Require-Text 'cpf-gateway\src\main\java\com\cpf\gateway\controller\CpfGatewayController.java' @(
@@ -111,9 +120,10 @@ Require-File 'cpf-biz-admin\src\test\java\com\cpf\bizadmin\auth\service\BzaLogin
 if($LASTEXITCODE -ne 0){throw "text control character gate failed: $LASTEXITCODE"}
 
 
-# 14-category ADM Runtime Capability consumer/surface gate.
-& pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'check-runtime-capability-consumers.ps1') -Root $Root
-if($LASTEXITCODE -ne 0){throw "runtime capability consumer gate failed: $LASTEXITCODE"}
+
+# 기존 2,118건과 신규 QA 병합 원장의 Architecture·Generated Domain·UI·Hygiene를 검증합니다.
+& pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'check-integrated-architecture-ui-hygiene.ps1') -Root $Root
+if($LASTEXITCODE -ne 0){throw "integrated architecture/UI/hygiene gate failed: $LASTEXITCODE"}
 
 # Migration history must be complete and tamper-evident.
 & pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'check-migration-checksums.ps1') -Root $Root

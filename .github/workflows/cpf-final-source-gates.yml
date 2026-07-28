@@ -30,11 +30,8 @@ jobs:
         shell: pwsh
         run: |
           ./cpf-tools/generator/verify-domain-federation.ps1
-          ./cpf-tools/scripts/check-runtime-control-public-boundary.ps1
-          ./cpf-tools/scripts/check-runtime-capability-consumers.ps1
-          ./cpf-tools/scripts/check-notification-portable-sql.ps1
-          ./cpf-tools/scripts/check-local-runtime-topology.ps1
           ./cpf-tools/scripts/check-enterprise-qa-closing.ps1
+          Copy-Item -Recurse build/quality-gate/full-qa-closure build/final-evidence/full-qa-closure
       - name: Repository diff hygiene
         run: git diff --check
       - uses: actions/upload-artifact@v4

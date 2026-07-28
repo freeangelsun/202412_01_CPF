@@ -1,20 +1,28 @@
 package com.cpf.admin.opr.controller;
 
+import com.cpf.admin.opr.exception.AdmNotificationVersionConflictException;
 import com.cpf.admin.opr.service.AdmNotificationService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class AdmNotificationControllerAuthenticationTest {
-    private final AdmNotificationController controller =
-            new AdmNotificationController(mock(AdmNotificationService.class));
 
     @Test
     void rejectsMissingAuthenticatedOperator() {
+        AdmNotificationController controller =
+                new AdmNotificationController(mock(AdmNotificationService.class));
         HttpServletRequest request = new MockHttpServletRequest();
 
         assertThatThrownBy(() -> controller.findRules(10, request))
@@ -24,11 +32,39 @@ class AdmNotificationControllerAuthenticationTest {
 
     @Test
     void rejectsClaimedOperatorMismatch() {
+        AdmNotificationController controller =
+                new AdmNotificationController(mock(AdmNotificationService.class));
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.setAttribute("adm.operatorId", "operator-a");
 
         assertThatThrownBy(() -> controller.disableRule(1L, "점검", "operator-b", request))
                 .isInstanceOf(ResponseStatusException.class)
                 .hasMessageContaining("일치하지 않습니다");
+    }
+
+    @Test
+    void forwardsAuthenticatedOperatorAndExpectedVersionForRetry() {
+        AdmNotificationService service = mock(AdmNotificationService.class);
+        AdmNotificationController controller = new AdmNotificationController(service);
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setAttribute("adm.operatorId", "operator-a");
+        request.setRemoteAddr("127.0.0.1");
+        when(service.retryDelivery(10L, 7L, "provider 확인", "operator-a", "127.0.0.1"))
+                .thenReturn(Map.of("deliveryId", 10L, "version", 8L));
+
+        Map<String, Object> body = controller.retryDelivery(
+                10L, 7L, "provider 확인", null, request).getBody();
+
+        assertThat(body).containsEntry("version", 8L);
+        verify(service).retryDelivery(10L, 7L, "provider 확인", "operator-a", "127.0.0.1");
+    }
+
+    @Test
+    void versionConflictIsMappedToHttp409() {
+        ResponseStatus responseStatus =
+                AdmNotificationVersionConflictException.class.getAnnotation(ResponseStatus.class);
+
+        assertThat(responseStatus).isNotNull();
+        assertThat(responseStatus.value()).isEqualTo(HttpStatus.CONFLICT);
     }
 }

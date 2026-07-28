@@ -1,0 +1,96 @@
+{
+  "baseline_sha": "9e5d1676a9ccba55fedf4dfb633a9e710f487a02",
+  "generated_at_utc": "2026-07-28T17:36:36.620133+00:00",
+  "merged_qa": {
+    "requirements": 2328,
+    "scenarios": 387,
+    "total": 2715,
+    "closing_status": "미검증"
+  },
+  "executed_checks": [
+    {
+      "name": "json_parse",
+      "status": "완료",
+      "detail": "3 JSON files parsed"
+    },
+    {
+      "name": "yaml_parse",
+      "status": "완료",
+      "detail": "1 GitHub Actions YAML parsed"
+    },
+    {
+      "name": "csv_shape_and_qa_counts",
+      "status": "완료",
+      "detail": "4 CSV files valid; ledger requirements=2328 scenarios=387 total=2715; all 2,715 rows remain 미검증"
+    },
+    {
+      "name": "baseline_id_preservation",
+      "status": "완료",
+      "detail": "All 2,118 existing QA IDs are preserved in the merged ledger"
+    },
+    {
+      "name": "qa_dedup_trace",
+      "status": "완료",
+      "detail": "UNIQUE=574, MERGED=1, CANDIDATE=5, EXCLUDED_METADATA=10"
+    },
+    {
+      "name": "source_manifest_hashes",
+      "status": "완료",
+      "detail": "5 QA source/ledger SHA-256 values match the source manifest"
+    },
+    {
+      "name": "text_hygiene",
+      "status": "완료",
+      "detail": "50 text files are UTF-8 without BOM, LF-only, no trailing whitespace, and no hidden control characters"
+    },
+    {
+      "name": "v68_checksum",
+      "status": "완료",
+      "detail": "MariaDB runtime/source, PostgreSQL, and Oracle manifests match exact V68 bytes"
+    },
+    {
+      "name": "targeted_secret_and_absolute_path_regex",
+      "status": "완료",
+      "detail": "No private key, AWS access key, material credential assignment, or developer absolute path detected"
+    },
+    {
+      "name": "vue_structural",
+      "status": "완료",
+      "detail": "Single template, raw <pre>/JSON.stringify absent, durable outbox and Provider Attempt actions present"
+    },
+    {
+      "name": "typescript_no_emit",
+      "status": "완료",
+      "detail": "referenceMethods.ts and createAdmState.ts compiled with tsc --noEmit"
+    },
+    {
+      "name": "java_syntax_diagnostics",
+      "status": "완료",
+      "detail": "javac 21 parsed all modified production Java with zero syntax diagnostics; dependency symbol resolution failed because the full repository classpath is unavailable"
+    },
+    {
+      "name": "canonical_schema",
+      "status": "완료",
+      "detail": "cpf_notification_delivery_attempt exists in the canonical platform schema"
+    },
+    {
+      "name": "unfinished_marker_scan",
+      "status": "완료",
+      "detail": "No NUL or TODO/FIXME marker in overlay code"
+    },
+    {
+      "name": "git_diff_check",
+      "status": "완료",
+      "detail": "Isolated staged overlay passes git diff --cached --check"
+    }
+  ],
+  "not_executed": [
+    "PowerShell gates",
+    "Java 25 / Gradle 9.1 full build, test and assemble",
+    "MariaDB/PostgreSQL/Oracle install, migration, upgrade, rollback and runtime query lifecycle",
+    "ADM/BZA browser E2E",
+    "multi-process/multi-instance failure recovery",
+    "real external Email/SMS/Broker/SFTP providers"
+  ],
+  "completion_statement": "Stage 2 implementation and static-validation overlay only. Full 2,715-item QA remains unverified until exact latest master SHA execution evidence exists."
+}

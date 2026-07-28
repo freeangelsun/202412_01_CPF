@@ -1,0 +1,46 @@
+{
+  "baseline_sha": "9e5d1676a9ccba55fedf4dfb633a9e710f487a02",
+  "baseline_requirements": 1749,
+  "baseline_scenarios": 369,
+  "baseline_total": 2118,
+  "new_source_bullets": 590,
+  "new_confirmed_duplicates": 1,
+  "new_candidate_duplicates_for_codex_review": 5,
+  "new_unique_requirements": 579,
+  "new_unique_scenarios": 18,
+  "merged_requirements": 2328,
+  "merged_scenarios": 387,
+  "merged_total": 2715,
+  "status_policy": [
+    "완료",
+    "부분 구현",
+    "미구현",
+    "미검증",
+    "실패",
+    "재확인 필요"
+  ],
+  "completion_rule": "Only latest master exact-SHA implementation and execution evidence may close an item.",
+  "new_excluded_metadata": 10,
+  "source_files": [
+    {
+      "path": "cpf-tools/verification/20260729_02/qa-source/CPF_ADDITIONAL_INTEGRATED_QA_REQUEST_20260729.md",
+      "sha256": "5d225bb848b7af4e3b4450968761fa1a0e78c3f19dc978a7be1a4618d2efb99a"
+    },
+    {
+      "path": "cpf-tools/verification/20260729_02/qa-source/CPF_ADDITIONAL_INTEGRATED_QA_REQUIREMENTS_20260729.csv",
+      "sha256": "260667ceee777472ef8631acc97b13584f8ea76a8c1f10e237b48a80abeba0b0"
+    },
+    {
+      "path": "cpf-tools/verification/20260729_02/qa-source/CPF_ADDITIONAL_INTEGRATED_QA_SCENARIOS_20260729.csv",
+      "sha256": "cf5f5b17b75b26ff94bb48082a70b8aa9ed3233199ea392935020a3c76c2dbcb"
+    },
+    {
+      "path": "cpf-tools/verification/20260729_02/qa-source/CPF_ADDITIONAL_QA_DEDUP_TRACE_20260729.csv",
+      "sha256": "260667ceee777472ef8631acc97b13584f8ea76a8c1f10e237b48a80abeba0b0"
+    },
+    {
+      "path": "cpf-tools/verification/20260729_02/CPF_FINAL_QA_MASTER_LEDGER_20260729.csv",
+      "sha256": "8129cb746616b9028676f20fbcd8e8a0dc82eea54d6de13d4b7d01493e7f3ed3"
+    }
+  ]
+}

@@ -69,7 +69,7 @@ try {
         outputFile = $logName
         outputSha256 = $outputHash
         redactionChecked = $true
-        requirementIds = @('CPF-FINAL-TARGET','CPF-QA-ALL-2118','CPF-QA-RUNTIME-CONTROL-SUPPLEMENT')
+        requirementIds = @('CPF-FINAL-TARGET','CPF-QA-BASELINE-2118','CPF-QA-MERGED-2715','CPF-QA-RUNTIME-CONTROL-SUPPLEMENT','CPF-QA-ARCH-UI-HYGIENE-20260729')
         status = $status
         failure = $failure
     } | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $resultPath -Encoding UTF8

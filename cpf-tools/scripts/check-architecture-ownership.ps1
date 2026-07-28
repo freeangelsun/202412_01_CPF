@@ -13,14 +13,15 @@ $ErrorActionPreference = "Stop"
 
 $modules = @(
     "cpf-core", "cpf-common", "cpf-member", "cpf-reference", "cpf-biz-admin",
-    "cpf-batch", "cpf-admin", "cpf-account", "cpf-external", "cpf-gateway"
+    "cpf-batch", "cpf-admin", "cpf-account", "cpf-gateway",
+    "cpf-local-runtime", "cpf-local-batch-runtime"
 )
-$businessModules = @("cpf-member", "cpf-reference", "cpf-biz-admin", "cpf-account", "cpf-external")
+$businessModules = @("cpf-member", "cpf-reference", "cpf-biz-admin", "cpf-account")
 $businessInternalTargets = @($businessModules + "cpf-batch")
-$implementationPackages = @("member", "reference", "bizadmin", "batch", "admin", "account", "external")
+$implementationPackages = @("member", "reference", "bizadmin", "batch", "admin", "account")
 $modulePackages = @{
     "cpf-member" = "member"; "cpf-reference" = "reference"; "cpf-biz-admin" = "bizadmin";
-    "cpf-batch" = "batch"; "cpf-admin" = "admin"; "cpf-account" = "account"; "cpf-external" = "external"
+    "cpf-batch" = "batch"; "cpf-admin" = "admin"; "cpf-account" = "account"
 }
 
 $failures = New-Object System.Collections.Generic.List[object]
@@ -47,6 +48,13 @@ function Add-Finding {
         detail = $Detail
         recommendation = $Recommendation
     })
+}
+
+# EXS는 상시 공식 Module이 아니라 Generator로 생성·검증하는 업무 Domain입니다.
+if (Test-Path -LiteralPath (Join-Path $Root "cpf-external")) {
+    Add-Finding $failures "EXS_MUST_BE_GENERATED_DOMAIN" "cpf-external" `
+            "삭제된 EXS 상시 Module이 다시 추가됐습니다." `
+            "cpf-tools/generator/create-domain.ps1로 임시 생성·검증하고 Repository에는 상시 보존하지 마세요."
 }
 
 function Test-Text {

@@ -42,15 +42,27 @@ $capabilities = @(
         )
     },
     [ordered]@{
+        id = "GEN-ACC-MBR-EXS-GOLDEN-TEMPLATE"
+        owner = "GEN/ACC/MBR/EXS"
+        description = "ACC·MBR·EXS를 동일 Golden Template과 공식 DB 3종으로 생성·검증"
+        paths = @(
+            "cpf-tools/generator/create-domain.ps1",
+            "cpf-tools/generator/verify-domain-federation.ps1",
+            "cpf-tools/generator/contracts/central-domain-template-contract.json",
+            "cpf-tools/scripts/check-generated-domain-parity.ps1",
+            "cpf-tools/scripts/check-generator-arbitrary-domain-parity.ps1",
+            "cpf-tools/scripts/smoke-generated-domain-lifecycle.ps1"
+        )
+    },
+    [ordered]@{
         id = "REF-EXTERNAL-EDU"
-        owner = "REF/EXS"
-        description = "대외 호출 정상·오류·결과 불명 교육 흐름을 제공"
+        owner = "REF"
+        description = "EXS 업무 구현과 분리된 대외 호출 정상·오류·결과 불명 교육 흐름"
         paths = @(
             "cpf-reference/src/main/java/com/cpf/reference/external/ReferenceExternalIntegrationEducationSample.java",
             "cpf-reference/src/main/java/com/cpf/reference/external/ReferenceNeutralExternalSimulatorController.java",
             "cpf-reference/src/test/java/com/cpf/reference/external/ReferenceExternalIntegrationEducationSampleTest.java",
-            "cpf-reference/src/test/java/com/cpf/reference/external/ReferenceNeutralExternalSimulatorControllerTest.java",
-            "cpf-tools/db/vendor/mariadb/migration/flyway/V37__official_ref_external_expansion.sql"
+            "cpf-reference/src/test/java/com/cpf/reference/external/ReferenceNeutralExternalSimulatorControllerTest.java"
         )
     },
     [ordered]@{
@@ -110,9 +122,9 @@ $result = [ordered]@{
     missingTargetCount = $missingTargets.Count
     note = "과거 Evidence를 입력으로 사용하지 않고 현재 Source·Test·SQL에서 직접 생성했습니다."
 }
-$resultPath = Join-Path $ResultDir "acc-exs-capability-inventory.sanitized.json"
+$resultPath = Join-Path $ResultDir "generated-domain-capability-inventory.sanitized.json"
 [IO.File]::WriteAllText($resultPath, ($result | ConvertTo-Json -Depth 12), $Utf8NoBom)
 if ($missingTargets.Count -gt 0) {
-    throw "ACC/EXS 기능 inventory 검증이 실패했습니다. missing=$($missingTargets.Count)"
+    throw "ACC/MBR/EXS 기능 inventory 검증이 실패했습니다. missing=$($missingTargets.Count)"
 }
-Write-Host "ACC/EXS capability inventory export passed. capabilities=$($items.Count)"
+Write-Host "ACC/MBR/EXS capability inventory export passed. capabilities=$($items.Count)"

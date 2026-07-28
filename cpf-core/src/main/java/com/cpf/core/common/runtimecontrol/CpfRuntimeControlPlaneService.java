@@ -270,8 +270,11 @@ public class CpfRuntimeControlPlaneService implements CpfRuntimeControlPlane {
     private CpfRuntimeChangeResult toResult(Map<String,Object> row){
         String id=String.valueOf(row.get("change_id")); Map<String,Number> counts=repository.deliveryCounts(id);
         int total=counts.values().stream().mapToInt(Number::intValue).sum();
-        int ack=counts.getOrDefault("ACKED",0).intValue(); int failed=counts.getOrDefault("FAILED",0).intValue();
-        int drift=Math.max(0,total-ack-failed-counts.getOrDefault("PENDING",0).intValue()-counts.getOrDefault("CLAIMED",0).intValue());
+        int ack=counts.getOrDefault("ACKED",0).intValue();
+        int failed=counts.getOrDefault("FAILED",0).intValue()
+                + counts.getOrDefault("POISONED",0).intValue()
+                + counts.getOrDefault("UNKNOWN_RESULT",0).intValue();
+        int drift=repository.driftCount(id);
         return new CpfRuntimeChangeResult(id,String.valueOf(row.get("operation_id")),String.valueOf(row.get("change_type")),String.valueOf(row.get("change_state")),
                 number(row.get("desired_version")),String.valueOf(row.get("request_hash")),total,ack,failed,drift,
                 instant(row.get("scheduled_at")),instant(row.get("expires_at")),instant(row.get("created_at")),instant(row.get("updated_at")),null);

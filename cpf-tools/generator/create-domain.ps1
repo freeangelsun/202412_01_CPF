@@ -112,6 +112,19 @@ $supportedCapabilities = @($centralTemplateContract.capabilityContract.supported
         Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
         Sort-Object -Unique)
 $buildRuntimeContract = $centralTemplateContract.buildRuntimeContract
+$runtimeAgentContract = $centralTemplateContract.runtimeAgentContract
+$runtimeAgentRequiredEnvironment = @($runtimeAgentContract.requiredEnvironment)
+if ($null -eq $runtimeAgentContract -or
+        [string]$runtimeAgentContract.manifestProperty -ne "runtimeAgent" -or
+        [string]$runtimeAgentContract.activationProfile -ne "runtime-agent" -or
+        [string]$runtimeAgentContract.applicationConfig -ne "src/main/resources/application-runtime-agent.yml" -or
+        [string]$runtimeAgentContract.deploymentDescriptor -ne "deploy/runtime/runtime-agent.json" -or
+        [string]$runtimeAgentContract.capabilityDiscovery -ne "CpfRuntimeChangeApplier" -or
+        $runtimeAgentRequiredEnvironment.Count -ne 6 -or
+        -not [bool]$runtimeAgentContract.failClosed -or
+        [bool]$runtimeAgentContract.enabledByDefault) {
+    throw "Generated Domain Runtime Agent 중앙 계약이 유효하지 않습니다."
+}
 if ([string]::IsNullOrWhiteSpace($minimalDomainModel) -or
         [string]::IsNullOrWhiteSpace($minimalTableTemplate) -or
         [string]::IsNullOrWhiteSpace($minimalLogicalTableTemplate) -or
@@ -1775,6 +1788,52 @@ $moduleDataSourceYml
     file:
       file-pattern: "cpf-{moduleCode}-{logType}-{instanceId}.{date}.log"
 "@
+$runtimeAgentApplicationYml = @"
+# Runtime Control Agent는 명시적으로 runtime-agent profile을 활성화한 배포에서만 동작합니다.
+spring:
+  config:
+    activate:
+      on-profile: runtime-agent
+
+cpf:
+  runtime:
+    instance-id: ${Dollar}{CPF_RUNTIME_INSTANCE_ID}
+    service-id: ${Dollar}{CPF_RUNTIME_SERVICE_ID:$ModuleUpper}
+    endpoint-code: ${Dollar}{CPF_RUNTIME_ENDPOINT_CODE:$ModuleUpper}
+    base-url: ${Dollar}{CPF_RUNTIME_BASE_URL}
+    environment: ${Dollar}{CPF_RUNTIME_ENVIRONMENT:${Dollar}{spring.profiles.active:default}}
+    zone: ${Dollar}{CPF_RUNTIME_ZONE:}
+    cell: ${Dollar}{CPF_RUNTIME_CELL:}
+    role: ${Dollar}{CPF_RUNTIME_ROLE:APPLICATION}
+    control:
+      base-url: ${Dollar}{CPF_RUNTIME_CONTROL_BASE_URL}
+      agent-token: ${Dollar}{CPF_RUNTIME_CONTROL_AGENT_TOKEN}
+      agent:
+        enabled: true
+        inbox-path: ${Dollar}{CPF_RUNTIME_AGENT_INBOX:${Dollar}{java.io.tmpdir}/cpf-runtime-inbox}
+"@
+
+$runtimeAgentDescriptor = @"
+{
+  "contractVersion": "1.0",
+  "module": "$ModuleUpper",
+  "serviceId": "$ModuleUpper",
+  "activationProfile": "runtime-agent",
+  "applicationConfig": "src/main/resources/application-runtime-agent.yml",
+  "capabilityDiscovery": "CpfRuntimeChangeApplier",
+  "enabledByDefault": false,
+  "failClosed": true,
+  "requiredEnvironment": [
+    "CPF_RUNTIME_INSTANCE_ID",
+    "CPF_RUNTIME_SERVICE_ID",
+    "CPF_RUNTIME_ENDPOINT_CODE",
+    "CPF_RUNTIME_BASE_URL",
+    "CPF_RUNTIME_CONTROL_BASE_URL",
+    "CPF_RUNTIME_CONTROL_AGENT_TOKEN"
+  ]
+}
+"@
+
 $readme = @"
 # ${ModuleName} 주제영역 골격
 
@@ -2318,6 +2377,22 @@ $domainManifest = @"
     "bzaMenu": $bzaMenuJson,
     "productionProfile": $($ProductionProfileEnabled.ToString().ToLowerInvariant())
   },
+  "runtimeAgent": {
+    "enabledByDefault": false,
+    "activationProfile": "runtime-agent",
+    "applicationConfig": "src/main/resources/application-runtime-agent.yml",
+    "deploymentDescriptor": "deploy/runtime/runtime-agent.json",
+    "capabilityDiscovery": "CpfRuntimeChangeApplier",
+    "requiredEnvironment": [
+      "CPF_RUNTIME_INSTANCE_ID",
+      "CPF_RUNTIME_SERVICE_ID",
+      "CPF_RUNTIME_ENDPOINT_CODE",
+      "CPF_RUNTIME_BASE_URL",
+      "CPF_RUNTIME_CONTROL_BASE_URL",
+      "CPF_RUNTIME_CONTROL_AGENT_TOKEN"
+    ],
+    "failClosed": true
+  },
   "serviceId": "$ModuleUpper",
   "onlineStandardId": "O${DomainIdCode}QY0001",
   "batchStandardId": "B${DomainIdCode}TS0001",
@@ -2432,6 +2507,13 @@ ${ModuleUpper}_INSTANCE_ID=${ModuleUpper}-${profileName}-01
 ${ModuleUpper}_WAS_ID=${DomainIdCode}$($profileName.Substring(0, 1).ToUpperInvariant())001
 ${ModuleUpper}_SERVER_PORT=$Port
 CPF_LOG_ROOT=C:/cpf/runtime/logs
+# Runtime Agent 사용 시 SPRING_PROFILES_INCLUDE=runtime-agent와 아래 값을 Secret/배포 도구에서 설정합니다.
+# CPF_RUNTIME_INSTANCE_ID=${ModuleUpper}-${profileName}-01
+# CPF_RUNTIME_SERVICE_ID=$ModuleUpper
+# CPF_RUNTIME_ENDPOINT_CODE=$ModuleUpper
+# CPF_RUNTIME_BASE_URL=http://127.0.0.1:$Port
+# CPF_RUNTIME_CONTROL_BASE_URL=
+# CPF_RUNTIME_CONTROL_AGENT_TOKEN=__SET_BY_SECRET_PROVIDER__
 $deployDataSourceEnv
 "@
 }
@@ -2455,7 +2537,12 @@ foreach ($profileName in @("local", "dev", "stg", "prod")) {
       "profile": "$profileName",
       "runtimeMode": "embedded-bootjar",
       "approvalRequired": true,
-      "rollbackEnabled": true
+      "rollbackEnabled": true,
+      "runtimeAgent": {
+        "activationProfile": "runtime-agent",
+        "descriptor": "deploy/runtime/runtime-agent.json",
+        "required": true
+      }
     }
   ]
 }
@@ -2588,6 +2675,8 @@ $files = [ordered]@{
     "manifest/ownership.json" = $ownershipManifest
     "manifest/standard-execution-catalog.json" = $executionCatalogManifest
     "src/main/resources/application.yml" = $applicationYml
+    "src/main/resources/application-runtime-agent.yml" = $runtimeAgentApplicationYml
+    "deploy/runtime/runtime-agent.json" = $runtimeAgentDescriptor
     "src/main/resources/application-${module}.yml" = $applicationModuleYml
     "src/main/java/$packagePath/${ModuleClassName}Application.java" = $applicationJava
     "src/main/java/$packagePath/common/base/${ModuleClassName}BaseController.java" = $moduleBaseController

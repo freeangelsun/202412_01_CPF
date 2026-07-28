@@ -38,6 +38,12 @@ public class RuntimeCommonConfiguration {
     }
 
     @Bean
+    @ConditionalOnMissingBean
+    BatchRuntimePolicy batchRuntimePolicy() {
+        return new BatchRuntimePolicy();
+    }
+
+    @Bean
     JobPackCatalog jobPackCatalog(List<BusinessJobProvider> providers) {
         return new JobPackCatalog(providers);
     }

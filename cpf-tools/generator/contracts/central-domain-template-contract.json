@@ -1,5 +1,5 @@
 {
-  "contractVersion": "1.0",
+  "contractVersion": "1.1",
   "owner": "CPF DB Tool",
   "templateRoot": "cpf-tools/db/vendor/{vendor}/domain-template",
   "supportedVendors": [
@@ -164,5 +164,22 @@
     "assemblyTarget": "build/generated-resources/cpf-vendor",
     "platformTemplateRoot": "cpf-tools/db/vendor/{vendor}/domain-template",
     "federatedRepositoryTemplateRoot": "cpf-db/vendor/{vendor}/domain-template"
+  },
+  "runtimeAgentContract": {
+    "manifestProperty": "runtimeAgent",
+    "activationProfile": "runtime-agent",
+    "applicationConfig": "src/main/resources/application-runtime-agent.yml",
+    "deploymentDescriptor": "deploy/runtime/runtime-agent.json",
+    "capabilityDiscovery": "CpfRuntimeChangeApplier",
+    "requiredEnvironment": [
+      "CPF_RUNTIME_INSTANCE_ID",
+      "CPF_RUNTIME_SERVICE_ID",
+      "CPF_RUNTIME_ENDPOINT_CODE",
+      "CPF_RUNTIME_BASE_URL",
+      "CPF_RUNTIME_CONTROL_BASE_URL",
+      "CPF_RUNTIME_CONTROL_AGENT_TOKEN"
+    ],
+    "failClosed": true,
+    "enabledByDefault": false
   }
 }

@@ -14,4 +14,11 @@ public record CpfRuntimeAck(
         String errorCode,
         String message,
         Instant acknowledgedAt) {
+
+    public CpfRuntimeAck {
+        state = CpfRuntimeAckState.require(state).name();
+        if (fencingToken < 0 || appliedVersion < 0) {
+            throw new IllegalArgumentException("Runtime ACK fencingToken/appliedVersion은 음수일 수 없습니다.");
+        }
+    }
 }

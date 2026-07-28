@@ -37,7 +37,7 @@ public final class CpfApiClientSecurityPolicy {
         if(!client.allowedIpCidrs().isEmpty()&&client.allowedIpCidrs().stream().noneMatch(c->matchesIp(c,clientIp)))return CpfGatewayPrincipal.anonymous();
         if(!client.certificateSerials().isEmpty()&&!client.certificateSerials().contains(normalizeSerial(certificateSerial)))return CpfGatewayPrincipal.anonymous();
         if(!acquire(client,now.toEpochMilli()))return CpfGatewayPrincipal.anonymous();
-        return new CpfGatewayPrincipal(client.clientId(),true,client.authorities(),Map.of("authType","API_KEY","quotaScope","GATEWAY_INSTANCE"));
+        return new CpfGatewayPrincipal(true,client.clientId(),client.authorities(),Map.of("authType","API_KEY","quotaScope","GATEWAY_INSTANCE"));
     }
 
     private boolean acquire(Client c,long now){if(c.quotaPermits()<1)return true;long window=Math.max(1000,c.quotaWindowMillis());long start=now-Math.floorMod(now,window);Bucket b=buckets.compute(c.clientId(),(k,v)->v==null||v.start()!=start?new Bucket(start,1):new Bucket(start,v.count()+1));return b.count()<=c.quotaPermits();}

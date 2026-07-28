@@ -881,6 +881,17 @@ public class CpfRuntimeControlPlaneRepository {
         LinkedHashMap<String,Number> result=new LinkedHashMap<>(); rows.forEach(r->result.put(String.valueOf(r.get("delivery_state")),(Number)r.get("cnt"))); return result;
     }
 
+    /** 해당 변경에서 실제 desired/actual 불일치가 남은 instance 수를 계산합니다. */
+    public int driftCount(String changeId) {
+        Integer value = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM cpf_runtime_instance_feature_state f " +
+                        "JOIN cpf_runtime_delivery d ON d.delivery_id=f.source_delivery_id " +
+                        "WHERE d.change_id=? AND f.drift_state IN ('DRIFT','UNKNOWN_RESULT','PENDING_RESTART')",
+                Integer.class,
+                changeId);
+        return value == null ? 0 : value;
+    }
+
     private void reconcileChangeState(String changeId) {
         Map<String,Number> counts = deliveryCounts(changeId);
         int total = counts.values().stream().mapToInt(Number::intValue).sum();

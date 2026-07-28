@@ -1,8 +1,10 @@
 package com.cpf.batch.worker;
 
 import com.cpf.batch.api.ActualState;
+import com.cpf.batch.runtime.BatchRuntimePolicy;
 import com.cpf.batch.runtime.RuntimeStateProvider;
 import com.cpf.batch.worker.internal.JdbcWorkerLeaseRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -24,6 +26,7 @@ public class WorkerRuntime implements RuntimeStateProvider, AutoCloseable {
     private final List<String> capabilities;
     private final int maxConcurrency;
     private final Duration leaseDuration;
+    private volatile BatchRuntimePolicy runtimePolicy = new BatchRuntimePolicy();
     private final ExecutorService executor=Executors.newVirtualThreadPerTaskExecutor();
     private final AtomicBoolean draining=new AtomicBoolean();
     private final ConcurrentMap<Long,JdbcWorkerLeaseRepository.Lease> active=new ConcurrentHashMap<>();
@@ -39,13 +42,24 @@ public class WorkerRuntime implements RuntimeStateProvider, AutoCloseable {
         this.maxConcurrency=Math.max(1,maxConcurrency);this.leaseDuration=Duration.ofSeconds(Math.max(10,leaseSeconds));
     }
 
+    /** 공통 Runtime Control 정책을 실제 worker poll data plane에 연결합니다. */
+    @Autowired
+    public void setRuntimePolicy(BatchRuntimePolicy runtimePolicy) {
+        this.runtimePolicy = Objects.requireNonNull(runtimePolicy, "runtimePolicy");
+    }
+
+    private int effectiveMaxConcurrency() {
+        BatchRuntimePolicy.Snapshot snapshot = runtimePolicy.current();
+        return Math.min(maxConcurrency, snapshot.workerConcurrencyLimit());
+    }
+
     @Scheduled(fixedDelayString="${cpf.batch.worker.recovery-ms:5000}")
     public void recoverExpired() { repository.recoverExpired(); }
 
     @Scheduled(fixedDelayString="${cpf.batch.worker.poll-ms:1000}")
     public void poll() {
-        if(draining.get()) return;
-        int slots=Math.max(0,maxConcurrency-active.size());
+        if(draining.get() || !runtimePolicy.current().workerEnabled()) return;
+        int slots=Math.max(0,effectiveMaxConcurrency()-active.size());
         for(int i=0;i<slots&&!draining.get();i++) {
             Optional<JdbcWorkerLeaseRepository.Lease> claimed=repository.claim(workerId,workerVersion,capabilities,leaseDuration);
             if(claimed.isEmpty()) break;
@@ -75,7 +89,7 @@ public class WorkerRuntime implements RuntimeStateProvider, AutoCloseable {
     public ActualState actualState(){return draining.get()?ActualState.DRAINING:(active.isEmpty()?ActualState.READY:ActualState.BUSY);}
     public List<String> currentExecutions(){return active.keySet().stream().sorted().map(String::valueOf).toList();}
     public List<String> activeLeases(){return active.values().stream().map(JdbcWorkerLeaseRepository.Lease::leaseToken).sorted().toList();}
-    public int availableCapacity(){return draining.get()?0:Math.max(0,maxConcurrency-active.size());}
+    public int availableCapacity(){return draining.get()||!runtimePolicy.current().workerEnabled()?0:Math.max(0,effectiveMaxConcurrency()-active.size());}
     public boolean draining(){return draining.get();}
     public long fencingToken(){return active.values().stream().mapToLong(JdbcWorkerLeaseRepository.Lease::fencingToken).max().orElse(0L);}
     public void close(){draining.set(true);executor.shutdown();}

@@ -5,10 +5,16 @@ import com.cpf.gateway.service.CpfGatewayProxyService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.security.cert.X509Certificate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 /** 표준 실행 ID header 또는 URI를 받는 단일 CPF Gateway 진입점입니다. */
 @RestController
@@ -17,33 +23,48 @@ import org.springframework.web.bind.annotation.*;
 public class CpfGatewayController {
     private final CpfGatewayProxyService proxyService;
 
-    public CpfGatewayController(CpfGatewayProxyService proxyService) { this.proxyService = proxyService; }
+    public CpfGatewayController(CpfGatewayProxyService proxyService) {
+        this.proxyService = proxyService;
+    }
 
     @RequestMapping(method = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.PATCH, RequestMethod.DELETE})
     @Operation(operationId = "executeCpfGatewayByHeader", summary = "표준 실행 ID header로 거래 실행")
-    public ResponseEntity<byte[]> executeByHeader(
+    public ResponseEntity<StreamingResponseBody> executeByHeader(
             @RequestHeader HttpHeaders headers,
             @RequestHeader(CpfHeaderNames.STANDARD_EXECUTION_ID) String executionId,
-            @RequestBody(required = false) byte[] body,
-            HttpServletRequest request) {
-        return proxyService.execute(executionId, request.getMethod(), headers, body,
-                request.getRemoteAddr(), certificateSerial(request));
+            HttpServletRequest request) throws IOException {
+        return proxyService.executeStreaming(
+                executionId,
+                request.getMethod(),
+                headers,
+                request.getInputStream(),
+                request.getContentLengthLong(),
+                request.getQueryString(),
+                request.getRemoteAddr(),
+                certificateSerial(request));
     }
 
     @RequestMapping(path = "/{executionId}", method = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.PATCH, RequestMethod.DELETE})
     @Operation(operationId = "executeCpfGatewayByPath", summary = "표준 실행 ID URI로 거래 실행")
-    public ResponseEntity<byte[]> executeByPath(
+    public ResponseEntity<StreamingResponseBody> executeByPath(
             @PathVariable String executionId,
             @RequestHeader HttpHeaders headers,
-            @RequestBody(required = false) byte[] body,
-            HttpServletRequest request) {
+            HttpServletRequest request) throws IOException {
         String headerId = headers.getFirst(CpfHeaderNames.STANDARD_EXECUTION_ID);
         if (headerId != null && !headerId.equals(executionId)) {
             throw new IllegalArgumentException("URI와 header의 표준 실행 ID가 일치하지 않습니다.");
         }
-        return proxyService.execute(executionId, request.getMethod(), headers, body,
-                request.getRemoteAddr(), certificateSerial(request));
+        return proxyService.executeStreaming(
+                executionId,
+                request.getMethod(),
+                headers,
+                request.getInputStream(),
+                request.getContentLengthLong(),
+                request.getQueryString(),
+                request.getRemoteAddr(),
+                certificateSerial(request));
     }
+
     @RequestMapping(method = RequestMethod.OPTIONS)
     @Operation(operationId = "preflightCpfGatewayByHeader", summary = "Gateway CORS preflight")
     public ResponseEntity<byte[]> preflightByHeader(
@@ -71,5 +92,4 @@ public class CpfGatewayController {
         }
         return "";
     }
-
 }

@@ -29,6 +29,7 @@ export function createAdmState() {
           { id: "standardExecutions", menuId: "STANDARD_EXECUTION", label: "표준 실행" },
           { id: "channelPolicy", menuId: "CHANNEL_POLICY", label: "채널 정책" },
           { id: "serviceRegistry", menuId: "SERVICE_REGISTRY", label: "서비스 레지스트리" },
+          { id: "runtimeControl", menuId: "RUNTIME_CONTROL", label: "Runtime Change Center" },
           { id: "maintenance", menuId: "MAINTENANCE", label: "점검·Drain" },
           { id: "cache", menuId: "CACHE", label: "캐시" },
           { id: "configs", menuId: "CONFIG", label: "설정" },

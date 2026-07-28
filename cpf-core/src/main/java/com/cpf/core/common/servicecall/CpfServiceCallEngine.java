@@ -7,6 +7,8 @@ import com.cpf.core.common.logging.segment.TransactionSegmentService;
 import com.cpf.core.common.reconciliation.CpfReconciliationPort;
 import com.cpf.core.common.reconciliation.CpfUnknownResultRecord;
 import com.cpf.core.api.lineage.CpfLineageRecord;
+import com.cpf.core.api.servicecall.CpfServiceCallResponseMetadata;
+import com.cpf.core.api.servicecall.CpfServiceCallTransportException;
 import com.cpf.core.api.lineage.CpfLineageRecorder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -115,11 +117,12 @@ public class CpfServiceCallEngine {
             try {
                 T response = remoteCall.apply(target);
                 long elapsed = elapsedMillis(started);
-                logWriter.write(effectiveRequest, target, "SUCCESS", 200, elapsed, null, null);
-                logWriter.markSuccess(target, 200, elapsed);
-                successScope(scope, target, attempt, !excludedInstanceIds.isEmpty(), 200);
+                Integer responseStatus = responseStatus(response);
+                logWriter.write(effectiveRequest, target, "SUCCESS", responseStatus, elapsed, null, null);
+                logWriter.markSuccess(target, responseStatus, elapsed);
+                successScope(scope, target, attempt, !excludedInstanceIds.isEmpty(), responseStatus);
                 recordLineage(effectiveRequest, target, "SUCCESS", attempt, elapsed);
-                return ServiceCallResult.success(target, response, 200, elapsed, attempt);
+                return ServiceCallResult.success(target, response, responseStatus, elapsed, attempt);
             } catch (RuntimeException ex) {
                 long elapsed = elapsedMillis(started);
                 Integer httpStatus = httpStatus(ex);
@@ -128,17 +131,19 @@ public class CpfServiceCallEngine {
                 logWriter.write(effectiveRequest, target, "FAILED", httpStatus, elapsed, failureCode, failureMessage);
                 logWriter.markFailure(target, httpStatus, elapsed, failureMessage, properties.getCircuitOpenFailureThreshold());
                 boolean unknown = isUnknownResult(ex);
-                String unknownId = unknown && attempt >= maxAttempts
+                boolean retryable = isRetryable(effectiveRequest, httpStatus, ex);
+                boolean terminalUnknown = unknown && (!retryable || attempt >= maxAttempts);
+                String unknownId = terminalUnknown
                         ? registerUnknown(effectiveRequest, scope, target, failureCode, failureMessage)
                         : null;
-                String resultState = unknown && attempt >= maxAttempts ? "UNKNOWN" : "FAILED";
+                String resultState = terminalUnknown ? "UNKNOWN" : "FAILED";
                 failScope(scope, target, attempt, !excludedInstanceIds.isEmpty(), "CLOSED", httpStatus,
                         resultState, unknownId, failureCode, failureMessage);
-                lastFailure = unknown && attempt >= maxAttempts
+                lastFailure = terminalUnknown
                         ? ServiceCallResult.unknown(target, elapsed, attempt, failureCode, failureMessage)
                         : ServiceCallResult.failure(target, httpStatus, elapsed, attempt, failureCode, failureMessage);
                 recordLineage(effectiveRequest, target, resultState, attempt, elapsed);
-                if (!isRetryable(httpStatus, ex)) {
+                if (!retryable) {
                     return lastFailure;
                 }
                 excludeForFailover(target, excludedInstanceIds);
@@ -194,7 +199,19 @@ public class CpfServiceCallEngine {
         }
     }
 
+    private Integer responseStatus(Object response) {
+        if (response instanceof CpfServiceCallResponseMetadata metadata) {
+            Integer status = metadata.httpStatus();
+            return status == null || status < 100 || status > 599 ? 200 : status;
+        }
+        return 200;
+    }
+
     private Integer httpStatus(RuntimeException ex) {
+        CpfServiceCallTransportException transportFailure = transportFailure(ex);
+        if (transportFailure != null) {
+            return transportFailure.httpStatus();
+        }
         if (ex instanceof WebClientResponseException responseException) {
             return responseException.getStatusCode().value();
         }
@@ -204,15 +221,58 @@ public class CpfServiceCallEngine {
         return null;
     }
 
-    /** 명백한 Client 오류는 다른 인스턴스로 보내도 결과가 바뀌지 않으므로 재시도하지 않습니다. */
-    private boolean isRetryable(Integer httpStatus, RuntimeException ex) {
-        if (httpStatus == null) {
+    /**
+     * 명백한 Client 오류는 다른 인스턴스로 보내도 결과가 바뀌지 않으므로 재시도하지 않습니다.
+     * POST/PATCH처럼 본질적으로 비멱등인 호출은 표준 멱등키가 있을 때만 자동 재시도합니다.
+     */
+    private boolean isRetryable(ServiceCallRequest request, Integer httpStatus, RuntimeException ex) {
+        CpfServiceCallTransportException transportFailure = transportFailure(ex);
+        boolean transportRetryable;
+        if (transportFailure != null) {
+            transportRetryable = transportFailure.retryable();
+        } else if (httpStatus == null) {
+            transportRetryable = true;
+        } else if (httpStatus == 408 || httpStatus == 425 || httpStatus == 429) {
+            transportRetryable = true;
+        } else {
+            transportRetryable = httpStatus >= 500;
+        }
+        return transportRetryable && retrySafe(request);
+    }
+
+    private boolean retrySafe(ServiceCallRequest request) {
+        String method = defaultIfBlank(request.httpMethod(), "GET").toUpperCase();
+        if (Set.of("GET", "HEAD", "OPTIONS", "PUT", "DELETE").contains(method)) {
             return true;
         }
-        if (httpStatus == 408 || httpStatus == 425 || httpStatus == 429) {
-            return true;
+        if (!("POST".equals(method) || "PATCH".equals(method))) {
+            return false;
         }
-        return httpStatus >= 500;
+        String idempotencyKey = firstText(
+                headerIgnoreCase(request.headers(), "X-Cpf-Idempotency-Key"),
+                stringValue(request.attributes().get("idempotencyKey")));
+        return idempotencyKey != null && !idempotencyKey.isBlank();
+    }
+
+    private String headerIgnoreCase(Map<String, String> headers, String name) {
+        if (headers == null || headers.isEmpty()) return null;
+        for (Map.Entry<String, String> entry : headers.entrySet()) {
+            if (entry.getKey() != null && entry.getKey().equalsIgnoreCase(name)) {
+                return entry.getValue();
+            }
+        }
+        return null;
+    }
+
+    private CpfServiceCallTransportException transportFailure(Throwable failure) {
+        Throwable current = failure;
+        while (current != null) {
+            if (current instanceof CpfServiceCallTransportException transportException) {
+                return transportException;
+            }
+            current = current.getCause();
+        }
+        return null;
     }
 
     private String safeMessage(RuntimeException ex) {
@@ -402,6 +462,10 @@ public class CpfServiceCallEngine {
     }
 
     private boolean isUnknownResult(RuntimeException failure) {
+        CpfServiceCallTransportException transportFailure = transportFailure(failure);
+        if (transportFailure != null) {
+            return transportFailure.unknownResult();
+        }
         Throwable current = failure;
         while (current != null) {
             String name = current.getClass().getName().toLowerCase();

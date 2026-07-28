@@ -1,3 +1,5 @@
 # CPF Next Work Request
 
-현재 정본은 `CPF_CURRENT_WORK_REQUEST.md`입니다. 새 기능 개발목록을 별도로 누적하지 않습니다. Completion Patch 적용 후 남은 작업은 최신 SHA 기준 통합 Runtime 검증과 Evidence 정본화입니다.
+현재 다음 작업은 별도 신규 기능 개발이 아니라 `CPF_CURRENT_WORK_REQUEST.md`의 통합 실행 검증 및 발견 결함 수리다.
+
+통합 검증이 완료된 뒤에만 최종 문서 정본화, Release packaging, 설치·Upgrade·Rollback 운영 리허설을 다음 요청으로 전환한다.

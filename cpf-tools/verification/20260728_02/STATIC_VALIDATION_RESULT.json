@@ -1,0 +1,19 @@
+{
+  "status": "PASS",
+  "root": "/mnt/data/CPF_20260728_FINAL_COMPLETION_OVERLAY",
+  "passed": [
+    "required overlay files",
+    "generator JSON syntax",
+    "runtime canonical enum parity",
+    "DB source/runtime and checksum parity",
+    "Java package/path and delimiter",
+    "targeted secret scan"
+  ],
+  "warnings": [
+    "Java 25 / Gradle 9.1 전체 모듈 build·test는 별도 실행 필요",
+    "MariaDB·PostgreSQL·Oracle install/upgrade/rollback 실DB 검증은 별도 실행 필요",
+    "ADM Browser와 Gateway 대용량/multipart/range/timeout 실Runtime 검증은 별도 실행 필요",
+    "다중 인스턴스·부분 실패·재시작 복구 검증은 별도 실행 필요"
+  ],
+  "errors": []
+}

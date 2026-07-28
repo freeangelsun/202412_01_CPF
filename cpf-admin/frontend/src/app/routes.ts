@@ -17,6 +17,7 @@ export const admFeatureRoutes: Record<string,AdmFeatureRoute> = {
  standardExecutions:{group:"platform",icon:"service",component:defineAsyncComponent(()=>import("../features/standard-executions/StandardExecutionsPage.vue"))},
  channelPolicy:{group:"platform",icon:"service",component:defineAsyncComponent(()=>import("../features/channel-policy/ChannelPolicyPage.vue"))},
  serviceRegistry:{group:"platform",icon:"service",component:defineAsyncComponent(()=>import("../features/service-registry/ServiceRegistryPage.vue"))},
+ runtimeControl:{group:"platform",icon:"settings",component:defineAsyncComponent(()=>import("../features/runtime-control/RuntimeControlPage.vue"))},
  maintenance:{group:"platform",icon:"maintenance",component:defineAsyncComponent(()=>import("../features/maintenance/MaintenancePage.vue"))},
  cache:{group:"platform",icon:"service",component:defineAsyncComponent(()=>import("../features/cache/CachePage.vue"))},
  configs:{group:"platform",icon:"settings",component:defineAsyncComponent(()=>import("../features/configs/ConfigsPage.vue"))},

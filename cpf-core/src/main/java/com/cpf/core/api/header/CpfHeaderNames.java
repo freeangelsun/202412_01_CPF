@@ -14,5 +14,6 @@ public final class CpfHeaderNames {
     public static final String API_KEY = "X-Api-Key";
     public static final String REQUEST_SIGNATURE = "X-Request-Signature";
     public static final String AUDIT_REASON = "X-Cpf-Audit-Reason";
+    public static final String IDEMPOTENCY_KEY = "X-Cpf-Idempotency-Key";
     private CpfHeaderNames() {}
 }

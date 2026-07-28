@@ -2,6 +2,7 @@ package com.cpf.core.common.runtimecontrol;
 
 import com.cpf.core.api.runtimecontrol.CpfRuntimeAck;
 import com.cpf.core.api.runtimecontrol.CpfRuntimeActualState;
+import com.cpf.core.api.runtimecontrol.CpfRuntimeAckState;
 import com.cpf.core.api.runtimecontrol.CpfRuntimeApplyResult;
 import com.cpf.core.api.runtimecontrol.CpfRuntimeChangeApplier;
 import com.cpf.core.api.runtimecontrol.CpfRuntimeAgentPort;
@@ -155,28 +156,28 @@ public class CpfRuntimeControlAgent {
             if (result.actualHash() == null || result.actualHash().isBlank()) {
                 result = CpfRuntimeApplyResult.unknown("ACTUAL_HASH_MISSING",
                         "적용 성공 결과에는 actualHash가 필요합니다.");
-                ackState = "UNKNOWN_RESULT";
+                ackState = CpfRuntimeAckState.UNKNOWN_RESULT.name();
             } else {
                 inbox.markApplied(delivery, result.actualHash());
                 actualVersion = delivery.desiredVersion();
                 actualHash = result.actualHash();
                 ackHash = actualHash;
-                ackState = "SUCCESS";
+                ackState = CpfRuntimeAckState.SUCCESS.name();
             }
         } else if (result.restartRequired()) {
             // stage side effect는 발생했으므로 PREPARED를 유지합니다. 재기동 후 동일 delivery를 다시 검증합니다.
             ackHash = result.actualHash();
-            ackState = "RESTART_REQUIRED";
+            ackState = CpfRuntimeAckState.RESTART_REQUIRED.name();
         } else if (result.unknownResult()) {
-            ackState = "UNKNOWN_RESULT";
+            ackState = CpfRuntimeAckState.UNKNOWN_RESULT.name();
         } else {
             // failure()는 side effect 미발생을 보장하는 계약입니다.
             inbox.clearPrepared(delivery.deliveryId());
-            ackState = "FAILED";
+            ackState = CpfRuntimeAckState.FAILED.name();
         }
 
         controlPlane.acknowledge(new CpfRuntimeAck(delivery.deliveryId(), delivery.changeId(), delivery.instanceId(),
-                fencingToken, "SUCCESS".equals(ackState) ? delivery.desiredVersion() : actualVersion,
+                fencingToken, CpfRuntimeAckState.SUCCESS.name().equals(ackState) ? delivery.desiredVersion() : actualVersion,
                 ackHash, ackState, result.errorCode(), safe(result.message()), Instant.now()));
     }
 

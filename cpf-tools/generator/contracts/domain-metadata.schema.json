@@ -19,7 +19,8 @@
     "platformVersion",
     "templateContractVersion",
     "capabilities",
-    "minimalTransactionContract"
+    "minimalTransactionContract",
+    "runtimeAgent"
   ],
   "allOf": [
     {
@@ -86,15 +87,16 @@
       "pattern": "^[0-9A-Za-z][0-9A-Za-z._+-]{0,63}$"
     },
     "templateContractVersion": {
-      "const": "1.0"
+      "enum": [
+        "1.0",
+        "1.1"
+      ]
     },
     "databaseVendor": {
       "enum": [
         "mariadb",
-        "mysql",
         "postgresql",
-        "oracle",
-        "sqlserver"
+        "oracle"
       ]
     },
     "capabilities": {
@@ -254,6 +256,54 @@
               "framework-edu"
             ]
           }
+        }
+      }
+    },
+    "runtimeAgent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabledByDefault",
+        "activationProfile",
+        "applicationConfig",
+        "deploymentDescriptor",
+        "capabilityDiscovery",
+        "requiredEnvironment",
+        "failClosed"
+      ],
+      "properties": {
+        "enabledByDefault": {
+          "const": false
+        },
+        "activationProfile": {
+          "const": "runtime-agent"
+        },
+        "applicationConfig": {
+          "const": "src/main/resources/application-runtime-agent.yml"
+        },
+        "deploymentDescriptor": {
+          "const": "deploy/runtime/runtime-agent.json"
+        },
+        "capabilityDiscovery": {
+          "const": "CpfRuntimeChangeApplier"
+        },
+        "requiredEnvironment": {
+          "type": "array",
+          "minItems": 6,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "CPF_RUNTIME_INSTANCE_ID",
+              "CPF_RUNTIME_SERVICE_ID",
+              "CPF_RUNTIME_ENDPOINT_CODE",
+              "CPF_RUNTIME_BASE_URL",
+              "CPF_RUNTIME_CONTROL_BASE_URL",
+              "CPF_RUNTIME_CONTROL_AGENT_TOKEN"
+            ]
+          }
+        },
+        "failClosed": {
+          "const": true
         }
       }
     }

@@ -1,9 +1,11 @@
 package com.cpf.batch.scheduler;
 
+import com.cpf.batch.runtime.BatchRuntimePolicy;
 import com.cpf.batch.scheduler.internal.JdbcSchedulerLeaderRepository;
 import com.cpf.common.calendar.CmnBusinessCalendar;
 import com.cpf.core.api.database.CpfVendorSqlCatalog;
 import com.cpf.core.api.database.CpfVendorSqlCatalogProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -32,6 +34,7 @@ public class SchedulerDispatchService {
     private final CmnBusinessCalendar calendar;
     private final TransactionTemplate transaction;
     private final CpfVendorSqlCatalog sql;
+    private volatile BatchRuntimePolicy runtimePolicy = new BatchRuntimePolicy();
 
     public SchedulerDispatchService(
             SchedulerCoordinator coordinator,
@@ -46,8 +49,25 @@ public class SchedulerDispatchService {
         this.sql = sqlCatalogProvider.forModule("bat");
     }
 
+    /** 기존 생성자 기반 Test/Consumer를 깨지 않으면서 공통 Runtime 정책을 실제 dispatch gate에 연결합니다. */
+    @Autowired
+    public void setRuntimePolicy(BatchRuntimePolicy runtimePolicy) {
+        this.runtimePolicy = Objects.requireNonNull(runtimePolicy, "runtimePolicy");
+    }
+
+    boolean runtimeEnabled() {
+        return runtimePolicy.current().schedulerEnabled();
+    }
+
+    boolean calendarRuntimeEnabled() {
+        return runtimePolicy.current().calendarEnabled();
+    }
+
     @Scheduled(fixedDelayString = "${cpf.batch.scheduler.dispatch-ms:1000}")
     public void dispatchDue() {
+        if (!runtimeEnabled()) {
+            return;
+        }
         long fencingToken = coordinator.fencingToken();
         if (fencingToken <= 0) {
             return;
@@ -76,8 +96,12 @@ public class SchedulerDispatchService {
 
         LocalDate businessDate = fireAt.toLocalDate();
         String calendarId = Objects.toString(row.get("calendar_id"), "DEFAULT");
-        if ("Y".equals(row.get("business_day_only_yn"))
-                && !calendar.isBusinessDay(calendarId, businessDate)) {
+        boolean businessDayOnly = "Y".equals(row.get("business_day_only_yn"));
+        // Calendar 정책 중지 중에는 영업일 의존 일정의 next_fire_at을 소진하지 않고 보류합니다.
+        if (businessDayOnly && !calendarRuntimeEnabled()) {
+            return;
+        }
+        if (businessDayOnly && !calendar.isBusinessDay(calendarId, businessDate)) {
             if ("NEXT_BUSINESS_DAY".equalsIgnoreCase(
                     Objects.toString(row.get("holiday_policy"), "SKIP"))) {
                 businessDate = calendar.nextBusinessDay(calendarId, businessDate, 1);

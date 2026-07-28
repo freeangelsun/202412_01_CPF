@@ -1,0 +1,35 @@
+plugins {
+    id 'org.springframework.boot'
+    id 'io.spring.dependency-management'
+    id 'java'
+}
+
+group = 'com.cpf.local'
+
+dependencies {
+    implementation project(':cpf-core')
+    implementation project(':cpf-common')
+    implementation project(':cpf-admin')
+    implementation project(':cpf-biz-admin')
+    implementation project(':cpf-gateway')
+
+    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+    runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+springBoot {
+    mainClass = 'com.cpf.local.runtime.CpfLocalRuntimeApplication'
+}
+
+tasks.named('bootJar') {
+    enabled = true
+    archiveClassifier = 'local-web'
+}

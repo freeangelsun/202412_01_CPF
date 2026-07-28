@@ -1,0 +1,169 @@
+id,area,work_package,title,setup,steps,expected,evidence,environment
+CPF-QA-EXEC-202,FND,WP00,최신 SHA CI Required Check,"clean checkout of 9fa4bb0, Java25, Gradle9.1, Node/pwsh",Source/Build/Test/Frontend/Security/DB/Artifact/Evidence workflow를 실행한다.,정확한 SHA에 모든 Required Check가 생성·성공하고 미실행 Check가 없다.,"workflow URL, job logs, SHA",CI
+CPF-QA-EXEC-203,FND,WP00,문서 기준 SHA 일치,Current/Next/Matrix/Handover/Ledger/Evidence index,모든 기준 SHA와 Artifact hash를 수집·비교한다.,최신 SHA 9fa4bb0으로 일치하고 과거 Overlay를 현재 PASS로 참조하지 않는다.,document consistency report,Static
+CPF-QA-EXEC-204,FND,WP00,한 줄 Evidence 거부 Gate,의도적으로 content=PASS만 있는 evidence fixture,Evidence validator를 실행한다.,명령·환경·시간·출력·redaction 없는 Evidence는 FAIL 처리된다.,negative gate output,Static
+CPF-QA-EXEC-205,FND,WP00,"기존 1,214 Inventory 재판정",기존 CSV + 최신 repo,각 ID의 Source/API/SQL/Test/Runtime/Evidence를 재매핑한다.,"누락 0, 중복 root cause 식별, 허용 상태만 사용한다.",updated inventory,Static+Runtime
+CPF-QA-EXEC-206,FND,WP00,기존 201 Scenario 연속 실행,기존 scenario CSV + delta scenario CSV,의존순서로 실행하고 각 결과를 저장한다.,미실행은 미검증이며 PASS 위장 0.,scenario ledger,Mixed
+CPF-QA-EXEC-207,HYG,WP15,중간 Overlay 산출물 정리,clean clone + current docs,"CPF_INTERMEDIATE, overlay manifest, tmp/bak/log를 owner/requirement와 대조한다.","Current 정본 최소화, 필요한 archive만 보존, 제품 파일 오삭제 0.",cleanup manifest,Static
+CPF-QA-EXEC-208,LOCAL,WP02,Local Web minimal 기동,ADM 인증·기본 운영 API만 활성,minimal profile로 1 JVM/1 Port 기동→health→shutdown,"불필요 모듈 미기동, 정상 종료, 포트 충돌 0","startup logs, process/port/memory snapshot",WAS+MariaDB/Mock
+CPF-QA-EXEC-209,LOCAL,WP02,Local Web standard 기동,ADM/BZA/Gateway/1 Domain,standard profile 기동 후 주요 route 호출,1 JVM/1 HTTP Port에서 route와 보안 계약 정상,"startup logs, process/port/memory snapshot",WAS+MariaDB/Mock
+CPF-QA-EXEC-210,LOCAL,WP02,Local Web full 기동,모든 선택 Web 모듈,full profile 기동 후 bean/config 충돌 검사,중복 Bean·TransactionManager·route 충돌 0,"startup logs, process/port/memory snapshot",WAS+MariaDB/Mock
+CPF-QA-EXEC-211,LOCAL,WP02,Local 내부 호출,동일 JVM 두 업무 Facade,업무 A가 B를 호출,"HTTP loopback 없이 Local Facade, 동일 Header/Error/Trace","startup logs, process/port/memory snapshot",WAS+MariaDB/Mock
+CPF-QA-EXEC-212,LOCAL,WP02,Local Remote parity,Local mode와 분리 WAS mode,동일 요청을 양 topology로 호출,응답 계약·오류·권한·Trace parity,"startup logs, process/port/memory snapshot",WAS+MariaDB/Mock
+CPF-QA-EXEC-213,LOCAL,WP02,Local Batch 별도 JVM,Local Web + Local Batch process,각 process 기동·중지·재기동,"Web 장애와 Batch 장애 격리, 공유 DB 정합","startup logs, process/port/memory snapshot",WAS+MariaDB/Mock
+CPF-QA-EXEC-214,LOCAL,WP02,Embedded Batch debug,unit/debug profile,작은 Job을 same JVM에서 실행,"운영 profile에서는 비활성, test에서만 사용","startup logs, process/port/memory snapshot",WAS+MariaDB/Mock
+CPF-QA-EXEC-215,LOCAL,WP02,TCP/gRPC opt-in,integration profile extra port,Listener off/on 전환,"기본 mode 포트 1개, integration에서만 추가 listener","startup logs, process/port/memory snapshot",WAS+MariaDB/Mock
+CPF-QA-EXEC-216,LOCAL,WP02,미설치 Redis Fake,Redis 미설치,Fake provider로 cache/lock scenario 실행,"설치 없이 contract 성공, 실연동 상태 미검증","startup logs, process/port/memory snapshot",WAS+MariaDB/Mock
+CPF-QA-EXEC-217,LOCAL,WP02,미설치 Kafka Simulator,Kafka 미설치,Simulator로 produce/consume/DLQ 실행,"계약·retry·DLQ 검증, 실 broker 미검증","startup logs, process/port/memory snapshot",WAS+MariaDB/Mock
+CPF-QA-EXEC-218,LOCAL,WP02,저사양 메모리,제한 heap 개발 PC 조건,minimal/standard/full startup 측정,정의된 메모리 상한과 OOM 없는 종료,"startup logs, process/port/memory snapshot",WAS+MariaDB/Mock
+CPF-QA-EXEC-219,LOCAL,WP02,Local profile Production 차단,production env + local profile,기동 시도,fail-fast하며 실수로 local fake가 운영에 활성화되지 않음,"startup logs, process/port/memory snapshot",WAS+MariaDB/Mock
+CPF-QA-EXEC-220,BAT,WP03-WP06,일반 Job 정상 실행,batDB + 10만 sample rows,Job 등록→실행→완료 조회,Job/Step/Chunk count와 DB 결과 정확,batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-221,BAT,WP03-WP06,DB Cursor 10만 건,cursor reader + chunk 1000,전체 처리,"bounded memory, 누락/중복 0",batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-222,BAT,WP03-WP06,DB Paging 10만 건,paging reader,전체 처리,"정렬 안정성, 누락/중복 0",batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-223,BAT,WP03-WP06,Keyset 10만 건,keyset reader,중간 insert/update 포함 실행,일관된 checkpoint와 정책상 결과,batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-224,BAT,WP03-WP06,CSV 10만 건 Streaming,large CSV,stream read→validate→DB write,전체 파일 메모리 적재 없음,batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-225,BAT,WP03-WP06,37번째 Chunk 장애 재시작,"chunk 1000, fault at 37",실패→재시작,"36개 commit 보존, 이후 재처리, 중복 0",batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-226,BAT,WP03-WP06,Skip 한도,invalid rows mixed,skip limit 이내/초과 실행,"이내 성공+reject, 초과 명확한 실패",batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-227,BAT,WP03-WP06,Retry 소진,transient then permanent error,retry 실행,"bounded attempt, 상태/원인/다음조치 기록",batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-228,BAT,WP03-WP06,Reject File,invalid file rows,처리 후 reject 생성,원본 식별·오류코드·마스킹·checksum,batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-229,BAT,WP03-WP06,중복 파일,동일 fingerprint 두 번 수신,두 번 trigger,두 번째 멱등 거부 또는 정책상 replay,batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-230,BAT,WP03-WP06,여러 파일 병렬,N input files,병렬 처리,"파일별 상태와 전체 결과, 한 파일 실패 격리",batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-231,BAT,WP03-WP06,Header/Detail/Trailer 오류,건수·합계 불일치 파일,실행,commit 전 검증 실패 또는 명확한 보상,batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-232,BAT,WP03-WP06,On-Demand 승인 실행,위험 Job + 운영자,preview→승인→실행,권한/사유/approval/audit 연결,batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-233,BAT,WP03-WP06,Scheduled 중복 방지,2 Scheduler shared DB,동일 fire time,"실행 1회, lease/fencing 증적",batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-234,BAT,WP03-WP06,Scheduler 장애 인계,leader scheduler kill,lease expiry 후 takeover,"중복 fire 0, 지연 측정",batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-235,BAT,WP03-WP06,File Trigger atomic rename,temp→final rename,감시·실행,완료 파일만 1회 실행,batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-236,BAT,WP03-WP06,Event Trigger duplicate,same event twice,consume,Inbox/idempotency로 Job 1개,batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-237,BAT,WP03-WP06,Center-Cut 100만 대상 분할,target extract + 10 workers,분할·배정·실행,균형·progress·정확한 완료,batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-238,BAT,WP03-WP06,Center-Cut Worker 장애,worker mid partition kill,lease expiry/reassign,"미완료만 재배정, 중복 side effect 0",batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-239,BAT,WP03-WP06,Workflow 선후행,A→B→C,A/B 성공·실패 조합,dependency와 skip/compensation 정확,batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-240,BAT,WP03-WP06,Workflow 병렬·합류,"A→(B,C)→D",B 또는 C 실패,D 실행 정책 정확,batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-241,BAT,WP03-WP06,Housekeeping archive,retention expired data,archive+delete,"검증 후 삭제, 감사·복구 가능",batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-242,BAT,WP03-WP06,Migration initial load,대량 초기 적재,중간 DB outage→resume,checkpoint 재개·중복 0,batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-243,BAT,WP03-WP06,Batch REST 호출,mock external REST,success/429/timeout/unknown,retry/idempotency/unknown recovery 정확,batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-244,BAT,WP03-WP06,Batch TCP 전문 호출,TCP simulator,normal/malformed/timeout,codec/error/recovery 정확,batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-245,BAT,WP03-WP06,Batch SOAP 호출,SOAP simulator,normal/fault/schema invalid,Fault mapping·보안 정확,batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-246,BAT,WP03-WP06,Batch gRPC 호출,gRPC simulator,unary/deadline,deadline/cancel/unknown 정확,batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-247,BAT,WP03-WP06,강제 Job 실행,ADM operator,preview→reason→approval→force run,CAS·중복정책·audit,batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-248,BAT,WP03-WP06,Job 강제 Lock,실행 가능 Job,lock 설정→스케줄 도래,"신규 실행 차단, 기존 실행 정책 명확",batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-249,BAT,WP03-WP06,안전한 Lock 해제,살아있는 owner와 dead owner,해제 시도,"alive owner 오해제 차단, dead만 CAS 해제",batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-250,BAT,WP03-WP06,Ghost RUNNING 탐지,"process kill, DB RUNNING",detector 실행,ghost 상태·근거·복구 옵션 표시,batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-251,BAT,WP03-WP06,Ghost 실행 해제,ghost confirmed,approval→recover,"failure/recovery state, partition 안전 재배정",batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-252,BAT,WP03-WP06,Job 일시정지·재개,long job,pause→wait→resume,"checkpoint 일관, duplicate 0",batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-253,BAT,WP03-WP06,강제 종료,long job,force terminate,unknown/dirty state를 성공으로 위장하지 않음,batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-254,BAT,WP03-WP06,특정 Chunk 재처리,failed chunk known,selective replay,대상 외 side effect 0,batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-255,BAT,WP03-WP06,Checkpoint 수정,승인된 recovery,preview→change checkpoint,version/audit/rollback 가능,batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-256,BAT,WP03-WP06,Worker 격리·복귀,unhealthy worker,isolate→drain→return,신규 할당 차단 후 안전 복귀,batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-257,BAT,WP03-WP06,동시성 Runtime 변경,worker concurrency 10→3,inflight 중 change,"정책대로 drain/limit, ACK/actual 일치",batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-258,BAT,WP03-WP06,Center-Cut 중지·재분배,active center-cut,pause→rebalance→resume,중복·유실 없는 재배분,batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-259,BAT,WP03-WP06,Batch 로그 다운로드,specific worker instance,ADM에서 file list→download,"실제 file, 권한·감사·cleanup",batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-260,BAT,WP03-WP06,Batch DB Metadata Upgrade,existing job metadata,migration apply/rollback/reapply,정의·실행 이력 보존,batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-261,BAT,WP03-WP06,Batch Query Paging,millions execution rows,ADM search/paging,"server paging, index 사용, timeout 없음",batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-262,BAT,WP03-WP06,Batch 민감 파라미터,secret parameter,run/view/log/download,"원문 노출 0, secret reference만",batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-263,BAT,WP03-WP06,Batch 알림 연계,Job ERROR/CRITICAL,alert policy match,"outbox 비동기, 중복억제, incident 연결",batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-264,BAT,WP03-WP06,Batch process DB outage,running job + batDB fault,commit/checkpoint fault,"명확한 실패/unknown, silent success 0",batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-265,INT,WP07-WP08,Local/Remote service call contract,same service in local and remote,same request/headers,response/error/trace parity,contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-266,INT,WP07-WP08,Response loss idempotency,server commit then response drop,retry same operationId,"exact replay, duplicate side effect 0",contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-267,INT,WP07-WP08,Saga compensation,multi-step external flow,step3 fail,defined compensation and audit,contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-268,INT,WP07-WP08,Outbox broker publish,DB mutation + simulator broker,commit/fault/restart,event exactly-once-effect and retry,contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-269,INT,WP07-WP08,Inbox duplicate,same message N times,consume concurrently,business side effect once,contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-270,INT,WP07-WP08,TCP fixed-length,TCP simulator,valid request/response,layout/correlation/trace correct,contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-271,INT,WP07-WP08,TCP malformed length,bad frame,receive,"bounded rejection, connection policy correct",contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-272,INT,WP07-WP08,TCP reconnect,connection drop,retry/reconnect,bounded and no duplicate unsafe request,contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-273,INT,WP07-WP08,TCP mTLS,test certs,valid/invalid/expired,fail-closed and audit,contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-274,INT,WP07-WP08,HTTP typed client,generated client,normal/error,CPF runtime policy applied,contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-275,INT,WP07-WP08,HTTP multipart streaming,large multipart,proxy/call,bounded memory and content integrity,contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-276,INT,WP07-WP08,HTTP 429 Retry-After,simulator 429,call,policy-respecting delay and attempts,contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-277,INT,WP07-WP08,HTTP unknown result,write request response loss,reconcile,UNKNOWN_RESULT then confirmed state,contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-278,INT,WP07-WP08,SOAP XXE negative,malicious XML,call/parse,external entity blocked,contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-279,INT,WP07-WP08,SOAP Fault mapping,SOAP fault,call,provider-neutral CPF error,contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-280,INT,WP07-WP08,gRPC deadline,slow server,call,deadline propagation and cancellation,contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-281,INT,WP07-WP08,Kafka poison message,simulator failing message,consume,"retry→DLQ, next message progresses",contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-282,INT,WP07-WP08,Kafka ordering,same key parallel load,consume,per-key ordering retained,contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-283,INT,WP07-WP08,Schema version compatibility,v1/v2 producer consumer,mixed messages,compatible or explicit reject,contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-284,INT,WP07-WP08,Redis stampede,fake cache expiry + concurrent requests,load,single-flight/bounded backend load,contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-285,INT,WP07-WP08,Redis lock owner loss,fake lease expiry,old owner release,new owner lock not deleted,contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-286,INT,WP07-WP08,Webhook signature,valid/invalid/replay,receive/send,signature/nonce/timestamp policy,contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-287,INT,WP07-WP08,SFTP resume,simulated connection drop,download resume,checksum exact and no duplicate process,contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-288,INT,WP07-WP08,Object storage multipart,fake provider,large upload fault,resume/abort/cleanup,contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-289,INT,WP07-WP08,CDC duplicate/out-of-order,simulated changes,consume,version/idempotency policy,contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-290,INT,WP07-WP08,Secret reload,test secret reference version,rotate,dual grace/ACK/no raw secret,contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-291,INT,WP07-WP08,Protocol translation REST→TCP,REST ingress + TCP simulator,call,header/error/correlation preserved,contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-292,INT,WP07-WP08,Offline bundle,network blocked,run EDU/testkit,no external dependency download,contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-293,INT,WP07-WP08,Provider swap,adapter A/B,same contract suite,"no public API change, same semantics",contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-294,INT,WP07-WP08,Direct client gate,fixture using raw clients,run source gate,build fails with actionable exception path,contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-295,META,WP09,Metadata version CAS,same item concurrent update,two writers,"single winner, conflict response",DB/API/runtime evidence,WAS+MariaDB
+CPF-QA-EXEC-296,META,WP09,Effective date activation,future policy,time advance,"not early, activates once",DB/API/runtime evidence,WAS+MariaDB
+CPF-QA-EXEC-297,META,WP09,Environment override,global + DEV + PROD,resolve,precedence correct,DB/API/runtime evidence,WAS+MariaDB
+CPF-QA-EXEC-298,META,WP09,Tenant override,global + tenant,resolve cross-tenant,isolation and precedence,DB/API/runtime evidence,WAS+MariaDB
+CPF-QA-EXEC-299,META,WP09,Approval-required change,danger policy,unapproved/approved,fail-closed then apply,DB/API/runtime evidence,WAS+MariaDB
+CPF-QA-EXEC-300,META,WP09,Rollback,policy v1→v2,rollback,exact prior value/hash/version,DB/API/runtime evidence,WAS+MariaDB
+CPF-QA-EXEC-301,META,WP09,Multi-instance propagation,2 instances,change,ACK/actual/drift converge,DB/API/runtime evidence,WAS+MariaDB
+CPF-QA-EXEC-302,META,WP09,Offline instance catch-up,instance offline during changes,reconnect,latest canonical state apply,DB/API/runtime evidence,WAS+MariaDB
+CPF-QA-EXEC-303,META,WP09,Secret reference,metadata contains secret,read/export,raw secret absent,DB/API/runtime evidence,WAS+MariaDB
+CPF-QA-EXEC-304,META,WP09,Generator metadata parity,new domain generated,compare,same schema/contracts,DB/API/runtime evidence,WAS+MariaDB
+CPF-QA-EXEC-305,ALR,WP10,ERROR 메일 정책,ERROR event + email group,publish event,outbox→embedded SMTP delivery and audit,outbox/delivery/incident/audit evidence,MariaDB+Embedded SMTP+SMS Simulator
+CPF-QA-EXEC-306,ALR,WP10,CRITICAL 메일+SMS,CRITICAL event,publish,"email embedded + SMS simulator, channel result separate",outbox/delivery/incident/audit evidence,MariaDB+Embedded SMTP+SMS Simulator
+CPF-QA-EXEC-307,ALR,WP10,WARN 기록 전용,WARN rule no external channel,publish,ADM history only,outbox/delivery/incident/audit evidence,MariaDB+Embedded SMTP+SMS Simulator
+CPF-QA-EXEC-308,ALR,WP10,업무그룹별 정책,same error different domain,publish each,matching receiver/policy differs,outbox/delivery/incident/audit evidence,MariaDB+Embedded SMTP+SMS Simulator
+CPF-QA-EXEC-309,ALR,WP10,오류그룹별 정책,two error codes in group,publish,same aggregation/escalation,outbox/delivery/incident/audit evidence,MariaDB+Embedded SMTP+SMS Simulator
+CPF-QA-EXEC-310,ALR,WP10,반복 횟수 Threshold,same error below/above N,publish,only threshold crossing alerts,outbox/delivery/incident/audit evidence,MariaDB+Embedded SMTP+SMS Simulator
+CPF-QA-EXEC-311,ALR,WP10,지속시간 Threshold,condition persists,time advance,single alert at threshold,outbox/delivery/incident/audit evidence,MariaDB+Embedded SMTP+SMS Simulator
+CPF-QA-EXEC-312,ALR,WP10,실패율 Threshold,mixed success/fail,window aggregate,rate-based alert,outbox/delivery/incident/audit evidence,MariaDB+Embedded SMTP+SMS Simulator
+CPF-QA-EXEC-313,ALR,WP10,Cooldown 중복 억제,same fingerprint burst,publish 100,bounded one/summary alerts,outbox/delivery/incident/audit evidence,MariaDB+Embedded SMTP+SMS Simulator
+CPF-QA-EXEC-314,ALR,WP10,집계 알림,many similar errors,window close,count/top samples masked,outbox/delivery/incident/audit evidence,MariaDB+Embedded SMTP+SMS Simulator
+CPF-QA-EXEC-315,ALR,WP10,야간 당직 Routing,night clock,publish,on-call group selected,outbox/delivery/incident/audit evidence,MariaDB+Embedded SMTP+SMS Simulator
+CPF-QA-EXEC-316,ALR,WP10,휴일 Routing,business calendar holiday,publish,holiday policy selected,outbox/delivery/incident/audit evidence,MariaDB+Embedded SMTP+SMS Simulator
+CPF-QA-EXEC-317,ALR,WP10,Maintenance suppression,active maintenance,publish,"suppressed with audit, expiry auto restore",outbox/delivery/incident/audit evidence,MariaDB+Embedded SMTP+SMS Simulator
+CPF-QA-EXEC-318,ALR,WP10,Escalation 미확인,critical unacked,time advance,next-level recipients,outbox/delivery/incident/audit evidence,MariaDB+Embedded SMTP+SMS Simulator
+CPF-QA-EXEC-319,ALR,WP10,Incident lifecycle,critical event,ack→assign→resolve→reopen,state/audit correct,outbox/delivery/incident/audit evidence,MariaDB+Embedded SMTP+SMS Simulator
+CPF-QA-EXEC-320,ALR,WP10,Provider timeout,email provider slow,send,"bounded retry, worker capacity protected",outbox/delivery/incident/audit evidence,MariaDB+Embedded SMTP+SMS Simulator
+CPF-QA-EXEC-321,ALR,WP10,Provider permanent failure,invalid recipient,retry exhausted,DLQ/manual reprocess,outbox/delivery/incident/audit evidence,MariaDB+Embedded SMTP+SMS Simulator
+CPF-QA-EXEC-322,ALR,WP10,Notification DB outage,event during DB outage,publish,"original business unaffected per contract, alert failure observable",outbox/delivery/incident/audit evidence,MariaDB+Embedded SMTP+SMS Simulator
+CPF-QA-EXEC-323,ALR,WP10,Original transaction rollback,business rollback,alert hook,no false success alert unless failure event policy,outbox/delivery/incident/audit evidence,MariaDB+Embedded SMTP+SMS Simulator
+CPF-QA-EXEC-324,ALR,WP10,Embedded SMTP MIME,HTML+text+attachment fixture,send,subject/recipient/body/encoding correct,outbox/delivery/incident/audit evidence,MariaDB+Embedded SMTP+SMS Simulator
+CPF-QA-EXEC-325,ALR,WP10,Local Capture mode,no SMTP,send,"captured in ADM/DB, external send 0",outbox/delivery/incident/audit evidence,MariaDB+Embedded SMTP+SMS Simulator
+CPF-QA-EXEC-326,ALR,WP10,Receiver PII masking,delivery logs,view/export,masked receiver by default,outbox/delivery/incident/audit evidence,MariaDB+Embedded SMTP+SMS Simulator
+CPF-QA-EXEC-327,ALR,WP10,Template injection,malicious template data,render,escaping and safe limits,outbox/delivery/incident/audit evidence,MariaDB+Embedded SMTP+SMS Simulator
+CPF-QA-EXEC-328,ALR,WP10,Storm protection,100k events,publish,rate limit/backpressure/no OOM,outbox/delivery/incident/audit evidence,MariaDB+Embedded SMTP+SMS Simulator
+CPF-QA-EXEC-329,ALR,WP10,Policy rollback,bad rule deployed,rollback,previous matching restored,outbox/delivery/incident/audit evidence,MariaDB+Embedded SMTP+SMS Simulator
+CPF-QA-EXEC-330,INSLOG,WP11,Domain group hierarchy,ENV→CLUSTER→DOMAIN→APP→INSTANCE,create/search,hierarchy and permission correct,ADM/Agent/file/audit evidence,WAS+MariaDB+local files
+CPF-QA-EXEC-331,INSLOG,WP11,Multi-membership policy,instance added to groups,target preview,defined include/exclude precedence,ADM/Agent/file/audit evidence,WAS+MariaDB+local files
+CPF-QA-EXEC-332,INSLOG,WP11,Nested cycle,A→B→A,save,rejected before persistence,ADM/Agent/file/audit evidence,WAS+MariaDB+local files
+CPF-QA-EXEC-333,INSLOG,WP11,Heartbeat expiry,instance kill,wait lease,offline/alert/routing exclusion,ADM/Agent/file/audit evidence,WAS+MariaDB+local files
+CPF-QA-EXEC-334,INSLOG,WP11,Duplicate instance identity,two runtimes same ID,register,fencing/identity conflict,ADM/Agent/file/audit evidence,WAS+MariaDB+local files
+CPF-QA-EXEC-335,INSLOG,WP11,Rolling version mix,group with v1/v2,view,mixed version warning and rollout controls,ADM/Agent/file/audit evidence,WAS+MariaDB+local files
+CPF-QA-EXEC-336,INSLOG,WP11,Group drain,active traffic,drain group,"new assignments stop, inflight policy",ADM/Agent/file/audit evidence,WAS+MariaDB+local files
+CPF-QA-EXEC-337,INSLOG,WP11,Tenant isolation,operator from other tenant,query/control,403 and no metadata leak,ADM/Agent/file/audit evidence,WAS+MariaDB+local files
+CPF-QA-EXEC-338,INSLOG,WP11,Log file list,agent with current/rotated logs,ADM list,"metadata accurate, only allowlisted files",ADM/Agent/file/audit evidence,WAS+MariaDB+local files
+CPF-QA-EXEC-339,INSLOG,WP11,Single log download,selected file,download,content/hash/name correct,ADM/Agent/file/audit evidence,WAS+MariaDB+local files
+CPF-QA-EXEC-340,INSLOG,WP11,Multi-log ZIP,selected files,download,manifest and cleanup,ADM/Agent/file/audit evidence,WAS+MariaDB+local files
+CPF-QA-EXEC-341,INSLOG,WP11,Multi-instance time bundle,3 instances,download range,partial failures listed,ADM/Agent/file/audit evidence,WAS+MariaDB+local files
+CPF-QA-EXEC-342,INSLOG,WP11,Trace bundle,trace spans instances,collect,related logs only and correlation,ADM/Agent/file/audit evidence,WAS+MariaDB+local files
+CPF-QA-EXEC-343,INSLOG,WP11,Large log streaming,multi-GB fixture,download/cancel,bounded memory/disk and cleanup,ADM/Agent/file/audit evidence,WAS+MariaDB+local files
+CPF-QA-EXEC-344,INSLOG,WP11,Path traversal,malicious path/id,download,rejected and audited,ADM/Agent/file/audit evidence,WAS+MariaDB+local files
+CPF-QA-EXEC-345,INSLOG,WP11,Symlink escape,symlink outside root,download,rejected,ADM/Agent/file/audit evidence,WAS+MariaDB+local files
+CPF-QA-EXEC-346,INSLOG,WP11,Sensitive log,PII/token fixture,download,masked or approved raw flow,ADM/Agent/file/audit evidence,WAS+MariaDB+local files
+CPF-QA-EXEC-347,INSLOG,WP11,Disconnected instance,agent unavailable,download,clear partial/stale response,ADM/Agent/file/audit evidence,WAS+MariaDB+local files
+CPF-QA-EXEC-348,INSLOG,WP11,Client disconnect,mid-download close,observe server,resource/temp cleanup,ADM/Agent/file/audit evidence,WAS+MariaDB+local files
+CPF-QA-EXEC-349,INSLOG,WP11,Download approval,raw audit log,request without/with approval,fail-closed then audited download,ADM/Agent/file/audit evidence,WAS+MariaDB+local files
+CPF-QA-EXEC-350,DOCVAL,WP12-WP15,JavaDoc build,all public API/SPI,generate javadoc with doclint,errors/warnings policy pass,build/spec/matrix/evidence,Mixed
+CPF-QA-EXEC-351,DOCVAL,WP12-WP15,OpenAPI snapshot,all controllers,generate spec,operation/headers/errors/examples complete,build/spec/matrix/evidence,Mixed
+CPF-QA-EXEC-352,DOCVAL,WP12-WP15,OpenAPI negative examples,selected APIs,validate examples,examples conform to schemas,build/spec/matrix/evidence,Mixed
+CPF-QA-EXEC-353,DOCVAL,WP12-WP15,package-info coverage,public/major packages,scan,required Korean responsibility docs present,build/spec/matrix/evidence,Mixed
+CPF-QA-EXEC-354,DOCVAL,WP12-WP15,EDU command execution,all reference guides,execute commands,all commands and expected results valid,build/spec/matrix/evidence,Mixed
+CPF-QA-EXEC-355,DOCVAL,WP12-WP15,EDU requirement trace,all examples,matrix scan,each feature has examples and each example maps feature,build/spec/matrix/evidence,Mixed
+CPF-QA-EXEC-356,DOCVAL,WP12-WP15,Reference CI,cpfIncludeReferenceDomains=true,clean build/test/run,required matrix pass,build/spec/matrix/evidence,Mixed
+CPF-QA-EXEC-357,DOCVAL,WP12-WP15,Generator new domain,random DomainName/SystemCode,generate/build/run,no hard-coded domain assumptions,build/spec/matrix/evidence,Mixed
+CPF-QA-EXEC-358,DOCVAL,WP12-WP15,Generator regeneration,user extension present,regenerate,user code preserved,build/spec/matrix/evidence,Mixed
+CPF-QA-EXEC-359,DOCVAL,WP12-WP15,Generator client gate,generated domain,source scan,raw client usage 0,build/spec/matrix/evidence,Mixed
+CPF-QA-EXEC-360,DOCVAL,WP12-WP15,MariaDB fresh install,empty schemas,install/seed/verify,canonical match,build/spec/matrix/evidence,Mixed
+CPF-QA-EXEC-361,DOCVAL,WP12-WP15,MariaDB upgrade,prior supported baseline,migrate,data/constraints preserved,build/spec/matrix/evidence,Mixed
+CPF-QA-EXEC-362,DOCVAL,WP12-WP15,MariaDB rollback/reapply,latest migration,rollback/reapply,documented recovery and final parity,build/spec/matrix/evidence,Mixed
+CPF-QA-EXEC-363,DOCVAL,WP12-WP15,MariaDB query registry,all runtime queries,prepare/execute,parameter/result/dialect pass,build/spec/matrix/evidence,Mixed
+CPF-QA-EXEC-364,DOCVAL,WP12-WP15,PostgreSQL static pack,generated/vendor pack,parse/check parity,no MariaDB syntax leakage,build/spec/matrix/evidence,Mixed
+CPF-QA-EXEC-365,DOCVAL,WP12-WP15,Oracle static pack,generated/vendor pack,parse/check parity,no PostgreSQL/Maria syntax leakage,build/spec/matrix/evidence,Mixed
+CPF-QA-EXEC-366,DOCVAL,WP12-WP15,Secret scan,source/config/evidence,scan,real secrets/PII 0,build/spec/matrix/evidence,Mixed
+CPF-QA-EXEC-367,DOCVAL,WP12-WP15,Repository hygiene,clean clone,run hygiene gate,build/tmp/overlay debris policy pass,build/spec/matrix/evidence,Mixed
+CPF-QA-EXEC-368,DOCVAL,WP12-WP15,Protected regression selection,change common header,impact analyzer,gateway/message/TCP/generator/EDU tests selected,build/spec/matrix/evidence,Mixed
+CPF-QA-EXEC-369,DOCVAL,WP12-WP15,Release gate with deferred providers,external providers uninstalled,run release evaluation,real integration stays 미검증 and GA policy explicit,build/spec/matrix/evidence,Mixed

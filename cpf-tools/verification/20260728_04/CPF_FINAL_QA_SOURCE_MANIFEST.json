@@ -1,0 +1,51 @@
+{
+  "generatedAt": "2026-07-28T00:00:00+09:00",
+  "baseCommit": "84b4672e9e8b61ea067bb52b85b838a0b95e44b1",
+  "counts": {
+    "requirements": 1749,
+    "scenarios": 369,
+    "total": 2118
+  },
+  "files": [
+    {
+      "name": "CPF_ADM_RUNTIME_CONTROL_SUPPLEMENT_20260728.md",
+      "size": 3561,
+      "sha256": "a0d0afebdede1646322dc24fa29147e065534ea9ec9757b6deaa28bc88c2fe7e"
+    },
+    {
+      "name": "CPF_ENTERPRISE_FULL_QA_EXECUTION_SCENARIOS_20260728.csv",
+      "size": 19280,
+      "sha256": "71ceb7b6b6a1bd98476b9a7ef4faa4ba56468f0a4e35f680b0ebb1d0e4f7124a"
+    },
+    {
+      "name": "CPF_ENTERPRISE_FULL_QA_INVENTORY_20260728.csv",
+      "size": 535361,
+      "sha256": "e6abeae59df2b5905740db1400c387a97d2fbdbdbf71fc735a521fe6b5ed7877"
+    },
+    {
+      "name": "CPF_ENTERPRISE_FULL_QA_REQUEST_20260728.md",
+      "size": 585777,
+      "sha256": "486518443f3696b12fd1866f9f5bf6e462cc148cd386de14aa4f00234effb619"
+    },
+    {
+      "name": "CPF_ENTERPRISE_QA_DELTA_INVENTORY_20260728_03.csv",
+      "size": 324053,
+      "sha256": "e33a30dfbffb22d474f0dfbf2988d7e56662ce21f284edc9930dc0a1a399eca3"
+    },
+    {
+      "name": "CPF_ENTERPRISE_QA_DELTA_SCENARIOS_20260728_03.csv",
+      "size": 31033,
+      "sha256": "e1cacc7c74a403a9fab40b65a090d4ad5ff2eb76fbf430fd3b08da0e11c4c53f"
+    },
+    {
+      "name": "CPF_ENTERPRISE_QA_MANIFEST_20260728_03.json",
+      "size": 2095,
+      "sha256": "8db9d29be2f1b4500a10c815ba1be91d7b74bc5fb06f58cafbb430bbef698dea"
+    },
+    {
+      "name": "CPF_ENTERPRISE_QA_REQUEST_20260728_03.md",
+      "size": 58322,
+      "sha256": "869e52af84dc0ab570a1e26b107e891163ea756f79210cf626616df2e362fca9"
+    }
+  ]
+}

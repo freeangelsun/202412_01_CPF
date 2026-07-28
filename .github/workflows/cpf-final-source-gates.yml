@@ -1,9 +1,51 @@
-name: CPF Final Source Gates
+name: CPF Final Completion Gates
 on:
+  push:
+    branches: [master]
   pull_request:
   workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: cpf-final-completion-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  java-and-frontend:
+  source-and-governance:
+    name: Source / Architecture / Governance
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - name: Record exact SHA
+        run: |
+          mkdir -p build/final-evidence
+          git rev-parse HEAD | tee build/final-evidence/exact-sha.txt
+          git status --porcelain=v1 | tee build/final-evidence/git-status.txt
+          test ! -s build/final-evidence/git-status.txt
+      - name: Enterprise QA static closing
+        shell: pwsh
+        run: |
+          ./cpf-tools/generator/verify-domain-federation.ps1
+          ./cpf-tools/scripts/check-runtime-control-public-boundary.ps1
+          ./cpf-tools/scripts/check-runtime-capability-consumers.ps1
+          ./cpf-tools/scripts/check-notification-portable-sql.ps1
+          ./cpf-tools/scripts/check-local-runtime-topology.ps1
+          ./cpf-tools/scripts/check-enterprise-qa-closing.ps1
+      - name: Repository diff hygiene
+        run: git diff --check
+      - uses: actions/upload-artifact@v4
+        with:
+          name: source-governance-${{ github.sha }}
+          path: build/final-evidence
+          if-no-files-found: error
+
+  java25-full:
+    name: Java 25 / Gradle Full Build
+    needs: source-and-governance
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -12,6 +54,25 @@ jobs:
           distribution: temurin
           java-version: '25'
           cache: gradle
+      - name: Clean test assemble quality gates
+        run: ./gradlew clean test assemble qualityGate verifyCpfFinalSourceGates checkJava25Standard checkCpfStackSupport --no-daemon --stacktrace | tee java25-full.log
+      - uses: actions/upload-artifact@v4
+        with:
+          name: java25-full-${{ github.sha }}
+          path: |
+            java25-full.log
+            **/build/test-results/test/*.xml
+            **/build/reports/tests/test/**
+          if-no-files-found: error
+
+  frontend:
+    name: ADM / BZA Frontend
+    needs: source-and-governance
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: {distribution: temurin, java-version: '25', cache: gradle}
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -19,10 +80,83 @@ jobs:
           cache-dependency-path: |
             cpf-admin/frontend/package-lock.json
             cpf-biz-admin/frontend/package-lock.json
-      - name: Repository boundary gate
+      - name: Frontend lint type test build
+        run: ./gradlew :cpf-admin:frontendVerify :cpf-biz-admin:frontendVerify --no-daemon --stacktrace | tee frontend.log
+      - uses: actions/upload-artifact@v4
+        with:
+          name: frontend-${{ github.sha }}
+          path: frontend.log
+          if-no-files-found: error
+
+  database-artifacts:
+    name: DB Canonical / Migration / Rollback
+    needs: source-and-governance
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: {distribution: temurin, java-version: '25', cache: gradle}
+      - name: Build and verify official DB artifacts
         shell: pwsh
-        run: ./cpf-tools/generator/verify-domain-federation.ps1
-      - name: BAT standalone build and tests
-        run: ./gradlew :cpf-batch:verifyStandaloneArtifacts clean test verifyVersionConsistency --no-daemon
-      - name: ADM/BZA frontend verification
-        run: ./gradlew :cpf-admin:frontendVerify :cpf-biz-admin:frontendVerify --no-daemon
+        run: |
+          ./cpf-tools/scripts/build-all-install-sql.ps1
+          ./cpf-tools/scripts/sync-database-artifacts.ps1
+          ./cpf-tools/scripts/check-migration-checksums.ps1
+          ./cpf-tools/scripts/check-official-db-vendor-readiness.ps1
+          ./cpf-tools/scripts/check-platform-runtime-query-packs.ps1
+          ./cpf-tools/scripts/check-bat-runtime-query-pack.ps1
+          git diff --exit-code
+
+  generated-domain:
+    name: Generated Domain Golden Path
+    needs: source-and-governance
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: {distribution: temurin, java-version: '25', cache: gradle}
+      - name: Generate ACC MBR EXS and arbitrary domain
+        shell: pwsh
+        run: |
+          ./cpf-tools/generator/verify-domain-federation.ps1
+          ./cpf-tools/scripts/check-generator-golden-path.ps1
+          ./cpf-tools/scripts/check-generator-arbitrary-domain-parity.ps1
+
+  local-runtime:
+    name: Local Web / Batch Runtime
+    needs: java25-full
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: {distribution: temurin, java-version: '25', cache: gradle}
+      - name: Build local runtime artifacts
+        run: ./gradlew :cpf-local-runtime:test :cpf-local-batch-runtime:test :cpf-local-runtime:bootJar :cpf-local-batch-runtime:bootJar --no-daemon --stacktrace
+      - name: Gateway ServiceCall BAT smoke
+        shell: pwsh
+        run: |
+          ./cpf-tools/scripts/smoke-gateway-bat-runtime.ps1
+          ./cpf-tools/scripts/smoke-service-call-engine-failover-runtime.ps1
+          ./cpf-tools/scripts/smoke-bat-two-worker-runtime.ps1
+
+  completion-summary:
+    name: Completion Summary
+    if: always()
+    needs: [source-and-governance, java25-full, frontend, database-artifacts, generated-domain, local-runtime]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail unless every mandatory job passed
+        shell: bash
+        env:
+          RESULTS: ${{ toJson(needs) }}
+        run: |
+          echo "$RESULTS"
+          python - <<'PY'
+          import json, os, sys
+          needs=json.loads(os.environ['RESULTS'])
+          bad={k:v.get('result') for k,v in needs.items() if v.get('result')!='success'}
+          if bad:
+              print('Mandatory CPF checks failed or skipped:',bad)
+              sys.exit(1)
+          print('All repository-executable CPF checks passed for this exact SHA.')
+          PY

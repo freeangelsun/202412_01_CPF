@@ -4,9 +4,6 @@ import com.cpf.admin.opr.service.AdmAuditLogService;
 import com.cpf.core.api.logging.CpfTransactionContext;
 import com.cpf.core.api.execution.CpfOnlineTransaction;
 import com.cpf.core.api.runtimecontrol.*;
-import com.cpf.core.common.runtimecontrol.CpfRuntimeFenceException;
-import com.cpf.core.common.runtimecontrol.CpfRuntimeRateLimitException;
-import com.cpf.core.common.runtimecontrol.CpfRuntimeVersionConflictException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -43,7 +40,7 @@ public class AdmRuntimeControlController extends com.cpf.admin.common.base.AdmBa
     public ResponseEntity<CpfRuntimeChangeResult> create(@RequestBody CpfRuntimeChangeCommand command,HttpServletRequest request){
         String operator=operator(request);requireCommandOwner(command,operator);requireRiskApproval(command);
         CpfRuntimeChangeResult result=controlPlane.createChange(command);
-        audit(request,operator,"RUNTIME_CHANGE_CREATE",result.changeId(),command.reason(),Map.of("changeType",command.changeType(),"state",result.state(),"requestHash",result.requestHash()));
+        audit(request,operator,"RUNTIME_CHANGE_CREATE",result.changeId(),command.reason(),Map.of("changeType",command.changeType(),"capability",CpfRuntimeCapabilityCatalog.describe(command.changeType()),"state",result.state(),"requestHash",result.requestHash()));
         return ResponseEntity.ok(result);
     }
 
@@ -72,6 +69,14 @@ public class AdmRuntimeControlController extends com.cpf.admin.common.base.AdmBa
                 "delivery",CpfRuntimeStateCatalog.deliveryStates(),
                 "change",CpfRuntimeStateCatalog.changeStates(),
                 "drift",CpfRuntimeStateCatalog.driftStates()));
+    }
+
+    @GetMapping("/adm/api/runtime-control/capabilities")
+    @CpfOnlineTransaction(id="OADMRC0065",name="ADMRuntimeCapabilityCatalog")
+    @Operation(summary="Runtime Capability 목록",description="ADM 실시간 운영·제어의 14개 독립 Capability와 승인 필요 여부를 반환합니다.")
+    public ResponseEntity<List<CpfRuntimeCapabilityCatalog.Capability>> capabilities(HttpServletRequest request){
+        operator(request);
+        return ResponseEntity.ok(CpfRuntimeCapabilityCatalog.capabilities());
     }
 
     @PostMapping("/adm/api/runtime-control/preview-targets")
@@ -179,9 +184,14 @@ public class AdmRuntimeControlController extends com.cpf.admin.common.base.AdmBa
 
     private void requireCommandOwner(CpfRuntimeChangeCommand c,String operator){if(c.requestedBy()==null||!operator.equals(c.requestedBy()))throw new ResponseStatusException(HttpStatus.FORBIDDEN,"requestedBy는 인증된 ADM 운영자와 일치해야 합니다.");}
     private void requireRiskApproval(CpfRuntimeChangeCommand c){
-        String type=c.changeType()==null?"":c.changeType().toUpperCase();
-        boolean dangerous=type.contains("ROUTE")||type.contains("SHUTDOWN")||type.contains("DRAIN")||type.contains("SECURITY")||type.contains("SECRET")||type.contains("PERMISSION")||type.contains("BATCH_CONTROL");
-        if(dangerous && blank(c.approvalId()) && blank(c.breakGlassId()))throw new ResponseStatusException(HttpStatus.PRECONDITION_REQUIRED,"위험 Runtime 변경에는 approvalId 또는 승인된 breakGlassId가 필요합니다.");
+        if(blank(c.reason()))throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Runtime 변경 사유는 필수입니다.");
+        if(blank(c.operationId()))throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"operationId는 필수입니다.");
+        if(c.expectedVersion()==null)throw new ResponseStatusException(HttpStatus.PRECONDITION_REQUIRED,"expectedVersion 기반 CAS 검증이 필요합니다.");
+        if(CpfRuntimeCapabilityCatalog.requiresApproval(c.changeType())
+                && blank(c.approvalId()) && blank(c.breakGlassId())){
+            throw new ResponseStatusException(HttpStatus.PRECONDITION_REQUIRED,
+                    "위험 Runtime 변경에는 approvalId 또는 승인된 breakGlassId가 필요합니다.");
+        }
     }
     private boolean blank(String v){return v==null||v.isBlank();}
     private String operator(HttpServletRequest request){Object value=request.getAttribute("adm.operatorId");if(value instanceof String s&&!s.isBlank())return s;throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,"검증된 ADM operator session이 필요합니다.");}

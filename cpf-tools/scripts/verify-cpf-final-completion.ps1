@@ -57,6 +57,26 @@ try {
         }
     }
 
+    Invoke-CpfGate 'Enterprise QA closing static gate' {
+        & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\check-enterprise-qa-closing.ps1
+    }
+    Invoke-CpfGate 'Runtime Control public API boundary' {
+        & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\check-runtime-control-public-boundary.ps1
+    }
+    Invoke-CpfGate 'Notification authentication and portable SQL' {
+        & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\check-notification-portable-sql.ps1
+    }
+    Invoke-CpfGate 'Local development runtime topology' {
+        & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\check-local-runtime-topology.ps1
+    }
+
+    Invoke-CpfGate 'Enterprise QA closing static gate' {
+        & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\check-enterprise-qa-closing.ps1 -Root $RepoRoot
+    }
+    Invoke-CpfGate 'ADM Runtime Capability consumer gate' {
+        & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\check-runtime-capability-consumers.ps1 -Root $RepoRoot
+    }
+
     Invoke-CpfGate 'Public API/SPI boundary' {
         & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\check-r11-public-boundary.ps1
     }
@@ -94,6 +114,9 @@ try {
     Invoke-CpfGate 'Generated arbitrary-domain parity' {
         & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\check-generator-arbitrary-domain-parity.ps1
     }
+    Invoke-CpfGate 'Generated Domain create/build/remove lifecycle' {
+        & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\smoke-generated-domain-lifecycle.ps1
+    }
     Invoke-CpfGate 'SQL canonical/static synchronization' {
         & $gradle checkSqlCanonical --no-daemon
     }
@@ -104,6 +127,12 @@ try {
         }
         Invoke-CpfGate 'BZA frontend' {
             & $gradle :cpf-biz-admin:frontendVerify --no-daemon
+        }
+        Invoke-CpfGate 'ADM browser/UI smoke' {
+            & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\smoke-adm-ui.ps1
+        }
+        Invoke-CpfGate 'BZA browser/UI smoke' {
+            & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\smoke-bza-ui.ps1
         }
     }
 

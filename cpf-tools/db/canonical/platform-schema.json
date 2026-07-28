@@ -20096,6 +20096,96 @@
           "comment": "발송 완료 일시"
         },
         {
+          "name": "operation_id",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "멱등 발송 작업 ID"
+        },
+        {
+          "name": "request_hash",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "발송 요청 SHA-256"
+        },
+        {
+          "name": "payload_body",
+          "type": "VARCHAR(2000)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Provider 전달 Payload(ADM 응답 비노출)"
+        },
+        {
+          "name": "attempt_count",
+          "type": "INT",
+          "nullable": false,
+          "default": "0",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "발송 시도 횟수"
+        },
+        {
+          "name": "max_attempts",
+          "type": "INT",
+          "nullable": false,
+          "default": "3",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "최대 발송 시도 횟수"
+        },
+        {
+          "name": "next_attempt_at",
+          "type": "DATETIME(3)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "다음 재시도 시각"
+        },
+        {
+          "name": "lease_owner",
+          "type": "VARCHAR(100)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "발송 Lease 소유 인스턴스"
+        },
+        {
+          "name": "lease_until",
+          "type": "DATETIME(3)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "발송 Lease 만료 시각"
+        },
+        {
+          "name": "version",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "0",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "CAS 버전"
+        },
+        {
+          "name": "last_error_code",
+          "type": "VARCHAR(80)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "마지막 Provider 오류 코드"
+        },
+        {
           "name": "created_by",
           "type": "VARCHAR(100)",
           "nullable": false,
@@ -20135,7 +20225,14 @@
       "primaryKey": [
         "delivery_id"
       ],
-      "uniqueKeys": [],
+      "uniqueKeys": [
+        {
+          "name": "uk_cpf_notification_delivery_operation",
+          "columns": [
+            "operation_id"
+          ]
+        }
+      ],
       "indexes": [
         {
           "name": "ix_cpf_notification_delivery_target",
@@ -20150,6 +20247,14 @@
           "columns": [
             "delivery_status",
             "requested_at"
+          ]
+        },
+        {
+          "name": "ix_cpf_notification_delivery_due",
+          "columns": [
+            "delivery_status",
+            "next_attempt_at",
+            "lease_until"
           ]
         }
       ],

@@ -1,0 +1,10 @@
+cpf:
+  local:
+    runtime:
+      enabled: true
+      allow-remote-bind: false
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

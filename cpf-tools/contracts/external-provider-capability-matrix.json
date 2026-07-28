@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "policy": {
+    "interfaceOnlyIsComplete": false,
+    "simulatorIsProviderVerification": false,
+    "actualExternalExecutionRequiredForComplete": true,
+    "sensitivePayloadInEvidenceForbidden": true
+  },
+  "capabilities": [
+    {"type":"EMAIL","spi":"NotificationSender","simulator":"MockNotificationSender","failureModes":["PROVIDER_FAILURE","TIMEOUT","UNKNOWN_RESULT"],"actualProviderStatus":"미검증"},
+    {"type":"SMS","spi":"NotificationSender","simulator":"MockNotificationSender","failureModes":["PROVIDER_FAILURE","TIMEOUT","UNKNOWN_RESULT"],"actualProviderStatus":"미검증"},
+    {"type":"WEBHOOK","runtimeApplier":"CpfWebhookCallbackRuntimeApplier","simulatorRequired":true,"actualProviderStatus":"미검증"},
+    {"type":"BROKER","runtimeAppliers":["CpfBrokerConsumerRuntimeApplier","CpfBrokerRetryDlqRuntimeApplier"],"simulatorRequired":true,"actualProviderStatus":"미검증"},
+    {"type":"FILE_SFTP","runtimeAppliers":["CpfFilePolicyRuntimeApplier","CpfSftpTransferRuntimeApplier"],"simulatorRequired":true,"actualProviderStatus":"미검증"},
+    {"type":"EXTERNAL_INSTITUTION","runtimeApplier":"CpfExternalInstitutionRuntimeApplier","simulatorRequired":true,"actualProviderStatus":"미검증"}
+  ]
+}

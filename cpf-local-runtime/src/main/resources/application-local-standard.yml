@@ -1,0 +1,12 @@
+spring:
+  main:
+    lazy-initialization: true
+cpf:
+  local:
+    mode: standard
+    modules:
+      core: true
+      common: true
+      gateway: true
+      admin: true
+      biz-admin: false

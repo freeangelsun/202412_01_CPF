@@ -56,7 +56,8 @@ public class CpfGatewayProxyService {
             "te", "trailer", "transfer-encoding", "upgrade", "host");
     private static final Set<String> NEVER_FORWARD = Set.of(
             CpfHeaderNames.AUTHORIZATION.toLowerCase(Locale.ROOT),
-            CpfHeaderNames.API_KEY.toLowerCase(Locale.ROOT));
+            CpfHeaderNames.API_KEY.toLowerCase(Locale.ROOT),
+            CpfHeaderNames.REQUEST_SIGNATURE.toLowerCase(Locale.ROOT));
     private static final Set<String> PASSTHROUGH = Set.of(
             HttpHeaders.ACCEPT.toLowerCase(Locale.ROOT),
             HttpHeaders.ACCEPT_LANGUAGE.toLowerCase(Locale.ROOT),
@@ -76,7 +77,6 @@ public class CpfGatewayProxyService {
             CpfHeaderNames.ORIGINAL_CHANNEL_CODE.toLowerCase(Locale.ROOT),
             CpfHeaderNames.CHANNEL_CODE.toLowerCase(Locale.ROOT),
             CpfHeaderNames.REQUEST_TYPE.toLowerCase(Locale.ROOT),
-            CpfHeaderNames.REQUEST_SIGNATURE.toLowerCase(Locale.ROOT),
             CpfHeaderNames.IDEMPOTENCY_KEY.toLowerCase(Locale.ROOT));
 
     private final CpfGatewayRouteSnapshot snapshot;
@@ -201,14 +201,14 @@ public class CpfGatewayProxyService {
             throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "Gateway rate limit 초과");
         }
 
-        Map<String, String> trusted = trustedHeaders(inboundHeaders, principal);
+        Map<String, String> trusted = trustedHeaders(inboundHeaders, principal, route);
         CpfChannelPolicyDecision channelDecision = channelPolicyService.evaluate(
                 route.standardExecutionId(),
                 inboundHeaders.getFirst(CpfHeaderNames.ORIGINAL_CHANNEL_CODE),
                 inboundHeaders.getFirst(CpfHeaderNames.CHANNEL_CODE),
                 inboundHeaders.getFirst(CpfHeaderNames.REQUEST_TYPE),
                 principal.authenticated(),
-                inboundHeaders.containsKey(CpfHeaderNames.REQUEST_SIGNATURE));
+                requestSignatureVerified(principal));
         if (!channelDecision.allowed()) {
             throw new SecurityException(
                     "Gateway 채널 정책에서 요청을 거부했습니다. reason=" + channelDecision.reason());
@@ -390,15 +390,17 @@ public class CpfGatewayProxyService {
         return Map.copyOf(result);
     }
 
-    private Map<String, String> trustedHeaders(HttpHeaders headers, CpfGatewayPrincipal principal) {
+    private Map<String, String> trustedHeaders(
+            HttpHeaders headers, CpfGatewayPrincipal principal, CpfGatewayRoute route) {
         Map<String, String> result = new LinkedHashMap<>();
         for (String name : List.of(
                 CpfHeaderNames.ORIGINAL_CHANNEL_CODE,
                 CpfHeaderNames.CHANNEL_CODE,
-                CpfHeaderNames.REQUEST_TYPE,
-                CpfHeaderNames.STANDARD_EXECUTION_ID)) {
+                CpfHeaderNames.REQUEST_TYPE)) {
             copyFirst(headers, result, name);
         }
+        // 실행 ID는 외부 입력을 신뢰하지 않고 이미 resolve된 Route를 정본으로 사용합니다.
+        result.put(CpfHeaderNames.STANDARD_EXECUTION_ID, route.standardExecutionId());
         if (principal.authenticated()) {
             result.put("cpf.principal.id", principal.principalId());
             result.put("cpf.principal.authorities", String.join(",", principal.authorities()));
@@ -439,10 +441,7 @@ public class CpfGatewayProxyService {
                 throw new IllegalArgumentException(
                         "Gateway 대상 baseUrl은 userInfo/query/fragment 없는 http(s) absolute URI여야 합니다.");
             }
-            String path = normalizePath(endpoint);
-            if (path.contains("..") || path.chars().anyMatch(ch -> ch < 0x20 || ch == 0x7f)) {
-                throw new IllegalArgumentException("Gateway endpoint path가 안전하지 않습니다.");
-            }
+            String path = validateEndpointPath(endpoint);
             String basePath = base.getPath() == null ? "" : base.getPath();
             while (basePath.endsWith("/")) basePath = basePath.substring(0, basePath.length() - 1);
             URI withoutQuery = new URI(
@@ -452,6 +451,34 @@ public class CpfGatewayProxyService {
                     : URI.create(withoutQuery.toASCIIString() + "?" + rawQuery);
         } catch (URISyntaxException ex) {
             throw new IllegalArgumentException("Gateway 대상 URI가 올바르지 않습니다.", ex);
+        }
+    }
+
+    private boolean requestSignatureVerified(CpfGatewayPrincipal principal) {
+        String value = principal.attributes().get("requestSignatureVerified");
+        return value != null && Boolean.parseBoolean(value);
+    }
+
+    private String validateEndpointPath(String endpoint) {
+        String path = normalizePath(endpoint);
+        String lower = path.toLowerCase(Locale.ROOT);
+        if (path.indexOf('\\') >= 0
+                || path.contains("//")
+                || path.chars().anyMatch(ch -> ch < 0x20 || ch == 0x7f)
+                || lower.contains("%2e")
+                || lower.contains("%2f")
+                || lower.contains("%5c")) {
+            throw new IllegalArgumentException("Gateway endpoint path가 안전하지 않습니다.");
+        }
+        try {
+            URI relative = new URI(null, null, path, null);
+            String normalized = relative.normalize().getPath();
+            if (!path.equals(normalized) || path.contains("..") || !path.startsWith("/")) {
+                throw new IllegalArgumentException("Gateway endpoint path 정규화 결과가 안전하지 않습니다.");
+            }
+            return path;
+        } catch (URISyntaxException ex) {
+            throw new IllegalArgumentException("Gateway endpoint path가 올바르지 않습니다.", ex);
         }
     }
 

@@ -1,0 +1,88 @@
+{
+  "schemaVersion": "20260728_03",
+  "repository": "freeangelsun/202412_01_CPF",
+  "branch": "master",
+  "baselineCommit": "9fa4bb0f7b83ea73615e019a09af9ffac2bc89c0",
+  "generatedAt": "2026-07-28T23:00:00+09:00",
+  "verdict": "실패",
+  "releasePolicy": "Commercial Release/GA 금지",
+  "baseline": {
+    "requirements": 1214,
+    "executionScenarios": 201
+  },
+  "delta": {
+    "requirements": 535,
+    "executionScenarios": 168,
+    "statusCounts": {
+      "실패": 9,
+      "미검증": 50,
+      "부분 구현": 440,
+      "재확인 필요": 16,
+      "미구현": 20
+    },
+    "severityCounts": {
+      "P0": 297,
+      "P1": 238
+    },
+    "areaCounts": {
+      "ALR": 48,
+      "ARCH": 17,
+      "BAT": 18,
+      "BATDB": 30,
+      "BATEDU": 60,
+      "BATOPS": 36,
+      "DBVAL": 20,
+      "DOC": 24,
+      "EDU": 88,
+      "FND": 13,
+      "GEN": 15,
+      "INS": 21,
+      "INT": 40,
+      "LOCAL": 21,
+      "LOG": 31,
+      "META": 29,
+      "VAL": 24
+    },
+    "workPackageCounts": {
+      "WP00": 13,
+      "WP01": 17,
+      "WP02": 21,
+      "WP03": 30,
+      "WP04": 18,
+      "WP05": 36,
+      "WP06": 62,
+      "WP07": 86,
+      "WP08": 40,
+      "WP09": 32,
+      "WP10": 49,
+      "WP11": 48,
+      "WP12": 24,
+      "WP13": 20,
+      "WP14": 15,
+      "WP15": 24
+    }
+  },
+  "mergedTotals": {
+    "requirements": 1749,
+    "executionScenarios": 369,
+    "traceItems": 2118
+  },
+  "files": {
+    "CPF_ENTERPRISE_QA_REQUEST_20260728_03.md": {
+      "sha256": "869e52af84dc0ab570a1e26b107e891163ea756f79210cf626616df2e362fca9",
+      "bytes": 58322
+    },
+    "CPF_ENTERPRISE_QA_DELTA_INVENTORY_20260728_03.csv": {
+      "sha256": "e33a30dfbffb22d474f0dfbf2988d7e56662ce21f284edc9930dc0a1a399eca3",
+      "bytes": 324053
+    },
+    "CPF_ENTERPRISE_QA_DELTA_SCENARIOS_20260728_03.csv": {
+      "sha256": "e1cacc7c74a403a9fab40b65a090d4ad5ff2eb76fbf430fd3b08da0e11c4c53f",
+      "bytes": 31033
+    },
+    "CPF_ENTERPRISE_QA_MANIFEST_20260728_03.json": {
+      "sha256": "fc44dbbc2220d20e19480057e5770f02b34e4443655878d67133089e7d4b69b1",
+      "bytes": 1931
+    }
+  }
+}

@@ -1,0 +1,9 @@
+cpf:
+  local:
+    mode: full
+    modules:
+      core: true
+      common: true
+      gateway: true
+      admin: true
+      biz-admin: true

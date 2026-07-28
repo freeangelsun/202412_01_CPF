@@ -82,6 +82,7 @@ rootProject.name = 'cpf-core-platform-framework'
 
 include 'cpf-core', 'cpf-common'
 include 'cpf-admin', 'cpf-biz-admin', 'cpf-gateway'
+include 'cpf-local-runtime', 'cpf-local-batch-runtime'
 
 // MBR/ACC/REF는 플랫폼 필수 subproject가 아니라 Generator/EDU 검증용 reference domain입니다.
 // 제품 build에는 강제하지 않고, 명시적 검증 시에만 mount합니다.
@@ -109,6 +110,8 @@ if (findProject(':cpf-reference') != null) project(':cpf-reference').projectDir 
 project(':cpf-admin').projectDir = file('cpf-admin')
 project(':cpf-biz-admin').projectDir = file('cpf-biz-admin')
 project(':cpf-gateway').projectDir = file('cpf-gateway')
+project(':cpf-local-runtime').projectDir = file('cpf-local-runtime')
+project(':cpf-local-batch-runtime').projectDir = file('cpf-local-batch-runtime')
 if (findProject(':cpf-account') != null) project(':cpf-account').projectDir = file('cpf-account')
 
 // Published dependency BOM and convention plugin are cpf-tools-owned isolated builds.

@@ -1,0 +1,12 @@
+DROP INDEX ix_cpf_notification_delivery_due;
+ALTER TABLE cpf_notification_delivery_log DROP CONSTRAINT uk_cpf_notification_delivery_operation;
+ALTER TABLE cpf_notification_delivery_log DROP COLUMN last_error_code;
+ALTER TABLE cpf_notification_delivery_log DROP COLUMN version;
+ALTER TABLE cpf_notification_delivery_log DROP COLUMN lease_until;
+ALTER TABLE cpf_notification_delivery_log DROP COLUMN lease_owner;
+ALTER TABLE cpf_notification_delivery_log DROP COLUMN next_attempt_at;
+ALTER TABLE cpf_notification_delivery_log DROP COLUMN max_attempts;
+ALTER TABLE cpf_notification_delivery_log DROP COLUMN attempt_count;
+ALTER TABLE cpf_notification_delivery_log DROP COLUMN payload_body;
+ALTER TABLE cpf_notification_delivery_log DROP COLUMN request_hash;
+ALTER TABLE cpf_notification_delivery_log DROP COLUMN operation_id;

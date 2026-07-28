@@ -1,6 +1,11 @@
 package com.cpf.core.common.runtimecontrol;
 
-/** 오래된 leader/agent의 적용을 차단하기 위한 fencing 예외입니다. */
-public class CpfRuntimeFenceException extends RuntimeException {
-    public CpfRuntimeFenceException(String message){super(message);}
+/**
+ * @deprecated 외부 Consumer는 {@link com.cpf.core.api.runtimecontrol.CpfRuntimeFenceException}을 사용합니다.
+ */
+@Deprecated(forRemoval = true)
+public class CpfRuntimeFenceException extends com.cpf.core.api.runtimecontrol.CpfRuntimeFenceException {
+    public CpfRuntimeFenceException(String message) {
+        super(message);
+    }
 }

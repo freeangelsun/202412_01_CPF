@@ -1,0 +1,202 @@
+﻿id,area,title,setup,expected
+CPF-QA-EXEC-001,LEGACY,Java25/Gradle 전체 clean test assemble qualityGate,Java25·Gradle9.1·Boot4.1 환경,전체 Module/Frontend/Gate 성공
+CPF-QA-EXEC-002,LEGACY,PowerShell Root Gate 실제 실행,Windows/pwsh 환경,모든 script exit code·sanitized report 성공
+CPF-QA-EXEC-003,LEGACY,ADM Session DB 장애,issue/lookup/revoke/cleanup 단계별 fault,503 fail-closed·token/성공 위장 0
+CPF-QA-EXEC-004,LEGACY,ADM Permission DB 장애,api/menu/button permission fault,default allow 0
+CPF-QA-EXEC-005,LEGACY,ADM 상태/Role/Password Session revoke,활성 session 후 변경,모든 instance 즉시 무효
+CPF-QA-EXEC-006,LEGACY,ADM operationId 동시성,동일/상이 payload 동시 요청,멱등/409 정확
+CPF-QA-EXEC-007,LEGACY,ADM Raw PII,권한·사유·audit·browser 흐름,최소 projection·zeroization
+CPF-QA-EXEC-008,LEGACY,BZA 인증 성공/실패 fault,history/count/token 단계 fault,원자성·명확한 오류
+CPF-QA-EXEC-009,LEGACY,BZA operationId response loss,commit 후 응답 유실,중복 session 0·결과 복구
+CPF-QA-EXEC-010,LEGACY,BZA Refresh rotation,동시 사용·응답 유실,단일 유효 결과·reuse 탐지
+CPF-QA-EXEC-011,LEGACY,MariaDB lifecycle,fresh→upgrade→rollback→reapply,schema/data/checksum 일치
+CPF-QA-EXEC-012,LEGACY,PostgreSQL lifecycle,fresh→upgrade→rollback→reapply,vendor-native runtime 성공
+CPF-QA-EXEC-013,LEGACY,Oracle lifecycle,fresh→upgrade→rollback→reapply,vendor-native runtime 성공
+CPF-QA-EXEC-014,LEGACY,CRUD/Auth/PII Runtime,ADM/BZA 실제 DB+API,정상/오류/경계
+CPF-QA-EXEC-015,LEGACY,Browser E2E,ADM/BZA 핵심 route,권한·PII·오류·접근성
+CPF-QA-EXEC-016,LEGACY,PII DOM/Storage 검사,raw 조회 후 route/logout/error,원문 0
+CPF-QA-EXEC-017,LEGACY,ADM 다중 인스턴스,2 WAS+공유 DB,session/permission/version 일치
+CPF-QA-EXEC-018,LEGACY,BZA 다중 인스턴스,2 WAS+공유 DB,token/permission/revoke 일치
+CPF-QA-EXEC-019,LEGACY,Query Resource 실행,3 Vendor query prepare/execute,orphan/parameter/result parity
+CPF-QA-EXEC-020,LEGACY,Artifact staging/promotion,LOCAL_DEV/REMOTE/OFFLINE,fail-closed·hash/version 일치
+CPF-QA-EXEC-021,LEGACY,Remote Artifact fail-closed,registry artifact 누락,local fallback 0
+CPF-QA-EXEC-022,LEGACY,Generated Domain lifecycle,create→bootstrap→build→runtime→remove→regenerate,normalized parity
+CPF-QA-EXEC-023,LEGACY,Gateway failover/retry,A down/B up/4xx/429/5xx/timeout,정책별 정확한 attempt
+CPF-QA-EXEC-024,LEGACY,BAT multi-instance,scheduler/worker/runner/agent 장애,lease/fencing/takeover/restart
+CPF-QA-EXEC-025,RTC,Runtime self-registration,3개 Service × 각 2개 Instance 기동,identity/capability/artifact/version 등록과 heartbeat 정상
+CPF-QA-EXEC-026,RTC,Duplicate instance identity,서로 다른 runtime이 같은 instanceId로 등록,위조/중복 차단
+CPF-QA-EXEC-027,RTC,Heartbeat lease expiry,한 instance 강제 종료,offline 전환·routing 제외·alert
+CPF-QA-EXEC-028,RTC,Graceful deregistration,정상 종료 signal,drain 후 deregister
+CPF-QA-EXEC-029,RTC,Static group membership,instance를 group에 추가/제거,version/history/snapshot 정확
+CPF-QA-EXEC-030,RTC,Dynamic group selector,label/zone/capability 변경,preview와 승인 snapshot 분리
+CPF-QA-EXEC-031,RTC,Nested group cycle,A→B→A 구성,저장 전 차단
+CPF-QA-EXEC-032,RTC,Zero target guard,selector 결과 0건,실행 차단
+CPF-QA-EXEC-033,RTC,Overbroad target guard,의도보다 전체 instance 선택,고위험 승인 요구
+CPF-QA-EXEC-034,RTC,Single instance realtime config,한 instance에만 config 변경,대상만 ACK/APPLIED
+CPF-QA-EXEC-035,RTC,Group realtime code cache,group 대상 공통코드 변경,모든 대상 최신 version·offline은 reconnect sync
+CPF-QA-EXEC-036,RTC,Realtime log level TTL,group logger DEBUG 5분,effective level 변경 후 자동 복원
+CPF-QA-EXEC-037,RTC,Realtime message update,다국어 message 변경,target별 version·ACK·실제 응답 반영
+CPF-QA-EXEC-038,RTC,Realtime response code,응답코드 mapping 변경,API 응답에 신규 mapping 적용
+CPF-QA-EXEC-039,RTC,Realtime calendar,영업일 정책 예약 적용,시행 시점에 대상 consumer 적용
+CPF-QA-EXEC-040,RTC,Realtime permission,ADM/BZA permission manifest 변경,stale session 권한 사용 0
+CPF-QA-EXEC-041,RTC,Realtime route,Gateway route v2 적용,2 Gateway desired/actual/ACK 일치
+CPF-QA-EXEC-042,RTC,Realtime routing weight,A/B 90:10 변경,통계 허용오차 내 분배
+CPF-QA-EXEC-043,RTC,Realtime batch schedule,scheduler cron 변경,중복 fire 없이 신규 schedule 적용
+CPF-QA-EXEC-044,RTC,Realtime worker concurrency,worker group concurrency 변경,target만 적용·inflight 정책 준수
+CPF-QA-EXEC-045,RTC,Realtime rate limit,route quota 변경,즉시 429 정책 반영
+CPF-QA-EXEC-046,RTC,Realtime masking,PII masking rule 변경,응답/log/download에 version 일치
+CPF-QA-EXEC-047,RTC,Realtime secret reference,JWT key version activate,dual-key grace와 instance ACK
+CPF-QA-EXEC-048,RTC,Out-of-order delivery,v2 적용 뒤 v1 전달,v1 거부
+CPF-QA-EXEC-049,RTC,Duplicate delivery,같은 changeId 반복,side effect 1회
+CPF-QA-EXEC-050,RTC,Payload incompatible,구 agent에 신규 schema,REJECTED_INCOMPATIBLE
+CPF-QA-EXEC-051,RTC,Poison change,항상 실패 handler,격리 후 다음 change 진행
+CPF-QA-EXEC-052,RTC,Controller restart,delivery 중 controller 종료/재기동,유실·중복 side effect 0
+CPF-QA-EXEC-053,RTC,Agent restart before ACK,apply 직후 agent 종료,desired/actual reconcile
+CPF-QA-EXEC-054,RTC,Offline reconnect,offline 중 5개 변경 후 재접속,최신 snapshot 적용
+CPF-QA-EXEC-055,RTC,Canary success,1 instance 적용 후 health 정상,다음 wave 진행
+CPF-QA-EXEC-056,RTC,Canary failure,canary error threshold 초과,wave 중단·rollback
+CPF-QA-EXEC-057,RTC,Partial apply,10 target 중 2 failed,전체 성공 금지·개별 상태
+CPF-QA-EXEC-058,RTC,Manual rollback,v2 실패 후 v1 복원,actual/hash/ACK v1 수렴
+CPF-QA-EXEC-059,RTC,Forward recovery,rollback 불가 schema change,승인된 forward plan 실행
+CPF-QA-EXEC-060,RTC,Drift manual mutation,runtime 설정 로컬 변조,drift 탐지·reconcile
+CPF-QA-EXEC-061,RTC,Change cancellation,예약 change 시행 전 취소,전달·적용 0
+CPF-QA-EXEC-062,RTC,Change expiry,TTL change 중 controller down,재기동 후 자동 복원
+CPF-QA-EXEC-063,RTC,Large target delivery,"10,000 target change",backpressure·chunk·lag SLO
+CPF-QA-EXEC-064,RTC,Control plane DR,backup restore 후 agents reconnect,중복 적용 없이 수렴
+CPF-QA-EXEC-065,ART,Java25 full build,"clean checkout, Java25, Gradle9.1",clean test assemble qualityGate 성공
+CPF-QA-EXEC-066,ART,No build cache,--no-build-cache build,숨은 cache 의존 없이 성공
+CPF-QA-EXEC-067,ART,BootJar inspection,모든 runtime bootJar,필수 CPF public jar·version/hash 일치
+CPF-QA-EXEC-068,ART,BootWar external WAS,ADM/BZA/Gateway/Domain WAR 배포,startup/health/auth/API 정상
+CPF-QA-EXEC-069,ART,Modular monolith,선택 module 동일 JVM 기동,bean/config/transaction 충돌 0
+CPF-QA-EXEC-070,ART,Independent WAS,각 module 분리 기동,remote contract parity
+CPF-QA-EXEC-071,ART,LOCAL_DEV promotion,staging 검증 후 shared repo 승격,검증 실패 side effect 0
+CPF-QA-EXEC-072,ART,REMOTE registry,Nexus/Artifactory consume,local fallback 0
+CPF-QA-EXEC-073,ART,OFFLINE bundle,network 차단 build,bundle만으로 성공
+CPF-QA-EXEC-074,ART,Concurrent publisher,동일 version 동시 publish,single winner·manifest 보호
+CPF-QA-EXEC-075,ART,Promotion failure,copy 중 장애,이전 정상 artifact 유지
+CPF-QA-EXEC-076,ART,Mixed generation,같은 version 다른 SHA artifact 혼합,Gate 차단
+CPF-QA-EXEC-077,ART,Reproducible build,동일 source 두 번 build,hash 동일 또는 차이 근거
+CPF-QA-EXEC-078,ART,SBOM signature,release artifact 생성,SBOM/provenance/signature 검증
+CPF-QA-EXEC-079,ART,CVE critical fixture,취약 dependency 주입,release gate 차단
+CPF-QA-EXEC-080,DB,MariaDB Fresh install,MariaDB: 빈 account/schema에서 provision→install→seed→verify,정본 schema/seed/query 성공
+CPF-QA-EXEC-081,DB,MariaDB Upgrade,MariaDB: 지원 이전 baseline+실제 data에서 migration,data/constraint/checksum 정확
+CPF-QA-EXEC-082,DB,MariaDB Rollback or recovery,MariaDB: 지원 migration rollback/forward recovery,binary/schema policy 일치
+CPF-QA-EXEC-083,DB,MariaDB Reapply,MariaDB: rollback 후 재적용,idempotent·최종 schema 일치
+CPF-QA-EXEC-084,DB,MariaDB Runtime query,MariaDB: 모든 registered query prepare/execute,parameter/result/dialect 성공
+CPF-QA-EXEC-085,DB,MariaDB Mid failure,MariaDB: migration 중 connection kill,명확한 복구·silent skip 0
+CPF-QA-EXEC-086,DB,MariaDB Deadlock timeout,MariaDB: 동시 transaction/deadlock/timeout,표준 error·bounded retry
+CPF-QA-EXEC-087,DB,MariaDB Backup restore,MariaDB: encrypted backup을 새 환경 복원,checksum/RPO/RTO/readiness 충족
+CPF-QA-EXEC-088,DB,PostgreSQL Fresh install,PostgreSQL: 빈 account/schema에서 provision→install→seed→verify,정본 schema/seed/query 성공
+CPF-QA-EXEC-089,DB,PostgreSQL Upgrade,PostgreSQL: 지원 이전 baseline+실제 data에서 migration,data/constraint/checksum 정확
+CPF-QA-EXEC-090,DB,PostgreSQL Rollback or recovery,PostgreSQL: 지원 migration rollback/forward recovery,binary/schema policy 일치
+CPF-QA-EXEC-091,DB,PostgreSQL Reapply,PostgreSQL: rollback 후 재적용,idempotent·최종 schema 일치
+CPF-QA-EXEC-092,DB,PostgreSQL Runtime query,PostgreSQL: 모든 registered query prepare/execute,parameter/result/dialect 성공
+CPF-QA-EXEC-093,DB,PostgreSQL Mid failure,PostgreSQL: migration 중 connection kill,명확한 복구·silent skip 0
+CPF-QA-EXEC-094,DB,PostgreSQL Deadlock timeout,PostgreSQL: 동시 transaction/deadlock/timeout,표준 error·bounded retry
+CPF-QA-EXEC-095,DB,PostgreSQL Backup restore,PostgreSQL: encrypted backup을 새 환경 복원,checksum/RPO/RTO/readiness 충족
+CPF-QA-EXEC-096,DB,Oracle Fresh install,Oracle: 빈 account/schema에서 provision→install→seed→verify,정본 schema/seed/query 성공
+CPF-QA-EXEC-097,DB,Oracle Upgrade,Oracle: 지원 이전 baseline+실제 data에서 migration,data/constraint/checksum 정확
+CPF-QA-EXEC-098,DB,Oracle Rollback or recovery,Oracle: 지원 migration rollback/forward recovery,binary/schema policy 일치
+CPF-QA-EXEC-099,DB,Oracle Reapply,Oracle: rollback 후 재적용,idempotent·최종 schema 일치
+CPF-QA-EXEC-100,DB,Oracle Runtime query,Oracle: 모든 registered query prepare/execute,parameter/result/dialect 성공
+CPF-QA-EXEC-101,DB,Oracle Mid failure,Oracle: migration 중 connection kill,명확한 복구·silent skip 0
+CPF-QA-EXEC-102,DB,Oracle Deadlock timeout,Oracle: 동시 transaction/deadlock/timeout,표준 error·bounded retry
+CPF-QA-EXEC-103,DB,Oracle Backup restore,Oracle: encrypted backup을 새 환경 복원,checksum/RPO/RTO/readiness 충족
+CPF-QA-EXEC-104,ADM,Session issue DB down,session insert fault,token 미반환·503
+CPF-QA-EXEC-105,ADM,Session lookup DB down,인증 요청 중 DB fault,401/empty 아닌 503
+CPF-QA-EXEC-106,ADM,Permission DB down,api/menu/button query fault,default allow 0
+CPF-QA-EXEC-107,ADM,Unregistered API,manifest 없는 ADM API,기본 거부
+CPF-QA-EXEC-108,ADM,Account suspend revoke,활성 session 후 SUSPENDED,모든 instance 즉시 거부
+CPF-QA-EXEC-109,ADM,Role change revoke,활성 session 후 role 변경,stale role 0
+CPF-QA-EXEC-110,ADM,Password reset revoke,활성 session 후 reset,기존 session 거부
+CPF-QA-EXEC-111,ADM,Concurrent failed login,동일 계정 N개 잘못된 요청,정확한 count·lock
+CPF-QA-EXEC-112,ADM,Create response loss,commit 후 응답 유실·동일 operationId retry,중복 row 0
+CPF-QA-EXEC-113,ADM,Create payload conflict,동일 operationId 다른 payload,409
+CPF-QA-EXEC-114,ADM,Role update race,동일 expectedVersion 동시 변경,한 요청만 성공
+CPF-QA-EXEC-115,ADM,Raw PII audit fault,audit DB down,원문 반환 0
+CPF-QA-EXEC-116,ADM,Raw PII zeroization,modal close/route/logout/error,DOM/state/storage 원문 0
+CPF-QA-EXEC-117,ADM,Bootstrap rerun,초기 생성 후 재실행,credential/role 변경 0
+CPF-QA-EXEC-118,ADM,MFA bypass,고위험 API without MFA,거부
+CPF-QA-EXEC-119,ADM,Approval self-approve,requester=approver,거부
+CPF-QA-EXEC-120,ADM,Approval unknown,owner command response loss,SUCCESS 자동 처리 금지
+CPF-QA-EXEC-121,ADM,Break-glass expiry,TTL 경과,자동 회수·review
+CPF-QA-EXEC-122,BZA,Login same operation concurrent,동일 operationId 10개 동시 요청,안전한 단일 결과 의미
+CPF-QA-EXEC-123,BZA,Login payload conflict,같은 operationId 다른 fingerprint,409
+CPF-QA-EXEC-124,BZA,Login response loss,commit 뒤 응답 유실,result recovery·중복 session 0
+CPF-QA-EXEC-125,BZA,Refresh response loss,old revoke/new insert 후 유실,operation result 복구
+CPF-QA-EXEC-126,BZA,Refresh concurrent reuse,같은 token 2개 동시,1 success·reuse detection
+CPF-QA-EXEC-127,BZA,Account state revoke,ACTIVE→SUSPENDED,access/refresh 즉시 거부
+CPF-QA-EXEC-128,BZA,Permission change,같은 access token으로 변경 전후 호출,현재 DB 권한 반영
+CPF-QA-EXEC-129,BZA,Failure DB down,login failure history DB fault,정상 401 위장 금지
+CPF-QA-EXEC-130,BZA,Approval ALL,3명 모두 승인,마지막 전 완료 금지
+CPF-QA-EXEC-131,BZA,Approval ANY,3명 중 1명 승인,terminal 정확
+CPF-QA-EXEC-132,BZA,Approval N_OF_M,5명 중 3명 동시 승인,중복/race 정확
+CPF-QA-EXEC-133,BZA,Delegation expiry,위임 전/중/후,유효기간 준수
+CPF-QA-EXEC-134,BZA,Raw employee audit down,raw 조회 중 audit fault,원문 0
+CPF-QA-EXEC-135,BZA,Browser zeroization,raw 조회 후 unmount/error,원문 0
+CPF-QA-EXEC-136,GWY,A down B failover,"target A connection refused, B healthy",정책 내 B 성공
+CPF-QA-EXEC-137,GWY,General 400,downstream 400,retry 0
+CPF-QA-EXEC-138,GWY,429 Retry-After,429+Retry-After,budget 내 준수
+CPF-QA-EXEC-139,GWY,POST response loss,downstream commit 후 reset,UNKNOWN·blind retry 금지
+CPF-QA-EXEC-140,GWY,Header spoof,외부 internal gateway header 주입,내부값 재생성
+CPF-QA-EXEC-141,GWY,Fake auth header,검증 안 된 Authorization 존재,authenticated로 처리 안 함
+CPF-QA-EXEC-142,GWY,SSRF route,private IP/redirect/DNS rebinding,registry 밖 접근 차단
+CPF-QA-EXEC-143,GWY,Header/path mismatch,URI/header 불일치와 우회 param,외부 우회 불가
+CPF-QA-EXEC-144,GWY,Large upload/download,대용량 streaming,bounded memory·backpressure
+CPF-QA-EXEC-145,GWY,Atomic route apply,2 Gateway 중 1개 실패,partial 표시·rollback
+CPF-QA-EXEC-146,GWY,Startup route store down,route load 불가 기동,readiness down
+CPF-QA-EXEC-147,GWY,Weighted canary,90:10 설정 후 충분한 요청,허용 오차 내 분배
+CPF-QA-EXEC-148,GWY,Drain target,inflight 중 drain,신규 선택 중단·기존 완료
+CPF-QA-EXEC-149,GWY,Gateway restart,route v2 후 한 instance restart,v2 재동기화
+CPF-QA-EXEC-150,GWY,CORS credential,미허용 origin credential 요청,거부
+CPF-QA-EXEC-151,GWY,mTLS rotation,old/new cert grace,연속성·old retire
+CPF-QA-EXEC-152,BAT,Scheduler duplicate prevention,scheduler 2개 due poll,실행 1건
+CPF-QA-EXEC-153,BAT,Scheduler lease loss,primary claim 후 종료,secondary takeover·stale fencing 차단
+CPF-QA-EXEC-154,BAT,Worker pre-execution crash,dispatch 전 crash,안전 redelivery
+CPF-QA-EXEC-155,BAT,Worker mid-execution unknown,business commit 후 ack loss,UNKNOWN·blind retry 금지
+CPF-QA-EXEC-156,BAT,Checkpoint restart,chunk 중 process kill,last commit 이후 resume
+CPF-QA-EXEC-157,BAT,Skip threshold,허용 오류 threshold 초과,job fail/stop
+CPF-QA-EXEC-158,BAT,Pause resume,대량 job 중 pause,신규 claim 중단·resume
+CPF-QA-EXEC-159,BAT,Cancel drain,inflight item 존재 cancel,정책대로 종료/unknown
+CPF-QA-EXEC-160,BAT,Ghost detection,RUNNING+expired heartbeat,ghost 후보 정확
+CPF-QA-EXEC-161,BAT,Lock force release,active owner 존재,승인 없이 차단
+CPF-QA-EXEC-162,BAT,CenterCut duplicate claim,runner 2개 동시 claim,item 1회
+CPF-QA-EXEC-163,BAT,Global TPS,runner 2개 합산 limit,limit 준수
+CPF-QA-EXEC-164,BAT,Failed-only reprocess,success/fail/unknown 혼합,fail만 재처리
+CPF-QA-EXEC-165,BAT,Unknown reconciliation,외부 상태 success 확인,중복 실행 0
+CPF-QA-EXEC-166,BAT,Approved shell,catalog 없는 command,차단
+CPF-QA-EXEC-167,BAT,File watch partial,upload 진행 중 감지,stable 후 1회
+CPF-QA-EXEC-168,BAT,Agent takeover,primary agent down,secondary fencing takeover
+CPF-QA-EXEC-169,BAT,BAT DB restore,backup restore 후 pending/running,중복 없이 recovery
+CPF-QA-EXEC-170,GEN,LNG create,LNG 임의 domain 생성,하드코딩 없는 표준 tree
+CPF-QA-EXEC-171,GEN,LNG bootstrap,LNG DB bootstrap,canonical template
+CPF-QA-EXEC-172,GEN,LNG build,LNG standalone clean test bootJar bootWar,artifact contract 성공
+CPF-QA-EXEC-173,GEN,LNG runtime,LNG local/remote API 실행,header/error/idempotency/db 정상
+CPF-QA-EXEC-174,GEN,LNG remove-regenerate,LNG 삭제 후 동일 입력 재생성,normalized parity
+CPF-QA-EXEC-175,GEN,LNG runtime-agent,LNG instance registration/change apply,RTC 계약 준수
+CPF-QA-EXEC-176,GEN,ING create,ING 임의 domain 생성,하드코딩 없는 표준 tree
+CPF-QA-EXEC-177,GEN,ING bootstrap,ING DB bootstrap,canonical template
+CPF-QA-EXEC-178,GEN,ING build,ING standalone clean test bootJar bootWar,artifact contract 성공
+CPF-QA-EXEC-179,GEN,ING runtime,ING local/remote API 실행,header/error/idempotency/db 정상
+CPF-QA-EXEC-180,GEN,ING remove-regenerate,ING 삭제 후 동일 입력 재생성,normalized parity
+CPF-QA-EXEC-181,GEN,ING runtime-agent,ING instance registration/change apply,RTC 계약 준수
+CPF-QA-EXEC-182,SEC-HYG,Secret scan,test secret commit,CI 차단
+CPF-QA-EXEC-183,SEC-HYG,Critical dependency,취약 dependency fixture,release 차단
+CPF-QA-EXEC-184,SEC-HYG,Unpinned workflow,mutable action tag,security gate 차단
+CPF-QA-EXEC-185,SEC-HYG,Audit tamper,중간 audit row 변경,chain failure alert
+CPF-QA-EXEC-186,SEC-HYG,PII log,민감 payload error,원문 0
+CPF-QA-EXEC-187,SEC-HYG,Zip bomb,고압축 archive,차단
+CPF-QA-EXEC-188,SEC-HYG,Path traversal,../ 및 symlink,root 밖 접근 차단
+CPF-QA-EXEC-189,SEC-HYG,OIDC invalid issuer,다른 issuer token,거부
+CPF-QA-EXEC-190,SEC-HYG,JWT retired key,grace 후 old key token,거부
+CPF-QA-EXEC-191,SEC-HYG,Break-glass misuse,scope/TTL 밖,거부·alert
+CPF-QA-EXEC-192,SEC-HYG,Metric cardinality,고유 ID label 대량,보호
+CPF-QA-EXEC-193,SEC-HYG,Log spool full,remote down+disk full,명시적 loss/backpressure alert
+CPF-QA-EXEC-194,SEC-HYG,Incident flow,critical alert,incident→runbook→audit
+CPF-QA-EXEC-195,SEC-HYG,Cleanup dry-run,dirty WIP repo,삭제 없이 preview
+CPF-QA-EXEC-196,SEC-HYG,Cleanup apply,approved manifest,allowlist만 삭제
+CPF-QA-EXEC-197,SEC-HYG,Cleanup rollback,apply 후 restore,hash 복구
+CPF-QA-EXEC-198,SEC-HYG,Cleanup repeat,apply 2회,안전 no-op
+CPF-QA-EXEC-199,SEC-HYG,Stale evidence,없는 파일 참조,link gate 실패
+CPF-QA-EXEC-200,SEC-HYG,Dead SQL,consumer 없는 query,orphan gate 실패
+CPF-QA-EXEC-201,SEC-HYG,Dead public SPI,consumer/test 없는 interface,quality gate 실패

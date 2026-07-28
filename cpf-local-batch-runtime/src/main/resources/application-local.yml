@@ -1,0 +1,11 @@
+cpf:
+  environment: local
+  local:
+    batch:
+      enabled: true
+      allow-remote-bind: false
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

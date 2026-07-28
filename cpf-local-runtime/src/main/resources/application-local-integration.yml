@@ -1,0 +1,12 @@
+cpf:
+  local:
+    mode: integration
+    modules:
+      core: true
+      common: true
+      gateway: true
+      admin: true
+      biz-admin: true
+  notification:
+    simulator:
+      mode: SUCCESS

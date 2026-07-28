@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: cpf-local-batch-runtime
+server:
+  address: 127.0.0.1
+  port: 8090
+
+cpf:
+  environment: local
+  local:
+    batch:
+      enabled: false
+      allow-remote-bind: false
+      modules:
+        control-server: true
+        scheduler: true
+        worker: true
+        center-cut: false
+        host-agent: false
+      ports:
+        control-server: 8090
+        scheduler: 8091
+        worker: 8092
+        center-cut: 8093
+        host-agent: 8094

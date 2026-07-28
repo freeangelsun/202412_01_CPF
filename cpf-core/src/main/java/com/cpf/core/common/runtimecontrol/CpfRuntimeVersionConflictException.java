@@ -1,13 +1,11 @@
 package com.cpf.core.common.runtimecontrol;
 
-/** Runtime Control Plane optimistic version 충돌입니다. */
-public class CpfRuntimeVersionConflictException extends RuntimeException {
-    private final long expectedVersion;
-    private final long actualVersion;
-    public CpfRuntimeVersionConflictException(long expectedVersion,long actualVersion){
-        super("Runtime version conflict. expected="+expectedVersion+", actual="+actualVersion);
-        this.expectedVersion=expectedVersion;this.actualVersion=actualVersion;
+/**
+ * @deprecated 외부 Consumer는 {@link com.cpf.core.api.runtimecontrol.CpfRuntimeVersionConflictException}을 사용합니다.
+ */
+@Deprecated(forRemoval = true)
+public class CpfRuntimeVersionConflictException extends com.cpf.core.api.runtimecontrol.CpfRuntimeVersionConflictException {
+    public CpfRuntimeVersionConflictException(long expectedVersion, long actualVersion) {
+        super(expectedVersion, actualVersion);
     }
-    public long expectedVersion(){return expectedVersion;}
-    public long actualVersion(){return actualVersion;}
 }

@@ -32,18 +32,24 @@ public class CpfWebClient implements CpfHttpClient {
     private final WebClient.Builder webClientBuilder;
     private final CpfServiceEndpointRegistry endpointRegistry;
     private final ObjectProvider<CpfServiceCallEngine> serviceCallEngineProvider;
+    private final CpfApiClientRuntimePolicy runtimePolicy;
 
     public CpfWebClient(WebClient.Builder webClientBuilder, CpfServiceEndpointRegistry endpointRegistry) {
-        this(webClientBuilder, endpointRegistry, null);
+        this(webClientBuilder, endpointRegistry, null, new CpfApiClientRuntimePolicy());
     }
 
-    public CpfWebClient(
-            WebClient.Builder webClientBuilder,
-            CpfServiceEndpointRegistry endpointRegistry,
-            ObjectProvider<CpfServiceCallEngine> serviceCallEngineProvider) {
+    public CpfWebClient(WebClient.Builder webClientBuilder, CpfServiceEndpointRegistry endpointRegistry,
+                        ObjectProvider<CpfServiceCallEngine> serviceCallEngineProvider) {
+        this(webClientBuilder, endpointRegistry, serviceCallEngineProvider, new CpfApiClientRuntimePolicy());
+    }
+
+    public CpfWebClient(WebClient.Builder webClientBuilder, CpfServiceEndpointRegistry endpointRegistry,
+                        ObjectProvider<CpfServiceCallEngine> serviceCallEngineProvider,
+                        CpfApiClientRuntimePolicy runtimePolicy) {
         this.webClientBuilder = webClientBuilder;
         this.endpointRegistry = endpointRegistry;
         this.serviceCallEngineProvider = serviceCallEngineProvider;
+        this.runtimePolicy = runtimePolicy == null ? new CpfApiClientRuntimePolicy() : runtimePolicy;
     }
 
     /**
@@ -307,17 +313,17 @@ public class CpfWebClient implements CpfHttpClient {
     }
 
     private ServiceCallRequest request(String serviceId, String method, String path) {
-        return ServiceCallRequest.builder(serviceId)
+        return runtimePolicy.apply(withEndpointTimeout(ServiceCallRequest.builder(serviceId)
                 .httpMethod(method)
                 .requestPath(path)
-                .build();
+                .build()));
     }
 
     private ServiceCallRequest requirePostRequest(ServiceCallRequest request) {
         if (request == null || request.serviceId() == null || request.serviceId().isBlank()) {
             throw new IllegalArgumentException("서비스 호출 serviceId는 필수입니다.");
         }
-        return new ServiceCallRequest(
+        return runtimePolicy.apply(withEndpointTimeout(new ServiceCallRequest(
                 request.serviceId().trim(),
                 request.endpointCode(),
                 request.instanceId(),
@@ -326,16 +332,26 @@ public class CpfWebClient implements CpfHttpClient {
                 request.timeoutMillis(),
                 request.retryCount(),
                 request.headers(),
-                request.attributes());
+                request.attributes())));
     }
 
     private ServiceCallRequest requireGetRequest(ServiceCallRequest request) {
         if (request == null || request.serviceId() == null || request.serviceId().isBlank()) {
             throw new IllegalArgumentException("서비스 호출 serviceId는 필수입니다.");
         }
-        return new ServiceCallRequest(
+        return runtimePolicy.apply(withEndpointTimeout(new ServiceCallRequest(
                 request.serviceId().trim(), request.endpointCode(), request.instanceId(), "GET",
                 normalizePath(request.requestPath()), request.timeoutMillis(), request.retryCount(),
+                request.headers(), request.attributes())));
+    }
+
+
+    private ServiceCallRequest withEndpointTimeout(ServiceCallRequest request) {
+        if (request.timeoutMillis() != null && request.timeoutMillis() > 0) return request;
+        CpfServiceEndpointRegistry.RuntimeEndpoint endpoint = endpointRegistry.runtimeEndpoint(request.serviceId());
+        if (endpoint == null) return request;
+        return new ServiceCallRequest(request.serviceId(), request.endpointCode(), request.instanceId(),
+                request.httpMethod(), request.requestPath(), endpoint.timeoutMillis(), request.retryCount(),
                 request.headers(), request.attributes());
     }
 

@@ -107,34 +107,48 @@ public class BzaAuthService extends com.cpf.bizadmin.common.base.BzaBaseService 
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "업무 관리자 인증에 실패했습니다.");
         }
 
+        requireJwtSecret();
+        String requestHash = cryptoService.hmacSha256Hex(
+                "BZA_LOGIN|" + loginId + "|" + cryptoService.sha256Hex(password), jwtSecret);
         String refreshToken = cryptoService.secureRandomToken(48);
         String refreshHash = cryptoService.sha256Base64Url(refreshToken);
-        Instant refreshExpireAt = Instant.now().plusSeconds(refreshTokenTtlSeconds);
+        Instant now = Instant.now();
+        Instant refreshExpireAt = now.plusSeconds(refreshTokenTtlSeconds);
+        Instant replayExpireAt = now.plusSeconds(accessTokenTtlSeconds);
+        String accessToken = createAccessToken(operator);
+        String resultSecret = jwtSecret + ":BZA_LOGIN_RESULT";
+        String accessTokenEnc = cryptoService.aesGcmEncrypt(accessToken, resultSecret);
+        String refreshTokenEnc = cryptoService.aesGcmEncrypt(refreshToken, resultSecret);
         String upgradedHash = verification.rehashRequired() ? hashPassword(password) : null;
         CpfServerIdentity.Identity identity = CpfServerIdentity.current();
-        loginTransactionService.commitSuccess(new BzaLoginTransactionService.LoginSuccessCommand(
-                operationId,
-                operator,
-                operator.passwordHash(),
-                upgradedHash,
-                refreshHash,
-                refreshExpireAt,
-                clientIp,
-                userAgent,
-                CpfTransactionContext.transactionId(),
-                moduleId,
-                wasId,
-                identity.serverInstanceId()));
+        BzaLoginTransactionService.LoginCommitResult commit = loginTransactionService.commitSuccess(
+                new BzaLoginTransactionService.LoginSuccessCommand(
+                        operationId,
+                        requestHash,
+                        operator,
+                        operator.passwordHash(),
+                        upgradedHash,
+                        refreshHash,
+                        refreshExpireAt,
+                        accessTokenEnc,
+                        refreshTokenEnc,
+                        replayExpireAt,
+                        clientIp,
+                        userAgent,
+                        CpfTransactionContext.transactionId(),
+                        moduleId,
+                        wasId,
+                        identity.serverInstanceId()));
 
-        // 성공 Transaction 이후 DB 상태를 다시 읽어 failCount/lastLogin/rehash 및 최신 Role을 JWT/응답에 반영합니다.
-        // 이 조회가 실패해 응답 결과불명이 되더라도 동일 operationId 재시도는 기존 refresh session을 폐기하고
-        // 새 session 하나만 유효하게 회전시키므로 raw token 유실이 중복 활성 세션으로 이어지지 않습니다.
+        // response-loss 재시도는 최초 성공 결과 암호문을 그대로 복호화하여 새 refresh session을 만들지 않습니다.
+        String committedAccessToken = cryptoService.aesGcmDecrypt(commit.resultAccessTokenEnc(), resultSecret);
+        String committedRefreshToken = cryptoService.aesGcmDecrypt(commit.resultRefreshTokenEnc(), resultSecret);
         BzaOperatorRow committedOperator = authRepository.findOperatorByLoginId(loginId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
                         "로그인 commit 이후 업무 관리자 상태를 다시 확인할 수 없습니다."));
         requireActiveOperator(committedOperator);
-        return new LoginResult(createAccessToken(committedOperator), refreshToken, "Bearer", accessTokenTtlSeconds,
-                refreshExpireAt, toOperatorResponse(committedOperator));
+        return new LoginResult(committedAccessToken, committedRefreshToken, "Bearer", accessTokenTtlSeconds,
+                commit.refreshExpireAt(), toOperatorResponse(committedOperator));
     }
 
     /**

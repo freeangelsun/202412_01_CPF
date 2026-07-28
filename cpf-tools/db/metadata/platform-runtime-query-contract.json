@@ -321,17 +321,33 @@
         {
           "key": "auth-login-operation-insert",
           "consumer": "BzaAuthRepository",
-          "usage": "ACTIVE"
+          "usage": "ACTIVE",
+          "parameters": [
+            "operationId",
+            "adminUserId",
+            "loginId",
+            "requestHash"
+          ]
         },
         {
           "key": "auth-login-operation-lock",
           "consumer": "BzaAuthRepository",
-          "usage": "ACTIVE"
+          "usage": "ACTIVE",
+          "parameters": [
+            "operationId"
+          ]
         },
         {
           "key": "auth-login-operation-success",
           "consumer": "BzaAuthRepository",
-          "usage": "ACTIVE"
+          "usage": "ACTIVE",
+          "parameters": [
+            "operationId",
+            "resultAccessTokenEnc",
+            "resultRefreshTokenEnc",
+            "resultRefreshExpiresAt",
+            "resultExpiresAt"
+          ]
         },
         {
           "key": "auth-mark-login-success",
@@ -408,11 +424,6 @@
           "parameters": [
             "adminUserId"
           ]
-        },
-        {
-          "key": "auth-revoke-refresh-by-login-operation",
-          "consumer": "BzaAuthRepository",
-          "usage": "ACTIVE"
         },
         {
           "key": "auth-revoke-refresh-session",

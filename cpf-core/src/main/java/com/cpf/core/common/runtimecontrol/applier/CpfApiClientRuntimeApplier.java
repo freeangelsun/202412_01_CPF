@@ -1,0 +1,9 @@
+package com.cpf.core.common.runtimecontrol.applier;
+import com.cpf.core.api.runtimecontrol.*;import com.cpf.core.common.http.CpfApiClientRuntimePolicy;import java.util.*;
+/** CpfWebClient typed 요청의 timeout/retry/header 정책을 적용합니다. */
+public final class CpfApiClientRuntimeApplier implements CpfRuntimeChangeApplier{
+ private final CpfApiClientRuntimePolicy policy;public CpfApiClientRuntimeApplier(CpfApiClientRuntimePolicy policy){this.policy=policy;}
+ public String changeType(){return "API_CLIENT";}public boolean supportsIdempotentReplay(){return true;}public boolean snapshotCapable(){return true;}
+ @SuppressWarnings("unchecked")public CpfRuntimeApplyResult apply(CpfRuntimeDelivery d){try{Map<String,Object>p=d.payload();var defaults=decode(p.get("defaults"));LinkedHashMap<String,CpfApiClientRuntimePolicy.ClientPolicy>services=new LinkedHashMap<>();Object raw=p.get("services");if(raw instanceof Map<?,?>m)for(var e:m.entrySet())services.put(String.valueOf(e.getKey()),decode(e.getValue()));policy.replace(d.desiredVersion(),defaults,services);return CpfRuntimeApplyResult.success(d.payloadHash());}catch(RuntimeException e){return CpfRuntimeApplyResult.failure("API_CLIENT_INVALID","API client policy payload 오류");}}
+ @SuppressWarnings("unchecked")private CpfApiClientRuntimePolicy.ClientPolicy decode(Object raw){Map<String,Object>m=raw instanceof Map<?,?>x?(Map<String,Object>)x:Map.of();return new CpfApiClientRuntimePolicy.ClientPolicy((int)num(m.get("timeoutMillis"),3000),(int)num(m.get("retryCount"),0),set(m.get("allowedHeaders")));}private long num(Object v,long f){return v instanceof Number n?n.longValue():v==null?f:Long.parseLong(String.valueOf(v));}private Set<String>set(Object v){if(!(v instanceof List<?>l))return Set.of();LinkedHashSet<String>s=new LinkedHashSet<>();for(Object x:l)if(x!=null)s.add(String.valueOf(x));return Set.copyOf(s);}
+}

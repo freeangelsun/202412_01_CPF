@@ -1,6 +1,10 @@
 package com.cpf.core.config;
 
 import com.cpf.core.common.attachment.CpfAttachmentStoragePort;
+import com.cpf.core.common.attachment.CpfAttachmentRuntimePolicy;
+import com.cpf.core.common.attachment.CpfAttachmentInspectionPort;
+import com.cpf.core.common.attachment.CpfAttachmentWatermarkPort;
+import org.springframework.beans.factory.ObjectProvider;
 import com.cpf.core.common.attachment.LocalCpfAttachmentStorageAdapter;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -18,8 +22,12 @@ import java.util.stream.Collectors;
 public class CpfAttachmentAutoConfiguration {
 
     @Bean
+    @ConditionalOnMissingBean
+    public CpfAttachmentRuntimePolicy cpfAttachmentRuntimePolicy() { return new CpfAttachmentRuntimePolicy(); }
+
+    @Bean
     @ConditionalOnMissingBean(CpfAttachmentStoragePort.class)
-    public CpfAttachmentStoragePort cpfAttachmentStoragePort(Environment environment) {
+    public CpfAttachmentStoragePort cpfAttachmentStoragePort(Environment environment, CpfAttachmentRuntimePolicy policy, ObjectProvider<CpfAttachmentInspectionPort> inspectionProvider, ObjectProvider<CpfAttachmentWatermarkPort> watermarkProvider) {
         String defaultRoot = Path.of(System.getProperty("java.io.tmpdir"), "cpf-attachments").toString();
         String configuredRoot = environment.getProperty("cpf.framework.attachment.root");
         if (environment.acceptsProfiles(Profiles.of("prod"))
@@ -35,6 +43,7 @@ public class CpfAttachmentAutoConfiguration {
                 .map(String::trim)
                 .filter(value -> !value.isBlank())
                 .collect(Collectors.toUnmodifiableSet());
-        return new LocalCpfAttachmentStorageAdapter(root, maxBytes, extensions);
+        policy.replaceAttachment(0L, maxBytes, extensions, Set.of(), false, 3650L, true, false);
+        return new LocalCpfAttachmentStorageAdapter(root, policy, inspectionProvider.getIfAvailable(), watermarkProvider.getIfAvailable());
     }
 }

@@ -38,9 +38,9 @@ public class BzaLoginTransactionService {
     }
 
     @Transactional(transactionManager = "bzaTransactionManager")
-    public void commitSuccess(LoginSuccessCommand command) {
+    public LoginCommitResult commitSuccess(LoginSuccessCommand command) {
         boolean created = repository.insertLoginOperation(
-                command.operationId(), command.operator().adminUserId(), command.operator().loginId());
+                command.operationId(), command.operator().adminUserId(), command.operator().loginId(), command.requestHash());
         LoginOperationState state = repository.lockLoginOperation(command.operationId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.CONFLICT,
                         "로그인 operation 처리 상태를 확인할 수 없습니다."));
@@ -49,28 +49,47 @@ public class BzaLoginTransactionService {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "operationId가 다른 업무 관리자 로그인에 이미 사용되었습니다.");
         }
-        if (!created && !"SUCCESS".equals(state.status())) {
+        if (!state.requestHash().equals(command.requestHash())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "이전 로그인 operation이 완료되지 않았습니다. operationId=" + command.operationId());
+                    "동일 operationId가 다른 로그인 요청 payload에 재사용되었습니다.");
         }
 
-        if (created) {
-            repository.markLoginSuccess(command.operator().adminUserId());
-            if (command.upgradedPasswordHash() != null) {
-                repository.updatePasswordHashIfUnchanged(command.operator().adminUserId(),
-                        command.previousPasswordHash(), command.upgradedPasswordHash(), "BZA_PASSWORD_UPGRADE");
+        if (!created) {
+            if ("SUCCESS".equals(state.status())) {
+                if (state.resultExpiresAt() == null || !state.resultExpiresAt().isAfter(Instant.now())) {
+                    throw new ResponseStatusException(HttpStatus.CONFLICT,
+                            "동일 로그인 operation의 replay 보존 시간이 만료되었습니다. 새 operationId를 사용하세요.");
+                }
+                if (state.resultAccessTokenEnc() == null || state.resultRefreshTokenEnc() == null
+                        || state.resultRefreshExpiresAt() == null) {
+                    throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+                            "로그인 operation의 저장 결과가 불완전합니다. 운영 확인이 필요합니다.");
+                }
+                return new LoginCommitResult(
+                        state.resultAccessTokenEnc(), state.resultRefreshTokenEnc(), state.resultRefreshExpiresAt(), true);
             }
-            repository.insertLoginHistory(new LoginHistoryWrite(
-                    command.operator().adminUserId(), LOGIN_DOMAIN, command.operator().loginId(), "SUCCESS", null,
-                    command.clientIp(), command.userAgent(), command.transactionId(), command.moduleId(),
-                    command.wasId(), command.serverInstanceId()));
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "이전 로그인 operation이 완료되지 않았습니다. operationId=" + command.operationId()
+                            + ", status=" + state.status());
         }
 
-        repository.revokeRefreshTokensByLoginOperationId(command.operationId());
+        repository.markLoginSuccess(command.operator().adminUserId());
+        if (command.upgradedPasswordHash() != null) {
+            repository.updatePasswordHashIfUnchanged(command.operator().adminUserId(),
+                    command.previousPasswordHash(), command.upgradedPasswordHash(), "BZA_PASSWORD_UPGRADE");
+        }
+        repository.insertLoginHistory(new LoginHistoryWrite(
+                command.operator().adminUserId(), LOGIN_DOMAIN, command.operator().loginId(), "SUCCESS", null,
+                command.clientIp(), command.userAgent(), command.transactionId(), command.moduleId(),
+                command.wasId(), command.serverInstanceId()));
         repository.insertRefreshToken(new RefreshTokenWrite(
                 command.operator().adminUserId(), LOGIN_DOMAIN, command.refreshTokenHash(), command.transactionId(),
                 command.operationId(), command.refreshExpireAt()));
-        repository.markLoginOperationSuccess(command.operationId());
+        repository.markLoginOperationSuccess(
+                command.operationId(), command.resultAccessTokenEnc(), command.resultRefreshTokenEnc(),
+                command.refreshExpireAt(), command.resultExpireAt());
+        return new LoginCommitResult(
+                command.resultAccessTokenEnc(), command.resultRefreshTokenEnc(), command.refreshExpireAt(), false);
     }
 
 
@@ -89,16 +108,27 @@ public class BzaLoginTransactionService {
 
     public record LoginSuccessCommand(
             String operationId,
+            String requestHash,
             BzaOperatorRow operator,
             String previousPasswordHash,
             String upgradedPasswordHash,
             String refreshTokenHash,
             Instant refreshExpireAt,
+            String resultAccessTokenEnc,
+            String resultRefreshTokenEnc,
+            Instant resultExpireAt,
             String clientIp,
             String userAgent,
             String transactionId,
             String moduleId,
             String wasId,
             String serverInstanceId) {
+    }
+
+    public record LoginCommitResult(
+            String resultAccessTokenEnc,
+            String resultRefreshTokenEnc,
+            Instant refreshExpireAt,
+            boolean replayed) {
     }
 }

@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "1.0",
+  "schemaVersion": "2026-07-28-enterprise-qa-runtime-control-v64",
   "canonicalPolicy": {
     "officialVendors": [
       "mariadb",
@@ -8,7 +8,9 @@
     ],
     "removedVendors": [
       "mysql",
-      "sqlserver"
+      "mssql",
+      "sqlserver",
+      "h2"
     ],
     "source": "cpf-tools/db/canonical/platform-schema.json",
     "generatedArtifacts": [
@@ -17,8 +19,565 @@
       "cpf-tools/db/vendor/oracle/source/*_schema.sql"
     ]
   },
-  "tableCount": 153,
+  "tableCount": 165,
   "tables": [
+    {
+      "name": "BATCH_JOB_EXECUTION",
+      "columns": [
+        {
+          "name": "JOB_EXECUTION_ID",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Spring Batch JobExecution 순번"
+        },
+        {
+          "name": "VERSION",
+          "type": "BIGINT",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "낙관적 잠금 버전"
+        },
+        {
+          "name": "JOB_INSTANCE_ID",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Spring Batch JobInstance 순번"
+        },
+        {
+          "name": "CREATE_TIME",
+          "type": "DATETIME(6)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "실행 생성 일시"
+        },
+        {
+          "name": "START_TIME",
+          "type": "DATETIME(6)",
+          "nullable": true,
+          "default": "NULL",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "실행 시작 일시"
+        },
+        {
+          "name": "END_TIME",
+          "type": "DATETIME(6)",
+          "nullable": true,
+          "default": "NULL",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "실행 종료 일시"
+        },
+        {
+          "name": "STATUS",
+          "type": "VARCHAR(10)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "실행 상태"
+        },
+        {
+          "name": "EXIT_CODE",
+          "type": "VARCHAR(2500)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "종료 코드"
+        },
+        {
+          "name": "EXIT_MESSAGE",
+          "type": "VARCHAR(2500)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "종료 메시지"
+        },
+        {
+          "name": "LAST_UPDATED",
+          "type": "DATETIME(6)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "마지막 수정 일시"
+        }
+      ],
+      "primaryKey": [
+        "JOB_EXECUTION_ID"
+      ],
+      "uniqueKeys": [],
+      "indexes": [],
+      "foreignKeys": [
+        {
+          "name": "JOB_INST_EXEC_FK",
+          "columns": [
+            "JOB_INSTANCE_ID"
+          ],
+          "refTable": "BATCH_JOB_INSTANCE",
+          "refColumns": [
+            "JOB_INSTANCE_ID"
+          ],
+          "onDelete": null,
+          "onUpdate": null
+        }
+      ],
+      "checks": [],
+      "comment": "Spring Batch 표준 JobExecution 저장소",
+      "module": "bat",
+      "logicalDatabase": "batDB"
+    },
+    {
+      "name": "BATCH_JOB_EXECUTION_CONTEXT",
+      "columns": [
+        {
+          "name": "JOB_EXECUTION_ID",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Spring Batch JobExecution 순번"
+        },
+        {
+          "name": "SHORT_CONTEXT",
+          "type": "VARCHAR(2500)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "짧은 실행 컨텍스트"
+        },
+        {
+          "name": "SERIALIZED_CONTEXT",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "직렬화 실행 컨텍스트"
+        }
+      ],
+      "primaryKey": [
+        "JOB_EXECUTION_ID"
+      ],
+      "uniqueKeys": [],
+      "indexes": [],
+      "foreignKeys": [
+        {
+          "name": "JOB_EXEC_CTX_FK",
+          "columns": [
+            "JOB_EXECUTION_ID"
+          ],
+          "refTable": "BATCH_JOB_EXECUTION",
+          "refColumns": [
+            "JOB_EXECUTION_ID"
+          ],
+          "onDelete": null,
+          "onUpdate": null
+        }
+      ],
+      "checks": [],
+      "comment": "Spring Batch 표준 Job 컨텍스트 저장소",
+      "module": "bat",
+      "logicalDatabase": "batDB"
+    },
+    {
+      "name": "BATCH_JOB_EXECUTION_PARAMS",
+      "columns": [
+        {
+          "name": "JOB_EXECUTION_ID",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Spring Batch JobExecution 순번"
+        },
+        {
+          "name": "PARAMETER_NAME",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "파라미터 이름"
+        },
+        {
+          "name": "PARAMETER_TYPE",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "파라미터 Java 유형"
+        },
+        {
+          "name": "PARAMETER_VALUE",
+          "type": "VARCHAR(2500)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "파라미터 값"
+        },
+        {
+          "name": "IDENTIFYING",
+          "type": "CHAR(1)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "JobInstance 식별 파라미터 여부"
+        }
+      ],
+      "primaryKey": [],
+      "uniqueKeys": [],
+      "indexes": [],
+      "foreignKeys": [
+        {
+          "name": "JOB_EXEC_PARAMS_FK",
+          "columns": [
+            "JOB_EXECUTION_ID"
+          ],
+          "refTable": "BATCH_JOB_EXECUTION",
+          "refColumns": [
+            "JOB_EXECUTION_ID"
+          ],
+          "onDelete": null,
+          "onUpdate": null
+        }
+      ],
+      "checks": [],
+      "comment": "Spring Batch 표준 Job 파라미터 저장소",
+      "module": "bat",
+      "logicalDatabase": "batDB"
+    },
+    {
+      "name": "BATCH_JOB_INSTANCE",
+      "columns": [
+        {
+          "name": "JOB_INSTANCE_ID",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Spring Batch JobInstance 순번"
+        },
+        {
+          "name": "VERSION",
+          "type": "BIGINT",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "낙관적 잠금 버전"
+        },
+        {
+          "name": "JOB_NAME",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Spring Batch Job 이름"
+        },
+        {
+          "name": "JOB_KEY",
+          "type": "VARCHAR(32)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Job 파라미터 식별 키"
+        }
+      ],
+      "primaryKey": [
+        "JOB_INSTANCE_ID"
+      ],
+      "uniqueKeys": [
+        {
+          "name": "JOB_INST_UN",
+          "columns": [
+            "JOB_NAME",
+            "JOB_KEY"
+          ]
+        }
+      ],
+      "indexes": [],
+      "foreignKeys": [],
+      "checks": [],
+      "comment": "Spring Batch 표준 JobInstance 저장소",
+      "module": "bat",
+      "logicalDatabase": "batDB"
+    },
+    {
+      "name": "BATCH_STEP_EXECUTION",
+      "columns": [
+        {
+          "name": "STEP_EXECUTION_ID",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Spring Batch StepExecution 순번"
+        },
+        {
+          "name": "VERSION",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "낙관적 잠금 버전"
+        },
+        {
+          "name": "STEP_NAME",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Step 이름"
+        },
+        {
+          "name": "JOB_EXECUTION_ID",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Spring Batch JobExecution 순번"
+        },
+        {
+          "name": "CREATE_TIME",
+          "type": "DATETIME(6)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Step 생성 일시"
+        },
+        {
+          "name": "START_TIME",
+          "type": "DATETIME(6)",
+          "nullable": true,
+          "default": "NULL",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Step 시작 일시"
+        },
+        {
+          "name": "END_TIME",
+          "type": "DATETIME(6)",
+          "nullable": true,
+          "default": "NULL",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Step 종료 일시"
+        },
+        {
+          "name": "STATUS",
+          "type": "VARCHAR(10)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Step 상태"
+        },
+        {
+          "name": "COMMIT_COUNT",
+          "type": "BIGINT",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "커밋 횟수"
+        },
+        {
+          "name": "READ_COUNT",
+          "type": "BIGINT",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "읽은 건수"
+        },
+        {
+          "name": "FILTER_COUNT",
+          "type": "BIGINT",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "필터 건수"
+        },
+        {
+          "name": "WRITE_COUNT",
+          "type": "BIGINT",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "쓴 건수"
+        },
+        {
+          "name": "READ_SKIP_COUNT",
+          "type": "BIGINT",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "읽기 skip 건수"
+        },
+        {
+          "name": "WRITE_SKIP_COUNT",
+          "type": "BIGINT",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "쓰기 skip 건수"
+        },
+        {
+          "name": "PROCESS_SKIP_COUNT",
+          "type": "BIGINT",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "처리 skip 건수"
+        },
+        {
+          "name": "ROLLBACK_COUNT",
+          "type": "BIGINT",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "rollback 건수"
+        },
+        {
+          "name": "EXIT_CODE",
+          "type": "VARCHAR(2500)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "종료 코드"
+        },
+        {
+          "name": "EXIT_MESSAGE",
+          "type": "VARCHAR(2500)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "종료 메시지"
+        },
+        {
+          "name": "LAST_UPDATED",
+          "type": "DATETIME(6)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "마지막 수정 일시"
+        }
+      ],
+      "primaryKey": [
+        "STEP_EXECUTION_ID"
+      ],
+      "uniqueKeys": [],
+      "indexes": [],
+      "foreignKeys": [
+        {
+          "name": "JOB_EXEC_STEP_FK",
+          "columns": [
+            "JOB_EXECUTION_ID"
+          ],
+          "refTable": "BATCH_JOB_EXECUTION",
+          "refColumns": [
+            "JOB_EXECUTION_ID"
+          ],
+          "onDelete": null,
+          "onUpdate": null
+        }
+      ],
+      "checks": [],
+      "comment": "Spring Batch 표준 StepExecution 저장소",
+      "module": "bat",
+      "logicalDatabase": "batDB"
+    },
+    {
+      "name": "BATCH_STEP_EXECUTION_CONTEXT",
+      "columns": [
+        {
+          "name": "STEP_EXECUTION_ID",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Spring Batch StepExecution 순번"
+        },
+        {
+          "name": "SHORT_CONTEXT",
+          "type": "VARCHAR(2500)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "짧은 실행 컨텍스트"
+        },
+        {
+          "name": "SERIALIZED_CONTEXT",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "직렬화 실행 컨텍스트"
+        }
+      ],
+      "primaryKey": [
+        "STEP_EXECUTION_ID"
+      ],
+      "uniqueKeys": [],
+      "indexes": [],
+      "foreignKeys": [
+        {
+          "name": "STEP_EXEC_CTX_FK",
+          "columns": [
+            "STEP_EXECUTION_ID"
+          ],
+          "refTable": "BATCH_STEP_EXECUTION",
+          "refColumns": [
+            "STEP_EXECUTION_ID"
+          ],
+          "onDelete": null,
+          "onUpdate": null
+        }
+      ],
+      "checks": [],
+      "comment": "Spring Batch 표준 Step 컨텍스트 저장소",
+      "module": "bat",
+      "logicalDatabase": "batDB"
+    },
     {
       "name": "acc_account",
       "columns": [
@@ -11134,563 +11693,6 @@
       "logicalDatabase": "batDB"
     },
     {
-      "name": "BATCH_JOB_EXECUTION",
-      "columns": [
-        {
-          "name": "JOB_EXECUTION_ID",
-          "type": "BIGINT",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "Spring Batch JobExecution 순번"
-        },
-        {
-          "name": "VERSION",
-          "type": "BIGINT",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "낙관적 잠금 버전"
-        },
-        {
-          "name": "JOB_INSTANCE_ID",
-          "type": "BIGINT",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "Spring Batch JobInstance 순번"
-        },
-        {
-          "name": "CREATE_TIME",
-          "type": "DATETIME(6)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "실행 생성 일시"
-        },
-        {
-          "name": "START_TIME",
-          "type": "DATETIME(6)",
-          "nullable": true,
-          "default": "NULL",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "실행 시작 일시"
-        },
-        {
-          "name": "END_TIME",
-          "type": "DATETIME(6)",
-          "nullable": true,
-          "default": "NULL",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "실행 종료 일시"
-        },
-        {
-          "name": "STATUS",
-          "type": "VARCHAR(10)",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "실행 상태"
-        },
-        {
-          "name": "EXIT_CODE",
-          "type": "VARCHAR(2500)",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "종료 코드"
-        },
-        {
-          "name": "EXIT_MESSAGE",
-          "type": "VARCHAR(2500)",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "종료 메시지"
-        },
-        {
-          "name": "LAST_UPDATED",
-          "type": "DATETIME(6)",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "마지막 수정 일시"
-        }
-      ],
-      "primaryKey": [
-        "JOB_EXECUTION_ID"
-      ],
-      "uniqueKeys": [],
-      "indexes": [],
-      "foreignKeys": [
-        {
-          "name": "JOB_INST_EXEC_FK",
-          "columns": [
-            "JOB_INSTANCE_ID"
-          ],
-          "refTable": "BATCH_JOB_INSTANCE",
-          "refColumns": [
-            "JOB_INSTANCE_ID"
-          ],
-          "onDelete": null,
-          "onUpdate": null
-        }
-      ],
-      "checks": [],
-      "comment": "Spring Batch 표준 JobExecution 저장소",
-      "module": "bat",
-      "logicalDatabase": "batDB"
-    },
-    {
-      "name": "BATCH_JOB_EXECUTION_CONTEXT",
-      "columns": [
-        {
-          "name": "JOB_EXECUTION_ID",
-          "type": "BIGINT",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "Spring Batch JobExecution 순번"
-        },
-        {
-          "name": "SHORT_CONTEXT",
-          "type": "VARCHAR(2500)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "짧은 실행 컨텍스트"
-        },
-        {
-          "name": "SERIALIZED_CONTEXT",
-          "type": "TEXT",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "직렬화 실행 컨텍스트"
-        }
-      ],
-      "primaryKey": [
-        "JOB_EXECUTION_ID"
-      ],
-      "uniqueKeys": [],
-      "indexes": [],
-      "foreignKeys": [
-        {
-          "name": "JOB_EXEC_CTX_FK",
-          "columns": [
-            "JOB_EXECUTION_ID"
-          ],
-          "refTable": "BATCH_JOB_EXECUTION",
-          "refColumns": [
-            "JOB_EXECUTION_ID"
-          ],
-          "onDelete": null,
-          "onUpdate": null
-        }
-      ],
-      "checks": [],
-      "comment": "Spring Batch 표준 Job 컨텍스트 저장소",
-      "module": "bat",
-      "logicalDatabase": "batDB"
-    },
-    {
-      "name": "BATCH_JOB_EXECUTION_PARAMS",
-      "columns": [
-        {
-          "name": "JOB_EXECUTION_ID",
-          "type": "BIGINT",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "Spring Batch JobExecution 순번"
-        },
-        {
-          "name": "PARAMETER_NAME",
-          "type": "VARCHAR(100)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "파라미터 이름"
-        },
-        {
-          "name": "PARAMETER_TYPE",
-          "type": "VARCHAR(100)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "파라미터 Java 유형"
-        },
-        {
-          "name": "PARAMETER_VALUE",
-          "type": "VARCHAR(2500)",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "파라미터 값"
-        },
-        {
-          "name": "IDENTIFYING",
-          "type": "CHAR(1)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "JobInstance 식별 파라미터 여부"
-        }
-      ],
-      "primaryKey": [],
-      "uniqueKeys": [],
-      "indexes": [],
-      "foreignKeys": [
-        {
-          "name": "JOB_EXEC_PARAMS_FK",
-          "columns": [
-            "JOB_EXECUTION_ID"
-          ],
-          "refTable": "BATCH_JOB_EXECUTION",
-          "refColumns": [
-            "JOB_EXECUTION_ID"
-          ],
-          "onDelete": null,
-          "onUpdate": null
-        }
-      ],
-      "checks": [],
-      "comment": "Spring Batch 표준 Job 파라미터 저장소",
-      "module": "bat",
-      "logicalDatabase": "batDB"
-    },
-    {
-      "name": "BATCH_JOB_INSTANCE",
-      "columns": [
-        {
-          "name": "JOB_INSTANCE_ID",
-          "type": "BIGINT",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "Spring Batch JobInstance 순번"
-        },
-        {
-          "name": "VERSION",
-          "type": "BIGINT",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "낙관적 잠금 버전"
-        },
-        {
-          "name": "JOB_NAME",
-          "type": "VARCHAR(100)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "Spring Batch Job 이름"
-        },
-        {
-          "name": "JOB_KEY",
-          "type": "VARCHAR(32)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "Job 파라미터 식별 키"
-        }
-      ],
-      "primaryKey": [
-        "JOB_INSTANCE_ID"
-      ],
-      "uniqueKeys": [
-        {
-          "name": "JOB_INST_UN",
-          "columns": [
-            "JOB_NAME",
-            "JOB_KEY"
-          ]
-        }
-      ],
-      "indexes": [],
-      "foreignKeys": [],
-      "checks": [],
-      "comment": "Spring Batch 표준 JobInstance 저장소",
-      "module": "bat",
-      "logicalDatabase": "batDB"
-    },
-    {
-      "name": "BATCH_STEP_EXECUTION",
-      "columns": [
-        {
-          "name": "STEP_EXECUTION_ID",
-          "type": "BIGINT",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "Spring Batch StepExecution 순번"
-        },
-        {
-          "name": "VERSION",
-          "type": "BIGINT",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "낙관적 잠금 버전"
-        },
-        {
-          "name": "STEP_NAME",
-          "type": "VARCHAR(100)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "Step 이름"
-        },
-        {
-          "name": "JOB_EXECUTION_ID",
-          "type": "BIGINT",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "Spring Batch JobExecution 순번"
-        },
-        {
-          "name": "CREATE_TIME",
-          "type": "DATETIME(6)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "Step 생성 일시"
-        },
-        {
-          "name": "START_TIME",
-          "type": "DATETIME(6)",
-          "nullable": true,
-          "default": "NULL",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "Step 시작 일시"
-        },
-        {
-          "name": "END_TIME",
-          "type": "DATETIME(6)",
-          "nullable": true,
-          "default": "NULL",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "Step 종료 일시"
-        },
-        {
-          "name": "STATUS",
-          "type": "VARCHAR(10)",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "Step 상태"
-        },
-        {
-          "name": "COMMIT_COUNT",
-          "type": "BIGINT",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "커밋 횟수"
-        },
-        {
-          "name": "READ_COUNT",
-          "type": "BIGINT",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "읽은 건수"
-        },
-        {
-          "name": "FILTER_COUNT",
-          "type": "BIGINT",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "필터 건수"
-        },
-        {
-          "name": "WRITE_COUNT",
-          "type": "BIGINT",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "쓴 건수"
-        },
-        {
-          "name": "READ_SKIP_COUNT",
-          "type": "BIGINT",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "읽기 skip 건수"
-        },
-        {
-          "name": "WRITE_SKIP_COUNT",
-          "type": "BIGINT",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "쓰기 skip 건수"
-        },
-        {
-          "name": "PROCESS_SKIP_COUNT",
-          "type": "BIGINT",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "처리 skip 건수"
-        },
-        {
-          "name": "ROLLBACK_COUNT",
-          "type": "BIGINT",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "rollback 건수"
-        },
-        {
-          "name": "EXIT_CODE",
-          "type": "VARCHAR(2500)",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "종료 코드"
-        },
-        {
-          "name": "EXIT_MESSAGE",
-          "type": "VARCHAR(2500)",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "종료 메시지"
-        },
-        {
-          "name": "LAST_UPDATED",
-          "type": "DATETIME(6)",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "마지막 수정 일시"
-        }
-      ],
-      "primaryKey": [
-        "STEP_EXECUTION_ID"
-      ],
-      "uniqueKeys": [],
-      "indexes": [],
-      "foreignKeys": [
-        {
-          "name": "JOB_EXEC_STEP_FK",
-          "columns": [
-            "JOB_EXECUTION_ID"
-          ],
-          "refTable": "BATCH_JOB_EXECUTION",
-          "refColumns": [
-            "JOB_EXECUTION_ID"
-          ],
-          "onDelete": null,
-          "onUpdate": null
-        }
-      ],
-      "checks": [],
-      "comment": "Spring Batch 표준 StepExecution 저장소",
-      "module": "bat",
-      "logicalDatabase": "batDB"
-    },
-    {
-      "name": "BATCH_STEP_EXECUTION_CONTEXT",
-      "columns": [
-        {
-          "name": "STEP_EXECUTION_ID",
-          "type": "BIGINT",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "Spring Batch StepExecution 순번"
-        },
-        {
-          "name": "SHORT_CONTEXT",
-          "type": "VARCHAR(2500)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "짧은 실행 컨텍스트"
-        },
-        {
-          "name": "SERIALIZED_CONTEXT",
-          "type": "TEXT",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "직렬화 실행 컨텍스트"
-        }
-      ],
-      "primaryKey": [
-        "STEP_EXECUTION_ID"
-      ],
-      "uniqueKeys": [],
-      "indexes": [],
-      "foreignKeys": [
-        {
-          "name": "STEP_EXEC_CTX_FK",
-          "columns": [
-            "STEP_EXECUTION_ID"
-          ],
-          "refTable": "BATCH_STEP_EXECUTION",
-          "refColumns": [
-            "STEP_EXECUTION_ID"
-          ],
-          "onDelete": null,
-          "onUpdate": null
-        }
-      ],
-      "checks": [],
-      "comment": "Spring Batch 표준 Step 컨텍스트 저장소",
-      "module": "bat",
-      "logicalDatabase": "batDB"
-    },
-    {
       "name": "bza_admin_user",
       "columns": [
         {
@@ -14926,6 +14928,69 @@
           "autoIncrement": false,
           "onUpdate": "CURRENT_TIMESTAMP",
           "comment": "수정일시"
+        },
+        {
+          "name": "request_hash",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "요청 payload canonical SHA-256"
+        },
+        {
+          "name": "result_access_token_enc",
+          "type": "LONGTEXT",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "재시도 결과 복구용 암호화 Access Token"
+        },
+        {
+          "name": "result_refresh_token_enc",
+          "type": "LONGTEXT",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "재시도 결과 복구용 암호화 Refresh Token"
+        },
+        {
+          "name": "result_refresh_expires_at",
+          "type": "DATETIME(3)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Refresh Token 만료 시각"
+        },
+        {
+          "name": "result_expires_at",
+          "type": "DATETIME(3)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Operation 결과 보존 만료 시각"
+        },
+        {
+          "name": "failure_code",
+          "type": "VARCHAR(80)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "실패 코드"
+        },
+        {
+          "name": "failure_message",
+          "type": "VARCHAR(500)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "마스킹된 실패 설명"
         }
       ],
       "primaryKey": [
@@ -14938,6 +15003,13 @@
           "columns": [
             "admin_user_id",
             "created_at"
+          ]
+        },
+        {
+          "name": "ix_bza_login_operation_expiry",
+          "columns": [
+            "operation_status",
+            "result_expires_at"
           ]
         }
       ],
@@ -14958,7 +15030,7 @@
       "checks": [
         {
           "name": "ck_bza_login_operation_status",
-          "expression": "operation_status IN ('PROCESSING','SUCCESS')"
+          "expression": "operation_status IN ('PROCESSING','SUCCESS','FAILED','UNKNOWN','EXPIRED')"
         }
       ],
       "comment": "BZA 로그인 멱등 처리 이력",
@@ -17592,6 +17664,91 @@
       "logicalDatabase": "cpfDB"
     },
     {
+      "name": "cpf_cache_refresh_checkpoint",
+      "columns": [
+        {
+          "name": "consumer_id",
+          "type": "VARCHAR(120)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "last_event_id",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "0",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "last_applied_at",
+          "type": "DATETIME(3)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "created_by",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": "'CPF'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "updated_by",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": "'CPF'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "autoIncrement": false,
+          "onUpdate": "CURRENT_TIMESTAMP",
+          "comment": ""
+        }
+      ],
+      "primaryKey": [
+        "consumer_id"
+      ],
+      "uniqueKeys": [],
+      "indexes": [
+        {
+          "name": "ix_cpf_cache_refresh_checkpoint_event",
+          "columns": [
+            "last_event_id"
+          ]
+        }
+      ],
+      "foreignKeys": [],
+      "checks": [],
+      "comment": "Cache durable replay consumer cursor",
+      "module": "cpf",
+      "logicalDatabase": "cpfDB"
+    },
+    {
       "name": "cpf_cache_refresh_event",
       "columns": [
         {
@@ -18513,6 +18670,133 @@
       "foreignKeys": [],
       "checks": [],
       "comment": "CPF 시스템 설정",
+      "module": "cpf",
+      "logicalDatabase": "cpfDB"
+    },
+    {
+      "name": "cpf_control_operation",
+      "columns": [
+        {
+          "name": "operation_id",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "command_type",
+          "type": "VARCHAR(80)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "request_hash",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "entity_id",
+          "type": "VARCHAR(100)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "result_state",
+          "type": "VARCHAR(30)",
+          "nullable": false,
+          "default": "'PROCESSING'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "result_json",
+          "type": "LONGTEXT",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "expires_at",
+          "type": "DATETIME(3)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "created_by",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": "'CPF'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "updated_by",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": "'CPF'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "autoIncrement": false,
+          "onUpdate": "CURRENT_TIMESTAMP",
+          "comment": ""
+        }
+      ],
+      "primaryKey": [
+        "operation_id"
+      ],
+      "uniqueKeys": [],
+      "indexes": [
+        {
+          "name": "ix_cpf_control_operation_expiry",
+          "columns": [
+            "result_state",
+            "expires_at"
+          ]
+        }
+      ],
+      "foreignKeys": [],
+      "checks": [
+        {
+          "name": "ck_cpf_control_operation_state",
+          "expression": "result_state IN ('PROCESSING','SUCCESS','FAILED','UNKNOWN','EXPIRED','CANCELLED')"
+        }
+      ],
+      "comment": "운영 명령 operationId fingerprint 및 결과 복구 ledger",
       "module": "cpf",
       "logicalDatabase": "cpfDB"
     },
@@ -20176,6 +20460,1582 @@
       "logicalDatabase": "cpfDB"
     },
     {
+      "name": "cpf_runtime_change",
+      "columns": [
+        {
+          "name": "change_id",
+          "type": "VARCHAR(80)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "operation_id",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "change_type",
+          "type": "VARCHAR(80)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "payload_schema_version",
+          "type": "INT",
+          "nullable": false,
+          "default": "1",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "request_hash",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "payload_hash",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "실제 payload canonical hash"
+        },
+        {
+          "name": "payload_json",
+          "type": "LONGTEXT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "rollback_payload_json",
+          "type": "LONGTEXT",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "target_snapshot_json",
+          "type": "LONGTEXT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "desired_version",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "rollout_mode",
+          "type": "VARCHAR(30)",
+          "nullable": false,
+          "default": "'ALL_AT_ONCE'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "wave_size",
+          "type": "INT",
+          "nullable": false,
+          "default": "100",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "quorum_percent",
+          "type": "INT",
+          "nullable": false,
+          "default": "100",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "change_state",
+          "type": "VARCHAR(30)",
+          "nullable": false,
+          "default": "'APPLYING'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "scheduled_at",
+          "type": "DATETIME(3)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "expires_at",
+          "type": "DATETIME(3)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "reason",
+          "type": "VARCHAR(1000)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "approval_id",
+          "type": "VARCHAR(100)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "break_glass_id",
+          "type": "VARCHAR(100)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "requested_by",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "created_by",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": "'CPF'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "updated_by",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": "'CPF'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "autoIncrement": false,
+          "onUpdate": "CURRENT_TIMESTAMP",
+          "comment": ""
+        }
+      ],
+      "primaryKey": [
+        "change_id"
+      ],
+      "uniqueKeys": [
+        {
+          "name": "ux_cpf_runtime_change_operation",
+          "columns": [
+            "operation_id"
+          ]
+        }
+      ],
+      "indexes": [
+        {
+          "name": "ux_cpf_runtime_change_operation",
+          "columns": [
+            "operation_id"
+          ]
+        },
+        {
+          "name": "ix_cpf_runtime_change_state",
+          "columns": [
+            "change_state",
+            "scheduled_at",
+            "expires_at"
+          ]
+        }
+      ],
+      "foreignKeys": [
+        {
+          "name": "fk_cpf_runtime_change_operation",
+          "columns": [
+            "operation_id"
+          ],
+          "refTable": "cpf_control_operation",
+          "refColumns": [
+            "operation_id"
+          ],
+          "onDelete": null,
+          "onUpdate": null
+        }
+      ],
+      "checks": [
+        {
+          "name": "ck_cpf_runtime_change_state",
+          "expression": "change_state IN ('SCHEDULED','APPLYING','PARTIAL','SUCCESS','FAILED','CANCELLED','EXPIRED','ROLLBACK_PENDING','ROLLED_BACK','SUPERSEDED','UNKNOWN_RESULT','RECOVERED')"
+        }
+      ],
+      "comment": "Runtime 변경 immutable target snapshot/desired state",
+      "module": "cpf",
+      "logicalDatabase": "cpfDB"
+    },
+    {
+      "name": "cpf_runtime_change_audit",
+      "columns": [
+        {
+          "name": "audit_id",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": true,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "change_id",
+          "type": "VARCHAR(80)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "event_type",
+          "type": "VARCHAR(60)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "actor_id",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "reason",
+          "type": "VARCHAR(500)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "evidence_hash",
+          "type": "VARCHAR(64)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "previous_hash",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "chain_hash",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "created_by",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": "'CPF'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        }
+      ],
+      "primaryKey": [
+        "audit_id"
+      ],
+      "uniqueKeys": [],
+      "indexes": [
+        {
+          "name": "ix_cpf_runtime_change_audit_change",
+          "columns": [
+            "change_id",
+            "audit_id"
+          ]
+        }
+      ],
+      "foreignKeys": [
+        {
+          "name": "fk_cpf_runtime_audit_change",
+          "columns": [
+            "change_id"
+          ],
+          "refTable": "cpf_runtime_change",
+          "refColumns": [
+            "change_id"
+          ],
+          "onDelete": "CASCADE",
+          "onUpdate": null
+        }
+      ],
+      "checks": [],
+      "comment": "Runtime Control immutable hash-chain audit",
+      "module": "cpf",
+      "logicalDatabase": "cpfDB"
+    },
+    {
+      "name": "cpf_runtime_delivery",
+      "columns": [
+        {
+          "name": "delivery_id",
+          "type": "VARCHAR(80)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "change_id",
+          "type": "VARCHAR(80)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "instance_id",
+          "type": "VARCHAR(120)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "sequence_no",
+          "type": "INT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "desired_version",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "delivery_state",
+          "type": "VARCHAR(30)",
+          "nullable": false,
+          "default": "'PENDING'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "attempt_no",
+          "type": "INT",
+          "nullable": false,
+          "default": "0",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "next_attempt_at",
+          "type": "DATETIME(3)",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP(3)",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "fencing_token",
+          "type": "BIGINT",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "claimed_at",
+          "type": "DATETIME(3)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "acknowledged_at",
+          "type": "DATETIME(3)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "actual_hash",
+          "type": "VARCHAR(64)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "error_code",
+          "type": "VARCHAR(80)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "error_message",
+          "type": "VARCHAR(900)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "created_by",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": "'CPF'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "updated_by",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": "'CPF'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "autoIncrement": false,
+          "onUpdate": "CURRENT_TIMESTAMP",
+          "comment": ""
+        }
+      ],
+      "primaryKey": [
+        "delivery_id"
+      ],
+      "uniqueKeys": [],
+      "indexes": [
+        {
+          "name": "ix_cpf_runtime_delivery_claim",
+          "columns": [
+            "instance_id",
+            "delivery_state",
+            "next_attempt_at",
+            "sequence_no"
+          ]
+        },
+        {
+          "name": "ix_cpf_runtime_delivery_change",
+          "columns": [
+            "change_id",
+            "delivery_state"
+          ]
+        }
+      ],
+      "foreignKeys": [
+        {
+          "name": "fk_cpf_runtime_delivery_change",
+          "columns": [
+            "change_id"
+          ],
+          "refTable": "cpf_runtime_change",
+          "refColumns": [
+            "change_id"
+          ],
+          "onDelete": "CASCADE",
+          "onUpdate": null
+        },
+        {
+          "name": "fk_cpf_runtime_delivery_instance",
+          "columns": [
+            "instance_id"
+          ],
+          "refTable": "cpf_service_instance",
+          "refColumns": [
+            "instance_id"
+          ],
+          "onDelete": "CASCADE",
+          "onUpdate": null
+        }
+      ],
+      "checks": [
+        {
+          "name": "ck_cpf_runtime_delivery_state",
+          "expression": "delivery_state IN ('PENDING','CLAIMED','ACKED','FAILED','POISONED','UNKNOWN_RESULT','RESTART_REQUIRED','CANCELLED','EXPIRED','SUPERSEDED')"
+        }
+      ],
+      "comment": "Runtime durable per-instance delivery inbox",
+      "module": "cpf",
+      "logicalDatabase": "cpfDB"
+    },
+    {
+      "name": "cpf_runtime_group_member",
+      "columns": [
+        {
+          "name": "group_id",
+          "type": "VARCHAR(80)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "instance_id",
+          "type": "VARCHAR(120)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "active_yn",
+          "type": "CHAR(1)",
+          "nullable": false,
+          "default": "'Y'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "created_by",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": "'CPF'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "updated_by",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": "'CPF'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "autoIncrement": false,
+          "onUpdate": "CURRENT_TIMESTAMP",
+          "comment": ""
+        }
+      ],
+      "primaryKey": [
+        "group_id",
+        "instance_id"
+      ],
+      "uniqueKeys": [],
+      "indexes": [
+        {
+          "name": "ix_cpf_runtime_group_member_instance",
+          "columns": [
+            "instance_id",
+            "active_yn"
+          ]
+        }
+      ],
+      "foreignKeys": [
+        {
+          "name": "fk_cpf_runtime_group_member_group",
+          "columns": [
+            "group_id"
+          ],
+          "refTable": "cpf_runtime_instance_group",
+          "refColumns": [
+            "group_id"
+          ],
+          "onDelete": "CASCADE",
+          "onUpdate": null
+        },
+        {
+          "name": "fk_cpf_runtime_group_member_instance",
+          "columns": [
+            "instance_id"
+          ],
+          "refTable": "cpf_service_instance",
+          "refColumns": [
+            "instance_id"
+          ],
+          "onDelete": "CASCADE",
+          "onUpdate": null
+        }
+      ],
+      "checks": [
+        {
+          "name": "ck_cpf_runtime_group_member_active",
+          "expression": "active_yn IN ('Y','N')"
+        }
+      ],
+      "comment": "Runtime Instance Group membership",
+      "module": "cpf",
+      "logicalDatabase": "cpfDB"
+    },
+    {
+      "name": "cpf_runtime_instance_group",
+      "columns": [
+        {
+          "name": "group_id",
+          "type": "VARCHAR(80)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "인스턴스 그룹 ID"
+        },
+        {
+          "name": "group_name",
+          "type": "VARCHAR(150)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "그룹명"
+        },
+        {
+          "name": "parent_group_id",
+          "type": "VARCHAR(80)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "상위 그룹 ID"
+        },
+        {
+          "name": "environment_code",
+          "type": "VARCHAR(40)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "description",
+          "type": "VARCHAR(500)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "active_yn",
+          "type": "CHAR(1)",
+          "nullable": false,
+          "default": "'Y'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "row_version",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "0",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "created_by",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": "'CPF'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "updated_by",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": "'CPF'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "autoIncrement": false,
+          "onUpdate": "CURRENT_TIMESTAMP",
+          "comment": ""
+        }
+      ],
+      "primaryKey": [
+        "group_id"
+      ],
+      "uniqueKeys": [],
+      "indexes": [
+        {
+          "name": "ix_cpf_runtime_group_parent",
+          "columns": [
+            "parent_group_id",
+            "active_yn"
+          ]
+        },
+        {
+          "name": "ix_cpf_runtime_group_env",
+          "columns": [
+            "environment_code",
+            "active_yn"
+          ]
+        }
+      ],
+      "foreignKeys": [
+        {
+          "name": "fk_cpf_runtime_group_parent",
+          "columns": [
+            "parent_group_id"
+          ],
+          "refTable": "cpf_runtime_instance_group",
+          "refColumns": [
+            "group_id"
+          ],
+          "onDelete": null,
+          "onUpdate": null
+        }
+      ],
+      "checks": [
+        {
+          "name": "ck_cpf_runtime_group_active",
+          "expression": "active_yn IN ('Y','N')"
+        }
+      ],
+      "comment": "Runtime Instance Group/Cell/Zone logical group",
+      "module": "cpf",
+      "logicalDatabase": "cpfDB"
+    },
+    {
+      "name": "cpf_runtime_instance_state",
+      "columns": [
+        {
+          "name": "instance_id",
+          "type": "VARCHAR(120)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "fencing_token",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "0",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "lease_until",
+          "type": "DATETIME(3)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "desired_version",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "0",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "actual_version",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "0",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "desired_hash",
+          "type": "VARCHAR(64)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "actual_hash",
+          "type": "VARCHAR(64)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "drift_state",
+          "type": "VARCHAR(30)",
+          "nullable": false,
+          "default": "'IN_SYNC'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "capabilities_json",
+          "type": "LONGTEXT",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "labels_json",
+          "type": "LONGTEXT",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "artifact_version",
+          "type": "VARCHAR(100)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "artifact_commit",
+          "type": "VARCHAR(64)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "실행 Artifact 기준 Commit"
+        },
+        {
+          "name": "runtime_role",
+          "type": "VARCHAR(40)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "APPLICATION/GATEWAY/BATCH/AGENT 등 Runtime 역할"
+        },
+        {
+          "name": "registration_source",
+          "type": "VARCHAR(120)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "배포/Discovery/Self registration identity source"
+        },
+        {
+          "name": "schema_version",
+          "type": "VARCHAR(100)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "config_hash",
+          "type": "VARCHAR(64)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "clock_skew_ms",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "0",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Agent-Controller clock skew milliseconds"
+        },
+        {
+          "name": "last_ack_change_id",
+          "type": "VARCHAR(80)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "last_ack_at",
+          "type": "DATETIME(3)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "heartbeat_at",
+          "type": "DATETIME(3)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "created_by",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": "'CPF'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "updated_by",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": "'CPF'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "autoIncrement": false,
+          "onUpdate": "CURRENT_TIMESTAMP",
+          "comment": ""
+        }
+      ],
+      "primaryKey": [
+        "instance_id"
+      ],
+      "uniqueKeys": [],
+      "indexes": [
+        {
+          "name": "ix_cpf_runtime_instance_lease",
+          "columns": [
+            "lease_until"
+          ]
+        },
+        {
+          "name": "ix_cpf_runtime_instance_drift",
+          "columns": [
+            "drift_state",
+            "heartbeat_at"
+          ]
+        }
+      ],
+      "foreignKeys": [
+        {
+          "name": "fk_cpf_runtime_instance_state_instance",
+          "columns": [
+            "instance_id"
+          ],
+          "refTable": "cpf_service_instance",
+          "refColumns": [
+            "instance_id"
+          ],
+          "onDelete": "CASCADE",
+          "onUpdate": null
+        }
+      ],
+      "checks": [
+        {
+          "name": "ck_cpf_runtime_instance_drift",
+          "expression": "drift_state IN ('IN_SYNC','PENDING','DRIFT','UNKNOWN','UNKNOWN_RESULT','PENDING_RESTART','EXCLUDED')"
+        }
+      ],
+      "comment": "Runtime desired/actual/lease/fencing 상태",
+      "module": "cpf",
+      "logicalDatabase": "cpfDB"
+    },
+    {
+      "name": "cpf_runtime_instance_feature_state",
+      "columns": [
+        {
+          "name": "instance_id",
+          "type": "VARCHAR(120)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "change_type",
+          "type": "VARCHAR(80)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "desired_version",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "0",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "actual_version",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "0",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "desired_hash",
+          "type": "VARCHAR(64)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "actual_hash",
+          "type": "VARCHAR(64)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "drift_state",
+          "type": "VARCHAR(30)",
+          "nullable": false,
+          "default": "'UNKNOWN'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "source_delivery_id",
+          "type": "VARCHAR(80)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "created_by",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": "'CPF'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "updated_by",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": "'CPF'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "autoIncrement": false,
+          "onUpdate": "CURRENT_TIMESTAMP",
+          "comment": ""
+        }
+      ],
+      "primaryKey": [
+        "instance_id",
+        "change_type"
+      ],
+      "uniqueKeys": [],
+      "indexes": [
+        {
+          "name": "ix_cpf_runtime_feature_drift",
+          "columns": [
+            "drift_state",
+            "change_type"
+          ]
+        },
+        {
+          "name": "ix_cpf_runtime_feature_delivery",
+          "columns": [
+            "source_delivery_id"
+          ]
+        }
+      ],
+      "foreignKeys": [
+        {
+          "name": "fk_cpf_runtime_feature_instance",
+          "columns": [
+            "instance_id"
+          ],
+          "refTable": "cpf_service_instance",
+          "refColumns": [
+            "instance_id"
+          ],
+          "onDelete": "CASCADE",
+          "onUpdate": null
+        }
+      ],
+      "checks": [
+        {
+          "name": "ck_cpf_runtime_feature_drift",
+          "expression": "drift_state IN ('IN_SYNC','PENDING','DRIFT','UNKNOWN','UNKNOWN_RESULT','PENDING_RESTART','EXCLUDED')"
+        }
+      ],
+      "comment": "Runtime Instance 기능별 desired/actual/drift 상태",
+      "module": "cpf",
+      "logicalDatabase": "cpfDB"
+    },
+    {
+      "name": "cpf_runtime_version",
+      "columns": [
+        {
+          "name": "version_key",
+          "type": "VARCHAR(40)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "버전 키"
+        },
+        {
+          "name": "version_no",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "0",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "현재 전역 버전"
+        },
+        {
+          "name": "created_by",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": "'CPF'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "updated_by",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": "'CPF'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "autoIncrement": false,
+          "onUpdate": "CURRENT_TIMESTAMP",
+          "comment": ""
+        }
+      ],
+      "primaryKey": [
+        "version_key"
+      ],
+      "uniqueKeys": [],
+      "indexes": [],
+      "foreignKeys": [],
+      "checks": [],
+      "comment": "Runtime Control Plane 단조 증가 버전",
+      "module": "cpf",
+      "logicalDatabase": "cpfDB"
+    },
+    {
+      "name": "cpf_runtime_controller_lease",
+      "columns": [
+        {
+          "name": "lease_key",
+          "type": "VARCHAR(60)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "holder_id",
+          "type": "VARCHAR(120)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "fencing_token",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "0",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "lease_until",
+          "type": "DATETIME(3)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "last_reconciled_at",
+          "type": "DATETIME(3)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "created_by",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": "'CPF'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "updated_by",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": "'CPF'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "autoIncrement": false,
+          "onUpdate": "CURRENT_TIMESTAMP",
+          "comment": ""
+        }
+      ],
+      "primaryKey": [
+        "lease_key"
+      ],
+      "uniqueKeys": [],
+      "indexes": [
+        {
+          "name": "ix_cpf_runtime_controller_lease_until",
+          "columns": [
+            "lease_until"
+          ]
+        }
+      ],
+      "foreignKeys": [],
+      "checks": [],
+      "comment": "Runtime Control Plane controller leader lease/fencing",
+      "module": "cpf",
+      "logicalDatabase": "cpfDB"
+    },
+    {
+      "name": "cpf_runtime_rate_bucket",
+      "columns": [
+        {
+          "name": "bucket_key",
+          "type": "VARCHAR(180)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "subject_id",
+          "type": "VARCHAR(120)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "window_start",
+          "type": "DATETIME(3)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "request_count",
+          "type": "INT",
+          "nullable": false,
+          "default": "0",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "created_by",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": "'CPF'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "updated_by",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": "'CPF'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": ""
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "autoIncrement": false,
+          "onUpdate": "CURRENT_TIMESTAMP",
+          "comment": ""
+        }
+      ],
+      "primaryKey": [
+        "bucket_key"
+      ],
+      "uniqueKeys": [],
+      "indexes": [
+        {
+          "name": "ix_cpf_runtime_rate_subject",
+          "columns": [
+            "subject_id",
+            "window_start"
+          ]
+        }
+      ],
+      "foreignKeys": [],
+      "checks": [
+        {
+          "name": "ck_cpf_runtime_rate_count",
+          "expression": "request_count >= 0"
+        }
+      ],
+      "comment": "Runtime Control Plane distributed per-minute rate bucket",
+      "module": "cpf",
+      "logicalDatabase": "cpfDB"
+    },
+    {
       "name": "cpf_saga_execution",
       "columns": [
         {
@@ -21060,6 +22920,15 @@
           "autoIncrement": false,
           "onUpdate": "CURRENT_TIMESTAMP",
           "comment": "수정일시"
+        },
+        {
+          "name": "row_version",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "0",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "낙관적 잠금 row version"
         }
       ],
       "primaryKey": [
@@ -21657,6 +23526,15 @@
           "autoIncrement": false,
           "onUpdate": "CURRENT_TIMESTAMP",
           "comment": "수정일시"
+        },
+        {
+          "name": "row_version",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "0",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "낙관적 잠금 row version"
         }
       ],
       "primaryKey": [
@@ -22021,6 +23899,78 @@
           "autoIncrement": false,
           "onUpdate": "CURRENT_TIMESTAMP",
           "comment": "수정일시"
+        },
+        {
+          "name": "environment_code",
+          "type": "VARCHAR(40)",
+          "nullable": false,
+          "default": "'default'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "배포 환경 코드"
+        },
+        {
+          "name": "zone_code",
+          "type": "VARCHAR(60)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "가용 영역/Zone 코드"
+        },
+        {
+          "name": "cell_code",
+          "type": "VARCHAR(60)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "운영 Cell 코드"
+        },
+        {
+          "name": "priority_no",
+          "type": "INT",
+          "nullable": false,
+          "default": "100",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "라우팅 우선순위(낮을수록 우선)"
+        },
+        {
+          "name": "maintenance_yn",
+          "type": "CHAR(1)",
+          "nullable": false,
+          "default": "'N'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "유지보수 제외 여부"
+        },
+        {
+          "name": "drain_yn",
+          "type": "CHAR(1)",
+          "nullable": false,
+          "default": "'N'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "신규 요청 Drain 여부"
+        },
+        {
+          "name": "drain_deadline_at",
+          "type": "DATETIME(3)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Drain 완료 목표 시각"
+        },
+        {
+          "name": "row_version",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "0",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Optimistic lock 버전"
         }
       ],
       "primaryKey": [
@@ -22042,6 +23992,27 @@
           "columns": [
             "endpoint_code",
             "weight"
+          ]
+        },
+        {
+          "name": "ix_cpf_service_instance_placement",
+          "columns": [
+            "environment_code",
+            "zone_code",
+            "cell_code",
+            "active_yn",
+            "instance_status"
+          ]
+        },
+        {
+          "name": "ix_cpf_service_instance_route",
+          "columns": [
+            "endpoint_code",
+            "priority_no",
+            "maintenance_yn",
+            "drain_yn",
+            "active_yn",
+            "instance_status"
           ]
         }
       ],
@@ -22071,7 +24042,20 @@
           "onUpdate": null
         }
       ],
-      "checks": [],
+      "checks": [
+        {
+          "name": "ck_cpf_service_instance_active",
+          "expression": "active_yn IN ('Y','N')"
+        },
+        {
+          "name": "ck_cpf_service_instance_maintenance",
+          "expression": "maintenance_yn IN ('Y','N')"
+        },
+        {
+          "name": "ck_cpf_service_instance_drain",
+          "expression": "drain_yn IN ('Y','N')"
+        }
+      ],
       "comment": "CPF 서비스 인스턴스 레지스트리",
       "module": "cpf",
       "logicalDatabase": "cpfDB"
@@ -24429,6 +26413,51 @@
           "comment": "감지 일시"
         },
         {
+          "name": "attempt_count",
+          "type": "INT",
+          "nullable": false,
+          "default": "0",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "자동 결과확인 시도 횟수"
+        },
+        {
+          "name": "next_check_at",
+          "type": "DATETIME(3)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "다음 자동 확인 예정 일시"
+        },
+        {
+          "name": "lease_owner",
+          "type": "VARCHAR(120)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Reconciliation claim 소유자"
+        },
+        {
+          "name": "lease_until",
+          "type": "DATETIME(3)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Reconciliation claim 만료 일시"
+        },
+        {
+          "name": "row_version",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "0",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Optimistic lock version"
+        },
+        {
           "name": "resolved_at",
           "type": "DATETIME(3)",
           "nullable": true,
@@ -24523,6 +26552,15 @@
           "name": "ix_cpf_unknown_result_external",
           "columns": [
             "external_key"
+          ]
+        },
+        {
+          "name": "ix_cpf_unknown_result_claim",
+          "columns": [
+            "unknown_status",
+            "next_check_at",
+            "lease_until",
+            "detected_at"
           ]
         }
       ],

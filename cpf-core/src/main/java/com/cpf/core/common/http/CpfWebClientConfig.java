@@ -1,6 +1,7 @@
 package com.cpf.core.common.http;
 
 import com.cpf.core.common.header.CpfHeaderPropagator;
+import com.cpf.core.api.http.CpfWebhookSignaturePort;
 import com.cpf.core.common.logging.file.CpfFileLogWriter;
 import com.cpf.core.common.servicecall.CpfServiceCallEngine;
 import com.cpf.core.common.workflow.CpfWorkflowContext;
@@ -42,6 +43,25 @@ import java.util.concurrent.TimeoutException;
 })
 public class CpfWebClientConfig {
 
+
+
+    @Bean
+    @ConditionalOnMissingBean
+    public CpfWebhookRuntimePolicy cpfWebhookRuntimePolicy() { return new CpfWebhookRuntimePolicy(); }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public CpfWebhookCallbackClient cpfWebhookCallbackClient(
+            CpfWebClient webClient,
+            CpfWebhookRuntimePolicy policy,
+            ObjectProvider<CpfWebhookSignaturePort> signatureProvider) {
+        return new CpfWebhookCallbackClient(webClient, policy, signatureProvider.getIfAvailable());
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public CpfApiClientRuntimePolicy cpfApiClientRuntimePolicy() { return new CpfApiClientRuntimePolicy(); }
+
     @Bean
     public CpfServiceEndpointRegistry cpfServiceEndpointRegistry(CpfServiceEndpointProperties properties) {
         return new CpfServiceEndpointRegistry(properties);
@@ -51,6 +71,7 @@ public class CpfWebClientConfig {
     public CpfWebClient cpfWebClient(
             CpfHttpClientProperties httpClientProperties,
             CpfServiceEndpointRegistry endpointRegistry,
+            CpfApiClientRuntimePolicy runtimePolicy,
             ObjectProvider<CpfFileLogWriter> fileLogWriterProvider,
             ObjectProvider<CpfServiceCallEngine> serviceCallEngineProvider,
             Environment environment) {
@@ -70,7 +91,7 @@ public class CpfWebClientConfig {
                 .filter(transactionHeaderPropagationFilter(CpfLocalServiceIdentity.from(environment)))
                 .filter(integrationFileLogFilter(fileLogWriterProvider));
 
-        return new CpfWebClient(builder, endpointRegistry, serviceCallEngineProvider);
+        return new CpfWebClient(builder, endpointRegistry, serviceCallEngineProvider, runtimePolicy);
     }
 
     @Bean

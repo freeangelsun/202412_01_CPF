@@ -1,0 +1,8 @@
+package com.cpf.core.common.http;
+import com.cpf.core.api.http.CpfWebhookSignaturePort;import com.cpf.core.common.servicecall.ServiceCallRequest;import java.util.*;
+/** operationId 멱등키와 선택 서명을 강제하는 CPF Webhook Callback Client입니다. */
+public final class CpfWebhookCallbackClient{
+ private final CpfWebClient webClient;private final CpfWebhookRuntimePolicy policy;private final CpfWebhookSignaturePort signaturePort;
+ public CpfWebhookCallbackClient(CpfWebClient webClient,CpfWebhookRuntimePolicy policy,CpfWebhookSignaturePort signaturePort){this.webClient=Objects.requireNonNull(webClient);this.policy=Objects.requireNonNull(policy);this.signaturePort=signaturePort;}
+ public <T>T send(String callbackId,String operationId,Object payload,Class<T>responseType){if(operationId==null||operationId.isBlank())throw new IllegalArgumentException("Webhook operationId 필수");var c=policy.require(callbackId);LinkedHashMap<String,String>headers=new LinkedHashMap<>();headers.put(c.idempotencyHeader(),operationId.trim());headers.put("X-Cpf-Webhook-Callback-Id",c.callbackId());if(!c.signatureRef().isBlank()){if(signaturePort==null)throw new IllegalStateException("Webhook signature adapter가 필요합니다.");String signature=signaturePort.sign(c.signatureRef(),operationId,payload);if(signature==null||signature.isBlank())throw new IllegalStateException("Webhook signature 생성 실패");headers.put("X-Cpf-Webhook-Signature",signature);}ServiceCallRequest request=new ServiceCallRequest(c.serviceId(),c.callbackId(),null,"POST",c.path(),c.timeoutMillis(),c.retryCount(),Map.copyOf(headers),Map.of("operationId",operationId,"callbackId",callbackId));return webClient.post(request,payload,responseType);}
+}

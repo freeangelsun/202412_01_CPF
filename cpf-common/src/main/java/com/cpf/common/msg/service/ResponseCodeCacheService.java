@@ -209,7 +209,7 @@ public class ResponseCodeCacheService extends com.cpf.common.common.base.CmnBase
     }
 
     private void publishRefreshEvent(String eventType, String eventKey, String requestUser) {
-        cacheRefreshEventPublisher.publishAfterCommit(CACHE_NAME, eventType, eventKey, requestUser);
+        cacheRefreshEventPublisher.publishRequired(CACHE_NAME, eventType, eventKey, requestUser);
     }
 
     private void normalize(CommonResponseCodeRequest request) {

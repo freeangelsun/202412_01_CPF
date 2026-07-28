@@ -1,0 +1,23 @@
+{
+  "generatedAt": "2026-07-28T02:40:24.063399+09:00",
+  "repository": "freeangelsun/202412_01_CPF",
+  "branch": "master",
+  "baselineSha": "ca3cf8a12290903cc482b5e092cdb43e6bf8f1eb",
+  "requirementCount": 1214,
+  "executionScenarioCount": 201,
+  "totalTrackingCount": 1415,
+  "files": {
+    "CPF_ENTERPRISE_FULL_QA_REQUEST_20260728.md": {
+      "sha256": "486518443f3696b12fd1866f9f5bf6e462cc148cd386de14aa4f00234effb619",
+      "bytes": 585777
+    },
+    "CPF_ENTERPRISE_FULL_QA_INVENTORY_20260728.csv": {
+      "sha256": "fdd523a421b083500c5b8b449d30e0deb587610e93b4f7bc5cb225ccb0c3fbf3",
+      "bytes": 536576
+    },
+    "CPF_ENTERPRISE_FULL_QA_EXECUTION_SCENARIOS_20260728.csv": {
+      "sha256": "c3384dd2671889dff92aa3958c51a7309c70d0d00d8e94c29ee96e0ed992ae76",
+      "bytes": 19482
+    }
+  }
+}

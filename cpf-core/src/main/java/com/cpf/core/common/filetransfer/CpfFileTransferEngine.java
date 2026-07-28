@@ -14,19 +14,35 @@ public class CpfFileTransferEngine {
     private final CpfFileTransferHistoryPort historyPort;
     private final CpfDuplicatePreventionPort duplicatePort;
     private final CpfReconciliationPort reconciliationPort;
+    private final CpfFileTransferRuntimeState runtimeState;
+    private final CpfFileInspectionPort inspectionPort;
 
     public CpfFileTransferEngine(
             CpfFileTransferPort transferPort,
             CpfFileTransferHistoryPort historyPort,
             CpfDuplicatePreventionPort duplicatePort,
             CpfReconciliationPort reconciliationPort) {
+        this(transferPort, historyPort, duplicatePort, reconciliationPort, new CpfFileTransferRuntimeState(), null);
+    }
+
+    public CpfFileTransferEngine(
+            CpfFileTransferPort transferPort,
+            CpfFileTransferHistoryPort historyPort,
+            CpfDuplicatePreventionPort duplicatePort,
+            CpfReconciliationPort reconciliationPort,
+            CpfFileTransferRuntimeState runtimeState,
+            CpfFileInspectionPort inspectionPort) {
         this.transferPort = Objects.requireNonNull(transferPort, "transferPort는 필수입니다.");
         this.historyPort = Objects.requireNonNull(historyPort, "historyPort는 필수입니다.");
         this.duplicatePort = Objects.requireNonNull(duplicatePort, "duplicatePort는 필수입니다.");
         this.reconciliationPort = reconciliationPort;
+        this.runtimeState = Objects.requireNonNull(runtimeState, "runtimeState는 필수입니다.");
+        this.inspectionPort = inspectionPort;
     }
 
     public CpfFileTransferResult execute(CpfFileTransferEndpoint endpoint, CpfFileTransferRequest request) {
+        CpfFileTransferEndpoint effectiveEndpoint = runtimeState.resolve(endpoint);
+        runtimeState.validate(request, inspectionPort);
         String duplicateKey = duplicateKey(request);
         if (duplicatePort.alreadyProcessed(request.endpointCode(), duplicateKey, request.checksum())) {
             return new CpfFileTransferResult(
@@ -41,7 +57,7 @@ public class CpfFileTransferEngine {
         }
 
         try {
-            CpfFileTransferResult result = transferPort.execute(endpoint, request);
+            CpfFileTransferResult result = transferPort.execute(effectiveEndpoint, request);
             persistResult(request, result);
             return result;
         } catch (CpfFileTransferUnknownResultException ex) {

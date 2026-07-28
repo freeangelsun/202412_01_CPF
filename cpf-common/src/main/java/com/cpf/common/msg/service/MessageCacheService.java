@@ -181,7 +181,7 @@ public class MessageCacheService extends com.cpf.common.common.base.CmnBaseServi
 
     private void recordFailure(RuntimeException ex) { lastRefreshFailure = ex.getClass().getSimpleName(); }
     private void publishRefreshEvent(String type, String key, String user) {
-        cacheRefreshEventPublisher.publishAfterCommit(CACHE_NAME, type, key, user);
+        cacheRefreshEventPublisher.publishRequired(CACHE_NAME, type, key, user);
     }
     private String eventKey(String messageKey, String locale) { return messageKey + ":" + locale; }
     private String mapValue(Map<String, Object> source, String camelKey, String snakeKey) {

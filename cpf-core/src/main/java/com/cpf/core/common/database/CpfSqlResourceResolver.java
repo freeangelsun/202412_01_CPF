@@ -25,7 +25,7 @@ import java.util.Set;
 public final class CpfSqlResourceResolver {
 
     private static final Set<String> SUPPORTED =
-            Set.of("mariadb", "mysql", "postgresql", "oracle", "sqlserver");
+            Set.of("mariadb", "postgresql", "oracle");
 
     private CpfSqlResourceResolver() {
     }

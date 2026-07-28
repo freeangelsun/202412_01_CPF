@@ -1,6 +1,7 @@
 package com.cpf.admin.opr.service;
 
 import com.cpf.core.api.servicecall.CpfServiceRegistryQueryPort;
+import com.cpf.core.api.servicecall.CpfServiceRegistryControlPort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,9 +15,11 @@ import java.util.Map;
 @Service
 public class AdmServiceRegistryService extends com.cpf.admin.common.base.AdmBaseService {
     private final CpfServiceRegistryQueryPort queryPort;
+    private final CpfServiceRegistryControlPort controlPort;
 
-    public AdmServiceRegistryService(CpfServiceRegistryQueryPort queryPort) {
+    public AdmServiceRegistryService(CpfServiceRegistryQueryPort queryPort, CpfServiceRegistryControlPort controlPort) {
         this.queryPort = queryPort;
+        this.controlPort = controlPort;
     }
 
     public List<Map<String, Object>> findServices(String serviceId, String useYn, int limit) {
@@ -46,4 +49,11 @@ public class AdmServiceRegistryService extends com.cpf.admin.common.base.AdmBase
     public List<Map<String, Object>> findCallHistory(String serviceId, String transactionId, int limit) {
         return queryPort.findCallHistory(serviceId, transactionId, limit);
     }
+    public Map<String,Object> saveService(CpfServiceRegistryControlPort.ServiceDefinition command){return controlPort.saveService(command);}
+    public Map<String,Object> saveEndpoint(CpfServiceRegistryControlPort.EndpointDefinition command){return controlPort.saveEndpoint(command);}
+    public Map<String,Object> saveInstance(CpfServiceRegistryControlPort.InstanceDefinition command){return controlPort.saveInstance(command);}
+    public void deleteService(String id,CpfServiceRegistryControlPort.DeleteCommand command){controlPort.deleteService(id,command);}
+    public void deleteEndpoint(String id,CpfServiceRegistryControlPort.DeleteCommand command){controlPort.deleteEndpoint(id,command);}
+    public void deleteInstance(String id,CpfServiceRegistryControlPort.DeleteCommand command){controlPort.deleteInstance(id,command);}
+
 }

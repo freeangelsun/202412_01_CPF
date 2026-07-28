@@ -2,7 +2,13 @@ package com.cpf.core.config;
 
 import com.cpf.core.api.database.CpfVendorSqlCatalogProvider;
 import com.cpf.core.common.database.CpfDataSourceResolver;
+import com.cpf.core.common.database.CpfJdbcReplicaHealthMonitor;
+import com.cpf.core.common.database.CpfReadRoutingRuntimePolicy;
+import com.cpf.core.common.database.CpfReadWriteRoutingDataSource;
+import com.cpf.core.common.database.CpfReplicaHealthMonitor;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
@@ -13,32 +19,67 @@ import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.naming.NamingException;
 import javax.sql.DataSource;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
-/**
- * CPF 프레임워크 메타 DB 연결을 구성합니다.
- *
- * <p>거래 로그, 거래 메타, 로그 정책, 캐시 이벤트, 배치 운영 메타처럼 프레임워크가
- * 직접 소유하는 데이터는 cpfDB에 저장합니다.</p>
- */
+/** CPF 메타 DB와 선택적 Primary/Replica routing을 구성합니다. */
 @Configuration
 public class CpfDataSourceConfig {
 
-    /**
-     * 외부 WAS JNDI와 embedded URL 모드가 같은 조회 계약을 사용하도록 JNDI 접근 객체를 제공합니다.
-     */
     @Bean(name = "cpfJndiTemplate")
-    public JndiTemplate cpfJndiTemplate() {
-        return new JndiTemplate();
-    }
+    public JndiTemplate cpfJndiTemplate() { return new JndiTemplate(); }
 
-    @Bean(name = "cpfDataSource")
-    public DataSource cpfDataSource(
+    @Bean(name = "cpfPrimaryDataSource")
+    public DataSource cpfPrimaryDataSource(
             Environment environment,
             @Qualifier("cpfJndiTemplate") JndiTemplate jndiTemplate) throws NamingException {
         return CpfDataSourceResolver.resolve(environment, "spring.datasource.cpf", jndiTemplate);
     }
 
-    /** Public SQL Catalog 계약과 Spring 기반 내부 Resource 로더를 연결합니다. */
+    @Bean(name = "cpfReplicaDataSource")
+    @ConditionalOnProperty(prefix = "cpf.db.read-routing", name = "enabled", havingValue = "true")
+    public DataSource cpfReplicaDataSource(
+            Environment environment,
+            @Qualifier("cpfJndiTemplate") JndiTemplate jndiTemplate) throws NamingException {
+        return CpfDataSourceResolver.resolve(environment, "spring.datasource.cpf.replica", jndiTemplate);
+    }
+
+    @Bean
+    public CpfReadRoutingRuntimePolicy cpfReadRoutingRuntimePolicy(Environment environment) {
+        CpfReadRoutingRuntimePolicy policy = new CpfReadRoutingRuntimePolicy();
+        policy.replace(
+                environment.getProperty("cpf.db.read-routing.enabled", Boolean.class, false),
+                environment.getProperty("cpf.db.read-routing.max-replica-lag-ms", Long.class, 5000L),
+                environment.getProperty("cpf.db.read-routing.read-after-write-ms", Long.class, 3000L));
+        return policy;
+    }
+
+    @Bean
+    @ConditionalOnProperty(prefix = "cpf.db.read-routing", name = "enabled", havingValue = "true")
+    public CpfReplicaHealthMonitor cpfReplicaHealthMonitor(
+            @Qualifier("cpfReplicaDataSource") DataSource replicaDataSource) {
+        return new CpfJdbcReplicaHealthMonitor(replicaDataSource);
+    }
+
+    @Bean(name = "cpfDataSource")
+    public DataSource cpfDataSource(
+            @Qualifier("cpfPrimaryDataSource") DataSource primary,
+            @Qualifier("cpfReplicaDataSource") ObjectProvider<DataSource> replicaProvider,
+            CpfReadRoutingRuntimePolicy policy,
+            ObjectProvider<CpfReplicaHealthMonitor> monitorProvider) {
+        DataSource replica = replicaProvider.getIfAvailable();
+        CpfReplicaHealthMonitor monitor = monitorProvider.getIfAvailable();
+        if (replica == null || monitor == null || !policy.current().enabled()) return primary;
+        CpfReadWriteRoutingDataSource routing = new CpfReadWriteRoutingDataSource(policy, monitor);
+        Map<Object, Object> targets = new LinkedHashMap<>();
+        targets.put("WRITE", primary);
+        targets.put("READ", replica);
+        routing.setTargetDataSources(targets);
+        routing.setDefaultTargetDataSource(primary);
+        routing.afterPropertiesSet();
+        return routing;
+    }
+
     @Bean
     public CpfVendorSqlCatalogProvider cpfVendorSqlCatalogProvider(Environment environment) {
         return moduleCode -> com.cpf.core.common.database.CpfVendorSqlCatalog.create(environment, moduleCode);
@@ -49,15 +90,6 @@ public class CpfDataSourceConfig {
         return new DataSourceTransactionManager(cpfDataSource);
     }
 
-    /**
-     * 모든 실행 모듈이 CPF 소유 메타를 같은 이름으로 접근하도록 공통 JDBC 객체를 제공합니다.
-     *
-     * <p>표준 실행 카탈로그, 거래 메타, 배치 관제, 서비스 레지스트리처럼 CPF가 소유하는
-     * 저장소는 업무 모듈이 별도 객체를 중복 선언하지 않고 이 bean을 사용합니다.</p>
-     *
-     * @param cpfDataSource CPF 메타 DB 연결
-     * @return CPF 메타 전용 JDBC 접근 객체
-     */
     @Bean(name = "cpfJdbcTemplate")
     public JdbcTemplate cpfJdbcTemplate(@Qualifier("cpfDataSource") DataSource cpfDataSource) {
         return new JdbcTemplate(cpfDataSource);

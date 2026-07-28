@@ -67,6 +67,7 @@ public class LoggingAspect {
     private final ApplicationEventPublisher eventPublisher;
     private final Environment environment;
     private final DynamicTransactionLogLevelService dynamicLogLevelService;
+    private final CpfTraceSamplingPolicy traceSamplingPolicy;
     private final CpfMessageResolver messageResolver;
     private final CpfResponseCodeResolver responseCodeResolver;
     private final ObjectProvider<LogPolicyResolver> logPolicyResolverProvider;
@@ -75,12 +76,14 @@ public class LoggingAspect {
             ApplicationEventPublisher eventPublisher,
             Environment environment,
             DynamicTransactionLogLevelService dynamicLogLevelService,
+            ObjectProvider<CpfTraceSamplingPolicy> traceSamplingPolicyProvider,
             ObjectProvider<CpfMessageResolver> messageResolverProvider,
             ObjectProvider<CpfResponseCodeResolver> responseCodeResolverProvider,
             ObjectProvider<LogPolicyResolver> logPolicyResolverProvider) {
         this.eventPublisher = eventPublisher;
         this.environment = environment;
         this.dynamicLogLevelService = dynamicLogLevelService;
+        this.traceSamplingPolicy = traceSamplingPolicyProvider.getIfAvailable(CpfTraceSamplingPolicy::new);
         this.messageResolver = messageResolverProvider.getIfAvailable(DefaultCpfMessageResolver::new);
         this.responseCodeResolver = responseCodeResolverProvider.getIfAvailable(DefaultCpfResponseCodeResolver::new);
         this.logPolicyResolverProvider = logPolicyResolverProvider;
@@ -236,7 +239,9 @@ public class LoggingAspect {
                     startTime,
                     endTime,
                     durationMs);
-            publishTransactionLog(record, details(record, transactionHeader, dynamicLogLevelRule, logPolicy), logPolicy);
+            boolean traceSampled = traceSamplingPolicy.shouldSample(
+                    transactionId, businessTransactionId, moduleId, true, dynamicLogLevelRule);
+            publishTransactionLog(record, details(record, transactionHeader, dynamicLogLevelRule, logPolicy, traceSampled), logPolicy);
 
             return result;
         } catch (Throwable ex) {
@@ -323,7 +328,9 @@ public class LoggingAspect {
                     startTime,
                     endTime,
                     durationMs);
-            publishTransactionLog(record, details(record, transactionHeader, dynamicLogLevelRule, logPolicy), logPolicy);
+            boolean traceSampled = traceSamplingPolicy.shouldSample(
+                    transactionId, businessTransactionId, moduleId, false, dynamicLogLevelRule);
+            publishTransactionLog(record, details(record, transactionHeader, dynamicLogLevelRule, logPolicy, traceSampled), logPolicy);
 
             throw ex;
         }
@@ -459,8 +466,20 @@ public class LoggingAspect {
             TransactionLogRecord record,
             TransactionHeader transactionHeader,
             DynamicLogLevelRule dynamicLogLevelRule,
-            LogPolicyDecision logPolicy) {
+            LogPolicyDecision logPolicy,
+            boolean traceSampled) {
         Map<String, String> details = new LinkedHashMap<>();
+        putDetail(details, "trace.sampled", traceSampled);
+        if (!traceSampled) {
+            putDetail(details, "transaction.id", record.getTransactionId());
+            putDetail(details, "trace.id", record.getTraceId());
+            putDetail(details, "span.id", record.getSpanId());
+            putDetail(details, "module.id", record.getModuleId());
+            putDetail(details, "business.transaction.id", record.getBusinessTransactionId());
+            putDetail(details, "transaction.status", record.getLogType());
+            putDetail(details, "duration.ms", record.getDurationMs());
+            return details;
+        }
         putDetail(details, "transaction.id", record.getTransactionId());
         putDetail(details, "trace.id", record.getTraceId());
         putDetail(details, "span.id", record.getSpanId());

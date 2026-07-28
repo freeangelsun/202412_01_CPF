@@ -1,176 +1,18 @@
 package com.cpf.core.common.attachment;
 
 import com.cpf.core.common.exception.CpfValidationException;
+import java.io.IOException;import java.nio.file.*;import java.security.*;import java.time.*;import java.util.*;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.LinkOption;
-import java.nio.file.Path;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.time.Clock;
-import java.time.Instant;
-import java.util.HexFormat;
-import java.util.Locale;
-import java.util.Set;
-import java.util.UUID;
-
-/**
- * 허용된 로컬 root 아래에만 첨부파일을 저장하는 기본 adapter입니다.
- *
- * <p>파일명·확장자·크기·경로 이탈·심볼릭 링크를 검증하고 저장 직후 SHA-256을 계산합니다.
- * 운영에서는 같은 port를 object storage 또는 보안 파일 서버 adapter로 교체할 수 있습니다.</p>
- */
-public class LocalCpfAttachmentStorageAdapter implements CpfAttachmentStoragePort {
-    private final Path root;
-    private final long maxBytes;
-    private final Set<String> allowedExtensions;
-    private final Clock clock;
-
-    public LocalCpfAttachmentStorageAdapter(Path root, long maxBytes, Set<String> allowedExtensions) {
-        this(root, maxBytes, allowedExtensions, Clock.systemUTC());
-    }
-
-    LocalCpfAttachmentStorageAdapter(Path root, long maxBytes, Set<String> allowedExtensions, Clock clock) {
-        if (root == null) {
-            throw new IllegalArgumentException("첨부파일 저장 root는 필수입니다.");
-        }
-        if (maxBytes < 1) {
-            throw new IllegalArgumentException("첨부파일 최대 크기는 1바이트 이상이어야 합니다.");
-        }
-        this.root = root.toAbsolutePath().normalize();
-        this.maxBytes = maxBytes;
-        this.allowedExtensions = allowedExtensions.stream()
-                .map(value -> value.toLowerCase(Locale.ROOT).replace(".", ""))
-                .collect(java.util.stream.Collectors.toUnmodifiableSet());
-        this.clock = clock;
-    }
-
-    @Override
-    public CpfStoredAttachment store(String groupId, String originalFileName, String contentType, byte[] content) {
-        String safeGroup = safeSegment(groupId, "groupId");
-        String safeName = safeFileName(originalFileName);
-        byte[] bytes = content == null ? new byte[0] : content.clone();
-        if (bytes.length == 0 || bytes.length > maxBytes) {
-            throw new CpfValidationException("첨부파일 크기가 허용 범위를 벗어났습니다. size=" + bytes.length);
-        }
-        String extension = extension(safeName);
-        if (!allowedExtensions.contains(extension)) {
-            throw new CpfValidationException("허용되지 않은 첨부파일 확장자입니다. extension=" + extension);
-        }
-
-        String storedName = UUID.randomUUID().toString().replace("-", "") + "." + extension;
-        Path groupRoot = resolveSafe(root.resolve(safeGroup));
-        Path target = resolveSafe(groupRoot.resolve(storedName));
-        try {
-            Files.createDirectories(groupRoot);
-            rejectSymbolicLink(root);
-            rejectSymbolicLink(groupRoot);
-            Files.write(target, bytes);
-            String checksum = sha256(bytes);
-            String storageKey = root.relativize(target).toString().replace('\\', '/');
-            return new CpfStoredAttachment(
-                    storageKey,
-                    safeName,
-                    storedName,
-                    normalizeContentType(contentType),
-                    bytes.length,
-                    checksum,
-                    Instant.now(clock));
-        } catch (IOException ex) {
-            throw new IllegalStateException("첨부파일 저장에 실패했습니다.", ex);
-        }
-    }
-
-    @Override
-    public CpfAttachmentContent read(String storageKey) {
-        Path target = resolveSafe(root.resolve(required(storageKey, "storageKey")));
-        rejectSymbolicLink(target);
-        try {
-            byte[] bytes = Files.readAllBytes(target);
-            if (bytes.length > maxBytes) {
-                throw new CpfValidationException("첨부파일 읽기 크기가 허용 범위를 벗어났습니다.");
-            }
-            return new CpfAttachmentContent(bytes, sha256(bytes));
-        } catch (IOException ex) {
-            throw new IllegalStateException("첨부파일 읽기에 실패했습니다.", ex);
-        }
-    }
-
-    @Override
-    public void delete(String storageKey) {
-        Path target = resolveSafe(root.resolve(required(storageKey, "storageKey")));
-        rejectSymbolicLink(target);
-        try {
-            Files.deleteIfExists(target);
-        } catch (IOException ex) {
-            throw new IllegalStateException("첨부파일 삭제에 실패했습니다.", ex);
-        }
-    }
-
-    private Path resolveSafe(Path candidate) {
-        Path normalized = candidate.toAbsolutePath().normalize();
-        if (!normalized.startsWith(root)) {
-            throw new CpfValidationException("첨부파일 저장 경로가 허용 root를 벗어났습니다.");
-        }
-        return normalized;
-    }
-
-    private void rejectSymbolicLink(Path path) {
-        if (Files.exists(path, LinkOption.NOFOLLOW_LINKS) && Files.isSymbolicLink(path)) {
-            throw new CpfValidationException("심볼릭 링크 경로에는 첨부파일을 저장하거나 읽을 수 없습니다.");
-        }
-    }
-
-    private String safeFileName(String value) {
-        String name = required(value, "originalFileName");
-        if (!Path.of(name).getFileName().toString().equals(name)
-                || name.contains("..")
-                || name.chars().anyMatch(Character::isISOControl)) {
-            throw new CpfValidationException("첨부파일 이름이 안전하지 않습니다.");
-        }
-        if (name.length() > 255) {
-            throw new CpfValidationException("첨부파일 이름은 255자를 초과할 수 없습니다.");
-        }
-        return name;
-    }
-
-    private String safeSegment(String value, String field) {
-        String segment = required(value, field);
-        if (!segment.matches("[A-Za-z0-9_-]{1,80}")) {
-            throw new CpfValidationException(field + "는 영문·숫자·밑줄·하이픈 80자 이하여야 합니다.");
-        }
-        return segment;
-    }
-
-    private String extension(String fileName) {
-        int index = fileName.lastIndexOf('.');
-        if (index < 1 || index == fileName.length() - 1) {
-            throw new CpfValidationException("첨부파일 확장자가 필요합니다.");
-        }
-        return fileName.substring(index + 1).toLowerCase(Locale.ROOT);
-    }
-
-    private String normalizeContentType(String value) {
-        String contentType = value == null || value.isBlank() ? "application/octet-stream" : value.trim();
-        if (contentType.length() > 120 || contentType.contains("\r") || contentType.contains("\n")) {
-            throw new CpfValidationException("첨부파일 Content-Type이 올바르지 않습니다.");
-        }
-        return contentType;
-    }
-
-    private String required(String value, String field) {
-        if (value == null || value.isBlank()) {
-            throw new CpfValidationException(field + " 값은 필수입니다.");
-        }
-        return value.trim();
-    }
-
-    private String sha256(byte[] bytes) {
-        try {
-            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(bytes));
-        } catch (NoSuchAlgorithmException ex) {
-            throw new IllegalStateException("SHA-256 알고리즘을 사용할 수 없습니다.", ex);
-        }
-    }
+/** Runtime Attachment/Download 정책을 실제 저장·읽기 경로에서 집행하는 로컬 Adapter입니다. */
+public class LocalCpfAttachmentStorageAdapter implements CpfAttachmentStoragePort{
+ private final Path root;private final Clock clock;private final CpfAttachmentRuntimePolicy policy;private final CpfAttachmentInspectionPort inspectionPort;private final CpfAttachmentWatermarkPort watermarkPort;
+ public LocalCpfAttachmentStorageAdapter(Path root,long maxBytes,Set<String>allowedExtensions){this(root,new CpfAttachmentRuntimePolicy(),null,null,Clock.systemUTC());this.policy.replaceAttachment(0,maxBytes,allowedExtensions,Set.of(),false,3650,true,false);}
+ public LocalCpfAttachmentStorageAdapter(Path root,CpfAttachmentRuntimePolicy policy,CpfAttachmentInspectionPort inspectionPort,CpfAttachmentWatermarkPort watermarkPort){this(root,policy,inspectionPort,watermarkPort,Clock.systemUTC());}
+ LocalCpfAttachmentStorageAdapter(Path root,CpfAttachmentRuntimePolicy policy,CpfAttachmentInspectionPort inspectionPort,CpfAttachmentWatermarkPort watermarkPort,Clock clock){if(root==null)throw new IllegalArgumentException("첨부파일 저장 root는 필수입니다.");this.root=root.toAbsolutePath().normalize();this.policy=Objects.requireNonNull(policy);this.inspectionPort=inspectionPort;this.watermarkPort=watermarkPort;this.clock=clock;}
+ @Override public CpfStoredAttachment store(String groupId,String originalFileName,String contentType,byte[]content){String group=safeSegment(groupId,"groupId");String name=safeFileName(originalFileName);byte[]bytes=content==null?new byte[0]:content.clone();var p=policy.current().upload();if(bytes.length==0||bytes.length>p.maxBytes())throw new CpfValidationException("첨부파일 크기 정책 위반");String ext=extension(name);if(!p.allowedExtensions().isEmpty()&&!p.allowedExtensions().contains(ext))throw new CpfValidationException("허용되지 않은 확장자");String mime=normalizeContentType(contentType);if(!p.allowedMimeTypes().isEmpty()&&!p.allowedMimeTypes().contains(mime.toLowerCase(Locale.ROOT)))throw new CpfValidationException("허용되지 않은 MIME");if(p.scanRequired()){if(inspectionPort==null)throw new CpfValidationException("첨부 scan adapter가 필요합니다.");var result=inspectionPort.inspect(name,mime,bytes,p.quarantineOnFailure());if(result==null||!result.accepted())throw new CpfValidationException("첨부 scan 거부");}String stored=UUID.randomUUID().toString().replace("-","")+"."+ext;Path dir=resolveSafe(root.resolve(group));Path target=resolveSafe(dir.resolve(stored));try{Files.createDirectories(dir);rejectSymbolicLink(root);rejectSymbolicLink(dir);Files.write(target,bytes,StandardOpenOption.CREATE_NEW);return new CpfStoredAttachment(root.relativize(target).toString().replace('\\','/'),name,stored,mime,bytes.length,sha256(bytes),Instant.now(clock));}catch(IOException ex){throw new IllegalStateException("첨부파일 저장 실패",ex);}}
+ @Override public CpfAttachmentContent read(String storageKey){Path target=resolveSafe(root.resolve(required(storageKey,"storageKey")));rejectSymbolicLink(target);var snapshot=policy.current();enforceDownload(snapshot.download());try{Instant modified=Files.getLastModifiedTime(target).toInstant();if(modified.plus(Duration.ofDays(snapshot.upload().retentionDays())).isBefore(Instant.now(clock))){Files.deleteIfExists(target);throw new CpfValidationException("첨부파일 보관기간이 만료되었습니다.");}byte[]bytes=Files.readAllBytes(target);if(bytes.length>snapshot.upload().maxBytes())throw new CpfValidationException("첨부파일 읽기 크기 정책 위반");if(snapshot.download().watermarkRequired()){if(watermarkPort==null)throw new CpfValidationException("watermark adapter가 필요합니다.");bytes=watermarkPort.apply(storageKey,bytes,CpfAttachmentDownloadContext.current());}return new CpfAttachmentContent(bytes,sha256(bytes));}catch(IOException ex){throw new IllegalStateException("첨부파일 읽기 실패",ex);}}
+ @Override public void delete(String storageKey){Path target=resolveSafe(root.resolve(required(storageKey,"storageKey")));rejectSymbolicLink(target);try{Files.deleteIfExists(target);}catch(IOException ex){throw new IllegalStateException("첨부파일 삭제 실패",ex);}}
+ private void enforceDownload(CpfAttachmentRuntimePolicy.Download p){if(!p.permissionRequired()&&!p.approvalRequired()&&!p.watermarkRequired())return;var c=CpfAttachmentDownloadContext.current();if(c==null)throw new CpfValidationException("다운로드 Context가 필요합니다.");if(p.permissionRequired()&&!c.permitted())throw new CpfValidationException("다운로드 권한이 없습니다.");if(p.approvalRequired()&&(c.approvalId()==null||c.approvalId().isBlank()))throw new CpfValidationException("다운로드 승인이 필요합니다.");Instant now=Instant.now(clock);if(c.expiresAt()!=null&&now.isAfter(c.expiresAt()))throw new CpfValidationException("다운로드 링크가 만료되었습니다.");if(Duration.between(c.requestedAt(),now).getSeconds()>p.linkExpirySeconds())throw new CpfValidationException("다운로드 요청이 만료되었습니다.");}
+ private Path resolveSafe(Path c){Path n=c.toAbsolutePath().normalize();if(!n.startsWith(root))throw new CpfValidationException("첨부 경로 이탈");return n;}private void rejectSymbolicLink(Path p){if(Files.exists(p,LinkOption.NOFOLLOW_LINKS)&&Files.isSymbolicLink(p))throw new CpfValidationException("심볼릭 링크 금지");}
+ private String safeFileName(String v){String n=required(v,"originalFileName");if(!Path.of(n).getFileName().toString().equals(n)||n.contains("..")||n.chars().anyMatch(Character::isISOControl)||n.length()>255)throw new CpfValidationException("안전하지 않은 파일명");return n;}private String safeSegment(String v,String f){String s=required(v,f);if(!s.matches("[A-Za-z0-9_-]{1,80}"))throw new CpfValidationException(f+" 형식 오류");return s;}private String extension(String n){int i=n.lastIndexOf('.');if(i<1||i==n.length()-1)throw new CpfValidationException("확장자 필요");return n.substring(i+1).toLowerCase(Locale.ROOT);}private String normalizeContentType(String v){String c=v==null||v.isBlank()?"application/octet-stream":v.trim();if(c.length()>120||c.contains("\r")||c.contains("\n"))throw new CpfValidationException("Content-Type 오류");return c;}private String required(String v,String f){if(v==null||v.isBlank())throw new CpfValidationException(f+" 필수");return v.trim();}private String sha256(byte[]b){try{return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(b));}catch(NoSuchAlgorithmException e){throw new IllegalStateException(e);}}
 }

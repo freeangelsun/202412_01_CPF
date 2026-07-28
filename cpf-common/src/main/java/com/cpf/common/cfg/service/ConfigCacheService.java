@@ -164,7 +164,7 @@ public class ConfigCacheService extends com.cpf.common.common.base.CmnBaseServic
 
     private void recordFailure(RuntimeException ex) { lastRefreshFailure = ex.getClass().getSimpleName(); }
     private void publishRefreshEvent(String type, String key, String user) {
-        cacheRefreshEventPublisher.publishAfterCommit(CACHE_NAME, type, key, user);
+        cacheRefreshEventPublisher.publishRequired(CACHE_NAME, type, key, user);
     }
     private String mapValue(Map<String, Object> source, String camelKey, String snakeKey) {
         Object value = source.get(camelKey);

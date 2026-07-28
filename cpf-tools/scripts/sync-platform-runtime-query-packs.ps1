@@ -246,6 +246,17 @@ foreach ($module in $modules) {
                 ForEach-Object { $_.BaseName }
         )
         $unexpectedKeys = @($actualKeys | Where-Object { $_ -notin $keys })
+        if (-not $Check -and $unexpectedKeys.Count -gt 0) {
+            foreach ($staleKey in $unexpectedKeys) {
+                Remove-Item -LiteralPath (Join-Path $targetRoot "$staleKey.sql") -Force
+                Write-Host "Removed stale Platform Runtime SQL: module=$moduleCode vendor=$vendor key=$staleKey"
+            }
+            $actualKeys = @(
+                Get-ChildItem -LiteralPath $targetRoot -File -Filter "*.sql" |
+                    ForEach-Object { $_.BaseName }
+            )
+            $unexpectedKeys = @($actualKeys | Where-Object { $_ -notin $keys })
+        }
         $missingKeys = @($keys | Where-Object { $_ -notin $actualKeys })
         if ($unexpectedKeys.Count -gt 0 -or $missingKeys.Count -gt 0) {
             throw (

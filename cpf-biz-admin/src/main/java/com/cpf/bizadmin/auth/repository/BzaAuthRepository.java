@@ -126,20 +126,21 @@ public class BzaAuthRepository {
     public record BootstrapResult(long adminUserId,String loginId,String operationId,boolean created) {}
 
 
-    /** 로그인 operationId를 성공 Transaction 안에서 먼저 등록해 동시 재시도를 직렬화합니다. */
-    public boolean insertLoginOperation(String operationId, long adminUserId, String loginId) {
+    /** 로그인 operationId와 canonical request fingerprint를 먼저 등록해 동시 재시도를 직렬화합니다. */
+    public boolean insertLoginOperation(String operationId, long adminUserId, String loginId, String requestHash) {
         try {
             jdbc().update(sql.required("auth-login-operation-insert"), new MapSqlParameterSource()
                     .addValue("operationId", requireText(operationId, "operationId"))
                     .addValue("adminUserId", adminUserId)
-                    .addValue("loginId", requireText(loginId, "loginId")));
+                    .addValue("loginId", requireText(loginId, "loginId"))
+                    .addValue("requestHash", requireText(requestHash, "requestHash")));
             return true;
         } catch (DuplicateKeyException duplicate) {
             return false;
         }
     }
 
-    /** 동일 operationId의 로그인 처리 상태를 row lock으로 조회합니다. */
+    /** 동일 operationId의 로그인 처리 상태와 암호화된 최초 결과를 row lock으로 조회합니다. */
     public Optional<LoginOperationState> lockLoginOperation(String operationId) {
         List<Map<String,Object>> rows = jdbc().queryForList(sql.required("auth-login-operation-lock"),
                 new MapSqlParameterSource("operationId", requireText(operationId, "operationId")));
@@ -147,21 +148,46 @@ public class BzaAuthRepository {
                 String.valueOf(row.get("operationId")),
                 ((Number) row.get("adminUserId")).longValue(),
                 String.valueOf(row.get("loginId")),
-                String.valueOf(row.get("status"))));
+                String.valueOf(row.get("requestHash")),
+                String.valueOf(row.get("status")),
+                nullableText(row.get("resultAccessTokenEnc")),
+                nullableText(row.get("resultRefreshTokenEnc")),
+                toInstant(row.get("resultRefreshExpiresAt")),
+                toInstant(row.get("resultExpiresAt")),
+                nullableText(row.get("failureCode")),
+                nullableText(row.get("failureMessage"))));
     }
 
-    public void markLoginOperationSuccess(String operationId) {
-        jdbc().update(sql.required("auth-login-operation-success"),
-                new MapSqlParameterSource("operationId", requireText(operationId, "operationId")));
+    /** 최초 성공 결과를 암호문으로 보존해 response-loss 재시도에서 동일 결과를 replay합니다. */
+    public void markLoginOperationSuccess(
+            String operationId,
+            String resultAccessTokenEnc,
+            String resultRefreshTokenEnc,
+            Instant refreshExpireAt,
+            Instant resultExpireAt) {
+        int updated = jdbc().update(sql.required("auth-login-operation-success"), new MapSqlParameterSource()
+                .addValue("operationId", requireText(operationId, "operationId"))
+                .addValue("resultAccessTokenEnc", requireText(resultAccessTokenEnc, "resultAccessTokenEnc"))
+                .addValue("resultRefreshTokenEnc", requireText(resultRefreshTokenEnc, "resultRefreshTokenEnc"))
+                .addValue("resultRefreshExpiresAt", Timestamp.from(refreshExpireAt))
+                .addValue("resultExpiresAt", Timestamp.from(resultExpireAt)));
+        if (updated != 1) {
+            throw new IllegalStateException("BZA 로그인 operation 성공 결과 저장에 실패했습니다. operationId=" + operationId);
+        }
     }
 
-    /** 결과불명 로그인 재시도 시 같은 operationId가 만든 기존 refresh session을 먼저 폐기합니다. */
-    public void revokeRefreshTokensByLoginOperationId(String operationId) {
-        jdbc().update(sql.required("auth-revoke-refresh-by-login-operation"),
-                new MapSqlParameterSource("operationId", requireText(operationId, "operationId")));
-    }
-
-    public record LoginOperationState(String operationId, long adminUserId, String loginId, String status) {}
+    public record LoginOperationState(
+            String operationId,
+            long adminUserId,
+            String loginId,
+            String requestHash,
+            String status,
+            String resultAccessTokenEnc,
+            String resultRefreshTokenEnc,
+            Instant resultRefreshExpiresAt,
+            Instant resultExpiresAt,
+            String failureCode,
+            String failureMessage) {}
 
     /**
      * 비밀번호 실패 횟수를 증가시킵니다.
@@ -350,6 +376,18 @@ public class BzaAuthRepository {
         String[] profiles = environment.getActiveProfiles();
         if (profiles.length == 0) return "ALL";
         return profiles[0].trim().toUpperCase();
+    }
+
+
+    private static String nullableText(Object value) {
+        return value == null ? null : String.valueOf(value);
+    }
+
+    private static Instant toInstant(Object value) {
+        if (value == null) return null;
+        if (value instanceof Timestamp timestamp) return timestamp.toInstant();
+        if (value instanceof java.util.Date date) return date.toInstant();
+        return Instant.parse(String.valueOf(value));
     }
 
     private NamedParameterJdbcTemplate jdbc() {

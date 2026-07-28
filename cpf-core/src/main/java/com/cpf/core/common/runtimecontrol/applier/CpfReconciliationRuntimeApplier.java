@@ -1,0 +1,8 @@
+package com.cpf.core.common.runtimecontrol.applier;
+import com.cpf.core.api.runtimecontrol.*;import com.cpf.core.common.reconciliation.CpfReconciliationRuntimePolicy;import java.util.*;
+public final class CpfReconciliationRuntimeApplier implements CpfRuntimeChangeApplier{
+ private final CpfReconciliationRuntimePolicy policy;public CpfReconciliationRuntimeApplier(CpfReconciliationRuntimePolicy policy){this.policy=policy;}
+ public String changeType(){return "RECONCILIATION";}public boolean supportsIdempotentReplay(){return true;}public boolean snapshotCapable(){return true;}
+ public CpfRuntimeApplyResult apply(CpfRuntimeDelivery d){try{Map<String,Object>p=d.payload();policy.replace(d.desiredVersion(),bool(p,"enabled",true),num(p.get("queryIntervalMillis"),30000),(int)num(p.get("thresholdSeconds"),60),(int)num(p.get("batchSize"),100),(int)num(p.get("leaseSeconds"),60),bool(p,"manualResolutionRequired",true),set(p.get("unknownTypes")));return CpfRuntimeApplyResult.success(d.payloadHash());}catch(RuntimeException e){return CpfRuntimeApplyResult.failure("RECONCILIATION_INVALID","Reconciliation query interval/threshold/manual resolution 정책 오류");}}
+ private boolean bool(Map<String,Object>m,String k,boolean f){Object v=m.get(k);return v instanceof Boolean b?b:v==null?f:Boolean.parseBoolean(String.valueOf(v));}private long num(Object v,long f){return v instanceof Number n?n.longValue():v==null?f:Long.parseLong(String.valueOf(v));}private Set<String>set(Object v){if(!(v instanceof List<?>l))return Set.of();LinkedHashSet<String>s=new LinkedHashSet<>();for(Object x:l)if(x!=null)s.add(String.valueOf(x));return Set.copyOf(s);}
+}

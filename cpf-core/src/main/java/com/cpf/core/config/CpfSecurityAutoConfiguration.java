@@ -8,6 +8,7 @@ import com.cpf.core.common.execution.CpfExecutionCatalogRepository;
 import com.cpf.core.common.execution.CpfExecutionCatalogScanner;
 import com.cpf.core.common.security.password.CpfPasswordHashingPort;
 import com.cpf.core.common.security.password.CpfPbkdf2PasswordHasher;
+import com.cpf.core.common.security.password.CpfPasswordRuntimePolicy;
 import com.cpf.core.common.logging.file.CpfFileLogWriter;
 import com.cpf.core.common.remotelog.CpfRemoteLogArtifactPort;
 import com.cpf.core.common.remotelog.CpfRemoteLogBundleJobPort;
@@ -32,6 +33,12 @@ import org.springframework.jdbc.core.JdbcTemplate;
 /** CPF 보안과 표준 실행 catalog 공통 capability 자동 구성입니다. */
 @AutoConfiguration
 public class CpfSecurityAutoConfiguration {
+
+    @Bean
+    @ConditionalOnMissingBean
+    public CpfPasswordRuntimePolicy cpfPasswordRuntimePolicy() {
+        return new CpfPasswordRuntimePolicy();
+    }
 
     @Bean
     @ConditionalOnMissingBean

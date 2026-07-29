@@ -1,0 +1,13 @@
+cpf:
+  local:
+    runtime:
+      minimum-max-memory-mb: 1024
+    modules:
+      core: true
+      common: true
+      gateway: true
+      admin: true
+      biz-admin: true
+      domains:
+        enabled: true
+        base-packages: ${CPF_LOCAL_DOMAIN_PACKAGES:com.cpf.reference}

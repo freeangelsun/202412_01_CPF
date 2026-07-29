@@ -1,0 +1,7 @@
+cpf:
+  local:
+    simulators:
+      redis: { enabled: false, provider: EXTERNAL }
+      broker: { enabled: false, provider: EXTERNAL }
+      external: { enabled: false, provider: EXTERNAL }
+      file-transfer: { enabled: false, provider: EXTERNAL }

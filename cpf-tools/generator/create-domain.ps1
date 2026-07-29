@@ -364,8 +364,8 @@ if (-not [string]::IsNullOrWhiteSpace($Capabilities)) {
 }
 $DataSourceJndiName = "java:comp/env/jdbc/cpf${ModuleName}DataSource"
 $ModuleClassName = $ModuleName
-$FeaturePackage = "$BasePackage.reference"
-$FeatureClassPrefix = "${ModuleName}Reference"
+$FeaturePackage = "$BasePackage.sampleitem"
+$FeatureClassPrefix = "${ModuleName}"
 if ([string]::IsNullOrWhiteSpace($OutputDir)) {
     $OutputDir = if ($Apply) {
         Join-Path $Root $projectName
@@ -624,102 +624,80 @@ $controller = @"
 package $FeaturePackage.controller;
 
 $([string]::Concat('import ', $BasePackage, '.common.base.', $ModuleClassName, 'BaseController;'))
-import $FeaturePackage.dto.${FeatureClassPrefix}SampleCommand;
-import $FeaturePackage.dto.${FeatureClassPrefix}SearchRequest;
-import com.cpf.core.api.page.CpfSlice;
+import $FeaturePackage.dto.*;
 import $FeaturePackage.facade.${FeatureClassPrefix}Facade;
 import $FeaturePackage.validation.${FeatureClassPrefix}SearchValidator;
 import com.cpf.core.api.error.CpfValidationException;
 import com.cpf.core.api.execution.CpfOnlineTransaction;
+import com.cpf.core.api.page.CpfSlice;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
 import java.util.Objects;
 
-/**
- * ${ModuleName} Golden Generated Domain 참조 API입니다.
- *
- * <p>transactionId, idempotencyKey, 표준 채널/사용자 Header, tracing과 공통 오류 변환은
- * cpf-core Filter/Context/Exception 계층이 처리합니다. 업무 Controller는 이를 Body에 중복으로
- * 받거나 직접 생성하지 않고 업무 입력 검증과 Facade 위임만 수행합니다.</p>
- */
+/** Generated Domain의 Typed Sample Item API입니다. */
 @RestController
-@RequestMapping("/api/v1/$module/reference")
-@Tag(name = "$ModuleUpper 생성 참조", description = "Generated Domain 공통 CRUD/Search/Paging/Validation/Transaction 참조 API")
+@RequestMapping("/api/v1/$module/sample-items")
+@Tag(name = "$ModuleUpper Sample Item", description = "Generated Domain Typed CRUD/Search/Paging API")
 public class ${FeatureClassPrefix}Controller extends ${ModuleClassName}BaseController {
     private final ${FeatureClassPrefix}Facade facade;
     private final ${FeatureClassPrefix}SearchValidator validator;
 
-    public ${FeatureClassPrefix}Controller(
-            ${FeatureClassPrefix}Facade facade,
-            ${FeatureClassPrefix}SearchValidator validator) {
+    public ${FeatureClassPrefix}Controller(${FeatureClassPrefix}Facade facade, ${FeatureClassPrefix}SearchValidator validator) {
         this.facade = Objects.requireNonNull(facade, "facade는 필수입니다.");
         this.validator = Objects.requireNonNull(validator, "validator는 필수입니다.");
     }
 
     @GetMapping
     @CpfOnlineTransaction(id = "O${DomainIdCode}QY0001", name = "${ModuleName}Search", ownerDomain = "$DomainIdCode")
-    @Operation(operationId = "search${ModuleName}Reference", summary = "생성 참조 목록 조회",
-            description = "검색어, 페이징, 정렬 whitelist를 적용해 목록을 조회합니다.")
-    public ResponseEntity<Map<String, Object>> search(${FeatureClassPrefix}SearchRequest request) {
+    @Operation(operationId = "search${ModuleName}SampleItems", summary = "Sample Item 목록 조회")
+    public ResponseEntity<${FeatureClassPrefix}SearchResult> search(${FeatureClassPrefix}SearchRequest request) {
         validator.validate(request);
         return ok(facade.search(request));
     }
 
-    @PostMapping("/sample-items")
+    @PostMapping
     @CpfOnlineTransaction(id = "O${DomainIdCode}IN0001", name = "${ModuleName}Create", ownerDomain = "$DomainIdCode")
-    @Operation(operationId = "create${ModuleName}SampleItem", summary = "Generated Domain Sample 등록",
-            description = "transactionId/idempotencyKey는 표준 Header에서 Core가 수집합니다.")
-    public ResponseEntity<Map<String, Object>> create(@RequestBody ${FeatureClassPrefix}SampleCommand command) {
+    @Operation(operationId = "create${ModuleName}SampleItem", summary = "Sample Item 등록")
+    public ResponseEntity<${FeatureClassPrefix}SampleItem> create(@RequestBody ${FeatureClassPrefix}SampleCommand command) {
         return ok(facade.create(command));
     }
 
-    @GetMapping("/sample-items/{sampleKey}")
+    @GetMapping("/{sampleKey}")
     @CpfOnlineTransaction(id = "O${DomainIdCode}QY0002", name = "${ModuleName}Find", ownerDomain = "$DomainIdCode")
-    @Operation(operationId = "find${ModuleName}SampleItem", summary = "Generated Domain Sample 단건 조회")
-    public ResponseEntity<Map<String, Object>> findBySampleKey(@PathVariable String sampleKey) {
+    @Operation(operationId = "find${ModuleName}SampleItem", summary = "Sample Item 단건 조회")
+    public ResponseEntity<${FeatureClassPrefix}SampleItem> findBySampleKey(@PathVariable String sampleKey) {
         return ok(facade.findBySampleKey(sampleKey)
                 .orElseThrow(() -> new CpfValidationException("Sample Item을 찾을 수 없습니다.")));
     }
 
-    @PostMapping("/sample-items/{sampleItemId}/update")
+    @PostMapping("/{sampleItemId}/update")
     @CpfOnlineTransaction(id = "O${DomainIdCode}UP0001", name = "${ModuleName}Update", ownerDomain = "$DomainIdCode")
-    @Operation(operationId = "update${ModuleName}SampleItem", summary = "낙관적 잠금 Sample 수정")
-    public ResponseEntity<Map<String, Object>> update(
-            @PathVariable long sampleItemId,
-            @RequestBody ${FeatureClassPrefix}SampleCommand command) {
+    @Operation(operationId = "update${ModuleName}SampleItem", summary = "낙관적 잠금 Sample Item 수정")
+    public ResponseEntity<${FeatureClassPrefix}SampleItem> update(
+            @PathVariable long sampleItemId, @RequestBody ${FeatureClassPrefix}SampleCommand command) {
         return ok(facade.update(sampleItemId, command));
     }
 
-    @PostMapping("/sample-items/{sampleItemId}/delete")
+    @PostMapping("/{sampleItemId}/delete")
     @CpfOnlineTransaction(id = "O${DomainIdCode}DL0001", name = "${ModuleName}Delete", ownerDomain = "$DomainIdCode")
-    @Operation(operationId = "delete${ModuleName}SampleItem", summary = "낙관적 잠금 Sample 논리 삭제")
-    public ResponseEntity<Map<String, Object>> delete(
-            @PathVariable long sampleItemId,
-            @RequestBody Map<String, Object> request) {
-        Object rawVersion = request.get("expectedVersion");
-        if (!(rawVersion instanceof Number version)) {
-            throw new CpfValidationException("expectedVersion은 필수입니다.");
-        }
-        facade.delete(sampleItemId, version.longValue());
-        return ok(Map.of("deleted", true, "sampleItemId", sampleItemId));
+    @Operation(operationId = "delete${ModuleName}SampleItem", summary = "낙관적 잠금 Sample Item 논리 삭제")
+    public ResponseEntity<${FeatureClassPrefix}DeleteResult> delete(
+            @PathVariable long sampleItemId, @RequestBody ${FeatureClassPrefix}DeleteCommand command) {
+        return ok(facade.delete(sampleItemId, command));
     }
 
-    @GetMapping("/sample-items/cursor")
+    @GetMapping("/cursor")
     @CpfOnlineTransaction(id = "O${DomainIdCode}QY0003", name = "${ModuleName}Cursor", ownerDomain = "$DomainIdCode")
-    @Operation(operationId = "cursor${ModuleName}SampleItems", summary = "Cursor/Slice 조회")
-    public ResponseEntity<CpfSlice<Map<String,Object>>> cursor(
-            @RequestParam(required = false) Long afterId,
-            @RequestParam(defaultValue = "20") int size) {
+    public ResponseEntity<CpfSlice<${FeatureClassPrefix}SampleItem>> cursor(
+            @RequestParam(required = false) Long afterId, @RequestParam(defaultValue = "20") int size) {
         return ok(facade.cursor(afterId, size));
     }
 
-    @PostMapping("/sample-items/rollback-verify")
+    @PostMapping("/rollback-verify")
     @CpfOnlineTransaction(id = "O${DomainIdCode}TX0001", name = "${ModuleName}Rollback", ownerDomain = "$DomainIdCode")
-    @Operation(operationId = "rollback${ModuleName}SampleItem", summary = "Transaction rollback 검증")
     public ResponseEntity<Boolean> verifyRollback(@RequestBody ${FeatureClassPrefix}SampleCommand command) {
         return ok(facade.verifyRollback(command));
     }
@@ -730,31 +708,24 @@ $facade = @"
 package $FeaturePackage.facade;
 
 $([string]::Concat('import ', $BasePackage, '.common.contract.', $ModuleClassName, 'ApplicationFacade;'))
-import $FeaturePackage.dto.${FeatureClassPrefix}SampleCommand;
-import $FeaturePackage.dto.${FeatureClassPrefix}SearchRequest;
+import $FeaturePackage.dto.*;
 import com.cpf.core.api.page.CpfSlice;
 import $FeaturePackage.service.${FeatureClassPrefix}Service;
 import org.springframework.stereotype.Component;
-
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-/** Controller와 업무 서비스를 분리하는 생성형 Domain 진입 Facade입니다. */
+/** Controller와 업무 서비스를 분리하는 Generated Domain 진입 Facade입니다. */
 @Component
 public class ${FeatureClassPrefix}Facade implements ${ModuleClassName}ApplicationFacade {
     private final ${FeatureClassPrefix}Service service;
-
-    public ${FeatureClassPrefix}Facade(${FeatureClassPrefix}Service service) {
-        this.service = Objects.requireNonNull(service, "service는 필수입니다.");
-    }
-
-    public Map<String, Object> search(${FeatureClassPrefix}SearchRequest request) { return service.search(request); }
-    public Map<String, Object> create(${FeatureClassPrefix}SampleCommand command) { return service.create(command); }
-    public Optional<Map<String, Object>> findBySampleKey(String sampleKey) { return service.findBySampleKey(sampleKey); }
-    public Map<String, Object> update(long sampleItemId, ${FeatureClassPrefix}SampleCommand command) { return service.update(sampleItemId, command); }
-    public void delete(long sampleItemId, long expectedVersion) { service.delete(sampleItemId, expectedVersion); }
-    public CpfSlice<Map<String,Object>> cursor(Long afterId, int size) { return service.cursor(afterId, size); }
+    public ${FeatureClassPrefix}Facade(${FeatureClassPrefix}Service service) { this.service = Objects.requireNonNull(service); }
+    public ${FeatureClassPrefix}SearchResult search(${FeatureClassPrefix}SearchRequest request) { return service.search(request); }
+    public ${FeatureClassPrefix}SampleItem create(${FeatureClassPrefix}SampleCommand command) { return service.create(command); }
+    public Optional<${FeatureClassPrefix}SampleItem> findBySampleKey(String sampleKey) { return service.findBySampleKey(sampleKey); }
+    public ${FeatureClassPrefix}SampleItem update(long sampleItemId, ${FeatureClassPrefix}SampleCommand command) { return service.update(sampleItemId, command); }
+    public ${FeatureClassPrefix}DeleteResult delete(long sampleItemId, ${FeatureClassPrefix}DeleteCommand command) { return service.delete(sampleItemId, command); }
+    public CpfSlice<${FeatureClassPrefix}SampleItem> cursor(Long afterId, int size) { return service.cursor(afterId, size); }
     public boolean verifyRollback(${FeatureClassPrefix}SampleCommand command) { return service.verifyRollback(command); }
 }
 "@
@@ -763,66 +734,61 @@ $queryPortSource = @"
 package $FeaturePackage.port;
 
 $([string]::Concat('import ', $BasePackage, '.common.contract.', $ModuleClassName, 'RepositoryPort;'))
-import $FeaturePackage.dto.${FeatureClassPrefix}SampleCommand;
-import $FeaturePackage.dto.${FeatureClassPrefix}SearchRequest;
+import $FeaturePackage.dto.*;
 import com.cpf.core.api.page.CpfSlice;
-
 import java.util.Optional;
-import java.util.Map;
 
-/** Local DB / Remote adapter 교체가 가능한 Generated Domain 업무 Port입니다. */
-public interface ${FeatureClassPrefix}QueryPort extends ${ModuleClassName}RepositoryPort<Map<String, Object>, String> {
-    Map<String, Object> search(${FeatureClassPrefix}SearchRequest request);
-    Map<String, Object> create(${FeatureClassPrefix}SampleCommand command,
-                               String transactionId, String idempotencyKey, long transactionSequence, String actor);
-    Optional<Map<String, Object>> findBySampleKey(String sampleKey);
-    Map<String, Object> update(long sampleItemId, ${FeatureClassPrefix}SampleCommand command,
-                               String transactionId, String idempotencyKey, long transactionSequence, String actor);
-    void delete(long sampleItemId, long expectedVersion, String transactionId, long transactionSequence, String actor);
-    CpfSlice<Map<String,Object>> cursor(Long afterId, int size);
+/** 조회 책임만 소유하는 Generated Domain Query Port입니다. */
+public interface ${FeatureClassPrefix}QueryPort extends ${ModuleClassName}RepositoryPort<${FeatureClassPrefix}SampleItem, String> {
+    ${FeatureClassPrefix}SearchResult search(${FeatureClassPrefix}SearchRequest request);
+    Optional<${FeatureClassPrefix}SampleItem> findBySampleKey(String sampleKey);
+    CpfSlice<${FeatureClassPrefix}SampleItem> cursor(Long afterId, int size);
+}
+"@
+
+$commandPortSource = @"
+package $FeaturePackage.port;
+
+import $FeaturePackage.dto.*;
+
+/** 변경·멱등성·낙관적 잠금 책임을 소유하는 Generated Domain Command Port입니다. */
+public interface ${FeatureClassPrefix}CommandPort {
+    ${FeatureClassPrefix}SampleItem create(${FeatureClassPrefix}SampleCommand command,
+            String transactionId, String idempotencyKey, long transactionSequence, String actor);
+    ${FeatureClassPrefix}SampleItem update(long sampleItemId, ${FeatureClassPrefix}SampleCommand command,
+            String transactionId, String idempotencyKey, long transactionSequence, String actor);
+    ${FeatureClassPrefix}DeleteResult delete(long sampleItemId, long expectedVersion,
+            String transactionId, String idempotencyKey, long transactionSequence, String actor);
     boolean verifyRollback(${FeatureClassPrefix}SampleCommand command,
-                           String transactionId, String idempotencyKey, long transactionSequence, String actor);
+            String transactionId, String idempotencyKey, long transactionSequence, String actor);
 }
 "@
 
 $localAdapter = @"
 package $FeaturePackage.adapter.local;
 
-import $FeaturePackage.dto.${FeatureClassPrefix}SearchRequest;
-import $FeaturePackage.dto.${FeatureClassPrefix}SampleCommand;
+import $FeaturePackage.dto.*;
 import com.cpf.core.api.page.CpfSlice;
-import $FeaturePackage.port.${FeatureClassPrefix}QueryPort;
+import $FeaturePackage.port.*;
 import $FeaturePackage.repository.${FeatureClassPrefix}Repository;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
-
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-/** 같은 주제영역 DB를 사용하는 기본 local adapter입니다. */
+/** 같은 주제영역 DB를 사용하는 기본 Local Adapter입니다. */
 @Component
-@ConditionalOnProperty(name = "cpf.$module.reference.mode", havingValue = "local", matchIfMissing = true)
-public class Local${FeatureClassPrefix}QueryAdapter implements ${FeatureClassPrefix}QueryPort {
+@ConditionalOnProperty(name = "cpf.$module.sample-item.mode", havingValue = "local", matchIfMissing = true)
+public class Local${FeatureClassPrefix}Adapter implements ${FeatureClassPrefix}QueryPort, ${FeatureClassPrefix}CommandPort {
     private final ${FeatureClassPrefix}Repository repository;
-    public Local${FeatureClassPrefix}QueryAdapter(${FeatureClassPrefix}Repository repository) {
-        this.repository = Objects.requireNonNull(repository, "repository는 필수입니다.");
-    }
-    @Override public Map<String,Object> search(${FeatureClassPrefix}SearchRequest request) { return repository.search(request); }
-    @Override public Map<String,Object> create(${FeatureClassPrefix}SampleCommand command, String transactionId, String idempotencyKey, long transactionSequence, String actor) {
-        return repository.create(command, transactionId, idempotencyKey, transactionSequence, actor);
-    }
-    @Override public Optional<Map<String,Object>> findBySampleKey(String sampleKey) { return repository.findBySampleKey(sampleKey); }
-    @Override public Map<String,Object> update(long sampleItemId, ${FeatureClassPrefix}SampleCommand command, String transactionId, String idempotencyKey, long transactionSequence, String actor) {
-        return repository.update(sampleItemId, command, transactionId, idempotencyKey, transactionSequence, actor);
-    }
-    @Override public void delete(long sampleItemId, long expectedVersion, String transactionId, long transactionSequence, String actor) {
-        repository.delete(sampleItemId, expectedVersion, transactionId, transactionSequence, actor);
-    }
-    @Override public CpfSlice<Map<String,Object>> cursor(Long afterId, int size) { return repository.cursor(afterId, size); }
-    @Override public boolean verifyRollback(${FeatureClassPrefix}SampleCommand command, String transactionId, String idempotencyKey, long transactionSequence, String actor) {
-        return repository.verifyRollback(command, transactionId, idempotencyKey, transactionSequence, actor);
-    }
+    public Local${FeatureClassPrefix}Adapter(${FeatureClassPrefix}Repository repository) { this.repository = Objects.requireNonNull(repository); }
+    public ${FeatureClassPrefix}SearchResult search(${FeatureClassPrefix}SearchRequest request) { return repository.search(request); }
+    public Optional<${FeatureClassPrefix}SampleItem> findBySampleKey(String sampleKey) { return repository.findBySampleKey(sampleKey); }
+    public CpfSlice<${FeatureClassPrefix}SampleItem> cursor(Long afterId, int size) { return repository.cursor(afterId, size); }
+    public ${FeatureClassPrefix}SampleItem create(${FeatureClassPrefix}SampleCommand command,String tx,String key,long seq,String actor){return repository.create(command,tx,key,seq,actor);}
+    public ${FeatureClassPrefix}SampleItem update(long id,${FeatureClassPrefix}SampleCommand command,String tx,String key,long seq,String actor){return repository.update(id,command,tx,key,seq,actor);}
+    public ${FeatureClassPrefix}DeleteResult delete(long id,long version,String tx,String key,long seq,String actor){return repository.delete(id,version,tx,key,seq,actor);}
+    public boolean verifyRollback(${FeatureClassPrefix}SampleCommand command,String tx,String key,long seq,String actor){return repository.verifyRollback(command,tx,key,seq,actor);}
 }
 "@
 
@@ -830,91 +796,177 @@ $remoteMatchIfMissing = if (-not $DatabaseEnabled) { ", matchIfMissing = true" }
 $remoteProxy = @"
 package $FeaturePackage.adapter.remote;
 
-import $FeaturePackage.dto.${FeatureClassPrefix}SampleCommand;
-import $FeaturePackage.dto.${FeatureClassPrefix}SearchRequest;
-import com.cpf.core.api.page.CpfSlice;
-import $FeaturePackage.port.${FeatureClassPrefix}QueryPort;
+import $FeaturePackage.dto.*;
 import com.cpf.core.api.http.CpfHttpClient;
+import com.cpf.core.api.page.CpfSlice;
+import $FeaturePackage.port.*;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
-
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-/**
- * 분리 배포된 Generated Domain에 CPF 표준 호출 경계로 접근하는 remote proxy입니다.
- * transactionId/idempotencyKey 등은 CpfHttpClient 구현이 현재 거래 Context를 자동 전파합니다.
- */
+/** CPF 표준 Service Call 경계를 사용하는 분리 WAS Remote Adapter입니다. */
 @Component
-@ConditionalOnProperty(name = "cpf.$module.reference.mode", havingValue = "remote"$remoteMatchIfMissing)
-public class Remote${FeatureClassPrefix}QueryProxy implements ${FeatureClassPrefix}QueryPort {
-    private final CpfHttpClient webClient;
-    public Remote${FeatureClassPrefix}QueryProxy(CpfHttpClient webClient) { this.webClient = Objects.requireNonNull(webClient, "webClient는 필수입니다."); }
-    @Override public Map<String,Object> search(${FeatureClassPrefix}SearchRequest request) {
-        return webClient.get("$ModuleUpper", uriBuilder -> {
-            uriBuilder.path("/api/v1/$module/reference")
-                    .queryParam("sortBy", request.sortBy()).queryParam("sortDirection", request.sortDirection())
-                    .queryParam("page", request.page()).queryParam("size", request.size());
-            if (request.keyword() != null && !request.keyword().isBlank()) uriBuilder.queryParam("keyword", request.keyword());
-            return uriBuilder.build();
-        }, new ParameterizedTypeReference<Map<String,Object>>() {});
-    }
-    @Override public Map<String,Object> create(${FeatureClassPrefix}SampleCommand command, String transactionId, String idempotencyKey, long transactionSequence, String actor) {
-        return webClient.post("$ModuleUpper", "/api/v1/$module/reference/sample-items", command, new ParameterizedTypeReference<Map<String,Object>>() {});
-    }
-    @Override public Optional<Map<String,Object>> findBySampleKey(String sampleKey) {
-        Map<String,Object> response = webClient.get("$ModuleUpper", uriBuilder -> uriBuilder.path("/api/v1/$module/reference/sample-items/{sampleKey}").build(sampleKey), new ParameterizedTypeReference<Map<String,Object>>() {});
-        return Optional.ofNullable(response);
-    }
-    @Override public Map<String,Object> update(long sampleItemId, ${FeatureClassPrefix}SampleCommand command, String transactionId, String idempotencyKey, long transactionSequence, String actor) {
-        return webClient.post("$ModuleUpper", "/api/v1/$module/reference/sample-items/"+sampleItemId+"/update", command, new ParameterizedTypeReference<Map<String,Object>>() {});
-    }
-    @Override public void delete(long sampleItemId, long expectedVersion, String transactionId, long transactionSequence, String actor) {
-        webClient.post("$ModuleUpper", "/api/v1/$module/reference/sample-items/"+sampleItemId+"/delete", Map.of("expectedVersion", expectedVersion), Void.class);
-    }
-    @Override public CpfSlice<Map<String,Object>> cursor(Long afterId, int size) {
-        return webClient.get("$ModuleUpper", uriBuilder -> uriBuilder.path("/api/v1/$module/reference/sample-items/cursor").queryParam("afterId", afterId == null ? 0 : afterId).queryParam("size", size).build(), new ParameterizedTypeReference<CpfSlice<Map<String,Object>>>() {});
-    }
-    @Override public boolean verifyRollback(${FeatureClassPrefix}SampleCommand command, String transactionId, String idempotencyKey, long transactionSequence, String actor) {
-        Boolean response = webClient.post("$ModuleUpper", "/api/v1/$module/reference/sample-items/rollback-verify", command, Boolean.class);
-        return Boolean.TRUE.equals(response);
-    }
+@ConditionalOnProperty(name = "cpf.$module.sample-item.mode", havingValue = "remote"$remoteMatchIfMissing)
+public class Remote${FeatureClassPrefix}Adapter implements ${FeatureClassPrefix}QueryPort, ${FeatureClassPrefix}CommandPort {
+    private final CpfHttpClient client;
+    public Remote${FeatureClassPrefix}Adapter(CpfHttpClient client){this.client=Objects.requireNonNull(client);}
+    public ${FeatureClassPrefix}SearchResult search(${FeatureClassPrefix}SearchRequest request){return client.get("$ModuleUpper", u->u.path("/api/v1/$module/sample-items").queryParam("keyword",request.keyword()).queryParam("page",request.page()).queryParam("size",request.size()).queryParam("sortBy",request.sortBy()).queryParam("sortDirection",request.sortDirection()).build(), ${FeatureClassPrefix}SearchResult.class);}
+    public Optional<${FeatureClassPrefix}SampleItem> findBySampleKey(String key){return Optional.ofNullable(client.get("$ModuleUpper",u->u.path("/api/v1/$module/sample-items/{key}").build(key),${FeatureClassPrefix}SampleItem.class));}
+    public CpfSlice<${FeatureClassPrefix}SampleItem> cursor(Long afterId,int size){return client.get("$ModuleUpper",u->u.path("/api/v1/$module/sample-items/cursor").queryParam("afterId",afterId==null?0:afterId).queryParam("size",size).build(),new ParameterizedTypeReference<CpfSlice<${FeatureClassPrefix}SampleItem>>(){});}
+    public ${FeatureClassPrefix}SampleItem create(${FeatureClassPrefix}SampleCommand command,String tx,String key,long seq,String actor){return client.post("$ModuleUpper","/api/v1/$module/sample-items",command,${FeatureClassPrefix}SampleItem.class);}
+    public ${FeatureClassPrefix}SampleItem update(long id,${FeatureClassPrefix}SampleCommand command,String tx,String key,long seq,String actor){return client.post("$ModuleUpper","/api/v1/$module/sample-items/"+id+"/update",command,${FeatureClassPrefix}SampleItem.class);}
+    public ${FeatureClassPrefix}DeleteResult delete(long id,long version,String tx,String key,long seq,String actor){return client.post("$ModuleUpper","/api/v1/$module/sample-items/"+id+"/delete",new ${FeatureClassPrefix}DeleteCommand(version),${FeatureClassPrefix}DeleteResult.class);}
+    public boolean verifyRollback(${FeatureClassPrefix}SampleCommand command,String tx,String key,long seq,String actor){Boolean value=client.post("$ModuleUpper","/api/v1/$module/sample-items/rollback-verify",command,Boolean.class);return Boolean.TRUE.equals(value);}
 }
 "@
 
 $inMemoryAdapter = @"
 package $FeaturePackage.adapter.memory;
 
-import $FeaturePackage.dto.${FeatureClassPrefix}SearchRequest;
-import $FeaturePackage.dto.${FeatureClassPrefix}SampleCommand;
+import $FeaturePackage.dto.*;
 import com.cpf.core.api.page.CpfSlice;
-import $FeaturePackage.port.${FeatureClassPrefix}QueryPort;
-import org.springframework.stereotype.Component;
+import $FeaturePackage.port.*;
 import org.springframework.context.annotation.Profile;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.stereotype.Component;
+import org.springframework.dao.OptimisticLockingFailureException;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.time.Instant;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
-/** DB capability를 선택하지 않은 경우 계약 검증에 사용하는 메모리 adapter입니다. */
+/**
+ * Local/Test/EDU 전용 실제 CRUD Adapter입니다.
+ * 운영 Runtime에서는 Bean을 생성하지 않으며 멱등 요청 Hash와 낙관적 잠금을 동일하게 검증합니다.
+ */
 @Component
-@Profile({"local", "test", "edu"})
-@ConditionalOnExpression("'${Dollar}{cpf.common.runtime-mode:product}'.toLowerCase() != 'product'")
-public class InMemory${FeatureClassPrefix}QueryAdapter implements ${FeatureClassPrefix}QueryPort {
-    @Override public Map<String,Object> search(${FeatureClassPrefix}SearchRequest request) { return Map.of("items", List.of(), "criteria", request); }
-    @Override public Map<String,Object> create(${FeatureClassPrefix}SampleCommand command, String transactionId, String idempotencyKey, long transactionSequence, String actor) {
-        return Map.of("sampleKey", command.sampleKey(), "itemName", command.itemName(), "versionNo", command.expectedVersion(), "transactionId", transactionId, "idempotencyKey", idempotencyKey);
+@Profile("!prod & !production & !stage & !staging & (local | test | edu)")
+public class InMemory${FeatureClassPrefix}Adapter implements ${FeatureClassPrefix}QueryPort, ${FeatureClassPrefix}CommandPort {
+    private final ConcurrentHashMap<Long,${FeatureClassPrefix}SampleItem> store = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String,Long> keyIndex = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String,IdempotencyRecord> idempotencyIndex = new ConcurrentHashMap<>();
+    private final AtomicLong sequence = new AtomicLong();
+
+    public ${FeatureClassPrefix}SearchResult search(${FeatureClassPrefix}SearchRequest request) {
+        var n = request.normalized();
+        var items = store.values().stream()
+                .filter(v -> n.keyword() == null || v.sampleKey().contains(n.keyword()) || v.itemName().contains(n.keyword()))
+                .sorted(Comparator.comparingLong(${FeatureClassPrefix}SampleItem::sampleItemId))
+                .skip((long) n.page() * n.size()).limit(n.size()).toList();
+        return new ${FeatureClassPrefix}SearchResult(items, n, store.size());
     }
-    @Override public Optional<Map<String,Object>> findBySampleKey(String sampleKey) { return Optional.empty(); }
-    @Override public Map<String,Object> update(long sampleItemId, ${FeatureClassPrefix}SampleCommand command, String transactionId, String idempotencyKey, long transactionSequence, String actor) {
-        return create(command, transactionId, idempotencyKey, transactionSequence, actor);
+
+    public Optional<${FeatureClassPrefix}SampleItem> findBySampleKey(String key) {
+        Long id = keyIndex.get(key);
+        return id == null ? Optional.empty() : Optional.ofNullable(store.get(id));
     }
-    @Override public void delete(long sampleItemId, long expectedVersion, String transactionId, long transactionSequence, String actor) { }
-    @Override public CpfSlice<Map<String,Object>> cursor(Long afterId, int size) { return new CpfSlice<>(List.of(), 0, Math.max(1, size), false); }
-    @Override public boolean verifyRollback(${FeatureClassPrefix}SampleCommand command, String transactionId, String idempotencyKey, long transactionSequence, String actor) { return true; }
+
+    public CpfSlice<${FeatureClassPrefix}SampleItem> cursor(Long afterId, int size) {
+        int safe = Math.max(1, Math.min(size, 200));
+        var items = store.values().stream()
+                .filter(v -> v.sampleItemId() > (afterId == null ? 0 : afterId))
+                .sorted(Comparator.comparingLong(${FeatureClassPrefix}SampleItem::sampleItemId))
+                .limit(safe + 1L).toList();
+        boolean next = items.size() > safe;
+        return new CpfSlice<>(next ? items.subList(0, safe) : items, 0, safe, next);
+    }
+
+    public synchronized ${FeatureClassPrefix}SampleItem create(
+            ${FeatureClassPrefix}SampleCommand command, String transactionId, String idempotencyKey,
+            long transactionSequence, String actor) {
+        String requestHash = requestHash("CREATE", 0L, command.sampleKey(), command.itemName(), command.statusCode(), command.expectedVersion());
+        IdempotencyRecord replay = replay(idempotencyKey, "CREATE", requestHash, 0L);
+        if (replay != null) return requiredItem(replay.sampleItemId());
+        if (keyIndex.containsKey(command.sampleKey())) throw new IllegalStateException("sampleKey가 이미 존재합니다.");
+        long id = sequence.incrementAndGet();
+        Instant now = Instant.now();
+        var item = new ${FeatureClassPrefix}SampleItem(id, command.sampleKey(), command.itemName(), command.statusCode(), 0,
+                idempotencyKey, transactionId, transactionSequence, now, actor, now, actor, now);
+        store.put(id, item); keyIndex.put(item.sampleKey(), id);
+        idempotencyIndex.put(idempotencyKey, new IdempotencyRecord("CREATE", requestHash, id, item.versionNo(), false));
+        return item;
+    }
+
+    public synchronized ${FeatureClassPrefix}SampleItem update(
+            long id, ${FeatureClassPrefix}SampleCommand command, String transactionId, String idempotencyKey,
+            long transactionSequence, String actor) {
+        String requestHash = requestHash("UPDATE", id, command.sampleKey(), command.itemName(), command.statusCode(), command.expectedVersion());
+        IdempotencyRecord replay = replay(idempotencyKey, "UPDATE", requestHash, id);
+        if (replay != null) return requiredItem(id);
+        var old = requiredItem(id);
+        if (old.versionNo() != command.expectedVersion()) throw new OptimisticLockingFailureException("Sample Item version 충돌");
+        Long keyOwner = keyIndex.get(command.sampleKey());
+        if (keyOwner != null && keyOwner != id) throw new IllegalStateException("sampleKey가 이미 존재합니다.");
+        Instant now = Instant.now();
+        var updated = new ${FeatureClassPrefix}SampleItem(id, command.sampleKey(), command.itemName(), command.statusCode(), old.versionNo() + 1,
+                idempotencyKey, transactionId, transactionSequence, now, old.createdBy(), old.createdAt(), actor, now);
+        store.put(id, updated);
+        if (!old.sampleKey().equals(updated.sampleKey())) keyIndex.remove(old.sampleKey(), id);
+        keyIndex.put(updated.sampleKey(), id);
+        idempotencyIndex.put(idempotencyKey, new IdempotencyRecord("UPDATE", requestHash, id, updated.versionNo(), false));
+        return updated;
+    }
+
+    public synchronized ${FeatureClassPrefix}DeleteResult delete(
+            long id, long expectedVersion, String transactionId, String idempotencyKey,
+            long transactionSequence, String actor) {
+        String requestHash = requestHash("DELETE", id, "", "", "", expectedVersion);
+        IdempotencyRecord replay = replay(idempotencyKey, "DELETE", requestHash, id);
+        if (replay != null) return new ${FeatureClassPrefix}DeleteResult(true, id, replay.resultVersion());
+        var old = requiredItem(id);
+        if (old.versionNo() != expectedVersion) throw new OptimisticLockingFailureException("Sample Item version 충돌");
+        if (!store.remove(id, old)) throw new OptimisticLockingFailureException("Sample Item 동시 변경");
+        keyIndex.remove(old.sampleKey(), id);
+        long deletedVersion = old.versionNo() + 1;
+        idempotencyIndex.put(idempotencyKey, new IdempotencyRecord("DELETE", requestHash, id, deletedVersion, true));
+        return new ${FeatureClassPrefix}DeleteResult(true, id, deletedVersion);
+    }
+
+    public synchronized boolean verifyRollback(
+            ${FeatureClassPrefix}SampleCommand command, String transactionId, String idempotencyKey,
+            long transactionSequence, String actor) {
+        Map<Long,${FeatureClassPrefix}SampleItem> storeSnapshot = Map.copyOf(store);
+        Map<String,Long> keySnapshot = Map.copyOf(keyIndex);
+        Map<String,IdempotencyRecord> idempotencySnapshot = Map.copyOf(idempotencyIndex);
+        long sequenceSnapshot = sequence.get();
+        try { create(command, transactionId, idempotencyKey, transactionSequence, actor); }
+        finally {
+            store.clear(); store.putAll(storeSnapshot);
+            keyIndex.clear(); keyIndex.putAll(keySnapshot);
+            idempotencyIndex.clear(); idempotencyIndex.putAll(idempotencySnapshot);
+            sequence.set(sequenceSnapshot);
+        }
+        return store.equals(storeSnapshot) && keyIndex.equals(keySnapshot)
+                && idempotencyIndex.equals(idempotencySnapshot) && sequence.get() == sequenceSnapshot;
+    }
+
+    private IdempotencyRecord replay(String key, String operation, String requestHash, long expectedItemId) {
+        IdempotencyRecord value = idempotencyIndex.get(key);
+        if (value == null) return null;
+        if (!value.operationCode().equals(operation) || !value.requestHash().equals(requestHash)
+                || (expectedItemId > 0 && value.sampleItemId() != expectedItemId)) {
+            throw new IllegalStateException("동일 idempotencyKey에 다른 요청을 사용할 수 없습니다.");
+        }
+        return value;
+    }
+
+    private ${FeatureClassPrefix}SampleItem requiredItem(long id) {
+        var item = store.get(id);
+        if (item == null) throw new IllegalArgumentException("Sample Item을 찾을 수 없습니다: " + id);
+        return item;
+    }
+
+    private String requestHash(String operation, long id, String sampleKey, String itemName, String statusCode, long version) {
+        String canonical = operation + '|' + id + '|' + sampleKey + '|' + itemName + '|' + statusCode + '|' + version;
+        try { return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(canonical.getBytes(StandardCharsets.UTF_8))); }
+        catch (Exception ex) { throw new IllegalStateException("멱등 요청 Hash 생성 실패", ex); }
+    }
+
+    private record IdempotencyRecord(String operationCode, String requestHash, long sampleItemId,
+                                     long resultVersion, boolean deleted) {}
 }
 "@
 
@@ -922,95 +974,38 @@ $service = @"
 package $FeaturePackage.service;
 
 $([string]::Concat('import ', $BasePackage, '.common.base.', $ModuleClassName, 'BaseService;'))
-import $FeaturePackage.dto.${FeatureClassPrefix}SampleCommand;
-import $FeaturePackage.dto.${FeatureClassPrefix}SearchRequest;
-import com.cpf.core.api.page.CpfSlice;
-import $FeaturePackage.port.${FeatureClassPrefix}QueryPort;
+import $FeaturePackage.dto.*;
+import $FeaturePackage.port.*;
 import com.cpf.core.api.error.CpfValidationException;
 import com.cpf.core.api.logging.CpfTransactionContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.cpf.core.api.page.CpfSlice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-/** Generated Domain Sample 업무 서비스입니다. Transport 식별자는 Core Context에서만 취득합니다. */
+/** Generated Domain Typed Sample Item 업무 서비스입니다. */
 @Service
 public class ${FeatureClassPrefix}Service extends ${ModuleClassName}BaseService {
-    private static final Logger log = LoggerFactory.getLogger(${FeatureClassPrefix}Service.class);
-    private final ${FeatureClassPrefix}QueryPort queryPort;
-    public ${FeatureClassPrefix}Service(${FeatureClassPrefix}QueryPort queryPort) { this.queryPort = Objects.requireNonNull(queryPort, "queryPort는 필수입니다."); }
-
-    @Transactional(readOnly = true)
-    public Map<String,Object> search(${FeatureClassPrefix}SearchRequest request) { return queryPort.search(request.normalized()); }
-
-    @Transactional
-    public Map<String,Object> create(${FeatureClassPrefix}SampleCommand command) {
-        requireCommand(command); MutationContext context = mutationContext();
-        log.info("$ModuleUpper Sample create auditKey={}, transactionId={}", command.maskedAuditKey(), context.transactionId());
-        return queryPort.create(command, context.transactionId(), context.idempotencyKey(), context.sequence(), context.actor());
-    }
-
-    @Transactional(readOnly = true)
-    public Optional<Map<String,Object>> findBySampleKey(String sampleKey) {
-        if (sampleKey == null || sampleKey.isBlank()) throw new CpfValidationException("sampleKey는 필수입니다.");
-        return queryPort.findBySampleKey(sampleKey.trim());
-    }
-
-    @Transactional
-    public Map<String,Object> update(long sampleItemId, ${FeatureClassPrefix}SampleCommand command) {
-        requirePositiveId(sampleItemId); requireCommand(command); MutationContext context = mutationContext();
-        return queryPort.update(sampleItemId, command, context.transactionId(), context.idempotencyKey(), context.sequence(), context.actor());
-    }
-
-    @Transactional
-    public void delete(long sampleItemId, long expectedVersion) {
-        requirePositiveId(sampleItemId);
-        if (expectedVersion < 0) throw new CpfValidationException("expectedVersion은 0 이상이어야 합니다.");
-        MutationContext context = mutationContext();
-        queryPort.delete(sampleItemId, expectedVersion, context.transactionId(), context.sequence(), context.actor());
-    }
-
-    @Transactional(readOnly = true)
-    public CpfSlice<Map<String,Object>> cursor(Long afterId, int size) { return queryPort.cursor(afterId, size); }
-
-    public boolean verifyRollback(${FeatureClassPrefix}SampleCommand command) {
-        requireCommand(command); MutationContext context = mutationContext();
-        return queryPort.verifyRollback(command, context.transactionId(), context.idempotencyKey(), context.sequence(), context.actor());
-    }
-
-    private MutationContext mutationContext() {
-        String transactionId = CpfTransactionContext.transactionId();
-        String idempotencyKey = CpfTransactionContext.idempotencyKey();
-        if (idempotencyKey == null || idempotencyKey.isBlank()) {
-            throw new CpfValidationException("변경 거래에는 표준 Header idempotencyKey가 필수입니다.");
-        }
-        String actor = firstText(CpfTransactionContext.operatorId(), CpfTransactionContext.userId(), "$ModuleUpper");
-        return new MutationContext(transactionId, idempotencyKey.trim(), CpfTransactionContext.nextSequence(), actor);
-    }
-
-    private void requireCommand(${FeatureClassPrefix}SampleCommand command) {
-        if (command == null) throw new CpfValidationException("Sample Command는 필수입니다.");
-    }
-    private void requirePositiveId(long sampleItemId) {
-        if (sampleItemId < 1) throw new CpfValidationException("sampleItemId는 1 이상이어야 합니다.");
-    }
-    private String firstText(String... values) {
-        for (String value : values) if (value != null && !value.isBlank()) return value.trim();
-        return "$ModuleUpper";
-    }
-    private record MutationContext(String transactionId, String idempotencyKey, long sequence, String actor) { }
+    private final ${FeatureClassPrefix}QueryPort queryPort; private final ${FeatureClassPrefix}CommandPort commandPort;
+    public ${FeatureClassPrefix}Service(${FeatureClassPrefix}QueryPort queryPort,${FeatureClassPrefix}CommandPort commandPort){this.queryPort=Objects.requireNonNull(queryPort);this.commandPort=Objects.requireNonNull(commandPort);}
+    @Transactional(readOnly=true) public ${FeatureClassPrefix}SearchResult search(${FeatureClassPrefix}SearchRequest r){return queryPort.search(r.normalized());}
+    @Transactional public ${FeatureClassPrefix}SampleItem create(${FeatureClassPrefix}SampleCommand c){var x=context();return commandPort.create(c,x.tx(),x.idem(),x.seq(),x.actor());}
+    @Transactional(readOnly=true) public Optional<${FeatureClassPrefix}SampleItem> findBySampleKey(String key){if(key==null||key.isBlank())throw new CpfValidationException("sampleKey는 필수입니다.");return queryPort.findBySampleKey(key.trim());}
+    @Transactional public ${FeatureClassPrefix}SampleItem update(long id,${FeatureClassPrefix}SampleCommand c){if(id<1)throw new CpfValidationException("sampleItemId는 1 이상이어야 합니다.");var x=context();return commandPort.update(id,c,x.tx(),x.idem(),x.seq(),x.actor());}
+    @Transactional public ${FeatureClassPrefix}DeleteResult delete(long id,${FeatureClassPrefix}DeleteCommand c){if(id<1||c==null)throw new CpfValidationException("삭제 입력이 올바르지 않습니다.");var x=context();return commandPort.delete(id,c.expectedVersion(),x.tx(),x.idem(),x.seq(),x.actor());}
+    @Transactional(readOnly=true) public CpfSlice<${FeatureClassPrefix}SampleItem> cursor(Long afterId,int size){return queryPort.cursor(afterId,size);}
+    public boolean verifyRollback(${FeatureClassPrefix}SampleCommand c){var x=context();return commandPort.verifyRollback(c,x.tx(),x.idem(),x.seq(),x.actor());}
+    private MutationContext context(){String idem=CpfTransactionContext.idempotencyKey();if(idem==null||idem.isBlank())throw new CpfValidationException("변경 거래에는 idempotencyKey가 필수입니다.");String actor=first(CpfTransactionContext.operatorId(),CpfTransactionContext.userId(),"$ModuleUpper");return new MutationContext(CpfTransactionContext.transactionId(),idem.trim(),CpfTransactionContext.nextSequence(),actor);}
+    private String first(String... values){for(String v:values)if(v!=null&&!v.isBlank())return v.trim();return "$ModuleUpper";}
+    private record MutationContext(String tx,String idem,long seq,String actor){}
 }
 "@
 
 $repository = @"
 package $FeaturePackage.repository;
 
-import $FeaturePackage.dto.${FeatureClassPrefix}SampleCommand;
-import $FeaturePackage.dto.${FeatureClassPrefix}SearchRequest;
+import $FeaturePackage.dto.*;
 import com.cpf.core.api.page.CpfSlice;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -1018,61 +1013,84 @@ import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.util.*;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-
-/** 중앙 Vendor Pack의 MyBatis statement를 호출하는 Generated Domain DB-neutral 저장소입니다. */
+/** 중앙 Vendor Pack statement를 Typed DTO로 반환하는 DB-neutral 저장소입니다. */
 @Repository
 public class ${FeatureClassPrefix}Repository {
-    private static final int MAX_PAGE_SIZE = 200;
-    private final SqlSessionTemplate sqlSessionTemplate;
-    private final TransactionTemplate transactionTemplate;
-    public ${FeatureClassPrefix}Repository(@Qualifier("${module}SqlSessionTemplate") SqlSessionTemplate sqlSessionTemplate,
-            @Qualifier("${module}TransactionManager") PlatformTransactionManager transactionManager) {
-        this.sqlSessionTemplate = Objects.requireNonNull(sqlSessionTemplate, "sqlSessionTemplate은 필수입니다.");
-        this.transactionTemplate = new TransactionTemplate(Objects.requireNonNull(transactionManager, "transactionManager는 필수입니다."));
+    private final SqlSessionTemplate sql; private final TransactionTemplate tx;
+    public ${FeatureClassPrefix}Repository(@Qualifier("${module}SqlSessionTemplate") SqlSessionTemplate sql,@Qualifier("${module}TransactionManager") PlatformTransactionManager manager){this.sql=Objects.requireNonNull(sql);this.tx=new TransactionTemplate(Objects.requireNonNull(manager));}
+    public ${FeatureClassPrefix}SearchResult search(${FeatureClassPrefix}SearchRequest request){List<${FeatureClassPrefix}SampleItem> items=sql.selectList(statement("search"),request);Long total=sql.selectOne(statement("count"),request);return new ${FeatureClassPrefix}SearchResult(items,request,total==null?0:total);}
+    public Optional<${FeatureClassPrefix}SampleItem> findBySampleKey(String key){return Optional.ofNullable(sql.selectOne(statement("findBySampleKey"),key));}
+    public ${FeatureClassPrefix}SampleItem create(${FeatureClassPrefix}SampleCommand c,String txId,String idem,long sequence,String actor){
+        String hash=requestHash("CREATE",0,c.sampleKey(),c.itemName(),c.statusCode(),c.expectedVersion());
+        var replay=idempotency(idem,"CREATE",hash,0); if(replay!=null)return requiredItem(replay.sampleItemId());
+        var p=parameters(c,txId,idem,sequence,actor);sql.insert(statement("insert"),p);
+        var item=findBySampleKey(c.sampleKey()).orElseThrow();insertIdempotency(idem,"CREATE",hash,item.sampleItemId(),item.versionNo(),false,txId);return item;
     }
-    public Map<String,Object> search(${FeatureClassPrefix}SearchRequest request) {
-        return Map.of(
-                "items", sqlSessionTemplate.selectList("${FeaturePackage}.mapper.${FeatureClassPrefix}Mapper.search", request),
-                "criteria", request,
-                "pageRequest", request.pageRequest());
+    public ${FeatureClassPrefix}SampleItem update(long id,${FeatureClassPrefix}SampleCommand c,String txId,String idem,long sequence,String actor){
+        String hash=requestHash("UPDATE",id,c.sampleKey(),c.itemName(),c.statusCode(),c.expectedVersion());
+        var replay=idempotency(idem,"UPDATE",hash,id); if(replay!=null)return requiredItem(id);
+        var p=parameters(c,txId,idem,sequence,actor);p.put("sampleItemId",id);
+        if(sql.update(statement("updateWithVersion"),p)!=1)throw new OptimisticLockingFailureException("Sample Item version 충돌");
+        var item=requiredItem(id);insertIdempotency(idem,"UPDATE",hash,id,item.versionNo(),false,txId);return item;
     }
-    public Map<String,Object> create(${FeatureClassPrefix}SampleCommand command, String transactionId, String idempotencyKey, long transactionSequence, String actor) {
-        Optional<Map<String,Object>> replay=findByIdempotencyKey(idempotencyKey);
-        if(replay.isPresent()){ Map<String,Object> response=new LinkedHashMap<>(replay.get()); response.put("idempotentReplay",true); return Map.copyOf(response); }
-        Map<String,Object> parameters=parameters(command,transactionId,idempotencyKey,transactionSequence,actor); sqlSessionTemplate.insert(statement("insert"),parameters);
-        return findBySampleKey(command.sampleKey()).orElseThrow(() -> new IllegalStateException("등록한 Sample Item을 다시 조회할 수 없습니다."));
+    public ${FeatureClassPrefix}DeleteResult delete(long id,long version,String txId,String idem,long sequence,String actor){
+        String hash=requestHash("DELETE",id,"","","",version);var replay=idempotency(idem,"DELETE",hash,id);
+        if(replay!=null)return new ${FeatureClassPrefix}DeleteResult(true,id,replay.resultVersion());
+        var p=new HashMap<String,Object>();p.put("sampleItemId",id);p.put("versionNo",version);p.put("idempotencyKey",idem);p.put("transactionId",txId);p.put("transactionSequence",sequence);p.put("updatedBy",actor);
+        if(sql.update(statement("logicalDeleteWithVersion"),p)!=1)throw new OptimisticLockingFailureException("Sample Item version 충돌");
+        long deletedVersion=version+1;insertIdempotency(idem,"DELETE",hash,id,deletedVersion,true,txId);return new ${FeatureClassPrefix}DeleteResult(true,id,deletedVersion);
     }
-    public Optional<Map<String,Object>> findBySampleKey(String sampleKey){ return Optional.ofNullable(sqlSessionTemplate.selectOne(statement("findBySampleKey"),sampleKey)); }
-    public Map<String,Object> update(long sampleItemId, ${FeatureClassPrefix}SampleCommand command, String transactionId, String idempotencyKey, long transactionSequence, String actor){
-        Map<String,Object> parameters=parameters(command,transactionId,idempotencyKey,transactionSequence,actor); parameters.put("sampleItemId",sampleItemId);
-        int updated=sqlSessionTemplate.update(statement("updateWithVersion"),parameters); if(updated!=1) throw new OptimisticLockingFailureException("Sample Item이 없거나 version이 변경되었습니다. sampleItemId="+sampleItemId);
-        return findBySampleKey(command.sampleKey()).orElseThrow(() -> new IllegalStateException("수정한 Sample Item을 다시 조회할 수 없습니다."));
-    }
-    public void delete(long sampleItemId,long expectedVersion,String transactionId,long transactionSequence,String actor){
-        Map<String,Object> parameters=new HashMap<>(); parameters.put("sampleItemId",sampleItemId); parameters.put("versionNo",expectedVersion); parameters.put("transactionId",transactionId); parameters.put("transactionSequence",transactionSequence); parameters.put("updatedBy",actor);
-        int updated=sqlSessionTemplate.update(statement("logicalDeleteWithVersion"),parameters); if(updated!=1) throw new OptimisticLockingFailureException("Sample Item이 없거나 version이 변경되었습니다. sampleItemId="+sampleItemId);
-    }
-    public CpfSlice<Map<String,Object>> cursor(Long afterId,int size){
-        int safeSize=Math.max(1,Math.min(size,MAX_PAGE_SIZE)); Map<String,Object> parameters=Map.of("cursor",afterId==null?0L:Math.max(afterId,0L),"size",safeSize+1);
-        List<Map<String,Object>> rows=sqlSessionTemplate.selectList(statement("cursorSlice"),parameters); boolean hasNext=rows.size()>safeSize; List<Map<String,Object>> items=hasNext?List.copyOf(rows.subList(0,safeSize)):List.copyOf(rows);
-        return new CpfSlice<>(items, 0, safeSize, hasNext);
-    }
-    public boolean verifyRollback(${FeatureClassPrefix}SampleCommand command,String transactionId,String idempotencyKey,long transactionSequence,String actor){
-        boolean existedBefore=findBySampleKey(command.sampleKey()).isPresent(); transactionTemplate.executeWithoutResult(status->{ sqlSessionTemplate.insert(statement("insert"),parameters(command,transactionId,idempotencyKey,transactionSequence,actor)); status.setRollbackOnly(); });
-        return existedBefore==findBySampleKey(command.sampleKey()).isPresent();
-    }
-    private Optional<Map<String,Object>> findByIdempotencyKey(String idempotencyKey){ return Optional.ofNullable(sqlSessionTemplate.selectOne(statement("findByIdempotencyKey"),idempotencyKey)); }
-    private Map<String,Object> parameters(${FeatureClassPrefix}SampleCommand command,String transactionId,String idempotencyKey,long transactionSequence,String actor){
-        Map<String,Object> parameters=new HashMap<>(); parameters.put("sampleKey",command.sampleKey()); parameters.put("itemName",command.itemName()); parameters.put("statusCode",command.statusCode()); parameters.put("versionNo",command.expectedVersion()); parameters.put("idempotencyKey",idempotencyKey); parameters.put("transactionId",transactionId); parameters.put("transactionSequence",transactionSequence); parameters.put("createdBy",actor); parameters.put("updatedBy",actor); return parameters;
-    }
-    private String statement(String id){ return "${FeaturePackage}.mapper.${FeatureClassPrefix}Mapper."+id; }
+    public CpfSlice<${FeatureClassPrefix}SampleItem> cursor(Long afterId,int size){int safe=Math.max(1,Math.min(size,200));List<${FeatureClassPrefix}SampleItem> rows=sql.selectList(statement("cursorSlice"),Map.of("cursor",afterId==null?0:afterId,"size",safe+1));boolean next=rows.size()>safe;return new CpfSlice<>(next?rows.subList(0,safe):rows,0,safe,next);}
+    public boolean verifyRollback(${FeatureClassPrefix}SampleCommand c,String txId,String idem,long sequence,String actor){boolean before=findBySampleKey(c.sampleKey()).isPresent();var prior=sql.selectOne(statement("findIdempotency"),idem);tx.executeWithoutResult(status->{var p=parameters(c,txId,idem,sequence,actor);sql.insert(statement("insert"),p);var item=findBySampleKey(c.sampleKey()).orElseThrow();insertIdempotency(idem,"CREATE",requestHash("CREATE",0,c.sampleKey(),c.itemName(),c.statusCode(),c.expectedVersion()),item.sampleItemId(),item.versionNo(),false,txId);status.setRollbackOnly();});return before==findBySampleKey(c.sampleKey()).isPresent()&&Objects.equals(prior,sql.selectOne(statement("findIdempotency"),idem));}
+    private ${FeatureClassPrefix}IdempotencyEntry idempotency(String key,String operation,String hash,long expectedItemId){${FeatureClassPrefix}IdempotencyEntry value=sql.selectOne(statement("findIdempotency"),key);if(value==null)return null;if(!value.operationCode().equals(operation)||!value.requestHash().equals(hash)||(expectedItemId>0&&value.sampleItemId()!=expectedItemId))throw new IllegalStateException("동일 idempotencyKey에 다른 요청을 사용할 수 없습니다.");return value;}
+    private void insertIdempotency(String key,String operation,String hash,long itemId,long resultVersion,boolean deleted,String txId){var p=new HashMap<String,Object>();p.put("idempotencyKey",key);p.put("operationCode",operation);p.put("requestHash",hash);p.put("sampleItemId",itemId);p.put("resultVersion",resultVersion);p.put("deletedYn",deleted?"Y":"N");p.put("transactionId",txId);sql.insert(statement("insertIdempotency"),p);}
+    private ${FeatureClassPrefix}SampleItem requiredItem(long id){${FeatureClassPrefix}SampleItem value=sql.selectOne(statement("findById"),id);if(value==null)throw new IllegalArgumentException("Sample Item을 찾을 수 없습니다: "+id);return value;}
+    private String requestHash(String operation,long id,String sampleKey,String itemName,String statusCode,long version){String canonical=operation+'|'+id+'|'+sampleKey+'|'+itemName+'|'+statusCode+'|'+version;try{return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(canonical.getBytes(StandardCharsets.UTF_8)));}catch(Exception ex){throw new IllegalStateException("멱등 요청 Hash 생성 실패",ex);}}
+    private Map<String,Object> parameters(${FeatureClassPrefix}SampleCommand c,String txId,String idem,long sequence,String actor){var p=new HashMap<String,Object>();p.put("sampleKey",c.sampleKey());p.put("itemName",c.itemName());p.put("statusCode",c.statusCode());p.put("versionNo",c.expectedVersion());p.put("idempotencyKey",idem);p.put("transactionId",txId);p.put("transactionSequence",sequence);p.put("createdBy",actor);p.put("updatedBy",actor);return p;}
+    private String statement(String id){return "${FeaturePackage}.mapper.${FeatureClassPrefix}Mapper."+id;}
+}
+"@
+
+$searchResult = @"
+package $FeaturePackage.dto;
+import java.util.List;
+/** Typed 검색 결과와 정규화된 조회 조건입니다. */
+public record ${FeatureClassPrefix}SearchResult(List<${FeatureClassPrefix}SampleItem> items,${FeatureClassPrefix}SearchRequest criteria,long totalCount){public ${FeatureClassPrefix}SearchResult{items=items==null?List.of():List.copyOf(items);}}
+"@
+
+$deleteCommand = @"
+package $FeaturePackage.dto;
+import jakarta.validation.constraints.PositiveOrZero;
+/** 낙관적 잠금 삭제 입력입니다. */
+public record ${FeatureClassPrefix}DeleteCommand(@PositiveOrZero long expectedVersion){}
+"@
+
+$deleteResult = @"
+package $FeaturePackage.dto;
+/** 논리 삭제 결과입니다. */
+public record ${FeatureClassPrefix}DeleteResult(boolean deleted,long sampleItemId,long deletedVersion){}
+"@
+
+$idempotencyEntry = @"
+package $FeaturePackage.dto;
+
+import java.time.Instant;
+
+/** 변경 요청 Hash와 결과를 보존하는 Generated Domain 멱등 원장 DTO입니다. */
+public record ${FeatureClassPrefix}IdempotencyEntry(
+        String idempotencyKey,
+        String operationCode,
+        String requestHash,
+        long sampleItemId,
+        long resultVersion,
+        String deletedYn,
+        String transactionId,
+        Instant createdAt) {
+    public boolean deleted(){ return "Y".equalsIgnoreCase(deletedYn); }
 }
 "@
 
@@ -1387,7 +1405,9 @@ tasks.register('prepareCpfVendorResources', Sync) {
             CPF_PACKAGE_NAME: '$PackageName',
             CPF_TABLE_PREFIX: '$TablePrefix',
             CPF_MAPPER_NAMESPACE: '$FeaturePackage.mapper.${FeatureClassPrefix}Mapper',
-            CPF_MAPPER_NAME: '${FeatureClassPrefix}Mapper'
+            CPF_MAPPER_NAME: '${FeatureClassPrefix}Mapper',
+            CPF_RESULT_TYPE: '$FeaturePackage.dto.${FeatureClassPrefix}SampleItem',
+            CPF_IDEMPOTENCY_RESULT_TYPE: '$FeaturePackage.dto.${FeatureClassPrefix}IdempotencyEntry'
     ]
     into cpfGeneratedVendorResources
     from(cpfSelectedDomainTemplate) {
@@ -1412,7 +1432,7 @@ tasks.register('prepareCpfVendorResources', Sync) {
                     .replace('__DOMAIN__', '$module')
                     .replace('__MAPPER__', '${FeatureClassPrefix}Mapper')
         }
-        into "mybatis/vendor/`${cpfDbVendor}/mapper/$module/reference"
+        into "mybatis/vendor/`${cpfDbVendor}/mapper/$module/sampleitem"
         includeEmptyDirs = false
     }
     from(new File(cpfSelectedDomainTemplate, 'runtime/repository')) {
@@ -1759,7 +1779,7 @@ management:
       exposure:
         include: health,info,metrics,prometheus
 "@
-$defaultReferenceMode = if ($DatabaseEnabled) { 'local' } elseif ($ExternalEnabled) { 'remote' } else { 'memory' }
+$defaultSampleItemMode = if ($DatabaseEnabled) { 'local' } elseif ($ExternalEnabled) { 'remote' } else { 'memory' }
 $moduleDataSourceYml = if ($DatabaseEnabled) {
 @"
     datasource:
@@ -1782,8 +1802,8 @@ cpf:
     module-id: ${Dollar}{$($ModuleUpper)_MODULE_ID:$ModuleUpper}
   ${module}:
 $moduleDataSourceYml
-    reference:
-      mode: ${Dollar}{$($ModuleUpper)_REFERENCE_MODE:$defaultReferenceMode}
+    sample-item:
+      mode: ${Dollar}{$($ModuleUpper)_SAMPLE_ITEM_MODE:$defaultSampleItemMode}
   logging:
     file:
       file-pattern: "cpf-{moduleCode}-{logType}-{instanceId}.{date}.log"
@@ -1847,10 +1867,10 @@ $readme = @"
 $uiComponent = @"
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import { search${FeatureClassPrefix} } from './${FeatureClassPrefix}Api'
+import { search${FeatureClassPrefix}, type ${FeatureClassPrefix}SampleItemView } from './${FeatureClassPrefix}Api'
 
 const loading = ref(false)
-const rows = ref<Record<string, unknown>[]>([])
+const rows = ref<${FeatureClassPrefix}SampleItemView[]>([])
 
 async function load(): Promise<void> {
   loading.value = true
@@ -1865,8 +1885,8 @@ onMounted(load)
 </script>
 
 <template>
-  <section aria-labelledby="${module}-reference-title">
-    <h1 id="${module}-reference-title">${ModuleName} 참조 조회</h1>
+  <section aria-labelledby="${module}-sample-item-title">
+    <h1 id="${module}-sample-item-title">${ModuleName} 참조 조회</h1>
     <button type="button" :disabled="loading" @click="load">조회</button>
     <p v-if="loading" role="status">조회 중</p>
     <table v-else>
@@ -1882,142 +1902,69 @@ onMounted(load)
 "@
 
 $uiApi = @"
-/** ${ModuleName} 참조 API를 호출하고 응답의 items만 화면에 전달합니다. */
-export async function search${FeatureClassPrefix}(): Promise<Record<string, unknown>[]> {
-  const response = await fetch('/api/v1/$module/reference?page=0&size=20&sortBy=created_at&sortDirection=DESC', {
+export interface ${FeatureClassPrefix}SampleItemView {
+  sampleItemId: number
+  sampleKey: string
+  itemName: string
+  statusCode: string
+  versionNo: number
+  transactionId: string
+  transactionSequence: number
+  createdAt: string
+  updatedAt: string
+}
+
+interface ${FeatureClassPrefix}SearchResponse {
+  items: ${FeatureClassPrefix}SampleItemView[]
+  totalCount: number
+}
+
+/** ${ModuleName} 참조 API를 호출하고 Typed items만 화면에 전달합니다. */
+export async function search${FeatureClassPrefix}(): Promise<${FeatureClassPrefix}SampleItemView[]> {
+  const response = await fetch('/api/v1/$module/sample-items?page=0&size=20&sortBy=created_at&sortDirection=DESC', {
     headers: { Accept: 'application/json' },
     credentials: 'same-origin',
   })
   if (!response.ok) {
     throw new Error('${ModuleName} 참조 조회에 실패했습니다.')
   }
-  const body = (await response.json()) as { items?: Record<string, unknown>[] }
-  return body.items ?? []
+  const body = (await response.json()) as ${FeatureClassPrefix}SearchResponse
+  return Array.isArray(body.items) ? body.items : []
 }
 "@
 
 $serviceTest = @"
 package $FeaturePackage.service;
 
-import $FeaturePackage.dto.${FeatureClassPrefix}SampleCommand;
-import $FeaturePackage.dto.${FeatureClassPrefix}SearchRequest;
-import com.cpf.core.api.page.CpfSlice;
-import com.cpf.core.api.page.CpfSortDirection;
-import $FeaturePackage.port.${FeatureClassPrefix}QueryPort;
+import $FeaturePackage.dto.*;
+import $FeaturePackage.port.*;
 import com.cpf.core.api.logging.CpfTransactionContext;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import com.cpf.core.api.page.CpfSlice;
+import org.junit.jupiter.api.*;
+import java.time.Instant;
+import java.util.*;
+import static org.assertj.core.api.Assertions.*;
 
 class ${FeatureClassPrefix}ServiceTest {
-    private final AtomicReference<${FeatureClassPrefix}SearchRequest> capturedRequest = new AtomicReference<>();
-    private final StubQueryPort queryPort = new StubQueryPort();
-    private final ${FeatureClassPrefix}Service service = new ${FeatureClassPrefix}Service(queryPort);
-
-    @BeforeEach
-    void setUpTransactionContext() {
-        CpfTransactionContext.initializeForTest(
-                "20260724123456789${DomainIdCode}00000010000001",
-                "${ModuleUpper}_IDEMPOTENCY_001",
-                "generator-test");
-    }
-
-    @AfterEach
-    void clearTransactionContext() {
-        CpfTransactionContext.clear();
-    }
-
-    @Test
-    void searchNormalizesPagingAndSort() {
-        Map<String, Object> result = service.search(
-                new ${FeatureClassPrefix}SearchRequest("keyword", "unsafe_column", "ASC", -1, 999));
-
-        assertThat(result).containsKey("items");
-        assertThat(capturedRequest.get().sortBy()).isEqualTo("created_at");
-        assertThat(capturedRequest.get().sortDirection()).isEqualTo("ASC");
-        assertThat(capturedRequest.get().page()).isZero();
-        assertThat(capturedRequest.get().size()).isEqualTo(200);
-        assertThat(capturedRequest.get().pageRequest().size()).isEqualTo(200);
-        assertThat(capturedRequest.get().sort().field()).isEqualTo("created_at");
-        assertThat(capturedRequest.get().sort().direction()).isEqualTo(CpfSortDirection.ASC);
-    }
-
-    @Test
-    void createTakesTransportIdentityFromCoreContext() {
-        ${FeatureClassPrefix}SampleCommand command = new ${FeatureClassPrefix}SampleCommand(
-                "${ModuleUpper}_TEST_001",
-                "Minimal Transaction",
-                "ACTIVE",
-                0);
-
-        Map<String, Object> result = service.create(command);
-
-        assertThat(result).containsEntry("transactionId", "20260724123456789${DomainIdCode}00000010000001");
-        assertThat(result).containsEntry("idempotencyKey", "${ModuleUpper}_IDEMPOTENCY_001");
-        assertThat(command.maskedAuditKey()).isNotBlank();
-        assertThat(queryPort.created).isSameAs(command);
-    }
-
-    private final class StubQueryPort implements ${FeatureClassPrefix}QueryPort {
-        private ${FeatureClassPrefix}SampleCommand created;
-
-        @Override
-        public Map<String, Object> search(${FeatureClassPrefix}SearchRequest request) {
-            capturedRequest.set(request);
-            return Map.of("items", List.of(), "criteria", request);
-        }
-
-        @Override
-        public Map<String, Object> create(${FeatureClassPrefix}SampleCommand command,
-                                          String transactionId,
-                                          String idempotencyKey,
-                                          long transactionSequence,
-                                          String actor) {
-            created = command;
-            return Map.of(
-                    "sampleKey", command.sampleKey(),
-                    "transactionId", transactionId,
-                    "idempotencyKey", idempotencyKey,
-                    "actor", actor);
-        }
-
-        @Override
-        public Optional<Map<String, Object>> findBySampleKey(String sampleKey) { return Optional.empty(); }
-
-        @Override
-        public Map<String, Object> update(long sampleItemId,
-                                          ${FeatureClassPrefix}SampleCommand command,
-                                          String transactionId,
-                                          String idempotencyKey,
-                                          long transactionSequence,
-                                          String actor) {
-            return create(command, transactionId, idempotencyKey, transactionSequence, actor);
-        }
-
-        @Override
-        public void delete(long sampleItemId, long expectedVersion, String transactionId, long transactionSequence, String actor) { }
-
-        @Override
-        public CpfSlice<Map<String,Object>> cursor(Long afterId, int size) {
-            return new CpfSlice<>(List.of(), 0, Math.max(1, size), false);
-        }
-
-        @Override
-        public boolean verifyRollback(${FeatureClassPrefix}SampleCommand command,
-                                      String transactionId,
-                                      String idempotencyKey,
-                                      long transactionSequence,
-                                      String actor) { return true; }
+    private final StubPort port=new StubPort();
+    private final ${FeatureClassPrefix}Service service=new ${FeatureClassPrefix}Service(port,port);
+    @BeforeEach void context(){CpfTransactionContext.initializeForTest("20260724123456789${DomainIdCode}00000010000001","${ModuleUpper}_IDEMPOTENCY_001","generator-test");}
+    @AfterEach void clear(){CpfTransactionContext.clear();}
+    @Test void queryAndCommandPortsRemainSeparatedAndTyped(){var command=new ${FeatureClassPrefix}SampleCommand("${ModuleUpper}_001","Sample","ACTIVE",0);var created=service.create(command);assertThat(created.sampleKey()).isEqualTo("${ModuleUpper}_001");assertThat(service.findBySampleKey(created.sampleKey())).contains(created);}
+    @Test void sameIdempotencyKeyAndSameRequestReplaysResult(){var command=new ${FeatureClassPrefix}SampleCommand("${ModuleUpper}_REPLAY","Replay","ACTIVE",0);var first=service.create(command);var second=service.create(command);assertThat(second).isEqualTo(first);}
+    @Test void sameIdempotencyKeyAndDifferentRequestIsRejected(){service.create(new ${FeatureClassPrefix}SampleCommand("${ModuleUpper}_A","A","ACTIVE",0));assertThatThrownBy(()->service.create(new ${FeatureClassPrefix}SampleCommand("${ModuleUpper}_B","B","ACTIVE",0))).isInstanceOf(IllegalStateException.class);}
+    @Test void rollbackVerificationRestoresTheOriginalState(){var command=new ${FeatureClassPrefix}SampleCommand("${ModuleUpper}_ROLLBACK","Rollback","ACTIVE",0);assertThat(service.verifyRollback(command)).isTrue();assertThat(service.findBySampleKey(command.sampleKey())).isEmpty();}
+    private final class StubPort implements ${FeatureClassPrefix}QueryPort,${FeatureClassPrefix}CommandPort {
+        private ${FeatureClassPrefix}SampleItem item; private String idem; private String request;
+        public ${FeatureClassPrefix}SearchResult search(${FeatureClassPrefix}SearchRequest r){return new ${FeatureClassPrefix}SearchResult(item==null?List.of():List.of(item),r,item==null?0:1);}
+        public Optional<${FeatureClassPrefix}SampleItem> findBySampleKey(String key){return Optional.ofNullable(item).filter(v->v.sampleKey().equals(key));}
+        public CpfSlice<${FeatureClassPrefix}SampleItem> cursor(Long after,int size){return new CpfSlice<>(item==null?List.of():List.of(item),0,size,false);}
+        public ${FeatureClassPrefix}SampleItem create(${FeatureClassPrefix}SampleCommand c,String tx,String key,long seq,String actor){String canonical=c.sampleKey()+"|"+c.itemName()+"|"+c.statusCode()+"|"+c.expectedVersion();if(Objects.equals(idem,key)){if(!Objects.equals(request,canonical))throw new IllegalStateException("idempotency conflict");return item;}if(item!=null&&item.sampleKey().equals(c.sampleKey()))throw new IllegalStateException("sampleKey duplicate");Instant now=Instant.now();item=new ${FeatureClassPrefix}SampleItem(1,c.sampleKey(),c.itemName(),c.statusCode(),0,key,tx,seq,now,actor,now,actor,now);idem=key;request=canonical;return item;}
+        public ${FeatureClassPrefix}SampleItem update(long id,${FeatureClassPrefix}SampleCommand c,String tx,String key,long seq,String actor){if(item==null||item.sampleItemId()!=id)throw new IllegalArgumentException("not found");if(item.versionNo()!=c.expectedVersion())throw new IllegalStateException("version conflict");Instant now=Instant.now();item=new ${FeatureClassPrefix}SampleItem(id,c.sampleKey(),c.itemName(),c.statusCode(),item.versionNo()+1,key,tx,seq,now,item.createdBy(),item.createdAt(),actor,now);return item;}
+        public ${FeatureClassPrefix}DeleteResult delete(long id,long version,String tx,String key,long seq,String actor){if(item==null||item.sampleItemId()!=id||item.versionNo()!=version)throw new IllegalStateException("version conflict");item=null;idem=key;return new ${FeatureClassPrefix}DeleteResult(true,id,version+1);}
+        public boolean verifyRollback(${FeatureClassPrefix}SampleCommand c,String tx,String key,long seq,String actor){var before=item;var beforeIdem=idem;var beforeRequest=request;try{create(c,tx,key,seq,actor);}finally{item=before;idem=beforeIdem;request=beforeRequest;}return Objects.equals(before,item)&&Objects.equals(beforeIdem,idem)&&Objects.equals(beforeRequest,request);}
     }
 }
-
 "@
 
 $messagingPublisher = @"
@@ -2261,7 +2208,7 @@ param(
 )
 
 `$ErrorActionPreference = "Stop"
-`$uri = "`$BaseUrl/api/v1/$module/reference?keyword=sample&page=0&size=20&sortBy=created_at&sortDirection=DESC"
+`$uri = "`$BaseUrl/api/v1/$module/sample-items?keyword=sample&page=0&size=20&sortBy=created_at&sortDirection=DESC"
 `$response = Invoke-WebRequest -Method Get -Uri `$uri -TimeoutSec `$TimeoutSec -UseBasicParsing
 if ([int] `$response.StatusCode -lt 200 -or [int] `$response.StatusCode -ge 300) {
     throw "${ModuleName} smoke failed. status=`$(`$response.StatusCode)"
@@ -2687,31 +2634,36 @@ $files = [ordered]@{
     "src/main/java/$packagePath/common/contract/${ModuleClassName}Response.java" = $moduleResponseContract
     "src/main/java/$featurePackagePath/facade/${FeatureClassPrefix}Facade.java" = $facade
     "src/main/java/$featurePackagePath/port/${FeatureClassPrefix}QueryPort.java" = $queryPortSource
+    "src/main/java/$featurePackagePath/port/${FeatureClassPrefix}CommandPort.java" = $commandPortSource
     "src/main/java/$featurePackagePath/service/${FeatureClassPrefix}Service.java" = $service
     "src/main/java/$featurePackagePath/dto/${FeatureClassPrefix}SearchRequest.java" = $dto
     "src/main/java/$featurePackagePath/dto/${FeatureClassPrefix}SampleCommand.java" = $sampleCommand
     "src/main/java/$featurePackagePath/dto/${FeatureClassPrefix}SampleItem.java" = $sampleItem
+    "src/main/java/$featurePackagePath/dto/${FeatureClassPrefix}SearchResult.java" = $searchResult
+    "src/main/java/$featurePackagePath/dto/${FeatureClassPrefix}DeleteCommand.java" = $deleteCommand
+    "src/main/java/$featurePackagePath/dto/${FeatureClassPrefix}DeleteResult.java" = $deleteResult
+    "src/main/java/$featurePackagePath/dto/${FeatureClassPrefix}IdempotencyEntry.java" = $idempotencyEntry
     "src/main/java/$featurePackagePath/validation/${FeatureClassPrefix}SearchValidator.java" = $validator
     "src/test/java/$featurePackagePath/service/${FeatureClassPrefix}ServiceTest.java" = $serviceTest
-    "smoke/smoke-${module}.ps1" = $smokeScript
+        "smoke/smoke-${module}.ps1" = $smokeScript
 }
 
 if ($DatabaseEnabled) {
     $files["src/main/java/$packagePath/config/${ModuleName}DataSourceConfig.java"] = $dataSourceConfig
     $files["src/main/java/$packagePath/config/${ModuleName}MyBatisConfig.java"] = $myBatisConfig
     $files["src/test/java/$packagePath/config/${ModuleName}DataSourceIsolationTest.java"] = $dataSourceIsolationTest
-    $files["src/main/java/$featurePackagePath/adapter/local/Local${FeatureClassPrefix}QueryAdapter.java"] = $localAdapter
+    $files["src/main/java/$featurePackagePath/adapter/local/Local${FeatureClassPrefix}Adapter.java"] = $localAdapter
     $files["src/main/java/$featurePackagePath/repository/${FeatureClassPrefix}Repository.java"] = $repository
 }
 if ($ExternalEnabled) {
-    $files["src/main/java/$featurePackagePath/adapter/remote/Remote${FeatureClassPrefix}QueryProxy.java"] = $remoteProxy
+    $files["src/main/java/$featurePackagePath/adapter/remote/Remote${FeatureClassPrefix}Adapter.java"] = $remoteProxy
 }
 if (-not $DatabaseEnabled -and -not $ExternalEnabled) {
-    $files["src/main/java/$featurePackagePath/adapter/memory/InMemory${FeatureClassPrefix}QueryAdapter.java"] = $inMemoryAdapter
+    $files["src/main/java/$featurePackagePath/adapter/memory/InMemory${FeatureClassPrefix}Adapter.java"] = $inMemoryAdapter
 }
 if ($UiEnabled) {
-    $files["ui/src/features/reference/${FeatureClassPrefix}Page.vue"] = $uiComponent
-    $files["ui/src/features/reference/${FeatureClassPrefix}Api.ts"] = $uiApi
+    $files["ui/src/features/sample-items/${FeatureClassPrefix}Page.vue"] = $uiComponent
+    $files["ui/src/features/sample-items/${FeatureClassPrefix}Api.ts"] = $uiApi
 }
 
 if ($MessagingEnabled) {

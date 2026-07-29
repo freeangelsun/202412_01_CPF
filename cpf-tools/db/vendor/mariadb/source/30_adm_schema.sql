@@ -684,3 +684,61 @@ CREATE TABLE IF NOT EXISTS adm_audit_delivery (
     CONSTRAINT ck_adm_audit_delivery_operation CHECK (OPERATION_STATUS IN ('REQUESTED','SUCCEEDED','FAILED','UNKNOWN')),
     CONSTRAINT ck_adm_audit_delivery_status CHECK (DELIVERY_STATUS IN ('PENDING','RETRY','FAILED','DELIVERED'))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 필수 감사 Delivery 원장';
+
+-- CPF V69/V72 canonical ADM file job schema
+CREATE TABLE IF NOT EXISTS adm_file_job (
+    job_id VARCHAR(36) NOT NULL,
+    operation_id VARCHAR(100) NOT NULL,
+    request_hash VARCHAR(64) NOT NULL,
+    job_type VARCHAR(20) NOT NULL,
+    template_code VARCHAR(100) NOT NULL,
+    template_version INT NOT NULL,
+    file_format VARCHAR(10) NOT NULL,
+    job_state VARCHAR(30) NOT NULL,
+    dry_run CHAR(1) NOT NULL,
+    rollback_supported CHAR(1) NOT NULL,
+    source_path VARCHAR(1000),
+    result_path VARCHAR(1000),
+    source_sha256 VARCHAR(64),
+    result_sha256 VARCHAR(64),
+    total_rows BIGINT NOT NULL DEFAULT 0,
+    success_rows BIGINT NOT NULL DEFAULT 0,
+    failed_rows BIGINT NOT NULL DEFAULT 0,
+    lease_owner VARCHAR(100),
+    fencing_token BIGINT NOT NULL DEFAULT 0,
+    lease_until TIMESTAMP(6) NULL,
+    retention_until TIMESTAMP(6) NOT NULL,
+    requested_by VARCHAR(100) NOT NULL,
+    reason VARCHAR(500) NOT NULL,
+    client_ip VARCHAR(64),
+    approval_id VARCHAR(120),
+    applied_by VARCHAR(100),
+    resolved_by VARCHAR(100),
+    control_by VARCHAR(100),
+    control_reason VARCHAR(500),
+    control_updated_at TIMESTAMP(6) NULL,
+    error_code VARCHAR(80),
+    error_message VARCHAR(1000),
+    created_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    updated_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    PRIMARY KEY (job_id),
+    UNIQUE KEY uk_adm_file_job_operation (operation_id),
+    KEY ix_adm_file_job_claim (job_state, lease_until, created_at),
+    KEY ix_adm_file_job_retention (retention_until, job_state),
+    KEY ix_adm_file_job_approval (approval_id, job_state)
+);
+
+CREATE TABLE IF NOT EXISTS adm_file_job_row (
+    job_id VARCHAR(36) NOT NULL,
+    row_no BIGINT NOT NULL,
+    row_state VARCHAR(30) NOT NULL,
+    business_key VARCHAR(200),
+    payload_json LONGTEXT NOT NULL,
+    error_code VARCHAR(80),
+    error_message VARCHAR(1000),
+    rollback_token VARCHAR(1000),
+    created_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    updated_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    PRIMARY KEY (job_id,row_no),
+    CONSTRAINT fk_adm_file_job_row_job FOREIGN KEY (job_id) REFERENCES adm_file_job(job_id)
+);

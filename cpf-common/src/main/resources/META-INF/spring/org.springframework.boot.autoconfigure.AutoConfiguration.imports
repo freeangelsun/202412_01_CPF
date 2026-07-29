@@ -1,1 +1,3 @@
 com.cpf.common.config.CmnRuntimeControlAutoConfiguration
+com.cpf.common.cache.CpfCacheAutoConfiguration
+com.cpf.common.tabular.CpfTabularAutoConfiguration

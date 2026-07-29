@@ -1,5 +1,6 @@
 package com.cpf.core.common.runtimecontrol;
 
+import com.cpf.core.api.runtimecontrol.CpfRuntimePayload;
 import org.junit.jupiter.api.Test;
 
 import java.util.LinkedHashMap;
@@ -23,5 +24,12 @@ class CpfRuntimeCanonicalHashTest {
     void payloadChangeChangesHash() {
         assertThat(CpfRuntimeCanonicalHash.sha256(Map.of("a", 1)))
                 .isNotEqualTo(CpfRuntimeCanonicalHash.sha256(Map.of("a", 2)));
+    }
+
+    @Test
+    void typedPayloadKeepsCanonicalHashAcrossFieldOrder() {
+        CpfRuntimePayload left = CpfRuntimePayload.parse("{\"b\":2,\"a\":1}");
+        CpfRuntimePayload right = CpfRuntimePayload.parse("{\"a\":1,\"b\":2}");
+        assertThat(CpfRuntimeCanonicalHash.sha256(left)).isEqualTo(CpfRuntimeCanonicalHash.sha256(right));
     }
 }

@@ -173,6 +173,21 @@ export const referenceMethods: Record<string, any> = {
   async loadCacheSummary() {
         this.cacheResult = await this.getJson("/adm/api/cache/summary");
       },
+  async evictCacheKey() {
+        if (!this.cacheControl.namespace || !this.cacheControl.key || !this.requireReason(this.cacheReason)) return;
+        this.cacheResult = await this.sendJson("/adm/api/cache/evict-key", "POST", { ...this.cacheControl, reason: this.cacheReason });
+        await this.loadCacheSummary();
+      },
+  async evictCacheNamespace() {
+        if (!this.cacheControl.namespace || !this.requireReason(this.cacheReason)) return;
+        this.cacheResult = await this.sendJson("/adm/api/cache/evict-namespace", "POST", { tenantId: this.cacheControl.tenantId, namespace: this.cacheControl.namespace, version: this.cacheControl.version, reason: this.cacheReason });
+        await this.loadCacheSummary();
+      },
+  async reconcileCache() {
+        if (!this.requireReason(this.cacheReason)) return;
+        this.cacheResult = await this.sendJson("/adm/api/cache/reconcile", "POST", { reason: this.cacheReason });
+        await this.loadCacheSummary();
+      },
   async loadMessages() {
         this.messageResult = await this.getJson("/adm/api/messages");
       },

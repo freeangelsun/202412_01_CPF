@@ -2,6 +2,8 @@ package com.cpf.admin.opr.controller;
 
 import com.cpf.admin.opr.dto.AdmLoginRequest;
 import com.cpf.admin.opr.dto.AdmLoginResponse;
+import com.cpf.admin.opr.dto.AdmCurrentSessionResponse;
+import com.cpf.admin.opr.dto.AdmLogoutResponse;
 import com.cpf.admin.opr.dto.AdmMenu;
 import com.cpf.admin.opr.dto.AdmOperator;
 import com.cpf.admin.opr.service.AdmOperatorService;
@@ -19,7 +21,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/adm/api/auth")
@@ -39,29 +40,28 @@ public class AdmAuthController extends com.cpf.admin.common.base.AdmBaseControll
     public ResponseEntity<AdmLoginResponse> login(@RequestBody AdmLoginRequest request) {
         AdmOperator operator = operatorService.authenticate(request);
         List<AdmMenu> menus = operatorService.findMenusForRoles(operator.roleIds());
-        return ResponseEntity.ok(sessionService.issue(operator, menus));
+        return ResponseEntity.ok(sessionService.issue(operator, menus, operatorService.findButtonIdsForRoles(operator.roleIds())));
     }
 
     @GetMapping("/me")
     @CpfOnlineTransaction(id = "OADMOP0041", name = "ADMCurrentOperator")
     @Operation(operationId = "admAuthMe", summary = "현재 운영자 조회", description = "현재 세션의 운영자와 권한 메뉴를 조회합니다.")
-    public ResponseEntity<Map<String, Object>> me(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
+    public ResponseEntity<AdmCurrentSessionResponse> me(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
         String token = bearerToken(authorization);
-        return sessionService.findValidSession(token)
-                .map(session -> ResponseEntity.ok(Map.<String, Object>of(
-                        "operatorId", session.operatorId(),
-                        "roleIds", session.roleIds(),
-                        "passwordChangeRequired", session.passwordChangeRequired(),
-                        "menus", operatorService.findMenusForRoles(session.roleIds()))))
-                .orElseGet(() -> ResponseEntity.status(401).body(Map.of("message", "유효하지 않은 ADM 세션입니다.")));
+        var session = sessionService.findValidSession(token)
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(
+                        org.springframework.http.HttpStatus.UNAUTHORIZED, "유효하지 않은 ADM 세션입니다."));
+        return ResponseEntity.ok(new AdmCurrentSessionResponse(session.operatorId(), session.roleIds(),
+                session.passwordChangeRequired(), operatorService.findMenusForRoles(session.roleIds()),
+                operatorService.findButtonIdsForRoles(session.roleIds())));
     }
 
     @PostMapping("/logout")
     @CpfOnlineTransaction(id = "OADMOP0051", name = "ADMLogout")
     @Operation(operationId = "admAuthLogout", summary = "ADM 로그아웃", description = "현재 Bearer 토큰 세션을 폐기합니다.")
-    public ResponseEntity<Map<String, Object>> logout(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
+    public ResponseEntity<AdmLogoutResponse> logout(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
         sessionService.revoke(bearerToken(authorization));
-        return ResponseEntity.ok(Map.of("loggedOut", true));
+        return ResponseEntity.ok(new AdmLogoutResponse(true));
     }
 
     private String bearerToken(String authorization) {

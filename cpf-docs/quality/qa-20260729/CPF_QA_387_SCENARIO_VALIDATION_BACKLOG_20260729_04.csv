@@ -1,0 +1,388 @@
+﻿sequence,id,source_set,area,work_package,severity,title,setup,expected,closing_status,execution_status,review_owner,completion_rule
+1,CPF-QA-EXEC-001,BASE,LEGACY,,,Java25/Gradle 전체 clean test assemble qualityGate,Java25·Gradle9.1·Boot4.1 환경,전체 Module/Frontend/Gate 성공,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+2,CPF-QA-EXEC-002,BASE,LEGACY,,,PowerShell Root Gate 실제 실행,Windows/pwsh 환경,모든 script exit code·sanitized report 성공,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+3,CPF-QA-EXEC-003,BASE,LEGACY,,,ADM Session DB 장애,issue/lookup/revoke/cleanup 단계별 fault,503 fail-closed·token/성공 위장 0,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+4,CPF-QA-EXEC-004,BASE,LEGACY,,,ADM Permission DB 장애,api/menu/button permission fault,default allow 0,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+5,CPF-QA-EXEC-005,BASE,LEGACY,,,ADM 상태/Role/Password Session revoke,활성 session 후 변경,모든 instance 즉시 무효,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+6,CPF-QA-EXEC-006,BASE,LEGACY,,,ADM operationId 동시성,동일/상이 payload 동시 요청,멱등/409 정확,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+7,CPF-QA-EXEC-007,BASE,LEGACY,,,ADM Raw PII,권한·사유·audit·browser 흐름,최소 projection·zeroization,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+8,CPF-QA-EXEC-008,BASE,LEGACY,,,BZA 인증 성공/실패 fault,history/count/token 단계 fault,원자성·명확한 오류,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+9,CPF-QA-EXEC-009,BASE,LEGACY,,,BZA operationId response loss,commit 후 응답 유실,중복 session 0·결과 복구,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+10,CPF-QA-EXEC-010,BASE,LEGACY,,,BZA Refresh rotation,동시 사용·응답 유실,단일 유효 결과·reuse 탐지,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+11,CPF-QA-EXEC-011,BASE,LEGACY,,,MariaDB lifecycle,fresh→upgrade→rollback→reapply,schema/data/checksum 일치,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+12,CPF-QA-EXEC-012,BASE,LEGACY,,,PostgreSQL lifecycle,fresh→upgrade→rollback→reapply,vendor-native runtime 성공,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+13,CPF-QA-EXEC-013,BASE,LEGACY,,,Oracle lifecycle,fresh→upgrade→rollback→reapply,vendor-native runtime 성공,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+14,CPF-QA-EXEC-014,BASE,LEGACY,,,CRUD/Auth/PII Runtime,ADM/BZA 실제 DB+API,정상/오류/경계,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+15,CPF-QA-EXEC-015,BASE,LEGACY,,,Browser E2E,ADM/BZA 핵심 route,권한·PII·오류·접근성,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+16,CPF-QA-EXEC-016,BASE,LEGACY,,,PII DOM/Storage 검사,raw 조회 후 route/logout/error,원문 0,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+17,CPF-QA-EXEC-017,BASE,LEGACY,,,ADM 다중 인스턴스,2 WAS+공유 DB,session/permission/version 일치,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+18,CPF-QA-EXEC-018,BASE,LEGACY,,,BZA 다중 인스턴스,2 WAS+공유 DB,token/permission/revoke 일치,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+19,CPF-QA-EXEC-019,BASE,LEGACY,,,Query Resource 실행,3 Vendor query prepare/execute,orphan/parameter/result parity,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+20,CPF-QA-EXEC-020,BASE,LEGACY,,,Artifact staging/promotion,LOCAL_DEV/REMOTE/OFFLINE,fail-closed·hash/version 일치,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+21,CPF-QA-EXEC-021,BASE,LEGACY,,,Remote Artifact fail-closed,registry artifact 누락,local fallback 0,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+22,CPF-QA-EXEC-022,BASE,LEGACY,,,Generated Domain lifecycle,create→bootstrap→build→runtime→remove→regenerate,normalized parity,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+23,CPF-QA-EXEC-023,BASE,LEGACY,,,Gateway failover/retry,A down/B up/4xx/429/5xx/timeout,정책별 정확한 attempt,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+24,CPF-QA-EXEC-024,BASE,LEGACY,,,BAT multi-instance,scheduler/worker/runner/agent 장애,lease/fencing/takeover/restart,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+25,CPF-QA-EXEC-025,BASE,RTC,,,Runtime self-registration,3개 Service × 각 2개 Instance 기동,identity/capability/artifact/version 등록과 heartbeat 정상,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+26,CPF-QA-EXEC-026,BASE,RTC,,,Duplicate instance identity,서로 다른 runtime이 같은 instanceId로 등록,위조/중복 차단,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+27,CPF-QA-EXEC-027,BASE,RTC,,,Heartbeat lease expiry,한 instance 강제 종료,offline 전환·routing 제외·alert,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+28,CPF-QA-EXEC-028,BASE,RTC,,,Graceful deregistration,정상 종료 signal,drain 후 deregister,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+29,CPF-QA-EXEC-029,BASE,RTC,,,Static group membership,instance를 group에 추가/제거,version/history/snapshot 정확,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+30,CPF-QA-EXEC-030,BASE,RTC,,,Dynamic group selector,label/zone/capability 변경,preview와 승인 snapshot 분리,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+31,CPF-QA-EXEC-031,BASE,RTC,,,Nested group cycle,A→B→A 구성,저장 전 차단,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+32,CPF-QA-EXEC-032,BASE,RTC,,,Zero target guard,selector 결과 0건,실행 차단,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+33,CPF-QA-EXEC-033,BASE,RTC,,,Overbroad target guard,의도보다 전체 instance 선택,고위험 승인 요구,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+34,CPF-QA-EXEC-034,BASE,RTC,,,Single instance realtime config,한 instance에만 config 변경,대상만 ACK/APPLIED,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+35,CPF-QA-EXEC-035,BASE,RTC,,,Group realtime code cache,group 대상 공통코드 변경,모든 대상 최신 version·offline은 reconnect sync,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+36,CPF-QA-EXEC-036,BASE,RTC,,,Realtime log level TTL,group logger DEBUG 5분,effective level 변경 후 자동 복원,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+37,CPF-QA-EXEC-037,BASE,RTC,,,Realtime message update,다국어 message 변경,target별 version·ACK·실제 응답 반영,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+38,CPF-QA-EXEC-038,BASE,RTC,,,Realtime response code,응답코드 mapping 변경,API 응답에 신규 mapping 적용,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+39,CPF-QA-EXEC-039,BASE,RTC,,,Realtime calendar,영업일 정책 예약 적용,시행 시점에 대상 consumer 적용,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+40,CPF-QA-EXEC-040,BASE,RTC,,,Realtime permission,ADM/BZA permission manifest 변경,stale session 권한 사용 0,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+41,CPF-QA-EXEC-041,BASE,RTC,,,Realtime route,Gateway route v2 적용,2 Gateway desired/actual/ACK 일치,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+42,CPF-QA-EXEC-042,BASE,RTC,,,Realtime routing weight,A/B 90:10 변경,통계 허용오차 내 분배,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+43,CPF-QA-EXEC-043,BASE,RTC,,,Realtime batch schedule,scheduler cron 변경,중복 fire 없이 신규 schedule 적용,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+44,CPF-QA-EXEC-044,BASE,RTC,,,Realtime worker concurrency,worker group concurrency 변경,target만 적용·inflight 정책 준수,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+45,CPF-QA-EXEC-045,BASE,RTC,,,Realtime rate limit,route quota 변경,즉시 429 정책 반영,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+46,CPF-QA-EXEC-046,BASE,RTC,,,Realtime masking,PII masking rule 변경,응답/log/download에 version 일치,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+47,CPF-QA-EXEC-047,BASE,RTC,,,Realtime secret reference,JWT key version activate,dual-key grace와 instance ACK,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+48,CPF-QA-EXEC-048,BASE,RTC,,,Out-of-order delivery,v2 적용 뒤 v1 전달,v1 거부,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+49,CPF-QA-EXEC-049,BASE,RTC,,,Duplicate delivery,같은 changeId 반복,side effect 1회,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+50,CPF-QA-EXEC-050,BASE,RTC,,,Payload incompatible,구 agent에 신규 schema,REJECTED_INCOMPATIBLE,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+51,CPF-QA-EXEC-051,BASE,RTC,,,Poison change,항상 실패 handler,격리 후 다음 change 진행,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+52,CPF-QA-EXEC-052,BASE,RTC,,,Controller restart,delivery 중 controller 종료/재기동,유실·중복 side effect 0,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+53,CPF-QA-EXEC-053,BASE,RTC,,,Agent restart before ACK,apply 직후 agent 종료,desired/actual reconcile,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+54,CPF-QA-EXEC-054,BASE,RTC,,,Offline reconnect,offline 중 5개 변경 후 재접속,최신 snapshot 적용,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+55,CPF-QA-EXEC-055,BASE,RTC,,,Canary success,1 instance 적용 후 health 정상,다음 wave 진행,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+56,CPF-QA-EXEC-056,BASE,RTC,,,Canary failure,canary error threshold 초과,wave 중단·rollback,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+57,CPF-QA-EXEC-057,BASE,RTC,,,Partial apply,10 target 중 2 failed,전체 성공 금지·개별 상태,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+58,CPF-QA-EXEC-058,BASE,RTC,,,Manual rollback,v2 실패 후 v1 복원,actual/hash/ACK v1 수렴,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+59,CPF-QA-EXEC-059,BASE,RTC,,,Forward recovery,rollback 불가 schema change,승인된 forward plan 실행,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+60,CPF-QA-EXEC-060,BASE,RTC,,,Drift manual mutation,runtime 설정 로컬 변조,drift 탐지·reconcile,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+61,CPF-QA-EXEC-061,BASE,RTC,,,Change cancellation,예약 change 시행 전 취소,전달·적용 0,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+62,CPF-QA-EXEC-062,BASE,RTC,,,Change expiry,TTL change 중 controller down,재기동 후 자동 복원,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+63,CPF-QA-EXEC-063,BASE,RTC,,,Large target delivery,"10,000 target change",backpressure·chunk·lag SLO,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+64,CPF-QA-EXEC-064,BASE,RTC,,,Control plane DR,backup restore 후 agents reconnect,중복 적용 없이 수렴,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+65,CPF-QA-EXEC-065,BASE,ART,,,Java25 full build,"clean checkout, Java25, Gradle9.1",clean test assemble qualityGate 성공,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+66,CPF-QA-EXEC-066,BASE,ART,,,No build cache,--no-build-cache build,숨은 cache 의존 없이 성공,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+67,CPF-QA-EXEC-067,BASE,ART,,,BootJar inspection,모든 runtime bootJar,필수 CPF public jar·version/hash 일치,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+68,CPF-QA-EXEC-068,BASE,ART,,,BootWar external WAS,ADM/BZA/Gateway/Domain WAR 배포,startup/health/auth/API 정상,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+69,CPF-QA-EXEC-069,BASE,ART,,,Modular monolith,선택 module 동일 JVM 기동,bean/config/transaction 충돌 0,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+70,CPF-QA-EXEC-070,BASE,ART,,,Independent WAS,각 module 분리 기동,remote contract parity,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+71,CPF-QA-EXEC-071,BASE,ART,,,LOCAL_DEV promotion,staging 검증 후 shared repo 승격,검증 실패 side effect 0,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+72,CPF-QA-EXEC-072,BASE,ART,,,REMOTE registry,Nexus/Artifactory consume,local fallback 0,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+73,CPF-QA-EXEC-073,BASE,ART,,,OFFLINE bundle,network 차단 build,bundle만으로 성공,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+74,CPF-QA-EXEC-074,BASE,ART,,,Concurrent publisher,동일 version 동시 publish,single winner·manifest 보호,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+75,CPF-QA-EXEC-075,BASE,ART,,,Promotion failure,copy 중 장애,이전 정상 artifact 유지,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+76,CPF-QA-EXEC-076,BASE,ART,,,Mixed generation,같은 version 다른 SHA artifact 혼합,Gate 차단,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+77,CPF-QA-EXEC-077,BASE,ART,,,Reproducible build,동일 source 두 번 build,hash 동일 또는 차이 근거,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+78,CPF-QA-EXEC-078,BASE,ART,,,SBOM signature,release artifact 생성,SBOM/provenance/signature 검증,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+79,CPF-QA-EXEC-079,BASE,ART,,,CVE critical fixture,취약 dependency 주입,release gate 차단,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+80,CPF-QA-EXEC-080,BASE,DB,,,MariaDB Fresh install,MariaDB: 빈 account/schema에서 provision→install→seed→verify,정본 schema/seed/query 성공,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+81,CPF-QA-EXEC-081,BASE,DB,,,MariaDB Upgrade,MariaDB: 지원 이전 baseline+실제 data에서 migration,data/constraint/checksum 정확,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+82,CPF-QA-EXEC-082,BASE,DB,,,MariaDB Rollback or recovery,MariaDB: 지원 migration rollback/forward recovery,binary/schema policy 일치,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+83,CPF-QA-EXEC-083,BASE,DB,,,MariaDB Reapply,MariaDB: rollback 후 재적용,idempotent·최종 schema 일치,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+84,CPF-QA-EXEC-084,BASE,DB,,,MariaDB Runtime query,MariaDB: 모든 registered query prepare/execute,parameter/result/dialect 성공,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+85,CPF-QA-EXEC-085,BASE,DB,,,MariaDB Mid failure,MariaDB: migration 중 connection kill,명확한 복구·silent skip 0,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+86,CPF-QA-EXEC-086,BASE,DB,,,MariaDB Deadlock timeout,MariaDB: 동시 transaction/deadlock/timeout,표준 error·bounded retry,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+87,CPF-QA-EXEC-087,BASE,DB,,,MariaDB Backup restore,MariaDB: encrypted backup을 새 환경 복원,checksum/RPO/RTO/readiness 충족,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+88,CPF-QA-EXEC-088,BASE,DB,,,PostgreSQL Fresh install,PostgreSQL: 빈 account/schema에서 provision→install→seed→verify,정본 schema/seed/query 성공,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+89,CPF-QA-EXEC-089,BASE,DB,,,PostgreSQL Upgrade,PostgreSQL: 지원 이전 baseline+실제 data에서 migration,data/constraint/checksum 정확,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+90,CPF-QA-EXEC-090,BASE,DB,,,PostgreSQL Rollback or recovery,PostgreSQL: 지원 migration rollback/forward recovery,binary/schema policy 일치,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+91,CPF-QA-EXEC-091,BASE,DB,,,PostgreSQL Reapply,PostgreSQL: rollback 후 재적용,idempotent·최종 schema 일치,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+92,CPF-QA-EXEC-092,BASE,DB,,,PostgreSQL Runtime query,PostgreSQL: 모든 registered query prepare/execute,parameter/result/dialect 성공,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+93,CPF-QA-EXEC-093,BASE,DB,,,PostgreSQL Mid failure,PostgreSQL: migration 중 connection kill,명확한 복구·silent skip 0,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+94,CPF-QA-EXEC-094,BASE,DB,,,PostgreSQL Deadlock timeout,PostgreSQL: 동시 transaction/deadlock/timeout,표준 error·bounded retry,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+95,CPF-QA-EXEC-095,BASE,DB,,,PostgreSQL Backup restore,PostgreSQL: encrypted backup을 새 환경 복원,checksum/RPO/RTO/readiness 충족,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+96,CPF-QA-EXEC-096,BASE,DB,,,Oracle Fresh install,Oracle: 빈 account/schema에서 provision→install→seed→verify,정본 schema/seed/query 성공,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+97,CPF-QA-EXEC-097,BASE,DB,,,Oracle Upgrade,Oracle: 지원 이전 baseline+실제 data에서 migration,data/constraint/checksum 정확,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+98,CPF-QA-EXEC-098,BASE,DB,,,Oracle Rollback or recovery,Oracle: 지원 migration rollback/forward recovery,binary/schema policy 일치,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+99,CPF-QA-EXEC-099,BASE,DB,,,Oracle Reapply,Oracle: rollback 후 재적용,idempotent·최종 schema 일치,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+100,CPF-QA-EXEC-100,BASE,DB,,,Oracle Runtime query,Oracle: 모든 registered query prepare/execute,parameter/result/dialect 성공,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+101,CPF-QA-EXEC-101,BASE,DB,,,Oracle Mid failure,Oracle: migration 중 connection kill,명확한 복구·silent skip 0,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+102,CPF-QA-EXEC-102,BASE,DB,,,Oracle Deadlock timeout,Oracle: 동시 transaction/deadlock/timeout,표준 error·bounded retry,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+103,CPF-QA-EXEC-103,BASE,DB,,,Oracle Backup restore,Oracle: encrypted backup을 새 환경 복원,checksum/RPO/RTO/readiness 충족,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+104,CPF-QA-EXEC-104,BASE,ADM,,,Session issue DB down,session insert fault,token 미반환·503,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+105,CPF-QA-EXEC-105,BASE,ADM,,,Session lookup DB down,인증 요청 중 DB fault,401/empty 아닌 503,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+106,CPF-QA-EXEC-106,BASE,ADM,,,Permission DB down,api/menu/button query fault,default allow 0,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+107,CPF-QA-EXEC-107,BASE,ADM,,,Unregistered API,manifest 없는 ADM API,기본 거부,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+108,CPF-QA-EXEC-108,BASE,ADM,,,Account suspend revoke,활성 session 후 SUSPENDED,모든 instance 즉시 거부,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+109,CPF-QA-EXEC-109,BASE,ADM,,,Role change revoke,활성 session 후 role 변경,stale role 0,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+110,CPF-QA-EXEC-110,BASE,ADM,,,Password reset revoke,활성 session 후 reset,기존 session 거부,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+111,CPF-QA-EXEC-111,BASE,ADM,,,Concurrent failed login,동일 계정 N개 잘못된 요청,정확한 count·lock,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+112,CPF-QA-EXEC-112,BASE,ADM,,,Create response loss,commit 후 응답 유실·동일 operationId retry,중복 row 0,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+113,CPF-QA-EXEC-113,BASE,ADM,,,Create payload conflict,동일 operationId 다른 payload,409,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+114,CPF-QA-EXEC-114,BASE,ADM,,,Role update race,동일 expectedVersion 동시 변경,한 요청만 성공,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+115,CPF-QA-EXEC-115,BASE,ADM,,,Raw PII audit fault,audit DB down,원문 반환 0,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+116,CPF-QA-EXEC-116,BASE,ADM,,,Raw PII zeroization,modal close/route/logout/error,DOM/state/storage 원문 0,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+117,CPF-QA-EXEC-117,BASE,ADM,,,Bootstrap rerun,초기 생성 후 재실행,credential/role 변경 0,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+118,CPF-QA-EXEC-118,BASE,ADM,,,MFA bypass,고위험 API without MFA,거부,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+119,CPF-QA-EXEC-119,BASE,ADM,,,Approval self-approve,requester=approver,거부,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+120,CPF-QA-EXEC-120,BASE,ADM,,,Approval unknown,owner command response loss,SUCCESS 자동 처리 금지,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+121,CPF-QA-EXEC-121,BASE,ADM,,,Break-glass expiry,TTL 경과,자동 회수·review,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+122,CPF-QA-EXEC-122,BASE,BZA,,,Login same operation concurrent,동일 operationId 10개 동시 요청,안전한 단일 결과 의미,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+123,CPF-QA-EXEC-123,BASE,BZA,,,Login payload conflict,같은 operationId 다른 fingerprint,409,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+124,CPF-QA-EXEC-124,BASE,BZA,,,Login response loss,commit 뒤 응답 유실,result recovery·중복 session 0,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+125,CPF-QA-EXEC-125,BASE,BZA,,,Refresh response loss,old revoke/new insert 후 유실,operation result 복구,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+126,CPF-QA-EXEC-126,BASE,BZA,,,Refresh concurrent reuse,같은 token 2개 동시,1 success·reuse detection,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+127,CPF-QA-EXEC-127,BASE,BZA,,,Account state revoke,ACTIVE→SUSPENDED,access/refresh 즉시 거부,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+128,CPF-QA-EXEC-128,BASE,BZA,,,Permission change,같은 access token으로 변경 전후 호출,현재 DB 권한 반영,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+129,CPF-QA-EXEC-129,BASE,BZA,,,Failure DB down,login failure history DB fault,정상 401 위장 금지,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+130,CPF-QA-EXEC-130,BASE,BZA,,,Approval ALL,3명 모두 승인,마지막 전 완료 금지,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+131,CPF-QA-EXEC-131,BASE,BZA,,,Approval ANY,3명 중 1명 승인,terminal 정확,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+132,CPF-QA-EXEC-132,BASE,BZA,,,Approval N_OF_M,5명 중 3명 동시 승인,중복/race 정확,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+133,CPF-QA-EXEC-133,BASE,BZA,,,Delegation expiry,위임 전/중/후,유효기간 준수,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+134,CPF-QA-EXEC-134,BASE,BZA,,,Raw employee audit down,raw 조회 중 audit fault,원문 0,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+135,CPF-QA-EXEC-135,BASE,BZA,,,Browser zeroization,raw 조회 후 unmount/error,원문 0,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+136,CPF-QA-EXEC-136,BASE,GWY,,,A down B failover,"target A connection refused, B healthy",정책 내 B 성공,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+137,CPF-QA-EXEC-137,BASE,GWY,,,General 400,downstream 400,retry 0,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+138,CPF-QA-EXEC-138,BASE,GWY,,,429 Retry-After,429+Retry-After,budget 내 준수,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+139,CPF-QA-EXEC-139,BASE,GWY,,,POST response loss,downstream commit 후 reset,UNKNOWN·blind retry 금지,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+140,CPF-QA-EXEC-140,BASE,GWY,,,Header spoof,외부 internal gateway header 주입,내부값 재생성,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+141,CPF-QA-EXEC-141,BASE,GWY,,,Fake auth header,검증 안 된 Authorization 존재,authenticated로 처리 안 함,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+142,CPF-QA-EXEC-142,BASE,GWY,,,SSRF route,private IP/redirect/DNS rebinding,registry 밖 접근 차단,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+143,CPF-QA-EXEC-143,BASE,GWY,,,Header/path mismatch,URI/header 불일치와 우회 param,외부 우회 불가,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+144,CPF-QA-EXEC-144,BASE,GWY,,,Large upload/download,대용량 streaming,bounded memory·backpressure,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+145,CPF-QA-EXEC-145,BASE,GWY,,,Atomic route apply,2 Gateway 중 1개 실패,partial 표시·rollback,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+146,CPF-QA-EXEC-146,BASE,GWY,,,Startup route store down,route load 불가 기동,readiness down,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+147,CPF-QA-EXEC-147,BASE,GWY,,,Weighted canary,90:10 설정 후 충분한 요청,허용 오차 내 분배,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+148,CPF-QA-EXEC-148,BASE,GWY,,,Drain target,inflight 중 drain,신규 선택 중단·기존 완료,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+149,CPF-QA-EXEC-149,BASE,GWY,,,Gateway restart,route v2 후 한 instance restart,v2 재동기화,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+150,CPF-QA-EXEC-150,BASE,GWY,,,CORS credential,미허용 origin credential 요청,거부,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+151,CPF-QA-EXEC-151,BASE,GWY,,,mTLS rotation,old/new cert grace,연속성·old retire,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+152,CPF-QA-EXEC-152,BASE,BAT,,,Scheduler duplicate prevention,scheduler 2개 due poll,실행 1건,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+153,CPF-QA-EXEC-153,BASE,BAT,,,Scheduler lease loss,primary claim 후 종료,secondary takeover·stale fencing 차단,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+154,CPF-QA-EXEC-154,BASE,BAT,,,Worker pre-execution crash,dispatch 전 crash,안전 redelivery,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+155,CPF-QA-EXEC-155,BASE,BAT,,,Worker mid-execution unknown,business commit 후 ack loss,UNKNOWN·blind retry 금지,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+156,CPF-QA-EXEC-156,BASE,BAT,,,Checkpoint restart,chunk 중 process kill,last commit 이후 resume,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+157,CPF-QA-EXEC-157,BASE,BAT,,,Skip threshold,허용 오류 threshold 초과,job fail/stop,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+158,CPF-QA-EXEC-158,BASE,BAT,,,Pause resume,대량 job 중 pause,신규 claim 중단·resume,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+159,CPF-QA-EXEC-159,BASE,BAT,,,Cancel drain,inflight item 존재 cancel,정책대로 종료/unknown,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+160,CPF-QA-EXEC-160,BASE,BAT,,,Ghost detection,RUNNING+expired heartbeat,ghost 후보 정확,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+161,CPF-QA-EXEC-161,BASE,BAT,,,Lock force release,active owner 존재,승인 없이 차단,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+162,CPF-QA-EXEC-162,BASE,BAT,,,CenterCut duplicate claim,runner 2개 동시 claim,item 1회,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+163,CPF-QA-EXEC-163,BASE,BAT,,,Global TPS,runner 2개 합산 limit,limit 준수,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+164,CPF-QA-EXEC-164,BASE,BAT,,,Failed-only reprocess,success/fail/unknown 혼합,fail만 재처리,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+165,CPF-QA-EXEC-165,BASE,BAT,,,Unknown reconciliation,외부 상태 success 확인,중복 실행 0,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+166,CPF-QA-EXEC-166,BASE,BAT,,,Approved shell,catalog 없는 command,차단,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+167,CPF-QA-EXEC-167,BASE,BAT,,,File watch partial,upload 진행 중 감지,stable 후 1회,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+168,CPF-QA-EXEC-168,BASE,BAT,,,Agent takeover,primary agent down,secondary fencing takeover,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+169,CPF-QA-EXEC-169,BASE,BAT,,,BAT DB restore,backup restore 후 pending/running,중복 없이 recovery,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+170,CPF-QA-EXEC-170,BASE,GEN,,,LNG create,LNG 임의 domain 생성,하드코딩 없는 표준 tree,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+171,CPF-QA-EXEC-171,BASE,GEN,,,LNG bootstrap,LNG DB bootstrap,canonical template,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+172,CPF-QA-EXEC-172,BASE,GEN,,,LNG build,LNG standalone clean test bootJar bootWar,artifact contract 성공,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+173,CPF-QA-EXEC-173,BASE,GEN,,,LNG runtime,LNG local/remote API 실행,header/error/idempotency/db 정상,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+174,CPF-QA-EXEC-174,BASE,GEN,,,LNG remove-regenerate,LNG 삭제 후 동일 입력 재생성,normalized parity,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+175,CPF-QA-EXEC-175,BASE,GEN,,,LNG runtime-agent,LNG instance registration/change apply,RTC 계약 준수,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+176,CPF-QA-EXEC-176,BASE,GEN,,,ING create,ING 임의 domain 생성,하드코딩 없는 표준 tree,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+177,CPF-QA-EXEC-177,BASE,GEN,,,ING bootstrap,ING DB bootstrap,canonical template,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+178,CPF-QA-EXEC-178,BASE,GEN,,,ING build,ING standalone clean test bootJar bootWar,artifact contract 성공,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+179,CPF-QA-EXEC-179,BASE,GEN,,,ING runtime,ING local/remote API 실행,header/error/idempotency/db 정상,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+180,CPF-QA-EXEC-180,BASE,GEN,,,ING remove-regenerate,ING 삭제 후 동일 입력 재생성,normalized parity,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+181,CPF-QA-EXEC-181,BASE,GEN,,,ING runtime-agent,ING instance registration/change apply,RTC 계약 준수,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+182,CPF-QA-EXEC-182,BASE,SEC-HYG,,,Secret scan,test secret commit,CI 차단,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+183,CPF-QA-EXEC-183,BASE,SEC-HYG,,,Critical dependency,취약 dependency fixture,release 차단,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+184,CPF-QA-EXEC-184,BASE,SEC-HYG,,,Unpinned workflow,mutable action tag,security gate 차단,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+185,CPF-QA-EXEC-185,BASE,SEC-HYG,,,Audit tamper,중간 audit row 변경,chain failure alert,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+186,CPF-QA-EXEC-186,BASE,SEC-HYG,,,PII log,민감 payload error,원문 0,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+187,CPF-QA-EXEC-187,BASE,SEC-HYG,,,Zip bomb,고압축 archive,차단,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+188,CPF-QA-EXEC-188,BASE,SEC-HYG,,,Path traversal,../ 및 symlink,root 밖 접근 차단,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+189,CPF-QA-EXEC-189,BASE,SEC-HYG,,,OIDC invalid issuer,다른 issuer token,거부,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+190,CPF-QA-EXEC-190,BASE,SEC-HYG,,,JWT retired key,grace 후 old key token,거부,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+191,CPF-QA-EXEC-191,BASE,SEC-HYG,,,Break-glass misuse,scope/TTL 밖,거부·alert,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+192,CPF-QA-EXEC-192,BASE,SEC-HYG,,,Metric cardinality,고유 ID label 대량,보호,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+193,CPF-QA-EXEC-193,BASE,SEC-HYG,,,Log spool full,remote down+disk full,명시적 loss/backpressure alert,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+194,CPF-QA-EXEC-194,BASE,SEC-HYG,,,Incident flow,critical alert,incident→runbook→audit,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+195,CPF-QA-EXEC-195,BASE,SEC-HYG,,,Cleanup dry-run,dirty WIP repo,삭제 없이 preview,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+196,CPF-QA-EXEC-196,BASE,SEC-HYG,,,Cleanup apply,approved manifest,allowlist만 삭제,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+197,CPF-QA-EXEC-197,BASE,SEC-HYG,,,Cleanup rollback,apply 후 restore,hash 복구,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+198,CPF-QA-EXEC-198,BASE,SEC-HYG,,,Cleanup repeat,apply 2회,안전 no-op,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+199,CPF-QA-EXEC-199,BASE,SEC-HYG,,,Stale evidence,없는 파일 참조,link gate 실패,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+200,CPF-QA-EXEC-200,BASE,SEC-HYG,,,Dead SQL,consumer 없는 query,orphan gate 실패,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+201,CPF-QA-EXEC-201,BASE,SEC-HYG,,,Dead public SPI,consumer/test 없는 interface,quality gate 실패,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+202,CPF-QA-EXEC-202,DELTA03,FND,WP00,,최신 SHA CI Required Check,"clean checkout of 9fa4bb0, Java25, Gradle9.1, Node/pwsh",정확한 SHA에 모든 Required Check가 생성·성공하고 미실행 Check가 없다.,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+203,CPF-QA-EXEC-203,DELTA03,FND,WP00,,문서 기준 SHA 일치,Current/Next/Matrix/Handover/Ledger/Evidence index,최신 SHA 9fa4bb0으로 일치하고 과거 Overlay를 현재 PASS로 참조하지 않는다.,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+204,CPF-QA-EXEC-204,DELTA03,FND,WP00,,한 줄 Evidence 거부 Gate,의도적으로 content=PASS만 있는 evidence fixture,명령·환경·시간·출력·redaction 없는 Evidence는 FAIL 처리된다.,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+205,CPF-QA-EXEC-205,DELTA03,FND,WP00,,"기존 1,214 Inventory 재판정",기존 CSV + 최신 repo,"누락 0, 중복 root cause 식별, 허용 상태만 사용한다.",체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+206,CPF-QA-EXEC-206,DELTA03,FND,WP00,,기존 201 Scenario 연속 실행,기존 scenario CSV + delta scenario CSV,미실행은 미검증이며 PASS 위장 0.,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+207,CPF-QA-EXEC-207,DELTA03,HYG,WP15,,중간 Overlay 산출물 정리,clean clone + current docs,"Current 정본 최소화, 필요한 archive만 보존, 제품 파일 오삭제 0.",체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+208,CPF-QA-EXEC-208,DELTA03,LOCAL,WP02,,Local Web minimal 기동,ADM 인증·기본 운영 API만 활성,"불필요 모듈 미기동, 정상 종료, 포트 충돌 0",체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+209,CPF-QA-EXEC-209,DELTA03,LOCAL,WP02,,Local Web standard 기동,ADM/BZA/Gateway/1 Domain,1 JVM/1 HTTP Port에서 route와 보안 계약 정상,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+210,CPF-QA-EXEC-210,DELTA03,LOCAL,WP02,,Local Web full 기동,모든 선택 Web 모듈,중복 Bean·TransactionManager·route 충돌 0,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+211,CPF-QA-EXEC-211,DELTA03,LOCAL,WP02,,Local 내부 호출,동일 JVM 두 업무 Facade,"HTTP loopback 없이 Local Facade, 동일 Header/Error/Trace",체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+212,CPF-QA-EXEC-212,DELTA03,LOCAL,WP02,,Local Remote parity,Local mode와 분리 WAS mode,응답 계약·오류·권한·Trace parity,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+213,CPF-QA-EXEC-213,DELTA03,LOCAL,WP02,,Local Batch 별도 JVM,Local Web + Local Batch process,"Web 장애와 Batch 장애 격리, 공유 DB 정합",체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+214,CPF-QA-EXEC-214,DELTA03,LOCAL,WP02,,Embedded Batch debug,unit/debug profile,"운영 profile에서는 비활성, test에서만 사용",체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+215,CPF-QA-EXEC-215,DELTA03,LOCAL,WP02,,TCP/gRPC opt-in,integration profile extra port,"기본 mode 포트 1개, integration에서만 추가 listener",체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+216,CPF-QA-EXEC-216,DELTA03,LOCAL,WP02,,미설치 Redis Fake,Redis 미설치,"설치 없이 contract 성공, 실연동 상태 미검증",체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+217,CPF-QA-EXEC-217,DELTA03,LOCAL,WP02,,미설치 Kafka Simulator,Kafka 미설치,"계약·retry·DLQ 검증, 실 broker 미검증",체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+218,CPF-QA-EXEC-218,DELTA03,LOCAL,WP02,,저사양 메모리,제한 heap 개발 PC 조건,정의된 메모리 상한과 OOM 없는 종료,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+219,CPF-QA-EXEC-219,DELTA03,LOCAL,WP02,,Local profile Production 차단,production env + local profile,fail-fast하며 실수로 local fake가 운영에 활성화되지 않음,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+220,CPF-QA-EXEC-220,DELTA03,BAT,WP03-WP06,,일반 Job 정상 실행,batDB + 10만 sample rows,Job/Step/Chunk count와 DB 결과 정확,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+221,CPF-QA-EXEC-221,DELTA03,BAT,WP03-WP06,,DB Cursor 10만 건,cursor reader + chunk 1000,"bounded memory, 누락/중복 0",후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+222,CPF-QA-EXEC-222,DELTA03,BAT,WP03-WP06,,DB Paging 10만 건,paging reader,"정렬 안정성, 누락/중복 0",후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+223,CPF-QA-EXEC-223,DELTA03,BAT,WP03-WP06,,Keyset 10만 건,keyset reader,일관된 checkpoint와 정책상 결과,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+224,CPF-QA-EXEC-224,DELTA03,BAT,WP03-WP06,,CSV 10만 건 Streaming,large CSV,전체 파일 메모리 적재 없음,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+225,CPF-QA-EXEC-225,DELTA03,BAT,WP03-WP06,,37번째 Chunk 장애 재시작,"chunk 1000, fault at 37","36개 commit 보존, 이후 재처리, 중복 0",후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+226,CPF-QA-EXEC-226,DELTA03,BAT,WP03-WP06,,Skip 한도,invalid rows mixed,"이내 성공+reject, 초과 명확한 실패",후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+227,CPF-QA-EXEC-227,DELTA03,BAT,WP03-WP06,,Retry 소진,transient then permanent error,"bounded attempt, 상태/원인/다음조치 기록",후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+228,CPF-QA-EXEC-228,DELTA03,BAT,WP03-WP06,,Reject File,invalid file rows,원본 식별·오류코드·마스킹·checksum,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+229,CPF-QA-EXEC-229,DELTA03,BAT,WP03-WP06,,중복 파일,동일 fingerprint 두 번 수신,두 번째 멱등 거부 또는 정책상 replay,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+230,CPF-QA-EXEC-230,DELTA03,BAT,WP03-WP06,,여러 파일 병렬,N input files,"파일별 상태와 전체 결과, 한 파일 실패 격리",후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+231,CPF-QA-EXEC-231,DELTA03,BAT,WP03-WP06,,Header/Detail/Trailer 오류,건수·합계 불일치 파일,commit 전 검증 실패 또는 명확한 보상,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+232,CPF-QA-EXEC-232,DELTA03,BAT,WP03-WP06,,On-Demand 승인 실행,위험 Job + 운영자,권한/사유/approval/audit 연결,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+233,CPF-QA-EXEC-233,DELTA03,BAT,WP03-WP06,,Scheduled 중복 방지,2 Scheduler shared DB,"실행 1회, lease/fencing 증적",후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+234,CPF-QA-EXEC-234,DELTA03,BAT,WP03-WP06,,Scheduler 장애 인계,leader scheduler kill,"중복 fire 0, 지연 측정",후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+235,CPF-QA-EXEC-235,DELTA03,BAT,WP03-WP06,,File Trigger atomic rename,temp→final rename,완료 파일만 1회 실행,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+236,CPF-QA-EXEC-236,DELTA03,BAT,WP03-WP06,,Event Trigger duplicate,same event twice,Inbox/idempotency로 Job 1개,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+237,CPF-QA-EXEC-237,DELTA03,BAT,WP03-WP06,,Center-Cut 100만 대상 분할,target extract + 10 workers,균형·progress·정확한 완료,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+238,CPF-QA-EXEC-238,DELTA03,BAT,WP03-WP06,,Center-Cut Worker 장애,worker mid partition kill,"미완료만 재배정, 중복 side effect 0",후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+239,CPF-QA-EXEC-239,DELTA03,BAT,WP03-WP06,,Workflow 선후행,A→B→C,dependency와 skip/compensation 정확,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+240,CPF-QA-EXEC-240,DELTA03,BAT,WP03-WP06,,Workflow 병렬·합류,"A→(B,C)→D",D 실행 정책 정확,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+241,CPF-QA-EXEC-241,DELTA03,BAT,WP03-WP06,,Housekeeping archive,retention expired data,"검증 후 삭제, 감사·복구 가능",후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+242,CPF-QA-EXEC-242,DELTA03,BAT,WP03-WP06,,Migration initial load,대량 초기 적재,checkpoint 재개·중복 0,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+243,CPF-QA-EXEC-243,DELTA03,BAT,WP03-WP06,,Batch REST 호출,mock external REST,retry/idempotency/unknown recovery 정확,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+244,CPF-QA-EXEC-244,DELTA03,BAT,WP03-WP06,,Batch TCP 전문 호출,TCP simulator,codec/error/recovery 정확,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+245,CPF-QA-EXEC-245,DELTA03,BAT,WP03-WP06,,Batch SOAP 호출,SOAP simulator,Fault mapping·보안 정확,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+246,CPF-QA-EXEC-246,DELTA03,BAT,WP03-WP06,,Batch gRPC 호출,gRPC simulator,deadline/cancel/unknown 정확,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+247,CPF-QA-EXEC-247,DELTA03,BAT,WP03-WP06,,강제 Job 실행,ADM operator,CAS·중복정책·audit,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+248,CPF-QA-EXEC-248,DELTA03,BAT,WP03-WP06,,Job 강제 Lock,실행 가능 Job,"신규 실행 차단, 기존 실행 정책 명확",후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+249,CPF-QA-EXEC-249,DELTA03,BAT,WP03-WP06,,안전한 Lock 해제,살아있는 owner와 dead owner,"alive owner 오해제 차단, dead만 CAS 해제",후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+250,CPF-QA-EXEC-250,DELTA03,BAT,WP03-WP06,,Ghost RUNNING 탐지,"process kill, DB RUNNING",ghost 상태·근거·복구 옵션 표시,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+251,CPF-QA-EXEC-251,DELTA03,BAT,WP03-WP06,,Ghost 실행 해제,ghost confirmed,"failure/recovery state, partition 안전 재배정",후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+252,CPF-QA-EXEC-252,DELTA03,BAT,WP03-WP06,,Job 일시정지·재개,long job,"checkpoint 일관, duplicate 0",후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+253,CPF-QA-EXEC-253,DELTA03,BAT,WP03-WP06,,강제 종료,long job,unknown/dirty state를 성공으로 위장하지 않음,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+254,CPF-QA-EXEC-254,DELTA03,BAT,WP03-WP06,,특정 Chunk 재처리,failed chunk known,대상 외 side effect 0,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+255,CPF-QA-EXEC-255,DELTA03,BAT,WP03-WP06,,Checkpoint 수정,승인된 recovery,version/audit/rollback 가능,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+256,CPF-QA-EXEC-256,DELTA03,BAT,WP03-WP06,,Worker 격리·복귀,unhealthy worker,신규 할당 차단 후 안전 복귀,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+257,CPF-QA-EXEC-257,DELTA03,BAT,WP03-WP06,,동시성 Runtime 변경,worker concurrency 10→3,"정책대로 drain/limit, ACK/actual 일치",후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+258,CPF-QA-EXEC-258,DELTA03,BAT,WP03-WP06,,Center-Cut 중지·재분배,active center-cut,중복·유실 없는 재배분,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+259,CPF-QA-EXEC-259,DELTA03,BAT,WP03-WP06,,Batch 로그 다운로드,specific worker instance,"실제 file, 권한·감사·cleanup",후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+260,CPF-QA-EXEC-260,DELTA03,BAT,WP03-WP06,,Batch DB Metadata Upgrade,existing job metadata,정의·실행 이력 보존,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+261,CPF-QA-EXEC-261,DELTA03,BAT,WP03-WP06,,Batch Query Paging,millions execution rows,"server paging, index 사용, timeout 없음",후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+262,CPF-QA-EXEC-262,DELTA03,BAT,WP03-WP06,,Batch 민감 파라미터,secret parameter,"원문 노출 0, secret reference만",후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+263,CPF-QA-EXEC-263,DELTA03,BAT,WP03-WP06,,Batch 알림 연계,Job ERROR/CRITICAL,"outbox 비동기, 중복억제, incident 연결",후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+264,CPF-QA-EXEC-264,DELTA03,BAT,WP03-WP06,,Batch process DB outage,running job + batDB fault,"명확한 실패/unknown, silent success 0",후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+265,CPF-QA-EXEC-265,DELTA03,INT,WP07-WP08,,Local/Remote service call contract,same service in local and remote,response/error/trace parity,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+266,CPF-QA-EXEC-266,DELTA03,INT,WP07-WP08,,Response loss idempotency,server commit then response drop,"exact replay, duplicate side effect 0",후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+267,CPF-QA-EXEC-267,DELTA03,INT,WP07-WP08,,Saga compensation,multi-step external flow,defined compensation and audit,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+268,CPF-QA-EXEC-268,DELTA03,INT,WP07-WP08,,Outbox broker publish,DB mutation + simulator broker,event exactly-once-effect and retry,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+269,CPF-QA-EXEC-269,DELTA03,INT,WP07-WP08,,Inbox duplicate,same message N times,business side effect once,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+270,CPF-QA-EXEC-270,DELTA03,INT,WP07-WP08,,TCP fixed-length,TCP simulator,layout/correlation/trace correct,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+271,CPF-QA-EXEC-271,DELTA03,INT,WP07-WP08,,TCP malformed length,bad frame,"bounded rejection, connection policy correct",후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+272,CPF-QA-EXEC-272,DELTA03,INT,WP07-WP08,,TCP reconnect,connection drop,bounded and no duplicate unsafe request,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+273,CPF-QA-EXEC-273,DELTA03,INT,WP07-WP08,,TCP mTLS,test certs,fail-closed and audit,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+274,CPF-QA-EXEC-274,DELTA03,INT,WP07-WP08,,HTTP typed client,generated client,CPF runtime policy applied,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+275,CPF-QA-EXEC-275,DELTA03,INT,WP07-WP08,,HTTP multipart streaming,large multipart,bounded memory and content integrity,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+276,CPF-QA-EXEC-276,DELTA03,INT,WP07-WP08,,HTTP 429 Retry-After,simulator 429,policy-respecting delay and attempts,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+277,CPF-QA-EXEC-277,DELTA03,INT,WP07-WP08,,HTTP unknown result,write request response loss,UNKNOWN_RESULT then confirmed state,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+278,CPF-QA-EXEC-278,DELTA03,INT,WP07-WP08,,SOAP XXE negative,malicious XML,external entity blocked,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+279,CPF-QA-EXEC-279,DELTA03,INT,WP07-WP08,,SOAP Fault mapping,SOAP fault,provider-neutral CPF error,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+280,CPF-QA-EXEC-280,DELTA03,INT,WP07-WP08,,gRPC deadline,slow server,deadline propagation and cancellation,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+281,CPF-QA-EXEC-281,DELTA03,INT,WP07-WP08,,Kafka poison message,simulator failing message,"retry→DLQ, next message progresses",후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+282,CPF-QA-EXEC-282,DELTA03,INT,WP07-WP08,,Kafka ordering,same key parallel load,per-key ordering retained,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+283,CPF-QA-EXEC-283,DELTA03,INT,WP07-WP08,,Schema version compatibility,v1/v2 producer consumer,compatible or explicit reject,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+284,CPF-QA-EXEC-284,DELTA03,INT,WP07-WP08,,Redis stampede,fake cache expiry + concurrent requests,single-flight/bounded backend load,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+285,CPF-QA-EXEC-285,DELTA03,INT,WP07-WP08,,Redis lock owner loss,fake lease expiry,new owner lock not deleted,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+286,CPF-QA-EXEC-286,DELTA03,INT,WP07-WP08,,Webhook signature,valid/invalid/replay,signature/nonce/timestamp policy,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+287,CPF-QA-EXEC-287,DELTA03,INT,WP07-WP08,,SFTP resume,simulated connection drop,checksum exact and no duplicate process,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+288,CPF-QA-EXEC-288,DELTA03,INT,WP07-WP08,,Object storage multipart,fake provider,resume/abort/cleanup,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+289,CPF-QA-EXEC-289,DELTA03,INT,WP07-WP08,,CDC duplicate/out-of-order,simulated changes,version/idempotency policy,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+290,CPF-QA-EXEC-290,DELTA03,INT,WP07-WP08,,Secret reload,test secret reference version,dual grace/ACK/no raw secret,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+291,CPF-QA-EXEC-291,DELTA03,INT,WP07-WP08,,Protocol translation REST→TCP,REST ingress + TCP simulator,header/error/correlation preserved,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+292,CPF-QA-EXEC-292,DELTA03,INT,WP07-WP08,,Offline bundle,network blocked,no external dependency download,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+293,CPF-QA-EXEC-293,DELTA03,INT,WP07-WP08,,Provider swap,adapter A/B,"no public API change, same semantics",후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+294,CPF-QA-EXEC-294,DELTA03,INT,WP07-WP08,,Direct client gate,fixture using raw clients,build fails with actionable exception path,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+295,CPF-QA-EXEC-295,DELTA03,META,WP09,,Metadata version CAS,same item concurrent update,"single winner, conflict response",체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+296,CPF-QA-EXEC-296,DELTA03,META,WP09,,Effective date activation,future policy,"not early, activates once",체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+297,CPF-QA-EXEC-297,DELTA03,META,WP09,,Environment override,global + DEV + PROD,precedence correct,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+298,CPF-QA-EXEC-298,DELTA03,META,WP09,,Tenant override,global + tenant,isolation and precedence,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+299,CPF-QA-EXEC-299,DELTA03,META,WP09,,Approval-required change,danger policy,fail-closed then apply,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+300,CPF-QA-EXEC-300,DELTA03,META,WP09,,Rollback,policy v1→v2,exact prior value/hash/version,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+301,CPF-QA-EXEC-301,DELTA03,META,WP09,,Multi-instance propagation,2 instances,ACK/actual/drift converge,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+302,CPF-QA-EXEC-302,DELTA03,META,WP09,,Offline instance catch-up,instance offline during changes,latest canonical state apply,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+303,CPF-QA-EXEC-303,DELTA03,META,WP09,,Secret reference,metadata contains secret,raw secret absent,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+304,CPF-QA-EXEC-304,DELTA03,META,WP09,,Generator metadata parity,new domain generated,same schema/contracts,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+305,CPF-QA-EXEC-305,DELTA03,ALR,WP10,,ERROR 메일 정책,ERROR event + email group,outbox→embedded SMTP delivery and audit,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+306,CPF-QA-EXEC-306,DELTA03,ALR,WP10,,CRITICAL 메일+SMS,CRITICAL event,"email embedded + SMS simulator, channel result separate",후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+307,CPF-QA-EXEC-307,DELTA03,ALR,WP10,,WARN 기록 전용,WARN rule no external channel,ADM history only,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+308,CPF-QA-EXEC-308,DELTA03,ALR,WP10,,업무그룹별 정책,same error different domain,matching receiver/policy differs,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+309,CPF-QA-EXEC-309,DELTA03,ALR,WP10,,오류그룹별 정책,two error codes in group,same aggregation/escalation,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+310,CPF-QA-EXEC-310,DELTA03,ALR,WP10,,반복 횟수 Threshold,same error below/above N,only threshold crossing alerts,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+311,CPF-QA-EXEC-311,DELTA03,ALR,WP10,,지속시간 Threshold,condition persists,single alert at threshold,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+312,CPF-QA-EXEC-312,DELTA03,ALR,WP10,,실패율 Threshold,mixed success/fail,rate-based alert,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+313,CPF-QA-EXEC-313,DELTA03,ALR,WP10,,Cooldown 중복 억제,same fingerprint burst,bounded one/summary alerts,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+314,CPF-QA-EXEC-314,DELTA03,ALR,WP10,,집계 알림,many similar errors,count/top samples masked,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+315,CPF-QA-EXEC-315,DELTA03,ALR,WP10,,야간 당직 Routing,night clock,on-call group selected,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+316,CPF-QA-EXEC-316,DELTA03,ALR,WP10,,휴일 Routing,business calendar holiday,holiday policy selected,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+317,CPF-QA-EXEC-317,DELTA03,ALR,WP10,,Maintenance suppression,active maintenance,"suppressed with audit, expiry auto restore",후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+318,CPF-QA-EXEC-318,DELTA03,ALR,WP10,,Escalation 미확인,critical unacked,next-level recipients,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+319,CPF-QA-EXEC-319,DELTA03,ALR,WP10,,Incident lifecycle,critical event,state/audit correct,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+320,CPF-QA-EXEC-320,DELTA03,ALR,WP10,,Provider timeout,email provider slow,"bounded retry, worker capacity protected",후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+321,CPF-QA-EXEC-321,DELTA03,ALR,WP10,,Provider permanent failure,invalid recipient,DLQ/manual reprocess,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+322,CPF-QA-EXEC-322,DELTA03,ALR,WP10,,Notification DB outage,event during DB outage,"original business unaffected per contract, alert failure observable",후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+323,CPF-QA-EXEC-323,DELTA03,ALR,WP10,,Original transaction rollback,business rollback,no false success alert unless failure event policy,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+324,CPF-QA-EXEC-324,DELTA03,ALR,WP10,,Embedded SMTP MIME,HTML+text+attachment fixture,subject/recipient/body/encoding correct,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+325,CPF-QA-EXEC-325,DELTA03,ALR,WP10,,Local Capture mode,no SMTP,"captured in ADM/DB, external send 0",후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+326,CPF-QA-EXEC-326,DELTA03,ALR,WP10,,Receiver PII masking,delivery logs,masked receiver by default,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+327,CPF-QA-EXEC-327,DELTA03,ALR,WP10,,Template injection,malicious template data,escaping and safe limits,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+328,CPF-QA-EXEC-328,DELTA03,ALR,WP10,,Storm protection,100k events,rate limit/backpressure/no OOM,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+329,CPF-QA-EXEC-329,DELTA03,ALR,WP10,,Policy rollback,bad rule deployed,previous matching restored,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+330,CPF-QA-EXEC-330,DELTA03,INSLOG,WP11,,Domain group hierarchy,ENV→CLUSTER→DOMAIN→APP→INSTANCE,hierarchy and permission correct,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+331,CPF-QA-EXEC-331,DELTA03,INSLOG,WP11,,Multi-membership policy,instance added to groups,defined include/exclude precedence,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+332,CPF-QA-EXEC-332,DELTA03,INSLOG,WP11,,Nested cycle,A→B→A,rejected before persistence,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+333,CPF-QA-EXEC-333,DELTA03,INSLOG,WP11,,Heartbeat expiry,instance kill,offline/alert/routing exclusion,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+334,CPF-QA-EXEC-334,DELTA03,INSLOG,WP11,,Duplicate instance identity,two runtimes same ID,fencing/identity conflict,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+335,CPF-QA-EXEC-335,DELTA03,INSLOG,WP11,,Rolling version mix,group with v1/v2,mixed version warning and rollout controls,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+336,CPF-QA-EXEC-336,DELTA03,INSLOG,WP11,,Group drain,active traffic,"new assignments stop, inflight policy",후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+337,CPF-QA-EXEC-337,DELTA03,INSLOG,WP11,,Tenant isolation,operator from other tenant,403 and no metadata leak,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+338,CPF-QA-EXEC-338,DELTA03,INSLOG,WP11,,Log file list,agent with current/rotated logs,"metadata accurate, only allowlisted files",후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+339,CPF-QA-EXEC-339,DELTA03,INSLOG,WP11,,Single log download,selected file,content/hash/name correct,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+340,CPF-QA-EXEC-340,DELTA03,INSLOG,WP11,,Multi-log ZIP,selected files,manifest and cleanup,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+341,CPF-QA-EXEC-341,DELTA03,INSLOG,WP11,,Multi-instance time bundle,3 instances,partial failures listed,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+342,CPF-QA-EXEC-342,DELTA03,INSLOG,WP11,,Trace bundle,trace spans instances,related logs only and correlation,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+343,CPF-QA-EXEC-343,DELTA03,INSLOG,WP11,,Large log streaming,multi-GB fixture,bounded memory/disk and cleanup,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+344,CPF-QA-EXEC-344,DELTA03,INSLOG,WP11,,Path traversal,malicious path/id,rejected and audited,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+345,CPF-QA-EXEC-345,DELTA03,INSLOG,WP11,,Symlink escape,symlink outside root,rejected,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+346,CPF-QA-EXEC-346,DELTA03,INSLOG,WP11,,Sensitive log,PII/token fixture,masked or approved raw flow,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+347,CPF-QA-EXEC-347,DELTA03,INSLOG,WP11,,Disconnected instance,agent unavailable,clear partial/stale response,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+348,CPF-QA-EXEC-348,DELTA03,INSLOG,WP11,,Client disconnect,mid-download close,resource/temp cleanup,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+349,CPF-QA-EXEC-349,DELTA03,INSLOG,WP11,,Download approval,raw audit log,fail-closed then audited download,후속 검토 대상,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+350,CPF-QA-EXEC-350,DELTA03,DOCVAL,WP12-WP15,,JavaDoc build,all public API/SPI,errors/warnings policy pass,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+351,CPF-QA-EXEC-351,DELTA03,DOCVAL,WP12-WP15,,OpenAPI snapshot,all controllers,operation/headers/errors/examples complete,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+352,CPF-QA-EXEC-352,DELTA03,DOCVAL,WP12-WP15,,OpenAPI negative examples,selected APIs,examples conform to schemas,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+353,CPF-QA-EXEC-353,DELTA03,DOCVAL,WP12-WP15,,package-info coverage,public/major packages,required Korean responsibility docs present,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+354,CPF-QA-EXEC-354,DELTA03,DOCVAL,WP12-WP15,,EDU command execution,all reference guides,all commands and expected results valid,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+355,CPF-QA-EXEC-355,DELTA03,DOCVAL,WP12-WP15,,EDU requirement trace,all examples,each feature has examples and each example maps feature,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+356,CPF-QA-EXEC-356,DELTA03,DOCVAL,WP12-WP15,,Reference CI,cpfIncludeReferenceDomains=true,required matrix pass,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+357,CPF-QA-EXEC-357,DELTA03,DOCVAL,WP12-WP15,,Generator new domain,random DomainName/SystemCode,no hard-coded domain assumptions,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+358,CPF-QA-EXEC-358,DELTA03,DOCVAL,WP12-WP15,,Generator regeneration,user extension present,user code preserved,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+359,CPF-QA-EXEC-359,DELTA03,DOCVAL,WP12-WP15,,Generator client gate,generated domain,raw client usage 0,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+360,CPF-QA-EXEC-360,DELTA03,DOCVAL,WP12-WP15,,MariaDB fresh install,empty schemas,canonical match,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+361,CPF-QA-EXEC-361,DELTA03,DOCVAL,WP12-WP15,,MariaDB upgrade,prior supported baseline,data/constraints preserved,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+362,CPF-QA-EXEC-362,DELTA03,DOCVAL,WP12-WP15,,MariaDB rollback/reapply,latest migration,documented recovery and final parity,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+363,CPF-QA-EXEC-363,DELTA03,DOCVAL,WP12-WP15,,MariaDB query registry,all runtime queries,parameter/result/dialect pass,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+364,CPF-QA-EXEC-364,DELTA03,DOCVAL,WP12-WP15,,PostgreSQL static pack,generated/vendor pack,no MariaDB syntax leakage,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+365,CPF-QA-EXEC-365,DELTA03,DOCVAL,WP12-WP15,,Oracle static pack,generated/vendor pack,no PostgreSQL/Maria syntax leakage,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+366,CPF-QA-EXEC-366,DELTA03,DOCVAL,WP12-WP15,,Secret scan,source/config/evidence,real secrets/PII 0,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+367,CPF-QA-EXEC-367,DELTA03,DOCVAL,WP12-WP15,,Repository hygiene,clean clone,build/tmp/overlay debris policy pass,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+368,CPF-QA-EXEC-368,DELTA03,DOCVAL,WP12-WP15,,Protected regression selection,change common header,gateway/message/TCP/generator/EDU tests selected,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+369,CPF-QA-EXEC-369,DELTA03,DOCVAL,WP12-WP15,,Release gate with deferred providers,external providers uninstalled,real integration stays 미검증 and GA policy explicit,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+370,CPF-QA-NQA-SCN-001,NQA20260729,ARC,POST_CODEX_FULL_REVIEW,P0,정본 우선 구조 판정,최신 master 정본→Generator→MBR→ACC→EXS→Platform 순서로 구조를 대조한다.,근거 없는 패키지 이동 없이 유지/부분 개선/전환 필요/재확인 필요로 판정하고 결함은 실제 구현까지 수정한다.,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+371,CPF-QA-NQA-SCN-002,NQA20260729,ARC,POST_CODEX_FULL_REVIEW,P0,Module Ownership 양방향 추적,공식 Module·Generated Domain 기능의 Requirement/Source/DB/Runtime/UI/API/SPI/Consumer/Test Owner를 수집한다.,중복 Owner·Owner 없음·역방향·순환·Internal 외부 참조가 없어야 한다.,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+372,CPF-QA-NQA-SCN-003,NQA20260729,GEN,POST_CODEX_FULL_REVIEW,P0,ACC·MBR·EXS Normalized Tree Parity,ACC·MBR·EXS와 임시 생성 Domain을 Metadata 정규화 후 비교한다.,동일 Capability 구조·SQL·Test·Local/Remote·Guide가 일치하고 수동 치환 없이 Build되어야 한다.,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+373,CPF-QA-NQA-SCN-004,NQA20260729,GEN,POST_CODEX_FULL_REVIEW,P0,Generator 우선 이관,Template 결함을 Generator에서 수정하고 임시 Domain 생성 후 ACC·MBR·EXS를 동기화한다.,Generator와 기존 Domain 사이 Drift와 이전 구조가 남지 않아야 한다.,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+374,CPF-QA-NQA-SCN-005,NQA20260729,ARC,POST_CODEX_FULL_REVIEW,P0,업무 기능 경계 검증,Requirement→Use Case→API→상태→Table→Event→Consumer→운영 기능으로 ACC 기능 경계를 도출한다.,기술 계층 대형 Package·God Service·DTO/Entity 혼용·기능 간 Repository 직접 참조가 없어야 한다.,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+375,CPF-QA-NQA-SCN-006,NQA20260729,ARC,POST_CODEX_FULL_REVIEW,P0,Local·Remote Contract Parity,동일 업무 Contract를 Local Facade와 Remote Facade로 각각 실행한다.,HTTP loopback·Gateway 재경유·DTO/Error 불일치·Domain 하드코딩 없이 동일 결과와 Header/Trace/Validation을 제공해야 한다.,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+376,CPF-QA-NQA-SCN-007,NQA20260729,ADM,POST_CODEX_FULL_REVIEW,P1,ADM/BZA Menu Route Page API Parity,Menu Group부터 Button/API/Permission/DB/Audit/E2E까지 전수 연결한다.,고아 Menu·Route·Page·Button·API가 없고 기능 목적에 맞는 UI여야 한다.,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+377,CPF-QA-NQA-SCN-008,NQA20260729,RTC,POST_CODEX_FULL_REVIEW,P0,ADM Runtime Tree 임의 깊이,Environment→Cluster→Domain→Group→Role→Service→Instance 트리를 대규모 데이터로 조회한다.,검색 경로 확장·Breadcrumb·상태 집계·Desired/Actual/Version/Drift·Lazy/Virtual·접근성이 동작해야 한다.,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+378,CPF-QA-NQA-SCN-009,NQA20260729,BZA,POST_CODEX_FULL_REVIEW,P1,BZA 조직 Tree 동시성,임의 깊이 조직 이동·삭제를 expectedVersion/CAS와 동시 요청으로 수행한다.,순환·없는 Parent·하위 조직 삭제를 차단하고 직원/조직장/승인경로 영향 Preview와 감사 이력을 제공해야 한다.,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+379,CPF-QA-NQA-SCN-010,NQA20260729,SEC,POST_CODEX_FULL_REVIEW,P0,BZA 메뉴 권한 Effective Simulation,Allow/Deny/상속/Deny 우선순위와 사용자 Simulation·Role 비교를 수행한다.,"Frontend Route와 Backend Endpoint, Screen/Button/API/Data Scope의 Effective Permission이 일치해야 한다.",체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+380,CPF-QA-NQA-SCN-011,NQA20260729,SEC,POST_CODEX_FULL_REVIEW,P0,Button 권한 직접 호출 Negative,숨겨진 버튼의 URL/API를 다른 환경·Domain·조직 Scope와 HTTP Method로 직접 호출한다.,Backend가 403으로 차단하고 권한 변경 후 Session/Cache가 반영되며 위험 작업은 사유·승인·감사를 남겨야 한다.,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+381,CPF-QA-NQA-SCN-012,NQA20260729,ADM,POST_CODEX_FULL_REVIEW,P1,대량 Download 비동기 Lifecycle,검색조건/선택/전체 결과를 대량 Server-side Job으로 생성하고 취소·만료·재다운로드한다.,Streaming·진행률·Hash·Masking·Data Scope·Formula Injection 방지·감사·멱등성이 검증되어야 한다.,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+382,CPF-QA-NQA-SCN-013,NQA20260729,ADM,POST_CODEX_FULL_REVIEW,P1,Upload Dry-run·부분 실패·복구,Template Version 파일을 Preview/Dry-run 후 원자/부분 정책으로 실행하고 오류 파일·Retry·Rollback을 수행한다.,MIME/크기/Schema/중복/CAS/operationId/재시작 복구/민감정보 차단과 행별 오류가 검증되어야 한다.,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+383,CPF-QA-NQA-SCN-014,NQA20260729,RTC,POST_CODEX_FULL_REVIEW,P0,원격 작업 부분 실패·결과 불명,다중 Instance에 원격 제어를 전달하고 Offline·Timeout·ACK 유실·Drift·Rollback 실패를 주입한다.,전체/대상별 Attempt가 보존되고 UNKNOWN_RESULT Reconcile·Retry·Rollback과 Trace/Audit/로그 연결이 재시작 후에도 조회되어야 한다.,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+384,CPF-QA-NQA-SCN-015,NQA20260729,HYG,POST_CODEX_FULL_REVIEW,P0,Legacy 안전 삭제,후보를 Git/Reflection/Spring/ServiceLoader/Route/SQL/Menu/Generator Consumer 순으로 확인 후 이관·삭제한다.,대체 구현과 Consumer/Test 이관 후 Legacy 참조가 차단되고 전체 Build/Runtime 회귀가 성공해야 한다.,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+385,CPF-QA-NQA-SCN-016,NQA20260729,FND,POST_CODEX_FULL_REVIEW,P1,Architecture·Hygiene Gate CI 강제,Module/Package/Internal/Public API/Generator/UI/SQL/Hygiene/Secret/Stale Evidence Gate를 CI에서 실행한다.,한 Gate라도 실패·Skip되면 Completion Summary와 Release가 실패해야 한다.,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+386,CPF-QA-NQA-SCN-017,NQA20260729,GOV,POST_CODEX_FULL_REVIEW,P1,필수 QA Matrix 재생성,"Module·Package, Generated Domain, Menu·UI, Garbage Matrix를 최신 SHA에서 생성한다.",각 행에 Owner/Consumer/DB/UI/Test/Drift/Status/Required Action과 Evidence가 있어야 한다.,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정
+387,CPF-QA-NQA-SCN-018,NQA20260729,GOV,POST_CODEX_FULL_REVIEW,P1,최종 전체 원장 Closure,"기존 2,118건과 신규 QA 고유 항목을 최신 SHA Evidence로 재판정한다.",부분 구현·미구현·미검증·실패·재확인 필요가 하나라도 남으면 전체 완료를 차단한다.,체크포인트 검토 완료,미검증,Codex 검수 전용,실제 실행 Evidence 없는 PASS 금지; 개발 결함은 ChatGPT 세션에서 수정

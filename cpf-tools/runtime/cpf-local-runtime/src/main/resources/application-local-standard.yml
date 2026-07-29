@@ -1,0 +1,10 @@
+cpf:
+  local:
+    modules:
+      core: true
+      common: true
+      gateway: true
+      admin: true
+      biz-admin: false
+      domains:
+        enabled: false

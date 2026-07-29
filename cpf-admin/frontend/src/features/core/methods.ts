@@ -15,7 +15,12 @@ export const coreMethods: Record<string, any> = {
         return JSON.stringify(value, null, 2);
       },
   canWrite(menuId) {
-        return this.permission(menuId).writeAllowed !== false;
+        return this.permission(menuId).writeAllowed === true;
+      },
+  canButton(buttonId, menuId = "") {
+        if (this.buttonsLoaded) return this.authorizedButtons.includes(buttonId);
+        // local/test MEMORY에서는 Button projection이 없을 수 있으므로 메뉴 권한을 사용하되 서버 Filter가 최종 차단한다.
+        return menuId ? this.canWrite(menuId) : false;
       },
   canDelete(menuId) {
         return this.permission(menuId).deleteAllowed !== false;
@@ -99,10 +104,14 @@ export const coreMethods: Record<string, any> = {
           const data = await this.getJson("/adm/api/auth/me") || {};
           this.currentOperator = data.operatorId ? data : {};
           this.authorizedMenus = Array.isArray(data.menus) ? data.menus : [];
+          this.authorizedButtons = Array.isArray(data.buttonIds) ? data.buttonIds : [];
+          this.buttonsLoaded = Array.isArray(data.buttonIds);
           this.permissionsLoaded = true;
         } catch (error) {
           this.currentOperator = {};
           this.authorizedMenus = [];
+          this.authorizedButtons = [];
+          this.buttonsLoaded = false;
           this.permissionsLoaded = false;
           throw error;
         }
@@ -111,6 +120,8 @@ export const coreMethods: Record<string, any> = {
         this.token = "";
         this.currentOperator = {};
         this.authorizedMenus = [];
+        this.authorizedButtons = [];
+        this.buttonsLoaded = false;
         this.permissionsLoaded = false;
         sessionStorage.removeItem("admAccessToken");
         localStorage.removeItem("admAccessToken"); // R14 이전 token migration/cleanup

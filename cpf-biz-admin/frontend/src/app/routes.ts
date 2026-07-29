@@ -30,8 +30,8 @@ export const bzaRoutes: BzaRoute[] = [
   { id:"users", label:"사용자", menuCode:"AUTHORIZATION", group:"access", description:"BZA 인증 사용자", load:()=>import("../features/users/UsersPage.vue") },
   { id:"roles", label:"역할", menuCode:"AUTHORIZATION", group:"access", description:"업무 역할", load:()=>import("../features/roles/RolesPage.vue") },
   { id:"userRoles", label:"사용자 Role", menuCode:"AUTHORIZATION", group:"access", description:"다중 Role 유효기간", load:()=>import("../features/user-roles/UserRolesPage.vue") },
-  { id:"menus", label:"메뉴", menuCode:"AUTHORIZATION", group:"access", description:"화면 메뉴 Registry", load:()=>import("../features/menus/MenusPage.vue") },
-  { id:"permissions", label:"권한", menuCode:"AUTHORIZATION", group:"access", description:"화면·행위·API·Data Scope 권한", load:()=>import("../features/permissions/PermissionsPage.vue") },
+  { id:"menus", label:"메뉴", menuCode:"AUTHORIZATION", group:"access", description:"화면 메뉴 Registry", load:()=>import("../features/authorization/MenusPage.vue") },
+  { id:"permissions", label:"권한", menuCode:"AUTHORIZATION", group:"access", description:"화면·행위·API·Data Scope 권한", load:()=>import("../features/authorization/PermissionsPage.vue") },
   { id:"permissionTools", label:"권한 분석", menuCode:"AUTHORIZATION", group:"access", description:"Role 비교와 권한 Simulation", load:()=>import("../features/permission-tools/PermissionToolsPage.vue") },
 
   { id:"approvalInbox", label:"결재 처리", menuCode:"APPROVAL", group:"approval", description:"Snapshot 참여자 Inbox", load:()=>import("../features/approval-inbox/ApprovalInboxPage.vue") },

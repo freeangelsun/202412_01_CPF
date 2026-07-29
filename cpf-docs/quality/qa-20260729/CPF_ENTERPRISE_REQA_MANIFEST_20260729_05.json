@@ -1,0 +1,83 @@
+{
+  "package": "CPF_ENTERPRISE_REQA_20260729_05",
+  "repository": "freeangelsun/202412_01_CPF",
+  "branch": "master",
+  "latest_observed_commit": "b8941577b99535ff3e64a4fad99b74bafa544227",
+  "basis": [
+    "CPF_ENTERPRISE_FINAL_QA_REQUEST_20260728_04(1).md",
+    "CPF_ENTERPRISE_FINAL_QA_INVENTORY_20260728_04(1).csv",
+    "CPF_ENTERPRISE_FINAL_QA_SCENARIOS_20260728_04(1).csv",
+    "CPF_ADM_REALTIME_CONTROL_MATRIX_20260728_04(1).csv",
+    "CPF_ENTERPRISE_FINAL_QA_MANIFEST_20260728_04(1).json",
+    "CPF_CODEX_QA_CHAT_HANDOFF_20260728_04(1).md",
+    "project conversation: Redis/UI/Tree/Action Permission/Excel/Runtime Result/Package/Generator/Hygiene"
+  ],
+  "counts": {
+    "existing_delta_requirements": 659,
+    "new_requirements": 157,
+    "merged_delta_requirements": 816,
+    "existing_scenarios": 240,
+    "new_scenarios": 59,
+    "merged_scenarios": 299,
+    "adm_matrix_rows": 20,
+    "known_gaps": 14
+  },
+  "new_requirement_area_counts": {
+    "ACT": 15,
+    "HYG": 14,
+    "PKG": 18,
+    "QAE": 12,
+    "REDIS": 26,
+    "RTCRES": 18,
+    "UIX": 24,
+    "XLDN": 14,
+    "XLUP": 16
+  },
+  "new_requirement_status_counts": {
+    "미구현": 14,
+    "부분 구현": 22,
+    "재확인 필요": 121
+  },
+  "new_requirement_severity_counts": {
+    "P0": 141,
+    "P1": 16
+  },
+  "files": {
+    "CPF_ENTERPRISE_REQA_REQUEST_20260729_05.md": {
+      "sha256": "09ca9b345c277d69e5d4d18d577c90fd2b4b0c12c72d3a488ed09b12221519ae",
+      "bytes": 19962
+    },
+    "CPF_ENTERPRISE_REQA_INVENTORY_20260729_05.csv": {
+      "sha256": "e224b6b9cef04179fe41e8d1012195515547f420917ef58a1498c02c6e042930",
+      "bytes": 490121
+    },
+    "CPF_ENTERPRISE_REQA_SCENARIOS_20260729_05.csv": {
+      "sha256": "0fd91e8134ce6192d6bbf6354956ff506a84f477868d520181f12e5f98303a85",
+      "bytes": 71852
+    },
+    "CPF_ADM_REALTIME_CONTROL_MATRIX_20260729_05.csv": {
+      "sha256": "594090fba31e37b8e8a647346dbfc7cc5034e011db361a8607fa8873fa6ecd0b",
+      "bytes": 23304
+    },
+    "CPF_SOURCE_VERIFIED_KNOWN_GAPS_20260729_05.csv": {
+      "sha256": "2df40d4f0aa29d7a1a9518fcbd45702a56cc0dc79a0c65f3cb885df53163f47b",
+      "bytes": 5125
+    },
+    "CPF_ENTERPRISE_REQA_TRACKER_20260729_05.xlsx": {
+      "sha256": "e52acc20bb6919fd1b7b78f3daff34a8b78b9c52f76adb12f724c89b4f77c484",
+      "bytes": 132678
+    },
+    "CPF_CODEX_REQA_HANDOFF_20260729_05.md": {
+      "sha256": "19df7673d7067edb4cd54cbd4baee03e3af9f6a1317f68a7a35fdd2ae87b97d3",
+      "bytes": 1396
+    },
+    "CPF_ENTERPRISE_REQA_MANIFEST_20260729_05.json": {
+      "sha256": "56107695f80f1a8a72c185f5a16c4701367df91dbce3158851d357e476f897e5",
+      "bytes": 2749
+    }
+  },
+  "status_policy": "완료/부분 구현/미구현/미검증/실패/재확인 필요",
+  "source_evidence_policy": "SourceConfirmed, ReportedUnverified, RuntimeRequired, NewRequirement를 구분",
+  "git_write_performed": false,
+  "generated_at": "2026-07-28T18:28:51.980936+00:00"
+}

@@ -17,7 +17,7 @@
     updated_at AS updatedAt
   </sql>
 
-  <select id="search" resultType="map">
+  <select id="search" resultType="@CPF_RESULT_TYPE@">
     SELECT <include refid="sampleColumns"/>
     FROM `@CPF_SCHEMA_NAME@`.`@CPF_TABLE_PREFIX@_sample_item`
     WHERE deleted_yn = 'N'
@@ -28,28 +28,48 @@
     LIMIT #{size} OFFSET #{offset}
   </select>
 
-  <select id="findBySampleKey" parameterType="string" resultType="map">
+  <select id="count" resultType="long">
+    SELECT COUNT(*)
+    FROM `@CPF_SCHEMA_NAME@`.`@CPF_TABLE_PREFIX@_sample_item`
+    WHERE deleted_yn = 'N'
+    <if test="keyword != null and keyword != ''">
+      AND (sample_key LIKE CONCAT('%', #{keyword}, '%') OR item_name LIKE CONCAT('%', #{keyword}, '%'))
+    </if>
+  </select>
+
+  <select id="findBySampleKey" parameterType="string" resultType="@CPF_RESULT_TYPE@">
     SELECT <include refid="sampleColumns"/>
     FROM `@CPF_SCHEMA_NAME@`.`@CPF_TABLE_PREFIX@_sample_item`
     WHERE sample_key = #{value} AND deleted_yn = 'N'
   </select>
 
-  <select id="findByIdempotencyKey" parameterType="string" resultType="map">
+  <select id="findById" resultType="@CPF_RESULT_TYPE@">
     SELECT <include refid="sampleColumns"/>
     FROM `@CPF_SCHEMA_NAME@`.`@CPF_TABLE_PREFIX@_sample_item`
-    WHERE idempotency_key = #{value}
-    ORDER BY sample_item_id DESC
-    LIMIT 1
+    WHERE sample_item_id = #{value}
   </select>
 
-  <select id="findForUpdate" resultType="map">
+  <select id="findIdempotency" parameterType="string" resultType="@CPF_IDEMPOTENCY_RESULT_TYPE@">
+    SELECT idempotency_key AS idempotencyKey,
+           operation_code AS operationCode,
+           request_hash AS requestHash,
+           sample_item_id AS sampleItemId,
+           result_version AS resultVersion,
+           deleted_yn AS deletedYn,
+           transaction_id AS transactionId,
+           created_at AS createdAt
+    FROM `@CPF_SCHEMA_NAME@`.`@CPF_TABLE_PREFIX@_sample_item_idem`
+    WHERE idempotency_key = #{value}
+  </select>
+
+  <select id="findForUpdate" resultType="@CPF_RESULT_TYPE@">
     SELECT <include refid="sampleColumns"/>
     FROM `@CPF_SCHEMA_NAME@`.`@CPF_TABLE_PREFIX@_sample_item`
     WHERE sample_item_id = #{sampleItemId} AND deleted_yn = 'N'
     FOR UPDATE
   </select>
 
-  <select id="cursorSlice" resultType="map">
+  <select id="cursorSlice" resultType="@CPF_RESULT_TYPE@">
     SELECT <include refid="sampleColumns"/>
     FROM `@CPF_SCHEMA_NAME@`.`@CPF_TABLE_PREFIX@_sample_item`
     WHERE deleted_yn = 'N' AND sample_item_id &gt; #{cursor}
@@ -69,6 +89,16 @@
     )
   </insert>
 
+  <insert id="insertIdempotency">
+    INSERT INTO `@CPF_SCHEMA_NAME@`.`@CPF_TABLE_PREFIX@_sample_item_idem` (
+      idempotency_key, operation_code, request_hash, sample_item_id,
+      result_version, deleted_yn, transaction_id, created_at
+    ) VALUES (
+      #{idempotencyKey}, #{operationCode}, #{requestHash}, #{sampleItemId},
+      #{resultVersion}, #{deletedYn}, #{transactionId}, CURRENT_TIMESTAMP
+    )
+  </insert>
+
   <update id="updateWithVersion">
     UPDATE `@CPF_SCHEMA_NAME@`.`@CPF_TABLE_PREFIX@_sample_item`
     SET item_name=#{itemName}, status_code=#{statusCode}, version_no=version_no+1,
@@ -80,7 +110,7 @@
 
   <update id="logicalDeleteWithVersion">
     UPDATE `@CPF_SCHEMA_NAME@`.`@CPF_TABLE_PREFIX@_sample_item`
-    SET deleted_yn='Y', version_no=version_no+1,
+    SET deleted_yn='Y', version_no=version_no+1, idempotency_key=#{idempotencyKey},
         transaction_id=#{transactionId}, transaction_sequence=#{transactionSequence},
         transaction_at=CURRENT_TIMESTAMP, updated_by=#{updatedBy}, updated_at=CURRENT_TIMESTAMP
     WHERE sample_item_id=#{sampleItemId} AND version_no=#{versionNo} AND deleted_yn='N'

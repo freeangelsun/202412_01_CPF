@@ -53,6 +53,7 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
         MENU_BY_PATH_PREFIX.put("/adm/api/center-cut", "BATCH");
         MENU_BY_PATH_PREFIX.put("/adm/api/notifications", "NOTIFICATION");
         MENU_BY_PATH_PREFIX.put("/adm/api/downloads", "DOWNLOAD");
+        MENU_BY_PATH_PREFIX.put("/adm/api/file-jobs", "FILE_JOB");
         MENU_BY_PATH_PREFIX.put("/adm/api/cache", "CACHE");
         MENU_BY_PATH_PREFIX.put("/adm/api/messages", "MESSAGE");
         MENU_BY_PATH_PREFIX.put("/adm/api/codes", "CODE");
@@ -387,6 +388,37 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
     }
 
     private String resolveButtonId(String method, String path) {
+        if (HttpMethod.GET.matches(method) && path.startsWith("/adm/api/file-jobs/")) {
+            return path.endsWith("/artifact") ? "FILE_JOB_DOWNLOAD" : "FILE_JOB_READ";
+        }
+        if (HttpMethod.GET.matches(method) && path.equals("/adm/api/file-jobs")) {
+            return "FILE_JOB_READ";
+        }
+        if (HttpMethod.POST.matches(method) && path.equals("/adm/api/file-jobs/uploads")) {
+            return "FILE_JOB_UPLOAD";
+        }
+        if (HttpMethod.POST.matches(method) && path.startsWith("/adm/api/file-jobs/")) {
+            if (path.endsWith("/apply")) return "FILE_JOB_APPLY";
+            if (path.endsWith("/retry")) return "FILE_JOB_RETRY";
+            if (path.endsWith("/cancel")) return "FILE_JOB_CANCEL";
+            if (path.endsWith("/rollback")) return "FILE_JOB_ROLLBACK";
+            if (path.endsWith("/resolve-unknown")) return "FILE_JOB_RESOLVE";
+        }
+        if (HttpMethod.POST.matches(method) && path.equals("/adm/api/cache/evict-key")) {
+            return "CACHE_EVICT_KEY";
+        }
+        if (HttpMethod.POST.matches(method) && path.equals("/adm/api/cache/evict-namespace")) {
+            return "CACHE_EVICT_NAMESPACE";
+        }
+        if (HttpMethod.POST.matches(method) && path.equals("/adm/api/cache/reconcile")) {
+            return "CACHE_RECONCILE";
+        }
+        if (HttpMethod.POST.matches(method) && path.contains("/notifications/delivery-logs/") && path.endsWith("/retry")) {
+            return "NOTIFICATION_RETRY";
+        }
+        if (HttpMethod.POST.matches(method) && path.contains("/notifications/delivery-logs/") && path.endsWith("/cancel")) {
+            return "NOTIFICATION_CANCEL";
+        }
         if (HttpMethod.POST.matches(method)
                 && path.startsWith("/adm/api/remote-logs/bundle-jobs/")
                 && path.endsWith("/download-tokens")) {

@@ -44,6 +44,7 @@ export const admFeatureRoutes: Record<string,AdmFeatureRoute> = {
  "batch-audit":{group:"observability",icon:"logs",component:defineAsyncComponent(()=>import("../features/batch-audit/BatchAuditEvidencePage.vue"))},
  workers:{group:"execution",icon:"worker",component:defineAsyncComponent(()=>import("../features/workers/WorkersPage.vue"))},
  downloads:{group:"execution",icon:"logs",component:defineAsyncComponent(()=>import("../features/downloads/DownloadsPage.vue"))},
+ "file-jobs":{group:"execution",icon:"logs",component:defineAsyncComponent(()=>import("../features/file-jobs/FileJobsPage.vue"))},
  messages:{group:"execution",icon:"service",component:defineAsyncComponent(()=>import("../features/messages/MessagesPage.vue"))},
  codes:{group:"execution",icon:"settings",component:defineAsyncComponent(()=>import("../features/codes/CodesPage.vue"))},
  permissions:{group:"access",icon:"role",component:defineAsyncComponent(()=>import("../features/permissions/PermissionsPage.vue"))},

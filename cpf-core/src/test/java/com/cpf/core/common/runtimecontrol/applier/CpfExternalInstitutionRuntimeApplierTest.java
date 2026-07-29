@@ -1,6 +1,8 @@
 package com.cpf.core.common.runtimecontrol.applier;
 
 import com.cpf.core.api.runtimecontrol.CpfRuntimeDelivery;
+import com.cpf.core.api.runtimecontrol.CpfRuntimePayload;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.cpf.core.common.http.CpfServiceEndpointRegistry;
 import org.junit.jupiter.api.Test;
 
@@ -39,8 +41,9 @@ class CpfExternalInstitutionRuntimeApplierTest {
     }
 
     private CpfRuntimeDelivery delivery(long version, Map<String, Object> payload) {
+        CpfRuntimePayload typed = CpfRuntimePayload.parse(new ObjectMapper().valueToTree(payload).toString());
         return new CpfRuntimeDelivery("D-" + version, "C-" + version, "EXTERNAL_INSTITUTION", "CPF-01",
                 version, version, "request-" + version, "payload-" + version,
-                payload, 1, Instant.now().plusSeconds(60));
+                typed, 1, Instant.now().plusSeconds(60));
     }
 }

@@ -1206,3 +1206,44 @@ BEGIN
     :NEW.updated_at := CURRENT_TIMESTAMP;
 END;
 /
+
+-- CPF V69/V72 canonical ADM file job schema
+CREATE TABLE adm_file_job (
+    job_id VARCHAR2(36 CHAR) PRIMARY KEY,
+    operation_id VARCHAR2(100 CHAR) NOT NULL UNIQUE,
+    request_hash VARCHAR2(64 CHAR) NOT NULL,
+    job_type VARCHAR2(20 CHAR) NOT NULL,
+    template_code VARCHAR2(100 CHAR) NOT NULL,
+    template_version NUMBER(10) NOT NULL,
+    file_format VARCHAR2(10 CHAR) NOT NULL,
+    job_state VARCHAR2(30 CHAR) NOT NULL,
+    dry_run CHAR(1 CHAR) NOT NULL,
+    rollback_supported CHAR(1 CHAR) NOT NULL,
+    source_path VARCHAR2(1000 CHAR), result_path VARCHAR2(1000 CHAR),
+    source_sha256 VARCHAR2(64 CHAR), result_sha256 VARCHAR2(64 CHAR),
+    total_rows NUMBER(19) DEFAULT 0 NOT NULL, success_rows NUMBER(19) DEFAULT 0 NOT NULL, failed_rows NUMBER(19) DEFAULT 0 NOT NULL,
+    lease_owner VARCHAR2(100 CHAR), fencing_token NUMBER(19) DEFAULT 0 NOT NULL, lease_until TIMESTAMP(6),
+    retention_until TIMESTAMP(6) NOT NULL,
+    requested_by VARCHAR2(100 CHAR) NOT NULL, reason VARCHAR2(500 CHAR) NOT NULL, client_ip VARCHAR2(64 CHAR),
+    approval_id VARCHAR2(120 CHAR), applied_by VARCHAR2(100 CHAR), resolved_by VARCHAR2(100 CHAR),
+    control_by VARCHAR2(100 CHAR), control_reason VARCHAR2(500 CHAR), control_updated_at TIMESTAMP(6),
+    error_code VARCHAR2(80 CHAR), error_message VARCHAR2(1000 CHAR),
+    created_at TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+CREATE INDEX ix_adm_file_job_claim ON adm_file_job(job_state, lease_until, created_at);
+CREATE INDEX ix_adm_file_job_retention ON adm_file_job(retention_until, job_state);
+CREATE INDEX ix_adm_file_job_approval ON adm_file_job(approval_id, job_state);
+
+CREATE TABLE adm_file_job_row (
+    job_id VARCHAR2(36 CHAR) NOT NULL,
+    row_no NUMBER(19) NOT NULL,
+    row_state VARCHAR2(30 CHAR) NOT NULL,
+    business_key VARCHAR2(200 CHAR),
+    payload_json CLOB NOT NULL,
+    error_code VARCHAR2(80 CHAR), error_message VARCHAR2(1000 CHAR), rollback_token VARCHAR2(1000 CHAR),
+    created_at TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT pk_adm_file_job_row PRIMARY KEY(job_id,row_no),
+    CONSTRAINT fk_adm_file_job_row_job FOREIGN KEY(job_id) REFERENCES adm_file_job(job_id)
+);

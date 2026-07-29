@@ -998,3 +998,27 @@ CREATE TABLE IF NOT EXISTS cpf_saga_manual_action (
     KEY idx_cpf_saga_manual (saga_id, created_at),
     CONSTRAINT fk_cpf_saga_manual_action FOREIGN KEY (saga_id) REFERENCES cpf_saga_execution(saga_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Saga 수동 복구 조치';
+
+-- CPF V69 canonical cache invalidation schema
+-- V69 CPF Enterprise Cache / Async File Job
+CREATE TABLE IF NOT EXISTS cpf_cache_invalidation_event (
+    event_id BIGINT NOT NULL AUTO_INCREMENT,
+    event_key VARCHAR(100) NOT NULL,
+    tenant_id VARCHAR(80) NOT NULL,
+    namespace_cd VARCHAR(80) NOT NULL,
+    cache_key VARCHAR(512) NOT NULL DEFAULT '',
+    event_version BIGINT NOT NULL DEFAULT 0,
+    reason VARCHAR(500) NOT NULL,
+    requested_by VARCHAR(100) NOT NULL,
+    created_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    PRIMARY KEY (event_id),
+    UNIQUE KEY uk_cpf_cache_inv_event_key (event_key),
+    KEY ix_cpf_cache_inv_scope (tenant_id, namespace_cd, event_id)
+);
+
+CREATE TABLE IF NOT EXISTS cpf_cache_invalidation_checkpoint (
+    consumer_id VARCHAR(120) NOT NULL,
+    last_event_id BIGINT NOT NULL DEFAULT 0,
+    updated_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    PRIMARY KEY (consumer_id)
+);

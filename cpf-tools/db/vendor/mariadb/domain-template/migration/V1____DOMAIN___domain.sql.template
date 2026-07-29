@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS `@CPF_SCHEMA_NAME@`.`@CPF_TABLE_PREFIX@_sample_item` 
     item_name VARCHAR(200) NOT NULL,
     status_code VARCHAR(30) NOT NULL DEFAULT 'ACTIVE',
     version_no BIGINT NOT NULL DEFAULT 0,
-    idempotency_key VARCHAR(100) NOT NULL,
+    idempotency_key VARCHAR(180) NOT NULL,
     transaction_id CHAR(34) NOT NULL,
     transaction_sequence BIGINT NOT NULL DEFAULT 1,
     transaction_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
@@ -15,9 +15,27 @@ CREATE TABLE IF NOT EXISTS `@CPF_SCHEMA_NAME@`.`@CPF_TABLE_PREFIX@_sample_item` 
     updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
     PRIMARY KEY (sample_item_id),
     UNIQUE KEY uk_@CPF_TABLE_PREFIX@_sample_item_key (sample_key),
-    UNIQUE KEY uk_@CPF_TABLE_PREFIX@_sample_item_idem (idempotency_key),
+    INDEX ix_@CPF_TABLE_PREFIX@_sample_item_idem (idempotency_key),
     INDEX ix_@CPF_TABLE_PREFIX@_sample_item_status (status_code, deleted_yn, sample_item_id),
     INDEX ix_@CPF_TABLE_PREFIX@_sample_item_tx (transaction_id, transaction_sequence),
     CONSTRAINT ck_@CPF_TABLE_PREFIX@_sample_item_status CHECK (status_code IN ('ACTIVE','INACTIVE')),
     CONSTRAINT ck_@CPF_TABLE_PREFIX@_sample_item_deleted CHECK (deleted_yn IN ('Y','N'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `@CPF_SCHEMA_NAME@`.`@CPF_TABLE_PREFIX@_sample_item_idem` (
+    idempotency_key VARCHAR(180) NOT NULL,
+    operation_code VARCHAR(20) NOT NULL,
+    request_hash CHAR(64) NOT NULL,
+    sample_item_id BIGINT NOT NULL,
+    result_version BIGINT NOT NULL,
+    deleted_yn CHAR(1) NOT NULL DEFAULT 'N',
+    transaction_id CHAR(34) NOT NULL,
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    PRIMARY KEY (idempotency_key),
+    INDEX ix_@CPF_TABLE_PREFIX@_sample_idem_item (sample_item_id, created_at),
+    INDEX ix_@CPF_TABLE_PREFIX@_sample_idem_tx (transaction_id, created_at),
+    CONSTRAINT fk_@CPF_TABLE_PREFIX@_sample_idem_item FOREIGN KEY (sample_item_id)
+        REFERENCES `@CPF_SCHEMA_NAME@`.`@CPF_TABLE_PREFIX@_sample_item` (sample_item_id),
+    CONSTRAINT ck_@CPF_TABLE_PREFIX@_sample_idem_op CHECK (operation_code IN ('CREATE','UPDATE','DELETE')),
+    CONSTRAINT ck_@CPF_TABLE_PREFIX@_sample_idem_deleted CHECK (deleted_yn IN ('Y','N'))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

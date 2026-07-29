@@ -1,0 +1,300 @@
+﻿id,area,work_package,title,setup,steps,expected,evidence,environment
+CPF-QA-EXEC-202,FND,WP00,최신 SHA CI Required Check,"clean checkout of 9fa4bb0, Java25, Gradle9.1, Node/pwsh",Source/Build/Test/Frontend/Security/DB/Artifact/Evidence workflow를 실행한다.,정확한 SHA에 모든 Required Check가 생성·성공하고 미실행 Check가 없다.,"workflow URL, job logs, SHA",CI
+CPF-QA-EXEC-203,FND,WP00,문서 기준 SHA 일치,Current/Next/Matrix/Handover/Ledger/Evidence index,모든 기준 SHA와 Artifact hash를 수집·비교한다.,최신 SHA 9fa4bb0으로 일치하고 과거 Overlay를 현재 PASS로 참조하지 않는다.,document consistency report,Static
+CPF-QA-EXEC-204,FND,WP00,한 줄 Evidence 거부 Gate,의도적으로 content=PASS만 있는 evidence fixture,Evidence validator를 실행한다.,명령·환경·시간·출력·redaction 없는 Evidence는 FAIL 처리된다.,negative gate output,Static
+CPF-QA-EXEC-205,FND,WP00,"기존 1,214 Inventory 재판정",기존 CSV + 최신 repo,각 ID의 Source/API/SQL/Test/Runtime/Evidence를 재매핑한다.,"누락 0, 중복 root cause 식별, 허용 상태만 사용한다.",updated inventory,Static+Runtime
+CPF-QA-EXEC-206,FND,WP00,기존 201 Scenario 연속 실행,기존 scenario CSV + delta scenario CSV,의존순서로 실행하고 각 결과를 저장한다.,미실행은 미검증이며 PASS 위장 0.,scenario ledger,Mixed
+CPF-QA-EXEC-207,HYG,WP15,중간 Overlay 산출물 정리,clean clone + current docs,"CPF_INTERMEDIATE, overlay manifest, tmp/bak/log를 owner/requirement와 대조한다.","Current 정본 최소화, 필요한 archive만 보존, 제품 파일 오삭제 0.",cleanup manifest,Static
+CPF-QA-EXEC-208,LOCAL,WP02,Local Web minimal 기동,ADM 인증·기본 운영 API만 활성,minimal profile로 1 JVM/1 Port 기동→health→shutdown,"불필요 모듈 미기동, 정상 종료, 포트 충돌 0","startup logs, process/port/memory snapshot",WAS+MariaDB/Mock
+CPF-QA-EXEC-209,LOCAL,WP02,Local Web standard 기동,ADM/BZA/Gateway/1 Domain,standard profile 기동 후 주요 route 호출,1 JVM/1 HTTP Port에서 route와 보안 계약 정상,"startup logs, process/port/memory snapshot",WAS+MariaDB/Mock
+CPF-QA-EXEC-210,LOCAL,WP02,Local Web full 기동,모든 선택 Web 모듈,full profile 기동 후 bean/config 충돌 검사,중복 Bean·TransactionManager·route 충돌 0,"startup logs, process/port/memory snapshot",WAS+MariaDB/Mock
+CPF-QA-EXEC-211,LOCAL,WP02,Local 내부 호출,동일 JVM 두 업무 Facade,업무 A가 B를 호출,"HTTP loopback 없이 Local Facade, 동일 Header/Error/Trace","startup logs, process/port/memory snapshot",WAS+MariaDB/Mock
+CPF-QA-EXEC-212,LOCAL,WP02,Local Remote parity,Local mode와 분리 WAS mode,동일 요청을 양 topology로 호출,응답 계약·오류·권한·Trace parity,"startup logs, process/port/memory snapshot",WAS+MariaDB/Mock
+CPF-QA-EXEC-213,LOCAL,WP02,Local Batch 별도 JVM,Local Web + Local Batch process,각 process 기동·중지·재기동,"Web 장애와 Batch 장애 격리, 공유 DB 정합","startup logs, process/port/memory snapshot",WAS+MariaDB/Mock
+CPF-QA-EXEC-214,LOCAL,WP02,Embedded Batch debug,unit/debug profile,작은 Job을 same JVM에서 실행,"운영 profile에서는 비활성, test에서만 사용","startup logs, process/port/memory snapshot",WAS+MariaDB/Mock
+CPF-QA-EXEC-215,LOCAL,WP02,TCP/gRPC opt-in,integration profile extra port,Listener off/on 전환,"기본 mode 포트 1개, integration에서만 추가 listener","startup logs, process/port/memory snapshot",WAS+MariaDB/Mock
+CPF-QA-EXEC-216,LOCAL,WP02,미설치 Redis Fake,Redis 미설치,Fake provider로 cache/lock scenario 실행,"설치 없이 contract 성공, 실연동 상태 미검증","startup logs, process/port/memory snapshot",WAS+MariaDB/Mock
+CPF-QA-EXEC-217,LOCAL,WP02,미설치 Kafka Simulator,Kafka 미설치,Simulator로 produce/consume/DLQ 실행,"계약·retry·DLQ 검증, 실 broker 미검증","startup logs, process/port/memory snapshot",WAS+MariaDB/Mock
+CPF-QA-EXEC-218,LOCAL,WP02,저사양 메모리,제한 heap 개발 PC 조건,minimal/standard/full startup 측정,정의된 메모리 상한과 OOM 없는 종료,"startup logs, process/port/memory snapshot",WAS+MariaDB/Mock
+CPF-QA-EXEC-219,LOCAL,WP02,Local profile Production 차단,production env + local profile,기동 시도,fail-fast하며 실수로 local fake가 운영에 활성화되지 않음,"startup logs, process/port/memory snapshot",WAS+MariaDB/Mock
+CPF-QA-EXEC-220,BAT,WP03-WP06,일반 Job 정상 실행,batDB + 10만 sample rows,Job 등록→실행→완료 조회,Job/Step/Chunk count와 DB 결과 정확,batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-221,BAT,WP03-WP06,DB Cursor 10만 건,cursor reader + chunk 1000,전체 처리,"bounded memory, 누락/중복 0",batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-222,BAT,WP03-WP06,DB Paging 10만 건,paging reader,전체 처리,"정렬 안정성, 누락/중복 0",batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-223,BAT,WP03-WP06,Keyset 10만 건,keyset reader,중간 insert/update 포함 실행,일관된 checkpoint와 정책상 결과,batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-224,BAT,WP03-WP06,CSV 10만 건 Streaming,large CSV,stream read→validate→DB write,전체 파일 메모리 적재 없음,batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-225,BAT,WP03-WP06,37번째 Chunk 장애 재시작,"chunk 1000, fault at 37",실패→재시작,"36개 commit 보존, 이후 재처리, 중복 0",batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-226,BAT,WP03-WP06,Skip 한도,invalid rows mixed,skip limit 이내/초과 실행,"이내 성공+reject, 초과 명확한 실패",batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-227,BAT,WP03-WP06,Retry 소진,transient then permanent error,retry 실행,"bounded attempt, 상태/원인/다음조치 기록",batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-228,BAT,WP03-WP06,Reject File,invalid file rows,처리 후 reject 생성,원본 식별·오류코드·마스킹·checksum,batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-229,BAT,WP03-WP06,중복 파일,동일 fingerprint 두 번 수신,두 번 trigger,두 번째 멱등 거부 또는 정책상 replay,batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-230,BAT,WP03-WP06,여러 파일 병렬,N input files,병렬 처리,"파일별 상태와 전체 결과, 한 파일 실패 격리",batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-231,BAT,WP03-WP06,Header/Detail/Trailer 오류,건수·합계 불일치 파일,실행,commit 전 검증 실패 또는 명확한 보상,batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-232,BAT,WP03-WP06,On-Demand 승인 실행,위험 Job + 운영자,preview→승인→실행,권한/사유/approval/audit 연결,batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-233,BAT,WP03-WP06,Scheduled 중복 방지,2 Scheduler shared DB,동일 fire time,"실행 1회, lease/fencing 증적",batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-234,BAT,WP03-WP06,Scheduler 장애 인계,leader scheduler kill,lease expiry 후 takeover,"중복 fire 0, 지연 측정",batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-235,BAT,WP03-WP06,File Trigger atomic rename,temp→final rename,감시·실행,완료 파일만 1회 실행,batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-236,BAT,WP03-WP06,Event Trigger duplicate,same event twice,consume,Inbox/idempotency로 Job 1개,batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-237,BAT,WP03-WP06,Center-Cut 100만 대상 분할,target extract + 10 workers,분할·배정·실행,균형·progress·정확한 완료,batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-238,BAT,WP03-WP06,Center-Cut Worker 장애,worker mid partition kill,lease expiry/reassign,"미완료만 재배정, 중복 side effect 0",batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-239,BAT,WP03-WP06,Workflow 선후행,A→B→C,A/B 성공·실패 조합,dependency와 skip/compensation 정확,batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-240,BAT,WP03-WP06,Workflow 병렬·합류,"A→(B,C)→D",B 또는 C 실패,D 실행 정책 정확,batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-241,BAT,WP03-WP06,Housekeeping archive,retention expired data,archive+delete,"검증 후 삭제, 감사·복구 가능",batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-242,BAT,WP03-WP06,Migration initial load,대량 초기 적재,중간 DB outage→resume,checkpoint 재개·중복 0,batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-243,BAT,WP03-WP06,Batch REST 호출,mock external REST,success/429/timeout/unknown,retry/idempotency/unknown recovery 정확,batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-244,BAT,WP03-WP06,Batch TCP 전문 호출,TCP simulator,normal/malformed/timeout,codec/error/recovery 정확,batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-245,BAT,WP03-WP06,Batch SOAP 호출,SOAP simulator,normal/fault/schema invalid,Fault mapping·보안 정확,batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-246,BAT,WP03-WP06,Batch gRPC 호출,gRPC simulator,unary/deadline,deadline/cancel/unknown 정확,batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-247,BAT,WP03-WP06,강제 Job 실행,ADM operator,preview→reason→approval→force run,CAS·중복정책·audit,batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-248,BAT,WP03-WP06,Job 강제 Lock,실행 가능 Job,lock 설정→스케줄 도래,"신규 실행 차단, 기존 실행 정책 명확",batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-249,BAT,WP03-WP06,안전한 Lock 해제,살아있는 owner와 dead owner,해제 시도,"alive owner 오해제 차단, dead만 CAS 해제",batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-250,BAT,WP03-WP06,Ghost RUNNING 탐지,"process kill, DB RUNNING",detector 실행,ghost 상태·근거·복구 옵션 표시,batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-251,BAT,WP03-WP06,Ghost 실행 해제,ghost confirmed,approval→recover,"failure/recovery state, partition 안전 재배정",batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-252,BAT,WP03-WP06,Job 일시정지·재개,long job,pause→wait→resume,"checkpoint 일관, duplicate 0",batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-253,BAT,WP03-WP06,강제 종료,long job,force terminate,unknown/dirty state를 성공으로 위장하지 않음,batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-254,BAT,WP03-WP06,특정 Chunk 재처리,failed chunk known,selective replay,대상 외 side effect 0,batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-255,BAT,WP03-WP06,Checkpoint 수정,승인된 recovery,preview→change checkpoint,version/audit/rollback 가능,batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-256,BAT,WP03-WP06,Worker 격리·복귀,unhealthy worker,isolate→drain→return,신규 할당 차단 후 안전 복귀,batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-257,BAT,WP03-WP06,동시성 Runtime 변경,worker concurrency 10→3,inflight 중 change,"정책대로 drain/limit, ACK/actual 일치",batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-258,BAT,WP03-WP06,Center-Cut 중지·재분배,active center-cut,pause→rebalance→resume,중복·유실 없는 재배분,batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-259,BAT,WP03-WP06,Batch 로그 다운로드,specific worker instance,ADM에서 file list→download,"실제 file, 권한·감사·cleanup",batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-260,BAT,WP03-WP06,Batch DB Metadata Upgrade,existing job metadata,migration apply/rollback/reapply,정의·실행 이력 보존,batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-261,BAT,WP03-WP06,Batch Query Paging,millions execution rows,ADM search/paging,"server paging, index 사용, timeout 없음",batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-262,BAT,WP03-WP06,Batch 민감 파라미터,secret parameter,run/view/log/download,"원문 노출 0, secret reference만",batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-263,BAT,WP03-WP06,Batch 알림 연계,Job ERROR/CRITICAL,alert policy match,"outbox 비동기, 중복억제, incident 연결",batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-264,BAT,WP03-WP06,Batch process DB outage,running job + batDB fault,commit/checkpoint fault,"명확한 실패/unknown, silent success 0",batDB/API/ADM/log/metrics evidence,WAS+MariaDB/Simulator
+CPF-QA-EXEC-265,INT,WP07-WP08,Local/Remote service call contract,same service in local and remote,same request/headers,response/error/trace parity,contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-266,INT,WP07-WP08,Response loss idempotency,server commit then response drop,retry same operationId,"exact replay, duplicate side effect 0",contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-267,INT,WP07-WP08,Saga compensation,multi-step external flow,step3 fail,defined compensation and audit,contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-268,INT,WP07-WP08,Outbox broker publish,DB mutation + simulator broker,commit/fault/restart,event exactly-once-effect and retry,contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-269,INT,WP07-WP08,Inbox duplicate,same message N times,consume concurrently,business side effect once,contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-270,INT,WP07-WP08,TCP fixed-length,TCP simulator,valid request/response,layout/correlation/trace correct,contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-271,INT,WP07-WP08,TCP malformed length,bad frame,receive,"bounded rejection, connection policy correct",contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-272,INT,WP07-WP08,TCP reconnect,connection drop,retry/reconnect,bounded and no duplicate unsafe request,contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-273,INT,WP07-WP08,TCP mTLS,test certs,valid/invalid/expired,fail-closed and audit,contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-274,INT,WP07-WP08,HTTP typed client,generated client,normal/error,CPF runtime policy applied,contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-275,INT,WP07-WP08,HTTP multipart streaming,large multipart,proxy/call,bounded memory and content integrity,contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-276,INT,WP07-WP08,HTTP 429 Retry-After,simulator 429,call,policy-respecting delay and attempts,contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-277,INT,WP07-WP08,HTTP unknown result,write request response loss,reconcile,UNKNOWN_RESULT then confirmed state,contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-278,INT,WP07-WP08,SOAP XXE negative,malicious XML,call/parse,external entity blocked,contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-279,INT,WP07-WP08,SOAP Fault mapping,SOAP fault,call,provider-neutral CPF error,contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-280,INT,WP07-WP08,gRPC deadline,slow server,call,deadline propagation and cancellation,contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-281,INT,WP07-WP08,Kafka poison message,simulator failing message,consume,"retry→DLQ, next message progresses",contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-282,INT,WP07-WP08,Kafka ordering,same key parallel load,consume,per-key ordering retained,contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-283,INT,WP07-WP08,Schema version compatibility,v1/v2 producer consumer,mixed messages,compatible or explicit reject,contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-284,INT,WP07-WP08,Redis stampede,fake cache expiry + concurrent requests,load,single-flight/bounded backend load,contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-285,INT,WP07-WP08,Redis lock owner loss,fake lease expiry,old owner release,new owner lock not deleted,contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-286,INT,WP07-WP08,Webhook signature,valid/invalid/replay,receive/send,signature/nonce/timestamp policy,contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-287,INT,WP07-WP08,SFTP resume,simulated connection drop,download resume,checksum exact and no duplicate process,contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-288,INT,WP07-WP08,Object storage multipart,fake provider,large upload fault,resume/abort/cleanup,contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-289,INT,WP07-WP08,CDC duplicate/out-of-order,simulated changes,consume,version/idempotency policy,contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-290,INT,WP07-WP08,Secret reload,test secret reference version,rotate,dual grace/ACK/no raw secret,contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-291,INT,WP07-WP08,Protocol translation REST→TCP,REST ingress + TCP simulator,call,header/error/correlation preserved,contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-292,INT,WP07-WP08,Offline bundle,network blocked,run EDU/testkit,no external dependency download,contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-293,INT,WP07-WP08,Provider swap,adapter A/B,same contract suite,"no public API change, same semantics",contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-294,INT,WP07-WP08,Direct client gate,fixture using raw clients,run source gate,build fails with actionable exception path,contract/fault/evidence,Simulator/Fake; real provider deferred
+CPF-QA-EXEC-295,META,WP09,Metadata version CAS,same item concurrent update,two writers,"single winner, conflict response",DB/API/runtime evidence,WAS+MariaDB
+CPF-QA-EXEC-296,META,WP09,Effective date activation,future policy,time advance,"not early, activates once",DB/API/runtime evidence,WAS+MariaDB
+CPF-QA-EXEC-297,META,WP09,Environment override,global + DEV + PROD,resolve,precedence correct,DB/API/runtime evidence,WAS+MariaDB
+CPF-QA-EXEC-298,META,WP09,Tenant override,global + tenant,resolve cross-tenant,isolation and precedence,DB/API/runtime evidence,WAS+MariaDB
+CPF-QA-EXEC-299,META,WP09,Approval-required change,danger policy,unapproved/approved,fail-closed then apply,DB/API/runtime evidence,WAS+MariaDB
+CPF-QA-EXEC-300,META,WP09,Rollback,policy v1→v2,rollback,exact prior value/hash/version,DB/API/runtime evidence,WAS+MariaDB
+CPF-QA-EXEC-301,META,WP09,Multi-instance propagation,2 instances,change,ACK/actual/drift converge,DB/API/runtime evidence,WAS+MariaDB
+CPF-QA-EXEC-302,META,WP09,Offline instance catch-up,instance offline during changes,reconnect,latest canonical state apply,DB/API/runtime evidence,WAS+MariaDB
+CPF-QA-EXEC-303,META,WP09,Secret reference,metadata contains secret,read/export,raw secret absent,DB/API/runtime evidence,WAS+MariaDB
+CPF-QA-EXEC-304,META,WP09,Generator metadata parity,new domain generated,compare,same schema/contracts,DB/API/runtime evidence,WAS+MariaDB
+CPF-QA-EXEC-305,ALR,WP10,ERROR 메일 정책,ERROR event + email group,publish event,outbox→embedded SMTP delivery and audit,outbox/delivery/incident/audit evidence,MariaDB+Embedded SMTP+SMS Simulator
+CPF-QA-EXEC-306,ALR,WP10,CRITICAL 메일+SMS,CRITICAL event,publish,"email embedded + SMS simulator, channel result separate",outbox/delivery/incident/audit evidence,MariaDB+Embedded SMTP+SMS Simulator
+CPF-QA-EXEC-307,ALR,WP10,WARN 기록 전용,WARN rule no external channel,publish,ADM history only,outbox/delivery/incident/audit evidence,MariaDB+Embedded SMTP+SMS Simulator
+CPF-QA-EXEC-308,ALR,WP10,업무그룹별 정책,same error different domain,publish each,matching receiver/policy differs,outbox/delivery/incident/audit evidence,MariaDB+Embedded SMTP+SMS Simulator
+CPF-QA-EXEC-309,ALR,WP10,오류그룹별 정책,two error codes in group,publish,same aggregation/escalation,outbox/delivery/incident/audit evidence,MariaDB+Embedded SMTP+SMS Simulator
+CPF-QA-EXEC-310,ALR,WP10,반복 횟수 Threshold,same error below/above N,publish,only threshold crossing alerts,outbox/delivery/incident/audit evidence,MariaDB+Embedded SMTP+SMS Simulator
+CPF-QA-EXEC-311,ALR,WP10,지속시간 Threshold,condition persists,time advance,single alert at threshold,outbox/delivery/incident/audit evidence,MariaDB+Embedded SMTP+SMS Simulator
+CPF-QA-EXEC-312,ALR,WP10,실패율 Threshold,mixed success/fail,window aggregate,rate-based alert,outbox/delivery/incident/audit evidence,MariaDB+Embedded SMTP+SMS Simulator
+CPF-QA-EXEC-313,ALR,WP10,Cooldown 중복 억제,same fingerprint burst,publish 100,bounded one/summary alerts,outbox/delivery/incident/audit evidence,MariaDB+Embedded SMTP+SMS Simulator
+CPF-QA-EXEC-314,ALR,WP10,집계 알림,many similar errors,window close,count/top samples masked,outbox/delivery/incident/audit evidence,MariaDB+Embedded SMTP+SMS Simulator
+CPF-QA-EXEC-315,ALR,WP10,야간 당직 Routing,night clock,publish,on-call group selected,outbox/delivery/incident/audit evidence,MariaDB+Embedded SMTP+SMS Simulator
+CPF-QA-EXEC-316,ALR,WP10,휴일 Routing,business calendar holiday,publish,holiday policy selected,outbox/delivery/incident/audit evidence,MariaDB+Embedded SMTP+SMS Simulator
+CPF-QA-EXEC-317,ALR,WP10,Maintenance suppression,active maintenance,publish,"suppressed with audit, expiry auto restore",outbox/delivery/incident/audit evidence,MariaDB+Embedded SMTP+SMS Simulator
+CPF-QA-EXEC-318,ALR,WP10,Escalation 미확인,critical unacked,time advance,next-level recipients,outbox/delivery/incident/audit evidence,MariaDB+Embedded SMTP+SMS Simulator
+CPF-QA-EXEC-319,ALR,WP10,Incident lifecycle,critical event,ack→assign→resolve→reopen,state/audit correct,outbox/delivery/incident/audit evidence,MariaDB+Embedded SMTP+SMS Simulator
+CPF-QA-EXEC-320,ALR,WP10,Provider timeout,email provider slow,send,"bounded retry, worker capacity protected",outbox/delivery/incident/audit evidence,MariaDB+Embedded SMTP+SMS Simulator
+CPF-QA-EXEC-321,ALR,WP10,Provider permanent failure,invalid recipient,retry exhausted,DLQ/manual reprocess,outbox/delivery/incident/audit evidence,MariaDB+Embedded SMTP+SMS Simulator
+CPF-QA-EXEC-322,ALR,WP10,Notification DB outage,event during DB outage,publish,"original business unaffected per contract, alert failure observable",outbox/delivery/incident/audit evidence,MariaDB+Embedded SMTP+SMS Simulator
+CPF-QA-EXEC-323,ALR,WP10,Original transaction rollback,business rollback,alert hook,no false success alert unless failure event policy,outbox/delivery/incident/audit evidence,MariaDB+Embedded SMTP+SMS Simulator
+CPF-QA-EXEC-324,ALR,WP10,Embedded SMTP MIME,HTML+text+attachment fixture,send,subject/recipient/body/encoding correct,outbox/delivery/incident/audit evidence,MariaDB+Embedded SMTP+SMS Simulator
+CPF-QA-EXEC-325,ALR,WP10,Local Capture mode,no SMTP,send,"captured in ADM/DB, external send 0",outbox/delivery/incident/audit evidence,MariaDB+Embedded SMTP+SMS Simulator
+CPF-QA-EXEC-326,ALR,WP10,Receiver PII masking,delivery logs,view/export,masked receiver by default,outbox/delivery/incident/audit evidence,MariaDB+Embedded SMTP+SMS Simulator
+CPF-QA-EXEC-327,ALR,WP10,Template injection,malicious template data,render,escaping and safe limits,outbox/delivery/incident/audit evidence,MariaDB+Embedded SMTP+SMS Simulator
+CPF-QA-EXEC-328,ALR,WP10,Storm protection,100k events,publish,rate limit/backpressure/no OOM,outbox/delivery/incident/audit evidence,MariaDB+Embedded SMTP+SMS Simulator
+CPF-QA-EXEC-329,ALR,WP10,Policy rollback,bad rule deployed,rollback,previous matching restored,outbox/delivery/incident/audit evidence,MariaDB+Embedded SMTP+SMS Simulator
+CPF-QA-EXEC-330,INSLOG,WP11,Domain group hierarchy,ENV→CLUSTER→DOMAIN→APP→INSTANCE,create/search,hierarchy and permission correct,ADM/Agent/file/audit evidence,WAS+MariaDB+local files
+CPF-QA-EXEC-331,INSLOG,WP11,Multi-membership policy,instance added to groups,target preview,defined include/exclude precedence,ADM/Agent/file/audit evidence,WAS+MariaDB+local files
+CPF-QA-EXEC-332,INSLOG,WP11,Nested cycle,A→B→A,save,rejected before persistence,ADM/Agent/file/audit evidence,WAS+MariaDB+local files
+CPF-QA-EXEC-333,INSLOG,WP11,Heartbeat expiry,instance kill,wait lease,offline/alert/routing exclusion,ADM/Agent/file/audit evidence,WAS+MariaDB+local files
+CPF-QA-EXEC-334,INSLOG,WP11,Duplicate instance identity,two runtimes same ID,register,fencing/identity conflict,ADM/Agent/file/audit evidence,WAS+MariaDB+local files
+CPF-QA-EXEC-335,INSLOG,WP11,Rolling version mix,group with v1/v2,view,mixed version warning and rollout controls,ADM/Agent/file/audit evidence,WAS+MariaDB+local files
+CPF-QA-EXEC-336,INSLOG,WP11,Group drain,active traffic,drain group,"new assignments stop, inflight policy",ADM/Agent/file/audit evidence,WAS+MariaDB+local files
+CPF-QA-EXEC-337,INSLOG,WP11,Tenant isolation,operator from other tenant,query/control,403 and no metadata leak,ADM/Agent/file/audit evidence,WAS+MariaDB+local files
+CPF-QA-EXEC-338,INSLOG,WP11,Log file list,agent with current/rotated logs,ADM list,"metadata accurate, only allowlisted files",ADM/Agent/file/audit evidence,WAS+MariaDB+local files
+CPF-QA-EXEC-339,INSLOG,WP11,Single log download,selected file,download,content/hash/name correct,ADM/Agent/file/audit evidence,WAS+MariaDB+local files
+CPF-QA-EXEC-340,INSLOG,WP11,Multi-log ZIP,selected files,download,manifest and cleanup,ADM/Agent/file/audit evidence,WAS+MariaDB+local files
+CPF-QA-EXEC-341,INSLOG,WP11,Multi-instance time bundle,3 instances,download range,partial failures listed,ADM/Agent/file/audit evidence,WAS+MariaDB+local files
+CPF-QA-EXEC-342,INSLOG,WP11,Trace bundle,trace spans instances,collect,related logs only and correlation,ADM/Agent/file/audit evidence,WAS+MariaDB+local files
+CPF-QA-EXEC-343,INSLOG,WP11,Large log streaming,multi-GB fixture,download/cancel,bounded memory/disk and cleanup,ADM/Agent/file/audit evidence,WAS+MariaDB+local files
+CPF-QA-EXEC-344,INSLOG,WP11,Path traversal,malicious path/id,download,rejected and audited,ADM/Agent/file/audit evidence,WAS+MariaDB+local files
+CPF-QA-EXEC-345,INSLOG,WP11,Symlink escape,symlink outside root,download,rejected,ADM/Agent/file/audit evidence,WAS+MariaDB+local files
+CPF-QA-EXEC-346,INSLOG,WP11,Sensitive log,PII/token fixture,download,masked or approved raw flow,ADM/Agent/file/audit evidence,WAS+MariaDB+local files
+CPF-QA-EXEC-347,INSLOG,WP11,Disconnected instance,agent unavailable,download,clear partial/stale response,ADM/Agent/file/audit evidence,WAS+MariaDB+local files
+CPF-QA-EXEC-348,INSLOG,WP11,Client disconnect,mid-download close,observe server,resource/temp cleanup,ADM/Agent/file/audit evidence,WAS+MariaDB+local files
+CPF-QA-EXEC-349,INSLOG,WP11,Download approval,raw audit log,request without/with approval,fail-closed then audited download,ADM/Agent/file/audit evidence,WAS+MariaDB+local files
+CPF-QA-EXEC-350,DOCVAL,WP12-WP15,JavaDoc build,all public API/SPI,generate javadoc with doclint,errors/warnings policy pass,build/spec/matrix/evidence,Mixed
+CPF-QA-EXEC-351,DOCVAL,WP12-WP15,OpenAPI snapshot,all controllers,generate spec,operation/headers/errors/examples complete,build/spec/matrix/evidence,Mixed
+CPF-QA-EXEC-352,DOCVAL,WP12-WP15,OpenAPI negative examples,selected APIs,validate examples,examples conform to schemas,build/spec/matrix/evidence,Mixed
+CPF-QA-EXEC-353,DOCVAL,WP12-WP15,package-info coverage,public/major packages,scan,required Korean responsibility docs present,build/spec/matrix/evidence,Mixed
+CPF-QA-EXEC-354,DOCVAL,WP12-WP15,EDU command execution,all reference guides,execute commands,all commands and expected results valid,build/spec/matrix/evidence,Mixed
+CPF-QA-EXEC-355,DOCVAL,WP12-WP15,EDU requirement trace,all examples,matrix scan,each feature has examples and each example maps feature,build/spec/matrix/evidence,Mixed
+CPF-QA-EXEC-356,DOCVAL,WP12-WP15,Reference CI,cpfIncludeReferenceDomains=true,clean build/test/run,required matrix pass,build/spec/matrix/evidence,Mixed
+CPF-QA-EXEC-357,DOCVAL,WP12-WP15,Generator new domain,random DomainName/SystemCode,generate/build/run,no hard-coded domain assumptions,build/spec/matrix/evidence,Mixed
+CPF-QA-EXEC-358,DOCVAL,WP12-WP15,Generator regeneration,user extension present,regenerate,user code preserved,build/spec/matrix/evidence,Mixed
+CPF-QA-EXEC-359,DOCVAL,WP12-WP15,Generator client gate,generated domain,source scan,raw client usage 0,build/spec/matrix/evidence,Mixed
+CPF-QA-EXEC-360,DOCVAL,WP12-WP15,MariaDB fresh install,empty schemas,install/seed/verify,canonical match,build/spec/matrix/evidence,Mixed
+CPF-QA-EXEC-361,DOCVAL,WP12-WP15,MariaDB upgrade,prior supported baseline,migrate,data/constraints preserved,build/spec/matrix/evidence,Mixed
+CPF-QA-EXEC-362,DOCVAL,WP12-WP15,MariaDB rollback/reapply,latest migration,rollback/reapply,documented recovery and final parity,build/spec/matrix/evidence,Mixed
+CPF-QA-EXEC-363,DOCVAL,WP12-WP15,MariaDB query registry,all runtime queries,prepare/execute,parameter/result/dialect pass,build/spec/matrix/evidence,Mixed
+CPF-QA-EXEC-364,DOCVAL,WP12-WP15,PostgreSQL static pack,generated/vendor pack,parse/check parity,no MariaDB syntax leakage,build/spec/matrix/evidence,Mixed
+CPF-QA-EXEC-365,DOCVAL,WP12-WP15,Oracle static pack,generated/vendor pack,parse/check parity,no PostgreSQL/Maria syntax leakage,build/spec/matrix/evidence,Mixed
+CPF-QA-EXEC-366,DOCVAL,WP12-WP15,Secret scan,source/config/evidence,scan,real secrets/PII 0,build/spec/matrix/evidence,Mixed
+CPF-QA-EXEC-367,DOCVAL,WP12-WP15,Repository hygiene,clean clone,run hygiene gate,build/tmp/overlay debris policy pass,build/spec/matrix/evidence,Mixed
+CPF-QA-EXEC-368,DOCVAL,WP12-WP15,Protected regression selection,change common header,impact analyzer,gateway/message/TCP/generator/EDU tests selected,build/spec/matrix/evidence,Mixed
+CPF-QA-EXEC-369,DOCVAL,WP12-WP15,Release gate with deferred providers,external providers uninstalled,run release evaluation,real integration stays 미검증 and GA policy explicit,build/spec/matrix/evidence,Mixed
+CPF-QA-EXEC-370,ADMRT,WP16,공통코드 — 정상 실시간 적용,"2개 Instance, 공통코드 v1 적용 상태",ADM에서 대상 Preview→사유/승인→v2 적용→대상별 ACK/Actual 조회,"모든 대상 v2, 동일 Hash, Drift 0, 감사 전후값 기록",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-371,ADMRT,WP16,공통코드 — 부분 실패·Offline 복귀,"3개 대상 중 1개 Offline, 공통코드 v1",v2 적용 후 Online 2개 ACK 확인→Offline Instance 재접속,"초기 PARTIAL, 재접속 후 v2 Reconcile, 전체 성공 조기 판정 없음",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-372,ADMRT,WP16,공통코드 — 중복·역전·응답 유실,공통코드 v2 적용 직후 응답 유실,같은 operationId 재시도→v1 지연 Delivery→Controller/Consumer 재시작,"Side Effect 1회, v1 거부, 최종 v2 유지, 결과 조회 가능",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-373,ADMRT,WP16,공통코드 — 실패·Rollback·감사,공통코드 v2가 Canary에서 오류 발생,Wave 중단→Rollback/Forward Recovery→감사·알림·최종 상태 조회,"비정상 Wave 확산 0, Last Good 복원 또는 승인된 Forward Recovery, 실패 원인 보존",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-374,ADMRT,WP16,메시지·응답코드 — 정상 실시간 적용,"2개 Instance, 메시지·응답코드 v1 적용 상태",ADM에서 대상 Preview→사유/승인→v2 적용→대상별 ACK/Actual 조회,"모든 대상 v2, 동일 Hash, Drift 0, 감사 전후값 기록",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-375,ADMRT,WP16,메시지·응답코드 — 부분 실패·Offline 복귀,"3개 대상 중 1개 Offline, 메시지·응답코드 v1",v2 적용 후 Online 2개 ACK 확인→Offline Instance 재접속,"초기 PARTIAL, 재접속 후 v2 Reconcile, 전체 성공 조기 판정 없음",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-376,ADMRT,WP16,메시지·응답코드 — 중복·역전·응답 유실,메시지·응답코드 v2 적용 직후 응답 유실,같은 operationId 재시도→v1 지연 Delivery→Controller/Consumer 재시작,"Side Effect 1회, v1 거부, 최종 v2 유지, 결과 조회 가능",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-377,ADMRT,WP16,메시지·응답코드 — 실패·Rollback·감사,메시지·응답코드 v2가 Canary에서 오류 발생,Wave 중단→Rollback/Forward Recovery→감사·알림·최종 상태 조회,"비정상 Wave 확산 0, Last Good 복원 또는 승인된 Forward Recovery, 실패 원인 보존",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-378,ADMRT,WP16,설정·Parameter·Feature Flag — 정상 실시간 적용,"2개 Instance, 설정·Parameter·Feature Flag v1 적용 상태",ADM에서 대상 Preview→사유/승인→v2 적용→대상별 ACK/Actual 조회,"모든 대상 v2, 동일 Hash, Drift 0, 감사 전후값 기록",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-379,ADMRT,WP16,설정·Parameter·Feature Flag — 부분 실패·Offline 복귀,"3개 대상 중 1개 Offline, 설정·Parameter·Feature Flag v1",v2 적용 후 Online 2개 ACK 확인→Offline Instance 재접속,"초기 PARTIAL, 재접속 후 v2 Reconcile, 전체 성공 조기 판정 없음",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-380,ADMRT,WP16,설정·Parameter·Feature Flag — 중복·역전·응답 유실,설정·Parameter·Feature Flag v2 적용 직후 응답 유실,같은 operationId 재시도→v1 지연 Delivery→Controller/Consumer 재시작,"Side Effect 1회, v1 거부, 최종 v2 유지, 결과 조회 가능",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-381,ADMRT,WP16,설정·Parameter·Feature Flag — 실패·Rollback·감사,설정·Parameter·Feature Flag v2가 Canary에서 오류 발생,Wave 중단→Rollback/Forward Recovery→감사·알림·최종 상태 조회,"비정상 Wave 확산 0, Last Good 복원 또는 승인된 Forward Recovery, 실패 원인 보존",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-382,ADMRT,WP16,Cache — 정상 실시간 적용,"2개 Instance, Cache v1 적용 상태",ADM에서 대상 Preview→사유/승인→v2 적용→대상별 ACK/Actual 조회,"모든 대상 v2, 동일 Hash, Drift 0, 감사 전후값 기록",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-383,ADMRT,WP16,Cache — 부분 실패·Offline 복귀,"3개 대상 중 1개 Offline, Cache v1",v2 적용 후 Online 2개 ACK 확인→Offline Instance 재접속,"초기 PARTIAL, 재접속 후 v2 Reconcile, 전체 성공 조기 판정 없음",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-384,ADMRT,WP16,Cache — 중복·역전·응답 유실,Cache v2 적용 직후 응답 유실,같은 operationId 재시도→v1 지연 Delivery→Controller/Consumer 재시작,"Side Effect 1회, v1 거부, 최종 v2 유지, 결과 조회 가능",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-385,ADMRT,WP16,Cache — 실패·Rollback·감사,Cache v2가 Canary에서 오류 발생,Wave 중단→Rollback/Forward Recovery→감사·알림·최종 상태 조회,"비정상 Wave 확산 0, Last Good 복원 또는 승인된 Forward Recovery, 실패 원인 보존",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-386,ADMRT,WP16,온라인 거래 — 정상 실시간 적용,"2개 Instance, 온라인 거래 v1 적용 상태",ADM에서 대상 Preview→사유/승인→v2 적용→대상별 ACK/Actual 조회,"모든 대상 v2, 동일 Hash, Drift 0, 감사 전후값 기록",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-387,ADMRT,WP16,온라인 거래 — 부분 실패·Offline 복귀,"3개 대상 중 1개 Offline, 온라인 거래 v1",v2 적용 후 Online 2개 ACK 확인→Offline Instance 재접속,"초기 PARTIAL, 재접속 후 v2 Reconcile, 전체 성공 조기 판정 없음",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-388,ADMRT,WP16,온라인 거래 — 중복·역전·응답 유실,온라인 거래 v2 적용 직후 응답 유실,같은 operationId 재시도→v1 지연 Delivery→Controller/Consumer 재시작,"Side Effect 1회, v1 거부, 최종 v2 유지, 결과 조회 가능",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-389,ADMRT,WP16,온라인 거래 — 실패·Rollback·감사,온라인 거래 v2가 Canary에서 오류 발생,Wave 중단→Rollback/Forward Recovery→감사·알림·최종 상태 조회,"비정상 Wave 확산 0, Last Good 복원 또는 승인된 Forward Recovery, 실패 원인 보존",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-390,ADMRT,WP16,Local·Remote Service Call — 정상 실시간 적용,"2개 Instance, Local·Remote Service Call v1 적용 상태",ADM에서 대상 Preview→사유/승인→v2 적용→대상별 ACK/Actual 조회,"모든 대상 v2, 동일 Hash, Drift 0, 감사 전후값 기록",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-391,ADMRT,WP16,Local·Remote Service Call — 부분 실패·Offline 복귀,"3개 대상 중 1개 Offline, Local·Remote Service Call v1",v2 적용 후 Online 2개 ACK 확인→Offline Instance 재접속,"초기 PARTIAL, 재접속 후 v2 Reconcile, 전체 성공 조기 판정 없음",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-392,ADMRT,WP16,Local·Remote Service Call — 중복·역전·응답 유실,Local·Remote Service Call v2 적용 직후 응답 유실,같은 operationId 재시도→v1 지연 Delivery→Controller/Consumer 재시작,"Side Effect 1회, v1 거부, 최종 v2 유지, 결과 조회 가능",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-393,ADMRT,WP16,Local·Remote Service Call — 실패·Rollback·감사,Local·Remote Service Call v2가 Canary에서 오류 발생,Wave 중단→Rollback/Forward Recovery→감사·알림·최종 상태 조회,"비정상 Wave 확산 0, Last Good 복원 또는 승인된 Forward Recovery, 실패 원인 보존",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-394,ADMRT,WP16,Gateway — 정상 실시간 적용,"2개 Instance, Gateway v1 적용 상태",ADM에서 대상 Preview→사유/승인→v2 적용→대상별 ACK/Actual 조회,"모든 대상 v2, 동일 Hash, Drift 0, 감사 전후값 기록",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-395,ADMRT,WP16,Gateway — 부분 실패·Offline 복귀,"3개 대상 중 1개 Offline, Gateway v1",v2 적용 후 Online 2개 ACK 확인→Offline Instance 재접속,"초기 PARTIAL, 재접속 후 v2 Reconcile, 전체 성공 조기 판정 없음",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-396,ADMRT,WP16,Gateway — 중복·역전·응답 유실,Gateway v2 적용 직후 응답 유실,같은 operationId 재시도→v1 지연 Delivery→Controller/Consumer 재시작,"Side Effect 1회, v1 거부, 최종 v2 유지, 결과 조회 가능",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-397,ADMRT,WP16,Gateway — 실패·Rollback·감사,Gateway v2가 Canary에서 오류 발생,Wave 중단→Rollback/Forward Recovery→감사·알림·최종 상태 조회,"비정상 Wave 확산 0, Last Good 복원 또는 승인된 Forward Recovery, 실패 원인 보존",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-398,ADMRT,WP16,로그·추적 — 정상 실시간 적용,"2개 Instance, 로그·추적 v1 적용 상태",ADM에서 대상 Preview→사유/승인→v2 적용→대상별 ACK/Actual 조회,"모든 대상 v2, 동일 Hash, Drift 0, 감사 전후값 기록",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-399,ADMRT,WP16,로그·추적 — 부분 실패·Offline 복귀,"3개 대상 중 1개 Offline, 로그·추적 v1",v2 적용 후 Online 2개 ACK 확인→Offline Instance 재접속,"초기 PARTIAL, 재접속 후 v2 Reconcile, 전체 성공 조기 판정 없음",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-400,ADMRT,WP16,로그·추적 — 중복·역전·응답 유실,로그·추적 v2 적용 직후 응답 유실,같은 operationId 재시도→v1 지연 Delivery→Controller/Consumer 재시작,"Side Effect 1회, v1 거부, 최종 v2 유지, 결과 조회 가능",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-401,ADMRT,WP16,로그·추적 — 실패·Rollback·감사,로그·추적 v2가 Canary에서 오류 발생,Wave 중단→Rollback/Forward Recovery→감사·알림·최종 상태 조회,"비정상 Wave 확산 0, Last Good 복원 또는 승인된 Forward Recovery, 실패 원인 보존",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-402,ADMRT,WP16,Batch·Scheduler·Worker·Center-Cut·Agent — 정상 실시간 적용,"2개 Instance, Batch·Scheduler·Worker·Center-Cut·Agent v1 적용 상태",ADM에서 대상 Preview→사유/승인→v2 적용→대상별 ACK/Actual 조회,"모든 대상 v2, 동일 Hash, Drift 0, 감사 전후값 기록",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-403,ADMRT,WP16,Batch·Scheduler·Worker·Center-Cut·Agent — 부분 실패·Offline 복귀,"3개 대상 중 1개 Offline, Batch·Scheduler·Worker·Center-Cut·Agent v1",v2 적용 후 Online 2개 ACK 확인→Offline Instance 재접속,"초기 PARTIAL, 재접속 후 v2 Reconcile, 전체 성공 조기 판정 없음",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-404,ADMRT,WP16,Batch·Scheduler·Worker·Center-Cut·Agent — 중복·역전·응답 유실,Batch·Scheduler·Worker·Center-Cut·Agent v2 적용 직후 응답 유실,같은 operationId 재시도→v1 지연 Delivery→Controller/Consumer 재시작,"Side Effect 1회, v1 거부, 최종 v2 유지, 결과 조회 가능",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-405,ADMRT,WP16,Batch·Scheduler·Worker·Center-Cut·Agent — 실패·Rollback·감사,Batch·Scheduler·Worker·Center-Cut·Agent v2가 Canary에서 오류 발생,Wave 중단→Rollback/Forward Recovery→감사·알림·최종 상태 조회,"비정상 Wave 확산 0, Last Good 복원 또는 승인된 Forward Recovery, 실패 원인 보존",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-406,ADMRT,WP16,Security Runtime Policy — 정상 실시간 적용,"2개 Instance, Security Runtime Policy v1 적용 상태",ADM에서 대상 Preview→사유/승인→v2 적용→대상별 ACK/Actual 조회,"모든 대상 v2, 동일 Hash, Drift 0, 감사 전후값 기록",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-407,ADMRT,WP16,Security Runtime Policy — 부분 실패·Offline 복귀,"3개 대상 중 1개 Offline, Security Runtime Policy v1",v2 적용 후 Online 2개 ACK 확인→Offline Instance 재접속,"초기 PARTIAL, 재접속 후 v2 Reconcile, 전체 성공 조기 판정 없음",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-408,ADMRT,WP16,Security Runtime Policy — 중복·역전·응답 유실,Security Runtime Policy v2 적용 직후 응답 유실,같은 operationId 재시도→v1 지연 Delivery→Controller/Consumer 재시작,"Side Effect 1회, v1 거부, 최종 v2 유지, 결과 조회 가능",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-409,ADMRT,WP16,Security Runtime Policy — 실패·Rollback·감사,Security Runtime Policy v2가 Canary에서 오류 발생,Wave 중단→Rollback/Forward Recovery→감사·알림·최종 상태 조회,"비정상 Wave 확산 0, Last Good 복원 또는 승인된 Forward Recovery, 실패 원인 보존",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-410,ADMRT,WP16,외부연계·Messaging·File — 정상 실시간 적용,"2개 Instance, 외부연계·Messaging·File v1 적용 상태",ADM에서 대상 Preview→사유/승인→v2 적용→대상별 ACK/Actual 조회,"모든 대상 v2, 동일 Hash, Drift 0, 감사 전후값 기록",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-411,ADMRT,WP16,외부연계·Messaging·File — 부분 실패·Offline 복귀,"3개 대상 중 1개 Offline, 외부연계·Messaging·File v1",v2 적용 후 Online 2개 ACK 확인→Offline Instance 재접속,"초기 PARTIAL, 재접속 후 v2 Reconcile, 전체 성공 조기 판정 없음",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-412,ADMRT,WP16,외부연계·Messaging·File — 중복·역전·응답 유실,외부연계·Messaging·File v2 적용 직후 응답 유실,같은 operationId 재시도→v1 지연 Delivery→Controller/Consumer 재시작,"Side Effect 1회, v1 거부, 최종 v2 유지, 결과 조회 가능",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-413,ADMRT,WP16,외부연계·Messaging·File — 실패·Rollback·감사,외부연계·Messaging·File v2가 Canary에서 오류 발생,Wave 중단→Rollback/Forward Recovery→감사·알림·최종 상태 조회,"비정상 Wave 확산 0, Last Good 복원 또는 승인된 Forward Recovery, 실패 원인 보존",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-414,ADMRT,WP16,인스턴스·그룹 관리 — 정상 실시간 적용,"2개 Instance, 인스턴스·그룹 관리 v1 적용 상태",ADM에서 대상 Preview→사유/승인→v2 적용→대상별 ACK/Actual 조회,"모든 대상 v2, 동일 Hash, Drift 0, 감사 전후값 기록",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-415,ADMRT,WP16,인스턴스·그룹 관리 — 부분 실패·Offline 복귀,"3개 대상 중 1개 Offline, 인스턴스·그룹 관리 v1",v2 적용 후 Online 2개 ACK 확인→Offline Instance 재접속,"초기 PARTIAL, 재접속 후 v2 Reconcile, 전체 성공 조기 판정 없음",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-416,ADMRT,WP16,인스턴스·그룹 관리 — 중복·역전·응답 유실,인스턴스·그룹 관리 v2 적용 직후 응답 유실,같은 operationId 재시도→v1 지연 Delivery→Controller/Consumer 재시작,"Side Effect 1회, v1 거부, 최종 v2 유지, 결과 조회 가능",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-417,ADMRT,WP16,인스턴스·그룹 관리 — 실패·Rollback·감사,인스턴스·그룹 관리 v2가 Canary에서 오류 발생,Wave 중단→Rollback/Forward Recovery→감사·알림·최종 상태 조회,"비정상 Wave 확산 0, Last Good 복원 또는 승인된 Forward Recovery, 실패 원인 보존",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-418,ADMRT,WP16,인스턴스별 로그 다운로드 — 정상 실시간 적용,"2개 Instance, 인스턴스별 로그 다운로드 v1 적용 상태",ADM에서 대상 Preview→사유/승인→v2 적용→대상별 ACK/Actual 조회,"모든 대상 v2, 동일 Hash, Drift 0, 감사 전후값 기록",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-419,ADMRT,WP16,인스턴스별 로그 다운로드 — 부분 실패·Offline 복귀,"3개 대상 중 1개 Offline, 인스턴스별 로그 다운로드 v1",v2 적용 후 Online 2개 ACK 확인→Offline Instance 재접속,"초기 PARTIAL, 재접속 후 v2 Reconcile, 전체 성공 조기 판정 없음",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-420,ADMRT,WP16,인스턴스별 로그 다운로드 — 중복·역전·응답 유실,인스턴스별 로그 다운로드 v2 적용 직후 응답 유실,같은 operationId 재시도→v1 지연 Delivery→Controller/Consumer 재시작,"Side Effect 1회, v1 거부, 최종 v2 유지, 결과 조회 가능",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-421,ADMRT,WP16,인스턴스별 로그 다운로드 — 실패·Rollback·감사,인스턴스별 로그 다운로드 v2가 Canary에서 오류 발생,Wave 중단→Rollback/Forward Recovery→감사·알림·최종 상태 조회,"비정상 Wave 확산 0, Last Good 복원 또는 승인된 Forward Recovery, 실패 원인 보존",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-422,ADMRT,WP16,관제·알림 — 정상 실시간 적용,"2개 Instance, 관제·알림 v1 적용 상태",ADM에서 대상 Preview→사유/승인→v2 적용→대상별 ACK/Actual 조회,"모든 대상 v2, 동일 Hash, Drift 0, 감사 전후값 기록",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-423,ADMRT,WP16,관제·알림 — 부분 실패·Offline 복귀,"3개 대상 중 1개 Offline, 관제·알림 v1",v2 적용 후 Online 2개 ACK 확인→Offline Instance 재접속,"초기 PARTIAL, 재접속 후 v2 Reconcile, 전체 성공 조기 판정 없음",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-424,ADMRT,WP16,관제·알림 — 중복·역전·응답 유실,관제·알림 v2 적용 직후 응답 유실,같은 operationId 재시도→v1 지연 Delivery→Controller/Consumer 재시작,"Side Effect 1회, v1 거부, 최종 v2 유지, 결과 조회 가능",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-425,ADMRT,WP16,관제·알림 — 실패·Rollback·감사,관제·알림 v2가 Canary에서 오류 발생,Wave 중단→Rollback/Forward Recovery→감사·알림·최종 상태 조회,"비정상 Wave 확산 0, Last Good 복원 또는 승인된 Forward Recovery, 실패 원인 보존",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-426,ADMRT,WP16,Local 개발 Runtime — 정상 실시간 적용,"2개 Instance, Local 개발 Runtime v1 적용 상태",ADM에서 대상 Preview→사유/승인→v2 적용→대상별 ACK/Actual 조회,"모든 대상 v2, 동일 Hash, Drift 0, 감사 전후값 기록",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-427,ADMRT,WP16,Local 개발 Runtime — 부분 실패·Offline 복귀,"3개 대상 중 1개 Offline, Local 개발 Runtime v1",v2 적용 후 Online 2개 ACK 확인→Offline Instance 재접속,"초기 PARTIAL, 재접속 후 v2 Reconcile, 전체 성공 조기 판정 없음",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-428,ADMRT,WP16,Local 개발 Runtime — 중복·역전·응답 유실,Local 개발 Runtime v2 적용 직후 응답 유실,같은 operationId 재시도→v1 지연 Delivery→Controller/Consumer 재시작,"Side Effect 1회, v1 거부, 최종 v2 유지, 결과 조회 가능",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-429,ADMRT,WP16,Local 개발 Runtime — 실패·Rollback·감사,Local 개발 Runtime v2가 Canary에서 오류 발생,Wave 중단→Rollback/Forward Recovery→감사·알림·최종 상태 조회,"비정상 Wave 확산 0, Last Good 복원 또는 승인된 Forward Recovery, 실패 원인 보존",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-430,ADMRT,WP16,EDU·Reference 예제 그룹 — 정상 실시간 적용,"2개 Instance, EDU·Reference 예제 그룹 v1 적용 상태",ADM에서 대상 Preview→사유/승인→v2 적용→대상별 ACK/Actual 조회,"모든 대상 v2, 동일 Hash, Drift 0, 감사 전후값 기록",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-431,ADMRT,WP16,EDU·Reference 예제 그룹 — 부분 실패·Offline 복귀,"3개 대상 중 1개 Offline, EDU·Reference 예제 그룹 v1",v2 적용 후 Online 2개 ACK 확인→Offline Instance 재접속,"초기 PARTIAL, 재접속 후 v2 Reconcile, 전체 성공 조기 판정 없음",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-432,ADMRT,WP16,EDU·Reference 예제 그룹 — 중복·역전·응답 유실,EDU·Reference 예제 그룹 v2 적용 직후 응답 유실,같은 operationId 재시도→v1 지연 Delivery→Controller/Consumer 재시작,"Side Effect 1회, v1 거부, 최종 v2 유지, 결과 조회 가능",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-433,ADMRT,WP16,EDU·Reference 예제 그룹 — 실패·Rollback·감사,EDU·Reference 예제 그룹 v2가 Canary에서 오류 발생,Wave 중단→Rollback/Forward Recovery→감사·알림·최종 상태 조회,"비정상 Wave 확산 0, Last Good 복원 또는 승인된 Forward Recovery, 실패 원인 보존",API/DB/ADM 화면/Runtime log/ACK·Drift/Audit/Transaction ID,WAS 2+·MariaDB; 외부 Provider는 Simulator 병행
+CPF-QA-EXEC-434,ADMRT,WP16,Java 25 전체 Build,최신 master clean checkout·Temurin 25·Gradle 9.1,clean test assemble qualityGate 및 Frontend/Generator/Local Runtime Gate 실행,실행 성공 시에만 검증 완료; 실패는 Root Cause 수리 후 동일 SHA/새 SHA 재실행,명령·환경·시작/종료·로그·DB/API/UI 결과·SHA-256,Codex/CI
+CPF-QA-EXEC-435,ADMRT,WP16,Local/Remote Parity,동일 업무를 All-in-One과 분리 WAS로 기동,동일 Request로 Local Facade/Remote Facade 호출 후 Header/Error/Trace 비교,"계약 동일, Local HTTP loopback 0, Remote timeout/failover 정책 정확",명령·환경·시작/종료·로그·DB/API/UI 결과·SHA-256,WAS·MariaDB
+CPF-QA-EXEC-436,ADMRT,WP16,ADM 위험 조치 승인 경쟁,Preview 후 대상 상태/Version 변경,승인·실행 시 expectedVersion 재검증,"409 또는 재승인, 오래된 Preview로 실행 0",명령·환경·시작/종료·로그·DB/API/UI 결과·SHA-256,WAS·MariaDB
+CPF-QA-EXEC-437,ADMRT,WP16,Runtime Controller 재시작,다중 대상 Delivery 진행 중 Controller 종료,재기동 후 Pending/ACK/Actual Reconcile,"유실·중복 Side Effect 0, 결과 상태 수렴",명령·환경·시작/종료·로그·DB/API/UI 결과·SHA-256,WAS 2+·MariaDB
+CPF-QA-EXEC-438,ADMRT,WP16,MariaDB Lifecycle,빈 Schema와 이전 Baseline 준비,Fresh install→Seed→Runtime Query→Upgrade→Rollback/Forward Recovery→Reapply,"Schema/Data/Constraint/Checksum 일치, Silent Skip 0",명령·환경·시작/종료·로그·DB/API/UI 결과·SHA-256,MariaDB
+CPF-QA-EXEC-439,ADMRT,WP16,미설치 Provider 판정,Kafka/Redis/SMS 실제 제품 없음,Simulator 정상/Timeout/Duplicate/RateLimit/Down Fault 실행,구현은 검증하되 실제 Provider 상태는 미검증 유지,명령·환경·시작/종료·로그·DB/API/UI 결과·SHA-256,Simulator
+CPF-QA-EXEC-440,ADMRT,WP16,Evidence 무결성,다른 SHA의 과거 PASS Evidence 준비,현재 QA 완료 연결 시도,"Gate 거부, 현재 SHA 명령·로그·Hash만 인정",명령·환경·시작/종료·로그·DB/API/UI 결과·SHA-256,Codex/CI
+CPF-QA-EXEC-441,ADMRT,WP16,다음 QA 재생성,현재 작업 Push와 Codex 수리 Push 완료,최신 master·Evidence·전체 Inventory 재판정,실제 남은 실패/부분/미검증만 Root Cause 기준으로 다음 QA 생성,명령·환경·시작/종료·로그·DB/API/UI 결과·SHA-256,ChatGPT+Codex
+CPF-QA-EXEC-D04-001,REDIS,WP16,Redis 미설치 Profile 기동,Redis dependency/config 없음,Redis 비활성 profile로 전체 context와 cache consumer를 기동한다.,Caffeine/DB durable 경로는 정상이고 Redis Bean 강제 생성이 없다.,"startup log, bean report",Build/Runtime
+CPF-QA-EXEC-D04-002,REDIS,WP16,Redis 정상 Cache-aside,"실 Redis 또는 Testcontainer, DB seed",miss→DB load→L1/L2 저장→hit를 실행한다.,"결과 일치, hit 증가, key namespace와 TTL이 정책대로다.","metrics, Redis key, HTTP",Redis
+CPF-QA-EXEC-D04-003,REDIS,WP16,Redis Down 중 조회,warm L1/L2,Redis를 중단하고 일반 cache와 보안 cache를 조회한다.,cache별 fail-open/fail-closed 정책대로 동작하고 alert가 생성된다.,"process log, alert",Redis/Fault
+CPF-QA-EXEC-D04-004,REDIS,WP16,Pub/Sub 유실 후 Durable Replay,consumer offline,offline 중 invalidation 후 consumer를 복귀시킨다.,durable source로 누락 없이 desired version에 도달한다.,event/ack/checkpoint,Multi-instance
+CPF-QA-EXEC-D04-005,REDIS,WP16,Consumer ID 중복,동일 instanceId 설정 2 process,두 process를 동시에 기동한다.,중복 identity가 fail-fast 또는 CAS fencing으로 차단된다.,process logs,Multi-process
+CPF-QA-EXEC-D04-006,REDIS,WP16,Checkpoint CAS 경쟁,동일 consumer checkpoint,두 poller가 같은 expectedLastEventId로 update한다.,한 건만 성공하고 순서 손실이 없다.,"DB rows, errors",DB/Multi-process
+CPF-QA-EXEC-D04-007,REDIS,WP16,10만 Backlog 복구,"10만 durable event, offline instance",batch paging으로 처리 중 kill 후 재기동한다.,"bounded memory, 정확한 resume, 누락/중복 side effect 0이다.","heap, checkpoint, counts",Load/Fault
+CPF-QA-EXEC-D04-008,REDIS,WP16,Poison Event,지원하지 않는 schema event,consumer를 실행하고 retry 소진 후 수동 재처리한다.,정상 event는 막히지 않고 poison이 격리·감사된다.,DLQ/quarantine rows,Fault
+CPF-QA-EXEC-D04-009,REDIS,WP16,Distributed Lock stale owner,짧은 TTL과 두 worker,"owner A 정지 후 B 획득, A 복귀 write를 시도한다.",fencing으로 A의 stale write가 차단된다.,"lock token, DB result",Redis/Multi-process
+CPF-QA-EXEC-D04-010,REDIS,WP16,Redis Sentinel/Cluster Failover,지원 topology,master failover 또는 slot 이동을 유도한다.,허용 downtime 내 복구되고 duplicate/loss가 없다.,"topology logs, metrics",Redis/Fault
+CPF-QA-EXEC-D04-011,REDIS,WP16,ADM Cache 조치 권한,조회전용/운영/승인 사용자,full refresh와 reconcile을 UI/API로 실행한다.,권한·승인·사유·대상별 결과가 정확하다.,"browser trace, audit",Browser/Security
+CPF-QA-EXEC-D04-012,UIX,WP17,BZA 5단계 조직 Tree,5단계 조직과 1만 node,"검색, expand, breadcrumb, 선택, 새로고침을 수행한다.","경로 자동 확장과 상태 보존, 성능 상한을 만족한다.","browser trace, perf",Browser
+CPF-QA-EXEC-D04-013,UIX,WP17,조직 Cycle 이동 차단,A→B→C 구조,A의 parent를 C로 변경한다.,preview 또는 backend에서 차단되고 감사된다.,"HTTP 409, UI message",Browser/API
+CPF-QA-EXEC-D04-014,UIX,WP17,메뉴·권한 Tree parity,menu/route/api manifest,Tree 노드를 선택해 screen/button/api 권한을 비교한다.,고아·불일치가 표시되고 적용이 차단된다.,"matrix, browser",Browser/Static
+CPF-QA-EXEC-D04-015,UIX,WP17,Raw JSON 운영화면 검사,ADM/BZA build,주요 운영 메뉴를 순회한다.,기본 화면에 raw JSON <pre>가 없고 전용 component가 표시된다.,"screenshots, DOM scan",Browser
+CPF-QA-EXEC-D04-016,UIX,WP17,Runtime Tree 대상 Preview,다중 domain/service/instance,상위 group을 선택해 preview한다.,실제 하위 대상 snapshot과 상태 집계가 일치한다.,"browser, API payload",Browser/Multi-instance
+CPF-QA-EXEC-D04-017,UIX,WP17,부분 실패 UX,3 target 중 1 실패,operation을 실행하고 실패 상세를 연다.,실패 stage/reason/retry action과 성공 target이 함께 보인다.,browser trace,Browser
+CPF-QA-EXEC-D04-018,UIX,WP17,키보드 접근성,ADM/BZA 주요 화면,mouse 없이 tree/grid/modal/action을 조작한다.,"focus trap, aria, error announcement가 정상이다.",accessibility report,Browser
+CPF-QA-EXEC-D04-019,ACT,WP18,Generic WRITE 우회,WRITE만 있고 ROLLBACK 없음,rollback button과 direct API를 실행한다.,UI 미노출/비활성 및 backend 403이다.,browser/curl,Security
+CPF-QA-EXEC-D04-020,ACT,WP18,HTTP Method 권한,"GET 허용, POST 거부",같은 path에 GET/POST를 호출한다.,GET만 성공하고 POST는 403이다.,HTTP logs,API
+CPF-QA-EXEC-D04-021,ACT,WP18,Deny 우선,role allow + user deny,해당 action을 실행한다.,Deny가 우선하고 simulation과 실제 결과가 같다.,permission trace,Security
+CPF-QA-EXEC-D04-022,ACT,WP18,다른 조직 Data Scope,조직 A 사용자,조직 B resource ID로 조회/다운로드한다.,목록·상세·파일 모두 차단된다.,HTTP/browser,Security
+CPF-QA-EXEC-D04-023,ACT,WP18,권한 변경 다중 WAS 전파,2 WAS session,권한 회수 후 기존 session으로 재호출한다.,허용된 전파 window 내 두 WAS 모두 거부한다.,session/cache ACK,Multi-instance
+CPF-QA-EXEC-D04-024,XLDN,WP19,검색조건 전체 CSV,server paging 데이터,필터 후 전체 다운로드한다.,모든 페이지의 필터 일치 데이터만 포함된다.,file hash/count,Browser/DB
+CPF-QA-EXEC-D04-025,XLDN,WP19,100만 건 Streaming,대량 seed,다운로드 시작 후 heap과 progress를 측정한다.,bounded memory와 취소 가능성을 만족한다.,"heap profile, file",Load
+CPF-QA-EXEC-D04-026,XLDN,WP19,Client Disconnect,대량 streaming,중간 연결을 끊는다.,server 작업/임시파일이 정책대로 취소·정리된다.,"server logs, temp dir",Fault
+CPF-QA-EXEC-D04-027,XLDN,WP19,Formula Injection,위험 prefix 데이터,CSV/XLSX를 생성해 열어본다.,수식 실행 없이 안전한 literal로 표시된다.,file sample,Security
+CPF-QA-EXEC-D04-028,XLDN,WP19,민감 Download 승인 만료,승인 후 TTL 경과,파일 생성 또는 다운로드를 시도한다.,실행/다운로드가 차단되고 감사된다.,HTTP/audit,Security
+CPF-QA-EXEC-D04-029,XLDN,WP19,3 Vendor Export parity,동일 seed 3 DB,동일 조건 파일을 생성한다.,row/order/format 결과가 동등하다.,hash/content diff,DB
+CPF-QA-EXEC-D04-030,XLUP,WP20,Template 정상 업로드,정상 template,dry-run→승인→적용을 수행한다.,preview와 DB 결과/행수/audit가 일치한다.,"job rows, DB",Browser/DB
+CPF-QA-EXEC-D04-031,XLUP,WP20,구버전 Template,old version file,업로드한다.,지원 정책대로 거부 또는 migration preview를 제공한다.,error code,API
+CPF-QA-EXEC-D04-032,XLUP,WP20,확장자 위조·ZIP Bomb,악성 파일,업로드한다.,초기 단계에서 차단되고 원 거래/worker가 안정적이다.,security logs,Security
+CPF-QA-EXEC-D04-033,XLUP,WP20,파일 내부·DB 중복,중복 row 포함,dry-run과 apply를 수행한다.,duplicate policy와 행별 오류가 정확하다.,error file,DB
+CPF-QA-EXEC-D04-034,XLUP,WP20,All-or-nothing 중간 실패,중간 row DB 오류,적용한다.,전체 rollback되고 재실행 가능 상태다.,"DB counts, job state",DB/Fault
+CPF-QA-EXEC-D04-035,XLUP,WP20,Partial Apply,부분 허용 template,일부 오류 파일을 적용한다.,"성공/실패 행과 오류파일, retry 대상이 정확하다.",job/error file,DB
+CPF-QA-EXEC-D04-036,XLUP,WP20,동일 operation 다른 파일,"같은 operationId, 다른 hash",두 번째 요청을 보낸다.,409 conflict이며 첫 결과를 오염시키지 않는다.,HTTP/operation row,API
+CPF-QA-EXEC-D04-037,XLUP,WP20,Worker Kill·Restart,대량 upload job,중간 worker kill 후 재기동한다.,checkpoint에서 복구되고 중복 반영이 없다.,"process logs, DB",Fault
+CPF-QA-EXEC-D04-038,RTCRES,WP21,대상별 부분 성공,"3 agent, 1 apply failure",runtime change를 실행한다.,전체 PARTIAL과 각 target result/failureStage가 조회된다.,API/UI/DB,Multi-instance
+CPF-QA-EXEC-D04-039,RTCRES,WP21,ACK 유실,apply 성공 후 ACK network drop,controller에서 조회/reconcile한다.,UNKNOWN 또는 pending 후 실제상태 확인으로 정확히 종결된다.,"agent inbox, controller DB",Fault
+CPF-QA-EXEC-D04-040,RTCRES,WP21,Approval 대상 Hash 불일치,승인 후 membership 변경,변경을 실행한다.,승인 snapshot과 다르면 재승인을 요구한다.,HTTP/audit,Security
+CPF-QA-EXEC-D04-041,RTCRES,WP21,Break-glass 만료,만료된 breakGlassId,위험 변경을 실행한다.,fail-closed하고 alert/audit가 남는다.,HTTP/audit/alert,Security
+CPF-QA-EXEC-D04-042,RTCRES,WP21,Retry 성공 Attempt 보존,첫 apply 실패 후 retry 성공,history를 조회한다.,최초 실패와 성공 attempt 모두 보존된다.,DB/UI timeline,Runtime
+CPF-QA-EXEC-D04-043,RTCRES,WP21,Controller 재시작,진행 중 change,controller를 재기동한다.,desired/delivery/result와 operation 조회가 복구된다.,process/DB,Fault
+CPF-QA-EXEC-D04-044,RTCRES,WP21,Agent Offline 복귀,offline 중 change,agent 복귀 후 reconcile한다.,최신 desired에 도달하고 drift가 해소된다.,ACK/version,Multi-instance
+CPF-QA-EXEC-D04-045,RTCRES,WP21,Rollback 실패,부분 적용 후 rollback 오류,rollback을 실행한다.,대상별 rollback failure와 forward recovery 안내가 표시된다.,UI/API,Fault
+CPF-QA-EXEC-D04-046,PKG,WP22,ACC/MBR/EXS normalized parity,동일 capability 임시 domain 포함,metadata 정규화 tree/hash를 비교한다.,허용 metadata 외 drift가 0이다.,hash report,Generator
+CPF-QA-EXEC-D04-047,PKG,WP22,Production Source reference 유입,generated domain source,reference package의 업무 class를 탐지한다.,Golden/EDU 외 유입이 Gate에서 실패한다.,static report,Static
+CPF-QA-EXEC-D04-048,PKG,WP22,Typed Contract Gate,generated source,"public/port/controller의 Map<String,Object>를 탐지한다.",허용 persistence 내부 외 0건이다.,compile/static,Build
+CPF-QA-EXEC-D04-049,PKG,WP22,QueryPort mutation 탐지,generated source,QueryPort의 create/update/delete method를 검사한다.,정해진 command contract로 분리돼 있다.,API report,Static
+CPF-QA-EXEC-D04-050,PKG,WP22,사용자 코드 재생성 보호,customer-owned 파일 수정,generator dry-run/apply를 실행한다.,사용자 파일을 덮어쓰지 않고 충돌을 보고한다.,diff report,Generator
+CPF-QA-EXEC-D04-051,HYG,WP23,Semantic Dead Code 후보,repository 전체,consumer graph와 reflection/config를 분석한다.,후보마다 유지/이관/삭제 근거가 있다.,matrix,Static
+CPF-QA-EXEC-D04-052,HYG,WP23,Legacy 삭제 회귀,선정 legacy change set,consumer/test 이관 후 삭제하고 full build한다.,"old package/reference 0, 회귀 0이다.","git diff, tests",Build
+CPF-QA-EXEC-D04-053,HYG,WP23,고아 Route/Menu/API,frontend/backend manifests,양방향 비교한다.,고아·중복 0건이다.,parity report,Static
+CPF-QA-EXEC-D04-054,HYG,WP23,Cleanup Dry-run·Apply,garbage fixture,"dry-run 확인 후 apply, 재실행한다.",허용 파일만 삭제되고 재실행 idempotent하다.,deletion manifest,Static
+CPF-QA-EXEC-D04-055,QAE,WP24,Source-confirmed와 미검증 분리,Known gaps와 inventory,각 행의 evidence type을 검사한다.,SourceConfirmed/ReportedUnverified/NewRequirement가 구분된다.,ledger validation,Static
+CPF-QA-EXEC-D04-056,QAE,WP24,Evidence directory 누락,release gate,Evidence 디렉터리를 제거하고 Gate를 실행한다.,옵션 없이도 실패한다.,command output,CI
+CPF-QA-EXEC-D04-057,QAE,WP24,Output file hash 위조,evidence metadata hash 변경,Gate를 실행한다.,hash mismatch로 실패한다.,gate log,CI
+CPF-QA-EXEC-D04-058,QAE,WP24,최신 SHA 변경 후 Stale Evidence,새 commit 생성 상태,이전 evidence로 release gate를 실행한다.,exact SHA mismatch로 실패한다.,gate log,CI
+CPF-QA-EXEC-D04-059,QAE,WP24,미실행 완료 보고 차단,ledger에 미검증 존재,완료 보고 생성 Gate를 실행한다.,전체 완료 문구가 차단되고 blocker가 표시된다.,report validation,CI

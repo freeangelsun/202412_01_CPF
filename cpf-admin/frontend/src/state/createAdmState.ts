@@ -4,6 +4,8 @@ export function createAdmState() {
         token: sessionStorage.getItem("admAccessToken") || "",
         currentOperator: {} as Record<string, any>,
         authorizedMenus: [],
+        authorizedButtons: [] as string[],
+        buttonsLoaded: false,
         permissionsLoaded: false,
         authMessage: "",
         uiMessage: "",
@@ -55,6 +57,7 @@ export function createAdmState() {
           { id: "batch-audit", menuId: "BATCH_AUDIT", label: "Audit / Evidence" },
           { id: "workers", menuId: "WORKER", label: "Agent / Worker" },
           { id: "downloads", menuId: "DOWNLOAD", label: "다운로드" },
+          { id: "file-jobs", menuId: "FILE_JOB", label: "대량파일 Job" },
           { id: "messages", menuId: "MESSAGE", label: "메시지" },
           { id: "codes", menuId: "CODE", label: "코드" },
           { id: "permissions", menuId: "PERMISSION", label: "권한" },
@@ -239,7 +242,8 @@ export function createAdmState() {
           requestUser: ""
         },
         cacheTargets: ["ALL", "CODE", "MESSAGE", "RESPONSE_CODE", "CONFIG"],
-        cacheReason: "캐시 갱신",
+        cacheReason: "캐시 운영 조치",
+        cacheControl: { tenantId: "DEFAULT", namespace: "", key: "", version: 1 },
         responseCodeReason: "응답코드 변경",
         logLevelForm: { businessTransactionId: "", transactionId: "", logLevel: "DEBUG", ttlSeconds: 600, reason: "운영 진단" },
         logPolicyForm: {

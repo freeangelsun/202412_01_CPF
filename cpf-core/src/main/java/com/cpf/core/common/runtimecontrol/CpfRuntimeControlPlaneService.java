@@ -1,12 +1,6 @@
 package com.cpf.core.common.runtimecontrol;
 
-import com.cpf.core.api.runtimecontrol.CpfRuntimeAck;
-import com.cpf.core.api.runtimecontrol.CpfRuntimeChangeCommand;
-import com.cpf.core.api.runtimecontrol.CpfRuntimeChangeResult;
-import com.cpf.core.api.runtimecontrol.CpfRuntimeControlPlane;
-import com.cpf.core.api.runtimecontrol.CpfRuntimeDelivery;
-import com.cpf.core.api.runtimecontrol.CpfRuntimeInstanceLease;
-import com.cpf.core.api.runtimecontrol.CpfRuntimeInstanceRegistration;
+import com.cpf.core.api.runtimecontrol.*;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
@@ -55,13 +49,12 @@ public class CpfRuntimeControlPlaneService implements CpfRuntimeControlPlane {
         if(targets.isEmpty()) throw new IllegalArgumentException("Runtime Change 대상 instance가 없거나 capability/schema가 일치하지 않습니다.");
         long version=repository.lockAndNextVersion(command.expectedVersion());
         String changeId=UUID.randomUUID().toString();
-        Object rollbackPayload=command.payload().get("_rollback");
-        Map<String,Object> effectivePayload=new LinkedHashMap<>(command.payload());
-        effectivePayload.remove("_rollback");
+        CpfRuntimePayload rollbackPayload=CpfRuntimePayloadJson.objectField(command.payload(),"_rollback");
+        CpfRuntimePayload effectivePayload=CpfRuntimePayloadJson.without(command.payload(),"_rollback");
         String payloadHash=CpfRuntimeCanonicalHash.sha256(effectivePayload);
         repository.insertChange(changeId,command.operationId(),command.changeType(),command.payloadSchemaVersion(),
-                requestHash,payloadHash,repository.json(effectivePayload),
-                rollbackPayload==null?null:repository.json(rollbackPayload),repository.json(targets),
+                requestHash,payloadHash,effectivePayload.canonicalJson(),
+                rollbackPayload==null?null:rollbackPayload.canonicalJson(),repository.json(targets),
                 version,command.rolloutMode(),command.waveSize(),command.quorumPercent(),command.scheduledAt(),command.expiresAt(),
                 command.reason(),command.approvalId(),command.breakGlassId(),command.requestedBy(),targets);
         CpfRuntimeChangeResult result=getChange(changeId);
@@ -69,8 +62,13 @@ public class CpfRuntimeControlPlaneService implements CpfRuntimeControlPlane {
         return result;
     }
 
-    @Override public CpfRuntimeChangeResult getChange(String changeId) { return toResult(repository.findChange("change_id",require(changeId,"changeId")).orElseThrow(() -> new IllegalArgumentException("Runtime Change를 찾을 수 없습니다: "+changeId))); }
-    @Override public CpfRuntimeChangeResult getByOperationId(String operationId) { return toResult(repository.findChange("operation_id",require(operationId,"operationId")).orElseThrow(() -> new IllegalArgumentException("Runtime operation을 찾을 수 없습니다: "+operationId))); }
+    @Override
+
+    public CpfRuntimeChangeResult getChange(String changeId) { return toResult(repository.findChange("change_id",require(changeId,"changeId")).orElseThrow(() -> new
+            IllegalArgumentException("Runtime Change를 찾을 수 없습니다: "+changeId))); }
+    @Override
+    public CpfRuntimeChangeResult getByOperationId(String operationId) { return toResult(repository.findChange("operation_id",require(operationId,"operationId")).orElseThrow(() -> new
+            IllegalArgumentException("Runtime operation을 찾을 수 없습니다: "+operationId))); }
 
     @Override
     @Transactional(transactionManager = "cpfTransactionManager")
@@ -97,7 +95,7 @@ public class CpfRuntimeControlPlaneService implements CpfRuntimeControlPlane {
         CpfRuntimeChangeCommand rollback=new CpfRuntimeChangeCommand(operationId,"ROLLBACK:"+original.changeType(),
                 original.changeType()==null?1:((Number)row.getOrDefault("payload_schema_version",1)).intValue(),
                 new com.cpf.core.api.runtimecontrol.CpfRuntimeTargetSelector(null,null,null,targets,List.of(),Map.of(),null,null,true,true,false),
-                repository.jsonMap(rollbackJson),null,"ALL_AT_ONCE",1,100,null,null,reason,null,null,operatorId);
+                CpfRuntimePayload.parse(rollbackJson),null,"ALL_AT_ONCE",1,100,null,null,reason,null,null,operatorId);
         return createChange(rollback);
     }
 
@@ -107,38 +105,52 @@ public class CpfRuntimeControlPlaneService implements CpfRuntimeControlPlane {
         if(command==null)throw new IllegalArgumentException("Runtime Group command가 필요합니다.");
         require(command.operationId(),"operationId"); require(command.groupId(),"groupId"); require(command.groupName(),"groupName"); require(command.requestedBy(),"requestedBy"); require(command.reason(),"reason");
         repository.consumeRateLimit(command.requestedBy(),60);
-        Map<String,Object> fp=new LinkedHashMap<>();fp.put("groupId",command.groupId());fp.put("groupName",command.groupName());fp.put("parentGroupId",safe(command.parentGroupId()));fp.put("environment",safe(command.environment()));fp.put("description",safe(command.description()));fp.put("expectedVersion",command.expectedVersion());fp.put("active",command.active());fp.put("reason",command.reason());
+        Map<String,Object> fp=new LinkedHashMap<>();fp.put("groupId",command.groupId());fp.put("groupName",command.groupName());fp.put("parentGroupId",safe(command.parentGroupId()));fp
+                .put("environment",safe(command.environment()));fp.put("description",safe(command.description()));fp.put("expectedVersion",command.expectedVersion());fp.put("active",command.active());
+                fp.put("reason",command.reason());
         String hash=CpfRuntimeCanonicalHash.sha256(fp); var existing=repository.findOperation(command.operationId());
-        if(existing.isPresent()) { if(!hash.equals(String.valueOf(existing.get().get("request_hash"))))throw new IllegalStateException("operationId payload fingerprint 충돌: "+command.operationId()); return getGroup(command.groupId()); }
+        if(existing.isPresent()) { if(!hash.equals(String.valueOf(existing.get().get("request_hash"))))throw new IllegalStateException("operationId payload fingerprint 충돌: "+command.operationId());
+                return getGroup(command.groupId()); }
         if(!repository.insertOperation(command.operationId(),"RUNTIME_GROUP_SAVE",hash,Instant.now().plusSeconds(86400*7L))) return getGroup(command.groupId());
-        var result=groupResult(repository.saveGroup(command.groupId(),command.groupName(),command.parentGroupId(),command.environment(),command.description(),command.expectedVersion(),command.active(),command.requestedBy()));
+        var result=groupResult(repository.saveGroup(command.groupId(),command.groupName(),command.parentGroupId(),command.environment(),command.description(),command.expectedVersion(),command
+                .active(),command.requestedBy()));
         repository.completeOperation(command.operationId(),command.groupId(),"SUCCESS",repository.json(result)); return result;
     }
 
     @Override
     @Transactional(transactionManager = "cpfTransactionManager")
     public com.cpf.core.api.runtimecontrol.CpfRuntimeGroupResult changeGroupMember(com.cpf.core.api.runtimecontrol.CpfRuntimeGroupMemberCommand command){
-        if(command==null)throw new IllegalArgumentException("Runtime Group member command가 필요합니다."); require(command.operationId(),"operationId");require(command.groupId(),"groupId");require(command.instanceId(),"instanceId");require(command.requestedBy(),"requestedBy");require(command.reason(),"reason");
+        if(command==null)throw new IllegalArgumentException("Runtime Group member command가 필요합니다."); require(command.operationId(),"operationId");require(command.groupId(),"groupId");require(command
+                .instanceId(),"instanceId");require(command.requestedBy(),"requestedBy");require(command.reason(),"reason");
         repository.consumeRateLimit(command.requestedBy(),60);
         Map<String,Object> fp=Map.of("groupId",command.groupId(),"instanceId",command.instanceId(),"active",command.active(),"reason",command.reason());String hash=CpfRuntimeCanonicalHash.sha256(fp);
-        var existing=repository.findOperation(command.operationId()); if(existing.isPresent()){if(!hash.equals(String.valueOf(existing.get().get("request_hash"))))throw new IllegalStateException("operationId payload fingerprint 충돌: "+command.operationId());return getGroup(command.groupId());}
+        var existing=repository.findOperation(command.operationId()); if(existing.isPresent()){if(!hash.equals(String.valueOf(existing.get().get("request_hash"))))throw new
+                IllegalStateException("operationId payload fingerprint 충돌: "+command.operationId());return getGroup(command.groupId());}
         if(!repository.insertOperation(command.operationId(),"RUNTIME_GROUP_MEMBER",hash,Instant.now().plusSeconds(86400*7L)))return getGroup(command.groupId());
-        var result=groupResult(repository.changeGroupMember(command.groupId(),command.instanceId(),command.active(),command.requestedBy()));repository.completeOperation(command.operationId(),command.groupId(),"SUCCESS",repository.json(result));return result;
+        var result=groupResult(repository.changeGroupMember(command.groupId(),command.instanceId(),command.active(),command.requestedBy()));repository.completeOperation(command.operationId(),command
+                .groupId(),"SUCCESS",repository.json(result));return result;
     }
 
-    @Override public com.cpf.core.api.runtimecontrol.CpfRuntimeGroupResult getGroup(String groupId){return groupResult(repository.findGroup(require(groupId,"groupId")).orElseThrow(()->new IllegalArgumentException("Runtime Group을 찾을 수 없습니다: "+groupId)));}
+    @Override
+
+    public com.cpf.core.api.runtimecontrol.CpfRuntimeGroupResult getGroup(String groupId){return groupResult(repository.findGroup(require(groupId,"groupId")).orElseThrow(()->new
+            IllegalArgumentException("Runtime Group을 찾을 수 없습니다: "+groupId)));}
 
     @Override
     @Transactional(transactionManager = "cpfTransactionManager")
     public void deleteGroup(String groupId,String operationId,Long expectedVersion,String reason,String operatorId){
-        require(groupId,"groupId");require(operationId,"operationId");require(reason,"reason");require(operatorId,"operatorId");repository.consumeRateLimit(operatorId,60);Map<String,Object> fp=new LinkedHashMap<>();fp.put("groupId",groupId);fp.put("expectedVersion",expectedVersion);fp.put("reason",reason);String hash=CpfRuntimeCanonicalHash.sha256(fp);
-        var existing=repository.findOperation(operationId);if(existing.isPresent()){if(!hash.equals(String.valueOf(existing.get().get("request_hash"))))throw new IllegalStateException("operationId payload fingerprint 충돌: "+operationId);return;}
-        if(!repository.insertOperation(operationId,"RUNTIME_GROUP_DELETE",hash,Instant.now().plusSeconds(86400*7L)))return;repository.deleteGroup(groupId,expectedVersion,operatorId);repository.completeOperation(operationId,groupId,"SUCCESS",repository.json(Map.of("deleted",true)));
+        require(groupId,"groupId");require(operationId,"operationId");require(reason,"reason");require(operatorId,"operatorId");repository.consumeRateLimit(operatorId,60);Map<String,Object> fp=new
+                LinkedHashMap<>();fp.put("groupId",groupId);fp.put("expectedVersion",expectedVersion);fp.put("reason",reason);String hash=CpfRuntimeCanonicalHash.sha256(fp);
+        var existing=repository.findOperation(operationId);if(existing.isPresent()){if(!hash.equals(String.valueOf(existing.get().get("request_hash"))))throw new
+                IllegalStateException("operationId payload fingerprint 충돌: "+operationId);return;}
+        if(!repository.insertOperation(operationId,"RUNTIME_GROUP_DELETE",hash,Instant.now().plusSeconds(86400*7L)))return;repository.deleteGroup(groupId,expectedVersion,operatorId);repository
+                .completeOperation(operationId,groupId,"SUCCESS",repository.json(Map.of("deleted",true)));
     }
 
     private com.cpf.core.api.runtimecontrol.CpfRuntimeGroupResult groupResult(Map<String,Object> row){
         @SuppressWarnings("unchecked") List<String> members=(List<String>)row.getOrDefault("instance_ids",List.of());
-        return new com.cpf.core.api.runtimecontrol.CpfRuntimeGroupResult(String.valueOf(row.get("group_id")),String.valueOf(row.get("group_name")),nullableString(row.get("parent_group_id")),nullableString(row.get("environment_code")),nullableString(row.get("description")),"Y".equalsIgnoreCase(String.valueOf(row.get("active_yn"))),number(row.get("row_version")),members);
+        return new com.cpf.core.api.runtimecontrol.CpfRuntimeGroupResult(String.valueOf(row.get("group_id")),String.valueOf(row.get("group_name")),nullableString(row.get("parent_group_id")),
+                nullableString(row.get("environment_code")),nullableString(row.get("description")),"Y".equalsIgnoreCase(String.valueOf(row.get("active_yn"))),number(row.get("row_version")),members);
     }
 
     @Override
@@ -182,7 +194,9 @@ public class CpfRuntimeControlPlaneService implements CpfRuntimeControlPlane {
         return getChange(ack.changeId());
     }
 
-    @Override public Map<String,Object> status(String environment,String serviceId){return repository.status(environment,serviceId);}
+    @Override
+
+    public CpfRuntimeStatus status(String environment,String serviceId){return repository.status(environment,serviceId);}
 
     @Override
     public com.cpf.core.api.runtimecontrol.CpfRuntimeControlHealth health(){
@@ -190,63 +204,51 @@ public class CpfRuntimeControlPlaneService implements CpfRuntimeControlPlane {
     }
 
     @Override
-    public Map<String,Object> previewTargets(String changeType,int payloadSchemaVersion,
-                                             com.cpf.core.api.runtimecontrol.CpfRuntimeTargetSelector target){
+    public CpfRuntimeTargetPreview previewTargets(String changeType,int payloadSchemaVersion,
+                                                   CpfRuntimeTargetSelector target){
         require(changeType,"changeType");
         if(target==null)throw new IllegalArgumentException("target이 필요합니다.");
         return repository.previewTargets(changeType,payloadSchemaVersion,target);
     }
 
     @Override
-    public Map<String,Object> previewChange(CpfRuntimeChangeCommand command){
+    public CpfRuntimeChangePreview previewChange(CpfRuntimeChangeCommand command){
         validate(command);
-        Map<String,Object> targetPreview=repository.previewTargets(
+        CpfRuntimeTargetPreview targetPreview=repository.previewTargets(
                 command.changeType(),command.payloadSchemaVersion(),command.target());
-        @SuppressWarnings("unchecked")
-        List<Map<String,Object>> targets=(List<Map<String,Object>>)targetPreview.getOrDefault("targets",List.of());
-        List<String> eligible=targets.stream()
-                .filter(row->Boolean.TRUE.equals(row.get("eligible")))
-                .map(row->String.valueOf(row.get("instanceId"))).toList();
-        Map<String,Object> payload=new LinkedHashMap<>(command.payload());
-        payload.remove("_rollback");
+        List<CpfRuntimeTargetPreviewItem> targets=targetPreview.targets();
+        List<String> eligible=targets.stream().filter(CpfRuntimeTargetPreviewItem::eligible)
+                .map(CpfRuntimeTargetPreviewItem::instanceId).toList();
+        CpfRuntimePayload payload=CpfRuntimePayloadJson.without(command.payload(),"_rollback");
         String payloadHash=CpfRuntimeCanonicalHash.sha256(payload);
-        List<Map<String,Object>> current=repository.featureStates(eligible,command.changeType());
-        ArrayList<Map<String,Object>> diff=new ArrayList<>();
+        List<CpfRuntimeFeatureStatus> current=repository.featureStates(eligible,command.changeType());
+        ArrayList<CpfRuntimeInstanceDiff> diff=new ArrayList<>();
         LinkedHashMap<String,Integer> restartImpact=new LinkedHashMap<>();
-        for(Map<String,Object> target:targets){
-            if(!Boolean.TRUE.equals(target.get("eligible")))continue;
-            String instanceId=String.valueOf(target.get("instanceId"));
-            Map<String,Object> state=current.stream()
-                    .filter(row->instanceId.equals(String.valueOf(row.get("instance_id"))))
-                    .findFirst().orElse(Map.of());
-            String capability=String.valueOf(target.getOrDefault("capability",""));
+        for(CpfRuntimeTargetPreviewItem target:targets){
+            if(!target.eligible())continue;
+            String instanceId=target.instanceId();
+            CpfRuntimeFeatureStatus state=current.stream().filter(row->instanceId.equals(row.instanceId()))
+                    .findFirst().orElse(new CpfRuntimeFeatureStatus(instanceId,target.serviceId(),command.changeType(),
+                            0L,0L,null,null,"UNKNOWN",null,null));
+            String capability=target.capability()==null?"":target.capability();
             String[] parts=capability.split("\\|");
             String impact=parts.length>1?parts[1]:"HOT_APPLY";
             restartImpact.merge(impact,1,Integer::sum);
-            LinkedHashMap<String,Object> row=new LinkedHashMap<>();
-            row.put("instanceId",instanceId);
-            row.put("currentDesiredVersion",number(state.get("desired_version")));
-            row.put("currentActualVersion",number(state.get("actual_version")));
-            row.put("currentDesiredHash",state.get("desired_hash"));
-            row.put("currentActualHash",state.get("actual_hash"));
-            row.put("currentDriftState",state.getOrDefault("drift_state","UNKNOWN"));
-            row.put("newPayloadHash",payloadHash);
-            row.put("changed",!payloadHash.equals(String.valueOf(state.get("desired_hash"))));
-            row.put("restartImpact",impact);
-            diff.add(row);
+            diff.add(new CpfRuntimeInstanceDiff(instanceId,state.desiredVersion(),state.actualVersion(),
+                    state.desiredHash(),state.actualHash(),state.driftState(),payloadHash,
+                    !payloadHash.equals(state.desiredHash()),impact));
         }
-        LinkedHashMap<String,Object> result=new LinkedHashMap<>();
-        result.put("targetPreview",targetPreview);
-        result.put("payloadHash",payloadHash);
-        result.put("restartImpactSummary",restartImpact);
-        result.put("instanceDiff",List.copyOf(diff));
-        result.put("affectedServices",targets.stream().filter(r->Boolean.TRUE.equals(r.get("eligible")))
-                .map(r->String.valueOf(r.get("service_id"))).distinct().sorted().toList());
-        return Map.copyOf(result);
+        List<CpfRuntimeImpactCount> impactSummary=restartImpact.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .map(entry->new CpfRuntimeImpactCount(entry.getKey(),entry.getValue())).toList();
+        List<String> affectedServices=targets.stream().filter(CpfRuntimeTargetPreviewItem::eligible)
+                .map(CpfRuntimeTargetPreviewItem::serviceId).filter(java.util.Objects::nonNull)
+                .distinct().sorted().toList();
+        return new CpfRuntimeChangePreview(targetPreview,payloadHash,impactSummary,diff,affectedServices);
     }
 
     @Override
-    public com.cpf.core.api.runtimecontrol.CpfRuntimeAuditVerification verifyAudit(String changeId){
+    public CpfRuntimeAuditVerification verifyAudit(String changeId){
         return repository.verifyAudit(require(changeId,"changeId"));
     }
 
@@ -280,12 +282,15 @@ public class CpfRuntimeControlPlaneService implements CpfRuntimeControlPlane {
                 instant(row.get("scheduled_at")),instant(row.get("expires_at")),instant(row.get("created_at")),instant(row.get("updated_at")),null);
     }
 
-    private void validate(CpfRuntimeChangeCommand c){if(c==null)throw new IllegalArgumentException("Runtime Change command가 필요합니다.");require(c.operationId(),"operationId");require(c.changeType(),"changeType");require(c.requestedBy(),"requestedBy");require(c.reason(),"reason");if(c.target()==null)throw new IllegalArgumentException("target이 필요합니다.");if(c.expiresAt()!=null&&c.expiresAt().isBefore(Instant.now()))throw new IllegalArgumentException("이미 만료된 Runtime Change입니다.");}
+    private void validate(CpfRuntimeChangeCommand c){if(c==null)throw new IllegalArgumentException("Runtime Change command가 필요합니다.");require(c.operationId(),"operationId");require(c.changeType(),
+            "changeType");require(c.requestedBy(),"requestedBy");require(c.reason(),"reason");if(c.target()==null)throw new IllegalArgumentException("target이 필요합니다.");if(c.expiresAt()!=null&&c
+            .expiresAt().isBefore(Instant.now()))throw new IllegalArgumentException("이미 만료된 Runtime Change입니다.");}
     private Instant operationExpiry(CpfRuntimeChangeCommand c){return c.expiresAt()!=null?c.expiresAt():Instant.now().plusSeconds(86400*7L);}
     private String require(String v,String n){if(v==null||v.isBlank())throw new IllegalArgumentException(n+"가 필요합니다.");return v.trim();}
     private String safe(String v){return v==null?"":v;}
     private String nullableString(Object v){return v==null?null:String.valueOf(v);}
     private long number(Object v){return v==null?0L:((Number)v).longValue();}
-    private Instant instant(Object v){if(v==null)return null;if(v instanceof java.sql.Timestamp t)return t.toInstant();if(v instanceof java.util.Date d)return d.toInstant();try{return Instant.parse(String.valueOf(v));}catch(Exception ignored){return null;}}
+    private Instant instant(Object v){if(v==null)return null;if(v instanceof java.sql.Timestamp t)return t.toInstant();if(v instanceof java.util.Date d)return d.toInstant();try{return Instant
+            .parse(String.valueOf(v));}catch(Exception ignored){return null;}}
     private List<?> readList(String json){try{return new com.fasterxml.jackson.databind.ObjectMapper().readValue(json,List.class);}catch(Exception ex){throw new IllegalStateException("target snapshot 파싱 실패",ex);}}
 }

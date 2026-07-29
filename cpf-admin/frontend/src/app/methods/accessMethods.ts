@@ -21,6 +21,9 @@ export const accessMethods: Record<string, any> = {
         this.token = data.accessToken;
         this.currentOperator = data.operator || {};
         this.authorizedMenus = data.menus || [];
+        this.authorizedButtons = Array.isArray(data.buttonIds) ? data.buttonIds : [];
+        this.buttonsLoaded = Array.isArray(data.buttonIds);
+        this.permissionsLoaded = true;
         sessionStorage.setItem("admAccessToken", this.token);
         localStorage.removeItem("admAccessToken");
         this.authMessage = "";

@@ -1,0 +1,10 @@
+cpf:
+  local:
+    batch:
+      enabled: true
+      modules:
+        control-server: true
+        scheduler: true
+        worker: true
+        center-cut: false
+        host-agent: false

@@ -1231,3 +1231,43 @@ END;
 $$ LANGUAGE plpgsql;
 CREATE TRIGGER trg_adm_role_menu_touch BEFORE UPDATE ON adm_role_menu
 FOR EACH ROW EXECUTE FUNCTION fn_adm_role_menu_touch();
+
+-- CPF V69/V72 canonical ADM file job schema
+CREATE TABLE IF NOT EXISTS adm_file_job (
+    job_id VARCHAR(36) PRIMARY KEY,
+    operation_id VARCHAR(100) NOT NULL UNIQUE,
+    request_hash VARCHAR(64) NOT NULL,
+    job_type VARCHAR(20) NOT NULL,
+    template_code VARCHAR(100) NOT NULL,
+    template_version INTEGER NOT NULL,
+    file_format VARCHAR(10) NOT NULL,
+    job_state VARCHAR(30) NOT NULL,
+    dry_run CHAR(1) NOT NULL,
+    rollback_supported CHAR(1) NOT NULL,
+    source_path VARCHAR(1000), result_path VARCHAR(1000),
+    source_sha256 VARCHAR(64), result_sha256 VARCHAR(64),
+    total_rows BIGINT NOT NULL DEFAULT 0, success_rows BIGINT NOT NULL DEFAULT 0, failed_rows BIGINT NOT NULL DEFAULT 0,
+    lease_owner VARCHAR(100), fencing_token BIGINT NOT NULL DEFAULT 0, lease_until TIMESTAMP(6),
+    retention_until TIMESTAMP(6) NOT NULL,
+    requested_by VARCHAR(100) NOT NULL, reason VARCHAR(500) NOT NULL, client_ip VARCHAR(64),
+    approval_id VARCHAR(120), applied_by VARCHAR(100), resolved_by VARCHAR(100),
+    control_by VARCHAR(100), control_reason VARCHAR(500), control_updated_at TIMESTAMP(6),
+    error_code VARCHAR(80), error_message VARCHAR(1000),
+    created_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS ix_adm_file_job_claim ON adm_file_job(job_state, lease_until, created_at);
+CREATE INDEX IF NOT EXISTS ix_adm_file_job_retention ON adm_file_job(retention_until, job_state);
+CREATE INDEX IF NOT EXISTS ix_adm_file_job_approval ON adm_file_job(approval_id, job_state);
+
+CREATE TABLE IF NOT EXISTS adm_file_job_row (
+    job_id VARCHAR(36) NOT NULL REFERENCES adm_file_job(job_id),
+    row_no BIGINT NOT NULL,
+    row_state VARCHAR(30) NOT NULL,
+    business_key VARCHAR(200),
+    payload_json TEXT NOT NULL,
+    error_code VARCHAR(80), error_message VARCHAR(1000), rollback_token VARCHAR(1000),
+    created_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY(job_id,row_no)
+);

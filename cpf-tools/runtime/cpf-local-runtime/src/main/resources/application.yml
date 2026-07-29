@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: cpf-local-runtime
+  main:
+    banner-mode: off
+server:
+  address: 127.0.0.1
+  port: 8080
+cpf:
+  environment: local
+  local:
+    runtime:
+      enabled: false
+      allow-remote-bind: false
+      max-enabled-modules: 6
+      minimum-max-memory-mb: 512

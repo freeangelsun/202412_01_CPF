@@ -4,6 +4,8 @@ import com.cpf.admin.opr.dto.AdmNotificationDeliveryAttemptResponse;
 import com.cpf.admin.opr.dto.AdmNotificationDeliveryLogResponse;
 import com.cpf.admin.opr.dto.AdmNotificationRuleRequest;
 import com.cpf.admin.opr.dto.AdmNotificationRuleResponse;
+import com.cpf.admin.opr.dto.AdmNotificationDeliveryStatusResponse;
+import com.cpf.admin.opr.dto.AdmNotificationTestSendResponse;
 import com.cpf.admin.opr.dto.AdmNotificationTestSendRequest;
 import com.cpf.admin.opr.dto.NotificationSendResult;
 import com.cpf.core.api.util.CpfStrings;
@@ -192,7 +194,7 @@ public class AdmNotificationService extends com.cpf.admin.common.base.AdmBaseSer
     }
 
     @Transactional
-    public Map<String, Object> sendTest(
+    public AdmNotificationTestSendResponse sendTest(
             long ruleId,
             AdmNotificationTestSendRequest request,
             String operatorId,
@@ -213,12 +215,7 @@ public class AdmNotificationService extends com.cpf.admin.common.base.AdmBaseSer
                 null,
                 clientIp);
 
-        Map<String, Object> response = new LinkedHashMap<>();
-        response.put("deliveryId", deliveryId);
-        response.put("rule", rule);
-        response.put("deliveryStatus", "READY");
-        response.put("providerVerification", "QUEUED_NOT_PROVIDER_RESULT");
-        return response;
+        return new AdmNotificationTestSendResponse(deliveryId, rule, "READY", "QUEUED_NOT_PROVIDER_RESULT");
     }
 
     /**
@@ -256,7 +253,7 @@ public class AdmNotificationService extends com.cpf.admin.common.base.AdmBaseSer
     }
 
     @Transactional
-    public Map<String, Object> retryDelivery(
+    public AdmNotificationDeliveryStatusResponse retryDelivery(
             long deliveryId,
             long expectedVersion,
             String reason,
@@ -264,8 +261,8 @@ public class AdmNotificationService extends com.cpf.admin.common.base.AdmBaseSer
             String clientIp) {
         String auditReason = auditLogService.requireReason(reason);
         String requestUser = required(operatorId, "operatorId");
-        Map<String, Object> before = notificationOutboxService.findStatus(deliveryId);
-        Map<String, Object> result = notificationOutboxService.retry(deliveryId, expectedVersion, requestUser);
+        AdmNotificationDeliveryStatusResponse before = notificationOutboxService.findStatus(deliveryId);
+        AdmNotificationDeliveryStatusResponse result = notificationOutboxService.retry(deliveryId, expectedVersion, requestUser);
         auditLogService.record(
                 CpfTransactionContext.transactionId(),
                 requestUser,
@@ -281,7 +278,7 @@ public class AdmNotificationService extends com.cpf.admin.common.base.AdmBaseSer
     }
 
     @Transactional
-    public Map<String, Object> cancelDelivery(
+    public AdmNotificationDeliveryStatusResponse cancelDelivery(
             long deliveryId,
             long expectedVersion,
             String reason,
@@ -289,8 +286,8 @@ public class AdmNotificationService extends com.cpf.admin.common.base.AdmBaseSer
             String clientIp) {
         String auditReason = auditLogService.requireReason(reason);
         String requestUser = required(operatorId, "operatorId");
-        Map<String, Object> before = notificationOutboxService.findStatus(deliveryId);
-        Map<String, Object> result = notificationOutboxService.cancel(deliveryId, expectedVersion, requestUser);
+        AdmNotificationDeliveryStatusResponse before = notificationOutboxService.findStatus(deliveryId);
+        AdmNotificationDeliveryStatusResponse result = notificationOutboxService.cancel(deliveryId, expectedVersion, requestUser);
         auditLogService.record(
                 CpfTransactionContext.transactionId(),
                 requestUser,

@@ -1,10 +1,6 @@
 package com.cpf.core.common.runtimecontrol;
 
-import com.cpf.core.api.runtimecontrol.CpfRuntimeActualState;
-import com.cpf.core.api.runtimecontrol.CpfRuntimeDelivery;
-import com.cpf.core.api.runtimecontrol.CpfRuntimeInstanceLease;
-import com.cpf.core.api.runtimecontrol.CpfRuntimeInstanceRegistration;
-import com.cpf.core.api.runtimecontrol.CpfRuntimeTargetSelector;
+import com.cpf.core.api.runtimecontrol.*;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.ObjectProvider;
@@ -42,7 +38,7 @@ public class CpfRuntimeControlPlaneRepository {
         this.objectMapper = objectMapper;
     }
 
-    public Optional<Map<String, Object>> findOperation(String operationId) {
+    Optional<Map<String, Object>> findOperation(String operationId) {
         List<Map<String, Object>> rows = jdbc.queryForList(
                 "SELECT operation_id, command_type, request_hash, entity_id, result_state, result_json, expires_at " +
                         "FROM cpf_control_operation WHERE operation_id=?", operationId);
@@ -258,7 +254,7 @@ public class CpfRuntimeControlPlaneRepository {
         appendAudit(changeId, "CHANGE_CREATED", requestedBy, reason, requestHash);
     }
 
-    public Optional<Map<String,Object>> findChange(String column, String value) {
+    Optional<Map<String,Object>> findChange(String column, String value) {
         if (!"change_id".equals(column) && !"operation_id".equals(column)) throw new IllegalArgumentException("unsupported column");
         List<Map<String,Object>> rows=jdbc.queryForList("SELECT * FROM cpf_runtime_change WHERE "+column+"=?", value);
         return rows.stream().findFirst();
@@ -294,7 +290,7 @@ public class CpfRuntimeControlPlaneRepository {
                             "WHERE delivery_id=? AND instance_id=? AND delivery_state IN ('PENDING','FAILED')",
                     fencingToken, deliveryId, instanceId);
             if (updated != 1) continue;
-            Map<String,Object> payload = readMap(String.valueOf(row.get("payload_json")));
+            CpfRuntimePayload payload = CpfRuntimePayload.parse(String.valueOf(row.get("payload_json")));
             String payloadHash = String.valueOf(row.get("payload_hash"));
             if (payloadHash == null || payloadHash.isBlank() || "null".equalsIgnoreCase(payloadHash)) {
                 payloadHash = CpfRuntimeCanonicalHash.sha256(payload);
@@ -713,7 +709,7 @@ public class CpfRuntimeControlPlaneRepository {
                 String.class, changeId);
     }
 
-    public List<Map<String,Object>> autoRollbackCandidates() {
+    List<Map<String,Object>> autoRollbackCandidates() {
         return jdbc.queryForList(
                 "SELECT change_id,change_state FROM cpf_runtime_change " +
                         "WHERE change_state IN ('FAILED','EXPIRED') " +
@@ -735,12 +731,13 @@ public class CpfRuntimeControlPlaneRepository {
     }
 
     public CpfRuntimeInstanceLease lease(String instanceId) {
-        Map<String,Object> row=jdbc.queryForMap("SELECT instance_id,fencing_token,desired_version,actual_version,desired_hash,actual_hash,drift_state,lease_until FROM cpf_runtime_instance_state WHERE instance_id=?",instanceId);
+        Map<String,Object> row=jdbc.queryForMap("SELECT instance_id,fencing_token,desired_version,actual_version,desired_hash,actual_hash,drift_state,lease_until FROM cpf_runtime_instance_state WHERE instance_id=?",
+                instanceId);
         return new CpfRuntimeInstanceLease(instanceId,number(row.get("fencing_token")),number(row.get("desired_version")),number(row.get("actual_version")),
                 nullable(row.get("desired_hash")),nullable(row.get("actual_hash")),String.valueOf(row.get("drift_state")),toInstant(row.get("lease_until")));
     }
 
-    public Map<String,Object> status(String environment,String serviceId) {
+    public CpfRuntimeStatus status(String environment,String serviceId) {
         StringBuilder sql=new StringBuilder("SELECT s.instance_id,i.service_id,i.environment_code,i.zone_code,i.cell_code," +
                 "s.fencing_token,s.lease_until,s.desired_version,s.actual_version,s.desired_hash,s.actual_hash,s.drift_state," +
                 "i.maintenance_yn,i.drain_yn,i.drain_deadline_at,s.heartbeat_at,s.artifact_version,s.artifact_commit," +
@@ -750,7 +747,15 @@ public class CpfRuntimeControlPlaneRepository {
         if(environment!=null&&!environment.isBlank()){sql.append(" AND i.environment_code=?");args.add(environment);}
         if(serviceId!=null&&!serviceId.isBlank()){sql.append(" AND i.service_id=?");args.add(serviceId);}
         sql.append(" ORDER BY i.service_id,s.instance_id");
-        List<Map<String,Object>> instances=jdbc.queryForList(sql.toString(),args.toArray());
+        List<CpfRuntimeInstanceStatus> instances=jdbc.query(sql.toString(), (rs,rowNum)->new CpfRuntimeInstanceStatus(
+                rs.getString("instance_id"),rs.getString("service_id"),rs.getString("environment_code"),
+                rs.getString("zone_code"),rs.getString("cell_code"),rs.getLong("fencing_token"),
+                toInstant(rs.getTimestamp("lease_until")),rs.getLong("desired_version"),rs.getLong("actual_version"),
+                rs.getString("desired_hash"),rs.getString("actual_hash"),rs.getString("drift_state"),
+                "Y".equalsIgnoreCase(rs.getString("maintenance_yn")),"Y".equalsIgnoreCase(rs.getString("drain_yn")),
+                toInstant(rs.getTimestamp("drain_deadline_at")),toInstant(rs.getTimestamp("heartbeat_at")),
+                rs.getString("artifact_version"),rs.getString("artifact_commit"),rs.getString("runtime_role"),
+                rs.getString("registration_source"),rs.getLong("clock_skew_ms")),args.toArray());
 
         StringBuilder featureSql=new StringBuilder("SELECT f.instance_id,i.service_id,f.change_type,f.desired_version," +
                 "f.actual_version,f.desired_hash,f.actual_hash,f.drift_state,f.source_delivery_id,f.updated_at " +
@@ -759,25 +764,23 @@ public class CpfRuntimeControlPlaneRepository {
         if(environment!=null&&!environment.isBlank()){featureSql.append(" AND i.environment_code=?");featureArgs.add(environment);}
         if(serviceId!=null&&!serviceId.isBlank()){featureSql.append(" AND i.service_id=?");featureArgs.add(serviceId);}
         featureSql.append(" ORDER BY i.service_id,f.instance_id,f.change_type");
-        List<Map<String,Object>> featureStates=jdbc.queryForList(featureSql.toString(),featureArgs.toArray());
+        List<CpfRuntimeFeatureStatus> featureStates=jdbc.query(featureSql.toString(),(rs,rowNum)->new CpfRuntimeFeatureStatus(
+                rs.getString("instance_id"),rs.getString("service_id"),rs.getString("change_type"),
+                rs.getLong("desired_version"),rs.getLong("actual_version"),rs.getString("desired_hash"),
+                rs.getString("actual_hash"),rs.getString("drift_state"),rs.getString("source_delivery_id"),
+                toInstant(rs.getTimestamp("updated_at"))),featureArgs.toArray());
 
-        long drift=featureStates.stream().filter(r->Set.of("DRIFT","UNKNOWN_RESULT","PENDING_RESTART")
-                .contains(String.valueOf(r.get("drift_state")))).count();
-        long expired=instances.stream().filter(r->{Instant v=toInstant(r.get("lease_until"));return v!=null&&v.isBefore(Instant.now());}).count();
-        List<Map<String,Object>> controller=jdbc.queryForList(
-                "SELECT holder_id,fencing_token,lease_until,last_reconciled_at FROM cpf_runtime_controller_lease " +
-                        "WHERE lease_key='RUNTIME_CONTROL'");
-        List<Map<String,Object>> deliveries=jdbc.queryForList(
-                "SELECT delivery_state,COUNT(*) count_value FROM cpf_runtime_delivery GROUP BY delivery_state");
-        LinkedHashMap<String,Object> result=new LinkedHashMap<>();
-        result.put("instances",instances);
-        result.put("featureStates",featureStates);
-        result.put("controller",controller.isEmpty()?Map.of():controller.getFirst());
-        result.put("deliveryCounts",deliveries);
-        result.put("instanceCount",instances.size());
-        result.put("driftCount",drift);
-        result.put("expiredLeaseCount",expired);
-        return Map.copyOf(result);
+        long drift=featureStates.stream().filter(r->Set.of("DRIFT","UNKNOWN_RESULT","PENDING_RESTART").contains(r.driftState())).count();
+        long expired=instances.stream().filter(r->r.leaseUntil()!=null&&r.leaseUntil().isBefore(Instant.now())).count();
+        List<CpfRuntimeControllerStatus> controllerRows=jdbc.query(
+                "SELECT holder_id,fencing_token,lease_until,last_reconciled_at FROM cpf_runtime_controller_lease WHERE lease_key='RUNTIME_CONTROL'",
+                (rs,rowNum)->new CpfRuntimeControllerStatus(rs.getString("holder_id"),rs.getLong("fencing_token"),
+                        toInstant(rs.getTimestamp("lease_until")),toInstant(rs.getTimestamp("last_reconciled_at"))));
+        List<CpfRuntimeDeliveryCount> deliveries=jdbc.query(
+                "SELECT delivery_state,COUNT(*) count_value FROM cpf_runtime_delivery GROUP BY delivery_state",
+                (rs,rowNum)->new CpfRuntimeDeliveryCount(rs.getString("delivery_state"),rs.getLong("count_value")));
+        return new CpfRuntimeStatus(instances,featureStates,controllerRows.isEmpty()?null:controllerRows.getFirst(),
+                deliveries,instances.size(),drift,expired);
     }
 
     public com.cpf.core.api.runtimecontrol.CpfRuntimeControlHealth health(long lagSloSeconds) {
@@ -818,10 +821,10 @@ public class CpfRuntimeControlPlaneRepository {
                 lag,lag>lagSloSeconds,reasons,now);
     }
 
-    public Map<String,Object> previewTargets(String changeType,int payloadSchemaVersion,CpfRuntimeTargetSelector selector){
+    public CpfRuntimeTargetPreview previewTargets(String changeType,int payloadSchemaVersion,CpfRuntimeTargetSelector selector){
         List<String> base=resolveTargets(selector);
         LinkedHashSet<String> excluded=new LinkedHashSet<>(selector.excludeInstanceIds());
-        ArrayList<Map<String,Object>> rows=new ArrayList<>();
+        ArrayList<CpfRuntimeTargetPreviewItem> rows=new ArrayList<>();
         int eligible=0;
         for(String instanceId:base){
             List<Map<String,Object>> meta=jdbc.queryForList(
@@ -830,53 +833,45 @@ public class CpfRuntimeControlPlaneRepository {
                             "FROM cpf_service_instance i JOIN cpf_runtime_instance_state s ON s.instance_id=i.instance_id " +
                             "WHERE i.instance_id=?",instanceId);
             if(meta.isEmpty())continue;
-            Map<String,Object> row=new LinkedHashMap<>(meta.getFirst());
+            Map<String,Object> row=meta.getFirst();
             Map<String,Object> caps=readMapOrEmpty(nullable(row.get("capabilities_json")));
             Object encoded=caps.get(baseChangeType(changeType));
             boolean schemaSupported=supportsCapability(instanceId,changeType,payloadSchemaVersion);
             boolean manuallyExcluded=excluded.contains(instanceId);
             boolean isEligible=schemaSupported&&!manuallyExcluded;
             if(isEligible)eligible++;
-            row.put("instanceId",instanceId);
-            row.put("capability",encoded);
-            row.put("schemaSupported",schemaSupported);
-            row.put("excluded",manuallyExcluded);
-            row.put("eligible",isEligible);
-            row.remove("capabilities_json");
-            rows.add(row);
+            rows.add(new CpfRuntimeTargetPreviewItem(instanceId,nullable(row.get("service_id")),
+                    nullable(row.get("environment_code")),nullable(row.get("zone_code")),nullable(row.get("cell_code")),
+                    "Y".equalsIgnoreCase(nullable(row.get("maintenance_yn"))),
+                    "Y".equalsIgnoreCase(nullable(row.get("drain_yn"))),nullable(row.get("artifact_version")),
+                    nullable(row.get("artifact_commit")),nullable(row.get("runtime_role")),toInstant(row.get("lease_until")),
+                    encoded==null?null:String.valueOf(encoded),schemaSupported,manuallyExcluded,isEligible));
         }
         boolean broad=blank(selector.environment()).isBlank()&&blank(selector.serviceId()).isBlank()
                 &&blank(selector.groupId()).isBlank()&&selector.instanceIds().isEmpty()
                 &&selector.labels().isEmpty()&&blank(selector.zone()).isBlank()&&blank(selector.cell()).isBlank();
-        LinkedHashMap<String,Object> result=new LinkedHashMap<>();
-        result.put("changeType",baseChangeType(changeType));
-        result.put("payloadSchemaVersion",payloadSchemaVersion);
-        result.put("overbroad",broad&&!selector.allowAll());
-        result.put("candidateCount",base.size());
-        result.put("eligibleCount",eligible);
-        result.put("targets",List.copyOf(rows));
-        return Map.copyOf(result);
+        return new CpfRuntimeTargetPreview(baseChangeType(changeType),Math.max(1,payloadSchemaVersion),
+                broad&&!selector.allowAll(),base.size(),eligible,rows);
     }
 
-    public List<Map<String,Object>> featureStates(List<String> instanceIds,String changeType){
-        ArrayList<Map<String,Object>> result=new ArrayList<>();
+    public List<CpfRuntimeFeatureStatus> featureStates(List<String> instanceIds,String changeType){
+        ArrayList<CpfRuntimeFeatureStatus> result=new ArrayList<>();
         for(String instanceId:instanceIds){
-            List<Map<String,Object>> rows=jdbc.queryForList(
+            List<CpfRuntimeFeatureStatus> rows=jdbc.query(
                     "SELECT instance_id,change_type,desired_version,actual_version,desired_hash,actual_hash," +
                             "drift_state,source_delivery_id,updated_at FROM cpf_runtime_instance_feature_state " +
-                            "WHERE instance_id=? AND change_type=?",instanceId,baseChangeType(changeType));
-            if(rows.isEmpty()){
-                LinkedHashMap<String,Object> empty=new LinkedHashMap<>();
-                empty.put("instance_id",instanceId);empty.put("change_type",baseChangeType(changeType));
-                empty.put("desired_version",0L);empty.put("actual_version",0L);empty.put("desired_hash",null);
-                empty.put("actual_hash",null);empty.put("drift_state","UNKNOWN");empty.put("source_delivery_id",null);
-                result.add(empty);
-            }else result.add(new LinkedHashMap<>(rows.getFirst()));
+                            "WHERE instance_id=? AND change_type=?",
+                    (rs,rowNum)->new CpfRuntimeFeatureStatus(rs.getString("instance_id"),null,rs.getString("change_type"),
+                            rs.getLong("desired_version"),rs.getLong("actual_version"),rs.getString("desired_hash"),
+                            rs.getString("actual_hash"),rs.getString("drift_state"),rs.getString("source_delivery_id"),
+                            toInstant(rs.getTimestamp("updated_at"))),instanceId,baseChangeType(changeType));
+            result.add(rows.isEmpty()?new CpfRuntimeFeatureStatus(instanceId,null,baseChangeType(changeType),0L,0L,
+                    null,null,"UNKNOWN",null,null):rows.getFirst());
         }
         return List.copyOf(result);
     }
 
-    public Map<String,Number> deliveryCounts(String changeId) {
+    Map<String,Number> deliveryCounts(String changeId) {
         List<Map<String,Object>> rows=jdbc.queryForList("SELECT delivery_state,COUNT(*) cnt FROM cpf_runtime_delivery WHERE change_id=? GROUP BY delivery_state",changeId);
         LinkedHashMap<String,Number> result=new LinkedHashMap<>(); rows.forEach(r->result.put(String.valueOf(r.get("delivery_state")),(Number)r.get("cnt"))); return result;
     }
@@ -919,7 +914,7 @@ public class CpfRuntimeControlPlaneRepository {
     }
 
 
-    public Map<String,Object> saveGroup(String groupId,String groupName,String parentGroupId,String environment,String description,
+    Map<String,Object> saveGroup(String groupId,String groupName,String parentGroupId,String environment,String description,
                                         Long expectedVersion,boolean active,String operatorId) {
         requireText(groupId,"groupId"); requireText(groupName,"groupName");
         if (groupId.equals(parentGroupId)) throw new IllegalArgumentException("Runtime Group은 자기 자신을 parent로 지정할 수 없습니다.");
@@ -932,15 +927,27 @@ public class CpfRuntimeControlPlaneRepository {
         } else {
             long current=((Number)rows.getFirst().get("row_version")).longValue();
             if(expectedVersion==null || expectedVersion.longValue()!=current) throw new CpfRuntimeVersionConflictException(expectedVersion==null?-1L:expectedVersion,current);
-            int updated=jdbc.update("UPDATE cpf_runtime_instance_group SET group_name=?,parent_group_id=?,environment_code=?,description=?,active_yn=?,row_version=row_version+1,updated_by=?,updated_at=CURRENT_TIMESTAMP WHERE group_id=? AND row_version=?",
-                    groupName,emptyToNull(parentGroupId),emptyToNull(environment),emptyToNull(description),active?"Y":"N",operatorId,groupId,current);
+            int updated = jdbc.update(
+                    "UPDATE cpf_runtime_instance_group "
+                            + "SET group_name=?, parent_group_id=?, environment_code=?, description=?, "
+                            + "active_yn=?, row_version=row_version+1, updated_by=?, "
+                            + "updated_at=CURRENT_TIMESTAMP WHERE group_id=? AND row_version=?",
+                    groupName,
+                    emptyToNull(parentGroupId),
+                    emptyToNull(environment),
+                    emptyToNull(description),
+                    active ? "Y" : "N",
+                    operatorId,
+                    groupId,
+                    current);
             if(updated!=1) throw new CpfRuntimeVersionConflictException(current,current);
         }
         return findGroup(groupId).orElseThrow();
     }
 
-    public Optional<Map<String,Object>> findGroup(String groupId) {
-        List<Map<String,Object>> rows=jdbc.queryForList("SELECT group_id,group_name,parent_group_id,environment_code,description,active_yn,row_version,created_at,updated_at FROM cpf_runtime_instance_group WHERE group_id=?",groupId);
+    Optional<Map<String,Object>> findGroup(String groupId) {
+        List<Map<String,Object>> rows=jdbc
+                .queryForList("SELECT group_id,group_name,parent_group_id,environment_code,description,active_yn,row_version,created_at,updated_at FROM cpf_runtime_instance_group WHERE group_id=?",groupId);
         if(rows.isEmpty()) return Optional.empty();
         Map<String,Object> result=new LinkedHashMap<>(rows.getFirst());
         List<String> members=jdbc.queryForList("SELECT instance_id FROM cpf_runtime_group_member WHERE group_id=? AND active_yn='Y' ORDER BY instance_id",String.class,groupId);
@@ -948,7 +955,7 @@ public class CpfRuntimeControlPlaneRepository {
         return Optional.of(result);
     }
 
-    public Map<String,Object> changeGroupMember(String groupId,String instanceId,boolean active,String operatorId) {
+    Map<String,Object> changeGroupMember(String groupId,String instanceId,boolean active,String operatorId) {
         requireText(groupId,"groupId"); requireText(instanceId,"instanceId");
         if(findGroup(groupId).isEmpty()) throw new IllegalArgumentException("Runtime Group을 찾을 수 없습니다: "+groupId);
         Integer instanceCount=jdbc.queryForObject("SELECT COUNT(*) FROM cpf_service_instance WHERE instance_id=?",Integer.class,instanceId);
@@ -990,12 +997,41 @@ public class CpfRuntimeControlPlaneRepository {
     }
 
     private void upsertServiceInstance(CpfRuntimeInstanceRegistration r) {
-        int updated=jdbc.update("UPDATE cpf_service_instance SET service_id=?,endpoint_code=?,instance_name=?,base_url=?,environment_code=?,zone_code=?,cell_code=?,instance_status='UP',active_yn='Y',last_heartbeat_at=CURRENT_TIMESTAMP,updated_at=CURRENT_TIMESTAMP " +
-                "WHERE instance_id=?",r.serviceId(),r.endpointCode(),r.instanceId(),r.baseUrl(),blank(r.environment()),blank(r.zone()),blank(r.cell()),r.instanceId());
+        int updated = jdbc.update(
+                "UPDATE cpf_service_instance "
+                        + "SET service_id=?, endpoint_code=?, instance_name=?, base_url=?, "
+                        + "environment_code=?, zone_code=?, cell_code=?, instance_status='UP', "
+                        + "active_yn='Y', last_heartbeat_at=CURRENT_TIMESTAMP, "
+                        + "updated_at=CURRENT_TIMESTAMP WHERE instance_id=?",
+                r.serviceId(),
+                r.endpointCode(),
+                r.instanceId(),
+                r.baseUrl(),
+                blank(r.environment()),
+                blank(r.zone()),
+                blank(r.cell()),
+                r.instanceId());
         if(updated==0) {
-            try { jdbc.update("INSERT INTO cpf_service_instance(instance_id,service_id,endpoint_code,instance_name,base_url,environment_code,zone_code,cell_code,instance_status,weight,priority_no,active_yn,maintenance_yn,drain_yn,last_heartbeat_at,created_by,updated_by) " +
-                            "VALUES (?,?,?,?,?,?,?,?,'UP',100,100,'Y','N','N',CURRENT_TIMESTAMP,'CPF','CPF')",r.instanceId(),r.serviceId(),r.endpointCode(),r.instanceId(),r.baseUrl(),blank(r.environment()),blank(r.zone()),blank(r.cell())); }
-            catch(DuplicateKeyException duplicate){upsertServiceInstance(r);}
+            try {
+                jdbc.update(
+                        "INSERT INTO cpf_service_instance("
+                                + "instance_id, service_id, endpoint_code, instance_name, base_url, "
+                                + "environment_code, zone_code, cell_code, instance_status, weight, "
+                                + "priority_no, active_yn, maintenance_yn, drain_yn, "
+                                + "last_heartbeat_at, created_by, updated_by) "
+                                + "VALUES (?,?,?,?,?,?,?,?,'UP',100,100,'Y','N','N',"
+                                + "CURRENT_TIMESTAMP,'CPF','CPF')",
+                        r.instanceId(),
+                        r.serviceId(),
+                        r.endpointCode(),
+                        r.instanceId(),
+                        r.baseUrl(),
+                        blank(r.environment()),
+                        blank(r.zone()),
+                        blank(r.cell()));
+            } catch (DuplicateKeyException duplicate) {
+                upsertServiceInstance(r);
+            }
         }
     }
 
@@ -1050,9 +1086,10 @@ public class CpfRuntimeControlPlaneRepository {
     private Map<String,Object> readMap(String json){try{return objectMapper.readValue(json,new TypeReference<>(){});}catch(Exception ex){throw new IllegalStateException("Runtime payload JSON 역직렬화 실패",ex);}}
     private Map<String,Object> readMapOrEmpty(String json){if(json==null||json.isBlank())return Map.of();Map<String,Object> value=readMap(json);return value==null?Map.of():value;}
     public String json(Object value){return write(value);}
-    public Map<String,Object> jsonMap(String value){return readMap(value);}
+    private Map<String,Object> jsonMap(String value){return readMap(value);}
     private Timestamp ts(Instant value){return value==null?null:Timestamp.from(value);}
-    private Instant toInstant(Object value){if(value==null)return null;if(value instanceof Timestamp t)return t.toInstant();if(value instanceof java.util.Date d)return d.toInstant();try{return Instant.parse(String.valueOf(value));}catch(Exception ignored){return null;}}
+    private Instant toInstant(Object value){if(value==null)return null;if(value instanceof Timestamp t)return t.toInstant();if(value instanceof java.util.Date d)return d.toInstant();try{return Instant
+            .parse(String.valueOf(value));}catch(Exception ignored){return null;}}
     private long number(Object value){return value==null?0L:((Number)value).longValue();}
     private String nullable(Object value){return value==null?null:String.valueOf(value);}
     private String baseChangeType(String value) {

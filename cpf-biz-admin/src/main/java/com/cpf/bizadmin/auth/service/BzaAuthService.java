@@ -1,6 +1,7 @@
 package com.cpf.bizadmin.auth.service;
 
 import com.cpf.bizadmin.common.model.BzaAdminAccountStatus;
+import com.cpf.bizadmin.auth.dto.*;
 
 import com.cpf.bizadmin.auth.repository.BzaAuthRepository;
 import com.cpf.bizadmin.audit.service.BzaBusinessAuditService;
@@ -184,30 +185,27 @@ public class BzaAuthService extends com.cpf.bizadmin.common.base.BzaBaseService 
     /**
      * 전달받은 refresh token hash를 폐기합니다.
      */
-    public Map<String, Object> logout(RefreshRequest request) {
+    public BzaLogoutResponse logout(RefreshRequest request) {
         if (request != null && CpfStrings.hasText(request.refreshToken())) {
             authRepository.revokeRefreshToken(cryptoService.sha256Base64Url(request.refreshToken()));
         }
-        return Map.of("logoutYn", "Y", "loginDomain", LOGIN_DOMAIN);
+        return new BzaLogoutResponse(true, LOGIN_DOMAIN);
     }
 
     /**
      * BZA access token을 검증하고 현재 업무 관리자 정보를 반환합니다.
      */
-    public Map<String, Object> currentOperator(String authorizationHeader) {
+    public BzaCurrentOperatorResponse currentOperator(String authorizationHeader) {
         CmnJwtValidationResult result = validateAccessToken(authorizationHeader);
         String loginId = String.valueOf(result.claims().get("loginId"));
         BzaOperatorRow operator = authRepository.findOperatorByLoginId(loginId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "업무 관리자 정보를 찾을 수 없습니다."));
         requireActiveOperator(operator);
-        Map<String, Object> response = new LinkedHashMap<>(toOperatorResponse(operator));
-        response.put("loginDomain", LOGIN_DOMAIN);
-        response.put("tokenExpiresAt", result.expiresAt());
-        return response;
+        return new BzaCurrentOperatorResponse(toOperatorResponse(operator), LOGIN_DOMAIN, result.expiresAt());
     }
 
     /** BZA API가 요구하는 메뉴·행위 권한을 access token과 현재 DB 권한 기준으로 검사합니다. */
-    public Map<String, Object> authorize(String authorizationHeader, String menuCode, String actionCode) {
+    public BzaAuthorizationResult authorize(String authorizationHeader, String menuCode, String actionCode) {
         CmnJwtValidationResult token = validateAccessToken(authorizationHeader);
         String loginId = String.valueOf(token.claims().get("loginId"));
         BzaOperatorRow operator = authRepository.findOperatorByLoginId(loginId)
@@ -220,26 +218,30 @@ public class BzaAuthService extends com.cpf.bizadmin.common.base.BzaBaseService 
         if (!allowed) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "BZA API 권한이 없습니다. permission=" + required);
         }
-        return toOperatorResponse(operator);
+        return new BzaAuthorizationResult(toOperatorResponse(operator), menuCode, actionCode);
     }
 
     /**
      * 최신 로그인 이력을 DB에서 조회합니다.
      */
-    public List<Map<String, Object>> loginHistories(String authorizationHeader, int limit) {
+    public List<BzaLoginHistoryResponse> loginHistories(String authorizationHeader, int limit) {
         authorize(authorizationHeader, "AUTHORIZATION", "READ");
-        return authRepository.findLoginHistories(Math.max(1, Math.min(limit, 500)));
+        return authRepository.findLoginHistories(Math.max(1, Math.min(limit, 500))).stream()
+                .map(this::toLoginHistoryResponse)
+                .toList();
     }
 
     /** 현재 로그인 사용자의 refresh session 메타를 원문 token 없이 조회합니다. */
-    public List<Map<String, Object>> sessions(String authorizationHeader, int limit) {
+    public List<BzaSessionResponse> sessions(String authorizationHeader, int limit) {
         BzaOperatorRow operator = currentOperatorRow(authorizationHeader);
-        return authRepository.findRefreshSessions(operator.adminUserId(), Math.max(1, Math.min(limit, 100)));
+        return authRepository.findRefreshSessions(operator.adminUserId(), Math.max(1, Math.min(limit, 100))).stream()
+                .map(this::toSessionResponse)
+                .toList();
     }
 
     /** 현재 사용자 소유의 refresh session을 사유와 함께 폐기합니다. */
     @Transactional(transactionManager = "bzaTransactionManager")
-    public Map<String, Object> revokeSession(
+    public BzaSessionRevokeResponse revokeSession(
             String authorizationHeader,
             long sessionId,
             String reason) {
@@ -250,12 +252,12 @@ public class BzaAuthService extends com.cpf.bizadmin.common.base.BzaBaseService 
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "폐기할 활성 세션을 찾을 수 없습니다.");
         }
 auditService.record(operator.loginId(), "SESSION_REVOKE", "bza_refresh_token", String.valueOf(sessionId), requiredReason, null, Map.of("revokedYn", "Y"));
-        return Map.of("sessionId", sessionId, "revokedYn", "Y");
+        return new BzaSessionRevokeResponse(sessionId, true);
     }
 
     /** 현재 비밀번호를 확인한 뒤 CPF 공통 형식으로 비밀번호를 교체합니다. */
     @Transactional(transactionManager = "bzaTransactionManager")
-    public Map<String, Object> changePassword(String authorizationHeader, PasswordChangeRequest request) {
+    public BzaPasswordChangeResponse changePassword(String authorizationHeader, PasswordChangeRequest request) {
         CmnJwtValidationResult token = validateAccessToken(authorizationHeader);
         String loginId = String.valueOf(token.claims().get("loginId"));
         BzaOperatorRow operator = authRepository.findOperatorByLoginId(loginId)
@@ -279,7 +281,7 @@ auditService.record(operator.loginId(), "SESSION_REVOKE", "bza_refresh_token", S
             throw new ResponseStatusException(HttpStatus.CONFLICT, "비밀번호가 동시에 변경되었습니다. 다시 로그인하세요.");
         }
         authRepository.revokeAllRefreshTokens(operator.adminUserId());
-        return Map.of("changed", true, "loginId", loginId, "refreshTokensRevoked", true);
+        return new BzaPasswordChangeResponse(true, loginId, true);
     }
 
     private String createAccessToken(BzaOperatorRow operator) {
@@ -400,22 +402,78 @@ auditService.record(operator.loginId(), "SESSION_REVOKE", "bza_refresh_token", S
                 CpfTransactionContext.transactionId(), moduleId, wasId, identity.serverInstanceId());
     }
 
-    private Map<String, Object> toOperatorResponse(BzaOperatorRow operator) {
-        Map<String, Object> response = new LinkedHashMap<>();
-        response.put("operatorId", operator.adminUserId());
-        response.put("loginId", operator.loginId());
-        response.put("operatorName", operator.adminName());
-        response.put("roleCode", operator.roleCode());
-        response.put("accountStatus", operator.accountStatus());
-        response.put("useYn", operator.useYn());
-        response.put("lockYn", operator.lockYn());
-        response.put("failCount", operator.loginFailCount());
-        response.put("passwordChangeRequiredYn", passwordChangeRequired(operator) ? "Y" : "N");
-        response.put("passwordExpireAt", operator.passwordExpireAt());
-        response.put("lastLoginAt", operator.lastLoginAt());
-        response.put("menus", operator.menus());
-        response.put("buttons", operator.buttons());
-        return response;
+    private BzaOperatorResponse toOperatorResponse(BzaOperatorRow operator) {
+        return new BzaOperatorResponse(
+                operator.adminUserId(), operator.loginId(), operator.adminName(), operator.roleCode(),
+                operator.accountStatus(), operator.useYn(), operator.lockYn(), operator.loginFailCount(),
+                passwordChangeRequired(operator) ? "Y" : "N", operator.passwordExpireAt(), operator.lastLoginAt(),
+                operator.menus(), operator.buttons());
+    }
+
+    private BzaLoginHistoryResponse toLoginHistoryResponse(Map<String, Object> row) {
+        return new BzaLoginHistoryResponse(
+                longValue(row, "historyId", "history_id", "LOGIN_HISTORY_ID"),
+                nullableLong(row, "operatorId", "admin_user_id", "ADMIN_USER_ID"),
+                text(row, "loginId", "admin_login_id", "ADMIN_LOGIN_ID"),
+                text(row, "successYn", "success_yn", "SUCCESS_YN"),
+                text(row, "failureReason", "failure_reason", "FAILURE_REASON"),
+                text(row, "clientIp", "client_ip", "CLIENT_IP"),
+                text(row, "userAgent", "user_agent", "USER_AGENT"),
+                text(row, "transactionId", "transaction_id", "TRANSACTION_ID"),
+                text(row, "moduleId", "module_id", "MODULE_ID"),
+                text(row, "wasId", "was_id", "WAS_ID"),
+                text(row, "serverInstanceId", "server_instance_id", "SERVER_INSTANCE_ID"),
+                instant(row, "createdAt", "created_at", "CREATED_AT"));
+    }
+
+    private BzaSessionResponse toSessionResponse(Map<String, Object> row) {
+        return new BzaSessionResponse(
+                longValue(row, "sessionId", "refresh_token_id", "REFRESH_TOKEN_ID"),
+                longValue(row, "operatorId", "admin_user_id", "ADMIN_USER_ID"),
+                text(row, "loginId", "admin_login_id", "ADMIN_LOGIN_ID"),
+                text(row, "loginDomain", "login_domain", "LOGIN_DOMAIN"),
+                text(row, "transactionId", "transaction_id", "TRANSACTION_ID"),
+                text(row, "revokedYn", "revoked_yn", "REVOKED_YN"),
+                instant(row, "expiresAt", "expire_at", "EXPIRE_AT"),
+                instant(row, "createdAt", "created_at", "CREATED_AT"),
+                instant(row, "updatedAt", "updated_at", "UPDATED_AT"));
+    }
+
+    private Object value(Map<String, Object> row, String... keys) {
+        for (String key : keys) {
+            if (row.containsKey(key)) return row.get(key);
+            for (Map.Entry<String, Object> entry : row.entrySet()) {
+                if (entry.getKey().equalsIgnoreCase(key)) return entry.getValue();
+            }
+        }
+        return null;
+    }
+
+    private String text(Map<String, Object> row, String... keys) {
+        Object value = value(row, keys);
+        return value == null ? null : String.valueOf(value);
+    }
+
+    private long longValue(Map<String, Object> row, String... keys) {
+        Long value = nullableLong(row, keys);
+        return value == null ? 0L : value;
+    }
+
+    private Long nullableLong(Map<String, Object> row, String... keys) {
+        Object value = value(row, keys);
+        if (value == null) return null;
+        if (value instanceof Number number) return number.longValue();
+        return Long.parseLong(String.valueOf(value));
+    }
+
+    private Instant instant(Map<String, Object> row, String... keys) {
+        Object value = value(row, keys);
+        if (value == null) return null;
+        if (value instanceof Instant instant) return instant;
+        if (value instanceof java.sql.Timestamp timestamp) return timestamp.toInstant();
+        if (value instanceof java.time.OffsetDateTime offsetDateTime) return offsetDateTime.toInstant();
+        if (value instanceof java.time.LocalDateTime localDateTime) return localDateTime.atZone(java.time.ZoneId.systemDefault()).toInstant();
+        return Instant.parse(String.valueOf(value));
     }
 
     public record LoginRequest(String loginId, String password, String operationId) {
@@ -436,6 +494,6 @@ auditService.record(operator.loginId(), "SESSION_REVOKE", "bza_refresh_token", S
             String tokenType,
             long expiresIn,
             Instant refreshExpiresAt,
-            Map<String, Object> operator) {
+            BzaOperatorResponse operator) {
     }
 }

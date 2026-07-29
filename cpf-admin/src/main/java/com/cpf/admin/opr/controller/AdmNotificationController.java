@@ -4,6 +4,8 @@ import com.cpf.admin.opr.dto.AdmNotificationDeliveryAttemptResponse;
 import com.cpf.admin.opr.dto.AdmNotificationDeliveryLogResponse;
 import com.cpf.admin.opr.dto.AdmNotificationRuleRequest;
 import com.cpf.admin.opr.dto.AdmNotificationRuleResponse;
+import com.cpf.admin.opr.dto.AdmNotificationDeliveryStatusResponse;
+import com.cpf.admin.opr.dto.AdmNotificationTestSendResponse;
 import com.cpf.admin.opr.dto.AdmNotificationTestSendRequest;
 import com.cpf.admin.opr.service.AdmNotificationService;
 import com.cpf.core.api.execution.CpfOnlineTransaction;
@@ -120,7 +122,7 @@ public class AdmNotificationController extends com.cpf.admin.common.base.AdmBase
             operationId = "admNotificationSendTest",
             summary = "운영 알림 테스트 발송",
             description = "Provider 중립 Sender로 테스트 발송하며 Simulator 결과는 실제 외부 수신 완료로 판정하지 않습니다.")
-    public ResponseEntity<Map<String, Object>> sendTest(
+    public ResponseEntity<AdmNotificationTestSendResponse> sendTest(
             @PathVariable long ruleId,
             @RequestBody AdmNotificationTestSendRequest request,
             HttpServletRequest servletRequest) {
@@ -132,7 +134,7 @@ public class AdmNotificationController extends com.cpf.admin.common.base.AdmBase
     @PostMapping("/delivery-logs/{deliveryId}/retry")
     @CpfOnlineTransaction(id = "OADMNT0017", name = "ADMNotificationDeliveryRetry")
     @Operation(operationId = "admNotificationRetryDelivery", summary = "운영 알림 발송 재시도")
-    public ResponseEntity<Map<String, Object>> retryDelivery(
+    public ResponseEntity<AdmNotificationDeliveryStatusResponse> retryDelivery(
             @PathVariable long deliveryId,
             @RequestParam long expectedVersion,
             @RequestParam String reason,
@@ -146,7 +148,7 @@ public class AdmNotificationController extends com.cpf.admin.common.base.AdmBase
     @PostMapping("/delivery-logs/{deliveryId}/cancel")
     @CpfOnlineTransaction(id = "OADMNT0018", name = "ADMNotificationDeliveryCancel")
     @Operation(operationId = "admNotificationCancelDelivery", summary = "운영 알림 발송 취소")
-    public ResponseEntity<Map<String, Object>> cancelDelivery(
+    public ResponseEntity<AdmNotificationDeliveryStatusResponse> cancelDelivery(
             @PathVariable long deliveryId,
             @RequestParam long expectedVersion,
             @RequestParam String reason,

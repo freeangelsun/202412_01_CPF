@@ -1,0 +1,9 @@
+cpf:
+  local:
+    runtime:
+      enabled: true
+    simulators:
+      redis: { enabled: true, provider: LOCAL }
+      broker: { enabled: true, provider: IN_MEMORY }
+      external: { enabled: true, provider: STUB }
+      file-transfer: { enabled: true, provider: LOCAL_FS }

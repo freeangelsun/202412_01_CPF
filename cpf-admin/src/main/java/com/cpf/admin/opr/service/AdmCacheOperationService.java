@@ -1,93 +1,148 @@
 package com.cpf.admin.opr.service;
 
+import com.cpf.admin.opr.dto.AdmCacheControlResponse;
+import com.cpf.admin.opr.dto.AdmCacheSummaryResponse;
+import com.cpf.common.cache.CpfCacheInvalidationCoordinator;
 import com.cpf.common.cde.service.CodeCacheService;
 import com.cpf.common.cfg.service.ConfigCacheService;
+import com.cpf.common.msg.service.CacheRefreshEventListener;
+import com.cpf.common.msg.service.CacheRefreshEventPublisher;
 import com.cpf.common.msg.service.MessageCacheService;
-import com.cpf.common.msg.service.ResponseCodeCacheService;
-import com.cpf.common.ref.service.CacheRefreshEventPublisher;
-import com.cpf.common.ref.service.CacheRefreshEventListener;
+import com.cpf.common.ref.service.ResponseCodeCacheService;
+import com.cpf.core.api.cache.CpfCacheHealth;
+import com.cpf.core.api.cache.CpfCacheInvalidationEvent;
+import com.cpf.core.api.cache.CpfCacheInvalidationPort;
+import com.cpf.core.api.cache.CpfCacheMetricsSnapshot;
+import com.cpf.core.api.cache.CpfCachePort;
+import com.cpf.core.api.cache.CpfCacheKey;
 import com.cpf.core.api.util.CpfStrings;
+import java.time.Instant;
+import java.util.List;
+import java.util.UUID;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-
-/**
- * ADM 캐시 운영 서비스입니다.
- * 운영자가 코드, 메시지, 응답코드, 설정 캐시 상태를 확인하고 refresh 요청을 수행할 수 있게 합니다.
- */
+/** Business Cache와 Provider Cache를 하나의 운영 모델로 조회·제어합니다. */
 @Service
 public class AdmCacheOperationService extends com.cpf.admin.common.base.AdmBaseService {
-    private final CodeCacheService codeCacheService;
-    private final MessageCacheService messageCacheService;
-    private final ResponseCodeCacheService responseCodeCacheService;
-    private final ConfigCacheService configCacheService;
-    private final CacheRefreshEventPublisher cacheRefreshEventPublisher;
-    private final CacheRefreshEventListener cacheRefreshEventListener;
+    private final CodeCacheService code;
+    private final MessageCacheService message;
+    private final ResponseCodeCacheService responseCode;
+    private final ConfigCacheService config;
+    private final CacheRefreshEventPublisher refreshPublisher;
+    private final CacheRefreshEventListener refreshListener;
+    private final CpfCachePort provider;
+    private final CpfCacheInvalidationPort invalidations;
+    private final CpfCacheInvalidationCoordinator coordinator;
 
     public AdmCacheOperationService(
-            CodeCacheService codeCacheService,
-            MessageCacheService messageCacheService,
-            ResponseCodeCacheService responseCodeCacheService,
-            ConfigCacheService configCacheService,
-            CacheRefreshEventPublisher cacheRefreshEventPublisher,
-            CacheRefreshEventListener cacheRefreshEventListener) {
-        this.codeCacheService = codeCacheService;
-        this.messageCacheService = messageCacheService;
-        this.responseCodeCacheService = responseCodeCacheService;
-        this.configCacheService = configCacheService;
-        this.cacheRefreshEventPublisher = cacheRefreshEventPublisher;
-        this.cacheRefreshEventListener = cacheRefreshEventListener;
+            CodeCacheService code,
+            MessageCacheService message,
+            ResponseCodeCacheService responseCode,
+            ConfigCacheService config,
+            CacheRefreshEventPublisher refreshPublisher,
+            CacheRefreshEventListener refreshListener,
+            ObjectProvider<CpfCachePort> provider,
+            ObjectProvider<CpfCacheInvalidationPort> invalidations,
+            ObjectProvider<CpfCacheInvalidationCoordinator> coordinator) {
+        this.code = code;
+        this.message = message;
+        this.responseCode = responseCode;
+        this.config = config;
+        this.refreshPublisher = refreshPublisher;
+        this.refreshListener = refreshListener;
+        this.provider = provider.getIfAvailable();
+        this.invalidations = invalidations.getIfAvailable();
+        this.coordinator = coordinator.getIfAvailable();
     }
 
-    /**
-     * 캐시 대표 샘플을 조회합니다.
-     *
-     * @return 캐시 이름과 샘플 데이터
-     */
-    public Map<String, Object> summary() {
-        Map<String, Object> response = new LinkedHashMap<>();
-        response.put("cacheNames", "codeCache, messageCache, responseCodeCache, configCache");
-        response.put("codeSample", codeCacheService.getCodesByKey("USER_STATUS"));
-        response.put("messageSample", messageCacheService.getMessageByKeyAndLocale("MCMN000001", "ko"));
-        response.put("responseCodeSample", responseCodeCacheService.getResponseCode("ECPF010004"));
-        response.put("configSample", configCacheService.getConfigByKey("cpf.LOGIN.MAX_FAIL_COUNT"));
-        response.put("cacheStatus", Map.of(
-                "code", codeCacheService.cacheStatus(),
-                "message", messageCacheService.cacheStatus(),
-                "responseCode", responseCodeCacheService.cacheStatus(),
-                "config", configCacheService.cacheStatus()));
-        response.put("refreshEventDelivery", cacheRefreshEventPublisher.status());
-        response.put("refreshEventConsumer", cacheRefreshEventListener.status());
-        return response;
+    public AdmCacheSummaryResponse summary() {
+        List<AdmCacheSummaryResponse.DomainStatus> domains = List.of(
+                domain("CODE", code.cacheStatus(), code.getCodesByKey("USER_STATUS")),
+                domain("MESSAGE", message.cacheStatus(), message.getMessageByKeyAndLocale("MCMN000001", "ko")),
+                domain("RESPONSE_CODE", responseCode.cacheStatus(), responseCode.getResponseCode("ECPF010004")),
+                domain("CONFIG", config.cacheStatus(), config.getConfigByKey("cpf.LOGIN.MAX_FAIL_COUNT")),
+                domain("DURABLE_REFRESH", refreshPublisher.status(), refreshListener.status()));
+        CpfCacheHealth health = provider == null
+                ? new CpfCacheHealth(false, "NONE", "NONE", false, invalidations != null, 0,
+                        List.of("CACHE_PROVIDER_NOT_CONFIGURED"), Instant.now())
+                : provider.health();
+        CpfCacheMetricsSnapshot metrics = provider == null
+                ? new CpfCacheMetricsSnapshot("NONE", 0, 0, 0, 0, 0, 0, backlog(), Instant.now())
+                : provider.metrics();
+        String messageText = health.ready() && coordinator != null
+                ? "정상"
+                : "Cache Provider와 Durable Coordinator 상태를 확인하세요.";
+        return new AdmCacheSummaryResponse(true, health, metrics, backlog(), domains, messageText);
     }
 
-    /**
-     * 지정된 캐시를 갱신합니다.
-     *
-     * @param target ALL, CODE, MESSAGE, RESPONSE_CODE, CONFIG 중 하나
-     * @return refresh 결과
-     */
-    public Map<String, Object> refresh(String target) {
-        String normalizedTarget = CpfStrings.normalizeCode(target);
-        if (!CpfStrings.hasText(normalizedTarget)) {
-            normalizedTarget = "ALL";
-        }
+    public AdmCacheControlResponse refresh(String target, String operator, String reason) {
+        String normalized = CpfStrings.normalizeCode(target);
+        if (!CpfStrings.hasText(normalized)) normalized = "ALL";
+        long affected = 0;
+        if ("ALL".equals(normalized) || "CODE".equals(normalized)) { code.refreshCodesAndPublish(); affected++; }
+        if ("ALL".equals(normalized) || "MESSAGE".equals(normalized)) { message.refreshMessagesAndPublish(); affected++; }
+        if ("ALL".equals(normalized) || "RESPONSE_CODE".equals(normalized)) { responseCode.refreshResponseCodesAndPublish(); affected++; }
+        if ("ALL".equals(normalized) || "CONFIG".equals(normalized)) { config.refreshConfigsAndPublish(); affected++; }
+        return result("REFRESH", normalized, affected, null, "업무 Cache의 Durable Refresh Event를 발행했습니다.");
+    }
 
-        Map<String, Object> response = new LinkedHashMap<>();
-        if ("ALL".equals(normalizedTarget) || "CODE".equals(normalizedTarget)) {
-            response.put("codes", codeCacheService.refreshCodesAndPublish());
+    public AdmCacheControlResponse evictKey(
+            String tenant, String namespace, String key, long version, String operator, String reason) {
+        CpfCacheInvalidationCoordinator active = requireCoordinator();
+        CpfCacheKey cacheKey = new CpfCacheKey(namespace, key, tenant);
+        CpfCacheInvalidationEvent event = active.request(
+                UUID.randomUUID().toString(), cacheKey, Math.max(0, version), reason, operator);
+        return result("EVICT_KEY", cacheKey.canonical(), 1, event,
+                "Durable 원장 기록과 현재 Instance 무효화를 완료했습니다.");
+    }
+
+    public AdmCacheControlResponse evictNamespace(
+            String tenant, String namespace, long version, String operator, String reason) {
+        CpfCacheInvalidationCoordinator active = requireCoordinator();
+        CpfCacheInvalidationEvent event = active.requestNamespace(
+                UUID.randomUUID().toString(), tenant, namespace, Math.max(0, version), reason, operator);
+        return result("EVICT_NAMESPACE", event.tenantId() + ":" + event.namespace(), 1, event,
+                "Namespace 무효화를 Durable 원장에 기록하고 현재 Instance에 적용했습니다.");
+    }
+
+    public AdmCacheControlResponse reconcile(String operator, String reason) {
+        CpfCacheInvalidationCoordinator active = requireCoordinator();
+        long before = backlog();
+        int applied = active.reconcileNow();
+        long after = backlog();
+        return new AdmCacheControlResponse(
+                "RECONCILE", active.consumerId(), true, applied, null, after, Instant.now(),
+                before == 0 ? "재조정 대상이 없습니다." : "Durable Event 재조정을 수행했습니다.");
+    }
+
+    private long backlog() {
+        return invalidations == null || coordinator == null
+                ? 0
+                : invalidations.backlog(coordinator.consumerId());
+    }
+
+    private AdmCacheControlResponse result(
+            String operation, String target, long affected, CpfCacheInvalidationEvent event, String messageText) {
+        return new AdmCacheControlResponse(
+                operation, target, true, affected, event, backlog(), Instant.now(), messageText);
+    }
+
+    private CpfCacheInvalidationCoordinator requireCoordinator() {
+        if (provider == null) throw new IllegalStateException("CPF Cache Provider가 구성되지 않았습니다.");
+        if (invalidations == null || coordinator == null) {
+            throw new IllegalStateException("CPF Durable Cache Invalidation Coordinator가 구성되지 않았습니다.");
         }
-        if ("ALL".equals(normalizedTarget) || "MESSAGE".equals(normalizedTarget)) {
-            response.put("messages", messageCacheService.refreshMessagesAndPublish());
-        }
-        if ("ALL".equals(normalizedTarget) || "RESPONSE_CODE".equals(normalizedTarget)) {
-            response.put("responseCodes", responseCodeCacheService.refreshResponseCodesAndPublish());
-        }
-        if ("ALL".equals(normalizedTarget) || "CONFIG".equals(normalizedTarget)) {
-            response.put("configs", configCacheService.refreshConfigsAndPublish());
-        }
-        response.put("target", normalizedTarget);
-        return response;
+        return coordinator;
+    }
+
+    private AdmCacheSummaryResponse.DomainStatus domain(String name, Object status, Object sample) {
+        return new AdmCacheSummaryResponse.DomainStatus(name, String.valueOf(status), safe(sample));
+    }
+
+    private String safe(Object value) {
+        String text = String.valueOf(value)
+                .replaceAll("(?i)(password|token|secret)[=:][^, }]+", "$1=[REDACTED]");
+        return text.substring(0, Math.min(text.length(), 300));
     }
 }

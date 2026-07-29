@@ -1,5 +1,6 @@
 package com.cpf.admin.opr.controller;
 
+import com.cpf.admin.opr.dto.AdmApiErrorResponse;
 import com.cpf.admin.opr.service.AdmAuditLogService;
 import com.cpf.core.api.logging.CpfTransactionContext;
 import com.cpf.core.api.execution.CpfOnlineTransaction;
@@ -40,7 +41,8 @@ public class AdmRuntimeControlController extends com.cpf.admin.common.base.AdmBa
     public ResponseEntity<CpfRuntimeChangeResult> create(@RequestBody CpfRuntimeChangeCommand command,HttpServletRequest request){
         String operator=operator(request);requireCommandOwner(command,operator);requireRiskApproval(command);
         CpfRuntimeChangeResult result=controlPlane.createChange(command);
-        audit(request,operator,"RUNTIME_CHANGE_CREATE",result.changeId(),command.reason(),Map.of("changeType",command.changeType(),"capability",CpfRuntimeCapabilityCatalog.describe(command.changeType()),"state",result.state(),"requestHash",result.requestHash()));
+        audit(request,operator,"RUNTIME_CHANGE_CREATE",result.changeId(),command.reason(),Map.of("changeType",command.changeType(),"capability",CpfRuntimeCapabilityCatalog.describe(command
+                .changeType()),"state",result.state(),"requestHash",result.requestHash()));
         return ResponseEntity.ok(result);
     }
 
@@ -54,7 +56,8 @@ public class AdmRuntimeControlController extends com.cpf.admin.common.base.AdmBa
 
     @GetMapping("/adm/api/runtime-control/status")
     @CpfOnlineTransaction(id="OADMRC0040",name="ADMRuntimeStatus")
-    public ResponseEntity<Map<String,Object>> status(@RequestParam(required=false)String environment,@RequestParam(required=false)String serviceId,HttpServletRequest request){operator(request);return ResponseEntity.ok(controlPlane.status(environment,serviceId));}
+    public ResponseEntity<CpfRuntimeStatus> status(@RequestParam(required=false)String environment,@RequestParam(required=false)String serviceId,HttpServletRequest request){operator(request);return
+            ResponseEntity.ok(controlPlane.status(environment,serviceId));}
 
     @GetMapping("/adm/api/runtime-control/health")
     @CpfOnlineTransaction(id="OADMRC0050",name="ADMRuntimeHealth")
@@ -62,13 +65,11 @@ public class AdmRuntimeControlController extends com.cpf.admin.common.base.AdmBa
 
     @GetMapping("/adm/api/runtime-control/states")
     @CpfOnlineTransaction(id="OADMRC0060",name="ADMRuntimeStateCatalog")
-    public ResponseEntity<Map<String,Object>> states(HttpServletRequest request){
+    public ResponseEntity<CpfRuntimeStateCatalogResponse> states(HttpServletRequest request){
         operator(request);
-        return ResponseEntity.ok(Map.of(
-                "ack",CpfRuntimeStateCatalog.ackStates(),
-                "delivery",CpfRuntimeStateCatalog.deliveryStates(),
-                "change",CpfRuntimeStateCatalog.changeStates(),
-                "drift",CpfRuntimeStateCatalog.driftStates()));
+        return ResponseEntity.ok(new CpfRuntimeStateCatalogResponse(
+                CpfRuntimeStateCatalog.changeStates(),CpfRuntimeStateCatalog.deliveryStates(),
+                CpfRuntimeStateCatalog.ackStates(),CpfRuntimeStateCatalog.driftStates()));
     }
 
     @GetMapping("/adm/api/runtime-control/capabilities")
@@ -81,13 +82,13 @@ public class AdmRuntimeControlController extends com.cpf.admin.common.base.AdmBa
 
     @PostMapping("/adm/api/runtime-control/preview-targets")
     @CpfOnlineTransaction(id="OADMRC0070",name="ADMRuntimeTargetPreview")
-    public ResponseEntity<Map<String,Object>> previewTargets(@RequestBody PreviewTargetRequest body,HttpServletRequest request){
+    public ResponseEntity<CpfRuntimeTargetPreview> previewTargets(@RequestBody PreviewTargetRequest body,HttpServletRequest request){
         operator(request);return ResponseEntity.ok(controlPlane.previewTargets(body.changeType(),body.payloadSchemaVersion(),body.target()));
     }
 
     @PostMapping("/adm/api/runtime-control/preview-change")
     @CpfOnlineTransaction(id="OADMRC0080",name="ADMRuntimeChangePreview")
-    public ResponseEntity<Map<String,Object>> previewChange(@RequestBody CpfRuntimeChangeCommand command,HttpServletRequest request){
+    public ResponseEntity<CpfRuntimeChangePreview> previewChange(@RequestBody CpfRuntimeChangeCommand command,HttpServletRequest request){
         String operator=operator(request);requireCommandOwner(command,operator);return ResponseEntity.ok(controlPlane.previewChange(command));
     }
 
@@ -114,7 +115,9 @@ public class AdmRuntimeControlController extends com.cpf.admin.common.base.AdmBa
 
     @PostMapping("/adm/api/runtime-control/groups")
     @CpfOnlineTransaction(id="OADMRC0120",name="ADMRuntimeGroupSave")
-    public ResponseEntity<CpfRuntimeGroupResult> saveGroup(@RequestBody CpfRuntimeGroupCommand command,HttpServletRequest request){String operator=operator(request);if(command.requestedBy()==null||!operator.equals(command.requestedBy()))throw new ResponseStatusException(HttpStatus.FORBIDDEN,"requestedBy mismatch");CpfRuntimeGroupResult result=controlPlane.saveGroup(command);audit(request,operator,"RUNTIME_GROUP_SAVE",result.groupId(),command.reason(),result);return ResponseEntity.ok(result);}
+    public ResponseEntity<CpfRuntimeGroupResult> saveGroup(@RequestBody CpfRuntimeGroupCommand command,HttpServletRequest request){String operator=operator(request);if(command.requestedBy()==null||
+            !operator.equals(command.requestedBy()))throw new ResponseStatusException(HttpStatus.FORBIDDEN,"requestedBy mismatch");CpfRuntimeGroupResult result=controlPlane.saveGroup(command);
+            audit(request,operator,"RUNTIME_GROUP_SAVE",result.groupId(),command.reason(),result);return ResponseEntity.ok(result);}
 
     @GetMapping("/adm/api/runtime-control/groups/{groupId}")
     @CpfOnlineTransaction(id="OADMRC0130",name="ADMRuntimeGroupDetail")
@@ -122,14 +125,20 @@ public class AdmRuntimeControlController extends com.cpf.admin.common.base.AdmBa
 
     @PostMapping("/adm/api/runtime-control/groups/{groupId}/members")
     @CpfOnlineTransaction(id="OADMRC0140",name="ADMRuntimeGroupMember")
-    public ResponseEntity<CpfRuntimeGroupResult> groupMember(@PathVariable String groupId,@RequestBody CpfRuntimeGroupMemberCommand command,HttpServletRequest request){String operator=operator(request);if(!groupId.equals(command.groupId()))throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"groupId mismatch");if(command.requestedBy()==null||!operator.equals(command.requestedBy()))throw new ResponseStatusException(HttpStatus.FORBIDDEN,"requestedBy mismatch");CpfRuntimeGroupResult result=controlPlane.changeGroupMember(command);audit(request,operator,"RUNTIME_GROUP_MEMBER",groupId,command.reason(),result);return ResponseEntity.ok(result);}
+    public ResponseEntity<CpfRuntimeGroupResult> groupMember(@PathVariable String groupId,@RequestBody CpfRuntimeGroupMemberCommand command,HttpServletRequest request){String
+            operator=operator(request);if(!groupId.equals(command.groupId()))throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"groupId mismatch");if(command.requestedBy()==null||!operator
+            .equals(command.requestedBy()))throw new ResponseStatusException(HttpStatus.FORBIDDEN,"requestedBy mismatch");CpfRuntimeGroupResult result=controlPlane.changeGroupMember(command);
+            audit(request,operator,"RUNTIME_GROUP_MEMBER",groupId,command.reason(),result);return ResponseEntity.ok(result);}
 
     @DeleteMapping("/adm/api/runtime-control/groups/{groupId}")
     @CpfOnlineTransaction(id="OADMRC0150",name="ADMRuntimeGroupDelete")
-    public ResponseEntity<Void> deleteGroup(@PathVariable String groupId,@RequestParam String operationId,@RequestParam long expectedVersion,@RequestParam String reason,HttpServletRequest request){String operator=operator(request);controlPlane.deleteGroup(groupId,operationId,expectedVersion,reason,operator);audit(request,operator,"RUNTIME_GROUP_DELETE",groupId,reason,Map.of("deleted",true));return ResponseEntity.noContent().build();}
+    public ResponseEntity<Void> deleteGroup(@PathVariable String groupId,@RequestParam String operationId,@RequestParam long expectedVersion,@RequestParam String reason,HttpServletRequest request){
+            String operator=operator(request);controlPlane.deleteGroup(groupId,operationId,expectedVersion,reason,operator);audit(request,operator,"RUNTIME_GROUP_DELETE",groupId,reason,Map
+            .of("deleted",true));return ResponseEntity.noContent().build();}
 
     @PostMapping("/cpf/runtime-control/agent/register") @Operation(summary="Runtime Agent 자기등록")
-    public ResponseEntity<CpfRuntimeInstanceLease> register(@RequestHeader(TOKEN_HEADER)String token,@RequestBody CpfRuntimeInstanceRegistration registration){agent(token);return ResponseEntity.ok(controlPlane.register(registration));}
+    public ResponseEntity<CpfRuntimeInstanceLease> register(@RequestHeader(TOKEN_HEADER)String token,@RequestBody CpfRuntimeInstanceRegistration registration){agent(token);return ResponseEntity
+            .ok(controlPlane.register(registration));}
 
     @PostMapping("/cpf/runtime-control/agent/heartbeat") @Operation(summary="Runtime Agent lease heartbeat")
     public ResponseEntity<CpfRuntimeInstanceLease> heartbeat(@RequestHeader(TOKEN_HEADER)String token,@RequestBody HeartbeatRequest body){
@@ -149,40 +158,40 @@ public class AdmRuntimeControlController extends com.cpf.admin.common.base.AdmBa
     }
 
     @PostMapping("/cpf/runtime-control/agent/claim") @Operation(summary="Runtime Agent durable delivery claim")
-    public ResponseEntity<List<CpfRuntimeDelivery>> claim(@RequestHeader(TOKEN_HEADER)String token,@RequestBody ClaimRequest body){agent(token);return ResponseEntity.ok(controlPlane.claim(body.instanceId(),body.fencingToken(),body.limit()));}
+    public ResponseEntity<List<CpfRuntimeDelivery>> claim(@RequestHeader(TOKEN_HEADER)String token,@RequestBody ClaimRequest body){agent(token);return ResponseEntity.ok(controlPlane.claim(body
+            .instanceId(),body.fencingToken(),body.limit()));}
 
     @PostMapping("/cpf/runtime-control/agent/ack") @Operation(summary="Runtime Agent ACK")
     public ResponseEntity<CpfRuntimeChangeResult> ack(@RequestHeader(TOKEN_HEADER)String token,@RequestBody CpfRuntimeAck ack){agent(token);return ResponseEntity.ok(controlPlane.acknowledge(ack));}
 
     @ExceptionHandler(CpfRuntimeRateLimitException.class)
-    public ResponseEntity<Map<String,Object>> rateLimit(CpfRuntimeRateLimitException ex){
+    public ResponseEntity<AdmApiErrorResponse> rateLimit(CpfRuntimeRateLimitException ex){
         return error(HttpStatus.TOO_MANY_REQUESTS,"CPF_RUNTIME_RATE_LIMIT",ex.getMessage());
     }
 
     @ExceptionHandler({CpfRuntimeVersionConflictException.class,CpfRuntimeFenceException.class})
-    public ResponseEntity<Map<String,Object>> conflict(RuntimeException ex){
+    public ResponseEntity<AdmApiErrorResponse> conflict(RuntimeException ex){
         return error(HttpStatus.CONFLICT,"CPF_RUNTIME_CONFLICT",ex.getMessage());
     }
 
     @ExceptionHandler(DataAccessException.class)
-    public ResponseEntity<Map<String,Object>> unavailable(DataAccessException ex){
+    public ResponseEntity<AdmApiErrorResponse> unavailable(DataAccessException ex){
         return error(HttpStatus.SERVICE_UNAVAILABLE,"CPF_RUNTIME_CONTROL_STORE_UNAVAILABLE",
                 "Runtime Control Store를 사용할 수 없습니다.");
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Map<String,Object>> badRequest(IllegalArgumentException ex){
+    public ResponseEntity<AdmApiErrorResponse> badRequest(IllegalArgumentException ex){
         return error(HttpStatus.BAD_REQUEST,"CPF_RUNTIME_BAD_REQUEST",ex.getMessage());
     }
 
-    private ResponseEntity<Map<String,Object>> error(HttpStatus status,String code,String message){
-        return ResponseEntity.status(status).body(Map.of(
-                "code",code,
-                "message",message==null?"Runtime Control 요청 처리 실패":message,
-                "timestamp",Instant.now().toString()));
+    private ResponseEntity<AdmApiErrorResponse> error(HttpStatus status,String code,String message){
+        return ResponseEntity.status(status).body(new AdmApiErrorResponse(
+                code,message==null?"Runtime Control 요청 처리 실패":message,Instant.now()));
     }
 
-    private void requireCommandOwner(CpfRuntimeChangeCommand c,String operator){if(c.requestedBy()==null||!operator.equals(c.requestedBy()))throw new ResponseStatusException(HttpStatus.FORBIDDEN,"requestedBy는 인증된 ADM 운영자와 일치해야 합니다.");}
+    private void requireCommandOwner(CpfRuntimeChangeCommand c,String operator){if(c.requestedBy()==null||!operator.equals(c.requestedBy()))throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+            "requestedBy는 인증된 ADM 운영자와 일치해야 합니다.");}
     private void requireRiskApproval(CpfRuntimeChangeCommand c){
         if(blank(c.reason()))throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Runtime 변경 사유는 필수입니다.");
         if(blank(c.operationId()))throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"operationId는 필수입니다.");
@@ -194,7 +203,8 @@ public class AdmRuntimeControlController extends com.cpf.admin.common.base.AdmBa
         }
     }
     private boolean blank(String v){return v==null||v.isBlank();}
-    private String operator(HttpServletRequest request){Object value=request.getAttribute("adm.operatorId");if(value instanceof String s&&!s.isBlank())return s;throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,"검증된 ADM operator session이 필요합니다.");}
+    private String operator(HttpServletRequest request){Object value=request.getAttribute("adm.operatorId");if(value instanceof String s&&!s.isBlank())return s;throw new
+            ResponseStatusException(HttpStatus.UNAUTHORIZED,"검증된 ADM operator session이 필요합니다.");}
     private void agent(String provided){
         if(agentToken.isBlank())throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,"Runtime Agent credential이 구성되지 않았습니다.");
         byte[] a=agentToken.getBytes(StandardCharsets.UTF_8),b=(provided==null?"":provided).getBytes(StandardCharsets.UTF_8);

@@ -1,6 +1,7 @@
 package com.cpf.admin.opr.service;
 
 import com.cpf.admin.opr.dto.AdmNotificationRuleResponse;
+import com.cpf.admin.opr.dto.AdmNotificationDeliveryStatusResponse;
 import com.cpf.admin.opr.dto.AdmNotificationTestSendRequest;
 import com.cpf.admin.opr.exception.AdmNotificationVersionConflictException;
 import com.cpf.admin.opr.dto.NotificationSendResult;
@@ -131,8 +132,8 @@ public class AdmNotificationOutboxService {
      * @param deliveryId 발송 ID
      * @return operation·retry·lease·version을 포함한 현재 상태 Snapshot
      */
-    public Map<String, Object> findStatus(long deliveryId) {
-        return statusMap(deliveryId);
+    public AdmNotificationDeliveryStatusResponse findStatus(long deliveryId) {
+        return status(deliveryId);
     }
 
     /** due 항목을 claim하고 Provider 호출·결과 확정을 수행합니다. */
@@ -165,7 +166,7 @@ public class AdmNotificationOutboxService {
             } catch (RuntimeException providerFailure) {
                 sendResult = new NotificationSendResult(
                         false,
-                        "PROVIDER_EXCEPTION",
+                        "UNKNOWN_RESULT_PROVIDER_EXCEPTION",
                         safeMessage(providerFailure),
                         null);
             }
@@ -184,7 +185,7 @@ public class AdmNotificationOutboxService {
      * @param operatorId 인증된 ADM 운영자
      * @return 변경 후 최신 운영 상태
      */
-    public Map<String, Object> retry(long deliveryId, long expectedVersion, String operatorId) {
+    public AdmNotificationDeliveryStatusResponse retry(long deliveryId, long expectedVersion, String operatorId) {
         if (expectedVersion < 0) {
             throw new CpfValidationException("expectedVersion은 0 이상이어야 합니다.");
         }
@@ -209,7 +210,7 @@ public class AdmNotificationOutboxService {
         if (updated != 1) {
             throwVersionConflict(deliveryId, expectedVersion, "재시도");
         }
-        return statusMap(deliveryId);
+        return status(deliveryId);
     }
 
     /**
@@ -220,7 +221,7 @@ public class AdmNotificationOutboxService {
      * @param operatorId 인증된 ADM 운영자
      * @return 변경 후 최신 운영 상태
      */
-    public Map<String, Object> cancel(long deliveryId, long expectedVersion, String operatorId) {
+    public AdmNotificationDeliveryStatusResponse cancel(long deliveryId, long expectedVersion, String operatorId) {
         if (expectedVersion < 0) {
             throw new CpfValidationException("expectedVersion은 0 이상이어야 합니다.");
         }
@@ -243,7 +244,7 @@ public class AdmNotificationOutboxService {
         if (updated != 1) {
             throwVersionConflict(deliveryId, expectedVersion, "취소");
         }
-        return statusMap(deliveryId);
+        return status(deliveryId);
     }
 
 
@@ -465,30 +466,20 @@ public class AdmNotificationOutboxService {
         }
     }
 
-    private Map<String, Object> statusMap(long deliveryId) {
+    private AdmNotificationDeliveryStatusResponse status(long deliveryId) {
         return jdbcTemplate.queryForObject("""
                 SELECT delivery_id, operation_id, request_hash, delivery_status,
                        attempt_count, max_attempts, next_attempt_at, lease_owner,
                        lease_until, version, last_error_code, updated_by, updated_at
                 FROM cpf_notification_delivery_log
                 WHERE delivery_id = ?
-                """, (rs, rowNum) -> {
-            Map<String, Object> response = new LinkedHashMap<>();
-            response.put("deliveryId", rs.getLong("delivery_id"));
-            response.put("operationId", rs.getString("operation_id"));
-            response.put("requestHash", rs.getString("request_hash"));
-            response.put("deliveryStatus", rs.getString("delivery_status"));
-            response.put("attemptCount", rs.getInt("attempt_count"));
-            response.put("maxAttempts", rs.getInt("max_attempts"));
-            response.put("nextAttemptAt", toLocalDateTime(rs.getTimestamp("next_attempt_at")));
-            response.put("leaseOwner", rs.getString("lease_owner"));
-            response.put("leaseUntil", toLocalDateTime(rs.getTimestamp("lease_until")));
-            response.put("version", rs.getLong("version"));
-            response.put("lastErrorCode", rs.getString("last_error_code"));
-            response.put("updatedBy", rs.getString("updated_by"));
-            response.put("updatedAt", toLocalDateTime(rs.getTimestamp("updated_at")));
-            return response;
-        }, deliveryId);
+                """, (rs, rowNum) -> new AdmNotificationDeliveryStatusResponse(
+                rs.getLong("delivery_id"),rs.getString("operation_id"),rs.getString("request_hash"),
+                rs.getString("delivery_status"),rs.getInt("attempt_count"),rs.getInt("max_attempts"),
+                toLocalDateTime(rs.getTimestamp("next_attempt_at")),rs.getString("lease_owner"),
+                toLocalDateTime(rs.getTimestamp("lease_until")),rs.getLong("version"),
+                rs.getString("last_error_code"),rs.getString("updated_by"),
+                toLocalDateTime(rs.getTimestamp("updated_at"))), deliveryId);
     }
 
     private void throwVersionConflict(long deliveryId, long expectedVersion, String action) {

@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS "@CPF_SCHEMA_NAME@".@CPF_TABLE_PREFIX@_sample_item (
     item_name VARCHAR(200) NOT NULL,
     status_code VARCHAR(30) NOT NULL DEFAULT 'ACTIVE',
     version_no BIGINT NOT NULL DEFAULT 0,
-    idempotency_key VARCHAR(100) NOT NULL UNIQUE,
+    idempotency_key VARCHAR(180) NOT NULL,
     transaction_id CHAR(34) NOT NULL,
     transaction_sequence BIGINT NOT NULL DEFAULT 1,
     transaction_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -18,7 +18,26 @@ CREATE TABLE IF NOT EXISTS "@CPF_SCHEMA_NAME@".@CPF_TABLE_PREFIX@_sample_item (
     CONSTRAINT ck_@CPF_TABLE_PREFIX@_sample_item_status CHECK (status_code IN ('ACTIVE','INACTIVE')),
     CONSTRAINT ck_@CPF_TABLE_PREFIX@_sample_item_deleted CHECK (deleted_yn IN ('Y','N'))
 );
+CREATE INDEX IF NOT EXISTS ix_@CPF_TABLE_PREFIX@_sample_item_idem
+    ON "@CPF_SCHEMA_NAME@".@CPF_TABLE_PREFIX@_sample_item(idempotency_key);
 CREATE INDEX IF NOT EXISTS ix_@CPF_TABLE_PREFIX@_sample_item_status
     ON "@CPF_SCHEMA_NAME@".@CPF_TABLE_PREFIX@_sample_item(status_code, deleted_yn, sample_item_id);
 CREATE INDEX IF NOT EXISTS ix_@CPF_TABLE_PREFIX@_sample_item_tx
     ON "@CPF_SCHEMA_NAME@".@CPF_TABLE_PREFIX@_sample_item(transaction_id, transaction_sequence);
+
+CREATE TABLE IF NOT EXISTS "@CPF_SCHEMA_NAME@".@CPF_TABLE_PREFIX@_sample_item_idem (
+    idempotency_key VARCHAR(180) PRIMARY KEY,
+    operation_code VARCHAR(20) NOT NULL,
+    request_hash CHAR(64) NOT NULL,
+    sample_item_id BIGINT NOT NULL REFERENCES "@CPF_SCHEMA_NAME@".@CPF_TABLE_PREFIX@_sample_item(sample_item_id),
+    result_version BIGINT NOT NULL,
+    deleted_yn CHAR(1) NOT NULL DEFAULT 'N',
+    transaction_id CHAR(34) NOT NULL,
+    created_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT ck_@CPF_TABLE_PREFIX@_sample_idem_op CHECK (operation_code IN ('CREATE','UPDATE','DELETE')),
+    CONSTRAINT ck_@CPF_TABLE_PREFIX@_sample_idem_deleted CHECK (deleted_yn IN ('Y','N'))
+);
+CREATE INDEX IF NOT EXISTS ix_@CPF_TABLE_PREFIX@_sample_idem_item
+    ON "@CPF_SCHEMA_NAME@".@CPF_TABLE_PREFIX@_sample_item_idem(sample_item_id, created_at);
+CREATE INDEX IF NOT EXISTS ix_@CPF_TABLE_PREFIX@_sample_idem_tx
+    ON "@CPF_SCHEMA_NAME@".@CPF_TABLE_PREFIX@_sample_item_idem(transaction_id, created_at);

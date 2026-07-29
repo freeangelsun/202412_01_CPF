@@ -16,5 +16,10 @@ public record AdmLoginResponse(
         String tokenType,
         long expiresInSeconds,
         AdmOperator operator,
-        List<AdmMenu> menus) {
+        List<AdmMenu> menus,
+        List<String> buttonIds) {
+    public AdmLoginResponse {
+        menus = menus == null ? List.of() : List.copyOf(menus);
+        buttonIds = buttonIds == null ? List.of() : List.copyOf(buttonIds);
+    }
 }

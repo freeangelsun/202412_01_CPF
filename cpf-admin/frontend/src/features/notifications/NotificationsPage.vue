@@ -4,9 +4,9 @@
       <h2>알림 관리</h2>
       <div class="actions">
         <button type="button" @click="loadNotifications">조회</button>
-        <button type="button" v-if="canWrite('NOTIFICATION')" @click="saveNotificationRule">규칙 저장</button>
-        <button type="button" v-if="canWrite('NOTIFICATION')" @click="disableNotificationRule">규칙 비활성화</button>
-        <button type="button" v-if="canWrite('NOTIFICATION')" @click="sendNotificationTest">테스트 발송</button>
+        <button type="button" v-if="canButton('NOTIFICATION_WRITE','NOTIFICATION')" @click="saveNotificationRule">규칙 저장</button>
+        <button type="button" v-if="canButton('NOTIFICATION_DISABLE','NOTIFICATION')" @click="disableNotificationRule">규칙 비활성화</button>
+        <button type="button" v-if="canButton('NOTIFICATION_TEST_SEND','NOTIFICATION')" @click="sendNotificationTest">테스트 발송</button>
         <button type="button" @click="downloadCsv('NOTIFICATION_DELIVERY_LOGS')">발송 이력 CSV</button>
       </div>
     </div>
@@ -54,14 +54,14 @@
       <div class="actions">
         <button
           type="button"
-          v-if="canWrite('NOTIFICATION')"
+          v-if="canButton('NOTIFICATION_RETRY','NOTIFICATION')"
           :disabled="!notificationDeliveryActionAllowed('retry')"
           @click="retryNotificationDelivery">
           재시도
         </button>
         <button
           type="button"
-          v-if="canWrite('NOTIFICATION')"
+          v-if="canButton('NOTIFICATION_CANCEL','NOTIFICATION')"
           :disabled="!notificationDeliveryActionAllowed('cancel')"
           @click="cancelNotificationDelivery">
           취소

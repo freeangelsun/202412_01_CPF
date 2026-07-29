@@ -6,6 +6,7 @@ import com.cpf.admin.opr.dto.AdmLoginResponse;
 import com.cpf.admin.opr.dto.AdmMenu;
 import com.cpf.admin.opr.dto.AdmOperator;
 import com.cpf.admin.opr.dto.AdmSession;
+import com.cpf.admin.opr.dto.AdmSessionSummaryResponse;
 import com.cpf.common.sec.crypto.CmnCryptoService;
 import com.cpf.core.api.error.CpfBusinessException;
 import com.cpf.core.api.error.CpfErrorCode;
@@ -20,7 +21,6 @@ import org.springframework.stereotype.Service;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Base64;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -75,7 +75,7 @@ public class AdmSessionService extends com.cpf.admin.common.base.AdmBaseService 
      *
      * @throws CpfBusinessException DATABASE 모드에서 세션 저장에 실패한 경우. 이 경우 token은 응답되지 않습니다.
      */
-    public AdmLoginResponse issue(AdmOperator operator, List<AdmMenu> menus) {
+    public AdmLoginResponse issue(AdmOperator operator, List<AdmMenu> menus, List<String> buttonIds) {
         String token = newToken();
         LocalDateTime issuedAt = LocalDateTime.now();
         LocalDateTime expiresAt = issuedAt.plusSeconds(properties.getSessionTtlSeconds());
@@ -92,7 +92,7 @@ public class AdmSessionService extends com.cpf.admin.common.base.AdmBaseService 
         } else {
             persistSession(session);
         }
-        return new AdmLoginResponse(token, "Bearer", properties.getSessionTtlSeconds(), operator, menus);
+        return new AdmLoginResponse(token, "Bearer", properties.getSessionTtlSeconds(), operator, menus, buttonIds);
     }
 
     /**
@@ -169,42 +169,36 @@ public class AdmSessionService extends com.cpf.admin.common.base.AdmBaseService 
     }
 
     /** 운영자가 확인할 수 있는 세션 목록입니다. DB 장애는 빈 목록으로 위장하지 않습니다. */
-    public List<Map<String, Object>> findSessions(String operatorId) {
+    public List<AdmSessionSummaryResponse> findSessions(String operatorId) {
         if (persistencePolicy.memoryEnabled()) {
             return memorySessions.values().stream()
                     .filter(session -> operatorId == null || operatorId.isBlank() || session.operatorId().equals(operatorId))
                     .limit(SESSION_LIST_LIMIT)
-                    .map(session -> {
-                        Map<String, Object> row = new LinkedHashMap<>();
-                        row.put("SESSION_ID", "IN_MEMORY");
-                        row.put("OPERATOR_ID", session.operatorId());
-                        row.put("ROLE_IDS", String.join(",", session.roleIds()));
-                        row.put("ISSUED_AT", session.issuedAt());
-                        row.put("EXPIRE_AT", session.expiresAt());
-                        row.put("REVOKED_YN", "N");
-                        return row;
-                    })
+                    .map(session -> new AdmSessionSummaryResponse(
+                            "IN_MEMORY", session.operatorId(), session.roleIds(), session.issuedAt(), session.expiresAt(),
+                            false, null, null, session.issuedAt(), session.issuedAt()))
                     .toList();
         }
         try {
-            List<Map<String, Object>> rows;
-            if (operatorId != null && !operatorId.isBlank()) {
-                rows = admJdbcTemplate.queryForList("""
-                        SELECT SESSION_ID, OPERATOR_ID, ROLE_IDS, ISSUED_AT, EXPIRE_AT,
-                               REVOKED_YN, CLIENT_IP, USER_AGENT, CREATED_AT, UPDATED_AT
-                          FROM adm_operator_session
-                         WHERE OPERATOR_ID = ?
-                         ORDER BY EXPIRE_AT DESC
-                        """, operatorId.trim());
-            } else {
-                rows = admJdbcTemplate.queryForList("""
-                        SELECT SESSION_ID, OPERATOR_ID, ROLE_IDS, ISSUED_AT, EXPIRE_AT,
-                               REVOKED_YN, CLIENT_IP, USER_AGENT, CREATED_AT, UPDATED_AT
-                          FROM adm_operator_session
-                         ORDER BY EXPIRE_AT DESC
-                        """);
-            }
-            return rows.stream().limit(SESSION_LIST_LIMIT).toList();
+            String sql = operatorId != null && !operatorId.isBlank() ? """
+                    SELECT SESSION_ID, OPERATOR_ID, ROLE_IDS, ISSUED_AT, EXPIRE_AT,
+                           REVOKED_YN, CLIENT_IP, USER_AGENT, CREATED_AT, UPDATED_AT
+                      FROM adm_operator_session
+                     WHERE OPERATOR_ID = ?
+                     ORDER BY EXPIRE_AT DESC
+                    """ : """
+                    SELECT SESSION_ID, OPERATOR_ID, ROLE_IDS, ISSUED_AT, EXPIRE_AT,
+                           REVOKED_YN, CLIENT_IP, USER_AGENT, CREATED_AT, UPDATED_AT
+                      FROM adm_operator_session
+                     ORDER BY EXPIRE_AT DESC
+                    """;
+            Object[] args = operatorId != null && !operatorId.isBlank() ? new Object[]{operatorId.trim()} : new Object[0];
+            return admJdbcTemplate.query(sql, (rs, rowNum) -> new AdmSessionSummaryResponse(
+                    rs.getString("SESSION_ID"), rs.getString("OPERATOR_ID"), splitRoles(rs.getString("ROLE_IDS")),
+                    localDateTime(rs.getTimestamp("ISSUED_AT")), localDateTime(rs.getTimestamp("EXPIRE_AT")),
+                    "Y".equals(rs.getString("REVOKED_YN")), rs.getString("CLIENT_IP"), rs.getString("USER_AGENT"),
+                    localDateTime(rs.getTimestamp("CREATED_AT")), localDateTime(rs.getTimestamp("UPDATED_AT"))), args)
+                    .stream().limit(SESSION_LIST_LIMIT).toList();
         } catch (DataAccessException ex) {
             throw unavailable("adm_operator_session.list", ex);
         }
@@ -253,6 +247,16 @@ public class AdmSessionService extends com.cpf.admin.common.base.AdmBaseService 
             recordRevocationUnknown("CLEANUP", "EXPIRED", "adm_operator_session.cleanup", ex);
             throw unavailable("adm_operator_session.cleanup", ex);
         }
+    }
+
+    private List<String> splitRoles(String value) {
+        if (value == null || value.isBlank()) return List.of();
+        return java.util.Arrays.stream(value.split(","))
+                .map(String::trim).filter(role -> !role.isBlank()).distinct().sorted().toList();
+    }
+
+    private LocalDateTime localDateTime(java.sql.Timestamp value) {
+        return value == null ? null : value.toLocalDateTime();
     }
 
     private void persistSession(AdmSession session) {

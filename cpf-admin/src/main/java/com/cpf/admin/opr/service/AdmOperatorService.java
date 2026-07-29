@@ -12,6 +12,8 @@ import com.cpf.admin.opr.dto.AdmOperatorPasswordResetRequest;
 import com.cpf.admin.opr.dto.AdmOperatorRoleUpdateRequest;
 import com.cpf.admin.opr.dto.AdmPasswordChangeRequest;
 import com.cpf.admin.opr.dto.AdmRole;
+import com.cpf.admin.opr.dto.AdmPasswordPolicyResponse;
+import com.cpf.admin.opr.dto.AdmPasswordValidationResponse;
 import com.cpf.core.api.util.CpfTimes;
 import com.cpf.core.api.util.CpfStrings;
 import com.cpf.core.api.error.CpfBusinessException;
@@ -663,11 +665,34 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
         }
     }
 
-    public Map<String, Object> validatePassword(String operatorId, String password) {
-        return Map.of("operatorId", operatorId, "violations", passwordPolicyService.validate(operatorId, password));
+    /** 현재 Role 집합에 실제 허용된 Action Button ID를 반환합니다. */
+    public List<String> findButtonIdsForRoles(List<String> roleIds) {
+        if (roleIds == null || roleIds.isEmpty()) {
+            return List.of();
+        }
+        try {
+            String placeholders = String.join(",", roleIds.stream().map(role -> "?").toList());
+            return admJdbcTemplate.queryForList("""
+                    SELECT DISTINCT b.BUTTON_ID
+                    FROM adm_button b
+                    JOIN adm_role_button rb ON rb.BUTTON_ID = b.BUTTON_ID
+                    WHERE b.USE_YN = 'Y'
+                      AND rb.ALLOW_YN = 'Y'
+                      AND rb.ROLE_ID IN (%s)
+                    ORDER BY b.BUTTON_ID
+                    """.formatted(placeholders), String.class, roleIds.toArray());
+        } catch (DataAccessException ex) {
+            useMemoryFallbackOrThrow(ex);
+            // MEMORY는 local/test 전용이며 메뉴 권한으로 fallback하고 Backend Filter가 최종 차단합니다.
+            return List.of();
+        }
     }
 
-    public Map<String, Object> passwordPolicy() {
+    public AdmPasswordValidationResponse validatePassword(String operatorId, String password) {
+        return new AdmPasswordValidationResponse(operatorId, passwordPolicyService.validate(operatorId, password));
+    }
+
+    public AdmPasswordPolicyResponse passwordPolicy() {
         return passwordPolicyService.currentPolicy();
     }
 

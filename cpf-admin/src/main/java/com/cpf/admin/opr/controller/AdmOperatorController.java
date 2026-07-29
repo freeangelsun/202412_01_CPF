@@ -11,6 +11,10 @@ import com.cpf.admin.opr.dto.AdmOperatorRoleUpdateRequest;
 import com.cpf.admin.opr.dto.AdmPasswordChangeRequest;
 import com.cpf.admin.opr.dto.AdmRole;
 import com.cpf.admin.opr.dto.AdmSessionRevokeRequest;
+import com.cpf.admin.opr.dto.AdmPasswordPolicyResponse;
+import com.cpf.admin.opr.dto.AdmPasswordValidationResponse;
+import com.cpf.admin.opr.dto.AdmSessionSummaryResponse;
+import com.cpf.admin.opr.dto.AdmSessionMutationResponse;
 import com.cpf.admin.opr.service.AdmOperatorService;
 import com.cpf.admin.opr.service.AdmAuditLogService;
 import com.cpf.admin.opr.service.AdmSessionService;
@@ -200,7 +204,7 @@ public class AdmOperatorController extends com.cpf.admin.common.base.AdmBaseCont
     @GetMapping("/password-policy")
     @CpfOnlineTransaction(id = "OADMOP0036", name = "ADMPasswordPolicy")
     @Operation(operationId = "admOperatorPasswordPolicy", summary = "비밀번호 정책 조회", description = "ADM 운영자 비밀번호 정책을 조회합니다.")
-    public ResponseEntity<Map<String, Object>> passwordPolicy() {
+    public ResponseEntity<AdmPasswordPolicyResponse> passwordPolicy() {
         return ResponseEntity.ok(operatorService.passwordPolicy());
     }
 
@@ -288,21 +292,21 @@ public class AdmOperatorController extends com.cpf.admin.common.base.AdmBaseCont
     @GetMapping("/password-policy/validate")
     @CpfOnlineTransaction(id = "OADMOP0033", name = "ADMPasswordPolicyValidate")
     @Operation(operationId = "admOperatorValidatePassword", summary = "Validate password policy", description = "Checks whether a password satisfies the ADM policy.")
-    public ResponseEntity<Map<String, Object>> validatePassword(@RequestParam String operatorId, @RequestParam String password) {
+    public ResponseEntity<AdmPasswordValidationResponse> validatePassword(@RequestParam String operatorId, @RequestParam String password) {
         return ResponseEntity.ok(operatorService.validatePassword(operatorId, password));
     }
 
     @GetMapping("/sessions")
     @CpfOnlineTransaction(id = "OADMOP0043", name = "ADMSessionList")
     @Operation(operationId = "admOperatorFindSessions", summary = "ADM 세션 조회", description = "ADM 운영자 세션을 조회합니다.")
-    public ResponseEntity<List<Map<String, Object>>> findSessions(@RequestParam(required = false) String operatorId) {
+    public ResponseEntity<List<AdmSessionSummaryResponse>> findSessions(@RequestParam(required = false) String operatorId) {
         return ResponseEntity.ok(sessionService.findSessions(operatorId));
     }
 
     @PostMapping("/sessions/{sessionId}/revoke")
     @CpfOnlineTransaction(id = "OADMOP0046", name = "ADMSessionRevoke")
     @Operation(operationId = "admOperatorRevokeSession", summary = "ADM 세션 강제 종료", description = "지정한 ADM 세션을 폐기합니다.")
-    public ResponseEntity<Map<String, Object>> revokeSession(
+    public ResponseEntity<AdmSessionMutationResponse> revokeSession(
             @PathVariable String sessionId,
             @RequestBody AdmSessionRevokeRequest request,
             HttpServletRequest servletRequest) {
@@ -319,13 +323,13 @@ public class AdmOperatorController extends com.cpf.admin.common.base.AdmBaseCont
                 "revoked=" + revoked,
                 "세션 강제 종료",
                 servletRequest.getRemoteAddr());
-        return ResponseEntity.ok(Map.of("revoked", revoked));
+        return ResponseEntity.ok(new AdmSessionMutationResponse(revoked));
     }
 
     @PostMapping("/sessions/cleanup-expired")
     @CpfOnlineTransaction(id = "OADMOP0047", name = "ADMSessionCleanupExpired")
     @Operation(operationId = "admOperatorCleanupExpiredSessions", summary = "만료 세션 정리", description = "만료된 ADM 세션을 폐기 상태로 변경합니다.")
-    public ResponseEntity<Map<String, Object>> cleanupExpiredSessions(
+    public ResponseEntity<AdmSessionMutationResponse> cleanupExpiredSessions(
             @RequestBody AdmSessionRevokeRequest request,
             HttpServletRequest servletRequest) {
         String reason = auditLogService.requireReason(request.reason());
@@ -341,7 +345,7 @@ public class AdmOperatorController extends com.cpf.admin.common.base.AdmBaseCont
                 "revoked=" + revoked,
                 "만료 세션 정리",
                 servletRequest.getRemoteAddr());
-        return ResponseEntity.ok(Map.of("revoked", revoked));
+        return ResponseEntity.ok(new AdmSessionMutationResponse(revoked));
     }
 
     @GetMapping("/roles")

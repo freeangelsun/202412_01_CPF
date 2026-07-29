@@ -1,14 +1,14 @@
 package com.cpf.admin.opr.service;
 
 import com.cpf.admin.config.AdmPasswordPolicyProperties;
+import com.cpf.admin.opr.dto.AdmPasswordPolicyResponse;
 import com.cpf.core.api.util.CpfStrings;
-import com.cpf.core.common.exception.CpfValidationException;
+import com.cpf.core.api.error.CpfValidationException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * ADM 운영자 비밀번호 정책을 검증합니다.
@@ -71,13 +71,13 @@ public class AdmPasswordPolicyService extends com.cpf.admin.common.base.AdmBaseS
         return Math.max(1, properties.getHistoryCount());
     }
 
-    public Map<String, Object> currentPolicy() {
-        return Map.of(
-                "minLength", properties.getMinLength(),
-                "requiredCategoryCount", properties.getRequiredCategoryCount(),
-                "maxFailCount", properties.getMaxFailCount(),
-                "historyCount", historyCount(),
-                "expireDays", properties.getExpireDays());
+    public AdmPasswordPolicyResponse currentPolicy() {
+        return new AdmPasswordPolicyResponse(
+                properties.getMinLength(),
+                properties.getRequiredCategoryCount(),
+                properties.getMaxFailCount(),
+                historyCount(),
+                properties.getExpireDays());
     }
 
     private int categoryCount(String password) {

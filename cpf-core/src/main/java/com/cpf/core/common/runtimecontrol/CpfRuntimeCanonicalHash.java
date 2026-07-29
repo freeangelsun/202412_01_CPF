@@ -1,5 +1,8 @@
 package com.cpf.core.common.runtimecontrol;
 
+import com.cpf.core.api.runtimecontrol.CpfRuntimePayload;
+import com.fasterxml.jackson.databind.JsonNode;
+
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.ArrayList;
@@ -25,6 +28,8 @@ public final class CpfRuntimeCanonicalHash {
 
     static String canonical(Object value) {
         if (value == null) return "null";
+        if (value instanceof CpfRuntimePayload payload) return payload.canonicalJson();
+        if (value instanceof JsonNode node) return canonicalJsonNode(node);
         if (value instanceof String s) return '"' + escape(s) + '"';
         if (value instanceof Number || value instanceof Boolean) return String.valueOf(value);
         if (value instanceof Map<?, ?> map) {
@@ -68,6 +73,33 @@ public final class CpfRuntimeCanonicalHash {
             return canonical(record);
         }
         return canonical(String.valueOf(value));
+    }
+
+    private static String canonicalJsonNode(JsonNode node) {
+        if (node == null || node.isNull()) return "null";
+        if (node.isTextual()) return '"' + escape(node.textValue()) + '"';
+        if (node.isNumber() || node.isBoolean()) return node.asText();
+        if (node.isArray()) {
+            StringBuilder out = new StringBuilder("[");
+            boolean first = true;
+            for (JsonNode item : node) {
+                if (!first) out.append(',');
+                first = false;
+                out.append(canonicalJsonNode(item));
+            }
+            return out.append(']').toString();
+        }
+        java.util.TreeMap<String, JsonNode> fields = new java.util.TreeMap<>();
+        node.fields().forEachRemaining(entry -> fields.put(entry.getKey(), entry.getValue()));
+        StringBuilder out = new StringBuilder("{");
+        boolean first = true;
+        for (var entry : fields.entrySet()) {
+            if (!first) out.append(',');
+            first = false;
+            out.append('"').append(escape(entry.getKey())).append('"').append(':')
+                    .append(canonicalJsonNode(entry.getValue()));
+        }
+        return out.append('}').toString();
     }
 
     private static String escape(String value) {

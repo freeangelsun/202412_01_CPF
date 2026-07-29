@@ -7,6 +7,7 @@ import com.cpf.core.api.runtimecontrol.CpfRuntimeApplyResult;
 import com.cpf.core.api.runtimecontrol.CpfRuntimeChangeApplier;
 import com.cpf.core.api.runtimecontrol.CpfRuntimeAgentPort;
 import com.cpf.core.api.runtimecontrol.CpfRuntimeDelivery;
+import com.cpf.core.api.runtimecontrol.CpfRuntimeFenceException;
 import com.cpf.core.api.runtimecontrol.CpfRuntimeInstanceLease;
 import com.cpf.core.api.runtimecontrol.CpfRuntimeInstanceRegistration;
 import jakarta.annotation.PostConstruct;

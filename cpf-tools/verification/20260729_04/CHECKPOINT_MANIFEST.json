@@ -1,0 +1,17 @@
+{
+  "artifact": "CPF_20260729_04_SCENARIO_200_CHECKPOINT_ROOT_OVERLAY",
+  "baseSha": "b8941577b99535ff3e64a4fad99b74bafa544227",
+  "scenarioTotal": 387,
+  "scenarioCheckpointReviewed": 200,
+  "finalReady": false,
+  "structuralVerification": "PASS_WITH_OPEN_DEVELOPMENT_ITEMS",
+  "fileCount": 163,
+  "sha256Manifest": "cpf-tools/verification/20260729_04/SHA256SUMS.txt",
+  "openDevelopment": [
+    "Runtime Control public Raw Map",
+    "ADM Auth/Notification public Raw Map",
+    "Generator Golden Template source",
+    "DB canonical/install/checksum integration",
+    "full build/runtime validation"
+  ]
+}

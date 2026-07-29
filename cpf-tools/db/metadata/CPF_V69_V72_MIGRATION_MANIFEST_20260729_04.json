@@ -1,0 +1,236 @@
+{
+  "schemaVersion": 2,
+  "title": "CPF V69-V72 Canonical Migration Manifest",
+  "baseCommit": "b8941577b99535ff3e64a4fad99b74bafa544227",
+  "officialVendors": [
+    "mariadb",
+    "postgresql",
+    "oracle"
+  ],
+  "migrations": [
+    {
+      "vendor": "mariadb",
+      "version": 69,
+      "direction": "UPGRADE",
+      "path": "cpf-tools/db/vendor/mariadb/source/migration/flyway/V69__enterprise_cache_file_job.sql",
+      "size": 7343,
+      "sha256": "5933480899074068adad78987d137d0cdbb5ee0c99878329661ddddcbbaaf892"
+    },
+    {
+      "vendor": "mariadb",
+      "version": 70,
+      "direction": "UPGRADE",
+      "path": "cpf-tools/db/vendor/mariadb/source/migration/flyway/V70__bza_action_permission_hardening.sql",
+      "size": 1298,
+      "sha256": "aa447a4d398dae04453eb1b89b770b2dbc8636b6058c8690d3015331b0240d6d"
+    },
+    {
+      "vendor": "mariadb",
+      "version": 71,
+      "direction": "UPGRADE",
+      "path": "cpf-tools/db/vendor/mariadb/source/migration/flyway/V71__adm_notification_action_permissions.sql",
+      "size": 2243,
+      "sha256": "7cbb3be14340cdcadffb8123b0e782d6436c47f396a6e0d43d012daed940960c"
+    },
+    {
+      "vendor": "mariadb",
+      "version": 72,
+      "direction": "UPGRADE",
+      "path": "cpf-tools/db/vendor/mariadb/source/migration/flyway/V72__adm_file_job_control_audit.sql",
+      "size": 538,
+      "sha256": "0d8a19a2282c9ecb12f2fc0d3d597cbaff9dd8f27bc57f5b67b5dacdae6c76a2"
+    },
+    {
+      "vendor": "mariadb",
+      "version": 69,
+      "direction": "ROLLBACK",
+      "path": "cpf-tools/db/vendor/mariadb/source/migration/rollback/R69__enterprise_cache_file_job.sql",
+      "size": 870,
+      "sha256": "d73e93833efd6fd0029b1cb8e13b9ad94f9dd4852fedf82568b1b50ceb5a4092"
+    },
+    {
+      "vendor": "mariadb",
+      "version": 70,
+      "direction": "ROLLBACK",
+      "path": "cpf-tools/db/vendor/mariadb/source/migration/rollback/R70__bza_action_permission_hardening.sql",
+      "size": 380,
+      "sha256": "4c021ac6943a1468b99363f44ab9407658739eb0d1955ef2d621d9b11f85c45f"
+    },
+    {
+      "vendor": "mariadb",
+      "version": 71,
+      "direction": "ROLLBACK",
+      "path": "cpf-tools/db/vendor/mariadb/source/migration/rollback/R71__adm_notification_action_permissions.sql",
+      "size": 410,
+      "sha256": "e9d12acb1648ae1c6883969227ffd48defd0fb73d698bdf2c409212bf3268811"
+    },
+    {
+      "vendor": "mariadb",
+      "version": 72,
+      "direction": "ROLLBACK",
+      "path": "cpf-tools/db/vendor/mariadb/source/migration/rollback/R72__adm_file_job_control_audit.sql",
+      "size": 330,
+      "sha256": "ea446c4d0f00230760c81312de518dc15c2f417e9d725afbedb89a26ed0c93ab"
+    },
+    {
+      "vendor": "postgresql",
+      "version": 69,
+      "direction": "UPGRADE",
+      "path": "cpf-tools/db/vendor/postgresql/migration/flyway/cpfDB/V69__enterprise_cache_invalidation.sql",
+      "size": 839,
+      "sha256": "1475974d7abb5db86bf09c78027a9e94f12ca39dd9ef85214bc7a8593c6533dd"
+    },
+    {
+      "vendor": "postgresql",
+      "version": 69,
+      "direction": "UPGRADE",
+      "path": "cpf-tools/db/vendor/postgresql/migration/flyway/admDB/V69__adm_async_file_job.sql",
+      "size": 6488,
+      "sha256": "debf392476d06c3735e34747cef1d89d09dad3b05f5c2847d3d4df191d6a53ee"
+    },
+    {
+      "vendor": "postgresql",
+      "version": 71,
+      "direction": "UPGRADE",
+      "path": "cpf-tools/db/vendor/postgresql/migration/flyway/admDB/V71__adm_notification_action_permissions.sql",
+      "size": 2334,
+      "sha256": "a99f36f9db0faa2bf5c49ff3f2c7729a03f3ae98352711836811a4b4f8d6daf3"
+    },
+    {
+      "vendor": "postgresql",
+      "version": 72,
+      "direction": "UPGRADE",
+      "path": "cpf-tools/db/vendor/postgresql/migration/flyway/admDB/V72__adm_file_job_control_audit.sql",
+      "size": 508,
+      "sha256": "1a186c9a1d11e9e97678ccaa3a6ad26d45064959e4e7f8c23eddd2949dc4fb4a"
+    },
+    {
+      "vendor": "postgresql",
+      "version": 70,
+      "direction": "UPGRADE",
+      "path": "cpf-tools/db/vendor/postgresql/migration/flyway/bzaDB/V70__bza_action_permission_hardening.sql",
+      "size": 1790,
+      "sha256": "ace2771af0e660e02c3e0ce40623df283318603b61e33893b09b686a1c18a847"
+    },
+    {
+      "vendor": "postgresql",
+      "version": 69,
+      "direction": "ROLLBACK",
+      "path": "cpf-tools/db/vendor/postgresql/rollback/cpfDB/R69__enterprise_cache_invalidation.sql",
+      "size": 146,
+      "sha256": "bf53fcbc5f62bca2fede481e00f3f460136bd693408f4bc0ecb5965985a54610"
+    },
+    {
+      "vendor": "postgresql",
+      "version": 69,
+      "direction": "ROLLBACK",
+      "path": "cpf-tools/db/vendor/postgresql/rollback/admDB/R69__adm_async_file_job.sql",
+      "size": 849,
+      "sha256": "5956846528092130629c582eb674b78e2de970e47758ac4f6be790399a1622a2"
+    },
+    {
+      "vendor": "postgresql",
+      "version": 71,
+      "direction": "ROLLBACK",
+      "path": "cpf-tools/db/vendor/postgresql/rollback/admDB/R71__adm_notification_action_permissions.sql",
+      "size": 410,
+      "sha256": "e9d12acb1648ae1c6883969227ffd48defd0fb73d698bdf2c409212bf3268811"
+    },
+    {
+      "vendor": "postgresql",
+      "version": 72,
+      "direction": "ROLLBACK",
+      "path": "cpf-tools/db/vendor/postgresql/rollback/admDB/R72__adm_file_job_control_audit.sql",
+      "size": 314,
+      "sha256": "6c2a8abe111f73be9a961f819ae76acae0e916ffa97b547676a8633a64cdc4a6"
+    },
+    {
+      "vendor": "postgresql",
+      "version": 70,
+      "direction": "ROLLBACK",
+      "path": "cpf-tools/db/vendor/postgresql/rollback/bzaDB/R70__bza_action_permission_hardening.sql",
+      "size": 380,
+      "sha256": "4c021ac6943a1468b99363f44ab9407658739eb0d1955ef2d621d9b11f85c45f"
+    },
+    {
+      "vendor": "oracle",
+      "version": 69,
+      "direction": "UPGRADE",
+      "path": "cpf-tools/db/vendor/oracle/migration/flyway/cpfDB/V69__enterprise_cache_invalidation.sql",
+      "size": 877,
+      "sha256": "3dbd11e51e9cc705e23f7cb66c86cce6fbd3a77ec270ded4a6d978dfb178fbee"
+    },
+    {
+      "vendor": "oracle",
+      "version": 69,
+      "direction": "UPGRADE",
+      "path": "cpf-tools/db/vendor/oracle/migration/flyway/admDB/V69__adm_async_file_job.sql",
+      "size": 7707,
+      "sha256": "237f4920a4fd3cbcc7c4fd88ebd47d86b094bb5e0effa94f4ce0162c125d390a"
+    },
+    {
+      "vendor": "oracle",
+      "version": 71,
+      "direction": "UPGRADE",
+      "path": "cpf-tools/db/vendor/oracle/migration/flyway/admDB/V71__adm_notification_action_permissions.sql",
+      "size": 3078,
+      "sha256": "beb5c7e37d1b57abfbab0b2a1fccea021c38919df66e949107e5e0de02cedaed"
+    },
+    {
+      "vendor": "oracle",
+      "version": 72,
+      "direction": "UPGRADE",
+      "path": "cpf-tools/db/vendor/oracle/migration/flyway/admDB/V72__adm_file_job_control_audit.sql",
+      "size": 382,
+      "sha256": "c05699db264efb561754997ccd84e374bc27301caf49b4542d01b9cb46b3ab1d"
+    },
+    {
+      "vendor": "oracle",
+      "version": 70,
+      "direction": "UPGRADE",
+      "path": "cpf-tools/db/vendor/oracle/migration/flyway/bzaDB/V70__bza_action_permission_hardening.sql",
+      "size": 1919,
+      "sha256": "7979f1f1f37ef1487760bf44584724b566aba6f42fd7c73cb6e806ca2a67c02e"
+    },
+    {
+      "vendor": "oracle",
+      "version": 69,
+      "direction": "ROLLBACK",
+      "path": "cpf-tools/db/vendor/oracle/rollback/cpfDB/R69__enterprise_cache_invalidation.sql",
+      "size": 162,
+      "sha256": "74b28261bda2a024ca2185102ef25f1fb3e89807623d0e6f06f32bbb60d1edef"
+    },
+    {
+      "vendor": "oracle",
+      "version": 69,
+      "direction": "ROLLBACK",
+      "path": "cpf-tools/db/vendor/oracle/rollback/admDB/R69__adm_async_file_job.sql",
+      "size": 865,
+      "sha256": "cda017962a2764f42174444d099e21c4dfebe9d74c04ea7840bc515d7dc62313"
+    },
+    {
+      "vendor": "oracle",
+      "version": 71,
+      "direction": "ROLLBACK",
+      "path": "cpf-tools/db/vendor/oracle/rollback/admDB/R71__adm_notification_action_permissions.sql",
+      "size": 410,
+      "sha256": "e9d12acb1648ae1c6883969227ffd48defd0fb73d698bdf2c409212bf3268811"
+    },
+    {
+      "vendor": "oracle",
+      "version": 72,
+      "direction": "ROLLBACK",
+      "path": "cpf-tools/db/vendor/oracle/rollback/admDB/R72__adm_file_job_control_audit.sql",
+      "size": 345,
+      "sha256": "5e8bc1662aad977d7596d0dddecc8968122e5aebe21e3628d1e53f9496d69a0a"
+    },
+    {
+      "vendor": "oracle",
+      "version": 70,
+      "direction": "ROLLBACK",
+      "path": "cpf-tools/db/vendor/oracle/rollback/bzaDB/R70__bza_action_permission_hardening.sql",
+      "size": 725,
+      "sha256": "e9e791ee287dadc7af16c96ddc0f59e2072bb5756c354c36351b1d1404d260e7"
+    }
+  ]
+}

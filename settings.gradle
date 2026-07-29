@@ -110,8 +110,8 @@ if (findProject(':cpf-reference') != null) project(':cpf-reference').projectDir 
 project(':cpf-admin').projectDir = file('cpf-admin')
 project(':cpf-biz-admin').projectDir = file('cpf-biz-admin')
 project(':cpf-gateway').projectDir = file('cpf-gateway')
-project(':cpf-local-runtime').projectDir = file('cpf-local-runtime')
-project(':cpf-local-batch-runtime').projectDir = file('cpf-local-batch-runtime')
+project(':cpf-local-runtime').projectDir = file('cpf-tools/runtime/cpf-local-runtime')
+project(':cpf-local-batch-runtime').projectDir = file('cpf-tools/runtime/cpf-local-batch-runtime')
 if (findProject(':cpf-account') != null) project(':cpf-account').projectDir = file('cpf-account')
 
 // Published dependency BOM and convention plugin are cpf-tools-owned isolated builds.

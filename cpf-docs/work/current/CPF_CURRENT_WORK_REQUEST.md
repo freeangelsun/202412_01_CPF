@@ -1,24 +1,24 @@
-# CPF Current Work Request — Full QA Closure after 20260729 Stage 2
+# CPF CURRENT WORK REQUEST — 20260729_04 FINAL REVIEW
 
-## 기준
+## 현재 목표
 
-- Repository: `freeangelsun/202412_01_CPF`
-- Branch: `master`
-- Stage 2 Overlay 작성 기준 SHA: `9e5d1676a9ccba55fedf4dfb633a9e710f487a02`
-- 최상위 정본: `cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md`
-- 상세 요청서: `cpf-docs/work/requests/CPF_CODEX_FULL_QA_CLOSURE_REQUEST_20260729.md`
-- 병합 원장: `cpf-tools/verification/20260729_02/CPF_FINAL_QA_MASTER_LEDGER_20260729.csv`
+`b8941577b99535ff3e64a4fad99b74bafa544227` 기준 Source 개발 Overlay를 최신 `master`에 적용한 뒤 exact-SHA 통합 검수를 수행한다. 신규 기능 개발을 Codex에게 넘기지 않는다.
 
-## 현재 해야 할 일
+## 검수 대상
 
-사용자가 Stage 2 Root Overlay를 적용하고 Push한 **최신 master 정확한 SHA**에서 기존 QA 2,118건과 신규 QA를 병합한 2,715건 원장을 전수 재판정한다.
+1. Local Runtime 물리 이관과 Root 중복 제거 후 Java 25·Gradle 9.1 Clean Build/Test/Assemble/Quality Gate
+2. ADM/BZA Frontend Test·Production Build·Browser E2E
+3. Oracle/PostgreSQL/MariaDB Fresh/Upgrade/Rollback/Recovery
+4. Redis Topology·장애·복구·다중 Instance
+5. File Job 대용량·보안·중단복구·Lease/Fencing
+6. Runtime Control 부분 실패·Unknown·Rollback·Reconcile
+7. Generator 임의 Domain Lifecycle과 CREATE/UPDATE/DELETE 멱등 원장 재호출·Request Hash 충돌·3 Vendor Rollback
+8. QA Scenario 387개 exact-SHA Evidence
 
-P0 Ledger 18건과 ADM Runtime Control 14개 Capability를 우선 처리하되 전체 범위를 대신하지 않는다. 1차 구현 묶음도 Compile·Test·Runtime·DB·Browser·다중 인스턴스 회귀 대상에 포함한다.
+## 실패 처리
 
-결함이 발견되면 문서 상태만 변경하지 말고 Source·SQL·3개 DB·Frontend·Generator·Test·Guide·Evidence를 함께 수정한다.
+Codex는 Source를 수정하지 않는다. 실패한 Scenario ID, 명령, 환경, Expected/Actual, 최초 실패 지점, Sanitized Evidence를 ChatGPT 개발 세션에 반환한다. Source 결함은 ChatGPT가 수정한다.
 
-## 완료 기준
+## 완료 금지
 
-최신 master에서 `완료` 이외 상태가 남지 않고 Java 25·Gradle 9.1, Oracle·PostgreSQL·MariaDB Lifecycle, ADM/BZA Browser, Multi-instance·Offline·Retry·Rollback·UNKNOWN_RESULT Evidence가 현재 SHA로 보존돼야 한다.
-
-사용자 승인 없이 Commit·Push·Branch·Tag·Release를 생성하지 않는다.
+실행하지 않은 검증, 과거 SHA Evidence, 빈 PASS 파일, 일부 Vendor/일부 Role/일부 Instance 결과로 전체 완료 처리하지 않는다.

@@ -17,24 +17,83 @@ if (-not [IO.Path]::IsPathRooted($ResultDir)) {
 }
 New-Item -ItemType Directory -Force -Path $ResultDir | Out-Null
 
-$modules = @(
+$fixedModules = @(
     'cpf-core', 'cpf-gateway', 'cpf-common', 'cpf-admin', 'cpf-biz-admin',
-    'cpf-member', 'cpf-account', 'cpf-reference',
+    'cpf-reference',
     'cpf-batch/contract', 'cpf-batch/runtime-common', 'cpf-batch/control-server',
     'cpf-batch/scheduler', 'cpf-batch/worker', 'cpf-batch/center-cut-runner',
     'cpf-batch/host-agent'
 )
-# Generated Domain은 고정 목록에 예약하지 않고 ownership manifest로만 검증 대상에 편입합니다.
-$generatedModules = @(Get-ChildItem -LiteralPath $Root -Directory -Filter 'cpf-*' | Where-Object {
-    Test-Path -LiteralPath (Join-Path $_.FullName 'manifest/generator-ownership.json') -PathType Leaf
-} | ForEach-Object { $_.Name })
-$modules = @($modules + $generatedModules | Sort-Object -Unique)
 $items = [System.Collections.Generic.List[object]]::new()
 $failures = [System.Collections.Generic.List[object]]::new()
 
 function Get-RelativePath([string] $Path) {
     $Path.Substring($Root.Length).TrimStart('\', '/').Replace('\', '/')
 }
+
+function Get-GeneratedRootProjects {
+    $result = [System.Collections.Generic.List[string]]::new()
+    $candidateDirectories = @(Get-ChildItem -LiteralPath $Root -Directory | Where-Object {
+        (Test-Path -LiteralPath (Join-Path $_.FullName 'manifest/domain-manifest.json') -PathType Leaf) -or
+        (Test-Path -LiteralPath (Join-Path $_.FullName 'manifest/generator-ownership.json') -PathType Leaf)
+    })
+
+    foreach ($directory in $candidateDirectories) {
+        $domainManifestPath = Join-Path $directory.FullName 'manifest/domain-manifest.json'
+        $ownershipManifestPath = Join-Path $directory.FullName 'manifest/generator-ownership.json'
+        if (-not (Test-Path -LiteralPath $domainManifestPath -PathType Leaf) -or
+                -not (Test-Path -LiteralPath $ownershipManifestPath -PathType Leaf)) {
+            $failures.Add([ordered]@{
+                module = $directory.Name
+                path = "$($directory.Name)/manifest"
+                reason = 'Generated Domain manifest pair가 완전하지 않습니다.'
+            }) | Out-Null
+            continue
+        }
+
+        try {
+            $domain = [IO.File]::ReadAllText($domainManifestPath, [Text.Encoding]::UTF8) |
+                ConvertFrom-Json -ErrorAction Stop
+            $ownership = [IO.File]::ReadAllText($ownershipManifestPath, [Text.Encoding]::UTF8) |
+                ConvertFrom-Json -ErrorAction Stop
+        } catch {
+            $failures.Add([ordered]@{
+                module = $directory.Name
+                path = "$($directory.Name)/manifest"
+                reason = "Generated Domain manifest JSON 오류: $($_.Exception.Message)"
+            }) | Out-Null
+            continue
+        }
+
+        $identityValid =
+            [string]$domain.domainType -ceq 'GENERATED_DOMAIN' -and
+            [string]$domain.dependencyModel -ceq 'root-project' -and
+            [string]$ownership.dependencyModel -ceq 'root-project' -and
+            [string]$domain.projectName -ceq $directory.Name -and
+            [string]$ownership.projectName -ceq $directory.Name -and
+            -not [string]::IsNullOrWhiteSpace([string]$domain.moduleName) -and
+            [string]$domain.moduleName -ceq [string]$ownership.moduleName -and
+            -not [string]::IsNullOrWhiteSpace([string]$domain.domainName) -and
+            [string]$domain.domainName -ceq [string]$ownership.domainName -and
+            -not [string]::IsNullOrWhiteSpace([string]$domain.systemCode) -and
+            [string]$domain.systemCode -ceq [string]$ownership.systemCode -and
+            [string]$domain.packageName -ceq [string]$ownership.packageName -and
+            [string]$domain.packageName -match '^com\.cpf\.[a-z][a-z0-9]*(?:\.[a-z][a-z0-9]*)*$'
+        if (-not $identityValid) {
+            $failures.Add([ordered]@{
+                module = $directory.Name
+                path = "$($directory.Name)/manifest"
+                reason = 'Generated Domain root-project identity가 두 manifest에서 일치하지 않습니다.'
+            }) | Out-Null
+            continue
+        }
+        $result.Add($directory.Name) | Out-Null
+    }
+    return @($result.ToArray() | Sort-Object)
+}
+
+$generatedModules = @(Get-GeneratedRootProjects)
+$modules = @($fixedModules + $generatedModules | Sort-Object -Unique)
 
 function Resolve-Layer([string] $Path, [string] $Name, [string] $Kind, [string] $Text) {
     $value = "$Path/$Name".ToLowerInvariant()
@@ -141,6 +200,8 @@ $result = [ordered]@{
     status = if ($failures.Count -eq 0) { 'DONE' } else { 'FAILED' }
     checkedTypeCount = $items.Count
     unclassifiedCount = $failures.Count
+    checkedModules = $modules
+    generatedDomains = $generatedModules
     layerSummary = $summary
     extensionModeSummary = $modeSummary
     failures = @($failures)

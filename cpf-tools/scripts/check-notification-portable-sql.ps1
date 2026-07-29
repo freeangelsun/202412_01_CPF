@@ -37,7 +37,7 @@ foreach ($required in @(
     'AdmNotificationVersionConflictException',
     'expectedVersion',
     'AND version = ?',
-    'public Map<String, Object> findStatus(long deliveryId)',
+    'public AdmNotificationDeliveryStatusResponse findStatus(long deliveryId)',
     'setMaxRows')) {
     if ($outboxText -notmatch [regex]::Escape($required)) {
         throw "Portable notification outbox marker missing: $required"

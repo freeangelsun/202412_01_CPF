@@ -56,10 +56,29 @@ if (Test-Path -LiteralPath $sourceRollback -PathType Container) {
     Write-Host '[PASS] MariaDB source/runtime rollback parity'
 }
 
-$logicalDatabases = @('cpfDB','cmnDB','admDB','bzaDB','batDB','mbrDB','accDB','refDB')
+$profile = Get-Content -LiteralPath (Join-Path $Root 'cpf-tools/config/database-install.default.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+$requiredPlatformDatabases = @(
+    $profile.modules.PSObject.Properties |
+        Where-Object { [bool]$_.Value.enabled } |
+        ForEach-Object { [string]$_.Value.logicalDatabase } |
+        Sort-Object -Unique
+)
 foreach ($vendor in @('postgresql','oracle')) {
-    foreach ($logicalDatabase in $logicalDatabases) {
-        Check-Pack (Join-Path $Root "cpf-tools/db/vendor/$vendor/migration/flyway/$logicalDatabase")
+    $migrationRoot = Join-Path $Root "cpf-tools/db/vendor/$vendor/migration/flyway"
+    $packDirectories = @(
+        Get-ChildItem -LiteralPath $migrationRoot -Directory |
+            Where-Object {
+                @(Get-ChildItem -LiteralPath $_.FullName -File -Filter 'V*.sql').Count -gt 0
+            } |
+            Sort-Object Name
+    )
+    foreach ($logicalDatabase in $requiredPlatformDatabases) {
+        if (@($packDirectories | Where-Object { $_.Name -ceq $logicalDatabase }).Count -ne 1) {
+            throw "current Platform migration pack missing: vendor=$vendor database=$logicalDatabase"
+        }
+    }
+    foreach ($packDirectory in $packDirectories) {
+        Check-Pack $packDirectory.FullName
     }
 }
 Write-Host '[PASS] Official DB migration checksum integrity'

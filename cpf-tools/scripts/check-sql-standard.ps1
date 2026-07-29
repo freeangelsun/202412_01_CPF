@@ -10,16 +10,26 @@ $OutputEncoding = $CpfUtf8ConsoleEncoding
 
 $ErrorActionPreference = "Stop"
 
-# 공식 설치 기준이 되는 현행 스키마 SQL만 검사합니다.
-# archive 폴더는 과거 전환용 자료이므로 공식 naming/comment gate 대상에서 제외합니다.
+# 공식 설치 기준이 되는 현행 Platform Schema SQL만 검사합니다.
+# 파일 집합과 허용 prefix는 Source Plan/Canonical Schema에서 산출하며 Generated Domain 이름을 예약하지 않습니다.
+$sourcePlanPath = Join-Path $Root "cpf-tools/config/database-source-plan.json"
+$sourcePlan = Get-Content -LiteralPath $sourcePlanPath -Raw -Encoding UTF8 | ConvertFrom-Json
 $schemaFiles = @(
-    "cpf-tools/db/vendor/mariadb/source/10_cpf_schema.sql",
-    "cpf-tools/db/vendor/mariadb/source/20_cmn_schema.sql",
-    "cpf-tools/db/vendor/mariadb/source/30_adm_schema.sql",
-    "cpf-tools/db/vendor/mariadb/source/35_bat_schema.sql",
-    "cpf-tools/db/vendor/mariadb/source/40_business_modules_schema.sql"
+    $sourcePlan.mariadb.emptyInstallFiles |
+        ForEach-Object { "cpf-tools/db/vendor/mariadb/source/$_" }
 )
-$allowedPrefixes = @("cpf", "cmn", "adm", "bat", "ref", "mbr", "bza", "acc", "exs")
+$canonicalSchemaPath = Join-Path $Root "cpf-tools/db/canonical/platform-schema.json"
+$canonicalSchema = Get-Content -LiteralPath $canonicalSchemaPath -Raw -Encoding UTF8 | ConvertFrom-Json
+$allowedPrefixes = @(
+    $canonicalSchema.tables |
+        ForEach-Object { [string]$_.name } |
+        Where-Object { $_ -notmatch '^(?i:BATCH_)' } |
+        ForEach-Object { ($_ -split "_", 2)[0].ToLowerInvariant() } |
+        Sort-Object -Unique
+)
+if ($schemaFiles.Count -eq 0 -or $allowedPrefixes.Count -eq 0) {
+    throw "Platform Schema Source Plan/Canonical prefix discovery 결과가 비어 있습니다."
+}
 $failures = New-Object System.Collections.Generic.List[string]
 $schemaTableNames = New-Object System.Collections.Generic.HashSet[string]
 $observedTableNames = New-Object System.Collections.Generic.HashSet[string]
@@ -205,14 +215,17 @@ foreach ($forbiddenMarker in @("cmn_sequence", "cmn_edu_query_item", "cmn_fixed_
 $batSchema = [System.IO.File]::ReadAllText((Join-Path $Root "cpf-tools/db/vendor/mariadb/source/35_bat_schema.sql"), [System.Text.Encoding]::UTF8)
 $databaseProvisioning = [System.IO.File]::ReadAllText((Join-Path $Root "cpf-tools/db/vendor/mariadb/source/01_create_databases.sql"), [System.Text.Encoding]::UTF8)
 $userProvisioning = [System.IO.File]::ReadAllText((Join-Path $Root "cpf-tools/db/vendor/mariadb/source/02_create_service_users.sql"), [System.Text.Encoding]::UTF8)
+$defaultDatabaseProfile = Get-Content -LiteralPath (Join-Path $Root "cpf-tools/config/database-install.default.json") -Raw -Encoding UTF8 |
+    ConvertFrom-Json -Depth 30
+$batchDatabaseProfile = $defaultDatabaseProfile.modules.batch
 if ($databaseProvisioning -notmatch "(?i)CREATE\s+DATABASE\s+IF\s+NOT\s+EXISTS\s+batDB") {
     $failures.Add("batDB provisioning is missing")
 }
 foreach ($marker in @(
     "cpf_bat_migration",
     "cpf_bat_app",
-    "ON batDB.* TO 'cpf_bat_migration'@'localhost'",
-    "ON batDB.* TO 'cpf_bat_app'@'localhost'"
+    "ON batDB.* TO '$($batchDatabaseProfile.migration.username)'@'$($batchDatabaseProfile.migration.userHost)'",
+    "ON batDB.* TO '$($batchDatabaseProfile.runtime.username)'@'$($batchDatabaseProfile.runtime.userHost)'"
 )) {
     if ($userProvisioning -notmatch [regex]::Escape($marker)) {
         $failures.Add("BAT service-account provisioning marker missing: $marker")
@@ -242,20 +255,39 @@ if ($cpfSchema -match "(?i)CREATE\s+TABLE\s+IF\s+NOT\s+EXISTS\s+(?:BATCH_|cpf_ba
 if ($batSchema -match "(?i)CREATE\s+TABLE\s+IF\s+NOT\s+EXISTS\s+bat_business_day_calendar") {
     $failures.Add("BAT에 폐기된 영업일 원장이 남아 있습니다. cmn_business_calendar_day만 사용해야 합니다.")
 }
-foreach ($sequenceName in @("BATCH_STEP_EXECUTION_SEQ", "BATCH_JOB_EXECUTION_SEQ", "BATCH_JOB_SEQ")) {
-    if ($batSchema -match "(?is)CREATE\s+TABLE\s+IF\s+NOT\s+EXISTS\s+$sequenceName\s*\(") {
+$nonTableObjectPath = Join-Path $Root "cpf-tools/db/canonical/platform-non-table-objects.json"
+if (-not (Test-Path -LiteralPath $nonTableObjectPath -PathType Leaf)) {
+    throw "canonical non-table object contract missing: $nonTableObjectPath"
+}
+$nonTableObjects = Get-Content -LiteralPath $nonTableObjectPath -Raw -Encoding UTF8 |
+    ConvertFrom-Json -Depth 20
+$sequenceNames = @($nonTableObjects.objects | ForEach-Object { [string]$_.name })
+$legacySequenceNames = @(
+    $nonTableObjects.objects |
+        ForEach-Object { @($_.legacyNames) } |
+        Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_) }
+)
+foreach ($sequenceName in $sequenceNames) {
+    $escapedSequenceName = [regex]::Escape($sequenceName)
+    if ($batSchema -match "(?is)CREATE\s+TABLE\s+IF\s+NOT\s+EXISTS\s+$escapedSequenceName\s*\(") {
         $failures.Add("Spring Batch MariaDB sequence must not be implemented as a table: $sequenceName")
     }
-    if ($batSchema -notmatch "(?is)CREATE\s+SEQUENCE\s+IF\s+NOT\s+EXISTS\s+$sequenceName\s+START\s+WITH\s+1\s+MINVALUE\s+1\s+MAXVALUE\s+9223372036854775806\s+INCREMENT\s+BY\s+1\s+NOCACHE\s+NOCYCLE\s+ENGINE\s*=\s*InnoDB\s*;") {
-        $failures.Add("Spring Batch 5.2.4 MariaDB sequence contract missing: $sequenceName")
+    if ($batSchema -notmatch "(?is)CREATE\s+SEQUENCE\s+IF\s+NOT\s+EXISTS\s+$escapedSequenceName\s+START\s+WITH\s+1\s+MINVALUE\s+1\s+MAXVALUE\s+9223372036854775806\s+INCREMENT\s+BY\s+1\s+NOCACHE\s+NOCYCLE\s+ENGINE\s*=\s*InnoDB\s*;") {
+        $failures.Add("Spring Batch $($nonTableObjects.upstreamReference.version) MariaDB sequence contract missing: $sequenceName")
+    }
+}
+foreach ($legacySequenceName in $legacySequenceNames) {
+    $escapedLegacyName = [regex]::Escape([string]$legacySequenceName)
+    if ($batSchema -match "(?is)CREATE\s+(?:TABLE|SEQUENCE)(?:\s+IF\s+NOT\s+EXISTS)?\s+$escapedLegacyName\b") {
+        $failures.Add("Legacy Spring Batch sequence returned to fresh install: $legacySequenceName")
     }
 }
 $productSeed = [System.IO.File]::ReadAllText(
     (Join-Path $Root "cpf-tools/db/vendor/mariadb/source/50_framework_seed_data.sql"),
     [System.Text.Encoding]::UTF8
 )
-foreach ($sequenceName in @("BATCH_STEP_EXECUTION_SEQ", "BATCH_JOB_EXECUTION_SEQ", "BATCH_JOB_SEQ")) {
-    if ($productSeed -match "(?i)INSERT\s+INTO\s+(?:batDB\.)?$sequenceName") {
+foreach ($sequenceName in @($sequenceNames + $legacySequenceNames)) {
+    if ($productSeed -match "(?i)INSERT\s+INTO\s+(?:batDB\.)?$([regex]::Escape([string]$sequenceName))\b") {
         $failures.Add("MariaDB sequence must not be row-seeded: $sequenceName")
     }
 }

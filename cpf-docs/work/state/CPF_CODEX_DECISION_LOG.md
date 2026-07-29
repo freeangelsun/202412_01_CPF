@@ -72,6 +72,7 @@
 ## DEC-012 Multi-Vendor DB 격리
 
 - 상태: `완료`
+- 현재 적용: 공식 Vendor 목록은 DEC-034로 대체됨
 - 결정: 공식 지원 구조는 MariaDB, MySQL, PostgreSQL, Oracle, SQL Server를 대상으로 한다. Platform Module과 모든 Generated Domain(`external/EXS` 포함)에서 Vendor 선택을 `cpf.db.vendor`와 Driver/Datasource/Migration/SQL resource로 격리하며 Controller, Service, Domain, API와 일반 Repository 호출 계약에는 Vendor 분기를 두지 않는다. Vendor별 물리 SQL은 달라도 논리 Schema, 상태, Seed, API와 Repository 의미는 동일해야 한다.
 - 이유: 고객 DB 전환이 Java 업무 Source 수정이나 Module fork를 요구하지 않게 하고 동일 Binary/Source의 배포 가능성을 보장하기 위해서다.
 
@@ -91,7 +92,7 @@
 ## DEC-015 Vendor SQL Pack의 중앙 물리 소유권
 
 - 상태: `완료`
-- 결정: Vendor별 SQL 정본은 개별 제품 Module의 `src/main/resources`가 아니라 `cpf-tools/db/vendor/<vendor>` 중앙 Pack이 소유한다. Pack 내부에서 `provision/install/seed/migration/runtime/<module>/verify/rollback`으로 기능과 Module Ownership을 구분한다. 초기화 Tool은 한 Vendor Pack 전체를 선택하고, Runtime에는 선택 Vendor의 외부 resource root 또는 격리된 generated-resources/classpath overlay만 연결한다. 선택 과정에서 Git Source Tree를 덮어쓰거나 Diff를 만들지 않으며 Java Service/Controller/Domain/Repository 업무 Source와 제품 Module artifact에는 5개 Vendor SQL을 반복 적재하지 않는다. Generator도 신규 Domain Module에 Vendor 디렉터리를 복제하지 않고 중앙 Template/Pack에 Domain resource를 등록한다. 과도기에는 Consumer 확인 후 제거하도록 했으나 이 이행 규칙은 DEC-019에서 대체됐다. 현재는 중앙 Pack이 정본이며 Module-local fallback을 제거해 fail-fast로 숨은 Consumer를 노출한다.
+- 결정: Vendor별 SQL 정본은 개별 제품 Module의 `src/main/resources`가 아니라 `cpf-tools/db/vendor/<vendor>` 중앙 Pack이 소유한다. Pack 내부에서 `provision/install/seed/migration/runtime/<module>/verify/rollback`으로 기능과 Module Ownership을 구분한다. 초기화 Tool은 한 Vendor Pack 전체를 선택하고, Runtime에는 선택 Vendor의 외부 resource root 또는 격리된 generated-resources/classpath overlay만 연결한다. 선택 과정에서 Git Source Tree를 덮어쓰거나 Diff를 만들지 않으며 Java Service/Controller/Domain/Repository 업무 Source와 제품 Module artifact에는 공식 Vendor SQL을 반복 적재하지 않는다. Generator도 신규 Domain Module에 Vendor 디렉터리를 복제하지 않고 중앙 Template/Pack에 Domain resource를 등록한다. 과도기에는 Consumer 확인 후 제거하도록 했으나 이 이행 규칙은 DEC-019에서 대체됐다. 현재는 중앙 Pack이 정본이며 Module-local fallback을 제거해 fail-fast로 숨은 Consumer를 노출한다.
 - 이유: Vendor SQL의 중복·drift와 모든 Vendor resource의 불필요한 Runtime 활성화를 막고, 동일 Java Source/Artifact에 설치 설정과 선택 Vendor Pack만 결합하는 배포 경계를 만들기 위해서다.
 
 ## DEC-016 생성형 Domain의 Metadata·Template 확장
@@ -222,6 +223,113 @@
   예시 Domain을 요구하면 제품 Platform 기동과 EDU가 고객 업무 Module 수명주기에
   결합된다. 한 개의 중립 Self Sample만 정본으로 두면 이름에 따른 업무 가정과
   Schema/Source drift 없이 임의 Domain을 동일하게 검증할 수 있다.
+
+## DEC-034 공식 DB Vendor 3종
+
+- 상태: `완료`
+- 결정: CPF의 공식 DB Vendor는 MariaDB, PostgreSQL, Oracle 정확히 3종이다.
+  MySQL과 SQL Server는 제품 Vendor 선택, 설치 Profile, Generator 산출 대상,
+  Runtime Query Pack 및 완료율에서 제외한다. MariaDB Tool이 사용하는 `mysql` 호환
+  CLI/환경 변수 명칭은 MariaDB Client 호환 구현으로만 유지하며 MySQL 제품 지원으로
+  해석하지 않는다.
+- 이유: 실제 구현·Canonical Manifest·검증 범위를 공식 지원 선언과 일치시키고,
+  미구현 Vendor 디렉터리나 fallback을 완료로 오인하는 것을 막기 위해서다.
+
+## DEC-035 BZA 업무 결재 API 정본
+
+- 상태: `완료`
+- 결정: BZA 정책 기반 업무 결재 API의 정본 Root는
+  `/api/bza/approvals/**`다. 상신/Inbox/정책/위임/결정은 이 Root 아래에서만 제공하며,
+  직접 Table 상태를 갱신하던 `/api/bza/backoffice/approvals/**`는 영구 폐기 410
+  경계로 유지한다. Java Controller, Frontend, Permission Manifest와 Product Seed의
+  Menu/API Pattern은 같은 복수형 Root를 사용한다.
+- 이유: 새 정책/Snapshot Engine과 폐기된 직접 결재 API가 동시에 활성화되는 것을
+  막고, 인증 Route와 DB 권한 Seed가 실제 Endpoint를 동일하게 가리키도록 하기 위해서다.
+
+## DEC-036 중앙 Vendor SQL Catalog Provider의 공개 조립 경계
+
+- 상태: `완료`
+- 결정: 중앙 Runtime Query Pack을 소비하는 Platform/Generated Domain Runtime은
+  `CpfVendorSqlCatalogProvider` 공개 SPI만 주입받는다. Core의 Public Boundary
+  AutoConfiguration이 Environment 기반 fail-closed 기본 Provider를 제공하되,
+  제품 또는 배포 환경이 명시한 사용자 정의 Provider가 있으면 대체하지 않는다.
+  개별 BAT/업무 Module이 Core 내부 Catalog 구현을 직접 참조하거나 Vendor별
+  Provider를 중복 구현하지 않는다.
+- 이유: CPF Core DataSource 전체 구성을 사용하지 않는 BAT Scheduler/Worker/
+  Control Server도 동일 중앙 Pack을 시작 시 결정적으로 선택해야 하며, Provider
+  누락으로 기동이 실패하거나 Module별 Vendor 해석이 갈라지는 것을 막기 위해서다.
+
+## DEC-037 Platform Canonical DB와 Generated Domain DB의 물리 분리
+
+- 상태: `완료`
+- 결정: `platform-schema.json`, Platform Default/Production DB Profile과 Platform
+  Empty Install/Seed/Verify에는 고정 제품 Module인 CPF/CMN/ADM/BZA/BAT/REF만 둔다.
+  MBR은 Generator Golden Reference Instance지만 DB 생성·삭제·재생성은 다른 임의
+  Generated Domain과 동일한 Domain Manifest와 중앙 Vendor Domain Template이
+  소유한다. ACC/PAY/INS 등은 Platform Canonical/Profile에 등록하지 않으며 신규
+  Domain 추가를 위해 Platform Tool Source나 고정 Module 배열을 수정하지 않는다.
+  공식 3 Vendor의 Platform Source/Lifecycle은 같은 Canonical Schema/Seed에서
+  생성하고 MariaDB도 예외적인 수작업 정본으로 두지 않는다.
+- 이유: 선택적으로 제거 가능한 Generated Domain을 Platform 설치 대상에 포함하면
+  Clean Install과 Verify가 특정 예시 Domain 수명주기에 종속되고 Vendor Pack에
+  고정 Domain SQL이 다시 누적된다. Platform 160 Table과 Generated Domain
+  `${tablePrefix}_sample_item` 수명주기를 분리해야 무제한 Metadata 확장이 가능하다.
+
+## DEC-038 기존 DB Upgrade의 명시 Routing·Provision·Schema Parity
+
+- 상태: `완료`
+- 결정: Platform Migration Runner는 Version/Module/Profile/Checksum/Backup Manifest,
+  중지·복구 준비 확인과 정확한 Plan SHA가 모두 일치할 때만 Apply한다. MariaDB
+  Historical V64~V72처럼 `USE`가 없는 배포 이력은 Migration 본문을 수정하지 않고
+  checksum-fixed 중앙 Routing Metadata로 Owner DB를 선언하며, V69 같은 복수 Owner
+  Migration은 모든 Owner를 함께 선택하지 않으면 fail-closed한다. 기존 완전 DB의
+  Service User 비밀번호·Grant 회전은 설치를 재실행하거나 부분 DDL을 수행하지 않는
+  공식 `provision-only` 모드로 처리한다. Fresh Install의 Column/Index/FK 정의는
+  immutable Historical Upgrade 결과와 같아야 한다.
+- 이유: DB명 추정, 관리자 계정으로 Migration 우회, 백업 없는 Apply 또는 Fresh와
+  Upgrade의 물리 Drift는 데이터 손상과 복구 불능을 만든다. 실제 V58→V73 Upgrade,
+  V73 Rollback/Re-apply와 Canonical Manifest 대조에서 이 경계가 필요함을 확인했다.
+
+## DEC-039 Profile/Canonical 기반 DB Provision·Verify Projection
+
+- 상태: `완료`
+- 결정: 공식 3 Vendor의 현재 Provision, Install, Product Seed, Verify와 중앙
+  Lifecycle Bundle은 사람이 서로 다른 파일을 병행 편집하지 않고 DB Install
+  Profile, Canonical Schema/Metadata 및 Generator 산출물로 투영한다. 동기화 순서는
+  `Canonical/Vendor Source 생성 → Lifecycle Pack 조립 → Aggregate Install SQL
+  조립`으로 고정한다. 하나의 Logical DB Section이 여러 Source 파일에 반복되면
+  Runner는 모든 Section을 선언 순서대로 실행하며, Verify는 실행 결과가 없거나
+  하나라도 `passed != 1`이면 실패한다. Immutable Historical Migration은 이
+  Projection 대상에서 제외하고 기존 Checksum을 보존한다.
+- 이유: Aggregate Bundle을 먼저 만들면 직전 세대 Source가 포함되고, 반복 Section의
+  첫 블록만 실행하면 Install/Seed 일부가 조용히 누락된다. 또한 Verify 출력 미수집을
+  성공으로 처리하면 타 Vendor 설치가 실제 검증 없이 완료로 기록될 수 있으므로
+  Canonical Projection과 fail-closed 실행 계약을 명시한다.
+
+## DEC-040 Platform Lifecycle과 Generated Domain Lifecycle 분리
+
+- 상태: `완료`
+- 결정: Platform Provision/Install/Seed/Verify와 기본 배포·Runtime Baseline은
+  `CPF/CMN/ADM/BZA/BAT/REF` 고정 제품 Owner만 포함한다. Generated Domain은
+  `ACC/MBR/EXS` 같은 이름 목록이 아니라 유효한 `domain-manifest.json`,
+  Generator Ownership Metadata와 중앙 Vendor Domain Template로 동적 발견하고
+  별도 Lifecycle Overlay로 적용한다. Platform Reset/Verify는 Generated Domain
+  Database의 공존 여부와 무관하게 동일해야 한다.
+- 이유: 선택적으로 삭제·재생성되는 Generated Domain을 Platform Profile에 넣으면
+  제품 설치와 운영 Gate가 예시 Domain의 수명주기에 종속되고 무제한 Metadata 확장이
+  불가능하다. Platform 고정 제품과 사용자 생성 업무의 소유권·복구 경계를 분리해야
+  Source 수정 없는 신규 Domain 추가와 안전한 독립 Reset을 함께 보장할 수 있다.
+
+## DEC-041 Immutable Historical Migration 무결성 검증
+
+- 상태: `완료`
+- 결정: 이미 배포된 Historical Migration은 현재 Canonical Schema/Comment Metadata로
+  다시 생성하지 않는다. 생성 당시의 Forward/Rollback SQL과 대응 Metadata를
+  SHA-256 Snapshot 및 Statement 단위로 검증하고, 현행 요구 변경은 새로운 Version의
+  Migration과 현재 Install Projection으로만 반영한다.
+- 이유: 현재 Canonical에서 과거 Migration을 재생성하면 이후 추가·삭제된 Table,
+  Column, Comment가 과거 Version에 역투영되어 Checksum과 Upgrade/Rollback 재현성이
+  깨진다. Historical SQL 불변성과 현재 Canonical 정합성은 별도 Gate로 검증해야 한다.
 
 
 ## 2026-07-25 — Vendor source ownership / EXS / Frontend packaging

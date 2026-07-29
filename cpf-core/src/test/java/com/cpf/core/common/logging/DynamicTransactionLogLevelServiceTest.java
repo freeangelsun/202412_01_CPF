@@ -1,5 +1,8 @@
 package com.cpf.core.common.logging;
 
+import com.cpf.core.api.logging.CpfLogLevel;
+import com.cpf.core.api.logging.DynamicLogLevelRequest;
+import com.cpf.core.api.logging.DynamicLogLevelRule;
 import com.cpf.core.common.exception.CpfFrameworkException;
 import org.junit.jupiter.api.Test;
 

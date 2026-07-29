@@ -1,5 +1,7 @@
 package com.cpf.core.common.attachment;
 
+import com.cpf.core.api.attachment.CpfAttachmentContent;
+
 import com.cpf.core.common.exception.CpfValidationException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;

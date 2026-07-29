@@ -27,9 +27,12 @@ function Invoke-CpfDatabaseArtifactStep {
     }
 }
 
-Invoke-CpfDatabaseArtifactStep "build-all-install-sql.ps1" "DB bundle generation failed."
+# Canonical JSON must be projected before any aggregate/lifecycle bundle is
+# assembled.  Building first leaves the 00_* bundles one generation behind.
 Invoke-CpfDatabaseArtifactStep "generate-official-db-vendor-source.ps1" "Official DB vendor canonical source generation failed."
 Invoke-CpfDatabaseArtifactStep "build-official-db-vendor-packs.ps1" "Official DB vendor lifecycle pack generation failed."
+Invoke-CpfDatabaseArtifactStep "build-all-install-sql.ps1" "DB bundle generation failed."
+Invoke-CpfDatabaseArtifactStep "check-spring-batch-sequence-contract.ps1" "Spring Batch sequence contract validation failed."
 Invoke-CpfDatabaseArtifactStep "sync-platform-runtime-query-packs.ps1" "Platform Runtime Query Pack synchronization failed."
 Invoke-CpfDatabaseArtifactStep "sync-bat-runtime-query-pack.ps1" "BAT Runtime Query Pack synchronization failed."
 Invoke-CpfDatabaseArtifactStep "check-query-contract-integrity.ps1" "Runtime Query Contract integrity failed."

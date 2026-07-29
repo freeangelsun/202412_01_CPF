@@ -68,10 +68,10 @@ if($LASTEXITCODE -ne 0){throw "notification portable SQL and durable recovery ga
 
 # Local Web single-JVM and separate local Batch process.
 foreach($rel in @(
- 'cpf-local-runtime\build.gradle',
- 'cpf-local-runtime\src\main\java\com\cpf\local\runtime\CpfLocalRuntimeApplication.java',
- 'cpf-local-batch-runtime\build.gradle',
- 'cpf-local-batch-runtime\src\main\java\com\cpf\local\batch\CpfLocalBatchRuntimeApplication.java',
+ 'cpf-tools\runtime\cpf-local-runtime\build.gradle',
+ 'cpf-tools\runtime\cpf-local-runtime\src\main\java\com\cpf\local\runtime\CpfLocalRuntimeApplication.java',
+ 'cpf-tools\runtime\cpf-local-batch-runtime\build.gradle',
+ 'cpf-tools\runtime\cpf-local-batch-runtime\src\main\java\com\cpf\local\batch\CpfLocalBatchRuntimeApplication.java',
  'cpf-tools\scripts\start-cpf-local.ps1','cpf-tools\scripts\stop-cpf-local.ps1')){Require-File $rel|Out-Null}
 
 & pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'check-local-runtime-topology.ps1') -Root $Root
@@ -128,5 +128,11 @@ if($LASTEXITCODE -ne 0){throw "integrated architecture/UI/hygiene gate failed: $
 # Migration history must be complete and tamper-evident.
 & pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'check-migration-checksums.ps1') -Root $Root
 if($LASTEXITCODE -ne 0){throw "migration checksum gate failed: $LASTEXITCODE"}
+
+# Spring Batch framework-owned non-table objects are canonical artifacts, not
+# ad-hoc schema additions.  Keep the official 6.x names in every vendor pack
+# and reject stale BATCH_JOB_SEQ fresh-install regressions.
+& pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'check-spring-batch-sequence-contract.ps1') -Root $Root
+if($LASTEXITCODE -ne 0){throw "Spring Batch sequence contract gate failed: $LASTEXITCODE"}
 
 Write-Host '[PASS] CPF enterprise QA closing static gate'

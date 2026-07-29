@@ -11,7 +11,11 @@ class CpfDomainConventionPlugin implements Plugin<Project> {
           ? project.rootProject.extensions.extraProperties.get('cpfJavaVersion').toString().toInteger()
           : project.providers.gradleProperty('cpfJavaVersion')
               .orElse(project.providers.environmentVariable('CPF_JAVA_VERSION')).orElse('25').get().toInteger()
-  project.extensions.configure(JavaPluginExtension) { toolchain.languageVersion.set(JavaLanguageVersion.of(javaVersion));withSourcesJar();withJavadocJar() }
+  project.extensions.configure(JavaPluginExtension) { JavaPluginExtension javaExtension ->
+    javaExtension.toolchain.languageVersion.set(JavaLanguageVersion.of(javaVersion))
+    javaExtension.withSourcesJar()
+    javaExtension.withJavadocJar()
+  }
   def remoteRepo=project.providers.gradleProperty('cpfArtifactRepositoryUrl')
           .orElse(project.providers.environmentVariable('CPF_ARTIFACT_REPOSITORY_URL')).orNull
   def localRepo=project.providers.gradleProperty('cpfLocalArtifactRepository')

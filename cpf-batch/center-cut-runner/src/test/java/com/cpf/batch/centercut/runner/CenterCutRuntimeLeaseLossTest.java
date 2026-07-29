@@ -1,6 +1,7 @@
 package com.cpf.batch.centercut.runner;
 
 import com.cpf.batch.centercut.runner.internal.JdbcCenterCutClaimRepository;
+import com.cpf.batch.api.ActualState;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
@@ -48,15 +49,21 @@ class CenterCutRuntimeLeaseLossTest {
         runtime.poll();
 
         assertThat(runtime.currentExecutions()).containsExactly("51");
+        assertThat(runtime.actualState()).isEqualTo(ActualState.DEGRADED);
+        assertThat(runtime.ready()).isFalse();
+        assertThat(runtime.lastErrorCode()).isEqualTo("BAT_CENTER_CUT_LEASE_LOST");
         verify(repository, times(1)).claim(eq("center-a"), eq("center"), any());
 
         release.countDown();
         awaitExecutionCount(0);
+        assertThat(runtime.ready()).isTrue();
     }
 
     private void awaitExecutionCount(int expected) throws InterruptedException {
         long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(2);
-        while (runtime.currentExecutions().size() != expected && System.nanoTime() < deadline) {
+        while ((runtime.currentExecutions().size() != expected
+                || (expected == 0 && !runtime.ready()))
+                && System.nanoTime() < deadline) {
             Thread.sleep(10);
         }
         assertThat(runtime.currentExecutions()).hasSize(expected);

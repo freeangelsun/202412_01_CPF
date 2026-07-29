@@ -1,9 +1,81 @@
 package com.cpf.core.common.runtimecontrol.applier;
-import com.cpf.core.api.runtimecontrol.*;import com.cpf.core.common.http.CpfApiClientRuntimePolicy;import java.util.*;
+
+import com.cpf.core.api.runtimecontrol.CpfRuntimeApplyResult;
+import com.cpf.core.api.runtimecontrol.CpfRuntimeChangeApplier;
+import com.cpf.core.api.runtimecontrol.CpfRuntimeDelivery;
+import com.cpf.core.common.http.CpfApiClientRuntimePolicy;
+import com.cpf.core.common.runtimecontrol.CpfRuntimePayloadJson;
+
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 /** CpfWebClient typed 요청의 timeout/retry/header 정책을 적용합니다. */
-public final class CpfApiClientRuntimeApplier implements CpfRuntimeChangeApplier{
- private final CpfApiClientRuntimePolicy policy;public CpfApiClientRuntimeApplier(CpfApiClientRuntimePolicy policy){this.policy=policy;}
- public String changeType(){return "API_CLIENT";}public boolean supportsIdempotentReplay(){return true;}public boolean snapshotCapable(){return true;}
- @SuppressWarnings("unchecked")public CpfRuntimeApplyResult apply(CpfRuntimeDelivery d){try{Map<String,Object>p=d.payload();var defaults=decode(p.get("defaults"));LinkedHashMap<String,CpfApiClientRuntimePolicy.ClientPolicy>services=new LinkedHashMap<>();Object raw=p.get("services");if(raw instanceof Map<?,?>m)for(var e:m.entrySet())services.put(String.valueOf(e.getKey()),decode(e.getValue()));policy.replace(d.desiredVersion(),defaults,services);return CpfRuntimeApplyResult.success(d.payloadHash());}catch(RuntimeException e){return CpfRuntimeApplyResult.failure("API_CLIENT_INVALID","API client policy payload 오류");}}
- @SuppressWarnings("unchecked")private CpfApiClientRuntimePolicy.ClientPolicy decode(Object raw){Map<String,Object>m=raw instanceof Map<?,?>x?(Map<String,Object>)x:Map.of();return new CpfApiClientRuntimePolicy.ClientPolicy((int)num(m.get("timeoutMillis"),3000),(int)num(m.get("retryCount"),0),set(m.get("allowedHeaders")));}private long num(Object v,long f){return v instanceof Number n?n.longValue():v==null?f:Long.parseLong(String.valueOf(v));}private Set<String>set(Object v){if(!(v instanceof List<?>l))return Set.of();LinkedHashSet<String>s=new LinkedHashSet<>();for(Object x:l)if(x!=null)s.add(String.valueOf(x));return Set.copyOf(s);}
+public final class CpfApiClientRuntimeApplier implements CpfRuntimeChangeApplier {
+    private final CpfApiClientRuntimePolicy policy;
+
+    public CpfApiClientRuntimeApplier(CpfApiClientRuntimePolicy policy) {
+        this.policy = policy;
+    }
+
+    @Override
+    public String changeType() {
+        return "API_CLIENT";
+    }
+
+    @Override
+    public boolean supportsIdempotentReplay() {
+        return true;
+    }
+
+    @Override
+    public boolean snapshotCapable() {
+        return true;
+    }
+
+    @Override
+    public CpfRuntimeApplyResult apply(CpfRuntimeDelivery delivery) {
+        try {
+            Map<String, Object> payload = CpfRuntimePayloadJson.asMap(delivery.payload());
+            var defaults = decode(payload.get("defaults"));
+            LinkedHashMap<String, CpfApiClientRuntimePolicy.ClientPolicy> services = new LinkedHashMap<>();
+            Object raw = payload.get("services");
+            if (raw instanceof Map<?, ?> entries) {
+                for (var entry : entries.entrySet()) {
+                    services.put(String.valueOf(entry.getKey()), decode(entry.getValue()));
+                }
+            }
+            policy.replace(delivery.desiredVersion(), defaults, services);
+            return CpfRuntimeApplyResult.success(delivery.payloadHash());
+        } catch (RuntimeException ex) {
+            return CpfRuntimeApplyResult.failure("API_CLIENT_INVALID", "API client policy payload 오류");
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private CpfApiClientRuntimePolicy.ClientPolicy decode(Object raw) {
+        Map<String, Object> value = raw instanceof Map<?, ?> map
+                ? (Map<String, Object>) map
+                : Map.of();
+        return new CpfApiClientRuntimePolicy.ClientPolicy(
+                (int) number(value.get("timeoutMillis"), 3000),
+                (int) number(value.get("retryCount"), 0),
+                strings(value.get("allowedHeaders")));
+    }
+
+    private long number(Object value, long fallback) {
+        if (value instanceof Number number) return number.longValue();
+        return value == null ? fallback : Long.parseLong(String.valueOf(value));
+    }
+
+    private Set<String> strings(Object value) {
+        if (!(value instanceof List<?> list)) return Set.of();
+        LinkedHashSet<String> result = new LinkedHashSet<>();
+        for (Object entry : list) {
+            if (entry != null) result.add(String.valueOf(entry));
+        }
+        return Set.copyOf(result);
+    }
 }

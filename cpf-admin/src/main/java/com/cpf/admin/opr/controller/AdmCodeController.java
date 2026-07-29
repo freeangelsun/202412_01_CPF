@@ -3,8 +3,8 @@ package com.cpf.admin.opr.controller;
 import com.cpf.admin.opr.service.AdmAuditLogService;
 import com.cpf.common.cde.dto.CommonCodeRequest;
 import com.cpf.common.cde.service.CodeCacheService;
-import com.cpf.core.common.execution.CpfOnlineTransaction;
-import com.cpf.core.common.logging.TransactionContext;
+import com.cpf.core.api.execution.CpfOnlineTransaction;
+import com.cpf.core.api.logging.CpfTransactionContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -58,7 +58,7 @@ public class AdmCodeController extends com.cpf.admin.common.base.AdmBaseControll
         String reason = auditLogService.requireReason(request.getReason());
         Map<String, Object> created = codeCacheService.createCode(request);
         auditLogService.record(
-                TransactionContext.getOrCreateTransactionId(),
+                CpfTransactionContext.transactionId(),
                 requestUser(servletRequest, request.getRequestUser()),
                 "CODE_CREATE",
                 "cpf_code",
@@ -82,7 +82,7 @@ public class AdmCodeController extends com.cpf.admin.common.base.AdmBaseControll
         Map<String, Object> before = codeCacheService.getCodeById(codeId);
         Map<String, Object> updated = codeCacheService.updateCode(codeId, request);
         auditLogService.record(
-                TransactionContext.getOrCreateTransactionId(),
+                CpfTransactionContext.transactionId(),
                 requestUser(servletRequest, request.getRequestUser()),
                 "CODE_UPDATE",
                 "cpf_code",
@@ -107,7 +107,7 @@ public class AdmCodeController extends com.cpf.admin.common.base.AdmBaseControll
         Map<String, Object> before = codeCacheService.getCodeById(codeId);
         List<Map<String, Object>> latest = codeCacheService.deleteCode(codeId);
         auditLogService.record(
-                TransactionContext.getOrCreateTransactionId(),
+                CpfTransactionContext.transactionId(),
                 requestUser(servletRequest, requestUser),
                 "CODE_DISABLE",
                 "cpf_code",

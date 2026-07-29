@@ -39,12 +39,6 @@ cpf:
       rabbit:
         exchange: ${CPF_CMN_RABBIT_EXCHANGE:cpf.exchange}
         routing-key: ${CPF_CMN_RABBIT_ROUTING_KEY:cpf.local.event}
-    file-exchange:
-      base-dir: ${CPF_CMN_FILE_BASE_DIR:${java.io.tmpdir}/cpf-cmn-file-exchange}
-      ssh-enabled: ${CPF_CMN_FILE_SSH_ENABLED:false}
-      dry-run: ${CPF_CMN_FILE_DRY_RUN:true}
-      timeout-seconds: ${CPF_CMN_FILE_TIMEOUT_SECONDS:15}
-      allowed-hosts: ${CPF_CMN_FILE_ALLOWED_HOSTS:}
     security:
       jwt:
         issuer: ${CPF_CMN_SECURITY_JWT_ISSUER:CPF-LOCAL}

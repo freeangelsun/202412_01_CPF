@@ -1,6 +1,6 @@
 package com.cpf.reference.servicecall.controller;
 
-import com.cpf.core.common.execution.CpfOnlineTransaction;
+import com.cpf.core.api.execution.CpfOnlineTransaction;
 import com.cpf.core.common.workflow.CpfWorkflow;
 import com.cpf.core.common.workflow.CpfWorkflowFailurePolicy;
 import com.cpf.core.common.workflow.CpfWorkflowStep;

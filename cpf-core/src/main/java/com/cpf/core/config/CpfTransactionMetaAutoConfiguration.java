@@ -1,5 +1,7 @@
 package com.cpf.core.config;
 
+import com.cpf.core.api.transaction.CpfTransactionMetaOperations;
+import com.cpf.core.common.transaction.DefaultCpfTransactionMetaOperations;
 import com.cpf.core.common.transaction.CpfTransactionMetaRepository;
 import com.cpf.core.common.transaction.CpfTransactionMetaScanner;
 import org.springframework.beans.factory.ObjectProvider;
@@ -40,6 +42,14 @@ public class CpfTransactionMetaAutoConfiguration {
             @Qualifier("requestMappingHandlerMapping") RequestMappingHandlerMapping handlerMapping,
             CpfTransactionMetaRepository repository) {
         return new CpfTransactionMetaScanner(handlerMapping, repository);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(CpfTransactionMetaOperations.class)
+    public CpfTransactionMetaOperations cpfTransactionMetaOperations(
+            CpfTransactionMetaRepository repository,
+            ObjectProvider<CpfTransactionMetaScanner> scannerProvider) {
+        return new DefaultCpfTransactionMetaOperations(repository, scannerProvider);
     }
 
     @Bean

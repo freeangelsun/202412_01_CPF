@@ -1,11 +1,21 @@
--- CPF PostgreSQL V63 provision contract
--- Physical database and runtime/migration roles are created by initialize-cpf-vendor-database.ps1.
--- This SQL creates the CPF logical schemas inside the selected physical database.
+-- AUTO-GENERATED from cpf-tools/config/database-install.default.json
+-- vendor=postgresql; physical database/roles are created by the profile-aware executor.
+-- DO NOT EDIT generated provision SQL directly.
+
+-- CPF_LOGICAL_DATABASE=cpfDB
 CREATE SCHEMA IF NOT EXISTS cpfDB;
+
+-- CPF_LOGICAL_DATABASE=cmnDB
 CREATE SCHEMA IF NOT EXISTS cmnDB;
+
+-- CPF_LOGICAL_DATABASE=admDB
 CREATE SCHEMA IF NOT EXISTS admDB;
-CREATE SCHEMA IF NOT EXISTS batDB;
+
+-- CPF_LOGICAL_DATABASE=bzaDB
 CREATE SCHEMA IF NOT EXISTS bzaDB;
-CREATE SCHEMA IF NOT EXISTS mbrDB;
-CREATE SCHEMA IF NOT EXISTS accDB;
+
+-- CPF_LOGICAL_DATABASE=batDB
+CREATE SCHEMA IF NOT EXISTS batDB;
+
+-- CPF_LOGICAL_DATABASE=refDB
 CREATE SCHEMA IF NOT EXISTS refDB;

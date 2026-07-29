@@ -4,7 +4,6 @@ $Root=(Resolve-Path -LiteralPath $Root).Path
 $errors=[System.Collections.Generic.List[string]]::new()
 
 foreach($relative in @(
- 'cpf-external',
  'cpf-tools/db/source',
  'docker-compose.local.yml',
  'cpf-core/src/main/java/com/cpf/core/common/batch',
@@ -24,6 +23,79 @@ foreach($relative in @(
  'cpf-admin/src/main/java/com/cpf/admin/opr/dto/AdmBusinessDayRequest.java'
 )){
     if(Test-Path(Join-Path $Root $relative)){$errors.Add("obsolete artifact: $relative")}
+}
+
+$fixedCpfRoots=@(
+    'cpf-core','cpf-common','cpf-admin','cpf-biz-admin','cpf-batch',
+    'cpf-gateway','cpf-reference','cpf-tools','cpf-docs'
+)
+$settings=Get-Content -LiteralPath (Join-Path $Root 'settings.gradle') -Raw -Encoding UTF8
+$generatedIdentities=[System.Collections.Generic.List[object]]::new()
+$generatedCandidates=@(Get-ChildItem -LiteralPath $Root -Directory -Filter 'cpf-*' |
+    Where-Object { $_.Name -notin $fixedCpfRoots })
+foreach($candidate in $generatedCandidates){
+    $manifestPath=Join-Path $candidate.FullName 'manifest/domain-manifest.json'
+    $ownershipPath=Join-Path $candidate.FullName 'manifest/generator-ownership.json'
+    if(-not(Test-Path -LiteralPath $manifestPath -PathType Leaf) -or
+            -not(Test-Path -LiteralPath $ownershipPath -PathType Leaf)){
+        $errors.Add("unknown CPF root without Generator manifest pair: $($candidate.Name)")
+        continue
+    }
+    try{
+        $manifest=Get-Content -LiteralPath $manifestPath -Raw -Encoding UTF8 |
+            ConvertFrom-Json -ErrorAction Stop
+        $ownership=Get-Content -LiteralPath $ownershipPath -Raw -Encoding UTF8 |
+            ConvertFrom-Json -ErrorAction Stop
+    }catch{
+        $errors.Add("invalid Generated Domain manifest JSON: $($candidate.Name) :: $($_.Exception.Message)")
+        continue
+    }
+    $identityErrors=[System.Collections.Generic.List[string]]::new()
+    if([string]$manifest.domainType -cne 'GENERATED_DOMAIN'){
+        $identityErrors.Add('domainType') | Out-Null
+    }
+    if([string]$manifest.dependencyModel -cne 'root-project' -or
+            [string]$ownership.dependencyModel -cne 'root-project'){
+        $identityErrors.Add('dependencyModel') | Out-Null
+    }
+    foreach($propertyName in @(
+            'projectName','moduleCode','moduleName','domainName',
+            'systemCode','packageName','schemaName','tablePrefix')){
+        $manifestValue=[string]$manifest.$propertyName
+        $ownershipValue=[string]$ownership.$propertyName
+        if([string]::IsNullOrWhiteSpace($manifestValue) -or $manifestValue -cne $ownershipValue){
+            $identityErrors.Add($propertyName) | Out-Null
+        }
+    }
+    if([string]$manifest.projectName -cne $candidate.Name -or
+            [string]$ownership.moduleDirectory -cne $candidate.Name -or
+            [string]$ownership.outputDirectory -cne $candidate.Name){
+        $identityErrors.Add('directory') | Out-Null
+    }
+    if([string]$manifest.systemCode -cnotmatch '^[A-Z][A-Z0-9]{2}$' -or
+            [string]$manifest.domainName -cnotmatch '^[a-z][a-z0-9]{1,29}$' -or
+            [string]$manifest.packageName -cnotmatch '^com\.cpf\.[a-z][a-z0-9]*(?:\.[a-z][a-z0-9]*)*$'){
+        $identityErrors.Add('canonical-format') | Out-Null
+    }
+    $escapedProject=[regex]::Escape($candidate.Name)
+    if($settings -notmatch "(?m)^\s*include(?:\s*\()?[^`r`n]*['`"]:?$escapedProject['`"]"){
+        $identityErrors.Add('settings-include') | Out-Null
+    }
+    if($identityErrors.Count){
+        $errors.Add("Generated Domain identity mismatch: $($candidate.Name) [$($identityErrors -join ', ')]")
+        continue
+    }
+    $generatedIdentities.Add([pscustomobject]@{
+        projectName=$candidate.Name
+        systemCode=[string]$manifest.systemCode
+        packageName=[string]$manifest.packageName
+    }) | Out-Null
+}
+foreach($propertyName in @('systemCode','packageName')){
+    $duplicates=@($generatedIdentities | Group-Object $propertyName | Where-Object Count -gt 1)
+    if($duplicates.Count){
+        $errors.Add("duplicate Generated Domain $propertyName`: $(($duplicates.Name | Sort-Object) -join ', ')")
+    }
 }
 
 $legacyBatchRefs=@(Get-ChildItem $Root -Recurse -File -Filter '*.java' -ErrorAction SilentlyContinue |

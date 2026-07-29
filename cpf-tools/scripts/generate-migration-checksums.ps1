@@ -38,10 +38,30 @@ $runtime = Join-Path $Root 'cpf-tools/db/vendor/mariadb/migration/flyway'
 Rebuild-Pack $source
 Rebuild-Pack $runtime
 
-# PostgreSQL/Oracle은 물리 DB별 Flyway history가 독립적이므로 logicalDatabase별 checksum 정본을 둔다.
-$logicalDatabases = @('cpfDB','cmnDB','admDB','bzaDB','batDB','mbrDB','accDB','refDB')
+# PostgreSQL/Oracle은 물리 DB별 Flyway history가 독립적이다. 현재 Platform Pack은
+# Profile로 요구하고, retired Domain을 포함한 immutable historical pack도 디렉터리에서 발견해 보존한다.
+$profile = Get-Content -LiteralPath (Join-Path $Root 'cpf-tools/config/database-install.default.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+$requiredPlatformDatabases = @(
+    $profile.modules.PSObject.Properties |
+        Where-Object { [bool]$_.Value.enabled } |
+        ForEach-Object { [string]$_.Value.logicalDatabase } |
+        Sort-Object -Unique
+)
 foreach ($vendor in @('postgresql','oracle')) {
-    foreach ($logicalDatabase in $logicalDatabases) {
-        Rebuild-Pack (Join-Path $Root "cpf-tools/db/vendor/$vendor/migration/flyway/$logicalDatabase")
+    $migrationRoot = Join-Path $Root "cpf-tools/db/vendor/$vendor/migration/flyway"
+    $packDirectories = @(
+        Get-ChildItem -LiteralPath $migrationRoot -Directory |
+            Where-Object {
+                @(Get-ChildItem -LiteralPath $_.FullName -File -Filter 'V*.sql').Count -gt 0
+            } |
+            Sort-Object Name
+    )
+    foreach ($logicalDatabase in $requiredPlatformDatabases) {
+        if (@($packDirectories | Where-Object { $_.Name -ceq $logicalDatabase }).Count -ne 1) {
+            throw "current Platform migration pack missing: vendor=$vendor database=$logicalDatabase"
+        }
+    }
+    foreach ($packDirectory in $packDirectories) {
+        Rebuild-Pack $packDirectory.FullName
     }
 }

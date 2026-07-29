@@ -1,8 +1,7 @@
 package com.cpf.reference.header.controller;
 
-import com.cpf.core.common.execution.CpfOnlineTransaction;
-import com.cpf.core.common.header.CpfHeaderPropagator;
-import com.cpf.core.common.logging.TransactionContext;
+import com.cpf.core.api.execution.CpfOnlineTransaction;
+import com.cpf.core.api.logging.CpfTransactionContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.core.ParameterizedTypeReference;
@@ -44,7 +43,7 @@ public class ReferenceStandardHeaderEducationController extends com.cpf.referenc
             @RequestParam String execUser,
             @RequestParam String mockUrl) {
 
-        Map<String, String> outboundHeaders = CpfHeaderPropagator.outboundHeaders();
+        Map<String, String> outboundHeaders = CpfTransactionContext.outboundHeaders();
         Map<String, Object> downstreamResponse = webClientBuilder.build()
                 .get()
                 .uri(mockUrl)
@@ -57,8 +56,8 @@ public class ReferenceStandardHeaderEducationController extends com.cpf.referenc
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("menuId", menuId);
         response.put("execUser", execUser);
-        response.put("transactionId", TransactionContext.currentTransactionId());
-        response.put("traceId", TransactionContext.currentTraceId());
+        response.put("transactionId", CpfTransactionContext.currentTransactionId());
+        response.put("traceId", CpfTransactionContext.currentTraceId());
         response.put("outboundHeaders", outboundHeaders);
         response.put("downstream", downstreamResponse);
         return ResponseEntity.ok(response);

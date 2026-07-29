@@ -3,8 +3,8 @@ package com.cpf.admin.opr.controller;
 import com.cpf.admin.opr.service.AdmAuditLogService;
 import com.cpf.common.cfg.dto.CommonConfigRequest;
 import com.cpf.common.cfg.service.ConfigCacheService;
-import com.cpf.core.common.execution.CpfOnlineTransaction;
-import com.cpf.core.common.logging.TransactionContext;
+import com.cpf.core.api.execution.CpfOnlineTransaction;
+import com.cpf.core.api.logging.CpfTransactionContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -59,7 +59,7 @@ public class AdmConfigController extends com.cpf.admin.common.base.AdmBaseContro
         String reason = auditLogService.requireReason(request.getReason());
         Map<String, Object> created = configCacheService.createConfig(request);
         auditLogService.record(
-                TransactionContext.getOrCreateTransactionId(),
+                CpfTransactionContext.transactionId(),
                 requestUser(servletRequest, request.getRequestUser()),
                 "CONFIG_CREATE",
                 "cpf_config",
@@ -83,7 +83,7 @@ public class AdmConfigController extends com.cpf.admin.common.base.AdmBaseContro
         Map<String, Object> before = configCacheService.getConfigById(configId);
         Map<String, Object> updated = configCacheService.updateConfig(configId, request);
         auditLogService.record(
-                TransactionContext.getOrCreateTransactionId(),
+                CpfTransactionContext.transactionId(),
                 requestUser(servletRequest, request.getRequestUser()),
                 "CONFIG_UPDATE",
                 "cpf_config",
@@ -108,7 +108,7 @@ public class AdmConfigController extends com.cpf.admin.common.base.AdmBaseContro
         Map<String, Object> before = configCacheService.getConfigById(configId);
         List<Map<String, Object>> latest = configCacheService.deleteConfig(configId).stream().map(this::maskSecret).toList();
         auditLogService.record(
-                TransactionContext.getOrCreateTransactionId(),
+                CpfTransactionContext.transactionId(),
                 requestUser(servletRequest, requestUser),
                 "CONFIG_DISABLE",
                 "cpf_config",

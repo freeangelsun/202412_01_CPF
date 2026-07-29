@@ -1,10 +1,10 @@
 package com.cpf.admin.opr.controller;
 
-import com.cpf.core.common.exception.CpfNotFoundException;
-import com.cpf.core.common.execution.CpfExecutionCatalogPort;
-import com.cpf.core.common.execution.CpfExecutionDefinition;
-import com.cpf.core.common.execution.CpfExecutionType;
-import com.cpf.core.common.execution.CpfOnlineTransaction;
+import com.cpf.core.api.error.CpfNotFoundException;
+import com.cpf.core.api.execution.CpfExecutionCatalogPort;
+import com.cpf.core.api.execution.CpfExecutionDefinition;
+import com.cpf.core.api.execution.CpfExecutionType;
+import com.cpf.core.api.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;

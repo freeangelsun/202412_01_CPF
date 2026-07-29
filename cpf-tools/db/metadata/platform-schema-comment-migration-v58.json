@@ -8,6 +8,10 @@
     "cpf-tools/db/vendor/mariadb/source/35_bat_schema.sql",
     "cpf-tools/db/vendor/mariadb/source/40_business_modules_schema.sql"
   ],
+  "artifactHashes": {
+    "forwardSha256": "07F95D87B62B5DABB892F9AFC184EA39AB1FDBABB9356AB76FD49FE7423A5C81",
+    "rollbackSha256": "98143B740CB623FCA5CF69599167111C61D74B7478F1A8E90FE67727E789ACB0"
+  },
   "changes": [
     {
       "schema": "cpfDB",

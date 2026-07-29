@@ -1,10 +1,14 @@
 package com.cpf.admin.opr.service;
 
-import com.cpf.core.common.logging.DynamicLogLevelRule;
-import com.cpf.core.common.logging.CpfLogLevel;
+import com.cpf.core.api.error.CpfBusinessException;
+import com.cpf.core.api.error.CpfErrorCode;
+import com.cpf.core.api.logging.DynamicLogLevelRule;
+import com.cpf.core.api.logging.CpfLogLevel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -25,36 +29,18 @@ public class AdmDynamicLogLevelRuleStore {
 
     public void save(DynamicLogLevelRule rule) {
         try {
-            admJdbcTemplate.update("""
-                    INSERT INTO adm_dynamic_log_level_rule (
-                        RULE_ID, TRANSACTION_ID, BUSINESS_TRANSACTION_ID, MODULE_ID, LOG_LEVEL,
-                        EXPIRE_AT, REASON, USE_YN, CREATED_BY, CREATED_AT, UPDATED_BY, UPDATED_AT
-                    )
-                    VALUES (?, ?, ?, ?, ?, ?, ?, 'Y', ?, ?, ?, ?)
-                    ON DUPLICATE KEY UPDATE
-                        TRANSACTION_ID = VALUES(TRANSACTION_ID),
-                        BUSINESS_TRANSACTION_ID = VALUES(BUSINESS_TRANSACTION_ID),
-                        MODULE_ID = VALUES(MODULE_ID),
-                        LOG_LEVEL = VALUES(LOG_LEVEL),
-                        EXPIRE_AT = VALUES(EXPIRE_AT),
-                        REASON = VALUES(REASON),
-                        USE_YN = 'Y',
-                        UPDATED_BY = VALUES(UPDATED_BY),
-                        UPDATED_AT = VALUES(UPDATED_AT)
-                    """,
-                    rule.ruleId(),
-                    rule.transactionId(),
-                    rule.businessTransactionId(),
-                    rule.moduleId(),
-                    rule.logLevel().name(),
-                    Timestamp.valueOf(rule.expiresAt()),
-                    rule.reason(),
-                    rule.createdBy(),
-                    Timestamp.valueOf(rule.createdAt()),
-                    rule.createdBy(),
-                    Timestamp.valueOf(LocalDateTime.now()));
-        } catch (Exception ex) {
-            log.warn("Failed to persist dynamic log-level rule. ruleId={}, message={}", rule.ruleId(), ex.getMessage());
+            LocalDateTime updatedAt = LocalDateTime.now();
+            if (updateRule(rule, updatedAt) == 0) {
+                try {
+                    insertRule(rule, updatedAt);
+                } catch (DuplicateKeyException concurrentInsert) {
+                    if (updateRule(rule, updatedAt) == 0) {
+                        throw concurrentInsert;
+                    }
+                }
+            }
+        } catch (DataAccessException ex) {
+            throw unavailable("adm_dynamic_log_level_rule.save", ex);
         }
     }
 
@@ -67,9 +53,8 @@ public class AdmDynamicLogLevelRuleStore {
                            UPDATED_AT = CURRENT_TIMESTAMP
                      WHERE RULE_ID = ?
                     """, requestUser, ruleId) > 0;
-        } catch (Exception ex) {
-            log.warn("Failed to disable dynamic log-level rule. ruleId={}, message={}", ruleId, ex.getMessage());
-            return false;
+        } catch (DataAccessException ex) {
+            throw unavailable("adm_dynamic_log_level_rule.disable", ex);
         }
     }
 
@@ -92,9 +77,8 @@ public class AdmDynamicLogLevelRuleStore {
                     rs.getString("CREATED_BY"),
                     toLocalDateTime(rs.getTimestamp("CREATED_AT")),
                     toLocalDateTime(rs.getTimestamp("EXPIRE_AT"))));
-        } catch (Exception ex) {
-            log.warn("Failed to query dynamic log-level rules. message={}", ex.getMessage());
-            return List.of();
+        } catch (DataAccessException ex) {
+            throw unavailable("adm_dynamic_log_level_rule.list", ex);
         }
     }
 
@@ -104,9 +88,68 @@ public class AdmDynamicLogLevelRuleStore {
                     "SELECT COUNT(*) FROM adm_dynamic_log_level_rule WHERE USE_YN = 'Y' AND EXPIRE_AT > CURRENT_TIMESTAMP",
                     Integer.class);
             return Map.of("available", true, "activeCount", count == null ? 0 : count);
-        } catch (Exception ex) {
-            return Map.of("available", false, "message", ex.getMessage());
+        } catch (DataAccessException ex) {
+            log.warn("ADM dynamic log-level persistence unavailable. failureType={}",
+                    ex.getClass().getSimpleName());
+            return Map.of(
+                    "available", false,
+                    "activeCount", 0,
+                    "reason", "ADM_DYNAMIC_LOG_LEVEL_STORE_UNAVAILABLE",
+                    "failureType", ex.getClass().getSimpleName());
         }
+    }
+
+    private CpfBusinessException unavailable(String component, DataAccessException ex) {
+        return new CpfBusinessException(
+                CpfErrorCode.INFRASTRUCTURE_UNAVAILABLE,
+                "ADM 동적 로그 레벨 저장소를 사용할 수 없습니다.",
+                Map.of("0", component, "1", ex.getClass().getSimpleName()));
+    }
+
+    private int updateRule(DynamicLogLevelRule rule, LocalDateTime updatedAt) {
+        return admJdbcTemplate.update("""
+                UPDATE adm_dynamic_log_level_rule
+                SET TRANSACTION_ID = ?,
+                    BUSINESS_TRANSACTION_ID = ?,
+                    MODULE_ID = ?,
+                    LOG_LEVEL = ?,
+                    EXPIRE_AT = ?,
+                    REASON = ?,
+                    USE_YN = 'Y',
+                    UPDATED_BY = ?,
+                    UPDATED_AT = ?
+                WHERE RULE_ID = ?
+                """,
+                rule.transactionId(),
+                rule.businessTransactionId(),
+                rule.moduleId(),
+                rule.logLevel().name(),
+                Timestamp.valueOf(rule.expiresAt()),
+                rule.reason(),
+                rule.createdBy(),
+                Timestamp.valueOf(updatedAt),
+                rule.ruleId());
+    }
+
+    private void insertRule(DynamicLogLevelRule rule, LocalDateTime updatedAt) {
+        admJdbcTemplate.update("""
+                INSERT INTO adm_dynamic_log_level_rule (
+                    RULE_ID, TRANSACTION_ID, BUSINESS_TRANSACTION_ID, MODULE_ID, LOG_LEVEL,
+                    EXPIRE_AT, REASON, USE_YN, CREATED_BY, CREATED_AT, UPDATED_BY, UPDATED_AT
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, 'Y', ?, ?, ?, ?)
+                """,
+                rule.ruleId(),
+                rule.transactionId(),
+                rule.businessTransactionId(),
+                rule.moduleId(),
+                rule.logLevel().name(),
+                Timestamp.valueOf(rule.expiresAt()),
+                rule.reason(),
+                rule.createdBy(),
+                Timestamp.valueOf(rule.createdAt()),
+                rule.createdBy(),
+                Timestamp.valueOf(updatedAt));
     }
 
     private LocalDateTime toLocalDateTime(Timestamp timestamp) {

@@ -41,8 +41,8 @@ pwsh -ExecutionPolicy Bypass -File .\cpf-tools\scripts\sync-database-artifacts.p
 # 3) Generator DB/MyBatis/SQL 변경을 기존 Generated Domain에 안전 적용
 pwsh -ExecutionPolicy Bypass -File .\cpf-tools\scripts\sync-generated-domain-artifacts.ps1 -Scope Database -Apply
 
-# 4) EXS는 baseline에 두지 않고 검증할 때만 생성→검증→삭제
-pwsh -ExecutionPolicy Bypass -File .\cpf-tools\scripts\verify-exs-generated-domain-lifecycle.ps1
+# 4) 고정 Domain 목록 없이 서로 다른 임의 Metadata로 생성 구조 parity 검증
+pwsh -ExecutionPolicy Bypass -File .\cpf-tools\scripts\check-generator-arbitrary-domain-parity.ps1
 
 # 5) 여러 개발 작업을 누적한 뒤 한 번의 전체 검증
 pwsh -ExecutionPolicy Bypass -File .\cpf-tools\scripts\verify-full-product.ps1 -WithDatabase -WithGeneratorLifecycle -WithBrowser -RequireAll -Profile local

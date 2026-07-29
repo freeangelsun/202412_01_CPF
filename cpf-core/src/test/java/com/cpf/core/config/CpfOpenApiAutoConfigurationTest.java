@@ -1,5 +1,7 @@
 package com.cpf.core.config;
 
+import com.cpf.core.api.execution.CpfOnlineTransaction;
+import com.cpf.core.common.header.CpfHeaderNames;
 import com.cpf.core.common.logging.CpfTransaction;
 import io.swagger.v3.oas.models.Operation;
 import org.junit.jupiter.api.Test;
@@ -62,6 +64,58 @@ class CpfOpenApiAutoConfigurationTest {
     }
 
     @Test
+    void publicOnlineTransactionAddsStandardExecutionHeaders() throws Exception {
+        Operation operation = new Operation();
+
+        configuration.cpfTransactionHeaderOperationCustomizer().customize(
+                operation,
+                handlerMethod("executePublic", String.class));
+
+        assertThat(operation.getParameters())
+                .extracting(io.swagger.v3.oas.models.parameters.Parameter::getName)
+                .contains(
+                        CpfHeaderNames.TRANSACTION_ID,
+                        CpfHeaderNames.STANDARD_EXECUTION_ID,
+                        CpfHeaderNames.PROTOCOL_VERSION);
+        assertThat(operation.getParameters())
+                .filteredOn(parameter -> CpfHeaderNames.STANDARD_EXECUTION_ID.equals(parameter.getName()))
+                .singleElement()
+                .satisfies(parameter -> assertThat(parameter.getDescription()).contains("OPUB-TST-0001"));
+    }
+
+    @Test
+    void legacyOnlineTransactionRemainsSupported() throws Exception {
+        Operation operation = new Operation();
+
+        configuration.cpfTransactionHeaderOperationCustomizer().customize(
+                operation,
+                handlerMethod("executeLegacy", String.class));
+
+        assertThat(operation.getParameters())
+                .extracting(io.swagger.v3.oas.models.parameters.Parameter::getName)
+                .contains(
+                        CpfHeaderNames.TRANSACTION_ID,
+                        CpfHeaderNames.STANDARD_EXECUTION_ID,
+                        CpfHeaderNames.PROTOCOL_VERSION);
+    }
+
+    @Test
+    void publicOnlineTransactionTakesPrecedenceOverLegacyAnnotation() throws Exception {
+        Operation operation = new Operation();
+
+        configuration.cpfTransactionHeaderOperationCustomizer().customize(
+                operation,
+                handlerMethod("executeDual", String.class));
+
+        assertThat(operation.getParameters())
+                .filteredOn(parameter -> CpfHeaderNames.STANDARD_EXECUTION_ID.equals(parameter.getName()))
+                .singleElement()
+                .satisfies(parameter -> assertThat(parameter.getDescription())
+                        .contains("OPUB-TST-0002")
+                        .doesNotContain("OLEG-TST-0002"));
+    }
+
+    @Test
     void standardErrorResponsesReferenceSharedSchema() throws Exception {
         Operation operation = new Operation();
 
@@ -87,6 +141,26 @@ class CpfOpenApiAutoConfigurationTest {
         @CpfTransaction(id = "CPF01API0001", name = "OpenAPI 거래 헤더 테스트")
         @SuppressWarnings("unused")
         public void execute(String value) {
+        }
+
+        @CpfOnlineTransaction(id = "OPUB-TST-0001", name = "Public 온라인 거래")
+        @SuppressWarnings("unused")
+        public void executePublic(String value) {
+        }
+
+        @com.cpf.core.common.execution.CpfOnlineTransaction(
+                id = "OLEG-TST-0001",
+                name = "Legacy 온라인 거래")
+        @SuppressWarnings("unused")
+        public void executeLegacy(String value) {
+        }
+
+        @CpfOnlineTransaction(id = "OPUB-TST-0002", name = "Public 우선 거래")
+        @com.cpf.core.common.execution.CpfOnlineTransaction(
+                id = "OLEG-TST-0002",
+                name = "Legacy 후순위 거래")
+        @SuppressWarnings("unused")
+        public void executeDual(String value) {
         }
 
         @SuppressWarnings("unused")

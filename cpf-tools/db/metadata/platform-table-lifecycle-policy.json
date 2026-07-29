@@ -149,20 +149,35 @@
       "requiredColumns": ["job_pack_id", "job_id"],
       "reason": "Job entries are a cascade-owned projection of their immutable job-pack manifest."
     },
-    "mbr_member_no_sequence": {
-      "policyId": "sequence",
-      "requiredColumns": ["requested_by", "requested_at"],
-      "reason": "The allocation request itself is the immutable audit record."
+    "cpf_cache_invalidation_checkpoint": {
+      "policyId": "semantic-lifecycle",
+      "requiredColumns": ["consumer_id", "last_event_id", "updated_at"],
+      "reason": "The durable consumer cursor and update time are the authoritative replay lifecycle."
     },
-    "mbr_member_no_issue_history": {
+    "cpf_cache_invalidation_event": {
       "policyId": "immutable-event",
-      "requiredColumns": ["issued_by", "issued_at"],
-      "reason": "Member-number issuance is immutable evidence of issuer and issue time."
+      "requiredColumns": ["requested_by", "created_at"],
+      "reason": "Cache invalidation events are append-only evidence attributed to their requester."
     },
-    "mbr_member_role_operation": {
+    "cpf_notification_delivery_attempt": {
       "policyId": "immutable-event",
-      "requiredColumns": ["created_by", "created_at", "completed_at"],
-      "reason": "Idempotent role-operation evidence records initiator, request time and completion time."
+      "requiredColumns": ["created_by", "created_at"],
+      "reason": "Each provider call attempt is immutable delivery evidence."
+    },
+    "cpf_runtime_change_audit": {
+      "policyId": "immutable-event",
+      "requiredColumns": ["actor_id", "created_at"],
+      "reason": "Runtime control audit rows are immutable hash-chain events attributed to an actor."
+    },
+    "adm_file_job": {
+      "policyId": "semantic-lifecycle",
+      "requiredColumns": ["requested_by", "created_at", "updated_at"],
+      "reason": "Requester and job lifecycle timestamps are the authoritative file-job audit fields."
+    },
+    "adm_file_job_row": {
+      "policyId": "projection",
+      "requiredColumns": ["job_id", "row_no", "created_at", "updated_at"],
+      "reason": "Row outcomes are lifecycle projections owned by their file job."
     },
     "bza_audit_chain_lock": {
       "policyId": "lease",

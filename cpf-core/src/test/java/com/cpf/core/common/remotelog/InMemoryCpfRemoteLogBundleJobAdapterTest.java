@@ -1,5 +1,12 @@
 package com.cpf.core.common.remotelog;
 
+import com.cpf.core.api.remotelog.CpfRemoteLogArtifact;
+import com.cpf.core.api.remotelog.CpfRemoteLogArtifactPort;
+import com.cpf.core.api.remotelog.CpfRemoteLogArtifactSearch;
+import com.cpf.core.api.remotelog.CpfRemoteLogBundle;
+import com.cpf.core.api.remotelog.CpfRemoteLogBundleJob;
+import com.cpf.core.api.remotelog.CpfRemoteLogDownloadGrant;
+import com.cpf.core.api.remotelog.CpfRemoteLogPreview;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 

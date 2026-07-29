@@ -1,7 +1,7 @@
 package com.cpf.admin.opr.controller;
 
 import com.cpf.admin.common.base.AdmBaseController;
-import com.cpf.core.common.version.CpfPlatformVersion;
+import com.cpf.core.api.version.CpfPlatformVersion;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;

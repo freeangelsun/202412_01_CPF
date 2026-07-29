@@ -15,6 +15,10 @@ $Root = (Resolve-Path -LiteralPath $Root).Path
 $centralContractPath = Join-Path $Root 'cpf-tools/generator/contracts/central-domain-template-contract.json'
 $centralContract = Get-Content -LiteralPath $centralContractPath -Raw -Encoding UTF8 |
         ConvertFrom-Json
+$supportedVendors = @($centralContract.supportedVendors | Sort-Object -Unique)
+if ($supportedVendors.Count -eq 0) {
+    throw 'Generated Domain 중앙 계약의 supportedVendors가 비어 있습니다.'
+}
 $vendorMarkers = [ordered]@{}
 foreach ($vendorDependency in $centralContract.buildRuntimeContract.vendors.PSObject.Properties) {
     $vendorMarkers[$vendorDependency.Name] = [string]$vendorDependency.Value.jdbcDriver
@@ -39,9 +43,7 @@ $matrix = @(
     [ordered]@{ domain = 'securityenabled'; code = 'SCE'; name = 'SecurityEnabled'; database = 'Y'; vendor = 'mariadb'; batch = 'N'; external = 'N'; messaging = 'N'; file = 'N'; security = 'Y'; ui = 'N' },
     [ordered]@{ domain = 'uienabled'; code = 'UIE'; name = 'UiEnabled'; database = 'Y'; vendor = 'mariadb'; batch = 'N'; external = 'N'; messaging = 'N'; file = 'N'; security = 'N'; ui = 'Y' },
     [ordered]@{ domain = 'postgresqlsample'; code = 'PGS'; name = 'PostgresqlSample'; database = 'Y'; vendor = 'postgresql'; batch = 'N'; external = 'N'; messaging = 'N'; file = 'N'; security = 'N'; ui = 'N' },
-    [ordered]@{ domain = 'mysqlsample'; code = 'MYS'; name = 'MysqlSample'; database = 'Y'; vendor = 'mysql'; batch = 'N'; external = 'N'; messaging = 'N'; file = 'N'; security = 'N'; ui = 'N' },
     [ordered]@{ domain = 'oraclesample'; code = 'ORS'; name = 'OracleSample'; database = 'Y'; vendor = 'oracle'; batch = 'N'; external = 'N'; messaging = 'N'; file = 'N'; security = 'N'; ui = 'N' },
-    [ordered]@{ domain = 'sqlserversample'; code = 'SQS'; name = 'SqlserverSample'; database = 'Y'; vendor = 'sqlserver'; batch = 'N'; external = 'N'; messaging = 'N'; file = 'N'; security = 'N'; ui = 'N' },
     [ordered]@{ domain = 'payment'; code = 'PAY'; name = 'Payment'; package = 'com.cpf.payment'; schema = 'payDB'; prefix = 'pay'; database = 'Y'; vendor = 'mariadb'; batch = 'N'; external = 'Y'; messaging = 'N'; file = 'N'; security = 'Y'; ui = 'N' },
     [ordered]@{ domain = 'insurance'; code = 'INS'; name = 'Insurance'; package = 'com.cpf.insurance'; schema = 'insDB'; prefix = 'ins'; database = 'Y'; vendor = 'postgresql'; batch = 'N'; external = 'Y'; messaging = 'N'; file = 'N'; security = 'Y'; ui = 'N' }
 )
@@ -153,7 +155,7 @@ try {
         $javaBase = "src/main/java/com/cpf/$($case.domain)"
         $testBase = "src/test/java/com/cpf/$($case.domain)"
         Assert-Exists $moduleDir "$javaBase/config/$($case.name)DataSourceConfig.java" ($case.database -eq 'Y')
-        foreach ($resourceVendor in @('mariadb', 'mysql', 'postgresql', 'oracle', 'sqlserver')) {
+        foreach ($resourceVendor in $supportedVendors) {
             foreach ($resourcePath in @(
                     "src/main/resources/db/vendor/$resourceVendor/provision/01_provision.sql",
                     "src/main/resources/db/vendor/$resourceVendor/install/10_empty_install.sql",
@@ -228,7 +230,7 @@ try {
             foreach ($requiredColumn in @(
                     'sample_item_id', 'sample_key', 'item_name', 'version_no',
                     'idempotency_key', 'transaction_id', 'transaction_sequence', 'transaction_at')) {
-                foreach ($templateVendor in @('mariadb', 'mysql', 'postgresql', 'oracle', 'sqlserver')) {
+                foreach ($templateVendor in $supportedVendors) {
                     $installText = [IO.File]::ReadAllText(
                         (Join-Path $sandbox "cpf-tools/db/vendor/$templateVendor/domain-template/install/10_empty_install.sql.template"),
                         [Text.Encoding]::UTF8)
@@ -370,7 +372,7 @@ subprojects {
     }
 
     $vendorParityHashes = [ordered]@{}
-    foreach ($resourceVendor in @('mariadb', 'mysql', 'postgresql', 'oracle', 'sqlserver')) {
+    foreach ($resourceVendor in $supportedVendors) {
         $vendorParityCase = [ordered]@{
             domain = 'vendorparity'; code = 'VPT'; name = 'VendorParity';
             database = 'Y'; vendor = $resourceVendor; batch = 'N'; external = 'N';

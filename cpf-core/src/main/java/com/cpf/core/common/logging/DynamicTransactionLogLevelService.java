@@ -1,5 +1,9 @@
 package com.cpf.core.common.logging;
 
+import com.cpf.core.api.logging.CpfDynamicLogLevelOperations;
+import com.cpf.core.api.logging.CpfLogLevel;
+import com.cpf.core.api.logging.DynamicLogLevelRequest;
+import com.cpf.core.api.logging.DynamicLogLevelRule;
 import com.cpf.core.common.exception.CpfFrameworkErrorCode;
 import com.cpf.core.common.exception.CpfFrameworkException;
 import org.springframework.stereotype.Service;
@@ -21,7 +25,7 @@ import java.util.concurrent.ConcurrentMap;
  * 현재 클래스는 실제 로그 출력 전에 적용할 최종 런타임 규칙을 결정하는 책임만 가집니다.</p>
  */
 @Service
-public class DynamicTransactionLogLevelService {
+public class DynamicTransactionLogLevelService implements CpfDynamicLogLevelOperations {
     private final ConcurrentMap<String, DynamicLogLevelRule> rules = new ConcurrentHashMap<>();
 
     /**
@@ -146,4 +150,3 @@ public class DynamicTransactionLogLevelService {
         return value != null && !value.isBlank();
     }
 }
-

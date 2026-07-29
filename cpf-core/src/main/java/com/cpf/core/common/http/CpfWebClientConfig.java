@@ -8,8 +8,8 @@ import com.cpf.core.common.workflow.CpfWorkflowContext;
 import io.netty.channel.ChannelOption;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.web.client.RestClientCustomizer;
-import org.springframework.boot.web.client.RestTemplateCustomizer;
+import org.springframework.boot.restclient.RestClientCustomizer;
+import org.springframework.boot.restclient.RestTemplateCustomizer;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -132,12 +132,12 @@ public class CpfWebClientConfig {
             ClientRequest.Builder requestBuilder = ClientRequest.from(request);
 
             for (Map.Entry<String, String> header : CpfHeaderPropagator.outboundHeaders().entrySet()) {
-                if (hasText(header.getValue()) && !request.headers().containsKey(header.getKey())) {
+                if (hasText(header.getValue()) && !request.headers().containsHeader(header.getKey())) {
                     requestBuilder.header(header.getKey(), header.getValue());
                 }
             }
             for (Map.Entry<String, String> header : CpfWorkflowContext.propagationHeaders().entrySet()) {
-                if (hasText(header.getValue()) && !request.headers().containsKey(header.getKey())) {
+                if (hasText(header.getValue()) && !request.headers().containsHeader(header.getKey())) {
                     requestBuilder.header(header.getKey(), header.getValue());
                 }
             }

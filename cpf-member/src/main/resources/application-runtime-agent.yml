@@ -1,0 +1,22 @@
+# Runtime Control Agent는 명시적으로 runtime-agent profile을 활성화한 배포에서만 동작합니다.
+spring:
+  config:
+    activate:
+      on-profile: runtime-agent
+
+cpf:
+  runtime:
+    instance-id: ${CPF_RUNTIME_INSTANCE_ID}
+    service-id: ${CPF_RUNTIME_SERVICE_ID:MBR}
+    endpoint-code: ${CPF_RUNTIME_ENDPOINT_CODE:MBR}
+    base-url: ${CPF_RUNTIME_BASE_URL}
+    environment: ${CPF_RUNTIME_ENVIRONMENT:${spring.profiles.active:default}}
+    zone: ${CPF_RUNTIME_ZONE:}
+    cell: ${CPF_RUNTIME_CELL:}
+    role: ${CPF_RUNTIME_ROLE:APPLICATION}
+    control:
+      base-url: ${CPF_RUNTIME_CONTROL_BASE_URL}
+      agent-token: ${CPF_RUNTIME_CONTROL_AGENT_TOKEN}
+      agent:
+        enabled: true
+        inbox-path: ${CPF_RUNTIME_AGENT_INBOX:${java.io.tmpdir}/cpf-runtime-inbox}

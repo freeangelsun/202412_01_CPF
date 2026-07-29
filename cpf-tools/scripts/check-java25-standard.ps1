@@ -14,18 +14,40 @@ $OutputEncoding = $CpfUtf8ConsoleEncoding
 $ErrorActionPreference = "Stop"
 $Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
 $ExpectedMajor = 69
+$buildFiles = @(
+    Get-ChildItem -LiteralPath $Root -Recurse -File -Filter "build.gradle" |
+        Where-Object {
+            $relative = $_.FullName.Substring($Root.Length + 1).Replace("\", "/")
+            $relative -notmatch '(^|/)(?:\.git|\.gradle|build|node_modules|local-domains)(?:/|$)' -and
+                $relative -notmatch '^cpf-batch/src/'
+        }
+)
 $Modules = @(
-    "cpf-core", "cpf-common", "cpf-member", "cpf-reference", "cpf-admin",
-    "cpf-biz-admin", "cpf-account", "cpf-gateway",
-    "cpf-batch/contract", "cpf-batch/runtime-common", "cpf-batch/control-server",
-    "cpf-batch/scheduler", "cpf-batch/worker", "cpf-batch/center-cut-runner",
-    "cpf-batch/host-agent", "cpf-batch/testkit"
+    $buildFiles |
+        Where-Object {
+            Test-Path -LiteralPath (Join-Path $_.Directory.FullName "src/main/java") -PathType Container
+        } |
+        ForEach-Object {
+            $_.Directory.FullName.Substring($Root.Length + 1).Replace("\", "/")
+        } |
+        Sort-Object -Unique
 )
 $BootModules = @(
-    "cpf-admin", "cpf-biz-admin", "cpf-member", "cpf-reference", "cpf-account", "cpf-gateway",
-    "cpf-batch/control-server", "cpf-batch/scheduler", "cpf-batch/worker",
-    "cpf-batch/center-cut-runner", "cpf-batch/host-agent"
+    $buildFiles |
+        Where-Object {
+            $sourceRoot = Join-Path $_.Directory.FullName "src/main/java"
+            if (-not (Test-Path -LiteralPath $sourceRoot -PathType Container)) { return $false }
+            $text = [System.IO.File]::ReadAllText($_.FullName, [System.Text.Encoding]::UTF8)
+            return $text -match '(?m)\bid\s+[''"]org\.springframework\.boot[''"]'
+        } |
+        ForEach-Object {
+            $_.Directory.FullName.Substring($Root.Length + 1).Replace("\", "/")
+        } |
+        Sort-Object -Unique
 )
+if ($Modules.Count -eq 0 -or $BootModules.Count -eq 0) {
+    throw "Gradle Source/Boot Module 자동 발견 결과가 비어 있습니다."
+}
 $failures = New-Object System.Collections.Generic.List[string]
 $classRows = New-Object System.Collections.Generic.List[object]
 $bootRows = New-Object System.Collections.Generic.List[object]
@@ -65,10 +87,20 @@ if ($LASTEXITCODE -ne 0 -or $javaVersion.Count -eq 0 -or $javaVersion[0] -notmat
 
 $buildPath = Join-Path $Root "build.gradle"
 $buildText = [System.IO.File]::ReadAllText($buildPath, [System.Text.Encoding]::UTF8)
-if ($buildText -notmatch 'languageVersion\s*=\s*JavaLanguageVersion\.of\(25\)') {
+$stackPath = Join-Path $Root "gradle/cpf-stack.properties"
+$stackProperties = @{}
+foreach ($line in Get-Content -LiteralPath $stackPath -Encoding UTF8) {
+    if ($line -match '^\s*([^#][^=]*)=(.*)$') {
+        $stackProperties[$Matches[1].Trim()] = $Matches[2].Trim()
+    }
+}
+if ([string]$stackProperties.javaVersion -ne "25") {
+    $failures.Add("gradle/cpf-stack.properties javaVersion must be 25.") | Out-Null
+}
+if ($buildText -notmatch 'languageVersion\s*=\s*JavaLanguageVersion\.of\(rootProject\.ext\.cpfJavaVersion\)') {
     $failures.Add("Java toolchain 25 is missing from build.gradle.") | Out-Null
 }
-if ($buildText -notmatch 'options\.release\s*=\s*25') {
+if ($buildText -notmatch 'options\.release\s*=\s*rootProject\.ext\.cpfJavaVersion') {
     $failures.Add("Java release 25 is missing from build.gradle.") | Out-Null
 }
 if ($buildText -match 'options\.release\s*=\s*(?:8|11|17|21)') {

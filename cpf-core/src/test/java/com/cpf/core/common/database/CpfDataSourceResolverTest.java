@@ -71,19 +71,16 @@ class CpfDataSourceResolverTest {
     void exposesAllSupportedVendorResourceContracts() {
         assertThat(CpfDatabaseVendor.values())
                 .extracting(CpfDatabaseVendor::id)
-                .containsExactly("mariadb", "mysql", "postgresql", "oracle", "sqlserver");
+                .containsExactly("mariadb", "postgresql", "oracle");
         assertThat(CpfDatabaseVendor.MARIADB.jdbcUrl("localhost", null, "cpfDB"))
                 .isEqualTo("jdbc:mariadb://localhost:3306/cpfDB");
-        assertThat(CpfDatabaseVendor.MYSQL.jdbcUrl("localhost", null, "cpfDB"))
-                .isEqualTo("jdbc:mysql://localhost:3306/cpfDB");
         assertThat(CpfDatabaseVendor.POSTGRESQL.jdbcUrl("localhost", null, "cpfDB"))
                 .isEqualTo("jdbc:postgresql://localhost:5432/cpfDB");
         assertThat(CpfDatabaseVendor.ORACLE.jdbcUrl("localhost", null, "CPF"))
                 .isEqualTo("jdbc:oracle:thin:@//localhost:1521/CPF");
-        assertThat(CpfDatabaseVendor.SQLSERVER.jdbcUrl("localhost", null, "cpfDB"))
-                .isEqualTo("jdbc:sqlserver://localhost:1433;databaseName=cpfDB");
         assertThat(CpfDatabaseVendor.MARIADB.springBatchDatabaseType()).isEqualTo("MARIADB");
-        assertThat(CpfDatabaseVendor.MYSQL.springBatchDatabaseType()).isEqualTo("MYSQL");
+        assertThat(CpfDatabaseVendor.POSTGRESQL.springBatchDatabaseType()).isEqualTo("POSTGRES");
+        assertThat(CpfDatabaseVendor.ORACLE.springBatchDatabaseType()).isEqualTo("ORACLE");
     }
 
     @Test

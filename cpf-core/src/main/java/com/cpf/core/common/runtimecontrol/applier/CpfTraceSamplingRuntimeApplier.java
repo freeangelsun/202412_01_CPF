@@ -4,6 +4,7 @@ import com.cpf.core.api.runtimecontrol.CpfRuntimeApplyResult;
 import com.cpf.core.api.runtimecontrol.CpfRuntimeChangeApplier;
 import com.cpf.core.api.runtimecontrol.CpfRuntimeDelivery;
 import com.cpf.core.common.logging.CpfTraceSamplingPolicy;
+import com.cpf.core.common.runtimecontrol.CpfRuntimePayloadJson;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -24,11 +25,19 @@ public final class CpfTraceSamplingRuntimeApplier implements CpfRuntimeChangeApp
     @Override
     public CpfRuntimeApplyResult apply(CpfRuntimeDelivery delivery) {
         try {
-            long version = number(delivery.payload().get("version"), delivery.desiredVersion());
-            double defaultRate = decimal(delivery.payload().get("defaultRate"), 1.0d);
-            boolean alwaysSampleErrors = bool(delivery.payload().get("alwaysSampleErrors"), true);
-            Map<String, Double> moduleRates = rates(delivery.payload().get("moduleRates"));
-            Map<String, Double> transactionRates = rates(delivery.payload().get("businessTransactionRates"));
+            long version = number(
+                    CpfRuntimePayloadJson.value(delivery.payload(), "version"),
+                    delivery.desiredVersion());
+            double defaultRate = decimal(
+                    CpfRuntimePayloadJson.value(delivery.payload(), "defaultRate"),
+                    1.0d);
+            boolean alwaysSampleErrors = bool(
+                    CpfRuntimePayloadJson.value(delivery.payload(), "alwaysSampleErrors"),
+                    true);
+            Map<String, Double> moduleRates = rates(
+                    CpfRuntimePayloadJson.value(delivery.payload(), "moduleRates"));
+            Map<String, Double> transactionRates = rates(
+                    CpfRuntimePayloadJson.value(delivery.payload(), "businessTransactionRates"));
             CpfTraceSamplingPolicy.Snapshot applied = policy.replace(
                     version, defaultRate, moduleRates, transactionRates, alwaysSampleErrors);
             if (applied.version() != version) {

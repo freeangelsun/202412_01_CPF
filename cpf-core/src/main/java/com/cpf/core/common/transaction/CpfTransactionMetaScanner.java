@@ -1,7 +1,8 @@
 package com.cpf.core.common.transaction;
 
+import com.cpf.core.api.execution.CpfOnlineTransaction;
+import com.cpf.core.api.transaction.CpfTransactionMetaScanResult;
 import com.cpf.core.common.logging.CpfTransaction;
-import com.cpf.core.common.execution.CpfOnlineTransaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.annotation.AnnotatedElementUtils;
@@ -80,13 +81,26 @@ public class CpfTransactionMetaScanner {
     }
 
     private OnlineMetadata findTransaction(HandlerMethod handlerMethod) {
-        CpfOnlineTransaction standard = AnnotatedElementUtils.findMergedAnnotation(
+        CpfOnlineTransaction publicStandard = AnnotatedElementUtils.findMergedAnnotation(
                 handlerMethod.getMethod(), CpfOnlineTransaction.class);
-        if (standard == null) {
-            standard = AnnotatedElementUtils.findMergedAnnotation(handlerMethod.getBeanType(), CpfOnlineTransaction.class);
+        if (publicStandard == null) {
+            publicStandard = AnnotatedElementUtils.findMergedAnnotation(
+                    handlerMethod.getBeanType(), CpfOnlineTransaction.class);
         }
-        if (standard != null) {
-            return new OnlineMetadata(standard.id(), standard.name());
+        if (publicStandard != null) {
+            return new OnlineMetadata(publicStandard.id(), publicStandard.name());
+        }
+        com.cpf.core.common.execution.CpfOnlineTransaction legacyStandard =
+                AnnotatedElementUtils.findMergedAnnotation(
+                        handlerMethod.getMethod(),
+                        com.cpf.core.common.execution.CpfOnlineTransaction.class);
+        if (legacyStandard == null) {
+            legacyStandard = AnnotatedElementUtils.findMergedAnnotation(
+                    handlerMethod.getBeanType(),
+                    com.cpf.core.common.execution.CpfOnlineTransaction.class);
+        }
+        if (legacyStandard != null) {
+            return new OnlineMetadata(legacyStandard.id(), legacyStandard.name());
         }
         CpfTransaction methodAnnotation = AnnotatedElementUtils.findMergedAnnotation(handlerMethod.getMethod(), CpfTransaction.class);
         if (methodAnnotation != null) {
@@ -123,12 +137,7 @@ public class CpfTransactionMetaScanner {
 
     private List<String> paths(RequestMappingInfo info) {
         Set<String> paths = new TreeSet<>();
-        if (info.getPathPatternsCondition() != null) {
-            paths.addAll(info.getPathPatternsCondition().getPatternValues());
-        }
-        if (info.getPatternsCondition() != null) {
-            paths.addAll(info.getPatternsCondition().getPatterns());
-        }
+        paths.addAll(info.getPatternValues());
         if (paths.isEmpty()) {
             paths.add("/");
         }

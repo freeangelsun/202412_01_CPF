@@ -37,11 +37,6 @@
       "repository": "미구현",
       "mybatis": "부분 구현"
     },
-    "adm": {
-      "ownerArtifact": "cpf-admin",
-      "repository": "미구현",
-      "mybatis": "미구현"
-    },
     "bza": {
       "ownerArtifact": "cpf-biz-admin",
       "repository": "부분 구현",
@@ -51,23 +46,6 @@
       "ownerArtifact": "cpf-batch",
       "repository": "부분 구현",
       "mybatis": "미구현"
-    },
-    "gwy": {
-      "ownerArtifact": "cpf-gateway",
-      "repository": "미구현",
-      "mybatis": "미구현"
-    },
-    "mbr": {
-      "ownerArtifact": "cpf-member",
-      "repository": "미구현",
-      "mybatis": "부분 구현",
-      "lifecycle": "GENERATOR_PARITY_REFERENCE"
-    },
-    "acc": {
-      "ownerArtifact": "cpf-account",
-      "repository": "미구현",
-      "mybatis": "부분 구현",
-      "lifecycle": "RETIRE_AFTER_CONSUMER_MIGRATION"
     },
     "ref": {
       "ownerArtifact": "cpf-reference",
@@ -97,13 +75,15 @@
       "CPF_MODULE_NAME",
       "CPF_PACKAGE_NAME",
       "CPF_MAPPER_NAMESPACE",
-      "CPF_MAPPER_NAME"
+      "CPF_MAPPER_NAME",
+      "CPF_RESULT_TYPE",
+      "CPF_IDEMPOTENCY_RESULT_TYPE"
     ],
     "transactionIdentity": "transactionId",
     "referenceInstance": "cpf-reference EDU + central Golden Generated Domain template",
     "defaultSampleTable": "${TablePrefix}_sample_item",
     "databaseBootstrapScript": "cpf-tools/scripts/initialize-domain-database.ps1",
     "fixedDomainNamesAllowed": false,
-    "externalDomainPolicy": "EXS must be generated exactly like PAY/INS/CRM"
+    "arbitraryDomainPolicy": "Every generated domain uses the same metadata-driven central template."
   }
 }

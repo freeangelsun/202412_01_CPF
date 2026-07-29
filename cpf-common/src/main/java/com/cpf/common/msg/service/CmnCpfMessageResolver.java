@@ -1,8 +1,8 @@
 package com.cpf.common.msg.service;
 
-import com.cpf.core.common.exception.CpfErrorDefinition;
-import com.cpf.core.common.exception.CpfMessageResolver;
-import com.cpf.core.common.exception.CpfResolvedMessage;
+import com.cpf.core.api.error.CpfErrorDefinition;
+import com.cpf.core.api.error.CpfMessageResolver;
+import com.cpf.core.api.error.CpfResolvedMessage;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;

@@ -1,0 +1,30 @@
+INSERT INTO bza_login_history (
+    admin_user_id,
+    login_domain,
+    admin_login_id,
+    login_result,
+    failure_reason,
+    client_ip,
+    user_agent,
+    transaction_id,
+    module_id,
+    was_id,
+    server_instance_id,
+    created_by,
+    updated_by
+)
+VALUES (
+    :adminUserId,
+    :loginDomain,
+    :adminLoginId,
+    :loginResult,
+    :failureReason,
+    :clientIp,
+    :userAgent,
+    :transactionId,
+    :moduleId,
+    :wasId,
+    :serverInstanceId,
+    'BZA_AUTH',
+    'BZA_AUTH'
+)

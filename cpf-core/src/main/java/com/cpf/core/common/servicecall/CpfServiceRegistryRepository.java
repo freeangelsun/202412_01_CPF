@@ -2,7 +2,7 @@ package com.cpf.core.common.servicecall;
 
 import com.cpf.core.api.servicecall.CpfServiceRegistryControlPort;
 import com.cpf.core.common.runtimecontrol.CpfRuntimeCanonicalHash;
-import com.cpf.core.common.runtimecontrol.CpfRuntimeVersionConflictException;
+import com.cpf.core.api.runtimecontrol.CpfRuntimeVersionConflictException;
 
 import com.cpf.core.common.logging.TransactionContext;
 import org.springframework.beans.factory.ObjectProvider;

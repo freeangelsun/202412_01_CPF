@@ -1,10 +1,10 @@
 package com.cpf.reference.logging.controller;
 
-import com.cpf.core.common.logging.DynamicLogLevelRequest;
-import com.cpf.core.common.logging.DynamicLogLevelRule;
-import com.cpf.core.common.logging.DynamicTransactionLogLevelService;
-import com.cpf.core.common.logging.CpfLogLevel;
-import com.cpf.core.common.execution.CpfOnlineTransaction;
+import com.cpf.core.api.logging.DynamicLogLevelRequest;
+import com.cpf.core.api.logging.DynamicLogLevelRule;
+import com.cpf.core.api.logging.CpfDynamicLogLevelOperations;
+import com.cpf.core.api.logging.CpfLogLevel;
+import com.cpf.core.api.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
@@ -27,9 +27,9 @@ import java.util.Map;
 @RequestMapping({"/api/reference", "/reference/edu"})
 @Tag(name = "REF Reference 10. 동적 로그", description = "거래별 로그 레벨을 운영 중 임시로 높이는 교육 샘플")
 public class ReferenceDynamicLogEducationController extends com.cpf.reference.common.base.ReferenceBaseController {
-    private final DynamicTransactionLogLevelService dynamicLogLevelService;
+    private final CpfDynamicLogLevelOperations dynamicLogLevelService;
 
-    public ReferenceDynamicLogEducationController(DynamicTransactionLogLevelService dynamicLogLevelService) {
+    public ReferenceDynamicLogEducationController(CpfDynamicLogLevelOperations dynamicLogLevelService) {
         this.dynamicLogLevelService = dynamicLogLevelService;
     }
 
@@ -72,4 +72,3 @@ public class ReferenceDynamicLogEducationController extends com.cpf.reference.co
         return ResponseEntity.ok(response);
     }
 }
-

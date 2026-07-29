@@ -1,5 +1,7 @@
 package com.cpf.core.common.broker;
 
+import com.cpf.core.api.broker.CpfBrokerBridgeMessage;
+import com.cpf.core.api.broker.CpfBrokerBridgeResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;

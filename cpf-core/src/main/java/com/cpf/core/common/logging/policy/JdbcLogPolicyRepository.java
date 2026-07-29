@@ -1,10 +1,17 @@
 package com.cpf.core.common.logging.policy;
 
+import com.cpf.core.api.logging.policy.LogPolicyDecision;
+import com.cpf.core.api.logging.policy.LogPolicyTargetType;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.ColumnMapRowMapper;
 
 import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -42,7 +49,7 @@ public class JdbcLogPolicyRepository implements LogPolicyRepository {
             args.add(LogPolicyDecision.normalizeTargetId(targetId));
             args.add(now);
             args.add(now);
-            List<Map<String, Object>> rows = jdbc().queryForList("""
+            List<Map<String, Object>> rows = queryForListLimited("""
                     SELECT override_id, policy_id, target_type, target_id, log_level,
                            db_log_enabled_yn, file_log_enabled_yn, request_body_log_yn,
                            response_body_log_yn, error_stack_log_yn, masking_policy_key
@@ -53,8 +60,7 @@ public class JdbcLogPolicyRepository implements LogPolicyRepository {
                       AND effective_start_at <= ?
                       AND effective_end_at >= ?
                     ORDER BY CASE WHEN target_id = ? THEN 0 ELSE 1 END, override_id DESC
-                    LIMIT 1
-                    """.formatted(targetTypePlaceholders), appendExactTarget(args, targetId).toArray());
+                    """.formatted(targetTypePlaceholders), appendExactTarget(args, targetId), 1);
             return rows.stream().findFirst().map(row -> toRow(row, "ADM_OVERRIDE"));
         } catch (DataAccessException ex) {
             return Optional.empty();
@@ -70,7 +76,7 @@ public class JdbcLogPolicyRepository implements LogPolicyRepository {
             List<Object> args = new java.util.ArrayList<>();
             String targetTypePlaceholders = placeholders(targetType.databaseCodes(), args);
             args.add(LogPolicyDecision.normalizeTargetId(targetId));
-            List<Map<String, Object>> rows = jdbc().queryForList("""
+            List<Map<String, Object>> rows = queryForListLimited("""
                     SELECT policy_id, NULL AS override_id, target_type, target_id, log_level,
                            db_log_enabled_yn, file_log_enabled_yn, request_body_log_yn,
                            response_body_log_yn, error_stack_log_yn, masking_policy_key
@@ -79,8 +85,7 @@ public class JdbcLogPolicyRepository implements LogPolicyRepository {
                       AND target_type IN (%s)
                       AND target_id IN (?, '*')
                     ORDER BY CASE WHEN target_id = ? THEN 0 ELSE 1 END, priority ASC, policy_id ASC
-                    LIMIT 1
-                    """.formatted(targetTypePlaceholders), appendExactTarget(args, targetId).toArray());
+                    """.formatted(targetTypePlaceholders), appendExactTarget(args, targetId), 1);
             return rows.stream().findFirst().map(row -> toRow(row, "DB_POLICY"));
         } catch (DataAccessException ex) {
             return Optional.empty();
@@ -91,15 +96,30 @@ public class JdbcLogPolicyRepository implements LogPolicyRepository {
         if (jdbcTemplateProvider.getIfAvailable() == null && dataSourceProvider.getIfAvailable() == null) {
             return false;
         }
-        try {
-            Integer count = jdbc().queryForObject("""
-                    SELECT COUNT(*)
-                    FROM information_schema.tables
-                    WHERE table_schema = DATABASE()
-                      AND table_name = ?
-                    """, Integer.class, tableName);
-            return count != null && count > 0;
-        } catch (DataAccessException ex) {
+        DataSource dataSource = dataSourceProvider.getIfAvailable();
+        if (dataSource == null) {
+            JdbcTemplate jdbcTemplate = jdbcTemplateProvider.getIfAvailable();
+            dataSource = jdbcTemplate == null ? null : jdbcTemplate.getDataSource();
+        }
+        if (dataSource == null) {
+            return false;
+        }
+        try (Connection connection = dataSource.getConnection()) {
+            String catalog = connection.getCatalog();
+            String schema = currentSchema(connection);
+            for (String candidate : List.of(
+                    tableName,
+                    tableName.toUpperCase(Locale.ROOT),
+                    tableName.toLowerCase(Locale.ROOT))) {
+                try (ResultSet tables = connection.getMetaData()
+                        .getTables(catalog, schema, candidate, new String[]{"TABLE"})) {
+                    if (tables.next()) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        } catch (SQLException ex) {
             return false;
         }
     }
@@ -126,6 +146,25 @@ public class JdbcLogPolicyRepository implements LogPolicyRepository {
     private List<Object> appendExactTarget(List<Object> args, String targetId) {
         args.add(LogPolicyDecision.normalizeTargetId(targetId));
         return args;
+    }
+
+    private List<Map<String, Object>> queryForListLimited(String sql, List<?> args, int limit) {
+        return jdbc().query(connection -> {
+            PreparedStatement statement = connection.prepareStatement(sql);
+            for (int index = 0; index < args.size(); index++) {
+                statement.setObject(index + 1, args.get(index));
+            }
+            statement.setMaxRows(Math.max(1, limit));
+            return statement;
+        }, new ColumnMapRowMapper());
+    }
+
+    private String currentSchema(Connection connection) {
+        try {
+            return connection.getSchema();
+        } catch (SQLException | AbstractMethodError ignored) {
+            return null;
+        }
     }
 
     private LogPolicyRow toRow(Map<String, Object> row, String source) {

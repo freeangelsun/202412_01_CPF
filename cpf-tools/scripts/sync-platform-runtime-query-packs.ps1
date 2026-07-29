@@ -23,6 +23,8 @@ $vendorTokens = @{
         "@NOW6@" = "CURRENT_TIMESTAMP(6)"
         "@LIMIT_POSITIONAL@" = "LIMIT ?"
         "@LIMIT_NAMED@" = "LIMIT :limit"
+        "@PAGE_NAMED@" = "LIMIT :limit OFFSET :offset"
+        "@WITH_RECURSIVE@" = "WITH RECURSIVE"
         "@COALESCE_CREATED_BY@" = "IFNULL(#{createdBy}, 'CPF')"
         "@COALESCE_UPDATED_BY@" = "IFNULL(#{updatedBy}, 'CPF')"
     }
@@ -32,6 +34,8 @@ $vendorTokens = @{
         "@NOW6@" = "CURRENT_TIMESTAMP(6)"
         "@LIMIT_POSITIONAL@" = "LIMIT ?"
         "@LIMIT_NAMED@" = "LIMIT :limit"
+        "@PAGE_NAMED@" = "LIMIT :limit OFFSET :offset"
+        "@WITH_RECURSIVE@" = "WITH RECURSIVE"
         "@COALESCE_CREATED_BY@" = "COALESCE(#{createdBy}, 'CPF')"
         "@COALESCE_UPDATED_BY@" = "COALESCE(#{updatedBy}, 'CPF')"
     }
@@ -41,6 +45,8 @@ $vendorTokens = @{
         "@NOW6@" = "CURRENT_TIMESTAMP(6)"
         "@LIMIT_POSITIONAL@" = "OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY"
         "@LIMIT_NAMED@" = "OFFSET 0 ROWS FETCH NEXT :limit ROWS ONLY"
+        "@PAGE_NAMED@" = "OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY"
+        "@WITH_RECURSIVE@" = "WITH"
         "@COALESCE_CREATED_BY@" = "COALESCE(#{createdBy}, 'CPF')"
         "@COALESCE_UPDATED_BY@" = "COALESCE(#{updatedBy}, 'CPF')"
     }

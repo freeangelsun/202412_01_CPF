@@ -2,9 +2,9 @@ package com.cpf.reference.messaging.controller;
 
 import com.cpf.core.api.util.CpfTimes;
 import com.cpf.core.api.util.CpfIds;
-import com.cpf.core.common.broker.CpfBrokerBridgeMessage;
-import com.cpf.core.common.broker.CpfBrokerBridgePort;
-import com.cpf.core.common.broker.CpfBrokerBridgeResult;
+import com.cpf.core.api.broker.CpfBrokerBridgeMessage;
+import com.cpf.core.api.broker.CpfBrokerBridgePort;
+import com.cpf.core.api.broker.CpfBrokerBridgeResult;
 import com.cpf.core.api.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

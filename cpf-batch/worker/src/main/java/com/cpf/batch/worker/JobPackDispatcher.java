@@ -8,8 +8,11 @@ import com.cpf.batch.worker.internal.JdbcWorkerExecutionRepository;
 import com.cpf.batch.worker.internal.JdbcWorkerLeaseRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.batch.core.*;
-import org.springframework.batch.core.launch.JobLauncher;
+import org.springframework.batch.core.job.Job;
+import org.springframework.batch.core.job.JobExecution;
+import org.springframework.batch.core.job.parameters.JobParameters;
+import org.springframework.batch.core.job.parameters.JobParametersBuilder;
+import org.springframework.batch.core.launch.JobOperator;
 import org.springframework.stereotype.Component;
 
 import java.time.*;
@@ -19,23 +22,24 @@ import java.util.*;
 @Component
 public class JobPackDispatcher {
     private final JobPackCatalog catalog;
-    private final JobLauncher launcher;
+    private final JobOperator jobOperator;
     private final JdbcWorkerExecutionRepository executions;
     private final JdbcWorkerLeaseRepository leases;
     private final ObjectMapper objectMapper;
     private final ApprovedShellExecutor shellExecutor;
     private final ApprovedFileExecutor fileExecutor;
 
-    public JobPackDispatcher(JobPackCatalog catalog, JobLauncher launcher,
+    public JobPackDispatcher(JobPackCatalog catalog, JobOperator jobOperator,
                              JdbcWorkerExecutionRepository executions, JdbcWorkerLeaseRepository leases,
                              ObjectMapper objectMapper, ApprovedShellExecutor shellExecutor,
                              ApprovedFileExecutor fileExecutor) {
-        this.catalog=catalog; this.launcher=launcher; this.executions=executions; this.leases=leases;
+        this.catalog=catalog; this.jobOperator=jobOperator; this.executions=executions; this.leases=leases;
         this.objectMapper=objectMapper; this.shellExecutor=shellExecutor; this.fileExecutor=fileExecutor;
     }
 
     public void execute(JdbcWorkerLeaseRepository.Lease lease) {
         JdbcWorkerExecutionRepository.Work work=executions.load(lease.executionId());
+        boolean terminalExecutionPersisted=false;
         try (LogContext ignored=LogContext.open(Map.of(
                 "transactionId",Objects.toString(work.transactionId(),""),
                 "segmentId",Objects.toString(work.segmentId(),""),
@@ -54,7 +58,7 @@ public class JobPackDispatcher {
                     Object resolved=provider.resolveJob(work.jobId());
                     if (!(resolved instanceof Job job)) throw new IllegalStateException("Job Pack returned non-Spring Batch Job");
                     JobParameters parameters=buildParameters(definition,raw,work,lease);
-                    JobExecution launched=launcher.run(job,parameters);
+                    JobExecution launched=jobOperator.start(job,parameters);
                     if (!executions.recordSpringExecution(
                             lease, launched.getId(),
                             launched.getJobInstance()==null?null:launched.getJobInstance().getId())) {
@@ -89,12 +93,36 @@ public class JobPackDispatcher {
             if (!executions.finish(lease,status,message)) {
                 throw new IllegalStateException("Worker completion rejected because its lease expired or was fenced");
             }
+            terminalExecutionPersisted=true;
             leases.complete(lease,status,message);
         } catch (Exception e) {
-            if (executions.finish(lease,"FAILED",e.getMessage())) {
-                try { leases.complete(lease,"FAILED",e.getMessage()); } catch (RuntimeException ignored) { }
+            String failureMessage = SensitiveTextSanitizer.sanitize(e.getMessage());
+            if(terminalExecutionPersisted) {
+                throw new IllegalStateException(
+                        "Batch result was persisted but lease finalization is unresolved; recovery is required. "
+                                +failureMessage,
+                        e);
             }
-            throw new IllegalStateException("Batch execution failed: "+SensitiveTextSanitizer.sanitize(e.getMessage()),e);
+            RuntimeException finalizationFailure = null;
+            try {
+                if (executions.finish(lease, "FAILED", failureMessage)) {
+                    try {
+                        leases.complete(lease, "FAILED", failureMessage);
+                    } catch (RuntimeException releaseFailure) {
+                        finalizationFailure = releaseFailure;
+                    }
+                }
+            } catch (RuntimeException persistenceFailure) {
+                finalizationFailure = persistenceFailure;
+            }
+            if (finalizationFailure != null) {
+                e.addSuppressed(finalizationFailure);
+                throw new IllegalStateException(
+                        "Batch execution failed and lease finalization is unresolved; recovery is required. "
+                                + SensitiveTextSanitizer.sanitize(finalizationFailure.getMessage()),
+                        e);
+            }
+            throw new IllegalStateException("Batch execution failed: "+failureMessage,e);
         }
     }
 

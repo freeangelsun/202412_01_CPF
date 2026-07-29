@@ -2,7 +2,7 @@ package com.cpf.core.common.http;
 
 import com.cpf.core.api.http.CpfHttpClient;
 
-import com.cpf.core.common.execution.CpfStandardExecutionId;
+import com.cpf.core.api.execution.CpfStandardExecutionId;
 import com.cpf.core.common.header.CpfHeaderNames;
 import com.cpf.core.common.servicecall.CpfServiceCallEngine;
 import com.cpf.core.common.servicecall.CpfServiceCallException;

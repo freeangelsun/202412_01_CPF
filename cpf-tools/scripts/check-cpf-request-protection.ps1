@@ -1,88 +1,69 @@
 param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..\..").Path,
-    [string] $ResultDir = $env:CPF_RESULT_DIR,
-    [switch] $InitializeBaseline
+    [string] $ResultDir = $env:CPF_RESULT_DIR
 )
 
-# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
 $CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
 [Console]::InputEncoding = $CpfUtf8ConsoleEncoding
 [Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
 $OutputEncoding = $CpfUtf8ConsoleEncoding
-
 $ErrorActionPreference = "Stop"
 $Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
-$RequestFileName = "cpf-docs/work/current/CPF_CURRENT_WORK_REQUEST.md"
-$RequestPath = Join-Path $Root $RequestFileName
+$Root = (Resolve-Path -LiteralPath $Root).Path
 
-# 회차별 증적 경로를 명시해 과거 기준 해시를 현재 요청서 검증에 재사용하지 않도록 차단합니다.
+$BaselineRelativePath = "cpf-docs/work/state/CPF_CODEX_REQUEST_PROTECTION_BASELINE_20260729.json"
+$BaselinePath = Join-Path $Root $BaselineRelativePath
+if (-not (Test-Path -LiteralPath $BaselinePath -PathType Leaf)) {
+    throw "Repository-controlled request baseline is missing: $BaselineRelativePath"
+}
+$baseline = Get-Content -LiteralPath $BaselinePath -Raw -Encoding UTF8 | ConvertFrom-Json
+if ($baseline.schemaVersion -ne 1) {
+    throw "Unsupported request protection baseline schemaVersion: $($baseline.schemaVersion)"
+}
+$RequestFileName = [string] $baseline.requestFile
+$RequestPath = Join-Path $Root $RequestFileName
+if (-not (Test-Path -LiteralPath $RequestPath -PathType Leaf)) {
+    throw "Protected request file is missing: $RequestFileName"
+}
 if ([string]::IsNullOrWhiteSpace($ResultDir)) {
     throw "ResultDir is required. Use Gradle task with -PcpfResultDir=<evidence-directory>."
 }
-
-$BaselinePath = Join-Path $ResultDir "cpf-current-work-request.baseline.sha256"
-$ResultPath = Join-Path $ResultDir "cpf-current-work-request-protection.sanitized.json"
-
-if (-not (Test-Path -LiteralPath $RequestPath)) {
-    throw "$RequestFileName file is missing."
-}
-
+$ResultDir = [System.IO.Path]::GetFullPath($ResultDir)
+$ResultPath = Join-Path $ResultDir "cpf-final-validation-request-protection.sanitized.json"
 New-Item -ItemType Directory -Force -Path $ResultDir | Out-Null
 
 $currentHash = (Get-FileHash -LiteralPath $RequestPath -Algorithm SHA256).Hash.ToLowerInvariant()
-
-# 요청서 보호 기준은 작업 착수 시 명시적으로 초기화하고, qualityGate에서는 검사만 수행합니다.
-if ($InitializeBaseline) {
-    [System.IO.File]::WriteAllText($BaselinePath, $currentHash, $Utf8NoBom)
-    $result = [ordered]@{
-        generatedAt = (Get-Date).ToString("yyyy-MM-ddTHH:mm:ss.fffK")
-        status = "DONE"
-        mode = "INITIALIZE_BASELINE"
-        requestFile = $RequestFileName
-        baselineHash = $currentHash
-        currentHash = $currentHash
-        policy = "Baseline is initialized only by explicit command. qualityGate runs check-only mode."
-    }
-    $json = $result | ConvertTo-Json -Depth 5
-    [System.IO.File]::WriteAllText($ResultPath, $json, $Utf8NoBom)
-    Write-Host "CPF request protection baseline initialized."
-    return
+$currentBlob = (& git -C $Root hash-object -- $RequestFileName).Trim().ToLowerInvariant()
+if ($LASTEXITCODE -ne 0 -or $currentBlob -notmatch "^[0-9a-f]{40}$") {
+    throw "Protected request Git blob hash could not be calculated."
 }
-
-if (-not (Test-Path -LiteralPath $BaselinePath)) {
-    $result = [ordered]@{
-        generatedAt = (Get-Date).ToString("yyyy-MM-ddTHH:mm:ss.fffK")
-        status = "FAILED"
-        mode = "CHECK_ONLY"
-        requestFile = $RequestFileName
-        baselineHash = ""
-        currentHash = $currentHash
-        policy = "Baseline is missing. Run explicit initialization before protected work starts."
-    }
-    $json = $result | ConvertTo-Json -Depth 5
-    [System.IO.File]::WriteAllText($ResultPath, $json, $Utf8NoBom)
-    Write-Error "$RequestFileName baseline is missing. Run initializeCpfRequestProtection with the same cpfResultDir before protected work starts."
-    exit 1
+$expectedHash = ([string] $baseline.contentSha256).Trim().ToLowerInvariant()
+$expectedBlob = ([string] $baseline.gitBlobSha1).Trim().ToLowerInvariant()
+$status = if ($currentHash -ceq $expectedHash -and $currentBlob -ceq $expectedBlob) {
+    "완료"
+} else {
+    "실패"
 }
-
-$baselineHash = ([System.IO.File]::ReadAllText($BaselinePath, [System.Text.Encoding]::UTF8)).Trim().ToLowerInvariant()
-$status = if ($baselineHash -eq $currentHash) { "DONE" } else { "FAILED" }
 $result = [ordered]@{
     generatedAt = (Get-Date).ToString("yyyy-MM-ddTHH:mm:ss.fffK")
     status = $status
     mode = "CHECK_ONLY"
     requestFile = $RequestFileName
-    baselineHash = $baselineHash
-    currentHash = $currentHash
-    policy = "$RequestFileName is read-only request input for this work."
+    baselineFile = $BaselineRelativePath
+    baselineHead = [string] $baseline.baselineHead
+    expectedContentSha256 = $expectedHash
+    currentContentSha256 = $currentHash
+    expectedGitBlobSha1 = $expectedBlob
+    currentGitBlobSha1 = $currentBlob
+    policy = [string] $baseline.policy
 }
+[System.IO.File]::WriteAllText(
+    $ResultPath,
+    ($result | ConvertTo-Json -Depth 8) + [Environment]::NewLine,
+    $Utf8NoBom)
 
-$json = $result | ConvertTo-Json -Depth 5
-[System.IO.File]::WriteAllText($ResultPath, $json, $Utf8NoBom)
-
-if ($status -ne "DONE") {
-    Write-Error "$RequestFileName changed after baseline. See $ResultPath"
+if ($status -ne "완료") {
+    Write-Error "Protected final validation request changed. See $ResultPath"
     exit 1
 }
-
-Write-Host "CPF request protection check passed."
+Write-Host "CPF final validation request protection check passed."

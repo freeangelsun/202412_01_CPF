@@ -1,6 +1,7 @@
 package com.cpf.batch.worker;
 
 import com.cpf.batch.worker.internal.JdbcWorkerLeaseRepository;
+import com.cpf.batch.api.ActualState;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
@@ -49,18 +50,24 @@ class WorkerRuntimeLeaseLossTest {
         runtime.renew();
 
         assertThat(runtime.currentExecutionId()).isEqualTo(41L);
+        assertThat(runtime.actualState()).isEqualTo(ActualState.DEGRADED);
+        assertThat(runtime.ready()).isFalse();
+        assertThat(runtime.lastErrorCode()).isEqualTo("BAT_WORKER_LEASE_LOST");
         assertThat(runtime.availableCapacity()).isZero();
         runtime.poll();
         verify(repository, times(1)).claim(eq("worker-a"), eq("1.0.0"), anyList(), any());
 
         release.countDown();
         awaitExecutionCount(0);
+        assertThat(runtime.ready()).isTrue();
         assertThat(runtime.availableCapacity()).isEqualTo(1);
     }
 
     private void awaitExecutionCount(int expected) throws InterruptedException {
         long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(2);
-        while (runtime.currentExecutions().size() != expected && System.nanoTime() < deadline) {
+        while ((runtime.currentExecutions().size() != expected
+                || (expected == 0 && !runtime.ready()))
+                && System.nanoTime() < deadline) {
             Thread.sleep(10);
         }
         assertThat(runtime.currentExecutions()).hasSize(expected);

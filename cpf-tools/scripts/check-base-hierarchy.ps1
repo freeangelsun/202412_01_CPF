@@ -12,12 +12,27 @@ $OutputEncoding = $CpfUtf8ConsoleEncoding
 $ErrorActionPreference = "Stop"
 
 $moduleRules = [ordered]@{
-    "cpf-account" = [ordered]@{ controller = "AccBaseController"; service = "AccBaseService" }
     "cpf-admin" = [ordered]@{ controller = "AdmBaseController"; service = "AdmBaseService" }
     "cpf-biz-admin" = [ordered]@{ controller = "BzaBaseController"; service = "BzaBaseService" }
     "cpf-common" = [ordered]@{ controller = $null; service = "CmnBaseService" }
-    "cpf-member" = [ordered]@{ controller = "MbrBaseController"; service = "MbrBaseService" }
     "cpf-reference" = [ordered]@{ controller = "ReferenceBaseController"; service = "ReferenceBaseService" }
+}
+Get-ChildItem -LiteralPath $Root -Directory -Filter "cpf-*" | ForEach-Object {
+    $manifestPath = Join-Path $_.FullName "manifest/domain-manifest.json"
+    if (-not (Test-Path -LiteralPath $manifestPath -PathType Leaf)) { return }
+    $manifest = Get-Content -LiteralPath $manifestPath -Raw -Encoding UTF8 | ConvertFrom-Json
+    if ([string]$manifest.domainType -ne "GENERATED_DOMAIN" -or
+            [string]$manifest.dependencyModel -ne "root-project") {
+        return
+    }
+    $moduleName = [string]$manifest.moduleName
+    if ($moduleName -notmatch '^[A-Z][A-Za-z0-9]{1,49}$') {
+        throw "Generated Domain moduleName이 유효하지 않습니다: $manifestPath"
+    }
+    $moduleRules[[string]$manifest.projectName] = [ordered]@{
+        controller = "${moduleName}BaseController"
+        service = "${moduleName}BaseService"
+    }
 }
 
 $checked = New-Object System.Collections.Generic.List[object]

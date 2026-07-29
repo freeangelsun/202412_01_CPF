@@ -1,4 +1,7 @@
 package com.cpf.core.common.attachment;
+import com.cpf.core.api.attachment.CpfAttachmentContent;
+import com.cpf.core.api.attachment.CpfAttachmentStoragePort;
+import com.cpf.core.api.attachment.CpfStoredAttachment;
 
 import com.cpf.core.common.exception.CpfValidationException;
 import java.io.IOException;import java.nio.file.*;import java.security.*;import java.time.*;import java.util.*;

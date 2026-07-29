@@ -1,0 +1,190 @@
+plugins {
+    id 'java'
+    id 'war'
+    id 'org.springframework.boot'
+    id 'io.spring.dependency-management'
+    id 'com.cpf.domain-conventions'
+}
+
+group = 'com.cpf.member'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(rootProject.ext.cpfJavaVersion)
+    }
+}
+
+def cpfDomainMetadataFile = file('manifest/domain-manifest.json')
+if (!cpfDomainMetadataFile.isFile()) {
+    throw new GradleException("CPF Generated Domain metadata is missing: ${cpfDomainMetadataFile}")
+}
+def cpfDomainMetadata = new groovy.json.JsonSlurper().parse(cpfDomainMetadataFile)
+def cpfDbVendor = (findProperty('cpfDbVendor')
+        ?: System.getenv('MBR_DATABASE_VENDOR')
+        ?: cpfDomainMetadata.databaseVendor)
+        .toString()
+        .toLowerCase(Locale.ROOT)
+def cpfSupportedDbVendors = ['mariadb', 'oracle', 'postgresql'] as Set
+if (!cpfSupportedDbVendors.contains(cpfDbVendor)) {
+    throw new GradleException("Unsupported cpfDbVendor: ${cpfDbVendor}")
+}
+def cpfJdbcDriverByVendor = [
+        'mariadb': 'org.mariadb.jdbc:mariadb-java-client',
+        'oracle': 'com.oracle.database.jdbc:ojdbc11',
+        'postgresql': 'org.postgresql:postgresql'
+]
+def cpfFlywayDatabaseByVendor = [
+        'mariadb': 'org.flywaydb:flyway-mysql',
+        'oracle': 'org.flywaydb:flyway-database-oracle',
+        'postgresql': 'org.flywaydb:flyway-database-postgresql'
+]
+
+dependencies {
+    implementation project(':cpf-core')
+    implementation project(':cpf-common')
+
+    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+    implementation 'org.springframework:spring-web'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:4.0.0'
+    implementation 'org.springframework.boot:spring-boot-starter-flyway'
+    runtimeOnly cpfJdbcDriverByVendor[cpfDbVendor]
+    runtimeOnly cpfFlywayDatabaseByVendor[cpfDbVendor]
+
+    providedRuntime('org.springframework.boot:spring-boot-starter-tomcat') {
+        exclude group: 'org.springframework', module: 'spring-web'
+    }
+    testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+dependencyLocking {
+    lockAllConfigurations()
+}
+
+def cpfCentralDbPackRoot = file(
+        findProperty('cpfCentralDbPackRoot')
+                ?: "${rootProject.projectDir}/cpf-tools/db/vendor")
+def cpfSelectedDomainTemplate = new File(cpfCentralDbPackRoot, "${cpfDbVendor}/domain-template")
+def cpfGeneratedVendorResources = layout.buildDirectory.dir('generated-resources/cpf-vendor')
+
+tasks.register('prepareCpfVendorResources', Sync) {
+    def tokenValues = [
+            CPF_VENDOR: cpfDbVendor,
+            CPF_DOMAIN: 'member',
+            CPF_SYSTEM_CODE: 'MBR',
+            CPF_DISPLAY_NAME: 'Member',
+            CPF_SCHEMA_NAME: 'mbrDB',
+            CPF_DATABASE_NAME: 'mbrDB',
+            CPF_MIGRATION_USERNAME: 'cpf_member_migration',
+            CPF_RUNTIME_USERNAME: 'cpf_member_app',
+            CPF_MODULE_NAME: 'Member',
+            CPF_PACKAGE_NAME: 'com.cpf.member',
+            CPF_TABLE_PREFIX: 'mbr',
+            CPF_MAPPER_NAMESPACE: 'com.cpf.member.sampleitem.mapper.MemberMapper',
+            CPF_MAPPER_NAME: 'MemberMapper',
+            CPF_RESULT_TYPE: 'com.cpf.member.sampleitem.dto.MemberSampleItem',
+            CPF_IDEMPOTENCY_RESULT_TYPE: 'com.cpf.member.sampleitem.dto.MemberIdempotencyEntry'
+    ]
+    into cpfGeneratedVendorResources
+    from(cpfSelectedDomainTemplate) {
+        // Provision/principal SQL contains secret injection points and belongs to
+        // the external DB bootstrap tool, never to an application artifact.
+        include 'install/**', 'seed/**', 'migration/**', 'verify/**', 'rollback/**'
+        filter(org.apache.tools.ant.filters.ReplaceTokens, tokens: tokenValues)
+        rename { fileName ->
+            fileName
+                    .replace('.template', '')
+                    .replace('__DOMAIN__', 'member')
+        }
+        into "db/vendor/${cpfDbVendor}"
+        includeEmptyDirs = false
+    }
+    from(new File(cpfSelectedDomainTemplate, 'runtime/mybatis')) {
+        include '**/*.template'
+        filter(org.apache.tools.ant.filters.ReplaceTokens, tokens: tokenValues)
+        rename { fileName ->
+            fileName
+                    .replace('.template', '')
+                    .replace('__DOMAIN__', 'member')
+                    .replace('__MAPPER__', 'MemberMapper')
+        }
+        into "mybatis/vendor/${cpfDbVendor}/mapper/member/sampleitem"
+        includeEmptyDirs = false
+    }
+    from(new File(cpfSelectedDomainTemplate, 'runtime/repository')) {
+        include '**/*.template'
+        filter(org.apache.tools.ant.filters.ReplaceTokens, tokens: tokenValues)
+        rename { fileName ->
+            fileName
+                    .replace('.template', '')
+                    .replace('__DOMAIN__', 'member')
+        }
+        into "sql/vendor/${cpfDbVendor}/member"
+        includeEmptyDirs = false
+    }
+    doFirst {
+        if (!cpfSelectedDomainTemplate.isDirectory()) {
+            throw new GradleException(
+                    "CPF central domain template is missing: ${cpfSelectedDomainTemplate}")
+        }
+        if (!new File(cpfSelectedDomainTemplate, 'runtime/mybatis').isDirectory()) {
+            throw new GradleException(
+                    "CPF central domain runtime MyBatis template is missing: ${cpfSelectedDomainTemplate}")
+        }
+    }
+}
+
+sourceSets.main.resources.srcDir(cpfGeneratedVendorResources)
+tasks.named('processResources') {
+    dependsOn tasks.named('prepareCpfVendorResources')
+}
+
+tasks.withType(AbstractArchiveTask).configureEach {
+    archiveBaseName = "cpf-member"
+    preserveFileTimestamps = false
+    reproducibleFileOrder = true
+}
+
+tasks.named('bootJar') {
+    enabled = true
+}
+
+tasks.named('bootWar') {
+    enabled = true
+}
+
+def cpfRequiredPackagedDependencyPrefixes = ['cpf-core-', 'cpf-common-']
+
+def cpfAssertPackagedDependencies = { File archiveFile, String libraryRoot ->
+    if (!archiveFile.isFile()) {
+        throw new GradleException("CPF packaged artifact가 없습니다: ${archiveFile}")
+    }
+    def entries = []
+    new java.util.zip.ZipFile(archiveFile).withCloseable { zip ->
+        entries = zip.entries().collect { it.name }
+    }
+    def missing = cpfRequiredPackagedDependencyPrefixes.findAll { prefix ->
+        !entries.any { entry -> entry.startsWith("${libraryRoot}/${prefix}") && entry.endsWith('.jar') }
+    }
+    if (!missing.isEmpty()) {
+        throw new GradleException("CPF public dependency가 실행 Artifact에 포함되지 않았습니다. artifact=${archiveFile.name}, missing=${missing}")
+    }
+}
+
+tasks.register('verifyCpfPackagedDependencies') {
+    group = 'verification'
+    description = 'bootJar/bootWar에 동일 CPF public dependency가 실제 포함되는지 검증합니다.'
+    dependsOn tasks.named('bootJar'), tasks.named('bootWar')
+    doLast {
+        cpfAssertPackagedDependencies(tasks.named('bootJar').get().archiveFile.get().asFile, 'BOOT-INF/lib')
+        cpfAssertPackagedDependencies(tasks.named('bootWar').get().archiveFile.get().asFile, 'WEB-INF/lib')
+    }
+}
+
+tasks.named('check') {
+    dependsOn tasks.named('verifyCpfPackagedDependencies')
+}

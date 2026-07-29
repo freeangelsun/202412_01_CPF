@@ -3,6 +3,7 @@ package com.cpf.core.common.runtimecontrol.applier;
 import com.cpf.core.api.runtimecontrol.CpfRuntimeApplyResult;
 import com.cpf.core.api.runtimecontrol.CpfRuntimeChangeApplier;
 import com.cpf.core.api.runtimecontrol.CpfRuntimeDelivery;
+import com.cpf.core.common.runtimecontrol.CpfRuntimePayloadJson;
 import com.cpf.core.common.security.password.CpfPasswordRuntimePolicy;
 
 import java.util.LinkedHashSet;
@@ -20,23 +21,26 @@ public final class CpfPasswordPolicyRuntimeApplier implements CpfRuntimeChangeAp
 
     @Override
     public CpfRuntimeApplyResult apply(CpfRuntimeDelivery delivery) {
-        if (delivery.payload().containsKey("pepper") || delivery.payload().containsKey("iterations")
-                || delivery.payload().containsKey("keyBits")) {
+        if (CpfRuntimePayloadJson.contains(delivery.payload(), "pepper")
+                || CpfRuntimePayloadJson.contains(delivery.payload(), "iterations")
+                || CpfRuntimePayloadJson.contains(delivery.payload(), "keyBits")) {
             return CpfRuntimeApplyResult.failure("PASSWORD_HASHING_MATERIAL_NOT_HOT_APPLICABLE",
                     "PBKDF2 material 변경은 배포/재기동 절차로 수행해야 합니다.");
         }
         try {
             CpfPasswordRuntimePolicy.Snapshot current = policy.current();
-            long version = number(delivery.payload().get("version"), delivery.desiredVersion());
+            long version = number(
+                    CpfRuntimePayloadJson.value(delivery.payload(), "version"),
+                    delivery.desiredVersion());
             CpfPasswordRuntimePolicy.Snapshot applied = policy.replace(
                     version,
-                    integer(delivery.payload().get("minLength"), current.minLength()),
-                    integer(delivery.payload().get("maxLength"), current.maxLength()),
-                    bool(delivery.payload().get("requireUppercase"), current.requireUppercase()),
-                    bool(delivery.payload().get("requireLowercase"), current.requireLowercase()),
-                    bool(delivery.payload().get("requireDigit"), current.requireDigit()),
-                    bool(delivery.payload().get("requireSpecial"), current.requireSpecial()),
-                    strings(delivery.payload().get("forbiddenFragments")));
+                    integer(CpfRuntimePayloadJson.value(delivery.payload(), "minLength"), current.minLength()),
+                    integer(CpfRuntimePayloadJson.value(delivery.payload(), "maxLength"), current.maxLength()),
+                    bool(CpfRuntimePayloadJson.value(delivery.payload(), "requireUppercase"), current.requireUppercase()),
+                    bool(CpfRuntimePayloadJson.value(delivery.payload(), "requireLowercase"), current.requireLowercase()),
+                    bool(CpfRuntimePayloadJson.value(delivery.payload(), "requireDigit"), current.requireDigit()),
+                    bool(CpfRuntimePayloadJson.value(delivery.payload(), "requireSpecial"), current.requireSpecial()),
+                    strings(CpfRuntimePayloadJson.value(delivery.payload(), "forbiddenFragments")));
             if (applied.version() != version) return CpfRuntimeApplyResult.failure("PASSWORD_POLICY_NOT_CONFIRMED", "Password policy version 불일치");
             return CpfRuntimeApplyResult.success(delivery.payloadHash());
         } catch (RuntimeException ex) {

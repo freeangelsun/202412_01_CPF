@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "requestFile": "cpf-docs/work/current/CPF_CODEX_FINAL_FULL_VALIDATION_AND_REMEDIATION_REQUEST_20260729.md",
+  "baselineHead": "2e3e46d267b5d4b4575250a0526fa6f3c014676e",
+  "gitBlobSha1": "9ee258d37cb898c0157ed2df7aaa8223aa037b1f",
+  "contentSha256": "b031cb727b1dddab11231b21fa7f49c94db9407d81d92447a5500c27c97008e2",
+  "policy": "The final validation request is immutable input. CPF_CURRENT_WORK_REQUEST.md and handover/review/evidence are mutable verified outputs."
+}

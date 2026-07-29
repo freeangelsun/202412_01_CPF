@@ -5,8 +5,8 @@ import com.cpf.admin.approval.repository.AdmApprovalRepository;
 import com.cpf.admin.approval.spi.AdmApprovalDirectoryEntry;
 import com.cpf.admin.approval.spi.AdmApprovalOwnerCommandPort;
 import com.cpf.admin.common.base.AdmBaseService;
-import com.cpf.core.common.exception.CpfValidationException;
-import com.cpf.core.common.logging.TransactionContext;
+import com.cpf.core.api.error.CpfValidationException;
+import com.cpf.core.api.logging.CpfTransactionContext;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
@@ -133,7 +133,7 @@ public class AdmApprovalService extends AdmBaseService {
         v.put("requestReason",required(request.reason(),"reason"));v.put("payloadHash",sha256(snapshot));
         v.put("payloadSnapshot",snapshot);v.put("currentStepNo",minStep);
         v.put("expireAt",request.expireAt()==null?null:Timestamp.from(request.expireAt()));
-        v.put("transactionId",TransactionContext.getOrCreateTransactionId());v.put("operatorId",requester);
+        v.put("transactionId",CpfTransactionContext.transactionId());v.put("operatorId",requester);
         long id=repository.insertRequest(v);
         for(Resolved r:resolved)repository.insertParticipant(id,r.stepNo(),r.entry(),r.targetType(),r.targetCode(),requester);
         repository.history(id,"REQUEST",requester,null,"PENDING",required(request.reason(),"reason"),
@@ -206,7 +206,8 @@ public class AdmApprovalService extends AdmBaseService {
             AdmApprovalOwnerCommandPort port=resolveOwnerPort(string(doc,"ownerModule"));
             result=port.execute(new AdmApprovedOperationCommand(id,commandRequestId,string(doc,"actionType"),
                     string(doc,"ownerModule"),string(doc,"ownerCommand"),string(doc,"targetType"),string(doc,"targetId"),
-                    string(doc,"payloadHash"),string(doc,"transactionId")));
+                    string(doc,"payloadHash"),string(doc,"requestedBy"),operatorId,required(reason,"reason"),
+                    string(doc,"transactionId")));
         }catch(RuntimeException e){
             result=new AdmApprovedOperationResult(AdmApprovalExecutionStatus.UNKNOWN,"ADM-OWNER-EXCEPTION","Owner 결과를 확정할 수 없습니다.");
         }

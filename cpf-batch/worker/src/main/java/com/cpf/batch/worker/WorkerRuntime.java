@@ -13,6 +13,7 @@ import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * 독립 Worker Runtime. maxConcurrency만큼 Lease를 병렬 보유하며 각 실행은 virtual thread에서 수행합니다.
@@ -30,6 +31,8 @@ public class WorkerRuntime implements RuntimeStateProvider, AutoCloseable {
     private final ExecutorService executor=Executors.newVirtualThreadPerTaskExecutor();
     private final AtomicBoolean draining=new AtomicBoolean();
     private final ConcurrentMap<Long,JdbcWorkerLeaseRepository.Lease> active=new ConcurrentHashMap<>();
+    private final ConcurrentMap<Long,Boolean> lostLeases=new ConcurrentHashMap<>();
+    private final AtomicReference<String> repositoryError=new AtomicReference<>();
 
     public WorkerRuntime(JdbcWorkerLeaseRepository repository,JobPackDispatcher dispatcher,
       @Value("${cpf.batch.worker.worker-id:${CPF_BAT_WORKER_ID:${CPF_INSTANCE_ID:worker-local-01}}}") String workerId,
@@ -54,20 +57,39 @@ public class WorkerRuntime implements RuntimeStateProvider, AutoCloseable {
     }
 
     @Scheduled(fixedDelayString="${cpf.batch.worker.recovery-ms:5000}")
-    public void recoverExpired() { repository.recoverExpired(); }
+    public void recoverExpired() {
+        try {
+            repository.recoverExpired();
+            repositoryError.set(null);
+        } catch (RuntimeException failure) {
+            repositoryError.set(failure.getClass().getSimpleName());
+            throw failure;
+        }
+    }
 
     @Scheduled(fixedDelayString="${cpf.batch.worker.poll-ms:1000}")
     public void poll() {
-        if(draining.get() || !runtimePolicy.current().workerEnabled()) return;
+        if(draining.get() || !runtimePolicy.current().workerEnabled()
+                || repositoryError.get()!=null || !lostLeases.isEmpty()) return;
         int slots=Math.max(0,effectiveMaxConcurrency()-active.size());
         for(int i=0;i<slots&&!draining.get();i++) {
-            Optional<JdbcWorkerLeaseRepository.Lease> claimed=repository.claim(workerId,workerVersion,capabilities,leaseDuration);
+            Optional<JdbcWorkerLeaseRepository.Lease> claimed;
+            try {
+                claimed=repository.claim(workerId,workerVersion,capabilities,leaseDuration);
+                repositoryError.set(null);
+            } catch (RuntimeException failure) {
+                repositoryError.set(failure.getClass().getSimpleName());
+                throw failure;
+            }
             if(claimed.isEmpty()) break;
             JdbcWorkerLeaseRepository.Lease lease=claimed.get();
             if(active.putIfAbsent(lease.executionId(),lease)!=null) continue;
             executor.submit(()->{
                 try{dispatcher.execute(lease);}
-                finally{active.remove(lease.executionId(),lease);}
+                finally{
+                    active.remove(lease.executionId(),lease);
+                    lostLeases.remove(lease.executionId());
+                }
             });
         }
     }
@@ -77,7 +99,19 @@ public class WorkerRuntime implements RuntimeStateProvider, AutoCloseable {
         for(JdbcWorkerLeaseRepository.Lease lease:new ArrayList<>(active.values())) {
             // Lease를 잃은 실행 Thread를 중단할 수 없으므로 active slot은 Thread 종료까지 유지합니다.
             // DB completion은 lease token/fencing/expiry CAS로 차단되고 Recovery가 UNKNOWN_RESULT를 소유합니다.
-            repository.renew(lease,leaseDuration);
+            try {
+                boolean renewed=repository.renew(lease,leaseDuration);
+                repositoryError.set(null);
+                if(!renewed) {
+                    lostLeases.put(lease.executionId(),Boolean.TRUE);
+                    if(!active.containsKey(lease.executionId())) {
+                        lostLeases.remove(lease.executionId());
+                    }
+                }
+            } catch (RuntimeException failure) {
+                repositoryError.set(failure.getClass().getSimpleName());
+                throw failure;
+            }
         }
     }
 
@@ -86,11 +120,22 @@ public class WorkerRuntime implements RuntimeStateProvider, AutoCloseable {
     public String workerId(){return workerId;} public String workerVersion(){return workerVersion;}
     public List<String> capabilities(){return capabilities;} public int maxConcurrency(){return maxConcurrency;}
     public Long currentExecutionId(){return active.keySet().stream().sorted().findFirst().orElse(null);}
-    public ActualState actualState(){return draining.get()?ActualState.DRAINING:(active.isEmpty()?ActualState.READY:ActualState.BUSY);}
+    public ActualState actualState(){return repositoryError.get()!=null||!lostLeases.isEmpty()?ActualState.DEGRADED:(draining.get()||!runtimePolicy.current().workerEnabled()?ActualState.DRAINING:(active.isEmpty()?ActualState.READY:ActualState.BUSY));}
+    public boolean ready(){return repositoryError.get()==null&&lostLeases.isEmpty()&&!draining.get()&&runtimePolicy.current().workerEnabled();}
     public List<String> currentExecutions(){return active.keySet().stream().sorted().map(String::valueOf).toList();}
     public List<String> activeLeases(){return active.values().stream().map(JdbcWorkerLeaseRepository.Lease::leaseToken).sorted().toList();}
-    public int availableCapacity(){return draining.get()||!runtimePolicy.current().workerEnabled()?0:Math.max(0,effectiveMaxConcurrency()-active.size());}
+    public int availableCapacity(){return ready()?Math.max(0,effectiveMaxConcurrency()-active.size()):0;}
     public boolean draining(){return draining.get();}
+    public Map<String,String> dependencyHealth(){
+        String error=repositoryError.get();
+        return Map.of("workerRuntime",error!=null?"DOWN":(!lostLeases.isEmpty()?"LEASE_LOST":(ready()?"UP":"NOT_READY")));
+    }
+    public String lastErrorCode(){
+        String error=repositoryError.get();
+        return error!=null
+                ?"BAT_WORKER_REPOSITORY_"+error.toUpperCase(Locale.ROOT)
+                :(!lostLeases.isEmpty()?"BAT_WORKER_LEASE_LOST":(ready()?null:"BAT_WORKER_NOT_READY"));
+    }
     public long fencingToken(){return active.values().stream().mapToLong(JdbcWorkerLeaseRepository.Lease::fencingToken).max().orElse(0L);}
     public void close(){draining.set(true);executor.shutdown();}
 }

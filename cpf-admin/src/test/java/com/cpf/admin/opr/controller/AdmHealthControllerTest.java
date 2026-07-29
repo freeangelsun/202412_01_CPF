@@ -1,5 +1,6 @@
 package com.cpf.admin.opr.controller;
 
+import com.cpf.admin.config.AdmPersistencePolicy;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -18,7 +19,9 @@ class AdmHealthControllerTest {
         JdbcTemplate adm = respondingTemplate();
         JdbcTemplate cpf = respondingTemplate();
 
-        var response = new AdmHealthController(adm, cpf, new MockEnvironment()).readiness();
+        var environment = new MockEnvironment();
+        var response = new AdmHealthController(
+                adm, cpf, environment, new AdmPersistencePolicy(environment)).readiness();
         Map<String, Object> result = response.getBody();
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -28,7 +31,8 @@ class AdmHealthControllerTest {
                 .containsEntry("service", "ADM");
         assertThat(result.get("checks")).isEqualTo(Map.of(
                 "admDB", "UP",
-                "cpfDB", "UP"));
+                "cpfDB", "UP",
+                "sessionStore", "UP"));
     }
 
     @Test
@@ -36,14 +40,17 @@ class AdmHealthControllerTest {
         JdbcTemplate adm = respondingTemplate();
         JdbcTemplate cpf = failingTemplate();
 
-        var response = new AdmHealthController(adm, cpf, new MockEnvironment()).readiness();
+        var environment = new MockEnvironment();
+        var response = new AdmHealthController(
+                adm, cpf, environment, new AdmPersistencePolicy(environment)).readiness();
         Map<String, Object> result = response.getBody();
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
         assertThat(result).isNotNull().containsEntry("status", "DOWN");
         assertThat(result.get("checks")).isEqualTo(Map.of(
                 "admDB", "UP",
-                "cpfDB", "DOWN"));
+                "cpfDB", "DOWN",
+                "sessionStore", "UP"));
     }
 
     private JdbcTemplate respondingTemplate() {

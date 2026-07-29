@@ -1,5 +1,424 @@
 # CPF Codex/ChatGPT Continuity State
 
+## CURRENT — 2026-07-29 Final Full Validation checkpoint 7
+
+이 절이 아래 checkpoint 6 및 Historical continuity보다 우선한다.
+
+### 기준
+
+- Branch: `master`
+- 작업 시작 및 현재 기준 HEAD / `origin/master`:
+  `2e3e46d267b5d4b4575250a0526fa6f3c014676e`
+- 작업 시작 Ahead/Behind: `0/0`; 작업 시작 Worktree: Clean
+- 현재 Worktree: 대규모 전수 보완개발 WIP. 사용자 변경을 포함하므로
+  reset/revert/clean으로 폐기하지 않는다.
+- 작업 PC/환경: HOME Windows, PowerShell 7.6, Java 25.0.3, Gradle 9.1,
+  Node 24, npm 11.6, Python 3.13.14, MariaDB 12.3.2
+- 현재 요청:
+  `cpf-docs/work/current/CPF_CODEX_FINAL_FULL_VALIDATION_AND_REMEDIATION_REQUEST_20260729.md`
+- 현재 단계: `부분 구현` — Canonical DB/Generator 정비를 마치고 Public Boundary와
+  Java Runtime SQL 이식성 보완을 병렬 수행 중
+- Commit/Push: 사용자 승인됨. 전체 완료·재검증 전에는 수행하지 않는다.
+
+### 완료한 작업
+
+- Platform DB Profile을 `CPF/CMN/ADM/BZA/BAT/REF`로 고정하고 Generated Domain은
+  유효 Manifest/Ownership Metadata로 동적 발견하도록 Root Build, R10/Final Gate,
+  배포 및 Runtime Script를 보정했다. `ACC/MBR/EXS` 고정 지원 목록과
+  `smoke-acc-lifecycle`, EXS 전용 Lifecycle Gate를 제거했다.
+- `cpf-account`의 추적 Source 삭제 WIP를 보존하면서 남아 있던 untracked class와
+  빈 디렉터리를 확인 후 제거했다. `cpf-batch/src`는 생성하거나 변경하지 않았다.
+- Canonical Platform Schema 160 Table과 공식 Vendor 3종의 Source/Lifecycle/
+  Runtime Query/Checksum/Manifest를 재투영했다. Column Comment 144개와 누락된
+  Table Lifecycle 정책을 Canonical Metadata에서 먼저 보완했다.
+- Immutable Historical V58 Comment Migration은 현재 Canonical에서 재생성하지 않고
+  Metadata와 Forward/Rollback SHA-256으로 무결성을 검증하도록 변경했다.
+- Canonical Product Seed에서 현재 제품의 고정 MBR 실행 Alias 7건을 제거하고
+  과거 설치 잔재를 정리하는 명시 Cleanup SQL을 추가한 뒤 3 Vendor Seed를 재생성했다.
+  Historical Migration은 변경하지 않았다.
+- Generated Domain 기본 설정에 Metadata Port를 투영하고 임의
+  `lending/LND` 대 `insurance/INS` Generator parity를 통과했다.
+  Generator-owned `cpf-member` 설정 Drift 1건은 Generator Sync로 갱신했다.
+- DB Artifact Sync, SQL Standard, SQL Canonical, Migration Checksum,
+  Default Metadata Gate를 통과했다. 최종 동기화 결과는 Platform 160 Table,
+  공식 Vendor 3종, CPF/BZA Runtime Query 600개와 BAT 498개다.
+- Core 공개 Transaction Annotation 우선 Scanner/OpenAPI Header 보정,
+  ADM File Job DataSource Ownership 보정, Common의 미사용 Account Facade 삭제를
+  완료했다. Core compile/test와 ADM 표적 테스트를 통과했다.
+- Generated Domain/배포/Runtime Gate를 고정 Domain 목록 대신 유효 Manifest 기반으로
+  보정하고 BAT Runtime Query Gate를 실제 BAT 4개 Main Scope로 제한했다.
+  BAT Query 166개 × 3 Vendor, `verifyBatStandaloneArchitecture`를 통과했다.
+- ADM Security Operation과 Dynamic Log Level 저장 실패를 성공처럼 숨기지 않고
+  fail-closed하도록 보정했다. 관련 ADM 테스트 11건을 통과했다.
+- 요청서 보호 기준을 Build 산출물이 아닌 Repository 영속 Baseline
+  `CPF_CODEX_REQUEST_PROTECTION_BASELINE_20260729.json`으로 이전하고,
+  최종 요청서의 Git Blob SHA-1과 Content SHA-256을 검증하도록 보정했다.
+- Repository 내 비-Build PowerShell Script 218개의 AST를 검사해 오류 0건을 확인했다.
+
+### 진행 중인 작업
+
+- Core의 MariaDB 전용 Inline SQL과 Metadata/Timeline 집계를 Vendor-neutral
+  JDBC/Java 경계로 보정하고 표적 Compile/Test를 수행 중이다.
+- ADM의 `LIMIT`, `information_schema`, `ON DUPLICATE KEY`,
+  `LAST_INSERT_ID()` 의존을 Vendor-neutral JDBC 흐름으로 보정 중이다.
+- BZA/Common/Reference/BAT의 Core 내부 구현 import를 Public API/SPI로 이전 중이다.
+  BAT는 내부 Static Factory 대신 `CpfVendorSqlCatalogProvider` 주입 경계를 사용한다.
+
+### 아직 시작하지 않은 작업
+
+- 위 병렬 수정 통합 후 Repository 전체 Runtime SQL/Public Boundary 재검사
+- 기존 MariaDB의 최신 Seed Cleanup/Drift/Upgrade/Rollback 재확인
+- 기존 DB와 분리된 신규 Database 이름의 공식 Clean Install/Product Seed/Verify
+- MariaDB Platform/BZA/BAT/Generated Domain Runtime Query 실제 검증
+- Repository 전체 `clean test assemble`, Frontend 전체 Build, 공식 Final Gate
+- 가능한 Multi-instance/Browser/Failure Injection Runtime 검증
+- 최종 Garbage/Build/Log/빈 폴더 cleanup
+- Current/Handover/Review/Evidence 최종 SHA 동기화
+- Commit, `origin/master` Push, Local/Remote SHA와 Clean Worktree 확인
+
+### 변경 중인 주요 파일/모듈
+
+- `cpf-core`: Public Transaction/OpenAPI 계약, Vendor-neutral Reliability/Log/Timeline JDBC
+- `cpf-admin`: Vendor-neutral Control Plane/Break-glass/Download/Log/Observability JDBC
+- `cpf-biz-admin`, `cpf-common`, `cpf-reference`, `cpf-batch/*`: Public API/SPI 경계
+- `cpf-tools/db`: Canonical Schema/Seed/Lifecycle/Vendor Projection와 SQL Gate
+- `cpf-tools/generator`, Root Build/Deploy/Runtime/Final Gate
+- `cpf-docs/work/state`; 최종 단계에서 Current/Handover/Review/Evidence
+
+### 실제 실행한 검증
+
+| 상태 | 검증 | 결과 |
+|---|---|---|
+| 완료 | 기준 Git SHA/Ahead/Behind | HEAD와 `origin/master` 일치 |
+| 완료 | Canonical DB Artifact Sync | 160 Table, 3 Vendor, Runtime Pack 동기화 |
+| 완료 | SQL Standard/Canonical/Migration Checksum/Default Metadata | 모두 성공 |
+| 완료 | Generator arbitrary domain parity | `LND`/`INS` 구조 parity 성공 |
+| 완료 | BAT Runtime Query Pack | 166 Statement × 3 Vendor 성공 |
+| 완료 | BAT Standalone Architecture | 성공 |
+| 완료 | Core compileTest 및 Public Transaction/OpenAPI 표적 Test | 성공 |
+| 완료 | ADM failure visibility 표적 Test | 11건 성공 |
+| 완료 | PowerShell AST | 비-Build Script 218개, 오류 0 |
+| 완료 | Final Request Protection | 영속 SHA 기준 성공 |
+| 부분 구현 | Core/ADM Vendor-neutral Runtime SQL | 병렬 수정 및 재검증 중 |
+| 부분 구현 | 외부 Module Public Boundary | 병렬 수정 및 재검증 중 |
+| 미검증 | 분리 MariaDB Clean Install/Runtime Query | 병렬 수정 통합 후 실행 |
+| 미검증 | 전체 Clean Build/Test/Frontend/Final Gate | DB 검증 후 실행 |
+
+### DB/Runtime 현재 상태
+
+- 기존 로컬 MariaDB는 삭제하지 않았다. 이전 체크포인트에서 6개 Platform DB의
+  V58→V73 Upgrade, V73 Rollback/Re-apply, Canonical 160 Table Drift와 Verify를
+  실제 통과했다.
+- 현재 Canonical Seed의 Generated Domain 고정 Alias Cleanup은 산출물에 반영됐지만
+  기존 MariaDB에는 아직 재적용하지 않았다.
+- 공식 Vendor는 MariaDB/PostgreSQL/Oracle 3종이다. PostgreSQL/Oracle은
+  Source/Contract/Static Gate만 검증했고 실제 서버 Runtime은 `미검증`이다.
+- Clean Install은 기존 DB를 보존하고 분리 Profile/Database로 수행할 예정이다.
+
+### Blocker와 미검증
+
+- 현재 Blocker는 없다.
+- 실행하지 않은 Clean Install, 전체 Build/Test, Browser/Multi-instance,
+  PostgreSQL/Oracle Runtime을 완료로 기록하지 않는다.
+- 병렬 Source 이동 중 일시 Compile 오류는 통합 완료 후 다시 실행해 판정한다.
+
+### 다음 정확한 작업 순서
+
+1. Core/ADM/Public Boundary 병렬 수정 결과를 회수하고 Diff를 검수한다.
+2. 해당 모듈 Compile/Test 및 Runtime SQL/Public Boundary 공식 Gate를 재실행한다.
+3. Continuity를 다음 Checkpoint로 갱신한다.
+4. 기존 MariaDB 최신 Seed/Drift/Upgrade/Rollback을 재확인한다.
+5. 분리 Database/Profile로 Provision → Empty Install → Product Seed → Verify를 실행한다.
+6. 전체 Clean Build/Test/Assemble, Frontend Build, 공식 Final Gate를 실행하고
+   실패를 직접 보정한다.
+7. 생성 산출물·로그·빈 폴더·Dead/Stale 잔재를 정리하고 Evidence/Review/Handover를
+   실제 결과와 최종 SHA에 맞춘다.
+8. 최종 Diff/Hygiene/Secret 검수 후 Commit/Push하고 Local/Remote SHA와
+   Clean Worktree를 확인한다.
+
+### 다시 수행하면 안 되는 작업 / 확정 사항
+
+- Historical Migration을 현재 Canonical Schema에서 재생성하거나 Checksum을 바꾸지 않는다.
+- Platform 설치/검증/배포에 `ACC/MBR/EXS` 등 Generated Domain 고정 목록을 되살리지 않는다.
+- Generated Domain 추가를 위해 Tool Java/PowerShell의 switch/if 목록을 수정하지 않는다.
+- Vendor SQL을 업무 Module Source Tree에 복제하거나 선택 과정에서 Git Source를 덮어쓰지 않는다.
+- `cpf-batch/src`, 삭제된 `cpf-account`, stale Evidence/README/Release Notes를 복원하지 않는다.
+- 기존 MariaDB를 Clean Install 대상으로 삭제하지 않는다.
+- 전체 완료·재검증 전 Commit/Push하지 않으며 force push나 별도 Branch를 만들지 않는다.
+
+## CURRENT — 2026-07-29 Final Full Validation checkpoint 6
+
+이 절이 아래 Historical continuity보다 우선한다.
+
+### 기준
+
+- Branch: `master`
+- 작업 시작 HEAD / `origin/master`: `2e3e46d267b5d4b4575250a0526fa6f3c014676e`
+- 작업 시작 Ahead/Behind: `0/0`
+- 작업 시작 Worktree: Clean
+- 작업 PC/환경: HOME Windows, PowerShell 7.6, Java 25.0.3, Gradle 9.1,
+  Node 24, npm 11.6, Python 3.13.14, MariaDB 12.3.2
+- 현재 요청:
+  `cpf-docs/work/current/CPF_CODEX_FINAL_FULL_VALIDATION_AND_REMEDIATION_REQUEST_20260729.md`
+- 현재 단계: `부분 구현` — 전수감사 후 P0 보완개발과 모듈별 검증 진행 중
+- Commit/Push: 사용자 승인됨. 전체 완료·재검증 전에는 수행하지 않는다.
+
+### 완료한 작업
+
+- `git fetch origin` 후 기준 SHA, Branch, Ahead/Behind, Worktree를 확인했다.
+- Final Full Validation 요청서와 최종 요구사항, Current/Handover/Review/QA/Evidence,
+  기존 Continuity/Decision 문서를 실제 Source 기준으로 다시 대조했다.
+- 공식 DB Vendor를 MariaDB/PostgreSQL/Oracle 3종으로 재확정하고 Java enum, DB Profile,
+  Generator/Export/Initializer/Runtime/Backup/Restore 및 관련 Static Gate의
+  MySQL/SQL Server 선택 잔재를 제거했다.
+- Generated Domain DB initializer가 중앙 Contract와 Metadata Schema에서 허용 버전을
+  읽도록 보정해 현재 `contractVersion=1.1`을 하드코딩 없이 검증한다.
+- Boot 4.1/Spring 7 전환 뒤 남은 Core HTTP import/Header API와 Common Redis import,
+  Common Calendar의 typed Runtime Payload compile 오류를 보정했다.
+- `:cpf-core:compileJava`, `:cpf-common:compileJava`를 실제 실행해 `완료`를 확인했다.
+- Public `CpfRuntimePayload` typed 계약을 유지하면서 Core 내부 Runtime Applier의
+  동적 JSON 접근을 internal adapter로 모으고 direct raw payload 접근을 제거했다.
+- Final Source Closure Gate의 `cpf-tools/build` 정본, Wrapper JAR, Test Source,
+  Secret scan 오탐을 보정했다. 실행 결과에 남은 실제 Source/Format/Hygiene 결함은
+  완료로 올리지 않았다.
+- PostgreSQL/Oracle의 중복 stale `source/migration` V69/V70/R69/R70 파일을 삭제하고
+  실제 정본 `migration/{flyway,rollback}/{logicalDB}` 검증 경로로 Gate를 정렬했다.
+- ADM Frontend/API 인증 Route, 공통 API Client/Token/34자리 transaction ID와
+  BAT 승인·내부 조회 Owner Header/실제 인증 Operator 전파를 보완했다.
+  Frontend lint/typecheck/test/build와 ADM Backend 전체 85 Test를 실제 실행해
+  모두 `완료`했다.
+- BAT Runtime default state를 fail-closed로 전환하고 Worker lease/finalization,
+  Deployment lock 실패 구분, Control Server 인증 신원과 body actor 일치 검증,
+  내부 RestClient 신원 전파 및 관련 Test를 구현했다. BAT 6개 모듈의 전체 targeted
+  Test 53건과 Worker의 Spring Batch 6 `JobOperator` 전환 재검증을 모두 통과했다.
+  중앙 BAT Query Pack은 166 statement × 3 Vendor = 498개로 동기화하고 Contract,
+  Query Integrity와 Diff Gate를 통과했다. `cpf-batch/src`는 변경하지 않았다.
+- BZA의 영구 폐기 410 승인 목록 API를 Frontend에서 제거하고, 인증 직원 기준
+  submissions/inbox API·Service·Repository와 테스트를 구현했다. API는 중앙 Product
+  Seed/권한 정본에 맞춰 `/api/bza/approvals/**`로 통일했다.
+- BZA Runtime Query의 신규 inbox/submissions 계약과 canonical template을 먼저 추가했다.
+  Java 소비 159개를 포함해 Contract 173개(ACTIVE 159/STAGED 14), canonical
+  Template 173개와 MariaDB/PostgreSQL/Oracle 각 173개 Runtime Pack을 재생성했다.
+  Query Contract/Pack/Token/Dialect Gate는 모두 통과했다.
+- BZA가 Public `CpfVendorSqlCatalogProvider` 대신 구현체 정적 factory를 잘못 호출한
+  Repository 2개와 지역변수 shadowing을 보정했다. 외부 Tomcat용 WAR 설정이
+  `spring-web`까지 test/runtime에서 제외하던 결함을 ADM과 같은 안전한 구조로 수정했다.
+  Typed Authorization/Login History/Session DTO로 바뀐 뒤 stale이던 Test를 현재 계약으로
+  복구하고, 첨부 다운로드와 권한 Simulation의 Manifest action mapping을 보강했다.
+  BZA Backend 44 Test와 Frontend lint/typecheck 4 files·10 Test·production build를
+  실제 실행해 모두 통과했다.
+- BAT 독립 애플리케이션에서도 중앙 Vendor SQL Catalog를 주입받도록 Core 공개 경계
+  AutoConfiguration에 기본 Provider를 추가하고 사용자 정의 Provider는 보존했다.
+  이 과정에서 드러난 Core stale Test 12개도 현재 API/생성자/제네릭 계약에 맞게 복구했다.
+- `:cpf-core:compileTestJava`와 Provider/DataSource/HTTP/Logging/Instance Selector
+  표적 테스트를 실제 실행해 성공했다.
+- Repository Hygiene Gate가 `frontend/src/features/logs` 기능 Source를 Runtime 로그
+  산출물로 오인하던 경계를 보정했다. 실제 추적 파일 기준 Hygiene Gate는 통과했다.
+- Generator Golden Gate에서 최근 추가된 공통 request-hash 멱등 원장과 이전
+  단일-table/8-statement Contract의 Drift를 발견했다. 업무 Sample Table 1개와
+  공통 Idempotency Ledger 1개를 구분해 Contract/Metadata/3 Vendor Verify를
+  동기화하는 작업은 `부분 구현`이다.
+- 로컬 MariaDB를 변경하지 않고 읽기 전용 조사했다. 서버는 `12.3.2-MariaDB`이며
+  기존 CPF Database 8개, Base Table 152개와 Spring Batch Sequence 3개가 존재한다.
+- Platform DB용 공식 profile-driven Upgrade/Rollback runner가 없음을 확인했다.
+  기존 `apply-cpf-runtime-migrations.ps1`는 cpfDB V11/V12만 실행하는 과거 smoke라서
+  3 Vendor/Profile/Checksum/History/Backup/Rollback 계약을 충족하지 못한다.
+  중앙 fail-closed migration runner와 정적 fixture Gate를 구현하고 통과했다.
+- MariaDB Historical V64~V72를 변경하지 않고 checksum-fixed 명시 Routing Metadata로
+  분리했으며, V69의 CPF/ADM 복수 Owner는 둘 모두 선택해야 실행되도록 고정했다.
+- 기존 MariaDB가 V58 기준임을 실제 Column/Object로 확인하고 ADM/BZA/CPF/BAT를
+  공식 도구로 백업했다. Service User/Grant `provision-only` 경로를 추가해 연결을
+  검증한 뒤 V59~V73 18개 작업을 계획 SHA
+  `e3e712bb7067b9ab6a1f85eb8a047db59eb75392aa3beac22504f2fed1a048c1`로 적용했다.
+- V73은 별도 BAT 백업 후 실제 Rollback → legacy sequence 확인 → Re-apply를 완료했다.
+  최종 Spring Batch Sequence는 `BATCH_JOB_INSTANCE_SEQ`,
+  `BATCH_JOB_EXECUTION_SEQ`, `BATCH_STEP_EXECUTION_SEQ` 3개다.
+- Platform Canonical Schema에서 고정 목록이 아닌 ACC/MBR DB를 제거하고 Default/Prod
+  Profile도 고정 Generated Domain metadata 없이 Platform 6개 Module만 유지했다.
+  Canonical 160 Table의 Column 순서/Unique Index를 immutable Historical Upgrade와
+  일치시키고 MariaDB/PostgreSQL/Oracle Source·Lifecycle·Manifest를 재생성했다.
+- 공식 DB Artifact Sync가 160 Table, 3 Vendor, Runtime Query Pack과 Migration
+  Checksum까지 통과했다. 업그레이드된 기존 MariaDB는 6개 Platform DB 모두
+  Table/Column/Index/FK Drift 없음, Product Seed, Canonical Verify 27건을 통과했다.
+- 백업 도구의 PowerShell 예약 변수 `$Host` 충돌을 외부 `-Host` 호환을 유지한 채
+  수정하고 실제 네 DB 백업과 두 BAT Lifecycle 백업으로 재검증했다.
+- `cpf-account` 고정 업무 Module을 제거하고 `cpf-member`를 현행 Generator 1.1로
+  다시 생성했다. 명시 상대 OutputDir 보정, 절대경로 없는 생성 결과, 직접 Project
+  경로 Sync/Parity, 임의 `lending/LND` 생성·정규화 parity, Member Test와
+  bootJar/bootWar 의존성 검증을 통과했다.
+- ADM/Gateway의 `com.cpf.core.common.*` 및 `.internal.*` 직접 import를 공개
+  `api.execution/logging/remotelog/transaction/version/security` 계약과 Operations
+  Adapter로 전환했다. Runtime Payload는 typed accessor로만 읽으며 관련 Compile과
+  Runtime Control/R11 Public Boundary Gate를 통과했다.
+- ADM/BZA 운영 화면 7곳의 raw JSON `<pre>`를 구조화된 표·필드 상세·빈 상태·오류
+  UI로 교체했다. 두 Frontend의 Production Build, ESLint, Vitest, Typecheck와
+  Integrated Architecture/UI/Hygiene Gate를 통과했다.
+- Full QA Matrix Export가 ACC/MBR/EXS 고정 목록을 요구하던 결함을 제거하고,
+  Worktree의 임의 `domain-manifest.json`을 동적으로 발견하도록 보정했다.
+- Consumer가 없고 Core File Transfer Engine을 내부 package로 중복 감싸던
+  `cpf-common/fle` 잔재와 CMN File Exchange 설정을 삭제했다. Fixed-Length
+  Ownership Gate를 정본대로 `cpf-core` 공개 Contract 필수/CMN Engine 금지로
+  고쳤으며 Architecture Ownership 결과는 failure 0, warning 0이다.
+- Platform Product/Optional/Test Seed를 Canonical `seed-model.json`에서 먼저
+  정규화했다. MODULE/메시지/응답/Service Registry/Endpoint/Instance/Health/
+  Test Fixture/BZA Menu에 고정돼 있던 Generated Domain MBR/ACC 소유 Row를 제거하고,
+  Platform MODULE을 Profile의 `CPF/CMN/ADM/BZA/BAT/REF` 6개와 일치시켰다.
+  Canonical statementCount와 실제 문장 수는 146/146으로 일치한다.
+- 미사용 중복 정본 `cpf-tools/db/canonical/product-seed.json`을 삭제하고
+  Default Metadata의 Source of Truth를 Canonical Seed로 전환했다.
+- DB Artifact 동기화가 Aggregate Bundle을 Canonical Projection보다 먼저 만들던
+  one-generation-behind 결함을 수정했다. Provision/Verify는 Platform Profile과
+  Canonical Schema에서 생성되고 MariaDB/PostgreSQL/Oracle Lifecycle Bundle이
+  그 이후 조립된다.
+- MariaDB/PostgreSQL/Oracle 중앙 Runtime Pack에서 Generated Domain 전용
+  `mbr`/`acc` Mapper와 descriptor를 제거했다. Pack descriptor와 실제 중앙
+  Runtime Resource Module 집합을 정확히 비교하는 Gate를 추가했다.
+- PostgreSQL/Oracle 공식 실행기의 PowerShell 문법 오류와 단일 첫 SQL section만
+  실행하던 결함을 수정했다. 동일 logicalDatabase의 모든 Install/Seed/Verify
+  section을 실행하며 Verify 결과의 `passed=1`을 fail-closed로 검사한다.
+- Canonical 160 Table → 공식 3 Vendor Source/Lifecycle/Runtime Query/Checksum/
+  Manifest/Generated Domain DB artifact sync를 재실행해 통과했다.
+
+### 진행 중인 작업
+
+- Generated Domain Golden Reference인 `cpf-member`를 임의 Domain 산출물과 동일한
+  Minimal Transaction Template로 재생성하고 고정 `cpf-account`를 제거하는 작업의
+  active Build/Deploy/Seed/Gate 잔재 정리
+- BZA/BAT 및 남은 제품 Module의 `com.cpf.core.common.*` 내부 구현 의존을
+  Public API/SPI로 전환
+- Root Build/Deploy/Gate에서 고정 ACC/MBR 지원 목록과 stale Generated Domain
+  lifecycle 잔재 제거
+
+### 아직 시작하지 않은 작업
+
+- 기존 DB와 분리된 별도 Database 이름의 공식 Clean Install/Product Seed/Verify
+- MariaDB Platform/BZA/BAT/Generated Domain Runtime Query 실제 검증
+- Repository 전체 `clean test assemble`, Frontend 전체 Build, 공식 Final Gate
+- 실제 Multi-instance/Browser/외부 서버 Runtime 검증
+- 최종 Garbage/Build/Log/빈 폴더 cleanup
+- Current/Handover/Review/Evidence 최종 SHA 동기화
+- Commit, `origin/master` Push, Local/Remote SHA와 Clean Worktree 확인
+
+### 변경 중인 주요 파일/모듈
+
+- `cpf-core`: HTTP Boot 4.1 compatibility, typed Runtime Payload, DB Vendor,
+  공개 Vendor SQL Catalog Provider와 stale Test
+- `cpf-common`: Redis/Calendar compile closure, stale FLE facade 제거
+- `cpf-admin`: 인증 Route, Frontend API, BAT 승인 Owner 연계, 구조화 운영 UI와 Test
+- `cpf-biz-admin`: approval API/Service/Repository/Frontend/권한 Manifest,
+  구조화 운영 UI
+- `cpf-batch/*`: Control Server/Scheduler/Worker/Runtime Common/Center-cut
+- `cpf-tools/db`, `cpf-tools/generator`, `cpf-tools/scripts`, Final verification Gate
+- `cpf-docs/work/state`; 최종 단계에서 Current/Handover/Review/Evidence
+
+### 실제 실행한 검증
+
+| 상태 | 검증 | 결과 |
+|---|---|---|
+| 완료 | 기준 Git fetch/SHA/Ahead/Behind/Worktree | 시작 SHA와 origin 일치, Clean |
+| 완료 | `:cpf-core:compileJava` | Boot 4.1/typed payload 보정 후 성공 |
+| 완료 | `:cpf-core:compileTestJava` | 기존 stale Test 12건 보정 후 성공 |
+| 완료 | Core targeted Test | Provider/DataSource/HTTP/Logging/Instance Selector 성공 |
+| 완료 | `:cpf-common:compileJava` | Redis/Calendar 보정 후 성공 |
+| 완료 | ADM Frontend lint/typecheck/test/build | 3 test files, 7 tests 포함 성공 |
+| 완료 | `:cpf-admin:test` | 85/85 성공, 인증 Operator/BAT Header 계약 포함 |
+| 완료 | BAT 6개 Module targeted Test | 53/53 성공, Worker `JobOperator` 재검증 포함 |
+| 완료 | BAT Runtime Query Contract/Pack | 166 statement × 3 Vendor=498, sync/integrity 성공 |
+| 완료 | `:cpf-biz-admin:test` | 44/44 성공, typed auth/session와 fail-closed audit 포함 |
+| 완료 | BZA Frontend lint/typecheck/test/build | 4 files, 10 tests, production build 성공 |
+| 완료 | DB/Generator 3 Vendor static bootstrap | MariaDB/PostgreSQL/Oracle phases=5 |
+| 완료 | Generated Domain batch initializer static | current contract 1.1, domains=3 |
+| 완료 | Default metadata `-RequireImplemented` | 공식 3 Vendor required=59 |
+| 완료 | R10/Feature baseline 및 변경 PowerShell parser | 성공 |
+| 완료 | Platform Runtime Query Contract/Pack Gate | BZA 173개, 3 Vendor 519개 생성 및 정합성 성공 |
+| 완료 | Repository Hygiene Gate | tracked 3701, failure 0 |
+| 완료 | Generator Golden Path + 실제 arbitrary Domain smoke | `lending/LND`, 5 Test, bootJar/bootWar 성공 |
+| 완료 | Platform Migration Tool fixture Gate | 3 Vendor, explicit routing, plan SHA/backup/confirm/fail-closed 성공 |
+| 완료 | 기존 MariaDB V59~V73 Upgrade | 공식 백업 4개, 18/18 작업 완료 |
+| 완료 | MariaDB V73 Rollback/Re-apply | 각 단계 별도 백업, legacy/공식 Sequence 상태 확인 |
+| 완료 | DB Artifact Sync | Canonical 160 Table → 공식 3 Vendor Source/Lifecycle/Manifest 일치 |
+| 완료 | 기존 MariaDB Canonical Verify | 6 Platform DB Table/Column/Index/FK Drift 없음, Product Seed, Verify 27/27 |
+| 완료 | Generated Domain Golden/Parity | `cpf-member` sync parity, 임의 `lending/LND` normalized parity, Test/bootJar/bootWar 성공 |
+| 완료 | Runtime/Public Boundary Compile·Gate | Core/ADM/Gateway Compile, Runtime Control Boundary와 R11 Public Boundary 성공 |
+| 완료 | ADM Frontend 재검증 | Production Build, ESLint, 3 files·7 tests, Typecheck 성공 |
+| 완료 | BZA Frontend 재검증 | Production Build, ESLint, 4 files·10 tests, Typecheck 성공 |
+| 완료 | Integrated Architecture/UI/Hygiene | merged ledger 2,715건, Architecture failure 0/warning 0 |
+| 완료 | Core/Common FLE Ownership 보정 Compile | `:cpf-core:compileJava :cpf-common:compileJava` 성공 |
+| 완료 | Canonical Platform Seed Boundary | 146/146 문장, MODULE=CPF/CMN/ADM/BZA/BAT/REF, Generated MBR/ACC Row 제거 |
+| 완료 | 공식 3 Vendor DB Artifact Sync 재실행 | Canonical 160 Table, Runtime CPF/BZA 600개 + BAT 498개, Query/Checksum/Manifest/Generated Domain sync 성공 |
+| 완료 | DB Profile/Provision Boundary Gate | Profile/Metadata/Canonical Seed/3 Vendor Provision 동적 일치 성공 |
+| 완료 | DB Vendor Pack Parity | 3 Vendor, 중앙 Runtime descriptor/resource exact set, 74 file pair 성공 |
+| 부분 구현 | `check_final_source_closure.py` | Gate 오탐 보정, 실제 format/ownership/hygiene 결함 남음 |
+| 완료 | ADM/BAT/BZA targeted Backend Test | ADM 85, BAT 53, BZA 44 Test 성공 |
+| 미검증 | 전체 Build/Test/Gate 및 분리 Clean Install | 아직 실행하지 않음 |
+
+### DB / Runtime 현재 상태
+
+- MariaDB 서비스/CLI/Root 연결: `완료`
+- 기존 CPF Database: `완료` — `cpfdb`, `cmndb`, `admdb`, `bzadb`, `batdb`,
+  `mbrdb`, `accdb`, `refdb`
+- 기존 Platform DB Object: `완료` — CPF 53, CMN 2, ADM 31, BZA 28,
+  BAT 43 + Spring Batch Sequence 3, REF 3; 합계 160 Table
+- 기존 Generated Domain 잔존 DB: MBR 8, ACC 2. Platform Canonical/설치 Profile에서는
+  제거했으며 기존 DB 보존 정책에 따라 실제 DB는 삭제하지 않았다.
+- 기존 Base Table 합계: `완료` — Platform 160 + 보존된 Generated Domain 10 = 170
+- 기존 DB Drift/Migration/Upgrade: `완료` — V59~V73 Upgrade, V73
+  Rollback/Re-apply, Product Seed, Canonical Verify 27건
+- 분리 Clean Install/Product Seed/Verify: `미검증`
+- 현재 실행 중 CPF Runtime Process: 없음
+- PostgreSQL/Oracle 실제 Runtime: 제품 미설치로 `미검증`
+
+DB Secret은 Process 범위에서만 사용하며 Console/Evidence/문서/Git에 원문을 남기지 않는다.
+
+### Blocker와 미검증
+
+- 로컬 DB가 없다는 이전 가정과 달리 실제 8개 Database, Base Table 152개와
+  Spring Batch Sequence 3개가 존재한다.
+  요청서에 따라 삭제·Reset하지 않고 기존 DB lifecycle 검증에 먼저 사용한다.
+- 기존 DB의 V58→V73 Upgrade/Drift 문제는 해결했다. Platform Canonical은 160 Table,
+  기존 DB에는 보존 정책상 MBR/ACC legacy 10 Table이 추가로 존재한다. 이 10개는
+  Platform 완료 수에 포함하지 않으며 Generated Domain Reference 재생성 단계에서
+  Source/Metadata Ownership을 정리한다.
+- ADM/BAT/BZA Backend targeted Test는 완료했다. Repository 전체 Build와 DB lifecycle은
+  아직 `미검증`이다.
+- MariaDB Historical V40~V51/V58/V64~V72 중에는 `USE` 또는 명시적 logical DB
+  routing이 없는 파일이 다수이고 V69처럼 여러 Owner DB DDL을 한 파일에 섞은 구간도 있다.
+  Historical 파일을 수정하거나 DB명을 추정하지 않고, 새 runner는 명시 routing이 없는
+  선택을 fail-closed한다. 기존 DB Upgrade는 확인된 새 Migration과 안전한 routing만 적용한다.
+- Browser, Redis, 외부 PostgreSQL/Oracle, Multi-instance Runtime은 환경 확인 뒤
+  가능한 대체 자동 검증과 실제 미실행 항목을 분리한다.
+
+### 다음 정확한 작업 순서
+
+1. Root Build/Deploy/Gate에서 고정 `cpf-account`/ACC와 MBR 지원 목록 잔재를
+   Generated Domain manifest discovery 기반으로 전환한다.
+2. BZA/BAT 및 남은 Module의 Core internal import/inline Vendor SQL을 Public API/SPI와
+   중앙 Runtime Query Pack으로 전환한다.
+3. 별도 Clean Database/Profile로 공식 Provision → Empty Install → Product Seed →
+   Verify를 수행하고 Runtime Query를 검증한다.
+4. 전체 Clean Build/Test/Frontend/공식 Gate를 저메모리 직렬 방식으로 실행해
+   남은 결함을 직접 수정한다.
+5. Garbage/Build/Log/빈 폴더를 정리한 뒤 Current/Handover/Review/Evidence를
+   실제 결과와 최종 SHA에 맞춘다.
+6. 최종 Diff/Hygiene를 검수하고 Commit/Push 후 Local HEAD=`origin/master`,
+   Worktree Clean을 확인한다.
+
+### 다시 수행하면 안 되는 작업 / 확정 사항
+
+- 기존 MariaDB 8개 Database를 Reset/삭제하지 않는다.
+- Dirty Worktree를 reset/revert/clean으로 폐기하지 않는다.
+- Historical Migration을 임의 수정하지 않는다. 변경은 새 Migration/Rollback으로 추가한다.
+- MariaDB Vendor SQL부터 직접 수정하지 않는다. Canonical Metadata/Template/Generator를
+  먼저 수정한 뒤 3 Vendor Pack을 재생성한다.
+- 공식 Vendor는 MariaDB/PostgreSQL/Oracle 3종이다. MySQL/SQL Server 제품 선택을 복원하지 않는다.
+- Generator에 MBR/ACC/REF/EXS/PAY/INS 등 Domain/SystemCode 고정 목록을 넣지 않는다.
+- Platform Module과 Generated Domain SQL Ownership을 혼동하지 않는다.
+- Generated Domain 기본 구조는 임의 Metadata 기반 단일 Minimal Transaction Sample이다.
+- 실행하지 않은 검증을 `완료`로 기록하지 않는다.
+- 실패하거나 미완성 상태에서는 Commit/Push하지 않는다. Force Push/별도 Branch는 금지한다.
+
+---
+
 ## CURRENT — 2026-07-27 Change Set B closure
 
 - Remote baseline before patch: `00780dc14ef621578f6f7ca61ef1d0c9973c60e6` (`20260727_04`)

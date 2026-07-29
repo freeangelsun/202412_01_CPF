@@ -1,5 +1,7 @@
 package com.cpf.core.common.remotelog;
 
+import com.cpf.core.api.remotelog.*;
+
 import java.nio.file.Path;
 import java.util.List;
 

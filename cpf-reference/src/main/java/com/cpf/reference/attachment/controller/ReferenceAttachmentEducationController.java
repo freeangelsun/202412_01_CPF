@@ -1,7 +1,7 @@
 package com.cpf.reference.attachment.controller;
 
-import com.cpf.core.common.attachment.CpfStoredAttachment;
-import com.cpf.core.common.execution.CpfOnlineTransaction;
+import com.cpf.core.api.attachment.CpfStoredAttachment;
+import com.cpf.core.api.execution.CpfOnlineTransaction;
 import com.cpf.reference.attachment.ReferenceAttachmentEducationSample;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

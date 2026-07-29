@@ -59,10 +59,10 @@ class CpfRestClientInterceptorTest {
 
         assertThat(headers.getFirst(CpfHeaderNames.TRANSACTION_ID)).isEqualTo("20260615120000000MBRlocal010000001");
         assertThat(headers.getFirst(CpfHeaderNames.TRACE_ID)).isEqualTo("TRACE-1");
-        assertThat(headers).doesNotContainKey(CpfHeaderNames.PARENT_TRANSACTION_SEGMENT_ID);
+        assertThat(headers.containsHeader(CpfHeaderNames.PARENT_TRANSACTION_SEGMENT_ID)).isFalse();
         assertThat(headers.getFirst(CpfHeaderNames.CHANNEL_CODE)).isEqualTo("CUSTOM");
         assertThat(headers.getFirst("X-Cpf-Ext-Campaign-Id")).isEqualTo("CMP-2026");
-        assertThat(headers).doesNotContainKey(CpfHeaderNames.AUTHORIZATION);
+        assertThat(headers.containsHeader(CpfHeaderNames.AUTHORIZATION)).isFalse();
     }
 
     @Test

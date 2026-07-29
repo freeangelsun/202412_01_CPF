@@ -19,269 +19,8 @@
       "cpf-tools/db/vendor/oracle/source/*_schema.sql"
     ]
   },
-  "tableCount": 170,
+  "tableCount": 160,
   "tables": [
-    {
-      "name": "acc_account",
-      "columns": [
-        {
-          "name": "account_id",
-          "type": "BIGINT",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": true,
-          "onUpdate": null,
-          "comment": "계정 식별자"
-        },
-        {
-          "name": "account_no",
-          "type": "VARCHAR(50)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "업무 계정번호"
-        },
-        {
-          "name": "account_name",
-          "type": "VARCHAR(150)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "계정명"
-        },
-        {
-          "name": "email",
-          "type": "VARCHAR(200)",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "마스킹 대상 이메일"
-        },
-        {
-          "name": "status_code",
-          "type": "VARCHAR(30)",
-          "nullable": false,
-          "default": "'ACTIVE'",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "계정 상태 코드"
-        },
-        {
-          "name": "row_version",
-          "type": "BIGINT",
-          "nullable": false,
-          "default": "0",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "낙관적 잠금 버전"
-        },
-        {
-          "name": "deleted_yn",
-          "type": "CHAR(1)",
-          "nullable": false,
-          "default": "'N'",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "논리 삭제 여부"
-        },
-        {
-          "name": "created_by",
-          "type": "VARCHAR(100)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "등록자"
-        },
-        {
-          "name": "created_at",
-          "type": "DATETIME",
-          "nullable": false,
-          "default": "CURRENT_TIMESTAMP",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "등록일시"
-        },
-        {
-          "name": "updated_by",
-          "type": "VARCHAR(100)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "수정자"
-        },
-        {
-          "name": "updated_at",
-          "type": "DATETIME",
-          "nullable": false,
-          "default": "CURRENT_TIMESTAMP",
-          "autoIncrement": false,
-          "onUpdate": "CURRENT_TIMESTAMP",
-          "comment": "수정일시"
-        }
-      ],
-      "primaryKey": [
-        "account_id"
-      ],
-      "uniqueKeys": [
-        {
-          "name": "uk_acc_account_no",
-          "columns": [
-            "account_no"
-          ]
-        }
-      ],
-      "indexes": [
-        {
-          "name": "ix_acc_account_search",
-          "columns": [
-            "status_code",
-            "deleted_yn",
-            "account_id"
-          ]
-        }
-      ],
-      "foreignKeys": [],
-      "checks": [
-        {
-          "name": "ck_acc_account_deleted",
-          "expression": "deleted_yn IN ('Y', 'N')"
-        }
-      ],
-      "comment": "ACC 중립 계정 reference",
-      "module": "biz",
-      "logicalDatabase": "accDB"
-    },
-    {
-      "name": "acc_account_change_log",
-      "columns": [
-        {
-          "name": "account_change_log_id",
-          "type": "BIGINT",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": true,
-          "onUpdate": null,
-          "comment": "계정 변경 로그 순번"
-        },
-        {
-          "name": "account_id",
-          "type": "BIGINT",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "변경 계정 식별자"
-        },
-        {
-          "name": "action_code",
-          "type": "VARCHAR(30)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "CREATE, UPDATE 또는 DELETE 행위 코드"
-        },
-        {
-          "name": "before_value",
-          "type": "LONGTEXT",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "마스킹된 변경 전 값"
-        },
-        {
-          "name": "after_value",
-          "type": "LONGTEXT",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "마스킹된 변경 후 값"
-        },
-        {
-          "name": "audit_reason",
-          "type": "VARCHAR(500)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "변경 감사 사유"
-        },
-        {
-          "name": "created_by",
-          "type": "VARCHAR(100)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "등록자"
-        },
-        {
-          "name": "created_at",
-          "type": "DATETIME",
-          "nullable": false,
-          "default": "CURRENT_TIMESTAMP",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "등록일시"
-        },
-        {
-          "name": "updated_by",
-          "type": "VARCHAR(100)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "수정자"
-        },
-        {
-          "name": "updated_at",
-          "type": "DATETIME",
-          "nullable": false,
-          "default": "CURRENT_TIMESTAMP",
-          "autoIncrement": false,
-          "onUpdate": "CURRENT_TIMESTAMP",
-          "comment": "수정일시"
-        }
-      ],
-      "primaryKey": [
-        "account_change_log_id"
-      ],
-      "uniqueKeys": [],
-      "indexes": [
-        {
-          "name": "ix_acc_account_change_target",
-          "columns": [
-            "account_id",
-            "created_at"
-          ]
-        }
-      ],
-      "foreignKeys": [
-        {
-          "name": "fk_acc_account_change_target",
-          "columns": [
-            "account_id"
-          ],
-          "refTable": "acc_account",
-          "refColumns": [
-            "account_id"
-          ],
-          "onDelete": null,
-          "onUpdate": null
-        }
-      ],
-      "checks": [],
-      "comment": "ACC 계정 변경 감사 이력",
-      "module": "biz",
-      "logicalDatabase": "accDB"
-    },
     {
       "name": "adm_api_permission",
       "columns": [
@@ -3053,6 +2792,42 @@
           "comment": "요청 Client IP"
         },
         {
+          "name": "error_code",
+          "type": "VARCHAR(80)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "오류 코드"
+        },
+        {
+          "name": "error_message",
+          "type": "VARCHAR(1000)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "마스킹된 오류 메시지"
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME(6)",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP(6)",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "생성 일시"
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME(6)",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP(6)",
+          "autoIncrement": false,
+          "onUpdate": "CURRENT_TIMESTAMP",
+          "comment": "수정 일시"
+        },
+        {
           "name": "approval_id",
           "type": "VARCHAR(120)",
           "nullable": true,
@@ -3105,42 +2880,6 @@
           "autoIncrement": false,
           "onUpdate": null,
           "comment": "최근 제어 시각"
-        },
-        {
-          "name": "error_code",
-          "type": "VARCHAR(80)",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "오류 코드"
-        },
-        {
-          "name": "error_message",
-          "type": "VARCHAR(1000)",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "마스킹된 오류 메시지"
-        },
-        {
-          "name": "created_at",
-          "type": "DATETIME(6)",
-          "nullable": false,
-          "default": "CURRENT_TIMESTAMP(6)",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "생성 일시"
-        },
-        {
-          "name": "updated_at",
-          "type": "DATETIME(6)",
-          "nullable": false,
-          "default": "CURRENT_TIMESTAMP(6)",
-          "autoIncrement": false,
-          "onUpdate": "CURRENT_TIMESTAMP",
-          "comment": "수정 일시"
         }
       ],
       "primaryKey": [
@@ -4194,15 +3933,6 @@
           "autoIncrement": false,
           "onUpdate": null,
           "comment": "운영자 ID"
-        },
-        {
-          "name": "DISPLAY_NAME",
-          "type": "VARCHAR(100)",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "Directory/Profile 표시 이름"
         },
         {
           "name": "DISPLAY_NAME",
@@ -5636,7 +5366,7 @@
       ],
       "uniqueKeys": [
         {
-          "name": "uk_bat_center_cut_claim_claim_token",
+          "name": "claim_token",
           "columns": [
             "claim_token"
           ]
@@ -5944,6 +5674,15 @@
           "comment": "센터컷 Job ID"
         },
         {
+          "name": "center_cut_execution_id",
+          "type": "VARCHAR(80)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Center-cut execution identifier"
+        },
+        {
           "name": "business_key",
           "type": "VARCHAR(200)",
           "nullable": false,
@@ -6077,15 +5816,6 @@
           "autoIncrement": false,
           "onUpdate": "CURRENT_TIMESTAMP",
           "comment": "수정일시"
-        },
-        {
-          "name": "center_cut_execution_id",
-          "type": "VARCHAR(80)",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": null
         }
       ],
       "primaryKey": [
@@ -6758,6 +6488,15 @@
           "comment": "Desired cell state"
         },
         {
+          "name": "desired_instance_count",
+          "type": "INT",
+          "nullable": false,
+          "default": "1",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Desired runtime instance count"
+        },
+        {
           "name": "row_version",
           "type": "BIGINT",
           "nullable": false,
@@ -6783,15 +6522,6 @@
           "autoIncrement": false,
           "onUpdate": "CURRENT_TIMESTAMP(6)",
           "comment": "Last desired-state update time"
-        },
-        {
-          "name": "desired_instance_count",
-          "type": "INT",
-          "nullable": false,
-          "default": "1",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": null
         }
       ],
       "primaryKey": [
@@ -7664,6 +7394,15 @@
           "comment": "재시도 또는 rollback 건수"
         },
         {
+          "name": "stop_requested_yn",
+          "type": "CHAR(1)",
+          "nullable": false,
+          "default": "'N'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "운영 중지 요청 여부"
+        },
+        {
           "name": "progress_rate",
           "type": "DECIMAL(5,2)",
           "nullable": false,
@@ -7770,15 +7509,6 @@
           "autoIncrement": false,
           "onUpdate": "CURRENT_TIMESTAMP",
           "comment": "수정일시"
-        },
-        {
-          "name": "stop_requested_yn",
-          "type": "CHAR(1)",
-          "nullable": false,
-          "default": "'N'",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "운영 중지 요청 여부"
         }
       ],
       "primaryKey": [
@@ -7995,6 +7725,15 @@
           "comment": "만료 후 다른 worker 인수 횟수"
         },
         {
+          "name": "fencing_token",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "0",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "monotonic fencing token"
+        },
+        {
           "name": "released_at",
           "type": "DATETIME(3)",
           "nullable": true,
@@ -8047,15 +7786,6 @@
           "autoIncrement": false,
           "onUpdate": "CURRENT_TIMESTAMP",
           "comment": "수정일시"
-        },
-        {
-          "name": "fencing_token",
-          "type": "BIGINT",
-          "nullable": false,
-          "default": "0",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "monotonic fencing token"
         }
       ],
       "primaryKey": [
@@ -9950,6 +9680,15 @@
           "comment": "Command target type"
         },
         {
+          "name": "target_snapshot",
+          "type": "LONGTEXT",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Command target snapshot JSON"
+        },
+        {
           "name": "target_snapshot_hash",
           "type": "VARCHAR(128)",
           "nullable": true,
@@ -9984,6 +9723,15 @@
           "autoIncrement": false,
           "onUpdate": null,
           "comment": "Mandatory command reason"
+        },
+        {
+          "name": "approval_policy_version",
+          "type": "VARCHAR(80)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Approval policy version"
         },
         {
           "name": "approval_request_id",
@@ -10022,6 +9770,15 @@
           "comment": "Execution attempt count"
         },
         {
+          "name": "result_text",
+          "type": "LONGTEXT",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Command result detail"
+        },
+        {
           "name": "failure_stage",
           "type": "VARCHAR(80)",
           "nullable": true,
@@ -10029,6 +9786,24 @@
           "autoIncrement": false,
           "onUpdate": null,
           "comment": "Last failed stage"
+        },
+        {
+          "name": "before_state",
+          "type": "LONGTEXT",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "State before operation"
+        },
+        {
+          "name": "after_state",
+          "type": "LONGTEXT",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "State after operation"
         },
         {
           "name": "result_code",
@@ -10083,51 +9858,6 @@
           "autoIncrement": false,
           "onUpdate": null,
           "comment": "Audit evidence reference"
-        },
-        {
-          "name": "target_snapshot",
-          "type": "LONGTEXT",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": null
-        },
-        {
-          "name": "approval_policy_version",
-          "type": "VARCHAR(80)",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": null
-        },
-        {
-          "name": "result_text",
-          "type": "LONGTEXT",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": null
-        },
-        {
-          "name": "before_state",
-          "type": "LONGTEXT",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": null
-        },
-        {
-          "name": "after_state",
-          "type": "LONGTEXT",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": null
         }
       ],
       "primaryKey": [
@@ -10135,7 +9865,7 @@
       ],
       "uniqueKeys": [
         {
-          "name": "uk_bat_runtime_command_idempotency_key",
+          "name": "idempotency_key",
           "columns": [
             "idempotency_key"
           ]
@@ -18301,7 +18031,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Durable consumer identifier"
         },
         {
           "name": "last_event_id",
@@ -18310,7 +18040,7 @@
           "default": "0",
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Last processed event identifier"
         },
         {
           "name": "last_applied_at",
@@ -18319,7 +18049,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Last applied event time"
         },
         {
           "name": "created_by",
@@ -18328,7 +18058,7 @@
           "default": "'CPF'",
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Creator identifier"
         },
         {
           "name": "created_at",
@@ -18337,7 +18067,7 @@
           "default": "CURRENT_TIMESTAMP",
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Creation time"
         },
         {
           "name": "updated_by",
@@ -18346,7 +18076,7 @@
           "default": "'CPF'",
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Last updater identifier"
         },
         {
           "name": "updated_at",
@@ -18355,7 +18085,7 @@
           "default": "CURRENT_TIMESTAMP",
           "autoIncrement": false,
           "onUpdate": "CURRENT_TIMESTAMP",
-          "comment": ""
+          "comment": "Last update time"
         }
       ],
       "primaryKey": [
@@ -19311,7 +19041,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Idempotent operation identifier"
         },
         {
           "name": "command_type",
@@ -19320,7 +19050,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Operation command type"
         },
         {
           "name": "request_hash",
@@ -19329,7 +19059,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Request fingerprint checksum"
         },
         {
           "name": "entity_id",
@@ -19338,7 +19068,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Target entity identifier"
         },
         {
           "name": "result_state",
@@ -19347,7 +19077,7 @@
           "default": "'PROCESSING'",
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Operation result state"
         },
         {
           "name": "result_json",
@@ -19356,7 +19086,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Operation result JSON"
         },
         {
           "name": "expires_at",
@@ -19365,7 +19095,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Expiry time"
         },
         {
           "name": "created_by",
@@ -19374,7 +19104,7 @@
           "default": "'CPF'",
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Creator identifier"
         },
         {
           "name": "created_at",
@@ -19383,7 +19113,7 @@
           "default": "CURRENT_TIMESTAMP",
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Creation time"
         },
         {
           "name": "updated_by",
@@ -19392,7 +19122,7 @@
           "default": "'CPF'",
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Last updater identifier"
         },
         {
           "name": "updated_at",
@@ -19401,7 +19131,7 @@
           "default": "CURRENT_TIMESTAMP",
           "autoIncrement": false,
           "onUpdate": "CURRENT_TIMESTAMP",
-          "comment": ""
+          "comment": "Last update time"
         }
       ],
       "primaryKey": [
@@ -20876,6 +20606,42 @@
           "comment": "발송 완료 일시"
         },
         {
+          "name": "created_by",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": "'CPF'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "등록자"
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "등록일시"
+        },
+        {
+          "name": "updated_by",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": "'CPF'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "수정자"
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "autoIncrement": false,
+          "onUpdate": "CURRENT_TIMESTAMP",
+          "comment": "수정일시"
+        },
+        {
           "name": "operation_id",
           "type": "VARCHAR(100)",
           "nullable": false,
@@ -20964,42 +20730,6 @@
           "autoIncrement": false,
           "onUpdate": null,
           "comment": "마지막 Provider 오류 코드"
-        },
-        {
-          "name": "created_by",
-          "type": "VARCHAR(100)",
-          "nullable": false,
-          "default": "'CPF'",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "등록자"
-        },
-        {
-          "name": "created_at",
-          "type": "DATETIME",
-          "nullable": false,
-          "default": "CURRENT_TIMESTAMP",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "등록일시"
-        },
-        {
-          "name": "updated_by",
-          "type": "VARCHAR(100)",
-          "nullable": false,
-          "default": "'CPF'",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "수정자"
-        },
-        {
-          "name": "updated_at",
-          "type": "DATETIME",
-          "nullable": false,
-          "default": "CURRENT_TIMESTAMP",
-          "autoIncrement": false,
-          "onUpdate": "CURRENT_TIMESTAMP",
-          "comment": "수정일시"
         }
       ],
       "primaryKey": [
@@ -21354,7 +21084,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Runtime change identifier"
         },
         {
           "name": "operation_id",
@@ -21363,7 +21093,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Idempotent operation identifier"
         },
         {
           "name": "change_type",
@@ -21372,7 +21102,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Runtime change type"
         },
         {
           "name": "payload_schema_version",
@@ -21381,7 +21111,7 @@
           "default": "1",
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Payload schema version"
         },
         {
           "name": "request_hash",
@@ -21390,7 +21120,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Request fingerprint checksum"
         },
         {
           "name": "payload_hash",
@@ -21408,7 +21138,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Change payload JSON"
         },
         {
           "name": "rollback_payload_json",
@@ -21417,7 +21147,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Rollback payload JSON"
         },
         {
           "name": "target_snapshot_json",
@@ -21426,7 +21156,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Change target snapshot JSON"
         },
         {
           "name": "desired_version",
@@ -21435,7 +21165,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Desired state version"
         },
         {
           "name": "rollout_mode",
@@ -21444,7 +21174,7 @@
           "default": "'ALL_AT_ONCE'",
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Rollout mode"
         },
         {
           "name": "wave_size",
@@ -21453,7 +21183,7 @@
           "default": "100",
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Rollout wave size"
         },
         {
           "name": "quorum_percent",
@@ -21462,7 +21192,7 @@
           "default": "100",
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Required rollout quorum percent"
         },
         {
           "name": "change_state",
@@ -21471,7 +21201,7 @@
           "default": "'APPLYING'",
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Runtime change lifecycle state"
         },
         {
           "name": "scheduled_at",
@@ -21480,7 +21210,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Scheduled execution time"
         },
         {
           "name": "expires_at",
@@ -21489,7 +21219,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Expiry time"
         },
         {
           "name": "reason",
@@ -21498,7 +21228,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Mandatory operation reason"
         },
         {
           "name": "approval_id",
@@ -21507,7 +21237,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Approval request identifier"
         },
         {
           "name": "break_glass_id",
@@ -21516,7 +21246,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Break-glass authorization identifier"
         },
         {
           "name": "requested_by",
@@ -21525,7 +21255,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Requester identifier"
         },
         {
           "name": "created_by",
@@ -21534,7 +21264,7 @@
           "default": "'CPF'",
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Creator identifier"
         },
         {
           "name": "created_at",
@@ -21543,7 +21273,7 @@
           "default": "CURRENT_TIMESTAMP",
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Creation time"
         },
         {
           "name": "updated_by",
@@ -21552,7 +21282,7 @@
           "default": "'CPF'",
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Last updater identifier"
         },
         {
           "name": "updated_at",
@@ -21561,7 +21291,7 @@
           "default": "CURRENT_TIMESTAMP",
           "autoIncrement": false,
           "onUpdate": "CURRENT_TIMESTAMP",
-          "comment": ""
+          "comment": "Last update time"
         }
       ],
       "primaryKey": [
@@ -21576,12 +21306,6 @@
         }
       ],
       "indexes": [
-        {
-          "name": "ux_cpf_runtime_change_operation",
-          "columns": [
-            "operation_id"
-          ]
-        },
         {
           "name": "ix_cpf_runtime_change_state",
           "columns": [
@@ -21625,7 +21349,7 @@
           "default": null,
           "autoIncrement": true,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Audit event identifier"
         },
         {
           "name": "change_id",
@@ -21634,7 +21358,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Runtime change identifier"
         },
         {
           "name": "event_type",
@@ -21643,7 +21367,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Audit event type"
         },
         {
           "name": "actor_id",
@@ -21652,7 +21376,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Actor identifier"
         },
         {
           "name": "reason",
@@ -21661,7 +21385,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Mandatory operation reason"
         },
         {
           "name": "evidence_hash",
@@ -21670,7 +21394,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Evidence checksum"
         },
         {
           "name": "previous_hash",
@@ -21679,7 +21403,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Previous audit chain checksum"
         },
         {
           "name": "chain_hash",
@@ -21688,7 +21412,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Audit chain checksum"
         },
         {
           "name": "created_by",
@@ -21697,7 +21421,7 @@
           "default": "'CPF'",
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Creator identifier"
         },
         {
           "name": "created_at",
@@ -21706,7 +21430,7 @@
           "default": "CURRENT_TIMESTAMP",
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Creation time"
         }
       ],
       "primaryKey": [
@@ -21751,7 +21475,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Controller lease key"
         },
         {
           "name": "holder_id",
@@ -21760,7 +21484,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Lease holder identifier"
         },
         {
           "name": "fencing_token",
@@ -21769,7 +21493,7 @@
           "default": "0",
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Monotonic fencing token"
         },
         {
           "name": "lease_until",
@@ -21778,7 +21502,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Lease expiry time"
         },
         {
           "name": "last_reconciled_at",
@@ -21787,7 +21511,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Last reconciliation time"
         },
         {
           "name": "created_by",
@@ -21796,7 +21520,7 @@
           "default": "'CPF'",
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Creator identifier"
         },
         {
           "name": "created_at",
@@ -21805,7 +21529,7 @@
           "default": "CURRENT_TIMESTAMP",
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Creation time"
         },
         {
           "name": "updated_by",
@@ -21814,7 +21538,7 @@
           "default": "'CPF'",
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Last updater identifier"
         },
         {
           "name": "updated_at",
@@ -21823,7 +21547,7 @@
           "default": "CURRENT_TIMESTAMP",
           "autoIncrement": false,
           "onUpdate": "CURRENT_TIMESTAMP",
-          "comment": ""
+          "comment": "Last update time"
         }
       ],
       "primaryKey": [
@@ -21854,7 +21578,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Runtime delivery identifier"
         },
         {
           "name": "change_id",
@@ -21863,7 +21587,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Runtime change identifier"
         },
         {
           "name": "instance_id",
@@ -21872,7 +21596,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Runtime instance identifier"
         },
         {
           "name": "sequence_no",
@@ -21881,7 +21605,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Delivery sequence number"
         },
         {
           "name": "desired_version",
@@ -21890,7 +21614,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Desired state version"
         },
         {
           "name": "delivery_state",
@@ -21899,7 +21623,7 @@
           "default": "'PENDING'",
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Runtime delivery lifecycle state"
         },
         {
           "name": "attempt_no",
@@ -21908,7 +21632,7 @@
           "default": "0",
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Delivery attempt number"
         },
         {
           "name": "next_attempt_at",
@@ -21917,7 +21641,7 @@
           "default": "CURRENT_TIMESTAMP(3)",
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Next delivery attempt time"
         },
         {
           "name": "fencing_token",
@@ -21926,7 +21650,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Monotonic fencing token"
         },
         {
           "name": "claimed_at",
@@ -21935,7 +21659,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Delivery claim time"
         },
         {
           "name": "acknowledged_at",
@@ -21944,7 +21668,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Delivery acknowledgment time"
         },
         {
           "name": "actual_hash",
@@ -21953,7 +21677,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Applied state checksum"
         },
         {
           "name": "error_code",
@@ -21962,7 +21686,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Failure code"
         },
         {
           "name": "error_message",
@@ -21971,7 +21695,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Masked failure message"
         },
         {
           "name": "created_by",
@@ -21980,7 +21704,7 @@
           "default": "'CPF'",
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Creator identifier"
         },
         {
           "name": "created_at",
@@ -21989,7 +21713,7 @@
           "default": "CURRENT_TIMESTAMP",
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Creation time"
         },
         {
           "name": "updated_by",
@@ -21998,7 +21722,7 @@
           "default": "'CPF'",
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Last updater identifier"
         },
         {
           "name": "updated_at",
@@ -22007,7 +21731,7 @@
           "default": "CURRENT_TIMESTAMP",
           "autoIncrement": false,
           "onUpdate": "CURRENT_TIMESTAMP",
-          "comment": ""
+          "comment": "Last update time"
         }
       ],
       "primaryKey": [
@@ -22078,7 +21802,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Runtime instance group identifier"
         },
         {
           "name": "instance_id",
@@ -22087,7 +21811,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Runtime instance identifier"
         },
         {
           "name": "active_yn",
@@ -22096,7 +21820,7 @@
           "default": "'Y'",
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Active flag"
         },
         {
           "name": "created_by",
@@ -22105,7 +21829,7 @@
           "default": "'CPF'",
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Creator identifier"
         },
         {
           "name": "created_at",
@@ -22114,7 +21838,7 @@
           "default": "CURRENT_TIMESTAMP",
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Creation time"
         },
         {
           "name": "updated_by",
@@ -22123,7 +21847,7 @@
           "default": "'CPF'",
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Last updater identifier"
         },
         {
           "name": "updated_at",
@@ -22132,7 +21856,7 @@
           "default": "CURRENT_TIMESTAMP",
           "autoIncrement": false,
           "onUpdate": "CURRENT_TIMESTAMP",
-          "comment": ""
+          "comment": "Last update time"
         }
       ],
       "primaryKey": [
@@ -22195,7 +21919,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Runtime instance identifier"
         },
         {
           "name": "change_type",
@@ -22204,7 +21928,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Runtime change type"
         },
         {
           "name": "desired_version",
@@ -22213,7 +21937,7 @@
           "default": "0",
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Desired state version"
         },
         {
           "name": "actual_version",
@@ -22222,7 +21946,7 @@
           "default": "0",
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Applied state version"
         },
         {
           "name": "desired_hash",
@@ -22231,7 +21955,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Desired state checksum"
         },
         {
           "name": "actual_hash",
@@ -22240,7 +21964,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Applied state checksum"
         },
         {
           "name": "drift_state",
@@ -22249,7 +21973,7 @@
           "default": "'UNKNOWN'",
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Desired and actual state drift"
         },
         {
           "name": "source_delivery_id",
@@ -22258,7 +21982,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Source delivery identifier"
         },
         {
           "name": "created_by",
@@ -22267,7 +21991,7 @@
           "default": "'CPF'",
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Creator identifier"
         },
         {
           "name": "created_at",
@@ -22276,7 +22000,7 @@
           "default": "CURRENT_TIMESTAMP",
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Creation time"
         },
         {
           "name": "updated_by",
@@ -22285,7 +22009,7 @@
           "default": "'CPF'",
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Last updater identifier"
         },
         {
           "name": "updated_at",
@@ -22294,7 +22018,7 @@
           "default": "CURRENT_TIMESTAMP",
           "autoIncrement": false,
           "onUpdate": "CURRENT_TIMESTAMP",
-          "comment": ""
+          "comment": "Last update time"
         }
       ],
       "primaryKey": [
@@ -22378,7 +22102,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Target environment code"
         },
         {
           "name": "description",
@@ -22387,7 +22111,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Description"
         },
         {
           "name": "active_yn",
@@ -22396,7 +22120,7 @@
           "default": "'Y'",
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Active flag"
         },
         {
           "name": "row_version",
@@ -22405,7 +22129,7 @@
           "default": "0",
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Optimistic locking version"
         },
         {
           "name": "created_by",
@@ -22414,7 +22138,7 @@
           "default": "'CPF'",
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Creator identifier"
         },
         {
           "name": "created_at",
@@ -22423,7 +22147,7 @@
           "default": "CURRENT_TIMESTAMP",
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Creation time"
         },
         {
           "name": "updated_by",
@@ -22432,7 +22156,7 @@
           "default": "'CPF'",
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Last updater identifier"
         },
         {
           "name": "updated_at",
@@ -22441,7 +22165,7 @@
           "default": "CURRENT_TIMESTAMP",
           "autoIncrement": false,
           "onUpdate": "CURRENT_TIMESTAMP",
-          "comment": ""
+          "comment": "Last update time"
         }
       ],
       "primaryKey": [
@@ -22498,7 +22222,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Runtime instance identifier"
         },
         {
           "name": "fencing_token",
@@ -22507,7 +22231,7 @@
           "default": "0",
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Monotonic fencing token"
         },
         {
           "name": "lease_until",
@@ -22516,7 +22240,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Lease expiry time"
         },
         {
           "name": "desired_version",
@@ -22525,7 +22249,7 @@
           "default": "0",
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Desired state version"
         },
         {
           "name": "actual_version",
@@ -22534,7 +22258,7 @@
           "default": "0",
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Applied state version"
         },
         {
           "name": "desired_hash",
@@ -22543,7 +22267,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Desired state checksum"
         },
         {
           "name": "actual_hash",
@@ -22552,7 +22276,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Applied state checksum"
         },
         {
           "name": "drift_state",
@@ -22561,7 +22285,7 @@
           "default": "'IN_SYNC'",
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Desired and actual state drift"
         },
         {
           "name": "capabilities_json",
@@ -22570,7 +22294,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Runtime capabilities JSON"
         },
         {
           "name": "labels_json",
@@ -22579,7 +22303,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Runtime labels JSON"
         },
         {
           "name": "artifact_version",
@@ -22588,7 +22312,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Runtime artifact version"
         },
         {
           "name": "artifact_commit",
@@ -22624,7 +22348,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Runtime schema version"
         },
         {
           "name": "config_hash",
@@ -22633,7 +22357,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Runtime configuration checksum"
         },
         {
           "name": "clock_skew_ms",
@@ -22651,7 +22375,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Last acknowledged change identifier"
         },
         {
           "name": "last_ack_at",
@@ -22660,7 +22384,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Last acknowledgment time"
         },
         {
           "name": "heartbeat_at",
@@ -22669,7 +22393,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Last heartbeat time"
         },
         {
           "name": "created_by",
@@ -22678,7 +22402,7 @@
           "default": "'CPF'",
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Creator identifier"
         },
         {
           "name": "created_at",
@@ -22687,7 +22411,7 @@
           "default": "CURRENT_TIMESTAMP",
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Creation time"
         },
         {
           "name": "updated_by",
@@ -22696,7 +22420,7 @@
           "default": "'CPF'",
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Last updater identifier"
         },
         {
           "name": "updated_at",
@@ -22705,7 +22429,7 @@
           "default": "CURRENT_TIMESTAMP",
           "autoIncrement": false,
           "onUpdate": "CURRENT_TIMESTAMP",
-          "comment": ""
+          "comment": "Last update time"
         }
       ],
       "primaryKey": [
@@ -22761,7 +22485,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Rate bucket identifier"
         },
         {
           "name": "subject_id",
@@ -22770,7 +22494,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Rate-limit subject identifier"
         },
         {
           "name": "window_start",
@@ -22779,7 +22503,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Rate-window start time"
         },
         {
           "name": "request_count",
@@ -22788,7 +22512,7 @@
           "default": "0",
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Rate-window request count"
         },
         {
           "name": "created_by",
@@ -22797,7 +22521,7 @@
           "default": "'CPF'",
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Creator identifier"
         },
         {
           "name": "created_at",
@@ -22806,7 +22530,7 @@
           "default": "CURRENT_TIMESTAMP",
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Creation time"
         },
         {
           "name": "updated_by",
@@ -22815,7 +22539,7 @@
           "default": "'CPF'",
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Last updater identifier"
         },
         {
           "name": "updated_at",
@@ -22824,7 +22548,7 @@
           "default": "CURRENT_TIMESTAMP",
           "autoIncrement": false,
           "onUpdate": "CURRENT_TIMESTAMP",
-          "comment": ""
+          "comment": "Last update time"
         }
       ],
       "primaryKey": [
@@ -22879,7 +22603,7 @@
           "default": "'CPF'",
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Creator identifier"
         },
         {
           "name": "created_at",
@@ -22888,7 +22612,7 @@
           "default": "CURRENT_TIMESTAMP",
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Creation time"
         },
         {
           "name": "updated_by",
@@ -22897,7 +22621,7 @@
           "default": "'CPF'",
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": ""
+          "comment": "Last updater identifier"
         },
         {
           "name": "updated_at",
@@ -22906,7 +22630,7 @@
           "default": "CURRENT_TIMESTAMP",
           "autoIncrement": false,
           "onUpdate": "CURRENT_TIMESTAMP",
-          "comment": ""
+          "comment": "Last update time"
         }
       ],
       "primaryKey": [
@@ -27298,51 +27022,6 @@
           "comment": "감지 일시"
         },
         {
-          "name": "attempt_count",
-          "type": "INT",
-          "nullable": false,
-          "default": "0",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "자동 결과확인 시도 횟수"
-        },
-        {
-          "name": "next_check_at",
-          "type": "DATETIME(3)",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "다음 자동 확인 예정 일시"
-        },
-        {
-          "name": "lease_owner",
-          "type": "VARCHAR(120)",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "Reconciliation claim 소유자"
-        },
-        {
-          "name": "lease_until",
-          "type": "DATETIME(3)",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "Reconciliation claim 만료 일시"
-        },
-        {
-          "name": "row_version",
-          "type": "BIGINT",
-          "nullable": false,
-          "default": "0",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "Optimistic lock version"
-        },
-        {
           "name": "resolved_at",
           "type": "DATETIME(3)",
           "nullable": true,
@@ -27404,6 +27083,51 @@
           "autoIncrement": false,
           "onUpdate": "CURRENT_TIMESTAMP",
           "comment": "수정일시"
+        },
+        {
+          "name": "attempt_count",
+          "type": "INT",
+          "nullable": false,
+          "default": "0",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "자동 결과확인 시도 횟수"
+        },
+        {
+          "name": "next_check_at",
+          "type": "DATETIME(3)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "다음 자동 확인 예정 일시"
+        },
+        {
+          "name": "lease_owner",
+          "type": "VARCHAR(120)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Reconciliation claim 소유자"
+        },
+        {
+          "name": "lease_until",
+          "type": "DATETIME(3)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Reconciliation claim 만료 일시"
+        },
+        {
+          "name": "row_version",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "0",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Optimistic lock version"
         }
       ],
       "primaryKey": [
@@ -27454,1279 +27178,6 @@
       "comment": "CPF Unknown result 및 reconciliation 이력",
       "module": "cpf",
       "logicalDatabase": "cpfDB"
-    },
-    {
-      "name": "mbr_member",
-      "columns": [
-        {
-          "name": "id",
-          "type": "BIGINT",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": true,
-          "onUpdate": null,
-          "comment": "회원 순번"
-        },
-        {
-          "name": "member_no",
-          "type": "VARCHAR(50)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "회원 번호"
-        },
-        {
-          "name": "customer_no",
-          "type": "VARCHAR(50)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "고객 번호"
-        },
-        {
-          "name": "login_id",
-          "type": "VARCHAR(80)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "로그인 ID"
-        },
-        {
-          "name": "password_hash",
-          "type": "VARCHAR(300)",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "회원 비밀번호 hash"
-        },
-        {
-          "name": "login_fail_count",
-          "type": "INT",
-          "nullable": false,
-          "default": "0",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "로그인 실패 횟수"
-        },
-        {
-          "name": "password_change_required_yn",
-          "type": "CHAR(1)",
-          "nullable": false,
-          "default": "'N'",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "비밀번호 강제 변경 여부"
-        },
-        {
-          "name": "password_expire_at",
-          "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "비밀번호 만료 일시"
-        },
-        {
-          "name": "name",
-          "type": "VARCHAR(100)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "회원명"
-        },
-        {
-          "name": "email",
-          "type": "VARCHAR(200)",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "이메일"
-        },
-        {
-          "name": "mobile_no",
-          "type": "VARCHAR(50)",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "휴대폰 번호"
-        },
-        {
-          "name": "member_status",
-          "type": "VARCHAR(30)",
-          "nullable": false,
-          "default": "'ACTIVE'",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "회원 상태"
-        },
-        {
-          "name": "lock_yn",
-          "type": "CHAR(1)",
-          "nullable": false,
-          "default": "'N'",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "잠금 여부"
-        },
-        {
-          "name": "withdraw_yn",
-          "type": "CHAR(1)",
-          "nullable": false,
-          "default": "'N'",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "탈퇴 여부"
-        },
-        {
-          "name": "channel_code",
-          "type": "VARCHAR(30)",
-          "nullable": false,
-          "default": "'WEB'",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "가입 채널 코드"
-        },
-        {
-          "name": "joined_at",
-          "type": "DATETIME",
-          "nullable": false,
-          "default": "CURRENT_TIMESTAMP",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "가입일시"
-        },
-        {
-          "name": "last_login_at",
-          "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "최근 로그인일시"
-        },
-        {
-          "name": "description",
-          "type": "TEXT",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "회원 설명"
-        },
-        {
-          "name": "version_no",
-          "type": "BIGINT",
-          "nullable": false,
-          "default": "0",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "회원 낙관적 잠금 Version"
-        },
-        {
-          "name": "created_by",
-          "type": "VARCHAR(100)",
-          "nullable": false,
-          "default": "'SYSTEM'",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "등록자"
-        },
-        {
-          "name": "created_at",
-          "type": "DATETIME",
-          "nullable": false,
-          "default": "CURRENT_TIMESTAMP",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "등록일시"
-        },
-        {
-          "name": "updated_by",
-          "type": "VARCHAR(100)",
-          "nullable": false,
-          "default": "'SYSTEM'",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "수정자"
-        },
-        {
-          "name": "updated_at",
-          "type": "DATETIME",
-          "nullable": false,
-          "default": "CURRENT_TIMESTAMP",
-          "autoIncrement": false,
-          "onUpdate": "CURRENT_TIMESTAMP",
-          "comment": "수정일시"
-        }
-      ],
-      "primaryKey": [
-        "id"
-      ],
-      "uniqueKeys": [
-        {
-          "name": "uk_mbr_member_no",
-          "columns": [
-            "member_no"
-          ]
-        },
-        {
-          "name": "uk_mbr_member_login_id",
-          "columns": [
-            "login_id"
-          ]
-        }
-      ],
-      "indexes": [
-        {
-          "name": "ix_mbr_member_customer",
-          "columns": [
-            "customer_no"
-          ]
-        },
-        {
-          "name": "ix_mbr_member_status",
-          "columns": [
-            "member_status",
-            "lock_yn",
-            "withdraw_yn"
-          ]
-        }
-      ],
-      "foreignKeys": [],
-      "checks": [
-        {
-          "name": "ck_mbr_member_version",
-          "expression": "version_no >= 0"
-        }
-      ],
-      "comment": "MBR 회원",
-      "module": "biz",
-      "logicalDatabase": "mbrDB"
-    },
-    {
-      "name": "mbr_member_login_history",
-      "columns": [
-        {
-          "name": "login_history_id",
-          "type": "BIGINT",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": true,
-          "onUpdate": null,
-          "comment": "회원 로그인 이력 순번"
-        },
-        {
-          "name": "member_id",
-          "type": "BIGINT",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "회원 순번"
-        },
-        {
-          "name": "login_domain",
-          "type": "VARCHAR(30)",
-          "nullable": false,
-          "default": "'MBR'",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "로그인 도메인"
-        },
-        {
-          "name": "member_no",
-          "type": "VARCHAR(50)",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "회원 번호"
-        },
-        {
-          "name": "customer_no",
-          "type": "VARCHAR(50)",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "고객 번호"
-        },
-        {
-          "name": "login_id",
-          "type": "VARCHAR(80)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "로그인 ID"
-        },
-        {
-          "name": "login_result",
-          "type": "VARCHAR(30)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "로그인 결과"
-        },
-        {
-          "name": "login_ip",
-          "type": "VARCHAR(50)",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "로그인 IP"
-        },
-        {
-          "name": "user_agent",
-          "type": "VARCHAR(500)",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "User-Agent"
-        },
-        {
-          "name": "failure_reason",
-          "type": "VARCHAR(500)",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "로그인 실패 사유"
-        },
-        {
-          "name": "transaction_global_id",
-          "type": "VARCHAR(34)",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "CPF 트랜잭션 글로벌 ID"
-        },
-        {
-          "name": "module_id",
-          "type": "VARCHAR(3)",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "모듈 ID"
-        },
-        {
-          "name": "was_id",
-          "type": "VARCHAR(7)",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "WAS ID"
-        },
-        {
-          "name": "server_instance_id",
-          "type": "VARCHAR(200)",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "서버 인스턴스 ID"
-        },
-        {
-          "name": "created_by",
-          "type": "VARCHAR(100)",
-          "nullable": false,
-          "default": "'SYSTEM'",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "등록자"
-        },
-        {
-          "name": "created_at",
-          "type": "DATETIME",
-          "nullable": false,
-          "default": "CURRENT_TIMESTAMP",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "등록일시"
-        },
-        {
-          "name": "updated_by",
-          "type": "VARCHAR(100)",
-          "nullable": false,
-          "default": "'SYSTEM'",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "수정자"
-        },
-        {
-          "name": "updated_at",
-          "type": "DATETIME",
-          "nullable": false,
-          "default": "CURRENT_TIMESTAMP",
-          "autoIncrement": false,
-          "onUpdate": "CURRENT_TIMESTAMP",
-          "comment": "수정일시"
-        }
-      ],
-      "primaryKey": [
-        "login_history_id"
-      ],
-      "uniqueKeys": [],
-      "indexes": [
-        {
-          "name": "ix_mbr_member_login_member_time",
-          "columns": [
-            "member_id",
-            "created_at"
-          ]
-        },
-        {
-          "name": "ix_mbr_member_login_global",
-          "columns": [
-            "transaction_global_id"
-          ]
-        }
-      ],
-      "foreignKeys": [
-        {
-          "name": "fk_mbr_member_login_history_member",
-          "columns": [
-            "member_id"
-          ],
-          "refTable": "mbr_member",
-          "refColumns": [
-            "id"
-          ],
-          "onDelete": "CASCADE",
-          "onUpdate": null
-        }
-      ],
-      "checks": [],
-      "comment": "MBR 회원 로그인 이력",
-      "module": "biz",
-      "logicalDatabase": "mbrDB"
-    },
-    {
-      "name": "mbr_member_no_issue_history",
-      "columns": [
-        {
-          "name": "issue_id",
-          "type": "BIGINT",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": true,
-          "onUpdate": null,
-          "comment": "Issue identifier"
-        },
-        {
-          "name": "member_no",
-          "type": "VARCHAR(50)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "Member number"
-        },
-        {
-          "name": "issue_type",
-          "type": "VARCHAR(20)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "Issue type"
-        },
-        {
-          "name": "issued_by",
-          "type": "VARCHAR(100)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "Issuer"
-        },
-        {
-          "name": "issued_at",
-          "type": "DATETIME(3)",
-          "nullable": false,
-          "default": "CURRENT_TIMESTAMP(3)",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "Issue time"
-        }
-      ],
-      "primaryKey": [
-        "issue_id"
-      ],
-      "uniqueKeys": [
-        {
-          "name": "uk_mbr_member_no_issue_history_no",
-          "columns": [
-            "member_no"
-          ]
-        }
-      ],
-      "indexes": [],
-      "foreignKeys": [],
-      "checks": [],
-      "comment": "MBR 회원번호 발급 이력",
-      "module": "biz",
-      "logicalDatabase": "mbrDB"
-    },
-    {
-      "name": "mbr_member_no_sequence",
-      "columns": [
-        {
-          "name": "sequence_value",
-          "type": "BIGINT",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": true,
-          "onUpdate": null,
-          "comment": "Sequence value"
-        },
-        {
-          "name": "requested_by",
-          "type": "VARCHAR(100)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "Requester"
-        },
-        {
-          "name": "requested_at",
-          "type": "DATETIME(3)",
-          "nullable": false,
-          "default": "CURRENT_TIMESTAMP(3)",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "Request time"
-        }
-      ],
-      "primaryKey": [
-        "sequence_value"
-      ],
-      "uniqueKeys": [],
-      "indexes": [],
-      "foreignKeys": [],
-      "checks": [],
-      "comment": "MBR 회원번호 분산 채번",
-      "module": "biz",
-      "logicalDatabase": "mbrDB"
-    },
-    {
-      "name": "mbr_member_role",
-      "columns": [
-        {
-          "name": "member_role_id",
-          "type": "BIGINT",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": true,
-          "onUpdate": null,
-          "comment": "회원 권한 순번"
-        },
-        {
-          "name": "member_id",
-          "type": "BIGINT",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "회원 순번"
-        },
-        {
-          "name": "service_code",
-          "type": "VARCHAR(30)",
-          "nullable": false,
-          "default": "'MBR'",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "서비스 코드"
-        },
-        {
-          "name": "role_code",
-          "type": "VARCHAR(50)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "회원 역할 코드"
-        },
-        {
-          "name": "role_name",
-          "type": "VARCHAR(100)",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "회원 역할명"
-        },
-        {
-          "name": "role_type",
-          "type": "VARCHAR(30)",
-          "nullable": false,
-          "default": "'SERVICE'",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "회원 역할 유형"
-        },
-        {
-          "name": "grade_code",
-          "type": "VARCHAR(50)",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "회원 등급 코드"
-        },
-        {
-          "name": "temporary_yn",
-          "type": "CHAR(1)",
-          "nullable": false,
-          "default": "'N'",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "임시 권한 여부"
-        },
-        {
-          "name": "expire_at",
-          "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "권한 만료일시"
-        },
-        {
-          "name": "granted_by",
-          "type": "VARCHAR(100)",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "권한 부여자"
-        },
-        {
-          "name": "granted_at",
-          "type": "DATETIME",
-          "nullable": false,
-          "default": "CURRENT_TIMESTAMP",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "권한 부여일시"
-        },
-        {
-          "name": "revoked_by",
-          "type": "VARCHAR(100)",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "권한 회수자"
-        },
-        {
-          "name": "revoked_at",
-          "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "권한 회수일시"
-        },
-        {
-          "name": "use_yn",
-          "type": "CHAR(1)",
-          "nullable": false,
-          "default": "'Y'",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "사용 여부"
-        },
-        {
-          "name": "grant_reason",
-          "type": "VARCHAR(500)",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "권한 부여/갱신 사유"
-        },
-        {
-          "name": "version_no",
-          "type": "BIGINT",
-          "nullable": false,
-          "default": "0",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "권한 낙관적 잠금 Version"
-        },
-        {
-          "name": "created_by",
-          "type": "VARCHAR(100)",
-          "nullable": false,
-          "default": "'SYSTEM'",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "등록자"
-        },
-        {
-          "name": "created_at",
-          "type": "DATETIME",
-          "nullable": false,
-          "default": "CURRENT_TIMESTAMP",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "등록일시"
-        },
-        {
-          "name": "updated_by",
-          "type": "VARCHAR(100)",
-          "nullable": false,
-          "default": "'SYSTEM'",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "수정자"
-        },
-        {
-          "name": "updated_at",
-          "type": "DATETIME",
-          "nullable": false,
-          "default": "CURRENT_TIMESTAMP",
-          "autoIncrement": false,
-          "onUpdate": "CURRENT_TIMESTAMP",
-          "comment": "수정일시"
-        }
-      ],
-      "primaryKey": [
-        "member_role_id"
-      ],
-      "uniqueKeys": [
-        {
-          "name": "uk_mbr_member_role",
-          "columns": [
-            "member_id",
-            "service_code",
-            "role_code"
-          ]
-        }
-      ],
-      "indexes": [
-        {
-          "name": "ix_mbr_member_role_member",
-          "columns": [
-            "member_id",
-            "use_yn"
-          ]
-        }
-      ],
-      "foreignKeys": [
-        {
-          "name": "fk_mbr_member_role_member",
-          "columns": [
-            "member_id"
-          ],
-          "refTable": "mbr_member",
-          "refColumns": [
-            "id"
-          ],
-          "onDelete": "CASCADE",
-          "onUpdate": null
-        }
-      ],
-      "checks": [
-        {
-          "name": "ck_mbr_member_role_version",
-          "expression": "version_no >= 0"
-        }
-      ],
-      "comment": "MBR 회원 권한",
-      "module": "biz",
-      "logicalDatabase": "mbrDB"
-    },
-    {
-      "name": "mbr_member_role_history",
-      "columns": [
-        {
-          "name": "history_id",
-          "type": "BIGINT",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": true,
-          "onUpdate": null,
-          "comment": "회원 권한 이력 순번"
-        },
-        {
-          "name": "member_id",
-          "type": "BIGINT",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "회원 순번"
-        },
-        {
-          "name": "service_code",
-          "type": "VARCHAR(30)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "서비스 코드"
-        },
-        {
-          "name": "role_code",
-          "type": "VARCHAR(50)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "회원 역할 코드"
-        },
-        {
-          "name": "action_type",
-          "type": "VARCHAR(30)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "권한 행위 유형"
-        },
-        {
-          "name": "reason",
-          "type": "VARCHAR(500)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "권한 변경 사유"
-        },
-        {
-          "name": "before_data",
-          "type": "LONGTEXT",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "변경 전 데이터"
-        },
-        {
-          "name": "after_data",
-          "type": "LONGTEXT",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "변경 후 데이터"
-        },
-        {
-          "name": "operator_id",
-          "type": "VARCHAR(100)",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "처리 운영자 ID"
-        },
-        {
-          "name": "created_by",
-          "type": "VARCHAR(100)",
-          "nullable": false,
-          "default": "'SYSTEM'",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "등록자"
-        },
-        {
-          "name": "created_at",
-          "type": "DATETIME",
-          "nullable": false,
-          "default": "CURRENT_TIMESTAMP",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "등록일시"
-        },
-        {
-          "name": "updated_by",
-          "type": "VARCHAR(100)",
-          "nullable": false,
-          "default": "'SYSTEM'",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "수정자"
-        },
-        {
-          "name": "updated_at",
-          "type": "DATETIME",
-          "nullable": false,
-          "default": "CURRENT_TIMESTAMP",
-          "autoIncrement": false,
-          "onUpdate": "CURRENT_TIMESTAMP",
-          "comment": "수정일시"
-        }
-      ],
-      "primaryKey": [
-        "history_id"
-      ],
-      "uniqueKeys": [],
-      "indexes": [
-        {
-          "name": "ix_mbr_member_role_history_member",
-          "columns": [
-            "member_id",
-            "created_at"
-          ]
-        }
-      ],
-      "foreignKeys": [
-        {
-          "name": "fk_mbr_member_role_history_member",
-          "columns": [
-            "member_id"
-          ],
-          "refTable": "mbr_member",
-          "refColumns": [
-            "id"
-          ],
-          "onDelete": "CASCADE",
-          "onUpdate": null
-        }
-      ],
-      "checks": [],
-      "comment": "MBR 회원 권한 변경 이력",
-      "module": "biz",
-      "logicalDatabase": "mbrDB"
-    },
-    {
-      "name": "mbr_member_role_operation",
-      "columns": [
-        {
-          "name": "idempotency_key",
-          "type": "VARCHAR(120)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "Idempotency key"
-        },
-        {
-          "name": "member_id",
-          "type": "BIGINT",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "Member identifier"
-        },
-        {
-          "name": "service_code",
-          "type": "VARCHAR(30)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "Service code"
-        },
-        {
-          "name": "role_code",
-          "type": "VARCHAR(50)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "Role code"
-        },
-        {
-          "name": "operation_type",
-          "type": "VARCHAR(20)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "Operation type"
-        },
-        {
-          "name": "operation_status",
-          "type": "VARCHAR(20)",
-          "nullable": false,
-          "default": "'PENDING'",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "Operation status"
-        },
-        {
-          "name": "result_version",
-          "type": "BIGINT",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "Result version"
-        },
-        {
-          "name": "result_use_yn",
-          "type": "CHAR(1)",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "Result usage flag"
-        },
-        {
-          "name": "created_by",
-          "type": "VARCHAR(100)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "Creator"
-        },
-        {
-          "name": "created_at",
-          "type": "DATETIME(3)",
-          "nullable": false,
-          "default": "CURRENT_TIMESTAMP(3)",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "Creation time"
-        },
-        {
-          "name": "completed_at",
-          "type": "DATETIME(3)",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "Completion time"
-        }
-      ],
-      "primaryKey": [
-        "idempotency_key"
-      ],
-      "uniqueKeys": [],
-      "indexes": [
-        {
-          "name": "ix_mbr_member_role_operation_member",
-          "columns": [
-            "member_id",
-            "created_at"
-          ]
-        }
-      ],
-      "foreignKeys": [
-        {
-          "name": "fk_mbr_member_role_operation_member",
-          "columns": [
-            "member_id"
-          ],
-          "refTable": "mbr_member",
-          "refColumns": [
-            "id"
-          ],
-          "onDelete": "CASCADE",
-          "onUpdate": null
-        }
-      ],
-      "checks": [],
-      "comment": "MBR 회원 권한 멱등 변경 이력",
-      "module": "biz",
-      "logicalDatabase": "mbrDB"
-    },
-    {
-      "name": "mbr_sample_item",
-      "columns": [
-        {
-          "name": "sample_item_id",
-          "type": "BIGINT",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": true,
-          "onUpdate": null,
-          "comment": "샘플 항목 ID"
-        },
-        {
-          "name": "sample_key",
-          "type": "VARCHAR(100)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "업무 중복 식별 키"
-        },
-        {
-          "name": "item_name",
-          "type": "VARCHAR(200)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "최소 업무 데이터명"
-        },
-        {
-          "name": "status_code",
-          "type": "VARCHAR(30)",
-          "nullable": false,
-          "default": "'ACTIVE'",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "상태 코드"
-        },
-        {
-          "name": "version_no",
-          "type": "BIGINT",
-          "nullable": false,
-          "default": "0",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "낙관적 잠금 버전"
-        },
-        {
-          "name": "idempotency_key",
-          "type": "VARCHAR(100)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "명령 멱등 키"
-        },
-        {
-          "name": "transaction_id",
-          "type": "CHAR(34)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "CPF transactionId"
-        },
-        {
-          "name": "transaction_sequence",
-          "type": "BIGINT",
-          "nullable": false,
-          "default": "1",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "동일 거래 내 변경 순번"
-        },
-        {
-          "name": "transaction_at",
-          "type": "DATETIME(3)",
-          "nullable": false,
-          "default": "CURRENT_TIMESTAMP(3)",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "마지막 거래 시각"
-        },
-        {
-          "name": "deleted_yn",
-          "type": "CHAR(1)",
-          "nullable": false,
-          "default": "'N'",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "논리 삭제 여부"
-        },
-        {
-          "name": "created_by",
-          "type": "VARCHAR(100)",
-          "nullable": false,
-          "default": "'MBR'",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "등록자"
-        },
-        {
-          "name": "created_at",
-          "type": "DATETIME(3)",
-          "nullable": false,
-          "default": "CURRENT_TIMESTAMP(3)",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "등록일시"
-        },
-        {
-          "name": "updated_by",
-          "type": "VARCHAR(100)",
-          "nullable": false,
-          "default": "'MBR'",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "수정자"
-        },
-        {
-          "name": "updated_at",
-          "type": "DATETIME(3)",
-          "nullable": false,
-          "default": "CURRENT_TIMESTAMP(3)",
-          "autoIncrement": false,
-          "onUpdate": "CURRENT_TIMESTAMP(3)",
-          "comment": "수정일시"
-        }
-      ],
-      "primaryKey": [
-        "sample_item_id"
-      ],
-      "uniqueKeys": [
-        {
-          "name": "uk_mbr_sample_item_key",
-          "columns": [
-            "sample_key"
-          ]
-        },
-        {
-          "name": "uk_mbr_sample_item_idempotency",
-          "columns": [
-            "idempotency_key"
-          ]
-        }
-      ],
-      "indexes": [
-        {
-          "name": "ix_mbr_sample_item_status",
-          "columns": [
-            "status_code",
-            "deleted_yn",
-            "sample_item_id"
-          ]
-        },
-        {
-          "name": "ix_mbr_sample_item_transaction",
-          "columns": [
-            "transaction_id",
-            "transaction_sequence"
-          ]
-        }
-      ],
-      "foreignKeys": [],
-      "checks": [
-        {
-          "name": "ck_mbr_sample_item_status",
-          "expression": "status_code IN ('ACTIVE','INACTIVE')"
-        },
-        {
-          "name": "ck_mbr_sample_item_version",
-          "expression": "version_no >= 0"
-        },
-        {
-          "name": "ck_mbr_sample_item_sequence",
-          "expression": "transaction_sequence >= 1"
-        },
-        {
-          "name": "ck_mbr_sample_item_deleted",
-          "expression": "deleted_yn IN ('Y','N')"
-        }
-      ],
-      "comment": "CPF Generated Domain Minimal CRUD Sample",
-      "module": "biz",
-      "logicalDatabase": "mbrDB"
     },
     {
       "name": "ref_center_cut_sample_result",

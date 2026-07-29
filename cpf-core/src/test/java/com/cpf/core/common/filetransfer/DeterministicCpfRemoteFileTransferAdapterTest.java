@@ -1,5 +1,6 @@
 package com.cpf.core.common.filetransfer;
 
+import com.cpf.core.api.filetransfer.CpfFileTransferProtocol;
 import com.cpf.core.common.security.CpfCredentialRef;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;

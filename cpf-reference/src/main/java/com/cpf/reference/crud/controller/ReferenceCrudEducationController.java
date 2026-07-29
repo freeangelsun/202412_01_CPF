@@ -1,6 +1,6 @@
 package com.cpf.reference.crud.controller;
 
-import com.cpf.core.common.execution.CpfOnlineTransaction;
+import com.cpf.core.api.execution.CpfOnlineTransaction;
 import com.cpf.reference.crud.dto.ReferenceCrudEducationRequest;
 import com.cpf.reference.crud.dto.ReferenceCrudEducationResponse;
 import com.cpf.reference.crud.dto.ReferenceCrudEducationStatusRequest;

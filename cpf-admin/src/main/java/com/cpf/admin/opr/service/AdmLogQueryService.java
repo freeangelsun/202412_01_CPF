@@ -122,10 +122,13 @@ public class AdmLogQueryService extends com.cpf.admin.common.base.AdmBaseService
         appendEquals(sql, args, "WAS_ID", wasId);
         appendEquals(sql, args, "SERVER_INSTANCE_ID", serverInstanceId);
         appendEquals(sql, args, "HOST_NAME", hostName);
-        sql.append(" ORDER BY LOG_IDX DESC LIMIT ?");
-        args.add(Math.max(1, Math.min(limit, 500)));
+        sql.append(" ORDER BY LOG_IDX DESC");
 
-        return cpfJdbcTemplate.queryForList(sql.toString(), args.toArray()).stream()
+        return AdmJdbcQueries.queryForList(
+                        cpfJdbcTemplate,
+                        sql.toString(),
+                        args,
+                        Math.max(1, Math.min(limit, 500))).stream()
                 .map(AdmLogSanitizer::sanitizeMap)
                 .toList();
     }
@@ -242,8 +245,8 @@ public class AdmLogQueryService extends com.cpf.admin.common.base.AdmBaseService
 
     private void appendLike(StringBuilder sql, List<Object> args, String column, String value) {
         if (CpfStrings.hasText(value)) {
-            sql.append(" AND ").append(column).append(" LIKE CONCAT('%', ?, '%')");
-            args.add(value.trim());
+            sql.append(" AND ").append(column).append(" LIKE ?");
+            args.add("%" + value.trim() + "%");
         }
     }
 

@@ -94,13 +94,10 @@
   },
   "candidateVendors": [],
   "supportPolicy": "Official CPF DB vendors are MariaDB, PostgreSQL and Oracle only. supportedVendors contains only vendors whose vendor-native provision/install/seed/migration/verify/rollback lifecycle and runtime query packs pass readiness/evidence gates; official but unfinished vendors remain fail-closed.",
-  "goldenDomainOwnership": {
-    "mbr": "cpf-member",
-    "acc": "cpf-account",
-    "ref": "cpf-reference"
-  },
   "generatedDomainPolicy": {
-    "exs": "generator-only; no fixed cpf-external module",
+    "discovery": "manifest/domain-manifest.json",
+    "registration": "generator-managed",
+    "fixedDomainNamesAllowed": false,
     "defaultRepositoryMode": "standalone"
   },
   "officialVendors": [

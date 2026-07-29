@@ -1,0 +1,16 @@
+SELECT r.center_cut_result_id AS resultId,
+       r.center_cut_item_id AS targetId,
+       i.center_cut_execution_id AS executionId,
+       r.center_cut_job_id AS centerCutJobId,
+       i.business_key AS businessKey,
+       r.result_status AS resultStatus,
+       r.result_message AS resultMessage,
+       COALESCE(r.transaction_id, i.transaction_id) AS transactionId,
+       COALESCE(r.parent_segment_id, i.parent_segment_id) AS parentSegmentId,
+       COALESCE(r.transaction_segment_id, i.transaction_segment_id) AS transactionSegmentId,
+       CHAR_LENGTH(r.result_payload) AS resultPayloadLength,
+       r.created_at AS createdAt,
+       r.updated_at AS updatedAt
+FROM bat_center_cut_result r
+LEFT JOIN bat_center_cut_item i ON i.center_cut_item_id = r.center_cut_item_id
+WHERE r.center_cut_result_id = ?

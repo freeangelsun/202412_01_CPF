@@ -72,14 +72,17 @@ class LoggingAspectMetadataTest {
     private LoggingAspect aspect(CpfResponseCodeResolver responseCodeResolver) {
         ObjectProvider<CpfMessageResolver> messageProvider = mock(ObjectProvider.class);
         ObjectProvider<CpfResponseCodeResolver> responseProvider = mock(ObjectProvider.class);
+        ObjectProvider<CpfTraceSamplingPolicy> traceSamplingProvider = mock(ObjectProvider.class);
         ObjectProvider<LogPolicyResolver> logPolicyProvider = mock(ObjectProvider.class);
         when(messageProvider.getIfAvailable(any())).thenReturn(new DefaultCpfMessageResolver());
         when(responseProvider.getIfAvailable(any())).thenReturn(responseCodeResolver);
+        when(traceSamplingProvider.getIfAvailable(any())).thenReturn(new CpfTraceSamplingPolicy());
         when(logPolicyProvider.getIfAvailable()).thenReturn(null);
         return new LoggingAspect(
                 mock(ApplicationEventPublisher.class),
                 mock(Environment.class),
                 new DynamicTransactionLogLevelService(),
+                traceSamplingProvider,
                 messageProvider,
                 responseProvider,
                 logPolicyProvider);
@@ -121,4 +124,3 @@ class LoggingAspectMetadataTest {
         }
     }
 }
-

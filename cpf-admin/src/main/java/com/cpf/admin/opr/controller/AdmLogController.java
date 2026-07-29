@@ -1,7 +1,7 @@
 package com.cpf.admin.opr.controller;
 
 import com.cpf.admin.opr.service.AdmLogQueryService;
-import com.cpf.core.common.execution.CpfOnlineTransaction;
+import com.cpf.core.api.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;

@@ -15,7 +15,7 @@ import com.cpf.core.common.filetransfer.CpfFileChecksumPolicy;
 import com.cpf.core.common.filetransfer.CpfFileTransferHistoryQuery;
 import com.cpf.core.common.filetransfer.CpfFileTransferEndpoint;
 import com.cpf.core.common.filetransfer.CpfFileTransferPolicy;
-import com.cpf.core.common.filetransfer.CpfFileTransferProtocol;
+import com.cpf.core.api.filetransfer.CpfFileTransferProtocol;
 import com.cpf.core.common.filetransfer.CpfFileTransferRequest;
 import com.cpf.core.common.filetransfer.CpfFileTransferResult;
 import com.cpf.core.common.filetransfer.CpfFileTransferRetryPolicy;

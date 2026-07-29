@@ -1,19 +1,24 @@
 package com.cpf.admin.opr.service;
 
 import com.cpf.admin.config.AdmPasswordPolicyProperties;
+import com.cpf.admin.config.AdmPersistencePolicy;
 import com.cpf.admin.opr.dto.AdmLoginRequest;
 import com.cpf.admin.opr.dto.AdmPasswordChangeRequest;
 import com.cpf.core.api.error.CpfValidationException;
-import com.cpf.core.common.security.password.CpfPbkdf2PasswordHasher;
-import com.cpf.core.common.security.password.CpfPasswordServiceAdapter;
+import com.cpf.core.api.security.password.CpfPasswordServices;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.mock.env.MockEnvironment;
+
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
 
 /**
  * ADM 본인 비밀번호 변경의 확인, 재사용 금지, fallback 계약을 검증합니다.
@@ -32,11 +37,15 @@ class AdmOperatorPasswordChangeTest {
         properties.setMinLength(10);
         properties.setRequiredCategoryCount(3);
         properties.setHistoryCount(3);
+        MockEnvironment environment = new MockEnvironment()
+                .withProperty("cpf.adm.persistence.mode", "MEMORY");
+        environment.setActiveProfiles("test");
         operatorService = new AdmOperatorService(
                 new AdmPasswordPolicyService(properties),
-                new CpfPasswordServiceAdapter(
-                        new CpfPbkdf2PasswordHasher(210_000, 256, new char[0])),
-                new OfflineJdbcTemplate());
+                CpfPasswordServices.pbkdf2(210_000, 256, new char[0]),
+                new OfflineJdbcTemplate(),
+                new AdmPersistencePolicy(environment),
+                mock(AdmSessionService.class));
         assertThat(operatorService.bootstrapOperator(OPERATOR_ID, "CPF 관리자", INITIAL_PASSWORD)).isTrue();
     }
 
@@ -104,6 +113,11 @@ class AdmOperatorPasswordChangeTest {
 
         @Override
         public <T> T query(String sql, ResultSetExtractor<T> resultSetExtractor, Object... args) {
+            throw new DataAccessResourceFailureException("테스트용 DB 미연결");
+        }
+
+        @Override
+        public <T> List<T> query(String sql, RowMapper<T> rowMapper, Object... args) {
             throw new DataAccessResourceFailureException("테스트용 DB 미연결");
         }
     }

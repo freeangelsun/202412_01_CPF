@@ -11,6 +11,7 @@
     "cpf-batch/center-cut-runner/src/main/java",
     "cpf-batch/control-server/src/main/java"
   ],
+  "remainingScope": [],
   "status": "완료",
   "tokens": {
     "NOW": "Vendor current timestamp",
@@ -70,6 +71,15 @@
     ],
     "runtime-instances-list": [
       "postgresql",
+      "oracle"
+    ],
+    "centercut-operations-find-targets": [
+      "oracle"
+    ],
+    "centercut-operations-find-results": [
+      "oracle"
+    ],
+    "centercut-operations-find-result-detail": [
       "oracle"
     ]
   },
@@ -1434,6 +1444,66 @@
       "consumer": "JdbcRuntimeRegistry.list",
       "parameters": [
         "staleBefore"
+      ]
+    },
+    {
+      "key": "centercut-operations-find-jobs",
+      "consumer": "BatCenterCutOperationsService.findJobs",
+      "parameters": []
+    },
+    {
+      "key": "centercut-operations-find-job-detail",
+      "consumer": "BatCenterCutOperationsService.findJobDetail",
+      "parameters": [
+        "centerCutJobId"
+      ]
+    },
+    {
+      "key": "centercut-operations-find-parameters",
+      "consumer": "BatCenterCutOperationsService.findParameters",
+      "parameters": [
+        "centerCutJobId"
+      ]
+    },
+    {
+      "key": "centercut-operations-summarize-items",
+      "consumer": "BatCenterCutOperationsService.findSummary",
+      "parameters": [
+        "centerCutJobId"
+      ]
+    },
+    {
+      "key": "centercut-operations-summarize-results",
+      "consumer": "BatCenterCutOperationsService.findSummary",
+      "parameters": [
+        "centerCutJobId"
+      ]
+    },
+    {
+      "key": "centercut-operations-find-targets",
+      "consumer": "BatCenterCutOperationsService.findTargets",
+      "parameters": [
+        "centerCutJobId",
+        "statusNull",
+        "status",
+        "limit"
+      ]
+    },
+    {
+      "key": "centercut-operations-find-results",
+      "consumer": "BatCenterCutOperationsService.findResults",
+      "parameters": [
+        "centerCutJobId",
+        "statusNull",
+        "status",
+        "limit"
+      ]
+    },
+    {
+      "key": "centercut-operations-find-result-detail",
+      "consumer": "BatCenterCutOperationsService.findResultDetail",
+      "parameters": [
+        "resultId"
       ]
     },
     {

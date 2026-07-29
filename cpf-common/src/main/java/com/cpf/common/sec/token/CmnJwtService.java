@@ -4,8 +4,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.cpf.common.sec.crypto.CmnCryptoService;
 import com.cpf.core.api.util.CpfStrings;
-import com.cpf.core.common.exception.CpfExternalServiceException;
-import com.cpf.core.common.exception.CpfValidationException;
+import com.cpf.core.api.error.CpfExternalServiceException;
+import com.cpf.core.api.error.CpfValidationException;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;

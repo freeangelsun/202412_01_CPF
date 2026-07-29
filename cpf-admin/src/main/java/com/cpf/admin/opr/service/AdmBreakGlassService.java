@@ -34,9 +34,32 @@ public class AdmBreakGlassService extends com.cpf.admin.common.base.AdmBaseServi
         expireStale();
         int bounded = Math.max(1, Math.min(limit <= 0 ? 100 : limit, 500));
         if (status == null || status.isBlank()) {
-            return jdbc.queryForList("SELECT session_id AS sessionId, operator_id AS operatorId, scope_type AS scopeType, scope_value AS scopeValue, reason, status, expires_at AS expiresAt, closed_at AS closedAt, post_review_status AS postReviewStatus, reviewed_by AS reviewedBy, review_reason AS reviewReason, created_at AS createdAt FROM adm_break_glass_session ORDER BY created_at DESC LIMIT ?", bounded);
+            return AdmJdbcQueries.queryForList(
+                    jdbc,
+                    """
+                    SELECT session_id AS sessionId, operator_id AS operatorId, scope_type AS scopeType,
+                           scope_value AS scopeValue, reason, status, expires_at AS expiresAt,
+                           closed_at AS closedAt, post_review_status AS postReviewStatus,
+                           reviewed_by AS reviewedBy, review_reason AS reviewReason, created_at AS createdAt
+                    FROM adm_break_glass_session
+                    ORDER BY created_at DESC
+                    """,
+                    List.of(),
+                    bounded);
         }
-        return jdbc.queryForList("SELECT session_id AS sessionId, operator_id AS operatorId, scope_type AS scopeType, scope_value AS scopeValue, reason, status, expires_at AS expiresAt, closed_at AS closedAt, post_review_status AS postReviewStatus, reviewed_by AS reviewedBy, review_reason AS reviewReason, created_at AS createdAt FROM adm_break_glass_session WHERE status=? ORDER BY created_at DESC LIMIT ?", status.trim().toUpperCase(Locale.ROOT), bounded);
+        return AdmJdbcQueries.queryForList(
+                jdbc,
+                """
+                SELECT session_id AS sessionId, operator_id AS operatorId, scope_type AS scopeType,
+                       scope_value AS scopeValue, reason, status, expires_at AS expiresAt,
+                       closed_at AS closedAt, post_review_status AS postReviewStatus,
+                       reviewed_by AS reviewedBy, review_reason AS reviewReason, created_at AS createdAt
+                FROM adm_break_glass_session
+                WHERE status = ?
+                ORDER BY created_at DESC
+                """,
+                List.of(status.trim().toUpperCase(Locale.ROOT)),
+                bounded);
     }
 
     @Transactional(transactionManager = "admTransactionManager")

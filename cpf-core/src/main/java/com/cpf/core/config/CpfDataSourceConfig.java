@@ -8,6 +8,7 @@ import com.cpf.core.common.database.CpfReadWriteRoutingDataSource;
 import com.cpf.core.common.database.CpfReplicaHealthMonitor;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -81,6 +82,7 @@ public class CpfDataSourceConfig {
     }
 
     @Bean
+    @ConditionalOnMissingBean(CpfVendorSqlCatalogProvider.class)
     public CpfVendorSqlCatalogProvider cpfVendorSqlCatalogProvider(Environment environment) {
         return moduleCode -> com.cpf.core.common.database.CpfVendorSqlCatalog.create(environment, moduleCode);
     }

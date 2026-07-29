@@ -1,6 +1,6 @@
 package com.cpf.reference.servicecall;
 
-import com.cpf.core.common.base.CpfQuery;
+import com.cpf.core.api.base.CpfQuery;
 
 /**
  * REF 중립 호출 샘플의 typed 입력입니다.

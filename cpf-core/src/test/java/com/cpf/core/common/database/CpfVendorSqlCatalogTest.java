@@ -67,12 +67,12 @@ class CpfVendorSqlCatalogTest {
 
     @Test
     void rejectsCentralPackForDifferentVendor() throws IOException {
-        Path packRoot = centralPackRoot("mysql");
+        Path packRoot = centralPackRoot("oracle");
 
         assertThatThrownBy(() -> CpfVendorSqlCatalog.create(environment(packRoot, "mariadb"), "cpf"))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("selected=mariadb")
-                .hasMessageContaining("pack=mysql");
+                .hasMessageContaining("pack=oracle");
     }
 
     @Test

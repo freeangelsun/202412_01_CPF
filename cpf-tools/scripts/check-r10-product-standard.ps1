@@ -1,12 +1,80 @@
 param([string]$Root=(Resolve-Path "$PSScriptRoot\..\..").Path)
 $ErrorActionPreference="Stop"
 $Root=(Resolve-Path -LiteralPath $Root).Path
+. (Join-Path $Root 'cpf-tools/scripts/database-profile-common.ps1')
+$supportedVendors=@(Get-CpfSupportedDatabaseVendors)
 function Fail([string]$m){throw "R10 Gate FAIL: $m"}
 function RequireFile([string]$p){if(-not(Test-Path (Join-Path $Root $p) -PathType Leaf)){Fail "required R10 artifact 누락: $p"}}
 function RequireContains([string]$p,[string]$pattern,[string]$message){RequireFile $p;$t=Get-Content(Join-Path $Root $p)-Raw;if($t -notmatch $pattern){Fail $message}}
 function RequireNotContains([string]$p,[string]$pattern,[string]$message){RequireFile $p;$t=Get-Content(Join-Path $Root $p)-Raw;if($t -match $pattern){Fail $message}}
 
-if(Test-Path (Join-Path $Root "cpf-external")){Fail "Baseline cpf-external 잔존"}
+function Assert-RootGeneratedDomainTopology {
+    $fixedRoots = @(
+        'cpf-core','cpf-common','cpf-admin','cpf-biz-admin','cpf-batch',
+        'cpf-gateway','cpf-reference','cpf-tools','cpf-docs'
+    )
+    $settings = Get-Content -LiteralPath (Join-Path $Root 'settings.gradle') -Raw -Encoding UTF8
+    $identities = [System.Collections.Generic.List[object]]::new()
+    $candidates = @(Get-ChildItem -LiteralPath $Root -Directory -Filter 'cpf-*' |
+        Where-Object { $_.Name -notin $fixedRoots })
+    foreach ($candidate in $candidates) {
+        $manifestPath = Join-Path $candidate.FullName 'manifest/domain-manifest.json'
+        $ownershipPath = Join-Path $candidate.FullName 'manifest/generator-ownership.json'
+        if (-not (Test-Path -LiteralPath $manifestPath -PathType Leaf) -or
+                -not (Test-Path -LiteralPath $ownershipPath -PathType Leaf)) {
+            Fail "unknown CPF root는 두 Generator manifest가 필요함: $($candidate.Name)"
+        }
+        try {
+            $manifest = Get-Content -LiteralPath $manifestPath -Raw -Encoding UTF8 |
+                ConvertFrom-Json -ErrorAction Stop
+            $ownership = Get-Content -LiteralPath $ownershipPath -Raw -Encoding UTF8 |
+                ConvertFrom-Json -ErrorAction Stop
+        } catch {
+            Fail "Generated Domain manifest JSON 오류: $($candidate.Name) :: $($_.Exception.Message)"
+        }
+        if ([string]$manifest.domainType -cne 'GENERATED_DOMAIN' -or
+                [string]$manifest.dependencyModel -cne 'root-project' -or
+                [string]$ownership.dependencyModel -cne 'root-project') {
+            Fail "Generated Domain type/dependencyModel 불일치: $($candidate.Name)"
+        }
+        foreach ($propertyName in @(
+                'projectName','moduleCode','moduleName','domainName',
+                'systemCode','packageName','schemaName','tablePrefix')) {
+            $manifestValue = [string]$manifest.$propertyName
+            $ownershipValue = [string]$ownership.$propertyName
+            if ([string]::IsNullOrWhiteSpace($manifestValue) -or $manifestValue -cne $ownershipValue) {
+                Fail "Generated Domain identity 불일치($propertyName): $($candidate.Name)"
+            }
+        }
+        if ([string]$manifest.projectName -cne $candidate.Name -or
+                [string]$ownership.moduleDirectory -cne $candidate.Name -or
+                [string]$ownership.outputDirectory -cne $candidate.Name) {
+            Fail "Generated Domain directory identity 불일치: $($candidate.Name)"
+        }
+        if ([string]$manifest.systemCode -cnotmatch '^[A-Z][A-Z0-9]{2}$' -or
+                [string]$manifest.domainName -cnotmatch '^[a-z][a-z0-9]{1,29}$' -or
+                [string]$manifest.packageName -cnotmatch '^com\.cpf\.[a-z][a-z0-9]*(?:\.[a-z][a-z0-9]*)*$') {
+            Fail "Generated Domain canonical identity 형식 오류: $($candidate.Name)"
+        }
+        $escapedProject = [regex]::Escape($candidate.Name)
+        if ($settings -notmatch "(?m)^\s*include(?:\s*\()?[^`r`n]*['`"]:?$escapedProject['`"]") {
+            Fail "Generated Domain settings.gradle 등록 누락: $($candidate.Name)"
+        }
+        $identities.Add([pscustomobject]@{
+            projectName = $candidate.Name
+            systemCode = [string]$manifest.systemCode
+            packageName = [string]$manifest.packageName
+        }) | Out-Null
+    }
+    foreach ($propertyName in @('systemCode','packageName')) {
+        $duplicates = @($identities | Group-Object $propertyName | Where-Object Count -gt 1)
+        if ($duplicates.Count -gt 0) {
+            Fail "Generated Domain $propertyName 중복: $(($duplicates.Name | Sort-Object) -join ', ')"
+        }
+    }
+}
+
+Assert-RootGeneratedDomainTopology
 foreach($p in @(
  "cpf-core/src/main/java/com/cpf/core/common/batch",
  "cpf-core/src/main/java/com/cpf/core/config/CpfBatchAutoConfiguration.java",
@@ -26,7 +94,7 @@ foreach($p in @(
  "cpf-admin/frontend/src/features/business-calendar/BusinessCalendarPage.vue",
  "cpf-admin/frontend/src/features/logs/LogsPage.vue",
  "cpf-tools/scripts/sync-generated-domain-artifacts.ps1",
- "cpf-tools/scripts/verify-exs-generated-domain-lifecycle.ps1",
+ "cpf-tools/scripts/check-generator-arbitrary-domain-parity.ps1",
  "cpf-tools/scripts/check-work-context.ps1",
  "cpf-tools/scripts/check-frontend-route-targets.ps1",
  "cpf-docs/work/current/CPF_INTEGRATED_VERIFICATION_PLAN.md"
@@ -34,7 +102,7 @@ foreach($p in @(
 
 RequireContains "cpf-tools/db/vendor/mariadb/source/20_cmn_schema.sql" 'cmn_business_calendar_day' "CMN canonical business calendar table 누락"
 RequireNotContains "cpf-tools/db/vendor/mariadb/source/35_bat_schema.sql" 'bat_business_day_calendar' "BAT legacy business calendar table 잔존"
-foreach($vendor in @('mariadb','mysql','postgresql','oracle','sqlserver')){
+foreach($vendor in $supportedVendors){
     RequireFile "cpf-tools/db/vendor/$vendor/sample/cmn-calendar/00_cmn_business_calendar.sql"
     RequireFile "cpf-tools/db/vendor/$vendor/sample/cmn-calendar/rollback.sql"
 }

@@ -1,4 +1,4 @@
-﻿param(
+param(
     [string]$Root = (Split-Path -Parent $PSScriptRoot),
     [string]$ResultDir = "build/quality-gate"
 )

@@ -5,8 +5,7 @@ function Fail([string]$m){$failures.Add($m)}
 $files=@(
  'cpf-admin/src/main/java/com/cpf/admin/approval/controller/AdmApprovalController.java',
  'cpf-biz-admin/src/main/java/com/cpf/bizadmin/approval/controller/BzaApprovalPolicyController.java',
- 'cpf-biz-admin/src/main/java/com/cpf/bizadmin/directory/controller/BzaDirectoryController.java',
- 'cpf-biz-admin/src/main/java/com/cpf/bizadmin/sample/sequence/BzaSequenceSampleController.java'
+ 'cpf-biz-admin/src/main/java/com/cpf/bizadmin/directory/controller/BzaDirectoryController.java'
 )
 foreach($rel in $files){
  $p=Join-Path $Root $rel

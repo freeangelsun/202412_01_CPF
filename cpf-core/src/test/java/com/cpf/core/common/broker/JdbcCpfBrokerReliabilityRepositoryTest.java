@@ -1,19 +1,24 @@
 package com.cpf.core.common.broker;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.jdbc.core.ColumnMapRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementCreator;
 
 import java.nio.charset.StandardCharsets;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -35,11 +40,19 @@ class JdbcCpfBrokerReliabilityRepositoryTest {
     }
 
     @Test
-    void claimPendingMapsRowsAndClaimsWorker() {
+    void claimPendingMapsRowsAndClaimsWorkerWithPortableStatementLimit() throws Exception {
         JdbcTemplate jdbcTemplate = mock(JdbcTemplate.class);
-        when(jdbcTemplate.queryForList(anyString(), anyInt()))
+        when(jdbcTemplate.query(
+                any(PreparedStatementCreator.class),
+                any(ColumnMapRowMapper.class)))
                 .thenReturn(List.of(claimedOutboxRow()));
-        when(jdbcTemplate.update(anyString(), eq("worker-1"), eq("msg-002"))).thenReturn(1);
+        when(jdbcTemplate.update(
+                anyString(),
+                eq("worker-1"),
+                any(Timestamp.class),
+                any(Timestamp.class),
+                eq("msg-002"),
+                any(Timestamp.class))).thenReturn(1);
         JdbcCpfBrokerReliabilityRepository repository = new JdbcCpfBrokerReliabilityRepository(jdbcTemplate);
 
         List<CpfBrokerEnvelope> claimed = repository.claimPending("worker-1", 10);
@@ -47,7 +60,26 @@ class JdbcCpfBrokerReliabilityRepositoryTest {
         assertThat(claimed).hasSize(1);
         assertThat(claimed.get(0).message().messageId()).isEqualTo("msg-002");
         assertThat(claimed.get(0).attributes()).containsEntry("a", "b");
-        verify(jdbcTemplate).update(anyString(), eq("worker-1"), eq("msg-002"));
+        verify(jdbcTemplate).update(
+                anyString(),
+                eq("worker-1"),
+                any(Timestamp.class),
+                any(Timestamp.class),
+                eq("msg-002"),
+                any(Timestamp.class));
+
+        ArgumentCaptor<PreparedStatementCreator> creator =
+                ArgumentCaptor.forClass(PreparedStatementCreator.class);
+        verify(jdbcTemplate).query(creator.capture(), any(ColumnMapRowMapper.class));
+        Connection connection = mock(Connection.class);
+        PreparedStatement statement = mock(PreparedStatement.class);
+        when(connection.prepareStatement(anyString())).thenReturn(statement);
+        creator.getValue().createPreparedStatement(connection);
+        ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
+        verify(connection).prepareStatement(sql.capture());
+        assertThat(sql.getValue().toUpperCase(Locale.ROOT))
+                .doesNotContain(" LIMIT ", "TIMESTAMPADD", "ON DUPLICATE KEY");
+        verify(statement).setMaxRows(10);
     }
 
     @Test

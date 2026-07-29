@@ -3,7 +3,6 @@ package com.cpf.admin.opr.service;
 import com.cpf.core.api.batch.CpfBatchOperationsPort;
 import com.cpf.core.api.util.CpfStrings;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -137,9 +136,12 @@ public class AdmObservabilityService extends com.cpf.admin.common.base.AdmBaseSe
         appendLike(sql, args, "TRACE_ID", traceId);
         appendLike(sql, args, "BUSINESS_TRANSACTION_ID", businessTransactionId);
         appendEquals(sql, args, "LOG_TYPE", logType);
-        sql.append(" ORDER BY LOG_IDX DESC LIMIT ?");
-        args.add(cappedLimit(limit));
-        return cpfJdbcTemplate.queryForList(sql.toString(), args.toArray());
+        sql.append(" ORDER BY LOG_IDX DESC");
+        return AdmJdbcQueries.queryForList(
+                cpfJdbcTemplate,
+                sql.toString(),
+                args,
+                cappedLimit(limit));
     }
 
     private List<Map<String, Object>> queryAdmAuditLogs(
@@ -161,13 +163,16 @@ public class AdmObservabilityService extends com.cpf.admin.common.base.AdmBaseSe
         appendLike(sql, args, "TRANSACTION_ID", transactionId);
         appendLike(sql, args, "TRACE_ID", traceId);
         if (CpfStrings.hasText(businessTransactionId)) {
-            sql.append(" AND (TARGET_ID = ? OR TARGET_ID LIKE CONCAT('%', ?, '%'))");
+            sql.append(" AND (TARGET_ID = ? OR TARGET_ID LIKE ?)");
             args.add(businessTransactionId.trim());
-            args.add(businessTransactionId.trim());
+            args.add("%" + businessTransactionId.trim() + "%");
         }
-        sql.append(" ORDER BY AUDIT_ID DESC LIMIT ?");
-        args.add(cappedLimit(limit));
-        return admJdbcTemplate.queryForList(sql.toString(), args.toArray());
+        sql.append(" ORDER BY AUDIT_ID DESC");
+        return AdmJdbcQueries.queryForList(
+                admJdbcTemplate,
+                sql.toString(),
+                args,
+                cappedLimit(limit));
     }
 
     private List<Map<String, Object>> queryPolicyAudits(
@@ -201,9 +206,12 @@ public class AdmObservabilityService extends com.cpf.admin.common.base.AdmBaseSe
             sql.append(" AND override_id = ?");
             args.add(overrideId);
         }
-        sql.append(" ORDER BY audit_id DESC LIMIT ?");
-        args.add(cappedLimit(limit));
-        return cpfJdbcTemplate.queryForList(sql.toString(), args.toArray());
+        sql.append(" ORDER BY audit_id DESC");
+        return AdmJdbcQueries.queryForList(
+                cpfJdbcTemplate,
+                sql.toString(),
+                args,
+                cappedLimit(limit));
     }
 
     private List<Map<String, Object>> queryBatchExecutions(String transactionId, int limit) {
@@ -241,23 +249,13 @@ public class AdmObservabilityService extends com.cpf.admin.common.base.AdmBaseSe
     }
 
     private boolean tableAvailable(JdbcTemplate jdbcTemplate, String tableName) {
-        try {
-            Integer count = jdbcTemplate.queryForObject("""
-                    SELECT COUNT(*)
-                    FROM information_schema.tables
-                    WHERE table_schema = DATABASE()
-                      AND table_name = ?
-                    """, Integer.class, tableName);
-            return count != null && count > 0;
-        } catch (DataAccessException ex) {
-            return false;
-        }
+        return AdmJdbcQueries.tableExists(jdbcTemplate, tableName);
     }
 
     private void appendLike(StringBuilder sql, List<Object> args, String column, String value) {
         if (CpfStrings.hasText(value)) {
-            sql.append(" AND ").append(column).append(" LIKE CONCAT('%', ?, '%')");
-            args.add(value.trim());
+            sql.append(" AND ").append(column).append(" LIKE ?");
+            args.add("%" + value.trim() + "%");
         }
     }
 

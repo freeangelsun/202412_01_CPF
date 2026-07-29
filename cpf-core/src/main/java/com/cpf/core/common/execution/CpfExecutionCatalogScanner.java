@@ -1,5 +1,9 @@
 package com.cpf.core.common.execution;
 
+import com.cpf.core.api.execution.CpfExecutionCatalogPort;
+import com.cpf.core.api.execution.CpfExecutionDefinition;
+import com.cpf.core.api.execution.CpfExecutionType;
+import com.cpf.core.api.execution.CpfStandardExecutionId;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.SmartInitializingSingleton;

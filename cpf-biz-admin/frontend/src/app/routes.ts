@@ -6,7 +6,7 @@ export type BzaRouteId =
   | "users" | "roles" | "userRoles" | "menus" | "permissions" | "permissionTools"
   | "approvalInbox" | "approvalSubmissions" | "approvalPolicies" | "approvalSimulation" | "approvalDelegations"
   | "sessions" | "audits" | "notifications" | "attachments" | "savedSearches"
-  | "settings" | "downloads" | "downloadAudits" | "sequenceSample";
+  | "settings" | "downloads" | "downloadAudits";
 
 export interface BzaRoute {
   id: BzaRouteId;
@@ -47,8 +47,7 @@ export const bzaRoutes: BzaRoute[] = [
   { id:"savedSearches", label:"저장 검색", menuCode:"SETTING", group:"support", description:"사용자 검색 조건", load:()=>import("../features/saved-searches/SavedSearchesPage.vue") },
   { id:"settings", label:"업무 설정", menuCode:"SETTING", group:"support", description:"BZA 업무 설정", load:()=>import("../features/settings/SettingsPage.vue") },
   { id:"downloads", label:"다운로드 정책", menuCode:"SETTING", group:"support", description:"다운로드 정책", load:()=>import("../features/downloads/DownloadsPage.vue") },
-  { id:"downloadAudits", label:"다운로드 감사", menuCode:"AUDIT", group:"support", description:"다운로드 감사", load:()=>import("../features/download-audits/DownloadAuditsPage.vue") },
-  { id:"sequenceSample", label:"업무 채번 Sample", menuCode:"SETTING", group:"support", description:"선택형 업무 채번 Customization Sample", load:()=>import("../features/sequence-sample/SequenceSamplePage.vue") }
+  { id:"downloadAudits", label:"다운로드 감사", menuCode:"AUDIT", group:"support", description:"다운로드 감사", load:()=>import("../features/download-audits/DownloadAuditsPage.vue") }
 ];
 
 export function routeFromHash(hash: string): BzaRouteId {

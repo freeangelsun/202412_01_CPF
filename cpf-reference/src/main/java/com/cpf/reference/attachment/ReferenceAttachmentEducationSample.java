@@ -1,9 +1,9 @@
 package com.cpf.reference.attachment;
 
-import com.cpf.core.common.attachment.CpfAttachmentContent;
-import com.cpf.core.common.attachment.CpfAttachmentStoragePort;
-import com.cpf.core.common.attachment.CpfStoredAttachment;
-import com.cpf.core.common.exception.CpfValidationException;
+import com.cpf.core.api.attachment.CpfAttachmentContent;
+import com.cpf.core.api.attachment.CpfAttachmentStoragePort;
+import com.cpf.core.api.attachment.CpfStoredAttachment;
+import com.cpf.core.api.error.CpfValidationException;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;

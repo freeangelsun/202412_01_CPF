@@ -1,6 +1,6 @@
 package com.cpf.common.config;
 
-import com.cpf.core.common.database.CpfDataSourceResolver;
+import com.cpf.core.api.database.CpfDataSources;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -27,7 +27,7 @@ public class CmnSampleDataSourceConfig {
 
     @Bean(name = "cmnSampleDataSource")
     public DataSource cmnSampleDataSource(Environment environment) throws NamingException {
-        return CpfDataSourceResolver.resolve(environment, "spring.datasource.cmn-sample");
+        return CpfDataSources.resolve(environment, "spring.datasource.cmn-sample");
     }
 
     @Bean(name = "cmnSampleJdbcTemplate")

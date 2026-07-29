@@ -1,4 +1,4 @@
-import { createTransactionId, defaultHeaders } from "../../shared/transaction";
+import { clearAdmAccessToken, createAdmHeaders } from "../../shared/cpfApi";
 
 export const coreMethods: Record<string, any> = {
   pretty(value) {
@@ -33,15 +33,7 @@ export const coreMethods: Record<string, any> = {
         return true;
       },
   apiHeaders(extraHeaders = {}) {
-        const headers: Record<string, string> = {
-          ...defaultHeaders,
-          "X-Transaction-Id": createTransactionId(),
-          ...extraHeaders
-        };
-        if (this.token) {
-          headers.Authorization = `Bearer ${this.token}`;
-        }
-        return headers;
+        return createAdmHeaders(extraHeaders, this.token);
       },
   async getJson(url) {
         const response = await fetch(url, { headers: this.apiHeaders() });
@@ -123,8 +115,7 @@ export const coreMethods: Record<string, any> = {
         this.authorizedButtons = [];
         this.buttonsLoaded = false;
         this.permissionsLoaded = false;
-        sessionStorage.removeItem("admAccessToken");
-        localStorage.removeItem("admAccessToken"); // R14 이전 token migration/cleanup
+        clearAdmAccessToken();
         if (typeof this.resetSensitiveState === "function") this.resetSensitiveState();
         this.authMessage = message || "";
       },

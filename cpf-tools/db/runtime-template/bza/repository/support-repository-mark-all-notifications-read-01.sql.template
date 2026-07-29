@@ -1,0 +1,1 @@
+UPDATE bza_notification SET read_yn='Y',read_at=@NOW@,updated_by=:requestUser,updated_at=@NOW@ WHERE recipient_login_id=:loginId AND read_yn='N' AND use_yn='Y'

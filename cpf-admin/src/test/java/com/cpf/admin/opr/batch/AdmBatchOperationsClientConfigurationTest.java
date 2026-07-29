@@ -1,5 +1,6 @@
 package com.cpf.admin.opr.batch;
 
+import com.cpf.admin.opr.context.AdmAuthenticatedOperatorContext;
 import com.cpf.core.api.batch.CpfBatchOperationsPort;
 import com.cpf.core.api.servicecall.CpfServiceCaller;
 import org.junit.jupiter.api.Test;
@@ -20,7 +21,9 @@ class AdmBatchOperationsClientConfigurationTest {
 
         CpfBatchOperationsPort port = configuration.remoteCpfBatchOperationsPort(
                 mock(CpfServiceCaller.class),
-                WebClient.builder());
+                WebClient.builder(),
+                mock(AdmAuthenticatedOperatorContext.class),
+                "adm-test-01");
 
         assertThat(port).isInstanceOf(RemoteCpfBatchOperationsAdapter.class);
     }

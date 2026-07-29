@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -30,6 +31,8 @@ class AdmReliabilityServiceTest {
     @Test
     void mapsCpfChangeResultWithoutLosingAuditReason() {
         CpfReliabilityOperationsPort port = mock(CpfReliabilityOperationsPort.class);
+        when(port.findUnknownResult("U1"))
+                .thenReturn(Optional.of(Map.of("unknown_type", "SERVICE_CALL")));
         when(port.resolveUnknown("U1", "CONFIRMED_SUCCESS", "OP1", "외부 결과 확인"))
                 .thenReturn(new CpfReliabilityOperationsPort.ChangeResult(
                         Map.of("unknownStatus", "CHECK_PENDING"),

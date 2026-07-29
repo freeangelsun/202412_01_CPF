@@ -21,31 +21,54 @@ $CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
 $OutputEncoding = $CpfUtf8ConsoleEncoding
 $ErrorActionPreference = "Stop"
 
-$SchemaAllowlist = @(
-    "cpfDB",
-    "cmnDB",
-    "admDB",
-    "batDB",
-    "refDB",
-    "exsDB",
-    "mbrDB",
-    "bzaDB",
-    "accDB"
-)
 $RequiredConfirmation = if ($DropServiceAccounts) {
-    "DROP_CPF_SCHEMA_AND_SERVICE_ACCOUNTS"
+    "DROP_PROFILE_DATABASES_AND_SERVICE_ACCOUNTS"
 } else {
-    "DROP_CPF_ALLOWLIST_ONLY"
+    "DROP_PROFILE_DATABASES_ONLY"
 }
 
 if ([string]::IsNullOrWhiteSpace($ProfilePath)) {
     $ProfilePath = Join-Path $Root "cpf-tools\config\database-install.default.json"
 }
-$profile = $null
-$coreProfile = $null
-if (Test-Path -LiteralPath $ProfilePath -PathType Leaf) {
-    $profile = Get-Content -LiteralPath $ProfilePath -Raw -Encoding UTF8 | ConvertFrom-Json
-    $coreProfile = $profile.modules.core
+if (-not (Test-Path -LiteralPath $ProfilePath -PathType Leaf)) {
+    throw "Reset 대상의 명시적 Platform DB Profile이 없습니다: $ProfilePath"
+}
+$profile = Get-Content -LiteralPath $ProfilePath -Raw -Encoding UTF8 | ConvertFrom-Json
+if ($null -eq $profile.modules) {
+    throw "Platform DB reset에는 modules metadata가 있는 Platform Profile이 필요합니다. Generated Domain DB는 Domain 전용 lifecycle로 관리하세요."
+}
+$enabledModuleProperties = @(
+    $profile.modules.PSObject.Properties |
+        Where-Object { [bool]$_.Value.enabled }
+)
+if ($enabledModuleProperties.Count -eq 0) {
+    throw "Reset 대상 enabled Platform Module이 없습니다: $ProfilePath"
+}
+$coreProperty = $enabledModuleProperties |
+    Where-Object { $_.Name -eq "core" } |
+    Select-Object -First 1
+$coreProfile = if ($null -ne $coreProperty) {
+    $coreProperty.Value
+} else {
+    $enabledModuleProperties[0].Value
+}
+$SchemaAllowlist = @(
+    $enabledModuleProperties |
+        ForEach-Object {
+            $module = $_.Value
+            $databaseName = [string]$module.databaseName
+            if ([string]::IsNullOrWhiteSpace($databaseName)) {
+                throw "Profile databaseName이 비어 있습니다: module=$($_.Name)"
+            }
+            if ($databaseName -notmatch '^[A-Za-z][A-Za-z0-9_]{0,63}$') {
+                throw "안전하지 않은 Profile databaseName입니다: module=$($_.Name) database=$databaseName"
+            }
+            $databaseName
+        } |
+        Sort-Object -Unique
+)
+if ($SchemaAllowlist.Count -ne $enabledModuleProperties.Count) {
+    throw "Enabled Platform Module의 databaseName은 서로 달라야 합니다."
 }
 if ([string]::IsNullOrWhiteSpace($HostName)) {
     $HostName = if ($null -ne $coreProfile) { [string]$coreProfile.host } else { "127.0.0.1" }
@@ -76,23 +99,29 @@ if ([string]::IsNullOrWhiteSpace($SslCaPath) -and
     $null -ne $coreProfile.PSObject.Properties["sslCaPath"]) {
     $SslCaPath = [string]$coreProfile.sslCaPath
 }
+foreach ($moduleProperty in $enabledModuleProperties) {
+    $module = $moduleProperty.Value
+    if ([string]$module.vendor -notmatch '^(?i:mariadb)$') {
+        throw "reset-cpf-databases.ps1은 MariaDB Profile만 지원합니다: module=$($moduleProperty.Name) vendor=$($module.vendor)"
+    }
+    if ([string]$module.host -ne $HostName -or [string]$module.port -ne [string]$Port) {
+        throw "단일 Reset 실행의 enabled Module은 같은 MariaDB endpoint를 사용해야 합니다: module=$($moduleProperty.Name)"
+    }
+}
 if ([string]::IsNullOrWhiteSpace($ResultDir)) {
     $ResultDir = Join-Path $Root "build\db-reset"
 }
 
 $ServiceAccountAllowlist = [System.Collections.Generic.List[object]]::new()
 if ($DropServiceAccounts) {
-    if (-not (Test-Path -LiteralPath $ProfilePath -PathType Leaf)) {
-        throw "Service Account 정리에 필요한 DB Profile이 없습니다: $ProfilePath"
-    }
-    foreach ($moduleProperty in $profile.modules.PSObject.Properties) {
+    foreach ($moduleProperty in $enabledModuleProperties) {
         $module = $moduleProperty.Value
         foreach ($identityName in @("migration", "runtime")) {
             $identity = $module.$identityName
             if ($null -eq $identity -or [string]::IsNullOrWhiteSpace([string] $identity.username)) {
                 continue
             }
-            foreach ($userHost in @([string] $identity.userHost, "localhost") |
+            foreach ($userHost in @([string] $identity.userHost) |
                     Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
                     Sort-Object -Unique) {
                 $ServiceAccountAllowlist.Add([pscustomobject]@{
@@ -100,15 +129,6 @@ if ($DropServiceAccounts) {
                     userHost = $userHost
                 })
             }
-        }
-    }
-    # EXS는 더 이상 고정 제품 Module이 아니지만 과거 설치가 남긴 정확한 계정은 Reset에서만 정리합니다.
-    foreach ($legacyUser in @("cpf_exs_migration", "cpf_exs_app")) {
-        foreach ($userHost in @("%", "localhost")) {
-            $ServiceAccountAllowlist.Add([pscustomobject]@{
-                username = $legacyUser
-                userHost = $userHost
-            })
         }
     }
     $ServiceAccountAllowlist = @(

@@ -1,5 +1,6 @@
 package com.cpf.core.common.filetransfer;
 
+import com.cpf.core.api.filetransfer.CpfFileTransferProtocol;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.Locale;

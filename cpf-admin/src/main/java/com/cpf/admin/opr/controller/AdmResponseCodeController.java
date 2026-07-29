@@ -3,8 +3,8 @@ package com.cpf.admin.opr.controller;
 import com.cpf.admin.opr.service.AdmAuditLogService;
 import com.cpf.common.msg.dto.CommonResponseCodeRequest;
 import com.cpf.common.msg.service.ResponseCodeCacheService;
-import com.cpf.core.common.execution.CpfOnlineTransaction;
-import com.cpf.core.common.logging.TransactionContext;
+import com.cpf.core.api.execution.CpfOnlineTransaction;
+import com.cpf.core.api.logging.CpfTransactionContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -124,7 +124,7 @@ public class AdmResponseCodeController extends com.cpf.admin.common.base.AdmBase
             String reason) {
 
         auditLogService.record(
-                TransactionContext.getOrCreateTransactionId(),
+                CpfTransactionContext.transactionId(),
                 requestUser(servletRequest, requestUser),
                 actionType,
                 "cpf_response_code",

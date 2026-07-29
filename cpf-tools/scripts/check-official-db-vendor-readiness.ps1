@@ -4,6 +4,20 @@ Set-StrictMode -Version Latest
 $official = @('mariadb','postgresql','oracle')
 $manifestPath = Join-Path $Root 'cpf-tools/db/vendor-pack-manifest.json'
 $manifest = Get-Content -Raw -Encoding UTF8 -LiteralPath $manifestPath | ConvertFrom-Json
+$profilePath = Join-Path $Root 'cpf-tools/config/database-install.default.json'
+$profile = Get-Content -Raw -Encoding UTF8 -LiteralPath $profilePath | ConvertFrom-Json
+$logicalDatabases = @(
+    $profile.modules.PSObject.Properties |
+        Where-Object { [bool]$_.Value.enabled } |
+        ForEach-Object { [string]$_.Value.logicalDatabase } |
+        Sort-Object -Unique
+)
+if ($logicalDatabases.Count -eq 0) {
+    throw "Enabled platform database가 없습니다: $profilePath"
+}
+$qualifiedDatabasePattern = '(?i)\b(?:' +
+    (($logicalDatabases | ForEach-Object { [regex]::Escape($_) }) -join '|') +
+    ')\.'
 $failures = [System.Collections.Generic.List[string]]::new()
 
 if ((@($manifest.officialVendors) -join ',') -cne ($official -join ',')) {
@@ -28,7 +42,7 @@ foreach ($vendor in $official) {
             $path = Join-Path $Root ($rootRelative -replace '/', [System.IO.Path]::DirectorySeparatorChar)
             if (-not (Test-Path -LiteralPath $path -PathType Container)) { $ready = $false }
             else {
-                foreach ($db in @('cpfDB','cmnDB','admDB','bzaDB','batDB','mbrDB','accDB','refDB')) {
+                foreach ($db in $logicalDatabases) {
                     $dbDir = Join-Path $path $db
                     if (-not (Test-Path -LiteralPath $dbDir -PathType Container) -or @(Get-ChildItem -LiteralPath $dbDir -File -Filter '*.sql').Count -eq 0) { $ready = $false }
                 }
@@ -53,8 +67,13 @@ foreach ($vendor in @('postgresql','oracle')) {
     $vendorRoot = Join-Path $Root "cpf-tools/db/vendor/$vendor"
     foreach ($sql in Get-ChildItem -LiteralPath $vendorRoot -Recurse -File -Filter '*.sql') {
         $body = Get-Content -LiteralPath $sql.FullName -Raw -Encoding UTF8
-        if ($body -match '(?im)^\s*USE\s+') { $failures.Add("$vendor contains USE directive: $($sql.FullName)") }
-        if ($body -match '(?i)\b(cpfDB|cmnDB|admDB|bzaDB|batDB|mbrDB|accDB|refDB)\.') { $failures.Add("$vendor contains logical DB qualifier: $($sql.FullName)") }
+        $structuralBody = [regex]::Replace($body, "'(?:''|[^'])*'", "''")
+        $structuralBody = [regex]::Replace($structuralBody, '(?m)--.*$', '')
+        if ($structuralBody -match '(?im)^\s*USE\s+') { $failures.Add("$vendor contains USE directive: $($sql.FullName)") }
+        if ($structuralBody -match $qualifiedDatabasePattern -or
+                $structuralBody -match '(?i)\b[a-z][a-z0-9_]*DB\.') {
+            $failures.Add("$vendor contains logical DB qualifier: $($sql.FullName)")
+        }
     }
 }
 if ($failures.Count -gt 0) {

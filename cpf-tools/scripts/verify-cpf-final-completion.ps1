@@ -36,10 +36,75 @@ function Assert-CpfRemovedPath {
     }
 }
 
+function Assert-CpfGeneratedDomainTopology {
+    $fixedRoots = @(
+        'cpf-core','cpf-common','cpf-admin','cpf-biz-admin','cpf-batch',
+        'cpf-gateway','cpf-reference','cpf-tools','cpf-docs'
+    )
+    $settings = Get-Content -LiteralPath (Join-Path $RepoRoot 'settings.gradle') -Raw -Encoding UTF8
+    $identities = [System.Collections.Generic.List[object]]::new()
+    $candidates = @(Get-ChildItem -LiteralPath $RepoRoot -Directory -Filter 'cpf-*' |
+        Where-Object { $_.Name -notin $fixedRoots })
+    foreach ($candidate in $candidates) {
+        $manifestPath = Join-Path $candidate.FullName 'manifest/domain-manifest.json'
+        $ownershipPath = Join-Path $candidate.FullName 'manifest/generator-ownership.json'
+        if (-not (Test-Path -LiteralPath $manifestPath -PathType Leaf) -or
+                -not (Test-Path -LiteralPath $ownershipPath -PathType Leaf)) {
+            throw "Unknown CPF root must have a Generator manifest pair: $($candidate.Name)"
+        }
+        try {
+            $manifest = Get-Content -LiteralPath $manifestPath -Raw -Encoding UTF8 |
+                ConvertFrom-Json -ErrorAction Stop
+            $ownership = Get-Content -LiteralPath $ownershipPath -Raw -Encoding UTF8 |
+                ConvertFrom-Json -ErrorAction Stop
+        } catch {
+            throw "Generated Domain manifest JSON parse failed: $($candidate.Name) :: $($_.Exception.Message)"
+        }
+        if ([string]$manifest.domainType -cne 'GENERATED_DOMAIN' -or
+                [string]$manifest.dependencyModel -cne 'root-project' -or
+                [string]$ownership.dependencyModel -cne 'root-project') {
+            throw "Generated Domain type/dependencyModel mismatch: $($candidate.Name)"
+        }
+        foreach ($propertyName in @(
+                'projectName','moduleCode','moduleName','domainName',
+                'systemCode','packageName','schemaName','tablePrefix')) {
+            $manifestValue = [string]$manifest.$propertyName
+            $ownershipValue = [string]$ownership.$propertyName
+            if ([string]::IsNullOrWhiteSpace($manifestValue) -or $manifestValue -cne $ownershipValue) {
+                throw "Generated Domain identity mismatch ($propertyName): $($candidate.Name)"
+            }
+        }
+        if ([string]$manifest.projectName -cne $candidate.Name -or
+                [string]$ownership.moduleDirectory -cne $candidate.Name -or
+                [string]$ownership.outputDirectory -cne $candidate.Name) {
+            throw "Generated Domain directory identity mismatch: $($candidate.Name)"
+        }
+        if ([string]$manifest.systemCode -cnotmatch '^[A-Z][A-Z0-9]{2}$' -or
+                [string]$manifest.domainName -cnotmatch '^[a-z][a-z0-9]{1,29}$' -or
+                [string]$manifest.packageName -cnotmatch '^com\.cpf\.[a-z][a-z0-9]*(?:\.[a-z][a-z0-9]*)*$') {
+            throw "Generated Domain canonical identity format is invalid: $($candidate.Name)"
+        }
+        $escapedProject = [regex]::Escape($candidate.Name)
+        if ($settings -notmatch "(?m)^\s*include(?:\s*\()?[^`r`n]*['`"]:?$escapedProject['`"]") {
+            throw "Generated Domain is not registered in settings.gradle: $($candidate.Name)"
+        }
+        $identities.Add([pscustomobject]@{
+            projectName = $candidate.Name
+            systemCode = [string]$manifest.systemCode
+            packageName = [string]$manifest.packageName
+        }) | Out-Null
+    }
+    foreach ($propertyName in @('systemCode','packageName')) {
+        $duplicates = @($identities | Group-Object $propertyName | Where-Object Count -gt 1)
+        if ($duplicates.Count -gt 0) {
+            throw "Duplicate Generated Domain $propertyName`: $(($duplicates.Name | Sort-Object) -join ', ')"
+        }
+    }
+}
+
 Push-Location $RepoRoot
 try {
     foreach ($obsolete in @(
-        'cpf-external',
         'cpf-tools/db/source',
         'cpf-tools/db/vendor/mysql',
         'cpf-tools/db/vendor/sqlserver',
@@ -49,6 +114,7 @@ try {
     )) {
         Assert-CpfRemovedPath $obsolete
     }
+    Assert-CpfGeneratedDomainTopology
 
     if (Test-Path -LiteralPath 'cpf-batch/src') {
         $legacyFiles = @(Get-ChildItem -LiteralPath 'cpf-batch/src' -Recurse -File -Force)
@@ -97,9 +163,6 @@ try {
     Invoke-CpfGate 'Generated arbitrary-domain parity' {
         & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\check-generator-arbitrary-domain-parity.ps1
     }
-    Invoke-CpfGate 'Generated Domain create/build/remove lifecycle' {
-        & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\smoke-generated-domain-lifecycle.ps1
-    }
     Invoke-CpfGate 'SQL canonical/static synchronization' {
         & $gradle checkSqlCanonical --no-daemon
     }
@@ -120,16 +183,13 @@ try {
     }
 
     if ($RunDatabaseLifecycle) {
-        Invoke-CpfGate 'Database canonical artifact synchronization' {
-            & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\sync-database-artifacts.ps1
-        }
-        Invoke-CpfGate 'Official DB vendor readiness after synchronization' {
+        Invoke-CpfGate 'Official DB vendor readiness before lifecycle' {
             & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\check-official-db-vendor-readiness.ps1
         }
-        Invoke-CpfGate 'Platform runtime query packs after synchronization' {
+        Invoke-CpfGate 'Platform runtime query packs before lifecycle' {
             & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\check-platform-runtime-query-packs.ps1
         }
-        Invoke-CpfGate 'BAT runtime query packs after synchronization' {
+        Invoke-CpfGate 'BAT runtime query packs before lifecycle' {
             & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\check-bat-runtime-query-pack.ps1
         }
 

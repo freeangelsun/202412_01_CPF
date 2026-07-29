@@ -73,7 +73,7 @@ public class AdmReliabilityService extends com.cpf.admin.common.base.AdmBaseServ
                 throw new IllegalStateException("ADM Session Service가 연결되지 않아 재처리할 수 없습니다.");
             }
             Object external = row.get("external_key");
-            sessionService.retryRevocation(external == null ? null : String.valueOf(external));
+            sessionService.retryPendingRevocation(external == null ? null : String.valueOf(external));
             return map(operationsPort.resolveUnknown(unknownId, "RESOLVED", operatorId, reason));
         }
         return map(operationsPort.resolveUnknown(unknownId, targetStatus, operatorId, reason));

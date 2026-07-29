@@ -4,6 +4,7 @@ import com.cpf.core.api.runtimecontrol.CpfRuntimeApplyResult;
 import com.cpf.core.api.runtimecontrol.CpfRuntimeChangeApplier;
 import com.cpf.core.api.runtimecontrol.CpfRuntimeDelivery;
 import com.cpf.core.common.broker.CpfBrokerConsumerRuntimePolicy;
+import com.cpf.core.common.runtimecontrol.CpfRuntimePayloadJson;
 
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -26,10 +27,17 @@ public final class CpfBrokerRetryDlqRuntimeApplier implements CpfRuntimeChangeAp
     public CpfRuntimeApplyResult apply(CpfRuntimeDelivery delivery) {
         try {
             CpfBrokerConsumerRuntimePolicy.Snapshot current = policy.current();
-            int maxAttempts = integer(delivery.payload().get("maxAttempts"), current.maxAttempts());
-            long initial = number(delivery.payload().get("initialBackoffMillis"), current.initialBackoffMillis());
-            long maximum = number(delivery.payload().get("maxBackoffMillis"), Math.max(initial, current.maxBackoffMillis()));
-            Set<String> retryable = strings(delivery.payload().get("retryableExceptionClasses"));
+            int maxAttempts = integer(
+                    CpfRuntimePayloadJson.value(delivery.payload(), "maxAttempts"),
+                    current.maxAttempts());
+            long initial = number(
+                    CpfRuntimePayloadJson.value(delivery.payload(), "initialBackoffMillis"),
+                    current.initialBackoffMillis());
+            long maximum = number(
+                    CpfRuntimePayloadJson.value(delivery.payload(), "maxBackoffMillis"),
+                    Math.max(initial, current.maxBackoffMillis()));
+            Set<String> retryable = strings(
+                    CpfRuntimePayloadJson.value(delivery.payload(), "retryableExceptionClasses"));
             CpfBrokerConsumerRuntimePolicy.Snapshot applied = policy.replaceRetry(maxAttempts, initial, maximum, retryable);
             if (applied.maxAttempts() != maxAttempts || applied.initialBackoffMillis() != initial) {
                 return CpfRuntimeApplyResult.failure("BROKER_RETRY_NOT_CONFIRMED", "Broker retry/DLQ 정책 적용을 확인하지 못했습니다.");

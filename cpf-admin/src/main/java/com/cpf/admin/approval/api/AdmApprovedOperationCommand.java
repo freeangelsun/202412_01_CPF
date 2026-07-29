@@ -14,6 +14,9 @@ package com.cpf.admin.approval.api;
  * @param targetType 대상 유형
  * @param targetId 대상 ID
  * @param payloadHash 승인한 Payload SHA-256
+ * @param requestedBy 승인 요청을 최초 등록한 운영자
+ * @param approvedBy 승인 완료 명령을 실제 실행하는 인증된 운영자
+ * @param reason 승인 완료 명령 실행 사유
  * @param transactionId CPF transactionId
  */
 public record AdmApprovedOperationCommand(
@@ -25,6 +28,9 @@ public record AdmApprovedOperationCommand(
         String targetType,
         String targetId,
         String payloadHash,
+        String requestedBy,
+        String approvedBy,
+        String reason,
         String transactionId) {
 
     public AdmApprovedOperationCommand {
@@ -34,6 +40,10 @@ public record AdmApprovedOperationCommand(
         requireText(ownerCommand, "ownerCommand");
         requireText(targetType, "targetType");
         requireText(targetId, "targetId");
+        requireText(requestedBy, "requestedBy");
+        requireText(approvedBy, "approvedBy");
+        requireText(reason, "reason");
+        requireText(transactionId, "transactionId");
         if (payloadHash == null || !payloadHash.matches("[0-9a-fA-F]{64}")) {
             throw new IllegalArgumentException("payloadHash는 SHA-256 hex 64자리여야 합니다.");
         }

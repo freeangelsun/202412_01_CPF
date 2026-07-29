@@ -1,5 +1,7 @@
 package com.cpf.bizadmin.auth.filter;
 
+import com.cpf.bizadmin.auth.dto.BzaAuthorizationResult;
+import com.cpf.bizadmin.auth.dto.BzaOperatorResponse;
 import com.cpf.bizadmin.auth.service.BzaAuthService;
 import com.cpf.bizadmin.auth.permission.BzaPermissionManifest;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -9,7 +11,7 @@ import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
-import java.util.Map;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -26,7 +28,7 @@ class BzaApiAuthFilterTest {
     void attachmentDownloadRequiresServerDownloadPermission() throws Exception {
         MockHttpServletRequest request = request("GET", "/api/bza/attachments/10/download");
         when(authService.authorize("Bearer token", "ATTACHMENT", "DOWNLOAD"))
-                .thenReturn(Map.of("loginId", "operator01"));
+                .thenReturn(authorization("operator01", "ATTACHMENT", "DOWNLOAD"));
         MockHttpServletResponse response = new MockHttpServletResponse();
 
         filter.doFilter(request, response, new MockFilterChain());
@@ -40,11 +42,23 @@ class BzaApiAuthFilterTest {
     void notificationCreateRequiresServerWritePermission() throws Exception {
         MockHttpServletRequest request = request("POST", "/api/bza/notifications");
         when(authService.authorize("Bearer token", "SETTING", "WRITE"))
-                .thenReturn(Map.of("loginId", "operator02"));
+                .thenReturn(authorization("operator02", "SETTING", "WRITE"));
 
         filter.doFilter(request, new MockHttpServletResponse(), new MockFilterChain());
 
         verify(authService).authorize("Bearer token", "SETTING", "WRITE");
+    }
+
+    @Test
+    void approvalParticipantDecisionRequiresDedicatedDecisionPermission() throws Exception {
+        MockHttpServletRequest request =
+                request("POST", "/api/bza/approvals/submissions/7/decisions");
+        when(authService.authorize("Bearer token", "APPROVAL", "DECIDE"))
+                .thenReturn(authorization("approver01", "APPROVAL", "DECIDE"));
+
+        filter.doFilter(request, new MockHttpServletResponse(), new MockFilterChain());
+
+        verify(authService).authorize("Bearer token", "APPROVAL", "DECIDE");
     }
 
     @Test
@@ -58,7 +72,7 @@ class BzaApiAuthFilterTest {
         }) {
             MockHttpServletRequest request = request("GET", uri);
             when(authService.authorize("Bearer token", "AUTHORIZATION", "READ"))
-                    .thenReturn(Map.of("loginId", "bza-admin"));
+                    .thenReturn(authorization("bza-admin", "AUTHORIZATION", "READ"));
             MockHttpServletResponse response = new MockHttpServletResponse();
 
             filter.doFilter(request, response, new MockFilterChain());
@@ -85,5 +99,24 @@ class BzaApiAuthFilterTest {
         MockHttpServletRequest request = new MockHttpServletRequest(method, uri);
         request.addHeader(HttpHeaders.AUTHORIZATION, "Bearer token");
         return request;
+    }
+
+    private BzaAuthorizationResult authorization(
+            String loginId, String menuCode, String actionCode) {
+        BzaOperatorResponse operator = new BzaOperatorResponse(
+                1L,
+                loginId,
+                "테스트 운영자",
+                "BZA_MANAGER",
+                "ACTIVE",
+                "Y",
+                "N",
+                0,
+                "N",
+                null,
+                null,
+                List.of(menuCode),
+                List.of(menuCode + ":" + actionCode));
+        return new BzaAuthorizationResult(operator, menuCode, actionCode);
     }
 }

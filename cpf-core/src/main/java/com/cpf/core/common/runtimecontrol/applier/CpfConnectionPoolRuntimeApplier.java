@@ -4,6 +4,7 @@ import com.cpf.core.api.runtimecontrol.CpfRuntimeApplyResult;
 import com.cpf.core.api.runtimecontrol.CpfRuntimeChangeApplier;
 import com.cpf.core.api.runtimecontrol.CpfRuntimeDelivery;
 import com.cpf.core.common.database.CpfConnectionPoolRuntimeController;
+import com.cpf.core.common.runtimecontrol.CpfRuntimePayloadJson;
 
 /** 실제 CPF Primary/Replica Hikari Pool의 동적 설정과 soft-evict를 적용합니다. */
 public final class CpfConnectionPoolRuntimeApplier implements CpfRuntimeChangeApplier {
@@ -19,13 +20,13 @@ public final class CpfConnectionPoolRuntimeApplier implements CpfRuntimeChangeAp
     public CpfRuntimeApplyResult apply(CpfRuntimeDelivery delivery) {
         try {
             CpfConnectionPoolRuntimeController.Policy policy = new CpfConnectionPoolRuntimeController.Policy(
-                    integer(delivery.payload().get("maximumPoolSize"), 20),
-                    integer(delivery.payload().get("minimumIdle"), 5),
-                    number(delivery.payload().get("connectionTimeoutMillis"), 30000L),
-                    number(delivery.payload().get("validationTimeoutMillis"), 5000L),
-                    number(delivery.payload().get("idleTimeoutMillis"), 600000L),
-                    number(delivery.payload().get("maxLifetimeMillis"), 1800000L),
-                    bool(delivery.payload().get("softEvict"), false));
+                    integer(CpfRuntimePayloadJson.value(delivery.payload(), "maximumPoolSize"), 20),
+                    integer(CpfRuntimePayloadJson.value(delivery.payload(), "minimumIdle"), 5),
+                    number(CpfRuntimePayloadJson.value(delivery.payload(), "connectionTimeoutMillis"), 30000L),
+                    number(CpfRuntimePayloadJson.value(delivery.payload(), "validationTimeoutMillis"), 5000L),
+                    number(CpfRuntimePayloadJson.value(delivery.payload(), "idleTimeoutMillis"), 600000L),
+                    number(CpfRuntimePayloadJson.value(delivery.payload(), "maxLifetimeMillis"), 1800000L),
+                    bool(CpfRuntimePayloadJson.value(delivery.payload(), "softEvict"), false));
             CpfConnectionPoolRuntimeController.Result result = controller.apply(policy);
             if (result.controlledPoolCount() < 1) {
                 return CpfRuntimeApplyResult.failure("CONNECTION_POOL_NOT_CONFIRMED", "조정된 Connection Pool이 없습니다.");

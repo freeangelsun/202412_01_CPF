@@ -1,5 +1,7 @@
 package com.cpf.core.common.logging.policy;
 
+import com.cpf.core.api.logging.policy.LogPolicyTargetType;
+
 import java.time.LocalDateTime;
 import java.util.Optional;
 

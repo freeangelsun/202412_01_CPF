@@ -15,7 +15,10 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -57,6 +60,90 @@ public final class CpfRuntimePayload {
         return EMPTY.equals(canonicalJson);
     }
 
+    /** 최상위 Object에 field가 존재하는지 확인합니다. */
+    public boolean contains(String fieldName) {
+        return root().has(fieldName);
+    }
+
+    /** 문자열 field를 조회하며 누락·null이면 fallback을 반환합니다. */
+    public String text(String fieldName, String fallback) {
+        JsonNode value = root().get(fieldName);
+        return value == null || value.isNull() ? fallback : value.asText();
+    }
+
+    /** 정수 field를 조회하며 누락·null이면 fallback을 반환합니다. */
+    public long longValue(String fieldName, long fallback) {
+        JsonNode value = root().get(fieldName);
+        if (value == null || value.isNull()) return fallback;
+        if (value.isIntegralNumber()) return value.longValue();
+        try {
+            return Long.parseLong(value.asText());
+        } catch (NumberFormatException ex) {
+            throw new IllegalArgumentException("Runtime payload 정수 field가 올바르지 않습니다: " + fieldName, ex);
+        }
+    }
+
+    /** boolean field를 조회하며 누락·null이면 fallback을 반환합니다. */
+    public boolean booleanValue(String fieldName, boolean fallback) {
+        JsonNode value = root().get(fieldName);
+        if (value == null || value.isNull()) return fallback;
+        if (value.isBoolean()) return value.booleanValue();
+        String text = value.asText();
+        if ("true".equalsIgnoreCase(text)) return true;
+        if ("false".equalsIgnoreCase(text)) return false;
+        throw new IllegalArgumentException("Runtime payload boolean field가 올바르지 않습니다: " + fieldName);
+    }
+
+    /** 문자열 배열 field를 불변 List로 조회합니다. */
+    public List<String> stringList(String fieldName) {
+        JsonNode value = root().get(fieldName);
+        if (value == null || value.isNull()) return List.of();
+        if (!value.isArray()) {
+            throw new IllegalArgumentException("Runtime payload 문자열 배열 field가 아닙니다: " + fieldName);
+        }
+        List<String> result = new ArrayList<>();
+        value.forEach(item -> {
+            if (!item.isNull()) result.add(item.asText());
+        });
+        return List.copyOf(result);
+    }
+
+    /** Object 배열 field를 동일한 Value Object List로 조회합니다. */
+    public List<CpfRuntimePayload> objectList(String fieldName) {
+        JsonNode value = root().get(fieldName);
+        if (value == null || value.isNull()) return List.of();
+        if (!value.isArray()) {
+            throw new IllegalArgumentException("Runtime payload Object 배열 field가 아닙니다: " + fieldName);
+        }
+        List<CpfRuntimePayload> result = new ArrayList<>();
+        value.forEach(item -> {
+            if (!item.isObject()) {
+                throw new IllegalArgumentException(
+                        "Runtime payload Object 배열 항목이 Object가 아닙니다: " + fieldName);
+            }
+            result.add(fromNode(item));
+        });
+        return List.copyOf(result);
+    }
+
+    /** Object field의 각 child Object를 key 순서가 고정된 불변 Map으로 조회합니다. */
+    public Map<String, CpfRuntimePayload> objectMap(String fieldName) {
+        JsonNode value = root().get(fieldName);
+        if (value == null || value.isNull()) return Map.of();
+        if (!value.isObject()) {
+            throw new IllegalArgumentException("Runtime payload Object field가 아닙니다: " + fieldName);
+        }
+        Map<String, CpfRuntimePayload> result = new LinkedHashMap<>();
+        value.fields().forEachRemaining(entry -> {
+            if (!entry.getValue().isObject()) {
+                throw new IllegalArgumentException(
+                        "Runtime payload child가 Object가 아닙니다: " + fieldName + "." + entry.getKey());
+            }
+            result.put(entry.getKey(), fromNode(entry.getValue()));
+        });
+        return Map.copyOf(result);
+    }
+
     @Override
     public String toString() {
         return canonicalJson;
@@ -80,6 +167,22 @@ public final class CpfRuntimePayload {
             return MAPPER.writeValueAsString(sort(parsed));
         } catch (JsonProcessingException ex) {
             throw new IllegalArgumentException("Runtime payload JSON을 해석할 수 없습니다.", ex);
+        }
+    }
+
+    private JsonNode root() {
+        try {
+            return MAPPER.readTree(canonicalJson);
+        } catch (JsonProcessingException ex) {
+            throw new IllegalStateException("검증된 Runtime payload를 다시 해석할 수 없습니다.", ex);
+        }
+    }
+
+    private static CpfRuntimePayload fromNode(JsonNode node) {
+        try {
+            return new CpfRuntimePayload(MAPPER.writeValueAsString(sort(node)), true);
+        } catch (JsonProcessingException ex) {
+            throw new IllegalArgumentException("Runtime payload child Object를 변환할 수 없습니다.", ex);
         }
     }
 

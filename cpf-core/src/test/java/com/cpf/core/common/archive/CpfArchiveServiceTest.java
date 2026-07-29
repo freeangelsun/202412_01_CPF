@@ -1,5 +1,9 @@
 package com.cpf.core.common.archive;
 
+import com.cpf.core.api.archive.CpfArchiveEntry;
+import com.cpf.core.api.archive.CpfArchivePolicy;
+import com.cpf.core.api.archive.CpfArchiveRequest;
+import com.cpf.core.api.archive.CpfArchiveResult;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 

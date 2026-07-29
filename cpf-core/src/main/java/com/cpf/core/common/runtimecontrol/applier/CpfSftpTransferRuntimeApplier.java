@@ -1,9 +1,119 @@
 package com.cpf.core.common.runtimecontrol.applier;
-import com.cpf.core.api.runtimecontrol.*;import com.cpf.core.common.filetransfer.*;import com.cpf.core.common.security.CpfCredentialRef;import java.time.Duration;import java.util.*;
+
+import com.cpf.core.api.runtimecontrol.CpfRuntimeApplyResult;
+import com.cpf.core.api.runtimecontrol.CpfRuntimeChangeApplier;
+import com.cpf.core.api.runtimecontrol.CpfRuntimeDelivery;
+import com.cpf.core.common.filetransfer.CpfFileTransferEndpoint;
+import com.cpf.core.common.filetransfer.CpfFileTransferRuntimeState;
+import com.cpf.core.common.runtimecontrol.CpfRuntimePayloadJson;
+import com.cpf.core.common.security.CpfCredentialRef;
+
+import java.time.Duration;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
 /** 실제 FileTransferEngine이 사용하는 SFTP/FTP endpoint 전체 snapshot을 교체합니다. */
-public final class CpfSftpTransferRuntimeApplier implements CpfRuntimeChangeApplier{
- private final CpfFileTransferRuntimeState state;public CpfSftpTransferRuntimeApplier(CpfFileTransferRuntimeState state){this.state=state;}
- public String changeType(){return "SFTP_TRANSFER";}public boolean supportsIdempotentReplay(){return true;}public boolean snapshotCapable(){return true;}
- public CpfRuntimeApplyResult apply(CpfRuntimeDelivery d){try{Object raw=d.payload().get("endpoints");if(!(raw instanceof List<?>l))return CpfRuntimeApplyResult.failure("SFTP_ENDPOINTS_REQUIRED","endpoints snapshot이 필요합니다.");LinkedHashMap<String,CpfFileTransferEndpoint>m=new LinkedHashMap<>();for(Object item:l){if(!(item instanceof Map<?,?>x))throw new IllegalArgumentException();String code=req(x,"endpointCode");String protocol=req(x,"protocol");String host=req(x,"host");int port=intv(x.get("port"),22);String base=req(x,"remoteBasePath");String cred=req(x,"credentialId");CpfCredentialRef ref=new CpfCredentialRef(opt(x,"credentialScope","default"),cred,opt(x,"credentialVersion","latest"),code);long timeout=num(x.get("timeoutMillis"),30000L);Map<String,String>a=attrs(x.get("attributes"));m.put(code,new CpfFileTransferEndpoint(code,protocol,host,port,base,ref,Duration.ofMillis(timeout),a));}state.replaceEndpoints(d.desiredVersion(),m);return CpfRuntimeApplyResult.success(d.payloadHash());}catch(RuntimeException e){return CpfRuntimeApplyResult.failure("SFTP_ENDPOINT_INVALID","SFTP endpoint snapshot이 유효하지 않습니다.");}}
- private String req(Map<?,?>m,String k){Object v=m.get(k);if(v==null||String.valueOf(v).isBlank())throw new IllegalArgumentException();return String.valueOf(v);}private String opt(Map<?,?>m,String k,String f){Object v=m.get(k);return v==null||String.valueOf(v).isBlank()?f:String.valueOf(v);}private int intv(Object v,int f){return v instanceof Number n?n.intValue():v==null?f:Integer.parseInt(String.valueOf(v));}private long num(Object v,long f){return v instanceof Number n?n.longValue():v==null?f:Long.parseLong(String.valueOf(v));}private Map<String,String>attrs(Object v){if(!(v instanceof Map<?,?>x))return Map.of();LinkedHashMap<String,String>r=new LinkedHashMap<>();x.forEach((k,a)->{if(k!=null&&a!=null)r.put(String.valueOf(k),String.valueOf(a));});return Map.copyOf(r);}
+public final class CpfSftpTransferRuntimeApplier implements CpfRuntimeChangeApplier {
+    private final CpfFileTransferRuntimeState state;
+
+    public CpfSftpTransferRuntimeApplier(CpfFileTransferRuntimeState state) {
+        this.state = state;
+    }
+
+    @Override
+    public String changeType() {
+        return "SFTP_TRANSFER";
+    }
+
+    @Override
+    public boolean supportsIdempotentReplay() {
+        return true;
+    }
+
+    @Override
+    public boolean snapshotCapable() {
+        return true;
+    }
+
+    @Override
+    public CpfRuntimeApplyResult apply(CpfRuntimeDelivery delivery) {
+        try {
+            Object raw = CpfRuntimePayloadJson.value(delivery.payload(), "endpoints");
+            if (!(raw instanceof List<?> entries)) {
+                return CpfRuntimeApplyResult.failure(
+                        "SFTP_ENDPOINTS_REQUIRED",
+                        "endpoints snapshot이 필요합니다.");
+            }
+            LinkedHashMap<String, CpfFileTransferEndpoint> endpoints = new LinkedHashMap<>();
+            for (Object entry : entries) {
+                if (!(entry instanceof Map<?, ?> source)) {
+                    throw new IllegalArgumentException("endpoint object가 필요합니다.");
+                }
+                String endpointCode = required(source, "endpointCode");
+                String protocol = required(source, "protocol");
+                String host = required(source, "host");
+                int port = integer(source.get("port"), 22);
+                String remoteBasePath = required(source, "remoteBasePath");
+                String credentialId = required(source, "credentialId");
+                CpfCredentialRef credential = new CpfCredentialRef(
+                        optional(source, "credentialScope", "default"),
+                        credentialId,
+                        optional(source, "credentialVersion", "latest"),
+                        endpointCode);
+                long timeoutMillis = number(source.get("timeoutMillis"), 30_000L);
+                endpoints.put(
+                        endpointCode,
+                        new CpfFileTransferEndpoint(
+                                endpointCode,
+                                protocol,
+                                host,
+                                port,
+                                remoteBasePath,
+                                credential,
+                                Duration.ofMillis(timeoutMillis),
+                                attributes(source.get("attributes"))));
+            }
+            state.replaceEndpoints(delivery.desiredVersion(), endpoints);
+            return CpfRuntimeApplyResult.success(delivery.payloadHash());
+        } catch (RuntimeException ex) {
+            return CpfRuntimeApplyResult.failure(
+                    "SFTP_ENDPOINT_INVALID",
+                    "SFTP endpoint snapshot이 유효하지 않습니다.");
+        }
+    }
+
+    private String required(Map<?, ?> source, String key) {
+        Object value = source.get(key);
+        if (value == null || String.valueOf(value).isBlank()) {
+            throw new IllegalArgumentException(key + " 필수");
+        }
+        return String.valueOf(value);
+    }
+
+    private String optional(Map<?, ?> source, String key, String fallback) {
+        Object value = source.get(key);
+        return value == null || String.valueOf(value).isBlank() ? fallback : String.valueOf(value);
+    }
+
+    private int integer(Object value, int fallback) {
+        if (value instanceof Number number) return number.intValue();
+        return value == null ? fallback : Integer.parseInt(String.valueOf(value));
+    }
+
+    private long number(Object value, long fallback) {
+        if (value instanceof Number number) return number.longValue();
+        return value == null ? fallback : Long.parseLong(String.valueOf(value));
+    }
+
+    private Map<String, String> attributes(Object value) {
+        if (!(value instanceof Map<?, ?> source)) return Map.of();
+        LinkedHashMap<String, String> result = new LinkedHashMap<>();
+        source.forEach((key, entry) -> {
+            if (key != null && entry != null) {
+                result.put(String.valueOf(key), String.valueOf(entry));
+            }
+        });
+        return Map.copyOf(result);
+    }
 }

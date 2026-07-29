@@ -1,6 +1,6 @@
 package com.cpf.gateway.controller;
 
-import com.cpf.core.common.header.CpfHeaderNames;
+import com.cpf.core.api.header.CpfHeaderNames;
 import com.cpf.gateway.service.CpfGatewayProxyService;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;

@@ -4,14 +4,20 @@ import com.cpf.core.api.logging.CpfTransactionTimelineQueryPort;
 import com.cpf.core.common.logging.SensitiveDataMasker;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.ColumnMapRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -36,8 +42,10 @@ public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimeline
         if (!tableAvailable()) {
             return new GroupQueryResult(false, List.of(), limit, sort, "CPF 거래 구간 저장소를 사용할 수 없습니다.");
         }
-        QueryParts query = buildGroupQuery(safeCriteria, limit, sort);
-        List<Map<String, Object>> rows = jdbcTemplate.queryForList(query.sql(), query.args().toArray()).stream()
+        QueryParts query = buildGroupQuery(safeCriteria, sort);
+        List<Map<String, Object>> rows = enrichGroupRows(
+                queryForListLimited(query.sql(), query.args(), limit),
+                query).stream()
                 .map(this::maskGroupRow)
                 .toList();
         return new GroupQueryResult(true, rows, limit, sort, null);
@@ -102,7 +110,7 @@ public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimeline
         if (!hasText(transactionId) || !tableAvailable()) {
             return List.of();
         }
-        return jdbcTemplate.queryForList("""
+        return queryForListLimited("""
                 SELECT transaction_segment_id AS transactionSegmentId,
                        module_code AS moduleCode,
                        external_institution_code AS externalInstitutionCode,
@@ -127,23 +135,33 @@ public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimeline
                  WHERE transaction_id = ?
                    AND (transaction_role = 'EXTERNAL' OR external_institution_code IS NOT NULL)
                  ORDER BY started_at, sequence_no
-                 LIMIT ?
-                """, transactionId.trim(), boundedLimit(limit)).stream()
+                """, List.of(transactionId.trim()), boundedLimit(limit)).stream()
                 .map(this::maskExternalRow)
                 .toList();
     }
 
-    private QueryParts buildGroupQuery(Map<String, String> criteria, int limit, String sort) {
+    private QueryParts buildGroupQuery(Map<String, String> criteria, String sort) {
         StringBuilder sql = new StringBuilder("""
+                WITH filtered_segments AS (
+                    SELECT cpf_transaction_segment.*,
+                           ROW_NUMBER() OVER (
+                               PARTITION BY transaction_id
+                               ORDER BY started_at, sequence_no, segment_id
+                           ) AS cpf_row_no
+                      FROM cpf_transaction_segment
+                     WHERE 1 = 1
+                """);
+        List<Object> args = new ArrayList<>();
+        appendCriteria(sql, args, criteria);
+        sql.append("""
+                )
                 SELECT transaction_id AS transactionId,
                        MIN(started_at) AS startedAt,
                        MAX(ended_at) AS endedAt,
                        SUM(COALESCE(duration_ms, 0)) AS totalDurationMs,
                        COUNT(*) AS segmentCount,
                        SUM(CASE WHEN transaction_role = 'EXTERNAL' THEN 1 ELSE 0 END) AS externalCallCount,
-                       GROUP_CONCAT(DISTINCT module_code ORDER BY started_at SEPARATOR ' -> ') AS moduleFlowText,
-                       SUBSTRING_INDEX(GROUP_CONCAT(module_code ORDER BY started_at SEPARATOR ' -> '), ' -> ', 1) AS originModuleCode,
-                       GROUP_CONCAT(DISTINCT transaction_role ORDER BY started_at SEPARATOR ' / ') AS rolesText,
+                       MAX(CASE WHEN cpf_row_no = 1 THEN module_code END) AS originModuleCode,
                        MAX(CASE WHEN failure_yn = 'Y' THEN module_code ELSE NULL END) AS failedModuleCode,
                        MAX(CASE WHEN failure_yn = 'Y' THEN transaction_segment_id ELSE NULL END) AS failedSegmentId,
                        MAX(CASE WHEN failure_yn = 'Y' THEN transaction_name ELSE NULL END) AS failedSegmentName,
@@ -163,10 +181,28 @@ public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimeline
                        MAX(external_transaction_id) AS externalTransactionId,
                        MAX(transaction_name) AS transactionName,
                        MAX(api_path) AS apiPath
+                  FROM filtered_segments
+                 GROUP BY transaction_id
+                """);
+        if (hasText(criteria.get("originModuleCode"))) {
+            sql.append(" HAVING MAX(CASE WHEN cpf_row_no = 1 THEN module_code END) = ?");
+            args.add(criteria.get("originModuleCode").trim().toUpperCase());
+        }
+        sql.append(orderBy(sort));
+
+        StringBuilder detailSql = new StringBuilder("""
+                SELECT transaction_id AS transactionId,
+                       module_code AS moduleCode,
+                       transaction_role AS transactionRole
                   FROM cpf_transaction_segment
                  WHERE 1 = 1
                 """);
-        List<Object> args = new ArrayList<>();
+        List<Object> detailArgs = new ArrayList<>();
+        appendCriteria(detailSql, detailArgs, criteria);
+        return new QueryParts(sql.toString(), args, detailSql.toString(), detailArgs);
+    }
+
+    private void appendCriteria(StringBuilder sql, List<Object> args, Map<String, String> criteria) {
         appendLike(sql, args, "transaction_id", criteria.get("transactionId"));
         appendLike(sql, args, "transaction_segment_id", first(criteria, "transactionSegmentId", "segmentId", "failedSegmentId"));
         appendLike(sql, args, "module_code", first(criteria, "includedModuleCode", "moduleCode"));
@@ -197,14 +233,57 @@ public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimeline
         appendDateTime(sql, args, "started_at", "<=", criteria.get("startedAtTo"));
         appendLong(sql, args, "duration_ms", ">=", criteria.get("durationMsFrom"));
         appendLong(sql, args, "duration_ms", "<=", criteria.get("durationMsTo"));
-        sql.append(" GROUP BY transaction_id");
-        if (hasText(criteria.get("originModuleCode"))) {
-            sql.append(" HAVING originModuleCode = ?");
-            args.add(criteria.get("originModuleCode").trim().toUpperCase());
+    }
+
+    private List<Map<String, Object>> enrichGroupRows(List<Map<String, Object>> groups, QueryParts query) {
+        if (groups.isEmpty()) {
+            return groups;
         }
-        sql.append(orderBy(sort)).append(" LIMIT ?");
-        args.add(limit);
-        return new QueryParts(sql.toString(), args);
+        List<String> transactionIds = groups.stream()
+                .map(row -> stringValue(value(row, "transactionId")))
+                .filter(this::hasText)
+                .toList();
+        if (transactionIds.isEmpty()) {
+            return groups;
+        }
+        String placeholders = String.join(",", transactionIds.stream().map(ignored -> "?").toList());
+        List<Object> detailArgs = new ArrayList<>(query.detailArgs());
+        detailArgs.addAll(transactionIds);
+        String detailSql = query.detailSql()
+                + " AND transaction_id IN (" + placeholders + ")"
+                + " ORDER BY transaction_id, started_at, sequence_no, segment_id";
+        List<Map<String, Object>> details = jdbcTemplate.queryForList(detailSql, detailArgs.toArray());
+        Map<String, LinkedHashSet<String>> modules = new LinkedHashMap<>();
+        Map<String, LinkedHashSet<String>> roles = new LinkedHashMap<>();
+        for (Map<String, Object> detail : details) {
+            String transactionId = stringValue(value(detail, "transactionId"));
+            if (!hasText(transactionId)) {
+                continue;
+            }
+            addIfPresent(modules.computeIfAbsent(transactionId, ignored -> new LinkedHashSet<>()),
+                    stringValue(value(detail, "moduleCode")));
+            addIfPresent(roles.computeIfAbsent(transactionId, ignored -> new LinkedHashSet<>()),
+                    stringValue(value(detail, "transactionRole")));
+        }
+        List<Map<String, Object>> enriched = new ArrayList<>(groups.size());
+        for (Map<String, Object> group : groups) {
+            Map<String, Object> row = new LinkedHashMap<>(group);
+            String transactionId = stringValue(value(group, "transactionId"));
+            row.put("moduleFlowText", joinOrNull(modules.get(transactionId), " -> "));
+            row.put("rolesText", joinOrNull(roles.get(transactionId), " / "));
+            enriched.add(row);
+        }
+        return enriched;
+    }
+
+    private void addIfPresent(LinkedHashSet<String> values, String value) {
+        if (hasText(value)) {
+            values.add(value);
+        }
+    }
+
+    private String joinOrNull(LinkedHashSet<String> values, String delimiter) {
+        return values == null || values.isEmpty() ? null : String.join(delimiter, values);
     }
 
     private Map<String, Object> maskGroupRow(Map<String, Object> row) {
@@ -238,23 +317,33 @@ public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimeline
         if (jdbcTemplate == null) {
             return false;
         }
-        try {
-            Integer count = jdbcTemplate.queryForObject("""
-                    SELECT COUNT(*)
-                      FROM information_schema.tables
-                     WHERE table_schema = DATABASE()
-                       AND table_name = 'cpf_transaction_segment'
-                    """, Integer.class);
-            return count != null && count > 0;
-        } catch (DataAccessException ex) {
+        DataSource dataSource = jdbcTemplate.getDataSource();
+        if (dataSource == null) {
+            return false;
+        }
+        try (Connection connection = dataSource.getConnection()) {
+            String catalog = connection.getCatalog();
+            String schema = currentSchema(connection);
+            for (String candidate : List.of(
+                    "cpf_transaction_segment",
+                    "CPF_TRANSACTION_SEGMENT")) {
+                try (ResultSet tables = connection.getMetaData()
+                        .getTables(catalog, schema, candidate, new String[]{"TABLE"})) {
+                    if (tables.next()) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        } catch (SQLException ex) {
             return false;
         }
     }
 
     private void appendLike(StringBuilder sql, List<Object> args, String column, String value) {
         if (hasText(value)) {
-            sql.append(" AND ").append(column).append(" LIKE CONCAT('%', ?, '%')");
-            args.add(value.trim());
+            sql.append(" AND ").append(column).append(" LIKE ?");
+            args.add('%' + value.trim() + '%');
         }
     }
 
@@ -294,9 +383,44 @@ public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimeline
             case "durationDesc" -> " ORDER BY totalDurationMs DESC, startedAt DESC";
             case "statusAsc" -> " ORDER BY overallStatus ASC, startedAt DESC";
             case "failedFirst" -> " ORDER BY failureYn DESC, startedAt DESC";
-            case "moduleAsc" -> " ORDER BY moduleFlowText ASC, startedAt DESC";
+            case "moduleAsc" -> " ORDER BY originModuleCode ASC, startedAt DESC";
             default -> " ORDER BY startedAt DESC";
         };
+    }
+
+    private List<Map<String, Object>> queryForListLimited(String sql, List<?> args, int limit) {
+        return jdbcTemplate.query(connection -> {
+            PreparedStatement statement = connection.prepareStatement(sql);
+            for (int index = 0; index < args.size(); index++) {
+                statement.setObject(index + 1, args.get(index));
+            }
+            statement.setMaxRows(boundedLimit(limit));
+            return statement;
+        }, new ColumnMapRowMapper());
+    }
+
+    private String currentSchema(Connection connection) {
+        try {
+            return connection.getSchema();
+        } catch (SQLException | AbstractMethodError ignored) {
+            return null;
+        }
+    }
+
+    private Object value(Map<String, Object> row, String key) {
+        Object exact = row.get(key);
+        if (exact != null || row.containsKey(key)) {
+            return exact;
+        }
+        return row.entrySet().stream()
+                .filter(entry -> entry.getKey().equalsIgnoreCase(key))
+                .map(Map.Entry::getValue)
+                .findFirst()
+                .orElse(null);
+    }
+
+    private String stringValue(Object value) {
+        return value == null ? null : String.valueOf(value);
     }
 
     private int limit(String value) {
@@ -334,6 +458,10 @@ public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimeline
         return value != null && !value.isBlank();
     }
 
-    private record QueryParts(String sql, List<Object> args) {
+    private record QueryParts(
+            String sql,
+            List<Object> args,
+            String detailSql,
+            List<Object> detailArgs) {
     }
 }

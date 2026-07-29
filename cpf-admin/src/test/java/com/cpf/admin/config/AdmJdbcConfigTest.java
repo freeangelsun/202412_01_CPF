@@ -3,6 +3,7 @@ package com.cpf.admin.config;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.mock.env.MockEnvironment;
 
 import javax.sql.DataSource;
 
@@ -18,7 +19,9 @@ class AdmJdbcConfigTest {
 
         JdbcTemplate jdbcTemplate = config.admJdbcTemplate(admDataSource);
         DataSourceTransactionManager transactionManager =
-                (DataSourceTransactionManager) config.admTransactionManager(admDataSource);
+                (DataSourceTransactionManager) config.admTransactionManager(
+                        admDataSource,
+                        new AdmPersistencePolicy(new MockEnvironment()));
 
         assertThat(jdbcTemplate.getDataSource()).isSameAs(admDataSource);
         assertThat(transactionManager.getDataSource()).isSameAs(admDataSource);

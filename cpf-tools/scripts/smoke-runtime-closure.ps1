@@ -1,7 +1,7 @@
 param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..\..").Path,
     [string] $ResultDir = "",
-    [string[]] $Modules = @("MBR", "ADM", "BZA", "REF"),
+    [string[]] $Modules = @("ADM", "BAT", "BZA", "REF", "GWY"),
     [int] $StartupTimeoutSeconds = 150,
     [switch] $StartServices,
     [switch] $StopAfterRun
@@ -24,7 +24,7 @@ $resultPath = Join-Path $ResultDir "runtime-closure-result.json"
 $result = [ordered]@{
     startedAt = (Get-Date).ToString("o")
     status = Get-CpfRuntimeStatusText "Partial"
-    modules = @((Resolve-CpfRuntimeModules -Modules $Modules) | ForEach-Object { $_.module })
+    modules = @((Resolve-CpfRuntimeModules -Modules $Modules -Root $Root) | ForEach-Object { $_.module })
     runtimeStart = [ordered]@{ status = Get-CpfRuntimeStatusText "NotVerified" }
     runtimeStatus = [ordered]@{ status = Get-CpfRuntimeStatusText "NotVerified" }
     runtimeDiagnostics = [ordered]@{ status = Get-CpfRuntimeStatusText "NotVerified" }

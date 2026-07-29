@@ -345,7 +345,7 @@ public class AdmSessionService extends com.cpf.admin.common.base.AdmBaseService 
     }
 
     /** UNKNOWN_RESULT 운영 재처리에서 token 원문 없이 Session 폐기를 다시 실행합니다. */
-    public int retryRevocation(String externalKey) {
+    public int retryPendingRevocation(String externalKey) {
         if (persistencePolicy.memoryEnabled()) throw new IllegalStateException("MEMORY 모드에는 DB Session revoke 재처리가 필요하지 않습니다.");
         if (externalKey == null || !externalKey.contains(":")) throw new IllegalArgumentException("Session revoke externalKey 형식이 올바르지 않습니다.");
         String[] parts = externalKey.split(":", 2);

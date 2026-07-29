@@ -1,10 +1,27 @@
 package com.cpf.admin.opr.centercut;
+
+import com.cpf.admin.opr.context.AdmAuthenticatedOperatorContext;
 import com.cpf.core.api.batch.CpfCenterCutOperationsPort;
-import com.cpf.core.common.servicecall.CpfServiceCallEngine;
+import com.cpf.core.api.servicecall.CpfServiceCaller;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.function.client.WebClient;
-@Configuration(proxyBeanMethods=false)
+
+@Configuration(proxyBeanMethods = false)
 public class AdmCenterCutOperationsClientConfiguration {
- @Bean @ConditionalOnMissingBean(CpfCenterCutOperationsPort.class) CpfCenterCutOperationsPort remoteCenterCutPort(CpfServiceCallEngine e,WebClient.Builder b){return new RemoteCpfCenterCutOperationsAdapter(e,b);}
+    @Bean
+    @ConditionalOnMissingBean(CpfCenterCutOperationsPort.class)
+    CpfCenterCutOperationsPort remoteCenterCutPort(
+            CpfServiceCaller serviceCaller,
+            WebClient.Builder webClientBuilder,
+            AdmAuthenticatedOperatorContext operatorContext,
+            @Value("${cpf.framework.instance-id:adm-local-01}") String callerInstanceId) {
+        return new RemoteCpfCenterCutOperationsAdapter(
+                serviceCaller,
+                webClientBuilder,
+                operatorContext,
+                callerInstanceId);
+    }
 }

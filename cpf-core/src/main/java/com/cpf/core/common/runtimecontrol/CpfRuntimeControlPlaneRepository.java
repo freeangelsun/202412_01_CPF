@@ -58,7 +58,7 @@ public class CpfRuntimeControlPlaneRepository {
         if (updated == 1) return;
         Integer existing = jdbc.queryForObject(
                 "SELECT COUNT(*) FROM cpf_runtime_rate_bucket WHERE bucket_key=?", Integer.class, bucket);
-        if (existing != null && existing > 0) throw new CpfRuntimeRateLimitException(limit);
+        if (existing != null && existing > 0) throw new com.cpf.core.api.runtimecontrol.CpfRuntimeRateLimitException(limit);
         try {
             jdbc.update("INSERT INTO cpf_runtime_rate_bucket " +
                             "(bucket_key,subject_id,window_start,request_count,created_by,updated_by) " +
@@ -100,12 +100,12 @@ public class CpfRuntimeControlPlaneRepository {
         }
         long current = ((Number) rows.getFirst().get("version_no")).longValue();
         if (expectedVersion != null && expectedVersion.longValue() != current) {
-            throw new CpfRuntimeVersionConflictException(expectedVersion, current);
+            throw new com.cpf.core.api.runtimecontrol.CpfRuntimeVersionConflictException(expectedVersion, current);
         }
         long next = current + 1L;
         if (jdbc.update("UPDATE cpf_runtime_version SET version_no=?, updated_at=CURRENT_TIMESTAMP, updated_by='CPF' " +
                 "WHERE version_key='GLOBAL' AND version_no=?", next, current) != 1) {
-            throw new CpfRuntimeVersionConflictException(current, current);
+            throw new com.cpf.core.api.runtimecontrol.CpfRuntimeVersionConflictException(current, current);
         }
         return next;
     }
@@ -368,7 +368,7 @@ public class CpfRuntimeControlPlaneRepository {
         List<Map<String,Object>> currentRows = jdbc.queryForList(
                 "SELECT delivery_state,actual_hash,error_code FROM cpf_runtime_delivery " +
                         "WHERE delivery_id=? AND change_id=? AND instance_id=?", deliveryId, changeId, instanceId);
-        if (currentRows.isEmpty()) throw new CpfRuntimeFenceException("Runtime delivery를 찾을 수 없습니다: " + deliveryId);
+        if (currentRows.isEmpty()) throw new com.cpf.core.api.runtimecontrol.CpfRuntimeFenceException("Runtime delivery를 찾을 수 없습니다: " + deliveryId);
         Map<String,Object> current = currentRows.getFirst();
         String currentState = String.valueOf(current.get("delivery_state"));
         if (Set.of("ACKED", "POISONED", "UNKNOWN_RESULT", "RESTART_REQUIRED").contains(currentState)) {
@@ -378,7 +378,7 @@ public class CpfRuntimeControlPlaneRepository {
             boolean sameTerminal = currentState.equals(normalized)
                     && java.util.Objects.equals(nullable(current.get("error_code")), errorCode);
             if (sameSuccess || sameTerminal) return;
-            throw new CpfRuntimeFenceException("이미 terminal 처리된 delivery에 다른 ACK가 수신되었습니다: " + deliveryId);
+            throw new com.cpf.core.api.runtimecontrol.CpfRuntimeFenceException("이미 terminal 처리된 delivery에 다른 ACK가 수신되었습니다: " + deliveryId);
         }
 
         boolean success = "SUCCESS".equals(normalized) || "ACKED".equals(normalized);
@@ -410,7 +410,7 @@ public class CpfRuntimeControlPlaneRepository {
                 deliveryState, actualHash, errorCode, truncate(message, 900), ts(at),
                 deliveryId, changeId, instanceId, fencingToken);
         if (updated != 1) {
-            throw new CpfRuntimeFenceException("ACK가 오래되었거나 이미 처리된 delivery입니다. deliveryId=" + deliveryId);
+            throw new com.cpf.core.api.runtimecontrol.CpfRuntimeFenceException("ACK가 오래되었거나 이미 처리된 delivery입니다. deliveryId=" + deliveryId);
         }
 
         if ("ACKED".equals(deliveryState)) {
@@ -501,7 +501,7 @@ public class CpfRuntimeControlPlaneRepository {
             if (currentLease != null && currentLease.isAfter(Instant.now())
                     && source != null && !source.isBlank()
                     && !source.equals(r.registrationSource())) {
-                throw new CpfRuntimeFenceException(
+                throw new com.cpf.core.api.runtimecontrol.CpfRuntimeFenceException(
                         "살아 있는 동일 instanceId에 다른 registrationSource가 등록될 수 없습니다: " + r.instanceId());
             }
         }
@@ -533,7 +533,7 @@ public class CpfRuntimeControlPlaneRepository {
                     fence, ts(lease), capabilities, labels, blank(r.artifactVersion()), blank(r.artifactCommit()),
                     blank(r.runtimeRole()), blank(r.registrationSource()), blank(r.schemaVersion()), blank(r.configHash()),
                     skewMs, r.instanceId(), fence - 1);
-            if (updated != 1) throw new CpfRuntimeFenceException("Runtime instance 재등록 fencing 충돌: " + r.instanceId());
+            if (updated != 1) throw new com.cpf.core.api.runtimecontrol.CpfRuntimeFenceException("Runtime instance 재등록 fencing 충돌: " + r.instanceId());
             jdbc.update("UPDATE cpf_runtime_delivery SET delivery_state='PENDING',fencing_token=NULL," +
                             "next_attempt_at=CURRENT_TIMESTAMP,updated_at=CURRENT_TIMESTAMP " +
                             "WHERE instance_id=? AND delivery_state='RESTART_REQUIRED'",
@@ -547,7 +547,7 @@ public class CpfRuntimeControlPlaneRepository {
         long skewMs = Math.abs(java.time.Duration.between(
                 agentTime == null ? Instant.now() : agentTime, Instant.now()).toMillis());
         if (skewMs > 300_000L) {
-            throw new CpfRuntimeFenceException("Runtime heartbeat clock skew 초과. instanceId=" + instanceId
+            throw new com.cpf.core.api.runtimecontrol.CpfRuntimeFenceException("Runtime heartbeat clock skew 초과. instanceId=" + instanceId
                     + ", skewMs=" + skewMs);
         }
         Instant until = Instant.now().plusSeconds(Math.max(10, Math.min(3600, leaseSeconds)));
@@ -557,7 +557,7 @@ public class CpfRuntimeControlPlaneRepository {
                         "THEN 'IN_SYNC' ELSE drift_state END,updated_at=CURRENT_TIMESTAMP " +
                         "WHERE instance_id=? AND fencing_token=?",
                 ts(until), actualHash, actualVersion, skewMs, actualVersion, actualHash, instanceId, fencingToken);
-        if (updated != 1) throw new CpfRuntimeFenceException("Runtime heartbeat fencing 충돌: " + instanceId);
+        if (updated != 1) throw new com.cpf.core.api.runtimecontrol.CpfRuntimeFenceException("Runtime heartbeat fencing 충돌: " + instanceId);
         jdbc.update("UPDATE cpf_service_instance SET instance_status=CASE WHEN COALESCE(drain_yn,'N')='Y' " +
                         "THEN 'DRAINING' ELSE 'UP' END,last_heartbeat_at=CURRENT_TIMESTAMP,updated_at=CURRENT_TIMESTAMP " +
                         "WHERE instance_id=?", instanceId);
@@ -665,13 +665,7 @@ public class CpfRuntimeControlPlaneRepository {
                 "SELECT delivery_id,attempt_no FROM cpf_runtime_delivery " +
                         "WHERE delivery_state='CLAIMED' AND claimed_at<?", ts(timeout));
         for (Map<String,Object> row : timedOut) {
-            String deliveryId = String.valueOf(row.get("delivery_id"));
-            int attempt = ((Number) row.get("attempt_no")).intValue();
-            String nextState = attempt >= 8 ? "POISONED" : "FAILED";
-            jdbc.update("UPDATE cpf_runtime_delivery SET delivery_state=?,error_code='ACK_TIMEOUT'," +
-                            "error_message='Runtime Agent ACK timeout',next_attempt_at=CURRENT_TIMESTAMP," +
-                            "updated_at=CURRENT_TIMESTAMP WHERE delivery_id=? AND delivery_state='CLAIMED'",
-                    nextState, deliveryId);
+            scheduleRetryOrPoison(row);
         }
 
         jdbc.update("UPDATE cpf_service_instance SET instance_status='DOWN',updated_at=CURRENT_TIMESTAMP " +
@@ -703,6 +697,20 @@ public class CpfRuntimeControlPlaneRepository {
                 holderId, fencingToken);
     }
 
+    /**
+     * ACK timeout delivery는 최대 시도 전에는 FAILED로 되돌려 claim의 retry 대상으로 만들고,
+     * 한도를 소진한 뒤에만 POISONED로 격리합니다.
+     */
+    private void scheduleRetryOrPoison(Map<String, Object> row) {
+        String deliveryId = String.valueOf(row.get("delivery_id"));
+        int attempt = ((Number) row.get("attempt_no")).intValue();
+        String nextState = attempt >= 8 ? "POISONED" : "FAILED";
+        jdbc.update("UPDATE cpf_runtime_delivery SET delivery_state=?,error_code='ACK_TIMEOUT'," +
+                        "error_message='Runtime Agent ACK timeout',next_attempt_at=CURRENT_TIMESTAMP," +
+                        "updated_at=CURRENT_TIMESTAMP WHERE delivery_id=? AND delivery_state='CLAIMED'",
+                nextState, deliveryId);
+    }
+
     public List<String> acknowledgedTargets(String changeId) {
         return jdbc.queryForList(
                 "SELECT instance_id FROM cpf_runtime_delivery WHERE change_id=? AND delivery_state='ACKED' ORDER BY sequence_no",
@@ -720,13 +728,13 @@ public class CpfRuntimeControlPlaneRepository {
         List<Map<String,Object>> rows = jdbc.queryForList(
                 "SELECT holder_id,fencing_token,lease_until FROM cpf_runtime_controller_lease " +
                         "WHERE lease_key='RUNTIME_CONTROL'");
-        if (rows.isEmpty()) throw new CpfRuntimeFenceException("Runtime Controller lease가 없습니다.");
+        if (rows.isEmpty()) throw new com.cpf.core.api.runtimecontrol.CpfRuntimeFenceException("Runtime Controller lease가 없습니다.");
         Map<String,Object> row = rows.getFirst();
         Instant until = toInstant(row.get("lease_until"));
         if (!holderId.equals(String.valueOf(row.get("holder_id")))
                 || ((Number) row.get("fencing_token")).longValue() != fencingToken
                 || until == null || until.isBefore(Instant.now())) {
-            throw new CpfRuntimeFenceException("Runtime Controller fencing token 또는 lease가 유효하지 않습니다.");
+            throw new com.cpf.core.api.runtimecontrol.CpfRuntimeFenceException("Runtime Controller fencing token 또는 lease가 유효하지 않습니다.");
         }
     }
 
@@ -907,10 +915,10 @@ public class CpfRuntimeControlPlaneRepository {
 
     private void assertFence(String instanceId,long fencingToken) {
         List<Map<String,Object>> rows=jdbc.queryForList("SELECT fencing_token,lease_until FROM cpf_runtime_instance_state WHERE instance_id=?",instanceId);
-        if(rows.isEmpty()) throw new CpfRuntimeFenceException("등록되지 않은 Runtime instance입니다: "+instanceId);
+        if(rows.isEmpty()) throw new com.cpf.core.api.runtimecontrol.CpfRuntimeFenceException("등록되지 않은 Runtime instance입니다: "+instanceId);
         Map<String,Object> row=rows.getFirst(); Instant until=toInstant(row.get("lease_until"));
         if(((Number)row.get("fencing_token")).longValue()!=fencingToken || until==null || until.isBefore(Instant.now()))
-            throw new CpfRuntimeFenceException("Runtime fencing token 또는 lease가 유효하지 않습니다: "+instanceId);
+            throw new com.cpf.core.api.runtimecontrol.CpfRuntimeFenceException("Runtime fencing token 또는 lease가 유효하지 않습니다: "+instanceId);
     }
 
 
@@ -921,12 +929,12 @@ public class CpfRuntimeControlPlaneRepository {
         if (parentGroupId!=null && !parentGroupId.isBlank()) assertNoGroupCycle(groupId,parentGroupId);
         List<Map<String,Object>> rows=jdbc.queryForList("SELECT row_version FROM cpf_runtime_instance_group WHERE group_id=? FOR UPDATE",groupId);
         if(rows.isEmpty()) {
-            if(expectedVersion!=null && expectedVersion!=0L) throw new CpfRuntimeVersionConflictException(expectedVersion,0L);
+            if(expectedVersion!=null && expectedVersion!=0L) throw new com.cpf.core.api.runtimecontrol.CpfRuntimeVersionConflictException(expectedVersion,0L);
             jdbc.update("INSERT INTO cpf_runtime_instance_group(group_id,group_name,parent_group_id,environment_code,description,active_yn,row_version,created_by,updated_by) VALUES (?,?,?,?,?,?,0,?,?)",
                     groupId,groupName,emptyToNull(parentGroupId),emptyToNull(environment),emptyToNull(description),active?"Y":"N",operatorId,operatorId);
         } else {
             long current=((Number)rows.getFirst().get("row_version")).longValue();
-            if(expectedVersion==null || expectedVersion.longValue()!=current) throw new CpfRuntimeVersionConflictException(expectedVersion==null?-1L:expectedVersion,current);
+            if(expectedVersion==null || expectedVersion.longValue()!=current) throw new com.cpf.core.api.runtimecontrol.CpfRuntimeVersionConflictException(expectedVersion==null?-1L:expectedVersion,current);
             int updated = jdbc.update(
                     "UPDATE cpf_runtime_instance_group "
                             + "SET group_name=?, parent_group_id=?, environment_code=?, description=?, "
@@ -940,7 +948,7 @@ public class CpfRuntimeControlPlaneRepository {
                     operatorId,
                     groupId,
                     current);
-            if(updated!=1) throw new CpfRuntimeVersionConflictException(current,current);
+            if(updated!=1) throw new com.cpf.core.api.runtimecontrol.CpfRuntimeVersionConflictException(current,current);
         }
         return findGroup(groupId).orElseThrow();
     }
@@ -972,11 +980,11 @@ public class CpfRuntimeControlPlaneRepository {
         List<Map<String,Object>> rows=jdbc.queryForList("SELECT row_version FROM cpf_runtime_instance_group WHERE group_id=? FOR UPDATE",groupId);
         if(rows.isEmpty()) return;
         long current=((Number)rows.getFirst().get("row_version")).longValue();
-        if(expectedVersion==null || expectedVersion.longValue()!=current) throw new CpfRuntimeVersionConflictException(expectedVersion==null?-1L:expectedVersion,current);
+        if(expectedVersion==null || expectedVersion.longValue()!=current) throw new com.cpf.core.api.runtimecontrol.CpfRuntimeVersionConflictException(expectedVersion==null?-1L:expectedVersion,current);
         Integer children=jdbc.queryForObject("SELECT COUNT(*) FROM cpf_runtime_instance_group WHERE parent_group_id=? AND active_yn='Y'",Integer.class,groupId);
         if(children!=null && children>0) throw new IllegalStateException("활성 child Runtime Group이 있어 삭제할 수 없습니다: "+groupId);
         jdbc.update("DELETE FROM cpf_runtime_group_member WHERE group_id=?",groupId);
-        if(jdbc.update("DELETE FROM cpf_runtime_instance_group WHERE group_id=? AND row_version=?",groupId,current)!=1) throw new CpfRuntimeVersionConflictException(current,current);
+        if(jdbc.update("DELETE FROM cpf_runtime_instance_group WHERE group_id=? AND row_version=?",groupId,current)!=1) throw new com.cpf.core.api.runtimecontrol.CpfRuntimeVersionConflictException(current,current);
     }
 
     private void assertNoGroupCycle(String groupId,String parentGroupId) {

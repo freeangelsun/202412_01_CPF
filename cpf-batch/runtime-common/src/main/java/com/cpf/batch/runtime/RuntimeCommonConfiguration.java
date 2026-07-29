@@ -17,14 +17,14 @@ import java.util.List;
 @Import({DefaultBusinessCalendarConfiguration.class, CenterCutParameterProtector.class})
 public class RuntimeCommonConfiguration {
     @Bean
-    @ConditionalOnMissingBean
-    RuntimeStateProvider runtimeStateProvider() {
-        return new RuntimeStateProvider() {};
+    RuntimeSmokeController runtimeSmokeController(RuntimeRegistration registration, RuntimeStateProvider state) {
+        return new RuntimeSmokeController(registration, state);
     }
 
     @Bean
-    RuntimeSmokeController runtimeSmokeController(RuntimeRegistration registration, RuntimeStateProvider state) {
-        return new RuntimeSmokeController(registration, state);
+    BatRuntimeIdentityRestClientCustomizer batRuntimeIdentityRestClientCustomizer(
+            RuntimeRegistration registration) {
+        return new BatRuntimeIdentityRestClientCustomizer(registration);
     }
 
     @Bean

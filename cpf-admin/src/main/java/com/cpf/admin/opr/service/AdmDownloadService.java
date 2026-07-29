@@ -17,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.charset.StandardCharsets;
 import java.sql.PreparedStatement;
-import java.sql.Statement;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -137,21 +136,24 @@ public class AdmDownloadService extends com.cpf.admin.common.base.AdmBaseService
             sql.append(" AND ADMIN_ID = ?");
             args.add(adminId.trim());
         }
-        sql.append(" ORDER BY DOWNLOAD_ID DESC LIMIT ?");
-        args.add(limit(limit));
+        sql.append(" ORDER BY DOWNLOAD_ID DESC");
 
-        return admJdbcTemplate.query(sql.toString(), (rs, rowNum) -> new DownloadAuditLog(
-                rs.getLong("DOWNLOAD_ID"),
-                rs.getString("ADMIN_ID"),
-                rs.getString("DOWNLOAD_TYPE"),
-                rs.getInt("ROW_COUNT"),
-                rs.getString("MASKED_YN"),
-                rs.getString("INCLUDE_SENSITIVE_YN"),
-                rs.getString("REASON"),
-                rs.getString("STATUS"),
-                rs.getObject("REQUESTED_AT", LocalDateTime.class),
-                rs.getObject("COMPLETED_AT", LocalDateTime.class)
-        ), args.toArray());
+        return AdmJdbcQueries.query(
+                admJdbcTemplate,
+                sql.toString(),
+                args,
+                limit(limit),
+                (rs, rowNum) -> new DownloadAuditLog(
+                        rs.getLong("DOWNLOAD_ID"),
+                        rs.getString("ADMIN_ID"),
+                        rs.getString("DOWNLOAD_TYPE"),
+                        rs.getInt("ROW_COUNT"),
+                        rs.getString("MASKED_YN"),
+                        rs.getString("INCLUDE_SENSITIVE_YN"),
+                        rs.getString("REASON"),
+                        rs.getString("STATUS"),
+                        rs.getObject("REQUESTED_AT", LocalDateTime.class),
+                        rs.getObject("COMPLETED_AT", LocalDateTime.class)));
     }
 
     public List<DownloadPolicy> findPolicies() {
@@ -184,7 +186,11 @@ public class AdmDownloadService extends com.cpf.admin.common.base.AdmBaseService
                     limit(request.limit()));
         }
         QuerySpec querySpec = buildQuery(downloadType, request);
-        return cpfJdbcTemplate.queryForList(querySpec.sql(), querySpec.args().toArray());
+        return AdmJdbcQueries.queryForList(
+                cpfJdbcTemplate,
+                querySpec.sql(),
+                querySpec.args(),
+                limit(request.limit()));
     }
 
     private QuerySpec buildQuery(String downloadType, DownloadRequest request) {
@@ -212,8 +218,7 @@ public class AdmDownloadService extends com.cpf.admin.common.base.AdmBaseService
         if (errorOnly) {
             sql.append(" AND (ERROR_CODE IS NOT NULL OR HTTP_STATUS >= 400 OR LOG_TYPE = 'ERROR')");
         }
-        sql.append(" ORDER BY LOG_IDX DESC LIMIT ?");
-        args.add(limit(request.limit()));
+        sql.append(" ORDER BY LOG_IDX DESC");
         return new QuerySpec(sql.toString(), args);
     }
 
@@ -226,8 +231,7 @@ public class AdmDownloadService extends com.cpf.admin.common.base.AdmBaseService
                 """);
         List<Object> args = new ArrayList<>();
         appendDateRange(sql, args, "CREATED_AT", request.fromDate(), request.toDate());
-        sql.append(" ORDER BY DELIVERY_ID DESC LIMIT ?");
-        args.add(limit(request.limit()));
+        sql.append(" ORDER BY DELIVERY_ID DESC");
         return new QuerySpec(sql.toString(), args);
     }
 
@@ -254,8 +258,8 @@ public class AdmDownloadService extends com.cpf.admin.common.base.AdmBaseService
                         REASON, CLIENT_IP, USER_AGENT, CSV_POLICY_VERSION, REQUESTED_AT, COMPLETED_AT, STATUS,
                         FAILURE_REASON, FILE_NAME, CREATED_BY, UPDATED_BY
                     )
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW(), ?, ?, ?, ?, ?)
-                    """, Statement.RETURN_GENERATED_KEYS);
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, ?, ?, ?, ?, ?)
+                    """, new String[] {"download_id"});
             ps.setString(1, adminId);
             ps.setString(2, policy.menuId());
             ps.setString(3, value(request.targetType(), policy.downloadType()));
@@ -317,8 +321,8 @@ public class AdmDownloadService extends com.cpf.admin.common.base.AdmBaseService
 
     private void appendLike(StringBuilder sql, List<Object> args, String column, String value) {
         if (CpfStrings.hasText(value)) {
-            sql.append(" AND ").append(column).append(" LIKE CONCAT('%', ?, '%')");
-            args.add(value.trim());
+            sql.append(" AND ").append(column).append(" LIKE ?");
+            args.add("%" + value.trim() + "%");
         }
     }
 

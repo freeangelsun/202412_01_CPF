@@ -1,11 +1,13 @@
 [CmdletBinding()]
 param(
-    [ValidateSet('mariadb','mysql','postgresql','oracle','sqlserver')][string]$Vendor='mariadb',
+    [string]$Vendor='mariadb',
     [string]$Root='.',
     [switch]$RequireImplemented
 )
 $ErrorActionPreference='Stop'
 $root=(Resolve-Path $Root).Path
+. (Join-Path $root 'cpf-tools/scripts/database-profile-common.ps1')
+$Vendor=Assert-CpfSupportedDatabaseVendor $Vendor
 $catalog=Get-Content (Join-Path $root 'cpf-tools/db/metadata/default-metadata-catalog.json') -Raw -Encoding UTF8 | ConvertFrom-Json
 $status=[string]$catalog.vendorImplementations.$Vendor
 if($RequireImplemented -and $status -ne 'implemented'){throw "vendor '$Vendor' metadata source is $status"}

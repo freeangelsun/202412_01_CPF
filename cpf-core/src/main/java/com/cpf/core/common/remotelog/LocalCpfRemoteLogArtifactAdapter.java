@@ -1,5 +1,6 @@
 package com.cpf.core.common.remotelog;
 
+import com.cpf.core.api.remotelog.*;
 import com.cpf.core.common.logging.SensitiveDataMasker;
 import com.cpf.core.common.logging.file.CpfFileLogWriter;
 import org.springframework.core.env.Environment;

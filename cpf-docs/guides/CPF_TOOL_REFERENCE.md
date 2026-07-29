@@ -240,3 +240,63 @@ R14 audit에서 이 영역은 다수 `부분 구현/미구현`이므로 Codex �
 
 ## 15. 실패 해석
 도구가 실패했을 때 임의로 성공 처리하거나 `-ErrorAction SilentlyContinue`로 숨기지 않는다. 원인을 Source defect / environment / credential / unsupported vendor / migration drift / external dependency로 분류하고 수정 후 다시 실행한다.
+
+## 16. `invoke-platform-database-migration.ps1`
+
+목적: Profile에 선언된 Platform Module DB를 MariaDB/PostgreSQL/Oracle 중앙 Vendor Pack으로
+명시 Upgrade 또는 Rollback한다. Generated Domain은 별도 Generator lifecycle이 소유한다.
+
+### Selection Parameter
+
+| Parameter | 의미 |
+|---|---|
+| `-ProfilePath` | DB Profile. 생략 시 개발 기본 Profile |
+| `-Direction` | `upgrade` 또는 `rollback` |
+| `-FromVersion/-ToVersion` | 운영자가 확인한 명시 Version 범위 |
+| `-MigrationVersion` | 적용할 Version의 명시 선택 |
+| `-Modules` | Profile module key 선택. 생략 시 enabled Platform Module |
+| `-ResultPath` | Secret이 없는 JSON plan/result |
+
+범위와 선택을 함께 쓸 수 없고 둘 다 생략할 수도 없다. Upgrade range는
+`FromVersion < ToVersion`, Rollback range는 `FromVersion > ToVersion`이다. 기본은
+Dry-run이며 DB password를 해석하거나 DB client를 실행하지 않는다.
+
+```powershell
+pwsh -File .\cpf-tools\scripts\invoke-platform-database-migration.ps1 `
+  -Direction upgrade -MigrationVersion 73 -Modules batch
+```
+
+### Apply Safety Parameter
+
+| Parameter | 의미 |
+|---|---|
+| `-Apply` | 실제 SQL 실행 |
+| `-ConfirmApply` | plan 적용 명시 확인 |
+| `-ConfirmApplicationsStopped` | 대상 Runtime 중지 확인 |
+| `-ConfirmRollbackReady` | 대응 rollback SQL과 복구 절차 검토 확인 |
+| `-ExpectedPlanSha256` | 바로 앞 Dry-run의 plan SHA-256 |
+| `-BackupManifestPath` | 대상 physical DB별 backup file/SHA-256 manifest |
+
+Apply에는 위 항목이 모두 필요하다. Backup manifest의 artifact hash와 plan이 요구하는
+모든 physical DB coverage를 검증한 뒤에만 Profile password를 process environment에서
+해석한다. MariaDB는 `MYSQL_PWD`, PostgreSQL은 `PGPASSWORD`, Oracle은 `/nolog` process의
+표준입력으로 연결하므로 password를 argument, 임시 SQL file, sanitized result에 쓰지 않는다.
+
+Migration SQL은 pack의 `checksums.sha256`와 일치해야 하고 같은 Version의 rollback이
+정확히 하나 있어야 한다. Dry-run plan은 migration/rollback/rendered SQL hash를 모두
+고정한다. Flyway history가 없는 DB의 baseline이나 선택 Version을 Tool이 추정하지 않는다.
+MariaDB SQL에 명시적인 logical DB `USE` routing이 없거나 한 section이 다른 logical DB를
+암묵 참조하면 실패한다.
+
+Rollback도 새 Dry-run으로 별도 plan SHA를 만든다.
+
+```powershell
+pwsh -File .\cpf-tools\scripts\invoke-platform-database-migration.ps1 `
+  -Direction rollback -FromVersion 73 -ToVersion 72 -Modules batch
+```
+
+정적/fixture 계약 검증은 DB를 변경하지 않는다.
+
+```powershell
+pwsh -File .\cpf-tools\scripts\check-platform-database-migration-tool.ps1
+```

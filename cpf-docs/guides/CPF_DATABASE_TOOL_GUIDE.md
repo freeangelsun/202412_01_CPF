@@ -4,8 +4,8 @@
 DB 정본은 `cpf-tools/db/vendor/<vendor>/source`다. MariaDB의 lifecycle bundle은 이 source에서 생성된다. `cpf-tools/db/source`라는 별도 정본을 만들지 않는다.
 
 ## 2. Vendor 상태
-- MariaDB: implemented.
-- MySQL/PostgreSQL/Oracle/SQL Server: 현재 구현 상태가 not-implemented이면 도구가 fail-closed해야 한다.
+- 공식 Vendor는 MariaDB, PostgreSQL, Oracle 세 종류다.
+- 실제 완료 상태는 Vendor Pack의 정적 Gate와 해당 환경의 실행 Evidence를 구분해 판정한다.
 지원하지 않는 Vendor를 MariaDB SQL 복사/치환으로 완료 처리하지 않는다.
 
 ## 3. Source Plan
@@ -35,6 +35,58 @@ R14 catalog는 HTTP/Execution/Async/Batch/Retry/Idempotency/Health/Circuit/File 
 
 ## 8. Migration
 Migration은 설치된 고객 DB를 안전하게 최신 schema로 이동한다. fresh schema 수정만 하고 Migration을 누락하지 않는다.
+
+플랫폼 DB의 정식 실행기는 `invoke-platform-database-migration.ps1`다. 이 실행기는
+Profile의 `enabled=true`, `databaseLifecycle=platform-pack` Module 선언을 읽으며
+Domain/SystemCode 고정 목록을 사용하지 않는다. MariaDB/PostgreSQL/Oracle Vendor Pack을
+동적으로 선택하고, SQL의 logical DB를 Profile의 physical database/schema로 렌더링한다.
+Generated Domain migration은 이 실행기의 대상이 아니다.
+
+Dry-run이 기본값이다. 자동으로 현재 baseline이나 최신 Version을 추정하지 않으므로 다음 중
+하나를 반드시 명시한다.
+
+- 범위: `-FromVersion <현재> -ToVersion <목표>`
+- 선택: `-MigrationVersion <V1,V2,...>`
+
+```powershell
+# DB를 변경하지 않는 Upgrade plan
+pwsh -File .\cpf-tools\scripts\invoke-platform-database-migration.ps1 `
+  -Direction upgrade -FromVersion 72 -ToVersion 73 -Modules batch
+
+# 단일 migration 선택 plan
+pwsh -File .\cpf-tools\scripts\invoke-platform-database-migration.ps1 `
+  -Direction upgrade -MigrationVersion 73 -Modules batch
+```
+
+Dry-run 결과의 `planSha256`를 검토한다. 실제 Apply는 같은 입력과 함께 다음 안전장치를
+모두 요구한다.
+
+- `-ConfirmApply`
+- `-ConfirmApplicationsStopped`
+- `-ConfirmRollbackReady`
+- Dry-run과 동일한 `-ExpectedPlanSha256`
+- 변경 대상 physical DB마다 hash 검증 가능한 `-BackupManifestPath`
+
+```powershell
+pwsh -File .\cpf-tools\scripts\invoke-platform-database-migration.ps1 `
+  -Direction upgrade -MigrationVersion 73 -Modules batch -Apply `
+  -ConfirmApply -ConfirmApplicationsStopped -ConfirmRollbackReady `
+  -ExpectedPlanSha256 <DRY_RUN_PLAN_SHA256> `
+  -BackupManifestPath <BAT_DB_BACKUP_MANIFEST>
+```
+
+Password는 Profile이 가리키는 process environment에서만 해석하며 command line, plan,
+Evidence에 기록하지 않는다. `checksums.sha256`가 없거나 선택 SQL의 SHA-256이 다르거나
+동일 Version의 rollback SQL이 없으면 Apply 전에 실패한다. Rollback SQL도 Dry-run plan의
+hash에 포함되므로 계획 이후 파일 변경은 `ExpectedPlanSha256` 불일치로 차단된다.
+
+Flyway history가 없는 기존 DB에 대해 Tool이 설치 Version을 추정하지 않는다. 반드시
+명시적인 From/To 또는 MigrationVersion 선택을 사용하고, DB drift와 실제 baseline을
+운영자가 별도로 확인한다. MariaDB historical SQL에 명시적 `USE <logicalDatabase>`가
+없으면 어느 physical DB인지 table prefix로 추정하지 않고 실패한다. 이런 historical
+migration은 변경하지 말고 canonical metadata에 근거한 새 bridge migration 또는 명시적
+routing 계약으로 보정한다.
+
 현재 Lifecycle:
 - V53: BZA governance/operability hardening.
 - V54: BAT operation log retention archive.
@@ -98,13 +150,15 @@ pwsh -File .\cpf-tools\scripts\verify-dr-restore.ps1 \
 
 ## 16. Upgrade 검증 순서
 1. 이전 기준 schema 설치
-2. 실제 migration 적용
-3. target schema/seed/drift 확인
-4. application build/runtime smoke
-5. rollback precondition 확인
-6. rollback 가능한 경우 rollback
-7. re-apply
-8. migration checksum 확인
+2. `invoke-platform-database-migration.ps1` Dry-run과 plan SHA 검토
+3. physical DB별 backup과 manifest checksum 확인
+4. 동일 plan SHA로 실제 migration 적용
+5. target schema/seed/drift 확인
+6. application build/runtime smoke
+7. rollback precondition 확인
+8. 별도 Dry-run/plan SHA로 rollback
+9. rollback 검증 후 Upgrade 재적용
+10. migration checksum과 sanitized result 확인
 
 MariaDB V58의 실제 검증 명령:
 

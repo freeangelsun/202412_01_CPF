@@ -1,8 +1,8 @@
 package com.cpf.batch.control.deploy;
 
 import com.cpf.batch.api.*;
-import com.cpf.core.common.database.CpfVendorSqlCatalog;
-import org.springframework.core.env.Environment;
+import com.cpf.core.api.database.CpfVendorSqlCatalog;
+import com.cpf.core.api.database.CpfVendorSqlCatalogProvider;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,10 +19,10 @@ public class CellOperationsService {
     public CellOperationsService(
             JdbcTemplate jdbc,
             RuntimeLifecycleService lifecycle,
-            Environment environment) {
+            CpfVendorSqlCatalogProvider sqlCatalogProvider) {
         this.jdbc = jdbc;
         this.lifecycle = lifecycle;
-        this.sql = CpfVendorSqlCatalog.create(environment, "bat");
+        this.sql = sqlCatalogProvider.forModule("bat");
     }
 
     public Map<String,Object> status(String cellId) {

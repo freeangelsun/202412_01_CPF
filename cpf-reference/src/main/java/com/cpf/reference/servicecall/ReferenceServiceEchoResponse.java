@@ -1,6 +1,6 @@
 package com.cpf.reference.servicecall;
 
-import com.cpf.core.common.base.CpfResponse;
+import com.cpf.core.api.base.CpfResponse;
 
 /**
  * REF 중립 호출 샘플의 typed 응답입니다.

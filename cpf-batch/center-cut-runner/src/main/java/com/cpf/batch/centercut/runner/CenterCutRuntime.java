@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -28,6 +29,8 @@ public class CenterCutRuntime implements RuntimeStateProvider, AutoCloseable {
     private final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
     private final AtomicBoolean draining = new AtomicBoolean();
     private final AtomicReference<JdbcCenterCutClaimRepository.Claim> current = new AtomicReference<>();
+    private final AtomicReference<Long> lostLeaseItemId = new AtomicReference<>();
+    private final AtomicReference<String> repositoryError = new AtomicReference<>();
     private volatile BatchRuntimePolicy runtimePolicy = new BatchRuntimePolicy();
 
     public CenterCutRuntime(
@@ -54,15 +57,30 @@ public class CenterCutRuntime implements RuntimeStateProvider, AutoCloseable {
 
     @Scheduled(fixedDelayString = "${cpf.center-cut.recovery-ms:5000}")
     public void recover() {
-        repository.recoverExpiredToUnknown();
+        try {
+            repository.recoverExpiredToUnknown();
+            repositoryError.set(null);
+        } catch (RuntimeException failure) {
+            repositoryError.set(failure.getClass().getSimpleName());
+            throw failure;
+        }
     }
 
     @Scheduled(fixedDelayString = "${cpf.center-cut.poll-ms:500}")
     public void poll() {
-        if (draining.get() || !runtimeEnabled() || current.get() != null) {
+        if (draining.get() || !runtimeEnabled() || current.get() != null
+                || lostLeaseItemId.get() != null || repositoryError.get() != null) {
             return;
         }
-        repository.claim(runnerId, pool, leaseDuration).ifPresent(claim -> {
+        java.util.Optional<JdbcCenterCutClaimRepository.Claim> claimed;
+        try {
+            claimed = repository.claim(runnerId, pool, leaseDuration);
+            repositoryError.set(null);
+        } catch (RuntimeException failure) {
+            repositoryError.set(failure.getClass().getSimpleName());
+            throw failure;
+        }
+        claimed.ifPresent(claim -> {
             if (!runtimeEnabled() || !current.compareAndSet(null, claim)) {
                 return;
             }
@@ -71,6 +89,7 @@ public class CenterCutRuntime implements RuntimeStateProvider, AutoCloseable {
                     dispatcher.execute(claim);
                 } finally {
                     current.compareAndSet(claim, null);
+                    clearLostLease(claim.itemId());
                 }
             });
         });
@@ -80,7 +99,19 @@ public class CenterCutRuntime implements RuntimeStateProvider, AutoCloseable {
     public void renew() {
         JdbcCenterCutClaimRepository.Claim claim = current.get();
         if (claim != null) {
-            repository.renew(claim, leaseDuration);
+            try {
+                boolean renewed = repository.renew(claim, leaseDuration);
+                repositoryError.set(null);
+                if (!renewed) {
+                    lostLeaseItemId.set(claim.itemId());
+                    if (current.get() != claim) {
+                        clearLostLease(claim.itemId());
+                    }
+                }
+            } catch (RuntimeException failure) {
+                repositoryError.set(failure.getClass().getSimpleName());
+                throw failure;
+            }
         }
     }
 
@@ -92,11 +123,33 @@ public class CenterCutRuntime implements RuntimeStateProvider, AutoCloseable {
         draining.set(false);
     }
 
+    private void clearLostLease(long itemId) {
+        lostLeaseItemId.updateAndGet(currentItemId ->
+                currentItemId != null && currentItemId == itemId
+                        ? null
+                        : currentItemId);
+    }
+
     @Override
     public ActualState actualState() {
-        return draining.get() || !runtimeEnabled()
+        return repositoryError.get() != null || lostLeaseItemId.get() != null
+                ? ActualState.DEGRADED
+                : draining.get() || !runtimeEnabled()
                 ? ActualState.DRAINING
                 : (current.get() == null ? ActualState.READY : ActualState.BUSY);
+    }
+
+    @Override
+    public boolean ready() {
+        return repositoryError.get() == null
+                && lostLeaseItemId.get() == null
+                && !draining.get()
+                && runtimeEnabled();
+    }
+
+    @Override
+    public int availableCapacity() {
+        return ready() && current.get() == null ? 1 : 0;
     }
 
     @Override
@@ -112,6 +165,29 @@ public class CenterCutRuntime implements RuntimeStateProvider, AutoCloseable {
     @Override
     public boolean draining() {
         return draining.get() || !runtimeEnabled();
+    }
+
+    @Override
+    public Map<String, String> dependencyHealth() {
+        String error = repositoryError.get();
+        return Map.of(
+                "centerCutRuntime",
+                error != null
+                        ? "DOWN"
+                        : (lostLeaseItemId.get() != null
+                                ? "LEASE_LOST"
+                                : (ready() ? "UP" : "NOT_READY")));
+    }
+
+    @Override
+    public String lastErrorCode() {
+        String error = repositoryError.get();
+        return error != null
+                ? "BAT_CENTER_CUT_REPOSITORY_"
+                        + error.toUpperCase(java.util.Locale.ROOT)
+                : (lostLeaseItemId.get() != null
+                        ? "BAT_CENTER_CUT_LEASE_LOST"
+                        : (ready() ? null : "BAT_CENTER_CUT_NOT_READY"));
     }
 
     @Override

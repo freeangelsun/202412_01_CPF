@@ -1,3 +1,5 @@
+import { admApi, CpfApiError } from "../../shared/cpfApi";
+
 export interface RuntimeInstance {
   instance_id: string
   runtime_role: string
@@ -26,19 +28,24 @@ export interface BatchViewEnvelope {
   view: string
   items: Array<Record<string, unknown>>
 }
-async function json<T>(response: Response): Promise<T> {
-  const body = await response.json() as T
-  if (!response.ok && response.status !== 503) throw new Error(`BAT request failed: ${response.status}`)
-  return body
+async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
+  try {
+    return await admApi<T>(url, options)
+  } catch (error) {
+    if (error instanceof CpfApiError && error.status === 503 && error.payload) {
+      return error.payload as T
+    }
+    throw error
+  }
 }
 export async function fetchRuntimeInstances(): Promise<RuntimeEnvelope> {
-  return json(await fetch('/adm/api/batch-runtime/instances', { credentials: 'same-origin' }))
+  return request('/adm/api/batch-runtime/instances', { credentials: 'same-origin' })
 }
 export async function fetchBatchView(view: string): Promise<BatchViewEnvelope> {
-  return json(await fetch(`/adm/api/batch-runtime/views/${encodeURIComponent(view)}`, { credentials: 'same-origin' }))
+  return request(`/adm/api/batch-runtime/views/${encodeURIComponent(view)}`, { credentials: 'same-origin' })
 }
 export async function createDeploymentPlan(body: unknown): Promise<Record<string, unknown>> {
-  return json(await fetch('/adm/api/batch-runtime/deployment-plans', {
+  return request('/adm/api/batch-runtime/deployment-plans', {
     method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
-  }))
+  })
 }

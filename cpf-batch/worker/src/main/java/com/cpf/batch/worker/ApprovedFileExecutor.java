@@ -1,5 +1,7 @@
 package com.cpf.batch.worker;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -10,6 +12,8 @@ import java.util.function.Consumer;
 /** Path Alias 경계에서만 File Watch/Process/Transfer를 수행합니다. */
 @Component
 public class ApprovedFileExecutor {
+    private static final Logger log = LoggerFactory.getLogger(ApprovedFileExecutor.class);
+
     private final WorkerOperationalProperties properties;
     public ApprovedFileExecutor(WorkerOperationalProperties properties) { this.properties=properties; }
 
@@ -70,9 +74,22 @@ public class ApprovedFileExecutor {
                     for(WatchEvent<?> event:key.pollEvents()) if(event.kind()==StandardWatchEventKinds.ENTRY_CREATE) consumer.accept(root.resolve((Path)event.context()).normalize());
                     if(!key.reset())break;
                 }
-            }catch(InterruptedException e){Thread.currentThread().interrupt();}finally{try{service.close();}catch(IOException ignored){}}
+            }catch(InterruptedException e){
+                Thread.currentThread().interrupt();
+            }finally{
+                closeWatchService(service,alias);
+            }
         });
-        return ()->{thread.interrupt();try{service.close();}catch(IOException ignored){}};
+        return ()->{thread.interrupt();closeWatchService(service,alias);};
     }
+
+    private static void closeWatchService(WatchService service,String alias) {
+        try {
+            service.close();
+        } catch (IOException failure) {
+            log.warn("File watch close failed. alias={}, cause={}",alias,failure.getClass().getSimpleName());
+        }
+    }
+
     public interface WatchHandle extends AutoCloseable { @Override void close(); }
 }

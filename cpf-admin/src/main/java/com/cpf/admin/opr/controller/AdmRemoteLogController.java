@@ -1,16 +1,16 @@
 package com.cpf.admin.opr.controller;
 
 import com.cpf.admin.opr.service.AdmAuditLogService;
-import com.cpf.core.common.execution.CpfOnlineTransaction;
-import com.cpf.core.common.logging.TransactionContext;
-import com.cpf.core.common.remotelog.CpfRemoteLogArtifact;
-import com.cpf.core.common.remotelog.CpfRemoteLogBundle;
-import com.cpf.core.common.remotelog.CpfRemoteLogArtifactPort;
-import com.cpf.core.common.remotelog.CpfRemoteLogArtifactSearch;
-import com.cpf.core.common.remotelog.CpfRemoteLogBundleJob;
-import com.cpf.core.common.remotelog.CpfRemoteLogBundleJobPort;
-import com.cpf.core.common.remotelog.CpfRemoteLogDownloadGrant;
-import com.cpf.core.common.remotelog.CpfRemoteLogPreview;
+import com.cpf.core.api.execution.CpfOnlineTransaction;
+import com.cpf.core.api.logging.CpfTransactionContext;
+import com.cpf.core.api.remotelog.CpfRemoteLogArtifact;
+import com.cpf.core.api.remotelog.CpfRemoteLogBundle;
+import com.cpf.core.api.remotelog.CpfRemoteLogArtifactPort;
+import com.cpf.core.api.remotelog.CpfRemoteLogArtifactSearch;
+import com.cpf.core.api.remotelog.CpfRemoteLogBundleJob;
+import com.cpf.core.api.remotelog.CpfRemoteLogBundleJobPort;
+import com.cpf.core.api.remotelog.CpfRemoteLogDownloadGrant;
+import com.cpf.core.api.remotelog.CpfRemoteLogPreview;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -111,7 +111,7 @@ public class AdmRemoteLogController extends com.cpf.admin.common.base.AdmBaseCon
         String requiredReason = auditLogService.requireReason(reason);
         Path path = remoteLogArtifactPort.resolveDownload(artifactId);
         auditLogService.record(
-                TransactionContext.currentTransactionId(), operatorId, "REMOTE_LOG_DOWNLOAD",
+                CpfTransactionContext.transactionId(), operatorId, "REMOTE_LOG_DOWNLOAD",
                 "LOG_ARTIFACT", artifactId, requiredReason, request.getRemoteAddr());
         FileSystemResource resource = new FileSystemResource(path);
         ContentDisposition disposition = ContentDisposition.attachment()
@@ -135,7 +135,7 @@ public class AdmRemoteLogController extends com.cpf.admin.common.base.AdmBaseCon
         String requiredReason = auditLogService.requireReason(bundleRequest.reason());
         CpfRemoteLogBundle bundle = remoteLogArtifactPort.createBundle(bundleRequest.artifactIds());
         auditLogService.record(
-                TransactionContext.currentTransactionId(), operatorId, "REMOTE_LOG_BUNDLE_DOWNLOAD",
+                CpfTransactionContext.transactionId(), operatorId, "REMOTE_LOG_BUNDLE_DOWNLOAD",
                 "LOG_BUNDLE", bundle.bundleId(), requiredReason, request.getRemoteAddr());
         FileSystemResource resource = new FileSystemResource(bundle.path());
         ContentDisposition disposition = ContentDisposition.attachment()
@@ -161,7 +161,7 @@ public class AdmRemoteLogController extends com.cpf.admin.common.base.AdmBaseCon
         String requiredReason = auditLogService.requireReason(bundleRequest.reason());
         CpfRemoteLogBundleJob job = remoteLogBundleJobPort.submit(operatorId, bundleRequest.artifactIds());
         auditLogService.record(
-                TransactionContext.currentTransactionId(), operatorId, "REMOTE_LOG_BUNDLE_CREATE",
+                CpfTransactionContext.transactionId(), operatorId, "REMOTE_LOG_BUNDLE_CREATE",
                 "LOG_BUNDLE_JOB", job.jobId(), requiredReason, request.getRemoteAddr());
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(job);
     }
@@ -188,7 +188,7 @@ public class AdmRemoteLogController extends com.cpf.admin.common.base.AdmBaseCon
         String requiredReason = auditLogService.requireReason(reasonRequest.reason());
         CpfRemoteLogDownloadGrant grant = remoteLogBundleJobPort.issueDownloadGrant(jobId, operatorId);
         auditLogService.record(
-                TransactionContext.currentTransactionId(), operatorId, "REMOTE_LOG_DOWNLOAD_TOKEN_ISSUE",
+                CpfTransactionContext.transactionId(), operatorId, "REMOTE_LOG_DOWNLOAD_TOKEN_ISSUE",
                 "LOG_BUNDLE_JOB", jobId, requiredReason, request.getRemoteAddr());
         return ResponseEntity.ok(grant);
     }
@@ -206,7 +206,7 @@ public class AdmRemoteLogController extends com.cpf.admin.common.base.AdmBaseCon
         String requiredReason = auditLogService.requireReason(reason);
         CpfRemoteLogBundle bundle = remoteLogBundleJobPort.resolveDownload(jobId, operatorId, token);
         auditLogService.record(
-                TransactionContext.currentTransactionId(), operatorId, "REMOTE_LOG_BUNDLE_DOWNLOAD",
+                CpfTransactionContext.transactionId(), operatorId, "REMOTE_LOG_BUNDLE_DOWNLOAD",
                 "LOG_BUNDLE_JOB", jobId, requiredReason, request.getRemoteAddr());
         FileSystemResource resource = new FileSystemResource(bundle.path());
         ContentDisposition disposition = ContentDisposition.attachment()

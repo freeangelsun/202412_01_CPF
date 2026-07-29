@@ -230,15 +230,18 @@ try {
                         (Join-Path $templateRoot "$_/domain-template/install/10_empty_install.sql.template"),
                         [System.Text.Encoding]::UTF8)
             })
-        $requiredLogicalColumns = @(
-            "@CPF_TABLE_PREFIX@_sample_item", "sample_item_id", "sample_key", "item_name",
-            "version_no", "idempotency_key", "transaction_id", "transaction_sequence",
-            "transaction_at", "created_by", "created_at", "updated_by", "updated_at"
-        )
-        foreach ($column in $requiredLogicalColumns) {
-            Add-Check "MINIMAL_TRANSACTION_$($column.ToUpperInvariant())" `
-                (@($installTexts | Where-Object { $_.Contains($column) }).Count -eq 5) `
-                "column=$column vendorTemplateCount=5"
+        $requiredLogicalMarkers = @(
+            [string]$contract.verifyContract.requiredTable,
+            [string]$contract.idempotencyLedgerContract.requiredTable
+        ) + @($contract.verifyContract.requiredColumns) +
+                @($contract.idempotencyLedgerContract.requiredColumns)
+        foreach ($marker in @($requiredLogicalMarkers | Sort-Object -Unique)) {
+            $vendorTemplateCount = @(
+                $installTexts | Where-Object { $_.Contains([string]$marker) }
+            ).Count
+            Add-Check "GENERATED_DATABASE_$($marker.ToUpperInvariant())" `
+                ($vendorTemplateCount -eq $supportedVendors.Count) `
+                "marker=$marker vendorTemplateCount=$vendorTemplateCount expected=$($supportedVendors.Count)"
         }
         $requiredManifestColumns = @($contract.verifyContract.requiredColumns)
         $manifestColumns = @($manifest.minimalTransactionContract.requiredColumns)
@@ -273,7 +276,11 @@ try {
                 Replace("@CPF_SCHEMA_NAME@", [string]$manifest.schemaName).
                 Replace("@CPF_TABLE_PREFIX@", [string]$manifest.tablePrefix)
         Add-Check "MINIMAL_TRANSACTION_MODEL" (
-            [string]$manifest.minimalTransactionContract.model -eq [string]$contract.verifyContract.model
+            [string]$manifest.minimalTransactionContract.model -eq [string]$contract.verifyContract.model -and
+            [string]$manifest.minimalTransactionContract.tableRole -eq
+                    [string]$contract.verifyContract.tableRole -and
+            [int]$manifest.minimalTransactionContract.transactionIdWidth -eq
+                    [int]$contract.verifyContract.transactionIdWidth
         ) "manifest=$($manifest.minimalTransactionContract.model)"
         Add-Check "MINIMAL_TRANSACTION_LOGICAL_TABLE" (
             [string]$manifest.minimalTransactionContract.logicalTable -eq $expectedLogicalTable
@@ -284,6 +291,65 @@ try {
                 ($requiredOperations | Sort-Object -Unique) `
                 ($manifestOperations | Sort-Object -Unique))
         Add-Check "MINIMAL_TRANSACTION_CONTRACT" ($missingOperations.Count -eq 0) "diff=$($missingOperations -join ', ')"
+
+        $physicalTableContractMatches =
+                [int]$manifest.physicalTableContract.totalTables -eq
+                        [int]$contract.physicalTableContract.totalTables -and
+                [int]$manifest.physicalTableContract.businessTableCount -eq
+                        [int]$contract.physicalTableContract.businessTableCount -and
+                [int]$manifest.physicalTableContract.supportLedgerCount -eq
+                        [int]$contract.physicalTableContract.supportLedgerCount -and
+                [bool]$manifest.physicalTableContract.additionalTablesAllowed -eq
+                        [bool]$contract.physicalTableContract.additionalTablesAllowed
+        Add-Check "GENERATED_PHYSICAL_TABLE_CONTRACT" $physicalTableContractMatches `
+                "total=$($manifest.physicalTableContract.totalTables), business=$($manifest.physicalTableContract.businessTableCount), ledger=$($manifest.physicalTableContract.supportLedgerCount)"
+
+        $expectedLedgerLogicalTable = ([string]$contract.idempotencyLedgerContract.logicalTable).
+                Replace("@CPF_SCHEMA_NAME@", [string]$manifest.schemaName).
+                Replace("@CPF_TABLE_PREFIX@", [string]$manifest.tablePrefix)
+        Add-Check "IDEMPOTENCY_LEDGER_MODEL" (
+            [string]$manifest.idempotencyLedgerContract.model -eq
+                    [string]$contract.idempotencyLedgerContract.model -and
+            [string]$manifest.idempotencyLedgerContract.tableRole -eq
+                    [string]$contract.idempotencyLedgerContract.tableRole -and
+            [int]$manifest.idempotencyLedgerContract.transactionIdWidth -eq
+                    [int]$contract.idempotencyLedgerContract.transactionIdWidth -and
+            [string]$manifest.idempotencyLedgerContract.replayPolicy -eq
+                    [string]$contract.idempotencyLedgerContract.replayPolicy -and
+            [bool]$manifest.idempotencyLedgerContract.logicalDeleteReplayRequired -eq
+                    [bool]$contract.idempotencyLedgerContract.logicalDeleteReplayRequired
+        ) "manifest=$($manifest.idempotencyLedgerContract.model)"
+        Add-Check "IDEMPOTENCY_LEDGER_LOGICAL_TABLE" (
+            [string]$manifest.idempotencyLedgerContract.logicalTable -eq
+                    $expectedLedgerLogicalTable
+        ) "manifest=$($manifest.idempotencyLedgerContract.logicalTable), expected=$expectedLedgerLogicalTable"
+        foreach ($ledgerContractList in @(
+                [ordered]@{
+                    name = "IDEMPOTENCY_LEDGER_REQUIRED_COLUMNS"
+                    expected = @($contract.idempotencyLedgerContract.requiredColumns)
+                    actual = @($manifest.idempotencyLedgerContract.requiredColumns)
+                },
+                [ordered]@{
+                    name = "IDEMPOTENCY_LEDGER_REQUIRED_KEYS"
+                    expected = @($contract.idempotencyLedgerContract.requiredKeys)
+                    actual = @($manifest.idempotencyLedgerContract.requiredKeys)
+                },
+                [ordered]@{
+                    name = "IDEMPOTENCY_LEDGER_REQUIRED_INDEXES"
+                    expected = @($contract.idempotencyLedgerContract.requiredIndexes)
+                    actual = @($manifest.idempotencyLedgerContract.requiredIndexes)
+                },
+                [ordered]@{
+                    name = "IDEMPOTENCY_LEDGER_REQUIRED_CHECKS"
+                    expected = @($contract.idempotencyLedgerContract.requiredChecks)
+                    actual = @($manifest.idempotencyLedgerContract.requiredChecks)
+                })) {
+            $ledgerContractDiff = @(Compare-Object `
+                    ($ledgerContractList.expected | Sort-Object -Unique) `
+                    ($ledgerContractList.actual | Sort-Object -Unique))
+            Add-Check $ledgerContractList.name ($ledgerContractDiff.Count -eq 0) `
+                    "diff=$($ledgerContractDiff -join ', ')"
+        }
     }
 
     $boundaryFiles = @(Get-ChildItem -LiteralPath $projectDir -Recurse -File -Include *.java,*.gradle,*.kts |

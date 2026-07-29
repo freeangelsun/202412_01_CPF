@@ -59,6 +59,12 @@ $dbProfile = Get-CpfDomainDatabaseProfile $ProfilePath
 $allowDevDefault = ([string]$dbProfile.environment).ToLowerInvariant() -in @("development", "dev", "local")
 
 if ([string]::IsNullOrWhiteSpace($DatabaseVendor)) { $DatabaseVendor = [string]$dbProfile.database.vendor }
+$vendor = if ([string]::IsNullOrWhiteSpace($DatabaseVendor)) {
+    ([string]$manifest.databaseVendor).ToLowerInvariant()
+} else {
+    $DatabaseVendor.Trim().ToLowerInvariant()
+}
+$vendor = Assert-CpfSupportedDatabaseVendor $vendor
 if ([string]::IsNullOrWhiteSpace($DatabaseHost)) { $DatabaseHost = [string]$dbProfile.database.host }
 if ($DatabasePort -le 0) { $DatabasePort = [int]$dbProfile.database.port }
 if ([string]::IsNullOrWhiteSpace($DatabaseName)) { $DatabaseName = [string]$dbProfile.database.databaseName }
@@ -86,17 +92,10 @@ if (-not [string]::IsNullOrWhiteSpace($SystemCode) -and
     throw "요청 SystemCode와 manifest의 SystemCode가 다릅니다."
 }
 
-$vendor = if ([string]::IsNullOrWhiteSpace($DatabaseVendor)) {
-    ([string]$manifest.databaseVendor).ToLowerInvariant()
-} else {
-    $DatabaseVendor.Trim().ToLowerInvariant()
-}
 $vendorDefaults = @{
     mariadb = [ordered]@{ port = 3306; adminDatabase = ""; clients = @('mariadb', 'mysql') }
-    mysql = [ordered]@{ port = 3306; adminDatabase = ""; clients = @('mysql', 'mariadb') }
     postgresql = [ordered]@{ port = 5432; adminDatabase = "postgres"; clients = @('psql') }
     oracle = [ordered]@{ port = 1521; database = 'FREEPDB1'; adminDatabase = 'FREEPDB1'; clients = @('sqlplus') }
-    sqlserver = [ordered]@{ port = 1433; adminDatabase = "master"; clients = @('sqlcmd') }
 }
 if (-not $vendorDefaults.ContainsKey($vendor)) {
     throw "지원하지 않는 DB Vendor입니다: $vendor"
@@ -123,9 +122,9 @@ Assert-CpfDbUsername $AdminUsername "admin.username"
 if ($DatabaseUsername.Equals($RuntimeUsername, [StringComparison]::OrdinalIgnoreCase)) {
     throw "Generated Domain migration 계정과 runtime 계정은 서로 달라야 합니다."
 }
-if ($vendor -in @("mariadb", "mysql") -and
+if ($vendor -eq "mariadb" -and
         -not $DatabaseName.Equals($SchemaName, [StringComparison]::OrdinalIgnoreCase)) {
-    throw "MariaDB/MySQL은 DatabaseName과 SchemaName이 동일해야 합니다."
+    throw "MariaDB는 DatabaseName과 SchemaName이 동일해야 합니다."
 }
 if ($vendor -eq "oracle" -and
         -not $SchemaName.Equals($DatabaseUsername, [StringComparison]::OrdinalIgnoreCase)) {
@@ -313,8 +312,9 @@ function Invoke-SqlResource {
     $inputText = $null
 
     switch ($vendor) {
-        { $_ -in @("mariadb", "mysql") } {
+        "mariadb" {
             $psi.RedirectStandardInput = $true
+            # MariaDB client는 MySQL wire protocol 호환 환경변수도 함께 지원합니다.
             $psi.EnvironmentVariables['MYSQL_PWD'] = $Password
             $psi.EnvironmentVariables['MARIADB_PWD'] = $Password
             foreach ($argument in @(
@@ -346,14 +346,7 @@ function Invoke-SqlResource {
                     [System.IO.File]::ReadAllText($SqlPath, [System.Text.Encoding]::UTF8) +
                     "`nEXIT SUCCESS`n"
         }
-        "sqlserver" {
-            $psi.EnvironmentVariables['SQLCMDPASSWORD'] = $Password
-            foreach ($argument in @(
-                    '-S', "$DatabaseHost,$DatabasePort", '-U', $Username, '-d', $TargetDatabase,
-                    '-i', $SqlPath, '-b', '-C', '-f', '65001')) {
-                Add-ProcessArgument $psi $argument
-            }
-        }
+        default { throw "지원하지 않는 DB Vendor 실행 경로입니다: $vendor" }
     }
 
     $process = [System.Diagnostics.Process]::new()

@@ -16,7 +16,7 @@ public class AdmFileJobRepository {
     private final JdbcTemplate jdbc;
     private final ObjectMapper objectMapper;
     private final AdmFilePayloadProtector payloadProtector;
-    public AdmFileJobRepository(@Qualifier("cpfJdbcTemplate") JdbcTemplate jdbc, ObjectMapper objectMapper,
+    public AdmFileJobRepository(@Qualifier("admJdbcTemplate") JdbcTemplate jdbc, ObjectMapper objectMapper,
                                 AdmFilePayloadProtector payloadProtector){
         this.jdbc=jdbc;this.objectMapper=objectMapper;this.payloadProtector=payloadProtector;
     }

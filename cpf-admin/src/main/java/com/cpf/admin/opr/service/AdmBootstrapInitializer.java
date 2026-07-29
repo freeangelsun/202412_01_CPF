@@ -1,7 +1,7 @@
 package com.cpf.admin.opr.service;
 
 import com.cpf.admin.config.AdmBootstrapProperties;
-import com.cpf.core.common.exception.CpfValidationException;
+import com.cpf.core.api.error.CpfValidationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;

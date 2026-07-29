@@ -133,6 +133,14 @@ public class BzaApprovalPolicyService extends BzaBaseService {
         return repository.findDelegations(employeeNo, effectiveAt);
     }
 
+    public List<Map<String,Object>> findSubmissions(String operatorId, String status, int limit) {
+        return repository.findSubmissions(employeeNo(operatorId), upperOrNull(status), boundedLimit(limit));
+    }
+
+    public List<Map<String,Object>> findInbox(String operatorId, String decisionStatus, int limit) {
+        return repository.findInbox(employeeNo(operatorId), upperOrNull(decisionStatus), boundedLimit(limit));
+    }
+
     @Transactional(transactionManager = "bzaTransactionManager")
     public Map<String,Object> saveDelegation(DelegationRequest request, String operatorId) {
         Instant from = required(request.validFrom(), "validFrom");
@@ -408,6 +416,20 @@ public class BzaApprovalPolicyService extends BzaBaseService {
         doc.put("participants", repository.findParticipants(approvalId));
         doc.put("lines", repository.findLineStatuses(approvalId));
         return doc;
+    }
+
+    private String employeeNo(String operatorId) {
+        return repository.findEmployeeNoByLoginId(required(operatorId, "operatorId"))
+                .orElseThrow(() -> new CpfValidationException("로그인 사용자와 연결된 직원이 없습니다."));
+    }
+
+    private static int boundedLimit(int limit) {
+        return Math.max(1, Math.min(limit <= 0 ? 100 : limit, 1000));
+    }
+
+    private static String upperOrNull(String value) {
+        String normalized = blankToNull(value);
+        return normalized == null ? null : normalized.toUpperCase(Locale.ROOT);
     }
 
     private Map<String,Object> resolvePolicy(String policyCode, Integer policyVersion,

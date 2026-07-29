@@ -1,11 +1,12 @@
 {
   "schemaVersion": 2,
-  "sourceOfTruth": "cpf-tools/db/vendor/mariadb/source/50_framework_seed_data.sql",
+  "sourceOfTruth": "cpf-tools/db/canonical/seed-model.json",
   "policy": {
     "unsupportedVendorSqlCopyForbidden": true,
     "generatorMustValidateCatalog": true,
     "unsupportedVendorMustFailClosed": true,
-    "canonicalDbSourcePattern": "cpf-tools/db/vendor/<vendor>/source"
+    "canonicalDbSourcePattern": "cpf-tools/db/canonical/*.json",
+    "vendorProjectionPattern": "cpf-tools/db/vendor/<vendor>/source"
   },
   "permissionManifests": {
     "bza": "cpf-tools/db/metadata/bza-permission-manifest.json"
@@ -21,7 +22,7 @@
       "ADM",
       "BAT",
       "BZA",
-      "MBR"
+      "REF"
     ],
     "REQUEST_TYPE": [
       "O",
@@ -190,9 +191,7 @@
   ],
   "vendorImplementations": {
     "mariadb": "implemented",
-    "mysql": "not-implemented",
-    "postgresql": "not-implemented",
-    "oracle": "not-implemented",
-    "sqlserver": "not-implemented"
+    "postgresql": "implemented",
+    "oracle": "implemented"
   }
 }

@@ -1,5 +1,6 @@
 package com.cpf.admin.opr.controller;
 
+import com.cpf.admin.opr.service.AdmAuditLogService;
 import com.cpf.admin.opr.service.AdmServiceRegistryService;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.ResponseEntity;
@@ -14,7 +15,8 @@ import static org.mockito.Mockito.when;
 
 class AdmServiceRegistryControllerTest {
     private final AdmServiceRegistryService service = mock(AdmServiceRegistryService.class);
-    private final AdmServiceRegistryController controller = new AdmServiceRegistryController(service);
+    private final AdmServiceRegistryController controller =
+            new AdmServiceRegistryController(service, mock(AdmAuditLogService.class));
 
     @Test
     void findServicesDelegatesToServiceLayer() {

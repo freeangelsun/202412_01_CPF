@@ -1,7 +1,9 @@
 package com.cpf.admin.opr.batch;
 
+import com.cpf.admin.opr.context.AdmAuthenticatedOperatorContext;
 import com.cpf.core.api.batch.CpfBatchOperationsPort;
 import com.cpf.core.api.servicecall.CpfServiceCaller;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,7 +15,14 @@ public class AdmBatchOperationsClientConfiguration {
     @Bean
     @ConditionalOnMissingBean(CpfBatchOperationsPort.class)
     public CpfBatchOperationsPort remoteCpfBatchOperationsPort(
-            CpfServiceCaller serviceCaller, WebClient.Builder webClientBuilder) {
-        return new RemoteCpfBatchOperationsAdapter(serviceCaller, webClientBuilder);
+            CpfServiceCaller serviceCaller,
+            WebClient.Builder webClientBuilder,
+            AdmAuthenticatedOperatorContext operatorContext,
+            @Value("${cpf.framework.instance-id:adm-local-01}") String callerInstanceId) {
+        return new RemoteCpfBatchOperationsAdapter(
+                serviceCaller,
+                webClientBuilder,
+                operatorContext,
+                callerInstanceId);
     }
 }

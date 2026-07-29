@@ -26,20 +26,18 @@ Require-Text "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmHealthCont
 Require-Text "cpf-batch/runtime-common/src/main/java/com/cpf/batch/runtime/RuntimeIdentityFactory.java" "/actuator/health/readiness"
 Require-Text "cpf-tools/scripts/runtime-common.ps1" 'healthPath = "/adm/api/health/readiness"'
 Require-Text "cpf-tools/scripts/runtime-common.ps1" 'healthPath = "/actuator/health/readiness"'
+Require-Text "cpf-tools/scripts/runtime-common.ps1" "Get-CpfGeneratedRuntimeModuleMap"
+Require-Text "cpf-tools/scripts/runtime-common.ps1" "manifest/generator-ownership.json"
 Reject-Text "cpf-admin/src/main/java/com/cpf/admin/opr/service/AdmLogQueryService.java" 'response.put("details", details)'
 Reject-Text "cpf-admin/src/main/java/com/cpf/admin/opr/service/AdmLogQueryService.java" '"SELECT * FROM cpf_transaction_log'
-Require-Text "cpf-member/src/main/java/com/cpf/member/operation/MbrOwnerAdminOperationsService.java" "EmptyResultDataAccessException"
-Reject-Text "cpf-member/src/main/java/com/cpf/member/operation/MbrOwnerAdminOperationsService.java" "System.nanoTime()"
-Require-Text "cpf-member/src/main/java/com/cpf/member/operation/MbrOwnerAdminOperationsService.java" "version_no = version_no + 1"
 Require-Text "cpf-common/src/main/java/com/cpf/common/cde/service/CodeCacheService.java" 'cache.put(ALL_KEY, snapshot)'
 Require-Text "cpf-common/src/main/java/com/cpf/common/msg/service/ResponseCodeCacheService.java" 'cache.put(ALL_KEY, latest)'
 Require-Text "cpf-common/src/main/java/com/cpf/common/msg/service/ResponseCodeCacheService.java" 'CODE_PREFIX + CpfStrings.normalizeCode(code)'
 Reject-Text "cpf-common/src/main/java/com/cpf/common/msg/service/ResponseCodeCacheService.java" 'clearCache();'
 Require-Text "cpf-common/src/main/java/com/cpf/common/ref/service/CacheRefreshEventStore.java" 'Propagation.REQUIRES_NEW'
-Require-Text "cpf-common/src/main/java/com/cpf/common/ref/service/CacheRefreshEventPublisher.java" 'retryPendingEvents'
+Require-Text "cpf-common/src/main/java/com/cpf/common/ref/service/CacheRefreshEventPublisher.java" 'publishRequired'
+Require-Text "cpf-common/src/main/java/com/cpf/common/ref/service/CacheRefreshEventPublisher.java" 'memoryRetryQueue'
 Require-Text "cpf-common/src/main/java/com/cpf/common/ref/service/CacheRefreshEventListener.java" 'lastSuccessfulPollAt'
-Require-Text "cpf-member/src/main/java/com/cpf/member/operation/MbrOwnerAdminOperationsService.java" 'findMemberNoIssueHistory'
-Require-Text "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmMemberController.java" '/member-number-issues'
 Require-Text "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmCacheController.java" 'com.cpf.core.api.execution.CpfOnlineTransaction'
 Reject-Text "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmCacheController.java" 'com.cpf.core.common.'
 Require-Text "cpf-admin/src/main/java/com/cpf/admin/opr/service/AdmCsvSanitizer.java" "neutralizeFormula"
@@ -47,11 +45,13 @@ Require-Text "cpf-core/src/main/java/com/cpf/core/api/observability/CpfTelemetry
 Require-Text "cpf-core/src/main/java/com/cpf/core/spi/feature/CpfFeatureFlagProvider.java" "interface CpfFeatureFlagProvider"
 Require-Text "cpf-core/src/main/java/com/cpf/core/api/reliability/CpfFaultInjector.java" "interface CpfFaultInjector"
 Require-Text "cpf-tools/scripts/check-contract-compatibility.ps1" "Test-CpfContractCompatibility"
+Require-Text "cpf-tools/scripts/check-admin-data-safety.ps1" "ADM/BZA Data Safety"
+Require-Text "cpf-tools/scripts/check-data-safety-schema-contract.ps1" "Canonical/lifecycle drift"
+Require-Text "cpf-tools/scripts/check-generator-arbitrary-domain-parity.ps1" "임의 Generated Domain"
 
 $pwsh = (Get-Process -Id $PID).Path
 & $pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "cpf-tools/scripts/check-contract-compatibility.ps1") -SelfTest
 if ($LASTEXITCODE -ne 0) { throw "Contract compatibility self-test failed." }
 & $pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "cpf-tools/scripts/check-generator-golden-path.ps1") -Root $Root
 if ($LASTEXITCODE -ne 0) { throw "Generator Golden Path gate failed." }
-
 Write-Host "CPF R13 product hardening static gate passed."

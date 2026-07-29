@@ -2,14 +2,17 @@ package com.cpf.core.common.broker;
 
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.ColumnMapRowMapper;
 
+import java.sql.PreparedStatement;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.ArrayList;
 
 /**
  * CPF broker outbox/inbox/DLQ/replay 테이블을 사용하는 JDBC reference adapter입니다.
@@ -27,16 +30,41 @@ public class JdbcCpfBrokerReliabilityRepository
 
     @Override
     public CpfBrokerResult saveOutbox(CpfBrokerEnvelope envelope) {
+        int updated = updateOutboxAttributes(
+                envelope.message().messageId(),
+                encodeMap(envelope.attributes()));
+        if (updated == 0) {
+            try {
+                insertOutbox(envelope);
+            } catch (DuplicateKeyException duplicate) {
+                // 동시 등록은 기존 row를 갱신하되, 다른 unique key 충돌은 성공으로 숨기지 않습니다.
+                if (updateOutboxAttributes(
+                        envelope.message().messageId(),
+                        encodeMap(envelope.attributes())) != 1) {
+                    throw duplicate;
+                }
+            }
+        }
+        return CpfBrokerResult.accepted(envelope.message().messageId(), "CPF_OUTBOX", envelope.message().key());
+    }
+
+    private int updateOutboxAttributes(String messageId, String attributes) {
+        return jdbcTemplate.update("""
+                UPDATE cpf_broker_outbox
+                SET attribute_json = ?,
+                    updated_by = 'CPF_BROKER',
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE message_id = ?
+                """, attributes, messageId);
+    }
+
+    private void insertOutbox(CpfBrokerEnvelope envelope) {
         jdbcTemplate.update("""
                 INSERT INTO cpf_broker_outbox (
                     message_id, topic, message_key, transaction_id, segment_id,
                     producer_module, consumer_module, idempotency_key, payload, content_type,
                     header_json, attribute_json, outbox_status, occurred_at, created_by, updated_by
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING', ?, 'CPF_BROKER', 'CPF_BROKER')
-                ON DUPLICATE KEY UPDATE
-                    attribute_json = VALUES(attribute_json),
-                    updated_by = 'CPF_BROKER',
-                    updated_at = CURRENT_TIMESTAMP
                 """,
                 envelope.message().messageId(),
                 envelope.message().topic(),
@@ -51,11 +79,11 @@ public class JdbcCpfBrokerReliabilityRepository
                 encodeMap(envelope.message().headers()),
                 encodeMap(envelope.attributes()),
                 Timestamp.from(envelope.occurredAt()));
-        return CpfBrokerResult.accepted(envelope.message().messageId(), "CPF_OUTBOX", envelope.message().key());
     }
 
     @Override
     public List<CpfBrokerEnvelope> claimPending(String workerId, int limit) {
+        Instant now = Instant.now();
         jdbcTemplate.update("""
                 UPDATE cpf_broker_outbox
                 SET outbox_status = 'PENDING',
@@ -65,9 +93,9 @@ public class JdbcCpfBrokerReliabilityRepository
                     updated_by = 'CPF_BROKER_RECOVERY',
                     updated_at = CURRENT_TIMESTAMP
                 WHERE outbox_status = 'CLAIMED'
-                  AND lease_until <= CURRENT_TIMESTAMP(3)
-                """);
-        List<Map<String, Object>> rows = jdbcTemplate.queryForList("""
+                  AND lease_until <= ?
+                """, Timestamp.from(now));
+        List<Map<String, Object>> rows = queryForListLimited("""
                 SELECT message_id AS messageId,
                        topic,
                        message_key AS messageKey,
@@ -83,24 +111,29 @@ public class JdbcCpfBrokerReliabilityRepository
                        occurred_at AS occurredAt
                 FROM cpf_broker_outbox
                 WHERE outbox_status = 'PENDING'
-                  AND (next_attempt_at IS NULL OR next_attempt_at <= CURRENT_TIMESTAMP(3))
+                  AND (next_attempt_at IS NULL OR next_attempt_at <= ?)
                 ORDER BY outbox_id
-                LIMIT ?
-                """, safeLimit(limit));
+                """, List.of(Timestamp.from(now)), limit);
         List<CpfBrokerEnvelope> claimed = new ArrayList<>(rows.size());
         for (Map<String, Object> row : rows) {
+            Instant claimedAt = Instant.now();
             int updated = jdbcTemplate.update("""
                     UPDATE cpf_broker_outbox
                     SET outbox_status = 'CLAIMED',
                         worker_id = ?,
-                        claimed_at = CURRENT_TIMESTAMP(3),
-                        lease_until = TIMESTAMPADD(SECOND, 30, CURRENT_TIMESTAMP(3)),
+                        claimed_at = ?,
+                        lease_until = ?,
                         updated_by = 'CPF_BROKER',
                         updated_at = CURRENT_TIMESTAMP
                     WHERE message_id = ?
                       AND outbox_status = 'PENDING'
-                      AND (next_attempt_at IS NULL OR next_attempt_at <= CURRENT_TIMESTAMP(3))
-                    """, workerId, string(row, "messageId"));
+                      AND (next_attempt_at IS NULL OR next_attempt_at <= ?)
+                    """,
+                    workerId,
+                    Timestamp.from(claimedAt),
+                    Timestamp.from(claimedAt.plus(30, ChronoUnit.SECONDS)),
+                    string(row, "messageId"),
+                    Timestamp.from(claimedAt));
             if (updated == 1) {
                 claimed.add(mapEnvelope(row));
             }
@@ -113,63 +146,85 @@ public class JdbcCpfBrokerReliabilityRepository
         boolean published = "PUBLISHED".equalsIgnoreCase(result.status())
                 || "SUCCESS".equalsIgnoreCase(result.status())
                 || "ACCEPTED".equalsIgnoreCase(result.status());
-        jdbcTemplate.update("""
+        List<Map<String, Object>> attempts = jdbcTemplate.queryForList("""
+                SELECT attempt_count AS attemptCount,
+                       max_attempts AS maxAttempts
+                FROM cpf_broker_outbox
+                WHERE message_id = ?
+                """, messageId);
+        if (attempts.isEmpty()) {
+            return;
+        }
+        int previousAttempt = intValue(attempts.getFirst().get("attemptCount"));
+        int maxAttempts = Math.max(1, intValue(attempts.getFirst().get("maxAttempts")));
+        int nextAttempt = previousAttempt + 1;
+        String nextStatus = published
+                ? "PUBLISHED"
+                : (nextAttempt >= maxAttempts ? "FAILED" : "PENDING");
+        Instant processedAt = result.processedAt() == null ? Instant.now() : result.processedAt();
+        Timestamp nextAttemptAt = !published && nextAttempt < maxAttempts
+                ? Timestamp.from(processedAt.plusSeconds(retryDelaySeconds(previousAttempt)))
+                : null;
+        int updated = jdbcTemplate.update("""
                 UPDATE cpf_broker_outbox
-                SET attempt_count = attempt_count + 1,
-                    outbox_status = CASE
-                        WHEN ? = 'Y' THEN 'PUBLISHED'
-                        WHEN attempt_count + 1 >= max_attempts THEN 'FAILED'
-                        ELSE 'PENDING'
-                    END,
-                    next_attempt_at = CASE
-                        WHEN ? = 'Y' OR attempt_count + 1 >= max_attempts THEN NULL
-                        ELSE TIMESTAMPADD(SECOND, LEAST(300, POW(2, attempt_count) * 5), CURRENT_TIMESTAMP(3))
-                    END,
+                SET attempt_count = ?,
+                    outbox_status = ?,
+                    next_attempt_at = ?,
                     worker_id = NULL,
                     lease_until = NULL,
                     broker_name = ?,
                     partition_key = ?,
-                    published_at = CASE WHEN ? = 'Y' THEN ? ELSE NULL END,
+                    published_at = ?,
                     failure_message = ?,
                     updated_by = 'CPF_BROKER',
-                    updated_at = CURRENT_TIMESTAMP
+                    updated_at = ?
                 WHERE message_id = ?
+                  AND attempt_count = ?
                 """,
-                published ? "Y" : "N",
-                published ? "Y" : "N",
+                nextAttempt,
+                nextStatus,
+                nextAttemptAt,
                 result.brokerName(),
                 result.partitionKey(),
-                published ? "Y" : "N",
-                Timestamp.from(result.processedAt()),
+                published ? Timestamp.from(processedAt) : null,
                 result.detail(),
-                messageId);
+                Timestamp.from(processedAt),
+                messageId,
+                previousAttempt);
+        if (updated != 1) {
+            throw new IllegalStateException("Broker outbox publish 상태가 동시 변경되어 갱신할 수 없습니다: " + messageId);
+        }
         if (published) {
             jdbcTemplate.update("""
                     UPDATE cpf_broker_dlq
                     SET replay_status = 'COMPLETED',
-                        replay_completed_at = CURRENT_TIMESTAMP(3),
+                        replay_completed_at = ?,
                         updated_by = 'CPF_BROKER',
                         updated_at = CURRENT_TIMESTAMP
                     WHERE message_id = ? AND replay_status = 'REQUESTED'
-                    """, messageId);
+                    """, Timestamp.from(processedAt), messageId);
             return;
         }
-        jdbcTemplate.update("""
-                INSERT INTO cpf_broker_dlq (
-                    message_id, topic, transaction_id, segment_id, failure_reason,
-                    replay_status, created_by, updated_by
-                )
-                SELECT message_id, topic, transaction_id, segment_id, failure_message,
-                       'WAITING', 'CPF_BROKER', 'CPF_BROKER'
+        List<Map<String, Object>> failedOutbox = jdbcTemplate.queryForList("""
+                SELECT message_id AS messageId,
+                       topic,
+                       transaction_id AS transactionId,
+                       segment_id AS segmentId,
+                       failure_message AS failureReason
                 FROM cpf_broker_outbox
                 WHERE message_id = ? AND outbox_status = 'FAILED'
-                ON DUPLICATE KEY UPDATE
-                    failure_reason = VALUES(failure_reason),
-                    replay_status = 'FAILED',
-                    replay_completed_at = CURRENT_TIMESTAMP(3),
-                    updated_by = 'CPF_BROKER',
-                    updated_at = CURRENT_TIMESTAMP
                 """, messageId);
+        if (!failedOutbox.isEmpty()) {
+            Map<String, Object> row = failedOutbox.getFirst();
+            upsertDlq(
+                    string(row, "messageId"),
+                    string(row, "topic"),
+                    string(row, "transactionId"),
+                    string(row, "segmentId"),
+                    string(row, "failureReason"),
+                    "FAILED",
+                    processedAt);
+        }
     }
 
     @Override
@@ -188,41 +243,39 @@ public class JdbcCpfBrokerReliabilityRepository
 
     @Override
     public void markConsumed(String messageId, CpfBrokerResult result) {
+        Instant processedAt = result.processedAt() == null ? Instant.now() : result.processedAt();
         jdbcTemplate.update("""
                 UPDATE cpf_broker_inbox
                 SET inbox_status = ?,
                     consumed_at = ?,
                     result_detail = ?,
                     updated_by = 'CPF_BROKER',
-                    updated_at = CURRENT_TIMESTAMP
+                    updated_at = ?
                 WHERE message_id = ?
-                """, result.status(), Timestamp.from(result.processedAt()), result.detail(), messageId);
+                """,
+                result.status(),
+                Timestamp.from(processedAt),
+                result.detail(),
+                Timestamp.from(processedAt),
+                messageId);
     }
 
     @Override
     public CpfBrokerResult sendToDlq(CpfBrokerEnvelope envelope, String reason) {
-        jdbcTemplate.update("""
-                INSERT INTO cpf_broker_dlq (
-                    message_id, topic, transaction_id, segment_id, failure_reason,
-                    replay_status, created_by, updated_by
-                ) VALUES (?, ?, ?, ?, ?, 'WAITING', 'CPF_BROKER', 'CPF_BROKER')
-                ON DUPLICATE KEY UPDATE
-                    failure_reason = VALUES(failure_reason),
-                    replay_status = 'WAITING',
-                    updated_by = 'CPF_BROKER',
-                    updated_at = CURRENT_TIMESTAMP
-                """,
+        upsertDlq(
                 envelope.message().messageId(),
                 envelope.message().topic(),
                 envelope.transactionId(),
                 envelope.segmentId(),
-                reason);
+                reason,
+                "WAITING",
+                null);
         return CpfBrokerResult.failed(envelope.message().messageId(), "CPF_DLQ", reason);
     }
 
     @Override
     public List<CpfBrokerEnvelope> findDlqMessages(String topic, int limit) {
-        return jdbcTemplate.queryForList("""
+        return queryForListLimited("""
                 SELECT o.message_id AS messageId,
                        o.topic,
                        o.message_key AS messageKey,
@@ -240,8 +293,7 @@ public class JdbcCpfBrokerReliabilityRepository
                 JOIN cpf_broker_dlq d ON d.message_id = o.message_id
                 WHERE (? IS NULL OR d.topic = ?)
                 ORDER BY d.dlq_id DESC
-                LIMIT ?
-                """, topic, topic, safeLimit(limit)).stream().map(this::mapEnvelope).toList();
+                """, Arrays.asList(topic, topic), limit).stream().map(this::mapEnvelope).toList();
     }
 
     @Override
@@ -282,7 +334,7 @@ public class JdbcCpfBrokerReliabilityRepository
 
     @Override
     public List<CpfBrokerResult> replayRange(String topic, Instant from, Instant to, int limit) {
-        List<Map<String, Object>> rows = jdbcTemplate.queryForList("""
+        List<Map<String, Object>> rows = queryForListLimited("""
                 SELECT message_id AS messageId,
                        topic,
                        replay_status AS replayStatus,
@@ -293,15 +345,15 @@ public class JdbcCpfBrokerReliabilityRepository
                   AND (? IS NULL OR created_at >= ?)
                   AND (? IS NULL OR created_at <= ?)
                 ORDER BY dlq_id DESC
-                LIMIT ?
                 """,
-                topic,
-                topic,
-                timestamp(from),
-                timestamp(from),
-                timestamp(to),
-                timestamp(to),
-                safeLimit(limit));
+                Arrays.asList(
+                        topic,
+                        topic,
+                        timestamp(from),
+                        timestamp(from),
+                        timestamp(to),
+                        timestamp(to)),
+                limit);
         return rows.stream().map(row -> replay(string(row, "messageId"))).toList();
     }
 
@@ -341,6 +393,74 @@ public class JdbcCpfBrokerReliabilityRepository
 
     private int safeLimit(int limit) {
         return Math.max(1, Math.min(limit, 1000));
+    }
+
+    private List<Map<String, Object>> queryForListLimited(String sql, List<?> args, int limit) {
+        return jdbcTemplate.query(connection -> {
+            PreparedStatement statement = connection.prepareStatement(sql);
+            for (int index = 0; index < args.size(); index++) {
+                statement.setObject(index + 1, args.get(index));
+            }
+            statement.setMaxRows(safeLimit(limit));
+            return statement;
+        }, new ColumnMapRowMapper());
+    }
+
+    private void upsertDlq(
+            String messageId,
+            String topic,
+            String transactionId,
+            String segmentId,
+            String reason,
+            String existingStatus,
+            Instant completedAt) {
+        int updated = updateDlq(messageId, reason, existingStatus, completedAt);
+        if (updated != 0) {
+            return;
+        }
+        try {
+            jdbcTemplate.update("""
+                    INSERT INTO cpf_broker_dlq (
+                        message_id, topic, transaction_id, segment_id, failure_reason,
+                        replay_status, created_by, updated_by
+                    ) VALUES (?, ?, ?, ?, ?, 'WAITING', 'CPF_BROKER', 'CPF_BROKER')
+                    """, messageId, topic, transactionId, segmentId, reason);
+        } catch (DuplicateKeyException duplicate) {
+            if (updateDlq(messageId, reason, existingStatus, completedAt) != 1) {
+                throw duplicate;
+            }
+        }
+    }
+
+    private int updateDlq(String messageId, String reason, String status, Instant completedAt) {
+        if (completedAt == null) {
+            return jdbcTemplate.update("""
+                    UPDATE cpf_broker_dlq
+                    SET failure_reason = ?,
+                        replay_status = ?,
+                        updated_by = 'CPF_BROKER',
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE message_id = ?
+                    """, reason, status, messageId);
+        }
+        return jdbcTemplate.update("""
+                UPDATE cpf_broker_dlq
+                SET failure_reason = ?,
+                    replay_status = ?,
+                    replay_completed_at = ?,
+                    updated_by = 'CPF_BROKER',
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE message_id = ?
+                """, reason, status, timestamp(completedAt), messageId);
+    }
+
+    private long retryDelaySeconds(int previousAttempt) {
+        int exponent = Math.max(0, Math.min(previousAttempt, 20));
+        return Math.min(300L, 5L * (1L << exponent));
+    }
+
+    private int intValue(Object value) {
+        return value instanceof Number number ? number.intValue() : 0;
     }
 
     private String encodeMap(Map<String, String> values) {

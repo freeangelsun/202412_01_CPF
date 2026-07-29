@@ -1,6 +1,6 @@
 package com.cpf.core.config;
 
-import com.cpf.core.common.attachment.CpfAttachmentStoragePort;
+import com.cpf.core.api.attachment.CpfAttachmentStoragePort;
 import com.cpf.core.common.attachment.CpfAttachmentRuntimePolicy;
 import com.cpf.core.common.attachment.CpfAttachmentInspectionPort;
 import com.cpf.core.common.attachment.CpfAttachmentWatermarkPort;

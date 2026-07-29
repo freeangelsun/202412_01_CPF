@@ -1,6 +1,6 @@
 param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..\..").Path,
-    [string[]] $Modules = @("MBR", "ADM", "BZA", "REF"),
+    [string[]] $Modules = @("ADM", "BAT", "BZA", "REF", "GWY"),
     [string] $ResultDir = "",
     [int] $HttpTimeoutSeconds = 10,
     [switch] $NoExitOnFailure
@@ -20,7 +20,7 @@ $ResultDir = Get-CpfRuntimeResultDir -Root $Root -ResultDir $ResultDir
 New-Item -ItemType Directory -Force -Path $ResultDir | Out-Null
 
 $resultPath = Join-Path $ResultDir "runtime-status-result.json"
-$selectedModules = Resolve-CpfRuntimeModules -Modules $Modules
+$selectedModules = Resolve-CpfRuntimeModules -Modules $Modules -Root $Root
 $result = [ordered]@{
     checkedAt = (Get-Date).ToString("o")
     status = Get-CpfRuntimeStatusText "Partial"

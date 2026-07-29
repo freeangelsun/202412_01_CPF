@@ -5,6 +5,7 @@ import com.cpf.core.api.runtimecontrol.CpfRuntimeChangeApplier;
 import com.cpf.core.api.runtimecontrol.CpfRuntimeDelivery;
 import com.cpf.core.channel.application.CpfChannelPolicyService;
 import com.cpf.core.channel.model.CpfChannelPolicySnapshot;
+import com.cpf.core.common.runtimecontrol.CpfRuntimePayloadJson;
 
 /** DB 정본 채널 정책을 Runtime의 lock-free snapshot으로 실제 교체합니다. */
 public final class CpfChannelPolicyRuntimeApplier implements CpfRuntimeChangeApplier {
@@ -21,7 +22,7 @@ public final class CpfChannelPolicyRuntimeApplier implements CpfRuntimeChangeApp
 
     @Override
     public CpfRuntimeApplyResult apply(CpfRuntimeDelivery delivery) {
-        Object expected = delivery.payload().get("minimumSnapshotVersion");
+        Object expected = CpfRuntimePayloadJson.value(delivery.payload(), "minimumSnapshotVersion");
         long minimumVersion = expected instanceof Number number ? number.longValue() : 0L;
         CpfChannelPolicySnapshot snapshot = policyService.refresh();
         if (snapshot.version() < minimumVersion) {

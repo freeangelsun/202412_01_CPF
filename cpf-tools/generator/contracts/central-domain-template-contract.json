@@ -34,10 +34,19 @@
     "CPF_PACKAGE_NAME",
     "CPF_TABLE_PREFIX",
     "CPF_MAPPER_NAMESPACE",
-    "CPF_MAPPER_NAME"
+    "CPF_MAPPER_NAME",
+    "CPF_RESULT_TYPE",
+    "CPF_IDEMPOTENCY_RESULT_TYPE"
   ],
+  "physicalTableContract": {
+    "totalTables": 2,
+    "businessTableCount": 1,
+    "supportLedgerCount": 1,
+    "additionalTablesAllowed": false
+  },
   "verifyContract": {
     "model": "sample-item",
+    "tableRole": "business-sample",
     "requiredTable": "@CPF_TABLE_PREFIX@_sample_item",
     "logicalTable": "@CPF_SCHEMA_NAME@.@CPF_TABLE_PREFIX@_sample_item",
     "requiredColumns": [
@@ -59,10 +68,10 @@
     "transactionIdWidth": 34,
     "requiredKeys": [
       "primary-key",
-      "sample-key-unique",
-      "idempotency-key-unique"
+      "sample-key-unique"
     ],
     "requiredIndexes": [
+      "idempotency-key-audit",
       "status-deleted-id",
       "transaction-id-sequence"
     ],
@@ -95,16 +104,50 @@
       "framework-edu"
     ]
   },
+  "idempotencyLedgerContract": {
+    "model": "sample-item-idempotency-ledger",
+    "tableRole": "non-business-support-ledger",
+    "requiredTable": "@CPF_TABLE_PREFIX@_sample_item_idem",
+    "logicalTable": "@CPF_SCHEMA_NAME@.@CPF_TABLE_PREFIX@_sample_item_idem",
+    "requiredColumns": [
+      "idempotency_key",
+      "operation_code",
+      "request_hash",
+      "sample_item_id",
+      "result_version",
+      "deleted_yn",
+      "transaction_id",
+      "created_at"
+    ],
+    "transactionIdWidth": 34,
+    "requiredKeys": [
+      "primary-key",
+      "sample-item-foreign-key"
+    ],
+    "requiredIndexes": [
+      "sample-item-created-at",
+      "transaction-id-created-at"
+    ],
+    "requiredChecks": [
+      "operation-create-update-delete",
+      "deleted-yn"
+    ],
+    "replayPolicy": "same-key-and-request-hash-replay-different-hash-conflict",
+    "logicalDeleteReplayRequired": true
+  },
   "runtimeContract": {
     "pessimisticLock": "vendor-native-row-lock",
     "optimisticLock": "version_no compare-and-increment",
     "requiredStatements": [
       "search",
+      "count",
       "findBySampleKey",
-      "findByIdempotencyKey",
+      "findById",
+      "findIdempotency",
       "findForUpdate",
       "cursorSlice",
       "insert",
+      "insertIdempotency",
       "updateWithVersion",
       "logicalDeleteWithVersion"
     ],

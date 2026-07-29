@@ -67,12 +67,12 @@ public class CpfRestClientInterceptor implements ClientHttpRequestInterceptor {
     /** 거래 헤더를 전파하고, 설정된 경우 직전 호출 서비스 신원을 현재 서비스 기준으로 재생성합니다. */
     public static void applyHeaders(HttpHeaders headers, CpfLocalServiceIdentity localServiceIdentity) {
         for (Map.Entry<String, String> header : CpfHeaderPropagator.outboundHeaders().entrySet()) {
-            if (hasText(header.getValue()) && !headers.containsKey(header.getKey())) {
+            if (hasText(header.getValue()) && !headers.containsHeader(header.getKey())) {
                 headers.add(header.getKey(), header.getValue());
             }
         }
         for (Map.Entry<String, String> header : CpfWorkflowContext.propagationHeaders().entrySet()) {
-            if (hasText(header.getValue()) && !headers.containsKey(header.getKey())) {
+            if (hasText(header.getValue()) && !headers.containsHeader(header.getKey())) {
                 headers.add(header.getKey(), header.getValue());
             }
         }

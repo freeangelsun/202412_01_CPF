@@ -4,7 +4,7 @@ import com.cpf.admin.opr.dto.AdmLogPolicyOverrideRequest;
 import com.cpf.admin.opr.dto.AdmLogPolicyRequest;
 import com.cpf.admin.opr.dto.AdmTraceBoostRequest;
 import com.cpf.admin.opr.service.AdmLogPolicyService;
-import com.cpf.core.common.execution.CpfOnlineTransaction;
+import com.cpf.core.api.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;

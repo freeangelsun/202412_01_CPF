@@ -1,8 +1,8 @@
-﻿param(
+param(
     [Alias("Root")]
     [string] $DiagnosticsRoot = "",
     [Alias("Modules")]
-    [string[]] $DiagnosticsModules = @("MBR", "ADM", "BZA", "REF", "BAT"),
+    [string[]] $DiagnosticsModules = @("ADM", "BAT", "BZA", "REF", "GWY"),
     [Alias("ResultDir")]
     [string] $DiagnosticsResultDir = "",
     [Alias("ErrorMessage")]
@@ -30,7 +30,7 @@ function New-CpfRuntimeDiagnostic {
 
     $resolvedRoot = Get-CpfRuntimeRoot -Root $Root
     $resolvedResultDir = Get-CpfRuntimeResultDir -Root $resolvedRoot -ResultDir $ResultDir
-    $moduleMap = Get-CpfRuntimeModuleMap
+    $moduleMap = Get-CpfRuntimeModuleMap -Root $resolvedRoot
     $moduleInfo = $moduleMap | Where-Object { $_.module -eq $Module.ToUpperInvariant() } | Select-Object -First 1
     $portStates = @()
     foreach ($port in $Ports) {
@@ -79,7 +79,7 @@ function New-CpfRuntimeDiagnostic {
 function Invoke-CpfRuntimeDiagnostics {
     param(
         [string] $Root = "",
-        [string[]] $Modules = @("MBR", "ADM", "BZA", "REF", "BAT"),
+        [string[]] $Modules = @("ADM", "BAT", "BZA", "REF", "GWY"),
         [string] $ResultDir = "",
         [string] $ErrorMessage = ""
     )
@@ -87,7 +87,7 @@ function Invoke-CpfRuntimeDiagnostics {
     $resolvedRoot = Get-CpfRuntimeRoot -Root $Root
     $resolvedResultDir = Get-CpfRuntimeResultDir -Root $resolvedRoot -ResultDir $ResultDir
     New-Item -ItemType Directory -Force -Path $resolvedResultDir | Out-Null
-    $selectedModules = Resolve-CpfRuntimeModules -Modules $Modules
+    $selectedModules = Resolve-CpfRuntimeModules -Modules $Modules -Root $resolvedRoot
     $diagnosticItems = New-Object System.Collections.ArrayList
     $result = [ordered]@{
         checkedAt = (Get-Date).ToString("o")

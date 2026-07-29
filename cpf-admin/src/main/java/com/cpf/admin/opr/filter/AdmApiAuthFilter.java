@@ -30,7 +30,8 @@ import java.util.Optional;
  * ADM REST API 인증과 서버 권한검사를 담당하는 필터입니다.
  *
  * <p>ADM 화면에서 메뉴나 버튼을 숨겨도 API를 직접 호출할 수 있으므로 서버에서 메뉴 권한과 버튼 권한을 다시 검사합니다.
- * 신규 ADM 기능을 추가할 때는 메뉴 ID와 버튼 ID를 이 필터, seed SQL, 관리자 가이드에 함께 반영해야 합니다.</p>
+ * 제품 모드의 API 권한 정본은 {@code adm_api_permission}/{@code adm_role_api_permission}이며,
+ * 이 클래스의 경로 Map은 DB를 사용하지 않는 명시적 MEMORY 모드의 메뉴 권한 fallback에만 사용합니다.</p>
  */
 @Component
 public class AdmApiAuthFilter extends OncePerRequestFilter {
@@ -38,6 +39,7 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
     private static final Map<String, String> BUTTON_BY_METHOD_PATH_PREFIX = new LinkedHashMap<>();
 
     static {
+        MENU_BY_PATH_PREFIX.put("/adm/api/v1/system", "DASHBOARD");
         MENU_BY_PATH_PREFIX.put("/adm/api/logs", "LOG_LIST");
         MENU_BY_PATH_PREFIX.put("/adm/api/transaction-groups", "LOG_LIST");
         MENU_BY_PATH_PREFIX.put("/adm/api/observability", "LOG_LIST");
@@ -49,8 +51,12 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
         MENU_BY_PATH_PREFIX.put("/adm/api/remote-logs", "REMOTE_LOG");
         MENU_BY_PATH_PREFIX.put("/adm/api/audit-logs", "AUDIT_LOG");
         MENU_BY_PATH_PREFIX.put("/adm/api/business-calendars", "BUSINESS_CALENDAR");
+        MENU_BY_PATH_PREFIX.put("/adm/api/batch-runtime", "BATCH_RUNTIME");
         MENU_BY_PATH_PREFIX.put("/adm/api/batch", "BATCH");
         MENU_BY_PATH_PREFIX.put("/adm/api/center-cut", "BATCH");
+        MENU_BY_PATH_PREFIX.put("/adm/api/runtime-control", "RUNTIME_CONTROL");
+        MENU_BY_PATH_PREFIX.put("/adm/api/maintenance", "MAINTENANCE");
+        MENU_BY_PATH_PREFIX.put("/adm/api/incidents", "INCIDENT");
         MENU_BY_PATH_PREFIX.put("/adm/api/notifications", "NOTIFICATION");
         MENU_BY_PATH_PREFIX.put("/adm/api/downloads", "DOWNLOAD");
         MENU_BY_PATH_PREFIX.put("/adm/api/file-jobs", "FILE_JOB");
@@ -62,6 +68,9 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
         MENU_BY_PATH_PREFIX.put("/adm/api/log-level", "DYNAMIC_LOG");
         MENU_BY_PATH_PREFIX.put("/adm/api/log-policy-audits", "LOG_POLICY");
         MENU_BY_PATH_PREFIX.put("/adm/api/log-policies", "LOG_POLICY");
+        MENU_BY_PATH_PREFIX.put("/adm/api/secrets", "SECRET");
+        MENU_BY_PATH_PREFIX.put("/adm/api/approvals", "APPROVAL");
+        MENU_BY_PATH_PREFIX.put("/adm/api/break-glass", "BREAK_GLASS");
         MENU_BY_PATH_PREFIX.put("/adm/api/security", "SECURITY");
         MENU_BY_PATH_PREFIX.put("/adm/api/permissions", "PERMISSION");
         MENU_BY_PATH_PREFIX.put("/adm/api/operators", "OPERATOR");
@@ -184,7 +193,10 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
                 return;
             }
 
-            if (!selfPasswordChange && !hasPermission(authenticatedSession, request.getMethod(), path)) {
+            boolean authenticatedSelfService = isAuthenticatedSelfServiceRequest(request.getMethod(), path);
+            if (!selfPasswordChange
+                    && !authenticatedSelfService
+                    && !hasPermission(authenticatedSession, request.getMethod(), path)) {
                 writeJson(response, HttpServletResponse.SC_FORBIDDEN, "ADM 권한이 필요한 작업입니다.");
                 return;
             }
@@ -207,9 +219,13 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
 
     private boolean isPasswordChangeOnlyRequest(AdmSession session, String method, String path) {
         return isSelfPasswordChange(session, method, path)
-                || (HttpMethod.GET.matches(method) && path.equals("/adm/api/auth/me"))
-                || (HttpMethod.POST.matches(method) && path.equals("/adm/api/auth/logout"))
+                || isAuthenticatedSelfServiceRequest(method, path)
                 || (HttpMethod.GET.matches(method) && path.equals("/adm/api/operators/password-policy"));
+    }
+
+    private boolean isAuthenticatedSelfServiceRequest(String method, String path) {
+        return (HttpMethod.GET.matches(method) && path.equals("/adm/api/auth/me"))
+                || (HttpMethod.POST.matches(method) && path.equals("/adm/api/auth/logout"));
     }
 
     private boolean isSelfPasswordChange(AdmSession session, String method, String path) {
@@ -218,15 +234,17 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
     }
 
     private boolean hasPermission(AdmSession session, String method, String path) {
-        String menuId = resolveMenuId(path);
-        if (menuId == null) {
-            // /adm/api/**는 명시적으로 공개된 health/login을 제외하고 manifest 미등록 시 기본 거부합니다.
-            return false;
-        }
-
+        // DB API permission이 제품 모드의 canonical route/action 계약입니다.
+        // DB에 등록된 확장 API가 MEMORY fallback Map 누락 때문에 먼저 차단되지 않도록 우선 조회합니다.
         Optional<Boolean> dbApiPermission = hasDbApiPermission(session.roleIds(), method, path);
         if (dbApiPermission.isPresent()) {
             return dbApiPermission.get();
+        }
+
+        String menuId = resolveMenuId(path);
+        if (menuId == null) {
+            // canonical DB permission과 MEMORY fallback 양쪽에 없는 /adm/api/**는 기본 거부합니다.
+            return false;
         }
 
         String buttonId = resolveButtonId(method, path);
@@ -380,11 +398,15 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
 
     private String resolveMenuId(String path) {
         for (Map.Entry<String, String> entry : MENU_BY_PATH_PREFIX.entrySet()) {
-            if (path.startsWith(entry.getKey())) {
+            if (matchesPathPrefix(entry.getKey(), path)) {
                 return entry.getValue();
             }
         }
         return null;
+    }
+
+    private boolean matchesPathPrefix(String prefix, String path) {
+        return path.equals(prefix) || path.startsWith(prefix + "/");
     }
 
     private String resolveButtonId(String method, String path) {
@@ -473,7 +495,8 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
         }
         String keyPrefix = method + " ";
         for (Map.Entry<String, String> entry : BUTTON_BY_METHOD_PATH_PREFIX.entrySet()) {
-            if (entry.getKey().startsWith(keyPrefix) && path.startsWith(entry.getKey().substring(keyPrefix.length()))) {
+            if (entry.getKey().startsWith(keyPrefix)
+                    && matchesPathPrefix(entry.getKey().substring(keyPrefix.length()), path)) {
                 return entry.getValue();
             }
         }

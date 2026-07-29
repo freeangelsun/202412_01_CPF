@@ -28,11 +28,14 @@ function Is-InScope([string] $Path) {
 }
 function YN([bool] $Value) { if ($Value) { "Y" } else { "N" } }
 
-$ownershipFiles = @(Get-ChildItem -LiteralPath $Root -Filter "generator-ownership.json" -Recurse -File -ErrorAction SilentlyContinue |
-    Where-Object { $_.FullName -match "[\\/]cpf-[^\\/]+[\\/]manifest[\\/]generator-ownership\.json$" })
+$productModuleDirs = @(Get-ChildItem -LiteralPath $Root -Directory -Filter "cpf-*" -ErrorAction SilentlyContinue)
+$ownershipFiles = @($productModuleDirs |
+    ForEach-Object { Get-Item -LiteralPath (Join-Path $_.FullName "manifest/generator-ownership.json") -ErrorAction SilentlyContinue } |
+    Where-Object { $null -ne $_ -and -not $_.PSIsContainer })
 
-$domainManifests = @(Get-ChildItem -LiteralPath $Root -Filter "domain-manifest.json" -Recurse -File -ErrorAction SilentlyContinue |
-    Where-Object { $_.FullName -match "[\\/]cpf-[^\\/]+[\\/]manifest[\\/]domain-manifest\.json$" })
+$domainManifests = @($productModuleDirs |
+    ForEach-Object { Get-Item -LiteralPath (Join-Path $_.FullName "manifest/domain-manifest.json") -ErrorAction SilentlyContinue } |
+    Where-Object { $null -ne $_ -and -not $_.PSIsContainer })
 $generatedDomainManifests = @($domainManifests | Where-Object {
     try {
         $m = Get-Content $_.FullName -Raw | ConvertFrom-Json
@@ -77,11 +80,31 @@ foreach ($ownershipFile in $ownershipFiles) {
     New-Item -ItemType Directory -Force -Path $tempRoot | Out-Null
     try {
         Set-Content -LiteralPath (Join-Path $tempRoot "settings.gradle") -Value "// isolated generator sync" -Encoding utf8
+        $tempGradle = Join-Path $tempRoot "gradle"
+        New-Item -ItemType Directory -Force -Path $tempGradle | Out-Null
+        Copy-Item `
+            -LiteralPath (Join-Path $Root "gradle/cpf-stack.properties") `
+            -Destination (Join-Path $tempGradle "cpf-stack.properties") `
+            -Force
+        $tempContract = Join-Path $tempRoot "cpf-tools/generator/contracts"
+        New-Item -ItemType Directory -Force -Path $tempContract | Out-Null
+        Copy-Item `
+            -LiteralPath (Join-Path $Root "cpf-tools/generator/contracts/central-domain-template-contract.json") `
+            -Destination (Join-Path $tempContract "central-domain-template-contract.json") `
+            -Force
+        $tempGeneratedDb = Join-Path $tempRoot "cpf-tools/db/generated"
+        New-Item -ItemType Directory -Force -Path $tempGeneratedDb | Out-Null
+        Copy-Item `
+            -LiteralPath (Join-Path $Root "cpf-tools/db/generated/database-schema-manifest.json") `
+            -Destination (Join-Path $tempGeneratedDb "database-schema-manifest.json") `
+            -Force
         $tempVendor = Join-Path $tempRoot "cpf-tools/db/vendor"
         New-Item -ItemType Directory -Force -Path (Split-Path $tempVendor -Parent) | Out-Null
         Copy-Item -LiteralPath (Join-Path $Root "cpf-tools/db/vendor") -Destination $tempVendor -Recurse -Force
 
-        $tempOutput = Join-Path $tempRoot ("build/domain-generator/" + $ownership.projectName)
+        # 제품 루트에서 생성했을 때와 create-domain-result.json까지 byte-equivalent해야 하므로
+        # 격리 Root의 직접 하위에 동일 projectName으로 생성합니다.
+        $tempOutput = Join-Path $tempRoot ([string]$ownership.projectName)
         $arguments = @(
             "-NoProfile","-ExecutionPolicy","Bypass","-File",$generator,
             "-Root",$tempRoot,
@@ -104,7 +127,11 @@ foreach ($ownershipFile in $ownershipFiles) {
             "-File",(YN([bool]$caps.file)),
             "-SecurityAudit",(YN([bool]$caps.securityAudit)),
             "-Ui",(YN([bool]$caps.ui)),
+            "-BzaMenu",(YN([bool]$caps.bzaMenu)),
+            "-CenterCut",(YN([bool]$caps.centerCut)),
             "-ProductionProfile",(YN([bool]$caps.productionProfile)),
+            "-DependencyModel",[string]$domain.dependencyModel,
+            "-PlatformVersion",[string]$domain.platformVersion,
             "-AllowReserved"
         )
         & pwsh @arguments

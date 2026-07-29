@@ -4,38 +4,24 @@
   "platform": {
     "mariadb": {
       "ddl": "implemented",
-      "runtimeSql": "existing-source-dependent",
+      "runtimeSql": "implemented",
       "runtimeVerified": false,
       "sourceRoot": "cpf-tools/db/vendor/mariadb/source",
       "sourceStatus": "implemented"
     },
-    "mysql": {
-      "ddl": "not-implemented",
-      "runtimeSql": "not-implemented",
-      "runtimeVerified": false,
-      "sourceRoot": "cpf-tools/db/vendor/mysql/source",
-      "sourceStatus": "not-implemented"
-    },
     "postgresql": {
-      "ddl": "not-implemented",
-      "runtimeSql": "not-implemented",
+      "ddl": "implemented",
+      "runtimeSql": "implemented",
       "runtimeVerified": false,
       "sourceRoot": "cpf-tools/db/vendor/postgresql/source",
-      "sourceStatus": "not-implemented"
+      "sourceStatus": "implemented"
     },
     "oracle": {
-      "ddl": "not-implemented",
-      "runtimeSql": "not-implemented",
+      "ddl": "implemented",
+      "runtimeSql": "implemented",
       "runtimeVerified": false,
       "sourceRoot": "cpf-tools/db/vendor/oracle/source",
-      "sourceStatus": "not-implemented"
-    },
-    "sqlserver": {
-      "ddl": "not-implemented",
-      "runtimeSql": "not-implemented",
-      "runtimeVerified": false,
-      "sourceRoot": "cpf-tools/db/vendor/sqlserver/source",
-      "sourceStatus": "not-implemented"
+      "sourceStatus": "implemented"
     }
   },
   "generatedDomain": {
@@ -44,22 +30,12 @@
       "mybatisTemplate": "implemented",
       "runtimeVerified": false
     },
-    "mysql": {
-      "ddlTemplate": "implemented",
-      "mybatisTemplate": "implemented",
-      "runtimeVerified": false
-    },
     "postgresql": {
       "ddlTemplate": "implemented",
       "mybatisTemplate": "implemented",
       "runtimeVerified": false
     },
     "oracle": {
-      "ddlTemplate": "implemented",
-      "mybatisTemplate": "implemented",
-      "runtimeVerified": false
-    },
-    "sqlserver": {
       "ddlTemplate": "implemented",
       "mybatisTemplate": "implemented",
       "runtimeVerified": false

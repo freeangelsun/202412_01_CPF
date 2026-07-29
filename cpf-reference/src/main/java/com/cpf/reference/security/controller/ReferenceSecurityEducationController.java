@@ -6,7 +6,7 @@ import com.cpf.common.sec.token.CmnJwtService;
 import com.cpf.common.sec.token.CmnJwtValidationResult;
 import com.cpf.common.sec.token.CmnOAuthBearerTokenService;
 import com.cpf.common.sec.token.CmnOAuthTokenIntrospectionResult;
-import com.cpf.core.common.execution.CpfOnlineTransaction;
+import com.cpf.core.api.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Value;

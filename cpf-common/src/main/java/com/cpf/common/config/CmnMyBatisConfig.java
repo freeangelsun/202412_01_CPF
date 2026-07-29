@@ -1,6 +1,6 @@
 package com.cpf.common.config;
 
-import com.cpf.core.common.database.CpfSqlResourceResolver;
+import com.cpf.core.api.database.CpfSqlResources;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.annotations.Mapper;
 import org.mybatis.spring.SqlSessionFactoryBean;
@@ -49,7 +49,7 @@ public class CmnMyBatisConfig {
         sqlSessionFactoryBean.setConfigLocation(
                 new ClassPathResource("mybatis/config/cmn-mybatis-config.xml")
         );
-        sqlSessionFactoryBean.setMapperLocations(CpfSqlResourceResolver.mapperResources(environment, "cmn"));
+        sqlSessionFactoryBean.setMapperLocations(CpfSqlResources.mapperResources(environment, "cmn"));
         return sqlSessionFactoryBean.getObject();
     }
 

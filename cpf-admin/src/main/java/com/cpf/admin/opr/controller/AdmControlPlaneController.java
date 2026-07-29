@@ -2,8 +2,8 @@ package com.cpf.admin.opr.controller;
 
 import com.cpf.admin.opr.service.AdmAuditLogService;
 import com.cpf.admin.opr.service.AdmControlPlaneService;
-import com.cpf.core.common.execution.CpfOnlineTransaction;
-import com.cpf.core.common.logging.TransactionContext;
+import com.cpf.core.api.execution.CpfOnlineTransaction;
+import com.cpf.core.api.logging.CpfTransactionContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -29,5 +29,5 @@ public class AdmControlPlaneController extends com.cpf.admin.common.base.AdmBase
     public ResponseEntity<Map<String,Object>> executeMaintenance(@RequestBody Map<String,Object> body,HttpServletRequest request){String user=operator(request);String reason=String.valueOf(body.getOrDefault("reason",""));Map<String,Object> result=service.executeMaintenance(body,user);audit(request,user,"SERVICE_INSTANCE_CONTROL","cpf_service_instance",String.valueOf(body.get("instanceId")),reason,result);return ResponseEntity.ok(result);}
 
     private String operator(HttpServletRequest req){Object value=req.getAttribute("adm.operatorId");return value instanceof String s&&!s.isBlank()?s:"admin-ui";}
-    private void audit(HttpServletRequest req,String user,String action,String type,String id,String reason,Object after){audit.record(TransactionContext.getOrCreateTransactionId(),user,action,type,id,reason,"",String.valueOf(after),"상태 변경",req.getRemoteAddr());}
+    private void audit(HttpServletRequest req,String user,String action,String type,String id,String reason,Object after){audit.record(CpfTransactionContext.transactionId(),user,action,type,id,reason,"",String.valueOf(after),"상태 변경",req.getRemoteAddr());}
 }

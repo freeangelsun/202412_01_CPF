@@ -1,0 +1,18 @@
+{
+  "contractVersion": "1.0",
+  "module": "MBR",
+  "serviceId": "MBR",
+  "activationProfile": "runtime-agent",
+  "applicationConfig": "src/main/resources/application-runtime-agent.yml",
+  "capabilityDiscovery": "CpfRuntimeChangeApplier",
+  "enabledByDefault": false,
+  "failClosed": true,
+  "requiredEnvironment": [
+    "CPF_RUNTIME_INSTANCE_ID",
+    "CPF_RUNTIME_SERVICE_ID",
+    "CPF_RUNTIME_ENDPOINT_CODE",
+    "CPF_RUNTIME_BASE_URL",
+    "CPF_RUNTIME_CONTROL_BASE_URL",
+    "CPF_RUNTIME_CONTROL_AGENT_TOKEN"
+  ]
+}

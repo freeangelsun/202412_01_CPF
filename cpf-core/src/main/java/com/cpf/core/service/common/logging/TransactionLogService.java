@@ -2,7 +2,7 @@ package com.cpf.core.service.common.logging;
 
 import com.cpf.core.common.logging.SensitiveDataMasker;
 import com.cpf.core.common.logging.TransactionLogRecord;
-import com.cpf.core.common.logging.policy.LogPolicyDecision;
+import com.cpf.core.api.logging.policy.LogPolicyDecision;
 import com.cpf.core.mapper.common.logging.TransactionLogMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

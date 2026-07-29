@@ -1,0 +1,21 @@
+# Member 주제영역 공통 설정입니다.
+cpf:
+  db:
+    # Vendor 선택은 Java 업무 Source가 아니라 SQL/Mapper resource 경로만 변경합니다.
+    vendor: ${MBR_DATABASE_VENDOR:mariadb}
+  framework:
+    module-id: ${MBR_MODULE_ID:MBR}
+  member:
+    datasource:
+      mode: ${MBR_DATASOURCE_MODE:url}
+      jndi-name: ${MBR_DATASOURCE_JNDI_NAME:java:comp/env/jdbc/cpfMemberDataSource}
+      database-name: ${MBR_DATABASE_NAME:mbrDB}
+      url: '${MBR_DATASOURCE_URL:}'
+      driver-class-name: ${MBR_DATASOURCE_DRIVER_CLASS_NAME:}
+      username: ${MBR_DATASOURCE_USERNAME:cpf_member_app}
+      password: ${MBR_DATASOURCE_PASSWORD:}
+    sample-item:
+      mode: ${MBR_SAMPLE_ITEM_MODE:local}
+  logging:
+    file:
+      file-pattern: "cpf-{moduleCode}-{logType}-{instanceId}.{date}.log"

@@ -2,9 +2,7 @@
 -- vendor=oracle
 -- DO NOT EDIT generated DDL directly.
 
-
 -- CPF_LOGICAL_DATABASE=cmnDB
--- CPF_USE_LOGICAL_DATABASE=cmnDB
 CREATE TABLE cmn_business_calendar_day (
     calendar_id VARCHAR2(50 CHAR) NOT NULL,
     business_date DATE NOT NULL,
@@ -17,7 +15,7 @@ CREATE TABLE cmn_business_calendar_day (
     created_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     updated_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'SYSTEM',
     updated_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    PRIMARY KEY (calendar_id, business_date),
+    CONSTRAINT pk_cmn_business_calendar_day PRIMARY KEY (calendar_id, business_date),
     CONSTRAINT ck_cmn_business_calendar_day_yn CHECK (business_day_yn IN ('Y','N')),
     CONSTRAINT ck_cmn_business_calendar_version CHECK (version_no > 0)
 );
@@ -35,12 +33,7 @@ COMMENT ON COLUMN cmn_business_calendar_day.created_by IS '등록자';
 COMMENT ON COLUMN cmn_business_calendar_day.created_at IS '등록 시각';
 COMMENT ON COLUMN cmn_business_calendar_day.updated_by IS '수정자';
 COMMENT ON COLUMN cmn_business_calendar_day.updated_at IS '수정 시각';
-CREATE OR REPLACE TRIGGER trg_cmn_business_calendar_day_touch
-BEFORE UPDATE ON cmn_business_calendar_day
-FOR EACH ROW
-BEGIN
-    :NEW.updated_at := CURRENT_TIMESTAMP;
-END;
+CREATE OR REPLACE TRIGGER trg_touch_cmn_business_calendar_day BEFORE UPDATE ON cmn_business_calendar_day FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
 /
 
 CREATE TABLE cmn_sample_item (
@@ -58,7 +51,7 @@ CREATE TABLE cmn_sample_item (
     created_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     updated_by VARCHAR2(100 CHAR) NOT NULL,
     updated_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    PRIMARY KEY (sample_item_id),
+    CONSTRAINT pk_cmn_sample_item PRIMARY KEY (sample_item_id),
     CONSTRAINT uk_cmn_sample_item_key UNIQUE (sample_key),
     CONSTRAINT ck_cmn_sample_item_status CHECK (status_code IN ('ACTIVE', 'INACTIVE')),
     CONSTRAINT ck_cmn_sample_item_version CHECK (version_no >= 0),
@@ -82,10 +75,5 @@ COMMENT ON COLUMN cmn_sample_item.created_by IS '등록자';
 COMMENT ON COLUMN cmn_sample_item.created_at IS '등록일시';
 COMMENT ON COLUMN cmn_sample_item.updated_by IS '수정자';
 COMMENT ON COLUMN cmn_sample_item.updated_at IS '수정일시';
-CREATE OR REPLACE TRIGGER trg_cmn_sample_item_touch
-BEFORE UPDATE ON cmn_sample_item
-FOR EACH ROW
-BEGIN
-    :NEW.updated_at := CURRENT_TIMESTAMP;
-END;
+CREATE OR REPLACE TRIGGER trg_touch_cmn_sample_item BEFORE UPDATE ON cmn_sample_item FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
 /

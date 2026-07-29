@@ -32,6 +32,7 @@ dependencies {
 
 	// 주제영역 간 HTTP 호출과 거래 헤더 전파에 사용합니다.
 	api 'org.springframework.boot:spring-boot-starter-webflux'
+	api 'org.springframework.boot:spring-boot-restclient'
 
 	// Kafka와 RabbitMQ의 실제 client adapter는 프레임워크 broker port 구현인 CPF가 소유합니다.
 	api 'org.springframework.kafka:spring-kafka'

@@ -3,7 +3,7 @@ package com.cpf.common.mqe.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.cpf.core.common.exception.CpfSystemException;
+import com.cpf.core.api.error.CpfSystemException;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -41,4 +41,3 @@ public class CmnMessageCodec {
         });
     }
 }
-

@@ -1,5 +1,7 @@
 package com.cpf.core.common.execution;
 
+import com.cpf.core.api.execution.CpfExecutionCatalogPort;
+import com.cpf.core.api.execution.CpfExecutionDefinition;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.mock.env.MockEnvironment;

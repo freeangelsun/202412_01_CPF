@@ -3,9 +3,9 @@ package com.cpf.batch.control.retention;
 import com.cpf.core.api.retention.CpfRetentionCommand;
 import com.cpf.core.api.retention.CpfRetentionResult;
 import com.cpf.core.spi.retention.CpfRetentionTargetHandler;
-import com.cpf.core.common.database.CpfVendorSqlCatalog;
+import com.cpf.core.api.database.CpfVendorSqlCatalog;
+import com.cpf.core.api.database.CpfVendorSqlCatalogProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,9 +22,9 @@ public class BatOperationLogRetentionHandler implements CpfRetentionTargetHandle
 
     public BatOperationLogRetentionHandler(
             @Qualifier("batJdbcTemplate") JdbcTemplate jdbc,
-            Environment environment) {
+            CpfVendorSqlCatalogProvider sqlCatalogProvider) {
         this.jdbc = jdbc;
-        this.sql = CpfVendorSqlCatalog.create(environment, "bat");
+        this.sql = sqlCatalogProvider.forModule("bat");
     }
     @Override public String target() { return TARGET; }
 

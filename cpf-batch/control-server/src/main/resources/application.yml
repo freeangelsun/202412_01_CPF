@@ -26,6 +26,9 @@ cpf:
     module-id: BAT
     was-id: ${CPF_WAS_ID:cpf-batch-control-server-local-01}
   batch:
+    security:
+      trusted-peer-addresses: ${CPF_BATCH_TRUSTED_PEER_ADDRESSES:}
+      trusted-client-identities: ${CPF_BATCH_TRUSTED_CLIENT_IDENTITIES:}
     control:
       base-url: ${CPF_BATCH_CONTROL_BASE_URL:http://127.0.0.1:8180}
     runtime:

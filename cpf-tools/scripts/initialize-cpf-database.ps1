@@ -8,11 +8,15 @@ param(
     [string[]] $ModuleName = @(),
     [ValidateSet("profile", "product", "none", "all")]
     [string] $SeedMode = "profile",
+    [switch] $ProvisionOnly,
     [switch] $RequireRun
 )
 
 if ($PSVersionTable.PSVersion.Major -lt 7) {
     throw "CPF DB 초기화는 pwsh 7 이상이 필요합니다."
+}
+if ($ProvisionOnly -and -not $RequireRun) {
+    throw "-ProvisionOnly는 실제 Service User/Grant를 반영하므로 -RequireRun이 필요합니다."
 }
 
 $ErrorActionPreference = "Stop"
@@ -159,17 +163,22 @@ if ($selectedVendor -in @('postgresql','oracle')) {
     }
     if ($RequireRun) {
         $moduleArgs = @($selectedKeys)
-        foreach ($mode in @('provision','install')) { & pwsh -NoProfile -ExecutionPolicy Bypass -File $runner -Vendor $selectedVendor -Mode $mode -ProfilePath $ProfilePath -Modules $moduleArgs; if ($LASTEXITCODE -ne 0) { throw "$selectedVendor $mode 실패" } }
-        $effectiveSeedMode = $SeedMode
-        if ($effectiveSeedMode -eq 'profile') { $effectiveSeedMode = 'product' }
-        if ($effectiveSeedMode -in @('product','all')) { & pwsh -NoProfile -ExecutionPolicy Bypass -File $runner -Vendor $selectedVendor -Mode productSeed -ProfilePath $ProfilePath -Modules $moduleArgs; if ($LASTEXITCODE -ne 0) { throw "$selectedVendor productSeed 실패" } }
-        if ($effectiveSeedMode -eq 'all') {
-            foreach ($mode in @('optionalSampleSeed','testSeed')) { & pwsh -NoProfile -ExecutionPolicy Bypass -File $runner -Vendor $selectedVendor -Mode $mode -ProfilePath $ProfilePath -Modules $moduleArgs; if ($LASTEXITCODE -ne 0) { throw "$selectedVendor $mode 실패" } }
+        & pwsh -NoProfile -ExecutionPolicy Bypass -File $runner -Vendor $selectedVendor -Mode provision -ProfilePath $ProfilePath -Modules $moduleArgs
+        if ($LASTEXITCODE -ne 0) { throw "$selectedVendor provision 실패" }
+        if (-not $ProvisionOnly) {
+            & pwsh -NoProfile -ExecutionPolicy Bypass -File $runner -Vendor $selectedVendor -Mode install -ProfilePath $ProfilePath -Modules $moduleArgs
+            if ($LASTEXITCODE -ne 0) { throw "$selectedVendor install 실패" }
+            $effectiveSeedMode = $SeedMode
+            if ($effectiveSeedMode -eq 'profile') { $effectiveSeedMode = 'product' }
+            if ($effectiveSeedMode -in @('product','all')) { & pwsh -NoProfile -ExecutionPolicy Bypass -File $runner -Vendor $selectedVendor -Mode productSeed -ProfilePath $ProfilePath -Modules $moduleArgs; if ($LASTEXITCODE -ne 0) { throw "$selectedVendor productSeed 실패" } }
+            if ($effectiveSeedMode -eq 'all') {
+                foreach ($mode in @('optionalSampleSeed','testSeed')) { & pwsh -NoProfile -ExecutionPolicy Bypass -File $runner -Vendor $selectedVendor -Mode $mode -ProfilePath $ProfilePath -Modules $moduleArgs; if ($LASTEXITCODE -ne 0) { throw "$selectedVendor $mode 실패" } }
+            }
+            & pwsh -NoProfile -ExecutionPolicy Bypass -File $runner -Vendor $selectedVendor -Mode verify -ProfilePath $ProfilePath -Modules $moduleArgs
+            if ($LASTEXITCODE -ne 0) { throw "$selectedVendor verify 실패" }
         }
-        & pwsh -NoProfile -ExecutionPolicy Bypass -File $runner -Vendor $selectedVendor -Mode verify -ProfilePath $ProfilePath -Modules $moduleArgs
-        if ($LASTEXITCODE -ne 0) { throw "$selectedVendor verify 실패" }
     }
-    $summary = [ordered]@{ baselineCommit = ''; vendor = $selectedVendor; modules = $selectedKeys; requireRun = [bool]$RequireRun; status = if ($RequireRun) { '완료' } else { '미검증' }; profile = [IO.Path]::GetFileName($ProfilePath); generatedAt = (Get-Date).ToString('o') }
+    $summary = [ordered]@{ baselineCommit = ''; vendor = $selectedVendor; modules = $selectedKeys; operationMode = if ($ProvisionOnly) { 'provision-only' } else { 'install' }; requireRun = [bool]$RequireRun; status = if ($RequireRun) { '완료' } else { '미검증' }; profile = [IO.Path]::GetFileName($ProfilePath); generatedAt = (Get-Date).ToString('o') }
     $summary | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath (Join-Path $ResultDir 'database-profile-install-result.sanitized.json') -Encoding UTF8
     if (-not $RequireRun) { Write-Host "CPF $selectedVendor lifecycle static validation PASS. 실제 DB 실행은 -RequireRun에서 수행합니다." }
     return
@@ -807,6 +816,7 @@ $result = [ordered]@{
     status = "미검증"
     profilePath = $ProfilePath
     profileName = [string]$profile.profileName
+    operationMode = if ($ProvisionOnly) { "provision-only" } else { "install" }
     seedMode = $SeedMode
     selectedModules = $selectedKeys
     generatedDomainTransitions = @($generatedProfileKeys | ForEach-Object {
@@ -877,6 +887,26 @@ FLUSH PRIVILEGES;
 "@
         if ($RequireRun) {
             [void](Invoke-MariaText $t $t.adminUsername $t.adminPassword $provisionSql)
+            if ($ProvisionOnly) {
+                Test-MariaConnection $t $t.migrationUsername $t.migrationPassword
+                Test-MariaConnection $t $t.runtimeUsername $t.runtimePassword
+                Write-Host "[$key] provision-only service-user/grant connection=PASS"
+                $result.modules[$key] = [ordered]@{
+                    status = "완료"
+                    operationMode = "provision-only"
+                    vendor = $t.vendor
+                    host = $t.host
+                    port = $t.port
+                    databaseName = $t.databaseName
+                    schemaName = $t.schemaName
+                    domainName = $t.domainName
+                    systemCode = $t.systemCode
+                    moduleName = $t.moduleName
+                    migrationUsername = $t.migrationUsername
+                    runtimeUsername = $t.runtimeUsername
+                }
+                continue
+            }
 
             $actualBeforeText = Invoke-MariaText $t $t.adminUsername $t.adminPassword @"
 SELECT table_name
@@ -970,7 +1000,7 @@ ORDER BY table_name;
         }
     }
 
-    if ($RequireRun -and $moduleProfiles[$coreKey].enabled) {
+    if ($RequireRun -and -not $ProvisionOnly -and $moduleProfiles[$coreKey].enabled) {
         $core = $moduleProfiles[$coreKey]
         $baselineTableText = Invoke-MariaText $core $core.adminUsername $core.adminPassword @"
 SELECT COUNT(*)
@@ -1005,7 +1035,7 @@ ON DUPLICATE KEY UPDATE
         }
     }
 
-    if ($RequireRun -and $fullPlatformSelection) {
+    if ($RequireRun -and -not $ProvisionOnly -and $fullPlatformSelection) {
         $core = $moduleProfiles[$coreKey]
         $verifySql = Get-Content -LiteralPath $verifyFile -Raw -Encoding UTF8
         if ([string]::IsNullOrWhiteSpace($verifySql)) {
@@ -1045,7 +1075,7 @@ ON DUPLICATE KEY UPDATE
         }
         $result.verify.status = "완료"
         Write-Host "MariaDB canonical verify=PASS checks=$($verifyRows.Count)"
-    } elseif ($RequireRun) {
+    } elseif ($RequireRun -and -not $ProvisionOnly) {
         $result.verify.reason = if ($generatedProfileKeys.Count -gt 0) {
             "Generated Domain legacy section retirement 전에는 Platform Full Verify Pack을 실행하지 않습니다."
         } else {
@@ -1069,6 +1099,8 @@ finally {
 
 if (-not $RequireRun) {
     Write-Host "CPF DB Profile plan 검증 완료. 실제 DB는 변경하지 않았습니다."
+} elseif ($ProvisionOnly) {
+    Write-Host "CPF DB Profile 기반 Service User/Grant Provision 완료."
 } else {
     Write-Host "CPF DB Profile 기반 설치/검증 완료."
 }

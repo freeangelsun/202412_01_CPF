@@ -1,13 +1,149 @@
 package com.cpf.admin.opr.centercut;
+
+import com.cpf.admin.opr.context.AdmAuthenticatedOperatorContext;
 import com.cpf.core.api.batch.CpfBatchOwnerUnknownResultException;
 import com.cpf.core.api.batch.CpfCenterCutOperationsPort;
-import com.cpf.core.common.servicecall.*;
+import com.cpf.core.api.servicecall.CpfServiceCaller;
+import com.cpf.core.api.servicecall.CpfServiceRequest;
+import com.cpf.core.api.servicecall.CpfServiceResult;
+import com.cpf.core.api.util.CpfHeaders;
 import org.springframework.web.reactive.function.client.WebClient;
-import java.util.*;
+
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+/** 분리 WAS topology에서 ADM이 BAT Center-Cut Owner 조회 계약을 호출합니다. */
 public class RemoteCpfCenterCutOperationsAdapter implements CpfCenterCutOperationsPort {
- private final CpfServiceCallEngine engine;private final WebClient web;
- public RemoteCpfCenterCutOperationsAdapter(CpfServiceCallEngine e,WebClient.Builder b){engine=e;web=b.build();}
- private Object call(String op,Map<String,Object> payload){String path="/bat/internal/center-cut/"+op;ServiceCallRequest q=ServiceCallRequest.builder("BAT").endpointCode("SBATCT0001").httpMethod("POST").requestPath(path).attribute("ownerDomain","BAT").attribute("callerDomain","ADM").build();ServiceCallResult<Object> r=engine.invoke(q,t->web.post().uri(join(t.baseUrl(),path)).bodyValue(payload==null?Map.of():payload).retrieve().bodyToMono(Object.class).block());if("UNKNOWN".equals(r.status()))throw new CpfBatchOwnerUnknownResultException(r.failureCode(),"BAT Center-Cut 결과불명: "+r.failureMessage());if(!"SUCCESS".equals(r.status()))throw new IllegalStateException("BAT Center-Cut 호출 실패: "+r.failureMessage());return r.responseBody();}
- private static String join(String b,String p){if(b==null||b.isBlank())throw new IllegalStateException("BAT baseUrl missing");return b.endsWith("/")?b.substring(0,b.length()-1)+p:b+p;}private static Map<String,Object> p(Object...k){LinkedHashMap<String,Object>m=new LinkedHashMap<>();for(int i=0;i<k.length;i+=2)if(k[i+1]!=null)m.put(String.valueOf(k[i]),k[i+1]);return m;}@SuppressWarnings("unchecked")private static List<Map<String,Object>> l(Object o){return o==null?List.of():(List<Map<String,Object>>)o;}@SuppressWarnings("unchecked")private static Map<String,Object> m(Object o){return o==null?Map.of():(Map<String,Object>)o;}
- public List<Map<String,Object>> findJobs(){return l(call("findJobs",Map.of()));}public Map<String,Object> findJobDetail(String id){return m(call("findJobDetail",p("centerCutJobId",id)));}public List<Map<String,Object>> findParameters(String id){return l(call("findParameters",p("centerCutJobId",id)));}public Map<String,Object> findSummary(String id){return m(call("findSummary",p("centerCutJobId",id)));}public List<Map<String,Object>> findTargets(String id,String st,int limit){return l(call("findTargets",p("centerCutJobId",id,"statusCode",st,"limit",limit)));}public List<Map<String,Object>> findResults(String id,String st,int limit){return l(call("findResults",p("centerCutJobId",id,"resultStatus",st,"limit",limit)));}public Map<String,Object> findResultDetail(String id){return m(call("findResultDetail",p("resultId",id)));}
+    private static final String SERVICE_ID = "BAT";
+    private static final String ENDPOINT_CODE = "SBATCT0001";
+    private static final String CALLER_SERVICE = "ADM";
+
+    private final CpfServiceCaller serviceCaller;
+    private final WebClient webClient;
+    private final AdmAuthenticatedOperatorContext operatorContext;
+    private final String callerInstanceId;
+
+    public RemoteCpfCenterCutOperationsAdapter(
+            CpfServiceCaller serviceCaller,
+            WebClient.Builder webClientBuilder,
+            AdmAuthenticatedOperatorContext operatorContext,
+            String callerInstanceId) {
+        this.serviceCaller = serviceCaller;
+        this.webClient = webClientBuilder.build();
+        this.operatorContext = operatorContext;
+        this.callerInstanceId = requireText(callerInstanceId, "callerInstanceId");
+    }
+
+    private Object call(String operation, Map<String, Object> payload) {
+        String operatorId = requireText(operatorContext.currentOperatorId(), "operatorId");
+        String path = "/bat/internal/center-cut/" + operation;
+        CpfServiceRequest request = CpfServiceRequest.builder(SERVICE_ID)
+                .endpointCode(ENDPOINT_CODE)
+                .httpMethod("POST")
+                .requestPath(path)
+                .header(CpfHeaders.callerService(), CALLER_SERVICE)
+                .header(CpfHeaders.callerInstanceId(), callerInstanceId)
+                .header(CpfHeaders.operatorId(), operatorId)
+                .attribute("ownerDomain", "BAT")
+                .attribute("callerDomain", "ADM")
+                .build();
+        CpfServiceResult<Object> result = serviceCaller.invoke(
+                request,
+                target -> webClient.post()
+                        .uri(join(target.baseUrl(), path))
+                        .headers(headers -> {
+                            headers.set(CpfHeaders.callerService(), CALLER_SERVICE);
+                            headers.set(CpfHeaders.callerInstanceId(), callerInstanceId);
+                            headers.set(CpfHeaders.operatorId(), operatorId);
+                        })
+                        .bodyValue(payload == null ? Map.of() : payload)
+                        .retrieve()
+                        .bodyToMono(Object.class)
+                        .block());
+        if (result.unknown()) {
+            throw new CpfBatchOwnerUnknownResultException(
+                    result.failureCode(),
+                    "BAT Center-Cut 결과불명: " + result.failureMessage());
+        }
+        if (!"SUCCESS".equals(result.status())) {
+            throw new IllegalStateException("BAT Center-Cut 호출 실패: " + result.failureMessage());
+        }
+        return result.responseBody();
+    }
+
+    private static String join(String baseUrl, String path) {
+        if (baseUrl == null || baseUrl.isBlank()) {
+            throw new IllegalStateException("BAT baseUrl missing");
+        }
+        return baseUrl.endsWith("/")
+                ? baseUrl.substring(0, baseUrl.length() - 1) + path
+                : baseUrl + path;
+    }
+
+    private static String requireText(String value, String field) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalStateException(field + " is required");
+        }
+        return value.trim();
+    }
+
+    private static Map<String, Object> parameters(Object... pairs) {
+        LinkedHashMap<String, Object> values = new LinkedHashMap<>();
+        for (int index = 0; index < pairs.length; index += 2) {
+            if (pairs[index + 1] != null) {
+                values.put(String.valueOf(pairs[index]), pairs[index + 1]);
+            }
+        }
+        return values;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<Map<String, Object>> list(Object value) {
+        return value == null ? List.of() : (List<Map<String, Object>>) value;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> map(Object value) {
+        return value == null ? Map.of() : (Map<String, Object>) value;
+    }
+
+    @Override
+    public List<Map<String, Object>> findJobs() {
+        return list(call("findJobs", Map.of()));
+    }
+
+    @Override
+    public Map<String, Object> findJobDetail(String centerCutJobId) {
+        return map(call("findJobDetail", parameters("centerCutJobId", centerCutJobId)));
+    }
+
+    @Override
+    public List<Map<String, Object>> findParameters(String centerCutJobId) {
+        return list(call("findParameters", parameters("centerCutJobId", centerCutJobId)));
+    }
+
+    @Override
+    public Map<String, Object> findSummary(String centerCutJobId) {
+        return map(call("findSummary", parameters("centerCutJobId", centerCutJobId)));
+    }
+
+    @Override
+    public List<Map<String, Object>> findTargets(String centerCutJobId, String statusCode, int limit) {
+        return list(call(
+                "findTargets",
+                parameters("centerCutJobId", centerCutJobId, "statusCode", statusCode, "limit", limit)));
+    }
+
+    @Override
+    public List<Map<String, Object>> findResults(String centerCutJobId, String resultStatus, int limit) {
+        return list(call(
+                "findResults",
+                parameters("centerCutJobId", centerCutJobId, "resultStatus", resultStatus, "limit", limit)));
+    }
+
+    @Override
+    public Map<String, Object> findResultDetail(String resultId) {
+        return map(call("findResultDetail", parameters("resultId", resultId)));
+    }
 }

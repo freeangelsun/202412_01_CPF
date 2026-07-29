@@ -1,6 +1,6 @@
 package com.cpf.core.channel.model;
 
-import com.cpf.core.common.execution.CpfStandardExecutionId;
+import com.cpf.core.api.execution.CpfStandardExecutionId;
 
 import java.time.Instant;
 import java.util.Locale;

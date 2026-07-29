@@ -1,6 +1,6 @@
 param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..\..").Path,
-    [string[]] $Modules = @("MBR", "ADM", "BZA", "REF", "BAT"),
+    [string[]] $Modules = @("ADM", "BAT", "BZA", "REF", "GWY"),
     [string] $ResultDir = "",
     [switch] $NoExitOnFailure
 )
@@ -21,7 +21,7 @@ $ResultDir = Get-CpfRuntimeResultDir -Root $Root -ResultDir $ResultDir
 New-Item -ItemType Directory -Force -Path $ResultDir | Out-Null
 
 $resultPath = Join-Path $ResultDir "packaged-runtime-resource-check.sanitized.json"
-$selectedModules = Resolve-CpfRuntimeModules -Modules $Modules
+$selectedModules = Resolve-CpfRuntimeModules -Modules $Modules -Root $Root
 $textExtensions = @(".xml", ".yml", ".yaml", ".properties")
 $forbiddenPatterns = @("D:/logs", "D:\logs", "C:/logs", "C:\logs")
 $result = [ordered]@{
@@ -68,7 +68,7 @@ function Add-ArchiveTextEntries {
             continue
         }
 
-        if ($NestedDepth -lt 1 -and $entry.FullName -match 'BOOT-INF/lib/cpf-(core|common|member|admin|biz-admin|reference|batch|account|external|gateway)-.*\.jar$') {
+        if ($NestedDepth -lt 1 -and $entry.FullName -match 'BOOT-INF/lib/cpf-[A-Za-z0-9._-]+-.*\.jar$') {
             $memory = [System.IO.MemoryStream]::new()
             try {
                 $entryStream = $entry.Open()
@@ -145,10 +145,17 @@ foreach ($module in $selectedModules) {
     }
 
     $requiredMarkers = @(
-        [ordered]@{ name = "module-port-env"; text = $module.portEnv },
         [ordered]@{ name = "logging-root-contract"; text = "CPF_LOG_ROOT" },
         [ordered]@{ name = "logging-module-path"; text = "cpf.logging.runtime-module-path" }
     )
+    if ([bool] $module.generatedDomain) {
+        $requiredMarkers += @(
+            [ordered]@{ name = "generated-project-identity"; text = $module.projectName },
+            [ordered]@{ name = "generated-module-identity"; text = $module.module }
+        )
+    } else {
+        $requiredMarkers += [ordered]@{ name = "module-port-env"; text = $module.portEnv }
+    }
 
     foreach ($marker in $requiredMarkers) {
         $found = $combinedText.IndexOf([string] $marker.text, [System.StringComparison]::OrdinalIgnoreCase) -ge 0

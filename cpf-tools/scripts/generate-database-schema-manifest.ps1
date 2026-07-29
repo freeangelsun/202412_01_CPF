@@ -384,8 +384,24 @@ foreach ($table in $tables) {
     }
 }
 
-if (@($tables | Where-Object { $_.logicalDatabase -eq "exsDB" -or $_.tableName -like "exs_*" }).Count -gt 0) {
-    throw "EXS는 Generated Domain이므로 Platform canonical schema에 exsDB/exs_* Object가 존재할 수 없습니다."
+$profilePath = Join-Path $Root "cpf-tools/config/database-install.default.json"
+$profile = Get-Content -LiteralPath $profilePath -Raw -Encoding UTF8 | ConvertFrom-Json
+$expectedLogicalDatabases = @(
+    $profile.modules.PSObject.Properties |
+        Where-Object { [bool]$_.Value.enabled } |
+        ForEach-Object { [string]$_.Value.logicalDatabase } |
+        Sort-Object -Unique
+)
+$actualLogicalDatabases = @(
+    $tables |
+        ForEach-Object { [string]$_.logicalDatabase } |
+        Sort-Object -Unique
+)
+$logicalDatabaseDifference = @(
+    Compare-Object -ReferenceObject $expectedLogicalDatabases -DifferenceObject $actualLogicalDatabases
+)
+if ($logicalDatabaseDifference.Count -gt 0) {
+    throw "Platform Schema logical DB 집합이 enabled Profile과 다릅니다: $($logicalDatabaseDifference | ConvertTo-Json -Compress)"
 }
 
 $manifest = [ordered]@{

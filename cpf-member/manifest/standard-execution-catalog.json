@@ -1,0 +1,18 @@
+[
+  {
+    "standardExecutionId": "OMBRQY0001",
+    "executionType": "ONLINE",
+    "ownerDomain": "MBR",
+    "sourceModule": "MBR",
+    "sourceClass": "com.cpf.member.sampleitem.controller.MemberController",
+    "enabled": true
+  },
+  {
+    "standardExecutionId": "BMBRTS0001",
+    "executionType": "BATCH",
+    "ownerDomain": "MBR",
+    "sourceModule": "MBR",
+    "sourceClass": "com.cpf.member.sampleitem.batch.MemberBatchConfig",
+    "enabled": false
+  }
+]

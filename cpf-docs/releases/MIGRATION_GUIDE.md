@@ -98,6 +98,41 @@ cpf-external    com.cpf.external
 - progress
 - rollback
 
+### Platform DB 실행 계약
+
+플랫폼 DB Upgrade/Rollback은
+`cpf-tools/scripts/invoke-platform-database-migration.ps1`를 사용한다. 실행기는
+Profile의 Module 선언과 중앙 MariaDB/PostgreSQL/Oracle Vendor Pack을 소비하며 특정
+Domain/SystemCode 목록을 하드코딩하지 않는다. SQL의 logical DB는 선택 Profile의
+physical database/schema로 렌더링된다.
+
+자동 baseline/latest 탐색은 금지한다. Flyway history가 없는 기존 DB도 임의 Version으로
+간주하지 않고 다음 중 하나가 없으면 fail-closed한다.
+
+- `-FromVersion/-ToVersion`
+- `-MigrationVersion`
+
+먼저 기본 Dry-run 결과의 migration/rollback/rendered SQL과 `planSha256`를 검토한다.
+실제 Apply는 `-ConfirmApply`, `-ConfirmApplicationsStopped`,
+`-ConfirmRollbackReady`, 동일 `-ExpectedPlanSha256`, 대상 DB별
+`-BackupManifestPath`가 모두 있어야 한다. Password는 Profile이 가리키는 process
+environment에서만 읽고 명령행이나 sanitized result에 넣지 않는다.
+
+```powershell
+# Upgrade plan
+pwsh -File .\cpf-tools\scripts\invoke-platform-database-migration.ps1 `
+  -Direction upgrade -FromVersion 72 -ToVersion 73 -Modules batch
+
+# Rollback plan
+pwsh -File .\cpf-tools\scripts\invoke-platform-database-migration.ps1 `
+  -Direction rollback -FromVersion 73 -ToVersion 72 -Modules batch
+```
+
+`checksums.sha256` mismatch, 대응 Rollback 누락, backup hash/coverage 누락, plan SHA
+변경은 DB 연결 전에 실패한다. MariaDB historical SQL에 logical DB routing이 없으면
+table prefix로 소유 DB를 추정하지 않는다. 이미 적용된 historical migration은 고치지 않고
+canonical metadata 기반의 새 bridge migration이나 명시 routing 계약을 추가한다.
+
 ## 6. Configuration Migration
 
 모든 변경은 다음을 제공합니다.

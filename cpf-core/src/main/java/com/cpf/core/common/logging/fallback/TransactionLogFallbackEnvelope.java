@@ -1,7 +1,7 @@
 package com.cpf.core.common.logging.fallback;
 
 import com.cpf.core.common.logging.TransactionLogRecord;
-import com.cpf.core.common.logging.policy.LogPolicyDecision;
+import com.cpf.core.api.logging.policy.LogPolicyDecision;
 
 import java.time.Instant;
 import java.util.Map;

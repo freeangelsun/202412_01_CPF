@@ -4,10 +4,16 @@ param(
 )
 $ErrorActionPreference = "Stop"
 . (Join-Path $PSScriptRoot "database-profile-common.ps1")
+$supportedVendors = @(Get-CpfSupportedDatabaseVendors)
 if ([string]::IsNullOrWhiteSpace($ProfilePath)) {
     $ProfilePath = Join-Path $Root "cpf-tools/config/database-install.default.json"
 }
 $profile = Get-CpfDatabaseProfile $ProfilePath
+if (@(Compare-Object `
+            @($profile.supportedVendors | Sort-Object -Unique) `
+            @($supportedVendors | Sort-Object -Unique)).Count -ne 0) {
+    throw "Default DB Profile supportedVendors가 중앙 Vendor manifest와 일치하지 않습니다."
+}
 $keys = @($profile.modules.PSObject.Properties | ForEach-Object { [string]$_.Name })
 if ($keys.Count -eq 0) {
     throw "Default DB Profile modules가 비어 있습니다."
@@ -28,6 +34,11 @@ if (-not (Test-Path -LiteralPath $productionProfilePath -PathType Leaf)) {
 }
 $productionProfile = Get-Content -LiteralPath $productionProfilePath -Raw -Encoding UTF8 |
     ConvertFrom-Json -Depth 50
+if (@(Compare-Object `
+            @($productionProfile.supportedVendors | Sort-Object -Unique) `
+            @($supportedVendors | Sort-Object -Unique)).Count -ne 0) {
+    throw "Production DB Profile supportedVendors가 중앙 Vendor manifest와 일치하지 않습니다."
+}
 $productionKeys = @($productionProfile.modules.PSObject.Properties | ForEach-Object { [string]$_.Name })
 if (@(Compare-Object $keys $productionKeys).Count -ne 0) {
     throw "Default/Production DB Profile module metadata가 일치하지 않습니다."
@@ -53,7 +64,80 @@ $moduleDuplicates = @($targets | Group-Object moduleName | Where-Object Count -g
 if ($moduleDuplicates.Count -gt 0) {
     throw "moduleName 중복: $((($moduleDuplicates | ForEach-Object Name) -join ', '))"
 }
-foreach ($vendor in @("mariadb","mysql","postgresql","oracle","sqlserver")) {
+
+# Current Platform Seed/Provision is derived only from the install profile.
+# Historical migration paths are intentionally outside this current-state gate.
+$platformSystemCodes = @($targets.systemCode | ForEach-Object {
+        ([string] $_).ToUpperInvariant()
+    } | Sort-Object -Unique)
+$platformLogicalDatabases = @($targets.logicalDatabase | ForEach-Object {
+        [string] $_
+    } | Sort-Object -Unique)
+$canonicalSeedPath = Join-Path $Root "cpf-tools/db/canonical/seed-model.json"
+$canonicalSeed = Get-Content -LiteralPath $canonicalSeedPath -Raw -Encoding UTF8 |
+    ConvertFrom-Json -Depth 100
+$canonicalSeedText = @($canonicalSeed.statements | ForEach-Object {
+        if ($_.PSObject.Properties["source"]) { [string] $_.source }
+        if ($_.PSObject.Properties["expression"]) { [string] $_.expression }
+    }) -join "`n"
+$seedModuleCodes = @(
+    [regex]::Matches($canonicalSeedText, "'MODULE'\s*,\s*'([A-Z]{3})'") |
+        ForEach-Object { $_.Groups[1].Value } |
+        Sort-Object -Unique
+)
+if (@(Compare-Object $platformSystemCodes $seedModuleCodes).Count -ne 0) {
+    throw "Canonical Product Seed MODULE code가 Platform Profile과 다릅니다: profile=$($platformSystemCodes -join ',') seed=$($seedModuleCodes -join ',')"
+}
+$seedOwnedCodes = @(
+    [regex]::Matches($canonicalSeedText, "'(?:M|[SEW])([A-Z]{3})\d{4,}'") |
+        ForEach-Object { $_.Groups[1].Value } |
+        Sort-Object -Unique
+)
+$nonPlatformSeedCodes = @($seedOwnedCodes | Where-Object {
+        $_ -notin $platformSystemCodes
+    })
+if ($nonPlatformSeedCodes.Count -gt 0) {
+    throw "Canonical Product Seed에 Generated/비Platform SystemCode 메시지·응답이 고정되어 있습니다: $($nonPlatformSeedCodes -join ',')"
+}
+
+$metadataCatalog = Get-Content -LiteralPath (
+    Join-Path $Root "cpf-tools/db/metadata/default-metadata-catalog.json"
+) -Raw -Encoding UTF8 | ConvertFrom-Json -Depth 30
+$metadataModuleCodes = @($metadataCatalog.codeGroups.MODULE | ForEach-Object {
+        ([string] $_).ToUpperInvariant()
+    } | Sort-Object -Unique)
+if (@(Compare-Object $platformSystemCodes $metadataModuleCodes).Count -ne 0) {
+    throw "Default Metadata MODULE code가 Platform Profile과 다릅니다."
+}
+
+$provisionContracts = [ordered]@{
+    mariadb = [pscustomobject]@{
+        path = "cpf-tools/db/vendor/mariadb/source/01_create_databases.sql"
+        pattern = "(?im)^\s*CREATE\s+DATABASE\s+IF\s+NOT\s+EXISTS\s+([A-Za-z][A-Za-z0-9_$#]*)"
+    }
+    postgresql = [pscustomobject]@{
+        path = "cpf-tools/db/vendor/postgresql/source/00_provision.sql"
+        pattern = "(?im)^\s*--\s*CPF_LOGICAL_DATABASE=([A-Za-z][A-Za-z0-9_$#]*)\s*$"
+    }
+    oracle = [pscustomobject]@{
+        path = "cpf-tools/db/vendor/oracle/source/00_provision.sql"
+        pattern = "(?im)^\s*--\s*CPF_LOGICAL_DATABASE=([A-Za-z][A-Za-z0-9_$#]*)\s*$"
+    }
+}
+foreach ($vendorProperty in $provisionContracts.GetEnumerator()) {
+    $contract = $vendorProperty.Value
+    $provisionText = Get-Content -LiteralPath (Join-Path $Root $contract.path) -Raw -Encoding UTF8
+    $provisionDatabases = @(
+        [regex]::Matches($provisionText, [string] $contract.pattern) |
+            ForEach-Object { $_.Groups[1].Value } |
+            Sort-Object -Unique
+    )
+    if (@(Compare-Object $platformLogicalDatabases $provisionDatabases).Count -ne 0) {
+        throw "Vendor Provision DB/Schema가 Platform Profile과 다릅니다: vendor=$($vendorProperty.Key) expected=$($platformLogicalDatabases -join ',') actual=$($provisionDatabases -join ',')"
+    }
+}
+
+foreach ($vendor in $supportedVendors) {
     $rootPath = Join-Path $Root "cpf-tools/db/vendor/$vendor/domain-template"
     foreach ($rel in @(
         "provision/01_provision.sql.template",
@@ -274,9 +358,20 @@ if (-not (Test-Path -LiteralPath $coveragePath -PathType Leaf)) {
     throw "DB Vendor coverage manifest가 없습니다."
 }
 $coverage = Get-Content -LiteralPath $coveragePath -Raw -Encoding UTF8 | ConvertFrom-Json -Depth 20
-foreach ($vendor in @("mariadb","mysql","postgresql","oracle","sqlserver")) {
+$coverageVendors = @($coverage.platform.PSObject.Properties.Name | Sort-Object -Unique)
+$generatedCoverageVendors = @($coverage.generatedDomain.PSObject.Properties.Name | Sort-Object -Unique)
+if (@(Compare-Object `
+            @($supportedVendors | Sort-Object -Unique) `
+            $coverageVendors).Count -ne 0 -or
+        @(Compare-Object `
+            @($supportedVendors | Sort-Object -Unique) `
+            $generatedCoverageVendors).Count -ne 0) {
+    throw "DB Vendor coverage 목록이 중앙 Vendor manifest와 일치하지 않습니다."
+}
+foreach ($vendor in $supportedVendors) {
     $expectedSourceRoot = "cpf-tools/db/vendor/$vendor/source"
-    $coverageEntry = $coverage.platform.PSObject.Properties[$vendor].Value
+    $coverageProperty = $coverage.platform.PSObject.Properties[$vendor]
+    $coverageEntry = if ($null -eq $coverageProperty) { $null } else { $coverageProperty.Value }
     if ($null -eq $coverageEntry -or [string]$coverageEntry.sourceRoot -ne $expectedSourceRoot) {
         throw "DB Vendor source ownership manifest 불일치: vendor=$vendor expected=$expectedSourceRoot"
     }
@@ -284,13 +379,22 @@ foreach ($vendor in @("mariadb","mysql","postgresql","oracle","sqlserver")) {
     if (-not (Test-Path -LiteralPath $sourceRootPath -PathType Container)) {
         throw "DB Vendor source ownership directory 누락: $expectedSourceRoot"
     }
-    if ($vendor -eq "mariadb") {
-        if ([string]$coverageEntry.sourceStatus -ne "implemented" -or
+    if ([string]$coverageEntry.ddl -ne "implemented" -or
+            [string]$coverageEntry.runtimeSql -ne "implemented" -or
+            [string]$coverageEntry.sourceStatus -ne "implemented" -or
             -not (Test-Path -LiteralPath (Join-Path $sourceRootPath "10_cpf_schema.sql") -PathType Leaf)) {
-            throw "MariaDB Platform source는 implemented 상태와 실제 split DDL을 모두 가져야 합니다."
-        }
-    } elseif ([string]$coverageEntry.sourceStatus -ne "not-implemented") {
-        throw "미구현 Platform Vendor는 명시적 not-implemented/fail-closed 상태여야 합니다: $vendor"
+        throw "공식 DB Vendor Platform source/runtime coverage가 구현 상태가 아닙니다: vendor=$vendor"
+    }
+    $generatedCoverageProperty = $coverage.generatedDomain.PSObject.Properties[$vendor]
+    $generatedCoverageEntry = if ($null -eq $generatedCoverageProperty) {
+        $null
+    } else {
+        $generatedCoverageProperty.Value
+    }
+    if ($null -eq $generatedCoverageEntry -or
+            [string]$generatedCoverageEntry.ddlTemplate -ne "implemented" -or
+            [string]$generatedCoverageEntry.mybatisTemplate -ne "implemented") {
+        throw "공식 DB Vendor Generated Domain coverage가 구현 상태가 아닙니다: vendor=$vendor"
     }
 }
 

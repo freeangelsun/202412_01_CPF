@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.cpf.core.common.logging.SensitiveDataMasker;
 import com.cpf.core.common.logging.TransactionLogRecord;
 import com.cpf.core.common.logging.file.CpfFileLogWriter;
-import com.cpf.core.common.logging.policy.LogPolicyDecision;
+import com.cpf.core.api.logging.policy.LogPolicyDecision;
 import org.springframework.core.env.Environment;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

@@ -50,19 +50,8 @@ function Get-CpfRuntimeResultDir {
     return $ResultDir
 }
 
-function Get-CpfRuntimeModuleMap {
+function Get-CpfRuntimePlatformModuleMap {
     return @(
-        [ordered]@{
-            module = "MBR"
-            moduleLower = "mbr"
-            projectName = "cpf-member"
-            wasId = "mbrAP01"
-            port = 8081
-            portEnv = "MBR_SERVER_PORT"
-            healthPath = "/v3/api-docs"
-            jarDir = "cpf-member/build/libs"
-            jarPattern = "cpf-member-*.jar"
-        },
         [ordered]@{
             module = "ADM"
             moduleLower = "adm"
@@ -73,6 +62,8 @@ function Get-CpfRuntimeModuleMap {
             healthPath = "/adm/api/health/readiness"
             jarDir = "cpf-admin/build/libs"
             jarPattern = "cpf-admin-*.jar"
+            openApi = $true
+            generatedDomain = $false
         },
         [ordered]@{
             module = "BAT"
@@ -84,17 +75,8 @@ function Get-CpfRuntimeModuleMap {
             healthPath = "/actuator/health/readiness"
             jarDir = "cpf-batch/control-server/build/libs"
             jarPattern = "cpf-batch-control-server-*.jar"
-        },
-        [ordered]@{
-            module = "ACC"
-            moduleLower = "acc"
-            projectName = "cpf-account"
-            wasId = "accLC01"
-            port = 8082
-            portEnv = "ACC_SERVER_PORT"
-            healthPath = "/actuator/health"
-            jarDir = "cpf-account/build/libs"
-            jarPattern = "cpf-account-*.jar"
+            openApi = $false
+            generatedDomain = $false
         },
         [ordered]@{
             module = "BZA"
@@ -106,6 +88,8 @@ function Get-CpfRuntimeModuleMap {
             healthPath = "/actuator/health/readiness"
             jarDir = "cpf-biz-admin/build/libs"
             jarPattern = "cpf-biz-admin-*.jar"
+            openApi = $true
+            generatedDomain = $false
         },
         [ordered]@{
             module = "REF"
@@ -117,6 +101,8 @@ function Get-CpfRuntimeModuleMap {
             healthPath = "/v3/api-docs"
             jarDir = "cpf-reference/build/libs"
             jarPattern = "cpf-reference-*.jar"
+            openApi = $true
+            generatedDomain = $false
         },
         [ordered]@{
             module = "GWY"
@@ -128,16 +114,140 @@ function Get-CpfRuntimeModuleMap {
             healthPath = "/actuator/health"
             jarDir = "cpf-gateway/build/libs"
             jarPattern = "cpf-gateway-*.jar"
+            openApi = $true
+            generatedDomain = $false
         }
     )
 }
 
+function Get-CpfGeneratedRuntimeModuleMap {
+    param([string] $Root = "")
+
+    $resolvedRoot = Get-CpfRuntimeRoot -Root $Root
+    $settingsPath = Join-Path $resolvedRoot "settings.gradle"
+    if (-not (Test-Path -LiteralPath $settingsPath -PathType Leaf)) {
+        throw "CPF root settings.gradle을 찾을 수 없습니다: $settingsPath"
+    }
+    $settingsText = Get-Content -LiteralPath $settingsPath -Raw -Encoding UTF8
+    $generated = @()
+
+    foreach ($projectDir in @(Get-ChildItem -LiteralPath $resolvedRoot -Directory |
+            Where-Object { $_.Name -like "cpf-*" } |
+            Sort-Object Name)) {
+        $manifestPath = Join-Path $projectDir.FullName "manifest/domain-manifest.json"
+        if (-not (Test-Path -LiteralPath $manifestPath -PathType Leaf)) {
+            continue
+        }
+        $ownershipPath = Join-Path $projectDir.FullName "manifest/generator-ownership.json"
+        if (-not (Test-Path -LiteralPath $ownershipPath -PathType Leaf)) {
+            throw "Generated Domain ownership manifest가 없습니다: $($projectDir.Name)"
+        }
+
+        try {
+            $manifest = Get-Content -LiteralPath $manifestPath -Raw -Encoding UTF8 | ConvertFrom-Json
+            $ownership = Get-Content -LiteralPath $ownershipPath -Raw -Encoding UTF8 | ConvertFrom-Json
+        } catch {
+            throw "Generated Domain manifest JSON을 읽을 수 없습니다: project=$($projectDir.Name) error=$($_.Exception.Message)"
+        }
+
+        $projectName = [string] $manifest.projectName
+        $systemCode = ([string] $manifest.systemCode).Trim().ToUpperInvariant()
+        $domainName = ([string] $manifest.domainName).Trim().ToLowerInvariant()
+        $moduleName = [string] $manifest.moduleName
+        $dependencyModel = [string] $manifest.dependencyModel
+        if ([string] $manifest.domainType -cne "GENERATED_DOMAIN" -or
+                $projectName -cne $projectDir.Name -or
+                $projectName -notmatch '^cpf-[a-z][a-z0-9-]{1,40}$' -or
+                $systemCode -notmatch '^[A-Z][A-Z0-9]{2}$' -or
+                $domainName -notmatch '^[a-z][a-z0-9]{1,29}$' -or
+                [string]::IsNullOrWhiteSpace($moduleName) -or
+                $dependencyModel -cne "root-project") {
+            throw "Generated Domain runtime identity가 유효하지 않습니다: project=$($projectDir.Name)"
+        }
+        foreach ($identityCheck in @(
+                [ordered]@{ name = "projectName"; actual = [string] $ownership.projectName; expected = $projectName },
+                [ordered]@{ name = "moduleDirectory"; actual = [string] $ownership.moduleDirectory; expected = $projectName },
+                [ordered]@{ name = "systemCode"; actual = ([string] $ownership.systemCode).ToUpperInvariant(); expected = $systemCode },
+                [ordered]@{ name = "domainName"; actual = ([string] $ownership.domainName).ToLowerInvariant(); expected = $domainName })) {
+            if ($identityCheck.actual -cne $identityCheck.expected) {
+                throw (
+                    "Generated Domain manifest/ownership identity가 다릅니다. " +
+                    "project=$projectName field=$($identityCheck.name)"
+                )
+            }
+        }
+        if ($settingsText.IndexOf("include '$projectName'", [StringComparison]::Ordinal) -lt 0 -or
+                $settingsText.IndexOf("project(':$projectName').projectDir", [StringComparison]::Ordinal) -lt 0) {
+            throw "Generated Domain이 settings.gradle에 root project로 등록되지 않았습니다: $projectName"
+        }
+
+        $onlineEnabled = [bool] $manifest.onlineEnabled
+        if ($null -ne $manifest.capabilities -and
+                $null -ne $manifest.capabilities.PSObject.Properties["online"]) {
+            $onlineEnabled = [bool] $manifest.capabilities.online
+        }
+        if (-not $onlineEnabled) {
+            continue
+        }
+        $databaseEnabled = [bool] $manifest.databaseEnabled
+        if ($null -ne $manifest.capabilities -and
+                $null -ne $manifest.capabilities.PSObject.Properties["database"]) {
+            $databaseEnabled = [bool] $manifest.capabilities.database
+        }
+
+        $port = [int] $manifest.port
+        if ($port -lt 1 -or $port -gt 65535) {
+            throw "Generated Domain runtime port가 유효하지 않습니다: project=$projectName port=$port"
+        }
+        $moduleLower = $systemCode.ToLowerInvariant()
+        $generated += [ordered]@{
+            module = $systemCode
+            moduleLower = $moduleLower
+            projectName = $projectName
+            wasId = $moduleLower + "AP01"
+            port = $port
+            portEnv = "${systemCode}_SERVER_PORT"
+            healthPath = "/v3/api-docs"
+            jarDir = "$projectName/build/libs"
+            jarPattern = "$projectName-*.jar"
+            openApi = $true
+            generatedDomain = $true
+            domainName = $domainName
+            moduleName = $moduleName
+            databaseEnabled = $databaseEnabled
+            databaseProfilePath = [string] $manifest.databaseProfilePath
+            manifestPath = Get-CpfRelativePath -Root $resolvedRoot -Path $manifestPath
+        }
+    }
+    return @($generated)
+}
+
+function Get-CpfRuntimeModuleMap {
+    param([string] $Root = "")
+
+    $map = @(
+        @(Get-CpfRuntimePlatformModuleMap)
+        @(Get-CpfGeneratedRuntimeModuleMap -Root $Root)
+    )
+    foreach ($propertyName in @("module", "projectName", "port")) {
+        $duplicates = @($map |
+                Group-Object -Property { $_[$propertyName] } |
+                Where-Object { $_.Count -gt 1 } |
+                ForEach-Object { [string] $_.Name })
+        if ($duplicates.Count -gt 0) {
+            throw "Runtime module identity가 중복되었습니다. field=$propertyName values=$($duplicates -join ',')"
+        }
+    }
+    return @($map)
+}
+
 function Resolve-CpfRuntimeModules {
     param(
-        [string[]] $Modules
+        [string[]] $Modules,
+        [string] $Root = ""
     )
 
-    $map = Get-CpfRuntimeModuleMap
+    $map = Get-CpfRuntimeModuleMap -Root $Root
     if ($null -eq $Modules -or $Modules.Count -eq 0) {
         return $map
     }

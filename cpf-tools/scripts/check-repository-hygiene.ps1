@@ -74,6 +74,7 @@ foreach ($path in $tracked) {
 
     if (-not $isCanonicalBuildToolSource -and
             $normalized -notmatch '/src/(main|test)/' -and
+            $normalized -notmatch '/frontend/src/' -and
             $normalized -notmatch '^cpf-docs/evidence/' -and
             $normalized -notmatch '^cpf-docs/work/' -and
             $normalized -match '(^|/)(build|bin|out|target|logs?|tmp|temp|work)/') {
@@ -95,9 +96,9 @@ foreach ($path in $tracked) {
             "확정되지 않은 candidate 또는 Vxx SQL을 제품 Source에 두지 않습니다."
     }
 
-    # Vendor Pack의 미구현 상태 표시용 .gitkeep은 허용하되 다른 빈 디렉터리 선점은 금지합니다.
+    # 공식 PostgreSQL/Oracle Pack의 기존 layout marker만 허용합니다.
     if ($normalized.EndsWith('/.gitkeep') -and
-            $normalized -notmatch '^cpf-tools/db/vendor/(mysql|postgresql|oracle|sqlserver)/(install|migration(?:/flyway)?|provision|seed|verify|rollback)/\.gitkeep$') {
+            $normalized -notmatch '^cpf-tools/db/vendor/(postgresql|oracle)/(install|migration(?:/flyway)?|provision|seed|verify|rollback)/\.gitkeep$') {
         Add-Failure "UNJUSTIFIED_GITKEEP" $normalized "빈 디렉터리 선점용 .gitkeep은 허용하지 않습니다."
     }
 }

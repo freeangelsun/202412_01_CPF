@@ -1,12 +1,10 @@
--- cpf-tools/db/vendor/mariadb/source/52_standard_execution_alias_seed.sql
--- ============================================================================
--- 신규 설치에서도 구형 실행 ID 조회 호환 정보를 제공하는 정본 seed입니다.
-USE cpfDB;
+-- AUTO-GENERATED from cpf-tools/db/canonical/seed-model.json
+-- vendor=mariadb; source=52_standard_execution_alias_seed.sql
+-- DO NOT EDIT generated seed directly.
 
-INSERT INTO cpf_standard_execution_alias (
-    legacy_execution_id, standard_execution_id, migration_reason, created_by, updated_by
-) VALUES
-    ('BADM-RLG-EX-0001', 'BADMRL0001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+-- CPF_LOGICAL_DATABASE=cpfDB
+DELETE FROM cpf_standard_execution_alias WHERE legacy_execution_id LIKE 'OADM-MBR-%' OR standard_execution_id LIKE 'OADMMB%';
+INSERT INTO cpf_standard_execution_alias (legacy_execution_id, standard_execution_id, migration_reason, created_by, updated_by) VALUES ('BADM-RLG-EX-0001', 'BADMRL0001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
     ('BBAT-CUT-CL-0001', 'BBATCU0001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
     ('BBAT-OPS-FL-0001', 'BBATOP0001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
     ('BBAT-OPS-HB-0001', 'BBATOP0002', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
@@ -74,13 +72,6 @@ INSERT INTO cpf_standard_execution_alias (
     ('OADM-LGP-04-0015', 'OADMLG0015', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
     ('OADM-LGP-04-0017', 'OADMLG0017', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
     ('OADM-LGP-04-0019', 'OADMLG0022', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
-    ('OADM-MBR-01-0010', 'OADMMB0010', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
-    ('OADM-MBR-01-0011', 'OADMMB0011', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
-    ('OADM-MBR-02-0012', 'OADMMB0012', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
-    ('OADM-MBR-02-0015', 'OADMMB0015', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
-    ('OADM-MBR-03-0013', 'OADMMB0013', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
-    ('OADM-MBR-03-0014', 'OADMMB0014', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
-    ('OADM-MBR-04-0016', 'OADMMB0016', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
     ('OADM-MSG-01-0010', 'OADMMS0010', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
     ('OADM-MSG-01-0011', 'OADMMS0011', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
     ('OADM-MSG-02-0012', 'OADMMS0012', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
@@ -245,17 +236,6 @@ INSERT INTO cpf_standard_execution_alias (
     ('OBZA-SET-01-1001', 'OBZASE1001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
     ('OBZA-USR-QY-0000', 'OBZAUS0001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
     ('OBZA-USR-QY-0001', 'OBZAUS0002', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
-    ('OMBR-AUT-01-0004', 'OMBRAU0004', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
-    ('OMBR-AUT-01-0005', 'OMBRAU0005', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
-    ('OMBR-AUT-02-0001', 'OMBRAU0001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
-    ('OMBR-AUT-02-0002', 'OMBRAU0002', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
-    ('OMBR-AUT-02-0003', 'OMBRAU0003', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
-    ('OMBR-BSE-01-0001', 'OMBRMB0001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
-    ('OMBR-BSE-01-0002', 'OMBRMB0002', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
-    ('OMBR-BSE-01-0003', 'OMBRMB0003', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
-    ('OMBR-BSE-02-0001', 'OMBRMB0004', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
-    ('OMBR-BSE-03-0001', 'OMBRMB0005', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
-    ('OMBR-BSE-04-0001', 'OMBRMB0006', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
     ('OREF-EDU-01-0001', 'OREFAA0001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
     ('OREF-EDU-01-0002', 'OREFAA0002', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
     ('OREF-EDU-01-0003', 'OREFAA0003', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
@@ -332,10 +312,4 @@ INSERT INTO cpf_standard_execution_alias (
     ('OREF-QRY-01-0002', 'OREFQR0002', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
     ('OREF-QRY-01-0003', 'OREFQR0003', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
     ('OREF-QRY-01-0004', 'OREFQR0004', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
-    ('OREF-QRY-01-0005', 'OREFQR0005', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED')
-ON DUPLICATE KEY UPDATE
-    standard_execution_id = VALUES(standard_execution_id),
-    migration_reason = VALUES(migration_reason),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
--- ============================================================================
+    ('OREF-QRY-01-0005', 'OREFQR0005', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED') ON DUPLICATE KEY UPDATE standard_execution_id = VALUES(standard_execution_id), migration_reason = VALUES(migration_reason), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;

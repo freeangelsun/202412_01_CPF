@@ -2,9 +2,9 @@ package com.cpf.admin.opr.controller;
 
 import com.cpf.admin.opr.service.AdmAuditLogService;
 import com.cpf.admin.opr.service.AdmTransactionMetaService;
-import com.cpf.core.common.execution.CpfOnlineTransaction;
-import com.cpf.core.common.logging.TransactionContext;
-import com.cpf.core.common.transaction.CpfTransactionMetaScanResult;
+import com.cpf.core.api.execution.CpfOnlineTransaction;
+import com.cpf.core.api.logging.CpfTransactionContext;
+import com.cpf.core.api.transaction.CpfTransactionMetaScanResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -61,7 +61,7 @@ public class AdmTransactionMetaController extends com.cpf.admin.common.base.AdmB
         String operatorId = requestUser(servletRequest, requestUser);
         CpfTransactionMetaScanResult result = transactionMetaService.scan(operatorId);
         auditLogService.record(
-                TransactionContext.getOrCreateTransactionId(),
+                CpfTransactionContext.transactionId(),
                 operatorId,
                 "TRANSACTION_META_SCAN",
                 "cpf_transaction_meta",
@@ -86,7 +86,7 @@ public class AdmTransactionMetaController extends com.cpf.admin.common.base.AdmB
         String operatorId = requestUser(servletRequest, requestUser);
         Map<String, Object> result = transactionMetaService.inactivate(transactionId, operatorId);
         auditLogService.record(
-                TransactionContext.getOrCreateTransactionId(),
+                CpfTransactionContext.transactionId(),
                 operatorId,
                 "TRANSACTION_META_INACTIVE",
                 "cpf_transaction_meta",

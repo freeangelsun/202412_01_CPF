@@ -14,6 +14,7 @@ param(
 $ErrorActionPreference = "Stop"
 $Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
 $repositoryRoot = (Resolve-Path "$PSScriptRoot\..\..").Path
+. (Join-Path $repositoryRoot "cpf-tools/scripts/database-profile-common.ps1")
 $cpfStackPropertiesPath = Join-Path $repositoryRoot "gradle/cpf-stack.properties"
 if (-not (Test-Path -LiteralPath $cpfStackPropertiesPath -PathType Leaf)) {
     throw "CPF Stack 정본이 없습니다: $cpfStackPropertiesPath"
@@ -236,9 +237,7 @@ implementation platform('com.cpf:cpf-bom:$PlatformVersion')
     $databaseEnabled = [bool]$domainMetadata.databaseEnabled
     $databaseVendor = ([string]$domainMetadata.databaseVendor).ToLowerInvariant()
     if ($databaseEnabled) {
-        if ($databaseVendor -notin @("mariadb", "mysql", "postgresql", "oracle", "sqlserver")) {
-            throw "지원하지 않는 Generated Domain databaseVendor입니다: $databaseVendor"
-        }
+        $databaseVendor = Assert-CpfSupportedDatabaseVendor $databaseVendor
         $vendorTemplate = Join-Path $repositoryRoot "cpf-tools/db/vendor/$databaseVendor/domain-template"
         if (-not (Test-Path -LiteralPath $vendorTemplate -PathType Container)) {
             throw "Central Domain Template이 없습니다: $vendorTemplate"

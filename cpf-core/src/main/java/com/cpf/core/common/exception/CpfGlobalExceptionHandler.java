@@ -22,14 +22,16 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 public class CpfGlobalExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(CpfGlobalExceptionHandler.class);
 
-    private final CpfMessageResolver messageResolver;
-    private final CpfResponseCodeResolver responseCodeResolver;
+    private final com.cpf.core.api.error.CpfMessageResolver messageResolver;
+    private final com.cpf.core.api.error.CpfResponseCodeResolver responseCodeResolver;
 
     public CpfGlobalExceptionHandler(
-            ObjectProvider<CpfMessageResolver> messageResolverProvider,
-            ObjectProvider<CpfResponseCodeResolver> responseCodeResolverProvider) {
-        this.messageResolver = messageResolverProvider.getIfAvailable(DefaultCpfMessageResolver::new);
-        this.responseCodeResolver = responseCodeResolverProvider.getIfAvailable(DefaultCpfResponseCodeResolver::new);
+            ObjectProvider<com.cpf.core.api.error.CpfMessageResolver> messageResolverProvider,
+            ObjectProvider<com.cpf.core.api.error.CpfResponseCodeResolver> responseCodeResolverProvider) {
+        this.messageResolver = messageResolverProvider.getIfAvailable(
+                com.cpf.core.api.error.DefaultCpfMessageResolver::new);
+        this.responseCodeResolver = responseCodeResolverProvider.getIfAvailable(
+                com.cpf.core.api.error.DefaultCpfResponseCodeResolver::new);
     }
 
     /**
@@ -38,7 +40,7 @@ public class CpfGlobalExceptionHandler {
     @ExceptionHandler(CpfException.class)
     public ResponseEntity<CpfErrorResponse> handleCpfException(CpfException ex, HttpServletRequest request) {
         CpfErrorDefinition errorCode = ex.getErrorCode();
-        CpfResolvedResponse resolvedResponse = errorCode != null
+        com.cpf.core.api.error.CpfResolvedResponse resolvedResponse = errorCode != null
                 ? responseCodeResolver.resolve(errorCode, request.getLocale(), ex.getMessageArguments(), ex.getDetail())
                 : responseCodeResolver.resolve(ex.getResponseCode(), request.getLocale(), ex.getMessageArguments(), ex.getDetail());
         String externalMessage = firstText(ex.getExternalMessage(), resolvedResponse.externalMessage());
@@ -88,7 +90,7 @@ public class CpfGlobalExceptionHandler {
     public ResponseEntity<CpfErrorResponse> handleNoResourceFound(
             NoResourceFoundException ex,
             HttpServletRequest request) {
-        CpfResolvedResponse resolvedResponse = responseCodeResolver.resolve(
+        com.cpf.core.api.error.CpfResolvedResponse resolvedResponse = responseCodeResolver.resolve(
                 CpfErrorCode.NOT_FOUND,
                 request.getLocale(),
                 java.util.Map.of("0", request.getRequestURI()),
@@ -105,7 +107,9 @@ public class CpfGlobalExceptionHandler {
                 .body(response);
     }
 
-    private HttpHeaders errorHeaders(CpfResolvedResponse response, String errorType) {
+    private HttpHeaders errorHeaders(
+            com.cpf.core.api.error.CpfResolvedResponse response,
+            String errorType) {
         HttpHeaders headers = new HttpHeaders();
         headers.add("X-Error-Code", response.errorCode());
         headers.add("X-Message-Code", response.messageCode());

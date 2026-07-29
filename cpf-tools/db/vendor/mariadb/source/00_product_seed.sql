@@ -5,60 +5,21 @@
 -- ============================================================================
 -- cpf-tools/db/vendor/mariadb/source/50_framework_seed_data.sql
 -- ============================================================================
--- cpf-tools/db/vendor/mariadb/source/50_framework_seed_data.sql
--- ============================================================================
--- CPF 프레임워크 초기 코드, 메시지, 응답코드, 설정 데이터입니다.
--- 대상 DB: cpfDB(core), batDB(batch runtime)
+-- AUTO-GENERATED from cpf-tools/db/canonical/seed-model.json
+-- vendor=mariadb; source=50_framework_seed_data.sql
+-- DO NOT EDIT generated seed directly.
 
-USE cpfDB;
-
-INSERT INTO cpf_channel_registry (
-    channel_code, channel_name, channel_type, trust_level, client_channel_yn, internal_channel_yn,
-    authentication_required_yn, signature_required_yn, active_yn, description,
-    policy_version, created_by, updated_by
-) VALUES
-    ('ANY', '전체 채널', 'SYSTEM', 'INTERNAL', 'N', 'Y', 'N', 'N', 'Y', '정책 와일드카드 전용 채널', 0, 'SYSTEM', 'SYSTEM'),
+-- CPF_LOGICAL_DATABASE=cpfDB
+INSERT INTO cpf_channel_registry (channel_code, channel_name, channel_type, trust_level, client_channel_yn, internal_channel_yn, authentication_required_yn, signature_required_yn, active_yn, description, policy_version, created_by, updated_by) VALUES ('ANY', '전체 채널', 'SYSTEM', 'INTERNAL', 'N', 'Y', 'N', 'N', 'Y', '정책 와일드카드 전용 채널', 0, 'SYSTEM', 'SYSTEM'),
     ('WEB', '웹', 'CLIENT', 'EXTERNAL', 'Y', 'N', 'Y', 'N', 'Y', '웹 브라우저 채널', 0, 'SYSTEM', 'SYSTEM'),
     ('MOBILE', '모바일', 'CLIENT', 'EXTERNAL', 'Y', 'N', 'Y', 'N', 'Y', '모바일 애플리케이션 채널', 0, 'SYSTEM', 'SYSTEM'),
     ('ADM', '관리자', 'OPERATOR', 'INTERNAL', 'Y', 'Y', 'Y', 'N', 'Y', 'ADM 운영 채널', 0, 'SYSTEM', 'SYSTEM'),
-    ('BATCH', '배치', 'SYSTEM', 'INTERNAL', 'N', 'Y', 'N', 'N', 'Y', '배치 실행 채널', 0, 'SYSTEM', 'SYSTEM')
-ON DUPLICATE KEY UPDATE
-    channel_name = VALUES(channel_name),
-    channel_type = VALUES(channel_type),
-    trust_level = VALUES(trust_level),
-    client_channel_yn = VALUES(client_channel_yn),
-    internal_channel_yn = VALUES(internal_channel_yn),
-    authentication_required_yn = VALUES(authentication_required_yn),
-    signature_required_yn = VALUES(signature_required_yn),
-    active_yn = VALUES(active_yn),
-    description = VALUES(description),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO cpf_channel_execution_policy (
-    policy_key, standard_execution_id, original_channel_code, caller_channel_code, request_type,
-    allowed_yn, authentication_required_yn, signature_required_yn, max_tps,
-    effective_from, effective_to, active_yn, policy_version, created_by, updated_by
-) VALUES (
+    ('BATCH', '배치', 'SYSTEM', 'INTERNAL', 'N', 'Y', 'N', 'N', 'Y', '배치 실행 채널', 0, 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE channel_name = VALUES(channel_name), channel_type = VALUES(channel_type), trust_level = VALUES(trust_level), client_channel_yn = VALUES(client_channel_yn), internal_channel_yn = VALUES(internal_channel_yn), authentication_required_yn = VALUES(authentication_required_yn), signature_required_yn = VALUES(signature_required_yn), active_yn = VALUES(active_yn), description = VALUES(description), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO cpf_channel_execution_policy (policy_key, standard_execution_id, original_channel_code, caller_channel_code, request_type, allowed_yn, authentication_required_yn, signature_required_yn, max_tps, effective_from, effective_to, active_yn, policy_version, created_by, updated_by) VALUES (
     'CPF.DEFAULT', '*', 'ANY', 'ANY', '*', 'Y', 'N', 'N', 0,
     NULL, NULL, 'Y', 0, 'SYSTEM', 'SYSTEM'
-)
-ON DUPLICATE KEY UPDATE
-    standard_execution_id = VALUES(standard_execution_id),
-    original_channel_code = VALUES(original_channel_code),
-    caller_channel_code = VALUES(caller_channel_code),
-    request_type = VALUES(request_type),
-    allowed_yn = VALUES(allowed_yn),
-    authentication_required_yn = VALUES(authentication_required_yn),
-    signature_required_yn = VALUES(signature_required_yn),
-    max_tps = VALUES(max_tps),
-    active_yn = VALUES(active_yn),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO cpf_code (parent_id, code_key, code_value, description, created_by, updated_by)
-VALUES
-    (NULL, 'CODE_GROUP', 'MODULE', '서비스 모듈 코드 그룹', 'SYSTEM', 'SYSTEM'),
+) ON DUPLICATE KEY UPDATE standard_execution_id = VALUES(standard_execution_id), original_channel_code = VALUES(original_channel_code), caller_channel_code = VALUES(caller_channel_code), request_type = VALUES(request_type), allowed_yn = VALUES(allowed_yn), authentication_required_yn = VALUES(authentication_required_yn), signature_required_yn = VALUES(signature_required_yn), max_tps = VALUES(max_tps), active_yn = VALUES(active_yn), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO cpf_code (parent_id, code_key, code_value, description, created_by, updated_by) VALUES (NULL, 'CODE_GROUP', 'MODULE', '서비스 모듈 코드 그룹', 'SYSTEM', 'SYSTEM'),
     (NULL, 'CODE_GROUP', 'REQUEST_TYPE', '요청 유형 코드 그룹', 'SYSTEM', 'SYSTEM'),
     (NULL, 'CODE_GROUP', 'CHANNEL_CODE', '채널 코드 그룹', 'SYSTEM', 'SYSTEM'),
     (NULL, 'CODE_GROUP', 'RESULT_TYPE', '응답 결과 유형 코드 그룹', 'SYSTEM', 'SYSTEM'),
@@ -66,20 +27,12 @@ VALUES
     (NULL, 'CODE_GROUP', 'LOG_LEVEL', '동적 로그 레벨 코드 그룹', 'SYSTEM', 'SYSTEM'),
     (NULL, 'CODE_GROUP', 'CACHE_NAME', '캐시 이름 코드 그룹', 'SYSTEM', 'SYSTEM'),
     (NULL, 'CODE_GROUP', 'BATCH_JOB_TYPE', '배치 Job 유형 코드 그룹', 'SYSTEM', 'SYSTEM'),
-    (NULL, 'CODE_GROUP', 'YN', '여부 코드 그룹', 'SYSTEM', 'SYSTEM')
-ON DUPLICATE KEY UPDATE
-    description = VALUES(description),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO cpf_code (parent_id, code_key, code_value, description, created_by, updated_by)
-VALUES
-    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'CPF', '프레임워크 공통 엔진', 'SYSTEM', 'SYSTEM'),
+    (NULL, 'CODE_GROUP', 'YN', '여부 코드 그룹', 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE description = VALUES(description), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO cpf_code (parent_id, code_key, code_value, description, created_by, updated_by) VALUES ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'CPF', '프레임워크 공통 엔진', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'CMN', '업무 공통 라이브러리', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'ADM', '관리자 운영 서비스', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'BZA', '업무 백오피스 서비스', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'BAT', '선택 배치 실행 서비스', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'MBR', '회원 샘플 서비스', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'REF', '교육 샘플 서비스', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'REQUEST_TYPE') p), 'REQUEST_TYPE', 'NORMAL', '일반 요청', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'REQUEST_TYPE') p), 'REQUEST_TYPE', 'COMPENSATION', '보상 요청', 'SYSTEM', 'SYSTEM'),
@@ -106,29 +59,19 @@ VALUES
     ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'BATCH_JOB_TYPE') p), 'BATCH_JOB_TYPE', 'CHUNK', 'Chunk 배치', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'BATCH_JOB_TYPE') p), 'BATCH_JOB_TYPE', 'RETRY', '재처리 배치', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'YN') p), 'YN', 'Y', '예', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'YN') p), 'YN', 'N', '아니오', 'SYSTEM', 'SYSTEM')
-ON DUPLICATE KEY UPDATE
-    parent_id = VALUES(parent_id),
-    description = VALUES(description),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO cpf_message (
-    message_code, locale, message_format_type, external_message, internal_message,
-    parameter_count, parameter_sample, description, created_by, updated_by
-) VALUES
-    ('MCPF000000', 'ko', 'FIXED', '정상 처리되었습니다.', 'CPF 공통 요청이 정상 처리되었습니다.', 0, NULL, 'CPF 공통 성공 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MCPF010001', 'ko', 'INDEXED', '요청 값이 올바르지 않습니다.', '요청 파라미터 검증에 실패했습니다. field={0}, value={1}', 2, '["memberId","abc"]', 'CPF 파라미터 오류 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MCPF010002', 'ko', 'INDEXED', '요청한 정보를 찾을 수 없습니다.', '조회 대상 데이터가 존재하지 않습니다. target={0}', 1, '["member"]', 'CPF 미존재 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MCPF010003', 'ko', 'INDEXED', '이미 등록된 정보입니다.', '중복 데이터가 감지되었습니다. key={0}', 1, '["memberNo"]', 'CPF 중복 메시지', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'YN') p), 'YN', 'N', '아니오', 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE parent_id = VALUES(parent_id), description = VALUES(description), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO cpf_message (message_code, locale, message_format_type, external_message, internal_message, parameter_count, parameter_sample, description, created_by, updated_by) VALUES ('MCPF000000', 'ko', 'FIXED', '정상 처리되었습니다.', 'CPF 공통 요청이 정상 처리되었습니다.', 0, NULL, 'CPF 공통 성공 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MCPF010001', 'ko', 'INDEXED', '요청 값이 올바르지 않습니다.', '요청 파라미터 검증에 실패했습니다. field={0}, value={1}', 2, '["field","invalid"]', 'CPF 파라미터 오류 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MCPF010002', 'ko', 'INDEXED', '요청한 정보를 찾을 수 없습니다.', '조회 대상 데이터가 존재하지 않습니다. target={0}', 1, '["sample-item"]', 'CPF 미존재 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MCPF010003', 'ko', 'INDEXED', '이미 등록된 정보입니다.', '중복 데이터가 감지되었습니다. key={0}', 1, '["sampleKey"]', 'CPF 중복 메시지', 'SYSTEM', 'SYSTEM'),
     ('MCPF010004', 'ko', 'INDEXED', '입력값을 확인해 주세요.', 'Bean Validation 검증에 실패했습니다. field={0}', 1, '["name"]', 'CPF 검증 메시지', 'SYSTEM', 'SYSTEM'),
     ('MCPF010005', 'ko', 'FIXED', '인증이 필요합니다.', '인증되지 않은 요청입니다.', 0, NULL, 'CPF 인증 필요 메시지', 'SYSTEM', 'SYSTEM'),
     ('MCPF010006', 'ko', 'INDEXED', '처리 권한이 없습니다.', '인가되지 않은 요청입니다. user={0}', 1, '["guest"]', 'CPF 권한 오류 메시지', 'SYSTEM', 'SYSTEM'),
     ('MCPF020001', 'ko', 'INDEXED', '요청을 처리할 수 없습니다.', '업무 규칙 위반이 발생했습니다. rule={0}', 1, '["business-rule"]', 'CPF 업무 규칙 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MCPF030001', 'ko', 'INDEXED', '일시적으로 처리할 수 없습니다.', '외부 또는 타 주제영역 연계 오류가 발생했습니다. service={0}', 1, '["mbr"]', 'CPF 외부 연계 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MCPF900001', 'ko', 'INDEXED', '필수 거래 헤더가 누락되었습니다.', 'CPF 거래 헤더 검증에 실패했습니다. header={0}, uri={1}', 2, '["X-Request-Type","/mbr/list"]', 'CPF 헤더 검증 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MCPF900002', 'ko', 'INDEXED', '거래 메타데이터 설정이 올바르지 않습니다.', 'CPF @CpfTransaction 메타데이터 검증에 실패했습니다. transactionId={0}', 1, '["MBR01BSE0001"]', 'CPF 메타데이터 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MCPF900003', 'ko', 'INDEXED', '서비스 접속 정보가 없습니다.', 'CPF 서비스 endpoint 설정을 찾을 수 없습니다. serviceId={0}', 1, '["mbr"]', 'CPF endpoint 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MCPF030001', 'ko', 'INDEXED', '일시적으로 처리할 수 없습니다.', '외부 또는 타 주제영역 연계 오류가 발생했습니다. service={0}', 1, '["generated-service"]', 'CPF 외부 연계 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MCPF900001', 'ko', 'INDEXED', '필수 거래 헤더가 누락되었습니다.', 'CPF 거래 헤더 검증에 실패했습니다. header={0}, uri={1}', 2, '["X-Request-Type","/api/sample-items"]', 'CPF 헤더 검증 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MCPF900002', 'ko', 'INDEXED', '거래 메타데이터 설정이 올바르지 않습니다.', 'CPF @CpfTransaction 메타데이터 검증에 실패했습니다. transactionId={0}', 1, '["OCPFSM0001"]', 'CPF 메타데이터 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MCPF900003', 'ko', 'INDEXED', '서비스 접속 정보가 없습니다.', 'CPF 서비스 endpoint 설정을 찾을 수 없습니다. serviceId={0}', 1, '["generated-service"]', 'CPF endpoint 메시지', 'SYSTEM', 'SYSTEM'),
     ('MCPF900004', 'ko', 'INDEXED', '동적 로그레벨 요청이 올바르지 않습니다.', 'CPF 동적 로그레벨 규칙 검증에 실패했습니다. reason={0}', 1, '["transactionId or businessTransactionId required"]', 'CPF 동적 로그 메시지', 'SYSTEM', 'SYSTEM'),
     ('MCPF900005', 'ko', 'INDEXED', '내부 공유 API에 접근할 수 없습니다.', 'CPF 내부 서비스 신원 또는 호출 경로 검증에 실패했습니다. reason={0}', 1, '["service identity verification failed"]', 'CPF 내부 공유 API 접근 거부 메시지', 'SYSTEM', 'SYSTEM'),
     ('MCPF990000', 'ko', 'INDEXED', '처리 중 오류가 발생했습니다.', 'CPF 내부 오류가 발생했습니다. error={0}', 1, '["Exception"]', 'CPF 내부 오류 메시지', 'SYSTEM', 'SYSTEM'),
@@ -136,35 +79,10 @@ INSERT INTO cpf_message (
     ('MBZA000000', 'ko', 'FIXED', '성공', 'BZA 요청이 정상 처리되었습니다.', 0, NULL, 'BZA 성공 메시지', 'SYSTEM', 'SYSTEM'),
     ('MBZA010001', 'ko', 'INDEXED', '업무 요청 값이 올바르지 않습니다.', 'BZA 입력값 검증에 실패했습니다. field={0}', 1, '["field"]', 'BZA 입력값 오류 메시지', 'SYSTEM', 'SYSTEM'),
     ('MBZA010002', 'ko', 'FIXED', '처리 권한이 없습니다.', 'BZA 서버 권한 검사에 실패했습니다.', 0, NULL, 'BZA 권한 오류 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MMBR000000', 'ko', 'FIXED', '성공', 'MBR 요청이 정상 처리되었습니다.', 0, NULL, 'MBR 성공 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MMBR010001', 'ko', 'FIXED', '회원이 생성되었습니다.', 'MBR 회원 데이터가 생성되었습니다.', 0, NULL, 'MBR 생성 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MMBR010002', 'ko', 'FIXED', '회원이 수정되었습니다.', 'MBR 회원 데이터가 수정되었습니다.', 0, NULL, 'MBR 수정 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MMBR010003', 'ko', 'FIXED', '회원이 삭제되었습니다.', 'MBR 회원 데이터가 삭제되었습니다.', 0, NULL, 'MBR 삭제 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MMBR010101', 'ko', 'FIXED', '회원 요청 형식이 올바르지 않습니다.', 'MBR 요청 형식이 올바르지 않습니다.', 0, NULL, 'MBR bad request 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MMBR010102', 'ko', 'INDEXED', '유효하지 않은 회원 파라미터입니다.', 'MBR 파라미터 검증에 실패했습니다. field={0}', 1, '["memberId"]', 'MBR 파라미터 오류 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MMBR010103', 'ko', 'INDEXED', '회원 정보를 찾을 수 없습니다.', 'MBR 조회 대상이 없습니다. target={0}', 1, '["member"]', 'MBR 미존재 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MMBR010104', 'ko', 'INDEXED', '중복된 회원 데이터가 있습니다.', 'MBR 중복 데이터가 감지되었습니다. key={0}', 1, '["memberNo"]', 'MBR 중복 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MMBR010105', 'ko', 'INDEXED', '회원 입력값 검증에 실패했습니다.', 'MBR 입력값 검증에 실패했습니다. field={0}', 1, '["name"]', 'MBR 검증 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MMBR990000', 'ko', 'INDEXED', '회원 처리 중 오류가 발생했습니다.', 'MBR 내부 서버 오류가 발생했습니다. error={0}', 1, '["Exception"]', 'MBR 내부 오류 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MREF090001', 'ko', 'INDEXED', '이미 등록된 {0}입니다.', '{0}={1} 값이 이미 존재합니다. duplicateCheck=REF_EDU_SAMPLE', 2, '["회원번호","M0001"]', 'REF 동적 중복 교육 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MREF090001', 'ko', 'INDEXED', '이미 등록된 {0}입니다.', '{0}={1} 값이 이미 존재합니다. duplicateCheck=REF_EDU_SAMPLE', 2, '["샘플키","SAMPLE-0001"]', 'REF 동적 중복 교육 메시지', 'SYSTEM', 'SYSTEM'),
     ('MCMN000001', 'ko', 'FIXED', 'CPF 교육 시스템에 오신 것을 환영합니다.', 'CMN education welcome message.', 0, NULL, 'CMN 교육 환영 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MCMN000001', 'en', 'FIXED', 'Welcome to the CPF education system.', 'CMN education welcome message.', 0, NULL, 'CMN 교육 환영 메시지', 'SYSTEM', 'SYSTEM')
-ON DUPLICATE KEY UPDATE
-    message_format_type = VALUES(message_format_type),
-    external_message = VALUES(external_message),
-    internal_message = VALUES(internal_message),
-    parameter_count = VALUES(parameter_count),
-    parameter_sample = VALUES(parameter_sample),
-    description = VALUES(description),
-    use_yn = 'Y',
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO cpf_response_code (
-    response_code, message_code, result_type, module_id, response_group, sequence_no,
-    http_status, description, created_by, updated_by
-) VALUES
-    ('SCPF000000', 'MCPF000000', 'S', 'CPF', '00', '0000', 200, 'CPF 공통 성공', 'SYSTEM', 'SYSTEM'),
+    ('MCMN000001', 'en', 'FIXED', 'Welcome to the CPF education system.', 'CMN education welcome message.', 0, NULL, 'CMN 교육 환영 메시지', 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE message_format_type = VALUES(message_format_type), external_message = VALUES(external_message), internal_message = VALUES(internal_message), parameter_count = VALUES(parameter_count), parameter_sample = VALUES(parameter_sample), description = VALUES(description), use_yn = 'Y', updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO cpf_response_code (response_code, message_code, result_type, module_id, response_group, sequence_no, http_status, description, created_by, updated_by) VALUES ('SCPF000000', 'MCPF000000', 'S', 'CPF', '00', '0000', 200, 'CPF 공통 성공', 'SYSTEM', 'SYSTEM'),
     ('ECPF010001', 'MCPF010001', 'E', 'CPF', '01', '0001', 400, '파라미터 오류', 'SYSTEM', 'SYSTEM'),
     ('ECPF010002', 'MCPF010002', 'E', 'CPF', '01', '0002', 404, '미존재 오류', 'SYSTEM', 'SYSTEM'),
     ('ECPF010003', 'MCPF010003', 'E', 'CPF', '01', '0003', 409, '중복 오류', 'SYSTEM', 'SYSTEM'),
@@ -182,32 +100,8 @@ INSERT INTO cpf_response_code (
     ('ECPF990001', 'MCPF990001', 'E', 'CPF', '99', '0001', 500, '데이터베이스 오류', 'SYSTEM', 'SYSTEM'),
     ('SBZA000000', 'MBZA000000', 'S', 'BZA', '00', '0000', 200, 'BZA 성공', 'SYSTEM', 'SYSTEM'),
     ('EBZA010001', 'MBZA010001', 'E', 'BZA', '01', '0001', 400, 'BZA 입력값 오류', 'SYSTEM', 'SYSTEM'),
-    ('EBZA010002', 'MBZA010002', 'E', 'BZA', '01', '0002', 403, 'BZA 권한 오류', 'SYSTEM', 'SYSTEM'),
-    ('SMBR000000', 'MMBR000000', 'S', 'MBR', '00', '0000', 200, 'MBR 성공', 'SYSTEM', 'SYSTEM'),
-    ('SMBR010001', 'MMBR010001', 'S', 'MBR', '01', '0001', 200, 'MBR 생성 성공', 'SYSTEM', 'SYSTEM'),
-    ('SMBR010002', 'MMBR010002', 'S', 'MBR', '01', '0002', 200, 'MBR 수정 성공', 'SYSTEM', 'SYSTEM'),
-    ('SMBR010003', 'MMBR010003', 'S', 'MBR', '01', '0003', 200, 'MBR 삭제 성공', 'SYSTEM', 'SYSTEM'),
-    ('EMBR010001', 'MMBR010101', 'E', 'MBR', '01', '0001', 400, 'MBR 요청 형식 오류', 'SYSTEM', 'SYSTEM'),
-    ('EMBR010002', 'MMBR010102', 'E', 'MBR', '01', '0002', 400, 'MBR 파라미터 오류', 'SYSTEM', 'SYSTEM'),
-    ('EMBR010003', 'MMBR010103', 'E', 'MBR', '01', '0003', 404, 'MBR 미존재', 'SYSTEM', 'SYSTEM'),
-    ('EMBR010004', 'MMBR010104', 'E', 'MBR', '01', '0004', 409, 'MBR 중복', 'SYSTEM', 'SYSTEM'),
-    ('EMBR010005', 'MMBR010105', 'E', 'MBR', '01', '0005', 400, 'MBR 검증 실패', 'SYSTEM', 'SYSTEM'),
-    ('EMBR990000', 'MMBR990000', 'E', 'MBR', '99', '0000', 500, 'MBR 내부 오류', 'SYSTEM', 'SYSTEM')
-ON DUPLICATE KEY UPDATE
-    message_code = VALUES(message_code),
-    result_type = VALUES(result_type),
-    module_id = VALUES(module_id),
-    response_group = VALUES(response_group),
-    sequence_no = VALUES(sequence_no),
-    http_status = VALUES(http_status),
-    description = VALUES(description),
-    use_yn = 'Y',
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO cpf_config (config_key, config_value, config_type, description, encrypted_yn, created_by, updated_by)
-VALUES
-    ('CPF.CMN.CACHE.PRELOAD_ENABLED', 'Y', 'BOOLEAN', 'CMN 캐시 기동 시 선적재 여부', 'N', 'SYSTEM', 'SYSTEM'),
+    ('EBZA010002', 'MBZA010002', 'E', 'BZA', '01', '0002', 403, 'BZA 권한 오류', 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE message_code = VALUES(message_code), result_type = VALUES(result_type), module_id = VALUES(module_id), response_group = VALUES(response_group), sequence_no = VALUES(sequence_no), http_status = VALUES(http_status), description = VALUES(description), use_yn = 'Y', updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO cpf_config (config_key, config_value, config_type, description, encrypted_yn, created_by, updated_by) VALUES ('CPF.CMN.CACHE.PRELOAD_ENABLED', 'Y', 'BOOLEAN', 'CMN 캐시 기동 시 선적재 여부', 'N', 'SYSTEM', 'SYSTEM'),
     ('CPF.CMN.CACHE.FAIL_FAST_ON_STARTUP', 'N', 'BOOLEAN', '캐시 선적재 실패 시 기동 실패 여부', 'N', 'SYSTEM', 'SYSTEM'),
     ('CPF.CMN.CACHE.REFRESH_POLL_MILLIS', '5000', 'NUMBER', '캐시 갱신 이벤트 polling 주기', 'N', 'SYSTEM', 'SYSTEM'),
     ('CPF.CMN.MESSAGING.BROKER', 'IN_MEMORY', 'STRING', '기본 CMN 메시지 브로커 유형', 'N', 'SYSTEM', 'SYSTEM'),
@@ -218,21 +112,8 @@ VALUES
     ('CPF.ADM.PASSWORD_MIN_LENGTH', '10', 'NUMBER', 'ADM 비밀번호 최소 길이', 'N', 'SYSTEM', 'SYSTEM'),
     ('CPF.ADM.PASSWORD_MAX_FAIL_COUNT', '5', 'NUMBER', 'ADM 로그인 실패 잠금 기준', 'N', 'SYSTEM', 'SYSTEM'),
     ('CPF.BATCH.DEFAULT_LOCK_SECONDS', '3600', 'NUMBER', '배치 기본 lock 만료 초', 'N', 'SYSTEM', 'SYSTEM'),
-    ('CPF.FEATURE.SAMPLE_ENABLED', 'Y', 'BOOLEAN', '샘플 API와 교육 flow 활성화 여부', 'N', 'SYSTEM', 'SYSTEM')
-ON DUPLICATE KEY UPDATE
-    config_value = VALUES(config_value),
-    config_type = VALUES(config_type),
-    description = VALUES(description),
-    encrypted_yn = VALUES(encrypted_yn),
-    use_yn = 'Y',
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-
--- R14 상용 기본 메타데이터 확장. 제품/Generator/EDU가 같은 값 집합을 사용합니다.
-INSERT INTO cpf_code (parent_id, code_key, code_value, description, created_by, updated_by)
-VALUES
-    (NULL, 'CODE_GROUP', 'HTTP_METHOD', 'HTTP Method 코드 그룹', 'SYSTEM', 'SYSTEM'),
+    ('CPF.FEATURE.SAMPLE_ENABLED', 'Y', 'BOOLEAN', '샘플 API와 교육 flow 활성화 여부', 'N', 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE config_value = VALUES(config_value), config_type = VALUES(config_type), description = VALUES(description), encrypted_yn = VALUES(encrypted_yn), use_yn = 'Y', updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO cpf_code (parent_id, code_key, code_value, description, created_by, updated_by) VALUES (NULL, 'CODE_GROUP', 'HTTP_METHOD', 'HTTP Method 코드 그룹', 'SYSTEM', 'SYSTEM'),
     (NULL, 'CODE_GROUP', 'EXECUTION_STATUS', '실행 상태 코드 그룹', 'SYSTEM', 'SYSTEM'),
     (NULL, 'CODE_GROUP', 'ASYNC_STATUS', '비동기 처리 상태 코드 그룹', 'SYSTEM', 'SYSTEM'),
     (NULL, 'CODE_GROUP', 'RETRY_STATUS', '재시도 상태 코드 그룹', 'SYSTEM', 'SYSTEM'),
@@ -243,12 +124,8 @@ VALUES
     (NULL, 'CODE_GROUP', 'DATA_CLASSIFICATION', '데이터 민감도 등급 코드 그룹', 'SYSTEM', 'SYSTEM'),
     (NULL, 'CODE_GROUP', 'APPROVAL_STATUS', '결재 상태 코드 그룹', 'SYSTEM', 'SYSTEM'),
     (NULL, 'CODE_GROUP', 'ERROR_CATEGORY', '오류 분류 코드 그룹', 'SYSTEM', 'SYSTEM'),
-    (NULL, 'CODE_GROUP', 'RETENTION_ACTION', '보존 정책 실행 유형 코드 그룹', 'SYSTEM', 'SYSTEM')
-ON DUPLICATE KEY UPDATE description=VALUES(description), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
-
-INSERT INTO cpf_code (parent_id, code_key, code_value, description, created_by, updated_by)
-VALUES
-    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key='CODE_GROUP' AND code_value='HTTP_METHOD') x), 'HTTP_METHOD', 'GET', '조회', 'SYSTEM', 'SYSTEM'),
+    (NULL, 'CODE_GROUP', 'RETENTION_ACTION', '보존 정책 실행 유형 코드 그룹', 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE description = VALUES(description), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO cpf_code (parent_id, code_key, code_value, description, created_by, updated_by) VALUES ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key='CODE_GROUP' AND code_value='HTTP_METHOD') x), 'HTTP_METHOD', 'GET', '조회', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key='CODE_GROUP' AND code_value='HTTP_METHOD') x), 'HTTP_METHOD', 'POST', '등록/명령', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key='CODE_GROUP' AND code_value='HTTP_METHOD') x), 'HTTP_METHOD', 'PUT', '전체 수정', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key='CODE_GROUP' AND code_value='HTTP_METHOD') x), 'HTTP_METHOD', 'PATCH', '부분 수정', 'SYSTEM', 'SYSTEM'),
@@ -300,68 +177,31 @@ VALUES
     ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key='CODE_GROUP' AND code_value='ERROR_CATEGORY') x), 'ERROR_CATEGORY', 'UNKNOWN_RESULT', '결과 미확정', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key='CODE_GROUP' AND code_value='RETENTION_ACTION') x), 'RETENTION_ACTION', 'ARCHIVE', '보관소 이관', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key='CODE_GROUP' AND code_value='RETENTION_ACTION') x), 'RETENTION_ACTION', 'PURGE', '정책 삭제', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key='CODE_GROUP' AND code_value='RETENTION_ACTION') x), 'RETENTION_ACTION', 'LEGAL_HOLD', '법적 보존', 'SYSTEM', 'SYSTEM')
-ON DUPLICATE KEY UPDATE parent_id=VALUES(parent_id), description=VALUES(description), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
-
-INSERT INTO cpf_message (message_code, locale, message_format_type, external_message, internal_message, parameter_count, parameter_sample, description, created_by, updated_by) VALUES
-    ('MCPF030002','ko','FIXED','요청 시간이 초과되었습니다.','대상 호출 timeout이 발생했습니다.',0,NULL,'공통 Timeout 메시지','SYSTEM','SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key='CODE_GROUP' AND code_value='RETENTION_ACTION') x), 'RETENTION_ACTION', 'LEGAL_HOLD', '법적 보존', 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE parent_id = VALUES(parent_id), description = VALUES(description), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO cpf_message (message_code, locale, message_format_type, external_message, internal_message, parameter_count, parameter_sample, description, created_by, updated_by) VALUES ('MCPF030002','ko','FIXED','요청 시간이 초과되었습니다.','대상 호출 timeout이 발생했습니다.',0,NULL,'공통 Timeout 메시지','SYSTEM','SYSTEM'),
     ('MCPF030003','ko','FIXED','연결 대상이 일시적으로 사용할 수 없습니다.','대상 서비스가 DOWN/OPEN 상태입니다.',0,NULL,'Target down 메시지','SYSTEM','SYSTEM'),
     ('MCPF030004','ko','FIXED','처리 결과를 확인 중입니다.','요청 결과가 UNKNOWN_RESULT로 분류되어 대사가 필요합니다.',0,NULL,'결과 미확정 메시지','SYSTEM','SYSTEM'),
     ('MCPF020002','ko','FIXED','다른 사용자가 먼저 변경했습니다. 다시 조회해 주세요.','낙관적 잠금 Version 충돌이 발생했습니다.',0,NULL,'동시성 충돌 메시지','SYSTEM','SYSTEM'),
     ('MCPF020003','ko','FIXED','동일 요청이 이미 처리되었습니다.','Idempotency key가 이미 완료된 요청입니다.',0,NULL,'멱등 중복 메시지','SYSTEM','SYSTEM'),
     ('MCPF040001','ko','FIXED','첨부파일 검사가 완료되지 않았습니다.','첨부 다운로드는 CLEAN 상태에서만 허용됩니다.',0,NULL,'첨부 보안 메시지','SYSTEM','SYSTEM'),
-    ('MCPF040002','ko','FIXED','첨부파일이 보안 정책에 의해 격리되었습니다.','INFECTED/QUARANTINED 파일 접근이 차단되었습니다.',0,NULL,'첨부 격리 메시지','SYSTEM','SYSTEM')
-ON DUPLICATE KEY UPDATE message_format_type=VALUES(message_format_type), external_message=VALUES(external_message), internal_message=VALUES(internal_message), parameter_count=VALUES(parameter_count), parameter_sample=VALUES(parameter_sample), description=VALUES(description), use_yn='Y', updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
-
-INSERT INTO cpf_response_code (response_code, message_code, result_type, module_id, response_group, sequence_no, http_status, description, created_by, updated_by) VALUES
-    ('ECPF030002','MCPF030002','E','CPF','03','0002',504,'Timeout','SYSTEM','SYSTEM'),
+    ('MCPF040002','ko','FIXED','첨부파일이 보안 정책에 의해 격리되었습니다.','INFECTED/QUARANTINED 파일 접근이 차단되었습니다.',0,NULL,'첨부 격리 메시지','SYSTEM','SYSTEM') ON DUPLICATE KEY UPDATE message_format_type = VALUES(message_format_type), external_message = VALUES(external_message), internal_message = VALUES(internal_message), parameter_count = VALUES(parameter_count), parameter_sample = VALUES(parameter_sample), description = VALUES(description), use_yn = 'Y', updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO cpf_response_code (response_code, message_code, result_type, module_id, response_group, sequence_no, http_status, description, created_by, updated_by) VALUES ('ECPF030002','MCPF030002','E','CPF','03','0002',504,'Timeout','SYSTEM','SYSTEM'),
     ('ECPF030003','MCPF030003','E','CPF','03','0003',503,'Target down','SYSTEM','SYSTEM'),
     ('ECPF030004','MCPF030004','E','CPF','03','0004',202,'UNKNOWN_RESULT','SYSTEM','SYSTEM'),
     ('ECPF020002','MCPF020002','E','CPF','02','0002',409,'Optimistic lock conflict','SYSTEM','SYSTEM'),
     ('ECPF020003','MCPF020003','E','CPF','02','0003',409,'Idempotency duplicate','SYSTEM','SYSTEM'),
     ('ECPF040001','MCPF040001','E','CPF','04','0001',423,'File scan pending','SYSTEM','SYSTEM'),
-    ('ECPF040002','MCPF040002','E','CPF','04','0002',403,'File quarantined','SYSTEM','SYSTEM')
-ON DUPLICATE KEY UPDATE message_code=VALUES(message_code), result_type=VALUES(result_type), module_id=VALUES(module_id), response_group=VALUES(response_group), sequence_no=VALUES(sequence_no), http_status=VALUES(http_status), description=VALUES(description), use_yn='Y', updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
-
-INSERT INTO cpf_config (config_key, config_value, config_type, description, encrypted_yn, created_by, updated_by) VALUES
-    ('CPF.BZA.SECURITY.MAX_LOGIN_FAIL_COUNT','5','NUMBER','BZA 로그인 실패 잠금 기준','N','SYSTEM','SYSTEM'),
+    ('ECPF040002','MCPF040002','E','CPF','04','0002',403,'File quarantined','SYSTEM','SYSTEM') ON DUPLICATE KEY UPDATE message_code = VALUES(message_code), result_type = VALUES(result_type), module_id = VALUES(module_id), response_group = VALUES(response_group), sequence_no = VALUES(sequence_no), http_status = VALUES(http_status), description = VALUES(description), use_yn = 'Y', updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO cpf_config (config_key, config_value, config_type, description, encrypted_yn, created_by, updated_by) VALUES ('CPF.BZA.SECURITY.MAX_LOGIN_FAIL_COUNT','5','NUMBER','BZA 로그인 실패 잠금 기준','N','SYSTEM','SYSTEM'),
     ('CPF.BZA.SECURITY.ACCESS_TOKEN_TTL_SECONDS','600','NUMBER','BZA Access Token TTL','N','SYSTEM','SYSTEM'),
     ('CPF.BZA.SECURITY.REFRESH_TOKEN_TTL_SECONDS','7200','NUMBER','BZA Refresh Token TTL','N','SYSTEM','SYSTEM'),
     ('CPF.RETENTION.EXECUTE_ENABLED','N','BOOLEAN','실제 Archive/Purge 실행 Kill Switch 기본 OFF','N','SYSTEM','SYSTEM'),
     ('CPF.FILE.DOWNLOAD_REQUIRE_CLEAN','Y','BOOLEAN','첨부 다운로드 CLEAN 상태 강제','N','SYSTEM','SYSTEM'),
-    ('CPF.HEALTH.INSTANCE_ID_REQUIRED','Y','BOOLEAN','운영 Health 응답 인스턴스 식별자 필수','N','SYSTEM','SYSTEM')
-ON DUPLICATE KEY UPDATE config_value=VALUES(config_value), config_type=VALUES(config_type), description=VALUES(description), encrypted_yn=VALUES(encrypted_yn), use_yn='Y', updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
-
-INSERT INTO cpf_log_policy (
-    policy_key, policy_name, target_type, target_id, log_level,
-    db_log_enabled_yn, file_log_enabled_yn, request_body_log_yn, response_body_log_yn,
-    error_stack_log_yn, retention_days, sampling_rate, priority, active_yn,
-    description, created_by, updated_by
-) VALUES
-    ('ONLINE_DEFAULT', '온라인 거래 기본 로그 정책', 'ONLINE_TRANSACTION', '*', 'INFO', 'Y', 'Y', 'N', 'N', 'Y', 90, 100.00, 100, 'Y', '온라인 Controller/API 기본 로그 정책', 'SYSTEM', 'SYSTEM'),
+    ('CPF.HEALTH.INSTANCE_ID_REQUIRED','Y','BOOLEAN','운영 Health 응답 인스턴스 식별자 필수','N','SYSTEM','SYSTEM') ON DUPLICATE KEY UPDATE config_value = VALUES(config_value), config_type = VALUES(config_type), description = VALUES(description), encrypted_yn = VALUES(encrypted_yn), use_yn = 'Y', updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO cpf_log_policy (policy_key, policy_name, target_type, target_id, log_level, db_log_enabled_yn, file_log_enabled_yn, request_body_log_yn, response_body_log_yn, error_stack_log_yn, retention_days, sampling_rate, priority, active_yn, description, created_by, updated_by) VALUES ('ONLINE_DEFAULT', '온라인 거래 기본 로그 정책', 'ONLINE_TRANSACTION', '*', 'INFO', 'Y', 'Y', 'N', 'N', 'Y', 90, 100.00, 100, 'Y', '온라인 Controller/API 기본 로그 정책', 'SYSTEM', 'SYSTEM'),
     ('BATCH_DEFAULT', '배치 기본 로그 정책', 'BATCH_JOB', '*', 'INFO', 'Y', 'Y', 'N', 'N', 'Y', 180, 100.00, 100, 'Y', 'Spring Batch Job 기본 로그 정책', 'SYSTEM', 'SYSTEM'),
-    ('ADM_OPERATION_DEFAULT', 'ADM 운영 기본 로그 정책', 'MODULE', 'ADM', 'INFO', 'Y', 'Y', 'N', 'N', 'Y', 365, 100.00, 50, 'Y', 'ADM 운영 API 기본 로그 정책', 'SYSTEM', 'SYSTEM')
-ON DUPLICATE KEY UPDATE
-    policy_name = VALUES(policy_name),
-    target_type = VALUES(target_type),
-    target_id = VALUES(target_id),
-    log_level = VALUES(log_level),
-    db_log_enabled_yn = VALUES(db_log_enabled_yn),
-    file_log_enabled_yn = VALUES(file_log_enabled_yn),
-    request_body_log_yn = VALUES(request_body_log_yn),
-    response_body_log_yn = VALUES(response_body_log_yn),
-    error_stack_log_yn = VALUES(error_stack_log_yn),
-    retention_days = VALUES(retention_days),
-    sampling_rate = VALUES(sampling_rate),
-    priority = VALUES(priority),
-    active_yn = VALUES(active_yn),
-    description = VALUES(description),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO cpf_security_jwt_key (
-    KEY_ID, ISSUER, ALGORITHM, SECRET_REF, ACTIVE_YN, EXPIRE_AT, created_by, updated_by
-) VALUES (
+    ('ADM_OPERATION_DEFAULT', 'ADM 운영 기본 로그 정책', 'MODULE', 'ADM', 'INFO', 'Y', 'Y', 'N', 'N', 'Y', 365, 100.00, 50, 'Y', 'ADM 운영 API 기본 로그 정책', 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE policy_name = VALUES(policy_name), target_type = VALUES(target_type), target_id = VALUES(target_id), log_level = VALUES(log_level), db_log_enabled_yn = VALUES(db_log_enabled_yn), file_log_enabled_yn = VALUES(file_log_enabled_yn), request_body_log_yn = VALUES(request_body_log_yn), response_body_log_yn = VALUES(response_body_log_yn), error_stack_log_yn = VALUES(error_stack_log_yn), retention_days = VALUES(retention_days), sampling_rate = VALUES(sampling_rate), priority = VALUES(priority), active_yn = VALUES(active_yn), description = VALUES(description), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO cpf_security_jwt_key (KEY_ID, ISSUER, ALGORITHM, SECRET_REF, ACTIVE_YN, EXPIRE_AT, created_by, updated_by) VALUES (
     'local-cpf-hs256-001',
     'CPF',
     'HS256',
@@ -370,20 +210,8 @@ INSERT INTO cpf_security_jwt_key (
     NULL,
     'SYSTEM',
     'SYSTEM'
-)
-ON DUPLICATE KEY UPDATE
-    ISSUER = VALUES(ISSUER),
-    ALGORITHM = VALUES(ALGORITHM),
-    SECRET_REF = VALUES(SECRET_REF),
-    ACTIVE_YN = VALUES(ACTIVE_YN),
-    EXPIRE_AT = VALUES(EXPIRE_AT),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO cpf_cache_refresh_event (
-    cache_name, event_type, event_key, source_was_id, published_by, created_by, updated_by
-)
-SELECT 'ALL', 'INITIAL_LOAD', 'INITIAL_FRAMEWORK_SEED', 'SQL', 'SYSTEM', 'SYSTEM', 'SYSTEM'
+) ON DUPLICATE KEY UPDATE ISSUER = VALUES(ISSUER), ALGORITHM = VALUES(ALGORITHM), SECRET_REF = VALUES(SECRET_REF), ACTIVE_YN = VALUES(ACTIVE_YN), EXPIRE_AT = VALUES(EXPIRE_AT), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO cpf_cache_refresh_event (cache_name, event_type, event_key, source_was_id, published_by, created_by, updated_by) SELECT 'ALL', 'INITIAL_LOAD', 'INITIAL_FRAMEWORK_SEED', 'SQL', 'SYSTEM', 'SYSTEM', 'SYSTEM'
 WHERE NOT EXISTS (
     SELECT 1
     FROM cpf_cache_refresh_event
@@ -391,66 +219,36 @@ WHERE NOT EXISTS (
       AND event_type = 'INITIAL_LOAD'
       AND event_key = 'INITIAL_FRAMEWORK_SEED'
 );
-
-
-INSERT INTO cpf_notification_rule (
-    event_type, event_sub_type, channel_code, template_code, severity, receiver_group, use_yn, created_by, updated_by
-) VALUES
-    ('BATCH_EXECUTION', 'FAILED', 'ADM', 'BATCH_FAILED_DEFAULT', 'ERROR', 'ADM_BATCH_OPERATOR', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('SECURITY_EVENT', 'LOGIN_FAILURE', 'ADM', 'SECURITY_LOGIN_FAILURE', 'WARN', 'ADM_SECURITY_OPERATOR', 'Y', 'SYSTEM', 'SYSTEM')
-ON DUPLICATE KEY UPDATE
-    template_code = VALUES(template_code),
-    severity = VALUES(severity),
-    receiver_group = VALUES(receiver_group),
-    use_yn = VALUES(use_yn),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
--- ============================================================================
-
--- R14 product defaults: paging/security/tenant/retention/health and standard operational errors.
-INSERT INTO cpf_code (parent_id, code_key, code_value, description, created_by, updated_by)
-SELECT NULL, 'CODE_GROUP', 'SORT_DIRECTION', '표준 정렬 방향', 'SYSTEM', 'SYSTEM'
+INSERT INTO cpf_notification_rule (event_type, event_sub_type, channel_code, template_code, severity, receiver_group, use_yn, created_by, updated_by) VALUES ('BATCH_EXECUTION', 'FAILED', 'ADM', 'BATCH_FAILED_DEFAULT', 'ERROR', 'ADM_BATCH_OPERATOR', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('SECURITY_EVENT', 'LOGIN_FAILURE', 'ADM', 'SECURITY_LOGIN_FAILURE', 'WARN', 'ADM_SECURITY_OPERATOR', 'Y', 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE template_code = VALUES(template_code), severity = VALUES(severity), receiver_group = VALUES(receiver_group), use_yn = VALUES(use_yn), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO cpf_code (parent_id, code_key, code_value, description, created_by, updated_by) SELECT NULL, 'CODE_GROUP', 'SORT_DIRECTION', '표준 정렬 방향', 'SYSTEM', 'SYSTEM'
 WHERE NOT EXISTS (SELECT 1 FROM cpf_code WHERE code_key='CODE_GROUP' AND code_value='SORT_DIRECTION');
-INSERT INTO cpf_code (parent_id, code_key, code_value, description, created_by, updated_by) VALUES
-    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key='CODE_GROUP' AND code_value='SORT_DIRECTION') x), 'SORT_DIRECTION', 'ASC', '오름차순', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key='CODE_GROUP' AND code_value='SORT_DIRECTION') x), 'SORT_DIRECTION', 'DESC', '내림차순', 'SYSTEM', 'SYSTEM')
-ON DUPLICATE KEY UPDATE parent_id=VALUES(parent_id), description=VALUES(description), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
-
-INSERT INTO cpf_message (message_code, locale, message_format_type, external_message, internal_message, parameter_count, parameter_sample, description, created_by, updated_by) VALUES
-    ('MCPF020004','ko','FIXED','요청 사용자 정보가 인증 사용자와 일치하지 않습니다.','Body requester spoofing이 차단되었습니다.',0,NULL,'Requester spoof 차단','SYSTEM','SYSTEM'),
+INSERT INTO cpf_code (parent_id, code_key, code_value, description, created_by, updated_by) VALUES ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key='CODE_GROUP' AND code_value='SORT_DIRECTION') x), 'SORT_DIRECTION', 'ASC', '오름차순', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key='CODE_GROUP' AND code_value='SORT_DIRECTION') x), 'SORT_DIRECTION', 'DESC', '내림차순', 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE parent_id = VALUES(parent_id), description = VALUES(description), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO cpf_message (message_code, locale, message_format_type, external_message, internal_message, parameter_count, parameter_sample, description, created_by, updated_by) VALUES ('MCPF020004','ko','FIXED','요청 사용자 정보가 인증 사용자와 일치하지 않습니다.','Body requester spoofing이 차단되었습니다.',0,NULL,'Requester spoof 차단','SYSTEM','SYSTEM'),
     ('MCPF020005','ko','FIXED','이미 사용된 정책 버전은 직접 수정할 수 없습니다.','사용된 Approval Policy version은 immutable입니다.',0,NULL,'정책 버전 불변성','SYSTEM','SYSTEM'),
     ('MCPF020006','ko','FIXED','동일 작업 식별자가 다른 요청에 사용되었습니다.','operationId payload 충돌입니다.',0,NULL,'멱등 작업 충돌','SYSTEM','SYSTEM'),
     ('MCPF020007','ko','FIXED','현재 데이터가 다른 요청에서 변경되었습니다.','expectedVersion CAS가 실패했습니다.',0,NULL,'낙관적 잠금 재조회','SYSTEM','SYSTEM'),
     ('MCPF040003','ko','FIXED','보존 정책에 의해 해당 데이터는 삭제할 수 없습니다.','LEGAL_HOLD가 적용되어 destructive retention을 차단했습니다.',0,NULL,'Legal hold','SYSTEM','SYSTEM'),
     ('MCPF040004','ko','FIXED','보존 작업 실행이 비활성화되어 있습니다.','CPF.RETENTION.EXECUTE_ENABLED kill switch가 OFF입니다.',0,NULL,'Retention kill switch','SYSTEM','SYSTEM'),
     ('MCPF050001','ko','FIXED','Secret 원문은 조회할 수 없습니다.','Secret API는 metadata/reference만 노출합니다.',0,NULL,'Secret 비노출','SYSTEM','SYSTEM'),
-    ('MCPF050002','ko','FIXED','테넌트 식별정보가 필요합니다.','Tenant mode에서 resolver가 tenantId를 결정하지 못했습니다.',0,NULL,'Tenant 필수','SYSTEM','SYSTEM')
-ON DUPLICATE KEY UPDATE message_format_type=VALUES(message_format_type), external_message=VALUES(external_message), internal_message=VALUES(internal_message), description=VALUES(description), use_yn='Y', updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
-
-INSERT INTO cpf_response_code (response_code, message_code, result_type, module_id, response_group, sequence_no, http_status, description, created_by, updated_by) VALUES
-    ('ECPF020004','MCPF020004','E','CPF','02','0004',403,'Requester spoof blocked','SYSTEM','SYSTEM'),
+    ('MCPF050002','ko','FIXED','테넌트 식별정보가 필요합니다.','Tenant mode에서 resolver가 tenantId를 결정하지 못했습니다.',0,NULL,'Tenant 필수','SYSTEM','SYSTEM') ON DUPLICATE KEY UPDATE message_format_type = VALUES(message_format_type), external_message = VALUES(external_message), internal_message = VALUES(internal_message), description = VALUES(description), use_yn = 'Y', updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO cpf_response_code (response_code, message_code, result_type, module_id, response_group, sequence_no, http_status, description, created_by, updated_by) VALUES ('ECPF020004','MCPF020004','E','CPF','02','0004',403,'Requester spoof blocked','SYSTEM','SYSTEM'),
     ('ECPF020005','MCPF020005','E','CPF','02','0005',409,'Policy version immutable','SYSTEM','SYSTEM'),
     ('ECPF020006','MCPF020006','E','CPF','02','0006',409,'Operation id conflict','SYSTEM','SYSTEM'),
     ('ECPF020007','MCPF020007','E','CPF','02','0007',409,'Optimistic lock retry','SYSTEM','SYSTEM'),
     ('ECPF040003','MCPF040003','E','CPF','04','0003',423,'Legal hold','SYSTEM','SYSTEM'),
     ('ECPF040004','MCPF040004','E','CPF','04','0004',403,'Retention disabled','SYSTEM','SYSTEM'),
     ('ECPF050001','MCPF050001','E','CPF','05','0001',403,'Secret value hidden','SYSTEM','SYSTEM'),
-    ('ECPF050002','MCPF050002','E','CPF','05','0002',400,'Tenant required','SYSTEM','SYSTEM')
-ON DUPLICATE KEY UPDATE message_code=VALUES(message_code), result_type=VALUES(result_type), module_id=VALUES(module_id), response_group=VALUES(response_group), sequence_no=VALUES(sequence_no), http_status=VALUES(http_status), description=VALUES(description), use_yn='Y', updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
-
-INSERT INTO cpf_config (config_key, config_value, config_type, description, encrypted_yn, created_by, updated_by) VALUES
-    ('CPF.PAGING.DEFAULT_SIZE','20','NUMBER','공통 Page 기본 크기','N','SYSTEM','SYSTEM'),
+    ('ECPF050002','MCPF050002','E','CPF','05','0002',400,'Tenant required','SYSTEM','SYSTEM') ON DUPLICATE KEY UPDATE message_code = VALUES(message_code), result_type = VALUES(result_type), module_id = VALUES(module_id), response_group = VALUES(response_group), sequence_no = VALUES(sequence_no), http_status = VALUES(http_status), description = VALUES(description), use_yn = 'Y', updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO cpf_config (config_key, config_value, config_type, description, encrypted_yn, created_by, updated_by) VALUES ('CPF.PAGING.DEFAULT_SIZE','20','NUMBER','공통 Page 기본 크기','N','SYSTEM','SYSTEM'),
     ('CPF.PAGING.MAX_SIZE','200','NUMBER','공통 Page 최대 크기','N','SYSTEM','SYSTEM'),
     ('CPF.RETENTION.DRY_RUN_DEFAULT','Y','BOOLEAN','Retention 기본 Dry-run','N','SYSTEM','SYSTEM'),
     ('CPF.RETENTION.EXECUTE_ENABLED','N','BOOLEAN','실제 Archive/Purge 실행 Kill Switch 기본 OFF','N','SYSTEM','SYSTEM'),
     ('CPF.SECRET.CACHE_TTL_SECONDS','300','NUMBER','Secret metadata/cache 기본 TTL','N','SYSTEM','SYSTEM'),
     ('CPF.TENANT.ENABLED','N','BOOLEAN','Tenant context 기능 기본 OFF','N','SYSTEM','SYSTEM'),
-    ('CPF.HEALTH.REMOTE_DEPENDENCY_GATES_READINESS','N','BOOLEAN','Remote owner 장애가 local readiness를 직접 차단하지 않음','N','SYSTEM','SYSTEM')
-ON DUPLICATE KEY UPDATE config_value=VALUES(config_value), config_type=VALUES(config_type), description=VALUES(description), encrypted_yn=VALUES(encrypted_yn), use_yn='Y', updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
-
--- R14 canonical metadata completion: catalog-required operational values.
-INSERT INTO cpf_code (parent_id, code_key, code_value, description, created_by, updated_by) VALUES
-    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key='CODE_GROUP' AND code_value='REQUEST_TYPE') x), 'REQUEST_TYPE', 'O', '온라인 요청', 'SYSTEM', 'SYSTEM'),
+    ('CPF.HEALTH.REMOTE_DEPENDENCY_GATES_READINESS','N','BOOLEAN','Remote owner 장애가 local readiness를 직접 차단하지 않음','N','SYSTEM','SYSTEM') ON DUPLICATE KEY UPDATE config_value = VALUES(config_value), config_type = VALUES(config_type), description = VALUES(description), encrypted_yn = VALUES(encrypted_yn), use_yn = 'Y', updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO cpf_code (parent_id, code_key, code_value, description, created_by, updated_by) VALUES ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key='CODE_GROUP' AND code_value='REQUEST_TYPE') x), 'REQUEST_TYPE', 'O', '온라인 요청', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key='CODE_GROUP' AND code_value='REQUEST_TYPE') x), 'REQUEST_TYPE', 'S', '공유 내부 서비스 요청', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key='CODE_GROUP' AND code_value='REQUEST_TYPE') x), 'REQUEST_TYPE', 'B', '배치 요청', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key='CODE_GROUP' AND code_value='CHANNEL_CODE') x), 'CHANNEL_CODE', 'APP', '모바일 앱 채널', 'SYSTEM', 'SYSTEM'),
@@ -461,20 +259,17 @@ INSERT INTO cpf_code (parent_id, code_key, code_value, description, created_by, 
     ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key='CODE_GROUP' AND code_value='BATCH_JOB_TYPE') x), 'BATCH_JOB_TYPE', 'SPRING_BATCH', 'Spring Batch Job', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key='CODE_GROUP' AND code_value='BATCH_JOB_TYPE') x), 'BATCH_JOB_TYPE', 'WORKER', '지속 Worker', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key='CODE_GROUP' AND code_value='BATCH_JOB_TYPE') x), 'BATCH_JOB_TYPE', 'SCHEDULER', 'Scheduler Job', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key='CODE_GROUP' AND code_value='BATCH_JOB_TYPE') x), 'BATCH_JOB_TYPE', 'CENTER_CUT', 'Center-Cut 대량 처리', 'SYSTEM', 'SYSTEM')
-ON DUPLICATE KEY UPDATE parent_id=VALUES(parent_id), description=VALUES(description), use_yn='Y', updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key='CODE_GROUP' AND code_value='BATCH_JOB_TYPE') x), 'BATCH_JOB_TYPE', 'CENTER_CUT', 'Center-Cut 대량 처리', 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE parent_id = VALUES(parent_id), description = VALUES(description), use_yn = 'Y', updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
 -- ============================================================================
 -- cpf-tools/db/vendor/mariadb/source/52_standard_execution_alias_seed.sql
 -- ============================================================================
--- cpf-tools/db/vendor/mariadb/source/52_standard_execution_alias_seed.sql
--- ============================================================================
--- 신규 설치에서도 구형 실행 ID 조회 호환 정보를 제공하는 정본 seed입니다.
-USE cpfDB;
+-- AUTO-GENERATED from cpf-tools/db/canonical/seed-model.json
+-- vendor=mariadb; source=52_standard_execution_alias_seed.sql
+-- DO NOT EDIT generated seed directly.
 
-INSERT INTO cpf_standard_execution_alias (
-    legacy_execution_id, standard_execution_id, migration_reason, created_by, updated_by
-) VALUES
-    ('BADM-RLG-EX-0001', 'BADMRL0001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+-- CPF_LOGICAL_DATABASE=cpfDB
+DELETE FROM cpf_standard_execution_alias WHERE legacy_execution_id LIKE 'OADM-MBR-%' OR standard_execution_id LIKE 'OADMMB%';
+INSERT INTO cpf_standard_execution_alias (legacy_execution_id, standard_execution_id, migration_reason, created_by, updated_by) VALUES ('BADM-RLG-EX-0001', 'BADMRL0001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
     ('BBAT-CUT-CL-0001', 'BBATCU0001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
     ('BBAT-OPS-FL-0001', 'BBATOP0001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
     ('BBAT-OPS-HB-0001', 'BBATOP0002', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
@@ -542,13 +337,6 @@ INSERT INTO cpf_standard_execution_alias (
     ('OADM-LGP-04-0015', 'OADMLG0015', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
     ('OADM-LGP-04-0017', 'OADMLG0017', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
     ('OADM-LGP-04-0019', 'OADMLG0022', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
-    ('OADM-MBR-01-0010', 'OADMMB0010', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
-    ('OADM-MBR-01-0011', 'OADMMB0011', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
-    ('OADM-MBR-02-0012', 'OADMMB0012', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
-    ('OADM-MBR-02-0015', 'OADMMB0015', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
-    ('OADM-MBR-03-0013', 'OADMMB0013', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
-    ('OADM-MBR-03-0014', 'OADMMB0014', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
-    ('OADM-MBR-04-0016', 'OADMMB0016', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
     ('OADM-MSG-01-0010', 'OADMMS0010', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
     ('OADM-MSG-01-0011', 'OADMMS0011', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
     ('OADM-MSG-02-0012', 'OADMMS0012', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
@@ -713,17 +501,6 @@ INSERT INTO cpf_standard_execution_alias (
     ('OBZA-SET-01-1001', 'OBZASE1001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
     ('OBZA-USR-QY-0000', 'OBZAUS0001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
     ('OBZA-USR-QY-0001', 'OBZAUS0002', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
-    ('OMBR-AUT-01-0004', 'OMBRAU0004', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
-    ('OMBR-AUT-01-0005', 'OMBRAU0005', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
-    ('OMBR-AUT-02-0001', 'OMBRAU0001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
-    ('OMBR-AUT-02-0002', 'OMBRAU0002', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
-    ('OMBR-AUT-02-0003', 'OMBRAU0003', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
-    ('OMBR-BSE-01-0001', 'OMBRMB0001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
-    ('OMBR-BSE-01-0002', 'OMBRMB0002', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
-    ('OMBR-BSE-01-0003', 'OMBRMB0003', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
-    ('OMBR-BSE-02-0001', 'OMBRMB0004', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
-    ('OMBR-BSE-03-0001', 'OMBRMB0005', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
-    ('OMBR-BSE-04-0001', 'OMBRMB0006', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
     ('OREF-EDU-01-0001', 'OREFAA0001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
     ('OREF-EDU-01-0002', 'OREFAA0002', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
     ('OREF-EDU-01-0003', 'OREFAA0003', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
@@ -800,164 +577,75 @@ INSERT INTO cpf_standard_execution_alias (
     ('OREF-QRY-01-0002', 'OREFQR0002', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
     ('OREF-QRY-01-0003', 'OREFQR0003', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
     ('OREF-QRY-01-0004', 'OREFQR0004', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
-    ('OREF-QRY-01-0005', 'OREFQR0005', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED')
-ON DUPLICATE KEY UPDATE
-    standard_execution_id = VALUES(standard_execution_id),
-    migration_reason = VALUES(migration_reason),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
--- ============================================================================
+    ('OREF-QRY-01-0005', 'OREFQR0005', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED') ON DUPLICATE KEY UPDATE standard_execution_id = VALUES(standard_execution_id), migration_reason = VALUES(migration_reason), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
 -- ============================================================================
 -- cpf-tools/db/vendor/mariadb/source/56_bza_product_seed.sql
 -- ============================================================================
--- cpf-tools/db/vendor/mariadb/source/56_bza_product_seed.sql
--- ============================================================================
--- BZA 고객 업무 관리자 제품 기본 Metadata입니다.
--- 조직/직원/직급/직책은 고객사 기준정보이므로 Product Seed에서 임의 생성하지 않습니다.
--- Product Seed는 설치 직후 권한·메뉴·운영 정책을 구성할 수 있는 최소 제품 정본만 제공합니다.
+-- AUTO-GENERATED from cpf-tools/db/canonical/seed-model.json
+-- vendor=mariadb; source=56_bza_product_seed.sql
+-- DO NOT EDIT generated seed directly.
 
-USE bzaDB;
-
-INSERT INTO bza_role (
-    role_code, role_name, write_allowed_yn, data_scope, use_yn, created_by, updated_by
-) VALUES
-    ('BZA_ADMIN', '업무 관리자', 'Y', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+-- CPF_LOGICAL_DATABASE=bzaDB
+INSERT INTO bza_role (role_code, role_name, write_allowed_yn, data_scope, use_yn, created_by, updated_by) VALUES ('BZA_ADMIN', '업무 관리자', 'Y', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
     ('BZA_OPERATOR', '업무 운영자', 'Y', 'ORGANIZATION', 'Y', 'SYSTEM', 'SYSTEM'),
     ('BZA_APPROVER', '업무 결재자', 'Y', 'ORGANIZATION', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA_VIEWER', '업무 조회자', 'N', 'ORGANIZATION', 'Y', 'SYSTEM', 'SYSTEM')
-ON DUPLICATE KEY UPDATE
-    role_name = VALUES(role_name),
-    write_allowed_yn = VALUES(write_allowed_yn),
-    data_scope = VALUES(data_scope),
-    use_yn = VALUES(use_yn),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP(3);
-
-INSERT INTO bza_menu (
-    menu_code, menu_name, parent_menu_code, module_code, route_path, icon_code,
-    environment_code, api_path, sort_order, use_yn, created_by, updated_by
-) VALUES
-    ('BZA_DASHBOARD', '업무 관리자 대시보드', NULL, 'BZA', '/bza', 'dashboard', 'ALL', '/api/bza/dashboard', 10, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_VIEWER', '업무 조회자', 'N', 'ORGANIZATION', 'Y', 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE role_name = VALUES(role_name), write_allowed_yn = VALUES(write_allowed_yn), data_scope = VALUES(data_scope), use_yn = VALUES(use_yn), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP(3);
+INSERT INTO bza_menu (menu_code, menu_name, parent_menu_code, module_code, route_path, icon_code, environment_code, api_path, sort_order, use_yn, created_by, updated_by) VALUES ('BZA_DASHBOARD', '업무 관리자 대시보드', NULL, 'BZA', '/bza', 'dashboard', 'ALL', '/api/bza/dashboard', 10, 'Y', 'SYSTEM', 'SYSTEM'),
     ('BZA_ORGANIZATION', '조직 관리', NULL, 'BZA', '/bza/organizations', 'organization', 'ALL', '/api/bza/organizations', 20, 'Y', 'SYSTEM', 'SYSTEM'),
     ('BZA_EMPLOYEE', '직원·소속 관리', NULL, 'BZA', '/bza/employees', 'employee', 'ALL', '/api/bza/employees', 30, 'Y', 'SYSTEM', 'SYSTEM'),
     ('BZA_AUTHORIZATION', '업무 권한 관리', NULL, 'BZA', '/bza/authorization', 'shield', 'ALL', '/api/bza/authorization', 40, 'Y', 'SYSTEM', 'SYSTEM'),
     ('BZA_APPROVAL', '업무 결재 관리', NULL, 'BZA', '/bza/approvals', 'approval', 'ALL', '/api/bza/approvals', 50, 'Y', 'SYSTEM', 'SYSTEM'),
     ('BZA_AUDIT', '업무 감사 조회', NULL, 'BZA', '/bza/audits', 'audit', 'ALL', '/api/bza/audits', 60, 'Y', 'SYSTEM', 'SYSTEM'),
     ('BZA_ATTACHMENT', '첨부 관리', NULL, 'BZA', '/bza/attachments', 'attachment', 'ALL', '/api/bza/attachments', 70, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA_SETTING', '업무 관리자 설정', NULL, 'BZA', '/bza/settings', 'setting', 'ALL', '/api/bza/settings', 80, 'Y', 'SYSTEM', 'SYSTEM')
-ON DUPLICATE KEY UPDATE
-    menu_name = VALUES(menu_name),
-    parent_menu_code = VALUES(parent_menu_code),
-    module_code = VALUES(module_code),
-    route_path = VALUES(route_path),
-    icon_code = VALUES(icon_code),
-    environment_code = VALUES(environment_code),
-    api_path = VALUES(api_path),
-    sort_order = VALUES(sort_order),
-    use_yn = VALUES(use_yn),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP(3);
-
--- BZA_ADMIN은 모든 기본 메뉴 API를 사용할 수 있습니다.
-INSERT INTO bza_permission (
-    role_code, menu_code, button_code, permission_type, http_method, api_pattern,
-    domain_code, environment_code, data_scope, allow_yn, use_yn, created_by, updated_by
-)
-SELECT 'BZA_ADMIN', menu_code, 'ALL', 'API', '*', CONCAT(api_path, '/**'),
+    ('BZA_SETTING', '업무 관리자 설정', NULL, 'BZA', '/bza/settings', 'setting', 'ALL', '/api/bza/settings', 80, 'Y', 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE menu_name = VALUES(menu_name), parent_menu_code = VALUES(parent_menu_code), module_code = VALUES(module_code), route_path = VALUES(route_path), icon_code = VALUES(icon_code), environment_code = VALUES(environment_code), api_path = VALUES(api_path), sort_order = VALUES(sort_order), use_yn = VALUES(use_yn), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP(3);
+INSERT INTO bza_permission (role_code, menu_code, button_code, permission_type, http_method, api_pattern, domain_code, environment_code, data_scope, allow_yn, use_yn, created_by, updated_by) SELECT 'BZA_ADMIN', menu_code, 'ALL', 'API', '*', CONCAT(api_path, '/**'),
        NULL, environment_code, 'ALL', 'Y', 'Y', 'SYSTEM', 'SYSTEM'
 FROM bza_menu
-WHERE use_yn = 'Y'
-ON DUPLICATE KEY UPDATE
-    permission_type = VALUES(permission_type),
-    http_method = VALUES(http_method),
-    api_pattern = VALUES(api_pattern),
-    environment_code = VALUES(environment_code),
-    data_scope = VALUES(data_scope),
-    allow_yn = VALUES(allow_yn),
-    use_yn = VALUES(use_yn),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP(3);
-
--- 일반 운영자/결재자/조회자는 최소 권한만 Product Seed로 부여하고 고객사가 확장합니다.
-INSERT INTO bza_permission (
-    role_code, menu_code, button_code, permission_type, http_method, api_pattern,
-    domain_code, environment_code, data_scope, allow_yn, use_yn, created_by, updated_by
-) VALUES
-    ('BZA_OPERATOR', 'BZA_DASHBOARD', 'READ', 'API', 'GET', '/api/bza/dashboard/**', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
+WHERE use_yn = 'Y' ON DUPLICATE KEY UPDATE permission_type = VALUES(permission_type), http_method = VALUES(http_method), api_pattern = VALUES(api_pattern), environment_code = VALUES(environment_code), data_scope = VALUES(data_scope), allow_yn = VALUES(allow_yn), use_yn = VALUES(use_yn), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP(3);
+INSERT INTO bza_permission (role_code, menu_code, button_code, permission_type, http_method, api_pattern, domain_code, environment_code, data_scope, allow_yn, use_yn, created_by, updated_by) VALUES ('BZA_OPERATOR', 'BZA_DASHBOARD', 'READ', 'API', 'GET', '/api/bza/dashboard/**', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
     ('BZA_OPERATOR', 'BZA_ORGANIZATION', 'READ', 'API', 'GET', '/api/bza/organizations/**', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
     ('BZA_OPERATOR', 'BZA_EMPLOYEE', 'READ', 'API', 'GET', '/api/bza/employees/**', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
     ('BZA_APPROVER', 'BZA_APPROVAL', 'READ', 'API', 'GET', '/api/bza/approvals/**', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
     ('BZA_APPROVER', 'BZA_APPROVAL', 'DECIDE', 'API', 'POST', '/api/bza/approvals/*/decisions', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
     ('BZA_VIEWER', 'BZA_DASHBOARD', 'READ', 'API', 'GET', '/api/bza/dashboard/**', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA_VIEWER', 'BZA_AUDIT', 'READ', 'API', 'GET', '/api/bza/audits/**', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM')
-ON DUPLICATE KEY UPDATE
-    permission_type = VALUES(permission_type),
-    http_method = VALUES(http_method),
-    api_pattern = VALUES(api_pattern),
-    environment_code = VALUES(environment_code),
-    data_scope = VALUES(data_scope),
-    allow_yn = VALUES(allow_yn),
-    use_yn = VALUES(use_yn),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP(3);
-
-INSERT INTO bza_project_setting (
-    setting_key, setting_value, description, use_yn, created_by, updated_by
-) VALUES
-    ('BZA.APPROVAL.SELF_APPROVAL_ALLOWED', 'N', '기본 자기승인 차단 정책', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_VIEWER', 'BZA_AUDIT', 'READ', 'API', 'GET', '/api/bza/audits/**', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE permission_type = VALUES(permission_type), http_method = VALUES(http_method), api_pattern = VALUES(api_pattern), environment_code = VALUES(environment_code), data_scope = VALUES(data_scope), allow_yn = VALUES(allow_yn), use_yn = VALUES(use_yn), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP(3);
+INSERT INTO bza_project_setting (setting_key, setting_value, description, use_yn, created_by, updated_by) VALUES ('BZA.APPROVAL.SELF_APPROVAL_ALLOWED', 'N', '기본 자기승인 차단 정책', 'Y', 'SYSTEM', 'SYSTEM'),
     ('BZA.APPROVAL.DEFAULT_DUE_HOURS', '24', '기본 결재 SLA 시간', 'Y', 'SYSTEM', 'SYSTEM'),
     ('BZA.APPROVAL.REQUIRE_PAYLOAD_HASH', 'Y', '결재 대상 Payload 변조 검증용 SHA-256 사용', 'Y', 'SYSTEM', 'SYSTEM'),
     ('BZA.AUDIT.HASH_CHAIN_ENABLED', 'Y', '업무 감사 로그 hash-chain 검증 사용', 'Y', 'SYSTEM', 'SYSTEM'),
     ('BZA.ATTACHMENT.SECURITY_SCAN_REQUIRED', 'Y', '첨부 보안검사 완료 후 사용 허용', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA.ATTACHMENT.DEFAULT_RETENTION_DAYS', '365', '첨부 기본 보존일수', 'Y', 'SYSTEM', 'SYSTEM')
-ON DUPLICATE KEY UPDATE
-    setting_value = VALUES(setting_value),
-    description = VALUES(description),
-    use_yn = VALUES(use_yn),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP(3);
--- ============================================================================
-
+    ('BZA.ATTACHMENT.DEFAULT_RETENTION_DAYS', '365', '첨부 기본 보존일수', 'Y', 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value), description = VALUES(description), use_yn = VALUES(use_yn), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP(3);
+INSERT INTO bza_permission (role_code, menu_code, button_code, permission_type, http_method, api_pattern, domain_code, environment_code, data_scope, allow_yn, use_yn, created_by, updated_by) VALUES ('BZA_ADMIN', 'BZA_AUTHORIZATION', 'SIMULATE', 'API', 'GET', '/api/bza/backoffice/permissions/effective', NULL, 'ALL', 'ALL', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_ADMIN', 'BZA_EMPLOYEE', 'PII_RAW', 'API', 'POST', '/api/bza/backoffice/employees/*/contacts/raw', NULL, 'ALL', 'ALL', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_OPERATOR', 'BZA_AUTHORIZATION', 'SIMULATE', 'API', 'GET', '/api/bza/backoffice/permissions/effective', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_APPROVER', 'BZA_APPROVAL', 'DECIDE', 'API', 'POST', '/api/bza/backoffice/approvals/*/actions', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_APPROVER', 'BZA_APPROVAL', 'DECIDE', 'API', 'POST', '/api/bza/approvals/*/decisions', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE http_method = VALUES(http_method), api_pattern = VALUES(api_pattern), domain_code = VALUES(domain_code), data_scope = VALUES(data_scope), allow_yn = VALUES(allow_yn), use_yn = VALUES(use_yn), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
 -- ============================================================================
 -- cpf-tools/db/vendor/mariadb/source/60_adm_seed_data.sql
 -- ============================================================================
--- cpf-tools/db/vendor/mariadb/source/60_adm_seed_data.sql
--- ============================================================================
--- ADM 초기 역할, 메뉴, 버튼 권한, 보안 정책, 로컬 계정 데이터입니다.
--- 대상 DB: admDB
+-- AUTO-GENERATED from cpf-tools/db/canonical/seed-model.json
+-- vendor=mariadb; source=60_adm_seed_data.sql
+-- DO NOT EDIT generated seed directly.
 
-USE admDB;
-
-INSERT INTO adm_role (ROLE_ID, ROLE_NAME, ROLE_TYPE, DESCRIPTION, USE_YN, created_by, updated_by)
-VALUES
-    ('ADM_ADMIN', '프레임워크 관리자', 'ADMIN', '모든 ADM 메뉴와 운영 작업을 관리합니다.', 'Y', 'SYSTEM', 'SYSTEM'),
+-- CPF_LOGICAL_DATABASE=admDB
+INSERT INTO adm_role (ROLE_ID, ROLE_NAME, ROLE_TYPE, DESCRIPTION, USE_YN, created_by, updated_by) VALUES ('ADM_ADMIN', '프레임워크 관리자', 'ADMIN', '모든 ADM 메뉴와 운영 작업을 관리합니다.', 'Y', 'SYSTEM', 'SYSTEM'),
     ('ADM_DEV_OPERATOR', '개발자 운영자', 'DEVELOPER_OPERATOR', '로그, 캐시, 코드, 메시지, 설정, 배치 관제를 운영합니다.', 'Y', 'SYSTEM', 'SYSTEM'),
     ('ADM_BIZ_OPERATOR', '업무 운영자', 'BUSINESS_OPERATOR', '회원, 거래 로그, 배치, 캐시 같은 업무 운영 기능을 수행합니다.', 'Y', 'SYSTEM', 'SYSTEM'),
     ('ADM_VIEWER', '조회 전용 운영자', 'VIEWER', '운영 정보를 조회만 할 수 있습니다.', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('ADM_OPERATOR', '운영자 호환 역할', 'DEVELOPER_OPERATOR', '기존 ADM_OPERATOR 호환을 위한 역할입니다.', 'Y', 'SYSTEM', 'SYSTEM')
-ON DUPLICATE KEY UPDATE
-    ROLE_NAME = VALUES(ROLE_NAME),
-    ROLE_TYPE = VALUES(ROLE_TYPE),
-    DESCRIPTION = VALUES(DESCRIPTION),
-    USE_YN = VALUES(USE_YN),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO adm_menu (MENU_ID, PARENT_MENU_ID, MENU_NAME, MENU_PATH, SORT_ORDER, USE_YN, created_by, updated_by)
-VALUES
-    ('DASHBOARD', NULL, '대시보드', '/adm', 10, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('ADM_OPERATOR', '운영자 호환 역할', 'DEVELOPER_OPERATOR', '기존 ADM_OPERATOR 호환을 위한 역할입니다.', 'Y', 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE ROLE_NAME = VALUES(ROLE_NAME), ROLE_TYPE = VALUES(ROLE_TYPE), DESCRIPTION = VALUES(DESCRIPTION), USE_YN = VALUES(USE_YN), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_menu (MENU_ID, PARENT_MENU_ID, MENU_NAME, MENU_PATH, SORT_ORDER, USE_YN, created_by, updated_by) VALUES ('DASHBOARD', NULL, '대시보드', '/adm', 10, 'Y', 'SYSTEM', 'SYSTEM'),
     ('LOG_LIST', NULL, '온라인 거래 로그', '/adm#logs', 20, 'Y', 'SYSTEM', 'SYSTEM'),
     ('STANDARD_EXECUTION', NULL, '표준 실행 카탈로그', '/adm#standard-executions', 23, 'Y', 'SYSTEM', 'SYSTEM'),
     ('CHANNEL_POLICY', NULL, '채널 정책', '/adm#channel-policy', 24, 'Y', 'SYSTEM', 'SYSTEM'),
     ('REMOTE_LOG', NULL, '원격 로그 관리', '/adm#remote-logs', 25, 'Y', 'SYSTEM', 'SYSTEM'),
     ('TRANSACTION_META', NULL, '거래 메타', '/adm#transactions', 25, 'Y', 'SYSTEM', 'SYSTEM'),
     ('AUDIT_LOG', NULL, '감사 로그', '/adm#audit-logs', 30, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('MEMBER', NULL, '회원 관리', '/adm#members', 40, 'Y', 'SYSTEM', 'SYSTEM'),
     ('BATCH', NULL, '배치 관제', '/adm#batch', 50, 'Y', 'SYSTEM', 'SYSTEM'),
     ('RELIABILITY', NULL, '신뢰성 처리 관제', '/adm#reliability', 52, 'Y', 'SYSTEM', 'SYSTEM'),
     ('NOTIFICATION', NULL, '알림 관리', '/adm#notifications', 55, 'Y', 'SYSTEM', 'SYSTEM'),
     ('DOWNLOAD', NULL, '다운로드 감사', '/adm#downloads', 58, 'Y', 'SYSTEM', 'SYSTEM'),
     ('CACHE', NULL, '캐시 관리', '/adm#cache', 60, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('FILE_JOB', NULL, '대량파일 Job', '/adm#file-jobs', 61, 'Y', 'SYSTEM', 'SYSTEM'),
     ('MESSAGE', NULL, '메시지 관리', '/adm#messages', 70, 'Y', 'SYSTEM', 'SYSTEM'),
     ('CODE', NULL, '코드 관리', '/adm#codes', 80, 'Y', 'SYSTEM', 'SYSTEM'),
     ('RESPONSE_CODE', NULL, '응답코드 관리', '/adm#response-codes', 90, 'Y', 'SYSTEM', 'SYSTEM'),
@@ -967,19 +655,8 @@ VALUES
     ('PASSWORD', NULL, '비밀번호 관리', '/adm#password', 120, 'Y', 'SYSTEM', 'SYSTEM'),
     ('SECURITY', NULL, '보안 운영', '/adm#security', 130, 'Y', 'SYSTEM', 'SYSTEM'),
     ('PERMISSION', NULL, '권한 관리', '/adm#permissions', 140, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('OPERATOR', NULL, '운영자 관리', '/adm#operators', 150, 'Y', 'SYSTEM', 'SYSTEM')
-ON DUPLICATE KEY UPDATE
-    PARENT_MENU_ID = VALUES(PARENT_MENU_ID),
-    MENU_NAME = VALUES(MENU_NAME),
-    MENU_PATH = VALUES(MENU_PATH),
-    SORT_ORDER = VALUES(SORT_ORDER),
-    USE_YN = VALUES(USE_YN),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO adm_button (BUTTON_ID, MENU_ID, ACTION_CODE, BUTTON_NAME, HTTP_METHOD, API_PATTERN, SORT_ORDER, USE_YN, created_by, updated_by)
-VALUES
-    ('LOG_LIST_READ', 'LOG_LIST', 'READ', '조회', 'GET', '/adm/api/logs/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('OPERATOR', NULL, '운영자 관리', '/adm#operators', 150, 'Y', 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE PARENT_MENU_ID = VALUES(PARENT_MENU_ID), MENU_NAME = VALUES(MENU_NAME), MENU_PATH = VALUES(MENU_PATH), SORT_ORDER = VALUES(SORT_ORDER), USE_YN = VALUES(USE_YN), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_button (BUTTON_ID, MENU_ID, ACTION_CODE, BUTTON_NAME, HTTP_METHOD, API_PATTERN, SORT_ORDER, USE_YN, created_by, updated_by) VALUES ('LOG_LIST_READ', 'LOG_LIST', 'READ', '조회', 'GET', '/adm/api/logs/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
     ('LOG_LIST_DETAIL', 'LOG_LIST', 'DETAIL', '상세 조회', 'GET', '/adm/api/logs/**', 20, 'Y', 'SYSTEM', 'SYSTEM'),
     ('LOG_LIST_DOWNLOAD', 'LOG_LIST', 'DOWNLOAD', '다운로드', 'GET', '/adm/api/logs/**', 30, 'Y', 'SYSTEM', 'SYSTEM'),
     ('STANDARD_EXECUTION_READ', 'STANDARD_EXECUTION', 'READ', '표준 실행 조회', 'GET', '/adm/api/standard-executions/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
@@ -997,12 +674,6 @@ VALUES
     ('TRANSACTION_META_SCAN', 'TRANSACTION_META', 'SCAN', '거래 메타 스캔', 'POST', '/adm/api/transactions/scan', 20, 'Y', 'SYSTEM', 'SYSTEM'),
     ('TRANSACTION_META_WRITE', 'TRANSACTION_META', 'WRITE', '거래 메타 비활성화', 'POST', '/adm/api/transactions/*/inactive', 30, 'Y', 'SYSTEM', 'SYSTEM'),
     ('AUDIT_LOG_READ', 'AUDIT_LOG', 'READ', '조회', 'GET', '/adm/api/audit-logs/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('MEMBER_READ', 'MEMBER', 'READ', '회원 조회', 'GET', '/adm/api/members/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('MEMBER_CREATE', 'MEMBER', 'CREATE', '회원 등록', 'POST', '/adm/api/members', 20, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('MEMBER_UPDATE', 'MEMBER', 'UPDATE', '회원 수정', 'PUT', '/adm/api/members/*', 30, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('MEMBER_STATUS', 'MEMBER', 'STATUS', '회원 상태 변경', 'PUT', '/adm/api/members/*/status', 40, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('MEMBER_ROLE_GRANT', 'MEMBER', 'ROLE_GRANT', '회원 권한 부여', 'POST', '/adm/api/members/*/roles', 50, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('MEMBER_ROLE_REVOKE', 'MEMBER', 'ROLE_REVOKE', '회원 권한 회수', 'DELETE', '/adm/api/members/*/roles/*', 60, 'Y', 'SYSTEM', 'SYSTEM'),
     ('BATCH_READ', 'BATCH', 'READ', '조회', 'GET', '/adm/api/batch/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
     ('BATCH_REGISTER', 'BATCH', 'REGISTER', '배치 등록', 'POST', '/adm/api/batch/jobs', 20, 'Y', 'SYSTEM', 'SYSTEM'),
     ('BATCH_EXECUTE', 'BATCH', 'EXECUTE', '수동 실행', 'POST', '/adm/api/batch/*/run', 30, 'Y', 'SYSTEM', 'SYSTEM'),
@@ -1030,10 +701,23 @@ VALUES
     ('NOTIFICATION_WRITE', 'NOTIFICATION', 'WRITE', '알림 등록/수정', 'POST', '/adm/api/notifications/**', 20, 'Y', 'SYSTEM', 'SYSTEM'),
     ('NOTIFICATION_DISABLE', 'NOTIFICATION', 'DISABLE', '알림 비활성화', 'PUT', '/adm/api/notifications/rules/*/disable', 30, 'Y', 'SYSTEM', 'SYSTEM'),
     ('NOTIFICATION_TEST_SEND', 'NOTIFICATION', 'TEST_SEND', '알림 테스트 발송', 'POST', '/adm/api/notifications/rules/*/test-send', 40, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('NOTIFICATION_RETRY', 'NOTIFICATION', 'RETRY', '알림 발송 재시도', 'POST', '/adm/api/notifications/delivery-logs/*/retry', 50, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('NOTIFICATION_CANCEL', 'NOTIFICATION', 'CANCEL', '알림 발송 취소', 'POST', '/adm/api/notifications/delivery-logs/*/cancel', 60, 'Y', 'SYSTEM', 'SYSTEM'),
     ('DOWNLOAD_READ', 'DOWNLOAD', 'READ', '다운로드 감사 조회', 'GET', '/adm/api/downloads/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
     ('DOWNLOAD_EXECUTE', 'DOWNLOAD', 'DOWNLOAD', 'CSV 다운로드', 'POST', '/adm/api/downloads/csv', 20, 'Y', 'SYSTEM', 'SYSTEM'),
     ('CACHE_READ', 'CACHE', 'READ', '조회', 'GET', '/adm/api/cache/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
     ('CACHE_REFRESH', 'CACHE', 'REFRESH', '캐시 갱신', 'POST', '/adm/api/cache/**', 20, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('CACHE_EVICT_KEY', 'CACHE', 'EVICT_KEY', '단일 Cache 제거', 'POST', '/adm/api/cache/evict-key', 30, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('CACHE_EVICT_NAMESPACE', 'CACHE', 'EVICT_NAMESPACE', 'Namespace Cache 제거', 'POST', '/adm/api/cache/evict-namespace', 40, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('CACHE_RECONCILE', 'CACHE', 'RECONCILE', 'Cache Durable 재조정', 'POST', '/adm/api/cache/reconcile', 50, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('FILE_JOB_READ', 'FILE_JOB', 'READ', 'File Job 조회', 'GET', '/adm/api/file-jobs/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('FILE_JOB_UPLOAD', 'FILE_JOB', 'UPLOAD', 'Upload 접수', 'POST', '/adm/api/file-jobs/uploads', 20, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('FILE_JOB_APPLY', 'FILE_JOB', 'APPLY', '검증 Job 적용', 'POST', '/adm/api/file-jobs/*/apply', 30, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('FILE_JOB_RETRY', 'FILE_JOB', 'RETRY', 'File Job 재시도', 'POST', '/adm/api/file-jobs/*/retry', 40, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('FILE_JOB_CANCEL', 'FILE_JOB', 'CANCEL', 'File Job 취소', 'POST', '/adm/api/file-jobs/*/cancel', 50, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('FILE_JOB_ROLLBACK', 'FILE_JOB', 'ROLLBACK', 'File Job Rollback', 'POST', '/adm/api/file-jobs/*/rollback', 60, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('FILE_JOB_DOWNLOAD', 'FILE_JOB', 'DOWNLOAD', 'Artifact 다운로드', 'GET', '/adm/api/file-jobs/*/artifact', 70, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('FILE_JOB_RESOLVE', 'FILE_JOB', 'RESOLVE', '결과 불명 확정', 'POST', '/adm/api/file-jobs/*/resolve-unknown', 80, 'Y', 'SYSTEM', 'SYSTEM'),
     ('MESSAGE_READ', 'MESSAGE', 'READ', '조회', 'GET', '/adm/api/messages/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
     ('MESSAGE_WRITE', 'MESSAGE', 'WRITE', '등록/수정', 'POST', '/adm/api/messages/**', 20, 'Y', 'SYSTEM', 'SYSTEM'),
     ('MESSAGE_DISABLE', 'MESSAGE', 'DISABLE', '비활성', 'DELETE', '/adm/api/messages/**', 30, 'Y', 'SYSTEM', 'SYSTEM'),
@@ -1064,166 +748,52 @@ VALUES
     ('OPERATOR_ROLE_UPDATE', 'OPERATOR', 'ROLE_UPDATE', '역할 부여', 'PUT', '/adm/api/operators/*/roles', 30, 'Y', 'SYSTEM', 'SYSTEM'),
     ('OPERATOR_STATUS_UPDATE', 'OPERATOR', 'STATUS_UPDATE', '계정 상태 변경', 'PUT', '/adm/api/operators/*/status', 40, 'Y', 'SYSTEM', 'SYSTEM'),
     ('OPERATOR_CONTACT_UPDATE', 'OPERATOR', 'CONTACT_UPDATE', '연락처 변경', 'PUT', '/adm/api/operators/*/contacts', 50, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('OPERATOR_PII_RAW', 'OPERATOR', 'PII_RAW', '연락처 원문 조회', 'POST', '/adm/api/operators/*/contacts/raw', 60, 'Y', 'SYSTEM', 'SYSTEM')
-ON DUPLICATE KEY UPDATE
-    MENU_ID = VALUES(MENU_ID),
-    ACTION_CODE = VALUES(ACTION_CODE),
-    BUTTON_NAME = VALUES(BUTTON_NAME),
-    HTTP_METHOD = VALUES(HTTP_METHOD),
-    API_PATTERN = VALUES(API_PATTERN),
-    SORT_ORDER = VALUES(SORT_ORDER),
-    USE_YN = VALUES(USE_YN),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO adm_password_policy (
-    POLICY_ID, MIN_LENGTH, REQUIRE_UPPER_YN, REQUIRE_LOWER_YN, REQUIRE_DIGIT_YN,
-    REQUIRE_SPECIAL_YN, MAX_FAIL_COUNT, EXPIRE_DAYS, HISTORY_LIMIT, USE_YN, created_by, updated_by
-) VALUES (
+    ('OPERATOR_PII_RAW', 'OPERATOR', 'PII_RAW', '연락처 원문 조회', 'POST', '/adm/api/operators/*/contacts/raw', 60, 'Y', 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE MENU_ID = VALUES(MENU_ID), ACTION_CODE = VALUES(ACTION_CODE), BUTTON_NAME = VALUES(BUTTON_NAME), HTTP_METHOD = VALUES(HTTP_METHOD), API_PATTERN = VALUES(API_PATTERN), SORT_ORDER = VALUES(SORT_ORDER), USE_YN = VALUES(USE_YN), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_password_policy (POLICY_ID, MIN_LENGTH, REQUIRE_UPPER_YN, REQUIRE_LOWER_YN, REQUIRE_DIGIT_YN, REQUIRE_SPECIAL_YN, MAX_FAIL_COUNT, EXPIRE_DAYS, HISTORY_LIMIT, USE_YN, created_by, updated_by) VALUES (
     'DEFAULT', 12, 'Y', 'Y', 'Y', 'Y', 5, 90, 5, 'Y', 'SYSTEM', 'SYSTEM'
-)
-ON DUPLICATE KEY UPDATE
-    MIN_LENGTH = VALUES(MIN_LENGTH),
-    REQUIRE_UPPER_YN = VALUES(REQUIRE_UPPER_YN),
-    REQUIRE_LOWER_YN = VALUES(REQUIRE_LOWER_YN),
-    REQUIRE_DIGIT_YN = VALUES(REQUIRE_DIGIT_YN),
-    REQUIRE_SPECIAL_YN = VALUES(REQUIRE_SPECIAL_YN),
-    MAX_FAIL_COUNT = VALUES(MAX_FAIL_COUNT),
-    EXPIRE_DAYS = VALUES(EXPIRE_DAYS),
-    HISTORY_LIMIT = VALUES(HISTORY_LIMIT),
-    USE_YN = VALUES(USE_YN),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
--- 최초 운영자는 CPF_ADM_BOOTSTRAP_* 환경변수를 명시한 애플리케이션 bootstrap에서만 생성합니다.
--- SQL seed에는 재사용 가능한 비밀번호 해시나 자동 활성 관리자 계정을 두지 않습니다.
-
-INSERT INTO adm_role_menu (ROLE_ID, MENU_ID, READ_YN, WRITE_YN, DELETE_YN, created_by, updated_by)
-SELECT 'ADM_ADMIN', MENU_ID, 'Y', 'Y', 'Y', 'SYSTEM', 'SYSTEM'
-FROM adm_menu
-ON DUPLICATE KEY UPDATE
-    READ_YN = VALUES(READ_YN),
-    WRITE_YN = VALUES(WRITE_YN),
-    DELETE_YN = VALUES(DELETE_YN),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO adm_role_menu (ROLE_ID, MENU_ID, READ_YN, WRITE_YN, DELETE_YN, created_by, updated_by)
-SELECT 'ADM_DEV_OPERATOR', MENU_ID, 'Y',
-       CASE WHEN MENU_ID IN ('TRANSACTION_META', 'CHANNEL_POLICY', 'REMOTE_LOG', 'BATCH', 'RELIABILITY', 'NOTIFICATION', 'DOWNLOAD', 'CACHE', 'MESSAGE', 'CODE', 'RESPONSE_CODE', 'CONFIG', 'DYNAMIC_LOG', 'LOG_POLICY') THEN 'Y' ELSE 'N' END,
+) ON DUPLICATE KEY UPDATE MIN_LENGTH = VALUES(MIN_LENGTH), REQUIRE_UPPER_YN = VALUES(REQUIRE_UPPER_YN), REQUIRE_LOWER_YN = VALUES(REQUIRE_LOWER_YN), REQUIRE_DIGIT_YN = VALUES(REQUIRE_DIGIT_YN), REQUIRE_SPECIAL_YN = VALUES(REQUIRE_SPECIAL_YN), MAX_FAIL_COUNT = VALUES(MAX_FAIL_COUNT), EXPIRE_DAYS = VALUES(EXPIRE_DAYS), HISTORY_LIMIT = VALUES(HISTORY_LIMIT), USE_YN = VALUES(USE_YN), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_role_menu (ROLE_ID, MENU_ID, READ_YN, WRITE_YN, DELETE_YN, created_by, updated_by) SELECT 'ADM_ADMIN', MENU_ID, 'Y', 'Y', 'Y', 'SYSTEM', 'SYSTEM'
+FROM adm_menu ON DUPLICATE KEY UPDATE READ_YN = VALUES(READ_YN), WRITE_YN = VALUES(WRITE_YN), DELETE_YN = VALUES(DELETE_YN), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_role_menu (ROLE_ID, MENU_ID, READ_YN, WRITE_YN, DELETE_YN, created_by, updated_by) SELECT 'ADM_DEV_OPERATOR', MENU_ID, 'Y',
+       CASE WHEN MENU_ID IN ('TRANSACTION_META', 'CHANNEL_POLICY', 'REMOTE_LOG', 'BATCH', 'RELIABILITY', 'NOTIFICATION', 'DOWNLOAD', 'CACHE', 'FILE_JOB', 'MESSAGE', 'CODE', 'RESPONSE_CODE', 'CONFIG', 'DYNAMIC_LOG', 'LOG_POLICY') THEN 'Y' ELSE 'N' END,
        CASE WHEN MENU_ID IN ('TRANSACTION_META', 'MESSAGE', 'CODE', 'DYNAMIC_LOG', 'LOG_POLICY') THEN 'Y' ELSE 'N' END,
        'SYSTEM', 'SYSTEM'
 FROM adm_menu
-WHERE MENU_ID NOT IN ('OPERATOR', 'PERMISSION', 'PASSWORD', 'SECURITY')
-ON DUPLICATE KEY UPDATE
-    READ_YN = VALUES(READ_YN),
-    WRITE_YN = VALUES(WRITE_YN),
-    DELETE_YN = VALUES(DELETE_YN),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO adm_role_menu (ROLE_ID, MENU_ID, READ_YN, WRITE_YN, DELETE_YN, created_by, updated_by)
-SELECT 'ADM_BIZ_OPERATOR', MENU_ID, 'Y',
-       CASE WHEN MENU_ID IN ('MEMBER', 'BATCH', 'DOWNLOAD', 'CACHE') THEN 'Y' ELSE 'N' END,
-       CASE WHEN MENU_ID = 'MEMBER' THEN 'Y' ELSE 'N' END,
+WHERE MENU_ID NOT IN ('OPERATOR', 'PERMISSION', 'PASSWORD', 'SECURITY') ON DUPLICATE KEY UPDATE READ_YN = VALUES(READ_YN), WRITE_YN = VALUES(WRITE_YN), DELETE_YN = VALUES(DELETE_YN), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_role_menu (ROLE_ID, MENU_ID, READ_YN, WRITE_YN, DELETE_YN, created_by, updated_by) SELECT 'ADM_BIZ_OPERATOR', MENU_ID, 'Y',
+       CASE WHEN MENU_ID IN ('BATCH', 'DOWNLOAD', 'CACHE', 'FILE_JOB') THEN 'Y' ELSE 'N' END,
+       'N',
        'SYSTEM', 'SYSTEM'
 FROM adm_menu
-WHERE MENU_ID IN ('DASHBOARD', 'LOG_LIST', 'STANDARD_EXECUTION', 'CHANNEL_POLICY', 'REMOTE_LOG', 'TRANSACTION_META', 'AUDIT_LOG', 'MEMBER', 'BATCH', 'RELIABILITY', 'NOTIFICATION', 'DOWNLOAD', 'CACHE', 'MESSAGE', 'CODE')
-ON DUPLICATE KEY UPDATE
-    READ_YN = VALUES(READ_YN),
-    WRITE_YN = VALUES(WRITE_YN),
-    DELETE_YN = VALUES(DELETE_YN),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO adm_role_menu (ROLE_ID, MENU_ID, READ_YN, WRITE_YN, DELETE_YN, created_by, updated_by)
-SELECT 'ADM_VIEWER', MENU_ID, 'Y', 'N', 'N', 'SYSTEM', 'SYSTEM'
+WHERE MENU_ID IN ('DASHBOARD', 'LOG_LIST', 'STANDARD_EXECUTION', 'CHANNEL_POLICY', 'REMOTE_LOG', 'TRANSACTION_META', 'AUDIT_LOG', 'BATCH', 'RELIABILITY', 'NOTIFICATION', 'DOWNLOAD', 'CACHE', 'FILE_JOB', 'MESSAGE', 'CODE') ON DUPLICATE KEY UPDATE READ_YN = VALUES(READ_YN), WRITE_YN = VALUES(WRITE_YN), DELETE_YN = VALUES(DELETE_YN), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_role_menu (ROLE_ID, MENU_ID, READ_YN, WRITE_YN, DELETE_YN, created_by, updated_by) SELECT 'ADM_VIEWER', MENU_ID, 'Y', 'N', 'N', 'SYSTEM', 'SYSTEM'
 FROM adm_menu
-WHERE MENU_ID IN ('DASHBOARD', 'LOG_LIST', 'STANDARD_EXECUTION', 'CHANNEL_POLICY', 'REMOTE_LOG', 'TRANSACTION_META', 'AUDIT_LOG', 'MEMBER', 'BATCH', 'RELIABILITY', 'NOTIFICATION', 'DOWNLOAD', 'CACHE', 'MESSAGE', 'CODE', 'RESPONSE_CODE', 'CONFIG', 'LOG_POLICY')
-ON DUPLICATE KEY UPDATE
-    READ_YN = VALUES(READ_YN),
-    WRITE_YN = VALUES(WRITE_YN),
-    DELETE_YN = VALUES(DELETE_YN),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO adm_role_menu (ROLE_ID, MENU_ID, READ_YN, WRITE_YN, DELETE_YN, created_by, updated_by)
-SELECT 'ADM_OPERATOR', MENU_ID, READ_YN, WRITE_YN, DELETE_YN, 'SYSTEM', 'SYSTEM'
+WHERE MENU_ID IN ('DASHBOARD', 'LOG_LIST', 'STANDARD_EXECUTION', 'CHANNEL_POLICY', 'REMOTE_LOG', 'TRANSACTION_META', 'AUDIT_LOG', 'BATCH', 'RELIABILITY', 'NOTIFICATION', 'DOWNLOAD', 'CACHE', 'FILE_JOB', 'MESSAGE', 'CODE', 'RESPONSE_CODE', 'CONFIG', 'LOG_POLICY') ON DUPLICATE KEY UPDATE READ_YN = VALUES(READ_YN), WRITE_YN = VALUES(WRITE_YN), DELETE_YN = VALUES(DELETE_YN), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_role_menu (ROLE_ID, MENU_ID, READ_YN, WRITE_YN, DELETE_YN, created_by, updated_by) SELECT 'ADM_OPERATOR', MENU_ID, READ_YN, WRITE_YN, DELETE_YN, 'SYSTEM', 'SYSTEM'
 FROM adm_role_menu
-WHERE ROLE_ID = 'ADM_DEV_OPERATOR'
-ON DUPLICATE KEY UPDATE
-    READ_YN = VALUES(READ_YN),
-    WRITE_YN = VALUES(WRITE_YN),
-    DELETE_YN = VALUES(DELETE_YN),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO adm_role_button (ROLE_ID, BUTTON_ID, ALLOW_YN, created_by, updated_by)
-SELECT 'ADM_ADMIN', BUTTON_ID, 'Y', 'SYSTEM', 'SYSTEM'
-FROM adm_button
-ON DUPLICATE KEY UPDATE
-    ALLOW_YN = VALUES(ALLOW_YN),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO adm_role_button (ROLE_ID, BUTTON_ID, ALLOW_YN, created_by, updated_by)
-SELECT 'ADM_DEV_OPERATOR', BUTTON_ID,
+WHERE ROLE_ID = 'ADM_DEV_OPERATOR' ON DUPLICATE KEY UPDATE READ_YN = VALUES(READ_YN), WRITE_YN = VALUES(WRITE_YN), DELETE_YN = VALUES(DELETE_YN), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_role_button (ROLE_ID, BUTTON_ID, ALLOW_YN, created_by, updated_by) SELECT 'ADM_ADMIN', BUTTON_ID, 'Y', 'SYSTEM', 'SYSTEM'
+FROM adm_button ON DUPLICATE KEY UPDATE ALLOW_YN = VALUES(ALLOW_YN), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_role_button (ROLE_ID, BUTTON_ID, ALLOW_YN, created_by, updated_by) SELECT 'ADM_DEV_OPERATOR', BUTTON_ID,
        CASE WHEN MENU_ID IN ('OPERATOR', 'PERMISSION', 'PASSWORD', 'SECURITY') THEN 'N' ELSE 'Y' END,
        'SYSTEM', 'SYSTEM'
-FROM adm_button
-ON DUPLICATE KEY UPDATE
-    ALLOW_YN = VALUES(ALLOW_YN),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO adm_role_button (ROLE_ID, BUTTON_ID, ALLOW_YN, created_by, updated_by)
-SELECT 'ADM_BIZ_OPERATOR', BUTTON_ID,
+FROM adm_button ON DUPLICATE KEY UPDATE ALLOW_YN = VALUES(ALLOW_YN), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_role_button (ROLE_ID, BUTTON_ID, ALLOW_YN, created_by, updated_by) SELECT 'ADM_BIZ_OPERATOR', BUTTON_ID,
        CASE
-           WHEN BUTTON_ID IN ('MEMBER_CREATE', 'MEMBER_UPDATE', 'MEMBER_STATUS', 'MEMBER_ROLE_GRANT', 'MEMBER_ROLE_REVOKE', 'BATCH_EXECUTE', 'BATCH_RETRY', 'BATCH_SIMULATION', 'BATCH_RELATION_READ', 'BATCH_TARGET_READ', 'BATCH_SCHEDULER_RUN', 'DOWNLOAD_EXECUTE', 'CACHE_REFRESH') THEN 'Y'
-           WHEN ACTION_CODE IN ('READ', 'DETAIL') AND MENU_ID IN ('LOG_LIST', 'REMOTE_LOG', 'TRANSACTION_META', 'AUDIT_LOG', 'MEMBER', 'BATCH', 'RELIABILITY', 'NOTIFICATION', 'DOWNLOAD', 'CACHE', 'MESSAGE', 'CODE', 'LOG_POLICY') THEN 'Y'
+           WHEN BUTTON_ID IN ('BATCH_EXECUTE', 'BATCH_RETRY', 'BATCH_SIMULATION', 'BATCH_RELATION_READ', 'BATCH_TARGET_READ', 'BATCH_SCHEDULER_RUN', 'DOWNLOAD_EXECUTE', 'CACHE_REFRESH', 'FILE_JOB_UPLOAD', 'FILE_JOB_APPLY', 'FILE_JOB_DOWNLOAD') THEN 'Y'
+           WHEN ACTION_CODE IN ('READ', 'DETAIL') AND MENU_ID IN ('LOG_LIST', 'REMOTE_LOG', 'TRANSACTION_META', 'AUDIT_LOG', 'BATCH', 'RELIABILITY', 'NOTIFICATION', 'DOWNLOAD', 'CACHE', 'FILE_JOB', 'MESSAGE', 'CODE', 'LOG_POLICY') THEN 'Y'
            ELSE 'N'
        END,
        'SYSTEM', 'SYSTEM'
-FROM adm_button
-ON DUPLICATE KEY UPDATE
-    ALLOW_YN = VALUES(ALLOW_YN),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO adm_role_button (ROLE_ID, BUTTON_ID, ALLOW_YN, created_by, updated_by)
-SELECT 'ADM_VIEWER', BUTTON_ID,
+FROM adm_button ON DUPLICATE KEY UPDATE ALLOW_YN = VALUES(ALLOW_YN), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_role_button (ROLE_ID, BUTTON_ID, ALLOW_YN, created_by, updated_by) SELECT 'ADM_VIEWER', BUTTON_ID,
        CASE WHEN ACTION_CODE IN ('READ', 'DETAIL') THEN 'Y' ELSE 'N' END,
        'SYSTEM', 'SYSTEM'
-FROM adm_button
-ON DUPLICATE KEY UPDATE
-    ALLOW_YN = VALUES(ALLOW_YN),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO adm_role_button (ROLE_ID, BUTTON_ID, ALLOW_YN, created_by, updated_by)
-SELECT 'ADM_OPERATOR', BUTTON_ID, ALLOW_YN, 'SYSTEM', 'SYSTEM'
+FROM adm_button ON DUPLICATE KEY UPDATE ALLOW_YN = VALUES(ALLOW_YN), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_role_button (ROLE_ID, BUTTON_ID, ALLOW_YN, created_by, updated_by) SELECT 'ADM_OPERATOR', BUTTON_ID, ALLOW_YN, 'SYSTEM', 'SYSTEM'
 FROM adm_role_button
-WHERE ROLE_ID = 'ADM_DEV_OPERATOR'
-ON DUPLICATE KEY UPDATE
-    ALLOW_YN = VALUES(ALLOW_YN),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
--- ADM API 권한은 버튼/행위 권한을 실제 Controller path와 연결하기 위한 서버 권한검사 메타입니다.
-INSERT INTO adm_api_permission (
-    API_PERMISSION_ID,
-    API_GROUP_CODE,
-    HTTP_METHOD,
-    API_PATH,
-    API_NAME,
-    PERMISSION_CODE,
-    MENU_ID,
-    BUTTON_ID,
-    USE_YN,
-    created_by,
-    updated_by
-)
-SELECT
+WHERE ROLE_ID = 'ADM_DEV_OPERATOR' ON DUPLICATE KEY UPDATE ALLOW_YN = VALUES(ALLOW_YN), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_api_permission (API_PERMISSION_ID, API_GROUP_CODE, HTTP_METHOD, API_PATH, API_NAME, PERMISSION_CODE, MENU_ID, BUTTON_ID, USE_YN, created_by, updated_by) SELECT
     CONCAT('API_', BUTTON_ID),
     MENU_ID,
     COALESCE(HTTP_METHOD, 'ANY'),
@@ -1236,108 +806,36 @@ SELECT
     'SYSTEM',
     'SYSTEM'
 FROM adm_button
-WHERE API_PATTERN IS NOT NULL
-ON DUPLICATE KEY UPDATE
-    API_GROUP_CODE = VALUES(API_GROUP_CODE),
-    HTTP_METHOD = VALUES(HTTP_METHOD),
-    API_PATH = VALUES(API_PATH),
-    API_NAME = VALUES(API_NAME),
-    PERMISSION_CODE = VALUES(PERMISSION_CODE),
-    MENU_ID = VALUES(MENU_ID),
-    BUTTON_ID = VALUES(BUTTON_ID),
-    USE_YN = VALUES(USE_YN),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO adm_api_permission (
-    API_PERMISSION_ID, API_GROUP_CODE, HTTP_METHOD, API_PATH, API_NAME, PERMISSION_CODE,
-    MENU_ID, BUTTON_ID, USE_YN, created_by, updated_by
-) VALUES (
+WHERE API_PATTERN IS NOT NULL ON DUPLICATE KEY UPDATE API_GROUP_CODE = VALUES(API_GROUP_CODE), HTTP_METHOD = VALUES(HTTP_METHOD), API_PATH = VALUES(API_PATH), API_NAME = VALUES(API_NAME), PERMISSION_CODE = VALUES(PERMISSION_CODE), MENU_ID = VALUES(MENU_ID), BUTTON_ID = VALUES(BUTTON_ID), USE_YN = VALUES(USE_YN), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_api_permission (API_PERMISSION_ID, API_GROUP_CODE, HTTP_METHOD, API_PATH, API_NAME, PERMISSION_CODE, MENU_ID, BUTTON_ID, USE_YN, created_by, updated_by) VALUES (
     'API_PERMISSION_WRITE_PUT', 'PERMISSION', 'PUT', '/adm/api/permissions/**', '권한 변경', 'WRITE',
     'PERMISSION', 'PERMISSION_WRITE', 'Y', 'SYSTEM', 'SYSTEM'
-)
-ON DUPLICATE KEY UPDATE
-    API_GROUP_CODE = VALUES(API_GROUP_CODE),
-    HTTP_METHOD = VALUES(HTTP_METHOD),
-    API_PATH = VALUES(API_PATH),
-    API_NAME = VALUES(API_NAME),
-    PERMISSION_CODE = VALUES(PERMISSION_CODE),
-    MENU_ID = VALUES(MENU_ID),
-    BUTTON_ID = VALUES(BUTTON_ID),
-    USE_YN = VALUES(USE_YN),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO adm_role_api_permission (ROLE_ID, API_PERMISSION_ID, ALLOW_YN, created_by, updated_by)
-SELECT rb.ROLE_ID, ap.API_PERMISSION_ID, rb.ALLOW_YN, 'SYSTEM', 'SYSTEM'
+) ON DUPLICATE KEY UPDATE API_GROUP_CODE = VALUES(API_GROUP_CODE), HTTP_METHOD = VALUES(HTTP_METHOD), API_PATH = VALUES(API_PATH), API_NAME = VALUES(API_NAME), PERMISSION_CODE = VALUES(PERMISSION_CODE), MENU_ID = VALUES(MENU_ID), BUTTON_ID = VALUES(BUTTON_ID), USE_YN = VALUES(USE_YN), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_role_api_permission (ROLE_ID, API_PERMISSION_ID, ALLOW_YN, created_by, updated_by) SELECT rb.ROLE_ID, ap.API_PERMISSION_ID, rb.ALLOW_YN, 'SYSTEM', 'SYSTEM'
 FROM adm_role_button rb
-JOIN adm_api_permission ap ON ap.BUTTON_ID = rb.BUTTON_ID
-ON DUPLICATE KEY UPDATE
-    ALLOW_YN = VALUES(ALLOW_YN),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
--- 로컬 IP allowlist와 초기 감사 fixture는 59_adm_local_seed.sql Optional Seed로 분리했습니다.
-
-
--- R12 감사 전달 복구 권한
-INSERT INTO adm_button (BUTTON_ID,MENU_ID,ACTION_CODE,BUTTON_NAME,HTTP_METHOD,API_PATTERN,SORT_ORDER,USE_YN,created_by,updated_by)
-VALUES ('AUDIT_LOG_RETRY','AUDIT_LOG','WRITE','감사 전달 재처리','POST','/adm/api/audit-logs/deliveries/*/retry',20,'Y','SYSTEM','SYSTEM')
-ON DUPLICATE KEY UPDATE ACTION_CODE=VALUES(ACTION_CODE),BUTTON_NAME=VALUES(BUTTON_NAME),HTTP_METHOD=VALUES(HTTP_METHOD),API_PATTERN=VALUES(API_PATTERN),USE_YN=VALUES(USE_YN),updated_by=VALUES(updated_by),updated_at=CURRENT_TIMESTAMP;
-
-UPDATE adm_role_menu SET WRITE_YN='Y',updated_by='SYSTEM',updated_at=CURRENT_TIMESTAMP
-WHERE MENU_ID='AUDIT_LOG' AND ROLE_ID IN ('ADM_ADMIN','ADM_DEV_OPERATOR');
-
-INSERT INTO adm_role_button (ROLE_ID,BUTTON_ID,ALLOW_YN,created_by,updated_by)
-SELECT ROLE_ID,'AUDIT_LOG_RETRY','Y','SYSTEM','SYSTEM' FROM adm_role WHERE ROLE_ID IN ('ADM_ADMIN','ADM_DEV_OPERATOR')
-ON DUPLICATE KEY UPDATE ALLOW_YN='Y',updated_by='SYSTEM',updated_at=CURRENT_TIMESTAMP;
-
-INSERT INTO adm_api_permission (API_PERMISSION_ID,API_GROUP_CODE,HTTP_METHOD,API_PATH,API_NAME,PERMISSION_CODE,MENU_ID,BUTTON_ID,USE_YN,created_by,updated_by)
-VALUES ('API_AUDIT_LOG_RETRY','AUDIT_LOG','POST','/adm/api/audit-logs/deliveries/*/retry','감사 전달 재처리','WRITE','AUDIT_LOG','AUDIT_LOG_RETRY','Y','SYSTEM','SYSTEM')
-ON DUPLICATE KEY UPDATE HTTP_METHOD=VALUES(HTTP_METHOD),API_PATH=VALUES(API_PATH),PERMISSION_CODE=VALUES(PERMISSION_CODE),BUTTON_ID=VALUES(BUTTON_ID),USE_YN=VALUES(USE_YN),updated_by=VALUES(updated_by),updated_at=CURRENT_TIMESTAMP;
-
-INSERT INTO adm_role_api_permission (ROLE_ID,API_PERMISSION_ID,ALLOW_YN,created_by,updated_by)
-SELECT ROLE_ID,'API_AUDIT_LOG_RETRY','Y','SYSTEM','SYSTEM' FROM adm_role WHERE ROLE_ID IN ('ADM_ADMIN','ADM_DEV_OPERATOR')
-ON DUPLICATE KEY UPDATE ALLOW_YN='Y',updated_by='SYSTEM',updated_at=CURRENT_TIMESTAMP;
-
--- R14 Secret/Key metadata management. Raw secret value is never exposed.
-INSERT INTO adm_menu (MENU_ID,PARENT_MENU_ID,MENU_NAME,MENU_PATH,SORT_ORDER,USE_YN,created_by,updated_by)
-VALUES ('SECRET',NULL,'Secret / Key 관리','/adm#secrets',145,'Y','SYSTEM','SYSTEM')
-ON DUPLICATE KEY UPDATE MENU_NAME=VALUES(MENU_NAME),MENU_PATH=VALUES(MENU_PATH),SORT_ORDER=VALUES(SORT_ORDER),USE_YN='Y',updated_by='SYSTEM',updated_at=CURRENT_TIMESTAMP;
-
-INSERT INTO adm_button (BUTTON_ID,MENU_ID,ACTION_CODE,BUTTON_NAME,HTTP_METHOD,API_PATTERN,SORT_ORDER,USE_YN,created_by,updated_by) VALUES
- ('SECRET_READ','SECRET','READ','Secret Metadata 조회','GET','/adm/api/secrets/**',10,'Y','SYSTEM','SYSTEM'),
- ('SECRET_ROTATE','SECRET','ROTATE','Secret Rotation','POST','/adm/api/secrets/rotate',20,'Y','SYSTEM','SYSTEM')
-ON DUPLICATE KEY UPDATE ACTION_CODE=VALUES(ACTION_CODE),BUTTON_NAME=VALUES(BUTTON_NAME),HTTP_METHOD=VALUES(HTTP_METHOD),API_PATTERN=VALUES(API_PATTERN),USE_YN='Y',updated_by='SYSTEM',updated_at=CURRENT_TIMESTAMP;
-
-INSERT INTO adm_role_menu(ROLE_ID,MENU_ID,READ_YN,WRITE_YN,DELETE_YN,created_by,updated_by) VALUES
- ('ADM_ADMIN','SECRET','Y','Y','N','SYSTEM','SYSTEM'),
+JOIN adm_api_permission ap ON ap.BUTTON_ID = rb.BUTTON_ID ON DUPLICATE KEY UPDATE ALLOW_YN = VALUES(ALLOW_YN), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_button (BUTTON_ID, MENU_ID, ACTION_CODE, BUTTON_NAME, HTTP_METHOD, API_PATTERN, SORT_ORDER, USE_YN, created_by, updated_by) VALUES ('AUDIT_LOG_RETRY','AUDIT_LOG','WRITE','감사 전달 재처리','POST','/adm/api/audit-logs/deliveries/*/retry',20,'Y','SYSTEM','SYSTEM') ON DUPLICATE KEY UPDATE ACTION_CODE = VALUES(ACTION_CODE), BUTTON_NAME = VALUES(BUTTON_NAME), HTTP_METHOD = VALUES(HTTP_METHOD), API_PATTERN = VALUES(API_PATTERN), USE_YN = VALUES(USE_YN), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+UPDATE adm_role_menu SET WRITE_YN='Y',updated_by='SYSTEM',updated_at=CURRENT_TIMESTAMP WHERE MENU_ID='AUDIT_LOG' AND ROLE_ID IN ('ADM_ADMIN','ADM_DEV_OPERATOR');
+INSERT INTO adm_role_button (ROLE_ID, BUTTON_ID, ALLOW_YN, created_by, updated_by) SELECT ROLE_ID,'AUDIT_LOG_RETRY','Y','SYSTEM','SYSTEM' FROM adm_role WHERE ROLE_ID IN ('ADM_ADMIN','ADM_DEV_OPERATOR') ON DUPLICATE KEY UPDATE ALLOW_YN = 'Y', updated_by = 'SYSTEM', updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_api_permission (API_PERMISSION_ID, API_GROUP_CODE, HTTP_METHOD, API_PATH, API_NAME, PERMISSION_CODE, MENU_ID, BUTTON_ID, USE_YN, created_by, updated_by) VALUES ('API_AUDIT_LOG_RETRY','AUDIT_LOG','POST','/adm/api/audit-logs/deliveries/*/retry','감사 전달 재처리','WRITE','AUDIT_LOG','AUDIT_LOG_RETRY','Y','SYSTEM','SYSTEM') ON DUPLICATE KEY UPDATE HTTP_METHOD = VALUES(HTTP_METHOD), API_PATH = VALUES(API_PATH), PERMISSION_CODE = VALUES(PERMISSION_CODE), BUTTON_ID = VALUES(BUTTON_ID), USE_YN = VALUES(USE_YN), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_role_api_permission (ROLE_ID, API_PERMISSION_ID, ALLOW_YN, created_by, updated_by) SELECT ROLE_ID,'API_AUDIT_LOG_RETRY','Y','SYSTEM','SYSTEM' FROM adm_role WHERE ROLE_ID IN ('ADM_ADMIN','ADM_DEV_OPERATOR') ON DUPLICATE KEY UPDATE ALLOW_YN = 'Y', updated_by = 'SYSTEM', updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_menu (MENU_ID, PARENT_MENU_ID, MENU_NAME, MENU_PATH, SORT_ORDER, USE_YN, created_by, updated_by) VALUES ('SECRET',NULL,'Secret / Key 관리','/adm#secrets',145,'Y','SYSTEM','SYSTEM') ON DUPLICATE KEY UPDATE MENU_NAME = VALUES(MENU_NAME), MENU_PATH = VALUES(MENU_PATH), SORT_ORDER = VALUES(SORT_ORDER), USE_YN = 'Y', updated_by = 'SYSTEM', updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_button (BUTTON_ID, MENU_ID, ACTION_CODE, BUTTON_NAME, HTTP_METHOD, API_PATTERN, SORT_ORDER, USE_YN, created_by, updated_by) VALUES ('SECRET_READ','SECRET','READ','Secret Metadata 조회','GET','/adm/api/secrets/**',10,'Y','SYSTEM','SYSTEM'),
+ ('SECRET_ROTATE','SECRET','ROTATE','Secret Rotation','POST','/adm/api/secrets/rotate',20,'Y','SYSTEM','SYSTEM') ON DUPLICATE KEY UPDATE ACTION_CODE = VALUES(ACTION_CODE), BUTTON_NAME = VALUES(BUTTON_NAME), HTTP_METHOD = VALUES(HTTP_METHOD), API_PATTERN = VALUES(API_PATTERN), USE_YN = 'Y', updated_by = 'SYSTEM', updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_role_menu (ROLE_ID, MENU_ID, READ_YN, WRITE_YN, DELETE_YN, created_by, updated_by) VALUES ('ADM_ADMIN','SECRET','Y','Y','N','SYSTEM','SYSTEM'),
  ('ADM_DEV_OPERATOR','SECRET','Y','N','N','SYSTEM','SYSTEM'),
  ('ADM_OPERATOR','SECRET','Y','N','N','SYSTEM','SYSTEM'),
  ('ADM_VIEWER','SECRET','N','N','N','SYSTEM','SYSTEM'),
- ('ADM_BIZ_OPERATOR','SECRET','N','N','N','SYSTEM','SYSTEM')
-ON DUPLICATE KEY UPDATE READ_YN=VALUES(READ_YN),WRITE_YN=VALUES(WRITE_YN),DELETE_YN=VALUES(DELETE_YN),updated_by='SYSTEM',updated_at=CURRENT_TIMESTAMP;
-
-INSERT INTO adm_role_button(ROLE_ID,BUTTON_ID,ALLOW_YN,created_by,updated_by) VALUES
- ('ADM_ADMIN','SECRET_READ','Y','SYSTEM','SYSTEM'),('ADM_ADMIN','SECRET_ROTATE','Y','SYSTEM','SYSTEM'),
+ ('ADM_BIZ_OPERATOR','SECRET','N','N','N','SYSTEM','SYSTEM') ON DUPLICATE KEY UPDATE READ_YN = VALUES(READ_YN), WRITE_YN = VALUES(WRITE_YN), DELETE_YN = VALUES(DELETE_YN), updated_by = 'SYSTEM', updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_role_button (ROLE_ID, BUTTON_ID, ALLOW_YN, created_by, updated_by) VALUES ('ADM_ADMIN','SECRET_READ','Y','SYSTEM','SYSTEM'),('ADM_ADMIN','SECRET_ROTATE','Y','SYSTEM','SYSTEM'),
  ('ADM_DEV_OPERATOR','SECRET_READ','Y','SYSTEM','SYSTEM'),('ADM_DEV_OPERATOR','SECRET_ROTATE','N','SYSTEM','SYSTEM'),
- ('ADM_OPERATOR','SECRET_READ','Y','SYSTEM','SYSTEM'),('ADM_OPERATOR','SECRET_ROTATE','N','SYSTEM','SYSTEM')
-ON DUPLICATE KEY UPDATE ALLOW_YN=VALUES(ALLOW_YN),updated_by='SYSTEM',updated_at=CURRENT_TIMESTAMP;
-
-INSERT INTO adm_api_permission(API_PERMISSION_ID,API_GROUP_CODE,HTTP_METHOD,API_PATH,API_NAME,PERMISSION_CODE,MENU_ID,BUTTON_ID,USE_YN,created_by,updated_by) VALUES
- ('API_SECRET_READ','SECRET','GET','/adm/api/secrets/**','Secret Metadata 조회','READ','SECRET','SECRET_READ','Y','SYSTEM','SYSTEM'),
- ('API_SECRET_ROTATE','SECRET','POST','/adm/api/secrets/rotate','Secret Rotation','ROTATE','SECRET','SECRET_ROTATE','Y','SYSTEM','SYSTEM')
-ON DUPLICATE KEY UPDATE API_PATH=VALUES(API_PATH),API_NAME=VALUES(API_NAME),PERMISSION_CODE=VALUES(PERMISSION_CODE),BUTTON_ID=VALUES(BUTTON_ID),USE_YN='Y',updated_by='SYSTEM',updated_at=CURRENT_TIMESTAMP;
-
-INSERT INTO adm_role_api_permission(ROLE_ID,API_PERMISSION_ID,ALLOW_YN,created_by,updated_by) VALUES
- ('ADM_ADMIN','API_SECRET_READ','Y','SYSTEM','SYSTEM'),('ADM_ADMIN','API_SECRET_ROTATE','Y','SYSTEM','SYSTEM'),
+ ('ADM_OPERATOR','SECRET_READ','Y','SYSTEM','SYSTEM'),('ADM_OPERATOR','SECRET_ROTATE','N','SYSTEM','SYSTEM') ON DUPLICATE KEY UPDATE ALLOW_YN = VALUES(ALLOW_YN), updated_by = 'SYSTEM', updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_api_permission (API_PERMISSION_ID, API_GROUP_CODE, HTTP_METHOD, API_PATH, API_NAME, PERMISSION_CODE, MENU_ID, BUTTON_ID, USE_YN, created_by, updated_by) VALUES ('API_SECRET_READ','SECRET','GET','/adm/api/secrets/**','Secret Metadata 조회','READ','SECRET','SECRET_READ','Y','SYSTEM','SYSTEM'),
+ ('API_SECRET_ROTATE','SECRET','POST','/adm/api/secrets/rotate','Secret Rotation','ROTATE','SECRET','SECRET_ROTATE','Y','SYSTEM','SYSTEM') ON DUPLICATE KEY UPDATE API_PATH = VALUES(API_PATH), API_NAME = VALUES(API_NAME), PERMISSION_CODE = VALUES(PERMISSION_CODE), BUTTON_ID = VALUES(BUTTON_ID), USE_YN = 'Y', updated_by = 'SYSTEM', updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_role_api_permission (ROLE_ID, API_PERMISSION_ID, ALLOW_YN, created_by, updated_by) VALUES ('ADM_ADMIN','API_SECRET_READ','Y','SYSTEM','SYSTEM'),('ADM_ADMIN','API_SECRET_ROTATE','Y','SYSTEM','SYSTEM'),
  ('ADM_DEV_OPERATOR','API_SECRET_READ','Y','SYSTEM','SYSTEM'),('ADM_DEV_OPERATOR','API_SECRET_ROTATE','N','SYSTEM','SYSTEM'),
- ('ADM_OPERATOR','API_SECRET_READ','Y','SYSTEM','SYSTEM'),('ADM_OPERATOR','API_SECRET_ROTATE','N','SYSTEM','SYSTEM')
-ON DUPLICATE KEY UPDATE ALLOW_YN=VALUES(ALLOW_YN),updated_by='SYSTEM',updated_at=CURRENT_TIMESTAMP;
-
--- R15/R16/R17 BAT Standalone Runtime Control Plane menus/permissions.
-INSERT INTO adm_menu (MENU_ID,PARENT_MENU_ID,MENU_NAME,MENU_PATH,SORT_ORDER,USE_YN,created_by,updated_by) VALUES
- ('BATCH_OVERVIEW','BATCH','Batch Overview','/adm#batch-overview',501,'Y','SYSTEM','SYSTEM'),
+ ('ADM_OPERATOR','API_SECRET_READ','Y','SYSTEM','SYSTEM'),('ADM_OPERATOR','API_SECRET_ROTATE','N','SYSTEM','SYSTEM') ON DUPLICATE KEY UPDATE ALLOW_YN = VALUES(ALLOW_YN), updated_by = 'SYSTEM', updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_menu (MENU_ID, PARENT_MENU_ID, MENU_NAME, MENU_PATH, SORT_ORDER, USE_YN, created_by, updated_by) VALUES ('BATCH_OVERVIEW','BATCH','Batch Overview','/adm#batch-overview',501,'Y','SYSTEM','SYSTEM'),
  ('BATCH_RUNTIME','BATCH','Runtime Topology','/adm#batch-runtime',502,'Y','SYSTEM','SYSTEM'),
  ('BATCH_INSTANCES','BATCH','Runtime Instances','/adm#batch-instances',503,'Y','SYSTEM','SYSTEM'),
  ('BATCH_SCHEDULER','BATCH','Scheduler HA','/adm#batch-scheduler',504,'Y','SYSTEM','SYSTEM'),
@@ -1350,11 +848,8 @@ INSERT INTO adm_menu (MENU_ID,PARENT_MENU_ID,MENU_NAME,MENU_PATH,SORT_ORDER,USE_
  ('BATCH_RECOVERY','BATCH','Recovery / Unknown','/adm#batch-recovery',511,'Y','SYSTEM','SYSTEM'),
  ('BATCH_LEASES','BATCH','Lease / Fencing','/adm#batch-leases',512,'Y','SYSTEM','SYSTEM'),
  ('BATCH_ALERTS','BATCH','Batch Alerts','/adm#batch-alerts',513,'Y','SYSTEM','SYSTEM'),
- ('BATCH_AUDIT','BATCH','Audit / Evidence','/adm#batch-audit',514,'Y','SYSTEM','SYSTEM')
-ON DUPLICATE KEY UPDATE PARENT_MENU_ID=VALUES(PARENT_MENU_ID),MENU_NAME=VALUES(MENU_NAME),MENU_PATH=VALUES(MENU_PATH),SORT_ORDER=VALUES(SORT_ORDER),USE_YN='Y',updated_by='SYSTEM',updated_at=CURRENT_TIMESTAMP;
-
-INSERT INTO adm_button (BUTTON_ID,MENU_ID,ACTION_CODE,BUTTON_NAME,HTTP_METHOD,API_PATTERN,SORT_ORDER,USE_YN,created_by,updated_by) VALUES
- ('BAT_RUNTIME_VIEW','BATCH_RUNTIME','RUNTIME_VIEW','Runtime 조회','GET','/adm/api/batch-runtime/**',10,'Y','SYSTEM','SYSTEM'),
+ ('BATCH_AUDIT','BATCH','Audit / Evidence','/adm#batch-audit',514,'Y','SYSTEM','SYSTEM') ON DUPLICATE KEY UPDATE PARENT_MENU_ID = VALUES(PARENT_MENU_ID), MENU_NAME = VALUES(MENU_NAME), MENU_PATH = VALUES(MENU_PATH), SORT_ORDER = VALUES(SORT_ORDER), USE_YN = 'Y', updated_by = 'SYSTEM', updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_button (BUTTON_ID, MENU_ID, ACTION_CODE, BUTTON_NAME, HTTP_METHOD, API_PATTERN, SORT_ORDER, USE_YN, created_by, updated_by) VALUES ('BAT_RUNTIME_VIEW','BATCH_RUNTIME','RUNTIME_VIEW','Runtime 조회','GET','/adm/api/batch-runtime/**',10,'Y','SYSTEM','SYSTEM'),
  ('BAT_RUNTIME_OPERATE','BATCH_INSTANCES','RUNTIME_OPERATE','Runtime Start/Stop/Drain','POST','/adm/api/approvals/**',20,'Y','SYSTEM','SYSTEM'),
  ('BAT_JOB_OPERATE','BATCH_EXECUTIONS','JOB_OPERATE','Job 실행/중지/재처리','POST','/adm/api/batch/**',30,'Y','SYSTEM','SYSTEM'),
  ('BAT_SCHEDULE_OPERATE','BATCH_SCHEDULER','SCHEDULE_OPERATE','Scheduler 운영','POST','/adm/api/batch/**',40,'Y','SYSTEM','SYSTEM'),
@@ -1367,19 +862,13 @@ INSERT INTO adm_button (BUTTON_ID,MENU_ID,ACTION_CODE,BUTTON_NAME,HTTP_METHOD,AP
  ('BAT_ROLLBACK_EXECUTE','BATCH_DEPLOYMENT','ROLLBACK_EXECUTE','Rollback 실행','POST','/adm/api/approvals/**',110,'Y','SYSTEM','SYSTEM'),
  ('BAT_RECOVERY_OPERATE','BATCH_RECOVERY','RECOVERY_OPERATE','UNKNOWN_RESULT 조정','POST','/adm/api/batch-runtime/**',120,'Y','SYSTEM','SYSTEM'),
  ('BAT_SECURITY_AUDIT','BATCH_AUDIT','SECURITY_AUDIT','BAT 보안·감사 조회','GET','/adm/api/batch-runtime/views/audit',130,'Y','SYSTEM','SYSTEM'),
- ('BAT_EVIDENCE_DOWNLOAD','BATCH_AUDIT','EVIDENCE_DOWNLOAD','BAT Evidence 다운로드','GET','/adm/api/downloads/**',140,'Y','SYSTEM','SYSTEM')
-ON DUPLICATE KEY UPDATE MENU_ID=VALUES(MENU_ID),ACTION_CODE=VALUES(ACTION_CODE),BUTTON_NAME=VALUES(BUTTON_NAME),HTTP_METHOD=VALUES(HTTP_METHOD),API_PATTERN=VALUES(API_PATTERN),SORT_ORDER=VALUES(SORT_ORDER),USE_YN='Y',updated_by='SYSTEM',updated_at=CURRENT_TIMESTAMP;
-
-INSERT INTO adm_role_menu(ROLE_ID,MENU_ID,READ_YN,WRITE_YN,DELETE_YN,created_by,updated_by)
-SELECT r.ROLE_ID,m.MENU_ID,'Y',
+ ('BAT_EVIDENCE_DOWNLOAD','BATCH_AUDIT','EVIDENCE_DOWNLOAD','BAT Evidence 다운로드','GET','/adm/api/downloads/**',140,'Y','SYSTEM','SYSTEM') ON DUPLICATE KEY UPDATE MENU_ID = VALUES(MENU_ID), ACTION_CODE = VALUES(ACTION_CODE), BUTTON_NAME = VALUES(BUTTON_NAME), HTTP_METHOD = VALUES(HTTP_METHOD), API_PATTERN = VALUES(API_PATTERN), SORT_ORDER = VALUES(SORT_ORDER), USE_YN = 'Y', updated_by = 'SYSTEM', updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_role_menu (ROLE_ID, MENU_ID, READ_YN, WRITE_YN, DELETE_YN, created_by, updated_by) SELECT r.ROLE_ID,m.MENU_ID,'Y',
        CASE WHEN r.ROLE_ID IN ('ADM_ADMIN','ADM_DEV_OPERATOR','ADM_OPERATOR') THEN 'Y' ELSE 'N' END,
        'N','SYSTEM','SYSTEM'
 FROM adm_role r JOIN adm_menu m ON m.PARENT_MENU_ID='BATCH'
-WHERE r.ROLE_ID IN ('ADM_ADMIN','ADM_DEV_OPERATOR','ADM_OPERATOR','ADM_BIZ_OPERATOR','ADM_VIEWER')
-ON DUPLICATE KEY UPDATE READ_YN=VALUES(READ_YN),WRITE_YN=VALUES(WRITE_YN),DELETE_YN=VALUES(DELETE_YN),updated_by='SYSTEM',updated_at=CURRENT_TIMESTAMP;
-
-INSERT INTO adm_role_button(ROLE_ID,BUTTON_ID,ALLOW_YN,created_by,updated_by)
-SELECT r.ROLE_ID,b.BUTTON_ID,
+WHERE r.ROLE_ID IN ('ADM_ADMIN','ADM_DEV_OPERATOR','ADM_OPERATOR','ADM_BIZ_OPERATOR','ADM_VIEWER') ON DUPLICATE KEY UPDATE READ_YN = VALUES(READ_YN), WRITE_YN = VALUES(WRITE_YN), DELETE_YN = VALUES(DELETE_YN), updated_by = 'SYSTEM', updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_role_button (ROLE_ID, BUTTON_ID, ALLOW_YN, created_by, updated_by) SELECT r.ROLE_ID,b.BUTTON_ID,
        CASE
          WHEN r.ROLE_ID='ADM_ADMIN' THEN 'Y'
          WHEN r.ROLE_ID IN ('ADM_DEV_OPERATOR','ADM_OPERATOR') AND b.BUTTON_ID NOT IN ('BAT_DEPLOY_APPROVE','BAT_DEPLOY_EXECUTE','BAT_ROLLBACK_EXECUTE') THEN 'Y'
@@ -1388,16 +877,9 @@ SELECT r.ROLE_ID,b.BUTTON_ID,
          ELSE 'N' END,
        'SYSTEM','SYSTEM'
 FROM adm_role r JOIN adm_button b ON b.BUTTON_ID LIKE 'BAT_%'
-WHERE r.ROLE_ID IN ('ADM_ADMIN','ADM_DEV_OPERATOR','ADM_OPERATOR','ADM_BIZ_OPERATOR','ADM_VIEWER')
-ON DUPLICATE KEY UPDATE ALLOW_YN=VALUES(ALLOW_YN),updated_by='SYSTEM',updated_at=CURRENT_TIMESTAMP;
-
-INSERT INTO adm_api_permission(API_PERMISSION_ID,API_GROUP_CODE,HTTP_METHOD,API_PATH,API_NAME,PERMISSION_CODE,MENU_ID,BUTTON_ID,USE_YN,created_by,updated_by)
-SELECT CONCAT('API_',BUTTON_ID),MENU_ID,COALESCE(HTTP_METHOD,'ANY'),API_PATTERN,BUTTON_NAME,ACTION_CODE,MENU_ID,BUTTON_ID,'Y','SYSTEM','SYSTEM'
-FROM adm_button WHERE BUTTON_ID LIKE 'BAT_%' AND API_PATTERN IS NOT NULL
-ON DUPLICATE KEY UPDATE API_GROUP_CODE=VALUES(API_GROUP_CODE),HTTP_METHOD=VALUES(HTTP_METHOD),API_PATH=VALUES(API_PATH),API_NAME=VALUES(API_NAME),PERMISSION_CODE=VALUES(PERMISSION_CODE),MENU_ID=VALUES(MENU_ID),BUTTON_ID=VALUES(BUTTON_ID),USE_YN='Y',updated_by='SYSTEM',updated_at=CURRENT_TIMESTAMP;
-
-INSERT INTO adm_role_api_permission(ROLE_ID,API_PERMISSION_ID,ALLOW_YN,created_by,updated_by)
-SELECT rb.ROLE_ID,ap.API_PERMISSION_ID,rb.ALLOW_YN,'SYSTEM','SYSTEM'
+WHERE r.ROLE_ID IN ('ADM_ADMIN','ADM_DEV_OPERATOR','ADM_OPERATOR','ADM_BIZ_OPERATOR','ADM_VIEWER') ON DUPLICATE KEY UPDATE ALLOW_YN = VALUES(ALLOW_YN), updated_by = 'SYSTEM', updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_api_permission (API_PERMISSION_ID, API_GROUP_CODE, HTTP_METHOD, API_PATH, API_NAME, PERMISSION_CODE, MENU_ID, BUTTON_ID, USE_YN, created_by, updated_by) SELECT CONCAT('API_',BUTTON_ID),MENU_ID,COALESCE(HTTP_METHOD,'ANY'),API_PATTERN,BUTTON_NAME,ACTION_CODE,MENU_ID,BUTTON_ID,'Y','SYSTEM','SYSTEM'
+FROM adm_button WHERE BUTTON_ID LIKE 'BAT_%' AND API_PATTERN IS NOT NULL ON DUPLICATE KEY UPDATE API_GROUP_CODE = VALUES(API_GROUP_CODE), HTTP_METHOD = VALUES(HTTP_METHOD), API_PATH = VALUES(API_PATH), API_NAME = VALUES(API_NAME), PERMISSION_CODE = VALUES(PERMISSION_CODE), MENU_ID = VALUES(MENU_ID), BUTTON_ID = VALUES(BUTTON_ID), USE_YN = 'Y', updated_by = 'SYSTEM', updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_role_api_permission (ROLE_ID, API_PERMISSION_ID, ALLOW_YN, created_by, updated_by) SELECT rb.ROLE_ID,ap.API_PERMISSION_ID,rb.ALLOW_YN,'SYSTEM','SYSTEM'
 FROM adm_role_button rb JOIN adm_api_permission ap ON ap.BUTTON_ID=rb.BUTTON_ID
-WHERE rb.BUTTON_ID LIKE 'BAT_%'
-ON DUPLICATE KEY UPDATE ALLOW_YN=VALUES(ALLOW_YN),updated_by='SYSTEM',updated_at=CURRENT_TIMESTAMP;
+WHERE rb.BUTTON_ID LIKE 'BAT_%' ON DUPLICATE KEY UPDATE ALLOW_YN = VALUES(ALLOW_YN), updated_by = 'SYSTEM', updated_at = CURRENT_TIMESTAMP;

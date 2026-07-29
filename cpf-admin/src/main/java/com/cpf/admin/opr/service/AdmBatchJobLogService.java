@@ -4,8 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.cpf.core.api.batch.CpfBatchLogPaths;
-import com.cpf.core.common.exception.CpfValidationException;
-import com.cpf.core.common.logging.file.CpfLogPathPolicy;
+import com.cpf.core.api.logging.CpfLogPaths;
+import com.cpf.core.api.error.CpfValidationException;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
@@ -34,11 +34,11 @@ public class AdmBatchJobLogService extends com.cpf.admin.common.base.AdmBaseServ
 
     private final Path logRoot;
     private final Path jobsRoot;
-    private final CpfLogPathPolicy pathPolicy;
+    private final CpfLogPaths pathPolicy;
     private final ObjectMapper objectMapper;
 
     public AdmBatchJobLogService(Environment environment, ObjectMapper objectMapper) {
-        this.pathPolicy = new CpfLogPathPolicy(environment);
+        this.pathPolicy = new CpfLogPaths(environment);
         this.logRoot = pathPolicy.logRoot();
         this.jobsRoot = pathPolicy.batchJobLogPath(Path.of("bat", "jobs"));
         this.objectMapper = objectMapper;

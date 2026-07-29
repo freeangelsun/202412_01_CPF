@@ -1,5 +1,6 @@
 package com.cpf.core.common.filetransfer;
 
+import com.cpf.core.api.filetransfer.CpfRemoteCommandPlan;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.mock.env.MockEnvironment;

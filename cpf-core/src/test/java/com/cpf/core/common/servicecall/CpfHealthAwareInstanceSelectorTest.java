@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -26,7 +27,7 @@ class CpfHealthAwareInstanceSelectorTest {
 
     @Test
     void lowerPriorityWinsBeforeWeight() {
-        var rows = List.of(
+        List<Map<String, Object>> rows = List.of(
                 instance("high-weight-low-priority", 10_000, 20, "N", "N", "UP", "Y"),
                 instance("low-weight-high-priority", 1, 10, "N", "N", "UP", "Y"));
 
@@ -47,7 +48,7 @@ class CpfHealthAwareInstanceSelectorTest {
 
     @Test
     void sameRoutingKeyIsStableAndExcludedTargetFailsOver() {
-        var rows = List.of(
+        List<Map<String, Object>> rows = List.of(
                 instance("a", 50, 10, "N", "N", "UP", "Y"),
                 instance("b", 100, 10, "N", "N", "UP", "Y"));
         var context = context("stable-key", null, null);

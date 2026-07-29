@@ -1,5 +1,7 @@
 package com.cpf.core.common.logging.policy;
 
+import com.cpf.core.api.logging.policy.LogPolicyDecision;
+import com.cpf.core.api.logging.policy.LogPolicyTargetType;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.env.MockEnvironment;
 

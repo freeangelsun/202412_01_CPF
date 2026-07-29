@@ -1,6 +1,6 @@
 package com.cpf.core.common.gateway;
 
-import com.cpf.core.common.execution.CpfExecutionDefinition;
+import com.cpf.core.api.execution.CpfExecutionDefinition;
 
 /** CPF Gateway가 immutable snapshot에 보관하는 경량 route입니다. */
 public record CpfGatewayRoute(

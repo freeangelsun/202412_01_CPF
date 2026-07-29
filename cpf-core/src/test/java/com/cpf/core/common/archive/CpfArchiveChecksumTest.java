@@ -1,5 +1,6 @@
 package com.cpf.core.common.archive;
 
+import com.cpf.core.api.archive.CpfArchiveChecksum;
 import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;

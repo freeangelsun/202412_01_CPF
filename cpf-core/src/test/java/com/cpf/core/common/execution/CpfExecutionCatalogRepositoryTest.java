@@ -1,5 +1,7 @@
 package com.cpf.core.common.execution;
 
+import com.cpf.core.api.execution.CpfExecutionDefinition;
+import com.cpf.core.api.execution.CpfExecutionType;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.dao.DataAccessResourceFailureException;

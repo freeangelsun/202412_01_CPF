@@ -36,11 +36,15 @@ function Get-JsonValue([object]$Object, [string[]]$Names, $DefaultValue = '') {
 
 $tracked = @(& git -C $Root ls-files)
 if ($LASTEXITCODE -ne 0) { throw 'git ls-files 실패' }
+$visibleFiles = @(& git -C $Root ls-files --cached --others --exclude-standard)
+if ($LASTEXITCODE -ne 0) { throw 'git ls-files worktree scan 실패' }
+$manifestPaths = @($visibleFiles | Where-Object { $_ -match '^cpf-[^/]+/manifest/domain-manifest[.]json$' })
+$generatedModules = @($manifestPaths | ForEach-Object { $_.Split('/')[0] } | Sort-Object -Unique)
 $head = (& git -C $Root rev-parse HEAD).Trim()
 if ($LASTEXITCODE -ne 0) { throw 'git rev-parse HEAD 실패' }
 
 # Java Source를 한 번만 읽어 Symbol 참조 횟수를 계산합니다.
-$javaFiles = @($tracked | Where-Object { $_ -match '^cpf-[^/]+/(?:[^/]+/)*src/(main|test)/java/.+[.]java$' })
+$javaFiles = @($visibleFiles | Where-Object { $_ -match '^cpf-[^/]+/(?:[^/]+/)*src/(main|test)/java/.+[.]java$' })
 $javaText = @{}
 $symbolCount = @{}
 foreach ($rel in $javaFiles) {
@@ -73,8 +77,8 @@ foreach ($rel in $javaFiles | Where-Object { $_ -match '/src/main/java/' }) {
         currentPackage=$package; targetPackage=if($suspicious){'업무 기능 Owner 기준 재확인'}else{$package}
         owner=$module; publicApi=$isApi; spi=$isSpi; internal=$isInternal
         consumerCount=$consumerCount; dbOwner='재확인 필요'; uiOwner='재확인 필요'
-        test=if($tracked -contains $testPath){$testPath}else{''}
-        generatorManaged=($rel -match 'generated|template' -or $module -in @('cpf-account','cpf-member'))
+        test=if($visibleFiles -contains $testPath){$testPath}else{''}
+        generatorManaged=($rel -match 'generated|template' -or $module -in $generatedModules)
         drift=if($suspicious){'common/util/helper/manager 오남용 후보'}else{''}
         status=if([string]::IsNullOrWhiteSpace($package)){'실패'}elseif($consumerCount -eq 0 -and ($isApi -or $isSpi)){'재확인 필요'}else{'미검증'}
         requiredAction=if($consumerCount -eq 0 -and ($isApi -or $isSpi)){'Reflection·AutoConfiguration·ServiceLoader 포함 실제 Consumer 확인'}elseif($suspicious){'업무 규칙 은닉 여부 확인'}else{'최신 SHA Build·ArchUnit Evidence 연결'}
@@ -83,7 +87,6 @@ foreach ($rel in $javaFiles | Where-Object { $_ -match '/src/main/java/' }) {
 }
 
 $generatedParity = [Collections.Generic.List[object]]::new()
-$manifestPaths = @($tracked | Where-Object { $_ -match '^cpf-[^/]+/manifest/domain-manifest[.]json$' })
 foreach ($manifestRel in $manifestPaths) {
     $manifest = Get-Content -LiteralPath (Join-Path $Root $manifestRel) -Raw -Encoding UTF8 | ConvertFrom-Json -Depth 100
     $module = $manifestRel.Split('/')[0]
@@ -92,7 +95,7 @@ foreach ($manifestRel in $manifestPaths) {
     $packageRoot = [string](Get-JsonValue $manifest @('packageName','basePackage') '')
     $capabilities = Get-JsonValue $manifest @('capabilities') @()
     $generatorVersion = [string](Get-JsonValue $manifest @('generatorVersion') 'manifest ownership 확인')
-    $files = @($tracked | Where-Object { $_.StartsWith("$module/") -and $_ -notmatch '/build/' })
+    $files = @($visibleFiles | Where-Object { $_.StartsWith("$module/") -and $_ -notmatch '/build/' })
     $normalizers = @(
         $domain, $systemCode, $packageRoot,
         [string](Get-JsonValue $manifest @('projectName','artifactId') ''),
@@ -117,26 +120,12 @@ foreach ($manifestRel in $manifestPaths) {
         test='미검증'; guide='미검증'; drift='pairwise parity gate에서 판정'; status='미검증'
     }) | Out-Null
 }
-foreach ($expected in @(
-    [ordered]@{domain='account';systemCode='ACC'},
-    [ordered]@{domain='member';systemCode='MBR'},
-    [ordered]@{domain='external';systemCode='EXS'})) {
-    if (-not ($generatedParity.domain -contains $expected.domain)) {
-        $generatedParity.Add([ordered]@{
-            domain=$expected.domain; systemCode=$expected.systemCode; capability='Generator lifecycle에서 생성 검증'
-            generatorVersion=''; normalizedTreeHash=''; fileCount=0; build='미검증'; runtime='미검증'; db='미검증'
-            local='미검증'; remote='미검증'; test='미검증'; guide='미검증'
-            drift='Repository 상시 Module이 아니면 임시 생성 결과 Evidence 필요'; status='미검증'
-        }) | Out-Null
-    }
-}
-
 $menuUi = [Collections.Generic.List[object]]::new()
 foreach ($frontend in @('cpf-admin/frontend','cpf-biz-admin/frontend')) {
     $owner = if ($frontend.StartsWith('cpf-admin')) { 'ADM' } else { 'BZA' }
-    $routeFiles = @($tracked | Where-Object { $_.StartsWith("$frontend/") -and $_ -match '(routes|router).*[.](ts|js)$' })
+    $routeFiles = @($visibleFiles | Where-Object { $_.StartsWith("$frontend/") -and $_ -match '(routes|router).*[.](ts|js)$' })
     $routeText = ($routeFiles | ForEach-Object { [IO.File]::ReadAllText((Join-Path $Root $_), [Text.Encoding]::UTF8) }) -join "`n"
-    $pages = @($tracked | Where-Object { $_.StartsWith("$frontend/src/") -and $_ -match '(Page|View)[.]vue$' })
+    $pages = @($visibleFiles | Where-Object { $_.StartsWith("$frontend/src/") -and $_ -match '(Page|View)[.]vue$' })
     foreach ($rel in $pages) {
         $text = [IO.File]::ReadAllText((Join-Path $Root $rel), [Text.Encoding]::UTF8)
         $page = [IO.Path]::GetFileNameWithoutExtension($rel)

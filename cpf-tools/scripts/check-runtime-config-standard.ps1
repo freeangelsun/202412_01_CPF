@@ -11,8 +11,8 @@ $OutputEncoding = $CpfUtf8ConsoleEncoding
 
 $ErrorActionPreference = "Stop"
 
-$modules = @("cpf-member", "cpf-admin", "cpf-batch", "cpf-biz-admin", "cpf-reference", "cpf-account", "cpf-gateway")
-$moduleCodes = @("MBR", "ADM", "BAT", "BZA", "REF", "ACC", "GWY")
+$modules = @("cpf-admin", "cpf-batch", "cpf-biz-admin", "cpf-reference", "cpf-gateway")
+$moduleCodes = @("ADM", "BAT", "BZA", "REF", "GWY")
 $profiles = @("local", "dev", "stg", "prod")
 $batRuntimeRoles = [ordered]@{
     CONTROL_SERVER = [ordered]@{
@@ -47,47 +47,37 @@ $batRuntimeRoles = [ordered]@{
     }
 }
 $prefixByModule = @{
-    "cpf-member" = "MBR"
     "cpf-admin" = "ADM"
     "cpf-batch" = "BAT"
     "cpf-biz-admin" = "BZA"
     "cpf-reference" = "REF"
-    "cpf-account" = "ACC"
     "cpf-gateway" = "GWY"
 }
 $expectedLocalPorts = @{
-    MBR = 8081
     ADM = 8090
     BZA = 8091
     REF = 8099
-    ACC = 8082
     GWY = 8070
 }
 $schemaByModule = @{
-    MBR = "mbrDB"
     ADM = "admDB"
     BZA = "bzaDB"
     BAT = "batDB"
     REF = "refDB"
-    ACC = "accDB"
     GWY = "cpfDB"
 }
 $usernameByModule = @{
-    MBR = "cpf_mbr_app"
     ADM = "cpf_adm_app"
     BZA = "cpf_bza_app"
     BAT = "cpf_bat_app"
     REF = "cpf_ref_app"
-    ACC = "cpf_acc_app"
     GWY = "cpf_app"
 }
 $jndiByModule = @{
-    MBR = "java:comp/env/jdbc/cpfMemberDataSource"
     ADM = "java:comp/env/jdbc/cpfAdminDataSource"
     BZA = "java:comp/env/jdbc/cpfBizAdminDataSource"
     BAT = "java:comp/env/jdbc/cpfBatchDataSource"
     REF = "java:comp/env/jdbc/cpfReferenceDataSource"
-    ACC = "java:comp/env/jdbc/cpfAccountDataSource"
     GWY = "java:comp/env/jdbc/cpfGatewayDataSource"
 }
 $failures = New-Object System.Collections.Generic.List[string]
@@ -203,10 +193,17 @@ foreach ($deployScript in $deployScriptFiles) {
     Add-Failure ("cpf-tools/scripts/deploy residue remains: {0}" -f $deployScript)
 }
 
-# EXS는 고정 제품 Module이 아니라 Generator lifecycle 검증 대상입니다.
-# 임의 Generated Domain의 배포 설정은 해당 Domain metadata에서 생성해야 하며 baseline에 EXS를 예약하지 않습니다.
-foreach ($relativePath in Get-GitFiles @("deploy/env/*cpf-external.env")) {
-    Add-Failure ("fixed EXS deploy env remains: {0}" -f $relativePath)
+# Platform baseline deploy는 고정 제품 Service만 소유합니다.
+# Generated Domain 배포 설정은 해당 Domain metadata/overlay가 소유해야 하며 이 디렉터리에 고정 등록하지 않습니다.
+$allowedDeployEnvFiles = @(
+    foreach ($profile in $profiles) {
+        foreach ($module in $modules) { "$profile-$module.env" }
+    }
+)
+foreach ($relativePath in Get-GitFiles @("deploy/env/*-cpf-*.env")) {
+    if ([IO.Path]::GetFileName($relativePath) -notin $allowedDeployEnvFiles) {
+        Add-Failure ("non-platform deploy env remains in the Platform baseline: {0}" -f $relativePath)
+    }
 }
 
 $envChecks = New-Object System.Collections.Generic.List[object]
@@ -214,11 +211,7 @@ $inventoryChecks = New-Object System.Collections.Generic.List[object]
 $portRows = New-Object System.Collections.Generic.List[object]
 $datasourceRows = New-Object System.Collections.Generic.List[object]
 foreach ($profile in $profiles) {
-    $profileModules = if ($profile -eq "prod") {
-        @($modules | Where-Object { $_ -ne "cpf-reference" })
-    } else {
-        $modules
-    }
+    $profileModules = $modules
     foreach ($module in $profileModules) {
         $prefix = $prefixByModule[$module]
         $relativePath = "deploy/env/$profile-$module.env"
@@ -257,13 +250,6 @@ foreach ($profile in $profiles) {
                 ("{0}_INSTANCE_ID" -f $prefix),
                 ("{0}_WAS_ID" -f $prefix),
                 ("{0}_SERVER_PORT" -f $prefix)
-            )
-        }
-        if ($prefix -eq "MBR") {
-            $requiredKeys += @(
-                "CPF_MBR_JWT_SECRET",
-                "CPF_MBR_ACCESS_TOKEN_TTL_SECONDS",
-                "CPF_MBR_REFRESH_TOKEN_TTL_SECONDS"
             )
         }
         if ($prefix -eq "BZA") {
@@ -411,11 +397,7 @@ foreach ($profile in $profiles) {
     }
 
     $inventory = Get-Content -LiteralPath $path -Raw -Encoding UTF8 | ConvertFrom-Json
-    $expectedModuleCodes = if ($profile -eq "prod") {
-        @($moduleCodes | Where-Object { $_ -ne "REF" })
-    } else {
-        $moduleCodes
-    }
+    $expectedModuleCodes = $moduleCodes
     foreach ($moduleCode in $expectedModuleCodes) {
         $moduleServices = @($inventory.services) | Where-Object { $_.module -eq $moduleCode }
         if ($moduleServices.Count -eq 0) {
@@ -478,29 +460,21 @@ foreach ($profile in $profiles) {
             }
         }
     }
-    $eduService = @($inventory.services) | Where-Object { $_.module -eq "EDU" } | Select-Object -First 1
-    if ($null -ne $eduService) {
-        Add-Failure ("EDU inventory service must not exist: {0}" -f $relativePath)
-    }
-    $fixedExsService = @($inventory.services) | Where-Object { $_.module -eq "EXS" } | Select-Object -First 1
-    if ($null -ne $fixedExsService) {
-        Add-Failure ("EXS generated-only service must not be fixed in baseline inventory: {0}" -f $relativePath)
-    }
-    if ($profile -eq "prod") {
-        $refService = @($inventory.services) | Where-Object { $_.module -eq "REF" } | Select-Object -First 1
-        if ($null -ne $refService) {
-            Add-Failure ("REF reference service must not be included in the default production inventory: {0}" -f $relativePath)
-        }
+    $unknownModuleCodes = @(
+        @($inventory.services) |
+            ForEach-Object { [string]$_.module } |
+            Where-Object { $_ -notin $moduleCodes } |
+            Sort-Object -Unique
+    )
+    if ($unknownModuleCodes.Count -gt 0) {
+        Add-Failure ("non-platform service remains in baseline inventory: {0} :: {1}" -f
+            $relativePath, ($unknownModuleCodes -join ", "))
     }
     $inventoryChecks.Add([pscustomobject]@{
         file = $relativePath
         serviceCount = @($inventory.services).Count
         status = "DONE"
     }) | Out-Null
-}
-
-if (Test-Path -LiteralPath (Join-RootPath "deploy/env/prod-cpf-reference.env")) {
-    Add-Failure "REF reference production env must not exist in the default deployment set."
 }
 
 $buildGradlePath = Join-RootPath "build.gradle"

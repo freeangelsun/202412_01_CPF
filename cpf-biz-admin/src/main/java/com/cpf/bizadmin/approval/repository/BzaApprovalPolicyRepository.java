@@ -1,12 +1,12 @@
 package com.cpf.bizadmin.approval.repository;
 
 import com.cpf.core.api.database.CpfVendorSqlCatalog;
+import com.cpf.core.api.database.CpfVendorSqlCatalogProvider;
 import com.cpf.bizadmin.approval.api.BzaApprovalTargetType;
 import com.cpf.bizadmin.approval.spi.BzaApprovalDirectoryEntry;
 import com.cpf.bizadmin.approval.spi.BzaApprovalDirectoryPort;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -30,9 +30,9 @@ public class BzaApprovalPolicyRepository implements BzaApprovalDirectoryPort {
 
     public BzaApprovalPolicyRepository(
             @Qualifier("bzaJdbcTemplate") ObjectProvider<NamedParameterJdbcTemplate> jdbcTemplateProvider,
-            Environment environment) {
+            CpfVendorSqlCatalogProvider sqlCatalogProvider) {
         this.jdbcTemplateProvider = jdbcTemplateProvider;
-        this.sql = CpfVendorSqlCatalog.create(environment, "bza");
+        this.sql = sqlCatalogProvider.forModule("bza");
     }
 
     public List<Map<String,Object>> findPolicies(String businessDomain, String approvalType) {
@@ -79,7 +79,7 @@ public class BzaApprovalPolicyRepository implements BzaApprovalDirectoryPort {
         Timestamp at = Timestamp.from(effectiveAt);
         MapSqlParameterSource p = new MapSqlParameterSource()
                 .addValue("targetCode", targetCode).addValue("at", at);
-        String sql = switch (targetType) {
+        String query = switch (targetType) {
             case EMPLOYEE -> sql.required("approval-policy-repository-resolve-01");
             case ORGANIZATION -> sql.required("approval-policy-repository-resolve-02");
             case POSITION -> sql.required("approval-policy-repository-resolve-03");
@@ -87,7 +87,7 @@ public class BzaApprovalPolicyRepository implements BzaApprovalDirectoryPort {
             case ROLE -> sql.required("approval-policy-repository-resolve-05");
         };
         LinkedHashMap<String,BzaApprovalDirectoryEntry> unique = new LinkedHashMap<>();
-        for (Map<String,Object> row : jdbc().queryForList(sql, p)) {
+        for (Map<String,Object> row : jdbc().queryForList(query, p)) {
             String employeeNo = Objects.toString(row.get("employeeNo"), "");
             if (employeeNo.isBlank()) continue;
             unique.putIfAbsent(employeeNo, new BzaApprovalDirectoryEntry(
@@ -116,6 +116,24 @@ public class BzaApprovalPolicyRepository implements BzaApprovalDirectoryPort {
         return jdbc().queryForList(sql.required("approval-policy-repository-find-delegations-01"), new MapSqlParameterSource()
                 .addValue("employeeNo", blankToNull(employeeNo))
                 .addValue("at", at == null ? null : Timestamp.from(at)));
+    }
+
+    public List<Map<String,Object>> findSubmissions(String employeeNo, String status, int limit) {
+        return jdbc().queryForList(
+                sql.required("approval-policy-repository-find-submissions-01"),
+                new MapSqlParameterSource()
+                        .addValue("employeeNo", employeeNo)
+                        .addValue("status", blankToNull(status))
+                        .addValue("limit", limit));
+    }
+
+    public List<Map<String,Object>> findInbox(String employeeNo, String decisionStatus, int limit) {
+        return jdbc().queryForList(
+                sql.required("approval-policy-repository-find-inbox-01"),
+                new MapSqlParameterSource()
+                        .addValue("employeeNo", employeeNo)
+                        .addValue("decisionStatus", blankToNull(decisionStatus))
+                        .addValue("limit", limit));
     }
 
     public void saveDelegation(Map<String,Object> values) {

@@ -3,9 +3,9 @@ package com.cpf.bizadmin.support.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.cpf.bizadmin.audit.service.BzaBusinessAuditService;
 import com.cpf.bizadmin.support.repository.BzaSupportRepository;
-import com.cpf.core.common.attachment.CpfAttachmentContent;
-import com.cpf.core.common.attachment.CpfAttachmentStoragePort;
-import com.cpf.core.common.attachment.CpfStoredAttachment;
+import com.cpf.core.api.attachment.CpfAttachmentContent;
+import com.cpf.core.api.attachment.CpfAttachmentStoragePort;
+import com.cpf.core.api.attachment.CpfStoredAttachment;
 import com.cpf.core.common.exception.CpfValidationException;
 import org.junit.jupiter.api.Test;
 

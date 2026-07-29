@@ -1,5 +1,9 @@
 package com.cpf.core.common.execution;
 
+import com.cpf.core.api.execution.CpfExecutionCatalogPort;
+import com.cpf.core.api.execution.CpfExecutionDefinition;
+import com.cpf.core.api.execution.CpfExecutionType;
+import com.cpf.core.api.execution.CpfStandardExecutionId;
 import com.cpf.core.common.database.CpfVendorSqlCatalog;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;

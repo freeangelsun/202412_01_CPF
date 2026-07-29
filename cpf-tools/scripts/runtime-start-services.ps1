@@ -1,6 +1,6 @@
 param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..\..").Path,
-    [string[]] $Modules = @("MBR", "ADM", "BZA", "REF"),
+    [string[]] $Modules = @("ADM", "BAT", "BZA", "REF", "GWY"),
     [string] $ResultDir = "",
     [int] $StartupTimeoutSeconds = 150,
     [int] $HttpTimeoutSeconds = 3,
@@ -17,16 +17,6 @@ $CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
 [Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
 $OutputEncoding = $CpfUtf8ConsoleEncoding
 
-$RequiredPortEnvMarkers = @(
-    "MBR_SERVER_PORT",
-    "ADM_SERVER_PORT",
-    "BAT_SERVER_PORT",
-    "BZA_SERVER_PORT",
-    "REF_SERVER_PORT",
-    "ACC_SERVER_PORT",
-    "GWY_SERVER_PORT"
-)
-
 $ErrorActionPreference = "Stop"
 . (Join-Path $PSScriptRoot "runtime-common.ps1")
 . (Join-Path $PSScriptRoot "database-profile-common.ps1")
@@ -36,12 +26,10 @@ $ErrorActionPreference = "Stop"
 $Root = Get-CpfRuntimeRoot -Root $Root
 $ResultDir = Get-CpfRuntimeResultDir -Root $Root -ResultDir $ResultDir
 New-Item -ItemType Directory -Force -Path $ResultDir | Out-Null
+$selectedModules = @(Resolve-CpfRuntimeModules -Modules $Modules -Root $Root)
 
 if ([string]::IsNullOrWhiteSpace($DbVendor)) { $DbVendor = "mariadb" }
-$DbVendor = $DbVendor.ToLowerInvariant()
-if ($DbVendor -notin @("mariadb", "mysql", "postgresql", "oracle", "sqlserver")) {
-    throw "지원하지 않는 CPF DB Vendor입니다: $DbVendor"
-}
+$DbVendor = Assert-CpfSupportedDatabaseVendor $DbVendor
 if ([string]::IsNullOrWhiteSpace($DbResourceRoot)) {
     # 이 Script는 Repository Local Runtime Harness이므로 중앙 Source Pack을 명시적으로 선택합니다.
     # 제품 배포에서는 배포 Bundle의 외부 Pack 경로를 CPF_DB_RESOURCE_ROOT로 주입해야 합니다.
@@ -93,10 +81,8 @@ function Get-CpfRuntimeJdbcUrl {
     $databaseName = [string] $Target.databaseName
     switch ([string] $Target.vendor) {
         "mariadb" { return "jdbc:mariadb://${hostName}:${port}/${databaseName}" }
-        "mysql" { return "jdbc:mysql://${hostName}:${port}/${databaseName}" }
         "postgresql" { return "jdbc:postgresql://${hostName}:${port}/${databaseName}" }
         "oracle" { return "jdbc:oracle:thin:@//${hostName}:${port}/${databaseName}" }
-        "sqlserver" { return "jdbc:sqlserver://${hostName}:${port};databaseName=${databaseName}" }
         default { throw "지원하지 않는 Runtime DB Vendor입니다: $($Target.vendor)" }
     }
 }
@@ -106,10 +92,8 @@ function Get-CpfRuntimeDriverClassName {
 
     switch ($Vendor) {
         "mariadb" { return "org.mariadb.jdbc.Driver" }
-        "mysql" { return "com.mysql.cj.jdbc.Driver" }
         "postgresql" { return "org.postgresql.Driver" }
         "oracle" { return "oracle.jdbc.OracleDriver" }
-        "sqlserver" { return "com.microsoft.sqlserver.jdbc.SQLServerDriver" }
         default { throw "지원하지 않는 Runtime DB Vendor입니다: $Vendor" }
     }
 }
@@ -123,19 +107,25 @@ function Add-CpfRuntimeDatabaseEnvironment {
 
     $url = Get-CpfRuntimeJdbcUrl -Target $Target
     $driver = Get-CpfRuntimeDriverClassName -Vendor ([string] $Target.vendor)
+    $databaseEnvironment["${Prefix}_DB_VENDOR"] = [string] $Target.vendor
     $databaseEnvironment["${Prefix}_DB_URL"] = $url
     $databaseEnvironment["${Prefix}_DB_NAME"] = [string] $Target.databaseName
     $databaseEnvironment["${Prefix}_DB_USERNAME"] = [string] $Target.runtimeUsername
     $databaseEnvironment["${Prefix}_DB_PASSWORD"] = [string] $Target.runtimePassword
     $databaseEnvironment["${Prefix}_DB_DRIVER"] = $driver
+    $databaseEnvironment["${Prefix}_DB_DRIVER_CLASS_NAME"] = $driver
+    $databaseEnvironment["${Prefix}_DATASOURCE_VENDOR"] = [string] $Target.vendor
     $databaseEnvironment["${Prefix}_DATASOURCE_URL"] = $url
     $databaseEnvironment["${Prefix}_DATASOURCE_USERNAME"] = [string] $Target.runtimeUsername
     $databaseEnvironment["${Prefix}_DATASOURCE_PASSWORD"] = [string] $Target.runtimePassword
     $databaseEnvironment["${Prefix}_DATASOURCE_DRIVER"] = $driver
+    $databaseEnvironment["${Prefix}_DATASOURCE_DRIVER_CLASS_NAME"] = $driver
+    $databaseEnvironment["${Prefix}_DATABASE_VENDOR"] = [string] $Target.vendor
     $databaseEnvironment["${Prefix}_DATABASE_URL"] = $url
     $databaseEnvironment["${Prefix}_DATABASE_USERNAME"] = [string] $Target.runtimeUsername
     $databaseEnvironment["${Prefix}_DATABASE_PASSWORD"] = [string] $Target.runtimePassword
     $databaseEnvironment["${Prefix}_DATABASE_DRIVER"] = $driver
+    $databaseEnvironment["${Prefix}_DATABASE_DRIVER_CLASS_NAME"] = $driver
 }
 
 foreach ($moduleKey in $databaseTargets.Keys) {
@@ -154,11 +144,51 @@ if ($databaseTargets.Contains("core")) {
     $databaseEnvironment["CPF_DB_HOST"] = [string] $coreTarget.host
     $databaseEnvironment["CPF_DB_PORT"] = [string] $coreTarget.port
 }
+
+foreach ($generatedModule in @($selectedModules | Where-Object {
+            [bool] $_.generatedDomain -and [bool] $_.databaseEnabled
+        })) {
+    if ([string]::IsNullOrWhiteSpace([string] $generatedModule.databaseProfilePath)) {
+        throw "Generated Domain DB Profile 경로가 없습니다: $($generatedModule.projectName)"
+    }
+    $generatedProfilePath = Join-Path `
+        (Join-Path $Root ([string] $generatedModule.projectName)) `
+        ([string] $generatedModule.databaseProfilePath)
+    if (-not (Test-Path -LiteralPath $generatedProfilePath -PathType Leaf)) {
+        throw "Generated Domain DB Profile을 찾을 수 없습니다: $generatedProfilePath"
+    }
+    $generatedProfile = Get-Content -LiteralPath $generatedProfilePath -Raw -Encoding UTF8 | ConvertFrom-Json
+    if (([string] $generatedProfile.systemCode).Trim().ToUpperInvariant() -cne [string] $generatedModule.module -or
+            ([string] $generatedProfile.domainName).Trim().ToLowerInvariant() -cne [string] $generatedModule.domainName) {
+        throw "Generated Domain manifest/DB Profile identity가 일치하지 않습니다: $($generatedModule.projectName)"
+    }
+    $generatedDatabase = $generatedProfile.database
+    $generatedVendor = Assert-CpfSupportedDatabaseVendor ([string] $generatedDatabase.vendor)
+    if ($generatedVendor -cne $DbVendor) {
+        throw (
+            "Generated Domain Runtime DB Profile과 선택 Vendor가 다릅니다. " +
+            "module=$($generatedModule.module) profileVendor=$generatedVendor selectedVendor=$DbVendor"
+        )
+    }
+    $generatedTarget = [pscustomobject]@{
+        vendor = $generatedVendor
+        host = [string] $generatedDatabase.host
+        port = [int] $generatedDatabase.port
+        databaseName = [string] $generatedDatabase.databaseName
+        runtimeUsername = [string] $generatedDatabase.runtime.username
+        runtimePassword = Resolve-CpfProfileSecret `
+            -SecretSpec $generatedDatabase.runtime.password `
+            -DisplayName "$($generatedModule.projectName).database.runtime.password" `
+            -AllowDevDefault $false
+    }
+    Add-CpfRuntimeDatabaseEnvironment `
+        -Prefix ([string] $generatedModule.module) `
+        -Target $generatedTarget
+}
 $databaseEnvironment["CPF_BZA_DB_ENABLED"] = "true"
 
 $resultPath = Join-Path $ResultDir "runtime-start-services-result.json"
 $statePath = Join-Path $ResultDir "runtime-services.json"
-$selectedModules = Resolve-CpfRuntimeModules -Modules $Modules
 $started = @()
 $result = [ordered]@{
     startedAt = (Get-Date).ToString("o")
@@ -233,7 +263,7 @@ function Invoke-BootJarBuildIfNeeded {
     $buildError = Join-Path $ResultDir ("runtime-" + $Module.moduleLower + "-bootjar.err.log")
     $build = Start-Process `
         -FilePath (Join-Path $Root "gradlew.bat") `
-        -ArgumentList @($task, "--offline", "--no-daemon", "--console=plain") `
+        -ArgumentList @($task, "--offline", "--no-daemon", "--max-workers=1", "--console=plain") `
         -WorkingDirectory $Root `
         -RedirectStandardOutput $buildOutput `
         -RedirectStandardError $buildError `
@@ -355,7 +385,7 @@ try {
 
             $process = Start-Process `
                 -FilePath "java" `
-                -ArgumentList @("-jar", $jarPath) `
+                -ArgumentList @("-jar", $jarPath, "--server.port=$($module.port)") `
                 -WorkingDirectory $Root `
                 -RedirectStandardOutput $stdout `
                 -RedirectStandardError $stderr `

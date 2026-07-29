@@ -5,6 +5,18 @@ $ErrorActionPreference = "Stop"
 $official = @("mariadb", "postgresql", "oracle")
 $planPath = Join-Path $Root "cpf-tools/config/database-source-plan.json"
 $plan = Get-Content -LiteralPath $planPath -Raw -Encoding UTF8 | ConvertFrom-Json -Depth 30
+$profilePath = Join-Path $Root "cpf-tools/config/database-install.default.json"
+$profile = Get-Content -LiteralPath $profilePath -Raw -Encoding UTF8 | ConvertFrom-Json -Depth 30
+$logicalDatabases = @(
+    $profile.modules.PSObject.Properties |
+        Where-Object { [bool]$_.Value.enabled } |
+        ForEach-Object { [string]$_.Value.logicalDatabase } |
+        Sort-Object -Unique
+)
+if ($logicalDatabases.Count -eq 0) { throw "Enabled platform database가 없습니다: $profilePath" }
+$qualifiedDatabasePattern = '(?i)\b(?:' +
+    (($logicalDatabases | ForEach-Object { [regex]::Escape($_) }) -join '|') +
+    ')\.'
 
 function Read-Source([string]$vendor, [string]$name) {
     $path = Join-Path $Root "cpf-tools/db/vendor/$vendor/source/$name"
@@ -35,31 +47,45 @@ function Get-LogicalSections([string]$text) {
     return $result
 }
 function Assert-Portable([string]$vendor, [string]$text, [string]$source) {
-    if ($vendor -ne 'mariadb' -and $text -match '(?im)^\s*USE\s+') { throw "$vendor source has MariaDB USE directive: $source" }
-    if ($vendor -ne 'mariadb' -and $text -match '(?i)\b(cpfDB|cmnDB|admDB|bzaDB|batDB|mbrDB|accDB|refDB)\.') { throw "$vendor source has logical database qualifier: $source" }
-    if ($vendor -eq 'postgresql' -and $text -match '(?i)\b(AUTO_INCREMENT|ON\s+DUPLICATE\s+KEY|IFNULL\s*\(|DATE_ADD\s*\()') { throw "PostgreSQL source has non-native SQL: $source" }
-    if ($vendor -eq 'oracle' -and $text -match '(?i)\b(AUTO_INCREMENT|ON\s+DUPLICATE\s+KEY|IFNULL\s*\(|DATE_ADD\s*\(|LIMIT\s+\d+)') { throw "Oracle source has non-native SQL: $source" }
+    $structuralText = [regex]::Replace($text, "'(?:''|[^'])*'", "''")
+    $structuralText = [regex]::Replace($structuralText, '(?m)--.*$', '')
+    if ($vendor -ne 'mariadb' -and $structuralText -match '(?im)^\s*USE\s+') { throw "$vendor source has MariaDB USE directive: $source" }
+    if ($vendor -ne 'mariadb' -and
+            ($structuralText -match $qualifiedDatabasePattern -or
+             $structuralText -match '(?i)\b[a-z][a-z0-9_]*DB\.')) {
+        throw "$vendor source has logical database qualifier: $source"
+    }
+    if ($vendor -eq 'postgresql' -and $structuralText -match '(?i)\b(AUTO_INCREMENT|ON\s+DUPLICATE\s+KEY|IFNULL\s*\(|DATE_ADD\s*\()') { throw "PostgreSQL source has non-native SQL: $source" }
+    if ($vendor -eq 'oracle' -and $structuralText -match '(?i)\b(AUTO_INCREMENT|ON\s+DUPLICATE\s+KEY|IFNULL\s*\(|DATE_ADD\s*\(|LIMIT\s+\d+)') { throw "Oracle source has non-native SQL: $source" }
 }
 
 $maria = $plan.mariadb
 foreach ($vendor in @('postgresql','oracle')) {
-    $root = Join-Path $Root "cpf-tools/db/vendor/$vendor"
+    # PowerShell variable names are case-insensitive.  Using `$root` here
+    # overwrote the `$Root` repository parameter and made the second path
+    # segment repeat (vendor/postgresql/cpf-tools/db/vendor/postgresql/...).
+    $vendorRoot = Join-Path $Root "cpf-tools/db/vendor/$vendor"
     foreach ($name in @($maria.emptyInstallFiles + $maria.productSeedFiles + $maria.optionalSampleSeedFiles + $maria.testSeedFiles)) {
         Assert-Portable $vendor (Read-Source $vendor $name) $name
     }
-    Build-Bundle $vendor $maria.emptyInstallFiles (Join-Path $root 'install/00_empty_install.sql')
-    Build-Bundle $vendor $maria.productSeedFiles (Join-Path $root 'seed/00_product_seed.sql')
-    Build-Bundle $vendor $maria.optionalSampleSeedFiles (Join-Path $root 'seed/00_optional_sample_seed.sql')
-    Build-Bundle $vendor $maria.testSeedFiles (Join-Path $root 'seed/00_test_seed.sql')
+    Build-Bundle $vendor @('00_provision.sql') (Join-Path $vendorRoot 'provision/00_provision.sql')
+    Build-Bundle $vendor $maria.emptyInstallFiles (Join-Path $vendorRoot 'install/00_empty_install.sql')
+    Build-Bundle $vendor $maria.productSeedFiles (Join-Path $vendorRoot 'seed/00_product_seed.sql')
+    Build-Bundle $vendor $maria.optionalSampleSeedFiles (Join-Path $vendorRoot 'seed/00_optional_sample_seed.sql')
+    Build-Bundle $vendor $maria.testSeedFiles (Join-Path $vendorRoot 'seed/00_test_seed.sql')
+    Build-Bundle $vendor @('00_verify.sql') (Join-Path $vendorRoot 'verify/00_verify.sql')
 
-    # New official vendors start from the current CPF baseline. Each physical DB has its own Flyway history.
+    # V63/R63 are published history. Fresh-install source may evolve, but an
+    # artifact rebuild must never rewrite an existing baseline migration.
     $allSchema = ($maria.emptyInstallFiles | ForEach-Object { Read-Source $vendor $_ }) -join "`n"
     $sections = Get-LogicalSections $allSchema
     foreach ($group in ($sections | Group-Object logicalDatabase)) {
         $db = $group.Name
         $body = ($group.Group | ForEach-Object text) -join "`n"
-        $migration = Join-Path $root "migration/flyway/$db/V63__cpf_vendor_baseline.sql"
-        Write-Utf8 $migration ("-- CPF $vendor initial baseline for $db`n" + $body)
+        $migration = Join-Path $vendorRoot "migration/flyway/$db/V63__cpf_vendor_baseline.sql"
+        if (-not (Test-Path -LiteralPath $migration -PathType Leaf)) {
+            Write-Utf8 $migration ("-- CPF $vendor initial baseline for $db`n" + $body)
+        }
         $tableNames = [regex]::Matches($body, '(?im)^\s*CREATE\s+TABLE\s+([A-Za-z][A-Za-z0-9_$#]*)') | ForEach-Object { $_.Groups[1].Value }
         [array]::Reverse($tableNames)
         $drop = if ($vendor -eq 'postgresql') {
@@ -67,7 +93,10 @@ foreach ($vendor in @('postgresql','oracle')) {
         } else {
             ($tableNames | ForEach-Object { "BEGIN EXECUTE IMMEDIATE 'DROP TABLE $_ CASCADE CONSTRAINTS PURGE'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;`n/" }) -join "`n"
         }
-        Write-Utf8 (Join-Path $root "rollback/$db/R63__cpf_vendor_baseline.sql") ("-- Exact rollback of CPF $vendor initial baseline for $db`n" + $drop)
+        $baselineRollback = Join-Path $vendorRoot "rollback/$db/R63__cpf_vendor_baseline.sql"
+        if (-not (Test-Path -LiteralPath $baselineRollback -PathType Leaf)) {
+            Write-Utf8 $baselineRollback ("-- Exact rollback of CPF $vendor initial baseline for $db`n" + $drop)
+        }
     }
 }
 Write-Host "Official DB vendor lifecycle bundles generated for PostgreSQL and Oracle."

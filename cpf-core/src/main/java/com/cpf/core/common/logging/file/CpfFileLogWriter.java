@@ -7,7 +7,7 @@ import com.cpf.core.common.logging.ServerInstanceIdentity;
 import com.cpf.core.common.logging.TransactionContext;
 import com.cpf.core.common.logging.TransactionLogRecord;
 import com.cpf.core.common.logging.CpfTransactionContextAnomalyMonitor;
-import com.cpf.core.common.logging.policy.LogPolicyDecision;
+import com.cpf.core.api.logging.policy.LogPolicyDecision;
 import com.cpf.core.common.logging.segment.TransactionSegmentContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;

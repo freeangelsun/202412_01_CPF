@@ -19,7 +19,40 @@ $contract = Get-Content -Raw -Encoding UTF8 -LiteralPath $contractPath | Convert
 $vendors = @($contract.vendors | ForEach-Object { [string] $_ })
 $failures = [System.Collections.Generic.List[string]]::new()
 $inlineInventory = [System.Collections.Generic.List[object]]::new()
-$inlineSqlPattern = '(?is)(?:"""|")\s*(?:SELECT|INSERT|UPDATE|DELETE|MERGE|WITH)\b'
+$inlineSqlPattern = @'
+(?isx)(?:"""|")\s*(?:
+    SELECT\s+(?:DISTINCT\s+)?[\w(*]
+  | INSERT\s+INTO\b
+  | UPDATE\s+[A-Za-z_(]
+  | DELETE\s+FROM\b
+  | MERGE\s+INTO\b
+  | WITH\s+(?:RECURSIVE\s+)?[A-Za-z_][A-Za-z0-9_]*\s+AS\s*\(
+)
+'@
+$vendorOnlyInlinePatterns = @(
+    [pscustomobject]@{ name = "mysql-upsert"; pattern = '(?i)\bON\s+DUPLICATE\s+KEY\b' },
+    [pscustomobject]@{ name = "mysql-last-insert-id"; pattern = '(?i)\bLAST_INSERT_ID\s*\(' },
+    [pscustomobject]@{ name = "mysql-database-function"; pattern = '(?i)\bDATABASE\s*\(\s*\)' },
+    [pscustomobject]@{ name = "vendor-information-schema"; pattern = '(?i)\binformation_schema\b' },
+    [pscustomobject]@{ name = "limit-pagination"; pattern = '(?i)\bLIMIT\s+(?:\?|:[A-Za-z_][A-Za-z0-9_]*|\d+)' },
+    [pscustomobject]@{ name = "mysql-insert-ignore"; pattern = '(?i)\bINSERT\s+IGNORE\b' },
+    [pscustomobject]@{ name = "mysql-ifnull"; pattern = '(?i)\bIFNULL\s*\(' },
+    [pscustomobject]@{ name = "mysql-date-format"; pattern = '(?i)\bDATE_FORMAT\s*\(' },
+    [pscustomobject]@{ name = "mysql-group-concat"; pattern = '(?i)\bGROUP_CONCAT\s*\(' },
+    [pscustomobject]@{ name = "mysql-substring-index"; pattern = '(?i)\bSUBSTRING_INDEX\s*\(' },
+    [pscustomobject]@{ name = "mysql-timestampadd"; pattern = '(?i)\bTIMESTAMPADD\s*\(' },
+    [pscustomobject]@{ name = "mysql-pow"; pattern = '(?i)\bPOW\s*\(' },
+    [pscustomobject]@{ name = "postgres-upsert"; pattern = '(?i)\bON\s+CONFLICT\b' },
+    [pscustomobject]@{ name = "postgres-cast"; pattern = '(?i)::[A-Za-z_][A-Za-z0-9_]*' },
+    [pscustomobject]@{ name = "returning-clause"; pattern = '(?i)\bRETURNING\b' },
+    [pscustomobject]@{ name = "oracle-nvl"; pattern = '(?i)\bNVL\s*\(' },
+    [pscustomobject]@{ name = "oracle-sysdate"; pattern = '(?i)\bSYSDATE\b' },
+    [pscustomobject]@{ name = "oracle-rownum"; pattern = '(?i)\bROWNUM\b' },
+    [pscustomobject]@{ name = "sqlserver-top"; pattern = '(?i)\bTOP\s*(?:\(|\d)' },
+    [pscustomobject]@{ name = "sqlserver-getdate"; pattern = '(?i)\bGETDATE\s*\(' },
+    [pscustomobject]@{ name = "sqlserver-isnull"; pattern = '(?i)\bISNULL\s*\(' },
+    [pscustomobject]@{ name = "mysql-quoted-identifier"; pattern = '`[A-Za-z_][A-Za-z0-9_]*`' }
+)
 
 function Add-Failure {
     param([Parameter(Mandatory = $true)][string] $Message)
@@ -76,6 +109,13 @@ foreach ($scriptName in @(
 foreach ($module in @($contract.modules)) {
     $moduleCode = [string] $module.module
     $ownerArtifact = [string] $module.ownerArtifact
+    $inlineSqlPolicy = [string] $module.inlineSqlPolicy
+    if ($inlineSqlPolicy -cne "PORTABLE_ONLY") {
+        Add-Failure (
+            "Platform Runtime inline SQL policy must be PORTABLE_ONLY: " +
+            "module=$moduleCode actual=$inlineSqlPolicy"
+        )
+    }
     $contractKeys = @(
         $module.statements |
             ForEach-Object { [string] $_.key } |
@@ -109,7 +149,16 @@ foreach ($module in @($contract.modules)) {
                     module = $moduleCode
                     path = $relative
                     statements = $inlineCount
+                    policy = $inlineSqlPolicy
                 })
+                foreach ($vendorPattern in $vendorOnlyInlinePatterns) {
+                    if ($text -match [string] $vendorPattern.pattern) {
+                        Add-Failure (
+                            "Vendor-only inline SQL is forbidden: " +
+                            "module=$moduleCode path=$relative token=$($vendorPattern.name)"
+                        )
+                    }
+                }
             }
         }
     }
@@ -349,7 +398,7 @@ $result = [ordered]@{
             ForEach-Object { @($_.statements).Count * $vendors.Count } |
             Measure-Object -Sum
     ).Sum
-    remainingInlineSqlPolicy = "REPORT_ONLY"
+    remainingInlineSqlPolicy = "PORTABLE_ONLY"
     remainingInlineSqlStatements = [int] $inlineStatementCount
     remainingInlineSqlFiles = @($inlineInventory)
     failures = @($failures)

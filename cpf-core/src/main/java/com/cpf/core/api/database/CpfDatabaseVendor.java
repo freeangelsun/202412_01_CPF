@@ -6,8 +6,8 @@ import java.util.Locale;
 /**
  * CPF 공식 지원 DB Vendor 계약입니다.
  *
- * <p>공식 지원 Vendor는 MariaDB, PostgreSQL, Oracle 3종으로 고정합니다. MySQL/MSSQL/H2는
- * 제품 지원 Surface에 포함하지 않으며 별도 adapter가 필요하면 고객 확장 영역에서 명시적으로 구현해야 합니다.</p>
+ * <p>공식 지원 Vendor는 MariaDB, PostgreSQL, Oracle 3종으로 고정합니다. 그 외 Vendor adapter가
+ * 필요하면 CPF 제품 선택 Surface와 분리된 고객 확장 영역에서 명시적으로 구현해야 합니다.</p>
  */
 public enum CpfDatabaseVendor {
     MARIADB("mariadb", "org.mariadb.jdbc.Driver", 3306),

@@ -1,9 +1,9 @@
 package com.cpf.batch.control.deploy;
 
 import com.cpf.batch.api.DeploymentCellManifest;
-import com.cpf.core.common.database.CpfVendorSqlCatalog;
+import com.cpf.core.api.database.CpfVendorSqlCatalog;
+import com.cpf.core.api.database.CpfVendorSqlCatalogProvider;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,10 +21,10 @@ public class DeploymentPlanRepository {
     public DeploymentPlanRepository(
             JdbcTemplate jdbc,
             ObjectMapper mapper,
-            Environment environment) {
+            CpfVendorSqlCatalogProvider sqlCatalogProvider) {
         this.jdbc = jdbc;
         this.mapper = mapper;
-        this.sql = CpfVendorSqlCatalog.create(environment, "bat");
+        this.sql = sqlCatalogProvider.forModule("bat");
     }
 
     @Transactional

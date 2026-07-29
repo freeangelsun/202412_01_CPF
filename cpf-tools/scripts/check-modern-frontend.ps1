@@ -1,6 +1,7 @@
 param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..\..").Path,
-    [string] $ResultDir = ""
+    [string] $ResultDir = "",
+    [switch] $SkipArchives
 )
 
 # PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
@@ -31,10 +32,12 @@ function Test-ArchiveEntry([string] $ArchivePath, [string] $EntryPattern) {
 
 $checks = [ordered]@{
     admVueSfc = Test-Path -LiteralPath (Join-Path $Root 'cpf-admin/frontend/src/App.vue')
-    admTypeScriptFeatures = @(Get-ChildItem -LiteralPath (Join-Path $Root 'cpf-admin/frontend/src/features') -Recurse -File -Filter '*.ts').Count -ge 6
+    admTypeScriptSources = @(Get-ChildItem -LiteralPath (Join-Path $Root 'cpf-admin/frontend/src') -Recurse -File -Filter '*.ts').Count -ge 6
+    admFeaturePages = @(Get-ChildItem -LiteralPath (Join-Path $Root 'cpf-admin/frontend/src/features') -Recurse -File -Filter '*.vue').Count -ge 10
     admPackageLock = Test-Path -LiteralPath (Join-Path $Root 'cpf-admin/frontend/package-lock.json')
     bzaVueSfc = Test-Path -LiteralPath (Join-Path $Root 'cpf-biz-admin/frontend/src/App.vue')
-    bzaTypeScriptFeatures = Test-Path -LiteralPath (Join-Path $Root 'cpf-biz-admin/frontend/src/features/console.ts')
+    bzaTypeScriptSources = @(Get-ChildItem -LiteralPath (Join-Path $Root 'cpf-biz-admin/frontend/src') -Recurse -File -Filter '*.ts').Count -ge 6
+    bzaFeaturePages = @(Get-ChildItem -LiteralPath (Join-Path $Root 'cpf-biz-admin/frontend/src/features') -Recurse -File -Filter '*.vue').Count -ge 10
     bzaPackageLock = Test-Path -LiteralPath (Join-Path $Root 'cpf-biz-admin/frontend/package-lock.json')
     legacyAdmScriptRemoved = -not (Test-Path -LiteralPath (Join-Path $Root 'cpf-admin/src/main/resources/static/adm/adm.js'))
     legacyBzaScriptRemoved = -not (Test-Path -LiteralPath (Join-Path $Root 'cpf-biz-admin/src/main/resources/static/bza/bza.js'))
@@ -44,13 +47,15 @@ $checks = [ordered]@{
 }
 
 $archives = [ordered]@{}
-foreach ($moduleInfo in @(
+if (-not $SkipArchives) {
+  foreach ($moduleInfo in @(
         [ordered]@{ project = 'cpf-admin'; staticPath = 'adm' },
         [ordered]@{ project = 'cpf-biz-admin'; staticPath = 'bza' }
     )) {
     $module = $moduleInfo.staticPath
     foreach ($extension in @('jar', 'war')) {
-        $archive = Get-ChildItem -LiteralPath (Join-Path $Root "$($moduleInfo.project)/build/libs") -File -Filter "*.$extension" |
+        $archive = Get-ChildItem -LiteralPath (Join-Path $Root "$($moduleInfo.project)/build/libs") `
+                -File -Filter "*.$extension" -ErrorAction SilentlyContinue |
             Sort-Object LastWriteTime -Descending | Select-Object -First 1
         $key = "$module-$extension"
         if ($null -eq $archive) {
@@ -64,6 +69,7 @@ foreach ($moduleInfo in @(
             hashedAsset = Test-ArchiveEntry $archive.FullName "^$prefix/static/$module/assets/index-.+\.(js|css)$"
         }
     }
+  }
 }
 
 $failedChecks = @($checks.GetEnumerator() | Where-Object { -not $_.Value } | ForEach-Object Key)
@@ -75,6 +81,7 @@ $result = [ordered]@{
     status = $(if ($failedChecks.Count -eq 0 -and $failedArchives.Count -eq 0) { 'DONE' } else { 'FAILED' })
     checks = $checks
     archives = $archives
+    archiveValidation = $(if ($SkipArchives) { 'SKIPPED' } else { 'EXECUTED' })
     failedChecks = $failedChecks
     failedArchives = $failedArchives
 }

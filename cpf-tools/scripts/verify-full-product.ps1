@@ -76,6 +76,7 @@ try{
         @('Transaction ID','cpf-tools/scripts/check-transaction-id-standard.ps1'),
         @('SQL canonical','cpf-tools/scripts/check-sql-canonical.ps1'),
         @('SQL standard','cpf-tools/scripts/check-sql-standard.ps1'),
+        @('Spring Batch 6 sequence contract','cpf-tools/scripts/check-spring-batch-sequence-contract.ps1'),
         @('DB vendor parity','cpf-tools/scripts/check-db-vendor-pack-parity.ps1'),
         @('Offline DB resource pack','cpf-tools/scripts/check-offline-db-resource-pack.ps1'),
         @('Official DB vendor readiness','cpf-tools/scripts/check-official-db-vendor-readiness.ps1'),
@@ -109,10 +110,7 @@ try{
     }
 
     if($WithGeneratorLifecycle){
-        if(-not(Pwsh 'EXS generated-only lifecycle' 'cpf-tools/scripts/verify-exs-generated-domain-lifecycle.ps1' @('-Root',$Root))){$allOk=$false}
-        if(Test-Path(Join-Path $Root 'cpf-tools/scripts/smoke-generated-domain-lifecycle.ps1')){
-            if(-not(Pwsh 'Arbitrary Generated Domain lifecycle' 'cpf-tools/scripts/smoke-generated-domain-lifecycle.ps1' @('-Root',$Root))){$allOk=$false}
-        }
+        if(-not(Pwsh 'Arbitrary Generated Domain parity' 'cpf-tools/scripts/check-generator-arbitrary-domain-parity.ps1' @('-Root',$Root))){$allOk=$false}
     }else{Skip 'Generated Domain lifecycle' 'use -WithGeneratorLifecycle'}
 
     if($WithDatabase){

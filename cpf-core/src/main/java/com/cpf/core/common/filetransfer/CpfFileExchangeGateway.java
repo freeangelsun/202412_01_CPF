@@ -1,5 +1,9 @@
 package com.cpf.core.common.filetransfer;
 
+import com.cpf.core.api.filetransfer.CpfFileExchangeHistoryRecord;
+import com.cpf.core.api.filetransfer.CpfFileExchangeOperations;
+import com.cpf.core.api.filetransfer.CpfFileResult;
+import com.cpf.core.api.filetransfer.CpfRemoteCommandPlan;
 import com.cpf.core.common.security.CpfCredentialRef;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
@@ -25,7 +29,7 @@ import java.util.concurrent.ConcurrentLinkedDeque;
  * 외부 credential 없이 로컬 전송을 실제 실행하고 원격 요청은 안전한 계획으로만 반환합니다.</p>
  */
 @Component
-public class CpfFileExchangeGateway {
+public class CpfFileExchangeGateway implements CpfFileExchangeOperations {
     private static final int MAX_HISTORY = 200;
 
     private final Path baseDir;
@@ -35,9 +39,7 @@ public class CpfFileExchangeGateway {
     public CpfFileExchangeGateway(Environment environment) {
         String configured = environment.getProperty(
                 "cpf.filetransfer.base-dir",
-                environment.getProperty(
-                        "cpf.cmn.file-exchange.base-dir",
-                        "${java.io.tmpdir}/cpf-file-exchange"));
+                "${java.io.tmpdir}/cpf-file-exchange");
         this.baseDir = Path.of(configured.replace("${java.io.tmpdir}", System.getProperty("java.io.tmpdir")))
                 .toAbsolutePath()
                 .normalize();
@@ -89,7 +91,8 @@ public class CpfFileExchangeGateway {
         }
     }
 
-    public CpfFileTransferResult transfer(
+    @Override
+    public CpfFileResult transfer(
             String protocol,
             String direction,
             String host,
@@ -111,7 +114,7 @@ public class CpfFileExchangeGateway {
                 0L,
                 Map.of("requestUser", defaultUser(requestUser)));
         if (!"LOCAL".equals(resolvedProtocol)) {
-            CpfFileTransferResult planned = new CpfFileTransferResult(
+            CpfFileResult planned = new CpfFileResult(
                     "PLANNED",
                     request.endpointCode(),
                     localPath,
@@ -137,7 +140,15 @@ public class CpfFileExchangeGateway {
         CpfFileTransferResult result = localAdapter.execute(endpoint, request);
         record("LOCAL_TRANSFER", "LOCAL", resolvedDirection, true,
                 "SUCCESS".equals(result.status()), null, localPath, remotePath, requestUser, result.detail());
-        return result;
+        return new CpfFileResult(
+                result.status(),
+                result.endpointCode(),
+                result.localPath(),
+                result.remotePath(),
+                result.checksum(),
+                result.fileSize(),
+                result.completedAt(),
+                result.detail());
     }
 
     public CpfRemoteCommandPlan planRemoteCommand(

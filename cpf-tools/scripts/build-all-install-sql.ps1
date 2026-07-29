@@ -87,7 +87,22 @@ function New-Bundle(
     }
 
     if ($OutputName -eq "00_product_seed.sql") {
-        if ($body -match "(?i)\b(?:cpf|cmn|adm|bza|bat|mbr|acc|ref|exs)DB\s*\.") {
+        $structuralBody = [regex]::Replace($body, "'(?:''|[^'])*'", "''")
+        $structuralBody = [regex]::Replace($structuralBody, '(?m)--.*$', '')
+        $knownDatabaseNames = @(
+            [regex]::Matches($structuralBody, '(?im)^\s*USE\s+`?([A-Za-z][A-Za-z0-9_]*)`?\s*;') |
+                ForEach-Object { $_.Groups[1].Value } |
+                Sort-Object -Unique
+        )
+        $knownQualifierPattern = if ($knownDatabaseNames.Count -gt 0) {
+            '(?i)\b(?:' +
+                (($knownDatabaseNames | ForEach-Object { [regex]::Escape($_) }) -join '|') +
+                ')\s*\.'
+        } else {
+            '(?!)'
+        }
+        if ($structuralBody -match $knownQualifierPattern -or
+                $structuralBody -match '(?i)\b[A-Za-z][A-Za-z0-9_]*(?:DB|SCHEMA)\s*\.') {
             throw "Product Seed는 다른 logical DB를 직접 참조할 수 없습니다. Owner별 USE section/source로 분리하세요."
         }
         if ($body -match "(?i)https?://(?:localhost|127\.0\.0\.1)" -or

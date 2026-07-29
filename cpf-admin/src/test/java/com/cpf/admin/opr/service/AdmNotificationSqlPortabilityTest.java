@@ -11,15 +11,23 @@ class AdmNotificationSqlPortabilityTest {
 
     @Test
     void commonNotificationRuntimeDoesNotUseMariaDbOnlySql() throws Exception {
-        String source = Files.readString(Path.of(
+        String notificationSource = Files.readString(Path.of(
                 "src/main/java/com/cpf/admin/opr/service/AdmNotificationService.java"));
+        String outboxSource = Files.readString(Path.of(
+                "src/main/java/com/cpf/admin/opr/service/AdmNotificationOutboxService.java"));
 
-        assertThat(source)
+        assertThat(notificationSource)
                 .doesNotContain("ON DUPLICATE KEY")
                 .doesNotContain("LAST_INSERT_ID")
                 .doesNotContain("LIMIT ?")
                 .contains("GeneratedKeyHolder")
                 .contains("new String[] {\"rule_id\"}")
+                .contains("setMaxRows");
+        assertThat(outboxSource)
+                .doesNotContain("ON DUPLICATE KEY")
+                .doesNotContain("LAST_INSERT_ID")
+                .doesNotContain("LIMIT ?")
+                .contains("GeneratedKeyHolder")
                 .contains("new String[] {\"delivery_id\"}")
                 .contains("setMaxRows");
     }

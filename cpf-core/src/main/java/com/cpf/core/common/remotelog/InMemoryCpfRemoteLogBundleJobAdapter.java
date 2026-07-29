@@ -1,5 +1,6 @@
 package com.cpf.core.common.remotelog;
 
+import com.cpf.core.api.remotelog.*;
 import org.springframework.core.env.Environment;
 
 import java.nio.charset.StandardCharsets;

@@ -1,5 +1,7 @@
 package com.cpf.bizadmin.auth.service;
 
+import com.cpf.bizadmin.auth.dto.BzaLoginHistoryResponse;
+import com.cpf.bizadmin.auth.dto.BzaSessionRevokeResponse;
 import com.cpf.bizadmin.auth.repository.BzaAuthRepository;
 import com.cpf.bizadmin.auth.repository.BzaAuthRepository.BzaOperatorRow;
 import com.cpf.bizadmin.auth.repository.BzaAuthRepository.RefreshTokenRow;
@@ -64,6 +66,38 @@ class BzaAuthServiceTest {
         when(jwtService.createHs256Token(any(CmnJwtCreateRequest.class))).thenReturn("access-token");
         when(cryptoService.secureRandomToken(48)).thenReturn(RAW_REFRESH_TOKEN);
         when(cryptoService.sha256Base64Url(RAW_REFRESH_TOKEN)).thenReturn(REFRESH_TOKEN_HASH);
+        when(cryptoService.sha256Hex("password")).thenReturn("password-request-hash");
+        when(cryptoService.hmacSha256Hex(
+                "BZA_LOGIN|biz-admin|password-request-hash",
+                "bza-test-secret-must-be-at-least-32-characters"))
+                .thenReturn("login-request-hash");
+        when(cryptoService.aesGcmEncrypt(
+                "access-token",
+                "bza-test-secret-must-be-at-least-32-characters:BZA_LOGIN_RESULT"))
+                .thenReturn("access-token-enc");
+        when(cryptoService.aesGcmEncrypt(
+                RAW_REFRESH_TOKEN,
+                "bza-test-secret-must-be-at-least-32-characters:BZA_LOGIN_RESULT"))
+                .thenReturn("refresh-token-enc");
+        when(loginTransactionService.commitSuccess(
+                any(BzaLoginTransactionService.LoginSuccessCommand.class)))
+                .thenAnswer(invocation -> {
+                    BzaLoginTransactionService.LoginSuccessCommand command =
+                            invocation.getArgument(0);
+                    return new BzaLoginTransactionService.LoginCommitResult(
+                            command.resultAccessTokenEnc(),
+                            command.resultRefreshTokenEnc(),
+                            command.refreshExpireAt(),
+                            false);
+                });
+        when(cryptoService.aesGcmDecrypt(
+                "access-token-enc",
+                "bza-test-secret-must-be-at-least-32-characters:BZA_LOGIN_RESULT"))
+                .thenReturn("access-token");
+        when(cryptoService.aesGcmDecrypt(
+                "refresh-token-enc",
+                "bza-test-secret-must-be-at-least-32-characters:BZA_LOGIN_RESULT"))
+                .thenReturn(RAW_REFRESH_TOKEN);
 
         BzaAuthService.LoginResult result = service.login(
                 new BzaAuthService.LoginRequest("biz-admin", "password", "login-op-1"),
@@ -152,7 +186,7 @@ class BzaAuthServiceTest {
         when(authRepository.findOperatorByLoginId("biz-admin")).thenReturn(Optional.of(operator));
         when(authRepository.findLoginHistories(500)).thenReturn(List.of(Map.of("loginResult", "SUCCESS")));
 
-        List<Map<String, Object>> result = service.loginHistories("Bearer access-token", 1000);
+        List<BzaLoginHistoryResponse> result = service.loginHistories("Bearer access-token", 1000);
 
         assertThat(result).hasSize(1);
         verify(authRepository).findLoginHistories(500);
@@ -177,9 +211,11 @@ class BzaAuthServiceTest {
         when(authRepository.findOperatorByLoginId("biz-admin")).thenReturn(Optional.of(operator));
         when(authRepository.revokeRefreshSession(77L, 100L, "biz-admin")).thenReturn(1);
 
-        Map<String, Object> result = service.revokeSession("Bearer access-token", 77L, "분실 단말 세션 폐기");
+        BzaSessionRevokeResponse result =
+                service.revokeSession("Bearer access-token", 77L, "분실 단말 세션 폐기");
 
-        assertThat(result).containsEntry("sessionId", 77L).containsEntry("revokedYn", "Y");
+        assertThat(result.sessionId()).isEqualTo(77L);
+        assertThat(result.revoked()).isTrue();
         verify(auditService).record(
                 "biz-admin",
                 "SESSION_REVOKE",

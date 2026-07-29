@@ -621,28 +621,78 @@ tasks.register('validateReleaseMetadata') {
     }
 }
 
+def cpfGeneratedDomainServices = rootProject.projectDir.listFiles()
+        .findAll { candidate ->
+            candidate.isDirectory() &&
+                    new File(candidate, 'manifest/domain-manifest.json').isFile()
+        }
+        .collect { candidate ->
+            def manifest = new groovy.json.JsonSlurper().parse(
+                    new File(candidate, 'manifest/domain-manifest.json'))
+            if (manifest.domainType != 'GENERATED_DOMAIN') {
+                throw new GradleException("Generated Domain manifest type is invalid: ${candidate}")
+            }
+            if (manifest.projectName != candidate.name) {
+                throw new GradleException(
+                        "Generated Domain projectName does not match its directory: ${candidate}")
+            }
+            if (manifest.dependencyModel != 'root-project') {
+                return null
+            }
+            if (findProject(":${manifest.projectName}") == null) {
+                throw new GradleException(
+                        "root-project Generated Domain is not registered in settings.gradle: ${manifest.projectName}")
+            }
+            [
+                    name          : manifest.systemCode.toString().toUpperCase(Locale.ROOT),
+                    projectName   : manifest.projectName.toString(),
+                    projectPath   : ":${manifest.projectName}",
+                    mainClass     : "${manifest.packageName}.${manifest.moduleName}Application",
+                    defaultEnabled: false,
+                    generated     : true
+            ]
+        }
+        .findAll { it != null }
+        .sort { left, right -> left.name <=> right.name }
+
+def cpfLocalServiceDescriptors = [
+        [name: 'REF', projectName: 'cpf-reference', projectPath: ':cpf-reference',
+         mainClass: 'com.cpf.reference.ReferenceApplication', defaultEnabled: false],
+        [name: 'ADM', projectName: 'cpf-admin', projectPath: ':cpf-admin',
+         mainClass: 'com.cpf.admin.AdmApplication', defaultEnabled: false],
+        [name: 'BZA', projectName: 'cpf-biz-admin', projectPath: ':cpf-biz-admin',
+         mainClass: 'com.cpf.bizadmin.BzaApplication', defaultEnabled: true],
+        [name: 'BAT-CTL', projectName: 'cpf-batch', projectPath: ':cpf-batch:control-server',
+         mainClass: 'com.cpf.batch.control.BatchControlServerApplication', defaultEnabled: false],
+        [name: 'BAT-SCH', projectName: 'cpf-batch', projectPath: ':cpf-batch:scheduler',
+         mainClass: 'com.cpf.batch.scheduler.BatchSchedulerApplication', defaultEnabled: false],
+        [name: 'BAT-WRK', projectName: 'cpf-batch', projectPath: ':cpf-batch:worker',
+         mainClass: 'com.cpf.batch.worker.BatchWorkerApplication', defaultEnabled: false],
+        [name: 'BAT-CC', projectName: 'cpf-batch', projectPath: ':cpf-batch:center-cut-runner',
+         mainClass: 'com.cpf.batch.centercut.runner.CenterCutRunnerApplication', defaultEnabled: false],
+        [name: 'BAT-AGT', projectName: 'cpf-batch', projectPath: ':cpf-batch:host-agent',
+         mainClass: 'com.cpf.batch.agent.BatchHostAgentApplication', defaultEnabled: false],
+        [name: 'GWY', projectName: 'cpf-gateway', projectPath: ':cpf-gateway',
+         mainClass: 'com.cpf.gateway.CpfGatewayApplication', defaultEnabled: false]
+] + cpfGeneratedDomainServices
+
+def duplicateLocalServiceCodes = cpfLocalServiceDescriptors.groupBy { it.name }
+        .findAll { ignored, descriptors -> descriptors.size() > 1 }
+if (!duplicateLocalServiceCodes.isEmpty()) {
+    throw new GradleException(
+            "Duplicate local service SystemCode: ${duplicateLocalServiceCodes.keySet().join(', ')}")
+}
+
 tasks.register('runLocalServices') {
     group = 'application'
     description = 'CPF verification or deployment task.'
 
-    dependsOn ':cpf-member:classes', ':cpf-reference:classes', ':cpf-admin:classes', ':cpf-biz-admin:classes',
-            ':cpf-batch:control-server:classes', ':cpf-batch:scheduler:classes', ':cpf-batch:worker:classes',
-            ':cpf-batch:center-cut-runner:classes', ':cpf-batch:host-agent:classes', ':cpf-account:classes', ':cpf-gateway:classes'
+    dependsOn cpfLocalServiceDescriptors.collect { "${it.projectPath}:classes" }
 
     doLast {
-        def services = [
-                [name: 'MBR', project: project(':cpf-member'), mainClass: 'com.cpf.member.MbrApplication'],
-                 [name: 'REF', project: project(':cpf-reference'), mainClass: 'com.cpf.reference.ReferenceApplication'],
-                [name: 'ADM', project: project(':cpf-admin'), mainClass: 'com.cpf.admin.AdmApplication'],
-                [name: 'BZA', project: project(':cpf-biz-admin'), mainClass: 'com.cpf.bizadmin.BzaApplication', defaultEnabled: true],
-                [name: 'BAT-CTL', project: project(':cpf-batch:control-server'), mainClass: 'com.cpf.batch.control.BatchControlServerApplication', defaultEnabled: false],
-                [name: 'BAT-SCH', project: project(':cpf-batch:scheduler'), mainClass: 'com.cpf.batch.scheduler.BatchSchedulerApplication', defaultEnabled: false],
-                [name: 'BAT-WRK', project: project(':cpf-batch:worker'), mainClass: 'com.cpf.batch.worker.BatchWorkerApplication', defaultEnabled: false],
-                [name: 'BAT-CC', project: project(':cpf-batch:center-cut-runner'), mainClass: 'com.cpf.batch.centercut.runner.CenterCutRunnerApplication', defaultEnabled: false],
-                [name: 'BAT-AGT', project: project(':cpf-batch:host-agent'), mainClass: 'com.cpf.batch.agent.BatchHostAgentApplication', defaultEnabled: false],
-                [name: 'ACC', project: project(':cpf-account'), mainClass: 'com.cpf.account.AccApplication', defaultEnabled: false],
-                [name: 'GWY', project: project(':cpf-gateway'), mainClass: 'com.cpf.gateway.CpfGatewayApplication', defaultEnabled: false]
-        ]
+        def services = cpfLocalServiceDescriptors.collect { descriptor ->
+            descriptor + [project: project(descriptor.projectPath)]
+        }
         def requestedServiceText = (project.findProperty('cpfRunServices') ?: System.getenv('CPF_RUN_LOCAL_SERVICES') ?: '').toString()
         if (!requestedServiceText.isBlank()) {
             def requestedServices = requestedServiceText
@@ -664,7 +714,7 @@ tasks.register('runLocalServices') {
         def logThreads = []
 
         logger.lifecycle("Starting CPF local services: ${services.collect { it.name }.join(', ')}")
-        logger.lifecycle('Default ports: MBR(8081), REF(8099), ADM(8090), BZA(8091), BAT-CTL(8180), BAT-SCH(8181), BAT-WRK(8182), BAT-CC(8183), BAT-AGT(8184), ACC(8082), GWY(8070)')
+        logger.lifecycle('Service ports are resolved from each module profile; Generated Domains are metadata-discovered and opt-in.')
         logger.lifecycle('cpf-core(CPF)와 cpf-common(CMN)은 라이브러리 모듈이므로 독립 서비스로 기동하지 않습니다.')
 
         services.each { service ->
@@ -738,14 +788,19 @@ void stopLocalServiceProcesses(List processes) {
 }
 
 ext.cpfServiceModules = [
-        MBR    : 'cpf-member',
         ADM    : 'cpf-admin',
         BAT    : 'cpf-batch',
         BZA    : 'cpf-biz-admin',
         REF    : 'cpf-reference',
-        ACC    : 'cpf-account',
         GWY    : 'cpf-gateway'
 ]
+cpfGeneratedDomainServices.each { descriptor ->
+    if (ext.cpfServiceModules.containsKey(descriptor.name)) {
+        throw new GradleException(
+                "Generated Domain SystemCode conflicts with a Platform service: ${descriptor.name}")
+    }
+    ext.cpfServiceModules[descriptor.name] = descriptor.projectName
+}
 ext.cpfBatRuntimeTargets = [
         CONTROL_SERVER   : [
                 projectPath: ':cpf-batch:control-server',
@@ -776,7 +831,7 @@ ext.cpfBatRuntimeTargets = [
 ext.cpfDeployEnvs = ['local', 'dev', 'stg', 'prod']
 
 String cpfRequestedModule() {
-    return (findProperty('cpfModule') ?: 'MBR').toString().trim().toUpperCase(Locale.ROOT)
+    return (findProperty('cpfModule') ?: 'ADM').toString().trim().toUpperCase(Locale.ROOT)
 }
 
 String cpfModuleProjectName(String moduleCode) {
@@ -1130,8 +1185,10 @@ tasks.register('checkJava25Standard', Exec) {
     group = 'verification'
     description = 'Java 25 toolchain, release, compiled class, and bootJar major version must be 69.'
     dependsOn subprojects.collect { "${it.path}:classes" }
-    dependsOn ':cpf-admin:bootJar', ':cpf-biz-admin:bootJar', ':cpf-member:bootJar', ':cpf-reference:bootJar', ':cpf-account:bootJar', ':cpf-gateway:bootJar',
-            ':cpf-batch:control-server:bootJar', ':cpf-batch:scheduler:bootJar', ':cpf-batch:worker:bootJar', ':cpf-batch:center-cut-runner:bootJar', ':cpf-batch:host-agent:bootJar'
+    dependsOn (
+            cpfLocalServiceDescriptors.collect { "${it.projectPath}:bootJar" } +
+                    [':cpf-local-runtime:bootJar', ':cpf-local-batch-runtime:bootJar']
+    ).unique()
     commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
             'cpf-tools/scripts/check-java25-standard.ps1', '-ResultDir', cpfResultDir().path, '-RequireClasses', '-RequireBootJars'
 }
@@ -1163,16 +1220,9 @@ tasks.register('checkSampleStandard', Exec) {
 
 tasks.register('checkCpfRequestProtection', Exec) {
     group = 'verification'
-    description = 'cpf-docs/work/current/CPF_CURRENT_WORK_REQUEST.md must remain unchanged after the work baseline is captured.'
+    description = 'The repository-controlled final validation request must match its durable baseline.'
     commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
             'cpf-tools/scripts/check-cpf-request-protection.ps1', '-ResultDir', cpfResultDir().path
-}
-
-tasks.register('initializeCpfRequestProtection', Exec) {
-    group = 'verification'
-    description = 'Initialize cpf-docs/work/current/CPF_CURRENT_WORK_REQUEST.md protection baseline explicitly before protected work starts.'
-    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
-            'cpf-tools/scripts/check-cpf-request-protection.ps1', '-ResultDir', cpfResultDir().path, '-InitializeBaseline'
 }
 
 tasks.register('checkFeatureEvidence', Exec) {
@@ -1185,9 +1235,9 @@ tasks.register('checkFeatureEvidence', Exec) {
 
 tasks.register('exportCapabilityInventory', Exec) {
     group = 'verification'
-    description = '삭제 전 ACC/EXS 기능 disposition과 현재 대체 구현을 다시 검증합니다.'
+    description = '현재 Generated Domain manifest와 중앙 Golden/Vendor Template 계약을 검증합니다.'
     commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
-            'cpf-tools/scripts/export-acc-exs-capability-inventory.ps1', '-ResultDir', cpfResultDir().path
+            'cpf-tools/scripts/export-generated-domain-capability-inventory.ps1', '-ResultDir', cpfResultDir().path
 }
 
 tasks.register('exportArchitectureInventory', Exec) {
@@ -1473,11 +1523,18 @@ tasks.register('checkSqlCanonical', Exec) {
             '-ResultDir', cpfResultDir().path
 }
 
-tasks.register('checkAccLifecycle', Exec) {
+tasks.register('checkGeneratorGoldenPath', Exec) {
     group = 'verification'
-    description = 'ACC 스냅샷, 삭제, 순수 생성, 패키징, 제거, 재생성 parity를 격리 환경에서 검증합니다.'
+    description = 'Generated Domain Golden Template의 metadata, public dependency, 3 Vendor 계약을 검증합니다.'
     commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
-            'cpf-tools/scripts/smoke-acc-lifecycle.ps1', '-ResultDir', cpfResultDir().path
+            'cpf-tools/scripts/check-generator-golden-path.ps1', '-Root', rootDir.absolutePath
+}
+
+tasks.register('checkGeneratorArbitraryDomainParity', Exec) {
+    group = 'verification'
+    description = '서로 다른 임의 DomainName/SystemCode가 같은 Golden Template 구조로 생성되는지 검증합니다.'
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+            'cpf-tools/scripts/check-generator-arbitrary-domain-parity.ps1', '-Root', rootDir.absolutePath
 }
 
 tasks.register('batTwoWorkerRuntimeSmoke', Exec) {
@@ -1599,7 +1656,7 @@ tasks.register('qualityGate') {
     dependsOn subprojects.collect { "${it.path}:compileJava" }
     dependsOn subprojects.collect { "${it.path}:test" }
     dependsOn ':cpf-admin:frontendVerify', ':cpf-biz-admin:frontendVerify', 'checkModernFrontend'
-    dependsOn 'verifyCpfFinalSourceGates', 'verifyVersionConsistency', 'checkUtf8', 'checkMojibake', 'checkLegacyName', 'checkSqlStandard', 'checkSqlCanonical', 'checkJavaFormat', 'checkJava25Standard', 'checkDocumentLinks', 'checkTransactionIdStandard', 'checkSecuritySeedStandard', 'checkSampleStandard', 'checkCpfRequestProtection', 'checkFeatureEvidence', 'checkServiceCallBoundary', 'checkArchitectureOwnership', 'checkBaseHierarchy', 'checkFullLayerTaxonomy', 'exportArchitectureInventory', 'exportRequirementTraceability', 'checkDomainGenerator', 'checkDomainCapabilityMatrix', 'checkAccLifecycle', 'checkDomainRemoval', 'checkRepositoryHygiene', 'checkSpringEventUsage', 'checkProfileLoading', 'checkRuntimeConfigStandard', 'checkLogManagementStandard', 'checkOpenApiSourceCoverage', 'checkSampleCoverage', 'checkEvidencePathExistence', 'checkDeployEnv', 'checkDeployInventory', 'checkPackagedDependencies', 'remoteDeployDryRun', 'checkReportMatrixEvidenceConsistency', 'admUiSmoke', 'admLogPolicyUiStaticSmoke', 'bzaUiSmoke', 'checkContractCompatibility', 'checkR13ProductHardening', 'checkAdminContactModel', 'checkBzaSafeDefaults', 'checkCpfStackSupport', 'checkAdminDataSafety', 'checkOfficialDbVendorReadiness', 'checkRuntimeQueryContracts'
+    dependsOn 'verifyCpfFinalSourceGates', 'verifyVersionConsistency', 'checkUtf8', 'checkMojibake', 'checkLegacyName', 'checkSqlStandard', 'checkSqlCanonical', 'checkJavaFormat', 'checkJava25Standard', 'checkDocumentLinks', 'checkTransactionIdStandard', 'checkSecuritySeedStandard', 'checkSampleStandard', 'checkCpfRequestProtection', 'checkFeatureEvidence', 'checkServiceCallBoundary', 'checkArchitectureOwnership', 'checkBaseHierarchy', 'checkFullLayerTaxonomy', 'exportArchitectureInventory', 'exportRequirementTraceability', 'checkDomainGenerator', 'checkDomainCapabilityMatrix', 'checkGeneratorGoldenPath', 'checkGeneratorArbitraryDomainParity', 'checkDomainRemoval', 'checkRepositoryHygiene', 'checkSpringEventUsage', 'checkProfileLoading', 'checkRuntimeConfigStandard', 'checkLogManagementStandard', 'checkOpenApiSourceCoverage', 'checkSampleCoverage', 'checkEvidencePathExistence', 'checkDeployEnv', 'checkDeployInventory', 'checkPackagedDependencies', 'remoteDeployDryRun', 'checkReportMatrixEvidenceConsistency', 'admUiSmoke', 'admLogPolicyUiStaticSmoke', 'bzaUiSmoke', 'checkContractCompatibility', 'checkR13ProductHardening', 'checkAdminContactModel', 'checkBzaSafeDefaults', 'checkCpfStackSupport', 'checkAdminDataSafety', 'checkOfficialDbVendorReadiness', 'checkRuntimeQueryContracts'
 }
 
 
@@ -1623,17 +1680,84 @@ tasks.register('publicationGate') {
 
 tasks.register('verifyBatStandaloneArchitecture') {
     group = 'verification'
-    description = 'BAT standalone artifact, legacy source removal, EXS/generator boundary를 검증합니다.'
+    description = 'BAT standalone artifact, legacy source removal, Platform/Generated Domain boundary를 검증합니다.'
     doLast {
         if (file('cpf-batch/src').exists() && !fileTree('cpf-batch/src').files.isEmpty()) {
             throw new GradleException('Legacy executable cpf-batch/src must be removed.')
         }
-        if (file('cpf-external').exists()) throw new GradleException('EXS is generator-only and must not be restored as a fixed module.')
         if (file('cpf-tools/db/source').exists()) throw new GradleException('Standalone cpf-tools/db/source is forbidden.')
         [
           'cpf-batch/contract','cpf-batch/runtime-common','cpf-batch/control-server','cpf-batch/scheduler',
           'cpf-batch/worker','cpf-batch/center-cut-runner','cpf-batch/host-agent','cpf-batch/testkit'
         ].each { path -> if (!file(path).isDirectory()) throw new GradleException("Missing BAT standalone unit: ${path}") }
+
+        def fixedCpfRoots = [
+                'cpf-core', 'cpf-common', 'cpf-admin', 'cpf-biz-admin',
+                'cpf-batch', 'cpf-gateway', 'cpf-reference', 'cpf-tools', 'cpf-docs'
+        ] as Set
+        def generatedDomains = (rootProject.projectDir.listFiles() ?: [] as File[])
+                .findAll { candidate ->
+                    candidate.isDirectory() &&
+                            candidate.name.startsWith('cpf-') &&
+                            !fixedCpfRoots.contains(candidate.name)
+                }
+                .collect { candidate ->
+                    def manifestFile = new File(candidate, 'manifest/domain-manifest.json')
+                    def ownershipFile = new File(candidate, 'manifest/generator-ownership.json')
+                    if (!manifestFile.isFile() || !ownershipFile.isFile()) {
+                        throw new GradleException(
+                                "Unknown CPF root must be a Generator-owned Domain with both manifests: ${candidate.name}")
+                    }
+                    def manifest = new groovy.json.JsonSlurper().parse(manifestFile)
+                    def ownership = new groovy.json.JsonSlurper().parse(ownershipFile)
+                    if (manifest.domainType != 'GENERATED_DOMAIN' ||
+                            manifest.dependencyModel != 'root-project' ||
+                            ownership.dependencyModel != 'root-project') {
+                        throw new GradleException(
+                                "Generated Domain type/dependencyModel is invalid: ${candidate.name}")
+                    }
+                    [
+                            'projectName', 'moduleCode', 'moduleName', 'domainName',
+                            'systemCode', 'packageName', 'schemaName', 'tablePrefix'
+                    ].each { propertyName ->
+                        def manifestValue = manifest[propertyName]?.toString()
+                        def ownershipValue = ownership[propertyName]?.toString()
+                        if (!manifestValue || manifestValue != ownershipValue) {
+                            throw new GradleException(
+                                    "Generated Domain manifest identity mismatch (${propertyName}): ${candidate.name}")
+                        }
+                    }
+                    if (manifest.projectName != candidate.name ||
+                            ownership.moduleDirectory != candidate.name ||
+                            ownership.outputDirectory != candidate.name) {
+                        throw new GradleException(
+                                "Generated Domain directory identity mismatch: ${candidate.name}")
+                    }
+                    if (!(manifest.systemCode ==~ /[A-Z][A-Z0-9]{2}/) ||
+                            !(manifest.domainName ==~ /[a-z][a-z0-9]{1,29}/) ||
+                            !(manifest.packageName ==~ /com[.]cpf[.][a-z][a-z0-9]*(?:[.][a-z][a-z0-9]*)*/)) {
+                        throw new GradleException(
+                                "Generated Domain canonical identity format is invalid: ${candidate.name}")
+                    }
+                    if (findProject(":${candidate.name}") == null) {
+                        throw new GradleException(
+                                "root-project Generated Domain is not registered in settings.gradle: ${candidate.name}")
+                    }
+                    [
+                            projectName: candidate.name,
+                            systemCode : manifest.systemCode.toString(),
+                            packageName: manifest.packageName.toString()
+                    ]
+                }
+
+        ['systemCode', 'packageName'].each { identityField ->
+            def duplicates = generatedDomains.groupBy { it[identityField] }
+                    .findAll { ignored, domains -> domains.size() > 1 }
+            if (!duplicates.isEmpty()) {
+                throw new GradleException(
+                        "Duplicate Generated Domain ${identityField}: ${duplicates.keySet().join(', ')}")
+            }
+        }
     }
 }
 

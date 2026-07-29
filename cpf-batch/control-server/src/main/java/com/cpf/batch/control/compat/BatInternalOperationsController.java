@@ -2,6 +2,8 @@ package com.cpf.batch.control.compat;
 
 import com.cpf.core.api.batch.CpfBatchOperationsPort;
 import com.cpf.core.api.execution.CpfSharedApi;
+import com.cpf.batch.control.security.BatVerifiedActorResolver;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,13 +20,20 @@ import java.util.Map;
         description="BAT Owner query/command contract", allowedCallers={"ADM"})
 public class BatInternalOperationsController {
     private final CpfBatchOperationsPort operations;
+    private final BatVerifiedActorResolver actorResolver;
 
-    public BatInternalOperationsController(CpfBatchOperationsPort operations) {
+    public BatInternalOperationsController(
+            CpfBatchOperationsPort operations,
+            BatVerifiedActorResolver actorResolver) {
         this.operations = operations;
+        this.actorResolver = actorResolver;
     }
 
     @PostMapping("/{operation}")
-    public ResponseEntity<?> invoke(@PathVariable String operation, @RequestBody(required=false) Map<String,Object> p) {
+    public ResponseEntity<?> invoke(
+            @PathVariable String operation,
+            @RequestBody(required=false) Map<String,Object> p,
+            HttpServletRequest request) {
         Map<String,Object> a = p == null ? Map.of() : p;
         return ResponseEntity.ok(switch (operation) {
             case "findJobs" -> operations.findJobs();
@@ -46,20 +55,24 @@ public class BatInternalOperationsController {
             case "findRelations" -> operations.findRelations(textOrNull(a,"jobId"));
             case "findExecutionTargets" -> operations.findExecutionTargets(textOrNull(a,"jobId"), textOrNull(a,"dispatchStatus"), integer(a,"limit",100));
             case "findLocks" -> operations.findLocks(textOrNull(a,"jobId"));
-            case "releaseLock" -> operations.releaseLock(text(a,"lockKey"), text(a,"requestUser"), text(a,"reason"));
+            case "releaseLock" -> operations.releaseLock(text(a,"lockKey"), actor(request,a), text(a,"reason"));
             case "findGhostCandidates" -> operations.findGhostCandidates(integer(a,"heartbeatTimeoutSeconds",120));
-            case "actGhostExecution" -> operations.actGhostExecution(longValue(a,"executionId"), text(a,"actionType"), text(a,"requestUser"), text(a,"reason"));
+            case "actGhostExecution" -> operations.actGhostExecution(longValue(a,"executionId"), text(a,"actionType"), actor(request,a), text(a,"reason"));
             case "findOperationLogs" -> operations.findOperationLogs(textOrNull(a,"jobId"), nullableLong(a,"executionId"), integer(a,"limit",100));
             case "simulateSchedule" -> operations.simulateSchedule(text(a,"scheduleId"), textOrNull(a,"baseDate"), integer(a,"days",14));
-            case "registerJob" -> operations.registerJob(text(a,"jobId"), textOrNull(a,"jobName"), textOrNull(a,"jobType"), textOrNull(a,"description"), text(a,"requestUser"));
-            case "requestRun" -> operations.requestRun(text(a,"jobId"), textOrNull(a,"jobParameters"), text(a,"requestUser"), text(a,"reason"));
-            case "requestScheduledRun" -> operations.requestScheduledRun(text(a,"scheduleId"), text(a,"jobId"), textOrNull(a,"jobParameters"), text(a,"requestUser"), text(a,"reason"));
-            case "requestRetry" -> operations.requestRetry(longValue(a,"executionId"), text(a,"requestUser"), text(a,"reason"));
-            case "requestStop" -> operations.requestStop(longValue(a,"executionId"), text(a,"requestUser"), text(a,"reason"));
-            case "updateScheduleEnabled" -> operations.updateScheduleEnabled(text(a,"scheduleId"), bool(a,"enabled"), text(a,"requestUser"), text(a,"reason"));
-            case "runSchedulerOnce" -> operations.runSchedulerOnce(text(a,"requestUser"));
+            case "registerJob" -> operations.registerJob(text(a,"jobId"), textOrNull(a,"jobName"), textOrNull(a,"jobType"), textOrNull(a,"description"), actor(request,a));
+            case "requestRun" -> operations.requestRun(text(a,"jobId"), textOrNull(a,"jobParameters"), actor(request,a), text(a,"reason"));
+            case "requestScheduledRun" -> operations.requestScheduledRun(text(a,"scheduleId"), text(a,"jobId"), textOrNull(a,"jobParameters"), actor(request,a), text(a,"reason"));
+            case "requestRetry" -> operations.requestRetry(longValue(a,"executionId"), actor(request,a), text(a,"reason"));
+            case "requestStop" -> operations.requestStop(longValue(a,"executionId"), actor(request,a), text(a,"reason"));
+            case "updateScheduleEnabled" -> operations.updateScheduleEnabled(text(a,"scheduleId"), bool(a,"enabled"), actor(request,a), text(a,"reason"));
+            case "runSchedulerOnce" -> operations.runSchedulerOnce(actor(request,a));
             default -> throw new IllegalArgumentException("지원하지 않는 BAT operation입니다: " + operation);
         });
+    }
+
+    private String actor(HttpServletRequest request,Map<String,Object> payload){
+        return actorResolver.actor(request,textOrNull(payload,"requestUser"),"requestUser");
     }
 
     private static String text(Map<String,Object> p,String k){String v=textOrNull(p,k);if(v==null)throw new IllegalArgumentException(k+"는 필수입니다.");return v;}

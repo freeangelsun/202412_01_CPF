@@ -99,14 +99,29 @@ $supportedDatabaseVendors = @($centralTemplateContract.supportedVendors |
 if ($supportedDatabaseVendors.Count -ne 3) {
     throw "Generated Domain 중앙 Template의 지원 Vendor 계약이 유효하지 않습니다."
 }
+$physicalTableContract = $centralTemplateContract.physicalTableContract
 $minimalDomainModel = [string]$centralTemplateContract.verifyContract.model
+$minimalTableRole = [string]$centralTemplateContract.verifyContract.tableRole
 $minimalTableTemplate = [string]$centralTemplateContract.verifyContract.requiredTable
 $minimalLogicalTableTemplate = [string]$centralTemplateContract.verifyContract.logicalTable
 $minimalRequiredColumns = @($centralTemplateContract.verifyContract.requiredColumns)
+$minimalTransactionIdWidth = [int]$centralTemplateContract.verifyContract.transactionIdWidth
 $minimalRequiredKeys = @($centralTemplateContract.verifyContract.requiredKeys)
 $minimalRequiredIndexes = @($centralTemplateContract.verifyContract.requiredIndexes)
 $minimalRequiredChecks = @($centralTemplateContract.verifyContract.requiredChecks)
 $minimalRequiredOperations = @($centralTemplateContract.verifyContract.requiredOperations)
+$idempotencyLedgerModel = [string]$centralTemplateContract.idempotencyLedgerContract.model
+$idempotencyLedgerTableRole = [string]$centralTemplateContract.idempotencyLedgerContract.tableRole
+$idempotencyLedgerTableTemplate = [string]$centralTemplateContract.idempotencyLedgerContract.requiredTable
+$idempotencyLedgerLogicalTableTemplate = [string]$centralTemplateContract.idempotencyLedgerContract.logicalTable
+$idempotencyLedgerRequiredColumns = @($centralTemplateContract.idempotencyLedgerContract.requiredColumns)
+$idempotencyLedgerTransactionIdWidth = [int]$centralTemplateContract.idempotencyLedgerContract.transactionIdWidth
+$idempotencyLedgerRequiredKeys = @($centralTemplateContract.idempotencyLedgerContract.requiredKeys)
+$idempotencyLedgerRequiredIndexes = @($centralTemplateContract.idempotencyLedgerContract.requiredIndexes)
+$idempotencyLedgerRequiredChecks = @($centralTemplateContract.idempotencyLedgerContract.requiredChecks)
+$idempotencyLedgerReplayPolicy = [string]$centralTemplateContract.idempotencyLedgerContract.replayPolicy
+$idempotencyLedgerLogicalDeleteReplayRequired =
+        [bool]$centralTemplateContract.idempotencyLedgerContract.logicalDeleteReplayRequired
 $supportedCapabilities = @($centralTemplateContract.capabilityContract.supported |
         ForEach-Object { ([string]$_).Trim().ToLowerInvariant() } |
         Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
@@ -125,14 +140,32 @@ if ($null -eq $runtimeAgentContract -or
         [bool]$runtimeAgentContract.enabledByDefault) {
     throw "Generated Domain Runtime Agent 중앙 계약이 유효하지 않습니다."
 }
-if ([string]::IsNullOrWhiteSpace($minimalDomainModel) -or
+if ($null -eq $physicalTableContract -or
+        [int]$physicalTableContract.totalTables -ne 2 -or
+        [int]$physicalTableContract.businessTableCount -ne 1 -or
+        [int]$physicalTableContract.supportLedgerCount -ne 1 -or
+        [bool]$physicalTableContract.additionalTablesAllowed -or
+        [string]::IsNullOrWhiteSpace($minimalDomainModel) -or
+        $minimalTableRole -ne "business-sample" -or
         [string]::IsNullOrWhiteSpace($minimalTableTemplate) -or
         [string]::IsNullOrWhiteSpace($minimalLogicalTableTemplate) -or
         $minimalRequiredColumns.Count -ne 14 -or
-        $minimalRequiredKeys.Count -ne 3 -or
-        $minimalRequiredIndexes.Count -ne 2 -or
+        $minimalTransactionIdWidth -ne 34 -or
+        $minimalRequiredKeys.Count -ne 2 -or
+        $minimalRequiredIndexes.Count -ne 3 -or
         $minimalRequiredChecks.Count -ne 2 -or
         $minimalRequiredOperations.Count -ne 22 -or
+        [string]::IsNullOrWhiteSpace($idempotencyLedgerModel) -or
+        $idempotencyLedgerTableRole -ne "non-business-support-ledger" -or
+        [string]::IsNullOrWhiteSpace($idempotencyLedgerTableTemplate) -or
+        [string]::IsNullOrWhiteSpace($idempotencyLedgerLogicalTableTemplate) -or
+        $idempotencyLedgerRequiredColumns.Count -ne 8 -or
+        $idempotencyLedgerTransactionIdWidth -ne 34 -or
+        $idempotencyLedgerRequiredKeys.Count -ne 2 -or
+        $idempotencyLedgerRequiredIndexes.Count -ne 2 -or
+        $idempotencyLedgerRequiredChecks.Count -ne 2 -or
+        [string]::IsNullOrWhiteSpace($idempotencyLedgerReplayPolicy) -or
+        -not $idempotencyLedgerLogicalDeleteReplayRequired -or
         $supportedCapabilities.Count -ne 11) {
     throw "Generated Domain Minimal Transaction 중앙 계약이 유효하지 않습니다."
 }
@@ -282,7 +315,16 @@ $minimalTableName = $minimalTableTemplate.Replace("@CPF_TABLE_PREFIX@", $TablePr
 $minimalLogicalTable = $minimalLogicalTableTemplate.
         Replace("@CPF_SCHEMA_NAME@", $SchemaName).
         Replace("@CPF_TABLE_PREFIX@", $TablePrefix)
-foreach ($renderedContractValue in @($minimalTableName, $minimalLogicalTable)) {
+$idempotencyLedgerTableName =
+        $idempotencyLedgerTableTemplate.Replace("@CPF_TABLE_PREFIX@", $TablePrefix)
+$idempotencyLedgerLogicalTable = $idempotencyLedgerLogicalTableTemplate.
+        Replace("@CPF_SCHEMA_NAME@", $SchemaName).
+        Replace("@CPF_TABLE_PREFIX@", $TablePrefix)
+foreach ($renderedContractValue in @(
+        $minimalTableName,
+        $minimalLogicalTable,
+        $idempotencyLedgerTableName,
+        $idempotencyLedgerLogicalTable)) {
     if ($renderedContractValue -match '@CPF_[A-Z_]+@') {
         throw "Generated Domain 중앙 Template 계약 token이 완전히 치환되지 않았습니다: $renderedContractValue"
     }
@@ -293,6 +335,16 @@ $minimalRequiredKeysJson = $minimalRequiredKeys | ConvertTo-Json -Compress
 $minimalRequiredIndexesJson = $minimalRequiredIndexes | ConvertTo-Json -Compress
 $minimalRequiredChecksJson = $minimalRequiredChecks | ConvertTo-Json -Compress
 $minimalRequiredOperationsJson = $minimalRequiredOperations | ConvertTo-Json -Compress
+$idempotencyLedgerRequiredColumnsJson =
+        $idempotencyLedgerRequiredColumns | ConvertTo-Json -Compress
+$idempotencyLedgerRequiredKeysJson =
+        $idempotencyLedgerRequiredKeys | ConvertTo-Json -Compress
+$idempotencyLedgerRequiredIndexesJson =
+        $idempotencyLedgerRequiredIndexes | ConvertTo-Json -Compress
+$idempotencyLedgerRequiredChecksJson =
+        $idempotencyLedgerRequiredChecks | ConvertTo-Json -Compress
+$idempotencyLedgerLogicalDeleteReplayRequiredJson =
+        $idempotencyLedgerLogicalDeleteReplayRequired.ToString().ToLowerInvariant()
 $OnlineEnabled = $Online -eq "Y"
 $DatabaseEnabled = $Database -eq "Y"
 $DatabaseVendor = $DatabaseVendor.ToLowerInvariant()
@@ -372,6 +424,12 @@ if ([string]::IsNullOrWhiteSpace($OutputDir)) {
     } else {
         Join-Path $Root "build/domain-generator/$projectName"
     }
+} elseif ([IO.Path]::IsPathRooted($OutputDir)) {
+    $OutputDir = [IO.Path]::GetFullPath($OutputDir)
+} else {
+    # 명시 OutputDir도 현재 shell working directory가 아니라 선택한 CPF Root 기준입니다.
+    # 그래야 격리 Root/CI 호출에서 생성 파일과 ownership checksum의 상대경로가 결정적입니다.
+    $OutputDir = [IO.Path]::GetFullPath((Join-Path $Root $OutputDir))
 }
 
 $targetModuleDir = Join-Path $Root $projectName
@@ -528,7 +586,8 @@ $plan = [ordered]@{
     ui = $UiEnabled
     bzaMenu = $BzaMenuEnabled
     productionProfile = $ProductionProfileEnabled
-    outputDir = $OutputDir
+    # Generated metadata에는 개발 PC 절대경로를 저장하지 않습니다.
+    outputDir = $projectName
     generatePatch = $false
     applyMode = [bool] $Apply
     conflicts = @($conflicts)
@@ -1553,10 +1612,13 @@ dependencies {
 $platformDependencies
 $batchContractDependency
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+    implementation 'org.springframework:spring-web'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
 $databaseDependencies
 $batchDependency
-    providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
+    providedRuntime('org.springframework.boot:spring-boot-starter-tomcat') {
+        exclude group: 'org.springframework', module: 'spring-web'
+    }
     testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
 }
 
@@ -1753,6 +1815,10 @@ $databaseSpringYml
       - optional:classpath:application-cpf-${Dollar}{spring.profiles.active:local}.yml
       - optional:classpath:application-$module.yml
       - optional:classpath:application-$module-${Dollar}{spring.profiles.active:local}.yml
+
+server:
+  # productionProfile=false인 Golden/개발 Domain도 Manifest port 계약을 그대로 소비합니다.
+  port: ${Dollar}{$($ModuleUpper)_SERVER_PORT:$Port}
 
 cpf:
   common:
@@ -2267,6 +2333,7 @@ $domainManifest = @"
   "port": $Port,
   "tablePrefix": "$TablePrefix",
   "sampleTable": "$minimalTableName",
+  "idempotencyLedgerTable": "$idempotencyLedgerTableName",
   "onlineEnabled": $onlineJson,
   "databaseEnabled": $databaseJson,
   "databaseVendor": "$DatabaseVendor",
@@ -2295,6 +2362,7 @@ $domainManifest = @"
     "sourceOfTruth": "$DatabaseTemplatePack",
     "bootstrapScript": "$DatabaseBootstrapScript",
     "defaultSampleTable": "$minimalTableName",
+    "idempotencyLedgerTable": "$idempotencyLedgerTableName",
     "transactionIdentity": "transactionId"
   },
   "generatedResourceRoot": "build/generated-resources/cpf-vendor",
@@ -2324,6 +2392,12 @@ $domainManifest = @"
     "bzaMenu": $bzaMenuJson,
     "productionProfile": $($ProductionProfileEnabled.ToString().ToLowerInvariant())
   },
+  "physicalTableContract": {
+    "totalTables": $([int]$physicalTableContract.totalTables),
+    "businessTableCount": $([int]$physicalTableContract.businessTableCount),
+    "supportLedgerCount": $([int]$physicalTableContract.supportLedgerCount),
+    "additionalTablesAllowed": false
+  },
   "runtimeAgent": {
     "enabledByDefault": false,
     "activationProfile": "runtime-agent",
@@ -2345,12 +2419,26 @@ $domainManifest = @"
   "batchStandardId": "B${DomainIdCode}TS0001",
   "minimalTransactionContract": {
     "model": "$minimalDomainModel",
+    "tableRole": "$minimalTableRole",
     "logicalTable": "$minimalLogicalTable",
     "requiredColumns": $minimalRequiredColumnsJson,
+    "transactionIdWidth": $minimalTransactionIdWidth,
     "requiredKeys": $minimalRequiredKeysJson,
     "requiredIndexes": $minimalRequiredIndexesJson,
     "requiredChecks": $minimalRequiredChecksJson,
     "operations": $minimalRequiredOperationsJson
+  },
+  "idempotencyLedgerContract": {
+    "model": "$idempotencyLedgerModel",
+    "tableRole": "$idempotencyLedgerTableRole",
+    "logicalTable": "$idempotencyLedgerLogicalTable",
+    "requiredColumns": $idempotencyLedgerRequiredColumnsJson,
+    "transactionIdWidth": $idempotencyLedgerTransactionIdWidth,
+    "requiredKeys": $idempotencyLedgerRequiredKeysJson,
+    "requiredIndexes": $idempotencyLedgerRequiredIndexesJson,
+    "requiredChecks": $idempotencyLedgerRequiredChecksJson,
+    "replayPolicy": "$idempotencyLedgerReplayPolicy",
+    "logicalDeleteReplayRequired": $idempotencyLedgerLogicalDeleteReplayRequiredJson
   }
 }
 "@
@@ -2756,7 +2844,7 @@ $generatorOwnership = [ordered]@{
     schemaName = $SchemaName
     tablePrefix = $TablePrefix
     moduleDirectory = $projectName
-    outputDirectory = $OutputDir
+    outputDirectory = $projectName
     dependencyModel = $DependencyModel
     platformVersion = $PlatformVersion
     capabilities = [ordered]@{

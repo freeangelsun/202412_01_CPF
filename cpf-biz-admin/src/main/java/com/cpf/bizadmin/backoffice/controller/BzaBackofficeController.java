@@ -110,7 +110,7 @@ public class BzaBackofficeController extends com.cpf.bizadmin.common.base.BzaBas
     @GetMapping("/approvals")
     @CpfOnlineTransaction(id = "OBZAAP0001", name = "BzaApprovalList")
     @Operation(operationId = "bzaBackofficeFindApprovals", summary = "Legacy 결재 목록 API(410)",
-            description = "직접 결재 API는 영구 폐기되었습니다. 정책 기반 /api/bza/approval/** API를 사용합니다.")
+            description = "직접 결재 API는 영구 폐기되었습니다. 정책 기반 /api/bza/approvals/** API를 사용합니다.")
     public ResponseEntity<List<Map<String, Object>>> approvals(
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String employeeNo,
@@ -131,7 +131,7 @@ public class BzaBackofficeController extends com.cpf.bizadmin.common.base.BzaBas
     @GetMapping("/approvals/{approvalId}")
     @CpfOnlineTransaction(id = "OBZAAP0003", name = "BzaApprovalDetail")
     @Operation(operationId = "bzaBackofficeFindApproval", summary = "Legacy 결재 상세 API(410)",
-            description = "직접 결재 API는 영구 폐기되었습니다. 정책 기반 /api/bza/approval/** API를 사용합니다.")
+            description = "직접 결재 API는 영구 폐기되었습니다. 정책 기반 /api/bza/approvals/** API를 사용합니다.")
     public ResponseEntity<Map<String, Object>> approval(@PathVariable long approvalId) {
         throw legacyApprovalGone();
     }
@@ -150,7 +150,7 @@ public class BzaBackofficeController extends com.cpf.bizadmin.common.base.BzaBas
     private ResponseStatusException legacyApprovalGone() {
         return new ResponseStatusException(
                 HttpStatus.GONE,
-                "Legacy 직접 결재 API는 폐기되었습니다. 정책 기반 /api/bza/approval/** API를 사용하세요.");
+                "Legacy 직접 결재 API는 폐기되었습니다. 정책 기반 /api/bza/approvals/** API를 사용하세요.");
     }
 
     @GetMapping("/audits")

@@ -1,11 +1,11 @@
 package com.cpf.reference.failure.controller;
 
 import com.cpf.core.api.util.CpfStrings;
-import com.cpf.core.common.exception.CpfBusinessException;
-import com.cpf.core.common.exception.CpfDynamicErrorCode;
-import com.cpf.core.common.exception.CpfExternalServiceException;
-import com.cpf.core.common.exception.CpfValidationException;
-import com.cpf.core.common.execution.CpfOnlineTransaction;
+import com.cpf.core.api.error.CpfBusinessException;
+import com.cpf.core.api.error.CpfDynamicErrorCode;
+import com.cpf.core.api.error.CpfExternalServiceException;
+import com.cpf.core.api.error.CpfValidationException;
+import com.cpf.core.api.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;

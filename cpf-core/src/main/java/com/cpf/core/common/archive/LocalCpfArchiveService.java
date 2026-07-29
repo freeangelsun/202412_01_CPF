@@ -1,5 +1,12 @@
 package com.cpf.core.common.archive;
 
+import com.cpf.core.api.archive.CpfArchiveChecksum;
+import com.cpf.core.api.archive.CpfArchiveEntry;
+import com.cpf.core.api.archive.CpfArchiveFormat;
+import com.cpf.core.api.archive.CpfArchivePolicy;
+import com.cpf.core.api.archive.CpfArchiveRequest;
+import com.cpf.core.api.archive.CpfArchiveResult;
+import com.cpf.core.api.archive.CpfArchiveService;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;

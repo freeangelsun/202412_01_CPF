@@ -10,6 +10,8 @@ $OutputEncoding = $CpfUtf8ConsoleEncoding
 $ErrorActionPreference = "Stop"
 
 $Root = (Resolve-Path -LiteralPath $Root).Path
+. (Join-Path $Root "cpf-tools/scripts/database-profile-common.ps1")
+$supportedVendors = @(Get-CpfSupportedDatabaseVendors)
 if (-not [System.IO.Path]::IsPathRooted($ResultDir)) {
     $ResultDir = Join-Path $Root $ResultDir
 }
@@ -38,8 +40,22 @@ $settings = if (Test-Path $settingsPath) {
 } else { "" }
 $modules = @(
     "cpf-core", "cpf-common", "cpf-admin", "cpf-biz-admin",
-    "cpf-gateway", "cpf-member", "cpf-account", "cpf-reference"
+    "cpf-gateway", "cpf-reference"
 )
+$generatedDomainManifests = @(
+    Get-ChildItem -LiteralPath $Root -Directory -Filter "cpf-*" |
+        ForEach-Object {
+            $manifestPath = Join-Path $_.FullName "manifest/domain-manifest.json"
+            if (-not (Test-Path -LiteralPath $manifestPath -PathType Leaf)) { return }
+            $manifest = Get-Content -LiteralPath $manifestPath -Raw -Encoding UTF8 | ConvertFrom-Json
+            if ([string]$manifest.domainType -eq "GENERATED_DOMAIN" -and
+                    [string]$manifest.dependencyModel -eq "root-project") {
+                $manifest
+            }
+        }
+)
+$modules += @($generatedDomainManifests | ForEach-Object { [string]$_.projectName })
+$modules = @($modules | Sort-Object -Unique)
 $moduleOk = Test-Path $settingsPath
 foreach ($module in $modules) {
     if ($settings -notmatch ("(?m)include[^\r\n]*'" + [regex]::Escape($module) + "'")) {
@@ -62,7 +78,7 @@ foreach ($batchProject in $batchProjects) {
     }
 }
 Add-Check "MODULE_TOPOLOGY" $moduleOk @("settings.gradle") `
-    "공식/현재 Reference Module이 Gradle topology에 존재하는지만 확인합니다."
+    "Platform Module과 현재 root-project Generated Domain이 Gradle topology에 존재하는지 확인합니다."
 
 $serviceCall = @(
     "cpf-core/src/main/java/com/cpf/core/common/servicecall/CpfServiceCallEngine.java",
@@ -81,11 +97,8 @@ Add-Check "CORE_FIXED_LENGTH_BOUNDARY" (Test-PathSet $fixed) $fixed `
     "Fixed-Length Public API/SPI/Internal owner 경계가 남아 있는지만 확인합니다."
 
 $centralPack = @(
-    "cpf-tools/db/vendor/mariadb/pack.json",
-    "cpf-tools/db/vendor/mysql/pack.json",
-    "cpf-tools/db/vendor/postgresql/pack.json",
-    "cpf-tools/db/vendor/oracle/pack.json",
-    "cpf-tools/db/vendor/sqlserver/pack.json",
+    $supportedVendors | ForEach-Object { "cpf-tools/db/vendor/$_/pack.json" }
+) + @(
     "cpf-core/src/main/java/com/cpf/core/common/database/CpfVendorResourceRoot.java",
     "cpf-core/src/main/java/com/cpf/core/common/database/CpfSqlResourceResolver.java",
     "cpf-core/src/main/java/com/cpf/core/common/database/CpfVendorSqlCatalog.java"

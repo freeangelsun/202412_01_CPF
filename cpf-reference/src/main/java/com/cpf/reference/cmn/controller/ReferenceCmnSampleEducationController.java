@@ -5,7 +5,7 @@ import com.cpf.common.sample.CmnSampleItemRequest;
 import com.cpf.common.sample.CmnSampleItemService;
 import com.cpf.common.sample.CmnSampleSlice;
 import com.cpf.reference.common.base.ReferenceBaseController;
-import com.cpf.core.common.execution.CpfOnlineTransaction;
+import com.cpf.core.api.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;

@@ -16,6 +16,11 @@ public final class CpfTransactionContext {
     public static String transactionId() { return TransactionContext.getOrCreateTransactionId(); }
     public static String traceId() { return TransactionContext.getOrCreateTraceId(); }
     public static String spanId() { return TransactionContext.getOrCreateSpanId(); }
+    public static String currentTransactionId() { return TransactionContext.currentTransactionId(); }
+    public static String currentTraceId() { return TransactionContext.currentTraceId(); }
+    public static String memberNo() { return TransactionContext.memberNo(); }
+    public static String customerNo() { return TransactionContext.customerNo(); }
+    public static String channelCode() { return TransactionContext.channelCode(); }
     public static long nextSequence() { return TransactionContext.nextSequenceNo(); }
     public static String userId() { return TransactionContext.userId(); }
     public static String operatorId() { return TransactionContext.operatorId(); }
@@ -24,6 +29,9 @@ public final class CpfTransactionContext {
         return h == null ? null : h.getIdempotencyKey();
     }
     public static Map<String,String> propagationHeaders() { return TransactionContext.propagationHeaders(); }
+    public static Map<String,String> outboundHeaders() {
+        return com.cpf.core.common.header.CpfHeaderPropagator.outboundHeaders();
+    }
     public static String currentSegmentId() { return TransactionSegmentContext.currentSegmentId(); }
     /** 거래 Context 누락 탐지 누적 건수의 운영용 공개 View입니다. */
     public static long missingCount() { return CpfTransactionContextAnomalyMonitor.missingCount(); }

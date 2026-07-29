@@ -17,17 +17,47 @@ import java.util.Map;
 public class AdmControlPlaneService extends com.cpf.admin.common.base.AdmBaseService {
     private final JdbcTemplate admJdbcTemplate;
     private final CpfServiceRegistryControlPort serviceControlPort;
-    public AdmControlPlaneService(@Qualifier("admJdbcTemplate") JdbcTemplate admJdbcTemplate, CpfServiceRegistryControlPort serviceControlPort){
-        this.admJdbcTemplate=admJdbcTemplate; this.serviceControlPort=serviceControlPort;
+
+    public AdmControlPlaneService(
+            @Qualifier("admJdbcTemplate") JdbcTemplate admJdbcTemplate,
+            CpfServiceRegistryControlPort serviceControlPort) {
+        this.admJdbcTemplate = admJdbcTemplate;
+        this.serviceControlPort = serviceControlPort;
     }
 
-    public List<Map<String,Object>> findIncidents(String status, String severity, int limit){
-        StringBuilder sql=new StringBuilder("SELECT incident_id AS incidentId, incident_no AS incidentNo, severity, title, summary, source_type AS sourceType, source_id AS sourceId, status, detected_at AS detectedAt, acknowledged_at AS acknowledgedAt, mitigated_at AS mitigatedAt, resolved_at AS resolvedAt, created_by AS createdBy, updated_by AS updatedBy, reason, version FROM adm_incident WHERE 1=1");
-        java.util.ArrayList<Object> args=new java.util.ArrayList<>();
-        if(hasText(status)){sql.append(" AND status=?");args.add(status.toUpperCase(Locale.ROOT));}
-        if(hasText(severity)){sql.append(" AND severity=?");args.add(severity.toUpperCase(Locale.ROOT));}
-        sql.append(" ORDER BY CASE severity WHEN 'SEV1' THEN 1 WHEN 'SEV2' THEN 2 WHEN 'SEV3' THEN 3 ELSE 4 END, detected_at DESC LIMIT ?");args.add(Math.max(1,Math.min(limit,500)));
-        return admJdbcTemplate.queryForList(sql.toString(),args.toArray());
+    public List<Map<String, Object>> findIncidents(String status, String severity, int limit) {
+        StringBuilder sql = new StringBuilder("""
+                SELECT incident_id AS incidentId, incident_no AS incidentNo, severity, title, summary,
+                       source_type AS sourceType, source_id AS sourceId, status, detected_at AS detectedAt,
+                       acknowledged_at AS acknowledgedAt, mitigated_at AS mitigatedAt,
+                       resolved_at AS resolvedAt, created_by AS createdBy, updated_by AS updatedBy,
+                       reason, version
+                FROM adm_incident
+                WHERE 1 = 1
+                """);
+        java.util.ArrayList<Object> args = new java.util.ArrayList<>();
+        if (hasText(status)) {
+            sql.append(" AND status = ?");
+            args.add(status.toUpperCase(Locale.ROOT));
+        }
+        if (hasText(severity)) {
+            sql.append(" AND severity = ?");
+            args.add(severity.toUpperCase(Locale.ROOT));
+        }
+        sql.append("""
+                 ORDER BY CASE severity
+                            WHEN 'SEV1' THEN 1
+                            WHEN 'SEV2' THEN 2
+                            WHEN 'SEV3' THEN 3
+                            ELSE 4
+                          END,
+                          detected_at DESC
+                """);
+        return AdmJdbcQueries.queryForList(
+                admJdbcTemplate,
+                sql.toString(),
+                args,
+                Math.max(1, Math.min(limit, 500)));
     }
 
     public Map<String,Object> createIncident(Map<String,Object> request,String operatorId){
@@ -57,8 +87,19 @@ public class AdmControlPlaneService extends com.cpf.admin.common.base.AdmBaseSer
         return admJdbcTemplate.queryForMap("SELECT * FROM adm_incident WHERE incident_id=?",incidentId);
     }
 
-    public List<Map<String,Object>> findMaintenanceActions(int limit){
-        return admJdbcTemplate.queryForList("SELECT action_id AS actionId, service_id AS serviceId, endpoint_code AS endpointCode, instance_id AS instanceId, action_type AS actionType, before_status AS beforeStatus, after_status AS afterStatus, result_status AS resultStatus, reason, requested_by AS requestedBy, requested_at AS requestedAt, result_detail AS resultDetail FROM adm_maintenance_action ORDER BY action_id DESC LIMIT ?",Math.max(1,Math.min(limit,500)));
+    public List<Map<String, Object>> findMaintenanceActions(int limit) {
+        return AdmJdbcQueries.queryForList(
+                admJdbcTemplate,
+                """
+                SELECT action_id AS actionId, service_id AS serviceId, endpoint_code AS endpointCode,
+                       instance_id AS instanceId, action_type AS actionType, before_status AS beforeStatus,
+                       after_status AS afterStatus, result_status AS resultStatus, reason,
+                       requested_by AS requestedBy, requested_at AS requestedAt, result_detail AS resultDetail
+                FROM adm_maintenance_action
+                ORDER BY action_id DESC
+                """,
+                List.of(),
+                Math.max(1, Math.min(limit, 500)));
     }
 
     public Map<String,Object> executeMaintenance(Map<String,Object> request,String operatorId){

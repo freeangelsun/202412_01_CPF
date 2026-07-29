@@ -9,8 +9,8 @@ import com.cpf.core.channel.model.CpfChannelDefinition;
 import com.cpf.core.channel.model.CpfChannelExecutionPolicy;
 import com.cpf.core.channel.model.CpfChannelPolicyPackage;
 import com.cpf.core.channel.model.CpfChannelPolicySnapshot;
-import com.cpf.core.common.execution.CpfOnlineTransaction;
-import com.cpf.core.common.logging.TransactionContext;
+import com.cpf.core.api.execution.CpfOnlineTransaction;
+import com.cpf.core.api.logging.CpfTransactionContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -138,7 +138,7 @@ public class AdmChannelController extends com.cpf.admin.common.base.AdmBaseContr
             String reason,
             Object before,
             Object after) {
-        auditLogService.record(TransactionContext.getOrCreateTransactionId(), actor, action,
+        auditLogService.record(CpfTransactionContext.transactionId(), actor, action,
                 "cpf_channel_policy", targetId, reason,
                 String.valueOf(before), String.valueOf(after),
                 "snapshotVersion 변경", request.getRemoteAddr());

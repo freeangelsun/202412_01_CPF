@@ -2,8 +2,7 @@
   "schemaVersion": 2,
   "policy": {
     "generatedBusinessDomainFixedModulesAllowed": false,
-    "externalSystemCode": "EXS",
-    "externalDomainPolicy": "GENERATED_DOMAIN_ONLY",
+    "generatedDomainDiscovery": "manifest/domain-manifest.json",
     "artifactSyncCommand": "pwsh -ExecutionPolicy Bypass -File cpf-tools/scripts/sync-database-artifacts.ps1",
     "platformVendorSourceRootPattern": "cpf-tools/db/vendor/{vendor}/source",
     "platformVendorLifecycleRootPattern": "cpf-tools/db/vendor/{vendor}",
@@ -59,8 +58,7 @@
   },
   "postgresql": {
     "provisionFiles": [
-      "01_create_databases.sql",
-      "02_create_service_users.sql"
+      "00_provision.sql"
     ],
     "emptyInstallFiles": [
       "10_cpf_schema.sql",
@@ -91,8 +89,7 @@
   },
   "oracle": {
     "provisionFiles": [
-      "01_create_databases.sql",
-      "02_create_service_users.sql"
+      "00_provision.sql"
     ],
     "emptyInstallFiles": [
       "10_cpf_schema.sql",

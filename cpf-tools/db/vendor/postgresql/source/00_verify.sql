@@ -1,62 +1,14 @@
--- CPF postgresql install verification generated from canonical model
+-- AUTO-GENERATED from cpf-tools/db/canonical/platform-schema.json
+-- vendor=postgresql; each logical section executes in its profile-selected schema.
+-- DO NOT EDIT generated verify SQL directly.
 
-
-SELECT 'table_count' AS check_name,
-       CASE WHEN COUNT(*) = 38 THEN 1 ELSE 0 END AS passed
+-- CPF_LOGICAL_DATABASE=cpfDB
+SELECT 'cpfDB.table_count' AS check_name,
+       CASE WHEN COUNT(*) = 53 THEN 1 ELSE 0 END AS passed
 FROM information_schema.tables
-WHERE lower(table_schema) = lower('cpfDB') AND table_type = 'BASE TABLE';
+WHERE table_schema = current_schema() AND table_type = 'BASE TABLE';
 
-SELECT 'table_count' AS check_name,
-       CASE WHEN COUNT(*) = 2 THEN 1 ELSE 0 END AS passed
-FROM information_schema.tables
-WHERE lower(table_schema) = lower('cmnDB') AND table_type = 'BASE TABLE';
-
-SELECT 'table_count' AS check_name,
-       CASE WHEN COUNT(*) = 29 THEN 1 ELSE 0 END AS passed
-FROM information_schema.tables
-WHERE lower(table_schema) = lower('admDB') AND table_type = 'BASE TABLE';
-
-SELECT 'table_count' AS check_name,
-       CASE WHEN COUNT(*) = 43 THEN 1 ELSE 0 END AS passed
-FROM information_schema.tables
-WHERE lower(table_schema) = lower('batDB') AND table_type = 'BASE TABLE';
-
-SELECT 'table_count' AS check_name,
-       CASE WHEN COUNT(*) = 28 THEN 1 ELSE 0 END AS passed
-FROM information_schema.tables
-WHERE lower(table_schema) = lower('bzaDB') AND table_type = 'BASE TABLE';
-
-SELECT 'table_count' AS check_name,
-       CASE WHEN COUNT(*) = 8 THEN 1 ELSE 0 END AS passed
-FROM information_schema.tables
-WHERE lower(table_schema) = lower('mbrDB') AND table_type = 'BASE TABLE';
-
-SELECT 'table_count' AS check_name,
-       CASE WHEN COUNT(*) = 2 THEN 1 ELSE 0 END AS passed
-FROM information_schema.tables
-WHERE lower(table_schema) = lower('accDB') AND table_type = 'BASE TABLE';
-
-SELECT 'table_count' AS check_name,
-       CASE WHEN COUNT(*) = 3 THEN 1 ELSE 0 END AS passed
-FROM information_schema.tables
-WHERE lower(table_schema) = lower('refDB') AND table_type = 'BASE TABLE';
-
-SELECT 'platform.fixed_exs_schema_absent' AS check_name,
-       CASE WHEN COUNT(*) = 0 THEN 1 ELSE 0 END AS passed
-FROM information_schema.schemata WHERE lower(schema_name)='exsdb';
-
-SELECT 'v63_login_operation' AS check_name,
-       CASE WHEN COUNT(*) = 1 THEN 1 ELSE 0 END AS passed
-FROM information_schema.tables
-WHERE lower(table_schema)='bzadb' AND lower(table_name)='bza_login_operation';
-
-SELECT 'v63_refresh_link' AS check_name,
-       CASE WHEN COUNT(*) = 1 THEN 1 ELSE 0 END AS passed
-FROM information_schema.columns
-WHERE lower(table_schema)='bzadb' AND lower(table_name)='bza_refresh_token'
-  AND lower(column_name)='login_operation_id';
-
-SELECT 'product_seed' AS check_name,
+SELECT 'cpfDB.product_seed' AS check_name,
        CASE WHEN
            (SELECT COUNT(*) FROM cpf_code) >= 100
            AND (SELECT COUNT(*) FROM cpf_message) >= 40
@@ -64,9 +16,57 @@ SELECT 'product_seed' AS check_name,
            AND (SELECT COUNT(*) FROM cpf_config) >= 20
        THEN 1 ELSE 0 END AS passed;
 
-SELECT 'product_seed' AS check_name,
+-- CPF_LOGICAL_DATABASE=cmnDB
+SELECT 'cmnDB.table_count' AS check_name,
+       CASE WHEN COUNT(*) = 2 THEN 1 ELSE 0 END AS passed
+FROM information_schema.tables
+WHERE table_schema = current_schema() AND table_type = 'BASE TABLE';
+
+-- CPF_LOGICAL_DATABASE=admDB
+SELECT 'admDB.table_count' AS check_name,
+       CASE WHEN COUNT(*) = 31 THEN 1 ELSE 0 END AS passed
+FROM information_schema.tables
+WHERE table_schema = current_schema() AND table_type = 'BASE TABLE';
+
+-- CPF_LOGICAL_DATABASE=bzaDB
+SELECT 'bzaDB.table_count' AS check_name,
+       CASE WHEN COUNT(*) = 28 THEN 1 ELSE 0 END AS passed
+FROM information_schema.tables
+WHERE table_schema = current_schema() AND table_type = 'BASE TABLE';
+
+SELECT 'bzaDB.product_seed' AS check_name,
        CASE WHEN
-           (SELECT COUNT(*) FROM bza_role WHERE use_yn='Y') >= 4
-           AND (SELECT COUNT(*) FROM bza_menu WHERE use_yn='Y') >= 8
-           AND (SELECT COUNT(*) FROM bza_permission WHERE role_code='BZA_ADMIN' AND allow_yn='Y' AND use_yn='Y') >= 8
+           (SELECT COUNT(*) FROM bza_role WHERE use_yn = 'Y') >= 4
+           AND (SELECT COUNT(*) FROM bza_menu WHERE use_yn = 'Y') >= 8
+           AND (SELECT COUNT(*) FROM bza_permission WHERE role_code = 'BZA_ADMIN' AND allow_yn = 'Y' AND use_yn = 'Y') >= 8
        THEN 1 ELSE 0 END AS passed;
+
+-- CPF_LOGICAL_DATABASE=batDB
+SELECT 'batDB.table_count' AS check_name,
+       CASE WHEN COUNT(*) = 43 THEN 1 ELSE 0 END AS passed
+FROM information_schema.tables
+WHERE table_schema = current_schema() AND table_type = 'BASE TABLE';
+
+-- CPF_LOGICAL_DATABASE=refDB
+SELECT 'refDB.table_count' AS check_name,
+       CASE WHEN COUNT(*) = 3 THEN 1 ELSE 0 END AS passed
+FROM information_schema.tables
+WHERE table_schema = current_schema() AND table_type = 'BASE TABLE';
+
+-- CPF_CANONICAL_OBJECTS_BEGIN spring-batch-6-sequences
+-- CPF_LOGICAL_DATABASE=batDB
+-- Fail-closed Spring Batch 6.0.4 sequence name/count verification.
+SELECT 'bat_spring_batch_6_sequence_contract' AS check_name,
+       CASE WHEN
+           (SELECT COUNT(*) FROM information_schema.sequences
+             WHERE sequence_schema = current_schema()) = 3
+           AND
+           (SELECT COUNT(*) FROM information_schema.sequences
+             WHERE sequence_schema = current_schema()
+               AND UPPER(sequence_name) IN ('BATCH_JOB_INSTANCE_SEQ', 'BATCH_JOB_EXECUTION_SEQ', 'BATCH_STEP_EXECUTION_SEQ')) = 3
+           AND
+           (SELECT COUNT(*) FROM information_schema.tables
+             WHERE table_schema = current_schema()
+               AND UPPER(table_name) IN ('BATCH_JOB_SEQ')) = 0
+       THEN 1 ELSE 0 END AS passed;
+-- CPF_CANONICAL_OBJECTS_END spring-batch-6-sequences

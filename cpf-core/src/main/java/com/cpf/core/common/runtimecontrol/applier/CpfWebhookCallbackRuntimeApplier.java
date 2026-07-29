@@ -1,8 +1,102 @@
 package com.cpf.core.common.runtimecontrol.applier;
-import com.cpf.core.api.http.CpfWebhookSignaturePort;import com.cpf.core.api.runtimecontrol.*;import com.cpf.core.common.http.CpfWebhookRuntimePolicy;import java.util.*;
-public final class CpfWebhookCallbackRuntimeApplier implements CpfRuntimeChangeApplier{
- private final CpfWebhookRuntimePolicy policy;private final CpfWebhookSignaturePort signaturePort;public CpfWebhookCallbackRuntimeApplier(CpfWebhookRuntimePolicy policy,CpfWebhookSignaturePort signaturePort){this.policy=policy;this.signaturePort=signaturePort;}
- public String changeType(){return "WEBHOOK_CALLBACK";}public boolean supportsIdempotentReplay(){return true;}public boolean snapshotCapable(){return true;}
- @SuppressWarnings("unchecked")public CpfRuntimeApplyResult apply(CpfRuntimeDelivery d){try{Object raw=d.payload().get("callbacks");if(!(raw instanceof List<?>list))throw new IllegalArgumentException("callbacks array 필수");LinkedHashMap<String,CpfWebhookRuntimePolicy.Callback>m=new LinkedHashMap<>();for(Object item:list){if(!(item instanceof Map<?,?>r))throw new IllegalArgumentException("callback object 필요");Map<String,Object>v=(Map<String,Object>)r;String id=req(v,"callbackId"),sig=opt(v,"signatureRef","");if(!sig.isBlank()&&signaturePort==null)throw new IllegalStateException("signature port missing");m.put(id,new CpfWebhookRuntimePolicy.Callback(id,req(v,"serviceId"),req(v,"path"),sig,opt(v,"idempotencyHeader","Idempotency-Key"),(int)num(v.get("timeoutMillis"),3000),(int)num(v.get("retryCount"),0),bool(v,"active",true)));}policy.replace(d.desiredVersion(),m);return CpfRuntimeApplyResult.success(d.payloadHash());}catch(RuntimeException e){return CpfRuntimeApplyResult.failure("WEBHOOK_CALLBACK_INVALID","Webhook endpoint/signature/retry/idempotency 정책 오류");}}
- private String req(Map<String,Object>m,String k){String v=opt(m,k,"");if(v.isBlank())throw new IllegalArgumentException(k+" 필수");return v;}private String opt(Map<String,Object>m,String k,String f){Object v=m.get(k);return v==null?f:String.valueOf(v).trim();}private long num(Object v,long f){return v instanceof Number n?n.longValue():v==null?f:Long.parseLong(String.valueOf(v));}private boolean bool(Map<String,Object>m,String k,boolean f){Object v=m.get(k);return v instanceof Boolean b?b:v==null?f:Boolean.parseBoolean(String.valueOf(v));}
+
+import com.cpf.core.api.http.CpfWebhookSignaturePort;
+import com.cpf.core.api.runtimecontrol.CpfRuntimeApplyResult;
+import com.cpf.core.api.runtimecontrol.CpfRuntimeChangeApplier;
+import com.cpf.core.api.runtimecontrol.CpfRuntimeDelivery;
+import com.cpf.core.common.http.CpfWebhookRuntimePolicy;
+import com.cpf.core.common.runtimecontrol.CpfRuntimePayloadJson;
+
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+/** Webhook endpoint/signature/retry/idempotency 정책을 실제 Runtime snapshot에 적용합니다. */
+public final class CpfWebhookCallbackRuntimeApplier implements CpfRuntimeChangeApplier {
+    private final CpfWebhookRuntimePolicy policy;
+    private final CpfWebhookSignaturePort signaturePort;
+
+    public CpfWebhookCallbackRuntimeApplier(
+            CpfWebhookRuntimePolicy policy,
+            CpfWebhookSignaturePort signaturePort) {
+        this.policy = policy;
+        this.signaturePort = signaturePort;
+    }
+
+    @Override
+    public String changeType() {
+        return "WEBHOOK_CALLBACK";
+    }
+
+    @Override
+    public boolean supportsIdempotentReplay() {
+        return true;
+    }
+
+    @Override
+    public boolean snapshotCapable() {
+        return true;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public CpfRuntimeApplyResult apply(CpfRuntimeDelivery delivery) {
+        try {
+            Object raw = CpfRuntimePayloadJson.value(delivery.payload(), "callbacks");
+            if (!(raw instanceof List<?> entries)) {
+                throw new IllegalArgumentException("callbacks array 필수");
+            }
+            LinkedHashMap<String, CpfWebhookRuntimePolicy.Callback> callbacks = new LinkedHashMap<>();
+            for (Object entry : entries) {
+                if (!(entry instanceof Map<?, ?> source)) {
+                    throw new IllegalArgumentException("callback object 필요");
+                }
+                Map<String, Object> value = (Map<String, Object>) source;
+                String callbackId = required(value, "callbackId");
+                String signatureRef = optional(value, "signatureRef", "");
+                if (!signatureRef.isBlank() && signaturePort == null) {
+                    throw new IllegalStateException("signature port missing");
+                }
+                callbacks.put(
+                        callbackId,
+                        new CpfWebhookRuntimePolicy.Callback(
+                                callbackId,
+                                required(value, "serviceId"),
+                                required(value, "path"),
+                                signatureRef,
+                                optional(value, "idempotencyHeader", "Idempotency-Key"),
+                                (int) number(value.get("timeoutMillis"), 3000L),
+                                (int) number(value.get("retryCount"), 0L),
+                                bool(value, "active", true)));
+            }
+            policy.replace(delivery.desiredVersion(), callbacks);
+            return CpfRuntimeApplyResult.success(delivery.payloadHash());
+        } catch (RuntimeException ex) {
+            return CpfRuntimeApplyResult.failure(
+                    "WEBHOOK_CALLBACK_INVALID",
+                    "Webhook endpoint/signature/retry/idempotency 정책 오류");
+        }
+    }
+
+    private String required(Map<String, Object> source, String key) {
+        String value = optional(source, key, "");
+        if (value.isBlank()) throw new IllegalArgumentException(key + " 필수");
+        return value;
+    }
+
+    private String optional(Map<String, Object> source, String key, String fallback) {
+        Object value = source.get(key);
+        return value == null ? fallback : String.valueOf(value).trim();
+    }
+
+    private long number(Object value, long fallback) {
+        if (value instanceof Number number) return number.longValue();
+        return value == null ? fallback : Long.parseLong(String.valueOf(value));
+    }
+
+    private boolean bool(Map<String, Object> source, String key, boolean fallback) {
+        Object value = source.get(key);
+        if (value instanceof Boolean bool) return bool;
+        return value == null ? fallback : Boolean.parseBoolean(String.valueOf(value));
+    }
 }

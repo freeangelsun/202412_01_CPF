@@ -1,10 +1,14 @@
 package com.cpf.core.common.runtimecontrol;
 
 import com.cpf.core.api.runtimecontrol.CpfRuntimePayload;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import java.util.Collections;
+import java.util.Map;
 
 /** Runtime Control 내부 구현에서만 사용하는 Payload JSON 접근기입니다. */
 public final class CpfRuntimePayloadJson {
@@ -27,6 +31,29 @@ public final class CpfRuntimePayloadJson {
 
     public static boolean contains(CpfRuntimePayload payload, String field) {
         return read(payload).has(field);
+    }
+
+    /**
+     * Core 내부 Runtime applier가 JSON library type을 전파하지 않고 값을 읽도록 합니다.
+     *
+     * <p>{@link CpfRuntimePayload} 공개 계약은 canonical JSON만 노출하고, 동적 JSON 변환은
+     * 이 internal adapter 안으로 제한합니다.</p>
+     */
+    public static Object value(CpfRuntimePayload payload, String field) {
+        JsonNode value = field(payload, field);
+        return value.isMissingNode() || value.isNull() ? null : MAPPER.convertValue(value, Object.class);
+    }
+
+    public static Object valueOrDefault(CpfRuntimePayload payload, String field, Object defaultValue) {
+        Object value = value(payload, field);
+        return value == null ? defaultValue : value;
+    }
+
+    public static Map<String, Object> asMap(CpfRuntimePayload payload) {
+        Map<String, Object> value = MAPPER.convertValue(
+                read(payload),
+                new TypeReference<Map<String, Object>>() {});
+        return Collections.unmodifiableMap(value);
     }
 
     public static CpfRuntimePayload without(CpfRuntimePayload payload, String field) {

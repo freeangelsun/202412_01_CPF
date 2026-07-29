@@ -4,6 +4,7 @@ import com.cpf.core.api.runtimecontrol.CpfRuntimeApplyResult;
 import com.cpf.core.api.runtimecontrol.CpfRuntimeChangeApplier;
 import com.cpf.core.api.runtimecontrol.CpfRuntimeDelivery;
 import com.cpf.core.common.database.CpfReadRoutingRuntimePolicy;
+import com.cpf.core.common.runtimecontrol.CpfRuntimePayloadJson;
 
 /** 실제 cpfDataSource의 Primary/Replica 선택 정책을 hot-apply합니다. */
 public final class CpfDbReadRoutingRuntimeApplier implements CpfRuntimeChangeApplier {
@@ -19,9 +20,15 @@ public final class CpfDbReadRoutingRuntimeApplier implements CpfRuntimeChangeApp
     public CpfRuntimeApplyResult apply(CpfRuntimeDelivery delivery) {
         try {
             CpfReadRoutingRuntimePolicy.Snapshot current = policy.current();
-            boolean enabled = bool(delivery.payload().get("enabled"), current.enabled());
-            long maxLag = number(delivery.payload().get("maxReplicaLagMillis"), current.maxReplicaLagMillis());
-            long readAfterWrite = number(delivery.payload().get("readAfterWriteMillis"), current.readAfterWriteMillis());
+            boolean enabled = bool(
+                    CpfRuntimePayloadJson.value(delivery.payload(), "enabled"),
+                    current.enabled());
+            long maxLag = number(
+                    CpfRuntimePayloadJson.value(delivery.payload(), "maxReplicaLagMillis"),
+                    current.maxReplicaLagMillis());
+            long readAfterWrite = number(
+                    CpfRuntimePayloadJson.value(delivery.payload(), "readAfterWriteMillis"),
+                    current.readAfterWriteMillis());
             CpfReadRoutingRuntimePolicy.Snapshot applied = policy.replace(enabled, maxLag, readAfterWrite);
             if (applied.enabled() != enabled || applied.maxReplicaLagMillis() != maxLag) {
                 return CpfRuntimeApplyResult.failure("DB_READ_ROUTING_NOT_CONFIRMED", "DB read routing 정책 적용을 확인하지 못했습니다.");

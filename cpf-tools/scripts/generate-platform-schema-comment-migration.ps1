@@ -4,7 +4,10 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$utf8NoBom = [System.Text.UTF8Encoding]::new($false)
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
 
 $metadataRelativePath = "cpf-tools/db/metadata/platform-schema-comment-migration-v58.json"
 $metadataPath = Join-Path $Root $metadataRelativePath
@@ -12,120 +15,60 @@ $metadata = Get-Content -LiteralPath $metadataPath -Raw -Encoding UTF8 | Convert
 if ($metadata.schemaVersion -ne 1 -or $metadata.migrationVersion -ne "V58") {
     throw "Unsupported schema-comment migration metadata: $metadataRelativePath"
 }
+if (-not $Check) {
+    throw "V58 is an immutable Historical Migration. Update neither the migration nor its rollback; use -Check to verify the preserved artifact."
+}
 
-$tableDefinitions = @{}
-foreach ($relativePath in @($metadata.sourceFiles)) {
-    $lines = Get-Content -LiteralPath (Join-Path $Root $relativePath) -Encoding UTF8
-    for ($index = 0; $index -lt $lines.Count; $index++) {
-        if ($lines[$index] -notmatch "(?i)^CREATE\s+TABLE\s+IF\s+NOT\s+EXISTS\s+(?<table>[A-Za-z0-9_]+)\s*\(") {
-            continue
-        }
-
-        $tableName = $Matches.table.ToLowerInvariant()
-        $columnDefinitions = @{}
-        $tableComment = $null
-        for ($cursor = $index + 1; $cursor -lt $lines.Count; $cursor++) {
-            $trimmed = $lines[$cursor].Trim()
-            if ($trimmed -match "^\).*?COMMENT\s*=\s*'(?<comment>[^']+)'\s*;") {
-                $tableComment = $Matches.comment
-                $index = $cursor
-                break
-            }
-            if ($trimmed -match "^\)\s*.*;") {
-                $index = $cursor
-                break
-            }
-            if ($trimmed -match "^(?<column>[A-Za-z_][A-Za-z0-9_]*)\s+(BIGINT|INT|SMALLINT|TINYINT|VARCHAR|CHAR|TEXT|LONGTEXT|DATETIME|TIMESTAMP|DATE|TIME|DECIMAL|NUMERIC|BOOLEAN|BLOB|JSON)\b") {
-                $columnDefinitions[$Matches.column.ToLowerInvariant()] = $trimmed.TrimEnd(",")
-            }
-        }
-        $tableDefinitions[$tableName] = [pscustomobject]@{
-            Columns = $columnDefinitions
-            TableComment = $tableComment
-        }
+$forwardRelativePath = "cpf-tools/db/vendor/mariadb/source/migration/flyway/V58__platform_schema_comments.sql"
+$rollbackRelativePath = "cpf-tools/db/vendor/mariadb/source/migration/rollback/V58__platform_schema_comments_rollback.sql"
+$forwardPath = Join-Path $Root $forwardRelativePath
+$rollbackPath = Join-Path $Root $rollbackRelativePath
+foreach ($path in @($forwardPath, $rollbackPath)) {
+    if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
+        throw "Historical schema-comment artifact missing: $path"
     }
 }
 
-$forward = [System.Collections.Generic.List[string]]::new()
-$rollback = [System.Collections.Generic.List[string]]::new()
-$forward.Add("-- Generated from canonical MariaDB schema and $metadataRelativePath.")
-$forward.Add("-- Do not edit this migration directly; update canonical schema/metadata and regenerate.")
-$forward.Add("SET @cpf_v58_previous_foreign_key_checks := @@FOREIGN_KEY_CHECKS;")
-$forward.Add("SET FOREIGN_KEY_CHECKS = 0;")
-$rollback.Add("-- Generated rollback for canonical MariaDB schema comments introduced by V58.")
-$rollback.Add("-- Do not edit this rollback directly; update canonical schema/metadata and regenerate.")
-$rollback.Add("SET @cpf_v58_previous_foreign_key_checks := @@FOREIGN_KEY_CHECKS;")
-$rollback.Add("SET FOREIGN_KEY_CHECKS = 0;")
+$expectedForwardHash = ([string] $metadata.artifactHashes.forwardSha256).ToUpperInvariant()
+$expectedRollbackHash = ([string] $metadata.artifactHashes.rollbackSha256).ToUpperInvariant()
+if ($expectedForwardHash -notmatch "^[0-9A-F]{64}$" -or $expectedRollbackHash -notmatch "^[0-9A-F]{64}$") {
+    throw "Historical schema-comment artifact SHA-256 metadata is invalid."
+}
+$actualForwardHash = (Get-FileHash -LiteralPath $forwardPath -Algorithm SHA256).Hash.ToUpperInvariant()
+$actualRollbackHash = (Get-FileHash -LiteralPath $rollbackPath -Algorithm SHA256).Hash.ToUpperInvariant()
+if ($actualForwardHash -cne $expectedForwardHash) {
+    throw "Historical schema-comment forward migration changed: expected=$expectedForwardHash actual=$actualForwardHash"
+}
+if ($actualRollbackHash -cne $expectedRollbackHash) {
+    throw "Historical schema-comment rollback changed: expected=$expectedRollbackHash actual=$actualRollbackHash"
+}
 
+$forwardText = [System.IO.File]::ReadAllText($forwardPath, [System.Text.Encoding]::UTF8)
+$rollbackText = [System.IO.File]::ReadAllText($rollbackPath, [System.Text.Encoding]::UTF8)
 foreach ($change in @($metadata.changes)) {
     $schemaName = [string] $change.schema
-    $tableName = ([string] $change.table).ToLowerInvariant()
+    $tableName = [string] $change.table
     if ($schemaName -notmatch "^[A-Za-z][A-Za-z0-9_]*$" -or $tableName -notmatch "^[a-z][a-z0-9_]*$") {
         throw "Unsafe schema/table identifier in schema-comment metadata: $schemaName.$tableName"
     }
-    if (-not $tableDefinitions.ContainsKey($tableName)) {
-        throw "Canonical table not found for schema-comment migration: $tableName"
+    $qualifiedTable = [regex]::Escape("$schemaName.$tableName")
+    if ($change.tableCommentAdded -and
+        $forwardText -notmatch "(?im)^ALTER\s+TABLE\s+$qualifiedTable\s+COMMENT\s*=\s*'[^']*'\s*;") {
+        throw "Historical table-comment statement missing: $schemaName.$tableName"
     }
-
-    $definition = $tableDefinitions[$tableName]
-    if ($change.tableCommentAdded) {
-        if ([string]::IsNullOrWhiteSpace([string] $definition.TableComment)) {
-            throw "Canonical table comment missing: $tableName"
-        }
-        $escapedTableComment = ([string] $definition.TableComment).Replace("'", "''")
-        $forward.Add("ALTER TABLE $schemaName.$tableName COMMENT = '$escapedTableComment';")
-        $rollback.Add("ALTER TABLE $schemaName.$tableName COMMENT = '';")
-    }
-
     foreach ($columnValue in @($change.columns)) {
-        $columnName = ([string] $columnValue).ToLowerInvariant()
-        if ($columnName -notmatch "^[a-z][a-z0-9_]*$" -or -not $definition.Columns.ContainsKey($columnName)) {
-            throw "Canonical column not found for schema-comment migration: $tableName.$columnName"
+        $columnName = [string] $columnValue
+        if ($columnName -notmatch "^[a-z][a-z0-9_]*$") {
+            throw "Unsafe column identifier in schema-comment metadata: $schemaName.$tableName.$columnName"
         }
-        $columnDefinition = [string] $definition.Columns[$columnName]
-        if ($columnDefinition -notmatch "(?i)\sCOMMENT\s+'[^']+'") {
-            throw "Canonical column comment missing: $tableName.$columnName"
+        $escapedColumn = [regex]::Escape($columnName)
+        if ($forwardText -notmatch "(?im)^ALTER\s+TABLE\s+$qualifiedTable\s+MODIFY\s+COLUMN\s+$escapedColumn\b[^\r\n;]*\sCOMMENT\s+'[^']+'\s*;") {
+            throw "Historical column-comment statement missing: $schemaName.$tableName.$columnName"
         }
-        # MODIFY COLUMN must preserve the physical column contract without attempting
-        # to recreate inline key declarations that are already owned by table indexes.
-        $columnDefinition = [regex]::Replace($columnDefinition, "(?i)\s+PRIMARY\s+KEY\b", "")
-        $columnDefinition = [regex]::Replace($columnDefinition, "(?i)\s+UNIQUE\b", "")
-        $rollbackDefinition = [regex]::Replace($columnDefinition, "(?i)\sCOMMENT\s+'[^']+'", "")
-        $forward.Add("ALTER TABLE $schemaName.$tableName MODIFY COLUMN $columnDefinition;")
-        $rollback.Add("ALTER TABLE $schemaName.$tableName MODIFY COLUMN $rollbackDefinition;")
+        if ($rollbackText -notmatch "(?im)^ALTER\s+TABLE\s+$qualifiedTable\s+MODIFY\s+COLUMN\s+$escapedColumn\b[^\r\n;]*;") {
+            throw "Historical column-comment rollback missing: $schemaName.$tableName.$columnName"
+        }
     }
 }
 
-$forward.Add("SET FOREIGN_KEY_CHECKS = @cpf_v58_previous_foreign_key_checks;")
-$rollback.Add("SET FOREIGN_KEY_CHECKS = @cpf_v58_previous_foreign_key_checks;")
-$forward.Add("")
-$rollback.Add("")
-$forwardText = $forward -join "`n"
-$rollbackText = $rollback -join "`n"
-$forwardRelativePath = "cpf-tools/db/vendor/mariadb/source/migration/flyway/V58__platform_schema_comments.sql"
-$rollbackRelativePath = "cpf-tools/db/vendor/mariadb/source/migration/rollback/V58__platform_schema_comments_rollback.sql"
-
-foreach ($artifact in @(
-    @{ Path = $forwardRelativePath; Content = $forwardText },
-    @{ Path = $rollbackRelativePath; Content = $rollbackText }
-)) {
-    $path = Join-Path $Root $artifact.Path
-    if ($Check) {
-        if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
-            throw "Generated schema-comment artifact missing: $($artifact.Path)"
-        }
-        $actual = [System.IO.File]::ReadAllText($path, [System.Text.Encoding]::UTF8).Replace("`r`n", "`n")
-        if ($actual -cne $artifact.Content) {
-            throw "Generated schema-comment artifact drift: $($artifact.Path)"
-        }
-        continue
-    }
-    [System.IO.Directory]::CreateDirectory([System.IO.Path]::GetDirectoryName($path)) | Out-Null
-    [System.IO.File]::WriteAllText($path, $artifact.Content, $utf8NoBom)
-}
-
-if ($Check) {
-    Write-Host "Platform schema-comment migration check passed."
-} else {
-    Write-Host "Platform schema-comment migration generated."
-}
+Write-Host "Historical V58 schema-comment migration integrity check passed."

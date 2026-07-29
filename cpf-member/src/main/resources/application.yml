@@ -1,0 +1,49 @@
+spring:
+  application:
+    name: cpf-member
+  flyway:
+    # DDL migration은 app 계정이 아니라 별도 migration 절차에서 실행합니다.
+    enabled: ${MBR_FLYWAY_ENABLED:false}
+    locations: classpath:db/vendor/${MBR_DATABASE_VENDOR:mariadb}/migration
+  batch:
+    # 배치 Job은 운영 실행 요청으로만 시작하고 애플리케이션 기동 시 자동 실행하지 않습니다.
+    job:
+      enabled: false
+    # Spring Batch 메타 스키마는 cpfDB 설치 SQL이 관리합니다.
+    jdbc:
+      initialize-schema: never
+  config:
+    import:
+      - optional:classpath:application-cpf.yml
+      - optional:classpath:application-cpf-${spring.profiles.active:local}.yml
+      - optional:classpath:application-member.yml
+      - optional:classpath:application-member-${spring.profiles.active:local}.yml
+
+server:
+  # productionProfile=false인 Golden/개발 Domain도 Manifest port 계약을 그대로 소비합니다.
+  port: ${MBR_SERVER_PORT:8081}
+
+cpf:
+  common:
+    # product에서는 CMN DB/Calendar 등 공식 cpf-common 계약을 fail-closed로 사용합니다.
+    runtime-mode: ${CPF_COMMON_RUNTIME_MODE:product}
+  framework:
+    module-id: ${MBR_MODULE_ID:MBR}
+  logging:
+    file:
+      base-path: ${CPF_LOG_ROOT:}
+      timezone: ${CPF_LOG_TIMEZONE:Asia/Seoul}
+      max-history-days: ${CPF_LOG_MAX_HISTORY_DAYS:30}
+      archive-compress-enabled: ${CPF_LOG_ARCHIVE_COMPRESS_ENABLED:true}
+      file-pattern: "cpf-{moduleCode}-{logType}-{instanceId}.{date}.log"
+logging:
+  config: classpath:log/cpf-logback-spring.xml
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus

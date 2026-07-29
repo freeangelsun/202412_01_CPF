@@ -1,11 +1,10 @@
 package com.cpf.reference.filetransfer;
 
-import com.cpf.core.common.filetransfer.CpfFileTransferEndpoint;
-import com.cpf.core.common.filetransfer.CpfFileTransferEngine;
-import com.cpf.core.common.filetransfer.CpfFileTransferProtocol;
-import com.cpf.core.common.filetransfer.CpfFileTransferRequest;
-import com.cpf.core.common.filetransfer.CpfFileTransferResult;
-import com.cpf.core.common.security.CpfCredentialRef;
+import com.cpf.core.api.filetransfer.CpfCredentialReference;
+import com.cpf.core.api.filetransfer.CpfFileEndpoint;
+import com.cpf.core.api.filetransfer.CpfFileRequest;
+import com.cpf.core.api.filetransfer.CpfFileResult;
+import com.cpf.core.api.filetransfer.CpfFileTransferClient;
 
 import java.time.Duration;
 import java.util.Map;
@@ -14,23 +13,23 @@ import java.util.Map;
  * REF 업무 파일을 CPF 파일전송 엔진으로 송신하는 교육 샘플입니다.
  */
 public class ReferenceSftpTransferPlanEducationSample {
-    private final CpfFileTransferEngine transferEngine;
+    private final CpfFileTransferClient transferClient;
 
-    public ReferenceSftpTransferPlanEducationSample(CpfFileTransferEngine transferEngine) {
-        this.transferEngine = transferEngine;
+    public ReferenceSftpTransferPlanEducationSample(CpfFileTransferClient transferClient) {
+        this.transferClient = transferClient;
     }
 
-    public CpfFileTransferResult upload(String transactionId, String localPath) {
-        CpfFileTransferEndpoint endpoint = new CpfFileTransferEndpoint(
+    public CpfFileResult upload(String transactionId, String localPath) {
+        CpfFileEndpoint endpoint = new CpfFileEndpoint(
                 "REF_BANK_A",
-                CpfFileTransferProtocol.SFTP.name(),
+                "SFTP",
                 "sftp.example.internal",
                 22,
                 "/recv",
-                new CpfCredentialRef("file-transfer", "ref-bank-a", "latest", "REF BANK A"),
+                new CpfCredentialReference("file-transfer", "ref-bank-a", "latest", "REF BANK A"),
                 Duration.ofSeconds(30),
                 Map.of("environment", "education"));
-        CpfFileTransferRequest request = new CpfFileTransferRequest(
+        CpfFileRequest request = new CpfFileRequest(
                 transactionId,
                 null,
                 endpoint.endpointCode(),
@@ -40,6 +39,6 @@ public class ReferenceSftpTransferPlanEducationSample {
                 "sha256:pending",
                 0L,
                 Map.of("businessKey", transactionId + "|result.dat"));
-        return transferEngine.execute(endpoint, request);
+        return transferClient.execute(endpoint, request);
     }
 }

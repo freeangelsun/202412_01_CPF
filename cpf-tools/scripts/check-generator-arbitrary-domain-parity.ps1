@@ -80,6 +80,11 @@ try {
             "rootProject.name = 'cpf-generator-arbitrary-domain-parity'`n",
             [Text.UTF8Encoding]::new($false))
 
+    $sandboxGradleRoot = Join-Path $sandboxRoot "gradle"
+    New-Item -ItemType Directory -Force -Path $sandboxGradleRoot | Out-Null
+    Copy-Item -LiteralPath (Join-Path $Root "gradle/cpf-stack.properties") `
+        -Destination (Join-Path $sandboxGradleRoot "cpf-stack.properties")
+
     $sandboxContractRoot = Join-Path $sandboxRoot "cpf-tools/generator/contracts"
     New-Item -ItemType Directory -Force -Path $sandboxContractRoot | Out-Null
     Copy-Item -LiteralPath (Join-Path $contractRoot "central-domain-template-contract.json") `

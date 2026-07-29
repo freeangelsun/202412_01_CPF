@@ -1,8 +1,8 @@
 package com.cpf.batch.control.deploy;
 
 import com.cpf.batch.api.ArtifactManifest;
-import com.cpf.core.common.database.CpfVendorSqlCatalog;
-import org.springframework.core.env.Environment;
+import com.cpf.core.api.database.CpfVendorSqlCatalog;
+import com.cpf.core.api.database.CpfVendorSqlCatalogProvider;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -11,9 +11,9 @@ public class CompatibilityService {
     private final JdbcTemplate jdbc;
     private final CpfVendorSqlCatalog sql;
 
-    public CompatibilityService(JdbcTemplate jdbc, Environment environment) {
+    public CompatibilityService(JdbcTemplate jdbc, CpfVendorSqlCatalogProvider sqlCatalogProvider) {
         this.jdbc = jdbc;
-        this.sql = CpfVendorSqlCatalog.create(environment, "bat");
+        this.sql = sqlCatalogProvider.forModule("bat");
     }
 
     public Result evaluate(ArtifactManifest artifact, String environmentId) {

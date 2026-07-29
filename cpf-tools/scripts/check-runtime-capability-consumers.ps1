@@ -8,7 +8,9 @@ function Require-Markers([string]$rel,[string[]]$markers){$p=Require-File $rel;$
 # 정본 Catalog와 Control Plane lifecycle
 Require-Markers 'cpf-core\src\main\java\com\cpf\core\api\runtimecontrol\CpfRuntimeCapabilityCatalog.java' @(
  'COMMON_CODE','MESSAGE_RESPONSE_CODE','CONFIG_PARAMETER_FEATURE_FLAG','CACHE','ONLINE_TRANSACTION','SERVICE_CALL','GATEWAY','LOG_TRACE','BATCH_RUNTIME','SECURITY_RUNTIME_POLICY','EXTERNAL_INTEGRATION','INSTANCE_MANAGEMENT','INSTANCE_LOG_DOWNLOAD','OBSERVABILITY_NOTIFICATION')
-Require-Markers 'cpf-core\src\main\java\com\cpf\core\common\runtimecontrol\CpfRuntimeControlPlaneService.java' @('expectedVersion','requestHash','preview','rollback','retry')
+Require-Markers 'cpf-core\src\main\java\com\cpf\core\common\runtimecontrol\CpfRuntimeControlPlaneService.java' @('expectedVersion','requestHash','preview','rollback')
+Require-Markers 'cpf-core\src\main\java\com\cpf\core\common\runtimecontrol\CpfRuntimeControlPlaneRepository.java' @(
+ 'scheduleRetryOrPoison','next_attempt_at','POISONED')
 Require-Markers 'cpf-core\src\main\java\com\cpf\core\common\runtimecontrol\CpfRuntimeControlAgent.java' @('ack','actualVersion','fencing')
 Require-Markers 'cpf-core\src\main\java\com\cpf\core\common\runtimecontrol\CpfRuntimeControlReconciler.java' @('reconcile')
 Require-Dir 'cpf-admin\frontend\src\features\runtime-control'|Out-Null
@@ -59,7 +61,8 @@ foreach($d in @('topology','service-registry','batch-instances')){Require-Dir "c
 Require-File 'cpf-admin\src\main\java\com\cpf\admin\opr\service\AdmDownloadService.java'|Out-Null
 Require-Dir 'cpf-admin\frontend\src\features\remote-logs'|Out-Null
 Require-Dir 'cpf-admin\frontend\src\features\downloads'|Out-Null
-Require-Markers 'cpf-batch\host-agent\src\main\java\com\cpf\batch\agent\AgentController.java' @('download','log')
+Require-Markers 'cpf-batch\host-agent\src\main\java\com\cpf\batch\agent\AgentController.java' @(
+ '@GetMapping("/services/{id}/logs")','FileSystemResource','COLLECT_LOGS')
 
 # 14 Notification Outbox/Worker/Provider
 foreach($rel in @(

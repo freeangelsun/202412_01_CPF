@@ -1,6 +1,6 @@
 package com.cpf.bizadmin.config;
 
-import com.cpf.core.common.database.CpfDataSourceResolver;
+import com.cpf.core.api.database.CpfDataSources;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -28,7 +28,7 @@ public class BzaDataSourceConfig {
      */
     @Bean(name = "bzaDataSource")
     public DataSource bzaDataSource(Environment environment) throws NamingException {
-        return CpfDataSourceResolver.resolve(environment, "cpf.bza.datasource");
+        return CpfDataSources.resolve(environment, "cpf.bza.datasource");
     }
 
     /**

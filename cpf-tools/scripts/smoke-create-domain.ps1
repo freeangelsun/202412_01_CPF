@@ -7,7 +7,6 @@ param(
     [string] $PackageName = "",
     [string] $SchemaName = "",
     [string] $TablePrefix = "",
-    [ValidateSet("mariadb", "mysql", "postgresql", "oracle", "sqlserver")]
     [string] $DatabaseVendor = "mariadb"
 )
 
@@ -20,6 +19,29 @@ $OutputEncoding = $CpfUtf8ConsoleEncoding
 $ErrorActionPreference = "Stop"
 $Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
 $Root = (Resolve-Path -LiteralPath $Root).Path
+. (Join-Path $Root "cpf-tools/scripts/database-profile-common.ps1")
+$DatabaseVendor = Assert-CpfSupportedDatabaseVendor $DatabaseVendor
+$cpfStackPropertiesPath = Join-Path $Root "gradle/cpf-stack.properties"
+if (-not (Test-Path -LiteralPath $cpfStackPropertiesPath -PathType Leaf)) {
+    throw "CPF Stack 정본이 없습니다: $cpfStackPropertiesPath"
+}
+$cpfStackProperties = @{}
+foreach ($line in Get-Content -LiteralPath $cpfStackPropertiesPath -Encoding UTF8) {
+    $trimmed = $line.Trim()
+    if ([string]::IsNullOrWhiteSpace($trimmed) -or $trimmed.StartsWith("#")) { continue }
+    $separator = $trimmed.IndexOf("=")
+    if ($separator -le 0) { continue }
+    $cpfStackProperties[$trimmed.Substring(0, $separator).Trim()] =
+            $trimmed.Substring($separator + 1).Trim()
+}
+$cpfJavaVersion = [int]$cpfStackProperties["javaVersion"]
+$springBootVersion = [string]$cpfStackProperties["springBootVersion"]
+$dependencyManagementVersion = [string]$cpfStackProperties["springDependencyManagementVersion"]
+if ($cpfJavaVersion -le 0 -or
+        [string]::IsNullOrWhiteSpace($springBootVersion) -or
+        [string]::IsNullOrWhiteSpace($dependencyManagementVersion)) {
+    throw "CPF Stack 정본의 Java/Spring plugin version이 유효하지 않습니다."
+}
 
 function New-UnicodeText {
     param([int[]] $CodePoints)
@@ -39,13 +61,16 @@ $resultPath = Join-Path $ResultDir "create-domain-result.sanitized.json"
 $projectName = "cpf-$DomainName"
 $previewDir = Join-Path $Root "build/domain-generator/$projectName"
 $verificationDir = Join-Path $Root "build/domain-generator-verification/$projectName"
+$runtimeScriptDir = Join-Path $Root "build/domain-generator-runtime"
+$runtimeScript = Join-Path $runtimeScriptDir "create-domain.ps1"
+$compileRawLogPath = Join-Path $Root "build/runtime-smoke/create-domain-compile.raw.log"
 $moduleClassName = $ModuleName
 $PackageName = if ([string]::IsNullOrWhiteSpace($PackageName)) { "com.cpf.$DomainName" } else { $PackageName }
 $TablePrefix = if ([string]::IsNullOrWhiteSpace($TablePrefix)) { $SystemCode.ToLowerInvariant() } else { $TablePrefix }
 $SchemaName = if ([string]::IsNullOrWhiteSpace($SchemaName)) { "${TablePrefix}DB" } else { $SchemaName }
-$featureClassPrefix = "${ModuleName}Reference"
+$featureClassPrefix = $ModuleName
 $basePath = $PackageName.Replace('.', '/')
-$featurePath = "$basePath/reference"
+$featurePath = "$basePath/sampleitem"
 
 function Save-Result {
     param([object] $Result)
@@ -59,8 +84,6 @@ function Invoke-CreateDomain {
     )
 
     $sourceScript = Join-Path $Root "cpf-tools/generator/create-domain.ps1"
-    $runtimeScriptDir = Join-Path $Root "build/domain-generator-runtime"
-    $runtimeScript = Join-Path $runtimeScriptDir "create-domain.ps1"
     New-Item -ItemType Directory -Force -Path $runtimeScriptDir | Out-Null
     $sourceText = [System.IO.File]::ReadAllText($sourceScript, [System.Text.Encoding]::UTF8)
     [System.IO.File]::WriteAllText($runtimeScript, $sourceText, [System.Text.UTF8Encoding]::new($true))
@@ -128,8 +151,10 @@ try {
         "manifest/generator-ownership.json",
         "manifest/standard-execution-catalog.json",
         "deploy/database/database-profile.json",
+        "deploy/runtime/runtime-agent.json",
         "src/main/resources/application.yml",
         "src/main/resources/application-${DomainName}.yml",
+        "src/main/resources/application-runtime-agent.yml",
         "src/main/java/$basePath/${moduleClassName}Application.java",
         "src/main/java/$basePath/common/base/${moduleClassName}BaseController.java",
         "src/main/java/$basePath/common/base/${moduleClassName}BaseService.java",
@@ -143,12 +168,17 @@ try {
         "src/main/java/$featurePath/controller/${featureClassPrefix}Controller.java",
         "src/main/java/$featurePath/facade/${featureClassPrefix}Facade.java",
         "src/main/java/$featurePath/port/${featureClassPrefix}QueryPort.java",
-        "src/main/java/$featurePath/adapter/local/Local${featureClassPrefix}QueryAdapter.java",
+        "src/main/java/$featurePath/port/${featureClassPrefix}CommandPort.java",
+        "src/main/java/$featurePath/adapter/local/Local${featureClassPrefix}Adapter.java",
         "src/main/java/$featurePath/service/${featureClassPrefix}Service.java",
         "src/main/java/$featurePath/repository/${featureClassPrefix}Repository.java",
         "src/main/java/$featurePath/dto/${featureClassPrefix}SearchRequest.java",
         "src/main/java/$featurePath/dto/${featureClassPrefix}SampleCommand.java",
         "src/main/java/$featurePath/dto/${featureClassPrefix}SampleItem.java",
+        "src/main/java/$featurePath/dto/${featureClassPrefix}SearchResult.java",
+        "src/main/java/$featurePath/dto/${featureClassPrefix}DeleteCommand.java",
+        "src/main/java/$featurePath/dto/${featureClassPrefix}DeleteResult.java",
+        "src/main/java/$featurePath/dto/${featureClassPrefix}IdempotencyEntry.java",
         "src/main/java/$featurePath/validation/${featureClassPrefix}SearchValidator.java",
         "src/test/java/$featurePath/service/${featureClassPrefix}ServiceTest.java",
         "smoke/smoke-${DomainName}.ps1"
@@ -196,6 +226,20 @@ try {
             throw "create-domain generated text contains mojibake marker. path=$($textFile.FullName)"
         }
     }
+    $generatedManifest = Get-Content -LiteralPath (
+            Join-Path $previewDir "manifest/domain-manifest.json") -Raw -Encoding UTF8 |
+            ConvertFrom-Json
+    if ([int]$generatedManifest.physicalTableContract.totalTables -ne 2 -or
+            [int]$generatedManifest.physicalTableContract.businessTableCount -ne 1 -or
+            [int]$generatedManifest.physicalTableContract.supportLedgerCount -ne 1 -or
+            [bool]$generatedManifest.physicalTableContract.additionalTablesAllowed -or
+            @($generatedManifest.minimalTransactionContract.requiredColumns).Count -ne 14 -or
+            @($generatedManifest.idempotencyLedgerContract.requiredColumns).Count -ne 8 -or
+            [string]$generatedManifest.idempotencyLedgerContract.tableRole -ne
+                    "non-business-support-ledger" -or
+            -not [bool]$generatedManifest.idempotencyLedgerContract.logicalDeleteReplayRequired) {
+        throw "Generated Domain Sample 1개 + 비업무 Idempotency Ledger 1개 계약이 manifest에 기록되지 않았습니다."
+    }
 
     $dataSourceConfigText = [IO.File]::ReadAllText(
             (Join-Path $previewDir "src/main/java/$basePath/config/${ModuleName}DataSourceConfig.java"),
@@ -223,13 +267,14 @@ try {
     $previewForGradle = $previewDir.Replace("\", "/")
     $settings = @"
 pluginManagement {
+    includeBuild '${rootForGradle}/cpf-tools/build/gradle-plugin'
     repositories {
         gradlePluginPortal()
         mavenCentral()
     }
     plugins {
-        id 'org.springframework.boot' version '3.4.13'
-        id 'io.spring.dependency-management' version '1.1.7'
+        id 'org.springframework.boot' version '$springBootVersion'
+        id 'io.spring.dependency-management' version '$dependencyManagementVersion'
     }
 }
 
@@ -242,13 +287,14 @@ project(':$projectName').projectDir = file('$previewForGradle')
     $rootBuild = @"
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '3.4.13' apply false
-    id 'io.spring.dependency-management' version '1.1.7' apply false
+    id 'org.springframework.boot' version '$springBootVersion' apply false
+    id 'io.spring.dependency-management' version '$dependencyManagementVersion' apply false
 }
 
-ext.cpfJavaVersion = (findProperty('cpfJavaVersion') ?: System.getenv('CPF_JAVA_VERSION') ?: '25')
+ext.cpfJavaVersion = (findProperty('cpfJavaVersion') ?: System.getenv('CPF_JAVA_VERSION') ?: '$cpfJavaVersion')
         .toString()
         .toInteger()
+ext.cpfSpringBootVersion = '$springBootVersion'
 ext.cpfCentralDbPackRoot = '${rootForGradle}/cpf-tools/db/vendor'
 
 allprojects {
@@ -265,7 +311,7 @@ subprojects {
 
     dependencyManagement {
         imports {
-            mavenBom 'org.springframework.boot:spring-boot-dependencies:3.4.13'
+            mavenBom 'org.springframework.boot:spring-boot-dependencies:$springBootVersion'
         }
     }
 
@@ -277,6 +323,15 @@ subprojects {
         testImplementation 'org.springframework.boot:spring-boot-starter-test'
         testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     }
+
+    tasks.withType(Test).configureEach {
+        testLogging {
+            exceptionFormat = 'full'
+            showExceptions = true
+            showCauses = true
+            showStackTraces = true
+        }
+    }
 }
 "@
     [System.IO.File]::WriteAllText((Join-Path $verificationDir "settings.gradle"), $settings, $Utf8NoBom)
@@ -287,7 +342,6 @@ subprojects {
     } else {
         (Get-Command java -ErrorAction Stop).Source
     }
-    $compileRawLogPath = Join-Path $Root "build/runtime-smoke/create-domain-compile.raw.log"
     $compileLogPath = Join-Path $ResultDir "create-domain-compile.sanitized.log"
     # 회사 단말 정책이 중첩 PowerShell의 배치 파일 실행을 차단할 수 있으므로
     # wrapper jar를 Java 25 프로세스로 직접 실행해 플랫폼별 shell 차이를 제거합니다.
@@ -296,7 +350,7 @@ subprojects {
         $ErrorActionPreference = "Continue"
         $compileOutputLines = @(& $javaExecutable "-Dorg.gradle.appname=gradlew" -jar $gradleWrapperJar -p $verificationDir `
                 ":${projectName}:test" ":${projectName}:bootJar" ":${projectName}:bootWar" `
-                --no-daemon --console=plain 2>&1 | ForEach-Object { $_.ToString() })
+                --no-daemon --max-workers=1 --console=plain 2>&1 | ForEach-Object { $_.ToString() })
         $compileExitCode = $LASTEXITCODE
     } finally {
         $ErrorActionPreference = $previousErrorActionPreference
@@ -308,7 +362,7 @@ subprojects {
     & (Join-Path $Root "cpf-tools/scripts/write-sanitized-evidence.ps1") `
         -EvidenceId "CREATE_DOMAIN_COMPILE" `
         -Status $compileStatus `
-        -Command ".\gradlew.bat :${projectName}:test :${projectName}:bootJar :${projectName}:bootWar" `
+        -Command ".\gradlew.bat :${projectName}:test :${projectName}:bootJar :${projectName}:bootWar --no-daemon --max-workers=1" `
         -OutputPath $compileLogPath `
         -ExitCode $compileExitCode `
         -SourceLog $compileRawLogPath `
@@ -334,8 +388,9 @@ subprojects {
         throw "generated domain application class is invalid. path=$applicationClass"
     }
     $classMajor = ([int]$classBytes[6] * 256) + [int]$classBytes[7]
-    if ($classMajor -ne 69) {
-        throw "generated domain class major must be 69. actual=$classMajor"
+    $expectedClassMajor = $cpfJavaVersion + 44
+    if ($classMajor -ne $expectedClassMajor) {
+        throw "generated domain class major must be $expectedClassMajor. actual=$classMajor"
     }
     $bootJar = Get-ChildItem -LiteralPath (Join-Path $previewDir "build/libs") -File -Filter "*.jar" |
         Where-Object { $_.Name -notlike "*-plain.jar" } |
@@ -363,7 +418,7 @@ subprojects {
     throw
 } finally {
     # 성공/실패와 무관하게 임시 Generated Domain을 build 밖에 남기지 않습니다.
-    foreach ($temporaryDirectory in @($previewDir, $verificationDir)) {
+    foreach ($temporaryDirectory in @($previewDir, $verificationDir, $runtimeScriptDir)) {
         if (Test-Path -LiteralPath $temporaryDirectory) {
             $resolvedTemporary = [System.IO.Path]::GetFullPath($temporaryDirectory)
             $allowedRoot = [System.IO.Path]::GetFullPath((Join-Path $Root "build"))
@@ -377,5 +432,10 @@ subprojects {
     }
     $result.cleanup.previewRemoved = -not (Test-Path -LiteralPath $previewDir)
     $result.cleanup.verificationRemoved = -not (Test-Path -LiteralPath $verificationDir)
+    $result.cleanup.runtimeScriptRemoved = -not (Test-Path -LiteralPath $runtimeScriptDir)
+    if (Test-Path -LiteralPath $compileRawLogPath -PathType Leaf) {
+        [System.IO.File]::Delete($compileRawLogPath)
+    }
+    $result.cleanup.rawLogRemoved = -not (Test-Path -LiteralPath $compileRawLogPath)
     Save-Result $result
 }

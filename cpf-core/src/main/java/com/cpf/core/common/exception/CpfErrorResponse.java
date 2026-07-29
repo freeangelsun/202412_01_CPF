@@ -28,7 +28,7 @@ public class CpfErrorResponse {
             String errorType,
             String fieldName) {
         return of(
-                new CpfResolvedResponse(
+                new com.cpf.core.api.error.CpfResolvedResponse(
                         errorCode.getHttpStatus().value(),
                         errorCode.getStatusCode(),
                         errorCode.getMessageCode(),
@@ -42,7 +42,7 @@ public class CpfErrorResponse {
     }
 
     public static CpfErrorResponse of(
-            CpfResolvedResponse resolvedResponse,
+            com.cpf.core.api.error.CpfResolvedResponse resolvedResponse,
             String externalMessage,
             String errorType,
             String fieldName) {

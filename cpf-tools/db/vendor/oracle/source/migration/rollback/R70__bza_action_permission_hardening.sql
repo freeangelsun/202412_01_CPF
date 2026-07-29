@@ -1,1 +1,0 @@
-DELETE FROM bza_permission WHERE (role_code='BZA_ADMIN' AND menu_code='BZA_AUTHORIZATION' AND button_code='SIMULATE') OR (role_code='BZA_ADMIN' AND menu_code='BZA_EMPLOYEE' AND button_code='PII_RAW') OR (role_code='BZA_OPERATOR' AND menu_code='BZA_AUTHORIZATION' AND button_code='SIMULATE');

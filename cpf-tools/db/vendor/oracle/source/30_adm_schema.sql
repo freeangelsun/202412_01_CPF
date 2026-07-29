@@ -2,9 +2,7 @@
 -- vendor=oracle
 -- DO NOT EDIT generated DDL directly.
 
-
 -- CPF_LOGICAL_DATABASE=admDB
--- CPF_USE_LOGICAL_DATABASE=admDB
 CREATE TABLE adm_api_permission (
     API_PERMISSION_ID VARCHAR2(120 CHAR) NOT NULL,
     API_GROUP_CODE VARCHAR2(50 CHAR) NOT NULL,
@@ -19,7 +17,7 @@ CREATE TABLE adm_api_permission (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_by VARCHAR2(50 CHAR) NOT NULL DEFAULT 'ADM',
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (API_PERMISSION_ID),
+    CONSTRAINT pk_adm_api_permission PRIMARY KEY (API_PERMISSION_ID),
     CONSTRAINT uk_adm_api_permission_method_path UNIQUE (HTTP_METHOD, API_PATH),
     CONSTRAINT fk_adm_api_permission_menu FOREIGN KEY (MENU_ID) REFERENCES adm_menu (MENU_ID) ON DELETE SET NULL,
     CONSTRAINT fk_adm_api_permission_button FOREIGN KEY (BUTTON_ID) REFERENCES adm_button (BUTTON_ID) ON DELETE SET NULL
@@ -40,12 +38,7 @@ COMMENT ON COLUMN adm_api_permission.created_by IS '등록자';
 COMMENT ON COLUMN adm_api_permission.created_at IS '등록일시';
 COMMENT ON COLUMN adm_api_permission.updated_by IS '수정자';
 COMMENT ON COLUMN adm_api_permission.updated_at IS '수정일시';
-CREATE OR REPLACE TRIGGER trg_adm_api_permission_touch
-BEFORE UPDATE ON adm_api_permission
-FOR EACH ROW
-BEGIN
-    :NEW.updated_at := CURRENT_TIMESTAMP;
-END;
+CREATE OR REPLACE TRIGGER trg_touch_adm_api_permission BEFORE UPDATE ON adm_api_permission FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
 /
 
 CREATE TABLE adm_approval_execution (
@@ -61,7 +54,7 @@ CREATE TABLE adm_approval_execution (
     created_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     updated_by VARCHAR2(50 CHAR) NOT NULL DEFAULT 'ADM',
     updated_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    PRIMARY KEY (APPROVAL_REQUEST_ID),
+    CONSTRAINT pk_adm_approval_execution PRIMARY KEY (APPROVAL_REQUEST_ID),
     CONSTRAINT uk_adm_approval_execution_command UNIQUE (COMMAND_REQUEST_ID),
     CONSTRAINT ck_adm_approval_execution_status CHECK (EXECUTION_STATUS IN ('PENDING','RUNNING','SUCCEEDED','FAILED','UNKNOWN','RECOVERED')),
     CONSTRAINT ck_adm_approval_execution_recovery CHECK (RECOVERY_REQUIRED_YN IN ('Y','N')),
@@ -82,12 +75,7 @@ COMMENT ON COLUMN adm_approval_execution.created_by IS '등록자';
 COMMENT ON COLUMN adm_approval_execution.created_at IS '등록일시';
 COMMENT ON COLUMN adm_approval_execution.updated_by IS '수정자';
 COMMENT ON COLUMN adm_approval_execution.updated_at IS '수정일시';
-CREATE OR REPLACE TRIGGER trg_adm_approval_execution_touch
-BEFORE UPDATE ON adm_approval_execution
-FOR EACH ROW
-BEGIN
-    :NEW.updated_at := CURRENT_TIMESTAMP;
-END;
+CREATE OR REPLACE TRIGGER trg_touch_adm_approval_execution BEFORE UPDATE ON adm_approval_execution FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
 /
 
 CREATE TABLE adm_approval_history (
@@ -102,7 +90,7 @@ CREATE TABLE adm_approval_history (
     TRANSACTION_ID CHAR(34 CHAR),
     created_by VARCHAR2(50 CHAR) NOT NULL DEFAULT 'ADM',
     created_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    PRIMARY KEY (APPROVAL_HISTORY_ID),
+    CONSTRAINT pk_adm_approval_history PRIMARY KEY (APPROVAL_HISTORY_ID),
     CONSTRAINT fk_adm_approval_history_request FOREIGN KEY (APPROVAL_REQUEST_ID) REFERENCES adm_approval_request (APPROVAL_REQUEST_ID)
 );
 CREATE INDEX ix_adm_approval_history_request ON adm_approval_history (APPROVAL_REQUEST_ID, APPROVAL_HISTORY_ID);
@@ -137,7 +125,7 @@ CREATE TABLE adm_approval_participant (
     created_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     updated_by VARCHAR2(50 CHAR) NOT NULL DEFAULT 'ADM',
     updated_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    PRIMARY KEY (APPROVAL_PARTICIPANT_ID),
+    CONSTRAINT pk_adm_approval_participant PRIMARY KEY (APPROVAL_PARTICIPANT_ID),
     CONSTRAINT uk_adm_approval_participant UNIQUE (APPROVAL_REQUEST_ID, STEP_NO, OPERATOR_ID),
     CONSTRAINT uk_adm_approval_participant_idem UNIQUE (IDEMPOTENCY_KEY),
     CONSTRAINT ck_adm_approval_participant_status CHECK (DECISION_STATUS IN ('WAITING','APPROVED','REJECTED','SKIPPED')),
@@ -163,12 +151,7 @@ COMMENT ON COLUMN adm_approval_participant.created_by IS '등록자';
 COMMENT ON COLUMN adm_approval_participant.created_at IS '등록일시';
 COMMENT ON COLUMN adm_approval_participant.updated_by IS '수정자';
 COMMENT ON COLUMN adm_approval_participant.updated_at IS '수정일시';
-CREATE OR REPLACE TRIGGER trg_adm_approval_participant_touch
-BEFORE UPDATE ON adm_approval_participant
-FOR EACH ROW
-BEGIN
-    :NEW.updated_at := CURRENT_TIMESTAMP;
-END;
+CREATE OR REPLACE TRIGGER trg_touch_adm_approval_participant BEFORE UPDATE ON adm_approval_participant FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
 /
 
 CREATE TABLE adm_approval_policy (
@@ -186,7 +169,7 @@ CREATE TABLE adm_approval_policy (
     created_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     updated_by VARCHAR2(50 CHAR) NOT NULL DEFAULT 'ADM',
     updated_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    PRIMARY KEY (POLICY_CODE, POLICY_VERSION),
+    CONSTRAINT pk_adm_approval_policy PRIMARY KEY (POLICY_CODE, POLICY_VERSION),
     CONSTRAINT ck_adm_approval_policy_version CHECK (POLICY_VERSION > 0),
     CONSTRAINT ck_adm_approval_policy_flags CHECK (ENABLED_YN IN ('Y','N') AND SELF_APPROVAL_ALLOWED_YN IN ('Y','N') AND BREAK_GLASS_ALLOWED_YN IN ('Y','N')),
     CONSTRAINT ck_adm_approval_policy_effective CHECK (EFFECTIVE_TO IS NULL OR EFFECTIVE_TO > EFFECTIVE_FROM)
@@ -207,12 +190,7 @@ COMMENT ON COLUMN adm_approval_policy.created_by IS '등록자';
 COMMENT ON COLUMN adm_approval_policy.created_at IS '등록일시';
 COMMENT ON COLUMN adm_approval_policy.updated_by IS '수정자';
 COMMENT ON COLUMN adm_approval_policy.updated_at IS '수정일시';
-CREATE OR REPLACE TRIGGER trg_adm_approval_policy_touch
-BEFORE UPDATE ON adm_approval_policy
-FOR EACH ROW
-BEGIN
-    :NEW.updated_at := CURRENT_TIMESTAMP;
-END;
+CREATE OR REPLACE TRIGGER trg_touch_adm_approval_policy BEFORE UPDATE ON adm_approval_policy FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
 /
 
 CREATE TABLE adm_approval_policy_step (
@@ -229,7 +207,7 @@ CREATE TABLE adm_approval_policy_step (
     created_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     updated_by VARCHAR2(50 CHAR) NOT NULL DEFAULT 'ADM',
     updated_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    PRIMARY KEY (POLICY_CODE, POLICY_VERSION, STEP_NO, TARGET_TYPE, TARGET_CODE),
+    CONSTRAINT pk_adm_approval_policy_step PRIMARY KEY (POLICY_CODE, POLICY_VERSION, STEP_NO, TARGET_TYPE, TARGET_CODE),
     CONSTRAINT ck_adm_approval_policy_step_no CHECK (STEP_NO >= 1),
     CONSTRAINT ck_adm_approval_policy_step_type CHECK (STEP_TYPE IN ('APPROVAL','REVIEW')),
     CONSTRAINT ck_adm_approval_policy_step_target CHECK (TARGET_TYPE IN ('OPERATOR','ROLE','ORGANIZATION','ORG_MANAGER')),
@@ -251,12 +229,7 @@ COMMENT ON COLUMN adm_approval_policy_step.created_by IS '등록자';
 COMMENT ON COLUMN adm_approval_policy_step.created_at IS '등록일시';
 COMMENT ON COLUMN adm_approval_policy_step.updated_by IS '수정자';
 COMMENT ON COLUMN adm_approval_policy_step.updated_at IS '수정일시';
-CREATE OR REPLACE TRIGGER trg_adm_approval_policy_step_touch
-BEFORE UPDATE ON adm_approval_policy_step
-FOR EACH ROW
-BEGIN
-    :NEW.updated_at := CURRENT_TIMESTAMP;
-END;
+CREATE OR REPLACE TRIGGER trg_touch_adm_approval_policy_step BEFORE UPDATE ON adm_approval_policy_step FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
 /
 
 CREATE TABLE adm_approval_request (
@@ -282,12 +255,12 @@ CREATE TABLE adm_approval_request (
     created_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     updated_by VARCHAR2(50 CHAR) NOT NULL DEFAULT 'ADM',
     updated_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    PRIMARY KEY (APPROVAL_REQUEST_ID),
+    CONSTRAINT pk_adm_approval_request PRIMARY KEY (APPROVAL_REQUEST_ID),
     CONSTRAINT uk_adm_approval_request_key UNIQUE (REQUEST_KEY),
     CONSTRAINT ck_adm_approval_request_status CHECK (APPROVAL_STATUS IN ('PENDING','APPROVED','REJECTED','CANCELLED','EXPIRED','EXECUTING','COMPLETED','FAILED','UNKNOWN')),
     CONSTRAINT ck_adm_approval_request_version CHECK (VERSION_NO >= 0),
     CONSTRAINT ck_adm_approval_request_step CHECK (CURRENT_STEP_NO >= 1),
-    CONSTRAINT ck_adm_approval_request_hash CHECK (LENGTH(COMMAND_PAYLOAD_HASH) = 64),
+    CONSTRAINT ck_adm_approval_request_hash CHECK (CHAR_LENGTH(COMMAND_PAYLOAD_HASH) = 64),
     CONSTRAINT fk_adm_approval_request_policy FOREIGN KEY (POLICY_CODE, POLICY_VERSION) REFERENCES adm_approval_policy (POLICY_CODE, POLICY_VERSION)
 );
 CREATE INDEX ix_adm_approval_request_status ON adm_approval_request (APPROVAL_STATUS, EXPIRE_AT, APPROVAL_REQUEST_ID);
@@ -315,12 +288,7 @@ COMMENT ON COLUMN adm_approval_request.created_by IS '등록자';
 COMMENT ON COLUMN adm_approval_request.created_at IS '등록일시';
 COMMENT ON COLUMN adm_approval_request.updated_by IS '수정자';
 COMMENT ON COLUMN adm_approval_request.updated_at IS '수정일시';
-CREATE OR REPLACE TRIGGER trg_adm_approval_request_touch
-BEFORE UPDATE ON adm_approval_request
-FOR EACH ROW
-BEGIN
-    :NEW.updated_at := CURRENT_TIMESTAMP;
-END;
+CREATE OR REPLACE TRIGGER trg_touch_adm_approval_request BEFORE UPDATE ON adm_approval_request FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
 /
 
 CREATE TABLE adm_audit_delivery (
@@ -349,7 +317,7 @@ CREATE TABLE adm_audit_delivery (
     UPDATED_BY VARCHAR2(100 CHAR) NOT NULL,
     CREATED_AT TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     UPDATED_AT TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    PRIMARY KEY (DELIVERY_ID),
+    CONSTRAINT pk_adm_audit_delivery PRIMARY KEY (DELIVERY_ID),
     CONSTRAINT ck_adm_audit_delivery_operation CHECK (OPERATION_STATUS IN ('REQUESTED','SUCCEEDED','FAILED','UNKNOWN')),
     CONSTRAINT ck_adm_audit_delivery_status CHECK (DELIVERY_STATUS IN ('PENDING','RETRY','FAILED','DELIVERED'))
 );
@@ -405,7 +373,7 @@ CREATE TABLE adm_audit_log (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_by VARCHAR2(50 CHAR) NOT NULL DEFAULT 'ADM',
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (AUDIT_ID)
+    CONSTRAINT pk_adm_audit_log PRIMARY KEY (AUDIT_ID)
 );
 CREATE INDEX ix_adm_audit_log_tx ON adm_audit_log (TRANSACTION_ID);
 CREATE INDEX ix_adm_audit_log_operator_time ON adm_audit_log (OPERATOR_ID, created_at);
@@ -434,12 +402,7 @@ COMMENT ON COLUMN adm_audit_log.created_by IS '등록자';
 COMMENT ON COLUMN adm_audit_log.created_at IS '등록일시';
 COMMENT ON COLUMN adm_audit_log.updated_by IS '수정자';
 COMMENT ON COLUMN adm_audit_log.updated_at IS '수정일시';
-CREATE OR REPLACE TRIGGER trg_adm_audit_log_touch
-BEFORE UPDATE ON adm_audit_log
-FOR EACH ROW
-BEGIN
-    :NEW.updated_at := CURRENT_TIMESTAMP;
-END;
+CREATE OR REPLACE TRIGGER trg_touch_adm_audit_log BEFORE UPDATE ON adm_audit_log FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
 /
 
 CREATE TABLE adm_break_glass_session (
@@ -460,7 +423,7 @@ CREATE TABLE adm_break_glass_session (
     created_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     updated_by VARCHAR2(100 CHAR) NOT NULL,
     updated_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    PRIMARY KEY (session_id),
+    CONSTRAINT pk_adm_break_glass_session PRIMARY KEY (session_id),
     CONSTRAINT ck_adm_break_glass_status CHECK (status IN ('ACTIVE','CLOSED','EXPIRED')),
     CONSTRAINT ck_adm_break_glass_review CHECK (post_review_status IN ('PENDING','APPROVED','REJECTED'))
 );
@@ -485,12 +448,7 @@ COMMENT ON COLUMN adm_break_glass_session.created_by IS 'Creator';
 COMMENT ON COLUMN adm_break_glass_session.created_at IS 'Creation time';
 COMMENT ON COLUMN adm_break_glass_session.updated_by IS 'Last updater';
 COMMENT ON COLUMN adm_break_glass_session.updated_at IS 'Last update time';
-CREATE OR REPLACE TRIGGER trg_adm_break_glass_session_touch
-BEFORE UPDATE ON adm_break_glass_session
-FOR EACH ROW
-BEGIN
-    :NEW.updated_at := CURRENT_TIMESTAMP;
-END;
+CREATE OR REPLACE TRIGGER trg_touch_adm_break_glass_session BEFORE UPDATE ON adm_break_glass_session FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
 /
 
 CREATE TABLE adm_button (
@@ -506,7 +464,7 @@ CREATE TABLE adm_button (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_by VARCHAR2(50 CHAR) NOT NULL DEFAULT 'ADM',
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (BUTTON_ID),
+    CONSTRAINT pk_adm_button PRIMARY KEY (BUTTON_ID),
     CONSTRAINT uk_adm_button_menu_action UNIQUE (MENU_ID, ACTION_CODE),
     CONSTRAINT fk_adm_button_menu FOREIGN KEY (MENU_ID) REFERENCES adm_menu (MENU_ID) ON DELETE CASCADE
 );
@@ -524,12 +482,7 @@ COMMENT ON COLUMN adm_button.created_by IS '등록자';
 COMMENT ON COLUMN adm_button.created_at IS '등록일시';
 COMMENT ON COLUMN adm_button.updated_by IS '수정자';
 COMMENT ON COLUMN adm_button.updated_at IS '수정일시';
-CREATE OR REPLACE TRIGGER trg_adm_button_touch
-BEFORE UPDATE ON adm_button
-FOR EACH ROW
-BEGIN
-    :NEW.updated_at := CURRENT_TIMESTAMP;
-END;
+CREATE OR REPLACE TRIGGER trg_touch_adm_button BEFORE UPDATE ON adm_button FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
 /
 
 CREATE TABLE adm_download_audit_log (
@@ -556,7 +509,7 @@ CREATE TABLE adm_download_audit_log (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_by VARCHAR2(50 CHAR) NOT NULL DEFAULT 'ADM',
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (DOWNLOAD_ID)
+    CONSTRAINT pk_adm_download_audit_log PRIMARY KEY (DOWNLOAD_ID)
 );
 CREATE INDEX ix_adm_download_audit_log_admin_time ON adm_download_audit_log (ADMIN_ID, REQUESTED_AT);
 CREATE INDEX ix_adm_download_audit_log_type_time ON adm_download_audit_log (DOWNLOAD_TYPE, REQUESTED_AT);
@@ -585,12 +538,7 @@ COMMENT ON COLUMN adm_download_audit_log.created_by IS '등록자';
 COMMENT ON COLUMN adm_download_audit_log.created_at IS '등록일시';
 COMMENT ON COLUMN adm_download_audit_log.updated_by IS '수정자';
 COMMENT ON COLUMN adm_download_audit_log.updated_at IS '수정일시';
-CREATE OR REPLACE TRIGGER trg_adm_download_audit_log_touch
-BEFORE UPDATE ON adm_download_audit_log
-FOR EACH ROW
-BEGIN
-    :NEW.updated_at := CURRENT_TIMESTAMP;
-END;
+CREATE OR REPLACE TRIGGER trg_touch_adm_download_audit_log BEFORE UPDATE ON adm_download_audit_log FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
 /
 
 CREATE TABLE adm_dynamic_log_level_rule (
@@ -606,7 +554,7 @@ CREATE TABLE adm_dynamic_log_level_rule (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_by VARCHAR2(50 CHAR) NOT NULL DEFAULT 'ADM',
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (RULE_ID)
+    CONSTRAINT pk_adm_dynamic_log_level_rule PRIMARY KEY (RULE_ID)
 );
 CREATE INDEX ix_adm_dynamic_log_level_rule_biz_tx ON adm_dynamic_log_level_rule (BUSINESS_TRANSACTION_ID, EXPIRE_AT);
 CREATE INDEX ix_adm_dynamic_log_level_rule_tx ON adm_dynamic_log_level_rule (TRANSACTION_ID, EXPIRE_AT);
@@ -624,12 +572,114 @@ COMMENT ON COLUMN adm_dynamic_log_level_rule.created_by IS '등록자';
 COMMENT ON COLUMN adm_dynamic_log_level_rule.created_at IS '등록일시';
 COMMENT ON COLUMN adm_dynamic_log_level_rule.updated_by IS '수정자';
 COMMENT ON COLUMN adm_dynamic_log_level_rule.updated_at IS '수정일시';
-CREATE OR REPLACE TRIGGER trg_adm_dynamic_log_level_rule_touch
-BEFORE UPDATE ON adm_dynamic_log_level_rule
-FOR EACH ROW
-BEGIN
-    :NEW.updated_at := CURRENT_TIMESTAMP;
-END;
+CREATE OR REPLACE TRIGGER trg_touch_adm_dynamic_log_level_rule BEFORE UPDATE ON adm_dynamic_log_level_rule FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
+/
+
+CREATE TABLE adm_file_job (
+    job_id VARCHAR2(36 CHAR) NOT NULL,
+    operation_id VARCHAR2(100 CHAR) NOT NULL,
+    request_hash VARCHAR2(64 CHAR) NOT NULL,
+    job_type VARCHAR2(20 CHAR) NOT NULL,
+    template_code VARCHAR2(100 CHAR) NOT NULL,
+    template_version NUMBER(10) NOT NULL,
+    file_format VARCHAR2(10 CHAR) NOT NULL,
+    job_state VARCHAR2(30 CHAR) NOT NULL,
+    dry_run CHAR(1 CHAR) NOT NULL,
+    rollback_supported CHAR(1 CHAR) NOT NULL,
+    source_path VARCHAR2(1000 CHAR),
+    result_path VARCHAR2(1000 CHAR),
+    source_sha256 VARCHAR2(64 CHAR),
+    result_sha256 VARCHAR2(64 CHAR),
+    total_rows NUMBER(19) NOT NULL DEFAULT 0,
+    success_rows NUMBER(19) NOT NULL DEFAULT 0,
+    failed_rows NUMBER(19) NOT NULL DEFAULT 0,
+    lease_owner VARCHAR2(100 CHAR),
+    fencing_token NUMBER(19) NOT NULL DEFAULT 0,
+    lease_until TIMESTAMP(6),
+    retention_until TIMESTAMP(6) NOT NULL,
+    requested_by VARCHAR2(100 CHAR) NOT NULL,
+    reason VARCHAR2(500 CHAR) NOT NULL,
+    client_ip VARCHAR2(64 CHAR),
+    error_code VARCHAR2(80 CHAR),
+    error_message VARCHAR2(1000 CHAR),
+    created_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    updated_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    approval_id VARCHAR2(120 CHAR),
+    applied_by VARCHAR2(100 CHAR),
+    resolved_by VARCHAR2(100 CHAR),
+    control_by VARCHAR2(100 CHAR),
+    control_reason VARCHAR2(500 CHAR),
+    control_updated_at TIMESTAMP(6),
+    CONSTRAINT pk_adm_file_job PRIMARY KEY (job_id),
+    CONSTRAINT uk_adm_file_job_operation UNIQUE (operation_id)
+);
+CREATE INDEX ix_adm_file_job_claim ON adm_file_job (job_state, lease_until, created_at);
+CREATE INDEX ix_adm_file_job_retention ON adm_file_job (retention_until, job_state);
+CREATE INDEX ix_adm_file_job_approval ON adm_file_job (approval_id, job_state);
+COMMENT ON TABLE adm_file_job IS 'ADM 비동기 대량 File Job 원장';
+COMMENT ON COLUMN adm_file_job.job_id IS 'File Job ID';
+COMMENT ON COLUMN adm_file_job.operation_id IS '멱등 Operation ID';
+COMMENT ON COLUMN adm_file_job.request_hash IS '요청 SHA-256';
+COMMENT ON COLUMN adm_file_job.job_type IS 'UPLOAD 또는 DOWNLOAD';
+COMMENT ON COLUMN adm_file_job.template_code IS 'Template Code';
+COMMENT ON COLUMN adm_file_job.template_version IS 'Template Version';
+COMMENT ON COLUMN adm_file_job.file_format IS 'CSV 또는 XLSX';
+COMMENT ON COLUMN adm_file_job.job_state IS 'Job 상태';
+COMMENT ON COLUMN adm_file_job.dry_run IS 'Dry-run 여부';
+COMMENT ON COLUMN adm_file_job.rollback_supported IS 'Rollback 지원 여부';
+COMMENT ON COLUMN adm_file_job.source_path IS 'Source Artifact 경로';
+COMMENT ON COLUMN adm_file_job.result_path IS 'Result Artifact 경로';
+COMMENT ON COLUMN adm_file_job.source_sha256 IS 'Source SHA-256';
+COMMENT ON COLUMN adm_file_job.result_sha256 IS 'Result SHA-256';
+COMMENT ON COLUMN adm_file_job.total_rows IS '전체 행 수';
+COMMENT ON COLUMN adm_file_job.success_rows IS '성공 행 수';
+COMMENT ON COLUMN adm_file_job.failed_rows IS '실패 행 수';
+COMMENT ON COLUMN adm_file_job.lease_owner IS 'Lease 소유자';
+COMMENT ON COLUMN adm_file_job.fencing_token IS 'Fencing Token';
+COMMENT ON COLUMN adm_file_job.lease_until IS 'Lease 만료';
+COMMENT ON COLUMN adm_file_job.retention_until IS 'Artifact 보존 만료';
+COMMENT ON COLUMN adm_file_job.requested_by IS '요청 운영자';
+COMMENT ON COLUMN adm_file_job.reason IS '요청 사유';
+COMMENT ON COLUMN adm_file_job.client_ip IS '요청 Client IP';
+COMMENT ON COLUMN adm_file_job.error_code IS '오류 코드';
+COMMENT ON COLUMN adm_file_job.error_message IS '마스킹된 오류 메시지';
+COMMENT ON COLUMN adm_file_job.created_at IS '생성 일시';
+COMMENT ON COLUMN adm_file_job.updated_at IS '수정 일시';
+COMMENT ON COLUMN adm_file_job.approval_id IS '승인 ID';
+COMMENT ON COLUMN adm_file_job.applied_by IS '적용 운영자';
+COMMENT ON COLUMN adm_file_job.resolved_by IS '결과 불명 확정 운영자';
+COMMENT ON COLUMN adm_file_job.control_by IS '최근 제어 운영자';
+COMMENT ON COLUMN adm_file_job.control_reason IS '최근 제어 사유';
+COMMENT ON COLUMN adm_file_job.control_updated_at IS '최근 제어 시각';
+CREATE OR REPLACE TRIGGER trg_touch_adm_file_job BEFORE UPDATE ON adm_file_job FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
+/
+
+CREATE TABLE adm_file_job_row (
+    job_id VARCHAR2(36 CHAR) NOT NULL,
+    row_no NUMBER(19) NOT NULL,
+    row_state VARCHAR2(30 CHAR) NOT NULL,
+    business_key VARCHAR2(200 CHAR),
+    payload_json CLOB NOT NULL,
+    error_code VARCHAR2(80 CHAR),
+    error_message VARCHAR2(1000 CHAR),
+    rollback_token VARCHAR2(1000 CHAR),
+    created_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    updated_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    CONSTRAINT pk_adm_file_job_row PRIMARY KEY (job_id, row_no),
+    CONSTRAINT fk_adm_file_job_row_job FOREIGN KEY (job_id) REFERENCES adm_file_job (job_id)
+);
+COMMENT ON TABLE adm_file_job_row IS 'ADM File Job 행별 결과 원장';
+COMMENT ON COLUMN adm_file_job_row.job_id IS 'File Job ID';
+COMMENT ON COLUMN adm_file_job_row.row_no IS '행 번호';
+COMMENT ON COLUMN adm_file_job_row.row_state IS '행 처리 상태';
+COMMENT ON COLUMN adm_file_job_row.business_key IS '업무 Key';
+COMMENT ON COLUMN adm_file_job_row.payload_json IS '보호된 행 Payload';
+COMMENT ON COLUMN adm_file_job_row.error_code IS '행 오류 코드';
+COMMENT ON COLUMN adm_file_job_row.error_message IS '마스킹된 행 오류';
+COMMENT ON COLUMN adm_file_job_row.rollback_token IS 'Rollback Token';
+COMMENT ON COLUMN adm_file_job_row.created_at IS '생성 일시';
+COMMENT ON COLUMN adm_file_job_row.updated_at IS '수정 일시';
+CREATE OR REPLACE TRIGGER trg_touch_adm_file_job_row BEFORE UPDATE ON adm_file_job_row FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
 /
 
 CREATE TABLE adm_incident (
@@ -651,7 +701,7 @@ CREATE TABLE adm_incident (
     updated_by VARCHAR2(100 CHAR) NOT NULL,
     created_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     updated_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    PRIMARY KEY (incident_id),
+    CONSTRAINT pk_adm_incident PRIMARY KEY (incident_id),
     CONSTRAINT uk_adm_incident_no UNIQUE (incident_no)
 );
 CREATE INDEX idx_adm_incident_status ON adm_incident (status, severity, detected_at);
@@ -685,7 +735,7 @@ CREATE TABLE adm_ip_allowlist (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_by VARCHAR2(50 CHAR) NOT NULL DEFAULT 'ADM',
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (ALLOW_ID),
+    CONSTRAINT pk_adm_ip_allowlist PRIMARY KEY (ALLOW_ID),
     CONSTRAINT uk_adm_ip_allowlist_pattern UNIQUE (IP_PATTERN)
 );
 CREATE INDEX ix_adm_ip_allowlist_use ON adm_ip_allowlist (USE_YN);
@@ -698,12 +748,7 @@ COMMENT ON COLUMN adm_ip_allowlist.created_by IS '등록자';
 COMMENT ON COLUMN adm_ip_allowlist.created_at IS '등록일시';
 COMMENT ON COLUMN adm_ip_allowlist.updated_by IS '수정자';
 COMMENT ON COLUMN adm_ip_allowlist.updated_at IS '수정일시';
-CREATE OR REPLACE TRIGGER trg_adm_ip_allowlist_touch
-BEFORE UPDATE ON adm_ip_allowlist
-FOR EACH ROW
-BEGIN
-    :NEW.updated_at := CURRENT_TIMESTAMP;
-END;
+CREATE OR REPLACE TRIGGER trg_touch_adm_ip_allowlist BEFORE UPDATE ON adm_ip_allowlist FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
 /
 
 CREATE TABLE adm_maintenance_action (
@@ -719,7 +764,7 @@ CREATE TABLE adm_maintenance_action (
     requested_by VARCHAR2(100 CHAR) NOT NULL,
     requested_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     result_detail CLOB,
-    PRIMARY KEY (action_id)
+    CONSTRAINT pk_adm_maintenance_action PRIMARY KEY (action_id)
 );
 CREATE INDEX idx_adm_maintenance_target ON adm_maintenance_action (service_id, endpoint_code, instance_id, requested_at);
 CREATE INDEX idx_adm_maintenance_result ON adm_maintenance_action (result_status, requested_at);
@@ -748,7 +793,7 @@ CREATE TABLE adm_menu (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_by VARCHAR2(50 CHAR) NOT NULL DEFAULT 'ADM',
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (MENU_ID),
+    CONSTRAINT pk_adm_menu PRIMARY KEY (MENU_ID),
     CONSTRAINT fk_adm_menu_parent FOREIGN KEY (PARENT_MENU_ID) REFERENCES adm_menu (MENU_ID) ON DELETE SET NULL
 );
 CREATE INDEX ix_adm_menu_parent ON adm_menu (PARENT_MENU_ID, SORT_ORDER);
@@ -763,12 +808,7 @@ COMMENT ON COLUMN adm_menu.created_by IS '등록자';
 COMMENT ON COLUMN adm_menu.created_at IS '등록일시';
 COMMENT ON COLUMN adm_menu.updated_by IS '수정자';
 COMMENT ON COLUMN adm_menu.updated_at IS '수정일시';
-CREATE OR REPLACE TRIGGER trg_adm_menu_touch
-BEFORE UPDATE ON adm_menu
-FOR EACH ROW
-BEGIN
-    :NEW.updated_at := CURRENT_TIMESTAMP;
-END;
+CREATE OR REPLACE TRIGGER trg_touch_adm_menu BEFORE UPDATE ON adm_menu FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
 /
 
 CREATE TABLE adm_mfa_otp_secret (
@@ -780,7 +820,7 @@ CREATE TABLE adm_mfa_otp_secret (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_by VARCHAR2(50 CHAR) NOT NULL DEFAULT 'ADM',
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (OPERATOR_ID),
+    CONSTRAINT pk_adm_mfa_otp_secret PRIMARY KEY (OPERATOR_ID),
     CONSTRAINT fk_adm_mfa_otp_secret_operator FOREIGN KEY (OPERATOR_ID) REFERENCES adm_operator (OPERATOR_ID) ON DELETE CASCADE
 );
 COMMENT ON TABLE adm_mfa_otp_secret IS 'ADM 운영자 MFA OTP secret 메타';
@@ -792,12 +832,7 @@ COMMENT ON COLUMN adm_mfa_otp_secret.created_by IS '등록자';
 COMMENT ON COLUMN adm_mfa_otp_secret.created_at IS '등록일시';
 COMMENT ON COLUMN adm_mfa_otp_secret.updated_by IS '수정자';
 COMMENT ON COLUMN adm_mfa_otp_secret.updated_at IS '수정일시';
-CREATE OR REPLACE TRIGGER trg_adm_mfa_otp_secret_touch
-BEFORE UPDATE ON adm_mfa_otp_secret
-FOR EACH ROW
-BEGIN
-    :NEW.updated_at := CURRENT_TIMESTAMP;
-END;
+CREATE OR REPLACE TRIGGER trg_touch_adm_mfa_otp_secret BEFORE UPDATE ON adm_mfa_otp_secret FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
 /
 
 CREATE TABLE adm_operator (
@@ -819,7 +854,7 @@ CREATE TABLE adm_operator (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_by VARCHAR2(50 CHAR) NOT NULL DEFAULT 'ADM',
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (OPERATOR_ID),
+    CONSTRAINT pk_adm_operator PRIMARY KEY (OPERATOR_ID),
     CONSTRAINT uk_adm_operator_create_operation UNIQUE (CREATE_OPERATION_ID),
     CONSTRAINT ck_adm_operator_status CHECK (ACCOUNT_STATUS IN ('PENDING_ACTIVATION','ACTIVE','LOCKED','SUSPENDED','DISABLED'))
 );
@@ -845,17 +880,11 @@ COMMENT ON COLUMN adm_operator.created_by IS '등록자';
 COMMENT ON COLUMN adm_operator.created_at IS '등록일시';
 COMMENT ON COLUMN adm_operator.updated_by IS '수정자';
 COMMENT ON COLUMN adm_operator.updated_at IS '수정일시';
-CREATE OR REPLACE TRIGGER trg_adm_operator_touch
-BEFORE UPDATE ON adm_operator
-FOR EACH ROW
-BEGIN
-    :NEW.updated_at := CURRENT_TIMESTAMP;
-END;
+CREATE OR REPLACE TRIGGER trg_touch_adm_operator BEFORE UPDATE ON adm_operator FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
 /
 
 CREATE TABLE adm_operator_profile (
     OPERATOR_ID VARCHAR2(50 CHAR) NOT NULL,
-    DISPLAY_NAME VARCHAR2(100 CHAR),
     DISPLAY_NAME VARCHAR2(100 CHAR),
     EMPLOYEE_NO VARCHAR2(50 CHAR),
     EXTERNAL_SUBJECT VARCHAR2(200 CHAR),
@@ -874,7 +903,7 @@ CREATE TABLE adm_operator_profile (
     created_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     updated_by VARCHAR2(50 CHAR) NOT NULL DEFAULT 'ADM',
     updated_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    PRIMARY KEY (OPERATOR_ID),
+    CONSTRAINT pk_adm_operator_profile PRIMARY KEY (OPERATOR_ID),
     CONSTRAINT uk_adm_operator_profile_employee UNIQUE (EMPLOYEE_NO),
     CONSTRAINT ck_adm_operator_profile_effective CHECK (EFFECTIVE_TO IS NULL OR EFFECTIVE_FROM IS NULL OR EFFECTIVE_TO > EFFECTIVE_FROM),
     CONSTRAINT fk_adm_operator_profile_operator FOREIGN KEY (OPERATOR_ID) REFERENCES adm_operator (OPERATOR_ID) ON DELETE CASCADE,
@@ -883,7 +912,6 @@ CREATE TABLE adm_operator_profile (
 CREATE INDEX ix_adm_operator_profile_org ON adm_operator_profile (ORGANIZATION_CODE, EFFECTIVE_TO);
 COMMENT ON TABLE adm_operator_profile IS 'ADM 운영자 조직/직급 Profile';
 COMMENT ON COLUMN adm_operator_profile.OPERATOR_ID IS '운영자 ID';
-COMMENT ON COLUMN adm_operator_profile.DISPLAY_NAME IS 'Directory/Profile 표시 이름';
 COMMENT ON COLUMN adm_operator_profile.DISPLAY_NAME IS 'Directory/Profile 표시 이름';
 COMMENT ON COLUMN adm_operator_profile.EMPLOYEE_NO IS '외부/내부 사번';
 COMMENT ON COLUMN adm_operator_profile.EXTERNAL_SUBJECT IS 'LDAP/IAM 등 외부 Identity Subject';
@@ -902,12 +930,7 @@ COMMENT ON COLUMN adm_operator_profile.created_by IS '등록자';
 COMMENT ON COLUMN adm_operator_profile.created_at IS '등록일시';
 COMMENT ON COLUMN adm_operator_profile.updated_by IS '수정자';
 COMMENT ON COLUMN adm_operator_profile.updated_at IS '수정일시';
-CREATE OR REPLACE TRIGGER trg_adm_operator_profile_touch
-BEFORE UPDATE ON adm_operator_profile
-FOR EACH ROW
-BEGIN
-    :NEW.updated_at := CURRENT_TIMESTAMP;
-END;
+CREATE OR REPLACE TRIGGER trg_touch_adm_operator_profile BEFORE UPDATE ON adm_operator_profile FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
 /
 
 CREATE TABLE adm_operator_role (
@@ -917,7 +940,7 @@ CREATE TABLE adm_operator_role (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_by VARCHAR2(50 CHAR) NOT NULL DEFAULT 'ADM',
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (OPERATOR_ID, ROLE_ID),
+    CONSTRAINT pk_adm_operator_role PRIMARY KEY (OPERATOR_ID, ROLE_ID),
     CONSTRAINT fk_adm_operator_role_operator FOREIGN KEY (OPERATOR_ID) REFERENCES adm_operator (OPERATOR_ID) ON DELETE CASCADE,
     CONSTRAINT fk_adm_operator_role_role FOREIGN KEY (ROLE_ID) REFERENCES adm_role (ROLE_ID) ON DELETE CASCADE
 );
@@ -928,12 +951,7 @@ COMMENT ON COLUMN adm_operator_role.created_by IS '등록자';
 COMMENT ON COLUMN adm_operator_role.created_at IS '등록일시';
 COMMENT ON COLUMN adm_operator_role.updated_by IS '수정자';
 COMMENT ON COLUMN adm_operator_role.updated_at IS '수정일시';
-CREATE OR REPLACE TRIGGER trg_adm_operator_role_touch
-BEFORE UPDATE ON adm_operator_role
-FOR EACH ROW
-BEGIN
-    :NEW.updated_at := CURRENT_TIMESTAMP;
-END;
+CREATE OR REPLACE TRIGGER trg_touch_adm_operator_role BEFORE UPDATE ON adm_operator_role FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
 /
 
 CREATE TABLE adm_operator_session (
@@ -950,7 +968,7 @@ CREATE TABLE adm_operator_session (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_by VARCHAR2(50 CHAR) NOT NULL DEFAULT 'ADM',
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (SESSION_ID)
+    CONSTRAINT pk_adm_operator_session PRIMARY KEY (SESSION_ID)
 );
 CREATE INDEX ix_adm_operator_session_token ON adm_operator_session (TOKEN_HASH);
 CREATE INDEX ix_adm_operator_session_user ON adm_operator_session (OPERATOR_ID, EXPIRE_AT);
@@ -969,12 +987,7 @@ COMMENT ON COLUMN adm_operator_session.created_by IS '등록자';
 COMMENT ON COLUMN adm_operator_session.created_at IS '등록일시';
 COMMENT ON COLUMN adm_operator_session.updated_by IS '수정자';
 COMMENT ON COLUMN adm_operator_session.updated_at IS '수정일시';
-CREATE OR REPLACE TRIGGER trg_adm_operator_session_touch
-BEFORE UPDATE ON adm_operator_session
-FOR EACH ROW
-BEGIN
-    :NEW.updated_at := CURRENT_TIMESTAMP;
-END;
+CREATE OR REPLACE TRIGGER trg_touch_adm_operator_session BEFORE UPDATE ON adm_operator_session FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
 /
 
 CREATE TABLE adm_organization (
@@ -990,7 +1003,7 @@ CREATE TABLE adm_organization (
     created_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     updated_by VARCHAR2(50 CHAR) NOT NULL DEFAULT 'ADM',
     updated_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    PRIMARY KEY (ORGANIZATION_CODE),
+    CONSTRAINT pk_adm_organization PRIMARY KEY (ORGANIZATION_CODE),
     CONSTRAINT ck_adm_organization_use CHECK (USE_YN IN ('Y','N')),
     CONSTRAINT ck_adm_organization_effective CHECK (EFFECTIVE_TO IS NULL OR EFFECTIVE_FROM IS NULL OR EFFECTIVE_TO > EFFECTIVE_FROM),
     CONSTRAINT fk_adm_organization_parent FOREIGN KEY (PARENT_ORGANIZATION_CODE) REFERENCES adm_organization (ORGANIZATION_CODE) ON DELETE SET NULL,
@@ -1010,12 +1023,7 @@ COMMENT ON COLUMN adm_organization.created_by IS '등록자';
 COMMENT ON COLUMN adm_organization.created_at IS '등록일시';
 COMMENT ON COLUMN adm_organization.updated_by IS '수정자';
 COMMENT ON COLUMN adm_organization.updated_at IS '수정일시';
-CREATE OR REPLACE TRIGGER trg_adm_organization_touch
-BEFORE UPDATE ON adm_organization
-FOR EACH ROW
-BEGIN
-    :NEW.updated_at := CURRENT_TIMESTAMP;
-END;
+CREATE OR REPLACE TRIGGER trg_touch_adm_organization BEFORE UPDATE ON adm_organization FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
 /
 
 CREATE TABLE adm_password_history (
@@ -1027,7 +1035,7 @@ CREATE TABLE adm_password_history (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_by VARCHAR2(50 CHAR) NOT NULL DEFAULT 'ADM',
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (HISTORY_ID),
+    CONSTRAINT pk_adm_password_history PRIMARY KEY (HISTORY_ID),
     CONSTRAINT fk_adm_password_history_operator FOREIGN KEY (OPERATOR_ID) REFERENCES adm_operator (OPERATOR_ID) ON DELETE CASCADE
 );
 CREATE INDEX ix_adm_password_history_operator_time ON adm_password_history (OPERATOR_ID, created_at);
@@ -1040,12 +1048,7 @@ COMMENT ON COLUMN adm_password_history.created_by IS '등록자';
 COMMENT ON COLUMN adm_password_history.created_at IS '등록일시';
 COMMENT ON COLUMN adm_password_history.updated_by IS '수정자';
 COMMENT ON COLUMN adm_password_history.updated_at IS '수정일시';
-CREATE OR REPLACE TRIGGER trg_adm_password_history_touch
-BEFORE UPDATE ON adm_password_history
-FOR EACH ROW
-BEGIN
-    :NEW.updated_at := CURRENT_TIMESTAMP;
-END;
+CREATE OR REPLACE TRIGGER trg_touch_adm_password_history BEFORE UPDATE ON adm_password_history FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
 /
 
 CREATE TABLE adm_password_policy (
@@ -1063,7 +1066,7 @@ CREATE TABLE adm_password_policy (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_by VARCHAR2(50 CHAR) NOT NULL DEFAULT 'ADM',
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (POLICY_ID)
+    CONSTRAINT pk_adm_password_policy PRIMARY KEY (POLICY_ID)
 );
 COMMENT ON TABLE adm_password_policy IS 'ADM 비밀번호 정책';
 COMMENT ON COLUMN adm_password_policy.POLICY_ID IS '비밀번호 정책 ID';
@@ -1080,12 +1083,7 @@ COMMENT ON COLUMN adm_password_policy.created_by IS '등록자';
 COMMENT ON COLUMN adm_password_policy.created_at IS '등록일시';
 COMMENT ON COLUMN adm_password_policy.updated_by IS '수정자';
 COMMENT ON COLUMN adm_password_policy.updated_at IS '수정일시';
-CREATE OR REPLACE TRIGGER trg_adm_password_policy_touch
-BEFORE UPDATE ON adm_password_policy
-FOR EACH ROW
-BEGIN
-    :NEW.updated_at := CURRENT_TIMESTAMP;
-END;
+CREATE OR REPLACE TRIGGER trg_touch_adm_password_policy BEFORE UPDATE ON adm_password_policy FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
 /
 
 CREATE TABLE adm_role (
@@ -1098,7 +1096,7 @@ CREATE TABLE adm_role (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_by VARCHAR2(50 CHAR) NOT NULL DEFAULT 'ADM',
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (ROLE_ID)
+    CONSTRAINT pk_adm_role PRIMARY KEY (ROLE_ID)
 );
 CREATE INDEX ix_adm_role_type ON adm_role (ROLE_TYPE, USE_YN);
 COMMENT ON TABLE adm_role IS 'ADM 역할';
@@ -1111,12 +1109,7 @@ COMMENT ON COLUMN adm_role.created_by IS '등록자';
 COMMENT ON COLUMN adm_role.created_at IS '등록일시';
 COMMENT ON COLUMN adm_role.updated_by IS '수정자';
 COMMENT ON COLUMN adm_role.updated_at IS '수정일시';
-CREATE OR REPLACE TRIGGER trg_adm_role_touch
-BEFORE UPDATE ON adm_role
-FOR EACH ROW
-BEGIN
-    :NEW.updated_at := CURRENT_TIMESTAMP;
-END;
+CREATE OR REPLACE TRIGGER trg_touch_adm_role BEFORE UPDATE ON adm_role FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
 /
 
 CREATE TABLE adm_role_api_permission (
@@ -1127,7 +1120,7 @@ CREATE TABLE adm_role_api_permission (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_by VARCHAR2(50 CHAR) NOT NULL DEFAULT 'ADM',
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (ROLE_ID, API_PERMISSION_ID),
+    CONSTRAINT pk_adm_role_api_permission PRIMARY KEY (ROLE_ID, API_PERMISSION_ID),
     CONSTRAINT fk_adm_role_api_permission_role FOREIGN KEY (ROLE_ID) REFERENCES adm_role (ROLE_ID) ON DELETE CASCADE,
     CONSTRAINT fk_adm_role_api_permission_api FOREIGN KEY (API_PERMISSION_ID) REFERENCES adm_api_permission (API_PERMISSION_ID) ON DELETE CASCADE
 );
@@ -1139,12 +1132,7 @@ COMMENT ON COLUMN adm_role_api_permission.created_by IS '등록자';
 COMMENT ON COLUMN adm_role_api_permission.created_at IS '등록일시';
 COMMENT ON COLUMN adm_role_api_permission.updated_by IS '수정자';
 COMMENT ON COLUMN adm_role_api_permission.updated_at IS '수정일시';
-CREATE OR REPLACE TRIGGER trg_adm_role_api_permission_touch
-BEFORE UPDATE ON adm_role_api_permission
-FOR EACH ROW
-BEGIN
-    :NEW.updated_at := CURRENT_TIMESTAMP;
-END;
+CREATE OR REPLACE TRIGGER trg_touch_adm_role_api_permission BEFORE UPDATE ON adm_role_api_permission FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
 /
 
 CREATE TABLE adm_role_button (
@@ -1155,7 +1143,7 @@ CREATE TABLE adm_role_button (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_by VARCHAR2(50 CHAR) NOT NULL DEFAULT 'ADM',
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (ROLE_ID, BUTTON_ID),
+    CONSTRAINT pk_adm_role_button PRIMARY KEY (ROLE_ID, BUTTON_ID),
     CONSTRAINT fk_adm_role_button_role FOREIGN KEY (ROLE_ID) REFERENCES adm_role (ROLE_ID) ON DELETE CASCADE,
     CONSTRAINT fk_adm_role_button_button FOREIGN KEY (BUTTON_ID) REFERENCES adm_button (BUTTON_ID) ON DELETE CASCADE
 );
@@ -1167,12 +1155,7 @@ COMMENT ON COLUMN adm_role_button.created_by IS '등록자';
 COMMENT ON COLUMN adm_role_button.created_at IS '등록일시';
 COMMENT ON COLUMN adm_role_button.updated_by IS '수정자';
 COMMENT ON COLUMN adm_role_button.updated_at IS '수정일시';
-CREATE OR REPLACE TRIGGER trg_adm_role_button_touch
-BEFORE UPDATE ON adm_role_button
-FOR EACH ROW
-BEGIN
-    :NEW.updated_at := CURRENT_TIMESTAMP;
-END;
+CREATE OR REPLACE TRIGGER trg_touch_adm_role_button BEFORE UPDATE ON adm_role_button FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
 /
 
 CREATE TABLE adm_role_menu (
@@ -1185,7 +1168,7 @@ CREATE TABLE adm_role_menu (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_by VARCHAR2(50 CHAR) NOT NULL DEFAULT 'ADM',
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (ROLE_ID, MENU_ID),
+    CONSTRAINT pk_adm_role_menu PRIMARY KEY (ROLE_ID, MENU_ID),
     CONSTRAINT fk_adm_role_menu_role FOREIGN KEY (ROLE_ID) REFERENCES adm_role (ROLE_ID) ON DELETE CASCADE,
     CONSTRAINT fk_adm_role_menu_menu FOREIGN KEY (MENU_ID) REFERENCES adm_menu (MENU_ID) ON DELETE CASCADE
 );
@@ -1199,51 +1182,5 @@ COMMENT ON COLUMN adm_role_menu.created_by IS '등록자';
 COMMENT ON COLUMN adm_role_menu.created_at IS '등록일시';
 COMMENT ON COLUMN adm_role_menu.updated_by IS '수정자';
 COMMENT ON COLUMN adm_role_menu.updated_at IS '수정일시';
-CREATE OR REPLACE TRIGGER trg_adm_role_menu_touch
-BEFORE UPDATE ON adm_role_menu
-FOR EACH ROW
-BEGIN
-    :NEW.updated_at := CURRENT_TIMESTAMP;
-END;
+CREATE OR REPLACE TRIGGER trg_touch_adm_role_menu BEFORE UPDATE ON adm_role_menu FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
 /
-
--- CPF V69/V72 canonical ADM file job schema
-CREATE TABLE adm_file_job (
-    job_id VARCHAR2(36 CHAR) PRIMARY KEY,
-    operation_id VARCHAR2(100 CHAR) NOT NULL UNIQUE,
-    request_hash VARCHAR2(64 CHAR) NOT NULL,
-    job_type VARCHAR2(20 CHAR) NOT NULL,
-    template_code VARCHAR2(100 CHAR) NOT NULL,
-    template_version NUMBER(10) NOT NULL,
-    file_format VARCHAR2(10 CHAR) NOT NULL,
-    job_state VARCHAR2(30 CHAR) NOT NULL,
-    dry_run CHAR(1 CHAR) NOT NULL,
-    rollback_supported CHAR(1 CHAR) NOT NULL,
-    source_path VARCHAR2(1000 CHAR), result_path VARCHAR2(1000 CHAR),
-    source_sha256 VARCHAR2(64 CHAR), result_sha256 VARCHAR2(64 CHAR),
-    total_rows NUMBER(19) DEFAULT 0 NOT NULL, success_rows NUMBER(19) DEFAULT 0 NOT NULL, failed_rows NUMBER(19) DEFAULT 0 NOT NULL,
-    lease_owner VARCHAR2(100 CHAR), fencing_token NUMBER(19) DEFAULT 0 NOT NULL, lease_until TIMESTAMP(6),
-    retention_until TIMESTAMP(6) NOT NULL,
-    requested_by VARCHAR2(100 CHAR) NOT NULL, reason VARCHAR2(500 CHAR) NOT NULL, client_ip VARCHAR2(64 CHAR),
-    approval_id VARCHAR2(120 CHAR), applied_by VARCHAR2(100 CHAR), resolved_by VARCHAR2(100 CHAR),
-    control_by VARCHAR2(100 CHAR), control_reason VARCHAR2(500 CHAR), control_updated_at TIMESTAMP(6),
-    error_code VARCHAR2(80 CHAR), error_message VARCHAR2(1000 CHAR),
-    created_at TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    updated_at TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP NOT NULL
-);
-CREATE INDEX ix_adm_file_job_claim ON adm_file_job(job_state, lease_until, created_at);
-CREATE INDEX ix_adm_file_job_retention ON adm_file_job(retention_until, job_state);
-CREATE INDEX ix_adm_file_job_approval ON adm_file_job(approval_id, job_state);
-
-CREATE TABLE adm_file_job_row (
-    job_id VARCHAR2(36 CHAR) NOT NULL,
-    row_no NUMBER(19) NOT NULL,
-    row_state VARCHAR2(30 CHAR) NOT NULL,
-    business_key VARCHAR2(200 CHAR),
-    payload_json CLOB NOT NULL,
-    error_code VARCHAR2(80 CHAR), error_message VARCHAR2(1000 CHAR), rollback_token VARCHAR2(1000 CHAR),
-    created_at TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    updated_at TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    CONSTRAINT pk_adm_file_job_row PRIMARY KEY(job_id,row_no),
-    CONSTRAINT fk_adm_file_job_row_job FOREIGN KEY(job_id) REFERENCES adm_file_job(job_id)
-);

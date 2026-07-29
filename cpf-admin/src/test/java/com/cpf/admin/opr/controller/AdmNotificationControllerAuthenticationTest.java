@@ -1,6 +1,7 @@
 package com.cpf.admin.opr.controller;
 
 import com.cpf.admin.opr.exception.AdmNotificationVersionConflictException;
+import com.cpf.admin.opr.dto.AdmNotificationDeliveryStatusResponse;
 import com.cpf.admin.opr.service.AdmNotificationService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Test;
@@ -8,8 +9,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.server.ResponseStatusException;
-
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -50,12 +49,26 @@ class AdmNotificationControllerAuthenticationTest {
         request.setAttribute("adm.operatorId", "operator-a");
         request.setRemoteAddr("127.0.0.1");
         when(service.retryDelivery(10L, 7L, "provider 확인", "operator-a", "127.0.0.1"))
-                .thenReturn(Map.of("deliveryId", 10L, "version", 8L));
+                .thenReturn(new AdmNotificationDeliveryStatusResponse(
+                        10L,
+                        "retry-operation",
+                        "request-hash",
+                        "PENDING",
+                        1,
+                        3,
+                        null,
+                        null,
+                        null,
+                        8L,
+                        null,
+                        "operator-a",
+                        null));
 
-        Map<String, Object> body = controller.retryDelivery(
+        AdmNotificationDeliveryStatusResponse body = controller.retryDelivery(
                 10L, 7L, "provider 확인", null, request).getBody();
 
-        assertThat(body).containsEntry("version", 8L);
+        assertThat(body).isNotNull();
+        assertThat(body.version()).isEqualTo(8L);
         verify(service).retryDelivery(10L, 7L, "provider 확인", "operator-a", "127.0.0.1");
     }
 

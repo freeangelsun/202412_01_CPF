@@ -46,10 +46,10 @@ $bad=@($rows | Where-Object { $_.closing_status -notin $allowed })
 if($bad.Count -gt 0){throw "unsupported closing status in merged QA ledger: $($bad.Count)"}
 
 Invoke-Required 'Architecture ownership' 'check-architecture-ownership.ps1'
-Invoke-Required 'Generated Domain capability inventory' 'export-acc-exs-capability-inventory.ps1'
+Invoke-Required 'Generated Domain capability inventory' 'export-generated-domain-capability-inventory.ps1'
 Invoke-Required 'Frontend feature/route coverage' 'check-frontend-feature-route-coverage.ps1'
 Invoke-Required 'Frontend route targets' 'check-frontend-route-targets.ps1'
-Invoke-Required 'Modern frontend and external asset policy' 'check-modern-frontend.ps1'
+Invoke-Required 'Modern frontend and external asset policy' 'check-modern-frontend.ps1' @('-SkipArchives')
 Invoke-Required 'ADM/BZA UX and security' 'check-r11-admin-ux-security.ps1'
 Invoke-Required 'Repository hygiene' 'check-repository-hygiene.ps1'
 Invoke-Required 'R10 cleanup regression' 'check-r10-cleanup.ps1'

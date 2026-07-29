@@ -3,6 +3,7 @@ package com.cpf.core.common.runtimecontrol.applier;
 import com.cpf.core.api.runtimecontrol.CpfRuntimeApplyResult;
 import com.cpf.core.api.runtimecontrol.CpfRuntimeChangeApplier;
 import com.cpf.core.api.runtimecontrol.CpfRuntimeDelivery;
+import com.cpf.core.common.runtimecontrol.CpfRuntimePayloadJson;
 import com.cpf.core.common.servicecall.CpfServiceRegistryRepository;
 import java.util.List;
 import java.util.Map;
@@ -29,9 +30,9 @@ public final class CpfServiceRegistryRuntimeVerifierApplier implements CpfRuntim
     public CpfRuntimeApplyResult apply(CpfRuntimeDelivery delivery) {
         try {
             boolean matched = switch (changeType) {
-                case "SERVICE_ROUTE" -> verifyRoute(delivery.payload());
-                case "CIRCUIT" -> verifyCircuit(delivery.payload());
-                case "MAINTENANCE" -> verifyMaintenance(delivery.payload());
+                case "SERVICE_ROUTE" -> verifyRoute(CpfRuntimePayloadJson.asMap(delivery.payload()));
+                case "CIRCUIT" -> verifyCircuit(CpfRuntimePayloadJson.asMap(delivery.payload()));
+                case "MAINTENANCE" -> verifyMaintenance(CpfRuntimePayloadJson.asMap(delivery.payload()));
                 default -> false;
             };
             return matched

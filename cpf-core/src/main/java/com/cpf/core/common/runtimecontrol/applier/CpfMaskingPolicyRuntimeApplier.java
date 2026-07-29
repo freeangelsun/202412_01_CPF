@@ -4,6 +4,7 @@ import com.cpf.core.api.runtimecontrol.CpfRuntimeApplyResult;
 import com.cpf.core.api.runtimecontrol.CpfRuntimeChangeApplier;
 import com.cpf.core.api.runtimecontrol.CpfRuntimeDelivery;
 import com.cpf.core.common.logging.SensitiveDataMasker;
+import com.cpf.core.common.runtimecontrol.CpfRuntimePayloadJson;
 
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -20,15 +21,17 @@ public final class CpfMaskingPolicyRuntimeApplier implements CpfRuntimeChangeApp
     @Override
     public CpfRuntimeApplyResult apply(CpfRuntimeDelivery delivery) {
         try {
-            Object rawKeys = delivery.payload().get("sensitiveKeys");
+            Object rawKeys = CpfRuntimePayloadJson.value(delivery.payload(), "sensitiveKeys");
             Set<String> keys = new LinkedHashSet<>();
             if (rawKeys instanceof List<?> list) {
                 for (Object item : list) {
                     if (item != null && !String.valueOf(item).isBlank()) keys.add(String.valueOf(item));
                 }
             }
-            int maxLength = number(delivery.payload().get("maxLength"), 4000);
-            boolean maskBearer = bool(delivery.payload().get("maskBearerToken"), true);
+            int maxLength = number(CpfRuntimePayloadJson.value(delivery.payload(), "maxLength"), 4000);
+            boolean maskBearer = bool(
+                    CpfRuntimePayloadJson.value(delivery.payload(), "maskBearerToken"),
+                    true);
             SensitiveDataMasker.MaskingPolicy policy = SensitiveDataMasker.replacePolicy(keys, maxLength, maskBearer);
             if (policy.maxLength() < 256 || !policy.sensitiveKeys().contains("password")) {
                 return CpfRuntimeApplyResult.failure("MASKING_POLICY_NOT_CONFIRMED", "마스킹 정책 fail-safe 기본값이 적용되지 않았습니다.");

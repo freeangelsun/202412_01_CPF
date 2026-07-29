@@ -31,7 +31,6 @@ param(
     [string] $SystemCode,
     [ValidatePattern('^[0-9A-Za-z][0-9A-Za-z._+-]{0,63}$')]
     [string] $PlatformVersion = "1.0.0-SNAPSHOT",
-    [ValidateSet("mariadb", "mysql", "postgresql", "oracle", "sqlserver")]
     [string] $DatabaseVendor = "mariadb",
     [string] $ModuleName = "",
     [string] $PackageName = "",
@@ -55,6 +54,8 @@ param(
 $ErrorActionPreference = "Stop"
 $Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
 $repositoryRoot = (Resolve-Path "$PSScriptRoot\..\..").Path
+. (Join-Path $repositoryRoot "cpf-tools/scripts/database-profile-common.ps1")
+$DatabaseVendor = Assert-CpfSupportedDatabaseVendor $DatabaseVendor
 if (-not [string]::IsNullOrWhiteSpace($LocalArtifactRepository)) {
     $env:CPF_LOCAL_ARTIFACT_REPOSITORY = [IO.Path]::GetFullPath($LocalArtifactRepository)
 }

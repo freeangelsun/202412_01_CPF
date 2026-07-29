@@ -140,16 +140,18 @@ pwsh -ExecutionPolicy Bypass -File .\cpf-tools\scripts\sync-generated-domain-art
 또한 `domainType=GENERATED_DOMAIN`인데 `generator-ownership.json`이 없는 기존 Domain은 조용히 건너뛰지 않고
 fail-closed한다. 먼저 Generator ownership을 정본화한 뒤 동기화해야 한다.
 
-## 11. EXS 검증 정책
+## 11. 임의 Generated Domain 검증 정책
 
-Repository baseline에는 `cpf-external`을 보존하지 않는다.
+Repository baseline은 EXS/ACC/PAY 같은 지원 대상 목록을 고정하지 않는다. 서로 다른 임의
+`DomainName`/`SystemCode` Metadata가 같은 Canonical Template 구조를 생성하는지 검증한다.
 
 ```powershell
-pwsh -ExecutionPolicy Bypass -File .\cpf-tools\scripts\verify-exs-generated-domain-lifecycle.ps1
+pwsh -ExecutionPolicy Bypass -File .\cpf-tools\scripts\check-generator-arbitrary-domain-parity.ps1
 ```
 
-위 Script는 `external/EXS`를 공식 Generator로 생성하고 `verify-domain.ps1`을 통과시킨 뒤 `finally`에서 제거한다.
-따라서 EXS만 특별한 Source/SQL 구조를 갖는 회귀를 검출할 수 있다.
+위 Script는 격리된 `build` Sandbox에서 두 임의 Domain을 공식 Generator로 생성하고
+Source/DB Artifact 정규화 parity를 확인한 뒤 `finally`에서 제거한다. 특정 Domain만 별도
+Source/SQL 구조를 갖거나 중앙 Tool의 고정 목록에 의존하는 회귀를 검출한다.
 
 ## 12. 통합 검증
 

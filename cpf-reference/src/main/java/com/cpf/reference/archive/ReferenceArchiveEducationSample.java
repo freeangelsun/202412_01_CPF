@@ -1,11 +1,11 @@
 package com.cpf.reference.archive;
 
-import com.cpf.core.common.archive.CpfArchiveEntry;
-import com.cpf.core.common.archive.CpfArchivePolicy;
-import com.cpf.core.common.archive.CpfArchiveRequest;
-import com.cpf.core.common.archive.CpfArchiveResult;
-import com.cpf.core.common.archive.CpfArchiveService;
-import com.cpf.core.common.archive.LocalCpfArchiveService;
+import com.cpf.core.api.archive.CpfArchiveEntry;
+import com.cpf.core.api.archive.CpfArchivePolicy;
+import com.cpf.core.api.archive.CpfArchiveRequest;
+import com.cpf.core.api.archive.CpfArchiveResult;
+import com.cpf.core.api.archive.CpfArchiveService;
+import com.cpf.core.api.archive.CpfArchives;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
@@ -18,7 +18,7 @@ public class ReferenceArchiveEducationSample {
     private final CpfArchiveService archiveService;
 
     public ReferenceArchiveEducationSample() {
-        this(new LocalCpfArchiveService());
+        this(CpfArchives.local());
     }
 
     public ReferenceArchiveEducationSample(CpfArchiveService archiveService) {

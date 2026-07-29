@@ -13,6 +13,7 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.Profiles;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.core.*;
 import org.springframework.data.redis.listener.*;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;

@@ -5,10 +5,747 @@
 -- ============================================================================
 -- cpf-tools/db/vendor/mariadb/source/10_cpf_schema.sql
 -- ============================================================================
--- CPF 프레임워크 엔진 스키마입니다.
--- 거래로그, 시스템 코드/메시지, 응답코드, 설정, 캐시 이벤트, 보안 메타, 배치 운영 메타를 cpfDB에 배치합니다.
+-- AUTO-GENERATED from cpf-tools/db/canonical/platform-schema.json
+-- vendor=mariadb
+-- DO NOT EDIT generated DDL directly.
 
+-- CPF_LOGICAL_DATABASE=cpfDB
 USE cpfDB;
+CREATE TABLE IF NOT EXISTS cpf_broker_dlq (
+    dlq_id BIGINT NOT NULL AUTO_INCREMENT COMMENT 'DLQ 내부 순번',
+    message_id VARCHAR(120) NOT NULL COMMENT '메시지 ID',
+    topic VARCHAR(160) NOT NULL COMMENT 'Broker topic 또는 queue',
+    transaction_id CHAR(34) NULL COMMENT '전역 거래 ID',
+    segment_id VARCHAR(120) NULL COMMENT '거래 구간 ID',
+    failure_reason VARCHAR(1000) NULL COMMENT 'DLQ 이동 사유',
+    replay_status VARCHAR(30) NOT NULL DEFAULT 'WAITING' COMMENT '재처리 상태',
+    replay_count INT NOT NULL DEFAULT 0 COMMENT '재처리 요청 횟수',
+    replay_requested_at DATETIME(3) NULL COMMENT '재처리 요청 일시',
+    replay_completed_at DATETIME(3) NULL COMMENT '재처리 완료 일시',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_cpf_broker_dlq PRIMARY KEY (dlq_id),
+    CONSTRAINT uk_cpf_broker_dlq_message UNIQUE (message_id),
+    INDEX ix_cpf_broker_dlq_status (replay_status, created_at),
+    INDEX ix_cpf_broker_dlq_topic (topic, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF Broker DLQ';
+
+CREATE TABLE IF NOT EXISTS cpf_broker_inbox (
+    inbox_id BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Inbox 내부 순번',
+    message_id VARCHAR(120) NOT NULL COMMENT '메시지 ID',
+    idempotency_key VARCHAR(160) NULL COMMENT '중복 처리 키',
+    inbox_status VARCHAR(30) NOT NULL DEFAULT 'RECEIVED' COMMENT 'Inbox 처리 상태',
+    result_detail VARCHAR(1000) NULL COMMENT '소비 처리 결과 상세',
+    received_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '수신 일시',
+    consumed_at DATETIME(3) NULL COMMENT '소비 완료 일시',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_cpf_broker_inbox PRIMARY KEY (inbox_id),
+    CONSTRAINT uk_cpf_broker_inbox_message UNIQUE (message_id),
+    INDEX ix_cpf_broker_inbox_idempotency (idempotency_key),
+    INDEX ix_cpf_broker_inbox_status (inbox_status, received_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF Broker Inbox';
+
+CREATE TABLE IF NOT EXISTS cpf_broker_outbox (
+    outbox_id BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Outbox 내부 순번',
+    message_id VARCHAR(120) NOT NULL COMMENT '메시지 ID',
+    topic VARCHAR(160) NOT NULL COMMENT 'Broker topic 또는 queue',
+    message_key VARCHAR(200) NULL COMMENT 'Broker partition key',
+    transaction_id CHAR(34) NULL COMMENT '전역 거래 ID',
+    segment_id VARCHAR(120) NULL COMMENT '거래 구간 ID',
+    producer_module VARCHAR(20) NULL COMMENT '생산 모듈',
+    consumer_module VARCHAR(20) NULL COMMENT '소비 모듈',
+    idempotency_key VARCHAR(160) NULL COMMENT '중복 처리 키',
+    payload LONGBLOB NULL COMMENT '메시지 payload',
+    content_type VARCHAR(100) NULL COMMENT '메시지 content type',
+    header_json MEDIUMTEXT NULL COMMENT '메시지 header 직렬화 값',
+    attribute_json MEDIUMTEXT NULL COMMENT '메시지 속성 직렬화 값',
+    outbox_status VARCHAR(30) NOT NULL DEFAULT 'PENDING' COMMENT 'Outbox 처리 상태',
+    worker_id VARCHAR(120) NULL COMMENT '처리 worker ID',
+    attempt_count INT NOT NULL DEFAULT 0 COMMENT '발행 시도 횟수',
+    max_attempts INT NOT NULL DEFAULT 5 COMMENT '최대 발행 시도 횟수',
+    next_attempt_at DATETIME(3) NULL COMMENT '다음 발행 가능 일시',
+    lease_until DATETIME(3) NULL COMMENT 'worker 점유 만료 일시',
+    broker_name VARCHAR(80) NULL COMMENT '전송 대상 broker 이름',
+    partition_key VARCHAR(200) NULL COMMENT '전송 partition key',
+    failure_message VARCHAR(1000) NULL COMMENT '실패 메시지',
+    occurred_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '업무 이벤트 발생 일시',
+    claimed_at DATETIME(3) NULL COMMENT 'worker 점유 일시',
+    published_at DATETIME(3) NULL COMMENT '발행 완료 일시',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_cpf_broker_outbox PRIMARY KEY (outbox_id),
+    CONSTRAINT uk_cpf_broker_outbox_message UNIQUE (message_id),
+    INDEX ix_cpf_broker_outbox_status (outbox_status, outbox_id),
+    INDEX ix_cpf_broker_outbox_ready (outbox_status, next_attempt_at, outbox_id),
+    INDEX ix_cpf_broker_outbox_lease (outbox_status, lease_until),
+    INDEX ix_cpf_broker_outbox_tx (transaction_id, segment_id),
+    INDEX ix_cpf_broker_outbox_topic (topic, occurred_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF Broker Outbox';
+
+CREATE TABLE IF NOT EXISTS cpf_cache_invalidation_checkpoint (
+    consumer_id VARCHAR(120) NOT NULL COMMENT 'Consumer 식별자',
+    last_event_id BIGINT NOT NULL DEFAULT 0 COMMENT '최종 처리 Event 순번',
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP COMMENT 'Checkpoint 갱신 일시',
+    CONSTRAINT pk_cpf_cache_invalidation_checkpoint PRIMARY KEY (consumer_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Cache 무효화 Consumer Checkpoint';
+
+CREATE TABLE IF NOT EXISTS cpf_cache_invalidation_event (
+    event_id BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Cache 무효화 Event 순번',
+    event_key VARCHAR(100) NOT NULL COMMENT '멱등 Event Key',
+    tenant_id VARCHAR(80) NOT NULL COMMENT 'Tenant 식별자',
+    namespace_cd VARCHAR(80) NOT NULL COMMENT 'Cache Namespace',
+    cache_key VARCHAR(512) NOT NULL DEFAULT '' COMMENT '단일 Cache Key, Namespace 전체는 빈 값',
+    event_version BIGINT NOT NULL DEFAULT 0 COMMENT '발행 Version',
+    reason VARCHAR(500) NOT NULL COMMENT '무효화 사유',
+    requested_by VARCHAR(100) NOT NULL COMMENT '요청 운영자',
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT '발행 일시',
+    CONSTRAINT pk_cpf_cache_invalidation_event PRIMARY KEY (event_id),
+    CONSTRAINT uk_cpf_cache_inv_event_key UNIQUE (event_key),
+    INDEX ix_cpf_cache_inv_scope (tenant_id, namespace_cd, event_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Durable Cache 무효화 Event 원장';
+
+CREATE TABLE IF NOT EXISTS cpf_cache_refresh_checkpoint (
+    consumer_id VARCHAR(120) NOT NULL COMMENT 'Durable consumer identifier',
+    last_event_id BIGINT NOT NULL DEFAULT 0 COMMENT 'Last processed event identifier',
+    last_applied_at DATETIME(3) NULL COMMENT 'Last applied event time',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT 'Creator identifier',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Creation time',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT 'Last updater identifier',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Last update time',
+    CONSTRAINT pk_cpf_cache_refresh_checkpoint PRIMARY KEY (consumer_id),
+    INDEX ix_cpf_cache_refresh_checkpoint_event (last_event_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Cache durable replay consumer cursor';
+
+CREATE TABLE IF NOT EXISTS cpf_cache_refresh_event (
+    event_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '캐시 갱신 이벤트 순번',
+    cache_name VARCHAR(50) NOT NULL COMMENT '캐시 이름',
+    event_type VARCHAR(30) NOT NULL COMMENT '이벤트 유형',
+    event_key VARCHAR(200) NULL COMMENT '이벤트 대상 키',
+    source_was_id VARCHAR(50) NULL COMMENT '이벤트 발행 WAS ID',
+    published_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '발행자',
+    published_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '발행일시',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_cpf_cache_refresh_event PRIMARY KEY (event_id),
+    INDEX ix_cpf_cache_refresh_event_cache_id (cache_name, event_id),
+    INDEX ix_cpf_cache_refresh_event_time (published_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 캐시 갱신 DB fallback 이벤트';
+
+CREATE TABLE IF NOT EXISTS cpf_channel_execution_policy (
+    policy_key VARCHAR(100) NOT NULL COMMENT '채널 실행 정책 불변 키',
+    standard_execution_id VARCHAR(10) NOT NULL COMMENT '10자리 표준 실행 ID 또는 전체 실행 *',
+    original_channel_code VARCHAR(30) NOT NULL COMMENT '최초 채널 코드 또는 ANY',
+    caller_channel_code VARCHAR(30) NOT NULL COMMENT '현재 호출 채널 코드 또는 ANY',
+    request_type VARCHAR(30) NOT NULL DEFAULT '*' COMMENT '요청 유형 또는 전체 유형 *',
+    allowed_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '실행 허용 여부',
+    authentication_required_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '정책별 인증 필수 여부',
+    signature_required_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '정책별 요청 서명 필수 여부',
+    max_tps INT NOT NULL DEFAULT 0 COMMENT '0이면 제한하지 않는 최대 초당 요청 수',
+    effective_from DATETIME(3) NULL COMMENT '정책 적용 시작일시',
+    effective_to DATETIME(3) NULL COMMENT '정책 적용 종료일시',
+    active_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '정책 사용 여부',
+    policy_version BIGINT NOT NULL DEFAULT 0 COMMENT '마지막 적용 정책 버전',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_cpf_channel_execution_policy PRIMARY KEY (policy_key),
+    CONSTRAINT ck_cpf_channel_execution_policy_execution CHECK (standard_execution_id = '*' OR standard_execution_id REGEXP '^[OSB][A-Z]{3}[A-Z0-9]{2}[0-9]{4}$'),
+    CONSTRAINT ck_cpf_channel_execution_policy_allowed CHECK (allowed_yn IN ('Y', 'N')),
+    CONSTRAINT ck_cpf_channel_execution_policy_auth CHECK (authentication_required_yn IN ('Y', 'N')),
+    CONSTRAINT ck_cpf_channel_execution_policy_signature CHECK (signature_required_yn IN ('Y', 'N')),
+    CONSTRAINT ck_cpf_channel_execution_policy_active CHECK (active_yn IN ('Y', 'N')),
+    CONSTRAINT ck_cpf_channel_execution_policy_period CHECK (effective_from IS NULL OR effective_to IS NULL OR effective_from <= effective_to),
+    CONSTRAINT fk_cpf_channel_execution_policy_original FOREIGN KEY (original_channel_code) REFERENCES cpf_channel_registry (channel_code),
+    CONSTRAINT fk_cpf_channel_execution_policy_caller FOREIGN KEY (caller_channel_code) REFERENCES cpf_channel_registry (channel_code),
+    INDEX ix_cpf_channel_execution_policy_lookup (standard_execution_id, original_channel_code, caller_channel_code, request_type, active_yn),
+    INDEX ix_cpf_channel_execution_policy_effective (active_yn, effective_from, effective_to)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 표준 실행별 최초·호출 채널 정책';
+
+CREATE TABLE IF NOT EXISTS cpf_channel_policy_version (
+    version_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '채널 정책 스냅샷 버전',
+    change_type VARCHAR(30) NOT NULL COMMENT 'CHANNEL 또는 EXECUTION_POLICY 변경 유형',
+    target_key VARCHAR(100) NOT NULL COMMENT '변경 대상 채널 또는 정책 키',
+    change_reason VARCHAR(500) NOT NULL COMMENT '운영 변경 사유',
+    applied_by VARCHAR(100) NOT NULL COMMENT '적용 운영자',
+    applied_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '적용일시',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_cpf_channel_policy_version PRIMARY KEY (version_id),
+    INDEX ix_cpf_channel_policy_version_target (change_type, target_key, version_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 채널 정책 변경 버전';
+
+CREATE TABLE IF NOT EXISTS cpf_channel_registry (
+    channel_code VARCHAR(30) NOT NULL COMMENT 'CPF 통합 채널 코드',
+    channel_name VARCHAR(100) NOT NULL COMMENT '채널명',
+    channel_type VARCHAR(30) NOT NULL COMMENT 'CLIENT, OPERATOR 또는 SYSTEM 유형',
+    trust_level VARCHAR(30) NOT NULL COMMENT 'EXTERNAL 또는 INTERNAL 신뢰 수준',
+    client_channel_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '최초 유입 클라이언트 채널 여부',
+    internal_channel_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '내부 호출 채널 여부',
+    authentication_required_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '인증 필수 여부',
+    signature_required_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '요청 서명 필수 여부',
+    active_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '채널 사용 여부',
+    description VARCHAR(500) NULL COMMENT '채널 설명',
+    policy_version BIGINT NOT NULL DEFAULT 0 COMMENT '마지막 적용 정책 버전',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_cpf_channel_registry PRIMARY KEY (channel_code),
+    CONSTRAINT ck_cpf_channel_registry_client CHECK (client_channel_yn IN ('Y', 'N')),
+    CONSTRAINT ck_cpf_channel_registry_internal CHECK (internal_channel_yn IN ('Y', 'N')),
+    CONSTRAINT ck_cpf_channel_registry_auth CHECK (authentication_required_yn IN ('Y', 'N')),
+    CONSTRAINT ck_cpf_channel_registry_signature CHECK (signature_required_yn IN ('Y', 'N')),
+    CONSTRAINT ck_cpf_channel_registry_active CHECK (active_yn IN ('Y', 'N')),
+    INDEX ix_cpf_channel_registry_active (active_yn, channel_type)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 통합 채널 레지스트리';
+
+CREATE TABLE IF NOT EXISTS cpf_code (
+    code_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '코드 순번',
+    parent_id BIGINT NULL COMMENT '상위 코드 순번',
+    code_key VARCHAR(80) NOT NULL COMMENT '코드 그룹 키',
+    code_value VARCHAR(120) NOT NULL COMMENT '코드 값',
+    description VARCHAR(500) NULL COMMENT '코드 설명',
+    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_cpf_code PRIMARY KEY (code_id),
+    CONSTRAINT uk_cpf_code_key_value UNIQUE (code_key, code_value),
+    CONSTRAINT fk_cpf_code_parent FOREIGN KEY (parent_id) REFERENCES cpf_code (code_id) ON DELETE SET NULL,
+    INDEX ix_cpf_code_parent (parent_id),
+    INDEX ix_cpf_code_use (use_yn)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 시스템 공통 코드';
+
+CREATE TABLE IF NOT EXISTS cpf_config (
+    config_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '설정 순번',
+    config_key VARCHAR(150) NOT NULL COMMENT '설정 키',
+    config_value VARCHAR(2000) NOT NULL COMMENT '설정 값',
+    config_type VARCHAR(30) NOT NULL DEFAULT 'STRING' COMMENT '설정 값 유형',
+    description VARCHAR(500) NULL COMMENT '설정 설명',
+    encrypted_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '암호화 여부',
+    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_cpf_config PRIMARY KEY (config_id),
+    CONSTRAINT uk_cpf_config_key UNIQUE (config_key),
+    INDEX ix_cpf_config_use (use_yn)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 시스템 설정';
+
+CREATE TABLE IF NOT EXISTS cpf_control_operation (
+    operation_id VARCHAR(100) NOT NULL COMMENT 'Idempotent operation identifier',
+    command_type VARCHAR(80) NOT NULL COMMENT 'Operation command type',
+    request_hash VARCHAR(64) NOT NULL COMMENT 'Request fingerprint checksum',
+    entity_id VARCHAR(100) NULL COMMENT 'Target entity identifier',
+    result_state VARCHAR(30) NOT NULL DEFAULT 'PROCESSING' COMMENT 'Operation result state',
+    result_json LONGTEXT NULL COMMENT 'Operation result JSON',
+    expires_at DATETIME(3) NULL COMMENT 'Expiry time',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT 'Creator identifier',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Creation time',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT 'Last updater identifier',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Last update time',
+    CONSTRAINT pk_cpf_control_operation PRIMARY KEY (operation_id),
+    CONSTRAINT ck_cpf_control_operation_state CHECK (result_state IN ('PROCESSING','SUCCESS','FAILED','UNKNOWN','EXPIRED','CANCELLED')),
+    INDEX ix_cpf_control_operation_expiry (result_state, expires_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='운영 명령 operationId fingerprint 및 결과 복구 ledger';
+
+CREATE TABLE IF NOT EXISTS cpf_file_transfer_history (
+    history_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '파일 전송 이력 내부 순번',
+    transfer_id VARCHAR(260) NOT NULL COMMENT '파일 전송 ID',
+    transaction_id CHAR(34) NULL COMMENT '전역 거래 ID',
+    segment_id VARCHAR(120) NULL COMMENT '거래 구간 ID',
+    endpoint_code VARCHAR(80) NOT NULL COMMENT '파일 전송 endpoint 코드',
+    transfer_operation VARCHAR(30) NOT NULL COMMENT '전송 작업 유형',
+    local_path VARCHAR(1000) NULL COMMENT '로컬 파일 경로',
+    remote_path VARCHAR(1000) NULL COMMENT '원격 파일 경로',
+    checksum VARCHAR(128) NULL COMMENT '파일 checksum',
+    file_size BIGINT NOT NULL DEFAULT 0 COMMENT '파일 크기',
+    duplicate_key VARCHAR(1200) NOT NULL COMMENT '중복 방지 키',
+    transfer_status VARCHAR(30) NOT NULL COMMENT '전송 상태',
+    result_detail VARCHAR(1000) NULL COMMENT '전송 결과 상세',
+    completed_at DATETIME(3) NULL COMMENT '전송 완료 일시',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_cpf_file_transfer_history PRIMARY KEY (history_id),
+    CONSTRAINT uk_cpf_file_transfer_history_id UNIQUE (transfer_id),
+    INDEX ix_cpf_file_transfer_duplicate (endpoint_code, duplicate_key(255), checksum),
+    INDEX ix_cpf_file_transfer_tx (transaction_id, segment_id),
+    INDEX ix_cpf_file_transfer_status (transfer_status, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 파일 전송 이력';
+
+CREATE TABLE IF NOT EXISTS cpf_idempotency_record (
+    idempotency_seq BIGINT NOT NULL AUTO_INCREMENT COMMENT '중복 처리 내부 순번',
+    scope VARCHAR(40) NOT NULL COMMENT '중복 처리 적용 범위',
+    idempotency_key VARCHAR(160) NOT NULL COMMENT '중복 처리 키',
+    request_hash VARCHAR(128) NULL COMMENT '요청 본문 해시',
+    payload_hash VARCHAR(128) NULL COMMENT '처리 대상 payload 해시',
+    record_status VARCHAR(30) NOT NULL DEFAULT 'PROCESSING' COMMENT '중복 처리 상태',
+    stored_response MEDIUMTEXT NULL COMMENT '재응답용 저장 응답',
+    retry_allowed_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '재요청 허용 여부',
+    completed_at DATETIME(3) NULL COMMENT '처리 완료 일시',
+    expires_at DATETIME(3) NULL COMMENT '만료 일시',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_cpf_idempotency_record PRIMARY KEY (idempotency_seq),
+    CONSTRAINT uk_cpf_idempotency_record_key UNIQUE (scope, idempotency_key),
+    INDEX ix_cpf_idempotency_record_status (record_status, expires_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 중복 처리 기록';
+
+CREATE TABLE IF NOT EXISTS cpf_log_policy (
+    policy_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '로그 정책 순번',
+    policy_key VARCHAR(120) NOT NULL COMMENT '로그 정책 키',
+    policy_name VARCHAR(150) NOT NULL COMMENT '로그 정책명',
+    target_type VARCHAR(30) NOT NULL COMMENT '정책 대상 유형',
+    target_id VARCHAR(150) NOT NULL COMMENT '정책 대상 ID',
+    log_level VARCHAR(20) NOT NULL DEFAULT 'INFO' COMMENT '기본 로그 레벨',
+    db_log_enabled_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT 'DB 로그 적재 여부',
+    file_log_enabled_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '파일 로그 출력 여부',
+    request_body_log_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '요청 본문 로그 여부',
+    response_body_log_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '응답 본문 로그 여부',
+    error_stack_log_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '오류 stack 로그 여부',
+    masking_policy_key VARCHAR(120) NULL COMMENT '마스킹 정책 키',
+    retention_days INT NOT NULL DEFAULT 90 COMMENT '보존 일수',
+    sampling_rate DECIMAL(5,2) NOT NULL DEFAULT 100.00 COMMENT '샘플링 비율',
+    priority INT NOT NULL DEFAULT 100 COMMENT '정책 우선순위',
+    active_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '활성 여부',
+    description VARCHAR(500) NULL COMMENT '정책 설명',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_cpf_log_policy PRIMARY KEY (policy_id),
+    CONSTRAINT uk_cpf_log_policy_key UNIQUE (policy_key),
+    CONSTRAINT uk_cpf_log_policy_target UNIQUE (target_type, target_id),
+    INDEX ix_cpf_log_policy_active (active_yn, target_type, priority)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 로그 정책';
+
+CREATE TABLE IF NOT EXISTS cpf_log_policy_audit (
+    audit_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '로그 정책 감사 순번',
+    policy_id BIGINT NULL COMMENT '로그 정책 순번',
+    override_id BIGINT NULL COMMENT '로그 정책 override 순번',
+    action_type VARCHAR(30) NOT NULL COMMENT '감사 행위 유형',
+    target_type VARCHAR(30) NOT NULL COMMENT '대상 유형',
+    target_id VARCHAR(150) NOT NULL COMMENT '대상 ID',
+    reason VARCHAR(500) NOT NULL COMMENT '감사 사유',
+    before_data MEDIUMTEXT NULL COMMENT '변경 전 데이터',
+    after_data MEDIUMTEXT NULL COMMENT '변경 후 데이터',
+    diff_data MEDIUMTEXT NULL COMMENT '변경 차이',
+    operator_id VARCHAR(100) NOT NULL COMMENT '운영자 ID',
+    client_ip VARCHAR(100) NULL COMMENT '클라이언트 IP',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_cpf_log_policy_audit PRIMARY KEY (audit_id),
+    CONSTRAINT fk_cpf_log_policy_audit_policy FOREIGN KEY (policy_id) REFERENCES cpf_log_policy (policy_id) ON DELETE SET NULL,
+    CONSTRAINT fk_cpf_log_policy_audit_override FOREIGN KEY (override_id) REFERENCES cpf_log_policy_override (override_id) ON DELETE SET NULL,
+    INDEX ix_cpf_log_policy_audit_target (target_type, target_id, created_at),
+    INDEX ix_cpf_log_policy_audit_operator (operator_id, created_at),
+    INDEX ix_cpf_log_policy_audit_policy (policy_id, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 로그 정책 감사 로그';
+
+CREATE TABLE IF NOT EXISTS cpf_log_policy_override (
+    override_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '로그 정책 override 순번',
+    policy_id BIGINT NULL COMMENT '기본 로그 정책 순번',
+    target_type VARCHAR(30) NOT NULL COMMENT 'override 대상 유형',
+    target_id VARCHAR(150) NOT NULL COMMENT 'override 대상 ID',
+    override_reason VARCHAR(500) NOT NULL COMMENT 'override 사유',
+    log_level VARCHAR(20) NULL COMMENT '임시 로그 레벨',
+    db_log_enabled_yn CHAR(1) NULL COMMENT 'DB 로그 임시 적재 여부',
+    file_log_enabled_yn CHAR(1) NULL COMMENT '파일 로그 임시 출력 여부',
+    request_body_log_yn CHAR(1) NULL COMMENT '요청 본문 임시 로그 여부',
+    response_body_log_yn CHAR(1) NULL COMMENT '응답 본문 임시 로그 여부',
+    error_stack_log_yn CHAR(1) NULL COMMENT '오류 stack 임시 로그 여부',
+    masking_policy_key VARCHAR(120) NULL COMMENT '임시 마스킹 정책 키',
+    effective_start_at DATETIME(3) NOT NULL COMMENT '적용 시작일시',
+    effective_end_at DATETIME(3) NOT NULL COMMENT '적용 종료일시',
+    requested_by VARCHAR(100) NOT NULL COMMENT '요청자',
+    approved_by VARCHAR(100) NULL COMMENT '승인자',
+    active_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '활성 여부',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_cpf_log_policy_override PRIMARY KEY (override_id),
+    CONSTRAINT fk_cpf_log_policy_override_policy FOREIGN KEY (policy_id) REFERENCES cpf_log_policy (policy_id) ON DELETE SET NULL,
+    INDEX ix_cpf_log_policy_override_target (target_type, target_id, active_yn),
+    INDEX ix_cpf_log_policy_override_period (effective_start_at, effective_end_at, active_yn),
+    INDEX ix_cpf_log_policy_override_policy (policy_id, active_yn)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 로그 정책 임시 override';
+
+CREATE TABLE IF NOT EXISTS cpf_message (
+    message_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '메시지 순번',
+    message_code VARCHAR(20) NOT NULL COMMENT '메시지 코드',
+    locale VARCHAR(10) NOT NULL DEFAULT 'ko' COMMENT '언어 코드',
+    message_format_type VARCHAR(20) NOT NULL DEFAULT 'FIXED' COMMENT '메시지 포맷 유형',
+    external_message VARCHAR(2000) NOT NULL COMMENT '외부 노출 메시지',
+    internal_message VARCHAR(4000) NOT NULL COMMENT '내부 진단 메시지',
+    parameter_count INT NOT NULL DEFAULT 0 COMMENT '파라미터 개수',
+    parameter_sample VARCHAR(1000) NULL COMMENT '파라미터 예시',
+    description VARCHAR(500) NULL COMMENT '메시지 설명',
+    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_cpf_message PRIMARY KEY (message_id),
+    CONSTRAINT uk_cpf_message_code_locale UNIQUE (message_code, locale),
+    INDEX ix_cpf_message_code_use (message_code, use_yn),
+    INDEX ix_cpf_message_use (use_yn)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 시스템 메시지';
+
+CREATE TABLE IF NOT EXISTS cpf_notification_delivery_attempt (
+    delivery_id BIGINT NOT NULL COMMENT '알림 발송 ID',
+    attempt_no INT NOT NULL COMMENT 'Provider 호출 시도 순번',
+    operation_id VARCHAR(100) NOT NULL COMMENT '멱등 작업 ID',
+    worker_id VARCHAR(100) NOT NULL COMMENT '호출 소유 Worker',
+    attempt_status VARCHAR(30) NOT NULL COMMENT 'Attempt 처리 상태',
+    provider_status VARCHAR(80) NULL COMMENT 'Provider 결과 코드',
+    provider_message VARCHAR(2000) NULL COMMENT '민감정보 제거 Provider 결과',
+    started_at DATETIME(3) NOT NULL COMMENT 'Provider 호출 시작 일시',
+    completed_at DATETIME(3) NULL COMMENT 'Provider 결과 확정 일시',
+    lease_version BIGINT NOT NULL COMMENT 'Claim 시점 CAS Version',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '기록 주체',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '기록 일시',
+    CONSTRAINT pk_cpf_notification_delivery_attempt PRIMARY KEY (delivery_id, attempt_no),
+    CONSTRAINT fk_cpf_notification_attempt_delivery FOREIGN KEY (delivery_id) REFERENCES cpf_notification_delivery_log (delivery_id) ON DELETE CASCADE,
+    INDEX ix_cpf_notification_attempt_operation (operation_id, attempt_no),
+    INDEX ix_cpf_notification_attempt_status (attempt_status, started_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Durable Notification Provider 호출 Attempt 불변 이력';
+
+CREATE TABLE IF NOT EXISTS cpf_notification_delivery_log (
+    delivery_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '알림 발송 로그 순번',
+    rule_id BIGINT NULL COMMENT '알림 규칙 순번',
+    event_type VARCHAR(80) NOT NULL COMMENT '알림 이벤트 유형',
+    target_type VARCHAR(80) NULL COMMENT '알림 대상 유형',
+    target_id VARCHAR(120) NULL COMMENT '알림 대상 ID',
+    receiver VARCHAR(200) NULL COMMENT '수신자',
+    delivery_status VARCHAR(30) NOT NULL DEFAULT 'READY' COMMENT '발송 상태',
+    delivery_message VARCHAR(2000) NULL COMMENT '발송 메시지',
+    requested_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '발송 요청 일시',
+    delivered_at DATETIME(3) NULL COMMENT '발송 완료 일시',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    operation_id VARCHAR(100) NOT NULL COMMENT '멱등 발송 작업 ID',
+    request_hash VARCHAR(64) NOT NULL COMMENT '발송 요청 SHA-256',
+    payload_body VARCHAR(2000) NOT NULL COMMENT 'Provider 전달 Payload(ADM 응답 비노출)',
+    attempt_count INT NOT NULL DEFAULT 0 COMMENT '발송 시도 횟수',
+    max_attempts INT NOT NULL DEFAULT 3 COMMENT '최대 발송 시도 횟수',
+    next_attempt_at DATETIME(3) NULL COMMENT '다음 재시도 시각',
+    lease_owner VARCHAR(100) NULL COMMENT '발송 Lease 소유 인스턴스',
+    lease_until DATETIME(3) NULL COMMENT '발송 Lease 만료 시각',
+    version BIGINT NOT NULL DEFAULT 0 COMMENT 'CAS 버전',
+    last_error_code VARCHAR(80) NULL COMMENT '마지막 Provider 오류 코드',
+    CONSTRAINT pk_cpf_notification_delivery_log PRIMARY KEY (delivery_id),
+    CONSTRAINT uk_cpf_notification_delivery_operation UNIQUE (operation_id),
+    CONSTRAINT fk_cpf_notification_delivery_rule FOREIGN KEY (rule_id) REFERENCES cpf_notification_rule (rule_id) ON DELETE SET NULL,
+    INDEX ix_cpf_notification_delivery_target (target_type, target_id, requested_at),
+    INDEX ix_cpf_notification_delivery_status (delivery_status, requested_at),
+    INDEX ix_cpf_notification_delivery_due (delivery_status, next_attempt_at, lease_until)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 운영 알림 발송 로그';
+
+CREATE TABLE IF NOT EXISTS cpf_notification_rule (
+    rule_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '알림 규칙 순번',
+    event_type VARCHAR(80) NOT NULL COMMENT '알림 이벤트 유형',
+    event_sub_type VARCHAR(80) NULL COMMENT '알림 이벤트 세부 유형',
+    channel_code VARCHAR(30) NOT NULL DEFAULT 'ADM' COMMENT '알림 채널 코드',
+    template_code VARCHAR(80) NULL COMMENT '알림 템플릿 코드',
+    severity VARCHAR(20) NOT NULL DEFAULT 'INFO' COMMENT '알림 심각도',
+    receiver_group VARCHAR(100) NULL COMMENT '수신자 그룹',
+    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_cpf_notification_rule PRIMARY KEY (rule_id),
+    CONSTRAINT uk_cpf_notification_rule UNIQUE (event_type, event_sub_type, channel_code),
+    INDEX ix_cpf_notification_rule_use (use_yn, severity)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 운영 알림 규칙';
+
+CREATE TABLE IF NOT EXISTS cpf_response_code (
+    response_code VARCHAR(20) NOT NULL COMMENT 'CPF 응답 코드',
+    message_code VARCHAR(20) NOT NULL COMMENT '연결 메시지 코드',
+    result_type CHAR(1) NOT NULL COMMENT '결과 유형',
+    module_id VARCHAR(3) NOT NULL COMMENT '모듈 ID',
+    response_group VARCHAR(2) NOT NULL COMMENT '응답 그룹',
+    sequence_no VARCHAR(4) NOT NULL COMMENT '응답 일련번호',
+    http_status INT NOT NULL COMMENT 'HTTP 상태 코드',
+    description VARCHAR(500) NULL COMMENT '응답 코드 설명',
+    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_cpf_response_code PRIMARY KEY (response_code),
+    INDEX ix_cpf_response_code_message (message_code),
+    INDEX ix_cpf_response_code_module (module_id, result_type, response_group)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 응답 코드';
+
+CREATE TABLE IF NOT EXISTS cpf_runtime_change (
+    change_id VARCHAR(80) NOT NULL COMMENT 'Runtime change identifier',
+    operation_id VARCHAR(100) NOT NULL COMMENT 'Idempotent operation identifier',
+    change_type VARCHAR(80) NOT NULL COMMENT 'Runtime change type',
+    payload_schema_version INT NOT NULL DEFAULT 1 COMMENT 'Payload schema version',
+    request_hash VARCHAR(64) NOT NULL COMMENT 'Request fingerprint checksum',
+    payload_hash VARCHAR(64) NOT NULL COMMENT '실제 payload canonical hash',
+    payload_json LONGTEXT NOT NULL COMMENT 'Change payload JSON',
+    rollback_payload_json LONGTEXT NULL COMMENT 'Rollback payload JSON',
+    target_snapshot_json LONGTEXT NOT NULL COMMENT 'Change target snapshot JSON',
+    desired_version BIGINT NOT NULL COMMENT 'Desired state version',
+    rollout_mode VARCHAR(30) NOT NULL DEFAULT 'ALL_AT_ONCE' COMMENT 'Rollout mode',
+    wave_size INT NOT NULL DEFAULT 100 COMMENT 'Rollout wave size',
+    quorum_percent INT NOT NULL DEFAULT 100 COMMENT 'Required rollout quorum percent',
+    change_state VARCHAR(30) NOT NULL DEFAULT 'APPLYING' COMMENT 'Runtime change lifecycle state',
+    scheduled_at DATETIME(3) NULL COMMENT 'Scheduled execution time',
+    expires_at DATETIME(3) NULL COMMENT 'Expiry time',
+    reason VARCHAR(1000) NOT NULL COMMENT 'Mandatory operation reason',
+    approval_id VARCHAR(100) NULL COMMENT 'Approval request identifier',
+    break_glass_id VARCHAR(100) NULL COMMENT 'Break-glass authorization identifier',
+    requested_by VARCHAR(100) NOT NULL COMMENT 'Requester identifier',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT 'Creator identifier',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Creation time',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT 'Last updater identifier',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Last update time',
+    CONSTRAINT pk_cpf_runtime_change PRIMARY KEY (change_id),
+    CONSTRAINT ux_cpf_runtime_change_operation UNIQUE (operation_id),
+    CONSTRAINT ck_cpf_runtime_change_state CHECK (change_state IN ('SCHEDULED','APPLYING','PARTIAL','SUCCESS','FAILED','CANCELLED','EXPIRED','ROLLBACK_PENDING','ROLLED_BACK','SUPERSEDED','UNKNOWN_RESULT','RECOVERED')),
+    CONSTRAINT fk_cpf_runtime_change_operation FOREIGN KEY (operation_id) REFERENCES cpf_control_operation (operation_id),
+    INDEX ix_cpf_runtime_change_state (change_state, scheduled_at, expires_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Runtime 변경 immutable target snapshot/desired state';
+
+CREATE TABLE IF NOT EXISTS cpf_runtime_change_audit (
+    audit_id BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Audit event identifier',
+    change_id VARCHAR(80) NOT NULL COMMENT 'Runtime change identifier',
+    event_type VARCHAR(60) NOT NULL COMMENT 'Audit event type',
+    actor_id VARCHAR(100) NOT NULL COMMENT 'Actor identifier',
+    reason VARCHAR(500) NULL COMMENT 'Mandatory operation reason',
+    evidence_hash VARCHAR(64) NULL COMMENT 'Evidence checksum',
+    previous_hash VARCHAR(64) NOT NULL COMMENT 'Previous audit chain checksum',
+    chain_hash VARCHAR(64) NOT NULL COMMENT 'Audit chain checksum',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT 'Creator identifier',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Creation time',
+    CONSTRAINT pk_cpf_runtime_change_audit PRIMARY KEY (audit_id),
+    CONSTRAINT fk_cpf_runtime_audit_change FOREIGN KEY (change_id) REFERENCES cpf_runtime_change (change_id) ON DELETE CASCADE,
+    INDEX ix_cpf_runtime_change_audit_change (change_id, audit_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Runtime Control immutable hash-chain audit';
+
+CREATE TABLE IF NOT EXISTS cpf_runtime_controller_lease (
+    lease_key VARCHAR(60) NOT NULL COMMENT 'Controller lease key',
+    holder_id VARCHAR(120) NOT NULL COMMENT 'Lease holder identifier',
+    fencing_token BIGINT NOT NULL DEFAULT 0 COMMENT 'Monotonic fencing token',
+    lease_until DATETIME(3) NOT NULL COMMENT 'Lease expiry time',
+    last_reconciled_at DATETIME(3) NULL COMMENT 'Last reconciliation time',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT 'Creator identifier',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Creation time',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT 'Last updater identifier',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Last update time',
+    CONSTRAINT pk_cpf_runtime_controller_lease PRIMARY KEY (lease_key),
+    INDEX ix_cpf_runtime_controller_lease_until (lease_until)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Runtime Control Plane controller leader lease/fencing';
+
+CREATE TABLE IF NOT EXISTS cpf_runtime_delivery (
+    delivery_id VARCHAR(80) NOT NULL COMMENT 'Runtime delivery identifier',
+    change_id VARCHAR(80) NOT NULL COMMENT 'Runtime change identifier',
+    instance_id VARCHAR(120) NOT NULL COMMENT 'Runtime instance identifier',
+    sequence_no INT NOT NULL COMMENT 'Delivery sequence number',
+    desired_version BIGINT NOT NULL COMMENT 'Desired state version',
+    delivery_state VARCHAR(30) NOT NULL DEFAULT 'PENDING' COMMENT 'Runtime delivery lifecycle state',
+    attempt_no INT NOT NULL DEFAULT 0 COMMENT 'Delivery attempt number',
+    next_attempt_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Next delivery attempt time',
+    fencing_token BIGINT NULL COMMENT 'Monotonic fencing token',
+    claimed_at DATETIME(3) NULL COMMENT 'Delivery claim time',
+    acknowledged_at DATETIME(3) NULL COMMENT 'Delivery acknowledgment time',
+    actual_hash VARCHAR(64) NULL COMMENT 'Applied state checksum',
+    error_code VARCHAR(80) NULL COMMENT 'Failure code',
+    error_message VARCHAR(900) NULL COMMENT 'Masked failure message',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT 'Creator identifier',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Creation time',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT 'Last updater identifier',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Last update time',
+    CONSTRAINT pk_cpf_runtime_delivery PRIMARY KEY (delivery_id),
+    CONSTRAINT ck_cpf_runtime_delivery_state CHECK (delivery_state IN ('PENDING','CLAIMED','ACKED','FAILED','POISONED','UNKNOWN_RESULT','RESTART_REQUIRED','CANCELLED','EXPIRED','SUPERSEDED')),
+    CONSTRAINT fk_cpf_runtime_delivery_change FOREIGN KEY (change_id) REFERENCES cpf_runtime_change (change_id) ON DELETE CASCADE,
+    CONSTRAINT fk_cpf_runtime_delivery_instance FOREIGN KEY (instance_id) REFERENCES cpf_service_instance (instance_id) ON DELETE CASCADE,
+    INDEX ix_cpf_runtime_delivery_claim (instance_id, delivery_state, next_attempt_at, sequence_no),
+    INDEX ix_cpf_runtime_delivery_change (change_id, delivery_state)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Runtime durable per-instance delivery inbox';
+
+CREATE TABLE IF NOT EXISTS cpf_runtime_group_member (
+    group_id VARCHAR(80) NOT NULL COMMENT 'Runtime instance group identifier',
+    instance_id VARCHAR(120) NOT NULL COMMENT 'Runtime instance identifier',
+    active_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT 'Active flag',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT 'Creator identifier',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Creation time',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT 'Last updater identifier',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Last update time',
+    CONSTRAINT pk_cpf_runtime_group_member PRIMARY KEY (group_id, instance_id),
+    CONSTRAINT ck_cpf_runtime_group_member_active CHECK (active_yn IN ('Y','N')),
+    CONSTRAINT fk_cpf_runtime_group_member_group FOREIGN KEY (group_id) REFERENCES cpf_runtime_instance_group (group_id) ON DELETE CASCADE,
+    CONSTRAINT fk_cpf_runtime_group_member_instance FOREIGN KEY (instance_id) REFERENCES cpf_service_instance (instance_id) ON DELETE CASCADE,
+    INDEX ix_cpf_runtime_group_member_instance (instance_id, active_yn)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Runtime Instance Group membership';
+
+CREATE TABLE IF NOT EXISTS cpf_runtime_instance_feature_state (
+    instance_id VARCHAR(120) NOT NULL COMMENT 'Runtime instance identifier',
+    change_type VARCHAR(80) NOT NULL COMMENT 'Runtime change type',
+    desired_version BIGINT NOT NULL DEFAULT 0 COMMENT 'Desired state version',
+    actual_version BIGINT NOT NULL DEFAULT 0 COMMENT 'Applied state version',
+    desired_hash VARCHAR(64) NULL COMMENT 'Desired state checksum',
+    actual_hash VARCHAR(64) NULL COMMENT 'Applied state checksum',
+    drift_state VARCHAR(30) NOT NULL DEFAULT 'UNKNOWN' COMMENT 'Desired and actual state drift',
+    source_delivery_id VARCHAR(80) NULL COMMENT 'Source delivery identifier',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT 'Creator identifier',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Creation time',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT 'Last updater identifier',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Last update time',
+    CONSTRAINT pk_cpf_runtime_instance_feature_state PRIMARY KEY (instance_id, change_type),
+    CONSTRAINT ck_cpf_runtime_feature_drift CHECK (drift_state IN ('IN_SYNC','PENDING','DRIFT','UNKNOWN','UNKNOWN_RESULT','PENDING_RESTART','EXCLUDED')),
+    CONSTRAINT fk_cpf_runtime_feature_instance FOREIGN KEY (instance_id) REFERENCES cpf_service_instance (instance_id) ON DELETE CASCADE,
+    INDEX ix_cpf_runtime_feature_drift (drift_state, change_type),
+    INDEX ix_cpf_runtime_feature_delivery (source_delivery_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Runtime Instance 기능별 desired/actual/drift 상태';
+
+CREATE TABLE IF NOT EXISTS cpf_runtime_instance_group (
+    group_id VARCHAR(80) NOT NULL COMMENT '인스턴스 그룹 ID',
+    group_name VARCHAR(150) NOT NULL COMMENT '그룹명',
+    parent_group_id VARCHAR(80) NULL COMMENT '상위 그룹 ID',
+    environment_code VARCHAR(40) NULL COMMENT 'Target environment code',
+    description VARCHAR(500) NULL COMMENT 'Description',
+    active_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT 'Active flag',
+    row_version BIGINT NOT NULL DEFAULT 0 COMMENT 'Optimistic locking version',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT 'Creator identifier',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Creation time',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT 'Last updater identifier',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Last update time',
+    CONSTRAINT pk_cpf_runtime_instance_group PRIMARY KEY (group_id),
+    CONSTRAINT ck_cpf_runtime_group_active CHECK (active_yn IN ('Y','N')),
+    CONSTRAINT fk_cpf_runtime_group_parent FOREIGN KEY (parent_group_id) REFERENCES cpf_runtime_instance_group (group_id),
+    INDEX ix_cpf_runtime_group_parent (parent_group_id, active_yn),
+    INDEX ix_cpf_runtime_group_env (environment_code, active_yn)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Runtime Instance Group/Cell/Zone logical group';
+
+CREATE TABLE IF NOT EXISTS cpf_runtime_instance_state (
+    instance_id VARCHAR(120) NOT NULL COMMENT 'Runtime instance identifier',
+    fencing_token BIGINT NOT NULL DEFAULT 0 COMMENT 'Monotonic fencing token',
+    lease_until DATETIME(3) NULL COMMENT 'Lease expiry time',
+    desired_version BIGINT NOT NULL DEFAULT 0 COMMENT 'Desired state version',
+    actual_version BIGINT NOT NULL DEFAULT 0 COMMENT 'Applied state version',
+    desired_hash VARCHAR(64) NULL COMMENT 'Desired state checksum',
+    actual_hash VARCHAR(64) NULL COMMENT 'Applied state checksum',
+    drift_state VARCHAR(30) NOT NULL DEFAULT 'IN_SYNC' COMMENT 'Desired and actual state drift',
+    capabilities_json LONGTEXT NULL COMMENT 'Runtime capabilities JSON',
+    labels_json LONGTEXT NULL COMMENT 'Runtime labels JSON',
+    artifact_version VARCHAR(100) NULL COMMENT 'Runtime artifact version',
+    artifact_commit VARCHAR(64) NULL COMMENT '실행 Artifact 기준 Commit',
+    runtime_role VARCHAR(40) NULL COMMENT 'APPLICATION/GATEWAY/BATCH/AGENT 등 Runtime 역할',
+    registration_source VARCHAR(120) NULL COMMENT '배포/Discovery/Self registration identity source',
+    schema_version VARCHAR(100) NULL COMMENT 'Runtime schema version',
+    config_hash VARCHAR(64) NULL COMMENT 'Runtime configuration checksum',
+    clock_skew_ms BIGINT NOT NULL DEFAULT 0 COMMENT 'Agent-Controller clock skew milliseconds',
+    last_ack_change_id VARCHAR(80) NULL COMMENT 'Last acknowledged change identifier',
+    last_ack_at DATETIME(3) NULL COMMENT 'Last acknowledgment time',
+    heartbeat_at DATETIME(3) NULL COMMENT 'Last heartbeat time',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT 'Creator identifier',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Creation time',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT 'Last updater identifier',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Last update time',
+    CONSTRAINT pk_cpf_runtime_instance_state PRIMARY KEY (instance_id),
+    CONSTRAINT ck_cpf_runtime_instance_drift CHECK (drift_state IN ('IN_SYNC','PENDING','DRIFT','UNKNOWN','UNKNOWN_RESULT','PENDING_RESTART','EXCLUDED')),
+    CONSTRAINT fk_cpf_runtime_instance_state_instance FOREIGN KEY (instance_id) REFERENCES cpf_service_instance (instance_id) ON DELETE CASCADE,
+    INDEX ix_cpf_runtime_instance_lease (lease_until),
+    INDEX ix_cpf_runtime_instance_drift (drift_state, heartbeat_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Runtime desired/actual/lease/fencing 상태';
+
+CREATE TABLE IF NOT EXISTS cpf_runtime_rate_bucket (
+    bucket_key VARCHAR(180) NOT NULL COMMENT 'Rate bucket identifier',
+    subject_id VARCHAR(120) NOT NULL COMMENT 'Rate-limit subject identifier',
+    window_start DATETIME(3) NOT NULL COMMENT 'Rate-window start time',
+    request_count INT NOT NULL DEFAULT 0 COMMENT 'Rate-window request count',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT 'Creator identifier',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Creation time',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT 'Last updater identifier',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Last update time',
+    CONSTRAINT pk_cpf_runtime_rate_bucket PRIMARY KEY (bucket_key),
+    CONSTRAINT ck_cpf_runtime_rate_count CHECK (request_count >= 0),
+    INDEX ix_cpf_runtime_rate_subject (subject_id, window_start)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Runtime Control Plane distributed per-minute rate bucket';
+
+CREATE TABLE IF NOT EXISTS cpf_runtime_version (
+    version_key VARCHAR(40) NOT NULL COMMENT '버전 키',
+    version_no BIGINT NOT NULL DEFAULT 0 COMMENT '현재 전역 버전',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT 'Creator identifier',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Creation time',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT 'Last updater identifier',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Last update time',
+    CONSTRAINT pk_cpf_runtime_version PRIMARY KEY (version_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Runtime Control Plane 단조 증가 버전';
+
+CREATE TABLE IF NOT EXISTS cpf_saga_execution (
+    saga_id VARCHAR(100) NOT NULL COMMENT 'Saga identifier',
+    saga_type VARCHAR(100) NOT NULL COMMENT 'Saga type',
+    business_key VARCHAR(200) NULL COMMENT 'Business key',
+    transaction_id CHAR(34) NULL COMMENT 'CPF transactionId',
+    saga_status VARCHAR(40) NOT NULL COMMENT 'Saga status',
+    version INT NOT NULL DEFAULT 0 COMMENT 'Version',
+    error_message VARCHAR(2000) NULL COMMENT 'Error message',
+    started_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Start time',
+    completed_at DATETIME(3) NULL COMMENT 'Completion time',
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Last update time',
+    CONSTRAINT pk_cpf_saga_execution PRIMARY KEY (saga_id),
+    INDEX idx_cpf_saga_status (saga_status, updated_at),
+    INDEX idx_cpf_saga_business (saga_type, business_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Saga 실행 원장';
+
+CREATE TABLE IF NOT EXISTS cpf_saga_manual_action (
+    action_id VARCHAR(36) NOT NULL COMMENT 'Action identifier',
+    saga_id VARCHAR(100) NOT NULL COMMENT 'Saga identifier',
+    action_type VARCHAR(40) NOT NULL COMMENT 'Action type',
+    operator_id VARCHAR(100) NOT NULL COMMENT 'Operator identifier',
+    reason VARCHAR(1000) NOT NULL COMMENT 'Reason',
+    before_status VARCHAR(40) NULL COMMENT 'Before status',
+    after_status VARCHAR(40) NULL COMMENT 'After status',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Creation time',
+    CONSTRAINT pk_cpf_saga_manual_action PRIMARY KEY (action_id),
+    CONSTRAINT fk_cpf_saga_manual_action FOREIGN KEY (saga_id) REFERENCES cpf_saga_execution (saga_id),
+    INDEX idx_cpf_saga_manual (saga_id, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Saga 수동 복구 조치';
+
+CREATE TABLE IF NOT EXISTS cpf_saga_step_execution (
+    saga_id VARCHAR(100) NOT NULL COMMENT 'Saga identifier',
+    step_no INT NOT NULL COMMENT 'Step number',
+    step_id VARCHAR(100) NOT NULL COMMENT 'Step identifier',
+    step_status VARCHAR(40) NOT NULL COMMENT 'Step status',
+    result_code VARCHAR(100) NULL COMMENT 'Result code',
+    result_snapshot TEXT NULL COMMENT 'Result snapshot',
+    error_message VARCHAR(2000) NULL COMMENT 'Error message',
+    execute_attempts INT NOT NULL DEFAULT 0 COMMENT 'Execute attempts',
+    compensation_attempts INT NOT NULL DEFAULT 0 COMMENT 'Compensation attempts',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Creation time',
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Last update time',
+    CONSTRAINT pk_cpf_saga_step_execution PRIMARY KEY (saga_id, step_no),
+    CONSTRAINT fk_cpf_saga_step_execution FOREIGN KEY (saga_id) REFERENCES cpf_saga_execution (saga_id),
+    INDEX idx_cpf_saga_step_status (step_status, updated_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Saga 단계 실행 원장';
 
 CREATE TABLE IF NOT EXISTS cpf_schema_installation (
     schema_name VARCHAR(64) NOT NULL COMMENT 'CPF 소유 Schema 이름',
@@ -22,15 +759,267 @@ CREATE TABLE IF NOT EXISTS cpf_schema_installation (
     created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
     updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF_INSTALLER' COMMENT '수정자',
     updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
-    PRIMARY KEY (schema_name),
+    CONSTRAINT pk_cpf_schema_installation PRIMARY KEY (schema_name),
+    CONSTRAINT ck_cpf_schema_installation_vendor CHECK (database_vendor IN ('MARIADB', 'POSTGRESQL', 'ORACLE')),
+    CONSTRAINT ck_cpf_schema_installation_state CHECK (install_state IN ('PRODUCT_SEEDED')),
     INDEX ix_cpf_schema_installation_system (system_code),
-    INDEX ix_cpf_schema_installation_version (product_version, install_state),
-    CONSTRAINT ck_cpf_schema_installation_vendor
-        CHECK (database_vendor IN ('MARIADB', 'MYSQL', 'POSTGRESQL', 'ORACLE', 'SQLSERVER')),
-    CONSTRAINT ck_cpf_schema_installation_state
-        CHECK (install_state IN ('PRODUCT_SEEDED'))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-  COMMENT='CPF 공식 Empty Install 및 Product Seed Baseline';
+    INDEX ix_cpf_schema_installation_version (product_version, install_state)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 공식 Empty Install 및 Product Seed Baseline';
+
+CREATE TABLE IF NOT EXISTS cpf_security_jwt_key (
+    KEY_ID VARCHAR(80) NOT NULL COMMENT 'JWT key ID',
+    ISSUER VARCHAR(100) NOT NULL COMMENT '토큰 발급자',
+    ALGORITHM VARCHAR(20) NOT NULL DEFAULT 'HS256' COMMENT '서명 알고리즘',
+    SECRET_REF VARCHAR(500) NOT NULL COMMENT 'Vault/KMS/환경변수 secret 참조',
+    ACTIVE_YN CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '활성 여부',
+    EXPIRE_AT DATETIME NULL COMMENT '만료일시',
+    created_by VARCHAR(50) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(50) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_cpf_security_jwt_key PRIMARY KEY (KEY_ID),
+    INDEX ix_cpf_security_jwt_key_issuer (ISSUER, ACTIVE_YN)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF JWT key 메타';
+
+CREATE TABLE IF NOT EXISTS cpf_security_token_audit_log (
+    TOKEN_AUDIT_ID BIGINT NOT NULL AUTO_INCREMENT COMMENT '토큰 감사 로그 순번',
+    TRANSACTION_ID CHAR(34) NULL COMMENT 'CPF transactionId',
+    TRACE_ID VARCHAR(80) NULL COMMENT '분산 추적 ID',
+    TOKEN_HASH VARCHAR(512) NULL COMMENT '토큰 해시',
+    TOKEN_TYPE VARCHAR(30) NOT NULL DEFAULT 'Bearer' COMMENT '토큰 유형',
+    ISSUER VARCHAR(100) NULL COMMENT '토큰 발급자',
+    SUBJECT VARCHAR(200) NULL COMMENT '토큰 주체',
+    AUDIENCE VARCHAR(200) NULL COMMENT '토큰 대상',
+    ACTIVE_YN CHAR(1) NOT NULL DEFAULT 'N' COMMENT '활성 여부',
+    EXPIRE_AT DATETIME NULL COMMENT '만료일시',
+    FAILURE_REASON VARCHAR(1000) NULL COMMENT '검증 실패 사유',
+    CLIENT_IP VARCHAR(50) NULL COMMENT '클라이언트 IP',
+    created_by VARCHAR(50) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(50) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_cpf_security_token_audit_log PRIMARY KEY (TOKEN_AUDIT_ID),
+    INDEX ix_cpf_security_token_tx (TRANSACTION_ID),
+    INDEX ix_cpf_security_token_hash (TOKEN_HASH),
+    INDEX ix_cpf_security_token_subject_time (SUBJECT, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 보안 토큰 감사 로그';
+
+CREATE TABLE IF NOT EXISTS cpf_service (
+    service_id VARCHAR(40) NOT NULL COMMENT '서비스 ID',
+    service_name VARCHAR(150) NOT NULL COMMENT '서비스명',
+    service_type VARCHAR(30) NOT NULL DEFAULT 'INTERNAL' COMMENT '서비스 유형',
+    owner_module_code VARCHAR(20) NOT NULL COMMENT '소유 모듈 코드',
+    description VARCHAR(500) NULL COMMENT '서비스 설명',
+    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    row_version BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 row version',
+    CONSTRAINT pk_cpf_service PRIMARY KEY (service_id),
+    INDEX ix_cpf_service_owner (owner_module_code, use_yn),
+    INDEX ix_cpf_service_type (service_type, use_yn)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 서비스 레지스트리';
+
+CREATE TABLE IF NOT EXISTS cpf_service_call_history (
+    call_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '서비스 호출 이력 ID',
+    transaction_id CHAR(34) NULL COMMENT '전역 거래 ID',
+    trace_id VARCHAR(100) NULL COMMENT 'Trace ID',
+    service_id VARCHAR(40) NOT NULL COMMENT '서비스 ID',
+    endpoint_code VARCHAR(80) NULL COMMENT 'Endpoint 코드',
+    instance_id VARCHAR(120) NULL COMMENT '서비스 인스턴스 ID',
+    http_method VARCHAR(10) NOT NULL DEFAULT 'GET' COMMENT 'HTTP Method',
+    request_path VARCHAR(500) NOT NULL DEFAULT '/' COMMENT '요청 경로',
+    call_status VARCHAR(30) NOT NULL COMMENT '호출 상태',
+    http_status INT NULL COMMENT 'HTTP 상태 코드',
+    duration_ms BIGINT NULL COMMENT '소요 시간 밀리초',
+    timeout_ms INT NULL COMMENT 'Timeout 밀리초',
+    retry_count INT NULL COMMENT 'Retry 횟수',
+    failure_code VARCHAR(100) NULL COMMENT '실패 코드',
+    failure_message VARCHAR(1000) NULL COMMENT '마스킹된 실패 메시지',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_cpf_service_call_history PRIMARY KEY (call_id),
+    CONSTRAINT fk_cpf_service_call_history_service FOREIGN KEY (service_id) REFERENCES cpf_service (service_id),
+    CONSTRAINT fk_cpf_service_call_history_endpoint FOREIGN KEY (endpoint_code) REFERENCES cpf_service_endpoint (endpoint_code) ON DELETE SET NULL,
+    CONSTRAINT fk_cpf_service_call_history_instance FOREIGN KEY (instance_id) REFERENCES cpf_service_instance (instance_id) ON DELETE SET NULL,
+    INDEX ix_cpf_service_call_history_tx (transaction_id, call_id),
+    INDEX ix_cpf_service_call_history_service (service_id, endpoint_code, created_at),
+    INDEX ix_cpf_service_call_history_status (call_status, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 서비스 호출 이력';
+
+CREATE TABLE IF NOT EXISTS cpf_service_circuit_state (
+    circuit_id BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Circuit 상태 ID',
+    service_id VARCHAR(40) NOT NULL COMMENT '서비스 ID',
+    endpoint_code VARCHAR(80) NOT NULL COMMENT 'Endpoint 코드',
+    instance_id VARCHAR(120) NULL COMMENT '서비스 인스턴스 ID',
+    circuit_state VARCHAR(30) NOT NULL DEFAULT 'CLOSED' COMMENT 'Circuit 상태',
+    failure_count INT NOT NULL DEFAULT 0 COMMENT '실패 횟수',
+    success_count INT NOT NULL DEFAULT 0 COMMENT '성공 횟수',
+    opened_at DATETIME(3) NULL COMMENT 'Open 일시',
+    half_opened_at DATETIME(3) NULL COMMENT 'Half-open 일시',
+    closed_at DATETIME(3) NULL COMMENT 'Close 일시',
+    last_failure_message VARCHAR(1000) NULL COMMENT '마지막 실패 메시지',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_cpf_service_circuit_state PRIMARY KEY (circuit_id),
+    CONSTRAINT uk_cpf_service_circuit_state UNIQUE (service_id, endpoint_code, instance_id),
+    CONSTRAINT fk_cpf_service_circuit_service FOREIGN KEY (service_id) REFERENCES cpf_service (service_id),
+    CONSTRAINT fk_cpf_service_circuit_endpoint FOREIGN KEY (endpoint_code) REFERENCES cpf_service_endpoint (endpoint_code),
+    CONSTRAINT fk_cpf_service_circuit_instance FOREIGN KEY (instance_id) REFERENCES cpf_service_instance (instance_id) ON DELETE SET NULL,
+    INDEX ix_cpf_service_circuit_state (circuit_state, updated_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 서비스 Circuit 상태';
+
+CREATE TABLE IF NOT EXISTS cpf_service_endpoint (
+    endpoint_code VARCHAR(80) NOT NULL COMMENT 'Endpoint 코드',
+    service_id VARCHAR(40) NOT NULL COMMENT '서비스 ID',
+    endpoint_name VARCHAR(150) NOT NULL COMMENT 'Endpoint명',
+    endpoint_type VARCHAR(30) NOT NULL DEFAULT 'HTTP' COMMENT 'Endpoint 유형',
+    base_url VARCHAR(500) NOT NULL COMMENT '기본 URL',
+    context_path VARCHAR(200) NULL COMMENT 'Context path',
+    default_timeout_ms INT NOT NULL DEFAULT 3000 COMMENT '기본 timeout 밀리초',
+    default_retry_count INT NOT NULL DEFAULT 0 COMMENT '기본 retry 횟수',
+    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    row_version BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 row version',
+    CONSTRAINT pk_cpf_service_endpoint PRIMARY KEY (endpoint_code),
+    CONSTRAINT fk_cpf_service_endpoint_service FOREIGN KEY (service_id) REFERENCES cpf_service (service_id),
+    INDEX ix_cpf_service_endpoint_service (service_id, use_yn),
+    INDEX ix_cpf_service_endpoint_type (endpoint_type, use_yn)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 서비스 Endpoint 레지스트리';
+
+CREATE TABLE IF NOT EXISTS cpf_service_health_status (
+    health_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '서비스 health 이력 ID',
+    service_id VARCHAR(40) NOT NULL COMMENT '서비스 ID',
+    endpoint_code VARCHAR(80) NOT NULL COMMENT 'Endpoint 코드',
+    instance_id VARCHAR(120) NULL COMMENT '서비스 인스턴스 ID',
+    health_status VARCHAR(30) NOT NULL COMMENT 'Health 상태',
+    http_status INT NULL COMMENT 'HTTP 상태 코드',
+    response_time_ms BIGINT NULL COMMENT '응답 시간 밀리초',
+    failure_message VARCHAR(1000) NULL COMMENT '실패 메시지',
+    checked_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '점검 일시',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_cpf_service_health_status PRIMARY KEY (health_id),
+    CONSTRAINT fk_cpf_service_health_service FOREIGN KEY (service_id) REFERENCES cpf_service (service_id),
+    CONSTRAINT fk_cpf_service_health_endpoint FOREIGN KEY (endpoint_code) REFERENCES cpf_service_endpoint (endpoint_code),
+    CONSTRAINT fk_cpf_service_health_instance FOREIGN KEY (instance_id) REFERENCES cpf_service_instance (instance_id) ON DELETE SET NULL,
+    INDEX ix_cpf_service_health_target (service_id, endpoint_code, instance_id, checked_at),
+    INDEX ix_cpf_service_health_status (health_status, checked_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 서비스 Health 상태 이력';
+
+CREATE TABLE IF NOT EXISTS cpf_service_instance (
+    instance_id VARCHAR(120) NOT NULL COMMENT '서비스 인스턴스 ID',
+    service_id VARCHAR(40) NOT NULL COMMENT '서비스 ID',
+    endpoint_code VARCHAR(80) NOT NULL COMMENT 'Endpoint 코드',
+    instance_name VARCHAR(150) NOT NULL COMMENT '서비스 인스턴스명',
+    base_url VARCHAR(500) NOT NULL COMMENT '인스턴스 기본 URL',
+    host_name VARCHAR(150) NULL COMMENT 'Host명',
+    port_no INT NULL COMMENT 'Port 번호',
+    instance_status VARCHAR(30) NOT NULL DEFAULT 'UP' COMMENT '인스턴스 상태',
+    weight INT NOT NULL DEFAULT 100 COMMENT '라우팅 가중치',
+    active_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '활성 여부',
+    last_heartbeat_at DATETIME(3) NULL COMMENT '마지막 heartbeat 일시',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    environment_code VARCHAR(40) NOT NULL DEFAULT 'default' COMMENT '배포 환경 코드',
+    zone_code VARCHAR(60) NULL COMMENT '가용 영역/Zone 코드',
+    cell_code VARCHAR(60) NULL COMMENT '운영 Cell 코드',
+    priority_no INT NOT NULL DEFAULT 100 COMMENT '라우팅 우선순위(낮을수록 우선)',
+    maintenance_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '유지보수 제외 여부',
+    drain_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '신규 요청 Drain 여부',
+    drain_deadline_at DATETIME(3) NULL COMMENT 'Drain 완료 목표 시각',
+    row_version BIGINT NOT NULL DEFAULT 0 COMMENT 'Optimistic lock 버전',
+    CONSTRAINT pk_cpf_service_instance PRIMARY KEY (instance_id),
+    CONSTRAINT ck_cpf_service_instance_active CHECK (active_yn IN ('Y','N')),
+    CONSTRAINT ck_cpf_service_instance_maintenance CHECK (maintenance_yn IN ('Y','N')),
+    CONSTRAINT ck_cpf_service_instance_drain CHECK (drain_yn IN ('Y','N')),
+    CONSTRAINT fk_cpf_service_instance_service FOREIGN KEY (service_id) REFERENCES cpf_service (service_id),
+    CONSTRAINT fk_cpf_service_instance_endpoint FOREIGN KEY (endpoint_code) REFERENCES cpf_service_endpoint (endpoint_code),
+    INDEX ix_cpf_service_instance_endpoint (service_id, endpoint_code, active_yn, instance_status),
+    INDEX ix_cpf_service_instance_weight (endpoint_code, weight),
+    INDEX ix_cpf_service_instance_placement (environment_code, zone_code, cell_code, active_yn, instance_status),
+    INDEX ix_cpf_service_instance_route (endpoint_code, priority_no, maintenance_yn, drain_yn, active_yn, instance_status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 서비스 인스턴스 레지스트리';
+
+CREATE TABLE IF NOT EXISTS cpf_service_routing_policy (
+    policy_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '라우팅 정책 ID',
+    service_id VARCHAR(40) NOT NULL COMMENT '서비스 ID',
+    endpoint_code VARCHAR(80) NOT NULL COMMENT 'Endpoint 코드',
+    routing_mode VARCHAR(30) NOT NULL DEFAULT 'PRIMARY' COMMENT '라우팅 모드',
+    load_balance_type VARCHAR(30) NOT NULL DEFAULT 'WEIGHT' COMMENT '부하 분산 유형',
+    failover_enabled_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT 'Failover 사용 여부',
+    health_check_required_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT 'Health check 필수 여부',
+    active_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '활성 여부',
+    priority INT NOT NULL DEFAULT 100 COMMENT '우선순위',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_cpf_service_routing_policy PRIMARY KEY (policy_id),
+    CONSTRAINT uk_cpf_service_routing_policy UNIQUE (service_id, endpoint_code, priority),
+    CONSTRAINT fk_cpf_service_routing_service FOREIGN KEY (service_id) REFERENCES cpf_service (service_id),
+    CONSTRAINT fk_cpf_service_routing_endpoint FOREIGN KEY (endpoint_code) REFERENCES cpf_service_endpoint (endpoint_code),
+    INDEX ix_cpf_service_routing_active (service_id, endpoint_code, active_yn, priority)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 서비스 라우팅 정책';
+
+CREATE TABLE IF NOT EXISTS cpf_standard_execution (
+    standard_execution_id CHAR(10) NOT NULL COMMENT 'CPF O·S·B 10자리 표준 실행 ID',
+    execution_name VARCHAR(150) NOT NULL COMMENT '표준 실행명',
+    execution_type VARCHAR(20) NOT NULL COMMENT '실행 유형 ONLINE, SHARED 또는 BATCH',
+    owner_domain VARCHAR(20) NOT NULL COMMENT '실행 소유 주제영역',
+    source_module VARCHAR(20) NOT NULL COMMENT '발견 소스 모듈',
+    source_class VARCHAR(255) NOT NULL COMMENT '선언 클래스명',
+    source_method VARCHAR(150) NOT NULL COMMENT '선언 메서드명',
+    http_method VARCHAR(10) NULL COMMENT 'HTTP 진입 method',
+    endpoint VARCHAR(500) NULL COMMENT '연결 API 또는 배치 endpoint',
+    operation_id VARCHAR(150) NULL COMMENT '연결 OpenAPI operation ID',
+    description VARCHAR(1000) NULL COMMENT '실행 기능 설명',
+    required_permission VARCHAR(150) NULL COMMENT '필수 실행 권한 코드',
+    audit_reason_required_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '감사 사유 필수 여부',
+    visibility VARCHAR(20) NOT NULL DEFAULT 'INTERNAL' COMMENT 'PUBLIC 또는 INTERNAL 노출 범위',
+    direct_allowed_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '업무 URL 직접 호출 허용 여부',
+    gateway_allowed_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '공개 CPF Gateway 호출 허용 여부',
+    source_version VARCHAR(100) NOT NULL COMMENT '소스 버전 또는 빌드 식별자',
+    registration_status VARCHAR(30) NOT NULL DEFAULT 'REGISTERED' COMMENT '등록 상태',
+    first_registered_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '최초 등록일시',
+    last_discovered_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '최근 발견일시',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_cpf_standard_execution PRIMARY KEY (standard_execution_id),
+    CONSTRAINT ck_cpf_standard_execution_id CHECK (standard_execution_id REGEXP '^[OSB][A-Z]{3}[A-Z0-9]{2}[0-9]{4}$' AND RIGHT(standard_execution_id, 4) <> '0000'),
+    CONSTRAINT ck_cpf_standard_execution_type CHECK (execution_type IN ('ONLINE', 'SHARED', 'BATCH')),
+    INDEX ix_cpf_standard_execution_type (execution_type, registration_status),
+    INDEX ix_cpf_standard_execution_owner (owner_domain, source_module),
+    INDEX ix_cpf_standard_execution_source (source_class, source_method)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF O·S·B 표준 실행 카탈로그';
+
+CREATE TABLE IF NOT EXISTS cpf_standard_execution_alias (
+    legacy_execution_id VARCHAR(32) NOT NULL COMMENT '조회 호환용 구형 실행 ID',
+    standard_execution_id CHAR(10) NOT NULL COMMENT '현재 10자리 표준 실행 ID',
+    migration_reason VARCHAR(300) NOT NULL COMMENT 'ID 전환 사유',
+    retired_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '구형 ID 사용 종료일시',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_cpf_standard_execution_alias PRIMARY KEY (legacy_execution_id),
+    CONSTRAINT uk_cpf_standard_execution_alias_current UNIQUE (standard_execution_id, legacy_execution_id),
+    CONSTRAINT ck_cpf_standard_execution_alias_current CHECK (standard_execution_id REGEXP '^[OSB][A-Z]{3}[A-Z0-9]{2}[0-9]{4}$')
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 구형 실행 ID 조회 호환 이력';
 
 CREATE TABLE IF NOT EXISTS cpf_transaction_log (
     LOG_DATE DATE NOT NULL COMMENT '로그 기준일',
@@ -112,8 +1101,8 @@ CREATE TABLE IF NOT EXISTS cpf_transaction_log (
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
     updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (LOG_IDX),
-    UNIQUE KEY uk_cpf_transaction_log_recovery_event (RECOVERY_EVENT_ID),
+    CONSTRAINT pk_cpf_transaction_log PRIMARY KEY (LOG_IDX),
+    CONSTRAINT uk_cpf_transaction_log_recovery_event UNIQUE (RECOVERY_EVENT_ID),
     INDEX ix_cpf_transaction_log_date (LOG_DATE),
     INDEX ix_cpf_transaction_log_transaction_time (TRANSACTION_ID, START_TIME, LOG_IDX),
     INDEX ix_cpf_transaction_log_trace_id (TRACE_ID),
@@ -141,12 +1130,38 @@ CREATE TABLE IF NOT EXISTS cpf_transaction_log_detail (
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
     updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (DETAIL_ID),
-    CONSTRAINT fk_cpf_transaction_log_detail_log
-        FOREIGN KEY (LOG_IDX) REFERENCES cpf_transaction_log(LOG_IDX)
-        ON DELETE CASCADE,
+    CONSTRAINT pk_cpf_transaction_log_detail PRIMARY KEY (DETAIL_ID),
+    CONSTRAINT fk_cpf_transaction_log_detail_log FOREIGN KEY (LOG_IDX) REFERENCES cpf_transaction_log (LOG_IDX) ON DELETE CASCADE,
     INDEX ix_cpf_transaction_log_detail_log_key (LOG_IDX, DETAIL_KEY)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 거래 상세 로그';
+
+CREATE TABLE IF NOT EXISTS cpf_transaction_meta (
+    transaction_id VARCHAR(20) NOT NULL COMMENT '업무 거래 정의 ID(실행 transactionId와 별개)',
+    transaction_name VARCHAR(150) NOT NULL COMMENT '업무 거래명',
+    module_code VARCHAR(20) NOT NULL COMMENT '모듈 코드',
+    domain_code VARCHAR(50) NULL COMMENT '업무 영역 코드',
+    http_method VARCHAR(20) NOT NULL DEFAULT 'ANY' COMMENT 'HTTP 메서드',
+    api_path VARCHAR(500) NOT NULL COMMENT 'API 경로',
+    controller_class VARCHAR(255) NOT NULL COMMENT 'Controller 클래스명',
+    handler_method VARCHAR(150) NOT NULL COMMENT 'Handler 메서드명',
+    swagger_operation_id VARCHAR(150) NULL COMMENT 'Swagger operation 식별자',
+    log_policy_key VARCHAR(120) NULL COMMENT '연결 로그 정책 키',
+    sensitive_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '민감 거래 여부',
+    masking_policy_key VARCHAR(120) NULL COMMENT '마스킹 정책 키',
+    active_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '활성 여부',
+    first_detected_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '최초 감지일시',
+    last_detected_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '최근 감지일시',
+    last_scanned_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '최근 스캔일시',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_cpf_transaction_meta PRIMARY KEY (transaction_id),
+    INDEX ix_cpf_transaction_meta_module (module_code, domain_code, active_yn),
+    INDEX ix_cpf_transaction_meta_path (http_method, api_path),
+    INDEX ix_cpf_transaction_meta_policy (log_policy_key, active_yn),
+    INDEX ix_cpf_transaction_meta_scan (active_yn, last_scanned_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 온라인 거래 메타';
 
 CREATE TABLE IF NOT EXISTS cpf_transaction_segment (
     segment_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '거래 구간 내부 순번',
@@ -194,8 +1209,8 @@ CREATE TABLE IF NOT EXISTS cpf_transaction_segment (
     created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT '등록일시',
     updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
     updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT '수정일시',
-    PRIMARY KEY (segment_id),
-    UNIQUE KEY uk_cpf_transaction_segment_id (transaction_segment_id),
+    CONSTRAINT pk_cpf_transaction_segment PRIMARY KEY (segment_id),
+    CONSTRAINT uk_cpf_transaction_segment_id UNIQUE (transaction_segment_id),
     INDEX ix_cpf_transaction_segment_transaction (transaction_id, started_at, segment_id),
     INDEX ix_cpf_transaction_segment_parent (parent_segment_id),
     INDEX ix_cpf_transaction_segment_module (module_code, started_at),
@@ -212,724 +1227,6 @@ CREATE TABLE IF NOT EXISTS cpf_transaction_segment (
     INDEX ix_cpf_transaction_segment_attempt (transaction_id, attempt_no),
     INDEX ix_cpf_transaction_segment_unknown (unknown_result_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 복합 거래 구간 로그';
-
-CREATE TABLE IF NOT EXISTS cpf_service (
-    service_id VARCHAR(40) NOT NULL COMMENT '서비스 ID',
-    service_name VARCHAR(150) NOT NULL COMMENT '서비스명',
-    service_type VARCHAR(30) NOT NULL DEFAULT 'INTERNAL' COMMENT '서비스 유형',
-    owner_module_code VARCHAR(20) NOT NULL COMMENT '소유 모듈 코드',
-    description VARCHAR(500) NULL COMMENT '서비스 설명',
-    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (service_id),
-    INDEX ix_cpf_service_owner (owner_module_code, use_yn),
-    INDEX ix_cpf_service_type (service_type, use_yn)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 서비스 레지스트리';
-
-CREATE TABLE IF NOT EXISTS cpf_service_endpoint (
-    endpoint_code VARCHAR(80) NOT NULL COMMENT 'Endpoint 코드',
-    service_id VARCHAR(40) NOT NULL COMMENT '서비스 ID',
-    endpoint_name VARCHAR(150) NOT NULL COMMENT 'Endpoint명',
-    endpoint_type VARCHAR(30) NOT NULL DEFAULT 'HTTP' COMMENT 'Endpoint 유형',
-    base_url VARCHAR(500) NOT NULL COMMENT '기본 URL',
-    context_path VARCHAR(200) NULL COMMENT 'Context path',
-    default_timeout_ms INT NOT NULL DEFAULT 3000 COMMENT '기본 timeout 밀리초',
-    default_retry_count INT NOT NULL DEFAULT 0 COMMENT '기본 retry 횟수',
-    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (endpoint_code),
-    INDEX ix_cpf_service_endpoint_service (service_id, use_yn),
-    INDEX ix_cpf_service_endpoint_type (endpoint_type, use_yn),
-    CONSTRAINT fk_cpf_service_endpoint_service
-        FOREIGN KEY (service_id) REFERENCES cpf_service(service_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 서비스 Endpoint 레지스트리';
-
-CREATE TABLE IF NOT EXISTS cpf_service_instance (
-    instance_id VARCHAR(120) NOT NULL COMMENT '서비스 인스턴스 ID',
-    service_id VARCHAR(40) NOT NULL COMMENT '서비스 ID',
-    endpoint_code VARCHAR(80) NOT NULL COMMENT 'Endpoint 코드',
-    instance_name VARCHAR(150) NOT NULL COMMENT '서비스 인스턴스명',
-    base_url VARCHAR(500) NOT NULL COMMENT '인스턴스 기본 URL',
-    host_name VARCHAR(150) NULL COMMENT 'Host명',
-    port_no INT NULL COMMENT 'Port 번호',
-    instance_status VARCHAR(30) NOT NULL DEFAULT 'UP' COMMENT '인스턴스 상태',
-    weight INT NOT NULL DEFAULT 100 COMMENT '라우팅 가중치',
-    active_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '활성 여부',
-    last_heartbeat_at DATETIME(3) NULL COMMENT '마지막 heartbeat 일시',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (instance_id),
-    INDEX ix_cpf_service_instance_endpoint (service_id, endpoint_code, active_yn, instance_status),
-    INDEX ix_cpf_service_instance_weight (endpoint_code, weight),
-    CONSTRAINT fk_cpf_service_instance_service
-        FOREIGN KEY (service_id) REFERENCES cpf_service(service_id),
-    CONSTRAINT fk_cpf_service_instance_endpoint
-        FOREIGN KEY (endpoint_code) REFERENCES cpf_service_endpoint(endpoint_code)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 서비스 인스턴스 레지스트리';
-
-CREATE TABLE IF NOT EXISTS cpf_service_health_status (
-    health_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '서비스 health 이력 ID',
-    service_id VARCHAR(40) NOT NULL COMMENT '서비스 ID',
-    endpoint_code VARCHAR(80) NOT NULL COMMENT 'Endpoint 코드',
-    instance_id VARCHAR(120) NULL COMMENT '서비스 인스턴스 ID',
-    health_status VARCHAR(30) NOT NULL COMMENT 'Health 상태',
-    http_status INT NULL COMMENT 'HTTP 상태 코드',
-    response_time_ms BIGINT NULL COMMENT '응답 시간 밀리초',
-    failure_message VARCHAR(1000) NULL COMMENT '실패 메시지',
-    checked_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '점검 일시',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (health_id),
-    INDEX ix_cpf_service_health_target (service_id, endpoint_code, instance_id, checked_at),
-    INDEX ix_cpf_service_health_status (health_status, checked_at),
-    CONSTRAINT fk_cpf_service_health_service
-        FOREIGN KEY (service_id) REFERENCES cpf_service(service_id),
-    CONSTRAINT fk_cpf_service_health_endpoint
-        FOREIGN KEY (endpoint_code) REFERENCES cpf_service_endpoint(endpoint_code),
-    CONSTRAINT fk_cpf_service_health_instance
-        FOREIGN KEY (instance_id) REFERENCES cpf_service_instance(instance_id)
-        ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 서비스 Health 상태 이력';
-
-CREATE TABLE IF NOT EXISTS cpf_service_routing_policy (
-    policy_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '라우팅 정책 ID',
-    service_id VARCHAR(40) NOT NULL COMMENT '서비스 ID',
-    endpoint_code VARCHAR(80) NOT NULL COMMENT 'Endpoint 코드',
-    routing_mode VARCHAR(30) NOT NULL DEFAULT 'PRIMARY' COMMENT '라우팅 모드',
-    load_balance_type VARCHAR(30) NOT NULL DEFAULT 'WEIGHT' COMMENT '부하 분산 유형',
-    failover_enabled_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT 'Failover 사용 여부',
-    health_check_required_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT 'Health check 필수 여부',
-    active_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '활성 여부',
-    priority INT NOT NULL DEFAULT 100 COMMENT '우선순위',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (policy_id),
-    UNIQUE KEY uk_cpf_service_routing_policy (service_id, endpoint_code, priority),
-    INDEX ix_cpf_service_routing_active (service_id, endpoint_code, active_yn, priority),
-    CONSTRAINT fk_cpf_service_routing_service
-        FOREIGN KEY (service_id) REFERENCES cpf_service(service_id),
-    CONSTRAINT fk_cpf_service_routing_endpoint
-        FOREIGN KEY (endpoint_code) REFERENCES cpf_service_endpoint(endpoint_code)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 서비스 라우팅 정책';
-
-CREATE TABLE IF NOT EXISTS cpf_service_circuit_state (
-    circuit_id BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Circuit 상태 ID',
-    service_id VARCHAR(40) NOT NULL COMMENT '서비스 ID',
-    endpoint_code VARCHAR(80) NOT NULL COMMENT 'Endpoint 코드',
-    instance_id VARCHAR(120) NULL COMMENT '서비스 인스턴스 ID',
-    circuit_state VARCHAR(30) NOT NULL DEFAULT 'CLOSED' COMMENT 'Circuit 상태',
-    failure_count INT NOT NULL DEFAULT 0 COMMENT '실패 횟수',
-    success_count INT NOT NULL DEFAULT 0 COMMENT '성공 횟수',
-    opened_at DATETIME(3) NULL COMMENT 'Open 일시',
-    half_opened_at DATETIME(3) NULL COMMENT 'Half-open 일시',
-    closed_at DATETIME(3) NULL COMMENT 'Close 일시',
-    last_failure_message VARCHAR(1000) NULL COMMENT '마지막 실패 메시지',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (circuit_id),
-    UNIQUE KEY uk_cpf_service_circuit_state (service_id, endpoint_code, instance_id),
-    INDEX ix_cpf_service_circuit_state (circuit_state, updated_at),
-    CONSTRAINT fk_cpf_service_circuit_service
-        FOREIGN KEY (service_id) REFERENCES cpf_service(service_id),
-    CONSTRAINT fk_cpf_service_circuit_endpoint
-        FOREIGN KEY (endpoint_code) REFERENCES cpf_service_endpoint(endpoint_code),
-    CONSTRAINT fk_cpf_service_circuit_instance
-        FOREIGN KEY (instance_id) REFERENCES cpf_service_instance(instance_id)
-        ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 서비스 Circuit 상태';
-
-CREATE TABLE IF NOT EXISTS cpf_service_call_history (
-    call_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '서비스 호출 이력 ID',
-    transaction_id CHAR(34) NULL COMMENT '전역 거래 ID',
-    trace_id VARCHAR(100) NULL COMMENT 'Trace ID',
-    service_id VARCHAR(40) NOT NULL COMMENT '서비스 ID',
-    endpoint_code VARCHAR(80) NULL COMMENT 'Endpoint 코드',
-    instance_id VARCHAR(120) NULL COMMENT '서비스 인스턴스 ID',
-    http_method VARCHAR(10) NOT NULL DEFAULT 'GET' COMMENT 'HTTP Method',
-    request_path VARCHAR(500) NOT NULL DEFAULT '/' COMMENT '요청 경로',
-    call_status VARCHAR(30) NOT NULL COMMENT '호출 상태',
-    http_status INT NULL COMMENT 'HTTP 상태 코드',
-    duration_ms BIGINT NULL COMMENT '소요 시간 밀리초',
-    timeout_ms INT NULL COMMENT 'Timeout 밀리초',
-    retry_count INT NULL COMMENT 'Retry 횟수',
-    failure_code VARCHAR(100) NULL COMMENT '실패 코드',
-    failure_message VARCHAR(1000) NULL COMMENT '마스킹된 실패 메시지',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (call_id),
-    INDEX ix_cpf_service_call_history_tx (transaction_id, call_id),
-    INDEX ix_cpf_service_call_history_service (service_id, endpoint_code, created_at),
-    INDEX ix_cpf_service_call_history_status (call_status, created_at),
-    CONSTRAINT fk_cpf_service_call_history_service
-        FOREIGN KEY (service_id) REFERENCES cpf_service(service_id),
-    CONSTRAINT fk_cpf_service_call_history_endpoint
-        FOREIGN KEY (endpoint_code) REFERENCES cpf_service_endpoint(endpoint_code)
-        ON DELETE SET NULL,
-    CONSTRAINT fk_cpf_service_call_history_instance
-        FOREIGN KEY (instance_id) REFERENCES cpf_service_instance(instance_id)
-        ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 서비스 호출 이력';
-
-CREATE TABLE IF NOT EXISTS cpf_transaction_meta (
-    transaction_id VARCHAR(20) NOT NULL COMMENT '업무 거래 정의 ID(실행 transactionId와 별개)',
-    transaction_name VARCHAR(150) NOT NULL COMMENT '업무 거래명',
-    module_code VARCHAR(20) NOT NULL COMMENT '모듈 코드',
-    domain_code VARCHAR(50) NULL COMMENT '업무 영역 코드',
-    http_method VARCHAR(20) NOT NULL DEFAULT 'ANY' COMMENT 'HTTP 메서드',
-    api_path VARCHAR(500) NOT NULL COMMENT 'API 경로',
-    controller_class VARCHAR(255) NOT NULL COMMENT 'Controller 클래스명',
-    handler_method VARCHAR(150) NOT NULL COMMENT 'Handler 메서드명',
-    swagger_operation_id VARCHAR(150) NULL COMMENT 'Swagger operation 식별자',
-    log_policy_key VARCHAR(120) NULL COMMENT '연결 로그 정책 키',
-    sensitive_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '민감 거래 여부',
-    masking_policy_key VARCHAR(120) NULL COMMENT '마스킹 정책 키',
-    active_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '활성 여부',
-    first_detected_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '최초 감지일시',
-    last_detected_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '최근 감지일시',
-    last_scanned_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '최근 스캔일시',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (transaction_id),
-    INDEX ix_cpf_transaction_meta_module (module_code, domain_code, active_yn),
-    INDEX ix_cpf_transaction_meta_path (http_method, api_path),
-    INDEX ix_cpf_transaction_meta_policy (log_policy_key, active_yn),
-    INDEX ix_cpf_transaction_meta_scan (active_yn, last_scanned_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 온라인 거래 메타';
-
-CREATE TABLE IF NOT EXISTS cpf_standard_execution (
-    standard_execution_id CHAR(10) NOT NULL COMMENT 'CPF O·S·B 10자리 표준 실행 ID',
-    execution_name VARCHAR(150) NOT NULL COMMENT '표준 실행명',
-    execution_type VARCHAR(20) NOT NULL COMMENT '실행 유형 ONLINE, SHARED 또는 BATCH',
-    owner_domain VARCHAR(20) NOT NULL COMMENT '실행 소유 주제영역',
-    source_module VARCHAR(20) NOT NULL COMMENT '발견 소스 모듈',
-    source_class VARCHAR(255) NOT NULL COMMENT '선언 클래스명',
-    source_method VARCHAR(150) NOT NULL COMMENT '선언 메서드명',
-    http_method VARCHAR(10) NULL COMMENT 'HTTP 진입 method',
-    endpoint VARCHAR(500) NULL COMMENT '연결 API 또는 배치 endpoint',
-    operation_id VARCHAR(150) NULL COMMENT '연결 OpenAPI operation ID',
-    description VARCHAR(1000) NULL COMMENT '실행 기능 설명',
-    required_permission VARCHAR(150) NULL COMMENT '필수 실행 권한 코드',
-    audit_reason_required_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '감사 사유 필수 여부',
-    visibility VARCHAR(20) NOT NULL DEFAULT 'INTERNAL' COMMENT 'PUBLIC 또는 INTERNAL 노출 범위',
-    direct_allowed_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '업무 URL 직접 호출 허용 여부',
-    gateway_allowed_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '공개 CPF Gateway 호출 허용 여부',
-    source_version VARCHAR(100) NOT NULL COMMENT '소스 버전 또는 빌드 식별자',
-    registration_status VARCHAR(30) NOT NULL DEFAULT 'REGISTERED' COMMENT '등록 상태',
-    first_registered_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '최초 등록일시',
-    last_discovered_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '최근 발견일시',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (standard_execution_id),
-    INDEX ix_cpf_standard_execution_type (execution_type, registration_status),
-    INDEX ix_cpf_standard_execution_owner (owner_domain, source_module),
-    INDEX ix_cpf_standard_execution_source (source_class, source_method),
-    CONSTRAINT ck_cpf_standard_execution_id CHECK (
-        standard_execution_id REGEXP '^[OSB][A-Z]{3}[A-Z0-9]{2}[0-9]{4}$'
-        AND RIGHT(standard_execution_id, 4) <> '0000'
-    ),
-    CONSTRAINT ck_cpf_standard_execution_type CHECK (execution_type IN ('ONLINE', 'SHARED', 'BATCH'))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF O·S·B 표준 실행 카탈로그';
-
-CREATE TABLE IF NOT EXISTS cpf_standard_execution_alias (
-    legacy_execution_id VARCHAR(32) NOT NULL COMMENT '조회 호환용 구형 실행 ID',
-    standard_execution_id CHAR(10) NOT NULL COMMENT '현재 10자리 표준 실행 ID',
-    migration_reason VARCHAR(300) NOT NULL COMMENT 'ID 전환 사유',
-    retired_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '구형 ID 사용 종료일시',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (legacy_execution_id),
-    UNIQUE KEY uk_cpf_standard_execution_alias_current (standard_execution_id, legacy_execution_id),
-    CONSTRAINT ck_cpf_standard_execution_alias_current CHECK (
-        standard_execution_id REGEXP '^[OSB][A-Z]{3}[A-Z0-9]{2}[0-9]{4}$'
-    )
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 구형 실행 ID 조회 호환 이력';
-
-CREATE TABLE IF NOT EXISTS cpf_channel_policy_version (
-    version_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '채널 정책 스냅샷 버전',
-    change_type VARCHAR(30) NOT NULL COMMENT 'CHANNEL 또는 EXECUTION_POLICY 변경 유형',
-    target_key VARCHAR(100) NOT NULL COMMENT '변경 대상 채널 또는 정책 키',
-    change_reason VARCHAR(500) NOT NULL COMMENT '운영 변경 사유',
-    applied_by VARCHAR(100) NOT NULL COMMENT '적용 운영자',
-    applied_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '적용일시',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (version_id),
-    INDEX ix_cpf_channel_policy_version_target (change_type, target_key, version_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 채널 정책 변경 버전';
-
-CREATE TABLE IF NOT EXISTS cpf_channel_registry (
-    channel_code VARCHAR(30) NOT NULL COMMENT 'CPF 통합 채널 코드',
-    channel_name VARCHAR(100) NOT NULL COMMENT '채널명',
-    channel_type VARCHAR(30) NOT NULL COMMENT 'CLIENT, OPERATOR 또는 SYSTEM 유형',
-    trust_level VARCHAR(30) NOT NULL COMMENT 'EXTERNAL 또는 INTERNAL 신뢰 수준',
-    client_channel_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '최초 유입 클라이언트 채널 여부',
-    internal_channel_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '내부 호출 채널 여부',
-    authentication_required_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '인증 필수 여부',
-    signature_required_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '요청 서명 필수 여부',
-    active_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '채널 사용 여부',
-    description VARCHAR(500) NULL COMMENT '채널 설명',
-    policy_version BIGINT NOT NULL DEFAULT 0 COMMENT '마지막 적용 정책 버전',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (channel_code),
-    INDEX ix_cpf_channel_registry_active (active_yn, channel_type),
-    CONSTRAINT ck_cpf_channel_registry_client CHECK (client_channel_yn IN ('Y', 'N')),
-    CONSTRAINT ck_cpf_channel_registry_internal CHECK (internal_channel_yn IN ('Y', 'N')),
-    CONSTRAINT ck_cpf_channel_registry_auth CHECK (authentication_required_yn IN ('Y', 'N')),
-    CONSTRAINT ck_cpf_channel_registry_signature CHECK (signature_required_yn IN ('Y', 'N')),
-    CONSTRAINT ck_cpf_channel_registry_active CHECK (active_yn IN ('Y', 'N'))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 통합 채널 레지스트리';
-
-CREATE TABLE IF NOT EXISTS cpf_channel_execution_policy (
-    policy_key VARCHAR(100) NOT NULL COMMENT '채널 실행 정책 불변 키',
-    standard_execution_id VARCHAR(10) NOT NULL COMMENT '10자리 표준 실행 ID 또는 전체 실행 *',
-    original_channel_code VARCHAR(30) NOT NULL COMMENT '최초 채널 코드 또는 ANY',
-    caller_channel_code VARCHAR(30) NOT NULL COMMENT '현재 호출 채널 코드 또는 ANY',
-    request_type VARCHAR(30) NOT NULL DEFAULT '*' COMMENT '요청 유형 또는 전체 유형 *',
-    allowed_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '실행 허용 여부',
-    authentication_required_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '정책별 인증 필수 여부',
-    signature_required_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '정책별 요청 서명 필수 여부',
-    max_tps INT NOT NULL DEFAULT 0 COMMENT '0이면 제한하지 않는 최대 초당 요청 수',
-    effective_from DATETIME(3) NULL COMMENT '정책 적용 시작일시',
-    effective_to DATETIME(3) NULL COMMENT '정책 적용 종료일시',
-    active_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '정책 사용 여부',
-    policy_version BIGINT NOT NULL DEFAULT 0 COMMENT '마지막 적용 정책 버전',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (policy_key),
-    INDEX ix_cpf_channel_execution_policy_lookup (
-        standard_execution_id, original_channel_code, caller_channel_code, request_type, active_yn
-    ),
-    INDEX ix_cpf_channel_execution_policy_effective (active_yn, effective_from, effective_to),
-    CONSTRAINT fk_cpf_channel_execution_policy_original FOREIGN KEY (original_channel_code)
-        REFERENCES cpf_channel_registry(channel_code),
-    CONSTRAINT fk_cpf_channel_execution_policy_caller FOREIGN KEY (caller_channel_code)
-        REFERENCES cpf_channel_registry(channel_code),
-    CONSTRAINT ck_cpf_channel_execution_policy_execution CHECK (
-        standard_execution_id = '*'
-        OR standard_execution_id REGEXP '^[OSB][A-Z]{3}[A-Z0-9]{2}[0-9]{4}$'
-    ),
-    CONSTRAINT ck_cpf_channel_execution_policy_allowed CHECK (allowed_yn IN ('Y', 'N')),
-    CONSTRAINT ck_cpf_channel_execution_policy_auth CHECK (authentication_required_yn IN ('Y', 'N')),
-    CONSTRAINT ck_cpf_channel_execution_policy_signature CHECK (signature_required_yn IN ('Y', 'N')),
-    CONSTRAINT ck_cpf_channel_execution_policy_active CHECK (active_yn IN ('Y', 'N')),
-    CONSTRAINT ck_cpf_channel_execution_policy_period CHECK (
-        effective_from IS NULL OR effective_to IS NULL OR effective_from <= effective_to
-    )
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 표준 실행별 최초·호출 채널 정책';
-
-CREATE TABLE IF NOT EXISTS cpf_log_policy (
-    policy_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '로그 정책 순번',
-    policy_key VARCHAR(120) NOT NULL COMMENT '로그 정책 키',
-    policy_name VARCHAR(150) NOT NULL COMMENT '로그 정책명',
-    target_type VARCHAR(30) NOT NULL COMMENT '정책 대상 유형',
-    target_id VARCHAR(150) NOT NULL COMMENT '정책 대상 ID',
-    log_level VARCHAR(20) NOT NULL DEFAULT 'INFO' COMMENT '기본 로그 레벨',
-    db_log_enabled_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT 'DB 로그 적재 여부',
-    file_log_enabled_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '파일 로그 출력 여부',
-    request_body_log_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '요청 본문 로그 여부',
-    response_body_log_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '응답 본문 로그 여부',
-    error_stack_log_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '오류 stack 로그 여부',
-    masking_policy_key VARCHAR(120) NULL COMMENT '마스킹 정책 키',
-    retention_days INT NOT NULL DEFAULT 90 COMMENT '보존 일수',
-    sampling_rate DECIMAL(5,2) NOT NULL DEFAULT 100.00 COMMENT '샘플링 비율',
-    priority INT NOT NULL DEFAULT 100 COMMENT '정책 우선순위',
-    active_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '활성 여부',
-    description VARCHAR(500) NULL COMMENT '정책 설명',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (policy_id),
-    UNIQUE KEY uk_cpf_log_policy_key (policy_key),
-    UNIQUE KEY uk_cpf_log_policy_target (target_type, target_id),
-    INDEX ix_cpf_log_policy_active (active_yn, target_type, priority)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 로그 정책';
-
-CREATE TABLE IF NOT EXISTS cpf_log_policy_override (
-    override_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '로그 정책 override 순번',
-    policy_id BIGINT NULL COMMENT '기본 로그 정책 순번',
-    target_type VARCHAR(30) NOT NULL COMMENT 'override 대상 유형',
-    target_id VARCHAR(150) NOT NULL COMMENT 'override 대상 ID',
-    override_reason VARCHAR(500) NOT NULL COMMENT 'override 사유',
-    log_level VARCHAR(20) NULL COMMENT '임시 로그 레벨',
-    db_log_enabled_yn CHAR(1) NULL COMMENT 'DB 로그 임시 적재 여부',
-    file_log_enabled_yn CHAR(1) NULL COMMENT '파일 로그 임시 출력 여부',
-    request_body_log_yn CHAR(1) NULL COMMENT '요청 본문 임시 로그 여부',
-    response_body_log_yn CHAR(1) NULL COMMENT '응답 본문 임시 로그 여부',
-    error_stack_log_yn CHAR(1) NULL COMMENT '오류 stack 임시 로그 여부',
-    masking_policy_key VARCHAR(120) NULL COMMENT '임시 마스킹 정책 키',
-    effective_start_at DATETIME(3) NOT NULL COMMENT '적용 시작일시',
-    effective_end_at DATETIME(3) NOT NULL COMMENT '적용 종료일시',
-    requested_by VARCHAR(100) NOT NULL COMMENT '요청자',
-    approved_by VARCHAR(100) NULL COMMENT '승인자',
-    active_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '활성 여부',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (override_id),
-    INDEX ix_cpf_log_policy_override_target (target_type, target_id, active_yn),
-    INDEX ix_cpf_log_policy_override_period (effective_start_at, effective_end_at, active_yn),
-    INDEX ix_cpf_log_policy_override_policy (policy_id, active_yn),
-    CONSTRAINT fk_cpf_log_policy_override_policy
-        FOREIGN KEY (policy_id) REFERENCES cpf_log_policy(policy_id)
-        ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 로그 정책 임시 override';
-
-CREATE TABLE IF NOT EXISTS cpf_log_policy_audit (
-    audit_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '로그 정책 감사 순번',
-    policy_id BIGINT NULL COMMENT '로그 정책 순번',
-    override_id BIGINT NULL COMMENT '로그 정책 override 순번',
-    action_type VARCHAR(30) NOT NULL COMMENT '감사 행위 유형',
-    target_type VARCHAR(30) NOT NULL COMMENT '대상 유형',
-    target_id VARCHAR(150) NOT NULL COMMENT '대상 ID',
-    reason VARCHAR(500) NOT NULL COMMENT '감사 사유',
-    before_data MEDIUMTEXT NULL COMMENT '변경 전 데이터',
-    after_data MEDIUMTEXT NULL COMMENT '변경 후 데이터',
-    diff_data MEDIUMTEXT NULL COMMENT '변경 차이',
-    operator_id VARCHAR(100) NOT NULL COMMENT '운영자 ID',
-    client_ip VARCHAR(100) NULL COMMENT '클라이언트 IP',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (audit_id),
-    INDEX ix_cpf_log_policy_audit_target (target_type, target_id, created_at),
-    INDEX ix_cpf_log_policy_audit_operator (operator_id, created_at),
-    INDEX ix_cpf_log_policy_audit_policy (policy_id, created_at),
-    CONSTRAINT fk_cpf_log_policy_audit_policy
-        FOREIGN KEY (policy_id) REFERENCES cpf_log_policy(policy_id)
-        ON DELETE SET NULL,
-    CONSTRAINT fk_cpf_log_policy_audit_override
-        FOREIGN KEY (override_id) REFERENCES cpf_log_policy_override(override_id)
-        ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 로그 정책 감사 로그';
-
-CREATE TABLE IF NOT EXISTS cpf_code (
-    code_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '코드 순번',
-    parent_id BIGINT NULL COMMENT '상위 코드 순번',
-    code_key VARCHAR(80) NOT NULL COMMENT '코드 그룹 키',
-    code_value VARCHAR(120) NOT NULL COMMENT '코드 값',
-    description VARCHAR(500) NULL COMMENT '코드 설명',
-    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (code_id),
-    CONSTRAINT fk_cpf_code_parent
-        FOREIGN KEY (parent_id) REFERENCES cpf_code(code_id)
-        ON DELETE SET NULL,
-    UNIQUE KEY uk_cpf_code_key_value (code_key, code_value),
-    INDEX ix_cpf_code_parent (parent_id),
-    INDEX ix_cpf_code_use (use_yn)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 시스템 공통 코드';
-
-CREATE TABLE IF NOT EXISTS cpf_message (
-    message_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '메시지 순번',
-    message_code VARCHAR(20) NOT NULL COMMENT '메시지 코드',
-    locale VARCHAR(10) NOT NULL DEFAULT 'ko' COMMENT '언어 코드',
-    message_format_type VARCHAR(20) NOT NULL DEFAULT 'FIXED' COMMENT '메시지 포맷 유형',
-    external_message VARCHAR(2000) NOT NULL COMMENT '외부 노출 메시지',
-    internal_message VARCHAR(4000) NOT NULL COMMENT '내부 진단 메시지',
-    parameter_count INT NOT NULL DEFAULT 0 COMMENT '파라미터 개수',
-    parameter_sample VARCHAR(1000) NULL COMMENT '파라미터 예시',
-    description VARCHAR(500) NULL COMMENT '메시지 설명',
-    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (message_id),
-    UNIQUE KEY uk_cpf_message_code_locale (message_code, locale),
-    INDEX ix_cpf_message_code_use (message_code, use_yn),
-    INDEX ix_cpf_message_use (use_yn)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 시스템 메시지';
-
-CREATE TABLE IF NOT EXISTS cpf_response_code (
-    response_code VARCHAR(20) NOT NULL COMMENT 'CPF 응답 코드',
-    message_code VARCHAR(20) NOT NULL COMMENT '연결 메시지 코드',
-    result_type CHAR(1) NOT NULL COMMENT '결과 유형',
-    module_id VARCHAR(3) NOT NULL COMMENT '모듈 ID',
-    response_group VARCHAR(2) NOT NULL COMMENT '응답 그룹',
-    sequence_no VARCHAR(4) NOT NULL COMMENT '응답 일련번호',
-    http_status INT NOT NULL COMMENT 'HTTP 상태 코드',
-    description VARCHAR(500) NULL COMMENT '응답 코드 설명',
-    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (response_code),
-    INDEX ix_cpf_response_code_message (message_code),
-    INDEX ix_cpf_response_code_module (module_id, result_type, response_group)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 응답 코드';
-
-CREATE TABLE IF NOT EXISTS cpf_config (
-    config_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '설정 순번',
-    config_key VARCHAR(150) NOT NULL COMMENT '설정 키',
-    config_value VARCHAR(2000) NOT NULL COMMENT '설정 값',
-    config_type VARCHAR(30) NOT NULL DEFAULT 'STRING' COMMENT '설정 값 유형',
-    description VARCHAR(500) NULL COMMENT '설정 설명',
-    encrypted_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '암호화 여부',
-    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (config_id),
-    UNIQUE KEY uk_cpf_config_key (config_key),
-    INDEX ix_cpf_config_use (use_yn)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 시스템 설정';
-
-CREATE TABLE IF NOT EXISTS cpf_cache_refresh_event (
-    event_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '캐시 갱신 이벤트 순번',
-    cache_name VARCHAR(50) NOT NULL COMMENT '캐시 이름',
-    event_type VARCHAR(30) NOT NULL COMMENT '이벤트 유형',
-    event_key VARCHAR(200) NULL COMMENT '이벤트 대상 키',
-    source_was_id VARCHAR(50) NULL COMMENT '이벤트 발행 WAS ID',
-    published_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '발행자',
-    published_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '발행일시',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (event_id),
-    INDEX ix_cpf_cache_refresh_event_cache_id (cache_name, event_id),
-    INDEX ix_cpf_cache_refresh_event_time (published_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 캐시 갱신 DB fallback 이벤트';
-
-CREATE TABLE IF NOT EXISTS cpf_security_jwt_key (
-    KEY_ID VARCHAR(80) NOT NULL COMMENT 'JWT key ID',
-    ISSUER VARCHAR(100) NOT NULL COMMENT '토큰 발급자',
-    ALGORITHM VARCHAR(20) NOT NULL DEFAULT 'HS256' COMMENT '서명 알고리즘',
-    SECRET_REF VARCHAR(500) NOT NULL COMMENT 'Vault/KMS/환경변수 secret 참조',
-    ACTIVE_YN CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '활성 여부',
-    EXPIRE_AT DATETIME NULL COMMENT '만료일시',
-    created_by VARCHAR(50) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(50) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (KEY_ID),
-    INDEX ix_cpf_security_jwt_key_issuer (ISSUER, ACTIVE_YN)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF JWT key 메타';
-
-CREATE TABLE IF NOT EXISTS cpf_security_token_audit_log (
-    TOKEN_AUDIT_ID BIGINT NOT NULL AUTO_INCREMENT COMMENT '토큰 감사 로그 순번',
-    TRANSACTION_ID CHAR(34) NULL COMMENT 'CPF transactionId',
-    TRACE_ID VARCHAR(80) NULL COMMENT '분산 추적 ID',
-    TOKEN_HASH VARCHAR(512) NULL COMMENT '토큰 해시',
-    TOKEN_TYPE VARCHAR(30) NOT NULL DEFAULT 'Bearer' COMMENT '토큰 유형',
-    ISSUER VARCHAR(100) NULL COMMENT '토큰 발급자',
-    SUBJECT VARCHAR(200) NULL COMMENT '토큰 주체',
-    AUDIENCE VARCHAR(200) NULL COMMENT '토큰 대상',
-    ACTIVE_YN CHAR(1) NOT NULL DEFAULT 'N' COMMENT '활성 여부',
-    EXPIRE_AT DATETIME NULL COMMENT '만료일시',
-    FAILURE_REASON VARCHAR(1000) NULL COMMENT '검증 실패 사유',
-    CLIENT_IP VARCHAR(50) NULL COMMENT '클라이언트 IP',
-    created_by VARCHAR(50) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(50) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (TOKEN_AUDIT_ID),
-    INDEX ix_cpf_security_token_tx (TRANSACTION_ID),
-    INDEX ix_cpf_security_token_hash (TOKEN_HASH),
-    INDEX ix_cpf_security_token_subject_time (SUBJECT, created_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 보안 토큰 감사 로그';
-
-CREATE TABLE IF NOT EXISTS cpf_notification_rule (
-    rule_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '알림 규칙 순번',
-    event_type VARCHAR(80) NOT NULL COMMENT '알림 이벤트 유형',
-    event_sub_type VARCHAR(80) NULL COMMENT '알림 이벤트 세부 유형',
-    channel_code VARCHAR(30) NOT NULL DEFAULT 'ADM' COMMENT '알림 채널 코드',
-    template_code VARCHAR(80) NULL COMMENT '알림 템플릿 코드',
-    severity VARCHAR(20) NOT NULL DEFAULT 'INFO' COMMENT '알림 심각도',
-    receiver_group VARCHAR(100) NULL COMMENT '수신자 그룹',
-    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (rule_id),
-    UNIQUE KEY uk_cpf_notification_rule (event_type, event_sub_type, channel_code),
-    INDEX ix_cpf_notification_rule_use (use_yn, severity)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 운영 알림 규칙';
-
-CREATE TABLE IF NOT EXISTS cpf_notification_delivery_log (
-    delivery_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '알림 발송 로그 순번',
-    rule_id BIGINT NULL COMMENT '알림 규칙 순번',
-    event_type VARCHAR(80) NOT NULL COMMENT '알림 이벤트 유형',
-    target_type VARCHAR(80) NULL COMMENT '알림 대상 유형',
-    target_id VARCHAR(120) NULL COMMENT '알림 대상 ID',
-    receiver VARCHAR(200) NULL COMMENT '수신자',
-    delivery_status VARCHAR(30) NOT NULL DEFAULT 'READY' COMMENT '발송 상태',
-    delivery_message VARCHAR(2000) NULL COMMENT '발송 메시지',
-    requested_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '발송 요청 일시',
-    delivered_at DATETIME(3) NULL COMMENT '발송 완료 일시',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (delivery_id),
-    INDEX ix_cpf_notification_delivery_target (target_type, target_id, requested_at),
-    INDEX ix_cpf_notification_delivery_status (delivery_status, requested_at),
-    CONSTRAINT fk_cpf_notification_delivery_rule
-        FOREIGN KEY (rule_id) REFERENCES cpf_notification_rule(rule_id)
-        ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 운영 알림 발송 로그';
-
-CREATE TABLE IF NOT EXISTS cpf_idempotency_record (
-    idempotency_seq BIGINT NOT NULL AUTO_INCREMENT COMMENT '중복 처리 내부 순번',
-    scope VARCHAR(40) NOT NULL COMMENT '중복 처리 적용 범위',
-    idempotency_key VARCHAR(160) NOT NULL COMMENT '중복 처리 키',
-    request_hash VARCHAR(128) NULL COMMENT '요청 본문 해시',
-    payload_hash VARCHAR(128) NULL COMMENT '처리 대상 payload 해시',
-    record_status VARCHAR(30) NOT NULL DEFAULT 'PROCESSING' COMMENT '중복 처리 상태',
-    stored_response MEDIUMTEXT NULL COMMENT '재응답용 저장 응답',
-    retry_allowed_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '재요청 허용 여부',
-    completed_at DATETIME(3) NULL COMMENT '처리 완료 일시',
-    expires_at DATETIME(3) NULL COMMENT '만료 일시',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (idempotency_seq),
-    UNIQUE KEY uk_cpf_idempotency_record_key (scope, idempotency_key),
-    INDEX ix_cpf_idempotency_record_status (record_status, expires_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 중복 처리 기록';
-
-CREATE TABLE IF NOT EXISTS cpf_broker_outbox (
-    outbox_id BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Outbox 내부 순번',
-    message_id VARCHAR(120) NOT NULL COMMENT '메시지 ID',
-    topic VARCHAR(160) NOT NULL COMMENT 'Broker topic 또는 queue',
-    message_key VARCHAR(200) NULL COMMENT 'Broker partition key',
-    transaction_id CHAR(34) NULL COMMENT '전역 거래 ID',
-    segment_id VARCHAR(120) NULL COMMENT '거래 구간 ID',
-    producer_module VARCHAR(20) NULL COMMENT '생산 모듈',
-    consumer_module VARCHAR(20) NULL COMMENT '소비 모듈',
-    idempotency_key VARCHAR(160) NULL COMMENT '중복 처리 키',
-    payload LONGBLOB NULL COMMENT '메시지 payload',
-    content_type VARCHAR(100) NULL COMMENT '메시지 content type',
-    header_json MEDIUMTEXT NULL COMMENT '메시지 header 직렬화 값',
-    attribute_json MEDIUMTEXT NULL COMMENT '메시지 속성 직렬화 값',
-    outbox_status VARCHAR(30) NOT NULL DEFAULT 'PENDING' COMMENT 'Outbox 처리 상태',
-    worker_id VARCHAR(120) NULL COMMENT '처리 worker ID',
-    attempt_count INT NOT NULL DEFAULT 0 COMMENT '발행 시도 횟수',
-    max_attempts INT NOT NULL DEFAULT 5 COMMENT '최대 발행 시도 횟수',
-    next_attempt_at DATETIME(3) NULL COMMENT '다음 발행 가능 일시',
-    lease_until DATETIME(3) NULL COMMENT 'worker 점유 만료 일시',
-    broker_name VARCHAR(80) NULL COMMENT '전송 대상 broker 이름',
-    partition_key VARCHAR(200) NULL COMMENT '전송 partition key',
-    failure_message VARCHAR(1000) NULL COMMENT '실패 메시지',
-    occurred_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '업무 이벤트 발생 일시',
-    claimed_at DATETIME(3) NULL COMMENT 'worker 점유 일시',
-    published_at DATETIME(3) NULL COMMENT '발행 완료 일시',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (outbox_id),
-    UNIQUE KEY uk_cpf_broker_outbox_message (message_id),
-    INDEX ix_cpf_broker_outbox_status (outbox_status, outbox_id),
-    INDEX ix_cpf_broker_outbox_ready (outbox_status, next_attempt_at, outbox_id),
-    INDEX ix_cpf_broker_outbox_lease (outbox_status, lease_until),
-    INDEX ix_cpf_broker_outbox_tx (transaction_id, segment_id),
-    INDEX ix_cpf_broker_outbox_topic (topic, occurred_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF Broker Outbox';
-
-CREATE TABLE IF NOT EXISTS cpf_broker_inbox (
-    inbox_id BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Inbox 내부 순번',
-    message_id VARCHAR(120) NOT NULL COMMENT '메시지 ID',
-    idempotency_key VARCHAR(160) NULL COMMENT '중복 처리 키',
-    inbox_status VARCHAR(30) NOT NULL DEFAULT 'RECEIVED' COMMENT 'Inbox 처리 상태',
-    result_detail VARCHAR(1000) NULL COMMENT '소비 처리 결과 상세',
-    received_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '수신 일시',
-    consumed_at DATETIME(3) NULL COMMENT '소비 완료 일시',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (inbox_id),
-    UNIQUE KEY uk_cpf_broker_inbox_message (message_id),
-    INDEX ix_cpf_broker_inbox_idempotency (idempotency_key),
-    INDEX ix_cpf_broker_inbox_status (inbox_status, received_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF Broker Inbox';
-
-CREATE TABLE IF NOT EXISTS cpf_broker_dlq (
-    dlq_id BIGINT NOT NULL AUTO_INCREMENT COMMENT 'DLQ 내부 순번',
-    message_id VARCHAR(120) NOT NULL COMMENT '메시지 ID',
-    topic VARCHAR(160) NOT NULL COMMENT 'Broker topic 또는 queue',
-    transaction_id CHAR(34) NULL COMMENT '전역 거래 ID',
-    segment_id VARCHAR(120) NULL COMMENT '거래 구간 ID',
-    failure_reason VARCHAR(1000) NULL COMMENT 'DLQ 이동 사유',
-    replay_status VARCHAR(30) NOT NULL DEFAULT 'WAITING' COMMENT '재처리 상태',
-    replay_count INT NOT NULL DEFAULT 0 COMMENT '재처리 요청 횟수',
-    replay_requested_at DATETIME(3) NULL COMMENT '재처리 요청 일시',
-    replay_completed_at DATETIME(3) NULL COMMENT '재처리 완료 일시',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (dlq_id),
-    UNIQUE KEY uk_cpf_broker_dlq_message (message_id),
-    INDEX ix_cpf_broker_dlq_status (replay_status, created_at),
-    INDEX ix_cpf_broker_dlq_topic (topic, created_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF Broker DLQ';
-
-CREATE TABLE IF NOT EXISTS cpf_file_transfer_history (
-    history_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '파일 전송 이력 내부 순번',
-    transfer_id VARCHAR(260) NOT NULL COMMENT '파일 전송 ID',
-    transaction_id CHAR(34) NULL COMMENT '전역 거래 ID',
-    segment_id VARCHAR(120) NULL COMMENT '거래 구간 ID',
-    endpoint_code VARCHAR(80) NOT NULL COMMENT '파일 전송 endpoint 코드',
-    transfer_operation VARCHAR(30) NOT NULL COMMENT '전송 작업 유형',
-    local_path VARCHAR(1000) NULL COMMENT '로컬 파일 경로',
-    remote_path VARCHAR(1000) NULL COMMENT '원격 파일 경로',
-    checksum VARCHAR(128) NULL COMMENT '파일 checksum',
-    file_size BIGINT NOT NULL DEFAULT 0 COMMENT '파일 크기',
-    duplicate_key VARCHAR(1200) NOT NULL COMMENT '중복 방지 키',
-    transfer_status VARCHAR(30) NOT NULL COMMENT '전송 상태',
-    result_detail VARCHAR(1000) NULL COMMENT '전송 결과 상세',
-    completed_at DATETIME(3) NULL COMMENT '전송 완료 일시',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (history_id),
-    UNIQUE KEY uk_cpf_file_transfer_history_id (transfer_id),
-    INDEX ix_cpf_file_transfer_duplicate (endpoint_code, duplicate_key(255), checksum),
-    INDEX ix_cpf_file_transfer_tx (transaction_id, segment_id),
-    INDEX ix_cpf_file_transfer_status (transfer_status, created_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 파일 전송 이력';
 
 CREATE TABLE IF NOT EXISTS cpf_unknown_result (
     unknown_seq BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Unknown result 내부 순번',
@@ -950,70 +1247,45 @@ CREATE TABLE IF NOT EXISTS cpf_unknown_result (
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
     updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (unknown_seq),
-    UNIQUE KEY uk_cpf_unknown_result_id (unknown_id),
+    attempt_count INT NOT NULL DEFAULT 0 COMMENT '자동 결과확인 시도 횟수',
+    next_check_at DATETIME(3) NULL COMMENT '다음 자동 확인 예정 일시',
+    lease_owner VARCHAR(120) NULL COMMENT 'Reconciliation claim 소유자',
+    lease_until DATETIME(3) NULL COMMENT 'Reconciliation claim 만료 일시',
+    row_version BIGINT NOT NULL DEFAULT 0 COMMENT 'Optimistic lock version',
+    CONSTRAINT pk_cpf_unknown_result PRIMARY KEY (unknown_seq),
+    CONSTRAINT uk_cpf_unknown_result_id UNIQUE (unknown_id),
     INDEX ix_cpf_unknown_result_status (unknown_type, unknown_status, detected_at),
     INDEX ix_cpf_unknown_result_tx (transaction_id, segment_id),
-    INDEX ix_cpf_unknown_result_external (external_key)
+    INDEX ix_cpf_unknown_result_external (external_key),
+    INDEX ix_cpf_unknown_result_claim (unknown_status, next_check_at, lease_until, detected_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF Unknown result 및 reconciliation 이력';
-
-
--- R8 Saga compensation/manual recovery durable runtime
-CREATE TABLE IF NOT EXISTS cpf_saga_execution (
-    saga_id VARCHAR(100) NOT NULL COMMENT 'Saga identifier',
-    saga_type VARCHAR(100) NOT NULL COMMENT 'Saga type',
-    business_key VARCHAR(200) NULL COMMENT 'Business key',
-    transaction_id CHAR(34) NULL COMMENT 'CPF transactionId',
-    saga_status VARCHAR(40) NOT NULL COMMENT 'Saga status',
-    version INT NOT NULL DEFAULT 0 COMMENT 'Version',
-    error_message VARCHAR(2000) NULL COMMENT 'Error message',
-    started_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Start time',
-    completed_at DATETIME(3) NULL COMMENT 'Completion time',
-    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Last update time',
-    PRIMARY KEY (saga_id),
-    KEY idx_cpf_saga_status (saga_status, updated_at),
-    KEY idx_cpf_saga_business (saga_type, business_key)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Saga 실행 원장';
-
-CREATE TABLE IF NOT EXISTS cpf_saga_step_execution (
-    saga_id VARCHAR(100) NOT NULL COMMENT 'Saga identifier',
-    step_no INT NOT NULL COMMENT 'Step number',
-    step_id VARCHAR(100) NOT NULL COMMENT 'Step identifier',
-    step_status VARCHAR(40) NOT NULL COMMENT 'Step status',
-    result_code VARCHAR(100) NULL COMMENT 'Result code',
-    result_snapshot TEXT NULL COMMENT 'Result snapshot',
-    error_message VARCHAR(2000) NULL COMMENT 'Error message',
-    execute_attempts INT NOT NULL DEFAULT 0 COMMENT 'Execute attempts',
-    compensation_attempts INT NOT NULL DEFAULT 0 COMMENT 'Compensation attempts',
-    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Creation time',
-    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Last update time',
-    PRIMARY KEY (saga_id, step_no),
-    KEY idx_cpf_saga_step_status (step_status, updated_at),
-    CONSTRAINT fk_cpf_saga_step_execution FOREIGN KEY (saga_id) REFERENCES cpf_saga_execution(saga_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Saga 단계 실행 원장';
-
-CREATE TABLE IF NOT EXISTS cpf_saga_manual_action (
-    action_id VARCHAR(36) NOT NULL COMMENT 'Action identifier',
-    saga_id VARCHAR(100) NOT NULL COMMENT 'Saga identifier',
-    action_type VARCHAR(40) NOT NULL COMMENT 'Action type',
-    operator_id VARCHAR(100) NOT NULL COMMENT 'Operator identifier',
-    reason VARCHAR(1000) NOT NULL COMMENT 'Reason',
-    before_status VARCHAR(40) NULL COMMENT 'Before status',
-    after_status VARCHAR(40) NULL COMMENT 'After status',
-    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Creation time',
-    PRIMARY KEY (action_id),
-    KEY idx_cpf_saga_manual (saga_id, created_at),
-    CONSTRAINT fk_cpf_saga_manual_action FOREIGN KEY (saga_id) REFERENCES cpf_saga_execution(saga_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Saga 수동 복구 조치';
 -- ============================================================================
 -- cpf-tools/db/vendor/mariadb/source/20_cmn_schema.sql
 -- ============================================================================
--- CMN 고객 업무 공통의 정본 스키마입니다.
--- cmn_sample_item은 DB 표준 검증용 EDU이고, cmn_business_calendar_day는
--- CMN-CALENDAR 제품 기능의 영업일/휴일 Override 정본입니다.
--- 업무 채번, 알림/업무 로그와 고정길이 전문 Runtime/Table은 CMN 기본 제품의 소유가 아닙니다.
+-- AUTO-GENERATED from cpf-tools/db/canonical/platform-schema.json
+-- vendor=mariadb
+-- DO NOT EDIT generated DDL directly.
 
+-- CPF_LOGICAL_DATABASE=cmnDB
 USE cmnDB;
+CREATE TABLE IF NOT EXISTS cmn_business_calendar_day (
+    calendar_id VARCHAR(50) NOT NULL COMMENT 'Calendar 식별자',
+    business_date DATE NOT NULL COMMENT '기준 일자',
+    business_day_yn CHAR(1) NOT NULL COMMENT '영업일 여부',
+    day_type VARCHAR(30) NOT NULL DEFAULT 'BUSINESS' COMMENT 'BUSINESS/HOLIDAY/SPECIAL 등 일자 유형',
+    institution_code VARCHAR(50) NOT NULL DEFAULT '' COMMENT '선택 기관/시장 코드',
+    reason VARCHAR(500) NOT NULL DEFAULT '' COMMENT '휴일/예외 사유',
+    version_no BIGINT NOT NULL DEFAULT 1 COMMENT '낙관적 잠금 버전',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록 시각',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정 시각',
+    CONSTRAINT pk_cmn_business_calendar_day PRIMARY KEY (calendar_id, business_date),
+    CONSTRAINT ck_cmn_business_calendar_day_yn CHECK (business_day_yn IN ('Y','N')),
+    CONSTRAINT ck_cmn_business_calendar_version CHECK (version_no > 0),
+    INDEX ix_cmn_business_calendar_date (business_date, calendar_id),
+    INDEX ix_cmn_business_calendar_institution (institution_code, business_date)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CMN 영업일/휴일 Override 제품 정본';
 
 CREATE TABLE IF NOT EXISTS cmn_sample_item (
     sample_item_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '샘플 항목 ID',
@@ -1030,183 +1302,24 @@ CREATE TABLE IF NOT EXISTS cmn_sample_item (
     created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
     updated_by VARCHAR(100) NOT NULL COMMENT '수정자',
     updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
-    PRIMARY KEY (sample_item_id),
+    CONSTRAINT pk_cmn_sample_item PRIMARY KEY (sample_item_id),
     CONSTRAINT uk_cmn_sample_item_key UNIQUE (sample_key),
-    CONSTRAINT ck_cmn_sample_item_status
-        CHECK (status_code IN ('ACTIVE', 'INACTIVE')),
-    CONSTRAINT ck_cmn_sample_item_version
-        CHECK (version_no >= 0),
-    CONSTRAINT ck_cmn_sample_item_deleted
-        CHECK (deleted_yn IN ('Y', 'N')),
+    CONSTRAINT ck_cmn_sample_item_status CHECK (status_code IN ('ACTIVE', 'INACTIVE')),
+    CONSTRAINT ck_cmn_sample_item_version CHECK (version_no >= 0),
+    CONSTRAINT ck_cmn_sample_item_deleted CHECK (deleted_yn IN ('Y', 'N')),
     INDEX ix_cmn_sample_item_status_sort (status_code, sort_order, sample_item_id),
     INDEX ix_cmn_sample_item_category_sort (category_code, sort_order, sample_item_id),
     INDEX ix_cmn_sample_item_name_sort (item_name, sample_item_id)
-) ENGINE=InnoDB
-  DEFAULT CHARSET=utf8mb4
-  COLLATE=utf8mb4_unicode_ci
-  COMMENT='CMN DB 연결·CRUD·검색·Paging·낙관적 잠금 검증용 단일 샘플';
-
-CREATE TABLE IF NOT EXISTS cmn_business_calendar_day (
-    calendar_id VARCHAR(50) NOT NULL COMMENT 'Calendar 식별자',
-    business_date DATE NOT NULL COMMENT '기준 일자',
-    business_day_yn CHAR(1) NOT NULL COMMENT '영업일 여부',
-    day_type VARCHAR(30) NOT NULL DEFAULT 'BUSINESS' COMMENT 'BUSINESS/HOLIDAY/SPECIAL 등 일자 유형',
-    institution_code VARCHAR(50) NOT NULL DEFAULT '' COMMENT '선택 기관/시장 코드',
-    reason VARCHAR(500) NOT NULL DEFAULT '' COMMENT '휴일/예외 사유',
-    version_no BIGINT NOT NULL DEFAULT 1 COMMENT '낙관적 잠금 버전',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
-    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록 시각',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
-    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정 시각',
-    PRIMARY KEY (calendar_id, business_date),
-    CONSTRAINT ck_cmn_business_calendar_day_yn CHECK (business_day_yn IN ('Y','N')),
-    CONSTRAINT ck_cmn_business_calendar_version CHECK (version_no > 0),
-    INDEX ix_cmn_business_calendar_date (business_date, calendar_id),
-    INDEX ix_cmn_business_calendar_institution (institution_code, business_date)
-) ENGINE=InnoDB
-  DEFAULT CHARSET=utf8mb4
-  COLLATE=utf8mb4_unicode_ci
-  COMMENT='CMN 영업일/휴일 Override 제품 정본';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CMN DB 연결·CRUD·검색·Paging·낙관적 잠금 검증용 단일 샘플';
 -- ============================================================================
 -- cpf-tools/db/vendor/mariadb/source/30_adm_schema.sql
 -- ============================================================================
--- ADM 관리자 운영 스키마입니다.
--- 운영자, 역할, 메뉴/버튼 권한, 세션, 감사 로그, 보안 운영 메타를 admDB에 배치합니다.
+-- AUTO-GENERATED from cpf-tools/db/canonical/platform-schema.json
+-- vendor=mariadb
+-- DO NOT EDIT generated DDL directly.
 
+-- CPF_LOGICAL_DATABASE=admDB
 USE admDB;
-
-CREATE TABLE IF NOT EXISTS adm_operator (
-    OPERATOR_ID VARCHAR(50) NOT NULL COMMENT '운영자 ID',
-    OPERATOR_NAME VARCHAR(100) NOT NULL COMMENT '운영자명',
-    PASSWORD_HASH VARCHAR(512) NOT NULL COMMENT '비밀번호 해시',
-    ACCOUNT_STATUS VARCHAR(30) NOT NULL DEFAULT 'PENDING_ACTIVATION' COMMENT '계정 상태: PENDING_ACTIVATION/ACTIVE/LOCKED/SUSPENDED/DISABLED',
-    VERSION_NO BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 버전',
-    CREATE_OPERATION_ID VARCHAR(100) NULL COMMENT '운영자 생성 멱등 Operation ID',
-    LOCKED_YN CHAR(1) NOT NULL DEFAULT 'N' COMMENT '잠금 여부',
-    FAIL_COUNT INT NOT NULL DEFAULT 0 COMMENT '로그인 실패 횟수',
-    PASSWORD_CHANGED_AT DATETIME NULL COMMENT '비밀번호 변경일시',
-    PASSWORD_EXPIRE_AT DATETIME NULL COMMENT '비밀번호 만료일시',
-    PASSWORD_CHANGE_REQUIRED_YN CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '비밀번호 변경 필요 여부',
-    LAST_LOGIN_AT DATETIME NULL COMMENT '마지막 로그인 일시',
-    LAST_LOGIN_IP VARCHAR(50) NULL COMMENT '마지막 로그인 IP',
-    USE_YN CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
-    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (OPERATOR_ID),
-    UNIQUE KEY uk_adm_operator_create_operation (CREATE_OPERATION_ID),
-    INDEX ix_adm_operator_use (USE_YN),
-    INDEX ix_adm_operator_status (ACCOUNT_STATUS, USE_YN),
-    INDEX ix_adm_operator_lock (LOCKED_YN, FAIL_COUNT),
-    CONSTRAINT ck_adm_operator_status CHECK (ACCOUNT_STATUS IN ('PENDING_ACTIVATION','ACTIVE','LOCKED','SUSPENDED','DISABLED'))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 운영자';
-
-CREATE TABLE IF NOT EXISTS adm_role (
-    ROLE_ID VARCHAR(50) NOT NULL COMMENT '역할 ID',
-    ROLE_NAME VARCHAR(100) NOT NULL COMMENT '역할명',
-    ROLE_TYPE VARCHAR(30) NOT NULL DEFAULT 'BUSINESS_OPERATOR' COMMENT '역할 유형',
-    DESCRIPTION VARCHAR(500) NULL COMMENT '역할 설명',
-    USE_YN CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
-    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (ROLE_ID),
-    INDEX ix_adm_role_type (ROLE_TYPE, USE_YN)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 역할';
-
-CREATE TABLE IF NOT EXISTS adm_operator_role (
-    OPERATOR_ID VARCHAR(50) NOT NULL COMMENT '운영자 ID',
-    ROLE_ID VARCHAR(50) NOT NULL COMMENT '역할 ID',
-    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (OPERATOR_ID, ROLE_ID),
-    CONSTRAINT fk_adm_operator_role_operator
-        FOREIGN KEY (OPERATOR_ID) REFERENCES adm_operator(OPERATOR_ID)
-        ON DELETE CASCADE,
-    CONSTRAINT fk_adm_operator_role_role
-        FOREIGN KEY (ROLE_ID) REFERENCES adm_role(ROLE_ID)
-        ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 운영자 역할 매핑';
-
-CREATE TABLE IF NOT EXISTS adm_menu (
-    MENU_ID VARCHAR(50) NOT NULL COMMENT '메뉴 ID',
-    PARENT_MENU_ID VARCHAR(50) NULL COMMENT '상위 메뉴 ID',
-    MENU_NAME VARCHAR(100) NOT NULL COMMENT '메뉴명',
-    MENU_PATH VARCHAR(200) NOT NULL COMMENT '메뉴 경로',
-    SORT_ORDER INT NOT NULL DEFAULT 0 COMMENT '정렬 순서',
-    USE_YN CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
-    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (MENU_ID),
-    INDEX ix_adm_menu_parent (PARENT_MENU_ID, SORT_ORDER),
-    CONSTRAINT fk_adm_menu_parent
-        FOREIGN KEY (PARENT_MENU_ID) REFERENCES adm_menu(MENU_ID)
-        ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 메뉴';
-
-CREATE TABLE IF NOT EXISTS adm_role_menu (
-    ROLE_ID VARCHAR(50) NOT NULL COMMENT '역할 ID',
-    MENU_ID VARCHAR(50) NOT NULL COMMENT '메뉴 ID',
-    READ_YN CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '조회 권한 여부',
-    WRITE_YN CHAR(1) NOT NULL DEFAULT 'N' COMMENT '등록/수정 권한 여부',
-    DELETE_YN CHAR(1) NOT NULL DEFAULT 'N' COMMENT '삭제 권한 여부',
-    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (ROLE_ID, MENU_ID),
-    CONSTRAINT fk_adm_role_menu_role
-        FOREIGN KEY (ROLE_ID) REFERENCES adm_role(ROLE_ID)
-        ON DELETE CASCADE,
-    CONSTRAINT fk_adm_role_menu_menu
-        FOREIGN KEY (MENU_ID) REFERENCES adm_menu(MENU_ID)
-        ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 역할별 메뉴 권한';
-
-CREATE TABLE IF NOT EXISTS adm_button (
-    BUTTON_ID VARCHAR(80) NOT NULL COMMENT '버튼/행위 ID',
-    MENU_ID VARCHAR(50) NOT NULL COMMENT '메뉴 ID',
-    ACTION_CODE VARCHAR(50) NOT NULL COMMENT '행위 코드',
-    BUTTON_NAME VARCHAR(100) NOT NULL COMMENT '버튼/행위명',
-    HTTP_METHOD VARCHAR(10) NULL COMMENT '대상 HTTP 메서드',
-    API_PATTERN VARCHAR(300) NULL COMMENT '대상 API 경로 패턴',
-    SORT_ORDER INT NOT NULL DEFAULT 0 COMMENT '정렬 순서',
-    USE_YN CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
-    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (BUTTON_ID),
-    UNIQUE KEY uk_adm_button_menu_action (MENU_ID, ACTION_CODE),
-    INDEX ix_adm_button_menu (MENU_ID, SORT_ORDER),
-    CONSTRAINT fk_adm_button_menu
-        FOREIGN KEY (MENU_ID) REFERENCES adm_menu(MENU_ID)
-        ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 메뉴별 버튼/행위';
-
-CREATE TABLE IF NOT EXISTS adm_role_button (
-    ROLE_ID VARCHAR(50) NOT NULL COMMENT '역할 ID',
-    BUTTON_ID VARCHAR(80) NOT NULL COMMENT '버튼/행위 ID',
-    ALLOW_YN CHAR(1) NOT NULL DEFAULT 'N' COMMENT '허용 여부',
-    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (ROLE_ID, BUTTON_ID),
-    CONSTRAINT fk_adm_role_button_role
-        FOREIGN KEY (ROLE_ID) REFERENCES adm_role(ROLE_ID)
-        ON DELETE CASCADE,
-    CONSTRAINT fk_adm_role_button_button
-        FOREIGN KEY (BUTTON_ID) REFERENCES adm_button(BUTTON_ID)
-        ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 역할별 버튼/행위 권한';
-
 CREATE TABLE IF NOT EXISTS adm_api_permission (
     API_PERMISSION_ID VARCHAR(120) NOT NULL COMMENT 'API 권한 ID',
     API_GROUP_CODE VARCHAR(50) NOT NULL COMMENT 'API 그룹 코드',
@@ -1221,260 +1334,79 @@ CREATE TABLE IF NOT EXISTS adm_api_permission (
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
     updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (API_PERMISSION_ID),
-    UNIQUE KEY uk_adm_api_permission_method_path (HTTP_METHOD, API_PATH),
+    CONSTRAINT pk_adm_api_permission PRIMARY KEY (API_PERMISSION_ID),
+    CONSTRAINT uk_adm_api_permission_method_path UNIQUE (HTTP_METHOD, API_PATH),
+    CONSTRAINT fk_adm_api_permission_menu FOREIGN KEY (MENU_ID) REFERENCES adm_menu (MENU_ID) ON DELETE SET NULL,
+    CONSTRAINT fk_adm_api_permission_button FOREIGN KEY (BUTTON_ID) REFERENCES adm_button (BUTTON_ID) ON DELETE SET NULL,
     INDEX ix_adm_api_permission_group (API_GROUP_CODE, USE_YN),
-    INDEX ix_adm_api_permission_menu (MENU_ID, BUTTON_ID),
-    CONSTRAINT fk_adm_api_permission_menu
-        FOREIGN KEY (MENU_ID) REFERENCES adm_menu(MENU_ID)
-        ON DELETE SET NULL,
-    CONSTRAINT fk_adm_api_permission_button
-        FOREIGN KEY (BUTTON_ID) REFERENCES adm_button(BUTTON_ID)
-        ON DELETE SET NULL
+    INDEX ix_adm_api_permission_menu (MENU_ID, BUTTON_ID)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM API 권한';
 
-CREATE TABLE IF NOT EXISTS adm_role_api_permission (
-    ROLE_ID VARCHAR(50) NOT NULL COMMENT '역할 ID',
-    API_PERMISSION_ID VARCHAR(120) NOT NULL COMMENT 'API 권한 ID',
-    ALLOW_YN CHAR(1) NOT NULL DEFAULT 'N' COMMENT '허용 여부',
-    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (ROLE_ID, API_PERMISSION_ID),
-    CONSTRAINT fk_adm_role_api_permission_role
-        FOREIGN KEY (ROLE_ID) REFERENCES adm_role(ROLE_ID)
-        ON DELETE CASCADE,
-    CONSTRAINT fk_adm_role_api_permission_api
-        FOREIGN KEY (API_PERMISSION_ID) REFERENCES adm_api_permission(API_PERMISSION_ID)
-        ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 역할별 API 권한';
-
-CREATE TABLE IF NOT EXISTS adm_audit_log (
-    AUDIT_ID BIGINT NOT NULL AUTO_INCREMENT COMMENT '감사 로그 순번',
-    TRANSACTION_ID CHAR(34) NULL COMMENT 'CPF 전역 transactionId',
-    TRACE_ID VARCHAR(80) NULL COMMENT '분산 추적 ID',
-    OPERATOR_ID VARCHAR(50) NOT NULL COMMENT '운영자 ID',
-    MENU_ID VARCHAR(50) NULL COMMENT '메뉴 ID',
-    BUTTON_ID VARCHAR(80) NULL COMMENT '버튼/행위 ID',
-    ACTION_TYPE VARCHAR(30) NOT NULL COMMENT '행위 유형',
-    TARGET_TYPE VARCHAR(50) NULL COMMENT '대상 유형',
-    TARGET_ID VARCHAR(100) NULL COMMENT '대상 ID',
-    REASON VARCHAR(500) NOT NULL COMMENT '감사 사유',
-    BEFORE_DATA LONGTEXT NULL COMMENT '변경 전 데이터',
-    AFTER_DATA LONGTEXT NULL COMMENT '변경 후 데이터',
-    DIFF_DATA LONGTEXT NULL COMMENT '변경 차이 데이터',
-    REQUEST_BODY LONGTEXT NULL COMMENT '요청 본문',
-    CLIENT_IP VARCHAR(50) NULL COMMENT '클라이언트 IP',
-    RETENTION_UNTIL DATE NULL COMMENT '보존 만료 기준일',
-    IMMUTABLE_YN CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '삭제 불가 여부',
-    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (AUDIT_ID),
-    INDEX ix_adm_audit_log_tx (TRANSACTION_ID),
-    INDEX ix_adm_audit_log_operator_time (OPERATOR_ID, created_at),
-    INDEX ix_adm_audit_log_action_time (ACTION_TYPE, created_at),
-    INDEX ix_adm_audit_log_target_time (TARGET_TYPE, TARGET_ID, created_at),
-    INDEX ix_adm_audit_log_retention (RETENTION_UNTIL, IMMUTABLE_YN)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 감사 로그';
-
-CREATE TABLE IF NOT EXISTS adm_download_audit_log (
-    DOWNLOAD_ID BIGINT NOT NULL AUTO_INCREMENT COMMENT '다운로드 감사 로그 순번',
-    ADMIN_ID VARCHAR(50) NOT NULL COMMENT '요청 운영자 ID',
-    MENU_ID VARCHAR(50) NULL COMMENT '메뉴 ID',
-    SCREEN_ID VARCHAR(100) NULL COMMENT '화면 ID',
-    DOWNLOAD_TYPE VARCHAR(50) NOT NULL COMMENT '다운로드 유형',
-    TARGET_TYPE VARCHAR(50) NULL COMMENT '대상 유형',
-    SEARCH_CONDITION_SUMMARY LONGTEXT NULL COMMENT '검색 조건 요약',
-    ROW_COUNT INT NOT NULL DEFAULT 0 COMMENT '다운로드 행 수',
-    MASKED_YN CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '마스킹 적용 여부',
-    INCLUDE_SENSITIVE_YN CHAR(1) NOT NULL DEFAULT 'N' COMMENT '민감정보 포함 요청 여부',
-    REASON VARCHAR(500) NOT NULL COMMENT '다운로드 사유',
-    CLIENT_IP VARCHAR(50) NULL COMMENT '클라이언트 IP',
-    USER_AGENT VARCHAR(500) NULL COMMENT 'User-Agent',
-    CSV_POLICY_VERSION VARCHAR(30) NOT NULL DEFAULT 'CPF-CSV-1' COMMENT 'CSV spreadsheet injection protection policy version',
-    REQUESTED_AT DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '요청 일시',
-    COMPLETED_AT DATETIME NULL COMMENT '완료 일시',
-    STATUS VARCHAR(20) NOT NULL DEFAULT 'REQUESTED' COMMENT '처리 상태',
-    FAILURE_REASON VARCHAR(1000) NULL COMMENT '실패 사유',
-    FILE_NAME VARCHAR(300) NULL COMMENT '파일명',
-    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (DOWNLOAD_ID),
-    INDEX ix_adm_download_audit_log_admin_time (ADMIN_ID, REQUESTED_AT),
-    INDEX ix_adm_download_audit_log_type_time (DOWNLOAD_TYPE, REQUESTED_AT),
-    INDEX ix_adm_download_audit_log_status_time (STATUS, REQUESTED_AT)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 다운로드 감사 로그';
-
-CREATE TABLE IF NOT EXISTS adm_operator_session (
-    SESSION_ID VARCHAR(80) NOT NULL COMMENT '세션 ID',
-    TOKEN_HASH VARCHAR(512) NOT NULL COMMENT '토큰 해시',
-    OPERATOR_ID VARCHAR(50) NOT NULL COMMENT '운영자 ID',
-    ROLE_IDS VARCHAR(1000) NULL COMMENT '역할 ID 목록',
-    ISSUED_AT DATETIME NOT NULL COMMENT '발급일시',
-    EXPIRE_AT DATETIME NOT NULL COMMENT '만료일시',
-    REVOKED_YN CHAR(1) NOT NULL DEFAULT 'N' COMMENT '폐기 여부',
-    CLIENT_IP VARCHAR(50) NULL COMMENT '클라이언트 IP',
-    USER_AGENT VARCHAR(500) NULL COMMENT 'User-Agent',
-    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (SESSION_ID),
-    INDEX ix_adm_operator_session_token (TOKEN_HASH),
-    INDEX ix_adm_operator_session_user (OPERATOR_ID, EXPIRE_AT),
-    INDEX ix_adm_operator_session_active (REVOKED_YN, EXPIRE_AT)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 운영자 세션';
-
-CREATE TABLE IF NOT EXISTS adm_dynamic_log_level_rule (
-    RULE_ID VARCHAR(80) NOT NULL COMMENT '동적 로그 레벨 규칙 ID',
-    TRANSACTION_ID CHAR(34) NULL COMMENT '프레임워크 거래 ID',
-    BUSINESS_TRANSACTION_ID VARCHAR(20) NULL COMMENT '업무 거래 ID',
-    MODULE_ID VARCHAR(10) NULL COMMENT '모듈 ID',
-    LOG_LEVEL VARCHAR(10) NOT NULL COMMENT '적용 로그 레벨',
-    EXPIRE_AT DATETIME NOT NULL COMMENT '만료일시',
-    REASON VARCHAR(500) NULL COMMENT '적용 사유',
-    USE_YN CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
-    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (RULE_ID),
-    INDEX ix_adm_dynamic_log_level_rule_biz_tx (BUSINESS_TRANSACTION_ID, EXPIRE_AT),
-    INDEX ix_adm_dynamic_log_level_rule_tx (TRANSACTION_ID, EXPIRE_AT),
-    INDEX ix_adm_dynamic_log_level_rule_active (USE_YN, EXPIRE_AT)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 동적 로그 레벨 규칙';
-
-CREATE TABLE IF NOT EXISTS adm_ip_allowlist (
-    ALLOW_ID BIGINT NOT NULL AUTO_INCREMENT COMMENT 'IP 허용 목록 순번',
-    IP_PATTERN VARCHAR(100) NOT NULL COMMENT '허용 IP 또는 CIDR 패턴',
-    DESCRIPTION VARCHAR(500) NULL COMMENT '허용 사유',
-    USE_YN CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
-    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (ALLOW_ID),
-    UNIQUE KEY uk_adm_ip_allowlist_pattern (IP_PATTERN),
-    INDEX ix_adm_ip_allowlist_use (USE_YN)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 관리자 IP 허용 목록';
-
-CREATE TABLE IF NOT EXISTS adm_mfa_otp_secret (
-    OPERATOR_ID VARCHAR(50) NOT NULL COMMENT '운영자 ID',
-    SECRET_REF VARCHAR(500) NOT NULL COMMENT 'OTP secret 참조',
-    ENABLED_YN CHAR(1) NOT NULL DEFAULT 'N' COMMENT 'MFA 사용 여부',
-    VERIFIED_AT DATETIME NULL COMMENT 'MFA 검증일시',
-    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (OPERATOR_ID),
-    CONSTRAINT fk_adm_mfa_otp_secret_operator
-        FOREIGN KEY (OPERATOR_ID) REFERENCES adm_operator(OPERATOR_ID)
-        ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 운영자 MFA OTP secret 메타';
-
-CREATE TABLE IF NOT EXISTS adm_password_policy (
-    POLICY_ID VARCHAR(50) NOT NULL COMMENT '비밀번호 정책 ID',
-    MIN_LENGTH INT NOT NULL DEFAULT 12 COMMENT '최소 길이',
-    REQUIRE_UPPER_YN CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '대문자 필수 여부',
-    REQUIRE_LOWER_YN CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '소문자 필수 여부',
-    REQUIRE_DIGIT_YN CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '숫자 필수 여부',
-    REQUIRE_SPECIAL_YN CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '특수문자 필수 여부',
-    MAX_FAIL_COUNT INT NOT NULL DEFAULT 5 COMMENT '최대 실패 횟수',
-    EXPIRE_DAYS INT NOT NULL DEFAULT 90 COMMENT '만료 일수',
-    HISTORY_LIMIT INT NOT NULL DEFAULT 5 COMMENT '재사용 금지 이력 수',
-    USE_YN CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
-    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (POLICY_ID)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 비밀번호 정책';
-
-CREATE TABLE IF NOT EXISTS adm_password_history (
-    HISTORY_ID BIGINT NOT NULL AUTO_INCREMENT COMMENT '비밀번호 이력 순번',
-    OPERATOR_ID VARCHAR(50) NOT NULL COMMENT '운영자 ID',
-    PASSWORD_HASH VARCHAR(512) NOT NULL COMMENT '이전 비밀번호 해시',
-    CHANGED_REASON VARCHAR(500) NULL COMMENT '변경 사유',
-    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (HISTORY_ID),
-    INDEX ix_adm_password_history_operator_time (OPERATOR_ID, created_at),
-    CONSTRAINT fk_adm_password_history_operator
-        FOREIGN KEY (OPERATOR_ID) REFERENCES adm_operator(OPERATOR_ID)
-        ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 비밀번호 변경 이력';
-
--- ============================================================================
--- ADM 운영자 Directory Profile과 위험조치 Approval
--- adm_operator는 인증 Identity이며 아래 Profile/조직 메타는 승인·감사 문맥을 위한 최소 정보입니다.
--- 고객 HR Master를 대체하지 않으며 LDAP/AD/IAM/HR Adapter로 교체·동기화할 수 있어야 합니다.
--- ============================================================================
-
-CREATE TABLE IF NOT EXISTS adm_organization (
-    ORGANIZATION_CODE VARCHAR(50) NOT NULL COMMENT '운영 조직 코드',
-    PARENT_ORGANIZATION_CODE VARCHAR(50) NULL COMMENT '상위 조직 코드',
-    ORGANIZATION_NAME VARCHAR(120) NOT NULL COMMENT '운영 조직명',
-    ORGANIZATION_TYPE VARCHAR(30) NOT NULL DEFAULT 'DEPARTMENT' COMMENT '조직 유형',
-    MANAGER_OPERATOR_ID VARCHAR(50) NULL COMMENT '기본 DB Directory Adapter의 조직 책임자 운영자 ID',
-    EFFECTIVE_FROM DATE NULL COMMENT '적용 시작일',
-    EFFECTIVE_TO DATE NULL COMMENT '적용 종료일',
-    USE_YN CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+CREATE TABLE IF NOT EXISTS adm_approval_execution (
+    APPROVAL_REQUEST_ID BIGINT NOT NULL COMMENT '승인 요청 순번',
+    COMMAND_REQUEST_ID VARCHAR(120) NOT NULL COMMENT 'Owner Command 멱등 요청 ID',
+    EXECUTION_STATUS VARCHAR(30) NOT NULL COMMENT 'PENDING/RUNNING/SUCCEEDED/FAILED/UNKNOWN/RECOVERED',
+    OWNER_RESULT_CODE VARCHAR(80) NULL COMMENT 'Owner 응답 코드',
+    OWNER_RESULT_MESSAGE VARCHAR(1000) NULL COMMENT '마스킹된 Owner 응답 메시지',
+    STARTED_AT DATETIME(3) NULL COMMENT '실행 시작시각',
+    COMPLETED_AT DATETIME(3) NULL COMMENT '실행 종료시각',
+    RECOVERY_REQUIRED_YN CHAR(1) NOT NULL DEFAULT 'N' COMMENT '결과불명/복구 필요 여부',
     created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
     created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
     updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
     updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
-    PRIMARY KEY (ORGANIZATION_CODE),
-    INDEX ix_adm_organization_parent (PARENT_ORGANIZATION_CODE, USE_YN),
-    CONSTRAINT fk_adm_organization_parent FOREIGN KEY (PARENT_ORGANIZATION_CODE)
-        REFERENCES adm_organization(ORGANIZATION_CODE) ON DELETE SET NULL,
-    CONSTRAINT fk_adm_organization_manager FOREIGN KEY (MANAGER_OPERATOR_ID)
-        REFERENCES adm_operator(OPERATOR_ID) ON DELETE SET NULL,
-    CONSTRAINT ck_adm_organization_use CHECK (USE_YN IN ('Y','N')),
-    CONSTRAINT ck_adm_organization_effective CHECK (
-        EFFECTIVE_TO IS NULL OR EFFECTIVE_FROM IS NULL OR EFFECTIVE_TO > EFFECTIVE_FROM
-    )
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 운영 조직 Directory 기본 Adapter';
+    CONSTRAINT pk_adm_approval_execution PRIMARY KEY (APPROVAL_REQUEST_ID),
+    CONSTRAINT uk_adm_approval_execution_command UNIQUE (COMMAND_REQUEST_ID),
+    CONSTRAINT ck_adm_approval_execution_status CHECK (EXECUTION_STATUS IN ('PENDING','RUNNING','SUCCEEDED','FAILED','UNKNOWN','RECOVERED')),
+    CONSTRAINT ck_adm_approval_execution_recovery CHECK (RECOVERY_REQUIRED_YN IN ('Y','N')),
+    CONSTRAINT ck_adm_approval_execution_time CHECK (COMPLETED_AT IS NULL OR STARTED_AT IS NULL OR COMPLETED_AT >= STARTED_AT),
+    CONSTRAINT fk_adm_approval_execution_request FOREIGN KEY (APPROVAL_REQUEST_ID) REFERENCES adm_approval_request (APPROVAL_REQUEST_ID),
+    INDEX ix_adm_approval_execution_recovery (RECOVERY_REQUIRED_YN, EXECUTION_STATUS)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 승인 후 Owner Command 실행 상태';
 
-CREATE TABLE IF NOT EXISTS adm_operator_profile (
-    OPERATOR_ID VARCHAR(50) NOT NULL COMMENT '운영자 ID',
-    DISPLAY_NAME VARCHAR(100) NULL COMMENT 'Directory/Profile 표시 이름',
-    DISPLAY_NAME VARCHAR(100) NULL COMMENT 'Directory/Profile 표시 이름',
-    EMPLOYEE_NO VARCHAR(50) NULL COMMENT '외부/내부 사번',
-    EXTERNAL_SUBJECT VARCHAR(200) NULL COMMENT 'LDAP/IAM 등 외부 Identity Subject',
-    ORGANIZATION_CODE VARCHAR(50) NULL COMMENT '대표 운영 조직 코드',
-    POSITION_CODE VARCHAR(50) NULL COMMENT '직급 코드',
-    POSITION_NAME VARCHAR(100) NULL COMMENT '직급명 Snapshot/표시값',
-    JOB_TITLE_CODE VARCHAR(50) NULL COMMENT '직책 코드',
-    JOB_TITLE_NAME VARCHAR(100) NULL COMMENT '직책명 Snapshot/표시값',
-    EMAIL VARCHAR(200) NULL COMMENT '업무 이메일',
-    MOBILE_NO VARCHAR(50) NULL COMMENT '연락처(휴대폰); 숫자형이 아닌 문자열로 국가번호와 선행 0을 보존',
-    OFFICE_PHONE_NO VARCHAR(50) NULL COMMENT '내부 전화번호/내선; 휴대폰 연락처와 분리',
-    EFFECTIVE_FROM DATETIME(3) NULL COMMENT 'Profile 적용 시작시각',
-    EFFECTIVE_TO DATETIME(3) NULL COMMENT 'Profile 적용 종료시각',
-    VERSION_NO BIGINT NOT NULL DEFAULT 0 COMMENT 'Profile 낙관적 잠금 버전',
+CREATE TABLE IF NOT EXISTS adm_approval_history (
+    APPROVAL_HISTORY_ID BIGINT NOT NULL AUTO_INCREMENT COMMENT '승인 이력 순번',
+    APPROVAL_REQUEST_ID BIGINT NOT NULL COMMENT '승인 요청 순번',
+    EVENT_TYPE VARCHAR(40) NOT NULL COMMENT 'REQUEST/APPROVE/REJECT/CANCEL/EXPIRE/BREAK_GLASS/EXECUTE/RESULT/REVIEW',
+    ACTOR_ID VARCHAR(50) NOT NULL COMMENT '행위 운영자/시스템 ID',
+    BEFORE_STATUS VARCHAR(30) NULL COMMENT '변경 전 상태',
+    AFTER_STATUS VARCHAR(30) NOT NULL COMMENT '변경 후 상태',
+    REASON VARCHAR(1000) NOT NULL COMMENT '행위 사유',
+    EVENT_DATA LONGTEXT NULL COMMENT '마스킹된 사건 Snapshot',
+    TRANSACTION_ID CHAR(34) NULL COMMENT 'CPF transactionId',
+    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
+    CONSTRAINT pk_adm_approval_history PRIMARY KEY (APPROVAL_HISTORY_ID),
+    CONSTRAINT fk_adm_approval_history_request FOREIGN KEY (APPROVAL_REQUEST_ID) REFERENCES adm_approval_request (APPROVAL_REQUEST_ID),
+    INDEX ix_adm_approval_history_request (APPROVAL_REQUEST_ID, APPROVAL_HISTORY_ID)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 승인 Immutable 이력';
+
+CREATE TABLE IF NOT EXISTS adm_approval_participant (
+    APPROVAL_PARTICIPANT_ID BIGINT NOT NULL AUTO_INCREMENT COMMENT '승인 참여자 순번',
+    APPROVAL_REQUEST_ID BIGINT NOT NULL COMMENT '승인 요청 순번',
+    STEP_NO INT NOT NULL COMMENT '승인 단계',
+    OPERATOR_ID VARCHAR(50) NOT NULL COMMENT '해석된 실제 승인 운영자',
+    SOURCE_TARGET_TYPE VARCHAR(30) NOT NULL COMMENT '정책 대상 유형 Snapshot',
+    SOURCE_TARGET_CODE VARCHAR(100) NOT NULL COMMENT '정책 대상 코드 Snapshot',
+    ORGANIZATION_CODE_SNAPSHOT VARCHAR(50) NULL COMMENT '승인 시 조직 Snapshot',
+    POSITION_CODE_SNAPSHOT VARCHAR(50) NULL COMMENT '승인 시 직급 Snapshot',
+    JOB_TITLE_CODE_SNAPSHOT VARCHAR(50) NULL COMMENT '승인 시 직책 Snapshot',
+    DECISION_STATUS VARCHAR(30) NOT NULL DEFAULT 'WAITING' COMMENT 'WAITING/APPROVED/REJECTED/SKIPPED',
+    IDEMPOTENCY_KEY VARCHAR(120) NULL COMMENT '결정 멱등 키',
+    DECISION_REASON VARCHAR(1000) NULL COMMENT '승인/반려 사유',
+    DECIDED_AT DATETIME(3) NULL COMMENT '결정 시각',
     created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
     created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
     updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
     updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
-    PRIMARY KEY (OPERATOR_ID),
-    UNIQUE KEY uk_adm_operator_profile_employee (EMPLOYEE_NO),
-    INDEX ix_adm_operator_profile_org (ORGANIZATION_CODE, EFFECTIVE_TO),
-    CONSTRAINT fk_adm_operator_profile_operator FOREIGN KEY (OPERATOR_ID)
-        REFERENCES adm_operator(OPERATOR_ID) ON DELETE CASCADE,
-    CONSTRAINT fk_adm_operator_profile_org FOREIGN KEY (ORGANIZATION_CODE)
-        REFERENCES adm_organization(ORGANIZATION_CODE) ON DELETE SET NULL,
-    CONSTRAINT ck_adm_operator_profile_effective CHECK (
-        EFFECTIVE_TO IS NULL OR EFFECTIVE_FROM IS NULL OR EFFECTIVE_TO > EFFECTIVE_FROM
-    )
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 운영자 조직/직급 Profile';
+    CONSTRAINT pk_adm_approval_participant PRIMARY KEY (APPROVAL_PARTICIPANT_ID),
+    CONSTRAINT uk_adm_approval_participant UNIQUE (APPROVAL_REQUEST_ID, STEP_NO, OPERATOR_ID),
+    CONSTRAINT uk_adm_approval_participant_idem UNIQUE (IDEMPOTENCY_KEY),
+    CONSTRAINT ck_adm_approval_participant_status CHECK (DECISION_STATUS IN ('WAITING','APPROVED','REJECTED','SKIPPED')),
+    CONSTRAINT ck_adm_approval_participant_step CHECK (STEP_NO >= 1),
+    CONSTRAINT fk_adm_approval_participant_request FOREIGN KEY (APPROVAL_REQUEST_ID) REFERENCES adm_approval_request (APPROVAL_REQUEST_ID) ON DELETE CASCADE,
+    INDEX ix_adm_approval_participant_inbox (OPERATOR_ID, DECISION_STATUS, APPROVAL_REQUEST_ID)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 승인 참여자 Snapshot';
 
 CREATE TABLE IF NOT EXISTS adm_approval_policy (
     POLICY_CODE VARCHAR(80) NOT NULL COMMENT '위험조치 승인 정책 코드',
@@ -1491,17 +1423,11 @@ CREATE TABLE IF NOT EXISTS adm_approval_policy (
     created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
     updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
     updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
-    PRIMARY KEY (POLICY_CODE, POLICY_VERSION),
-    INDEX ix_adm_approval_policy_action (ACTION_TYPE, ENABLED_YN, EFFECTIVE_FROM, EFFECTIVE_TO),
+    CONSTRAINT pk_adm_approval_policy PRIMARY KEY (POLICY_CODE, POLICY_VERSION),
     CONSTRAINT ck_adm_approval_policy_version CHECK (POLICY_VERSION > 0),
-    CONSTRAINT ck_adm_approval_policy_flags CHECK (
-        ENABLED_YN IN ('Y','N')
-        AND SELF_APPROVAL_ALLOWED_YN IN ('Y','N')
-        AND BREAK_GLASS_ALLOWED_YN IN ('Y','N')
-    ),
-    CONSTRAINT ck_adm_approval_policy_effective CHECK (
-        EFFECTIVE_TO IS NULL OR EFFECTIVE_TO > EFFECTIVE_FROM
-    )
+    CONSTRAINT ck_adm_approval_policy_flags CHECK (ENABLED_YN IN ('Y','N') AND SELF_APPROVAL_ALLOWED_YN IN ('Y','N') AND BREAK_GLASS_ALLOWED_YN IN ('Y','N')),
+    CONSTRAINT ck_adm_approval_policy_effective CHECK (EFFECTIVE_TO IS NULL OR EFFECTIVE_TO > EFFECTIVE_FROM),
+    INDEX ix_adm_approval_policy_action (ACTION_TYPE, ENABLED_YN, EFFECTIVE_FROM, EFFECTIVE_TO)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 위험조치 승인 정책 Version';
 
 CREATE TABLE IF NOT EXISTS adm_approval_policy_step (
@@ -1518,22 +1444,13 @@ CREATE TABLE IF NOT EXISTS adm_approval_policy_step (
     created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
     updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
     updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
-    PRIMARY KEY (POLICY_CODE, POLICY_VERSION, STEP_NO, TARGET_TYPE, TARGET_CODE),
-    CONSTRAINT fk_adm_approval_policy_step_policy FOREIGN KEY (POLICY_CODE, POLICY_VERSION)
-        REFERENCES adm_approval_policy(POLICY_CODE, POLICY_VERSION) ON DELETE CASCADE,
+    CONSTRAINT pk_adm_approval_policy_step PRIMARY KEY (POLICY_CODE, POLICY_VERSION, STEP_NO, TARGET_TYPE, TARGET_CODE),
     CONSTRAINT ck_adm_approval_policy_step_no CHECK (STEP_NO >= 1),
     CONSTRAINT ck_adm_approval_policy_step_type CHECK (STEP_TYPE IN ('APPROVAL','REVIEW')),
-    CONSTRAINT ck_adm_approval_policy_step_target CHECK (
-        TARGET_TYPE IN ('OPERATOR','ROLE','ORGANIZATION','ORG_MANAGER')
-    ),
+    CONSTRAINT ck_adm_approval_policy_step_target CHECK (TARGET_TYPE IN ('OPERATOR','ROLE','ORGANIZATION','ORG_MANAGER')),
     CONSTRAINT ck_adm_approval_policy_step_rule CHECK (DECISION_RULE IN ('ALL','ANY','N_OF_M')),
-    CONSTRAINT ck_adm_approval_policy_step_required CHECK (
-        REQUIRED_YN IN ('Y','N')
-        AND (
-            (DECISION_RULE = 'N_OF_M' AND REQUIRED_COUNT IS NOT NULL AND REQUIRED_COUNT > 0)
-            OR (DECISION_RULE <> 'N_OF_M' AND REQUIRED_COUNT IS NULL)
-        )
-    )
+    CONSTRAINT ck_adm_approval_policy_step_required CHECK (REQUIRED_YN IN ('Y','N') AND ( (DECISION_RULE = 'N_OF_M' AND REQUIRED_COUNT IS NOT NULL AND REQUIRED_COUNT > 0) OR (DECISION_RULE <> 'N_OF_M' AND REQUIRED_COUNT IS NULL) )),
+    CONSTRAINT fk_adm_approval_policy_step_policy FOREIGN KEY (POLICY_CODE, POLICY_VERSION) REFERENCES adm_approval_policy (POLICY_CODE, POLICY_VERSION) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 승인 정책 단계';
 
 CREATE TABLE IF NOT EXISTS adm_approval_request (
@@ -1559,170 +1476,17 @@ CREATE TABLE IF NOT EXISTS adm_approval_request (
     created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
     updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
     updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
-    PRIMARY KEY (APPROVAL_REQUEST_ID),
-    UNIQUE KEY uk_adm_approval_request_key (REQUEST_KEY),
-    INDEX ix_adm_approval_request_status (APPROVAL_STATUS, EXPIRE_AT, APPROVAL_REQUEST_ID),
-    INDEX ix_adm_approval_request_actor (REQUESTED_BY, created_at),
-    CONSTRAINT fk_adm_approval_request_policy FOREIGN KEY (POLICY_CODE, POLICY_VERSION)
-        REFERENCES adm_approval_policy(POLICY_CODE, POLICY_VERSION),
-    CONSTRAINT ck_adm_approval_request_status CHECK (
-        APPROVAL_STATUS IN ('PENDING','APPROVED','REJECTED','CANCELLED','EXPIRED','EXECUTING','COMPLETED','FAILED','UNKNOWN')
-    ),
+    CONSTRAINT pk_adm_approval_request PRIMARY KEY (APPROVAL_REQUEST_ID),
+    CONSTRAINT uk_adm_approval_request_key UNIQUE (REQUEST_KEY),
+    CONSTRAINT ck_adm_approval_request_status CHECK (APPROVAL_STATUS IN ('PENDING','APPROVED','REJECTED','CANCELLED','EXPIRED','EXECUTING','COMPLETED','FAILED','UNKNOWN')),
     CONSTRAINT ck_adm_approval_request_version CHECK (VERSION_NO >= 0),
     CONSTRAINT ck_adm_approval_request_step CHECK (CURRENT_STEP_NO >= 1),
-    CONSTRAINT ck_adm_approval_request_hash CHECK (CHAR_LENGTH(COMMAND_PAYLOAD_HASH) = 64)
+    CONSTRAINT ck_adm_approval_request_hash CHECK (CHAR_LENGTH(COMMAND_PAYLOAD_HASH) = 64),
+    CONSTRAINT fk_adm_approval_request_policy FOREIGN KEY (POLICY_CODE, POLICY_VERSION) REFERENCES adm_approval_policy (POLICY_CODE, POLICY_VERSION),
+    INDEX ix_adm_approval_request_status (APPROVAL_STATUS, EXPIRE_AT, APPROVAL_REQUEST_ID),
+    INDEX ix_adm_approval_request_actor (REQUESTED_BY, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 위험조치 승인 요청';
 
-CREATE TABLE IF NOT EXISTS adm_approval_participant (
-    APPROVAL_PARTICIPANT_ID BIGINT NOT NULL AUTO_INCREMENT COMMENT '승인 참여자 순번',
-    APPROVAL_REQUEST_ID BIGINT NOT NULL COMMENT '승인 요청 순번',
-    STEP_NO INT NOT NULL COMMENT '승인 단계',
-    OPERATOR_ID VARCHAR(50) NOT NULL COMMENT '해석된 실제 승인 운영자',
-    SOURCE_TARGET_TYPE VARCHAR(30) NOT NULL COMMENT '정책 대상 유형 Snapshot',
-    SOURCE_TARGET_CODE VARCHAR(100) NOT NULL COMMENT '정책 대상 코드 Snapshot',
-    ORGANIZATION_CODE_SNAPSHOT VARCHAR(50) NULL COMMENT '승인 시 조직 Snapshot',
-    POSITION_CODE_SNAPSHOT VARCHAR(50) NULL COMMENT '승인 시 직급 Snapshot',
-    JOB_TITLE_CODE_SNAPSHOT VARCHAR(50) NULL COMMENT '승인 시 직책 Snapshot',
-    DECISION_STATUS VARCHAR(30) NOT NULL DEFAULT 'WAITING' COMMENT 'WAITING/APPROVED/REJECTED/SKIPPED',
-    IDEMPOTENCY_KEY VARCHAR(120) NULL COMMENT '결정 멱등 키',
-    DECISION_REASON VARCHAR(1000) NULL COMMENT '승인/반려 사유',
-    DECIDED_AT DATETIME(3) NULL COMMENT '결정 시각',
-    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
-    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
-    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
-    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
-    PRIMARY KEY (APPROVAL_PARTICIPANT_ID),
-    UNIQUE KEY uk_adm_approval_participant (APPROVAL_REQUEST_ID, STEP_NO, OPERATOR_ID),
-    UNIQUE KEY uk_adm_approval_participant_idem (IDEMPOTENCY_KEY),
-    INDEX ix_adm_approval_participant_inbox (OPERATOR_ID, DECISION_STATUS, APPROVAL_REQUEST_ID),
-    CONSTRAINT fk_adm_approval_participant_request FOREIGN KEY (APPROVAL_REQUEST_ID)
-        REFERENCES adm_approval_request(APPROVAL_REQUEST_ID) ON DELETE CASCADE,
-    CONSTRAINT ck_adm_approval_participant_status CHECK (
-        DECISION_STATUS IN ('WAITING','APPROVED','REJECTED','SKIPPED')
-    ),
-    CONSTRAINT ck_adm_approval_participant_step CHECK (STEP_NO >= 1)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 승인 참여자 Snapshot';
-
-CREATE TABLE IF NOT EXISTS adm_approval_history (
-    APPROVAL_HISTORY_ID BIGINT NOT NULL AUTO_INCREMENT COMMENT '승인 이력 순번',
-    APPROVAL_REQUEST_ID BIGINT NOT NULL COMMENT '승인 요청 순번',
-    EVENT_TYPE VARCHAR(40) NOT NULL COMMENT 'REQUEST/APPROVE/REJECT/CANCEL/EXPIRE/BREAK_GLASS/EXECUTE/RESULT/REVIEW',
-    ACTOR_ID VARCHAR(50) NOT NULL COMMENT '행위 운영자/시스템 ID',
-    BEFORE_STATUS VARCHAR(30) NULL COMMENT '변경 전 상태',
-    AFTER_STATUS VARCHAR(30) NOT NULL COMMENT '변경 후 상태',
-    REASON VARCHAR(1000) NOT NULL COMMENT '행위 사유',
-    EVENT_DATA LONGTEXT NULL COMMENT '마스킹된 사건 Snapshot',
-    TRANSACTION_ID CHAR(34) NULL COMMENT 'CPF transactionId',
-    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
-    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
-    PRIMARY KEY (APPROVAL_HISTORY_ID),
-    INDEX ix_adm_approval_history_request (APPROVAL_REQUEST_ID, APPROVAL_HISTORY_ID),
-    CONSTRAINT fk_adm_approval_history_request FOREIGN KEY (APPROVAL_REQUEST_ID)
-        REFERENCES adm_approval_request(APPROVAL_REQUEST_ID)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 승인 Immutable 이력';
-
-CREATE TABLE IF NOT EXISTS adm_approval_execution (
-    APPROVAL_REQUEST_ID BIGINT NOT NULL COMMENT '승인 요청 순번',
-    COMMAND_REQUEST_ID VARCHAR(120) NOT NULL COMMENT 'Owner Command 멱등 요청 ID',
-    EXECUTION_STATUS VARCHAR(30) NOT NULL COMMENT 'PENDING/RUNNING/SUCCEEDED/FAILED/UNKNOWN/RECOVERED',
-    OWNER_RESULT_CODE VARCHAR(80) NULL COMMENT 'Owner 응답 코드',
-    OWNER_RESULT_MESSAGE VARCHAR(1000) NULL COMMENT '마스킹된 Owner 응답 메시지',
-    STARTED_AT DATETIME(3) NULL COMMENT '실행 시작시각',
-    COMPLETED_AT DATETIME(3) NULL COMMENT '실행 종료시각',
-    RECOVERY_REQUIRED_YN CHAR(1) NOT NULL DEFAULT 'N' COMMENT '결과불명/복구 필요 여부',
-    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
-    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
-    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
-    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
-    PRIMARY KEY (APPROVAL_REQUEST_ID),
-    UNIQUE KEY uk_adm_approval_execution_command (COMMAND_REQUEST_ID),
-    INDEX ix_adm_approval_execution_recovery (RECOVERY_REQUIRED_YN, EXECUTION_STATUS),
-    CONSTRAINT fk_adm_approval_execution_request FOREIGN KEY (APPROVAL_REQUEST_ID)
-        REFERENCES adm_approval_request(APPROVAL_REQUEST_ID),
-    CONSTRAINT ck_adm_approval_execution_status CHECK (
-        EXECUTION_STATUS IN ('PENDING','RUNNING','SUCCEEDED','FAILED','UNKNOWN','RECOVERED')
-    ),
-    CONSTRAINT ck_adm_approval_execution_recovery CHECK (RECOVERY_REQUIRED_YN IN ('Y','N')),
-    CONSTRAINT ck_adm_approval_execution_time CHECK (
-        COMPLETED_AT IS NULL OR STARTED_AT IS NULL OR COMPLETED_AT >= STARTED_AT
-    )
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 승인 후 Owner Command 실행 상태';
-
-
--- R9 ADM control plane: incident lifecycle and maintenance command audit
-CREATE TABLE IF NOT EXISTS adm_incident (
-    incident_id BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Incident identifier',
-    incident_no VARCHAR(64) NOT NULL COMMENT 'Incident number',
-    severity VARCHAR(16) NOT NULL COMMENT 'Severity',
-    title VARCHAR(300) NOT NULL COMMENT 'Title',
-    summary VARCHAR(2000) NULL COMMENT 'Summary',
-    source_type VARCHAR(40) NOT NULL DEFAULT 'MANUAL' COMMENT 'Source type',
-    source_id VARCHAR(200) NULL COMMENT 'Source identifier',
-    status VARCHAR(32) NOT NULL DEFAULT 'OPEN' COMMENT 'Status',
-    detected_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Detection time',
-    acknowledged_at DATETIME(3) NULL COMMENT 'Acknowledgement time',
-    mitigated_at DATETIME(3) NULL COMMENT 'Mitigation time',
-    resolved_at DATETIME(3) NULL COMMENT 'Resolution time',
-    reason VARCHAR(1000) NOT NULL COMMENT 'Reason',
-    version BIGINT NOT NULL DEFAULT 0 COMMENT 'Version',
-    created_by VARCHAR(100) NOT NULL COMMENT 'Creator',
-    updated_by VARCHAR(100) NOT NULL COMMENT 'Last updater',
-    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Creation time',
-    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Last update time',
-    PRIMARY KEY (incident_id),
-    UNIQUE KEY uk_adm_incident_no (incident_no),
-    KEY idx_adm_incident_status (status, severity, detected_at),
-    KEY idx_adm_incident_source (source_type, source_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM Incident Lifecycle';
-
-CREATE TABLE IF NOT EXISTS adm_maintenance_action (
-    action_id BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Action identifier',
-    service_id VARCHAR(100) NOT NULL COMMENT 'Service identifier',
-    endpoint_code VARCHAR(100) NOT NULL COMMENT 'Endpoint code',
-    instance_id VARCHAR(150) NOT NULL COMMENT 'Instance identifier',
-    action_type VARCHAR(20) NOT NULL COMMENT 'Action type',
-    before_status VARCHAR(40) NULL COMMENT 'Before status',
-    after_status VARCHAR(40) NULL COMMENT 'After status',
-    result_status VARCHAR(20) NOT NULL COMMENT 'Result status',
-    reason VARCHAR(1000) NOT NULL COMMENT 'Reason',
-    requested_by VARCHAR(100) NOT NULL COMMENT 'Requester',
-    requested_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Request time',
-    result_detail TEXT NULL COMMENT 'Result detail',
-    PRIMARY KEY (action_id),
-    KEY idx_adm_maintenance_target (service_id, endpoint_code, instance_id, requested_at),
-    KEY idx_adm_maintenance_result (result_status, requested_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM Maintenance Command Audit';
-
-
--- R9 ADM scoped break-glass control
-CREATE TABLE IF NOT EXISTS adm_break_glass_session (
-    session_id CHAR(36) NOT NULL COMMENT '비상 권한 세션 UUID',
-    operator_id VARCHAR(100) NOT NULL COMMENT '세션 소유 운영자',
-    scope_type VARCHAR(60) NOT NULL COMMENT 'SERVICE/BATCH/CENTER_CUT/RECOVERY/SECURITY 등 좁은 Scope 종류',
-    scope_value VARCHAR(200) NOT NULL COMMENT 'Scope 대상 식별자',
-    reason VARCHAR(1000) NOT NULL COMMENT '발급 사유',
-    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' COMMENT 'ACTIVE/CLOSED/EXPIRED',
-    expires_at DATETIME(3) NOT NULL COMMENT '강제 만료시각',
-    closed_at DATETIME(3) NULL COMMENT '종료/만료시각',
-    close_reason VARCHAR(1000) NULL COMMENT '종료/만료 사유',
-    post_review_status VARCHAR(20) NOT NULL DEFAULT 'PENDING' COMMENT 'PENDING/APPROVED/REJECTED',
-    reviewed_by VARCHAR(100) NULL COMMENT '사후검토자',
-    reviewed_at DATETIME(3) NULL COMMENT '사후검토시각',
-    review_reason VARCHAR(1000) NULL COMMENT '사후검토 의견',
-    created_by VARCHAR(100) NOT NULL COMMENT 'Creator',
-    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Creation time',
-    updated_by VARCHAR(100) NOT NULL COMMENT 'Last updater',
-    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'Last update time',
-    PRIMARY KEY (session_id),
-    INDEX ix_adm_break_glass_operator (operator_id, status, expires_at),
-    INDEX ix_adm_break_glass_scope (scope_type, scope_value, status),
-    INDEX ix_adm_break_glass_review (post_review_status, closed_at),
-    CONSTRAINT ck_adm_break_glass_status CHECK (status IN ('ACTIVE','CLOSED','EXPIRED')),
-    CONSTRAINT ck_adm_break_glass_review CHECK (post_review_status IN ('PENDING','APPROVED','REJECTED'))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 범위/TTL 제한 Break-glass 세션';
-
-
--- R12 durable mandatory audit delivery/outbox
 CREATE TABLE IF NOT EXISTS adm_audit_delivery (
     DELIVERY_ID BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Delivery identifier',
     TRANSACTION_ID CHAR(34) NOT NULL COMMENT 'CPF 전역 transactionId',
@@ -1749,258 +1513,718 @@ CREATE TABLE IF NOT EXISTS adm_audit_delivery (
     UPDATED_BY VARCHAR(100) NOT NULL COMMENT 'Last updater',
     CREATED_AT DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Creation time',
     UPDATED_AT DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Last update time',
-    PRIMARY KEY (DELIVERY_ID),
+    CONSTRAINT pk_adm_audit_delivery PRIMARY KEY (DELIVERY_ID),
+    CONSTRAINT ck_adm_audit_delivery_operation CHECK (OPERATION_STATUS IN ('REQUESTED','SUCCEEDED','FAILED','UNKNOWN')),
+    CONSTRAINT ck_adm_audit_delivery_status CHECK (DELIVERY_STATUS IN ('PENDING','RETRY','FAILED','DELIVERED')),
     INDEX ix_adm_audit_delivery_status (DELIVERY_STATUS, OPERATION_STATUS, NEXT_ATTEMPT_AT),
     INDEX ix_adm_audit_delivery_tx (TRANSACTION_ID),
-    INDEX ix_adm_audit_delivery_operator (OPERATOR_ID, REQUESTED_AT),
-    CONSTRAINT ck_adm_audit_delivery_operation CHECK (OPERATION_STATUS IN ('REQUESTED','SUCCEEDED','FAILED','UNKNOWN')),
-    CONSTRAINT ck_adm_audit_delivery_status CHECK (DELIVERY_STATUS IN ('PENDING','RETRY','FAILED','DELIVERED'))
+    INDEX ix_adm_audit_delivery_operator (OPERATOR_ID, REQUESTED_AT)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 필수 감사 Delivery 원장';
 
+CREATE TABLE IF NOT EXISTS adm_audit_log (
+    AUDIT_ID BIGINT NOT NULL AUTO_INCREMENT COMMENT '감사 로그 순번',
+    TRANSACTION_ID CHAR(34) NULL COMMENT 'CPF 전역 transactionId',
+    TRACE_ID VARCHAR(80) NULL COMMENT '분산 추적 ID',
+    OPERATOR_ID VARCHAR(50) NOT NULL COMMENT '운영자 ID',
+    MENU_ID VARCHAR(50) NULL COMMENT '메뉴 ID',
+    BUTTON_ID VARCHAR(80) NULL COMMENT '버튼/행위 ID',
+    ACTION_TYPE VARCHAR(30) NOT NULL COMMENT '행위 유형',
+    TARGET_TYPE VARCHAR(50) NULL COMMENT '대상 유형',
+    TARGET_ID VARCHAR(100) NULL COMMENT '대상 ID',
+    REASON VARCHAR(500) NOT NULL COMMENT '감사 사유',
+    BEFORE_DATA LONGTEXT NULL COMMENT '변경 전 데이터',
+    AFTER_DATA LONGTEXT NULL COMMENT '변경 후 데이터',
+    DIFF_DATA LONGTEXT NULL COMMENT '변경 차이 데이터',
+    REQUEST_BODY LONGTEXT NULL COMMENT '요청 본문',
+    CLIENT_IP VARCHAR(50) NULL COMMENT '클라이언트 IP',
+    RETENTION_UNTIL DATE NULL COMMENT '보존 만료 기준일',
+    IMMUTABLE_YN CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '삭제 불가 여부',
+    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_adm_audit_log PRIMARY KEY (AUDIT_ID),
+    INDEX ix_adm_audit_log_tx (TRANSACTION_ID),
+    INDEX ix_adm_audit_log_operator_time (OPERATOR_ID, created_at),
+    INDEX ix_adm_audit_log_action_time (ACTION_TYPE, created_at),
+    INDEX ix_adm_audit_log_target_time (TARGET_TYPE, TARGET_ID, created_at),
+    INDEX ix_adm_audit_log_retention (RETENTION_UNTIL, IMMUTABLE_YN)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 감사 로그';
+
+CREATE TABLE IF NOT EXISTS adm_break_glass_session (
+    session_id CHAR(36) NOT NULL COMMENT '비상 권한 세션 UUID',
+    operator_id VARCHAR(100) NOT NULL COMMENT '세션 소유 운영자',
+    scope_type VARCHAR(60) NOT NULL COMMENT 'SERVICE/BATCH/CENTER_CUT/RECOVERY/SECURITY 등 좁은 Scope 종류',
+    scope_value VARCHAR(200) NOT NULL COMMENT 'Scope 대상 식별자',
+    reason VARCHAR(1000) NOT NULL COMMENT '발급 사유',
+    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' COMMENT 'ACTIVE/CLOSED/EXPIRED',
+    expires_at DATETIME(3) NOT NULL COMMENT '강제 만료시각',
+    closed_at DATETIME(3) NULL COMMENT '종료/만료시각',
+    close_reason VARCHAR(1000) NULL COMMENT '종료/만료 사유',
+    post_review_status VARCHAR(20) NOT NULL DEFAULT 'PENDING' COMMENT 'PENDING/APPROVED/REJECTED',
+    reviewed_by VARCHAR(100) NULL COMMENT '사후검토자',
+    reviewed_at DATETIME(3) NULL COMMENT '사후검토시각',
+    review_reason VARCHAR(1000) NULL COMMENT '사후검토 의견',
+    created_by VARCHAR(100) NOT NULL COMMENT 'Creator',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Creation time',
+    updated_by VARCHAR(100) NOT NULL COMMENT 'Last updater',
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'Last update time',
+    CONSTRAINT pk_adm_break_glass_session PRIMARY KEY (session_id),
+    CONSTRAINT ck_adm_break_glass_status CHECK (status IN ('ACTIVE','CLOSED','EXPIRED')),
+    CONSTRAINT ck_adm_break_glass_review CHECK (post_review_status IN ('PENDING','APPROVED','REJECTED')),
+    INDEX ix_adm_break_glass_operator (operator_id, status, expires_at),
+    INDEX ix_adm_break_glass_scope (scope_type, scope_value, status),
+    INDEX ix_adm_break_glass_review (post_review_status, closed_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 범위/TTL 제한 Break-glass 세션';
+
+CREATE TABLE IF NOT EXISTS adm_button (
+    BUTTON_ID VARCHAR(80) NOT NULL COMMENT '버튼/행위 ID',
+    MENU_ID VARCHAR(50) NOT NULL COMMENT '메뉴 ID',
+    ACTION_CODE VARCHAR(50) NOT NULL COMMENT '행위 코드',
+    BUTTON_NAME VARCHAR(100) NOT NULL COMMENT '버튼/행위명',
+    HTTP_METHOD VARCHAR(10) NULL COMMENT '대상 HTTP 메서드',
+    API_PATTERN VARCHAR(300) NULL COMMENT '대상 API 경로 패턴',
+    SORT_ORDER INT NOT NULL DEFAULT 0 COMMENT '정렬 순서',
+    USE_YN CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_adm_button PRIMARY KEY (BUTTON_ID),
+    CONSTRAINT uk_adm_button_menu_action UNIQUE (MENU_ID, ACTION_CODE),
+    CONSTRAINT fk_adm_button_menu FOREIGN KEY (MENU_ID) REFERENCES adm_menu (MENU_ID) ON DELETE CASCADE,
+    INDEX ix_adm_button_menu (MENU_ID, SORT_ORDER)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 메뉴별 버튼/행위';
+
+CREATE TABLE IF NOT EXISTS adm_download_audit_log (
+    DOWNLOAD_ID BIGINT NOT NULL AUTO_INCREMENT COMMENT '다운로드 감사 로그 순번',
+    ADMIN_ID VARCHAR(50) NOT NULL COMMENT '요청 운영자 ID',
+    MENU_ID VARCHAR(50) NULL COMMENT '메뉴 ID',
+    SCREEN_ID VARCHAR(100) NULL COMMENT '화면 ID',
+    DOWNLOAD_TYPE VARCHAR(50) NOT NULL COMMENT '다운로드 유형',
+    TARGET_TYPE VARCHAR(50) NULL COMMENT '대상 유형',
+    SEARCH_CONDITION_SUMMARY LONGTEXT NULL COMMENT '검색 조건 요약',
+    ROW_COUNT INT NOT NULL DEFAULT 0 COMMENT '다운로드 행 수',
+    MASKED_YN CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '마스킹 적용 여부',
+    INCLUDE_SENSITIVE_YN CHAR(1) NOT NULL DEFAULT 'N' COMMENT '민감정보 포함 요청 여부',
+    REASON VARCHAR(500) NOT NULL COMMENT '다운로드 사유',
+    CLIENT_IP VARCHAR(50) NULL COMMENT '클라이언트 IP',
+    USER_AGENT VARCHAR(500) NULL COMMENT 'User-Agent',
+    CSV_POLICY_VERSION VARCHAR(30) NOT NULL DEFAULT 'CPF-CSV-1' COMMENT 'CSV spreadsheet injection protection policy version',
+    REQUESTED_AT DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '요청 일시',
+    COMPLETED_AT DATETIME NULL COMMENT '완료 일시',
+    STATUS VARCHAR(20) NOT NULL DEFAULT 'REQUESTED' COMMENT '처리 상태',
+    FAILURE_REASON VARCHAR(1000) NULL COMMENT '실패 사유',
+    FILE_NAME VARCHAR(300) NULL COMMENT '파일명',
+    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_adm_download_audit_log PRIMARY KEY (DOWNLOAD_ID),
+    INDEX ix_adm_download_audit_log_admin_time (ADMIN_ID, REQUESTED_AT),
+    INDEX ix_adm_download_audit_log_type_time (DOWNLOAD_TYPE, REQUESTED_AT),
+    INDEX ix_adm_download_audit_log_status_time (STATUS, REQUESTED_AT)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 다운로드 감사 로그';
+
+CREATE TABLE IF NOT EXISTS adm_dynamic_log_level_rule (
+    RULE_ID VARCHAR(80) NOT NULL COMMENT '동적 로그 레벨 규칙 ID',
+    TRANSACTION_ID CHAR(34) NULL COMMENT '프레임워크 거래 ID',
+    BUSINESS_TRANSACTION_ID VARCHAR(20) NULL COMMENT '업무 거래 ID',
+    MODULE_ID VARCHAR(10) NULL COMMENT '모듈 ID',
+    LOG_LEVEL VARCHAR(10) NOT NULL COMMENT '적용 로그 레벨',
+    EXPIRE_AT DATETIME NOT NULL COMMENT '만료일시',
+    REASON VARCHAR(500) NULL COMMENT '적용 사유',
+    USE_YN CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_adm_dynamic_log_level_rule PRIMARY KEY (RULE_ID),
+    INDEX ix_adm_dynamic_log_level_rule_biz_tx (BUSINESS_TRANSACTION_ID, EXPIRE_AT),
+    INDEX ix_adm_dynamic_log_level_rule_tx (TRANSACTION_ID, EXPIRE_AT),
+    INDEX ix_adm_dynamic_log_level_rule_active (USE_YN, EXPIRE_AT)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 동적 로그 레벨 규칙';
+
+CREATE TABLE IF NOT EXISTS adm_file_job (
+    job_id VARCHAR(36) NOT NULL COMMENT 'File Job ID',
+    operation_id VARCHAR(100) NOT NULL COMMENT '멱등 Operation ID',
+    request_hash VARCHAR(64) NOT NULL COMMENT '요청 SHA-256',
+    job_type VARCHAR(20) NOT NULL COMMENT 'UPLOAD 또는 DOWNLOAD',
+    template_code VARCHAR(100) NOT NULL COMMENT 'Template Code',
+    template_version INT NOT NULL COMMENT 'Template Version',
+    file_format VARCHAR(10) NOT NULL COMMENT 'CSV 또는 XLSX',
+    job_state VARCHAR(30) NOT NULL COMMENT 'Job 상태',
+    dry_run CHAR(1) NOT NULL COMMENT 'Dry-run 여부',
+    rollback_supported CHAR(1) NOT NULL COMMENT 'Rollback 지원 여부',
+    source_path VARCHAR(1000) NULL COMMENT 'Source Artifact 경로',
+    result_path VARCHAR(1000) NULL COMMENT 'Result Artifact 경로',
+    source_sha256 VARCHAR(64) NULL COMMENT 'Source SHA-256',
+    result_sha256 VARCHAR(64) NULL COMMENT 'Result SHA-256',
+    total_rows BIGINT NOT NULL DEFAULT 0 COMMENT '전체 행 수',
+    success_rows BIGINT NOT NULL DEFAULT 0 COMMENT '성공 행 수',
+    failed_rows BIGINT NOT NULL DEFAULT 0 COMMENT '실패 행 수',
+    lease_owner VARCHAR(100) NULL COMMENT 'Lease 소유자',
+    fencing_token BIGINT NOT NULL DEFAULT 0 COMMENT 'Fencing Token',
+    lease_until DATETIME(6) NULL COMMENT 'Lease 만료',
+    retention_until DATETIME(6) NOT NULL COMMENT 'Artifact 보존 만료',
+    requested_by VARCHAR(100) NOT NULL COMMENT '요청 운영자',
+    reason VARCHAR(500) NOT NULL COMMENT '요청 사유',
+    client_ip VARCHAR(64) NULL COMMENT '요청 Client IP',
+    error_code VARCHAR(80) NULL COMMENT '오류 코드',
+    error_message VARCHAR(1000) NULL COMMENT '마스킹된 오류 메시지',
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT '생성 일시',
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP COMMENT '수정 일시',
+    approval_id VARCHAR(120) NULL COMMENT '승인 ID',
+    applied_by VARCHAR(100) NULL COMMENT '적용 운영자',
+    resolved_by VARCHAR(100) NULL COMMENT '결과 불명 확정 운영자',
+    control_by VARCHAR(100) NULL COMMENT '최근 제어 운영자',
+    control_reason VARCHAR(500) NULL COMMENT '최근 제어 사유',
+    control_updated_at DATETIME(6) NULL COMMENT '최근 제어 시각',
+    CONSTRAINT pk_adm_file_job PRIMARY KEY (job_id),
+    CONSTRAINT uk_adm_file_job_operation UNIQUE (operation_id),
+    INDEX ix_adm_file_job_claim (job_state, lease_until, created_at),
+    INDEX ix_adm_file_job_retention (retention_until, job_state),
+    INDEX ix_adm_file_job_approval (approval_id, job_state)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 비동기 대량 File Job 원장';
+
+CREATE TABLE IF NOT EXISTS adm_file_job_row (
+    job_id VARCHAR(36) NOT NULL COMMENT 'File Job ID',
+    row_no BIGINT NOT NULL COMMENT '행 번호',
+    row_state VARCHAR(30) NOT NULL COMMENT '행 처리 상태',
+    business_key VARCHAR(200) NULL COMMENT '업무 Key',
+    payload_json LONGTEXT NOT NULL COMMENT '보호된 행 Payload',
+    error_code VARCHAR(80) NULL COMMENT '행 오류 코드',
+    error_message VARCHAR(1000) NULL COMMENT '마스킹된 행 오류',
+    rollback_token VARCHAR(1000) NULL COMMENT 'Rollback Token',
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT '생성 일시',
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP COMMENT '수정 일시',
+    CONSTRAINT pk_adm_file_job_row PRIMARY KEY (job_id, row_no),
+    CONSTRAINT fk_adm_file_job_row_job FOREIGN KEY (job_id) REFERENCES adm_file_job (job_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM File Job 행별 결과 원장';
+
+CREATE TABLE IF NOT EXISTS adm_incident (
+    incident_id BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Incident identifier',
+    incident_no VARCHAR(64) NOT NULL COMMENT 'Incident number',
+    severity VARCHAR(16) NOT NULL COMMENT 'Severity',
+    title VARCHAR(300) NOT NULL COMMENT 'Title',
+    summary VARCHAR(2000) NULL COMMENT 'Summary',
+    source_type VARCHAR(40) NOT NULL DEFAULT 'MANUAL' COMMENT 'Source type',
+    source_id VARCHAR(200) NULL COMMENT 'Source identifier',
+    status VARCHAR(32) NOT NULL DEFAULT 'OPEN' COMMENT 'Status',
+    detected_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Detection time',
+    acknowledged_at DATETIME(3) NULL COMMENT 'Acknowledgement time',
+    mitigated_at DATETIME(3) NULL COMMENT 'Mitigation time',
+    resolved_at DATETIME(3) NULL COMMENT 'Resolution time',
+    reason VARCHAR(1000) NOT NULL COMMENT 'Reason',
+    version BIGINT NOT NULL DEFAULT 0 COMMENT 'Version',
+    created_by VARCHAR(100) NOT NULL COMMENT 'Creator',
+    updated_by VARCHAR(100) NOT NULL COMMENT 'Last updater',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Creation time',
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Last update time',
+    CONSTRAINT pk_adm_incident PRIMARY KEY (incident_id),
+    CONSTRAINT uk_adm_incident_no UNIQUE (incident_no),
+    INDEX idx_adm_incident_status (status, severity, detected_at),
+    INDEX idx_adm_incident_source (source_type, source_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM Incident Lifecycle';
+
+CREATE TABLE IF NOT EXISTS adm_ip_allowlist (
+    ALLOW_ID BIGINT NOT NULL AUTO_INCREMENT COMMENT 'IP 허용 목록 순번',
+    IP_PATTERN VARCHAR(100) NOT NULL COMMENT '허용 IP 또는 CIDR 패턴',
+    DESCRIPTION VARCHAR(500) NULL COMMENT '허용 사유',
+    USE_YN CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_adm_ip_allowlist PRIMARY KEY (ALLOW_ID),
+    CONSTRAINT uk_adm_ip_allowlist_pattern UNIQUE (IP_PATTERN),
+    INDEX ix_adm_ip_allowlist_use (USE_YN)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 관리자 IP 허용 목록';
+
+CREATE TABLE IF NOT EXISTS adm_maintenance_action (
+    action_id BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Action identifier',
+    service_id VARCHAR(100) NOT NULL COMMENT 'Service identifier',
+    endpoint_code VARCHAR(100) NOT NULL COMMENT 'Endpoint code',
+    instance_id VARCHAR(150) NOT NULL COMMENT 'Instance identifier',
+    action_type VARCHAR(20) NOT NULL COMMENT 'Action type',
+    before_status VARCHAR(40) NULL COMMENT 'Before status',
+    after_status VARCHAR(40) NULL COMMENT 'After status',
+    result_status VARCHAR(20) NOT NULL COMMENT 'Result status',
+    reason VARCHAR(1000) NOT NULL COMMENT 'Reason',
+    requested_by VARCHAR(100) NOT NULL COMMENT 'Requester',
+    requested_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Request time',
+    result_detail TEXT NULL COMMENT 'Result detail',
+    CONSTRAINT pk_adm_maintenance_action PRIMARY KEY (action_id),
+    INDEX idx_adm_maintenance_target (service_id, endpoint_code, instance_id, requested_at),
+    INDEX idx_adm_maintenance_result (result_status, requested_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM Maintenance Command Audit';
+
+CREATE TABLE IF NOT EXISTS adm_menu (
+    MENU_ID VARCHAR(50) NOT NULL COMMENT '메뉴 ID',
+    PARENT_MENU_ID VARCHAR(50) NULL COMMENT '상위 메뉴 ID',
+    MENU_NAME VARCHAR(100) NOT NULL COMMENT '메뉴명',
+    MENU_PATH VARCHAR(200) NOT NULL COMMENT '메뉴 경로',
+    SORT_ORDER INT NOT NULL DEFAULT 0 COMMENT '정렬 순서',
+    USE_YN CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_adm_menu PRIMARY KEY (MENU_ID),
+    CONSTRAINT fk_adm_menu_parent FOREIGN KEY (PARENT_MENU_ID) REFERENCES adm_menu (MENU_ID) ON DELETE SET NULL,
+    INDEX ix_adm_menu_parent (PARENT_MENU_ID, SORT_ORDER)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 메뉴';
+
+CREATE TABLE IF NOT EXISTS adm_mfa_otp_secret (
+    OPERATOR_ID VARCHAR(50) NOT NULL COMMENT '운영자 ID',
+    SECRET_REF VARCHAR(500) NOT NULL COMMENT 'OTP secret 참조',
+    ENABLED_YN CHAR(1) NOT NULL DEFAULT 'N' COMMENT 'MFA 사용 여부',
+    VERIFIED_AT DATETIME NULL COMMENT 'MFA 검증일시',
+    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_adm_mfa_otp_secret PRIMARY KEY (OPERATOR_ID),
+    CONSTRAINT fk_adm_mfa_otp_secret_operator FOREIGN KEY (OPERATOR_ID) REFERENCES adm_operator (OPERATOR_ID) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 운영자 MFA OTP secret 메타';
+
+CREATE TABLE IF NOT EXISTS adm_operator (
+    OPERATOR_ID VARCHAR(50) NOT NULL COMMENT '운영자 ID',
+    OPERATOR_NAME VARCHAR(100) NOT NULL COMMENT '운영자명',
+    PASSWORD_HASH VARCHAR(512) NOT NULL COMMENT '비밀번호 해시',
+    ACCOUNT_STATUS VARCHAR(30) NOT NULL DEFAULT 'PENDING_ACTIVATION' COMMENT '계정 상태: PENDING_ACTIVATION/ACTIVE/LOCKED/SUSPENDED/DISABLED',
+    VERSION_NO BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 버전',
+    CREATE_OPERATION_ID VARCHAR(100) NULL COMMENT '운영자 생성 멱등 Operation ID',
+    LOCKED_YN CHAR(1) NOT NULL DEFAULT 'N' COMMENT '잠금 여부',
+    FAIL_COUNT INT NOT NULL DEFAULT 0 COMMENT '로그인 실패 횟수',
+    PASSWORD_CHANGED_AT DATETIME NULL COMMENT '비밀번호 변경일시',
+    PASSWORD_EXPIRE_AT DATETIME NULL COMMENT '비밀번호 만료일시',
+    PASSWORD_CHANGE_REQUIRED_YN CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '비밀번호 변경 필요 여부',
+    LAST_LOGIN_AT DATETIME NULL COMMENT '마지막 로그인 일시',
+    LAST_LOGIN_IP VARCHAR(50) NULL COMMENT '마지막 로그인 IP',
+    USE_YN CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_adm_operator PRIMARY KEY (OPERATOR_ID),
+    CONSTRAINT uk_adm_operator_create_operation UNIQUE (CREATE_OPERATION_ID),
+    CONSTRAINT ck_adm_operator_status CHECK (ACCOUNT_STATUS IN ('PENDING_ACTIVATION','ACTIVE','LOCKED','SUSPENDED','DISABLED')),
+    INDEX ix_adm_operator_use (USE_YN),
+    INDEX ix_adm_operator_status (ACCOUNT_STATUS, USE_YN),
+    INDEX ix_adm_operator_lock (LOCKED_YN, FAIL_COUNT)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 운영자';
+
+CREATE TABLE IF NOT EXISTS adm_operator_profile (
+    OPERATOR_ID VARCHAR(50) NOT NULL COMMENT '운영자 ID',
+    DISPLAY_NAME VARCHAR(100) NULL COMMENT 'Directory/Profile 표시 이름',
+    EMPLOYEE_NO VARCHAR(50) NULL COMMENT '외부/내부 사번',
+    EXTERNAL_SUBJECT VARCHAR(200) NULL COMMENT 'LDAP/IAM 등 외부 Identity Subject',
+    ORGANIZATION_CODE VARCHAR(50) NULL COMMENT '대표 운영 조직 코드',
+    POSITION_CODE VARCHAR(50) NULL COMMENT '직급 코드',
+    POSITION_NAME VARCHAR(100) NULL COMMENT '직급명 Snapshot/표시값',
+    JOB_TITLE_CODE VARCHAR(50) NULL COMMENT '직책 코드',
+    JOB_TITLE_NAME VARCHAR(100) NULL COMMENT '직책명 Snapshot/표시값',
+    EMAIL VARCHAR(200) NULL COMMENT '업무 이메일',
+    MOBILE_NO VARCHAR(50) NULL COMMENT '연락처(휴대폰); 숫자형이 아닌 문자열로 국가번호와 선행 0을 보존',
+    OFFICE_PHONE_NO VARCHAR(50) NULL COMMENT '내부 전화번호/내선; 휴대폰 연락처와 분리',
+    EFFECTIVE_FROM DATETIME(3) NULL COMMENT 'Profile 적용 시작시각',
+    EFFECTIVE_TO DATETIME(3) NULL COMMENT 'Profile 적용 종료시각',
+    VERSION_NO BIGINT NOT NULL DEFAULT 0 COMMENT 'Profile 낙관적 잠금 버전',
+    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
+    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
+    CONSTRAINT pk_adm_operator_profile PRIMARY KEY (OPERATOR_ID),
+    CONSTRAINT uk_adm_operator_profile_employee UNIQUE (EMPLOYEE_NO),
+    CONSTRAINT ck_adm_operator_profile_effective CHECK (EFFECTIVE_TO IS NULL OR EFFECTIVE_FROM IS NULL OR EFFECTIVE_TO > EFFECTIVE_FROM),
+    CONSTRAINT fk_adm_operator_profile_operator FOREIGN KEY (OPERATOR_ID) REFERENCES adm_operator (OPERATOR_ID) ON DELETE CASCADE,
+    CONSTRAINT fk_adm_operator_profile_org FOREIGN KEY (ORGANIZATION_CODE) REFERENCES adm_organization (ORGANIZATION_CODE) ON DELETE SET NULL,
+    INDEX ix_adm_operator_profile_org (ORGANIZATION_CODE, EFFECTIVE_TO)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 운영자 조직/직급 Profile';
+
+CREATE TABLE IF NOT EXISTS adm_operator_role (
+    OPERATOR_ID VARCHAR(50) NOT NULL COMMENT '운영자 ID',
+    ROLE_ID VARCHAR(50) NOT NULL COMMENT '역할 ID',
+    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_adm_operator_role PRIMARY KEY (OPERATOR_ID, ROLE_ID),
+    CONSTRAINT fk_adm_operator_role_operator FOREIGN KEY (OPERATOR_ID) REFERENCES adm_operator (OPERATOR_ID) ON DELETE CASCADE,
+    CONSTRAINT fk_adm_operator_role_role FOREIGN KEY (ROLE_ID) REFERENCES adm_role (ROLE_ID) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 운영자 역할 매핑';
+
+CREATE TABLE IF NOT EXISTS adm_operator_session (
+    SESSION_ID VARCHAR(80) NOT NULL COMMENT '세션 ID',
+    TOKEN_HASH VARCHAR(512) NOT NULL COMMENT '토큰 해시',
+    OPERATOR_ID VARCHAR(50) NOT NULL COMMENT '운영자 ID',
+    ROLE_IDS VARCHAR(1000) NULL COMMENT '역할 ID 목록',
+    ISSUED_AT DATETIME NOT NULL COMMENT '발급일시',
+    EXPIRE_AT DATETIME NOT NULL COMMENT '만료일시',
+    REVOKED_YN CHAR(1) NOT NULL DEFAULT 'N' COMMENT '폐기 여부',
+    CLIENT_IP VARCHAR(50) NULL COMMENT '클라이언트 IP',
+    USER_AGENT VARCHAR(500) NULL COMMENT 'User-Agent',
+    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_adm_operator_session PRIMARY KEY (SESSION_ID),
+    INDEX ix_adm_operator_session_token (TOKEN_HASH),
+    INDEX ix_adm_operator_session_user (OPERATOR_ID, EXPIRE_AT),
+    INDEX ix_adm_operator_session_active (REVOKED_YN, EXPIRE_AT)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 운영자 세션';
+
+CREATE TABLE IF NOT EXISTS adm_organization (
+    ORGANIZATION_CODE VARCHAR(50) NOT NULL COMMENT '운영 조직 코드',
+    PARENT_ORGANIZATION_CODE VARCHAR(50) NULL COMMENT '상위 조직 코드',
+    ORGANIZATION_NAME VARCHAR(120) NOT NULL COMMENT '운영 조직명',
+    ORGANIZATION_TYPE VARCHAR(30) NOT NULL DEFAULT 'DEPARTMENT' COMMENT '조직 유형',
+    MANAGER_OPERATOR_ID VARCHAR(50) NULL COMMENT '기본 DB Directory Adapter의 조직 책임자 운영자 ID',
+    EFFECTIVE_FROM DATE NULL COMMENT '적용 시작일',
+    EFFECTIVE_TO DATE NULL COMMENT '적용 종료일',
+    USE_YN CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
+    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
+    CONSTRAINT pk_adm_organization PRIMARY KEY (ORGANIZATION_CODE),
+    CONSTRAINT ck_adm_organization_use CHECK (USE_YN IN ('Y','N')),
+    CONSTRAINT ck_adm_organization_effective CHECK (EFFECTIVE_TO IS NULL OR EFFECTIVE_FROM IS NULL OR EFFECTIVE_TO > EFFECTIVE_FROM),
+    CONSTRAINT fk_adm_organization_parent FOREIGN KEY (PARENT_ORGANIZATION_CODE) REFERENCES adm_organization (ORGANIZATION_CODE) ON DELETE SET NULL,
+    CONSTRAINT fk_adm_organization_manager FOREIGN KEY (MANAGER_OPERATOR_ID) REFERENCES adm_operator (OPERATOR_ID) ON DELETE SET NULL,
+    INDEX ix_adm_organization_parent (PARENT_ORGANIZATION_CODE, USE_YN)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 운영 조직 Directory 기본 Adapter';
+
+CREATE TABLE IF NOT EXISTS adm_password_history (
+    HISTORY_ID BIGINT NOT NULL AUTO_INCREMENT COMMENT '비밀번호 이력 순번',
+    OPERATOR_ID VARCHAR(50) NOT NULL COMMENT '운영자 ID',
+    PASSWORD_HASH VARCHAR(512) NOT NULL COMMENT '이전 비밀번호 해시',
+    CHANGED_REASON VARCHAR(500) NULL COMMENT '변경 사유',
+    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_adm_password_history PRIMARY KEY (HISTORY_ID),
+    CONSTRAINT fk_adm_password_history_operator FOREIGN KEY (OPERATOR_ID) REFERENCES adm_operator (OPERATOR_ID) ON DELETE CASCADE,
+    INDEX ix_adm_password_history_operator_time (OPERATOR_ID, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 비밀번호 변경 이력';
+
+CREATE TABLE IF NOT EXISTS adm_password_policy (
+    POLICY_ID VARCHAR(50) NOT NULL COMMENT '비밀번호 정책 ID',
+    MIN_LENGTH INT NOT NULL DEFAULT 12 COMMENT '최소 길이',
+    REQUIRE_UPPER_YN CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '대문자 필수 여부',
+    REQUIRE_LOWER_YN CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '소문자 필수 여부',
+    REQUIRE_DIGIT_YN CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '숫자 필수 여부',
+    REQUIRE_SPECIAL_YN CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '특수문자 필수 여부',
+    MAX_FAIL_COUNT INT NOT NULL DEFAULT 5 COMMENT '최대 실패 횟수',
+    EXPIRE_DAYS INT NOT NULL DEFAULT 90 COMMENT '만료 일수',
+    HISTORY_LIMIT INT NOT NULL DEFAULT 5 COMMENT '재사용 금지 이력 수',
+    USE_YN CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_adm_password_policy PRIMARY KEY (POLICY_ID)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 비밀번호 정책';
+
+CREATE TABLE IF NOT EXISTS adm_role (
+    ROLE_ID VARCHAR(50) NOT NULL COMMENT '역할 ID',
+    ROLE_NAME VARCHAR(100) NOT NULL COMMENT '역할명',
+    ROLE_TYPE VARCHAR(30) NOT NULL DEFAULT 'BUSINESS_OPERATOR' COMMENT '역할 유형',
+    DESCRIPTION VARCHAR(500) NULL COMMENT '역할 설명',
+    USE_YN CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_adm_role PRIMARY KEY (ROLE_ID),
+    INDEX ix_adm_role_type (ROLE_TYPE, USE_YN)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 역할';
+
+CREATE TABLE IF NOT EXISTS adm_role_api_permission (
+    ROLE_ID VARCHAR(50) NOT NULL COMMENT '역할 ID',
+    API_PERMISSION_ID VARCHAR(120) NOT NULL COMMENT 'API 권한 ID',
+    ALLOW_YN CHAR(1) NOT NULL DEFAULT 'N' COMMENT '허용 여부',
+    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_adm_role_api_permission PRIMARY KEY (ROLE_ID, API_PERMISSION_ID),
+    CONSTRAINT fk_adm_role_api_permission_role FOREIGN KEY (ROLE_ID) REFERENCES adm_role (ROLE_ID) ON DELETE CASCADE,
+    CONSTRAINT fk_adm_role_api_permission_api FOREIGN KEY (API_PERMISSION_ID) REFERENCES adm_api_permission (API_PERMISSION_ID) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 역할별 API 권한';
+
+CREATE TABLE IF NOT EXISTS adm_role_button (
+    ROLE_ID VARCHAR(50) NOT NULL COMMENT '역할 ID',
+    BUTTON_ID VARCHAR(80) NOT NULL COMMENT '버튼/행위 ID',
+    ALLOW_YN CHAR(1) NOT NULL DEFAULT 'N' COMMENT '허용 여부',
+    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_adm_role_button PRIMARY KEY (ROLE_ID, BUTTON_ID),
+    CONSTRAINT fk_adm_role_button_role FOREIGN KEY (ROLE_ID) REFERENCES adm_role (ROLE_ID) ON DELETE CASCADE,
+    CONSTRAINT fk_adm_role_button_button FOREIGN KEY (BUTTON_ID) REFERENCES adm_button (BUTTON_ID) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 역할별 버튼/행위 권한';
+
+CREATE TABLE IF NOT EXISTS adm_role_menu (
+    ROLE_ID VARCHAR(50) NOT NULL COMMENT '역할 ID',
+    MENU_ID VARCHAR(50) NOT NULL COMMENT '메뉴 ID',
+    READ_YN CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '조회 권한 여부',
+    WRITE_YN CHAR(1) NOT NULL DEFAULT 'N' COMMENT '등록/수정 권한 여부',
+    DELETE_YN CHAR(1) NOT NULL DEFAULT 'N' COMMENT '삭제 권한 여부',
+    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_adm_role_menu PRIMARY KEY (ROLE_ID, MENU_ID),
+    CONSTRAINT fk_adm_role_menu_role FOREIGN KEY (ROLE_ID) REFERENCES adm_role (ROLE_ID) ON DELETE CASCADE,
+    CONSTRAINT fk_adm_role_menu_menu FOREIGN KEY (MENU_ID) REFERENCES adm_menu (MENU_ID) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 역할별 메뉴 권한';
 -- ============================================================================
 -- cpf-tools/db/vendor/mariadb/source/35_bat_schema.sql
 -- ============================================================================
--- BAT가 소유하는 Spring Batch 메타와 배치 런타임 스키마입니다.
--- 표준 Spring Batch 테이블은 BATCH_* 이름을 유지하고 BAT 전용 런타임 테이블은 bat_* 이름을 사용합니다.
+-- AUTO-GENERATED from cpf-tools/db/canonical/platform-schema.json
+-- vendor=mariadb
+-- DO NOT EDIT generated DDL directly.
 
+-- CPF_LOGICAL_DATABASE=batDB
 USE batDB;
+CREATE TABLE IF NOT EXISTS bat_center_cut_claim (
+    center_cut_item_id BIGINT NULL COMMENT 'Claimed center-cut item identifier',
+    runner_id VARCHAR(160) NOT NULL COMMENT 'Owning runner identifier',
+    pool_id VARCHAR(80) NULL COMMENT 'Owning runner pool identifier',
+    claim_token VARCHAR(80) NOT NULL COMMENT 'Unique claim token',
+    claim_status VARCHAR(30) NOT NULL COMMENT 'Claim lifecycle status',
+    fencing_token BIGINT NOT NULL COMMENT 'Monotonic claim fencing token',
+    lease_until DATETIME(6) NOT NULL COMMENT 'Claim lease expiry time',
+    last_heartbeat_at DATETIME(6) NOT NULL COMMENT 'Claim heartbeat time',
+    attempt_no INT NOT NULL DEFAULT 1 COMMENT 'Claim attempt number',
+    takeover_count INT NOT NULL DEFAULT 0 COMMENT 'Claim takeover count',
+    released_at DATETIME(6) NULL COMMENT 'Claim release time',
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT 'Last claim update time',
+    CONSTRAINT pk_bat_center_cut_claim PRIMARY KEY (center_cut_item_id),
+    CONSTRAINT claim_token UNIQUE (claim_token),
+    CONSTRAINT fk_bat_center_cut_claim_item FOREIGN KEY (center_cut_item_id) REFERENCES bat_center_cut_item (center_cut_item_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT center-cut item lease claim';
 
-CREATE TABLE IF NOT EXISTS bat_on_demand_request (
-    execution_request_id VARCHAR(36) NOT NULL COMMENT '온라인 접수 실행 요청 ID',
-    standard_batch_id CHAR(10) NOT NULL COMMENT 'B 유형 10자리 표준 배치 ID',
-    idempotency_key VARCHAR(120) NOT NULL COMMENT '중복 접수 방지 멱등 키',
-    transaction_id CHAR(34) NOT NULL COMMENT '온라인 접수 거래 ID',
-    business_date CHAR(8) NOT NULL COMMENT '배치 업무 기준일 YYYYMMDD',
-    request_status VARCHAR(30) NOT NULL DEFAULT 'REQUESTED' COMMENT 'REQUESTED, RUNNING, COMPLETED, FAILED, RESTARTED, STOPPING 등 접수 상태',
-    parameters_json LONGTEXT NULL COMMENT '검증된 배치 업무 파라미터 JSON',
-    request_reason VARCHAR(500) NOT NULL COMMENT '실행 감사 사유',
-    request_user VARCHAR(100) NOT NULL COMMENT '실행 요청자',
-    cpf_execution_id BIGINT NULL COMMENT 'BAT 배치 실행 메타 ID',
-    spring_batch_execution_id BIGINT NULL COMMENT 'Spring Batch JobExecution ID',
-    result_json LONGTEXT NULL COMMENT '마스킹된 실행 결과 JSON',
-    failure_code VARCHAR(100) NULL COMMENT '실패 코드',
-    failure_message VARCHAR(1000) NULL COMMENT '민감정보가 제거된 실패 메시지',
-    requested_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '접수일시',
-    completed_at DATETIME(3) NULL COMMENT '완료일시',
+CREATE TABLE IF NOT EXISTS bat_center_cut_execution (
+    center_cut_execution_id VARCHAR(80) NOT NULL COMMENT 'Center-cut execution identifier',
+    center_cut_job_id VARCHAR(100) NOT NULL COMMENT 'Center-cut job definition identifier',
+    idempotency_key VARCHAR(160) NOT NULL COMMENT 'Execution idempotency key',
+    execution_state VARCHAR(30) NOT NULL COMMENT 'Center-cut execution state',
+    parameter_ciphertext LONGTEXT NOT NULL COMMENT 'Encrypted immutable parameter snapshot',
+    parameter_hash VARCHAR(64) NOT NULL COMMENT 'Parameter snapshot SHA-256',
+    parameter_schema_version VARCHAR(80) NOT NULL COMMENT 'Parameter schema version',
+    target_cursor VARCHAR(1000) NULL COMMENT 'Last generated target cursor',
+    target_complete_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT 'Target generation completion flag',
+    target_count BIGINT NOT NULL DEFAULT 0 COMMENT 'Generated target count',
+    tps_limit INT NOT NULL DEFAULT 0 COMMENT 'Global transactions-per-second limit',
+    concurrency_limit INT NOT NULL DEFAULT 1 COMMENT 'Global runner concurrency limit',
+    processed_count BIGINT NOT NULL DEFAULT 0 COMMENT 'Processed item count',
+    success_count BIGINT NOT NULL DEFAULT 0 COMMENT 'Successful item count',
+    failure_count BIGINT NOT NULL DEFAULT 0 COMMENT 'Failed item count',
+    unknown_count BIGINT NOT NULL DEFAULT 0 COMMENT 'Unknown-result item count',
+    transaction_id CHAR(34) NULL COMMENT 'CPF transactionId',
+    parent_segment_id VARCHAR(120) NULL COMMENT 'Parent trace segment identifier',
+    requested_by VARCHAR(120) NOT NULL COMMENT 'Execution requester',
+    reason_text VARCHAR(1000) NOT NULL COMMENT 'Mandatory execution reason',
+    last_error_message VARCHAR(1000) NULL COMMENT 'Last execution error detail',
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT 'Execution request time',
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT 'Last execution state update time',
+    completed_at DATETIME(6) NULL COMMENT 'Execution completion time',
+    CONSTRAINT pk_bat_center_cut_execution PRIMARY KEY (center_cut_execution_id),
+    CONSTRAINT uk_bat_center_cut_execution_idempotency UNIQUE (idempotency_key),
+    CONSTRAINT fk_bat_center_cut_execution_job FOREIGN KEY (center_cut_job_id) REFERENCES bat_center_cut_job (center_cut_job_id),
+    INDEX ix_bat_center_cut_execution_job_state (center_cut_job_id, execution_state, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT center-cut immutable execution policy';
+
+CREATE TABLE IF NOT EXISTS bat_center_cut_item (
+    center_cut_item_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '센터컷 대상 순번',
+    center_cut_job_id VARCHAR(100) NOT NULL COMMENT '센터컷 Job ID',
+    center_cut_execution_id VARCHAR(80) NULL COMMENT 'Center-cut execution identifier',
+    business_key VARCHAR(200) NOT NULL COMMENT '업무 멱등 키',
+    business_date DATE NULL COMMENT '업무 기준일',
+    item_status VARCHAR(30) NOT NULL DEFAULT 'READY' COMMENT '대상 상태',
+    transaction_id CHAR(34) NULL COMMENT '센터컷 실행 전체가 승계하는 CPF transactionId',
+    transaction_segment_id VARCHAR(120) NULL COMMENT '현재 센터컷 Item 실행 구간 ID',
+    parent_segment_id VARCHAR(120) NULL COMMENT '부모 센터컷/Worker 실행 구간 ID',
+    item_payload LONGTEXT NULL COMMENT '처리 입력 payload',
+    retry_count INT NOT NULL DEFAULT 0 COMMENT '재처리 횟수',
+    last_error_message VARCHAR(1000) NULL COMMENT '마지막 오류 메시지',
+    started_at DATETIME(3) NULL COMMENT '처리 시작 일시',
+    completed_at DATETIME(3) NULL COMMENT '처리 완료 일시',
     created_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
     updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (execution_request_id),
-    UNIQUE KEY uk_bat_on_demand_idempotency (standard_batch_id, idempotency_key),
-    INDEX ix_bat_on_demand_status (request_status, requested_at),
-    INDEX ix_bat_on_demand_transaction (transaction_id),
-    INDEX ix_bat_on_demand_spring (spring_batch_execution_id),
-    CONSTRAINT ck_bat_on_demand_id CHECK (
-        standard_batch_id REGEXP '^B[A-Z]{3}[A-Z0-9]{2}[0-9]{4}$'
-        AND RIGHT(standard_batch_id, 4) <> '0000'
-    ),
-    CONSTRAINT ck_bat_on_demand_status CHECK (
-        request_status IN ('REQUESTED', 'RUNNING', 'COMPLETED', 'FAILED', 'RESTARTED',
-                           'RESTART_FAILED', 'RESTART_NOT_AVAILABLE', 'STOPPING', 'STOPPED', 'SKIPPED_LOCKED')
-    )
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 온디맨드 배치 온라인 접수';
+    CONSTRAINT pk_bat_center_cut_item PRIMARY KEY (center_cut_item_id),
+    CONSTRAINT uk_bat_center_cut_item_execution_business UNIQUE (center_cut_execution_id, business_key),
+    CONSTRAINT fk_bat_center_cut_item_job FOREIGN KEY (center_cut_job_id) REFERENCES bat_center_cut_job (center_cut_job_id) ON DELETE CASCADE,
+    CONSTRAINT fk_bat_center_cut_item_execution FOREIGN KEY (center_cut_execution_id) REFERENCES bat_center_cut_execution (center_cut_execution_id) ON DELETE CASCADE,
+    INDEX ix_bat_center_cut_item_status (center_cut_job_id, item_status, business_date),
+    INDEX ix_bat_center_cut_item_transaction (transaction_id, transaction_segment_id),
+    INDEX ix_bat_center_cut_item_parent_segment (parent_segment_id),
+    INDEX ix_bat_center_cut_item_execution_status (center_cut_execution_id, item_status, center_cut_item_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 센터컷 처리 대상';
 
-CREATE TABLE IF NOT EXISTS BATCH_JOB_INSTANCE (
-    JOB_INSTANCE_ID BIGINT NOT NULL COMMENT 'Spring Batch JobInstance 순번',
-    VERSION BIGINT NULL COMMENT '낙관적 잠금 버전',
-    JOB_NAME VARCHAR(100) NOT NULL COMMENT 'Spring Batch Job 이름',
-    JOB_KEY VARCHAR(32) NOT NULL COMMENT 'Job 파라미터 식별 키',
-    PRIMARY KEY (JOB_INSTANCE_ID),
-    UNIQUE KEY JOB_INST_UN (JOB_NAME, JOB_KEY)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Spring Batch 표준 JobInstance 저장소';
+CREATE TABLE IF NOT EXISTS bat_center_cut_job (
+    center_cut_job_id VARCHAR(100) NOT NULL COMMENT '센터컷 Job ID',
+    batch_job_id VARCHAR(100) NULL COMMENT '연결된 BAT 배치 Job ID',
+    center_cut_job_name VARCHAR(150) NOT NULL COMMENT '센터컷 Job 명',
+    provider_key VARCHAR(100) NOT NULL COMMENT '대상 조회 Provider 식별자',
+    handler_key VARCHAR(100) NOT NULL COMMENT '처리 Handler 식별자',
+    chunk_size INT NOT NULL DEFAULT 100 COMMENT '한 번에 조회할 대상 건수',
+    retry_limit INT NOT NULL DEFAULT 3 COMMENT '최대 재처리 횟수',
+    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    description VARCHAR(500) NULL COMMENT '센터컷 Job 설명',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_bat_center_cut_job PRIMARY KEY (center_cut_job_id),
+    CONSTRAINT fk_bat_center_cut_job_batch FOREIGN KEY (batch_job_id) REFERENCES bat_job (job_id) ON DELETE SET NULL,
+    INDEX ix_bat_center_cut_job_batch (batch_job_id, use_yn)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 센터컷 Job 정의';
 
-CREATE TABLE IF NOT EXISTS BATCH_JOB_EXECUTION (
-    JOB_EXECUTION_ID BIGINT NOT NULL COMMENT 'Spring Batch JobExecution 순번',
-    VERSION BIGINT NULL COMMENT '낙관적 잠금 버전',
-    JOB_INSTANCE_ID BIGINT NOT NULL COMMENT 'Spring Batch JobInstance 순번',
-    CREATE_TIME DATETIME(6) NOT NULL COMMENT '실행 생성 일시',
-    START_TIME DATETIME(6) NULL DEFAULT NULL COMMENT '실행 시작 일시',
-    END_TIME DATETIME(6) NULL DEFAULT NULL COMMENT '실행 종료 일시',
-    STATUS VARCHAR(10) NULL COMMENT '실행 상태',
-    EXIT_CODE VARCHAR(2500) NULL COMMENT '종료 코드',
-    EXIT_MESSAGE VARCHAR(2500) NULL COMMENT '종료 메시지',
-    LAST_UPDATED DATETIME(6) NULL COMMENT '마지막 수정 일시',
-    PRIMARY KEY (JOB_EXECUTION_ID),
-    CONSTRAINT JOB_INST_EXEC_FK
-        FOREIGN KEY (JOB_INSTANCE_ID) REFERENCES BATCH_JOB_INSTANCE(JOB_INSTANCE_ID)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Spring Batch 표준 JobExecution 저장소';
-
-CREATE TABLE IF NOT EXISTS BATCH_JOB_EXECUTION_PARAMS (
-    JOB_EXECUTION_ID BIGINT NOT NULL COMMENT 'Spring Batch JobExecution 순번',
-    PARAMETER_NAME VARCHAR(100) NOT NULL COMMENT '파라미터 이름',
-    PARAMETER_TYPE VARCHAR(100) NOT NULL COMMENT '파라미터 Java 유형',
-    PARAMETER_VALUE VARCHAR(2500) NULL COMMENT '파라미터 값',
-    IDENTIFYING CHAR(1) NOT NULL COMMENT 'JobInstance 식별 파라미터 여부',
-    CONSTRAINT JOB_EXEC_PARAMS_FK
-        FOREIGN KEY (JOB_EXECUTION_ID) REFERENCES BATCH_JOB_EXECUTION(JOB_EXECUTION_ID)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Spring Batch 표준 Job 파라미터 저장소';
-
-CREATE TABLE IF NOT EXISTS BATCH_STEP_EXECUTION (
-    STEP_EXECUTION_ID BIGINT NOT NULL COMMENT 'Spring Batch StepExecution 순번',
-    VERSION BIGINT NOT NULL COMMENT '낙관적 잠금 버전',
-    STEP_NAME VARCHAR(100) NOT NULL COMMENT 'Step 이름',
-    JOB_EXECUTION_ID BIGINT NOT NULL COMMENT 'Spring Batch JobExecution 순번',
-    CREATE_TIME DATETIME(6) NOT NULL COMMENT 'Step 생성 일시',
-    START_TIME DATETIME(6) NULL DEFAULT NULL COMMENT 'Step 시작 일시',
-    END_TIME DATETIME(6) NULL DEFAULT NULL COMMENT 'Step 종료 일시',
-    STATUS VARCHAR(10) NULL COMMENT 'Step 상태',
-    COMMIT_COUNT BIGINT NULL COMMENT '커밋 횟수',
-    READ_COUNT BIGINT NULL COMMENT '읽은 건수',
-    FILTER_COUNT BIGINT NULL COMMENT '필터 건수',
-    WRITE_COUNT BIGINT NULL COMMENT '쓴 건수',
-    READ_SKIP_COUNT BIGINT NULL COMMENT '읽기 skip 건수',
-    WRITE_SKIP_COUNT BIGINT NULL COMMENT '쓰기 skip 건수',
-    PROCESS_SKIP_COUNT BIGINT NULL COMMENT '처리 skip 건수',
-    ROLLBACK_COUNT BIGINT NULL COMMENT 'rollback 건수',
-    EXIT_CODE VARCHAR(2500) NULL COMMENT '종료 코드',
-    EXIT_MESSAGE VARCHAR(2500) NULL COMMENT '종료 메시지',
-    LAST_UPDATED DATETIME(6) NULL COMMENT '마지막 수정 일시',
-    PRIMARY KEY (STEP_EXECUTION_ID),
-    CONSTRAINT JOB_EXEC_STEP_FK
-        FOREIGN KEY (JOB_EXECUTION_ID) REFERENCES BATCH_JOB_EXECUTION(JOB_EXECUTION_ID)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Spring Batch 표준 StepExecution 저장소';
-
-CREATE TABLE IF NOT EXISTS BATCH_STEP_EXECUTION_CONTEXT (
-    STEP_EXECUTION_ID BIGINT NOT NULL COMMENT 'Spring Batch StepExecution 순번',
-    SHORT_CONTEXT VARCHAR(2500) NOT NULL COMMENT '짧은 실행 컨텍스트',
-    SERIALIZED_CONTEXT TEXT NULL COMMENT '직렬화 실행 컨텍스트',
-    PRIMARY KEY (STEP_EXECUTION_ID),
-    CONSTRAINT STEP_EXEC_CTX_FK
-        FOREIGN KEY (STEP_EXECUTION_ID) REFERENCES BATCH_STEP_EXECUTION(STEP_EXECUTION_ID)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Spring Batch 표준 Step 컨텍스트 저장소';
-
-CREATE TABLE IF NOT EXISTS BATCH_JOB_EXECUTION_CONTEXT (
-    JOB_EXECUTION_ID BIGINT NOT NULL COMMENT 'Spring Batch JobExecution 순번',
-    SHORT_CONTEXT VARCHAR(2500) NOT NULL COMMENT '짧은 실행 컨텍스트',
-    SERIALIZED_CONTEXT TEXT NULL COMMENT '직렬화 실행 컨텍스트',
-    PRIMARY KEY (JOB_EXECUTION_ID),
-    CONSTRAINT JOB_EXEC_CTX_FK
-        FOREIGN KEY (JOB_EXECUTION_ID) REFERENCES BATCH_JOB_EXECUTION(JOB_EXECUTION_ID)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Spring Batch 표준 Job 컨텍스트 저장소';
-
--- Spring Batch 5.2.4의 공식 MariaDB JobRepository 계약은 채번용 TABLE이 아니라
--- MariaDB SEQUENCE를 사용합니다. IF NOT EXISTS로 재설치 시 현재 next value를 보존합니다.
-CREATE SEQUENCE IF NOT EXISTS BATCH_STEP_EXECUTION_SEQ
-    START WITH 1 MINVALUE 1 MAXVALUE 9223372036854775806
-    INCREMENT BY 1 NOCACHE NOCYCLE ENGINE=InnoDB;
-
-CREATE SEQUENCE IF NOT EXISTS BATCH_JOB_EXECUTION_SEQ
-    START WITH 1 MINVALUE 1 MAXVALUE 9223372036854775806
-    INCREMENT BY 1 NOCACHE NOCYCLE ENGINE=InnoDB;
-
-CREATE SEQUENCE IF NOT EXISTS BATCH_JOB_SEQ
-    START WITH 1 MINVALUE 1 MAXVALUE 9223372036854775806
-    INCREMENT BY 1 NOCACHE NOCYCLE ENGINE=InnoDB;
-
-CREATE TABLE IF NOT EXISTS bat_job (
-    job_id VARCHAR(100) NOT NULL COMMENT '배치 Job ID',
-    job_name VARCHAR(150) NOT NULL COMMENT '배치 Job 이름',
-    job_type VARCHAR(30) NOT NULL DEFAULT 'TASKLET' COMMENT '배치 Job 유형',
-    description VARCHAR(500) NULL COMMENT '배치 설명',
-    restartable_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '재시작 가능 여부',
+CREATE TABLE IF NOT EXISTS bat_center_cut_parameter (
+    parameter_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '센터컷 파라미터 순번',
+    center_cut_job_id VARCHAR(100) NOT NULL COMMENT '센터컷 Job ID',
+    parameter_key VARCHAR(100) NOT NULL COMMENT '파라미터 키',
+    parameter_value VARCHAR(1000) NULL COMMENT '파라미터 값',
+    encrypted_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '암호화 여부',
     use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
     created_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
     updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (job_id),
-    INDEX ix_bat_job_use (use_yn, job_type)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 배치 Job 기준';
+    CONSTRAINT pk_bat_center_cut_parameter PRIMARY KEY (parameter_id),
+    CONSTRAINT uk_bat_center_cut_parameter UNIQUE (center_cut_job_id, parameter_key),
+    CONSTRAINT fk_bat_center_cut_parameter_job FOREIGN KEY (center_cut_job_id) REFERENCES bat_center_cut_job (center_cut_job_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 센터컷 파라미터';
 
-CREATE TABLE IF NOT EXISTS bat_schedule (
-    schedule_id VARCHAR(100) NOT NULL COMMENT '배치 스케줄 ID',
-    job_id VARCHAR(100) NOT NULL COMMENT '배치 Job ID',
-    cron_expression VARCHAR(100) NOT NULL COMMENT 'Cron 표현식',
-    calendar_id VARCHAR(50) NOT NULL DEFAULT 'DEFAULT' COMMENT '적용 영업일 캘린더 ID',
-    business_day_only_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '영업일에만 수행 여부',
-    holiday_policy VARCHAR(30) NOT NULL DEFAULT 'SKIP' COMMENT '휴일 처리 정책',
-    available_start_time TIME NULL COMMENT '수행 가능 시작 시각',
-    available_end_time TIME NULL COMMENT '수행 가능 종료 시각',
-    run_date_pattern VARCHAR(80) NULL COMMENT '수행 일자 패턴',
-    timezone VARCHAR(50) NOT NULL DEFAULT 'Asia/Seoul' COMMENT '스케줄 기준 시간대',
-    enabled_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '스케줄 활성 여부',
-    last_fire_at DATETIME NULL COMMENT '마지막 실행 예정 일시',
-    next_fire_at DATETIME NULL COMMENT '다음 실행 예정 일시',
+CREATE TABLE IF NOT EXISTS bat_center_cut_rate_window (
+    center_cut_execution_id VARCHAR(80) NOT NULL COMMENT 'Center-cut execution identifier',
+    window_second BIGINT NOT NULL COMMENT 'UTC epoch-second rate window',
+    admitted_count INT NOT NULL DEFAULT 0 COMMENT 'Items admitted in this window',
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT 'Last bucket update time',
+    CONSTRAINT pk_bat_center_cut_rate_window PRIMARY KEY (center_cut_execution_id, window_second),
+    CONSTRAINT fk_bat_center_cut_rate_execution FOREIGN KEY (center_cut_execution_id) REFERENCES bat_center_cut_execution (center_cut_execution_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT center-cut global rate window';
+
+CREATE TABLE IF NOT EXISTS bat_center_cut_result (
+    center_cut_result_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '센터컷 결과 순번',
+    center_cut_item_id BIGINT NOT NULL COMMENT '센터컷 대상 순번',
+    center_cut_job_id VARCHAR(100) NOT NULL COMMENT '센터컷 Job ID',
+    result_status VARCHAR(30) NOT NULL COMMENT '처리 결과 상태',
+    result_payload LONGTEXT NULL COMMENT '처리 결과 payload',
+    result_message VARCHAR(1000) NULL COMMENT '처리 결과 메시지',
+    transaction_id CHAR(34) NULL COMMENT '센터컷 실행 전체가 승계하는 CPF transactionId',
+    transaction_segment_id VARCHAR(120) NULL COMMENT '결과를 생성한 거래 구간 ID',
+    parent_segment_id VARCHAR(120) NULL COMMENT '부모 센터컷/Worker 실행 구간 ID',
     created_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
     updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (schedule_id),
-    INDEX ix_bat_schedule_job (job_id, enabled_yn),
-    CONSTRAINT fk_bat_schedule_job
-        FOREIGN KEY (job_id) REFERENCES bat_job(job_id)
-        ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 배치 스케줄';
+    CONSTRAINT pk_bat_center_cut_result PRIMARY KEY (center_cut_result_id),
+    CONSTRAINT fk_bat_center_cut_result_item FOREIGN KEY (center_cut_item_id) REFERENCES bat_center_cut_item (center_cut_item_id) ON DELETE CASCADE,
+    CONSTRAINT fk_bat_center_cut_result_job FOREIGN KEY (center_cut_job_id) REFERENCES bat_center_cut_job (center_cut_job_id) ON DELETE CASCADE,
+    INDEX ix_bat_center_cut_result_item (center_cut_item_id, result_status),
+    INDEX ix_bat_center_cut_result_transaction (transaction_id, transaction_segment_id),
+    INDEX ix_bat_center_cut_result_parent_segment (parent_segment_id),
+    INDEX ix_bat_center_cut_result_job (center_cut_job_id, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 센터컷 처리 결과';
 
-CREATE TABLE IF NOT EXISTS bat_job_relation (
-    relation_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '배치 관계 순번',
-    job_id VARCHAR(100) NOT NULL COMMENT '기준 배치 Job ID',
-    related_job_id VARCHAR(100) NOT NULL COMMENT '연관 배치 Job ID',
-    relation_type VARCHAR(30) NOT NULL COMMENT '관계 유형',
-    trigger_condition VARCHAR(50) NOT NULL DEFAULT 'COMPLETED' COMMENT '트리거 조건',
-    required_status VARCHAR(30) NOT NULL DEFAULT 'COMPLETED' COMMENT '필수 선행 상태',
-    sort_order INT NOT NULL DEFAULT 0 COMMENT '관계 표시 순서',
-    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (relation_id),
-    UNIQUE KEY uk_bat_job_relation (job_id, related_job_id, relation_type),
-    INDEX ix_bat_job_relation_job (job_id, relation_type, use_yn),
-    INDEX ix_bat_job_relation_related (related_job_id, relation_type),
-    CONSTRAINT fk_bat_job_relation_job
-        FOREIGN KEY (job_id) REFERENCES bat_job(job_id)
-        ON DELETE CASCADE,
-    CONSTRAINT fk_bat_job_relation_related
-        FOREIGN KEY (related_job_id) REFERENCES bat_job(job_id)
-        ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 배치 선행/후행/트리거 관계';
+CREATE TABLE IF NOT EXISTS bat_deployment_cell (
+    cell_id VARCHAR(120) NULL COMMENT 'Deployment cell identifier',
+    environment_id VARCHAR(80) NOT NULL COMMENT 'Target environment identifier',
+    runtime_role VARCHAR(40) NOT NULL COMMENT 'Target runtime role',
+    service_id VARCHAR(120) NOT NULL COMMENT 'Target service identifier',
+    manifest_version VARCHAR(80) NOT NULL COMMENT 'Desired manifest version',
+    manifest_hash VARCHAR(128) NOT NULL COMMENT 'Desired manifest checksum',
+    desired_state VARCHAR(32) NOT NULL COMMENT 'Desired cell state',
+    desired_instance_count INT NOT NULL DEFAULT 1 COMMENT 'Desired runtime instance count',
+    row_version BIGINT NOT NULL DEFAULT 0 COMMENT 'Optimistic locking version',
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT 'Cell registration time',
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT 'Last desired-state update time',
+    CONSTRAINT pk_bat_deployment_cell PRIMARY KEY (cell_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT deployment cell desired state';
 
-CREATE TABLE IF NOT EXISTS bat_instance (
-    instance_id VARCHAR(100) NOT NULL COMMENT '배치 인스턴스 ID',
-    instance_name VARCHAR(150) NOT NULL COMMENT '배치 인스턴스명',
-    host_name VARCHAR(150) NULL COMMENT '호스트명',
-    server_port INT NULL COMMENT '서버 포트',
-    active_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '활성 여부',
-    last_heartbeat_at DATETIME(3) NULL COMMENT '마지막 heartbeat 일시',
-    description VARCHAR(500) NULL COMMENT '인스턴스 설명',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (instance_id),
-    INDEX ix_bat_instance_active (active_yn, last_heartbeat_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 배치 서버 인스턴스';
+CREATE TABLE IF NOT EXISTS bat_deployment_execution (
+    deployment_id VARCHAR(80) NOT NULL COMMENT 'Deployment execution identifier',
+    cell_id VARCHAR(120) NOT NULL COMMENT 'Target deployment cell identifier',
+    idempotency_key VARCHAR(160) NOT NULL COMMENT 'Deployment idempotency key',
+    from_version VARCHAR(80) NULL COMMENT 'Previous artifact version',
+    to_version VARCHAR(80) NOT NULL COMMENT 'Target artifact version',
+    strategy_code VARCHAR(32) NOT NULL COMMENT 'ROLLING/CANARY/BLUE_GREEN strategy',
+    execution_state VARCHAR(40) NOT NULL COMMENT 'Deployment execution state',
+    failure_stage VARCHAR(80) NULL COMMENT 'Failed deployment stage',
+    result_message VARCHAR(4000) NULL COMMENT 'Deployment result detail',
+    requested_by VARCHAR(120) NOT NULL COMMENT 'Deployment requester',
+    approved_by VARCHAR(120) NOT NULL COMMENT 'Deployment approver',
+    reason_text VARCHAR(1000) NOT NULL COMMENT 'Mandatory deployment reason',
+    started_at DATETIME(6) NULL COMMENT 'Deployment start time',
+    finished_at DATETIME(6) NULL COMMENT 'Deployment finish time',
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT 'Deployment record time',
+    CONSTRAINT pk_bat_deployment_execution PRIMARY KEY (deployment_id),
+    CONSTRAINT uk_bat_deployment_execution_idempotency UNIQUE (idempotency_key),
+    CONSTRAINT fk_bat_deployment_execution_cell FOREIGN KEY (cell_id) REFERENCES bat_deployment_cell (cell_id),
+    INDEX ix_bat_deployment_execution_cell_state (cell_id, execution_state)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT approved deployment execution';
 
-CREATE TABLE IF NOT EXISTS bat_worker (
-    worker_id VARCHAR(160) NOT NULL COMMENT '배치 worker ID',
-    server_instance_id VARCHAR(160) NOT NULL COMMENT '서버 인스턴스 ID',
-    host_name VARCHAR(150) NULL COMMENT '호스트명',
-    process_id VARCHAR(80) NULL COMMENT '프로세스 ID',
-    thread_name VARCHAR(160) NULL COMMENT '스레드명',
-    worker_version VARCHAR(80) NOT NULL DEFAULT 'unknown' COMMENT 'worker 배포 버전',
-    capabilities_json LONGTEXT NULL COMMENT 'worker 지원 Job 및 capability JSON',
-    max_concurrency INT NOT NULL DEFAULT 1 COMMENT 'worker 최대 동시 실행 수',
-    queue_capacity INT NOT NULL DEFAULT 1 COMMENT 'worker 내부 대기열 허용 수',
-    control_status VARCHAR(30) NOT NULL DEFAULT 'RUNNING' COMMENT 'RUNNING, DRAINING, STOPPED 제어 상태',
-    worker_status VARCHAR(30) NOT NULL DEFAULT 'IDLE' COMMENT 'worker 상태',
-    active_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '활성 여부',
-    last_heartbeat_at DATETIME(3) NULL COMMENT '마지막 heartbeat 일시',
-    current_job_id VARCHAR(100) NULL COMMENT '현재 실행 Job ID',
-    current_execution_id BIGINT NULL COMMENT '현재 BAT 배치 실행 순번',
-    description VARCHAR(500) NULL COMMENT 'worker 설명',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (worker_id),
-    INDEX ix_bat_worker_server (server_instance_id, active_yn),
-    INDEX ix_bat_worker_status (worker_status, last_heartbeat_at),
-    INDEX ix_bat_worker_control (control_status, active_yn, last_heartbeat_at),
-    INDEX ix_bat_worker_current_job (current_job_id, current_execution_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 배치 worker heartbeat';
+CREATE TABLE IF NOT EXISTS bat_deployment_instance (
+    cell_id VARCHAR(120) NOT NULL COMMENT 'Deployment cell identifier',
+    instance_id VARCHAR(160) NOT NULL COMMENT 'Runtime instance identifier',
+    host_alias VARCHAR(160) NOT NULL COMMENT 'Target host alias',
+    port_no INT NOT NULL COMMENT 'Runtime service port',
+    profile_name VARCHAR(80) NOT NULL COMMENT 'Runtime profile name',
+    zone_id VARCHAR(80) NULL COMMENT 'Availability zone identifier',
+    pool_id VARCHAR(80) NULL COMMENT 'Runtime pool identifier',
+    agent_base_url VARCHAR(500) NOT NULL COMMENT 'Approved host-agent base URL',
+    config_ref VARCHAR(1000) NULL COMMENT 'External configuration reference',
+    desired_state VARCHAR(32) NOT NULL COMMENT 'Desired instance state',
+    CONSTRAINT pk_bat_deployment_instance PRIMARY KEY (cell_id, instance_id),
+    CONSTRAINT uk_bat_deployment_instance_id UNIQUE (instance_id),
+    CONSTRAINT fk_bat_deployment_instance_cell FOREIGN KEY (cell_id) REFERENCES bat_deployment_cell (cell_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT deployment cell instance projection';
+
+CREATE TABLE IF NOT EXISTS bat_deployment_instance_result (
+    deployment_result_id BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Instance result identifier',
+    deployment_id VARCHAR(80) NOT NULL COMMENT 'Deployment execution identifier',
+    sequence_no INT NOT NULL COMMENT 'Ordered result sequence',
+    instance_id VARCHAR(160) NOT NULL COMMENT 'Target runtime instance identifier',
+    stage_code VARCHAR(80) NOT NULL COMMENT 'Deployment stage code',
+    result_state VARCHAR(40) NOT NULL COMMENT 'Instance stage result state',
+    result_message VARCHAR(4000) NULL COMMENT 'Instance stage result detail',
+    recorded_at DATETIME(6) NOT NULL COMMENT 'Result record time',
+    CONSTRAINT pk_bat_deployment_instance_result PRIMARY KEY (deployment_result_id),
+    CONSTRAINT uk_bat_deployment_instance_result UNIQUE (deployment_id, sequence_no),
+    CONSTRAINT fk_bat_deployment_instance_result_execution FOREIGN KEY (deployment_id) REFERENCES bat_deployment_execution (deployment_id) ON DELETE CASCADE,
+    INDEX ix_bat_deployment_instance_result_instance (instance_id, recorded_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT per-instance deployment result';
+
+CREATE TABLE IF NOT EXISTS bat_deployment_lock (
+    cell_id VARCHAR(120) NULL COMMENT 'Locked deployment cell identifier',
+    owner_deployment_id VARCHAR(80) NOT NULL COMMENT 'Lock owner deployment identifier',
+    fencing_token BIGINT NOT NULL COMMENT 'Monotonic deployment fencing token',
+    locked_at DATETIME(6) NOT NULL COMMENT 'Lock acquisition time',
+    expires_at DATETIME(6) NOT NULL COMMENT 'Lock expiry time',
+    CONSTRAINT pk_bat_deployment_lock PRIMARY KEY (cell_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT deployment cell lease lock';
+
+CREATE TABLE IF NOT EXISTS bat_deployment_plan (
+    plan_id VARCHAR(80) NULL COMMENT 'Deployment plan identifier',
+    cell_id VARCHAR(120) NOT NULL COMMENT 'Target deployment cell identifier',
+    manifest_json LONGTEXT NOT NULL COMMENT 'Immutable deployment manifest snapshot',
+    manifest_hash VARCHAR(128) NOT NULL COMMENT 'Deployment manifest checksum',
+    requested_by VARCHAR(120) NOT NULL COMMENT 'Plan requester',
+    reason_text VARCHAR(1000) NOT NULL COMMENT 'Mandatory deployment reason',
+    plan_state VARCHAR(40) NOT NULL COMMENT 'Deployment plan lifecycle state',
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT 'Plan request time',
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT 'Last plan state update time',
+    CONSTRAINT pk_bat_deployment_plan PRIMARY KEY (plan_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT deployment plan';
 
 CREATE TABLE IF NOT EXISTS bat_execution (
     execution_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '배치 실행 순번',
@@ -2034,6 +2258,7 @@ CREATE TABLE IF NOT EXISTS bat_execution (
     success_count BIGINT NOT NULL DEFAULT 0 COMMENT '성공 처리 건수',
     failure_count BIGINT NOT NULL DEFAULT 0 COMMENT '실패 처리 건수',
     retry_count BIGINT NOT NULL DEFAULT 0 COMMENT '재시도 또는 rollback 건수',
+    stop_requested_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '운영 중지 요청 여부',
     progress_rate DECIMAL(5,2) NOT NULL DEFAULT 0.00 COMMENT '진행률',
     tps DECIMAL(18,4) NOT NULL DEFAULT 0.0000 COMMENT '초당 처리 건수',
     avg_elapsed_ms BIGINT NOT NULL DEFAULT 0 COMMENT '평균 처리 시간 밀리초',
@@ -2046,7 +2271,10 @@ CREATE TABLE IF NOT EXISTS bat_execution (
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
     updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (execution_id),
+    CONSTRAINT pk_bat_execution PRIMARY KEY (execution_id),
+    CONSTRAINT fk_bat_execution_job FOREIGN KEY (job_id) REFERENCES bat_job (job_id),
+    CONSTRAINT fk_bat_execution_instance FOREIGN KEY (batch_instance_id) REFERENCES bat_instance (instance_id) ON DELETE SET NULL,
+    CONSTRAINT fk_bat_execution_worker FOREIGN KEY (worker_id) REFERENCES bat_worker (worker_id) ON DELETE SET NULL,
     INDEX ix_bat_execution_job_time (job_id, start_time),
     INDEX ix_bat_execution_status (execution_status, start_time),
     INDEX ix_bat_execution_spring (spring_batch_execution_id),
@@ -2056,15 +2284,7 @@ CREATE TABLE IF NOT EXISTS bat_execution (
     INDEX ix_bat_execution_claim (execution_status, required_worker_version, required_capability, execution_id),
     INDEX ix_bat_execution_transaction (transaction_id),
     INDEX ix_bat_execution_segment (transaction_segment_id, parent_segment_id),
-    INDEX ix_bat_execution_heartbeat (execution_status, last_heartbeat_at),
-    CONSTRAINT fk_bat_execution_job
-        FOREIGN KEY (job_id) REFERENCES bat_job(job_id),
-    CONSTRAINT fk_bat_execution_instance
-        FOREIGN KEY (batch_instance_id) REFERENCES bat_instance(instance_id)
-        ON DELETE SET NULL,
-    CONSTRAINT fk_bat_execution_worker
-        FOREIGN KEY (worker_id) REFERENCES bat_worker(worker_id)
-        ON DELETE SET NULL
+    INDEX ix_bat_execution_heartbeat (execution_status, last_heartbeat_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 배치 실행 이력';
 
 CREATE TABLE IF NOT EXISTS bat_execution_lease (
@@ -2078,23 +2298,20 @@ CREATE TABLE IF NOT EXISTS bat_execution_lease (
     last_heartbeat_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '마지막 lease heartbeat 일시',
     attempt_no INT NOT NULL DEFAULT 1 COMMENT 'claim 시도 회차',
     takeover_count INT NOT NULL DEFAULT 0 COMMENT '만료 후 다른 worker 인수 횟수',
+    fencing_token BIGINT NOT NULL DEFAULT 0 COMMENT 'monotonic fencing token',
     released_at DATETIME(3) NULL COMMENT '정상 또는 실패 완료 일시',
     failure_message VARCHAR(1000) NULL COMMENT '마스킹된 실행 실패 메시지',
     created_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
     updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (lease_id),
-    UNIQUE KEY uk_bat_execution_lease_execution (execution_id),
-    UNIQUE KEY uk_bat_execution_lease_token (lease_token),
+    CONSTRAINT pk_bat_execution_lease PRIMARY KEY (lease_id),
+    CONSTRAINT uk_bat_execution_lease_execution UNIQUE (execution_id),
+    CONSTRAINT uk_bat_execution_lease_token UNIQUE (lease_token),
+    CONSTRAINT fk_bat_execution_lease_execution FOREIGN KEY (execution_id) REFERENCES bat_execution (execution_id) ON DELETE CASCADE,
+    CONSTRAINT fk_bat_execution_lease_worker FOREIGN KEY (worker_id) REFERENCES bat_worker (worker_id) ON DELETE RESTRICT,
     INDEX ix_bat_execution_lease_owner (worker_id, lease_status, lease_until),
-    INDEX ix_bat_execution_lease_expire (lease_status, lease_until),
-    CONSTRAINT fk_bat_execution_lease_execution
-        FOREIGN KEY (execution_id) REFERENCES bat_execution(execution_id)
-        ON DELETE CASCADE,
-    CONSTRAINT fk_bat_execution_lease_worker
-        FOREIGN KEY (worker_id) REFERENCES bat_worker(worker_id)
-        ON DELETE RESTRICT
+    INDEX ix_bat_execution_lease_expire (lease_status, lease_until)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 배치 worker 실행 claim과 lease';
 
 CREATE TABLE IF NOT EXISTS bat_execution_target (
@@ -2111,22 +2328,352 @@ CREATE TABLE IF NOT EXISTS bat_execution_target (
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
     updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (target_id),
+    CONSTRAINT pk_bat_execution_target PRIMARY KEY (target_id),
+    CONSTRAINT fk_bat_execution_target_execution FOREIGN KEY (execution_id) REFERENCES bat_execution (execution_id) ON DELETE SET NULL,
+    CONSTRAINT fk_bat_execution_target_job FOREIGN KEY (job_id) REFERENCES bat_job (job_id),
+    CONSTRAINT fk_bat_execution_target_schedule FOREIGN KEY (schedule_id) REFERENCES bat_schedule (schedule_id) ON DELETE SET NULL,
+    CONSTRAINT fk_bat_execution_target_instance FOREIGN KEY (target_instance_id) REFERENCES bat_instance (instance_id) ON DELETE SET NULL,
     INDEX ix_bat_execution_target_job (job_id, dispatch_status, planned_run_at),
     INDEX ix_bat_execution_target_execution (execution_id),
-    INDEX ix_bat_execution_target_instance (target_instance_id, dispatch_status),
-    CONSTRAINT fk_bat_execution_target_execution
-        FOREIGN KEY (execution_id) REFERENCES bat_execution(execution_id)
-        ON DELETE SET NULL,
-    CONSTRAINT fk_bat_execution_target_job
-        FOREIGN KEY (job_id) REFERENCES bat_job(job_id),
-    CONSTRAINT fk_bat_execution_target_schedule
-        FOREIGN KEY (schedule_id) REFERENCES bat_schedule(schedule_id)
-        ON DELETE SET NULL,
-    CONSTRAINT fk_bat_execution_target_instance
-        FOREIGN KEY (target_instance_id) REFERENCES bat_instance(instance_id)
-        ON DELETE SET NULL
+    INDEX ix_bat_execution_target_instance (target_instance_id, dispatch_status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 배치 수행 대상/대기 인스턴스';
+
+CREATE TABLE IF NOT EXISTS bat_ghost_event (
+    ghost_event_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '배치 ghost 이벤트 순번',
+    execution_id BIGINT NULL COMMENT '배치 실행 순번',
+    spring_batch_execution_id BIGINT NULL COMMENT 'Spring Batch JobExecution ID',
+    job_id VARCHAR(100) NOT NULL COMMENT '배치 Job ID',
+    server_instance_id VARCHAR(160) NULL COMMENT '서버 인스턴스 ID',
+    worker_id VARCHAR(160) NULL COMMENT 'worker ID',
+    ghost_status VARCHAR(30) NOT NULL DEFAULT 'DETECTED' COMMENT 'ghost 이벤트 상태',
+    detected_reason VARCHAR(1000) NOT NULL COMMENT '감지 사유',
+    action_type VARCHAR(30) NULL COMMENT '조치 유형',
+    action_reason VARCHAR(1000) NULL COMMENT '조치 사유',
+    action_by VARCHAR(100) NULL COMMENT '조치 운영자',
+    detected_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '감지 일시',
+    action_at DATETIME(3) NULL COMMENT '조치 일시',
+    lock_released_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '잠금 해제 여부',
+    retryable_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '재수행 가능 여부',
+    before_data LONGTEXT NULL COMMENT '조치 전 데이터',
+    after_data LONGTEXT NULL COMMENT '조치 후 데이터',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_bat_ghost_event PRIMARY KEY (ghost_event_id),
+    CONSTRAINT fk_bat_ghost_event_execution FOREIGN KEY (execution_id) REFERENCES bat_execution (execution_id) ON DELETE SET NULL,
+    CONSTRAINT fk_bat_ghost_event_job FOREIGN KEY (job_id) REFERENCES bat_job (job_id),
+    CONSTRAINT fk_bat_ghost_event_worker FOREIGN KEY (worker_id) REFERENCES bat_worker (worker_id) ON DELETE SET NULL,
+    INDEX ix_bat_ghost_event_execution (execution_id, ghost_status),
+    INDEX ix_bat_ghost_event_job (job_id, detected_at),
+    INDEX ix_bat_ghost_event_worker (worker_id, detected_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 배치 ghost 감지와 조치 이력';
+
+CREATE TABLE IF NOT EXISTS bat_instance (
+    instance_id VARCHAR(100) NOT NULL COMMENT '배치 인스턴스 ID',
+    instance_name VARCHAR(150) NOT NULL COMMENT '배치 인스턴스명',
+    host_name VARCHAR(150) NULL COMMENT '호스트명',
+    server_port INT NULL COMMENT '서버 포트',
+    active_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '활성 여부',
+    last_heartbeat_at DATETIME(3) NULL COMMENT '마지막 heartbeat 일시',
+    description VARCHAR(500) NULL COMMENT '인스턴스 설명',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_bat_instance PRIMARY KEY (instance_id),
+    INDEX ix_bat_instance_active (active_yn, last_heartbeat_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 배치 서버 인스턴스';
+
+CREATE TABLE IF NOT EXISTS bat_job (
+    job_id VARCHAR(100) NOT NULL COMMENT '배치 Job ID',
+    job_name VARCHAR(150) NOT NULL COMMENT '배치 Job 이름',
+    job_type VARCHAR(30) NOT NULL DEFAULT 'TASKLET' COMMENT '배치 Job 유형',
+    description VARCHAR(500) NULL COMMENT '배치 설명',
+    restartable_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '재시작 가능 여부',
+    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_bat_job PRIMARY KEY (job_id),
+    INDEX ix_bat_job_use (use_yn, job_type)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 배치 Job 기준';
+
+CREATE TABLE IF NOT EXISTS bat_job_pack (
+    job_pack_id VARCHAR(120) NOT NULL COMMENT 'Job-pack identifier',
+    owner_domain VARCHAR(20) NOT NULL COMMENT 'Owning domain SystemCode',
+    artifact_coordinate VARCHAR(240) NOT NULL COMMENT 'Job-pack artifact coordinate',
+    artifact_version VARCHAR(80) NOT NULL COMMENT 'Job-pack artifact version',
+    artifact_checksum VARCHAR(128) NULL COMMENT 'Job-pack artifact checksum',
+    signature_present_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT 'Artifact signature presence flag',
+    platform_range VARCHAR(120) NULL COMMENT 'Compatible CPF platform range',
+    manifest_json LONGTEXT NOT NULL COMMENT 'Validated job-pack manifest',
+    last_registered_at DATETIME(6) NOT NULL COMMENT 'Last catalog registration time',
+    CONSTRAINT pk_bat_job_pack PRIMARY KEY (job_pack_id),
+    INDEX ix_bat_job_pack_owner (owner_domain, artifact_version)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT external job-pack catalog';
+
+CREATE TABLE IF NOT EXISTS bat_job_pack_job (
+    job_pack_id VARCHAR(120) NOT NULL COMMENT 'Owning job-pack identifier',
+    job_id VARCHAR(100) NOT NULL COMMENT 'Published job identifier',
+    restartable_yn CHAR(1) NOT NULL COMMENT 'Job restartability flag',
+    center_cut_provider_key VARCHAR(100) NULL COMMENT 'Center-cut target provider key',
+    center_cut_handler_key VARCHAR(100) NULL COMMENT 'Center-cut item handler key',
+    CONSTRAINT pk_bat_job_pack_job PRIMARY KEY (job_pack_id, job_id),
+    CONSTRAINT fk_bat_job_pack_job_pack FOREIGN KEY (job_pack_id) REFERENCES bat_job_pack (job_pack_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT job-pack job projection';
+
+CREATE TABLE IF NOT EXISTS bat_job_relation (
+    relation_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '배치 관계 순번',
+    job_id VARCHAR(100) NOT NULL COMMENT '기준 배치 Job ID',
+    related_job_id VARCHAR(100) NOT NULL COMMENT '연관 배치 Job ID',
+    relation_type VARCHAR(30) NOT NULL COMMENT '관계 유형',
+    trigger_condition VARCHAR(50) NOT NULL DEFAULT 'COMPLETED' COMMENT '트리거 조건',
+    required_status VARCHAR(30) NOT NULL DEFAULT 'COMPLETED' COMMENT '필수 선행 상태',
+    sort_order INT NOT NULL DEFAULT 0 COMMENT '관계 표시 순서',
+    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_bat_job_relation PRIMARY KEY (relation_id),
+    CONSTRAINT uk_bat_job_relation UNIQUE (job_id, related_job_id, relation_type),
+    CONSTRAINT fk_bat_job_relation_job FOREIGN KEY (job_id) REFERENCES bat_job (job_id) ON DELETE CASCADE,
+    CONSTRAINT fk_bat_job_relation_related FOREIGN KEY (related_job_id) REFERENCES bat_job (job_id) ON DELETE CASCADE,
+    INDEX ix_bat_job_relation_job (job_id, relation_type, use_yn),
+    INDEX ix_bat_job_relation_related (related_job_id, relation_type)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 배치 선행/후행/트리거 관계';
+
+CREATE TABLE IF NOT EXISTS bat_lock (
+    lock_key VARCHAR(200) NOT NULL COMMENT '배치 잠금 키',
+    job_id VARCHAR(100) NOT NULL COMMENT '배치 Job ID',
+    job_parameters_hash VARCHAR(128) NOT NULL COMMENT 'Job 파라미터 해시',
+    owner_id VARCHAR(100) NOT NULL COMMENT '잠금 소유자',
+    locked_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '잠금 획득 일시',
+    expire_at DATETIME(3) NOT NULL COMMENT '잠금 만료 일시',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_bat_lock PRIMARY KEY (lock_key),
+    INDEX ix_bat_lock_job (job_id, job_parameters_hash),
+    INDEX ix_bat_lock_expire (expire_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 배치 중복 실행 방지 잠금';
+
+CREATE TABLE IF NOT EXISTS bat_on_demand_request (
+    execution_request_id VARCHAR(36) NOT NULL COMMENT '온라인 접수 실행 요청 ID',
+    standard_batch_id CHAR(10) NOT NULL COMMENT 'B 유형 10자리 표준 배치 ID',
+    idempotency_key VARCHAR(120) NOT NULL COMMENT '중복 접수 방지 멱등 키',
+    transaction_id CHAR(34) NOT NULL COMMENT '온라인 접수 거래 ID',
+    business_date CHAR(8) NOT NULL COMMENT '배치 업무 기준일 YYYYMMDD',
+    request_status VARCHAR(30) NOT NULL DEFAULT 'REQUESTED' COMMENT 'REQUESTED, RUNNING, COMPLETED, FAILED, RESTARTED, STOPPING 등 접수 상태',
+    parameters_json LONGTEXT NULL COMMENT '검증된 배치 업무 파라미터 JSON',
+    request_reason VARCHAR(500) NOT NULL COMMENT '실행 감사 사유',
+    request_user VARCHAR(100) NOT NULL COMMENT '실행 요청자',
+    cpf_execution_id BIGINT NULL COMMENT 'BAT 배치 실행 메타 ID',
+    spring_batch_execution_id BIGINT NULL COMMENT 'Spring Batch JobExecution ID',
+    result_json LONGTEXT NULL COMMENT '마스킹된 실행 결과 JSON',
+    failure_code VARCHAR(100) NULL COMMENT '실패 코드',
+    failure_message VARCHAR(1000) NULL COMMENT '민감정보가 제거된 실패 메시지',
+    requested_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '접수일시',
+    completed_at DATETIME(3) NULL COMMENT '완료일시',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_bat_on_demand_request PRIMARY KEY (execution_request_id),
+    CONSTRAINT uk_bat_on_demand_idempotency UNIQUE (standard_batch_id, idempotency_key),
+    CONSTRAINT ck_bat_on_demand_id CHECK (standard_batch_id REGEXP '^B[A-Z]{3}[A-Z0-9]{2}[0-9]{4}$' AND RIGHT(standard_batch_id, 4) <> '0000'),
+    CONSTRAINT ck_bat_on_demand_status CHECK (request_status IN ('REQUESTED', 'RUNNING', 'COMPLETED', 'FAILED', 'RESTARTED', 'RESTART_FAILED', 'RESTART_NOT_AVAILABLE', 'STOPPING', 'STOPPED', 'SKIPPED_LOCKED')),
+    INDEX ix_bat_on_demand_status (request_status, requested_at),
+    INDEX ix_bat_on_demand_transaction (transaction_id),
+    INDEX ix_bat_on_demand_spring (spring_batch_execution_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 온디맨드 배치 온라인 접수';
+
+CREATE TABLE IF NOT EXISTS bat_operation_log (
+    operation_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '배치 운영 로그 순번',
+    job_id VARCHAR(100) NOT NULL COMMENT '배치 Job ID',
+    execution_id BIGINT NULL COMMENT '배치 실행 순번',
+    operation_type VARCHAR(30) NOT NULL COMMENT '운영 작업 유형',
+    operator_id VARCHAR(100) NOT NULL COMMENT '운영자 ID',
+    reason VARCHAR(500) NOT NULL COMMENT '운영 사유',
+    before_data LONGTEXT NULL COMMENT '작업 전 데이터',
+    after_data LONGTEXT NULL COMMENT '작업 후 데이터',
+    result_type CHAR(1) NOT NULL DEFAULT 'S' COMMENT '결과 유형',
+    result_message VARCHAR(1000) NULL COMMENT '결과 메시지',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_bat_operation_log PRIMARY KEY (operation_id),
+    INDEX ix_bat_operation_job_time (job_id, created_at),
+    INDEX ix_bat_operation_execution (execution_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 배치 운영 작업 로그';
+
+CREATE TABLE IF NOT EXISTS bat_operation_log_archive (
+    operation_id BIGINT NOT NULL COMMENT '원본 배치 운영 로그 순번',
+    job_id VARCHAR(100) NOT NULL COMMENT '배치 Job ID',
+    execution_id BIGINT NULL COMMENT '배치 실행 순번',
+    operation_type VARCHAR(30) NOT NULL COMMENT '운영 작업 유형',
+    operator_id VARCHAR(100) NOT NULL COMMENT '운영자 ID',
+    reason VARCHAR(500) NOT NULL COMMENT '운영 사유',
+    before_data LONGTEXT NULL COMMENT '작업 전 데이터',
+    after_data LONGTEXT NULL COMMENT '작업 후 데이터',
+    result_type CHAR(1) NOT NULL DEFAULT 'S' COMMENT '결과 유형',
+    result_message VARCHAR(1000) NULL COMMENT '결과 메시지',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '원본 등록자',
+    created_at DATETIME NOT NULL COMMENT '원본 등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '원본 수정자',
+    updated_at DATETIME NOT NULL COMMENT '원본 수정일시',
+    archived_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '보관 일시',
+    archived_by VARCHAR(100) NOT NULL COMMENT '보관 수행자',
+    archive_reason VARCHAR(500) NOT NULL COMMENT '보관 사유',
+    CONSTRAINT pk_bat_operation_log_archive PRIMARY KEY (operation_id),
+    INDEX ix_bat_operation_archive_job_time (job_id, created_at),
+    INDEX ix_bat_operation_archive_archived (archived_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 운영 로그 보관소';
+
+CREATE TABLE IF NOT EXISTS bat_runtime_capability (
+    instance_id VARCHAR(160) NOT NULL COMMENT 'Runtime instance identifier',
+    capability_code VARCHAR(80) NOT NULL COMMENT 'Advertised capability code',
+    CONSTRAINT pk_bat_runtime_capability PRIMARY KEY (instance_id, capability_code),
+    CONSTRAINT fk_bat_runtime_capability_instance FOREIGN KEY (instance_id) REFERENCES bat_runtime_instance (instance_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT runtime capability projection';
+
+CREATE TABLE IF NOT EXISTS bat_runtime_command (
+    command_id VARCHAR(80) NULL COMMENT 'Runtime command identifier',
+    idempotency_key VARCHAR(160) NOT NULL COMMENT 'Command idempotency key',
+    command_type VARCHAR(80) NOT NULL COMMENT 'Approved command type',
+    target_type VARCHAR(40) NOT NULL COMMENT 'Command target type',
+    target_snapshot LONGTEXT NULL COMMENT 'Command target snapshot JSON',
+    target_snapshot_hash VARCHAR(128) NULL COMMENT 'Target snapshot checksum',
+    expected_version BIGINT NULL COMMENT 'Expected target version',
+    requested_by VARCHAR(120) NOT NULL COMMENT 'Command requester',
+    reason_text VARCHAR(1000) NOT NULL COMMENT 'Mandatory command reason',
+    approval_policy_version VARCHAR(80) NULL COMMENT 'Approval policy version',
+    approval_request_id VARCHAR(80) NULL COMMENT 'ADM approval request identifier',
+    approved_by VARCHAR(120) NULL COMMENT 'Command approver',
+    command_state VARCHAR(40) NOT NULL COMMENT 'Command lifecycle state',
+    execution_attempt INT NOT NULL DEFAULT 0 COMMENT 'Execution attempt count',
+    result_text LONGTEXT NULL COMMENT 'Command result detail',
+    failure_stage VARCHAR(80) NULL COMMENT 'Last failed stage',
+    before_state LONGTEXT NULL COMMENT 'State before operation',
+    after_state LONGTEXT NULL COMMENT 'State after operation',
+    result_code VARCHAR(80) NULL COMMENT 'Command result code',
+    requested_at DATETIME(6) NOT NULL COMMENT 'Command request time',
+    expires_at DATETIME(6) NULL COMMENT 'Command expiry time',
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT 'Last command state update time',
+    transaction_id CHAR(34) NULL COMMENT 'CPF transactionId',
+    evidence_ref VARCHAR(500) NULL COMMENT 'Audit evidence reference',
+    CONSTRAINT pk_bat_runtime_command PRIMARY KEY (command_id),
+    CONSTRAINT idempotency_key UNIQUE (idempotency_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT approved runtime command';
+
+CREATE TABLE IF NOT EXISTS bat_runtime_command_attempt (
+    attempt_id BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Command attempt identifier',
+    command_id VARCHAR(80) NOT NULL COMMENT 'Runtime command identifier',
+    attempt_no INT NOT NULL COMMENT 'Command attempt number',
+    instance_id VARCHAR(160) NULL COMMENT 'Target runtime instance identifier',
+    stage_code VARCHAR(80) NOT NULL COMMENT 'Attempt execution stage',
+    attempt_state VARCHAR(40) NOT NULL COMMENT 'Attempt result state',
+    result_message VARCHAR(4000) NULL COMMENT 'Attempt result detail',
+    started_at DATETIME(6) NOT NULL COMMENT 'Attempt start time',
+    finished_at DATETIME(6) NULL COMMENT 'Attempt finish time',
+    CONSTRAINT pk_bat_runtime_command_attempt PRIMARY KEY (attempt_id),
+    CONSTRAINT uk_bat_runtime_command_attempt UNIQUE (command_id, attempt_no, instance_id, stage_code),
+    CONSTRAINT fk_bat_runtime_command_attempt_command FOREIGN KEY (command_id) REFERENCES bat_runtime_command (command_id) ON DELETE CASCADE,
+    INDEX ix_bat_runtime_command_attempt_instance (instance_id, started_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT runtime command execution attempt';
+
+CREATE TABLE IF NOT EXISTS bat_runtime_heartbeat (
+    heartbeat_id BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Heartbeat event identifier',
+    instance_id VARCHAR(160) NOT NULL COMMENT 'Runtime instance identifier',
+    heartbeat_at DATETIME(6) NOT NULL COMMENT 'Heartbeat observation time',
+    ready_yn CHAR(1) NOT NULL COMMENT 'Readiness flag',
+    available_capacity INT NOT NULL DEFAULT 0 COMMENT 'Available execution capacity',
+    queue_depth BIGINT NOT NULL DEFAULT 0 COMMENT 'Observed queue depth',
+    draining_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT 'Drain mode flag',
+    current_execution_count INT NOT NULL DEFAULT 0 COMMENT 'Current execution count',
+    active_lease_count INT NOT NULL DEFAULT 0 COMMENT 'Active lease count',
+    last_error_code VARCHAR(80) NULL COMMENT 'Last runtime error code',
+    deployment_version VARCHAR(80) NULL COMMENT 'Observed deployment version',
+    CONSTRAINT pk_bat_runtime_heartbeat PRIMARY KEY (heartbeat_id),
+    CONSTRAINT fk_bat_runtime_heartbeat_instance FOREIGN KEY (instance_id) REFERENCES bat_runtime_instance (instance_id) ON DELETE CASCADE,
+    INDEX ix_bat_runtime_heartbeat_instance (instance_id, heartbeat_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT runtime heartbeat event';
+
+CREATE TABLE IF NOT EXISTS bat_runtime_instance (
+    instance_id VARCHAR(160) NULL COMMENT 'Runtime instance identifier',
+    runtime_role VARCHAR(40) NOT NULL COMMENT 'Standalone runtime role',
+    service_id VARCHAR(120) NOT NULL COMMENT 'Runtime service identifier',
+    was_id VARCHAR(120) NULL COMMENT 'WAS identifier',
+    host_alias VARCHAR(160) NULL COMMENT 'Registered host alias',
+    zone_id VARCHAR(80) NULL COMMENT 'Availability zone identifier',
+    pool_id VARCHAR(80) NULL COMMENT 'Runtime pool identifier',
+    artifact_version VARCHAR(80) NOT NULL COMMENT 'Running artifact version',
+    git_sha VARCHAR(64) NULL COMMENT 'Running source commit SHA',
+    artifact_checksum VARCHAR(128) NULL COMMENT 'Running artifact checksum',
+    profile_name VARCHAR(80) NULL COMMENT 'Active runtime profile',
+    desired_state VARCHAR(32) NOT NULL DEFAULT 'RUNNING' COMMENT 'Control-plane desired state',
+    actual_state VARCHAR(32) NOT NULL DEFAULT 'UNKNOWN' COMMENT 'Last observed runtime state',
+    config_version VARCHAR(80) NULL COMMENT 'Applied configuration version',
+    schema_compatibility VARCHAR(120) NULL COMMENT 'Supported schema version range',
+    started_at DATETIME(6) NULL COMMENT 'Runtime start time',
+    last_heartbeat_at DATETIME(6) NULL COMMENT 'Last heartbeat time',
+    fencing_token BIGINT NOT NULL DEFAULT 0 COMMENT 'Monotonic instance fencing token',
+    row_version BIGINT NOT NULL DEFAULT 0 COMMENT 'Optimistic locking version',
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT 'Registration time',
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT 'Last state update time',
+    CONSTRAINT pk_bat_runtime_instance PRIMARY KEY (instance_id),
+    INDEX ix_bat_runtime_instance_service (service_id, actual_state),
+    INDEX ix_bat_runtime_instance_heartbeat (last_heartbeat_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT standalone runtime instance registry';
+
+CREATE TABLE IF NOT EXISTS bat_schedule (
+    schedule_id VARCHAR(100) NOT NULL COMMENT '배치 스케줄 ID',
+    job_id VARCHAR(100) NOT NULL COMMENT '배치 Job ID',
+    cron_expression VARCHAR(100) NOT NULL COMMENT 'Cron 표현식',
+    calendar_id VARCHAR(50) NOT NULL DEFAULT 'DEFAULT' COMMENT '적용 영업일 캘린더 ID',
+    business_day_only_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '영업일에만 수행 여부',
+    holiday_policy VARCHAR(30) NOT NULL DEFAULT 'SKIP' COMMENT '휴일 처리 정책',
+    available_start_time TIME NULL COMMENT '수행 가능 시작 시각',
+    available_end_time TIME NULL COMMENT '수행 가능 종료 시각',
+    run_date_pattern VARCHAR(80) NULL COMMENT '수행 일자 패턴',
+    timezone VARCHAR(50) NOT NULL DEFAULT 'Asia/Seoul' COMMENT '스케줄 기준 시간대',
+    enabled_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '스케줄 활성 여부',
+    last_fire_at DATETIME NULL COMMENT '마지막 실행 예정 일시',
+    next_fire_at DATETIME NULL COMMENT '다음 실행 예정 일시',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_bat_schedule PRIMARY KEY (schedule_id),
+    CONSTRAINT fk_bat_schedule_job FOREIGN KEY (job_id) REFERENCES bat_job (job_id) ON DELETE CASCADE,
+    INDEX ix_bat_schedule_job (job_id, enabled_yn)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 배치 스케줄';
+
+CREATE TABLE IF NOT EXISTS bat_schedule_trigger (
+    schedule_id VARCHAR(100) NOT NULL COMMENT 'Schedule identifier',
+    scheduled_fire_at DATETIME(6) NOT NULL COMMENT 'Planned fire time',
+    fencing_token BIGINT NOT NULL COMMENT 'Scheduler fencing token',
+    execution_id BIGINT NULL COMMENT 'Created execution identifier',
+    trigger_status VARCHAR(30) NOT NULL COMMENT 'Trigger result status',
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT 'Trigger record time',
+    CONSTRAINT pk_bat_schedule_trigger PRIMARY KEY (schedule_id, scheduled_fire_at),
+    CONSTRAINT fk_bat_schedule_trigger_schedule FOREIGN KEY (schedule_id) REFERENCES bat_schedule (schedule_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT scheduled trigger evidence';
+
+CREATE TABLE IF NOT EXISTS bat_scheduler_lease (
+    scheduler_key VARCHAR(100) NULL COMMENT 'Scheduler leadership key',
+    owner_instance_id VARCHAR(160) NOT NULL COMMENT 'Current leader instance identifier',
+    fencing_token BIGINT NOT NULL COMMENT 'Monotonic leadership fencing token',
+    lease_until DATETIME(6) NOT NULL COMMENT 'Leadership lease expiry time',
+    last_heartbeat_at DATETIME(6) NOT NULL COMMENT 'Leader heartbeat time',
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT 'Last lease update time',
+    CONSTRAINT pk_bat_scheduler_lease PRIMARY KEY (scheduler_key),
+    INDEX ix_bat_scheduler_lease_expire (lease_until)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT scheduler leader lease';
 
 CREATE TABLE IF NOT EXISTS bat_step_execution (
     step_execution_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '배치 Step 실행 순번',
@@ -2156,376 +2703,14 @@ CREATE TABLE IF NOT EXISTS bat_step_execution (
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
     updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (step_execution_id),
+    CONSTRAINT pk_bat_step_execution PRIMARY KEY (step_execution_id),
+    CONSTRAINT fk_bat_step_execution_parent FOREIGN KEY (execution_id) REFERENCES bat_execution (execution_id) ON DELETE CASCADE,
+    CONSTRAINT fk_bat_step_execution_worker FOREIGN KEY (worker_id) REFERENCES bat_worker (worker_id) ON DELETE SET NULL,
     INDEX ix_bat_step_execution_parent (execution_id, step_name),
     INDEX ix_bat_step_execution_spring (spring_batch_step_execution_id),
     INDEX ix_bat_step_execution_worker (worker_id, start_time),
-    INDEX ix_bat_step_execution_heartbeat (execution_status, last_heartbeat_at),
-    CONSTRAINT fk_bat_step_execution_parent
-        FOREIGN KEY (execution_id) REFERENCES bat_execution(execution_id)
-        ON DELETE CASCADE,
-    CONSTRAINT fk_bat_step_execution_worker
-        FOREIGN KEY (worker_id) REFERENCES bat_worker(worker_id)
-        ON DELETE SET NULL
+    INDEX ix_bat_step_execution_heartbeat (execution_status, last_heartbeat_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 배치 Step 실행 이력';
-
-CREATE TABLE IF NOT EXISTS bat_lock (
-    lock_key VARCHAR(200) NOT NULL COMMENT '배치 잠금 키',
-    job_id VARCHAR(100) NOT NULL COMMENT '배치 Job ID',
-    job_parameters_hash VARCHAR(128) NOT NULL COMMENT 'Job 파라미터 해시',
-    owner_id VARCHAR(100) NOT NULL COMMENT '잠금 소유자',
-    locked_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '잠금 획득 일시',
-    expire_at DATETIME(3) NOT NULL COMMENT '잠금 만료 일시',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (lock_key),
-    INDEX ix_bat_lock_job (job_id, job_parameters_hash),
-    INDEX ix_bat_lock_expire (expire_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 배치 중복 실행 방지 잠금';
-
-CREATE TABLE IF NOT EXISTS bat_operation_log (
-    operation_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '배치 운영 로그 순번',
-    job_id VARCHAR(100) NOT NULL COMMENT '배치 Job ID',
-    execution_id BIGINT NULL COMMENT '배치 실행 순번',
-    operation_type VARCHAR(30) NOT NULL COMMENT '운영 작업 유형',
-    operator_id VARCHAR(100) NOT NULL COMMENT '운영자 ID',
-    reason VARCHAR(500) NOT NULL COMMENT '운영 사유',
-    before_data LONGTEXT NULL COMMENT '작업 전 데이터',
-    after_data LONGTEXT NULL COMMENT '작업 후 데이터',
-    result_type CHAR(1) NOT NULL DEFAULT 'S' COMMENT '결과 유형',
-    result_message VARCHAR(1000) NULL COMMENT '결과 메시지',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (operation_id),
-    INDEX ix_bat_operation_job_time (job_id, created_at),
-    INDEX ix_bat_operation_execution (execution_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 배치 운영 작업 로그';
-
-
-CREATE TABLE IF NOT EXISTS bat_operation_log_archive (
-    operation_id BIGINT NOT NULL COMMENT '원본 배치 운영 로그 순번',
-    job_id VARCHAR(100) NOT NULL COMMENT '배치 Job ID',
-    execution_id BIGINT NULL COMMENT '배치 실행 순번',
-    operation_type VARCHAR(30) NOT NULL COMMENT '운영 작업 유형',
-    operator_id VARCHAR(100) NOT NULL COMMENT '운영자 ID',
-    reason VARCHAR(500) NOT NULL COMMENT '운영 사유',
-    before_data LONGTEXT NULL COMMENT '작업 전 데이터',
-    after_data LONGTEXT NULL COMMENT '작업 후 데이터',
-    result_type CHAR(1) NOT NULL DEFAULT 'S' COMMENT '결과 유형',
-    result_message VARCHAR(1000) NULL COMMENT '결과 메시지',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '원본 등록자',
-    created_at DATETIME NOT NULL COMMENT '원본 등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '원본 수정자',
-    updated_at DATETIME NOT NULL COMMENT '원본 수정일시',
-    archived_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '보관 일시',
-    archived_by VARCHAR(100) NOT NULL COMMENT '보관 수행자',
-    archive_reason VARCHAR(500) NOT NULL COMMENT '보관 사유',
-    PRIMARY KEY (operation_id),
-    INDEX ix_bat_operation_archive_job_time (job_id, created_at),
-    INDEX ix_bat_operation_archive_archived (archived_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 운영 로그 보관소';
-
-CREATE TABLE IF NOT EXISTS bat_ghost_event (
-    ghost_event_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '배치 ghost 이벤트 순번',
-    execution_id BIGINT NULL COMMENT '배치 실행 순번',
-    spring_batch_execution_id BIGINT NULL COMMENT 'Spring Batch JobExecution ID',
-    job_id VARCHAR(100) NOT NULL COMMENT '배치 Job ID',
-    server_instance_id VARCHAR(160) NULL COMMENT '서버 인스턴스 ID',
-    worker_id VARCHAR(160) NULL COMMENT 'worker ID',
-    ghost_status VARCHAR(30) NOT NULL DEFAULT 'DETECTED' COMMENT 'ghost 이벤트 상태',
-    detected_reason VARCHAR(1000) NOT NULL COMMENT '감지 사유',
-    action_type VARCHAR(30) NULL COMMENT '조치 유형',
-    action_reason VARCHAR(1000) NULL COMMENT '조치 사유',
-    action_by VARCHAR(100) NULL COMMENT '조치 운영자',
-    detected_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '감지 일시',
-    action_at DATETIME(3) NULL COMMENT '조치 일시',
-    lock_released_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '잠금 해제 여부',
-    retryable_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '재수행 가능 여부',
-    before_data LONGTEXT NULL COMMENT '조치 전 데이터',
-    after_data LONGTEXT NULL COMMENT '조치 후 데이터',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (ghost_event_id),
-    INDEX ix_bat_ghost_event_execution (execution_id, ghost_status),
-    INDEX ix_bat_ghost_event_job (job_id, detected_at),
-    INDEX ix_bat_ghost_event_worker (worker_id, detected_at),
-    CONSTRAINT fk_bat_ghost_event_execution
-        FOREIGN KEY (execution_id) REFERENCES bat_execution(execution_id)
-        ON DELETE SET NULL,
-    CONSTRAINT fk_bat_ghost_event_job
-        FOREIGN KEY (job_id) REFERENCES bat_job(job_id),
-    CONSTRAINT fk_bat_ghost_event_worker
-        FOREIGN KEY (worker_id) REFERENCES bat_worker(worker_id)
-        ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 배치 ghost 감지와 조치 이력';
-
-
--- R10: 영업일 Calendar는 cpf-common(CMN-CALENDAR) Owner가 제공합니다.
-
-CREATE TABLE IF NOT EXISTS bat_center_cut_job (
-    center_cut_job_id VARCHAR(100) NOT NULL COMMENT '센터컷 Job ID',
-    batch_job_id VARCHAR(100) NULL COMMENT '연결된 BAT 배치 Job ID',
-    center_cut_job_name VARCHAR(150) NOT NULL COMMENT '센터컷 Job 명',
-    provider_key VARCHAR(100) NOT NULL COMMENT '대상 조회 Provider 식별자',
-    handler_key VARCHAR(100) NOT NULL COMMENT '처리 Handler 식별자',
-    chunk_size INT NOT NULL DEFAULT 100 COMMENT '한 번에 조회할 대상 건수',
-    retry_limit INT NOT NULL DEFAULT 3 COMMENT '최대 재처리 횟수',
-    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
-    description VARCHAR(500) NULL COMMENT '센터컷 Job 설명',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (center_cut_job_id),
-    INDEX ix_bat_center_cut_job_batch (batch_job_id, use_yn),
-    CONSTRAINT fk_bat_center_cut_job_batch
-        FOREIGN KEY (batch_job_id) REFERENCES bat_job(job_id)
-        ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 센터컷 Job 정의';
-
-CREATE TABLE IF NOT EXISTS bat_center_cut_parameter (
-    parameter_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '센터컷 파라미터 순번',
-    center_cut_job_id VARCHAR(100) NOT NULL COMMENT '센터컷 Job ID',
-    parameter_key VARCHAR(100) NOT NULL COMMENT '파라미터 키',
-    parameter_value VARCHAR(1000) NULL COMMENT '파라미터 값',
-    encrypted_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '암호화 여부',
-    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (parameter_id),
-    UNIQUE KEY uk_bat_center_cut_parameter (center_cut_job_id, parameter_key),
-    CONSTRAINT fk_bat_center_cut_parameter_job
-        FOREIGN KEY (center_cut_job_id) REFERENCES bat_center_cut_job(center_cut_job_id)
-        ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 센터컷 파라미터';
-
-CREATE TABLE IF NOT EXISTS bat_center_cut_item (
-    center_cut_item_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '센터컷 대상 순번',
-    center_cut_job_id VARCHAR(100) NOT NULL COMMENT '센터컷 Job ID',
-    business_key VARCHAR(200) NOT NULL COMMENT '업무 멱등 키',
-    business_date DATE NULL COMMENT '업무 기준일',
-    item_status VARCHAR(30) NOT NULL DEFAULT 'READY' COMMENT '대상 상태',
-    transaction_id CHAR(34) NULL COMMENT '센터컷 실행 전체가 승계하는 CPF transactionId',
-    transaction_segment_id VARCHAR(120) NULL COMMENT '현재 센터컷 Item 실행 구간 ID',
-    parent_segment_id VARCHAR(120) NULL COMMENT '부모 센터컷/Worker 실행 구간 ID',
-    item_payload LONGTEXT NULL COMMENT '처리 입력 payload',
-    retry_count INT NOT NULL DEFAULT 0 COMMENT '재처리 횟수',
-    last_error_message VARCHAR(1000) NULL COMMENT '마지막 오류 메시지',
-    started_at DATETIME(3) NULL COMMENT '처리 시작 일시',
-    completed_at DATETIME(3) NULL COMMENT '처리 완료 일시',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (center_cut_item_id),
-    UNIQUE KEY uk_bat_center_cut_item_business (center_cut_job_id, business_key),
-    INDEX ix_bat_center_cut_item_status (center_cut_job_id, item_status, business_date),
-    INDEX ix_bat_center_cut_item_transaction (transaction_id, transaction_segment_id),
-    INDEX ix_bat_center_cut_item_parent_segment (parent_segment_id),
-    CONSTRAINT fk_bat_center_cut_item_job
-        FOREIGN KEY (center_cut_job_id) REFERENCES bat_center_cut_job(center_cut_job_id)
-        ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 센터컷 처리 대상';
-
-CREATE TABLE IF NOT EXISTS bat_center_cut_result (
-    center_cut_result_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '센터컷 결과 순번',
-    center_cut_item_id BIGINT NOT NULL COMMENT '센터컷 대상 순번',
-    center_cut_job_id VARCHAR(100) NOT NULL COMMENT '센터컷 Job ID',
-    result_status VARCHAR(30) NOT NULL COMMENT '처리 결과 상태',
-    result_payload LONGTEXT NULL COMMENT '처리 결과 payload',
-    result_message VARCHAR(1000) NULL COMMENT '처리 결과 메시지',
-    transaction_id CHAR(34) NULL COMMENT '센터컷 실행 전체가 승계하는 CPF transactionId',
-    transaction_segment_id VARCHAR(120) NULL COMMENT '결과를 생성한 거래 구간 ID',
-    parent_segment_id VARCHAR(120) NULL COMMENT '부모 센터컷/Worker 실행 구간 ID',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (center_cut_result_id),
-    INDEX ix_bat_center_cut_result_item (center_cut_item_id, result_status),
-    INDEX ix_bat_center_cut_result_transaction (transaction_id, transaction_segment_id),
-    INDEX ix_bat_center_cut_result_parent_segment (parent_segment_id),
-    INDEX ix_bat_center_cut_result_job (center_cut_job_id, created_at),
-    CONSTRAINT fk_bat_center_cut_result_item
-        FOREIGN KEY (center_cut_item_id) REFERENCES bat_center_cut_item(center_cut_item_id)
-        ON DELETE CASCADE,
-    CONSTRAINT fk_bat_center_cut_result_job
-        FOREIGN KEY (center_cut_job_id) REFERENCES bat_center_cut_job(center_cut_job_id)
-        ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 센터컷 처리 결과';
-
--- R15/R16/R17 BAT standalone runtime control-plane
-
-CREATE TABLE IF NOT EXISTS bat_runtime_instance (
-    instance_id VARCHAR(160) PRIMARY KEY COMMENT 'Runtime instance identifier',
-    runtime_role VARCHAR(40) NOT NULL COMMENT 'Standalone runtime role',
-    service_id VARCHAR(120) NOT NULL COMMENT 'Runtime service identifier',
-    was_id VARCHAR(120) NULL COMMENT 'WAS identifier',
-    host_alias VARCHAR(160) NULL COMMENT 'Registered host alias',
-    zone_id VARCHAR(80) NULL COMMENT 'Availability zone identifier',
-    pool_id VARCHAR(80) NULL COMMENT 'Runtime pool identifier',
-    artifact_version VARCHAR(80) NOT NULL COMMENT 'Running artifact version',
-    git_sha VARCHAR(64) NULL COMMENT 'Running source commit SHA',
-    artifact_checksum VARCHAR(128) NULL COMMENT 'Running artifact checksum',
-    profile_name VARCHAR(80) NULL COMMENT 'Active runtime profile',
-    desired_state VARCHAR(32) NOT NULL DEFAULT 'RUNNING' COMMENT 'Control-plane desired state',
-    actual_state VARCHAR(32) NOT NULL DEFAULT 'UNKNOWN' COMMENT 'Last observed runtime state',
-    config_version VARCHAR(80) NULL COMMENT 'Applied configuration version',
-    schema_compatibility VARCHAR(120) NULL COMMENT 'Supported schema version range',
-    started_at DATETIME(6) NULL COMMENT 'Runtime start time',
-    last_heartbeat_at DATETIME(6) NULL COMMENT 'Last heartbeat time',
-    fencing_token BIGINT NOT NULL DEFAULT 0 COMMENT 'Monotonic instance fencing token',
-    row_version BIGINT NOT NULL DEFAULT 0 COMMENT 'Optimistic locking version',
-    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT 'Registration time',
-    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT 'Last state update time',
-    KEY ix_bat_runtime_instance_service(service_id,actual_state),
-    KEY ix_bat_runtime_instance_heartbeat(last_heartbeat_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT standalone runtime instance registry';
-
-CREATE TABLE IF NOT EXISTS bat_runtime_capability (
-    instance_id VARCHAR(160) NOT NULL COMMENT 'Runtime instance identifier',
-    capability_code VARCHAR(80) NOT NULL COMMENT 'Advertised capability code',
-    PRIMARY KEY(instance_id,capability_code),
-    CONSTRAINT fk_bat_runtime_capability_instance FOREIGN KEY(instance_id)
-      REFERENCES bat_runtime_instance(instance_id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT runtime capability projection';
-
-CREATE TABLE IF NOT EXISTS bat_runtime_heartbeat (
-    heartbeat_id BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Heartbeat event identifier',
-    instance_id VARCHAR(160) NOT NULL COMMENT 'Runtime instance identifier',
-    heartbeat_at DATETIME(6) NOT NULL COMMENT 'Heartbeat observation time',
-    ready_yn CHAR(1) NOT NULL COMMENT 'Readiness flag',
-    available_capacity INT NOT NULL DEFAULT 0 COMMENT 'Available execution capacity',
-    queue_depth BIGINT NOT NULL DEFAULT 0 COMMENT 'Observed queue depth',
-    draining_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT 'Drain mode flag',
-    current_execution_count INT NOT NULL DEFAULT 0 COMMENT 'Current execution count',
-    active_lease_count INT NOT NULL DEFAULT 0 COMMENT 'Active lease count',
-    last_error_code VARCHAR(80) NULL COMMENT 'Last runtime error code',
-    deployment_version VARCHAR(80) NULL COMMENT 'Observed deployment version',
-    PRIMARY KEY(heartbeat_id),
-    KEY ix_bat_runtime_heartbeat_instance(instance_id,heartbeat_at),
-    CONSTRAINT fk_bat_runtime_heartbeat_instance FOREIGN KEY(instance_id)
-      REFERENCES bat_runtime_instance(instance_id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT runtime heartbeat event';
-
-CREATE TABLE IF NOT EXISTS bat_runtime_command (
-    command_id VARCHAR(80) PRIMARY KEY COMMENT 'Runtime command identifier',
-    idempotency_key VARCHAR(160) NOT NULL UNIQUE COMMENT 'Command idempotency key',
-    command_type VARCHAR(80) NOT NULL COMMENT 'Approved command type',
-    target_type VARCHAR(40) NOT NULL COMMENT 'Command target type',
-    target_snapshot_hash VARCHAR(128) NULL COMMENT 'Target snapshot checksum',
-    expected_version BIGINT NULL COMMENT 'Expected target version',
-    requested_by VARCHAR(120) NOT NULL COMMENT 'Command requester',
-    reason_text VARCHAR(1000) NOT NULL COMMENT 'Mandatory command reason',
-    approval_request_id VARCHAR(80) NULL COMMENT 'ADM approval request identifier',
-    approved_by VARCHAR(120) NULL COMMENT 'Command approver',
-    command_state VARCHAR(40) NOT NULL COMMENT 'Command lifecycle state',
-    execution_attempt INT NOT NULL DEFAULT 0 COMMENT 'Execution attempt count',
-    failure_stage VARCHAR(80) NULL COMMENT 'Last failed stage',
-    result_code VARCHAR(80) NULL COMMENT 'Command result code',
-    requested_at DATETIME(6) NOT NULL COMMENT 'Command request time',
-    expires_at DATETIME(6) NULL COMMENT 'Command expiry time',
-    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT 'Last command state update time',
-    transaction_id CHAR(34) NULL COMMENT 'CPF transactionId',
-    evidence_ref VARCHAR(500) NULL COMMENT 'Audit evidence reference'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT approved runtime command';
-
-CREATE TABLE IF NOT EXISTS bat_scheduler_lease (
-    scheduler_key VARCHAR(100) PRIMARY KEY COMMENT 'Scheduler leadership key',
-    owner_instance_id VARCHAR(160) NOT NULL COMMENT 'Current leader instance identifier',
-    fencing_token BIGINT NOT NULL COMMENT 'Monotonic leadership fencing token',
-    lease_until DATETIME(6) NOT NULL COMMENT 'Leadership lease expiry time',
-    last_heartbeat_at DATETIME(6) NOT NULL COMMENT 'Leader heartbeat time',
-    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT 'Last lease update time',
-    KEY ix_bat_scheduler_lease_expire(lease_until)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT scheduler leader lease';
-
-CREATE TABLE IF NOT EXISTS bat_schedule_trigger (
-    schedule_id VARCHAR(100) NOT NULL COMMENT 'Schedule identifier',
-    scheduled_fire_at DATETIME(6) NOT NULL COMMENT 'Planned fire time',
-    fencing_token BIGINT NOT NULL COMMENT 'Scheduler fencing token',
-    execution_id BIGINT NULL COMMENT 'Created execution identifier',
-    trigger_status VARCHAR(30) NOT NULL COMMENT 'Trigger result status',
-    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT 'Trigger record time',
-    PRIMARY KEY(schedule_id,scheduled_fire_at),
-    CONSTRAINT fk_bat_schedule_trigger_schedule FOREIGN KEY(schedule_id)
-      REFERENCES bat_schedule(schedule_id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT scheduled trigger evidence';
-
-CREATE TABLE IF NOT EXISTS bat_center_cut_claim (
-    center_cut_item_id BIGINT PRIMARY KEY COMMENT 'Claimed center-cut item identifier',
-    runner_id VARCHAR(160) NOT NULL COMMENT 'Owning runner identifier',
-    pool_id VARCHAR(80) NULL COMMENT 'Owning runner pool identifier',
-    claim_token VARCHAR(80) NOT NULL UNIQUE COMMENT 'Unique claim token',
-    claim_status VARCHAR(30) NOT NULL COMMENT 'Claim lifecycle status',
-    fencing_token BIGINT NOT NULL COMMENT 'Monotonic claim fencing token',
-    lease_until DATETIME(6) NOT NULL COMMENT 'Claim lease expiry time',
-    last_heartbeat_at DATETIME(6) NOT NULL COMMENT 'Claim heartbeat time',
-    attempt_no INT NOT NULL DEFAULT 1 COMMENT 'Claim attempt number',
-    takeover_count INT NOT NULL DEFAULT 0 COMMENT 'Claim takeover count',
-    released_at DATETIME(6) NULL COMMENT 'Claim release time',
-    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT 'Last claim update time',
-    CONSTRAINT fk_bat_center_cut_claim_item FOREIGN KEY(center_cut_item_id)
-      REFERENCES bat_center_cut_item(center_cut_item_id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT center-cut item lease claim';
-
-CREATE TABLE IF NOT EXISTS bat_deployment_cell (
-    cell_id VARCHAR(120) PRIMARY KEY COMMENT 'Deployment cell identifier',
-    environment_id VARCHAR(80) NOT NULL COMMENT 'Target environment identifier',
-    runtime_role VARCHAR(40) NOT NULL COMMENT 'Target runtime role',
-    service_id VARCHAR(120) NOT NULL COMMENT 'Target service identifier',
-    manifest_version VARCHAR(80) NOT NULL COMMENT 'Desired manifest version',
-    manifest_hash VARCHAR(128) NOT NULL COMMENT 'Desired manifest checksum',
-    desired_state VARCHAR(32) NOT NULL COMMENT 'Desired cell state',
-    row_version BIGINT NOT NULL DEFAULT 0 COMMENT 'Optimistic locking version',
-    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT 'Cell registration time',
-    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT 'Last desired-state update time'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT deployment cell desired state';
-
-CREATE TABLE IF NOT EXISTS bat_deployment_instance (
-    cell_id VARCHAR(120) NOT NULL COMMENT 'Deployment cell identifier',
-    instance_id VARCHAR(160) NOT NULL COMMENT 'Runtime instance identifier',
-    host_alias VARCHAR(160) NOT NULL COMMENT 'Target host alias',
-    port_no INT NOT NULL COMMENT 'Runtime service port',
-    profile_name VARCHAR(80) NOT NULL COMMENT 'Runtime profile name',
-    zone_id VARCHAR(80) NULL COMMENT 'Availability zone identifier',
-    pool_id VARCHAR(80) NULL COMMENT 'Runtime pool identifier',
-    agent_base_url VARCHAR(500) NOT NULL COMMENT 'Approved host-agent base URL',
-    config_ref VARCHAR(1000) NULL COMMENT 'External configuration reference',
-    desired_state VARCHAR(32) NOT NULL COMMENT 'Desired instance state',
-    PRIMARY KEY(cell_id,instance_id),
-    UNIQUE KEY uk_bat_deployment_instance_id(instance_id),
-    CONSTRAINT fk_bat_deployment_instance_cell FOREIGN KEY(cell_id)
-      REFERENCES bat_deployment_cell(cell_id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT deployment cell instance projection';
-
-CREATE TABLE IF NOT EXISTS bat_deployment_plan (
-    plan_id VARCHAR(80) PRIMARY KEY COMMENT 'Deployment plan identifier',
-    cell_id VARCHAR(120) NOT NULL COMMENT 'Target deployment cell identifier',
-    manifest_json LONGTEXT NOT NULL COMMENT 'Immutable deployment manifest snapshot',
-    manifest_hash VARCHAR(128) NOT NULL COMMENT 'Deployment manifest checksum',
-    requested_by VARCHAR(120) NOT NULL COMMENT 'Plan requester',
-    reason_text VARCHAR(1000) NOT NULL COMMENT 'Mandatory deployment reason',
-    plan_state VARCHAR(40) NOT NULL COMMENT 'Deployment plan lifecycle state',
-    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT 'Plan request time',
-    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT 'Last plan state update time'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT deployment plan';
-
-CREATE TABLE IF NOT EXISTS bat_deployment_lock (
-    cell_id VARCHAR(120) PRIMARY KEY COMMENT 'Locked deployment cell identifier',
-    owner_deployment_id VARCHAR(80) NOT NULL COMMENT 'Lock owner deployment identifier',
-    fencing_token BIGINT NOT NULL COMMENT 'Monotonic deployment fencing token',
-    locked_at DATETIME(6) NOT NULL COMMENT 'Lock acquisition time',
-    expires_at DATETIME(6) NOT NULL COMMENT 'Lock expiry time'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT deployment cell lease lock';
 
 CREATE TABLE IF NOT EXISTS bat_version_compatibility (
     compatibility_id BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Compatibility rule identifier',
@@ -2537,418 +2722,134 @@ CREATE TABLE IF NOT EXISTS bat_version_compatibility (
     schema_range VARCHAR(120) NULL COMMENT 'Compatible schema version range',
     required_capability VARCHAR(80) NULL COMMENT 'Required runtime capability',
     enabled_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT 'Rule enabled flag',
-    PRIMARY KEY(compatibility_id)
+    CONSTRAINT pk_bat_version_compatibility PRIMARY KEY (compatibility_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT artifact and schema compatibility contract';
-ALTER TABLE bat_execution_lease ADD COLUMN IF NOT EXISTS fencing_token BIGINT NOT NULL DEFAULT 0 COMMENT 'monotonic fencing token' AFTER takeover_count;
-ALTER TABLE bat_runtime_command ADD COLUMN IF NOT EXISTS target_snapshot LONGTEXT NULL AFTER target_type;
-ALTER TABLE bat_runtime_command ADD COLUMN IF NOT EXISTS approval_policy_version VARCHAR(80) NULL AFTER reason_text;
-ALTER TABLE bat_runtime_command ADD COLUMN IF NOT EXISTS result_text LONGTEXT NULL AFTER execution_attempt;
-ALTER TABLE bat_runtime_command ADD COLUMN IF NOT EXISTS before_state LONGTEXT NULL AFTER failure_stage;
-ALTER TABLE bat_runtime_command ADD COLUMN IF NOT EXISTS after_state LONGTEXT NULL AFTER before_state;
-ALTER TABLE bat_execution ADD COLUMN IF NOT EXISTS stop_requested_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '운영 중지 요청 여부' AFTER retry_count;
 
-CREATE TABLE IF NOT EXISTS bat_runtime_command_attempt (
-    attempt_id BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Command attempt identifier',
-    command_id VARCHAR(80) NOT NULL COMMENT 'Runtime command identifier',
-    attempt_no INT NOT NULL COMMENT 'Command attempt number',
-    instance_id VARCHAR(160) NULL COMMENT 'Target runtime instance identifier',
-    stage_code VARCHAR(80) NOT NULL COMMENT 'Attempt execution stage',
-    attempt_state VARCHAR(40) NOT NULL COMMENT 'Attempt result state',
-    result_message VARCHAR(4000) NULL COMMENT 'Attempt result detail',
-    started_at DATETIME(6) NOT NULL COMMENT 'Attempt start time',
-    finished_at DATETIME(6) NULL COMMENT 'Attempt finish time',
-    PRIMARY KEY(attempt_id),
-    UNIQUE KEY uk_bat_runtime_command_attempt(command_id,attempt_no,instance_id,stage_code),
-    KEY ix_bat_runtime_command_attempt_instance(instance_id,started_at),
-    CONSTRAINT fk_bat_runtime_command_attempt_command FOREIGN KEY(command_id)
-      REFERENCES bat_runtime_command(command_id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT runtime command execution attempt';
+CREATE TABLE IF NOT EXISTS bat_worker (
+    worker_id VARCHAR(160) NOT NULL COMMENT '배치 worker ID',
+    server_instance_id VARCHAR(160) NOT NULL COMMENT '서버 인스턴스 ID',
+    host_name VARCHAR(150) NULL COMMENT '호스트명',
+    process_id VARCHAR(80) NULL COMMENT '프로세스 ID',
+    thread_name VARCHAR(160) NULL COMMENT '스레드명',
+    worker_version VARCHAR(80) NOT NULL DEFAULT 'unknown' COMMENT 'worker 배포 버전',
+    capabilities_json LONGTEXT NULL COMMENT 'worker 지원 Job 및 capability JSON',
+    max_concurrency INT NOT NULL DEFAULT 1 COMMENT 'worker 최대 동시 실행 수',
+    queue_capacity INT NOT NULL DEFAULT 1 COMMENT 'worker 내부 대기열 허용 수',
+    control_status VARCHAR(30) NOT NULL DEFAULT 'RUNNING' COMMENT 'RUNNING, DRAINING, STOPPED 제어 상태',
+    worker_status VARCHAR(30) NOT NULL DEFAULT 'IDLE' COMMENT 'worker 상태',
+    active_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '활성 여부',
+    last_heartbeat_at DATETIME(3) NULL COMMENT '마지막 heartbeat 일시',
+    current_job_id VARCHAR(100) NULL COMMENT '현재 실행 Job ID',
+    current_execution_id BIGINT NULL COMMENT '현재 BAT 배치 실행 순번',
+    description VARCHAR(500) NULL COMMENT 'worker 설명',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_bat_worker PRIMARY KEY (worker_id),
+    INDEX ix_bat_worker_server (server_instance_id, active_yn),
+    INDEX ix_bat_worker_status (worker_status, last_heartbeat_at),
+    INDEX ix_bat_worker_control (control_status, active_yn, last_heartbeat_at),
+    INDEX ix_bat_worker_current_job (current_job_id, current_execution_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 배치 worker heartbeat';
 
-CREATE TABLE IF NOT EXISTS bat_deployment_execution (
-    deployment_id VARCHAR(80) NOT NULL COMMENT 'Deployment execution identifier',
-    cell_id VARCHAR(120) NOT NULL COMMENT 'Target deployment cell identifier',
-    idempotency_key VARCHAR(160) NOT NULL COMMENT 'Deployment idempotency key',
-    from_version VARCHAR(80) NULL COMMENT 'Previous artifact version',
-    to_version VARCHAR(80) NOT NULL COMMENT 'Target artifact version',
-    strategy_code VARCHAR(32) NOT NULL COMMENT 'ROLLING/CANARY/BLUE_GREEN strategy',
-    execution_state VARCHAR(40) NOT NULL COMMENT 'Deployment execution state',
-    failure_stage VARCHAR(80) NULL COMMENT 'Failed deployment stage',
-    result_message VARCHAR(4000) NULL COMMENT 'Deployment result detail',
-    requested_by VARCHAR(120) NOT NULL COMMENT 'Deployment requester',
-    approved_by VARCHAR(120) NOT NULL COMMENT 'Deployment approver',
-    reason_text VARCHAR(1000) NOT NULL COMMENT 'Mandatory deployment reason',
-    started_at DATETIME(6) NULL COMMENT 'Deployment start time',
-    finished_at DATETIME(6) NULL COMMENT 'Deployment finish time',
-    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT 'Deployment record time',
-    PRIMARY KEY(deployment_id),
-    UNIQUE KEY uk_bat_deployment_execution_idempotency(idempotency_key),
-    KEY ix_bat_deployment_execution_cell_state(cell_id,execution_state),
-    CONSTRAINT fk_bat_deployment_execution_cell FOREIGN KEY(cell_id)
-      REFERENCES bat_deployment_cell(cell_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT approved deployment execution';
+CREATE TABLE IF NOT EXISTS BATCH_JOB_EXECUTION (
+    JOB_EXECUTION_ID BIGINT NOT NULL COMMENT 'Spring Batch JobExecution 순번',
+    VERSION BIGINT NULL COMMENT '낙관적 잠금 버전',
+    JOB_INSTANCE_ID BIGINT NOT NULL COMMENT 'Spring Batch JobInstance 순번',
+    CREATE_TIME DATETIME(6) NOT NULL COMMENT '실행 생성 일시',
+    START_TIME DATETIME(6) NULL DEFAULT NULL COMMENT '실행 시작 일시',
+    END_TIME DATETIME(6) NULL DEFAULT NULL COMMENT '실행 종료 일시',
+    STATUS VARCHAR(10) NULL COMMENT '실행 상태',
+    EXIT_CODE VARCHAR(2500) NULL COMMENT '종료 코드',
+    EXIT_MESSAGE VARCHAR(2500) NULL COMMENT '종료 메시지',
+    LAST_UPDATED DATETIME(6) NULL COMMENT '마지막 수정 일시',
+    CONSTRAINT pk_BATCH_JOB_EXECUTION PRIMARY KEY (JOB_EXECUTION_ID),
+    CONSTRAINT JOB_INST_EXEC_FK FOREIGN KEY (JOB_INSTANCE_ID) REFERENCES BATCH_JOB_INSTANCE (JOB_INSTANCE_ID)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Spring Batch 표준 JobExecution 저장소';
 
-CREATE TABLE IF NOT EXISTS bat_deployment_instance_result (
-    deployment_result_id BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Instance result identifier',
-    deployment_id VARCHAR(80) NOT NULL COMMENT 'Deployment execution identifier',
-    sequence_no INT NOT NULL COMMENT 'Ordered result sequence',
-    instance_id VARCHAR(160) NOT NULL COMMENT 'Target runtime instance identifier',
-    stage_code VARCHAR(80) NOT NULL COMMENT 'Deployment stage code',
-    result_state VARCHAR(40) NOT NULL COMMENT 'Instance stage result state',
-    result_message VARCHAR(4000) NULL COMMENT 'Instance stage result detail',
-    recorded_at DATETIME(6) NOT NULL COMMENT 'Result record time',
-    PRIMARY KEY(deployment_result_id),
-    UNIQUE KEY uk_bat_deployment_instance_result(deployment_id,sequence_no),
-    KEY ix_bat_deployment_instance_result_instance(instance_id,recorded_at),
-    CONSTRAINT fk_bat_deployment_instance_result_execution FOREIGN KEY(deployment_id)
-      REFERENCES bat_deployment_execution(deployment_id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT per-instance deployment result';
-ALTER TABLE bat_deployment_cell ADD COLUMN IF NOT EXISTS desired_instance_count INT NOT NULL DEFAULT 1 AFTER desired_state;
+CREATE TABLE IF NOT EXISTS BATCH_JOB_EXECUTION_CONTEXT (
+    JOB_EXECUTION_ID BIGINT NOT NULL COMMENT 'Spring Batch JobExecution 순번',
+    SHORT_CONTEXT VARCHAR(2500) NOT NULL COMMENT '짧은 실행 컨텍스트',
+    SERIALIZED_CONTEXT TEXT NULL COMMENT '직렬화 실행 컨텍스트',
+    CONSTRAINT pk_BATCH_JOB_EXECUTION_CONTEXT PRIMARY KEY (JOB_EXECUTION_ID),
+    CONSTRAINT JOB_EXEC_CTX_FK FOREIGN KEY (JOB_EXECUTION_ID) REFERENCES BATCH_JOB_EXECUTION (JOB_EXECUTION_ID)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Spring Batch 표준 Job 컨텍스트 저장소';
 
+CREATE TABLE IF NOT EXISTS BATCH_JOB_EXECUTION_PARAMS (
+    JOB_EXECUTION_ID BIGINT NOT NULL COMMENT 'Spring Batch JobExecution 순번',
+    PARAMETER_NAME VARCHAR(100) NOT NULL COMMENT '파라미터 이름',
+    PARAMETER_TYPE VARCHAR(100) NOT NULL COMMENT '파라미터 Java 유형',
+    PARAMETER_VALUE VARCHAR(2500) NULL COMMENT '파라미터 값',
+    IDENTIFYING CHAR(1) NOT NULL COMMENT 'JobInstance 식별 파라미터 여부',
+    CONSTRAINT JOB_EXEC_PARAMS_FK FOREIGN KEY (JOB_EXECUTION_ID) REFERENCES BATCH_JOB_EXECUTION (JOB_EXECUTION_ID)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Spring Batch 표준 Job 파라미터 저장소';
 
-CREATE TABLE IF NOT EXISTS bat_job_pack (
-    job_pack_id VARCHAR(120) NOT NULL COMMENT 'Job-pack identifier',
-    owner_domain VARCHAR(20) NOT NULL COMMENT 'Owning domain SystemCode',
-    artifact_coordinate VARCHAR(240) NOT NULL COMMENT 'Job-pack artifact coordinate',
-    artifact_version VARCHAR(80) NOT NULL COMMENT 'Job-pack artifact version',
-    artifact_checksum VARCHAR(128) NULL COMMENT 'Job-pack artifact checksum',
-    signature_present_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT 'Artifact signature presence flag',
-    platform_range VARCHAR(120) NULL COMMENT 'Compatible CPF platform range',
-    manifest_json LONGTEXT NOT NULL COMMENT 'Validated job-pack manifest',
-    last_registered_at DATETIME(6) NOT NULL COMMENT 'Last catalog registration time',
-    PRIMARY KEY(job_pack_id),
-    KEY ix_bat_job_pack_owner(owner_domain,artifact_version)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT external job-pack catalog';
+CREATE TABLE IF NOT EXISTS BATCH_JOB_INSTANCE (
+    JOB_INSTANCE_ID BIGINT NOT NULL COMMENT 'Spring Batch JobInstance 순번',
+    VERSION BIGINT NULL COMMENT '낙관적 잠금 버전',
+    JOB_NAME VARCHAR(100) NOT NULL COMMENT 'Spring Batch Job 이름',
+    JOB_KEY VARCHAR(32) NOT NULL COMMENT 'Job 파라미터 식별 키',
+    CONSTRAINT pk_BATCH_JOB_INSTANCE PRIMARY KEY (JOB_INSTANCE_ID),
+    CONSTRAINT JOB_INST_UN UNIQUE (JOB_NAME, JOB_KEY)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Spring Batch 표준 JobInstance 저장소';
 
-CREATE TABLE IF NOT EXISTS bat_job_pack_job (
-    job_pack_id VARCHAR(120) NOT NULL COMMENT 'Owning job-pack identifier',
-    job_id VARCHAR(100) NOT NULL COMMENT 'Published job identifier',
-    restartable_yn CHAR(1) NOT NULL COMMENT 'Job restartability flag',
-    center_cut_provider_key VARCHAR(100) NULL COMMENT 'Center-cut target provider key',
-    center_cut_handler_key VARCHAR(100) NULL COMMENT 'Center-cut item handler key',
-    PRIMARY KEY(job_pack_id,job_id),
-    CONSTRAINT fk_bat_job_pack_job_pack FOREIGN KEY(job_pack_id)
-      REFERENCES bat_job_pack(job_pack_id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT job-pack job projection';
+CREATE TABLE IF NOT EXISTS BATCH_STEP_EXECUTION (
+    STEP_EXECUTION_ID BIGINT NOT NULL COMMENT 'Spring Batch StepExecution 순번',
+    VERSION BIGINT NOT NULL COMMENT '낙관적 잠금 버전',
+    STEP_NAME VARCHAR(100) NOT NULL COMMENT 'Step 이름',
+    JOB_EXECUTION_ID BIGINT NOT NULL COMMENT 'Spring Batch JobExecution 순번',
+    CREATE_TIME DATETIME(6) NOT NULL COMMENT 'Step 생성 일시',
+    START_TIME DATETIME(6) NULL DEFAULT NULL COMMENT 'Step 시작 일시',
+    END_TIME DATETIME(6) NULL DEFAULT NULL COMMENT 'Step 종료 일시',
+    STATUS VARCHAR(10) NULL COMMENT 'Step 상태',
+    COMMIT_COUNT BIGINT NULL COMMENT '커밋 횟수',
+    READ_COUNT BIGINT NULL COMMENT '읽은 건수',
+    FILTER_COUNT BIGINT NULL COMMENT '필터 건수',
+    WRITE_COUNT BIGINT NULL COMMENT '쓴 건수',
+    READ_SKIP_COUNT BIGINT NULL COMMENT '읽기 skip 건수',
+    WRITE_SKIP_COUNT BIGINT NULL COMMENT '쓰기 skip 건수',
+    PROCESS_SKIP_COUNT BIGINT NULL COMMENT '처리 skip 건수',
+    ROLLBACK_COUNT BIGINT NULL COMMENT 'rollback 건수',
+    EXIT_CODE VARCHAR(2500) NULL COMMENT '종료 코드',
+    EXIT_MESSAGE VARCHAR(2500) NULL COMMENT '종료 메시지',
+    LAST_UPDATED DATETIME(6) NULL COMMENT '마지막 수정 일시',
+    CONSTRAINT pk_BATCH_STEP_EXECUTION PRIMARY KEY (STEP_EXECUTION_ID),
+    CONSTRAINT JOB_EXEC_STEP_FK FOREIGN KEY (JOB_EXECUTION_ID) REFERENCES BATCH_JOB_EXECUTION (JOB_EXECUTION_ID)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Spring Batch 표준 StepExecution 저장소';
 
--- R15/R16/R17 Center-Cut immutable execution/runtime policy.
-CREATE TABLE IF NOT EXISTS bat_center_cut_execution (
-    center_cut_execution_id VARCHAR(80) NOT NULL COMMENT 'Center-cut execution identifier',
-    center_cut_job_id VARCHAR(100) NOT NULL COMMENT 'Center-cut job definition identifier',
-    idempotency_key VARCHAR(160) NOT NULL COMMENT 'Execution idempotency key',
-    execution_state VARCHAR(30) NOT NULL COMMENT 'Center-cut execution state',
-    parameter_ciphertext LONGTEXT NOT NULL COMMENT 'Encrypted immutable parameter snapshot',
-    parameter_hash VARCHAR(64) NOT NULL COMMENT 'Parameter snapshot SHA-256',
-    parameter_schema_version VARCHAR(80) NOT NULL COMMENT 'Parameter schema version',
-    target_cursor VARCHAR(1000) NULL COMMENT 'Last generated target cursor',
-    target_complete_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT 'Target generation completion flag',
-    target_count BIGINT NOT NULL DEFAULT 0 COMMENT 'Generated target count',
-    tps_limit INT NOT NULL DEFAULT 0 COMMENT 'Global transactions-per-second limit',
-    concurrency_limit INT NOT NULL DEFAULT 1 COMMENT 'Global runner concurrency limit',
-    processed_count BIGINT NOT NULL DEFAULT 0 COMMENT 'Processed item count',
-    success_count BIGINT NOT NULL DEFAULT 0 COMMENT 'Successful item count',
-    failure_count BIGINT NOT NULL DEFAULT 0 COMMENT 'Failed item count',
-    unknown_count BIGINT NOT NULL DEFAULT 0 COMMENT 'Unknown-result item count',
-    transaction_id CHAR(34) NULL COMMENT 'CPF transactionId',
-    parent_segment_id VARCHAR(120) NULL COMMENT 'Parent trace segment identifier',
-    requested_by VARCHAR(120) NOT NULL COMMENT 'Execution requester',
-    reason_text VARCHAR(1000) NOT NULL COMMENT 'Mandatory execution reason',
-    last_error_message VARCHAR(1000) NULL COMMENT 'Last execution error detail',
-    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT 'Execution request time',
-    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT 'Last execution state update time',
-    completed_at DATETIME(6) NULL COMMENT 'Execution completion time',
-    PRIMARY KEY(center_cut_execution_id),
-    UNIQUE KEY uk_bat_center_cut_execution_idempotency(idempotency_key),
-    KEY ix_bat_center_cut_execution_job_state(center_cut_job_id,execution_state,created_at),
-    CONSTRAINT fk_bat_center_cut_execution_job FOREIGN KEY(center_cut_job_id)
-      REFERENCES bat_center_cut_job(center_cut_job_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT center-cut immutable execution policy';
+CREATE TABLE IF NOT EXISTS BATCH_STEP_EXECUTION_CONTEXT (
+    STEP_EXECUTION_ID BIGINT NOT NULL COMMENT 'Spring Batch StepExecution 순번',
+    SHORT_CONTEXT VARCHAR(2500) NOT NULL COMMENT '짧은 실행 컨텍스트',
+    SERIALIZED_CONTEXT TEXT NULL COMMENT '직렬화 실행 컨텍스트',
+    CONSTRAINT pk_BATCH_STEP_EXECUTION_CONTEXT PRIMARY KEY (STEP_EXECUTION_ID),
+    CONSTRAINT STEP_EXEC_CTX_FK FOREIGN KEY (STEP_EXECUTION_ID) REFERENCES BATCH_STEP_EXECUTION (STEP_EXECUTION_ID)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Spring Batch 표준 Step 컨텍스트 저장소';
 
-CREATE TABLE IF NOT EXISTS bat_center_cut_rate_window (
-    center_cut_execution_id VARCHAR(80) NOT NULL COMMENT 'Center-cut execution identifier',
-    window_second BIGINT NOT NULL COMMENT 'UTC epoch-second rate window',
-    admitted_count INT NOT NULL DEFAULT 0 COMMENT 'Items admitted in this window',
-    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT 'Last bucket update time',
-    PRIMARY KEY(center_cut_execution_id,window_second),
-    CONSTRAINT fk_bat_center_cut_rate_execution FOREIGN KEY(center_cut_execution_id)
-      REFERENCES bat_center_cut_execution(center_cut_execution_id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT center-cut global rate window';
+-- CPF_CANONICAL_OBJECTS_BEGIN spring-batch-6-sequences
+-- Generated from cpf-tools/db/canonical/platform-non-table-objects.json.
+-- Spring Batch 6.0.4 JobRepository sequence contract; do not edit vendor SQL directly.
+CREATE SEQUENCE IF NOT EXISTS BATCH_JOB_INSTANCE_SEQ
+    START WITH 1 MINVALUE 1 MAXVALUE 9223372036854775806
+    INCREMENT BY 1 NOCACHE NOCYCLE ENGINE=InnoDB;
 
-ALTER TABLE bat_center_cut_item ADD COLUMN IF NOT EXISTS center_cut_execution_id VARCHAR(80) NULL AFTER center_cut_job_id;
-ALTER TABLE bat_center_cut_item ADD INDEX IF NOT EXISTS ix_bat_center_cut_item_execution_status(center_cut_execution_id,item_status,center_cut_item_id);
-ALTER TABLE bat_center_cut_item ADD CONSTRAINT fk_bat_center_cut_item_execution FOREIGN KEY(center_cut_execution_id)
-  REFERENCES bat_center_cut_execution(center_cut_execution_id) ON DELETE CASCADE;
+CREATE SEQUENCE IF NOT EXISTS BATCH_JOB_EXECUTION_SEQ
+    START WITH 1 MINVALUE 1 MAXVALUE 9223372036854775806
+    INCREMENT BY 1 NOCACHE NOCYCLE ENGINE=InnoDB;
 
-
-ALTER TABLE bat_center_cut_item DROP INDEX IF EXISTS uk_bat_center_cut_item_business;
-ALTER TABLE bat_center_cut_item ADD UNIQUE INDEX IF NOT EXISTS uk_bat_center_cut_item_execution_business(center_cut_execution_id,business_key);
+CREATE SEQUENCE IF NOT EXISTS BATCH_STEP_EXECUTION_SEQ
+    START WITH 1 MINVALUE 1 MAXVALUE 9223372036854775806
+    INCREMENT BY 1 NOCACHE NOCYCLE ENGINE=InnoDB;
+-- CPF_CANONICAL_OBJECTS_END spring-batch-6-sequences
 -- ============================================================================
 -- cpf-tools/db/vendor/mariadb/source/40_business_modules_schema.sql
 -- ============================================================================
--- 업무/교육 샘플 스키마입니다.
--- 기본 업무 스키마는 REF 교육, MBR 회원, BZA 업무 백오피스 주제영역으로 구성합니다.
+-- AUTO-GENERATED from cpf-tools/db/canonical/platform-schema.json
+-- vendor=mariadb
+-- DO NOT EDIT generated DDL directly.
 
-USE refDB;
-
--- Minimal Transaction Reference Schema Template의 REF 인스턴스입니다.
--- MBR/ACC/Generator 신규 Domain도 Schema/SystemCode/Table prefix만 바꾸고
--- 같은 논리 Column/Constraint 계약을 사용합니다.
-CREATE TABLE IF NOT EXISTS ref_sample_item (
-    sample_item_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '샘플 항목 ID',
-    sample_key VARCHAR(100) NOT NULL COMMENT '업무 멱등·중복 검증 키',
-    item_name VARCHAR(200) NOT NULL COMMENT '최소 업무 데이터명',
-    category_code VARCHAR(30) NOT NULL DEFAULT 'GENERAL' COMMENT '검색 분류 코드',
-    status_code VARCHAR(30) NOT NULL DEFAULT 'ACTIVE' COMMENT '상태 코드',
-    searchable_text VARCHAR(500) NULL COMMENT '검색 검증용 값',
-    owner_reference VARCHAR(100) NULL COMMENT '다른 Domain을 직접 조인하지 않는 참조값',
-    sort_order BIGINT NOT NULL DEFAULT 0 COMMENT '안정 정렬용 순번',
-    version_no BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 버전',
-    deleted_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '논리 삭제 여부',
-    transaction_id CHAR(34) NULL COMMENT 'CPF 거래 추적 ID',
-    idempotency_key VARCHAR(100) NULL COMMENT '거래 멱등 키',
-    created_by VARCHAR(100) NOT NULL COMMENT '등록자',
-    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL COMMENT '수정자',
-    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
-    PRIMARY KEY (sample_item_id),
-    CONSTRAINT uk_ref_sample_item_key UNIQUE (sample_key),
-    CONSTRAINT uk_ref_sample_item_idempotency UNIQUE (idempotency_key),
-    CONSTRAINT ck_ref_sample_item_status CHECK (status_code IN ('ACTIVE', 'INACTIVE')),
-    CONSTRAINT ck_ref_sample_item_version CHECK (version_no >= 0),
-    CONSTRAINT ck_ref_sample_item_deleted CHECK (deleted_yn IN ('Y', 'N')),
-    INDEX ix_ref_sample_item_status_sort (status_code, sort_order, sample_item_id),
-    INDEX ix_ref_sample_item_category_sort (category_code, sort_order, sample_item_id),
-    INDEX ix_ref_sample_item_name_sort (item_name, sample_item_id),
-    INDEX ix_ref_sample_item_transaction (transaction_id)
-) ENGINE=InnoDB
-  DEFAULT CHARSET=utf8mb4
-  COLLATE=utf8mb4_unicode_ci
-  COMMENT='REF Minimal Transaction Reference Sample';
-
-CREATE TABLE IF NOT EXISTS ref_center_cut_sample_target (
-    target_id VARCHAR(80) NOT NULL COMMENT '센터컷 샘플 대상 ID',
-    center_cut_job_id VARCHAR(100) NOT NULL COMMENT '센터컷 Job ID',
-    business_key VARCHAR(200) NOT NULL COMMENT '업무 멱등 키',
-    business_date DATE NOT NULL COMMENT '업무 기준일',
-    target_payload LONGTEXT NULL COMMENT '처리 입력 payload',
-    status_code VARCHAR(30) NOT NULL DEFAULT 'READY' COMMENT '대상 상태 코드',
-    retry_count INT NOT NULL DEFAULT 0 COMMENT '재처리 횟수',
-    transaction_id CHAR(34) NULL COMMENT '센터컷 실행 전체가 승계하는 CPF transactionId',
-    parent_segment_id VARCHAR(120) NULL COMMENT '부모 거래 구간 ID',
-    transaction_segment_id VARCHAR(120) NULL COMMENT '현재 거래 구간 ID',
-    started_at DATETIME NULL COMMENT '처리 시작 일시',
-    completed_at DATETIME NULL COMMENT '처리 완료 일시',
-    last_error_message VARCHAR(1000) NULL COMMENT '마지막 오류 메시지',
-    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'REF' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'REF' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (target_id),
-    UNIQUE KEY uk_ref_center_cut_sample_target_business (center_cut_job_id, business_key),
-    INDEX ix_ref_center_cut_sample_target_status (center_cut_job_id, status_code, business_date),
-    INDEX ix_ref_center_cut_sample_target_transaction (transaction_id, transaction_segment_id),
-    INDEX ix_ref_center_cut_sample_target_parent_segment (parent_segment_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='REF 센터컷 샘플 대상';
-
-CREATE TABLE IF NOT EXISTS ref_center_cut_sample_result (
-    result_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '센터컷 샘플 결과 순번',
-    target_id VARCHAR(80) NOT NULL COMMENT '센터컷 샘플 대상 ID',
-    center_cut_job_id VARCHAR(100) NOT NULL COMMENT '센터컷 Job ID',
-    business_key VARCHAR(200) NOT NULL COMMENT '업무 멱등 키',
-    result_status VARCHAR(30) NOT NULL COMMENT '처리 결과 상태',
-    result_payload LONGTEXT NULL COMMENT '처리 결과 payload',
-    result_message VARCHAR(1000) NULL COMMENT '처리 결과 메시지',
-    transaction_id CHAR(34) NULL COMMENT '센터컷 실행 전체가 승계하는 CPF transactionId',
-    parent_segment_id VARCHAR(120) NULL COMMENT '부모 거래 구간 ID',
-    transaction_segment_id VARCHAR(120) NULL COMMENT '현재 거래 구간 ID',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'REF' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'REF' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (result_id),
-    UNIQUE KEY uk_ref_center_cut_sample_result_target (target_id),
-    INDEX ix_ref_center_cut_sample_result_job (center_cut_job_id, result_status, created_at),
-    INDEX ix_ref_center_cut_sample_result_transaction (transaction_id, transaction_segment_id),
-    INDEX ix_ref_center_cut_sample_result_parent_segment (parent_segment_id),
-    CONSTRAINT fk_ref_center_cut_sample_result_target
-        FOREIGN KEY (target_id) REFERENCES ref_center_cut_sample_target(target_id)
-        ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='REF 센터컷 샘플 결과';
-
-USE mbrDB;
-
--- MBR 실제 회원 운영 정본. mbr_sample_item은 Generator parity용 Golden Sample이며 운영 회원 테이블과 역할이 다릅니다.
-CREATE TABLE IF NOT EXISTS mbr_member (
-    id BIGINT NOT NULL AUTO_INCREMENT COMMENT '회원 순번',
-    member_no VARCHAR(50) NOT NULL COMMENT '회원 번호',
-    customer_no VARCHAR(50) NOT NULL COMMENT '고객 번호',
-    login_id VARCHAR(80) NOT NULL COMMENT '로그인 ID',
-    password_hash VARCHAR(300) NULL COMMENT '회원 비밀번호 hash',
-    login_fail_count INT NOT NULL DEFAULT 0 COMMENT '로그인 실패 횟수',
-    password_change_required_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '비밀번호 강제 변경 여부',
-    password_expire_at DATETIME NULL COMMENT '비밀번호 만료 일시',
-    name VARCHAR(100) NOT NULL COMMENT '회원명',
-    email VARCHAR(200) NULL COMMENT '이메일',
-    mobile_no VARCHAR(50) NULL COMMENT '휴대폰 번호',
-    member_status VARCHAR(30) NOT NULL DEFAULT 'ACTIVE' COMMENT '회원 상태',
-    lock_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '잠금 여부',
-    withdraw_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '탈퇴 여부',
-    channel_code VARCHAR(30) NOT NULL DEFAULT 'WEB' COMMENT '가입 채널 코드',
-    joined_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '가입일시',
-    last_login_at DATETIME NULL COMMENT '최근 로그인일시',
-    description TEXT NULL COMMENT '회원 설명',
-    version_no BIGINT NOT NULL DEFAULT 0 COMMENT '회원 낙관적 잠금 Version',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (id),
-    UNIQUE KEY uk_mbr_member_no (member_no),
-    UNIQUE KEY uk_mbr_member_login_id (login_id),
-    INDEX ix_mbr_member_customer (customer_no),
-    INDEX ix_mbr_member_status (member_status, lock_yn, withdraw_yn),
-    CONSTRAINT ck_mbr_member_version CHECK (version_no >= 0)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='MBR 회원';
-
-CREATE TABLE IF NOT EXISTS mbr_member_role (
-    member_role_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '회원 권한 순번',
-    member_id BIGINT NOT NULL COMMENT '회원 순번',
-    service_code VARCHAR(30) NOT NULL DEFAULT 'MBR' COMMENT '서비스 코드',
-    role_code VARCHAR(50) NOT NULL COMMENT '회원 역할 코드',
-    role_name VARCHAR(100) NULL COMMENT '회원 역할명',
-    role_type VARCHAR(30) NOT NULL DEFAULT 'SERVICE' COMMENT '회원 역할 유형',
-    grade_code VARCHAR(50) NULL COMMENT '회원 등급 코드',
-    temporary_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '임시 권한 여부',
-    expire_at DATETIME NULL COMMENT '권한 만료일시',
-    granted_by VARCHAR(100) NULL COMMENT '권한 부여자',
-    granted_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '권한 부여일시',
-    revoked_by VARCHAR(100) NULL COMMENT '권한 회수자',
-    revoked_at DATETIME NULL COMMENT '권한 회수일시',
-    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
-    grant_reason VARCHAR(500) NULL COMMENT '권한 부여/갱신 사유',
-    version_no BIGINT NOT NULL DEFAULT 0 COMMENT '권한 낙관적 잠금 Version',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (member_role_id),
-    UNIQUE KEY uk_mbr_member_role (member_id, service_code, role_code),
-    INDEX ix_mbr_member_role_member (member_id, use_yn),
-    CONSTRAINT ck_mbr_member_role_version CHECK (version_no >= 0),
-    CONSTRAINT fk_mbr_member_role_member FOREIGN KEY (member_id) REFERENCES mbr_member(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='MBR 회원 권한';
-
-CREATE TABLE IF NOT EXISTS mbr_member_role_history (
-    history_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '회원 권한 이력 순번',
-    member_id BIGINT NOT NULL COMMENT '회원 순번',
-    service_code VARCHAR(30) NOT NULL COMMENT '서비스 코드',
-    role_code VARCHAR(50) NOT NULL COMMENT '회원 역할 코드',
-    action_type VARCHAR(30) NOT NULL COMMENT '권한 행위 유형',
-    reason VARCHAR(500) NOT NULL COMMENT '권한 변경 사유',
-    before_data LONGTEXT NULL COMMENT '변경 전 데이터',
-    after_data LONGTEXT NULL COMMENT '변경 후 데이터',
-    operator_id VARCHAR(100) NULL COMMENT '처리 운영자 ID',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (history_id),
-    INDEX ix_mbr_member_role_history_member (member_id, created_at),
-    CONSTRAINT fk_mbr_member_role_history_member FOREIGN KEY (member_id) REFERENCES mbr_member(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='MBR 회원 권한 변경 이력';
-
-CREATE TABLE IF NOT EXISTS mbr_member_login_history (
-    login_history_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '회원 로그인 이력 순번',
-    member_id BIGINT NULL COMMENT '회원 순번',
-    login_domain VARCHAR(30) NOT NULL DEFAULT 'MBR' COMMENT '로그인 도메인',
-    member_no VARCHAR(50) NULL COMMENT '회원 번호',
-    customer_no VARCHAR(50) NULL COMMENT '고객 번호',
-    login_id VARCHAR(80) NOT NULL COMMENT '로그인 ID',
-    login_result VARCHAR(30) NOT NULL COMMENT '로그인 결과',
-    login_ip VARCHAR(50) NULL COMMENT '로그인 IP',
-    user_agent VARCHAR(500) NULL COMMENT 'User-Agent',
-    failure_reason VARCHAR(500) NULL COMMENT '로그인 실패 사유',
-    transaction_global_id VARCHAR(34) NULL COMMENT 'CPF 트랜잭션 글로벌 ID',
-    module_id VARCHAR(3) NULL COMMENT '모듈 ID',
-    was_id VARCHAR(7) NULL COMMENT 'WAS ID',
-    server_instance_id VARCHAR(200) NULL COMMENT '서버 인스턴스 ID',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (login_history_id),
-    INDEX ix_mbr_member_login_member_time (member_id, created_at),
-    INDEX ix_mbr_member_login_global (transaction_global_id),
-    CONSTRAINT fk_mbr_member_login_history_member FOREIGN KEY (member_id) REFERENCES mbr_member(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='MBR 회원 로그인 이력';
-
-CREATE TABLE IF NOT EXISTS mbr_member_no_sequence (
-    sequence_value BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Sequence value',
-    requested_by VARCHAR(100) NOT NULL COMMENT 'Requester',
-    requested_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Request time',
-    PRIMARY KEY (sequence_value)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='MBR 회원번호 분산 채번';
-
-CREATE TABLE IF NOT EXISTS mbr_member_no_issue_history (
-    issue_id BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Issue identifier',
-    member_no VARCHAR(50) NOT NULL COMMENT 'Member number',
-    issue_type VARCHAR(20) NOT NULL COMMENT 'Issue type',
-    issued_by VARCHAR(100) NOT NULL COMMENT 'Issuer',
-    issued_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Issue time',
-    PRIMARY KEY (issue_id),
-    UNIQUE KEY uk_mbr_member_no_issue_history_no (member_no)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='MBR 회원번호 발급 이력';
-
-CREATE TABLE IF NOT EXISTS mbr_member_role_operation (
-    idempotency_key VARCHAR(120) NOT NULL COMMENT 'Idempotency key',
-    member_id BIGINT NOT NULL COMMENT 'Member identifier',
-    service_code VARCHAR(30) NOT NULL COMMENT 'Service code',
-    role_code VARCHAR(50) NOT NULL COMMENT 'Role code',
-    operation_type VARCHAR(20) NOT NULL COMMENT 'Operation type',
-    operation_status VARCHAR(20) NOT NULL DEFAULT 'PENDING' COMMENT 'Operation status',
-    result_version BIGINT NULL COMMENT 'Result version',
-    result_use_yn CHAR(1) NULL COMMENT 'Result usage flag',
-    created_by VARCHAR(100) NOT NULL COMMENT 'Creator',
-    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Creation time',
-    completed_at DATETIME(3) NULL COMMENT 'Completion time',
-    PRIMARY KEY (idempotency_key),
-    INDEX ix_mbr_member_role_operation_member (member_id, created_at),
-    CONSTRAINT fk_mbr_member_role_operation_member FOREIGN KEY (member_id) REFERENCES mbr_member(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='MBR 회원 권한 멱등 변경 이력';
-
--- MBR은 Golden Generated Domain의 checked-in 검증 인스턴스입니다.
--- 생성형 Domain은 DomainName/SystemCode/Schema/TablePrefix만 다르고 아래 논리 계약은 동일해야 합니다.
--- CPF Golden Generated Domain database template.
--- DomainName/SystemCode/Schema/TablePrefix metadata만 치환하며 논리 Column/Constraint/Index는 변경하지 않습니다.
-CREATE TABLE IF NOT EXISTS mbr_sample_item (
-    sample_item_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '샘플 항목 ID',
-    sample_key VARCHAR(100) NOT NULL COMMENT '업무 중복 식별 키',
-    item_name VARCHAR(200) NOT NULL COMMENT '최소 업무 데이터명',
-    status_code VARCHAR(30) NOT NULL DEFAULT 'ACTIVE' COMMENT '상태 코드',
-    version_no BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 버전',
-    idempotency_key VARCHAR(100) NOT NULL COMMENT '명령 멱등 키',
-    transaction_id CHAR(34) NOT NULL COMMENT 'CPF transactionId',
-    transaction_sequence BIGINT NOT NULL DEFAULT 1 COMMENT '동일 거래 내 변경 순번',
-    transaction_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '마지막 거래 시각',
-    deleted_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '논리 삭제 여부',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'MBR' COMMENT '등록자',
-    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'MBR' COMMENT '수정자',
-    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
-    PRIMARY KEY (sample_item_id),
-    UNIQUE KEY uk_mbr_sample_item_key (sample_key),
-    UNIQUE KEY uk_mbr_sample_item_idempotency (idempotency_key),
-    INDEX ix_mbr_sample_item_status (status_code, deleted_yn, sample_item_id),
-    INDEX ix_mbr_sample_item_transaction (transaction_id, transaction_sequence),
-    CONSTRAINT ck_mbr_sample_item_status CHECK (status_code IN ('ACTIVE','INACTIVE')),
-    CONSTRAINT ck_mbr_sample_item_version CHECK (version_no >= 0),
-    CONSTRAINT ck_mbr_sample_item_sequence CHECK (transaction_sequence >= 1),
-    CONSTRAINT ck_mbr_sample_item_deleted CHECK (deleted_yn IN ('Y','N'))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-COMMENT='CPF Generated Domain Minimal CRUD Sample';
-
+-- CPF_LOGICAL_DATABASE=bzaDB
 USE bzaDB;
-
 CREATE TABLE IF NOT EXISTS bza_admin_user (
     admin_user_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '업무 관리자 사용자 순번',
     admin_login_id VARCHAR(80) NOT NULL COMMENT '업무 관리자 로그인 ID',
@@ -2957,6 +2858,7 @@ CREATE TABLE IF NOT EXISTS bza_admin_user (
     role_code VARCHAR(50) NULL COMMENT '호환용 대표 역할 코드; 신규 계정은 Role 미부여가 기본이며 실제 권한은 bza_user_role 다중 매핑이 정본',
     account_status VARCHAR(30) NOT NULL DEFAULT 'PENDING_ACTIVATION' COMMENT '계정 상태: PENDING_ACTIVATION/ACTIVE/LOCKED/SUSPENDED/DISABLED',
     version_no BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 버전',
+    create_operation_id VARCHAR(100) NULL COMMENT '관리자 생성 멱등 Operation ID',
     use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
     lock_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '잠금 여부',
     login_fail_count INT NOT NULL DEFAULT 0 COMMENT '로그인 실패 횟수',
@@ -2967,493 +2869,36 @@ CREATE TABLE IF NOT EXISTS bza_admin_user (
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
     updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (admin_user_id),
-    UNIQUE KEY uk_bza_admin_user_login (admin_login_id),
+    CONSTRAINT pk_bza_admin_user PRIMARY KEY (admin_user_id),
+    CONSTRAINT uk_bza_admin_user_login UNIQUE (admin_login_id),
+    CONSTRAINT uk_bza_admin_user_create_operation UNIQUE (create_operation_id),
+    CONSTRAINT ck_bza_admin_user_status CHECK (account_status IN ('PENDING_ACTIVATION','ACTIVE','LOCKED','SUSPENDED','DISABLED')),
     INDEX ix_bza_admin_user_role (role_code, use_yn),
-    INDEX ix_bza_admin_user_status (account_status, use_yn),
-    CONSTRAINT ck_bza_admin_user_status CHECK (account_status IN ('PENDING_ACTIVATION','ACTIVE','LOCKED','SUSPENDED','DISABLED'))
+    INDEX ix_bza_admin_user_status (account_status, use_yn)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 업무 관리자 사용자';
 
-CREATE TABLE IF NOT EXISTS bza_login_history (
-    login_history_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '업무 관리자 로그인 이력 순번',
-    admin_user_id BIGINT NULL COMMENT '업무 관리자 사용자 순번',
-    login_domain VARCHAR(30) NOT NULL DEFAULT 'BZA' COMMENT '로그인 도메인',
-    admin_login_id VARCHAR(80) NOT NULL COMMENT '업무 관리자 로그인 ID',
-    login_result VARCHAR(30) NOT NULL COMMENT '로그인 결과',
-    failure_reason VARCHAR(500) NULL COMMENT '로그인 실패 사유',
-    client_ip VARCHAR(50) NULL COMMENT '클라이언트 IP',
-    user_agent VARCHAR(500) NULL COMMENT 'User-Agent',
-    transaction_id CHAR(34) NULL COMMENT 'CPF 전역 transactionId',
-    module_id VARCHAR(3) NULL COMMENT '모듈 ID',
-    was_id VARCHAR(7) NULL COMMENT 'WAS ID',
-    server_instance_id VARCHAR(200) NULL COMMENT '서버 인스턴스 ID',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (login_history_id),
-    INDEX ix_bza_login_history_user_time (admin_user_id, created_at),
-    INDEX ix_bza_login_history_result_time (login_result, created_at),
-    INDEX ix_bza_login_history_global (transaction_id),
-    CONSTRAINT fk_bza_login_history_user
-        FOREIGN KEY (admin_user_id) REFERENCES bza_admin_user(admin_user_id)
-        ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 업무 관리자 로그인 이력';
-
-CREATE TABLE IF NOT EXISTS bza_refresh_token (
-    refresh_token_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '업무 관리자 refresh token 순번',
-    admin_user_id BIGINT NOT NULL COMMENT '업무 관리자 사용자 순번',
-    login_domain VARCHAR(30) NOT NULL DEFAULT 'BZA' COMMENT '로그인 도메인',
-    refresh_token_hash VARCHAR(300) NOT NULL COMMENT 'refresh token hash',
-    transaction_id CHAR(34) NULL COMMENT '발급 전역 transactionId',
-    expire_at DATETIME NOT NULL COMMENT '만료 일시',
-    revoked_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '폐기 여부',
-    revoked_at DATETIME NULL COMMENT '폐기 일시',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (refresh_token_id),
-    UNIQUE KEY uk_bza_refresh_token_hash (refresh_token_hash),
-    INDEX ix_bza_refresh_token_user (admin_user_id, revoked_yn, expire_at),
-    CONSTRAINT fk_bza_refresh_token_user
-        FOREIGN KEY (admin_user_id) REFERENCES bza_admin_user(admin_user_id)
-        ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 업무 관리자 refresh token hash 저장소';
-
-CREATE TABLE IF NOT EXISTS bza_menu (
-    menu_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '업무 메뉴 순번',
-    menu_code VARCHAR(80) NOT NULL COMMENT '업무 메뉴 코드',
-    menu_name VARCHAR(120) NOT NULL COMMENT '업무 메뉴명',
-    parent_menu_code VARCHAR(80) NULL COMMENT '상위 업무 메뉴 코드',
-    module_code VARCHAR(20) NOT NULL DEFAULT 'BZA' COMMENT '소유 업무 모듈 코드',
-    route_path VARCHAR(300) NULL COMMENT '화면 이동 경로',
-    icon_code VARCHAR(80) NULL COMMENT '화면 아이콘 코드',
-    environment_code VARCHAR(20) NOT NULL DEFAULT 'ALL' COMMENT '적용 환경 코드',
-    api_path VARCHAR(300) NULL COMMENT '연결 API 경로',
-    sort_order INT NOT NULL DEFAULT 0 COMMENT '정렬 순서',
+CREATE TABLE IF NOT EXISTS bza_approval_delegation (
+    delegation_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '결재 위임 순번',
+    delegator_employee_no VARCHAR(50) NOT NULL COMMENT '위임자 직원 번호',
+    delegate_employee_no VARCHAR(50) NOT NULL COMMENT '대결/대리 직원 번호',
+    business_domain VARCHAR(30) NULL COMMENT '제한 업무 영역; NULL이면 공통',
+    approval_type VARCHAR(50) NULL COMMENT '제한 결재 유형; NULL이면 공통',
+    valid_from DATETIME(3) NOT NULL COMMENT '위임 시작시각',
+    valid_to DATETIME(3) NOT NULL COMMENT '위임 종료시각',
+    reason VARCHAR(500) NOT NULL COMMENT '위임 사유',
     use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
-    version_no BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 버전',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (menu_id),
-    UNIQUE KEY uk_bza_menu_code (menu_code)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 업무 메뉴';
-
-CREATE TABLE IF NOT EXISTS bza_role (
-    role_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '업무 역할 순번',
-    role_code VARCHAR(50) NOT NULL COMMENT '업무 역할 코드',
-    role_name VARCHAR(120) NOT NULL COMMENT '업무 역할명',
-    write_allowed_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '쓰기 허용 여부',
-    data_scope VARCHAR(30) NOT NULL DEFAULT 'OWN' COMMENT '기본 데이터 접근 범위',
-    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
-    version_no BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 버전',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (role_id),
-    UNIQUE KEY uk_bza_role_code (role_code)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 업무 역할';
-
-
-CREATE TABLE IF NOT EXISTS bza_user_role (
-    user_role_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '사용자 역할 이력 순번',
-    admin_user_id BIGINT NOT NULL COMMENT '업무 관리자 사용자 순번',
-    role_code VARCHAR(50) NOT NULL COMMENT '업무 역할 코드',
-    valid_from DATETIME(3) NULL COMMENT '역할 적용 시작시각',
-    valid_to DATETIME(3) NULL COMMENT '역할 적용 종료시각',
-    primary_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '대표 역할 여부',
-    grant_reason VARCHAR(500) NOT NULL DEFAULT 'INITIAL' COMMENT '부여/변경 사유',
-    operation_id VARCHAR(100) NULL COMMENT '멱등 작업 식별자',
-    version_no BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 버전',
     created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
     created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
     updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
     updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
-    PRIMARY KEY (user_role_id),
-    UNIQUE KEY uk_bza_user_role_operation (operation_id),
-    INDEX ix_bza_user_role_user (admin_user_id, valid_to, primary_yn, user_role_id),
-    INDEX ix_bza_user_role_role (role_code, valid_to, admin_user_id),
-    CONSTRAINT fk_bza_user_role_user FOREIGN KEY (admin_user_id)
-        REFERENCES bza_admin_user(admin_user_id) ON DELETE CASCADE,
-    CONSTRAINT fk_bza_user_role_role FOREIGN KEY (role_code)
-        REFERENCES bza_role(role_code),
-    CONSTRAINT ck_bza_user_role_primary CHECK (primary_yn IN ('Y','N')),
-    CONSTRAINT ck_bza_user_role_effective CHECK (
-        valid_to IS NULL OR valid_from IS NULL OR valid_to > valid_from
-    )
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 사용자 다중 역할 이력';
-
-CREATE TABLE IF NOT EXISTS bza_permission (
-    permission_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '업무 권한 순번',
-    role_code VARCHAR(50) NOT NULL COMMENT '업무 역할 코드',
-    menu_code VARCHAR(80) NOT NULL COMMENT '업무 메뉴 코드',
-    button_code VARCHAR(80) NOT NULL COMMENT '버튼/행위 코드',
-    permission_type VARCHAR(30) NOT NULL DEFAULT 'BUTTON' COMMENT '권한 유형 SCREEN, BUTTON, API',
-    http_method VARCHAR(10) NULL COMMENT 'API HTTP 메서드',
-    api_pattern VARCHAR(300) NULL COMMENT 'API 경로 패턴',
-    domain_code VARCHAR(30) NULL COMMENT '적용 업무 영역 코드',
-    environment_code VARCHAR(20) NOT NULL DEFAULT 'ALL' COMMENT '적용 환경 코드',
-    data_scope VARCHAR(30) NOT NULL DEFAULT 'ROLE' COMMENT '권한 데이터 범위',
-    allow_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '허용 여부',
-    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
-    version_no BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 버전',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (permission_id),
-    INDEX ix_bza_permission_scope (role_code, menu_code, button_code, environment_code, domain_code, http_method),
-    INDEX ix_bza_permission_menu (menu_code)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 업무 권한';
-
-CREATE TABLE IF NOT EXISTS bza_organization (
-    organization_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '조직 순번',
-    organization_code VARCHAR(50) NOT NULL COMMENT '조직 코드',
-    parent_organization_code VARCHAR(50) NULL COMMENT '상위 조직 코드',
-    organization_name VARCHAR(120) NOT NULL COMMENT '조직명',
-    organization_type VARCHAR(30) NOT NULL DEFAULT 'DEPARTMENT' COMMENT '조직 유형',
-    sort_order INT NOT NULL DEFAULT 0 COMMENT '조직 정렬 순서',
-    effective_from DATETIME(3) NULL COMMENT '조직 적용 시작시각',
-    effective_to DATETIME(3) NULL COMMENT '조직 적용 종료시각',
-    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
-    version_no BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 버전',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (organization_id),
-    UNIQUE KEY uk_bza_organization_code (organization_code),
-    INDEX ix_bza_organization_parent (parent_organization_code, sort_order),
-    CONSTRAINT ck_bza_organization_use CHECK (use_yn IN ('Y','N')),
-    CONSTRAINT ck_bza_organization_effective CHECK (
-        effective_to IS NULL OR effective_from IS NULL OR effective_to > effective_from
-    )
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 조직';
-
-
-CREATE TABLE IF NOT EXISTS bza_position (
-    position_code VARCHAR(50) NOT NULL COMMENT '직급 코드',
-    position_name VARCHAR(100) NOT NULL COMMENT '직급명',
-    rank_order INT NOT NULL DEFAULT 0 COMMENT '직급 정렬/서열 값',
-    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
-    version_no BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 버전',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
-    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
-    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
-    PRIMARY KEY (position_code),
-    CONSTRAINT ck_bza_position_use CHECK (use_yn IN ('Y','N'))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 직급 기준정보';
-
-CREATE TABLE IF NOT EXISTS bza_job_title (
-    job_title_code VARCHAR(50) NOT NULL COMMENT '직책 코드',
-    job_title_name VARCHAR(100) NOT NULL COMMENT '직책명',
-    manager_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '조직 책임자 성격 여부',
-    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
-    version_no BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 버전',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
-    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
-    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
-    PRIMARY KEY (job_title_code),
-    CONSTRAINT ck_bza_job_title_flags CHECK (manager_yn IN ('Y','N') AND use_yn IN ('Y','N'))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 직책 기준정보';
-
-CREATE TABLE IF NOT EXISTS bza_employee (
-    employee_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '직원 순번',
-    employee_no VARCHAR(50) NOT NULL COMMENT '직원 번호',
-    admin_user_id BIGINT NULL COMMENT '연결 업무 관리자 사용자 순번',
-    organization_code VARCHAR(50) NOT NULL COMMENT '대표 조직 코드; 유효 소속 정본은 bza_employee_assignment',
-    employee_name VARCHAR(100) NOT NULL COMMENT '직원명',
-    position_code VARCHAR(50) NULL COMMENT '직급 코드',
-    job_title_code VARCHAR(50) NULL COMMENT '직책 코드',
-    manager_employee_no VARCHAR(50) NULL COMMENT '상위 관리자 직원 번호',
-    employment_status VARCHAR(30) NOT NULL DEFAULT 'EMPLOYED' COMMENT '재직 상태; 신규 직원 기본값 EMPLOYED',
-    join_date DATE NULL COMMENT '입사일',
-    leave_date DATE NULL COMMENT '퇴사일',
-    email VARCHAR(200) NULL COMMENT '업무 이메일',
-    mobile_no VARCHAR(50) NULL COMMENT '연락처(휴대폰); 숫자형이 아닌 문자열로 국가번호와 선행 0을 보존',
-    office_phone_no VARCHAR(50) NULL COMMENT '내부 전화번호/내선; 휴대폰 연락처와 분리',
-    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
-    version_no BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 버전',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (employee_id),
-    UNIQUE KEY uk_bza_employee_no (employee_no),
-    UNIQUE KEY uk_bza_employee_admin_user (admin_user_id),
-    INDEX ix_bza_employee_organization (organization_code, employment_status),
-    CONSTRAINT fk_bza_employee_admin_user FOREIGN KEY (admin_user_id)
-        REFERENCES bza_admin_user(admin_user_id) ON DELETE SET NULL,
-    CONSTRAINT fk_bza_employee_organization FOREIGN KEY (organization_code)
-        REFERENCES bza_organization(organization_code),
-    CONSTRAINT fk_bza_employee_position FOREIGN KEY (position_code)
-        REFERENCES bza_position(position_code) ON DELETE SET NULL,
-    CONSTRAINT fk_bza_employee_job_title FOREIGN KEY (job_title_code)
-        REFERENCES bza_job_title(job_title_code) ON DELETE SET NULL,
-    CONSTRAINT ck_bza_employee_use CHECK (use_yn IN ('Y','N')),
-    CONSTRAINT ck_bza_employee_status CHECK (employment_status IN ('EMPLOYED','ON_LEAVE','SECONDMENT','DISPATCHED','RETIRED','TERMINATED')),
-    CONSTRAINT ck_bza_employee_employment_period CHECK (
-        leave_date IS NULL OR join_date IS NULL OR leave_date >= join_date
-    )
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 직원 프로필';
-
-
-CREATE TABLE IF NOT EXISTS bza_employee_assignment (
-    assignment_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '직원 소속/직무 발령 순번',
-    employee_no VARCHAR(50) NOT NULL COMMENT '직원 번호',
-    organization_code VARCHAR(50) NOT NULL COMMENT '소속 조직 코드',
-    position_code VARCHAR(50) NULL COMMENT '직급 코드',
-    job_title_code VARCHAR(50) NULL COMMENT '직책 코드',
-    assignment_type VARCHAR(30) NOT NULL DEFAULT 'PRIMARY' COMMENT 'PRIMARY/CONCURRENT/SECONDMENT/ACTING',
-    primary_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '대표 소속 여부',
-    effective_from DATETIME(3) NOT NULL COMMENT '발령 적용 시작시각',
-    effective_to DATETIME(3) NULL COMMENT '발령 적용 종료시각',
-    version_no BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 버전',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
-    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
-    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
-    PRIMARY KEY (assignment_id),
-    INDEX ix_bza_employee_assignment_current (employee_no, effective_to, primary_yn),
-    INDEX ix_bza_employee_assignment_org (organization_code, effective_to, job_title_code),
-    CONSTRAINT fk_bza_employee_assignment_employee FOREIGN KEY (employee_no)
-        REFERENCES bza_employee(employee_no) ON DELETE CASCADE,
-    CONSTRAINT fk_bza_employee_assignment_org FOREIGN KEY (organization_code)
-        REFERENCES bza_organization(organization_code),
-    CONSTRAINT fk_bza_employee_assignment_position FOREIGN KEY (position_code)
-        REFERENCES bza_position(position_code) ON DELETE SET NULL,
-    CONSTRAINT fk_bza_employee_assignment_job_title FOREIGN KEY (job_title_code)
-        REFERENCES bza_job_title(job_title_code) ON DELETE SET NULL,
-    CONSTRAINT ck_bza_employee_assignment_type CHECK (
-        assignment_type IN ('PRIMARY','CONCURRENT','SECONDMENT','ACTING')
-    ),
-    CONSTRAINT ck_bza_employee_assignment_primary CHECK (primary_yn IN ('Y','N')),
-    CONSTRAINT ck_bza_employee_assignment_effective CHECK (
-        effective_to IS NULL OR effective_to > effective_from
-    )
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 직원 유효기간 기반 조직/직급/직책 Assignment';
-
-
-CREATE TABLE IF NOT EXISTS bza_organization_responsibility (
-    responsibility_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '조직 책임/대행 순번',
-    organization_code VARCHAR(50) NOT NULL COMMENT '대상 조직 코드',
-    responsibility_type VARCHAR(30) NOT NULL DEFAULT 'MANAGER' COMMENT 'MANAGER/DEPUTY/ACTING/APPROVAL_OWNER',
-    employee_no VARCHAR(50) NOT NULL COMMENT '책임 직원 번호',
-    effective_from DATETIME(3) NOT NULL COMMENT '책임 시작시각',
-    effective_to DATETIME(3) NULL COMMENT '책임 종료시각',
-    priority_no INT NOT NULL DEFAULT 1 COMMENT '동일 책임 우선순위',
-    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
-    version_no BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 버전',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
-    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
-    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
-    PRIMARY KEY (responsibility_id),
-    INDEX ix_bza_org_responsibility_active (organization_code, responsibility_type, use_yn, effective_to, priority_no),
-    INDEX ix_bza_org_responsibility_employee (employee_no, use_yn, effective_to),
-    CONSTRAINT fk_bza_org_responsibility_org FOREIGN KEY (organization_code)
-        REFERENCES bza_organization(organization_code),
-    CONSTRAINT fk_bza_org_responsibility_employee FOREIGN KEY (employee_no)
-        REFERENCES bza_employee(employee_no),
-    CONSTRAINT ck_bza_org_responsibility_type CHECK (
-        responsibility_type IN ('MANAGER','DEPUTY','ACTING','APPROVAL_OWNER')
-    ),
-    CONSTRAINT ck_bza_org_responsibility_use CHECK (use_yn IN ('Y','N')),
-    CONSTRAINT ck_bza_org_responsibility_priority CHECK (priority_no >= 1),
-    CONSTRAINT ck_bza_org_responsibility_effective CHECK (
-        effective_to IS NULL OR effective_to > effective_from
-    )
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 조직 책임자/대행/결재 책임자 유효기간 모델';
-
-CREATE TABLE IF NOT EXISTS bza_business_audit (
-    audit_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '업무 감사 순번',
-    transaction_id CHAR(34) NULL COMMENT 'CPF transactionId',
-    actor_id VARCHAR(100) NOT NULL COMMENT '처리 사용자 ID',
-    action_type VARCHAR(50) NOT NULL COMMENT '업무 행위 유형',
-    target_type VARCHAR(80) NOT NULL COMMENT '대상 유형',
-    target_id VARCHAR(120) NOT NULL COMMENT '대상 ID',
-    reason VARCHAR(500) NOT NULL COMMENT '업무 처리 사유',
-    before_data LONGTEXT NULL COMMENT '변경 전 데이터',
-    after_data LONGTEXT NULL COMMENT '변경 후 데이터',
-    previous_record_hash CHAR(64) NULL COMMENT '동일 감사 스트림의 이전 레코드 SHA-256',
-    record_hash CHAR(64) NULL COMMENT '감사 레코드 tamper detection SHA-256',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (audit_id),
-    INDEX ix_bza_business_audit_target (target_type, target_id, created_at),
-    INDEX ix_bza_business_audit_actor (actor_id, created_at),
-    INDEX ix_bza_business_audit_transaction (transaction_id),
-    INDEX ix_bza_business_audit_hash (record_hash)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 업무 감사';
-
-
-CREATE TABLE IF NOT EXISTS bza_audit_chain_lock (
-    chain_id BIGINT NOT NULL COMMENT '감사 체인 식별자. 기본 체인은 1',
-    current_hash CHAR(64) NULL COMMENT '현재 감사 체인 head SHA-256',
-    last_audit_id BIGINT NULL COMMENT '현재 체인의 마지막 감사 ID',
-    version_no BIGINT NOT NULL DEFAULT 0 COMMENT '체인 갱신 버전',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '마지막 갱신자',
-    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '마지막 갱신시각',
-    PRIMARY KEY (chain_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 감사 체인 동시성/무결성 head';
-
-INSERT INTO bza_audit_chain_lock(chain_id,current_hash,last_audit_id,version_no,updated_by)
-VALUES(1,NULL,NULL,0,'SYSTEM')
-ON DUPLICATE KEY UPDATE chain_id=VALUES(chain_id);
-
-CREATE TABLE IF NOT EXISTS bza_notification (
-    notification_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '업무 알림 순번',
-    recipient_login_id VARCHAR(100) NOT NULL COMMENT '수신 BZA 로그인 ID',
-    notification_type VARCHAR(40) NOT NULL COMMENT '업무 알림 유형',
-    title VARCHAR(200) NOT NULL COMMENT '업무 알림 제목',
-    message_body VARCHAR(2000) NOT NULL COMMENT '업무 알림 내용',
-    reference_type VARCHAR(80) NULL COMMENT '참조 업무 유형',
-    reference_id VARCHAR(120) NULL COMMENT '참조 업무 ID',
-    read_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '읽음 여부',
-    read_at DATETIME NULL COMMENT '읽음 일시',
-    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (notification_id),
-    INDEX ix_bza_notification_recipient (recipient_login_id, read_yn, use_yn, created_at),
-    INDEX ix_bza_notification_reference (reference_type, reference_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 업무 알림';
-
-CREATE TABLE IF NOT EXISTS bza_attachment (
-    attachment_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '첨부파일 순번',
-    attachment_group_id VARCHAR(80) NOT NULL COMMENT '첨부파일 그룹 ID',
-    original_file_name VARCHAR(255) NOT NULL COMMENT '원본 파일명',
-    stored_file_name VARCHAR(255) NOT NULL COMMENT '저장 파일명',
-    storage_key VARCHAR(500) NOT NULL COMMENT '저장소 상대 key',
-    content_type VARCHAR(120) NOT NULL COMMENT '파일 Content-Type',
-    file_size BIGINT NOT NULL COMMENT '파일 크기 byte',
-    checksum_sha256 CHAR(64) NOT NULL COMMENT '파일 SHA-256 checksum',
-    scan_status VARCHAR(40) NOT NULL DEFAULT 'PENDING' COMMENT 'PENDING/CLEAN/INFECTED/FAILED/QUARANTINED',
-    data_classification VARCHAR(30) NOT NULL DEFAULT 'INTERNAL' COMMENT 'PUBLIC/INTERNAL/CONFIDENTIAL/RESTRICTED',
-    retention_until DATETIME(3) NULL COMMENT '보존 만료시각',
-    quarantine_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '격리 여부',
-    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (attachment_id),
-    UNIQUE KEY uk_bza_attachment_storage_key (storage_key),
-    INDEX ix_bza_attachment_group (attachment_group_id, use_yn, created_at),
-    INDEX ix_bza_attachment_checksum (checksum_sha256),
-    INDEX ix_bza_attachment_retention (retention_until, use_yn),
-    CONSTRAINT ck_bza_attachment_scan CHECK (scan_status IN ('PENDING','CLEAN','INFECTED','FAILED','QUARANTINED')),
-    CONSTRAINT ck_bza_attachment_classification CHECK (data_classification IN ('PUBLIC','INTERNAL','CONFIDENTIAL','RESTRICTED')),
-    CONSTRAINT ck_bza_attachment_quarantine CHECK (quarantine_yn IN ('Y','N'))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 첨부파일 메타';
-
-CREATE TABLE IF NOT EXISTS bza_saved_search (
-    saved_search_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '저장 검색 순번',
-    owner_login_id VARCHAR(100) NOT NULL COMMENT '저장 검색 소유 로그인 ID',
-    screen_code VARCHAR(80) NOT NULL COMMENT '적용 화면 코드',
-    search_name VARCHAR(120) NOT NULL COMMENT '저장 검색명',
-    criteria_json LONGTEXT NOT NULL COMMENT '검색 조건 JSON',
-    shared_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '공유 여부',
-    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (saved_search_id),
-    UNIQUE KEY uk_bza_saved_search_owner (owner_login_id, screen_code, search_name),
-    INDEX ix_bza_saved_search_screen (screen_code, shared_yn, use_yn)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 저장 검색';
-
-CREATE TABLE IF NOT EXISTS bza_download_audit (
-    download_audit_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '다운로드 감사 순번',
-    actor_id VARCHAR(100) NOT NULL COMMENT '다운로드 처리 로그인 ID',
-    download_code VARCHAR(80) NOT NULL COMMENT '다운로드 기능 코드',
-    reason VARCHAR(500) NOT NULL COMMENT '다운로드 사유',
-    filter_json LONGTEXT NULL COMMENT '다운로드 검색 조건 JSON',
-    row_count BIGINT NOT NULL DEFAULT 0 COMMENT '다운로드 결과 건수',
-    result_status VARCHAR(40) NOT NULL COMMENT '다운로드 결과 상태',
-    file_name VARCHAR(255) NULL COMMENT '다운로드 파일명',
-    masking_applied_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '마스킹 적용 여부',
-    transaction_id CHAR(34) NULL COMMENT 'CPF transactionId',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (download_audit_id),
-    INDEX ix_bza_download_audit_actor (actor_id, created_at),
-    INDEX ix_bza_download_audit_transaction (transaction_id),
-    INDEX ix_bza_download_audit_status (result_status, created_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 다운로드 감사';
-
-
-CREATE TABLE IF NOT EXISTS bza_approval_policy (
-    policy_code VARCHAR(80) NOT NULL COMMENT '업무 결재 정책 코드',
-    policy_version INT NOT NULL COMMENT '정책 버전',
-    policy_name VARCHAR(150) NOT NULL COMMENT '정책명',
-    business_domain VARCHAR(30) NOT NULL COMMENT '적용 업무 영역',
-    approval_type VARCHAR(50) NOT NULL COMMENT '적용 결재 유형',
-    effective_from DATETIME(3) NOT NULL COMMENT '시행 시작시각',
-    effective_to DATETIME(3) NULL COMMENT '시행 종료시각',
-    enabled_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '활성 여부',
-    self_approval_allowed_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '자기승인 허용 여부',
-    description VARCHAR(1000) NULL COMMENT '정책 설명',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
-    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
-    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
-    PRIMARY KEY (policy_code, policy_version),
-    INDEX ix_bza_approval_policy_lookup (business_domain, approval_type, enabled_yn, effective_from, effective_to),
-    CONSTRAINT ck_bza_approval_policy_version CHECK (policy_version > 0),
-    CONSTRAINT ck_bza_approval_policy_flags CHECK (
-        enabled_yn IN ('Y','N') AND self_approval_allowed_yn IN ('Y','N')
-    ),
-    CONSTRAINT ck_bza_approval_policy_effective CHECK (
-        effective_to IS NULL OR effective_to > effective_from
-    )
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 업무 결재 정책 Version';
-
-CREATE TABLE IF NOT EXISTS bza_approval_policy_step (
-    policy_code VARCHAR(80) NOT NULL COMMENT '업무 결재 정책 코드',
-    policy_version INT NOT NULL COMMENT '정책 버전',
-    step_no INT NOT NULL COMMENT '결재 단계',
-    step_type VARCHAR(30) NOT NULL DEFAULT 'APPROVAL' COMMENT 'APPROVAL/AGREEMENT/REVIEW',
-    target_type VARCHAR(30) NOT NULL COMMENT 'EMPLOYEE/ROLE/ORGANIZATION/ORG_MANAGER/POSITION',
-    target_code VARCHAR(100) NOT NULL COMMENT '대상 코드',
-    decision_rule VARCHAR(20) NOT NULL DEFAULT 'ALL' COMMENT 'ALL/ANY/N_OF_M',
-    required_count INT NULL COMMENT 'N_OF_M 최소 결정 수',
-    required_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '필수 대상 여부',
-    sort_order INT NOT NULL DEFAULT 0 COMMENT '동일 단계 표시 순서',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
-    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
-    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
-    PRIMARY KEY (policy_code, policy_version, step_no, target_type, target_code),
-    CONSTRAINT fk_bza_approval_policy_step_policy FOREIGN KEY (policy_code, policy_version)
-        REFERENCES bza_approval_policy(policy_code, policy_version) ON DELETE CASCADE,
-    CONSTRAINT ck_bza_approval_policy_step_no CHECK (step_no >= 1),
-    CONSTRAINT ck_bza_approval_policy_step_type CHECK (step_type IN ('APPROVAL','AGREEMENT','REVIEW')),
-    CONSTRAINT ck_bza_approval_policy_step_target CHECK (
-        target_type IN ('EMPLOYEE','ROLE','ORGANIZATION','ORG_MANAGER','POSITION')
-    ),
-    CONSTRAINT ck_bza_approval_policy_step_rule CHECK (decision_rule IN ('ALL','ANY','N_OF_M')),
-    CONSTRAINT ck_bza_approval_policy_step_required CHECK (
-        required_yn IN ('Y','N')
-        AND (
-            (decision_rule = 'N_OF_M' AND required_count IS NOT NULL AND required_count > 0)
-            OR (decision_rule <> 'N_OF_M' AND required_count IS NULL)
-        )
-    )
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 업무 결재 정책 단계';
+    CONSTRAINT pk_bza_approval_delegation PRIMARY KEY (delegation_id),
+    CONSTRAINT ck_bza_approval_delegation_use CHECK (use_yn IN ('Y','N')),
+    CONSTRAINT ck_bza_approval_delegation_period CHECK (valid_to > valid_from),
+    CONSTRAINT ck_bza_approval_delegation_self CHECK (delegator_employee_no <> delegate_employee_no),
+    CONSTRAINT fk_bza_approval_delegation_from FOREIGN KEY (delegator_employee_no) REFERENCES bza_employee (employee_no),
+    CONSTRAINT fk_bza_approval_delegation_to FOREIGN KEY (delegate_employee_no) REFERENCES bza_employee (employee_no),
+    INDEX ix_bza_approval_delegation_active (delegator_employee_no, use_yn, valid_from, valid_to)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 결재 위임/대결 유효기간';
 
 CREATE TABLE IF NOT EXISTS bza_approval_document (
     approval_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '결재 문서 순번',
@@ -3485,28 +2930,42 @@ CREATE TABLE IF NOT EXISTS bza_approval_document (
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
     updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (approval_id),
-    UNIQUE KEY uk_bza_approval_document_no (approval_no),
-    UNIQUE KEY uk_bza_approval_document_idempotency (request_idempotency_key),
+    CONSTRAINT pk_bza_approval_document PRIMARY KEY (approval_id),
+    CONSTRAINT uk_bza_approval_document_no UNIQUE (approval_no),
+    CONSTRAINT uk_bza_approval_document_idempotency UNIQUE (request_idempotency_key),
+    CONSTRAINT ck_bza_approval_document_policy_pair CHECK ((policy_code IS NULL AND policy_version IS NULL) OR (policy_code IS NOT NULL AND policy_version IS NOT NULL)),
+    CONSTRAINT ck_bza_approval_document_status CHECK (approval_status IN ('DRAFT','IN_REVIEW','APPROVED','REJECTED','WITHDRAWN','CANCELED','EXPIRED')),
+    CONSTRAINT ck_bza_approval_document_mode CHECK (approval_mode IN ('SEQUENTIAL','PARALLEL')),
+    CONSTRAINT ck_bza_approval_document_step CHECK (current_step_no >= 0),
+    CONSTRAINT ck_bza_approval_document_version CHECK (version_no >= 0),
+    CONSTRAINT fk_bza_approval_document_policy FOREIGN KEY (policy_code, policy_version) REFERENCES bza_approval_policy (policy_code, policy_version),
+    CONSTRAINT fk_bza_approval_document_resubmit FOREIGN KEY (resubmitted_from_approval_id) REFERENCES bza_approval_document (approval_id),
     INDEX ix_bza_approval_document_status (approval_status, due_at),
     INDEX ix_bza_approval_document_requester (requester_employee_no, created_at),
     INDEX ix_bza_approval_document_transaction (transaction_id, created_at),
-    INDEX ix_bza_approval_document_resubmit (resubmitted_from_approval_id),
-    CONSTRAINT fk_bza_approval_document_policy FOREIGN KEY (policy_code, policy_version)
-        REFERENCES bza_approval_policy(policy_code, policy_version),
-    CONSTRAINT fk_bza_approval_document_resubmit FOREIGN KEY (resubmitted_from_approval_id)
-        REFERENCES bza_approval_document(approval_id),
-    CONSTRAINT ck_bza_approval_document_policy_pair CHECK (
-        (policy_code IS NULL AND policy_version IS NULL)
-        OR (policy_code IS NOT NULL AND policy_version IS NOT NULL)
-    ),
-    CONSTRAINT ck_bza_approval_document_status CHECK (
-        approval_status IN ('DRAFT','IN_REVIEW','APPROVED','REJECTED','WITHDRAWN','CANCELED','EXPIRED')
-    ),
-    CONSTRAINT ck_bza_approval_document_mode CHECK (approval_mode IN ('SEQUENTIAL','PARALLEL')),
-    CONSTRAINT ck_bza_approval_document_step CHECK (current_step_no >= 0),
-    CONSTRAINT ck_bza_approval_document_version CHECK (version_no >= 0)
+    INDEX ix_bza_approval_document_resubmit (resubmitted_from_approval_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 결재 문서';
+
+CREATE TABLE IF NOT EXISTS bza_approval_history (
+    approval_history_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '결재 이력 순번',
+    approval_id BIGINT NOT NULL COMMENT '결재 문서 순번',
+    action_type VARCHAR(30) NOT NULL COMMENT '결재 행위 유형',
+    actor_employee_no VARCHAR(50) NOT NULL COMMENT '처리 직원 번호',
+    idempotency_key VARCHAR(120) NOT NULL COMMENT '중복 행위 방지 키',
+    reason VARCHAR(500) NOT NULL COMMENT '결재 행위 사유',
+    before_status VARCHAR(30) NULL COMMENT '변경 전 상태',
+    after_status VARCHAR(30) NOT NULL COMMENT '변경 후 상태',
+    comment_text VARCHAR(1000) NULL COMMENT '결재 의견',
+    transaction_id CHAR(34) NULL COMMENT 'CPF transactionId',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_bza_approval_history PRIMARY KEY (approval_history_id),
+    CONSTRAINT uk_bza_approval_history_idempotency UNIQUE (idempotency_key),
+    CONSTRAINT fk_bza_approval_history_document FOREIGN KEY (approval_id) REFERENCES bza_approval_document (approval_id),
+    INDEX ix_bza_approval_history_document (approval_id, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 결재 상태 변경 이력';
 
 CREATE TABLE IF NOT EXISTS bza_approval_line (
     approval_line_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '결재선 순번',
@@ -3527,29 +2986,17 @@ CREATE TABLE IF NOT EXISTS bza_approval_line (
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
     updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (approval_line_id),
-    UNIQUE KEY uk_bza_approval_line (approval_id, step_no, target_type, target_code),
-    INDEX ix_bza_approval_line_approver (approver_employee_no, decision_status),
-    CONSTRAINT fk_bza_approval_line_document FOREIGN KEY (approval_id)
-        REFERENCES bza_approval_document(approval_id) ON DELETE CASCADE,
+    CONSTRAINT pk_bza_approval_line PRIMARY KEY (approval_line_id),
+    CONSTRAINT uk_bza_approval_line UNIQUE (approval_id, step_no, target_type, target_code),
     CONSTRAINT ck_bza_approval_line_step CHECK (step_no >= 1),
     CONSTRAINT ck_bza_approval_line_step_type CHECK (step_type IN ('APPROVAL','AGREEMENT','REVIEW')),
-    CONSTRAINT ck_bza_approval_line_target CHECK (
-        target_type IN ('EMPLOYEE','ROLE','ORGANIZATION','ORG_MANAGER','POSITION')
-    ),
+    CONSTRAINT ck_bza_approval_line_target CHECK (target_type IN ('EMPLOYEE','ROLE','ORGANIZATION','ORG_MANAGER','POSITION')),
     CONSTRAINT ck_bza_approval_line_rule CHECK (decision_rule IN ('ALL','ANY','N_OF_M')),
-    CONSTRAINT ck_bza_approval_line_required CHECK (
-        required_yn IN ('Y','N')
-        AND (
-            (decision_rule = 'N_OF_M' AND required_count IS NOT NULL AND required_count > 0)
-            OR (decision_rule <> 'N_OF_M' AND required_count IS NULL)
-        )
-    ),
-    CONSTRAINT ck_bza_approval_line_status CHECK (
-        decision_status IN ('WAITING','APPROVED','AGREED','REJECTED','SKIPPED')
-    )
+    CONSTRAINT ck_bza_approval_line_required CHECK (required_yn IN ('Y','N') AND ( (decision_rule = 'N_OF_M' AND required_count IS NOT NULL AND required_count > 0) OR (decision_rule <> 'N_OF_M' AND required_count IS NULL) )),
+    CONSTRAINT ck_bza_approval_line_status CHECK (decision_status IN ('WAITING','APPROVED','AGREED','REJECTED','SKIPPED')),
+    CONSTRAINT fk_bza_approval_line_document FOREIGN KEY (approval_id) REFERENCES bza_approval_document (approval_id) ON DELETE CASCADE,
+    INDEX ix_bza_approval_line_approver (approver_employee_no, decision_status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 결재선';
-
 
 CREATE TABLE IF NOT EXISTS bza_approval_participant (
     approval_participant_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '실제 결재 참여자 순번',
@@ -3571,67 +3018,391 @@ CREATE TABLE IF NOT EXISTS bza_approval_participant (
     created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
     updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
     updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
-    PRIMARY KEY (approval_participant_id),
-    UNIQUE KEY uk_bza_approval_participant (approval_line_id, approver_employee_no),
-    UNIQUE KEY uk_bza_approval_participant_idem (idempotency_key),
-    INDEX ix_bza_approval_participant_inbox (approver_employee_no, decision_status, approval_id),
-    CONSTRAINT fk_bza_approval_participant_document FOREIGN KEY (approval_id)
-        REFERENCES bza_approval_document(approval_id) ON DELETE CASCADE,
-    CONSTRAINT fk_bza_approval_participant_line FOREIGN KEY (approval_line_id)
-        REFERENCES bza_approval_line(approval_line_id) ON DELETE CASCADE,
+    CONSTRAINT pk_bza_approval_participant PRIMARY KEY (approval_participant_id),
+    CONSTRAINT uk_bza_approval_participant UNIQUE (approval_line_id, approver_employee_no),
+    CONSTRAINT uk_bza_approval_participant_idem UNIQUE (idempotency_key),
     CONSTRAINT ck_bza_approval_participant_step CHECK (step_no >= 1),
     CONSTRAINT ck_bza_approval_participant_source CHECK (resolution_source IN ('DIRECT','ROLE','ORG','ORG_MANAGER','POSITION','DELEGATION','ACTING')),
-    CONSTRAINT ck_bza_approval_participant_status CHECK (
-        decision_status IN ('WAITING','APPROVED','AGREED','REJECTED','SKIPPED')
-    )
+    CONSTRAINT ck_bza_approval_participant_status CHECK (decision_status IN ('WAITING','APPROVED','AGREED','REJECTED','SKIPPED')),
+    CONSTRAINT fk_bza_approval_participant_document FOREIGN KEY (approval_id) REFERENCES bza_approval_document (approval_id) ON DELETE CASCADE,
+    CONSTRAINT fk_bza_approval_participant_line FOREIGN KEY (approval_line_id) REFERENCES bza_approval_line (approval_line_id) ON DELETE CASCADE,
+    INDEX ix_bza_approval_participant_inbox (approver_employee_no, decision_status, approval_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 결재 참여자 Snapshot';
 
-CREATE TABLE IF NOT EXISTS bza_approval_delegation (
-    delegation_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '결재 위임 순번',
-    delegator_employee_no VARCHAR(50) NOT NULL COMMENT '위임자 직원 번호',
-    delegate_employee_no VARCHAR(50) NOT NULL COMMENT '대결/대리 직원 번호',
-    business_domain VARCHAR(30) NULL COMMENT '제한 업무 영역; NULL이면 공통',
-    approval_type VARCHAR(50) NULL COMMENT '제한 결재 유형; NULL이면 공통',
-    valid_from DATETIME(3) NOT NULL COMMENT '위임 시작시각',
-    valid_to DATETIME(3) NOT NULL COMMENT '위임 종료시각',
-    reason VARCHAR(500) NOT NULL COMMENT '위임 사유',
-    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+CREATE TABLE IF NOT EXISTS bza_approval_policy (
+    policy_code VARCHAR(80) NOT NULL COMMENT '업무 결재 정책 코드',
+    policy_version INT NOT NULL COMMENT '정책 버전',
+    policy_name VARCHAR(150) NOT NULL COMMENT '정책명',
+    business_domain VARCHAR(30) NOT NULL COMMENT '적용 업무 영역',
+    approval_type VARCHAR(50) NOT NULL COMMENT '적용 결재 유형',
+    effective_from DATETIME(3) NOT NULL COMMENT '시행 시작시각',
+    effective_to DATETIME(3) NULL COMMENT '시행 종료시각',
+    enabled_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '활성 여부',
+    self_approval_allowed_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '자기승인 허용 여부',
+    description VARCHAR(1000) NULL COMMENT '정책 설명',
     created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
     created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
     updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
     updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
-    PRIMARY KEY (delegation_id),
-    INDEX ix_bza_approval_delegation_active (delegator_employee_no, use_yn, valid_from, valid_to),
-    CONSTRAINT fk_bza_approval_delegation_from FOREIGN KEY (delegator_employee_no)
-        REFERENCES bza_employee(employee_no),
-    CONSTRAINT fk_bza_approval_delegation_to FOREIGN KEY (delegate_employee_no)
-        REFERENCES bza_employee(employee_no),
-    CONSTRAINT ck_bza_approval_delegation_use CHECK (use_yn IN ('Y','N')),
-    CONSTRAINT ck_bza_approval_delegation_period CHECK (valid_to > valid_from),
-    CONSTRAINT ck_bza_approval_delegation_self CHECK (delegator_employee_no <> delegate_employee_no)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 결재 위임/대결 유효기간';
+    CONSTRAINT pk_bza_approval_policy PRIMARY KEY (policy_code, policy_version),
+    CONSTRAINT ck_bza_approval_policy_version CHECK (policy_version > 0),
+    CONSTRAINT ck_bza_approval_policy_flags CHECK (enabled_yn IN ('Y','N') AND self_approval_allowed_yn IN ('Y','N')),
+    CONSTRAINT ck_bza_approval_policy_effective CHECK (effective_to IS NULL OR effective_to > effective_from),
+    INDEX ix_bza_approval_policy_lookup (business_domain, approval_type, enabled_yn, effective_from, effective_to)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 업무 결재 정책 Version';
 
-CREATE TABLE IF NOT EXISTS bza_approval_history (
-    approval_history_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '결재 이력 순번',
-    approval_id BIGINT NOT NULL COMMENT '결재 문서 순번',
-    action_type VARCHAR(30) NOT NULL COMMENT '결재 행위 유형',
-    actor_employee_no VARCHAR(50) NOT NULL COMMENT '처리 직원 번호',
-    idempotency_key VARCHAR(120) NOT NULL COMMENT '중복 행위 방지 키',
-    reason VARCHAR(500) NOT NULL COMMENT '결재 행위 사유',
-    before_status VARCHAR(30) NULL COMMENT '변경 전 상태',
-    after_status VARCHAR(30) NOT NULL COMMENT '변경 후 상태',
-    comment_text VARCHAR(1000) NULL COMMENT '결재 의견',
+CREATE TABLE IF NOT EXISTS bza_approval_policy_step (
+    policy_code VARCHAR(80) NOT NULL COMMENT '업무 결재 정책 코드',
+    policy_version INT NOT NULL COMMENT '정책 버전',
+    step_no INT NOT NULL COMMENT '결재 단계',
+    step_type VARCHAR(30) NOT NULL DEFAULT 'APPROVAL' COMMENT 'APPROVAL/AGREEMENT/REVIEW',
+    target_type VARCHAR(30) NOT NULL COMMENT 'EMPLOYEE/ROLE/ORGANIZATION/ORG_MANAGER/POSITION',
+    target_code VARCHAR(100) NOT NULL COMMENT '대상 코드',
+    decision_rule VARCHAR(20) NOT NULL DEFAULT 'ALL' COMMENT 'ALL/ANY/N_OF_M',
+    required_count INT NULL COMMENT 'N_OF_M 최소 결정 수',
+    required_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '필수 대상 여부',
+    sort_order INT NOT NULL DEFAULT 0 COMMENT '동일 단계 표시 순서',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
+    CONSTRAINT pk_bza_approval_policy_step PRIMARY KEY (policy_code, policy_version, step_no, target_type, target_code),
+    CONSTRAINT ck_bza_approval_policy_step_no CHECK (step_no >= 1),
+    CONSTRAINT ck_bza_approval_policy_step_type CHECK (step_type IN ('APPROVAL','AGREEMENT','REVIEW')),
+    CONSTRAINT ck_bza_approval_policy_step_target CHECK (target_type IN ('EMPLOYEE','ROLE','ORGANIZATION','ORG_MANAGER','POSITION')),
+    CONSTRAINT ck_bza_approval_policy_step_rule CHECK (decision_rule IN ('ALL','ANY','N_OF_M')),
+    CONSTRAINT ck_bza_approval_policy_step_required CHECK (required_yn IN ('Y','N') AND ( (decision_rule = 'N_OF_M' AND required_count IS NOT NULL AND required_count > 0) OR (decision_rule <> 'N_OF_M' AND required_count IS NULL) )),
+    CONSTRAINT fk_bza_approval_policy_step_policy FOREIGN KEY (policy_code, policy_version) REFERENCES bza_approval_policy (policy_code, policy_version) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 업무 결재 정책 단계';
+
+CREATE TABLE IF NOT EXISTS bza_attachment (
+    attachment_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '첨부파일 순번',
+    attachment_group_id VARCHAR(80) NOT NULL COMMENT '첨부파일 그룹 ID',
+    original_file_name VARCHAR(255) NOT NULL COMMENT '원본 파일명',
+    stored_file_name VARCHAR(255) NOT NULL COMMENT '저장 파일명',
+    storage_key VARCHAR(500) NOT NULL COMMENT '저장소 상대 key',
+    content_type VARCHAR(120) NOT NULL COMMENT '파일 Content-Type',
+    file_size BIGINT NOT NULL COMMENT '파일 크기 byte',
+    checksum_sha256 CHAR(64) NOT NULL COMMENT '파일 SHA-256 checksum',
+    scan_status VARCHAR(40) NOT NULL DEFAULT 'PENDING' COMMENT 'PENDING/CLEAN/INFECTED/FAILED/QUARANTINED',
+    data_classification VARCHAR(30) NOT NULL DEFAULT 'INTERNAL' COMMENT 'PUBLIC/INTERNAL/CONFIDENTIAL/RESTRICTED',
+    retention_until DATETIME(3) NULL COMMENT '보존 만료시각',
+    quarantine_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '격리 여부',
+    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_bza_attachment PRIMARY KEY (attachment_id),
+    CONSTRAINT uk_bza_attachment_storage_key UNIQUE (storage_key),
+    CONSTRAINT ck_bza_attachment_scan CHECK (scan_status IN ('PENDING','CLEAN','INFECTED','FAILED','QUARANTINED')),
+    CONSTRAINT ck_bza_attachment_classification CHECK (data_classification IN ('PUBLIC','INTERNAL','CONFIDENTIAL','RESTRICTED')),
+    CONSTRAINT ck_bza_attachment_quarantine CHECK (quarantine_yn IN ('Y','N')),
+    INDEX ix_bza_attachment_group (attachment_group_id, use_yn, created_at),
+    INDEX ix_bza_attachment_checksum (checksum_sha256),
+    INDEX ix_bza_attachment_retention (retention_until, use_yn)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 첨부파일 메타';
+
+CREATE TABLE IF NOT EXISTS bza_audit_chain_lock (
+    chain_id BIGINT NOT NULL COMMENT '감사 체인 식별자. 기본 체인은 1',
+    current_hash CHAR(64) NULL COMMENT '현재 감사 체인 head SHA-256',
+    last_audit_id BIGINT NULL COMMENT '현재 체인의 마지막 감사 ID',
+    version_no BIGINT NOT NULL DEFAULT 0 COMMENT '체인 갱신 버전',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '마지막 갱신자',
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '마지막 갱신시각',
+    CONSTRAINT pk_bza_audit_chain_lock PRIMARY KEY (chain_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 감사 체인 동시성/무결성 head';
+
+CREATE TABLE IF NOT EXISTS bza_business_audit (
+    audit_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '업무 감사 순번',
+    transaction_id CHAR(34) NULL COMMENT 'CPF transactionId',
+    actor_id VARCHAR(100) NOT NULL COMMENT '처리 사용자 ID',
+    action_type VARCHAR(50) NOT NULL COMMENT '업무 행위 유형',
+    target_type VARCHAR(80) NOT NULL COMMENT '대상 유형',
+    target_id VARCHAR(120) NOT NULL COMMENT '대상 ID',
+    reason VARCHAR(500) NOT NULL COMMENT '업무 처리 사유',
+    before_data LONGTEXT NULL COMMENT '변경 전 데이터',
+    after_data LONGTEXT NULL COMMENT '변경 후 데이터',
+    previous_record_hash CHAR(64) NULL COMMENT '동일 감사 스트림의 이전 레코드 SHA-256',
+    record_hash CHAR(64) NULL COMMENT '감사 레코드 tamper detection SHA-256',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_bza_business_audit PRIMARY KEY (audit_id),
+    INDEX ix_bza_business_audit_target (target_type, target_id, created_at),
+    INDEX ix_bza_business_audit_actor (actor_id, created_at),
+    INDEX ix_bza_business_audit_transaction (transaction_id),
+    INDEX ix_bza_business_audit_hash (record_hash)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 업무 감사';
+
+CREATE TABLE IF NOT EXISTS bza_download_audit (
+    download_audit_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '다운로드 감사 순번',
+    actor_id VARCHAR(100) NOT NULL COMMENT '다운로드 처리 로그인 ID',
+    download_code VARCHAR(80) NOT NULL COMMENT '다운로드 기능 코드',
+    reason VARCHAR(500) NOT NULL COMMENT '다운로드 사유',
+    filter_json LONGTEXT NULL COMMENT '다운로드 검색 조건 JSON',
+    row_count BIGINT NOT NULL DEFAULT 0 COMMENT '다운로드 결과 건수',
+    result_status VARCHAR(40) NOT NULL COMMENT '다운로드 결과 상태',
+    file_name VARCHAR(255) NULL COMMENT '다운로드 파일명',
+    masking_applied_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '마스킹 적용 여부',
     transaction_id CHAR(34) NULL COMMENT 'CPF transactionId',
     created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
     updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (approval_history_id),
-    UNIQUE KEY uk_bza_approval_history_idempotency (idempotency_key),
-    INDEX ix_bza_approval_history_document (approval_id, created_at),
-    CONSTRAINT fk_bza_approval_history_document FOREIGN KEY (approval_id)
-        REFERENCES bza_approval_document(approval_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 결재 상태 변경 이력';
+    CONSTRAINT pk_bza_download_audit PRIMARY KEY (download_audit_id),
+    INDEX ix_bza_download_audit_actor (actor_id, created_at),
+    INDEX ix_bza_download_audit_transaction (transaction_id),
+    INDEX ix_bza_download_audit_status (result_status, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 다운로드 감사';
+
+CREATE TABLE IF NOT EXISTS bza_employee (
+    employee_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '직원 순번',
+    employee_no VARCHAR(50) NOT NULL COMMENT '직원 번호',
+    admin_user_id BIGINT NULL COMMENT '연결 업무 관리자 사용자 순번',
+    organization_code VARCHAR(50) NOT NULL COMMENT '대표 조직 코드; 유효 소속 정본은 bza_employee_assignment',
+    employee_name VARCHAR(100) NOT NULL COMMENT '직원명',
+    position_code VARCHAR(50) NULL COMMENT '직급 코드',
+    job_title_code VARCHAR(50) NULL COMMENT '직책 코드',
+    manager_employee_no VARCHAR(50) NULL COMMENT '상위 관리자 직원 번호',
+    employment_status VARCHAR(30) NOT NULL DEFAULT 'EMPLOYED' COMMENT '재직 상태; 신규 직원 기본값 EMPLOYED',
+    join_date DATE NULL COMMENT '입사일',
+    leave_date DATE NULL COMMENT '퇴사일',
+    email VARCHAR(200) NULL COMMENT '업무 이메일',
+    mobile_no VARCHAR(50) NULL COMMENT '연락처(휴대폰); 숫자형이 아닌 문자열로 국가번호와 선행 0을 보존',
+    office_phone_no VARCHAR(50) NULL COMMENT '내부 전화번호/내선; 휴대폰 연락처와 분리',
+    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    version_no BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 버전',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_bza_employee PRIMARY KEY (employee_id),
+    CONSTRAINT uk_bza_employee_no UNIQUE (employee_no),
+    CONSTRAINT uk_bza_employee_admin_user UNIQUE (admin_user_id),
+    CONSTRAINT ck_bza_employee_use CHECK (use_yn IN ('Y','N')),
+    CONSTRAINT ck_bza_employee_status CHECK (employment_status IN ('EMPLOYED','ON_LEAVE','SECONDMENT','DISPATCHED','RETIRED','TERMINATED')),
+    CONSTRAINT ck_bza_employee_employment_period CHECK (leave_date IS NULL OR join_date IS NULL OR leave_date >= join_date),
+    CONSTRAINT fk_bza_employee_admin_user FOREIGN KEY (admin_user_id) REFERENCES bza_admin_user (admin_user_id) ON DELETE SET NULL,
+    CONSTRAINT fk_bza_employee_organization FOREIGN KEY (organization_code) REFERENCES bza_organization (organization_code),
+    CONSTRAINT fk_bza_employee_position FOREIGN KEY (position_code) REFERENCES bza_position (position_code) ON DELETE SET NULL,
+    CONSTRAINT fk_bza_employee_job_title FOREIGN KEY (job_title_code) REFERENCES bza_job_title (job_title_code) ON DELETE SET NULL,
+    INDEX ix_bza_employee_organization (organization_code, employment_status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 직원 프로필';
+
+CREATE TABLE IF NOT EXISTS bza_employee_assignment (
+    assignment_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '직원 소속/직무 발령 순번',
+    employee_no VARCHAR(50) NOT NULL COMMENT '직원 번호',
+    organization_code VARCHAR(50) NOT NULL COMMENT '소속 조직 코드',
+    position_code VARCHAR(50) NULL COMMENT '직급 코드',
+    job_title_code VARCHAR(50) NULL COMMENT '직책 코드',
+    assignment_type VARCHAR(30) NOT NULL DEFAULT 'PRIMARY' COMMENT 'PRIMARY/CONCURRENT/SECONDMENT/ACTING',
+    primary_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '대표 소속 여부',
+    effective_from DATETIME(3) NOT NULL COMMENT '발령 적용 시작시각',
+    effective_to DATETIME(3) NULL COMMENT '발령 적용 종료시각',
+    version_no BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 버전',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
+    CONSTRAINT pk_bza_employee_assignment PRIMARY KEY (assignment_id),
+    CONSTRAINT ck_bza_employee_assignment_type CHECK (assignment_type IN ('PRIMARY','CONCURRENT','SECONDMENT','ACTING')),
+    CONSTRAINT ck_bza_employee_assignment_primary CHECK (primary_yn IN ('Y','N')),
+    CONSTRAINT ck_bza_employee_assignment_effective CHECK (effective_to IS NULL OR effective_to > effective_from),
+    CONSTRAINT fk_bza_employee_assignment_employee FOREIGN KEY (employee_no) REFERENCES bza_employee (employee_no) ON DELETE CASCADE,
+    CONSTRAINT fk_bza_employee_assignment_org FOREIGN KEY (organization_code) REFERENCES bza_organization (organization_code),
+    CONSTRAINT fk_bza_employee_assignment_position FOREIGN KEY (position_code) REFERENCES bza_position (position_code) ON DELETE SET NULL,
+    CONSTRAINT fk_bza_employee_assignment_job_title FOREIGN KEY (job_title_code) REFERENCES bza_job_title (job_title_code) ON DELETE SET NULL,
+    INDEX ix_bza_employee_assignment_current (employee_no, effective_to, primary_yn),
+    INDEX ix_bza_employee_assignment_org (organization_code, effective_to, job_title_code)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 직원 유효기간 기반 조직/직급/직책 Assignment';
+
+CREATE TABLE IF NOT EXISTS bza_job_title (
+    job_title_code VARCHAR(50) NOT NULL COMMENT '직책 코드',
+    job_title_name VARCHAR(100) NOT NULL COMMENT '직책명',
+    manager_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '조직 책임자 성격 여부',
+    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    version_no BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 버전',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
+    CONSTRAINT pk_bza_job_title PRIMARY KEY (job_title_code),
+    CONSTRAINT ck_bza_job_title_flags CHECK (manager_yn IN ('Y','N') AND use_yn IN ('Y','N'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 직책 기준정보';
+
+CREATE TABLE IF NOT EXISTS bza_login_history (
+    login_history_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '업무 관리자 로그인 이력 순번',
+    admin_user_id BIGINT NULL COMMENT '업무 관리자 사용자 순번',
+    login_domain VARCHAR(30) NOT NULL DEFAULT 'BZA' COMMENT '로그인 도메인',
+    admin_login_id VARCHAR(80) NOT NULL COMMENT '업무 관리자 로그인 ID',
+    login_result VARCHAR(30) NOT NULL COMMENT '로그인 결과',
+    failure_reason VARCHAR(500) NULL COMMENT '로그인 실패 사유',
+    client_ip VARCHAR(50) NULL COMMENT '클라이언트 IP',
+    user_agent VARCHAR(500) NULL COMMENT 'User-Agent',
+    transaction_id CHAR(34) NULL COMMENT 'CPF 전역 transactionId',
+    module_id VARCHAR(3) NULL COMMENT '모듈 ID',
+    was_id VARCHAR(7) NULL COMMENT 'WAS ID',
+    server_instance_id VARCHAR(200) NULL COMMENT '서버 인스턴스 ID',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_bza_login_history PRIMARY KEY (login_history_id),
+    CONSTRAINT fk_bza_login_history_user FOREIGN KEY (admin_user_id) REFERENCES bza_admin_user (admin_user_id) ON DELETE SET NULL,
+    INDEX ix_bza_login_history_user_time (admin_user_id, created_at),
+    INDEX ix_bza_login_history_result_time (login_result, created_at),
+    INDEX ix_bza_login_history_global (transaction_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 업무 관리자 로그인 이력';
+
+CREATE TABLE IF NOT EXISTS bza_login_operation (
+    operation_id VARCHAR(100) NOT NULL COMMENT '로그인 멱등 Operation ID',
+    admin_user_id BIGINT NOT NULL COMMENT '업무 관리자 사용자 순번',
+    admin_login_id VARCHAR(80) NOT NULL COMMENT '업무 관리자 로그인 ID',
+    operation_status VARCHAR(20) NOT NULL DEFAULT 'PROCESSING' COMMENT 'PROCESSING/SUCCESS',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    request_hash VARCHAR(64) NOT NULL COMMENT '요청 payload canonical SHA-256',
+    result_access_token_enc LONGTEXT NULL COMMENT '재시도 결과 복구용 암호화 Access Token',
+    result_refresh_token_enc LONGTEXT NULL COMMENT '재시도 결과 복구용 암호화 Refresh Token',
+    result_refresh_expires_at DATETIME(3) NULL COMMENT 'Refresh Token 만료 시각',
+    result_expires_at DATETIME(3) NULL COMMENT 'Operation 결과 보존 만료 시각',
+    failure_code VARCHAR(80) NULL COMMENT '실패 코드',
+    failure_message VARCHAR(500) NULL COMMENT '마스킹된 실패 설명',
+    CONSTRAINT pk_bza_login_operation PRIMARY KEY (operation_id),
+    CONSTRAINT ck_bza_login_operation_status CHECK (operation_status IN ('PROCESSING','SUCCESS','FAILED','UNKNOWN','EXPIRED')),
+    CONSTRAINT fk_bza_login_operation_user FOREIGN KEY (admin_user_id) REFERENCES bza_admin_user (admin_user_id) ON DELETE CASCADE,
+    INDEX ix_bza_login_operation_user_time (admin_user_id, created_at),
+    INDEX ix_bza_login_operation_expiry (operation_status, result_expires_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 로그인 멱등 처리 이력';
+
+CREATE TABLE IF NOT EXISTS bza_menu (
+    menu_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '업무 메뉴 순번',
+    menu_code VARCHAR(80) NOT NULL COMMENT '업무 메뉴 코드',
+    menu_name VARCHAR(120) NOT NULL COMMENT '업무 메뉴명',
+    parent_menu_code VARCHAR(80) NULL COMMENT '상위 업무 메뉴 코드',
+    module_code VARCHAR(20) NOT NULL DEFAULT 'BZA' COMMENT '소유 업무 모듈 코드',
+    route_path VARCHAR(300) NULL COMMENT '화면 이동 경로',
+    icon_code VARCHAR(80) NULL COMMENT '화면 아이콘 코드',
+    environment_code VARCHAR(20) NOT NULL DEFAULT 'ALL' COMMENT '적용 환경 코드',
+    api_path VARCHAR(300) NULL COMMENT '연결 API 경로',
+    sort_order INT NOT NULL DEFAULT 0 COMMENT '정렬 순서',
+    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    version_no BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 버전',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_bza_menu PRIMARY KEY (menu_id),
+    CONSTRAINT uk_bza_menu_code UNIQUE (menu_code)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 업무 메뉴';
+
+CREATE TABLE IF NOT EXISTS bza_notification (
+    notification_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '업무 알림 순번',
+    recipient_login_id VARCHAR(100) NOT NULL COMMENT '수신 BZA 로그인 ID',
+    notification_type VARCHAR(40) NOT NULL COMMENT '업무 알림 유형',
+    title VARCHAR(200) NOT NULL COMMENT '업무 알림 제목',
+    message_body VARCHAR(2000) NOT NULL COMMENT '업무 알림 내용',
+    reference_type VARCHAR(80) NULL COMMENT '참조 업무 유형',
+    reference_id VARCHAR(120) NULL COMMENT '참조 업무 ID',
+    read_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '읽음 여부',
+    read_at DATETIME NULL COMMENT '읽음 일시',
+    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_bza_notification PRIMARY KEY (notification_id),
+    INDEX ix_bza_notification_recipient (recipient_login_id, read_yn, use_yn, created_at),
+    INDEX ix_bza_notification_reference (reference_type, reference_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 업무 알림';
+
+CREATE TABLE IF NOT EXISTS bza_organization (
+    organization_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '조직 순번',
+    organization_code VARCHAR(50) NOT NULL COMMENT '조직 코드',
+    parent_organization_code VARCHAR(50) NULL COMMENT '상위 조직 코드',
+    organization_name VARCHAR(120) NOT NULL COMMENT '조직명',
+    organization_type VARCHAR(30) NOT NULL DEFAULT 'DEPARTMENT' COMMENT '조직 유형',
+    sort_order INT NOT NULL DEFAULT 0 COMMENT '조직 정렬 순서',
+    effective_from DATETIME(3) NULL COMMENT '조직 적용 시작시각',
+    effective_to DATETIME(3) NULL COMMENT '조직 적용 종료시각',
+    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    version_no BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 버전',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_bza_organization PRIMARY KEY (organization_id),
+    CONSTRAINT uk_bza_organization_code UNIQUE (organization_code),
+    CONSTRAINT ck_bza_organization_use CHECK (use_yn IN ('Y','N')),
+    CONSTRAINT ck_bza_organization_effective CHECK (effective_to IS NULL OR effective_from IS NULL OR effective_to > effective_from),
+    INDEX ix_bza_organization_parent (parent_organization_code, sort_order)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 조직';
+
+CREATE TABLE IF NOT EXISTS bza_organization_responsibility (
+    responsibility_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '조직 책임/대행 순번',
+    organization_code VARCHAR(50) NOT NULL COMMENT '대상 조직 코드',
+    responsibility_type VARCHAR(30) NOT NULL DEFAULT 'MANAGER' COMMENT 'MANAGER/DEPUTY/ACTING/APPROVAL_OWNER',
+    employee_no VARCHAR(50) NOT NULL COMMENT '책임 직원 번호',
+    effective_from DATETIME(3) NOT NULL COMMENT '책임 시작시각',
+    effective_to DATETIME(3) NULL COMMENT '책임 종료시각',
+    priority_no INT NOT NULL DEFAULT 1 COMMENT '동일 책임 우선순위',
+    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    version_no BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 버전',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
+    CONSTRAINT pk_bza_organization_responsibility PRIMARY KEY (responsibility_id),
+    CONSTRAINT ck_bza_org_responsibility_type CHECK (responsibility_type IN ('MANAGER','DEPUTY','ACTING','APPROVAL_OWNER')),
+    CONSTRAINT ck_bza_org_responsibility_use CHECK (use_yn IN ('Y','N')),
+    CONSTRAINT ck_bza_org_responsibility_priority CHECK (priority_no >= 1),
+    CONSTRAINT ck_bza_org_responsibility_effective CHECK (effective_to IS NULL OR effective_to > effective_from),
+    CONSTRAINT fk_bza_org_responsibility_org FOREIGN KEY (organization_code) REFERENCES bza_organization (organization_code),
+    CONSTRAINT fk_bza_org_responsibility_employee FOREIGN KEY (employee_no) REFERENCES bza_employee (employee_no),
+    INDEX ix_bza_org_responsibility_active (organization_code, responsibility_type, use_yn, effective_to, priority_no),
+    INDEX ix_bza_org_responsibility_employee (employee_no, use_yn, effective_to)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 조직 책임자/대행/결재 책임자 유효기간 모델';
+
+CREATE TABLE IF NOT EXISTS bza_permission (
+    permission_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '업무 권한 순번',
+    role_code VARCHAR(50) NOT NULL COMMENT '업무 역할 코드',
+    menu_code VARCHAR(80) NOT NULL COMMENT '업무 메뉴 코드',
+    button_code VARCHAR(80) NOT NULL COMMENT '버튼/행위 코드',
+    permission_type VARCHAR(30) NOT NULL DEFAULT 'BUTTON' COMMENT '권한 유형 SCREEN, BUTTON, API',
+    http_method VARCHAR(10) NULL COMMENT 'API HTTP 메서드',
+    api_pattern VARCHAR(300) NULL COMMENT 'API 경로 패턴',
+    domain_code VARCHAR(30) NULL COMMENT '적용 업무 영역 코드',
+    environment_code VARCHAR(20) NOT NULL DEFAULT 'ALL' COMMENT '적용 환경 코드',
+    data_scope VARCHAR(30) NOT NULL DEFAULT 'ROLE' COMMENT '권한 데이터 범위',
+    allow_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '허용 여부',
+    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    version_no BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 버전',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_bza_permission PRIMARY KEY (permission_id),
+    INDEX ix_bza_permission_scope (role_code, menu_code, button_code, environment_code, domain_code, http_method),
+    INDEX ix_bza_permission_menu (menu_code)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 업무 권한';
+
+CREATE TABLE IF NOT EXISTS bza_position (
+    position_code VARCHAR(50) NOT NULL COMMENT '직급 코드',
+    position_name VARCHAR(100) NOT NULL COMMENT '직급명',
+    rank_order INT NOT NULL DEFAULT 0 COMMENT '직급 정렬/서열 값',
+    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    version_no BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 버전',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
+    CONSTRAINT pk_bza_position PRIMARY KEY (position_code),
+    CONSTRAINT ck_bza_position_use CHECK (use_yn IN ('Y','N'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 직급 기준정보';
 
 CREATE TABLE IF NOT EXISTS bza_project_setting (
     setting_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '업무 설정 순번',
@@ -3643,108 +3414,190 @@ CREATE TABLE IF NOT EXISTS bza_project_setting (
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
     updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (setting_id),
-    UNIQUE KEY uk_bza_project_setting_key (setting_key)
+    CONSTRAINT pk_bza_project_setting PRIMARY KEY (setting_id),
+    CONSTRAINT uk_bza_project_setting_key UNIQUE (setting_key)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 프로젝트 설정';
 
--- ACC는 현재 실제 Account Consumer가 남아 있는 전환 대상 레거시 Domain입니다.
--- Golden Generated Domain의 정본으로 사용하지 않습니다. 기존 Consumer를 Generated Domain 계약으로
--- 이관·회귀검증한 뒤 cpf-account 고정 모듈/legacy table을 제거하고 Generator로 재생성합니다.
--- 그 전까지는 기존 성공 기능을 깨뜨리지 않기 위해 현행 Account 저장소 계약을 보존합니다.
-USE accDB;
+CREATE TABLE IF NOT EXISTS bza_refresh_token (
+    refresh_token_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '업무 관리자 refresh token 순번',
+    admin_user_id BIGINT NOT NULL COMMENT '업무 관리자 사용자 순번',
+    login_domain VARCHAR(30) NOT NULL DEFAULT 'BZA' COMMENT '로그인 도메인',
+    refresh_token_hash VARCHAR(300) NOT NULL COMMENT 'refresh token hash',
+    transaction_id CHAR(34) NULL COMMENT '발급 전역 transactionId',
+    login_operation_id VARCHAR(100) NULL COMMENT '로그인 멱등 Operation ID',
+    expire_at DATETIME NOT NULL COMMENT '만료 일시',
+    revoked_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '폐기 여부',
+    revoked_at DATETIME NULL COMMENT '폐기 일시',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_bza_refresh_token PRIMARY KEY (refresh_token_id),
+    CONSTRAINT uk_bza_refresh_token_hash UNIQUE (refresh_token_hash),
+    CONSTRAINT fk_bza_refresh_token_user FOREIGN KEY (admin_user_id) REFERENCES bza_admin_user (admin_user_id) ON DELETE CASCADE,
+    INDEX ix_bza_refresh_token_user (admin_user_id, revoked_yn, expire_at),
+    INDEX ix_bza_refresh_token_login_operation (login_operation_id, revoked_yn)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 업무 관리자 refresh token hash 저장소';
 
-CREATE TABLE IF NOT EXISTS acc_account (
-    account_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '계정 식별자',
-    account_no VARCHAR(50) NOT NULL COMMENT '업무 계정번호',
-    account_name VARCHAR(150) NOT NULL COMMENT '계정명',
-    email VARCHAR(200) NULL COMMENT '마스킹 대상 이메일',
-    status_code VARCHAR(30) NOT NULL DEFAULT 'ACTIVE' COMMENT '계정 상태 코드',
-    row_version BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 버전',
+CREATE TABLE IF NOT EXISTS bza_role (
+    role_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '업무 역할 순번',
+    role_code VARCHAR(50) NOT NULL COMMENT '업무 역할 코드',
+    role_name VARCHAR(120) NOT NULL COMMENT '업무 역할명',
+    write_allowed_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '쓰기 허용 여부',
+    data_scope VARCHAR(30) NOT NULL DEFAULT 'OWN' COMMENT '기본 데이터 접근 범위',
+    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    version_no BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 버전',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_bza_role PRIMARY KEY (role_id),
+    CONSTRAINT uk_bza_role_code UNIQUE (role_code)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 업무 역할';
+
+CREATE TABLE IF NOT EXISTS bza_saved_search (
+    saved_search_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '저장 검색 순번',
+    owner_login_id VARCHAR(100) NOT NULL COMMENT '저장 검색 소유 로그인 ID',
+    screen_code VARCHAR(80) NOT NULL COMMENT '적용 화면 코드',
+    search_name VARCHAR(120) NOT NULL COMMENT '저장 검색명',
+    criteria_json LONGTEXT NOT NULL COMMENT '검색 조건 JSON',
+    shared_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '공유 여부',
+    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_bza_saved_search PRIMARY KEY (saved_search_id),
+    CONSTRAINT uk_bza_saved_search_owner UNIQUE (owner_login_id, screen_code, search_name),
+    INDEX ix_bza_saved_search_screen (screen_code, shared_yn, use_yn)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 저장 검색';
+
+CREATE TABLE IF NOT EXISTS bza_user_role (
+    user_role_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '사용자 역할 이력 순번',
+    admin_user_id BIGINT NOT NULL COMMENT '업무 관리자 사용자 순번',
+    role_code VARCHAR(50) NOT NULL COMMENT '업무 역할 코드',
+    valid_from DATETIME(3) NULL COMMENT '역할 적용 시작시각',
+    valid_to DATETIME(3) NULL COMMENT '역할 적용 종료시각',
+    primary_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '대표 역할 여부',
+    grant_reason VARCHAR(500) NOT NULL DEFAULT 'INITIAL' COMMENT '부여/변경 사유',
+    operation_id VARCHAR(100) NULL COMMENT '멱등 작업 식별자',
+    version_no BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 버전',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
+    CONSTRAINT pk_bza_user_role PRIMARY KEY (user_role_id),
+    CONSTRAINT uk_bza_user_role_operation UNIQUE (operation_id),
+    CONSTRAINT ck_bza_user_role_primary CHECK (primary_yn IN ('Y','N')),
+    CONSTRAINT ck_bza_user_role_effective CHECK (valid_to IS NULL OR valid_from IS NULL OR valid_to > valid_from),
+    CONSTRAINT fk_bza_user_role_user FOREIGN KEY (admin_user_id) REFERENCES bza_admin_user (admin_user_id) ON DELETE CASCADE,
+    CONSTRAINT fk_bza_user_role_role FOREIGN KEY (role_code) REFERENCES bza_role (role_code),
+    INDEX ix_bza_user_role_user (admin_user_id, valid_to, primary_yn, user_role_id),
+    INDEX ix_bza_user_role_role (role_code, valid_to, admin_user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 사용자 다중 역할 이력';
+
+
+-- AUTO-GENERATED from cpf-tools/db/canonical/platform-schema.json
+-- vendor=mariadb
+-- DO NOT EDIT generated DDL directly.
+
+-- CPF_LOGICAL_DATABASE=refDB
+USE refDB;
+CREATE TABLE IF NOT EXISTS ref_center_cut_sample_result (
+    result_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '센터컷 샘플 결과 순번',
+    target_id VARCHAR(80) NOT NULL COMMENT '센터컷 샘플 대상 ID',
+    center_cut_job_id VARCHAR(100) NOT NULL COMMENT '센터컷 Job ID',
+    business_key VARCHAR(200) NOT NULL COMMENT '업무 멱등 키',
+    result_status VARCHAR(30) NOT NULL COMMENT '처리 결과 상태',
+    result_payload LONGTEXT NULL COMMENT '처리 결과 payload',
+    result_message VARCHAR(1000) NULL COMMENT '처리 결과 메시지',
+    transaction_id CHAR(34) NULL COMMENT '센터컷 실행 전체가 승계하는 CPF transactionId',
+    parent_segment_id VARCHAR(120) NULL COMMENT '부모 거래 구간 ID',
+    transaction_segment_id VARCHAR(120) NULL COMMENT '현재 거래 구간 ID',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'REF' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'REF' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_ref_center_cut_sample_result PRIMARY KEY (result_id),
+    CONSTRAINT uk_ref_center_cut_sample_result_target UNIQUE (target_id),
+    CONSTRAINT fk_ref_center_cut_sample_result_target FOREIGN KEY (target_id) REFERENCES ref_center_cut_sample_target (target_id) ON DELETE CASCADE,
+    INDEX ix_ref_center_cut_sample_result_job (center_cut_job_id, result_status, created_at),
+    INDEX ix_ref_center_cut_sample_result_transaction (transaction_id, transaction_segment_id),
+    INDEX ix_ref_center_cut_sample_result_parent_segment (parent_segment_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='REF 센터컷 샘플 결과';
+
+CREATE TABLE IF NOT EXISTS ref_center_cut_sample_target (
+    target_id VARCHAR(80) NOT NULL COMMENT '센터컷 샘플 대상 ID',
+    center_cut_job_id VARCHAR(100) NOT NULL COMMENT '센터컷 Job ID',
+    business_key VARCHAR(200) NOT NULL COMMENT '업무 멱등 키',
+    business_date DATE NOT NULL COMMENT '업무 기준일',
+    target_payload LONGTEXT NULL COMMENT '처리 입력 payload',
+    status_code VARCHAR(30) NOT NULL DEFAULT 'READY' COMMENT '대상 상태 코드',
+    retry_count INT NOT NULL DEFAULT 0 COMMENT '재처리 횟수',
+    transaction_id CHAR(34) NULL COMMENT '센터컷 실행 전체가 승계하는 CPF transactionId',
+    parent_segment_id VARCHAR(120) NULL COMMENT '부모 거래 구간 ID',
+    transaction_segment_id VARCHAR(120) NULL COMMENT '현재 거래 구간 ID',
+    started_at DATETIME NULL COMMENT '처리 시작 일시',
+    completed_at DATETIME NULL COMMENT '처리 완료 일시',
+    last_error_message VARCHAR(1000) NULL COMMENT '마지막 오류 메시지',
+    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'REF' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'REF' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_ref_center_cut_sample_target PRIMARY KEY (target_id),
+    CONSTRAINT uk_ref_center_cut_sample_target_business UNIQUE (center_cut_job_id, business_key),
+    INDEX ix_ref_center_cut_sample_target_status (center_cut_job_id, status_code, business_date),
+    INDEX ix_ref_center_cut_sample_target_transaction (transaction_id, transaction_segment_id),
+    INDEX ix_ref_center_cut_sample_target_parent_segment (parent_segment_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='REF 센터컷 샘플 대상';
+
+CREATE TABLE IF NOT EXISTS ref_sample_item (
+    sample_item_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '샘플 항목 ID',
+    sample_key VARCHAR(100) NOT NULL COMMENT '업무 멱등·중복 검증 키',
+    item_name VARCHAR(200) NOT NULL COMMENT '최소 업무 데이터명',
+    category_code VARCHAR(30) NOT NULL DEFAULT 'GENERAL' COMMENT '검색 분류 코드',
+    status_code VARCHAR(30) NOT NULL DEFAULT 'ACTIVE' COMMENT '상태 코드',
+    searchable_text VARCHAR(500) NULL COMMENT '검색 검증용 값',
+    owner_reference VARCHAR(100) NULL COMMENT '다른 Domain을 직접 조인하지 않는 참조값',
+    sort_order BIGINT NOT NULL DEFAULT 0 COMMENT '안정 정렬용 순번',
+    version_no BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 버전',
     deleted_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '논리 삭제 여부',
+    transaction_id CHAR(34) NULL COMMENT 'CPF 거래 추적 ID',
+    idempotency_key VARCHAR(100) NULL COMMENT '거래 멱등 키',
     created_by VARCHAR(100) NOT NULL COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
     updated_by VARCHAR(100) NOT NULL COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (account_id),
-    UNIQUE KEY uk_acc_account_no (account_no),
-    INDEX ix_acc_account_search (status_code, deleted_yn, account_id),
-    CONSTRAINT ck_acc_account_deleted CHECK (deleted_yn IN ('Y', 'N'))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ACC 중립 계정 reference';
-
-CREATE TABLE IF NOT EXISTS acc_account_change_log (
-    account_change_log_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '계정 변경 로그 순번',
-    account_id BIGINT NOT NULL COMMENT '변경 계정 식별자',
-    action_code VARCHAR(30) NOT NULL COMMENT 'CREATE, UPDATE 또는 DELETE 행위 코드',
-    before_value LONGTEXT NULL COMMENT '마스킹된 변경 전 값',
-    after_value LONGTEXT NULL COMMENT '마스킹된 변경 후 값',
-    audit_reason VARCHAR(500) NOT NULL COMMENT '변경 감사 사유',
-    created_by VARCHAR(100) NOT NULL COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (account_change_log_id),
-    INDEX ix_acc_account_change_target (account_id, created_at),
-    CONSTRAINT fk_acc_account_change_target FOREIGN KEY (account_id)
-        REFERENCES acc_account (account_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ACC 계정 변경 감사 이력';
-
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
+    CONSTRAINT pk_ref_sample_item PRIMARY KEY (sample_item_id),
+    CONSTRAINT uk_ref_sample_item_key UNIQUE (sample_key),
+    CONSTRAINT uk_ref_sample_item_idempotency UNIQUE (idempotency_key),
+    CONSTRAINT ck_ref_sample_item_status CHECK (status_code IN ('ACTIVE', 'INACTIVE')),
+    CONSTRAINT ck_ref_sample_item_version CHECK (version_no >= 0),
+    CONSTRAINT ck_ref_sample_item_deleted CHECK (deleted_yn IN ('Y', 'N')),
+    INDEX ix_ref_sample_item_status_sort (status_code, sort_order, sample_item_id),
+    INDEX ix_ref_sample_item_category_sort (category_code, sort_order, sample_item_id),
+    INDEX ix_ref_sample_item_name_sort (item_name, sample_item_id),
+    INDEX ix_ref_sample_item_transaction (transaction_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='REF Minimal Transaction Reference Sample';
 -- ============================================================================
 -- cpf-tools/db/vendor/mariadb/source/50_framework_seed_data.sql
 -- ============================================================================
--- cpf-tools/db/vendor/mariadb/source/50_framework_seed_data.sql
--- ============================================================================
--- CPF 프레임워크 초기 코드, 메시지, 응답코드, 설정 데이터입니다.
--- 대상 DB: cpfDB(core), batDB(batch runtime)
+-- AUTO-GENERATED from cpf-tools/db/canonical/seed-model.json
+-- vendor=mariadb; source=50_framework_seed_data.sql
+-- DO NOT EDIT generated seed directly.
 
-USE cpfDB;
-
-INSERT INTO cpf_channel_registry (
-    channel_code, channel_name, channel_type, trust_level, client_channel_yn, internal_channel_yn,
-    authentication_required_yn, signature_required_yn, active_yn, description,
-    policy_version, created_by, updated_by
-) VALUES
-    ('ANY', '전체 채널', 'SYSTEM', 'INTERNAL', 'N', 'Y', 'N', 'N', 'Y', '정책 와일드카드 전용 채널', 0, 'SYSTEM', 'SYSTEM'),
+-- CPF_LOGICAL_DATABASE=cpfDB
+INSERT INTO cpf_channel_registry (channel_code, channel_name, channel_type, trust_level, client_channel_yn, internal_channel_yn, authentication_required_yn, signature_required_yn, active_yn, description, policy_version, created_by, updated_by) VALUES ('ANY', '전체 채널', 'SYSTEM', 'INTERNAL', 'N', 'Y', 'N', 'N', 'Y', '정책 와일드카드 전용 채널', 0, 'SYSTEM', 'SYSTEM'),
     ('WEB', '웹', 'CLIENT', 'EXTERNAL', 'Y', 'N', 'Y', 'N', 'Y', '웹 브라우저 채널', 0, 'SYSTEM', 'SYSTEM'),
     ('MOBILE', '모바일', 'CLIENT', 'EXTERNAL', 'Y', 'N', 'Y', 'N', 'Y', '모바일 애플리케이션 채널', 0, 'SYSTEM', 'SYSTEM'),
     ('ADM', '관리자', 'OPERATOR', 'INTERNAL', 'Y', 'Y', 'Y', 'N', 'Y', 'ADM 운영 채널', 0, 'SYSTEM', 'SYSTEM'),
-    ('BATCH', '배치', 'SYSTEM', 'INTERNAL', 'N', 'Y', 'N', 'N', 'Y', '배치 실행 채널', 0, 'SYSTEM', 'SYSTEM')
-ON DUPLICATE KEY UPDATE
-    channel_name = VALUES(channel_name),
-    channel_type = VALUES(channel_type),
-    trust_level = VALUES(trust_level),
-    client_channel_yn = VALUES(client_channel_yn),
-    internal_channel_yn = VALUES(internal_channel_yn),
-    authentication_required_yn = VALUES(authentication_required_yn),
-    signature_required_yn = VALUES(signature_required_yn),
-    active_yn = VALUES(active_yn),
-    description = VALUES(description),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO cpf_channel_execution_policy (
-    policy_key, standard_execution_id, original_channel_code, caller_channel_code, request_type,
-    allowed_yn, authentication_required_yn, signature_required_yn, max_tps,
-    effective_from, effective_to, active_yn, policy_version, created_by, updated_by
-) VALUES (
+    ('BATCH', '배치', 'SYSTEM', 'INTERNAL', 'N', 'Y', 'N', 'N', 'Y', '배치 실행 채널', 0, 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE channel_name = VALUES(channel_name), channel_type = VALUES(channel_type), trust_level = VALUES(trust_level), client_channel_yn = VALUES(client_channel_yn), internal_channel_yn = VALUES(internal_channel_yn), authentication_required_yn = VALUES(authentication_required_yn), signature_required_yn = VALUES(signature_required_yn), active_yn = VALUES(active_yn), description = VALUES(description), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO cpf_channel_execution_policy (policy_key, standard_execution_id, original_channel_code, caller_channel_code, request_type, allowed_yn, authentication_required_yn, signature_required_yn, max_tps, effective_from, effective_to, active_yn, policy_version, created_by, updated_by) VALUES (
     'CPF.DEFAULT', '*', 'ANY', 'ANY', '*', 'Y', 'N', 'N', 0,
     NULL, NULL, 'Y', 0, 'SYSTEM', 'SYSTEM'
-)
-ON DUPLICATE KEY UPDATE
-    standard_execution_id = VALUES(standard_execution_id),
-    original_channel_code = VALUES(original_channel_code),
-    caller_channel_code = VALUES(caller_channel_code),
-    request_type = VALUES(request_type),
-    allowed_yn = VALUES(allowed_yn),
-    authentication_required_yn = VALUES(authentication_required_yn),
-    signature_required_yn = VALUES(signature_required_yn),
-    max_tps = VALUES(max_tps),
-    active_yn = VALUES(active_yn),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO cpf_code (parent_id, code_key, code_value, description, created_by, updated_by)
-VALUES
-    (NULL, 'CODE_GROUP', 'MODULE', '서비스 모듈 코드 그룹', 'SYSTEM', 'SYSTEM'),
+) ON DUPLICATE KEY UPDATE standard_execution_id = VALUES(standard_execution_id), original_channel_code = VALUES(original_channel_code), caller_channel_code = VALUES(caller_channel_code), request_type = VALUES(request_type), allowed_yn = VALUES(allowed_yn), authentication_required_yn = VALUES(authentication_required_yn), signature_required_yn = VALUES(signature_required_yn), max_tps = VALUES(max_tps), active_yn = VALUES(active_yn), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO cpf_code (parent_id, code_key, code_value, description, created_by, updated_by) VALUES (NULL, 'CODE_GROUP', 'MODULE', '서비스 모듈 코드 그룹', 'SYSTEM', 'SYSTEM'),
     (NULL, 'CODE_GROUP', 'REQUEST_TYPE', '요청 유형 코드 그룹', 'SYSTEM', 'SYSTEM'),
     (NULL, 'CODE_GROUP', 'CHANNEL_CODE', '채널 코드 그룹', 'SYSTEM', 'SYSTEM'),
     (NULL, 'CODE_GROUP', 'RESULT_TYPE', '응답 결과 유형 코드 그룹', 'SYSTEM', 'SYSTEM'),
@@ -3752,20 +3605,12 @@ VALUES
     (NULL, 'CODE_GROUP', 'LOG_LEVEL', '동적 로그 레벨 코드 그룹', 'SYSTEM', 'SYSTEM'),
     (NULL, 'CODE_GROUP', 'CACHE_NAME', '캐시 이름 코드 그룹', 'SYSTEM', 'SYSTEM'),
     (NULL, 'CODE_GROUP', 'BATCH_JOB_TYPE', '배치 Job 유형 코드 그룹', 'SYSTEM', 'SYSTEM'),
-    (NULL, 'CODE_GROUP', 'YN', '여부 코드 그룹', 'SYSTEM', 'SYSTEM')
-ON DUPLICATE KEY UPDATE
-    description = VALUES(description),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO cpf_code (parent_id, code_key, code_value, description, created_by, updated_by)
-VALUES
-    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'CPF', '프레임워크 공통 엔진', 'SYSTEM', 'SYSTEM'),
+    (NULL, 'CODE_GROUP', 'YN', '여부 코드 그룹', 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE description = VALUES(description), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO cpf_code (parent_id, code_key, code_value, description, created_by, updated_by) VALUES ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'CPF', '프레임워크 공통 엔진', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'CMN', '업무 공통 라이브러리', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'ADM', '관리자 운영 서비스', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'BZA', '업무 백오피스 서비스', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'BAT', '선택 배치 실행 서비스', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'MBR', '회원 샘플 서비스', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'REF', '교육 샘플 서비스', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'REQUEST_TYPE') p), 'REQUEST_TYPE', 'NORMAL', '일반 요청', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'REQUEST_TYPE') p), 'REQUEST_TYPE', 'COMPENSATION', '보상 요청', 'SYSTEM', 'SYSTEM'),
@@ -3792,29 +3637,19 @@ VALUES
     ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'BATCH_JOB_TYPE') p), 'BATCH_JOB_TYPE', 'CHUNK', 'Chunk 배치', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'BATCH_JOB_TYPE') p), 'BATCH_JOB_TYPE', 'RETRY', '재처리 배치', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'YN') p), 'YN', 'Y', '예', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'YN') p), 'YN', 'N', '아니오', 'SYSTEM', 'SYSTEM')
-ON DUPLICATE KEY UPDATE
-    parent_id = VALUES(parent_id),
-    description = VALUES(description),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO cpf_message (
-    message_code, locale, message_format_type, external_message, internal_message,
-    parameter_count, parameter_sample, description, created_by, updated_by
-) VALUES
-    ('MCPF000000', 'ko', 'FIXED', '정상 처리되었습니다.', 'CPF 공통 요청이 정상 처리되었습니다.', 0, NULL, 'CPF 공통 성공 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MCPF010001', 'ko', 'INDEXED', '요청 값이 올바르지 않습니다.', '요청 파라미터 검증에 실패했습니다. field={0}, value={1}', 2, '["memberId","abc"]', 'CPF 파라미터 오류 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MCPF010002', 'ko', 'INDEXED', '요청한 정보를 찾을 수 없습니다.', '조회 대상 데이터가 존재하지 않습니다. target={0}', 1, '["member"]', 'CPF 미존재 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MCPF010003', 'ko', 'INDEXED', '이미 등록된 정보입니다.', '중복 데이터가 감지되었습니다. key={0}', 1, '["memberNo"]', 'CPF 중복 메시지', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'YN') p), 'YN', 'N', '아니오', 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE parent_id = VALUES(parent_id), description = VALUES(description), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO cpf_message (message_code, locale, message_format_type, external_message, internal_message, parameter_count, parameter_sample, description, created_by, updated_by) VALUES ('MCPF000000', 'ko', 'FIXED', '정상 처리되었습니다.', 'CPF 공통 요청이 정상 처리되었습니다.', 0, NULL, 'CPF 공통 성공 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MCPF010001', 'ko', 'INDEXED', '요청 값이 올바르지 않습니다.', '요청 파라미터 검증에 실패했습니다. field={0}, value={1}', 2, '["field","invalid"]', 'CPF 파라미터 오류 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MCPF010002', 'ko', 'INDEXED', '요청한 정보를 찾을 수 없습니다.', '조회 대상 데이터가 존재하지 않습니다. target={0}', 1, '["sample-item"]', 'CPF 미존재 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MCPF010003', 'ko', 'INDEXED', '이미 등록된 정보입니다.', '중복 데이터가 감지되었습니다. key={0}', 1, '["sampleKey"]', 'CPF 중복 메시지', 'SYSTEM', 'SYSTEM'),
     ('MCPF010004', 'ko', 'INDEXED', '입력값을 확인해 주세요.', 'Bean Validation 검증에 실패했습니다. field={0}', 1, '["name"]', 'CPF 검증 메시지', 'SYSTEM', 'SYSTEM'),
     ('MCPF010005', 'ko', 'FIXED', '인증이 필요합니다.', '인증되지 않은 요청입니다.', 0, NULL, 'CPF 인증 필요 메시지', 'SYSTEM', 'SYSTEM'),
     ('MCPF010006', 'ko', 'INDEXED', '처리 권한이 없습니다.', '인가되지 않은 요청입니다. user={0}', 1, '["guest"]', 'CPF 권한 오류 메시지', 'SYSTEM', 'SYSTEM'),
     ('MCPF020001', 'ko', 'INDEXED', '요청을 처리할 수 없습니다.', '업무 규칙 위반이 발생했습니다. rule={0}', 1, '["business-rule"]', 'CPF 업무 규칙 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MCPF030001', 'ko', 'INDEXED', '일시적으로 처리할 수 없습니다.', '외부 또는 타 주제영역 연계 오류가 발생했습니다. service={0}', 1, '["mbr"]', 'CPF 외부 연계 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MCPF900001', 'ko', 'INDEXED', '필수 거래 헤더가 누락되었습니다.', 'CPF 거래 헤더 검증에 실패했습니다. header={0}, uri={1}', 2, '["X-Request-Type","/mbr/list"]', 'CPF 헤더 검증 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MCPF900002', 'ko', 'INDEXED', '거래 메타데이터 설정이 올바르지 않습니다.', 'CPF @CpfTransaction 메타데이터 검증에 실패했습니다. transactionId={0}', 1, '["MBR01BSE0001"]', 'CPF 메타데이터 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MCPF900003', 'ko', 'INDEXED', '서비스 접속 정보가 없습니다.', 'CPF 서비스 endpoint 설정을 찾을 수 없습니다. serviceId={0}', 1, '["mbr"]', 'CPF endpoint 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MCPF030001', 'ko', 'INDEXED', '일시적으로 처리할 수 없습니다.', '외부 또는 타 주제영역 연계 오류가 발생했습니다. service={0}', 1, '["generated-service"]', 'CPF 외부 연계 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MCPF900001', 'ko', 'INDEXED', '필수 거래 헤더가 누락되었습니다.', 'CPF 거래 헤더 검증에 실패했습니다. header={0}, uri={1}', 2, '["X-Request-Type","/api/sample-items"]', 'CPF 헤더 검증 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MCPF900002', 'ko', 'INDEXED', '거래 메타데이터 설정이 올바르지 않습니다.', 'CPF @CpfTransaction 메타데이터 검증에 실패했습니다. transactionId={0}', 1, '["OCPFSM0001"]', 'CPF 메타데이터 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MCPF900003', 'ko', 'INDEXED', '서비스 접속 정보가 없습니다.', 'CPF 서비스 endpoint 설정을 찾을 수 없습니다. serviceId={0}', 1, '["generated-service"]', 'CPF endpoint 메시지', 'SYSTEM', 'SYSTEM'),
     ('MCPF900004', 'ko', 'INDEXED', '동적 로그레벨 요청이 올바르지 않습니다.', 'CPF 동적 로그레벨 규칙 검증에 실패했습니다. reason={0}', 1, '["transactionId or businessTransactionId required"]', 'CPF 동적 로그 메시지', 'SYSTEM', 'SYSTEM'),
     ('MCPF900005', 'ko', 'INDEXED', '내부 공유 API에 접근할 수 없습니다.', 'CPF 내부 서비스 신원 또는 호출 경로 검증에 실패했습니다. reason={0}', 1, '["service identity verification failed"]', 'CPF 내부 공유 API 접근 거부 메시지', 'SYSTEM', 'SYSTEM'),
     ('MCPF990000', 'ko', 'INDEXED', '처리 중 오류가 발생했습니다.', 'CPF 내부 오류가 발생했습니다. error={0}', 1, '["Exception"]', 'CPF 내부 오류 메시지', 'SYSTEM', 'SYSTEM'),
@@ -3822,35 +3657,10 @@ INSERT INTO cpf_message (
     ('MBZA000000', 'ko', 'FIXED', '성공', 'BZA 요청이 정상 처리되었습니다.', 0, NULL, 'BZA 성공 메시지', 'SYSTEM', 'SYSTEM'),
     ('MBZA010001', 'ko', 'INDEXED', '업무 요청 값이 올바르지 않습니다.', 'BZA 입력값 검증에 실패했습니다. field={0}', 1, '["field"]', 'BZA 입력값 오류 메시지', 'SYSTEM', 'SYSTEM'),
     ('MBZA010002', 'ko', 'FIXED', '처리 권한이 없습니다.', 'BZA 서버 권한 검사에 실패했습니다.', 0, NULL, 'BZA 권한 오류 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MMBR000000', 'ko', 'FIXED', '성공', 'MBR 요청이 정상 처리되었습니다.', 0, NULL, 'MBR 성공 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MMBR010001', 'ko', 'FIXED', '회원이 생성되었습니다.', 'MBR 회원 데이터가 생성되었습니다.', 0, NULL, 'MBR 생성 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MMBR010002', 'ko', 'FIXED', '회원이 수정되었습니다.', 'MBR 회원 데이터가 수정되었습니다.', 0, NULL, 'MBR 수정 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MMBR010003', 'ko', 'FIXED', '회원이 삭제되었습니다.', 'MBR 회원 데이터가 삭제되었습니다.', 0, NULL, 'MBR 삭제 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MMBR010101', 'ko', 'FIXED', '회원 요청 형식이 올바르지 않습니다.', 'MBR 요청 형식이 올바르지 않습니다.', 0, NULL, 'MBR bad request 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MMBR010102', 'ko', 'INDEXED', '유효하지 않은 회원 파라미터입니다.', 'MBR 파라미터 검증에 실패했습니다. field={0}', 1, '["memberId"]', 'MBR 파라미터 오류 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MMBR010103', 'ko', 'INDEXED', '회원 정보를 찾을 수 없습니다.', 'MBR 조회 대상이 없습니다. target={0}', 1, '["member"]', 'MBR 미존재 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MMBR010104', 'ko', 'INDEXED', '중복된 회원 데이터가 있습니다.', 'MBR 중복 데이터가 감지되었습니다. key={0}', 1, '["memberNo"]', 'MBR 중복 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MMBR010105', 'ko', 'INDEXED', '회원 입력값 검증에 실패했습니다.', 'MBR 입력값 검증에 실패했습니다. field={0}', 1, '["name"]', 'MBR 검증 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MMBR990000', 'ko', 'INDEXED', '회원 처리 중 오류가 발생했습니다.', 'MBR 내부 서버 오류가 발생했습니다. error={0}', 1, '["Exception"]', 'MBR 내부 오류 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MREF090001', 'ko', 'INDEXED', '이미 등록된 {0}입니다.', '{0}={1} 값이 이미 존재합니다. duplicateCheck=REF_EDU_SAMPLE', 2, '["회원번호","M0001"]', 'REF 동적 중복 교육 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MREF090001', 'ko', 'INDEXED', '이미 등록된 {0}입니다.', '{0}={1} 값이 이미 존재합니다. duplicateCheck=REF_EDU_SAMPLE', 2, '["샘플키","SAMPLE-0001"]', 'REF 동적 중복 교육 메시지', 'SYSTEM', 'SYSTEM'),
     ('MCMN000001', 'ko', 'FIXED', 'CPF 교육 시스템에 오신 것을 환영합니다.', 'CMN education welcome message.', 0, NULL, 'CMN 교육 환영 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MCMN000001', 'en', 'FIXED', 'Welcome to the CPF education system.', 'CMN education welcome message.', 0, NULL, 'CMN 교육 환영 메시지', 'SYSTEM', 'SYSTEM')
-ON DUPLICATE KEY UPDATE
-    message_format_type = VALUES(message_format_type),
-    external_message = VALUES(external_message),
-    internal_message = VALUES(internal_message),
-    parameter_count = VALUES(parameter_count),
-    parameter_sample = VALUES(parameter_sample),
-    description = VALUES(description),
-    use_yn = 'Y',
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO cpf_response_code (
-    response_code, message_code, result_type, module_id, response_group, sequence_no,
-    http_status, description, created_by, updated_by
-) VALUES
-    ('SCPF000000', 'MCPF000000', 'S', 'CPF', '00', '0000', 200, 'CPF 공통 성공', 'SYSTEM', 'SYSTEM'),
+    ('MCMN000001', 'en', 'FIXED', 'Welcome to the CPF education system.', 'CMN education welcome message.', 0, NULL, 'CMN 교육 환영 메시지', 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE message_format_type = VALUES(message_format_type), external_message = VALUES(external_message), internal_message = VALUES(internal_message), parameter_count = VALUES(parameter_count), parameter_sample = VALUES(parameter_sample), description = VALUES(description), use_yn = 'Y', updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO cpf_response_code (response_code, message_code, result_type, module_id, response_group, sequence_no, http_status, description, created_by, updated_by) VALUES ('SCPF000000', 'MCPF000000', 'S', 'CPF', '00', '0000', 200, 'CPF 공통 성공', 'SYSTEM', 'SYSTEM'),
     ('ECPF010001', 'MCPF010001', 'E', 'CPF', '01', '0001', 400, '파라미터 오류', 'SYSTEM', 'SYSTEM'),
     ('ECPF010002', 'MCPF010002', 'E', 'CPF', '01', '0002', 404, '미존재 오류', 'SYSTEM', 'SYSTEM'),
     ('ECPF010003', 'MCPF010003', 'E', 'CPF', '01', '0003', 409, '중복 오류', 'SYSTEM', 'SYSTEM'),
@@ -3868,32 +3678,8 @@ INSERT INTO cpf_response_code (
     ('ECPF990001', 'MCPF990001', 'E', 'CPF', '99', '0001', 500, '데이터베이스 오류', 'SYSTEM', 'SYSTEM'),
     ('SBZA000000', 'MBZA000000', 'S', 'BZA', '00', '0000', 200, 'BZA 성공', 'SYSTEM', 'SYSTEM'),
     ('EBZA010001', 'MBZA010001', 'E', 'BZA', '01', '0001', 400, 'BZA 입력값 오류', 'SYSTEM', 'SYSTEM'),
-    ('EBZA010002', 'MBZA010002', 'E', 'BZA', '01', '0002', 403, 'BZA 권한 오류', 'SYSTEM', 'SYSTEM'),
-    ('SMBR000000', 'MMBR000000', 'S', 'MBR', '00', '0000', 200, 'MBR 성공', 'SYSTEM', 'SYSTEM'),
-    ('SMBR010001', 'MMBR010001', 'S', 'MBR', '01', '0001', 200, 'MBR 생성 성공', 'SYSTEM', 'SYSTEM'),
-    ('SMBR010002', 'MMBR010002', 'S', 'MBR', '01', '0002', 200, 'MBR 수정 성공', 'SYSTEM', 'SYSTEM'),
-    ('SMBR010003', 'MMBR010003', 'S', 'MBR', '01', '0003', 200, 'MBR 삭제 성공', 'SYSTEM', 'SYSTEM'),
-    ('EMBR010001', 'MMBR010101', 'E', 'MBR', '01', '0001', 400, 'MBR 요청 형식 오류', 'SYSTEM', 'SYSTEM'),
-    ('EMBR010002', 'MMBR010102', 'E', 'MBR', '01', '0002', 400, 'MBR 파라미터 오류', 'SYSTEM', 'SYSTEM'),
-    ('EMBR010003', 'MMBR010103', 'E', 'MBR', '01', '0003', 404, 'MBR 미존재', 'SYSTEM', 'SYSTEM'),
-    ('EMBR010004', 'MMBR010104', 'E', 'MBR', '01', '0004', 409, 'MBR 중복', 'SYSTEM', 'SYSTEM'),
-    ('EMBR010005', 'MMBR010105', 'E', 'MBR', '01', '0005', 400, 'MBR 검증 실패', 'SYSTEM', 'SYSTEM'),
-    ('EMBR990000', 'MMBR990000', 'E', 'MBR', '99', '0000', 500, 'MBR 내부 오류', 'SYSTEM', 'SYSTEM')
-ON DUPLICATE KEY UPDATE
-    message_code = VALUES(message_code),
-    result_type = VALUES(result_type),
-    module_id = VALUES(module_id),
-    response_group = VALUES(response_group),
-    sequence_no = VALUES(sequence_no),
-    http_status = VALUES(http_status),
-    description = VALUES(description),
-    use_yn = 'Y',
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO cpf_config (config_key, config_value, config_type, description, encrypted_yn, created_by, updated_by)
-VALUES
-    ('CPF.CMN.CACHE.PRELOAD_ENABLED', 'Y', 'BOOLEAN', 'CMN 캐시 기동 시 선적재 여부', 'N', 'SYSTEM', 'SYSTEM'),
+    ('EBZA010002', 'MBZA010002', 'E', 'BZA', '01', '0002', 403, 'BZA 권한 오류', 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE message_code = VALUES(message_code), result_type = VALUES(result_type), module_id = VALUES(module_id), response_group = VALUES(response_group), sequence_no = VALUES(sequence_no), http_status = VALUES(http_status), description = VALUES(description), use_yn = 'Y', updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO cpf_config (config_key, config_value, config_type, description, encrypted_yn, created_by, updated_by) VALUES ('CPF.CMN.CACHE.PRELOAD_ENABLED', 'Y', 'BOOLEAN', 'CMN 캐시 기동 시 선적재 여부', 'N', 'SYSTEM', 'SYSTEM'),
     ('CPF.CMN.CACHE.FAIL_FAST_ON_STARTUP', 'N', 'BOOLEAN', '캐시 선적재 실패 시 기동 실패 여부', 'N', 'SYSTEM', 'SYSTEM'),
     ('CPF.CMN.CACHE.REFRESH_POLL_MILLIS', '5000', 'NUMBER', '캐시 갱신 이벤트 polling 주기', 'N', 'SYSTEM', 'SYSTEM'),
     ('CPF.CMN.MESSAGING.BROKER', 'IN_MEMORY', 'STRING', '기본 CMN 메시지 브로커 유형', 'N', 'SYSTEM', 'SYSTEM'),
@@ -3904,21 +3690,8 @@ VALUES
     ('CPF.ADM.PASSWORD_MIN_LENGTH', '10', 'NUMBER', 'ADM 비밀번호 최소 길이', 'N', 'SYSTEM', 'SYSTEM'),
     ('CPF.ADM.PASSWORD_MAX_FAIL_COUNT', '5', 'NUMBER', 'ADM 로그인 실패 잠금 기준', 'N', 'SYSTEM', 'SYSTEM'),
     ('CPF.BATCH.DEFAULT_LOCK_SECONDS', '3600', 'NUMBER', '배치 기본 lock 만료 초', 'N', 'SYSTEM', 'SYSTEM'),
-    ('CPF.FEATURE.SAMPLE_ENABLED', 'Y', 'BOOLEAN', '샘플 API와 교육 flow 활성화 여부', 'N', 'SYSTEM', 'SYSTEM')
-ON DUPLICATE KEY UPDATE
-    config_value = VALUES(config_value),
-    config_type = VALUES(config_type),
-    description = VALUES(description),
-    encrypted_yn = VALUES(encrypted_yn),
-    use_yn = 'Y',
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-
--- R14 상용 기본 메타데이터 확장. 제품/Generator/EDU가 같은 값 집합을 사용합니다.
-INSERT INTO cpf_code (parent_id, code_key, code_value, description, created_by, updated_by)
-VALUES
-    (NULL, 'CODE_GROUP', 'HTTP_METHOD', 'HTTP Method 코드 그룹', 'SYSTEM', 'SYSTEM'),
+    ('CPF.FEATURE.SAMPLE_ENABLED', 'Y', 'BOOLEAN', '샘플 API와 교육 flow 활성화 여부', 'N', 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE config_value = VALUES(config_value), config_type = VALUES(config_type), description = VALUES(description), encrypted_yn = VALUES(encrypted_yn), use_yn = 'Y', updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO cpf_code (parent_id, code_key, code_value, description, created_by, updated_by) VALUES (NULL, 'CODE_GROUP', 'HTTP_METHOD', 'HTTP Method 코드 그룹', 'SYSTEM', 'SYSTEM'),
     (NULL, 'CODE_GROUP', 'EXECUTION_STATUS', '실행 상태 코드 그룹', 'SYSTEM', 'SYSTEM'),
     (NULL, 'CODE_GROUP', 'ASYNC_STATUS', '비동기 처리 상태 코드 그룹', 'SYSTEM', 'SYSTEM'),
     (NULL, 'CODE_GROUP', 'RETRY_STATUS', '재시도 상태 코드 그룹', 'SYSTEM', 'SYSTEM'),
@@ -3929,12 +3702,8 @@ VALUES
     (NULL, 'CODE_GROUP', 'DATA_CLASSIFICATION', '데이터 민감도 등급 코드 그룹', 'SYSTEM', 'SYSTEM'),
     (NULL, 'CODE_GROUP', 'APPROVAL_STATUS', '결재 상태 코드 그룹', 'SYSTEM', 'SYSTEM'),
     (NULL, 'CODE_GROUP', 'ERROR_CATEGORY', '오류 분류 코드 그룹', 'SYSTEM', 'SYSTEM'),
-    (NULL, 'CODE_GROUP', 'RETENTION_ACTION', '보존 정책 실행 유형 코드 그룹', 'SYSTEM', 'SYSTEM')
-ON DUPLICATE KEY UPDATE description=VALUES(description), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
-
-INSERT INTO cpf_code (parent_id, code_key, code_value, description, created_by, updated_by)
-VALUES
-    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key='CODE_GROUP' AND code_value='HTTP_METHOD') x), 'HTTP_METHOD', 'GET', '조회', 'SYSTEM', 'SYSTEM'),
+    (NULL, 'CODE_GROUP', 'RETENTION_ACTION', '보존 정책 실행 유형 코드 그룹', 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE description = VALUES(description), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO cpf_code (parent_id, code_key, code_value, description, created_by, updated_by) VALUES ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key='CODE_GROUP' AND code_value='HTTP_METHOD') x), 'HTTP_METHOD', 'GET', '조회', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key='CODE_GROUP' AND code_value='HTTP_METHOD') x), 'HTTP_METHOD', 'POST', '등록/명령', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key='CODE_GROUP' AND code_value='HTTP_METHOD') x), 'HTTP_METHOD', 'PUT', '전체 수정', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key='CODE_GROUP' AND code_value='HTTP_METHOD') x), 'HTTP_METHOD', 'PATCH', '부분 수정', 'SYSTEM', 'SYSTEM'),
@@ -3986,68 +3755,31 @@ VALUES
     ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key='CODE_GROUP' AND code_value='ERROR_CATEGORY') x), 'ERROR_CATEGORY', 'UNKNOWN_RESULT', '결과 미확정', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key='CODE_GROUP' AND code_value='RETENTION_ACTION') x), 'RETENTION_ACTION', 'ARCHIVE', '보관소 이관', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key='CODE_GROUP' AND code_value='RETENTION_ACTION') x), 'RETENTION_ACTION', 'PURGE', '정책 삭제', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key='CODE_GROUP' AND code_value='RETENTION_ACTION') x), 'RETENTION_ACTION', 'LEGAL_HOLD', '법적 보존', 'SYSTEM', 'SYSTEM')
-ON DUPLICATE KEY UPDATE parent_id=VALUES(parent_id), description=VALUES(description), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
-
-INSERT INTO cpf_message (message_code, locale, message_format_type, external_message, internal_message, parameter_count, parameter_sample, description, created_by, updated_by) VALUES
-    ('MCPF030002','ko','FIXED','요청 시간이 초과되었습니다.','대상 호출 timeout이 발생했습니다.',0,NULL,'공통 Timeout 메시지','SYSTEM','SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key='CODE_GROUP' AND code_value='RETENTION_ACTION') x), 'RETENTION_ACTION', 'LEGAL_HOLD', '법적 보존', 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE parent_id = VALUES(parent_id), description = VALUES(description), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO cpf_message (message_code, locale, message_format_type, external_message, internal_message, parameter_count, parameter_sample, description, created_by, updated_by) VALUES ('MCPF030002','ko','FIXED','요청 시간이 초과되었습니다.','대상 호출 timeout이 발생했습니다.',0,NULL,'공통 Timeout 메시지','SYSTEM','SYSTEM'),
     ('MCPF030003','ko','FIXED','연결 대상이 일시적으로 사용할 수 없습니다.','대상 서비스가 DOWN/OPEN 상태입니다.',0,NULL,'Target down 메시지','SYSTEM','SYSTEM'),
     ('MCPF030004','ko','FIXED','처리 결과를 확인 중입니다.','요청 결과가 UNKNOWN_RESULT로 분류되어 대사가 필요합니다.',0,NULL,'결과 미확정 메시지','SYSTEM','SYSTEM'),
     ('MCPF020002','ko','FIXED','다른 사용자가 먼저 변경했습니다. 다시 조회해 주세요.','낙관적 잠금 Version 충돌이 발생했습니다.',0,NULL,'동시성 충돌 메시지','SYSTEM','SYSTEM'),
     ('MCPF020003','ko','FIXED','동일 요청이 이미 처리되었습니다.','Idempotency key가 이미 완료된 요청입니다.',0,NULL,'멱등 중복 메시지','SYSTEM','SYSTEM'),
     ('MCPF040001','ko','FIXED','첨부파일 검사가 완료되지 않았습니다.','첨부 다운로드는 CLEAN 상태에서만 허용됩니다.',0,NULL,'첨부 보안 메시지','SYSTEM','SYSTEM'),
-    ('MCPF040002','ko','FIXED','첨부파일이 보안 정책에 의해 격리되었습니다.','INFECTED/QUARANTINED 파일 접근이 차단되었습니다.',0,NULL,'첨부 격리 메시지','SYSTEM','SYSTEM')
-ON DUPLICATE KEY UPDATE message_format_type=VALUES(message_format_type), external_message=VALUES(external_message), internal_message=VALUES(internal_message), parameter_count=VALUES(parameter_count), parameter_sample=VALUES(parameter_sample), description=VALUES(description), use_yn='Y', updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
-
-INSERT INTO cpf_response_code (response_code, message_code, result_type, module_id, response_group, sequence_no, http_status, description, created_by, updated_by) VALUES
-    ('ECPF030002','MCPF030002','E','CPF','03','0002',504,'Timeout','SYSTEM','SYSTEM'),
+    ('MCPF040002','ko','FIXED','첨부파일이 보안 정책에 의해 격리되었습니다.','INFECTED/QUARANTINED 파일 접근이 차단되었습니다.',0,NULL,'첨부 격리 메시지','SYSTEM','SYSTEM') ON DUPLICATE KEY UPDATE message_format_type = VALUES(message_format_type), external_message = VALUES(external_message), internal_message = VALUES(internal_message), parameter_count = VALUES(parameter_count), parameter_sample = VALUES(parameter_sample), description = VALUES(description), use_yn = 'Y', updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO cpf_response_code (response_code, message_code, result_type, module_id, response_group, sequence_no, http_status, description, created_by, updated_by) VALUES ('ECPF030002','MCPF030002','E','CPF','03','0002',504,'Timeout','SYSTEM','SYSTEM'),
     ('ECPF030003','MCPF030003','E','CPF','03','0003',503,'Target down','SYSTEM','SYSTEM'),
     ('ECPF030004','MCPF030004','E','CPF','03','0004',202,'UNKNOWN_RESULT','SYSTEM','SYSTEM'),
     ('ECPF020002','MCPF020002','E','CPF','02','0002',409,'Optimistic lock conflict','SYSTEM','SYSTEM'),
     ('ECPF020003','MCPF020003','E','CPF','02','0003',409,'Idempotency duplicate','SYSTEM','SYSTEM'),
     ('ECPF040001','MCPF040001','E','CPF','04','0001',423,'File scan pending','SYSTEM','SYSTEM'),
-    ('ECPF040002','MCPF040002','E','CPF','04','0002',403,'File quarantined','SYSTEM','SYSTEM')
-ON DUPLICATE KEY UPDATE message_code=VALUES(message_code), result_type=VALUES(result_type), module_id=VALUES(module_id), response_group=VALUES(response_group), sequence_no=VALUES(sequence_no), http_status=VALUES(http_status), description=VALUES(description), use_yn='Y', updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
-
-INSERT INTO cpf_config (config_key, config_value, config_type, description, encrypted_yn, created_by, updated_by) VALUES
-    ('CPF.BZA.SECURITY.MAX_LOGIN_FAIL_COUNT','5','NUMBER','BZA 로그인 실패 잠금 기준','N','SYSTEM','SYSTEM'),
+    ('ECPF040002','MCPF040002','E','CPF','04','0002',403,'File quarantined','SYSTEM','SYSTEM') ON DUPLICATE KEY UPDATE message_code = VALUES(message_code), result_type = VALUES(result_type), module_id = VALUES(module_id), response_group = VALUES(response_group), sequence_no = VALUES(sequence_no), http_status = VALUES(http_status), description = VALUES(description), use_yn = 'Y', updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO cpf_config (config_key, config_value, config_type, description, encrypted_yn, created_by, updated_by) VALUES ('CPF.BZA.SECURITY.MAX_LOGIN_FAIL_COUNT','5','NUMBER','BZA 로그인 실패 잠금 기준','N','SYSTEM','SYSTEM'),
     ('CPF.BZA.SECURITY.ACCESS_TOKEN_TTL_SECONDS','600','NUMBER','BZA Access Token TTL','N','SYSTEM','SYSTEM'),
     ('CPF.BZA.SECURITY.REFRESH_TOKEN_TTL_SECONDS','7200','NUMBER','BZA Refresh Token TTL','N','SYSTEM','SYSTEM'),
     ('CPF.RETENTION.EXECUTE_ENABLED','N','BOOLEAN','실제 Archive/Purge 실행 Kill Switch 기본 OFF','N','SYSTEM','SYSTEM'),
     ('CPF.FILE.DOWNLOAD_REQUIRE_CLEAN','Y','BOOLEAN','첨부 다운로드 CLEAN 상태 강제','N','SYSTEM','SYSTEM'),
-    ('CPF.HEALTH.INSTANCE_ID_REQUIRED','Y','BOOLEAN','운영 Health 응답 인스턴스 식별자 필수','N','SYSTEM','SYSTEM')
-ON DUPLICATE KEY UPDATE config_value=VALUES(config_value), config_type=VALUES(config_type), description=VALUES(description), encrypted_yn=VALUES(encrypted_yn), use_yn='Y', updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
-
-INSERT INTO cpf_log_policy (
-    policy_key, policy_name, target_type, target_id, log_level,
-    db_log_enabled_yn, file_log_enabled_yn, request_body_log_yn, response_body_log_yn,
-    error_stack_log_yn, retention_days, sampling_rate, priority, active_yn,
-    description, created_by, updated_by
-) VALUES
-    ('ONLINE_DEFAULT', '온라인 거래 기본 로그 정책', 'ONLINE_TRANSACTION', '*', 'INFO', 'Y', 'Y', 'N', 'N', 'Y', 90, 100.00, 100, 'Y', '온라인 Controller/API 기본 로그 정책', 'SYSTEM', 'SYSTEM'),
+    ('CPF.HEALTH.INSTANCE_ID_REQUIRED','Y','BOOLEAN','운영 Health 응답 인스턴스 식별자 필수','N','SYSTEM','SYSTEM') ON DUPLICATE KEY UPDATE config_value = VALUES(config_value), config_type = VALUES(config_type), description = VALUES(description), encrypted_yn = VALUES(encrypted_yn), use_yn = 'Y', updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO cpf_log_policy (policy_key, policy_name, target_type, target_id, log_level, db_log_enabled_yn, file_log_enabled_yn, request_body_log_yn, response_body_log_yn, error_stack_log_yn, retention_days, sampling_rate, priority, active_yn, description, created_by, updated_by) VALUES ('ONLINE_DEFAULT', '온라인 거래 기본 로그 정책', 'ONLINE_TRANSACTION', '*', 'INFO', 'Y', 'Y', 'N', 'N', 'Y', 90, 100.00, 100, 'Y', '온라인 Controller/API 기본 로그 정책', 'SYSTEM', 'SYSTEM'),
     ('BATCH_DEFAULT', '배치 기본 로그 정책', 'BATCH_JOB', '*', 'INFO', 'Y', 'Y', 'N', 'N', 'Y', 180, 100.00, 100, 'Y', 'Spring Batch Job 기본 로그 정책', 'SYSTEM', 'SYSTEM'),
-    ('ADM_OPERATION_DEFAULT', 'ADM 운영 기본 로그 정책', 'MODULE', 'ADM', 'INFO', 'Y', 'Y', 'N', 'N', 'Y', 365, 100.00, 50, 'Y', 'ADM 운영 API 기본 로그 정책', 'SYSTEM', 'SYSTEM')
-ON DUPLICATE KEY UPDATE
-    policy_name = VALUES(policy_name),
-    target_type = VALUES(target_type),
-    target_id = VALUES(target_id),
-    log_level = VALUES(log_level),
-    db_log_enabled_yn = VALUES(db_log_enabled_yn),
-    file_log_enabled_yn = VALUES(file_log_enabled_yn),
-    request_body_log_yn = VALUES(request_body_log_yn),
-    response_body_log_yn = VALUES(response_body_log_yn),
-    error_stack_log_yn = VALUES(error_stack_log_yn),
-    retention_days = VALUES(retention_days),
-    sampling_rate = VALUES(sampling_rate),
-    priority = VALUES(priority),
-    active_yn = VALUES(active_yn),
-    description = VALUES(description),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO cpf_security_jwt_key (
-    KEY_ID, ISSUER, ALGORITHM, SECRET_REF, ACTIVE_YN, EXPIRE_AT, created_by, updated_by
-) VALUES (
+    ('ADM_OPERATION_DEFAULT', 'ADM 운영 기본 로그 정책', 'MODULE', 'ADM', 'INFO', 'Y', 'Y', 'N', 'N', 'Y', 365, 100.00, 50, 'Y', 'ADM 운영 API 기본 로그 정책', 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE policy_name = VALUES(policy_name), target_type = VALUES(target_type), target_id = VALUES(target_id), log_level = VALUES(log_level), db_log_enabled_yn = VALUES(db_log_enabled_yn), file_log_enabled_yn = VALUES(file_log_enabled_yn), request_body_log_yn = VALUES(request_body_log_yn), response_body_log_yn = VALUES(response_body_log_yn), error_stack_log_yn = VALUES(error_stack_log_yn), retention_days = VALUES(retention_days), sampling_rate = VALUES(sampling_rate), priority = VALUES(priority), active_yn = VALUES(active_yn), description = VALUES(description), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO cpf_security_jwt_key (KEY_ID, ISSUER, ALGORITHM, SECRET_REF, ACTIVE_YN, EXPIRE_AT, created_by, updated_by) VALUES (
     'local-cpf-hs256-001',
     'CPF',
     'HS256',
@@ -4056,20 +3788,8 @@ INSERT INTO cpf_security_jwt_key (
     NULL,
     'SYSTEM',
     'SYSTEM'
-)
-ON DUPLICATE KEY UPDATE
-    ISSUER = VALUES(ISSUER),
-    ALGORITHM = VALUES(ALGORITHM),
-    SECRET_REF = VALUES(SECRET_REF),
-    ACTIVE_YN = VALUES(ACTIVE_YN),
-    EXPIRE_AT = VALUES(EXPIRE_AT),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO cpf_cache_refresh_event (
-    cache_name, event_type, event_key, source_was_id, published_by, created_by, updated_by
-)
-SELECT 'ALL', 'INITIAL_LOAD', 'INITIAL_FRAMEWORK_SEED', 'SQL', 'SYSTEM', 'SYSTEM', 'SYSTEM'
+) ON DUPLICATE KEY UPDATE ISSUER = VALUES(ISSUER), ALGORITHM = VALUES(ALGORITHM), SECRET_REF = VALUES(SECRET_REF), ACTIVE_YN = VALUES(ACTIVE_YN), EXPIRE_AT = VALUES(EXPIRE_AT), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO cpf_cache_refresh_event (cache_name, event_type, event_key, source_was_id, published_by, created_by, updated_by) SELECT 'ALL', 'INITIAL_LOAD', 'INITIAL_FRAMEWORK_SEED', 'SQL', 'SYSTEM', 'SYSTEM', 'SYSTEM'
 WHERE NOT EXISTS (
     SELECT 1
     FROM cpf_cache_refresh_event
@@ -4077,66 +3797,36 @@ WHERE NOT EXISTS (
       AND event_type = 'INITIAL_LOAD'
       AND event_key = 'INITIAL_FRAMEWORK_SEED'
 );
-
-
-INSERT INTO cpf_notification_rule (
-    event_type, event_sub_type, channel_code, template_code, severity, receiver_group, use_yn, created_by, updated_by
-) VALUES
-    ('BATCH_EXECUTION', 'FAILED', 'ADM', 'BATCH_FAILED_DEFAULT', 'ERROR', 'ADM_BATCH_OPERATOR', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('SECURITY_EVENT', 'LOGIN_FAILURE', 'ADM', 'SECURITY_LOGIN_FAILURE', 'WARN', 'ADM_SECURITY_OPERATOR', 'Y', 'SYSTEM', 'SYSTEM')
-ON DUPLICATE KEY UPDATE
-    template_code = VALUES(template_code),
-    severity = VALUES(severity),
-    receiver_group = VALUES(receiver_group),
-    use_yn = VALUES(use_yn),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
--- ============================================================================
-
--- R14 product defaults: paging/security/tenant/retention/health and standard operational errors.
-INSERT INTO cpf_code (parent_id, code_key, code_value, description, created_by, updated_by)
-SELECT NULL, 'CODE_GROUP', 'SORT_DIRECTION', '표준 정렬 방향', 'SYSTEM', 'SYSTEM'
+INSERT INTO cpf_notification_rule (event_type, event_sub_type, channel_code, template_code, severity, receiver_group, use_yn, created_by, updated_by) VALUES ('BATCH_EXECUTION', 'FAILED', 'ADM', 'BATCH_FAILED_DEFAULT', 'ERROR', 'ADM_BATCH_OPERATOR', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('SECURITY_EVENT', 'LOGIN_FAILURE', 'ADM', 'SECURITY_LOGIN_FAILURE', 'WARN', 'ADM_SECURITY_OPERATOR', 'Y', 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE template_code = VALUES(template_code), severity = VALUES(severity), receiver_group = VALUES(receiver_group), use_yn = VALUES(use_yn), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO cpf_code (parent_id, code_key, code_value, description, created_by, updated_by) SELECT NULL, 'CODE_GROUP', 'SORT_DIRECTION', '표준 정렬 방향', 'SYSTEM', 'SYSTEM'
 WHERE NOT EXISTS (SELECT 1 FROM cpf_code WHERE code_key='CODE_GROUP' AND code_value='SORT_DIRECTION');
-INSERT INTO cpf_code (parent_id, code_key, code_value, description, created_by, updated_by) VALUES
-    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key='CODE_GROUP' AND code_value='SORT_DIRECTION') x), 'SORT_DIRECTION', 'ASC', '오름차순', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key='CODE_GROUP' AND code_value='SORT_DIRECTION') x), 'SORT_DIRECTION', 'DESC', '내림차순', 'SYSTEM', 'SYSTEM')
-ON DUPLICATE KEY UPDATE parent_id=VALUES(parent_id), description=VALUES(description), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
-
-INSERT INTO cpf_message (message_code, locale, message_format_type, external_message, internal_message, parameter_count, parameter_sample, description, created_by, updated_by) VALUES
-    ('MCPF020004','ko','FIXED','요청 사용자 정보가 인증 사용자와 일치하지 않습니다.','Body requester spoofing이 차단되었습니다.',0,NULL,'Requester spoof 차단','SYSTEM','SYSTEM'),
+INSERT INTO cpf_code (parent_id, code_key, code_value, description, created_by, updated_by) VALUES ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key='CODE_GROUP' AND code_value='SORT_DIRECTION') x), 'SORT_DIRECTION', 'ASC', '오름차순', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key='CODE_GROUP' AND code_value='SORT_DIRECTION') x), 'SORT_DIRECTION', 'DESC', '내림차순', 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE parent_id = VALUES(parent_id), description = VALUES(description), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO cpf_message (message_code, locale, message_format_type, external_message, internal_message, parameter_count, parameter_sample, description, created_by, updated_by) VALUES ('MCPF020004','ko','FIXED','요청 사용자 정보가 인증 사용자와 일치하지 않습니다.','Body requester spoofing이 차단되었습니다.',0,NULL,'Requester spoof 차단','SYSTEM','SYSTEM'),
     ('MCPF020005','ko','FIXED','이미 사용된 정책 버전은 직접 수정할 수 없습니다.','사용된 Approval Policy version은 immutable입니다.',0,NULL,'정책 버전 불변성','SYSTEM','SYSTEM'),
     ('MCPF020006','ko','FIXED','동일 작업 식별자가 다른 요청에 사용되었습니다.','operationId payload 충돌입니다.',0,NULL,'멱등 작업 충돌','SYSTEM','SYSTEM'),
     ('MCPF020007','ko','FIXED','현재 데이터가 다른 요청에서 변경되었습니다.','expectedVersion CAS가 실패했습니다.',0,NULL,'낙관적 잠금 재조회','SYSTEM','SYSTEM'),
     ('MCPF040003','ko','FIXED','보존 정책에 의해 해당 데이터는 삭제할 수 없습니다.','LEGAL_HOLD가 적용되어 destructive retention을 차단했습니다.',0,NULL,'Legal hold','SYSTEM','SYSTEM'),
     ('MCPF040004','ko','FIXED','보존 작업 실행이 비활성화되어 있습니다.','CPF.RETENTION.EXECUTE_ENABLED kill switch가 OFF입니다.',0,NULL,'Retention kill switch','SYSTEM','SYSTEM'),
     ('MCPF050001','ko','FIXED','Secret 원문은 조회할 수 없습니다.','Secret API는 metadata/reference만 노출합니다.',0,NULL,'Secret 비노출','SYSTEM','SYSTEM'),
-    ('MCPF050002','ko','FIXED','테넌트 식별정보가 필요합니다.','Tenant mode에서 resolver가 tenantId를 결정하지 못했습니다.',0,NULL,'Tenant 필수','SYSTEM','SYSTEM')
-ON DUPLICATE KEY UPDATE message_format_type=VALUES(message_format_type), external_message=VALUES(external_message), internal_message=VALUES(internal_message), description=VALUES(description), use_yn='Y', updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
-
-INSERT INTO cpf_response_code (response_code, message_code, result_type, module_id, response_group, sequence_no, http_status, description, created_by, updated_by) VALUES
-    ('ECPF020004','MCPF020004','E','CPF','02','0004',403,'Requester spoof blocked','SYSTEM','SYSTEM'),
+    ('MCPF050002','ko','FIXED','테넌트 식별정보가 필요합니다.','Tenant mode에서 resolver가 tenantId를 결정하지 못했습니다.',0,NULL,'Tenant 필수','SYSTEM','SYSTEM') ON DUPLICATE KEY UPDATE message_format_type = VALUES(message_format_type), external_message = VALUES(external_message), internal_message = VALUES(internal_message), description = VALUES(description), use_yn = 'Y', updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO cpf_response_code (response_code, message_code, result_type, module_id, response_group, sequence_no, http_status, description, created_by, updated_by) VALUES ('ECPF020004','MCPF020004','E','CPF','02','0004',403,'Requester spoof blocked','SYSTEM','SYSTEM'),
     ('ECPF020005','MCPF020005','E','CPF','02','0005',409,'Policy version immutable','SYSTEM','SYSTEM'),
     ('ECPF020006','MCPF020006','E','CPF','02','0006',409,'Operation id conflict','SYSTEM','SYSTEM'),
     ('ECPF020007','MCPF020007','E','CPF','02','0007',409,'Optimistic lock retry','SYSTEM','SYSTEM'),
     ('ECPF040003','MCPF040003','E','CPF','04','0003',423,'Legal hold','SYSTEM','SYSTEM'),
     ('ECPF040004','MCPF040004','E','CPF','04','0004',403,'Retention disabled','SYSTEM','SYSTEM'),
     ('ECPF050001','MCPF050001','E','CPF','05','0001',403,'Secret value hidden','SYSTEM','SYSTEM'),
-    ('ECPF050002','MCPF050002','E','CPF','05','0002',400,'Tenant required','SYSTEM','SYSTEM')
-ON DUPLICATE KEY UPDATE message_code=VALUES(message_code), result_type=VALUES(result_type), module_id=VALUES(module_id), response_group=VALUES(response_group), sequence_no=VALUES(sequence_no), http_status=VALUES(http_status), description=VALUES(description), use_yn='Y', updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
-
-INSERT INTO cpf_config (config_key, config_value, config_type, description, encrypted_yn, created_by, updated_by) VALUES
-    ('CPF.PAGING.DEFAULT_SIZE','20','NUMBER','공통 Page 기본 크기','N','SYSTEM','SYSTEM'),
+    ('ECPF050002','MCPF050002','E','CPF','05','0002',400,'Tenant required','SYSTEM','SYSTEM') ON DUPLICATE KEY UPDATE message_code = VALUES(message_code), result_type = VALUES(result_type), module_id = VALUES(module_id), response_group = VALUES(response_group), sequence_no = VALUES(sequence_no), http_status = VALUES(http_status), description = VALUES(description), use_yn = 'Y', updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO cpf_config (config_key, config_value, config_type, description, encrypted_yn, created_by, updated_by) VALUES ('CPF.PAGING.DEFAULT_SIZE','20','NUMBER','공통 Page 기본 크기','N','SYSTEM','SYSTEM'),
     ('CPF.PAGING.MAX_SIZE','200','NUMBER','공통 Page 최대 크기','N','SYSTEM','SYSTEM'),
     ('CPF.RETENTION.DRY_RUN_DEFAULT','Y','BOOLEAN','Retention 기본 Dry-run','N','SYSTEM','SYSTEM'),
     ('CPF.RETENTION.EXECUTE_ENABLED','N','BOOLEAN','실제 Archive/Purge 실행 Kill Switch 기본 OFF','N','SYSTEM','SYSTEM'),
     ('CPF.SECRET.CACHE_TTL_SECONDS','300','NUMBER','Secret metadata/cache 기본 TTL','N','SYSTEM','SYSTEM'),
     ('CPF.TENANT.ENABLED','N','BOOLEAN','Tenant context 기능 기본 OFF','N','SYSTEM','SYSTEM'),
-    ('CPF.HEALTH.REMOTE_DEPENDENCY_GATES_READINESS','N','BOOLEAN','Remote owner 장애가 local readiness를 직접 차단하지 않음','N','SYSTEM','SYSTEM')
-ON DUPLICATE KEY UPDATE config_value=VALUES(config_value), config_type=VALUES(config_type), description=VALUES(description), encrypted_yn=VALUES(encrypted_yn), use_yn='Y', updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
-
--- R14 canonical metadata completion: catalog-required operational values.
-INSERT INTO cpf_code (parent_id, code_key, code_value, description, created_by, updated_by) VALUES
-    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key='CODE_GROUP' AND code_value='REQUEST_TYPE') x), 'REQUEST_TYPE', 'O', '온라인 요청', 'SYSTEM', 'SYSTEM'),
+    ('CPF.HEALTH.REMOTE_DEPENDENCY_GATES_READINESS','N','BOOLEAN','Remote owner 장애가 local readiness를 직접 차단하지 않음','N','SYSTEM','SYSTEM') ON DUPLICATE KEY UPDATE config_value = VALUES(config_value), config_type = VALUES(config_type), description = VALUES(description), encrypted_yn = VALUES(encrypted_yn), use_yn = 'Y', updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO cpf_code (parent_id, code_key, code_value, description, created_by, updated_by) VALUES ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key='CODE_GROUP' AND code_value='REQUEST_TYPE') x), 'REQUEST_TYPE', 'O', '온라인 요청', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key='CODE_GROUP' AND code_value='REQUEST_TYPE') x), 'REQUEST_TYPE', 'S', '공유 내부 서비스 요청', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key='CODE_GROUP' AND code_value='REQUEST_TYPE') x), 'REQUEST_TYPE', 'B', '배치 요청', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key='CODE_GROUP' AND code_value='CHANNEL_CODE') x), 'CHANNEL_CODE', 'APP', '모바일 앱 채널', 'SYSTEM', 'SYSTEM'),
@@ -4147,20 +3837,17 @@ INSERT INTO cpf_code (parent_id, code_key, code_value, description, created_by, 
     ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key='CODE_GROUP' AND code_value='BATCH_JOB_TYPE') x), 'BATCH_JOB_TYPE', 'SPRING_BATCH', 'Spring Batch Job', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key='CODE_GROUP' AND code_value='BATCH_JOB_TYPE') x), 'BATCH_JOB_TYPE', 'WORKER', '지속 Worker', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key='CODE_GROUP' AND code_value='BATCH_JOB_TYPE') x), 'BATCH_JOB_TYPE', 'SCHEDULER', 'Scheduler Job', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key='CODE_GROUP' AND code_value='BATCH_JOB_TYPE') x), 'BATCH_JOB_TYPE', 'CENTER_CUT', 'Center-Cut 대량 처리', 'SYSTEM', 'SYSTEM')
-ON DUPLICATE KEY UPDATE parent_id=VALUES(parent_id), description=VALUES(description), use_yn='Y', updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key='CODE_GROUP' AND code_value='BATCH_JOB_TYPE') x), 'BATCH_JOB_TYPE', 'CENTER_CUT', 'Center-Cut 대량 처리', 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE parent_id = VALUES(parent_id), description = VALUES(description), use_yn = 'Y', updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
 -- ============================================================================
 -- cpf-tools/db/vendor/mariadb/source/52_standard_execution_alias_seed.sql
 -- ============================================================================
--- cpf-tools/db/vendor/mariadb/source/52_standard_execution_alias_seed.sql
--- ============================================================================
--- 신규 설치에서도 구형 실행 ID 조회 호환 정보를 제공하는 정본 seed입니다.
-USE cpfDB;
+-- AUTO-GENERATED from cpf-tools/db/canonical/seed-model.json
+-- vendor=mariadb; source=52_standard_execution_alias_seed.sql
+-- DO NOT EDIT generated seed directly.
 
-INSERT INTO cpf_standard_execution_alias (
-    legacy_execution_id, standard_execution_id, migration_reason, created_by, updated_by
-) VALUES
-    ('BADM-RLG-EX-0001', 'BADMRL0001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+-- CPF_LOGICAL_DATABASE=cpfDB
+DELETE FROM cpf_standard_execution_alias WHERE legacy_execution_id LIKE 'OADM-MBR-%' OR standard_execution_id LIKE 'OADMMB%';
+INSERT INTO cpf_standard_execution_alias (legacy_execution_id, standard_execution_id, migration_reason, created_by, updated_by) VALUES ('BADM-RLG-EX-0001', 'BADMRL0001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
     ('BBAT-CUT-CL-0001', 'BBATCU0001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
     ('BBAT-OPS-FL-0001', 'BBATOP0001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
     ('BBAT-OPS-HB-0001', 'BBATOP0002', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
@@ -4228,13 +3915,6 @@ INSERT INTO cpf_standard_execution_alias (
     ('OADM-LGP-04-0015', 'OADMLG0015', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
     ('OADM-LGP-04-0017', 'OADMLG0017', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
     ('OADM-LGP-04-0019', 'OADMLG0022', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
-    ('OADM-MBR-01-0010', 'OADMMB0010', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
-    ('OADM-MBR-01-0011', 'OADMMB0011', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
-    ('OADM-MBR-02-0012', 'OADMMB0012', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
-    ('OADM-MBR-02-0015', 'OADMMB0015', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
-    ('OADM-MBR-03-0013', 'OADMMB0013', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
-    ('OADM-MBR-03-0014', 'OADMMB0014', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
-    ('OADM-MBR-04-0016', 'OADMMB0016', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
     ('OADM-MSG-01-0010', 'OADMMS0010', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
     ('OADM-MSG-01-0011', 'OADMMS0011', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
     ('OADM-MSG-02-0012', 'OADMMS0012', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
@@ -4399,17 +4079,6 @@ INSERT INTO cpf_standard_execution_alias (
     ('OBZA-SET-01-1001', 'OBZASE1001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
     ('OBZA-USR-QY-0000', 'OBZAUS0001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
     ('OBZA-USR-QY-0001', 'OBZAUS0002', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
-    ('OMBR-AUT-01-0004', 'OMBRAU0004', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
-    ('OMBR-AUT-01-0005', 'OMBRAU0005', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
-    ('OMBR-AUT-02-0001', 'OMBRAU0001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
-    ('OMBR-AUT-02-0002', 'OMBRAU0002', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
-    ('OMBR-AUT-02-0003', 'OMBRAU0003', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
-    ('OMBR-BSE-01-0001', 'OMBRMB0001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
-    ('OMBR-BSE-01-0002', 'OMBRMB0002', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
-    ('OMBR-BSE-01-0003', 'OMBRMB0003', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
-    ('OMBR-BSE-02-0001', 'OMBRMB0004', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
-    ('OMBR-BSE-03-0001', 'OMBRMB0005', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
-    ('OMBR-BSE-04-0001', 'OMBRMB0006', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
     ('OREF-EDU-01-0001', 'OREFAA0001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
     ('OREF-EDU-01-0002', 'OREFAA0002', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
     ('OREF-EDU-01-0003', 'OREFAA0003', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
@@ -4486,164 +4155,75 @@ INSERT INTO cpf_standard_execution_alias (
     ('OREF-QRY-01-0002', 'OREFQR0002', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
     ('OREF-QRY-01-0003', 'OREFQR0003', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
     ('OREF-QRY-01-0004', 'OREFQR0004', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
-    ('OREF-QRY-01-0005', 'OREFQR0005', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED')
-ON DUPLICATE KEY UPDATE
-    standard_execution_id = VALUES(standard_execution_id),
-    migration_reason = VALUES(migration_reason),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
--- ============================================================================
+    ('OREF-QRY-01-0005', 'OREFQR0005', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED') ON DUPLICATE KEY UPDATE standard_execution_id = VALUES(standard_execution_id), migration_reason = VALUES(migration_reason), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
 -- ============================================================================
 -- cpf-tools/db/vendor/mariadb/source/56_bza_product_seed.sql
 -- ============================================================================
--- cpf-tools/db/vendor/mariadb/source/56_bza_product_seed.sql
--- ============================================================================
--- BZA 고객 업무 관리자 제품 기본 Metadata입니다.
--- 조직/직원/직급/직책은 고객사 기준정보이므로 Product Seed에서 임의 생성하지 않습니다.
--- Product Seed는 설치 직후 권한·메뉴·운영 정책을 구성할 수 있는 최소 제품 정본만 제공합니다.
+-- AUTO-GENERATED from cpf-tools/db/canonical/seed-model.json
+-- vendor=mariadb; source=56_bza_product_seed.sql
+-- DO NOT EDIT generated seed directly.
 
-USE bzaDB;
-
-INSERT INTO bza_role (
-    role_code, role_name, write_allowed_yn, data_scope, use_yn, created_by, updated_by
-) VALUES
-    ('BZA_ADMIN', '업무 관리자', 'Y', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+-- CPF_LOGICAL_DATABASE=bzaDB
+INSERT INTO bza_role (role_code, role_name, write_allowed_yn, data_scope, use_yn, created_by, updated_by) VALUES ('BZA_ADMIN', '업무 관리자', 'Y', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
     ('BZA_OPERATOR', '업무 운영자', 'Y', 'ORGANIZATION', 'Y', 'SYSTEM', 'SYSTEM'),
     ('BZA_APPROVER', '업무 결재자', 'Y', 'ORGANIZATION', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA_VIEWER', '업무 조회자', 'N', 'ORGANIZATION', 'Y', 'SYSTEM', 'SYSTEM')
-ON DUPLICATE KEY UPDATE
-    role_name = VALUES(role_name),
-    write_allowed_yn = VALUES(write_allowed_yn),
-    data_scope = VALUES(data_scope),
-    use_yn = VALUES(use_yn),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP(3);
-
-INSERT INTO bza_menu (
-    menu_code, menu_name, parent_menu_code, module_code, route_path, icon_code,
-    environment_code, api_path, sort_order, use_yn, created_by, updated_by
-) VALUES
-    ('BZA_DASHBOARD', '업무 관리자 대시보드', NULL, 'BZA', '/bza', 'dashboard', 'ALL', '/api/bza/dashboard', 10, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_VIEWER', '업무 조회자', 'N', 'ORGANIZATION', 'Y', 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE role_name = VALUES(role_name), write_allowed_yn = VALUES(write_allowed_yn), data_scope = VALUES(data_scope), use_yn = VALUES(use_yn), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP(3);
+INSERT INTO bza_menu (menu_code, menu_name, parent_menu_code, module_code, route_path, icon_code, environment_code, api_path, sort_order, use_yn, created_by, updated_by) VALUES ('BZA_DASHBOARD', '업무 관리자 대시보드', NULL, 'BZA', '/bza', 'dashboard', 'ALL', '/api/bza/dashboard', 10, 'Y', 'SYSTEM', 'SYSTEM'),
     ('BZA_ORGANIZATION', '조직 관리', NULL, 'BZA', '/bza/organizations', 'organization', 'ALL', '/api/bza/organizations', 20, 'Y', 'SYSTEM', 'SYSTEM'),
     ('BZA_EMPLOYEE', '직원·소속 관리', NULL, 'BZA', '/bza/employees', 'employee', 'ALL', '/api/bza/employees', 30, 'Y', 'SYSTEM', 'SYSTEM'),
     ('BZA_AUTHORIZATION', '업무 권한 관리', NULL, 'BZA', '/bza/authorization', 'shield', 'ALL', '/api/bza/authorization', 40, 'Y', 'SYSTEM', 'SYSTEM'),
     ('BZA_APPROVAL', '업무 결재 관리', NULL, 'BZA', '/bza/approvals', 'approval', 'ALL', '/api/bza/approvals', 50, 'Y', 'SYSTEM', 'SYSTEM'),
     ('BZA_AUDIT', '업무 감사 조회', NULL, 'BZA', '/bza/audits', 'audit', 'ALL', '/api/bza/audits', 60, 'Y', 'SYSTEM', 'SYSTEM'),
     ('BZA_ATTACHMENT', '첨부 관리', NULL, 'BZA', '/bza/attachments', 'attachment', 'ALL', '/api/bza/attachments', 70, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA_SETTING', '업무 관리자 설정', NULL, 'BZA', '/bza/settings', 'setting', 'ALL', '/api/bza/settings', 80, 'Y', 'SYSTEM', 'SYSTEM')
-ON DUPLICATE KEY UPDATE
-    menu_name = VALUES(menu_name),
-    parent_menu_code = VALUES(parent_menu_code),
-    module_code = VALUES(module_code),
-    route_path = VALUES(route_path),
-    icon_code = VALUES(icon_code),
-    environment_code = VALUES(environment_code),
-    api_path = VALUES(api_path),
-    sort_order = VALUES(sort_order),
-    use_yn = VALUES(use_yn),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP(3);
-
--- BZA_ADMIN은 모든 기본 메뉴 API를 사용할 수 있습니다.
-INSERT INTO bza_permission (
-    role_code, menu_code, button_code, permission_type, http_method, api_pattern,
-    domain_code, environment_code, data_scope, allow_yn, use_yn, created_by, updated_by
-)
-SELECT 'BZA_ADMIN', menu_code, 'ALL', 'API', '*', CONCAT(api_path, '/**'),
+    ('BZA_SETTING', '업무 관리자 설정', NULL, 'BZA', '/bza/settings', 'setting', 'ALL', '/api/bza/settings', 80, 'Y', 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE menu_name = VALUES(menu_name), parent_menu_code = VALUES(parent_menu_code), module_code = VALUES(module_code), route_path = VALUES(route_path), icon_code = VALUES(icon_code), environment_code = VALUES(environment_code), api_path = VALUES(api_path), sort_order = VALUES(sort_order), use_yn = VALUES(use_yn), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP(3);
+INSERT INTO bza_permission (role_code, menu_code, button_code, permission_type, http_method, api_pattern, domain_code, environment_code, data_scope, allow_yn, use_yn, created_by, updated_by) SELECT 'BZA_ADMIN', menu_code, 'ALL', 'API', '*', CONCAT(api_path, '/**'),
        NULL, environment_code, 'ALL', 'Y', 'Y', 'SYSTEM', 'SYSTEM'
 FROM bza_menu
-WHERE use_yn = 'Y'
-ON DUPLICATE KEY UPDATE
-    permission_type = VALUES(permission_type),
-    http_method = VALUES(http_method),
-    api_pattern = VALUES(api_pattern),
-    environment_code = VALUES(environment_code),
-    data_scope = VALUES(data_scope),
-    allow_yn = VALUES(allow_yn),
-    use_yn = VALUES(use_yn),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP(3);
-
--- 일반 운영자/결재자/조회자는 최소 권한만 Product Seed로 부여하고 고객사가 확장합니다.
-INSERT INTO bza_permission (
-    role_code, menu_code, button_code, permission_type, http_method, api_pattern,
-    domain_code, environment_code, data_scope, allow_yn, use_yn, created_by, updated_by
-) VALUES
-    ('BZA_OPERATOR', 'BZA_DASHBOARD', 'READ', 'API', 'GET', '/api/bza/dashboard/**', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
+WHERE use_yn = 'Y' ON DUPLICATE KEY UPDATE permission_type = VALUES(permission_type), http_method = VALUES(http_method), api_pattern = VALUES(api_pattern), environment_code = VALUES(environment_code), data_scope = VALUES(data_scope), allow_yn = VALUES(allow_yn), use_yn = VALUES(use_yn), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP(3);
+INSERT INTO bza_permission (role_code, menu_code, button_code, permission_type, http_method, api_pattern, domain_code, environment_code, data_scope, allow_yn, use_yn, created_by, updated_by) VALUES ('BZA_OPERATOR', 'BZA_DASHBOARD', 'READ', 'API', 'GET', '/api/bza/dashboard/**', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
     ('BZA_OPERATOR', 'BZA_ORGANIZATION', 'READ', 'API', 'GET', '/api/bza/organizations/**', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
     ('BZA_OPERATOR', 'BZA_EMPLOYEE', 'READ', 'API', 'GET', '/api/bza/employees/**', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
     ('BZA_APPROVER', 'BZA_APPROVAL', 'READ', 'API', 'GET', '/api/bza/approvals/**', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
     ('BZA_APPROVER', 'BZA_APPROVAL', 'DECIDE', 'API', 'POST', '/api/bza/approvals/*/decisions', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
     ('BZA_VIEWER', 'BZA_DASHBOARD', 'READ', 'API', 'GET', '/api/bza/dashboard/**', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA_VIEWER', 'BZA_AUDIT', 'READ', 'API', 'GET', '/api/bza/audits/**', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM')
-ON DUPLICATE KEY UPDATE
-    permission_type = VALUES(permission_type),
-    http_method = VALUES(http_method),
-    api_pattern = VALUES(api_pattern),
-    environment_code = VALUES(environment_code),
-    data_scope = VALUES(data_scope),
-    allow_yn = VALUES(allow_yn),
-    use_yn = VALUES(use_yn),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP(3);
-
-INSERT INTO bza_project_setting (
-    setting_key, setting_value, description, use_yn, created_by, updated_by
-) VALUES
-    ('BZA.APPROVAL.SELF_APPROVAL_ALLOWED', 'N', '기본 자기승인 차단 정책', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_VIEWER', 'BZA_AUDIT', 'READ', 'API', 'GET', '/api/bza/audits/**', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE permission_type = VALUES(permission_type), http_method = VALUES(http_method), api_pattern = VALUES(api_pattern), environment_code = VALUES(environment_code), data_scope = VALUES(data_scope), allow_yn = VALUES(allow_yn), use_yn = VALUES(use_yn), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP(3);
+INSERT INTO bza_project_setting (setting_key, setting_value, description, use_yn, created_by, updated_by) VALUES ('BZA.APPROVAL.SELF_APPROVAL_ALLOWED', 'N', '기본 자기승인 차단 정책', 'Y', 'SYSTEM', 'SYSTEM'),
     ('BZA.APPROVAL.DEFAULT_DUE_HOURS', '24', '기본 결재 SLA 시간', 'Y', 'SYSTEM', 'SYSTEM'),
     ('BZA.APPROVAL.REQUIRE_PAYLOAD_HASH', 'Y', '결재 대상 Payload 변조 검증용 SHA-256 사용', 'Y', 'SYSTEM', 'SYSTEM'),
     ('BZA.AUDIT.HASH_CHAIN_ENABLED', 'Y', '업무 감사 로그 hash-chain 검증 사용', 'Y', 'SYSTEM', 'SYSTEM'),
     ('BZA.ATTACHMENT.SECURITY_SCAN_REQUIRED', 'Y', '첨부 보안검사 완료 후 사용 허용', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA.ATTACHMENT.DEFAULT_RETENTION_DAYS', '365', '첨부 기본 보존일수', 'Y', 'SYSTEM', 'SYSTEM')
-ON DUPLICATE KEY UPDATE
-    setting_value = VALUES(setting_value),
-    description = VALUES(description),
-    use_yn = VALUES(use_yn),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP(3);
--- ============================================================================
-
+    ('BZA.ATTACHMENT.DEFAULT_RETENTION_DAYS', '365', '첨부 기본 보존일수', 'Y', 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value), description = VALUES(description), use_yn = VALUES(use_yn), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP(3);
+INSERT INTO bza_permission (role_code, menu_code, button_code, permission_type, http_method, api_pattern, domain_code, environment_code, data_scope, allow_yn, use_yn, created_by, updated_by) VALUES ('BZA_ADMIN', 'BZA_AUTHORIZATION', 'SIMULATE', 'API', 'GET', '/api/bza/backoffice/permissions/effective', NULL, 'ALL', 'ALL', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_ADMIN', 'BZA_EMPLOYEE', 'PII_RAW', 'API', 'POST', '/api/bza/backoffice/employees/*/contacts/raw', NULL, 'ALL', 'ALL', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_OPERATOR', 'BZA_AUTHORIZATION', 'SIMULATE', 'API', 'GET', '/api/bza/backoffice/permissions/effective', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_APPROVER', 'BZA_APPROVAL', 'DECIDE', 'API', 'POST', '/api/bza/backoffice/approvals/*/actions', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_APPROVER', 'BZA_APPROVAL', 'DECIDE', 'API', 'POST', '/api/bza/approvals/*/decisions', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE http_method = VALUES(http_method), api_pattern = VALUES(api_pattern), domain_code = VALUES(domain_code), data_scope = VALUES(data_scope), allow_yn = VALUES(allow_yn), use_yn = VALUES(use_yn), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
 -- ============================================================================
 -- cpf-tools/db/vendor/mariadb/source/60_adm_seed_data.sql
 -- ============================================================================
--- cpf-tools/db/vendor/mariadb/source/60_adm_seed_data.sql
--- ============================================================================
--- ADM 초기 역할, 메뉴, 버튼 권한, 보안 정책, 로컬 계정 데이터입니다.
--- 대상 DB: admDB
+-- AUTO-GENERATED from cpf-tools/db/canonical/seed-model.json
+-- vendor=mariadb; source=60_adm_seed_data.sql
+-- DO NOT EDIT generated seed directly.
 
-USE admDB;
-
-INSERT INTO adm_role (ROLE_ID, ROLE_NAME, ROLE_TYPE, DESCRIPTION, USE_YN, created_by, updated_by)
-VALUES
-    ('ADM_ADMIN', '프레임워크 관리자', 'ADMIN', '모든 ADM 메뉴와 운영 작업을 관리합니다.', 'Y', 'SYSTEM', 'SYSTEM'),
+-- CPF_LOGICAL_DATABASE=admDB
+INSERT INTO adm_role (ROLE_ID, ROLE_NAME, ROLE_TYPE, DESCRIPTION, USE_YN, created_by, updated_by) VALUES ('ADM_ADMIN', '프레임워크 관리자', 'ADMIN', '모든 ADM 메뉴와 운영 작업을 관리합니다.', 'Y', 'SYSTEM', 'SYSTEM'),
     ('ADM_DEV_OPERATOR', '개발자 운영자', 'DEVELOPER_OPERATOR', '로그, 캐시, 코드, 메시지, 설정, 배치 관제를 운영합니다.', 'Y', 'SYSTEM', 'SYSTEM'),
     ('ADM_BIZ_OPERATOR', '업무 운영자', 'BUSINESS_OPERATOR', '회원, 거래 로그, 배치, 캐시 같은 업무 운영 기능을 수행합니다.', 'Y', 'SYSTEM', 'SYSTEM'),
     ('ADM_VIEWER', '조회 전용 운영자', 'VIEWER', '운영 정보를 조회만 할 수 있습니다.', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('ADM_OPERATOR', '운영자 호환 역할', 'DEVELOPER_OPERATOR', '기존 ADM_OPERATOR 호환을 위한 역할입니다.', 'Y', 'SYSTEM', 'SYSTEM')
-ON DUPLICATE KEY UPDATE
-    ROLE_NAME = VALUES(ROLE_NAME),
-    ROLE_TYPE = VALUES(ROLE_TYPE),
-    DESCRIPTION = VALUES(DESCRIPTION),
-    USE_YN = VALUES(USE_YN),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO adm_menu (MENU_ID, PARENT_MENU_ID, MENU_NAME, MENU_PATH, SORT_ORDER, USE_YN, created_by, updated_by)
-VALUES
-    ('DASHBOARD', NULL, '대시보드', '/adm', 10, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('ADM_OPERATOR', '운영자 호환 역할', 'DEVELOPER_OPERATOR', '기존 ADM_OPERATOR 호환을 위한 역할입니다.', 'Y', 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE ROLE_NAME = VALUES(ROLE_NAME), ROLE_TYPE = VALUES(ROLE_TYPE), DESCRIPTION = VALUES(DESCRIPTION), USE_YN = VALUES(USE_YN), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_menu (MENU_ID, PARENT_MENU_ID, MENU_NAME, MENU_PATH, SORT_ORDER, USE_YN, created_by, updated_by) VALUES ('DASHBOARD', NULL, '대시보드', '/adm', 10, 'Y', 'SYSTEM', 'SYSTEM'),
     ('LOG_LIST', NULL, '온라인 거래 로그', '/adm#logs', 20, 'Y', 'SYSTEM', 'SYSTEM'),
     ('STANDARD_EXECUTION', NULL, '표준 실행 카탈로그', '/adm#standard-executions', 23, 'Y', 'SYSTEM', 'SYSTEM'),
     ('CHANNEL_POLICY', NULL, '채널 정책', '/adm#channel-policy', 24, 'Y', 'SYSTEM', 'SYSTEM'),
     ('REMOTE_LOG', NULL, '원격 로그 관리', '/adm#remote-logs', 25, 'Y', 'SYSTEM', 'SYSTEM'),
     ('TRANSACTION_META', NULL, '거래 메타', '/adm#transactions', 25, 'Y', 'SYSTEM', 'SYSTEM'),
     ('AUDIT_LOG', NULL, '감사 로그', '/adm#audit-logs', 30, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('MEMBER', NULL, '회원 관리', '/adm#members', 40, 'Y', 'SYSTEM', 'SYSTEM'),
     ('BATCH', NULL, '배치 관제', '/adm#batch', 50, 'Y', 'SYSTEM', 'SYSTEM'),
     ('RELIABILITY', NULL, '신뢰성 처리 관제', '/adm#reliability', 52, 'Y', 'SYSTEM', 'SYSTEM'),
     ('NOTIFICATION', NULL, '알림 관리', '/adm#notifications', 55, 'Y', 'SYSTEM', 'SYSTEM'),
     ('DOWNLOAD', NULL, '다운로드 감사', '/adm#downloads', 58, 'Y', 'SYSTEM', 'SYSTEM'),
     ('CACHE', NULL, '캐시 관리', '/adm#cache', 60, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('FILE_JOB', NULL, '대량파일 Job', '/adm#file-jobs', 61, 'Y', 'SYSTEM', 'SYSTEM'),
     ('MESSAGE', NULL, '메시지 관리', '/adm#messages', 70, 'Y', 'SYSTEM', 'SYSTEM'),
     ('CODE', NULL, '코드 관리', '/adm#codes', 80, 'Y', 'SYSTEM', 'SYSTEM'),
     ('RESPONSE_CODE', NULL, '응답코드 관리', '/adm#response-codes', 90, 'Y', 'SYSTEM', 'SYSTEM'),
@@ -4653,19 +4233,8 @@ VALUES
     ('PASSWORD', NULL, '비밀번호 관리', '/adm#password', 120, 'Y', 'SYSTEM', 'SYSTEM'),
     ('SECURITY', NULL, '보안 운영', '/adm#security', 130, 'Y', 'SYSTEM', 'SYSTEM'),
     ('PERMISSION', NULL, '권한 관리', '/adm#permissions', 140, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('OPERATOR', NULL, '운영자 관리', '/adm#operators', 150, 'Y', 'SYSTEM', 'SYSTEM')
-ON DUPLICATE KEY UPDATE
-    PARENT_MENU_ID = VALUES(PARENT_MENU_ID),
-    MENU_NAME = VALUES(MENU_NAME),
-    MENU_PATH = VALUES(MENU_PATH),
-    SORT_ORDER = VALUES(SORT_ORDER),
-    USE_YN = VALUES(USE_YN),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO adm_button (BUTTON_ID, MENU_ID, ACTION_CODE, BUTTON_NAME, HTTP_METHOD, API_PATTERN, SORT_ORDER, USE_YN, created_by, updated_by)
-VALUES
-    ('LOG_LIST_READ', 'LOG_LIST', 'READ', '조회', 'GET', '/adm/api/logs/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('OPERATOR', NULL, '운영자 관리', '/adm#operators', 150, 'Y', 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE PARENT_MENU_ID = VALUES(PARENT_MENU_ID), MENU_NAME = VALUES(MENU_NAME), MENU_PATH = VALUES(MENU_PATH), SORT_ORDER = VALUES(SORT_ORDER), USE_YN = VALUES(USE_YN), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_button (BUTTON_ID, MENU_ID, ACTION_CODE, BUTTON_NAME, HTTP_METHOD, API_PATTERN, SORT_ORDER, USE_YN, created_by, updated_by) VALUES ('LOG_LIST_READ', 'LOG_LIST', 'READ', '조회', 'GET', '/adm/api/logs/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
     ('LOG_LIST_DETAIL', 'LOG_LIST', 'DETAIL', '상세 조회', 'GET', '/adm/api/logs/**', 20, 'Y', 'SYSTEM', 'SYSTEM'),
     ('LOG_LIST_DOWNLOAD', 'LOG_LIST', 'DOWNLOAD', '다운로드', 'GET', '/adm/api/logs/**', 30, 'Y', 'SYSTEM', 'SYSTEM'),
     ('STANDARD_EXECUTION_READ', 'STANDARD_EXECUTION', 'READ', '표준 실행 조회', 'GET', '/adm/api/standard-executions/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
@@ -4683,12 +4252,6 @@ VALUES
     ('TRANSACTION_META_SCAN', 'TRANSACTION_META', 'SCAN', '거래 메타 스캔', 'POST', '/adm/api/transactions/scan', 20, 'Y', 'SYSTEM', 'SYSTEM'),
     ('TRANSACTION_META_WRITE', 'TRANSACTION_META', 'WRITE', '거래 메타 비활성화', 'POST', '/adm/api/transactions/*/inactive', 30, 'Y', 'SYSTEM', 'SYSTEM'),
     ('AUDIT_LOG_READ', 'AUDIT_LOG', 'READ', '조회', 'GET', '/adm/api/audit-logs/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('MEMBER_READ', 'MEMBER', 'READ', '회원 조회', 'GET', '/adm/api/members/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('MEMBER_CREATE', 'MEMBER', 'CREATE', '회원 등록', 'POST', '/adm/api/members', 20, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('MEMBER_UPDATE', 'MEMBER', 'UPDATE', '회원 수정', 'PUT', '/adm/api/members/*', 30, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('MEMBER_STATUS', 'MEMBER', 'STATUS', '회원 상태 변경', 'PUT', '/adm/api/members/*/status', 40, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('MEMBER_ROLE_GRANT', 'MEMBER', 'ROLE_GRANT', '회원 권한 부여', 'POST', '/adm/api/members/*/roles', 50, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('MEMBER_ROLE_REVOKE', 'MEMBER', 'ROLE_REVOKE', '회원 권한 회수', 'DELETE', '/adm/api/members/*/roles/*', 60, 'Y', 'SYSTEM', 'SYSTEM'),
     ('BATCH_READ', 'BATCH', 'READ', '조회', 'GET', '/adm/api/batch/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
     ('BATCH_REGISTER', 'BATCH', 'REGISTER', '배치 등록', 'POST', '/adm/api/batch/jobs', 20, 'Y', 'SYSTEM', 'SYSTEM'),
     ('BATCH_EXECUTE', 'BATCH', 'EXECUTE', '수동 실행', 'POST', '/adm/api/batch/*/run', 30, 'Y', 'SYSTEM', 'SYSTEM'),
@@ -4716,10 +4279,23 @@ VALUES
     ('NOTIFICATION_WRITE', 'NOTIFICATION', 'WRITE', '알림 등록/수정', 'POST', '/adm/api/notifications/**', 20, 'Y', 'SYSTEM', 'SYSTEM'),
     ('NOTIFICATION_DISABLE', 'NOTIFICATION', 'DISABLE', '알림 비활성화', 'PUT', '/adm/api/notifications/rules/*/disable', 30, 'Y', 'SYSTEM', 'SYSTEM'),
     ('NOTIFICATION_TEST_SEND', 'NOTIFICATION', 'TEST_SEND', '알림 테스트 발송', 'POST', '/adm/api/notifications/rules/*/test-send', 40, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('NOTIFICATION_RETRY', 'NOTIFICATION', 'RETRY', '알림 발송 재시도', 'POST', '/adm/api/notifications/delivery-logs/*/retry', 50, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('NOTIFICATION_CANCEL', 'NOTIFICATION', 'CANCEL', '알림 발송 취소', 'POST', '/adm/api/notifications/delivery-logs/*/cancel', 60, 'Y', 'SYSTEM', 'SYSTEM'),
     ('DOWNLOAD_READ', 'DOWNLOAD', 'READ', '다운로드 감사 조회', 'GET', '/adm/api/downloads/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
     ('DOWNLOAD_EXECUTE', 'DOWNLOAD', 'DOWNLOAD', 'CSV 다운로드', 'POST', '/adm/api/downloads/csv', 20, 'Y', 'SYSTEM', 'SYSTEM'),
     ('CACHE_READ', 'CACHE', 'READ', '조회', 'GET', '/adm/api/cache/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
     ('CACHE_REFRESH', 'CACHE', 'REFRESH', '캐시 갱신', 'POST', '/adm/api/cache/**', 20, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('CACHE_EVICT_KEY', 'CACHE', 'EVICT_KEY', '단일 Cache 제거', 'POST', '/adm/api/cache/evict-key', 30, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('CACHE_EVICT_NAMESPACE', 'CACHE', 'EVICT_NAMESPACE', 'Namespace Cache 제거', 'POST', '/adm/api/cache/evict-namespace', 40, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('CACHE_RECONCILE', 'CACHE', 'RECONCILE', 'Cache Durable 재조정', 'POST', '/adm/api/cache/reconcile', 50, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('FILE_JOB_READ', 'FILE_JOB', 'READ', 'File Job 조회', 'GET', '/adm/api/file-jobs/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('FILE_JOB_UPLOAD', 'FILE_JOB', 'UPLOAD', 'Upload 접수', 'POST', '/adm/api/file-jobs/uploads', 20, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('FILE_JOB_APPLY', 'FILE_JOB', 'APPLY', '검증 Job 적용', 'POST', '/adm/api/file-jobs/*/apply', 30, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('FILE_JOB_RETRY', 'FILE_JOB', 'RETRY', 'File Job 재시도', 'POST', '/adm/api/file-jobs/*/retry', 40, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('FILE_JOB_CANCEL', 'FILE_JOB', 'CANCEL', 'File Job 취소', 'POST', '/adm/api/file-jobs/*/cancel', 50, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('FILE_JOB_ROLLBACK', 'FILE_JOB', 'ROLLBACK', 'File Job Rollback', 'POST', '/adm/api/file-jobs/*/rollback', 60, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('FILE_JOB_DOWNLOAD', 'FILE_JOB', 'DOWNLOAD', 'Artifact 다운로드', 'GET', '/adm/api/file-jobs/*/artifact', 70, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('FILE_JOB_RESOLVE', 'FILE_JOB', 'RESOLVE', '결과 불명 확정', 'POST', '/adm/api/file-jobs/*/resolve-unknown', 80, 'Y', 'SYSTEM', 'SYSTEM'),
     ('MESSAGE_READ', 'MESSAGE', 'READ', '조회', 'GET', '/adm/api/messages/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
     ('MESSAGE_WRITE', 'MESSAGE', 'WRITE', '등록/수정', 'POST', '/adm/api/messages/**', 20, 'Y', 'SYSTEM', 'SYSTEM'),
     ('MESSAGE_DISABLE', 'MESSAGE', 'DISABLE', '비활성', 'DELETE', '/adm/api/messages/**', 30, 'Y', 'SYSTEM', 'SYSTEM'),
@@ -4750,166 +4326,52 @@ VALUES
     ('OPERATOR_ROLE_UPDATE', 'OPERATOR', 'ROLE_UPDATE', '역할 부여', 'PUT', '/adm/api/operators/*/roles', 30, 'Y', 'SYSTEM', 'SYSTEM'),
     ('OPERATOR_STATUS_UPDATE', 'OPERATOR', 'STATUS_UPDATE', '계정 상태 변경', 'PUT', '/adm/api/operators/*/status', 40, 'Y', 'SYSTEM', 'SYSTEM'),
     ('OPERATOR_CONTACT_UPDATE', 'OPERATOR', 'CONTACT_UPDATE', '연락처 변경', 'PUT', '/adm/api/operators/*/contacts', 50, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('OPERATOR_PII_RAW', 'OPERATOR', 'PII_RAW', '연락처 원문 조회', 'POST', '/adm/api/operators/*/contacts/raw', 60, 'Y', 'SYSTEM', 'SYSTEM')
-ON DUPLICATE KEY UPDATE
-    MENU_ID = VALUES(MENU_ID),
-    ACTION_CODE = VALUES(ACTION_CODE),
-    BUTTON_NAME = VALUES(BUTTON_NAME),
-    HTTP_METHOD = VALUES(HTTP_METHOD),
-    API_PATTERN = VALUES(API_PATTERN),
-    SORT_ORDER = VALUES(SORT_ORDER),
-    USE_YN = VALUES(USE_YN),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO adm_password_policy (
-    POLICY_ID, MIN_LENGTH, REQUIRE_UPPER_YN, REQUIRE_LOWER_YN, REQUIRE_DIGIT_YN,
-    REQUIRE_SPECIAL_YN, MAX_FAIL_COUNT, EXPIRE_DAYS, HISTORY_LIMIT, USE_YN, created_by, updated_by
-) VALUES (
+    ('OPERATOR_PII_RAW', 'OPERATOR', 'PII_RAW', '연락처 원문 조회', 'POST', '/adm/api/operators/*/contacts/raw', 60, 'Y', 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE MENU_ID = VALUES(MENU_ID), ACTION_CODE = VALUES(ACTION_CODE), BUTTON_NAME = VALUES(BUTTON_NAME), HTTP_METHOD = VALUES(HTTP_METHOD), API_PATTERN = VALUES(API_PATTERN), SORT_ORDER = VALUES(SORT_ORDER), USE_YN = VALUES(USE_YN), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_password_policy (POLICY_ID, MIN_LENGTH, REQUIRE_UPPER_YN, REQUIRE_LOWER_YN, REQUIRE_DIGIT_YN, REQUIRE_SPECIAL_YN, MAX_FAIL_COUNT, EXPIRE_DAYS, HISTORY_LIMIT, USE_YN, created_by, updated_by) VALUES (
     'DEFAULT', 12, 'Y', 'Y', 'Y', 'Y', 5, 90, 5, 'Y', 'SYSTEM', 'SYSTEM'
-)
-ON DUPLICATE KEY UPDATE
-    MIN_LENGTH = VALUES(MIN_LENGTH),
-    REQUIRE_UPPER_YN = VALUES(REQUIRE_UPPER_YN),
-    REQUIRE_LOWER_YN = VALUES(REQUIRE_LOWER_YN),
-    REQUIRE_DIGIT_YN = VALUES(REQUIRE_DIGIT_YN),
-    REQUIRE_SPECIAL_YN = VALUES(REQUIRE_SPECIAL_YN),
-    MAX_FAIL_COUNT = VALUES(MAX_FAIL_COUNT),
-    EXPIRE_DAYS = VALUES(EXPIRE_DAYS),
-    HISTORY_LIMIT = VALUES(HISTORY_LIMIT),
-    USE_YN = VALUES(USE_YN),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
--- 최초 운영자는 CPF_ADM_BOOTSTRAP_* 환경변수를 명시한 애플리케이션 bootstrap에서만 생성합니다.
--- SQL seed에는 재사용 가능한 비밀번호 해시나 자동 활성 관리자 계정을 두지 않습니다.
-
-INSERT INTO adm_role_menu (ROLE_ID, MENU_ID, READ_YN, WRITE_YN, DELETE_YN, created_by, updated_by)
-SELECT 'ADM_ADMIN', MENU_ID, 'Y', 'Y', 'Y', 'SYSTEM', 'SYSTEM'
-FROM adm_menu
-ON DUPLICATE KEY UPDATE
-    READ_YN = VALUES(READ_YN),
-    WRITE_YN = VALUES(WRITE_YN),
-    DELETE_YN = VALUES(DELETE_YN),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO adm_role_menu (ROLE_ID, MENU_ID, READ_YN, WRITE_YN, DELETE_YN, created_by, updated_by)
-SELECT 'ADM_DEV_OPERATOR', MENU_ID, 'Y',
-       CASE WHEN MENU_ID IN ('TRANSACTION_META', 'CHANNEL_POLICY', 'REMOTE_LOG', 'BATCH', 'RELIABILITY', 'NOTIFICATION', 'DOWNLOAD', 'CACHE', 'MESSAGE', 'CODE', 'RESPONSE_CODE', 'CONFIG', 'DYNAMIC_LOG', 'LOG_POLICY') THEN 'Y' ELSE 'N' END,
+) ON DUPLICATE KEY UPDATE MIN_LENGTH = VALUES(MIN_LENGTH), REQUIRE_UPPER_YN = VALUES(REQUIRE_UPPER_YN), REQUIRE_LOWER_YN = VALUES(REQUIRE_LOWER_YN), REQUIRE_DIGIT_YN = VALUES(REQUIRE_DIGIT_YN), REQUIRE_SPECIAL_YN = VALUES(REQUIRE_SPECIAL_YN), MAX_FAIL_COUNT = VALUES(MAX_FAIL_COUNT), EXPIRE_DAYS = VALUES(EXPIRE_DAYS), HISTORY_LIMIT = VALUES(HISTORY_LIMIT), USE_YN = VALUES(USE_YN), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_role_menu (ROLE_ID, MENU_ID, READ_YN, WRITE_YN, DELETE_YN, created_by, updated_by) SELECT 'ADM_ADMIN', MENU_ID, 'Y', 'Y', 'Y', 'SYSTEM', 'SYSTEM'
+FROM adm_menu ON DUPLICATE KEY UPDATE READ_YN = VALUES(READ_YN), WRITE_YN = VALUES(WRITE_YN), DELETE_YN = VALUES(DELETE_YN), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_role_menu (ROLE_ID, MENU_ID, READ_YN, WRITE_YN, DELETE_YN, created_by, updated_by) SELECT 'ADM_DEV_OPERATOR', MENU_ID, 'Y',
+       CASE WHEN MENU_ID IN ('TRANSACTION_META', 'CHANNEL_POLICY', 'REMOTE_LOG', 'BATCH', 'RELIABILITY', 'NOTIFICATION', 'DOWNLOAD', 'CACHE', 'FILE_JOB', 'MESSAGE', 'CODE', 'RESPONSE_CODE', 'CONFIG', 'DYNAMIC_LOG', 'LOG_POLICY') THEN 'Y' ELSE 'N' END,
        CASE WHEN MENU_ID IN ('TRANSACTION_META', 'MESSAGE', 'CODE', 'DYNAMIC_LOG', 'LOG_POLICY') THEN 'Y' ELSE 'N' END,
        'SYSTEM', 'SYSTEM'
 FROM adm_menu
-WHERE MENU_ID NOT IN ('OPERATOR', 'PERMISSION', 'PASSWORD', 'SECURITY')
-ON DUPLICATE KEY UPDATE
-    READ_YN = VALUES(READ_YN),
-    WRITE_YN = VALUES(WRITE_YN),
-    DELETE_YN = VALUES(DELETE_YN),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO adm_role_menu (ROLE_ID, MENU_ID, READ_YN, WRITE_YN, DELETE_YN, created_by, updated_by)
-SELECT 'ADM_BIZ_OPERATOR', MENU_ID, 'Y',
-       CASE WHEN MENU_ID IN ('MEMBER', 'BATCH', 'DOWNLOAD', 'CACHE') THEN 'Y' ELSE 'N' END,
-       CASE WHEN MENU_ID = 'MEMBER' THEN 'Y' ELSE 'N' END,
+WHERE MENU_ID NOT IN ('OPERATOR', 'PERMISSION', 'PASSWORD', 'SECURITY') ON DUPLICATE KEY UPDATE READ_YN = VALUES(READ_YN), WRITE_YN = VALUES(WRITE_YN), DELETE_YN = VALUES(DELETE_YN), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_role_menu (ROLE_ID, MENU_ID, READ_YN, WRITE_YN, DELETE_YN, created_by, updated_by) SELECT 'ADM_BIZ_OPERATOR', MENU_ID, 'Y',
+       CASE WHEN MENU_ID IN ('BATCH', 'DOWNLOAD', 'CACHE', 'FILE_JOB') THEN 'Y' ELSE 'N' END,
+       'N',
        'SYSTEM', 'SYSTEM'
 FROM adm_menu
-WHERE MENU_ID IN ('DASHBOARD', 'LOG_LIST', 'STANDARD_EXECUTION', 'CHANNEL_POLICY', 'REMOTE_LOG', 'TRANSACTION_META', 'AUDIT_LOG', 'MEMBER', 'BATCH', 'RELIABILITY', 'NOTIFICATION', 'DOWNLOAD', 'CACHE', 'MESSAGE', 'CODE')
-ON DUPLICATE KEY UPDATE
-    READ_YN = VALUES(READ_YN),
-    WRITE_YN = VALUES(WRITE_YN),
-    DELETE_YN = VALUES(DELETE_YN),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO adm_role_menu (ROLE_ID, MENU_ID, READ_YN, WRITE_YN, DELETE_YN, created_by, updated_by)
-SELECT 'ADM_VIEWER', MENU_ID, 'Y', 'N', 'N', 'SYSTEM', 'SYSTEM'
+WHERE MENU_ID IN ('DASHBOARD', 'LOG_LIST', 'STANDARD_EXECUTION', 'CHANNEL_POLICY', 'REMOTE_LOG', 'TRANSACTION_META', 'AUDIT_LOG', 'BATCH', 'RELIABILITY', 'NOTIFICATION', 'DOWNLOAD', 'CACHE', 'FILE_JOB', 'MESSAGE', 'CODE') ON DUPLICATE KEY UPDATE READ_YN = VALUES(READ_YN), WRITE_YN = VALUES(WRITE_YN), DELETE_YN = VALUES(DELETE_YN), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_role_menu (ROLE_ID, MENU_ID, READ_YN, WRITE_YN, DELETE_YN, created_by, updated_by) SELECT 'ADM_VIEWER', MENU_ID, 'Y', 'N', 'N', 'SYSTEM', 'SYSTEM'
 FROM adm_menu
-WHERE MENU_ID IN ('DASHBOARD', 'LOG_LIST', 'STANDARD_EXECUTION', 'CHANNEL_POLICY', 'REMOTE_LOG', 'TRANSACTION_META', 'AUDIT_LOG', 'MEMBER', 'BATCH', 'RELIABILITY', 'NOTIFICATION', 'DOWNLOAD', 'CACHE', 'MESSAGE', 'CODE', 'RESPONSE_CODE', 'CONFIG', 'LOG_POLICY')
-ON DUPLICATE KEY UPDATE
-    READ_YN = VALUES(READ_YN),
-    WRITE_YN = VALUES(WRITE_YN),
-    DELETE_YN = VALUES(DELETE_YN),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO adm_role_menu (ROLE_ID, MENU_ID, READ_YN, WRITE_YN, DELETE_YN, created_by, updated_by)
-SELECT 'ADM_OPERATOR', MENU_ID, READ_YN, WRITE_YN, DELETE_YN, 'SYSTEM', 'SYSTEM'
+WHERE MENU_ID IN ('DASHBOARD', 'LOG_LIST', 'STANDARD_EXECUTION', 'CHANNEL_POLICY', 'REMOTE_LOG', 'TRANSACTION_META', 'AUDIT_LOG', 'BATCH', 'RELIABILITY', 'NOTIFICATION', 'DOWNLOAD', 'CACHE', 'FILE_JOB', 'MESSAGE', 'CODE', 'RESPONSE_CODE', 'CONFIG', 'LOG_POLICY') ON DUPLICATE KEY UPDATE READ_YN = VALUES(READ_YN), WRITE_YN = VALUES(WRITE_YN), DELETE_YN = VALUES(DELETE_YN), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_role_menu (ROLE_ID, MENU_ID, READ_YN, WRITE_YN, DELETE_YN, created_by, updated_by) SELECT 'ADM_OPERATOR', MENU_ID, READ_YN, WRITE_YN, DELETE_YN, 'SYSTEM', 'SYSTEM'
 FROM adm_role_menu
-WHERE ROLE_ID = 'ADM_DEV_OPERATOR'
-ON DUPLICATE KEY UPDATE
-    READ_YN = VALUES(READ_YN),
-    WRITE_YN = VALUES(WRITE_YN),
-    DELETE_YN = VALUES(DELETE_YN),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO adm_role_button (ROLE_ID, BUTTON_ID, ALLOW_YN, created_by, updated_by)
-SELECT 'ADM_ADMIN', BUTTON_ID, 'Y', 'SYSTEM', 'SYSTEM'
-FROM adm_button
-ON DUPLICATE KEY UPDATE
-    ALLOW_YN = VALUES(ALLOW_YN),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO adm_role_button (ROLE_ID, BUTTON_ID, ALLOW_YN, created_by, updated_by)
-SELECT 'ADM_DEV_OPERATOR', BUTTON_ID,
+WHERE ROLE_ID = 'ADM_DEV_OPERATOR' ON DUPLICATE KEY UPDATE READ_YN = VALUES(READ_YN), WRITE_YN = VALUES(WRITE_YN), DELETE_YN = VALUES(DELETE_YN), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_role_button (ROLE_ID, BUTTON_ID, ALLOW_YN, created_by, updated_by) SELECT 'ADM_ADMIN', BUTTON_ID, 'Y', 'SYSTEM', 'SYSTEM'
+FROM adm_button ON DUPLICATE KEY UPDATE ALLOW_YN = VALUES(ALLOW_YN), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_role_button (ROLE_ID, BUTTON_ID, ALLOW_YN, created_by, updated_by) SELECT 'ADM_DEV_OPERATOR', BUTTON_ID,
        CASE WHEN MENU_ID IN ('OPERATOR', 'PERMISSION', 'PASSWORD', 'SECURITY') THEN 'N' ELSE 'Y' END,
        'SYSTEM', 'SYSTEM'
-FROM adm_button
-ON DUPLICATE KEY UPDATE
-    ALLOW_YN = VALUES(ALLOW_YN),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO adm_role_button (ROLE_ID, BUTTON_ID, ALLOW_YN, created_by, updated_by)
-SELECT 'ADM_BIZ_OPERATOR', BUTTON_ID,
+FROM adm_button ON DUPLICATE KEY UPDATE ALLOW_YN = VALUES(ALLOW_YN), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_role_button (ROLE_ID, BUTTON_ID, ALLOW_YN, created_by, updated_by) SELECT 'ADM_BIZ_OPERATOR', BUTTON_ID,
        CASE
-           WHEN BUTTON_ID IN ('MEMBER_CREATE', 'MEMBER_UPDATE', 'MEMBER_STATUS', 'MEMBER_ROLE_GRANT', 'MEMBER_ROLE_REVOKE', 'BATCH_EXECUTE', 'BATCH_RETRY', 'BATCH_SIMULATION', 'BATCH_RELATION_READ', 'BATCH_TARGET_READ', 'BATCH_SCHEDULER_RUN', 'DOWNLOAD_EXECUTE', 'CACHE_REFRESH') THEN 'Y'
-           WHEN ACTION_CODE IN ('READ', 'DETAIL') AND MENU_ID IN ('LOG_LIST', 'REMOTE_LOG', 'TRANSACTION_META', 'AUDIT_LOG', 'MEMBER', 'BATCH', 'RELIABILITY', 'NOTIFICATION', 'DOWNLOAD', 'CACHE', 'MESSAGE', 'CODE', 'LOG_POLICY') THEN 'Y'
+           WHEN BUTTON_ID IN ('BATCH_EXECUTE', 'BATCH_RETRY', 'BATCH_SIMULATION', 'BATCH_RELATION_READ', 'BATCH_TARGET_READ', 'BATCH_SCHEDULER_RUN', 'DOWNLOAD_EXECUTE', 'CACHE_REFRESH', 'FILE_JOB_UPLOAD', 'FILE_JOB_APPLY', 'FILE_JOB_DOWNLOAD') THEN 'Y'
+           WHEN ACTION_CODE IN ('READ', 'DETAIL') AND MENU_ID IN ('LOG_LIST', 'REMOTE_LOG', 'TRANSACTION_META', 'AUDIT_LOG', 'BATCH', 'RELIABILITY', 'NOTIFICATION', 'DOWNLOAD', 'CACHE', 'FILE_JOB', 'MESSAGE', 'CODE', 'LOG_POLICY') THEN 'Y'
            ELSE 'N'
        END,
        'SYSTEM', 'SYSTEM'
-FROM adm_button
-ON DUPLICATE KEY UPDATE
-    ALLOW_YN = VALUES(ALLOW_YN),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO adm_role_button (ROLE_ID, BUTTON_ID, ALLOW_YN, created_by, updated_by)
-SELECT 'ADM_VIEWER', BUTTON_ID,
+FROM adm_button ON DUPLICATE KEY UPDATE ALLOW_YN = VALUES(ALLOW_YN), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_role_button (ROLE_ID, BUTTON_ID, ALLOW_YN, created_by, updated_by) SELECT 'ADM_VIEWER', BUTTON_ID,
        CASE WHEN ACTION_CODE IN ('READ', 'DETAIL') THEN 'Y' ELSE 'N' END,
        'SYSTEM', 'SYSTEM'
-FROM adm_button
-ON DUPLICATE KEY UPDATE
-    ALLOW_YN = VALUES(ALLOW_YN),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO adm_role_button (ROLE_ID, BUTTON_ID, ALLOW_YN, created_by, updated_by)
-SELECT 'ADM_OPERATOR', BUTTON_ID, ALLOW_YN, 'SYSTEM', 'SYSTEM'
+FROM adm_button ON DUPLICATE KEY UPDATE ALLOW_YN = VALUES(ALLOW_YN), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_role_button (ROLE_ID, BUTTON_ID, ALLOW_YN, created_by, updated_by) SELECT 'ADM_OPERATOR', BUTTON_ID, ALLOW_YN, 'SYSTEM', 'SYSTEM'
 FROM adm_role_button
-WHERE ROLE_ID = 'ADM_DEV_OPERATOR'
-ON DUPLICATE KEY UPDATE
-    ALLOW_YN = VALUES(ALLOW_YN),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
--- ADM API 권한은 버튼/행위 권한을 실제 Controller path와 연결하기 위한 서버 권한검사 메타입니다.
-INSERT INTO adm_api_permission (
-    API_PERMISSION_ID,
-    API_GROUP_CODE,
-    HTTP_METHOD,
-    API_PATH,
-    API_NAME,
-    PERMISSION_CODE,
-    MENU_ID,
-    BUTTON_ID,
-    USE_YN,
-    created_by,
-    updated_by
-)
-SELECT
+WHERE ROLE_ID = 'ADM_DEV_OPERATOR' ON DUPLICATE KEY UPDATE ALLOW_YN = VALUES(ALLOW_YN), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_api_permission (API_PERMISSION_ID, API_GROUP_CODE, HTTP_METHOD, API_PATH, API_NAME, PERMISSION_CODE, MENU_ID, BUTTON_ID, USE_YN, created_by, updated_by) SELECT
     CONCAT('API_', BUTTON_ID),
     MENU_ID,
     COALESCE(HTTP_METHOD, 'ANY'),
@@ -4922,108 +4384,36 @@ SELECT
     'SYSTEM',
     'SYSTEM'
 FROM adm_button
-WHERE API_PATTERN IS NOT NULL
-ON DUPLICATE KEY UPDATE
-    API_GROUP_CODE = VALUES(API_GROUP_CODE),
-    HTTP_METHOD = VALUES(HTTP_METHOD),
-    API_PATH = VALUES(API_PATH),
-    API_NAME = VALUES(API_NAME),
-    PERMISSION_CODE = VALUES(PERMISSION_CODE),
-    MENU_ID = VALUES(MENU_ID),
-    BUTTON_ID = VALUES(BUTTON_ID),
-    USE_YN = VALUES(USE_YN),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO adm_api_permission (
-    API_PERMISSION_ID, API_GROUP_CODE, HTTP_METHOD, API_PATH, API_NAME, PERMISSION_CODE,
-    MENU_ID, BUTTON_ID, USE_YN, created_by, updated_by
-) VALUES (
+WHERE API_PATTERN IS NOT NULL ON DUPLICATE KEY UPDATE API_GROUP_CODE = VALUES(API_GROUP_CODE), HTTP_METHOD = VALUES(HTTP_METHOD), API_PATH = VALUES(API_PATH), API_NAME = VALUES(API_NAME), PERMISSION_CODE = VALUES(PERMISSION_CODE), MENU_ID = VALUES(MENU_ID), BUTTON_ID = VALUES(BUTTON_ID), USE_YN = VALUES(USE_YN), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_api_permission (API_PERMISSION_ID, API_GROUP_CODE, HTTP_METHOD, API_PATH, API_NAME, PERMISSION_CODE, MENU_ID, BUTTON_ID, USE_YN, created_by, updated_by) VALUES (
     'API_PERMISSION_WRITE_PUT', 'PERMISSION', 'PUT', '/adm/api/permissions/**', '권한 변경', 'WRITE',
     'PERMISSION', 'PERMISSION_WRITE', 'Y', 'SYSTEM', 'SYSTEM'
-)
-ON DUPLICATE KEY UPDATE
-    API_GROUP_CODE = VALUES(API_GROUP_CODE),
-    HTTP_METHOD = VALUES(HTTP_METHOD),
-    API_PATH = VALUES(API_PATH),
-    API_NAME = VALUES(API_NAME),
-    PERMISSION_CODE = VALUES(PERMISSION_CODE),
-    MENU_ID = VALUES(MENU_ID),
-    BUTTON_ID = VALUES(BUTTON_ID),
-    USE_YN = VALUES(USE_YN),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO adm_role_api_permission (ROLE_ID, API_PERMISSION_ID, ALLOW_YN, created_by, updated_by)
-SELECT rb.ROLE_ID, ap.API_PERMISSION_ID, rb.ALLOW_YN, 'SYSTEM', 'SYSTEM'
+) ON DUPLICATE KEY UPDATE API_GROUP_CODE = VALUES(API_GROUP_CODE), HTTP_METHOD = VALUES(HTTP_METHOD), API_PATH = VALUES(API_PATH), API_NAME = VALUES(API_NAME), PERMISSION_CODE = VALUES(PERMISSION_CODE), MENU_ID = VALUES(MENU_ID), BUTTON_ID = VALUES(BUTTON_ID), USE_YN = VALUES(USE_YN), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_role_api_permission (ROLE_ID, API_PERMISSION_ID, ALLOW_YN, created_by, updated_by) SELECT rb.ROLE_ID, ap.API_PERMISSION_ID, rb.ALLOW_YN, 'SYSTEM', 'SYSTEM'
 FROM adm_role_button rb
-JOIN adm_api_permission ap ON ap.BUTTON_ID = rb.BUTTON_ID
-ON DUPLICATE KEY UPDATE
-    ALLOW_YN = VALUES(ALLOW_YN),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
--- 로컬 IP allowlist와 초기 감사 fixture는 59_adm_local_seed.sql Optional Seed로 분리했습니다.
-
-
--- R12 감사 전달 복구 권한
-INSERT INTO adm_button (BUTTON_ID,MENU_ID,ACTION_CODE,BUTTON_NAME,HTTP_METHOD,API_PATTERN,SORT_ORDER,USE_YN,created_by,updated_by)
-VALUES ('AUDIT_LOG_RETRY','AUDIT_LOG','WRITE','감사 전달 재처리','POST','/adm/api/audit-logs/deliveries/*/retry',20,'Y','SYSTEM','SYSTEM')
-ON DUPLICATE KEY UPDATE ACTION_CODE=VALUES(ACTION_CODE),BUTTON_NAME=VALUES(BUTTON_NAME),HTTP_METHOD=VALUES(HTTP_METHOD),API_PATTERN=VALUES(API_PATTERN),USE_YN=VALUES(USE_YN),updated_by=VALUES(updated_by),updated_at=CURRENT_TIMESTAMP;
-
-UPDATE adm_role_menu SET WRITE_YN='Y',updated_by='SYSTEM',updated_at=CURRENT_TIMESTAMP
-WHERE MENU_ID='AUDIT_LOG' AND ROLE_ID IN ('ADM_ADMIN','ADM_DEV_OPERATOR');
-
-INSERT INTO adm_role_button (ROLE_ID,BUTTON_ID,ALLOW_YN,created_by,updated_by)
-SELECT ROLE_ID,'AUDIT_LOG_RETRY','Y','SYSTEM','SYSTEM' FROM adm_role WHERE ROLE_ID IN ('ADM_ADMIN','ADM_DEV_OPERATOR')
-ON DUPLICATE KEY UPDATE ALLOW_YN='Y',updated_by='SYSTEM',updated_at=CURRENT_TIMESTAMP;
-
-INSERT INTO adm_api_permission (API_PERMISSION_ID,API_GROUP_CODE,HTTP_METHOD,API_PATH,API_NAME,PERMISSION_CODE,MENU_ID,BUTTON_ID,USE_YN,created_by,updated_by)
-VALUES ('API_AUDIT_LOG_RETRY','AUDIT_LOG','POST','/adm/api/audit-logs/deliveries/*/retry','감사 전달 재처리','WRITE','AUDIT_LOG','AUDIT_LOG_RETRY','Y','SYSTEM','SYSTEM')
-ON DUPLICATE KEY UPDATE HTTP_METHOD=VALUES(HTTP_METHOD),API_PATH=VALUES(API_PATH),PERMISSION_CODE=VALUES(PERMISSION_CODE),BUTTON_ID=VALUES(BUTTON_ID),USE_YN=VALUES(USE_YN),updated_by=VALUES(updated_by),updated_at=CURRENT_TIMESTAMP;
-
-INSERT INTO adm_role_api_permission (ROLE_ID,API_PERMISSION_ID,ALLOW_YN,created_by,updated_by)
-SELECT ROLE_ID,'API_AUDIT_LOG_RETRY','Y','SYSTEM','SYSTEM' FROM adm_role WHERE ROLE_ID IN ('ADM_ADMIN','ADM_DEV_OPERATOR')
-ON DUPLICATE KEY UPDATE ALLOW_YN='Y',updated_by='SYSTEM',updated_at=CURRENT_TIMESTAMP;
-
--- R14 Secret/Key metadata management. Raw secret value is never exposed.
-INSERT INTO adm_menu (MENU_ID,PARENT_MENU_ID,MENU_NAME,MENU_PATH,SORT_ORDER,USE_YN,created_by,updated_by)
-VALUES ('SECRET',NULL,'Secret / Key 관리','/adm#secrets',145,'Y','SYSTEM','SYSTEM')
-ON DUPLICATE KEY UPDATE MENU_NAME=VALUES(MENU_NAME),MENU_PATH=VALUES(MENU_PATH),SORT_ORDER=VALUES(SORT_ORDER),USE_YN='Y',updated_by='SYSTEM',updated_at=CURRENT_TIMESTAMP;
-
-INSERT INTO adm_button (BUTTON_ID,MENU_ID,ACTION_CODE,BUTTON_NAME,HTTP_METHOD,API_PATTERN,SORT_ORDER,USE_YN,created_by,updated_by) VALUES
- ('SECRET_READ','SECRET','READ','Secret Metadata 조회','GET','/adm/api/secrets/**',10,'Y','SYSTEM','SYSTEM'),
- ('SECRET_ROTATE','SECRET','ROTATE','Secret Rotation','POST','/adm/api/secrets/rotate',20,'Y','SYSTEM','SYSTEM')
-ON DUPLICATE KEY UPDATE ACTION_CODE=VALUES(ACTION_CODE),BUTTON_NAME=VALUES(BUTTON_NAME),HTTP_METHOD=VALUES(HTTP_METHOD),API_PATTERN=VALUES(API_PATTERN),USE_YN='Y',updated_by='SYSTEM',updated_at=CURRENT_TIMESTAMP;
-
-INSERT INTO adm_role_menu(ROLE_ID,MENU_ID,READ_YN,WRITE_YN,DELETE_YN,created_by,updated_by) VALUES
- ('ADM_ADMIN','SECRET','Y','Y','N','SYSTEM','SYSTEM'),
+JOIN adm_api_permission ap ON ap.BUTTON_ID = rb.BUTTON_ID ON DUPLICATE KEY UPDATE ALLOW_YN = VALUES(ALLOW_YN), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_button (BUTTON_ID, MENU_ID, ACTION_CODE, BUTTON_NAME, HTTP_METHOD, API_PATTERN, SORT_ORDER, USE_YN, created_by, updated_by) VALUES ('AUDIT_LOG_RETRY','AUDIT_LOG','WRITE','감사 전달 재처리','POST','/adm/api/audit-logs/deliveries/*/retry',20,'Y','SYSTEM','SYSTEM') ON DUPLICATE KEY UPDATE ACTION_CODE = VALUES(ACTION_CODE), BUTTON_NAME = VALUES(BUTTON_NAME), HTTP_METHOD = VALUES(HTTP_METHOD), API_PATTERN = VALUES(API_PATTERN), USE_YN = VALUES(USE_YN), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+UPDATE adm_role_menu SET WRITE_YN='Y',updated_by='SYSTEM',updated_at=CURRENT_TIMESTAMP WHERE MENU_ID='AUDIT_LOG' AND ROLE_ID IN ('ADM_ADMIN','ADM_DEV_OPERATOR');
+INSERT INTO adm_role_button (ROLE_ID, BUTTON_ID, ALLOW_YN, created_by, updated_by) SELECT ROLE_ID,'AUDIT_LOG_RETRY','Y','SYSTEM','SYSTEM' FROM adm_role WHERE ROLE_ID IN ('ADM_ADMIN','ADM_DEV_OPERATOR') ON DUPLICATE KEY UPDATE ALLOW_YN = 'Y', updated_by = 'SYSTEM', updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_api_permission (API_PERMISSION_ID, API_GROUP_CODE, HTTP_METHOD, API_PATH, API_NAME, PERMISSION_CODE, MENU_ID, BUTTON_ID, USE_YN, created_by, updated_by) VALUES ('API_AUDIT_LOG_RETRY','AUDIT_LOG','POST','/adm/api/audit-logs/deliveries/*/retry','감사 전달 재처리','WRITE','AUDIT_LOG','AUDIT_LOG_RETRY','Y','SYSTEM','SYSTEM') ON DUPLICATE KEY UPDATE HTTP_METHOD = VALUES(HTTP_METHOD), API_PATH = VALUES(API_PATH), PERMISSION_CODE = VALUES(PERMISSION_CODE), BUTTON_ID = VALUES(BUTTON_ID), USE_YN = VALUES(USE_YN), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_role_api_permission (ROLE_ID, API_PERMISSION_ID, ALLOW_YN, created_by, updated_by) SELECT ROLE_ID,'API_AUDIT_LOG_RETRY','Y','SYSTEM','SYSTEM' FROM adm_role WHERE ROLE_ID IN ('ADM_ADMIN','ADM_DEV_OPERATOR') ON DUPLICATE KEY UPDATE ALLOW_YN = 'Y', updated_by = 'SYSTEM', updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_menu (MENU_ID, PARENT_MENU_ID, MENU_NAME, MENU_PATH, SORT_ORDER, USE_YN, created_by, updated_by) VALUES ('SECRET',NULL,'Secret / Key 관리','/adm#secrets',145,'Y','SYSTEM','SYSTEM') ON DUPLICATE KEY UPDATE MENU_NAME = VALUES(MENU_NAME), MENU_PATH = VALUES(MENU_PATH), SORT_ORDER = VALUES(SORT_ORDER), USE_YN = 'Y', updated_by = 'SYSTEM', updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_button (BUTTON_ID, MENU_ID, ACTION_CODE, BUTTON_NAME, HTTP_METHOD, API_PATTERN, SORT_ORDER, USE_YN, created_by, updated_by) VALUES ('SECRET_READ','SECRET','READ','Secret Metadata 조회','GET','/adm/api/secrets/**',10,'Y','SYSTEM','SYSTEM'),
+ ('SECRET_ROTATE','SECRET','ROTATE','Secret Rotation','POST','/adm/api/secrets/rotate',20,'Y','SYSTEM','SYSTEM') ON DUPLICATE KEY UPDATE ACTION_CODE = VALUES(ACTION_CODE), BUTTON_NAME = VALUES(BUTTON_NAME), HTTP_METHOD = VALUES(HTTP_METHOD), API_PATTERN = VALUES(API_PATTERN), USE_YN = 'Y', updated_by = 'SYSTEM', updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_role_menu (ROLE_ID, MENU_ID, READ_YN, WRITE_YN, DELETE_YN, created_by, updated_by) VALUES ('ADM_ADMIN','SECRET','Y','Y','N','SYSTEM','SYSTEM'),
  ('ADM_DEV_OPERATOR','SECRET','Y','N','N','SYSTEM','SYSTEM'),
  ('ADM_OPERATOR','SECRET','Y','N','N','SYSTEM','SYSTEM'),
  ('ADM_VIEWER','SECRET','N','N','N','SYSTEM','SYSTEM'),
- ('ADM_BIZ_OPERATOR','SECRET','N','N','N','SYSTEM','SYSTEM')
-ON DUPLICATE KEY UPDATE READ_YN=VALUES(READ_YN),WRITE_YN=VALUES(WRITE_YN),DELETE_YN=VALUES(DELETE_YN),updated_by='SYSTEM',updated_at=CURRENT_TIMESTAMP;
-
-INSERT INTO adm_role_button(ROLE_ID,BUTTON_ID,ALLOW_YN,created_by,updated_by) VALUES
- ('ADM_ADMIN','SECRET_READ','Y','SYSTEM','SYSTEM'),('ADM_ADMIN','SECRET_ROTATE','Y','SYSTEM','SYSTEM'),
+ ('ADM_BIZ_OPERATOR','SECRET','N','N','N','SYSTEM','SYSTEM') ON DUPLICATE KEY UPDATE READ_YN = VALUES(READ_YN), WRITE_YN = VALUES(WRITE_YN), DELETE_YN = VALUES(DELETE_YN), updated_by = 'SYSTEM', updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_role_button (ROLE_ID, BUTTON_ID, ALLOW_YN, created_by, updated_by) VALUES ('ADM_ADMIN','SECRET_READ','Y','SYSTEM','SYSTEM'),('ADM_ADMIN','SECRET_ROTATE','Y','SYSTEM','SYSTEM'),
  ('ADM_DEV_OPERATOR','SECRET_READ','Y','SYSTEM','SYSTEM'),('ADM_DEV_OPERATOR','SECRET_ROTATE','N','SYSTEM','SYSTEM'),
- ('ADM_OPERATOR','SECRET_READ','Y','SYSTEM','SYSTEM'),('ADM_OPERATOR','SECRET_ROTATE','N','SYSTEM','SYSTEM')
-ON DUPLICATE KEY UPDATE ALLOW_YN=VALUES(ALLOW_YN),updated_by='SYSTEM',updated_at=CURRENT_TIMESTAMP;
-
-INSERT INTO adm_api_permission(API_PERMISSION_ID,API_GROUP_CODE,HTTP_METHOD,API_PATH,API_NAME,PERMISSION_CODE,MENU_ID,BUTTON_ID,USE_YN,created_by,updated_by) VALUES
- ('API_SECRET_READ','SECRET','GET','/adm/api/secrets/**','Secret Metadata 조회','READ','SECRET','SECRET_READ','Y','SYSTEM','SYSTEM'),
- ('API_SECRET_ROTATE','SECRET','POST','/adm/api/secrets/rotate','Secret Rotation','ROTATE','SECRET','SECRET_ROTATE','Y','SYSTEM','SYSTEM')
-ON DUPLICATE KEY UPDATE API_PATH=VALUES(API_PATH),API_NAME=VALUES(API_NAME),PERMISSION_CODE=VALUES(PERMISSION_CODE),BUTTON_ID=VALUES(BUTTON_ID),USE_YN='Y',updated_by='SYSTEM',updated_at=CURRENT_TIMESTAMP;
-
-INSERT INTO adm_role_api_permission(ROLE_ID,API_PERMISSION_ID,ALLOW_YN,created_by,updated_by) VALUES
- ('ADM_ADMIN','API_SECRET_READ','Y','SYSTEM','SYSTEM'),('ADM_ADMIN','API_SECRET_ROTATE','Y','SYSTEM','SYSTEM'),
+ ('ADM_OPERATOR','SECRET_READ','Y','SYSTEM','SYSTEM'),('ADM_OPERATOR','SECRET_ROTATE','N','SYSTEM','SYSTEM') ON DUPLICATE KEY UPDATE ALLOW_YN = VALUES(ALLOW_YN), updated_by = 'SYSTEM', updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_api_permission (API_PERMISSION_ID, API_GROUP_CODE, HTTP_METHOD, API_PATH, API_NAME, PERMISSION_CODE, MENU_ID, BUTTON_ID, USE_YN, created_by, updated_by) VALUES ('API_SECRET_READ','SECRET','GET','/adm/api/secrets/**','Secret Metadata 조회','READ','SECRET','SECRET_READ','Y','SYSTEM','SYSTEM'),
+ ('API_SECRET_ROTATE','SECRET','POST','/adm/api/secrets/rotate','Secret Rotation','ROTATE','SECRET','SECRET_ROTATE','Y','SYSTEM','SYSTEM') ON DUPLICATE KEY UPDATE API_PATH = VALUES(API_PATH), API_NAME = VALUES(API_NAME), PERMISSION_CODE = VALUES(PERMISSION_CODE), BUTTON_ID = VALUES(BUTTON_ID), USE_YN = 'Y', updated_by = 'SYSTEM', updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_role_api_permission (ROLE_ID, API_PERMISSION_ID, ALLOW_YN, created_by, updated_by) VALUES ('ADM_ADMIN','API_SECRET_READ','Y','SYSTEM','SYSTEM'),('ADM_ADMIN','API_SECRET_ROTATE','Y','SYSTEM','SYSTEM'),
  ('ADM_DEV_OPERATOR','API_SECRET_READ','Y','SYSTEM','SYSTEM'),('ADM_DEV_OPERATOR','API_SECRET_ROTATE','N','SYSTEM','SYSTEM'),
- ('ADM_OPERATOR','API_SECRET_READ','Y','SYSTEM','SYSTEM'),('ADM_OPERATOR','API_SECRET_ROTATE','N','SYSTEM','SYSTEM')
-ON DUPLICATE KEY UPDATE ALLOW_YN=VALUES(ALLOW_YN),updated_by='SYSTEM',updated_at=CURRENT_TIMESTAMP;
-
--- R15/R16/R17 BAT Standalone Runtime Control Plane menus/permissions.
-INSERT INTO adm_menu (MENU_ID,PARENT_MENU_ID,MENU_NAME,MENU_PATH,SORT_ORDER,USE_YN,created_by,updated_by) VALUES
- ('BATCH_OVERVIEW','BATCH','Batch Overview','/adm#batch-overview',501,'Y','SYSTEM','SYSTEM'),
+ ('ADM_OPERATOR','API_SECRET_READ','Y','SYSTEM','SYSTEM'),('ADM_OPERATOR','API_SECRET_ROTATE','N','SYSTEM','SYSTEM') ON DUPLICATE KEY UPDATE ALLOW_YN = VALUES(ALLOW_YN), updated_by = 'SYSTEM', updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_menu (MENU_ID, PARENT_MENU_ID, MENU_NAME, MENU_PATH, SORT_ORDER, USE_YN, created_by, updated_by) VALUES ('BATCH_OVERVIEW','BATCH','Batch Overview','/adm#batch-overview',501,'Y','SYSTEM','SYSTEM'),
  ('BATCH_RUNTIME','BATCH','Runtime Topology','/adm#batch-runtime',502,'Y','SYSTEM','SYSTEM'),
  ('BATCH_INSTANCES','BATCH','Runtime Instances','/adm#batch-instances',503,'Y','SYSTEM','SYSTEM'),
  ('BATCH_SCHEDULER','BATCH','Scheduler HA','/adm#batch-scheduler',504,'Y','SYSTEM','SYSTEM'),
@@ -5036,11 +4426,8 @@ INSERT INTO adm_menu (MENU_ID,PARENT_MENU_ID,MENU_NAME,MENU_PATH,SORT_ORDER,USE_
  ('BATCH_RECOVERY','BATCH','Recovery / Unknown','/adm#batch-recovery',511,'Y','SYSTEM','SYSTEM'),
  ('BATCH_LEASES','BATCH','Lease / Fencing','/adm#batch-leases',512,'Y','SYSTEM','SYSTEM'),
  ('BATCH_ALERTS','BATCH','Batch Alerts','/adm#batch-alerts',513,'Y','SYSTEM','SYSTEM'),
- ('BATCH_AUDIT','BATCH','Audit / Evidence','/adm#batch-audit',514,'Y','SYSTEM','SYSTEM')
-ON DUPLICATE KEY UPDATE PARENT_MENU_ID=VALUES(PARENT_MENU_ID),MENU_NAME=VALUES(MENU_NAME),MENU_PATH=VALUES(MENU_PATH),SORT_ORDER=VALUES(SORT_ORDER),USE_YN='Y',updated_by='SYSTEM',updated_at=CURRENT_TIMESTAMP;
-
-INSERT INTO adm_button (BUTTON_ID,MENU_ID,ACTION_CODE,BUTTON_NAME,HTTP_METHOD,API_PATTERN,SORT_ORDER,USE_YN,created_by,updated_by) VALUES
- ('BAT_RUNTIME_VIEW','BATCH_RUNTIME','RUNTIME_VIEW','Runtime 조회','GET','/adm/api/batch-runtime/**',10,'Y','SYSTEM','SYSTEM'),
+ ('BATCH_AUDIT','BATCH','Audit / Evidence','/adm#batch-audit',514,'Y','SYSTEM','SYSTEM') ON DUPLICATE KEY UPDATE PARENT_MENU_ID = VALUES(PARENT_MENU_ID), MENU_NAME = VALUES(MENU_NAME), MENU_PATH = VALUES(MENU_PATH), SORT_ORDER = VALUES(SORT_ORDER), USE_YN = 'Y', updated_by = 'SYSTEM', updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_button (BUTTON_ID, MENU_ID, ACTION_CODE, BUTTON_NAME, HTTP_METHOD, API_PATTERN, SORT_ORDER, USE_YN, created_by, updated_by) VALUES ('BAT_RUNTIME_VIEW','BATCH_RUNTIME','RUNTIME_VIEW','Runtime 조회','GET','/adm/api/batch-runtime/**',10,'Y','SYSTEM','SYSTEM'),
  ('BAT_RUNTIME_OPERATE','BATCH_INSTANCES','RUNTIME_OPERATE','Runtime Start/Stop/Drain','POST','/adm/api/approvals/**',20,'Y','SYSTEM','SYSTEM'),
  ('BAT_JOB_OPERATE','BATCH_EXECUTIONS','JOB_OPERATE','Job 실행/중지/재처리','POST','/adm/api/batch/**',30,'Y','SYSTEM','SYSTEM'),
  ('BAT_SCHEDULE_OPERATE','BATCH_SCHEDULER','SCHEDULE_OPERATE','Scheduler 운영','POST','/adm/api/batch/**',40,'Y','SYSTEM','SYSTEM'),
@@ -5053,19 +4440,13 @@ INSERT INTO adm_button (BUTTON_ID,MENU_ID,ACTION_CODE,BUTTON_NAME,HTTP_METHOD,AP
  ('BAT_ROLLBACK_EXECUTE','BATCH_DEPLOYMENT','ROLLBACK_EXECUTE','Rollback 실행','POST','/adm/api/approvals/**',110,'Y','SYSTEM','SYSTEM'),
  ('BAT_RECOVERY_OPERATE','BATCH_RECOVERY','RECOVERY_OPERATE','UNKNOWN_RESULT 조정','POST','/adm/api/batch-runtime/**',120,'Y','SYSTEM','SYSTEM'),
  ('BAT_SECURITY_AUDIT','BATCH_AUDIT','SECURITY_AUDIT','BAT 보안·감사 조회','GET','/adm/api/batch-runtime/views/audit',130,'Y','SYSTEM','SYSTEM'),
- ('BAT_EVIDENCE_DOWNLOAD','BATCH_AUDIT','EVIDENCE_DOWNLOAD','BAT Evidence 다운로드','GET','/adm/api/downloads/**',140,'Y','SYSTEM','SYSTEM')
-ON DUPLICATE KEY UPDATE MENU_ID=VALUES(MENU_ID),ACTION_CODE=VALUES(ACTION_CODE),BUTTON_NAME=VALUES(BUTTON_NAME),HTTP_METHOD=VALUES(HTTP_METHOD),API_PATTERN=VALUES(API_PATTERN),SORT_ORDER=VALUES(SORT_ORDER),USE_YN='Y',updated_by='SYSTEM',updated_at=CURRENT_TIMESTAMP;
-
-INSERT INTO adm_role_menu(ROLE_ID,MENU_ID,READ_YN,WRITE_YN,DELETE_YN,created_by,updated_by)
-SELECT r.ROLE_ID,m.MENU_ID,'Y',
+ ('BAT_EVIDENCE_DOWNLOAD','BATCH_AUDIT','EVIDENCE_DOWNLOAD','BAT Evidence 다운로드','GET','/adm/api/downloads/**',140,'Y','SYSTEM','SYSTEM') ON DUPLICATE KEY UPDATE MENU_ID = VALUES(MENU_ID), ACTION_CODE = VALUES(ACTION_CODE), BUTTON_NAME = VALUES(BUTTON_NAME), HTTP_METHOD = VALUES(HTTP_METHOD), API_PATTERN = VALUES(API_PATTERN), SORT_ORDER = VALUES(SORT_ORDER), USE_YN = 'Y', updated_by = 'SYSTEM', updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_role_menu (ROLE_ID, MENU_ID, READ_YN, WRITE_YN, DELETE_YN, created_by, updated_by) SELECT r.ROLE_ID,m.MENU_ID,'Y',
        CASE WHEN r.ROLE_ID IN ('ADM_ADMIN','ADM_DEV_OPERATOR','ADM_OPERATOR') THEN 'Y' ELSE 'N' END,
        'N','SYSTEM','SYSTEM'
 FROM adm_role r JOIN adm_menu m ON m.PARENT_MENU_ID='BATCH'
-WHERE r.ROLE_ID IN ('ADM_ADMIN','ADM_DEV_OPERATOR','ADM_OPERATOR','ADM_BIZ_OPERATOR','ADM_VIEWER')
-ON DUPLICATE KEY UPDATE READ_YN=VALUES(READ_YN),WRITE_YN=VALUES(WRITE_YN),DELETE_YN=VALUES(DELETE_YN),updated_by='SYSTEM',updated_at=CURRENT_TIMESTAMP;
-
-INSERT INTO adm_role_button(ROLE_ID,BUTTON_ID,ALLOW_YN,created_by,updated_by)
-SELECT r.ROLE_ID,b.BUTTON_ID,
+WHERE r.ROLE_ID IN ('ADM_ADMIN','ADM_DEV_OPERATOR','ADM_OPERATOR','ADM_BIZ_OPERATOR','ADM_VIEWER') ON DUPLICATE KEY UPDATE READ_YN = VALUES(READ_YN), WRITE_YN = VALUES(WRITE_YN), DELETE_YN = VALUES(DELETE_YN), updated_by = 'SYSTEM', updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_role_button (ROLE_ID, BUTTON_ID, ALLOW_YN, created_by, updated_by) SELECT r.ROLE_ID,b.BUTTON_ID,
        CASE
          WHEN r.ROLE_ID='ADM_ADMIN' THEN 'Y'
          WHEN r.ROLE_ID IN ('ADM_DEV_OPERATOR','ADM_OPERATOR') AND b.BUTTON_ID NOT IN ('BAT_DEPLOY_APPROVE','BAT_DEPLOY_EXECUTE','BAT_ROLLBACK_EXECUTE') THEN 'Y'
@@ -5074,16 +4455,9 @@ SELECT r.ROLE_ID,b.BUTTON_ID,
          ELSE 'N' END,
        'SYSTEM','SYSTEM'
 FROM adm_role r JOIN adm_button b ON b.BUTTON_ID LIKE 'BAT_%'
-WHERE r.ROLE_ID IN ('ADM_ADMIN','ADM_DEV_OPERATOR','ADM_OPERATOR','ADM_BIZ_OPERATOR','ADM_VIEWER')
-ON DUPLICATE KEY UPDATE ALLOW_YN=VALUES(ALLOW_YN),updated_by='SYSTEM',updated_at=CURRENT_TIMESTAMP;
-
-INSERT INTO adm_api_permission(API_PERMISSION_ID,API_GROUP_CODE,HTTP_METHOD,API_PATH,API_NAME,PERMISSION_CODE,MENU_ID,BUTTON_ID,USE_YN,created_by,updated_by)
-SELECT CONCAT('API_',BUTTON_ID),MENU_ID,COALESCE(HTTP_METHOD,'ANY'),API_PATTERN,BUTTON_NAME,ACTION_CODE,MENU_ID,BUTTON_ID,'Y','SYSTEM','SYSTEM'
-FROM adm_button WHERE BUTTON_ID LIKE 'BAT_%' AND API_PATTERN IS NOT NULL
-ON DUPLICATE KEY UPDATE API_GROUP_CODE=VALUES(API_GROUP_CODE),HTTP_METHOD=VALUES(HTTP_METHOD),API_PATH=VALUES(API_PATH),API_NAME=VALUES(API_NAME),PERMISSION_CODE=VALUES(PERMISSION_CODE),MENU_ID=VALUES(MENU_ID),BUTTON_ID=VALUES(BUTTON_ID),USE_YN='Y',updated_by='SYSTEM',updated_at=CURRENT_TIMESTAMP;
-
-INSERT INTO adm_role_api_permission(ROLE_ID,API_PERMISSION_ID,ALLOW_YN,created_by,updated_by)
-SELECT rb.ROLE_ID,ap.API_PERMISSION_ID,rb.ALLOW_YN,'SYSTEM','SYSTEM'
+WHERE r.ROLE_ID IN ('ADM_ADMIN','ADM_DEV_OPERATOR','ADM_OPERATOR','ADM_BIZ_OPERATOR','ADM_VIEWER') ON DUPLICATE KEY UPDATE ALLOW_YN = VALUES(ALLOW_YN), updated_by = 'SYSTEM', updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_api_permission (API_PERMISSION_ID, API_GROUP_CODE, HTTP_METHOD, API_PATH, API_NAME, PERMISSION_CODE, MENU_ID, BUTTON_ID, USE_YN, created_by, updated_by) SELECT CONCAT('API_',BUTTON_ID),MENU_ID,COALESCE(HTTP_METHOD,'ANY'),API_PATTERN,BUTTON_NAME,ACTION_CODE,MENU_ID,BUTTON_ID,'Y','SYSTEM','SYSTEM'
+FROM adm_button WHERE BUTTON_ID LIKE 'BAT_%' AND API_PATTERN IS NOT NULL ON DUPLICATE KEY UPDATE API_GROUP_CODE = VALUES(API_GROUP_CODE), HTTP_METHOD = VALUES(HTTP_METHOD), API_PATH = VALUES(API_PATH), API_NAME = VALUES(API_NAME), PERMISSION_CODE = VALUES(PERMISSION_CODE), MENU_ID = VALUES(MENU_ID), BUTTON_ID = VALUES(BUTTON_ID), USE_YN = 'Y', updated_by = 'SYSTEM', updated_at = CURRENT_TIMESTAMP;
+INSERT INTO adm_role_api_permission (ROLE_ID, API_PERMISSION_ID, ALLOW_YN, created_by, updated_by) SELECT rb.ROLE_ID,ap.API_PERMISSION_ID,rb.ALLOW_YN,'SYSTEM','SYSTEM'
 FROM adm_role_button rb JOIN adm_api_permission ap ON ap.BUTTON_ID=rb.BUTTON_ID
-WHERE rb.BUTTON_ID LIKE 'BAT_%'
-ON DUPLICATE KEY UPDATE ALLOW_YN=VALUES(ALLOW_YN),updated_by='SYSTEM',updated_at=CURRENT_TIMESTAMP;
+WHERE rb.BUTTON_ID LIKE 'BAT_%' ON DUPLICATE KEY UPDATE ALLOW_YN = VALUES(ALLOW_YN), updated_by = 'SYSTEM', updated_at = CURRENT_TIMESTAMP;

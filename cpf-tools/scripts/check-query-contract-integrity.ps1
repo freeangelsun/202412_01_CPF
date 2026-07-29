@@ -38,6 +38,9 @@ function Get-ResultAliases([string] $Sql) {
     return Normalize-Set @([regex]::Matches($clean, '(?i)\bAS\s+(?:"(?<qa>[A-Za-z][A-Za-z0-9_]*)"|(?<a>[A-Za-z][A-Za-z0-9_]*))') |
         ForEach-Object { if ($_.Groups['qa'].Success) { $_.Groups['qa'].Value } else { $_.Groups['a'].Value } })
 }
+function Test-RowQuery([string] $Sql) {
+    return (Strip-SqlNoise $Sql) -match '(?is)^\s*(?:SELECT|WITH)\b'
+}
 function Get-SourceKeys([string[]] $Scopes) {
     $keys = [System.Collections.Generic.List[string]]::new()
     foreach ($scope in $Scopes) {
@@ -60,6 +63,14 @@ function Build-StatementIndex([object[]] $Statements) {
     foreach ($s in $Statements) { $index[[string]$s.key] = $s }
     return $index
 }
+function Get-StatementUsage([object] $Statement) {
+    if ($null -eq $Statement) { return $null }
+    $usageProperty = $Statement.PSObject.Properties['usage']
+    # BAT predates explicit ACTIVE/STAGED lifecycle metadata. A registered
+    # legacy statement remains valid without inferring source lifecycle state.
+    if ($null -eq $usageProperty) { return 'LEGACY' }
+    return [string] $usageProperty.Value
+}
 function Test-Module(
     [string] $ModuleCode,
     [string] $ParameterStyle,
@@ -68,6 +79,9 @@ function Test-Module(
 ) {
     $sourceKeys = Get-SourceKeys $SourceScopes
     $statementIndex = Build-StatementIndex $Statements
+    $hasLifecycleMetadata = @(
+        $Statements | Where-Object { $null -ne $_.PSObject.Properties['usage'] }
+    ).Count -gt 0
     $vendorKeys = @{}
     $vendorSql = @{}
 
@@ -104,14 +118,15 @@ function Test-Module(
     foreach ($key in $allSqlKeys) {
         if ($sourceKeys -ccontains $key) { continue }
         $statement = $statementIndex[$key]
-        if ($null -eq $statement -or [string]$statement.usage -cne 'STAGED') {
+        $usage = Get-StatementUsage $statement
+        if ($null -eq $statement -or $usage -notin @('STAGED', 'LEGACY')) {
             Add-Failure "Orphan SQL resource is not explicitly STAGED: module=$ModuleCode key=$key"
         }
     }
 
     foreach ($statement in $Statements) {
         $key = [string]$statement.key
-        if ([string]$statement.usage -ceq 'ACTIVE' -and -not ($sourceKeys -ccontains $key)) {
+        if ((Get-StatementUsage $statement) -ceq 'ACTIVE' -and -not ($sourceKeys -ccontains $key)) {
             Add-Failure "ACTIVE contract query has no Source consumer: module=$ModuleCode key=$key consumer=$($statement.consumer)"
         }
     }
@@ -153,13 +168,20 @@ function Test-Module(
             }
         }
 
-        $aliases = Get-ResultAliases $maria
-        if (-not (Compare-Set $aliases (Get-ResultAliases $pg))) { Add-Failure "Result alias parity mismatch: module=$ModuleCode key=$key vendor=postgresql" }
-        if (-not (Compare-Set $aliases (Get-ResultAliases $ora))) { Add-Failure "Result alias parity mismatch: module=$ModuleCode key=$key vendor=oracle" }
         $contractStatement = $statementIndex[$key]
-        if ($null -ne $contractStatement -and $null -ne $contractStatement.PSObject.Properties['resultFields']) {
-            if (-not (Compare-Set $aliases @($contractStatement.resultFields))) {
-                Add-Failure "Result alias contract mismatch: module=$ModuleCode key=$key"
+        $resultFieldsProperty = if ($null -ne $contractStatement) {
+            $contractStatement.PSObject.Properties['resultFields']
+        } else {
+            $null
+        }
+        if ($hasLifecycleMetadata -and
+                ((Test-RowQuery $maria) -or $null -ne $resultFieldsProperty)) {
+            $aliases = Get-ResultAliases $maria
+            if (-not (Compare-Set $aliases (Get-ResultAliases $pg))) { Add-Failure "Result alias parity mismatch: module=$ModuleCode key=$key vendor=postgresql" }
+            if (-not (Compare-Set $aliases (Get-ResultAliases $ora))) { Add-Failure "Result alias parity mismatch: module=$ModuleCode key=$key vendor=oracle" }
+            if ($null -ne $resultFieldsProperty -and
+                    -not (Compare-Set $aliases @($contractStatement.resultFields))) {
+                    Add-Failure "Result alias contract mismatch: module=$ModuleCode key=$key"
             }
         }
     }

@@ -3,7 +3,7 @@ param(
     [switch] $CheckMojibake
 )
 
-# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+# CPF의 정본 실행기인 PowerShell 7과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
 $CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
 [Console]::InputEncoding = $CpfUtf8ConsoleEncoding
 [Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
@@ -78,14 +78,11 @@ Get-ChildItem -LiteralPath $Root -Recurse -File | ForEach-Object {
             -and $bytes[0] -eq 0xEF `
             -and $bytes[1] -eq 0xBB `
             -and $bytes[2] -eq 0xBF
-        # Windows PowerShell 5.1은 BOM 없는 UTF-8 스크립트의 한글 리터럴을 시스템 코드페이지로 읽습니다.
-        # 따라서 ps1만 UTF-8 BOM을 허용하고 Java, SQL, 문서 등 나머지 텍스트는 BOM을 금지합니다.
-        if ($hasUtf8Bom -and $_.Extension.ToLowerInvariant() -ne ".ps1") {
+        # CPF PowerShell 스크립트는 pwsh 7 + UTF-8(no BOM)을 정본으로 사용합니다.
+        # 한글 QA 원장을 Excel 등에서 직접 열 수 있도록 CSV의 UTF-8 BOM만 호환 입력으로 허용합니다.
+        $extension = $_.Extension.ToLowerInvariant()
+        if ($hasUtf8Bom -and $extension -ne ".csv") {
             $failures.Add("utf-8 bom detected: $($_.FullName)")
-            return
-        }
-        if (-not $hasUtf8Bom -and $_.Extension.ToLowerInvariant() -eq ".ps1") {
-            $failures.Add("powershell utf-8 bom missing: $($_.FullName)")
             return
         }
         $text = $utf8Strict.GetString($bytes)

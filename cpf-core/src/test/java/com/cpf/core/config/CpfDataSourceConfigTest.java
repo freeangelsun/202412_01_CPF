@@ -26,7 +26,8 @@ class CpfDataSourceConfigTest {
                 .withProperty("spring.datasource.cpf.password", "test-password")
                 .withProperty("spring.datasource.cpf.driver-class-name", "org.mariadb.jdbc.Driver");
 
-        DataSource dataSource = new CpfDataSourceConfig().cpfDataSource(environment, mock(JndiTemplate.class));
+        DataSource dataSource =
+                new CpfDataSourceConfig().cpfPrimaryDataSource(environment, mock(JndiTemplate.class));
 
         assertThat(dataSource).isInstanceOf(HikariDataSource.class);
         HikariDataSource hikari = (HikariDataSource) dataSource;
@@ -44,7 +45,8 @@ class CpfDataSourceConfigTest {
         JndiTemplate jndiTemplate = mock(JndiTemplate.class);
         when(jndiTemplate.lookup("java:comp/env/jdbc/cpfCoreDataSource", DataSource.class)).thenReturn(expected);
 
-        DataSource actual = new CpfDataSourceConfig().cpfDataSource(environment, jndiTemplate);
+        DataSource actual =
+                new CpfDataSourceConfig().cpfPrimaryDataSource(environment, jndiTemplate);
 
         assertThat(actual).isSameAs(expected);
     }
@@ -55,7 +57,7 @@ class CpfDataSourceConfigTest {
                 .withProperty("spring.datasource.cpf.mode", "direct");
 
         assertThatThrownBy(() -> new CpfDataSourceConfig()
-                .cpfDataSource(environment, mock(JndiTemplate.class)))
+                .cpfPrimaryDataSource(environment, mock(JndiTemplate.class)))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("url 또는 jndi");
     }

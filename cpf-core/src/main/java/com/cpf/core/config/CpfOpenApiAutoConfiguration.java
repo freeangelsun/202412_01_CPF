@@ -1,10 +1,10 @@
 package com.cpf.core.config;
 
-import com.cpf.core.common.version.CpfPlatformVersion;
+import com.cpf.core.api.execution.CpfOnlineTransaction;
+import com.cpf.core.api.version.CpfPlatformVersion;
 import io.swagger.v3.oas.models.ExternalDocumentation;
 import io.swagger.v3.oas.models.OpenAPI;
 import com.cpf.core.common.logging.CpfTransaction;
-import com.cpf.core.common.execution.CpfOnlineTransaction;
 import com.cpf.core.common.header.CpfHeaderNames;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.info.Contact;
@@ -27,7 +27,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.Ordered;
+import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.env.Environment;
+import org.springframework.web.method.HandlerMethod;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -96,15 +98,12 @@ public class CpfOpenApiAutoConfiguration {
     @Bean
     public OperationCustomizer cpfTransactionHeaderOperationCustomizer() {
         return (operation, handlerMethod) -> {
-            CpfOnlineTransaction standard = handlerMethod.getMethodAnnotation(CpfOnlineTransaction.class);
-            if (standard == null) {
-                standard = handlerMethod.getBeanType().getAnnotation(CpfOnlineTransaction.class);
-            }
+            OnlineTransactionMetadata standard = findOnlineTransaction(handlerMethod);
             CpfTransaction transaction = handlerMethod.getMethodAnnotation(CpfTransaction.class);
             if (standard == null && transaction == null) {
                 transaction = handlerMethod.getBeanType().getAnnotation(CpfTransaction.class);
             }
-            if (transaction == null) {
+            if (standard == null && transaction == null) {
                 addHeader(operation, "X-Trace-Id", false, "선택 분산 추적 ID입니다. 없으면 CPF가 생성할 수 있습니다.");
                 addHeader(operation, "X-Correlation-Id", false, "외부 시스템과 함께 보는 선택 상관관계 ID입니다.");
                 return operation;
@@ -148,6 +147,31 @@ public class CpfOpenApiAutoConfiguration {
             addHeader(operation, "X-Reserved-Field-5", false, "업무 확장 예약 필드 5입니다.");
             return operation;
         };
+    }
+
+    private OnlineTransactionMetadata findOnlineTransaction(HandlerMethod handlerMethod) {
+        CpfOnlineTransaction publicStandard = AnnotatedElementUtils.findMergedAnnotation(
+                handlerMethod.getMethod(), CpfOnlineTransaction.class);
+        if (publicStandard == null) {
+            publicStandard = AnnotatedElementUtils.findMergedAnnotation(
+                    handlerMethod.getBeanType(), CpfOnlineTransaction.class);
+        }
+        if (publicStandard != null) {
+            return new OnlineTransactionMetadata(publicStandard.id(), publicStandard.name());
+        }
+
+        com.cpf.core.common.execution.CpfOnlineTransaction legacyStandard =
+                AnnotatedElementUtils.findMergedAnnotation(
+                        handlerMethod.getMethod(),
+                        com.cpf.core.common.execution.CpfOnlineTransaction.class);
+        if (legacyStandard == null) {
+            legacyStandard = AnnotatedElementUtils.findMergedAnnotation(
+                    handlerMethod.getBeanType(),
+                    com.cpf.core.common.execution.CpfOnlineTransaction.class);
+        }
+        return legacyStandard == null
+                ? null
+                : new OnlineTransactionMetadata(legacyStandard.id(), legacyStandard.name());
     }
 
     /**
@@ -263,5 +287,8 @@ public class CpfOpenApiAutoConfiguration {
             return "controller";
         }
         return value.substring(0, 1).toLowerCase(Locale.ROOT) + value.substring(1);
+    }
+
+    private record OnlineTransactionMetadata(String id, String name) {
     }
 }

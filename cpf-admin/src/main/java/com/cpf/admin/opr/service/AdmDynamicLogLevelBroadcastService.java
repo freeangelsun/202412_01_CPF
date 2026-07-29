@@ -5,8 +5,8 @@ import com.cpf.common.mqe.core.CmnMessageEnvelope;
 import com.cpf.common.mqe.core.CmnMessagePublisher;
 import com.cpf.common.ref.service.CacheRefreshEventPublisher;
 import com.cpf.core.api.util.CpfStrings;
-import com.cpf.core.common.logging.DynamicLogLevelRule;
-import com.cpf.core.common.logging.DynamicTransactionLogLevelService;
+import com.cpf.core.api.logging.DynamicLogLevelRule;
+import com.cpf.core.api.logging.CpfDynamicLogLevelOperations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -30,13 +30,13 @@ public class AdmDynamicLogLevelBroadcastService extends com.cpf.admin.common.bas
     private static final Logger log = LoggerFactory.getLogger(AdmDynamicLogLevelBroadcastService.class);
 
     private final AdmDynamicLogLevelRuleStore ruleStore;
-    private final DynamicTransactionLogLevelService runtimeService;
+    private final CpfDynamicLogLevelOperations runtimeService;
     private final ObjectProvider<CmnMessagePublisher> messagePublisherProvider;
     private final ObjectProvider<CacheRefreshEventPublisher> cacheRefreshEventPublisherProvider;
 
     public AdmDynamicLogLevelBroadcastService(
             AdmDynamicLogLevelRuleStore ruleStore,
-            DynamicTransactionLogLevelService runtimeService,
+            CpfDynamicLogLevelOperations runtimeService,
             @Qualifier("cmnMessageBridgeService") ObjectProvider<CmnMessagePublisher> messagePublisherProvider,
             @Qualifier("cmnMessageBridgeService") ObjectProvider<CmnMessageConsumer> messageConsumerProvider,
             ObjectProvider<CacheRefreshEventPublisher> cacheRefreshEventPublisherProvider) {

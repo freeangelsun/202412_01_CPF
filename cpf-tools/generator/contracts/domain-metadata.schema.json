@@ -19,7 +19,9 @@
     "platformVersion",
     "templateContractVersion",
     "capabilities",
+    "physicalTableContract",
     "minimalTransactionContract",
+    "idempotencyLedgerContract",
     "runtimeAgent"
   ],
   "allOf": [
@@ -151,12 +153,39 @@
         }
       }
     },
+    "physicalTableContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "totalTables",
+        "businessTableCount",
+        "supportLedgerCount",
+        "additionalTablesAllowed"
+      ],
+      "properties": {
+        "totalTables": {
+          "const": 2
+        },
+        "businessTableCount": {
+          "const": 1
+        },
+        "supportLedgerCount": {
+          "const": 1
+        },
+        "additionalTablesAllowed": {
+          "const": false
+        }
+      }
+    },
     "minimalTransactionContract": {
       "type": "object",
+      "additionalProperties": false,
       "required": [
         "model",
+        "tableRole",
         "logicalTable",
         "requiredColumns",
+        "transactionIdWidth",
         "requiredKeys",
         "requiredIndexes",
         "requiredChecks",
@@ -166,12 +195,16 @@
         "model": {
           "const": "sample-item"
         },
+        "tableRole": {
+          "const": "business-sample"
+        },
         "logicalTable": {
           "type": "string"
         },
         "requiredColumns": {
           "type": "array",
           "minItems": 14,
+          "maxItems": 14,
           "uniqueItems": true,
           "items": {
             "enum": [
@@ -192,24 +225,29 @@
             ]
           }
         },
+        "transactionIdWidth": {
+          "const": 34
+        },
         "requiredKeys": {
           "type": "array",
-          "minItems": 3,
+          "minItems": 2,
+          "maxItems": 2,
           "uniqueItems": true,
           "items": {
             "enum": [
               "primary-key",
-              "sample-key-unique",
-              "idempotency-key-unique"
+              "sample-key-unique"
             ]
           }
         },
         "requiredIndexes": {
           "type": "array",
-          "minItems": 2,
+          "minItems": 3,
+          "maxItems": 3,
           "uniqueItems": true,
           "items": {
             "enum": [
+              "idempotency-key-audit",
               "status-deleted-id",
               "transaction-id-sequence"
             ]
@@ -218,6 +256,7 @@
         "requiredChecks": {
           "type": "array",
           "minItems": 2,
+          "maxItems": 2,
           "uniqueItems": true,
           "items": {
             "enum": [
@@ -229,6 +268,7 @@
         "operations": {
           "type": "array",
           "minItems": 22,
+          "maxItems": 22,
           "uniqueItems": true,
           "items": {
             "enum": [
@@ -256,6 +296,96 @@
               "framework-edu"
             ]
           }
+        }
+      }
+    },
+    "idempotencyLedgerContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "model",
+        "tableRole",
+        "logicalTable",
+        "requiredColumns",
+        "transactionIdWidth",
+        "requiredKeys",
+        "requiredIndexes",
+        "requiredChecks",
+        "replayPolicy",
+        "logicalDeleteReplayRequired"
+      ],
+      "properties": {
+        "model": {
+          "const": "sample-item-idempotency-ledger"
+        },
+        "tableRole": {
+          "const": "non-business-support-ledger"
+        },
+        "logicalTable": {
+          "type": "string"
+        },
+        "requiredColumns": {
+          "type": "array",
+          "minItems": 8,
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "idempotency_key",
+              "operation_code",
+              "request_hash",
+              "sample_item_id",
+              "result_version",
+              "deleted_yn",
+              "transaction_id",
+              "created_at"
+            ]
+          }
+        },
+        "transactionIdWidth": {
+          "const": 34
+        },
+        "requiredKeys": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "primary-key",
+              "sample-item-foreign-key"
+            ]
+          }
+        },
+        "requiredIndexes": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "sample-item-created-at",
+              "transaction-id-created-at"
+            ]
+          }
+        },
+        "requiredChecks": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "operation-create-update-delete",
+              "deleted-yn"
+            ]
+          }
+        },
+        "replayPolicy": {
+          "const": "same-key-and-request-hash-replay-different-hash-conflict"
+        },
+        "logicalDeleteReplayRequired": {
+          "const": true
         }
       }
     },

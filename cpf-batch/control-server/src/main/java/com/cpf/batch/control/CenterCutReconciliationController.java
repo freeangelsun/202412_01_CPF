@@ -1,8 +1,10 @@
 package com.cpf.batch.control;
 
 import com.cpf.batch.runtime.SensitiveTextSanitizer;
-import com.cpf.core.common.database.CpfVendorSqlCatalog;
-import org.springframework.core.env.Environment;
+import com.cpf.batch.control.security.BatVerifiedActorResolver;
+import com.cpf.core.api.database.CpfVendorSqlCatalog;
+import com.cpf.core.api.database.CpfVendorSqlCatalogProvider;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.*;
@@ -18,37 +20,44 @@ import java.util.Map;
 public class CenterCutReconciliationController {
     private final JdbcTemplate jdbc;
     private final CpfVendorSqlCatalog sql;
+    private final BatVerifiedActorResolver actorResolver;
 
-    public CenterCutReconciliationController(JdbcTemplate jdbc, Environment environment) {
+    public CenterCutReconciliationController(
+            JdbcTemplate jdbc,
+            CpfVendorSqlCatalogProvider sqlCatalogProvider,
+            BatVerifiedActorResolver actorResolver) {
         this.jdbc = jdbc;
-        this.sql = CpfVendorSqlCatalog.create(environment, "bat");
+        this.sql = sqlCatalogProvider.forModule("bat");
+        this.actorResolver = actorResolver;
     }
 
     @PostMapping("/executions/{executionId}/reprocess-failed")
     @Transactional
     public ResponseEntity<Map<String, Object>> failedExecution(@PathVariable String executionId,
-                                                                @RequestBody ApprovedRequest request) {
-        approve(request);
+                                                                @RequestBody ApprovedRequest request,
+                                                                HttpServletRequest http) {
+        var actors = approved(http, request);
         Map<String, Object> execution = execution(executionId);
         int changed = jdbc.update(sql.required("centercut-reconcile-failed-items"), executionId);
         jdbc.update(sql.required("centercut-reconcile-failed-execution"),
                 changed, changed, executionId);
         audit(String.valueOf(execution.get("center_cut_job_id")), executionId,
-                "REPROCESS_FAILED", request, changed);
+                "REPROCESS_FAILED", actors, request.reason(), changed);
         return ResponseEntity.accepted().body(Map.of("executionId", executionId, "requeued", changed));
     }
 
     @PostMapping("/executions/{executionId}/reconcile-unknown")
     @Transactional
     public ResponseEntity<Map<String, Object>> unknownExecution(@PathVariable String executionId,
-                                                                 @RequestBody ApprovedRequest request) {
-        approve(request);
+                                                                 @RequestBody ApprovedRequest request,
+                                                                 HttpServletRequest http) {
+        var actors = approved(http, request);
         Map<String, Object> execution = execution(executionId);
         int changed = jdbc.update(sql.required("centercut-reconcile-unknown-items"), executionId);
         jdbc.update(sql.required("centercut-reconcile-unknown-execution"),
                 changed, changed, executionId);
         audit(String.valueOf(execution.get("center_cut_job_id")), executionId,
-                "RECONCILE_UNKNOWN", request, changed);
+                "RECONCILE_UNKNOWN", actors, request.reason(), changed);
         return ResponseEntity.accepted().body(Map.of("executionId", executionId, "requeued", changed));
     }
 
@@ -56,20 +65,22 @@ public class CenterCutReconciliationController {
     @PostMapping("/jobs/{jobId}/reprocess-failed")
     @Transactional
     public ResponseEntity<Map<String, Object>> failedJob(@PathVariable String jobId,
-                                                          @RequestBody ApprovedRequest request) {
-        approve(request);
+                                                          @RequestBody ApprovedRequest request,
+                                                          HttpServletRequest http) {
+        var actors = approved(http, request);
         int changed = jdbc.update(sql.required("centercut-reconcile-failed-job"), jobId);
-        audit(jobId, null, "REPROCESS_FAILED_JOB", request, changed);
+        audit(jobId, null, "REPROCESS_FAILED_JOB", actors, request.reason(), changed);
         return ResponseEntity.accepted().body(Map.of("jobId", jobId, "requeued", changed));
     }
 
     @PostMapping("/jobs/{jobId}/reconcile-unknown")
     @Transactional
     public ResponseEntity<Map<String, Object>> unknownJob(@PathVariable String jobId,
-                                                           @RequestBody ApprovedRequest request) {
-        approve(request);
+                                                           @RequestBody ApprovedRequest request,
+                                                           HttpServletRequest http) {
+        var actors = approved(http, request);
         int changed = jdbc.update(sql.required("centercut-reconcile-unknown-job"), jobId);
-        audit(jobId, null, "RECONCILE_UNKNOWN_JOB", request, changed);
+        audit(jobId, null, "RECONCILE_UNKNOWN_JOB", actors, request.reason(), changed);
         return ResponseEntity.accepted().body(Map.of("jobId", jobId, "requeued", changed));
     }
 
@@ -77,22 +88,26 @@ public class CenterCutReconciliationController {
         return jdbc.queryForMap(sql.required("centercut-reconcile-load-execution"), id);
     }
 
-    private static void approve(ApprovedRequest request) {
-        if (request.requestedBy() == null || request.requestedBy().isBlank()
-                || request.approvedBy() == null || request.approvedBy().isBlank()
-                || request.requestedBy().equals(request.approvedBy())
-                || request.reason() == null || request.reason().isBlank()) {
+    private BatVerifiedActorResolver.ApprovedActors approved(
+            HttpServletRequest http,
+            ApprovedRequest request) {
+        if (request.reason() == null || request.reason().isBlank()) {
             throw new IllegalArgumentException("requester/approver separation and reason required");
         }
+        return actorResolver.approved(http,request.requestedBy(),request.approvedBy(),null);
     }
 
     private void audit(String jobId, String executionId, String operation,
-                       ApprovedRequest request, int count) {
+                       BatVerifiedActorResolver.ApprovedActors actors,
+                       String reason,
+                       int count) {
         jdbc.update(sql.required("centercut-reconcile-audit"),
-                jobId, operation, request.requestedBy(),
-                SensitiveTextSanitizer.sanitize(request.reason()),
-                "executionId=" + executionId + ",count=" + count + ",approvedBy=" + request.approvedBy(),
-                request.requestedBy(), request.requestedBy());
+                jobId, operation, actors.requestedBy(),
+                SensitiveTextSanitizer.sanitize(reason),
+                "executionId=" + executionId + ",count=" + count
+                        + ",approvalRequestId=" + actors.approvalRequestId()
+                        + ",approvedBy=" + actors.approvedBy(),
+                actors.approvedBy(), actors.approvedBy());
     }
 
     public record ApprovedRequest(String requestedBy, String approvedBy, String reason) {}

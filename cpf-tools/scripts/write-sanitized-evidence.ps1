@@ -1,4 +1,4 @@
-﻿param(
+param(
     [Parameter(Mandatory = $true)]
     [string]$EvidenceId,
     [Parameter(Mandatory = $true)]

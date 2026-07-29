@@ -1,7 +1,110 @@
-SELECT CASE
-    WHEN (SELECT COUNT(*) FROM all_tables WHERE owner=UPPER('@CPF_SCHEMA_NAME@') AND table_name IN (UPPER('@CPF_TABLE_PREFIX@_sample_item'),UPPER('@CPF_TABLE_PREFIX@_sample_item_idem'))) = 2
-     AND (SELECT COUNT(DISTINCT column_name) FROM all_tab_columns WHERE owner=UPPER('@CPF_SCHEMA_NAME@') AND table_name=UPPER('@CPF_TABLE_PREFIX@_sample_item_idem') AND column_name IN (UPPER('idempotency_key'),UPPER('operation_code'),UPPER('request_hash'),UPPER('sample_item_id'),UPPER('result_version'),UPPER('deleted_yn'),UPPER('transaction_id'),UPPER('created_at'))) = 8
-     AND (SELECT COUNT(*) FROM all_constraints WHERE owner=UPPER('@CPF_SCHEMA_NAME@') AND table_name=UPPER('@CPF_TABLE_PREFIX@_sample_item_idem') AND constraint_type='P') = 1
-     AND (SELECT COUNT(*) FROM all_constraints WHERE owner=UPPER('@CPF_SCHEMA_NAME@') AND table_name=UPPER('@CPF_TABLE_PREFIX@_sample_item_idem') AND constraint_type='R') = 1
-     AND (SELECT COUNT(*) FROM all_indexes WHERE owner=UPPER('@CPF_SCHEMA_NAME@') AND table_name=UPPER('@CPF_TABLE_PREFIX@_sample_item_idem') AND index_name IN (UPPER('ix_@CPF_TABLE_PREFIX@_sample_idem_item'),UPPER('ix_@CPF_TABLE_PREFIX@_sample_idem_tx'))) = 2
-    THEN 'PASS' ELSE 'FAILED' END AS generated_domain_idempotency_verify FROM dual;
+SELECT
+    CASE
+        WHEN (SELECT COUNT(*)
+              FROM all_tables
+              WHERE owner = UPPER('@CPF_SCHEMA_NAME@')
+                AND table_name = UPPER('@CPF_TABLE_PREFIX@_sample_item')) = 1
+         AND (SELECT COUNT(*)
+              FROM all_tab_columns
+              WHERE owner = UPPER('@CPF_SCHEMA_NAME@')
+                AND table_name = UPPER('@CPF_TABLE_PREFIX@_sample_item')) = 14
+         AND (SELECT COUNT(DISTINCT column_name)
+              FROM all_tab_columns
+              WHERE owner = UPPER('@CPF_SCHEMA_NAME@')
+                AND table_name = UPPER('@CPF_TABLE_PREFIX@_sample_item')
+                AND column_name IN (
+                    UPPER('sample_item_id'), UPPER('sample_key'), UPPER('item_name'),
+                    UPPER('status_code'), UPPER('version_no'), UPPER('idempotency_key'),
+                    UPPER('transaction_id'), UPPER('transaction_sequence'), UPPER('transaction_at'),
+                    UPPER('deleted_yn'), UPPER('created_by'), UPPER('created_at'),
+                    UPPER('updated_by'), UPPER('updated_at')
+                )) = 14
+         AND (SELECT COUNT(*)
+              FROM all_tab_columns
+              WHERE owner = UPPER('@CPF_SCHEMA_NAME@')
+                AND table_name = UPPER('@CPF_TABLE_PREFIX@_sample_item')
+                AND column_name = UPPER('transaction_id')
+                AND data_type = 'CHAR'
+                AND char_length = 34) = 1
+         AND (SELECT COUNT(*)
+              FROM all_constraints
+              WHERE owner = UPPER('@CPF_SCHEMA_NAME@')
+                AND table_name = UPPER('@CPF_TABLE_PREFIX@_sample_item')
+                AND constraint_type IN ('P', 'U')) = 2
+         AND (SELECT COUNT(*)
+              FROM all_indexes
+              WHERE owner = UPPER('@CPF_SCHEMA_NAME@')
+                AND table_name = UPPER('@CPF_TABLE_PREFIX@_sample_item')
+                AND index_name IN (
+                    UPPER('ix_@CPF_TABLE_PREFIX@_sample_idem'),
+                    UPPER('ix_@CPF_TABLE_PREFIX@_sample_status'),
+                    UPPER('ix_@CPF_TABLE_PREFIX@_sample_tx')
+                )) = 3
+         AND (SELECT COUNT(*)
+              FROM all_constraints
+              WHERE owner = UPPER('@CPF_SCHEMA_NAME@')
+                AND table_name = UPPER('@CPF_TABLE_PREFIX@_sample_item')
+                AND constraint_name IN (
+                    UPPER('ck_@CPF_TABLE_PREFIX@_sample_status'),
+                    UPPER('ck_@CPF_TABLE_PREFIX@_sample_deleted')
+                )
+                AND constraint_type = 'C') = 2
+        THEN 'PASS'
+        ELSE 'FAILED'
+    END AS generated_domain_sample_verify,
+    CASE
+        WHEN (SELECT COUNT(*)
+              FROM all_tables
+              WHERE owner = UPPER('@CPF_SCHEMA_NAME@')
+                AND table_name = UPPER('@CPF_TABLE_PREFIX@_sample_item_idem')) = 1
+         AND (SELECT COUNT(*)
+              FROM all_tab_columns
+              WHERE owner = UPPER('@CPF_SCHEMA_NAME@')
+                AND table_name = UPPER('@CPF_TABLE_PREFIX@_sample_item_idem')) = 8
+         AND (SELECT COUNT(DISTINCT column_name)
+              FROM all_tab_columns
+              WHERE owner = UPPER('@CPF_SCHEMA_NAME@')
+                AND table_name = UPPER('@CPF_TABLE_PREFIX@_sample_item_idem')
+                AND column_name IN (
+                    UPPER('idempotency_key'), UPPER('operation_code'), UPPER('request_hash'),
+                    UPPER('sample_item_id'), UPPER('result_version'), UPPER('deleted_yn'),
+                    UPPER('transaction_id'), UPPER('created_at')
+                )) = 8
+         AND (SELECT COUNT(*)
+              FROM all_tab_columns
+              WHERE owner = UPPER('@CPF_SCHEMA_NAME@')
+                AND table_name = UPPER('@CPF_TABLE_PREFIX@_sample_item_idem')
+                AND column_name = UPPER('transaction_id')
+                AND data_type = 'CHAR'
+                AND char_length = 34) = 1
+         AND (SELECT COUNT(*)
+              FROM all_constraints
+              WHERE owner = UPPER('@CPF_SCHEMA_NAME@')
+                AND table_name = UPPER('@CPF_TABLE_PREFIX@_sample_item_idem')
+                AND constraint_type = 'P') = 1
+         AND (SELECT COUNT(*)
+              FROM all_constraints
+              WHERE owner = UPPER('@CPF_SCHEMA_NAME@')
+                AND table_name = UPPER('@CPF_TABLE_PREFIX@_sample_item_idem')
+                AND constraint_type = 'R') = 1
+         AND (SELECT COUNT(*)
+              FROM all_indexes
+              WHERE owner = UPPER('@CPF_SCHEMA_NAME@')
+                AND table_name = UPPER('@CPF_TABLE_PREFIX@_sample_item_idem')
+                AND index_name IN (
+                    UPPER('ix_@CPF_TABLE_PREFIX@_sample_idem_item'),
+                    UPPER('ix_@CPF_TABLE_PREFIX@_sample_idem_tx')
+                )) = 2
+         AND (SELECT COUNT(*)
+              FROM all_constraints
+              WHERE owner = UPPER('@CPF_SCHEMA_NAME@')
+                AND table_name = UPPER('@CPF_TABLE_PREFIX@_sample_item_idem')
+                AND constraint_name IN (
+                    UPPER('ck_@CPF_TABLE_PREFIX@_sample_idem_op'),
+                    UPPER('ck_@CPF_TABLE_PREFIX@_sample_idem_del')
+                )
+                AND constraint_type = 'C') = 2
+        THEN 'PASS'
+        ELSE 'FAILED'
+    END AS generated_domain_idempotency_verify
+FROM dual;

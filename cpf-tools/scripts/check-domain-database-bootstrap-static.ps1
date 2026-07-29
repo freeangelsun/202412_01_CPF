@@ -5,6 +5,8 @@ param(
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 $Root = (Resolve-Path -LiteralPath $Root).Path
+. (Join-Path $Root "cpf-tools/scripts/database-profile-common.ps1")
+$supportedVendors = @(Get-CpfSupportedDatabaseVendors)
 $sandbox = Join-Path $Root "build/domain-db-bootstrap-static"
 $sandboxRoot = Join-Path $sandbox "repository"
 $allowedCleanupRoot = [IO.Path]::GetFullPath((Join-Path $Root "build"))
@@ -29,6 +31,11 @@ try {
             (Join-Path $sandboxRoot "settings.gradle"),
             "rootProject.name = 'cpf-domain-db-bootstrap-static'`n",
             $Utf8NoBom)
+    $gradleTarget = Join-Path $sandboxRoot "gradle"
+    New-Item -ItemType Directory -Force -Path $gradleTarget | Out-Null
+    Copy-Item `
+        -LiteralPath (Join-Path $Root "gradle/cpf-stack.properties") `
+        -Destination $gradleTarget
 
     $contractTarget = Join-Path $sandboxRoot "cpf-tools/generator/contracts"
     New-Item -ItemType Directory -Force -Path $contractTarget | Out-Null
@@ -39,18 +46,24 @@ try {
             -LiteralPath (Join-Path $Root "cpf-tools/generator/contracts/$contractName") `
             -Destination $contractTarget
     }
+    $vendorManifestTarget = Join-Path $sandboxRoot "cpf-tools/db"
+    New-Item -ItemType Directory -Force -Path $vendorManifestTarget | Out-Null
+    Copy-Item `
+        -LiteralPath (Join-Path $Root "cpf-tools/db/vendor-pack-manifest.json") `
+        -Destination $vendorManifestTarget
 
     $scriptTarget = Join-Path $sandboxRoot "cpf-tools/scripts"
     New-Item -ItemType Directory -Force -Path $scriptTarget | Out-Null
     foreach ($scriptName in @(
             "initialize-domain-database.ps1",
+            "initialize-generated-domain-databases.ps1",
             "database-profile-common.ps1")) {
         Copy-Item `
             -LiteralPath (Join-Path $Root "cpf-tools/scripts/$scriptName") `
             -Destination $scriptTarget
     }
 
-    foreach ($vendor in @("mariadb", "mysql", "postgresql", "oracle", "sqlserver")) {
+    foreach ($vendor in $supportedVendors) {
         $targetVendorRoot = Join-Path $sandboxRoot "cpf-tools/db/vendor/$vendor"
         New-Item -ItemType Directory -Force -Path $targetVendorRoot | Out-Null
         Copy-Item `
@@ -59,12 +72,23 @@ try {
             -Recurse
     }
 
+    $caseIdentities = @(
+        [ordered]@{ domain = "alpha"; code = "ALP" },
+        [ordered]@{ domain = "bravo"; code = "BRV" },
+        [ordered]@{ domain = "charlie"; code = "CHR" }
+    )
+    if ($supportedVendors.Count -gt $caseIdentities.Count) {
+        throw "Generated Domain DB static case identity가 부족합니다: vendors=$($supportedVendors.Count)"
+    }
     $cases = @(
-        [ordered]@{ domain = "alpha"; code = "ALP"; vendor = "mariadb"; port = 19001 },
-        [ordered]@{ domain = "bravo"; code = "BRV"; vendor = "mysql"; port = 19002 },
-        [ordered]@{ domain = "charlie"; code = "CHR"; vendor = "postgresql"; port = 19003 },
-        [ordered]@{ domain = "delta"; code = "DLT"; vendor = "oracle"; port = 19004 },
-        [ordered]@{ domain = "echoes"; code = "ECH"; vendor = "sqlserver"; port = 19005 }
+        for ($index = 0; $index -lt $supportedVendors.Count; $index++) {
+            [ordered]@{
+                domain = $caseIdentities[$index].domain
+                code = $caseIdentities[$index].code
+                vendor = $supportedVendors[$index]
+                port = 19001 + $index
+            }
+        }
     )
     $generator = Join-Path $Root "cpf-tools/generator/create-domain.ps1"
     $initializer = Join-Path $scriptTarget "initialize-domain-database.ps1"
@@ -86,6 +110,8 @@ try {
             -Root $sandboxRoot `
             -DomainName $case.domain `
             -SystemCode $case.code `
+            -DatabasePassword "CPF_STATIC_PLAN_MIGRATION" `
+            -RuntimePassword "CPF_STATIC_PLAN_RUNTIME" `
             -AdminPassword "CPF_STATIC_PLAN_ADMIN" `
             -ResultDir $resultDir | Out-Null
         if ($LASTEXITCODE -ne 0) {
@@ -105,6 +131,8 @@ try {
                 "rendered-sql/$($case.vendor)/principals-02_principals.sql"
         $principalText = Get-Content -LiteralPath $principalPath -Raw -Encoding UTF8
         if ($principalText.Contains("CPF_STATIC_PLAN_ADMIN") -or
+                $principalText.Contains("CPF_STATIC_PLAN_MIGRATION") -or
+                $principalText.Contains("CPF_STATIC_PLAN_RUNTIME") -or
                 $principalText -match 'Cpf[A-Z]{3}(?:Mig|App)#2026' -or
                 $principalText -notmatch "__CPF_SECRET_REDACTED__" -or
                 $principalText -match "@CPF_[A-Z_]+@") {
@@ -112,10 +140,42 @@ try {
         }
         Write-Host "Generated Domain DB static plan PASS: vendor=$($case.vendor) phases=5 secretPersisted=false"
     }
+
+    $batchInitializer = Join-Path $scriptTarget "initialize-generated-domain-databases.ps1"
+    $secretEnvironment = @{
+        CPF_DB_ROOT_PASSWORD = "CPF_STATIC_BATCH_ADMIN"
+        CPF_DB_MIGRATION_PASSWORD = "CPF_STATIC_BATCH_MIGRATION"
+        CPF_DB_APP_PASSWORD = "CPF_STATIC_BATCH_RUNTIME"
+    }
+    $previousEnvironment = @{}
+    try {
+        foreach ($entry in $secretEnvironment.GetEnumerator()) {
+            $previousEnvironment[$entry.Key] = [Environment]::GetEnvironmentVariable($entry.Key)
+            [Environment]::SetEnvironmentVariable($entry.Key, $entry.Value)
+        }
+        & pwsh -NoProfile -ExecutionPolicy Bypass -File $batchInitializer `
+            -Root $sandboxRoot `
+            -All | Out-Null
+        if ($LASTEXITCODE -ne 0) {
+            throw "Generated Domain DB batch static plan 실패: exitCode=$LASTEXITCODE"
+        }
+    } finally {
+        foreach ($entry in $previousEnvironment.GetEnumerator()) {
+            [Environment]::SetEnvironmentVariable($entry.Key, $entry.Value)
+        }
+    }
+    $batchResultPath = Join-Path $sandboxRoot `
+            "build/db-install/generated-domains/generated-domain-batch-result.sanitized.json"
+    $batchResult = Get-Content -LiteralPath $batchResultPath -Raw -Encoding UTF8 |
+            ConvertFrom-Json -Depth 30
+    if (@($batchResult.domains).Count -ne $supportedVendors.Count -or
+            @($batchResult.domains | Where-Object status -ne "미검증").Count -gt 0) {
+        throw "Generated Domain DB batch contract/version static 결과가 올바르지 않습니다."
+    }
+    Write-Host "Generated Domain DB batch contract PASS: contractVersion=current domains=$($supportedVendors.Count)"
 } finally {
     if (Test-Path -LiteralPath $sandbox -PathType Container) {
         Assert-SafeSandboxPath $sandbox
         Remove-Item -LiteralPath $sandbox -Recurse -Force
     }
 }
-

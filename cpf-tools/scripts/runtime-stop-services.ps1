@@ -20,7 +20,7 @@ New-Item -ItemType Directory -Force -Path $ResultDir | Out-Null
 
 $resultPath = Join-Path $ResultDir "runtime-stop-services-result.json"
 $state = Read-CpfRuntimeState -ResultDir $ResultDir
-$requestedModules = @(Resolve-CpfRuntimeModules -Modules $Modules)
+$requestedModules = @(Resolve-CpfRuntimeModules -Modules $Modules -Root $Root)
 $requested = @($requestedModules | ForEach-Object { $_.module })
 $result = [ordered]@{
     startedAt = (Get-Date).ToString("o")

@@ -2,7 +2,7 @@ param(
     [Parameter(Mandatory = $true)] [string] $DomainName,
     [Parameter(Mandatory = $true)] [string] $SystemCode,
     [string] $Root = (Resolve-Path "$PSScriptRoot\..\..").Path,
-    [ValidateSet('mariadb','mysql','postgresql','oracle','sqlserver')] [string] $DatabaseVendor = 'mariadb',
+    [string] $DatabaseVendor = 'mariadb',
     [string] $DatabaseHost = $(if ($env:CPF_DOMAIN_DB_HOST) { $env:CPF_DOMAIN_DB_HOST } else { '127.0.0.1' }),
     [int] $DatabasePort = 0,
     [string] $DatabaseName = '',
@@ -24,6 +24,8 @@ param(
 $ErrorActionPreference = 'Stop'
 $Utf8NoBom = [Text.UTF8Encoding]::new($false)
 $Root = (Resolve-Path -LiteralPath $Root).Path
+. (Join-Path $Root 'cpf-tools/scripts/database-profile-common.ps1')
+$DatabaseVendor = Assert-CpfSupportedDatabaseVendor $DatabaseVendor
 $domain = $DomainName.Trim().ToLowerInvariant()
 $code = $SystemCode.Trim().ToUpperInvariant()
 if ($domain -notmatch '^[a-z][a-z0-9]{1,29}$') { throw 'DomainName 형식이 올바르지 않습니다.' }

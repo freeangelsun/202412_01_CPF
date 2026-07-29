@@ -1,7 +1,7 @@
 package com.cpf.batch.control;
 
-import com.cpf.core.common.database.CpfVendorSqlCatalog;
-import org.springframework.core.env.Environment;
+import com.cpf.core.api.database.CpfVendorSqlCatalog;
+import com.cpf.core.api.database.CpfVendorSqlCatalogProvider;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,9 +16,9 @@ public class BatchControlQueryController {
     private final JdbcTemplate jdbc;
     private final CpfVendorSqlCatalog sql;
 
-    public BatchControlQueryController(JdbcTemplate jdbc, Environment environment) {
+    public BatchControlQueryController(JdbcTemplate jdbc, CpfVendorSqlCatalogProvider sqlCatalogProvider) {
         this.jdbc = jdbc;
-        this.sql = CpfVendorSqlCatalog.create(environment, "bat");
+        this.sql = sqlCatalogProvider.forModule("bat");
     }
 
     @GetMapping("/{view}")

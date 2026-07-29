@@ -30,7 +30,7 @@
     "directory/assignments": "EMPLOYEE",
     "directory/responsibilities": "EMPLOYEE",
     "directory/user-roles": "AUTHORIZATION",
-    "approval": "APPROVAL",
+    "approvals": "APPROVAL",
     "audits": "AUDIT",
     "notifications": "SETTING",
     "attachments": "ATTACHMENT",
@@ -50,8 +50,18 @@
       "actionCode": "SIMULATE"
     },
     {
+      "method": "POST",
+      "pathPattern": "permissions/simulate",
+      "actionCode": "SIMULATE"
+    },
+    {
       "method": "GET",
       "pathPattern": "**/download/**",
+      "actionCode": "DOWNLOAD"
+    },
+    {
+      "method": "GET",
+      "pathPattern": "attachments/*/download",
       "actionCode": "DOWNLOAD"
     },
     {
@@ -66,7 +76,7 @@
     },
     {
       "method": "POST",
-      "pathPattern": "approval/**/decisions",
+      "pathPattern": "approvals/**/decisions",
       "actionCode": "DECIDE"
     },
     {

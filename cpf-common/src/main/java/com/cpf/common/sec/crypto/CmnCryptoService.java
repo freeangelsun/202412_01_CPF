@@ -1,8 +1,8 @@
 package com.cpf.common.sec.crypto;
 
 import com.cpf.core.api.util.CpfStrings;
-import com.cpf.core.common.exception.CpfExternalServiceException;
-import com.cpf.core.common.exception.CpfValidationException;
+import com.cpf.core.api.error.CpfExternalServiceException;
+import com.cpf.core.api.error.CpfValidationException;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.Cipher;

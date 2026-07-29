@@ -19,6 +19,42 @@ $vendors = @("mariadb", "postgresql", "oracle")
 $keys = @($contract.statements | ForEach-Object { [string] $_.key } | Sort-Object)
 $failures = [System.Collections.Generic.List[string]]::new()
 $inlineSqlPattern = '(?is)(?:"""|")\s*(?:SELECT|INSERT|UPDATE|DELETE|MERGE)\b'
+$expectedMigrationScopes = @(
+    "cpf-batch/worker/src/main/java",
+    "cpf-batch/scheduler/src/main/java",
+    "cpf-batch/center-cut-runner/src/main/java",
+    "cpf-batch/control-server/src/main/java"
+)
+
+function ConvertTo-BatScopeArray {
+    param([object] $Value)
+
+    $scopes = [System.Collections.Generic.List[string]]::new()
+    if ($null -eq $Value) {
+        return @()
+    }
+    foreach ($item in @($Value)) {
+        $scope = ([string] $item).Trim().Replace("\", "/").TrimEnd("/")
+        if (-not [string]::IsNullOrWhiteSpace($scope)) {
+            $scopes.Add($scope)
+        }
+    }
+    return @($scopes)
+}
+
+$migrationScopes = @(ConvertTo-BatScopeArray -Value $contract.migrationScope)
+$remainingScopes = @(ConvertTo-BatScopeArray -Value $contract.remainingScope)
+if (($migrationScopes -join "`n") -cne ($expectedMigrationScopes -join "`n")) {
+    $failures.Add("BAT migrationScope must contain only the four owned main Java roots.")
+}
+foreach ($scope in $remainingScopes) {
+    if ($expectedMigrationScopes -cnotcontains $scope) {
+        $failures.Add("BAT remainingScope is outside BAT-owned main Java roots: $scope")
+    }
+    if ($migrationScopes -ccontains $scope) {
+        $failures.Add("BAT scope cannot be both migrated and remaining: $scope")
+    }
+}
 
 foreach ($vendor in $vendors) {
     $repositoryRoot = Join-Path $Root "cpf-tools\db\vendor\$vendor\runtime\bat\repository"
@@ -49,8 +85,13 @@ foreach ($vendor in $vendors) {
     }
 }
 
-foreach ($scope in @($contract.migrationScope)) {
+foreach ($scope in $migrationScopes) {
+    if ($expectedMigrationScopes -cnotcontains $scope) { continue }
     $sourceRoot = Join-Path $Root ($scope -replace "/", "\")
+    if (-not (Test-Path -LiteralPath $sourceRoot -PathType Container)) {
+        $failures.Add("BAT migration scope is missing: $scope")
+        continue
+    }
     foreach ($file in Get-ChildItem -LiteralPath $sourceRoot -Recurse -File -Filter "*.java") {
         $text = [System.IO.File]::ReadAllText($file.FullName, [System.Text.Encoding]::UTF8)
         if ($text -match $inlineSqlPattern) {
@@ -62,8 +103,13 @@ foreach ($scope in @($contract.migrationScope)) {
 
 $remainingInlineFiles = [System.Collections.Generic.List[object]]::new()
 $remainingInlineStatements = 0
-foreach ($scope in @($contract.remainingScope)) {
+foreach ($scope in $remainingScopes) {
+    if ($expectedMigrationScopes -cnotcontains $scope) { continue }
     $sourceRoot = Join-Path $Root ($scope -replace "/", "\")
+    if (-not (Test-Path -LiteralPath $sourceRoot -PathType Container)) {
+        $failures.Add("BAT remaining scope is missing: $scope")
+        continue
+    }
     foreach ($file in Get-ChildItem -LiteralPath $sourceRoot -Recurse -File -Filter "*.java") {
         $text = [System.IO.File]::ReadAllText($file.FullName, [System.Text.Encoding]::UTF8)
         $count = ([regex]::Matches($text, $inlineSqlPattern)).Count
@@ -86,8 +132,8 @@ foreach ($vendor in $vendors) {
 $result = [ordered]@{
     status = if ($failures.Count -eq 0) { "PASS" } else { "FAIL" }
     contractStatus = [string] $contract.status
-    migratedScopes = @($contract.migrationScope)
-    remainingScopes = @($contract.remainingScope)
+    migratedScopes = $migrationScopes
+    remainingScopes = $remainingScopes
     statements = $keys.Count
     vendors = $vendors.Count
     remainingInlineSqlStatements = $remainingInlineStatements

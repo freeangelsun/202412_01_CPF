@@ -1,10 +1,10 @@
 package com.cpf.common.msg.service;
 
-import com.cpf.core.common.exception.DefaultCpfResponseCodeResolver;
-import com.cpf.core.common.exception.CpfErrorDefinition;
-import com.cpf.core.common.exception.CpfMessageFormatter;
-import com.cpf.core.common.exception.CpfResolvedResponse;
-import com.cpf.core.common.exception.CpfResponseCodeResolver;
+import com.cpf.core.api.error.DefaultCpfResponseCodeResolver;
+import com.cpf.core.api.error.CpfErrorDefinition;
+import com.cpf.core.api.error.CpfMessageFormatter;
+import com.cpf.core.api.error.CpfResolvedResponse;
+import com.cpf.core.api.error.CpfResponseCodeResolver;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;

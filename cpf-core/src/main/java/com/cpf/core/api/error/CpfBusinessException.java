@@ -15,4 +15,25 @@ public class CpfBusinessException extends com.cpf.core.common.exception.CpfBusin
     public CpfBusinessException(CpfErrorCode errorCode, String detail, Map<String, Object> messageArguments) {
         super(errorCode.internalDefinition(), detail, messageArguments);
     }
+
+    public CpfBusinessException(
+            String responseCode,
+            String detail,
+            Map<String, Object> messageArguments) {
+        super(responseCode, detail, messageArguments);
+    }
+
+    public CpfBusinessException(
+            CpfDynamicErrorCode errorCode,
+            String externalMessage,
+            String internalMessage,
+            String detail,
+            Map<String, Object> messageArguments) {
+        super(
+                errorCode,
+                externalMessage,
+                internalMessage,
+                detail,
+                messageArguments);
+    }
 }

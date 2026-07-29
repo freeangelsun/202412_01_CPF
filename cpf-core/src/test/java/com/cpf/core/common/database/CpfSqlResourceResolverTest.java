@@ -78,7 +78,7 @@ class CpfSqlResourceResolverTest {
 
     @Test
     void rejectsPackForDifferentVendor() throws IOException {
-        Path packRoot = centralPackRoot("mysql");
+        Path packRoot = centralPackRoot("oracle");
         Files.createDirectories(packRoot.resolve("runtime/cpf/mybatis"));
 
         assertThatThrownBy(() -> CpfSqlResourceResolver.mapperPattern(

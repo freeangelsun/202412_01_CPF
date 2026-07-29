@@ -342,7 +342,7 @@ $result = [ordered]@{
     failures = @($failures)
     limitations = @(
         "PREPARE는 문법, Table/Column 해석과 Runtime 계정 접근만 검증하며 DML을 실행하지 않습니다.",
-        "MySQL/PostgreSQL/Oracle/SQL Server 실제 DB Runtime은 별도 환경 검증이 필요합니다.",
+        "PostgreSQL/Oracle 실제 DB Runtime은 별도 환경 검증이 필요합니다.",
         "BZA STAGED Query 9개는 Pack에 존재하지만 Java Consumer 전환 전입니다."
     )
     startedAt = $startedAt.ToString("o")

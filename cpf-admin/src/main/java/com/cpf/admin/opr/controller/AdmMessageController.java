@@ -3,8 +3,8 @@ package com.cpf.admin.opr.controller;
 import com.cpf.admin.opr.service.AdmAuditLogService;
 import com.cpf.common.msg.dto.CommonMessageRequest;
 import com.cpf.common.msg.service.MessageCacheService;
-import com.cpf.core.common.execution.CpfOnlineTransaction;
-import com.cpf.core.common.logging.TransactionContext;
+import com.cpf.core.api.execution.CpfOnlineTransaction;
+import com.cpf.core.api.logging.CpfTransactionContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -58,7 +58,7 @@ public class AdmMessageController extends com.cpf.admin.common.base.AdmBaseContr
         String reason = auditLogService.requireReason(request.getReason());
         Map<String, Object> created = messageCacheService.createMessage(request);
         auditLogService.record(
-                TransactionContext.getOrCreateTransactionId(),
+                CpfTransactionContext.transactionId(),
                 requestUser(servletRequest, request.getRequestUser()),
                 "MESSAGE_CREATE",
                 "cpf_message",
@@ -82,7 +82,7 @@ public class AdmMessageController extends com.cpf.admin.common.base.AdmBaseContr
         Map<String, Object> before = messageCacheService.getMessageById(messageId);
         Map<String, Object> updated = messageCacheService.updateMessage(messageId, request);
         auditLogService.record(
-                TransactionContext.getOrCreateTransactionId(),
+                CpfTransactionContext.transactionId(),
                 requestUser(servletRequest, request.getRequestUser()),
                 "MESSAGE_UPDATE",
                 "cpf_message",
@@ -107,7 +107,7 @@ public class AdmMessageController extends com.cpf.admin.common.base.AdmBaseContr
         Map<String, Object> before = messageCacheService.getMessageById(messageId);
         List<Map<String, Object>> latest = messageCacheService.deleteMessage(messageId);
         auditLogService.record(
-                TransactionContext.getOrCreateTransactionId(),
+                CpfTransactionContext.transactionId(),
                 requestUser(servletRequest, requestUser),
                 "MESSAGE_DISABLE",
                 "cpf_message",

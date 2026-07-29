@@ -5,14 +5,17 @@ import com.cpf.common.calendar.CmnCalendarService;
 import com.cpf.core.api.runtimecontrol.CpfRuntimeApplyResult;
 import com.cpf.core.api.runtimecontrol.CpfRuntimeChangeApplier;
 import com.cpf.core.api.runtimecontrol.CpfRuntimeDelivery;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
 
 /** 공유 Calendar DB 정본을 Runtime이 실제 조회 가능한지 버전/영업일 상태로 검증합니다. */
 public final class CmnBusinessCalendarRuntimeApplier implements CpfRuntimeChangeApplier {
     public static final String CHANGE_TYPE = "BUSINESS_CALENDAR";
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private final CmnCalendarService calendarService;
 
     public CmnBusinessCalendarRuntimeApplier(CmnCalendarService calendarService) {
@@ -25,7 +28,7 @@ public final class CmnBusinessCalendarRuntimeApplier implements CpfRuntimeChange
 
     @Override
     public CpfRuntimeApplyResult apply(CpfRuntimeDelivery delivery) {
-        Map<String, Object> payload = delivery.payload();
+        JsonNode payload = readPayload(delivery);
         String calendarId = requiredText(payload, "calendarId");
         LocalDate businessDate = LocalDate.parse(requiredText(payload, "businessDate"));
         long expectedVersion = requiredLong(payload, "expectedVersion");
@@ -45,27 +48,35 @@ public final class CmnBusinessCalendarRuntimeApplier implements CpfRuntimeChange
         return CpfRuntimeApplyResult.success(delivery.payloadHash());
     }
 
-    private String requiredText(Map<String, Object> payload, String name) {
-        Object value = payload.get(name);
-        if (!(value instanceof String text) || text.isBlank()) {
+    private JsonNode readPayload(CpfRuntimeDelivery delivery) {
+        try {
+            return OBJECT_MAPPER.readTree(delivery.payload().canonicalJson());
+        } catch (JsonProcessingException exception) {
+            throw new IllegalStateException("검증된 Runtime payload를 읽을 수 없습니다.", exception);
+        }
+    }
+
+    private String requiredText(JsonNode payload, String name) {
+        JsonNode value = payload.get(name);
+        if (value == null || !value.isTextual() || value.textValue().isBlank()) {
             throw new IllegalArgumentException(name + "는 필수 문자열입니다.");
         }
-        return text.trim();
+        return value.textValue().trim();
     }
 
-    private long requiredLong(Map<String, Object> payload, String name) {
-        Object value = payload.get(name);
-        if (!(value instanceof Number number)) {
+    private long requiredLong(JsonNode payload, String name) {
+        JsonNode value = payload.get(name);
+        if (value == null || !value.isIntegralNumber()) {
             throw new IllegalArgumentException(name + "는 필수 숫자입니다.");
         }
-        return number.longValue();
+        return value.longValue();
     }
 
-    private boolean requiredBoolean(Map<String, Object> payload, String name) {
-        Object value = payload.get(name);
-        if (!(value instanceof Boolean bool)) {
+    private boolean requiredBoolean(JsonNode payload, String name) {
+        JsonNode value = payload.get(name);
+        if (value == null || !value.isBoolean()) {
             throw new IllegalArgumentException(name + "는 필수 boolean입니다.");
         }
-        return bool;
+        return value.booleanValue();
     }
 }

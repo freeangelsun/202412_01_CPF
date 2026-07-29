@@ -1,6 +1,6 @@
 package com.cpf.reference.query.application;
 
-import com.cpf.core.common.exception.CpfNotFoundException;
+import com.cpf.core.api.error.CpfNotFoundException;
 import com.cpf.reference.query.dto.ReferenceQueryEducationItem;
 import com.cpf.reference.query.dto.ReferenceQueryKeysetResponse;
 import com.cpf.reference.query.dto.ReferenceQueryPageResponse;

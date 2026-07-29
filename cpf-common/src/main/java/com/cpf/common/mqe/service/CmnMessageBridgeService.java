@@ -7,10 +7,10 @@ import com.cpf.common.mqe.core.CmnMessageHandler;
 import com.cpf.common.mqe.core.CmnMessagePublishResult;
 import com.cpf.common.mqe.core.CmnMessagePublisher;
 import com.cpf.core.api.util.CpfStrings;
-import com.cpf.core.common.broker.CpfBrokerBridgeMessage;
-import com.cpf.core.common.broker.CpfBrokerBridgePort;
-import com.cpf.core.common.broker.CpfBrokerBridgeResult;
-import com.cpf.core.common.logging.TransactionContext;
+import com.cpf.core.api.broker.CpfBrokerBridgeMessage;
+import com.cpf.core.api.broker.CpfBrokerBridgePort;
+import com.cpf.core.api.broker.CpfBrokerBridgeResult;
+import com.cpf.core.api.logging.CpfTransactionContext;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -47,7 +47,7 @@ public class CmnMessageBridgeService extends com.cpf.common.common.base.CmnBaseS
             Object payload,
             Map<String, String> headers) {
         String resolvedDestination = CpfStrings.defaultIfBlank(destination, properties.getDefaultDestination());
-        String resolvedKey = CpfStrings.defaultIfBlank(key, TransactionContext.getOrCreateTransactionId());
+        String resolvedKey = CpfStrings.defaultIfBlank(key, CpfTransactionContext.transactionId());
         CpfBrokerBridgeResult result = brokerBridgePort.publish(
                 resolvedDestination,
                 resolvedKey,

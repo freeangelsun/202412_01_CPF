@@ -1,5 +1,7 @@
 package com.cpf.core.common.logging;
 
+import com.cpf.core.api.logging.DynamicLogLevelRule;
+
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;

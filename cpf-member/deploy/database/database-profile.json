@@ -1,0 +1,41 @@
+{
+  "profileVersion": 1,
+  "profileName": "member-local-dev",
+  "environment": "development",
+  "domainName": "member",
+  "systemCode": "MBR",
+  "database": {
+    "vendor": "mariadb",
+    "host": "127.0.0.1",
+    "port": 3306,
+    "databaseName": "mbrDB",
+    "schemaName": "mbrDB",
+    "clientPath": "",
+    "admin": {
+      "username": "root",
+      "password": {
+        "env": "MBR_DB_ADMIN_PASSWORD",
+        "fallbackEnv": "CPF_DB_ROOT_PASSWORD"
+      }
+    },
+    "migration": {
+      "username": "cpf_member_migration",
+      "password": {
+        "env": "MBR_DB_MIGRATION_PASSWORD",
+        "fallbackEnv": "CPF_DB_MIGRATION_PASSWORD"
+      }
+    },
+    "runtime": {
+      "username": "cpf_member_app",
+      "password": {
+        "env": "MBR_DB_RUNTIME_PASSWORD",
+        "fallbackEnv": "CPF_DB_APP_PASSWORD"
+      }
+    }
+  },
+  "seed": {
+    "product": true,
+    "optionalSample": false,
+    "test": false
+  }
+}

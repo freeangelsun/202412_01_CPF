@@ -209,6 +209,23 @@ foreach ($currentVendor in $vendors) {
     }
 
     $actualCentralFiles = Get-RelativeFileMap $centralRuntimeRoot @(".sql", ".xml")
+    $actualRuntimeModules = @(
+        $actualCentralFiles.Keys |
+            ForEach-Object { ($_ -split "/")[0] } |
+            Sort-Object -CaseSensitive -Unique
+    )
+    $declaredRuntimeModules = @(
+        $pack.runtimeModules.PSObject.Properties.Name |
+            Sort-Object -CaseSensitive -Unique
+    )
+    $runtimeModuleDrift = @(Compare-Object $actualRuntimeModules $declaredRuntimeModules)
+    if ($runtimeModuleDrift.Count -gt 0) {
+        $failures.Add(
+            "pack.json Runtime module 선언과 실제 중앙 Resource directory가 다릅니다: " +
+            "vendor=$currentVendor actual=$($actualRuntimeModules -join ',') " +
+            "declared=$($declaredRuntimeModules -join ',')"
+        )
+    }
     if ($legacyResourceFiles.Count -gt 0) {
         $failures.Add("R4 이후 금지된 module-local Vendor Runtime resource가 남았습니다: vendor=$currentVendor count=$($legacyResourceFiles.Count)")
     }

@@ -22,8 +22,11 @@
 ## 4. 거래/로그 조회
 거래 식별자, 실행 Module, 서버 인스턴스, 시작/종료 시각, 상태, 소요시간, 실패구간을 조합해 조회한다. 원문 로그/JSON/Clipboard 반출은 서버 권한·사유·감사 없이 Browser-only 기능으로 우회하지 않는다.
 
-## 5. Member 운영
-회원 조회는 ADM DB가 아니라 MBR Owner operation port를 경유한다. 목록은 `/adm/api/members/page`의 DB-backed paging을 사용한다. 회원정보/Role/로그인이 부분 장애일 때 Owner 계약 오류를 정상 0건으로 위장하지 않는다.
+## 5. Generated Domain 운영
+ADM은 MBR/ACC/EXS 같은 Generated Domain 업무 API나 DB에 종속되지 않는다. 운영 대상은
+Generator Manifest와 Runtime Registry에 등록된 임의 Domain으로 발견하며, Domain별 업무 운영은
+해당 Owner API가 제공한다. Owner가 삭제·재생성되거나 부분 장애인 경우에도 ADM은 고정 경로를
+호출하거나 오류를 정상 0건으로 위장하지 않는다.
 
 ## 6. Operator 운영
 운영자 관리에서 지원해야 할 핵심 조치:
@@ -51,7 +54,8 @@ Drain/Disable/Resume, Batch Run/Retry/Stop, Lock release, Ghost recovery, Replay
 - 실행 Audit
 - 결과/reconcile 상태
 
-이번 R14에서 모든 위험 Command가 하나의 통합 Framework로 완결된 것은 아니므로 Codex 검증에서 잔존 경로를 찾아 보강한다.
+위험 Command는 Runtime Control의 preview/approval/apply/reconcile 및 불변 감사 계약을 사용하며,
+각 기능은 이 공통 계약을 우회하는 별도 실행 경로를 제공하지 않는다.
 
 ## 10. Retention
 `cpf.retention.execute-enabled=false`가 기본이다. Dry-run/Legal Hold는 실제 삭제를 하지 않는다. 실제 ARCHIVE/PURGE는 cutoff가 필요하고 kill-switch가 ON이어야 한다. Archive 후 삭제 순서와 실패 시 transaction을 확인한다.

@@ -21,6 +21,11 @@
       "repository": "완료",
       "mybatis": "해당 없음 (Repository SQL contract)"
     },
+    "cmn": {
+      "ownerArtifact": "cpf-common",
+      "repository": "미구현",
+      "mybatis": "부분 구현"
+    },
     "bza": {
       "ownerArtifact": "cpf-biz-admin",
       "repository": "완료",
@@ -30,6 +35,11 @@
       "ownerArtifact": "cpf-batch",
       "repository": "완료",
       "mybatis": "해당 없음 (Repository SQL contract)"
+    },
+    "ref": {
+      "ownerArtifact": "cpf-reference",
+      "repository": "미구현",
+      "mybatis": "부분 구현"
     }
   },
   "generatedDomainContract": {
@@ -54,7 +64,9 @@
       "CPF_MODULE_NAME",
       "CPF_PACKAGE_NAME",
       "CPF_MAPPER_NAMESPACE",
-      "CPF_MAPPER_NAME"
+      "CPF_MAPPER_NAME",
+      "CPF_RESULT_TYPE",
+      "CPF_IDEMPOTENCY_RESULT_TYPE"
     ],
     "officialVendor": true
   },

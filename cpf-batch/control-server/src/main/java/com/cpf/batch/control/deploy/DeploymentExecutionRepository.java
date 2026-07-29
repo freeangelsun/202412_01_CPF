@@ -2,8 +2,8 @@ package com.cpf.batch.control.deploy;
 
 import com.cpf.batch.api.*;
 import com.cpf.batch.runtime.SensitiveTextSanitizer;
-import com.cpf.core.common.database.CpfVendorSqlCatalog;
-import org.springframework.core.env.Environment;
+import com.cpf.core.api.database.CpfVendorSqlCatalog;
+import com.cpf.core.api.database.CpfVendorSqlCatalogProvider;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -18,9 +18,9 @@ public class DeploymentExecutionRepository {
     private final JdbcTemplate jdbc;
     private final CpfVendorSqlCatalog sql;
 
-    public DeploymentExecutionRepository(JdbcTemplate jdbc, Environment environment) {
+    public DeploymentExecutionRepository(JdbcTemplate jdbc, CpfVendorSqlCatalogProvider sqlCatalogProvider) {
         this.jdbc = jdbc;
-        this.sql = CpfVendorSqlCatalog.create(environment, "bat");
+        this.sql = sqlCatalogProvider.forModule("bat");
     }
 
     @Transactional

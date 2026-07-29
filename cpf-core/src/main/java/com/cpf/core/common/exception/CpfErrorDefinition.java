@@ -3,7 +3,7 @@ package com.cpf.core.common.exception;
 import org.springframework.http.HttpStatus;
 
 /** CPF 공통 오류가 외부 응답과 내부 운영 로그에 제공해야 하는 표준 계약입니다. */
-public interface CpfErrorDefinition {
+public interface CpfErrorDefinition extends com.cpf.core.api.error.CpfErrorDefinition {
 
     /** CPF 표준 상태 코드를 반환합니다. */
     String getStatusCode();
@@ -30,4 +30,3 @@ public interface CpfErrorDefinition {
         return getMessageCode();
     }
 }
-

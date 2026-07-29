@@ -2,8 +2,8 @@ package com.cpf.batch.control.deploy;
 
 import com.cpf.batch.api.AgentCommandResult;
 import com.cpf.batch.api.CommandState;
-import com.cpf.core.common.database.CpfVendorSqlCatalog;
-import org.springframework.core.env.Environment;
+import com.cpf.core.api.database.CpfVendorSqlCatalog;
+import com.cpf.core.api.database.CpfVendorSqlCatalogProvider;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
@@ -24,10 +24,10 @@ public class RuntimeLifecycleService {
     public RuntimeLifecycleService(
             JdbcTemplate jdbc,
             RestClient.Builder builder,
-            Environment environment) {
+            CpfVendorSqlCatalogProvider sqlCatalogProvider) {
         this.jdbc = jdbc;
         this.builder = builder;
-        this.sql = CpfVendorSqlCatalog.create(environment, "bat");
+        this.sql = sqlCatalogProvider.forModule("bat");
     }
 
     public AgentCommandResult operate(

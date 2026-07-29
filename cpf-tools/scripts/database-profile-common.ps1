@@ -1,10 +1,45 @@
 Set-StrictMode -Version Latest
 
+$script:CpfDatabaseVendorManifestPath = [IO.Path]::GetFullPath(
+    (Join-Path $PSScriptRoot "../db/vendor-pack-manifest.json"))
 $script:CpfSupportedDatabaseVendors = @("mariadb", "postgresql", "oracle")
+if (Test-Path -LiteralPath $script:CpfDatabaseVendorManifestPath -PathType Leaf) {
+    $cpfVendorManifest = Get-Content `
+        -LiteralPath $script:CpfDatabaseVendorManifestPath `
+        -Raw `
+        -Encoding UTF8 | ConvertFrom-Json -Depth 30
+    $manifestVendors = @(
+        $cpfVendorManifest.supportedVendors |
+            ForEach-Object { ([string]$_).Trim().ToLowerInvariant() } |
+            Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
+            Select-Object -Unique
+    )
+    if ($manifestVendors.Count -eq 0) {
+        throw "CPF DB Vendor manifest의 supportedVendors가 비어 있습니다: $script:CpfDatabaseVendorManifestPath"
+    }
+    $script:CpfSupportedDatabaseVendors = $manifestVendors
+}
 $script:CpfDefaultDatabasePorts = @{
     mariadb = 3306
     postgresql = 5432
     oracle = 1521
+}
+
+function Get-CpfSupportedDatabaseVendors {
+    return @($script:CpfSupportedDatabaseVendors)
+}
+
+function Assert-CpfSupportedDatabaseVendor {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string] $Vendor
+    )
+
+    $normalized = $Vendor.Trim().ToLowerInvariant()
+    if ($normalized -notin $script:CpfSupportedDatabaseVendors) {
+        throw "지원하지 않는 DB Vendor입니다: $Vendor (supported=$($script:CpfSupportedDatabaseVendors -join ','))"
+    }
+    return $normalized
 }
 
 function Get-CpfDatabaseProfile {

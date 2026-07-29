@@ -11,17 +11,17 @@ $OutputEncoding = $CpfUtf8ConsoleEncoding
 
 $ErrorActionPreference = "Stop"
 
-$modules = @(
-    "cpf-core", "cpf-common", "cpf-member", "cpf-reference", "cpf-biz-admin",
-    "cpf-batch", "cpf-admin", "cpf-account", "cpf-gateway",
+$fixedModules = @(
+    "cpf-core", "cpf-common", "cpf-reference", "cpf-biz-admin",
+    "cpf-batch", "cpf-admin", "cpf-gateway",
     "cpf-local-runtime", "cpf-local-batch-runtime"
 )
-$businessModules = @("cpf-member", "cpf-reference", "cpf-biz-admin", "cpf-account")
-$businessInternalTargets = @($businessModules + "cpf-batch")
-$implementationPackages = @("member", "reference", "bizadmin", "batch", "admin", "account")
-$modulePackages = @{
-    "cpf-member" = "member"; "cpf-reference" = "reference"; "cpf-biz-admin" = "bizadmin";
-    "cpf-batch" = "batch"; "cpf-admin" = "admin"; "cpf-account" = "account"
+$fixedBusinessModules = @("cpf-reference", "cpf-biz-admin")
+$fixedModulePackages = [ordered]@{
+    "cpf-reference" = "com.cpf.reference"
+    "cpf-biz-admin" = "com.cpf.bizadmin"
+    "cpf-batch" = "com.cpf.batch"
+    "cpf-admin" = "com.cpf.admin"
 }
 
 $failures = New-Object System.Collections.Generic.List[object]
@@ -50,12 +50,96 @@ function Add-Finding {
     })
 }
 
-# EXS는 상시 공식 Module이 아니라 Generator로 생성·검증하는 업무 Domain입니다.
-if (Test-Path -LiteralPath (Join-Path $Root "cpf-external")) {
-    Add-Finding $failures "EXS_MUST_BE_GENERATED_DOMAIN" "cpf-external" `
-            "삭제된 EXS 상시 Module이 다시 추가됐습니다." `
-            "cpf-tools/generator/create-domain.ps1로 임시 생성·검증하고 Repository에는 상시 보존하지 마세요."
+function Get-GeneratedRootProjects {
+    $result = [System.Collections.Generic.List[object]]::new()
+    $candidateDirectories = @(Get-ChildItem -LiteralPath $Root -Directory | Where-Object {
+        (Test-Path -LiteralPath (Join-Path $_.FullName "manifest/domain-manifest.json") -PathType Leaf) -or
+        (Test-Path -LiteralPath (Join-Path $_.FullName "manifest/generator-ownership.json") -PathType Leaf)
+    })
+
+    foreach ($directory in $candidateDirectories) {
+        $domainManifestPath = Join-Path $directory.FullName "manifest/domain-manifest.json"
+        $ownershipManifestPath = Join-Path $directory.FullName "manifest/generator-ownership.json"
+        if (-not (Test-Path -LiteralPath $domainManifestPath -PathType Leaf) -or
+                -not (Test-Path -LiteralPath $ownershipManifestPath -PathType Leaf)) {
+            Add-Finding $failures "GENERATED_DOMAIN_MANIFEST_PAIR" "$($directory.Name)/manifest" `
+                    "Generated Domain manifest pair가 완전하지 않습니다." `
+                    "domain-manifest.json과 generator-ownership.json을 함께 생성하세요."
+            continue
+        }
+
+        try {
+            $domain = [System.IO.File]::ReadAllText($domainManifestPath, [System.Text.Encoding]::UTF8) |
+                ConvertFrom-Json -ErrorAction Stop
+            $ownership = [System.IO.File]::ReadAllText($ownershipManifestPath, [System.Text.Encoding]::UTF8) |
+                ConvertFrom-Json -ErrorAction Stop
+        } catch {
+            Add-Finding $failures "GENERATED_DOMAIN_MANIFEST_JSON" "$($directory.Name)/manifest" `
+                    "Generated Domain manifest JSON을 읽을 수 없습니다: $($_.Exception.Message)" `
+                    "Generator 정본에서 두 manifest를 다시 생성하세요."
+            continue
+        }
+
+        $identityValid =
+            [string]$domain.domainType -ceq "GENERATED_DOMAIN" -and
+            [string]$domain.dependencyModel -ceq "root-project" -and
+            [string]$ownership.dependencyModel -ceq "root-project" -and
+            [string]$domain.projectName -ceq $directory.Name -and
+            [string]$ownership.projectName -ceq $directory.Name -and
+            -not [string]::IsNullOrWhiteSpace([string]$domain.moduleName) -and
+            [string]$domain.moduleName -ceq [string]$ownership.moduleName -and
+            -not [string]::IsNullOrWhiteSpace([string]$domain.domainName) -and
+            [string]$domain.domainName -ceq [string]$ownership.domainName -and
+            -not [string]::IsNullOrWhiteSpace([string]$domain.systemCode) -and
+            [string]$domain.systemCode -ceq [string]$ownership.systemCode -and
+            [string]$domain.packageName -ceq [string]$ownership.packageName -and
+            [string]$domain.packageName -match '^com\.cpf\.[a-z][a-z0-9]*(?:\.[a-z][a-z0-9]*)*$'
+        if (-not $identityValid) {
+            Add-Finding $failures "GENERATED_DOMAIN_IDENTITY" "$($directory.Name)/manifest" `
+                    "Generated Domain root-project identity가 두 manifest에서 일치하지 않습니다." `
+                    "Generator canonical metadata에서 project/module/domain/SystemCode/package identity를 다시 생성하세요."
+            continue
+        }
+
+        $result.Add([pscustomobject]@{
+            projectName = $directory.Name
+            moduleName = [string]$domain.moduleName
+            domainName = [string]$domain.domainName
+            systemCode = [string]$domain.systemCode
+            packageName = [string]$domain.packageName
+            packagePath = ([string]$domain.packageName).Replace('.', '/')
+        }) | Out-Null
+    }
+
+    $duplicatePackages = @($result.ToArray() | Group-Object packageName | Where-Object { $_.Count -gt 1 })
+    foreach ($duplicate in $duplicatePackages) {
+        Add-Finding $failures "GENERATED_DOMAIN_PACKAGE_DUPLICATE" "manifest/generator-ownership.json" `
+                "복수 Generated Domain이 packageName=$($duplicate.Name)을 공유합니다." `
+                "신규 Domain마다 고유 PackageName을 사용하세요."
+    }
+    return @($result.ToArray() | Sort-Object projectName)
 }
+
+$generatedDomains = @(Get-GeneratedRootProjects)
+$modules = @($fixedModules + @($generatedDomains | ForEach-Object { $_.projectName }) | Sort-Object -Unique)
+$businessModules = @($fixedBusinessModules + @($generatedDomains | ForEach-Object { $_.projectName }) | Sort-Object -Unique)
+$businessInternalTargets = @($businessModules + "cpf-batch" | Sort-Object -Unique)
+$modulePackages = @{}
+foreach ($entry in $fixedModulePackages.GetEnumerator()) {
+    $modulePackages[$entry.Key] = $entry.Value
+}
+foreach ($domain in $generatedDomains) {
+    $modulePackages[$domain.projectName] = $domain.packageName
+}
+$implementationPackages = @($modulePackages.Values | Sort-Object -Unique)
+$generatedDomainPathRules = @($generatedDomains | ForEach-Object {
+    [pscustomobject]@{
+        projectName = $_.projectName
+        projectPattern = [regex]::Escape($_.projectName)
+        packagePath = $_.packagePath
+        packagePathPattern = [regex]::Escape($_.packagePath)
+    }
+})
 
 function Test-Text {
     param(
@@ -94,8 +178,12 @@ function Get-JavaFiles {
 function Get-StructuralPathRule {
     param([string] $RelativePath)
     $path = $RelativePath.Replace('\', '/')
-    if ($path -match '^cpf-account/src/(main|test)/java/com/cpf/account/(controller|service|repository|dto|facade|port|adapter|validation)/') {
-        return 'ACC_FEATURE_SLICE_REQUIRED'
+    foreach ($domainRule in $generatedDomainPathRules) {
+        $generatedRootLayerPattern =
+            "^$($domainRule.projectPattern)/src/(main|test)/java/$($domainRule.packagePathPattern)/(controller|service|repository|dto|facade|port|adapter|validation)/"
+        if ($path -match $generatedRootLayerPattern) {
+            return 'GENERATED_DOMAIN_FEATURE_SLICE_REQUIRED'
+        }
     }
     if ($path -match '^cpf-reference/src/(main|test)/java/com/cpf/reference/(controller|dto|service|repository|mapper|facade|operation)/') {
         return 'REF_EDU_CAPABILITY_SLICE_REQUIRED'
@@ -140,16 +228,18 @@ foreach ($module in $modules) {
 
         if ($module -eq "cpf-core") {
             foreach ($targetPackage in $implementationPackages) {
-                if (Test-Text $text "import\s+com\.cpf\.$targetPackage\.") {
-                    Add-Finding $failures "CPF_NO_BUSINESS_DEPENDENCY" $relativePath "cpf-core가 com.cpf.$targetPackage 구현을 참조합니다." "CPF에는 port와 계약만 두고 업무 구현 의존성은 adapter로 이동하세요."
+                $targetPackagePattern = [regex]::Escape($targetPackage)
+                if (Test-Text $text "import\s+$targetPackagePattern\.") {
+                    Add-Finding $failures "CPF_NO_BUSINESS_DEPENDENCY" $relativePath "cpf-core가 $targetPackage 구현을 참조합니다." "CPF에는 port와 계약만 두고 업무 구현 의존성은 adapter로 이동하세요."
                 }
             }
         }
 
         if ($module -eq "cpf-common") {
             foreach ($targetPackage in $implementationPackages) {
-                if (Test-Text $text "import\s+com\.cpf\.$targetPackage\.") {
-                    Add-Finding $failures "CMN_NO_BUSINESS_DEPENDENCY" $relativePath "cpf-common이 com.cpf.$targetPackage 구현을 참조합니다." "CMN에는 프로젝트 공통 helper와 규칙만 두고 업무 구현 의존성을 제거하세요."
+                $targetPackagePattern = [regex]::Escape($targetPackage)
+                if (Test-Text $text "import\s+$targetPackagePattern\.") {
+                    Add-Finding $failures "CMN_NO_BUSINESS_DEPENDENCY" $relativePath "cpf-common이 $targetPackage 구현을 참조합니다." "CMN에는 프로젝트 공통 helper와 규칙만 두고 업무 구현 의존성을 제거하세요."
                 }
             }
             if (Test-Text $text "KafkaTemplate|JmsTemplate|RabbitTemplate|Sftp|SFTP|FTP|FTPS|SSH") {
@@ -166,8 +256,9 @@ foreach ($module in $modules) {
 
         if ($module -eq "cpf-gateway") {
             foreach ($targetPackage in $implementationPackages) {
-                if (Test-Text $text "import\s+com\.cpf\.$targetPackage\.") {
-                    Add-Finding $failures "GATEWAY_NO_BUSINESS_DEPENDENCY" $relativePath "Gateway가 com.cpf.$targetPackage 구현을 참조합니다." "Gateway는 CPF route·policy port만 사용하고 업무 구현을 직접 참조하지 마세요."
+                $targetPackagePattern = [regex]::Escape($targetPackage)
+                if (Test-Text $text "import\s+$targetPackagePattern\.") {
+                    Add-Finding $failures "GATEWAY_NO_BUSINESS_DEPENDENCY" $relativePath "Gateway가 $targetPackage 구현을 참조합니다." "Gateway는 CPF route·policy port만 사용하고 업무 구현을 직접 참조하지 마세요."
                 }
             }
         }
@@ -181,8 +272,9 @@ foreach ($module in $modules) {
                     continue
                 }
                 $targetPackage = $modulePackages[$targetModule]
-                if (Test-Text $text "import\s+com\.cpf\.$targetPackage\..*(controller|repository|mapper).*;") {
-                    Add-Finding $failures "BUSINESS_NO_CROSS_DOMAIN_INTERNAL_IMPORT" $relativePath "업무 모듈이 com.cpf.$targetPackage Controller/Repository/Mapper를 직접 참조합니다." "CPF Service Call Engine, public facade 또는 분리된 DB 경계를 사용하세요."
+                $targetPackagePattern = [regex]::Escape($targetPackage)
+                if (Test-Text $text "import\s+$targetPackagePattern\..*(controller|repository|mapper).*;") {
+                    Add-Finding $failures "BUSINESS_NO_CROSS_DOMAIN_INTERNAL_IMPORT" $relativePath "업무 모듈이 $targetPackage Controller/Repository/Mapper를 직접 참조합니다." "CPF Service Call Engine, public facade 또는 분리된 DB 경계를 사용하세요."
                 }
             }
             if (Test-Text $text "WebClient\s*\.\s*builder\s*\(|new\s+RestTemplate\s*\(|RestClient\s*\.\s*create\s*\(") {
@@ -203,11 +295,17 @@ foreach ($module in $modules) {
 
 # 과거 잘못된 구조를 fixture로 고정해 gate 규칙이 약화되는 회귀를 막습니다.
 $regressionFixtures = @(
-    @{ path = 'cpf-account/src/main/java/com/cpf/account/controller/AccountController.java'; rule = 'ACC_FEATURE_SLICE_REQUIRED' },
     @{ path = 'cpf-reference/src/main/java/com/cpf/reference/controller/ReferenceCrudEducationController.java'; rule = 'REF_EDU_CAPABILITY_SLICE_REQUIRED' },
     @{ path = 'cpf-batch/worker/src/main/java/com/cpf/batch/worker/edu/BadWorkerEducationSample.java'; rule = 'BAT_RUNTIME_NO_EDU_SOURCE' },
     @{ path = 'cpf-batch/control-server/src/test/java/com/cpf/batch/control/edu/BadControlEducationSample.java'; rule = 'BAT_RUNTIME_NO_EDU_SOURCE' }
 )
+if ($generatedDomainPathRules.Count -gt 0) {
+    $generatedFixture = $generatedDomainPathRules[0]
+    $regressionFixtures += @{
+        path = "$($generatedFixture.projectName)/src/main/java/$($generatedFixture.packagePath)/controller/GeneratedController.java"
+        rule = 'GENERATED_DOMAIN_FEATURE_SLICE_REQUIRED'
+    }
+}
 $fixtureResults = @()
 foreach ($fixture in $regressionFixtures) {
     $detected = Get-StructuralPathRule $fixture.path
@@ -309,13 +407,28 @@ foreach ($relativePath in $requiredCapabilityFiles) {
     }
 }
 
-$fixedLengthFiles = @(Get-ChildItem -LiteralPath $Root -Recurse -File -Filter "*.java" |
+$requiredFixedLengthContracts = @(
+    "cpf-core/src/main/java/com/cpf/core/api/fixedlength/CpfFixedLengthLayout.java",
+    "cpf-core/src/main/java/com/cpf/core/api/fixedlength/CpfFixedLengthParser.java",
+    "cpf-core/src/main/java/com/cpf/core/api/fixedlength/CpfFixedLengthWriter.java"
+)
+foreach ($relativePath in $requiredFixedLengthContracts) {
+    if (-not (Test-Path -LiteralPath (Join-Path $Root $relativePath) -PathType Leaf)) {
+        Add-Finding $failures "CPF_FIXED_LENGTH_CONTRACT_MISSING" $relativePath `
+                "범용 고정길이 전문 Contract가 cpf-core 공개 API에 없습니다." `
+                "Layout/Parser/Writer Contract와 기술 Engine은 cpf-core가 소유해야 합니다."
+    }
+}
+
+$cmnFixedLengthEngines = @(Get-ChildItem -LiteralPath (Join-Path $Root "cpf-common/src/main/java") -Recurse -File -Filter "*.java" |
     Where-Object {
-        $_.FullName -notmatch "\\build\\" -and
-        ([System.IO.File]::ReadAllText($_.FullName, [System.Text.Encoding]::UTF8) -match "FixedLength|fixed-length|고정길이")
+        $text = [System.IO.File]::ReadAllText($_.FullName, [System.Text.Encoding]::UTF8)
+        $text -match "(?m)^package\s+[^;]*[.]fixedlength(?:[.;])|class\s+\w*FixedLength(Parser|Writer|Codec|Engine|Formatter)\b"
     })
-if ($fixedLengthFiles.Count -gt 0 -and -not ($fixedLengthFiles | Where-Object { (Get-RelativePath $_.FullName) -match "^cpf-common/" })) {
-    Add-Finding $warnings "FIXED_LENGTH_CMN_OWNERSHIP_REVIEW" "cpf-common/src/main/java" "고정길이 공통 helper가 CMN에 없습니다." "재사용 가능한 parser와 formatter는 CMN이 소유해야 합니다."
+foreach ($file in $cmnFixedLengthEngines) {
+    Add-Finding $failures "CMN_NO_FIXED_LENGTH_ENGINE" (Get-RelativePath $file.FullName) `
+            "cpf-common에 범용 고정길이 기술 Engine 후보가 있습니다." `
+            "고객 공통 규칙만 CMN에 두고 범용 Layout/Parser/Writer Engine은 cpf-core로 이동하세요."
 }
 
 New-Item -ItemType Directory -Force -Path $ResultDir | Out-Null
@@ -336,6 +449,8 @@ $result = [pscustomobject]@{
     checkedFiles = $checkedFiles
     failureCount = $failures.Count
     warningCount = $warnings.Count
+    checkedModules = $modules
+    generatedDomains = @($generatedDomains | ForEach-Object { $_.projectName })
     failures = @($failures.ToArray())
     reviewCandidates = @($warnings.ToArray())
     requiredCapabilities = $requiredCapabilityFiles

@@ -1,7 +1,9 @@
+import { getAdmAccessToken } from "../shared/cpfApi";
+
 export function createAdmState() {
       return {
         activeMenu: "dashboard",
-        token: sessionStorage.getItem("admAccessToken") || "",
+        token: getAdmAccessToken(),
         currentOperator: {} as Record<string, any>,
         authorizedMenus: [],
         authorizedButtons: [] as string[],
@@ -64,7 +66,7 @@ export function createAdmState() {
           { id: "password", menuId: "PASSWORD", label: "비밀번호" },
           { id: "security", menuId: "SECURITY", label: "보안" },
           { id: "operators", menuId: "OPERATOR", label: "운영자" },
-          { id: "secrets", menuId: "SECURITY", label: "Secret / Key" },
+          { id: "secrets", menuId: "SECRET", label: "Secret / Key" },
           { id: "approvals", menuId: "APPROVAL", label: "위험조치 승인" },
           { id: "breakGlass", menuId: "BREAK_GLASS", label: "Break-glass" }
         ],

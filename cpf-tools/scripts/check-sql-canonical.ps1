@@ -125,7 +125,29 @@ if ((Test-Path $generatedVerify) -and (Test-Path $centralVerify)) {
 
 # Vendor Pack은 중앙 위치에만 존재하고 pack.json의 상태를 명시해야 합니다.
 $vendorRoot = Join-Path $Root "cpf-tools/db/vendor"
-$requiredVendors = @("mariadb", "mysql", "postgresql", "oracle", "sqlserver")
+$vendorManifestPath = Join-Path $Root "cpf-tools/db/vendor-pack-manifest.json"
+$requiredVendors = @()
+if (-not (Test-Path -LiteralPath $vendorManifestPath -PathType Leaf)) {
+    Add-Failure "DB Vendor 정본 manifest가 없습니다: cpf-tools/db/vendor-pack-manifest.json"
+} else {
+    try {
+        $vendorManifest = Read-Utf8 $vendorManifestPath | ConvertFrom-Json
+        $requiredVendors = @($vendorManifest.supportedVendors | Sort-Object -Unique)
+        if ($requiredVendors.Count -eq 0) {
+            Add-Failure "DB Vendor 정본 manifest의 supportedVendors가 비어 있습니다."
+        }
+    } catch {
+        Add-Failure "DB Vendor 정본 manifest parse 실패: $vendorManifestPath"
+    }
+}
+$actualVendorDirectories = @(
+    Get-ChildItem -LiteralPath $vendorRoot -Directory -ErrorAction SilentlyContinue |
+        ForEach-Object { $_.Name } |
+        Sort-Object -Unique
+)
+if (@(Compare-Object $requiredVendors $actualVendorDirectories).Count -ne 0) {
+    Add-Failure "Vendor Pack directory가 정본 supportedVendors와 일치하지 않습니다."
+}
 $packStatuses = [System.Collections.Generic.List[object]]::new()
 foreach ($vendor in $requiredVendors) {
     $packRoot = Join-Path $vendorRoot $vendor
@@ -213,9 +235,20 @@ if (-not (Test-Path -LiteralPath $generatorPath -PathType Leaf)) {
     Add-Failure "Domain Generator가 없습니다."
 } else {
     $generatorText = Read-Utf8 $generatorPath
-    foreach ($vendor in $requiredVendors) {
-        if ($generatorText -notmatch [regex]::Escape($vendor)) {
-            Add-Failure "Domain Generator에서 Vendor 선택이 확인되지 않습니다: $vendor"
+    if (-not $generatorText.Contains("central-domain-template-contract.json") -or
+            -not $generatorText.Contains('$supportedDatabaseVendors')) {
+        Add-Failure "Domain Generator가 중앙 Vendor 계약을 선택 Source로 사용하지 않습니다."
+    }
+    $contractPath = Join-Path $Root "cpf-tools/generator/contracts/central-domain-template-contract.json"
+    if (-not (Test-Path -LiteralPath $contractPath -PathType Leaf)) {
+        Add-Failure "Generated Domain 중앙 계약이 없습니다."
+    } else {
+        $contractVendors = @(
+            (Read-Utf8 $contractPath | ConvertFrom-Json).supportedVendors |
+                Sort-Object -Unique
+        )
+        if (@(Compare-Object $requiredVendors $contractVendors).Count -ne 0) {
+            Add-Failure "Domain Generator 중앙 계약 Vendor 목록이 Vendor Pack manifest와 일치하지 않습니다."
         }
     }
 }

@@ -1,7 +1,9 @@
 package com.cpf.batch.scheduler;
 
 import com.cpf.batch.scheduler.internal.JdbcSchedulerLeaderRepository;
+import com.cpf.batch.api.ActualState;
 import org.junit.jupiter.api.Test;
+import org.springframework.dao.DataAccessResourceFailureException;
 
 import java.time.Instant;
 import java.util.Optional;
@@ -24,12 +26,37 @@ class SchedulerCoordinatorFencingTest {
         when(repository.isCurrent(SchedulerCoordinator.LEASE_KEY, lease)).thenReturn(false);
         SchedulerCoordinator coordinator = new SchedulerCoordinator(repository, "scheduler-a", 15);
 
+        assertThat(coordinator.ready()).isFalse();
+        assertThat(coordinator.dependencyHealth())
+                .containsEntry("schedulerLeaseStore", "UNKNOWN");
         coordinator.elect();
         assertThat(coordinator.fencingToken()).isEqualTo(11L);
+        assertThat(coordinator.ready()).isTrue();
 
         assertThatThrownBy(() -> coordinator.assertLeader(11L))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("fenced");
         assertThat(coordinator.fencingToken()).isZero();
+        assertThat(coordinator.ready()).isFalse();
+    }
+
+    @Test
+    void electionStoreFailureIsReportedAsDegradedAndRethrown() {
+        JdbcSchedulerLeaderRepository repository = mock(JdbcSchedulerLeaderRepository.class);
+        when(repository.acquire(
+                eq(SchedulerCoordinator.LEASE_KEY),
+                eq("scheduler-a"),
+                any()))
+                .thenThrow(new DataAccessResourceFailureException("database unavailable"));
+        SchedulerCoordinator coordinator = new SchedulerCoordinator(repository, "scheduler-a", 15);
+
+        assertThatThrownBy(coordinator::elect)
+                .isInstanceOf(DataAccessResourceFailureException.class);
+        assertThat(coordinator.actualState()).isEqualTo(ActualState.DEGRADED);
+        assertThat(coordinator.ready()).isFalse();
+        assertThat(coordinator.dependencyHealth())
+                .containsEntry("schedulerLeaseStore", "DOWN");
+        assertThat(coordinator.lastErrorCode())
+                .isEqualTo("BAT_SCHEDULER_ELECTION_FAILED");
     }
 }

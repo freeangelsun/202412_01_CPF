@@ -25,13 +25,18 @@ dependencies {
 
     // ADM REST API와 정적 관리 화면을 제공합니다.
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+    // AdmApiAuthFilter가 직접 사용하는 servlet filter API를 runtime에도 명시적으로 포함합니다.
+    implementation 'org.springframework:spring-web'
 
     // ADM 소유 DB와 CPF 플랫폼 read-model만 JdbcTemplate으로 조회합니다.
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
 
     // MariaDB 운영 DB에 연결합니다.
     runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
-    providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
+    providedRuntime('org.springframework.boot:spring-boot-starter-tomcat') {
+        // 외부 Tomcat만 provided 처리하고, 애플리케이션 소유 Spring Web은 WAR/runtime에서 제외하지 않습니다.
+        exclude group: 'org.springframework', module: 'spring-web'
+    }
 
     testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
 }

@@ -3,10 +3,10 @@ package com.cpf.batch.centercut.runner;
 import com.cpf.batch.runtime.CenterCutParameterProtector;
 import com.cpf.batch.runtime.SensitiveTextSanitizer;
 import com.cpf.batch.spi.CenterCutTargetProvider;
-import com.cpf.core.common.database.CpfVendorSqlCatalog;
+import com.cpf.core.api.database.CpfVendorSqlCatalog;
+import com.cpf.core.api.database.CpfVendorSqlCatalogProvider;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -30,12 +30,13 @@ public class CenterCutTargetGenerator {
 
     public CenterCutTargetGenerator(JdbcTemplate jdbc, List<CenterCutTargetProvider> providers,
                                     ObjectMapper mapper, CenterCutParameterProtector protector,
-                                    PlatformTransactionManager tm, Environment environment) {
+                                    PlatformTransactionManager tm,
+                                    CpfVendorSqlCatalogProvider sqlCatalogProvider) {
         this.jdbc = jdbc;
         this.mapper = mapper;
         this.protector = protector;
         this.tx = new TransactionTemplate(tm);
-        this.sql = CpfVendorSqlCatalog.create(environment, "bat");
+        this.sql = sqlCatalogProvider.forModule("bat");
         Map<String, CenterCutTargetProvider> map = new HashMap<>();
         for (CenterCutTargetProvider provider : providers) {
             if (map.put(provider.providerKey(), provider) != null) {

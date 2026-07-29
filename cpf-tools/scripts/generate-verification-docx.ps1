@@ -355,7 +355,7 @@ $managedGuideDefinitions = @(
             (New-WmlParagraph -Text "V31__bza_operation_support.sql은 bza_notification, bza_attachment, bza_saved_search, bza_download_audit를 추가한다."),
             (New-WmlParagraph -Text "신규 설치는 40_business_modules_schema.sql과 V1 baseline에 포함되고 기존 설치 업그레이드는 V31을 적용한다. 00_all_install.sql과 00_all_install_and_smoke.sql은 build-all-install-sql.ps1로 재생성한다."),
             (New-WmlParagraph -Text "모든 신규 테이블은 bza_ prefix, created_by, created_at, updated_by, updated_at과 한글 COMMENT를 가진다."),
-            (New-WmlParagraph -Text "실 MariaDB 검증은 접속 자격정보가 제공된 환경에서 smoke-mariadb-full-install.ps1 -RequireRun으로 별도 수행한다." -Style "Note")
+            (New-WmlParagraph -Text "실 MariaDB 검증은 profile 기반 initialize-cpf-database.ps1 -All -SeedMode product -RequireRun 정본 경로로 수행한다. smoke-mariadb-full-install.ps1은 기존 자동화 호환 wrapper이다." -Style "Note")
         )
     },
     [pscustomobject]@{

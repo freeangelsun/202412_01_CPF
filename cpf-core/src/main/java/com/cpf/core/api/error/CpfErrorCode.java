@@ -8,7 +8,7 @@ import org.springframework.http.HttpStatus;
  * <p>외부 Consumer는 {@code com.cpf.core.common.*} 내부 구현 대신 이 계약을 사용합니다.
  * HTTP 상태, 외부 메시지와 메시지 코드는 CPF 공통 예외 처리기에서 동일하게 해석됩니다.</p>
  */
-public enum CpfErrorCode {
+public enum CpfErrorCode implements CpfErrorDefinition {
     INVALID_PARAMETER(com.cpf.core.common.exception.CpfErrorCode.INVALID_PARAMETER),
     NOT_FOUND(com.cpf.core.common.exception.CpfErrorCode.NOT_FOUND),
     DUPLICATE(com.cpf.core.common.exception.CpfErrorCode.DUPLICATE),
@@ -37,4 +37,9 @@ public enum CpfErrorCode {
     public HttpStatus httpStatus() { return delegate.getHttpStatus(); }
     public String defaultExternalMessage() { return delegate.getDefaultExternalMessage(); }
     public String defaultInternalMessage() { return delegate.getDefaultInternalMessage(); }
+    @Override public String getStatusCode() { return statusCode(); }
+    @Override public String getMessageCode() { return messageCode(); }
+    @Override public HttpStatus getHttpStatus() { return httpStatus(); }
+    @Override public String getDefaultExternalMessage() { return defaultExternalMessage(); }
+    @Override public String getDefaultInternalMessage() { return defaultInternalMessage(); }
 }

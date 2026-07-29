@@ -1,6 +1,8 @@
 package com.cpf.batch.runtime;
 
 import com.cpf.core.api.runtimecontrol.CpfRuntimeDelivery;
+import com.cpf.core.api.runtimecontrol.CpfRuntimePayload;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
@@ -12,6 +14,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class BatchRuntimePolicyApplierTest {
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
     @Test
     void appliesAllSupportedPoliciesToSingleSharedPolicy() {
         BatchRuntimePolicy policy = new BatchRuntimePolicy();
@@ -82,6 +86,7 @@ class BatchRuntimePolicyApplierTest {
     private CpfRuntimeDelivery delivery(String type, long version, Map<String, Object> payload) {
         return new CpfRuntimeDelivery("D-" + version, "C-" + version, type, "BAT-01",
                 version, version, "request-" + version, "payload-" + version,
-                payload, 1, Instant.now().plusSeconds(60));
+                CpfRuntimePayload.parse(OBJECT_MAPPER.valueToTree(payload).toString()),
+                1, Instant.now().plusSeconds(60));
     }
 }

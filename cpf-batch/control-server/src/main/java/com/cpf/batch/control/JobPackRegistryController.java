@@ -2,9 +2,9 @@ package com.cpf.batch.control;
 
 import com.cpf.batch.api.JobPackManifest;
 import com.cpf.batch.runtime.SensitiveTextSanitizer;
-import com.cpf.core.common.database.CpfVendorSqlCatalog;
+import com.cpf.core.api.database.CpfVendorSqlCatalog;
+import com.cpf.core.api.database.CpfVendorSqlCatalogProvider;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.core.env.Environment;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,10 +26,10 @@ public class JobPackRegistryController {
     public JobPackRegistryController(
             JdbcTemplate jdbc,
             ObjectMapper mapper,
-            Environment environment) {
+            CpfVendorSqlCatalogProvider sqlCatalogProvider) {
         this.jdbc = jdbc;
         this.mapper = mapper;
-        this.sql = CpfVendorSqlCatalog.create(environment, "bat");
+        this.sql = sqlCatalogProvider.forModule("bat");
     }
 
     @PostMapping("/registrations")

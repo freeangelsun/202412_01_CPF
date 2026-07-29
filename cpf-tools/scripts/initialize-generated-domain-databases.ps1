@@ -12,6 +12,37 @@ param(
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 $Root = (Resolve-Path -LiteralPath $Root).Path
+$centralContractPath = Join-Path $Root "cpf-tools/generator/contracts/central-domain-template-contract.json"
+$metadataSchemaPath = Join-Path $Root "cpf-tools/generator/contracts/domain-metadata.schema.json"
+foreach ($contractPath in @($centralContractPath, $metadataSchemaPath)) {
+    if (-not (Test-Path -LiteralPath $contractPath -PathType Leaf)) {
+        throw "Generated Domain 중앙 계약 파일이 없습니다: $contractPath"
+    }
+}
+$centralContract = Get-Content -LiteralPath $centralContractPath -Raw -Encoding UTF8 |
+        ConvertFrom-Json -Depth 50
+$metadataSchema = Get-Content -LiteralPath $metadataSchemaPath -Raw -Encoding UTF8 |
+        ConvertFrom-Json -Depth 50
+$expectedMetadataVersion = [string]$metadataSchema.properties.metadataVersion.const
+$expectedDomainType = [string]$metadataSchema.properties.domainType.const
+$allowedTemplateContractVersions = @(
+    $metadataSchema.properties.templateContractVersion.enum |
+        ForEach-Object { [string]$_ } |
+        Sort-Object -Unique
+)
+$currentTemplateContractVersion = [string]$centralContract.contractVersion
+$supportedDatabaseVendors = @(
+    $centralContract.supportedVendors |
+        ForEach-Object { ([string]$_).Trim().ToLowerInvariant() } |
+        Sort-Object -Unique
+)
+if ([string]::IsNullOrWhiteSpace($expectedMetadataVersion) -or
+        [string]::IsNullOrWhiteSpace($expectedDomainType) -or
+        $allowedTemplateContractVersions.Count -eq 0 -or
+        $currentTemplateContractVersion -notin $allowedTemplateContractVersions -or
+        $supportedDatabaseVendors.Count -eq 0) {
+    throw "Generated Domain 중앙 계약/schema의 버전 또는 Vendor 계약이 유효하지 않습니다."
+}
 $initializer = Join-Path $Root "cpf-tools/scripts/initialize-domain-database.ps1"
 if (-not (Test-Path -LiteralPath $initializer -PathType Leaf)) {
     throw "Generated Domain DB initializer가 없습니다: $initializer"
@@ -25,12 +56,24 @@ Get-ChildItem -LiteralPath $Root -Directory -Filter "cpf-*" | ForEach-Object {
     if (-not (Test-Path -LiteralPath $manifestPath -PathType Leaf)) { return }
 
     $manifest = Get-Content -LiteralPath $manifestPath -Raw -Encoding UTF8 | ConvertFrom-Json
-    if ([string]$manifest.domainType -ne "GENERATED_DOMAIN") { return }
-    if (-not [bool]$manifest.databaseEnabled) { return }
-    if ([string]$manifest.metadataVersion -ne "1.0" -or
-            [string]$manifest.templateContractVersion -ne "1.0" -or
+    $domainTypeProperty = $manifest.PSObject.Properties["domainType"]
+    if ($null -eq $domainTypeProperty -or
+            [string]$domainTypeProperty.Value -ne $expectedDomainType) {
+        return
+    }
+    $databaseEnabledProperty = $manifest.PSObject.Properties["databaseEnabled"]
+    if ($null -eq $databaseEnabledProperty) {
+        throw "Generated Domain manifest에 databaseEnabled가 없습니다: $manifestPath"
+    }
+    if (-not [bool]$databaseEnabledProperty.Value) { return }
+    if ([string]$manifest.metadataVersion -ne $expectedMetadataVersion -or
+            [string]$manifest.templateContractVersion -notin $allowedTemplateContractVersions -or
             [string]$manifest.projectName -ne $_.Name) {
         throw "Generated Domain manifest identity/contract가 유효하지 않습니다: $manifestPath"
+    }
+    $databaseVendor = ([string]$manifest.databaseVendor).Trim().ToLowerInvariant()
+    if ($databaseVendor -notin $supportedDatabaseVendors) {
+        throw "Generated Domain manifest Vendor가 중앙 계약에 없습니다: path=$manifestPath vendor=$databaseVendor"
     }
     if (-not (Test-Path -LiteralPath $ownershipPath -PathType Leaf)) {
         throw "Generated Domain ownership manifest가 없습니다: $ownershipPath"
@@ -49,7 +92,7 @@ Get-ChildItem -LiteralPath $Root -Directory -Filter "cpf-*" | ForEach-Object {
         domainName = ([string]$manifest.domainName).ToLowerInvariant()
         systemCode = ([string]$manifest.systemCode).ToUpperInvariant()
         projectName = [string]$manifest.projectName
-        databaseVendor = ([string]$manifest.databaseVendor).ToLowerInvariant()
+        databaseVendor = $databaseVendor
         profilePath = $profilePath
     }
 }

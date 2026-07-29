@@ -2,8 +2,8 @@ package com.cpf.admin.opr.service;
 
 import com.cpf.admin.opr.dto.AdmLogPolicyOverrideRequest;
 import com.cpf.admin.opr.dto.AdmLogPolicyRequest;
-import com.cpf.core.common.exception.CpfValidationException;
-import com.cpf.core.common.logging.policy.LogPolicyResolver;
+import com.cpf.core.api.error.CpfValidationException;
+import com.cpf.core.api.logging.policy.CpfLogPolicyResolver;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.dao.DataAccessResourceFailureException;
@@ -101,8 +101,8 @@ class AdmLogPolicyServiceTest {
     @SuppressWarnings("unchecked")
     void clearCacheCallsResolver() {
         JdbcTemplate jdbcTemplate = mock(JdbcTemplate.class);
-        ObjectProvider<LogPolicyResolver> resolverProvider = mock(ObjectProvider.class);
-        LogPolicyResolver resolver = mock(LogPolicyResolver.class);
+        ObjectProvider<CpfLogPolicyResolver> resolverProvider = mock(ObjectProvider.class);
+        CpfLogPolicyResolver resolver = mock(CpfLogPolicyResolver.class);
         when(resolverProvider.getIfAvailable()).thenReturn(resolver);
         when(resolver.cachedSize()).thenReturn(0);
         AdmLogPolicyService service = new AdmLogPolicyService(jdbcTemplate, resolverProvider);
@@ -114,8 +114,8 @@ class AdmLogPolicyServiceTest {
     }
 
     @SuppressWarnings("unchecked")
-    private ObjectProvider<LogPolicyResolver> emptyResolverProvider() {
-        ObjectProvider<LogPolicyResolver> provider = mock(ObjectProvider.class);
+    private ObjectProvider<CpfLogPolicyResolver> emptyResolverProvider() {
+        ObjectProvider<CpfLogPolicyResolver> provider = mock(ObjectProvider.class);
         when(provider.getIfAvailable()).thenReturn(null);
         return provider;
     }

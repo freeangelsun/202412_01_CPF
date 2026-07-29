@@ -1,8 +1,7 @@
 package com.cpf.reference.query.controller;
 
-import com.cpf.core.common.header.CpfHeaderPropagator;
-import com.cpf.core.common.execution.CpfOnlineTransaction;
-import com.cpf.core.common.logging.TransactionContext;
+import com.cpf.core.api.logging.CpfTransactionContext;
+import com.cpf.core.api.execution.CpfOnlineTransaction;
 import com.cpf.reference.query.dto.ReferenceQueryEducationItem;
 import com.cpf.reference.query.dto.ReferenceQueryKeysetResponse;
 import com.cpf.reference.query.dto.ReferenceQueryPageResponse;
@@ -95,12 +94,12 @@ public class ReferenceQueryEducationController extends com.cpf.reference.common.
     @Operation(operationId = "refQueryEducationCurrentHeaders", summary = "조회 EDU 헤더 컨텍스트", description = "TransactionContext 조회 API와 하위 호출 전파 헤더를 확인합니다.")
     public ResponseEntity<Map<String, Object>> currentHeaders() {
         Map<String, Object> response = new LinkedHashMap<>();
-        response.put("transactionId", TransactionContext.currentTransactionId());
-        response.put("traceId", TransactionContext.currentTraceId());
-        response.put("memberNo", TransactionContext.memberNo());
-        response.put("customerNo", TransactionContext.customerNo());
-        response.put("channelCode", TransactionContext.channelCode());
-        response.put("outboundHeaders", CpfHeaderPropagator.outboundHeaders());
+        response.put("transactionId", CpfTransactionContext.currentTransactionId());
+        response.put("traceId", CpfTransactionContext.currentTraceId());
+        response.put("memberNo", CpfTransactionContext.memberNo());
+        response.put("customerNo", CpfTransactionContext.customerNo());
+        response.put("channelCode", CpfTransactionContext.channelCode());
+        response.put("outboundHeaders", CpfTransactionContext.outboundHeaders());
         return ResponseEntity.ok(response);
     }
 }

@@ -1,11 +1,11 @@
 package com.cpf.reference.filetransfer.controller;
 
-import com.cpf.core.common.filetransfer.CpfFileExchangeGateway;
-import com.cpf.core.common.filetransfer.CpfFileExchangeHistoryRecord;
-import com.cpf.core.common.filetransfer.CpfFileTransferProtocol;
-import com.cpf.core.common.filetransfer.CpfFileTransferResult;
-import com.cpf.core.common.filetransfer.CpfRemoteCommandPlan;
-import com.cpf.core.common.execution.CpfOnlineTransaction;
+import com.cpf.core.api.execution.CpfOnlineTransaction;
+import com.cpf.core.api.filetransfer.CpfFileExchangeHistoryRecord;
+import com.cpf.core.api.filetransfer.CpfFileExchangeOperations;
+import com.cpf.core.api.filetransfer.CpfFileResult;
+import com.cpf.core.api.filetransfer.CpfFileTransferProtocol;
+import com.cpf.core.api.filetransfer.CpfRemoteCommandPlan;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
@@ -27,9 +27,9 @@ import java.util.List;
 @RequestMapping({"/api/reference", "/reference/edu"})
 @Tag(name = "REF Reference 08. 파일 연계", description = "로컬 파일, 원격 파일 전송, SSH 명령 계획 샘플")
 public class ReferenceFileExchangeEducationController extends com.cpf.reference.common.base.ReferenceBaseController {
-    private final CpfFileExchangeGateway fileExchangeGateway;
+    private final CpfFileExchangeOperations fileExchangeGateway;
 
-    public ReferenceFileExchangeEducationController(CpfFileExchangeGateway fileExchangeGateway) {
+    public ReferenceFileExchangeEducationController(CpfFileExchangeOperations fileExchangeGateway) {
         this.fileExchangeGateway = fileExchangeGateway;
     }
 
@@ -61,7 +61,7 @@ public class ReferenceFileExchangeEducationController extends com.cpf.reference.
     @PostMapping("/file-exchange/transfer-plan")
     @CpfOnlineTransaction(id = "OREFAA0031", name = "REFFileTransferPlan")
     @Operation(operationId = "refFileExchangeEducationBuildFileTransferPlan", summary = "파일 전송 계획 샘플", description = "SCP/SFTP 같은 원격 파일 전송 요청 구조와 감사 이력 기준을 확인합니다.")
-    public ResponseEntity<CpfFileTransferResult> buildFileTransferPlan(
+    public ResponseEntity<CpfFileResult> buildFileTransferPlan(
             @RequestParam(defaultValue = "SCP") CpfFileTransferProtocol protocol,
             @RequestParam(defaultValue = "UPLOAD") String direction,
             @RequestParam(defaultValue = "localhost") String host,
@@ -101,4 +101,3 @@ public class ReferenceFileExchangeEducationController extends com.cpf.reference.
         return ResponseEntity.ok(fileExchangeGateway.findRecentHistory());
     }
 }
-

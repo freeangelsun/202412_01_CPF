@@ -12,12 +12,10 @@ $OutputEncoding = $CpfUtf8ConsoleEncoding
 $ErrorActionPreference = "Stop"
 
 $profiles = @("local", "dev", "stg", "prod")
-$modules = @(
-    [ordered]@{ project = "cpf-member"; config = "mbr"; code = "MBR" },
-    [ordered]@{ project = "cpf-admin"; config = "adm"; code = "ADM" },
-    [ordered]@{ project = "cpf-biz-admin"; config = "bza"; code = "BZA" },
-    [ordered]@{ project = "cpf-reference"; config = "ref"; code = "REF" },
-    [ordered]@{ project = "cpf-account"; config = "acc"; code = "ACC" }
+$fixedModules = @(
+    [ordered]@{ project = "cpf-admin"; config = "adm"; code = "ADM"; generated = $false; productionProfile = $true },
+    [ordered]@{ project = "cpf-biz-admin"; config = "bza"; code = "BZA"; generated = $false; productionProfile = $true },
+    [ordered]@{ project = "cpf-reference"; config = "ref"; code = "REF"; generated = $false; productionProfile = $true }
 )
 $batchRuntimes = @(
     [ordered]@{ project = "cpf-batch/control-server"; role = "CONTROL_SERVER"; sharedRuntime = $true },
@@ -63,6 +61,81 @@ function Test-File {
     return $true
 }
 
+function Get-GeneratedProfileModules {
+    $result = [System.Collections.Generic.List[object]]::new()
+    $candidateDirectories = @(Get-ChildItem -LiteralPath $Root -Directory | Where-Object {
+        (Test-Path -LiteralPath (Join-Path $_.FullName "manifest/domain-manifest.json") -PathType Leaf) -or
+        (Test-Path -LiteralPath (Join-Path $_.FullName "manifest/generator-ownership.json") -PathType Leaf)
+    })
+
+    foreach ($directory in $candidateDirectories) {
+        $domainManifestPath = Join-Path $directory.FullName "manifest/domain-manifest.json"
+        $ownershipManifestPath = Join-Path $directory.FullName "manifest/generator-ownership.json"
+        if (-not (Test-Path -LiteralPath $domainManifestPath -PathType Leaf) -or
+                -not (Test-Path -LiteralPath $ownershipManifestPath -PathType Leaf)) {
+            Add-Failure "GENERATED_DOMAIN_MANIFEST_PAIR_$($directory.Name.ToUpperInvariant())" `
+                    "Generated Domain은 domain-manifest.json과 generator-ownership.json을 모두 가져야 합니다: $($directory.Name)"
+            continue
+        }
+
+        try {
+            $domain = (Read-Text $domainManifestPath) | ConvertFrom-Json -ErrorAction Stop
+            $ownership = (Read-Text $ownershipManifestPath) | ConvertFrom-Json -ErrorAction Stop
+        } catch {
+            Add-Failure "GENERATED_DOMAIN_MANIFEST_JSON_$($directory.Name.ToUpperInvariant())" `
+                    "Generated Domain manifest JSON을 읽을 수 없습니다: $($directory.Name) :: $($_.Exception.Message)"
+            continue
+        }
+
+        $identityErrors = [System.Collections.Generic.List[string]]::new()
+        if ([string]$domain.domainType -cne "GENERATED_DOMAIN") {
+            $identityErrors.Add("domainType=GENERATED_DOMAIN") | Out-Null
+        }
+        if ([string]$domain.dependencyModel -cne "root-project" -or
+                [string]$ownership.dependencyModel -cne "root-project") {
+            $identityErrors.Add("dependencyModel=root-project") | Out-Null
+        }
+        if ([string]$domain.projectName -cne $directory.Name -or
+                [string]$ownership.projectName -cne $directory.Name) {
+            $identityErrors.Add("projectName=$($directory.Name)") | Out-Null
+        }
+        foreach ($propertyName in @("moduleName", "domainName", "systemCode", "packageName")) {
+            $domainValue = [string]$domain.$propertyName
+            $ownershipValue = [string]$ownership.$propertyName
+            if ([string]::IsNullOrWhiteSpace($domainValue) -or $domainValue -cne $ownershipValue) {
+                $identityErrors.Add("$propertyName identity match") | Out-Null
+            }
+        }
+        if ([string]$domain.packageName -notmatch '^com\.cpf\.[a-z][a-z0-9]*(?:\.[a-z][a-z0-9]*)*$') {
+            $identityErrors.Add("packageName under com.cpf") | Out-Null
+        }
+        if ($identityErrors.Count -gt 0) {
+            Add-Failure "GENERATED_DOMAIN_IDENTITY_$($directory.Name.ToUpperInvariant())" `
+                    "Generated Domain manifest identity가 유효하지 않습니다: $($directory.Name) :: $($identityErrors -join ', ')"
+            continue
+        }
+
+        $productionProfile = $false
+        if ($null -ne $domain.capabilities -and $domain.capabilities.PSObject.Properties.Name -contains "productionProfile") {
+            $productionProfile = $domain.capabilities.productionProfile -eq $true
+        } elseif ($domain.PSObject.Properties.Name -contains "productionProfileEnabled") {
+            $productionProfile = $domain.productionProfileEnabled -eq $true
+        }
+
+        $result.Add([ordered]@{
+            project = $directory.Name
+            config = [string]$domain.domainName
+            code = ([string]$domain.systemCode).ToUpperInvariant()
+            generated = $true
+            productionProfile = $productionProfile
+        }) | Out-Null
+    }
+    return @($result.ToArray() | Sort-Object project)
+}
+
+$generatedModules = @(Get-GeneratedProfileModules)
+$modules = @($fixedModules + $generatedModules)
+
 foreach ($profile in $profiles) {
     Test-File "cpf-core/src/main/resources/application-cpf-$profile.yml" "CPF_PROFILE_$($profile.ToUpperInvariant())" | Out-Null
     Test-File "cpf-common/src/main/resources/application-cmn-$profile.yml" "CMN_PROFILE_$($profile.ToUpperInvariant())" | Out-Null
@@ -102,11 +175,15 @@ foreach ($module in $modules) {
     $requiredImports = @(
         "application-cpf.yml",
         'application-cpf-${spring.profiles.active:local}.yml',
-        "application-cmn.yml",
-        'application-cmn-${spring.profiles.active:local}.yml',
         "application-$moduleConfig.yml",
         "application-$moduleConfig-" + '${spring.profiles.active:local}' + ".yml"
     )
+    if (-not $module.generated) {
+        $requiredImports += @(
+            "application-cmn.yml",
+            'application-cmn-${spring.profiles.active:local}.yml'
+        )
+    }
     foreach ($import in $requiredImports) {
         if ($applicationText -notlike "*$import*") {
             Add-Failure "CONFIG_IMPORT_$moduleUpper" "Missing config import [$import] in $resourceRoot/application.yml"
@@ -114,16 +191,29 @@ foreach ($module in $modules) {
     }
 
     Test-File "$resourceRoot/application-$moduleConfig.yml" "MODULE_PROFILE_BASE_$moduleUpper" | Out-Null
-    foreach ($profile in $profiles) {
-        Test-File "$resourceRoot/application-$moduleConfig-$profile.yml" "MODULE_PROFILE_$($moduleUpper)_$($profile.ToUpperInvariant())" | Out-Null
+    if (-not $module.generated -or $module.productionProfile) {
+        foreach ($profile in $profiles) {
+            Test-File "$resourceRoot/application-$moduleConfig-$profile.yml" "MODULE_PROFILE_$($moduleUpper)_$($profile.ToUpperInvariant())" | Out-Null
+        }
+    } else {
+        Add-Check "MODULE_PROFILES_$moduleUpper" "DONE" `
+                "Generated Domain productionProfile=false; optional local/dev/stg/prod files are not required."
     }
 
     $moduleFiles = @(Get-ChildItem -LiteralPath (Join-Path $Root $resourceRoot) -File -Filter "application-$moduleConfig*.yml" -ErrorAction SilentlyContinue)
-    $joinedText = ($moduleFiles | ForEach-Object { Read-Text $_.FullName }) -join "`n"
-    if ($joinedText -notmatch "\$\{$($moduleUpper)_MODULE_ID:" -or $joinedText -notmatch "\$\{$($moduleUpper)_SERVER_PORT") {
-        Add-Failure "MODULE_PREFIX_RUNTIME_$moduleUpper" "Module profile must expose $($moduleUpper)_MODULE_ID and $($moduleUpper)_SERVER_PORT placeholders."
+    $joinedText = $applicationText + "`n" + (($moduleFiles | ForEach-Object { Read-Text $_.FullName }) -join "`n")
+    $moduleIdPresent = $joinedText -match "\$\{$($moduleUpper)_MODULE_ID:"
+    $serverPortRequired = -not $module.generated -or $module.productionProfile
+    $serverPortPresent = $joinedText -match "\$\{$($moduleUpper)_SERVER_PORT"
+    if (-not $moduleIdPresent -or ($serverPortRequired -and -not $serverPortPresent)) {
+        $expectedRuntimeMarkers = if ($serverPortRequired) {
+            "$($moduleUpper)_MODULE_ID and $($moduleUpper)_SERVER_PORT"
+        } else {
+            "$($moduleUpper)_MODULE_ID"
+        }
+        Add-Failure "MODULE_PREFIX_RUNTIME_$moduleUpper" "Module config must expose $expectedRuntimeMarkers placeholders."
     } else {
-        Add-Check "MODULE_PREFIX_RUNTIME_$moduleUpper" "DONE" "$moduleUpper runtime placeholders found."
+        Add-Check "MODULE_PREFIX_RUNTIME_$moduleUpper" "DONE" "$moduleUpper required runtime placeholders found."
     }
 
     if ($joinedText -match "(?i)(private-key|access-token|refresh-token|client-secret)\s*:\s*[^`r`n\$\{]") {
@@ -204,6 +294,7 @@ $result = [pscustomobject]@{
     checkedModules = @($modules | ForEach-Object { $_.project }) +
         @($batchRuntimes | ForEach-Object { $_.project }) +
         @("cpf-gateway")
+    generatedDomains = @($generatedModules | ForEach-Object { $_.project })
     checkedProfiles = $profiles
     failures = @($failures.ToArray())
     checks = @($checks.ToArray())

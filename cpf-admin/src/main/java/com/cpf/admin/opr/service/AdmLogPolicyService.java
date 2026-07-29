@@ -4,16 +4,19 @@ import com.cpf.admin.opr.dto.AdmLogPolicyOverrideRequest;
 import com.cpf.admin.opr.dto.AdmLogPolicyRequest;
 import com.cpf.admin.opr.dto.AdmTraceBoostRequest;
 import com.cpf.core.api.util.CpfStrings;
-import com.cpf.core.common.exception.CpfValidationException;
-import com.cpf.core.common.logging.policy.LogPolicyDecision;
-import com.cpf.core.common.logging.policy.LogPolicyResolver;
+import com.cpf.core.api.error.CpfValidationException;
+import com.cpf.core.api.logging.policy.LogPolicyDecision;
+import com.cpf.core.api.logging.policy.CpfLogPolicyResolver;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.sql.PreparedStatement;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -31,11 +34,11 @@ import java.util.Optional;
 @Service
 public class AdmLogPolicyService extends com.cpf.admin.common.base.AdmBaseService {
     private final JdbcTemplate cpfJdbcTemplate;
-    private final ObjectProvider<LogPolicyResolver> logPolicyResolverProvider;
+    private final ObjectProvider<CpfLogPolicyResolver> logPolicyResolverProvider;
 
     public AdmLogPolicyService(
             @Qualifier("cpfJdbcTemplate") JdbcTemplate cpfJdbcTemplate,
-            ObjectProvider<LogPolicyResolver> logPolicyResolverProvider) {
+            ObjectProvider<CpfLogPolicyResolver> logPolicyResolverProvider) {
         this.cpfJdbcTemplate = cpfJdbcTemplate;
         this.logPolicyResolverProvider = logPolicyResolverProvider;
     }
@@ -72,32 +75,26 @@ public class AdmLogPolicyService extends com.cpf.admin.common.base.AdmBaseServic
     public Map<String, Object> createPolicy(AdmLogPolicyRequest request, String operatorId, String clientIp) {
         validatePolicy(request);
         String user = defaultIfBlank(operatorId, request.requestUser(), "ADM");
-        cpfJdbcTemplate.update("""
-                INSERT INTO cpf_log_policy (
-                    policy_key, policy_name, target_type, target_id, log_level,
-                    db_log_enabled_yn, file_log_enabled_yn, request_body_log_yn, response_body_log_yn,
-                    error_stack_log_yn, masking_policy_key, retention_days, sampling_rate, priority,
-                    active_yn, description, created_by, updated_by
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ON DUPLICATE KEY UPDATE
-                    policy_name = VALUES(policy_name),
-                    target_type = VALUES(target_type),
-                    target_id = VALUES(target_id),
-                    log_level = VALUES(log_level),
-                    db_log_enabled_yn = VALUES(db_log_enabled_yn),
-                    file_log_enabled_yn = VALUES(file_log_enabled_yn),
-                    request_body_log_yn = VALUES(request_body_log_yn),
-                    response_body_log_yn = VALUES(response_body_log_yn),
-                    error_stack_log_yn = VALUES(error_stack_log_yn),
-                    masking_policy_key = VALUES(masking_policy_key),
-                    retention_days = VALUES(retention_days),
-                    sampling_rate = VALUES(sampling_rate),
-                    priority = VALUES(priority),
-                    active_yn = VALUES(active_yn),
-                    description = VALUES(description),
-                    updated_by = VALUES(updated_by),
-                    updated_at = CURRENT_TIMESTAMP
-                """,
+        PolicyValues values = policyValues(request, user);
+        int updated = updatePolicyByKey(values);
+        if (updated == 0) {
+            try {
+                insertPolicy(values);
+            } catch (DuplicateKeyException concurrentInsert) {
+                if (updatePolicyByKey(values) == 0) {
+                    throw concurrentInsert;
+                }
+            }
+        }
+        Map<String, Object> after = findPolicyByKey(request.policyKey()).orElse(Map.of());
+        insertPolicyAudit(after.get("policy_id"), null, "UPSERT", request.targetType(), request.targetId(),
+                request.reason(), null, String.valueOf(after), "로그 정책 등록/수정", user, clientIp);
+        evictPolicyCache(request.targetType(), request.targetId());
+        return after;
+    }
+
+    private PolicyValues policyValues(AdmLogPolicyRequest request, String user) {
+        return new PolicyValues(
                 required(request.policyKey(), "정책 키"),
                 required(request.policyName(), "정책명"),
                 required(request.targetType(), "대상 유형"),
@@ -114,13 +111,77 @@ public class AdmLogPolicyService extends com.cpf.admin.common.base.AdmBaseServic
                 safeInt(request.priority(), 100, 1, 9999),
                 yn(request.activeYn(), "Y"),
                 blankToNull(request.description()),
-                user,
                 user);
-        Map<String, Object> after = findPolicyByKey(request.policyKey()).orElse(Map.of());
-        insertPolicyAudit(after.get("policy_id"), null, "UPSERT", request.targetType(), request.targetId(),
-                request.reason(), null, String.valueOf(after), "로그 정책 등록/수정", user, clientIp);
-        evictPolicyCache(request.targetType(), request.targetId());
-        return after;
+    }
+
+    private int updatePolicyByKey(PolicyValues values) {
+        return cpfJdbcTemplate.update("""
+                UPDATE cpf_log_policy
+                SET policy_name = ?,
+                    target_type = ?,
+                    target_id = ?,
+                    log_level = ?,
+                    db_log_enabled_yn = ?,
+                    file_log_enabled_yn = ?,
+                    request_body_log_yn = ?,
+                    response_body_log_yn = ?,
+                    error_stack_log_yn = ?,
+                    masking_policy_key = ?,
+                    retention_days = ?,
+                    sampling_rate = ?,
+                    priority = ?,
+                    active_yn = ?,
+                    description = ?,
+                    updated_by = ?,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE policy_key = ?
+                """,
+                values.policyName(),
+                values.targetType(),
+                values.targetId(),
+                values.logLevel(),
+                values.dbLogEnabledYn(),
+                values.fileLogEnabledYn(),
+                values.requestBodyLogYn(),
+                values.responseBodyLogYn(),
+                values.errorStackLogYn(),
+                values.maskingPolicyKey(),
+                values.retentionDays(),
+                values.samplingRate(),
+                values.priority(),
+                values.activeYn(),
+                values.description(),
+                values.user(),
+                values.policyKey());
+    }
+
+    private void insertPolicy(PolicyValues values) {
+        cpfJdbcTemplate.update("""
+                INSERT INTO cpf_log_policy (
+                    policy_key, policy_name, target_type, target_id, log_level,
+                    db_log_enabled_yn, file_log_enabled_yn, request_body_log_yn, response_body_log_yn,
+                    error_stack_log_yn, masking_policy_key, retention_days, sampling_rate, priority,
+                    active_yn, description, created_by, updated_by
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                values.policyKey(),
+                values.policyName(),
+                values.targetType(),
+                values.targetId(),
+                values.logLevel(),
+                values.dbLogEnabledYn(),
+                values.fileLogEnabledYn(),
+                values.requestBodyLogYn(),
+                values.responseBodyLogYn(),
+                values.errorStackLogYn(),
+                values.maskingPolicyKey(),
+                values.retentionDays(),
+                values.samplingRate(),
+                values.priority(),
+                values.activeYn(),
+                values.description(),
+                values.user(),
+                values.user());
     }
 
     public Map<String, Object> updatePolicy(long policyId, AdmLogPolicyRequest request, String operatorId, String clientIp) {
@@ -177,33 +238,41 @@ public class AdmLogPolicyService extends com.cpf.admin.common.base.AdmBaseServic
     public Map<String, Object> createOverride(AdmLogPolicyOverrideRequest request, String operatorId, String clientIp) {
         validateOverride(request);
         String user = defaultIfBlank(operatorId, request.requestUser(), "ADM");
-        cpfJdbcTemplate.update("""
-                INSERT INTO cpf_log_policy_override (
-                    policy_id, target_type, target_id, override_reason, log_level,
-                    db_log_enabled_yn, file_log_enabled_yn, request_body_log_yn, response_body_log_yn,
-                    error_stack_log_yn, masking_policy_key, effective_start_at, effective_end_at,
-                    requested_by, approved_by, active_yn, created_by, updated_by
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Y', ?, ?)
-                """,
-                request.policyId(),
-                required(request.targetType(), "대상 유형"),
-                required(request.targetId(), "대상 ID"),
-                required(request.reason(), "감사 사유"),
-                blankToNull(request.logLevel()),
-                nullableYn(request.dbLogEnabledYn()),
-                nullableYn(request.fileLogEnabledYn()),
-                nullableYn(request.requestBodyLogYn()),
-                nullableYn(request.responseBodyLogYn()),
-                nullableYn(request.errorStackLogYn()),
-                blankToNull(request.maskingPolicyKey()),
-                request.effectiveStartAt(),
-                request.effectiveEndAt(),
-                user,
-                blankToNull(request.approvedBy()),
-                user,
-                user);
-        Long overrideId = cpfJdbcTemplate.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
-        Map<String, Object> after = findOverrideById(overrideId == null ? -1 : overrideId).orElse(Map.of());
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        int inserted = cpfJdbcTemplate.update(connection -> {
+            PreparedStatement statement = connection.prepareStatement("""
+                    INSERT INTO cpf_log_policy_override (
+                        policy_id, target_type, target_id, override_reason, log_level,
+                        db_log_enabled_yn, file_log_enabled_yn, request_body_log_yn, response_body_log_yn,
+                        error_stack_log_yn, masking_policy_key, effective_start_at, effective_end_at,
+                        requested_by, approved_by, active_yn, created_by, updated_by
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Y', ?, ?)
+                    """, new String[] {"override_id"});
+            statement.setObject(1, request.policyId());
+            statement.setString(2, required(request.targetType(), "대상 유형"));
+            statement.setString(3, required(request.targetId(), "대상 ID"));
+            statement.setString(4, required(request.reason(), "감사 사유"));
+            statement.setString(5, blankToNull(request.logLevel()));
+            statement.setString(6, nullableYn(request.dbLogEnabledYn()));
+            statement.setString(7, nullableYn(request.fileLogEnabledYn()));
+            statement.setString(8, nullableYn(request.requestBodyLogYn()));
+            statement.setString(9, nullableYn(request.responseBodyLogYn()));
+            statement.setString(10, nullableYn(request.errorStackLogYn()));
+            statement.setString(11, blankToNull(request.maskingPolicyKey()));
+            statement.setObject(12, request.effectiveStartAt());
+            statement.setObject(13, request.effectiveEndAt());
+            statement.setString(14, user);
+            statement.setString(15, blankToNull(request.approvedBy()));
+            statement.setString(16, user);
+            statement.setString(17, user);
+            return statement;
+        }, keyHolder);
+        Number generatedKey = keyHolder.getKey();
+        if (inserted != 1 || generatedKey == null) {
+            throw new IllegalStateException("로그 정책 override 생성 ID를 확인할 수 없습니다.");
+        }
+        long overrideId = generatedKey.longValue();
+        Map<String, Object> after = findOverrideById(overrideId).orElse(Map.of());
         insertPolicyAudit(request.policyId(), overrideId, "OVERRIDE_CREATE", request.targetType(), request.targetId(),
                 request.reason(), null, String.valueOf(after), "로그 정책 override 등록", user, clientIp);
         evictPolicyCache(request.targetType(), request.targetId());
@@ -232,7 +301,7 @@ public class AdmLogPolicyService extends com.cpf.admin.common.base.AdmBaseServic
         String normalizedTargetType = required(targetType, "대상 유형");
         String normalizedTargetId = required(targetId, "대상 ID");
         String user = defaultIfBlank(operatorId, null, "ADM");
-        LogPolicyResolver resolver = requireResolver();
+        CpfLogPolicyResolver resolver = requireResolver();
         LogPolicyDecision decision = resolver.refresh(normalizedTargetType, normalizedTargetId);
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("targetType", decision.targetType());
@@ -252,7 +321,7 @@ public class AdmLogPolicyService extends com.cpf.admin.common.base.AdmBaseServic
 
     public Map<String, Object> clearCache(String reason, String operatorId, String clientIp) {
         String user = defaultIfBlank(operatorId, null, "ADM");
-        LogPolicyResolver resolver = requireResolver();
+        CpfLogPolicyResolver resolver = requireResolver();
         resolver.clear();
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("targetType", "LOG_POLICY_CACHE");
@@ -328,7 +397,9 @@ public class AdmLogPolicyService extends com.cpf.admin.common.base.AdmBaseServic
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("available", tableAvailable("cpf_log_policy_override"));
         response.put("items", tableAvailable("cpf_log_policy_override")
-                ? cpfJdbcTemplate.queryForList("""
+                ? AdmJdbcQueries.queryForList(
+                        cpfJdbcTemplate,
+                        """
                         SELECT override_id AS traceBoostPolicyId, policy_id, target_type, target_id,
                                override_reason, log_level, effective_start_at, effective_end_at,
                                active_yn, requested_by, created_at, updated_at
@@ -337,8 +408,9 @@ public class AdmLogPolicyService extends com.cpf.admin.common.base.AdmBaseServic
                           AND effective_start_at <= CURRENT_TIMESTAMP(3)
                           AND effective_end_at >= CURRENT_TIMESTAMP(3)
                         ORDER BY override_id DESC
-                        LIMIT ?
-                        """, Math.max(1, Math.min(limit, 500)))
+                        """,
+                        List.of(),
+                        Math.max(1, Math.min(limit, 500)))
                 : List.of());
         return response;
     }
@@ -347,15 +419,18 @@ public class AdmLogPolicyService extends com.cpf.admin.common.base.AdmBaseServic
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("available", tableAvailable("cpf_log_policy_audit"));
         response.put("items", tableAvailable("cpf_log_policy_audit")
-                ? cpfJdbcTemplate.queryForList("""
+                ? AdmJdbcQueries.queryForList(
+                        cpfJdbcTemplate,
+                        """
                         SELECT audit_id, policy_id, override_id AS traceBoostPolicyId,
                                action_type, target_type, target_id, reason,
                                operator_id, client_ip, created_at
                         FROM cpf_log_policy_audit
                         WHERE action_type IN ('OVERRIDE_CREATE', 'OVERRIDE_DISABLE', 'POLICY_DISABLE')
                         ORDER BY audit_id DESC
-                        LIMIT ?
-                        """, Math.max(1, Math.min(limit, 500)))
+                        """,
+                        List.of(),
+                        Math.max(1, Math.min(limit, 500)))
                 : List.of());
         return response;
     }
@@ -382,9 +457,12 @@ public class AdmLogPolicyService extends com.cpf.admin.common.base.AdmBaseServic
             sql.append(" AND active_yn = ?");
             args.add(yn(activeYn, "Y"));
         }
-        sql.append(" ORDER BY priority, policy_id LIMIT ?");
-        args.add(Math.max(1, Math.min(limit, 500)));
-        return cpfJdbcTemplate.queryForList(sql.toString(), args.toArray());
+        sql.append(" ORDER BY priority, policy_id");
+        return AdmJdbcQueries.queryForList(
+                cpfJdbcTemplate,
+                sql.toString(),
+                args,
+                Math.max(1, Math.min(limit, 500)));
     }
 
     private Optional<Map<String, Object>> findPolicyById(long policyId) {
@@ -457,17 +535,7 @@ public class AdmLogPolicyService extends com.cpf.admin.common.base.AdmBaseServic
     }
 
     private boolean tableAvailable(String tableName) {
-        try {
-            Integer count = cpfJdbcTemplate.queryForObject("""
-                    SELECT COUNT(*)
-                    FROM information_schema.tables
-                    WHERE table_schema = DATABASE()
-                      AND table_name = ?
-                    """, Integer.class, tableName);
-            return count != null && count > 0;
-        } catch (DataAccessException ex) {
-            return false;
-        }
+        return AdmJdbcQueries.tableExists(cpfJdbcTemplate, tableName);
     }
 
     private void validatePolicy(AdmLogPolicyRequest request) {
@@ -494,7 +562,7 @@ public class AdmLogPolicyService extends com.cpf.admin.common.base.AdmBaseServic
     }
 
     private void evictPolicyCache(String targetType, String targetId) {
-        LogPolicyResolver resolver = logPolicyResolverProvider.getIfAvailable();
+        CpfLogPolicyResolver resolver = logPolicyResolverProvider.getIfAvailable();
         if (resolver == null) {
             return;
         }
@@ -511,8 +579,8 @@ public class AdmLogPolicyService extends com.cpf.admin.common.base.AdmBaseServic
         }
     }
 
-    private LogPolicyResolver requireResolver() {
-        LogPolicyResolver resolver = logPolicyResolverProvider.getIfAvailable();
+    private CpfLogPolicyResolver requireResolver() {
+        CpfLogPolicyResolver resolver = logPolicyResolverProvider.getIfAvailable();
         if (resolver == null) {
             throw new CpfValidationException("로그 정책 cache resolver를 사용할 수 없습니다.");
         }
@@ -564,5 +632,25 @@ public class AdmLogPolicyService extends com.cpf.admin.common.base.AdmBaseServic
             throw new CpfValidationException("샘플링 비율은 0 이상 100 이하이어야 합니다.");
         }
         return normalized;
+    }
+
+    private record PolicyValues(
+            String policyKey,
+            String policyName,
+            String targetType,
+            String targetId,
+            String logLevel,
+            String dbLogEnabledYn,
+            String fileLogEnabledYn,
+            String requestBodyLogYn,
+            String responseBodyLogYn,
+            String errorStackLogYn,
+            String maskingPolicyKey,
+            int retentionDays,
+            BigDecimal samplingRate,
+            int priority,
+            String activeYn,
+            String description,
+            String user) {
     }
 }

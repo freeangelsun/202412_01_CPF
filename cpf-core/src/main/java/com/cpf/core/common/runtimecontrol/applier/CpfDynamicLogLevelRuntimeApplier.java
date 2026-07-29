@@ -4,8 +4,8 @@ import com.cpf.core.api.runtimecontrol.CpfRuntimeApplyResult;
 import com.cpf.core.api.runtimecontrol.CpfRuntimeChangeApplier;
 import com.cpf.core.api.runtimecontrol.CpfRuntimeDelivery;
 import com.cpf.core.common.runtimecontrol.CpfRuntimePayloadJson;
-import com.cpf.core.common.logging.CpfLogLevel;
-import com.cpf.core.common.logging.DynamicLogLevelRule;
+import com.cpf.core.api.logging.CpfLogLevel;
+import com.cpf.core.api.logging.DynamicLogLevelRule;
 import com.cpf.core.common.logging.DynamicTransactionLogLevelService;
 import com.fasterxml.jackson.databind.JsonNode;
 

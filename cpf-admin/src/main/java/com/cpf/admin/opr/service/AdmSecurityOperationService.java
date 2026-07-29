@@ -2,11 +2,12 @@ package com.cpf.admin.opr.service;
 
 import com.cpf.admin.opr.dto.AdmIpAllowlistRequest;
 import com.cpf.admin.opr.dto.AdmMfaOtpRequest;
+import com.cpf.core.api.error.CpfBusinessException;
+import com.cpf.core.api.error.CpfErrorCode;
 import com.cpf.core.api.util.CpfStrings;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -18,8 +19,6 @@ import java.util.Map;
  */
 @Service
 public class AdmSecurityOperationService extends com.cpf.admin.common.base.AdmBaseService {
-    private static final Logger log = LoggerFactory.getLogger(AdmSecurityOperationService.class);
-
     private final JdbcTemplate admJdbcTemplate;
 
     public AdmSecurityOperationService(@Qualifier("admJdbcTemplate") JdbcTemplate admJdbcTemplate) {
@@ -34,32 +33,32 @@ public class AdmSecurityOperationService extends com.cpf.admin.common.base.AdmBa
                     ORDER BY ALLOW_ID DESC
                     """);
         } catch (DataAccessException ex) {
-            log.debug("ADM IP allowlist query skipped. reason={}", ex.getMessage());
-            return List.of();
+            throw unavailable("adm_ip_allowlist.list", ex);
         }
     }
 
     public Map<String, Object> upsertIpAllowlist(AdmIpAllowlistRequest request) {
+        String ipPattern = CpfStrings.requireText(request.ipPattern(), "ipPattern");
         String requestUser = CpfStrings.defaultIfBlank(request.requestUser(), "ADM");
-        admJdbcTemplate.update("""
-                INSERT INTO adm_ip_allowlist (IP_PATTERN, DESCRIPTION, USE_YN, CREATED_BY, UPDATED_BY)
-                VALUES (?, ?, ?, ?, ?)
-                ON DUPLICATE KEY UPDATE
-                    DESCRIPTION = VALUES(DESCRIPTION),
-                    USE_YN = VALUES(USE_YN),
-                    UPDATED_BY = VALUES(UPDATED_BY),
-                    UPDATED_AT = CURRENT_TIMESTAMP
-                """,
-                CpfStrings.requireText(request.ipPattern(), "ipPattern"),
-                request.description(),
-                "N".equalsIgnoreCase(request.useYn()) ? "N" : "Y",
-                requestUser,
-                requestUser);
+        String useYn = "N".equalsIgnoreCase(request.useYn()) ? "N" : "Y";
+        if (updateIpAllowlist(ipPattern, request.description(), useYn, requestUser) == 0) {
+            try {
+                admJdbcTemplate.update("""
+                        INSERT INTO adm_ip_allowlist (
+                            IP_PATTERN, DESCRIPTION, USE_YN, CREATED_BY, UPDATED_BY
+                        ) VALUES (?, ?, ?, ?, ?)
+                        """, ipPattern, request.description(), useYn, requestUser, requestUser);
+            } catch (DuplicateKeyException concurrentInsert) {
+                if (updateIpAllowlist(ipPattern, request.description(), useYn, requestUser) == 0) {
+                    throw concurrentInsert;
+                }
+            }
+        }
         return admJdbcTemplate.queryForMap("""
                 SELECT ALLOW_ID, IP_PATTERN, DESCRIPTION, USE_YN, CREATED_AT, UPDATED_AT
                 FROM adm_ip_allowlist
                 WHERE IP_PATTERN = ?
-                """, request.ipPattern());
+                """, ipPattern);
     }
 
     public List<Map<String, Object>> findMfaStates() {
@@ -70,23 +69,26 @@ public class AdmSecurityOperationService extends com.cpf.admin.common.base.AdmBa
                     ORDER BY OPERATOR_ID
                     """);
         } catch (DataAccessException ex) {
-            log.debug("ADM MFA state query skipped. reason={}", ex.getMessage());
-            return List.of();
+            throw unavailable("adm_mfa_otp_secret.list", ex);
         }
     }
 
     public Map<String, Object> registerMfa(String operatorId, AdmMfaOtpRequest request) {
+        String secretRef = CpfStrings.requireText(request.secretRef(), "secretRef");
         String requestUser = CpfStrings.defaultIfBlank(request.requestUser(), "ADM");
-        admJdbcTemplate.update("""
-                INSERT INTO adm_mfa_otp_secret (OPERATOR_ID, SECRET_REF, ENABLED_YN, CREATED_BY, UPDATED_BY)
-                VALUES (?, ?, 'N', ?, ?)
-                ON DUPLICATE KEY UPDATE
-                    SECRET_REF = VALUES(SECRET_REF),
-                    ENABLED_YN = 'N',
-                    VERIFIED_AT = NULL,
-                    UPDATED_BY = VALUES(UPDATED_BY),
-                    UPDATED_AT = CURRENT_TIMESTAMP
-                """, operatorId, CpfStrings.requireText(request.secretRef(), "secretRef"), requestUser, requestUser);
+        if (updateMfaRegistration(operatorId, secretRef, requestUser) == 0) {
+            try {
+                admJdbcTemplate.update("""
+                        INSERT INTO adm_mfa_otp_secret (
+                            OPERATOR_ID, SECRET_REF, ENABLED_YN, CREATED_BY, UPDATED_BY
+                        ) VALUES (?, ?, 'N', ?, ?)
+                        """, operatorId, secretRef, requestUser, requestUser);
+            } catch (DuplicateKeyException concurrentInsert) {
+                if (updateMfaRegistration(operatorId, secretRef, requestUser) == 0) {
+                    throw concurrentInsert;
+                }
+            }
+        }
         return findMfaState(operatorId);
     }
 
@@ -120,5 +122,35 @@ public class AdmSecurityOperationService extends com.cpf.admin.common.base.AdmBa
                 FROM adm_mfa_otp_secret
                 WHERE OPERATOR_ID = ?
                 """, operatorId);
+    }
+
+    private int updateIpAllowlist(String ipPattern, String description, String useYn, String requestUser) {
+        return admJdbcTemplate.update("""
+                UPDATE adm_ip_allowlist
+                SET DESCRIPTION = ?,
+                    USE_YN = ?,
+                    UPDATED_BY = ?,
+                    UPDATED_AT = CURRENT_TIMESTAMP
+                WHERE IP_PATTERN = ?
+                """, description, useYn, requestUser, ipPattern);
+    }
+
+    private int updateMfaRegistration(String operatorId, String secretRef, String requestUser) {
+        return admJdbcTemplate.update("""
+                UPDATE adm_mfa_otp_secret
+                SET SECRET_REF = ?,
+                    ENABLED_YN = 'N',
+                    VERIFIED_AT = NULL,
+                    UPDATED_BY = ?,
+                    UPDATED_AT = CURRENT_TIMESTAMP
+                WHERE OPERATOR_ID = ?
+                """, secretRef, requestUser, operatorId);
+    }
+
+    private CpfBusinessException unavailable(String component, DataAccessException ex) {
+        return new CpfBusinessException(
+                CpfErrorCode.INFRASTRUCTURE_UNAVAILABLE,
+                "ADM 보안 운영 저장소를 사용할 수 없습니다.",
+                Map.of("0", component, "1", ex.getClass().getSimpleName()));
     }
 }

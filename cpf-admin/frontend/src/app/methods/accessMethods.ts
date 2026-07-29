@@ -1,3 +1,5 @@
+import { setAdmAccessToken } from "../../shared/cpfApi";
+
 export const accessMethods: Record<string, any> = {
   permission(menuId) {
         const found = this.authorizedMenus.find(menu => (menu.menuId || menu.id) === menuId);
@@ -24,8 +26,7 @@ export const accessMethods: Record<string, any> = {
         this.authorizedButtons = Array.isArray(data.buttonIds) ? data.buttonIds : [];
         this.buttonsLoaded = Array.isArray(data.buttonIds);
         this.permissionsLoaded = true;
-        sessionStorage.setItem("admAccessToken", this.token);
-        localStorage.removeItem("admAccessToken");
+        setAdmAccessToken(this.token);
         this.authMessage = "";
         if (this.passwordChangeRequired) {
           this.setMessage("비밀번호 변경이 필요합니다.");

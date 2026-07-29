@@ -2,8 +2,8 @@ package com.cpf.admin.opr.controller;
 
 import com.cpf.admin.opr.service.AdmAuditLogService;
 import com.cpf.admin.opr.service.AdmBreakGlassService;
-import com.cpf.core.common.execution.CpfOnlineTransaction;
-import com.cpf.core.common.logging.TransactionContext;
+import com.cpf.core.api.execution.CpfOnlineTransaction;
+import com.cpf.core.api.logging.CpfTransactionContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -35,5 +35,5 @@ public class AdmBreakGlassController extends com.cpf.admin.common.base.AdmBaseCo
 
     private static int number(Object value,int fallback){if(value instanceof Number n)return n.intValue();try{return value==null?fallback:Integer.parseInt(String.valueOf(value));}catch(Exception e){return fallback;}}
     private String operator(HttpServletRequest req){Object value=req.getAttribute("adm.operatorId");if(value instanceof String s&&!s.isBlank())return s;throw new IllegalStateException("ADM operator context가 필요합니다.");}
-    private void audit(HttpServletRequest req,String user,String action,String type,String id,String reason,Object after){audit.record(TransactionContext.getOrCreateTransactionId(),user,action,type,id,reason,"",String.valueOf(after),"break-glass 상태 변경",req.getRemoteAddr());}
+    private void audit(HttpServletRequest req,String user,String action,String type,String id,String reason,Object after){audit.record(CpfTransactionContext.transactionId(),user,action,type,id,reason,"",String.valueOf(after),"break-glass 상태 변경",req.getRemoteAddr());}
 }

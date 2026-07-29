@@ -1,6 +1,6 @@
 package com.cpf.reference.config;
 
-import com.cpf.core.common.database.CpfSqlResourceResolver;
+import com.cpf.core.api.database.CpfSqlResources;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionFactoryBean;
 import org.mybatis.spring.annotation.MapperScan;
@@ -35,7 +35,7 @@ public class ReferenceEducationMyBatisConfig {
         SqlSessionFactoryBean factoryBean = new SqlSessionFactoryBean();
         factoryBean.setDataSource(refDataSource);
         factoryBean.setConfigLocation(new ClassPathResource("mybatis/config/ref-mybatis-config.xml"));
-        factoryBean.setMapperLocations(CpfSqlResourceResolver.mapperResources(environment, "ref"));
+        factoryBean.setMapperLocations(CpfSqlResources.mapperResources(environment, "ref"));
         return factoryBean.getObject();
     }
 }

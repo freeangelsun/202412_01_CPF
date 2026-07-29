@@ -1,8 +1,8 @@
 package com.cpf.core.config;
 
 import com.cpf.core.common.exception.CpfGlobalExceptionHandler;
-import com.cpf.core.common.exception.CpfMessageResolver;
-import com.cpf.core.common.exception.CpfResponseCodeResolver;
+import com.cpf.core.api.error.CpfMessageResolver;
+import com.cpf.core.api.error.CpfResponseCodeResolver;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;

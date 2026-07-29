@@ -1,9 +1,13 @@
 package com.cpf.core.common.logging.policy;
 
+import com.cpf.core.api.logging.policy.CpfLogPolicyResolver;
+import com.cpf.core.api.logging.policy.LogPolicyDecision;
+import com.cpf.core.api.logging.policy.LogPolicyTargetType;
+
 /**
  * 온라인 거래와 배치 런타임이 공통으로 사용하는 로그 정책 조회 진입점입니다.
  */
-public class LogPolicyResolver {
+public class LogPolicyResolver implements CpfLogPolicyResolver {
 
     private final LogPolicyCache cache;
 

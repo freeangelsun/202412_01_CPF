@@ -8,6 +8,15 @@ param(
 $ErrorActionPreference = "Stop"
 $Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
 $Root = (Resolve-Path -LiteralPath $Root).Path
+$templateContractPath = Join-Path $Root "cpf-tools/generator/contracts/central-domain-template-contract.json"
+if (-not (Test-Path -LiteralPath $templateContractPath -PathType Leaf)) {
+    throw "Generated Domain 중앙 Template 계약이 없습니다: $templateContractPath"
+}
+$templateContract = Get-Content -LiteralPath $templateContractPath -Raw -Encoding UTF8 | ConvertFrom-Json
+$templateContractVersion = [string]$templateContract.contractVersion
+if ([string]::IsNullOrWhiteSpace($templateContractVersion)) {
+    throw "Generated Domain 중앙 Template 계약 version이 비어 있습니다: $templateContractPath"
+}
 
 function Normalize-DomainName([string] $Value) {
     $value = $Value.Trim().ToLowerInvariant()
@@ -22,7 +31,7 @@ function Read-Manifest([string] $Domain) {
             [string]$manifest.domainType -ne "GENERATED_DOMAIN" -or
             [string]$manifest.domainName -ne $Domain -or
             [string]$manifest.projectName -ne "cpf-$Domain" -or
-            [string]$manifest.templateContractVersion -ne "1.0") {
+            [string]$manifest.templateContractVersion -ne $templateContractVersion) {
         throw "Generated Domain manifest가 canonical metadata 계약과 다릅니다: $path"
     }
     $ownershipPath = Join-Path $Root "cpf-$Domain/manifest/generator-ownership.json"

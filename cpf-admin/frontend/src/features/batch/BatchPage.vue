@@ -75,7 +75,11 @@
             </table>
           </div>
         </div>
-        <pre class="detail">{{ pretty(batchResult) }}</pre>
+        <StructuredDetails
+          :value="batchResult"
+          title="배치 작업 응답 상세"
+          empty-text="배치 조회 또는 작업 결과가 없습니다."
+        />
         <div class="subsection">
           <div class="panel-title">
             <h3>Center-Cut 관제</h3>
@@ -157,7 +161,11 @@
               </tbody>
             </table>
           </div>
-          <pre class="detail">{{ pretty(centerCutResult) }}</pre>
+          <StructuredDetails
+            :value="centerCutResult"
+            title="Center-Cut 응답 상세"
+            empty-text="Center-Cut 조회 결과가 없습니다."
+          />
         </div>
       </section>
   </template>
@@ -165,9 +173,11 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import { admConsoleMixin } from "../../app/admConsoleMixin";
+import StructuredDetails from "../../components/StructuredDetails.vue";
 
 export default defineComponent({
   name: "BatchPage",
+  components: { StructuredDetails },
   mixins: [admConsoleMixin],
   data() {
     return {

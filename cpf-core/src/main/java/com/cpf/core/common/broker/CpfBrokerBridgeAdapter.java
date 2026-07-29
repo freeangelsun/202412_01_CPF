@@ -1,5 +1,9 @@
 package com.cpf.core.common.broker;
 
+import com.cpf.core.api.broker.CpfBrokerBridgeHandler;
+import com.cpf.core.api.broker.CpfBrokerBridgeMessage;
+import com.cpf.core.api.broker.CpfBrokerBridgePort;
+import com.cpf.core.api.broker.CpfBrokerBridgeResult;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.cpf.core.common.exception.CpfExternalServiceException;

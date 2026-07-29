@@ -13,7 +13,7 @@ import java.util.Map;
 
 /** BZA Versioned Approval Policy/Simulation/Participant API. */
 @RestController
-@RequestMapping("/api/bza/approval")
+@RequestMapping("/api/bza/approvals")
 @Tag(name = "BZA-Approval-Policy", description = "Versioned 정책, Target 해석, 위임, Snapshot 결재 API")
 public class BzaApprovalPolicyController extends com.cpf.bizadmin.common.base.BzaBaseController {
     private final BzaApprovalPolicyService service;
@@ -85,6 +85,26 @@ public class BzaApprovalPolicyController extends com.cpf.bizadmin.common.base.Bz
         return ResponseEntity.ok(service.submit(request, operatorId));
     }
 
+    @GetMapping("/submissions")
+    @CpfOnlineTransaction(id = "OBZAAP0114", name = "BzaApprovalSubmissionList")
+    @Operation(operationId = "bzaApprovalSubmissions", summary = "인증 사용자의 상신 문서 목록")
+    public ResponseEntity<List<Map<String,Object>>> submissions(
+            @RequestParam(required = false) String status,
+            @RequestParam(defaultValue = "100") int limit,
+            @RequestAttribute("bza.operatorId") String operatorId) {
+        return ResponseEntity.ok(service.findSubmissions(operatorId, status, limit));
+    }
+
+    @GetMapping("/inbox")
+    @CpfOnlineTransaction(id = "OBZAAP0115", name = "BzaApprovalInbox")
+    @Operation(operationId = "bzaApprovalInbox", summary = "인증 사용자의 결재 참여 문서 목록")
+    public ResponseEntity<List<Map<String,Object>>> inbox(
+            @RequestParam(required = false) String decisionStatus,
+            @RequestParam(defaultValue = "100") int limit,
+            @RequestAttribute("bza.operatorId") String operatorId) {
+        return ResponseEntity.ok(service.findInbox(operatorId, decisionStatus, limit));
+    }
+
     @GetMapping("/submissions/{approvalId}")
     @CpfOnlineTransaction(id = "OBZAAP0108", name = "BzaApprovalPolicyDetail")
     @Operation(operationId = "bzaApprovalSubmissionDetail", summary = "정책 기반 결재/참여자 상세")
@@ -92,7 +112,7 @@ public class BzaApprovalPolicyController extends com.cpf.bizadmin.common.base.Bz
         return ResponseEntity.ok(service.detail(approvalId));
     }
 
-    @PostMapping("/submissions/{approvalId}/decisions")
+    @PostMapping("/{approvalId}/decisions")
     @CpfOnlineTransaction(id = "OBZAAP0109", name = "BzaApprovalPolicyDecision")
     @Operation(operationId = "bzaApprovalParticipantDecision", summary = "결재 참여자 결정",
             description = "Snapshot 참여자만 결정할 수 있으며 ALL/ANY/N_OF_M, 순차/병렬, 멱등성, 낙관적 잠금을 적용합니다.")

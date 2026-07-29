@@ -1,6 +1,6 @@
 package com.cpf.reference.config;
 
-import com.cpf.core.common.database.CpfDataSourceResolver;
+import com.cpf.core.api.database.CpfDataSources;
 import org.springframework.boot.autoconfigure.batch.BatchDataSource;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -24,7 +24,7 @@ import javax.sql.DataSource;
 public class ReferenceDataSourceConfig {
     @Bean(name = "refDataSource")
     public DataSource refDataSource(Environment environment) throws NamingException {
-        return CpfDataSourceResolver.resolve(environment, "spring.datasource.ref");
+        return CpfDataSources.resolve(environment, "spring.datasource.ref");
     }
 
     @Bean(name = "refJdbcTemplate")
@@ -44,7 +44,7 @@ public class ReferenceDataSourceConfig {
             name = "local-runtime-enabled",
             havingValue = "true")
     public DataSource batDataSource(Environment environment) throws NamingException {
-        return CpfDataSourceResolver.resolve(environment, "spring.datasource.bat");
+        return CpfDataSources.resolve(environment, "spring.datasource.bat");
     }
 
     @Bean(name = "batTransactionManager")

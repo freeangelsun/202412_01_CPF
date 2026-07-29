@@ -558,9 +558,10 @@ try {
     $result.health.response = $health
 
     & (Join-Path $Root "cpf-tools/scripts/smoke-openapi.ps1") `
-        -AdmBaseUrl $AdmBaseUrl `
+        -Root $Root `
+        -Modules @("ADM") `
+        -BaseUrlOverrides @{ ADM = $AdmBaseUrl } `
         -ResultDir $LogDir `
-        -SkipMbr -SkipReference -SkipBza -SkipBat `
         -RequireRuntime
     if ($LASTEXITCODE -ne 0) {
         throw "ADM OpenAPI 런타임 검증에 실패했습니다."

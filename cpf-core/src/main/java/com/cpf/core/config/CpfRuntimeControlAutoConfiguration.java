@@ -5,7 +5,7 @@ import com.cpf.core.api.fixedlength.CpfFixedLengthLayoutRegistry;
 import com.cpf.core.common.runtimecontrol.applier.CpfFixedLayoutRuntimeApplier;
 import com.cpf.core.common.runtimecontrol.applier.CpfSchemaRegistryRuntimeApplier;
 import com.cpf.core.common.attachment.CpfAttachmentRuntimePolicy;
-import com.cpf.core.common.attachment.CpfAttachmentStoragePort;
+import com.cpf.core.api.attachment.CpfAttachmentStoragePort;
 import com.cpf.core.common.runtimecontrol.applier.CpfAttachmentPolicyRuntimeApplier;
 import com.cpf.core.common.runtimecontrol.applier.CpfDownloadPolicyRuntimeApplier;
 import com.cpf.core.common.filetransfer.CpfFileTransferRuntimeState;

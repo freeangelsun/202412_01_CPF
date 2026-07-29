@@ -75,7 +75,6 @@ CPF Architecture는 **Framework Foundation**, **Application / Domain Plane**, **
 | `cpf-biz-admin` | `BZA` | 업무 관리자, User·Role·Permission, 조직·직원, 결재, 알림과 업무 운영 |
 | `cpf-member` | `MBR` | Generator Golden Reference Instance로 관리되는 생성형 업무 Domain |
 | `cpf-<domain>` | 3자리 System Code | Generator로 생성하는 독립 업무 Domain |
-| `EXS` Domain | `EXS` | 외부 연계 업무가 필요할 때 다른 Domain과 같은 Golden Template로 생성 |
 
 ADM과 BZA는 일반 고객 Domain과 목적은 다르지만 Runtime Architecture에서는 같은 Application / Domain Plane에 위치합니다. ADM은 다른 Owner의 DB를 직접 수정하지 않고 Public Operations Contract를 통해 조회와 제어를 수행합니다.
 
@@ -259,7 +258,7 @@ Recovery와 Reprocessing은 별도 중앙 Module이 아닙니다.
 HTTP, Messaging, File, 전문과 Trace 같은 기술 기반은 Framework가 제공할 수 있지만 실제 기관·서비스별 업무 연계 책임은 해당 Owner Domain이 가집니다.
 
 ```text
-EXS 또는 연계 Owner Domain
+연계 Owner Domain
 → Request / Response Mapping
 → Business Validation
 → Timeout / Result Inquiry / Retry Policy
@@ -267,7 +266,6 @@ EXS 또는 연계 Owner Domain
 → External System
 ```
 
-`EXS`는 고정 Platform Module이 아니라 외부 연계 업무가 필요할 때 Generator로 생성하는 업무 Domain입니다.
 
 ---
 
@@ -430,7 +428,7 @@ Generator는 `DomainName`과 3자리 대문자 `SystemCode`를 입력받아 독�
 - 기존 사용자 수정 영역 침범 여부
 - Official Vendor Pack과 Golden Template Parity
 
-`cpf-member`는 Generator Golden Reference Instance입니다. ACC, EXS와 신규 고객 Domain도 같은 Template와 품질 기준을 사용합니다.
+`cpf-member`는 Generator Golden Reference Instance입니다. ACC와 신규 업무 Domain도 같은 Template와 품질 기준을 사용합니다.
 
 ---
 

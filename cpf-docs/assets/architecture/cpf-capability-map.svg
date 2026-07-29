@@ -1,74 +1,25 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="980" viewBox="0 0 1400 980" role="img" aria-labelledby="title desc">
-<title>CPF 기능 범위 지도</title>
-<desc>온라인 실행, 비동기와 메시징, 배치와 대량 처리, 운영과 감사, 보안과 권한, DB와 배포, 확장과 검증 영역을 한 화면에 보여줍니다.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" role="img" aria-labelledby="title desc">
+<title id="title">CPF Capability Map</title><desc id="desc">CPF 주요 기능을 영역별로 정리한 지도</desc>
 <defs>
-  <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0f172a" flood-opacity="0.12"/></filter>
+  <linearGradient id="hero" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#06142D"/><stop offset="0.55" stop-color="#0B2A55"/><stop offset="1" stop-color="#123D72"/></linearGradient>
+  <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#38BDF8"/><stop offset="0.5" stop-color="#2563EB"/><stop offset="1" stop-color="#7C3AED"/></linearGradient>
+  <linearGradient id="soft" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#EFF6FF"/><stop offset="1" stop-color="#F5F3FF"/></linearGradient>
+  <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#0F2746" flood-opacity="0.12"/></filter>
+  <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#64748B"/></marker>
+  <marker id="arrowBlue" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#2563EB"/></marker>
 </defs>
-<rect width="1400" height="980" fill="#ffffff"/>
-<rect x="30" y="30" width="1340" height="920" rx="28" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>
-<text x="700" y="88" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="36" font-weight="700" fill="#0f172a">CPF 기능 범위</text>
-<text x="700" y="125" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="18" fill="#475569">개발 · 실행 · 운영 · 복구 · 확장을 연결하는 주요 영역</text>
-
-<!-- row 1 -->
-<g filter="url(#shadow)">
-<rect x="80" y="180" width="380" height="205" rx="22" fill="#dbeafe" stroke="#60a5fa"/>
-<rect x="510" y="180" width="380" height="205" rx="22" fill="#dcfce7" stroke="#4ade80"/>
-<rect x="940" y="180" width="380" height="205" rx="22" fill="#fef3c7" stroke="#f59e0b"/>
-</g>
-<text x="270" y="225" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="26" font-weight="700" fill="#0f172a">온라인과 Service Call</text>
-<text x="270" y="265" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">표준 Header · 거래 식별자</text>
-<text x="270" y="298" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">Local / Remote 동일 Contract</text>
-<text x="270" y="331" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">Retry · Circuit · Idempotency</text>
-<text x="270" y="364" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">UNKNOWN_RESULT · Reconciliation</text>
-
-<text x="700" y="225" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="26" font-weight="700" fill="#0f172a">Batch와 대량 처리</text>
-<text x="700" y="265" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">Scheduler · Worker · Job 실행</text>
-<text x="700" y="298" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">Center-Cut · Partition · Lease</text>
-<text x="700" y="331" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">Checkpoint · Retry · DLQ</text>
-<text x="700" y="364" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">운영 조회 · Retention · Archive</text>
-
-<text x="1130" y="225" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="26" font-weight="700" fill="#0f172a">외부 연계와 비동기</text>
-<text x="1130" y="265" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">REST · Message · File · 전문</text>
-<text x="1130" y="298" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">Outbox · Inbox · DLQ</text>
-<text x="1130" y="331" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">Retry · Replay · Result Recovery</text>
-<text x="1130" y="364" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">Attachment · Scan 상태 · 보존</text>
-
-<!-- row 2 -->
-<g filter="url(#shadow)">
-<rect x="80" y="435" width="380" height="205" rx="22" fill="#fee2e2" stroke="#fb7185"/>
-<rect x="510" y="435" width="380" height="205" rx="22" fill="#ede9fe" stroke="#a78bfa"/>
-<rect x="940" y="435" width="380" height="205" rx="22" fill="#e0f2fe" stroke="#38bdf8"/>
-</g>
-<text x="270" y="480" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="26" font-weight="700" fill="#0f172a">운영과 감사</text>
-<text x="270" y="520" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">거래 조회 · Timeline · Log</text>
-<text x="270" y="553" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">Service Registry · Health</text>
-<text x="270" y="586" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">재처리 · 복구 · 운영 Command</text>
-<text x="270" y="619" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">Audit · Hash Chain · Evidence</text>
-
-<text x="700" y="480" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="26" font-weight="700" fill="#0f172a">보안과 권한</text>
-<text x="700" y="520" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">Authentication · RBAC</text>
-<text x="700" y="553" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">Role · Permission · Approval</text>
-<text x="700" y="586" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">Masking · Secret Reference</text>
-<text x="700" y="619" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">Delegation · Session · Audit</text>
-
-<text x="1130" y="480" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="26" font-weight="700" fill="#0f172a">DB와 변경 관리</text>
-<text x="1130" y="520" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">Canonical Source · Seed</text>
-<text x="1130" y="553" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">Migration · Upgrade · Rollback</text>
-<text x="1130" y="586" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">Backup · Restore · DR</text>
-<text x="1130" y="619" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">Code · Message · Config Metadata</text>
-
-<!-- row 3 -->
-<g filter="url(#shadow)">
-<rect x="180" y="695" width="440" height="185" rx="22" fill="#ecfccb" stroke="#84cc16"/>
-<rect x="780" y="695" width="440" height="185" rx="22" fill="#fae8ff" stroke="#d946ef"/>
-</g>
-<text x="400" y="742" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="26" font-weight="700" fill="#0f172a">업무 Domain 확장</text>
-<text x="400" y="782" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">DomainName + SystemCode</text>
-<text x="400" y="815" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">Generator · Public API · SPI</text>
-<text x="400" y="848" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">Module · DB · Test 표준 구조</text>
-
-<text x="1000" y="742" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="26" font-weight="700" fill="#0f172a">검증과 Evidence</text>
-<text x="1000" y="782" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">Source · API · SQL · Test</text>
-<text x="1000" y="815" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">Runtime · Browser · Multi-instance</text>
-<text x="1000" y="848" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">현재 Commit과 실행 근거 연결</text>
-</svg>
+<style>
+ text{font-family:'NanumSquare','Noto Sans CJK KR','Noto Sans KR','Malgun Gothic','Segoe UI',Arial,sans-serif; fill:#10243E;}
+ .title{font-size:40px;font-weight:800;letter-spacing:-1px}
+ .heroTitle{font-size:38px;font-weight:800;letter-spacing:-1px}
+ .subtitle{font-size:20px;font-weight:500;fill:#5B6B82}
+ .section{font-size:18px;font-weight:800;letter-spacing:.4px}
+ .label{font-size:17px;font-weight:700}
+ .module{font-size:15px;font-weight:800}
+ .small{font-size:14px;font-weight:500;fill:#5B6B82}
+ .tiny{font-size:12px;font-weight:500;fill:#5B6B82}
+ .mono{font-family:'SFMono-Regular',Consolas,'Liberation Mono',monospace;font-size:13px}
+ .box{fill:#fff;stroke:#C9D7EA;stroke-width:1.5}
+ .dash{stroke-dasharray:8 7}
+</style>
+<rect x="0" y="0" width="1440" height="900" rx="0" fill="#FFFFFF" stroke="none" stroke-width="0"/><text x="70" y="62" class="title" text-anchor="start">Capability Map</text><text x="70" y="94" class="subtitle" text-anchor="start">구조·실행·운영·변경 관리가 공통 Contract와 추적 기준으로 연결됩니다.</text><path d="M70 118 L1370 118" fill="none" stroke="#C9D7EA" stroke-width="1"/><rect x="70" y="155" width="410" height="205" rx="22" fill="#EFF6FF" stroke="#2563EB" stroke-width="1.5" filter="url(#shadow)"/><text x="94" y="193" class="section" text-anchor="start" style="fill:#2563EB">TRANSACTION &amp; SERVICE CALL</text><circle cx="100" cy="228" r="4" fill="#2563EB"/><text x="114" y="233" class="small" text-anchor="start">Standard Header / Transaction ID</text><circle cx="100" cy="258" r="4" fill="#2563EB"/><text x="114" y="263" class="small" text-anchor="start">Local·Remote Invocation</text><circle cx="100" cy="288" r="4" fill="#2563EB"/><text x="114" y="293" class="small" text-anchor="start">Timeout · Retry · Circuit · Failover</text><circle cx="100" cy="318" r="4" fill="#2563EB"/><text x="114" y="323" class="small" text-anchor="start">Idempotency · Unknown Result · Compensation</text><rect x="515" y="155" width="410" height="205" rx="22" fill="#ECFEFF" stroke="#06B6D4" stroke-width="1.5" filter="url(#shadow)"/><text x="539" y="193" class="section" text-anchor="start" style="fill:#06B6D4">ASYNC &amp; INTEGRATION</text><circle cx="545" cy="228" r="4" fill="#06B6D4"/><text x="559" y="233" class="small" text-anchor="start">Outbox · Inbox · DLQ</text><circle cx="545" cy="258" r="4" fill="#06B6D4"/><text x="559" y="263" class="small" text-anchor="start">At-least-once / Idempotent Consumer</text><circle cx="545" cy="288" r="4" fill="#06B6D4"/><text x="559" y="293" class="small" text-anchor="start">Messaging · File · Fixed-length Message</text><circle cx="545" cy="318" r="4" fill="#06B6D4"/><text x="559" y="323" class="small" text-anchor="start">External Integration owned by Domain</text><rect x="960" y="155" width="410" height="205" rx="22" fill="#F0FDF4" stroke="#22C55E" stroke-width="1.5" filter="url(#shadow)"/><text x="984" y="193" class="section" text-anchor="start" style="fill:#22C55E">BATCH &amp; MASS PROCESSING</text><circle cx="990" cy="228" r="4" fill="#22C55E"/><text x="1004" y="233" class="small" text-anchor="start">Control Server · Scheduler · Worker</text><circle cx="990" cy="258" r="4" fill="#22C55E"/><text x="1004" y="263" class="small" text-anchor="start">Center-Cut · Partition · Claim</text><circle cx="990" cy="288" r="4" fill="#22C55E"/><text x="1004" y="293" class="small" text-anchor="start">Lease · Fencing · Checkpoint</text><circle cx="990" cy="318" r="4" fill="#22C55E"/><text x="1004" y="323" class="small" text-anchor="start">Remote Host Agent · Restartability</text><rect x="70" y="390" width="410" height="205" rx="22" fill="#FFF1F2" stroke="#F43F5E" stroke-width="1.5" filter="url(#shadow)"/><text x="94" y="428" class="section" text-anchor="start" style="fill:#F43F5E">OPERATIONS &amp; OBSERVABILITY</text><circle cx="100" cy="463" r="4" fill="#F43F5E"/><text x="114" y="468" class="small" text-anchor="start">ADM Operation Console</text><circle cx="100" cy="493" r="4" fill="#F43F5E"/><text x="114" y="498" class="small" text-anchor="start">Service Registry · Health · Instance</text><circle cx="100" cy="523" r="4" fill="#F43F5E"/><text x="114" y="528" class="small" text-anchor="start">Trace · Timeline · File / DB Log</text><circle cx="100" cy="553" r="4" fill="#F43F5E"/><text x="114" y="558" class="small" text-anchor="start">Controlled Command · Approval · Audit</text><rect x="515" y="390" width="410" height="205" rx="22" fill="#F5F3FF" stroke="#7C3AED" stroke-width="1.5" filter="url(#shadow)"/><text x="539" y="428" class="section" text-anchor="start" style="fill:#7C3AED">SECURITY &amp; GOVERNANCE</text><circle cx="545" cy="463" r="4" fill="#7C3AED"/><text x="559" y="468" class="small" text-anchor="start">Authentication · Authorization</text><circle cx="545" cy="493" r="4" fill="#7C3AED"/><text x="559" y="498" class="small" text-anchor="start">Role · Permission · Tenant Context</text><circle cx="545" cy="523" r="4" fill="#7C3AED"/><text x="559" y="528" class="small" text-anchor="start">Secret Reference · Masking</text><circle cx="545" cy="553" r="4" fill="#7C3AED"/><text x="559" y="558" class="small" text-anchor="start">Retention · Legal Hold · Audit Hash Chain</text><rect x="960" y="390" width="410" height="205" rx="22" fill="#FFFBEB" stroke="#F59E0B" stroke-width="1.5" filter="url(#shadow)"/><text x="984" y="428" class="section" text-anchor="start" style="fill:#F59E0B">DELIVERY &amp; PRODUCT QUALITY</text><circle cx="990" cy="463" r="4" fill="#F59E0B"/><text x="1004" y="468" class="small" text-anchor="start">Generator · Golden Template</text><circle cx="990" cy="493" r="4" fill="#F59E0B"/><text x="1004" y="498" class="small" text-anchor="start">Oracle · PostgreSQL · MariaDB</text><circle cx="990" cy="523" r="4" fill="#F59E0B"/><text x="1004" y="528" class="small" text-anchor="start">Install · Migration · Upgrade · Rollback</text><circle cx="990" cy="553" r="4" fill="#F59E0B"/><text x="1004" y="558" class="small" text-anchor="start">Static Gate · Runtime Test · Evidence</text><rect x="70" y="635" width="1300" height="175" rx="24" fill="url(#hero)" stroke="none" stroke-width="0" filter="url(#shadow)"/><text x="105" y="675" class="section" text-anchor="start" style="fill:#7DD3FC">CROSS-CUTTING CONTRACTS</text><text x="105" y="708" class="subtitle" text-anchor="start" style="fill:#D7E8FF">Capability를 별도 사일로로 만들지 않고 실행 식별·오류·권한·감사·Evidence 기준을 공유합니다.</text><rect x="105" y="735" width="285" height="50" rx="14" fill="#0B2A55" stroke="#35679D" stroke-width="1"/><text x="119" y="757" class="label" text-anchor="start" style="fill:#FFFFFF">Identity</text><text x="119" y="779" class="tiny" text-anchor="start" style="fill:#BBD7FF">System · Instance · Transaction</text><rect x="410" y="735" width="285" height="50" rx="14" fill="#0B2A55" stroke="#35679D" stroke-width="1"/><text x="424" y="757" class="label" text-anchor="start" style="fill:#FFFFFF">Reliability</text><text x="424" y="779" class="tiny" text-anchor="start" style="fill:#BBD7FF">Idempotency · Retry · Reconciliation</text><rect x="715" y="735" width="285" height="50" rx="14" fill="#0B2A55" stroke="#35679D" stroke-width="1"/><text x="729" y="757" class="label" text-anchor="start" style="fill:#FFFFFF">Control</text><text x="729" y="779" class="tiny" text-anchor="start" style="fill:#BBD7FF">Permission · Reason · Approval</text><rect x="1020" y="735" width="285" height="50" rx="14" fill="#0B2A55" stroke="#35679D" stroke-width="1"/><text x="1034" y="757" class="label" text-anchor="start" style="fill:#FFFFFF">Traceability</text><text x="1034" y="779" class="tiny" text-anchor="start" style="fill:#BBD7FF">Log · Timeline · Audit · Evidence</text><text x="70" y="860" class="subtitle" text-anchor="start">Recovery와 Reprocessing은 독립 Module이 아니라 Transaction, Async, Integration, Batch와 ADM Control에 걸친 Capability입니다.</text></svg>

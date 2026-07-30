@@ -77,24 +77,31 @@ public class BatchRuntimeControlController extends AdmBaseController {
         try {
             return ResponseEntity.ok(Map.of("fetchedAt", Instant.now(), "stale", false, "partial", false,
                     "items", client.jobDefinitions(jobId, state, limit)));
-        } catch (RuntimeException failure) {
-            return ResponseEntity.status(503).body(Map.of("fetchedAt", Instant.now(), "stale", true, "partial", true,
-                    "items", List.of(), "errorCode", "BAT_CONTROL_UNREACHABLE"));
+        } catch (BatchControlClientException failure) {
+            Map<String,Object> body=new java.util.LinkedHashMap<>(errorBody(failure));body.put("fetchedAt",Instant.now());body.put("stale",true);body.put("partial",true);body.put("items",List.of());
+            return ResponseEntity.status(status(failure)).body(body);
         }
+    }
+
+    @GetMapping("/job-definitions/{jobId}/versions/{version}")
+    @Operation(operationId = "admBatchJobDefinitionDetail", summary = "Versioned Batch Job Definition 상세 조회")
+    ResponseEntity<Map<String,Object>> jobDefinitionDetail(@PathVariable String jobId,@PathVariable long version) {
+        try{return ResponseEntity.ok(client.jobDefinitionDetail(jobId,version));}
+        catch(BatchControlClientException failure){return error(failure);}
     }
 
     @PostMapping("/job-definitions/validate")
     @Operation(operationId = "admBatchJobDefinitionValidate", summary = "Batch Job Definition 검증")
     ResponseEntity<Map<String, Object>> validateJobDefinition(@RequestBody Map<String, Object> request) {
         try { return ResponseEntity.ok(client.validateJobDefinition(request)); }
-        catch (RuntimeException failure) { return ResponseEntity.status(503).body(Map.of("valid", false, "errors", List.of("BAT_CONTROL_UNREACHABLE"))); }
+        catch (BatchControlClientException failure) { Map<String,Object> body=new java.util.LinkedHashMap<>(errorBody(failure));body.put("valid",false);body.put("errors",List.of(failure.getMessage()));return ResponseEntity.status(status(failure)).body(body); }
     }
 
     @PostMapping("/job-definitions/drafts")
     @Operation(operationId = "admBatchJobDefinitionSave", summary = "Batch Job Definition Draft 저장")
     ResponseEntity<Map<String, Object>> saveJobDefinition(@RequestBody Map<String, Object> request) {
         try { return ResponseEntity.status(201).body(client.saveJobDefinition(request)); }
-        catch (RuntimeException failure) { return ResponseEntity.status(503).body(Map.of("state", "UNKNOWN_RESULT", "errorCode", "BAT_CONTROL_UNREACHABLE")); }
+        catch (BatchControlClientException failure) { return error(failure); }
     }
 
     @PostMapping("/job-definitions/{jobId}/versions/{version}/transition")
@@ -102,7 +109,7 @@ public class BatchRuntimeControlController extends AdmBaseController {
     ResponseEntity<Map<String, Object>> transitionJobDefinition(@PathVariable String jobId, @PathVariable long version,
                                                                  @RequestBody Map<String, Object> request) {
         try { return ResponseEntity.ok(client.transitionJobDefinition(jobId, version, request)); }
-        catch (RuntimeException failure) { return ResponseEntity.status(503).body(Map.of("state", "UNKNOWN_RESULT", "errorCode", "BAT_CONTROL_UNREACHABLE")); }
+        catch (BatchControlClientException failure) { return error(failure); }
     }
 
     @PostMapping("/deployment-plans")
@@ -115,4 +122,8 @@ public class BatchRuntimeControlController extends AdmBaseController {
                     "state", "UNKNOWN_RESULT", "errorCode", "BAT_CONTROL_UNREACHABLE"));
         }
     }
+
+    private ResponseEntity<Map<String,Object>> error(BatchControlClientException failure){return ResponseEntity.status(status(failure)).body(errorBody(failure));}
+    private int status(BatchControlClientException failure){return switch(failure.category()){case VALIDATION->400;case PERMISSION->403;case NOT_FOUND->404;case CONFLICT->409;case UNKNOWN_RESULT->502;case UNAVAILABLE->503;case OWNER_ERROR->500;};}
+    private Map<String,Object> errorBody(BatchControlClientException failure){Map<String,Object> body=new java.util.LinkedHashMap<>();body.put("state",failure.category()==BatchControlClientException.Category.UNKNOWN_RESULT?"UNKNOWN_RESULT":"FAILED");body.put("errorCode",failure.errorCode());body.put("message",failure.getMessage());if(failure.traceId()!=null)body.put("traceId",failure.traceId());return body;}
 }

@@ -1,11 +1,12 @@
 -- AUTO-GENERATED from cpf-tools/db/canonical/platform-schema.json
 -- vendor=mariadb
+-- schemaVersion=37
 -- DO NOT EDIT generated DDL directly.
 
 -- CPF_LOGICAL_DATABASE=cpfDB
 USE cpfDB;
 CREATE TABLE IF NOT EXISTS cpf_broker_dlq (
-    dlq_id BIGINT NOT NULL AUTO_INCREMENT COMMENT 'DLQ 내부 순번',
+    dlq_id BIGINT AUTO_INCREMENT NOT NULL COMMENT 'DLQ 내부 순번',
     message_id VARCHAR(120) NOT NULL COMMENT '메시지 ID',
     topic VARCHAR(160) NOT NULL COMMENT 'Broker topic 또는 queue',
     transaction_id CHAR(34) NULL COMMENT '전역 거래 ID',
@@ -26,7 +27,7 @@ CREATE TABLE IF NOT EXISTS cpf_broker_dlq (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF Broker DLQ';
 
 CREATE TABLE IF NOT EXISTS cpf_broker_inbox (
-    inbox_id BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Inbox 내부 순번',
+    inbox_id BIGINT AUTO_INCREMENT NOT NULL COMMENT 'Inbox 내부 순번',
     message_id VARCHAR(120) NOT NULL COMMENT '메시지 ID',
     idempotency_key VARCHAR(160) NULL COMMENT '중복 처리 키',
     inbox_status VARCHAR(30) NOT NULL DEFAULT 'RECEIVED' COMMENT 'Inbox 처리 상태',
@@ -44,7 +45,7 @@ CREATE TABLE IF NOT EXISTS cpf_broker_inbox (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF Broker Inbox';
 
 CREATE TABLE IF NOT EXISTS cpf_broker_outbox (
-    outbox_id BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Outbox 내부 순번',
+    outbox_id BIGINT AUTO_INCREMENT NOT NULL COMMENT 'Outbox 내부 순번',
     message_id VARCHAR(120) NOT NULL COMMENT '메시지 ID',
     topic VARCHAR(160) NOT NULL COMMENT 'Broker topic 또는 queue',
     message_key VARCHAR(200) NULL COMMENT 'Broker partition key',
@@ -90,11 +91,11 @@ CREATE TABLE IF NOT EXISTS cpf_cache_invalidation_checkpoint (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Cache 무효화 Consumer Checkpoint';
 
 CREATE TABLE IF NOT EXISTS cpf_cache_invalidation_event (
-    event_id BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Cache 무효화 Event 순번',
+    event_id BIGINT AUTO_INCREMENT NOT NULL COMMENT 'Cache 무효화 Event 순번',
     event_key VARCHAR(100) NOT NULL COMMENT '멱등 Event Key',
     tenant_id VARCHAR(80) NOT NULL COMMENT 'Tenant 식별자',
     namespace_cd VARCHAR(80) NOT NULL COMMENT 'Cache Namespace',
-    cache_key VARCHAR(512) NOT NULL DEFAULT '' COMMENT '단일 Cache Key, Namespace 전체는 빈 값',
+    cache_key VARCHAR(512) NULL COMMENT '단일 Cache Key, Namespace 전체는 빈 값',
     event_version BIGINT NOT NULL DEFAULT 0 COMMENT '발행 Version',
     reason VARCHAR(500) NOT NULL COMMENT '무효화 사유',
     requested_by VARCHAR(100) NOT NULL COMMENT '요청 운영자',
@@ -117,7 +118,7 @@ CREATE TABLE IF NOT EXISTS cpf_cache_refresh_checkpoint (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Cache durable replay consumer cursor';
 
 CREATE TABLE IF NOT EXISTS cpf_cache_refresh_event (
-    event_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '캐시 갱신 이벤트 순번',
+    event_id BIGINT AUTO_INCREMENT NOT NULL COMMENT '캐시 갱신 이벤트 순번',
     cache_name VARCHAR(50) NOT NULL COMMENT '캐시 이름',
     event_type VARCHAR(30) NOT NULL COMMENT '이벤트 유형',
     event_key VARCHAR(200) NULL COMMENT '이벤트 대상 키',
@@ -133,39 +134,8 @@ CREATE TABLE IF NOT EXISTS cpf_cache_refresh_event (
     INDEX ix_cpf_cache_refresh_event_time (published_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 캐시 갱신 DB fallback 이벤트';
 
-CREATE TABLE IF NOT EXISTS cpf_channel_execution_policy (
-    policy_key VARCHAR(100) NOT NULL COMMENT '채널 실행 정책 불변 키',
-    standard_execution_id VARCHAR(10) NOT NULL COMMENT '10자리 표준 실행 ID 또는 전체 실행 *',
-    original_channel_code VARCHAR(30) NOT NULL COMMENT '최초 채널 코드 또는 ANY',
-    caller_channel_code VARCHAR(30) NOT NULL COMMENT '현재 호출 채널 코드 또는 ANY',
-    request_type VARCHAR(30) NOT NULL DEFAULT '*' COMMENT '요청 유형 또는 전체 유형 *',
-    allowed_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '실행 허용 여부',
-    authentication_required_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '정책별 인증 필수 여부',
-    signature_required_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '정책별 요청 서명 필수 여부',
-    max_tps INT NOT NULL DEFAULT 0 COMMENT '0이면 제한하지 않는 최대 초당 요청 수',
-    effective_from DATETIME(3) NULL COMMENT '정책 적용 시작일시',
-    effective_to DATETIME(3) NULL COMMENT '정책 적용 종료일시',
-    active_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '정책 사용 여부',
-    policy_version BIGINT NOT NULL DEFAULT 0 COMMENT '마지막 적용 정책 버전',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    CONSTRAINT pk_cpf_channel_execution_policy PRIMARY KEY (policy_key),
-    CONSTRAINT ck_cpf_channel_execution_policy_execution CHECK (standard_execution_id = '*' OR standard_execution_id REGEXP '^[OSB][A-Z]{3}[A-Z0-9]{2}[0-9]{4}$'),
-    CONSTRAINT ck_cpf_channel_execution_policy_allowed CHECK (allowed_yn IN ('Y', 'N')),
-    CONSTRAINT ck_cpf_channel_execution_policy_auth CHECK (authentication_required_yn IN ('Y', 'N')),
-    CONSTRAINT ck_cpf_channel_execution_policy_signature CHECK (signature_required_yn IN ('Y', 'N')),
-    CONSTRAINT ck_cpf_channel_execution_policy_active CHECK (active_yn IN ('Y', 'N')),
-    CONSTRAINT ck_cpf_channel_execution_policy_period CHECK (effective_from IS NULL OR effective_to IS NULL OR effective_from <= effective_to),
-    CONSTRAINT fk_cpf_channel_execution_policy_original FOREIGN KEY (original_channel_code) REFERENCES cpf_channel_registry (channel_code),
-    CONSTRAINT fk_cpf_channel_execution_policy_caller FOREIGN KEY (caller_channel_code) REFERENCES cpf_channel_registry (channel_code),
-    INDEX ix_cpf_channel_execution_policy_lookup (standard_execution_id, original_channel_code, caller_channel_code, request_type, active_yn),
-    INDEX ix_cpf_channel_execution_policy_effective (active_yn, effective_from, effective_to)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 표준 실행별 최초·호출 채널 정책';
-
 CREATE TABLE IF NOT EXISTS cpf_channel_policy_version (
-    version_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '채널 정책 스냅샷 버전',
+    version_id BIGINT AUTO_INCREMENT NOT NULL COMMENT '채널 정책 스냅샷 버전',
     change_type VARCHAR(30) NOT NULL COMMENT 'CHANNEL 또는 EXECUTION_POLICY 변경 유형',
     target_key VARCHAR(100) NOT NULL COMMENT '변경 대상 채널 또는 정책 키',
     change_reason VARCHAR(500) NOT NULL COMMENT '운영 변경 사유',
@@ -204,8 +174,39 @@ CREATE TABLE IF NOT EXISTS cpf_channel_registry (
     INDEX ix_cpf_channel_registry_active (active_yn, channel_type)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 통합 채널 레지스트리';
 
+CREATE TABLE IF NOT EXISTS cpf_channel_execution_policy (
+    policy_key VARCHAR(100) NOT NULL COMMENT '채널 실행 정책 불변 키',
+    standard_execution_id VARCHAR(10) NOT NULL COMMENT '10자리 표준 실행 ID 또는 전체 실행 *',
+    original_channel_code VARCHAR(30) NOT NULL COMMENT '최초 채널 코드 또는 ANY',
+    caller_channel_code VARCHAR(30) NOT NULL COMMENT '현재 호출 채널 코드 또는 ANY',
+    request_type VARCHAR(30) NOT NULL DEFAULT '*' COMMENT '요청 유형 또는 전체 유형 *',
+    allowed_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '실행 허용 여부',
+    authentication_required_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '정책별 인증 필수 여부',
+    signature_required_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '정책별 요청 서명 필수 여부',
+    max_tps INT NOT NULL DEFAULT 0 COMMENT '0이면 제한하지 않는 최대 초당 요청 수',
+    effective_from DATETIME(3) NULL COMMENT '정책 적용 시작일시',
+    effective_to DATETIME(3) NULL COMMENT '정책 적용 종료일시',
+    active_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '정책 사용 여부',
+    policy_version BIGINT NOT NULL DEFAULT 0 COMMENT '마지막 적용 정책 버전',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_cpf_channel_execution_policy PRIMARY KEY (policy_key),
+    CONSTRAINT ck_cpf_channel_execution_policy_execution CHECK (standard_execution_id = '*' OR standard_execution_id REGEXP '^[OSB][A-Z]{3}[A-Z0-9]{2}[0-9]{4}$'),
+    CONSTRAINT ck_cpf_channel_execution_policy_allowed CHECK (allowed_yn IN ('Y', 'N')),
+    CONSTRAINT ck_cpf_channel_execution_policy_auth CHECK (authentication_required_yn IN ('Y', 'N')),
+    CONSTRAINT ck_cpf_channel_execution_policy_signature CHECK (signature_required_yn IN ('Y', 'N')),
+    CONSTRAINT ck_cpf_channel_execution_policy_active CHECK (active_yn IN ('Y', 'N')),
+    CONSTRAINT ck_cpf_channel_execution_policy_period CHECK (effective_from IS NULL OR effective_to IS NULL OR effective_from <= effective_to),
+    CONSTRAINT fk_cpf_channel_execution_policy_original FOREIGN KEY (original_channel_code) REFERENCES cpf_channel_registry (channel_code),
+    CONSTRAINT fk_cpf_channel_execution_policy_caller FOREIGN KEY (caller_channel_code) REFERENCES cpf_channel_registry (channel_code),
+    INDEX ix_cpf_channel_execution_policy_lookup (standard_execution_id, original_channel_code, caller_channel_code, request_type, active_yn),
+    INDEX ix_cpf_channel_execution_policy_effective (active_yn, effective_from, effective_to)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 표준 실행별 최초·호출 채널 정책';
+
 CREATE TABLE IF NOT EXISTS cpf_code (
-    code_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '코드 순번',
+    code_id BIGINT AUTO_INCREMENT NOT NULL COMMENT '코드 순번',
     parent_id BIGINT NULL COMMENT '상위 코드 순번',
     code_key VARCHAR(80) NOT NULL COMMENT '코드 그룹 키',
     code_value VARCHAR(120) NOT NULL COMMENT '코드 값',
@@ -223,7 +224,7 @@ CREATE TABLE IF NOT EXISTS cpf_code (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 시스템 공통 코드';
 
 CREATE TABLE IF NOT EXISTS cpf_config (
-    config_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '설정 순번',
+    config_id BIGINT AUTO_INCREMENT NOT NULL COMMENT '설정 순번',
     config_key VARCHAR(150) NOT NULL COMMENT '설정 키',
     config_value VARCHAR(2000) NOT NULL COMMENT '설정 값',
     config_type VARCHAR(30) NOT NULL DEFAULT 'STRING' COMMENT '설정 값 유형',
@@ -257,7 +258,7 @@ CREATE TABLE IF NOT EXISTS cpf_control_operation (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='운영 명령 operationId fingerprint 및 결과 복구 ledger';
 
 CREATE TABLE IF NOT EXISTS cpf_file_transfer_history (
-    history_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '파일 전송 이력 내부 순번',
+    history_id BIGINT AUTO_INCREMENT NOT NULL COMMENT '파일 전송 이력 내부 순번',
     transfer_id VARCHAR(260) NOT NULL COMMENT '파일 전송 ID',
     transaction_id CHAR(34) NULL COMMENT '전역 거래 ID',
     segment_id VARCHAR(120) NULL COMMENT '거래 구간 ID',
@@ -282,181 +283,36 @@ CREATE TABLE IF NOT EXISTS cpf_file_transfer_history (
     INDEX ix_cpf_file_transfer_status (transfer_status, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 파일 전송 이력';
 
-CREATE TABLE IF NOT EXISTS cpf_gateway_apply_status (
-    binding_id VARCHAR(100) NOT NULL COMMENT 'Binding ID',
-    gateway_instance_id VARCHAR(100) NOT NULL COMMENT 'Gateway Instance ID',
-    expected_version VARCHAR(100) NOT NULL COMMENT '기대 Version',
-    applied_version VARCHAR(100) NOT NULL DEFAULT '' COMMENT '적용 Version',
-    apply_status VARCHAR(30) NOT NULL COMMENT '적용 상태',
-    error_code VARCHAR(100) NOT NULL DEFAULT '' COMMENT '오류 코드',
-    error_message VARCHAR(1000) NOT NULL DEFAULT '' COMMENT '오류 메시지',
-    acknowledged_at DATETIME NULL COMMENT 'ACK 시각',
-    last_seen_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '마지막 상태 시각',
-    CONSTRAINT pk_cpf_gateway_apply_status PRIMARY KEY (binding_id, gateway_instance_id),
-    CONSTRAINT fk_cpf_gwy_apply_binding FOREIGN KEY (binding_id) REFERENCES cpf_gateway_binding (binding_id) ON DELETE CASCADE,
-    INDEX ix_cpf_gwy_apply_status (apply_status, last_seen_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Gateway Instance별 적용 ACK/Drift';
-
-CREATE TABLE IF NOT EXISTS cpf_gateway_attempt (
-    attempt_id VARCHAR(100) NOT NULL COMMENT 'Attempt ID',
-    gateway_transaction_id VARCHAR(100) NOT NULL COMMENT 'Gateway 거래 ID',
-    attempt_no INT NOT NULL COMMENT 'Attempt 순번',
-    instance_id VARCHAR(100) NOT NULL COMMENT 'Target Instance',
-    target_host VARCHAR(300) NOT NULL DEFAULT '' COMMENT 'Target Host',
-    target_port INT NULL COMMENT 'Target Port',
-    target_protocol VARCHAR(30) NOT NULL COMMENT 'Target Protocol',
-    connect_duration_ms BIGINT NOT NULL DEFAULT 0 COMMENT 'Connect 시간',
-    response_duration_ms BIGINT NOT NULL DEFAULT 0 COMMENT 'Response 시간',
-    attempt_status VARCHAR(30) NOT NULL COMMENT 'Attempt 상태',
-    protocol_status VARCHAR(30) NOT NULL DEFAULT '' COMMENT 'Protocol 상태',
-    failure_code VARCHAR(100) NOT NULL DEFAULT '' COMMENT '실패 코드',
-    failure_message VARCHAR(1000) NOT NULL DEFAULT '' COMMENT '실패 메시지',
-    started_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '시작 시각',
-    finished_at DATETIME NULL COMMENT '종료 시각',
-    CONSTRAINT pk_cpf_gateway_attempt PRIMARY KEY (attempt_id),
-    CONSTRAINT uk_cpf_gwy_attempt_no UNIQUE (gateway_transaction_id, attempt_no),
-    CONSTRAINT fk_cpf_gwy_attempt_tx FOREIGN KEY (gateway_transaction_id) REFERENCES cpf_gateway_transaction (gateway_transaction_id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Gateway Retry/Failover Attempt 원장';
-
-CREATE TABLE IF NOT EXISTS cpf_gateway_binding (
-    binding_id VARCHAR(100) NOT NULL COMMENT 'Binding ID',
-    route_id VARCHAR(100) NOT NULL COMMENT 'Route ID',
-    environment_code VARCHAR(50) NOT NULL COMMENT '환경 코드',
-    host_pattern VARCHAR(300) NOT NULL COMMENT 'Host Pattern',
-    path_pattern VARCHAR(500) NOT NULL COMMENT 'Path Pattern',
-    http_method VARCHAR(20) NOT NULL DEFAULT '*' COMMENT 'HTTP Method',
-    api_version VARCHAR(50) NOT NULL COMMENT 'API Version',
-    ingress_protocol VARCHAR(30) NOT NULL COMMENT 'Ingress Protocol',
-    target_protocol VARCHAR(30) NOT NULL COMMENT 'Target Protocol',
-    service_id VARCHAR(100) NOT NULL COMMENT '서비스 ID',
-    server_group_id VARCHAR(100) NOT NULL COMMENT '서버 그룹 ID',
-    route_version VARCHAR(100) NOT NULL COMMENT 'Route Version',
-    tls_policy_id VARCHAR(100) NOT NULL DEFAULT '' COMMENT 'TLS 정책',
-    authentication_policy_id VARCHAR(100) NOT NULL DEFAULT '' COMMENT '인증 정책',
-    authorization_policy_id VARCHAR(100) NOT NULL DEFAULT '' COMMENT '권한 정책',
-    header_policy_id VARCHAR(100) NOT NULL DEFAULT '' COMMENT 'Header 정책',
-    rate_limit_policy_id VARCHAR(100) NOT NULL DEFAULT '' COMMENT 'Rate Limit 정책',
-    health_policy_id VARCHAR(100) NOT NULL DEFAULT '' COMMENT 'Health 정책',
-    connect_timeout_ms INT NOT NULL COMMENT 'Connect Timeout',
-    response_timeout_ms INT NOT NULL COMMENT 'Response Timeout',
-    overall_timeout_ms INT NOT NULL COMMENT 'Overall Timeout',
-    max_retry_count INT NOT NULL DEFAULT 0 COMMENT '최대 재시도',
-    idempotent_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '멱등 여부',
-    failover_group_id VARCHAR(100) NOT NULL DEFAULT '' COMMENT 'Failover 그룹',
-    gateway_allowed_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT 'Gateway 공개 허용',
-    direct_allowed_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '직접 호출 허용',
-    binding_status VARCHAR(30) NOT NULL DEFAULT 'DRAFT' COMMENT 'Binding 상태',
-    approval_id VARCHAR(100) NOT NULL DEFAULT '' COMMENT '승인 ID',
-    effective_from DATETIME NULL COMMENT '시행 시작',
-    effective_to DATETIME NULL COMMENT '시행 종료',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    row_version BIGINT NOT NULL DEFAULT 1 COMMENT '낙관적 잠금 버전',
-    CONSTRAINT pk_cpf_gateway_binding PRIMARY KEY (binding_id),
-    CONSTRAINT uk_cpf_gwy_binding_key UNIQUE (environment_code, host_pattern, path_pattern, http_method, api_version, route_version),
-    CONSTRAINT ck_cpf_gwy_binding_gateway CHECK (gateway_allowed_yn IN ('Y','N')),
-    CONSTRAINT ck_cpf_gwy_binding_direct CHECK (direct_allowed_yn IN ('Y','N')),
-    CONSTRAINT ck_cpf_gwy_binding_idempotent CHECK (idempotent_yn IN ('Y','N')),
-    CONSTRAINT fk_cpf_gwy_binding_service FOREIGN KEY (service_id) REFERENCES cpf_service (service_id),
-    CONSTRAINT fk_cpf_gwy_binding_group FOREIGN KEY (server_group_id) REFERENCES cpf_gateway_server_group (server_group_id),
-    INDEX ix_cpf_gwy_binding_route (environment_code, route_id, binding_status)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Gateway Versioned Binding';
-
-CREATE TABLE IF NOT EXISTS cpf_gateway_connection_test (
-    test_id VARCHAR(100) NOT NULL COMMENT '시험 ID',
-    binding_id VARCHAR(100) NOT NULL COMMENT 'Binding ID',
-    gateway_instance_id VARCHAR(100) NOT NULL DEFAULT '' COMMENT 'Gateway Instance ID',
-    instance_id VARCHAR(100) NOT NULL DEFAULT '' COMMENT 'Target Instance ID',
-    test_type VARCHAR(50) NOT NULL COMMENT '시험 유형',
-    test_status VARCHAR(30) NOT NULL COMMENT '시험 상태',
-    failure_stage VARCHAR(50) NOT NULL DEFAULT '' COMMENT '실패 단계',
-    duration_ms BIGINT NOT NULL DEFAULT 0 COMMENT '소요시간',
-    trace_id VARCHAR(100) NOT NULL DEFAULT '' COMMENT 'Trace ID',
-    operation_id VARCHAR(100) NOT NULL DEFAULT '' COMMENT 'Operation ID',
-    tested_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '시험 시각',
-    tested_by VARCHAR(100) NOT NULL COMMENT '시험자',
-    CONSTRAINT pk_cpf_gateway_connection_test PRIMARY KEY (test_id),
-    CONSTRAINT fk_cpf_gwy_test_binding FOREIGN KEY (binding_id) REFERENCES cpf_gateway_binding (binding_id) ON DELETE CASCADE,
-    INDEX ix_cpf_gwy_test_binding (binding_id, tested_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Gateway 직접/E2E 연결시험 결과';
-
-CREATE TABLE IF NOT EXISTS cpf_gateway_server_group (
-    server_group_id VARCHAR(100) NOT NULL COMMENT '서버 그룹 ID',
-    group_name VARCHAR(200) NOT NULL COMMENT '서버 그룹명',
-    environment_code VARCHAR(50) NOT NULL COMMENT '환경 코드',
-    service_id VARCHAR(100) NOT NULL COMMENT '서비스 ID',
-    endpoint_code VARCHAR(100) NOT NULL COMMENT 'Endpoint 코드',
-    target_protocol VARCHAR(30) NOT NULL COMMENT 'Target Protocol',
-    load_balance_policy VARCHAR(50) NOT NULL COMMENT 'Load Balance 정책',
-    hash_key_source VARCHAR(200) NOT NULL DEFAULT '' COMMENT 'Hash Key Source',
-    health_policy_id VARCHAR(100) NOT NULL DEFAULT '' COMMENT 'Health 정책 ID',
-    failover_group_id VARCHAR(100) NOT NULL DEFAULT '' COMMENT 'Failover 그룹 ID',
-    group_status VARCHAR(30) NOT NULL DEFAULT 'DRAFT' COMMENT '그룹 상태',
-    direct_allowed_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '직접 호출 허용 여부',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    row_version BIGINT NOT NULL DEFAULT 1 COMMENT '낙관적 잠금 버전',
-    CONSTRAINT pk_cpf_gateway_server_group PRIMARY KEY (server_group_id),
-    CONSTRAINT ck_cpf_gwy_group_direct CHECK (direct_allowed_yn IN ('Y','N')),
-    CONSTRAINT fk_cpf_gwy_group_service FOREIGN KEY (service_id) REFERENCES cpf_service (service_id),
-    CONSTRAINT fk_cpf_gwy_group_endpoint FOREIGN KEY (endpoint_code) REFERENCES cpf_service_endpoint (endpoint_code),
-    INDEX ix_cpf_gwy_group_service (environment_code, service_id, group_status)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Gateway Server Group';
-
-CREATE TABLE IF NOT EXISTS cpf_gateway_server_group_member (
-    server_group_id VARCHAR(100) NOT NULL COMMENT '서버 그룹 ID',
-    instance_id VARCHAR(100) NOT NULL COMMENT 'Instance ID',
-    weight INT NOT NULL DEFAULT 1 COMMENT '가중치',
-    priority_no INT NOT NULL DEFAULT 0 COMMENT '우선순위',
-    enabled_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
-    effective_status VARCHAR(30) NOT NULL DEFAULT 'UNKNOWN' COMMENT '합성 Health 상태',
-    fencing_token BIGINT NOT NULL DEFAULT 0 COMMENT 'Fencing Token',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    CONSTRAINT pk_cpf_gateway_server_group_member PRIMARY KEY (server_group_id, instance_id),
-    CONSTRAINT ck_cpf_gwy_member_enabled CHECK (enabled_yn IN ('Y','N')),
-    CONSTRAINT fk_cpf_gwy_member_group FOREIGN KEY (server_group_id) REFERENCES cpf_gateway_server_group (server_group_id) ON DELETE CASCADE,
-    CONSTRAINT fk_cpf_gwy_member_instance FOREIGN KEY (instance_id) REFERENCES cpf_service_instance (instance_id),
-    INDEX ix_cpf_gwy_member_status (server_group_id, enabled_yn, effective_status, priority_no)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Gateway Server Group Member';
-
-CREATE TABLE IF NOT EXISTS cpf_gateway_transaction (
-    gateway_transaction_id VARCHAR(100) NOT NULL COMMENT 'Gateway 거래 ID',
-    transaction_id VARCHAR(100) NOT NULL COMMENT 'CPF 거래 ID',
-    trace_id VARCHAR(100) NOT NULL COMMENT 'Trace ID',
-    channel_id VARCHAR(100) NOT NULL DEFAULT '' COMMENT 'Channel ID',
-    source_ip VARCHAR(100) NOT NULL DEFAULT '' COMMENT 'Source IP',
-    source_port INT NULL COMMENT 'Source Port',
-    gateway_instance_id VARCHAR(100) NOT NULL COMMENT 'Gateway Instance',
-    binding_id VARCHAR(100) NOT NULL COMMENT 'Binding ID',
-    route_id VARCHAR(100) NOT NULL COMMENT 'Route ID',
-    route_version VARCHAR(100) NOT NULL COMMENT 'Route Version',
-    server_group_id VARCHAR(100) NOT NULL COMMENT 'Server Group',
-    final_instance_id VARCHAR(100) NOT NULL DEFAULT '' COMMENT '최종 Instance',
-    result_status VARCHAR(30) NOT NULL COMMENT '최종 상태',
-    protocol_status VARCHAR(30) NOT NULL DEFAULT '' COMMENT 'Protocol 상태',
-    business_code VARCHAR(100) NOT NULL DEFAULT '' COMMENT '업무 코드',
-    failure_stage VARCHAR(50) NOT NULL DEFAULT '' COMMENT '실패 단계',
-    unknown_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '결과 불명 여부',
-    total_duration_ms BIGINT NOT NULL DEFAULT 0 COMMENT '전체 소요시간',
-    request_size BIGINT NOT NULL DEFAULT 0 COMMENT '요청 크기',
-    response_size BIGINT NOT NULL DEFAULT 0 COMMENT '응답 크기',
+CREATE TABLE IF NOT EXISTS cpf_gateway_operation_idempotency (
+    operation_id VARCHAR(100) NOT NULL COMMENT 'Operation ID',
+    operation_type VARCHAR(50) NOT NULL COMMENT 'Operation 유형',
+    resource_id VARCHAR(100) NOT NULL COMMENT '대상 ID',
+    payload_hash VARCHAR(64) NOT NULL COMMENT 'Payload SHA-256',
+    result_status VARCHAR(30) NOT NULL COMMENT '처리 상태',
+    result_payload LONGTEXT NULL COMMENT '마스킹된 결과',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '생성 시각',
-    CONSTRAINT pk_cpf_gateway_transaction PRIMARY KEY (gateway_transaction_id),
-    CONSTRAINT ck_cpf_gwy_tx_unknown CHECK (unknown_yn IN ('Y','N')),
-    CONSTRAINT fk_cpf_gwy_tx_binding FOREIGN KEY (binding_id) REFERENCES cpf_gateway_binding (binding_id),
-    INDEX ix_cpf_gwy_tx_trace (transaction_id, trace_id, created_at),
-    INDEX ix_cpf_gwy_tx_route (route_id, result_status, created_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Gateway IN/GATEWAY/OUT/RESULT 거래 원장';
+    expires_at DATETIME NOT NULL COMMENT '멱등 보존 만료',
+    CONSTRAINT pk_cpf_gateway_operation_idempotency PRIMARY KEY (operation_id),
+    INDEX ix_cpf_gwy_operation_resource (operation_type, resource_id, created_at),
+    INDEX ix_cpf_gwy_operation_expiry (expires_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Gateway Command 멱등성 원장';
+
+CREATE TABLE IF NOT EXISTS cpf_gateway_spool_checkpoint (
+    gateway_instance_id VARCHAR(100) NOT NULL COMMENT 'Gateway Instance ID',
+    spool_name VARCHAR(100) NOT NULL COMMENT 'Spool 이름',
+    last_written_sequence BIGINT NOT NULL DEFAULT 0 COMMENT '마지막 기록 Sequence',
+    last_ingested_sequence BIGINT NOT NULL DEFAULT 0 COMMENT '마지막 적재 Sequence',
+    backlog_count BIGINT NOT NULL DEFAULT 0 COMMENT '적체 건수',
+    backlog_bytes BIGINT NOT NULL DEFAULT 0 COMMENT '적체 용량',
+    last_error_code VARCHAR(100) NULL COMMENT '마지막 오류',
+    last_error_at DATETIME NULL COMMENT '마지막 오류 시각',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '갱신 시각',
+    CONSTRAINT pk_cpf_gateway_spool_checkpoint PRIMARY KEY (gateway_instance_id, spool_name),
+    INDEX ix_cpf_gwy_spool_backlog (backlog_count, updated_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Gateway Durable Spool 관제 Checkpoint';
 
 CREATE TABLE IF NOT EXISTS cpf_idempotency_record (
-    idempotency_seq BIGINT NOT NULL AUTO_INCREMENT COMMENT '중복 처리 내부 순번',
+    idempotency_seq BIGINT AUTO_INCREMENT NOT NULL COMMENT '중복 처리 내부 순번',
     scope VARCHAR(40) NOT NULL COMMENT '중복 처리 적용 범위',
     idempotency_key VARCHAR(160) NOT NULL COMMENT '중복 처리 키',
     request_hash VARCHAR(128) NULL COMMENT '요청 본문 해시',
@@ -476,7 +332,7 @@ CREATE TABLE IF NOT EXISTS cpf_idempotency_record (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 중복 처리 기록';
 
 CREATE TABLE IF NOT EXISTS cpf_log_policy (
-    policy_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '로그 정책 순번',
+    policy_id BIGINT AUTO_INCREMENT NOT NULL COMMENT '로그 정책 순번',
     policy_key VARCHAR(120) NOT NULL COMMENT '로그 정책 키',
     policy_name VARCHAR(150) NOT NULL COMMENT '로그 정책명',
     target_type VARCHAR(30) NOT NULL COMMENT '정책 대상 유형',
@@ -484,10 +340,26 @@ CREATE TABLE IF NOT EXISTS cpf_log_policy (
     log_level VARCHAR(20) NOT NULL DEFAULT 'INFO' COMMENT '기본 로그 레벨',
     db_log_enabled_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT 'DB 로그 적재 여부',
     file_log_enabled_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '파일 로그 출력 여부',
+    policy_schema_version INT NOT NULL DEFAULT 2 COMMENT '로그 정책 Schema Version',
+    query_capture_mode VARCHAR(30) NOT NULL DEFAULT 'NONE' COMMENT 'Query Capture Mode',
+    request_header_capture_mode VARCHAR(30) NOT NULL DEFAULT 'ALLOWLIST' COMMENT '요청 Header Capture Mode',
+    response_header_capture_mode VARCHAR(30) NOT NULL DEFAULT 'ALLOWLIST' COMMENT '응답 Header Capture Mode',
+    request_body_capture_mode VARCHAR(30) NOT NULL DEFAULT 'NONE' COMMENT '요청 Body Capture Mode',
+    response_body_capture_mode VARCHAR(30) NOT NULL DEFAULT 'NONE' COMMENT '응답 Body Capture Mode',
+    error_stack_capture_mode VARCHAR(30) NOT NULL DEFAULT 'SUMMARY' COMMENT '오류 Stack Capture Mode',
+    query_allowlist VARCHAR(2000) NULL COMMENT 'Query 허용 목록',
+    header_allowlist VARCHAR(2000) NULL COMMENT 'Header 허용 목록',
+    field_allowlist VARCHAR(2000) NULL COMMENT 'Field 허용 목록',
+    max_query_bytes INT NOT NULL DEFAULT 4096 COMMENT 'Query 최대 Byte',
+    max_header_bytes INT NOT NULL DEFAULT 8192 COMMENT 'Header 최대 Byte',
+    max_request_body_bytes INT NOT NULL DEFAULT 65536 COMMENT '요청 Body 최대 Byte',
+    max_response_body_bytes INT NOT NULL DEFAULT 65536 COMMENT '응답 Body 최대 Byte',
+    max_stack_bytes INT NOT NULL DEFAULT 32768 COMMENT '오류 Stack 최대 Byte',
+    policy_checksum VARCHAR(64) NULL COMMENT '정책 SHA-256 Checksum',
     request_body_log_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '요청 본문 로그 여부',
     response_body_log_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '응답 본문 로그 여부',
     error_stack_log_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '오류 stack 로그 여부',
-    masking_policy_key VARCHAR(120) NULL COMMENT '마스킹 정책 키',
+    masking_policy_key VARCHAR(120) NOT NULL DEFAULT 'DEFAULT' COMMENT '마스킹 정책 키',
     retention_days INT NOT NULL DEFAULT 90 COMMENT '보존 일수',
     sampling_rate DECIMAL(5,2) NOT NULL DEFAULT 100.00 COMMENT '샘플링 비율',
     priority INT NOT NULL DEFAULT 100 COMMENT '정책 우선순위',
@@ -503,8 +375,53 @@ CREATE TABLE IF NOT EXISTS cpf_log_policy (
     INDEX ix_cpf_log_policy_active (active_yn, target_type, priority)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 로그 정책';
 
+CREATE TABLE IF NOT EXISTS cpf_log_policy_override (
+    override_id BIGINT AUTO_INCREMENT NOT NULL COMMENT '로그 정책 override 순번',
+    policy_id BIGINT NULL COMMENT '기본 로그 정책 순번',
+    target_type VARCHAR(30) NOT NULL COMMENT 'override 대상 유형',
+    target_id VARCHAR(150) NOT NULL COMMENT 'override 대상 ID',
+    override_reason VARCHAR(500) NOT NULL COMMENT 'override 사유',
+    log_level VARCHAR(20) NULL COMMENT '임시 로그 레벨',
+    db_log_enabled_yn CHAR(1) NULL COMMENT 'DB 로그 임시 적재 여부',
+    file_log_enabled_yn CHAR(1) NULL COMMENT '파일 로그 임시 출력 여부',
+    policy_schema_version INT NULL COMMENT '로그 정책 Schema Version',
+    query_capture_mode VARCHAR(30) NULL COMMENT 'Query Capture Mode',
+    request_header_capture_mode VARCHAR(30) NULL COMMENT '요청 Header Capture Mode',
+    response_header_capture_mode VARCHAR(30) NULL COMMENT '응답 Header Capture Mode',
+    request_body_capture_mode VARCHAR(30) NULL COMMENT '요청 Body Capture Mode',
+    response_body_capture_mode VARCHAR(30) NULL COMMENT '응답 Body Capture Mode',
+    error_stack_capture_mode VARCHAR(30) NULL COMMENT '오류 Stack Capture Mode',
+    query_allowlist VARCHAR(2000) NULL COMMENT 'Query 허용 목록',
+    header_allowlist VARCHAR(2000) NULL COMMENT 'Header 허용 목록',
+    field_allowlist VARCHAR(2000) NULL COMMENT 'Field 허용 목록',
+    max_query_bytes INT NULL COMMENT 'Query 최대 Byte',
+    max_header_bytes INT NULL COMMENT 'Header 최대 Byte',
+    max_request_body_bytes INT NULL COMMENT '요청 Body 최대 Byte',
+    max_response_body_bytes INT NULL COMMENT '응답 Body 최대 Byte',
+    max_stack_bytes INT NULL COMMENT '오류 Stack 최대 Byte',
+    policy_checksum VARCHAR(64) NULL COMMENT '정책 Checksum',
+    request_body_log_yn CHAR(1) NULL COMMENT '요청 본문 임시 로그 여부',
+    response_body_log_yn CHAR(1) NULL COMMENT '응답 본문 임시 로그 여부',
+    error_stack_log_yn CHAR(1) NULL COMMENT '오류 stack 임시 로그 여부',
+    masking_policy_key VARCHAR(120) NULL COMMENT '임시 마스킹 정책 키',
+    effective_start_at DATETIME(3) NOT NULL COMMENT '적용 시작일시',
+    effective_end_at DATETIME(3) NOT NULL COMMENT '적용 종료일시',
+    requested_by VARCHAR(100) NOT NULL COMMENT '요청자',
+    approved_by VARCHAR(100) NULL COMMENT '승인자',
+    active_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '활성 여부',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_cpf_log_policy_override PRIMARY KEY (override_id),
+    CONSTRAINT fk_cpf_log_policy_override_policy FOREIGN KEY (policy_id) REFERENCES cpf_log_policy (policy_id) ON DELETE SET NULL,
+    INDEX ix_cpf_log_policy_override_target (target_type, target_id, active_yn),
+    INDEX ix_cpf_log_policy_override_period (effective_start_at, effective_end_at, active_yn),
+    INDEX ix_cpf_log_policy_override_policy (policy_id, active_yn)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 로그 정책 임시 override';
+
 CREATE TABLE IF NOT EXISTS cpf_log_policy_audit (
-    audit_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '로그 정책 감사 순번',
+    audit_id BIGINT AUTO_INCREMENT NOT NULL COMMENT '로그 정책 감사 순번',
     policy_id BIGINT NULL COMMENT '로그 정책 순번',
     override_id BIGINT NULL COMMENT '로그 정책 override 순번',
     action_type VARCHAR(30) NOT NULL COMMENT '감사 행위 유형',
@@ -528,37 +445,8 @@ CREATE TABLE IF NOT EXISTS cpf_log_policy_audit (
     INDEX ix_cpf_log_policy_audit_policy (policy_id, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 로그 정책 감사 로그';
 
-CREATE TABLE IF NOT EXISTS cpf_log_policy_override (
-    override_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '로그 정책 override 순번',
-    policy_id BIGINT NULL COMMENT '기본 로그 정책 순번',
-    target_type VARCHAR(30) NOT NULL COMMENT 'override 대상 유형',
-    target_id VARCHAR(150) NOT NULL COMMENT 'override 대상 ID',
-    override_reason VARCHAR(500) NOT NULL COMMENT 'override 사유',
-    log_level VARCHAR(20) NULL COMMENT '임시 로그 레벨',
-    db_log_enabled_yn CHAR(1) NULL COMMENT 'DB 로그 임시 적재 여부',
-    file_log_enabled_yn CHAR(1) NULL COMMENT '파일 로그 임시 출력 여부',
-    request_body_log_yn CHAR(1) NULL COMMENT '요청 본문 임시 로그 여부',
-    response_body_log_yn CHAR(1) NULL COMMENT '응답 본문 임시 로그 여부',
-    error_stack_log_yn CHAR(1) NULL COMMENT '오류 stack 임시 로그 여부',
-    masking_policy_key VARCHAR(120) NULL COMMENT '임시 마스킹 정책 키',
-    effective_start_at DATETIME(3) NOT NULL COMMENT '적용 시작일시',
-    effective_end_at DATETIME(3) NOT NULL COMMENT '적용 종료일시',
-    requested_by VARCHAR(100) NOT NULL COMMENT '요청자',
-    approved_by VARCHAR(100) NULL COMMENT '승인자',
-    active_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '활성 여부',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    CONSTRAINT pk_cpf_log_policy_override PRIMARY KEY (override_id),
-    CONSTRAINT fk_cpf_log_policy_override_policy FOREIGN KEY (policy_id) REFERENCES cpf_log_policy (policy_id) ON DELETE SET NULL,
-    INDEX ix_cpf_log_policy_override_target (target_type, target_id, active_yn),
-    INDEX ix_cpf_log_policy_override_period (effective_start_at, effective_end_at, active_yn),
-    INDEX ix_cpf_log_policy_override_policy (policy_id, active_yn)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 로그 정책 임시 override';
-
 CREATE TABLE IF NOT EXISTS cpf_message (
-    message_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '메시지 순번',
+    message_id BIGINT AUTO_INCREMENT NOT NULL COMMENT '메시지 순번',
     message_code VARCHAR(20) NOT NULL COMMENT '메시지 코드',
     locale VARCHAR(10) NOT NULL DEFAULT 'ko' COMMENT '언어 코드',
     message_format_type VARCHAR(20) NOT NULL DEFAULT 'FIXED' COMMENT '메시지 포맷 유형',
@@ -578,27 +466,26 @@ CREATE TABLE IF NOT EXISTS cpf_message (
     INDEX ix_cpf_message_use (use_yn)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 시스템 메시지';
 
-CREATE TABLE IF NOT EXISTS cpf_notification_delivery_attempt (
-    delivery_id BIGINT NOT NULL COMMENT '알림 발송 ID',
-    attempt_no INT NOT NULL COMMENT 'Provider 호출 시도 순번',
-    operation_id VARCHAR(100) NOT NULL COMMENT '멱등 작업 ID',
-    worker_id VARCHAR(100) NOT NULL COMMENT '호출 소유 Worker',
-    attempt_status VARCHAR(30) NOT NULL COMMENT 'Attempt 처리 상태',
-    provider_status VARCHAR(80) NULL COMMENT 'Provider 결과 코드',
-    provider_message VARCHAR(2000) NULL COMMENT '민감정보 제거 Provider 결과',
-    started_at DATETIME(3) NOT NULL COMMENT 'Provider 호출 시작 일시',
-    completed_at DATETIME(3) NULL COMMENT 'Provider 결과 확정 일시',
-    lease_version BIGINT NOT NULL COMMENT 'Claim 시점 CAS Version',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '기록 주체',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '기록 일시',
-    CONSTRAINT pk_cpf_notification_delivery_attempt PRIMARY KEY (delivery_id, attempt_no),
-    CONSTRAINT fk_cpf_notification_attempt_delivery FOREIGN KEY (delivery_id) REFERENCES cpf_notification_delivery_log (delivery_id) ON DELETE CASCADE,
-    INDEX ix_cpf_notification_attempt_operation (operation_id, attempt_no),
-    INDEX ix_cpf_notification_attempt_status (attempt_status, started_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Durable Notification Provider 호출 Attempt 불변 이력';
+CREATE TABLE IF NOT EXISTS cpf_notification_rule (
+    rule_id BIGINT AUTO_INCREMENT NOT NULL COMMENT '알림 규칙 순번',
+    event_type VARCHAR(80) NOT NULL COMMENT '알림 이벤트 유형',
+    event_sub_type VARCHAR(80) NULL COMMENT '알림 이벤트 세부 유형',
+    channel_code VARCHAR(30) NOT NULL DEFAULT 'ADM' COMMENT '알림 채널 코드',
+    template_code VARCHAR(80) NULL COMMENT '알림 템플릿 코드',
+    severity VARCHAR(20) NOT NULL DEFAULT 'INFO' COMMENT '알림 심각도',
+    receiver_group VARCHAR(100) NULL COMMENT '수신자 그룹',
+    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_cpf_notification_rule PRIMARY KEY (rule_id),
+    CONSTRAINT uk_cpf_notification_rule UNIQUE (event_type, event_sub_type, channel_code),
+    INDEX ix_cpf_notification_rule_use (use_yn, severity)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 운영 알림 규칙';
 
 CREATE TABLE IF NOT EXISTS cpf_notification_delivery_log (
-    delivery_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '알림 발송 로그 순번',
+    delivery_id BIGINT AUTO_INCREMENT NOT NULL COMMENT '알림 발송 로그 순번',
     rule_id BIGINT NULL COMMENT '알림 규칙 순번',
     event_type VARCHAR(80) NOT NULL COMMENT '알림 이벤트 유형',
     target_type VARCHAR(80) NULL COMMENT '알림 대상 유형',
@@ -630,23 +517,24 @@ CREATE TABLE IF NOT EXISTS cpf_notification_delivery_log (
     INDEX ix_cpf_notification_delivery_due (delivery_status, next_attempt_at, lease_until)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 운영 알림 발송 로그';
 
-CREATE TABLE IF NOT EXISTS cpf_notification_rule (
-    rule_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '알림 규칙 순번',
-    event_type VARCHAR(80) NOT NULL COMMENT '알림 이벤트 유형',
-    event_sub_type VARCHAR(80) NULL COMMENT '알림 이벤트 세부 유형',
-    channel_code VARCHAR(30) NOT NULL DEFAULT 'ADM' COMMENT '알림 채널 코드',
-    template_code VARCHAR(80) NULL COMMENT '알림 템플릿 코드',
-    severity VARCHAR(20) NOT NULL DEFAULT 'INFO' COMMENT '알림 심각도',
-    receiver_group VARCHAR(100) NULL COMMENT '수신자 그룹',
-    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    CONSTRAINT pk_cpf_notification_rule PRIMARY KEY (rule_id),
-    CONSTRAINT uk_cpf_notification_rule UNIQUE (event_type, event_sub_type, channel_code),
-    INDEX ix_cpf_notification_rule_use (use_yn, severity)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 운영 알림 규칙';
+CREATE TABLE IF NOT EXISTS cpf_notification_delivery_attempt (
+    delivery_id BIGINT NOT NULL COMMENT '알림 발송 ID',
+    attempt_no INT NOT NULL COMMENT 'Provider 호출 시도 순번',
+    operation_id VARCHAR(100) NOT NULL COMMENT '멱등 작업 ID',
+    worker_id VARCHAR(100) NOT NULL COMMENT '호출 소유 Worker',
+    attempt_status VARCHAR(30) NOT NULL COMMENT 'Attempt 처리 상태',
+    provider_status VARCHAR(80) NULL COMMENT 'Provider 결과 코드',
+    provider_message VARCHAR(2000) NULL COMMENT '민감정보 제거 Provider 결과',
+    started_at DATETIME(3) NOT NULL COMMENT 'Provider 호출 시작 일시',
+    completed_at DATETIME(3) NULL COMMENT 'Provider 결과 확정 일시',
+    lease_version BIGINT NOT NULL COMMENT 'Claim 시점 CAS Version',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '기록 주체',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '기록 일시',
+    CONSTRAINT pk_cpf_notification_delivery_attempt PRIMARY KEY (delivery_id, attempt_no),
+    CONSTRAINT fk_cpf_notification_attempt_delivery FOREIGN KEY (delivery_id) REFERENCES cpf_notification_delivery_log (delivery_id) ON DELETE CASCADE,
+    INDEX ix_cpf_notification_attempt_operation (operation_id, attempt_no),
+    INDEX ix_cpf_notification_attempt_status (attempt_status, started_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Durable Notification Provider 호출 Attempt 불변 이력';
 
 CREATE TABLE IF NOT EXISTS cpf_response_code (
     response_code VARCHAR(20) NOT NULL COMMENT 'CPF 응답 코드',
@@ -700,7 +588,7 @@ CREATE TABLE IF NOT EXISTS cpf_runtime_change (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Runtime 변경 immutable target snapshot/desired state';
 
 CREATE TABLE IF NOT EXISTS cpf_runtime_change_audit (
-    audit_id BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Audit event identifier',
+    audit_id BIGINT AUTO_INCREMENT NOT NULL COMMENT 'Audit event identifier',
     change_id VARCHAR(80) NOT NULL COMMENT 'Runtime change identifier',
     event_type VARCHAR(60) NOT NULL COMMENT 'Audit event type',
     actor_id VARCHAR(100) NOT NULL COMMENT 'Actor identifier',
@@ -729,68 +617,6 @@ CREATE TABLE IF NOT EXISTS cpf_runtime_controller_lease (
     INDEX ix_cpf_runtime_controller_lease_until (lease_until)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Runtime Control Plane controller leader lease/fencing';
 
-CREATE TABLE IF NOT EXISTS cpf_runtime_delivery (
-    delivery_id VARCHAR(80) NOT NULL COMMENT 'Runtime delivery identifier',
-    change_id VARCHAR(80) NOT NULL COMMENT 'Runtime change identifier',
-    instance_id VARCHAR(120) NOT NULL COMMENT 'Runtime instance identifier',
-    sequence_no INT NOT NULL COMMENT 'Delivery sequence number',
-    desired_version BIGINT NOT NULL COMMENT 'Desired state version',
-    delivery_state VARCHAR(30) NOT NULL DEFAULT 'PENDING' COMMENT 'Runtime delivery lifecycle state',
-    attempt_no INT NOT NULL DEFAULT 0 COMMENT 'Delivery attempt number',
-    next_attempt_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Next delivery attempt time',
-    fencing_token BIGINT NULL COMMENT 'Monotonic fencing token',
-    claimed_at DATETIME(3) NULL COMMENT 'Delivery claim time',
-    acknowledged_at DATETIME(3) NULL COMMENT 'Delivery acknowledgment time',
-    actual_hash VARCHAR(64) NULL COMMENT 'Applied state checksum',
-    error_code VARCHAR(80) NULL COMMENT 'Failure code',
-    error_message VARCHAR(900) NULL COMMENT 'Masked failure message',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT 'Creator identifier',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Creation time',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT 'Last updater identifier',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Last update time',
-    CONSTRAINT pk_cpf_runtime_delivery PRIMARY KEY (delivery_id),
-    CONSTRAINT ck_cpf_runtime_delivery_state CHECK (delivery_state IN ('PENDING','CLAIMED','ACKED','FAILED','POISONED','UNKNOWN_RESULT','RESTART_REQUIRED','CANCELLED','EXPIRED','SUPERSEDED')),
-    CONSTRAINT fk_cpf_runtime_delivery_change FOREIGN KEY (change_id) REFERENCES cpf_runtime_change (change_id) ON DELETE CASCADE,
-    CONSTRAINT fk_cpf_runtime_delivery_instance FOREIGN KEY (instance_id) REFERENCES cpf_service_instance (instance_id) ON DELETE CASCADE,
-    INDEX ix_cpf_runtime_delivery_claim (instance_id, delivery_state, next_attempt_at, sequence_no),
-    INDEX ix_cpf_runtime_delivery_change (change_id, delivery_state)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Runtime durable per-instance delivery inbox';
-
-CREATE TABLE IF NOT EXISTS cpf_runtime_group_member (
-    group_id VARCHAR(80) NOT NULL COMMENT 'Runtime instance group identifier',
-    instance_id VARCHAR(120) NOT NULL COMMENT 'Runtime instance identifier',
-    active_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT 'Active flag',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT 'Creator identifier',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Creation time',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT 'Last updater identifier',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Last update time',
-    CONSTRAINT pk_cpf_runtime_group_member PRIMARY KEY (group_id, instance_id),
-    CONSTRAINT ck_cpf_runtime_group_member_active CHECK (active_yn IN ('Y','N')),
-    CONSTRAINT fk_cpf_runtime_group_member_group FOREIGN KEY (group_id) REFERENCES cpf_runtime_instance_group (group_id) ON DELETE CASCADE,
-    CONSTRAINT fk_cpf_runtime_group_member_instance FOREIGN KEY (instance_id) REFERENCES cpf_service_instance (instance_id) ON DELETE CASCADE,
-    INDEX ix_cpf_runtime_group_member_instance (instance_id, active_yn)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Runtime Instance Group membership';
-
-CREATE TABLE IF NOT EXISTS cpf_runtime_instance_feature_state (
-    instance_id VARCHAR(120) NOT NULL COMMENT 'Runtime instance identifier',
-    change_type VARCHAR(80) NOT NULL COMMENT 'Runtime change type',
-    desired_version BIGINT NOT NULL DEFAULT 0 COMMENT 'Desired state version',
-    actual_version BIGINT NOT NULL DEFAULT 0 COMMENT 'Applied state version',
-    desired_hash VARCHAR(64) NULL COMMENT 'Desired state checksum',
-    actual_hash VARCHAR(64) NULL COMMENT 'Applied state checksum',
-    drift_state VARCHAR(30) NOT NULL DEFAULT 'UNKNOWN' COMMENT 'Desired and actual state drift',
-    source_delivery_id VARCHAR(80) NULL COMMENT 'Source delivery identifier',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT 'Creator identifier',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Creation time',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT 'Last updater identifier',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Last update time',
-    CONSTRAINT pk_cpf_runtime_instance_feature_state PRIMARY KEY (instance_id, change_type),
-    CONSTRAINT ck_cpf_runtime_feature_drift CHECK (drift_state IN ('IN_SYNC','PENDING','DRIFT','UNKNOWN','UNKNOWN_RESULT','PENDING_RESTART','EXCLUDED')),
-    CONSTRAINT fk_cpf_runtime_feature_instance FOREIGN KEY (instance_id) REFERENCES cpf_service_instance (instance_id) ON DELETE CASCADE,
-    INDEX ix_cpf_runtime_feature_drift (drift_state, change_type),
-    INDEX ix_cpf_runtime_feature_delivery (source_delivery_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Runtime Instance 기능별 desired/actual/drift 상태';
-
 CREATE TABLE IF NOT EXISTS cpf_runtime_instance_group (
     group_id VARCHAR(80) NOT NULL COMMENT '인스턴스 그룹 ID',
     group_name VARCHAR(150) NOT NULL COMMENT '그룹명',
@@ -809,58 +635,6 @@ CREATE TABLE IF NOT EXISTS cpf_runtime_instance_group (
     INDEX ix_cpf_runtime_group_parent (parent_group_id, active_yn),
     INDEX ix_cpf_runtime_group_env (environment_code, active_yn)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Runtime Instance Group/Cell/Zone logical group';
-
-CREATE TABLE IF NOT EXISTS cpf_runtime_instance_state (
-    instance_id VARCHAR(120) NOT NULL COMMENT 'Runtime instance identifier',
-    fencing_token BIGINT NOT NULL DEFAULT 0 COMMENT 'Monotonic fencing token',
-    lease_until DATETIME(3) NULL COMMENT 'Lease expiry time',
-    desired_version BIGINT NOT NULL DEFAULT 0 COMMENT 'Desired state version',
-    actual_version BIGINT NOT NULL DEFAULT 0 COMMENT 'Applied state version',
-    desired_hash VARCHAR(64) NULL COMMENT 'Desired state checksum',
-    actual_hash VARCHAR(64) NULL COMMENT 'Applied state checksum',
-    drift_state VARCHAR(30) NOT NULL DEFAULT 'IN_SYNC' COMMENT 'Desired and actual state drift',
-    capabilities_json LONGTEXT NULL COMMENT 'Runtime capabilities JSON',
-    labels_json LONGTEXT NULL COMMENT 'Runtime labels JSON',
-    artifact_version VARCHAR(100) NULL COMMENT 'Runtime artifact version',
-    artifact_commit VARCHAR(64) NULL COMMENT '실행 Artifact 기준 Commit',
-    runtime_role VARCHAR(40) NULL COMMENT 'APPLICATION/GATEWAY/BATCH/AGENT 등 Runtime 역할',
-    registration_source VARCHAR(120) NULL COMMENT '배포/Discovery/Self registration identity source',
-    schema_version VARCHAR(100) NULL COMMENT 'Runtime schema version',
-    config_hash VARCHAR(64) NULL COMMENT 'Runtime configuration checksum',
-    clock_skew_ms BIGINT NOT NULL DEFAULT 0 COMMENT 'Agent-Controller clock skew milliseconds',
-    last_ack_change_id VARCHAR(80) NULL COMMENT 'Last acknowledged change identifier',
-    last_ack_at DATETIME(3) NULL COMMENT 'Last acknowledgment time',
-    heartbeat_at DATETIME(3) NULL COMMENT 'Last heartbeat time',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT 'Creator identifier',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Creation time',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT 'Last updater identifier',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Last update time',
-    CONSTRAINT pk_cpf_runtime_instance_state PRIMARY KEY (instance_id),
-    CONSTRAINT ck_cpf_runtime_instance_drift CHECK (drift_state IN ('IN_SYNC','PENDING','DRIFT','UNKNOWN','UNKNOWN_RESULT','PENDING_RESTART','EXCLUDED')),
-    CONSTRAINT fk_cpf_runtime_instance_state_instance FOREIGN KEY (instance_id) REFERENCES cpf_service_instance (instance_id) ON DELETE CASCADE,
-    INDEX ix_cpf_runtime_instance_lease (lease_until),
-    INDEX ix_cpf_runtime_instance_drift (drift_state, heartbeat_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Runtime desired/actual/lease/fencing 상태';
-
-CREATE TABLE IF NOT EXISTS cpf_runtime_policy_delivery (
-    event_id VARCHAR(64) NOT NULL COMMENT '정책 이벤트 ID',
-    consumer_id VARCHAR(100) NOT NULL COMMENT 'Runtime Instance ID',
-    delivery_status VARCHAR(30) NOT NULL DEFAULT 'PENDING' COMMENT '전달 상태',
-    attempt_count INT NOT NULL DEFAULT 0 COMMENT '전달 시도 횟수',
-    fencing_token BIGINT NOT NULL DEFAULT 0 COMMENT 'Claim Fencing Token',
-    leased_until DATETIME(3) NULL COMMENT 'Claim 만료시각',
-    error_code VARCHAR(100) NULL COMMENT '적용 오류 코드',
-    error_message VARCHAR(1000) NULL COMMENT '민감정보 제거 오류 메시지',
-    acknowledged_at DATETIME(3) NULL COMMENT 'ACK 시각',
-    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
-    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
-    CONSTRAINT pk_cpf_runtime_policy_delivery PRIMARY KEY (event_id, consumer_id),
-    CONSTRAINT ck_cpf_runtime_policy_delivery_status CHECK (delivery_status IN ('PENDING', 'CLAIMED', 'APPLIED', 'FAILED', 'IGNORED')),
-    CONSTRAINT ck_cpf_runtime_policy_delivery_attempt CHECK (attempt_count >= 0),
-    CONSTRAINT ck_cpf_runtime_policy_delivery_fencing CHECK (fencing_token >= 0),
-    CONSTRAINT fk_cpf_runtime_policy_delivery_event FOREIGN KEY (event_id) REFERENCES cpf_runtime_policy_event (event_id) ON DELETE CASCADE,
-    INDEX ix_cpf_runtime_policy_delivery_status (consumer_id, delivery_status, leased_until, updated_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Runtime Policy Consumer Delivery ACK';
 
 CREATE TABLE IF NOT EXISTS cpf_runtime_policy_event (
     event_id VARCHAR(64) NOT NULL COMMENT '내구성 정책 이벤트 ID',
@@ -881,6 +655,26 @@ CREATE TABLE IF NOT EXISTS cpf_runtime_policy_event (
     INDEX ix_cpf_runtime_policy_event_pending (event_status, event_type, occurred_at, event_id),
     INDEX ix_cpf_runtime_policy_event_aggregate (aggregate_type, aggregate_id, aggregate_version)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Runtime Policy Durable Event';
+
+CREATE TABLE IF NOT EXISTS cpf_runtime_policy_delivery (
+    event_id VARCHAR(64) NOT NULL COMMENT '정책 이벤트 ID',
+    consumer_id VARCHAR(100) NOT NULL COMMENT 'Runtime Instance ID',
+    delivery_status VARCHAR(30) NOT NULL DEFAULT 'PENDING' COMMENT '전달 상태',
+    attempt_count INT NOT NULL DEFAULT 0 COMMENT '전달 시도 횟수',
+    fencing_token BIGINT NOT NULL DEFAULT 0 COMMENT 'Claim Fencing Token',
+    leased_until DATETIME(3) NULL COMMENT 'Claim 만료시각',
+    error_code VARCHAR(100) NULL COMMENT '적용 오류 코드',
+    error_message VARCHAR(1000) NULL COMMENT '민감정보 제거 오류 메시지',
+    acknowledged_at DATETIME(3) NULL COMMENT 'ACK 시각',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
+    CONSTRAINT pk_cpf_runtime_policy_delivery PRIMARY KEY (event_id, consumer_id),
+    CONSTRAINT ck_cpf_runtime_policy_delivery_status CHECK (delivery_status IN ('PENDING', 'CLAIMED', 'APPLIED', 'FAILED', 'IGNORED')),
+    CONSTRAINT ck_cpf_runtime_policy_delivery_attempt CHECK (attempt_count >= 0),
+    CONSTRAINT ck_cpf_runtime_policy_delivery_fencing CHECK (fencing_token >= 0),
+    CONSTRAINT fk_cpf_runtime_policy_delivery_event FOREIGN KEY (event_id) REFERENCES cpf_runtime_policy_event (event_id) ON DELETE CASCADE,
+    INDEX ix_cpf_runtime_policy_delivery_status (consumer_id, delivery_status, leased_until, updated_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Runtime Policy Consumer Delivery ACK';
 
 CREATE TABLE IF NOT EXISTS cpf_runtime_rate_bucket (
     bucket_key VARCHAR(180) NOT NULL COMMENT 'Rate bucket identifier',
@@ -988,7 +782,7 @@ CREATE TABLE IF NOT EXISTS cpf_security_jwt_key (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF JWT key 메타';
 
 CREATE TABLE IF NOT EXISTS cpf_security_token_audit_log (
-    TOKEN_AUDIT_ID BIGINT NOT NULL AUTO_INCREMENT COMMENT '토큰 감사 로그 순번',
+    TOKEN_AUDIT_ID BIGINT AUTO_INCREMENT NOT NULL COMMENT '토큰 감사 로그 순번',
     TRANSACTION_ID CHAR(34) NULL COMMENT 'CPF transactionId',
     TRACE_ID VARCHAR(80) NULL COMMENT '분산 추적 ID',
     TOKEN_HASH VARCHAR(512) NULL COMMENT '토큰 해시',
@@ -1027,59 +821,6 @@ CREATE TABLE IF NOT EXISTS cpf_service (
     INDEX ix_cpf_service_type (service_type, use_yn)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 서비스 레지스트리';
 
-CREATE TABLE IF NOT EXISTS cpf_service_call_history (
-    call_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '서비스 호출 이력 ID',
-    transaction_id CHAR(34) NULL COMMENT '전역 거래 ID',
-    trace_id VARCHAR(100) NULL COMMENT 'Trace ID',
-    service_id VARCHAR(40) NOT NULL COMMENT '서비스 ID',
-    endpoint_code VARCHAR(80) NULL COMMENT 'Endpoint 코드',
-    instance_id VARCHAR(120) NULL COMMENT '서비스 인스턴스 ID',
-    http_method VARCHAR(10) NOT NULL DEFAULT 'GET' COMMENT 'HTTP Method',
-    request_path VARCHAR(500) NOT NULL DEFAULT '/' COMMENT '요청 경로',
-    call_status VARCHAR(30) NOT NULL COMMENT '호출 상태',
-    http_status INT NULL COMMENT 'HTTP 상태 코드',
-    duration_ms BIGINT NULL COMMENT '소요 시간 밀리초',
-    timeout_ms INT NULL COMMENT 'Timeout 밀리초',
-    retry_count INT NULL COMMENT 'Retry 횟수',
-    failure_code VARCHAR(100) NULL COMMENT '실패 코드',
-    failure_message VARCHAR(1000) NULL COMMENT '마스킹된 실패 메시지',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    CONSTRAINT pk_cpf_service_call_history PRIMARY KEY (call_id),
-    CONSTRAINT fk_cpf_service_call_history_service FOREIGN KEY (service_id) REFERENCES cpf_service (service_id),
-    CONSTRAINT fk_cpf_service_call_history_endpoint FOREIGN KEY (endpoint_code) REFERENCES cpf_service_endpoint (endpoint_code) ON DELETE SET NULL,
-    CONSTRAINT fk_cpf_service_call_history_instance FOREIGN KEY (instance_id) REFERENCES cpf_service_instance (instance_id) ON DELETE SET NULL,
-    INDEX ix_cpf_service_call_history_tx (transaction_id, call_id),
-    INDEX ix_cpf_service_call_history_service (service_id, endpoint_code, created_at),
-    INDEX ix_cpf_service_call_history_status (call_status, created_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 서비스 호출 이력';
-
-CREATE TABLE IF NOT EXISTS cpf_service_circuit_state (
-    circuit_id BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Circuit 상태 ID',
-    service_id VARCHAR(40) NOT NULL COMMENT '서비스 ID',
-    endpoint_code VARCHAR(80) NOT NULL COMMENT 'Endpoint 코드',
-    instance_id VARCHAR(120) NULL COMMENT '서비스 인스턴스 ID',
-    circuit_state VARCHAR(30) NOT NULL DEFAULT 'CLOSED' COMMENT 'Circuit 상태',
-    failure_count INT NOT NULL DEFAULT 0 COMMENT '실패 횟수',
-    success_count INT NOT NULL DEFAULT 0 COMMENT '성공 횟수',
-    opened_at DATETIME(3) NULL COMMENT 'Open 일시',
-    half_opened_at DATETIME(3) NULL COMMENT 'Half-open 일시',
-    closed_at DATETIME(3) NULL COMMENT 'Close 일시',
-    last_failure_message VARCHAR(1000) NULL COMMENT '마지막 실패 메시지',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    CONSTRAINT pk_cpf_service_circuit_state PRIMARY KEY (circuit_id),
-    CONSTRAINT uk_cpf_service_circuit_state UNIQUE (service_id, endpoint_code, instance_id),
-    CONSTRAINT fk_cpf_service_circuit_service FOREIGN KEY (service_id) REFERENCES cpf_service (service_id),
-    CONSTRAINT fk_cpf_service_circuit_endpoint FOREIGN KEY (endpoint_code) REFERENCES cpf_service_endpoint (endpoint_code),
-    CONSTRAINT fk_cpf_service_circuit_instance FOREIGN KEY (instance_id) REFERENCES cpf_service_instance (instance_id) ON DELETE SET NULL,
-    INDEX ix_cpf_service_circuit_state (circuit_state, updated_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 서비스 Circuit 상태';
-
 CREATE TABLE IF NOT EXISTS cpf_service_endpoint (
     endpoint_code VARCHAR(80) NOT NULL COMMENT 'Endpoint 코드',
     service_id VARCHAR(40) NOT NULL COMMENT '서비스 ID',
@@ -1101,27 +842,209 @@ CREATE TABLE IF NOT EXISTS cpf_service_endpoint (
     INDEX ix_cpf_service_endpoint_type (endpoint_type, use_yn)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 서비스 Endpoint 레지스트리';
 
-CREATE TABLE IF NOT EXISTS cpf_service_health_status (
-    health_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '서비스 health 이력 ID',
-    service_id VARCHAR(40) NOT NULL COMMENT '서비스 ID',
-    endpoint_code VARCHAR(80) NOT NULL COMMENT 'Endpoint 코드',
-    instance_id VARCHAR(120) NULL COMMENT '서비스 인스턴스 ID',
-    health_status VARCHAR(30) NOT NULL COMMENT 'Health 상태',
-    http_status INT NULL COMMENT 'HTTP 상태 코드',
-    response_time_ms BIGINT NULL COMMENT '응답 시간 밀리초',
-    failure_message VARCHAR(1000) NULL COMMENT '실패 메시지',
-    checked_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '점검 일시',
+CREATE TABLE IF NOT EXISTS cpf_gateway_server_group (
+    server_group_id VARCHAR(100) NOT NULL COMMENT '서버 그룹 ID',
+    group_name VARCHAR(200) NOT NULL COMMENT '서버 그룹명',
+    environment_code VARCHAR(50) NOT NULL COMMENT '환경 코드',
+    service_id VARCHAR(100) NOT NULL COMMENT '서비스 ID',
+    endpoint_code VARCHAR(100) NOT NULL COMMENT 'Endpoint 코드',
+    target_protocol VARCHAR(30) NOT NULL COMMENT 'Target Protocol',
+    load_balance_policy VARCHAR(50) NOT NULL COMMENT 'Load Balance 정책',
+    hash_key_source VARCHAR(200) NULL COMMENT 'Hash Key Source',
+    health_policy_id VARCHAR(100) NULL COMMENT 'Health 정책 ID',
+    failover_group_id VARCHAR(100) NULL COMMENT 'Failover 그룹 ID',
+    group_status VARCHAR(30) NOT NULL DEFAULT 'DRAFT' COMMENT '그룹 상태',
+    direct_allowed_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '직접 호출 허용 여부',
     created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
     updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    CONSTRAINT pk_cpf_service_health_status PRIMARY KEY (health_id),
-    CONSTRAINT fk_cpf_service_health_service FOREIGN KEY (service_id) REFERENCES cpf_service (service_id),
-    CONSTRAINT fk_cpf_service_health_endpoint FOREIGN KEY (endpoint_code) REFERENCES cpf_service_endpoint (endpoint_code),
-    CONSTRAINT fk_cpf_service_health_instance FOREIGN KEY (instance_id) REFERENCES cpf_service_instance (instance_id) ON DELETE SET NULL,
-    INDEX ix_cpf_service_health_target (service_id, endpoint_code, instance_id, checked_at),
-    INDEX ix_cpf_service_health_status (health_status, checked_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 서비스 Health 상태 이력';
+    row_version BIGINT NOT NULL DEFAULT 1 COMMENT '낙관적 잠금 버전',
+    CONSTRAINT pk_cpf_gateway_server_group PRIMARY KEY (server_group_id),
+    CONSTRAINT ck_cpf_gwy_group_direct CHECK (direct_allowed_yn IN ('Y','N')),
+    CONSTRAINT fk_cpf_gwy_group_service FOREIGN KEY (service_id) REFERENCES cpf_service (service_id),
+    CONSTRAINT fk_cpf_gwy_group_endpoint FOREIGN KEY (endpoint_code) REFERENCES cpf_service_endpoint (endpoint_code),
+    INDEX ix_cpf_gwy_group_service (environment_code, service_id, group_status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Gateway Server Group';
+
+CREATE TABLE IF NOT EXISTS cpf_gateway_binding (
+    binding_id VARCHAR(100) NOT NULL COMMENT 'Binding ID',
+    route_id VARCHAR(100) NOT NULL COMMENT 'Route ID',
+    environment_code VARCHAR(50) NOT NULL COMMENT '환경 코드',
+    host_pattern VARCHAR(300) NOT NULL COMMENT 'Host Pattern',
+    path_pattern VARCHAR(500) NOT NULL COMMENT 'Path Pattern',
+    http_method VARCHAR(20) NOT NULL DEFAULT '*' COMMENT 'HTTP Method',
+    api_version VARCHAR(50) NOT NULL COMMENT 'API Version',
+    ingress_protocol VARCHAR(30) NOT NULL COMMENT 'Ingress Protocol',
+    target_protocol VARCHAR(30) NOT NULL COMMENT 'Target Protocol',
+    service_id VARCHAR(100) NOT NULL COMMENT '서비스 ID',
+    server_group_id VARCHAR(100) NOT NULL COMMENT '서버 그룹 ID',
+    route_version VARCHAR(100) NOT NULL COMMENT 'Route Version',
+    tls_policy_id VARCHAR(100) NULL COMMENT 'TLS 정책',
+    authentication_policy_id VARCHAR(100) NULL COMMENT '인증 정책',
+    authorization_policy_id VARCHAR(100) NULL COMMENT '권한 정책',
+    header_policy_id VARCHAR(100) NULL COMMENT 'Header 정책',
+    rate_limit_policy_id VARCHAR(100) NULL COMMENT 'Rate Limit 정책',
+    health_policy_id VARCHAR(100) NULL COMMENT 'Health 정책',
+    connect_timeout_ms INT NOT NULL COMMENT 'Connect Timeout',
+    response_timeout_ms INT NOT NULL COMMENT 'Response Timeout',
+    overall_timeout_ms INT NOT NULL COMMENT 'Overall Timeout',
+    max_retry_count INT NOT NULL DEFAULT 0 COMMENT '최대 재시도',
+    idempotent_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '멱등 여부',
+    failover_group_id VARCHAR(100) NULL COMMENT 'Failover 그룹',
+    gateway_allowed_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT 'Gateway 공개 허용',
+    direct_allowed_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '직접 호출 허용',
+    binding_status VARCHAR(30) NOT NULL DEFAULT 'DRAFT' COMMENT 'Binding 상태',
+    approval_id VARCHAR(100) NULL COMMENT '승인 ID',
+    effective_from DATETIME NULL COMMENT '시행 시작',
+    effective_to DATETIME NULL COMMENT '시행 종료',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    row_version BIGINT NOT NULL DEFAULT 1 COMMENT '낙관적 잠금 버전',
+    binding_checksum VARCHAR(64) NULL COMMENT '승인/적용 대상 Snapshot SHA-256',
+    retired_by VARCHAR(100) NULL COMMENT 'Retire 운영자',
+    retired_at DATETIME NULL COMMENT 'Retire 시각',
+    CONSTRAINT pk_cpf_gateway_binding PRIMARY KEY (binding_id),
+    CONSTRAINT uk_cpf_gwy_binding_key UNIQUE (environment_code, host_pattern, path_pattern, http_method, api_version, route_version),
+    CONSTRAINT ck_cpf_gwy_binding_gateway CHECK (gateway_allowed_yn IN ('Y','N')),
+    CONSTRAINT ck_cpf_gwy_binding_direct CHECK (direct_allowed_yn IN ('Y','N')),
+    CONSTRAINT ck_cpf_gwy_binding_idempotent CHECK (idempotent_yn IN ('Y','N')),
+    CONSTRAINT fk_cpf_gwy_binding_service FOREIGN KEY (service_id) REFERENCES cpf_service (service_id),
+    CONSTRAINT fk_cpf_gwy_binding_group FOREIGN KEY (server_group_id) REFERENCES cpf_gateway_server_group (server_group_id),
+    INDEX ix_cpf_gwy_binding_route (environment_code, route_id, binding_status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Gateway Versioned Binding';
+
+CREATE TABLE IF NOT EXISTS cpf_gateway_apply_status (
+    binding_id VARCHAR(100) NOT NULL COMMENT 'Binding ID',
+    gateway_instance_id VARCHAR(100) NOT NULL COMMENT 'Gateway Instance ID',
+    expected_version VARCHAR(100) NOT NULL COMMENT '기대 Version',
+    applied_version VARCHAR(100) NULL COMMENT '적용 Version',
+    apply_status VARCHAR(30) NOT NULL COMMENT '적용 상태',
+    error_code VARCHAR(100) NULL COMMENT '오류 코드',
+    error_message VARCHAR(1000) NULL COMMENT '오류 메시지',
+    acknowledged_at DATETIME NULL COMMENT 'ACK 시각',
+    last_seen_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '마지막 상태 시각',
+    CONSTRAINT pk_cpf_gateway_apply_status PRIMARY KEY (binding_id, gateway_instance_id),
+    CONSTRAINT fk_cpf_gwy_apply_binding FOREIGN KEY (binding_id) REFERENCES cpf_gateway_binding (binding_id),
+    INDEX ix_cpf_gwy_apply_status (apply_status, last_seen_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Gateway Instance별 적용 ACK/Drift';
+
+CREATE TABLE IF NOT EXISTS cpf_gateway_connection_test (
+    test_id VARCHAR(100) NOT NULL COMMENT '시험 ID',
+    binding_id VARCHAR(100) NOT NULL COMMENT 'Binding ID',
+    gateway_instance_id VARCHAR(100) NULL COMMENT 'Gateway Instance ID',
+    instance_id VARCHAR(100) NULL COMMENT 'Target Instance ID',
+    test_type VARCHAR(50) NOT NULL COMMENT '시험 유형',
+    test_status VARCHAR(30) NOT NULL COMMENT '시험 상태',
+    failure_stage VARCHAR(50) NULL COMMENT '실패 단계',
+    duration_ms BIGINT NOT NULL DEFAULT 0 COMMENT '소요시간',
+    trace_id VARCHAR(100) NULL COMMENT 'Trace ID',
+    operation_id VARCHAR(100) NULL COMMENT 'Operation ID',
+    tested_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '시험 시각',
+    tested_by VARCHAR(100) NOT NULL COMMENT '시험자',
+    CONSTRAINT pk_cpf_gateway_connection_test PRIMARY KEY (test_id),
+    CONSTRAINT fk_cpf_gwy_test_binding FOREIGN KEY (binding_id) REFERENCES cpf_gateway_binding (binding_id),
+    INDEX ix_cpf_gwy_test_binding (binding_id, tested_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Gateway 직접/E2E 연결시험 결과';
+
+CREATE TABLE IF NOT EXISTS cpf_gateway_connection_test_operation (
+    operation_id VARCHAR(100) NOT NULL COMMENT '연결시험 Operation ID',
+    binding_id VARCHAR(100) NOT NULL COMMENT 'Binding ID',
+    test_type VARCHAR(50) NOT NULL COMMENT 'DIRECT/E2E/LB_DISTRIBUTION',
+    operation_status VARCHAR(30) NOT NULL DEFAULT 'REQUESTED' COMMENT 'Operation 상태',
+    requested_by VARCHAR(100) NOT NULL COMMENT '요청자',
+    request_reason VARCHAR(1000) NOT NULL COMMENT '요청 사유',
+    request_payload_hash VARCHAR(64) NOT NULL COMMENT '요청 Payload Hash',
+    expires_at DATETIME NOT NULL COMMENT 'Operation 만료',
+    cancel_requested_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '취소 요청',
+    result_summary VARCHAR(2000) NULL COMMENT '결과 요약',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '생성 시각',
+    started_at DATETIME NULL COMMENT '시작 시각',
+    completed_at DATETIME NULL COMMENT '완료 시각',
+    row_version BIGINT NOT NULL DEFAULT 1 COMMENT '낙관적 버전',
+    CONSTRAINT pk_cpf_gateway_connection_test_operation PRIMARY KEY (operation_id),
+    CONSTRAINT ck_cpf_gwy_test_cancel CHECK (cancel_requested_yn IN ('Y','N')),
+    CONSTRAINT fk_cpf_gwy_test_op_binding FOREIGN KEY (binding_id) REFERENCES cpf_gateway_binding (binding_id),
+    INDEX ix_cpf_gwy_test_op_binding (binding_id, created_at),
+    INDEX ix_cpf_gwy_test_op_status (operation_status, expires_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Gateway 비동기 연결시험 Operation';
+
+CREATE TABLE IF NOT EXISTS cpf_gateway_transaction (
+    gateway_transaction_id VARCHAR(100) NOT NULL COMMENT 'Gateway 거래 ID',
+    transaction_id VARCHAR(100) NOT NULL COMMENT 'CPF 거래 ID',
+    trace_id VARCHAR(100) NOT NULL COMMENT 'Trace ID',
+    channel_id VARCHAR(100) NULL COMMENT 'Channel ID',
+    source_ip VARCHAR(100) NULL COMMENT 'Source IP',
+    source_port INT NULL COMMENT 'Source Port',
+    gateway_instance_id VARCHAR(100) NOT NULL COMMENT 'Gateway Instance',
+    binding_id VARCHAR(100) NOT NULL COMMENT 'Binding ID',
+    route_id VARCHAR(100) NOT NULL COMMENT 'Route ID',
+    route_version VARCHAR(100) NOT NULL COMMENT 'Route Version',
+    server_group_id VARCHAR(100) NOT NULL COMMENT 'Server Group',
+    final_instance_id VARCHAR(100) NULL COMMENT '최종 Instance',
+    result_status VARCHAR(30) NOT NULL COMMENT '최종 상태',
+    protocol_status VARCHAR(30) NULL COMMENT 'Protocol 상태',
+    business_code VARCHAR(100) NULL COMMENT '업무 코드',
+    failure_stage VARCHAR(50) NULL COMMENT '실패 단계',
+    unknown_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '결과 불명 여부',
+    total_duration_ms BIGINT NOT NULL DEFAULT 0 COMMENT '전체 소요시간',
+    request_size BIGINT NOT NULL DEFAULT 0 COMMENT '요청 크기',
+    response_size BIGINT NOT NULL DEFAULT 0 COMMENT '응답 크기',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '생성 시각',
+    binding_version BIGINT NOT NULL DEFAULT 0 COMMENT 'Binding Row Version Snapshot',
+    config_checksum VARCHAR(64) NULL COMMENT 'Gateway Config Checksum Snapshot',
+    request_method VARCHAR(20) NULL COMMENT '요청 Method',
+    request_path VARCHAR(1000) NULL COMMENT '요청 Path',
+    completed_at DATETIME NULL COMMENT '완료 시각',
+    CONSTRAINT pk_cpf_gateway_transaction PRIMARY KEY (gateway_transaction_id),
+    CONSTRAINT ck_cpf_gwy_tx_unknown CHECK (unknown_yn IN ('Y','N')),
+    CONSTRAINT fk_cpf_gwy_tx_binding FOREIGN KEY (binding_id) REFERENCES cpf_gateway_binding (binding_id),
+    INDEX ix_cpf_gwy_tx_trace (transaction_id, trace_id, created_at),
+    INDEX ix_cpf_gwy_tx_route (route_id, result_status, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Gateway IN/GATEWAY/OUT/RESULT 거래 원장';
+
+CREATE TABLE IF NOT EXISTS cpf_gateway_transaction_capture_segment (
+    gateway_transaction_id VARCHAR(100) NOT NULL COMMENT 'Gateway 거래 ID',
+    segment_type VARCHAR(40) NOT NULL COMMENT 'Capture Segment 유형',
+    policy_schema_version INT NOT NULL DEFAULT 2 COMMENT '로그 정책 Schema Version',
+    policy_checksum VARCHAR(64) NOT NULL COMMENT '적용 정책 Checksum',
+    captured_value LONGTEXT NOT NULL COMMENT '마스킹/보호된 Capture 값',
+    truncated_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '상한 초과 절단 여부',
+    metadata_only_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT 'Metadata only 여부',
+    observed_bytes BIGINT NOT NULL DEFAULT 0 COMMENT '원본 관측 Byte',
+    captured_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Capture 시각',
+    CONSTRAINT pk_cpf_gateway_transaction_capture_segment PRIMARY KEY (gateway_transaction_id, segment_type),
+    CONSTRAINT fk_cpf_gwy_capture_tx FOREIGN KEY (gateway_transaction_id) REFERENCES cpf_gateway_transaction (gateway_transaction_id),
+    CONSTRAINT ck_cpf_gwy_capture_truncated CHECK (truncated_yn IN ('Y','N')),
+    CONSTRAINT ck_cpf_gwy_capture_metadata CHECK (metadata_only_yn IN ('Y','N')),
+    INDEX ix_cpf_gwy_capture_time (captured_at, segment_type)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Gateway 정책 기반 Capture Segment 원장';
+
+CREATE TABLE IF NOT EXISTS cpf_gateway_attempt (
+    attempt_id VARCHAR(100) NOT NULL COMMENT 'Attempt ID',
+    gateway_transaction_id VARCHAR(100) NOT NULL COMMENT 'Gateway 거래 ID',
+    attempt_no INT NOT NULL COMMENT 'Attempt 순번',
+    instance_id VARCHAR(100) NOT NULL COMMENT 'Target Instance',
+    target_host VARCHAR(300) NULL COMMENT 'Target Host',
+    target_port INT NULL COMMENT 'Target Port',
+    target_protocol VARCHAR(30) NOT NULL COMMENT 'Target Protocol',
+    connect_duration_ms BIGINT NOT NULL DEFAULT 0 COMMENT 'Connect 시간',
+    response_duration_ms BIGINT NOT NULL DEFAULT 0 COMMENT 'Response 시간',
+    attempt_status VARCHAR(30) NOT NULL COMMENT 'Attempt 상태',
+    protocol_status VARCHAR(30) NULL COMMENT 'Protocol 상태',
+    failure_code VARCHAR(100) NULL COMMENT '실패 코드',
+    failure_message VARCHAR(1000) NULL COMMENT '실패 메시지',
+    started_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '시작 시각',
+    finished_at DATETIME NULL COMMENT '종료 시각',
+    gateway_instance_id VARCHAR(100) NULL COMMENT 'Gateway Instance',
+    selection_reason VARCHAR(100) NULL COMMENT 'Target 선택 사유',
+    unknown_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT 'Attempt 결과 불명 여부',
+    CONSTRAINT pk_cpf_gateway_attempt PRIMARY KEY (attempt_id),
+    CONSTRAINT uk_cpf_gwy_attempt_no UNIQUE (gateway_transaction_id, attempt_no),
+    CONSTRAINT fk_cpf_gwy_attempt_tx FOREIGN KEY (gateway_transaction_id) REFERENCES cpf_gateway_transaction (gateway_transaction_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Gateway Retry/Failover Attempt 원장';
 
 CREATE TABLE IF NOT EXISTS cpf_service_instance (
     instance_id VARCHAR(120) NOT NULL COMMENT '서비스 인스턴스 ID',
@@ -1159,8 +1082,228 @@ CREATE TABLE IF NOT EXISTS cpf_service_instance (
     INDEX ix_cpf_service_instance_route (endpoint_code, priority_no, maintenance_yn, drain_yn, active_yn, instance_status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 서비스 인스턴스 레지스트리';
 
+CREATE TABLE IF NOT EXISTS cpf_gateway_health_history (
+    health_history_id VARCHAR(100) NOT NULL COMMENT 'Health 이력 ID',
+    server_group_id VARCHAR(100) NOT NULL COMMENT 'Server Group ID',
+    instance_id VARCHAR(100) NOT NULL COMMENT 'Instance ID',
+    gateway_instance_id VARCHAR(100) NOT NULL COMMENT 'Probe Gateway Instance',
+    fencing_token BIGINT NOT NULL DEFAULT 0 COMMENT 'Probe Fencing Token',
+    network_status VARCHAR(30) NOT NULL COMMENT 'Network 상태',
+    tcp_status VARCHAR(30) NOT NULL COMMENT 'TCP 상태',
+    tls_status VARCHAR(30) NOT NULL COMMENT 'TLS 상태',
+    application_status VARCHAR(30) NOT NULL COMMENT 'Application 상태',
+    overall_status VARCHAR(30) NOT NULL COMMENT '합성 상태',
+    result_code VARCHAR(100) NULL COMMENT '결과 코드',
+    duration_ms BIGINT NOT NULL DEFAULT 0 COMMENT 'Probe 소요시간',
+    observed_at DATETIME NOT NULL COMMENT '관측 시각',
+    recorded_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '기록 시각',
+    CONSTRAINT pk_cpf_gateway_health_history PRIMARY KEY (health_history_id),
+    CONSTRAINT fk_cpf_gwy_health_group FOREIGN KEY (server_group_id) REFERENCES cpf_gateway_server_group (server_group_id),
+    CONSTRAINT fk_cpf_gwy_health_instance FOREIGN KEY (instance_id) REFERENCES cpf_service_instance (instance_id),
+    INDEX ix_cpf_gwy_health_member (server_group_id, instance_id, observed_at),
+    INDEX ix_cpf_gwy_health_status (overall_status, observed_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Gateway Protocol 단계별 Health 불변 이력';
+
+CREATE TABLE IF NOT EXISTS cpf_gateway_server_group_member (
+    server_group_id VARCHAR(100) NOT NULL COMMENT '서버 그룹 ID',
+    instance_id VARCHAR(100) NOT NULL COMMENT 'Instance ID',
+    weight INT NOT NULL DEFAULT 1 COMMENT '가중치',
+    priority_no INT NOT NULL DEFAULT 0 COMMENT '우선순위',
+    enabled_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    effective_status VARCHAR(30) NOT NULL DEFAULT 'UNKNOWN' COMMENT '합성 Health 상태',
+    fencing_token BIGINT NOT NULL DEFAULT 0 COMMENT 'Fencing Token',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    canary_percent INT NOT NULL DEFAULT 0 COMMENT '결정적 Canary 비율',
+    probe_owner_id VARCHAR(100) NULL COMMENT 'Health Probe Lease Owner',
+    probe_lease_until DATETIME NULL COMMENT 'Health Probe Lease 만료',
+    last_probe_at DATETIME NULL COMMENT '마지막 Probe 시각',
+    last_probe_code VARCHAR(100) NULL COMMENT '마지막 Probe 결과 코드',
+    consecutive_successes INT NOT NULL DEFAULT 0 COMMENT '연속 성공 횟수',
+    consecutive_failures INT NOT NULL DEFAULT 0 COMMENT '연속 실패 횟수',
+    active_requests BIGINT NOT NULL DEFAULT 0 COMMENT '활성 요청 수',
+    ewma_latency_ms DECIMAL(18,4) NOT NULL DEFAULT 0 COMMENT 'EWMA 지연시간',
+    CONSTRAINT pk_cpf_gateway_server_group_member PRIMARY KEY (server_group_id, instance_id),
+    CONSTRAINT ck_cpf_gwy_member_enabled CHECK (enabled_yn IN ('Y','N')),
+    CONSTRAINT fk_cpf_gwy_member_group FOREIGN KEY (server_group_id) REFERENCES cpf_gateway_server_group (server_group_id),
+    CONSTRAINT fk_cpf_gwy_member_instance FOREIGN KEY (instance_id) REFERENCES cpf_service_instance (instance_id),
+    INDEX ix_cpf_gwy_member_status (server_group_id, enabled_yn, effective_status, priority_no),
+    INDEX ix_cpf_gwy_member_probe_lease (enabled_yn, probe_lease_until, server_group_id, instance_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Gateway Server Group Member';
+
+CREATE TABLE IF NOT EXISTS cpf_runtime_delivery (
+    delivery_id VARCHAR(80) NOT NULL COMMENT 'Runtime delivery identifier',
+    change_id VARCHAR(80) NOT NULL COMMENT 'Runtime change identifier',
+    instance_id VARCHAR(120) NOT NULL COMMENT 'Runtime instance identifier',
+    sequence_no INT NOT NULL COMMENT 'Delivery sequence number',
+    desired_version BIGINT NOT NULL COMMENT 'Desired state version',
+    delivery_state VARCHAR(30) NOT NULL DEFAULT 'PENDING' COMMENT 'Runtime delivery lifecycle state',
+    attempt_no INT NOT NULL DEFAULT 0 COMMENT 'Delivery attempt number',
+    next_attempt_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Next delivery attempt time',
+    fencing_token BIGINT NULL COMMENT 'Monotonic fencing token',
+    claimed_at DATETIME(3) NULL COMMENT 'Delivery claim time',
+    acknowledged_at DATETIME(3) NULL COMMENT 'Delivery acknowledgment time',
+    actual_hash VARCHAR(64) NULL COMMENT 'Applied state checksum',
+    error_code VARCHAR(80) NULL COMMENT 'Failure code',
+    error_message VARCHAR(900) NULL COMMENT 'Masked failure message',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT 'Creator identifier',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Creation time',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT 'Last updater identifier',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Last update time',
+    CONSTRAINT pk_cpf_runtime_delivery PRIMARY KEY (delivery_id),
+    CONSTRAINT ck_cpf_runtime_delivery_state CHECK (delivery_state IN ('PENDING','CLAIMED','ACKED','FAILED','POISONED','UNKNOWN_RESULT','RESTART_REQUIRED','CANCELLED','EXPIRED','SUPERSEDED')),
+    CONSTRAINT fk_cpf_runtime_delivery_change FOREIGN KEY (change_id) REFERENCES cpf_runtime_change (change_id) ON DELETE CASCADE,
+    CONSTRAINT fk_cpf_runtime_delivery_instance FOREIGN KEY (instance_id) REFERENCES cpf_service_instance (instance_id) ON DELETE CASCADE,
+    INDEX ix_cpf_runtime_delivery_claim (instance_id, delivery_state, next_attempt_at, sequence_no),
+    INDEX ix_cpf_runtime_delivery_change (change_id, delivery_state)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Runtime durable per-instance delivery inbox';
+
+CREATE TABLE IF NOT EXISTS cpf_runtime_group_member (
+    group_id VARCHAR(80) NOT NULL COMMENT 'Runtime instance group identifier',
+    instance_id VARCHAR(120) NOT NULL COMMENT 'Runtime instance identifier',
+    active_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT 'Active flag',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT 'Creator identifier',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Creation time',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT 'Last updater identifier',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Last update time',
+    CONSTRAINT pk_cpf_runtime_group_member PRIMARY KEY (group_id, instance_id),
+    CONSTRAINT ck_cpf_runtime_group_member_active CHECK (active_yn IN ('Y','N')),
+    CONSTRAINT fk_cpf_runtime_group_member_group FOREIGN KEY (group_id) REFERENCES cpf_runtime_instance_group (group_id) ON DELETE CASCADE,
+    CONSTRAINT fk_cpf_runtime_group_member_instance FOREIGN KEY (instance_id) REFERENCES cpf_service_instance (instance_id) ON DELETE CASCADE,
+    INDEX ix_cpf_runtime_group_member_instance (instance_id, active_yn)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Runtime Instance Group membership';
+
+CREATE TABLE IF NOT EXISTS cpf_runtime_instance_feature_state (
+    instance_id VARCHAR(120) NOT NULL COMMENT 'Runtime instance identifier',
+    change_type VARCHAR(80) NOT NULL COMMENT 'Runtime change type',
+    desired_version BIGINT NOT NULL DEFAULT 0 COMMENT 'Desired state version',
+    actual_version BIGINT NOT NULL DEFAULT 0 COMMENT 'Applied state version',
+    desired_hash VARCHAR(64) NULL COMMENT 'Desired state checksum',
+    actual_hash VARCHAR(64) NULL COMMENT 'Applied state checksum',
+    drift_state VARCHAR(30) NOT NULL DEFAULT 'UNKNOWN' COMMENT 'Desired and actual state drift',
+    source_delivery_id VARCHAR(80) NULL COMMENT 'Source delivery identifier',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT 'Creator identifier',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Creation time',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT 'Last updater identifier',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Last update time',
+    CONSTRAINT pk_cpf_runtime_instance_feature_state PRIMARY KEY (instance_id, change_type),
+    CONSTRAINT ck_cpf_runtime_feature_drift CHECK (drift_state IN ('IN_SYNC','PENDING','DRIFT','UNKNOWN','UNKNOWN_RESULT','PENDING_RESTART','EXCLUDED')),
+    CONSTRAINT fk_cpf_runtime_feature_instance FOREIGN KEY (instance_id) REFERENCES cpf_service_instance (instance_id) ON DELETE CASCADE,
+    INDEX ix_cpf_runtime_feature_drift (drift_state, change_type),
+    INDEX ix_cpf_runtime_feature_delivery (source_delivery_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Runtime Instance 기능별 desired/actual/drift 상태';
+
+CREATE TABLE IF NOT EXISTS cpf_runtime_instance_state (
+    instance_id VARCHAR(120) NOT NULL COMMENT 'Runtime instance identifier',
+    fencing_token BIGINT NOT NULL DEFAULT 0 COMMENT 'Monotonic fencing token',
+    lease_until DATETIME(3) NULL COMMENT 'Lease expiry time',
+    desired_version BIGINT NOT NULL DEFAULT 0 COMMENT 'Desired state version',
+    actual_version BIGINT NOT NULL DEFAULT 0 COMMENT 'Applied state version',
+    desired_hash VARCHAR(64) NULL COMMENT 'Desired state checksum',
+    actual_hash VARCHAR(64) NULL COMMENT 'Applied state checksum',
+    drift_state VARCHAR(30) NOT NULL DEFAULT 'IN_SYNC' COMMENT 'Desired and actual state drift',
+    capabilities_json LONGTEXT NULL COMMENT 'Runtime capabilities JSON',
+    labels_json LONGTEXT NULL COMMENT 'Runtime labels JSON',
+    artifact_version VARCHAR(100) NULL COMMENT 'Runtime artifact version',
+    artifact_commit VARCHAR(64) NULL COMMENT '실행 Artifact 기준 Commit',
+    runtime_role VARCHAR(40) NULL COMMENT 'APPLICATION/GATEWAY/BATCH/AGENT 등 Runtime 역할',
+    registration_source VARCHAR(120) NULL COMMENT '배포/Discovery/Self registration identity source',
+    schema_version VARCHAR(100) NULL COMMENT 'Runtime schema version',
+    config_hash VARCHAR(64) NULL COMMENT 'Runtime configuration checksum',
+    clock_skew_ms BIGINT NOT NULL DEFAULT 0 COMMENT 'Agent-Controller clock skew milliseconds',
+    last_ack_change_id VARCHAR(80) NULL COMMENT 'Last acknowledged change identifier',
+    last_ack_at DATETIME(3) NULL COMMENT 'Last acknowledgment time',
+    heartbeat_at DATETIME(3) NULL COMMENT 'Last heartbeat time',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT 'Creator identifier',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Creation time',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT 'Last updater identifier',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Last update time',
+    CONSTRAINT pk_cpf_runtime_instance_state PRIMARY KEY (instance_id),
+    CONSTRAINT ck_cpf_runtime_instance_drift CHECK (drift_state IN ('IN_SYNC','PENDING','DRIFT','UNKNOWN','UNKNOWN_RESULT','PENDING_RESTART','EXCLUDED')),
+    CONSTRAINT fk_cpf_runtime_instance_state_instance FOREIGN KEY (instance_id) REFERENCES cpf_service_instance (instance_id) ON DELETE CASCADE,
+    INDEX ix_cpf_runtime_instance_lease (lease_until),
+    INDEX ix_cpf_runtime_instance_drift (drift_state, heartbeat_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Runtime desired/actual/lease/fencing 상태';
+
+CREATE TABLE IF NOT EXISTS cpf_service_call_history (
+    call_id BIGINT AUTO_INCREMENT NOT NULL COMMENT '서비스 호출 이력 ID',
+    transaction_id CHAR(34) NULL COMMENT '전역 거래 ID',
+    trace_id VARCHAR(100) NULL COMMENT 'Trace ID',
+    service_id VARCHAR(40) NOT NULL COMMENT '서비스 ID',
+    endpoint_code VARCHAR(80) NULL COMMENT 'Endpoint 코드',
+    instance_id VARCHAR(120) NULL COMMENT '서비스 인스턴스 ID',
+    http_method VARCHAR(10) NOT NULL DEFAULT 'GET' COMMENT 'HTTP Method',
+    request_path VARCHAR(500) NOT NULL DEFAULT '/' COMMENT '요청 경로',
+    call_status VARCHAR(30) NOT NULL COMMENT '호출 상태',
+    http_status INT NULL COMMENT 'HTTP 상태 코드',
+    duration_ms BIGINT NULL COMMENT '소요 시간 밀리초',
+    timeout_ms INT NULL COMMENT 'Timeout 밀리초',
+    retry_count INT NULL COMMENT 'Retry 횟수',
+    failure_code VARCHAR(100) NULL COMMENT '실패 코드',
+    failure_message VARCHAR(1000) NULL COMMENT '마스킹된 실패 메시지',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_cpf_service_call_history PRIMARY KEY (call_id),
+    CONSTRAINT fk_cpf_service_call_history_service FOREIGN KEY (service_id) REFERENCES cpf_service (service_id),
+    CONSTRAINT fk_cpf_service_call_history_endpoint FOREIGN KEY (endpoint_code) REFERENCES cpf_service_endpoint (endpoint_code) ON DELETE SET NULL,
+    CONSTRAINT fk_cpf_service_call_history_instance FOREIGN KEY (instance_id) REFERENCES cpf_service_instance (instance_id) ON DELETE SET NULL,
+    INDEX ix_cpf_service_call_history_tx (transaction_id, call_id),
+    INDEX ix_cpf_service_call_history_service (service_id, endpoint_code, created_at),
+    INDEX ix_cpf_service_call_history_status (call_status, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 서비스 호출 이력';
+
+CREATE TABLE IF NOT EXISTS cpf_service_circuit_state (
+    circuit_id BIGINT AUTO_INCREMENT NOT NULL COMMENT 'Circuit 상태 ID',
+    service_id VARCHAR(40) NOT NULL COMMENT '서비스 ID',
+    endpoint_code VARCHAR(80) NOT NULL COMMENT 'Endpoint 코드',
+    instance_id VARCHAR(120) NULL COMMENT '서비스 인스턴스 ID',
+    circuit_state VARCHAR(30) NOT NULL DEFAULT 'CLOSED' COMMENT 'Circuit 상태',
+    failure_count INT NOT NULL DEFAULT 0 COMMENT '실패 횟수',
+    success_count INT NOT NULL DEFAULT 0 COMMENT '성공 횟수',
+    opened_at DATETIME(3) NULL COMMENT 'Open 일시',
+    half_opened_at DATETIME(3) NULL COMMENT 'Half-open 일시',
+    closed_at DATETIME(3) NULL COMMENT 'Close 일시',
+    last_failure_message VARCHAR(1000) NULL COMMENT '마지막 실패 메시지',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_cpf_service_circuit_state PRIMARY KEY (circuit_id),
+    CONSTRAINT uk_cpf_service_circuit_state UNIQUE (service_id, endpoint_code, instance_id),
+    CONSTRAINT fk_cpf_service_circuit_service FOREIGN KEY (service_id) REFERENCES cpf_service (service_id),
+    CONSTRAINT fk_cpf_service_circuit_endpoint FOREIGN KEY (endpoint_code) REFERENCES cpf_service_endpoint (endpoint_code),
+    CONSTRAINT fk_cpf_service_circuit_instance FOREIGN KEY (instance_id) REFERENCES cpf_service_instance (instance_id) ON DELETE SET NULL,
+    INDEX ix_cpf_service_circuit_state (circuit_state, updated_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 서비스 Circuit 상태';
+
+CREATE TABLE IF NOT EXISTS cpf_service_health_status (
+    health_id BIGINT AUTO_INCREMENT NOT NULL COMMENT '서비스 health 이력 ID',
+    service_id VARCHAR(40) NOT NULL COMMENT '서비스 ID',
+    endpoint_code VARCHAR(80) NOT NULL COMMENT 'Endpoint 코드',
+    instance_id VARCHAR(120) NULL COMMENT '서비스 인스턴스 ID',
+    health_status VARCHAR(30) NOT NULL COMMENT 'Health 상태',
+    http_status INT NULL COMMENT 'HTTP 상태 코드',
+    response_time_ms BIGINT NULL COMMENT '응답 시간 밀리초',
+    failure_message VARCHAR(1000) NULL COMMENT '실패 메시지',
+    checked_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '점검 일시',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_cpf_service_health_status PRIMARY KEY (health_id),
+    CONSTRAINT fk_cpf_service_health_service FOREIGN KEY (service_id) REFERENCES cpf_service (service_id),
+    CONSTRAINT fk_cpf_service_health_endpoint FOREIGN KEY (endpoint_code) REFERENCES cpf_service_endpoint (endpoint_code),
+    CONSTRAINT fk_cpf_service_health_instance FOREIGN KEY (instance_id) REFERENCES cpf_service_instance (instance_id) ON DELETE SET NULL,
+    INDEX ix_cpf_service_health_target (service_id, endpoint_code, instance_id, checked_at),
+    INDEX ix_cpf_service_health_status (health_status, checked_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 서비스 Health 상태 이력';
+
 CREATE TABLE IF NOT EXISTS cpf_service_routing_policy (
-    policy_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '라우팅 정책 ID',
+    policy_id BIGINT AUTO_INCREMENT NOT NULL COMMENT '라우팅 정책 ID',
     service_id VARCHAR(40) NOT NULL COMMENT '서비스 ID',
     endpoint_code VARCHAR(80) NOT NULL COMMENT 'Endpoint 코드',
     routing_mode VARCHAR(30) NOT NULL DEFAULT 'PRIMARY' COMMENT '라우팅 모드',
@@ -1229,7 +1372,7 @@ CREATE TABLE IF NOT EXISTS cpf_standard_execution_alias (
 
 CREATE TABLE IF NOT EXISTS cpf_transaction_log (
     LOG_DATE DATE NOT NULL COMMENT '로그 기준일',
-    LOG_IDX BIGINT NOT NULL AUTO_INCREMENT COMMENT '거래 로그 순번',
+    LOG_IDX BIGINT AUTO_INCREMENT NOT NULL COMMENT '거래 로그 순번',
     RECOVERY_EVENT_ID VARCHAR(64) NULL COMMENT 'DB 로그 복구 이벤트 중복 방지 ID',
     transaction_id CHAR(34) NULL COMMENT '전역 거래 ID',
     TRACE_ID VARCHAR(100) NULL COMMENT '분산 추적 ID',
@@ -1328,7 +1471,7 @@ CREATE TABLE IF NOT EXISTS cpf_transaction_log (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 거래 요약 로그';
 
 CREATE TABLE IF NOT EXISTS cpf_transaction_log_detail (
-    DETAIL_ID BIGINT NOT NULL AUTO_INCREMENT COMMENT '거래 상세 로그 순번',
+    DETAIL_ID BIGINT AUTO_INCREMENT NOT NULL COMMENT '거래 상세 로그 순번',
     LOG_IDX BIGINT NOT NULL COMMENT '거래 로그 순번',
     DETAIL_KEY VARCHAR(100) NOT NULL DEFAULT 'N/A' COMMENT '상세 항목 키',
     DETAIL_VALUE MEDIUMTEXT NOT NULL COMMENT '상세 항목 값',
@@ -1353,7 +1496,7 @@ CREATE TABLE IF NOT EXISTS cpf_transaction_meta (
     swagger_operation_id VARCHAR(150) NULL COMMENT 'Swagger operation 식별자',
     log_policy_key VARCHAR(120) NULL COMMENT '연결 로그 정책 키',
     sensitive_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '민감 거래 여부',
-    masking_policy_key VARCHAR(120) NULL COMMENT '마스킹 정책 키',
+    masking_policy_key VARCHAR(120) NOT NULL DEFAULT 'DEFAULT' COMMENT '마스킹 정책 키',
     active_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '활성 여부',
     first_detected_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '최초 감지일시',
     last_detected_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '최근 감지일시',
@@ -1370,7 +1513,7 @@ CREATE TABLE IF NOT EXISTS cpf_transaction_meta (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 온라인 거래 메타';
 
 CREATE TABLE IF NOT EXISTS cpf_transaction_segment (
-    segment_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '거래 구간 내부 순번',
+    segment_id BIGINT AUTO_INCREMENT NOT NULL COMMENT '거래 구간 내부 순번',
     transaction_segment_id VARCHAR(120) NOT NULL COMMENT '거래 구간 ID',
     transaction_id CHAR(34) NOT NULL COMMENT 'CPF transactionId',
     parent_segment_id VARCHAR(120) NULL COMMENT '상위 거래 구간 ID',
@@ -1435,7 +1578,7 @@ CREATE TABLE IF NOT EXISTS cpf_transaction_segment (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 복합 거래 구간 로그';
 
 CREATE TABLE IF NOT EXISTS cpf_unknown_result (
-    unknown_seq BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Unknown result 내부 순번',
+    unknown_seq BIGINT AUTO_INCREMENT NOT NULL COMMENT 'Unknown result 내부 순번',
     unknown_id VARCHAR(120) NOT NULL COMMENT 'Unknown result ID',
     unknown_type VARCHAR(40) NOT NULL COMMENT 'Unknown result 유형',
     unknown_status VARCHAR(40) NOT NULL DEFAULT 'CHECK_PENDING' COMMENT 'Unknown result 상태',

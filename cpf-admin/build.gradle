@@ -25,6 +25,8 @@ dependencies {
 
     // ADM REST API와 정적 관리 화면을 제공합니다.
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+    // BAT/Gateway Owner Remote Port의 WebClient를 제공합니다.
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
     // AdmApiAuthFilter가 직접 사용하는 servlet filter API를 runtime에도 명시적으로 포함합니다.
     implementation 'org.springframework:spring-web'
 

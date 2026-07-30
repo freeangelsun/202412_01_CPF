@@ -43,6 +43,21 @@ cpf:
     log-spool-bytes-cap: ${GWY_LOG_SPOOL_BYTES_CAP:2147483648}
     log-spool-directory: ${GWY_LOG_SPOOL_DIR:./data/gateway-log-spool}
     bootstrap-mode: ${GWY_BOOTSTRAP_MODE:FAIL_CLOSED}
+    transfer:
+      max-request-bytes: ${GWY_TRANSFER_MAX_REQUEST_BYTES:${GWY_REQUEST_BODY_BYTES_CAP:10485760}}
+      memory-threshold-bytes: ${GWY_TRANSFER_MEMORY_THRESHOLD_BYTES:1048576}
+      io-buffer-bytes: ${GWY_TRANSFER_IO_BUFFER_BYTES:65536}
+      connect-timeout-millis: ${GWY_TRANSFER_CONNECT_TIMEOUT_MILLIS:3000}
+      request-timeout-millis: ${GWY_TRANSFER_REQUEST_TIMEOUT_MILLIS:30000}
+      temp-directory: ${GWY_TRANSFER_TEMP_DIRECTORY:${java.io.tmpdir}/cpf-gateway}
+    control:
+      enabled: ${GWY_CONTROL_ENABLED:false}
+      shared-secret: ${CPF_GATEWAY_CONTROL_SHARED_SECRET:}
+      allowed-skew-seconds: ${GWY_CONTROL_ALLOWED_SKEW_SECONDS:60}
+      nonce-retention-seconds: ${GWY_CONTROL_NONCE_RETENTION_SECONDS:180}
+    route-event:
+      worker-millis: ${GWY_ROUTE_EVENT_WORKER_MILLIS:1000}
+    route-reconcile-millis: ${GWY_ROUTE_RECONCILE_MILLIS:30000}
 
 management:
   endpoint:

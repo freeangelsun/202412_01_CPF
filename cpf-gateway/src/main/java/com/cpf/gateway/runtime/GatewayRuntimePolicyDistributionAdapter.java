@@ -1,6 +1,7 @@
 package com.cpf.gateway.runtime;
 
 import com.cpf.core.api.runtime.CpfRuntimePolicyDistributionPort;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -12,10 +13,8 @@ import java.sql.Timestamp;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -31,9 +30,11 @@ public class GatewayRuntimePolicyDistributionAdapter implements CpfRuntimePolicy
     private static final Set<String> ACK_STATUSES = Set.of("APPLIED", "FAILED", "IGNORED");
 
     private final JdbcTemplate jdbc;
+    private final CpfRuntimePolicyMetadataCodec metadataCodec;
 
-    public GatewayRuntimePolicyDistributionAdapter(DataSource dataSource) {
+    public GatewayRuntimePolicyDistributionAdapter(DataSource dataSource, ObjectMapper objectMapper) {
         this.jdbc = new JdbcTemplate(dataSource);
+        this.metadataCodec = new CpfRuntimePolicyMetadataCodec(objectMapper);
     }
 
     @Override
@@ -49,7 +50,7 @@ public class GatewayRuntimePolicyDistributionAdapter implements CpfRuntimePolicy
                     VALUES (?,?,?,?,?,?,?,?,?,?,?,'PENDING',CURRENT_TIMESTAMP)
                     """, eventId, command.eventType().trim(), command.aggregateType().trim(), command.aggregateId().trim(),
                     command.aggregateVersion(), command.action().trim(), clean(command.payloadChecksum()),
-                    encode(command.metadata()), command.reason().trim(), command.requestedBy().trim(),
+                    metadataCodec.encode(command.metadata()), command.reason().trim(), command.requestedBy().trim(),
                     timestamp(command.occurredAt()));
         } catch (DuplicateKeyException duplicate) {
             List<DistributionEvent> found = findEvent(eventId);
@@ -141,16 +142,31 @@ public class GatewayRuntimePolicyDistributionAdapter implements CpfRuntimePolicy
                     + ", consumerId=" + consumerId + ", fencingToken=" + command.fencingToken());
         }
 
-        Map<String, Object> row = jdbc.queryForMap("""
+        List<DeliveryStatus> rows = jdbc.query("""
                 SELECT e.aggregate_type,e.aggregate_id,e.aggregate_version,d.attempt_count,d.updated_at
                   FROM cpf_runtime_policy_delivery d
                   JOIN cpf_runtime_policy_event e ON e.event_id=d.event_id
                  WHERE d.event_id=? AND d.consumer_id=?
-                """, eventId, consumerId);
-        return new DeliveryStatus(eventId, consumerId, String.valueOf(row.get("aggregate_type")),
-                String.valueOf(row.get("aggregate_id")), number(row.get("aggregate_version")).longValue(), status,
-                number(row.get("attempt_count")).intValue(), command.fencingToken(), errorCode, errorMessage,
-                null, acknowledgedAt, toOffsetDateTime(row.get("updated_at")));
+                """, (rs, rowNum) -> new DeliveryStatus(
+                eventId,
+                consumerId,
+                rs.getString("aggregate_type"),
+                rs.getString("aggregate_id"),
+                rs.getLong("aggregate_version"),
+                status,
+                rs.getInt("attempt_count"),
+                command.fencingToken(),
+                errorCode,
+                errorMessage,
+                null,
+                acknowledgedAt,
+                requiredOffset(rs.getTimestamp("updated_at"), "updated_at")),
+                eventId, consumerId);
+        if (rows.size() != 1) {
+            throw new IllegalStateException("Runtime policy ACK row disappeared after update: eventId=" + eventId
+                    + ", consumerId=" + consumerId);
+        }
+        return rows.getFirst();
     }
 
     @Override
@@ -212,7 +228,7 @@ public class GatewayRuntimePolicyDistributionAdapter implements CpfRuntimePolicy
         }, (rs, rowNum) -> new DistributionEvent(rs.getString("event_id"), rs.getString("event_type"),
                 rs.getString("aggregate_type"), rs.getString("aggregate_id"), rs.getLong("aggregate_version"),
                 rs.getString("action_code"), rs.getString("payload_checksum"),
-                decode(rs.getString("metadata_text")), rs.getString("reason"), rs.getString("requested_by"),
+                metadataCodec.decode(rs.getString("metadata_text")), rs.getString("reason"), rs.getString("requested_by"),
                 offset(rs.getTimestamp("occurred_at")), rs.getLong("fencing_token"),
                 rs.getInt("attempt_count")));
     }
@@ -226,7 +242,7 @@ public class GatewayRuntimePolicyDistributionAdapter implements CpfRuntimePolicy
                 """, (rs, rowNum) -> new DistributionEvent(rs.getString("event_id"), rs.getString("event_type"),
                 rs.getString("aggregate_type"), rs.getString("aggregate_id"), rs.getLong("aggregate_version"),
                 rs.getString("action_code"), rs.getString("payload_checksum"),
-                decode(rs.getString("metadata_text")), rs.getString("reason"), rs.getString("requested_by"),
+                metadataCodec.decode(rs.getString("metadata_text")), rs.getString("reason"), rs.getString("requested_by"),
                 offset(rs.getTimestamp("occurred_at")), 0, 0), eventId);
     }
 
@@ -268,39 +284,6 @@ public class GatewayRuntimePolicyDistributionAdapter implements CpfRuntimePolicy
                 .toList();
     }
 
-    private static String encode(Map<String, String> map) {
-        if (map == null || map.isEmpty()) {
-            return "";
-        }
-        return map.entrySet().stream()
-                .sorted(Map.Entry.comparingByKey())
-                .map(entry -> escape(entry.getKey()) + '=' + escape(entry.getValue()))
-                .reduce((left, right) -> left + '\n' + right)
-                .orElse("");
-    }
-
-    private static Map<String, String> decode(String value) {
-        if (blank(value)) {
-            return Map.of();
-        }
-        Map<String, String> result = new LinkedHashMap<>();
-        for (String line : value.split("\\R")) {
-            int separator = line.indexOf('=');
-            if (separator > 0) {
-                result.put(unescape(line.substring(0, separator)), unescape(line.substring(separator + 1)));
-            }
-        }
-        return Map.copyOf(result);
-    }
-
-    private static String escape(String value) {
-        return clean(value).replace("%", "%25").replace("\n", "%0A").replace("=", "%3D");
-    }
-
-    private static String unescape(String value) {
-        return clean(value).replace("%3D", "=").replace("%0A", "\n").replace("%25", "%");
-    }
-
     private static void append(StringBuilder sql, List<Object> args, String clause, String value) {
         if (!blank(value)) {
             sql.append(clause);
@@ -330,21 +313,12 @@ public class GatewayRuntimePolicyDistributionAdapter implements CpfRuntimePolicy
         return value == null ? null : value.toInstant().atOffset(ZoneOffset.UTC);
     }
 
-    private static OffsetDateTime toOffsetDateTime(Object value) {
-        if (value instanceof Timestamp timestamp) {
-            return offset(timestamp);
+    private static OffsetDateTime requiredOffset(Timestamp value, String column) {
+        OffsetDateTime converted = offset(value);
+        if (converted == null) {
+            throw new IllegalStateException("Required runtime policy timestamp is null: " + column);
         }
-        if (value instanceof OffsetDateTime offsetDateTime) {
-            return offsetDateTime;
-        }
-        return OffsetDateTime.now();
-    }
-
-    private static Number number(Object value) {
-        if (value instanceof Number number) {
-            return number;
-        }
-        return Long.parseLong(String.valueOf(value));
+        return converted;
     }
 
     private static String truncate(String value, int maxLength) {

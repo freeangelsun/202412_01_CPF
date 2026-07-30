@@ -5,6 +5,7 @@ import com.cpf.core.api.gateway.CpfGatewayAuditPort;
 import com.cpf.core.api.gateway.CpfGatewayAuthenticationPort;
 import com.cpf.core.api.gateway.CpfGatewayAuthorizationPort;
 import com.cpf.core.api.gateway.CpfGatewayPrincipal;
+import com.cpf.core.api.gateway.CpfGatewayLedgerPort;
 import com.cpf.core.api.gateway.CpfGatewayRoute;
 import com.cpf.core.api.header.CpfHeaderNames;
 import com.cpf.core.api.logging.CpfTransactionContext;
@@ -16,12 +17,17 @@ import com.cpf.core.api.servicecall.CpfServiceCallOutcome;
 import com.cpf.core.api.servicecall.CpfServiceCallTarget;
 import com.cpf.core.channel.application.CpfChannelPolicyService;
 import com.cpf.core.channel.model.CpfChannelPolicyDecision;
+import com.cpf.gateway.config.CpfGatewaySafetyEnforcer;
+import com.cpf.gateway.config.CpfGatewaySafetyProperties;
 import com.cpf.gateway.route.CpfGatewayRouteSnapshot;
+import com.cpf.gateway.logging.CpfGatewayCaptureService;
+import com.cpf.core.api.logging.policy.LogPolicyDecision;
 import com.cpf.gateway.runtime.CpfGatewayRuntimePolicy;
 import com.cpf.gateway.transport.CpfGatewayHttpExchangePort;
 import com.cpf.gateway.transport.CpfGatewayProxyResponse;
 import com.cpf.gateway.transport.CpfGatewayReplayableBody;
 import com.cpf.gateway.transport.CpfGatewayTransferPolicy;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -31,10 +37,15 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.io.ByteArrayInputStream;
+import java.io.FilterInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.Duration;
+import java.util.UUID;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -88,6 +99,9 @@ public class CpfGatewayProxyService {
     private final CpfGatewayRuntimePolicy runtimePolicy;
     private final CpfGatewayTransferPolicy transferPolicy;
     private final CpfGatewayHttpExchangePort httpExchange;
+    private final CpfGatewayLedgerPort ledger;
+    private final CpfGatewayCaptureService captureService;
+    private final CpfGatewaySafetyEnforcer safety;
 
     public CpfGatewayProxyService(
             CpfGatewayRouteSnapshot snapshot,
@@ -98,7 +112,28 @@ public class CpfGatewayProxyService {
             CpfChannelPolicyService channelPolicyService,
             CpfGatewayRuntimePolicy runtimePolicy,
             CpfGatewayTransferPolicy transferPolicy,
-            CpfGatewayHttpExchangePort httpExchange) {
+            CpfGatewayHttpExchangePort httpExchange,
+            CpfGatewayLedgerPort ledger,
+            CpfGatewayCaptureService captureService) {
+        this(snapshot, serviceCallEngine, authenticationPort, authorizationPort, auditPort,
+                channelPolicyService, runtimePolicy, transferPolicy, httpExchange, ledger, captureService,
+                new CpfGatewaySafetyEnforcer(new CpfGatewaySafetyProperties()));
+    }
+
+    @Autowired
+    public CpfGatewayProxyService(
+            CpfGatewayRouteSnapshot snapshot,
+            CpfServiceCallExecutor serviceCallEngine,
+            CpfGatewayAuthenticationPort authenticationPort,
+            CpfGatewayAuthorizationPort authorizationPort,
+            CpfGatewayAuditPort auditPort,
+            CpfChannelPolicyService channelPolicyService,
+            CpfGatewayRuntimePolicy runtimePolicy,
+            CpfGatewayTransferPolicy transferPolicy,
+            CpfGatewayHttpExchangePort httpExchange,
+            CpfGatewayLedgerPort ledger,
+            CpfGatewayCaptureService captureService,
+            CpfGatewaySafetyEnforcer safety) {
         this.snapshot = snapshot;
         this.serviceCallEngine = serviceCallEngine;
         this.authenticationPort = authenticationPort;
@@ -108,6 +143,9 @@ public class CpfGatewayProxyService {
         this.runtimePolicy = runtimePolicy;
         this.transferPolicy = transferPolicy;
         this.httpExchange = httpExchange;
+        this.ledger = Objects.requireNonNull(ledger, "Mandatory Gateway ledger is required");
+        this.captureService = Objects.requireNonNull(captureService, "Gateway capture service is required");
+        this.safety = Objects.requireNonNull(safety, "Gateway safety enforcer is required");
     }
 
     /** 기존 내부 Consumer 호환용 POST 진입점입니다. 대용량 외부 요청은 executeStreaming을 사용합니다. */
@@ -149,6 +187,7 @@ public class CpfGatewayProxyService {
             String rawQuery,
             String verifiedClientIp,
             String verifiedCertificateSerial) {
+        safety.validateRequest(inboundHeaders, declaredLength);
         CpfGatewayProxyResponse response;
         try (CpfGatewayReplayableBody body = CpfGatewayReplayableBody.capture(
                 bodyInput, declaredLength, transferPolicy)) {
@@ -176,6 +215,27 @@ public class CpfGatewayProxyService {
             String verifiedCertificateSerial) {
         CpfGatewayRoute route = snapshot.resolve(executionId);
         HttpMethod method = httpMethod(inboundMethod);
+        String gatewayTransactionId = UUID.randomUUID().toString();
+        OffsetDateTime ledgerStartedAt = OffsetDateTime.now();
+        String transactionId = trimToNull(CpfTransactionContext.transactionId());
+        if (transactionId == null) transactionId = gatewayTransactionId;
+        String traceId = Objects.toString(inboundHeaders.getFirst("traceparent"), transactionId);
+        String gatewayInstanceId = CpfInstanceIdentity.current().serverInstanceId();
+        LogPolicyDecision logPolicy = captureService.resolve(route.standardExecutionId());
+        ledger.begin(new CpfGatewayLedgerPort.TransactionStart(
+                gatewayTransactionId, transactionId, traceId,
+                Objects.toString(inboundHeaders.getFirst(CpfHeaderNames.CHANNEL_CODE), ""),
+                Objects.toString(verifiedClientIp, ""), 0, gatewayInstanceId, route.routeId(),
+                route.standardExecutionId(), route.routeVersion(), route.expectedVersion(), route.routeVersion(),
+                route.serverGroupId(), method.name(), route.endpoint(), body.length(), ledgerStartedAt));
+        CpfGatewayPrincipal principal = CpfGatewayPrincipal.anonymous();
+        String auditReason = null;
+        boolean terminalRecorded = false;
+        try {
+        safety.validateRoute(route);
+        safety.validateLogPolicy(logPolicy);
+        safety.validateRequest(inboundHeaders, body.length());
+        captureService.captureRequest(gatewayTransactionId, rawQuery, inboundHeaders, body, logPolicy);
         if (!method.equals(httpMethod(route.httpMethod()))) {
             throw new IllegalArgumentException(
                     "Gateway route HTTP method 불일치. inbound=" + method + ", route=" + route.httpMethod());
@@ -192,7 +252,7 @@ public class CpfGatewayProxyService {
 
         Map<String, String> credentials = credentialHeaders(
                 inboundHeaders, verifiedClientIp, verifiedCertificateSerial);
-        CpfGatewayPrincipal principal = Objects.requireNonNullElse(
+        principal = Objects.requireNonNullElse(
                 authenticationPort.authenticate(route, credentials), CpfGatewayPrincipal.anonymous());
         if (!runtimePolicy.tryAcquire(
                 route.standardExecutionId(),
@@ -223,7 +283,7 @@ public class CpfGatewayProxyService {
                     "Gateway route 실행 권한이 없습니다. permission=" + route.requiredPermission());
         }
 
-        String auditReason = trimToNull(inboundHeaders.getFirst(CpfHeaderNames.AUDIT_REASON));
+        auditReason = trimToNull(inboundHeaders.getFirst(CpfHeaderNames.AUDIT_REASON));
         if (route.auditReasonRequired()) {
             if (auditReason == null) {
                 throw new IllegalArgumentException(
@@ -243,15 +303,39 @@ public class CpfGatewayProxyService {
                 .attribute("requestBodyBytes", body.length())
                 .build();
         HttpHeaders outbound = outboundHeaders(inboundHeaders, route);
-        try {
-            CpfServiceCallOutcome<CpfGatewayProxyResponse> result = serviceCallEngine.invoke(
+        CpfServiceCallOutcome<CpfGatewayProxyResponse> result = serviceCallEngine.invoke(
                     command,
                     target -> invokeTarget(target, route, method, outbound, body, query));
+            CpfServiceCallTarget ledgerTarget = result.target();
+            URI ledgerUri = ledgerTarget == null ? null : URI.create(ledgerTarget.baseUrl());
+            OffsetDateTime attemptFinishedAt = OffsetDateTime.now();
+            ledger.recordAttempt(new CpfGatewayLedgerPort.Attempt(
+                    UUID.randomUUID().toString(), gatewayTransactionId,
+                    Math.max(1, Objects.requireNonNullElse(result.attemptCount(), 1)),
+                    ledgerTarget == null ? null : ledgerTarget.instanceId(),
+                    ledgerUri == null ? null : ledgerUri.getHost(),
+                    ledgerUri == null ? null : effectivePort(ledgerUri),
+                    route.targetProtocol().name(), 0L, Objects.requireNonNullElse(result.durationMillis(), 0L),
+                    result.status(), result.httpStatus() == null ? null : String.valueOf(result.httpStatus()),
+                    result.failureCode(), result.failureMessage(), gatewayInstanceId,
+                    ledgerTarget != null && ledgerTarget.failoverEnabled() ? "FAILOVER_OR_POLICY" : "PRIMARY_POLICY",
+                    "UNKNOWN_RESULT".equals(result.status()), ledgerStartedAt, attemptFinishedAt));
             if (!"SUCCESS".equals(result.status()) || result.responseBody() == null) {
+                ledger.complete(new CpfGatewayLedgerPort.TransactionCompletion(
+                        gatewayTransactionId, ledgerTarget == null ? null : ledgerTarget.instanceId(),
+                        result.status(), result.httpStatus() == null ? null : String.valueOf(result.httpStatus()),
+                        result.failureCode(), "TARGET_CALL", "UNKNOWN_RESULT".equals(result.status()),
+                        Duration.between(ledgerStartedAt, attemptFinishedAt).toMillis(), 0L, attemptFinishedAt));
+                terminalRecorded = true;
                 throw new CpfServiceCallFailedException(result);
             }
-            CpfGatewayProxyResponse response = withGatewayResponseHeaders(
+            CpfGatewayProxyResponse gatewayResponse = withGatewayResponseHeaders(
                     result.responseBody(), route, corsDecision);
+            safety.validateResponse(gatewayResponse.headers());
+            CpfGatewayProxyResponse boundedResponse = gatewayResponse.mapBody(
+                    input -> new ResponseLimitInputStream(input, safety.responseBodyBytesCap()));
+            CpfGatewayProxyResponse response = captureService.wrapResponse(
+                    gatewayTransactionId, boundedResponse, logPolicy);
             try {
                 if (route.auditReasonRequired()) {
                     audit(
@@ -263,12 +347,32 @@ public class CpfGatewayProxyService {
                             result.target() == null ? null : result.target().instanceId(),
                             response.status());
                 }
+                OffsetDateTime completedAt = OffsetDateTime.now();
+                ledger.complete(new CpfGatewayLedgerPort.TransactionCompletion(
+                        gatewayTransactionId, result.target() == null ? null : result.target().instanceId(),
+                        "SUCCESS", String.valueOf(response.status()), null, null, false,
+                        Duration.between(ledgerStartedAt, completedAt).toMillis(),
+                        Math.max(0L, response.headers().getContentLength()), completedAt));
                 return response;
             } catch (RuntimeException ex) {
                 response.close();
                 throw ex;
             }
         } catch (RuntimeException ex) {
+            OffsetDateTime failedAt = OffsetDateTime.now();
+            try { captureService.captureError(gatewayTransactionId, ex, logPolicy); }
+            catch (RuntimeException captureFailure) { ex.addSuppressed(captureFailure); }
+            if (!terminalRecorded) {
+                try {
+                    ledger.complete(new CpfGatewayLedgerPort.TransactionCompletion(
+                            gatewayTransactionId, null, failureStatus(ex), httpStatus(ex),
+                            ex.getClass().getSimpleName(), failureStage(ex), unknownResult(ex),
+                            Duration.between(ledgerStartedAt, failedAt).toMillis(), 0L, failedAt));
+                    terminalRecorded = true;
+                } catch (RuntimeException ledgerFailure) {
+                    ex.addSuppressed(ledgerFailure);
+                }
+            }
             if (route.auditReasonRequired()) {
                 try {
                     audit(route, principal, auditReason, "POST_DISPATCH", "FAILED", null, null);
@@ -282,6 +386,8 @@ public class CpfGatewayProxyService {
 
     public ResponseEntity<byte[]> preflight(String executionId, HttpHeaders inboundHeaders) {
         CpfGatewayRoute route = snapshot.resolve(executionId);
+        safety.validateRoute(route);
+        safety.validateRequest(inboundHeaders, 0L);
         String requestedMethod = inboundHeaders.getFirst(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD);
         CpfGatewayRuntimePolicy.CorsDecision decision = corsDecision(
                 inboundHeaders, requestedMethod == null ? route.httpMethod() : requestedMethod);
@@ -428,6 +534,70 @@ public class CpfGatewayProxyService {
                 status,
                 Instant.now(),
                 Map.of("routeVersion", Objects.toString(route.routeVersion(), ""))));
+    }
+
+    private static final class ResponseLimitInputStream extends FilterInputStream {
+        private final long maxBytes;
+        private long observed;
+
+        private ResponseLimitInputStream(InputStream input, long maxBytes) {
+            super(input);
+            this.maxBytes = maxBytes;
+        }
+
+        @Override
+        public int read() throws IOException {
+            int value = super.read();
+            if (value >= 0) count(1L);
+            return value;
+        }
+
+        @Override
+        public int read(byte[] buffer, int offset, int length) throws IOException {
+            int read = super.read(buffer, offset, length);
+            if (read > 0) count(read);
+            return read;
+        }
+
+        private void count(long bytes) throws IOException {
+            observed += bytes;
+            if (observed > maxBytes) {
+                throw new IOException("Gateway response body 안전 상한을 초과했습니다.");
+            }
+        }
+    }
+
+    private static String failureStage(RuntimeException ex) {
+        if (ex instanceof ResponseStatusException status && status.getStatusCode().value() == 429) return "RATE_LIMIT";
+        if (ex instanceof SecurityException) return "AUTHORIZATION";
+        if (ex instanceof IllegalArgumentException) return "REQUEST_VALIDATION";
+        if (ex instanceof CpfServiceCallFailedException) return "TARGET_CALL";
+        return "GATEWAY_PIPELINE";
+    }
+
+    private static String failureStatus(RuntimeException ex) {
+        return unknownResult(ex) ? "UNKNOWN_RESULT" : "FAILED";
+    }
+
+    private static String httpStatus(RuntimeException ex) {
+        return ex instanceof ResponseStatusException status
+                ? Integer.toString(status.getStatusCode().value()) : null;
+    }
+
+    private static boolean unknownResult(RuntimeException ex) {
+        Throwable current = ex;
+        while (current != null) {
+            if (current instanceof java.net.SocketTimeoutException
+                    || current instanceof java.io.InterruptedIOException
+                    || current instanceof java.util.concurrent.TimeoutException) return true;
+            current = current.getCause();
+        }
+        return false;
+    }
+
+    private static int effectivePort(URI uri) {
+        if (uri.getPort() > 0) return uri.getPort();
+        return "https".equalsIgnoreCase(uri.getScheme()) ? 443 : 80;
     }
 
     private URI targetUri(String baseUrl, String endpoint, String rawQuery) {

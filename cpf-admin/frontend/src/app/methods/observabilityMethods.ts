@@ -8,17 +8,55 @@ export const observabilityMethods: Record<string, any> = {
         this.logPage.page = Math.min(this.logTotalPages, Math.max(1, this.logPage.page + delta));
       },
   async copyLogDetail() {
-        await navigator.clipboard.writeText(this.activeLogDetailPayload);
-        this.setMessage("로그 상세 내용을 복사했습니다.");
+        if (!this.requireReason(this.downloadForm.reason)) return;
+        await this.requestLogDetailExport("CLIPBOARD");
       },
-  downloadLogDetail() {
-        const blob = new Blob([this.activeLogDetailPayload], { type: "application/json;charset=utf-8" });
-        const url = URL.createObjectURL(blob);
+  async downloadLogDetail() {
+        if (!this.requireReason(this.downloadForm.reason)) return;
+        await this.requestLogDetailExport("DOWNLOAD");
+      },
+  async requestLogDetailExport(action) {
+        const detail = this.logDetail?.item || this.logDetail || {};
+        const logId = detail.logIdx || detail.log_idx || detail.transactionId || detail.transaction_id;
+        if (!logId) {
+          this.setMessage("먼저 로그 상세를 선택하세요.");
+          return;
+        }
+        const response = await fetch(`/adm/api/log-exports`, {
+          method: "POST",
+          headers: this.apiHeaders({ "Content-Type": "application/json" }),
+          body: JSON.stringify({
+            logId: String(logId),
+            action,
+            reason: this.downloadForm.reason,
+            format: "JSON",
+            requestedBy: this.currentOperator.operatorId
+          })
+        });
+        if (!response.ok) {
+          await this.parseResponse(response, false);
+          return;
+        }
+        const result = await response.json();
+        if (action === "CLIPBOARD") {
+          if (!result.maskedContent) throw new Error("서버가 마스킹된 Export 내용을 반환하지 않았습니다.");
+          await navigator.clipboard.writeText(result.maskedContent);
+          this.setMessage(`감사된 로그 Export를 복사했습니다. exportId=${result.exportId}`);
+          return;
+        }
+        if (!result.downloadUrl) throw new Error("서버가 만료 다운로드 URL을 반환하지 않았습니다.");
+        const artifact = await fetch(result.downloadUrl, { headers: this.apiHeaders() });
+        if (!artifact.ok) {
+          await this.parseResponse(artifact, false);
+          return;
+        }
+        const url = URL.createObjectURL(await artifact.blob());
         const anchor = document.createElement("a");
         anchor.href = url;
-        anchor.download = `cpf-log-detail-${Date.now()}.json`;
+        anchor.download = result.fileName || `cpf-log-export-${result.exportId}.json`;
         anchor.click();
         URL.revokeObjectURL(url);
+        this.setMessage(`감사된 로그 Export를 다운로드했습니다. exportId=${result.exportId}`);
       },
   async downloadCsv(downloadType) {
         if (!this.requireReason(this.downloadForm.reason)) return;
@@ -253,7 +291,19 @@ export const observabilityMethods: Record<string, any> = {
         const url = this.logPolicyForm.policyId
           ? `/adm/api/log-policies/${this.logPolicyForm.policyId}`
           : "/adm/api/log-policies";
-        this.logPolicyResult = await this.sendJson(url, method, this.logPolicyForm);
+        const payload = { ...this.logPolicyForm };
+        delete payload.selectedOverrideId;
+        delete payload.traceBoostTransactionId;
+        delete payload.traceBoostBusinessTransactionId;
+        delete payload.traceBoostApiPath;
+        delete payload.traceBoostStatus;
+        delete payload.traceBoostFailureCode;
+        delete payload.traceBoostDurationMsGreaterThan;
+        delete payload.traceBoostTtlSeconds;
+        delete payload.effectiveStartAt;
+        delete payload.effectiveEndAt;
+        payload.requestUser = undefined;
+        this.logPolicyResult = await this.sendJson(url, method, payload);
         await this.loadLogPolicies();
         this.setMessage("로그 정책을 저장했습니다.");
       },
@@ -266,19 +316,32 @@ export const observabilityMethods: Record<string, any> = {
           logLevel: this.logPolicyForm.logLevel,
           dbLogEnabledYn: this.logPolicyForm.dbLogEnabledYn,
           fileLogEnabledYn: this.logPolicyForm.fileLogEnabledYn,
-          requestBodyLogYn: this.logPolicyForm.requestBodyLogYn,
-          responseBodyLogYn: this.logPolicyForm.responseBodyLogYn,
-          errorStackLogYn: this.logPolicyForm.errorStackLogYn,
+          queryCaptureMode: this.logPolicyForm.queryCaptureMode,
+          requestHeaderCaptureMode: this.logPolicyForm.requestHeaderCaptureMode,
+          responseHeaderCaptureMode: this.logPolicyForm.responseHeaderCaptureMode,
+          requestBodyCaptureMode: this.logPolicyForm.requestBodyCaptureMode,
+          responseBodyCaptureMode: this.logPolicyForm.responseBodyCaptureMode,
+          errorStackCaptureMode: this.logPolicyForm.errorStackCaptureMode,
+          queryAllowlist: this.logPolicyForm.queryAllowlist,
+          headerAllowlist: this.logPolicyForm.headerAllowlist,
+          fieldAllowlist: this.logPolicyForm.fieldAllowlist,
+          maxQueryBytes: this.logPolicyForm.maxQueryBytes,
+          maxHeaderBytes: this.logPolicyForm.maxHeaderBytes,
+          maxRequestBodyBytes: this.logPolicyForm.maxRequestBodyBytes,
+          maxResponseBodyBytes: this.logPolicyForm.maxResponseBodyBytes,
+          maxStackBytes: this.logPolicyForm.maxStackBytes,
+          maskingPolicyKey: this.logPolicyForm.maskingPolicyKey,
           effectiveStartAt: this.logPolicyForm.effectiveStartAt,
           effectiveEndAt: this.logPolicyForm.effectiveEndAt,
-          requestUser: this.currentOperator.operatorId,
+          requestUser: undefined,
           reason: this.logPolicyForm.reason
         });
         this.setMessage("로그 정책 override를 등록했습니다.");
       },
   async disableLogPolicyOverride() {
-        const overrideId = prompt("중지할 override ID를 입력하세요.");
-        if (!overrideId || !this.requireReason(this.logPolicyForm.reason)) return;
+        const overrideId = String(this.logPolicyForm.selectedOverrideId || "").trim();
+        if (!overrideId) { this.setMessage("중지할 Override ID를 선택하거나 입력하세요."); return; }
+        if (!this.requireReason(this.logPolicyForm.reason)) return;
         const params = this.buildParams({ reason: this.logPolicyForm.reason });
         this.logPolicyResult = await this.sendJson(`/adm/api/log-policies/overrides/${overrideId}/disable?${params.toString()}`, "PATCH");
         this.setMessage("로그 정책 override를 중지했습니다.");

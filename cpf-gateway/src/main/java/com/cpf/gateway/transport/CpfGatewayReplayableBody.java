@@ -85,6 +85,24 @@ public final class CpfGatewayReplayableBody implements AutoCloseable {
         return length;
     }
 
+    /** 정책 상한보다 한 Byte 더 읽어 Truncate 여부를 판단할 수 있는 UTF-8 Preview입니다. */
+    public byte[] readUpTo(int maxBytes) {
+        int limit = Math.max(0, maxBytes);
+        try (InputStream input = openStream(); ByteArrayOutputStream output = new ByteArrayOutputStream(Math.min(limit + 1, 65536))) {
+            byte[] buffer = new byte[Math.min(8192, Math.max(1, limit + 1))];
+            int remaining = limit + 1;
+            while (remaining > 0) {
+                int read = input.read(buffer, 0, Math.min(buffer.length, remaining));
+                if (read < 0) break;
+                output.write(buffer, 0, read);
+                remaining -= read;
+            }
+            return output.toByteArray();
+        } catch (IOException ex) {
+            throw new UncheckedIOException("Gateway 요청 본문 Preview를 읽지 못했습니다.", ex);
+        }
+    }
+
     public boolean fileBacked() {
         return file != null;
     }

@@ -7,7 +7,9 @@ SELECT s.schedule_id,
        s.available_start_time,
        s.available_end_time,
        s.timezone,
-       s.next_fire_at
+       s.next_fire_at,
+       s.definition_version,
+       s.definition_checksum
   FROM bat_schedule s
   JOIN bat_job j
     ON j.job_id = s.job_id

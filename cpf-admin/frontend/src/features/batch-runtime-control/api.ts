@@ -55,6 +55,10 @@ export async function fetchJobDefinitions(jobId = "", state = ""): Promise<Batch
   if (jobId) params.set("jobId", jobId); if (state) params.set("state", state);
   return request(`/adm/api/batch-runtime/job-definitions?${params.toString()}`, { credentials: "same-origin" });
 }
+
+export async function fetchJobDefinitionDetail(jobId:string, version:number): Promise<Record<string, unknown>> {
+  return request(`/adm/api/batch-runtime/job-definitions/${encodeURIComponent(jobId)}/versions/${version}`, { credentials: "same-origin" });
+}
 export async function validateJobDefinition(body: unknown): Promise<Record<string, unknown>> {
   return request('/adm/api/batch-runtime/job-definitions/validate', { method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
 }

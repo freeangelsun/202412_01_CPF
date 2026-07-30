@@ -5,7 +5,7 @@ import java.util.Objects;
 /**
  * CPF Gateway가 사용하는 Versioned External Route 계약입니다.
  *
- * <p>기존 8개 필드 생성자는 Source Compatibility를 위해 유지합니다. 신규 Route는 Server Group,
+ * <p>기존 8개 필드 생성자는 Source Compatibility를 위해 비활성 Draft로만 유지합니다. 신규 Route는 Server Group,
  * Ingress/Target Protocol, Timeout Budget, Retry 안전성, 보안·Health·Failover 정책을 명시해야 합니다.</p>
  */
 public record CpfGatewayRoute(
@@ -46,7 +46,7 @@ public record CpfGatewayRoute(
         this(standardExecutionId, serviceId, httpMethod, endpoint, operationId, requiredPermission,
                 auditReasonRequired, routeVersion, standardExecutionId, "DEFAULT", "*", endpoint, routeVersion,
                 "", CpfGatewayProtocol.HTTP, CpfGatewayProtocol.HTTP, "", "", "", "", "", "",
-                3_000, 10_000, 15_000, 0, false, "", true, 0L);
+                3_000, 10_000, 15_000, 0, false, "", false, 0L);
     }
 
     public CpfGatewayRoute {

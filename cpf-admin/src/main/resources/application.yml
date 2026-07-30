@@ -42,6 +42,13 @@ cpf:
   framework:
     module-id: ADM
     was-id: ${WAS_ID:admAP01}
+  admin:
+    gateway-control:
+      enabled: ${CPF_ADMIN_GATEWAY_CONTROL_ENABLED:false}
+      base-url: ${CPF_ADMIN_GATEWAY_CONTROL_BASE_URL:}
+      shared-secret: ${CPF_GATEWAY_CONTROL_SHARED_SECRET:}
+      caller-service: ${CPF_ADMIN_GATEWAY_CONTROL_CALLER_SERVICE:ADM}
+      request-timeout: ${CPF_ADMIN_GATEWAY_CONTROL_REQUEST_TIMEOUT:10s}
   adm:
     persistence:
       mode: ${CPF_ADM_PERSISTENCE_MODE:DATABASE}

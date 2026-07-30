@@ -23,6 +23,91 @@ function Assert-DbIdentifier([string]$value,[string]$name){
  if($value -cnotmatch '^[A-Za-z][A-Za-z0-9_$#]{1,62}$'){throw "Invalid $name in canonical DB profile: $value"}
 }
 function Sql-Quote([string]$value){return $value.Replace("'","''")}
+function Get-CanonicalTableOrder([object[]]$tables,[string]$logicalDatabase){
+ $byName=@{}
+ $dependencies=@{}
+ foreach($table in $tables){
+  $name=[string]$table.name
+  if([string]::IsNullOrWhiteSpace($name)){throw "Canonical table without name in logicalDatabase=$logicalDatabase"}
+  if($byName.ContainsKey($name)){throw "Duplicate canonical table name: $name"}
+  $byName[$name]=$table
+  $dependencies[$name]=[Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+ }
+ foreach($table in $tables){
+  $child=[string]$table.name
+  foreach($foreignKey in @($table.foreignKeys)){
+   $parent=[string]$foreignKey.refTable
+   if([string]::IsNullOrWhiteSpace($parent)){throw "Foreign key without refTable: table=$child constraint=$($foreignKey.name)"}
+   if($parent -eq $child){continue}
+   if(-not $byName.ContainsKey($parent)){
+    throw "Foreign key parent is missing or belongs to another logical database: child=$child parent=$parent logicalDatabase=$logicalDatabase"
+   }
+   [void]$dependencies[$child].Add($parent)
+  }
+ }
+ $remaining=@{}
+ foreach($name in $byName.Keys){$remaining[$name]=$byName[$name]}
+ $ordered=[Collections.Generic.List[object]]::new()
+ while($remaining.Count -gt 0){
+  $ready=[Collections.Generic.List[object]]::new()
+  foreach($name in @($remaining.Keys)){
+   $blocked=$false
+   foreach($parent in $dependencies[$name]){
+    if($remaining.ContainsKey($parent)){$blocked=$true;break}
+   }
+   if(-not $blocked){$ready.Add($remaining[$name])}
+  }
+  if($ready.Count -eq 0){
+   $cycle=@($remaining.Keys | Sort-Object) -join ','
+   throw "Canonical foreign key cycle detected: logicalDatabase=$logicalDatabase tables=$cycle"
+  }
+  foreach($table in @($ready | Sort-Object name)){
+   $ordered.Add($table)
+   $remaining.Remove([string]$table.name)
+  }
+ }
+ return @($ordered)
+}
+function Assert-CanonicalSchemaContract($canonicalSchema){
+ $globalTableByName=@{}
+ foreach($table in @($canonicalSchema.tables)){
+  $tableName=[string]$table.name
+  if($globalTableByName.ContainsKey($tableName)){throw "Duplicate canonical table name across logical databases: $tableName"}
+  $globalTableByName[$tableName]=$table
+  $columnByName=@{}
+  foreach($column in @($table.columns)){
+   $columnName=[string]$column.name
+   if($columnByName.ContainsKey($columnName)){throw "Duplicate canonical column: $tableName.$columnName"}
+   $columnByName[$columnName]=$column
+   if([string]$column.default -eq "''"){
+    throw "Empty-string DDL defaults are not portable to Oracle. Use nullable=true/default=null: $tableName.$columnName"
+   }
+   if([bool]$column.autoIncrement -and ([string]$column.type -notmatch '^(?i:BIGINT|INT|TINYINT)$')){
+    throw "autoIncrement requires an integer canonical type: $tableName.$columnName type=$($column.type)"
+   }
+  }
+  foreach($primaryKeyColumn in @($table.primaryKey)){
+   if(-not $columnByName.ContainsKey([string]$primaryKeyColumn)){
+    throw "Primary key references missing column: table=$tableName column=$primaryKeyColumn"
+   }
+  }
+ }
+ foreach($table in @($canonicalSchema.tables)){
+  $child=[string]$table.name
+  foreach($foreignKey in @($table.foreignKeys)){
+   $parent=[string]$foreignKey.refTable
+   if(-not $globalTableByName.ContainsKey($parent)){throw "Foreign key references missing table: child=$child parent=$parent"}
+   if([string]$globalTableByName[$parent].logicalDatabase -ne [string]$table.logicalDatabase){
+    throw "Cross logical-database foreign key is forbidden: child=$child parent=$parent"
+   }
+  }
+ }
+ foreach($logicalDatabase in @($canonicalSchema.tables | ForEach-Object { [string]$_.logicalDatabase } | Sort-Object -Unique)){
+  [void](Get-CanonicalTableOrder @($canonicalSchema.tables | Where-Object { [string]$_.logicalDatabase -eq $logicalDatabase }) $logicalDatabase)
+ }
+}
+Assert-CanonicalSchemaContract $schema
+
 foreach($module in $platformModules){
  Assert-DbIdentifier ([string]$module.logicalDatabase) 'logicalDatabase'
  Assert-DbIdentifier ([string]$module.migration.username) 'migration username'
@@ -261,7 +346,7 @@ function Render-Table([string]$v,$t){
 }
 foreach($v in $vendors){
  $bucket=@{}; foreach($db in $fileByDb.Keys){$bucket[$fileByDb[$db]]=@()}
- foreach($db in $fileByDb.Keys){$ts=@($schema.tables|Where-Object{$_.logicalDatabase -eq $db}|Sort-Object name);if($ts.Count -eq 0){continue};$s="-- AUTO-GENERATED from cpf-tools/db/canonical/platform-schema.json`n-- vendor=$v`n-- DO NOT EDIT generated DDL directly.`n`n-- CPF_LOGICAL_DATABASE=$db`n";if($v -eq 'mariadb'){$s+="USE $db;`n"};foreach($t in $ts){$s+=(Render-Table $v $t)+"`n"};$bucket[$fileByDb[$db]]+=$s}
+ foreach($db in $fileByDb.Keys){$ts=@(Get-CanonicalTableOrder @($schema.tables|Where-Object{$_.logicalDatabase -eq $db}) $db);if($ts.Count -eq 0){continue};$s="-- AUTO-GENERATED from cpf-tools/db/canonical/platform-schema.json`n-- vendor=$v`n-- DO NOT EDIT generated DDL directly.`n`n-- CPF_LOGICAL_DATABASE=$db`n";if($v -eq 'mariadb'){$s+="USE $db;`n"};foreach($t in $ts){$s+=(Render-Table $v $t)+"`n"};$bucket[$fileByDb[$db]]+=$s}
  foreach($f in $bucket.Keys){if($bucket[$f].Count -gt 0){W (Join-Path $Root "cpf-tools/db/vendor/$v/source/$f") ($bucket[$f] -join "`n")}}
 }
 # Seed model is canonical too. Rendering is delegated to the dedicated function below so generated SQL never copies another vendor pack.

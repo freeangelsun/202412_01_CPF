@@ -1,5 +1,6 @@
 -- AUTO-GENERATED from cpf-tools/db/canonical/platform-schema.json
 -- vendor=mariadb
+-- schemaVersion=37
 -- DO NOT EDIT generated DDL directly.
 
 -- CPF_LOGICAL_DATABASE=cmnDB
@@ -9,8 +10,8 @@ CREATE TABLE IF NOT EXISTS cmn_business_calendar_day (
     business_date DATE NOT NULL COMMENT '기준 일자',
     business_day_yn CHAR(1) NOT NULL COMMENT '영업일 여부',
     day_type VARCHAR(30) NOT NULL DEFAULT 'BUSINESS' COMMENT 'BUSINESS/HOLIDAY/SPECIAL 등 일자 유형',
-    institution_code VARCHAR(50) NOT NULL DEFAULT '' COMMENT '선택 기관/시장 코드',
-    reason VARCHAR(500) NOT NULL DEFAULT '' COMMENT '휴일/예외 사유',
+    institution_code VARCHAR(50) NULL COMMENT '선택 기관/시장 코드',
+    reason VARCHAR(500) NULL COMMENT '휴일/예외 사유',
     version_no BIGINT NOT NULL DEFAULT 1 COMMENT '낙관적 잠금 버전',
     created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
     created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록 시각',
@@ -24,7 +25,7 @@ CREATE TABLE IF NOT EXISTS cmn_business_calendar_day (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CMN 영업일/휴일 Override 제품 정본';
 
 CREATE TABLE IF NOT EXISTS cmn_sample_item (
-    sample_item_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '샘플 항목 ID',
+    sample_item_id BIGINT AUTO_INCREMENT NOT NULL COMMENT '샘플 항목 ID',
     sample_key VARCHAR(100) NOT NULL COMMENT '외부 노출용 고유 샘플 키',
     item_name VARCHAR(200) NOT NULL COMMENT '샘플 항목명',
     category_code VARCHAR(30) NOT NULL DEFAULT 'GENERAL' COMMENT '검색 분류 코드',

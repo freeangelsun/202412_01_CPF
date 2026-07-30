@@ -7,7 +7,7 @@
         <button type="button" @click="loadLogPolicyDistributionStatus">적용 상태</button>
         <button type="button" v-if="canWrite('LOG_POLICY')" @click="saveLogPolicy">저장</button>
         <button type="button" v-if="canWrite('LOG_POLICY')" @click="createLogPolicyOverride">Override 등록</button>
-        <button type="button" v-if="canWrite('LOG_POLICY')" @click="disableLogPolicyOverride">Override 중지</button>
+        <label class="inline-field">Override ID <input v-model="logPolicyForm.selectedOverrideId" type="text" inputmode="numeric"></label><button type="button" v-if="canWrite('LOG_POLICY')" @click="disableLogPolicyOverride">Override 중지</button>
         <button type="button" v-if="canWrite('LOG_POLICY')" @click="disableLogPolicy">정책 중지</button>
       </div>
     </div>
@@ -22,7 +22,7 @@
         <label>레벨 <select v-model="logPolicyForm.logLevel"><option>TRACE</option><option>DEBUG</option><option>INFO</option><option>WARN</option><option>ERROR</option></select></label>
         <label>DB 정형 원장 <select v-model="logPolicyForm.dbLogEnabledYn"><option value="Y">사용</option><option value="N">미사용</option></select></label>
         <label>기술 파일 로그 <select v-model="logPolicyForm.fileLogEnabledYn"><option value="Y">사용</option><option value="N">미사용</option></select></label>
-        <label>Error Stack <select v-model="logPolicyForm.errorStackLogYn"><option value="Y">마스킹 저장</option><option value="N">미저장</option></select></label>
+        <label>Error Stack <select v-model="logPolicyForm.errorStackCaptureMode"><option>NONE</option><option>SUMMARY</option><option>FULL_MASKED</option></select></label>
         <label>보존일 <input v-model.number="logPolicyForm.retentionDays" min="1" max="3650" type="number"></label>
         <label>Sampling(%) <input v-model.number="logPolicyForm.samplingRate" min="0" max="100" type="number"></label>
         <label>우선순위 <input v-model.number="logPolicyForm.priority" min="1" type="number"></label>
@@ -30,12 +30,19 @@
 
       <fieldset><legend>민감정보 Capture 안전 상한</legend><div class="filters">
         <label>Query <select v-model="logPolicyForm.queryCaptureMode"><option>NONE</option><option>ALLOWLIST</option><option>MASKED</option><option>HASHED</option></select></label>
-        <label>Header <select v-model="logPolicyForm.headerCaptureMode"><option>NONE</option><option>ALLOWLIST</option><option>MASKED</option><option>HASHED</option></select></label>
+        <label>요청 Header <select v-model="logPolicyForm.requestHeaderCaptureMode"><option>NONE</option><option>ALLOWLIST</option><option>MASKED</option></select></label>
+        <label>응답 Header <select v-model="logPolicyForm.responseHeaderCaptureMode"><option>NONE</option><option>ALLOWLIST</option><option>MASKED</option></select></label>
         <label>요청 Body <select v-model="logPolicyForm.requestBodyCaptureMode" @change="syncLegacyBodyFlags"><option>NONE</option><option>METADATA_ONLY</option><option>ALLOWLIST_FIELDS</option><option>MASKED_BODY</option><option>ENCRYPTED_BODY</option></select></label>
         <label>응답 Body <select v-model="logPolicyForm.responseBodyCaptureMode" @change="syncLegacyBodyFlags"><option>NONE</option><option>METADATA_ONLY</option><option>ALLOWLIST_FIELDS</option><option>MASKED_BODY</option><option>ENCRYPTED_BODY</option></select></label>
-        <label>Allowlist Field 경로 <input v-model="logPolicyForm.allowedFieldPaths" type="text" placeholder="customer.name,transaction.amount"></label>
+        <label>Query Allowlist <input v-model="logPolicyForm.queryAllowlist" type="text" placeholder="customerId,channel"></label>
+        <label>Header Allowlist <input v-model="logPolicyForm.headerAllowlist" type="text" placeholder="content-type,x-cpf-transaction-id"></label>
+        <label>본문 Field Allowlist <input v-model="logPolicyForm.fieldAllowlist" type="text" placeholder="customer.name,transaction.amount"></label>
         <label>Masking Policy <input v-model="logPolicyForm.maskingPolicyKey" type="text"></label>
-        <label>본문 최대 크기(byte) <input v-model.number="logPolicyForm.maxBodyBytes" min="0" max="1048576" type="number"></label>
+        <label>Query 최대 byte <input v-model.number="logPolicyForm.maxQueryBytes" min="0" max="65536" type="number"></label>
+        <label>Header 최대 byte <input v-model.number="logPolicyForm.maxHeaderBytes" min="0" max="131072" type="number"></label>
+        <label>요청 Body 최대 byte <input v-model.number="logPolicyForm.maxRequestBodyBytes" min="0" max="1048576" type="number"></label>
+        <label>응답 Body 최대 byte <input v-model.number="logPolicyForm.maxResponseBodyBytes" min="0" max="1048576" type="number"></label>
+        <label>Stack 최대 byte <input v-model.number="logPolicyForm.maxStackBytes" min="0" max="262144" type="number"></label>
         <label>사유 <input v-model="logPolicyForm.reason" type="text"></label>
       </div><div class="safety-preview" :class="captureRisk.level"><strong>{{ captureRisk.title }}</strong><span>{{ captureRisk.description }}</span><span>Authorization, Cookie, Token 원문과 일반 운영의 FULL_RAW_BODY는 저장할 수 없습니다.</span></div></fieldset>
     </div>
@@ -69,16 +76,17 @@
 </template>
 <script lang="ts">
 import { defineComponent } from "vue";
+type PolicyItem = { policyId?: number; policy_id?: number; policyKey?: string; policy_key?: string; policyName?: string; policy_name?: string; targetType?: string; target_type?: string; targetId?: string; target_id?: string; logLevel?: string; log_level?: string; dbLogEnabledYn?: string; db_log_enabled_yn?: string; fileLogEnabledYn?: string; file_log_enabled_yn?: string; requestBodyCaptureMode?: string; request_body_capture_mode?: string; responseBodyCaptureMode?: string; response_body_capture_mode?: string; requestBodyLogYn?: string; request_body_log_yn?: string; responseBodyLogYn?: string; response_body_log_yn?: string; samplingRate?: number; sampling_rate?: number; activeYn?: string; active_yn?: string; updatedAt?: string; updated_at?: string };
 import { admConsoleMixin } from "../../app/admConsoleMixin";
 import StructuredDetails from "../../components/StructuredDetails.vue";
 export default defineComponent({name:"LogPoliciesPage",components:{StructuredDetails},mixins:[admConsoleMixin],computed:{
-  policyItems():Record<string,any>[] {const r=(this as any).logPolicyResult||{};return Array.isArray(r.items)?r.items:(r.item&&Object.keys(r.item).length?[r.item]:[]);},
+  policyItems():PolicyItem[] {const r=(this as any).logPolicyResult||{};return Array.isArray(r.items)?r.items:(r.item&&Object.keys(r.item).length?[r.item]:[]);},
   hasPolicyResult():boolean{return Object.keys((this as any).logPolicyResult||{}).length>0;},
   distributionItems():Record<string,any>[] {const v=(this as any).logPolicyDistributionResult?.items;return Array.isArray(v)?v:[];},
   distributionSummary():{applied:number;pending:number;failed:number}{const v=(this as any).logPolicyDistributionResult||{};return{applied:Number(v.applied||0),pending:Number(v.pending||0),failed:Number(v.failed||0)};},
   captureRisk():{level:string;title:string;description:string}{const f=(this as any).logPolicyForm;const m=[f.requestBodyCaptureMode,f.responseBodyCaptureMode];if(m.includes("ENCRYPTED_BODY"))return{level:"risk-high",title:"승인 필요",description:"암호화 본문은 제한 Route, 별도 권한, TTL과 감사가 필요합니다."};if(m.includes("MASKED_BODY")||m.includes("ALLOWLIST_FIELDS"))return{level:"risk-medium",title:"제한 저장",description:"Schema Allowlist와 Masking Preview를 확인합니다."};return{level:"risk-safe",title:"안전 기본값",description:"본문 원문은 저장하지 않습니다."};}},methods:{
-  syncLegacyBodyFlags(){const f=(this as any).logPolicyForm;f.requestBodyLogYn=f.requestBodyCaptureMode==="NONE"?"N":"Y";f.responseBodyLogYn=f.responseBodyCaptureMode==="NONE"?"N":"Y";},
-  bodySummary(i:Record<string,any>):string{const q=i.request_body_capture_mode||i.requestBodyCaptureMode||((i.request_body_log_yn||i.requestBodyLogYn)==="Y"?"MASKED_BODY":"NONE");const s=i.response_body_capture_mode||i.responseBodyCaptureMode||((i.response_body_log_yn||i.responseBodyLogYn)==="Y"?"MASKED_BODY":"NONE");return `${q} / ${s}`;},
+  syncLegacyBodyFlags(){const f=(this as any).logPolicyForm;f.requestBodyLogYn=["NONE","METADATA_ONLY"].includes(f.requestBodyCaptureMode)?"N":"Y";f.responseBodyLogYn=["NONE","METADATA_ONLY"].includes(f.responseBodyCaptureMode)?"N":"Y";f.errorStackLogYn=f.errorStackCaptureMode==="NONE"?"N":"Y";},
+  bodySummary(i:PolicyItem):string{const q=i.request_body_capture_mode||i.requestBodyCaptureMode||((i.request_body_log_yn||i.requestBodyLogYn)==="Y"?"MASKED_BODY":"NONE");const s=i.response_body_capture_mode||i.responseBodyCaptureMode||((i.response_body_log_yn||i.responseBodyLogYn)==="Y"?"MASKED_BODY":"NONE");return `${q} / ${s}`;},
   statusClass(s:string):string{return s==="FAILED"?"status-danger":s==="APPLIED"?"status-ok":"status-warn";}}});
 </script>
 <style scoped>

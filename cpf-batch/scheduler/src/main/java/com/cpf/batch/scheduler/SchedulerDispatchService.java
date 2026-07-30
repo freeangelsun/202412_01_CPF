@@ -83,8 +83,10 @@ public class SchedulerDispatchService {
     private void fire(Map<String, Object> row, JdbcSchedulerLeaderRepository.Lease lease) {
         coordinator.assertLeader(lease.fencingToken());
         String scheduleId = String.valueOf(row.get("schedule_id"));
-        String jobId = String.valueOf(row.get("job_id"));
-        ZoneId zone = ZoneId.of(Objects.toString(row.get("timezone"), "Asia/Seoul"));
+        String jobId = requiredText(row, "job_id");
+        long definitionVersion = requiredLong(row, "definition_version");
+        String definitionChecksum = requiredText(row, "definition_checksum");
+        ZoneId zone = ZoneId.of(requiredText(row, "timezone"));
         ZonedDateTime fireAt = toZonedDateTime(row.get("next_fire_at"), zone);
 
         if (!withinAvailableWindow(
@@ -122,7 +124,8 @@ public class SchedulerDispatchService {
         }
 
         if (inserted == 1) {
-            long executionId = createExecution(jobId, scheduleId, businessDate);
+            long executionId = createExecution(
+                    jobId, scheduleId, businessDate, definitionVersion, definitionChecksum);
             jdbc.update(sql.required("scheduler-trigger-mark-dispatched"),
                     executionId, scheduleId, scheduledAt, lease.fencingToken());
         } else {
@@ -135,7 +138,12 @@ public class SchedulerDispatchService {
         advance(row, fireAt, lease);
     }
 
-    private long createExecution(String jobId, String scheduleId, LocalDate businessDate) {
+    private long createExecution(
+            String jobId,
+            String scheduleId,
+            LocalDate businessDate,
+            long definitionVersion,
+            String definitionChecksum) {
         GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
         jdbc.update(connection -> {
             PreparedStatement statement = connection.prepareStatement(
@@ -144,6 +152,8 @@ public class SchedulerDispatchService {
             statement.setString(1, jobId);
             statement.setString(2, scheduleId);
             statement.setObject(3, businessDate);
+            statement.setLong(4, definitionVersion);
+            statement.setString(5, definitionChecksum);
             return statement;
         }, keyHolder);
         Number key = keyHolder.getKey();
@@ -172,6 +182,31 @@ public class SchedulerDispatchService {
         }
     }
 
+    private static String requiredText(Map<String, Object> row, String key) {
+        Object raw = row.get(key);
+        String value = raw == null ? "" : raw.toString().trim();
+        if (value.isEmpty()) {
+            throw new IllegalStateException("Scheduler projection is missing " + key);
+        }
+        return value;
+    }
+
+    private static long requiredLong(Map<String, Object> row, String key) {
+        Object raw = row.get(key);
+        if (raw instanceof Number number) {
+            return number.longValue();
+        }
+        String value = raw == null ? "" : raw.toString().trim();
+        if (value.isEmpty()) {
+            throw new IllegalStateException("Scheduler projection is missing " + key);
+        }
+        try {
+            return Long.parseLong(value);
+        } catch (NumberFormatException invalid) {
+            throw new IllegalStateException("Scheduler projection has invalid " + key + ": " + value, invalid);
+        }
+    }
+
     static boolean withinAvailableWindow(LocalTime value, LocalTime start, LocalTime end) {
         if (start == null || end == null) {
             return true;
@@ -197,7 +232,7 @@ public class SchedulerDispatchService {
 
     private static ZonedDateTime toZonedDateTime(Object value, ZoneId zone) {
         if (value == null) {
-            return ZonedDateTime.now(zone);
+            throw new IllegalStateException("Scheduler next_fire_at is required");
         }
         if (value instanceof Timestamp timestamp) {
             return timestamp.toInstant().atZone(zone);

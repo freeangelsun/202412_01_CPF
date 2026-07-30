@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
 
 /** Downstream 상태·header·one-shot body stream을 보존하는 Gateway 응답입니다. */
 public final class CpfGatewayProxyResponse implements CpfServiceCallResponseMetadata, AutoCloseable {
@@ -44,6 +45,17 @@ public final class CpfGatewayProxyResponse implements CpfServiceCallResponseMeta
             throw new IllegalStateException("이미 소유권이 이전되거나 닫힌 Gateway 응답입니다.");
         }
         return new CpfGatewayProxyResponse(status, replacement, body);
+    }
+
+
+    /** 응답 Stream 소유권을 Capture/Metric Wrapper로 이전합니다. */
+    public CpfGatewayProxyResponse mapBody(Function<InputStream, InputStream> mapper) {
+        if (!closed.compareAndSet(false, true)) {
+            throw new IllegalStateException("이미 소유권이 이전되거나 닫힌 Gateway 응답입니다.");
+        }
+        InputStream mapped = mapper.apply(body);
+        if (mapped == null) throw new IllegalArgumentException("응답 body mapper는 null을 반환할 수 없습니다.");
+        return new CpfGatewayProxyResponse(status, headers, mapped);
     }
 
     public long transferTo(OutputStream output, int bufferSize) {

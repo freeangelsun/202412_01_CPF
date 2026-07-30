@@ -27,11 +27,11 @@ public final class CpfGatewayRouteRuntimeApplier implements CpfRuntimeChangeAppl
 
     public CpfRuntimeApplyResult apply(CpfRuntimeDelivery delivery) {
         try {
-            var current = snapshot.refreshNow();
+            var candidate = snapshot.prepareCandidate();
             String executionId = delivery.payload().text("standardExecutionId", "");
             String expectedVersion = delivery.payload().text("expectedRouteVersion", "");
             if (!executionId.isBlank()) {
-                CpfGatewayRoute route = current.routes().get(executionId);
+                CpfGatewayRoute route = candidate.routes().get(executionId);
                 if (route == null) {
                     throw new IllegalArgumentException("route missing");
                 }
@@ -40,10 +40,11 @@ public final class CpfGatewayRouteRuntimeApplier implements CpfRuntimeChangeAppl
                 }
             }
             if (delivery.payload().contains("expectedRouteCount")
-                    && current.routes().size()
+                    && candidate.routes().size()
                     != delivery.payload().longValue("expectedRouteCount", -1)) {
                 throw new IllegalArgumentException("route count mismatch");
             }
+            snapshot.activate(candidate);
             return CpfRuntimeApplyResult.success(delivery.payloadHash());
         } catch (RuntimeException ex) {
             return CpfRuntimeApplyResult.failure(

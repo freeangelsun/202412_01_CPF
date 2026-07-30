@@ -1,162 +1,9 @@
 -- AUTO-GENERATED from cpf-tools/db/canonical/platform-schema.json
 -- vendor=postgresql
+-- schemaVersion=37
 -- DO NOT EDIT generated DDL directly.
 
 -- CPF_LOGICAL_DATABASE=admDB
-CREATE TABLE adm_api_permission (
-    API_PERMISSION_ID VARCHAR(120) NOT NULL,
-    API_GROUP_CODE VARCHAR(50) NOT NULL,
-    HTTP_METHOD VARCHAR(10) NOT NULL,
-    API_PATH VARCHAR(300) NOT NULL,
-    API_NAME VARCHAR(150) NOT NULL,
-    PERMISSION_CODE VARCHAR(50) NOT NULL,
-    MENU_ID VARCHAR(50),
-    BUTTON_ID VARCHAR(80),
-    USE_YN CHAR(1) NOT NULL DEFAULT 'Y',
-    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM',
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM',
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT pk_adm_api_permission PRIMARY KEY (API_PERMISSION_ID),
-    CONSTRAINT uk_adm_api_permission_method_path UNIQUE (HTTP_METHOD, API_PATH),
-    CONSTRAINT fk_adm_api_permission_menu FOREIGN KEY (MENU_ID) REFERENCES adm_menu (MENU_ID) ON DELETE SET NULL,
-    CONSTRAINT fk_adm_api_permission_button FOREIGN KEY (BUTTON_ID) REFERENCES adm_button (BUTTON_ID) ON DELETE SET NULL
-);
-CREATE INDEX ix_adm_api_permission_group ON adm_api_permission (API_GROUP_CODE, USE_YN);
-CREATE INDEX ix_adm_api_permission_menu ON adm_api_permission (MENU_ID, BUTTON_ID);
-COMMENT ON TABLE adm_api_permission IS 'ADM API 권한';
-COMMENT ON COLUMN adm_api_permission.API_PERMISSION_ID IS 'API 권한 ID';
-COMMENT ON COLUMN adm_api_permission.API_GROUP_CODE IS 'API 그룹 코드';
-COMMENT ON COLUMN adm_api_permission.HTTP_METHOD IS 'HTTP 메서드';
-COMMENT ON COLUMN adm_api_permission.API_PATH IS 'API 경로 패턴';
-COMMENT ON COLUMN adm_api_permission.API_NAME IS 'API명';
-COMMENT ON COLUMN adm_api_permission.PERMISSION_CODE IS '권한 코드';
-COMMENT ON COLUMN adm_api_permission.MENU_ID IS '연결 메뉴 ID';
-COMMENT ON COLUMN adm_api_permission.BUTTON_ID IS '연결 버튼/행위 ID';
-COMMENT ON COLUMN adm_api_permission.USE_YN IS '사용 여부';
-COMMENT ON COLUMN adm_api_permission.created_by IS '등록자';
-COMMENT ON COLUMN adm_api_permission.created_at IS '등록일시';
-COMMENT ON COLUMN adm_api_permission.updated_by IS '수정자';
-COMMENT ON COLUMN adm_api_permission.updated_at IS '수정일시';
-CREATE OR REPLACE FUNCTION cpf_touch_adm_api_permission() RETURNS trigger AS $$ BEGIN NEW.updated_at = CURRENT_TIMESTAMP; RETURN NEW; END; $$ LANGUAGE plpgsql;
-DROP TRIGGER IF EXISTS trg_cpf_touch_adm_api_permission ON adm_api_permission;
-CREATE TRIGGER trg_cpf_touch_adm_api_permission BEFORE UPDATE ON adm_api_permission FOR EACH ROW EXECUTE FUNCTION cpf_touch_adm_api_permission();
-
-CREATE TABLE adm_approval_execution (
-    APPROVAL_REQUEST_ID BIGINT NOT NULL,
-    COMMAND_REQUEST_ID VARCHAR(120) NOT NULL,
-    EXECUTION_STATUS VARCHAR(30) NOT NULL,
-    OWNER_RESULT_CODE VARCHAR(80),
-    OWNER_RESULT_MESSAGE VARCHAR(1000),
-    STARTED_AT TIMESTAMP(3),
-    COMPLETED_AT TIMESTAMP(3),
-    RECOVERY_REQUIRED_YN CHAR(1) NOT NULL DEFAULT 'N',
-    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM',
-    created_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM',
-    updated_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT pk_adm_approval_execution PRIMARY KEY (APPROVAL_REQUEST_ID),
-    CONSTRAINT uk_adm_approval_execution_command UNIQUE (COMMAND_REQUEST_ID),
-    CONSTRAINT ck_adm_approval_execution_status CHECK (EXECUTION_STATUS IN ('PENDING','RUNNING','SUCCEEDED','FAILED','UNKNOWN','RECOVERED')),
-    CONSTRAINT ck_adm_approval_execution_recovery CHECK (RECOVERY_REQUIRED_YN IN ('Y','N')),
-    CONSTRAINT ck_adm_approval_execution_time CHECK (COMPLETED_AT IS NULL OR STARTED_AT IS NULL OR COMPLETED_AT >= STARTED_AT),
-    CONSTRAINT fk_adm_approval_execution_request FOREIGN KEY (APPROVAL_REQUEST_ID) REFERENCES adm_approval_request (APPROVAL_REQUEST_ID)
-);
-CREATE INDEX ix_adm_approval_execution_recovery ON adm_approval_execution (RECOVERY_REQUIRED_YN, EXECUTION_STATUS);
-COMMENT ON TABLE adm_approval_execution IS 'ADM 승인 후 Owner Command 실행 상태';
-COMMENT ON COLUMN adm_approval_execution.APPROVAL_REQUEST_ID IS '승인 요청 순번';
-COMMENT ON COLUMN adm_approval_execution.COMMAND_REQUEST_ID IS 'Owner Command 멱등 요청 ID';
-COMMENT ON COLUMN adm_approval_execution.EXECUTION_STATUS IS 'PENDING/RUNNING/SUCCEEDED/FAILED/UNKNOWN/RECOVERED';
-COMMENT ON COLUMN adm_approval_execution.OWNER_RESULT_CODE IS 'Owner 응답 코드';
-COMMENT ON COLUMN adm_approval_execution.OWNER_RESULT_MESSAGE IS '마스킹된 Owner 응답 메시지';
-COMMENT ON COLUMN adm_approval_execution.STARTED_AT IS '실행 시작시각';
-COMMENT ON COLUMN adm_approval_execution.COMPLETED_AT IS '실행 종료시각';
-COMMENT ON COLUMN adm_approval_execution.RECOVERY_REQUIRED_YN IS '결과불명/복구 필요 여부';
-COMMENT ON COLUMN adm_approval_execution.created_by IS '등록자';
-COMMENT ON COLUMN adm_approval_execution.created_at IS '등록일시';
-COMMENT ON COLUMN adm_approval_execution.updated_by IS '수정자';
-COMMENT ON COLUMN adm_approval_execution.updated_at IS '수정일시';
-CREATE OR REPLACE FUNCTION cpf_touch_adm_approval_execution() RETURNS trigger AS $$ BEGIN NEW.updated_at = CURRENT_TIMESTAMP; RETURN NEW; END; $$ LANGUAGE plpgsql;
-DROP TRIGGER IF EXISTS trg_cpf_touch_adm_approval_execution ON adm_approval_execution;
-CREATE TRIGGER trg_cpf_touch_adm_approval_execution BEFORE UPDATE ON adm_approval_execution FOR EACH ROW EXECUTE FUNCTION cpf_touch_adm_approval_execution();
-
-CREATE TABLE adm_approval_history (
-    APPROVAL_HISTORY_ID BIGINT GENERATED BY DEFAULT AS IDENTITY NOT NULL,
-    APPROVAL_REQUEST_ID BIGINT NOT NULL,
-    EVENT_TYPE VARCHAR(40) NOT NULL,
-    ACTOR_ID VARCHAR(50) NOT NULL,
-    BEFORE_STATUS VARCHAR(30),
-    AFTER_STATUS VARCHAR(30) NOT NULL,
-    REASON VARCHAR(1000) NOT NULL,
-    EVENT_DATA TEXT,
-    TRANSACTION_ID CHAR(34),
-    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM',
-    created_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT pk_adm_approval_history PRIMARY KEY (APPROVAL_HISTORY_ID),
-    CONSTRAINT fk_adm_approval_history_request FOREIGN KEY (APPROVAL_REQUEST_ID) REFERENCES adm_approval_request (APPROVAL_REQUEST_ID)
-);
-CREATE INDEX ix_adm_approval_history_request ON adm_approval_history (APPROVAL_REQUEST_ID, APPROVAL_HISTORY_ID);
-COMMENT ON TABLE adm_approval_history IS 'ADM 승인 Immutable 이력';
-COMMENT ON COLUMN adm_approval_history.APPROVAL_HISTORY_ID IS '승인 이력 순번';
-COMMENT ON COLUMN adm_approval_history.APPROVAL_REQUEST_ID IS '승인 요청 순번';
-COMMENT ON COLUMN adm_approval_history.EVENT_TYPE IS 'REQUEST/APPROVE/REJECT/CANCEL/EXPIRE/BREAK_GLASS/EXECUTE/RESULT/REVIEW';
-COMMENT ON COLUMN adm_approval_history.ACTOR_ID IS '행위 운영자/시스템 ID';
-COMMENT ON COLUMN adm_approval_history.BEFORE_STATUS IS '변경 전 상태';
-COMMENT ON COLUMN adm_approval_history.AFTER_STATUS IS '변경 후 상태';
-COMMENT ON COLUMN adm_approval_history.REASON IS '행위 사유';
-COMMENT ON COLUMN adm_approval_history.EVENT_DATA IS '마스킹된 사건 Snapshot';
-COMMENT ON COLUMN adm_approval_history.TRANSACTION_ID IS 'CPF transactionId';
-COMMENT ON COLUMN adm_approval_history.created_by IS '등록자';
-COMMENT ON COLUMN adm_approval_history.created_at IS '등록일시';
-
-CREATE TABLE adm_approval_participant (
-    APPROVAL_PARTICIPANT_ID BIGINT GENERATED BY DEFAULT AS IDENTITY NOT NULL,
-    APPROVAL_REQUEST_ID BIGINT NOT NULL,
-    STEP_NO INTEGER NOT NULL,
-    OPERATOR_ID VARCHAR(50) NOT NULL,
-    SOURCE_TARGET_TYPE VARCHAR(30) NOT NULL,
-    SOURCE_TARGET_CODE VARCHAR(100) NOT NULL,
-    ORGANIZATION_CODE_SNAPSHOT VARCHAR(50),
-    POSITION_CODE_SNAPSHOT VARCHAR(50),
-    JOB_TITLE_CODE_SNAPSHOT VARCHAR(50),
-    DECISION_STATUS VARCHAR(30) NOT NULL DEFAULT 'WAITING',
-    IDEMPOTENCY_KEY VARCHAR(120),
-    DECISION_REASON VARCHAR(1000),
-    DECIDED_AT TIMESTAMP(3),
-    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM',
-    created_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM',
-    updated_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT pk_adm_approval_participant PRIMARY KEY (APPROVAL_PARTICIPANT_ID),
-    CONSTRAINT uk_adm_approval_participant UNIQUE (APPROVAL_REQUEST_ID, STEP_NO, OPERATOR_ID),
-    CONSTRAINT uk_adm_approval_participant_idem UNIQUE (IDEMPOTENCY_KEY),
-    CONSTRAINT ck_adm_approval_participant_status CHECK (DECISION_STATUS IN ('WAITING','APPROVED','REJECTED','SKIPPED')),
-    CONSTRAINT ck_adm_approval_participant_step CHECK (STEP_NO >= 1),
-    CONSTRAINT fk_adm_approval_participant_request FOREIGN KEY (APPROVAL_REQUEST_ID) REFERENCES adm_approval_request (APPROVAL_REQUEST_ID) ON DELETE CASCADE
-);
-CREATE INDEX ix_adm_approval_participant_inbox ON adm_approval_participant (OPERATOR_ID, DECISION_STATUS, APPROVAL_REQUEST_ID);
-COMMENT ON TABLE adm_approval_participant IS 'ADM 승인 참여자 Snapshot';
-COMMENT ON COLUMN adm_approval_participant.APPROVAL_PARTICIPANT_ID IS '승인 참여자 순번';
-COMMENT ON COLUMN adm_approval_participant.APPROVAL_REQUEST_ID IS '승인 요청 순번';
-COMMENT ON COLUMN adm_approval_participant.STEP_NO IS '승인 단계';
-COMMENT ON COLUMN adm_approval_participant.OPERATOR_ID IS '해석된 실제 승인 운영자';
-COMMENT ON COLUMN adm_approval_participant.SOURCE_TARGET_TYPE IS '정책 대상 유형 Snapshot';
-COMMENT ON COLUMN adm_approval_participant.SOURCE_TARGET_CODE IS '정책 대상 코드 Snapshot';
-COMMENT ON COLUMN adm_approval_participant.ORGANIZATION_CODE_SNAPSHOT IS '승인 시 조직 Snapshot';
-COMMENT ON COLUMN adm_approval_participant.POSITION_CODE_SNAPSHOT IS '승인 시 직급 Snapshot';
-COMMENT ON COLUMN adm_approval_participant.JOB_TITLE_CODE_SNAPSHOT IS '승인 시 직책 Snapshot';
-COMMENT ON COLUMN adm_approval_participant.DECISION_STATUS IS 'WAITING/APPROVED/REJECTED/SKIPPED';
-COMMENT ON COLUMN adm_approval_participant.IDEMPOTENCY_KEY IS '결정 멱등 키';
-COMMENT ON COLUMN adm_approval_participant.DECISION_REASON IS '승인/반려 사유';
-COMMENT ON COLUMN adm_approval_participant.DECIDED_AT IS '결정 시각';
-COMMENT ON COLUMN adm_approval_participant.created_by IS '등록자';
-COMMENT ON COLUMN adm_approval_participant.created_at IS '등록일시';
-COMMENT ON COLUMN adm_approval_participant.updated_by IS '수정자';
-COMMENT ON COLUMN adm_approval_participant.updated_at IS '수정일시';
-CREATE OR REPLACE FUNCTION cpf_touch_adm_approval_participant() RETURNS trigger AS $$ BEGIN NEW.updated_at = CURRENT_TIMESTAMP; RETURN NEW; END; $$ LANGUAGE plpgsql;
-DROP TRIGGER IF EXISTS trg_cpf_touch_adm_approval_participant ON adm_approval_participant;
-CREATE TRIGGER trg_cpf_touch_adm_approval_participant BEFORE UPDATE ON adm_approval_participant FOR EACH ROW EXECUTE FUNCTION cpf_touch_adm_approval_participant();
-
 CREATE TABLE adm_approval_policy (
     POLICY_CODE VARCHAR(80) NOT NULL,
     POLICY_VERSION INTEGER NOT NULL,
@@ -296,6 +143,121 @@ COMMENT ON COLUMN adm_approval_request.updated_at IS '수정일시';
 CREATE OR REPLACE FUNCTION cpf_touch_adm_approval_request() RETURNS trigger AS $$ BEGIN NEW.updated_at = CURRENT_TIMESTAMP; RETURN NEW; END; $$ LANGUAGE plpgsql;
 DROP TRIGGER IF EXISTS trg_cpf_touch_adm_approval_request ON adm_approval_request;
 CREATE TRIGGER trg_cpf_touch_adm_approval_request BEFORE UPDATE ON adm_approval_request FOR EACH ROW EXECUTE FUNCTION cpf_touch_adm_approval_request();
+
+CREATE TABLE adm_approval_execution (
+    APPROVAL_REQUEST_ID BIGINT NOT NULL,
+    COMMAND_REQUEST_ID VARCHAR(120) NOT NULL,
+    EXECUTION_STATUS VARCHAR(30) NOT NULL,
+    OWNER_RESULT_CODE VARCHAR(80),
+    OWNER_RESULT_MESSAGE VARCHAR(1000),
+    STARTED_AT TIMESTAMP(3),
+    COMPLETED_AT TIMESTAMP(3),
+    RECOVERY_REQUIRED_YN CHAR(1) NOT NULL DEFAULT 'N',
+    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM',
+    created_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM',
+    updated_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT pk_adm_approval_execution PRIMARY KEY (APPROVAL_REQUEST_ID),
+    CONSTRAINT uk_adm_approval_execution_command UNIQUE (COMMAND_REQUEST_ID),
+    CONSTRAINT ck_adm_approval_execution_status CHECK (EXECUTION_STATUS IN ('PENDING','RUNNING','SUCCEEDED','FAILED','UNKNOWN','RECOVERED')),
+    CONSTRAINT ck_adm_approval_execution_recovery CHECK (RECOVERY_REQUIRED_YN IN ('Y','N')),
+    CONSTRAINT ck_adm_approval_execution_time CHECK (COMPLETED_AT IS NULL OR STARTED_AT IS NULL OR COMPLETED_AT >= STARTED_AT),
+    CONSTRAINT fk_adm_approval_execution_request FOREIGN KEY (APPROVAL_REQUEST_ID) REFERENCES adm_approval_request (APPROVAL_REQUEST_ID)
+);
+CREATE INDEX ix_adm_approval_execution_recovery ON adm_approval_execution (RECOVERY_REQUIRED_YN, EXECUTION_STATUS);
+COMMENT ON TABLE adm_approval_execution IS 'ADM 승인 후 Owner Command 실행 상태';
+COMMENT ON COLUMN adm_approval_execution.APPROVAL_REQUEST_ID IS '승인 요청 순번';
+COMMENT ON COLUMN adm_approval_execution.COMMAND_REQUEST_ID IS 'Owner Command 멱등 요청 ID';
+COMMENT ON COLUMN adm_approval_execution.EXECUTION_STATUS IS 'PENDING/RUNNING/SUCCEEDED/FAILED/UNKNOWN/RECOVERED';
+COMMENT ON COLUMN adm_approval_execution.OWNER_RESULT_CODE IS 'Owner 응답 코드';
+COMMENT ON COLUMN adm_approval_execution.OWNER_RESULT_MESSAGE IS '마스킹된 Owner 응답 메시지';
+COMMENT ON COLUMN adm_approval_execution.STARTED_AT IS '실행 시작시각';
+COMMENT ON COLUMN adm_approval_execution.COMPLETED_AT IS '실행 종료시각';
+COMMENT ON COLUMN adm_approval_execution.RECOVERY_REQUIRED_YN IS '결과불명/복구 필요 여부';
+COMMENT ON COLUMN adm_approval_execution.created_by IS '등록자';
+COMMENT ON COLUMN adm_approval_execution.created_at IS '등록일시';
+COMMENT ON COLUMN adm_approval_execution.updated_by IS '수정자';
+COMMENT ON COLUMN adm_approval_execution.updated_at IS '수정일시';
+CREATE OR REPLACE FUNCTION cpf_touch_adm_approval_execution() RETURNS trigger AS $$ BEGIN NEW.updated_at = CURRENT_TIMESTAMP; RETURN NEW; END; $$ LANGUAGE plpgsql;
+DROP TRIGGER IF EXISTS trg_cpf_touch_adm_approval_execution ON adm_approval_execution;
+CREATE TRIGGER trg_cpf_touch_adm_approval_execution BEFORE UPDATE ON adm_approval_execution FOR EACH ROW EXECUTE FUNCTION cpf_touch_adm_approval_execution();
+
+CREATE TABLE adm_approval_history (
+    APPROVAL_HISTORY_ID BIGINT GENERATED BY DEFAULT AS IDENTITY NOT NULL,
+    APPROVAL_REQUEST_ID BIGINT NOT NULL,
+    EVENT_TYPE VARCHAR(40) NOT NULL,
+    ACTOR_ID VARCHAR(50) NOT NULL,
+    BEFORE_STATUS VARCHAR(30),
+    AFTER_STATUS VARCHAR(30) NOT NULL,
+    REASON VARCHAR(1000) NOT NULL,
+    EVENT_DATA TEXT,
+    TRANSACTION_ID CHAR(34),
+    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM',
+    created_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT pk_adm_approval_history PRIMARY KEY (APPROVAL_HISTORY_ID),
+    CONSTRAINT fk_adm_approval_history_request FOREIGN KEY (APPROVAL_REQUEST_ID) REFERENCES adm_approval_request (APPROVAL_REQUEST_ID)
+);
+CREATE INDEX ix_adm_approval_history_request ON adm_approval_history (APPROVAL_REQUEST_ID, APPROVAL_HISTORY_ID);
+COMMENT ON TABLE adm_approval_history IS 'ADM 승인 Immutable 이력';
+COMMENT ON COLUMN adm_approval_history.APPROVAL_HISTORY_ID IS '승인 이력 순번';
+COMMENT ON COLUMN adm_approval_history.APPROVAL_REQUEST_ID IS '승인 요청 순번';
+COMMENT ON COLUMN adm_approval_history.EVENT_TYPE IS 'REQUEST/APPROVE/REJECT/CANCEL/EXPIRE/BREAK_GLASS/EXECUTE/RESULT/REVIEW';
+COMMENT ON COLUMN adm_approval_history.ACTOR_ID IS '행위 운영자/시스템 ID';
+COMMENT ON COLUMN adm_approval_history.BEFORE_STATUS IS '변경 전 상태';
+COMMENT ON COLUMN adm_approval_history.AFTER_STATUS IS '변경 후 상태';
+COMMENT ON COLUMN adm_approval_history.REASON IS '행위 사유';
+COMMENT ON COLUMN adm_approval_history.EVENT_DATA IS '마스킹된 사건 Snapshot';
+COMMENT ON COLUMN adm_approval_history.TRANSACTION_ID IS 'CPF transactionId';
+COMMENT ON COLUMN adm_approval_history.created_by IS '등록자';
+COMMENT ON COLUMN adm_approval_history.created_at IS '등록일시';
+
+CREATE TABLE adm_approval_participant (
+    APPROVAL_PARTICIPANT_ID BIGINT GENERATED BY DEFAULT AS IDENTITY NOT NULL,
+    APPROVAL_REQUEST_ID BIGINT NOT NULL,
+    STEP_NO INTEGER NOT NULL,
+    OPERATOR_ID VARCHAR(50) NOT NULL,
+    SOURCE_TARGET_TYPE VARCHAR(30) NOT NULL,
+    SOURCE_TARGET_CODE VARCHAR(100) NOT NULL,
+    ORGANIZATION_CODE_SNAPSHOT VARCHAR(50),
+    POSITION_CODE_SNAPSHOT VARCHAR(50),
+    JOB_TITLE_CODE_SNAPSHOT VARCHAR(50),
+    DECISION_STATUS VARCHAR(30) NOT NULL DEFAULT 'WAITING',
+    IDEMPOTENCY_KEY VARCHAR(120),
+    DECISION_REASON VARCHAR(1000),
+    DECIDED_AT TIMESTAMP(3),
+    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM',
+    created_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM',
+    updated_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT pk_adm_approval_participant PRIMARY KEY (APPROVAL_PARTICIPANT_ID),
+    CONSTRAINT uk_adm_approval_participant UNIQUE (APPROVAL_REQUEST_ID, STEP_NO, OPERATOR_ID),
+    CONSTRAINT uk_adm_approval_participant_idem UNIQUE (IDEMPOTENCY_KEY),
+    CONSTRAINT ck_adm_approval_participant_status CHECK (DECISION_STATUS IN ('WAITING','APPROVED','REJECTED','SKIPPED')),
+    CONSTRAINT ck_adm_approval_participant_step CHECK (STEP_NO >= 1),
+    CONSTRAINT fk_adm_approval_participant_request FOREIGN KEY (APPROVAL_REQUEST_ID) REFERENCES adm_approval_request (APPROVAL_REQUEST_ID) ON DELETE CASCADE
+);
+CREATE INDEX ix_adm_approval_participant_inbox ON adm_approval_participant (OPERATOR_ID, DECISION_STATUS, APPROVAL_REQUEST_ID);
+COMMENT ON TABLE adm_approval_participant IS 'ADM 승인 참여자 Snapshot';
+COMMENT ON COLUMN adm_approval_participant.APPROVAL_PARTICIPANT_ID IS '승인 참여자 순번';
+COMMENT ON COLUMN adm_approval_participant.APPROVAL_REQUEST_ID IS '승인 요청 순번';
+COMMENT ON COLUMN adm_approval_participant.STEP_NO IS '승인 단계';
+COMMENT ON COLUMN adm_approval_participant.OPERATOR_ID IS '해석된 실제 승인 운영자';
+COMMENT ON COLUMN adm_approval_participant.SOURCE_TARGET_TYPE IS '정책 대상 유형 Snapshot';
+COMMENT ON COLUMN adm_approval_participant.SOURCE_TARGET_CODE IS '정책 대상 코드 Snapshot';
+COMMENT ON COLUMN adm_approval_participant.ORGANIZATION_CODE_SNAPSHOT IS '승인 시 조직 Snapshot';
+COMMENT ON COLUMN adm_approval_participant.POSITION_CODE_SNAPSHOT IS '승인 시 직급 Snapshot';
+COMMENT ON COLUMN adm_approval_participant.JOB_TITLE_CODE_SNAPSHOT IS '승인 시 직책 Snapshot';
+COMMENT ON COLUMN adm_approval_participant.DECISION_STATUS IS 'WAITING/APPROVED/REJECTED/SKIPPED';
+COMMENT ON COLUMN adm_approval_participant.IDEMPOTENCY_KEY IS '결정 멱등 키';
+COMMENT ON COLUMN adm_approval_participant.DECISION_REASON IS '승인/반려 사유';
+COMMENT ON COLUMN adm_approval_participant.DECIDED_AT IS '결정 시각';
+COMMENT ON COLUMN adm_approval_participant.created_by IS '등록자';
+COMMENT ON COLUMN adm_approval_participant.created_at IS '등록일시';
+COMMENT ON COLUMN adm_approval_participant.updated_by IS '수정자';
+COMMENT ON COLUMN adm_approval_participant.updated_at IS '수정일시';
+CREATE OR REPLACE FUNCTION cpf_touch_adm_approval_participant() RETURNS trigger AS $$ BEGIN NEW.updated_at = CURRENT_TIMESTAMP; RETURN NEW; END; $$ LANGUAGE plpgsql;
+DROP TRIGGER IF EXISTS trg_cpf_touch_adm_approval_participant ON adm_approval_participant;
+CREATE TRIGGER trg_cpf_touch_adm_approval_participant BEFORE UPDATE ON adm_approval_participant FOR EACH ROW EXECUTE FUNCTION cpf_touch_adm_approval_participant();
 
 CREATE TABLE adm_audit_delivery (
     DELIVERY_ID BIGINT GENERATED BY DEFAULT AS IDENTITY NOT NULL,
@@ -458,41 +420,6 @@ COMMENT ON COLUMN adm_break_glass_session.updated_at IS 'Last update time';
 CREATE OR REPLACE FUNCTION cpf_touch_adm_break_glass_session() RETURNS trigger AS $$ BEGIN NEW.updated_at = CURRENT_TIMESTAMP; RETURN NEW; END; $$ LANGUAGE plpgsql;
 DROP TRIGGER IF EXISTS trg_cpf_touch_adm_break_glass_session ON adm_break_glass_session;
 CREATE TRIGGER trg_cpf_touch_adm_break_glass_session BEFORE UPDATE ON adm_break_glass_session FOR EACH ROW EXECUTE FUNCTION cpf_touch_adm_break_glass_session();
-
-CREATE TABLE adm_button (
-    BUTTON_ID VARCHAR(80) NOT NULL,
-    MENU_ID VARCHAR(50) NOT NULL,
-    ACTION_CODE VARCHAR(50) NOT NULL,
-    BUTTON_NAME VARCHAR(100) NOT NULL,
-    HTTP_METHOD VARCHAR(10),
-    API_PATTERN VARCHAR(300),
-    SORT_ORDER INTEGER NOT NULL DEFAULT 0,
-    USE_YN CHAR(1) NOT NULL DEFAULT 'Y',
-    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM',
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM',
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT pk_adm_button PRIMARY KEY (BUTTON_ID),
-    CONSTRAINT uk_adm_button_menu_action UNIQUE (MENU_ID, ACTION_CODE),
-    CONSTRAINT fk_adm_button_menu FOREIGN KEY (MENU_ID) REFERENCES adm_menu (MENU_ID) ON DELETE CASCADE
-);
-CREATE INDEX ix_adm_button_menu ON adm_button (MENU_ID, SORT_ORDER);
-COMMENT ON TABLE adm_button IS 'ADM 메뉴별 버튼/행위';
-COMMENT ON COLUMN adm_button.BUTTON_ID IS '버튼/행위 ID';
-COMMENT ON COLUMN adm_button.MENU_ID IS '메뉴 ID';
-COMMENT ON COLUMN adm_button.ACTION_CODE IS '행위 코드';
-COMMENT ON COLUMN adm_button.BUTTON_NAME IS '버튼/행위명';
-COMMENT ON COLUMN adm_button.HTTP_METHOD IS '대상 HTTP 메서드';
-COMMENT ON COLUMN adm_button.API_PATTERN IS '대상 API 경로 패턴';
-COMMENT ON COLUMN adm_button.SORT_ORDER IS '정렬 순서';
-COMMENT ON COLUMN adm_button.USE_YN IS '사용 여부';
-COMMENT ON COLUMN adm_button.created_by IS '등록자';
-COMMENT ON COLUMN adm_button.created_at IS '등록일시';
-COMMENT ON COLUMN adm_button.updated_by IS '수정자';
-COMMENT ON COLUMN adm_button.updated_at IS '수정일시';
-CREATE OR REPLACE FUNCTION cpf_touch_adm_button() RETURNS trigger AS $$ BEGIN NEW.updated_at = CURRENT_TIMESTAMP; RETURN NEW; END; $$ LANGUAGE plpgsql;
-DROP TRIGGER IF EXISTS trg_cpf_touch_adm_button ON adm_button;
-CREATE TRIGGER trg_cpf_touch_adm_button BEFORE UPDATE ON adm_button FOR EACH ROW EXECUTE FUNCTION cpf_touch_adm_button();
 
 CREATE TABLE adm_download_audit_log (
     DOWNLOAD_ID BIGINT GENERATED BY DEFAULT AS IDENTITY NOT NULL,
@@ -826,30 +753,79 @@ CREATE OR REPLACE FUNCTION cpf_touch_adm_menu() RETURNS trigger AS $$ BEGIN NEW.
 DROP TRIGGER IF EXISTS trg_cpf_touch_adm_menu ON adm_menu;
 CREATE TRIGGER trg_cpf_touch_adm_menu BEFORE UPDATE ON adm_menu FOR EACH ROW EXECUTE FUNCTION cpf_touch_adm_menu();
 
-CREATE TABLE adm_mfa_otp_secret (
-    OPERATOR_ID VARCHAR(50) NOT NULL,
-    SECRET_REF VARCHAR(500) NOT NULL,
-    ENABLED_YN CHAR(1) NOT NULL DEFAULT 'N',
-    VERIFIED_AT TIMESTAMP,
+CREATE TABLE adm_button (
+    BUTTON_ID VARCHAR(80) NOT NULL,
+    MENU_ID VARCHAR(50) NOT NULL,
+    ACTION_CODE VARCHAR(50) NOT NULL,
+    BUTTON_NAME VARCHAR(100) NOT NULL,
+    HTTP_METHOD VARCHAR(10),
+    API_PATTERN VARCHAR(300),
+    SORT_ORDER INTEGER NOT NULL DEFAULT 0,
+    USE_YN CHAR(1) NOT NULL DEFAULT 'Y',
     created_by VARCHAR(50) NOT NULL DEFAULT 'ADM',
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM',
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT pk_adm_mfa_otp_secret PRIMARY KEY (OPERATOR_ID),
-    CONSTRAINT fk_adm_mfa_otp_secret_operator FOREIGN KEY (OPERATOR_ID) REFERENCES adm_operator (OPERATOR_ID) ON DELETE CASCADE
+    CONSTRAINT pk_adm_button PRIMARY KEY (BUTTON_ID),
+    CONSTRAINT uk_adm_button_menu_action UNIQUE (MENU_ID, ACTION_CODE),
+    CONSTRAINT fk_adm_button_menu FOREIGN KEY (MENU_ID) REFERENCES adm_menu (MENU_ID) ON DELETE CASCADE
 );
-COMMENT ON TABLE adm_mfa_otp_secret IS 'ADM 운영자 MFA OTP secret 메타';
-COMMENT ON COLUMN adm_mfa_otp_secret.OPERATOR_ID IS '운영자 ID';
-COMMENT ON COLUMN adm_mfa_otp_secret.SECRET_REF IS 'OTP secret 참조';
-COMMENT ON COLUMN adm_mfa_otp_secret.ENABLED_YN IS 'MFA 사용 여부';
-COMMENT ON COLUMN adm_mfa_otp_secret.VERIFIED_AT IS 'MFA 검증일시';
-COMMENT ON COLUMN adm_mfa_otp_secret.created_by IS '등록자';
-COMMENT ON COLUMN adm_mfa_otp_secret.created_at IS '등록일시';
-COMMENT ON COLUMN adm_mfa_otp_secret.updated_by IS '수정자';
-COMMENT ON COLUMN adm_mfa_otp_secret.updated_at IS '수정일시';
-CREATE OR REPLACE FUNCTION cpf_touch_adm_mfa_otp_secret() RETURNS trigger AS $$ BEGIN NEW.updated_at = CURRENT_TIMESTAMP; RETURN NEW; END; $$ LANGUAGE plpgsql;
-DROP TRIGGER IF EXISTS trg_cpf_touch_adm_mfa_otp_secret ON adm_mfa_otp_secret;
-CREATE TRIGGER trg_cpf_touch_adm_mfa_otp_secret BEFORE UPDATE ON adm_mfa_otp_secret FOR EACH ROW EXECUTE FUNCTION cpf_touch_adm_mfa_otp_secret();
+CREATE INDEX ix_adm_button_menu ON adm_button (MENU_ID, SORT_ORDER);
+COMMENT ON TABLE adm_button IS 'ADM 메뉴별 버튼/행위';
+COMMENT ON COLUMN adm_button.BUTTON_ID IS '버튼/행위 ID';
+COMMENT ON COLUMN adm_button.MENU_ID IS '메뉴 ID';
+COMMENT ON COLUMN adm_button.ACTION_CODE IS '행위 코드';
+COMMENT ON COLUMN adm_button.BUTTON_NAME IS '버튼/행위명';
+COMMENT ON COLUMN adm_button.HTTP_METHOD IS '대상 HTTP 메서드';
+COMMENT ON COLUMN adm_button.API_PATTERN IS '대상 API 경로 패턴';
+COMMENT ON COLUMN adm_button.SORT_ORDER IS '정렬 순서';
+COMMENT ON COLUMN adm_button.USE_YN IS '사용 여부';
+COMMENT ON COLUMN adm_button.created_by IS '등록자';
+COMMENT ON COLUMN adm_button.created_at IS '등록일시';
+COMMENT ON COLUMN adm_button.updated_by IS '수정자';
+COMMENT ON COLUMN adm_button.updated_at IS '수정일시';
+CREATE OR REPLACE FUNCTION cpf_touch_adm_button() RETURNS trigger AS $$ BEGIN NEW.updated_at = CURRENT_TIMESTAMP; RETURN NEW; END; $$ LANGUAGE plpgsql;
+DROP TRIGGER IF EXISTS trg_cpf_touch_adm_button ON adm_button;
+CREATE TRIGGER trg_cpf_touch_adm_button BEFORE UPDATE ON adm_button FOR EACH ROW EXECUTE FUNCTION cpf_touch_adm_button();
+
+CREATE TABLE adm_api_permission (
+    API_PERMISSION_ID VARCHAR(120) NOT NULL,
+    API_GROUP_CODE VARCHAR(50) NOT NULL,
+    HTTP_METHOD VARCHAR(10) NOT NULL,
+    API_PATH VARCHAR(300) NOT NULL,
+    API_NAME VARCHAR(150) NOT NULL,
+    PERMISSION_CODE VARCHAR(50) NOT NULL,
+    MENU_ID VARCHAR(50),
+    BUTTON_ID VARCHAR(80),
+    USE_YN CHAR(1) NOT NULL DEFAULT 'Y',
+    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM',
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT pk_adm_api_permission PRIMARY KEY (API_PERMISSION_ID),
+    CONSTRAINT uk_adm_api_permission_method_path UNIQUE (HTTP_METHOD, API_PATH),
+    CONSTRAINT fk_adm_api_permission_menu FOREIGN KEY (MENU_ID) REFERENCES adm_menu (MENU_ID) ON DELETE SET NULL,
+    CONSTRAINT fk_adm_api_permission_button FOREIGN KEY (BUTTON_ID) REFERENCES adm_button (BUTTON_ID) ON DELETE SET NULL
+);
+CREATE INDEX ix_adm_api_permission_group ON adm_api_permission (API_GROUP_CODE, USE_YN);
+CREATE INDEX ix_adm_api_permission_menu ON adm_api_permission (MENU_ID, BUTTON_ID);
+COMMENT ON TABLE adm_api_permission IS 'ADM API 권한';
+COMMENT ON COLUMN adm_api_permission.API_PERMISSION_ID IS 'API 권한 ID';
+COMMENT ON COLUMN adm_api_permission.API_GROUP_CODE IS 'API 그룹 코드';
+COMMENT ON COLUMN adm_api_permission.HTTP_METHOD IS 'HTTP 메서드';
+COMMENT ON COLUMN adm_api_permission.API_PATH IS 'API 경로 패턴';
+COMMENT ON COLUMN adm_api_permission.API_NAME IS 'API명';
+COMMENT ON COLUMN adm_api_permission.PERMISSION_CODE IS '권한 코드';
+COMMENT ON COLUMN adm_api_permission.MENU_ID IS '연결 메뉴 ID';
+COMMENT ON COLUMN adm_api_permission.BUTTON_ID IS '연결 버튼/행위 ID';
+COMMENT ON COLUMN adm_api_permission.USE_YN IS '사용 여부';
+COMMENT ON COLUMN adm_api_permission.created_by IS '등록자';
+COMMENT ON COLUMN adm_api_permission.created_at IS '등록일시';
+COMMENT ON COLUMN adm_api_permission.updated_by IS '수정자';
+COMMENT ON COLUMN adm_api_permission.updated_at IS '수정일시';
+CREATE OR REPLACE FUNCTION cpf_touch_adm_api_permission() RETURNS trigger AS $$ BEGIN NEW.updated_at = CURRENT_TIMESTAMP; RETURN NEW; END; $$ LANGUAGE plpgsql;
+DROP TRIGGER IF EXISTS trg_cpf_touch_adm_api_permission ON adm_api_permission;
+CREATE TRIGGER trg_cpf_touch_adm_api_permission BEFORE UPDATE ON adm_api_permission FOR EACH ROW EXECUTE FUNCTION cpf_touch_adm_api_permission();
 
 CREATE TABLE adm_operator (
     OPERATOR_ID VARCHAR(50) NOT NULL,
@@ -900,78 +876,30 @@ CREATE OR REPLACE FUNCTION cpf_touch_adm_operator() RETURNS trigger AS $$ BEGIN 
 DROP TRIGGER IF EXISTS trg_cpf_touch_adm_operator ON adm_operator;
 CREATE TRIGGER trg_cpf_touch_adm_operator BEFORE UPDATE ON adm_operator FOR EACH ROW EXECUTE FUNCTION cpf_touch_adm_operator();
 
-CREATE TABLE adm_operator_profile (
+CREATE TABLE adm_mfa_otp_secret (
     OPERATOR_ID VARCHAR(50) NOT NULL,
-    DISPLAY_NAME VARCHAR(100),
-    EMPLOYEE_NO VARCHAR(50),
-    EXTERNAL_SUBJECT VARCHAR(200),
-    ORGANIZATION_CODE VARCHAR(50),
-    POSITION_CODE VARCHAR(50),
-    POSITION_NAME VARCHAR(100),
-    JOB_TITLE_CODE VARCHAR(50),
-    JOB_TITLE_NAME VARCHAR(100),
-    EMAIL VARCHAR(200),
-    MOBILE_NO VARCHAR(50),
-    OFFICE_PHONE_NO VARCHAR(50),
-    EFFECTIVE_FROM TIMESTAMP(3),
-    EFFECTIVE_TO TIMESTAMP(3),
-    VERSION_NO BIGINT NOT NULL DEFAULT 0,
-    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM',
-    created_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM',
-    updated_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT pk_adm_operator_profile PRIMARY KEY (OPERATOR_ID),
-    CONSTRAINT uk_adm_operator_profile_employee UNIQUE (EMPLOYEE_NO),
-    CONSTRAINT ck_adm_operator_profile_effective CHECK (EFFECTIVE_TO IS NULL OR EFFECTIVE_FROM IS NULL OR EFFECTIVE_TO > EFFECTIVE_FROM),
-    CONSTRAINT fk_adm_operator_profile_operator FOREIGN KEY (OPERATOR_ID) REFERENCES adm_operator (OPERATOR_ID) ON DELETE CASCADE,
-    CONSTRAINT fk_adm_operator_profile_org FOREIGN KEY (ORGANIZATION_CODE) REFERENCES adm_organization (ORGANIZATION_CODE) ON DELETE SET NULL
-);
-CREATE INDEX ix_adm_operator_profile_org ON adm_operator_profile (ORGANIZATION_CODE, EFFECTIVE_TO);
-COMMENT ON TABLE adm_operator_profile IS 'ADM 운영자 조직/직급 Profile';
-COMMENT ON COLUMN adm_operator_profile.OPERATOR_ID IS '운영자 ID';
-COMMENT ON COLUMN adm_operator_profile.DISPLAY_NAME IS 'Directory/Profile 표시 이름';
-COMMENT ON COLUMN adm_operator_profile.EMPLOYEE_NO IS '외부/내부 사번';
-COMMENT ON COLUMN adm_operator_profile.EXTERNAL_SUBJECT IS 'LDAP/IAM 등 외부 Identity Subject';
-COMMENT ON COLUMN adm_operator_profile.ORGANIZATION_CODE IS '대표 운영 조직 코드';
-COMMENT ON COLUMN adm_operator_profile.POSITION_CODE IS '직급 코드';
-COMMENT ON COLUMN adm_operator_profile.POSITION_NAME IS '직급명 Snapshot/표시값';
-COMMENT ON COLUMN adm_operator_profile.JOB_TITLE_CODE IS '직책 코드';
-COMMENT ON COLUMN adm_operator_profile.JOB_TITLE_NAME IS '직책명 Snapshot/표시값';
-COMMENT ON COLUMN adm_operator_profile.EMAIL IS '업무 이메일';
-COMMENT ON COLUMN adm_operator_profile.MOBILE_NO IS '연락처(휴대폰); 숫자형이 아닌 문자열로 국가번호와 선행 0을 보존';
-COMMENT ON COLUMN adm_operator_profile.OFFICE_PHONE_NO IS '내부 전화번호/내선; 휴대폰 연락처와 분리';
-COMMENT ON COLUMN adm_operator_profile.EFFECTIVE_FROM IS 'Profile 적용 시작시각';
-COMMENT ON COLUMN adm_operator_profile.EFFECTIVE_TO IS 'Profile 적용 종료시각';
-COMMENT ON COLUMN adm_operator_profile.VERSION_NO IS 'Profile 낙관적 잠금 버전';
-COMMENT ON COLUMN adm_operator_profile.created_by IS '등록자';
-COMMENT ON COLUMN adm_operator_profile.created_at IS '등록일시';
-COMMENT ON COLUMN adm_operator_profile.updated_by IS '수정자';
-COMMENT ON COLUMN adm_operator_profile.updated_at IS '수정일시';
-CREATE OR REPLACE FUNCTION cpf_touch_adm_operator_profile() RETURNS trigger AS $$ BEGIN NEW.updated_at = CURRENT_TIMESTAMP; RETURN NEW; END; $$ LANGUAGE plpgsql;
-DROP TRIGGER IF EXISTS trg_cpf_touch_adm_operator_profile ON adm_operator_profile;
-CREATE TRIGGER trg_cpf_touch_adm_operator_profile BEFORE UPDATE ON adm_operator_profile FOR EACH ROW EXECUTE FUNCTION cpf_touch_adm_operator_profile();
-
-CREATE TABLE adm_operator_role (
-    OPERATOR_ID VARCHAR(50) NOT NULL,
-    ROLE_ID VARCHAR(50) NOT NULL,
+    SECRET_REF VARCHAR(500) NOT NULL,
+    ENABLED_YN CHAR(1) NOT NULL DEFAULT 'N',
+    VERIFIED_AT TIMESTAMP,
     created_by VARCHAR(50) NOT NULL DEFAULT 'ADM',
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM',
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT pk_adm_operator_role PRIMARY KEY (OPERATOR_ID, ROLE_ID),
-    CONSTRAINT fk_adm_operator_role_operator FOREIGN KEY (OPERATOR_ID) REFERENCES adm_operator (OPERATOR_ID) ON DELETE CASCADE,
-    CONSTRAINT fk_adm_operator_role_role FOREIGN KEY (ROLE_ID) REFERENCES adm_role (ROLE_ID) ON DELETE CASCADE
+    CONSTRAINT pk_adm_mfa_otp_secret PRIMARY KEY (OPERATOR_ID),
+    CONSTRAINT fk_adm_mfa_otp_secret_operator FOREIGN KEY (OPERATOR_ID) REFERENCES adm_operator (OPERATOR_ID) ON DELETE CASCADE
 );
-COMMENT ON TABLE adm_operator_role IS 'ADM 운영자 역할 매핑';
-COMMENT ON COLUMN adm_operator_role.OPERATOR_ID IS '운영자 ID';
-COMMENT ON COLUMN adm_operator_role.ROLE_ID IS '역할 ID';
-COMMENT ON COLUMN adm_operator_role.created_by IS '등록자';
-COMMENT ON COLUMN adm_operator_role.created_at IS '등록일시';
-COMMENT ON COLUMN adm_operator_role.updated_by IS '수정자';
-COMMENT ON COLUMN adm_operator_role.updated_at IS '수정일시';
-CREATE OR REPLACE FUNCTION cpf_touch_adm_operator_role() RETURNS trigger AS $$ BEGIN NEW.updated_at = CURRENT_TIMESTAMP; RETURN NEW; END; $$ LANGUAGE plpgsql;
-DROP TRIGGER IF EXISTS trg_cpf_touch_adm_operator_role ON adm_operator_role;
-CREATE TRIGGER trg_cpf_touch_adm_operator_role BEFORE UPDATE ON adm_operator_role FOR EACH ROW EXECUTE FUNCTION cpf_touch_adm_operator_role();
+COMMENT ON TABLE adm_mfa_otp_secret IS 'ADM 운영자 MFA OTP secret 메타';
+COMMENT ON COLUMN adm_mfa_otp_secret.OPERATOR_ID IS '운영자 ID';
+COMMENT ON COLUMN adm_mfa_otp_secret.SECRET_REF IS 'OTP secret 참조';
+COMMENT ON COLUMN adm_mfa_otp_secret.ENABLED_YN IS 'MFA 사용 여부';
+COMMENT ON COLUMN adm_mfa_otp_secret.VERIFIED_AT IS 'MFA 검증일시';
+COMMENT ON COLUMN adm_mfa_otp_secret.created_by IS '등록자';
+COMMENT ON COLUMN adm_mfa_otp_secret.created_at IS '등록일시';
+COMMENT ON COLUMN adm_mfa_otp_secret.updated_by IS '수정자';
+COMMENT ON COLUMN adm_mfa_otp_secret.updated_at IS '수정일시';
+CREATE OR REPLACE FUNCTION cpf_touch_adm_mfa_otp_secret() RETURNS trigger AS $$ BEGIN NEW.updated_at = CURRENT_TIMESTAMP; RETURN NEW; END; $$ LANGUAGE plpgsql;
+DROP TRIGGER IF EXISTS trg_cpf_touch_adm_mfa_otp_secret ON adm_mfa_otp_secret;
+CREATE TRIGGER trg_cpf_touch_adm_mfa_otp_secret BEFORE UPDATE ON adm_mfa_otp_secret FOR EACH ROW EXECUTE FUNCTION cpf_touch_adm_mfa_otp_secret();
 
 CREATE TABLE adm_operator_session (
     SESSION_ID VARCHAR(80) NOT NULL,
@@ -1046,6 +974,57 @@ COMMENT ON COLUMN adm_organization.updated_at IS '수정일시';
 CREATE OR REPLACE FUNCTION cpf_touch_adm_organization() RETURNS trigger AS $$ BEGIN NEW.updated_at = CURRENT_TIMESTAMP; RETURN NEW; END; $$ LANGUAGE plpgsql;
 DROP TRIGGER IF EXISTS trg_cpf_touch_adm_organization ON adm_organization;
 CREATE TRIGGER trg_cpf_touch_adm_organization BEFORE UPDATE ON adm_organization FOR EACH ROW EXECUTE FUNCTION cpf_touch_adm_organization();
+
+CREATE TABLE adm_operator_profile (
+    OPERATOR_ID VARCHAR(50) NOT NULL,
+    DISPLAY_NAME VARCHAR(100),
+    EMPLOYEE_NO VARCHAR(50),
+    EXTERNAL_SUBJECT VARCHAR(200),
+    ORGANIZATION_CODE VARCHAR(50),
+    POSITION_CODE VARCHAR(50),
+    POSITION_NAME VARCHAR(100),
+    JOB_TITLE_CODE VARCHAR(50),
+    JOB_TITLE_NAME VARCHAR(100),
+    EMAIL VARCHAR(200),
+    MOBILE_NO VARCHAR(50),
+    OFFICE_PHONE_NO VARCHAR(50),
+    EFFECTIVE_FROM TIMESTAMP(3),
+    EFFECTIVE_TO TIMESTAMP(3),
+    VERSION_NO BIGINT NOT NULL DEFAULT 0,
+    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM',
+    created_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM',
+    updated_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT pk_adm_operator_profile PRIMARY KEY (OPERATOR_ID),
+    CONSTRAINT uk_adm_operator_profile_employee UNIQUE (EMPLOYEE_NO),
+    CONSTRAINT ck_adm_operator_profile_effective CHECK (EFFECTIVE_TO IS NULL OR EFFECTIVE_FROM IS NULL OR EFFECTIVE_TO > EFFECTIVE_FROM),
+    CONSTRAINT fk_adm_operator_profile_operator FOREIGN KEY (OPERATOR_ID) REFERENCES adm_operator (OPERATOR_ID) ON DELETE CASCADE,
+    CONSTRAINT fk_adm_operator_profile_org FOREIGN KEY (ORGANIZATION_CODE) REFERENCES adm_organization (ORGANIZATION_CODE) ON DELETE SET NULL
+);
+CREATE INDEX ix_adm_operator_profile_org ON adm_operator_profile (ORGANIZATION_CODE, EFFECTIVE_TO);
+COMMENT ON TABLE adm_operator_profile IS 'ADM 운영자 조직/직급 Profile';
+COMMENT ON COLUMN adm_operator_profile.OPERATOR_ID IS '운영자 ID';
+COMMENT ON COLUMN adm_operator_profile.DISPLAY_NAME IS 'Directory/Profile 표시 이름';
+COMMENT ON COLUMN adm_operator_profile.EMPLOYEE_NO IS '외부/내부 사번';
+COMMENT ON COLUMN adm_operator_profile.EXTERNAL_SUBJECT IS 'LDAP/IAM 등 외부 Identity Subject';
+COMMENT ON COLUMN adm_operator_profile.ORGANIZATION_CODE IS '대표 운영 조직 코드';
+COMMENT ON COLUMN adm_operator_profile.POSITION_CODE IS '직급 코드';
+COMMENT ON COLUMN adm_operator_profile.POSITION_NAME IS '직급명 Snapshot/표시값';
+COMMENT ON COLUMN adm_operator_profile.JOB_TITLE_CODE IS '직책 코드';
+COMMENT ON COLUMN adm_operator_profile.JOB_TITLE_NAME IS '직책명 Snapshot/표시값';
+COMMENT ON COLUMN adm_operator_profile.EMAIL IS '업무 이메일';
+COMMENT ON COLUMN adm_operator_profile.MOBILE_NO IS '연락처(휴대폰); 숫자형이 아닌 문자열로 국가번호와 선행 0을 보존';
+COMMENT ON COLUMN adm_operator_profile.OFFICE_PHONE_NO IS '내부 전화번호/내선; 휴대폰 연락처와 분리';
+COMMENT ON COLUMN adm_operator_profile.EFFECTIVE_FROM IS 'Profile 적용 시작시각';
+COMMENT ON COLUMN adm_operator_profile.EFFECTIVE_TO IS 'Profile 적용 종료시각';
+COMMENT ON COLUMN adm_operator_profile.VERSION_NO IS 'Profile 낙관적 잠금 버전';
+COMMENT ON COLUMN adm_operator_profile.created_by IS '등록자';
+COMMENT ON COLUMN adm_operator_profile.created_at IS '등록일시';
+COMMENT ON COLUMN adm_operator_profile.updated_by IS '수정자';
+COMMENT ON COLUMN adm_operator_profile.updated_at IS '수정일시';
+CREATE OR REPLACE FUNCTION cpf_touch_adm_operator_profile() RETURNS trigger AS $$ BEGIN NEW.updated_at = CURRENT_TIMESTAMP; RETURN NEW; END; $$ LANGUAGE plpgsql;
+DROP TRIGGER IF EXISTS trg_cpf_touch_adm_operator_profile ON adm_operator_profile;
+CREATE TRIGGER trg_cpf_touch_adm_operator_profile BEFORE UPDATE ON adm_operator_profile FOR EACH ROW EXECUTE FUNCTION cpf_touch_adm_operator_profile();
 
 CREATE TABLE adm_password_history (
     HISTORY_ID BIGINT GENERATED BY DEFAULT AS IDENTITY NOT NULL,
@@ -1135,6 +1114,28 @@ COMMENT ON COLUMN adm_role.updated_at IS '수정일시';
 CREATE OR REPLACE FUNCTION cpf_touch_adm_role() RETURNS trigger AS $$ BEGIN NEW.updated_at = CURRENT_TIMESTAMP; RETURN NEW; END; $$ LANGUAGE plpgsql;
 DROP TRIGGER IF EXISTS trg_cpf_touch_adm_role ON adm_role;
 CREATE TRIGGER trg_cpf_touch_adm_role BEFORE UPDATE ON adm_role FOR EACH ROW EXECUTE FUNCTION cpf_touch_adm_role();
+
+CREATE TABLE adm_operator_role (
+    OPERATOR_ID VARCHAR(50) NOT NULL,
+    ROLE_ID VARCHAR(50) NOT NULL,
+    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM',
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT pk_adm_operator_role PRIMARY KEY (OPERATOR_ID, ROLE_ID),
+    CONSTRAINT fk_adm_operator_role_operator FOREIGN KEY (OPERATOR_ID) REFERENCES adm_operator (OPERATOR_ID) ON DELETE CASCADE,
+    CONSTRAINT fk_adm_operator_role_role FOREIGN KEY (ROLE_ID) REFERENCES adm_role (ROLE_ID) ON DELETE CASCADE
+);
+COMMENT ON TABLE adm_operator_role IS 'ADM 운영자 역할 매핑';
+COMMENT ON COLUMN adm_operator_role.OPERATOR_ID IS '운영자 ID';
+COMMENT ON COLUMN adm_operator_role.ROLE_ID IS '역할 ID';
+COMMENT ON COLUMN adm_operator_role.created_by IS '등록자';
+COMMENT ON COLUMN adm_operator_role.created_at IS '등록일시';
+COMMENT ON COLUMN adm_operator_role.updated_by IS '수정자';
+COMMENT ON COLUMN adm_operator_role.updated_at IS '수정일시';
+CREATE OR REPLACE FUNCTION cpf_touch_adm_operator_role() RETURNS trigger AS $$ BEGIN NEW.updated_at = CURRENT_TIMESTAMP; RETURN NEW; END; $$ LANGUAGE plpgsql;
+DROP TRIGGER IF EXISTS trg_cpf_touch_adm_operator_role ON adm_operator_role;
+CREATE TRIGGER trg_cpf_touch_adm_operator_role BEFORE UPDATE ON adm_operator_role FOR EACH ROW EXECUTE FUNCTION cpf_touch_adm_operator_role();
 
 CREATE TABLE adm_role_api_permission (
     ROLE_ID VARCHAR(50) NOT NULL,

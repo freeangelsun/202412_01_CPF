@@ -24,11 +24,8 @@ public final class CpfGatewayTargetSelector implements CpfGatewayTargetSelection
         if (request == null || request.policy() == null) {
             throw new IllegalArgumentException("Selection request and policy are required");
         }
-        List<TargetCandidate> eligible = request.candidates().stream()
-                .filter(TargetCandidate::routable)
-                .filter(this::canaryEligible)
-                .sorted(Comparator.comparing(TargetCandidate::instanceId))
-                .toList();
+        String requestKey = requiresDeterministicKey(request.candidates()) ? requestKey(request) : "";
+        List<TargetCandidate> eligible = selectCanaryPool(request.serverGroupId(), requestKey, request.candidates());
         if (eligible.isEmpty()) {
             return SelectionResult.unavailable(request.serverGroupId(), request.policy(), "NO_ROUTABLE_INSTANCE");
         }
@@ -105,10 +102,52 @@ public final class CpfGatewayTargetSelector implements CpfGatewayTargetSelection
         }
     }
 
-    private boolean canaryEligible(TargetCandidate candidate) {
-        if (candidate.canaryPercent() <= 0 || candidate.canaryPercent() >= 100) return true;
-        long sequence = sequences.computeIfAbsent(key(candidate.instanceId(), "canary"), ignored -> new AtomicLong()).getAndIncrement();
-        return Math.floorMod(sequence, 100) < candidate.canaryPercent();
+    private List<TargetCandidate> selectCanaryPool(
+            String groupId, String requestKey, List<TargetCandidate> candidates) {
+        List<TargetCandidate> configured = candidates.stream()
+                .sorted(Comparator.comparing(TargetCandidate::instanceId))
+                .toList();
+        List<TargetCandidate> stable = configured.stream()
+                .filter(candidate -> candidate.canaryPercent() == 0)
+                .filter(TargetCandidate::routable)
+                .toList();
+        List<TargetCandidate> canaries = configured.stream()
+                .filter(candidate -> candidate.canaryPercent() > 0)
+                .toList();
+        if (canaries.isEmpty()) return stable;
+
+        int totalPercent = canaries.stream().mapToInt(TargetCandidate::canaryPercent).sum();
+        if (totalPercent > 100) {
+            throw new IllegalArgumentException("Canary traffic percent sum must not exceed 100: " + totalPercent);
+        }
+        int bucket = (int) Math.floorMod(unsignedHash(String.valueOf(groupId) + '\u0000' + requestKey), 100);
+        int boundary = 0;
+        for (TargetCandidate candidate : canaries) {
+            boundary += candidate.canaryPercent();
+            if (bucket < boundary) {
+                if (candidate.routable()) return List.of(candidate);
+                return stable;
+            }
+        }
+        if (!stable.isEmpty()) return stable;
+        return canaries.stream().filter(TargetCandidate::routable).toList();
+    }
+
+    private static boolean requiresDeterministicKey(List<TargetCandidate> candidates) {
+        return candidates.stream().anyMatch(candidate ->
+                candidate.canaryPercent() > 0 && candidate.canaryPercent() < 100);
+    }
+
+    private static String requestKey(SelectionRequest request) {
+        if (request.affinityKey() != null && !request.affinityKey().isBlank()) {
+            return request.affinityKey().trim();
+        }
+        for (String name : List.of("requestKey", "transactionId", "traceId", "idempotencyKey")) {
+            String value = request.attributes().get(name);
+            if (value != null && !value.isBlank()) return value.trim();
+        }
+        throw new IllegalArgumentException(
+                "Canary selection requires affinityKey or requestKey/transactionId/traceId/idempotencyKey attribute");
     }
 
     private static String key(String groupId, String suffix) { return String.valueOf(groupId) + ':' + suffix; }

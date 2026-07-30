@@ -4,5 +4,7 @@ SELECT execution_id,
   FROM bat_execution
  WHERE execution_status = 'READY'
    AND stop_requested_yn = 'N'
+   AND definition_version IS NOT NULL
+   AND definition_checksum IS NOT NULL
  ORDER BY execution_id
  FETCH FIRST 100 ROWS ONLY

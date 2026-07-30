@@ -1,12 +1,13 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "vendor": "postgresql",
   "status": "완료",
   "runtimeVerification": "미검증",
   "canonicalConsumerRoot": "cpf-tools/db/vendor/postgresql",
   "lifecycleContentAuthority": "CANONICAL_JSON_GENERATED_VENDOR_PACK",
+  "lifecycleContentNote": "Canonical JSON과 공식 Vendor Generator가 logical database별 lifecycle pack을 결정적으로 생성한다.",
   "runtimeContentAuthority": "CENTRAL_VENDOR_PACK",
-  "legacyModuleResourcePolicy": "TRANSITIONAL_HASH_PARITY_MIRROR",
+  "legacyModuleResourcePolicy": "FORBIDDEN_AFTER_CANONICALIZATION",
   "lifecycleStatus": {
     "provision": "완료",
     "install": "완료",
@@ -19,12 +20,12 @@
     "cpf": {
       "ownerArtifact": "cpf-core",
       "repository": "완료",
-      "mybatis": "해당 없음 (Repository SQL contract)"
+      "mybatis": "완료"
     },
     "cmn": {
       "ownerArtifact": "cpf-common",
-      "repository": "미구현",
-      "mybatis": "부분 구현"
+      "repository": "해당 없음 (MyBatis owner contract)",
+      "mybatis": "완료"
     },
     "bza": {
       "ownerArtifact": "cpf-biz-admin",
@@ -37,9 +38,9 @@
       "mybatis": "해당 없음 (Repository SQL contract)"
     },
     "ref": {
-      "ownerArtifact": "cpf-reference",
-      "repository": "미구현",
-      "mybatis": "부분 구현"
+      "ownerArtifact": "cpf-reference EDU",
+      "repository": "해당 없음 (MyBatis owner contract)",
+      "mybatis": "완료"
     }
   },
   "generatedDomainContract": {
@@ -68,8 +69,15 @@
       "CPF_RESULT_TYPE",
       "CPF_IDEMPOTENCY_RESULT_TYPE"
     ],
+    "transactionIdentity": "transactionId",
+    "referenceInstance": "cpf-reference EDU + central Golden Generated Domain template",
+    "defaultSampleTable": "${TablePrefix}_sample_item",
+    "databaseBootstrapScript": "cpf-tools/scripts/initialize-domain-database.ps1",
+    "fixedDomainNamesAllowed": false,
+    "arbitraryDomainPolicy": "Every generated domain uses the same metadata-driven central template.",
     "officialVendor": true
   },
   "migrationLocationPattern": "cpf-tools/db/vendor/postgresql/migration/flyway/{logicalDatabase}",
-  "rollbackLocationPattern": "cpf-tools/db/vendor/postgresql/rollback/{logicalDatabase}"
+  "rollbackLocationPattern": "cpf-tools/db/vendor/postgresql/migration/rollback/{logicalDatabase}",
+  "completionPolicy": "Source/SQL/API/Test/Gate 구현은 완료이며 실제 DB Runtime 결과는 runtimeVerification으로만 관리한다."
 }

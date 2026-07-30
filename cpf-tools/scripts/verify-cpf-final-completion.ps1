@@ -5,7 +5,8 @@ param(
     [switch] $RunDatabaseLifecycle,
     [string[]] $DatabaseProfilePath = @(),
     [switch] $RunGitHubGovernance,
-    [string] $ExpectedSourceSha = ''
+    [string] $ExpectedSourceSha = '',
+    [switch] $RequireFullCompletion
 )
 
 $ErrorActionPreference = 'Stop'
@@ -31,6 +32,19 @@ if ($ExpectedSourceSha -ne $headSha) {
     }
 }
 $gradle = if ($IsWindows) { '.\gradlew.bat' } else { './gradlew' }
+
+if ($RequireFullCompletion) {
+    if ($SkipFrontend) { throw '-RequireFullCompletion에서는 -SkipFrontend를 사용할 수 없습니다.' }
+    if ($SkipRuntime) { throw '-RequireFullCompletion에서는 -SkipRuntime을 사용할 수 없습니다.' }
+    if (-not $RunDatabaseLifecycle) { throw '-RequireFullCompletion에서는 -RunDatabaseLifecycle이 필수입니다.' }
+    if (-not $RunGitHubGovernance) { throw '-RequireFullCompletion에서는 -RunGitHubGovernance가 필수입니다.' }
+    if ($DatabaseProfilePath.Count -ne 3) {
+        throw '-RequireFullCompletion에서는 MariaDB/PostgreSQL/Oracle ProfilePath 3개가 모두 필요합니다.'
+    }
+    $status = (& git -C $RepoRoot status --porcelain=v1)
+    if ($LASTEXITCODE -ne 0) { throw 'git status 확인에 실패했습니다.' }
+    if (@($status).Count -gt 0) { throw '전체 완료 검증은 Clean Working Tree에서만 수행할 수 있습니다.' }
+}
 
 function Invoke-CpfGate {
     param(
@@ -125,11 +139,23 @@ try {
         'cpf-tools/db/vendor/sqlserver',
         'cpf-tools/db/runtime-template/cpf/vendor/sqlserver',
         'cpf-tools/db/runtime-template/bza/vendor/sqlserver',
-        'cpf-tools/db/runtime-template/bat/vendor/sqlserver'
+        'cpf-tools/db/runtime-template/bat/vendor/sqlserver',
+        'cpf-core/src/main/java/com/cpf/core/common/gateway/CpfGatewayRoute.java',
+        'cpf-core/src/main/java/com/cpf/core/common/gateway/CpfGatewayRouteCatalog.java',
+        'cpf-core/src/test/java/com/cpf/core/common/gateway/CpfGatewayRouteCatalogTest.java'
     )) {
         Assert-CpfRemovedPath $obsolete
     }
     Assert-CpfGeneratedDomainTopology
+
+    Invoke-CpfGate 'QA30 canonical/runtime/navigation static gate' {
+        & python .\cpf-tools\scripts\verify-qa30-completion.py --root $RepoRoot --scope $RepoRoot `
+            --basis-sha $ExpectedSourceSha `
+            --report .\build\reports\cpf\qa30-static-gate.json
+    }
+    Invoke-CpfGate 'Canonical DB lifecycle contract' {
+        & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\check-canonical-db-lifecycle-contract.ps1 -Root $RepoRoot
+    }
 
     Invoke-CpfGate 'Work/Handover/Evidence exact-SHA' {
         & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\check-work-context-sha.ps1 -ExpectedSha $ExpectedSourceSha -RequireCurrentEvidence
@@ -320,7 +346,12 @@ try {
         throw "Final completion is blocked because closing evidence is not exact-SHA. expected=$ExpectedSourceSha total=$($staleClosingEvidence.Count), sample=[$sampleIds]"
     }
 
-    Write-Host "Selected CPF final completion gates PASS. sourceSha=$ExpectedSourceSha headSha=$headSha"
+    if ($RequireFullCompletion) {
+        Write-Host "CPF FULL PRODUCT COMPLETION GATE PASS. sourceSha=$ExpectedSourceSha headSha=$headSha"
+    } else {
+        Write-Host "Selected CPF verification gates PASS. sourceSha=$ExpectedSourceSha headSha=$headSha"
+        Write-Host '선택 검증 결과는 전체 제품 완료를 의미하지 않습니다. 전체 완료 판정에는 -RequireFullCompletion을 사용해야 합니다.'
+    }
     Write-Host 'Runtime/Browser/3-DB/multi-instance/release evidence is PASS only when the command actually ran on the current commit.'
 } finally {
     Pop-Location

@@ -31,6 +31,17 @@ public class AdmServiceRegistryController extends com.cpf.admin.common.base.AdmB
         this.auditLogService = auditLogService;
     }
 
+    @GetMapping("/capabilities")
+    @Operation(operationId="admServiceRegistryCapabilities",summary="Service Registry Code·Capability 조회")
+    public Map<String,Object> capabilities() {
+        return Map.of(
+                "serviceTypes",List.of("INTERNAL","EXTERNAL","PLATFORM","MONITOR_ONLY"),
+                "endpointTypes",List.of("HTTP","HTTPS","GRPC","TCP","WEBSOCKET","SSE","MONITOR_ONLY"),
+                "instanceStatuses",List.of("UP","DOWN","DEGRADED","UNKNOWN","DRAINING","DISABLED","MAINTENANCE","STALE","RECOVERING"),
+                "instanceCommands",List.of("DRAIN","RESUME","DISABLE"),
+                "environments",List.of("DEV","TEST","PROD"));
+    }
+
     @GetMapping("/services") @CpfOnlineTransaction(id="OADMSV0010",name="ADMServiceRegistryServices")
     @Operation(operationId="admServiceRegistryFindServices",summary="서비스 목록 조회")
     public ResponseEntity<List<CpfServiceRegistryView.Service>> findServices(
@@ -85,8 +96,10 @@ public class AdmServiceRegistryController extends com.cpf.admin.common.base.AdmB
     @Operation(operationId="admServiceRegistrySaveService",summary="서비스 생성·수정")
     public ResponseEntity<CpfServiceRegistryView.MutationResult> saveService(
             @RequestBody CpfServiceRegistryControlPort.ServiceDefinition command,HttpServletRequest request) {
-        String operator=operator(request); requireOwner(command.requestedBy(),operator);
-        var result=service.saveService(command); audit(request,operator,"SERVICE_REGISTRY_SERVICE_SAVE",command.serviceId(),command.reason(),result);
+        String operator=operator(request);
+        var secured=command.withActor(operator);
+        var result=service.saveService(secured);
+        audit(request,operator,"SERVICE_REGISTRY_SERVICE_SAVE",secured.serviceId(),secured.reason(),result);
         return ResponseEntity.ok(result);
     }
 
@@ -94,8 +107,10 @@ public class AdmServiceRegistryController extends com.cpf.admin.common.base.AdmB
     @Operation(operationId="admServiceRegistrySaveEndpoint",summary="Endpoint 생성·수정")
     public ResponseEntity<CpfServiceRegistryView.MutationResult> saveEndpoint(
             @RequestBody CpfServiceRegistryControlPort.EndpointDefinition command,HttpServletRequest request) {
-        String operator=operator(request); requireOwner(command.requestedBy(),operator);
-        var result=service.saveEndpoint(command); audit(request,operator,"SERVICE_REGISTRY_ENDPOINT_SAVE",command.endpointCode(),command.reason(),result);
+        String operator=operator(request);
+        var secured=command.withActor(operator);
+        var result=service.saveEndpoint(secured);
+        audit(request,operator,"SERVICE_REGISTRY_ENDPOINT_SAVE",secured.endpointCode(),secured.reason(),result);
         return ResponseEntity.ok(result);
     }
 
@@ -103,8 +118,10 @@ public class AdmServiceRegistryController extends com.cpf.admin.common.base.AdmB
     @Operation(operationId="admServiceRegistrySaveInstance",summary="Instance 생성·수정")
     public ResponseEntity<CpfServiceRegistryView.MutationResult> saveInstance(
             @RequestBody CpfServiceRegistryControlPort.InstanceDefinition command,HttpServletRequest request) {
-        String operator=operator(request); requireOwner(command.requestedBy(),operator);
-        var result=service.saveInstance(command); audit(request,operator,"SERVICE_REGISTRY_INSTANCE_SAVE",command.instanceId(),command.reason(),result);
+        String operator=operator(request);
+        var secured=command.withActor(operator);
+        var result=service.saveInstance(secured);
+        audit(request,operator,"SERVICE_REGISTRY_INSTANCE_SAVE",secured.instanceId(),secured.reason(),result);
         return ResponseEntity.ok(result);
     }
 
@@ -114,8 +131,10 @@ public class AdmServiceRegistryController extends com.cpf.admin.common.base.AdmB
     public ResponseEntity<CpfServiceRegistryView.MutationResult> changeInstanceState(
             @PathVariable String serviceId,@PathVariable String endpointCode,@PathVariable String instanceId,
             @RequestBody InstanceStateRequest body,HttpServletRequest request) {
-        String operator=operator(request); requireReason(body.reason());
-        var result=service.changeInstanceState(serviceId,endpointCode,instanceId,body.command(),body.reason(),operator);
+        String operator=operator(request);
+        var command=new CpfServiceRegistryControlPort.InstanceStateCommand(
+                body.operationId(),body.command(),body.expectedVersion(),body.reason(),operator);
+        var result=service.changeInstanceState(serviceId,endpointCode,instanceId,command);
         audit(request,operator,"SERVICE_REGISTRY_INSTANCE_"+body.command(),instanceId,body.reason(),result);
         return ResponseEntity.ok(result);
     }
@@ -123,29 +142,35 @@ public class AdmServiceRegistryController extends com.cpf.admin.common.base.AdmB
     @DeleteMapping("/services/{serviceId}") @CpfOnlineTransaction(id="OADMSV0110",name="ADMServiceRegistryServiceDelete")
     @Operation(operationId="admServiceRegistryDeleteService",summary="서비스 삭제")
     public ResponseEntity<Void> deleteService(@PathVariable String serviceId,@RequestBody CpfServiceRegistryControlPort.DeleteCommand command,HttpServletRequest request) {
-        String operator=operator(request);requireOwner(command.requestedBy(),operator);requireReason(command.reason());
-        service.deleteService(serviceId,command);audit(request,operator,"SERVICE_REGISTRY_SERVICE_DELETE",serviceId,command.reason(),Map.of("deleted",true));return ResponseEntity.noContent().build();
+        String operator=operator(request);
+        var secured=command.withActor(operator);
+        var result=service.deleteService(serviceId,secured);
+        audit(request,operator,"SERVICE_REGISTRY_SERVICE_DELETE",serviceId,secured.reason(),result);
+        return ResponseEntity.noContent().build();
     }
     @DeleteMapping("/endpoints/{endpointCode}") @CpfOnlineTransaction(id="OADMSV0120",name="ADMServiceRegistryEndpointDelete")
     @Operation(operationId="admServiceRegistryDeleteEndpoint",summary="Endpoint 삭제")
     public ResponseEntity<Void> deleteEndpoint(@PathVariable String endpointCode,@RequestBody CpfServiceRegistryControlPort.DeleteCommand command,HttpServletRequest request) {
-        String operator=operator(request);requireOwner(command.requestedBy(),operator);requireReason(command.reason());
-        service.deleteEndpoint(endpointCode,command);audit(request,operator,"SERVICE_REGISTRY_ENDPOINT_DELETE",endpointCode,command.reason(),Map.of("deleted",true));return ResponseEntity.noContent().build();
+        String operator=operator(request);
+        var secured=command.withActor(operator);
+        var result=service.deleteEndpoint(endpointCode,secured);
+        audit(request,operator,"SERVICE_REGISTRY_ENDPOINT_DELETE",endpointCode,secured.reason(),result);
+        return ResponseEntity.noContent().build();
     }
     @DeleteMapping("/instances/{instanceId}") @CpfOnlineTransaction(id="OADMSV0130",name="ADMServiceRegistryInstanceDelete")
     @Operation(operationId="admServiceRegistryDeleteInstance",summary="Instance 삭제")
     public ResponseEntity<Void> deleteInstance(@PathVariable String instanceId,@RequestBody CpfServiceRegistryControlPort.DeleteCommand command,HttpServletRequest request) {
-        String operator=operator(request);requireOwner(command.requestedBy(),operator);requireReason(command.reason());
-        service.deleteInstance(instanceId,command);audit(request,operator,"SERVICE_REGISTRY_INSTANCE_DELETE",instanceId,command.reason(),Map.of("deleted",true));return ResponseEntity.noContent().build();
+        String operator=operator(request);
+        var secured=command.withActor(operator);
+        var result=service.deleteInstance(instanceId,secured);
+        audit(request,operator,"SERVICE_REGISTRY_INSTANCE_DELETE",instanceId,secured.reason(),result);
+        return ResponseEntity.noContent().build();
     }
 
     private String operator(HttpServletRequest request) {
         Object value=request.getAttribute("adm.operatorId");
         if(value instanceof String s&&!s.isBlank()) return s;
         throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,"검증된 ADM operator session이 필요합니다.");
-    }
-    private void requireOwner(String requestedBy,String operator) {
-        if(requestedBy==null||!operator.equals(requestedBy)) throw new ResponseStatusException(HttpStatus.FORBIDDEN,"requestedBy는 인증된 ADM 운영자와 일치해야 합니다.");
     }
     private void requireReason(String reason) {
         if(reason==null||reason.trim().length()<5) throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"운영 조치 사유는 5자 이상이어야 합니다.");
@@ -154,5 +179,5 @@ public class AdmServiceRegistryController extends com.cpf.admin.common.base.AdmB
         auditLogService.record(CpfTransactionContext.transactionId(),user,action,"cpf_service_registry",id,reason,"",String.valueOf(after),"Service Registry",req.getRemoteAddr());
     }
 
-    public record InstanceStateRequest(CpfServiceRegistryControlPort.InstanceCommand command,String reason) {}
+    public record InstanceStateRequest(String operationId,CpfServiceRegistryControlPort.InstanceCommand command,Long expectedVersion,String reason) {}
 }

@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "2.0",
+  "schemaVersion": 39,
   "canonicalPolicy": {
     "officialVendors": [
       "mariadb",
@@ -11,6 +11,7 @@
       "52_standard_execution_alias_seed.sql",
       "56_bza_product_seed.sql",
       "60_adm_seed_data.sql",
+      "61_adm_gateway_seed.sql",
       "55_cmn_seed_data.sql",
       "58_reference_external_edu_seed.sql",
       "58_reference_runtime_seed.sql",
@@ -34,7 +35,7 @@
     },
     "source": "cpf-tools/db/canonical/seed-model.json"
   },
-  "statementCount": 146,
+  "statementCount": 153,
   "statements": [
     {
       "sourceFile": "50_framework_seed_data.sql",
@@ -723,9 +724,24 @@
         "log_level",
         "db_log_enabled_yn",
         "file_log_enabled_yn",
+        "policy_schema_version",
+        "query_capture_mode",
+        "request_header_capture_mode",
+        "response_header_capture_mode",
+        "request_body_capture_mode",
+        "response_body_capture_mode",
+        "error_stack_capture_mode",
+        "header_allowlist",
+        "max_query_bytes",
+        "max_header_bytes",
+        "max_request_body_bytes",
+        "max_response_body_bytes",
+        "max_stack_bytes",
         "request_body_log_yn",
         "response_body_log_yn",
         "error_stack_log_yn",
+        "masking_policy_key",
+        "policy_checksum",
         "retention_days",
         "sampling_rate",
         "priority",
@@ -735,7 +751,7 @@
         "updated_by"
       ],
       "sourceKind": "values",
-      "source": "('ONLINE_DEFAULT', '온라인 거래 기본 로그 정책', 'ONLINE_TRANSACTION', '*', 'INFO', 'Y', 'Y', 'N', 'N', 'Y', 90, 100.00, 100, 'Y', '온라인 Controller/API 기본 로그 정책', 'SYSTEM', 'SYSTEM'),\n    ('BATCH_DEFAULT', '배치 기본 로그 정책', 'BATCH_JOB', '*', 'INFO', 'Y', 'Y', 'N', 'N', 'Y', 180, 100.00, 100, 'Y', 'Spring Batch Job 기본 로그 정책', 'SYSTEM', 'SYSTEM'),\n    ('ADM_OPERATION_DEFAULT', 'ADM 운영 기본 로그 정책', 'MODULE', 'ADM', 'INFO', 'Y', 'Y', 'N', 'N', 'Y', 365, 100.00, 50, 'Y', 'ADM 운영 API 기본 로그 정책', 'SYSTEM', 'SYSTEM')",
+      "source": "('ONLINE_DEFAULT', '온라인 거래 기본 로그 정책', 'ONLINE_TRANSACTION', '*', 'INFO', 'Y', 'Y', 2, 'NONE', 'ALLOWLIST', 'ALLOWLIST', 'NONE', 'NONE', 'SUMMARY', 'content-type,x-cpf-trace-id,x-cpf-transaction-id', 4096, 8192, 65536, 65536, 32768, 'N', 'N', 'Y', 'DEFAULT', '04aec0a6adbf48c269e1538ca571819dc54400391e33d5b497ec05406bccd445', 90, 100.00, 100, 'Y', '온라인 Controller/API 기본 로그 정책', 'SYSTEM', 'SYSTEM'),\n    ('BATCH_DEFAULT', '배치 기본 로그 정책', 'BATCH_JOB', '*', 'INFO', 'Y', 'Y', 2, 'NONE', 'ALLOWLIST', 'ALLOWLIST', 'NONE', 'NONE', 'SUMMARY', 'content-type,x-cpf-trace-id,x-cpf-transaction-id', 4096, 8192, 65536, 65536, 32768, 'N', 'N', 'Y', 'DEFAULT', '0eca9ff2359e55290f01c2594d399c32e4af9decd34541a6f571a4345f36ca08', 180, 100.00, 100, 'Y', 'Spring Batch Job 기본 로그 정책', 'SYSTEM', 'SYSTEM'),\n    ('ADM_OPERATION_DEFAULT', 'ADM 운영 기본 로그 정책', 'MODULE', 'ADM', 'INFO', 'Y', 'Y', 2, 'NONE', 'ALLOWLIST', 'ALLOWLIST', 'NONE', 'NONE', 'SUMMARY', 'content-type,x-cpf-trace-id,x-cpf-transaction-id', 4096, 8192, 65536, 65536, 32768, 'N', 'N', 'Y', 'DEFAULT', '9ea15a6d3c662bcaf9295a2512cef8fc12da0e77eea6f07b3c5e55e5fb79e705', 365, 100.00, 50, 'Y', 'ADM 운영 API 기본 로그 정책', 'SYSTEM', 'SYSTEM')",
       "conflictKey": "uk_cpf_log_policy_key",
       "conflictColumns": [
         "policy_key"
@@ -766,6 +782,58 @@
           "expression": "VALUES(file_log_enabled_yn)"
         },
         {
+          "column": "policy_schema_version",
+          "expression": "VALUES(policy_schema_version)"
+        },
+        {
+          "column": "query_capture_mode",
+          "expression": "VALUES(query_capture_mode)"
+        },
+        {
+          "column": "request_header_capture_mode",
+          "expression": "VALUES(request_header_capture_mode)"
+        },
+        {
+          "column": "response_header_capture_mode",
+          "expression": "VALUES(response_header_capture_mode)"
+        },
+        {
+          "column": "request_body_capture_mode",
+          "expression": "VALUES(request_body_capture_mode)"
+        },
+        {
+          "column": "response_body_capture_mode",
+          "expression": "VALUES(response_body_capture_mode)"
+        },
+        {
+          "column": "error_stack_capture_mode",
+          "expression": "VALUES(error_stack_capture_mode)"
+        },
+        {
+          "column": "header_allowlist",
+          "expression": "VALUES(header_allowlist)"
+        },
+        {
+          "column": "max_query_bytes",
+          "expression": "VALUES(max_query_bytes)"
+        },
+        {
+          "column": "max_header_bytes",
+          "expression": "VALUES(max_header_bytes)"
+        },
+        {
+          "column": "max_request_body_bytes",
+          "expression": "VALUES(max_request_body_bytes)"
+        },
+        {
+          "column": "max_response_body_bytes",
+          "expression": "VALUES(max_response_body_bytes)"
+        },
+        {
+          "column": "max_stack_bytes",
+          "expression": "VALUES(max_stack_bytes)"
+        },
+        {
           "column": "request_body_log_yn",
           "expression": "VALUES(request_body_log_yn)"
         },
@@ -776,6 +844,14 @@
         {
           "column": "error_stack_log_yn",
           "expression": "VALUES(error_stack_log_yn)"
+        },
+        {
+          "column": "masking_policy_key",
+          "expression": "VALUES(masking_policy_key)"
+        },
+        {
+          "column": "policy_checksum",
+          "expression": "VALUES(policy_checksum)"
         },
         {
           "column": "retention_days",
@@ -800,10 +876,6 @@
         {
           "column": "updated_by",
           "expression": "VALUES(updated_by)"
-        },
-        {
-          "column": "updated_at",
-          "expression": "CURRENT_TIMESTAMP"
         }
       ]
     },
@@ -6234,6 +6306,305 @@
         {
           "column": "updated_at",
           "expression": "CURRENT_TIMESTAMP"
+        }
+      ]
+    },
+    {
+      "sourceFile": "61_adm_gateway_seed.sql",
+      "logicalDatabase": "admDB",
+      "statementKind": "insert",
+      "table": "adm_menu",
+      "tableName": "adm_menu",
+      "columns": [
+        "menu_id",
+        "parent_menu_id",
+        "menu_name",
+        "menu_path",
+        "sort_order",
+        "use_yn",
+        "created_by",
+        "updated_by"
+      ],
+      "sourceKind": "values",
+      "source": "('GATEWAY_DASHBOARD',NULL,'Gateway 대시보드','/adm#gateway-dashboard',300,'Y','SYSTEM','SYSTEM'),\n('GATEWAY_SERVERS','GATEWAY_DASHBOARD','Gateway 연동 서버','/adm#gateway-servers',301,'Y','SYSTEM','SYSTEM'),\n('GATEWAY_GROUPS','GATEWAY_DASHBOARD','Gateway 서버 그룹','/adm#gateway-groups',302,'Y','SYSTEM','SYSTEM'),\n('GATEWAY_ROUTES','GATEWAY_DASHBOARD','Gateway 경로·라우팅','/adm#gateway-routes',303,'Y','SYSTEM','SYSTEM'),\n('GATEWAY_SECURITY','GATEWAY_DASHBOARD','Gateway 보안·제한','/adm#gateway-security',304,'Y','SYSTEM','SYSTEM'),\n('GATEWAY_HEALTH','GATEWAY_DASHBOARD','Gateway Health·연결시험','/adm#gateway-health',305,'Y','SYSTEM','SYSTEM'),\n('GATEWAY_TRANSACTIONS','GATEWAY_DASHBOARD','Gateway 거래 조회','/adm#gateway-transactions',306,'Y','SYSTEM','SYSTEM'),\n('GATEWAY_LOG_POLICY','GATEWAY_DASHBOARD','Gateway 로그 정책','/adm#gateway-log-policies',307,'Y','SYSTEM','SYSTEM'),\n('GATEWAY_APPLY_STATUS','GATEWAY_DASHBOARD','Gateway 적용 상태·이력','/adm#gateway-apply-status',308,'Y','SYSTEM','SYSTEM')",
+      "conflictKey": "PRIMARY",
+      "conflictColumns": [
+        "menu_id"
+      ],
+      "updates": [
+        {
+          "column": "parent_menu_id",
+          "expression": "VALUES(parent_menu_id)"
+        },
+        {
+          "column": "menu_name",
+          "expression": "VALUES(menu_name)"
+        },
+        {
+          "column": "menu_path",
+          "expression": "VALUES(menu_path)"
+        },
+        {
+          "column": "sort_order",
+          "expression": "VALUES(sort_order)"
+        },
+        {
+          "column": "use_yn",
+          "expression": "VALUES(use_yn)"
+        },
+        {
+          "column": "updated_by",
+          "expression": "VALUES(updated_by)"
+        },
+        {
+          "column": "updated_at",
+          "expression": "VALUES(updated_at)"
+        }
+      ]
+    },
+    {
+      "sourceFile": "61_adm_gateway_seed.sql",
+      "logicalDatabase": "admDB",
+      "statementKind": "insert",
+      "table": "adm_button",
+      "tableName": "adm_button",
+      "columns": [
+        "button_id",
+        "menu_id",
+        "action_code",
+        "button_name",
+        "http_method",
+        "api_pattern",
+        "sort_order",
+        "use_yn",
+        "created_by",
+        "updated_by"
+      ],
+      "sourceKind": "values",
+      "source": "('GATEWAY_READ','GATEWAY_DASHBOARD','READ','Gateway 운영 조회','GET','/adm/api/gateway-registry/**',10,'Y','SYSTEM','SYSTEM'),\n('GATEWAY_GROUP_WRITE','GATEWAY_GROUPS','WRITE','Server Group 저장','POST','/adm/api/gateway-registry/server-groups',20,'Y','SYSTEM','SYSTEM'),\n('GATEWAY_GROUP_DELETE','GATEWAY_GROUPS','DELETE','Server Group 폐기','DELETE','/adm/api/gateway-registry/server-groups/*',30,'Y','SYSTEM','SYSTEM'),\n('GATEWAY_ROUTE_WRITE','GATEWAY_ROUTES','WRITE','Gateway Binding 저장','POST','/adm/api/gateway-registry/bindings',40,'Y','SYSTEM','SYSTEM'),\n('GATEWAY_ROUTE_STATE','GATEWAY_ROUTES','CONTROL','Gateway Binding 상태 변경','POST','/adm/api/gateway-registry/bindings/*/state',50,'Y','SYSTEM','SYSTEM'),\n('GATEWAY_ROUTE_DELETE','GATEWAY_ROUTES','DELETE','Gateway Binding 폐기','DELETE','/adm/api/gateway-registry/bindings/*',60,'Y','SYSTEM','SYSTEM'),\n('GATEWAY_CONNECTION_TEST','GATEWAY_HEALTH','TEST','Gateway 연결시험 요청','POST','/adm/api/gateway-registry/bindings/*/connection-tests',70,'Y','SYSTEM','SYSTEM'),\n('GATEWAY_TEST_CONTROL','GATEWAY_HEALTH','CONTROL','Gateway 연결시험 취소·재검증','POST','/adm/api/gateway-registry/connection-test-operations/*/**',80,'Y','SYSTEM','SYSTEM')",
+      "conflictKey": "PRIMARY",
+      "conflictColumns": [
+        "button_id"
+      ],
+      "updates": [
+        {
+          "column": "menu_id",
+          "expression": "VALUES(menu_id)"
+        },
+        {
+          "column": "action_code",
+          "expression": "VALUES(action_code)"
+        },
+        {
+          "column": "button_name",
+          "expression": "VALUES(button_name)"
+        },
+        {
+          "column": "http_method",
+          "expression": "VALUES(http_method)"
+        },
+        {
+          "column": "api_pattern",
+          "expression": "VALUES(api_pattern)"
+        },
+        {
+          "column": "sort_order",
+          "expression": "VALUES(sort_order)"
+        },
+        {
+          "column": "use_yn",
+          "expression": "VALUES(use_yn)"
+        },
+        {
+          "column": "updated_by",
+          "expression": "VALUES(updated_by)"
+        },
+        {
+          "column": "updated_at",
+          "expression": "VALUES(updated_at)"
+        }
+      ]
+    },
+    {
+      "sourceFile": "61_adm_gateway_seed.sql",
+      "logicalDatabase": "admDB",
+      "statementKind": "insert",
+      "table": "adm_role_menu",
+      "tableName": "adm_role_menu",
+      "columns": [
+        "role_id",
+        "menu_id",
+        "read_yn",
+        "write_yn",
+        "delete_yn",
+        "created_by",
+        "updated_by"
+      ],
+      "sourceKind": "values",
+      "source": "('ADM_ADMIN','GATEWAY_DASHBOARD','Y','Y','Y','SYSTEM','SYSTEM'),\n('ADM_ADMIN','GATEWAY_SERVERS','Y','Y','Y','SYSTEM','SYSTEM'),\n('ADM_ADMIN','GATEWAY_GROUPS','Y','Y','Y','SYSTEM','SYSTEM'),\n('ADM_ADMIN','GATEWAY_ROUTES','Y','Y','Y','SYSTEM','SYSTEM'),\n('ADM_ADMIN','GATEWAY_SECURITY','Y','Y','Y','SYSTEM','SYSTEM'),\n('ADM_ADMIN','GATEWAY_HEALTH','Y','Y','Y','SYSTEM','SYSTEM'),\n('ADM_ADMIN','GATEWAY_TRANSACTIONS','Y','Y','Y','SYSTEM','SYSTEM'),\n('ADM_ADMIN','GATEWAY_LOG_POLICY','Y','Y','Y','SYSTEM','SYSTEM'),\n('ADM_ADMIN','GATEWAY_APPLY_STATUS','Y','Y','Y','SYSTEM','SYSTEM'),\n('ADM_DEV_OPERATOR','GATEWAY_DASHBOARD','Y','Y','N','SYSTEM','SYSTEM'),\n('ADM_DEV_OPERATOR','GATEWAY_SERVERS','Y','Y','N','SYSTEM','SYSTEM'),\n('ADM_DEV_OPERATOR','GATEWAY_GROUPS','Y','Y','N','SYSTEM','SYSTEM'),\n('ADM_DEV_OPERATOR','GATEWAY_ROUTES','Y','Y','N','SYSTEM','SYSTEM'),\n('ADM_DEV_OPERATOR','GATEWAY_SECURITY','Y','Y','N','SYSTEM','SYSTEM'),\n('ADM_DEV_OPERATOR','GATEWAY_HEALTH','Y','Y','N','SYSTEM','SYSTEM'),\n('ADM_DEV_OPERATOR','GATEWAY_TRANSACTIONS','Y','Y','N','SYSTEM','SYSTEM'),\n('ADM_DEV_OPERATOR','GATEWAY_LOG_POLICY','Y','Y','N','SYSTEM','SYSTEM'),\n('ADM_DEV_OPERATOR','GATEWAY_APPLY_STATUS','Y','Y','N','SYSTEM','SYSTEM'),\n('ADM_OPERATOR','GATEWAY_DASHBOARD','Y','N','N','SYSTEM','SYSTEM'),\n('ADM_OPERATOR','GATEWAY_SERVERS','Y','N','N','SYSTEM','SYSTEM'),\n('ADM_OPERATOR','GATEWAY_GROUPS','Y','N','N','SYSTEM','SYSTEM'),\n('ADM_OPERATOR','GATEWAY_ROUTES','Y','N','N','SYSTEM','SYSTEM'),\n('ADM_OPERATOR','GATEWAY_SECURITY','Y','N','N','SYSTEM','SYSTEM'),\n('ADM_OPERATOR','GATEWAY_HEALTH','Y','N','N','SYSTEM','SYSTEM'),\n('ADM_OPERATOR','GATEWAY_TRANSACTIONS','Y','N','N','SYSTEM','SYSTEM'),\n('ADM_OPERATOR','GATEWAY_LOG_POLICY','Y','N','N','SYSTEM','SYSTEM'),\n('ADM_OPERATOR','GATEWAY_APPLY_STATUS','Y','N','N','SYSTEM','SYSTEM'),\n('ADM_VIEWER','GATEWAY_DASHBOARD','Y','N','N','SYSTEM','SYSTEM'),\n('ADM_VIEWER','GATEWAY_SERVERS','Y','N','N','SYSTEM','SYSTEM'),\n('ADM_VIEWER','GATEWAY_GROUPS','Y','N','N','SYSTEM','SYSTEM'),\n('ADM_VIEWER','GATEWAY_ROUTES','Y','N','N','SYSTEM','SYSTEM'),\n('ADM_VIEWER','GATEWAY_SECURITY','Y','N','N','SYSTEM','SYSTEM'),\n('ADM_VIEWER','GATEWAY_HEALTH','Y','N','N','SYSTEM','SYSTEM'),\n('ADM_VIEWER','GATEWAY_TRANSACTIONS','Y','N','N','SYSTEM','SYSTEM'),\n('ADM_VIEWER','GATEWAY_LOG_POLICY','Y','N','N','SYSTEM','SYSTEM'),\n('ADM_VIEWER','GATEWAY_APPLY_STATUS','Y','N','N','SYSTEM','SYSTEM')",
+      "conflictKey": "PRIMARY",
+      "conflictColumns": [
+        "role_id",
+        "menu_id"
+      ],
+      "updates": [
+        {
+          "column": "read_yn",
+          "expression": "VALUES(read_yn)"
+        },
+        {
+          "column": "write_yn",
+          "expression": "VALUES(write_yn)"
+        },
+        {
+          "column": "delete_yn",
+          "expression": "VALUES(delete_yn)"
+        },
+        {
+          "column": "updated_by",
+          "expression": "VALUES(updated_by)"
+        },
+        {
+          "column": "updated_at",
+          "expression": "VALUES(updated_at)"
+        }
+      ]
+    },
+    {
+      "sourceFile": "61_adm_gateway_seed.sql",
+      "logicalDatabase": "admDB",
+      "statementKind": "insert",
+      "table": "adm_api_permission",
+      "tableName": "adm_api_permission",
+      "columns": [
+        "api_permission_id",
+        "api_group_code",
+        "http_method",
+        "api_path",
+        "api_name",
+        "permission_code",
+        "menu_id",
+        "button_id",
+        "use_yn",
+        "created_by",
+        "updated_by"
+      ],
+      "sourceKind": "values",
+      "source": "('API_GATEWAY_READ','GATEWAY','GET','/adm/api/gateway-registry/**','Gateway 운영 조회','READ','GATEWAY_DASHBOARD','GATEWAY_READ','Y','SYSTEM','SYSTEM'),\n('API_GATEWAY_GROUP_WRITE','GATEWAY','POST','/adm/api/gateway-registry/server-groups','Server Group 저장','WRITE','GATEWAY_GROUPS','GATEWAY_GROUP_WRITE','Y','SYSTEM','SYSTEM'),\n('API_GATEWAY_GROUP_DELETE','GATEWAY','DELETE','/adm/api/gateway-registry/server-groups/*','Server Group 폐기','DELETE','GATEWAY_GROUPS','GATEWAY_GROUP_DELETE','Y','SYSTEM','SYSTEM'),\n('API_GATEWAY_ROUTE_WRITE','GATEWAY','POST','/adm/api/gateway-registry/bindings','Gateway Binding 저장','WRITE','GATEWAY_ROUTES','GATEWAY_ROUTE_WRITE','Y','SYSTEM','SYSTEM'),\n('API_GATEWAY_ROUTE_STATE','GATEWAY','POST','/adm/api/gateway-registry/bindings/*/state','Gateway Binding 상태 변경','CONTROL','GATEWAY_ROUTES','GATEWAY_ROUTE_STATE','Y','SYSTEM','SYSTEM'),\n('API_GATEWAY_ROUTE_DELETE','GATEWAY','DELETE','/adm/api/gateway-registry/bindings/*','Gateway Binding 폐기','DELETE','GATEWAY_ROUTES','GATEWAY_ROUTE_DELETE','Y','SYSTEM','SYSTEM'),\n('API_GATEWAY_CONNECTION_TEST','GATEWAY','POST','/adm/api/gateway-registry/bindings/*/connection-tests','Gateway 연결시험 요청','TEST','GATEWAY_HEALTH','GATEWAY_CONNECTION_TEST','Y','SYSTEM','SYSTEM'),\n('API_GATEWAY_TEST_CONTROL','GATEWAY','POST','/adm/api/gateway-registry/connection-test-operations/*/**','Gateway 연결시험 취소·재검증','CONTROL','GATEWAY_HEALTH','GATEWAY_TEST_CONTROL','Y','SYSTEM','SYSTEM')",
+      "conflictKey": "PRIMARY",
+      "conflictColumns": [
+        "api_permission_id"
+      ],
+      "updates": [
+        {
+          "column": "api_group_code",
+          "expression": "VALUES(api_group_code)"
+        },
+        {
+          "column": "http_method",
+          "expression": "VALUES(http_method)"
+        },
+        {
+          "column": "api_path",
+          "expression": "VALUES(api_path)"
+        },
+        {
+          "column": "api_name",
+          "expression": "VALUES(api_name)"
+        },
+        {
+          "column": "permission_code",
+          "expression": "VALUES(permission_code)"
+        },
+        {
+          "column": "menu_id",
+          "expression": "VALUES(menu_id)"
+        },
+        {
+          "column": "button_id",
+          "expression": "VALUES(button_id)"
+        },
+        {
+          "column": "use_yn",
+          "expression": "VALUES(use_yn)"
+        },
+        {
+          "column": "updated_by",
+          "expression": "VALUES(updated_by)"
+        },
+        {
+          "column": "updated_at",
+          "expression": "VALUES(updated_at)"
+        }
+      ]
+    },
+    {
+      "sourceFile": "61_adm_gateway_seed.sql",
+      "logicalDatabase": "admDB",
+      "statementKind": "insert",
+      "table": "adm_role_button",
+      "tableName": "adm_role_button",
+      "columns": [
+        "role_id",
+        "button_id",
+        "allow_yn",
+        "created_by",
+        "updated_by"
+      ],
+      "sourceKind": "values",
+      "source": "('ADM_ADMIN','GATEWAY_READ','Y','SYSTEM','SYSTEM'),\n('ADM_ADMIN','GATEWAY_GROUP_WRITE','Y','SYSTEM','SYSTEM'),\n('ADM_ADMIN','GATEWAY_GROUP_DELETE','Y','SYSTEM','SYSTEM'),\n('ADM_ADMIN','GATEWAY_ROUTE_WRITE','Y','SYSTEM','SYSTEM'),\n('ADM_ADMIN','GATEWAY_ROUTE_STATE','Y','SYSTEM','SYSTEM'),\n('ADM_ADMIN','GATEWAY_ROUTE_DELETE','Y','SYSTEM','SYSTEM'),\n('ADM_ADMIN','GATEWAY_CONNECTION_TEST','Y','SYSTEM','SYSTEM'),\n('ADM_ADMIN','GATEWAY_TEST_CONTROL','Y','SYSTEM','SYSTEM'),\n('ADM_DEV_OPERATOR','GATEWAY_READ','Y','SYSTEM','SYSTEM'),\n('ADM_DEV_OPERATOR','GATEWAY_GROUP_WRITE','Y','SYSTEM','SYSTEM'),\n('ADM_DEV_OPERATOR','GATEWAY_GROUP_DELETE','N','SYSTEM','SYSTEM'),\n('ADM_DEV_OPERATOR','GATEWAY_ROUTE_WRITE','Y','SYSTEM','SYSTEM'),\n('ADM_DEV_OPERATOR','GATEWAY_ROUTE_STATE','Y','SYSTEM','SYSTEM'),\n('ADM_DEV_OPERATOR','GATEWAY_ROUTE_DELETE','N','SYSTEM','SYSTEM'),\n('ADM_DEV_OPERATOR','GATEWAY_CONNECTION_TEST','Y','SYSTEM','SYSTEM'),\n('ADM_DEV_OPERATOR','GATEWAY_TEST_CONTROL','Y','SYSTEM','SYSTEM'),\n('ADM_OPERATOR','GATEWAY_READ','Y','SYSTEM','SYSTEM'),\n('ADM_OPERATOR','GATEWAY_GROUP_WRITE','N','SYSTEM','SYSTEM'),\n('ADM_OPERATOR','GATEWAY_GROUP_DELETE','N','SYSTEM','SYSTEM'),\n('ADM_OPERATOR','GATEWAY_ROUTE_WRITE','N','SYSTEM','SYSTEM'),\n('ADM_OPERATOR','GATEWAY_ROUTE_STATE','N','SYSTEM','SYSTEM'),\n('ADM_OPERATOR','GATEWAY_ROUTE_DELETE','N','SYSTEM','SYSTEM'),\n('ADM_OPERATOR','GATEWAY_CONNECTION_TEST','Y','SYSTEM','SYSTEM'),\n('ADM_OPERATOR','GATEWAY_TEST_CONTROL','N','SYSTEM','SYSTEM'),\n('ADM_VIEWER','GATEWAY_READ','Y','SYSTEM','SYSTEM'),\n('ADM_VIEWER','GATEWAY_GROUP_WRITE','N','SYSTEM','SYSTEM'),\n('ADM_VIEWER','GATEWAY_GROUP_DELETE','N','SYSTEM','SYSTEM'),\n('ADM_VIEWER','GATEWAY_ROUTE_WRITE','N','SYSTEM','SYSTEM'),\n('ADM_VIEWER','GATEWAY_ROUTE_STATE','N','SYSTEM','SYSTEM'),\n('ADM_VIEWER','GATEWAY_ROUTE_DELETE','N','SYSTEM','SYSTEM'),\n('ADM_VIEWER','GATEWAY_CONNECTION_TEST','N','SYSTEM','SYSTEM'),\n('ADM_VIEWER','GATEWAY_TEST_CONTROL','N','SYSTEM','SYSTEM')",
+      "conflictKey": "PRIMARY",
+      "conflictColumns": [
+        "role_id",
+        "button_id"
+      ],
+      "updates": [
+        {
+          "column": "allow_yn",
+          "expression": "VALUES(allow_yn)"
+        },
+        {
+          "column": "updated_by",
+          "expression": "VALUES(updated_by)"
+        },
+        {
+          "column": "updated_at",
+          "expression": "VALUES(updated_at)"
+        }
+      ]
+    },
+    {
+      "sourceFile": "61_adm_gateway_seed.sql",
+      "logicalDatabase": "admDB",
+      "statementKind": "insert",
+      "table": "adm_role_api_permission",
+      "tableName": "adm_role_api_permission",
+      "columns": [
+        "role_id",
+        "api_permission_id",
+        "allow_yn",
+        "created_by",
+        "updated_by"
+      ],
+      "sourceKind": "values",
+      "source": "('ADM_ADMIN','API_GATEWAY_READ','Y','SYSTEM','SYSTEM'),\n('ADM_ADMIN','API_GATEWAY_GROUP_WRITE','Y','SYSTEM','SYSTEM'),\n('ADM_ADMIN','API_GATEWAY_GROUP_DELETE','Y','SYSTEM','SYSTEM'),\n('ADM_ADMIN','API_GATEWAY_ROUTE_WRITE','Y','SYSTEM','SYSTEM'),\n('ADM_ADMIN','API_GATEWAY_ROUTE_STATE','Y','SYSTEM','SYSTEM'),\n('ADM_ADMIN','API_GATEWAY_ROUTE_DELETE','Y','SYSTEM','SYSTEM'),\n('ADM_ADMIN','API_GATEWAY_CONNECTION_TEST','Y','SYSTEM','SYSTEM'),\n('ADM_ADMIN','API_GATEWAY_TEST_CONTROL','Y','SYSTEM','SYSTEM'),\n('ADM_DEV_OPERATOR','API_GATEWAY_READ','Y','SYSTEM','SYSTEM'),\n('ADM_DEV_OPERATOR','API_GATEWAY_GROUP_WRITE','Y','SYSTEM','SYSTEM'),\n('ADM_DEV_OPERATOR','API_GATEWAY_GROUP_DELETE','N','SYSTEM','SYSTEM'),\n('ADM_DEV_OPERATOR','API_GATEWAY_ROUTE_WRITE','Y','SYSTEM','SYSTEM'),\n('ADM_DEV_OPERATOR','API_GATEWAY_ROUTE_STATE','Y','SYSTEM','SYSTEM'),\n('ADM_DEV_OPERATOR','API_GATEWAY_ROUTE_DELETE','N','SYSTEM','SYSTEM'),\n('ADM_DEV_OPERATOR','API_GATEWAY_CONNECTION_TEST','Y','SYSTEM','SYSTEM'),\n('ADM_DEV_OPERATOR','API_GATEWAY_TEST_CONTROL','Y','SYSTEM','SYSTEM'),\n('ADM_OPERATOR','API_GATEWAY_READ','Y','SYSTEM','SYSTEM'),\n('ADM_OPERATOR','API_GATEWAY_GROUP_WRITE','N','SYSTEM','SYSTEM'),\n('ADM_OPERATOR','API_GATEWAY_GROUP_DELETE','N','SYSTEM','SYSTEM'),\n('ADM_OPERATOR','API_GATEWAY_ROUTE_WRITE','N','SYSTEM','SYSTEM'),\n('ADM_OPERATOR','API_GATEWAY_ROUTE_STATE','N','SYSTEM','SYSTEM'),\n('ADM_OPERATOR','API_GATEWAY_ROUTE_DELETE','N','SYSTEM','SYSTEM'),\n('ADM_OPERATOR','API_GATEWAY_CONNECTION_TEST','Y','SYSTEM','SYSTEM'),\n('ADM_OPERATOR','API_GATEWAY_TEST_CONTROL','N','SYSTEM','SYSTEM'),\n('ADM_VIEWER','API_GATEWAY_READ','Y','SYSTEM','SYSTEM'),\n('ADM_VIEWER','API_GATEWAY_GROUP_WRITE','N','SYSTEM','SYSTEM'),\n('ADM_VIEWER','API_GATEWAY_GROUP_DELETE','N','SYSTEM','SYSTEM'),\n('ADM_VIEWER','API_GATEWAY_ROUTE_WRITE','N','SYSTEM','SYSTEM'),\n('ADM_VIEWER','API_GATEWAY_ROUTE_STATE','N','SYSTEM','SYSTEM'),\n('ADM_VIEWER','API_GATEWAY_ROUTE_DELETE','N','SYSTEM','SYSTEM'),\n('ADM_VIEWER','API_GATEWAY_CONNECTION_TEST','N','SYSTEM','SYSTEM'),\n('ADM_VIEWER','API_GATEWAY_TEST_CONTROL','N','SYSTEM','SYSTEM')",
+      "conflictKey": "PRIMARY",
+      "conflictColumns": [
+        "role_id",
+        "api_permission_id"
+      ],
+      "updates": [
+        {
+          "column": "allow_yn",
+          "expression": "VALUES(allow_yn)"
+        },
+        {
+          "column": "updated_by",
+          "expression": "VALUES(updated_by)"
+        },
+        {
+          "column": "updated_at",
+          "expression": "VALUES(updated_at)"
         }
       ]
     }

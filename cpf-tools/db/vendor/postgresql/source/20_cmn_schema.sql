@@ -1,5 +1,6 @@
 -- AUTO-GENERATED from cpf-tools/db/canonical/platform-schema.json
 -- vendor=postgresql
+-- schemaVersion=37
 -- DO NOT EDIT generated DDL directly.
 
 -- CPF_LOGICAL_DATABASE=cmnDB
@@ -8,8 +9,8 @@ CREATE TABLE cmn_business_calendar_day (
     business_date DATE NOT NULL,
     business_day_yn CHAR(1) NOT NULL,
     day_type VARCHAR(30) NOT NULL DEFAULT 'BUSINESS',
-    institution_code VARCHAR(50) NOT NULL DEFAULT '',
-    reason VARCHAR(500) NOT NULL DEFAULT '',
+    institution_code VARCHAR(50),
+    reason VARCHAR(500),
     version_no BIGINT NOT NULL DEFAULT 1,
     created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM',
     created_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,

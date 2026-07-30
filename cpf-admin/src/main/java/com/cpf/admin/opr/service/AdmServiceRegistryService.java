@@ -40,20 +40,29 @@ public class AdmServiceRegistryService extends com.cpf.admin.common.base.AdmBase
         return queryPort.callHistory(serviceId, transactionId, limit);
     }
     public CpfServiceRegistryView.MutationResult saveService(CpfServiceRegistryControlPort.ServiceDefinition command) {
-        return controlPort.saveServiceTyped(command);
+        return controlPort.saveService(command);
     }
     public CpfServiceRegistryView.MutationResult saveEndpoint(CpfServiceRegistryControlPort.EndpointDefinition command) {
-        return controlPort.saveEndpointTyped(command);
+        return controlPort.saveEndpoint(command);
     }
     public CpfServiceRegistryView.MutationResult saveInstance(CpfServiceRegistryControlPort.InstanceDefinition command) {
-        return controlPort.saveInstanceTyped(command);
+        return controlPort.saveInstance(command);
     }
     public CpfServiceRegistryView.MutationResult changeInstanceState(
-            String serviceId, String endpointCode, String instanceId, CpfServiceRegistryControlPort.InstanceCommand command,
-            String reason, String operator) {
-        return controlPort.changeInstanceStateTyped(serviceId, endpointCode, instanceId, command, reason, operator);
+            String serviceId, String endpointCode, String instanceId,
+            CpfServiceRegistryControlPort.InstanceStateCommand command) {
+        return controlPort.changeInstanceState(serviceId, endpointCode, instanceId, command);
     }
-    public void deleteService(String id, CpfServiceRegistryControlPort.DeleteCommand command) { controlPort.deleteService(id, command); }
-    public void deleteEndpoint(String id, CpfServiceRegistryControlPort.DeleteCommand command) { controlPort.deleteEndpoint(id, command); }
-    public void deleteInstance(String id, CpfServiceRegistryControlPort.DeleteCommand command) { controlPort.deleteInstance(id, command); }
+    public CpfServiceRegistryView.MutationResult deleteService(
+            String id, CpfServiceRegistryControlPort.DeleteCommand command) {
+        return controlPort.deleteService(id, command);
+    }
+    public CpfServiceRegistryView.MutationResult deleteEndpoint(
+            String id, CpfServiceRegistryControlPort.DeleteCommand command) {
+        return controlPort.deleteEndpoint(id, command);
+    }
+    public CpfServiceRegistryView.MutationResult deleteInstance(
+            String id, CpfServiceRegistryControlPort.DeleteCommand command) {
+        return controlPort.deleteInstance(id, command);
+    }
 }

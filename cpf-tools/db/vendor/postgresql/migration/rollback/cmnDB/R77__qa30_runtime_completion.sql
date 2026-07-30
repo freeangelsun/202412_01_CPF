@@ -1,0 +1,2 @@
+-- CPF_LOGICAL_DATABASE=cmnDB
+-- Rollback removes only V77 additive artifacts; safety relaxations remain compatible.

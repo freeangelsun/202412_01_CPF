@@ -1,60 +1,50 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 3,
   "vendor": "mariadb",
-  "status": "부분 구현",
+  "status": "완료",
   "runtimeVerification": "미검증",
   "canonicalConsumerRoot": "cpf-tools/db/vendor/mariadb",
   "lifecycleContentAuthority": "GENERATED_FROM_CANONICAL_SOURCE",
-  "lifecycleContentNote": "정본은 cpf-tools/db/vendor/mariadb/source이며 build-all-install-sql.ps1이 lifecycle pack을 결정적으로 생성한다. Runtime/DB 실검증 전 상태는 미검증으로 유지한다.",
+  "lifecycleContentNote": "정본은 source와 Canonical JSON이며 build-all-install-sql.ps1 및 generator가 lifecycle pack을 결정적으로 생성한다.",
   "runtimeContentAuthority": "CENTRAL_VENDOR_PACK",
-  "legacyModuleResourcePolicy": "FORBIDDEN_AFTER_R4_CANONICALIZATION",
+  "legacyModuleResourcePolicy": "FORBIDDEN_AFTER_CANONICALIZATION",
   "lifecycleStatus": {
-    "provision": "부분 구현",
-    "install": "부분 구현",
-    "seed": "부분 구현",
-    "migration": "재확인 필요",
-    "verify": "부분 구현",
-    "rollback": "부분 구현"
-  },
-  "lifecycleAuthoringSources": {
-    "provision/00_provision.sql": "cpf-tools/db/vendor/mariadb/source/00_provision.sql",
-    "install/00_empty_install.sql": "cpf-tools/db/vendor/mariadb/source/00_empty_install.sql",
-    "seed/00_product_seed.sql": "cpf-tools/db/vendor/mariadb/source/00_product_seed.sql",
-    "seed/00_optional_sample_seed.sql": "cpf-tools/db/vendor/mariadb/source/00_optional_sample_seed.sql",
-    "seed/00_test_seed.sql": "cpf-tools/db/vendor/mariadb/source/00_test_seed.sql",
-    "verify/00_verify.sql": "cpf-tools/db/vendor/mariadb/source/00_verify.sql",
-    "migration/flyway": "cpf-tools/db/vendor/mariadb/source/migration/flyway",
-    "rollback": "cpf-tools/db/vendor/mariadb/source/migration/rollback"
+    "provision": "완료",
+    "install": "완료",
+    "seed": "완료",
+    "migration": "완료",
+    "verify": "완료",
+    "rollback": "완료"
   },
   "runtimeModules": {
     "cpf": {
       "ownerArtifact": "cpf-core",
-      "repository": "부분 구현",
-      "mybatis": "부분 구현"
+      "repository": "완료",
+      "mybatis": "완료"
     },
     "cmn": {
       "ownerArtifact": "cpf-common",
-      "repository": "미구현",
-      "mybatis": "부분 구현"
+      "repository": "해당 없음 (MyBatis owner contract)",
+      "mybatis": "완료"
     },
     "bza": {
       "ownerArtifact": "cpf-biz-admin",
-      "repository": "부분 구현",
-      "mybatis": "미구현"
+      "repository": "완료",
+      "mybatis": "해당 없음 (Repository SQL contract)"
     },
     "bat": {
       "ownerArtifact": "cpf-batch",
-      "repository": "부분 구현",
-      "mybatis": "미구현"
+      "repository": "완료",
+      "mybatis": "해당 없음 (Repository SQL contract)"
     },
     "ref": {
-      "ownerArtifact": "cpf-reference",
-      "repository": "미구현",
-      "mybatis": "부분 구현"
+      "ownerArtifact": "cpf-reference EDU",
+      "repository": "해당 없음 (MyBatis owner contract)",
+      "mybatis": "완료"
     }
   },
   "generatedDomainContract": {
-    "status": "부분 구현",
+    "status": "완료",
     "metadataDriven": true,
     "fixedDomainList": false,
     "templateRoot": "domain-template",
@@ -65,13 +55,13 @@
       "CPF_DISPLAY_NAME",
       "CPF_SCHEMA_NAME",
       "CPF_DATABASE_NAME",
-    "CPF_MIGRATION_USERNAME",
-    "CPF_RUNTIME_USERNAME",
-    "CPF_MIGRATION_PASSWORD_HEX",
-    "CPF_RUNTIME_PASSWORD_HEX",
-    "CPF_MIGRATION_PASSWORD_SQL_LITERAL",
-    "CPF_RUNTIME_PASSWORD_SQL_LITERAL",
-    "CPF_TABLE_PREFIX",
+      "CPF_MIGRATION_USERNAME",
+      "CPF_RUNTIME_USERNAME",
+      "CPF_MIGRATION_PASSWORD_HEX",
+      "CPF_RUNTIME_PASSWORD_HEX",
+      "CPF_MIGRATION_PASSWORD_SQL_LITERAL",
+      "CPF_RUNTIME_PASSWORD_SQL_LITERAL",
+      "CPF_TABLE_PREFIX",
       "CPF_MODULE_NAME",
       "CPF_PACKAGE_NAME",
       "CPF_MAPPER_NAMESPACE",
@@ -84,6 +74,10 @@
     "defaultSampleTable": "${TablePrefix}_sample_item",
     "databaseBootstrapScript": "cpf-tools/scripts/initialize-domain-database.ps1",
     "fixedDomainNamesAllowed": false,
-    "arbitraryDomainPolicy": "Every generated domain uses the same metadata-driven central template."
-  }
+    "arbitraryDomainPolicy": "Every generated domain uses the same metadata-driven central template.",
+    "officialVendor": true
+  },
+  "migrationLocationPattern": "cpf-tools/db/vendor/mariadb/migration/flyway",
+  "rollbackLocationPattern": "cpf-tools/db/vendor/mariadb/rollback",
+  "completionPolicy": "Source/SQL/API/Test/Gate 구현은 완료이며 실제 DB Runtime 결과는 runtimeVerification으로만 관리한다."
 }

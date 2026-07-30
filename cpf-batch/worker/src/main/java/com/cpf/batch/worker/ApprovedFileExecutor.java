@@ -1,7 +1,13 @@
 package com.cpf.batch.worker;
 
+import com.cpf.core.api.filetransfer.CpfCredentialReference;
+import com.cpf.core.api.filetransfer.CpfFileEndpoint;
+import com.cpf.core.api.filetransfer.CpfFileRequest;
+import com.cpf.core.api.filetransfer.CpfFileResult;
+import com.cpf.core.api.filetransfer.CpfFileTransferClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -30,9 +36,16 @@ public class ApprovedFileExecutor {
     private static final long POLL_MILLIS = 250L;
 
     private final WorkerOperationalProperties properties;
+    private volatile CpfFileTransferClient fileTransferClient;
 
     public ApprovedFileExecutor(WorkerOperationalProperties properties) {
         this.properties = Objects.requireNonNull(properties, "properties");
+    }
+
+    /** Remote Provider는 CPF 공개 File Transfer Client가 설치된 경우에만 활성화됩니다. */
+    @Autowired(required = false)
+    void setFileTransferClient(CpfFileTransferClient fileTransferClient) {
+        this.fileTransferClient = fileTransferClient;
     }
 
     public Path resolve(String alias, String relative) {
@@ -45,7 +58,10 @@ public class ApprovedFileExecutor {
 
     private Path resolveWithinAlias(String alias, String relative, boolean enforceExtension) {
         WorkerOperationalProperties.PathAlias cfg = requireAlias(alias);
-        Path root = Path.of(cfg.getRoot()).toAbsolutePath().normalize();
+        if (remote(cfg)) {
+            throw new IllegalStateException("Remote alias cannot be resolved as a local Path: " + alias);
+        }
+        Path root = Path.of(cfg.getRoot().trim()).toAbsolutePath().normalize();
         Path target = root.resolve(Objects.requireNonNull(relative, "relative")).normalize();
         if (!target.startsWith(root)) {
             throw new SecurityException("Path escaped alias root");
@@ -142,6 +158,92 @@ public class ApprovedFileExecutor {
             String targetAlias,
             String targetRelative,
             boolean overwrite) throws IOException {
+        return transfer(sourceAlias, sourceRelative, targetAlias, targetRelative, overwrite,
+                null, null, "cpf-batch-worker");
+    }
+
+    /**
+     * 승인 Alias 사이의 Local/Remote 전송을 수행합니다.
+     * Host·Credential은 Runtime Parameter가 아니라 Path Alias Catalog에서만 해석합니다.
+     */
+    public Path transfer(
+            String sourceAlias,
+            String sourceRelative,
+            String targetAlias,
+            String targetRelative,
+            boolean overwrite,
+            String transactionId,
+            String segmentId,
+            String requestUser) throws IOException {
+        WorkerOperationalProperties.PathAlias sourceCfg = requireAlias(sourceAlias);
+        WorkerOperationalProperties.PathAlias targetCfg = requireAlias(targetAlias);
+        boolean sourceRemote = remote(sourceCfg);
+        boolean targetRemote = remote(targetCfg);
+        if (!sourceRemote && !targetRemote) {
+            return transferLocal(sourceAlias, sourceRelative, targetAlias, targetRelative, overwrite);
+        }
+        if (sourceRemote && targetRemote) {
+            throw new IOException("Remote-to-remote transfer requires an explicit product transfer workflow");
+        }
+        CpfFileTransferClient client = fileTransferClient;
+        if (client == null) {
+            throw new IOException("CpfFileTransferClient capability is not installed for remote alias");
+        }
+
+        WorkerOperationalProperties.PathAlias remoteCfg = sourceRemote ? sourceCfg : targetCfg;
+        CpfFileEndpoint endpoint = endpoint(sourceRemote ? sourceAlias : targetAlias, remoteCfg);
+        Path localPath = sourceRemote
+                ? resolve(targetAlias, targetRelative)
+                : resolve(sourceAlias, sourceRelative);
+        if (sourceRemote) {
+            Files.createDirectories(localPath.toAbsolutePath().normalize().getParent());
+            if (Files.exists(localPath) && !overwrite) {
+                throw new FileAlreadyExistsException(localPath.toString());
+            }
+        } else {
+            validateSize(localPath, sourceCfg);
+        }
+
+        FileFingerprint localFingerprint = sourceRemote || !Files.exists(localPath)
+                ? null : fingerprint(localPath);
+        String operation = sourceRemote ? "DOWNLOAD" : "UPLOAD";
+        String remotePath = remotePath(remoteCfg, sourceRemote ? sourceRelative : targetRelative);
+        Map<String, String> attributes = new LinkedHashMap<>(remoteCfg.getAttributes());
+        attributes.put("sourceAlias", sourceAlias);
+        attributes.put("targetAlias", targetAlias);
+        attributes.put("requestUser", requireToken(requestUser, "requestUser"));
+        attributes.put("overwrite", Boolean.toString(overwrite));
+        CpfFileRequest request = new CpfFileRequest(
+                transactionId, segmentId, endpoint.endpointCode(), operation,
+                localPath.toString(), remotePath,
+                localFingerprint == null ? null : localFingerprint.sha256(),
+                localFingerprint == null ? 0L : localFingerprint.size(), attributes);
+        CpfFileResult result = client.execute(endpoint, request);
+        requireTransferSuccess(result, endpoint.endpointCode(), operation);
+
+        if (sourceRemote) {
+            if (!Files.isRegularFile(localPath, LinkOption.NOFOLLOW_LINKS)) {
+                throw new IOException("Remote download did not create the approved local file");
+            }
+            validateSize(localPath, targetCfg);
+            FileFingerprint downloaded = fingerprint(localPath);
+            if (result.checksum() != null && !result.checksum().isBlank()
+                    && !result.checksum().equalsIgnoreCase(downloaded.sha256())) {
+                Files.deleteIfExists(localPath);
+                throw new IOException("Remote download checksum mismatch");
+            }
+            return localPath;
+        }
+        if (result.checksum() != null && !result.checksum().isBlank()
+                && !result.checksum().equalsIgnoreCase(localFingerprint.sha256())) {
+            throw new IOException("Remote upload checksum mismatch");
+        }
+        return localPath;
+    }
+
+    private Path transferLocal(
+            String sourceAlias, String sourceRelative, String targetAlias,
+            String targetRelative, boolean overwrite) throws IOException {
         Path source = resolve(sourceAlias, sourceRelative);
         Path target = resolve(targetAlias, targetRelative);
         validateSize(source, requireAlias(sourceAlias));
@@ -298,6 +400,60 @@ public class ApprovedFileExecutor {
         }
     }
 
+    private static boolean remote(WorkerOperationalProperties.PathAlias cfg) {
+        String provider = Objects.toString(cfg.getProvider(), "LOCAL").trim().toUpperCase(Locale.ROOT);
+        return !Set.of("LOCAL", "SHARED_FS", "NFS", "SMB").contains(provider);
+    }
+
+    private static CpfFileEndpoint endpoint(String alias, WorkerOperationalProperties.PathAlias cfg) {
+        String endpointCode = first(cfg.getEndpointCode(), alias);
+        String protocol = first(cfg.getProtocol(), cfg.getProvider()).toUpperCase(Locale.ROOT);
+        String host = requireToken(cfg.getHost(), "pathAliases." + alias + ".host");
+        int port = cfg.getPort();
+        if (port <= 0 || port > 65535) {
+            port = switch (protocol) {
+                case "SFTP", "SCP", "SSH" -> 22;
+                case "FTP" -> 21;
+                case "FTPS" -> 990;
+                default -> throw new IllegalArgumentException("Unsupported remote file protocol: " + protocol);
+            };
+        }
+        String credentialId = requireToken(cfg.getCredentialId(),
+                "pathAliases." + alias + ".credentialId");
+        CpfCredentialReference credential = new CpfCredentialReference(
+                first(cfg.getCredentialScope(), "default"), credentialId,
+                first(cfg.getCredentialVersion(), "latest"), credentialId);
+        return new CpfFileEndpoint(endpointCode, protocol, host, port,
+                first(cfg.getRemoteBasePath(), "/"), credential,
+                Duration.ofSeconds(Math.max(1, cfg.getTimeoutSeconds())), cfg.getAttributes());
+    }
+
+    private static String remotePath(WorkerOperationalProperties.PathAlias cfg, String relative) {
+        String cleanRelative = Objects.requireNonNull(relative, "relative").replace('\\', '/').trim();
+        if (cleanRelative.isBlank() || cleanRelative.startsWith("/")
+                || Arrays.stream(cleanRelative.split("/")).anyMatch(".."::equals)) {
+            throw new SecurityException("Remote path must be a relative path inside the approved base");
+        }
+        String base = first(cfg.getRemoteBasePath(), "/").replace('\\', '/');
+        while (base.endsWith("/") && base.length() > 1) base = base.substring(0, base.length() - 1);
+        return ("/".equals(base) ? "" : base) + "/" + cleanRelative;
+    }
+
+    private static void requireTransferSuccess(CpfFileResult result, String endpointCode, String operation)
+            throws IOException {
+        if (result == null) throw new IOException("Remote file transfer returned no result");
+        String status = Objects.toString(result.status(), "UNKNOWN").toUpperCase(Locale.ROOT);
+        if (!Set.of("SUCCESS", "COMPLETED", "UPLOADED", "DOWNLOADED").contains(status)) {
+            throw new IOException("Remote file transfer " + operation + " failed: endpoint="
+                    + endpointCode + ", status=" + status + ", detail="
+                    + Objects.toString(result.detail(), ""));
+        }
+    }
+
+    private static String first(String value, String fallback) {
+        return value == null || value.isBlank() ? fallback : value.trim();
+    }
+
     private void validateSize(Path path, WorkerOperationalProperties.PathAlias cfg) throws IOException {
         long size = Files.size(path);
         if (size < 0 || size > cfg.getMaxFileSizeBytes()) {
@@ -311,9 +467,16 @@ public class ApprovedFileExecutor {
     }
 
     private WorkerOperationalProperties.PathAlias requireAlias(String alias) {
-        WorkerOperationalProperties.PathAlias cfg = properties.getPathAliases().get(alias);
-        if (cfg == null || cfg.getRoot() == null || cfg.getRoot().isBlank()) {
-            throw new SecurityException("Path alias not approved: " + alias);
+        String safeAlias = requireToken(alias, "alias");
+        WorkerOperationalProperties.PathAlias cfg = properties.getPathAliases().get(safeAlias);
+        if (cfg == null) {
+            throw new SecurityException("Path alias not approved: " + safeAlias);
+        }
+        if (remote(cfg)) {
+            requireToken(cfg.getHost(), "pathAliases." + safeAlias + ".host");
+            requireToken(cfg.getCredentialId(), "pathAliases." + safeAlias + ".credentialId");
+        } else if (cfg.getRoot() == null || cfg.getRoot().isBlank()) {
+            throw new SecurityException("Path alias root is not configured: " + safeAlias);
         }
         return cfg;
     }

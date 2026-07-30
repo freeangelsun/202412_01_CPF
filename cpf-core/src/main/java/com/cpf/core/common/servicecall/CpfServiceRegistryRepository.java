@@ -514,40 +514,62 @@ public class CpfServiceRegistryRepository {
     private String require(String v,String name){if(!hasText(v))throw new IllegalArgumentException(name+"가 필요합니다.");return v.trim();}
 
     /**
-     * 운영 Drain/Disable/Resume 명령을 Registry owner에서 원자적으로 반영합니다.
-     * DRAIN은 drain_yn=Y로 신규 라우팅만 차단하고, DISABLE만 active_yn=N으로 내려 완전 비활성화합니다.
+     * 운영 Drain/Disable/Resume 명령을 operationId·Version으로 원자 처리합니다.
+     * Body Actor를 신뢰하지 않으며 Public Controller가 인증 Actor로 재구성한 Command만 받습니다.
      */
+    @org.springframework.transaction.annotation.Transactional(transactionManager = "cpfTransactionManager")
     public Map<String,Object> changeInstanceState(
             String serviceId, String endpointCode, String instanceId,
-            CpfServiceRegistryControlPort.InstanceCommand command, String reason, String requestedBy) {
+            CpfServiceRegistryControlPort.InstanceStateCommand command) {
         if (!tableAvailable("cpf_service_instance")) {
             throw new IllegalStateException("cpf_service_instance table is unavailable");
         }
-        if (!hasText(serviceId) || !hasText(endpointCode) || !hasText(instanceId)) {
-            throw new IllegalArgumentException("serviceId, endpointCode and instanceId are required");
+        requireRegistryCommand(command.operationId(), command.reason(), command.requestedBy());
+        require(serviceId, "serviceId"); require(endpointCode, "endpointCode"); require(instanceId, "instanceId");
+        Map<String,Object> fingerprint = new LinkedHashMap<>();
+        fingerprint.put("serviceId", serviceId);
+        fingerprint.put("endpointCode", endpointCode);
+        fingerprint.put("instanceId", instanceId);
+        fingerprint.put("command", command.command().name());
+        fingerprint.put("expectedVersion", command.expectedVersion());
+        fingerprint.put("reason", command.reason());
+        String hash = CpfRuntimeCanonicalHash.sha256(fingerprint);
+        if (replayOperation(command.operationId(), "SERVICE_REGISTRY_INSTANCE_STATE", hash)) {
+            return findEntity("cpf_service_instance", "instance_id", instanceId);
         }
-        if (!hasText(reason)) {
-            throw new IllegalArgumentException("maintenance reason is required");
+
+        List<Map<String,Object>> current = jdbc().queryForList("""
+                SELECT row_version FROM cpf_service_instance
+                 WHERE service_id=? AND endpoint_code=? AND instance_id=? FOR UPDATE
+                """, serviceId, endpointCode, instanceId);
+        if (current.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "Service instance not found: " + serviceId + "/" + endpointCode + "/" + instanceId);
         }
-        String status; String activeYn; String drainYn;
-        switch (command) {
+        long rowVersion = number(current.getFirst().get("row_version"));
+        requireVersion(command.expectedVersion(), rowVersion);
+
+        String status;
+        String activeYn;
+        String drainYn;
+        switch (command.command()) {
             case DRAIN -> { status = "DRAINING"; activeYn = "Y"; drainYn = "Y"; }
             case DISABLE -> { status = "DISABLED"; activeYn = "N"; drainYn = "N"; }
             case RESUME -> { status = "UP"; activeYn = "Y"; drainYn = "N"; }
-            default -> throw new IllegalArgumentException("Unsupported instance command: " + command);
+            default -> throw new IllegalArgumentException("Unsupported instance command: " + command.command());
         }
         int updated = jdbc().update("""
                 UPDATE cpf_service_instance
-                   SET instance_status = ?, active_yn = ?, drain_yn = ?, row_version=row_version+1,
-                       updated_by = ?, updated_at = CURRENT_TIMESTAMP
-                 WHERE service_id = ? AND endpoint_code = ? AND instance_id = ?
-                """, status, activeYn, drainYn, hasText(requestedBy) ? requestedBy : "CPF_CONTROL", serviceId, endpointCode, instanceId);
+                   SET instance_status=?,active_yn=?,drain_yn=?,row_version=row_version+1,
+                       updated_by=?,updated_at=CURRENT_TIMESTAMP
+                 WHERE service_id=? AND endpoint_code=? AND instance_id=? AND row_version=?
+                """, status, activeYn, drainYn, command.requestedBy(),
+                serviceId, endpointCode, instanceId, rowVersion);
         if (updated != 1) {
-            throw new IllegalArgumentException("Service instance not found: " + serviceId + "/" + endpointCode + "/" + instanceId);
+            throw new CpfRuntimeVersionConflictException(rowVersion, rowVersion);
         }
-        return Map.of(
-                "serviceId", serviceId, "endpointCode", endpointCode, "instanceId", instanceId,
-                "command", command.name(), "instanceStatus", status, "activeYn", activeYn, "drainYn", drainYn, "reason", reason);
+        completeOperation(command.operationId(), instanceId);
+        return findEntity("cpf_service_instance", "instance_id", instanceId);
     }
 
     private JdbcTemplate jdbc() {

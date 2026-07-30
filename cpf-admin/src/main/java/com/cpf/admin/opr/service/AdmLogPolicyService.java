@@ -6,6 +6,8 @@ import com.cpf.admin.opr.dto.AdmTraceBoostRequest;
 import com.cpf.core.api.util.CpfStrings;
 import com.cpf.core.api.error.CpfValidationException;
 import com.cpf.core.api.logging.policy.LogPolicyDecision;
+import com.cpf.core.api.logging.policy.LogCaptureMode;
+import static com.cpf.core.api.logging.policy.LogCaptureMode.CaptureArea;
 import com.cpf.core.api.logging.policy.CpfLogPolicyResolver;
 import com.cpf.core.api.runtime.CpfRuntimePolicyDistributionPort;
 import org.springframework.beans.factory.ObjectProvider;
@@ -15,6 +17,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.StandardEnvironment;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -44,14 +49,26 @@ public class AdmLogPolicyService extends com.cpf.admin.common.base.AdmBaseServic
     private final JdbcTemplate cpfJdbcTemplate;
     private final ObjectProvider<CpfLogPolicyResolver> logPolicyResolverProvider;
     private final CpfRuntimePolicyDistributionPort policyDistribution;
+    private final Environment environment;
 
+    @Autowired
     public AdmLogPolicyService(
             @Qualifier("cpfJdbcTemplate") JdbcTemplate cpfJdbcTemplate,
             ObjectProvider<CpfLogPolicyResolver> logPolicyResolverProvider,
-            @Qualifier("admRuntimePolicyDistributionPort") CpfRuntimePolicyDistributionPort policyDistribution) {
+            @Qualifier("admRuntimePolicyDistributionPort") CpfRuntimePolicyDistributionPort policyDistribution,
+            Environment environment) {
         this.cpfJdbcTemplate = cpfJdbcTemplate;
         this.logPolicyResolverProvider = logPolicyResolverProvider;
         this.policyDistribution = policyDistribution;
+        this.environment = environment;
+    }
+
+    /** 기존 Slice Test의 Source 호환 생성자입니다. */
+    public AdmLogPolicyService(
+            JdbcTemplate cpfJdbcTemplate,
+            ObjectProvider<CpfLogPolicyResolver> logPolicyResolverProvider,
+            CpfRuntimePolicyDistributionPort policyDistribution) {
+        this(cpfJdbcTemplate, logPolicyResolverProvider, policyDistribution, new StandardEnvironment());
     }
 
     public Map<String, Object> findPolicies(String targetType, String targetId, String activeYn, int limit) {
@@ -71,9 +88,14 @@ public class AdmLogPolicyService extends com.cpf.admin.common.base.AdmBaseServic
         response.put("item", policyAvailable ? findPolicyById(policyId).orElse(Map.of()) : Map.of());
         response.put("overrides", overrideAvailable
                 ? cpfJdbcTemplate.queryForList("""
-                        SELECT override_id, policy_id, target_type, target_id, override_reason, log_level,
-                               db_log_enabled_yn, file_log_enabled_yn, request_body_log_yn, response_body_log_yn,
-                               error_stack_log_yn, masking_policy_key, effective_start_at, effective_end_at,
+                        SELECT override_id, policy_id, policy_schema_version, target_type, target_id, override_reason, log_level,
+                               db_log_enabled_yn, file_log_enabled_yn, query_capture_mode,
+                               request_header_capture_mode, response_header_capture_mode,
+                               request_body_capture_mode, response_body_capture_mode, error_stack_capture_mode,
+                               query_allowlist, header_allowlist, field_allowlist,
+                               max_query_bytes, max_header_bytes, max_request_body_bytes, max_response_body_bytes, max_stack_bytes,
+                               request_body_log_yn, response_body_log_yn, error_stack_log_yn,
+                               masking_policy_key, policy_checksum, effective_start_at, effective_end_at,
                                requested_by, approved_by, active_yn, created_at, updated_at
                         FROM cpf_log_policy_override
                         WHERE policy_id = ?
@@ -105,188 +127,176 @@ public class AdmLogPolicyService extends com.cpf.admin.common.base.AdmBaseServic
     }
 
     private PolicyValues policyValues(AdmLogPolicyRequest request, String user) {
+        LogCaptureMode queryMode = captureMode(request.queryCaptureMode(), LogCaptureMode.NONE, CaptureArea.QUERY);
+        LogCaptureMode requestHeaderMode = captureMode(request.requestHeaderCaptureMode(), LogCaptureMode.ALLOWLIST, CaptureArea.HEADER);
+        LogCaptureMode responseHeaderMode = captureMode(request.responseHeaderCaptureMode(), LogCaptureMode.ALLOWLIST, CaptureArea.HEADER);
+        LogCaptureMode requestBodyMode = captureMode(request.requestBodyCaptureMode(), LogCaptureMode.NONE, CaptureArea.BODY);
+        LogCaptureMode responseBodyMode = captureMode(request.responseBodyCaptureMode(), LogCaptureMode.NONE, CaptureArea.BODY);
+        LogCaptureMode stackMode = captureMode(request.errorStackCaptureMode(), LogCaptureMode.SUMMARY, CaptureArea.STACK);
+        int maxQueryBytes = ceiling(request.maxQueryBytes(), 4096, "max-query-bytes", 64 * 1024);
+        int maxHeaderBytes = ceiling(request.maxHeaderBytes(), 8192, "max-header-bytes", 64 * 1024);
+        int maxRequestBytes = ceiling(request.maxRequestBodyBytes(), 65536, "max-request-body-bytes", 1024 * 1024);
+        int maxResponseBytes = ceiling(request.maxResponseBodyBytes(), 65536, "max-response-body-bytes", 1024 * 1024);
+        int maxStackBytes = ceiling(request.maxStackBytes(), 32768, "max-stack-bytes", 256 * 1024);
+        boolean rawAllowed = environment.getProperty("cpf.gateway.safety.raw-body-capture-allowed", Boolean.class, false);
+        if (!rawAllowed && (requestBodyMode == LogCaptureMode.ENCRYPTED_BODY || responseBodyMode == LogCaptureMode.ENCRYPTED_BODY)) {
+            throw new CpfValidationException("설치 안전 정책에서 ENCRYPTED_BODY 수집을 허용하지 않습니다.");
+        }
+        List<String> queryAllowlist = csv(request.queryAllowlist());
+        List<String> headerAllowlist = csv(request.headerAllowlist());
+        List<String> fieldAllowlist = csv(request.fieldAllowlist());
+        rejectSensitiveHeaders(headerAllowlist);
+        LogPolicyDecision decision = new LogPolicyDecision(
+                LogPolicyDecision.CURRENT_SCHEMA_VERSION,
+                required(request.targetType(), "대상 유형"), required(request.targetId(), "대상 ID"),
+                defaultIfBlank(request.logLevel(), "INFO"), "Y".equals(yn(request.dbLogEnabledYn(), "Y")),
+                defaultIfBlank(request.logLevel(), "INFO"), queryMode, requestHeaderMode, responseHeaderMode,
+                requestBodyMode, responseBodyMode, stackMode, queryAllowlist, headerAllowlist, fieldAllowlist,
+                maxQueryBytes, maxHeaderBytes, maxRequestBytes, maxResponseBytes, maxStackBytes,
+                defaultIfBlank(request.maskingPolicyKey(), "DEFAULT"), null, "ADM_POLICY", null, null);
         return new PolicyValues(
-                required(request.policyKey(), "정책 키"),
-                required(request.policyName(), "정책명"),
-                required(request.targetType(), "대상 유형"),
-                required(request.targetId(), "대상 ID"),
-                defaultIfBlank(request.logLevel(), "INFO"),
-                yn(request.dbLogEnabledYn(), "Y"),
-                yn(request.fileLogEnabledYn(), "Y"),
-                yn(request.requestBodyLogYn(), "N"),
-                yn(request.responseBodyLogYn(), "N"),
-                yn(request.errorStackLogYn(), "Y"),
-                blankToNull(request.maskingPolicyKey()),
-                safeInt(request.retentionDays(), 90, 1, 3650),
-                safeDecimal(request.samplingRate()),
-                safeInt(request.priority(), 100, 1, 9999),
-                yn(request.activeYn(), "Y"),
-                blankToNull(request.description()),
-                user);
+                required(request.policyKey(), "정책 키"), required(request.policyName(), "정책명"),
+                decision.targetType(), decision.targetId(), decision.fileLogLevel(), yn(request.dbLogEnabledYn(), "Y"),
+                yn(request.fileLogEnabledYn(), "Y"), decision.queryCaptureMode().name(),
+                decision.requestHeaderCaptureMode().name(), decision.responseHeaderCaptureMode().name(),
+                decision.requestBodyCaptureMode().name(), decision.responseBodyCaptureMode().name(),
+                decision.errorStackCaptureMode().name(), LogPolicyDecision.toCsv(queryAllowlist),
+                LogPolicyDecision.toCsv(headerAllowlist), LogPolicyDecision.toCsv(fieldAllowlist),
+                maxQueryBytes, maxHeaderBytes, maxRequestBytes, maxResponseBytes, maxStackBytes,
+                request.requestBodyLogYn(), request.responseBodyLogYn(), request.errorStackLogYn(),
+                decision.maskingPolicyKey(), safeInt(request.retentionDays(), 90, 1, 3650),
+                safeDecimal(request.samplingRate()), safeInt(request.priority(), 100, 1, 9999),
+                yn(request.activeYn(), "Y"), blankToNull(request.description()), decision.policyChecksum(), user);
     }
 
-    private int updatePolicyByKey(PolicyValues values) {
+    private int updatePolicyByKey(PolicyValues v) {
         return cpfJdbcTemplate.update("""
-                UPDATE cpf_log_policy
-                SET policy_name = ?,
-                    target_type = ?,
-                    target_id = ?,
-                    log_level = ?,
-                    db_log_enabled_yn = ?,
-                    file_log_enabled_yn = ?,
-                    request_body_log_yn = ?,
-                    response_body_log_yn = ?,
-                    error_stack_log_yn = ?,
-                    masking_policy_key = ?,
-                    retention_days = ?,
-                    sampling_rate = ?,
-                    priority = ?,
-                    active_yn = ?,
-                    description = ?,
-                    updated_by = ?,
-                    updated_at = CURRENT_TIMESTAMP
-                WHERE policy_key = ?
-                """,
-                values.policyName(),
-                values.targetType(),
-                values.targetId(),
-                values.logLevel(),
-                values.dbLogEnabledYn(),
-                values.fileLogEnabledYn(),
-                values.requestBodyLogYn(),
-                values.responseBodyLogYn(),
-                values.errorStackLogYn(),
-                values.maskingPolicyKey(),
-                values.retentionDays(),
-                values.samplingRate(),
-                values.priority(),
-                values.activeYn(),
-                values.description(),
-                values.user(),
-                values.policyKey());
+                UPDATE cpf_log_policy SET policy_name=?, target_type=?, target_id=?, log_level=?,
+                    db_log_enabled_yn=?, file_log_enabled_yn=?, policy_schema_version=2,
+                    query_capture_mode=?, request_header_capture_mode=?, response_header_capture_mode=?,
+                    request_body_capture_mode=?, response_body_capture_mode=?, error_stack_capture_mode=?,
+                    query_allowlist=?, header_allowlist=?, field_allowlist=?, max_query_bytes=?, max_header_bytes=?,
+                    max_request_body_bytes=?, max_response_body_bytes=?, max_stack_bytes=?,
+                    request_body_log_yn=?, response_body_log_yn=?, error_stack_log_yn=?, masking_policy_key=?,
+                    retention_days=?, sampling_rate=?, priority=?, active_yn=?, description=?, policy_checksum=?,
+                    updated_by=?, updated_at=CURRENT_TIMESTAMP WHERE policy_key=?
+                """, v.policyName(),v.targetType(),v.targetId(),v.logLevel(),v.dbLogEnabledYn(),v.fileLogEnabledYn(),
+                v.queryCaptureMode(),v.requestHeaderCaptureMode(),v.responseHeaderCaptureMode(),v.requestBodyCaptureMode(),
+                v.responseBodyCaptureMode(),v.errorStackCaptureMode(),nullIfBlank(v.queryAllowlist()),nullIfBlank(v.headerAllowlist()),
+                nullIfBlank(v.fieldAllowlist()),v.maxQueryBytes(),v.maxHeaderBytes(),v.maxRequestBodyBytes(),v.maxResponseBodyBytes(),
+                v.maxStackBytes(),v.requestBodyLogYn(),v.responseBodyLogYn(),v.errorStackLogYn(),v.maskingPolicyKey(),
+                v.retentionDays(),v.samplingRate(),v.priority(),v.activeYn(),v.description(),v.policyChecksum(),v.user(),v.policyKey());
     }
 
-    private void insertPolicy(PolicyValues values) {
+    private void insertPolicy(PolicyValues v) {
         cpfJdbcTemplate.update("""
                 INSERT INTO cpf_log_policy (
-                    policy_key, policy_name, target_type, target_id, log_level,
-                    db_log_enabled_yn, file_log_enabled_yn, request_body_log_yn, response_body_log_yn,
-                    error_stack_log_yn, masking_policy_key, retention_days, sampling_rate, priority,
-                    active_yn, description, created_by, updated_by
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """,
-                values.policyKey(),
-                values.policyName(),
-                values.targetType(),
-                values.targetId(),
-                values.logLevel(),
-                values.dbLogEnabledYn(),
-                values.fileLogEnabledYn(),
-                values.requestBodyLogYn(),
-                values.responseBodyLogYn(),
-                values.errorStackLogYn(),
-                values.maskingPolicyKey(),
-                values.retentionDays(),
-                values.samplingRate(),
-                values.priority(),
-                values.activeYn(),
-                values.description(),
-                values.user(),
-                values.user());
+                    policy_key,policy_name,target_type,target_id,log_level,db_log_enabled_yn,file_log_enabled_yn,
+                    policy_schema_version,query_capture_mode,request_header_capture_mode,response_header_capture_mode,
+                    request_body_capture_mode,response_body_capture_mode,error_stack_capture_mode,
+                    query_allowlist,header_allowlist,field_allowlist,max_query_bytes,max_header_bytes,
+                    max_request_body_bytes,max_response_body_bytes,max_stack_bytes,
+                    request_body_log_yn,response_body_log_yn,error_stack_log_yn,masking_policy_key,
+                    retention_days,sampling_rate,priority,active_yn,description,policy_checksum,created_by,updated_by
+                ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                """, v.policyKey(),v.policyName(),v.targetType(),v.targetId(),v.logLevel(),v.dbLogEnabledYn(),v.fileLogEnabledYn(),
+                2,v.queryCaptureMode(),v.requestHeaderCaptureMode(),v.responseHeaderCaptureMode(),v.requestBodyCaptureMode(),
+                v.responseBodyCaptureMode(),v.errorStackCaptureMode(),nullIfBlank(v.queryAllowlist()),nullIfBlank(v.headerAllowlist()),
+                nullIfBlank(v.fieldAllowlist()),v.maxQueryBytes(),v.maxHeaderBytes(),v.maxRequestBodyBytes(),v.maxResponseBodyBytes(),
+                v.maxStackBytes(),v.requestBodyLogYn(),v.responseBodyLogYn(),v.errorStackLogYn(),v.maskingPolicyKey(),
+                v.retentionDays(),v.samplingRate(),v.priority(),v.activeYn(),v.description(),v.policyChecksum(),v.user(),v.user());
     }
 
     public Map<String, Object> updatePolicy(long policyId, AdmLogPolicyRequest request, String operatorId, String clientIp) {
         validatePolicy(request);
         String user = defaultIfBlank(operatorId, request.requestUser(), "ADM");
-        Map<String, Object> before = findPolicyById(policyId).orElseThrow(() -> new CpfValidationException("로그 정책을 찾을 수 없습니다."));
-        cpfJdbcTemplate.update("""
-                UPDATE cpf_log_policy
-                SET policy_key = ?,
-                    policy_name = ?,
-                    target_type = ?,
-                    target_id = ?,
-                    log_level = ?,
-                    db_log_enabled_yn = ?,
-                    file_log_enabled_yn = ?,
-                    request_body_log_yn = ?,
-                    response_body_log_yn = ?,
-                    error_stack_log_yn = ?,
-                    masking_policy_key = ?,
-                    retention_days = ?,
-                    sampling_rate = ?,
-                    priority = ?,
-                    active_yn = ?,
-                    description = ?,
-                    updated_by = ?,
-                    updated_at = CURRENT_TIMESTAMP
-                WHERE policy_id = ?
-                """,
-                required(request.policyKey(), "정책 키"),
-                required(request.policyName(), "정책명"),
-                required(request.targetType(), "대상 유형"),
-                required(request.targetId(), "대상 ID"),
-                defaultIfBlank(request.logLevel(), "INFO"),
-                yn(request.dbLogEnabledYn(), "Y"),
-                yn(request.fileLogEnabledYn(), "Y"),
-                yn(request.requestBodyLogYn(), "N"),
-                yn(request.responseBodyLogYn(), "N"),
-                yn(request.errorStackLogYn(), "Y"),
-                blankToNull(request.maskingPolicyKey()),
-                safeInt(request.retentionDays(), 90, 1, 3650),
-                safeDecimal(request.samplingRate()),
-                safeInt(request.priority(), 100, 1, 9999),
-                yn(request.activeYn(), "Y"),
-                blankToNull(request.description()),
-                user,
-                policyId);
-        Map<String, Object> after = findPolicyById(policyId).orElse(Map.of());
-        insertPolicyAudit(policyId, null, "UPDATE", request.targetType(), request.targetId(),
-                request.reason(), String.valueOf(before), String.valueOf(after), "로그 정책 변경", user, clientIp);
-        evictPolicyCache(request.targetType(), request.targetId());
+        Map<String,Object> before=findPolicyById(policyId).orElseThrow(() -> new CpfValidationException("로그 정책을 찾을 수 없습니다."));
+        PolicyValues v=policyValues(request,user);
+        int changed=cpfJdbcTemplate.update("""
+                UPDATE cpf_log_policy SET policy_key=?,policy_name=?,target_type=?,target_id=?,log_level=?,
+                    db_log_enabled_yn=?,file_log_enabled_yn=?,policy_schema_version=2,
+                    query_capture_mode=?,request_header_capture_mode=?,response_header_capture_mode=?,
+                    request_body_capture_mode=?,response_body_capture_mode=?,error_stack_capture_mode=?,
+                    query_allowlist=?,header_allowlist=?,field_allowlist=?,max_query_bytes=?,max_header_bytes=?,
+                    max_request_body_bytes=?,max_response_body_bytes=?,max_stack_bytes=?,request_body_log_yn=?,
+                    response_body_log_yn=?,error_stack_log_yn=?,masking_policy_key=?,retention_days=?,sampling_rate=?,
+                    priority=?,active_yn=?,description=?,policy_checksum=?,updated_by=?,updated_at=CURRENT_TIMESTAMP
+                WHERE policy_id=?
+                """,v.policyKey(),v.policyName(),v.targetType(),v.targetId(),v.logLevel(),v.dbLogEnabledYn(),v.fileLogEnabledYn(),
+                v.queryCaptureMode(),v.requestHeaderCaptureMode(),v.responseHeaderCaptureMode(),v.requestBodyCaptureMode(),
+                v.responseBodyCaptureMode(),v.errorStackCaptureMode(),nullIfBlank(v.queryAllowlist()),nullIfBlank(v.headerAllowlist()),
+                nullIfBlank(v.fieldAllowlist()),v.maxQueryBytes(),v.maxHeaderBytes(),v.maxRequestBodyBytes(),v.maxResponseBodyBytes(),
+                v.maxStackBytes(),v.requestBodyLogYn(),v.responseBodyLogYn(),v.errorStackLogYn(),v.maskingPolicyKey(),v.retentionDays(),
+                v.samplingRate(),v.priority(),v.activeYn(),v.description(),v.policyChecksum(),user,policyId);
+        if(changed!=1) throw new CpfValidationException("로그 정책 동시 변경 또는 삭제가 감지되었습니다.");
+        Map<String,Object> after=findPolicyById(policyId).orElseThrow();
+        insertPolicyAudit(policyId,null,"UPDATE",v.targetType(),v.targetId(),request.reason(),String.valueOf(before),String.valueOf(after),"로그 정책 변경",user,clientIp);
+        evictPolicyCache(v.targetType(),v.targetId());
         return after;
     }
 
     public Map<String, Object> createOverride(AdmLogPolicyOverrideRequest request, String operatorId, String clientIp) {
         validateOverride(request);
-        String user = defaultIfBlank(operatorId, request.requestUser(), "ADM");
-        KeyHolder keyHolder = new GeneratedKeyHolder();
-        int inserted = cpfJdbcTemplate.update(connection -> {
-            PreparedStatement statement = connection.prepareStatement("""
-                    INSERT INTO cpf_log_policy_override (
-                        policy_id, target_type, target_id, override_reason, log_level,
-                        db_log_enabled_yn, file_log_enabled_yn, request_body_log_yn, response_body_log_yn,
-                        error_stack_log_yn, masking_policy_key, effective_start_at, effective_end_at,
-                        requested_by, approved_by, active_yn, created_by, updated_by
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Y', ?, ?)
-                    """, new String[] {"override_id"});
-            statement.setObject(1, request.policyId());
-            statement.setString(2, required(request.targetType(), "대상 유형"));
-            statement.setString(3, required(request.targetId(), "대상 ID"));
-            statement.setString(4, required(request.reason(), "감사 사유"));
-            statement.setString(5, blankToNull(request.logLevel()));
-            statement.setString(6, nullableYn(request.dbLogEnabledYn()));
-            statement.setString(7, nullableYn(request.fileLogEnabledYn()));
-            statement.setString(8, nullableYn(request.requestBodyLogYn()));
-            statement.setString(9, nullableYn(request.responseBodyLogYn()));
-            statement.setString(10, nullableYn(request.errorStackLogYn()));
-            statement.setString(11, blankToNull(request.maskingPolicyKey()));
-            statement.setObject(12, request.effectiveStartAt());
-            statement.setObject(13, request.effectiveEndAt());
-            statement.setString(14, user);
-            statement.setString(15, blankToNull(request.approvedBy()));
-            statement.setString(16, user);
-            statement.setString(17, user);
-            return statement;
-        }, keyHolder);
-        Number generatedKey = keyHolder.getKey();
-        if (inserted != 1 || generatedKey == null) {
-            throw new IllegalStateException("로그 정책 override 생성 ID를 확인할 수 없습니다.");
+        String requester = defaultIfBlank(request.requestUser(), null, "ADM");
+        String approver = defaultIfBlank(operatorId, request.approvedBy(), "ADM");
+        if (requester.equalsIgnoreCase(approver)) {
+            throw new CpfValidationException("로그 정책 override는 요청자와 승인자가 달라야 합니다.");
         }
-        long overrideId = generatedKey.longValue();
-        Map<String, Object> after = findOverrideById(overrideId).orElse(Map.of());
-        insertPolicyAudit(request.policyId(), overrideId, "OVERRIDE_CREATE", request.targetType(), request.targetId(),
-                request.reason(), null, String.valueOf(after), "로그 정책 override 등록", user, clientIp);
-        evictPolicyCache(request.targetType(), request.targetId());
+        LogCaptureMode queryMode=nullableCaptureMode(request.queryCaptureMode(),CaptureArea.QUERY);
+        LogCaptureMode requestHeaderMode=nullableCaptureMode(request.requestHeaderCaptureMode(),CaptureArea.HEADER);
+        LogCaptureMode responseHeaderMode=nullableCaptureMode(request.responseHeaderCaptureMode(),CaptureArea.HEADER);
+        LogCaptureMode requestBodyMode=nullableCaptureMode(request.requestBodyCaptureMode(),CaptureArea.BODY);
+        LogCaptureMode responseBodyMode=nullableCaptureMode(request.responseBodyCaptureMode(),CaptureArea.BODY);
+        LogCaptureMode stackMode=nullableCaptureMode(request.errorStackCaptureMode(),CaptureArea.STACK);
+        List<String> headers=csv(request.headerAllowlist());
+        rejectSensitiveHeaders(headers);
+        Integer maxQuery=nullableCeiling(request.maxQueryBytes(),"max-query-bytes",64*1024);
+        Integer maxHeader=nullableCeiling(request.maxHeaderBytes(),"max-header-bytes",64*1024);
+        Integer maxRequest=nullableCeiling(request.maxRequestBodyBytes(),"max-request-body-bytes",1024*1024);
+        Integer maxResponse=nullableCeiling(request.maxResponseBodyBytes(),"max-response-body-bytes",1024*1024);
+        Integer maxStack=nullableCeiling(request.maxStackBytes(),"max-stack-bytes",256*1024);
+        String rawChecksum=sha256(String.join("|",
+                required(request.targetType(),"대상 유형"),required(request.targetId(),"대상 ID"),
+                String.valueOf(queryMode),String.valueOf(requestHeaderMode),String.valueOf(responseHeaderMode),
+                String.valueOf(requestBodyMode),String.valueOf(responseBodyMode),String.valueOf(stackMode),
+                defaultIfBlank(request.queryAllowlist(),""),defaultIfBlank(request.headerAllowlist(),""),
+                defaultIfBlank(request.fieldAllowlist(),""),String.valueOf(maxQuery),String.valueOf(maxHeader),
+                String.valueOf(maxRequest),String.valueOf(maxResponse),String.valueOf(maxStack)));
+        KeyHolder keyHolder=new GeneratedKeyHolder();
+        int inserted=cpfJdbcTemplate.update(connection -> {
+            PreparedStatement st=connection.prepareStatement("""
+                    INSERT INTO cpf_log_policy_override (
+                        policy_id,target_type,target_id,override_reason,log_level,db_log_enabled_yn,file_log_enabled_yn,
+                        policy_schema_version,query_capture_mode,request_header_capture_mode,response_header_capture_mode,
+                        request_body_capture_mode,response_body_capture_mode,error_stack_capture_mode,
+                        query_allowlist,header_allowlist,field_allowlist,max_query_bytes,max_header_bytes,
+                        max_request_body_bytes,max_response_body_bytes,max_stack_bytes,
+                        request_body_log_yn,response_body_log_yn,error_stack_log_yn,masking_policy_key,
+                        effective_start_at,effective_end_at,requested_by,approved_by,active_yn,policy_checksum,created_by,updated_by
+                    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'Y',?,?,?)
+                    """,new String[]{"override_id"});
+            int i=1;
+            st.setObject(i++,request.policyId()); st.setString(i++,required(request.targetType(),"대상 유형"));
+            st.setString(i++,required(request.targetId(),"대상 ID")); st.setString(i++,required(request.reason(),"감사 사유"));
+            st.setString(i++,blankToNull(request.logLevel())); st.setString(i++,nullableYn(request.dbLogEnabledYn()));
+            st.setString(i++,nullableYn(request.fileLogEnabledYn())); st.setInt(i++,2);
+            st.setString(i++,name(queryMode)); st.setString(i++,name(requestHeaderMode)); st.setString(i++,name(responseHeaderMode));
+            st.setString(i++,name(requestBodyMode)); st.setString(i++,name(responseBodyMode)); st.setString(i++,name(stackMode));
+            st.setString(i++,nullIfBlank(LogPolicyDecision.toCsv(csv(request.queryAllowlist()))));
+            st.setString(i++,nullIfBlank(LogPolicyDecision.toCsv(headers)));
+            st.setString(i++,nullIfBlank(LogPolicyDecision.toCsv(csv(request.fieldAllowlist()))));
+            st.setObject(i++,maxQuery); st.setObject(i++,maxHeader); st.setObject(i++,maxRequest); st.setObject(i++,maxResponse); st.setObject(i++,maxStack);
+            st.setString(i++,request.requestBodyLogYn()); st.setString(i++,request.responseBodyLogYn()); st.setString(i++,request.errorStackLogYn());
+            st.setString(i++,blankToNull(request.maskingPolicyKey())); st.setObject(i++,request.effectiveStartAt()); st.setObject(i++,request.effectiveEndAt());
+            st.setString(i++,requester); st.setString(i++,approver); st.setString(i++,rawChecksum); st.setString(i++,approver); st.setString(i,approver);
+            return st;
+        },keyHolder);
+        Number key=keyHolder.getKey();
+        if(inserted!=1||key==null) throw new IllegalStateException("로그 정책 override 생성 ID를 확인할 수 없습니다.");
+        long overrideId=key.longValue();
+        Map<String,Object> after=findOverrideById(overrideId).orElseThrow();
+        insertPolicyAudit(request.policyId(),overrideId,"OVERRIDE_CREATE",request.targetType(),request.targetId(),request.reason(),null,String.valueOf(after),"로그 정책 override 등록",approver,clientIp);
+        evictPolicyCache(request.targetType(),request.targetId());
         return after;
     }
 
@@ -448,9 +458,14 @@ public class AdmLogPolicyService extends com.cpf.admin.common.base.AdmBaseServic
 
     private List<Map<String, Object>> queryPolicies(String targetType, String targetId, String activeYn, int limit) {
         StringBuilder sql = new StringBuilder("""
-                SELECT policy_id, policy_key, policy_name, target_type, target_id, log_level,
-                       db_log_enabled_yn, file_log_enabled_yn, request_body_log_yn, response_body_log_yn,
-                       error_stack_log_yn, masking_policy_key, retention_days, sampling_rate, priority,
+                SELECT policy_id, policy_key, policy_name, policy_schema_version, target_type, target_id, log_level,
+                       db_log_enabled_yn, file_log_enabled_yn, query_capture_mode,
+                       request_header_capture_mode, response_header_capture_mode,
+                       request_body_capture_mode, response_body_capture_mode, error_stack_capture_mode,
+                       query_allowlist, header_allowlist, field_allowlist,
+                       max_query_bytes, max_header_bytes, max_request_body_bytes, max_response_body_bytes, max_stack_bytes,
+                       request_body_log_yn, response_body_log_yn, error_stack_log_yn,
+                       masking_policy_key, policy_checksum, retention_days, sampling_rate, priority,
                        active_yn, description, created_at, updated_at
                 FROM cpf_log_policy
                 WHERE 1 = 1
@@ -478,9 +493,14 @@ public class AdmLogPolicyService extends com.cpf.admin.common.base.AdmBaseServic
 
     private Optional<Map<String, Object>> findPolicyById(long policyId) {
         List<Map<String, Object>> rows = cpfJdbcTemplate.queryForList("""
-                SELECT policy_id, policy_key, policy_name, target_type, target_id, log_level,
-                       db_log_enabled_yn, file_log_enabled_yn, request_body_log_yn, response_body_log_yn,
-                       error_stack_log_yn, masking_policy_key, retention_days, sampling_rate, priority,
+                SELECT policy_id, policy_key, policy_name, policy_schema_version, target_type, target_id, log_level,
+                       db_log_enabled_yn, file_log_enabled_yn, query_capture_mode,
+                       request_header_capture_mode, response_header_capture_mode,
+                       request_body_capture_mode, response_body_capture_mode, error_stack_capture_mode,
+                       query_allowlist, header_allowlist, field_allowlist,
+                       max_query_bytes, max_header_bytes, max_request_body_bytes, max_response_body_bytes, max_stack_bytes,
+                       request_body_log_yn, response_body_log_yn, error_stack_log_yn,
+                       masking_policy_key, policy_checksum, retention_days, sampling_rate, priority,
                        active_yn, description, created_at, updated_at
                 FROM cpf_log_policy
                 WHERE policy_id = ?
@@ -490,9 +510,14 @@ public class AdmLogPolicyService extends com.cpf.admin.common.base.AdmBaseServic
 
     private Optional<Map<String, Object>> findPolicyByKey(String policyKey) {
         List<Map<String, Object>> rows = cpfJdbcTemplate.queryForList("""
-                SELECT policy_id, policy_key, policy_name, target_type, target_id, log_level,
-                       db_log_enabled_yn, file_log_enabled_yn, request_body_log_yn, response_body_log_yn,
-                       error_stack_log_yn, masking_policy_key, retention_days, sampling_rate, priority,
+                SELECT policy_id, policy_key, policy_name, policy_schema_version, target_type, target_id, log_level,
+                       db_log_enabled_yn, file_log_enabled_yn, query_capture_mode,
+                       request_header_capture_mode, response_header_capture_mode,
+                       request_body_capture_mode, response_body_capture_mode, error_stack_capture_mode,
+                       query_allowlist, header_allowlist, field_allowlist,
+                       max_query_bytes, max_header_bytes, max_request_body_bytes, max_response_body_bytes, max_stack_bytes,
+                       request_body_log_yn, response_body_log_yn, error_stack_log_yn,
+                       masking_policy_key, policy_checksum, retention_days, sampling_rate, priority,
                        active_yn, description, created_at, updated_at
                 FROM cpf_log_policy
                 WHERE policy_key = ?
@@ -502,9 +527,14 @@ public class AdmLogPolicyService extends com.cpf.admin.common.base.AdmBaseServic
 
     private Optional<Map<String, Object>> findOverrideById(long overrideId) {
         List<Map<String, Object>> rows = cpfJdbcTemplate.queryForList("""
-                SELECT override_id, policy_id, target_type, target_id, override_reason, log_level,
-                       db_log_enabled_yn, file_log_enabled_yn, request_body_log_yn, response_body_log_yn,
-                       error_stack_log_yn, masking_policy_key, effective_start_at, effective_end_at,
+                SELECT override_id, policy_id, policy_schema_version, target_type, target_id, override_reason, log_level,
+                       db_log_enabled_yn, file_log_enabled_yn, query_capture_mode,
+                       request_header_capture_mode, response_header_capture_mode,
+                       request_body_capture_mode, response_body_capture_mode, error_stack_capture_mode,
+                       query_allowlist, header_allowlist, field_allowlist,
+                       max_query_bytes, max_header_bytes, max_request_body_bytes, max_response_body_bytes, max_stack_bytes,
+                       request_body_log_yn, response_body_log_yn, error_stack_log_yn,
+                       masking_policy_key, policy_checksum, effective_start_at, effective_end_at,
                        requested_by, approved_by, active_yn, created_at, updated_at
                 FROM cpf_log_policy_override
                 WHERE override_id = ?
@@ -687,23 +717,50 @@ public class AdmLogPolicyService extends com.cpf.admin.common.base.AdmBaseServic
         return normalized;
     }
 
-    private record PolicyValues(
-            String policyKey,
-            String policyName,
-            String targetType,
-            String targetId,
-            String logLevel,
-            String dbLogEnabledYn,
-            String fileLogEnabledYn,
-            String requestBodyLogYn,
-            String responseBodyLogYn,
-            String errorStackLogYn,
-            String maskingPolicyKey,
-            int retentionDays,
-            BigDecimal samplingRate,
-            int priority,
-            String activeYn,
-            String description,
-            String user) {
+    private LogCaptureMode nullableCaptureMode(String value,CaptureArea area) {
+        if(value==null||value.isBlank()) return null;
+        return captureMode(value,LogCaptureMode.NONE,area);
     }
+    private Integer nullableCeiling(Integer value,String suffix,int hardMaximum) {
+        if(value==null) return null;
+        return ceiling(value,0,suffix,hardMaximum);
+    }
+    private String name(LogCaptureMode mode) { return mode==null?null:mode.name(); }
+
+    private LogCaptureMode captureMode(String value,LogCaptureMode fallback,CaptureArea area) {
+        try { return LogCaptureMode.parse(value,fallback,area); }
+        catch (IllegalArgumentException ex) { throw new CpfValidationException(ex.getMessage()); }
+    }
+
+    private int ceiling(Integer requested,int fallback,String propertySuffix,int hardMaximum) {
+        int configured=environment.getProperty("cpf.gateway.safety."+propertySuffix,Integer.class,hardMaximum);
+        int maximum=Math.max(0,Math.min(configured,hardMaximum));
+        int value=requested==null?fallback:requested;
+        if(value<0||value>maximum) throw new CpfValidationException(propertySuffix+" 값은 설치 상한 "+maximum+" byte를 초과할 수 없습니다.");
+        return value;
+    }
+
+    private List<String> csv(String value) { return LogPolicyDecision.parseCsv(value); }
+    private String nullIfBlank(String value) { return value==null||value.isBlank()?null:value; }
+    private void rejectSensitiveHeaders(List<String> headers) {
+        for(String header:headers) {
+            String normalized=header.toLowerCase();
+            if(normalized.equals("authorization")||normalized.equals("cookie")||normalized.equals("set-cookie")
+                    ||normalized.contains("token")||normalized.contains("secret")||normalized.contains("password")) {
+                throw new CpfValidationException("민감 Header는 로그 허용 목록에 포함할 수 없습니다: "+header);
+            }
+        }
+    }
+
+    private record PolicyValues(
+            String policyKey,String policyName,String targetType,String targetId,String logLevel,
+            String dbLogEnabledYn,String fileLogEnabledYn,String queryCaptureMode,
+            String requestHeaderCaptureMode,String responseHeaderCaptureMode,
+            String requestBodyCaptureMode,String responseBodyCaptureMode,String errorStackCaptureMode,
+            String queryAllowlist,String headerAllowlist,String fieldAllowlist,
+            int maxQueryBytes,int maxHeaderBytes,int maxRequestBodyBytes,int maxResponseBodyBytes,int maxStackBytes,
+            String requestBodyLogYn,String responseBodyLogYn,String errorStackLogYn,String maskingPolicyKey,
+            int retentionDays,BigDecimal samplingRate,int priority,String activeYn,String description,
+            String policyChecksum,String user) {}
+
 }

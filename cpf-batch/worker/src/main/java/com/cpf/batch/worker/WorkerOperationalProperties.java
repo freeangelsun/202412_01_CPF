@@ -96,6 +96,16 @@ public class WorkerOperationalProperties {
     public static class PathAlias {
         private String root;
         private String provider = "LOCAL";
+        private String endpointCode;
+        private String protocol;
+        private String host;
+        private int port;
+        private String remoteBasePath;
+        private String credentialScope = "default";
+        private String credentialId;
+        private String credentialVersion = "latest";
+        private int timeoutSeconds = 30;
+        private Map<String, String> attributes = new LinkedHashMap<>();
         private boolean sharedDurable;
         private boolean symlinkAllowed;
         private boolean malwareScanRequired;
@@ -108,6 +118,28 @@ public class WorkerOperationalProperties {
         public void setRoot(String root) { this.root = root; }
         public String getProvider() { return provider; }
         public void setProvider(String provider) { this.provider = provider; }
+        public String getEndpointCode() { return endpointCode; }
+        public void setEndpointCode(String endpointCode) { this.endpointCode = endpointCode; }
+        public String getProtocol() { return protocol; }
+        public void setProtocol(String protocol) { this.protocol = protocol; }
+        public String getHost() { return host; }
+        public void setHost(String host) { this.host = host; }
+        public int getPort() { return port; }
+        public void setPort(int port) { this.port = port; }
+        public String getRemoteBasePath() { return remoteBasePath; }
+        public void setRemoteBasePath(String remoteBasePath) { this.remoteBasePath = remoteBasePath; }
+        public String getCredentialScope() { return credentialScope; }
+        public void setCredentialScope(String credentialScope) { this.credentialScope = credentialScope; }
+        public String getCredentialId() { return credentialId; }
+        public void setCredentialId(String credentialId) { this.credentialId = credentialId; }
+        public String getCredentialVersion() { return credentialVersion; }
+        public void setCredentialVersion(String credentialVersion) { this.credentialVersion = credentialVersion; }
+        public int getTimeoutSeconds() { return timeoutSeconds; }
+        public void setTimeoutSeconds(int timeoutSeconds) { this.timeoutSeconds = timeoutSeconds; }
+        public Map<String, String> getAttributes() { return attributes; }
+        public void setAttributes(Map<String, String> attributes) {
+            this.attributes = attributes == null ? new LinkedHashMap<>() : new LinkedHashMap<>(attributes);
+        }
         public boolean isSharedDurable() { return sharedDurable; }
         public void setSharedDurable(boolean sharedDurable) { this.sharedDurable = sharedDurable; }
         public boolean isSymlinkAllowed() { return symlinkAllowed; }

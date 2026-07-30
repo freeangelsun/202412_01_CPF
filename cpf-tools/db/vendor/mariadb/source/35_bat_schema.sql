@@ -1,9 +1,19 @@
 -- AUTO-GENERATED from cpf-tools/db/canonical/platform-schema.json
 -- vendor=mariadb
+-- schemaVersion=37
 -- DO NOT EDIT generated DDL directly.
 
 -- CPF_LOGICAL_DATABASE=batDB
 USE batDB;
+CREATE TABLE IF NOT EXISTS BATCH_JOB_INSTANCE (
+    JOB_INSTANCE_ID BIGINT NOT NULL COMMENT 'Spring Batch JobInstance 순번',
+    VERSION BIGINT NULL COMMENT '낙관적 잠금 버전',
+    JOB_NAME VARCHAR(100) NOT NULL COMMENT 'Spring Batch Job 이름',
+    JOB_KEY VARCHAR(32) NOT NULL COMMENT 'Job 파라미터 식별 키',
+    CONSTRAINT pk_BATCH_JOB_INSTANCE PRIMARY KEY (JOB_INSTANCE_ID),
+    CONSTRAINT JOB_INST_UN UNIQUE (JOB_NAME, JOB_KEY)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Spring Batch 표준 JobInstance 저장소';
+
 CREATE TABLE IF NOT EXISTS BATCH_JOB_EXECUTION (
     JOB_EXECUTION_ID BIGINT NOT NULL COMMENT 'Spring Batch JobExecution 순번',
     VERSION BIGINT NULL COMMENT '낙관적 잠금 버전',
@@ -36,15 +46,6 @@ CREATE TABLE IF NOT EXISTS BATCH_JOB_EXECUTION_PARAMS (
     CONSTRAINT JOB_EXEC_PARAMS_FK FOREIGN KEY (JOB_EXECUTION_ID) REFERENCES BATCH_JOB_EXECUTION (JOB_EXECUTION_ID)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Spring Batch 표준 Job 파라미터 저장소';
 
-CREATE TABLE IF NOT EXISTS BATCH_JOB_INSTANCE (
-    JOB_INSTANCE_ID BIGINT NOT NULL COMMENT 'Spring Batch JobInstance 순번',
-    VERSION BIGINT NULL COMMENT '낙관적 잠금 버전',
-    JOB_NAME VARCHAR(100) NOT NULL COMMENT 'Spring Batch Job 이름',
-    JOB_KEY VARCHAR(32) NOT NULL COMMENT 'Job 파라미터 식별 키',
-    CONSTRAINT pk_BATCH_JOB_INSTANCE PRIMARY KEY (JOB_INSTANCE_ID),
-    CONSTRAINT JOB_INST_UN UNIQUE (JOB_NAME, JOB_KEY)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Spring Batch 표준 JobInstance 저장소';
-
 CREATE TABLE IF NOT EXISTS BATCH_STEP_EXECUTION (
     STEP_EXECUTION_ID BIGINT NOT NULL COMMENT 'Spring Batch StepExecution 순번',
     VERSION BIGINT NOT NULL COMMENT '낙관적 잠금 버전',
@@ -76,151 +77,6 @@ CREATE TABLE IF NOT EXISTS BATCH_STEP_EXECUTION_CONTEXT (
     CONSTRAINT pk_BATCH_STEP_EXECUTION_CONTEXT PRIMARY KEY (STEP_EXECUTION_ID),
     CONSTRAINT STEP_EXEC_CTX_FK FOREIGN KEY (STEP_EXECUTION_ID) REFERENCES BATCH_STEP_EXECUTION (STEP_EXECUTION_ID)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Spring Batch 표준 Step 컨텍스트 저장소';
-
-CREATE TABLE IF NOT EXISTS bat_center_cut_claim (
-    center_cut_item_id BIGINT NULL COMMENT 'Claimed center-cut item identifier',
-    runner_id VARCHAR(160) NOT NULL COMMENT 'Owning runner identifier',
-    pool_id VARCHAR(80) NULL COMMENT 'Owning runner pool identifier',
-    claim_token VARCHAR(80) NOT NULL COMMENT 'Unique claim token',
-    claim_status VARCHAR(30) NOT NULL COMMENT 'Claim lifecycle status',
-    fencing_token BIGINT NOT NULL COMMENT 'Monotonic claim fencing token',
-    lease_until DATETIME(6) NOT NULL COMMENT 'Claim lease expiry time',
-    last_heartbeat_at DATETIME(6) NOT NULL COMMENT 'Claim heartbeat time',
-    attempt_no INT NOT NULL DEFAULT 1 COMMENT 'Claim attempt number',
-    takeover_count INT NOT NULL DEFAULT 0 COMMENT 'Claim takeover count',
-    released_at DATETIME(6) NULL COMMENT 'Claim release time',
-    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT 'Last claim update time',
-    CONSTRAINT pk_bat_center_cut_claim PRIMARY KEY (center_cut_item_id),
-    CONSTRAINT claim_token UNIQUE (claim_token),
-    CONSTRAINT fk_bat_center_cut_claim_item FOREIGN KEY (center_cut_item_id) REFERENCES bat_center_cut_item (center_cut_item_id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT center-cut item lease claim';
-
-CREATE TABLE IF NOT EXISTS bat_center_cut_execution (
-    center_cut_execution_id VARCHAR(80) NOT NULL COMMENT 'Center-cut execution identifier',
-    center_cut_job_id VARCHAR(100) NOT NULL COMMENT 'Center-cut job definition identifier',
-    idempotency_key VARCHAR(160) NOT NULL COMMENT 'Execution idempotency key',
-    execution_state VARCHAR(30) NOT NULL COMMENT 'Center-cut execution state',
-    parameter_ciphertext LONGTEXT NOT NULL COMMENT 'Encrypted immutable parameter snapshot',
-    parameter_hash VARCHAR(64) NOT NULL COMMENT 'Parameter snapshot SHA-256',
-    parameter_schema_version VARCHAR(80) NOT NULL COMMENT 'Parameter schema version',
-    target_cursor VARCHAR(1000) NULL COMMENT 'Last generated target cursor',
-    target_complete_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT 'Target generation completion flag',
-    target_count BIGINT NOT NULL DEFAULT 0 COMMENT 'Generated target count',
-    tps_limit INT NOT NULL DEFAULT 0 COMMENT 'Global transactions-per-second limit',
-    concurrency_limit INT NOT NULL DEFAULT 1 COMMENT 'Global runner concurrency limit',
-    processed_count BIGINT NOT NULL DEFAULT 0 COMMENT 'Processed item count',
-    success_count BIGINT NOT NULL DEFAULT 0 COMMENT 'Successful item count',
-    failure_count BIGINT NOT NULL DEFAULT 0 COMMENT 'Failed item count',
-    unknown_count BIGINT NOT NULL DEFAULT 0 COMMENT 'Unknown-result item count',
-    transaction_id CHAR(34) NULL COMMENT 'CPF transactionId',
-    parent_segment_id VARCHAR(120) NULL COMMENT 'Parent trace segment identifier',
-    requested_by VARCHAR(120) NOT NULL COMMENT 'Execution requester',
-    reason_text VARCHAR(1000) NOT NULL COMMENT 'Mandatory execution reason',
-    last_error_message VARCHAR(1000) NULL COMMENT 'Last execution error detail',
-    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT 'Execution request time',
-    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT 'Last execution state update time',
-    completed_at DATETIME(6) NULL COMMENT 'Execution completion time',
-    CONSTRAINT pk_bat_center_cut_execution PRIMARY KEY (center_cut_execution_id),
-    CONSTRAINT uk_bat_center_cut_execution_idempotency UNIQUE (idempotency_key),
-    CONSTRAINT fk_bat_center_cut_execution_job FOREIGN KEY (center_cut_job_id) REFERENCES bat_center_cut_job (center_cut_job_id),
-    INDEX ix_bat_center_cut_execution_job_state (center_cut_job_id, execution_state, created_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT center-cut immutable execution policy';
-
-CREATE TABLE IF NOT EXISTS bat_center_cut_item (
-    center_cut_item_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '센터컷 대상 순번',
-    center_cut_job_id VARCHAR(100) NOT NULL COMMENT '센터컷 Job ID',
-    center_cut_execution_id VARCHAR(80) NULL COMMENT 'Center-cut execution identifier',
-    business_key VARCHAR(200) NOT NULL COMMENT '업무 멱등 키',
-    business_date DATE NULL COMMENT '업무 기준일',
-    item_status VARCHAR(30) NOT NULL DEFAULT 'READY' COMMENT '대상 상태',
-    transaction_id CHAR(34) NULL COMMENT '센터컷 실행 전체가 승계하는 CPF transactionId',
-    transaction_segment_id VARCHAR(120) NULL COMMENT '현재 센터컷 Item 실행 구간 ID',
-    parent_segment_id VARCHAR(120) NULL COMMENT '부모 센터컷/Worker 실행 구간 ID',
-    item_payload LONGTEXT NULL COMMENT '처리 입력 payload',
-    retry_count INT NOT NULL DEFAULT 0 COMMENT '재처리 횟수',
-    last_error_message VARCHAR(1000) NULL COMMENT '마지막 오류 메시지',
-    started_at DATETIME(3) NULL COMMENT '처리 시작 일시',
-    completed_at DATETIME(3) NULL COMMENT '처리 완료 일시',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    CONSTRAINT pk_bat_center_cut_item PRIMARY KEY (center_cut_item_id),
-    CONSTRAINT uk_bat_center_cut_item_execution_business UNIQUE (center_cut_execution_id, business_key),
-    CONSTRAINT fk_bat_center_cut_item_job FOREIGN KEY (center_cut_job_id) REFERENCES bat_center_cut_job (center_cut_job_id) ON DELETE CASCADE,
-    CONSTRAINT fk_bat_center_cut_item_execution FOREIGN KEY (center_cut_execution_id) REFERENCES bat_center_cut_execution (center_cut_execution_id) ON DELETE CASCADE,
-    INDEX ix_bat_center_cut_item_status (center_cut_job_id, item_status, business_date),
-    INDEX ix_bat_center_cut_item_transaction (transaction_id, transaction_segment_id),
-    INDEX ix_bat_center_cut_item_parent_segment (parent_segment_id),
-    INDEX ix_bat_center_cut_item_execution_status (center_cut_execution_id, item_status, center_cut_item_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 센터컷 처리 대상';
-
-CREATE TABLE IF NOT EXISTS bat_center_cut_job (
-    center_cut_job_id VARCHAR(100) NOT NULL COMMENT '센터컷 Job ID',
-    batch_job_id VARCHAR(100) NULL COMMENT '연결된 BAT 배치 Job ID',
-    center_cut_job_name VARCHAR(150) NOT NULL COMMENT '센터컷 Job 명',
-    provider_key VARCHAR(100) NOT NULL COMMENT '대상 조회 Provider 식별자',
-    handler_key VARCHAR(100) NOT NULL COMMENT '처리 Handler 식별자',
-    chunk_size INT NOT NULL DEFAULT 100 COMMENT '한 번에 조회할 대상 건수',
-    retry_limit INT NOT NULL DEFAULT 3 COMMENT '최대 재처리 횟수',
-    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
-    description VARCHAR(500) NULL COMMENT '센터컷 Job 설명',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    CONSTRAINT pk_bat_center_cut_job PRIMARY KEY (center_cut_job_id),
-    CONSTRAINT fk_bat_center_cut_job_batch FOREIGN KEY (batch_job_id) REFERENCES bat_job (job_id) ON DELETE SET NULL,
-    INDEX ix_bat_center_cut_job_batch (batch_job_id, use_yn)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 센터컷 Job 정의';
-
-CREATE TABLE IF NOT EXISTS bat_center_cut_parameter (
-    parameter_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '센터컷 파라미터 순번',
-    center_cut_job_id VARCHAR(100) NOT NULL COMMENT '센터컷 Job ID',
-    parameter_key VARCHAR(100) NOT NULL COMMENT '파라미터 키',
-    parameter_value VARCHAR(1000) NULL COMMENT '파라미터 값',
-    encrypted_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '암호화 여부',
-    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    CONSTRAINT pk_bat_center_cut_parameter PRIMARY KEY (parameter_id),
-    CONSTRAINT uk_bat_center_cut_parameter UNIQUE (center_cut_job_id, parameter_key),
-    CONSTRAINT fk_bat_center_cut_parameter_job FOREIGN KEY (center_cut_job_id) REFERENCES bat_center_cut_job (center_cut_job_id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 센터컷 파라미터';
-
-CREATE TABLE IF NOT EXISTS bat_center_cut_rate_window (
-    center_cut_execution_id VARCHAR(80) NOT NULL COMMENT 'Center-cut execution identifier',
-    window_second BIGINT NOT NULL COMMENT 'UTC epoch-second rate window',
-    admitted_count INT NOT NULL DEFAULT 0 COMMENT 'Items admitted in this window',
-    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT 'Last bucket update time',
-    CONSTRAINT pk_bat_center_cut_rate_window PRIMARY KEY (center_cut_execution_id, window_second),
-    CONSTRAINT fk_bat_center_cut_rate_execution FOREIGN KEY (center_cut_execution_id) REFERENCES bat_center_cut_execution (center_cut_execution_id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT center-cut global rate window';
-
-CREATE TABLE IF NOT EXISTS bat_center_cut_result (
-    center_cut_result_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '센터컷 결과 순번',
-    center_cut_item_id BIGINT NOT NULL COMMENT '센터컷 대상 순번',
-    center_cut_job_id VARCHAR(100) NOT NULL COMMENT '센터컷 Job ID',
-    result_status VARCHAR(30) NOT NULL COMMENT '처리 결과 상태',
-    result_payload LONGTEXT NULL COMMENT '처리 결과 payload',
-    result_message VARCHAR(1000) NULL COMMENT '처리 결과 메시지',
-    transaction_id CHAR(34) NULL COMMENT '센터컷 실행 전체가 승계하는 CPF transactionId',
-    transaction_segment_id VARCHAR(120) NULL COMMENT '결과를 생성한 거래 구간 ID',
-    parent_segment_id VARCHAR(120) NULL COMMENT '부모 센터컷/Worker 실행 구간 ID',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    CONSTRAINT pk_bat_center_cut_result PRIMARY KEY (center_cut_result_id),
-    CONSTRAINT fk_bat_center_cut_result_item FOREIGN KEY (center_cut_item_id) REFERENCES bat_center_cut_item (center_cut_item_id) ON DELETE CASCADE,
-    CONSTRAINT fk_bat_center_cut_result_job FOREIGN KEY (center_cut_job_id) REFERENCES bat_center_cut_job (center_cut_job_id) ON DELETE CASCADE,
-    INDEX ix_bat_center_cut_result_item (center_cut_item_id, result_status),
-    INDEX ix_bat_center_cut_result_transaction (transaction_id, transaction_segment_id),
-    INDEX ix_bat_center_cut_result_parent_segment (parent_segment_id),
-    INDEX ix_bat_center_cut_result_job (center_cut_job_id, created_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 센터컷 처리 결과';
 
 CREATE TABLE IF NOT EXISTS bat_deployment_cell (
     cell_id VARCHAR(120) NULL COMMENT 'Deployment cell identifier',
@@ -276,7 +132,7 @@ CREATE TABLE IF NOT EXISTS bat_deployment_instance (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT deployment cell instance projection';
 
 CREATE TABLE IF NOT EXISTS bat_deployment_instance_result (
-    deployment_result_id BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Instance result identifier',
+    deployment_result_id BIGINT AUTO_INCREMENT NOT NULL COMMENT 'Instance result identifier',
     deployment_id VARCHAR(80) NOT NULL COMMENT 'Deployment execution identifier',
     sequence_no INT NOT NULL COMMENT 'Ordered result sequence',
     instance_id VARCHAR(160) NOT NULL COMMENT 'Target runtime instance identifier',
@@ -312,149 +168,6 @@ CREATE TABLE IF NOT EXISTS bat_deployment_plan (
     CONSTRAINT pk_bat_deployment_plan PRIMARY KEY (plan_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT deployment plan';
 
-CREATE TABLE IF NOT EXISTS bat_execution (
-    execution_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '배치 실행 순번',
-    job_id VARCHAR(100) NOT NULL COMMENT '배치 Job ID',
-    schedule_id VARCHAR(100) NULL COMMENT '배치 스케줄 ID',
-    job_parameters VARCHAR(2000) NULL COMMENT '배치 파라미터',
-    execution_status VARCHAR(30) NOT NULL DEFAULT 'READY' COMMENT '실행 상태',
-    spring_batch_execution_id BIGINT NULL COMMENT 'Spring Batch JobExecution ID',
-    spring_batch_job_instance_id BIGINT NULL COMMENT 'Spring Batch JobInstance ID',
-    business_date DATE NULL COMMENT 'JobInstance 시작 시 확정한 업무일자',
-    run_id VARCHAR(120) NULL COMMENT '최초 실행 회차 ID',
-    rerun_id VARCHAR(120) NULL COMMENT '운영 재수행 ID',
-    original_job_execution_id BIGINT NULL COMMENT '재시작 기준 원 JobExecution ID',
-    restart_attempt INT NOT NULL DEFAULT 0 COMMENT '동일 JobInstance 재시작 회차',
-    batch_instance_id VARCHAR(100) NULL COMMENT '배치 인스턴스 ID',
-    server_instance_id VARCHAR(160) NULL COMMENT '실행 서버 인스턴스 ID',
-    worker_id VARCHAR(160) NULL COMMENT '실행 worker ID',
-    required_worker_version VARCHAR(80) NULL COMMENT '실행에 필요한 worker 버전',
-    required_capability VARCHAR(120) NULL COMMENT '실행에 필요한 worker capability',
-    transaction_id CHAR(34) NULL COMMENT '전역 거래 ID',
-    transaction_segment_id VARCHAR(120) NULL COMMENT '배치 Job 거래 구간 ID',
-    parent_segment_id VARCHAR(120) NULL COMMENT '상위 거래 구간 ID',
-    job_log_relative_path VARCHAR(1000) NULL COMMENT 'CPF_LOG_ROOT 기준 JobInstance 로그 상대 경로',
-    start_time DATETIME(3) NULL COMMENT '시작 일시',
-    end_time DATETIME(3) NULL COMMENT '종료 일시',
-    read_count BIGINT NOT NULL DEFAULT 0 COMMENT '읽은 건수',
-    write_count BIGINT NOT NULL DEFAULT 0 COMMENT '처리 건수',
-    skip_count BIGINT NOT NULL DEFAULT 0 COMMENT '건너뛴 건수',
-    total_count BIGINT NOT NULL DEFAULT 0 COMMENT '전체 처리 대상 건수',
-    processed_count BIGINT NOT NULL DEFAULT 0 COMMENT '처리 완료 건수',
-    success_count BIGINT NOT NULL DEFAULT 0 COMMENT '성공 처리 건수',
-    failure_count BIGINT NOT NULL DEFAULT 0 COMMENT '실패 처리 건수',
-    retry_count BIGINT NOT NULL DEFAULT 0 COMMENT '재시도 또는 rollback 건수',
-    stop_requested_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '운영 중지 요청 여부',
-    progress_rate DECIMAL(5,2) NOT NULL DEFAULT 0.00 COMMENT '진행률',
-    tps DECIMAL(18,4) NOT NULL DEFAULT 0.0000 COMMENT '초당 처리 건수',
-    avg_elapsed_ms BIGINT NOT NULL DEFAULT 0 COMMENT '평균 처리 시간 밀리초',
-    max_elapsed_ms BIGINT NOT NULL DEFAULT 0 COMMENT '최대 처리 시간 밀리초',
-    last_heartbeat_at DATETIME(3) NULL COMMENT '실행 메타 마지막 heartbeat 일시',
-    current_step_name VARCHAR(150) NULL COMMENT '현재 실행 중인 Step 이름',
-    error_message MEDIUMTEXT NULL COMMENT '오류 메시지',
-    requested_by VARCHAR(100) NULL COMMENT '실행 요청자',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    CONSTRAINT pk_bat_execution PRIMARY KEY (execution_id),
-    CONSTRAINT fk_bat_execution_job FOREIGN KEY (job_id) REFERENCES bat_job (job_id),
-    CONSTRAINT fk_bat_execution_instance FOREIGN KEY (batch_instance_id) REFERENCES bat_instance (instance_id) ON DELETE SET NULL,
-    CONSTRAINT fk_bat_execution_worker FOREIGN KEY (worker_id) REFERENCES bat_worker (worker_id) ON DELETE SET NULL,
-    INDEX ix_bat_execution_job_time (job_id, start_time),
-    INDEX ix_bat_execution_status (execution_status, start_time),
-    INDEX ix_bat_execution_spring (spring_batch_execution_id),
-    INDEX ix_bat_execution_job_instance (spring_batch_job_instance_id, business_date),
-    INDEX ix_bat_execution_worker (worker_id, execution_status, start_time),
-    INDEX ix_bat_execution_server (server_instance_id, start_time),
-    INDEX ix_bat_execution_claim (execution_status, required_worker_version, required_capability, execution_id),
-    INDEX ix_bat_execution_transaction (transaction_id),
-    INDEX ix_bat_execution_segment (transaction_segment_id, parent_segment_id),
-    INDEX ix_bat_execution_heartbeat (execution_status, last_heartbeat_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 배치 실행 이력';
-
-CREATE TABLE IF NOT EXISTS bat_execution_lease (
-    lease_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '배치 실행 lease 순번',
-    execution_id BIGINT NOT NULL COMMENT '배치 실행 순번',
-    worker_id VARCHAR(160) NOT NULL COMMENT '현재 lease 소유 worker ID',
-    lease_token VARCHAR(80) NOT NULL COMMENT 'lease 갱신·완료 검증 토큰',
-    lease_status VARCHAR(30) NOT NULL DEFAULT 'CLAIMED' COMMENT 'CLAIMED, RUNNING, RELEASED, EXPIRED 상태',
-    claimed_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '최초 claim 일시',
-    lease_until DATETIME(3) NOT NULL COMMENT 'lease 만료 일시',
-    last_heartbeat_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '마지막 lease heartbeat 일시',
-    attempt_no INT NOT NULL DEFAULT 1 COMMENT 'claim 시도 회차',
-    takeover_count INT NOT NULL DEFAULT 0 COMMENT '만료 후 다른 worker 인수 횟수',
-    fencing_token BIGINT NOT NULL DEFAULT 0 COMMENT 'monotonic fencing token',
-    released_at DATETIME(3) NULL COMMENT '정상 또는 실패 완료 일시',
-    failure_message VARCHAR(1000) NULL COMMENT '마스킹된 실행 실패 메시지',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    CONSTRAINT pk_bat_execution_lease PRIMARY KEY (lease_id),
-    CONSTRAINT uk_bat_execution_lease_execution UNIQUE (execution_id),
-    CONSTRAINT uk_bat_execution_lease_token UNIQUE (lease_token),
-    CONSTRAINT fk_bat_execution_lease_execution FOREIGN KEY (execution_id) REFERENCES bat_execution (execution_id) ON DELETE CASCADE,
-    CONSTRAINT fk_bat_execution_lease_worker FOREIGN KEY (worker_id) REFERENCES bat_worker (worker_id) ON DELETE RESTRICT,
-    INDEX ix_bat_execution_lease_owner (worker_id, lease_status, lease_until),
-    INDEX ix_bat_execution_lease_expire (lease_status, lease_until)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 배치 worker 실행 claim과 lease';
-
-CREATE TABLE IF NOT EXISTS bat_execution_target (
-    target_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '배치 수행 대상 순번',
-    execution_id BIGINT NULL COMMENT '배치 실행 순번',
-    job_id VARCHAR(100) NOT NULL COMMENT '배치 Job ID',
-    schedule_id VARCHAR(100) NULL COMMENT '배치 스케줄 ID',
-    target_instance_id VARCHAR(100) NULL COMMENT '수행 대상 인스턴스 ID',
-    business_date DATE NULL COMMENT '업무 기준일',
-    planned_run_at DATETIME(3) NULL COMMENT '예정 수행 일시',
-    dispatch_status VARCHAR(30) NOT NULL DEFAULT 'WAITING' COMMENT '배정 상태',
-    dispatch_reason VARCHAR(500) NULL COMMENT '배정 또는 제외 사유',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    CONSTRAINT pk_bat_execution_target PRIMARY KEY (target_id),
-    CONSTRAINT fk_bat_execution_target_execution FOREIGN KEY (execution_id) REFERENCES bat_execution (execution_id) ON DELETE SET NULL,
-    CONSTRAINT fk_bat_execution_target_job FOREIGN KEY (job_id) REFERENCES bat_job (job_id),
-    CONSTRAINT fk_bat_execution_target_schedule FOREIGN KEY (schedule_id) REFERENCES bat_schedule (schedule_id) ON DELETE SET NULL,
-    CONSTRAINT fk_bat_execution_target_instance FOREIGN KEY (target_instance_id) REFERENCES bat_instance (instance_id) ON DELETE SET NULL,
-    INDEX ix_bat_execution_target_job (job_id, dispatch_status, planned_run_at),
-    INDEX ix_bat_execution_target_execution (execution_id),
-    INDEX ix_bat_execution_target_instance (target_instance_id, dispatch_status)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 배치 수행 대상/대기 인스턴스';
-
-CREATE TABLE IF NOT EXISTS bat_ghost_event (
-    ghost_event_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '배치 ghost 이벤트 순번',
-    execution_id BIGINT NULL COMMENT '배치 실행 순번',
-    spring_batch_execution_id BIGINT NULL COMMENT 'Spring Batch JobExecution ID',
-    job_id VARCHAR(100) NOT NULL COMMENT '배치 Job ID',
-    server_instance_id VARCHAR(160) NULL COMMENT '서버 인스턴스 ID',
-    worker_id VARCHAR(160) NULL COMMENT 'worker ID',
-    ghost_status VARCHAR(30) NOT NULL DEFAULT 'DETECTED' COMMENT 'ghost 이벤트 상태',
-    detected_reason VARCHAR(1000) NOT NULL COMMENT '감지 사유',
-    action_type VARCHAR(30) NULL COMMENT '조치 유형',
-    action_reason VARCHAR(1000) NULL COMMENT '조치 사유',
-    action_by VARCHAR(100) NULL COMMENT '조치 운영자',
-    detected_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '감지 일시',
-    action_at DATETIME(3) NULL COMMENT '조치 일시',
-    lock_released_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '잠금 해제 여부',
-    retryable_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '재수행 가능 여부',
-    before_data LONGTEXT NULL COMMENT '조치 전 데이터',
-    after_data LONGTEXT NULL COMMENT '조치 후 데이터',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    CONSTRAINT pk_bat_ghost_event PRIMARY KEY (ghost_event_id),
-    CONSTRAINT fk_bat_ghost_event_execution FOREIGN KEY (execution_id) REFERENCES bat_execution (execution_id) ON DELETE SET NULL,
-    CONSTRAINT fk_bat_ghost_event_job FOREIGN KEY (job_id) REFERENCES bat_job (job_id),
-    CONSTRAINT fk_bat_ghost_event_worker FOREIGN KEY (worker_id) REFERENCES bat_worker (worker_id) ON DELETE SET NULL,
-    INDEX ix_bat_ghost_event_execution (execution_id, ghost_status),
-    INDEX ix_bat_ghost_event_job (job_id, detected_at),
-    INDEX ix_bat_ghost_event_worker (worker_id, detected_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 배치 ghost 감지와 조치 이력';
-
 CREATE TABLE IF NOT EXISTS bat_instance (
     instance_id VARCHAR(100) NOT NULL COMMENT '배치 인스턴스 ID',
     instance_name VARCHAR(150) NOT NULL COMMENT '배치 인스턴스명',
@@ -482,13 +195,162 @@ CREATE TABLE IF NOT EXISTS bat_job (
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
     updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    published_definition_version BIGINT NULL COMMENT '현재 Runtime에 고정 반영된 Job Definition Version',
+    published_definition_checksum VARCHAR(128) NULL COMMENT 'Published Definition 무결성 Checksum',
+    executor_reference VARCHAR(300) NULL COMMENT '검증된 Executor Catalog Reference',
+    definition_published_at DATETIME(3) NULL COMMENT 'Published Definition Runtime 반영 시각',
     CONSTRAINT pk_bat_job PRIMARY KEY (job_id),
     INDEX ix_bat_job_use (use_yn, job_type)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 배치 Job 기준';
 
+CREATE TABLE IF NOT EXISTS bat_center_cut_job (
+    center_cut_job_id VARCHAR(100) NOT NULL COMMENT '센터컷 Job ID',
+    batch_job_id VARCHAR(100) NULL COMMENT '연결된 BAT 배치 Job ID',
+    center_cut_job_name VARCHAR(150) NOT NULL COMMENT '센터컷 Job 명',
+    provider_key VARCHAR(100) NOT NULL COMMENT '대상 조회 Provider 식별자',
+    handler_key VARCHAR(100) NOT NULL COMMENT '처리 Handler 식별자',
+    chunk_size INT NOT NULL DEFAULT 100 COMMENT '한 번에 조회할 대상 건수',
+    retry_limit INT NOT NULL DEFAULT 3 COMMENT '최대 재처리 횟수',
+    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    description VARCHAR(500) NULL COMMENT '센터컷 Job 설명',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_bat_center_cut_job PRIMARY KEY (center_cut_job_id),
+    CONSTRAINT fk_bat_center_cut_job_batch FOREIGN KEY (batch_job_id) REFERENCES bat_job (job_id) ON DELETE SET NULL,
+    INDEX ix_bat_center_cut_job_batch (batch_job_id, use_yn)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 센터컷 Job 정의';
+
+CREATE TABLE IF NOT EXISTS bat_center_cut_execution (
+    center_cut_execution_id VARCHAR(80) NOT NULL COMMENT 'Center-cut execution identifier',
+    center_cut_job_id VARCHAR(100) NOT NULL COMMENT 'Center-cut job definition identifier',
+    idempotency_key VARCHAR(160) NOT NULL COMMENT 'Execution idempotency key',
+    execution_state VARCHAR(30) NOT NULL COMMENT 'Center-cut execution state',
+    parameter_ciphertext LONGTEXT NOT NULL COMMENT 'Encrypted immutable parameter snapshot',
+    parameter_hash VARCHAR(64) NOT NULL COMMENT 'Parameter snapshot SHA-256',
+    parameter_schema_version VARCHAR(80) NOT NULL COMMENT 'Parameter schema version',
+    target_cursor VARCHAR(1000) NULL COMMENT 'Last generated target cursor',
+    target_complete_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT 'Target generation completion flag',
+    target_count BIGINT NOT NULL DEFAULT 0 COMMENT 'Generated target count',
+    tps_limit INT NOT NULL DEFAULT 0 COMMENT 'Global transactions-per-second limit',
+    concurrency_limit INT NOT NULL DEFAULT 1 COMMENT 'Global runner concurrency limit',
+    processed_count BIGINT NOT NULL DEFAULT 0 COMMENT 'Processed item count',
+    success_count BIGINT NOT NULL DEFAULT 0 COMMENT 'Successful item count',
+    failure_count BIGINT NOT NULL DEFAULT 0 COMMENT 'Failed item count',
+    unknown_count BIGINT NOT NULL DEFAULT 0 COMMENT 'Unknown-result item count',
+    transaction_id CHAR(34) NULL COMMENT 'CPF transactionId',
+    parent_segment_id VARCHAR(120) NULL COMMENT 'Parent trace segment identifier',
+    requested_by VARCHAR(120) NOT NULL COMMENT 'Execution requester',
+    reason_text VARCHAR(1000) NOT NULL COMMENT 'Mandatory execution reason',
+    last_error_message VARCHAR(1000) NULL COMMENT 'Last execution error detail',
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT 'Execution request time',
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT 'Last execution state update time',
+    completed_at DATETIME(6) NULL COMMENT 'Execution completion time',
+    CONSTRAINT pk_bat_center_cut_execution PRIMARY KEY (center_cut_execution_id),
+    CONSTRAINT uk_bat_center_cut_execution_idempotency UNIQUE (idempotency_key),
+    CONSTRAINT fk_bat_center_cut_execution_job FOREIGN KEY (center_cut_job_id) REFERENCES bat_center_cut_job (center_cut_job_id),
+    INDEX ix_bat_center_cut_execution_job_state (center_cut_job_id, execution_state, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT center-cut immutable execution policy';
+
+CREATE TABLE IF NOT EXISTS bat_center_cut_item (
+    center_cut_item_id BIGINT AUTO_INCREMENT NOT NULL COMMENT '센터컷 대상 순번',
+    center_cut_job_id VARCHAR(100) NOT NULL COMMENT '센터컷 Job ID',
+    center_cut_execution_id VARCHAR(80) NULL COMMENT 'Center-cut execution identifier',
+    business_key VARCHAR(200) NOT NULL COMMENT '업무 멱등 키',
+    business_date DATE NULL COMMENT '업무 기준일',
+    item_status VARCHAR(30) NOT NULL DEFAULT 'READY' COMMENT '대상 상태',
+    transaction_id CHAR(34) NULL COMMENT '센터컷 실행 전체가 승계하는 CPF transactionId',
+    transaction_segment_id VARCHAR(120) NULL COMMENT '현재 센터컷 Item 실행 구간 ID',
+    parent_segment_id VARCHAR(120) NULL COMMENT '부모 센터컷/Worker 실행 구간 ID',
+    item_payload LONGTEXT NULL COMMENT '처리 입력 payload',
+    retry_count INT NOT NULL DEFAULT 0 COMMENT '재처리 횟수',
+    last_error_message VARCHAR(1000) NULL COMMENT '마지막 오류 메시지',
+    started_at DATETIME(3) NULL COMMENT '처리 시작 일시',
+    completed_at DATETIME(3) NULL COMMENT '처리 완료 일시',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_bat_center_cut_item PRIMARY KEY (center_cut_item_id),
+    CONSTRAINT uk_bat_center_cut_item_execution_business UNIQUE (center_cut_execution_id, business_key),
+    CONSTRAINT fk_bat_center_cut_item_job FOREIGN KEY (center_cut_job_id) REFERENCES bat_center_cut_job (center_cut_job_id) ON DELETE CASCADE,
+    CONSTRAINT fk_bat_center_cut_item_execution FOREIGN KEY (center_cut_execution_id) REFERENCES bat_center_cut_execution (center_cut_execution_id) ON DELETE CASCADE,
+    INDEX ix_bat_center_cut_item_status (center_cut_job_id, item_status, business_date),
+    INDEX ix_bat_center_cut_item_transaction (transaction_id, transaction_segment_id),
+    INDEX ix_bat_center_cut_item_parent_segment (parent_segment_id),
+    INDEX ix_bat_center_cut_item_execution_status (center_cut_execution_id, item_status, center_cut_item_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 센터컷 처리 대상';
+
+CREATE TABLE IF NOT EXISTS bat_center_cut_claim (
+    center_cut_item_id BIGINT NULL COMMENT 'Claimed center-cut item identifier',
+    runner_id VARCHAR(160) NOT NULL COMMENT 'Owning runner identifier',
+    pool_id VARCHAR(80) NULL COMMENT 'Owning runner pool identifier',
+    claim_token VARCHAR(80) NOT NULL COMMENT 'Unique claim token',
+    claim_status VARCHAR(30) NOT NULL COMMENT 'Claim lifecycle status',
+    fencing_token BIGINT NOT NULL COMMENT 'Monotonic claim fencing token',
+    lease_until DATETIME(6) NOT NULL COMMENT 'Claim lease expiry time',
+    last_heartbeat_at DATETIME(6) NOT NULL COMMENT 'Claim heartbeat time',
+    attempt_no INT NOT NULL DEFAULT 1 COMMENT 'Claim attempt number',
+    takeover_count INT NOT NULL DEFAULT 0 COMMENT 'Claim takeover count',
+    released_at DATETIME(6) NULL COMMENT 'Claim release time',
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT 'Last claim update time',
+    CONSTRAINT pk_bat_center_cut_claim PRIMARY KEY (center_cut_item_id),
+    CONSTRAINT claim_token UNIQUE (claim_token),
+    CONSTRAINT fk_bat_center_cut_claim_item FOREIGN KEY (center_cut_item_id) REFERENCES bat_center_cut_item (center_cut_item_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT center-cut item lease claim';
+
+CREATE TABLE IF NOT EXISTS bat_center_cut_parameter (
+    parameter_id BIGINT AUTO_INCREMENT NOT NULL COMMENT '센터컷 파라미터 순번',
+    center_cut_job_id VARCHAR(100) NOT NULL COMMENT '센터컷 Job ID',
+    parameter_key VARCHAR(100) NOT NULL COMMENT '파라미터 키',
+    parameter_value VARCHAR(1000) NULL COMMENT '파라미터 값',
+    encrypted_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '암호화 여부',
+    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_bat_center_cut_parameter PRIMARY KEY (parameter_id),
+    CONSTRAINT uk_bat_center_cut_parameter UNIQUE (center_cut_job_id, parameter_key),
+    CONSTRAINT fk_bat_center_cut_parameter_job FOREIGN KEY (center_cut_job_id) REFERENCES bat_center_cut_job (center_cut_job_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 센터컷 파라미터';
+
+CREATE TABLE IF NOT EXISTS bat_center_cut_rate_window (
+    center_cut_execution_id VARCHAR(80) NOT NULL COMMENT 'Center-cut execution identifier',
+    window_second BIGINT NOT NULL COMMENT 'UTC epoch-second rate window',
+    admitted_count INT NOT NULL DEFAULT 0 COMMENT 'Items admitted in this window',
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT 'Last bucket update time',
+    CONSTRAINT pk_bat_center_cut_rate_window PRIMARY KEY (center_cut_execution_id, window_second),
+    CONSTRAINT fk_bat_center_cut_rate_execution FOREIGN KEY (center_cut_execution_id) REFERENCES bat_center_cut_execution (center_cut_execution_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT center-cut global rate window';
+
+CREATE TABLE IF NOT EXISTS bat_center_cut_result (
+    center_cut_result_id BIGINT AUTO_INCREMENT NOT NULL COMMENT '센터컷 결과 순번',
+    center_cut_item_id BIGINT NOT NULL COMMENT '센터컷 대상 순번',
+    center_cut_job_id VARCHAR(100) NOT NULL COMMENT '센터컷 Job ID',
+    result_status VARCHAR(30) NOT NULL COMMENT '처리 결과 상태',
+    result_payload LONGTEXT NULL COMMENT '처리 결과 payload',
+    result_message VARCHAR(1000) NULL COMMENT '처리 결과 메시지',
+    transaction_id CHAR(34) NULL COMMENT '센터컷 실행 전체가 승계하는 CPF transactionId',
+    transaction_segment_id VARCHAR(120) NULL COMMENT '결과를 생성한 거래 구간 ID',
+    parent_segment_id VARCHAR(120) NULL COMMENT '부모 센터컷/Worker 실행 구간 ID',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_bat_center_cut_result PRIMARY KEY (center_cut_result_id),
+    CONSTRAINT fk_bat_center_cut_result_item FOREIGN KEY (center_cut_item_id) REFERENCES bat_center_cut_item (center_cut_item_id) ON DELETE CASCADE,
+    CONSTRAINT fk_bat_center_cut_result_job FOREIGN KEY (center_cut_job_id) REFERENCES bat_center_cut_job (center_cut_job_id) ON DELETE CASCADE,
+    INDEX ix_bat_center_cut_result_item (center_cut_item_id, result_status),
+    INDEX ix_bat_center_cut_result_transaction (transaction_id, transaction_segment_id),
+    INDEX ix_bat_center_cut_result_parent_segment (parent_segment_id),
+    INDEX ix_bat_center_cut_result_job (center_cut_job_id, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 센터컷 처리 결과';
+
 CREATE TABLE IF NOT EXISTS bat_job_definition_audit (
-    audit_id BIGINT NOT NULL COMMENT '감사 ID',
-    job_id VARCHAR(80) NOT NULL COMMENT 'Job ID',
+    audit_id BIGINT AUTO_INCREMENT NOT NULL COMMENT '감사 ID',
+    job_id VARCHAR(100) NOT NULL COMMENT 'Job ID',
     definition_version BIGINT NOT NULL COMMENT 'Definition Version',
     action_code VARCHAR(40) NOT NULL COMMENT '행위',
     from_state VARCHAR(20) NULL COMMENT '이전 상태',
@@ -496,12 +358,18 @@ CREATE TABLE IF NOT EXISTS bat_job_definition_audit (
     reason VARCHAR(1000) NOT NULL COMMENT '사유',
     operator_id VARCHAR(100) NOT NULL COMMENT '운영자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '발생시각',
+    requested_by VARCHAR(100) NULL COMMENT '요청자',
+    approval_request_id VARCHAR(120) NULL COMMENT '승인 요청 ID',
+    transaction_id CHAR(34) NULL COMMENT 'CPF Transaction ID',
+    trace_id VARCHAR(64) NULL COMMENT 'Trace ID',
+    before_json MEDIUMTEXT NULL COMMENT '변경 전 마스킹 JSON',
+    after_json MEDIUMTEXT NULL COMMENT '변경 후 마스킹 JSON',
     CONSTRAINT pk_bat_job_definition_audit PRIMARY KEY (audit_id),
     INDEX idx_bat_job_def_audit (job_id, definition_version, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT Job Definition 승인·상태 감사';
 
 CREATE TABLE IF NOT EXISTS bat_job_definition_version (
-    job_id VARCHAR(80) NOT NULL COMMENT '배치 Job ID',
+    job_id VARCHAR(100) NOT NULL COMMENT '배치 Job ID',
     definition_version BIGINT NOT NULL COMMENT '불변 Definition Version',
     job_name VARCHAR(200) NOT NULL COMMENT '배치 Job 이름',
     executor_type VARCHAR(40) NOT NULL COMMENT 'Executor 유형',
@@ -545,7 +413,7 @@ CREATE TABLE IF NOT EXISTS bat_job_definition_version (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT Versioned Job Definition 정본';
 
 CREATE TABLE IF NOT EXISTS bat_job_dependency (
-    job_id VARCHAR(80) NOT NULL COMMENT 'Job ID',
+    job_id VARCHAR(100) NOT NULL COMMENT 'Job ID',
     definition_version BIGINT NOT NULL COMMENT 'Definition Version',
     related_job_id VARCHAR(80) NOT NULL COMMENT '선행 Job',
     condition_code VARCHAR(40) NOT NULL COMMENT '의존 조건',
@@ -582,7 +450,7 @@ CREATE TABLE IF NOT EXISTS bat_job_pack_job (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT job-pack job projection';
 
 CREATE TABLE IF NOT EXISTS bat_job_parameter_definition (
-    job_id VARCHAR(80) NOT NULL COMMENT 'Job ID',
+    job_id VARCHAR(100) NOT NULL COMMENT 'Job ID',
     definition_version BIGINT NOT NULL COMMENT 'Definition Version',
     parameter_name VARCHAR(100) NOT NULL COMMENT 'Parameter 이름',
     parameter_type VARCHAR(40) NOT NULL COMMENT 'Parameter 유형',
@@ -606,7 +474,7 @@ CREATE TABLE IF NOT EXISTS bat_job_parameter_definition (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT Typed Parameter Schema';
 
 CREATE TABLE IF NOT EXISTS bat_job_relation (
-    relation_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '배치 관계 순번',
+    relation_id BIGINT AUTO_INCREMENT NOT NULL COMMENT '배치 관계 순번',
     job_id VARCHAR(100) NOT NULL COMMENT '기준 배치 Job ID',
     related_job_id VARCHAR(100) NOT NULL COMMENT '연관 배치 Job ID',
     relation_type VARCHAR(30) NOT NULL COMMENT '관계 유형',
@@ -625,6 +493,52 @@ CREATE TABLE IF NOT EXISTS bat_job_relation (
     INDEX ix_bat_job_relation_job (job_id, relation_type, use_yn),
     INDEX ix_bat_job_relation_related (related_job_id, relation_type)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 배치 선행/후행/트리거 관계';
+
+CREATE TABLE IF NOT EXISTS bat_job_runtime_projection (
+    job_id VARCHAR(100) NOT NULL COMMENT 'Job ID',
+    definition_version BIGINT NOT NULL COMMENT 'Published Definition Version',
+    definition_checksum VARCHAR(64) NOT NULL COMMENT 'Definition Checksum',
+    projection_status VARCHAR(30) NOT NULL DEFAULT 'ACTIVE' COMMENT 'Projection 상태',
+    executor_type VARCHAR(40) NOT NULL COMMENT 'Executor 유형',
+    executor_reference VARCHAR(300) NOT NULL COMMENT 'Executor Reference',
+    trigger_type VARCHAR(30) NOT NULL COMMENT 'Trigger 유형',
+    trigger_expression VARCHAR(500) NULL COMMENT 'Trigger 표현식',
+    timezone_id VARCHAR(100) NOT NULL COMMENT 'Timezone',
+    projection_json LONGTEXT NOT NULL COMMENT '불변 Runtime Projection JSON',
+    projection_hash VARCHAR(64) NOT NULL COMMENT 'Projection SHA-256',
+    effective_from DATETIME NULL COMMENT '유효 시작',
+    effective_until DATETIME NULL COMMENT '유효 종료',
+    published_by VARCHAR(100) NOT NULL COMMENT 'Publish 운영자',
+    published_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Publish 시각',
+    retired_at DATETIME NULL COMMENT 'Retire 시각',
+    row_version BIGINT NOT NULL DEFAULT 1 COMMENT '낙관적 버전',
+    CONSTRAINT pk_bat_job_runtime_projection PRIMARY KEY (job_id, definition_version),
+    CONSTRAINT fk_bat_job_projection_definition FOREIGN KEY (job_id, definition_version) REFERENCES bat_job_definition_version (job_id, definition_version),
+    INDEX ix_bat_job_projection_status (projection_status, effective_from, effective_until),
+    UNIQUE INDEX ix_bat_job_projection_hash (projection_hash)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Published Batch Definition Runtime 정본';
+
+CREATE TABLE IF NOT EXISTS bat_job_runtime_projection_outbox (
+    outbox_id VARCHAR(100) NOT NULL COMMENT 'Outbox ID',
+    job_id VARCHAR(100) NOT NULL COMMENT 'Job ID',
+    definition_version BIGINT NOT NULL COMMENT 'Definition Version',
+    event_type VARCHAR(40) NOT NULL COMMENT 'PUBLISH/RETIRE',
+    payload_hash VARCHAR(64) NOT NULL COMMENT 'Payload Hash',
+    event_payload LONGTEXT NOT NULL COMMENT 'Event Payload',
+    delivery_status VARCHAR(30) NOT NULL DEFAULT 'PENDING' COMMENT 'Delivery 상태',
+    lease_owner VARCHAR(100) NULL COMMENT 'Lease Owner',
+    lease_until DATETIME NULL COMMENT 'Lease 만료',
+    fencing_token BIGINT NOT NULL DEFAULT 0 COMMENT 'Fencing Token',
+    attempt_count INT NOT NULL DEFAULT 0 COMMENT '시도 횟수',
+    next_attempt_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '다음 시도',
+    last_error_code VARCHAR(100) NULL COMMENT '마지막 오류 코드',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '생성 시각',
+    delivered_at DATETIME NULL COMMENT '전달 시각',
+    CONSTRAINT pk_bat_job_runtime_projection_outbox PRIMARY KEY (outbox_id),
+    CONSTRAINT fk_bat_projection_outbox_definition FOREIGN KEY (job_id, definition_version) REFERENCES bat_job_definition_version (job_id, definition_version),
+    INDEX ix_bat_projection_outbox_claim (delivery_status, next_attempt_at, lease_until),
+    INDEX ix_bat_projection_outbox_job (job_id, definition_version, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Batch Runtime Projection Durable Outbox';
 
 CREATE TABLE IF NOT EXISTS bat_lock (
     lock_key VARCHAR(200) NOT NULL COMMENT '배치 잠금 키',
@@ -673,7 +587,7 @@ CREATE TABLE IF NOT EXISTS bat_on_demand_request (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 온디맨드 배치 온라인 접수';
 
 CREATE TABLE IF NOT EXISTS bat_operation_log (
-    operation_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '배치 운영 로그 순번',
+    operation_id BIGINT AUTO_INCREMENT NOT NULL COMMENT '배치 운영 로그 순번',
     job_id VARCHAR(100) NOT NULL COMMENT '배치 Job ID',
     execution_id BIGINT NULL COMMENT '배치 실행 순번',
     operation_type VARCHAR(30) NOT NULL COMMENT '운영 작업 유형',
@@ -715,13 +629,6 @@ CREATE TABLE IF NOT EXISTS bat_operation_log_archive (
     INDEX ix_bat_operation_archive_archived (archived_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 운영 로그 보관소';
 
-CREATE TABLE IF NOT EXISTS bat_runtime_capability (
-    instance_id VARCHAR(160) NOT NULL COMMENT 'Runtime instance identifier',
-    capability_code VARCHAR(80) NOT NULL COMMENT 'Advertised capability code',
-    CONSTRAINT pk_bat_runtime_capability PRIMARY KEY (instance_id, capability_code),
-    CONSTRAINT fk_bat_runtime_capability_instance FOREIGN KEY (instance_id) REFERENCES bat_runtime_instance (instance_id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT runtime capability projection';
-
 CREATE TABLE IF NOT EXISTS bat_runtime_command (
     command_id VARCHAR(80) NULL COMMENT 'Runtime command identifier',
     idempotency_key VARCHAR(160) NOT NULL COMMENT 'Command idempotency key',
@@ -752,7 +659,7 @@ CREATE TABLE IF NOT EXISTS bat_runtime_command (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT approved runtime command';
 
 CREATE TABLE IF NOT EXISTS bat_runtime_command_attempt (
-    attempt_id BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Command attempt identifier',
+    attempt_id BIGINT AUTO_INCREMENT NOT NULL COMMENT 'Command attempt identifier',
     command_id VARCHAR(80) NOT NULL COMMENT 'Runtime command identifier',
     attempt_no INT NOT NULL COMMENT 'Command attempt number',
     instance_id VARCHAR(160) NULL COMMENT 'Target runtime instance identifier',
@@ -766,23 +673,6 @@ CREATE TABLE IF NOT EXISTS bat_runtime_command_attempt (
     CONSTRAINT fk_bat_runtime_command_attempt_command FOREIGN KEY (command_id) REFERENCES bat_runtime_command (command_id) ON DELETE CASCADE,
     INDEX ix_bat_runtime_command_attempt_instance (instance_id, started_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT runtime command execution attempt';
-
-CREATE TABLE IF NOT EXISTS bat_runtime_heartbeat (
-    heartbeat_id BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Heartbeat event identifier',
-    instance_id VARCHAR(160) NOT NULL COMMENT 'Runtime instance identifier',
-    heartbeat_at DATETIME(6) NOT NULL COMMENT 'Heartbeat observation time',
-    ready_yn CHAR(1) NOT NULL COMMENT 'Readiness flag',
-    available_capacity INT NOT NULL DEFAULT 0 COMMENT 'Available execution capacity',
-    queue_depth BIGINT NOT NULL DEFAULT 0 COMMENT 'Observed queue depth',
-    draining_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT 'Drain mode flag',
-    current_execution_count INT NOT NULL DEFAULT 0 COMMENT 'Current execution count',
-    active_lease_count INT NOT NULL DEFAULT 0 COMMENT 'Active lease count',
-    last_error_code VARCHAR(80) NULL COMMENT 'Last runtime error code',
-    deployment_version VARCHAR(80) NULL COMMENT 'Observed deployment version',
-    CONSTRAINT pk_bat_runtime_heartbeat PRIMARY KEY (heartbeat_id),
-    CONSTRAINT fk_bat_runtime_heartbeat_instance FOREIGN KEY (instance_id) REFERENCES bat_runtime_instance (instance_id) ON DELETE CASCADE,
-    INDEX ix_bat_runtime_heartbeat_instance (instance_id, heartbeat_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT runtime heartbeat event';
 
 CREATE TABLE IF NOT EXISTS bat_runtime_instance (
     instance_id VARCHAR(160) NULL COMMENT 'Runtime instance identifier',
@@ -811,6 +701,30 @@ CREATE TABLE IF NOT EXISTS bat_runtime_instance (
     INDEX ix_bat_runtime_instance_heartbeat (last_heartbeat_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT standalone runtime instance registry';
 
+CREATE TABLE IF NOT EXISTS bat_runtime_capability (
+    instance_id VARCHAR(160) NOT NULL COMMENT 'Runtime instance identifier',
+    capability_code VARCHAR(80) NOT NULL COMMENT 'Advertised capability code',
+    CONSTRAINT pk_bat_runtime_capability PRIMARY KEY (instance_id, capability_code),
+    CONSTRAINT fk_bat_runtime_capability_instance FOREIGN KEY (instance_id) REFERENCES bat_runtime_instance (instance_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT runtime capability projection';
+
+CREATE TABLE IF NOT EXISTS bat_runtime_heartbeat (
+    heartbeat_id BIGINT AUTO_INCREMENT NOT NULL COMMENT 'Heartbeat event identifier',
+    instance_id VARCHAR(160) NOT NULL COMMENT 'Runtime instance identifier',
+    heartbeat_at DATETIME(6) NOT NULL COMMENT 'Heartbeat observation time',
+    ready_yn CHAR(1) NOT NULL COMMENT 'Readiness flag',
+    available_capacity INT NOT NULL DEFAULT 0 COMMENT 'Available execution capacity',
+    queue_depth BIGINT NOT NULL DEFAULT 0 COMMENT 'Observed queue depth',
+    draining_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT 'Drain mode flag',
+    current_execution_count INT NOT NULL DEFAULT 0 COMMENT 'Current execution count',
+    active_lease_count INT NOT NULL DEFAULT 0 COMMENT 'Active lease count',
+    last_error_code VARCHAR(80) NULL COMMENT 'Last runtime error code',
+    deployment_version VARCHAR(80) NULL COMMENT 'Observed deployment version',
+    CONSTRAINT pk_bat_runtime_heartbeat PRIMARY KEY (heartbeat_id),
+    CONSTRAINT fk_bat_runtime_heartbeat_instance FOREIGN KEY (instance_id) REFERENCES bat_runtime_instance (instance_id) ON DELETE CASCADE,
+    INDEX ix_bat_runtime_heartbeat_instance (instance_id, heartbeat_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT runtime heartbeat event';
+
 CREATE TABLE IF NOT EXISTS bat_schedule (
     schedule_id VARCHAR(100) NOT NULL COMMENT '배치 스케줄 ID',
     job_id VARCHAR(100) NOT NULL COMMENT '배치 Job ID',
@@ -829,6 +743,8 @@ CREATE TABLE IF NOT EXISTS bat_schedule (
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
     updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    definition_version BIGINT NULL COMMENT 'Schedule이 실행해야 하는 고정 Job Definition Version',
+    definition_checksum VARCHAR(128) NULL COMMENT 'Schedule 생성 시 고정된 Definition Checksum',
     CONSTRAINT pk_bat_schedule PRIMARY KEY (schedule_id),
     CONSTRAINT fk_bat_schedule_job FOREIGN KEY (job_id) REFERENCES bat_job (job_id) ON DELETE CASCADE,
     INDEX ix_bat_schedule_job (job_id, enabled_yn)
@@ -856,45 +772,8 @@ CREATE TABLE IF NOT EXISTS bat_scheduler_lease (
     INDEX ix_bat_scheduler_lease_expire (lease_until)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT scheduler leader lease';
 
-CREATE TABLE IF NOT EXISTS bat_step_execution (
-    step_execution_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '배치 Step 실행 순번',
-    execution_id BIGINT NOT NULL COMMENT '배치 실행 순번',
-    spring_batch_step_execution_id BIGINT NULL COMMENT 'Spring Batch StepExecution ID',
-    worker_id VARCHAR(160) NULL COMMENT '실행 worker ID',
-    step_name VARCHAR(150) NOT NULL COMMENT 'Step 이름',
-    execution_status VARCHAR(30) NOT NULL DEFAULT 'READY' COMMENT '실행 상태',
-    start_time DATETIME(3) NULL COMMENT '시작 일시',
-    end_time DATETIME(3) NULL COMMENT '종료 일시',
-    read_count BIGINT NOT NULL DEFAULT 0 COMMENT '읽은 건수',
-    write_count BIGINT NOT NULL DEFAULT 0 COMMENT '처리 건수',
-    skip_count BIGINT NOT NULL DEFAULT 0 COMMENT '건너뛴 건수',
-    total_count BIGINT NOT NULL DEFAULT 0 COMMENT '전체 처리 대상 건수',
-    processed_count BIGINT NOT NULL DEFAULT 0 COMMENT '처리 완료 건수',
-    success_count BIGINT NOT NULL DEFAULT 0 COMMENT '성공 처리 건수',
-    failure_count BIGINT NOT NULL DEFAULT 0 COMMENT '실패 처리 건수',
-    retry_count BIGINT NOT NULL DEFAULT 0 COMMENT '재시도 또는 rollback 건수',
-    progress_rate DECIMAL(5,2) NOT NULL DEFAULT 0.00 COMMENT '진행률',
-    tps DECIMAL(18,4) NOT NULL DEFAULT 0.0000 COMMENT '초당 처리 건수',
-    avg_elapsed_ms BIGINT NOT NULL DEFAULT 0 COMMENT '평균 처리 시간 밀리초',
-    max_elapsed_ms BIGINT NOT NULL DEFAULT 0 COMMENT '최대 처리 시간 밀리초',
-    last_heartbeat_at DATETIME(3) NULL COMMENT 'Step 메타 마지막 heartbeat 일시',
-    error_message MEDIUMTEXT NULL COMMENT '오류 메시지',
-    step_log MEDIUMTEXT NULL COMMENT 'Step 로그',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    CONSTRAINT pk_bat_step_execution PRIMARY KEY (step_execution_id),
-    CONSTRAINT fk_bat_step_execution_parent FOREIGN KEY (execution_id) REFERENCES bat_execution (execution_id) ON DELETE CASCADE,
-    CONSTRAINT fk_bat_step_execution_worker FOREIGN KEY (worker_id) REFERENCES bat_worker (worker_id) ON DELETE SET NULL,
-    INDEX ix_bat_step_execution_parent (execution_id, step_name),
-    INDEX ix_bat_step_execution_spring (spring_batch_step_execution_id),
-    INDEX ix_bat_step_execution_worker (worker_id, start_time),
-    INDEX ix_bat_step_execution_heartbeat (execution_status, last_heartbeat_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 배치 Step 실행 이력';
-
 CREATE TABLE IF NOT EXISTS bat_version_compatibility (
-    compatibility_id BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Compatibility rule identifier',
+    compatibility_id BIGINT AUTO_INCREMENT NOT NULL COMMENT 'Compatibility rule identifier',
     environment_id VARCHAR(80) NOT NULL DEFAULT '*' COMMENT 'Applicable environment identifier',
     provider_coordinate VARCHAR(200) NOT NULL COMMENT 'Provider artifact coordinate',
     consumer_coordinate VARCHAR(200) NOT NULL DEFAULT '*' COMMENT 'Consumer artifact coordinate',
@@ -934,18 +813,231 @@ CREATE TABLE IF NOT EXISTS bat_worker (
     INDEX ix_bat_worker_current_job (current_job_id, current_execution_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 배치 worker heartbeat';
 
--- CPF_CANONICAL_OBJECTS_BEGIN spring-batch-6-sequences
--- Generated from cpf-tools/db/canonical/platform-non-table-objects.json.
--- Spring Batch 6.0.4 JobRepository sequence contract; do not edit vendor SQL directly.
-CREATE SEQUENCE IF NOT EXISTS BATCH_JOB_INSTANCE_SEQ
-    START WITH 1 MINVALUE 1 MAXVALUE 9223372036854775806
-    INCREMENT BY 1 NOCACHE NOCYCLE ENGINE=InnoDB;
+CREATE TABLE IF NOT EXISTS bat_execution (
+    execution_id BIGINT AUTO_INCREMENT NOT NULL COMMENT '배치 실행 순번',
+    job_id VARCHAR(100) NOT NULL COMMENT '배치 Job ID',
+    schedule_id VARCHAR(100) NULL COMMENT '배치 스케줄 ID',
+    job_parameters VARCHAR(2000) NULL COMMENT '배치 파라미터',
+    execution_status VARCHAR(30) NOT NULL DEFAULT 'READY' COMMENT '실행 상태',
+    spring_batch_execution_id BIGINT NULL COMMENT 'Spring Batch JobExecution ID',
+    spring_batch_job_instance_id BIGINT NULL COMMENT 'Spring Batch JobInstance ID',
+    business_date DATE NULL COMMENT 'JobInstance 시작 시 확정한 업무일자',
+    run_id VARCHAR(120) NULL COMMENT '최초 실행 회차 ID',
+    rerun_id VARCHAR(120) NULL COMMENT '운영 재수행 ID',
+    original_job_execution_id BIGINT NULL COMMENT '재시작 기준 원 JobExecution ID',
+    restart_attempt INT NOT NULL DEFAULT 0 COMMENT '동일 JobInstance 재시작 회차',
+    batch_instance_id VARCHAR(100) NULL COMMENT '배치 인스턴스 ID',
+    server_instance_id VARCHAR(160) NULL COMMENT '실행 서버 인스턴스 ID',
+    worker_id VARCHAR(160) NULL COMMENT '실행 worker ID',
+    required_worker_version VARCHAR(80) NULL COMMENT '실행에 필요한 worker 버전',
+    required_capability VARCHAR(120) NULL COMMENT '실행에 필요한 worker capability',
+    transaction_id CHAR(34) NULL COMMENT '전역 거래 ID',
+    transaction_segment_id VARCHAR(120) NULL COMMENT '배치 Job 거래 구간 ID',
+    parent_segment_id VARCHAR(120) NULL COMMENT '상위 거래 구간 ID',
+    job_log_relative_path VARCHAR(1000) NULL COMMENT 'CPF_LOG_ROOT 기준 JobInstance 로그 상대 경로',
+    start_time DATETIME(3) NULL COMMENT '시작 일시',
+    end_time DATETIME(3) NULL COMMENT '종료 일시',
+    read_count BIGINT NOT NULL DEFAULT 0 COMMENT '읽은 건수',
+    write_count BIGINT NOT NULL DEFAULT 0 COMMENT '처리 건수',
+    skip_count BIGINT NOT NULL DEFAULT 0 COMMENT '건너뛴 건수',
+    total_count BIGINT NOT NULL DEFAULT 0 COMMENT '전체 처리 대상 건수',
+    processed_count BIGINT NOT NULL DEFAULT 0 COMMENT '처리 완료 건수',
+    success_count BIGINT NOT NULL DEFAULT 0 COMMENT '성공 처리 건수',
+    failure_count BIGINT NOT NULL DEFAULT 0 COMMENT '실패 처리 건수',
+    retry_count BIGINT NOT NULL DEFAULT 0 COMMENT '재시도 또는 rollback 건수',
+    stop_requested_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '운영 중지 요청 여부',
+    progress_rate DECIMAL(5,2) NOT NULL DEFAULT 0.00 COMMENT '진행률',
+    tps DECIMAL(18,4) NOT NULL DEFAULT 0.0000 COMMENT '초당 처리 건수',
+    avg_elapsed_ms BIGINT NOT NULL DEFAULT 0 COMMENT '평균 처리 시간 밀리초',
+    max_elapsed_ms BIGINT NOT NULL DEFAULT 0 COMMENT '최대 처리 시간 밀리초',
+    last_heartbeat_at DATETIME(3) NULL COMMENT '실행 메타 마지막 heartbeat 일시',
+    current_step_name VARCHAR(150) NULL COMMENT '현재 실행 중인 Step 이름',
+    error_message MEDIUMTEXT NULL COMMENT '오류 메시지',
+    requested_by VARCHAR(100) NULL COMMENT '실행 요청자',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    definition_version BIGINT NULL COMMENT 'Execution 생성 시 고정된 Job Definition Version',
+    definition_checksum VARCHAR(128) NULL COMMENT 'Execution 생성 시 고정된 Definition Checksum',
+    CONSTRAINT pk_bat_execution PRIMARY KEY (execution_id),
+    CONSTRAINT fk_bat_execution_job FOREIGN KEY (job_id) REFERENCES bat_job (job_id),
+    CONSTRAINT fk_bat_execution_instance FOREIGN KEY (batch_instance_id) REFERENCES bat_instance (instance_id) ON DELETE SET NULL,
+    CONSTRAINT fk_bat_execution_worker FOREIGN KEY (worker_id) REFERENCES bat_worker (worker_id) ON DELETE SET NULL,
+    INDEX ix_bat_execution_job_time (job_id, start_time),
+    INDEX ix_bat_execution_status (execution_status, start_time),
+    INDEX ix_bat_execution_spring (spring_batch_execution_id),
+    INDEX ix_bat_execution_job_instance (spring_batch_job_instance_id, business_date),
+    INDEX ix_bat_execution_worker (worker_id, execution_status, start_time),
+    INDEX ix_bat_execution_server (server_instance_id, start_time),
+    INDEX ix_bat_execution_claim (execution_status, required_worker_version, required_capability, execution_id),
+    INDEX ix_bat_execution_transaction (transaction_id),
+    INDEX ix_bat_execution_segment (transaction_segment_id, parent_segment_id),
+    INDEX ix_bat_execution_heartbeat (execution_status, last_heartbeat_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 배치 실행 이력';
 
-CREATE SEQUENCE IF NOT EXISTS BATCH_JOB_EXECUTION_SEQ
-    START WITH 1 MINVALUE 1 MAXVALUE 9223372036854775806
-    INCREMENT BY 1 NOCACHE NOCYCLE ENGINE=InnoDB;
+CREATE TABLE IF NOT EXISTS bat_execution_lease (
+    lease_id BIGINT AUTO_INCREMENT NOT NULL COMMENT '배치 실행 lease 순번',
+    execution_id BIGINT NOT NULL COMMENT '배치 실행 순번',
+    worker_id VARCHAR(160) NOT NULL COMMENT '현재 lease 소유 worker ID',
+    lease_token VARCHAR(80) NOT NULL COMMENT 'lease 갱신·완료 검증 토큰',
+    lease_status VARCHAR(30) NOT NULL DEFAULT 'CLAIMED' COMMENT 'CLAIMED, RUNNING, RELEASED, EXPIRED 상태',
+    claimed_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '최초 claim 일시',
+    lease_until DATETIME(3) NOT NULL COMMENT 'lease 만료 일시',
+    last_heartbeat_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '마지막 lease heartbeat 일시',
+    attempt_no INT NOT NULL DEFAULT 1 COMMENT 'claim 시도 회차',
+    takeover_count INT NOT NULL DEFAULT 0 COMMENT '만료 후 다른 worker 인수 횟수',
+    fencing_token BIGINT NOT NULL DEFAULT 0 COMMENT 'monotonic fencing token',
+    released_at DATETIME(3) NULL COMMENT '정상 또는 실패 완료 일시',
+    failure_message VARCHAR(1000) NULL COMMENT '마스킹된 실행 실패 메시지',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_bat_execution_lease PRIMARY KEY (lease_id),
+    CONSTRAINT uk_bat_execution_lease_execution UNIQUE (execution_id),
+    CONSTRAINT uk_bat_execution_lease_token UNIQUE (lease_token),
+    CONSTRAINT fk_bat_execution_lease_execution FOREIGN KEY (execution_id) REFERENCES bat_execution (execution_id) ON DELETE CASCADE,
+    CONSTRAINT fk_bat_execution_lease_worker FOREIGN KEY (worker_id) REFERENCES bat_worker (worker_id) ON DELETE RESTRICT,
+    INDEX ix_bat_execution_lease_owner (worker_id, lease_status, lease_until),
+    INDEX ix_bat_execution_lease_expire (lease_status, lease_until)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 배치 worker 실행 claim과 lease';
 
-CREATE SEQUENCE IF NOT EXISTS BATCH_STEP_EXECUTION_SEQ
-    START WITH 1 MINVALUE 1 MAXVALUE 9223372036854775806
-    INCREMENT BY 1 NOCACHE NOCYCLE ENGINE=InnoDB;
--- CPF_CANONICAL_OBJECTS_END spring-batch-6-sequences
+CREATE TABLE IF NOT EXISTS bat_execution_result_detail (
+    execution_id BIGINT NOT NULL COMMENT 'BAT 실행 ID',
+    definition_version BIGINT NULL COMMENT 'Definition Version Snapshot',
+    definition_checksum VARCHAR(64) NULL COMMENT 'Definition Checksum Snapshot',
+    executor_status VARCHAR(40) NOT NULL COMMENT 'Executor 상세 상태',
+    exit_code INT NULL COMMENT 'Process Exit Code',
+    timeout_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT 'Timeout 여부',
+    unknown_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '결과 불명 여부',
+    output_truncated_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '출력 절단 여부',
+    output_hash VARCHAR(64) NULL COMMENT '출력 Hash',
+    artifact_hash VARCHAR(64) NULL COMMENT '실행 Artifact Hash',
+    parameter_snapshot_hash VARCHAR(64) NULL COMMENT 'Parameter Snapshot Hash',
+    result_message VARCHAR(2000) NULL COMMENT '마스킹 결과',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '기록 시각',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '갱신 시각',
+    CONSTRAINT pk_bat_execution_result_detail PRIMARY KEY (execution_id),
+    CONSTRAINT ck_bat_result_timeout CHECK (timeout_yn IN ('Y','N')),
+    CONSTRAINT ck_bat_result_unknown CHECK (unknown_yn IN ('Y','N')),
+    CONSTRAINT ck_bat_result_truncated CHECK (output_truncated_yn IN ('Y','N')),
+    CONSTRAINT fk_bat_result_execution FOREIGN KEY (execution_id) REFERENCES bat_execution (execution_id),
+    INDEX ix_bat_result_status (executor_status, created_at),
+    INDEX ix_bat_result_unknown (unknown_yn, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Batch Executor 상세 결과 원장';
+
+CREATE TABLE IF NOT EXISTS bat_execution_target (
+    target_id BIGINT AUTO_INCREMENT NOT NULL COMMENT '배치 수행 대상 순번',
+    execution_id BIGINT NULL COMMENT '배치 실행 순번',
+    job_id VARCHAR(100) NOT NULL COMMENT '배치 Job ID',
+    schedule_id VARCHAR(100) NULL COMMENT '배치 스케줄 ID',
+    target_instance_id VARCHAR(100) NULL COMMENT '수행 대상 인스턴스 ID',
+    business_date DATE NULL COMMENT '업무 기준일',
+    planned_run_at DATETIME(3) NULL COMMENT '예정 수행 일시',
+    dispatch_status VARCHAR(30) NOT NULL DEFAULT 'WAITING' COMMENT '배정 상태',
+    dispatch_reason VARCHAR(500) NULL COMMENT '배정 또는 제외 사유',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_bat_execution_target PRIMARY KEY (target_id),
+    CONSTRAINT fk_bat_execution_target_execution FOREIGN KEY (execution_id) REFERENCES bat_execution (execution_id) ON DELETE SET NULL,
+    CONSTRAINT fk_bat_execution_target_job FOREIGN KEY (job_id) REFERENCES bat_job (job_id),
+    CONSTRAINT fk_bat_execution_target_schedule FOREIGN KEY (schedule_id) REFERENCES bat_schedule (schedule_id) ON DELETE SET NULL,
+    CONSTRAINT fk_bat_execution_target_instance FOREIGN KEY (target_instance_id) REFERENCES bat_instance (instance_id) ON DELETE SET NULL,
+    INDEX ix_bat_execution_target_job (job_id, dispatch_status, planned_run_at),
+    INDEX ix_bat_execution_target_execution (execution_id),
+    INDEX ix_bat_execution_target_instance (target_instance_id, dispatch_status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 배치 수행 대상/대기 인스턴스';
+
+CREATE TABLE IF NOT EXISTS bat_ghost_event (
+    ghost_event_id BIGINT AUTO_INCREMENT NOT NULL COMMENT '배치 ghost 이벤트 순번',
+    execution_id BIGINT NULL COMMENT '배치 실행 순번',
+    spring_batch_execution_id BIGINT NULL COMMENT 'Spring Batch JobExecution ID',
+    job_id VARCHAR(100) NOT NULL COMMENT '배치 Job ID',
+    server_instance_id VARCHAR(160) NULL COMMENT '서버 인스턴스 ID',
+    worker_id VARCHAR(160) NULL COMMENT 'worker ID',
+    ghost_status VARCHAR(30) NOT NULL DEFAULT 'DETECTED' COMMENT 'ghost 이벤트 상태',
+    detected_reason VARCHAR(1000) NOT NULL COMMENT '감지 사유',
+    action_type VARCHAR(30) NULL COMMENT '조치 유형',
+    action_reason VARCHAR(1000) NULL COMMENT '조치 사유',
+    action_by VARCHAR(100) NULL COMMENT '조치 운영자',
+    detected_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '감지 일시',
+    action_at DATETIME(3) NULL COMMENT '조치 일시',
+    lock_released_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '잠금 해제 여부',
+    retryable_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '재수행 가능 여부',
+    before_data LONGTEXT NULL COMMENT '조치 전 데이터',
+    after_data LONGTEXT NULL COMMENT '조치 후 데이터',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_bat_ghost_event PRIMARY KEY (ghost_event_id),
+    CONSTRAINT fk_bat_ghost_event_execution FOREIGN KEY (execution_id) REFERENCES bat_execution (execution_id) ON DELETE SET NULL,
+    CONSTRAINT fk_bat_ghost_event_job FOREIGN KEY (job_id) REFERENCES bat_job (job_id),
+    CONSTRAINT fk_bat_ghost_event_worker FOREIGN KEY (worker_id) REFERENCES bat_worker (worker_id) ON DELETE SET NULL,
+    INDEX ix_bat_ghost_event_execution (execution_id, ghost_status),
+    INDEX ix_bat_ghost_event_job (job_id, detected_at),
+    INDEX ix_bat_ghost_event_worker (worker_id, detected_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 배치 ghost 감지와 조치 이력';
+
+CREATE TABLE IF NOT EXISTS bat_step_execution (
+    step_execution_id BIGINT AUTO_INCREMENT NOT NULL COMMENT '배치 Step 실행 순번',
+    execution_id BIGINT NOT NULL COMMENT '배치 실행 순번',
+    spring_batch_step_execution_id BIGINT NULL COMMENT 'Spring Batch StepExecution ID',
+    worker_id VARCHAR(160) NULL COMMENT '실행 worker ID',
+    step_name VARCHAR(150) NOT NULL COMMENT 'Step 이름',
+    execution_status VARCHAR(30) NOT NULL DEFAULT 'READY' COMMENT '실행 상태',
+    start_time DATETIME(3) NULL COMMENT '시작 일시',
+    end_time DATETIME(3) NULL COMMENT '종료 일시',
+    read_count BIGINT NOT NULL DEFAULT 0 COMMENT '읽은 건수',
+    write_count BIGINT NOT NULL DEFAULT 0 COMMENT '처리 건수',
+    skip_count BIGINT NOT NULL DEFAULT 0 COMMENT '건너뛴 건수',
+    total_count BIGINT NOT NULL DEFAULT 0 COMMENT '전체 처리 대상 건수',
+    processed_count BIGINT NOT NULL DEFAULT 0 COMMENT '처리 완료 건수',
+    success_count BIGINT NOT NULL DEFAULT 0 COMMENT '성공 처리 건수',
+    failure_count BIGINT NOT NULL DEFAULT 0 COMMENT '실패 처리 건수',
+    retry_count BIGINT NOT NULL DEFAULT 0 COMMENT '재시도 또는 rollback 건수',
+    progress_rate DECIMAL(5,2) NOT NULL DEFAULT 0.00 COMMENT '진행률',
+    tps DECIMAL(18,4) NOT NULL DEFAULT 0.0000 COMMENT '초당 처리 건수',
+    avg_elapsed_ms BIGINT NOT NULL DEFAULT 0 COMMENT '평균 처리 시간 밀리초',
+    max_elapsed_ms BIGINT NOT NULL DEFAULT 0 COMMENT '최대 처리 시간 밀리초',
+    last_heartbeat_at DATETIME(3) NULL COMMENT 'Step 메타 마지막 heartbeat 일시',
+    error_message MEDIUMTEXT NULL COMMENT '오류 메시지',
+    step_log MEDIUMTEXT NULL COMMENT 'Step 로그',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_bat_step_execution PRIMARY KEY (step_execution_id),
+    CONSTRAINT fk_bat_step_execution_parent FOREIGN KEY (execution_id) REFERENCES bat_execution (execution_id) ON DELETE CASCADE,
+    CONSTRAINT fk_bat_step_execution_worker FOREIGN KEY (worker_id) REFERENCES bat_worker (worker_id) ON DELETE SET NULL,
+    INDEX ix_bat_step_execution_parent (execution_id, step_name),
+    INDEX ix_bat_step_execution_spring (spring_batch_step_execution_id),
+    INDEX ix_bat_step_execution_worker (worker_id, start_time),
+    INDEX ix_bat_step_execution_heartbeat (execution_status, last_heartbeat_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 배치 Step 실행 이력';
+
+CREATE TABLE IF NOT EXISTS bat_execution_attempt (
+    attempt_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '배치 실행 시도 식별자',
+    execution_id BIGINT NOT NULL COMMENT '배치 실행 식별자',
+    attempt_no INT NOT NULL COMMENT '1부터 시작하는 실행 시도 번호',
+    definition_version BIGINT NOT NULL COMMENT '시도에 고정된 Definition Version',
+    definition_checksum VARCHAR(128) NOT NULL COMMENT '시도에 고정된 Definition Checksum',
+    worker_id VARCHAR(160) NOT NULL COMMENT '시도를 소유한 Worker',
+    fencing_token BIGINT NOT NULL COMMENT '시도 소유권 Fencing Token',
+    attempt_status VARCHAR(40) NOT NULL DEFAULT 'RUNNING' COMMENT '실행 시도 상태',
+    result_message MEDIUMTEXT NULL COMMENT '마스킹된 시도 결과 메시지',
+    started_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '시도 시작 일시',
+    finished_at DATETIME(3) NULL COMMENT '시도 종료 일시',
+    CONSTRAINT pk_bat_execution_attempt PRIMARY KEY (attempt_id),
+    CONSTRAINT uk_bat_execution_attempt UNIQUE (execution_id, attempt_no),
+    CONSTRAINT ck_bat_execution_attempt_status CHECK (attempt_status IN ('RUNNING','COMPLETED','FAILED','TIMEOUT','RETRYABLE_FAILURE','UNKNOWN_RESULT')),
+    CONSTRAINT fk_bat_execution_attempt_execution FOREIGN KEY (execution_id) REFERENCES bat_execution (execution_id) ON DELETE CASCADE,
+    INDEX ix_bat_execution_attempt_status (attempt_status, started_at),
+    INDEX ix_bat_execution_attempt_worker (worker_id, started_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 실행별 재시도 및 결과 불명 원장';
+
+ALTER TABLE bat_job ADD CONSTRAINT fk_bat_job_published_definition FOREIGN KEY (job_id, published_definition_version) REFERENCES bat_job_definition_version (job_id, definition_version);
+CREATE INDEX ix_bat_job_definition_audit_approval ON bat_job_definition_audit (approval_request_id, created_at);

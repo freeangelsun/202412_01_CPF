@@ -1,0 +1,50 @@
+{
+  "schema_version": "1.0",
+  "package_id": "CPF-20260731-QA32-OSS-PRIMARY-ENGINE-AMENDMENT",
+  "baseline_source_sha": "4f675c7f89998cdbba7202e6c83320a0a4421a1f",
+  "generated_date": "2026-07-31",
+  "file_count_excluding_manifest": 7,
+  "files": [
+    {
+      "path": "cpf-docs/architecture/ADR_OSS_FIRST_PLATFORM_DIRECTION.md",
+      "bytes": 9358,
+      "sha256": "aa201c89ba331e4140915f23de3a9de8e208cfcb7227e5b50d268752db9d8860"
+    },
+    {
+      "path": "cpf-docs/architecture/CPF_BUILD_VS_BUY_MATRIX.md",
+      "bytes": 5970,
+      "sha256": "83b7813ff7e41f4e831917eb1d2d68fb954cbfbfbc354e82207644041c923cbd"
+    },
+    {
+      "path": "cpf-docs/quality/CPF_20260730_QA32_OSS_MIGRATION_MATRIX.csv",
+      "bytes": 8840,
+      "sha256": "513b86e80495c2944fbbd6e1f699dee62e72770e6f643a20c115f034f060340e"
+    },
+    {
+      "path": "cpf-docs/quality/CPF_20260731_QA32_OSS_PRIMARY_ENGINE_CHANGE_MATRIX.csv",
+      "bytes": 1057,
+      "sha256": "6ff897ae677e8074ee944ee4c420ec7bf5562b3886591097c9ab3d3b1fa1e90b"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_20260731_QA32_OSS_PRIMARY_ENGINE_AMENDMENT_PACKAGE_INDEX.md",
+      "bytes": 1709,
+      "sha256": "4948b481abe952edc0bbc6f7bc5f357deac3d5d8fd3f14e89acf07327f5eb2a0"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_20260731_QA32_OSS_PRIMARY_ENGINE_STEERING.md",
+      "bytes": 5637,
+      "sha256": "a5e6a38fe219f10ce259800292621a13067e790c0a5f513a8aed2ca8778c4d2e"
+    },
+    {
+      "path": "cpf-tools/scripts/apply-cpf-qa32-oss-primary-engine-amendment.ps1",
+      "bytes": 13026,
+      "sha256": "7ba1d1d13288a26244f75c49724539df84aa72e7ae48e81266c263e71df597bd"
+    }
+  ],
+  "apply_command": "pwsh -NoProfile -File cpf-tools/scripts/apply-cpf-qa32-oss-primary-engine-amendment.ps1 -Root .",
+  "notes": [
+    "No repository-root files",
+    "No source code implementation included",
+    "Existing large matrices are patched fail-closed by script"
+  ]
+}

@@ -21,13 +21,25 @@ $requiredResults = @(
     "cpf-docs/quality/CPF_20260730_QA31_RESULT_MATRIX.csv",
     "cpf-docs/quality/CPF_20260730_QA31_UNRESOLVED_REGISTER.csv",
     "cpf-docs/work/handover/CPF_20260730_QA31_DEVELOPMENT_HANDOVER.md",
-    "cpf-docs/work/current/CPF_20260730_QA31_CODEX_REVIEW_READY.md"
+    "cpf-docs/work/current/CPF_CURRENT_WORK_REQUEST.md",
+    "cpf-docs/work/current/CPF_20260730_QA31_CODEX_REVIEW_READY.md",
+    "cpf-docs/work/manifest/CPF_20260730_QA31_DELETE_MANIFEST.txt",
+    "cpf-docs/work/manifest/CPF_20260730_QA31_REQUEST_INTEGRITY.json",
+    "cpf-tools/scripts/apply-cpf-qa31-development-result.ps1",
+    "cpf-tools/scripts/verify-cpf-qa31-development-result.ps1",
+    "cpf-tools/scripts/verify-cpf-qa31-development.py",
+    "cpf-tools/scripts/verify-cpf-reference-qa31-coverage.py",
+    "cpf-tools/scripts/verify-cpf-bza-qa31-coverage.py"
 )
 foreach ($path in $requiredResults) {
     if (-not (Test-Path -LiteralPath (Join-Path $ProjectRoot $path) -PathType Leaf)) {
         throw "Required development result is missing: $path"
     }
 }
+$verifyScript = Join-Path $ProjectRoot "cpf-tools/scripts/verify-cpf-qa31-development-result.ps1"
+& pwsh -NoProfile -ExecutionPolicy Bypass -File $verifyScript -Root $ProjectRoot -BaseSha $BaseSha -Mode full
+if ($LASTEXITCODE -ne 0) { throw "QA31 development gate failed before packaging." }
+
 $changed += $requiredResults
 $currentEvidence = Join-Path $ProjectRoot "cpf-docs/evidence/current"
 if (Test-Path -LiteralPath $currentEvidence -PathType Container) {
@@ -40,7 +52,7 @@ $excludedPatterns = @(
     '^\.git/', '(^|/)build/', '(^|/)node_modules/', '(^|/)\.idea/', '(^|/)\.gradle/',
     '\.(pem|p12|pfx|jks|key)$'
 )
-$readmeGuidePatterns = @('(^|/)README[^/]*$', '^cpf-docs/guides/', '^cpf-tools/README\.md$')
+$readmeGuidePatterns = @('(^|/)README[^/]*$', '^cpf-docs/guides/', '^cpf-tools/README\.md$', '^cpf-docs/assets/readme/', '^cpf-docs/work/overlay/20260730-readme-guides/')
 $included = [System.Collections.Generic.List[string]]::new()
 $excluded = [System.Collections.Generic.List[string]]::new()
 foreach ($rel in $changed) {

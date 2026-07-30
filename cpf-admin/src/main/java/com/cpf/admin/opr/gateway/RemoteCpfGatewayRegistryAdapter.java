@@ -7,11 +7,15 @@ import com.cpf.core.api.gateway.CpfGatewayRegistryPort;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URLEncoder;
+import java.time.Duration;
+import java.util.concurrent.TimeoutException;
 import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
 
 /** 분리 WAS의 Gateway Owner 내부 API를 동일 Typed Port로 제공하는 ADM Remote Adapter입니다. */
@@ -21,19 +25,31 @@ public final class RemoteCpfGatewayRegistryAdapter implements CpfGatewayRegistry
     private final AdmAuthenticatedOperatorContext actorContext;
     private final ObjectMapper mapper;
     private final String sharedSecret;
+    private final String keyId;
+    private final String audience;
+    private final Duration overallTimeout;
 
     public RemoteCpfGatewayRegistryAdapter(
             WebClient.Builder builder,
             AdmAuthenticatedOperatorContext actorContext,
             ObjectMapper mapper,
             String baseUrl,
-            String sharedSecret) {
+            String sharedSecret,
+            String keyId,
+            String audience,
+            Duration overallTimeout) {
         this.client = builder.baseUrl(required(baseUrl, "baseUrl")).build();
         this.actorContext = actorContext;
         this.mapper = mapper;
         this.sharedSecret = required(sharedSecret, "sharedSecret");
+        this.keyId = required(keyId, "keyId");
+        this.audience = required(audience, "audience");
+        this.overallTimeout = Objects.requireNonNull(overallTimeout, "overallTimeout");
         if (this.sharedSecret.length() < 32) {
             throw new IllegalArgumentException("Gateway Control sharedSecret은 32자 이상이어야 합니다.");
+        }
+        if (overallTimeout.isZero() || overallTimeout.isNegative() || overallTimeout.compareTo(Duration.ofMinutes(2)) > 0) {
+            throw new IllegalArgumentException("Gateway Control overallTimeout은 1ms~2분 범위여야 합니다.");
         }
     }
 
@@ -178,25 +194,78 @@ public final class RemoteCpfGatewayRegistryAdapter implements CpfGatewayRegistry
         String operator = required(actorContext.currentOperatorId(), "authenticated operator");
         long timestamp = System.currentTimeMillis();
         String nonce = UUID.randomUUID().toString();
+        byte[] bodyBytes = serialize(body);
+        String contentType = body == null ? "" : MediaType.APPLICATION_JSON_VALUE;
+        String bodySha = CpfGatewayControlSigner.sha256(bodyBytes);
         String signature = CpfGatewayControlSigner.sign(
-                sharedSecret, method.name(), requestTarget, "ADM", operator, timestamp, nonce);
+                sharedSecret, method.name(), requestTarget, contentType, bodySha,
+                "ADM", operator, timestamp, nonce, audience, keyId);
+
         WebClient.RequestBodySpec request = client.method(method).uri(requestTarget).headers(headers -> {
             headers.set(CpfGatewayControlHeaders.CALLER_SERVICE, "ADM");
             headers.set(CpfGatewayControlHeaders.OPERATOR_ID, operator);
             headers.set(CpfGatewayControlHeaders.TIMESTAMP, Long.toString(timestamp));
             headers.set(CpfGatewayControlHeaders.NONCE, nonce);
+            headers.set(CpfGatewayControlHeaders.CONTENT_SHA256, bodySha);
+            headers.set(CpfGatewayControlHeaders.AUDIENCE, audience);
+            headers.set(CpfGatewayControlHeaders.KEY_ID, keyId);
             headers.set(CpfGatewayControlHeaders.SIGNATURE, signature);
+            if (body != null) headers.setContentType(MediaType.APPLICATION_JSON);
         });
-        WebClient.RequestHeadersSpec<?> prepared = body == null ? request : request.bodyValue(body);
-        return prepared.exchangeToMono(response -> {
-            if (response.statusCode().is2xxSuccessful()) {
-                if (response.statusCode().value() == 204) return reactor.core.publisher.Mono.empty();
-                return response.bodyToMono(Object.class);
-            }
-            return response.bodyToMono(String.class).defaultIfEmpty("").flatMap(message ->
-                    reactor.core.publisher.Mono.error(new org.springframework.web.server.ResponseStatusException(
-                            response.statusCode(), "Gateway Owner call failed: " + sanitize(message))));
-        }).block();
+        WebClient.RequestHeadersSpec<?> prepared = body == null ? request : request.bodyValue(bodyBytes);
+        try {
+            return prepared.exchangeToMono(response -> {
+                if (response.statusCode().is2xxSuccessful()) {
+                    if (response.statusCode().value() == 204) return reactor.core.publisher.Mono.empty();
+                    return response.bodyToMono(byte[].class).map(this::deserialize);
+                }
+                return response.bodyToMono(String.class).defaultIfEmpty("").flatMap(message -> {
+                    int status = response.statusCode().value();
+                    CpfGatewayRemoteCallException.ResultState state = status >= 400 && status < 500
+                            ? CpfGatewayRemoteCallException.ResultState.REJECTED
+                            : mutation(method)
+                                    ? CpfGatewayRemoteCallException.ResultState.UNKNOWN_RESULT
+                                    : CpfGatewayRemoteCallException.ResultState.FAILED;
+                    return reactor.core.publisher.Mono.error(new CpfGatewayRemoteCallException(
+                            state, status, state == CpfGatewayRemoteCallException.ResultState.UNKNOWN_RESULT,
+                            "Gateway Owner call failed: " + sanitize(message), null));
+                });
+            }).timeout(overallTimeout).block(overallTimeout.plusMillis(100));
+        } catch (CpfGatewayRemoteCallException ex) {
+            throw ex;
+        } catch (RuntimeException ex) {
+            Throwable root = rootCause(ex);
+            boolean timeout = root instanceof TimeoutException
+                    || root.getClass().getSimpleName().toLowerCase(java.util.Locale.ROOT).contains("timeout");
+            CpfGatewayRemoteCallException.ResultState state = mutation(method)
+                    ? CpfGatewayRemoteCallException.ResultState.UNKNOWN_RESULT
+                    : CpfGatewayRemoteCallException.ResultState.FAILED;
+            throw new CpfGatewayRemoteCallException(
+                    state, null, mutation(method),
+                    timeout ? "Gateway Owner 응답 시간이 초과되었습니다." : "Gateway Owner 연결에 실패했습니다.", ex);
+        }
+    }
+
+    private byte[] serialize(Object body) {
+        if (body == null) return new byte[0];
+        try { return mapper.writeValueAsBytes(body); }
+        catch (java.io.IOException ex) { throw new IllegalArgumentException("Gateway Control body 직렬화에 실패했습니다.", ex); }
+    }
+
+    private Object deserialize(byte[] body) {
+        if (body == null || body.length == 0) return null;
+        try { return mapper.readValue(body, Object.class); }
+        catch (java.io.IOException ex) { throw new IllegalStateException("Gateway Owner 응답 역직렬화에 실패했습니다.", ex); }
+    }
+
+    private static boolean mutation(HttpMethod method) {
+        return !(HttpMethod.GET.equals(method) || HttpMethod.HEAD.equals(method) || HttpMethod.OPTIONS.equals(method));
+    }
+
+    private static Throwable rootCause(Throwable failure) {
+        Throwable current = failure;
+        while (current.getCause() != null && current.getCause() != current) current = current.getCause();
+        return current;
     }
 
     private <T> T convert(Object value, Class<T> type) {

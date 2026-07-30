@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 40,
+  "schemaVersion": 41,
   "canonicalPolicy": {
     "officialVendors": [
       "mariadb",
@@ -37,10 +37,569 @@
       "jobIdType": "VARCHAR(100)",
       "scope": "bat_job and all version/audit/projection/dependency/parameter/runtime references",
       "rule": "all FK participating job_id columns use the same canonical width"
-    }
+    },
+    "gatewayIngressTargetPathPolicy": "Ingress path_pattern and target_path are separate; wildcard suffix is validated and rewritten before dispatch.",
+    "batchExecutionAttemptDetailPolicy": "Shell/external attempt detail including exit/stdout/stderr/truncation/duration/artifactHash/unknown is durable and transactionally finalized."
   },
-  "tableCount": 182,
+  "tableCount": 185,
   "tables": [
+    {
+      "name": "BATCH_JOB_EXECUTION",
+      "columns": [
+        {
+          "name": "JOB_EXECUTION_ID",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Spring Batch JobExecution 순번"
+        },
+        {
+          "name": "VERSION",
+          "type": "BIGINT",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "낙관적 잠금 버전"
+        },
+        {
+          "name": "JOB_INSTANCE_ID",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Spring Batch JobInstance 순번"
+        },
+        {
+          "name": "CREATE_TIME",
+          "type": "DATETIME(6)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "실행 생성 일시"
+        },
+        {
+          "name": "START_TIME",
+          "type": "DATETIME(6)",
+          "nullable": true,
+          "default": "NULL",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "실행 시작 일시"
+        },
+        {
+          "name": "END_TIME",
+          "type": "DATETIME(6)",
+          "nullable": true,
+          "default": "NULL",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "실행 종료 일시"
+        },
+        {
+          "name": "STATUS",
+          "type": "VARCHAR(10)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "실행 상태"
+        },
+        {
+          "name": "EXIT_CODE",
+          "type": "VARCHAR(2500)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "종료 코드"
+        },
+        {
+          "name": "EXIT_MESSAGE",
+          "type": "VARCHAR(2500)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "종료 메시지"
+        },
+        {
+          "name": "LAST_UPDATED",
+          "type": "DATETIME(6)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "마지막 수정 일시"
+        }
+      ],
+      "primaryKey": [
+        "JOB_EXECUTION_ID"
+      ],
+      "uniqueKeys": [],
+      "indexes": [],
+      "foreignKeys": [
+        {
+          "name": "JOB_INST_EXEC_FK",
+          "columns": [
+            "JOB_INSTANCE_ID"
+          ],
+          "refTable": "BATCH_JOB_INSTANCE",
+          "refColumns": [
+            "JOB_INSTANCE_ID"
+          ],
+          "onDelete": null,
+          "onUpdate": null
+        }
+      ],
+      "checks": [],
+      "comment": "Spring Batch 표준 JobExecution 저장소",
+      "module": "bat",
+      "logicalDatabase": "batDB"
+    },
+    {
+      "name": "BATCH_JOB_EXECUTION_CONTEXT",
+      "columns": [
+        {
+          "name": "JOB_EXECUTION_ID",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Spring Batch JobExecution 순번"
+        },
+        {
+          "name": "SHORT_CONTEXT",
+          "type": "VARCHAR(2500)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "짧은 실행 컨텍스트"
+        },
+        {
+          "name": "SERIALIZED_CONTEXT",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "직렬화 실행 컨텍스트"
+        }
+      ],
+      "primaryKey": [
+        "JOB_EXECUTION_ID"
+      ],
+      "uniqueKeys": [],
+      "indexes": [],
+      "foreignKeys": [
+        {
+          "name": "JOB_EXEC_CTX_FK",
+          "columns": [
+            "JOB_EXECUTION_ID"
+          ],
+          "refTable": "BATCH_JOB_EXECUTION",
+          "refColumns": [
+            "JOB_EXECUTION_ID"
+          ],
+          "onDelete": null,
+          "onUpdate": null
+        }
+      ],
+      "checks": [],
+      "comment": "Spring Batch 표준 Job 컨텍스트 저장소",
+      "module": "bat",
+      "logicalDatabase": "batDB"
+    },
+    {
+      "name": "BATCH_JOB_EXECUTION_PARAMS",
+      "columns": [
+        {
+          "name": "JOB_EXECUTION_ID",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Spring Batch JobExecution 순번"
+        },
+        {
+          "name": "PARAMETER_NAME",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "파라미터 이름"
+        },
+        {
+          "name": "PARAMETER_TYPE",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "파라미터 Java 유형"
+        },
+        {
+          "name": "PARAMETER_VALUE",
+          "type": "VARCHAR(2500)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "파라미터 값"
+        },
+        {
+          "name": "IDENTIFYING",
+          "type": "CHAR(1)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "JobInstance 식별 파라미터 여부"
+        }
+      ],
+      "primaryKey": [],
+      "uniqueKeys": [],
+      "indexes": [],
+      "foreignKeys": [
+        {
+          "name": "JOB_EXEC_PARAMS_FK",
+          "columns": [
+            "JOB_EXECUTION_ID"
+          ],
+          "refTable": "BATCH_JOB_EXECUTION",
+          "refColumns": [
+            "JOB_EXECUTION_ID"
+          ],
+          "onDelete": null,
+          "onUpdate": null
+        }
+      ],
+      "checks": [],
+      "comment": "Spring Batch 표준 Job 파라미터 저장소",
+      "module": "bat",
+      "logicalDatabase": "batDB"
+    },
+    {
+      "name": "BATCH_JOB_INSTANCE",
+      "columns": [
+        {
+          "name": "JOB_INSTANCE_ID",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Spring Batch JobInstance 순번"
+        },
+        {
+          "name": "VERSION",
+          "type": "BIGINT",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "낙관적 잠금 버전"
+        },
+        {
+          "name": "JOB_NAME",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Spring Batch Job 이름"
+        },
+        {
+          "name": "JOB_KEY",
+          "type": "VARCHAR(32)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Job 파라미터 식별 키"
+        }
+      ],
+      "primaryKey": [
+        "JOB_INSTANCE_ID"
+      ],
+      "uniqueKeys": [
+        {
+          "name": "JOB_INST_UN",
+          "columns": [
+            "JOB_NAME",
+            "JOB_KEY"
+          ]
+        }
+      ],
+      "indexes": [],
+      "foreignKeys": [],
+      "checks": [],
+      "comment": "Spring Batch 표준 JobInstance 저장소",
+      "module": "bat",
+      "logicalDatabase": "batDB"
+    },
+    {
+      "name": "BATCH_STEP_EXECUTION",
+      "columns": [
+        {
+          "name": "STEP_EXECUTION_ID",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Spring Batch StepExecution 순번"
+        },
+        {
+          "name": "VERSION",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "낙관적 잠금 버전"
+        },
+        {
+          "name": "STEP_NAME",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Step 이름"
+        },
+        {
+          "name": "JOB_EXECUTION_ID",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Spring Batch JobExecution 순번"
+        },
+        {
+          "name": "CREATE_TIME",
+          "type": "DATETIME(6)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Step 생성 일시"
+        },
+        {
+          "name": "START_TIME",
+          "type": "DATETIME(6)",
+          "nullable": true,
+          "default": "NULL",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Step 시작 일시"
+        },
+        {
+          "name": "END_TIME",
+          "type": "DATETIME(6)",
+          "nullable": true,
+          "default": "NULL",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Step 종료 일시"
+        },
+        {
+          "name": "STATUS",
+          "type": "VARCHAR(10)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Step 상태"
+        },
+        {
+          "name": "COMMIT_COUNT",
+          "type": "BIGINT",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "커밋 횟수"
+        },
+        {
+          "name": "READ_COUNT",
+          "type": "BIGINT",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "읽은 건수"
+        },
+        {
+          "name": "FILTER_COUNT",
+          "type": "BIGINT",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "필터 건수"
+        },
+        {
+          "name": "WRITE_COUNT",
+          "type": "BIGINT",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "쓴 건수"
+        },
+        {
+          "name": "READ_SKIP_COUNT",
+          "type": "BIGINT",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "읽기 skip 건수"
+        },
+        {
+          "name": "WRITE_SKIP_COUNT",
+          "type": "BIGINT",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "쓰기 skip 건수"
+        },
+        {
+          "name": "PROCESS_SKIP_COUNT",
+          "type": "BIGINT",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "처리 skip 건수"
+        },
+        {
+          "name": "ROLLBACK_COUNT",
+          "type": "BIGINT",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "rollback 건수"
+        },
+        {
+          "name": "EXIT_CODE",
+          "type": "VARCHAR(2500)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "종료 코드"
+        },
+        {
+          "name": "EXIT_MESSAGE",
+          "type": "VARCHAR(2500)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "종료 메시지"
+        },
+        {
+          "name": "LAST_UPDATED",
+          "type": "DATETIME(6)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "마지막 수정 일시"
+        }
+      ],
+      "primaryKey": [
+        "STEP_EXECUTION_ID"
+      ],
+      "uniqueKeys": [],
+      "indexes": [],
+      "foreignKeys": [
+        {
+          "name": "JOB_EXEC_STEP_FK",
+          "columns": [
+            "JOB_EXECUTION_ID"
+          ],
+          "refTable": "BATCH_JOB_EXECUTION",
+          "refColumns": [
+            "JOB_EXECUTION_ID"
+          ],
+          "onDelete": null,
+          "onUpdate": null
+        }
+      ],
+      "checks": [],
+      "comment": "Spring Batch 표준 StepExecution 저장소",
+      "module": "bat",
+      "logicalDatabase": "batDB"
+    },
+    {
+      "name": "BATCH_STEP_EXECUTION_CONTEXT",
+      "columns": [
+        {
+          "name": "STEP_EXECUTION_ID",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Spring Batch StepExecution 순번"
+        },
+        {
+          "name": "SHORT_CONTEXT",
+          "type": "VARCHAR(2500)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "짧은 실행 컨텍스트"
+        },
+        {
+          "name": "SERIALIZED_CONTEXT",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "직렬화 실행 컨텍스트"
+        }
+      ],
+      "primaryKey": [
+        "STEP_EXECUTION_ID"
+      ],
+      "uniqueKeys": [],
+      "indexes": [],
+      "foreignKeys": [
+        {
+          "name": "STEP_EXEC_CTX_FK",
+          "columns": [
+            "STEP_EXECUTION_ID"
+          ],
+          "refTable": "BATCH_STEP_EXECUTION",
+          "refColumns": [
+            "STEP_EXECUTION_ID"
+          ],
+          "onDelete": null,
+          "onUpdate": null
+        }
+      ],
+      "checks": [],
+      "comment": "Spring Batch 표준 Step 컨텍스트 저장소",
+      "module": "bat",
+      "logicalDatabase": "batDB"
+    },
     {
       "name": "adm_api_permission",
       "columns": [
@@ -3363,6 +3922,139 @@
       "foreignKeys": [],
       "checks": [],
       "comment": "ADM 관리자 IP 허용 목록",
+      "module": "adm",
+      "logicalDatabase": "admDB"
+    },
+    {
+      "name": "adm_log_export_artifact",
+      "columns": [
+        {
+          "name": "export_id",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Export ID"
+        },
+        {
+          "name": "owner_operator_id",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "소유 운영자"
+        },
+        {
+          "name": "file_name",
+          "type": "VARCHAR(255)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "다운로드 파일명"
+        },
+        {
+          "name": "content_type",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Content Type"
+        },
+        {
+          "name": "artifact_content",
+          "type": "LONGBLOB",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "마스킹된 Artifact 본문"
+        },
+        {
+          "name": "content_length",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "본문 길이"
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME(3)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "생성 시각"
+        },
+        {
+          "name": "expires_at",
+          "type": "DATETIME(3)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "만료 시각"
+        },
+        {
+          "name": "status_code",
+          "type": "VARCHAR(20)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "READY/REVOKED"
+        },
+        {
+          "name": "downloaded_at",
+          "type": "DATETIME(3)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "마지막 다운로드 시각"
+        },
+        {
+          "name": "download_count",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "0",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "다운로드 횟수"
+        }
+      ],
+      "primaryKey": [
+        "export_id"
+      ],
+      "uniqueKeys": [],
+      "indexes": [
+        {
+          "name": "ix_adm_log_export_expiry",
+          "columns": [
+            "expires_at"
+          ]
+        },
+        {
+          "name": "ix_adm_log_export_owner",
+          "columns": [
+            "owner_operator_id",
+            "created_at"
+          ]
+        }
+      ],
+      "foreignKeys": [],
+      "checks": [
+        {
+          "name": "ck_adm_log_export_status",
+          "expression": "status_code IN ('READY','REVOKED')"
+        }
+      ],
+      "comment": "ADM 다중 인스턴스 공용 로그 Export Artifact",
       "module": "adm",
       "logicalDatabase": "admDB"
     },
@@ -7768,6 +8460,78 @@
           "comment": "마스킹된 시도 결과 메시지"
         },
         {
+          "name": "executor_type",
+          "type": "VARCHAR(40)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "실제 실행 Adapter 유형"
+        },
+        {
+          "name": "exit_code",
+          "type": "INT",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Shell/Process 종료 코드"
+        },
+        {
+          "name": "stdout_text",
+          "type": "MEDIUMTEXT",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "마스킹된 표준 출력"
+        },
+        {
+          "name": "stderr_text",
+          "type": "MEDIUMTEXT",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "마스킹된 표준 오류"
+        },
+        {
+          "name": "output_truncated_yn",
+          "type": "CHAR(1)",
+          "nullable": false,
+          "default": "'N'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "출력 길이 제한 적용 여부"
+        },
+        {
+          "name": "duration_ms",
+          "type": "BIGINT",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "실행 소요 시간(ms)"
+        },
+        {
+          "name": "artifact_hash",
+          "type": "VARCHAR(128)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "승인 Script/File Artifact SHA-256"
+        },
+        {
+          "name": "unknown_result_yn",
+          "type": "CHAR(1)",
+          "nullable": false,
+          "default": "'N'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "결과 불명 여부"
+        },
+        {
           "name": "started_at",
           "type": "DATETIME(3)",
           "nullable": false,
@@ -7832,6 +8596,14 @@
         {
           "name": "ck_bat_execution_attempt_status",
           "expression": "attempt_status IN ('RUNNING','COMPLETED','FAILED','TIMEOUT','RETRYABLE_FAILURE','UNKNOWN_RESULT')"
+        },
+        {
+          "name": "ck_bat_execution_attempt_truncated",
+          "expression": "output_truncated_yn IN ('Y','N')"
+        },
+        {
+          "name": "ck_bat_execution_attempt_unknown",
+          "expression": "unknown_result_yn IN ('Y','N')"
         }
       ],
       "comment": "BAT 실행별 재시도 및 결과 불명 원장",
@@ -13027,563 +13799,6 @@
       "foreignKeys": [],
       "checks": [],
       "comment": "BAT 배치 worker heartbeat",
-      "module": "bat",
-      "logicalDatabase": "batDB"
-    },
-    {
-      "name": "BATCH_JOB_EXECUTION",
-      "columns": [
-        {
-          "name": "JOB_EXECUTION_ID",
-          "type": "BIGINT",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "Spring Batch JobExecution 순번"
-        },
-        {
-          "name": "VERSION",
-          "type": "BIGINT",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "낙관적 잠금 버전"
-        },
-        {
-          "name": "JOB_INSTANCE_ID",
-          "type": "BIGINT",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "Spring Batch JobInstance 순번"
-        },
-        {
-          "name": "CREATE_TIME",
-          "type": "DATETIME(6)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "실행 생성 일시"
-        },
-        {
-          "name": "START_TIME",
-          "type": "DATETIME(6)",
-          "nullable": true,
-          "default": "NULL",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "실행 시작 일시"
-        },
-        {
-          "name": "END_TIME",
-          "type": "DATETIME(6)",
-          "nullable": true,
-          "default": "NULL",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "실행 종료 일시"
-        },
-        {
-          "name": "STATUS",
-          "type": "VARCHAR(10)",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "실행 상태"
-        },
-        {
-          "name": "EXIT_CODE",
-          "type": "VARCHAR(2500)",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "종료 코드"
-        },
-        {
-          "name": "EXIT_MESSAGE",
-          "type": "VARCHAR(2500)",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "종료 메시지"
-        },
-        {
-          "name": "LAST_UPDATED",
-          "type": "DATETIME(6)",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "마지막 수정 일시"
-        }
-      ],
-      "primaryKey": [
-        "JOB_EXECUTION_ID"
-      ],
-      "uniqueKeys": [],
-      "indexes": [],
-      "foreignKeys": [
-        {
-          "name": "JOB_INST_EXEC_FK",
-          "columns": [
-            "JOB_INSTANCE_ID"
-          ],
-          "refTable": "BATCH_JOB_INSTANCE",
-          "refColumns": [
-            "JOB_INSTANCE_ID"
-          ],
-          "onDelete": null,
-          "onUpdate": null
-        }
-      ],
-      "checks": [],
-      "comment": "Spring Batch 표준 JobExecution 저장소",
-      "module": "bat",
-      "logicalDatabase": "batDB"
-    },
-    {
-      "name": "BATCH_JOB_EXECUTION_CONTEXT",
-      "columns": [
-        {
-          "name": "JOB_EXECUTION_ID",
-          "type": "BIGINT",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "Spring Batch JobExecution 순번"
-        },
-        {
-          "name": "SHORT_CONTEXT",
-          "type": "VARCHAR(2500)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "짧은 실행 컨텍스트"
-        },
-        {
-          "name": "SERIALIZED_CONTEXT",
-          "type": "TEXT",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "직렬화 실행 컨텍스트"
-        }
-      ],
-      "primaryKey": [
-        "JOB_EXECUTION_ID"
-      ],
-      "uniqueKeys": [],
-      "indexes": [],
-      "foreignKeys": [
-        {
-          "name": "JOB_EXEC_CTX_FK",
-          "columns": [
-            "JOB_EXECUTION_ID"
-          ],
-          "refTable": "BATCH_JOB_EXECUTION",
-          "refColumns": [
-            "JOB_EXECUTION_ID"
-          ],
-          "onDelete": null,
-          "onUpdate": null
-        }
-      ],
-      "checks": [],
-      "comment": "Spring Batch 표준 Job 컨텍스트 저장소",
-      "module": "bat",
-      "logicalDatabase": "batDB"
-    },
-    {
-      "name": "BATCH_JOB_EXECUTION_PARAMS",
-      "columns": [
-        {
-          "name": "JOB_EXECUTION_ID",
-          "type": "BIGINT",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "Spring Batch JobExecution 순번"
-        },
-        {
-          "name": "PARAMETER_NAME",
-          "type": "VARCHAR(100)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "파라미터 이름"
-        },
-        {
-          "name": "PARAMETER_TYPE",
-          "type": "VARCHAR(100)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "파라미터 Java 유형"
-        },
-        {
-          "name": "PARAMETER_VALUE",
-          "type": "VARCHAR(2500)",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "파라미터 값"
-        },
-        {
-          "name": "IDENTIFYING",
-          "type": "CHAR(1)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "JobInstance 식별 파라미터 여부"
-        }
-      ],
-      "primaryKey": [],
-      "uniqueKeys": [],
-      "indexes": [],
-      "foreignKeys": [
-        {
-          "name": "JOB_EXEC_PARAMS_FK",
-          "columns": [
-            "JOB_EXECUTION_ID"
-          ],
-          "refTable": "BATCH_JOB_EXECUTION",
-          "refColumns": [
-            "JOB_EXECUTION_ID"
-          ],
-          "onDelete": null,
-          "onUpdate": null
-        }
-      ],
-      "checks": [],
-      "comment": "Spring Batch 표준 Job 파라미터 저장소",
-      "module": "bat",
-      "logicalDatabase": "batDB"
-    },
-    {
-      "name": "BATCH_JOB_INSTANCE",
-      "columns": [
-        {
-          "name": "JOB_INSTANCE_ID",
-          "type": "BIGINT",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "Spring Batch JobInstance 순번"
-        },
-        {
-          "name": "VERSION",
-          "type": "BIGINT",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "낙관적 잠금 버전"
-        },
-        {
-          "name": "JOB_NAME",
-          "type": "VARCHAR(100)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "Spring Batch Job 이름"
-        },
-        {
-          "name": "JOB_KEY",
-          "type": "VARCHAR(32)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "Job 파라미터 식별 키"
-        }
-      ],
-      "primaryKey": [
-        "JOB_INSTANCE_ID"
-      ],
-      "uniqueKeys": [
-        {
-          "name": "JOB_INST_UN",
-          "columns": [
-            "JOB_NAME",
-            "JOB_KEY"
-          ]
-        }
-      ],
-      "indexes": [],
-      "foreignKeys": [],
-      "checks": [],
-      "comment": "Spring Batch 표준 JobInstance 저장소",
-      "module": "bat",
-      "logicalDatabase": "batDB"
-    },
-    {
-      "name": "BATCH_STEP_EXECUTION",
-      "columns": [
-        {
-          "name": "STEP_EXECUTION_ID",
-          "type": "BIGINT",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "Spring Batch StepExecution 순번"
-        },
-        {
-          "name": "VERSION",
-          "type": "BIGINT",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "낙관적 잠금 버전"
-        },
-        {
-          "name": "STEP_NAME",
-          "type": "VARCHAR(100)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "Step 이름"
-        },
-        {
-          "name": "JOB_EXECUTION_ID",
-          "type": "BIGINT",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "Spring Batch JobExecution 순번"
-        },
-        {
-          "name": "CREATE_TIME",
-          "type": "DATETIME(6)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "Step 생성 일시"
-        },
-        {
-          "name": "START_TIME",
-          "type": "DATETIME(6)",
-          "nullable": true,
-          "default": "NULL",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "Step 시작 일시"
-        },
-        {
-          "name": "END_TIME",
-          "type": "DATETIME(6)",
-          "nullable": true,
-          "default": "NULL",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "Step 종료 일시"
-        },
-        {
-          "name": "STATUS",
-          "type": "VARCHAR(10)",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "Step 상태"
-        },
-        {
-          "name": "COMMIT_COUNT",
-          "type": "BIGINT",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "커밋 횟수"
-        },
-        {
-          "name": "READ_COUNT",
-          "type": "BIGINT",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "읽은 건수"
-        },
-        {
-          "name": "FILTER_COUNT",
-          "type": "BIGINT",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "필터 건수"
-        },
-        {
-          "name": "WRITE_COUNT",
-          "type": "BIGINT",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "쓴 건수"
-        },
-        {
-          "name": "READ_SKIP_COUNT",
-          "type": "BIGINT",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "읽기 skip 건수"
-        },
-        {
-          "name": "WRITE_SKIP_COUNT",
-          "type": "BIGINT",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "쓰기 skip 건수"
-        },
-        {
-          "name": "PROCESS_SKIP_COUNT",
-          "type": "BIGINT",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "처리 skip 건수"
-        },
-        {
-          "name": "ROLLBACK_COUNT",
-          "type": "BIGINT",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "rollback 건수"
-        },
-        {
-          "name": "EXIT_CODE",
-          "type": "VARCHAR(2500)",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "종료 코드"
-        },
-        {
-          "name": "EXIT_MESSAGE",
-          "type": "VARCHAR(2500)",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "종료 메시지"
-        },
-        {
-          "name": "LAST_UPDATED",
-          "type": "DATETIME(6)",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "마지막 수정 일시"
-        }
-      ],
-      "primaryKey": [
-        "STEP_EXECUTION_ID"
-      ],
-      "uniqueKeys": [],
-      "indexes": [],
-      "foreignKeys": [
-        {
-          "name": "JOB_EXEC_STEP_FK",
-          "columns": [
-            "JOB_EXECUTION_ID"
-          ],
-          "refTable": "BATCH_JOB_EXECUTION",
-          "refColumns": [
-            "JOB_EXECUTION_ID"
-          ],
-          "onDelete": null,
-          "onUpdate": null
-        }
-      ],
-      "checks": [],
-      "comment": "Spring Batch 표준 StepExecution 저장소",
-      "module": "bat",
-      "logicalDatabase": "batDB"
-    },
-    {
-      "name": "BATCH_STEP_EXECUTION_CONTEXT",
-      "columns": [
-        {
-          "name": "STEP_EXECUTION_ID",
-          "type": "BIGINT",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "Spring Batch StepExecution 순번"
-        },
-        {
-          "name": "SHORT_CONTEXT",
-          "type": "VARCHAR(2500)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "짧은 실행 컨텍스트"
-        },
-        {
-          "name": "SERIALIZED_CONTEXT",
-          "type": "TEXT",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "직렬화 실행 컨텍스트"
-        }
-      ],
-      "primaryKey": [
-        "STEP_EXECUTION_ID"
-      ],
-      "uniqueKeys": [],
-      "indexes": [],
-      "foreignKeys": [
-        {
-          "name": "STEP_EXEC_CTX_FK",
-          "columns": [
-            "STEP_EXECUTION_ID"
-          ],
-          "refTable": "BATCH_STEP_EXECUTION",
-          "refColumns": [
-            "STEP_EXECUTION_ID"
-          ],
-          "onDelete": null,
-          "onUpdate": null
-        }
-      ],
-      "checks": [],
-      "comment": "Spring Batch 표준 Step 컨텍스트 저장소",
       "module": "bat",
       "logicalDatabase": "batDB"
     },
@@ -21422,6 +21637,15 @@
           "comment": "Path Pattern"
         },
         {
+          "name": "target_path",
+          "type": "VARCHAR(500)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Ingress Path Pattern과 분리된 실제 Target Request Path Template"
+        },
+        {
           "name": "http_method",
           "type": "VARCHAR(20)",
           "nullable": false,
@@ -22104,6 +22328,206 @@
         }
       ],
       "comment": "Gateway 비동기 연결시험 Operation",
+      "module": "cpf",
+      "logicalDatabase": "cpfDB"
+    },
+    {
+      "name": "cpf_gateway_control_nonce",
+      "columns": [
+        {
+          "name": "audience",
+          "type": "VARCHAR(160)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "대상 Gateway Instance/Audience"
+        },
+        {
+          "name": "key_id",
+          "type": "VARCHAR(80)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "서명 Key ID"
+        },
+        {
+          "name": "caller_id",
+          "type": "VARCHAR(80)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "호출 Service ID"
+        },
+        {
+          "name": "nonce",
+          "type": "VARCHAR(160)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "일회성 요청 Nonce"
+        },
+        {
+          "name": "claimed_at",
+          "type": "DATETIME(3)",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Claim 시각"
+        },
+        {
+          "name": "expires_at",
+          "type": "DATETIME(3)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Replay 차단 만료 시각"
+        }
+      ],
+      "primaryKey": [
+        "audience",
+        "key_id",
+        "caller_id",
+        "nonce"
+      ],
+      "uniqueKeys": [],
+      "indexes": [
+        {
+          "name": "ix_cpf_gateway_control_nonce_expiry",
+          "columns": [
+            "expires_at"
+          ]
+        }
+      ],
+      "foreignKeys": [],
+      "checks": [],
+      "comment": "Gateway Control API 다중 Instance Replay 방지 원장",
+      "module": "cpf",
+      "logicalDatabase": "cpfDB"
+    },
+    {
+      "name": "cpf_gateway_control_security_audit",
+      "columns": [
+        {
+          "name": "event_id",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "보안 감사 Event ID"
+        },
+        {
+          "name": "occurred_at",
+          "type": "DATETIME(3)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "발생 시각"
+        },
+        {
+          "name": "audience",
+          "type": "VARCHAR(160)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "대상 Audience"
+        },
+        {
+          "name": "key_id",
+          "type": "VARCHAR(80)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "서명 Key ID"
+        },
+        {
+          "name": "caller_service",
+          "type": "VARCHAR(80)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "호출 Service"
+        },
+        {
+          "name": "operator_id",
+          "type": "VARCHAR(100)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "인증 운영자"
+        },
+        {
+          "name": "http_method",
+          "type": "VARCHAR(16)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "HTTP Method"
+        },
+        {
+          "name": "request_target",
+          "type": "VARCHAR(1000)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "요청 Target"
+        },
+        {
+          "name": "remote_address",
+          "type": "VARCHAR(128)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "원격 주소"
+        },
+        {
+          "name": "result_code",
+          "type": "VARCHAR(80)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "거부 결과 코드"
+        },
+        {
+          "name": "safe_message",
+          "type": "VARCHAR(1000)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "민감정보 제거 메시지"
+        }
+      ],
+      "primaryKey": [
+        "event_id"
+      ],
+      "uniqueKeys": [],
+      "indexes": [
+        {
+          "name": "ix_cpf_gw_ctl_sec_audit_time",
+          "columns": [
+            "occurred_at"
+          ]
+        }
+      ],
+      "foreignKeys": [],
+      "checks": [],
+      "comment": "Gateway Control 보안 실패 불변 감사 원장",
       "module": "cpf",
       "logicalDatabase": "cpfDB"
     },

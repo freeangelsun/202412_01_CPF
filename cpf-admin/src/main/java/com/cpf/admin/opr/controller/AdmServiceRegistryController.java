@@ -5,6 +5,7 @@ import com.cpf.admin.opr.service.AdmServiceRegistryService;
 import com.cpf.core.api.execution.CpfOnlineTransaction;
 import com.cpf.core.api.logging.CpfTransactionContext;
 import com.cpf.core.api.servicecall.CpfServiceRegistryControlPort;
+import com.cpf.core.api.servicecall.CpfServiceRegistryCatalog;
 import com.cpf.core.api.servicecall.CpfServiceRegistryView;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -35,11 +36,12 @@ public class AdmServiceRegistryController extends com.cpf.admin.common.base.AdmB
     @Operation(operationId="admServiceRegistryCapabilities",summary="Service Registry Code·Capability 조회")
     public Map<String,Object> capabilities() {
         return Map.of(
-                "serviceTypes",List.of("INTERNAL","EXTERNAL","PLATFORM","MONITOR_ONLY"),
-                "endpointTypes",List.of("HTTP","HTTPS","GRPC","TCP","WEBSOCKET","SSE","MONITOR_ONLY"),
-                "instanceStatuses",List.of("UP","DOWN","DEGRADED","UNKNOWN","DRAINING","DISABLED","MAINTENANCE","STALE","RECOVERING"),
-                "instanceCommands",List.of("DRAIN","RESUME","DISABLE"),
-                "environments",List.of("DEV","TEST","PROD"));
+                "catalogVersion","1",
+                "serviceTypes",CpfServiceRegistryCatalog.SERVICE_TYPES,
+                "endpointTypes",CpfServiceRegistryCatalog.ENDPOINT_TYPES,
+                "instanceStatuses",CpfServiceRegistryCatalog.INSTANCE_STATUSES,
+                "instanceCommands",java.util.Arrays.stream(CpfServiceRegistryControlPort.InstanceCommand.values()).map(Enum::name).toList(),
+                "environments",CpfServiceRegistryCatalog.ENVIRONMENTS);
     }
 
     @GetMapping("/services") @CpfOnlineTransaction(id="OADMSV0010",name="ADMServiceRegistryServices")

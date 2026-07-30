@@ -5,6 +5,7 @@ import com.cpf.batch.api.BatchParameterDefinition;
 import com.cpf.batch.runtime.JobPackCatalog;
 import com.cpf.batch.runtime.LogContext;
 import com.cpf.batch.runtime.SensitiveTextSanitizer;
+import com.cpf.batch.spi.FileProcessHandler;
 import com.cpf.batch.worker.internal.JdbcWorkerExecutionRepository;
 import com.cpf.batch.worker.internal.JdbcWorkerLeaseRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -42,6 +43,7 @@ public class JobPackDispatcher {
     private final ApprovedShellExecutor shellExecutor;
     private final ApprovedFileExecutor fileExecutor;
     private BatchRuntimeExecutorRegistry runtimeExecutorRegistry;
+    private BatchFileProcessHandlerRegistry fileProcessHandlers;
 
     public JobPackDispatcher(
             JobPackCatalog catalog,
@@ -69,6 +71,12 @@ public class JobPackDispatcher {
         this.runtimeExecutorRegistry = runtimeExecutorRegistry;
     }
 
+
+    @Autowired(required = false)
+    void setFileProcessHandlers(BatchFileProcessHandlerRegistry fileProcessHandlers) {
+        this.fileProcessHandlers = fileProcessHandlers;
+    }
+
     public void execute(JdbcWorkerLeaseRepository.Lease lease) {
         JdbcWorkerExecutionRepository.Work work = executions.load(lease.executionId());
         BatchJobDefinition runtimeDefinition = decodeAndValidateDefinition(work);
@@ -93,7 +101,7 @@ public class JobPackDispatcher {
 
             if (shouldRetry(runtimeDefinition, work, outcome.status())) {
                 if (!executions.requeueAttempt(
-                        lease, work, outcome.status(), outcome.message())) {
+                        lease, work, outcome.status(), outcome.message(), outcome.attemptDetail())) {
                     throw new IllegalStateException(
                             "Worker retry requeue rejected because its lease expired or was fenced");
                 }
@@ -103,7 +111,7 @@ public class JobPackDispatcher {
             }
 
             if (!executions.completeAttempt(
-                    lease, work, outcome.status(), outcome.message())) {
+                    lease, work, outcome.status(), outcome.message(), outcome.attemptDetail())) {
                 throw new IllegalStateException(
                         "Worker completion rejected because its lease expired or was fenced");
             }
@@ -122,11 +130,11 @@ public class JobPackDispatcher {
             RuntimeException finalizationFailure = null;
             try {
                 if (shouldRetry(runtimeDefinition, work, status)) {
-                    if (executions.requeueAttempt(lease, work, status, failureMessage)) {
+                    if (executions.requeueAttempt(lease, work, status, failureMessage, JdbcWorkerExecutionRepository.AttemptDetail.empty())) {
                         leases.complete(lease, status, failureMessage);
                         return;
                     }
-                } else if (executions.completeAttempt(lease, work, status, failureMessage)) {
+                } else if (executions.completeAttempt(lease, work, status, failureMessage, JdbcWorkerExecutionRepository.AttemptDetail.empty())) {
                     leases.complete(lease, status, failureMessage);
                 }
             } catch (RuntimeException persistenceFailure) {
@@ -163,20 +171,8 @@ public class JobPackDispatcher {
                         work.transactionId(), work.segmentId(), "cpf-batch-worker");
                 yield ExecutionOutcome.completed();
             }
-            case FILE_PROCESS -> {
-                fileExecutor.claimForProcess(
-                        required(parameters, "sourceAlias"),
-                        required(parameters, "sourcePath"),
-                        required(parameters, "processingAlias"));
-                yield ExecutionOutcome.completed();
-            }
-            case FILE_WATCH -> {
-                fileExecutor.await(
-                        required(parameters, "watchAlias"),
-                        required(parameters, "watchPath"),
-                        java.time.Duration.ofSeconds(definition.resourcePolicy().timeoutSeconds()));
-                yield ExecutionOutcome.completed();
-            }
+            case FILE_PROCESS -> executeFileProcess(definition, parameters, work, lease);
+            case FILE_WATCH -> executeFileWatch(definition, parameters);
             case SERVICE_CALL, MESSAGE_TRIGGER, PROTOCOL_ADAPTER -> {
                 if (runtimeExecutorRegistry == null) {
                     throw new IllegalStateException(
@@ -189,9 +185,166 @@ public class JobPackDispatcher {
                         ? "UNKNOWN_RESULT"
                         : result.status().toUpperCase(Locale.ROOT);
                 String message = result.code() + ": " + result.message();
-                yield new ExecutionOutcome(status, message);
+                yield new ExecutionOutcome(status, message,
+                        new JdbcWorkerExecutionRepository.AttemptDetail(
+                                definition.executorType().name(), null, null, null, false,
+                                null, null, result.unknownResult()));
             }
         };
+    }
+
+    private ExecutionOutcome executeFileProcess(
+            BatchJobDefinition definition,
+            Map<String, Object> parameters,
+            JdbcWorkerExecutionRepository.Work work,
+            JdbcWorkerLeaseRepository.Lease lease) throws Exception {
+        if (fileProcessHandlers == null) {
+            throw new IllegalStateException("FILE_PROCESS handler registry is not installed");
+        }
+        String processorId = definition.processorId();
+        String requestedProcessorId = optional(parameters, "processorId");
+        if (requestedProcessorId != null && !processorId.equalsIgnoreCase(requestedProcessorId)) {
+            throw new SecurityException(
+                    "Runtime processorId cannot override published FILE_PROCESS definition");
+        }
+        FileProcessHandler handler = fileProcessHandlers.require(processorId);
+        String sourceAlias = required(parameters, "sourceAlias");
+        String sourcePath = required(parameters, "sourcePath");
+        java.time.Duration timeout = java.time.Duration.ofSeconds(
+                Math.max(1, definition.resourcePolicy().timeoutSeconds()));
+        java.time.Duration stableWindow = java.time.Duration.ofSeconds(
+                Math.max(1, optionalLong(parameters, "stableWindowSeconds", 2L)));
+        Long expectedSize = optionalNullableLong(parameters, "expectedSize");
+        String expectedSha256 = optional(parameters, "expectedSha256");
+        String markerSuffix = optional(parameters, "completionMarkerSuffix");
+
+        java.nio.file.Path ready = fileExecutor.awaitReady(new ApprovedFileExecutor.FileWatchRequest(
+                sourceAlias, sourcePath, timeout, stableWindow, markerSuffix,
+                expectedSize, expectedSha256));
+        ApprovedFileExecutor.FileFingerprint before = fileExecutor.fingerprint(ready);
+        String processingAlias = optional(parameters, "processingAlias");
+        String completedAlias = optional(parameters, "completedAlias");
+        String failedAlias = optional(parameters, "failedAlias");
+        if (processingAlias != null && (completedAlias == null || failedAlias == null)) {
+            throw new IllegalArgumentException(
+                    "FILE_PROCESS processingAlias requires completedAlias and failedAlias");
+        }
+        ApprovedFileExecutor.Claim leaseClaim = null;
+        java.nio.file.Path claimedPath;
+        long fileFencingToken;
+
+        if (processingAlias != null) {
+            claimedPath = fileExecutor.claimForProcess(sourceAlias, sourcePath, processingAlias);
+            fileFencingToken = lease.fencingToken();
+        } else {
+            if (!fileExecutor.sharedDurable(sourceAlias)) {
+                throw new IllegalStateException(
+                        "FILE_PROCESS requires processingAlias or a shared durable source alias");
+            }
+            leaseClaim = fileExecutor.claim(
+                    sourceAlias, sourcePath,
+                    "batch:" + work.executionId() + ":" + lease.fencingToken(),
+                    timeout.plusSeconds(30));
+            claimedPath = leaseClaim.path();
+            fileFencingToken = leaseClaim.fencingToken();
+        }
+
+        try {
+            ApprovedFileExecutor.FileFingerprint claimed = fileExecutor.fingerprint(claimedPath);
+            if (!before.sha256().equalsIgnoreCase(claimed.sha256()) || before.size() != claimed.size()) {
+                throw new java.io.IOException("Claimed file changed after readiness validation");
+            }
+            FileProcessHandler.FileProcessResult processed = handler.process(
+                    new FileProcessHandler.FileProcessCommand(
+                            work.executionId(), work.definitionVersion(), work.definitionChecksum(),
+                            work.transactionId(), work.segmentId(), fileFencingToken, claimedPath,
+                            claimed.size(), claimed.sha256(), parameters));
+            if (processed == null) {
+                throw new IllegalStateException("FILE_PROCESS handler returned null: " + processorId);
+            }
+            String status = processed.status().name();
+            boolean completed = processed.status() == FileProcessHandler.Status.COMPLETED;
+            String lifecycleAlias = completed ? completedAlias : failedAlias;
+            if (processingAlias != null && lifecycleAlias != null) {
+                fileExecutor.claimForProcess(processingAlias, sourcePath, lifecycleAlias);
+            }
+            String outputHash = processed.outputHash().isBlank() ? claimed.sha256() : processed.outputHash();
+            String message = "processor=" + processorId
+                    + ",file=" + claimed.fileName()
+                    + ",size=" + claimed.size()
+                    + ",sha256=" + claimed.sha256()
+                    + ",fencingToken=" + fileFencingToken
+                    + (processed.message().isBlank() ? "" : ",detail=" + processed.message());
+            return new ExecutionOutcome(status, message,
+                    new JdbcWorkerExecutionRepository.AttemptDetail(
+                            BatchJobDefinition.ExecutorType.FILE_PROCESS.name(), null, null, null,
+                            false, null, outputHash,
+                            processed.status() == FileProcessHandler.Status.UNKNOWN_RESULT));
+        } catch (Exception failure) {
+            if (processingAlias != null && failedAlias != null) {
+                try {
+                    fileExecutor.claimForProcess(processingAlias, sourcePath, failedAlias);
+                } catch (Exception recoveryFailure) {
+                    failure.addSuppressed(recoveryFailure);
+                }
+            }
+            throw failure;
+        } finally {
+            if (leaseClaim != null) {
+                fileExecutor.release(leaseClaim);
+            }
+        }
+    }
+
+    private ExecutionOutcome executeFileWatch(
+            BatchJobDefinition definition,
+            Map<String, Object> parameters) throws Exception {
+        String watchAlias = required(parameters, "watchAlias");
+        String watchPath = required(parameters, "watchPath");
+        if (Boolean.parseBoolean(Objects.toString(parameters.get("restartScan"), "false"))) {
+            String directory = Objects.toString(parameters.get("scanDirectory"), ".");
+            boolean recovered = fileExecutor.restartScan(watchAlias, directory).stream()
+                    .anyMatch(path -> path.getFileName().toString()
+                            .equals(java.nio.file.Path.of(watchPath).getFileName().toString()));
+            if (!recovered) {
+                throw new java.io.FileNotFoundException(
+                        "Restart scan did not find the requested file: " + watchPath);
+            }
+        }
+        java.time.Duration timeout = java.time.Duration.ofSeconds(
+                Math.max(1, definition.resourcePolicy().timeoutSeconds()));
+        java.time.Duration stableWindow = java.time.Duration.ofSeconds(
+                Math.max(1, optionalLong(parameters, "stableWindowSeconds", 2L)));
+        java.nio.file.Path ready = fileExecutor.awaitReady(new ApprovedFileExecutor.FileWatchRequest(
+                watchAlias,
+                watchPath,
+                timeout,
+                stableWindow,
+                optional(parameters, "completionMarkerSuffix"),
+                optionalNullableLong(parameters, "expectedSize"),
+                optional(parameters, "expectedSha256")));
+        ApprovedFileExecutor.FileFingerprint fingerprint = fileExecutor.fingerprint(ready);
+        return new ExecutionOutcome("COMPLETED",
+                "file=" + fingerprint.fileName() + ",size=" + fingerprint.size()
+                        + ",sha256=" + fingerprint.sha256(),
+                new JdbcWorkerExecutionRepository.AttemptDetail(
+                        BatchJobDefinition.ExecutorType.FILE_WATCH.name(), null, null, null,
+                        false, null, fingerprint.sha256(), false));
+    }
+
+    private static String optional(Map<String, Object> raw, String key) {
+        String value = Objects.toString(raw.get(key), "").trim();
+        return value.isEmpty() ? null : value;
+    }
+
+    private static long optionalLong(Map<String, Object> raw, String key, long defaultValue) {
+        String value = optional(raw, key);
+        return value == null ? defaultValue : Long.parseLong(value);
+    }
+
+    private static Long optionalNullableLong(Map<String, Object> raw, String key) {
+        String value = optional(raw, key);
+        return value == null ? null : Long.valueOf(value);
     }
 
     private ExecutionOutcome executeSpringBatch(
@@ -224,7 +377,7 @@ public class JobPackDispatcher {
                 .filter(Objects::nonNull)
                 .findFirst()
                 .orElse(null);
-        return new ExecutionOutcome(status, message);
+        return new ExecutionOutcome(status, message, JdbcWorkerExecutionRepository.AttemptDetail.empty());
     }
 
     private ExecutionOutcome executeShell(
@@ -247,7 +400,11 @@ public class JobPackDispatcher {
                 default -> result.success() ? "COMPLETED" : "FAILED";
             };
         }
-        return new ExecutionOutcome(status, result.output());
+        return new ExecutionOutcome(status, result.output(),
+                new JdbcWorkerExecutionRepository.AttemptDetail(
+                        BatchJobDefinition.ExecutorType.APPROVED_SHELL.name(),
+                        result.exitCode(), result.stdout(), result.stderr(), result.truncated(),
+                        result.durationMs(), result.artifactHash(), result.unknownResult()));
     }
 
     private BatchJobDefinition decodeAndValidateDefinition(
@@ -403,14 +560,17 @@ public class JobPackDispatcher {
         }
     }
 
-    private record ExecutionOutcome(String status, String message) {
+    private record ExecutionOutcome(
+            String status, String message, JdbcWorkerExecutionRepository.AttemptDetail attemptDetail) {
         private ExecutionOutcome {
             status = Objects.requireNonNull(status, "status");
             message = SensitiveTextSanitizer.sanitize(message);
+            attemptDetail = attemptDetail == null
+                    ? JdbcWorkerExecutionRepository.AttemptDetail.empty() : attemptDetail;
         }
 
         static ExecutionOutcome completed() {
-            return new ExecutionOutcome("COMPLETED", null);
+            return new ExecutionOutcome("COMPLETED", null, JdbcWorkerExecutionRepository.AttemptDetail.empty());
         }
     }
 }

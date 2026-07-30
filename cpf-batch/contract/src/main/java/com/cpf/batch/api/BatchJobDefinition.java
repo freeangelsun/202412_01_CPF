@@ -81,10 +81,60 @@ public record BatchJobDefinition(
         public static AlertPolicy defaults(){return new AlertPolicy(0,0,true,true,List.of());}
     }
 
-    private static void validateExecutor(ExecutorType type,String ref,List<BatchParameterDefinition> params){
-        if(type==ExecutorType.APPROVED_SHELL && !ref.startsWith("SCRIPT:")) throw new IllegalArgumentException("APPROVED_SHELL requires SCRIPT catalog reference");
-        if((type==ExecutorType.FILE_WATCH||type==ExecutorType.FILE_PROCESS||type==ExecutorType.FILE_TRANSFER) && params.stream().noneMatch(p->"PATH_ALIAS".equals(p.type()))) throw new IllegalArgumentException("File executor requires PATH_ALIAS parameter");
-        if(type==ExecutorType.SERVICE_CALL && !ref.startsWith("SERVICE:")) throw new IllegalArgumentException("SERVICE_CALL requires typed service operation reference");
+    private static void validateExecutor(
+            ExecutorType type, String ref, List<BatchParameterDefinition> params) {
+        if (type == ExecutorType.APPROVED_SHELL && !ref.startsWith("SCRIPT:")) {
+            throw new IllegalArgumentException("APPROVED_SHELL requires SCRIPT catalog reference");
+        }
+        if ((type == ExecutorType.FILE_WATCH || type == ExecutorType.FILE_PROCESS
+                || type == ExecutorType.FILE_TRANSFER)
+                && params.stream().noneMatch(parameter -> "PATH_ALIAS".equals(parameter.type()))) {
+            throw new IllegalArgumentException("File executor requires PATH_ALIAS parameter");
+        }
+        if (type == ExecutorType.FILE_PROCESS) {
+            String processorId = referenceId(ref, "PROCESSOR:", "FILE_PROCESS requires PROCESSOR catalog reference");
+            if (!processorId.matches("[A-Za-z0-9._:-]{1,120}")) {
+                throw new IllegalArgumentException("FILE_PROCESS processorId format invalid");
+            }
+            requireParameter(params, "sourceAlias", Set.of("PATH_ALIAS"));
+            requireParameter(params, "sourcePath", Set.of("STRING", "FILE_REFERENCE"));
+        }
+        if (type == ExecutorType.SERVICE_CALL && !ref.startsWith("SERVICE:")) {
+            throw new IllegalArgumentException("SERVICE_CALL requires typed service operation reference");
+        }
+    }
+
+    /** FILE_PROCESS Runtime과 ADM Preview가 동일하게 사용하는 Processor ID입니다. */
+    public String processorId() {
+        if (executorType != ExecutorType.FILE_PROCESS) return "";
+        return referenceId(executorReference, "PROCESSOR:",
+                "FILE_PROCESS requires PROCESSOR catalog reference");
+    }
+
+    private static String referenceId(String reference, String prefix, String message) {
+        if (reference == null || !reference.startsWith(prefix)) {
+            throw new IllegalArgumentException(message);
+        }
+        String value = reference.substring(prefix.length()).trim();
+        if (value.isEmpty()) throw new IllegalArgumentException(message);
+        return value;
+    }
+
+    private static void requireParameter(
+            List<BatchParameterDefinition> parameters, String name, Set<String> allowedTypes) {
+        BatchParameterDefinition definition = parameters.stream()
+                .filter(parameter -> name.equals(parameter.name()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "FILE_PROCESS requires parameter schema: " + name));
+        if (!allowedTypes.contains(definition.type())) {
+            throw new IllegalArgumentException(
+                    "FILE_PROCESS parameter " + name + " type must be " + allowedTypes);
+        }
+        if (!definition.required()) {
+            throw new IllegalArgumentException(
+                    "FILE_PROCESS parameter must be required: " + name);
+        }
     }
     private static void validateUniqueParameters(List<BatchParameterDefinition> params){Set<String> names=new HashSet<>();for(var p:params){if(!names.add(p.name()))throw new IllegalArgumentException("duplicate parameter: "+p.name());}}
     private static void validateDependencies(String jobId,List<Dependency> deps){Set<String> ids=new HashSet<>();for(var d:deps){if(jobId.equals(d.relatedJobId()))throw new IllegalArgumentException("self dependency prohibited");if(!ids.add(d.relatedJobId()))throw new IllegalArgumentException("duplicate dependency: "+d.relatedJobId());}}

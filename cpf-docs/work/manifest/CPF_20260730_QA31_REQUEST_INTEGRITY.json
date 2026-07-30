@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "sourceSha": "9594c8d5d9b1127a4e2694d0ec2f4add9475fc7e",
+  "algorithm": "SHA-256",
+  "files": [
+    {
+      "path": "cpf-docs/work/current/CPF_20260730_06_QA31_PACKAGE_INDEX.md",
+      "sha256": "418eab832191b2343142e86f6bd6e4f3293e98f34f7c7122148822782afae68f"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_20260730_06_QA31_DEVELOPMENT_REMEDIATION_REQUEST.md",
+      "sha256": "13ea7215d208c8115254d993a0a4d6519cbda2d304a17418e09c1caecfd4ff72"
+    },
+    {
+      "path": "cpf-docs/quality/CPF_20260730_QA31_DEFECT_REGISTER.csv",
+      "sha256": "5cca5b3d5ae066bedec9e929dfecd1d9ce45d97b2c4b5d70047b989588600115"
+    },
+    {
+      "path": "cpf-docs/quality/CPF_20260730_QA31_REQUIREMENT_MATRIX.csv",
+      "sha256": "4df76ba33d73f59d929ace0bab16757ee870362b1b0d8390013c2f6352ee5dff"
+    },
+    {
+      "path": "cpf-docs/quality/CPF_20260730_QA31_SCENARIO_MATRIX.csv",
+      "sha256": "f200297e0b429deeaa0a98515ef9e47aa9997d4c253228d201ce439ae2de76a5"
+    },
+    {
+      "path": "cpf-docs/governance/CPF_AI_DEVELOPMENT_QA_CONTINUITY_STANDARD.md",
+      "sha256": "15b8b6a8ff9c38615f6d54dbb55fb559366b4d59d54108451b75ebbcfd8529bb"
+    },
+    {
+      "path": "cpf-docs/work/handover/CPF_QA_SESSION_HANDOVER_STANDARD.md",
+      "sha256": "784a10ceac4372ccdbf9e635b2e3154eca53ce32e6ef73599e569c7329851ca9"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_20260730_06_QA31_CODEX_BATCH_REVIEW_REQUEST.md",
+      "sha256": "6f9021b5d2998a7f08054b2a246da8bc6388498ce4fd2e0cf7131ac43d05b025"
+    }
+  ],
+  "requestFilesOriginSha": "e54b60ffd6f1ae7592bf2c80007f51ce680c7e1b",
+  "functionalReviewSha": "9594c8d5d9b1127a4e2694d0ec2f4add9475fc7e"
+}

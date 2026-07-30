@@ -6,15 +6,8 @@ import com.cpf.core.api.error.CpfValidationException;
 import com.cpf.core.api.security.CpfMasking;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
-
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
-import java.nio.file.StandardOpenOption;
+import java.sql.Timestamp;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -26,51 +19,54 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
- * 거래 로그 상세를 서버에서 마스킹하고 감사 가능한 만료 Artifact로 생성합니다.
- * 브라우저가 화면에 보인 객체를 임의로 Blob으로 내려받는 경로를 허용하지 않습니다.
+ * 거래 로그 상세를 서버에서 마스킹하고 ADM DB의 다중 인스턴스 공용 만료 Artifact로 생성합니다.
+ * Artifact 본문과 소유자·만료시각은 한 행에 원자 저장되며 브라우저 임의 Blob 생성 경로를 허용하지 않습니다.
  */
 @Service
 public class AdmLogExportService {
     private static final Duration TTL = Duration.ofMinutes(15);
     private static final long MAX_ARTIFACT_BYTES = 5L * 1024L * 1024L;
     private static final Set<String> SECRET_KEYS = Set.of(
-            "password", "passwd", "authorization", "cookie", "set-cookie", "token", "secret",
-            "privatekey", "private_key", "clientsecret", "client_secret", "credential");
+            "password", "passwd", "authorization", "cookie", "setcookie", "token", "secret",
+            "privatekey", "clientsecret", "credential", "accesstoken", "refreshtoken");
     private static final Set<String> PII_KEYS = Set.of(
-            "memberno", "member_no", "customerno", "customer_no", "mobile", "mobileno", "mobile_no",
-            "email", "residentno", "resident_no", "accountno", "account_no", "cardno", "card_no");
+            "memberno", "customerno", "mobile", "mobileno", "email", "residentno",
+            "accountno", "cardno");
 
     private final AdmLogQueryService logQueryService;
     private final AdmAuditLogService auditLogService;
     private final ObjectMapper objectMapper;
+    private final JdbcTemplate jdbc;
     private final Clock clock;
-    private final Path root;
-    private final ConcurrentHashMap<String, Artifact> artifacts = new ConcurrentHashMap<>();
 
     public AdmLogExportService(
             AdmLogQueryService logQueryService,
             AdmAuditLogService auditLogService,
-            ObjectMapper objectMapper) {
-        this(logQueryService, auditLogService, objectMapper, Clock.systemUTC(),
-                Path.of(System.getProperty("java.io.tmpdir"), "cpf", "adm", "log-exports"));
+            ObjectMapper objectMapper,
+            JdbcTemplate jdbc) {
+        this(logQueryService, auditLogService, objectMapper, jdbc, Clock.systemUTC());
     }
 
     AdmLogExportService(
             AdmLogQueryService logQueryService,
             AdmAuditLogService auditLogService,
             ObjectMapper objectMapper,
-            Clock clock,
-            Path root) {
+            JdbcTemplate jdbc,
+            Clock clock) {
         this.logQueryService = logQueryService;
         this.auditLogService = auditLogService;
         this.objectMapper = objectMapper;
+        this.jdbc = jdbc;
         this.clock = clock;
-        this.root = root.toAbsolutePath().normalize();
     }
 
+    @Transactional
     public AdmLogExportResponse create(AdmLogExportRequest request, String actor, String clientIp) {
         String operator = required(actor, "인증 운영자 정보가 없습니다.");
         String reason = auditLogService.requireReason(request == null ? null : request.reason());
@@ -84,7 +80,7 @@ public class AdmLogExportService {
                 + " | createdAt=" + createdAt + "Z | expiresAt=" + expiresAt + "Z";
 
         Map<String, Object> envelope = new LinkedHashMap<>();
-        envelope.put("schemaVersion", 1);
+        envelope.put("schemaVersion", 2);
         envelope.put("watermark", watermark);
         envelope.put("logId", logId);
         envelope.put("masked", true);
@@ -99,8 +95,14 @@ public class AdmLogExportService {
         String downloadUrl = null;
         String clipboardContent = null;
         if ("DOWNLOAD".equals(action)) {
-            Path artifactPath = persist(exportId, bytes);
-            artifacts.put(exportId, new Artifact(exportId, operator, artifactPath, fileName, expiresAt));
+            int inserted = jdbc.update("""
+                    INSERT INTO adm_log_export_artifact
+                        (export_id, owner_operator_id, file_name, content_type, artifact_content,
+                         content_length, created_at, expires_at, status_code)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'READY')
+                    """, exportId, operator, fileName, "application/json", bytes, bytes.length,
+                    Timestamp.valueOf(createdAt), Timestamp.valueOf(expiresAt));
+            if (inserted != 1) throw new IllegalStateException("로그 Export Artifact 저장에 실패했습니다.");
             downloadUrl = "/adm/api/log-exports/" + exportId + "/artifact";
         } else {
             clipboardContent = content;
@@ -113,54 +115,47 @@ public class AdmLogExportService {
                 exportId, "READY", fileName, downloadUrl, clipboardContent, expiresAt, watermark);
     }
 
+    @Transactional
     public DownloadArtifact read(String exportId, String actor, String clientIp) {
         String operator = required(actor, "인증 운영자 정보가 없습니다.");
-        Artifact artifact = artifacts.get(required(exportId, "Export ID가 필요합니다."));
-        if (artifact == null) throw new CpfValidationException("Export Artifact가 없거나 이미 만료되었습니다.");
+        String id = required(exportId, "Export ID가 필요합니다.");
+        Artifact artifact = jdbc.query("""
+                SELECT export_id, owner_operator_id, file_name, artifact_content, expires_at, status_code
+                  FROM adm_log_export_artifact
+                 WHERE export_id = ?
+                """, rs -> rs.next()
+                ? new Artifact(rs.getString("export_id"), rs.getString("owner_operator_id"),
+                        rs.getString("file_name"), rs.getBytes("artifact_content"),
+                        rs.getTimestamp("expires_at").toLocalDateTime(), rs.getString("status_code"))
+                : null, id);
+        if (artifact == null || !"READY".equals(artifact.status())) {
+            throw new CpfValidationException("Export Artifact가 없거나 사용할 수 없습니다.");
+        }
         LocalDateTime now = LocalDateTime.ofInstant(clock.instant(), ZoneOffset.UTC);
-        if (now.isAfter(artifact.expiresAt())) {
-            remove(artifact);
+        if (!now.isBefore(artifact.expiresAt())) {
+            jdbc.update("DELETE FROM adm_log_export_artifact WHERE export_id = ?", id);
             throw new CpfValidationException("Export Artifact가 만료되었습니다.");
         }
         if (!artifact.actor().equals(operator)) {
-            auditLogService.record(null, operator, "LOG_DETAIL_EXPORT_DENIED", "LOG_EXPORT", exportId,
+            auditLogService.record(null, operator, "LOG_DETAIL_EXPORT_DENIED", "LOG_EXPORT", id,
                     "다른 운영자의 Export Artifact 접근", null, "ownerMismatch", "LOG_EXPORT", clientIp);
             throw new CpfValidationException("다른 운영자의 Export Artifact에는 접근할 수 없습니다.");
         }
-        try {
-            byte[] content = Files.readAllBytes(artifact.path());
-            auditLogService.record(null, operator, "LOG_DETAIL_EXPORT_DOWNLOAD", "LOG_EXPORT", exportId,
-                    "감사된 로그 Export 다운로드", null, "bytes=" + content.length,
-                    "LOG_EXPORT", clientIp);
-            return new DownloadArtifact(artifact.fileName(), content);
-        } catch (IOException ex) {
-            throw new IllegalStateException("Export Artifact를 읽지 못했습니다.", ex);
-        }
+        int consumed = jdbc.update("""
+                UPDATE adm_log_export_artifact
+                   SET downloaded_at = CURRENT_TIMESTAMP, download_count = download_count + 1
+                 WHERE export_id = ? AND status_code = 'READY' AND expires_at > CURRENT_TIMESTAMP
+                """, id);
+        if (consumed != 1) throw new CpfValidationException("Export Artifact 상태가 변경되어 다시 조회해야 합니다.");
+        auditLogService.record(null, operator, "LOG_DETAIL_EXPORT_DOWNLOAD", "LOG_EXPORT", id,
+                "감사된 로그 Export 다운로드", null, "bytes=" + artifact.content().length,
+                "LOG_EXPORT", clientIp);
+        return new DownloadArtifact(artifact.fileName(), artifact.content());
     }
 
     @Scheduled(fixedDelayString = "${cpf.admin.log-export.cleanup-delay-ms:60000}")
     public void cleanupExpired() {
-        LocalDateTime now = LocalDateTime.ofInstant(clock.instant(), ZoneOffset.UTC);
-        new ArrayList<>(artifacts.values()).stream()
-                .filter(value -> now.isAfter(value.expiresAt()))
-                .forEach(this::remove);
-    }
-
-    private Path persist(String exportId, byte[] content) {
-        try {
-            Files.createDirectories(root);
-            Path target = root.resolve(exportId + ".json").normalize();
-            if (!target.startsWith(root)) throw new SecurityException("잘못된 Export 경로입니다.");
-            Path temporary = root.resolve(exportId + ".tmp").normalize();
-            Files.write(temporary, content, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
-            try {
-                return Files.move(temporary, target, StandardCopyOption.ATOMIC_MOVE);
-            } catch (IOException atomicMoveUnsupported) {
-                return Files.move(temporary, target);
-            }
-        } catch (IOException ex) {
-            throw new IllegalStateException("Export Artifact를 생성하지 못했습니다.", ex);
-        }
+        jdbc.update("DELETE FROM adm_log_export_artifact WHERE expires_at <= CURRENT_TIMESTAMP");
     }
 
     private Object protect(Object value) {
@@ -178,15 +173,24 @@ public class AdmLogExportService {
         if (value.getClass().isArray()) {
             return objectMapper.convertValue(value, List.class).stream().map(this::protect).toList();
         }
-        if (value instanceof CharSequence text) return CpfMasking.truncate(text.toString(), 65536);
+        if (value instanceof CharSequence text) {
+            return sanitizeFreeText(CpfMasking.truncate(text.toString(), 65536));
+        }
         return value;
     }
 
     private Object protectField(String key, Object value) {
-        String normalized = key.toLowerCase(Locale.ROOT).replace("-", "").replace(".", "");
+        String normalized = key.toLowerCase(Locale.ROOT).replace("-", "").replace("_", "").replace(".", "");
         if (SECRET_KEYS.contains(normalized)) return "***MASKED***";
         if (PII_KEYS.contains(normalized) && value != null) return CpfMasking.mask(String.valueOf(value));
         return protect(value);
+    }
+
+    private static String sanitizeFreeText(String value) {
+        if (value == null || value.isBlank()) return value;
+        return value
+                .replaceAll("(?i)(authorization|password|passwd|token|secret|cookie|client_secret)\\s*[:=]\\s*[^,;\\s]+", "$1=***MASKED***")
+                .replaceAll("(?i)bearer\\s+[A-Za-z0-9._~+/-]+=*", "Bearer ***MASKED***");
     }
 
     private String toJson(Map<String, Object> value) {
@@ -220,12 +224,12 @@ public class AdmLogExportService {
         return value.trim();
     }
 
-    private void remove(Artifact artifact) {
-        artifacts.remove(artifact.exportId(), artifact);
-        try { Files.deleteIfExists(artifact.path()); } catch (IOException ignored) { /* 다음 정리 주기 재확인 */ }
+    private record Artifact(String exportId, String actor, String fileName, byte[] content,
+            LocalDateTime expiresAt, String status) {
+        private Artifact { content = content == null ? new byte[0] : content.clone(); }
+        @Override public byte[] content() { return content.clone(); }
     }
 
-    private record Artifact(String exportId, String actor, Path path, String fileName, LocalDateTime expiresAt) {}
     public record DownloadArtifact(String fileName, byte[] content) {
         public DownloadArtifact { content = content == null ? new byte[0] : content.clone(); }
         @Override public byte[] content() { return content.clone(); }

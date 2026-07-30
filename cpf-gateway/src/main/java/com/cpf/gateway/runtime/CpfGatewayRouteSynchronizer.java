@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-/** ACTIVE Binding Event를 Candidate Snapshot 검증→활성화→Instance ACK 순서로 적용합니다. */
+/** ACTIVE Binding Event를 Candidate 검증→Owner ACK→ACK 전용 Snapshot 재조회 순서로 적용합니다. */
 @Component
 public final class CpfGatewayRouteSynchronizer {
     private static final Logger log = LoggerFactory.getLogger(CpfGatewayRouteSynchronizer.class);
@@ -51,11 +51,16 @@ public final class CpfGatewayRouteSynchronizer {
         try {
             CpfGatewayRouteSnapshot.Snapshot candidate = snapshot.prepareCandidate();
             validateCandidate(candidate);
-            if (!same(snapshot.current().routes(), candidate.routes())) snapshot.activate(candidate);
             for (CpfGatewayRoute route : candidate.routes().values()) {
                 registry.acknowledge(new CpfGatewayRegistryPort.ApplyAckCommand(
                         route.routeId(), instanceId, route.routeVersion(), route.routeVersion(), "APPLIED",
                         "", "", OffsetDateTime.now(ZoneOffset.UTC)));
+            }
+            CpfGatewayRouteSnapshot.Snapshot acknowledged = snapshot.refreshNow();
+            validateCandidate(acknowledged);
+            if (!same(candidate.routes(), acknowledged.routes())) {
+                log.warn("Gateway Candidate와 ACK Snapshot이 다릅니다. ACK Snapshot만 공개합니다. candidate={}, acknowledged={}",
+                        candidate.routes().size(), acknowledged.routes().size());
             }
         } catch (RuntimeException ex) {
             log.error("Gateway Route drift reconcile에 실패해 Last Known Good Snapshot을 유지합니다.", ex);
@@ -83,10 +88,16 @@ public final class CpfGatewayRouteSynchronizer {
                     throw new IllegalStateException("Gateway Route version mismatch");
                 }
             }
-            snapshot.activate(candidate);
             registry.acknowledge(new CpfGatewayRegistryPort.ApplyAckCommand(
                     event.aggregateId(), instanceId, routeVersion, routeVersion,
                     shouldExist ? "APPLIED" : "REMOVED", "", "", OffsetDateTime.now(ZoneOffset.UTC)));
+            CpfGatewayRouteSnapshot.Snapshot acknowledged = snapshot.refreshNow();
+            validateCandidate(acknowledged);
+            boolean exposed = acknowledged.routes().values().stream()
+                    .anyMatch(route -> event.aggregateId().equals(route.routeId()));
+            if (shouldExist != exposed) {
+                throw new IllegalStateException("Gateway ACK Snapshot 반영 결과가 Event 기대 상태와 다릅니다.");
+            }
             distribution.acknowledge(new CpfRuntimePolicyDistributionPort.AcknowledgeCommand(
                     event.eventId(), instanceId, event.fencingToken(), "APPLIED", "", "",
                     OffsetDateTime.now(ZoneOffset.UTC)));

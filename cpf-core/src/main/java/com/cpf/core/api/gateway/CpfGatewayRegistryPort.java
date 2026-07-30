@@ -45,12 +45,29 @@ public interface CpfGatewayRegistryPort {
     }
     record GatewayBinding(
             String bindingId, String routeId, String environmentCode, String hostPattern, String pathPattern,
-            String httpMethod, String apiVersion, CpfGatewayProtocol ingressProtocol, CpfGatewayProtocol targetProtocol,
+            String targetPath, String httpMethod, String apiVersion, CpfGatewayProtocol ingressProtocol, CpfGatewayProtocol targetProtocol,
             String serviceId, String serverGroupId, String routeVersion, String tlsPolicyId,
             String authenticationPolicyId, String authorizationPolicyId, String headerPolicyId, String rateLimitPolicyId,
             String healthPolicyId, int connectTimeoutMs, int responseTimeoutMs, int overallTimeoutMs, int maxRetryCount,
             boolean idempotent, String failoverGroupId, String status, boolean gatewayAllowed, boolean directAllowed,
-            String approvalId, OffsetDateTime effectiveFrom, OffsetDateTime effectiveTo, String bindingChecksum, long version, OffsetDateTime updatedAt) {}
+            String approvalId, OffsetDateTime effectiveFrom, OffsetDateTime effectiveTo, String bindingChecksum, long version, OffsetDateTime updatedAt) {
+        public GatewayBinding(
+                String bindingId, String routeId, String environmentCode, String hostPattern, String pathPattern,
+                String httpMethod, String apiVersion, CpfGatewayProtocol ingressProtocol, CpfGatewayProtocol targetProtocol,
+                String serviceId, String serverGroupId, String routeVersion, String tlsPolicyId,
+                String authenticationPolicyId, String authorizationPolicyId, String headerPolicyId, String rateLimitPolicyId,
+                String healthPolicyId, int connectTimeoutMs, int responseTimeoutMs, int overallTimeoutMs, int maxRetryCount,
+                boolean idempotent, String failoverGroupId, String status, boolean gatewayAllowed, boolean directAllowed,
+                String approvalId, OffsetDateTime effectiveFrom, OffsetDateTime effectiveTo, String bindingChecksum,
+                long version, OffsetDateTime updatedAt) {
+            this(bindingId, routeId, environmentCode, hostPattern, pathPattern, pathPattern, httpMethod, apiVersion,
+                    ingressProtocol, targetProtocol, serviceId, serverGroupId, routeVersion, tlsPolicyId,
+                    authenticationPolicyId, authorizationPolicyId, headerPolicyId, rateLimitPolicyId, healthPolicyId,
+                    connectTimeoutMs, responseTimeoutMs, overallTimeoutMs, maxRetryCount, idempotent, failoverGroupId,
+                    status, gatewayAllowed, directAllowed, approvalId, effectiveFrom, effectiveTo, bindingChecksum,
+                    version, updatedAt);
+        }
+    }
     record ApplyStatus(
             String bindingId, String gatewayInstanceId, String expectedVersion, String appliedVersion, String status,
             String errorCode, String errorMessage, OffsetDateTime acknowledgedAt, OffsetDateTime lastSeenAt) {}

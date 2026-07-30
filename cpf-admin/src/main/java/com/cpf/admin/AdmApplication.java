@@ -3,6 +3,7 @@ package com.cpf.admin;
 import com.cpf.admin.config.AdmBootstrapProperties;
 import com.cpf.admin.config.AdmPasswordPolicyProperties;
 import com.cpf.admin.config.AdmSecurityProperties;
+import com.cpf.admin.opr.parameter.AdmParameterReferenceProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -16,7 +17,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  * <p>CPF/CMN 공통 모듈을 함께 스캔하고 ADM 운영 화면과 BAT/업무 Owner Control Plane 연동을 제공합니다.</p>
  */
 @SpringBootApplication(scanBasePackages = {"com.cpf.core", "com.cpf.common", "com.cpf.admin"})
-@EnableConfigurationProperties({AdmBootstrapProperties.class, AdmPasswordPolicyProperties.class, AdmSecurityProperties.class})
+@EnableConfigurationProperties({AdmBootstrapProperties.class, AdmPasswordPolicyProperties.class, AdmSecurityProperties.class, AdmParameterReferenceProperties.class})
 @EnableScheduling
 public class AdmApplication extends SpringBootServletInitializer {
 

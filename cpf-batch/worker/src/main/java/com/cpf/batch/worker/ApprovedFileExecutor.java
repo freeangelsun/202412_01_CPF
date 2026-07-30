@@ -73,6 +73,27 @@ public class ApprovedFileExecutor {
         return target;
     }
 
+    /** 운영 UI와 Publish 검증에서 실제 Provider 기능을 과장하지 않도록 Capability를 제공합니다. */
+    public FileProviderCapabilities capabilities(String alias) {
+        WorkerOperationalProperties.PathAlias cfg = requireAlias(alias);
+        boolean remote = remote(cfg);
+        boolean transferInstalled = !remote || fileTransferClient != null;
+        return new FileProviderCapabilities(
+                alias,
+                first(cfg.getProvider(), "LOCAL").toUpperCase(Locale.ROOT),
+                !remote,
+                !remote,
+                !remote,
+                !remote,
+                transferInstalled,
+                cfg.isSharedDurable(),
+                remote && !transferInstalled
+                        ? "CpfFileTransferClient가 설치되지 않았습니다."
+                        : remote
+                                ? "Remote Provider는 Transfer만 지원하며 Watch/Scan/Claim은 지원하지 않습니다."
+                                : "AVAILABLE");
+    }
+
     public boolean sharedDurable(String alias) {
         WorkerOperationalProperties.PathAlias cfg = properties.getPathAliases().get(alias);
         return cfg != null && cfg.isSharedDurable();
@@ -540,6 +561,17 @@ public class ApprovedFileExecutor {
     }
 
     private record FileObservation(long size, long modifiedAtMillis) {}
+
+    public record FileProviderCapabilities(
+            String alias,
+            String provider,
+            boolean resolveSupported,
+            boolean watchSupported,
+            boolean restartScanSupported,
+            boolean claimSupported,
+            boolean transferSupported,
+            boolean sharedDurable,
+            String detail) {}
 
     public record FileWatchRequest(
             String alias,

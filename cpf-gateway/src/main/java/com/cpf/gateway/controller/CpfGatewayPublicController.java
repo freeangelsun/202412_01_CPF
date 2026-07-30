@@ -42,7 +42,7 @@ public final class CpfGatewayPublicController {
                 headers.getFirst("X-CPF-API-Version"));
         return proxy.executeStreaming(
                 route.standardExecutionId(), request.getMethod(), headers, request.getInputStream(),
-                request.getContentLengthLong(), request.getQueryString(), request.getRemoteAddr(), certificateSerial(request));
+                request.getContentLengthLong(), publicPath, request.getQueryString(), request.getRemoteAddr(), certificateSerial(request));
     }
 
     private static String certificateSerial(HttpServletRequest request) {

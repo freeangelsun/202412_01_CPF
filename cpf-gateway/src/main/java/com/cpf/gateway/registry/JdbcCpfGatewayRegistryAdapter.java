@@ -89,7 +89,7 @@ public class JdbcCpfGatewayRegistryAdapter implements CpfGatewayRegistryPort {
     @Override
     public List<GatewayBinding> findBindings(String environmentCode, String routeId, String status, int limit) {
         StringBuilder sql = new StringBuilder("""
-                SELECT binding_id,route_id,environment_code,host_pattern,path_pattern,http_method,api_version,
+                SELECT binding_id,route_id,environment_code,host_pattern,path_pattern,target_path,http_method,api_version,
                        ingress_protocol,target_protocol,service_id,server_group_id,route_version,tls_policy_id,
                        authentication_policy_id,authorization_policy_id,header_policy_id,rate_limit_policy_id,
                        health_policy_id,connect_timeout_ms,response_timeout_ms,overall_timeout_ms,max_retry_count,
@@ -104,7 +104,7 @@ public class JdbcCpfGatewayRegistryAdapter implements CpfGatewayRegistryPort {
         sql.append(" ORDER BY updated_at DESC,binding_id");
         return queryLimited(sql.toString(),args,limit,(rs,n)->new GatewayBinding(
                 rs.getString("binding_id"),rs.getString("route_id"),rs.getString("environment_code"),
-                rs.getString("host_pattern"),rs.getString("path_pattern"),rs.getString("http_method"),rs.getString("api_version"),
+                rs.getString("host_pattern"),rs.getString("path_pattern"),rs.getString("target_path"),rs.getString("http_method"),rs.getString("api_version"),
                 protocol(rs.getString("ingress_protocol")),protocol(rs.getString("target_protocol")),rs.getString("service_id"),
                 rs.getString("server_group_id"),rs.getString("route_version"),rs.getString("tls_policy_id"),
                 rs.getString("authentication_policy_id"),rs.getString("authorization_policy_id"),rs.getString("header_policy_id"),
@@ -220,14 +220,14 @@ public class JdbcCpfGatewayRegistryAdapter implements CpfGatewayRegistryPort {
             requireNew(c.expectedVersion());
             jdbc.update("""
                     INSERT INTO cpf_gateway_binding
-                    (binding_id,route_id,environment_code,host_pattern,path_pattern,http_method,api_version,
+                    (binding_id,route_id,environment_code,host_pattern,path_pattern,target_path,http_method,api_version,
                      ingress_protocol,target_protocol,service_id,server_group_id,route_version,tls_policy_id,
                      authentication_policy_id,authorization_policy_id,header_policy_id,rate_limit_policy_id,
                      health_policy_id,connect_timeout_ms,response_timeout_ms,overall_timeout_ms,max_retry_count,
                      idempotent_yn,failover_group_id,gateway_allowed_yn,direct_allowed_yn,binding_status,approval_id,
                      effective_from,effective_to,binding_checksum,created_by,created_at,updated_by,updated_at,row_version)
-                    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'DRAFT',?,?,?,?,?,CURRENT_TIMESTAMP,?,CURRENT_TIMESTAMP,1)
-                    """,c.bindingId(),r.routeId(),r.environmentCode(),r.hostPattern(),r.pathPattern(),r.httpMethod(),r.apiVersion(),
+                    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'DRAFT',?,?,?,?,?,CURRENT_TIMESTAMP,?,CURRENT_TIMESTAMP,1)
+                    """,c.bindingId(),r.routeId(),r.environmentCode(),r.hostPattern(),r.pathPattern(),r.targetPath(),r.httpMethod(),r.apiVersion(),
                     r.ingressProtocol().name(),r.targetProtocol().name(),r.serviceId(),c.serverGroupId(),r.routeVersion(),
                     clean(r.tlsPolicyId()),clean(r.authenticationPolicyId()),clean(r.authorizationPolicyId()),clean(r.headerPolicyId()),
                     clean(r.rateLimitPolicyId()),clean(r.healthPolicyId()),r.connectTimeoutMs(),r.responseTimeoutMs(),r.overallTimeoutMs(),
@@ -237,14 +237,14 @@ public class JdbcCpfGatewayRegistryAdapter implements CpfGatewayRegistryPort {
         } else {
             requireExpected(current,c.expectedVersion());
             int updated=jdbc.update("""
-                    UPDATE cpf_gateway_binding SET route_id=?,environment_code=?,host_pattern=?,path_pattern=?,http_method=?,
+                    UPDATE cpf_gateway_binding SET route_id=?,environment_code=?,host_pattern=?,path_pattern=?,target_path=?,http_method=?,
                            api_version=?,ingress_protocol=?,target_protocol=?,service_id=?,server_group_id=?,route_version=?,
                            tls_policy_id=?,authentication_policy_id=?,authorization_policy_id=?,header_policy_id=?,
                            rate_limit_policy_id=?,health_policy_id=?,connect_timeout_ms=?,response_timeout_ms=?,overall_timeout_ms=?,
                            max_retry_count=?,idempotent_yn=?,failover_group_id=?,gateway_allowed_yn=?,direct_allowed_yn=?,approval_id=?,
                            effective_from=?,effective_to=?,binding_checksum=?,updated_by=?,updated_at=CURRENT_TIMESTAMP,row_version=row_version+1
                      WHERE binding_id=? AND row_version=?
-                    """,r.routeId(),r.environmentCode(),r.hostPattern(),r.pathPattern(),r.httpMethod(),r.apiVersion(),
+                    """,r.routeId(),r.environmentCode(),r.hostPattern(),r.pathPattern(),r.targetPath(),r.httpMethod(),r.apiVersion(),
                     r.ingressProtocol().name(),r.targetProtocol().name(),r.serviceId(),c.serverGroupId(),r.routeVersion(),
                     clean(r.tlsPolicyId()),clean(r.authenticationPolicyId()),clean(r.authorizationPolicyId()),clean(r.headerPolicyId()),
                     clean(r.rateLimitPolicyId()),clean(r.healthPolicyId()),r.connectTimeoutMs(),r.responseTimeoutMs(),r.overallTimeoutMs(),
@@ -799,7 +799,7 @@ public class JdbcCpfGatewayRegistryAdapter implements CpfGatewayRegistryPort {
     private static String bindingChecksum(GatewayBindingCommand c) {
         CpfGatewayRoute r=c.route();
         String canonical=String.join("|",
-                c.bindingId(),r.routeId(),r.environmentCode(),r.hostPattern(),r.pathPattern(),
+                c.bindingId(),r.routeId(),r.environmentCode(),r.hostPattern(),r.pathPattern(),r.targetPath(),
                 clean(r.httpMethod()),r.apiVersion(),r.ingressProtocol().name(),r.targetProtocol().name(),
                 r.serviceId(),c.serverGroupId(),r.routeVersion(),clean(r.tlsPolicyId()),
                 clean(r.authenticationPolicyId()),clean(r.authorizationPolicyId()),clean(r.headerPolicyId()),

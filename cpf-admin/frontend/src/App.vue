@@ -32,11 +32,23 @@
   <div v-else class="adm-shell" :class="{ 'sidebar-open': sidebarOpen }">
     <aside class="adm-sidebar"><button class="adm-sidebar-close" type="button" aria-label="메뉴 닫기" @click="sidebarOpen=false"><CpfIcon name="close" /></button>
       <div class="adm-brand sidebar-brand"><span>CPF</span><div><strong>ADM</strong><small>Platform Admin</small></div></div>
+      <div class="adm-menu-search">
+        <label class="sr-only" for="adm-global-menu-search">운영 메뉴 검색</label>
+        <input id="adm-global-menu-search" ref="globalMenuSearch" v-model.trim="menuSearch" type="search" placeholder="메뉴 검색 (Ctrl+K)" autocomplete="off" @keydown.esc="menuSearch=''">
+      </div>
+      <section v-if="recentMenuItems.length" class="adm-nav-group adm-recent-menu" aria-label="최근 사용 메뉴">
+        <p>최근 사용</p>
+        <button v-for="menu in recentMenuItems" :key="`recent-${menu.id}`" type="button" @click="selectMenu(menu.id)"><CpfIcon class="adm-nav-icon" :name="iconForMenu(menu.id)" />{{ menu.label }}</button>
+      </section>
       <nav aria-label="ADM 운영 메뉴">
-        <section v-for="group in groupedMenus" :key="group.id" class="adm-nav-group">
+        <section v-for="group in filteredGroupedMenus" :key="group.id" class="adm-nav-group">
           <p>{{ group.label }}</p>
-          <button v-for="menu in group.items" :key="menu.id" type="button" :class="{ active: activeMenu === menu.id }" @click="selectMenu(menu.id)"><CpfIcon class="adm-nav-icon" :name="iconForMenu(menu.id)" />{{ menu.label }}</button>
+          <div v-for="menu in group.items" :key="menu.id" class="adm-nav-row">
+            <button type="button" :class="{ active: activeMenu === menu.id }" @click="selectMenu(menu.id)"><CpfIcon class="adm-nav-icon" :name="iconForMenu(menu.id)" />{{ menu.label }}</button>
+            <button class="adm-favorite-button" type="button" :aria-label="isFavorite(menu.id) ? `${menu.label} 즐겨찾기 해제` : `${menu.label} 즐겨찾기 추가`" :aria-pressed="isFavorite(menu.id)" @click.stop="toggleFavorite(menu.id)">{{ isFavorite(menu.id) ? '★' : '☆' }}</button>
+          </div>
         </section>
+        <p v-if="menuSearch && !filteredGroupedMenus.length" class="hint">검색 결과가 없습니다.</p>
       </nav>
       <footer><div><strong>{{ currentOperator.operatorId }}</strong><small>Platform Operator</small></div><button class="text-button" @click="logout">로그아웃</button></footer>
     </aside>
@@ -68,24 +80,55 @@ export default defineComponent({
   name: "AdmApp",
   components: { CpfIcon },
   mixins: [admConsoleMixin],
-  data() { return { sidebarOpen: false }; },
+  data() { return { sidebarOpen: false, menuSearch: "", favoriteMenus: [] as string[], recentMenus: [] as string[] }; },
   computed: {
     activeFeatureGroup(): AdmFeatureGroup { return featureGroupForMenu(this.activeMenu); },
     activeFeatureComponent() { return componentForMenu(this.activeMenu); },
     currentMenuLabel(): string { return this.visibleMenus.find((menu: any) => menu.id === this.activeMenu)?.label || "운영"; },
     groupedMenus(): Array<{ id: AdmFeatureGroup; label: string; items: any[] }> {
       return (Object.keys(admGroupLabels) as AdmFeatureGroup[]).map(id => ({ id, label: admGroupLabels[id], items: this.visibleMenus.filter((menu: any) => featureGroupForMenu(menu.id) === id) })).filter(group => group.items.length > 0);
+    },
+    filteredGroupedMenus(): Array<{ id: AdmFeatureGroup; label: string; items: any[] }> {
+      const query = this.menuSearch.toLocaleLowerCase("ko-KR");
+      return this.groupedMenus.map(group => ({ ...group, items: group.items.filter((menu: any) => !query || `${menu.label} ${menu.id} ${group.label}`.toLocaleLowerCase("ko-KR").includes(query)) }))
+        .filter(group => group.items.length > 0)
+        .sort((a, b) => Number(b.items.some((menu: any) => this.isFavorite(menu.id))) - Number(a.items.some((menu: any) => this.isFavorite(menu.id))));
+    },
+    recentMenuItems(): any[] {
+      return this.recentMenus.map(id => this.visibleMenus.find((menu: any) => menu.id === id)).filter(Boolean).slice(0, 5);
     }
   },
   mounted() {
     window.addEventListener("hashchange", this.syncMenuFromHash);
+    window.addEventListener("keydown", this.handleGlobalShortcut);
+    this.favoriteMenus = this.readStoredMenuIds("cpf.adm.favoriteMenus");
+    this.recentMenus = this.readStoredMenuIds("cpf.adm.recentMenus");
     this.syncMenuFromHash();
     if (this.authenticated) this.loadInitialData();
   },
-  beforeUnmount() { window.removeEventListener("hashchange", this.syncMenuFromHash); },
+  beforeUnmount() { window.removeEventListener("hashchange", this.syncMenuFromHash); window.removeEventListener("keydown", this.handleGlobalShortcut); },
   methods: {
     iconForMenu,
-    selectMenu(menuId: string) { if (this.activeMenu !== menuId) this.activeMenu = menuId; this.sidebarOpen = false; if (location.hash !== `#/${menuId}`) location.hash = `#/${menuId}`; },
+    selectMenu(menuId: string) {
+      if (this.activeMenu !== menuId) this.activeMenu = menuId;
+      this.recentMenus = [menuId, ...this.recentMenus.filter(id => id !== menuId)].slice(0, 8);
+      localStorage.setItem("cpf.adm.recentMenus", JSON.stringify(this.recentMenus));
+      this.sidebarOpen = false;
+      this.menuSearch = "";
+      if (location.hash !== `#/${menuId}`) location.hash = `#/${menuId}`;
+    },
+    isFavorite(menuId: string): boolean { return this.favoriteMenus.includes(menuId); },
+    toggleFavorite(menuId: string) {
+      this.favoriteMenus = this.isFavorite(menuId) ? this.favoriteMenus.filter(id => id !== menuId) : [...this.favoriteMenus, menuId];
+      localStorage.setItem("cpf.adm.favoriteMenus", JSON.stringify(this.favoriteMenus));
+    },
+    readStoredMenuIds(key: string): string[] {
+      try { const parsed = JSON.parse(localStorage.getItem(key) || "[]"); return Array.isArray(parsed) ? parsed.filter((id: unknown) => typeof id === "string") : []; }
+      catch { return []; }
+    },
+    handleGlobalShortcut(event: KeyboardEvent) {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") { event.preventDefault(); this.sidebarOpen = true; this.$nextTick(() => (this.$refs.globalMenuSearch as HTMLInputElement | undefined)?.focus()); }
+    },
     syncMenuFromHash() {
       const requested = menuIdFromHash(location.hash);
       if (requested && this.visibleMenus.some((menu: any) => menu.id === requested)) this.activeMenu = requested;

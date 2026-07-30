@@ -8,12 +8,13 @@ import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.util.HexFormat;
 
-/** Signature가 없는 Catalog Entry에 대해 필수 SHA-256을 검증하는 기본 Provider입니다. */
+/** 명시적으로 HASH_ONLY가 승인된 비운영 Catalog Entry만 SHA-256으로 검증합니다. */
 @Component
 public class Sha256ScriptArtifactVerifier implements ScriptArtifactVerifier {
     @Override
     public boolean supports(WorkerOperationalProperties.ShellDefinition definition) {
-        return definition.getSignature() == null || definition.getSignature().isBlank();
+        return "HASH_ONLY".equalsIgnoreCase(definition.getVerificationMode())
+                && (definition.getSignature() == null || definition.getSignature().isBlank());
     }
 
     @Override

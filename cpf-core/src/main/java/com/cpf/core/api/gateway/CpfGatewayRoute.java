@@ -76,6 +76,9 @@ public record CpfGatewayRoute(
         if (enabled && serverGroupId.isBlank()) throw new IllegalArgumentException("Enabled route requires serverGroupId");
     }
 
+    /** Target upstream에 전달할 Path Template입니다. endpoint record component는 Source Compatibility용 별칭입니다. */
+    public String targetPath() { return endpoint; }
+
     public String routeKey() {
         return environmentCode + '|' + hostPattern + '|' + pathPattern + '|' + blankTo(httpMethod, "*") + '|' + apiVersion;
     }

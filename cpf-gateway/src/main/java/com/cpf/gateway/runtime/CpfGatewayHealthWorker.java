@@ -5,9 +5,6 @@ import com.cpf.core.api.runtime.CpfInstanceIdentity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import javax.net.ssl.SSLSocketFactory;
-import java.net.InetSocketAddress;
-import java.net.Socket;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.UUID;
@@ -16,9 +13,11 @@ import java.util.UUID;
 @Component
 public final class CpfGatewayHealthWorker {
     private final CpfGatewayRegistryPort registry;
+    private final CpfGatewayProbeExecutor probes;
 
-    public CpfGatewayHealthWorker(CpfGatewayRegistryPort registry) {
+    public CpfGatewayHealthWorker(CpfGatewayRegistryPort registry, CpfGatewayProbeExecutor probes) {
         this.registry = registry;
+        this.probes = probes;
     }
 
     @Scheduled(fixedDelayString = "${cpf.gateway.health.worker-millis:10000}")
@@ -31,34 +30,11 @@ public final class CpfGatewayHealthWorker {
     }
 
     private CpfGatewayRegistryPort.HealthProbeResult probe(CpfGatewayRegistryPort.HealthProbeTarget target) {
-        long started = System.nanoTime();
-        String network = "UP";
-        String tcp = "DOWN";
-        String tls = target.protocol().tls() ? "DOWN" : "NOT_APPLICABLE";
-        String application = "UNKNOWN";
-        String code = "PROBE_OK";
-        CpfGatewayHealthStatus overall = CpfGatewayHealthStatus.UP;
-        try (Socket socket = target.protocol().tls()
-                ? SSLSocketFactory.getDefault().createSocket()
-                : new Socket()) {
-            socket.connect(new InetSocketAddress(target.host(), target.port()), target.timeoutMs());
-            tcp = "UP";
-            if (target.protocol().tls()) {
-                ((javax.net.ssl.SSLSocket) socket).startHandshake();
-                tls = "UP";
-            }
-            application = "UP";
-        } catch (java.net.UnknownHostException ex) {
-            network = "DOWN"; code = "DNS_FAILED"; overall = CpfGatewayHealthStatus.DOWN;
-        } catch (java.net.SocketTimeoutException ex) {
-            code = "CONNECT_TIMEOUT"; overall = CpfGatewayHealthStatus.DOWN;
-        } catch (Exception ex) {
-            code = "CONNECT_FAILED"; overall = CpfGatewayHealthStatus.DOWN;
-        }
-        long duration = Math.max(0L, (System.nanoTime() - started) / 1_000_000L);
+        CpfGatewayProbeExecutor.ProbeResult result = probes.execute(target, "APPLICATION");
         return new CpfGatewayRegistryPort.HealthProbeResult(
                 UUID.randomUUID().toString(), target.serverGroupId(), target.instanceId(),
-                target.gatewayInstanceId(), target.fencingToken(), network, tcp, tls, application,
-                overall, code, duration, OffsetDateTime.now(ZoneOffset.UTC));
+                target.gatewayInstanceId(), target.fencingToken(), result.networkStatus(), result.tcpStatus(),
+                result.tlsStatus(), result.applicationStatus(), result.overallStatus(), result.resultCode(),
+                result.durationMs(), OffsetDateTime.now(ZoneOffset.UTC));
     }
 }

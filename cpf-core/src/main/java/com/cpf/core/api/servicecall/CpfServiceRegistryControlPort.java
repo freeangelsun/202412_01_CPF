@@ -24,7 +24,7 @@ public interface CpfServiceRegistryControlPort {
             operationId = required(operationId, "operationId");
             serviceId = required(serviceId, "serviceId");
             serviceName = required(serviceName, "serviceName");
-            serviceType = code(serviceType, "INTERNAL");
+            serviceType = CpfServiceRegistryCatalog.requireServiceType(serviceType);
             ownerModuleCode = required(ownerModuleCode, "ownerModuleCode");
             useYn = yn(useYn, "Y");
             reason = validatedReason(reason);
@@ -45,7 +45,7 @@ public interface CpfServiceRegistryControlPort {
             endpointCode = required(endpointCode, "endpointCode");
             serviceId = required(serviceId, "serviceId");
             endpointName = required(endpointName, "endpointName");
-            endpointType = code(endpointType, "HTTP");
+            endpointType = CpfServiceRegistryCatalog.requireEndpointType(endpointType);
             baseUrl = required(baseUrl, "baseUrl");
             if (defaultTimeoutMs != null && defaultTimeoutMs <= 0) {
                 throw new IllegalArgumentException("defaultTimeoutMs must be positive");
@@ -81,7 +81,7 @@ public interface CpfServiceRegistryControlPort {
             }
             if (weight != null && weight <= 0) throw new IllegalArgumentException("weight must be positive");
             if (priorityNo != null && priorityNo <= 0) throw new IllegalArgumentException("priorityNo must be positive");
-            environmentCode = code(environmentCode, "default");
+            environmentCode = CpfServiceRegistryCatalog.requireEnvironment(environmentCode);
             activeYn = yn(activeYn, "Y");
             maintenanceYn = yn(maintenanceYn, "N");
             drainYn = yn(drainYn, "N");

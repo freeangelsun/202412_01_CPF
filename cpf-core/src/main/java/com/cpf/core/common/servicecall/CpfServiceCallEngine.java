@@ -90,6 +90,13 @@ public class CpfServiceCallEngine {
     public <T> ServiceCallResult<T> invoke(
             ServiceCallRequest request,
             Function<ServiceCallResolvedTarget, T> remoteCall) {
+        return invoke(request, remoteCall, ServiceCallAttemptObserver.noOp());
+    }
+
+    <T> ServiceCallResult<T> invoke(
+            ServiceCallRequest request,
+            Function<ServiceCallResolvedTarget, T> remoteCall,
+            ServiceCallAttemptObserver observer) {
         ServiceCallRequest requested = applyRequestDefaults(request);
         Set<String> excludedInstanceIds = new LinkedHashSet<>();
         ServiceCallResult<T> lastFailure = null;
@@ -98,7 +105,9 @@ public class CpfServiceCallEngine {
         for (int attempt = 1; attempt <= maxAttempts; attempt++) {
             ServiceCallResolvedTarget target = endpointResolver.resolve(requested, excludedInstanceIds);
             ServiceCallRequest effectiveRequest = applyTargetDefaults(requested, target);
-            TransactionSegmentScope scope = startAttempt(effectiveRequest, target, attempt, !excludedInstanceIds.isEmpty());
+            boolean failover = !excludedInstanceIds.isEmpty();
+            TransactionSegmentScope scope = startAttempt(effectiveRequest, target, attempt, failover);
+            Instant attemptStartedAt = Instant.now();
             if (logWriter.isCircuitOpen(target, properties.getCircuitOpenRetryAfterMillis())) {
                 logWriter.write(
                         effectiveRequest,
@@ -108,8 +117,11 @@ public class CpfServiceCallEngine {
                         0,
                         "CIRCUIT_OPEN",
                         "서비스 호출 circuit이 OPEN 상태입니다.");
-                failScope(scope, target, attempt, !excludedInstanceIds.isEmpty(), "OPEN", null,
+                failScope(scope, target, attempt, failover, "OPEN", null,
                         "FAILED", null, "CIRCUIT_OPEN", "서비스 호출 circuit이 OPEN 상태입니다.");
+                observer.onAttempt(new ServiceCallAttemptEvent(
+                        attempt, target, failover, "FAILED", null, 0L, "CIRCUIT_OPEN",
+                        "서비스 호출 circuit이 OPEN 상태입니다.", false, attemptStartedAt, Instant.now()));
                 return ServiceCallResult.failure(target, null, 0L, attempt, "CIRCUIT_OPEN", "서비스 호출 circuit이 OPEN 상태입니다.");
             }
 
@@ -120,8 +132,11 @@ public class CpfServiceCallEngine {
                 Integer responseStatus = responseStatus(response);
                 logWriter.write(effectiveRequest, target, "SUCCESS", responseStatus, elapsed, null, null);
                 logWriter.markSuccess(target, responseStatus, elapsed);
-                successScope(scope, target, attempt, !excludedInstanceIds.isEmpty(), responseStatus);
+                successScope(scope, target, attempt, failover, responseStatus);
                 recordLineage(effectiveRequest, target, "SUCCESS", attempt, elapsed);
+                observer.onAttempt(new ServiceCallAttemptEvent(
+                        attempt, target, failover, "SUCCESS", responseStatus, elapsed, null, null,
+                        false, attemptStartedAt, Instant.now()));
                 return ServiceCallResult.success(target, response, responseStatus, elapsed, attempt);
             } catch (RuntimeException ex) {
                 long elapsed = elapsedMillis(started);
@@ -137,12 +152,16 @@ public class CpfServiceCallEngine {
                         ? registerUnknown(effectiveRequest, scope, target, failureCode, failureMessage)
                         : null;
                 String resultState = terminalUnknown ? "UNKNOWN" : "FAILED";
-                failScope(scope, target, attempt, !excludedInstanceIds.isEmpty(), "CLOSED", httpStatus,
+                failScope(scope, target, attempt, failover, "CLOSED", httpStatus,
                         resultState, unknownId, failureCode, failureMessage);
                 lastFailure = terminalUnknown
                         ? ServiceCallResult.unknown(target, elapsed, attempt, failureCode, failureMessage)
                         : ServiceCallResult.failure(target, httpStatus, elapsed, attempt, failureCode, failureMessage);
                 recordLineage(effectiveRequest, target, resultState, attempt, elapsed);
+                observer.onAttempt(new ServiceCallAttemptEvent(
+                        attempt, target, failover, terminalUnknown ? "UNKNOWN_RESULT" : "FAILED",
+                        httpStatus, elapsed, failureCode, failureMessage, terminalUnknown,
+                        attemptStartedAt, Instant.now()));
                 if (!retryable) {
                     return lastFailure;
                 }

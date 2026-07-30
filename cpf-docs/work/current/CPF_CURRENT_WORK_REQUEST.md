@@ -1,34 +1,39 @@
-# CPF Current Work Request
+# CPF Current Work Request — QA31 적용 후 독립검증
 
 ## 기준
 
 - Repository: `https://github.com/freeangelsun/202412_01_CPF`
 - Branch: `master`
-- 개발 Overlay 기준 SHA: `0c502b917cd2185cf1ff097c5beac3e5aefb00ac`
-- 개발 산출물: `CPF_20260730_QA30_FULL_COMPLETION_ROOT_OVERLAY.zip`
+- QA31 개발 Base: `9594c8d5d9b1127a4e2694d0ec2f4add9475fc7e` (`20260730_09`)
+- 전달 형태: `WORKTREE-OVERLAY`
+- 사용자 승인 없는 Commit·Push·Branch·Tag·PR 없음
+- README/Guide 범위는 별도 AI가 관리하므로 QA31 기능 검수에서 제외한다.
 
-## 현재 해야 할 일
+## 현재 판정
 
-신규 개발 잔여 항목은 없다. 현재 작업은 Overlay 적용, 사용자 Commit·Push, 그리고 실행 환경이 필요한 exact-SHA 독립 검증이다.
+- 통합 Matrix: Requirement 708, Scenario 218, 개발 완료 652/미검증 274, 검증 완료 82/미검증 844
 
-1. Clean SHA `0c502b917cd2185cf1ff097c5beac3e5aefb00ac`에 Overlay 적용 스크립트를 실행한다.
-2. 적용 스크립트가 구형 Gateway 병렬 모델 3개를 제거하고 `git diff --check`를 통과하는지 확인한다.
-3. 변경 Source·SQL·Frontend·Evidence를 검토하고 사용자가 Commit·Push한다.
-4. Push SHA에서 Java 25 전체 Gradle, ADM/BZA Frontend, Oracle·PostgreSQL·MariaDB Lifecycle을 실행한다.
-5. Redis·Multi-instance·Gateway/Batch Runtime·Browser E2E·Failure Injection을 실행한다.
-6. 민감정보를 제거한 Evidence를 `cpf-docs/evidence/20260730_qa30`에 exact SHA와 함께 저장한다.
-7. `verify-cpf-qa30-full-completion.ps1`을 3개 DB Profile로 실행한다.
-8. Codex는 변경 없이 독립 검수만 수행한다.
+- Requirement + Scenario 165건: 부분 구현 73, 미검증 92
+- Defect 23건: 부분 구현 20, 재확인 필요 3
+- QA31 Full Static Gate: Exit Code 0, 476 checks, failures 0
+- Java 21 격리 Harness: Gateway HMAC 및 Batch JCA/PKIX Signature PASS
+- Java 25 전체 Gradle, Frontend 전체 Build/Test, 3 DB Lifecycle, Redis·Multi-instance, Gateway·Batch Runtime, Browser E2E: 미검증
 
-## 완료 처리 금지 조건
+## 다음 실행 순서
 
+1. `origin/master`와 Working Tree를 확인하고 Base SHA가 다르면 적용하지 말고 Diff를 재검토한다.
+2. QA31 ZIP을 Project Root에 적용하고 Delete Manifest를 실행한다.
+3. `git diff --check`와 변경 목록을 검토한다.
+4. QA31 Full Gate와 EDU/BZA Coverage Gate를 전체 Repository에서 실행한다.
+5. Java 25 전체 Gradle과 ADM/BZA Frontend 검증을 실행한다.
+6. Oracle·PostgreSQL·MariaDB Install→Upgrade→Rollback→재설치를 실제 실행한다.
+7. Gateway·Batch·Redis·Multi-instance·Failure Injection·Browser E2E를 실행한다.
+8. 사용자가 Push한 새 exact SHA로 Evidence를 다시 생성하고 QA/Codex가 독립검수한다.
+
+## 완료 처리 금지
+
+- Interface·DTO·Table·화면 파일 존재만으로 완료 처리
 - 실행하지 않은 검증을 PASS로 기록
-- Overlay 기준 SHA와 적용 대상 HEAD 불일치
-- 구형 Gateway 병렬 모델이 남은 상태
-- 3 Vendor 중 일부만 검증하고 DB 완료 처리
-- Checksum Manifest를 검증 중 자동 갱신
-- Runtime/Browser/Multi-instance 결과 없이 Full Product Gate PASS 처리
-
-## 사용자 승인 경계
-
-ChatGPT는 Commit, Push, Branch, Tag, PR을 생성하지 않았다.
+- 과거 SHA Evidence 승계
+- README/Guide 변경을 QA31 기능 결과에 포함
+- Consumer·DB·Runtime·실패·복구·Audit 연결이 없는 상태 승격

@@ -34,13 +34,10 @@ public class CpfGatewayRouteSnapshot {
         Map<String, CpfGatewayRoute> routes = provider.loadPublicRoutes();
         if (routes == null) throw new IllegalStateException("Gateway public route snapshot 결과가 null입니다.");
         if (routes.isEmpty() && !allowEmptyRoutes) {
-            Map<String, CpfGatewayRoute> candidate = provider.loadCandidateRoutes();
-            if (candidate == null || candidate.isEmpty()) {
-                throw new IllegalStateException("Gateway route snapshot이 비어 있어 기동을 중단합니다. 운영에서는 빈 route로 기동할 수 없습니다.");
-            }
-            log.warn("Apply ACK 이전 ACTIVE Gateway Candidate Snapshot으로 기동합니다. Route Synchronizer가 즉시 ACK를 기록합니다.");
-            routes = candidate;
+            throw new IllegalStateException(
+                    "Apply ACK 완료 Gateway Route가 없어 기동을 중단합니다. ACK 없는 Candidate는 외부에 노출하지 않습니다.");
         }
+        if (routes.isEmpty()) log.warn("Gateway가 빈 ACK Snapshot(Default Deny)으로 기동합니다.");
         current.set(new Snapshot(Map.copyOf(routes), Instant.now()));
     }
 
@@ -54,7 +51,9 @@ public class CpfGatewayRouteSnapshot {
     public Snapshot refreshNow() {
         Map<String, CpfGatewayRoute> routes = provider.loadPublicRoutes();
         if (routes == null) throw new IllegalStateException("Gateway route refresh 결과가 null입니다.");
-        return activate(new Snapshot(Map.copyOf(routes), Instant.now()));
+        Snapshot acknowledged = new Snapshot(Map.copyOf(routes), Instant.now());
+        current.set(acknowledged);
+        return acknowledged;
     }
 
     /** ACK 기록 전 ACTIVE Binding 전체를 검증한 Candidate Snapshot을 생성합니다. */
@@ -62,15 +61,6 @@ public class CpfGatewayRouteSnapshot {
         Map<String, CpfGatewayRoute> routes = provider.loadCandidateRoutes();
         if (routes == null) throw new IllegalStateException("Gateway candidate route 결과가 null입니다.");
         return new Snapshot(Map.copyOf(routes), Instant.now());
-    }
-
-    /** 검증된 Candidate를 단일 AtomicReference 교체로 활성화합니다. */
-    public Snapshot activate(Snapshot replacement) {
-        if (replacement == null || replacement.routes() == null) {
-            throw new IllegalArgumentException("Gateway replacement snapshot is required");
-        }
-        current.set(new Snapshot(Map.copyOf(replacement.routes()), replacement.loadedAt()));
-        return current.get();
     }
 
     public Snapshot current() {
@@ -94,7 +84,7 @@ public class CpfGatewayRouteSnapshot {
                 .filter(CpfGatewayRoute::enabled)
                 .filter(route -> route.environmentCode().equalsIgnoreCase(environment))
                 .filter(route -> matchesHost(route.hostPattern(), requestHost))
-                .filter(route -> matchesPath(route.pathPattern(), requestPath))
+                .filter(route -> CpfGatewayPathRewriter.matches(route.pathPattern(), requestPath))
                 .filter(route -> "*".equals(route.httpMethod()) || route.httpMethod().equalsIgnoreCase(requestMethod))
                 .filter(route -> "*".equals(route.apiVersion()) || route.apiVersion().equalsIgnoreCase(version))
                 .sorted(java.util.Comparator
@@ -111,17 +101,6 @@ public class CpfGatewayRouteSnapshot {
         if (pattern == null || pattern.isBlank() || "*".equals(pattern)) return true;
         if (pattern.startsWith("*.")) return host.endsWith(pattern.substring(1));
         return pattern.equalsIgnoreCase(host);
-    }
-
-    private static boolean matchesPath(String pattern, String path) {
-        if (pattern == null || pattern.isBlank() || "/**".equals(pattern) || "*".equals(pattern)) return true;
-        if (pattern.endsWith("/**")) return path.startsWith(pattern.substring(0, pattern.length() - 3));
-        if (pattern.endsWith("/*")) {
-            String prefix = pattern.substring(0, pattern.length() - 1);
-            if (!path.startsWith(prefix)) return false;
-            return path.indexOf('/', prefix.length()) < 0;
-        }
-        return pattern.equals(path);
     }
 
     private static int specificity(String host, String path) {

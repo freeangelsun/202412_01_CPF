@@ -7,9 +7,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import javax.net.ssl.SSLSocketFactory;
-import java.net.InetSocketAddress;
-import java.net.Socket;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
@@ -21,9 +18,13 @@ import java.util.UUID;
 public final class CpfGatewayConnectionTestWorker {
     private static final Logger log = LoggerFactory.getLogger(CpfGatewayConnectionTestWorker.class);
     private final CpfGatewayRegistryPort registry;
+    private final CpfGatewayProbeExecutor probes;
 
-    public CpfGatewayConnectionTestWorker(CpfGatewayRegistryPort registry) {
+    public CpfGatewayConnectionTestWorker(
+            CpfGatewayRegistryPort registry,
+            CpfGatewayProbeExecutor probes) {
         this.registry = registry;
+        this.probes = probes;
     }
 
     @Scheduled(fixedDelayString = "${cpf.gateway.connection-test.worker-millis:2000}")
@@ -50,7 +51,7 @@ public final class CpfGatewayConnectionTestWorker {
             for (CpfGatewayRegistryPort.GroupMember member : members) {
                 current = registry.findConnectionTestOperation(current.operationId());
                 if (completeCancellationOrExpiry(current)) return;
-                Probe probe = probe(binding, member);
+                Probe probe = probe(binding, member, current.testType());
                 if (probe.success()) success++;
                 registry.recordConnectionTest(new CpfGatewayRegistryPort.ConnectionTestCommand(
                         UUID.randomUUID().toString(), binding.bindingId(), gatewayInstanceId, member.instanceId(),
@@ -95,36 +96,31 @@ public final class CpfGatewayConnectionTestWorker {
         return false;
     }
 
-    private Probe probe(CpfGatewayRegistryPort.GatewayBinding binding, CpfGatewayRegistryPort.GroupMember member) {
-        long started = System.nanoTime();
-        // Member의 실제 Host/Port는 Health Worker가 Service Registry와 결합해 검증합니다.
-        // Connection Test는 같은 Member를 즉시 Health Claim하여 최신 결과를 생성하도록 요구합니다.
+    private Probe probe(
+            CpfGatewayRegistryPort.GatewayBinding binding,
+            CpfGatewayRegistryPort.GroupMember member,
+            String testType) {
         CpfGatewayRegistryPort.HealthProbeTarget target = registry.claimHealthProbe(
                 binding.serverGroupId(), member.instanceId(),
                 CpfInstanceIdentity.current().serverInstanceId(), 30);
-        if (target == null) return new Probe(false, "LEASE", elapsed(started));
-        try (Socket socket = target.protocol().tls()
-                ? SSLSocketFactory.getDefault().createSocket()
-                : new Socket()) {
-            socket.connect(new InetSocketAddress(target.host(), target.port()), target.timeoutMs());
-            if (target.protocol().tls()) ((javax.net.ssl.SSLSocket) socket).startHandshake();
+        if (target == null) return new Probe(false, "LEASE", 0L);
+        CpfGatewayProbeExecutor.ProbeResult result = probes.execute(target, binding, testType);
+        if (affectsRoutingHealth(testType)) {
             registry.reportHealth(new CpfGatewayRegistryPort.HealthProbeResult(
                     UUID.randomUUID().toString(), target.serverGroupId(), target.instanceId(), target.gatewayInstanceId(),
-                    target.fencingToken(), "UP", "UP", target.protocol().tls() ? "UP" : "NOT_APPLICABLE",
-                    "UP", com.cpf.core.api.gateway.CpfGatewayHealthStatus.UP, "CONNECTION_TEST_OK",
-                    elapsed(started), OffsetDateTime.now(ZoneOffset.UTC)));
-            return new Probe(true, null, elapsed(started));
-        } catch (Exception ex) {
-            registry.reportHealth(new CpfGatewayRegistryPort.HealthProbeResult(
-                    UUID.randomUUID().toString(), target.serverGroupId(), target.instanceId(), target.gatewayInstanceId(),
-                    target.fencingToken(), "UP", "DOWN", target.protocol().tls() ? "DOWN" : "NOT_APPLICABLE",
-                    "UNKNOWN", com.cpf.core.api.gateway.CpfGatewayHealthStatus.DOWN, "CONNECTION_TEST_FAILED",
-                    elapsed(started), OffsetDateTime.now(ZoneOffset.UTC)));
-            return new Probe(false, "TCP_OR_TLS", elapsed(started));
+                    target.fencingToken(), result.networkStatus(), result.tcpStatus(), result.tlsStatus(),
+                    result.applicationStatus(), result.overallStatus(), result.resultCode(), result.durationMs(),
+                    OffsetDateTime.now(ZoneOffset.UTC)));
         }
+        return new Probe(result.success(), result.failureStage(), result.durationMs());
     }
 
-    private static long elapsed(long started) { return Math.max(0L, (System.nanoTime()-started)/1_000_000L); }
+
+    static boolean affectsRoutingHealth(String testType) {
+        String normalized = testType == null ? "" : testType.trim().toUpperCase(java.util.Locale.ROOT);
+        return "APPLICATION".equals(normalized) || "GATEWAY_E2E".equals(normalized);
+    }
+
     private static String sanitize(String value) {
         String text=Objects.toString(value,"Connection test failed").replaceAll("(?i)(password|token|secret)=[^,\\s]+","$1=***");
         return text.length()>1_000?text.substring(0,1_000):text;

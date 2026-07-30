@@ -139,6 +139,6 @@ public class CpfGatewayConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public CpfGatewayHttpExchangePort cpfGatewayHttpExchangePort(CpfGatewayTransferPolicy policy) {
-        return new JdkCpfGatewayHttpExchangeAdapter(policy.connectTimeoutMillis());
+        return new JdkCpfGatewayHttpExchangeAdapter();
     }
 }

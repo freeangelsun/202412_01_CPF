@@ -1,6 +1,7 @@
 package com.cpf.batch.worker;
 
 import com.cpf.batch.runtime.SensitiveTextSanitizer;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -28,10 +29,18 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class ApprovedShellExecutor {
     private final WorkerOperationalProperties properties;
+    private final ObjectMapper objectMapper;
     private volatile List<ScriptArtifactVerifier> artifactVerifiers = List.of(new Sha256ScriptArtifactVerifier());
 
-    public ApprovedShellExecutor(WorkerOperationalProperties properties) {
+    @Autowired
+    public ApprovedShellExecutor(WorkerOperationalProperties properties, ObjectMapper objectMapper) {
         this.properties = Objects.requireNonNull(properties, "properties");
+        this.objectMapper = Objects.requireNonNull(objectMapper, "objectMapper");
+    }
+
+    /** Source compatibility for isolated unit tests. */
+    public ApprovedShellExecutor(WorkerOperationalProperties properties) {
+        this(properties, new ObjectMapper());
     }
 
     @Autowired(required = false)
@@ -75,6 +84,11 @@ public class ApprovedShellExecutor {
             }
 
             Process process = builder.start();
+            if ("STDIN_JSON".equalsIgnoreCase(definition.getParameterDeliveryMode())) {
+                writeParametersToStdin(process, safeParameters);
+            } else {
+                process.getOutputStream().close();
+            }
             BoundedOutput stdout = new BoundedOutput(
                     definition.getMaxOutputBytes(), definition.getMaxOutputLinesPerSecond());
             BoundedOutput stderr = new BoundedOutput(
@@ -194,6 +208,14 @@ public class ApprovedShellExecutor {
         return file;
     }
 
+    private void writeParametersToStdin(Process process, Map<String, Object> parameters) throws IOException {
+        try (OutputStream output = process.getOutputStream()) {
+            objectMapper.writeValue(output, parameters);
+            output.write('\n');
+            output.flush();
+        }
+    }
+
     private ScriptArtifactVerifier.VerificationResult verifyArtifact(
             Path executable,
             WorkerOperationalProperties.ShellDefinition definition) throws Exception {
@@ -213,11 +235,14 @@ public class ApprovedShellExecutor {
         }
         String deliveryMode = blankTo(definition.getParameterDeliveryMode(), "PARAMETER_FILE")
                 .toUpperCase(Locale.ROOT);
-        if (!Set.of("PARAMETER_FILE", "COMMAND_LINE").contains(deliveryMode)) {
+        if (!Set.of("PARAMETER_FILE", "COMMAND_LINE", "STDIN_JSON").contains(deliveryMode)) {
             throw new IllegalArgumentException("Unsupported parameterDeliveryMode: " + key);
         }
         if (!definition.isTerminateProcessTree()) {
             throw new IllegalArgumentException("terminateProcessTree must be enabled: " + key);
+        }
+        if (!definition.getSensitiveParameters().isEmpty() && !"STDIN_JSON".equals(deliveryMode)) {
+            throw new IllegalArgumentException("Sensitive parameters require STDIN_JSON delivery mode: " + key);
         }
         if (definition.getSensitiveParameters().stream().anyMatch(value -> !definition.getAllowedParameters().contains(value))) {
             throw new IllegalArgumentException("Sensitive parameter must be included in allowedParameters: " + key);

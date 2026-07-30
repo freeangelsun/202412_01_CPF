@@ -96,8 +96,19 @@ public class BatchJobDefinitionService implements BatchJobDefinitionControlPort 
         if(definition.state()== BatchJobDefinition.State.PUBLISHED && definition.effectiveFrom()!=null && definition.effectiveFrom().isAfter(OffsetDateTime.now()))warnings.add("Published definition is not effective yet");
         if(definition.resourcePolicy().maxConcurrency()>1000)warnings.add("High concurrency requires capacity approval");
         if(definition.recoveryPolicy().maxAttempts()>1 && definition.recoveryPolicy().unknownResultPolicy()== BatchJobDefinition.UnknownResultPolicy.FAIL_CLOSED)warnings.add("Retry with FAIL_CLOSED unknown-result policy may require manual reconciliation");
-        for(BatchParameterDefinition p:definition.parameters())if(p.sensitive() && !"SECRET_REFERENCE".equals(p.type()))errors.add("Sensitive parameter must use SECRET_REFERENCE: "+p.name());
-        return new ValidationResult(errors.isEmpty(),List.copyOf(errors),List.copyOf(warnings),preview(definition));
+        for (BatchParameterDefinition parameter : definition.parameters()) {
+            if (parameter.sensitive() && !"SECRET_REFERENCE".equals(parameter.type())) {
+                errors.add("Sensitive parameter must use SECRET_REFERENCE: " + parameter.name());
+            }
+        }
+        if (definition.executorType() == BatchJobDefinition.ExecutorType.FILE_PROCESS) {
+            try {
+                definition.processorId();
+            } catch (IllegalArgumentException invalidProcessor) {
+                errors.add(invalidProcessor.getMessage());
+            }
+        }
+        return new ValidationResult(errors.isEmpty(), List.copyOf(errors), List.copyOf(warnings), preview(definition));
     }
 
     @Transactional

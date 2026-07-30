@@ -148,6 +148,13 @@ try {
     }
     Assert-CpfGeneratedDomainTopology
 
+    Invoke-CpfGate 'QA31 request/result/source integrity gate' {
+        & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\verify-cpf-qa31-development-result.ps1 `
+            -Root $RepoRoot -BaseSha '9594c8d5d9b1127a4e2694d0ec2f4add9475fc7e' `
+            -RequireExactHeadEvidence:$RequireFullCompletion `
+            -RequireIntegratedClosure:$RequireFullCompletion
+    }
+
     Invoke-CpfGate 'QA30 canonical/runtime/navigation static gate' {
         & python .\cpf-tools\scripts\verify-qa30-completion.py --root $RepoRoot --scope $RepoRoot `
             --basis-sha $ExpectedSourceSha `

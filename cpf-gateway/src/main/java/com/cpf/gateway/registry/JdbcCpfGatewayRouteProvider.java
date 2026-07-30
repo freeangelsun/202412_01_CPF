@@ -84,13 +84,17 @@ public final class JdbcCpfGatewayRouteProvider implements CpfGatewayRouteProvide
                 && status.acknowledgedAt() != null;
     }
 
+    private static String blankTo(String value, String fallback) {
+        return value == null || value.isBlank() ? fallback : value.trim();
+    }
+
     private static CpfGatewayRoute toRoute(CpfGatewayRegistryPort.GatewayBinding b) {
         String executionId = b.routeId();
         return new CpfGatewayRoute(
                 executionId,
                 b.serviceId(),
                 b.httpMethod(),
-                b.pathPattern(),
+                blankTo(b.targetPath(), b.pathPattern()),
                 b.routeId(),
                 b.authorizationPolicyId(),
                 b.approvalId() != null && !b.approvalId().isBlank(),

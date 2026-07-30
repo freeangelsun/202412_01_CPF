@@ -43,7 +43,7 @@ public class AdmGatewayRegistryController extends com.cpf.admin.common.base.AdmB
                 "protocols",java.util.Arrays.stream(CpfGatewayProtocol.values()).map(Enum::name).toList(),
                 "loadBalancePolicies",java.util.Arrays.stream(CpfGatewayLoadBalancePolicy.values()).map(Enum::name).toList(),
                 "bindingStates",List.of("DRAFT","VALIDATED","APPROVAL_PENDING","APPROVED","ACTIVE","PARTIAL","BLOCKED","RETIRED"),
-                "connectionTestTypes",List.of("NETWORK","TCP","TLS","APPLICATION"));
+                "connectionTestTypes",List.of("NETWORK","TCP","TLS","APPLICATION","GATEWAY_E2E"));
         if(resolved==null) return Map.of("installed",false,"available",false,"status","NOT_INSTALLED",
                 "reason","Gateway Control Plane Provider가 구성되지 않았습니다.","catalog",catalog);
         try {
@@ -128,8 +128,10 @@ public class AdmGatewayRegistryController extends com.cpf.admin.common.base.AdmB
     public CpfGatewayRegistryPort.MutationResult changeState(@PathVariable String id,
             @RequestBody CpfGatewayRegistryPort.BindingStateCommand c,HttpServletRequest request) {
         if(!id.equals(c.bindingId())) throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Path와 Body bindingId가 다릅니다.");
-        if(java.util.Set.of("APPROVED","ACTIVE").contains(c.targetState().toUpperCase(java.util.Locale.ROOT)))
-            throw new ResponseStatusException(HttpStatus.CONFLICT,"승인·활성 전환은 ADM Approval 실행 API를 사용해야 합니다.");
+        String targetState=c.targetState()==null?"":c.targetState().toUpperCase(java.util.Locale.ROOT);
+        if(java.util.Set.of("APPROVED","ACTIVE","BLOCKED","RETIRED").contains(targetState))
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "승인·활성·차단·폐기 전환은 ADM Approval Owner 실행 API를 사용해야 합니다.");
         String operator=operator(request); reason(c.reason());
         CpfGatewayRegistryPort.BindingStateCommand trusted=new CpfGatewayRegistryPort.BindingStateCommand(
                 c.operationId(),c.bindingId(),c.targetState(),c.expectedVersion(),
@@ -141,21 +143,17 @@ public class AdmGatewayRegistryController extends com.cpf.admin.common.base.AdmB
     @DeleteMapping("/server-groups/{id}") @CpfOnlineTransaction(id="OADMGW0090",name="ADMGatewayDeleteServerGroup")
     @Operation(operationId="admGatewayDeleteServerGroup",summary="미사용 Server Group 폐기")
     public ResponseEntity<Void> deleteGroup(@PathVariable String id,@RequestBody CpfGatewayRegistryPort.DeleteCommand c,HttpServletRequest request) {
-        String operator=operator(request); reason(c.reason());
-        port().deleteServerGroup(id,new CpfGatewayRegistryPort.DeleteCommand(
-                c.operationId(),c.expectedVersion(),c.reason(),operator));
-        record(request,operator,"GATEWAY_SERVER_GROUP_RETIRE",id,c.reason(),"retired");
-        return ResponseEntity.noContent().build();
+        reason(c.reason());
+        throw new ResponseStatusException(HttpStatus.CONFLICT,
+                "Server Group 폐기는 ADM Approval Owner 실행 API를 사용해야 합니다.");
     }
 
     @DeleteMapping("/bindings/{id}") @CpfOnlineTransaction(id="OADMGW0100",name="ADMGatewayDeleteBinding")
     @Operation(operationId="admGatewayDeleteBinding",summary="Binding 폐기")
     public ResponseEntity<Void> deleteBinding(@PathVariable String id,@RequestBody CpfGatewayRegistryPort.DeleteCommand c,HttpServletRequest request) {
-        String operator=operator(request); reason(c.reason());
-        port().deleteBinding(id,new CpfGatewayRegistryPort.DeleteCommand(
-                c.operationId(),c.expectedVersion(),c.reason(),operator));
-        record(request,operator,"GATEWAY_BINDING_RETIRE",id,c.reason(),"retired");
-        return ResponseEntity.noContent().build();
+        reason(c.reason());
+        throw new ResponseStatusException(HttpStatus.CONFLICT,
+                "Gateway Binding 폐기는 ADM Approval Owner 실행 API를 사용해야 합니다.");
     }
 
 

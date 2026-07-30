@@ -7,7 +7,13 @@ import com.cpf.core.api.broker.CpfBrokerPublishResult;
 import com.cpf.core.api.servicecall.CpfServiceCaller;
 import com.cpf.core.api.servicecall.CpfServiceRequest;
 import com.cpf.core.api.servicecall.CpfServiceResult;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.MapperFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.net.URI;
@@ -29,16 +35,29 @@ public class BatchRuntimeExecutorRegistry {
     private final ObjectProvider<CpfServiceCaller> serviceCaller;
     private final ObjectProvider<CpfBrokerClient> brokerClient;
     private final HttpClient httpClient;
+    private final ObjectMapper canonicalJson;
 
+    @Autowired
     public BatchRuntimeExecutorRegistry(
             ObjectProvider<CpfServiceCaller> serviceCaller,
-            ObjectProvider<CpfBrokerClient> brokerClient) {
+            ObjectProvider<CpfBrokerClient> brokerClient,
+            ObjectMapper objectMapper) {
         this.serviceCaller = serviceCaller;
         this.brokerClient = brokerClient;
+        this.canonicalJson = objectMapper.copy()
+                .enable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+                .enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS);
         this.httpClient = HttpClient.newBuilder()
                 .followRedirects(HttpClient.Redirect.NEVER)
                 .connectTimeout(Duration.ofSeconds(10))
                 .build();
+    }
+
+    /** Test/standalone Source compatibility. Production Spring wiring injects the managed mapper. */
+    public BatchRuntimeExecutorRegistry(
+            ObjectProvider<CpfServiceCaller> serviceCaller,
+            ObjectProvider<CpfBrokerClient> brokerClient) {
+        this(serviceCaller, brokerClient, new ObjectMapper());
     }
 
     public ExecutionResult execute(
@@ -192,10 +211,30 @@ public class BatchRuntimeExecutorRegistry {
         }
     }
 
-    private static String jsonBody(Object value) {
-        if (value == null) return "{}";
-        if (value instanceof String string) return string;
-        return Objects.toString(value);
+    /**
+     * Map#toString 형태의 유사 JSON을 금지하고, 모든 외부 Payload를 동일 Canonical JSON으로 직렬화합니다.
+     * String 입력도 JSON 문법을 다시 파싱하므로 single quote, Java Map 표현식, trailing garbage를 허용하지 않습니다.
+     */
+    String jsonBody(Object value) {
+        try {
+            if (value == null) {
+                return "{}";
+            }
+            Object normalized = value;
+            if (value instanceof String string) {
+                if (string.isBlank()) {
+                    return "{}";
+                }
+                JsonNode parsed = canonicalJson.readTree(string);
+                if (parsed == null) {
+                    throw new IllegalArgumentException("JSON payload is empty");
+                }
+                normalized = parsed;
+            }
+            return canonicalJson.writeValueAsString(normalized);
+        } catch (JsonProcessingException invalidJson) {
+            throw new IllegalArgumentException("Payload is not valid JSON", invalidJson);
+        }
     }
 
     private static String text(Object value, String fallback) {

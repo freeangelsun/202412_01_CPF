@@ -12,10 +12,13 @@ import java.util.*;
 public class WorkerOperationalProperties {
     private Map<String, ShellDefinition> scripts = new LinkedHashMap<>();
     private Map<String, PathAlias> pathAliases = new LinkedHashMap<>();
+    private Map<String, String> trustedSigningKeys = new LinkedHashMap<>();
 
     public Map<String, ShellDefinition> getScripts() { return scripts; }
     public void setScripts(Map<String, ShellDefinition> scripts) { this.scripts = scripts == null ? new LinkedHashMap<>() : scripts; }
     public Map<String, PathAlias> getPathAliases() { return pathAliases; }
+    public Map<String, String> getTrustedSigningKeys() { return trustedSigningKeys; }
+    public void setTrustedSigningKeys(Map<String, String> trustedSigningKeys) { this.trustedSigningKeys = trustedSigningKeys == null ? new LinkedHashMap<>() : new LinkedHashMap<>(trustedSigningKeys); }
     public void setPathAliases(Map<String, PathAlias> pathAliases) { this.pathAliases = pathAliases == null ? new LinkedHashMap<>() : pathAliases; }
 
     public static class ShellDefinition {
@@ -31,7 +34,10 @@ public class WorkerOperationalProperties {
         private String parameterDeliveryMode = "PARAMETER_FILE";
         private String workingDirectoryAlias;
         private String sha256;
+        private String verificationMode = "SIGNATURE";
         private String signature;
+        private String signatureKeyId;
+        private String signatureAlgorithm = "SHA256withRSA";
         private String runAsIdentity;
         private int timeoutSeconds = 600;
         private int gracefulShutdownSeconds = 10;
@@ -65,8 +71,14 @@ public class WorkerOperationalProperties {
         public void setWorkingDirectoryAlias(String workingDirectoryAlias) { this.workingDirectoryAlias = workingDirectoryAlias; }
         public String getSha256() { return sha256; }
         public void setSha256(String sha256) { this.sha256 = sha256; }
+        public String getVerificationMode() { return verificationMode; }
+        public void setVerificationMode(String verificationMode) { this.verificationMode = verificationMode == null ? "SIGNATURE" : verificationMode.trim().toUpperCase(Locale.ROOT); }
         public String getSignature() { return signature; }
         public void setSignature(String signature) { this.signature = signature; }
+        public String getSignatureKeyId() { return signatureKeyId; }
+        public void setSignatureKeyId(String signatureKeyId) { this.signatureKeyId = signatureKeyId; }
+        public String getSignatureAlgorithm() { return signatureAlgorithm; }
+        public void setSignatureAlgorithm(String signatureAlgorithm) { this.signatureAlgorithm = signatureAlgorithm; }
         public String getRunAsIdentity() { return runAsIdentity; }
         public void setRunAsIdentity(String runAsIdentity) { this.runAsIdentity = runAsIdentity; }
         public int getTimeoutSeconds() { return timeoutSeconds; }

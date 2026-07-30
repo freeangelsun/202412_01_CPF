@@ -17,11 +17,13 @@ import java.util.Objects;
 public final class AdmParameterReferenceCatalogAdapter implements CpfParameterReferenceCatalogPort {
     private final ObjectProvider<CpfServiceRegistryQueryPort> services;
     private final ObjectProvider<CpfGatewayRegistryPort> gateway;
+    private final AdmParameterReferenceProperties configured;
 
     public AdmParameterReferenceCatalogAdapter(
             ObjectProvider<CpfServiceRegistryQueryPort> services,
-            ObjectProvider<CpfGatewayRegistryPort> gateway) {
-        this.services=services;this.gateway=gateway;
+            ObjectProvider<CpfGatewayRegistryPort> gateway,
+            AdmParameterReferenceProperties configured) {
+        this.services=services;this.gateway=gateway;this.configured=configured;
     }
 
     @Override
@@ -33,15 +35,47 @@ public final class AdmParameterReferenceCatalogAdapter implements CpfParameterRe
             case "ENDPOINT","ENDPOINT_REFERENCE","SERVICE_ENDPOINT" -> endpoints(query.parentId(),query.query());
             case "INSTANCE","INSTANCE_REFERENCE","SERVICE_INSTANCE" -> instances(query.parentId(),query.query());
             case "GATEWAY_GROUP","SERVER_GROUP" -> groups(query.parentId(),query.query());
-            case "SECRET","SECRET_REFERENCE" -> unavailable(type,"Secret Provider Catalog가 설치되지 않았습니다.");
-            case "PATH","PATH_ALIAS" -> unavailable(type,"Path Alias Provider가 설치되지 않았습니다.");
-            case "FILE","FILE_REFERENCE" -> unavailable(type,"File Provider Catalog가 설치되지 않았습니다.");
+            case "SECRET","SECRET_REFERENCE" -> secretReferences(query.query());
+            case "PATH","PATH_ALIAS" -> pathAliases(query.query());
+            case "FILE","FILE_REFERENCE" -> fileReferences(query.parentId(),query.query());
             case "CODE","CODE_REFERENCE" -> unavailable(type,"Code Group ID가 없는 자유 Code Reference는 허용하지 않습니다.");
             default -> throw new IllegalArgumentException("Unsupported parameter reference type: "+type);
         };
         if(isUnavailable(all))return new CatalogPage(type,false,false,all.getFirst().disabledReason(),offset,limit,false,List.of());
         int from=Math.min(offset,all.size());int to=Math.min(from+limit,all.size());
         return new CatalogPage(type,true,true,null,offset,limit,to<all.size(),List.copyOf(all.subList(from,to)));
+    }
+
+    private List<ReferenceItem> secretReferences(String q) {
+        if(configured.getSecrets().isEmpty())return unavailable("SECRET_REFERENCE","승인된 Secret Metadata Catalog가 구성되지 않았습니다.");
+        return configured.getSecrets().entrySet().stream()
+                .filter(e->matches(e.getKey(),Objects.toString(e.getValue().getLabel(),e.getKey()),q))
+                .map(e->{var v=e.getValue();String provider=Objects.toString(v.getProviderId(),"").trim();String key=Objects.toString(v.getKey(),"").trim();
+                    boolean valid=!provider.isBlank()&&!key.isBlank()&&v.isEnabled();
+                    return new ReferenceItem(e.getKey(),Objects.toString(v.getLabel(),e.getKey()),"SECRET_REFERENCE",provider,valid,
+                            valid?null:"비활성 또는 Provider/Key Metadata 누락",
+                            Map.of("providerId",provider,"scope",Objects.toString(v.getScope(),"default"),"valueExposed",false));}).toList();
+    }
+    private List<ReferenceItem> pathAliases(String q) {
+        if(configured.getPaths().isEmpty())return unavailable("PATH_ALIAS","승인된 Path Alias Catalog가 구성되지 않았습니다.");
+        return configured.getPaths().entrySet().stream()
+                .filter(e->matches(e.getKey(),Objects.toString(e.getValue().getLabel(),e.getKey()),q))
+                .map(e->{var v=e.getValue();return new ReferenceItem(e.getKey(),Objects.toString(v.getLabel(),e.getKey()),
+                        "PATH_ALIAS",null,v.isEnabled(),v.isEnabled()?null:"비활성 Path Alias",
+                        Map.of("provider",Objects.toString(v.getProvider(),"LOCAL"),"remote",v.isRemote(),
+                                "sharedDurable",v.isSharedDurable()));}).toList();
+    }
+    private List<ReferenceItem> fileReferences(String parentId,String q) {
+        if(configured.getFiles().isEmpty())return unavailable("FILE_REFERENCE","승인된 File Reference Catalog가 구성되지 않았습니다.");
+        String parent=clean(parentId);
+        return configured.getFiles().entrySet().stream()
+                .filter(e->parent==null||parent.equals(e.getValue().getPathAlias()))
+                .filter(e->matches(e.getKey(),Objects.toString(e.getValue().getLabel(),e.getKey()),q))
+                .map(e->{var v=e.getValue();String alias=Objects.toString(v.getPathAlias(),"").trim();
+                    boolean valid=v.isEnabled()&&!alias.isBlank()&&configured.getPaths().containsKey(alias);
+                    return new ReferenceItem(e.getKey(),Objects.toString(v.getLabel(),e.getKey()),"FILE_REFERENCE",alias,valid,
+                            valid?null:"비활성 또는 Path Alias 누락",
+                            Map.of("pathAlias",alias,"relativePath",Objects.toString(v.getRelativePath(),"")));}).toList();
     }
 
     private List<ReferenceItem> services(String q) {

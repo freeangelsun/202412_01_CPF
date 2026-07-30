@@ -17,6 +17,21 @@
 
 ---
 
+## CPF 전체 구조
+
+채널의 요청이 업무영역에 도달하고, 공통 기반·선택 실행 환경·외부 시스템·운영 도구로 이어지는 전체 구조입니다. 첫 화면에서는 **무엇이 기본이고 무엇이 선택인지**, **각 애플리케이션이 무엇을 소유하는지**, **개발·배포·복구 도구가 어디에 위치하는지**를 한 장으로 확인할 수 있습니다.
+
+<picture>
+  <source media="(max-width: 720px)" srcset="cpf-docs/assets/readme/cpf-architecture-overview-mobile.png">
+  <img src="cpf-docs/assets/readme/cpf-architecture-overview-desktop.png" alt="CPF 전체 구조 — 채널, Gateway, 업무·운영 애플리케이션, 공통 기반, Batch 실행 환경, 외부 시스템과 도구의 관계" width="100%">
+</picture>
+
+직접 진입과 Gateway 경유는 환경에 따라 선택하며, `cpf-common`은 중앙 경유 계층이 아니라 필요한 애플리케이션이 선택해 사용하는 업무 공통입니다. 업무 애플리케이션과 실행 환경은 공개 API·SPI를 통해 연결되고, 내부 구현 Package나 다른 소유자의 데이터베이스에 직접 의존하지 않습니다.
+
+[구조와 배포 구성 상세 보기 →](cpf-docs/guides/CPF_ARCHITECTURE_AND_TOPOLOGY_GUIDE.md)
+
+---
+
 ## 프로젝트가 커질수록 필요한 것은 기능보다 기준입니다
 
 업무 시스템은 화면과 API를 만드는 것만으로 끝나지 않습니다. 배포 방식이 달라져도 호출 계약이 유지돼야 하고, 다중 인스턴스에서 중복 실행을 막아야 하며, 장애 뒤에는 실제 처리 결과를 확인하고 복구할 수 있어야 합니다. 운영자는 서비스·거래·로그·배치·설정의 상태를 연결해 보고, 위험한 조치는 권한·사유·승인·감사와 함께 수행해야 합니다.

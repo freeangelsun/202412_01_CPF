@@ -32,6 +32,10 @@ $required = @(
     "cpf-docs\guides\CPF_TOOL_REFERENCE.md",
     "cpf-docs\guides\DATABASE_PROFILE_AND_DOMAIN_DB_GUIDE.md",
     "cpf-docs\guides\README.md",
+    "cpf-docs\assets\readme\cpf-architecture-overview-desktop.png",
+    "cpf-docs\assets\readme\cpf-architecture-overview-desktop.svg",
+    "cpf-docs\assets\readme\cpf-architecture-overview-mobile.png",
+    "cpf-docs\assets\readme\cpf-architecture-overview-mobile.svg",
     "cpf-docs\assets\readme\cpf-domain-journey-desktop.png",
     "cpf-docs\assets\readme\cpf-domain-journey-desktop.svg",
     "cpf-docs\assets\readme\cpf-domain-journey-mobile.png",
@@ -94,7 +98,7 @@ foreach ($match in $linkMatches) {
 if ($broken.Count -gt 0) { throw "README Link 대상이 없습니다:`n$($broken -join "`n")" }
 
 $pictureCount = ([regex]::Matches($readme, '<picture>')).Count
-if ($pictureCount -lt 6) { throw "README 시각 자료가 부족합니다: picture=$pictureCount" }
+if ($pictureCount -lt 8) { throw "README 시각 자료가 부족합니다: picture=$pictureCount" }
 if (-not $readme.Contains('max-width: 720px')) { throw "README에 Mobile 이미지 전환이 없습니다." }
 
 Write-Host "CPF 브로셔형 README와 상세 가이드 정적 검증 PASS"

@@ -1,0 +1,6 @@
+batch_id,base_sha,head_sha,vertical_slices,defect_ids,requirement_ids,changed_modules,public_contract_impact,database_impact,migration_impact,runtime_consumer_impact,frontend_impact,security_impact,executed_commands,evidence_paths,unverified_items,codex_review_status,notes
+QA31-BATCH-01,,,WP00-WP01,,,,,,,,,,,,,NOT_READY,
+QA31-BATCH-02,,,WP02-WP03,,,,,,,,,,,,,NOT_READY,
+QA31-BATCH-03,,,WP04-WP05,,,,,,,,,,,,,NOT_READY,
+QA31-BATCH-04,,,WP06-WP07,,,,,,,,,,,,,NOT_READY,
+QA31-BATCH-RC,,,WP08,,,,,,,,,,,,,NOT_READY,

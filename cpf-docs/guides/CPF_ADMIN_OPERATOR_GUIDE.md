@@ -1,5 +1,19 @@
 # CPF 플랫폼 운영자 가이드
 
+[← 문서 홈](README.md) · [제품 소개](../../README.md) · [구조와 배포](CPF_ARCHITECTURE_AND_TOPOLOGY_GUIDE.md) · [용어와 계약](CPF_TERMINOLOGY_AND_CONTRACT_REFERENCE.md)
+
+> **대상**: 플랫폼 운영자, 관제 담당자, 승인자, 사고 대응자
+> **목적**: 서비스·거래·배치·설정·보안 상태를 조회하고 안전하게 조치한다.
+> **관련 문서**: [관측·장애대응·복구](CPF_OBSERVABILITY_INCIDENT_AND_RECOVERY_GUIDE.md) · [보안·재해복구·데이터 보존](CPF_SECURITY_DR_RETENTION_GUIDE.md)
+
+---
+
+
+<picture>
+  <source media="(max-width: 720px)" srcset="../assets/readme/cpf-operations-mobile.png">
+  <img src="../assets/readme/cpf-operations-desktop.png" alt="CPF 플랫폼 운영과 업무 관리" width="100%">
+</picture>
+
 ## 1. 대상과 목적
 
 이 문서는 `cpf-admin`을 사용하는 운영자, 장애 대응자, 승인자, 보안 담당자와 감사 담당자를 위한 운영 절차를 정의한다.
@@ -8,57 +22,62 @@ ADM은 단순 조회 화면이 아니다. 운영자가 다음을 수행할 수 �
 
 - 서비스와 인스턴스 상태 파악
 - 거래와 실패 구간 추적
-- Gateway와 Batch 운영
+- 게이트웨이와 배치 운영
 - 결과 불명 거래 대사
 - 위험 조치 승인·실행·감사
-- 설정과 Log 정책 변경
-- Incident와 Runbook 관리
-- Evidence 확보
+- 설정과 로그 정책 변경
+- 사고와 운영 절차서 관리
+- 검증 증적 확보
 
 ## 2. 운영자 역할
 
 | 역할 | 대표 권한 |
 |---|---|
-| 조회 운영자 | 상태, 거래, Log, 이력 조회 |
-| 서비스 운영자 | Drain, Resume, Retry, Reconcile |
-| Batch 운영자 | 실행, Stop, Restart, Reprocess |
-| Gateway 운영자 | Binding, Apply, Connection Test |
-| 보안 운영자 | Secret Metadata, 인증서, Download 통제 |
+| 조회 운영자 | 상태, 거래, 로그, 이력 조회 |
+| 서비스 운영자 | Drain, Resume, 재시도, 상태 대사 |
+| 배치 운영자 | 실행, Stop, Restart, Reprocess |
+| 게이트웨이 운영자 | 바인딩, 적용, 연결시험 |
+| 보안 운영자 | 비밀값 메타데이터, 인증서, 내려받기 통제 |
 | 승인자 | 위험 조치 승인 |
 | 감사자 | 변경·승인·실행 이력 조회 |
 | 비상 운영자 | 제한된 Break-glass |
 
 한 사용자가 모든 권한을 기본 보유하지 않는다.
 
-## 3. 로그인과 Session
+## 3. 로그인과 세션
 
 - 인증 실패 시 보호 API 접근 거부
-- Access Token은 제한된 Session 범위
-- Logout/401 후 Browser 상태 제거
-- 권한 변경 후 Session 재평가
+- Access Token은 제한된 세션 범위
+- Logout/401 후 브라우저 상태 제거
+- 권한 변경 후 세션 재평가
 - 위험 조치 재인증
 - Refresh Token 재사용 탐지
-- 다중 Device Session 조회와 폐기
+- 다중 Device 세션 조회와 폐기
 
 ## 4. 화면 공통 사용법
+
+### 참조형 매개변수
+
+서비스, 서버 그룹, 경로, 작업정의, 비밀값 참조처럼 다른 관리 대상의 식별자를 입력하는 필드는 자유 입력 대신 참조 Catalog를 사용한다. 상위 필드가 바뀌면 하위 선택값을 초기화하고 다시 조회하며, 사용할 수 없는 항목은 비활성 사유를 표시한다. Catalog 조회 실패를 빈 목록으로 위장하지 않는다.
+
 
 모든 운영 목록은 다음을 제공한다.
 
 - 검색 조건
 - 기간
 - 상태
-- Owner/Module/Instance
-- Paging 또는 Cursor
+- 소유자/모듈/인스턴스
+- 페이징 또는 Cursor
 - 안정적인 정렬
 - 상세 화면
-- Error와 Retry
+- 오류와 재시도
 - 저장 검색 조건
-- 권한 있는 Export
+- 권한 있는 반출
 - URL Deep Link
 
 Raw JSON은 보조 진단으로만 제공하고 기본 화면은 구조화한다.
 
-## 5. Service Registry
+## 5. 서비스 등록부
 
 ### 5.1 서비스 목록
 
@@ -76,7 +95,7 @@ Raw JSON은 보조 진단으로만 제공하고 기본 화면은 구조화한다
 - circuit state
 - maintenance state
 
-### 5.2 Instance 상세
+### 5.2 인스턴스 상세
 
 - serverInstanceId
 - host
@@ -99,24 +118,24 @@ Liveness DOWN
 → Process/Host 장애 확인
 
 Liveness UP + Readiness DOWN
-→ Local DB, Listener, 필수 Dependency 확인
+→ Local DB, 리스너, 필수 Dependency 확인
 
 Registry Stale
 → Heartbeat 지연, Network, Instance 종료 확인
 ```
 
-## 6. Topology
+## 6. 구성 관계
 
-Topology는 Service, Instance, Endpoint, Dependency, Owner와 DB를 연결한다.
+구성 관계 화면은 서비스, 인스턴스, 엔드포인트, 의존 대상, 소유자와 DB를 연결한다.
 
 운영자는 다음 질문에 답할 수 있어야 한다.
 
 - 이 서비스가 누구를 호출하는가
 - 장애 대상의 영향 서비스는 무엇인가
-- 어느 Instance가 같은 Cell에 있는가
-- Gateway Route가 어떤 Binding을 사용하는가
-- Batch Worker가 어떤 Job Pack을 실행하는가
-- Owner Command가 어느 Runtime으로 전달되는가
+- 어느 인스턴스가 같은 셀에 있는가
+- 게이트웨이 경로가 어떤 바인딩을 사용하는가
+- 배치 작업자가 어떤 작업 묶음을 실행하는가
+- 소유자 명령이 어느 실행 환경으로 전달되는가
 
 ## 7. 거래 조회
 
@@ -132,7 +151,7 @@ Topology는 Service, Instance, Endpoint, Dependency, Owner와 DB를 연결한다
 - 시간
 - failureCode
 
-Timeline:
+시간선:
 
 ```text
 IN
@@ -147,25 +166,39 @@ IN
 
 결과 불명은 최종 실패와 구분한다.
 
-## 8. Log와 Trace
+## 8. 로그와 추적
 
-Log 조회 기준:
+### 감사된 로그 반출
+
+로그 상세를 클립보드로 복사하거나 파일로 내려받는 동작은 브라우저가 조회 응답을 그대로 저장하지 않는다.
+
+1. 운영자가 대상 로그와 반출 방식을 선택한다.
+2. 서버가 권한과 사유를 검증한다.
+3. 로그 수집 보호 정책에 따라 다시 마스킹하고 최대 크기를 적용한다.
+4. `exportId`, 행위자, 대상, 사유, 결과와 만료 시각을 감사한다.
+5. 클립보드 방식은 마스킹된 본문만 반환한다.
+6. 내려받기 방식은 만료되는 주소와 파일명을 반환한다.
+
+쿼리, 요청·응답 헤더, 요청·응답 본문과 오류 스택은 각각 `NONE`, `METADATA_ONLY`, `ALLOWLIST`, `MASKED` 등 승인된 수집 모드와 크기 제한을 적용한다. 원문 전체 수집을 기본값으로 두지 않는다.
+
+
+로그 조회 기준:
 
 - Environment
-- Module
-- Instance
+- 모듈
+- 인스턴스
 - transactionId
 - executionId
-- Job/Worker
+- 작업/작업자
 - Level
 - Logger
 - 시간
 
-원문 Download나 Clipboard 반출은 별도 권한, 사유와 감사가 필요하다.
+원문 내려받기나 클립보드 반출은 별도 권한, 사유와 감사가 필요하다.
 
-Trace Boost 또는 동적 Log Level은:
+추적 Boost 또는 동적 로그 Level은:
 
-- 대상 Scope
+- 대상 범위
 - 최대 기간
 - 자동 만료
 - 허용 Level
@@ -175,34 +208,40 @@ Trace Boost 또는 동적 Log Level은:
 
 를 갖춘다.
 
-## 9. Gateway 운영
+## 9. 게이트웨이 운영
+
+ADM은 게이트웨이 테이블을 직접 수정하지 않고 게이트웨이 소유 제어 API를 호출한다. 분리 실행 환경에서는 요청 서명과 재전송 방지를 적용하고, 게시·적용·실패·되돌리기 상태는 실시간 운영 스트림과 조회 API 양쪽에서 확인한다. 각 인스턴스의 기대 버전, 실제 적용 버전, 체크섬과 확인 응답을 비교한다.
+
 
 운영 흐름:
 
-1. Registry와 Server Group 확인
-2. Binding 상세
-3. Policy 검증
+1. 등록부와 서버 그룹 확인
+2. 바인딩 상세
+3. 정책 검증
 4. 연결시험
 5. 승인
-6. Publish
-7. Instance Apply
+6. 게시
+7. 인스턴스 적용
 8. ACK
 9. 구성 불일치 확인
 10. 대사 또는 되돌리기
 
-상세는 Gateway 가이드를 참고한다.
+상세는 게이트웨이 가이드를 참고한다.
 
-## 10. Batch 운영
+## 10. 배치 운영
+
+작업정의 작성·검증·승인·게시 명령은 배치 제어 서버의 소유 제어 포트로 전달한다. 게시된 정의는 실행 투영으로 변환되고 일정관리기와 작업자가 이 투영을 소비한다. 운영자는 실행 자체뿐 아니라 각 시도의 시작·종료·오류·재시도 판단과 선택된 실행기까지 조회한다.
+
 
 운영자는 다음 개념을 구분한다.
 
 - 작업정의
-- Schedule
-- Trigger
-- CPF Execution
+- 일정
+- 트리거
+- CPF 실행
 - Spring Batch JobInstance
-- Worker Lease
-- Agent
+- 작업자 임대
+- 에이전트
 - Restart
 - Reprocess
 
@@ -213,9 +252,9 @@ Trace Boost 또는 동적 Log Level은:
 - Restart
 - Reprocess
 - Skip/Manual Confirm
-- Worker Drain
-- Agent Maintenance
-- Lost Execution Reconcile
+- 작업자 Drain
+- 에이전트 Maintenance
+- 실행 소유권 상실 상태 대사
 
 ## 11. 결과 불명과 복구
 
@@ -229,11 +268,11 @@ UNKNOWN_RESULT 조회
 → 재처리 또는 보상
 ```
 
-확정 전 동일 Command를 무조건 재실행하지 않는다.
+확정 전 동일 명령을 무조건 재실행하지 않는다.
 
-## 12. Incident
+## 12. 사고
 
-Incident 생명주기:
+사고 생명주기:
 
 ```text
 Alert
@@ -249,24 +288,24 @@ Alert
 → 사후 분석
 ```
 
-Incident는 관련 Service, transactionId, Deployment, Config Change와 연결한다.
+사고는 관련 서비스, transactionId, 배포, 설정 Change와 연결한다.
 
-## 13. 위험 Command 공통 절차
+## 13. 위험 명령 공통 절차
 
 필수 입력:
 
-- Target
+- 대상
 - 현재 상태
-- Permission
-- Reason
+- 권한
+- 사유
 - expectedVersion
 - operationId
-- Approval
+- 승인
 - Confirmation
 - 실행 결과
-- Audit
+- 감사
 
-동일 Command의 Double Click은 operationId로 중복 실행을 막는다.
+동일 명령의 Double Click은 operationId로 중복 실행을 막는다.
 
 ## 14. 승인
 
@@ -277,11 +316,11 @@ Incident는 관련 Service, transactionId, Deployment, Config Change와 연결�
 - ALL
 - ANY
 - N_OF_M
-- Role/Organization Target
+- 역할/조직 대상
 - 만료
 - 대리
 - 비상 승인
-- Policy Version Snapshot
+- 정책 버전 스냅샷
 
 승인 후 대상 상태가 바뀌면 expectedVersion 불일치로 실행을 거부하고 재승인을 요구한다.
 
@@ -290,121 +329,121 @@ Incident는 관련 Service, transactionId, Deployment, Config Change와 연결�
 비상 권한은 다음을 요구한다.
 
 - 비상 사유
-- 대상 Scope
+- 대상 범위
 - 자동 만료
 - 재인증
 - 사후 승인
-- 즉시 Alert
+- 즉시 경보
 - 모든 조회·명령 감사
 
 일반 운영 편의를 위해 사용하지 않는다.
 
-## 16. Secret Center
+## 16. 비밀값 Center
 
 표시 가능:
 
-- Provider
-- Reference
-- Version
+- 공급자
+- 참조
+- 버전
 - 만료
-- Rotate 가능 여부
+- 교체 가능 여부
 - 상태
 
 표시 금지:
 
-- Secret 원문
+- 비밀값 원문
 - 복호화 값
-- 전체 Credential
-- Private Key
+- 전체 인증정보
+- 개인 키
 
-Rotate는 Provider가 지원하고 권한·사유·승인이 있을 때 수행한다.
+교체는 공급자가 지원하고 권한·사유·승인이 있을 때 수행한다.
 
-## 17. Config와 Runtime Policy
+## 17. 설정과 실행 정책
 
 변경 절차:
 
-1. 현재 Version 조회
-2. 대상 Scope 확인
+1. 현재 버전 조회
+2. 대상 범위 확인
 3. 변경안 검증
 4. 영향도와 Preview
 5. 승인
-6. Apply Event 생성
-7. Instance ACK
+6. 적용 사건 생성
+7. 인스턴스 ACK
 8. Partial Failure 확인
-9. Retry/Reconcile
-10. Rollback
+9. 재시도/상태 대사
+10. 되돌리기
 
-## 18. Cache
+## 18. 캐시
 
-Cache 운영:
+캐시 운영:
 
-- Namespace
-- Key Pattern
+- 네임스페이스
+- Key 형식
 - Size
 - Hit/Miss
 - TTL
-- Owner
+- 소유자
 - Clear Preview
-- 제한된 Invalidate
+- 제한된 무효화
 - 전체 Clear 별도 권한
 
-업무 원장 대체로 Cache를 사용하지 않는다.
+업무 원장 대체로 캐시를 사용하지 않는다.
 
-## 19. Download와 원문 조회
+## 19. 내려받기와 원문 조회
 
-- 별도 Permission
-- Reason
+- 별도 권한
+- 사유
 - 최대 건수/크기
-- Masking Default
-- Watermark 또는 Audit ID
-- File Checksum
+- 마스킹 기본값
+- 워터마크 또는 감사 ID
+- 파일 체크섬
 - 만료 URL
 - 재다운로드 이력
 - 민감도 분류
 
-## 20. Backup·Restore·DR
+## 20. 백업·복원·재해복구
 
-운영자는 Backup 파일과 Manifest를 함께 보존한다.
+운영자는 백업 파일과 명세서를 함께 보존한다.
 
-Restore 절차:
+복원 절차:
 
 1. 격리 환경
-2. Vendor/DB/Checksum 확인
+2. 공급자/DB/체크섬 확인
 3. 복구
-4. Schema Verify
-5. Application Smoke
-6. 거래·Batch 대사
+4. 스키마 Verify
+5. 애플리케이션 기본 동작
+6. 거래·배치 대사
 7. RPO/RTO 기록
 8. 운영 전환 승인
 
 ## 21. 장애 대응 표준 순서
 
-1. Incident 시각과 영향도 확인
+1. 사고 시각과 영향도 확인
 2. transactionId 또는 실행 ID 확보
-3. Registry/Topology 확인
-4. Health와 최근 Deployment/Config 확인
-5. Timeline/Log/Trace 확인
+3. 등록부와 구성 관계 확인
+4. 상태 점검과 최근 배포/설정 확인
+5. 시간선/로그/추적 확인
 6. 결과 불명 여부 확인
 7. 자동 복구 상태 확인
 8. 위험 조치 전 멱등성과 Downstream 상태 확인
 9. 조치
 10. 복구와 재발 방지 확인
-11. Evidence와 사후 분석
+11. 검증 증적과 사후 분석
 
-## 22. 운영 Evidence
+## 22. 운영 검증 증적
 
 - HEAD SHA
-- 환경/Profile
+- 환경/프로필
 - Operator
-- Permission
-- Reason
-- Approval
-- 대상 Snapshot
-- 정확한 Command/API
+- 권한
+- 사유
+- 승인
+- 대상 스냅샷
+- 정확한 명령/API
 - 시작·종료
 - 결과
 - Failure Code
-- 관련 Incident
+- 관련 사고
 - 민감정보 제거
 
 ## 23. 운영 체크리스트
@@ -414,6 +453,44 @@ Restore 절차:
 - [ ] 작성자·승인자가 분리됐다.
 - [ ] expectedVersion과 operationId를 사용한다.
 - [ ] 결과 불명을 확정 실패로 바꾸지 않는다.
-- [ ] 원문 Download가 감사된다.
+- [ ] 원문 내려받기가 감사된다.
 - [ ] 조치 결과와 대사가 연결된다.
 - [ ] 운영 화면 오류가 원 업무를 오염시키지 않는다.
+
+## 부록 A. 사고 초기 15분
+
+1. 사고 번호와 담당자를 지정한다.
+2. 사용자 영향, 시작 시각, 대상 환경과 업무영역을 기록한다.
+3. 최근 배포·설정·DB 변경·인증서 교체를 확인한다.
+4. 서비스 등록부와 인스턴스 준비 상태를 확인한다.
+5. 대표 거래 식별자로 타임라인·로그·추적을 연결한다.
+6. 확산을 막기 위한 배수, 경로 차단, 재시도 제한을 검토한다.
+7. 결과 불명 거래와 진행 중 배치의 범위를 산정한다.
+8. 복구 조치 전 현재 상태와 판단 근거를 보존한다.
+
+## 부록 B. 위험 명령 확인 화면
+
+확인 화면은 단순 “실행하시겠습니까?”로 끝나지 않는다.
+
+- 대상 환경·서비스·인스턴스·버전
+- 현재 상태와 마지막 확인 시각
+- 예상 영향과 중단 조건
+- 관련 사고·변경 번호
+- 사유와 유효기간
+- 필요 승인과 승인자
+- 기대 버전·멱등 식별자
+- 되돌리기 가능 여부와 절차
+
+## 부록 C. 대표 운영 시나리오
+
+### 준비 상태 저하
+
+`의존성 상세 → 최근 변경 → 동일 영역 인스턴스 비교 → 신규 요청 배정 중단 → 원인 복구 → 상태 점검 → 배수 해제`
+
+### 설정 일부 적용
+
+`기대·적용 버전 비교 → 실패 인스턴스 배수 → 실패 단계 확인 → 재적용 또는 되돌리기 → 실제 체크섬 확인 → 감사`
+
+### 결과 불명 거래
+
+`거래 타임라인 → 대상 호출 시도 → 업무 원장·상태 조회 → 최종 상태 확정 → 재처리·보상 → 사용자 통지 → 감사`

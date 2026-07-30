@@ -1,46 +1,21 @@
 param(
-    [string]$RootPath = (Resolve-Path (Join-Path $PSScriptRoot "..\..\..\..")).Path
+    [string]$RootPath = (Resolve-Path (Join-Path $PSScriptRoot "..\..\..\..")).Path,
+    [switch]$Approved
 )
 
 $ErrorActionPreference = "Stop"
 
-$archiveRoot = Join-Path $RootPath "cpf-docs\work\archive\20260730-chatgpt-direct-implementation"
-
-$archivedPairs = @(
-    @{ Active = "cpf-docs\work\current\CPF_20260730_01_FINAL_CLOSURE_REQUIREMENT_INTAKE_BASELINE.md"; Archive = "CPF_20260730_01_FINAL_CLOSURE_REQUIREMENT_INTAKE_BASELINE.md" },
-    @{ Active = "cpf-docs\work\current\CPF_CHATGPT_DIRECT_FULL_IMPLEMENTATION_REQUEST_20260730.md"; Archive = "CPF_CHATGPT_DIRECT_FULL_IMPLEMENTATION_REQUEST_20260730.md" },
-    @{ Active = "cpf-docs\work\current\CPF_CODEX_FINAL_REVIEW_DOCUMENT_STRATEGY.md"; Archive = "CPF_CODEX_FINAL_REVIEW_DOCUMENT_STRATEGY.md" },
-    @{ Active = "cpf-docs\work\current\CPF_CODEX_FINAL_REVIEW_REQUEST.md"; Archive = "CPF_CODEX_FINAL_REVIEW_REQUEST.md" },
-    @{ Active = "cpf-docs\work\handover\CPF_20260730_CHATGPT_DIRECT_IMPLEMENTATION_CHECKPOINT_HANDOVER.md"; Archive = "CPF_20260730_CHATGPT_DIRECT_IMPLEMENTATION_CHECKPOINT_HANDOVER.md" }
+$candidates = @(
+    "cpf-docs\work\overlay\20260730-readme-guides"
 )
 
-foreach ($pair in $archivedPairs) {
-    $activePath = Join-Path $RootPath $pair.Active
-    if (-not (Test-Path -LiteralPath $activePath)) {
-        continue
-    }
+Write-Host "현재 개발 중인 문서 지원 자료이므로 자동 삭제하지 않습니다."
+Write-Host "정리 후보:"
+$candidates | ForEach-Object { Write-Host " - $_" }
 
-    $archivePath = Join-Path $archiveRoot $pair.Archive
-    if (-not (Test-Path -LiteralPath $archivePath)) {
-        throw "Archive 사본이 없어 삭제를 중단합니다: $archivePath"
-    }
-
-    Remove-Item -LiteralPath $activePath -Force
-    Write-Host "[삭제] $($pair.Active)"
+if (-not $Approved) {
+    Write-Host "개발 담당자의 불필요 판정과 사용자 승인 후 -Approved를 지정하세요."
+    exit 0
 }
 
-$rootGarbage = @(
-    "CPF_20260730_OVERLAY_APPLY_README.md",
-    "CPF_OVERLAY_MANIFEST.json",
-    "CPF_OVERLAY_SHA256SUMS.txt"
-)
-
-foreach ($relative in $rootGarbage) {
-    $target = Join-Path $RootPath $relative
-    if (Test-Path -LiteralPath $target) {
-        Remove-Item -LiteralPath $target -Force
-        Write-Host "[삭제] $relative"
-    }
-}
-
-Write-Host "문서 잔재 정리가 완료되었습니다."
+throw "이 Overlay에는 현재 패키지의 검증·Manifest가 포함돼 있으므로 Commit 전에는 삭제할 수 없습니다. Commit 후 별도 정리 요청서에서 대상을 다시 확정하세요."

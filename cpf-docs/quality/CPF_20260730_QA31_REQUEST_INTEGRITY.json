@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "createdAt": "2026-07-30T19:20:00+09:00",
+  "reviewBasisSha": "693cc77bde4c830b78ca1408dec7e34ef84cd11d",
+  "policy": "These request files are immutable. Development results must be written to separate result/evidence files.",
+  "files": [
+    {
+      "path": "cpf-docs/work/current/CPF_20260730_06_QA31_DEVELOPMENT_REMEDIATION_REQUEST.md",
+      "sha256": "13ea7215d208c8115254d993a0a4d6519cbda2d304a17418e09c1caecfd4ff72",
+      "bytes": 8053
+    },
+    {
+      "path": "cpf-docs/quality/CPF_20260730_QA31_DEFECT_REGISTER.csv",
+      "sha256": "28bae16a1a7b896c4c27c08be6e52f447ec82deecbeeff4d552f77d4d6bd91b9",
+      "bytes": 6415
+    },
+    {
+      "path": "cpf-docs/quality/CPF_20260730_QA31_REQUIREMENT_MATRIX.csv",
+      "sha256": "adf4cb966379fdd1d558afd9f634a98f6271a381e0286dea63895595e07c6b13",
+      "bytes": 25059
+    },
+    {
+      "path": "cpf-docs/quality/CPF_20260730_QA31_SCENARIO_MATRIX.csv",
+      "sha256": "0e15cd0720e42f5f26c4a0a7ed24ff5073a0a5157e0ba011d5e398de5e1d550c",
+      "bytes": 15499
+    },
+    {
+      "path": "cpf-docs/governance/CPF_AI_DEVELOPMENT_QA_CONTINUITY_STANDARD.md",
+      "sha256": "15b8b6a8ff9c38615f6d54dbb55fb559366b4d59d54108451b75ebbcfd8529bb",
+      "bytes": 5462
+    }
+  ]
+}

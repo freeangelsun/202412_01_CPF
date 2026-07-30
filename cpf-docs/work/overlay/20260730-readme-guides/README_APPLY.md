@@ -1,36 +1,30 @@
-# CPF README·가이드 문서 패키지 적용 안내
+# CPF 브로셔형 README·상세 가이드 적용 안내
 
-## 1. 적용 방법
+## 기준
 
-ZIP 파일의 내용은 CPF Repository Root 상대경로로 구성돼 있다.
+- 기준 Branch: `master`
+- 기준 Commit: `693cc77bde4c830b78ca1408dec7e34ef84cd11d` (`20260730_06`)
+- 적용 방식: Repository Root 상대경로 덮어쓰기
+
+## 포함 범위
+
+- 브로셔형 Root `README.md`
+- Desktop·Mobile 대응 README 이미지와 편집용 SVG
+- 문서 홈
+- 구조·배포 가이드와 용어·계약 참조
+- 기존 상세 가이드 전면 보완본
+- 최신 Gateway·서비스 등록부·로그 보호·Batch 실행 제어 개발 내용 반영
+
+## 적용
 
 1. ZIP을 임시 폴더에 푼다.
-2. 압축을 푼 폴더의 `README.md`, `cpf-docs`, `cpf-tools`를 CPF Repository Root에 복사한다.
-3. 같은 이름의 문서는 덮어쓴다.
-4. 삭제 Script를 실행한다.
-5. 검증 Script를 실행한다.
-6. `git diff --check`, `git status --short`, `git diff --stat`로 변경 범위를 확인한다.
-7. 사용자가 직접 검토한 후 Commit한다.
+2. 압축을 푼 내용 전체를 CPF Repository Root에 복사한다.
+3. 같은 경로의 파일은 덮어쓴다.
+4. 검증 Script를 실행한다.
+5. `git diff --check`, `git status --short`, `git diff --stat`로 변경 범위를 확인한다.
+6. 사용자가 직접 검토한 뒤 Commit한다.
 
-## 2. 문서 원칙
-
-- README와 Guide는 모든 최종 제품 요건이 충족된 완성 제품 기준으로 작성한다.
-- 구현 진행률, 미완료 상태와 세션 작업 이력은 Work/Review/Evidence에서 관리한다.
-- 본문은 한글 중심이며, Class·Method·설정 Key·상태 Code 같은 식별자만 영문을 유지한다.
-- 기존 Guide 파일은 가능한 같은 경로에서 덮어써 Link를 보존한다.
-- 신규 Guide는 README 문서 안내에 연결한다.
-
-## 3. 삭제
-
-Archive 사본이 확인된 과거 Active 문서와 Root Overlay 잔재만 정리한다.
-
-```powershell
-pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-docs\work\overlay\20260730-readme-guides\delete-obsolete-document-artifacts.ps1
-```
-
-Archive 사본이 없으면 삭제 Script는 중단한다.
-
-## 4. 검증
+## 검증
 
 ```powershell
 pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-docs\work\overlay\20260730-readme-guides\verify-readme-guide-package.ps1
@@ -40,15 +34,12 @@ git status --short
 git diff --stat
 ```
 
-## 5. 신규 Guide
+## 삭제 정책
 
-- Gateway 운영
-- 비동기·메시징·보상
-- 관측·장애대응·복구
-- 설정·Runtime 정책 배포
-- 설치·업그레이드·되돌리기
-- Test와 Evidence
+현재 개발이 진행 중이므로 기존 Overlay, Work, Review, Handover와 Evidence 파일은 자동 삭제하지 않는다. 실제 개발 담당자가 Consumer와 정본 역할을 확인한 뒤 불필요하다고 판정한 파일만 별도 승인 후 정리한다.
 
-## 6. Git
+`delete-obsolete-document-artifacts.ps1`은 이번 패키지에서 안전 안내용으로 변경했으며 기본 실행 시 파일을 삭제하지 않는다.
+
+## Git
 
 이 패키지는 Commit, Push, Branch와 PR을 생성하지 않는다.

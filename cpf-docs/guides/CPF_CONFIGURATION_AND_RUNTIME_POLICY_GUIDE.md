@@ -1,8 +1,16 @@
-# CPF 설정과 Runtime 정책 배포 가이드
+# CPF 설정과 실행 환경 정책 배포 가이드
+
+[← 문서 홈](README.md) · [제품 소개](../../README.md) · [구조와 배포](CPF_ARCHITECTURE_AND_TOPOLOGY_GUIDE.md) · [용어와 계약](CPF_TERMINOLOGY_AND_CONTRACT_REFERENCE.md)
+
+> **대상**: 설정 관리자, 운영자, 실행 환경 개발자
+> **목적**: 버전 설정을 검증·승인·게시하고 인스턴스 적용·정본 불일치·되돌리기를 관리한다.
+> **관련 문서**: [플랫폼 운영자](CPF_ADMIN_OPERATOR_GUIDE.md) · [보안·재해복구·데이터 보존](CPF_SECURITY_DR_RETENTION_GUIDE.md)
+
+---
 
 ## 1. 목적
 
-CPF 설정은 파일의 Key/Value를 읽는 기능에 그치지 않는다. 안전한 기본값, 환경별 설정, 운영 변경, Version, 승인, 배포, ACK, 구성 불일치와 Rollback을 하나의 생명주기로 관리한다.
+CPF 설정은 파일의 Key/Value를 읽는 기능에 그치지 않는다. 안전한 기본값, 환경별 설정, 운영 변경, 버전, 승인, 배포, ACK, 구성 불일치와 되돌리기를 하나의 생명주기로 관리한다.
 
 ## 2. 설정 우선순위
 
@@ -19,20 +27,20 @@ CPF 안전 기본값
 ## 3. 설정 분류
 
 - Static Startup
-- Dynamic Runtime
-- Secret Reference
+- Dynamic 실행 환경
+- 비밀값 참조
 - Feature Flag
-- Routing
-- Rate/Timeout
-- Log Policy
-- Security Policy
-- Batch Policy
-- Retention
+- 경로 선택
+- Rate/시간 제한
+- 로그 정책
+- 보안 정책
+- 배치 정책
+- 보존
 - Tenant
 
-## 4. Metadata
+## 4. 메타데이터
 
-각 Key는 다음 Metadata를 가진다.
+각 Key는 다음 메타데이터를 가진다.
 
 - key
 - type
@@ -49,31 +57,31 @@ CPF 안전 기본값
 - compatibility
 - deprecatedSince
 
-## 5. Scope
+## 5. 범위
 
 - Global
 - Environment
-- Cell
-- Service
-- Instance
-- Domain
+- 셀
+- 서비스
+- 인스턴스
+- 업무영역
 - Tenant
-- Route
-- Job
+- 경로
+- 작업
 
-Scope 충돌 우선순위를 명확히 한다.
+범위 충돌 우선순위를 명확히 한다.
 
-## 6. Secret
+## 6. 비밀값
 
-Secret 성격 설정은 원문 값을 저장하지 않는다.
+비밀값 성격 설정은 원문 값을 저장하지 않는다.
 
 ```yaml
 client-secret-ref: vault://payment/client-secret
 ```
 
-조회 API는 Reference와 Metadata만 반환한다.
+조회 API는 참조와 메타데이터만 반환한다.
 
-## 7. Runtime 정책 원장
+## 7. 실행 환경 정책 원장
 
 정책 상태:
 
@@ -85,26 +93,29 @@ DRAFT
 → RETIRED
 ```
 
-정책은 Version과 Checksum을 가진다.
+정책은 버전과 체크섬을 가진다.
 
-## 8. Metadata Codec
+## 8. 메타데이터 Codec
 
-정책 Payload는 Versioned JSON 또는 Typed DTO를 사용한다.
+게이트웨이와 같은 실행 제품은 정책 메타데이터를 임의 문자열 연결로 전달하지 않는다. Codec은 필드명, 자료형, 기본값, 버전과 알 수 없는 필드 처리 규칙을 고정하며, 직렬화 뒤 다시 읽었을 때 같은 의미가 유지되는지 검증한다. 손상된 메타데이터나 지원하지 않는 버전은 적용하지 않는다.
+
+
+정책 본문은 버전이 부여된 JSON 또는 Typed DTO를 사용한다.
 
 지원:
 
-- 다중 Metadata
+- 다중 메타데이터
 - Unicode
 - 줄바꿈
 - 빈 값
 - Escape
 - 중첩 객체
 - 배열
-- Schema Version
+- 스키마 버전
 
 구분자 Split 문자열로 저장하지 않는다.
 
-## 9. Publish와 Event
+## 9. 게시와 사건
 
 ```text
 정책 원장 변경
@@ -115,14 +126,14 @@ DRAFT
 → ACK
 ```
 
-원장과 Durable Event의 원자성을 보장한다.
+원장과 Durable 사건의 원자성을 보장한다.
 
-## 10. Consumer
+## 10. 소비자
 
-다중 Consumer 안전성:
+다중 소비자 안전성:
 
-- Claim
-- Lease
+- 점유
+- 임대
 - Fencing
 - expectedVersion
 - checksum
@@ -130,22 +141,22 @@ DRAFT
 - poison
 - stale ACK 거부
 
-## 11. Row Mapping
+## 11. Row 매핑
 
-DB Column Label 대소문자에 의존하지 않는 명시적 Mapping을 사용한다. Null/빈 값 의미를 Vendor 간 통일한다.
+DB Column Label 대소문자에 의존하지 않는 명시적 매핑을 사용한다. Null/빈 값 의미를 공급자 간 통일한다.
 
-## 12. Apply
+## 12. 적용
 
-Apply 단계:
+적용 단계:
 
-1. Event 검증
-2. 대상 Scope 확인
-3. Version 비교
-4. Payload Schema
-5. Secret Reference 존재
+1. 사건 검증
+2. 대상 범위 확인
+3. 버전 비교
+4. 본문 스키마
+5. 비밀값 참조 존재
 6. Preview
 7. Atomic Swap
-8. Health
+8. 상태 점검
 9. ACK
 
 ## 13. Partial Failure
@@ -160,57 +171,57 @@ Apply 단계:
 - STALE
 - POISON
 
-각 대상 Instance 결과를 저장한다.
+각 대상 인스턴스 결과를 저장한다.
 
-## 14. Retry
+## 14. 재시도
 
 Retryable:
 
 - 일시 Network
-- Lock
+- 잠금
 - 대상 Startup 중
 - 일시 Store 장애
 
 Non-retryable:
 
-- Schema 오류
-- 지원하지 않는 Version
+- 스키마 오류
+- 지원하지 않는 버전
 - 권한
-- Checksum
+- 체크섬
 - 알 수 없는 Key
-- 금지 Scope
+- 금지 범위
 
-## 15. Drift
+## 15. 정본 불일치
 
-Expected 정책과 Runtime 실제 Snapshot을 비교한다.
+Expected 정책과 실행 환경 실제 스냅샷을 비교한다.
 
-- Version
-- Checksum
-- Scope
+- 버전
+- 체크섬
+- 범위
 - Effective Value
-- Source Layer
+- 소스 Layer
 - AppliedAt
 
-## 16. Reconcile
+## 16. 상태 대사
 
-- Drift 조회
+- 정본 불일치 조회
 - 대상 선택
 - 원인
 - 재적용
-- Runtime Restart 필요 여부
+- 실행 환경 Restart 필요 여부
 - 결과
 - 감사
 
-## 17. Rollback
+## 17. 되돌리기
 
-과거 검증 Version으로 되돌린다.
+과거 검증 버전으로 되돌린다.
 
 - 호환성
-- Secret Reference
+- 비밀값 참조
 - 적용 순서
-- Health Gate
-- Partial Rollback
-- Audit
+- 상태 점검 Gate
+- Partial 되돌리기
+- 감사
 
 ## 18. Feature Flag
 
@@ -220,20 +231,20 @@ Expected 정책과 Runtime 실제 Snapshot을 비교한다.
 - 조건
 - 시작/종료
 - Kill Switch
-- Rollback
-- Metrics
+- 되돌리기
+- 지표
 
 업무 원장 의미를 Feature Flag만으로 바꾸지 않는다.
 
-## 19. Log Policy
+## 19. 로그 정책
 
 - Logger
 - Level
-- Scope
+- 범위
 - 만료
 - Sampling
-- Masking
-- Trace Boost
+- 마스킹
+- 추적 Boost
 - 최대 기간
 
 동적 DEBUG는 자동 만료된다.
@@ -245,53 +256,90 @@ Expected 정책과 Runtime 실제 Snapshot을 비교한다.
 - 외부 공개
 - 인증 완화
 - Rate 상한 완화
-- Secret 변경
-- Retention Purge
-- Log 민감도
-- Batch Retry
-- Download
+- 비밀값 변경
+- 보존 Purge
+- 로그 민감도
+- 배치 재시도
+- 내려받기
 
-는 별도 Permission과 승인 정책을 적용한다.
+는 별도 권한과 승인 정책을 적용한다.
 
 ## 21. 운영 API
+
+### 참조 Catalog
+
+동적 매개변수 중 서비스, 서버 그룹, 비밀값 참조, 작업정의처럼 관리 대상 식별자를 가리키는 값은 참조 Catalog Port로 조회한다. Catalog 응답은 식별자, 표시명, 사용 가능 여부, 비활성 사유, 상위 식별자와 부가 정보를 포함한다. 상위 매개변수가 바뀌면 종속 선택값을 지우고 다시 검증한다.
+
 
 기능:
 
 - 목록
 - 상세
 - Effective Value
-- Version 비교
-- Validation
-- Approval
-- Publish
-- Apply Status
-- Drift
-- Reconcile
-- Rollback
-- Audit
+- 버전 비교
+- 검증
+- 승인
+- 게시
+- 적용 상태
+- 정본 불일치
+- 상태 대사
+- 되돌리기
+- 감사
 
-## 22. Test
+## 22. 테스트
 
 - Codec
 - Unicode/줄바꿈
 - Null/빈 값
-- Oracle/PostgreSQL/MariaDB Mapping
-- 중복 Event
-- Lease 만료
-- Stale ACK
+- Oracle/PostgreSQL/MariaDB 매핑
+- 중복 사건
+- 임대 만료
+- 오래된 확인 응답
 - Poison
-- Partial Apply
-- Drift
-- Rollback
-- Secret Masking
+- 일부 적용
+- 정본 불일치
+- 되돌리기
+- 비밀값 마스킹
 
 ## 23. 체크리스트
 
-- [ ] 설정 Metadata가 있다.
-- [ ] Secret 원문을 저장하지 않는다.
-- [ ] 정책은 Version과 Checksum을 가진다.
-- [ ] 원장과 배포 Event가 원자적이다.
-- [ ] Claim/Lease/Fencing이 있다.
-- [ ] Partial Failure와 Drift를 조회할 수 있다.
+- [ ] 설정 메타데이터가 있다.
+- [ ] 비밀값 원문을 저장하지 않는다.
+- [ ] 정책은 버전과 체크섬을 가진다.
+- [ ] 원장과 배포 사건이 원자적이다.
+- [ ] 점유/임대/Fencing이 있다.
+- [ ] Partial Failure와 정본 불일치를 조회할 수 있다.
 - [ ] 위험 정책에 승인과 감사가 있다.
-- [ ] Rollback과 Health Gate가 있다.
+- [ ] 되돌리기와 상태 점검 Gate가 있다.
+
+## 부록 A. 설정 명세 예
+
+```yaml
+key: cpf.remote.payment.timeout
+valueType: duration
+scope: service
+required: true
+defaultValue: 1500ms
+minimum: 100ms
+maximum: 10000ms
+secret: false
+restartRequired: false
+validation:
+  - lessThan: cpf.remote.payment.totalBudget
+```
+
+## 부록 B. 단계 적용
+
+1. 시험 인스턴스 또는 소규모 대상군에 게시한다.
+2. 적용 확인 응답과 실제 체크섬을 확인한다.
+3. 오류율·지연·준비 상태를 관찰한다.
+4. 확대 조건을 만족하면 다음 대상군에 적용한다.
+5. 중단 조건을 만족하면 확대를 멈추고 되돌린다.
+
+## 부록 C. 비밀값 교체
+
+새 버전 등록 → 이중 유효 기간 → 소비자 단계 적용 → 새 값 사용 확인 → 구 값 폐기 → 실패 소비자 격리·재적용 → 감사
+
+## 부록 D. 정본 불일치
+
+인스턴스가 보고한 버전·체크섬이 기대값과 다르면 자동으로 성공 처리하지 않는다. 마지막 적용 시각, 실패 단계, 재시작 필요 여부와 로컬 덮어쓰기를 확인하고 재적용 또는 되돌리기를 수행한다.

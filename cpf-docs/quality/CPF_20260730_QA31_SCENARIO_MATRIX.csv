@@ -1,0 +1,67 @@
+﻿scenario_id,work_package,priority,title,precondition,execution_steps,expected_result,required_evidence,automation_level,requested_status
+QA31-S001,WP00,P0,Stale SHA Gate,Active 문서에 과거 SHA,Final Gate 실행,Exit 1과 파일/claimed/expected 표시,gate JSON,Automated,OPEN
+QA31-S002,WP00,P0,Missing Evidence Gate,완료 행 Evidence 파일 삭제,Final Gate 실행,Exit 1,gate JSON,Automated,OPEN
+QA31-S003,WP00,P0,Request Tamper Gate,원본 CSV 1byte 변경,Integrity Script 실행,Exit 1,integrity JSON,Automated,OPEN
+QA31-S004,WP00,P0,미검증 Matrix 차단,필수 행 status=미검증,Final Gate 실행,Full Completion 실패,matrix report,Automated,OPEN
+QA31-S005,WP01,P0,Wildcard Target Path,/orders/** route와 /orders/123?x=1,Gateway 호출,Target가 /orders/123?x=1 수신,target capture,Automated,OPEN
+QA31-S006,WP01,P0,ACK 없는 Cold Start,"ACTIVE DB row, apply ACK 없음",Gateway 기동 후 호출,Route 미노출,snapshot/apply/request,Automated,OPEN
+QA31-S007,WP01,P0,부분 Apply,Gateway 2대 중 1대 apply 실패,Route 변경,"실패 노드 LKG, 상태 PARTIAL",per-node ACK,Automated,OPEN
+QA31-S008,WP02,P0,Connection Type 분리,DNS/TCP/TLS/HTTP 실패 Target,각 Type 요청,failureStage 정확,operation rows,Automated,OPEN
+QA31-S009,WP02,P0,TCP UP Application DOWN,TCP 연결·HTTP 500,Health probe,APP_DOWN과 Routing 제외,health/selection,Automated,OPEN
+QA31-S010,WP02,P0,Retry Attempt 원장,"앞 2 Target fail, 3번째 success",요청 실행,Attempt 3행·최종 success,DB rows,Automated,OPEN
+QA31-S011,WP02,P0,Spool Crash Replay,DB Down 중 Event 후 Process kill,DB 복구·재기동,유실/중복 0,spool+DB,Automated,OPEN
+QA31-S012,WP03,P0,Body Tamper,서명 후 Body 1byte 변경,Gateway Control 호출,401/403·Audit,security log,Automated,OPEN
+QA31-S013,WP03,P0,Cross-node Replay,Node A 서명 요청을 Node B 재전송,동일 nonce 호출,거부,nonce store,Automated,OPEN
+QA31-S014,WP03,P0,BLOCK 승인 우회,직접 State API,BLOCKED 요청,409/403,API response,Automated,OPEN
+QA31-S015,WP03,P0,Approval Hash Drift,승인 후 Binding 변경,실행,거부·재요청 필요,approval ledger,Automated,OPEN
+QA31-S016,WP04,P0,Canonical JSON,Nested Map/List Payload,Service/Protocol 호출,유효 JSON,captured body,Automated,OPEN
+QA31-S017,WP04,P0,Definition Version 고정,v1 publish·execution 생성 후 v2 publish,기존 execution 실행,v1 checksum 실행,DB/worker log,Automated,OPEN
+QA31-S018,WP04,P0,File Worker Crash,Claim 후 Worker kill,재기동,중복 처리 0·Reconcile,claim/attempt,Automated,OPEN
+QA31-S019,WP04,P0,Shell 상세 원장,stdout/stderr·비정상 exit,Shell Job 실행,모든 상세 필드 저장,result detail,Automated,OPEN
+QA31-S020,WP04,P1,Shell Timeout Child,Child process 생성·signal 무시,Timeout,Process tree 0 또는 UNKNOWN,process evidence,Automated,OPEN
+QA31-S021,WP05,P0,ADM Capability Menu,Gateway 미설치/Down/정상,로그인·메뉴 이동,상태별 안내·기능 차단,Browser video,Automated,OPEN
+QA31-S022,WP05,P1,ADM Global Search,Route/Execution/Transaction 검색,Keyboard 검색,권한 필터된 결과/Deep Link,Browser,Automated,OPEN
+QA31-S023,WP05,P1,ADM Saved Filter,복합 필터 저장 후 재로그인,목록 재접속,조건 복원,UI/API,Automated,OPEN
+QA31-S024,WP05,P0,ADM Dangerous Action,BLOCK 조치,Preview→Reason→Approval→Execute,직접 실행 불가·승인 후 반영,Browser/API/Audit,Automated,OPEN
+QA31-S025,WP05,P0,ADM Async Fallback,SSE 연결 중단,Connection Test 진행,Polling 전환·중복 없음,network trace,Automated,OPEN
+QA31-S026,WP05,P0,ADM Recovery Workspace,Unknown/Drift/Spool 데이터,Reconcile/Replay,Owner Command와 결과 Timeline,Browser/DB,Automated,OPEN
+QA31-S027,WP05,P1,ADM Accessibility,키보드만 사용,검색→상세→Dialog→취소,Focus/ARIA 정상,axe report,Automated,OPEN
+QA31-S028,WP06,P1,BZA 조직개편 Snapshot,결재 생성 후 조직변경,과거 결재 조회,기존 참여자 Snapshot 유지,DB/UI,Automated,OPEN
+QA31-S029,WP06,P1,BZA N_OF_M 동시 승인,3명 중 2명·동시 요청,결정,한 번만 승인 확정,approval DB,Automated,OPEN
+QA31-S030,WP06,P1,BZA Raw PII,권한/사유 없음·있음,Raw 조회,거부/마스킹/감사,HTTP/Audit,Automated,OPEN
+QA31-S031,WP07,P1,EDU EDU Profile 격리,cpf-reference EDU profile와 해당 Sample Fixture,EDU Profile 격리 Sample API/Consumer 실행 후 정상·오류·복구 Case 수행,운영 기본 설치에서 Sample 비활성; 운영 Profile 비활성; Stub이 아닌 실제 Public API Consumer 확인,JUnit/Contract/Runtime/API/DB evidence,Automated,OPEN
+QA31-S032,WP07,P1,EDU 표준 Header/Context,cpf-reference EDU profile와 해당 Sample Fixture,표준 Header/Context Sample API/Consumer 실행 후 정상·오류·복구 Case 수행,transactionId·trace·segment 전파 샘플; 운영 Profile 비활성; Stub이 아닌 실제 Public API Consumer 확인,JUnit/Contract/Runtime/API/DB evidence,Automated,OPEN
+QA31-S033,WP07,P1,EDU 표준 Error/Validation,cpf-reference EDU profile와 해당 Sample Fixture,표준 Error/Validation Sample API/Consumer 실행 후 정상·오류·복구 Case 수행,field error·business error·unexpected error; 운영 Profile 비활성; Stub이 아닌 실제 Public API Consumer 확인,JUnit/Contract/Runtime/API/DB evidence,Automated,OPEN
+QA31-S034,WP07,P1,EDU Local/Remote Parity,cpf-reference EDU profile와 해당 Sample Fixture,Local/Remote Parity Sample API/Consumer 실행 후 정상·오류·복구 Case 수행,같은 Public Port의 동일 결과/오류; 운영 Profile 비활성; Stub이 아닌 실제 Public API Consumer 확인,JUnit/Contract/Runtime/API/DB evidence,Automated,OPEN
+QA31-S035,WP07,P1,EDU Timeout Budget,cpf-reference EDU profile와 해당 Sample Fixture,Timeout Budget Sample API/Consumer 실행 후 정상·오류·복구 Case 수행,호출 계층 예산 감소와 만료; 운영 Profile 비활성; Stub이 아닌 실제 Public API Consumer 확인,JUnit/Contract/Runtime/API/DB evidence,Automated,OPEN
+QA31-S036,WP07,P1,EDU Retry/Circuit/Bulkhead,cpf-reference EDU profile와 해당 Sample Fixture,Retry/Circuit/Bulkhead Sample API/Consumer 실행 후 정상·오류·복구 Case 수행,안전 재시도·회로·격리 예제; 운영 Profile 비활성; Stub이 아닌 실제 Public API Consumer 확인,JUnit/Contract/Runtime/API/DB evidence,Automated,OPEN
+QA31-S037,WP07,P1,EDU Idempotency,cpf-reference EDU profile와 해당 Sample Fixture,Idempotency Sample API/Consumer 실행 후 정상·오류·복구 Case 수행,동일 키 중복 생성 방지; 운영 Profile 비활성; Stub이 아닌 실제 Public API Consumer 확인,JUnit/Contract/Runtime/API/DB evidence,Automated,OPEN
+QA31-S038,WP07,P1,EDU Optimistic Lock,cpf-reference EDU profile와 해당 Sample Fixture,Optimistic Lock Sample API/Consumer 실행 후 정상·오류·복구 Case 수행,버전 충돌과 UI 재조회; 운영 Profile 비활성; Stub이 아닌 실제 Public API Consumer 확인,JUnit/Contract/Runtime/API/DB evidence,Automated,OPEN
+QA31-S039,WP07,P1,EDU Unknown/Reconciliation,cpf-reference EDU profile와 해당 Sample Fixture,Unknown/Reconciliation Sample API/Consumer 실행 후 정상·오류·복구 Case 수행,Timeout 결과불명·조회·수동 확정; 운영 Profile 비활성; Stub이 아닌 실제 Public API Consumer 확인,JUnit/Contract/Runtime/API/DB evidence,Automated,OPEN
+QA31-S040,WP07,P1,EDU Compensation Hook,cpf-reference EDU profile와 해당 Sample Fixture,Compensation Hook Sample API/Consumer 실행 후 정상·오류·복구 Case 수행,부분 성공 후 보상; 운영 Profile 비활성; Stub이 아닌 실제 Public API Consumer 확인,JUnit/Contract/Runtime/API/DB evidence,Automated,OPEN
+QA31-S041,WP07,P1,EDU CRUD/Search/Paging,cpf-reference EDU profile와 해당 Sample Fixture,CRUD/Search/Paging Sample API/Consumer 실행 후 정상·오류·복구 Case 수행,Allowlist·Page/Slice/Cursor; 운영 Profile 비활성; Stub이 아닌 실제 Public API Consumer 확인,JUnit/Contract/Runtime/API/DB evidence,Automated,OPEN
+QA31-S042,WP07,P1,EDU Transaction Commit/Rollback,cpf-reference EDU profile와 해당 Sample Fixture,Transaction Commit/Rollback Sample API/Consumer 실행 후 정상·오류·복구 Case 수행,다중 Row 원자성; 운영 Profile 비활성; Stub이 아닌 실제 Public API Consumer 확인,JUnit/Contract/Runtime/API/DB evidence,Automated,OPEN
+QA31-S043,WP07,P1,EDU File/Attachment,cpf-reference EDU profile와 해당 Sample Fixture,File/Attachment Sample API/Consumer 실행 후 정상·오류·복구 Case 수행,upload/range/chunk/checksum/path alias; 운영 Profile 비활성; Stub이 아닌 실제 Public API Consumer 확인,JUnit/Contract/Runtime/API/DB evidence,Automated,OPEN
+QA31-S044,WP07,P1,EDU Compression,cpf-reference EDU profile와 해당 Sample Fixture,Compression Sample API/Consumer 실행 후 정상·오류·복구 Case 수행,ZIP 안전 압축·해제·상한; 운영 Profile 비활성; Stub이 아닌 실제 Public API Consumer 확인,JUnit/Contract/Runtime/API/DB evidence,Automated,OPEN
+QA31-S045,WP07,P1,EDU Messaging Outbox/Inbox,cpf-reference EDU profile와 해당 Sample Fixture,Messaging Outbox/Inbox Sample API/Consumer 실행 후 정상·오류·복구 Case 수행,publish·consume·idempotency; 운영 Profile 비활성; Stub이 아닌 실제 Public API Consumer 확인,JUnit/Contract/Runtime/API/DB evidence,Automated,OPEN
+QA31-S046,WP07,P1,EDU DLQ/Replay,cpf-reference EDU profile와 해당 Sample Fixture,DLQ/Replay Sample API/Consumer 실행 후 정상·오류·복구 Case 수행,Poison 격리와 승인 Replay; 운영 Profile 비활성; Stub이 아닌 실제 Public API Consumer 확인,JUnit/Contract/Runtime/API/DB evidence,Automated,OPEN
+QA31-S047,WP07,P1,EDU Fixed-length Message,cpf-reference EDU profile와 해당 Sample Fixture,Fixed-length Message Sample API/Consumer 실행 후 정상·오류·복구 Case 수행,layout parse/write/error offset/masking; 운영 Profile 비활성; Stub이 아닌 실제 Public API Consumer 확인,JUnit/Contract/Runtime/API/DB evidence,Automated,OPEN
+QA31-S048,WP07,P1,EDU Async 202/Polling/SSE,cpf-reference EDU profile와 해당 Sample Fixture,Async 202/Polling/SSE Sample API/Consumer 실행 후 정상·오류·복구 Case 수행,비동기 작업·진행·완료; 운영 Profile 비활성; Stub이 아닌 실제 Public API Consumer 확인,JUnit/Contract/Runtime/API/DB evidence,Automated,OPEN
+QA31-S049,WP07,P1,EDU Security/RBAC/ABAC,cpf-reference EDU profile와 해당 Sample Fixture,Security/RBAC/ABAC Sample API/Consumer 실행 후 정상·오류·복구 Case 수행,권한 성공·실패·직접 URL; 운영 Profile 비활성; Stub이 아닌 실제 Public API Consumer 확인,JUnit/Contract/Runtime/API/DB evidence,Automated,OPEN
+QA31-S050,WP07,P1,EDU Masking/Audit,cpf-reference EDU profile와 해당 Sample Fixture,Masking/Audit Sample API/Consumer 실행 후 정상·오류·복구 Case 수행,PII mask·raw reason·immutable audit; 운영 Profile 비활성; Stub이 아닌 실제 Public API Consumer 확인,JUnit/Contract/Runtime/API/DB evidence,Automated,OPEN
+QA31-S051,WP07,P1,EDU Dynamic Config,cpf-reference EDU profile와 해당 Sample Fixture,Dynamic Config Sample API/Consumer 실행 후 정상·오류·복구 Case 수행,default→property→profile→override→call; 운영 Profile 비활성; Stub이 아닌 실제 Public API Consumer 확인,JUnit/Contract/Runtime/API/DB evidence,Automated,OPEN
+QA31-S052,WP07,P1,EDU Log/Metrics/Trace,cpf-reference EDU profile와 해당 Sample Fixture,Log/Metrics/Trace Sample API/Consumer 실행 후 정상·오류·복구 Case 수행,transaction timeline·SLI·trace boost; 운영 Profile 비활성; Stub이 아닌 실제 Public API Consumer 확인,JUnit/Contract/Runtime/API/DB evidence,Automated,OPEN
+QA31-S053,WP07,P1,EDU Gateway Sample,cpf-reference EDU profile와 해당 Sample Fixture,Gateway Sample Sample API/Consumer 실행 후 정상·오류·복구 Case 수행,route·health·failover·rate limit; 운영 Profile 비활성; Stub이 아닌 실제 Public API Consumer 확인,JUnit/Contract/Runtime/API/DB evidence,Automated,OPEN
+QA31-S054,WP07,P1,EDU Batch Definition Sample,cpf-reference EDU profile와 해당 Sample Fixture,Batch Definition Sample Sample API/Consumer 실행 후 정상·오류·복구 Case 수행,publish→schedule→worker 고정 버전; 운영 Profile 비활성; Stub이 아닌 실제 Public API Consumer 확인,JUnit/Contract/Runtime/API/DB evidence,Automated,OPEN
+QA31-S055,WP07,P1,EDU Batch Executor Samples,cpf-reference EDU profile와 해당 Sample Fixture,Batch Executor Samples Sample API/Consumer 실행 후 정상·오류·복구 Case 수행,Spring/Shell/File/Service/Message/Protocol; 운영 Profile 비활성; Stub이 아닌 실제 Public API Consumer 확인,JUnit/Contract/Runtime/API/DB evidence,Automated,OPEN
+QA31-S056,WP07,P1,EDU Lease/Fencing,cpf-reference EDU profile와 해당 Sample Fixture,Lease/Fencing Sample API/Consumer 실행 후 정상·오류·복구 Case 수행,다중 인스턴스 중복 방지; 운영 Profile 비활성; Stub이 아닌 실제 Public API Consumer 확인,JUnit/Contract/Runtime/API/DB evidence,Automated,OPEN
+QA31-S057,WP07,P1,EDU Generator Golden Sample,cpf-reference EDU profile와 해당 Sample Fixture,Generator Golden Sample Sample API/Consumer 실행 후 정상·오류·복구 Case 수행,생성 Domain과 MBR parity; 운영 Profile 비활성; Stub이 아닌 실제 Public API Consumer 확인,JUnit/Contract/Runtime/API/DB evidence,Automated,OPEN
+QA31-S058,WP07,P1,EDU OpenAPI/JavaDoc/TestKit,cpf-reference EDU profile와 해당 Sample Fixture,OpenAPI/JavaDoc/TestKit Sample API/Consumer 실행 후 정상·오류·복구 Case 수행,개발자가 계약과 예제를 IDE/Test에서 발견; 운영 Profile 비활성; Stub이 아닌 실제 Public API Consumer 확인,JUnit/Contract/Runtime/API/DB evidence,Automated,OPEN
+QA31-S059,WP07,P1,EDU 3DB Lifecycle Sample,cpf-reference EDU profile와 해당 Sample Fixture,3DB Lifecycle Sample Sample API/Consumer 실행 후 정상·오류·복구 Case 수행,refDB install/seed/upgrade/rollback; 운영 Profile 비활성; Stub이 아닌 실제 Public API Consumer 확인,JUnit/Contract/Runtime/API/DB evidence,Automated,OPEN
+QA31-S060,WP07,P1,EDU Failure Lab,cpf-reference EDU profile와 해당 Sample Fixture,Failure Lab Sample API/Consumer 실행 후 정상·오류·복구 Case 수행,DB/Broker/Target/Worker 장애 주입; 운영 Profile 비활성; Stub이 아닌 실제 Public API Consumer 확인,JUnit/Contract/Runtime/API/DB evidence,Automated,OPEN
+QA31-S061,WP08,P0,Java25 Full Gate,공식 JDK25 환경,clean test assemble qualityGate,Exit 0,build logs/JUnit,Automated,OPEN
+QA31-S062,WP08,P0,3DB Lifecycle,세 Vendor clean DB,install→seed→upgrade→verify→rollback→reinstall,모든 단계 PASS,DB logs,Automated,OPEN
+QA31-S063,WP08,P0,Redis Multi-instance,Redis+2 Gateway+2 Worker,Replay/Lease/Event/Failover,중복 0·복구,runtime logs,Automated,OPEN
+QA31-S064,WP08,P0,Browser Full Flow,ADM/BZA/EDU 실행,핵심 메뉴·권한·승인·복구,Browser PASS,video/screenshots,Automated,OPEN
+QA31-S065,WP08,P0,Failure Injection,DB/Redis/Target/Process 장애,각 장애 주입,False Success 0·복구 상태,chaos report,Automated,OPEN
+QA31-S066,WP08,P0,Root-relative ZIP,개발 결과 존재,패키징 Script 실행·새 Directory에 해제,경로·Hash·Secret Scan PASS,manifest,Automated,OPEN

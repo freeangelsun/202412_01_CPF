@@ -1,46 +1,259 @@
-# CPF Health / Service Registry 운영 가이드
+# CPF Health와 Service Registry 가이드
 
 ## 1. 목적
-CPF의 Health는 단순 HTTP 200 확인이 아니라 **인스턴스 자체 생존 여부와 트래픽 수신 가능 여부를 분리**하고, 다중 인스턴스 전체 상태는 Service Registry에서 종합하는 것을 표준으로 한다.
 
-## 2. Probe 책임
+CPF Health는 단순 HTTP 200 확인이 아니다. Process 생존, 신규 요청 수신 가능 여부, 서비스 전체 상태와 Routing 가능성을 분리해 판단한다.
+
+## 2. Health 단계
+
 ### Liveness
-현재 JVM/프로세스가 살아 있고 이벤트 루프/기본 Runtime이 응답할 수 있는지만 판단한다. 다른 인스턴스나 원격 서비스 전체를 fan-out 조회하지 않는다. 원격 fan-out을 넣으면 장애 시 probe 폭주와 연쇄 장애를 만들 수 있다.
+
+현재 Process가 살아 있고 기본 실행 Loop가 응답하는지 확인한다.
+
+포함:
+
+- JVM/Process
+- Event Loop/Thread 기본 상태
+- 치명적 내부 오류
+
+제외:
+
+- 원격 서비스 Fan-out
+- 전체 DB Query
+- 느린 외부 호출
 
 ### Readiness
-현재 인스턴스가 실제 트래픽을 받아도 되는지를 판단한다. 해당 Runtime의 필수 로컬/Owner dependency만 확인한다. ADM은 admDB/cpfDB/MBR Owner 접근성을 확인하고, BAT는 batDB와 Worker/Runtime listener 상태를 확인한다.
 
-### Service Registry
-서비스/인스턴스 목록, 마지막 heartbeat/check 시각, health 상태, circuit 상태를 **인스턴스 단위**로 종합한다. 운영 화면은 Registry를 기준으로 전체 상태를 보여주고 개별 probe의 dependency reason으로 drill-down한다.
+현재 Instance가 신규 요청을 받을 수 있는지 판단한다.
 
-## 3. 표준 식별 필드
-R14부터 ADM/BAT probe 응답은 가능한 범위에서 다음 값을 함께 제공한다.
+포함:
 
-| 필드 | 의미 |
-|---|---|
-| moduleId | CPF 논리 Module/System 식별 |
-| wasId | WAS/Runtime 식별 |
-| serverInstanceId | 재기동/다중 인스턴스를 구분하는 인스턴스 식별자 |
-| hostName | Host 식별 |
-| processId | JVM Process ID |
-| profiles | 활성 Spring Profile |
-| checkedAt | Probe 판정시각 |
+- 필수 Local DB
+- Listener
+- Runtime 초기화
+- 필수 Secret/Certificate
+- Drain/Maintenance
+- Critical Queue/Storage
 
-`serverInstanceId`는 운영 로그/DB 로그/Service Registry/Health가 서로 연결되는 동일 식별자로 사용해야 한다.
+### Diagnostics
 
-## 4. 운영 권장값
-- Liveness 주기: 짧게 유지하되 DB/외부 네트워크 조회 금지.
-- Readiness: 필수 dependency만 포함하고 timeout을 짧게 제한.
-- Registry health polling: probe와 별도 주기로 수행하며 동일 장애 target에 무제한 동시 요청하지 않는다.
-- Down 인스턴스는 신규 라우팅에서 제거하고, 기존 진행 거래의 결과 불명 가능성은 별도 reconciliation으로 관리한다.
-- Readiness 실패를 애플리케이션 자동 재시작 사유로 오용하지 않는다. 재시작 판단은 Liveness와 프로세스 정책으로 분리한다.
+원격 Owner, 외부 기관, Broker 등 상세 Dependency를 별도로 진단한다. Diagnostics 실패가 항상 현재 Instance Readiness를 내리는 것은 아니다.
 
-## 5. 검증 시나리오
-1. 정상 인스턴스 2개에서 서로 다른 `serverInstanceId` 확인.
-2. ADM DB 중단 시 Liveness=UP, Readiness=DOWN 확인.
-3. BAT DB 중단 시 Liveness=UP, Readiness=DOWN 확인.
-4. 한 인스턴스만 중단했을 때 Registry에서 해당 인스턴스만 DOWN인지 확인.
-5. 복구 후 Registry/라우팅 복귀 시각과 transactionGlobalId 추적 확인.
-6. Health endpoint에 Secret, DB URL credential, 개인정보가 노출되지 않는지 확인.
+## 3. Registry 모델
 
-실제 다중 인스턴스 Runtime 결과는 Evidence가 없으면 `미검증`으로 기록한다.
+Service:
+
+- serviceId
+- systemCode
+- moduleId
+- owner
+- version
+- protocol
+- endpoint
+- visibility
+- capability
+
+Instance:
+
+- serverInstanceId
+- host
+- processId
+- zone
+- cell
+- profile
+- startedAt
+- heartbeatAt
+- liveness
+- readiness
+- drain
+- maintenance
+- capacity
+- metadata
+
+## 4. 등록
+
+```text
+Runtime 시작
+→ Identity 생성
+→ Local Validation
+→ Registry 등록
+→ Heartbeat
+→ Readiness UP
+```
+
+중복 Instance ID를 거부한다.
+
+## 5. Heartbeat
+
+- 주기
+- TTL
+- Jitter
+- Batch Update
+- Network Timeout
+- Stale 판단
+- 복구
+
+Heartbeat Store 장애 시 Local Runtime을 불필요하게 종료하지 않되 Routing 안전성을 위해 Registry 상태를 명확히 한다.
+
+## 6. 상태
+
+- UP
+- DEGRADED
+- DRAINING
+- MAINTENANCE
+- DOWN
+- STALE
+- UNKNOWN
+
+상태 전이와 원인을 기록한다.
+
+## 7. Hysteresis
+
+한 번의 실패로 즉시 DOWN/UP을 반복하지 않는다.
+
+- 연속 실패 수
+- 연속 성공 수
+- 최소 유지시간
+- Passive 오류
+- Active Probe
+
+## 8. Routing
+
+신규 요청 대상:
+
+- readiness UP
+- drain 아님
+- maintenance 아님
+- circuit 허용
+- zone 정책
+- capacity
+
+## 9. Drain
+
+```text
+DRAIN_REQUESTED
+→ 신규 요청 제외
+→ In-flight 감소
+→ DRAINED
+```
+
+최대 대기시간 후 강제 정책을 정의한다.
+
+## 10. Maintenance
+
+- 사유
+- 시작/종료
+- Owner
+- 승인
+- 신규 유입 차단
+- Health 표시
+- 자동 복귀
+- Audit
+
+## 11. Service Group
+
+Registry는 Server Group과 연결된다.
+
+- Member
+- Weight
+- Priority
+- Zone
+- Health
+- Version
+
+## 12. Dependency
+
+Dependency Graph:
+
+- caller
+- target
+- protocol
+- criticality
+- timeout
+- fallback
+- owner
+
+Incident 영향 분석에 사용한다.
+
+## 13. Version
+
+Rolling 중 Version 혼재를 표시한다.
+
+- compatible
+- deprecated
+- minimum peer version
+- protocol/schema version
+
+## 14. Security
+
+Health 응답에 다음을 노출하지 않는다.
+
+- Password
+- DB URL Credential
+- Secret
+- Private IP 정책상 금지 정보
+- Stack Trace
+- 개인정보
+
+상세 Diagnostics는 운영 권한을 요구한다.
+
+## 15. Metrics
+
+- instance count
+- healthy count
+- stale count
+- readiness duration
+- heartbeat lag
+- state transition
+- drain duration
+- registry error
+- probe latency
+
+## 16. 운영 절차
+
+### Instance DOWN
+
+1. Registry 시각
+2. Liveness
+3. Host/Process
+4. 최근 Deployment
+5. Log
+6. Traffic 영향
+7. 자동 복구
+8. 재기동
+9. 복귀
+10. Incident
+
+### Readiness DOWN
+
+1. Reason
+2. Local Dependency
+3. Pool/Listener
+4. Secret/Certificate
+5. Drain/Maintenance
+6. 복구 후 Routing
+
+## 17. Test
+
+- Instance 2개
+- 서로 다른 ID
+- DB 중단
+- Heartbeat 중단
+- Network Partition
+- Stale
+- Hysteresis
+- Drain
+- Maintenance
+- Rolling Version
+- Registry Store 장애
+- 민감정보
+
+## 18. 체크리스트
+
+- [ ] Liveness와 Readiness를 분리한다.
+- [ ] 원격 Fan-out을 Liveness에 넣지 않는다.
+- [ ] Instance Identity가 Log/Trace와 같다.
+- [ ] Heartbeat TTL과 Stale 정책이 있다.
+- [ ] Drain/Maintenance가 Routing에 반영된다.
+- [ ] 상태 전이 원인을 기록한다.
+- [ ] Health에 민감정보가 없다.

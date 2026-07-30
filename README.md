@@ -1,484 +1,399 @@
 <div align="center">
 
-<img src="cpf-docs/assets/brand/cpf-hero.svg" alt="Core Platform Framework 소개" width="100%" />
+<img src="cpf-docs/assets/brand/cpf-hero.svg" alt="Core Platform Framework" width="100%" />
 
 # Core Platform Framework
 
-**업무 애플리케이션의 개발부터 실행, 운영, 확장, 검증까지 하나의 구조로 연결합니다.**
+**업무 시스템의 개발, 실행, 연계, 배치, 운영, 보안, 감사, 확장과 배포를 하나의 제품 구조로 연결하는 상용 업무 플랫폼 프레임워크**
 
-Topology-independent Contract · Modular Monolith · Microservices · Operational Control · Generator-driven Domain
+동일 JVM · 분리 WAS · 모듈형 단일체 · 마이크로서비스 · 다중 인스턴스 · 운영 통제 · 생성형 업무영역
 
-[개발자 안내](cpf-docs/guides/CPF_DEVELOPER_GUIDE.md)
-· [Public API와 Generated Domain](cpf-docs/guides/CPF_PUBLIC_API_AND_GENERATED_DOMAIN_GUIDE.md)
-· [운영자 안내](cpf-docs/guides/CPF_ADMIN_OPERATOR_GUIDE.md)
+[5분 시작](#5분-시작)
+· [구조 이해](#제품-구조)
+· [개발자 가이드](cpf-docs/guides/CPF_DEVELOPER_GUIDE.md)
+· [운영자 가이드](cpf-docs/guides/CPF_ADMIN_OPERATOR_GUIDE.md)
 · [Generator](cpf-docs/guides/CPF_GENERATOR_TOOL_GUIDE.md)
-· [Database Tool](cpf-docs/guides/CPF_DATABASE_TOOL_GUIDE.md)
-· [Tool Reference](cpf-docs/guides/CPF_TOOL_REFERENCE.md)
+· [설치·업그레이드](cpf-docs/guides/CPF_INSTALL_UPGRADE_ROLLBACK_GUIDE.md)
 
 </div>
 
 ---
 
-## CPF를 한눈에 보기
+## CPF란 무엇인가
 
-CPF는 단순 공통 Library가 아니라 업무 Domain의 개발, 실행, 연계, 운영과 변경 관리를 일관된 Contract로 연결하는 **Core Platform Framework**입니다.
+CPF의 정식 명칭은 **Core Platform Framework**다.
 
-동일 JVM과 분리 Runtime에서 같은 업무 Public Contract를 유지하고, 업무 필요에 따라 Gateway, Batch, Messaging, File, External Integration과 운영 기능을 선택하여 조합합니다. 기능의 존재만을 완료로 간주하지 않고 Source, API, SQL, Test, Runtime과 Evidence가 같은 기준을 가리키도록 관리합니다.
+CPF는 공통 유틸리티 모음이나 예제 프로젝트가 아니다. 금융권을 포함한 업무 시스템을 장기간 구축·운영할 수 있도록 다음 영역을 하나의 제품 규칙으로 제공한다.
 
-<img src="cpf-docs/assets/architecture/cpf-product-overview.svg" alt="CPF Product Architecture" width="100%" />
-
-### 핵심 가치
-
-| Architecture | Reliable Execution | Operations | Extension & Delivery |
-| --- | --- | --- | --- |
-| Modular Monolith와 Microservices를 같은 Module 원칙으로 구성합니다. | Timeout, Retry, Circuit, Idempotency와 결과 불명 상태를 실행 흐름에 포함합니다. | ADM에서 Service, Instance, Transaction, Batch와 운영 명령을 추적합니다. | Generator로 Domain, DB, Test, Config와 Delivery Artifact를 함께 생성합니다. |
-| 동일 JVM은 Local Invocation, 분리 Runtime은 Remote Invocation으로 연결합니다. | Async, External Integration과 Batch의 재처리·대사·보상 경계를 구분합니다. | 권한, 사유, 승인, 감사와 마스킹을 위험 조치에 연결합니다. | Oracle, PostgreSQL, MariaDB Vendor Pack과 Migration Lifecycle을 관리합니다. |
-| Public API, SPI, Internal 구현과 Owner DB 경계를 분리합니다. | Multi-instance 환경에서 Lease, Claim, Fencing과 Checkpoint를 사용합니다. | Log, Trace, Timeline, Audit과 Evidence를 실행 식별자로 연결합니다. | Build, Static Gate, Runtime Test, Browser Test와 Evidence를 추적합니다. |
-
----
-
-## Architecture Model
-
-CPF Architecture는 **Framework Foundation**, **Application / Domain Plane**, **Optional Runtime & Edge**, **Tooling & Delivery**로 구분합니다.
-
-<img src="cpf-docs/assets/architecture/cpf-module-ownership.svg" alt="CPF Module Ownership" width="100%" />
-
-### 1. Framework Foundation
-
-#### `cpf-core`
-
-기술 기반과 topology-independent Public API·SPI의 Owner입니다.
-
-- Standard Header, Transaction Identity, Error와 Result Contract
-- Service Call, Runtime, Logging, Tracing, Messaging과 Integration 기반
-- Public API / SPI / Internal Boundary
-- 공통 기술 규약과 Auto Configuration
-
-#### `cpf-common`
-
-여러 Application이 필요에 따라 재사용하는 업무 공통 Module입니다.
-
-- 업무 공통 Policy, Data Utility, Cache와 Metadata 지원
-- Paging, Validation, Transform, Attachment 등 반복 업무 지원
-- `cpf-core`를 기반으로 구성되며 중앙 호출 경유 계층이 아닙니다.
-- Application 또는 Runtime은 필요한 Capability만 명시적으로 사용합니다.
-
-> 현재 공식 Application과 일부 Batch Runtime은 `cpf-common`을 사용합니다. 그러나 Architecture상 모든 호출이 `cpf-common`을 경유하는 구조로 취급하지 않습니다.
-
-### 2. Application / Domain Plane
-
-`cpf-admin`, `cpf-biz-admin`, Generated Business Domain은 모두 CPF Foundation을 사용하는 독립 Application입니다. 각 Application은 자신의 API, Application Service, Domain Logic, Adapter와 Data Ownership을 가집니다.
-
-| Application / Domain | System Code | 역할 |
-| --- | --- | --- |
-| `cpf-admin` | `ADM` | Platform Operations, Observability, Security Control, Approval과 Audit |
-| `cpf-biz-admin` | `BZA` | 업무 관리자, User·Role·Permission, 조직·직원, 결재, 알림과 업무 운영 |
-| `cpf-member` | `MBR` | Generator Golden Reference Instance로 관리되는 생성형 업무 Domain |
-| `cpf-<domain>` | 3자리 System Code | Generator로 생성하는 독립 업무 Domain |
-
-ADM과 BZA는 일반 고객 Domain과 목적은 다르지만 Runtime Architecture에서는 같은 Application / Domain Plane에 위치합니다. ADM은 다른 Owner의 DB를 직접 수정하지 않고 Public Operations Contract를 통해 조회와 제어를 수행합니다.
-
-### 3. Optional Runtime & Edge
-
-#### `cpf-gateway`
-
-공통 진입 제어가 필요한 환경에서 선택하는 Edge Adapter입니다.
-
-- Service Registry 기반 Server Group, Route와 Environment Binding
-- HTTP/HTTPS, gRPC, TCP와 Same-JVM Local Target 선택
-- Round Robin, Weight, Rendezvous Hash, Priority Failover와 Least Load
-- Active/Passive Health, Hysteresis, Drain, Maintenance와 Fail-closed 안전 상한
-- Connection Test, Versioned Apply, Instance ACK와 Configuration Drift 추적
-- Transaction Timeline과 Retry·Failover Attempt 추적
-- Authentication Bridge, Standard Header, Rate, Timeout과 Failure Isolation
-- 업무 Domain 직접 진입과 함께 선택 가능
-
-Gateway는 필수 진입점이 아닙니다. 각 업무 Domain 또는 Channel이 자체 Endpoint와 등록 정책을 소유하면 Gateway 없이 직접 호출할 수 있습니다. 또한 내부 Domain 간 호출을 불필요하게 Gateway로 재경유시키지 않습니다.
-
-#### `cpf-batch`
-
-업무 Domain이 제공한 Batch Contract를 실행하는 독립 Runtime 제품 영역입니다.
-
-- Versioned Job Definition, Typed Parameter, Dependency와 승인·배포 이력
-- Control Server와 Runtime Query/Command
-- Scheduler, Calendar와 Trigger
-- Worker와 Restartable File Watch
-- Approved Shell Artifact, Hash/Signature와 Process Tree Control
-- Center-Cut Runner와 Host Agent
-- Runtime Common, Contract와 Testkit
-
-Batch는 `cpf-common`의 하위 기능이 아니며 Scheduler, Worker, Center-Cut와 Remote Agent 책임을 별도 Runtime으로 구성합니다.
-
-### 4. Tooling & Delivery
-
-`cpf-tools`는 Generator, Database Lifecycle, Runtime Assembly, Quality Gate, Artifact Supply와 Evidence 도구를 소유합니다.
-
-- Domain Generator와 Repository Federation
-- Official DB Vendor Pack 생성·동기화·검증
-- Local / Offline / Remote Artifact Federation
-- Runtime Start, Stop, Status와 Diagnostics
-- Architecture, Security, SQL, Frontend, Evidence Gate
-- Release, Migration, Upgrade, Rollback과 DR 지원
+| 영역 | CPF가 제공하는 제품 계약 |
+|---|---|
+| 구조 | 모듈형 단일체와 마이크로서비스를 같은 Public Contract로 구성 |
+| 호출 | 동일 JVM 호출과 분리 WAS 호출의 Header, 오류, 추적, 재시도 의미 통일 |
+| 안정성 | 시간 제한, 재시도, 회로 차단, 멱등성, 결과 불명, 대사, 보상 |
+| 실행 | 온라인, 비동기, 메시징, 파일, 외부 연계, Batch, Worker, Agent, Center-Cut |
+| 운영 | 서비스·인스턴스·거래·로그·Batch·배포 상태 조회와 안전한 운영 명령 |
+| 보안 | 인증, 권한, 민감정보 마스킹, 비밀값 참조, 승인, 감사 |
+| 데이터 | Oracle, PostgreSQL, MariaDB 설치·이관·업그레이드·되돌리기·복구 |
+| 확장 | 하나의 Golden Template을 사용하는 신규 업무영역 Generator |
+| 검증 | Source, API, SQL, Test, 문서와 실행 Evidence의 양방향 추적 |
+| 공급 | 로컬 개발, 사내 저장소, 폐쇄망 배포를 위한 버전·Hash 기반 산출물 |
 
 ---
 
-## Runtime과 Deployment Topology
+## 제품 구조
 
-CPF는 특정 Deployment 방식에 고정되지 않습니다. 직접 진입, 선택 Gateway, Same JVM, Separate Runtime과 Hybrid Deployment를 같은 Contract 기준으로 조합합니다.
-
-<img src="cpf-docs/assets/architecture/cpf-runtime-topology.svg" alt="CPF Runtime and Deployment Topology" width="100%" />
-
-### Direct Entry와 Optional Gateway
+CPF는 네 개의 제품 영역으로 구성된다.
 
 ```text
-Direct Entry
+┌──────────────────────────────────────────────────────────────────┐
+│                    업무·운영 애플리케이션 영역                   │
+│  cpf-admin · cpf-biz-admin · cpf-member · cpf-<generated-domain> │
+└──────────────────────────────┬───────────────────────────────────┘
+                               │ Public API / SPI
+┌──────────────────────────────▼───────────────────────────────────┐
+│                         Framework 기반                           │
+│                       cpf-core · cpf-common                      │
+└──────────────────────────────┬───────────────────────────────────┘
+                               │
+┌──────────────────────────────▼───────────────────────────────────┐
+│                     선택 실행·진입 제품                          │
+│                 cpf-gateway · cpf-batch 제품군                   │
+└──────────────────────────────┬───────────────────────────────────┘
+                               │
+┌──────────────────────────────▼───────────────────────────────────┐
+│                        도구·공급·검증                             │
+│        Generator · DB Tool · Quality Gate · Artifact Supply      │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+### 공식 Module
+
+| Module | SystemCode | 책임 |
+|---|---:|---|
+| `cpf-core` | `CPF` | topology-independent 기술 계약, Public API/SPI, 실행 문맥, 오류, 추적 |
+| `cpf-common` | `CMN` | 고객 업무 공통 정책과 선택형 공통 기능 |
+| `cpf-admin` | `ADM` | 플랫폼 운영, 관제, 보안, 감사, 승인과 제어 |
+| `cpf-biz-admin` | `BZA` | 조직, 사용자, Role, Permission, 결재, 알림, 첨부 |
+| `cpf-gateway` | `GWY` | 선택형 외부 진입, Routing, 정책 집행, 연결시험, 적용 상태 |
+| `cpf-batch` | `BAT` | Scheduler, Worker, Agent, Center-Cut와 실행 Control Plane |
+| `cpf-member` | `MBR` | Generator Golden Reference Instance |
+| `cpf-reference` | `REF` | 실제 Public API를 사용하는 교육·참조 구현 |
+| `cpf-<domain>` | 3자리 코드 | Generator로 생성하는 독립 업무영역 |
+
+### Public API, SPI, Internal
+
+```text
+com.cpf.core.api       고객·업무 개발자가 사용하는 안정 계약
+com.cpf.core.spi       고객 Adapter와 업무 확장을 위한 Port
+com.cpf.core.internal  CPF 제품 내부 구현
+```
+
+업무 Module은 내부 구현 Package에 직접 의존하지 않는다. 공통 계약이 필요하면 Public API 또는 SPI로 제공하고, 실제 Consumer와 기본 구현, 오류·복구·운영 경로를 함께 갖춘다.
+
+---
+
+## 배포 구성
+
+CPF는 배포 방식 때문에 업무 계약이 달라지지 않도록 설계한다.
+
+### 직접 진입과 선택형 Gateway
+
+```text
+직접 진입
 Client / Channel ───────────────→ Business Domain
 
-Optional Gateway
+공통 진입 정책 사용
 Client / Channel → cpf-gateway → Business Domain
 ```
 
-업무 Module 자체 또는 Channel이 Routing, 인증, Endpoint 등록을 소유하면 Direct Entry를 사용합니다. 여러 Channel의 공통 진입 정책, Header 정규화와 장애 격리가 필요하면 `cpf-gateway`를 선택합니다.
+Gateway는 필수 중앙 경유지가 아니다. 공통 인증, Header 정규화, Routing, Rate Limit, 장애 격리 또는 외부 공개 통제가 필요한 경우 선택한다.
 
-### Local과 Remote Invocation
+### 동일 JVM과 분리 WAS
 
 ```text
-Same JVM
+동일 JVM
 Domain A → Local Adapter → Domain B Public Contract
 
-Separate Runtime
+분리 WAS
 Domain A → Remote Adapter → Domain B Public API
 ```
 
-호출 방식이 달라도 업무 Public Contract, Header, Error, Transaction Identity와 Trace 기준은 가능한 한 동일하게 유지합니다.
+두 방식 모두 다음을 동일하게 유지한다.
 
-### Runtime Packaging
+- 표준 Header와 `transactionId`
+- 인증·권한 문맥
+- 오류 분류와 응답 계약
+- 시간 제한과 재시도 정책
+- 멱등성 키와 결과 불명 처리
+- Trace와 운영 Timeline
 
-- Embedded BootJar
-- External WAS / WAR
-- Modular Monolith
-- Microservices
-- Local Development Assembly
-- Hybrid Deployment Cell
+### 지원 실행 형태
 
-`cpf-local-runtime`과 `cpf-local-batch-runtime`은 제품 Module과 개발용 Runtime 조립체를 분리하여 로컬 통합 실행을 지원합니다.
-
----
-
-## Module Catalog
-
-### Official Product Modules
-
-| Module | 분류 | 주요 책임 |
-| --- | --- | --- |
-| `cpf-core` | Foundation | 기술 공통 Contract, Runtime 기반, Public API·SPI |
-| `cpf-common` | Reusable Common | 여러 Application에서 선택적으로 사용하는 업무 공통 Capability |
-| `cpf-admin` | Official Application | 운영·관제·보안·감사·통제 Application |
-| `cpf-biz-admin` | Official Application | 업무 관리자와 업무 운영 Application |
-| `cpf-gateway` | Optional Edge | 외부 진입, Routing, Header와 인증 연계 |
-| `cpf-reference` | Reference / EDU | 제품 API 사용 예제와 교육 Reference |
-
-### Batch Product Modules
-
-| Gradle Project | Artifact 역할 |
-| --- | --- |
-| `:cpf-batch:contract` | Batch Public Contract |
-| `:cpf-batch:runtime-common` | Batch Runtime 공통 기반 |
-| `:cpf-batch:control-server` | Control Plane API와 Runtime State |
-| `:cpf-batch:scheduler` | Trigger, Calendar, Lease와 Scheduling |
-| `:cpf-batch:worker` | Spring Batch Job, Step, Chunk와 Tasklet 실행 |
-| `:cpf-batch:center-cut-runner` | Partition, Claim, Lease와 대량 분산 처리 |
-| `:cpf-batch:host-agent` | Remote Host Process와 Artifact 실행 |
-| `:cpf-batch:testkit` | Contract와 Runtime Scenario Fixture |
-
-### Runtime Assembly와 Build Tooling
-
-| Project | 위치 | 역할 |
-| --- | --- | --- |
-| `cpf-local-runtime` | `cpf-tools/runtime/cpf-local-runtime` | 온라인 Application 로컬 통합 Runtime |
-| `cpf-local-batch-runtime` | `cpf-tools/runtime/cpf-local-batch-runtime` | Batch 로컬 통합 Runtime |
-| Platform BOM | `cpf-tools/build/platform-bom` | Published Dependency BOM |
-| Convention Plugin | `cpf-tools/build/gradle-plugin` | Module과 Generated Domain Build Convention |
-| Local Domain Federation | `local-domains/*` | 독립 Domain Repository의 개발용 Composite Build Mount |
+- Embedded Boot JAR
+- 외부 WAS용 WAR
+- 모듈형 단일체
+- 독립 마이크로서비스
+- 로컬 통합 Runtime
+- Scheduler·Worker·Agent 독립 Process
+- 다중 인스턴스
+- Rolling, Canary, Blue-Green와 재해복구 구성
 
 ---
 
-## Transaction과 Service Call
+## 핵심 실행 모델
 
-CPF의 온라인 실행 흐름은 Transaction Identity와 Standard Header를 중심으로 연결됩니다.
+### 거래 식별과 추적
+
+모든 주요 실행 흐름은 동일한 식별 체계를 사용한다.
 
 ```text
-Inbound Request
-→ Header Validation / Context
-→ Transaction Identity
-→ Application Service
-→ Local or Remote Invocation
-→ Result / Error Mapping
-→ Log / Trace / Audit
+transactionId
+└─ segmentId
+   ├─ online service call
+   ├─ remote attempt
+   ├─ async event
+   ├─ batch execution
+   └─ compensation / reconciliation
 ```
 
-### Service Call Capability
+운영자는 시스템, 인스턴스, 거래, 실행, Job과 재처리 이력을 같은 식별자로 연결해 조회할 수 있다.
 
-- Local / Remote Invocation Abstraction
-- Service Registry, Server Group과 Instance Selection
-- Gateway Binding, Health와 Configuration Apply ACK
-- Timeout, Retry, Backoff와 Circuit State
-- Multi-instance Failover
-- Distributed Trace Context 전달
-- Error Translation과 External Message Mapping
+### 결과 불명
 
-### Idempotency와 결과 불명 상태
+상대 시스템이 처리했는지 확정할 수 없는 상태를 단순 실패로 바꾸지 않는다.
 
-동일 요청이 반복될 수 있는 흐름에는 Idempotency Key와 처리 이력을 적용합니다. Timeout 이후 상대 처리 결과를 즉시 확정할 수 없으면 단순 실패로 덮지 않고 `UNKNOWN_RESULT` 또는 이에 상응하는 미확정 상태로 보존해 Reconciliation, 상태 확인, 재처리 또는 Compensation으로 연결합니다.
+```text
+요청 전송
+→ 시간 제한 또는 응답 유실
+→ UNKNOWN_RESULT
+→ 결과 조회 / 대사 / 운영 확인
+→ 최종 성공·실패 확정
+→ 필요 시 재처리 또는 보상
+```
 
-Recovery와 Reprocessing은 별도 중앙 Module이 아닙니다.
+### 멱등성
 
-- Transaction: Idempotency, Retry, Unknown Result Resolution, Compensation
-- Async: Retry, DLQ, Replay, Idempotent Consumer
-- External Integration: Timeout, Result Inquiry, Resend와 전문 추적
-- Batch: Restart, Checkpoint, Lost Execution Reconciliation
-- ADM: Query, Permission, Reason, Approval, Command와 Audit
+반복될 수 있는 Command는 다음을 구분한다.
+
+- 같은 멱등성 키 + 같은 정규화 요청: 최초 처리 의미 재사용
+- 같은 멱등성 키 + 다른 요청: 충돌로 거부
+- 재시도 가능 오류와 재시도 금지 오류 구분
+- 처리 결과와 감사 이력 보존
+
+### 다중 인스턴스
+
+Scheduler, Worker, Agent, 배포 Consumer와 운영 명령은 Lease, Claim, Fencing Token, Version과 Optimistic Lock을 사용한다. 소유권을 잃은 이전 실행자가 늦게 결과를 반영하지 못하도록 한다.
 
 ---
 
-## Async, Messaging과 External Integration
+## 온라인·비동기·외부 연계
 
-### Async Processing
+### 온라인 서비스 호출
+
+- Local/Remote Adapter 선택
+- Service Registry와 Instance 선택
+- Timeout Budget
+- Retry와 Backoff
+- Circuit Breaker와 Bulkhead
+- Header·Trace 전달
+- 오류 변환
+- 결과 불명과 대사
+
+### 비동기·메시징
 
 - Transactional Outbox
 - Inbox와 Idempotent Consumer
+- 재시도·지연·독성 메시지 분리
 - DLQ와 Replay
-- Retry / Backoff / Poison Message 분리
-- 처리 상태와 Correlation Trace
+- Correlation Trace
+- Schema Version과 호환성
+- 운영 재처리와 감사
 
-### Messaging과 File
+### 파일·첨부·전문
 
-- Kafka와 AMQP 기반 Messaging Adapter
-- File Transfer와 Attachment Lifecycle
-- Fixed-length Message, 전문 Encoding과 Validation
-- Scan, Quarantine와 Download Control
-- External Result Mapping과 오류 추적
+- 업로드 크기·형식·경로 검증
+- 악성 파일 검사
+- 격리와 다운로드 통제
+- Checksum과 중복 방지
+- 파일 전송 이력과 대사
+- 고정길이 전문 Layout과 Encoding 검증
+- 민감정보 마스킹
 
-### External Integration Ownership
-
-HTTP, Messaging, File, 전문과 Trace 같은 기술 기반은 Framework가 제공할 수 있지만 실제 기관·서비스별 업무 연계 책임은 해당 Owner Domain이 가집니다.
-
-```text
-연계 Owner Domain
-→ Request / Response Mapping
-→ Business Validation
-→ Timeout / Result Inquiry / Retry Policy
-→ Integration History / Audit
-→ External System
-```
-
+상세 내용은 [비동기·메시징·보상 가이드](cpf-docs/guides/CPF_ASYNC_MESSAGING_AND_COMPENSATION_GUIDE.md)를 참고한다.
 
 ---
 
 ## Batch와 Center-Cut
 
-<img src="cpf-docs/assets/architecture/cpf-batch-runtime.svg" alt="CPF Batch Runtime Architecture" width="100%" />
-
-### Control Plane
-
-- JobPack Registry와 Versioned Job Definition
-- 공통 `CpfParameterSchema` 기반 Typed Parameter와 Secret Reference
-- Runtime Command와 Query
-- Scheduler, Calendar와 Trigger
-- Instance State와 Deployment Control
-- Lost Execution과 Reconciliation
-
-### Execution Plane
-
-- Worker 기반 Spring Batch Job / Step 실행
-- Center-Cut Partition, Target, Claim과 Runner
-- Host Agent 기반 Remote Process 실행
-- File Stability Window, Marker, Checksum, Claim과 Restart Scan
-- Approved Script Hash/Signature, Parameter File, Output Masking과 Process Tree 종료
-- Checkpoint와 Restartability
-- Lease와 Fencing Token 기반 Owner 보호
-
-### Multi-instance Safety
-
-동일 작업을 여러 Instance가 경쟁할 수 있는 환경에서 실행 Owner, Lease, Claim과 Fencing을 구분합니다. 이전 Owner가 Lease를 잃은 뒤 다시 결과를 반영하지 않도록 실행 세대와 소유권 검증을 사용합니다.
-
-ADM은 Batch Runtime 상태를 조회하고 승인된 Command를 전달할 수 있지만 BAT Owner가 관리하는 Runtime DB를 직접 수정하지 않습니다.
-
-상세 내용은 [Batch Runtime과 Remote Agent](cpf-docs/guides/CPF_BATCH_RUNTIME_AND_REMOTE_AGENT_GUIDE.md), [Scheduler와 Instance Lifecycle](cpf-docs/guides/CPF_BATCH_SCHEDULER_INSTANCE_LIFECYCLE_GUIDE.md)을 확인합니다.
-
----
-
-## Operations와 Business Administration
-
-### `cpf-admin` — Operations Domain
-
-`cpf-admin`은 Platform Runtime을 운영하고 통제하는 독립 Application입니다.
-
-- Service Registry, Server Group, Gateway Binding과 Instance Health
-- Gateway Connection Test, Apply ACK, Transaction/Attempt Timeline
-- Transaction, Timeline, Log와 Trace 조회
-- Batch Job Definition, Center-Cut와 Runtime Control
-- Cache, Dynamic Log Level과 Configuration Control
-- Secret Metadata와 Security Operation
-- 승인, Break-glass, Reason과 Audit
-- Data Safety, Download와 Masking
-- Observability Dashboard와 Structured Details
-
-위험한 운영 명령은 대상 확인, 인증된 Operator, Permission, 사유, 필요 시 승인과 실행 결과 Audit으로 연결합니다. 운영 기능의 실패가 원 업무 Transaction을 오염시키지 않도록 책임과 Transaction 경계를 분리합니다.
-
-### `cpf-biz-admin` — Business Administration Domain
-
-`cpf-biz-admin`은 업무 운영을 위한 독립 Application입니다.
-
-- User, Role, Permission과 유효기간
-- Organization, Employee, Position과 Assignment
-- Approval Workflow
-- Notification과 Read State
-- Attachment와 Scan State
-- Audit Hash Chain
-- Tenant-aware Business Administration
-
-ADM과 BZA의 Frontend는 기능별 Route, State, API와 Component 책임을 분리하고 외부 Runtime CDN이나 Font에 의존하지 않는 제품 구조를 지향합니다.
-
----
-
-## Security, Governance와 Observability
-
-<img src="cpf-docs/assets/architecture/cpf-capability-map.svg" alt="CPF Capability Map" width="100%" />
-
-### Security Boundary
-
-- Authentication과 authenticated Operator Context
-- Role / Permission 기반 Authorization
-- Tenant Context와 Data Boundary
-- Secret Reference와 Provider SPI
-- Sensitive Data Masking
-- Secure Default와 Break-glass Control
-
-### Audit와 Traceability
-
-- Transaction ID와 실행 Segment
-- System / Instance / Job / Execution Identity
-- File Log와 DB Log
-- Distributed Trace와 Timeline
-- Operator Command Audit
-- Audit Hash Chain과 Tamper Detection
-
-### Retention과 Data Safety
-
-- Retention Policy
-- Legal Hold
-- Archive와 Purge
-- Backup Manifest와 SHA-256
-- Restore와 DR Verification
-- Download, Attachment Scan과 Quarantine
-
----
-
-## Database와 Lifecycle Management
-
-CPF의 공식 지원 Database Vendor는 다음 3종입니다.
-
-| Vendor | 식별자 | 지원 범위 |
-| --- | --- | --- |
-| Oracle | `oracle` | Generated Domain, Platform SQL, Migration과 Vendor Pack |
-| PostgreSQL | `postgresql` | Generated Domain, Platform SQL, Migration과 Vendor Pack |
-| MariaDB | `mariadb` | Generated Domain, Platform SQL, Migration과 Vendor Pack |
-
-MySQL, MSSQL과 H2는 공식 지원 Vendor로 두지 않습니다.
-
-### Canonical Source와 Vendor Parity
-
-- DB Artifact는 Canonical Source와 Generator를 우선합니다.
-- Vendor별 Install, Seed, Migration, Verify와 Rollback 구조를 동일한 원칙으로 관리합니다.
-- 존재하지 않는 Column을 참조하는 Index·FK와 SQL 구조 오류를 Runtime 전에 검출합니다.
-- 기존 Schema와 정본이 다르면 조용히 Skip하지 않고 Drift 또는 Migration 문제로 처리합니다.
-- Runtime Query Pack과 Application Artifact의 Vendor Resource 포함 여부를 검증합니다.
-
-### Lifecycle
+CPF Batch는 업무 정의와 실행 Runtime을 분리한다.
 
 ```text
-Install
-→ Verify
-→ Migration / Upgrade
-→ Compatibility Check
-→ Rollback Plan
-→ Backup / Restore
-→ DR Verification
+ADM / BAT Control Plane
+→ 작업정의 작성
+→ 검증
+→ 작성자·승인자 분리
+→ 배포
+→ 실행용 Projection
+→ Scheduler
+→ Worker / Agent / Center-Cut Runner
+→ 실행 이력·Checkpoint·재처리
 ```
 
-자세한 명령과 Profile은 [Database Tool Guide](cpf-docs/guides/CPF_DATABASE_TOOL_GUIDE.md), [Database Profile and Domain DB Guide](cpf-docs/guides/DATABASE_PROFILE_AND_DOMAIN_DB_GUIDE.md)를 확인합니다.
+제품 구성:
+
+| Project | 역할 |
+|---|---|
+| `:cpf-batch:contract` | 업무 Job과 Runtime 사이의 Public Contract |
+| `:cpf-batch:runtime-common` | Lease, Fencing, 실행 문맥 등 공통 구현 |
+| `:cpf-batch:control-server` | 작업정의, 실행, 배포, 상태 조회와 명령 |
+| `:cpf-batch:scheduler` | Trigger, Calendar, Misfire와 HA Scheduling |
+| `:cpf-batch:worker` | Spring Batch Job·Step·Tasklet 실행 |
+| `:cpf-batch:center-cut-runner` | 대량 Partition·Claim·재처리 |
+| `:cpf-batch:host-agent` | 원격 Host의 승인 Artifact 실행 |
+| `:cpf-batch:testkit` | 업무 Job Pack과 장애 시나리오 검증 |
 
 ---
 
-## Generator-driven Domain Extension
+## 운영과 통제
 
-<img src="cpf-docs/assets/architecture/cpf-domain-extension.svg" alt="CPF Generated Domain Extension" width="100%" />
+### ADM
 
-Generator는 `DomainName`과 3자리 대문자 `SystemCode`를 입력받아 독립 업무 Domain을 생성합니다.
+`cpf-admin`은 운영자가 장애를 분석하고 안전하게 조치하기 위한 Control Plane이다.
 
-### 생성 범위
+- 서비스, Endpoint, Instance, Health와 Topology
+- Gateway Registry, Binding, 배포, ACK와 구성 불일치
+- 거래, Timeline, Log와 Trace
+- Batch 작업정의, 실행, Worker, Agent와 Center-Cut
+- 재시도, Replay, 대사, 보상과 결과 불명 처리
+- 설정, Cache, 동적 Log Level과 Runtime Policy
+- Secret Metadata, 인증서, 보안 운영
+- 승인, 비상 권한, 사유와 감사
+- Incident, Runbook, 알림과 조치 결과
+
+### BZA
+
+`cpf-biz-admin`은 고객 업무 운영을 위한 Backoffice다.
+
+- 사용자와 계정 상태
+- Role, Permission과 유효기간
+- 조직, 직원, 직위, 직책과 Assignment
+- 결재 정책, 단계, 대리결재와 Snapshot
+- 알림과 읽음 상태
+- 첨부, 검사, 격리와 다운로드
+- 업무 운영 감사와 Hash Chain
+
+### 위험 조치
+
+위험한 운영 명령은 다음 공통 절차를 따른다.
+
+```text
+대상 조회
+→ 현재 상태 Snapshot
+→ 권한 확인
+→ 사유 입력
+→ 필요 시 승인
+→ Version / Idempotency 확인
+→ 실행
+→ 결과 확인
+→ 대사 또는 되돌리기
+→ 감사와 Evidence
+```
+
+---
+
+## 보안
+
+CPF는 안전한 기본값을 사용한다.
+
+- 인증되지 않은 요청 기본 거부
+- 서버 권한 검증을 UI 표시보다 우선
+- 외부 공개 기본 거부
+- Secret 원문 대신 Reference 전달
+- 로그, API, 감사, Evidence의 재귀 마스킹
+- 작성자와 승인자 분리
+- 비상 권한 사용 시 사유·범위·만료·감사
+- 다운로드, 원문 보기, 설정 변경의 별도 권한
+- 악성 파일 검사와 격리
+- 승인 Artifact의 Hash와 전자서명 검증
+- 보안 설정 미구성 시 안전 차단
+
+상세 내용은 [보안·재해복구·보존 가이드](cpf-docs/guides/CPF_SECURITY_DR_RETENTION_GUIDE.md)를 참고한다.
+
+---
+
+## 데이터베이스
+
+공식 지원 Vendor:
+
+| Vendor | 식별자 |
+|---|---|
+| Oracle | `oracle` |
+| PostgreSQL | `postgresql` |
+| MariaDB | `mariadb` |
+
+모든 Vendor는 동일한 제품 생명주기를 제공한다.
+
+```text
+Provision
+→ Empty Install
+→ Product Seed
+→ Verify
+→ Upgrade
+→ Compatibility Check
+→ Rollback
+→ Reapply
+→ Backup
+→ Restore
+→ DR Verify
+```
+
+DB Artifact는 Canonical Source에서 생성한다. Column, Type, Default, PK, FK, Index, Identity, Comment와 Logical DB Ownership을 Vendor 간 비교한다. 기존 Schema가 다르면 조용히 건너뛰지 않고 정본 불일치 또는 Migration 문제로 처리한다.
+
+---
+
+## Generator 기반 업무영역 확장
+
+Generator는 `DomainName`과 3자리 `SystemCode`를 받아 독립 업무영역을 만든다.
+
+```powershell
+pwsh -File .\cpf-tools\generator\create-domain.ps1 `
+  -DomainName "payment" `
+  -SystemCode "PAY" `
+  -DatabaseVendor "postgresql" `
+  -DryRun
+```
+
+생성 범위:
 
 - Module과 Package
-- API / Application / Domain / Adapter Layer
-- Standard Header와 Error Contract 적용
-- Config와 Runtime Profile
-- Oracle, PostgreSQL, MariaDB DB Artifact
-- Install, Seed, Migration, Verify와 Rollback
-- Unit, Integration과 Runtime Test
-- OpenAPI, JavaDoc, Guide와 Evidence 연결
-- Service Registry 등록 후보, Endpoint와 Health Metadata
-- Gateway 외부 공개 기본 거부와 승인·연결시험 정책
-- CI/CD와 Repository Federation 설정
-
-### Preflight Validation
-
-- Module, Package와 SystemCode 충돌
-- Route와 Standard Execution ID 충돌
-- DB Name, Schema와 Table Prefix 충돌
-- Config Key와 Port 충돌
-- 기존 사용자 수정 영역 침범 여부
-- Official Vendor Pack과 Golden Template Parity
-
-`cpf-member`는 Generator Golden Reference Instance입니다. ACC와 신규 업무 Domain도 같은 Template와 품질 기준을 사용합니다.
+- API, Application, Domain, Adapter 계층
+- 표준 Header, 오류와 Paging
+- Local/Remote 호출 계약
+- DB Source, Migration, Rollback와 Verify
+- Oracle, PostgreSQL, MariaDB 산출물
+- Test와 Test Fixture
+- OpenAPI, JavaDoc와 EDU
+- Runtime Profile과 Route
+- Service Registry 등록 정보
+- 외부 공개 기본 거부 정책
+- Generator 소유 영역과 고객 수정 영역 분리
 
 ---
 
-## Technology Stack
+## 5분 시작
 
-기술 Stack의 단일 정본은 `gradle/cpf-stack.properties`입니다.
-
-| 영역 | 기준 |
-| --- | --- |
-| Java | 25 |
-| Gradle | 9.1.0 |
-| Spring Boot | 4.1.0 |
-| Servlet | 6.1 |
-| API | Spring MVC / WebFlux / REST Client / OpenAPI |
-| Data | JDBC / MyBatis / Flyway |
-| Messaging | Kafka / AMQP |
-| Observability | OpenTelemetry / Structured Log / Runtime Metrics |
-| Frontend | Vue 기반 ADM·BZA Feature Architecture |
-| Database | Oracle / PostgreSQL / MariaDB |
-
-Stack version은 README에 개별적으로 중복 관리하지 않고 정본 Property와 Gate를 기준으로 유지합니다.
-
----
-
-## 빠른 시작
-
-### 준비 조건
+### 준비 환경
 
 - JDK 25
 - Git
 - Gradle Wrapper
-- PowerShell 7 — Generator, DB와 Runtime Tool 사용 시
-- Node.js와 npm — ADM·BZA Frontend 개발 시
-- 선택한 공식 Database Vendor Runtime
+- PowerShell 7
+- Node.js와 npm
+- Oracle, PostgreSQL 또는 MariaDB 중 사용할 DB
 
 ### 전체 Build
 
-Linux / macOS:
+Linux/macOS:
 
 ```bash
 ./gradlew clean build
@@ -490,7 +405,7 @@ Windows:
 .\gradlew.bat clean build
 ```
 
-### Local Runtime
+### 로컬 Runtime
 
 ```powershell
 pwsh -File .\cpf-tools\scripts\start-cpf-local.ps1
@@ -498,24 +413,20 @@ pwsh -File .\cpf-tools\scripts\status-cpf-local.ps1
 pwsh -File .\cpf-tools\scripts\stop-cpf-local.ps1
 ```
 
-분산 Batch Runtime은 다음 Script를 사용합니다.
+### 로컬 분산 Batch Runtime
 
 ```powershell
 pwsh -File .\cpf-tools\scripts\start-bat-local-distributed.ps1
 pwsh -File .\cpf-tools\scripts\stop-bat-local-distributed.ps1
 ```
 
-### 신규 Domain Dry Run
+### Database 설치
 
 ```powershell
-pwsh -File .\cpf-tools\generator\create-domain.ps1 `
-  -DomainName "payment" `
-  -SystemCode "PAY" `
-  -DatabaseVendor "mariadb" `
-  -DryRun
+pwsh -File .\cpf-tools\scripts\initialize-cpf-database.ps1 -All -RequireRun
 ```
 
-### Frontend 검증
+### ADM/BZA Frontend
 
 ```bash
 cd cpf-admin/frontend
@@ -526,9 +437,23 @@ npm run test
 npm run build
 ```
 
-`cpf-biz-admin/frontend`도 같은 방식으로 검증합니다.
+`cpf-biz-admin/frontend`도 같은 절차를 사용한다.
 
-### 대표 Quality Gate
+---
+
+## 품질과 Evidence
+
+CPF는 파일 존재나 일부 Test 통과만으로 기능을 완료 처리하지 않는다.
+
+```text
+Requirement
+→ Source / API / SQL / Config
+→ Unit / Integration / Runtime / Browser Test
+→ 실행 결과
+→ 민감정보를 제거한 Evidence
+```
+
+대표 검증:
 
 ```powershell
 pwsh -File .\cpf-tools\scripts\check-architecture-ownership.ps1
@@ -537,77 +462,74 @@ pwsh -File .\cpf-tools\scripts\check-document-links.ps1
 pwsh -File .\cpf-tools\scripts\verify-full-product.ps1
 ```
 
-외부 Runtime, Database, Redis, Messaging 또는 Browser가 필요한 검증은 해당 Profile과 환경을 준비한 뒤 실행하고 Evidence를 함께 보존합니다.
+Evidence에는 최소한 다음을 기록한다.
+
+- 기준 Source Commit
+- 정확한 실행 명령
+- 환경과 Profile
+- 시작·종료 시각
+- 종료 코드
+- 관련 Requirement
+- 실제 결과
+- 원본 Log 또는 Query 결과
+- 민감정보 제거 여부
 
 ---
 
-## Documentation Map
+## 문서 안내
 
-README는 제품의 시작점입니다. 상세 Contract와 실행 절차는 역할별 정본에서 이어집니다.
+### 시작과 개발
 
 | 주제 | 문서 |
-| --- | --- |
-| Developer Guide | [CPF_DEVELOPER_GUIDE.md](cpf-docs/guides/CPF_DEVELOPER_GUIDE.md) |
+|---|---|
+| 개발 표준 | [CPF_DEVELOPER_GUIDE.md](cpf-docs/guides/CPF_DEVELOPER_GUIDE.md) |
 | Foundation API | [CPF_FOUNDATION_API_GUIDE.md](cpf-docs/guides/CPF_FOUNDATION_API_GUIDE.md) |
 | Public API와 Generated Domain | [CPF_PUBLIC_API_AND_GENERATED_DOMAIN_GUIDE.md](cpf-docs/guides/CPF_PUBLIC_API_AND_GENERATED_DOMAIN_GUIDE.md) |
 | Generator | [CPF_GENERATOR_TOOL_GUIDE.md](cpf-docs/guides/CPF_GENERATOR_TOOL_GUIDE.md) |
-| ADM Operator | [CPF_ADMIN_OPERATOR_GUIDE.md](cpf-docs/guides/CPF_ADMIN_OPERATOR_GUIDE.md) |
-| BZA | [CPF_BIZ_ADMIN_GUIDE.md](cpf-docs/guides/CPF_BIZ_ADMIN_GUIDE.md) |
-| ADM / BZA UI Standard | [CPF_ADMIN_BZA_UI_STANDARD_GUIDE.md](cpf-docs/guides/CPF_ADMIN_BZA_UI_STANDARD_GUIDE.md) |
-| Batch Runtime | [CPF_BATCH_RUNTIME_AND_REMOTE_AGENT_GUIDE.md](cpf-docs/guides/CPF_BATCH_RUNTIME_AND_REMOTE_AGENT_GUIDE.md) |
-| Batch Scheduler Lifecycle | [CPF_BATCH_SCHEDULER_INSTANCE_LIFECYCLE_GUIDE.md](cpf-docs/guides/CPF_BATCH_SCHEDULER_INSTANCE_LIFECYCLE_GUIDE.md) |
-| Database Tool | [CPF_DATABASE_TOOL_GUIDE.md](cpf-docs/guides/CPF_DATABASE_TOOL_GUIDE.md) |
-| Database Profile | [DATABASE_PROFILE_AND_DOMAIN_DB_GUIDE.md](cpf-docs/guides/DATABASE_PROFILE_AND_DOMAIN_DB_GUIDE.md) |
+| EDU | [CPF_EDU_COVERAGE_GUIDE.md](cpf-docs/guides/CPF_EDU_COVERAGE_GUIDE.md) |
+
+### 운영과 실행
+
+| 주제 | 문서 |
+|---|---|
+| ADM 운영 | [CPF_ADMIN_OPERATOR_GUIDE.md](cpf-docs/guides/CPF_ADMIN_OPERATOR_GUIDE.md) |
+| BZA 운영 | [CPF_BIZ_ADMIN_GUIDE.md](cpf-docs/guides/CPF_BIZ_ADMIN_GUIDE.md) |
+| ADM/BZA 화면 표준 | [CPF_ADMIN_BZA_UI_STANDARD_GUIDE.md](cpf-docs/guides/CPF_ADMIN_BZA_UI_STANDARD_GUIDE.md) |
+| Gateway | [CPF_GATEWAY_OPERATIONS_GUIDE.md](cpf-docs/guides/CPF_GATEWAY_OPERATIONS_GUIDE.md) |
+| Batch Runtime과 Agent | [CPF_BATCH_RUNTIME_AND_REMOTE_AGENT_GUIDE.md](cpf-docs/guides/CPF_BATCH_RUNTIME_AND_REMOTE_AGENT_GUIDE.md) |
+| Scheduler와 실행 생명주기 | [CPF_BATCH_SCHEDULER_INSTANCE_LIFECYCLE_GUIDE.md](cpf-docs/guides/CPF_BATCH_SCHEDULER_INSTANCE_LIFECYCLE_GUIDE.md) |
+| 비동기·메시징·보상 | [CPF_ASYNC_MESSAGING_AND_COMPENSATION_GUIDE.md](cpf-docs/guides/CPF_ASYNC_MESSAGING_AND_COMPENSATION_GUIDE.md) |
+| 관측·장애대응 | [CPF_OBSERVABILITY_INCIDENT_AND_RECOVERY_GUIDE.md](cpf-docs/guides/CPF_OBSERVABILITY_INCIDENT_AND_RECOVERY_GUIDE.md) |
 | Health와 Registry | [CPF_HEALTH_AND_SERVICE_REGISTRY_GUIDE.md](cpf-docs/guides/CPF_HEALTH_AND_SERVICE_REGISTRY_GUIDE.md) |
-| Security, DR와 Retention | [CPF_SECURITY_DR_RETENTION_GUIDE.md](cpf-docs/guides/CPF_SECURITY_DR_RETENTION_GUIDE.md) |
-| Artifact Supply와 CI/CD | [CPF_ARTIFACT_SUPPLY_AND_CICD_GUIDE.md](cpf-docs/guides/CPF_ARTIFACT_SUPPLY_AND_CICD_GUIDE.md) |
-| Tool Overview | [CPF_TOOLS_GUIDE.md](cpf-docs/guides/CPF_TOOLS_GUIDE.md) |
-| Tool Reference | [CPF_TOOL_REFERENCE.md](cpf-docs/guides/CPF_TOOL_REFERENCE.md) |
-| EDU Coverage | [CPF_EDU_COVERAGE_GUIDE.md](cpf-docs/guides/CPF_EDU_COVERAGE_GUIDE.md) |
+| Runtime 설정·정책 배포 | [CPF_CONFIGURATION_AND_RUNTIME_POLICY_GUIDE.md](cpf-docs/guides/CPF_CONFIGURATION_AND_RUNTIME_POLICY_GUIDE.md) |
+
+### 설치·공급·복구
+
+| 주제 | 문서 |
+|---|---|
+| 설치·업그레이드·되돌리기 | [CPF_INSTALL_UPGRADE_ROLLBACK_GUIDE.md](cpf-docs/guides/CPF_INSTALL_UPGRADE_ROLLBACK_GUIDE.md) |
+| Database Tool | [CPF_DATABASE_TOOL_GUIDE.md](cpf-docs/guides/CPF_DATABASE_TOOL_GUIDE.md) |
+| DB Profile과 업무영역 DB | [DATABASE_PROFILE_AND_DOMAIN_DB_GUIDE.md](cpf-docs/guides/DATABASE_PROFILE_AND_DOMAIN_DB_GUIDE.md) |
+| 보안·재해복구·보존 | [CPF_SECURITY_DR_RETENTION_GUIDE.md](cpf-docs/guides/CPF_SECURITY_DR_RETENTION_GUIDE.md) |
+| 산출물 공급과 CI/CD | [CPF_ARTIFACT_SUPPLY_AND_CICD_GUIDE.md](cpf-docs/guides/CPF_ARTIFACT_SUPPLY_AND_CICD_GUIDE.md) |
+| Tool 개요 | [CPF_TOOLS_GUIDE.md](cpf-docs/guides/CPF_TOOLS_GUIDE.md) |
+| Tool 상세 참조 | [CPF_TOOL_REFERENCE.md](cpf-docs/guides/CPF_TOOL_REFERENCE.md) |
+| Test와 Evidence | [CPF_TEST_AND_EVIDENCE_GUIDE.md](cpf-docs/guides/CPF_TEST_AND_EVIDENCE_GUIDE.md) |
 
 ---
 
-## Verification과 Evidence
+## 기여 원칙
 
-CPF의 완료 판정은 Source나 Package 존재만으로 이루어지지 않습니다.
+기능을 추가하거나 변경할 때 다음 순서로 판단한다.
 
-```text
-Requirement
-→ Source / API / SQL / Config
-→ Unit / Integration / Runtime / Browser Test
-→ Execution Result
-→ Sanitized Evidence
-```
+1. 해결할 Requirement와 Owner Module을 확인한다.
+2. Public API, SPI와 Internal 경계를 정한다.
+3. 실제 Consumer와 Runtime 연결을 확인한다.
+4. 동일 JVM과 분리 WAS에서 같은 계약이 성립하는지 확인한다.
+5. 다중 인스턴스, 부분 실패와 복구 영향을 확인한다.
+6. 보안, 권한, 감사와 운영 제어를 확인한다.
+7. DB Vendor, Migration과 Generator 영향을 확인한다.
+8. Source, SQL, API, Test, Guide와 Evidence를 함께 변경한다.
+9. 기존 성공 기능의 회귀와 Repository Hygiene를 확인한다.
 
-### 함께 확인하는 범위
-
-- Module Ownership과 Public API·SPI Boundary
-- 정상, 오류, 경계와 부분 실패
-- Timeout, Retry, Idempotency와 Unknown Result
-- Concurrency, Multi-instance, Lease와 Fencing
-- Security, Authorization, Masking, Approval과 Audit
-- SQL, Vendor Pack, Migration, Upgrade와 Rollback
-- Generator와 Generated Domain Parity
-- Frontend Route, API, State와 Runtime Integration
-- Artifact Packaging과 Deployment Topology
-- 현재 Commit과 Evidence의 유효성
-
-직접 실행하지 않은 검증은 성공으로 기록하지 않습니다. 환경이 없어 실행하지 못한 항목은 `미검증`으로 구분하고, 실행 명령, Profile, 기준 Commit과 필요한 환경을 Evidence 계획에 남깁니다.
-
----
-
-## Contribution Principles
-
-CPF에 기능을 추가하거나 변경할 때는 다음 순서로 판단합니다.
-
-1. 해결하는 Requirement와 Owner Module을 확인합니다.
-2. Public API, SPI와 Internal 구현 경계를 구분합니다.
-3. 실제 Consumer와 의존성 방향을 확인합니다.
-4. Same JVM과 Separate Runtime 양쪽의 Contract를 검토합니다.
-5. Multi-instance, Partial Failure와 Recovery 영향을 확인합니다.
-6. Security, Audit와 Operations Control 필요 여부를 확인합니다.
-7. DB Vendor, Migration, Generator와 Generated Domain 영향을 검토합니다.
-8. Source, Test, Guide와 Evidence를 같은 변경 단위로 유지합니다.
-9. Repository Hygiene와 기존 성공 기능의 회귀를 확인합니다.
-
-> CPF는 기능 목록이 아니라 일관된 제품 구조를 유지하는 Framework입니다. 새로운 추상화는 실제 Consumer와 기본 구현, 운영·복구 경로와 검증 근거를 함께 가져야 합니다.
+> CPF는 기능 목록이 아니라 장기간 유지되는 제품 구조다. 새로운 추상화는 실제 Consumer, 기본 구현, 오류·복구·운영 경로와 검증 근거를 함께 가져야 한다.

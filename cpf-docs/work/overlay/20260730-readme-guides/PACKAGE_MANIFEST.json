@@ -1,0 +1,47 @@
+{
+  "packageId": "CPF-README-GUIDES-20260730-01",
+  "createdAt": "2026-07-30T17:11:00+09:00",
+  "repository": "freeangelsun/202412_01_CPF",
+  "branch": "master",
+  "analysisHead": "7f34635781416bf74352e56deab6c5e388ad55a3",
+  "productDocumentPolicy": "final-product-normative",
+  "commitPushBranchCreated": false,
+  "overwritePaths": [
+    "README.md",
+    "cpf-docs/guides/CPF_DEVELOPER_GUIDE.md",
+    "cpf-docs/guides/CPF_FOUNDATION_API_GUIDE.md",
+    "cpf-docs/guides/CPF_PUBLIC_API_AND_GENERATED_DOMAIN_GUIDE.md",
+    "cpf-docs/guides/CPF_GENERATOR_TOOL_GUIDE.md",
+    "cpf-docs/guides/CPF_ADMIN_OPERATOR_GUIDE.md",
+    "cpf-docs/guides/CPF_BIZ_ADMIN_GUIDE.md",
+    "cpf-docs/guides/CPF_ADMIN_BZA_UI_STANDARD_GUIDE.md",
+    "cpf-docs/guides/CPF_BATCH_RUNTIME_AND_REMOTE_AGENT_GUIDE.md",
+    "cpf-docs/guides/CPF_BATCH_SCHEDULER_INSTANCE_LIFECYCLE_GUIDE.md",
+    "cpf-docs/guides/CPF_DATABASE_TOOL_GUIDE.md",
+    "cpf-docs/guides/DATABASE_PROFILE_AND_DOMAIN_DB_GUIDE.md",
+    "cpf-docs/guides/CPF_HEALTH_AND_SERVICE_REGISTRY_GUIDE.md",
+    "cpf-docs/guides/CPF_SECURITY_DR_RETENTION_GUIDE.md",
+    "cpf-docs/guides/CPF_ARTIFACT_SUPPLY_AND_CICD_GUIDE.md",
+    "cpf-docs/guides/CPF_TOOLS_GUIDE.md",
+    "cpf-docs/guides/CPF_TOOL_REFERENCE.md",
+    "cpf-docs/guides/CPF_EDU_COVERAGE_GUIDE.md"
+  ],
+  "newPaths": [
+    "cpf-docs/guides/CPF_GATEWAY_OPERATIONS_GUIDE.md",
+    "cpf-docs/guides/CPF_ASYNC_MESSAGING_AND_COMPENSATION_GUIDE.md",
+    "cpf-docs/guides/CPF_OBSERVABILITY_INCIDENT_AND_RECOVERY_GUIDE.md",
+    "cpf-docs/guides/CPF_CONFIGURATION_AND_RUNTIME_POLICY_GUIDE.md",
+    "cpf-docs/guides/CPF_INSTALL_UPGRADE_ROLLBACK_GUIDE.md",
+    "cpf-docs/guides/CPF_TEST_AND_EVIDENCE_GUIDE.md"
+  ],
+  "deleteCandidates": [
+    "CPF_20260730_OVERLAY_APPLY_README.md",
+    "CPF_OVERLAY_MANIFEST.json",
+    "CPF_OVERLAY_SHA256SUMS.txt",
+    "cpf-docs/work/current/CPF_20260730_01_FINAL_CLOSURE_REQUIREMENT_INTAKE_BASELINE.md",
+    "cpf-docs/work/current/CPF_CHATGPT_DIRECT_FULL_IMPLEMENTATION_REQUEST_20260730.md",
+    "cpf-docs/work/current/CPF_CODEX_FINAL_REVIEW_DOCUMENT_STRATEGY.md",
+    "cpf-docs/work/current/CPF_CODEX_FINAL_REVIEW_REQUEST.md",
+    "cpf-docs/work/handover/CPF_20260730_CHATGPT_DIRECT_IMPLEMENTATION_CHECKPOINT_HANDOVER.md"
+  ]
+}

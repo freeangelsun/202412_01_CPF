@@ -1,92 +1,395 @@
-# CPF Foundation API 개발 가이드
+# CPF Foundation API 가이드
 
 ## 1. 목적
 
-업무 Domain이 JDK/Framework 기능을 제각각 포장하지 않고 CPF가 정한 작은 Public API와 자료구조를 사용하도록 한다.
-단순히 이름만 바꾼 Wrapper는 추가하지 않으며, null 처리·표준 제한·보안·운영 정합성처럼 반복 오류를 줄이는 기능만 제공한다.
+CPF Foundation API는 업무 개발자가 JDK나 외부 Library를 제각각 조합하면서 반복적으로 만드는 오류를 줄이는 Public API다. 단순히 이름만 바꾼 Wrapper는 만들지 않으며 다음 가치가 있는 기능만 제공한다.
 
-## 2. Public Utility
+- Null과 빈 값 의미 통일
+- 표준 제한과 안전한 기본값
+- 금융 계산과 시간대 오류 방지
+- 보안과 민감정보 보호
+- Paging, Header와 거래 식별자 통일
+- Test 가능성
+- Generator와 EDU 재사용
 
-`com.cpf.core.api.util`
-
-- `CpfStrings`: trim/null/필수 문자열/축약
-- `CpfDates`, `CpfTimes`, `CpfClock`: 날짜 파싱, timezone 변환, 테스트 가능한 Clock
-- `CpfNumbers`, `CpfDecimals`: 안전 파싱, 범위 제한, 금융 scale/rounding
-- `CpfLists`, `CpfMaps`, `CpfAttributes`: null-safe immutable 자료구조, chunk, distinct, index
-- `CpfIds`, `CpfHashes`, `CpfFiles`: 기술 ID, SHA-256, 안전한 Child Path
-- `CpfValidation`: 반복 입력 검증
-- `CpfPages`: 표준 Page/Slice 생성
-- `CpfHeaders`: 표준 Header 이름/전달 Map
-
-거대한 `CommonUtils`에 기능을 계속 추가하지 않는다. 새로운 Utility가 필요하면 실제 반복 Consumer가 있는지 확인하고 책임별 `Cpf*` API로 추가한다.
-
-## 3. Page / Slice / Cursor 표준
-
-`com.cpf.core.api.page`
-
-- `CpfPageRequest`: 0-base page, 기본 최대 500건
-- `CpfPage`: total count가 필요한 목록
-- `CpfSlice`: `size + 1` look-ahead 기반 목록
-- `CpfCursor`, `CpfCursorPage`: keyset/cursor 값과 응답
-- `CpfCursorCodec`, `CpfHmacCursorCodec`: 외부 Cursor HMAC-SHA256 서명/위변조 검증
-- `CpfSort`: Repository allow-list와 함께 사용하는 정렬 계약
-
-```java
-CpfPageRequest page = CpfPages.request(0, 50);
-CpfPage<Item> result = CpfPages.page(items, page, totalCount);
-```
-
-외부에 Cursor를 노출할 때 단순 Base64만 사용하지 않는다. 운영 Secret을 Secret Manager/환경 주입으로 받아 `CpfHmacCursorCodec`으로 서명하고 검증한다.
-요청의 sort field를 SQL `ORDER BY` 문자열에 직접 연결하지 않는다.
-
-## 4. transactionId / Header
-
-거래 ID는 `CpfTransactionIdGenerator`를 사용한다.
-
-```java
-String transactionId = transactionIdGenerator.generateOrUse(inboundId);
-```
-
-Canonical 형식은 34자리다.
+## 2. Package
 
 ```text
-yyyyMMddHHmmssSSS(17) + SystemCode(3) + wasId(7) + sequence(7)
+com.cpf.core.api.util
+com.cpf.core.api.page
+com.cpf.core.api.header
+com.cpf.core.api.logging
+com.cpf.core.api.validation
+com.cpf.core.api.security
 ```
 
-유효한 inbound ID는 승계하고 독립 Batch/Scheduler/Worker/Agent 시작은 Core Generator가 신규 발급한다.
-같은 흐름의 계층은 새 Global ID를 만들지 않고 `transactionSegmentId`와 `parentSegmentId`로 표현한다.
+업무 Module은 `com.cpf.core.internal` 또는 `com.cpf.core.common` 구현을 직접 사용하지 않는다.
 
-Header literal을 신규 Source에 반복해서 쓰지 말고 `CpfHeaders`/Core Header Engine을 사용한다.
+## 3. 문자열
 
-## 5. CMN Business Calendar
+### 3.1 `CpfStrings`
 
-영업일/휴일 정책 Owner는 `cpf-common`이다.
+대표 책임:
+
+- Trim 후 빈 문자열을 Null로 정규화
+- 필수 문자열 검증
+- 최대 길이 제한
+- 안전한 축약
+- 제어문자 제거
+- 비교용 정규화
 
 ```java
-if (businessCalendar.isBusinessDay("DEFAULT", businessDate)) {
-    // 실행
-}
-LocalDate next = businessCalendar.nextBusinessDay("DEFAULT", businessDate, 1);
+String customerId = CpfStrings.requireText(request.customerId(), "customerId");
+String memo = CpfStrings.nullIfBlank(request.memo());
+String summary = CpfStrings.abbreviateForLog(memo, 200);
 ```
 
-ADM은 `/adm/api/business-calendars`에서 Override를 관리하고 BAT/Scheduler/업무 Domain은 `CmnBusinessCalendar`를 소비한다.
-BAT 자체 영업일 Table은 만들지 않는다. 정식 MariaDB 제품 구성은 `cmn_business_calendar_day`를 사용한다.
-DB-less Library 모드는 주말 기본 조회만 허용하고 변경은 fail-closed한다.
+Log 축약은 멀티바이트 문자를 깨뜨리지 않고, 민감정보 마스킹을 대신하지 않는다.
 
-## 6. EDU / Generator
+## 4. 숫자와 금액
 
-`cpf-reference`의 Foundation API EDU는 위 Public API와 자료구조를 사용한다.
-Generated Domain도 같은 계약을 우선 사용하며 Domain별 Utility/Page/Header 규격을 새로 만들지 않는다.
-Golden Generator의 Search DTO는 `CpfPageRequest`로 변환하고 keyset 예제는 `CpfSlice`를 사용한다. Generator 템플릿 변경 후 기존 Generated Domain은 `sync-generated-domain-artifacts.ps1 -Scope AllGeneratorOwned`로 drift를 확인한다.
+### 4.1 `CpfNumbers`
 
-## 7. 완료 조건
+- 정수 안전 파싱
+- 최소·최대 범위
+- Overflow 검출
+- Null Default 정책
 
-Foundation API 변경은 다음을 함께 확인한다.
+### 4.2 `CpfDecimals`
 
-1. Public API와 한글 JavaDoc
-2. Unit Test
-3. 실제 EDU/Consumer
-4. Generator 영향
-5. OpenAPI에 노출되는 계약 정합성
-6. Guide 갱신
-7. Full Verification 계획 반영
+금액과 비율 계산은 `double` 대신 `BigDecimal`을 사용한다.
+
+```java
+BigDecimal amount = CpfDecimals.money(request.amount(), 2);
+BigDecimal fee = CpfDecimals.multiply(amount, rate, 2, RoundingMode.HALF_UP);
+```
+
+정책:
+
+- Scale과 반올림 방식을 명시
+- 통화별 소수 자릿수 적용
+- 0으로 나누기 오류 명확화
+- 문자열 숫자의 Locale 혼동 방지
+- 과도한 Precision 제한
+
+## 5. 날짜와 시간
+
+### 5.1 `CpfDates`, `CpfTimes`, `CpfClock`
+
+- ISO 날짜·시간 파싱
+- 업무 기준일 계산
+- `ZoneId` 기반 변환
+- Test 가능한 Clock
+- DST 경계 처리
+- 시작/종료 구간 검증
+
+```java
+LocalDate businessDate = CpfDates.parseIso("2026-07-30");
+Instant now = cpfClock.instant();
+ZonedDateTime seoul = CpfTimes.atZone(now, ZoneId.of("Asia/Seoul"));
+```
+
+서버 Default Timezone에 의존하지 않는다. 저장은 `Instant` 또는 명확한 Zone 계약을 사용하고 표시 시점에 변환한다.
+
+## 6. Collection
+
+### 6.1 `CpfLists`
+
+- Null-safe Immutable List
+- Chunk
+- Distinct
+- Index
+- 빈 목록 정규화
+- 최대 크기 제한
+
+### 6.2 `CpfMaps`, `CpfAttributes`
+
+- Null-safe Map
+- Key 존재 검증
+- Typed 조회
+- Case-sensitive 계약
+- Attribute 크기와 깊이 제한
+
+외부 입력 Map을 그대로 SQL, Header, Log에 전달하지 않는다.
+
+## 7. ID와 Hash
+
+### 7.1 `CpfIds`
+
+업무 ID와 기술 추적 ID를 구분한다.
+
+- `transactionId`: CPF Core Generator
+- `operationId`: Command 멱등성
+- 업무 PK: 해당 업무 Owner 정책
+- UUID 사용 여부: Storage와 정렬 정책에 따라 결정
+
+### 7.2 `CpfHashes`
+
+```java
+String sha256 = CpfHashes.sha256Hex(bytes);
+boolean matched = CpfHashes.constantTimeEquals(expected, actual);
+```
+
+Password Hash는 일반 SHA-256 API를 사용하지 않고 전용 Password Encoder를 사용한다.
+
+## 8. 파일 경로
+
+### 8.1 `CpfFiles`
+
+- 기준 Directory 하위 경로만 허용
+- `..`, 절대 경로, Symbolic Link 우회 방지
+- 파일명 정규화
+- Extension과 MIME 별도 검증
+- Atomic Move 지원
+- Checksum
+
+```java
+Path target = CpfFiles.safeChild(uploadRoot, serverGeneratedName);
+```
+
+사용자 파일명을 저장 경로로 직접 사용하지 않는다.
+
+## 9. Validation
+
+### 9.1 `CpfValidation`
+
+반복되는 전제조건을 표준 오류로 반환한다.
+
+```java
+CpfValidation.requireTrue(amount.signum() > 0, "amount", "금액은 0보다 커야 합니다.");
+CpfValidation.requireAllowed(currency, Set.of("KRW", "USD", "EUR"), "currency");
+```
+
+업무 규칙은 단순 Utility에 숨기지 않고 명명된 Domain Policy로 구현한다.
+
+## 10. Page, Slice와 Cursor
+
+### 10.1 `CpfPageRequest`
+
+```java
+CpfPageRequest request = CpfPages.request(page, size);
+```
+
+- 0-base
+- 기본 크기
+- 최대 크기
+- Offset Overflow 검증
+- Sort 별도 계약
+
+### 10.2 `CpfPage<T>`
+
+전체 건수가 필요한 운영 목록에 사용한다.
+
+```java
+CpfPage<Item> result = CpfPages.page(rows, request, total);
+```
+
+### 10.3 `CpfSlice<T>`
+
+전체 Count 비용이 큰 목록에 사용한다.
+
+```text
+요청 size=100
+→ DB에서 101건 조회
+→ 앞 100건 반환
+→ hasNext=true
+```
+
+### 10.4 `CpfCursorPage<T>`
+
+Keyset Pagination에 사용한다.
+
+Cursor에는 다음을 포함한다.
+
+- 정렬 기준 값
+- Tie-breaker PK
+- Filter Fingerprint
+- 만료 시각 또는 Version
+- HMAC Signature
+
+단순 Base64는 위변조 방지가 아니다.
+
+## 11. Sort
+
+`CpfSort`의 필드는 Repository Allowlist와 연결한다.
+
+```java
+Map<String, String> allowed = Map.of(
+    "createdAt", "created_at",
+    "customerName", "customer_name"
+);
+```
+
+사용자 입력을 `ORDER BY` 문자열에 직접 연결하지 않는다.
+
+## 12. Header
+
+### 12.1 `CpfHeaders`
+
+Header Literal을 Source 곳곳에 반복하지 않는다.
+
+표준 분류:
+
+- 거래 식별
+- Trace
+- 호출 Source/Target
+- Channel
+- Tenant
+- 인증 문맥
+- Idempotency
+- Deadline
+- Content/Locale
+
+Header는 Allowlist로 전달하며, Hop-by-hop Header와 Credential을 무조건 복사하지 않는다.
+
+## 13. 거래 식별자
+
+### 13.1 `CpfTransactionIdGenerator`
+
+Canonical 형식:
+
+```text
+yyyyMMddHHmmssSSS(17)
++ SystemCode(3)
++ wasId(7)
++ sequence(7)
+= 34자리
+```
+
+```java
+String transactionId = generator.generateOrUse(inboundId);
+```
+
+규칙:
+
+- 유효한 Inbound ID는 승계
+- 독립 실행 시작은 신규 생성
+- 하위 호출은 Global ID 재생성 금지
+- Segment로 계층 표현
+- 길이와 문자 규칙 검증
+- 충돌 방지 Sequence
+
+## 14. 실행 문맥
+
+### 14.1 `CpfTransactionContext`
+
+```java
+try (CpfTransactionScope scope = context.open(metadata)) {
+    service.execute();
+}
+```
+
+- 중첩 Scope
+- 비동기 전달
+- 종료 시 정리
+- Log MDC 연결
+- Trace Context 연결
+- 테스트 격리
+
+## 15. Secret
+
+### 15.1 `CpfSecretReference`
+
+```java
+CpfSecretReference.of("vault://payment/client-secret");
+```
+
+### 15.2 `CpfSecretValue`
+
+- 짧은 Scope
+- `char[]` 기반 처리
+- 사용 후 `close()`
+- `toString()` 원문 금지
+- 직렬화 금지
+
+Provider는 ENV, Vault, KMS, HSM Adapter로 확장한다.
+
+## 16. Masking
+
+### 16.1 `CpfMasking`
+
+지원 대상:
+
+- 전화번호
+- 이메일
+- 주민·사업 식별자
+- 계좌·카드
+- Token과 Secret
+- JSON 중첩 객체
+- Collection과 Map
+- 예외 Context
+
+Masking은 권한 없는 원문 조회를 정당화하지 않는다. 원문 접근은 별도 권한, 사유와 감사가 필요하다.
+
+## 17. Business Calendar
+
+Calendar Owner는 `cpf-common`이다.
+
+```java
+boolean businessDay = calendar.isBusinessDay("DEFAULT", date);
+LocalDate next = calendar.nextBusinessDay("DEFAULT", date, 1);
+```
+
+기능:
+
+- 주말
+- 공휴일
+- 기관별 Calendar
+- 임시 휴일과 영업일
+- 유효기간
+- Version
+- Cache와 무효화
+- DB-less 주말 기본 모드
+
+ADM은 Override를 관리하고, BAT와 업무 Domain은 동일 계약을 소비한다.
+
+## 18. 사용 예제: 조회 API
+
+```java
+@GetMapping
+public CpfPage<MemberResponse> search(
+        @Valid MemberSearchRequest request,
+        @Valid CpfPageRequest page
+) {
+    return memberQuery.search(request, page);
+}
+```
+
+Repository는 Count와 Page Query를 분리하거나 성능에 맞는 전략을 사용한다.
+
+## 19. 사용 예제: 안전한 Command
+
+```java
+public PaymentResult create(PaymentCommand command) {
+    CpfValidation.requireText(command.operationId(), "operationId");
+    return idempotency.execute(
+        command.operationId(),
+        command.canonicalHash(),
+        () -> createInternal(command)
+    );
+}
+```
+
+## 20. API 추가 기준
+
+새 Foundation API는 다음을 충족해야 한다.
+
+1. 서로 다른 실제 Consumer가 반복 사용한다.
+2. JDK Wrapper 이상의 오류 감소 가치가 있다.
+3. Null, 예외와 동시성 의미가 명확하다.
+4. Public API와 JavaDoc이 있다.
+5. 기본 구현 또는 SPI 연결이 있다.
+6. Unit Test와 경계 Test가 있다.
+7. EDU와 Generated Domain 사용 예제가 있다.
+8. 기존 Utility와 책임이 중복되지 않는다.
+
+## 21. 검증 체크리스트
+
+- [ ] Public Package에 위치한다.
+- [ ] 내부 구현 Type이 노출되지 않는다.
+- [ ] 한글 JavaDoc과 예제가 있다.
+- [ ] Null/빈 값/최대·최소를 테스트한다.
+- [ ] Thread-safe 여부가 문서화됐다.
+- [ ] 민감정보가 `toString()`에 노출되지 않는다.
+- [ ] Generator와 EDU가 같은 API를 사용한다.
+- [ ] OpenAPI DTO와 의미가 일치한다.

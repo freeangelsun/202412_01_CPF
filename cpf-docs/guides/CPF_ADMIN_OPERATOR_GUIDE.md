@@ -1,78 +1,419 @@
-# CPF Admin Operator Guide
+# CPF 플랫폼 운영자 가이드
 
-## 1. 대상
-`cpf-admin`을 이용해 플랫폼을 운영하는 운영자, 장애 대응자, 승인자, 보안 담당자를 위한 가이드다. ADM은 단순 CRUD 화면이 아니라 장애 분석과 위험조치 통제를 위한 운영 도구다.
+## 1. 대상과 목적
 
-## 2. 로그인과 세션
-- 인증 실패 후 보호 API를 호출할 수 없어야 한다.
-- logout/401 이후 이전 운영자의 로그·감사·검색·보안 결과가 Browser state에 남지 않아야 한다.
-- access token은 장기 persistent storage보다 제한된 session scope를 사용한다.
-- 민감 조작은 필요 시 재인증/승인 정책을 추가한다.
+이 문서는 `cpf-admin`을 사용하는 운영자, 장애 대응자, 승인자, 보안 담당자와 감사 담당자를 위한 운영 절차를 정의한다.
 
-## 3. Health / Service Registry
-인스턴스 상태는 다음 식별자를 함께 본다.
-`moduleId`, `wasId`, `serverInstanceId`, `host`, `processId`, `profiles`, `checkedAt`.
+ADM은 단순 조회 화면이 아니다. 운영자가 다음을 수행할 수 있어야 한다.
 
-판단 기준:
-- liveness DOWN: 프로세스 자체 문제.
-- liveness UP + readiness DOWN: 로컬 필수 DB/Runtime dependency 문제.
-- 원격 Owner diagnostics DOWN: 해당 Owner 호출 영향은 있으나 ADM 인스턴스 전체 readiness를 기본적으로 오염시키지 않는다.
-- 다중 인스턴스 전체 상태는 Service Registry에서 service/instance별로 비교한다.
+- 서비스와 인스턴스 상태 파악
+- 거래와 실패 구간 추적
+- Gateway와 Batch 운영
+- 결과 불명 거래 대사
+- 위험 조치 승인·실행·감사
+- 설정과 Log 정책 변경
+- Incident와 Runbook 관리
+- Evidence 확보
 
-## 4. 거래/로그 조회
-거래 식별자, 실행 Module, 서버 인스턴스, 시작/종료 시각, 상태, 소요시간, 실패구간을 조합해 조회한다. 원문 로그/JSON/Clipboard 반출은 서버 권한·사유·감사 없이 Browser-only 기능으로 우회하지 않는다.
+## 2. 운영자 역할
 
-## 5. Generated Domain 운영
-ADM은 MBR/ACC/EXS 같은 Generated Domain 업무 API나 DB에 종속되지 않는다. 운영 대상은
-Generator Manifest와 Runtime Registry에 등록된 임의 Domain으로 발견하며, Domain별 업무 운영은
-해당 Owner API가 제공한다. Owner가 삭제·재생성되거나 부분 장애인 경우에도 ADM은 고정 경로를
-호출하거나 오류를 정상 0건으로 위장하지 않는다.
+| 역할 | 대표 권한 |
+|---|---|
+| 조회 운영자 | 상태, 거래, Log, 이력 조회 |
+| 서비스 운영자 | Drain, Resume, Retry, Reconcile |
+| Batch 운영자 | 실행, Stop, Restart, Reprocess |
+| Gateway 운영자 | Binding, Apply, Connection Test |
+| 보안 운영자 | Secret Metadata, 인증서, Download 통제 |
+| 승인자 | 위험 조치 승인 |
+| 감사자 | 변경·승인·실행 이력 조회 |
+| 비상 운영자 | 제한된 Break-glass |
 
-## 6. Operator 운영
-운영자 관리에서 지원해야 할 핵심 조치:
-- 계정/Role 조회
-- 잠금 해제
-- 비밀번호 Reset
-- 세션 조회/폐기
-- 변경 actor와 reason 감사
-위험한 변경은 body의 requester를 믿지 않고 인증 principal을 사용한다.
+한 사용자가 모든 권한을 기본 보유하지 않는다.
 
-## 7. Secret Center
-Secrets 화면은 Provider/Reference/Metadata만 조회한다. 원문 Secret 값은 API로 반환하지 않는다. ENV Provider는 metadata 조회용 bootstrap provider이고 rotate를 지원하지 않는다. 실제 Rotate 가능 Provider는 권한과 사유를 요구하고 감사한다.
+## 3. 로그인과 Session
 
-## 8. Config
-`encryptedYn` 또는 secret reference 성격 설정을 일반 Text로 노출하지 않는다. 읽기 시 mask/reference, 쓰기 시 write-only를 기본으로 한다. 운영 환경 변경 전 대상 scope와 영향도를 확인한다.
+- 인증 실패 시 보호 API 접근 거부
+- Access Token은 제한된 Session 범위
+- Logout/401 후 Browser 상태 제거
+- 권한 변경 후 Session 재평가
+- 위험 조치 재인증
+- Refresh Token 재사용 탐지
+- 다중 Device Session 조회와 폐기
 
-## 9. 위험 Command 공통 원칙
-Drain/Disable/Resume, Batch Run/Retry/Stop, Lock release, Ghost recovery, Replay/Purge와 같은 명령은 최소 다음을 갖춘다.
-- 대상 Snapshot/현재 상태
-- 권한
-- reason
-- expectedVersion 또는 최신 상태 확인
-- idempotency/operation id
-- 확인 Dialog
-- 실행 Audit
-- 결과/reconcile 상태
+## 4. 화면 공통 사용법
 
-위험 Command는 Runtime Control의 preview/approval/apply/reconcile 및 불변 감사 계약을 사용하며,
-각 기능은 이 공통 계약을 우회하는 별도 실행 경로를 제공하지 않는다.
+모든 운영 목록은 다음을 제공한다.
 
-## 10. Retention
-`cpf.retention.execute-enabled=false`가 기본이다. Dry-run/Legal Hold는 실제 삭제를 하지 않는다. 실제 ARCHIVE/PURGE는 cutoff가 필요하고 kill-switch가 ON이어야 한다. Archive 후 삭제 순서와 실패 시 transaction을 확인한다.
+- 검색 조건
+- 기간
+- 상태
+- Owner/Module/Instance
+- Paging 또는 Cursor
+- 안정적인 정렬
+- 상세 화면
+- Error와 Retry
+- 저장 검색 조건
+- 권한 있는 Export
+- URL Deep Link
 
-## 11. Audit 검증
-BZA audit chain이 적용된 경우 VALID/PARTIAL_LEGACY/BROKEN 상태를 구분한다. 운영 검증 시 임의 row 변경뿐 아니라 마지막 row 삭제 후 chain-head mismatch도 BROKEN인지 확인한다. Audit 원문에서 개인정보/Secret이 노출되지 않는지도 별도 점검한다.
+Raw JSON은 보조 진단으로만 제공하고 기본 화면은 구조화한다.
 
-## 12. Backup / Restore / DR
-운영 Backup은 민감 데이터로 분류한다. Manifest와 SHA-256을 함께 보존한다. Restore는 대상 DB명/Vendor/Hash 불일치 시 중단한다. DR 검증은 격리 DB에서 수행하고 운영 DB를 검증용으로 덮어쓰지 않는다.
+## 5. Service Registry
 
-## 13. 장애 대응 순서
-1. Incident 시각과 transactionGlobalId 확보.
-2. Service Registry에서 관련 instance readiness/heartbeat 확인.
-3. 거래 Timeline/로그/Service Call segment 확인.
-4. timeout이면 UNKNOWN_RESULT 등록 여부와 reconciliation 상태 확인.
-5. Replay/Retry 전에 멱등성 및 downstream 최종상태 확인.
-6. 조치 reason/audit/evidence 남김.
+### 5.1 서비스 목록
 
-## 14. Evidence
-운영 검증 Evidence에는 HEAD SHA, command, profile, 시작/종료, 실제 결과, 관련 Requirement/QA ID, 원본 log/DB query, 민감정보 제거 여부가 있어야 한다. 화면 캡처만으로 완료 처리하지 않는다.
+확인 항목:
+
+- serviceId
+- systemCode
+- moduleId
+- version
+- endpoint
+- protocol
+- zone/cell
+- instance count
+- healthy count
+- circuit state
+- maintenance state
+
+### 5.2 Instance 상세
+
+- serverInstanceId
+- host
+- processId
+- startedAt
+- heartbeat
+- liveness
+- readiness
+- active profile
+- drain
+- maintenance
+- capacity
+- current load
+- last error
+
+### 5.3 판단
+
+```text
+Liveness DOWN
+→ Process/Host 장애 확인
+
+Liveness UP + Readiness DOWN
+→ Local DB, Listener, 필수 Dependency 확인
+
+Registry Stale
+→ Heartbeat 지연, Network, Instance 종료 확인
+```
+
+## 6. Topology
+
+Topology는 Service, Instance, Endpoint, Dependency, Owner와 DB를 연결한다.
+
+운영자는 다음 질문에 답할 수 있어야 한다.
+
+- 이 서비스가 누구를 호출하는가
+- 장애 대상의 영향 서비스는 무엇인가
+- 어느 Instance가 같은 Cell에 있는가
+- Gateway Route가 어떤 Binding을 사용하는가
+- Batch Worker가 어떤 Job Pack을 실행하는가
+- Owner Command가 어느 Runtime으로 전달되는가
+
+## 7. 거래 조회
+
+검색 키:
+
+- transactionId
+- traceId
+- operationId
+- customer/business key의 마스킹 값
+- systemCode
+- instanceId
+- status
+- 시간
+- failureCode
+
+Timeline:
+
+```text
+IN
+→ AUTH
+→ APPLICATION
+→ LOCAL/REMOTE CALL
+→ RETRY ATTEMPT
+→ OUT
+→ RESULT
+→ AUDIT
+```
+
+결과 불명은 최종 실패와 구분한다.
+
+## 8. Log와 Trace
+
+Log 조회 기준:
+
+- Environment
+- Module
+- Instance
+- transactionId
+- executionId
+- Job/Worker
+- Level
+- Logger
+- 시간
+
+원문 Download나 Clipboard 반출은 별도 권한, 사유와 감사가 필요하다.
+
+Trace Boost 또는 동적 Log Level은:
+
+- 대상 Scope
+- 최대 기간
+- 자동 만료
+- 허용 Level
+- 민감정보 보호
+- 변경 전후
+- 감사
+
+를 갖춘다.
+
+## 9. Gateway 운영
+
+운영 흐름:
+
+1. Registry와 Server Group 확인
+2. Binding 상세
+3. Policy 검증
+4. 연결시험
+5. 승인
+6. Publish
+7. Instance Apply
+8. ACK
+9. 구성 불일치 확인
+10. 대사 또는 되돌리기
+
+상세는 Gateway 가이드를 참고한다.
+
+## 10. Batch 운영
+
+운영자는 다음 개념을 구분한다.
+
+- 작업정의
+- Schedule
+- Trigger
+- CPF Execution
+- Spring Batch JobInstance
+- Worker Lease
+- Agent
+- Restart
+- Reprocess
+
+위험 명령:
+
+- Run
+- Stop
+- Restart
+- Reprocess
+- Skip/Manual Confirm
+- Worker Drain
+- Agent Maintenance
+- Lost Execution Reconcile
+
+## 11. 결과 불명과 복구
+
+```text
+UNKNOWN_RESULT 조회
+→ 대상과 마지막 Attempt 확인
+→ Downstream 상태 조회
+→ 자동 대사
+→ 운영자 확인
+→ 최종 성공/실패 확정
+→ 재처리 또는 보상
+```
+
+확정 전 동일 Command를 무조건 재실행하지 않는다.
+
+## 12. Incident
+
+Incident 생명주기:
+
+```text
+Alert
+→ Incident 생성
+→ 영향도 분류
+→ 담당자 지정
+→ Timeline과 Evidence
+→ Runbook 실행
+→ 임시 조치
+→ 근본 원인
+→ 복구 확인
+→ 종료
+→ 사후 분석
+```
+
+Incident는 관련 Service, transactionId, Deployment, Config Change와 연결한다.
+
+## 13. 위험 Command 공통 절차
+
+필수 입력:
+
+- Target
+- 현재 상태
+- Permission
+- Reason
+- expectedVersion
+- operationId
+- Approval
+- Confirmation
+- 실행 결과
+- Audit
+
+동일 Command의 Double Click은 operationId로 중복 실행을 막는다.
+
+## 14. 승인
+
+작성자와 승인자를 분리한다.
+
+지원 정책:
+
+- ALL
+- ANY
+- N_OF_M
+- Role/Organization Target
+- 만료
+- 대리
+- 비상 승인
+- Policy Version Snapshot
+
+승인 후 대상 상태가 바뀌면 expectedVersion 불일치로 실행을 거부하고 재승인을 요구한다.
+
+## 15. Break-glass
+
+비상 권한은 다음을 요구한다.
+
+- 비상 사유
+- 대상 Scope
+- 자동 만료
+- 재인증
+- 사후 승인
+- 즉시 Alert
+- 모든 조회·명령 감사
+
+일반 운영 편의를 위해 사용하지 않는다.
+
+## 16. Secret Center
+
+표시 가능:
+
+- Provider
+- Reference
+- Version
+- 만료
+- Rotate 가능 여부
+- 상태
+
+표시 금지:
+
+- Secret 원문
+- 복호화 값
+- 전체 Credential
+- Private Key
+
+Rotate는 Provider가 지원하고 권한·사유·승인이 있을 때 수행한다.
+
+## 17. Config와 Runtime Policy
+
+변경 절차:
+
+1. 현재 Version 조회
+2. 대상 Scope 확인
+3. 변경안 검증
+4. 영향도와 Preview
+5. 승인
+6. Apply Event 생성
+7. Instance ACK
+8. Partial Failure 확인
+9. Retry/Reconcile
+10. Rollback
+
+## 18. Cache
+
+Cache 운영:
+
+- Namespace
+- Key Pattern
+- Size
+- Hit/Miss
+- TTL
+- Owner
+- Clear Preview
+- 제한된 Invalidate
+- 전체 Clear 별도 권한
+
+업무 원장 대체로 Cache를 사용하지 않는다.
+
+## 19. Download와 원문 조회
+
+- 별도 Permission
+- Reason
+- 최대 건수/크기
+- Masking Default
+- Watermark 또는 Audit ID
+- File Checksum
+- 만료 URL
+- 재다운로드 이력
+- 민감도 분류
+
+## 20. Backup·Restore·DR
+
+운영자는 Backup 파일과 Manifest를 함께 보존한다.
+
+Restore 절차:
+
+1. 격리 환경
+2. Vendor/DB/Checksum 확인
+3. 복구
+4. Schema Verify
+5. Application Smoke
+6. 거래·Batch 대사
+7. RPO/RTO 기록
+8. 운영 전환 승인
+
+## 21. 장애 대응 표준 순서
+
+1. Incident 시각과 영향도 확인
+2. transactionId 또는 실행 ID 확보
+3. Registry/Topology 확인
+4. Health와 최근 Deployment/Config 확인
+5. Timeline/Log/Trace 확인
+6. 결과 불명 여부 확인
+7. 자동 복구 상태 확인
+8. 위험 조치 전 멱등성과 Downstream 상태 확인
+9. 조치
+10. 복구와 재발 방지 확인
+11. Evidence와 사후 분석
+
+## 22. 운영 Evidence
+
+- HEAD SHA
+- 환경/Profile
+- Operator
+- Permission
+- Reason
+- Approval
+- 대상 Snapshot
+- 정확한 Command/API
+- 시작·종료
+- 결과
+- Failure Code
+- 관련 Incident
+- 민감정보 제거
+
+## 23. 운영 체크리스트
+
+- [ ] 조회와 변경 권한이 분리됐다.
+- [ ] 위험 조치에 사유가 있다.
+- [ ] 작성자·승인자가 분리됐다.
+- [ ] expectedVersion과 operationId를 사용한다.
+- [ ] 결과 불명을 확정 실패로 바꾸지 않는다.
+- [ ] 원문 Download가 감사된다.
+- [ ] 조치 결과와 대사가 연결된다.
+- [ ] 운영 화면 오류가 원 업무를 오염시키지 않는다.

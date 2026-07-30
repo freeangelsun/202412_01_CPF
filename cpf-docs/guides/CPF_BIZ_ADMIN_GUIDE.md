@@ -1,54 +1,356 @@
-# CPF Biz Admin Guide
+# CPF 업무 관리자(BZA) 가이드
 
 ## 1. 목적
-BZA는 고객 업무 조직·사용자·Role·Permission·결재·첨부·알림·감사를 운영하는 Backoffice다. 단순 DB CRUD가 아니라 권한, 동시성, 이력, 감사, 업무 안전성을 보장해야 한다.
 
-## 2. User와 Role
-사용자 계정의 legacy `roleCode`는 호환 표시용이며 Role 변경 정본은 `bza_user_role` 이력이다. 기존 사용자의 Role을 User edit 화면에서 직접 변경하지 말고 User Role 화면에서 grant/revoke한다.
+`cpf-biz-admin`은 고객 업무 운영을 위한 Backoffice다. 단순 CRUD가 아니라 조직, 사용자, 권한, 결재, 첨부, 알림과 감사를 장기간 안전하게 관리한다.
 
-Role 이력 원칙:
-- surrogate `user_role_id`로 재부여 이력을 보존.
-- `operationId`로 재시도 멱등성을 보장.
-- 동일 operationId를 다른 요청에 재사용하면 거부.
-- primary role 변경은 user row lock으로 직렬화.
-- 새 primary 반영 시 legacy roleCode도 호환 목적에 한해 동기화.
-- Role history가 한 번이라도 존재한 계정은 active history가 0건이어도 legacy roleCode로 되살리지 않는다.
+## 2. 주요 기능
 
-## 3. Permission
-실효 권한은 active user-role, active role, active menu, environment scope를 모두 평가한다. 다중 Role의 deny 정책을 명확히 적용한다. environment/domain/dataScope/httpMethod/apiPattern 전체 통합 evaluator는 Runtime 검증을 거쳐야 하며 부분 구현을 완료로 간주하지 않는다.
+- 사용자와 계정 상태
+- Role과 Permission
+- 조직과 직원
+- Position, JobTitle과 Assignment
+- 결재 정책과 실행
+- 대리결재
+- 알림
+- 첨부와 검사
+- 감사 Hash Chain
+- Tenant와 환경 Scope
 
-## 4. 조직/직원/Assignment
-Employee의 조직/직위/직책/유효기간/primary 관계 정본은 Assignment다. 제거된 과거 delegated/absence column을 Runtime SQL에서 사용하지 않는다. 조직 변경 시 parent cycle을 차단한다. 주요 기준정보는 `versionNo` CAS로 동시 수정 충돌을 409로 드러낸다.
+## 3. 사용자
 
-## 5. Server Paging
-대량 목록은 `/page` API를 사용한다. `CrudTable`은 서버에서 page/size/total을 받고 stable ordering을 전제로 한다. 편의상 전체 list를 Browser에 내려 client slice하는 방식은 운영 대용량 화면에서 사용하지 않는다.
+사용자 상태 예:
 
-## 6. Approval
-Requester는 request body 값이 아니라 인증 operator와 employee mapping에서 도출한다. 대리결재는 유효한 delegation을 검증한다. 사용된 Approval Policy version은 immutable이며 수정이 필요하면 새 version을 만든다.
+- ACTIVE
+- LOCKED
+- SUSPENDED
+- PASSWORD_CHANGE_REQUIRED
+- EXPIRED
+- TERMINATED
 
-Legacy direct approval mutation endpoint/service는 정책 엔진을 우회하지 못하도록 차단한다. 결재 전에는 payload/policy/step/history/attachment와 available action을 확인해야 한다.
+관리 원칙:
 
-## 7. Attachment
-표준 scan lifecycle:
-`PENDING -> CLEAN | INFECTED | FAILED | QUARANTINED`
-다운로드는 CLEAN이면서 quarantine이 아닌 파일만 허용한다. 분류는 PUBLIC/INTERNAL/CONFIDENTIAL/RESTRICTED를 사용한다. 운영자는 recheck/mark clean/quarantine/disable/retention 변경 시 reason과 audit를 남긴다.
+- ID와 Login ID 구분
+- 비밀번호 원문 조회 금지
+- 잠금 해제와 Reset 감사
+- 계정 상태 변경 사유
+- 유효기간
+- 세션 폐기
+- 동시 수정 Version
 
-외부 Malware Scanner adapter와 실제 파일 sandbox E2E가 없으면 해당 부분은 `미검증/부분 구현`이다.
+## 4. Role
 
-## 8. Notification
-알림은 unread 필터, 개별 read, 전체 read, reference deep-link를 제공한다. 알림 자체가 업무 조치를 대신하지 않으며 target 업무 화면과 권한이 다시 검증되어야 한다.
+Role은 코드만 User Row에 저장하는 단순 구조가 아니다.
 
-## 9. Audit Hash Chain
-관리 변경 Audit은 canonical JSON 기반 record hash와 previous hash로 연결한다. chain lock row를 `FOR UPDATE`로 잡아 다중 인스턴스 writer를 직렬화한다. verify 결과:
-- `VALID`: chain과 head 일치.
-- `PARTIAL_LEGACY`: hash 이전 legacy row가 존재하지만 이후 chain은 정합.
-- `BROKEN`: content/link/head 불일치.
+```text
+User
+→ UserRole Assignment
+→ Role
+→ Permission
+→ Scope
+```
 
-## 10. 동시성 오류 처리
-`expectedVersion` mismatch는 자동 overwrite하지 않는다. 사용자는 최신 row를 재조회해 변경 내용을 비교하고 재시도한다. UI에서 versionNo가 있는 row를 수정할 때 expectedVersion을 함께 전송한다.
+Assignment 필드:
 
-## 11. 인증 정책
-강제 비밀번호 변경/만료 계정은 Frontend만 막지 않고 Backend authorize에서 업무 API를 차단한다. 동시 401 refresh는 single-flight로 직렬화하고 최종 refresh 실패 시 session을 제거한다.
+- userRoleId
+- userId
+- roleId
+- validFrom / validTo
+- primary
+- environment
+- organization
+- grantedBy
+- reason
+- operationId
+- version
 
-## 12. 운영 검증
-Role별로 Dashboard/Users/Roles/Permissions/Organizations/Employees/Assignments/Approvals/Attachments/Audits/Notifications를 실제 Browser에서 검증한다. 401/403/409/500과 stale response, double-click, keyboard 접근성, console error도 포함한다.
+Grant/Revoke는 이력을 보존한다.
+
+## 5. Permission
+
+Permission은 다음 축을 조합한다.
+
+- Resource
+- Action
+- HTTP Method
+- API Pattern
+- Menu
+- Domain
+- Environment
+- Organization
+- Data Scope
+- Allow/Deny
+- Validity
+
+Deny 우선순위를 명확히 한다. UI 메뉴 숨김은 서버 권한 검사를 대신하지 않는다.
+
+## 6. 조직
+
+조직은 Tree 구조와 유효기간을 가진다.
+
+- organizationId
+- organizationCode
+- name
+- parentId
+- type
+- validFrom / validTo
+- status
+- version
+
+Parent 변경 시 Cycle을 차단한다. 과거 조직 관계는 이력으로 보존한다.
+
+## 7. 직원
+
+사용자 계정과 직원은 분리할 수 있다.
+
+- employeeId
+- employeeNumber
+- name
+- employmentStatus
+- hireDate / retireDate
+- userId
+- contact의 마스킹 값
+
+직원은 여러 조직 Assignment를 가질 수 있다.
+
+## 8. Assignment
+
+Assignment는 다음을 표현한다.
+
+- 소속 조직
+- 직위
+- 직책
+- 업무 Role
+- 주 소속
+- 겸직
+- 파견
+- 직무대행
+- 유효기간
+
+결재 시점의 조직과 역할은 Snapshot으로 보존한다.
+
+## 9. 결재 정책
+
+정책 구성:
+
+- policyId
+- version
+- 대상 업무
+- 조건
+- Step
+- Approver Rule
+- ALL/ANY/N_OF_M
+- 대리 허용
+- 반려/회수/재상신
+- Timeout
+- Escalation
+- 유효기간
+
+Published Policy는 직접 수정하지 않고 새 Version을 만든다.
+
+## 10. 결재 실행
+
+```text
+업무 요청
+→ 적용 정책 선택
+→ Policy Version Snapshot
+→ 결재선 생성
+→ 요청
+→ 승인/반려/보류
+→ Owner Command
+→ 결과
+→ 감사
+```
+
+Requester는 Body 값이 아니라 인증 사용자와 직원 Mapping에서 도출한다.
+
+## 11. 대리결재
+
+검증 항목:
+
+- 대리 기간
+- 대상 업무
+- 위임자/수임자
+- 조직 Scope
+- 재위임 허용
+- 자기 승인 방지
+- 이해 상충
+- 감사
+
+## 12. 메뉴
+
+Menu는 Tree로 관리한다.
+
+- menuId
+- parentId
+- route
+- componentKey
+- permission
+- order
+- visible
+- enabled
+- external 여부
+
+Route와 Component 실파일, API Permission을 Gate에서 확인한다.
+
+## 13. Server Paging
+
+대량 목록은 `/page` API 또는 Cursor를 사용한다.
+
+- Stable Order
+- Count 최적화
+- Filter Allowlist
+- Export 별도 처리
+- Browser 전체 조회 금지
+
+## 14. 첨부
+
+상태:
+
+```text
+PENDING
+→ SCANNING
+→ CLEAN
+→ AVAILABLE
+
+PENDING/SCANNING
+→ INFECTED / SUSPICIOUS / FAILED / QUARANTINED
+```
+
+다운로드 조건:
+
+- CLEAN
+- Quarantine 아님
+- 권한
+- 업무 대상 접근 가능
+- Retention 미만료
+- 감사
+
+## 15. 알림
+
+알림은 다음을 제공한다.
+
+- Channel
+- Template Version
+- Recipient
+- Reference
+- 발송 상태
+- 읽음
+- Retry
+- 만료
+- Deep Link
+
+알림 링크를 열 때 대상 업무 권한을 다시 확인한다.
+
+## 16. Audit Hash Chain
+
+각 Audit Row:
+
+- previousHash
+- recordHash
+- canonicalPayload
+- actor
+- target
+- action
+- occurredAt
+
+검증 결과:
+
+- VALID
+- PARTIAL_LEGACY
+- BROKEN
+
+마지막 Row 삭제도 Persisted Chain Head로 검출한다.
+
+## 17. 동시성
+
+- `expectedVersion`
+- 조직 Parent 변경 Lock
+- Primary Assignment 직렬화
+- Role Grant/Revoke operationId
+- 결재 Action 중복 방지
+- Notification Read Idempotency
+
+## 18. Tenant
+
+Tenant 기능 사용 시:
+
+- Tenant Resolver
+- User/Role Scope
+- DB Predicate 또는 Schema
+- Cache Key
+- Log/Audit
+- File Path
+- Notification
+- Batch
+
+에 Tenant가 일관되게 반영돼야 한다.
+
+## 19. Frontend 사용성
+
+- 기능별 Route와 Directory
+- 검색과 Paging
+- 상세 Drawer/Page
+- Validation 요약
+- 401/403/409/500 처리
+- 상태 Badge
+- 접근성
+- 반응형
+- 위험 조치 확인
+- 권한 없는 버튼 숨김
+
+## 20. 운영 시나리오
+
+### 신규 직원
+
+1. 직원 등록
+2. 계정 연결
+3. 조직 Assignment
+4. Role Grant
+5. Permission 확인
+6. Session 발급
+7. 감사 확인
+
+### 조직 이동
+
+1. 새 Assignment 시작일 등록
+2. 기존 Assignment 종료일 설정
+3. Primary 갱신
+4. 결재 정책 영향 확인
+5. Cache 무효화
+6. 감사
+
+### 퇴직
+
+1. 계정 중지
+2. Session 폐기
+3. Role 종료
+4. Assignment 종료
+5. 진행 결재 대체자 처리
+6. 파일·업무 데이터 Retention 적용
+
+## 21. Test
+
+- 조직 Cycle
+- 유효기간 중첩
+- 다중 Primary 충돌
+- Role 재부여 이력
+- Deny 우선순위
+- 결재 자기 승인
+- 대리 만료
+- Optimistic Lock
+- 첨부 감염
+- Audit 변조
+- Browser 권한
+
+## 22. 체크리스트
+
+- [ ] User, Employee, Assignment가 분리됐다.
+- [ ] Role 변경 이력이 보존된다.
+- [ ] Permission은 서버가 평가한다.
+- [ ] 조직 Cycle을 차단한다.
+- [ ] 결재 Policy Version이 고정된다.
+- [ ] 자기 승인과 이해 상충을 차단한다.
+- [ ] 첨부 검사와 격리가 연결된다.
+- [ ] Audit Hash Chain이 Tail 삭제를 검출한다.
+- [ ] 대량 목록은 서버 Paging이다.

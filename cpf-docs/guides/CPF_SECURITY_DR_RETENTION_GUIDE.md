@@ -1,73 +1,369 @@
-# CPF Security / DR / Retention Guide
+# CPF 보안·재해복구·데이터 보존 가이드
 
-## 1. Secret Lifecycle
-Secret 원문을 Config 조회/API/로그/Audit/Trace/Evidence에 반환하지 않는다. 애플리케이션은 `CpfSecretReference`와 `CpfSecretProvider`를 통해 값을 얻는다. 값이 꼭 필요한 구간만 `CpfSecretValue`를 열고 사용 후 close한다.
+## 1. 목적
 
-ENV Provider는 초기 bootstrap용 기본 구현이다. 환경변수 이름과 metadata는 볼 수 있어도 원문은 API에 노출하지 않는다. 실제 상용 Rotate는 Vault/KMS/HSM adapter가 `CpfRotatableSecretProvider`를 구현하도록 한다.
+이 문서는 인증, 권한, Secret, 인증서, 민감정보, 감사, Backup, Restore, 재해복구와 Retention의 공통 제품 기준을 정의한다.
 
-## 2. ADM Secret API
-- Provider 목록: capability/상태만 표시.
-- Metadata: reference, version/만료 등 비민감 정보만 반환.
-- Rotate: provider가 지원하고 운영자 권한/사유가 있을 때만 실행.
-- ENV provider rotate는 unsupported로 거부.
-- Secret value를 response DTO나 exception message에 포함하지 않는다.
+## 2. 보안 기본값
 
-## 3. Certificate
-`check-certificate-expiry.ps1`는 공개 인증서의 Subject/Issuer/Serial/Thumbprint/NotBefore/NotAfter/잔여일을 검사한다. Private key를 읽거나 Evidence에 내보내지 않는다. WarnDays 기준 이하이면 운영 경고로 처리한다.
+- 인증되지 않은 요청 거부
+- 최소 권한
+- 외부 공개 기본 거부
+- Secret Reference
+- 민감정보 마스킹
+- 입력/출력 검증
+- 위험 조치 승인
+- Audit
+- 안전 차단
+
+## 3. 인증
+
+지원 구성:
+
+- Session
+- OAuth2/OIDC
+- JWT
+- mTLS
+- API Key Reference
+- Agent Certificate
+- Service Account
+
+인증 실패와 권한 실패를 구분한다.
 
 ## 4. Session
-BZA는 비밀번호 강제 변경/만료 상태를 Backend에서 집행한다. Refresh rotation은 동시 401에서 single-flight로 직렬화하고 최종 refresh 실패 시 Browser session을 제거한다.
 
-Access token 즉시 폐기, refresh family reuse detection, device/session metadata, KMS key ring/kid rotation은 전체 상용 Security Center 관점에서 아직 별도 검증/보완 대상이다.
+- Access Token 짧은 수명
+- Refresh Rotation
+- Reuse Detection
+- Device Metadata
+- Session 목록과 폐기
+- Logout
+- Password 변경 후 폐기
+- 권한 변경 재평가
 
-## 5. Permission
-실효 권한은 active user-role/role/menu와 환경 scope를 평가한다. Role history가 존재하는 계정에서 만료/회수된 Role을 legacy roleCode fallback이 되살리면 안 된다. deny precedence와 API server enforcement를 Browser 표시보다 우선한다.
+## 5. 권한
 
-## 6. Audit Hash Chain
-BZA 감사 writer는 chain lock을 row-lock하여 다중 인스턴스 순서를 만든다. 각 row는 previous hash + canonical content로 record hash를 계산한다. Verify는 row mutation, 중간 link 손상, 마지막 row 삭제 후 persisted chain-head 불일치를 모두 탐지해야 한다.
+평가 축:
 
-`PARTIAL_LEGACY`는 이전 hash 도입 전 row가 존재함을 의미하며 `VALID`과 동일하게 취급하지 않는다.
+- User
+- Role
+- Permission
+- Action
+- Resource
+- Environment
+- Domain
+- Organization
+- Tenant
+- Data Scope
+- Time
 
-## 7. Sensitive Audit
-Hash chain은 기밀성을 제공하지 않는다. before/after/exception/context는 별도로 recursive masking하고 대용량 원문은 안전한 archive/reference 전략을 사용한다. 개인식별정보와 Credential이 chain에 원문으로 들어가면 안 된다.
+Deny 우선순위를 명시한다.
 
-## 8. Retention Policy
-`CpfRetentionPolicy`는 retention 기간/행위/legal hold 정책을 표현한다. 실행은 `CpfRetentionCommand`로 target/cutoff/dryRun/reason을 전달한다.
+## 6. Secret
 
-## 9. BAT Retention Baseline
-R14 concrete target은 `BAT_OPERATION_LOG`다.
-- `KEEP`: 변경 없음.
-- `dryRun=true`: 대상 계산만 하고 변경 없음.
-- `legalHold=true`: destructive action 금지.
-- `ARCHIVE`: archive table insert 후 원본 delete를 한 transaction으로 수행.
-- `PURGE`: 정책과 kill-switch가 허용할 때 delete.
+계약:
 
-## 10. Destructive Kill Switch
-기본값 `cpf.retention.execute-enabled=false`. 실제 ARCHIVE/PURGE에는 cutoff가 필수다. Kill switch가 OFF면 운영자의 요청이 있어도 403/fail-closed한다. 실제 실행 시 권한, reason, audit를 함께 검증한다.
+```text
+Secret Reference
+→ Provider
+→ 짧은 Scope Value
+→ 사용
+→ 메모리 정리
+```
 
-## 11. Rollback Safety
-Retention archive에 데이터가 있는 상태에서 R54가 table을 DROP하면 데이터 손실이다. 따라서 R54 rollback은 archive row가 있으면 SIGNAL로 실패한다. 운영자는 먼저 보존/이관 결정을 내려야 한다.
+Provider:
 
-## 12. Backup
-DB backup은 본질적으로 개인정보/업무데이터를 포함할 수 있으므로 `containsSensitiveData=true`로 취급한다. Script argument에 password를 받지 않고 client credential mechanism을 사용한다. Backup과 SHA-256 manifest를 분리 보존한다.
+- ENV
+- Vault
+- KMS
+- HSM
+- Cloud Secret Manager
 
-## 13. Restore
-Restore는 `-ConfirmRestore`가 없으면 실행하지 않는다. Manifest가 있으면 hash/vendor/database가 모두 맞아야 한다. DB명이 다른 backup을 잘못 restore하지 않도록 fail-closed한다. Missing manifest 허용은 legacy 예외다.
+## 7. Secret Rotation
 
-## 14. DR Verify
-DR 복구는 운영 원본이 아닌 격리 환경에서 수행한다. 단일 DB만 복구했다면 connection/table baseline 또는 DB별 `VerifySql`을 사용한다. 모든 CPF logical DB를 함께 복구했을 때만 `RunPlatformVerify`로 canonical full verify를 실행한다.
+1. 새 Version 생성
+2. 대상 호환
+3. 배포
+4. Instance ACK
+5. 연결시험
+6. 구 Version 폐기
+7. Audit
 
-Evidence에는 실제 시작/종료시각, duration, 기준 SHA, DB(민감 host는 scrub), command, result를 남긴다.
+## 8. 인증서
 
-## 15. RPO/RTO
-Framework는 복구 도구와 Evidence 표준을 제공하지만 고객별 RPO/RTO 값은 운영 정책에서 정한다. Backup 주기, offsite/immutable storage, 복구순서, DNS/LB 전환, 재처리 전략을 실제 장애훈련으로 검증한다.
+관리 정보:
 
-## 16. Environment Promotion
-변경 promotion manifest는 source/target environment, base commit, reason, 대상 파일과 SHA를 기록한다. 검증 시 current commit과 파일 hash가 달라지면 실패한다. 실제 조직 승인/서명/CD 연동은 별도 adapter가 필요하며 단순 manifest 존재를 승인 완료로 간주하지 않는다.
+- Subject
+- Issuer
+- Serial
+- Fingerprint
+- Validity
+- Key Usage
+- SAN
+- Algorithm
+- Chain
+- Revocation
 
-## 17. 완료 금지
-- Secret Provider interface만 있고 운영 adapter 없음.
-- Backup 파일 생성만 하고 restore test 없음.
-- Retention SQL만 있고 legal hold/kill-switch/rollback safety 없음.
-- Audit hash 컬럼만 있고 tamper test 없음.
-위 상태는 `부분 구현`이다.
+Private Key는 API/Evidence에 노출하지 않는다.
+
+## 9. Application Security
+
+- SQL Injection
+- XSS
+- CSRF
+- SSRF
+- Path Traversal
+- Upload
+- Deserialization
+- Open Redirect
+- Header Injection
+- Command Injection
+- Dependency/CVE
+
+입력 검증과 Output Encoding을 적용한다.
+
+## 10. 파일 보안
+
+- 크기
+- 확장자
+- MIME
+- Magic Number
+- 경로
+- 악성 검사
+- Quarantine
+- Download 권한
+- Checksum
+- Retention
+
+Scanner 미구성 또는 장애 시 안전 차단한다.
+
+## 11. 민감정보
+
+분류:
+
+- PUBLIC
+- INTERNAL
+- CONFIDENTIAL
+- RESTRICTED
+
+분류에 따라 저장, Log, Download, Masking, Retention과 암호화를 적용한다.
+
+## 12. Masking
+
+- API
+- UI
+- Log
+- Audit
+- Trace
+- Evidence
+- Export
+- Exception
+
+원문 보기는 별도 권한·사유·감사와 제한 시간을 요구한다.
+
+## 13. 감사
+
+감사 필드:
+
+- actor
+- role
+- target
+- action
+- reason
+- before/after
+- operationId
+- approval
+- result
+- transactionId
+- timestamp
+
+감사 자체 실패 정책을 위험도에 따라 결정한다.
+
+## 14. Hash Chain
+
+- canonical payload
+- previousHash
+- recordHash
+- chain head
+- row lock
+- tamper verify
+- tail deletion detection
+
+Hash Chain은 기밀성을 대신하지 않는다.
+
+## 15. 데이터 보존
+
+Retention 정책:
+
+- target
+- duration
+- action
+- cutoff
+- legal hold
+- archive
+- purge
+- dry run
+- kill switch
+- approval
+- audit
+
+## 16. Legal Hold
+
+Legal Hold는 Purge보다 우선한다.
+
+- Case ID
+- 대상
+- 기간
+- 사유
+- 승인
+- 해제
+- Audit
+
+## 17. Archive
+
+```text
+대상 Preview
+→ Archive 저장
+→ Checksum/Count
+→ 원본 삭제
+→ 결과
+```
+
+중간 실패 시 정합성을 보장한다.
+
+## 18. Purge
+
+- 기본 비활성
+- cutoff 필수
+- 최대 건수
+- Chunk
+- Lock/부하
+- Kill Switch
+- 중단/재개
+- Evidence
+
+## 19. Backup
+
+- 암호화
+- 접근 통제
+- SHA-256
+- Manifest
+- Offsite
+- Immutable
+- Retention
+- 복구 Test
+
+Password를 Command Line에 넣지 않는다.
+
+## 20. Restore
+
+1. 격리 대상
+2. Manifest
+3. Checksum
+4. Vendor/DB
+5. 복구
+6. Schema
+7. 데이터
+8. Application Smoke
+9. 거래 대사
+10. Evidence
+
+## 21. DR
+
+DR 범위:
+
+- DB
+- Artifact
+- Config
+- Secret
+- Certificate
+- Message Offset
+- File
+- Registry
+- Gateway
+- Batch Checkpoint
+- DNS/LB
+
+## 22. RPO/RTO
+
+고객 운영 정책으로 값을 정한다.
+
+- RPO
+- RTO
+- Backup 주기
+- 복구 순서
+- 우선 서비스
+- 데이터 대사
+- 업무 재처리
+- 훈련 주기
+
+## 23. DR 훈련
+
+- 시나리오
+- 격리 환경
+- 실제 Backup
+- 복구
+- 측정
+- Failover
+- 거래 확인
+- 원복
+- 개선
+
+## 24. Break-glass
+
+- 재인증
+- 제한 Scope
+- 자동 만료
+- Alert
+- 사후 승인
+- 모든 활동 감사
+
+## 25. Download
+
+- 별도 Permission
+- Reason
+- Masked Default
+- 최대 크기
+- Watermark
+- Checksum
+- 만료
+- Audit
+
+## 26. Security Gate
+
+- Secret Pattern
+- 취약 URL
+- TLS
+- Dependency/CVE
+- License
+- External CDN
+- Private Key
+- Permission Seed
+- Upload
+- Raw Log
+
+## 27. Test
+
+- 인증
+- 권한
+- Deny
+- Session Reuse
+- Secret Masking
+- Rotation
+- Certificate 만료
+- Scanner Down
+- Audit Tamper
+- Legal Hold
+- Purge Kill Switch
+- Backup/Restore
+- DR
+
+## 28. 체크리스트
+
+- [ ] Secret 원문이 노출되지 않는다.
+- [ ] 권한은 서버가 평가한다.
+- [ ] 위험 조치에 승인과 감사가 있다.
+- [ ] Scanner/Verifier 장애 시 안전 차단한다.
+- [ ] Retention에 Legal Hold와 Kill Switch가 있다.
+- [ ] Backup을 실제 Restore 검증한다.
+- [ ] DR 훈련으로 RPO/RTO를 측정한다.

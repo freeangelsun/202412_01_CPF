@@ -9,6 +9,28 @@
 ---
 
 
+## 0. 문서 계약
+
+| 항목 | 기준 |
+|---|---|
+| 기준 Source | `master` / `b7c6146e952c10b885952fa2bc6b6786f4611d86` |
+| Owner | `cpf-tools/generator` |
+| 이 문서로 완료하는 일 | DomainName·SystemCode를 기준으로 충돌 없는 업무영역을 계획·생성·재실행·업그레이드·제거하고 사용자 코드를 보호한다. |
+| 적용 범위 | Module, Package, Config, Route, DB, Test, OpenAPI, EDU, Repository Federation |
+| 주요 독자 | 업무영역 Architect, 개발자, Generator 개발자, Release 담당자 |
+| 완료 판정 | Source·API·SQL·Config·Test·Runtime·Evidence 중 해당 범위가 실제로 연결되고 검증돼야 한다. |
+
+### 0.1 읽는 순서
+
+1. 책임 경계와 상태 모델을 먼저 확인한다.
+2. 정상 절차를 수행하기 전에 권한·설정·데이터베이스·다중 인스턴스 영향을 확인한다.
+3. 오류·부분 실패·복구 절차와 완료 점검을 같은 작업 범위로 수행한다.
+4. 직접 실행하지 않은 검증은 `완료`로 기록하지 않는다.
+
+---
+
+
+
 <picture>
   <source media="(max-width: 720px)" srcset="../assets/readme/cpf-domain-journey-mobile.png">
   <img src="../assets/readme/cpf-domain-journey-desktop.png" alt="CPF 업무영역 생성과 검증 흐름" width="100%">
@@ -450,3 +472,84 @@ CPF 공식 SystemCode와 충돌하는 코드는 거부한다.
 업무명·시스템 코드 변경은 단순 문자열 치환이 아니다. 모듈, 패키지, API 경로, 서비스 등록, 권한, DB 소유권, 메시지 유형, 배치 작업과 검증 증적의 호환·이관 계획이 필요하다.
 
 제거는 `사용 중인 공개 API → 이벤트 소비자 → DB 자료 → 운영 경로 → 배치·설정 → 산출물` 순으로 영향도를 확인하고 되돌리기 계획을 만든다.
+
+## 28. 생성 계획서에서 확인할 항목
+
+`-DryRun` 결과는 단순 파일 목록이 아니라 충돌과 변경 영향을 설명해야 한다.
+
+| 영역 | 계획에 포함할 내용 |
+|---|---|
+| 식별 | DomainName, 3자리 SystemCode, Module·Package 이름 |
+| Repository | 생성 위치, Composite Build 연결, 기존 Repository 충돌 |
+| API | Public Contract, Route, Operation ID, 외부 공개 기본값 |
+| DB | Logical DB, Schema, Table Prefix, 공급자 3종, Migration 시작 Version |
+| 실행 | Local·Remote Adapter, Registry Metadata, Profile과 Port |
+| 보안 | 기본 거부, Permission, Secret Reference, 감사 |
+| 품질 | Unit·Integration·Architecture Test, OpenAPI, JavaDoc, EDU |
+| 소유권 | 생성기 관리 영역, 사용자 수정 영역, 재실행 병합 전략 |
+
+충돌이 하나라도 있으면 일부 파일만 생성하지 않고 전체 계획을 실패시킨다.
+
+## 29. 생성 후 인수 절차
+
+1. `settings.gradle` 또는 독립 Repository 구성이 계획과 같은지 확인한다.
+2. Package가 API·Application·Domain·Adapter·Config·Test 책임으로 나뉘는지 확인한다.
+3. `cpf-core.internal` 또는 다른 업무영역 DB에 직접 의존하지 않는지 Architecture Gate를 실행한다.
+4. 표준 Header, 오류, Paging, ID와 Validation API를 사용하는지 확인한다.
+5. Local·Remote 호출 Test가 같은 결과·오류 의미를 검증하는지 확인한다.
+6. Oracle·PostgreSQL·MariaDB Fresh Install Bundle과 Migration·Rollback을 확인한다.
+7. 외부 Route가 기본 비공개이며 공개 시 인증·권한·Rate·Timeout 정책을 요구하는지 확인한다.
+8. OpenAPI·JavaDoc·EDU가 실제 생성 API를 사용하고 오류·복구 예제를 포함하는지 확인한다.
+9. Generator 소유 파일 목록과 사용자 수정 허용 위치를 Manifest로 남긴다.
+10. 생성 기준 Commit과 명령·입력·결과를 Evidence로 보관한다.
+
+## 30. 재실행과 Template Upgrade
+
+- 같은 입력의 재실행은 변경 없음 또는 예측 가능한 계획을 반환해야 한다.
+- 사용자 수정 영역을 Hash만으로 덮어쓰지 않는다.
+- 생성기 소유 영역이 수정됐으면 Drift를 보고하고 병합·재생성·보존 중 선택하도록 한다.
+- 공통 Header·오류·DB·Module 규칙이 바뀌면 Golden Template과 기존 생성 업무영역의 Upgrade Plan을 함께 제공한다.
+- 제거 작업은 Module만 지우지 않고 Route·Registry·DB·Config·Test·문서·Evidence 참조를 검사한다.
+- Upgrade가 중간 실패하면 적용 파일 목록과 되돌리기 절차를 남겨 부분 생성 상태를 숨기지 않는다.
+
+## 31. 생성 업무영역 승인 기준
+
+- 빌드 성공만으로 승인하지 않는다.
+- 공개 API, Owner DB, Local·Remote, 보안 기본값, 운영 조회와 Test가 실제 연결돼야 한다.
+- 특정 DomainName에만 동작하는 예외 Template이 없어야 한다.
+- Golden Reference인 `cpf-member`와 새 Domain의 구조 차이가 설명 가능해야 한다.
+- 생성 후 고객이 직접 수정해야 하는 필수 보일러플레이트가 과도하지 않아야 한다.
+
+## 부록 Z. 구현 추적 시작점
+
+문서의 설명을 완료 근거로 사용하지 않는다. 아래 경로에서 실제 Consumer·구현·설정·SQL·Test 연결을 확인한다. 경로가 이동했다면 `git ls-files`와 `git grep -n`으로 최신 Owner를 다시 찾는다.
+
+| 추적 대상 | 대표 경로 또는 명령 | 확인 목적 |
+|---|---|---|
+| Entry | `cpf-tools/generator/create-domain.ps1` | Dry-run·Apply 진입점 |
+| Golden Reference | `cpf-member` | 표준 생성 결과 |
+| Repository Mount | `settings.gradle`의 `local-domains` Composite Build | 독립 업무 Repo 연결 |
+| DB Impact | `cpf-tools/db/canonical`, Vendor Pack | 생성 Domain Schema·Migration |
+| 검증 | `git grep -n "DryRun\|SystemCode\|collision" cpf-tools/generator` | 충돌·소유 영역·재실행 |
+
+### Z.1 공통 확인 명령
+
+```powershell
+git status --short
+git diff --check
+git grep -n "TODO\|UnsupportedOperationException\|return null" -- ':!cpf-docs/archive/**'
+pwsh -File .\cpf-tools\scripts\check-architecture-ownership.ps1
+pwsh -File .\cpf-tools\scripts\check-document-links.ps1
+pwsh -File .\cpf-tools\scripts\check-repository-hygiene.ps1
+```
+
+명령이 현재 Repository에 존재하지 않거나 Parameter가 달라졌다면 해당 Tool Source와 [도구 상세 참조](CPF_TOOL_REFERENCE.md)를 먼저 갱신한다.
+
+### Z.2 완료 상태 사용
+
+- **완료**: 구현·Consumer·운영 경로·검증·Evidence가 현재 Commit에서 확인됨
+- **부분 구현**: 일부 계층 또는 실패·복구·운영 경로가 빠짐
+- **미구현**: 제품 동작이 없음
+- **미검증**: 구현은 있으나 요구된 실행 검증을 수행하지 않음
+- **실패**: 검증을 수행했으나 기대 결과를 충족하지 못함
+- **재확인 필요**: Source·문서·Evidence 또는 환경이 서로 달라 현재 상태를 확정할 수 없음

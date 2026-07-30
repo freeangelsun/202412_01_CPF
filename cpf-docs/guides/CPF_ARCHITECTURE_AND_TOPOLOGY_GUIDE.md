@@ -9,6 +9,28 @@
 ---
 
 
+## 0. 문서 계약
+
+| 항목 | 기준 |
+|---|---|
+| 기준 Source | `master` / `b7c6146e952c10b885952fa2bc6b6786f4611d86` |
+| Owner | 제품 전체; 기술 정본은 `cpf-core`, 업무 공통은 `cpf-common` |
+| 이 문서로 완료하는 일 | Requirement의 Owner Module·Public API/SPI·DB·배포 구성을 결정하고 역방향·순환·내부 구현 의존을 차단한다. |
+| 적용 범위 | Module 소유권, Local/Remote 동등성, Control/Data Plane, 다중 인스턴스, Repository Federation |
+| 주요 독자 | 제품 Architect, Module Owner, Reviewer, Generator 개발자 |
+| 완료 판정 | Source·API·SQL·Config·Test·Runtime·Evidence 중 해당 범위가 실제로 연결되고 검증돼야 한다. |
+
+### 0.1 읽는 순서
+
+1. 책임 경계와 상태 모델을 먼저 확인한다.
+2. 정상 절차를 수행하기 전에 권한·설정·데이터베이스·다중 인스턴스 영향을 확인한다.
+3. 오류·부분 실패·복구 절차와 완료 점검을 같은 작업 범위로 수행한다.
+4. 직접 실행하지 않은 검증은 `완료`로 기록하지 않는다.
+
+---
+
+
+
 <picture>
   <source media="(max-width: 720px)" srcset="../assets/readme/cpf-product-map-mobile.png">
   <img src="../assets/readme/cpf-product-map-desktop.png" alt="CPF 제품 지도" width="100%">
@@ -536,3 +558,37 @@ pwsh -File .\cpf-tools\scripts\check-document-links.ps1
 - [ ] 데이터베이스·이관·생성기 영향을 반영했다.
 - [ ] 운영 조회·명령·대사·되돌리기가 연결됐다.
 - [ ] 테스트와 검증 증적이 기준 소스와 일치한다.
+
+## 부록 Z. 구현 추적 시작점
+
+문서의 설명을 완료 근거로 사용하지 않는다. 아래 경로에서 실제 Consumer·구현·설정·SQL·Test 연결을 확인한다. 경로가 이동했다면 `git ls-files`와 `git grep -n`으로 최신 Owner를 다시 찾는다.
+
+| 추적 대상 | 대표 경로 또는 명령 | 확인 목적 |
+|---|---|---|
+| Module 정본 | `settings.gradle` | 공식 Module과 Composite Build |
+| 기술 계약 | `cpf-core/src/main/java/com/cpf/core/api`, `cpf-core/src/main/java/com/cpf/core/spi` | Topology-independent API/SPI |
+| 업무 공통 | `cpf-common` | 선택형 고객 업무 공통 |
+| 실행 제품 | `cpf-gateway`, `cpf-batch/*` | 선택 Edge와 독립 Batch Runtime |
+| Architecture Gate | `cpf-tools/scripts/check-architecture-ownership.ps1` | 역방향·Internal 의존·Owner 위반 검출 |
+
+### Z.1 공통 확인 명령
+
+```powershell
+git status --short
+git diff --check
+git grep -n "TODO\|UnsupportedOperationException\|return null" -- ':!cpf-docs/archive/**'
+pwsh -File .\cpf-tools\scripts\check-architecture-ownership.ps1
+pwsh -File .\cpf-tools\scripts\check-document-links.ps1
+pwsh -File .\cpf-tools\scripts\check-repository-hygiene.ps1
+```
+
+명령이 현재 Repository에 존재하지 않거나 Parameter가 달라졌다면 해당 Tool Source와 [도구 상세 참조](CPF_TOOL_REFERENCE.md)를 먼저 갱신한다.
+
+### Z.2 완료 상태 사용
+
+- **완료**: 구현·Consumer·운영 경로·검증·Evidence가 현재 Commit에서 확인됨
+- **부분 구현**: 일부 계층 또는 실패·복구·운영 경로가 빠짐
+- **미구현**: 제품 동작이 없음
+- **미검증**: 구현은 있으나 요구된 실행 검증을 수행하지 않음
+- **실패**: 검증을 수행했으나 기대 결과를 충족하지 못함
+- **재확인 필요**: Source·문서·Evidence 또는 환경이 서로 달라 현재 상태를 확정할 수 없음

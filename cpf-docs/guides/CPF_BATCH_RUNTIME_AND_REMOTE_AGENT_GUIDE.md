@@ -8,6 +8,28 @@
 
 ---
 
+
+## 0. 문서 계약
+
+| 항목 | 기준 |
+|---|---|
+| 기준 Source | `master` / `b7c6146e952c10b885952fa2bc6b6786f4611d86` |
+| Owner | `cpf-batch` 제품군 |
+| 이 문서로 완료하는 일 | 승인된 Job Definition을 Projection으로 배포하고 Scheduler·Worker·Center-Cut·Host Agent가 Lease·Fencing·Attempt Ledger로 안전하게 실행한다. |
+| 적용 범위 | Control Server, Runtime Common, Scheduler, Worker, Agent, Center-Cut, Testkit |
+| 주요 독자 | Batch 개발자, Batch 운영자, Agent 운영자, 승인자 |
+| 완료 판정 | Source·API·SQL·Config·Test·Runtime·Evidence 중 해당 범위가 실제로 연결되고 검증돼야 한다. |
+
+### 0.1 읽는 순서
+
+1. 책임 경계와 상태 모델을 먼저 확인한다.
+2. 정상 절차를 수행하기 전에 권한·설정·데이터베이스·다중 인스턴스 영향을 확인한다.
+3. 오류·부분 실패·복구 절차와 완료 점검을 같은 작업 범위로 수행한다.
+4. 직접 실행하지 않은 검증은 `완료`로 기록하지 않는다.
+
+---
+
+
 ## 1. 목적
 
 CPF 배치는 업무 배치 작업을 안정적으로 등록·승인·배포·실행·재시작·재처리하기 위한 독립 실행 제품이다. 일정관리기, 작업자, 에이전트와 대량 실행의 책임을 분리하면서 동일한 실행 식별, 권한, 감사와 복구 계약을 사용한다.
@@ -299,7 +321,7 @@ Definition의 보상 참조는 실제 Handler 또는 SPI에 연결된다.
 → Item Claim
 → Running
 → Handler
-→ Success / Failed / Unknown
+→ 성공 / 실패 / 결과 불명
 → Reprocess
 ```
 
@@ -433,7 +455,7 @@ ADM
 - 작업자
 - 에이전트
 - SLA
-- Unknown
+- 결과 불명
 - Reprocess
 - 보상
 - 감사
@@ -449,7 +471,7 @@ ADM
 - 시간 제한
 - 체크포인트
 - Duplicate
-- Unknown
+- 결과 불명
 - 보상
 - Multi-worker
 - 비밀값 마스킹
@@ -492,3 +514,176 @@ ADM
 `배수 요청 → 신규 점유 중단 → 진행 작업 종료·체크포인트 → 상태 확인 → 프로세스 교체 → 등록·심박 → 시험 작업 → 배수 해제`
 
 진행 작업의 강제 종료가 필요한 경우 작업 유형별 재시작 가능 여부와 외부 효과를 먼저 확인한다.
+
+## 31. 작업정의 API와 상태 흐름
+
+BAT 소유 API의 Root는 `/api/v1/batch/job-definitions`다.
+
+| 목적 | Method와 경로 | 판정 |
+|---|---|---|
+| 목록·상태 조회 | `GET /`, `GET /{jobId}/versions/{version}` | Version, Checksum, 상태, Row Version |
+| 사전 검증 | `POST /validate` | 실행기·Trigger·Parameter·Dependency·복구 정책 검증 |
+| Draft 저장 | `POST /drafts` | 인증 Principal과 `requestedBy` 일치 확인 |
+| 승인 게시 | `POST /{jobId}/versions/{version}/approved-publish` | 승인 ID, Payload Hash, 요청자·승인자 분리 |
+| 일반 상태 전이 | `POST /{jobId}/versions/{version}/transition` | 기대 Row Version과 사유 |
+
+게시된 Version은 불변이다. 변경이 필요하면 새 Definition Version을 만들고 검증·승인·게시를 다시 수행한다.
+
+## 32. 최소 작업정의 예제
+
+```json
+{
+  "jobId": "PAY.DAILY.RECONCILE",
+  "definitionVersion": 1,
+  "jobName": "일일 결제 대사",
+  "executorType": "SERVICE_CALL",
+  "state": "DRAFT",
+  "ownerDomain": "PAY",
+  "description": "전일 결제와 기관 결과를 대사한다.",
+  "trigger": {
+    "type": "CRON",
+    "expression": "0 30 2 * * *",
+    "timezone": "Asia/Seoul",
+    "misfirePolicy": "FAIL_CLOSED",
+    "enabled": true
+  },
+  "parameters": [],
+  "dependencies": [],
+  "resourcePolicy": {
+    "agentPool": "DEFAULT",
+    "zone": "SEOUL-A",
+    "maxConcurrency": 1,
+    "timeoutSeconds": 3600,
+    "memoryLimitMb": 0,
+    "cpuLimitMillicores": 0
+  },
+  "recoveryPolicy": {
+    "maxAttempts": 3,
+    "initialBackoffSeconds": 30,
+    "multiplier": 2.0,
+    "maxBackoffSeconds": 300,
+    "skipLimit": 0,
+    "restartable": true,
+    "unknownResultPolicy": "RECONCILE",
+    "compensationReference": ""
+  },
+  "alertPolicy": {
+    "delayThresholdSeconds": 300,
+    "slaSeconds": 7200,
+    "notifyOnFailure": true,
+    "notifyOnMissed": true,
+    "providerKeys": ["OPS_DEFAULT"]
+  },
+  "executorReference": "SERVICE:PAY:reconcileDailyPayments:v1",
+  "checksum": "",
+  "requestedBy": "batch-author01",
+  "reason": "일일 결제 대사 작업 신규 등록",
+  "effectiveFrom": "2026-07-31T00:00:00+09:00",
+  "effectiveUntil": null,
+  "expectedRowVersion": 0
+}
+```
+
+`SERVICE_CALL`은 `SERVICE:`로 시작하는 Typed Operation Reference가 필요하다. `APPROVED_SHELL`은 `SCRIPT:` Catalog Reference가 필요하다. `FILE_PROCESS`는 `PROCESSOR:<processorId>` Reference와 필수 `sourceAlias(PATH_ALIAS)`, `sourcePath(STRING 또는 FILE_REFERENCE)` 매개변수를 요구한다. 자기 자신 Dependency와 중복 Dependency는 거부한다.
+
+## 33. 승인 게시와 실행 Projection
+
+1. `/validate` 결과가 성공인지 확인한다.
+2. Draft를 저장하고 반환된 Checksum과 Row Version을 보관한다.
+3. ADM 승인 요청에 Definition Snapshot과 Checksum을 첨부한다.
+4. 승인 실행 시 `operationId`, `expectedRowVersion`, `approvalRequestId`, `payloadHash`, 요청자, 승인자와 사유를 전달한다.
+5. BAT는 현재 Definition Checksum과 승인 Payload Hash가 다르면 게시를 거부한다.
+6. 게시 성공 후 Scheduler Projection 동기화 상태를 확인한다.
+7. Scheduler가 Projection의 Trigger·Timezone·Misfire Policy를 사용해 실행을 생성하는지 확인한다.
+8. Worker가 등록된 실행기를 선택하고 Attempt 원장을 시작·완료하는지 확인한다.
+
+## 34. Worker 인계와 재시도 Runbook
+
+1. 실행 ID, 현재 Attempt, Worker ID, Lease 만료 시각과 Fencing Token을 조회한다.
+2. Worker가 살아 있으나 느린지, Process가 종료됐는지, DB 연결만 끊겼는지 분류한다.
+3. Lease가 유효하면 다른 Worker가 같은 실행을 Claim하지 못하게 한다.
+4. Lease 만료 뒤 새 Worker가 더 큰 Fencing Token으로 Claim한다.
+5. 이전 Worker의 늦은 완료는 Stale Fencing으로 거부한다.
+6. 오류가 재시도 가능하고 최대 Attempt와 시간 예산이 남았을 때만 Backoff 뒤 재대기한다.
+7. 외부 요청 결과가 불명확하면 `unknownResultPolicy`에 따라 대사·수동 검토·보상·안전 차단을 수행한다.
+8. 실행 상태뿐 아니라 Attempt 원장과 업무 결과를 함께 확정한다.
+
+### 34.1 원격 승인 파일
+
+- Catalog에서 승인된 Artifact ID, Hash, 서명과 실행 정책을 조회한다.
+- 전송 전후 Hash를 비교하고 임시 경로에서 검증한 뒤 원자적으로 전환한다.
+- Command Line에 비밀값을 넣지 않고 Secret Reference를 사용한다.
+- Process Tree, 시간 제한, 종료 코드, 표준 출력·오류의 마스킹과 정리 결과를 기록한다.
+- 전송·실행 중 연결이 끊기면 중복 실행하지 않고 원격 Process와 결과 Artifact를 먼저 대사한다.
+
+## 35. FILE_PROCESS 업무 처리기
+
+`FILE_PROCESS`는 Worker 내부에 업무 코드를 하드코딩하지 않고 `FileProcessHandler` SPI로 처리기를 등록한다.
+
+```json
+{
+  "executorType": "FILE_PROCESS",
+  "executorReference": "PROCESSOR:reference-csv-import",
+  "parameters": [
+    {"name": "sourceAlias", "type": "PATH_ALIAS", "required": true},
+    {"name": "sourcePath", "type": "STRING", "required": true}
+  ]
+}
+```
+
+Worker는 파일을 Claim한 뒤 처리기에 다음 실행 문맥을 전달한다.
+
+- 실행 ID, Definition Version과 Checksum
+- 거래·Segment 식별자
+- Fencing Token
+- Claim된 정규화 경로, 크기와 SHA-256
+- 검증된 매개변수
+
+처리 결과는 `COMPLETED`, `RETRYABLE_FAILURE`, `FAILED`, `UNKNOWN_RESULT` 중 하나다. Claim 소유권 또는 Fencing을 잃은 Worker의 늦은 결과는 Attempt 원장 반영 전에 거부한다. `UNKNOWN_RESULT`는 파일 이동·출력 생성·외부 전송 결과를 먼저 대사한 뒤 재처리 여부를 결정한다.
+
+## 36. 승인 Shell 서명 검증
+
+승인 Shell은 Hash만 일치한다고 실행하지 않는다. 기본 `verificationMode`는 `SIGNATURE`이며 Catalog에 다음을 둔다.
+
+- SHA-256
+- Detached Signature
+- `signatureKeyId`
+- `SHA256/384/512withRSA` 또는 `...withECDSA` Algorithm
+- 제품 Trust Store의 공개키 또는 X.509 인증서 Chain
+
+검증기는 Artifact Hash와 Signature를 모두 확인하고, 신뢰되지 않은 Key·허용되지 않은 Algorithm·잘못된 Encoding·약한 MD5/SHA1 인증서 Chain을 거부한다. 서명 저장소나 Trust Store를 읽을 수 없을 때 Hash-only로 자동 하향하지 않고 안전 차단한다.
+
+## 부록 Z. 구현 추적 시작점
+
+문서의 설명을 완료 근거로 사용하지 않는다. 아래 경로에서 실제 Consumer·구현·설정·SQL·Test 연결을 확인한다. 경로가 이동했다면 `git ls-files`와 `git grep -n`으로 최신 Owner를 다시 찾는다.
+
+| 추적 대상 | 대표 경로 또는 명령 | 확인 목적 |
+|---|---|---|
+| Public Contract | `cpf-batch/contract/src/main/java/com/cpf/batch/api/`, `cpf-batch/contract/src/main/java/com/cpf/batch/spi/FileProcessHandler.java` | Job Definition·Control Port·FILE_PROCESS SPI |
+| Control Server | `cpf-batch/control-server/src/main/java/com/cpf/batch/control/job/BatchJobDefinitionController.java` | 검증·Draft·승인 게시·상태 전이 |
+| Scheduler | `cpf-batch/scheduler/src/main/java/com/cpf/batch/scheduler/BatchProjectionScheduleSynchronizer.java` | 승인 Projection과 Schedule 동기화 |
+| Worker | `BatchRuntimeExecutorRegistry.java`, `BatchFileProcessHandlerRegistry.java`, `JobPackDispatcher.java` | Typed 실행기·Processor 선택과 Dispatch |
+| Attempt Ledger | `JdbcWorkerExecutionRepository.java`, Vendor `worker-attempt-*.sql` | 실행 시도 기록·완료·재시도 |
+| Remote File/Shell | `ApprovedFileExecutor.java`, `JcaScriptArtifactVerifier.java`와 관련 Test | 승인 Artifact 전송·Hash·Signature·실행 |
+
+### Z.1 공통 확인 명령
+
+```powershell
+git status --short
+git diff --check
+git grep -n "TODO\|UnsupportedOperationException\|return null" -- ':!cpf-docs/archive/**'
+pwsh -File .\cpf-tools\scripts\check-architecture-ownership.ps1
+pwsh -File .\cpf-tools\scripts\check-document-links.ps1
+pwsh -File .\cpf-tools\scripts\check-repository-hygiene.ps1
+```
+
+명령이 현재 Repository에 존재하지 않거나 Parameter가 달라졌다면 해당 Tool Source와 [도구 상세 참조](CPF_TOOL_REFERENCE.md)를 먼저 갱신한다.
+
+### Z.2 완료 상태 사용
+
+- **완료**: 구현·Consumer·운영 경로·검증·Evidence가 현재 Commit에서 확인됨
+- **부분 구현**: 일부 계층 또는 실패·복구·운영 경로가 빠짐
+- **미구현**: 제품 동작이 없음
+- **미검증**: 구현은 있으나 요구된 실행 검증을 수행하지 않음
+- **실패**: 검증을 수행했으나 기대 결과를 충족하지 못함
+- **재확인 필요**: Source·문서·Evidence 또는 환경이 서로 달라 현재 상태를 확정할 수 없음

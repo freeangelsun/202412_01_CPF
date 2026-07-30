@@ -8,6 +8,28 @@
 
 ---
 
+
+## 0. 문서 계약
+
+| 항목 | 기준 |
+|---|---|
+| 기준 Source | `master` / `b7c6146e952c10b885952fa2bc6b6786f4611d86` |
+| Owner | 실행 Owner는 `cpf-gateway`; 운영 진입점은 `cpf-admin` |
+| 이 문서로 완료하는 일 | Server Group·Binding을 검증·승인·적용하고 Connection Test·ACK·Partial Apply·Drift·Rollback·Ledger를 운영한다. |
+| 적용 범위 | ADM Gateway API, Gateway Internal Control, Registry, Route Runtime, Ledger, Health |
+| 주요 독자 | Gateway 운영자, 경로 설계자, 승인자, 보안 관리자 |
+| 완료 판정 | Source·API·SQL·Config·Test·Runtime·Evidence 중 해당 범위가 실제로 연결되고 검증돼야 한다. |
+
+### 0.1 읽는 순서
+
+1. 책임 경계와 상태 모델을 먼저 확인한다.
+2. 정상 절차를 수행하기 전에 권한·설정·데이터베이스·다중 인스턴스 영향을 확인한다.
+3. 오류·부분 실패·복구 절차와 완료 점검을 같은 작업 범위로 수행한다.
+4. 직접 실행하지 않은 검증은 `완료`로 기록하지 않는다.
+
+---
+
+
 ## 1. 목적
 
 CPF 게이트웨이는 외부 채널의 공통 진입 정책이 필요한 환경에서 사용하는 선택형 Edge 제품이다. 내부 업무 호출을 무조건 게이트웨이로 재경유시키지 않으며, 외부 공개와 경로 선택을 안전하게 통제한다.
@@ -128,7 +150,7 @@ DRAFT
 
 ## 9. 헤더 정책
 
-Inbound:
+수신:
 
 - 표준 헤더 생성/검증
 - 허용 헤더만 승계
@@ -138,7 +160,7 @@ Inbound:
 - Client IP 신뢰 경계
 - Content Type와 길이
 
-Outbound:
+발신:
 
 - Hop-by-hop 헤더 제거
 - 내부 인증정보 노출 금지
@@ -169,7 +191,7 @@ ADM에서 게이트웨이 내부 제어 API를 호출할 때는 일반 사용자
 - API Key 참조
 - 기관 전용 인증 SPI
 
-인증정보 원문은 설정나 로그에 저장하지 않는다.
+인증정보 원문은 설정이나 로그에 저장하지 않는다.
 
 ## 11. 호출량 제한과 Quota
 
@@ -223,7 +245,7 @@ ADM에서 게이트웨이 내부 제어 API를 호출할 때는 일반 사용자
 
 ## 15. 연결시험
 
-연결시험은 실제 Network 단계를 수행한다.
+연결시험은 실제 네트워크 단계를 수행한다.
 
 ```text
 DNS
@@ -422,7 +444,7 @@ ADM 게이트웨이 화면은 조회 API 외에 운영 상태 스트림을 구�
 - 시간 제한
 - 재시도
 - Failover
-- Non-idempotent Unknown
+- 비멱등 요청의 결과 불명
 - TLS 실패
 - Auth 실패
 - 호출량 제한
@@ -442,6 +464,222 @@ ADM 게이트웨이 화면은 조회 API 외에 운영 상태 스트림을 구�
 - [ ] 일부 적용과 정본 불일치를 운영할 수 있다.
 - [ ] 거래와 시도가 실행 환경 호출에 연결된다.
 - [ ] 결과 불명과 대사가 있다.
+
+## 29. 실제 운영 API 지도
+
+ADM은 Gateway 데이터베이스를 직접 수정하지 않고 `CpfGatewayRegistryPort`를 통해 Gateway 소유 실행 환경을 제어한다. 운영 절차의 시작점은 다음 API다.
+
+| 목적 | Method와 경로 | 핵심 입력·판정 |
+|---|---|---|
+| 설치·연결 확인 | `GET /adm/api/gateway-registry/capability` | `installed`, `available`, `status`, 지원 Protocol·상태 코드 |
+| 운영 요약 | `GET /adm/api/gateway-registry/operations/snapshot` | 거래·오류·결과 불명·정본 불일치·Spool·연결시험 상태 |
+| 증분 운영 사건 | `GET /adm/api/gateway-registry/operations/events` | `afterEventId`, `limit` |
+| 서버 그룹 조회·저장 | `GET/POST /adm/api/gateway-registry/server-groups` | 환경·서비스·Protocol·선택 정책·Member·Version |
+| 바인딩 조회·저장 | `GET/POST /adm/api/gateway-registry/bindings` | Route·Server Group·정책·유효기간·Version |
+| 상태 전이 | `POST /adm/api/gateway-registry/bindings/{id}/state` | 제한된 Draft 전이만 허용. `APPROVED`·`ACTIVE`·`BLOCKED`·`RETIRED`는 Approval Owner 실행 API 사용 |
+| 인스턴스별 적용 | `GET /adm/api/gateway-registry/bindings/{id}/apply-status` | 기대·적용 Version, 상태, 오류 코드, 마지막 확인 시각 |
+| 연결시험 요청 | `POST /adm/api/gateway-registry/bindings/{id}/connection-tests` | 시험 유형·사유·만료 시각·Operation ID |
+| 연결시험 추적 | `GET /adm/api/gateway-registry/connection-test-operations/{operationId}` | 대기·실행·완료·취소·만료 상태 |
+| 재검증·취소 | `POST .../{operationId}/revalidate`, `POST .../{operationId}/cancel` | 새 Operation ID 또는 기대 Version과 사유 |
+| 폐기 | `DELETE /server-groups/{id}`, `DELETE /bindings/{id}` | 일반 API는 `409`로 거부. Approval Owner 실행 API에서만 수행 |
+
+`requestedBy`는 Request Body 값을 신뢰하지 않고 검증된 ADM 운영자 문맥으로 다시 설정한다. 운영 API를 직접 호출할 때도 사용자 ID를 임의로 넣어 권한 검사를 우회할 수 없다.
+
+## 30. 서버 그룹 등록 예제
+
+다음은 운영 환경의 HTTPS 대상 두 개를 순차 순환 방식으로 묶는 예다. 신규 생성은 `expectedVersion`을 `null`로 두고, 수정은 조회한 현재 Version을 전달한다.
+
+```json
+{
+  "operationId": "gw-sg-pay-20260730-001",
+  "serverGroupId": "PAY-API-PROD",
+  "groupName": "결제 API 운영 대상군",
+  "environmentCode": "PROD",
+  "serviceId": "PAY",
+  "endpointCode": "PAY-API",
+  "targetProtocol": "HTTPS",
+  "loadBalancePolicy": "ROUND_ROBIN",
+  "hashKeySource": "",
+  "healthPolicyId": "HP-PAY-API",
+  "failoverGroupId": "PAY-API-DR",
+  "directAllowed": false,
+  "members": [
+    {"instanceId": "pay-api-01", "weight": 100, "priority": 1, "canaryPercent": 0, "enabled": true},
+    {"instanceId": "pay-api-02", "weight": 100, "priority": 1, "canaryPercent": 0, "enabled": true}
+  ],
+  "expectedVersion": null,
+  "reason": "운영 결제 API 대상군 최초 등록"
+}
+```
+
+정상 응답은 `resourceType`, `resourceId`, `status`, `version`, `changedAt`을 가진다. 응답 Version을 다음 수정의 `expectedVersion`으로 사용한다. 같은 Operation ID를 다시 보냈을 때의 의미는 Owner 구현의 멱등성 계약과 감사 이력으로 확인한다.
+
+### 30.1 등록 전 확인
+
+1. `serviceId`와 `endpointCode`가 서비스 등록부에 존재하는지 확인한다.
+2. Member 인스턴스가 운영 환경에 속하고 점검·배수 상태가 아닌지 확인한다.
+3. `WEIGHTED_ROUND_ROBIN`을 사용하면 모든 Weight가 양수인지 확인한다.
+4. `RENDEZVOUS_HASH`를 사용하면 `hashKeySource`가 실제 표준 Header 또는 요청 Key를 가리키는지 확인한다.
+5. 우선순위 장애 전환을 사용하면 주 대상군과 장애 전환 대상군의 순환 참조를 차단한다.
+
+## 31. 바인딩 Draft 예제와 게시 Gate
+
+```json
+{
+  "operationId": "gw-binding-pay-v1-001",
+  "bindingId": "PAY-API-V1-PROD",
+  "route": {
+    "standardExecutionId": "OPAY000101",
+    "serviceId": "PAY",
+    "httpMethod": "POST",
+    "endpoint": "/internal/payments/v1",
+    "operationId": "createPayment",
+    "requiredPermission": "PAYMENT_CREATE",
+    "auditReasonRequired": false,
+    "routeVersion": "1",
+    "routeId": "PAY-CREATE-V1",
+    "environmentCode": "PROD",
+    "hostPattern": "api.example.internal",
+    "pathPattern": "/partner/v1/payments",
+    "apiVersion": "v1",
+    "serverGroupId": "PAY-API-PROD",
+    "ingressProtocol": "HTTPS",
+    "targetProtocol": "HTTPS",
+    "tlsPolicyId": "TLS-PROD-INTERNAL",
+    "authenticationPolicyId": "AUTH-OIDC-PARTNER",
+    "authorizationPolicyId": "AUTHZ-PAY-CREATE",
+    "headerPolicyId": "HDR-CPF-STANDARD",
+    "rateLimitPolicyId": "RATE-PAY-PARTNER",
+    "healthPolicyId": "HP-PAY-API",
+    "connectTimeoutMs": 3000,
+    "responseTimeoutMs": 10000,
+    "overallTimeoutMs": 15000,
+    "maxRetryCount": 0,
+    "idempotent": false,
+    "failoverGroupId": "PAY-API-DR",
+    "enabled": true,
+    "expectedVersion": 0
+  },
+  "serverGroupId": "PAY-API-PROD",
+  "gatewayAllowed": true,
+  "directAllowed": false,
+  "approvalId": null,
+  "effectiveFrom": "2026-07-31T00:00:00+09:00",
+  "effectiveTo": null,
+  "expectedVersion": null,
+  "reason": "결제 생성 API 운영 경로 Draft 등록"
+}
+```
+
+Route 계약은 다음을 서버에서 강제한다.
+
+- 연결·응답·전체 시간 제한은 모두 양수여야 한다.
+- 전체 시간 제한은 연결·응답 시간 제한보다 작을 수 없다.
+- 재시도 횟수가 1 이상이면 `idempotent=true`여야 한다.
+- HTTPS 또는 gRPC Ingress에는 `tlsPolicyId`가 필요하다.
+- 활성 Route에는 `serverGroupId`가 필요하다.
+
+Draft 저장 뒤에는 `VALIDATED → APPROVAL_PENDING → APPROVED → ACTIVE` 흐름을 따른다. 일반 상태 전이 API는 `APPROVED`, `ACTIVE`, `BLOCKED`, `RETIRED`를 거부하고 Server Group·Binding 폐기도 직접 수행하지 않는다. 이 조치는 작성자·승인자 분리, 승인 Snapshot과 Payload Hash를 검증하는 ADM Approval Owner 실행 API에서만 수행한다.
+
+## 32. 일부 적용 복구 Runbook
+
+1. `GET /bindings/{id}/apply-status`로 기대 Version, 적용 Version, 상태, 오류 코드를 인스턴스별로 수집한다.
+2. `operations/snapshot`에서 정본 불일치 수, 실패 연결시험 수와 Spool 적체를 함께 확인한다.
+3. 적용 실패가 정책 검증 오류라면 확대 적용을 즉시 중단하고 Draft를 수정하거나 검증된 이전 Version으로 되돌린다.
+4. 특정 인스턴스의 파일·Secret·TLS·네트워크 오류라면 그 인스턴스를 배수하고 원인을 복구한다.
+5. 오래된 ACK는 Version과 Fencing Token 불일치로 제외하고 현재 소유 인스턴스의 재적용 결과만 수용한다.
+6. 재적용 후 Checksum, 실제 경로 동작과 연결시험 결과를 확인한다.
+7. 일부 적용 기간에 처리된 거래는 `bindingVersion`, 대상 Instance와 Attempt 단위로 조회해 대사한다.
+8. 모든 인스턴스가 기대 Version을 적용하고 거래 이상이 없을 때만 사고를 종료한다.
+
+### 32.1 완료 증적
+
+- Binding ID와 기대 Version
+- 승인 ID와 승인 Payload Hash
+- Instance별 적용 전·후 상태
+- 연결시험 Operation과 결과
+- 재적용 또는 되돌리기 명령
+- 일부 적용 기간의 거래 조회 결과
+- 행위자·사유·승인·감사 ID
+
+## 33. 실패 응답 해석
+
+| 상황 | 대표 HTTP 의미 | 운영 판단 |
+|---|---|---|
+| Path와 Body ID 불일치 | `400` | 입력 오류. 재시도 전에 요청 수정 |
+| 일반 API로 승인·활성·차단·폐기 요청 | `409` | Approval Owner 실행 경로를 사용 |
+| Gateway Provider 미구성 | `503` | 설치·연결 상태 확인. 임의 Local 대체 금지 |
+| 운영자 문맥 없음 | `401` | 인증 Session과 제어 채널 확인 |
+| 기대 Version 불일치 | `409` | 최신 상태를 다시 읽고 충돌 해결 |
+| 연결시험 만료 | 상태 코드로 표현 | 새 Operation ID로 재검증 |
+| 요청 전달 후 응답 유실 | `UNKNOWN_RESULT` | 자동 재시도하지 않고 대상 업무 결과 대사 |
+
+## 34. 수신 경로와 대상 경로 분리
+
+Gateway Route는 외부에서 수신하는 `pathPattern`과 소유 시스템에 전달하는 대상 경로를 분리한다. 현재 공개 계약에서 `CpfGatewayRoute.endpoint`는 Source 호환용 이름이며 `targetPath()`가 같은 값을 대상 경로로 제공한다.
+
+```text
+수신:  /partner/v1/payments/{paymentId}
+대상:  /internal/payments/v1/{paymentId}
+```
+
+경로 재작성기는 수신 Pattern에서 변수 또는 Wildcard를 추출해 대상 Template의 같은 Token에만 주입한다. 다음 입력은 소유 시스템 호출 전에 차단한다.
+
+- `%2e`, `%2f`, `%5c`, Null·CR·LF 같은 인코딩 우회
+- Backslash, 제어 문자, `.`·`..` Segment
+- 대상 Template에 남은 미해석 `{token}` 또는 `*`
+- `/`로 시작하지 않는 Pattern·대상 경로
+
+`pathPattern`과 대상 경로를 같게 두는 것은 허용되지만, 외부 공개 경로와 내부 API 경로가 다르면 반드시 둘을 명시적으로 분리한다. 경로 변경은 연결시험의 `GATEWAY_E2E` 유형으로 실제 Gateway 수신부터 대상 응답 계약까지 검증한다.
+
+## 35. 소유 제어 요청 서명 정본
+
+ADM과 Gateway Owner 사이 제어 요청은 다음 값을 줄바꿈으로 연결한 Canonical 문자열을 HMAC-SHA256으로 서명한다.
+
+```text
+HTTP method
+request target
+normalized content-type
+request body SHA-256
+caller service
+verified operator ID
+timestamp epoch millis
+nonce
+audience
+key ID
+```
+
+정본 Header는 `CpfGatewayControlHeaders`가 소유한다.
+
+| Header | 의미 |
+|---|---|
+| `X-CPF-Caller-Service` | 허용된 호출 서비스 |
+| `X-CPF-Operator-Id` | 검증된 운영자 |
+| `X-CPF-Gateway-Control-Timestamp` | 요청 시각 |
+| `X-CPF-Gateway-Control-Nonce` | 재생 방지 값 |
+| `X-CPF-Gateway-Control-Content-SHA256` | Body Hash |
+| `X-CPF-Gateway-Control-Audience` | 대상 Gateway 환경·제품 |
+| `X-CPF-Gateway-Control-Key-Id` | 검증 Key 선택자 |
+| `X-CPF-Gateway-Control-Signature` | HMAC-SHA256 서명 |
+
+수신 측은 서명 비교만으로 끝내지 않는다. 허용 시간 오차를 확인하고 `(audience, keyId, callerId, nonce)`를 다중 인스턴스 공용 저장소에서 단 한 번만 Claim한다. Nonce 저장소 또는 보안 감사 저장소 장애를 성공으로 바꾸지 않고 안전 차단한다.
+
+## 36. 승인 Owner 경계
+
+다음 조치는 일반 Gateway Registry 편집 API의 책임이 아니다.
+
+- Binding `APPROVED`, `ACTIVE`, `BLOCKED`, `RETIRED` 전환
+- Server Group 폐기
+- Binding 폐기
+
+일반 API가 이 요청을 받으면 `409 Conflict`로 거부한다. 운영 화면은 오류를 우회하지 않고 Approval Owner 흐름으로 이동시켜 다음을 다시 확인한다.
+
+1. 현재 Version과 변경 Snapshot
+2. 요청자·승인자 분리
+3. 승인 ID와 Payload Hash
+4. 영향 경로·대상·인스턴스
+5. 중단·되돌리기 조건
+6. 실행 결과와 Audit ID
 
 ## 부록 A. 경로 게시 전 검토표
 
@@ -480,3 +718,38 @@ ADM 게이트웨이 화면은 조회 API 외에 운영 상태 스트림을 구�
 ## 부록 D. 비멱등 요청
 
 게이트웨이가 요청을 대상에 전달한 뒤 응답을 잃으면 자동 재시도하지 않는다. `operationId`와 대상 업무의 결과 조회 계약으로 실제 처리 상태를 확인하고 `UNKNOWN_RESULT`를 해소한다.
+
+## 부록 Z. 구현 추적 시작점
+
+문서의 설명을 완료 근거로 사용하지 않는다. 아래 경로에서 실제 Consumer·구현·설정·SQL·Test 연결을 확인한다. 경로가 이동했다면 `git ls-files`와 `git grep -n`으로 최신 Owner를 다시 찾는다.
+
+| 추적 대상 | 대표 경로 또는 명령 | 확인 목적 |
+|---|---|---|
+| Public Port | `CpfGatewayRegistryPort.java`, `CpfGatewayRoute.java`, `CpfGatewayLedgerPort.java` | ADM·Runtime 간 Typed Contract와 수신/대상 경로 |
+| ADM API | `AdmGatewayRegistryController.java` — `/adm/api/gateway-registry` | 조회·Draft·상태·연결시험 |
+| Owner Control | `CpfGatewayRegistryInternalController.java`, `CpfGatewayControlSigner.java`, `CpfGatewayControlNoncePort.java` | Canonical 서명·Audience·다중 인스턴스 Nonce Claim |
+| Runtime Sync | `CpfGatewayRouteSynchronizer.java`, `CpfGatewayRouteRuntimeApplier.java`, `CpfGatewayPathRewriter.java` | Version·Checksum·Atomic Apply·안전한 대상 경로 재작성 |
+| Health/Test | `CpfGatewayProbeExecutor.java`, `CpfGatewayHealthWorker.java`, `CpfGatewayConnectionTestWorker.java` | 실제 Probe·`GATEWAY_E2E` 연결시험 |
+| Ledger | `DurableCpfGatewayLedgerAdapter.java` | 거래·Attempt 영속 원장 |
+
+### Z.1 공통 확인 명령
+
+```powershell
+git status --short
+git diff --check
+git grep -n "TODO\|UnsupportedOperationException\|return null" -- ':!cpf-docs/archive/**'
+pwsh -File .\cpf-tools\scripts\check-architecture-ownership.ps1
+pwsh -File .\cpf-tools\scripts\check-document-links.ps1
+pwsh -File .\cpf-tools\scripts\check-repository-hygiene.ps1
+```
+
+명령이 현재 Repository에 존재하지 않거나 Parameter가 달라졌다면 해당 Tool Source와 [도구 상세 참조](CPF_TOOL_REFERENCE.md)를 먼저 갱신한다.
+
+### Z.2 완료 상태 사용
+
+- **완료**: 구현·Consumer·운영 경로·검증·Evidence가 현재 Commit에서 확인됨
+- **부분 구현**: 일부 계층 또는 실패·복구·운영 경로가 빠짐
+- **미구현**: 제품 동작이 없음
+- **미검증**: 구현은 있으나 요구된 실행 검증을 수행하지 않음
+- **실패**: 검증을 수행했으나 기대 결과를 충족하지 못함
+- **재확인 필요**: Source·문서·Evidence 또는 환경이 서로 달라 현재 상태를 확정할 수 없음

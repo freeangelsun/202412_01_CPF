@@ -131,6 +131,34 @@ CPF 문서는 목적에 따라 분리합니다.
 
 ---
 
+## 상세 가이드의 품질 기준
+
+CPF 상세 가이드는 개념을 설명하는 문서에서 끝나지 않는다. 독자가 실제 작업을 완료하고 실패를 복구하며 검증 증적을 남길 수 있어야 한다.
+
+| 단계 | 가이드가 제공해야 하는 내용 |
+|---|---|
+| 문서 계약 | 대상, Owner, 적용 범위, 이 문서로 완료할 일, 완료 판정 |
+| 책임 경계 | Public API·SPI·Internal, 데이터 Owner, 실제 Consumer, Transaction 경계 |
+| 실행 준비 | 권한, Profile, Secret Reference, DB, Artifact, Network, 승인 |
+| 정상 절차 | 명령·API·입력·예상 결과·상태 전이 |
+| 오류와 부분 실패 | Validation, 권한, Version 충돌, Timeout, 일부 적용, 결과 불명 |
+| 복구 | Retry, Replay, Reconcile, Compensation, Rollback, Forward Fix |
+| 운영 | 조회 Key, 상태, 원인, 위험 조치, 사유, 승인, 감사 |
+| 추적 | Source, Controller, Port, Config, SQL, Test와 Generator 영향 |
+| 검증 | Unit, Integration, Runtime, Fault, Browser, Multi-instance, DB Vendor |
+| Evidence | 기준 Commit, 정확한 명령, 환경, 시각, 실제 결과, Sanitizing |
+
+### 가이드를 읽을 때 구분할 것
+
+- **제품 정책**은 구현이 따라야 하는 장기 규칙이다.
+- **실행 절차**는 현재 제품에서 작업을 수행하는 순서다.
+- **참조 정보**는 정확한 Parameter, API, 상태 Code와 Source 경로다.
+- **검증 결과**는 현재 Commit과 환경에서 실제 실행된 Evidence에서만 확정한다.
+
+가이드의 설명이 Source보다 앞서거나 Source가 가이드보다 앞선 경우 `완료`가 아니라 `재확인 필요` 또는 `부분 구현`으로 다룬다.
+
+---
+
 ## 공통 문서 구성
 
 각 상세 가이드는 가능한 한 다음 순서를 따릅니다.

@@ -9,6 +9,28 @@
 ---
 
 
+## 0. 문서 계약
+
+| 항목 | 기준 |
+|---|---|
+| 기준 Source | `master` / `b7c6146e952c10b885952fa2bc6b6786f4611d86` |
+| Owner | `cpf-admin` |
+| 이 문서로 완료하는 일 | 서비스·Gateway·Batch·Log·설정·사고 상태를 연결해 조회하고, 권한·사유·승인·감사와 함께 안전한 운영 명령을 실행한다. |
+| 적용 범위 | ADM 조회·제어 API, 운영 Frontend, 승인·감사, 원격 Owner Port |
+| 주요 독자 | 플랫폼 운영자, 관제 담당자, 승인자, 사고 대응자 |
+| 완료 판정 | Source·API·SQL·Config·Test·Runtime·Evidence 중 해당 범위가 실제로 연결되고 검증돼야 한다. |
+
+### 0.1 읽는 순서
+
+1. 책임 경계와 상태 모델을 먼저 확인한다.
+2. 정상 절차를 수행하기 전에 권한·설정·데이터베이스·다중 인스턴스 영향을 확인한다.
+3. 오류·부분 실패·복구 절차와 완료 점검을 같은 작업 범위로 수행한다.
+4. 직접 실행하지 않은 검증은 `완료`로 기록하지 않는다.
+
+---
+
+
+
 <picture>
   <source media="(max-width: 720px)" srcset="../assets/readme/cpf-operations-mobile.png">
   <img src="../assets/readme/cpf-operations-desktop.png" alt="CPF 플랫폼 운영과 업무 관리" width="100%">
@@ -494,3 +516,83 @@ Alert
 ### 결과 불명 거래
 
 `거래 타임라인 → 대상 호출 시도 → 업무 원장·상태 조회 → 최종 상태 확정 → 재처리·보상 → 사용자 통지 → 감사`
+
+## 27. 공통 운영 명령 절차
+
+모든 위험 조치는 같은 순서를 사용한다.
+
+1. 대상과 현재 Version을 다시 조회한다.
+2. 거래·호출·Batch·배포 영향과 대체 용량을 확인한다.
+3. 필요한 Permission과 작성자·승인자 분리 여부를 확인한다.
+4. 구체적인 사유와 Incident·Change ID를 입력한다.
+5. 상태 Snapshot과 기대 Version으로 명령을 제출한다.
+6. ADM 수신 성공이 아니라 Owner 실행 환경의 처리 결과를 확인한다.
+7. 일부 실패, 결과 불명 또는 오래된 응답을 별도 상태로 분류한다.
+8. 실제 거래와 상태를 대사하고 되돌리기 가능 여부를 확인한다.
+9. 행위자·대상·전후·사유·승인·결과·오류·시각을 감사한다.
+
+## 28. 대표 운영 시나리오
+
+### 28.1 서비스 Instance 배수
+
+`상태 점검과 서비스 등록부` 가이드의 API로 Instance를 조회하고 `DRAIN`을 요청한다. 신규 배정 중단, 실행 중 요청 종료, 결과 불명 대사, 배포·점검, Readiness 확인과 `RESUME`까지 하나의 작업으로 처리한다.
+
+### 28.2 Gateway 일부 적용
+
+Binding의 기대·적용 Version과 인스턴스별 오류를 조회한다. 확대를 중단하고 실패 인스턴스를 배수한 뒤 정책·Secret·TLS·파일 문제를 복구한다. 재적용·연결시험·거래 대사를 수행하고 Stale ACK를 제외한다.
+
+### 28.3 Batch Worker 인계
+
+Execution·Attempt·Worker·Lease·Fencing을 조회한다. Lease가 살아 있으면 중복 Claim을 금지하고, 만료 뒤 새 Worker가 인계한다. 과거 Worker의 늦은 완료는 차단하며 업무 결과가 불명확하면 재실행 전에 대사한다.
+
+### 28.4 로그 반출
+
+원문을 Browser에서 직접 복사하지 않는다. `/adm/api/log-exports`에 대상 Log ID, 동작과 사유를 제출하고 서버가 마스킹한 Clipboard 내용 또는 만료 Artifact만 사용한다. 반출과 다운로드를 감사한다.
+
+## 29. 운영 화면 오류 표시 기준
+
+| 상태 | 화면 표시 | 허용 조치 |
+|---|---|---|
+| `401` | Session 만료·재인증 필요 | 재로그인. 입력한 위험 조치 자동 재전송 금지 |
+| `403` | 필요한 Permission과 요청 대상 | 권한 신청·승인 경로 안내 |
+| `409` | 현재 Version·요청 Version·변경자 | 새 상태 비교 후 재작성 |
+| `429` | 제한 정책과 재시도 가능 시각 | 자동 폭주 방지 |
+| `503` | Owner 실행 환경 미설치·연결 불가 | Local 성공처럼 표시 금지 |
+| `PARTIAL` | 성공·실패 Instance와 원인 | 확대 중단·재적용·되돌리기 |
+| `UNKNOWN_RESULT` | 대사 필요와 조회 Key | 무조건 재시도 금지 |
+
+Loading, Empty, Error와 권한 없음 상태를 같은 빈 화면으로 표현하지 않는다. 오래된 응답이 최신 검색 결과나 명령 결과를 덮어쓰지 못하게 요청 Sequence를 확인한다.
+
+## 부록 Z. 구현 추적 시작점
+
+문서의 설명을 완료 근거로 사용하지 않는다. 아래 경로에서 실제 Consumer·구현·설정·SQL·Test 연결을 확인한다. 경로가 이동했다면 `git ls-files`와 `git grep -n`으로 최신 Owner를 다시 찾는다.
+
+| 추적 대상 | 대표 경로 또는 명령 | 확인 목적 |
+|---|---|---|
+| ADM API | `cpf-admin/src/main/java/com/cpf/admin/opr/` | 운영 Controller·Service·Adapter |
+| Gateway Remote Port | `cpf-admin/src/main/java/com/cpf/admin/opr/gateway/RemoteCpfGatewayRegistryAdapter.java` | ADM에서 Gateway Owner 제어 |
+| Batch Remote Port | `cpf-admin/src/main/java/com/cpf/admin/opr/batch/RemoteBatchJobDefinitionControlAdapter.java` | ADM에서 BAT Owner 제어 |
+| 운영 Frontend | `cpf-admin/frontend/src/features/` | 조회·제어·승인·오류 UI |
+| 감사 | `AdmAuditLogService` 사용 지점 | 행위자·대상·사유·전후·결과 기록 |
+
+### Z.1 공통 확인 명령
+
+```powershell
+git status --short
+git diff --check
+git grep -n "TODO\|UnsupportedOperationException\|return null" -- ':!cpf-docs/archive/**'
+pwsh -File .\cpf-tools\scripts\check-architecture-ownership.ps1
+pwsh -File .\cpf-tools\scripts\check-document-links.ps1
+pwsh -File .\cpf-tools\scripts\check-repository-hygiene.ps1
+```
+
+명령이 현재 Repository에 존재하지 않거나 Parameter가 달라졌다면 해당 Tool Source와 [도구 상세 참조](CPF_TOOL_REFERENCE.md)를 먼저 갱신한다.
+
+### Z.2 완료 상태 사용
+
+- **완료**: 구현·Consumer·운영 경로·검증·Evidence가 현재 Commit에서 확인됨
+- **부분 구현**: 일부 계층 또는 실패·복구·운영 경로가 빠짐
+- **미구현**: 제품 동작이 없음
+- **미검증**: 구현은 있으나 요구된 실행 검증을 수행하지 않음
+- **실패**: 검증을 수행했으나 기대 결과를 충족하지 못함
+- **재확인 필요**: Source·문서·Evidence 또는 환경이 서로 달라 현재 상태를 확정할 수 없음

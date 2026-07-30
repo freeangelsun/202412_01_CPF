@@ -8,6 +8,28 @@
 
 ---
 
+
+## 0. 문서 계약
+
+| 항목 | 기준 |
+|---|---|
+| 기준 Source | `master` / `b7c6146e952c10b885952fa2bc6b6786f4611d86` |
+| Owner | 기능별 Owner Module |
+| 이 문서로 완료하는 일 | Requirement에서 Source·API·SQL·Test·운영·Evidence까지 하나의 완료 단위로 설계·구현·검증한다. |
+| 적용 범위 | 모든 CPF 공식 Module과 생성 업무영역의 개발 흐름 |
+| 주요 독자 | 업무 개발자, Framework 개발자, Reviewer, Test 개발자 |
+| 완료 판정 | Source·API·SQL·Config·Test·Runtime·Evidence 중 해당 범위가 실제로 연결되고 검증돼야 한다. |
+
+### 0.1 읽는 순서
+
+1. 책임 경계와 상태 모델을 먼저 확인한다.
+2. 정상 절차를 수행하기 전에 권한·설정·데이터베이스·다중 인스턴스 영향을 확인한다.
+3. 오류·부분 실패·복구 절차와 완료 점검을 같은 작업 범위로 수행한다.
+4. 직접 실행하지 않은 검증은 `완료`로 기록하지 않는다.
+
+---
+
+
 ## 1. 문서 목적
 
 이 문서는 CPF를 사용해 업무 서비스를 설계·개발·검증하는 전체 절차를 정의한다. 단순한 코드 작성법이 아니라 다음을 일관되게 유지하는 것이 목표다.
@@ -145,7 +167,7 @@ test
 
 ## 6. 표준 거래 문맥
 
-모든 Inbound 흐름은 표준 헤더를 해석하고 거래 문맥을 만든다.
+모든 수신 흐름은 표준 헤더를 해석하고 거래 문맥을 만든다.
 
 ```text
 요청 수신
@@ -410,7 +432,7 @@ Generated Bundle만 수동 수정하지 않는다.
 - 필요한 권한
 - 입력 필드와 제약
 - 정상 응답
-- 검증/충돌/권한 없음/Unknown 오류
+- 검증·충돌·권한 없음·결과 불명 오류
 - 멱등성 키
 - 버전
 - 대표 예제
@@ -543,3 +565,101 @@ CREATED → APPROVING → APPROVED
 | 인스턴스 교체 뒤 늦은 완료가 반영됨 | 임대 만료, 세대 토큰 비교 | 갱신·완료 조건에 세대 토큰 포함 |
 | 운영 화면에 거래가 끊겨 보임 | 문맥 전달, 비동기 봉투, 추적 식별자 | 경계마다 `transactionId`·`segmentId` 기록 |
 | 오류 응답에 내부 정보 노출 | 예외 변환, 로그와 공개 메시지 분리 | 공개 오류 코드와 마스킹 메시지 사용 |
+
+## 23. 하나의 기능을 완료하는 구현 순서
+
+예를 들어 `결제 결과 조회` 기능을 추가한다면 다음 순서로 진행한다.
+
+1. Requirement ID, 완료 조건, Owner Domain과 실제 Consumer를 기록한다.
+2. Local·Remote·Async 중 필요한 호출 구성을 정하고 동일 의미의 공개 계약을 설계한다.
+3. Request·Response·Error·Header·Idempotency·Version 계약을 먼저 작성한다.
+4. Application Service와 Domain 상태 전이를 구현하고 Infrastructure 예외를 표준 오류로 변환한다.
+5. Owner DB의 정본 Schema, Migration, Rollback, 공급자 3종과 Mapper를 함께 변경한다.
+6. Controller/OpenAPI와 Local·Remote Adapter를 연결한다.
+7. 권한·사유·승인·감사·마스킹과 운영 조회 Key를 적용한다.
+8. Generator Golden Template과 `cpf-member`, `cpf-reference` 영향을 검토한다.
+9. 정상·검증·권한·충돌·시간 제한·결과 불명·다중 인스턴스 Test를 작성한다.
+10. 저비용 Gate를 통과시키고 필요한 Runtime·DB·Browser 검증 증적을 만든다.
+
+## 24. 구현 완료를 금지하는 징후
+
+- Interface만 있고 기본 구현이나 실제 Consumer가 없다.
+- Remote Adapter만 있고 같은 JVM 경로가 다른 오류·Header 의미를 사용한다.
+- 재시도가 있으나 멱등성·시간 예산·최대 횟수가 없다.
+- 결과 불명을 단순 실패로 바꾸거나 무조건 재실행한다.
+- Controller가 Request Body의 `requestedBy`를 신뢰한다.
+- 운영 화면은 성공 메시지를 표시하지만 Owner 실행 환경의 결과를 확인하지 않는다.
+- DB Migration만 있고 Fresh Install·Rollback·Generator 반영이 없다.
+- 한 공급자 SQL만 실행하고 나머지는 복사본으로 완료 처리한다.
+- Sample Test만 통과하고 부분 실패·다중 인스턴스·권한 Test가 없다.
+- 과거 Commit의 Evidence를 현재 변경의 성공 근거로 사용한다.
+
+## 25. Local·Remote 계약 동등성 검토표
+
+| 계약 | Local | Remote | 검증 |
+|---|---|---|---|
+| 표준 Header | 실행 문맥에서 직접 전달 | HTTP/gRPC Header로 직렬화 | 동일 필수값·검증 오류 |
+| 인증·권한 | Principal 문맥 | 서명·Token·mTLS 등 | 행위자와 권한 결과 동일 |
+| 시간 예산 | Deadline 전달 | 연결·응답·전체 제한 | 남은 예산 감소 의미 동일 |
+| 오류 | 표준 Exception/Result | Transport 오류 매핑 | 외부 계약 코드 동일 |
+| 멱등성 | Repository/Service 보호 | Header·Request Key 전달 | 중복·충돌 결과 동일 |
+| 추적 | 같은 Trace Context | W3C/표준 Header 전달 | Segment 부모·자식 연결 |
+| 결과 불명 | 경계 실패 시 드묾 | 응답 유실·시간 제한 | 대사 계약과 상태 동일 |
+
+## 26. Review 질문
+
+- 이 추상화는 실제로 둘 이상의 Consumer가 필요로 하는가?
+- Owner가 아닌 Module이 데이터나 내부 구현을 직접 알고 있지 않은가?
+- 정상 경로보다 오류·취소·중복·재시작 경로가 더 위험하지 않은가?
+- 다중 인스턴스에서 늦은 완료와 오래된 Version을 차단하는가?
+- 운영 기능 실패가 원 거래 Transaction을 오염시키지 않는가?
+- 문서의 예제가 실제 Public API와 Generator 결과를 사용하는가?
+- 변경을 제거했을 때 남는 Dead Code·Config·SQL·Route·Evidence는 없는가?
+
+## 27. 시도 원장과 확장 SPI 구현 기준
+
+### 서비스 호출 Attempt Observer
+
+Retry·Failover를 구현할 때 최종 Exception만 기록하지 않는다. `CpfServiceCallAttempt`를 사용해 대상, 시도 번호, 장애 전환, 상태·소요시간·실패 코드·결과 불명을 Observer에 전달한다. Observer는 원 호출의 성공·실패 의미를 바꾸지 않지만 기록 유실과 Spool 적체를 운영 가능하게 노출해야 한다.
+
+### FILE_PROCESS Handler
+
+업무 파일 처리기는 `FileProcessHandler` SPI를 구현하고 고정 `processorId()`를 반환한다. Worker가 전달한 Claim 경로·Hash·Definition Checksum·Fencing Token을 신뢰 경계로 사용한다. Handler가 임의 경로를 다시 조합하거나 Claim 전 파일을 처리하지 않는다.
+
+### Gateway 경로 재작성
+
+외부 수신 `pathPattern`과 내부 `targetPath()`를 분리하고 `CpfGatewayPathRewriter`의 검증 규칙을 사용한다. URL Decode 순서가 다른 자체 정규화 코드를 추가해 Traversal 차단을 약화시키지 않는다.
+
+## 부록 Z. 구현 추적 시작점
+
+문서의 설명을 완료 근거로 사용하지 않는다. 아래 경로에서 실제 Consumer·구현·설정·SQL·Test 연결을 확인한다. 경로가 이동했다면 `git ls-files`와 `git grep -n`으로 최신 Owner를 다시 찾는다.
+
+| 추적 대상 | 대표 경로 또는 명령 | 확인 목적 |
+|---|---|---|
+| Module Map | `settings.gradle` | Owner와 의존 방향 확인 |
+| Public API/SPI | `cpf-core/src/main/java/com/cpf/core/api`, `cpf-core/src/main/java/com/cpf/core/spi` | 외부 소비 가능 계약 |
+| Generated Reference | `cpf-member`, `cpf-reference` | 생성 표준과 실제 사용 예 |
+| Architecture Gate | `check-architecture-ownership.ps1` | Internal·역방향·순환 위반 |
+| 문서 Gate | `check-document-links.ps1`, `check-source-documentation-standard.ps1` | Guide·JavaDoc·Link 정합성 |
+
+### Z.1 공통 확인 명령
+
+```powershell
+git status --short
+git diff --check
+git grep -n "TODO\|UnsupportedOperationException\|return null" -- ':!cpf-docs/archive/**'
+pwsh -File .\cpf-tools\scripts\check-architecture-ownership.ps1
+pwsh -File .\cpf-tools\scripts\check-document-links.ps1
+pwsh -File .\cpf-tools\scripts\check-repository-hygiene.ps1
+```
+
+명령이 현재 Repository에 존재하지 않거나 Parameter가 달라졌다면 해당 Tool Source와 [도구 상세 참조](CPF_TOOL_REFERENCE.md)를 먼저 갱신한다.
+
+### Z.2 완료 상태 사용
+
+- **완료**: 구현·Consumer·운영 경로·검증·Evidence가 현재 Commit에서 확인됨
+- **부분 구현**: 일부 계층 또는 실패·복구·운영 경로가 빠짐
+- **미구현**: 제품 동작이 없음
+- **미검증**: 구현은 있으나 요구된 실행 검증을 수행하지 않음
+- **실패**: 검증을 수행했으나 기대 결과를 충족하지 못함
+- **재확인 필요**: Source·문서·Evidence 또는 환경이 서로 달라 현재 상태를 확정할 수 없음

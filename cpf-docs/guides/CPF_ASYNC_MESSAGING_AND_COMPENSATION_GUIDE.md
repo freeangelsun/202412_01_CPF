@@ -9,6 +9,28 @@
 ---
 
 
+## 0. 문서 계약
+
+| 항목 | 기준 |
+|---|---|
+| 기준 Source | `master` / `b7c6146e952c10b885952fa2bc6b6786f4611d86` |
+| Owner | 공통 계약은 `cpf-core`; 업무 처리와 원장은 각 업무영역 |
+| 이 문서로 완료하는 일 | 업무 원장과 Outbox를 원자적으로 저장하고, Inbox·멱등성·Retry·DLQ·Replay·Reconcile·Compensation으로 부분 실패를 복구한다. |
+| 적용 범위 | Event Envelope, Outbox/Inbox, Broker Adapter, 독성 메시지, 결과 불명, 보상 |
+| 주요 독자 | 업무 개발자, Messaging 운영자, 장애 대응자 |
+| 완료 판정 | Source·API·SQL·Config·Test·Runtime·Evidence 중 해당 범위가 실제로 연결되고 검증돼야 한다. |
+
+### 0.1 읽는 순서
+
+1. 책임 경계와 상태 모델을 먼저 확인한다.
+2. 정상 절차를 수행하기 전에 권한·설정·데이터베이스·다중 인스턴스 영향을 확인한다.
+3. 오류·부분 실패·복구 절차와 완료 점검을 같은 작업 범위로 수행한다.
+4. 직접 실행하지 않은 검증은 `완료`로 기록하지 않는다.
+
+---
+
+
+
 <picture>
   <source media="(max-width: 720px)" srcset="../assets/readme/cpf-execution-mobile.png">
   <img src="../assets/readme/cpf-execution-desktop.png" alt="CPF 실행과 복구의 공통 흐름" width="100%">
@@ -245,7 +267,7 @@ Step A 완료
 - 명령: 특정 소비자에게 행동 요청
 - 사건: 이미 발생한 사실
 
-명령은 성공/실패/Unknown 결과 계약을 갖는다.
+명령은 성공·실패·결과 불명 계약을 갖는다.
 
 ## 19. Backpressure
 
@@ -365,3 +387,89 @@ Step A 완료
 ## 부록 D. 보상 설계
 
 보상은 DB 롤백이 아니다. 이미 외부에 확정된 업무 효과를 새로운 반대 거래로 해소한다. 보상 명령도 멱등 키, 권한, 상태 전이, 결과 불명과 감사 이력을 가져야 한다.
+
+## 28. Outbox 상태 모델
+
+| 상태 | 의미 | 허용 동작 |
+|---|---|---|
+| `PENDING` | 업무 Transaction과 함께 저장됨 | Publisher Claim |
+| `CLAIMED` | 특정 Publisher가 Lease 보유 | 전송·Lease 갱신 |
+| `PUBLISHED` | Broker ACK 확인 | 보존·정리 |
+| `RETRY_WAIT` | 재시도 가능 실패 | Backoff 뒤 재Claim |
+| `DEAD` | 자동 재시도 금지 | 운영 분석·수정·Replay 승인 |
+| `UNKNOWN` | Broker 처리 여부 미확정 | Broker/Consumer 대사 |
+
+Publisher가 Broker에 전송한 뒤 ACK를 잃으면 같은 Event ID로 재전송할 수 있어야 하며 Consumer Inbox가 중복 Side Effect를 차단해야 한다.
+
+## 29. Inbox 처리 Transaction
+
+```text
+Message 수신
+→ Envelope·Schema·권한 검증
+→ Inbox 중복 조회
+→ 미처리면 Inbox Processing 기록
+→ 업무 상태 전이
+→ Inbox Processed와 결과 저장
+→ Commit
+→ Broker ACK
+```
+
+Broker ACK와 DB Commit 사이의 실패를 고려한다. Commit 뒤 ACK 유실은 재수신될 수 있으므로 Inbox 결과를 재사용한다. 처리 중 Lease가 만료되면 Fencing 또는 Version으로 늦은 완료를 차단한다.
+
+## 30. Replay 실행서
+
+1. DLQ/Dead Event의 원인, Schema Version, Producer와 Consumer Version을 확인한다.
+2. Payload를 수정하지 않고 원본 Hash와 정제된 Preview를 보존한다.
+3. 동일 Event ID를 재사용할지 새 Replay ID를 만들지 정책을 확인한다.
+4. 대상 Consumer와 업무 Side Effect가 멱등한지 확인한다.
+5. Replay 범위, 속도, 동시성, 중단 기준과 승인자를 정한다.
+6. 소량 Canary Replay 후 업무 원장과 Inbox 결과를 대사한다.
+7. 전체 재생을 진행하고 성공·중복·실패·결과 불명을 분리한다.
+8. 원본 DLQ와 Replay 결과의 연결을 Audit와 Evidence에 남긴다.
+
+## 31. 보상 설계
+
+보상은 DB Rollback이 아니다. 이미 외부로 확정된 업무 효과를 반대 의미의 새 업무 Transaction으로 조정한다.
+
+- 원 거래와 보상 거래를 별도 ID로 연결한다.
+- 부분 보상, 보상 실패와 재보상을 상태로 표현한다.
+- 환불·취소·원복 등 업무 규칙과 권한을 Owner Domain이 강제한다.
+- 보상 순서와 외부 기관 응답이 불명일 때 Reconcile을 우선한다.
+- 보상 결과가 원 거래 History를 삭제하지 않는다.
+
+## 32. 독성 메시지 판정
+
+재시도 횟수만으로 독성을 판정하지 않는다. Schema 불일치, 필수 Reference 부재, 영구 권한 오류, 업무 상태 충돌과 반복되는 동일 Failure Code를 분류한다. 무한 재시도를 방지하고 운영자가 원인·Payload Metadata·Consumer Version·마지막 오류를 확인할 수 있게 한다.
+
+## 부록 Z. 구현 추적 시작점
+
+문서의 설명을 완료 근거로 사용하지 않는다. 아래 경로에서 실제 Consumer·구현·설정·SQL·Test 연결을 확인한다. 경로가 이동했다면 `git ls-files`와 `git grep -n`으로 최신 Owner를 다시 찾는다.
+
+| 추적 대상 | 대표 경로 또는 명령 | 확인 목적 |
+|---|---|---|
+| 공통 계약 | `git ls-files cpf-core | Select-String "messag|outbox|inbox|event"` | Envelope·Port·상태 계약 탐색 |
+| 업무 Consumer | 각 업무영역 `adapter/messaging`, `application` | 업무 처리와 원장 Owner |
+| DB Artifact | `cpf-tools/db/canonical`, `cpf-tools/db/vendor/*`에서 outbox/inbox 검색 | Table·Index·Migration 확인 |
+| Test | `git ls-files "*test*" | Select-String "Outbox|Inbox|Replay|Compensation"` | 중복·재시도·보상 시나리오 |
+
+### Z.1 공통 확인 명령
+
+```powershell
+git status --short
+git diff --check
+git grep -n "TODO\|UnsupportedOperationException\|return null" -- ':!cpf-docs/archive/**'
+pwsh -File .\cpf-tools\scripts\check-architecture-ownership.ps1
+pwsh -File .\cpf-tools\scripts\check-document-links.ps1
+pwsh -File .\cpf-tools\scripts\check-repository-hygiene.ps1
+```
+
+명령이 현재 Repository에 존재하지 않거나 Parameter가 달라졌다면 해당 Tool Source와 [도구 상세 참조](CPF_TOOL_REFERENCE.md)를 먼저 갱신한다.
+
+### Z.2 완료 상태 사용
+
+- **완료**: 구현·Consumer·운영 경로·검증·Evidence가 현재 Commit에서 확인됨
+- **부분 구현**: 일부 계층 또는 실패·복구·운영 경로가 빠짐
+- **미구현**: 제품 동작이 없음
+- **미검증**: 구현은 있으나 요구된 실행 검증을 수행하지 않음
+- **실패**: 검증을 수행했으나 기대 결과를 충족하지 못함
+- **재확인 필요**: Source·문서·Evidence 또는 환경이 서로 달라 현재 상태를 확정할 수 없음

@@ -8,6 +8,28 @@
 
 ---
 
+
+## 0. 문서 계약
+
+| 항목 | 기준 |
+|---|---|
+| 기준 Source | `master` / `b7c6146e952c10b885952fa2bc6b6786f4611d86` |
+| Owner | `cpf-core` Public API/SPI |
+| 이 문서로 완료하는 일 | 문자열·날짜·숫자·ID·오류·Paging·Header·Secret·Execution Context를 안전한 기본값과 명확한 실패 의미로 사용한다. |
+| 적용 범위 | `com.cpf.core.api`, `com.cpf.core.spi`와 Public Test Kit |
+| 주요 독자 | 모든 CPF Application·Domain 개발자 |
+| 완료 판정 | Source·API·SQL·Config·Test·Runtime·Evidence 중 해당 범위가 실제로 연결되고 검증돼야 한다. |
+
+### 0.1 읽는 순서
+
+1. 책임 경계와 상태 모델을 먼저 확인한다.
+2. 정상 절차를 수행하기 전에 권한·설정·데이터베이스·다중 인스턴스 영향을 확인한다.
+3. 오류·부분 실패·복구 절차와 완료 점검을 같은 작업 범위로 수행한다.
+4. 직접 실행하지 않은 검증은 `완료`로 기록하지 않는다.
+
+---
+
+
 ## 1. 목적
 
 CPF Foundation API는 업무 개발자가 JDK나 외부 라이브러리를 제각각 조합하면서 반복적으로 만드는 오류를 줄이는 공개 API다. 단순히 이름만 바꾼 Wrapper는 만들지 않으며 다음 가치가 있는 기능만 제공한다.
@@ -270,7 +292,7 @@ String transactionId = generator.generateOrUse(inboundId);
 
 규칙:
 
-- 유효한 Inbound ID는 승계
+- 유효한 수신 ID는 승계
 - 독립 실행 시작은 신규 생성
 - 하위 호출은 Global ID 재생성 금지
 - Segment로 계층 표현
@@ -445,3 +467,77 @@ BigDecimal normalized = CpfDecimals.money(
 ```text
 version | sortKey | direction | filterHash | expiresAt | signature
 ```
+
+## 46. Public API 설계 규칙
+
+- JDK/외부 Library 조합보다 반복 오류와 Boilerplate를 실제로 줄여야 한다.
+- Null, 빈 값, Locale, Timezone, Overflow, 최대 크기와 Thread Safety를 문서화한다.
+- DTO에 Transport/ORM/Internal Type을 노출하지 않는다.
+- 오류는 Message 문자열이 아니라 안정 Code·Category·Field Detail로 전달한다.
+- 편리한 Factory와 안전한 Default를 제공하되 위험 동작은 명시적으로 선택하게 한다.
+- 한글 JavaDoc에 책임, 실패 조건, 동시성, 보안과 예제를 포함한다.
+- API 변경 시 Generator, Generated Domain, Reference, EDU와 Testkit을 함께 확인한다.
+
+## 47. 표준 Header 처리
+
+수신 요청은 허용 목록과 신뢰 경계를 기준으로 헤더를 수용한다. 외부 클라이언트가 내부 SystemCode, Operator, Permission, Trace Sample 결정을 위조하지 못하게 한다. 인증 결과에서 신뢰 문맥을 다시 구성하고 발신 요청에는 필요한 값만 전달한다.
+
+## 48. 시간 API
+
+- 저장·전송 기준은 Offset 또는 Instant를 사용한다.
+- 업무 일자와 실제 Timestamp를 구분한다.
+- Timezone 없는 LocalDateTime을 시스템 간 계약으로 사용하지 않는다.
+- 기간의 시작/종료 포함 여부를 명시한다.
+- Clock을 주입해 만료·Retry·Lease Test를 결정적으로 만든다.
+- DST와 월말·윤년·영업일 Calendar 경계를 Test한다.
+
+## 49. Paging API
+
+Page Number, Size, Sort Allowlist와 최대 크기를 서버가 검증한다. 대용량 변경 목록은 Offset Paging보다 안정 Cursor 또는 Snapshot 기준을 사용한다. Total Count가 비싼 경우 Slice 계약을 명시하고 UI가 Count 존재를 가정하지 않게 한다.
+
+## 50. Error API
+
+| Category | Retry | HTTP 예 | 운영 의미 |
+|---|---|---|---|
+| Validation | 금지 | 400/422 | 입력 수정 |
+| Unauthorized | 재인증 | 401 | 인증 문맥 없음/만료 |
+| Forbidden | 금지 | 403 | Permission 부족 |
+| Conflict | 최신 조회 후 판단 | 409 | Version·상태·멱등 충돌 |
+| Rate Limited | `Retry-After` 준수 | 429 | 호출량 제한 |
+| Timeout | 멱등/결과 불명 판단 | 504 | 처리 여부 확인 필요 |
+| Target Down | Backoff 가능 | 503 | 대상 불가 |
+| 결과 불명(`UNKNOWN_RESULT`) | 즉시 재시도 금지 | 제품 표준 | 대사 필요 |
+| Internal | 정책에 따라 | 500 | Sanitized Error ID로 추적 |
+
+## 부록 Z. 구현 추적 시작점
+
+문서의 설명을 완료 근거로 사용하지 않는다. 아래 경로에서 실제 Consumer·구현·설정·SQL·Test 연결을 확인한다. 경로가 이동했다면 `git ls-files`와 `git grep -n`으로 최신 Owner를 다시 찾는다.
+
+| 추적 대상 | 대표 경로 또는 명령 | 확인 목적 |
+|---|---|---|
+| Public API | `cpf-core/src/main/java/com/cpf/core/api/` | 고객·업무 개발자 계약 |
+| SPI | `cpf-core/src/main/java/com/cpf/core/spi/` | Adapter 확장 Port |
+| Internal | `cpf-core/src/main/java/com/cpf/core/internal/` | 외부 Import 금지 구현 |
+| Contract Test | `cpf-core/src/test`, Public Test Kit | Null·경계·오류·호환성 |
+
+### Z.1 공통 확인 명령
+
+```powershell
+git status --short
+git diff --check
+git grep -n "TODO\|UnsupportedOperationException\|return null" -- ':!cpf-docs/archive/**'
+pwsh -File .\cpf-tools\scripts\check-architecture-ownership.ps1
+pwsh -File .\cpf-tools\scripts\check-document-links.ps1
+pwsh -File .\cpf-tools\scripts\check-repository-hygiene.ps1
+```
+
+명령이 현재 Repository에 존재하지 않거나 Parameter가 달라졌다면 해당 Tool Source와 [도구 상세 참조](CPF_TOOL_REFERENCE.md)를 먼저 갱신한다.
+
+### Z.2 완료 상태 사용
+
+- **완료**: 구현·Consumer·운영 경로·검증·Evidence가 현재 Commit에서 확인됨
+- **부분 구현**: 일부 계층 또는 실패·복구·운영 경로가 빠짐
+- **미구현**: 제품 동작이 없음
+- **미검증**: 구현은 있으나 요구된 실행 검증을 수행하지 않음
+- **실패**: 검증을 수행했으나 기대 결과를 충족하지 못함
+- **재확인 필요**: Source·문서·Evidence 또는 환경이 서로 달라 현재 상태를 확정할 수 없음

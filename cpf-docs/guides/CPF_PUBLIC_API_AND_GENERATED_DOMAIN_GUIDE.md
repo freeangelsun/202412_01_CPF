@@ -8,6 +8,28 @@
 
 ---
 
+
+## 0. 문서 계약
+
+| 항목 | 기준 |
+|---|---|
+| 기준 Source | `master` / `b7c6146e952c10b885952fa2bc6b6786f4611d86` |
+| Owner | Public Contract는 `cpf-core`; 업무 API·DB는 각 생성 업무영역 |
+| 이 문서로 완료하는 일 | 외부 소비자가 Internal Package 없이 Local/Remote 동일 계약을 사용하고 생성 업무영역이 독립 Owner로 확장되게 한다. |
+| 적용 범위 | API/SPI/Internal, Typed Facade, Adapter, Generated Domain, Compatibility |
+| 주요 독자 | Framework 개발자, 업무 개발자, 고객 Adapter 개발자 |
+| 완료 판정 | Source·API·SQL·Config·Test·Runtime·Evidence 중 해당 범위가 실제로 연결되고 검증돼야 한다. |
+
+### 0.1 읽는 순서
+
+1. 책임 경계와 상태 모델을 먼저 확인한다.
+2. 정상 절차를 수행하기 전에 권한·설정·데이터베이스·다중 인스턴스 영향을 확인한다.
+3. 오류·부분 실패·복구 절차와 완료 점검을 같은 작업 범위로 수행한다.
+4. 직접 실행하지 않은 검증은 `완료`로 기록하지 않는다.
+
+---
+
+
 ## 1. 목적
 
 이 문서는 업무 개발자가 CPF 내부 구현에 종속되지 않고 공개 API와 SPI만으로 신규 업무영역을 개발하는 방법을 설명한다. 생성 업무영역은 예외 규격이 아니라 실제 고객 업무영역의 표준 시작점이다.
@@ -453,3 +475,74 @@ pwsh -File .\cpf-tools\scripts\check-generator-arbitrary-domain-parity.ps1
 ## 부록 D. 로컬·원격 동등성 시험
 
 같은 입력을 로컬 어댑터와 원격 어댑터에 전달해 정상 결과, 검증 오류, 권한 오류, 충돌, 시간 초과와 결과 불명의 공개 의미가 같은지 비교한다.
+
+## 33. Public API 수용 기준
+
+Public API는 다음 소비자 중 하나 이상이 실제로 사용해야 한다.
+
+- 공식 Application 또는 Generated Domain
+- 고객 Adapter 구현
+- Local/Remote Transport Adapter
+- ADM/BZA/Batch/Gateway 운영 기능
+- Generator Template, Reference 또는 EDU
+
+Consumer 없는 Interface는 완료가 아니다. 기본 구현 또는 명확한 미구성 오류, Contract Test와 Version 정책이 필요하다.
+
+## 34. 호환성 규칙
+
+| 변경 | 기본 판정 | 대응 |
+|---|---|---|
+| Optional Field 추가 | 호환 가능 | Default·Old Consumer Test |
+| 필수 Field 추가 | Breaking 가능 | 새 Version 또는 단계 전환 |
+| Enum 값 추가 | Consumer에 따라 호환성 파괴 가능 | 알 수 없는 값 처리 계약 |
+| Field 의미 변경 | Breaking | 새 이름·새 Version |
+| Error Code 변경 | Breaking | Alias/호환 기간 |
+| SPI Method 추가 | 구현체 Breaking | Default Method 또는 Major Version |
+| Internal 이동 | 외부 영향 없어야 함 | Architecture Gate 확인 |
+
+## 35. Generated Domain 경계
+
+생성 업무영역은 독립 Root Project로도 동작할 수 있어야 하며 `local-domains` Composite Build는 개발 편의를 위한 Mount다. 다른 업무영역 DB를 직접 조회하지 않고 Typed Public API로 호출한다.
+
+## 36. Adapter 구현 점검
+
+- Local Adapter가 권한·Validation·Audit를 우회하지 않는다.
+- Remote Adapter가 Transport 예외·Status·Timeout을 표준 오류로 변환한다.
+- Header·Deadline·Trace·Idempotency를 전달한다.
+- DTO 직렬화 버전과 알 수 없는 필드 처리 정책을 검증한다.
+- Retry가 중첩되지 않도록 상위·하위 Budget을 공유한다.
+- Circuit/Registry/Gateway가 없어도 직접 호출 정책이 명확하다.
+
+## 부록 Z. 구현 추적 시작점
+
+문서의 설명을 완료 근거로 사용하지 않는다. 아래 경로에서 실제 Consumer·구현·설정·SQL·Test 연결을 확인한다. 경로가 이동했다면 `git ls-files`와 `git grep -n`으로 최신 Owner를 다시 찾는다.
+
+| 추적 대상 | 대표 경로 또는 명령 | 확인 목적 |
+|---|---|---|
+| API/SPI | `cpf-core/src/main/java/com/cpf/core/api`, `cpf-core/src/main/java/com/cpf/core/spi` | 안정 계약과 확장 Port |
+| Internal Gate | `check-architecture-ownership.ps1` | 외부 Module의 Internal Import 차단 |
+| Golden Domain | `cpf-member` | 생성 업무영역 기준 |
+| Reference Consumer | `cpf-reference` | 실제 Public API 사용 |
+| Topology Test | Local/Remote 동등성 Test 검색 | 배포 구성별 의미 검증 |
+
+### Z.1 공통 확인 명령
+
+```powershell
+git status --short
+git diff --check
+git grep -n "TODO\|UnsupportedOperationException\|return null" -- ':!cpf-docs/archive/**'
+pwsh -File .\cpf-tools\scripts\check-architecture-ownership.ps1
+pwsh -File .\cpf-tools\scripts\check-document-links.ps1
+pwsh -File .\cpf-tools\scripts\check-repository-hygiene.ps1
+```
+
+명령이 현재 Repository에 존재하지 않거나 Parameter가 달라졌다면 해당 Tool Source와 [도구 상세 참조](CPF_TOOL_REFERENCE.md)를 먼저 갱신한다.
+
+### Z.2 완료 상태 사용
+
+- **완료**: 구현·Consumer·운영 경로·검증·Evidence가 현재 Commit에서 확인됨
+- **부분 구현**: 일부 계층 또는 실패·복구·운영 경로가 빠짐
+- **미구현**: 제품 동작이 없음
+- **미검증**: 구현은 있으나 요구된 실행 검증을 수행하지 않음
+- **실패**: 검증을 수행했으나 기대 결과를 충족하지 못함
+- **재확인 필요**: Source·문서·Evidence 또는 환경이 서로 달라 현재 상태를 확정할 수 없음

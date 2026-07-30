@@ -8,6 +8,28 @@
 
 ---
 
+
+## 0. 문서 계약
+
+| 항목 | 기준 |
+|---|---|
+| 기준 Source | `master` / `b7c6146e952c10b885952fa2bc6b6786f4611d86` |
+| Owner | `cpf-tools` 공급·Build 영역 |
+| 이 문서로 완료하는 일 | Source Commit과 일치하는 Artifact·Manifest·Hash·Signature·SBOM을 생성·승격·폐쇄망 반입하고 Rollback Artifact까지 보존한다. |
+| 적용 범위 | Library·Application·Frontend·DB Vendor Pack·Offline Bundle·CI/CD Gate |
+| 주요 독자 | Build·Release 담당자, 저장소 관리자, 공급망 보안 담당자 |
+| 완료 판정 | Source·API·SQL·Config·Test·Runtime·Evidence 중 해당 범위가 실제로 연결되고 검증돼야 한다. |
+
+### 0.1 읽는 순서
+
+1. 책임 경계와 상태 모델을 먼저 확인한다.
+2. 정상 절차를 수행하기 전에 권한·설정·데이터베이스·다중 인스턴스 영향을 확인한다.
+3. 오류·부분 실패·복구 절차와 완료 점검을 같은 작업 범위로 수행한다.
+4. 직접 실행하지 않은 검증은 `완료`로 기록하지 않는다.
+
+---
+
+
 ## 1. 목적
 
 CPF 라이브러리, BOM, Gradle Plugin, 실행 환경, 프런트엔드와 Offline Bundle을 버전·소스 Commit·해시가 추적되는 제품 산출물로 공급한다.
@@ -336,3 +358,105 @@ com/cpf/<module>/<version>/
 ## 부록 D. 취소·회수
 
 잘못 게시된 버전을 조용히 덮어쓰지 않는다. 사용 금지 표시, 영향 소비자, 대체 버전, 회수 사유, 배포 중단과 되돌리기 절차를 기록한다.
+
+## 29. Release Manifest 예
+
+```yaml
+releaseId: <release>
+sourceCommit: <sha>
+productVersion: <version>
+buildEnvironment: <sanitized-env>
+artifacts:
+  - name: cpf-core
+    coordinate: <group:artifact:version>
+    sha256: <hash>
+    signature: <reference>
+  - name: cpf-admin
+    type: boot-jar
+    sha256: <hash>
+databasePacks:
+  - vendor: postgresql
+    version: <version>
+    sha256: <hash>
+sbom: <reference>
+licenseReport: <reference>
+configSchemaVersion: <version>
+createdAt: <offset-date-time>
+```
+
+Manifest는 생성된 파일 목록이 아니라 동일 Release를 설치·검증·되돌릴 수 있는 정본이다.
+
+## 30. 승격 Pipeline
+
+```text
+Source Checkout
+→ Clean Build
+→ Unit/Contract/Static Gate
+→ Artifact Hash·Signature·SBOM
+→ 임시 Repository 게시
+→ Integration/Runtime/DB 검증
+→ 승인
+→ Release Repository 승격
+→ Offline Bundle 생성
+```
+
+같은 Version을 다시 Build해 덮어쓰지 않는다. Rebuild가 필요하면 새 Version 또는 Build Metadata를 사용하고 이전 Hash와 구분한다.
+
+## 31. 폐쇄망 반입
+
+1. Bundle Manifest와 외부 저장 매체 Hash를 비교한다.
+2. 반입 승인과 Malware Scan 결과를 확인한다.
+3. 내부 격리 Repository에 Import한다.
+4. Artifact별 Signature·Hash·SBOM을 다시 검증한다.
+5. 외부 URL·CDN·Font·Script 의존이 없는지 검사한다.
+6. Offline Mode에서 Clean Build와 설치를 수행한다.
+7. 내부 Repository 좌표와 Import 결과를 Evidence에 남긴다.
+
+## 32. 공급 Rollback
+
+Release Rollback에는 이전 Application Artifact뿐 아니라 DB Pack, Config Schema, Frontend Static Artifact, Gateway/Batch Definition 호환 정보가 필요하다. Repository에서 Artifact를 삭제해 Rollback하지 말고 승인된 이전 Release를 재승격한다.
+
+## 33. 실행 Artifact와 Release Artifact의 서명 분리
+
+Release JAR·Frontend Bundle·DB Pack의 공급망 서명과 Batch Shell의 실행 서명은 목적이 다르지만 동일한 검증 원칙을 사용한다.
+
+| 구분 | 정본 | 검증 시점 | 실패 시 동작 |
+|---|---|---|---|
+| Release Artifact | Release Manifest·Attestation·SBOM | 저장소 승격·설치 | 게시·설치 금지 |
+| Batch Shell | Worker Catalog·Detached Signature·Trust Key | 매 실행 전 | 실행 금지 |
+| Offline Bundle | Bundle Manifest·매체 Hash·내부 Import 로그 | 반입 전후 | 격리·반입 중단 |
+
+Batch Shell은 `SIGNATURE`를 기본으로 하고 SHA-256만 맞는 파일을 자동 승인하지 않는다. 공개키 또는 X.509 Chain은 제품 Trust Store에서 관리하고, 허용 Algorithm과 Key ID를 Manifest에 기록한다. 재서명은 기존 Version을 덮어쓰지 않고 새 Version·새 Hash·새 승인으로 처리한다.
+
+## 부록 Z. 구현 추적 시작점
+
+문서의 설명을 완료 근거로 사용하지 않는다. 아래 경로에서 실제 Consumer·구현·설정·SQL·Test 연결을 확인한다. 경로가 이동했다면 `git ls-files`와 `git grep -n`으로 최신 Owner를 다시 찾는다.
+
+| 추적 대상 | 대표 경로 또는 명령 | 확인 목적 |
+|---|---|---|
+| Build 정본 | `gradle/cpf-stack.properties`, `settings.gradle` | Stack Version과 Artifact Mode |
+| BOM/Plugin | `cpf-tools/build/platform-bom`, `cpf-tools/build/gradle-plugin` | Published Dependency와 Convention |
+| Supply Script | `cpf-tools/scripts/`에서 `artifact`, `package`, `offline`, `supply` 검색 | Bundle·Manifest·검증 도구 |
+| 검증 | `git grep -n "SHA-256\|SBOM\|signature" cpf-tools cpf-batch` | Release·실행 Artifact Hash·서명·SBOM 구현 확인 |
+
+### Z.1 공통 확인 명령
+
+```powershell
+git status --short
+git diff --check
+git grep -n "TODO\|UnsupportedOperationException\|return null" -- ':!cpf-docs/archive/**'
+pwsh -File .\cpf-tools\scripts\check-architecture-ownership.ps1
+pwsh -File .\cpf-tools\scripts\check-document-links.ps1
+pwsh -File .\cpf-tools\scripts\check-repository-hygiene.ps1
+```
+
+명령이 현재 Repository에 존재하지 않거나 Parameter가 달라졌다면 해당 Tool Source와 [도구 상세 참조](CPF_TOOL_REFERENCE.md)를 먼저 갱신한다.
+
+### Z.2 완료 상태 사용
+
+- **완료**: 구현·Consumer·운영 경로·검증·Evidence가 현재 Commit에서 확인됨
+- **부분 구현**: 일부 계층 또는 실패·복구·운영 경로가 빠짐
+- **미구현**: 제품 동작이 없음
+- **미검증**: 구현은 있으나 요구된 실행 검증을 수행하지 않음
+- **실패**: 검증을 수행했으나 기대 결과를 충족하지 못함
+- **재확인 필요**: Source·문서·Evidence 또는 환경이 서로 달라 현재 상태를 확정할 수 없음

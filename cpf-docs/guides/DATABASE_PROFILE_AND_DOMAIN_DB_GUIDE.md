@@ -8,6 +8,28 @@
 
 ---
 
+
+## 0. 문서 계약
+
+| 항목 | 기준 |
+|---|---|
+| 기준 Source | `master` / `b7c6146e952c10b885952fa2bc6b6786f4611d86` |
+| Owner | 각 Module DB Owner와 Runtime Profile Owner |
+| 이 문서로 완료하는 일 | Vendor·Logical DB·Credential·Pool·Read Replica·Multi-datasource를 명시하고 업무영역 간 DB 직접 접근을 차단한다. |
+| 적용 범위 | Oracle/PostgreSQL/MariaDB Profile, CPF/CMN/ADM/BZA/BAT/Domain DB |
+| 주요 독자 | DBA, Application 개발자, 설치 담당자, Generator 개발자 |
+| 완료 판정 | Source·API·SQL·Config·Test·Runtime·Evidence 중 해당 범위가 실제로 연결되고 검증돼야 한다. |
+
+### 0.1 읽는 순서
+
+1. 책임 경계와 상태 모델을 먼저 확인한다.
+2. 정상 절차를 수행하기 전에 권한·설정·데이터베이스·다중 인스턴스 영향을 확인한다.
+3. 오류·부분 실패·복구 절차와 완료 점검을 같은 작업 범위로 수행한다.
+4. 직접 실행하지 않은 검증은 `완료`로 기록하지 않는다.
+
+---
+
+
 ## 1. 목적
 
 CPF는 Platform 모듈과 생성 업무영역마다 DB 공급자, 호스트, 데이터베이스/스키마와 계정을 독립적으로 구성한다. 이 문서는 프로필 구조, 논리 DB와 물리 DB 매핑, 계정 분리와 설치 선택 방법을 설명한다.
@@ -237,7 +259,7 @@ DB Failover 시:
 - New 엔드포인트
 - 준비 상태
 - In-flight 결과
-- Unknown 트랜잭션
+- 결과 불명 거래
 - Replica Lag
 - 실행 환경 재개
 - 감사
@@ -252,7 +274,7 @@ DB Failover 시:
 - Logical 소유자
 - Duplicate 매핑
 - Production Memory 어댑터
-- Unknown 공급자
+- 알 수 없거나 미지원인 공급자
 - Cross-domain 직접 접근
 
 ## 19. 환경별 관리
@@ -275,8 +297,8 @@ Production과 같은 공급자/스키마 정책.
 - 최소 권한
 - 비밀값 Manager
 - 백업
-- Monitoring
-- Change 승인
+- 모니터링
+- 변경 승인
 - No 기본값 Password
 
 ## 20. 체크리스트
@@ -317,3 +339,68 @@ cpf:
 ## 부록 C. 연결 풀 용량
 
 `인스턴스 수 × 인스턴스별 최대 연결`이 데이터베이스 전체 허용 연결과 운영 여유를 초과하지 않아야 한다. 배치·온라인·운영 조회의 풀을 분리할 때 각 상한과 우선순위를 문서화한다.
+
+## 28. Account와 Logical DB 분리
+
+| Logical DB | 대표 Owner | 직접 접근 허용 |
+|---|---|---|
+| CPF | 기술 기반 Metadata | CPF Owner Adapter |
+| CMN | 고객 업무 공통 | 승인된 공통 Service/Repository |
+| ADM | 플랫폼 운영·감사 | ADM |
+| BZA | 업무 관리자 | BZA |
+| BAT | Batch Definition·Execution | Batch Runtime |
+| Domain | 업무 원장 | 해당 업무영역 |
+
+ADM이 운영 편의를 위해 다른 Owner DB를 직접 Update하지 않는다. 조회도 Public Operations Contract가 우선이며, 통합 Reporting DB가 필요하면 별도 Projection·CDC 정책을 둔다.
+
+## 29. Profile 검증
+
+- Vendor ID와 JDBC Driver가 일치한다.
+- URL, Schema, Service Name/SID와 Timezone Option을 검증한다.
+- Credential은 Secret Reference로 제공한다.
+- Pool 최대값이 DB Session 상한과 Instance 수를 고려한다.
+- Validation Query와 Connection Timeout이 장애 탐지 목표에 맞는다.
+- Transaction Isolation과 Read-only 의미를 확인한다.
+- Migration 계정과 Runtime 계정을 분리한다.
+
+## 30. Read Replica 사용
+
+Read Replica는 단순 URL 교체가 아니다. 지연 허용 범위, Read-your-write 필요 여부, Transaction 내 Primary 고정, 장애 시 Primary Fallback과 운영 표시를 정의한다. 권한·결재·잔액·상태 전이 판단은 Stale Read를 허용하지 않는다.
+
+## 31. 다중 Datasource Transaction
+
+두 DB를 하나의 로컬 Transaction처럼 가정하지 않는다. Owner별 Commit을 분리하고 Outbox, Saga, Reconcile 또는 보상으로 일관성을 관리한다. XA를 선택한다면 장애 복구, Heuristic Outcome, 운영 Tool과 성능을 실제로 검증한다.
+
+## 부록 Z. 구현 추적 시작점
+
+문서의 설명을 완료 근거로 사용하지 않는다. 아래 경로에서 실제 Consumer·구현·설정·SQL·Test 연결을 확인한다. 경로가 이동했다면 `git ls-files`와 `git grep -n`으로 최신 Owner를 다시 찾는다.
+
+| 추적 대상 | 대표 경로 또는 명령 | 확인 목적 |
+|---|---|---|
+| Runtime Config | 각 Module `application.yml`과 Profile | Datasource·Pool·Vendor 선택 |
+| Canonical Ownership | `cpf-tools/db/canonical/platform-schema.json` | Logical DB와 Table Owner |
+| Vendor Source | `cpf-tools/db/vendor/{oracle,postgresql,mariadb}/source` | 공급자별 DDL |
+| Migration | Vendor `migration/flyway`, `rollback` | Upgrade·Rollback |
+| Generator | 업무영역 DB Template | 신규 Domain DB 정합성 |
+
+### Z.1 공통 확인 명령
+
+```powershell
+git status --short
+git diff --check
+git grep -n "TODO\|UnsupportedOperationException\|return null" -- ':!cpf-docs/archive/**'
+pwsh -File .\cpf-tools\scripts\check-architecture-ownership.ps1
+pwsh -File .\cpf-tools\scripts\check-document-links.ps1
+pwsh -File .\cpf-tools\scripts\check-repository-hygiene.ps1
+```
+
+명령이 현재 Repository에 존재하지 않거나 Parameter가 달라졌다면 해당 Tool Source와 [도구 상세 참조](CPF_TOOL_REFERENCE.md)를 먼저 갱신한다.
+
+### Z.2 완료 상태 사용
+
+- **완료**: 구현·Consumer·운영 경로·검증·Evidence가 현재 Commit에서 확인됨
+- **부분 구현**: 일부 계층 또는 실패·복구·운영 경로가 빠짐
+- **미구현**: 제품 동작이 없음
+- **미검증**: 구현은 있으나 요구된 실행 검증을 수행하지 않음
+- **실패**: 검증을 수행했으나 기대 결과를 충족하지 못함
+- **재확인 필요**: Source·문서·Evidence 또는 환경이 서로 달라 현재 상태를 확정할 수 없음

@@ -8,6 +8,28 @@
 
 ---
 
+
+## 0. 문서 계약
+
+| 항목 | 기준 |
+|---|---|
+| 기준 Source | `master` / `b7c6146e952c10b885952fa2bc6b6786f4611d86` |
+| Owner | `cpf-tools/db` |
+| 이 문서로 완료하는 일 | Canonical DB Source에서 3개 Vendor Pack을 생성·검증하고 Fresh Install·Upgrade·Rollback·Reapply·Backup·Restore를 재현한다. |
+| 적용 범위 | Canonical Schema/Seed, Vendor Source, Migration, Rollback, Runtime SQL, Checksums |
+| 주요 독자 | DBA, DB Tool 개발자, Module Owner, Release 담당자 |
+| 완료 판정 | Source·API·SQL·Config·Test·Runtime·Evidence 중 해당 범위가 실제로 연결되고 검증돼야 한다. |
+
+### 0.1 읽는 순서
+
+1. 책임 경계와 상태 모델을 먼저 확인한다.
+2. 정상 절차를 수행하기 전에 권한·설정·데이터베이스·다중 인스턴스 영향을 확인한다.
+3. 오류·부분 실패·복구 절차와 완료 점검을 같은 작업 범위로 수행한다.
+4. 직접 실행하지 않은 검증은 `완료`로 기록하지 않는다.
+
+---
+
+
 ## 1. 목적
 
 이 문서는 CPF가 지원하는 Oracle, PostgreSQL, MariaDB의 설치, Seed, 이관, 되돌리기, Verify, 백업과 복원 도구를 설명한다.
@@ -442,3 +464,112 @@ Password는 명령 Line, Plan, SQL 임시파일과 검증 증적에 넣지 않�
 ## 부록 D. 백업 복구 검증
 
 백업 성공 메시지만으로 완료하지 않는다. 별도 검증 환경에 복구하고 스키마 버전, 대표 원장 건수, 제약·인덱스, 애플리케이션 읽기·쓰기, 메시지 위치, 파일 참조와 배치 체크포인트를 확인한다.
+
+## 31. Canonical Source에서 공급자 산출물까지
+
+1. `cpf-tools/db/canonical/platform-schema.json`과 Seed Model에서 Owner·Column·Key·Index·Comment를 변경한다.
+2. 정본 구조 검증으로 존재하지 않는 Column 참조, 중복 이름, 잘못된 Owner와 비호환 Type을 차단한다.
+3. 공식 생성 도구로 Oracle·PostgreSQL·MariaDB Source·Migration·Rollback·Runtime SQL을 동기화한다.
+4. 수동 공급자별 수정이 필요하면 정본에서 표현할 수 없는 차이를 명시하고 검증 규칙을 추가한다.
+5. 공급자 Pack의 파일 목록·Checksum·Version을 갱신한다.
+6. Fresh Install, Upgrade, Rollback, Reapply와 Drift 검사를 각 공급자에서 수행한다.
+7. Mapper·Repository·DTO·Generator Template과 문서 영향을 함께 확인한다.
+
+생성된 공급자 파일만 직접 고쳐 정본과 분리하지 않는다. 같은 의미의 SQL을 복사·치환한 것만으로 지원 완료로 판정하지 않는다.
+
+## 32. Fresh Install 검증 시나리오
+
+| 단계 | 확인 내용 |
+|---|---|
+| 빈 환경 | 대상 Schema·계정·권한과 Collation·Timezone 확인 |
+| 설치 | Table·Sequence/Identity·Constraint·Index·Comment 생성 |
+| Seed | 코드·권한·메뉴·정책의 중복 없는 적용 |
+| Verify | 정본 객체 수, 필수 Column, PK/FK/Index와 Seed Version |
+| Runtime | 대표 Repository의 Insert·Select·Update·Lock |
+| 재실행 | 멱등 설치가 아니라면 명확한 Drift/Already Installed 오류 |
+| 정리 | 실패 중간 상태 제거 또는 복구 절차 확인 |
+
+## 33. Upgrade → Rollback → Reapply
+
+1. 운영 Schema Snapshot과 Backup Manifest를 만든다.
+2. 현재 Version에서 목표 Version까지의 Migration Plan과 Hash를 확정한다.
+3. 정본과 현재 Schema 차이가 계획에 포함됐는지 확인한다.
+4. Upgrade를 실행하고 각 Migration의 시작·종료·영향 행·오류를 기록한다.
+5. Application 호환 Smoke와 데이터 정합성 Query를 수행한다.
+6. Rollback 가능한 범위를 검토하고 승인된 Rollback을 실행한다.
+7. 원 Version의 구조·데이터·Application Smoke를 확인한다.
+8. 같은 Upgrade를 다시 적용해 재현성과 잔재 유무를 검증한다.
+9. Rollback이 데이터 손실을 유발하면 실행하지 않고 Forward Fix 또는 복구 계획으로 전환한다.
+
+## 34. 공급자 차이 검토표
+
+| 항목 | Oracle | PostgreSQL | MariaDB |
+|---|---|---|---|
+| 자동 증가 | Sequence·Identity 정책 | Identity·Sequence | Auto Increment |
+| Boolean | 제품 표준 값으로 매핑 | Native Boolean 가능 | 제품 표준 값 또는 Boolean Alias |
+| 시간 | Session Timezone 주의 | `timestamp with time zone` 의미 확인 | Fraction·Timezone 정책 확인 |
+| 대용량 문자열 | CLOB | TEXT | LONGTEXT/TEXT |
+| Lock·Skip | 지원 문법과 격리 수준 확인 | `SKIP LOCKED` 의미 확인 | Engine·Version별 동작 확인 |
+| Upsert | MERGE 정책 | `ON CONFLICT` | `ON DUPLICATE KEY` |
+
+표면 문법만 맞추지 말고 Transaction, Lock, Index 선택도, Identity 재적용과 Rollback 의미를 실제 공급자에서 검증한다.
+
+## 35. V81 실행·운영 정합성 변경
+
+기준 Commit의 V81 Migration은 단일 기능 SQL이 아니라 Gateway·ADM·Batch 실행 계약을 함께 맞춘다.
+
+| Owner DB | 핵심 변경 | 함께 확인할 Source |
+|---|---|---|
+| CPF/Gateway | 대상 경로 분리, 제어 Nonce·보안 감사 | `CpfGatewayRoute`, `CpfGatewayPathRewriter`, `CpfGatewayControlNoncePort` |
+| ADM | 다중 인스턴스 공용 로그 Export Artifact | `AdmLogExportService`, `adm_log_export_artifact` |
+| BAT | Attempt 상세·결과 불명·재시도 정보 | `JdbcWorkerExecutionRepository`, `worker-attempt-*.sql` |
+
+Oracle·PostgreSQL·MariaDB의 `V81`과 대응 `R81`을 모두 확인한다. Fresh Install Source에도 같은 최종 구조가 반영돼야 하며 Migration만 존재하거나 Source만 갱신된 상태를 완료로 처리하지 않는다.
+
+```powershell
+Get-ChildItem .\cpf-tools\db\vendor -Recurse -File |
+  Where-Object Name -Match '^[VR]81__' |
+  Select-Object FullName
+```
+
+검증은 다음 Drift를 차단해야 한다.
+
+- `target_path` 또는 동등 Column이 Route Provider·Mapper와 불일치
+- Nonce Unique Key가 Audience·Key·Caller 범위를 보장하지 못함
+- 로그 Export 본문·소유자·만료·상태 Column 누락
+- Batch Attempt 완료 SQL이 실패 코드·메시지·결과 불명 정보를 잃음
+- 공급자별 Rollback이 새 Table·Column·Index를 일부 남김
+
+## 부록 Z. 구현 추적 시작점
+
+문서의 설명을 완료 근거로 사용하지 않는다. 아래 경로에서 실제 Consumer·구현·설정·SQL·Test 연결을 확인한다. 경로가 이동했다면 `git ls-files`와 `git grep -n`으로 최신 Owner를 다시 찾는다.
+
+| 추적 대상 | 대표 경로 또는 명령 | 확인 목적 |
+|---|---|---|
+| Canonical Schema | `cpf-tools/db/canonical/platform-schema.json` | Table·Column·PK·FK·Index 정본 |
+| Canonical Seed | `cpf-tools/db/canonical/seed-model.json` | 제품 Seed 정본 |
+| Vendor Pack | `cpf-tools/db/vendor/{oracle,postgresql,mariadb}` | Source·V81 Migration·R81 Rollback·Runtime SQL |
+| Generation | `cpf-tools/scripts/generate-official-db-vendor-source.ps1` | 공식 Vendor Source 생성 |
+| Static Gate | `check-canonical-db-lifecycle-contract.ps1`, `check-canonical-ddl-safety.ps1` | 생명주기·DDL 안전 검사 |
+
+### Z.1 공통 확인 명령
+
+```powershell
+git status --short
+git diff --check
+git grep -n "TODO\|UnsupportedOperationException\|return null" -- ':!cpf-docs/archive/**'
+pwsh -File .\cpf-tools\scripts\check-architecture-ownership.ps1
+pwsh -File .\cpf-tools\scripts\check-document-links.ps1
+pwsh -File .\cpf-tools\scripts\check-repository-hygiene.ps1
+```
+
+명령이 현재 Repository에 존재하지 않거나 Parameter가 달라졌다면 해당 Tool Source와 [도구 상세 참조](CPF_TOOL_REFERENCE.md)를 먼저 갱신한다.
+
+### Z.2 완료 상태 사용
+
+- **완료**: 구현·Consumer·운영 경로·검증·Evidence가 현재 Commit에서 확인됨
+- **부분 구현**: 일부 계층 또는 실패·복구·운영 경로가 빠짐
+- **미구현**: 제품 동작이 없음
+- **미검증**: 구현은 있으나 요구된 실행 검증을 수행하지 않음
+- **실패**: 검증을 수행했으나 기대 결과를 충족하지 못함
+- **재확인 필요**: Source·문서·Evidence 또는 환경이 서로 달라 현재 상태를 확정할 수 없음

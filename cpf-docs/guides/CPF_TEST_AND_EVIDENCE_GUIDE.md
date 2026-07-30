@@ -8,6 +8,28 @@
 
 ---
 
+
+## 0. 문서 계약
+
+| 항목 | 기준 |
+|---|---|
+| 기준 Source | `master` / `b7c6146e952c10b885952fa2bc6b6786f4611d86` |
+| Owner | 각 Requirement Owner; 공통 Gate·Evidence 도구는 `cpf-tools` |
+| 이 문서로 완료하는 일 | Unit·Contract·Integration·Runtime·Fault·Browser·Multi-instance·DB Vendor 검증을 실행하고 현재 Commit에 유효한 Evidence를 남긴다. |
+| 적용 범위 | Test Pyramid, Scenario Matrix, Environment, Command, Raw Result, Sanitizing |
+| 주요 독자 | 개발자, QA, Reviewer, Release 승인자, 감사 담당자 |
+| 완료 판정 | Source·API·SQL·Config·Test·Runtime·Evidence 중 해당 범위가 실제로 연결되고 검증돼야 한다. |
+
+### 0.1 읽는 순서
+
+1. 책임 경계와 상태 모델을 먼저 확인한다.
+2. 정상 절차를 수행하기 전에 권한·설정·데이터베이스·다중 인스턴스 영향을 확인한다.
+3. 오류·부분 실패·복구 절차와 완료 점검을 같은 작업 범위로 수행한다.
+4. 직접 실행하지 않은 검증은 `완료`로 기록하지 않는다.
+
+---
+
+
 ## 1. 목적
 
 CPF는 테스트 코드 존재가 아니라 실행 결과와 소스 Commit의 일치를 검증한다. 이 문서는 테스트 계층, 환경, 장애 주입, 검증 증적과 완료 판정 기준을 정의한다.
@@ -180,7 +202,7 @@ Fresh Install
 - 권한
 - 시간 제한
 - 재시도
-- Unknown
+- 결과 불명
 - Partial Failure
 - Recovery
 
@@ -401,3 +423,95 @@ pwsh -File .\cpf-tools\scripts\verify-full-product.ps1 `
 ## 부록 D. 재현성
 
 검증에 필요한 컨테이너·데이터·설정·시간대·시계·외부 대역을 기록한다. 무작위 자료는 씨앗을 보존하고, 시간이 결과에 영향을 주는 시험은 주입 가능한 시계를 사용한다.
+
+## 32. Requirement 기반 검증 Matrix
+
+| Requirement 유형 | 최소 Test | 실패 주입 | Evidence |
+|---|---|---|---|
+| 공개 API | Unit·Contract·OpenAPI | Null·범위·Unknown Field·Version | 요청·응답·오류 계약 |
+| Local·Remote | 동등성 Integration | 대상 Down·Timeout·응답 유실 | Header·오류·Trace 비교 |
+| 멱등성 | Repository·동시성 | 중복 Key·다른 Payload·처리 중 | 최초 결과·충돌·대기 상태 |
+| 비동기 | Outbox·Inbox·Broker | 중복·지연·독성 메시지 | Publish·Consume·Replay 이력 |
+| Gateway | Registry·Apply·Route | 일부 적용·Stale ACK·TLS 실패 | Version·Checksum·연결시험 |
+| Batch | Definition·Projection·Worker | Lease 상실·Stale Fencing·재시도 | Execution·Attempt 원장 |
+| DB | Fresh·Upgrade·Rollback | Drift·중간 실패·Lock | 공급자별 명령·Query 결과 |
+| 운영 UI | Component·E2E·접근성 | 401·403·409·500·Stale Response | 화면 상태·감사·API 결과 |
+
+## 33. Evidence Bundle 구조
+
+```text
+evidence/<requirement-id>/<source-commit>/
+├─ manifest.json
+├─ commands.txt
+├─ environment-sanitized.txt
+├─ started-at.txt
+├─ finished-at.txt
+├─ stdout.log
+├─ stderr.log
+├─ result-summary.md
+├─ api/
+├─ db/
+├─ runtime/
+└─ screenshots/
+```
+
+`manifest.json`에는 Requirement, Source Commit, 실행자, Profile, 도구 Version, Artifact Hash, 시작·종료 시각, 종료 코드, 결과 상태와 Sanitizing 여부를 기록한다.
+
+## 34. Evidence 무효화 조건
+
+- Source Commit이 달라졌다.
+- 실행 명령이나 Script가 변경됐다.
+- DB Schema·Seed·Migration Version이 달라졌다.
+- Profile, 공급자, OS, JDK, Browser 또는 외부 Stub 조건이 달라졌다.
+- 원본 Log가 없고 요약문만 남았다.
+- 민감정보 제거 과정에서 성공·실패 판단에 필요한 내용까지 사라졌다.
+- 다른 장비의 결과를 현재 장비 검증으로 자동 승계했다.
+- 일부 단계가 실패했는데 전체 성공으로 합산했다.
+
+## 35. 부분 실패 시나리오 예
+
+Gateway Binding을 4개 인스턴스에 적용하는 Test라면 다음을 별도로 판정한다.
+
+1. 3개 적용 성공, 1개 TLS 정책 누락으로 실패하도록 주입한다.
+2. 전체 상태가 `PARTIAL`이고 실패 인스턴스·오류 코드가 조회되는지 확인한다.
+3. 성공 인스턴스의 ACK Version과 Checksum이 맞는지 확인한다.
+4. 실패 인스턴스를 배수하고 정책을 복구한 뒤 재적용한다.
+5. 오래된 ACK를 보내 거부되는지 확인한다.
+6. 최종 4개 인스턴스 적용과 거래 정상 여부를 확인한다.
+7. 최초 일부 적용, 복구, 최종 대사 결과를 모두 Evidence로 남긴다.
+
+정상 최종 상태만 캡처하고 중간 실패와 복구 과정을 생략하면 부분 실패 요구를 검증한 것이 아니다.
+
+## 부록 Z. 구현 추적 시작점
+
+문서의 설명을 완료 근거로 사용하지 않는다. 아래 경로에서 실제 Consumer·구현·설정·SQL·Test 연결을 확인한다. 경로가 이동했다면 `git ls-files`와 `git grep -n`으로 최신 Owner를 다시 찾는다.
+
+| 추적 대상 | 대표 경로 또는 명령 | 확인 목적 |
+|---|---|---|
+| Unit/Integration | 각 Module `src/test` | 정상·오류·경계·Transaction |
+| Runtime/Fault | `cpf-tools/scripts/verify-*`, Testkit | 실제 실행·장애·복구 |
+| Browser | ADM/BZA Frontend Test·E2E | Loading·Empty·Error·권한·위험 조치 |
+| DB Vendor | Oracle/PostgreSQL/MariaDB Install·Upgrade·Rollback | Vendor 동등성 |
+| Evidence | `cpf-docs/evidence`, Quality Matrix | Commit·Command·Environment·Raw Result·Sanitizing |
+
+### Z.1 공통 확인 명령
+
+```powershell
+git status --short
+git diff --check
+git grep -n "TODO\|UnsupportedOperationException\|return null" -- ':!cpf-docs/archive/**'
+pwsh -File .\cpf-tools\scripts\check-architecture-ownership.ps1
+pwsh -File .\cpf-tools\scripts\check-document-links.ps1
+pwsh -File .\cpf-tools\scripts\check-repository-hygiene.ps1
+```
+
+명령이 현재 Repository에 존재하지 않거나 Parameter가 달라졌다면 해당 Tool Source와 [도구 상세 참조](CPF_TOOL_REFERENCE.md)를 먼저 갱신한다.
+
+### Z.2 완료 상태 사용
+
+- **완료**: 구현·Consumer·운영 경로·검증·Evidence가 현재 Commit에서 확인됨
+- **부분 구현**: 일부 계층 또는 실패·복구·운영 경로가 빠짐
+- **미구현**: 제품 동작이 없음
+- **미검증**: 구현은 있으나 요구된 실행 검증을 수행하지 않음
+- **실패**: 검증을 수행했으나 기대 결과를 충족하지 못함
+- **재확인 필요**: Source·문서·Evidence 또는 환경이 서로 달라 현재 상태를 확정할 수 없음

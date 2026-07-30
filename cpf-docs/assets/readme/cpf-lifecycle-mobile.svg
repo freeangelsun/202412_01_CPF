@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1810" viewBox="0 0 900 1810" role="img" aria-labelledby="title desc">
+<title id="title">CPF 제품 생명주기</title><desc id="desc">설계, 생성, 실행, 운영, 변화가 증적과 함께 이어지는 흐름</desc>
+<defs>
+  <linearGradient id="navy" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#07182D"/><stop offset=".55" stop-color="#0B2748"/><stop offset="1" stop-color="#132F56"/></linearGradient>
+  <linearGradient id="blue" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#39BDF8"/><stop offset="1" stop-color="#356CF4"/></linearGradient>
+  <linearGradient id="violet" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9A78FF"/><stop offset="1" stop-color="#6E55F7"/></linearGradient>
+  <linearGradient id="mint" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#35D2AE"/><stop offset="1" stop-color="#17A98A"/></linearGradient>
+  <linearGradient id="amber" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFCA65"/><stop offset="1" stop-color="#F29B38"/></linearGradient>
+  <linearGradient id="soft" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F8FBFF"/><stop offset="1" stop-color="#EEF4FC"/></linearGradient>
+  <filter id="shadow" x="-30%" y="-30%" width="160%" height="170%"><feDropShadow dx="0" dy="12" stdDeviation="18" flood-color="#06162A" flood-opacity=".14"/></filter>
+  <filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="38"/></filter>
+  <marker id="arrow" markerWidth="11" markerHeight="11" refX="9" refY="4" orient="auto"><path d="M0,0 L0,8 L10,4 z" fill="#6C83A2"/></marker>
+</defs><style>
+text{font-family:'NanumSquare','Noto Sans CJK KR','Malgun Gothic','Segoe UI',Arial,sans-serif;fill:#142B47}
+.title{font-size:46px;font-weight:800;letter-spacing:-1.6px}
+.subtitle{font-size:20px;font-weight:500;fill:#5F7289}
+.kicker{font-size:13px;font-weight:800;letter-spacing:1.8px}
+.cardTitle{font-size:24px;font-weight:800;letter-spacing:-.6px}
+.body{font-size:16px;font-weight:550;fill:#5F7289}
+.small{font-size:13px;font-weight:650;fill:#5F7289}
+.pill{font-size:12px;font-weight:800}
+.number{font-size:30px;font-weight:800}
+</style>
+<rect width="900" height="1810" fill="url(#soft)"/><text x="48" y="68" class="kicker" style="fill:#2F6FEB">ONE PRODUCT FLOW</text><text x="48" y="120" class="title" style="font-size:38px"><tspan x="48">설계부터 복구와 다음 변화까지</tspan><tspan x="48" dy="50">하나의 흐름으로 이어집니다</tspan></text><text x="48" y="248" class="subtitle"><tspan x="48">각 단계는 다음 단계의 입력이 되고, 모든 결과는</tspan><tspan x="48" dy="31">기준 Commit과 실행 증적으로 연결됩니다.</tspan></text>
+<path d="M108 350 V1480" stroke="#9BB0C9" stroke-width="4" stroke-linecap="round" marker-end="url(#arrow)"/>
+<circle cx="108" cy="412" r="30" fill="#2F6FEB"/><text x="108" y="419" class="pill" text-anchor="middle" style="fill:#fff;font-size:15px">01</text>
+<g filter="url(#shadow)"><rect x="170" y="320" width="682" height="185" rx="26" fill="#FFFFFF" stroke="#C6D5E8" stroke-width="1.4"/></g>
+<text x="202" y="378" class="cardTitle" style="font-size:27px">설계</text><text x="202" y="425" class="body" style="font-size:18px"><tspan x="202">요구사항·소유권</tspan><tspan x="202" dy="31">공개 API·SPI 경계</tspan></text><rect x="202" y="477" width="610" height="6" rx="3" fill="#2F6FEB" opacity=".8"/><circle cx="108" cy="647" r="30" fill="#7B61F4"/><text x="108" y="654" class="pill" text-anchor="middle" style="fill:#fff;font-size:15px">02</text>
+<g filter="url(#shadow)"><rect x="170" y="555" width="682" height="185" rx="26" fill="#FFFFFF" stroke="#C6D5E8" stroke-width="1.4"/></g>
+<text x="202" y="613" class="cardTitle" style="font-size:27px">생성</text><text x="202" y="660" class="body" style="font-size:18px"><tspan x="202">모듈·DB·설정</tspan><tspan x="202" dy="31">시험·문서 기본 골격</tspan></text><rect x="202" y="712" width="610" height="6" rx="3" fill="#7B61F4" opacity=".8"/><circle cx="108" cy="882" r="30" fill="#15B89A"/><text x="108" y="889" class="pill" text-anchor="middle" style="fill:#fff;font-size:15px">03</text>
+<g filter="url(#shadow)"><rect x="170" y="790" width="682" height="185" rx="26" fill="#FFFFFF" stroke="#C6D5E8" stroke-width="1.4"/></g>
+<text x="202" y="848" class="cardTitle" style="font-size:27px">실행</text><text x="202" y="895" class="body" style="font-size:18px"><tspan x="202">온라인·비동기</tspan><tspan x="202" dy="31">배치·외부 연계</tspan></text><rect x="202" y="947" width="610" height="6" rx="3" fill="#15B89A" opacity=".8"/><circle cx="108" cy="1117" r="30" fill="#F0A432"/><text x="108" y="1124" class="pill" text-anchor="middle" style="fill:#fff;font-size:15px">04</text>
+<g filter="url(#shadow)"><rect x="170" y="1025" width="682" height="185" rx="26" fill="#FFFFFF" stroke="#C6D5E8" stroke-width="1.4"/></g>
+<text x="202" y="1083" class="cardTitle" style="font-size:27px">운영</text><text x="202" y="1130" class="body" style="font-size:18px"><tspan x="202">상태·추적·감사</tspan><tspan x="202" dy="31">안전한 제어·복구</tspan></text><rect x="202" y="1182" width="610" height="6" rx="3" fill="#F0A432" opacity=".8"/><circle cx="108" cy="1352" r="30" fill="#E65D7A"/><text x="108" y="1359" class="pill" text-anchor="middle" style="fill:#fff;font-size:15px">05</text>
+<g filter="url(#shadow)"><rect x="170" y="1260" width="682" height="185" rx="26" fill="#FFFFFF" stroke="#C6D5E8" stroke-width="1.4"/></g>
+<text x="202" y="1318" class="cardTitle" style="font-size:27px">변화</text><text x="202" y="1365" class="body" style="font-size:18px"><tspan x="202">이관·업그레이드</tspan><tspan x="202" dy="31">되돌리기·재검증</tspan></text><rect x="202" y="1417" width="610" height="6" rx="3" fill="#E65D7A" opacity=".8"/><rect x="48" y="1535" width="804" height="205" rx="26" fill="#0D2745"/><text x="80" y="1580" class="kicker" style="fill:#57C8F7">EVIDENCE SPINE</text><text x="80" y="1625" class="cardTitle" style="fill:#fff;font-size:23px"><tspan x="80">요구사항 → 구현 → 시험 → 실행 결과</tspan><tspan x="80" dy="34">→ 정제된 증적</tspan></text><text x="80" y="1700" class="small" style="fill:#B7C8DB;font-size:14px">검증하지 않은 상태를 완료로 바꾸지 않습니다.</text></svg>

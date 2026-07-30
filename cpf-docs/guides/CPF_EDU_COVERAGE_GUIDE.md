@@ -8,6 +8,28 @@
 
 ---
 
+
+## 0. 문서 계약
+
+| 항목 | 기준 |
+|---|---|
+| 기준 Source | `master` / `b7c6146e952c10b885952fa2bc6b6786f4611d86` |
+| Owner | `cpf-reference`, EDU 자료와 실제 제품 API Owner |
+| 이 문서로 완료하는 일 | 장난감 규격 없이 실제 Public API를 사용해 정상·오류·경계·복구·권한·운영 시나리오를 교육한다. |
+| 적용 범위 | 학습 경로, 실습 코드, Fault Scenario, 운영 훈련, Testkit |
+| 주요 독자 | 신규 개발자, 강사, Reviewer, 고객 기술 지원 |
+| 완료 판정 | Source·API·SQL·Config·Test·Runtime·Evidence 중 해당 범위가 실제로 연결되고 검증돼야 한다. |
+
+### 0.1 읽는 순서
+
+1. 책임 경계와 상태 모델을 먼저 확인한다.
+2. 정상 절차를 수행하기 전에 권한·설정·데이터베이스·다중 인스턴스 영향을 확인한다.
+3. 오류·부분 실패·복구 절차와 완료 점검을 같은 작업 범위로 수행한다.
+4. 직접 실행하지 않은 검증은 `완료`로 기록하지 않는다.
+
+---
+
+
 ## 1. 목적
 
 CPF 교육 자료는 별도 장난감 규격을 만들지 않는다. 실제 제품 공개 API, SPI, 오류, 페이징, 보안과 운영 계약을 그대로 사용한다.
@@ -136,7 +158,7 @@ cpf-reference/
 - 작업자
 - Restart
 - Reprocess
-- Unknown
+- 결과 불명
 - 에이전트
 - 서명
 
@@ -148,7 +170,7 @@ cpf-reference/
 - Fencing
 - Handler
 - Failed
-- Unknown
+- 결과 불명
 - Reprocess
 
 ## 13. 보안
@@ -198,7 +220,7 @@ cpf-reference/
 - 인증 필요
 - 권한 없음
 - 호출량 제한
-- Unknown
+- 결과 불명
 - Poison
 - Scanner Down
 
@@ -294,3 +316,74 @@ ADM에서 거래·로그·추적·상태를 연결하고 권한·사유·승인�
 ## 부록 B. 실습 완료 기준
 
 각 실습은 실행 명령, 기대 출력, 오류 주입 방법, 복구 확인, 정리 명령과 검증 증적 위치를 제공한다. 정상 화면 캡처만으로 완료하지 않는다.
+
+## 30. 권장 학습 경로
+
+| 단계 | 실습 | 완료 결과 |
+|---|---|---|
+| 1. 기반 계약 | Header·ID·Error·Paging API 사용 | Framework 표준 응답과 오류 이해 |
+| 2. 업무 기능 | Generated Domain에 Query/Command 추가 | 계층·Owner·DB 연결 |
+| 3. Local/Remote | 같은 Facade를 두 Adapter로 실행 | 배포 독립 계약 검증 |
+| 4. 실패 처리 | 시간 초과·중복·결과 불명 주입 | 재시도·대사 판단 |
+| 5. 비동기/Batch | Outbox/Inbox·Job Definition 실행 | 재처리·Attempt 이해 |
+| 6. 운영 | ADM에서 조회·제어·Audit 확인 | 운영 경로 이해 |
+| 7. 변경 | DB Upgrade·Rollback·Evidence | 제품 생명주기 이해 |
+
+## 31. 실습 문서 구성
+
+각 실습은 목표, 선행 조건, Source 위치, 실행 명령, 예상 결과, 실패 주입, 복구 절차, Test와 Evidence를 포함한다. 정답 코드만 제공하지 않고 왜 Owner와 Transaction 경계를 그렇게 정했는지 설명한다.
+
+## 32. 금지되는 EDU 형태
+
+- 실제 제품에 없는 별도 Header·Error·Paging 규격
+- In-memory Mock만 있고 실제 Repository·Runtime 연결 없음
+- 인증·권한·오류를 생략한 정상 예제만 제공
+- `Thread.sleep` 또는 임의 Retry로 장애를 숨김
+- Sample 전용 Package가 Internal 구현을 직접 Import
+- 실행하지 않은 Console 출력과 Screenshot을 결과로 기재
+
+## 33. 수용 시험
+
+학습자가 문서를 처음 보고 다음을 수행할 수 있어야 한다.
+
+1. 생성 업무영역을 Dry-run으로 계획한다.
+2. Query와 멱등 Command를 추가한다.
+3. Local/Remote Contract Test를 실행한다.
+4. Timeout 후 `UNKNOWN_RESULT`를 대사한다.
+5. 권한 부족과 Version 충돌을 확인한다.
+6. DB Migration·Rollback을 검증한다.
+7. ADM에서 거래·Log·Audit를 추적한다.
+8. 기준 Commit과 명령이 포함된 Evidence를 만든다.
+
+## 부록 Z. 구현 추적 시작점
+
+문서의 설명을 완료 근거로 사용하지 않는다. 아래 경로에서 실제 Consumer·구현·설정·SQL·Test 연결을 확인한다. 경로가 이동했다면 `git ls-files`와 `git grep -n`으로 최신 Owner를 다시 찾는다.
+
+| 추적 대상 | 대표 경로 또는 명령 | 확인 목적 |
+|---|---|---|
+| Reference App | `cpf-reference` | 실제 Public API 사용 예 |
+| Golden Domain | `cpf-member` | Generator 생성 결과와 업무 예 |
+| Testkit | `cpf-batch/testkit` 및 Public Test Kit | Fault·Recovery 실습 |
+| Coverage 확인 | `git grep -n "TODO\|sample-only\|mock-only" cpf-reference cpf-member` | 장난감·미연결 예제 탐지 |
+
+### Z.1 공통 확인 명령
+
+```powershell
+git status --short
+git diff --check
+git grep -n "TODO\|UnsupportedOperationException\|return null" -- ':!cpf-docs/archive/**'
+pwsh -File .\cpf-tools\scripts\check-architecture-ownership.ps1
+pwsh -File .\cpf-tools\scripts\check-document-links.ps1
+pwsh -File .\cpf-tools\scripts\check-repository-hygiene.ps1
+```
+
+명령이 현재 Repository에 존재하지 않거나 Parameter가 달라졌다면 해당 Tool Source와 [도구 상세 참조](CPF_TOOL_REFERENCE.md)를 먼저 갱신한다.
+
+### Z.2 완료 상태 사용
+
+- **완료**: 구현·Consumer·운영 경로·검증·Evidence가 현재 Commit에서 확인됨
+- **부분 구현**: 일부 계층 또는 실패·복구·운영 경로가 빠짐
+- **미구현**: 제품 동작이 없음
+- **미검증**: 구현은 있으나 요구된 실행 검증을 수행하지 않음
+- **실패**: 검증을 수행했으나 기대 결과를 충족하지 못함
+- **재확인 필요**: Source·문서·Evidence 또는 환경이 서로 달라 현재 상태를 확정할 수 없음

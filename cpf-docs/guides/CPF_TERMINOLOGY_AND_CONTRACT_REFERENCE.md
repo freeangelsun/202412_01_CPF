@@ -7,6 +7,28 @@
 
 ---
 
+
+## 0. 문서 계약
+
+| 항목 | 기준 |
+|---|---|
+| 기준 Source | `master` / `b7c6146e952c10b885952fa2bc6b6786f4611d86` |
+| Owner | 제품 용어 정본 |
+| 이 문서로 완료하는 일 | 문서·Source·API·UI에서 같은 개념을 같은 이름과 상태 코드로 사용하고 번역어·동의어 Drift를 줄인다. |
+| 적용 범위 | Module, 계약, 상태, 오류, 운영, DB, 공급·검증 용어 |
+| 주요 독자 | 모든 설계자·개발자·운영자·문서 작성자 |
+| 완료 판정 | Source·API·SQL·Config·Test·Runtime·Evidence 중 해당 범위가 실제로 연결되고 검증돼야 한다. |
+
+### 0.1 읽는 순서
+
+1. 책임 경계와 상태 모델을 먼저 확인한다.
+2. 정상 절차를 수행하기 전에 권한·설정·데이터베이스·다중 인스턴스 영향을 확인한다.
+3. 오류·부분 실패·복구 절차와 완료 점검을 같은 작업 범위로 수행한다.
+4. 직접 실행하지 않은 검증은 `완료`로 기록하지 않는다.
+
+---
+
+
 ## 1. 기본 표기
 
 | 권장 표기 | 식별자·영문 | 의미 |
@@ -186,3 +208,51 @@ CPF 작업·검토 문서에서 사용하는 상태는 다음으로 제한한다
 - “공개 계약 사용자가 내부 구현 어댑터를 직접 사용한다.”
 
 식별자와 고유 기술 용어를 억지로 번역하지 않되, 문장의 중심은 한글로 작성한다.
+
+## 15. 용어 변경 절차
+
+1. 변경 이유와 기존 Consumer를 확인한다.
+2. Source Type, Error Code, DB 값, OpenAPI, UI Label과 문서를 검색한다.
+3. 외부 계약이면 호환 기간·Alias·Migration을 정한다.
+4. Generator Template과 생성 산출물의 Drift를 확인한다.
+5. Test와 Evidence의 검색 Key를 갱신한다.
+6. 과거 용어를 무조건 삭제하지 않고 데이터·API 호환을 검증한다.
+
+## 16. 한글과 식별자 사용 원칙
+
+일반 설명은 자연스러운 한글을 우선한다. Class, Method, Package, 설정 Key, API Path, DB Object, 상태 Code와 표준 Protocol 이름은 실제 식별자를 유지한다. 한 문장에서 불필요한 영문 번역어를 반복하지 않는다.
+
+예: “Gateway Binding을 Publish하고 Instance ACK를 확인한다”보다 “게이트웨이 바인딩을 게시하고 인스턴스별 적용 확인 응답(ACK)을 확인한다”처럼 최초 설명에서 의미와 식별자를 함께 제시한다.
+
+## 부록 Z. 구현 추적 시작점
+
+문서의 설명을 완료 근거로 사용하지 않는다. 아래 경로에서 실제 Consumer·구현·설정·SQL·Test 연결을 확인한다. 경로가 이동했다면 `git ls-files`와 `git grep -n`으로 최신 Owner를 다시 찾는다.
+
+| 추적 대상 | 대표 경로 또는 명령 | 확인 목적 |
+|---|---|---|
+| 정본 문서 | `CPF_FINAL_TARGET_REQUIREMENTS.md`, Architecture/Specification | 제품 용어 근거 |
+| Public Types | `cpf-core/src/main/java/com/cpf/core/api` | 상태·오류·식별자 이름 |
+| OpenAPI/UI | Controller Annotation과 Frontend Label | 외부 노출 용어 |
+| Drift 확인 | `git grep -n`으로 금지 동의어·과거 상태 코드 검색 | Source·문서·UI 일치 |
+
+### Z.1 공통 확인 명령
+
+```powershell
+git status --short
+git diff --check
+git grep -n "TODO\|UnsupportedOperationException\|return null" -- ':!cpf-docs/archive/**'
+pwsh -File .\cpf-tools\scripts\check-architecture-ownership.ps1
+pwsh -File .\cpf-tools\scripts\check-document-links.ps1
+pwsh -File .\cpf-tools\scripts\check-repository-hygiene.ps1
+```
+
+명령이 현재 Repository에 존재하지 않거나 Parameter가 달라졌다면 해당 Tool Source와 [도구 상세 참조](CPF_TOOL_REFERENCE.md)를 먼저 갱신한다.
+
+### Z.2 완료 상태 사용
+
+- **완료**: 구현·Consumer·운영 경로·검증·Evidence가 현재 Commit에서 확인됨
+- **부분 구현**: 일부 계층 또는 실패·복구·운영 경로가 빠짐
+- **미구현**: 제품 동작이 없음
+- **미검증**: 구현은 있으나 요구된 실행 검증을 수행하지 않음
+- **실패**: 검증을 수행했으나 기대 결과를 충족하지 못함
+- **재확인 필요**: Source·문서·Evidence 또는 환경이 서로 달라 현재 상태를 확정할 수 없음

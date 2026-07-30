@@ -8,6 +8,28 @@
 
 ---
 
+
+## 0. 문서 계약
+
+| 항목 | 기준 |
+|---|---|
+| 기준 Source | `master` / `b7c6146e952c10b885952fa2bc6b6786f4611d86` |
+| Owner | `:cpf-batch:scheduler`, 실행 상태 Owner는 Batch Control/Runtime |
+| 이 문서로 완료하는 일 | Schedule·Calendar·Timezone·Misfire·Lease·Restart·Rerun·Reprocess 의미를 분리하고 다중 Scheduler에서 중복 Dispatch를 차단한다. |
+| 적용 범위 | Schedule Projection, Trigger 계산, Dispatch, Execution 상태, 재실행 정책 |
+| 주요 독자 | Scheduler 개발자, Batch 운영자, 업무 Job Owner |
+| 완료 판정 | Source·API·SQL·Config·Test·Runtime·Evidence 중 해당 범위가 실제로 연결되고 검증돼야 한다. |
+
+### 0.1 읽는 순서
+
+1. 책임 경계와 상태 모델을 먼저 확인한다.
+2. 정상 절차를 수행하기 전에 권한·설정·데이터베이스·다중 인스턴스 영향을 확인한다.
+3. 오류·부분 실패·복구 절차와 완료 점검을 같은 작업 범위로 수행한다.
+4. 직접 실행하지 않은 검증은 `완료`로 기록하지 않는다.
+
+---
+
+
 ## 1. 목적
 
 이 문서는 일정, 트리거, CPF 실행, Spring Batch JobInstance와 실행 환경 인스턴스를 명확히 구분하고 다중 인스턴스 일정관리기와 작업자가 안전하게 실행하는 방법을 정의한다.
@@ -16,7 +38,7 @@
 
 | 개념 | 의미 |
 |---|---|
-| 작업 Definition | 무엇을 실행하는가 |
+| 작업 정의 | 무엇을 실행하는가 |
 | 일정 | 언제 실행하는가 |
 | 트리거 | 특정 예정 시각이 실제 Dispatch됐다는 기록 |
 | CPF 실행 | 이번 업무 실행 요청 |
@@ -291,7 +313,7 @@ Lease 만료
 - 완료 Deadline
 - 미실행
 - 반복 실패
-- Unknown 장기화
+- 결과 불명 장기화
 
 경보는 사고와 연결한다.
 
@@ -309,14 +331,14 @@ Lease 만료
 
 분리 화면:
 
-- 작업 Definition
+- 작업 정의
 - 일정
 - 트리거
 - 실행
 - 작업자
 - Spring 배치 메타데이터
 - Restart/Reprocess
-- Unknown/상태 대사
+- 결과 불명·상태 대사
 - SLA
 
 ## 24. 테스트
@@ -377,3 +399,74 @@ Lease 만료
 - `REPLACE`: 이전 실행을 안전 중단한 뒤 새 실행 시작
 
 `REPLACE`는 강제 프로세스 종료가 아니라 취소 요청, 체크포인트, 배수와 중단 확인을 포함한다.
+
+## 34. Schedule 계산 기준
+
+- 모든 Schedule은 Timezone을 명시한다.
+- 저장 시 Local Time과 Zone ID를 함께 보존하고 실행 시 Instant로 계산한다.
+- DST 중복·누락 시각의 실행 정책을 정의한다.
+- Holiday/Business Calendar Version을 Projection에 포함한다.
+- 다음 실행 시각 계산은 같은 입력에서 결정적이어야 한다.
+- Schedule 변경은 과거 Execution 의미를 바꾸지 않고 새 Version으로 적용한다.
+
+## 35. Misfire 정책
+
+| 정책 | 사용 상황 | 위험 |
+|---|---|---|
+| 즉시 1회 실행 | 최신 상태만 필요한 Job | 오래된 기간 누락 가능 |
+| 누락 횟수만큼 Catch-up | 각 기간 처리가 필수 | 폭주·중복·장시간 실행 |
+| 다음 정상 시각부터 | 과거 실행 불필요 | 업무 누락 승인 필요 |
+| 운영 승인 후 선택 | 고위험·대량 Job | 대응 지연 |
+
+Misfire가 발생한 이유, 누락된 Trigger 범위, 선택한 정책과 결과를 실행 원장에 남긴다.
+
+## 36. Restart·Rerun·Reprocess 구분
+
+- **Restart**: 같은 Execution과 Checkpoint를 이어간다.
+- **Rerun**: 같은 업무 기간을 새 Execution으로 처음부터 실행한다.
+- **Reprocess**: 실패·선별 데이터만 새 작업 단위로 처리한다.
+
+운영 화면과 API에서 세 동작을 같은 “재실행” 버튼으로 합치지 않는다. Parameter, Checkpoint, 멱등성, 기존 Side Effect와 결과 대사 방식이 다르다.
+
+## 37. 다중 Scheduler Takeover
+
+1. Due 후보를 읽는다.
+2. 조건부 Update 또는 Claim으로 Owner·Lease·Fencing을 획득한다.
+3. Claim 성공한 인스턴스만 Execution을 생성한다.
+4. Dispatch 전 현재 Fencing과 Projection Version을 다시 확인한다.
+5. Lease 갱신 실패 시 신규 Dispatch를 중지한다.
+6. 다른 Scheduler가 Takeover하면 과거 Scheduler의 늦은 Insert/완료를 차단한다.
+7. 중복 Execution이 생성됐는지 Unique Key와 원장으로 검증한다.
+
+## 부록 Z. 구현 추적 시작점
+
+문서의 설명을 완료 근거로 사용하지 않는다. 아래 경로에서 실제 Consumer·구현·설정·SQL·Test 연결을 확인한다. 경로가 이동했다면 `git ls-files`와 `git grep -n`으로 최신 Owner를 다시 찾는다.
+
+| 추적 대상 | 대표 경로 또는 명령 | 확인 목적 |
+|---|---|---|
+| Scheduler | `cpf-batch/scheduler/src/main/java/com/cpf/batch/scheduler/` | Projection Sync·Due 검색·Dispatch |
+| Runtime SQL | `cpf-tools/db/vendor/*/runtime/bat/repository/scheduler-*.sql` | Due Claim·Execution Insert |
+| Execution Owner | `cpf-batch/worker`, `cpf-batch/control-server` | 실행 상태·재시도·운영 명령 |
+| Fault Test | `git ls-files "*test*" | Select-String "Misfire|Lease|Fencing|Scheduler"` | 중복·Takeover·시간대 경계 |
+
+### Z.1 공통 확인 명령
+
+```powershell
+git status --short
+git diff --check
+git grep -n "TODO\|UnsupportedOperationException\|return null" -- ':!cpf-docs/archive/**'
+pwsh -File .\cpf-tools\scripts\check-architecture-ownership.ps1
+pwsh -File .\cpf-tools\scripts\check-document-links.ps1
+pwsh -File .\cpf-tools\scripts\check-repository-hygiene.ps1
+```
+
+명령이 현재 Repository에 존재하지 않거나 Parameter가 달라졌다면 해당 Tool Source와 [도구 상세 참조](CPF_TOOL_REFERENCE.md)를 먼저 갱신한다.
+
+### Z.2 완료 상태 사용
+
+- **완료**: 구현·Consumer·운영 경로·검증·Evidence가 현재 Commit에서 확인됨
+- **부분 구현**: 일부 계층 또는 실패·복구·운영 경로가 빠짐
+- **미구현**: 제품 동작이 없음
+- **미검증**: 구현은 있으나 요구된 실행 검증을 수행하지 않음
+- **실패**: 검증을 수행했으나 기대 결과를 충족하지 못함
+- **재확인 필요**: Source·문서·Evidence 또는 환경이 서로 달라 현재 상태를 확정할 수 없음

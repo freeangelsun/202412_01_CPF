@@ -4,6 +4,79 @@
 
 -- CPF_LOGICAL_DATABASE=batDB
 USE batDB;
+CREATE TABLE IF NOT EXISTS BATCH_JOB_EXECUTION (
+    JOB_EXECUTION_ID BIGINT NOT NULL COMMENT 'Spring Batch JobExecution 순번',
+    VERSION BIGINT NULL COMMENT '낙관적 잠금 버전',
+    JOB_INSTANCE_ID BIGINT NOT NULL COMMENT 'Spring Batch JobInstance 순번',
+    CREATE_TIME DATETIME(6) NOT NULL COMMENT '실행 생성 일시',
+    START_TIME DATETIME(6) NULL DEFAULT NULL COMMENT '실행 시작 일시',
+    END_TIME DATETIME(6) NULL DEFAULT NULL COMMENT '실행 종료 일시',
+    STATUS VARCHAR(10) NULL COMMENT '실행 상태',
+    EXIT_CODE VARCHAR(2500) NULL COMMENT '종료 코드',
+    EXIT_MESSAGE VARCHAR(2500) NULL COMMENT '종료 메시지',
+    LAST_UPDATED DATETIME(6) NULL COMMENT '마지막 수정 일시',
+    CONSTRAINT pk_BATCH_JOB_EXECUTION PRIMARY KEY (JOB_EXECUTION_ID),
+    CONSTRAINT JOB_INST_EXEC_FK FOREIGN KEY (JOB_INSTANCE_ID) REFERENCES BATCH_JOB_INSTANCE (JOB_INSTANCE_ID)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Spring Batch 표준 JobExecution 저장소';
+
+CREATE TABLE IF NOT EXISTS BATCH_JOB_EXECUTION_CONTEXT (
+    JOB_EXECUTION_ID BIGINT NOT NULL COMMENT 'Spring Batch JobExecution 순번',
+    SHORT_CONTEXT VARCHAR(2500) NOT NULL COMMENT '짧은 실행 컨텍스트',
+    SERIALIZED_CONTEXT TEXT NULL COMMENT '직렬화 실행 컨텍스트',
+    CONSTRAINT pk_BATCH_JOB_EXECUTION_CONTEXT PRIMARY KEY (JOB_EXECUTION_ID),
+    CONSTRAINT JOB_EXEC_CTX_FK FOREIGN KEY (JOB_EXECUTION_ID) REFERENCES BATCH_JOB_EXECUTION (JOB_EXECUTION_ID)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Spring Batch 표준 Job 컨텍스트 저장소';
+
+CREATE TABLE IF NOT EXISTS BATCH_JOB_EXECUTION_PARAMS (
+    JOB_EXECUTION_ID BIGINT NOT NULL COMMENT 'Spring Batch JobExecution 순번',
+    PARAMETER_NAME VARCHAR(100) NOT NULL COMMENT '파라미터 이름',
+    PARAMETER_TYPE VARCHAR(100) NOT NULL COMMENT '파라미터 Java 유형',
+    PARAMETER_VALUE VARCHAR(2500) NULL COMMENT '파라미터 값',
+    IDENTIFYING CHAR(1) NOT NULL COMMENT 'JobInstance 식별 파라미터 여부',
+    CONSTRAINT JOB_EXEC_PARAMS_FK FOREIGN KEY (JOB_EXECUTION_ID) REFERENCES BATCH_JOB_EXECUTION (JOB_EXECUTION_ID)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Spring Batch 표준 Job 파라미터 저장소';
+
+CREATE TABLE IF NOT EXISTS BATCH_JOB_INSTANCE (
+    JOB_INSTANCE_ID BIGINT NOT NULL COMMENT 'Spring Batch JobInstance 순번',
+    VERSION BIGINT NULL COMMENT '낙관적 잠금 버전',
+    JOB_NAME VARCHAR(100) NOT NULL COMMENT 'Spring Batch Job 이름',
+    JOB_KEY VARCHAR(32) NOT NULL COMMENT 'Job 파라미터 식별 키',
+    CONSTRAINT pk_BATCH_JOB_INSTANCE PRIMARY KEY (JOB_INSTANCE_ID),
+    CONSTRAINT JOB_INST_UN UNIQUE (JOB_NAME, JOB_KEY)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Spring Batch 표준 JobInstance 저장소';
+
+CREATE TABLE IF NOT EXISTS BATCH_STEP_EXECUTION (
+    STEP_EXECUTION_ID BIGINT NOT NULL COMMENT 'Spring Batch StepExecution 순번',
+    VERSION BIGINT NOT NULL COMMENT '낙관적 잠금 버전',
+    STEP_NAME VARCHAR(100) NOT NULL COMMENT 'Step 이름',
+    JOB_EXECUTION_ID BIGINT NOT NULL COMMENT 'Spring Batch JobExecution 순번',
+    CREATE_TIME DATETIME(6) NOT NULL COMMENT 'Step 생성 일시',
+    START_TIME DATETIME(6) NULL DEFAULT NULL COMMENT 'Step 시작 일시',
+    END_TIME DATETIME(6) NULL DEFAULT NULL COMMENT 'Step 종료 일시',
+    STATUS VARCHAR(10) NULL COMMENT 'Step 상태',
+    COMMIT_COUNT BIGINT NULL COMMENT '커밋 횟수',
+    READ_COUNT BIGINT NULL COMMENT '읽은 건수',
+    FILTER_COUNT BIGINT NULL COMMENT '필터 건수',
+    WRITE_COUNT BIGINT NULL COMMENT '쓴 건수',
+    READ_SKIP_COUNT BIGINT NULL COMMENT '읽기 skip 건수',
+    WRITE_SKIP_COUNT BIGINT NULL COMMENT '쓰기 skip 건수',
+    PROCESS_SKIP_COUNT BIGINT NULL COMMENT '처리 skip 건수',
+    ROLLBACK_COUNT BIGINT NULL COMMENT 'rollback 건수',
+    EXIT_CODE VARCHAR(2500) NULL COMMENT '종료 코드',
+    EXIT_MESSAGE VARCHAR(2500) NULL COMMENT '종료 메시지',
+    LAST_UPDATED DATETIME(6) NULL COMMENT '마지막 수정 일시',
+    CONSTRAINT pk_BATCH_STEP_EXECUTION PRIMARY KEY (STEP_EXECUTION_ID),
+    CONSTRAINT JOB_EXEC_STEP_FK FOREIGN KEY (JOB_EXECUTION_ID) REFERENCES BATCH_JOB_EXECUTION (JOB_EXECUTION_ID)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Spring Batch 표준 StepExecution 저장소';
+
+CREATE TABLE IF NOT EXISTS BATCH_STEP_EXECUTION_CONTEXT (
+    STEP_EXECUTION_ID BIGINT NOT NULL COMMENT 'Spring Batch StepExecution 순번',
+    SHORT_CONTEXT VARCHAR(2500) NOT NULL COMMENT '짧은 실행 컨텍스트',
+    SERIALIZED_CONTEXT TEXT NULL COMMENT '직렬화 실행 컨텍스트',
+    CONSTRAINT pk_BATCH_STEP_EXECUTION_CONTEXT PRIMARY KEY (STEP_EXECUTION_ID),
+    CONSTRAINT STEP_EXEC_CTX_FK FOREIGN KEY (STEP_EXECUTION_ID) REFERENCES BATCH_STEP_EXECUTION (STEP_EXECUTION_ID)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Spring Batch 표준 Step 컨텍스트 저장소';
+
 CREATE TABLE IF NOT EXISTS bat_center_cut_claim (
     center_cut_item_id BIGINT NULL COMMENT 'Claimed center-cut item identifier',
     runner_id VARCHAR(160) NOT NULL COMMENT 'Owning runner identifier',
@@ -413,6 +486,77 @@ CREATE TABLE IF NOT EXISTS bat_job (
     INDEX ix_bat_job_use (use_yn, job_type)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 배치 Job 기준';
 
+CREATE TABLE IF NOT EXISTS bat_job_definition_audit (
+    audit_id BIGINT NOT NULL COMMENT '감사 ID',
+    job_id VARCHAR(80) NOT NULL COMMENT 'Job ID',
+    definition_version BIGINT NOT NULL COMMENT 'Definition Version',
+    action_code VARCHAR(40) NOT NULL COMMENT '행위',
+    from_state VARCHAR(20) NULL COMMENT '이전 상태',
+    to_state VARCHAR(20) NULL COMMENT '다음 상태',
+    reason VARCHAR(1000) NOT NULL COMMENT '사유',
+    operator_id VARCHAR(100) NOT NULL COMMENT '운영자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '발생시각',
+    CONSTRAINT pk_bat_job_definition_audit PRIMARY KEY (audit_id),
+    INDEX idx_bat_job_def_audit (job_id, definition_version, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT Job Definition 승인·상태 감사';
+
+CREATE TABLE IF NOT EXISTS bat_job_definition_version (
+    job_id VARCHAR(80) NOT NULL COMMENT '배치 Job ID',
+    definition_version BIGINT NOT NULL COMMENT '불변 Definition Version',
+    job_name VARCHAR(200) NOT NULL COMMENT '배치 Job 이름',
+    executor_type VARCHAR(40) NOT NULL COMMENT 'Executor 유형',
+    definition_state VARCHAR(20) NOT NULL COMMENT 'Definition 상태',
+    owner_domain VARCHAR(80) NOT NULL COMMENT '소유 업무영역',
+    description VARCHAR(1000) NULL COMMENT '설명',
+    trigger_type VARCHAR(30) NOT NULL COMMENT 'Trigger 유형',
+    trigger_expression VARCHAR(500) NULL COMMENT 'Trigger 조건',
+    timezone_id VARCHAR(60) NOT NULL DEFAULT 'Asia/Seoul' COMMENT 'Timezone',
+    misfire_policy VARCHAR(30) NOT NULL COMMENT 'Misfire 정책',
+    agent_pool VARCHAR(100) NOT NULL COMMENT 'Agent Pool',
+    zone_id VARCHAR(80) NULL COMMENT '실행 Zone',
+    max_concurrency INT NOT NULL DEFAULT 1 COMMENT '최대 동시 실행',
+    timeout_seconds BIGINT NOT NULL DEFAULT 3600 COMMENT 'Timeout 초',
+    restartable_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '재시작 가능 여부',
+    max_attempts INT NOT NULL DEFAULT 1 COMMENT '최대 시도',
+    initial_backoff_seconds BIGINT NOT NULL DEFAULT 0 COMMENT '초기 Backoff',
+    backoff_multiplier DECIMAL(10,4) NOT NULL DEFAULT 1 COMMENT 'Backoff 배수',
+    max_backoff_seconds BIGINT NOT NULL DEFAULT 0 COMMENT '최대 Backoff',
+    skip_limit INT NOT NULL DEFAULT 0 COMMENT 'Skip 허용',
+    unknown_result_policy VARCHAR(30) NOT NULL COMMENT '결과 불명 처리 정책',
+    compensation_reference VARCHAR(200) NULL COMMENT '보상 처리 참조',
+    alert_delay_seconds BIGINT NOT NULL DEFAULT 0 COMMENT '지연 알림',
+    sla_seconds BIGINT NOT NULL DEFAULT 0 COMMENT 'SLA',
+    notify_failure_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '실패 알림',
+    notify_missed_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '미실행 알림',
+    executor_reference VARCHAR(300) NOT NULL COMMENT 'Executor 참조',
+    definition_json TEXT NOT NULL COMMENT 'Definition JSON',
+    checksum VARCHAR(128) NULL COMMENT 'Checksum',
+    effective_from DATETIME NULL COMMENT '시행 시작',
+    effective_until DATETIME NULL COMMENT '시행 종료',
+    row_version BIGINT NOT NULL DEFAULT 1 COMMENT '낙관적 잠금',
+    created_by VARCHAR(100) NOT NULL COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_bat_job_definition_version PRIMARY KEY (job_id, definition_version),
+    CONSTRAINT ck_bat_job_def_state CHECK (definition_state IN ('DRAFT','VALIDATED','APPROVAL','PUBLISHED','RETIRED')),
+    INDEX idx_bat_job_def_state (definition_state, updated_at),
+    INDEX idx_bat_job_def_owner (owner_domain, job_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT Versioned Job Definition 정본';
+
+CREATE TABLE IF NOT EXISTS bat_job_dependency (
+    job_id VARCHAR(80) NOT NULL COMMENT 'Job ID',
+    definition_version BIGINT NOT NULL COMMENT 'Definition Version',
+    related_job_id VARCHAR(80) NOT NULL COMMENT '선행 Job',
+    condition_code VARCHAR(40) NOT NULL COMMENT '의존 조건',
+    timeout_seconds BIGINT NOT NULL DEFAULT 0 COMMENT '대기 Timeout',
+    required_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '필수 여부',
+    sort_order INT NOT NULL DEFAULT 0 COMMENT '정렬',
+    CONSTRAINT pk_bat_job_dependency PRIMARY KEY (job_id, definition_version, related_job_id),
+    CONSTRAINT ck_bat_job_dep_self CHECK (job_id <> related_job_id),
+    CONSTRAINT fk_bat_job_dep_def FOREIGN KEY (job_id, definition_version) REFERENCES bat_job_definition_version (job_id, definition_version) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT Versioned Job Dependency';
+
 CREATE TABLE IF NOT EXISTS bat_job_pack (
     job_pack_id VARCHAR(120) NOT NULL COMMENT 'Job-pack identifier',
     owner_domain VARCHAR(20) NOT NULL COMMENT 'Owning domain SystemCode',
@@ -436,6 +580,30 @@ CREATE TABLE IF NOT EXISTS bat_job_pack_job (
     CONSTRAINT pk_bat_job_pack_job PRIMARY KEY (job_pack_id, job_id),
     CONSTRAINT fk_bat_job_pack_job_pack FOREIGN KEY (job_pack_id) REFERENCES bat_job_pack (job_pack_id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT job-pack job projection';
+
+CREATE TABLE IF NOT EXISTS bat_job_parameter_definition (
+    job_id VARCHAR(80) NOT NULL COMMENT 'Job ID',
+    definition_version BIGINT NOT NULL COMMENT 'Definition Version',
+    parameter_name VARCHAR(100) NOT NULL COMMENT 'Parameter 이름',
+    parameter_type VARCHAR(40) NOT NULL COMMENT 'Parameter 유형',
+    label_text VARCHAR(200) NULL COMMENT 'UI Label',
+    description_text VARCHAR(1000) NULL COMMENT '설명',
+    required_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '필수 여부',
+    sensitive_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '민감정보 여부',
+    default_value VARCHAR(1000) NULL COMMENT '기본값',
+    allowed_values TEXT NULL COMMENT '허용값',
+    validation_pattern VARCHAR(1000) NULL COMMENT '검증 Pattern',
+    min_value DECIMAL(38,10) NULL COMMENT '최솟값',
+    max_value DECIMAL(38,10) NULL COMMENT '최댓값',
+    min_length INT NULL COMMENT '최소 길이',
+    max_length INT NULL COMMENT '최대 길이',
+    reference_type VARCHAR(80) NULL COMMENT '참조 유형',
+    alias_required_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT 'Alias 강제',
+    runtime_override_allowed_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '실행 Override',
+    sort_order INT NOT NULL DEFAULT 0 COMMENT '정렬',
+    CONSTRAINT pk_bat_job_parameter_definition PRIMARY KEY (job_id, definition_version, parameter_name),
+    CONSTRAINT fk_bat_job_param_def FOREIGN KEY (job_id, definition_version) REFERENCES bat_job_definition_version (job_id, definition_version) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT Typed Parameter Schema';
 
 CREATE TABLE IF NOT EXISTS bat_job_relation (
     relation_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '배치 관계 순번',
@@ -765,79 +933,6 @@ CREATE TABLE IF NOT EXISTS bat_worker (
     INDEX ix_bat_worker_control (control_status, active_yn, last_heartbeat_at),
     INDEX ix_bat_worker_current_job (current_job_id, current_execution_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 배치 worker heartbeat';
-
-CREATE TABLE IF NOT EXISTS BATCH_JOB_EXECUTION (
-    JOB_EXECUTION_ID BIGINT NOT NULL COMMENT 'Spring Batch JobExecution 순번',
-    VERSION BIGINT NULL COMMENT '낙관적 잠금 버전',
-    JOB_INSTANCE_ID BIGINT NOT NULL COMMENT 'Spring Batch JobInstance 순번',
-    CREATE_TIME DATETIME(6) NOT NULL COMMENT '실행 생성 일시',
-    START_TIME DATETIME(6) NULL DEFAULT NULL COMMENT '실행 시작 일시',
-    END_TIME DATETIME(6) NULL DEFAULT NULL COMMENT '실행 종료 일시',
-    STATUS VARCHAR(10) NULL COMMENT '실행 상태',
-    EXIT_CODE VARCHAR(2500) NULL COMMENT '종료 코드',
-    EXIT_MESSAGE VARCHAR(2500) NULL COMMENT '종료 메시지',
-    LAST_UPDATED DATETIME(6) NULL COMMENT '마지막 수정 일시',
-    CONSTRAINT pk_BATCH_JOB_EXECUTION PRIMARY KEY (JOB_EXECUTION_ID),
-    CONSTRAINT JOB_INST_EXEC_FK FOREIGN KEY (JOB_INSTANCE_ID) REFERENCES BATCH_JOB_INSTANCE (JOB_INSTANCE_ID)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Spring Batch 표준 JobExecution 저장소';
-
-CREATE TABLE IF NOT EXISTS BATCH_JOB_EXECUTION_CONTEXT (
-    JOB_EXECUTION_ID BIGINT NOT NULL COMMENT 'Spring Batch JobExecution 순번',
-    SHORT_CONTEXT VARCHAR(2500) NOT NULL COMMENT '짧은 실행 컨텍스트',
-    SERIALIZED_CONTEXT TEXT NULL COMMENT '직렬화 실행 컨텍스트',
-    CONSTRAINT pk_BATCH_JOB_EXECUTION_CONTEXT PRIMARY KEY (JOB_EXECUTION_ID),
-    CONSTRAINT JOB_EXEC_CTX_FK FOREIGN KEY (JOB_EXECUTION_ID) REFERENCES BATCH_JOB_EXECUTION (JOB_EXECUTION_ID)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Spring Batch 표준 Job 컨텍스트 저장소';
-
-CREATE TABLE IF NOT EXISTS BATCH_JOB_EXECUTION_PARAMS (
-    JOB_EXECUTION_ID BIGINT NOT NULL COMMENT 'Spring Batch JobExecution 순번',
-    PARAMETER_NAME VARCHAR(100) NOT NULL COMMENT '파라미터 이름',
-    PARAMETER_TYPE VARCHAR(100) NOT NULL COMMENT '파라미터 Java 유형',
-    PARAMETER_VALUE VARCHAR(2500) NULL COMMENT '파라미터 값',
-    IDENTIFYING CHAR(1) NOT NULL COMMENT 'JobInstance 식별 파라미터 여부',
-    CONSTRAINT JOB_EXEC_PARAMS_FK FOREIGN KEY (JOB_EXECUTION_ID) REFERENCES BATCH_JOB_EXECUTION (JOB_EXECUTION_ID)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Spring Batch 표준 Job 파라미터 저장소';
-
-CREATE TABLE IF NOT EXISTS BATCH_JOB_INSTANCE (
-    JOB_INSTANCE_ID BIGINT NOT NULL COMMENT 'Spring Batch JobInstance 순번',
-    VERSION BIGINT NULL COMMENT '낙관적 잠금 버전',
-    JOB_NAME VARCHAR(100) NOT NULL COMMENT 'Spring Batch Job 이름',
-    JOB_KEY VARCHAR(32) NOT NULL COMMENT 'Job 파라미터 식별 키',
-    CONSTRAINT pk_BATCH_JOB_INSTANCE PRIMARY KEY (JOB_INSTANCE_ID),
-    CONSTRAINT JOB_INST_UN UNIQUE (JOB_NAME, JOB_KEY)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Spring Batch 표준 JobInstance 저장소';
-
-CREATE TABLE IF NOT EXISTS BATCH_STEP_EXECUTION (
-    STEP_EXECUTION_ID BIGINT NOT NULL COMMENT 'Spring Batch StepExecution 순번',
-    VERSION BIGINT NOT NULL COMMENT '낙관적 잠금 버전',
-    STEP_NAME VARCHAR(100) NOT NULL COMMENT 'Step 이름',
-    JOB_EXECUTION_ID BIGINT NOT NULL COMMENT 'Spring Batch JobExecution 순번',
-    CREATE_TIME DATETIME(6) NOT NULL COMMENT 'Step 생성 일시',
-    START_TIME DATETIME(6) NULL DEFAULT NULL COMMENT 'Step 시작 일시',
-    END_TIME DATETIME(6) NULL DEFAULT NULL COMMENT 'Step 종료 일시',
-    STATUS VARCHAR(10) NULL COMMENT 'Step 상태',
-    COMMIT_COUNT BIGINT NULL COMMENT '커밋 횟수',
-    READ_COUNT BIGINT NULL COMMENT '읽은 건수',
-    FILTER_COUNT BIGINT NULL COMMENT '필터 건수',
-    WRITE_COUNT BIGINT NULL COMMENT '쓴 건수',
-    READ_SKIP_COUNT BIGINT NULL COMMENT '읽기 skip 건수',
-    WRITE_SKIP_COUNT BIGINT NULL COMMENT '쓰기 skip 건수',
-    PROCESS_SKIP_COUNT BIGINT NULL COMMENT '처리 skip 건수',
-    ROLLBACK_COUNT BIGINT NULL COMMENT 'rollback 건수',
-    EXIT_CODE VARCHAR(2500) NULL COMMENT '종료 코드',
-    EXIT_MESSAGE VARCHAR(2500) NULL COMMENT '종료 메시지',
-    LAST_UPDATED DATETIME(6) NULL COMMENT '마지막 수정 일시',
-    CONSTRAINT pk_BATCH_STEP_EXECUTION PRIMARY KEY (STEP_EXECUTION_ID),
-    CONSTRAINT JOB_EXEC_STEP_FK FOREIGN KEY (JOB_EXECUTION_ID) REFERENCES BATCH_JOB_EXECUTION (JOB_EXECUTION_ID)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Spring Batch 표준 StepExecution 저장소';
-
-CREATE TABLE IF NOT EXISTS BATCH_STEP_EXECUTION_CONTEXT (
-    STEP_EXECUTION_ID BIGINT NOT NULL COMMENT 'Spring Batch StepExecution 순번',
-    SHORT_CONTEXT VARCHAR(2500) NOT NULL COMMENT '짧은 실행 컨텍스트',
-    SERIALIZED_CONTEXT TEXT NULL COMMENT '직렬화 실행 컨텍스트',
-    CONSTRAINT pk_BATCH_STEP_EXECUTION_CONTEXT PRIMARY KEY (STEP_EXECUTION_ID),
-    CONSTRAINT STEP_EXEC_CTX_FK FOREIGN KEY (STEP_EXECUTION_ID) REFERENCES BATCH_STEP_EXECUTION (STEP_EXECUTION_ID)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Spring Batch 표준 Step 컨텍스트 저장소';
 
 -- CPF_CANONICAL_OBJECTS_BEGIN spring-batch-6-sequences
 -- Generated from cpf-tools/db/canonical/platform-non-table-objects.json.

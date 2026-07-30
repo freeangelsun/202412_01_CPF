@@ -1,0 +1,94 @@
+package com.cpf.batch.worker;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.Duration;
+import java.util.List;
+import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+class ApprovedFileExecutorTest {
+    @TempDir Path temp;
+
+    @Test
+    void waitsForStableFileAndValidatesMarkerAndChecksum() throws Exception {
+        WorkerOperationalProperties properties = properties(temp);
+        ApprovedFileExecutor executor = new ApprovedFileExecutor(properties);
+        Path file = temp.resolve("inbox/data.dat");
+        Files.createDirectories(file.getParent());
+        Files.writeString(file, "payload");
+        Files.writeString(file.resolveSibling("data.dat.done"), "ok");
+        String sha = executor.fingerprint(file).sha256();
+
+        Path ready = executor.awaitReady(new ApprovedFileExecutor.FileWatchRequest(
+                "inbox", "data.dat", Duration.ofSeconds(3), Duration.ofMillis(300),
+                ".done", 7L, sha));
+
+        assertEquals(file.toAbsolutePath().normalize(), ready);
+    }
+
+    @Test
+    void preventsDuplicateClaimWithFencingToken() throws Exception {
+        WorkerOperationalProperties properties = properties(temp);
+        ApprovedFileExecutor executor = new ApprovedFileExecutor(properties);
+        Path file = temp.resolve("inbox/data.dat");
+        Files.createDirectories(file.getParent());
+        Files.writeString(file, "payload");
+
+        ApprovedFileExecutor.Claim first = executor.claim("inbox", "data.dat", "worker-1", Duration.ofMinutes(1));
+        assertThrows(java.nio.file.FileAlreadyExistsException.class,
+                () -> executor.claim("inbox", "data.dat", "worker-2", Duration.ofMinutes(1)));
+        executor.release(first);
+        assertFalse(Files.exists(first.claimPath()));
+    }
+
+
+    @Test
+    void restartScanUsesDirectoryAliasWithoutApplyingFileExtensionPolicy() throws Exception {
+        ApprovedFileExecutor executor = new ApprovedFileExecutor(properties(temp));
+        Path nested = temp.resolve("inbox/nested/data.dat");
+        Files.createDirectories(nested.getParent());
+        Files.writeString(nested, "payload");
+
+        assertEquals(List.of(nested.toAbsolutePath().normalize()), executor.restartScan("inbox", "."));
+    }
+
+    @Test
+    void expiredClaimReacquisitionAlwaysIncreasesFencingToken() throws Exception {
+        ApprovedFileExecutor executor = new ApprovedFileExecutor(properties(temp));
+        Path file = temp.resolve("inbox/data.dat");
+        Files.createDirectories(file.getParent());
+        Files.writeString(file, "payload");
+        Path claim = file.resolveSibling("data.dat.cpf-claim");
+        long previousToken = Long.MAX_VALUE - 10;
+        Files.writeString(claim, "worker-old\n" + previousToken + "\n2000-01-01T00:00:00Z\n");
+
+        ApprovedFileExecutor.Claim reacquired = executor.claim(
+                "inbox", "data.dat", "worker-new", Duration.ofMinutes(1));
+
+        assertTrue(reacquired.fencingToken() > previousToken);
+        assertEquals("worker-new", reacquired.ownerId());
+    }
+
+    @Test
+    void blocksTraversalAndUnapprovedExtension() {
+        ApprovedFileExecutor executor = new ApprovedFileExecutor(properties(temp));
+        assertThrows(SecurityException.class, () -> executor.resolve("inbox", "../escape.dat"));
+        assertThrows(SecurityException.class, () -> executor.resolve("inbox", "payload.exe"));
+    }
+
+    private static WorkerOperationalProperties properties(Path root) {
+        WorkerOperationalProperties properties = new WorkerOperationalProperties();
+        WorkerOperationalProperties.PathAlias inbox = new WorkerOperationalProperties.PathAlias();
+        inbox.setRoot(root.resolve("inbox").toString());
+        inbox.setAllowedExtensions(List.of("dat", "done"));
+        inbox.setStableWindowSeconds(1);
+        inbox.setMaxFileSizeBytes(1024 * 1024);
+        properties.setPathAliases(Map.of("inbox", inbox));
+        return properties;
+    }
+}

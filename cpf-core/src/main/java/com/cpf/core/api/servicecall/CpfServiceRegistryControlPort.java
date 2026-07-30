@@ -12,6 +12,21 @@ public interface CpfServiceRegistryControlPort {
     void deleteInstance(String instanceId, DeleteCommand command);
     Map<String,Object> changeInstanceState(String serviceId, String endpointCode, String instanceId, InstanceCommand command, String reason, String requestedBy);
 
+    default CpfServiceRegistryView.MutationResult saveServiceTyped(ServiceDefinition command) {
+        return CpfServiceRegistryView.MutationResult.from("SERVICE", command.serviceId(), saveService(command));
+    }
+    default CpfServiceRegistryView.MutationResult saveEndpointTyped(EndpointDefinition command) {
+        return CpfServiceRegistryView.MutationResult.from("ENDPOINT", command.endpointCode(), saveEndpoint(command));
+    }
+    default CpfServiceRegistryView.MutationResult saveInstanceTyped(InstanceDefinition command) {
+        return CpfServiceRegistryView.MutationResult.from("INSTANCE", command.instanceId(), saveInstance(command));
+    }
+    default CpfServiceRegistryView.MutationResult changeInstanceStateTyped(
+            String serviceId, String endpointCode, String instanceId, InstanceCommand command, String reason, String requestedBy) {
+        return CpfServiceRegistryView.MutationResult.from("INSTANCE", instanceId,
+                changeInstanceState(serviceId, endpointCode, instanceId, command, reason, requestedBy));
+    }
+
     enum InstanceCommand { DRAIN, DISABLE, RESUME }
 
     record ServiceDefinition(String operationId,String serviceId,String serviceName,String serviceType,String ownerModuleCode,

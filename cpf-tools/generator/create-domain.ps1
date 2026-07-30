@@ -2414,6 +2414,37 @@ $domainManifest = @"
     ],
     "failClosed": true
   },
+  "serviceRegistration": {
+    "candidate": true,
+    "serviceId": "$ModuleUpper",
+    "ownerModule": "$projectName",
+    "environmentBinding": "runtime-profile",
+    "directAllowedByDefault": true,
+    "gatewayAllowedByDefault": false,
+    "endpoints": [
+      {
+        "enabled": $onlineJson,
+        "endpointCode": "$($ModuleUpper)_ONLINE",
+        "protocol": "HTTP",
+        "basePath": "/api/$module",
+        "healthMethod": "HTTP",
+        "healthPath": "/actuator/health/readiness",
+        "contractVersion": "1.0"
+      }
+    ]
+  },
+  "parameterSchemas": {
+    "contract": "com.cpf.core.api.parameter.CpfParameterSchema",
+    "schemaVersion": "1.0",
+    "runtimeOverrideDefault": false,
+    "secretReferenceOnly": true
+  },
+  "gatewayBindingDefaults": {
+    "externalExposure": "DENY",
+    "approvalRequired": true,
+    "connectionTestRequired": true,
+    "healthValidationRequired": true
+  },
   "serviceId": "$ModuleUpper",
   "onlineStandardId": "O${DomainIdCode}QY0001",
   "batchStandardId": "B${DomainIdCode}TS0001",

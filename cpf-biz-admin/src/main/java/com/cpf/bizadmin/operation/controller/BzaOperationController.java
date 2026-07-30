@@ -55,6 +55,22 @@ public class BzaOperationController extends com.cpf.bizadmin.common.base.BzaBase
     return ResponseEntity.ok(s.saveMenu(r, op));
   }
 
+  @GetMapping("/menus/{menuCode}/impact")
+  @CpfOnlineTransaction(id = "OBZAMN1102", name = "BzaMenuImpact")
+  public ResponseEntity<BzaOperationService.MenuImpact> menuImpact(
+      @PathVariable String menuCode) {
+    return ResponseEntity.ok(s.findMenuImpact(menuCode));
+  }
+
+  @DeleteMapping("/menus/{menuCode}")
+  @CpfOnlineTransaction(id = "OBZAMN1201", name = "BzaMenuDelete")
+  public ResponseEntity<BzaOperationService.MenuDeleteResult> deleteMenu(
+      @PathVariable String menuCode,
+      @RequestBody BzaOperationService.MenuDeleteRequest r,
+      @RequestAttribute("bza.operatorId") String op) {
+    return ResponseEntity.ok(s.deleteMenu(menuCode, r, op));
+  }
+
   @GetMapping("/roles")
   public ResponseEntity<List<Map<String, Object>>> roles() {
     return ResponseEntity.ok(s.findRoles());

@@ -116,6 +116,31 @@ public class BzaOperationRepository {
     return jdbc().update(sql.required("operation-repository-update-menu-01"), v);
   }
 
+  /** 메뉴 순환·하위 영향 검사를 위해 전체 hierarchy만 가볍게 조회합니다. */
+  public List<Map<String, Object>> findMenuHierarchy() {
+    return jdbc().queryForList(
+        sql.required("operation-repository-find-menu-hierarchy-01"), Map.of());
+  }
+
+  public long countMenuPermissions(String menuCode) {
+    Long value =
+        jdbc()
+            .queryForObject(
+                sql.required("operation-repository-count-menu-permissions-01"),
+                new MapSqlParameterSource("menuCode", menuCode),
+                Long.class);
+    return value == null ? 0 : value;
+  }
+
+  public int deleteMenu(String menuCode, long expectedVersion) {
+    return jdbc()
+        .update(
+            sql.required("operation-repository-delete-menu-01"),
+            new MapSqlParameterSource()
+                .addValue("menuCode", menuCode)
+                .addValue("expectedVersion", expectedVersion));
+  }
+
   public List<Map<String, Object>> findRoles() {
     return rolePage(new CpfPageRequest(0, 200)).content();
   }

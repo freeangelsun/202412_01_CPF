@@ -476,7 +476,7 @@ CREATE TABLE cpf_file_transfer_history (
     CONSTRAINT pk_cpf_file_transfer_history PRIMARY KEY (history_id),
     CONSTRAINT uk_cpf_file_transfer_history_id UNIQUE (transfer_id)
 );
-CREATE INDEX ix_cpf_file_transfer_duplicate ON cpf_file_transfer_history (endpoint_code, duplicate_key(255), checksum);
+CREATE INDEX ix_cpf_file_transfer_duplicate ON cpf_file_transfer_history (endpoint_code, duplicate_key, checksum);
 CREATE INDEX ix_cpf_file_transfer_tx ON cpf_file_transfer_history (transaction_id, segment_id);
 CREATE INDEX ix_cpf_file_transfer_status ON cpf_file_transfer_history (transfer_status, created_at);
 COMMENT ON TABLE cpf_file_transfer_history IS 'CPF 파일 전송 이력';
@@ -500,6 +500,312 @@ COMMENT ON COLUMN cpf_file_transfer_history.updated_by IS '수정자';
 COMMENT ON COLUMN cpf_file_transfer_history.updated_at IS '수정일시';
 CREATE OR REPLACE TRIGGER trg_touch_cpf_file_transfer_history BEFORE UPDATE ON cpf_file_transfer_history FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
 /
+
+CREATE TABLE cpf_gateway_apply_status (
+    binding_id VARCHAR2(100 CHAR) NOT NULL,
+    gateway_instance_id VARCHAR2(100 CHAR) NOT NULL,
+    expected_version VARCHAR2(100 CHAR) NOT NULL,
+    applied_version VARCHAR2(100 CHAR) NOT NULL DEFAULT '',
+    apply_status VARCHAR2(30 CHAR) NOT NULL,
+    error_code VARCHAR2(100 CHAR) NOT NULL DEFAULT '',
+    error_message VARCHAR2(1000 CHAR) NOT NULL DEFAULT '',
+    acknowledged_at TIMESTAMP,
+    last_seen_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT pk_cpf_gateway_apply_status PRIMARY KEY (binding_id, gateway_instance_id),
+    CONSTRAINT fk_cpf_gwy_apply_binding FOREIGN KEY (binding_id) REFERENCES cpf_gateway_binding (binding_id) ON DELETE CASCADE
+);
+CREATE INDEX ix_cpf_gwy_apply_status ON cpf_gateway_apply_status (apply_status, last_seen_at);
+COMMENT ON TABLE cpf_gateway_apply_status IS 'Gateway Instance별 적용 ACK/Drift';
+COMMENT ON COLUMN cpf_gateway_apply_status.binding_id IS 'Binding ID';
+COMMENT ON COLUMN cpf_gateway_apply_status.gateway_instance_id IS 'Gateway Instance ID';
+COMMENT ON COLUMN cpf_gateway_apply_status.expected_version IS '기대 Version';
+COMMENT ON COLUMN cpf_gateway_apply_status.applied_version IS '적용 Version';
+COMMENT ON COLUMN cpf_gateway_apply_status.apply_status IS '적용 상태';
+COMMENT ON COLUMN cpf_gateway_apply_status.error_code IS '오류 코드';
+COMMENT ON COLUMN cpf_gateway_apply_status.error_message IS '오류 메시지';
+COMMENT ON COLUMN cpf_gateway_apply_status.acknowledged_at IS 'ACK 시각';
+COMMENT ON COLUMN cpf_gateway_apply_status.last_seen_at IS '마지막 상태 시각';
+
+CREATE TABLE cpf_gateway_attempt (
+    attempt_id VARCHAR2(100 CHAR) NOT NULL,
+    gateway_transaction_id VARCHAR2(100 CHAR) NOT NULL,
+    attempt_no NUMBER(10) NOT NULL,
+    instance_id VARCHAR2(100 CHAR) NOT NULL,
+    target_host VARCHAR2(300 CHAR) NOT NULL DEFAULT '',
+    target_port NUMBER(10),
+    target_protocol VARCHAR2(30 CHAR) NOT NULL,
+    connect_duration_ms NUMBER(19) NOT NULL DEFAULT 0,
+    response_duration_ms NUMBER(19) NOT NULL DEFAULT 0,
+    attempt_status VARCHAR2(30 CHAR) NOT NULL,
+    protocol_status VARCHAR2(30 CHAR) NOT NULL DEFAULT '',
+    failure_code VARCHAR2(100 CHAR) NOT NULL DEFAULT '',
+    failure_message VARCHAR2(1000 CHAR) NOT NULL DEFAULT '',
+    started_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    finished_at TIMESTAMP,
+    CONSTRAINT pk_cpf_gateway_attempt PRIMARY KEY (attempt_id),
+    CONSTRAINT uk_cpf_gwy_attempt_no UNIQUE (gateway_transaction_id, attempt_no),
+    CONSTRAINT fk_cpf_gwy_attempt_tx FOREIGN KEY (gateway_transaction_id) REFERENCES cpf_gateway_transaction (gateway_transaction_id) ON DELETE CASCADE
+);
+COMMENT ON TABLE cpf_gateway_attempt IS 'Gateway Retry/Failover Attempt 원장';
+COMMENT ON COLUMN cpf_gateway_attempt.attempt_id IS 'Attempt ID';
+COMMENT ON COLUMN cpf_gateway_attempt.gateway_transaction_id IS 'Gateway 거래 ID';
+COMMENT ON COLUMN cpf_gateway_attempt.attempt_no IS 'Attempt 순번';
+COMMENT ON COLUMN cpf_gateway_attempt.instance_id IS 'Target Instance';
+COMMENT ON COLUMN cpf_gateway_attempt.target_host IS 'Target Host';
+COMMENT ON COLUMN cpf_gateway_attempt.target_port IS 'Target Port';
+COMMENT ON COLUMN cpf_gateway_attempt.target_protocol IS 'Target Protocol';
+COMMENT ON COLUMN cpf_gateway_attempt.connect_duration_ms IS 'Connect 시간';
+COMMENT ON COLUMN cpf_gateway_attempt.response_duration_ms IS 'Response 시간';
+COMMENT ON COLUMN cpf_gateway_attempt.attempt_status IS 'Attempt 상태';
+COMMENT ON COLUMN cpf_gateway_attempt.protocol_status IS 'Protocol 상태';
+COMMENT ON COLUMN cpf_gateway_attempt.failure_code IS '실패 코드';
+COMMENT ON COLUMN cpf_gateway_attempt.failure_message IS '실패 메시지';
+COMMENT ON COLUMN cpf_gateway_attempt.started_at IS '시작 시각';
+COMMENT ON COLUMN cpf_gateway_attempt.finished_at IS '종료 시각';
+
+CREATE TABLE cpf_gateway_binding (
+    binding_id VARCHAR2(100 CHAR) NOT NULL,
+    route_id VARCHAR2(100 CHAR) NOT NULL,
+    environment_code VARCHAR2(50 CHAR) NOT NULL,
+    host_pattern VARCHAR2(300 CHAR) NOT NULL,
+    path_pattern VARCHAR2(500 CHAR) NOT NULL,
+    http_method VARCHAR2(20 CHAR) NOT NULL DEFAULT '*',
+    api_version VARCHAR2(50 CHAR) NOT NULL,
+    ingress_protocol VARCHAR2(30 CHAR) NOT NULL,
+    target_protocol VARCHAR2(30 CHAR) NOT NULL,
+    service_id VARCHAR2(100 CHAR) NOT NULL,
+    server_group_id VARCHAR2(100 CHAR) NOT NULL,
+    route_version VARCHAR2(100 CHAR) NOT NULL,
+    tls_policy_id VARCHAR2(100 CHAR) NOT NULL DEFAULT '',
+    authentication_policy_id VARCHAR2(100 CHAR) NOT NULL DEFAULT '',
+    authorization_policy_id VARCHAR2(100 CHAR) NOT NULL DEFAULT '',
+    header_policy_id VARCHAR2(100 CHAR) NOT NULL DEFAULT '',
+    rate_limit_policy_id VARCHAR2(100 CHAR) NOT NULL DEFAULT '',
+    health_policy_id VARCHAR2(100 CHAR) NOT NULL DEFAULT '',
+    connect_timeout_ms NUMBER(10) NOT NULL,
+    response_timeout_ms NUMBER(10) NOT NULL,
+    overall_timeout_ms NUMBER(10) NOT NULL,
+    max_retry_count NUMBER(10) NOT NULL DEFAULT 0,
+    idempotent_yn CHAR(1 CHAR) NOT NULL DEFAULT 'N',
+    failover_group_id VARCHAR2(100 CHAR) NOT NULL DEFAULT '',
+    gateway_allowed_yn CHAR(1 CHAR) NOT NULL DEFAULT 'N',
+    direct_allowed_yn CHAR(1 CHAR) NOT NULL DEFAULT 'N',
+    binding_status VARCHAR2(30 CHAR) NOT NULL DEFAULT 'DRAFT',
+    approval_id VARCHAR2(100 CHAR) NOT NULL DEFAULT '',
+    effective_from TIMESTAMP,
+    effective_to TIMESTAMP,
+    created_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    row_version NUMBER(19) NOT NULL DEFAULT 1,
+    CONSTRAINT pk_cpf_gateway_binding PRIMARY KEY (binding_id),
+    CONSTRAINT uk_cpf_gwy_binding_key UNIQUE (environment_code, host_pattern, path_pattern, http_method, api_version, route_version),
+    CONSTRAINT ck_cpf_gwy_binding_gateway CHECK (gateway_allowed_yn IN ('Y','N')),
+    CONSTRAINT ck_cpf_gwy_binding_direct CHECK (direct_allowed_yn IN ('Y','N')),
+    CONSTRAINT ck_cpf_gwy_binding_idempotent CHECK (idempotent_yn IN ('Y','N')),
+    CONSTRAINT fk_cpf_gwy_binding_service FOREIGN KEY (service_id) REFERENCES cpf_service (service_id),
+    CONSTRAINT fk_cpf_gwy_binding_group FOREIGN KEY (server_group_id) REFERENCES cpf_gateway_server_group (server_group_id)
+);
+CREATE INDEX ix_cpf_gwy_binding_route ON cpf_gateway_binding (environment_code, route_id, binding_status);
+COMMENT ON TABLE cpf_gateway_binding IS 'Gateway Versioned Binding';
+COMMENT ON COLUMN cpf_gateway_binding.binding_id IS 'Binding ID';
+COMMENT ON COLUMN cpf_gateway_binding.route_id IS 'Route ID';
+COMMENT ON COLUMN cpf_gateway_binding.environment_code IS '환경 코드';
+COMMENT ON COLUMN cpf_gateway_binding.host_pattern IS 'Host Pattern';
+COMMENT ON COLUMN cpf_gateway_binding.path_pattern IS 'Path Pattern';
+COMMENT ON COLUMN cpf_gateway_binding.http_method IS 'HTTP Method';
+COMMENT ON COLUMN cpf_gateway_binding.api_version IS 'API Version';
+COMMENT ON COLUMN cpf_gateway_binding.ingress_protocol IS 'Ingress Protocol';
+COMMENT ON COLUMN cpf_gateway_binding.target_protocol IS 'Target Protocol';
+COMMENT ON COLUMN cpf_gateway_binding.service_id IS '서비스 ID';
+COMMENT ON COLUMN cpf_gateway_binding.server_group_id IS '서버 그룹 ID';
+COMMENT ON COLUMN cpf_gateway_binding.route_version IS 'Route Version';
+COMMENT ON COLUMN cpf_gateway_binding.tls_policy_id IS 'TLS 정책';
+COMMENT ON COLUMN cpf_gateway_binding.authentication_policy_id IS '인증 정책';
+COMMENT ON COLUMN cpf_gateway_binding.authorization_policy_id IS '권한 정책';
+COMMENT ON COLUMN cpf_gateway_binding.header_policy_id IS 'Header 정책';
+COMMENT ON COLUMN cpf_gateway_binding.rate_limit_policy_id IS 'Rate Limit 정책';
+COMMENT ON COLUMN cpf_gateway_binding.health_policy_id IS 'Health 정책';
+COMMENT ON COLUMN cpf_gateway_binding.connect_timeout_ms IS 'Connect Timeout';
+COMMENT ON COLUMN cpf_gateway_binding.response_timeout_ms IS 'Response Timeout';
+COMMENT ON COLUMN cpf_gateway_binding.overall_timeout_ms IS 'Overall Timeout';
+COMMENT ON COLUMN cpf_gateway_binding.max_retry_count IS '최대 재시도';
+COMMENT ON COLUMN cpf_gateway_binding.idempotent_yn IS '멱등 여부';
+COMMENT ON COLUMN cpf_gateway_binding.failover_group_id IS 'Failover 그룹';
+COMMENT ON COLUMN cpf_gateway_binding.gateway_allowed_yn IS 'Gateway 공개 허용';
+COMMENT ON COLUMN cpf_gateway_binding.direct_allowed_yn IS '직접 호출 허용';
+COMMENT ON COLUMN cpf_gateway_binding.binding_status IS 'Binding 상태';
+COMMENT ON COLUMN cpf_gateway_binding.approval_id IS '승인 ID';
+COMMENT ON COLUMN cpf_gateway_binding.effective_from IS '시행 시작';
+COMMENT ON COLUMN cpf_gateway_binding.effective_to IS '시행 종료';
+COMMENT ON COLUMN cpf_gateway_binding.created_by IS '등록자';
+COMMENT ON COLUMN cpf_gateway_binding.created_at IS '등록일시';
+COMMENT ON COLUMN cpf_gateway_binding.updated_by IS '수정자';
+COMMENT ON COLUMN cpf_gateway_binding.updated_at IS '수정일시';
+COMMENT ON COLUMN cpf_gateway_binding.row_version IS '낙관적 잠금 버전';
+CREATE OR REPLACE TRIGGER trg_touch_cpf_gateway_binding BEFORE UPDATE ON cpf_gateway_binding FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
+/
+
+CREATE TABLE cpf_gateway_connection_test (
+    test_id VARCHAR2(100 CHAR) NOT NULL,
+    binding_id VARCHAR2(100 CHAR) NOT NULL,
+    gateway_instance_id VARCHAR2(100 CHAR) NOT NULL DEFAULT '',
+    instance_id VARCHAR2(100 CHAR) NOT NULL DEFAULT '',
+    test_type VARCHAR2(50 CHAR) NOT NULL,
+    test_status VARCHAR2(30 CHAR) NOT NULL,
+    failure_stage VARCHAR2(50 CHAR) NOT NULL DEFAULT '',
+    duration_ms NUMBER(19) NOT NULL DEFAULT 0,
+    trace_id VARCHAR2(100 CHAR) NOT NULL DEFAULT '',
+    operation_id VARCHAR2(100 CHAR) NOT NULL DEFAULT '',
+    tested_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    tested_by VARCHAR2(100 CHAR) NOT NULL,
+    CONSTRAINT pk_cpf_gateway_connection_test PRIMARY KEY (test_id),
+    CONSTRAINT fk_cpf_gwy_test_binding FOREIGN KEY (binding_id) REFERENCES cpf_gateway_binding (binding_id) ON DELETE CASCADE
+);
+CREATE INDEX ix_cpf_gwy_test_binding ON cpf_gateway_connection_test (binding_id, tested_at);
+COMMENT ON TABLE cpf_gateway_connection_test IS 'Gateway 직접/E2E 연결시험 결과';
+COMMENT ON COLUMN cpf_gateway_connection_test.test_id IS '시험 ID';
+COMMENT ON COLUMN cpf_gateway_connection_test.binding_id IS 'Binding ID';
+COMMENT ON COLUMN cpf_gateway_connection_test.gateway_instance_id IS 'Gateway Instance ID';
+COMMENT ON COLUMN cpf_gateway_connection_test.instance_id IS 'Target Instance ID';
+COMMENT ON COLUMN cpf_gateway_connection_test.test_type IS '시험 유형';
+COMMENT ON COLUMN cpf_gateway_connection_test.test_status IS '시험 상태';
+COMMENT ON COLUMN cpf_gateway_connection_test.failure_stage IS '실패 단계';
+COMMENT ON COLUMN cpf_gateway_connection_test.duration_ms IS '소요시간';
+COMMENT ON COLUMN cpf_gateway_connection_test.trace_id IS 'Trace ID';
+COMMENT ON COLUMN cpf_gateway_connection_test.operation_id IS 'Operation ID';
+COMMENT ON COLUMN cpf_gateway_connection_test.tested_at IS '시험 시각';
+COMMENT ON COLUMN cpf_gateway_connection_test.tested_by IS '시험자';
+
+CREATE TABLE cpf_gateway_server_group (
+    server_group_id VARCHAR2(100 CHAR) NOT NULL,
+    group_name VARCHAR2(200 CHAR) NOT NULL,
+    environment_code VARCHAR2(50 CHAR) NOT NULL,
+    service_id VARCHAR2(100 CHAR) NOT NULL,
+    endpoint_code VARCHAR2(100 CHAR) NOT NULL,
+    target_protocol VARCHAR2(30 CHAR) NOT NULL,
+    load_balance_policy VARCHAR2(50 CHAR) NOT NULL,
+    hash_key_source VARCHAR2(200 CHAR) NOT NULL DEFAULT '',
+    health_policy_id VARCHAR2(100 CHAR) NOT NULL DEFAULT '',
+    failover_group_id VARCHAR2(100 CHAR) NOT NULL DEFAULT '',
+    group_status VARCHAR2(30 CHAR) NOT NULL DEFAULT 'DRAFT',
+    direct_allowed_yn CHAR(1 CHAR) NOT NULL DEFAULT 'N',
+    created_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    row_version NUMBER(19) NOT NULL DEFAULT 1,
+    CONSTRAINT pk_cpf_gateway_server_group PRIMARY KEY (server_group_id),
+    CONSTRAINT ck_cpf_gwy_group_direct CHECK (direct_allowed_yn IN ('Y','N')),
+    CONSTRAINT fk_cpf_gwy_group_service FOREIGN KEY (service_id) REFERENCES cpf_service (service_id),
+    CONSTRAINT fk_cpf_gwy_group_endpoint FOREIGN KEY (endpoint_code) REFERENCES cpf_service_endpoint (endpoint_code)
+);
+CREATE INDEX ix_cpf_gwy_group_service ON cpf_gateway_server_group (environment_code, service_id, group_status);
+COMMENT ON TABLE cpf_gateway_server_group IS 'Gateway Server Group';
+COMMENT ON COLUMN cpf_gateway_server_group.server_group_id IS '서버 그룹 ID';
+COMMENT ON COLUMN cpf_gateway_server_group.group_name IS '서버 그룹명';
+COMMENT ON COLUMN cpf_gateway_server_group.environment_code IS '환경 코드';
+COMMENT ON COLUMN cpf_gateway_server_group.service_id IS '서비스 ID';
+COMMENT ON COLUMN cpf_gateway_server_group.endpoint_code IS 'Endpoint 코드';
+COMMENT ON COLUMN cpf_gateway_server_group.target_protocol IS 'Target Protocol';
+COMMENT ON COLUMN cpf_gateway_server_group.load_balance_policy IS 'Load Balance 정책';
+COMMENT ON COLUMN cpf_gateway_server_group.hash_key_source IS 'Hash Key Source';
+COMMENT ON COLUMN cpf_gateway_server_group.health_policy_id IS 'Health 정책 ID';
+COMMENT ON COLUMN cpf_gateway_server_group.failover_group_id IS 'Failover 그룹 ID';
+COMMENT ON COLUMN cpf_gateway_server_group.group_status IS '그룹 상태';
+COMMENT ON COLUMN cpf_gateway_server_group.direct_allowed_yn IS '직접 호출 허용 여부';
+COMMENT ON COLUMN cpf_gateway_server_group.created_by IS '등록자';
+COMMENT ON COLUMN cpf_gateway_server_group.created_at IS '등록일시';
+COMMENT ON COLUMN cpf_gateway_server_group.updated_by IS '수정자';
+COMMENT ON COLUMN cpf_gateway_server_group.updated_at IS '수정일시';
+COMMENT ON COLUMN cpf_gateway_server_group.row_version IS '낙관적 잠금 버전';
+CREATE OR REPLACE TRIGGER trg_touch_cpf_gateway_server_group BEFORE UPDATE ON cpf_gateway_server_group FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
+/
+
+CREATE TABLE cpf_gateway_server_group_member (
+    server_group_id VARCHAR2(100 CHAR) NOT NULL,
+    instance_id VARCHAR2(100 CHAR) NOT NULL,
+    weight NUMBER(10) NOT NULL DEFAULT 1,
+    priority_no NUMBER(10) NOT NULL DEFAULT 0,
+    enabled_yn CHAR(1 CHAR) NOT NULL DEFAULT 'Y',
+    effective_status VARCHAR2(30 CHAR) NOT NULL DEFAULT 'UNKNOWN',
+    fencing_token NUMBER(19) NOT NULL DEFAULT 0,
+    created_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT pk_cpf_gateway_server_group_member PRIMARY KEY (server_group_id, instance_id),
+    CONSTRAINT ck_cpf_gwy_member_enabled CHECK (enabled_yn IN ('Y','N')),
+    CONSTRAINT fk_cpf_gwy_member_group FOREIGN KEY (server_group_id) REFERENCES cpf_gateway_server_group (server_group_id) ON DELETE CASCADE,
+    CONSTRAINT fk_cpf_gwy_member_instance FOREIGN KEY (instance_id) REFERENCES cpf_service_instance (instance_id)
+);
+CREATE INDEX ix_cpf_gwy_member_status ON cpf_gateway_server_group_member (server_group_id, enabled_yn, effective_status, priority_no);
+COMMENT ON TABLE cpf_gateway_server_group_member IS 'Gateway Server Group Member';
+COMMENT ON COLUMN cpf_gateway_server_group_member.server_group_id IS '서버 그룹 ID';
+COMMENT ON COLUMN cpf_gateway_server_group_member.instance_id IS 'Instance ID';
+COMMENT ON COLUMN cpf_gateway_server_group_member.weight IS '가중치';
+COMMENT ON COLUMN cpf_gateway_server_group_member.priority_no IS '우선순위';
+COMMENT ON COLUMN cpf_gateway_server_group_member.enabled_yn IS '사용 여부';
+COMMENT ON COLUMN cpf_gateway_server_group_member.effective_status IS '합성 Health 상태';
+COMMENT ON COLUMN cpf_gateway_server_group_member.fencing_token IS 'Fencing Token';
+COMMENT ON COLUMN cpf_gateway_server_group_member.created_by IS '등록자';
+COMMENT ON COLUMN cpf_gateway_server_group_member.created_at IS '등록일시';
+COMMENT ON COLUMN cpf_gateway_server_group_member.updated_by IS '수정자';
+COMMENT ON COLUMN cpf_gateway_server_group_member.updated_at IS '수정일시';
+CREATE OR REPLACE TRIGGER trg_touch_cpf_gateway_server_group_member BEFORE UPDATE ON cpf_gateway_server_group_member FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
+/
+
+CREATE TABLE cpf_gateway_transaction (
+    gateway_transaction_id VARCHAR2(100 CHAR) NOT NULL,
+    transaction_id VARCHAR2(100 CHAR) NOT NULL,
+    trace_id VARCHAR2(100 CHAR) NOT NULL,
+    channel_id VARCHAR2(100 CHAR) NOT NULL DEFAULT '',
+    source_ip VARCHAR2(100 CHAR) NOT NULL DEFAULT '',
+    source_port NUMBER(10),
+    gateway_instance_id VARCHAR2(100 CHAR) NOT NULL,
+    binding_id VARCHAR2(100 CHAR) NOT NULL,
+    route_id VARCHAR2(100 CHAR) NOT NULL,
+    route_version VARCHAR2(100 CHAR) NOT NULL,
+    server_group_id VARCHAR2(100 CHAR) NOT NULL,
+    final_instance_id VARCHAR2(100 CHAR) NOT NULL DEFAULT '',
+    result_status VARCHAR2(30 CHAR) NOT NULL,
+    protocol_status VARCHAR2(30 CHAR) NOT NULL DEFAULT '',
+    business_code VARCHAR2(100 CHAR) NOT NULL DEFAULT '',
+    failure_stage VARCHAR2(50 CHAR) NOT NULL DEFAULT '',
+    unknown_yn CHAR(1 CHAR) NOT NULL DEFAULT 'N',
+    total_duration_ms NUMBER(19) NOT NULL DEFAULT 0,
+    request_size NUMBER(19) NOT NULL DEFAULT 0,
+    response_size NUMBER(19) NOT NULL DEFAULT 0,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT pk_cpf_gateway_transaction PRIMARY KEY (gateway_transaction_id),
+    CONSTRAINT ck_cpf_gwy_tx_unknown CHECK (unknown_yn IN ('Y','N')),
+    CONSTRAINT fk_cpf_gwy_tx_binding FOREIGN KEY (binding_id) REFERENCES cpf_gateway_binding (binding_id)
+);
+CREATE INDEX ix_cpf_gwy_tx_trace ON cpf_gateway_transaction (transaction_id, trace_id, created_at);
+CREATE INDEX ix_cpf_gwy_tx_route ON cpf_gateway_transaction (route_id, result_status, created_at);
+COMMENT ON TABLE cpf_gateway_transaction IS 'Gateway IN/GATEWAY/OUT/RESULT 거래 원장';
+COMMENT ON COLUMN cpf_gateway_transaction.gateway_transaction_id IS 'Gateway 거래 ID';
+COMMENT ON COLUMN cpf_gateway_transaction.transaction_id IS 'CPF 거래 ID';
+COMMENT ON COLUMN cpf_gateway_transaction.trace_id IS 'Trace ID';
+COMMENT ON COLUMN cpf_gateway_transaction.channel_id IS 'Channel ID';
+COMMENT ON COLUMN cpf_gateway_transaction.source_ip IS 'Source IP';
+COMMENT ON COLUMN cpf_gateway_transaction.source_port IS 'Source Port';
+COMMENT ON COLUMN cpf_gateway_transaction.gateway_instance_id IS 'Gateway Instance';
+COMMENT ON COLUMN cpf_gateway_transaction.binding_id IS 'Binding ID';
+COMMENT ON COLUMN cpf_gateway_transaction.route_id IS 'Route ID';
+COMMENT ON COLUMN cpf_gateway_transaction.route_version IS 'Route Version';
+COMMENT ON COLUMN cpf_gateway_transaction.server_group_id IS 'Server Group';
+COMMENT ON COLUMN cpf_gateway_transaction.final_instance_id IS '최종 Instance';
+COMMENT ON COLUMN cpf_gateway_transaction.result_status IS '최종 상태';
+COMMENT ON COLUMN cpf_gateway_transaction.protocol_status IS 'Protocol 상태';
+COMMENT ON COLUMN cpf_gateway_transaction.business_code IS '업무 코드';
+COMMENT ON COLUMN cpf_gateway_transaction.failure_stage IS '실패 단계';
+COMMENT ON COLUMN cpf_gateway_transaction.unknown_yn IS '결과 불명 여부';
+COMMENT ON COLUMN cpf_gateway_transaction.total_duration_ms IS '전체 소요시간';
+COMMENT ON COLUMN cpf_gateway_transaction.request_size IS '요청 크기';
+COMMENT ON COLUMN cpf_gateway_transaction.response_size IS '응답 크기';
+COMMENT ON COLUMN cpf_gateway_transaction.created_at IS '생성 시각';
 
 CREATE TABLE cpf_idempotency_record (
     idempotency_seq NUMBER(19) GENERATED BY DEFAULT ON NULL AS IDENTITY NOT NULL,
@@ -1196,6 +1502,74 @@ COMMENT ON COLUMN cpf_runtime_instance_state.updated_by IS 'Last updater identif
 COMMENT ON COLUMN cpf_runtime_instance_state.updated_at IS 'Last update time';
 CREATE OR REPLACE TRIGGER trg_touch_cpf_runtime_instance_state BEFORE UPDATE ON cpf_runtime_instance_state FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
 /
+
+CREATE TABLE cpf_runtime_policy_delivery (
+    event_id VARCHAR2(64 CHAR) NOT NULL,
+    consumer_id VARCHAR2(100 CHAR) NOT NULL,
+    delivery_status VARCHAR2(30 CHAR) NOT NULL DEFAULT 'PENDING',
+    attempt_count NUMBER(10) NOT NULL DEFAULT 0,
+    fencing_token NUMBER(19) NOT NULL DEFAULT 0,
+    leased_until TIMESTAMP(3),
+    error_code VARCHAR2(100 CHAR),
+    error_message VARCHAR2(1000 CHAR),
+    acknowledged_at TIMESTAMP(3),
+    created_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    updated_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    CONSTRAINT pk_cpf_runtime_policy_delivery PRIMARY KEY (event_id, consumer_id),
+    CONSTRAINT ck_cpf_runtime_policy_delivery_status CHECK (delivery_status IN ('PENDING', 'CLAIMED', 'APPLIED', 'FAILED', 'IGNORED')),
+    CONSTRAINT ck_cpf_runtime_policy_delivery_attempt CHECK (attempt_count >= 0),
+    CONSTRAINT ck_cpf_runtime_policy_delivery_fencing CHECK (fencing_token >= 0),
+    CONSTRAINT fk_cpf_runtime_policy_delivery_event FOREIGN KEY (event_id) REFERENCES cpf_runtime_policy_event (event_id) ON DELETE CASCADE
+);
+CREATE INDEX ix_cpf_runtime_policy_delivery_status ON cpf_runtime_policy_delivery (consumer_id, delivery_status, leased_until, updated_at);
+COMMENT ON TABLE cpf_runtime_policy_delivery IS 'Runtime Policy Consumer Delivery ACK';
+COMMENT ON COLUMN cpf_runtime_policy_delivery.event_id IS '정책 이벤트 ID';
+COMMENT ON COLUMN cpf_runtime_policy_delivery.consumer_id IS 'Runtime Instance ID';
+COMMENT ON COLUMN cpf_runtime_policy_delivery.delivery_status IS '전달 상태';
+COMMENT ON COLUMN cpf_runtime_policy_delivery.attempt_count IS '전달 시도 횟수';
+COMMENT ON COLUMN cpf_runtime_policy_delivery.fencing_token IS 'Claim Fencing Token';
+COMMENT ON COLUMN cpf_runtime_policy_delivery.leased_until IS 'Claim 만료시각';
+COMMENT ON COLUMN cpf_runtime_policy_delivery.error_code IS '적용 오류 코드';
+COMMENT ON COLUMN cpf_runtime_policy_delivery.error_message IS '민감정보 제거 오류 메시지';
+COMMENT ON COLUMN cpf_runtime_policy_delivery.acknowledged_at IS 'ACK 시각';
+COMMENT ON COLUMN cpf_runtime_policy_delivery.created_at IS '등록일시';
+COMMENT ON COLUMN cpf_runtime_policy_delivery.updated_at IS '수정일시';
+CREATE OR REPLACE TRIGGER trg_touch_cpf_runtime_policy_delivery BEFORE UPDATE ON cpf_runtime_policy_delivery FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
+/
+
+CREATE TABLE cpf_runtime_policy_event (
+    event_id VARCHAR2(64 CHAR) NOT NULL,
+    event_type VARCHAR2(50 CHAR) NOT NULL,
+    aggregate_type VARCHAR2(80 CHAR) NOT NULL,
+    aggregate_id VARCHAR2(200 CHAR) NOT NULL,
+    aggregate_version NUMBER(19) NOT NULL,
+    action_code VARCHAR2(50 CHAR) NOT NULL,
+    payload_checksum VARCHAR2(128 CHAR),
+    metadata_text CLOB,
+    reason VARCHAR2(1000 CHAR) NOT NULL,
+    requested_by VARCHAR2(100 CHAR) NOT NULL,
+    occurred_at TIMESTAMP(3) NOT NULL,
+    event_status VARCHAR2(30 CHAR) NOT NULL DEFAULT 'PENDING',
+    created_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    CONSTRAINT pk_cpf_runtime_policy_event PRIMARY KEY (event_id),
+    CONSTRAINT ck_cpf_runtime_policy_event_status CHECK (event_status IN ('PENDING', 'RETIRED'))
+);
+CREATE INDEX ix_cpf_runtime_policy_event_pending ON cpf_runtime_policy_event (event_status, event_type, occurred_at, event_id);
+CREATE INDEX ix_cpf_runtime_policy_event_aggregate ON cpf_runtime_policy_event (aggregate_type, aggregate_id, aggregate_version);
+COMMENT ON TABLE cpf_runtime_policy_event IS 'Runtime Policy Durable Event';
+COMMENT ON COLUMN cpf_runtime_policy_event.event_id IS '내구성 정책 이벤트 ID';
+COMMENT ON COLUMN cpf_runtime_policy_event.event_type IS '정책 이벤트 유형';
+COMMENT ON COLUMN cpf_runtime_policy_event.aggregate_type IS '정책 대상 유형';
+COMMENT ON COLUMN cpf_runtime_policy_event.aggregate_id IS '정책 대상 ID';
+COMMENT ON COLUMN cpf_runtime_policy_event.aggregate_version IS '정책 버전';
+COMMENT ON COLUMN cpf_runtime_policy_event.action_code IS '정책 조치 코드';
+COMMENT ON COLUMN cpf_runtime_policy_event.payload_checksum IS '정책 Snapshot Checksum';
+COMMENT ON COLUMN cpf_runtime_policy_event.metadata_text IS '민감정보를 제외한 전달 Metadata';
+COMMENT ON COLUMN cpf_runtime_policy_event.reason IS '운영 변경 사유';
+COMMENT ON COLUMN cpf_runtime_policy_event.requested_by IS '요청 운영자';
+COMMENT ON COLUMN cpf_runtime_policy_event.occurred_at IS '정책 변경 시각';
+COMMENT ON COLUMN cpf_runtime_policy_event.event_status IS '이벤트 상태';
+COMMENT ON COLUMN cpf_runtime_policy_event.created_at IS '등록일시';
 
 CREATE TABLE cpf_runtime_rate_bucket (
     bucket_key VARCHAR2(180 CHAR) NOT NULL,
@@ -2235,7 +2609,6 @@ COMMENT ON COLUMN cpf_unknown_result.lease_until IS 'Reconciliation claim 만료
 COMMENT ON COLUMN cpf_unknown_result.row_version IS 'Optimistic lock version';
 CREATE OR REPLACE TRIGGER trg_touch_cpf_unknown_result BEFORE UPDATE ON cpf_unknown_result FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
 /
-
 -- ===== END 10_cpf_schema.sql =====
 
 -- ===== BEGIN 20_cmn_schema.sql =====
@@ -3517,6 +3890,129 @@ CREATE OR REPLACE TRIGGER trg_touch_adm_role_menu BEFORE UPDATE ON adm_role_menu
 -- DO NOT EDIT generated DDL directly.
 
 -- CPF_LOGICAL_DATABASE=batDB
+CREATE TABLE BATCH_JOB_EXECUTION (
+    JOB_EXECUTION_ID NUMBER(19) NOT NULL,
+    VERSION NUMBER(19),
+    JOB_INSTANCE_ID NUMBER(19) NOT NULL,
+    CREATE_TIME TIMESTAMP(6) NOT NULL,
+    START_TIME TIMESTAMP(6) DEFAULT NULL,
+    END_TIME TIMESTAMP(6) DEFAULT NULL,
+    STATUS VARCHAR2(10 CHAR),
+    EXIT_CODE VARCHAR2(2500 CHAR),
+    EXIT_MESSAGE VARCHAR2(2500 CHAR),
+    LAST_UPDATED TIMESTAMP(6),
+    CONSTRAINT pk_BATCH_JOB_EXECUTION PRIMARY KEY (JOB_EXECUTION_ID),
+    CONSTRAINT JOB_INST_EXEC_FK FOREIGN KEY (JOB_INSTANCE_ID) REFERENCES BATCH_JOB_INSTANCE (JOB_INSTANCE_ID)
+);
+COMMENT ON TABLE BATCH_JOB_EXECUTION IS 'Spring Batch 표준 JobExecution 저장소';
+COMMENT ON COLUMN BATCH_JOB_EXECUTION.JOB_EXECUTION_ID IS 'Spring Batch JobExecution 순번';
+COMMENT ON COLUMN BATCH_JOB_EXECUTION.VERSION IS '낙관적 잠금 버전';
+COMMENT ON COLUMN BATCH_JOB_EXECUTION.JOB_INSTANCE_ID IS 'Spring Batch JobInstance 순번';
+COMMENT ON COLUMN BATCH_JOB_EXECUTION.CREATE_TIME IS '실행 생성 일시';
+COMMENT ON COLUMN BATCH_JOB_EXECUTION.START_TIME IS '실행 시작 일시';
+COMMENT ON COLUMN BATCH_JOB_EXECUTION.END_TIME IS '실행 종료 일시';
+COMMENT ON COLUMN BATCH_JOB_EXECUTION.STATUS IS '실행 상태';
+COMMENT ON COLUMN BATCH_JOB_EXECUTION.EXIT_CODE IS '종료 코드';
+COMMENT ON COLUMN BATCH_JOB_EXECUTION.EXIT_MESSAGE IS '종료 메시지';
+COMMENT ON COLUMN BATCH_JOB_EXECUTION.LAST_UPDATED IS '마지막 수정 일시';
+
+CREATE TABLE BATCH_JOB_EXECUTION_CONTEXT (
+    JOB_EXECUTION_ID NUMBER(19) NOT NULL,
+    SHORT_CONTEXT VARCHAR2(2500 CHAR) NOT NULL,
+    SERIALIZED_CONTEXT CLOB,
+    CONSTRAINT pk_BATCH_JOB_EXECUTION_CONTEXT PRIMARY KEY (JOB_EXECUTION_ID),
+    CONSTRAINT JOB_EXEC_CTX_FK FOREIGN KEY (JOB_EXECUTION_ID) REFERENCES BATCH_JOB_EXECUTION (JOB_EXECUTION_ID)
+);
+COMMENT ON TABLE BATCH_JOB_EXECUTION_CONTEXT IS 'Spring Batch 표준 Job 컨텍스트 저장소';
+COMMENT ON COLUMN BATCH_JOB_EXECUTION_CONTEXT.JOB_EXECUTION_ID IS 'Spring Batch JobExecution 순번';
+COMMENT ON COLUMN BATCH_JOB_EXECUTION_CONTEXT.SHORT_CONTEXT IS '짧은 실행 컨텍스트';
+COMMENT ON COLUMN BATCH_JOB_EXECUTION_CONTEXT.SERIALIZED_CONTEXT IS '직렬화 실행 컨텍스트';
+
+CREATE TABLE BATCH_JOB_EXECUTION_PARAMS (
+    JOB_EXECUTION_ID NUMBER(19) NOT NULL,
+    PARAMETER_NAME VARCHAR2(100 CHAR) NOT NULL,
+    PARAMETER_TYPE VARCHAR2(100 CHAR) NOT NULL,
+    PARAMETER_VALUE VARCHAR2(2500 CHAR),
+    IDENTIFYING CHAR(1 CHAR) NOT NULL,
+    CONSTRAINT JOB_EXEC_PARAMS_FK FOREIGN KEY (JOB_EXECUTION_ID) REFERENCES BATCH_JOB_EXECUTION (JOB_EXECUTION_ID)
+);
+COMMENT ON TABLE BATCH_JOB_EXECUTION_PARAMS IS 'Spring Batch 표준 Job 파라미터 저장소';
+COMMENT ON COLUMN BATCH_JOB_EXECUTION_PARAMS.JOB_EXECUTION_ID IS 'Spring Batch JobExecution 순번';
+COMMENT ON COLUMN BATCH_JOB_EXECUTION_PARAMS.PARAMETER_NAME IS '파라미터 이름';
+COMMENT ON COLUMN BATCH_JOB_EXECUTION_PARAMS.PARAMETER_TYPE IS '파라미터 Java 유형';
+COMMENT ON COLUMN BATCH_JOB_EXECUTION_PARAMS.PARAMETER_VALUE IS '파라미터 값';
+COMMENT ON COLUMN BATCH_JOB_EXECUTION_PARAMS.IDENTIFYING IS 'JobInstance 식별 파라미터 여부';
+
+CREATE TABLE BATCH_JOB_INSTANCE (
+    JOB_INSTANCE_ID NUMBER(19) NOT NULL,
+    VERSION NUMBER(19),
+    JOB_NAME VARCHAR2(100 CHAR) NOT NULL,
+    JOB_KEY VARCHAR2(32 CHAR) NOT NULL,
+    CONSTRAINT pk_BATCH_JOB_INSTANCE PRIMARY KEY (JOB_INSTANCE_ID),
+    CONSTRAINT JOB_INST_UN UNIQUE (JOB_NAME, JOB_KEY)
+);
+COMMENT ON TABLE BATCH_JOB_INSTANCE IS 'Spring Batch 표준 JobInstance 저장소';
+COMMENT ON COLUMN BATCH_JOB_INSTANCE.JOB_INSTANCE_ID IS 'Spring Batch JobInstance 순번';
+COMMENT ON COLUMN BATCH_JOB_INSTANCE.VERSION IS '낙관적 잠금 버전';
+COMMENT ON COLUMN BATCH_JOB_INSTANCE.JOB_NAME IS 'Spring Batch Job 이름';
+COMMENT ON COLUMN BATCH_JOB_INSTANCE.JOB_KEY IS 'Job 파라미터 식별 키';
+
+CREATE TABLE BATCH_STEP_EXECUTION (
+    STEP_EXECUTION_ID NUMBER(19) NOT NULL,
+    VERSION NUMBER(19) NOT NULL,
+    STEP_NAME VARCHAR2(100 CHAR) NOT NULL,
+    JOB_EXECUTION_ID NUMBER(19) NOT NULL,
+    CREATE_TIME TIMESTAMP(6) NOT NULL,
+    START_TIME TIMESTAMP(6) DEFAULT NULL,
+    END_TIME TIMESTAMP(6) DEFAULT NULL,
+    STATUS VARCHAR2(10 CHAR),
+    COMMIT_COUNT NUMBER(19),
+    READ_COUNT NUMBER(19),
+    FILTER_COUNT NUMBER(19),
+    WRITE_COUNT NUMBER(19),
+    READ_SKIP_COUNT NUMBER(19),
+    WRITE_SKIP_COUNT NUMBER(19),
+    PROCESS_SKIP_COUNT NUMBER(19),
+    ROLLBACK_COUNT NUMBER(19),
+    EXIT_CODE VARCHAR2(2500 CHAR),
+    EXIT_MESSAGE VARCHAR2(2500 CHAR),
+    LAST_UPDATED TIMESTAMP(6),
+    CONSTRAINT pk_BATCH_STEP_EXECUTION PRIMARY KEY (STEP_EXECUTION_ID),
+    CONSTRAINT JOB_EXEC_STEP_FK FOREIGN KEY (JOB_EXECUTION_ID) REFERENCES BATCH_JOB_EXECUTION (JOB_EXECUTION_ID)
+);
+COMMENT ON TABLE BATCH_STEP_EXECUTION IS 'Spring Batch 표준 StepExecution 저장소';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION.STEP_EXECUTION_ID IS 'Spring Batch StepExecution 순번';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION.VERSION IS '낙관적 잠금 버전';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION.STEP_NAME IS 'Step 이름';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION.JOB_EXECUTION_ID IS 'Spring Batch JobExecution 순번';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION.CREATE_TIME IS 'Step 생성 일시';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION.START_TIME IS 'Step 시작 일시';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION.END_TIME IS 'Step 종료 일시';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION.STATUS IS 'Step 상태';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION.COMMIT_COUNT IS '커밋 횟수';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION.READ_COUNT IS '읽은 건수';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION.FILTER_COUNT IS '필터 건수';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION.WRITE_COUNT IS '쓴 건수';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION.READ_SKIP_COUNT IS '읽기 skip 건수';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION.WRITE_SKIP_COUNT IS '쓰기 skip 건수';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION.PROCESS_SKIP_COUNT IS '처리 skip 건수';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION.ROLLBACK_COUNT IS 'rollback 건수';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION.EXIT_CODE IS '종료 코드';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION.EXIT_MESSAGE IS '종료 메시지';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION.LAST_UPDATED IS '마지막 수정 일시';
+
+CREATE TABLE BATCH_STEP_EXECUTION_CONTEXT (
+    STEP_EXECUTION_ID NUMBER(19) NOT NULL,
+    SHORT_CONTEXT VARCHAR2(2500 CHAR) NOT NULL,
+    SERIALIZED_CONTEXT CLOB,
+    CONSTRAINT pk_BATCH_STEP_EXECUTION_CONTEXT PRIMARY KEY (STEP_EXECUTION_ID),
+    CONSTRAINT STEP_EXEC_CTX_FK FOREIGN KEY (STEP_EXECUTION_ID) REFERENCES BATCH_STEP_EXECUTION (STEP_EXECUTION_ID)
+);
+COMMENT ON TABLE BATCH_STEP_EXECUTION_CONTEXT IS 'Spring Batch 표준 Step 컨텍스트 저장소';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION_CONTEXT.STEP_EXECUTION_ID IS 'Spring Batch StepExecution 순번';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION_CONTEXT.SHORT_CONTEXT IS '짧은 실행 컨텍스트';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION_CONTEXT.SERIALIZED_CONTEXT IS '직렬화 실행 컨텍스트';
+
 CREATE TABLE bat_center_cut_claim (
     center_cut_item_id NUMBER(19),
     runner_id VARCHAR2(160 CHAR) NOT NULL,
@@ -4243,6 +4739,133 @@ COMMENT ON COLUMN bat_job.updated_at IS '수정일시';
 CREATE OR REPLACE TRIGGER trg_touch_bat_job BEFORE UPDATE ON bat_job FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
 /
 
+CREATE TABLE bat_job_definition_audit (
+    audit_id NUMBER(19) NOT NULL,
+    job_id VARCHAR2(80 CHAR) NOT NULL,
+    definition_version NUMBER(19) NOT NULL,
+    action_code VARCHAR2(40 CHAR) NOT NULL,
+    from_state VARCHAR2(20 CHAR),
+    to_state VARCHAR2(20 CHAR),
+    reason VARCHAR2(1000 CHAR) NOT NULL,
+    operator_id VARCHAR2(100 CHAR) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT pk_bat_job_definition_audit PRIMARY KEY (audit_id)
+);
+CREATE INDEX idx_bat_job_def_audit ON bat_job_definition_audit (job_id, definition_version, created_at);
+COMMENT ON TABLE bat_job_definition_audit IS 'BAT Job Definition 승인·상태 감사';
+COMMENT ON COLUMN bat_job_definition_audit.audit_id IS '감사 ID';
+COMMENT ON COLUMN bat_job_definition_audit.job_id IS 'Job ID';
+COMMENT ON COLUMN bat_job_definition_audit.definition_version IS 'Definition Version';
+COMMENT ON COLUMN bat_job_definition_audit.action_code IS '행위';
+COMMENT ON COLUMN bat_job_definition_audit.from_state IS '이전 상태';
+COMMENT ON COLUMN bat_job_definition_audit.to_state IS '다음 상태';
+COMMENT ON COLUMN bat_job_definition_audit.reason IS '사유';
+COMMENT ON COLUMN bat_job_definition_audit.operator_id IS '운영자';
+COMMENT ON COLUMN bat_job_definition_audit.created_at IS '발생시각';
+
+CREATE TABLE bat_job_definition_version (
+    job_id VARCHAR2(80 CHAR) NOT NULL,
+    definition_version NUMBER(19) NOT NULL,
+    job_name VARCHAR2(200 CHAR) NOT NULL,
+    executor_type VARCHAR2(40 CHAR) NOT NULL,
+    definition_state VARCHAR2(20 CHAR) NOT NULL,
+    owner_domain VARCHAR2(80 CHAR) NOT NULL,
+    description VARCHAR2(1000 CHAR),
+    trigger_type VARCHAR2(30 CHAR) NOT NULL,
+    trigger_expression VARCHAR2(500 CHAR),
+    timezone_id VARCHAR2(60 CHAR) NOT NULL DEFAULT 'Asia/Seoul',
+    misfire_policy VARCHAR2(30 CHAR) NOT NULL,
+    agent_pool VARCHAR2(100 CHAR) NOT NULL,
+    zone_id VARCHAR2(80 CHAR),
+    max_concurrency NUMBER(10) NOT NULL DEFAULT 1,
+    timeout_seconds NUMBER(19) NOT NULL DEFAULT 3600,
+    restartable_yn CHAR(1 CHAR) NOT NULL DEFAULT 'Y',
+    max_attempts NUMBER(10) NOT NULL DEFAULT 1,
+    initial_backoff_seconds NUMBER(19) NOT NULL DEFAULT 0,
+    backoff_multiplier DECIMAL(10,4) NOT NULL DEFAULT 1,
+    max_backoff_seconds NUMBER(19) NOT NULL DEFAULT 0,
+    skip_limit NUMBER(10) NOT NULL DEFAULT 0,
+    unknown_result_policy VARCHAR2(30 CHAR) NOT NULL,
+    compensation_reference VARCHAR2(200 CHAR),
+    alert_delay_seconds NUMBER(19) NOT NULL DEFAULT 0,
+    sla_seconds NUMBER(19) NOT NULL DEFAULT 0,
+    notify_failure_yn CHAR(1 CHAR) NOT NULL DEFAULT 'Y',
+    notify_missed_yn CHAR(1 CHAR) NOT NULL DEFAULT 'Y',
+    executor_reference VARCHAR2(300 CHAR) NOT NULL,
+    definition_json CLOB NOT NULL,
+    checksum VARCHAR2(128 CHAR),
+    effective_from TIMESTAMP,
+    effective_until TIMESTAMP,
+    row_version NUMBER(19) NOT NULL DEFAULT 1,
+    created_by VARCHAR2(100 CHAR) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by VARCHAR2(100 CHAR) NOT NULL,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT pk_bat_job_definition_version PRIMARY KEY (job_id, definition_version),
+    CONSTRAINT ck_bat_job_def_state CHECK (definition_state IN ('DRAFT','VALIDATED','APPROVAL','PUBLISHED','RETIRED'))
+);
+CREATE INDEX idx_bat_job_def_state ON bat_job_definition_version (definition_state, updated_at);
+CREATE INDEX idx_bat_job_def_owner ON bat_job_definition_version (owner_domain, job_id);
+COMMENT ON TABLE bat_job_definition_version IS 'BAT Versioned Job Definition 정본';
+COMMENT ON COLUMN bat_job_definition_version.job_id IS '배치 Job ID';
+COMMENT ON COLUMN bat_job_definition_version.definition_version IS '불변 Definition Version';
+COMMENT ON COLUMN bat_job_definition_version.job_name IS '배치 Job 이름';
+COMMENT ON COLUMN bat_job_definition_version.executor_type IS 'Executor 유형';
+COMMENT ON COLUMN bat_job_definition_version.definition_state IS 'Definition 상태';
+COMMENT ON COLUMN bat_job_definition_version.owner_domain IS '소유 업무영역';
+COMMENT ON COLUMN bat_job_definition_version.description IS '설명';
+COMMENT ON COLUMN bat_job_definition_version.trigger_type IS 'Trigger 유형';
+COMMENT ON COLUMN bat_job_definition_version.trigger_expression IS 'Trigger 조건';
+COMMENT ON COLUMN bat_job_definition_version.timezone_id IS 'Timezone';
+COMMENT ON COLUMN bat_job_definition_version.misfire_policy IS 'Misfire 정책';
+COMMENT ON COLUMN bat_job_definition_version.agent_pool IS 'Agent Pool';
+COMMENT ON COLUMN bat_job_definition_version.zone_id IS '실행 Zone';
+COMMENT ON COLUMN bat_job_definition_version.max_concurrency IS '최대 동시 실행';
+COMMENT ON COLUMN bat_job_definition_version.timeout_seconds IS 'Timeout 초';
+COMMENT ON COLUMN bat_job_definition_version.restartable_yn IS '재시작 가능 여부';
+COMMENT ON COLUMN bat_job_definition_version.max_attempts IS '최대 시도';
+COMMENT ON COLUMN bat_job_definition_version.initial_backoff_seconds IS '초기 Backoff';
+COMMENT ON COLUMN bat_job_definition_version.backoff_multiplier IS 'Backoff 배수';
+COMMENT ON COLUMN bat_job_definition_version.max_backoff_seconds IS '최대 Backoff';
+COMMENT ON COLUMN bat_job_definition_version.skip_limit IS 'Skip 허용';
+COMMENT ON COLUMN bat_job_definition_version.unknown_result_policy IS '결과 불명 처리 정책';
+COMMENT ON COLUMN bat_job_definition_version.compensation_reference IS '보상 처리 참조';
+COMMENT ON COLUMN bat_job_definition_version.alert_delay_seconds IS '지연 알림';
+COMMENT ON COLUMN bat_job_definition_version.sla_seconds IS 'SLA';
+COMMENT ON COLUMN bat_job_definition_version.notify_failure_yn IS '실패 알림';
+COMMENT ON COLUMN bat_job_definition_version.notify_missed_yn IS '미실행 알림';
+COMMENT ON COLUMN bat_job_definition_version.executor_reference IS 'Executor 참조';
+COMMENT ON COLUMN bat_job_definition_version.definition_json IS 'Definition JSON';
+COMMENT ON COLUMN bat_job_definition_version.checksum IS 'Checksum';
+COMMENT ON COLUMN bat_job_definition_version.effective_from IS '시행 시작';
+COMMENT ON COLUMN bat_job_definition_version.effective_until IS '시행 종료';
+COMMENT ON COLUMN bat_job_definition_version.row_version IS '낙관적 잠금';
+COMMENT ON COLUMN bat_job_definition_version.created_by IS '등록자';
+COMMENT ON COLUMN bat_job_definition_version.created_at IS '등록일시';
+COMMENT ON COLUMN bat_job_definition_version.updated_by IS '수정자';
+COMMENT ON COLUMN bat_job_definition_version.updated_at IS '수정일시';
+
+CREATE TABLE bat_job_dependency (
+    job_id VARCHAR2(80 CHAR) NOT NULL,
+    definition_version NUMBER(19) NOT NULL,
+    related_job_id VARCHAR2(80 CHAR) NOT NULL,
+    condition_code VARCHAR2(40 CHAR) NOT NULL,
+    timeout_seconds NUMBER(19) NOT NULL DEFAULT 0,
+    required_yn CHAR(1 CHAR) NOT NULL DEFAULT 'Y',
+    sort_order NUMBER(10) NOT NULL DEFAULT 0,
+    CONSTRAINT pk_bat_job_dependency PRIMARY KEY (job_id, definition_version, related_job_id),
+    CONSTRAINT ck_bat_job_dep_self CHECK (job_id <> related_job_id),
+    CONSTRAINT fk_bat_job_dep_def FOREIGN KEY (job_id, definition_version) REFERENCES bat_job_definition_version (job_id, definition_version) ON DELETE CASCADE
+);
+COMMENT ON TABLE bat_job_dependency IS 'BAT Versioned Job Dependency';
+COMMENT ON COLUMN bat_job_dependency.job_id IS 'Job ID';
+COMMENT ON COLUMN bat_job_dependency.definition_version IS 'Definition Version';
+COMMENT ON COLUMN bat_job_dependency.related_job_id IS '선행 Job';
+COMMENT ON COLUMN bat_job_dependency.condition_code IS '의존 조건';
+COMMENT ON COLUMN bat_job_dependency.timeout_seconds IS '대기 Timeout';
+COMMENT ON COLUMN bat_job_dependency.required_yn IS '필수 여부';
+COMMENT ON COLUMN bat_job_dependency.sort_order IS '정렬';
+
 CREATE TABLE bat_job_pack (
     job_pack_id VARCHAR2(120 CHAR) NOT NULL,
     owner_domain VARCHAR2(20 CHAR) NOT NULL,
@@ -4282,6 +4905,50 @@ COMMENT ON COLUMN bat_job_pack_job.job_id IS 'Published job identifier';
 COMMENT ON COLUMN bat_job_pack_job.restartable_yn IS 'Job restartability flag';
 COMMENT ON COLUMN bat_job_pack_job.center_cut_provider_key IS 'Center-cut target provider key';
 COMMENT ON COLUMN bat_job_pack_job.center_cut_handler_key IS 'Center-cut item handler key';
+
+CREATE TABLE bat_job_parameter_definition (
+    job_id VARCHAR2(80 CHAR) NOT NULL,
+    definition_version NUMBER(19) NOT NULL,
+    parameter_name VARCHAR2(100 CHAR) NOT NULL,
+    parameter_type VARCHAR2(40 CHAR) NOT NULL,
+    label_text VARCHAR2(200 CHAR),
+    description_text VARCHAR2(1000 CHAR),
+    required_yn CHAR(1 CHAR) NOT NULL DEFAULT 'N',
+    sensitive_yn CHAR(1 CHAR) NOT NULL DEFAULT 'N',
+    default_value VARCHAR2(1000 CHAR),
+    allowed_values CLOB,
+    validation_pattern VARCHAR2(1000 CHAR),
+    min_value DECIMAL(38,10),
+    max_value DECIMAL(38,10),
+    min_length NUMBER(10),
+    max_length NUMBER(10),
+    reference_type VARCHAR2(80 CHAR),
+    alias_required_yn CHAR(1 CHAR) NOT NULL DEFAULT 'N',
+    runtime_override_allowed_yn CHAR(1 CHAR) NOT NULL DEFAULT 'N',
+    sort_order NUMBER(10) NOT NULL DEFAULT 0,
+    CONSTRAINT pk_bat_job_parameter_definition PRIMARY KEY (job_id, definition_version, parameter_name),
+    CONSTRAINT fk_bat_job_param_def FOREIGN KEY (job_id, definition_version) REFERENCES bat_job_definition_version (job_id, definition_version) ON DELETE CASCADE
+);
+COMMENT ON TABLE bat_job_parameter_definition IS 'BAT Typed Parameter Schema';
+COMMENT ON COLUMN bat_job_parameter_definition.job_id IS 'Job ID';
+COMMENT ON COLUMN bat_job_parameter_definition.definition_version IS 'Definition Version';
+COMMENT ON COLUMN bat_job_parameter_definition.parameter_name IS 'Parameter 이름';
+COMMENT ON COLUMN bat_job_parameter_definition.parameter_type IS 'Parameter 유형';
+COMMENT ON COLUMN bat_job_parameter_definition.label_text IS 'UI Label';
+COMMENT ON COLUMN bat_job_parameter_definition.description_text IS '설명';
+COMMENT ON COLUMN bat_job_parameter_definition.required_yn IS '필수 여부';
+COMMENT ON COLUMN bat_job_parameter_definition.sensitive_yn IS '민감정보 여부';
+COMMENT ON COLUMN bat_job_parameter_definition.default_value IS '기본값';
+COMMENT ON COLUMN bat_job_parameter_definition.allowed_values IS '허용값';
+COMMENT ON COLUMN bat_job_parameter_definition.validation_pattern IS '검증 Pattern';
+COMMENT ON COLUMN bat_job_parameter_definition.min_value IS '최솟값';
+COMMENT ON COLUMN bat_job_parameter_definition.max_value IS '최댓값';
+COMMENT ON COLUMN bat_job_parameter_definition.min_length IS '최소 길이';
+COMMENT ON COLUMN bat_job_parameter_definition.max_length IS '최대 길이';
+COMMENT ON COLUMN bat_job_parameter_definition.reference_type IS '참조 유형';
+COMMENT ON COLUMN bat_job_parameter_definition.alias_required_yn IS 'Alias 강제';
+COMMENT ON COLUMN bat_job_parameter_definition.runtime_override_allowed_yn IS '실행 Override';
+COMMENT ON COLUMN bat_job_parameter_definition.sort_order IS '정렬';
 
 CREATE TABLE bat_job_relation (
     relation_id NUMBER(19) GENERATED BY DEFAULT ON NULL AS IDENTITY NOT NULL,
@@ -4873,129 +5540,6 @@ COMMENT ON COLUMN bat_worker.updated_at IS '수정일시';
 CREATE OR REPLACE TRIGGER trg_touch_bat_worker BEFORE UPDATE ON bat_worker FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
 /
 
-CREATE TABLE BATCH_JOB_EXECUTION (
-    JOB_EXECUTION_ID NUMBER(19) NOT NULL,
-    VERSION NUMBER(19),
-    JOB_INSTANCE_ID NUMBER(19) NOT NULL,
-    CREATE_TIME TIMESTAMP(6) NOT NULL,
-    START_TIME TIMESTAMP(6) DEFAULT NULL,
-    END_TIME TIMESTAMP(6) DEFAULT NULL,
-    STATUS VARCHAR2(10 CHAR),
-    EXIT_CODE VARCHAR2(2500 CHAR),
-    EXIT_MESSAGE VARCHAR2(2500 CHAR),
-    LAST_UPDATED TIMESTAMP(6),
-    CONSTRAINT pk_BATCH_JOB_EXECUTION PRIMARY KEY (JOB_EXECUTION_ID),
-    CONSTRAINT JOB_INST_EXEC_FK FOREIGN KEY (JOB_INSTANCE_ID) REFERENCES BATCH_JOB_INSTANCE (JOB_INSTANCE_ID)
-);
-COMMENT ON TABLE BATCH_JOB_EXECUTION IS 'Spring Batch 표준 JobExecution 저장소';
-COMMENT ON COLUMN BATCH_JOB_EXECUTION.JOB_EXECUTION_ID IS 'Spring Batch JobExecution 순번';
-COMMENT ON COLUMN BATCH_JOB_EXECUTION.VERSION IS '낙관적 잠금 버전';
-COMMENT ON COLUMN BATCH_JOB_EXECUTION.JOB_INSTANCE_ID IS 'Spring Batch JobInstance 순번';
-COMMENT ON COLUMN BATCH_JOB_EXECUTION.CREATE_TIME IS '실행 생성 일시';
-COMMENT ON COLUMN BATCH_JOB_EXECUTION.START_TIME IS '실행 시작 일시';
-COMMENT ON COLUMN BATCH_JOB_EXECUTION.END_TIME IS '실행 종료 일시';
-COMMENT ON COLUMN BATCH_JOB_EXECUTION.STATUS IS '실행 상태';
-COMMENT ON COLUMN BATCH_JOB_EXECUTION.EXIT_CODE IS '종료 코드';
-COMMENT ON COLUMN BATCH_JOB_EXECUTION.EXIT_MESSAGE IS '종료 메시지';
-COMMENT ON COLUMN BATCH_JOB_EXECUTION.LAST_UPDATED IS '마지막 수정 일시';
-
-CREATE TABLE BATCH_JOB_EXECUTION_CONTEXT (
-    JOB_EXECUTION_ID NUMBER(19) NOT NULL,
-    SHORT_CONTEXT VARCHAR2(2500 CHAR) NOT NULL,
-    SERIALIZED_CONTEXT CLOB,
-    CONSTRAINT pk_BATCH_JOB_EXECUTION_CONTEXT PRIMARY KEY (JOB_EXECUTION_ID),
-    CONSTRAINT JOB_EXEC_CTX_FK FOREIGN KEY (JOB_EXECUTION_ID) REFERENCES BATCH_JOB_EXECUTION (JOB_EXECUTION_ID)
-);
-COMMENT ON TABLE BATCH_JOB_EXECUTION_CONTEXT IS 'Spring Batch 표준 Job 컨텍스트 저장소';
-COMMENT ON COLUMN BATCH_JOB_EXECUTION_CONTEXT.JOB_EXECUTION_ID IS 'Spring Batch JobExecution 순번';
-COMMENT ON COLUMN BATCH_JOB_EXECUTION_CONTEXT.SHORT_CONTEXT IS '짧은 실행 컨텍스트';
-COMMENT ON COLUMN BATCH_JOB_EXECUTION_CONTEXT.SERIALIZED_CONTEXT IS '직렬화 실행 컨텍스트';
-
-CREATE TABLE BATCH_JOB_EXECUTION_PARAMS (
-    JOB_EXECUTION_ID NUMBER(19) NOT NULL,
-    PARAMETER_NAME VARCHAR2(100 CHAR) NOT NULL,
-    PARAMETER_TYPE VARCHAR2(100 CHAR) NOT NULL,
-    PARAMETER_VALUE VARCHAR2(2500 CHAR),
-    IDENTIFYING CHAR(1 CHAR) NOT NULL,
-    CONSTRAINT JOB_EXEC_PARAMS_FK FOREIGN KEY (JOB_EXECUTION_ID) REFERENCES BATCH_JOB_EXECUTION (JOB_EXECUTION_ID)
-);
-COMMENT ON TABLE BATCH_JOB_EXECUTION_PARAMS IS 'Spring Batch 표준 Job 파라미터 저장소';
-COMMENT ON COLUMN BATCH_JOB_EXECUTION_PARAMS.JOB_EXECUTION_ID IS 'Spring Batch JobExecution 순번';
-COMMENT ON COLUMN BATCH_JOB_EXECUTION_PARAMS.PARAMETER_NAME IS '파라미터 이름';
-COMMENT ON COLUMN BATCH_JOB_EXECUTION_PARAMS.PARAMETER_TYPE IS '파라미터 Java 유형';
-COMMENT ON COLUMN BATCH_JOB_EXECUTION_PARAMS.PARAMETER_VALUE IS '파라미터 값';
-COMMENT ON COLUMN BATCH_JOB_EXECUTION_PARAMS.IDENTIFYING IS 'JobInstance 식별 파라미터 여부';
-
-CREATE TABLE BATCH_JOB_INSTANCE (
-    JOB_INSTANCE_ID NUMBER(19) NOT NULL,
-    VERSION NUMBER(19),
-    JOB_NAME VARCHAR2(100 CHAR) NOT NULL,
-    JOB_KEY VARCHAR2(32 CHAR) NOT NULL,
-    CONSTRAINT pk_BATCH_JOB_INSTANCE PRIMARY KEY (JOB_INSTANCE_ID),
-    CONSTRAINT JOB_INST_UN UNIQUE (JOB_NAME, JOB_KEY)
-);
-COMMENT ON TABLE BATCH_JOB_INSTANCE IS 'Spring Batch 표준 JobInstance 저장소';
-COMMENT ON COLUMN BATCH_JOB_INSTANCE.JOB_INSTANCE_ID IS 'Spring Batch JobInstance 순번';
-COMMENT ON COLUMN BATCH_JOB_INSTANCE.VERSION IS '낙관적 잠금 버전';
-COMMENT ON COLUMN BATCH_JOB_INSTANCE.JOB_NAME IS 'Spring Batch Job 이름';
-COMMENT ON COLUMN BATCH_JOB_INSTANCE.JOB_KEY IS 'Job 파라미터 식별 키';
-
-CREATE TABLE BATCH_STEP_EXECUTION (
-    STEP_EXECUTION_ID NUMBER(19) NOT NULL,
-    VERSION NUMBER(19) NOT NULL,
-    STEP_NAME VARCHAR2(100 CHAR) NOT NULL,
-    JOB_EXECUTION_ID NUMBER(19) NOT NULL,
-    CREATE_TIME TIMESTAMP(6) NOT NULL,
-    START_TIME TIMESTAMP(6) DEFAULT NULL,
-    END_TIME TIMESTAMP(6) DEFAULT NULL,
-    STATUS VARCHAR2(10 CHAR),
-    COMMIT_COUNT NUMBER(19),
-    READ_COUNT NUMBER(19),
-    FILTER_COUNT NUMBER(19),
-    WRITE_COUNT NUMBER(19),
-    READ_SKIP_COUNT NUMBER(19),
-    WRITE_SKIP_COUNT NUMBER(19),
-    PROCESS_SKIP_COUNT NUMBER(19),
-    ROLLBACK_COUNT NUMBER(19),
-    EXIT_CODE VARCHAR2(2500 CHAR),
-    EXIT_MESSAGE VARCHAR2(2500 CHAR),
-    LAST_UPDATED TIMESTAMP(6),
-    CONSTRAINT pk_BATCH_STEP_EXECUTION PRIMARY KEY (STEP_EXECUTION_ID),
-    CONSTRAINT JOB_EXEC_STEP_FK FOREIGN KEY (JOB_EXECUTION_ID) REFERENCES BATCH_JOB_EXECUTION (JOB_EXECUTION_ID)
-);
-COMMENT ON TABLE BATCH_STEP_EXECUTION IS 'Spring Batch 표준 StepExecution 저장소';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION.STEP_EXECUTION_ID IS 'Spring Batch StepExecution 순번';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION.VERSION IS '낙관적 잠금 버전';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION.STEP_NAME IS 'Step 이름';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION.JOB_EXECUTION_ID IS 'Spring Batch JobExecution 순번';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION.CREATE_TIME IS 'Step 생성 일시';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION.START_TIME IS 'Step 시작 일시';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION.END_TIME IS 'Step 종료 일시';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION.STATUS IS 'Step 상태';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION.COMMIT_COUNT IS '커밋 횟수';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION.READ_COUNT IS '읽은 건수';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION.FILTER_COUNT IS '필터 건수';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION.WRITE_COUNT IS '쓴 건수';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION.READ_SKIP_COUNT IS '읽기 skip 건수';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION.WRITE_SKIP_COUNT IS '쓰기 skip 건수';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION.PROCESS_SKIP_COUNT IS '처리 skip 건수';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION.ROLLBACK_COUNT IS 'rollback 건수';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION.EXIT_CODE IS '종료 코드';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION.EXIT_MESSAGE IS '종료 메시지';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION.LAST_UPDATED IS '마지막 수정 일시';
-
-CREATE TABLE BATCH_STEP_EXECUTION_CONTEXT (
-    STEP_EXECUTION_ID NUMBER(19) NOT NULL,
-    SHORT_CONTEXT VARCHAR2(2500 CHAR) NOT NULL,
-    SERIALIZED_CONTEXT CLOB,
-    CONSTRAINT pk_BATCH_STEP_EXECUTION_CONTEXT PRIMARY KEY (STEP_EXECUTION_ID),
-    CONSTRAINT STEP_EXEC_CTX_FK FOREIGN KEY (STEP_EXECUTION_ID) REFERENCES BATCH_STEP_EXECUTION (STEP_EXECUTION_ID)
-);
-COMMENT ON TABLE BATCH_STEP_EXECUTION_CONTEXT IS 'Spring Batch 표준 Step 컨텍스트 저장소';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION_CONTEXT.STEP_EXECUTION_ID IS 'Spring Batch StepExecution 순번';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION_CONTEXT.SHORT_CONTEXT IS '짧은 실행 컨텍스트';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION_CONTEXT.SERIALIZED_CONTEXT IS '직렬화 실행 컨텍스트';
-
 -- CPF_CANONICAL_OBJECTS_BEGIN spring-batch-6-sequences
 -- Generated from cpf-tools/db/canonical/platform-non-table-objects.json.
 -- Spring Batch 6.0.4 JobRepository sequence contract; do not edit vendor SQL directly.
@@ -5005,7 +5549,6 @@ CREATE SEQUENCE BATCH_JOB_EXECUTION_SEQ START WITH 0 MINVALUE 0 MAXVALUE 9223372
 
 CREATE SEQUENCE BATCH_STEP_EXECUTION_SEQ START WITH 0 MINVALUE 0 MAXVALUE 9223372036854775807 INCREMENT BY 1 ORDER NOCYCLE;
 -- CPF_CANONICAL_OBJECTS_END spring-batch-6-sequences
-
 -- ===== END 35_bat_schema.sql =====
 
 -- ===== BEGIN 40_business_modules_schema.sql =====

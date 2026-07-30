@@ -50,6 +50,20 @@ public class BzaOperationService extends com.cpf.bizadmin.common.base.BzaBaseSer
     return repository.menuPage(CpfPageRequest.of(page, size));
   }
 
+  public MenuImpact findMenuImpact(String menuCode) {
+    String key = code(menuCode, "menuCode");
+    Map<String, Object> current =
+        repository.findMenu(key).orElseThrow(() -> new CpfValidationException("메뉴를 찾을 수 없습니다."));
+    Set<String> descendants = descendants(repository.findMenuHierarchy(), key);
+    long permissions = repository.countMenuPermissions(key);
+    return new MenuImpact(
+        key,
+        descendants.size(),
+        permissions,
+        String.valueOf(current.getOrDefault("routePath", "")),
+        descendants.isEmpty() && permissions == 0);
+  }
+
   public List<Map<String, Object>> findRoles() {
     return repository.findRoles();
   }
@@ -124,10 +138,12 @@ public class BzaOperationService extends com.cpf.bizadmin.common.base.BzaBaseSer
   public Map<String, Object> saveMenu(MenuRequest r, String operatorId) {
     String key = code(r.menuCode(), "menuCode"), actor = required(operatorId, "operatorId");
     Map<String, Object> before = repository.findMenu(key).orElse(null);
+    String parentMenuCode = blank(r.parentMenuCode());
+    validateMenuHierarchy(repository.findMenuHierarchy(), key, parentMenuCode);
     Map<String, Object> v = new LinkedHashMap<>();
     v.put("menuCode", key);
     v.put("menuName", required(r.menuName(), "menuName"));
-    v.put("parentMenuCode", blank(r.parentMenuCode()));
+    v.put("parentMenuCode", parentMenuCode);
     v.put("moduleCode", code(defaultText(r.moduleCode(), "BZA"), "moduleCode"));
     v.put("routePath", blank(r.routePath()));
     v.put("iconCode", blank(r.iconCode()));
@@ -144,6 +160,91 @@ public class BzaOperationService extends com.cpf.bizadmin.common.base.BzaBaseSer
     if (changed != 1) throw new CpfValidationException("메뉴가 다른 관리자에 의해 변경되었습니다. 다시 조회하십시오.");
     audit(actor, "MENU_SAVE", "bza_menu", key, required(r.reason(), "reason"), before, v);
     return v;
+  }
+
+  @Transactional(transactionManager = "bzaTransactionManager")
+  public MenuDeleteResult deleteMenu(String menuCode, MenuDeleteRequest r, String operatorId) {
+    String key = code(menuCode, "menuCode");
+    String actor = required(operatorId, "operatorId");
+    if (r == null || r.expectedVersion() == null) {
+      throw new CpfValidationException("메뉴 삭제에는 expectedVersion이 필요합니다.");
+    }
+    String reason = required(r.reason(), "reason");
+    Map<String, Object> before =
+        repository.findMenu(key).orElseThrow(() -> new CpfValidationException("메뉴를 찾을 수 없습니다."));
+    MenuImpact impact = findMenuImpact(key);
+    if (impact.descendantCount() > 0) {
+      throw new CpfValidationException("하위 메뉴를 먼저 이동하거나 비활성화해야 합니다.");
+    }
+    if (impact.permissionCount() > 0) {
+      throw new CpfValidationException("활성 Permission이 연결된 메뉴는 삭제할 수 없습니다.");
+    }
+    int changed = repository.deleteMenu(key, r.expectedVersion());
+    if (changed != 1) {
+      throw new CpfValidationException("메뉴가 다른 관리자에 의해 변경되었습니다. 다시 조회하십시오.");
+    }
+    audit(actor, "MENU_DELETE", "bza_menu", key, reason, before, Map.of("deleted", true));
+    return new MenuDeleteResult(key, true, r.expectedVersion(), actor);
+  }
+
+  private void validateMenuHierarchy(
+      List<Map<String, Object>> hierarchy, String menuCode, String parentMenuCode) {
+    if (parentMenuCode == null) return;
+    if (menuCode.equals(parentMenuCode)) {
+      throw new CpfValidationException("메뉴 자신을 상위 메뉴로 지정할 수 없습니다.");
+    }
+    Map<String, String> parents = new HashMap<>();
+    boolean parentExists = false;
+    for (Map<String, Object> row : hierarchy) {
+      String code = stringValue(row, "menuCode", "MENU_CODE");
+      String parent = stringValue(row, "parentMenuCode", "PARENT_MENU_CODE");
+      if (code != null) {
+        parents.put(code, parent);
+        if (code.equals(parentMenuCode)) parentExists = true;
+      }
+    }
+    if (!parentExists) {
+      throw new CpfValidationException("상위 메뉴가 존재하지 않습니다: " + parentMenuCode);
+    }
+    String cursor = parentMenuCode;
+    Set<String> visited = new HashSet<>();
+    while (cursor != null && visited.add(cursor)) {
+      if (menuCode.equals(cursor)) {
+        throw new CpfValidationException("상위 메뉴 이동으로 순환 구조가 생성됩니다.");
+      }
+      cursor = parents.get(cursor);
+    }
+    if (cursor != null) {
+      throw new CpfValidationException("기존 메뉴 hierarchy에 순환 구조가 존재합니다.");
+    }
+  }
+
+  private Set<String> descendants(List<Map<String, Object>> hierarchy, String menuCode) {
+    Map<String, List<String>> children = new HashMap<>();
+    for (Map<String, Object> row : hierarchy) {
+      String code = stringValue(row, "menuCode", "MENU_CODE");
+      String parent = stringValue(row, "parentMenuCode", "PARENT_MENU_CODE");
+      if (code != null && parent != null) {
+        children.computeIfAbsent(parent, ignored -> new ArrayList<>()).add(code);
+      }
+    }
+    Set<String> result = new LinkedHashSet<>();
+    Deque<String> queue = new ArrayDeque<>(children.getOrDefault(menuCode, List.of()));
+    while (!queue.isEmpty()) {
+      String current = queue.removeFirst();
+      if (!result.add(current)) {
+        throw new CpfValidationException("메뉴 hierarchy에 순환 구조가 존재합니다.");
+      }
+      queue.addAll(children.getOrDefault(current, List.of()));
+    }
+    return result;
+  }
+
+  private String stringValue(Map<String, Object> row, String camel, String snakeUpper) {
+    Object value = row.containsKey(camel) ? row.get(camel) : row.get(snakeUpper);
+    if (value == null) return null;
+    String text = String.valueOf(value).trim();
+    return text.isEmpty() ? null : text.toUpperCase(Locale.ROOT);
   }
 
   @Transactional(transactionManager = "bzaTransactionManager")
@@ -328,6 +429,18 @@ public class BzaOperationService extends com.cpf.bizadmin.common.base.BzaBaseSer
           reason);
     }
   }
+
+  public record MenuImpact(
+      String menuCode,
+      int descendantCount,
+      long permissionCount,
+      String routePath,
+      boolean deletable) {}
+
+  public record MenuDeleteRequest(Long expectedVersion, String reason, String operationId) {}
+
+  public record MenuDeleteResult(
+      String menuCode, boolean deleted, long deletedVersion, String operatorId) {}
 
   public record MenuRequest(
       String menuCode,

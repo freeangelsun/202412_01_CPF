@@ -3,6 +3,129 @@
 -- DO NOT EDIT generated DDL directly.
 
 -- CPF_LOGICAL_DATABASE=batDB
+CREATE TABLE BATCH_JOB_EXECUTION (
+    JOB_EXECUTION_ID NUMBER(19) NOT NULL,
+    VERSION NUMBER(19),
+    JOB_INSTANCE_ID NUMBER(19) NOT NULL,
+    CREATE_TIME TIMESTAMP(6) NOT NULL,
+    START_TIME TIMESTAMP(6) DEFAULT NULL,
+    END_TIME TIMESTAMP(6) DEFAULT NULL,
+    STATUS VARCHAR2(10 CHAR),
+    EXIT_CODE VARCHAR2(2500 CHAR),
+    EXIT_MESSAGE VARCHAR2(2500 CHAR),
+    LAST_UPDATED TIMESTAMP(6),
+    CONSTRAINT pk_BATCH_JOB_EXECUTION PRIMARY KEY (JOB_EXECUTION_ID),
+    CONSTRAINT JOB_INST_EXEC_FK FOREIGN KEY (JOB_INSTANCE_ID) REFERENCES BATCH_JOB_INSTANCE (JOB_INSTANCE_ID)
+);
+COMMENT ON TABLE BATCH_JOB_EXECUTION IS 'Spring Batch 표준 JobExecution 저장소';
+COMMENT ON COLUMN BATCH_JOB_EXECUTION.JOB_EXECUTION_ID IS 'Spring Batch JobExecution 순번';
+COMMENT ON COLUMN BATCH_JOB_EXECUTION.VERSION IS '낙관적 잠금 버전';
+COMMENT ON COLUMN BATCH_JOB_EXECUTION.JOB_INSTANCE_ID IS 'Spring Batch JobInstance 순번';
+COMMENT ON COLUMN BATCH_JOB_EXECUTION.CREATE_TIME IS '실행 생성 일시';
+COMMENT ON COLUMN BATCH_JOB_EXECUTION.START_TIME IS '실행 시작 일시';
+COMMENT ON COLUMN BATCH_JOB_EXECUTION.END_TIME IS '실행 종료 일시';
+COMMENT ON COLUMN BATCH_JOB_EXECUTION.STATUS IS '실행 상태';
+COMMENT ON COLUMN BATCH_JOB_EXECUTION.EXIT_CODE IS '종료 코드';
+COMMENT ON COLUMN BATCH_JOB_EXECUTION.EXIT_MESSAGE IS '종료 메시지';
+COMMENT ON COLUMN BATCH_JOB_EXECUTION.LAST_UPDATED IS '마지막 수정 일시';
+
+CREATE TABLE BATCH_JOB_EXECUTION_CONTEXT (
+    JOB_EXECUTION_ID NUMBER(19) NOT NULL,
+    SHORT_CONTEXT VARCHAR2(2500 CHAR) NOT NULL,
+    SERIALIZED_CONTEXT CLOB,
+    CONSTRAINT pk_BATCH_JOB_EXECUTION_CONTEXT PRIMARY KEY (JOB_EXECUTION_ID),
+    CONSTRAINT JOB_EXEC_CTX_FK FOREIGN KEY (JOB_EXECUTION_ID) REFERENCES BATCH_JOB_EXECUTION (JOB_EXECUTION_ID)
+);
+COMMENT ON TABLE BATCH_JOB_EXECUTION_CONTEXT IS 'Spring Batch 표준 Job 컨텍스트 저장소';
+COMMENT ON COLUMN BATCH_JOB_EXECUTION_CONTEXT.JOB_EXECUTION_ID IS 'Spring Batch JobExecution 순번';
+COMMENT ON COLUMN BATCH_JOB_EXECUTION_CONTEXT.SHORT_CONTEXT IS '짧은 실행 컨텍스트';
+COMMENT ON COLUMN BATCH_JOB_EXECUTION_CONTEXT.SERIALIZED_CONTEXT IS '직렬화 실행 컨텍스트';
+
+CREATE TABLE BATCH_JOB_EXECUTION_PARAMS (
+    JOB_EXECUTION_ID NUMBER(19) NOT NULL,
+    PARAMETER_NAME VARCHAR2(100 CHAR) NOT NULL,
+    PARAMETER_TYPE VARCHAR2(100 CHAR) NOT NULL,
+    PARAMETER_VALUE VARCHAR2(2500 CHAR),
+    IDENTIFYING CHAR(1 CHAR) NOT NULL,
+    CONSTRAINT JOB_EXEC_PARAMS_FK FOREIGN KEY (JOB_EXECUTION_ID) REFERENCES BATCH_JOB_EXECUTION (JOB_EXECUTION_ID)
+);
+COMMENT ON TABLE BATCH_JOB_EXECUTION_PARAMS IS 'Spring Batch 표준 Job 파라미터 저장소';
+COMMENT ON COLUMN BATCH_JOB_EXECUTION_PARAMS.JOB_EXECUTION_ID IS 'Spring Batch JobExecution 순번';
+COMMENT ON COLUMN BATCH_JOB_EXECUTION_PARAMS.PARAMETER_NAME IS '파라미터 이름';
+COMMENT ON COLUMN BATCH_JOB_EXECUTION_PARAMS.PARAMETER_TYPE IS '파라미터 Java 유형';
+COMMENT ON COLUMN BATCH_JOB_EXECUTION_PARAMS.PARAMETER_VALUE IS '파라미터 값';
+COMMENT ON COLUMN BATCH_JOB_EXECUTION_PARAMS.IDENTIFYING IS 'JobInstance 식별 파라미터 여부';
+
+CREATE TABLE BATCH_JOB_INSTANCE (
+    JOB_INSTANCE_ID NUMBER(19) NOT NULL,
+    VERSION NUMBER(19),
+    JOB_NAME VARCHAR2(100 CHAR) NOT NULL,
+    JOB_KEY VARCHAR2(32 CHAR) NOT NULL,
+    CONSTRAINT pk_BATCH_JOB_INSTANCE PRIMARY KEY (JOB_INSTANCE_ID),
+    CONSTRAINT JOB_INST_UN UNIQUE (JOB_NAME, JOB_KEY)
+);
+COMMENT ON TABLE BATCH_JOB_INSTANCE IS 'Spring Batch 표준 JobInstance 저장소';
+COMMENT ON COLUMN BATCH_JOB_INSTANCE.JOB_INSTANCE_ID IS 'Spring Batch JobInstance 순번';
+COMMENT ON COLUMN BATCH_JOB_INSTANCE.VERSION IS '낙관적 잠금 버전';
+COMMENT ON COLUMN BATCH_JOB_INSTANCE.JOB_NAME IS 'Spring Batch Job 이름';
+COMMENT ON COLUMN BATCH_JOB_INSTANCE.JOB_KEY IS 'Job 파라미터 식별 키';
+
+CREATE TABLE BATCH_STEP_EXECUTION (
+    STEP_EXECUTION_ID NUMBER(19) NOT NULL,
+    VERSION NUMBER(19) NOT NULL,
+    STEP_NAME VARCHAR2(100 CHAR) NOT NULL,
+    JOB_EXECUTION_ID NUMBER(19) NOT NULL,
+    CREATE_TIME TIMESTAMP(6) NOT NULL,
+    START_TIME TIMESTAMP(6) DEFAULT NULL,
+    END_TIME TIMESTAMP(6) DEFAULT NULL,
+    STATUS VARCHAR2(10 CHAR),
+    COMMIT_COUNT NUMBER(19),
+    READ_COUNT NUMBER(19),
+    FILTER_COUNT NUMBER(19),
+    WRITE_COUNT NUMBER(19),
+    READ_SKIP_COUNT NUMBER(19),
+    WRITE_SKIP_COUNT NUMBER(19),
+    PROCESS_SKIP_COUNT NUMBER(19),
+    ROLLBACK_COUNT NUMBER(19),
+    EXIT_CODE VARCHAR2(2500 CHAR),
+    EXIT_MESSAGE VARCHAR2(2500 CHAR),
+    LAST_UPDATED TIMESTAMP(6),
+    CONSTRAINT pk_BATCH_STEP_EXECUTION PRIMARY KEY (STEP_EXECUTION_ID),
+    CONSTRAINT JOB_EXEC_STEP_FK FOREIGN KEY (JOB_EXECUTION_ID) REFERENCES BATCH_JOB_EXECUTION (JOB_EXECUTION_ID)
+);
+COMMENT ON TABLE BATCH_STEP_EXECUTION IS 'Spring Batch 표준 StepExecution 저장소';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION.STEP_EXECUTION_ID IS 'Spring Batch StepExecution 순번';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION.VERSION IS '낙관적 잠금 버전';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION.STEP_NAME IS 'Step 이름';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION.JOB_EXECUTION_ID IS 'Spring Batch JobExecution 순번';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION.CREATE_TIME IS 'Step 생성 일시';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION.START_TIME IS 'Step 시작 일시';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION.END_TIME IS 'Step 종료 일시';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION.STATUS IS 'Step 상태';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION.COMMIT_COUNT IS '커밋 횟수';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION.READ_COUNT IS '읽은 건수';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION.FILTER_COUNT IS '필터 건수';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION.WRITE_COUNT IS '쓴 건수';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION.READ_SKIP_COUNT IS '읽기 skip 건수';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION.WRITE_SKIP_COUNT IS '쓰기 skip 건수';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION.PROCESS_SKIP_COUNT IS '처리 skip 건수';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION.ROLLBACK_COUNT IS 'rollback 건수';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION.EXIT_CODE IS '종료 코드';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION.EXIT_MESSAGE IS '종료 메시지';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION.LAST_UPDATED IS '마지막 수정 일시';
+
+CREATE TABLE BATCH_STEP_EXECUTION_CONTEXT (
+    STEP_EXECUTION_ID NUMBER(19) NOT NULL,
+    SHORT_CONTEXT VARCHAR2(2500 CHAR) NOT NULL,
+    SERIALIZED_CONTEXT CLOB,
+    CONSTRAINT pk_BATCH_STEP_EXECUTION_CONTEXT PRIMARY KEY (STEP_EXECUTION_ID),
+    CONSTRAINT STEP_EXEC_CTX_FK FOREIGN KEY (STEP_EXECUTION_ID) REFERENCES BATCH_STEP_EXECUTION (STEP_EXECUTION_ID)
+);
+COMMENT ON TABLE BATCH_STEP_EXECUTION_CONTEXT IS 'Spring Batch 표준 Step 컨텍스트 저장소';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION_CONTEXT.STEP_EXECUTION_ID IS 'Spring Batch StepExecution 순번';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION_CONTEXT.SHORT_CONTEXT IS '짧은 실행 컨텍스트';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION_CONTEXT.SERIALIZED_CONTEXT IS '직렬화 실행 컨텍스트';
+
 CREATE TABLE bat_center_cut_claim (
     center_cut_item_id NUMBER(19),
     runner_id VARCHAR2(160 CHAR) NOT NULL,
@@ -729,6 +852,133 @@ COMMENT ON COLUMN bat_job.updated_at IS '수정일시';
 CREATE OR REPLACE TRIGGER trg_touch_bat_job BEFORE UPDATE ON bat_job FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
 /
 
+CREATE TABLE bat_job_definition_audit (
+    audit_id NUMBER(19) NOT NULL,
+    job_id VARCHAR2(80 CHAR) NOT NULL,
+    definition_version NUMBER(19) NOT NULL,
+    action_code VARCHAR2(40 CHAR) NOT NULL,
+    from_state VARCHAR2(20 CHAR),
+    to_state VARCHAR2(20 CHAR),
+    reason VARCHAR2(1000 CHAR) NOT NULL,
+    operator_id VARCHAR2(100 CHAR) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT pk_bat_job_definition_audit PRIMARY KEY (audit_id)
+);
+CREATE INDEX idx_bat_job_def_audit ON bat_job_definition_audit (job_id, definition_version, created_at);
+COMMENT ON TABLE bat_job_definition_audit IS 'BAT Job Definition 승인·상태 감사';
+COMMENT ON COLUMN bat_job_definition_audit.audit_id IS '감사 ID';
+COMMENT ON COLUMN bat_job_definition_audit.job_id IS 'Job ID';
+COMMENT ON COLUMN bat_job_definition_audit.definition_version IS 'Definition Version';
+COMMENT ON COLUMN bat_job_definition_audit.action_code IS '행위';
+COMMENT ON COLUMN bat_job_definition_audit.from_state IS '이전 상태';
+COMMENT ON COLUMN bat_job_definition_audit.to_state IS '다음 상태';
+COMMENT ON COLUMN bat_job_definition_audit.reason IS '사유';
+COMMENT ON COLUMN bat_job_definition_audit.operator_id IS '운영자';
+COMMENT ON COLUMN bat_job_definition_audit.created_at IS '발생시각';
+
+CREATE TABLE bat_job_definition_version (
+    job_id VARCHAR2(80 CHAR) NOT NULL,
+    definition_version NUMBER(19) NOT NULL,
+    job_name VARCHAR2(200 CHAR) NOT NULL,
+    executor_type VARCHAR2(40 CHAR) NOT NULL,
+    definition_state VARCHAR2(20 CHAR) NOT NULL,
+    owner_domain VARCHAR2(80 CHAR) NOT NULL,
+    description VARCHAR2(1000 CHAR),
+    trigger_type VARCHAR2(30 CHAR) NOT NULL,
+    trigger_expression VARCHAR2(500 CHAR),
+    timezone_id VARCHAR2(60 CHAR) NOT NULL DEFAULT 'Asia/Seoul',
+    misfire_policy VARCHAR2(30 CHAR) NOT NULL,
+    agent_pool VARCHAR2(100 CHAR) NOT NULL,
+    zone_id VARCHAR2(80 CHAR),
+    max_concurrency NUMBER(10) NOT NULL DEFAULT 1,
+    timeout_seconds NUMBER(19) NOT NULL DEFAULT 3600,
+    restartable_yn CHAR(1 CHAR) NOT NULL DEFAULT 'Y',
+    max_attempts NUMBER(10) NOT NULL DEFAULT 1,
+    initial_backoff_seconds NUMBER(19) NOT NULL DEFAULT 0,
+    backoff_multiplier DECIMAL(10,4) NOT NULL DEFAULT 1,
+    max_backoff_seconds NUMBER(19) NOT NULL DEFAULT 0,
+    skip_limit NUMBER(10) NOT NULL DEFAULT 0,
+    unknown_result_policy VARCHAR2(30 CHAR) NOT NULL,
+    compensation_reference VARCHAR2(200 CHAR),
+    alert_delay_seconds NUMBER(19) NOT NULL DEFAULT 0,
+    sla_seconds NUMBER(19) NOT NULL DEFAULT 0,
+    notify_failure_yn CHAR(1 CHAR) NOT NULL DEFAULT 'Y',
+    notify_missed_yn CHAR(1 CHAR) NOT NULL DEFAULT 'Y',
+    executor_reference VARCHAR2(300 CHAR) NOT NULL,
+    definition_json CLOB NOT NULL,
+    checksum VARCHAR2(128 CHAR),
+    effective_from TIMESTAMP,
+    effective_until TIMESTAMP,
+    row_version NUMBER(19) NOT NULL DEFAULT 1,
+    created_by VARCHAR2(100 CHAR) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by VARCHAR2(100 CHAR) NOT NULL,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT pk_bat_job_definition_version PRIMARY KEY (job_id, definition_version),
+    CONSTRAINT ck_bat_job_def_state CHECK (definition_state IN ('DRAFT','VALIDATED','APPROVAL','PUBLISHED','RETIRED'))
+);
+CREATE INDEX idx_bat_job_def_state ON bat_job_definition_version (definition_state, updated_at);
+CREATE INDEX idx_bat_job_def_owner ON bat_job_definition_version (owner_domain, job_id);
+COMMENT ON TABLE bat_job_definition_version IS 'BAT Versioned Job Definition 정본';
+COMMENT ON COLUMN bat_job_definition_version.job_id IS '배치 Job ID';
+COMMENT ON COLUMN bat_job_definition_version.definition_version IS '불변 Definition Version';
+COMMENT ON COLUMN bat_job_definition_version.job_name IS '배치 Job 이름';
+COMMENT ON COLUMN bat_job_definition_version.executor_type IS 'Executor 유형';
+COMMENT ON COLUMN bat_job_definition_version.definition_state IS 'Definition 상태';
+COMMENT ON COLUMN bat_job_definition_version.owner_domain IS '소유 업무영역';
+COMMENT ON COLUMN bat_job_definition_version.description IS '설명';
+COMMENT ON COLUMN bat_job_definition_version.trigger_type IS 'Trigger 유형';
+COMMENT ON COLUMN bat_job_definition_version.trigger_expression IS 'Trigger 조건';
+COMMENT ON COLUMN bat_job_definition_version.timezone_id IS 'Timezone';
+COMMENT ON COLUMN bat_job_definition_version.misfire_policy IS 'Misfire 정책';
+COMMENT ON COLUMN bat_job_definition_version.agent_pool IS 'Agent Pool';
+COMMENT ON COLUMN bat_job_definition_version.zone_id IS '실행 Zone';
+COMMENT ON COLUMN bat_job_definition_version.max_concurrency IS '최대 동시 실행';
+COMMENT ON COLUMN bat_job_definition_version.timeout_seconds IS 'Timeout 초';
+COMMENT ON COLUMN bat_job_definition_version.restartable_yn IS '재시작 가능 여부';
+COMMENT ON COLUMN bat_job_definition_version.max_attempts IS '최대 시도';
+COMMENT ON COLUMN bat_job_definition_version.initial_backoff_seconds IS '초기 Backoff';
+COMMENT ON COLUMN bat_job_definition_version.backoff_multiplier IS 'Backoff 배수';
+COMMENT ON COLUMN bat_job_definition_version.max_backoff_seconds IS '최대 Backoff';
+COMMENT ON COLUMN bat_job_definition_version.skip_limit IS 'Skip 허용';
+COMMENT ON COLUMN bat_job_definition_version.unknown_result_policy IS '결과 불명 처리 정책';
+COMMENT ON COLUMN bat_job_definition_version.compensation_reference IS '보상 처리 참조';
+COMMENT ON COLUMN bat_job_definition_version.alert_delay_seconds IS '지연 알림';
+COMMENT ON COLUMN bat_job_definition_version.sla_seconds IS 'SLA';
+COMMENT ON COLUMN bat_job_definition_version.notify_failure_yn IS '실패 알림';
+COMMENT ON COLUMN bat_job_definition_version.notify_missed_yn IS '미실행 알림';
+COMMENT ON COLUMN bat_job_definition_version.executor_reference IS 'Executor 참조';
+COMMENT ON COLUMN bat_job_definition_version.definition_json IS 'Definition JSON';
+COMMENT ON COLUMN bat_job_definition_version.checksum IS 'Checksum';
+COMMENT ON COLUMN bat_job_definition_version.effective_from IS '시행 시작';
+COMMENT ON COLUMN bat_job_definition_version.effective_until IS '시행 종료';
+COMMENT ON COLUMN bat_job_definition_version.row_version IS '낙관적 잠금';
+COMMENT ON COLUMN bat_job_definition_version.created_by IS '등록자';
+COMMENT ON COLUMN bat_job_definition_version.created_at IS '등록일시';
+COMMENT ON COLUMN bat_job_definition_version.updated_by IS '수정자';
+COMMENT ON COLUMN bat_job_definition_version.updated_at IS '수정일시';
+
+CREATE TABLE bat_job_dependency (
+    job_id VARCHAR2(80 CHAR) NOT NULL,
+    definition_version NUMBER(19) NOT NULL,
+    related_job_id VARCHAR2(80 CHAR) NOT NULL,
+    condition_code VARCHAR2(40 CHAR) NOT NULL,
+    timeout_seconds NUMBER(19) NOT NULL DEFAULT 0,
+    required_yn CHAR(1 CHAR) NOT NULL DEFAULT 'Y',
+    sort_order NUMBER(10) NOT NULL DEFAULT 0,
+    CONSTRAINT pk_bat_job_dependency PRIMARY KEY (job_id, definition_version, related_job_id),
+    CONSTRAINT ck_bat_job_dep_self CHECK (job_id <> related_job_id),
+    CONSTRAINT fk_bat_job_dep_def FOREIGN KEY (job_id, definition_version) REFERENCES bat_job_definition_version (job_id, definition_version) ON DELETE CASCADE
+);
+COMMENT ON TABLE bat_job_dependency IS 'BAT Versioned Job Dependency';
+COMMENT ON COLUMN bat_job_dependency.job_id IS 'Job ID';
+COMMENT ON COLUMN bat_job_dependency.definition_version IS 'Definition Version';
+COMMENT ON COLUMN bat_job_dependency.related_job_id IS '선행 Job';
+COMMENT ON COLUMN bat_job_dependency.condition_code IS '의존 조건';
+COMMENT ON COLUMN bat_job_dependency.timeout_seconds IS '대기 Timeout';
+COMMENT ON COLUMN bat_job_dependency.required_yn IS '필수 여부';
+COMMENT ON COLUMN bat_job_dependency.sort_order IS '정렬';
+
 CREATE TABLE bat_job_pack (
     job_pack_id VARCHAR2(120 CHAR) NOT NULL,
     owner_domain VARCHAR2(20 CHAR) NOT NULL,
@@ -768,6 +1018,50 @@ COMMENT ON COLUMN bat_job_pack_job.job_id IS 'Published job identifier';
 COMMENT ON COLUMN bat_job_pack_job.restartable_yn IS 'Job restartability flag';
 COMMENT ON COLUMN bat_job_pack_job.center_cut_provider_key IS 'Center-cut target provider key';
 COMMENT ON COLUMN bat_job_pack_job.center_cut_handler_key IS 'Center-cut item handler key';
+
+CREATE TABLE bat_job_parameter_definition (
+    job_id VARCHAR2(80 CHAR) NOT NULL,
+    definition_version NUMBER(19) NOT NULL,
+    parameter_name VARCHAR2(100 CHAR) NOT NULL,
+    parameter_type VARCHAR2(40 CHAR) NOT NULL,
+    label_text VARCHAR2(200 CHAR),
+    description_text VARCHAR2(1000 CHAR),
+    required_yn CHAR(1 CHAR) NOT NULL DEFAULT 'N',
+    sensitive_yn CHAR(1 CHAR) NOT NULL DEFAULT 'N',
+    default_value VARCHAR2(1000 CHAR),
+    allowed_values CLOB,
+    validation_pattern VARCHAR2(1000 CHAR),
+    min_value DECIMAL(38,10),
+    max_value DECIMAL(38,10),
+    min_length NUMBER(10),
+    max_length NUMBER(10),
+    reference_type VARCHAR2(80 CHAR),
+    alias_required_yn CHAR(1 CHAR) NOT NULL DEFAULT 'N',
+    runtime_override_allowed_yn CHAR(1 CHAR) NOT NULL DEFAULT 'N',
+    sort_order NUMBER(10) NOT NULL DEFAULT 0,
+    CONSTRAINT pk_bat_job_parameter_definition PRIMARY KEY (job_id, definition_version, parameter_name),
+    CONSTRAINT fk_bat_job_param_def FOREIGN KEY (job_id, definition_version) REFERENCES bat_job_definition_version (job_id, definition_version) ON DELETE CASCADE
+);
+COMMENT ON TABLE bat_job_parameter_definition IS 'BAT Typed Parameter Schema';
+COMMENT ON COLUMN bat_job_parameter_definition.job_id IS 'Job ID';
+COMMENT ON COLUMN bat_job_parameter_definition.definition_version IS 'Definition Version';
+COMMENT ON COLUMN bat_job_parameter_definition.parameter_name IS 'Parameter 이름';
+COMMENT ON COLUMN bat_job_parameter_definition.parameter_type IS 'Parameter 유형';
+COMMENT ON COLUMN bat_job_parameter_definition.label_text IS 'UI Label';
+COMMENT ON COLUMN bat_job_parameter_definition.description_text IS '설명';
+COMMENT ON COLUMN bat_job_parameter_definition.required_yn IS '필수 여부';
+COMMENT ON COLUMN bat_job_parameter_definition.sensitive_yn IS '민감정보 여부';
+COMMENT ON COLUMN bat_job_parameter_definition.default_value IS '기본값';
+COMMENT ON COLUMN bat_job_parameter_definition.allowed_values IS '허용값';
+COMMENT ON COLUMN bat_job_parameter_definition.validation_pattern IS '검증 Pattern';
+COMMENT ON COLUMN bat_job_parameter_definition.min_value IS '최솟값';
+COMMENT ON COLUMN bat_job_parameter_definition.max_value IS '최댓값';
+COMMENT ON COLUMN bat_job_parameter_definition.min_length IS '최소 길이';
+COMMENT ON COLUMN bat_job_parameter_definition.max_length IS '최대 길이';
+COMMENT ON COLUMN bat_job_parameter_definition.reference_type IS '참조 유형';
+COMMENT ON COLUMN bat_job_parameter_definition.alias_required_yn IS 'Alias 강제';
+COMMENT ON COLUMN bat_job_parameter_definition.runtime_override_allowed_yn IS '실행 Override';
+COMMENT ON COLUMN bat_job_parameter_definition.sort_order IS '정렬';
 
 CREATE TABLE bat_job_relation (
     relation_id NUMBER(19) GENERATED BY DEFAULT ON NULL AS IDENTITY NOT NULL,
@@ -1358,129 +1652,6 @@ COMMENT ON COLUMN bat_worker.updated_by IS '수정자';
 COMMENT ON COLUMN bat_worker.updated_at IS '수정일시';
 CREATE OR REPLACE TRIGGER trg_touch_bat_worker BEFORE UPDATE ON bat_worker FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
 /
-
-CREATE TABLE BATCH_JOB_EXECUTION (
-    JOB_EXECUTION_ID NUMBER(19) NOT NULL,
-    VERSION NUMBER(19),
-    JOB_INSTANCE_ID NUMBER(19) NOT NULL,
-    CREATE_TIME TIMESTAMP(6) NOT NULL,
-    START_TIME TIMESTAMP(6) DEFAULT NULL,
-    END_TIME TIMESTAMP(6) DEFAULT NULL,
-    STATUS VARCHAR2(10 CHAR),
-    EXIT_CODE VARCHAR2(2500 CHAR),
-    EXIT_MESSAGE VARCHAR2(2500 CHAR),
-    LAST_UPDATED TIMESTAMP(6),
-    CONSTRAINT pk_BATCH_JOB_EXECUTION PRIMARY KEY (JOB_EXECUTION_ID),
-    CONSTRAINT JOB_INST_EXEC_FK FOREIGN KEY (JOB_INSTANCE_ID) REFERENCES BATCH_JOB_INSTANCE (JOB_INSTANCE_ID)
-);
-COMMENT ON TABLE BATCH_JOB_EXECUTION IS 'Spring Batch 표준 JobExecution 저장소';
-COMMENT ON COLUMN BATCH_JOB_EXECUTION.JOB_EXECUTION_ID IS 'Spring Batch JobExecution 순번';
-COMMENT ON COLUMN BATCH_JOB_EXECUTION.VERSION IS '낙관적 잠금 버전';
-COMMENT ON COLUMN BATCH_JOB_EXECUTION.JOB_INSTANCE_ID IS 'Spring Batch JobInstance 순번';
-COMMENT ON COLUMN BATCH_JOB_EXECUTION.CREATE_TIME IS '실행 생성 일시';
-COMMENT ON COLUMN BATCH_JOB_EXECUTION.START_TIME IS '실행 시작 일시';
-COMMENT ON COLUMN BATCH_JOB_EXECUTION.END_TIME IS '실행 종료 일시';
-COMMENT ON COLUMN BATCH_JOB_EXECUTION.STATUS IS '실행 상태';
-COMMENT ON COLUMN BATCH_JOB_EXECUTION.EXIT_CODE IS '종료 코드';
-COMMENT ON COLUMN BATCH_JOB_EXECUTION.EXIT_MESSAGE IS '종료 메시지';
-COMMENT ON COLUMN BATCH_JOB_EXECUTION.LAST_UPDATED IS '마지막 수정 일시';
-
-CREATE TABLE BATCH_JOB_EXECUTION_CONTEXT (
-    JOB_EXECUTION_ID NUMBER(19) NOT NULL,
-    SHORT_CONTEXT VARCHAR2(2500 CHAR) NOT NULL,
-    SERIALIZED_CONTEXT CLOB,
-    CONSTRAINT pk_BATCH_JOB_EXECUTION_CONTEXT PRIMARY KEY (JOB_EXECUTION_ID),
-    CONSTRAINT JOB_EXEC_CTX_FK FOREIGN KEY (JOB_EXECUTION_ID) REFERENCES BATCH_JOB_EXECUTION (JOB_EXECUTION_ID)
-);
-COMMENT ON TABLE BATCH_JOB_EXECUTION_CONTEXT IS 'Spring Batch 표준 Job 컨텍스트 저장소';
-COMMENT ON COLUMN BATCH_JOB_EXECUTION_CONTEXT.JOB_EXECUTION_ID IS 'Spring Batch JobExecution 순번';
-COMMENT ON COLUMN BATCH_JOB_EXECUTION_CONTEXT.SHORT_CONTEXT IS '짧은 실행 컨텍스트';
-COMMENT ON COLUMN BATCH_JOB_EXECUTION_CONTEXT.SERIALIZED_CONTEXT IS '직렬화 실행 컨텍스트';
-
-CREATE TABLE BATCH_JOB_EXECUTION_PARAMS (
-    JOB_EXECUTION_ID NUMBER(19) NOT NULL,
-    PARAMETER_NAME VARCHAR2(100 CHAR) NOT NULL,
-    PARAMETER_TYPE VARCHAR2(100 CHAR) NOT NULL,
-    PARAMETER_VALUE VARCHAR2(2500 CHAR),
-    IDENTIFYING CHAR(1 CHAR) NOT NULL,
-    CONSTRAINT JOB_EXEC_PARAMS_FK FOREIGN KEY (JOB_EXECUTION_ID) REFERENCES BATCH_JOB_EXECUTION (JOB_EXECUTION_ID)
-);
-COMMENT ON TABLE BATCH_JOB_EXECUTION_PARAMS IS 'Spring Batch 표준 Job 파라미터 저장소';
-COMMENT ON COLUMN BATCH_JOB_EXECUTION_PARAMS.JOB_EXECUTION_ID IS 'Spring Batch JobExecution 순번';
-COMMENT ON COLUMN BATCH_JOB_EXECUTION_PARAMS.PARAMETER_NAME IS '파라미터 이름';
-COMMENT ON COLUMN BATCH_JOB_EXECUTION_PARAMS.PARAMETER_TYPE IS '파라미터 Java 유형';
-COMMENT ON COLUMN BATCH_JOB_EXECUTION_PARAMS.PARAMETER_VALUE IS '파라미터 값';
-COMMENT ON COLUMN BATCH_JOB_EXECUTION_PARAMS.IDENTIFYING IS 'JobInstance 식별 파라미터 여부';
-
-CREATE TABLE BATCH_JOB_INSTANCE (
-    JOB_INSTANCE_ID NUMBER(19) NOT NULL,
-    VERSION NUMBER(19),
-    JOB_NAME VARCHAR2(100 CHAR) NOT NULL,
-    JOB_KEY VARCHAR2(32 CHAR) NOT NULL,
-    CONSTRAINT pk_BATCH_JOB_INSTANCE PRIMARY KEY (JOB_INSTANCE_ID),
-    CONSTRAINT JOB_INST_UN UNIQUE (JOB_NAME, JOB_KEY)
-);
-COMMENT ON TABLE BATCH_JOB_INSTANCE IS 'Spring Batch 표준 JobInstance 저장소';
-COMMENT ON COLUMN BATCH_JOB_INSTANCE.JOB_INSTANCE_ID IS 'Spring Batch JobInstance 순번';
-COMMENT ON COLUMN BATCH_JOB_INSTANCE.VERSION IS '낙관적 잠금 버전';
-COMMENT ON COLUMN BATCH_JOB_INSTANCE.JOB_NAME IS 'Spring Batch Job 이름';
-COMMENT ON COLUMN BATCH_JOB_INSTANCE.JOB_KEY IS 'Job 파라미터 식별 키';
-
-CREATE TABLE BATCH_STEP_EXECUTION (
-    STEP_EXECUTION_ID NUMBER(19) NOT NULL,
-    VERSION NUMBER(19) NOT NULL,
-    STEP_NAME VARCHAR2(100 CHAR) NOT NULL,
-    JOB_EXECUTION_ID NUMBER(19) NOT NULL,
-    CREATE_TIME TIMESTAMP(6) NOT NULL,
-    START_TIME TIMESTAMP(6) DEFAULT NULL,
-    END_TIME TIMESTAMP(6) DEFAULT NULL,
-    STATUS VARCHAR2(10 CHAR),
-    COMMIT_COUNT NUMBER(19),
-    READ_COUNT NUMBER(19),
-    FILTER_COUNT NUMBER(19),
-    WRITE_COUNT NUMBER(19),
-    READ_SKIP_COUNT NUMBER(19),
-    WRITE_SKIP_COUNT NUMBER(19),
-    PROCESS_SKIP_COUNT NUMBER(19),
-    ROLLBACK_COUNT NUMBER(19),
-    EXIT_CODE VARCHAR2(2500 CHAR),
-    EXIT_MESSAGE VARCHAR2(2500 CHAR),
-    LAST_UPDATED TIMESTAMP(6),
-    CONSTRAINT pk_BATCH_STEP_EXECUTION PRIMARY KEY (STEP_EXECUTION_ID),
-    CONSTRAINT JOB_EXEC_STEP_FK FOREIGN KEY (JOB_EXECUTION_ID) REFERENCES BATCH_JOB_EXECUTION (JOB_EXECUTION_ID)
-);
-COMMENT ON TABLE BATCH_STEP_EXECUTION IS 'Spring Batch 표준 StepExecution 저장소';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION.STEP_EXECUTION_ID IS 'Spring Batch StepExecution 순번';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION.VERSION IS '낙관적 잠금 버전';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION.STEP_NAME IS 'Step 이름';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION.JOB_EXECUTION_ID IS 'Spring Batch JobExecution 순번';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION.CREATE_TIME IS 'Step 생성 일시';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION.START_TIME IS 'Step 시작 일시';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION.END_TIME IS 'Step 종료 일시';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION.STATUS IS 'Step 상태';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION.COMMIT_COUNT IS '커밋 횟수';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION.READ_COUNT IS '읽은 건수';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION.FILTER_COUNT IS '필터 건수';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION.WRITE_COUNT IS '쓴 건수';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION.READ_SKIP_COUNT IS '읽기 skip 건수';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION.WRITE_SKIP_COUNT IS '쓰기 skip 건수';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION.PROCESS_SKIP_COUNT IS '처리 skip 건수';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION.ROLLBACK_COUNT IS 'rollback 건수';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION.EXIT_CODE IS '종료 코드';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION.EXIT_MESSAGE IS '종료 메시지';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION.LAST_UPDATED IS '마지막 수정 일시';
-
-CREATE TABLE BATCH_STEP_EXECUTION_CONTEXT (
-    STEP_EXECUTION_ID NUMBER(19) NOT NULL,
-    SHORT_CONTEXT VARCHAR2(2500 CHAR) NOT NULL,
-    SERIALIZED_CONTEXT CLOB,
-    CONSTRAINT pk_BATCH_STEP_EXECUTION_CONTEXT PRIMARY KEY (STEP_EXECUTION_ID),
-    CONSTRAINT STEP_EXEC_CTX_FK FOREIGN KEY (STEP_EXECUTION_ID) REFERENCES BATCH_STEP_EXECUTION (STEP_EXECUTION_ID)
-);
-COMMENT ON TABLE BATCH_STEP_EXECUTION_CONTEXT IS 'Spring Batch 표준 Step 컨텍스트 저장소';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION_CONTEXT.STEP_EXECUTION_ID IS 'Spring Batch StepExecution 순번';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION_CONTEXT.SHORT_CONTEXT IS '짧은 실행 컨텍스트';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION_CONTEXT.SERIALIZED_CONTEXT IS '직렬화 실행 컨텍스트';
 
 -- CPF_CANONICAL_OBJECTS_BEGIN spring-batch-6-sequences
 -- Generated from cpf-tools/db/canonical/platform-non-table-objects.json.

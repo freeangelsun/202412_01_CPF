@@ -38,4 +38,32 @@ public class BatchRuntimeControlClient {
                 .body(request).retrieve().body(new ParameterizedTypeReference<>() {});
         return body == null ? Map.of() : body;
     }
+
+    public List<Map<String, Object>> jobDefinitions(String jobId, String state, int limit) {
+        List<Map<String, Object>> body = client.get()
+                .uri(uri -> uri.path("/api/v1/batch/job-definitions")
+                        .queryParamIfPresent("jobId", java.util.Optional.ofNullable(jobId).filter(v -> !v.isBlank()))
+                        .queryParamIfPresent("state", java.util.Optional.ofNullable(state).filter(v -> !v.isBlank()))
+                        .queryParam("limit", Math.max(1, Math.min(limit, 1000))).build())
+                .retrieve().body(new ParameterizedTypeReference<>() {});
+        return body == null ? List.of() : body;
+    }
+
+    public Map<String, Object> validateJobDefinition(Map<String, Object> request) {
+        Map<String, Object> body = client.post().uri("/api/v1/batch/job-definitions/validate")
+                .body(request).retrieve().body(new ParameterizedTypeReference<>() {});
+        return body == null ? Map.of() : body;
+    }
+
+    public Map<String, Object> saveJobDefinition(Map<String, Object> request) {
+        Map<String, Object> body = client.post().uri("/api/v1/batch/job-definitions/drafts")
+                .body(request).retrieve().body(new ParameterizedTypeReference<>() {});
+        return body == null ? Map.of() : body;
+    }
+
+    public Map<String, Object> transitionJobDefinition(String jobId, long version, Map<String, Object> request) {
+        Map<String, Object> body = client.post().uri("/api/v1/batch/job-definitions/{jobId}/versions/{version}/transition", jobId, version)
+                .body(request).retrieve().body(new ParameterizedTypeReference<>() {});
+        return body == null ? Map.of() : body;
+    }
 }

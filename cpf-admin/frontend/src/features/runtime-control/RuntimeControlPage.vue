@@ -35,7 +35,11 @@
           <label>Allow All<select v-model="form.allowAll"><option :value="false">N</option><option :value="true">Y</option></select></label>
           <label>Approval ID<input v-model.trim="form.approvalId"></label>
           <label>Break Glass ID<input v-model.trim="form.breakGlassId"></label>
-          <label class="span-2">Payload JSON<textarea v-model="form.payloadText" rows="9" spellcheck="false"></textarea></label>
+          <label>설정 Key<input v-model.trim="form.payloadKey" placeholder="route.header.policy"></label>
+          <label>설정 Value<input v-model.trim="form.payloadValue" placeholder="MASKED_BODY"></label>
+          <label>Value Type<select v-model="form.payloadValueType"><option>STRING</option><option>NUMBER</option><option>BOOLEAN</option><option>CODE</option></select></label>
+          <label>정책 Version<input v-model.trim="form.policyVersion" placeholder="v1"></label>
+          <label class="span-2">변경 설명<input v-model.trim="form.payloadDescription" placeholder="운영자가 이해할 수 있는 변경 목적"></label>
           <label class="span-2">감사 사유<input v-model.trim="form.reason"></label>
         </div>
         <div class="cpf-action-row">
@@ -48,7 +52,7 @@
 
       <section class="cpf-card">
         <div class="cpf-card-head"><h2>Preview / 상태</h2></div>
-        <pre class="code-block">{{ pretty(preview) }}</pre>
+        <StructuredDetails :value="preview" empty-message="Preview 결과가 없습니다."/>
       </section>
     </div>
 
@@ -77,7 +81,7 @@
           <tr><th>Message</th><td colspan="3">{{ change.message }}</td></tr>
         </tbody></table>
       </div>
-      <pre class="code-block">{{ pretty(auditVerification) }}</pre>
+      <StructuredDetails :value="auditVerification" empty-message="Audit 검증 결과가 없습니다."/>
     </section>
 
     <section class="cpf-card">
@@ -103,13 +107,13 @@
         <label class="span-2">멤버 변경 사유<input v-model.trim="memberForm.reason"></label>
       </div>
       <div class="cpf-action-row"><button class="primary" :disabled="busy" @click="changeGroupMember">멤버 반영</button></div>
-      <pre class="code-block">{{ pretty(group) }}</pre>
+      <StructuredDetails :value="group" empty-message="Runtime Group을 조회하세요."/>
     </section>
 
     <section class="cpf-card">
       <div class="cpf-card-head"><h2>Desired / Actual / Drift</h2></div>
       <div class="cpf-toolbar"><input v-model.trim="search.environment" placeholder="Environment"><input v-model.trim="search.serviceId" placeholder="Service ID"><button class="primary" @click="loadStatus">조회</button></div>
-      <pre class="code-block">{{ pretty(status) }}</pre>
+      <StructuredDetails :value="status" empty-message="Desired/Actual 상태가 없습니다."/>
     </section>
   </div>
 </template>
@@ -118,11 +122,13 @@
 import { defineComponent } from "vue";
 import { admApi } from "../../shared/cpfApi";
 import { admConsoleMixin } from "../../app/admConsoleMixin";
+import StructuredDetails from "../../components/StructuredDetails.vue";
 
 type Json = Record<string, any>;
 
 export default defineComponent({
   name: "RuntimeControlPage",
+  components: { StructuredDetails },
   mixins: [admConsoleMixin],
   data() {
     return {
@@ -146,13 +152,12 @@ export default defineComponent({
         operationId: crypto.randomUUID(), changeType: "GATEWAY_HEADER", payloadSchemaVersion: 1,
         environment: "", serviceId: "", groupId: "", instanceIds: "", expectedVersion: null as number|null,
         rolloutMode: "ALL_AT_ONCE", waveSize: 1, quorumPercent: 100, allowAll: false,
-        approvalId: "", breakGlassId: "", payloadText: "{}", reason: "Runtime 정책 변경"
+        approvalId: "", breakGlassId: "", payloadKey: "", payloadValue: "", payloadValueType: "STRING", policyVersion: "v1", payloadDescription: "", reason: "Runtime 정책 변경"
       }
     };
   },
   mounted() { this.loadOverview(); },
   methods: {
-    pretty(value:any) { return JSON.stringify(value || {}, null, 2); },
     stateClass(state:string) { const v=String(state||"").toUpperCase(); return v==="SUCCESS"||v==="ACKED"?"success":v==="FAILED"||v==="UNKNOWN_RESULT"?"danger":"warning"; },
     operatorId() { return String((this.currentOperator as any)?.operatorId || ""); },
     target() {
@@ -163,9 +168,11 @@ export default defineComponent({
       };
     },
     command() {
-      let payload:Json;
-      try { payload = JSON.parse(this.form.payloadText || "{}"); }
-      catch { throw new Error("Payload JSON 형식이 올바르지 않습니다."); }
+      if (!this.form.payloadKey.trim()) throw new Error("설정 Key가 필요합니다.");
+      let normalizedValue:any=this.form.payloadValue;
+      if(this.form.payloadValueType==="NUMBER") { normalizedValue=Number(this.form.payloadValue); if(Number.isNaN(normalizedValue)) throw new Error("숫자 Value를 확인하세요."); }
+      if(this.form.payloadValueType==="BOOLEAN") { const v=String(this.form.payloadValue).toLowerCase(); if(!["true","false","y","n"].includes(v)) throw new Error("Boolean Value는 true/false 또는 Y/N입니다."); normalizedValue=["true","y"].includes(v); }
+      const payload:Json={key:this.form.payloadKey,value:normalizedValue,valueType:this.form.payloadValueType,policyVersion:this.form.policyVersion,description:this.form.payloadDescription};
       const requestedBy=this.operatorId(); if(!requestedBy) throw new Error("인증된 운영자 정보를 확인할 수 없습니다.");
       return {
         operationId:this.form.operationId, changeType:this.form.changeType, payloadSchemaVersion:this.form.payloadSchemaVersion,

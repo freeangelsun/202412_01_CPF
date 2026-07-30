@@ -7,6 +7,7 @@ import com.cpf.core.api.util.CpfStrings;
 import com.cpf.core.api.error.CpfValidationException;
 import com.cpf.core.api.logging.policy.LogPolicyDecision;
 import com.cpf.core.api.logging.policy.CpfLogPolicyResolver;
+import com.cpf.core.api.runtime.CpfRuntimePolicyDistributionPort;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DuplicateKeyException;
@@ -14,8 +15,14 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.time.OffsetDateTime;
+import java.util.HexFormat;
+import java.util.UUID;
 import java.sql.PreparedStatement;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -27,20 +34,24 @@ import java.util.Optional;
 /**
  * ADM 로그 정책 관리 서비스입니다.
  *
- * <p>기본 정책과 임시 override를 DB 기준으로 관리하고, 현재 인스턴스의
- * 런타임 로그 정책 cache evict/refresh까지 연결합니다. 다중 인스턴스 broker 전파는
- * 별도 운영 보강에서 확장합니다.</p>
+ * <p>기본 정책과 임시 override를 DB 기준으로 관리하고 현재 인스턴스 cache를 즉시
+ * 갱신합니다. 변경 Event는 Durable Outbox에 기록되며 각 Gateway 인스턴스가 Lease/Fencing으로
+ * Claim한 뒤 ACK를 남기므로 부분 적용, 실패 재시도, Drift를 운영에서 추적할 수 있습니다.</p>
  */
 @Service
+@Transactional
 public class AdmLogPolicyService extends com.cpf.admin.common.base.AdmBaseService {
     private final JdbcTemplate cpfJdbcTemplate;
     private final ObjectProvider<CpfLogPolicyResolver> logPolicyResolverProvider;
+    private final CpfRuntimePolicyDistributionPort policyDistribution;
 
     public AdmLogPolicyService(
             @Qualifier("cpfJdbcTemplate") JdbcTemplate cpfJdbcTemplate,
-            ObjectProvider<CpfLogPolicyResolver> logPolicyResolverProvider) {
+            ObjectProvider<CpfLogPolicyResolver> logPolicyResolverProvider,
+            @Qualifier("admRuntimePolicyDistributionPort") CpfRuntimePolicyDistributionPort policyDistribution) {
         this.cpfJdbcTemplate = cpfJdbcTemplate;
         this.logPolicyResolverProvider = logPolicyResolverProvider;
+        this.policyDistribution = policyDistribution;
     }
 
     public Map<String, Object> findPolicies(String targetType, String targetId, String activeYn, int limit) {
@@ -405,8 +416,8 @@ public class AdmLogPolicyService extends com.cpf.admin.common.base.AdmBaseServic
                                active_yn, requested_by, created_at, updated_at
                         FROM cpf_log_policy_override
                         WHERE active_yn = 'Y'
-                          AND effective_start_at <= CURRENT_TIMESTAMP(3)
-                          AND effective_end_at >= CURRENT_TIMESTAMP(3)
+                          AND effective_start_at <= CURRENT_TIMESTAMP
+                          AND effective_end_at >= CURRENT_TIMESTAMP
                         ORDER BY override_id DESC
                         """,
                         List.of(),
@@ -562,6 +573,7 @@ public class AdmLogPolicyService extends com.cpf.admin.common.base.AdmBaseServic
     }
 
     private void evictPolicyCache(String targetType, String targetId) {
+        publishPolicyEvent(targetType, targetId, "CACHE_EVICT");
         CpfLogPolicyResolver resolver = logPolicyResolverProvider.getIfAvailable();
         if (resolver == null) {
             return;
@@ -577,6 +589,47 @@ public class AdmLogPolicyService extends com.cpf.admin.common.base.AdmBaseServic
             insertPolicyAudit(null, null, "CACHE_EVICT_FAILED", defaultIfBlank(targetType, "UNKNOWN"), defaultIfBlank(targetId, "*"),
                     "로그 정책 cache evict 실패", null, ex.getMessage(), "로그 정책 cache evict 실패", "ADM", null);
         }
+    }
+
+
+    private void publishPolicyEvent(String targetType, String targetId, String action) {
+        String normalizedType = defaultIfBlank(targetType, null, "LOG_POLICY");
+        String normalizedId = defaultIfBlank(targetId, null, "*");
+        String source = normalizedType + "|" + normalizedId + "|" + action + "|" + System.nanoTime();
+        policyDistribution.publish(new CpfRuntimePolicyDistributionPort.PublishCommand(
+                UUID.randomUUID().toString(), "LOG_POLICY", normalizedType, normalizedId, System.currentTimeMillis(),
+                action, sha256(source), Map.of("targetType", normalizedType, "targetId", normalizedId),
+                "로그 정책 다중 인스턴스 동기화", "ADM", OffsetDateTime.now()));
+    }
+
+    private static String sha256(String value) {
+        try {
+            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256")
+                    .digest(value.getBytes(StandardCharsets.UTF_8)));
+        } catch (Exception impossible) {
+            throw new IllegalStateException("SHA-256 unavailable", impossible);
+        }
+    }
+
+    /** 정책 변경 Event의 Gateway별 ACK, 실패, 재시도 상태를 조회합니다. */
+    @Transactional(readOnly = true)
+    public Map<String, Object> findDistributionStatus(String targetType, String targetId, int limit) {
+        String normalizedType = defaultIfBlank(targetType, null, "LOG_POLICY");
+        String normalizedId = defaultIfBlank(targetId, null, "*");
+        List<CpfRuntimePolicyDistributionPort.DeliveryStatus> items =
+                policyDistribution.findDeliveryStatus(normalizedType, normalizedId, Math.max(1, Math.min(limit, 1000)));
+        long applied = items.stream().filter(item -> "APPLIED".equals(item.status())).count();
+        long failed = items.stream().filter(item -> "FAILED".equals(item.status())).count();
+        long pending = items.size() - applied - failed;
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("targetType", normalizedType);
+        response.put("targetId", normalizedId);
+        response.put("applied", applied);
+        response.put("failed", failed);
+        response.put("pending", pending);
+        response.put("items", items);
+        response.put("consistent", !items.isEmpty() && failed == 0 && pending == 0);
+        return response;
     }
 
     private CpfLogPolicyResolver requireResolver() {

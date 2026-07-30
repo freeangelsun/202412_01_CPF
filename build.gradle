@@ -1472,6 +1472,16 @@ tasks.register('rollbackDeploy', Exec) {
             '-RequestedBy', requestedBy.get(), '-ApprovedBy', approvedBy.get(), '-Reason', reason.get(), '-Rollback',
             '-ResultDir', cpfResultDir().path
 }
+
+
+tasks.register('checkWorkContextSha', Exec) {
+    group = 'verification'
+    description = 'Current/Handover/Evidence의 exact-SHA 주장이 현재 HEAD와 일치하는지 검증합니다.'
+    workingDir rootDir
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+            file('cpf-tools/scripts/check-work-context-sha.ps1').absolutePath
+}
+
 tasks.register('checkReportMatrixEvidenceConsistency', Exec) {
     group = 'verification'
     description = 'CPF stabilization report, feature matrix, and evidence index must agree.'
@@ -1656,7 +1666,7 @@ tasks.register('qualityGate') {
     dependsOn subprojects.collect { "${it.path}:compileJava" }
     dependsOn subprojects.collect { "${it.path}:test" }
     dependsOn ':cpf-admin:frontendVerify', ':cpf-biz-admin:frontendVerify', 'checkModernFrontend'
-    dependsOn 'verifyCpfFinalSourceGates', 'verifyVersionConsistency', 'checkUtf8', 'checkMojibake', 'checkLegacyName', 'checkSqlStandard', 'checkSqlCanonical', 'checkJavaFormat', 'checkJava25Standard', 'checkDocumentLinks', 'checkTransactionIdStandard', 'checkSecuritySeedStandard', 'checkSampleStandard', 'checkCpfRequestProtection', 'checkFeatureEvidence', 'checkServiceCallBoundary', 'checkArchitectureOwnership', 'checkBaseHierarchy', 'checkFullLayerTaxonomy', 'exportArchitectureInventory', 'exportRequirementTraceability', 'checkDomainGenerator', 'checkDomainCapabilityMatrix', 'checkGeneratorGoldenPath', 'checkGeneratorArbitraryDomainParity', 'checkDomainRemoval', 'checkRepositoryHygiene', 'checkSpringEventUsage', 'checkProfileLoading', 'checkRuntimeConfigStandard', 'checkLogManagementStandard', 'checkOpenApiSourceCoverage', 'checkSampleCoverage', 'checkEvidencePathExistence', 'checkDeployEnv', 'checkDeployInventory', 'checkPackagedDependencies', 'remoteDeployDryRun', 'checkReportMatrixEvidenceConsistency', 'admUiSmoke', 'admLogPolicyUiStaticSmoke', 'bzaUiSmoke', 'checkContractCompatibility', 'checkR13ProductHardening', 'checkAdminContactModel', 'checkBzaSafeDefaults', 'checkCpfStackSupport', 'checkAdminDataSafety', 'checkOfficialDbVendorReadiness', 'checkRuntimeQueryContracts'
+    dependsOn 'verifyCpfFinalSourceGates', 'verifyVersionConsistency', 'checkUtf8', 'checkMojibake', 'checkLegacyName', 'checkSqlStandard', 'checkSqlCanonical', 'checkJavaFormat', 'checkJava25Standard', 'checkDocumentLinks', 'checkTransactionIdStandard', 'checkSecuritySeedStandard', 'checkSampleStandard', 'checkCpfRequestProtection', 'checkFeatureEvidence', 'checkServiceCallBoundary', 'checkArchitectureOwnership', 'checkBaseHierarchy', 'checkFullLayerTaxonomy', 'exportArchitectureInventory', 'exportRequirementTraceability', 'checkDomainGenerator', 'checkDomainCapabilityMatrix', 'checkGeneratorGoldenPath', 'checkGeneratorArbitraryDomainParity', 'checkDomainRemoval', 'checkRepositoryHygiene', 'checkSpringEventUsage', 'checkProfileLoading', 'checkRuntimeConfigStandard', 'checkLogManagementStandard', 'checkOpenApiSourceCoverage', 'checkSampleCoverage', 'checkEvidencePathExistence', 'checkDeployEnv', 'checkDeployInventory', 'checkPackagedDependencies', 'remoteDeployDryRun', 'checkReportMatrixEvidenceConsistency', 'checkWorkContextSha', 'admUiSmoke', 'admLogPolicyUiStaticSmoke', 'bzaUiSmoke', 'checkContractCompatibility', 'checkR13ProductHardening', 'checkAdminContactModel', 'checkBzaSafeDefaults', 'checkCpfStackSupport', 'checkAdminDataSafety', 'checkOfficialDbVendorReadiness', 'checkRuntimeQueryContracts'
 }
 
 

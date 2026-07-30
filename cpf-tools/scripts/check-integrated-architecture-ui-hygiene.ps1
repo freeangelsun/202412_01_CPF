@@ -62,7 +62,15 @@ foreach ($frontendRoot in @('cpf-admin/frontend/src','cpf-biz-admin/frontend/src
     if (-not (Test-Path -LiteralPath $absoluteFrontendRoot -PathType Container)) { continue }
     foreach ($page in Get-ChildItem -LiteralPath $absoluteFrontendRoot -Recurse -File -Filter '*.vue') {
         $pageText = Get-Content -LiteralPath $page.FullName -Raw -Encoding UTF8
-        if ($pageText -match '(?is)<pre\b[^>]*>.*?(JSON[.]stringify|\{\{\s*[A-Za-z0-9_.]*(Result|result|raw)[A-Za-z0-9_.]*\s*\}\}).*?</pre>') {
+        $preBlocks = [regex]::Matches($pageText, '(?is)<pre\b[^>]*>(?<body>.*?)</pre>')
+        foreach ($block in $preBlocks) {
+            $body = $block.Groups['body'].Value
+            if ($body -match '(?is)JSON[.]stringify|\bpretty\s*\(|\{\{[^}]*\b(preview|status|group|payload|result|response|raw|details?)\b[^}]*\}\}') {
+                $rawJsonPages.Add($page.FullName.Substring($Root.Length + 1).Replace('\','/')) | Out-Null
+                break
+            }
+        }
+        if ($pageText -match '(?is)<textarea\b[^>]*v-model\s*=\s*["''][^"'']*(payloadText|rawJson|jsonText)[^"'']*["'']') {
             $rawJsonPages.Add($page.FullName.Substring($Root.Length + 1).Replace('\','/')) | Out-Null
         }
     }

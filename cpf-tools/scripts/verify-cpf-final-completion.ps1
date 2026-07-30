@@ -4,7 +4,8 @@ param(
     [switch] $SkipRuntime,
     [switch] $RunDatabaseLifecycle,
     [string[]] $DatabaseProfilePath = @(),
-    [switch] $RunGitHubGovernance
+    [switch] $RunGitHubGovernance,
+    [string] $ExpectedSourceSha = ''
 )
 
 $ErrorActionPreference = 'Stop'
@@ -15,6 +16,20 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
 }
 
 $RepoRoot = (Resolve-Path -LiteralPath $RepoRoot).Path
+$headSha = (& git -C $RepoRoot rev-parse HEAD).Trim().ToLowerInvariant()
+if ([string]::IsNullOrWhiteSpace($ExpectedSourceSha)) { $ExpectedSourceSha = $headSha }
+if ($ExpectedSourceSha -notmatch '^[0-9a-fA-F]{40}$') { throw "ExpectedSourceSha must be a full SHA: $ExpectedSourceSha" }
+$ExpectedSourceSha = $ExpectedSourceSha.ToLowerInvariant()
+if ($ExpectedSourceSha -ne $headSha) {
+    & git -C $RepoRoot merge-base --is-ancestor $ExpectedSourceSha $headSha
+    if ($LASTEXITCODE -ne 0) { throw "ExpectedSourceSha is not an ancestor of HEAD: expected=$ExpectedSourceSha head=$headSha" }
+    $nonEvidenceChanges = @(& git -C $RepoRoot diff --name-only "$ExpectedSourceSha..$headSha" | Where-Object {
+        $_ -notmatch '^(cpf-docs/evidence/|cpf-docs/work/(current|handover|state)/|cpf-tools/verification/)'
+    })
+    if ($nonEvidenceChanges.Count -gt 0) {
+        throw "HEAD contains source changes after ExpectedSourceSha: $($nonEvidenceChanges -join ', ')"
+    }
+}
 $gradle = if ($IsWindows) { '.\gradlew.bat' } else { './gradlew' }
 
 function Invoke-CpfGate {
@@ -116,6 +131,10 @@ try {
     }
     Assert-CpfGeneratedDomainTopology
 
+    Invoke-CpfGate 'Work/Handover/Evidence exact-SHA' {
+        & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\check-work-context-sha.ps1 -ExpectedSha $ExpectedSourceSha -RequireCurrentEvidence
+    }
+
     if (Test-Path -LiteralPath 'cpf-batch/src') {
         $legacyFiles = @(Get-ChildItem -LiteralPath 'cpf-batch/src' -Recurse -File -Force)
         if ($legacyFiles.Count -gt 0) {
@@ -150,6 +169,9 @@ try {
     }
     Invoke-CpfGate 'Full CPF quality gate' {
         & $gradle qualityGate --no-daemon
+    }
+    Invoke-CpfGate 'Requirement/Matrix/Evidence semantic gate' {
+        & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\check-report-matrix-evidence-consistency.ps1 -Root $RepoRoot -ExpectedSha $ExpectedSourceSha
     }
     Invoke-CpfGate 'Full Java tests and assemble' {
         & $gradle clean test assemble --no-daemon
@@ -290,8 +312,15 @@ try {
         $sampleIds = @($missingClosingEvidence | Select-Object -First 20 -ExpandProperty id) -join ', '
         throw "Final completion is blocked because closing evidence is missing. total=$($missingClosingEvidence.Count), sample=[$sampleIds]"
     }
+    $staleClosingEvidence = @($finalLedgerRows | Where-Object {
+        $_.closing_evidence -notmatch [regex]::Escape($ExpectedSourceSha)
+    })
+    if ($staleClosingEvidence.Count -gt 0) {
+        $sampleIds = @($staleClosingEvidence | Select-Object -First 20 -ExpandProperty id) -join ', '
+        throw "Final completion is blocked because closing evidence is not exact-SHA. expected=$ExpectedSourceSha total=$($staleClosingEvidence.Count), sample=[$sampleIds]"
+    }
 
-    Write-Host 'Selected CPF final completion gates PASS.'
+    Write-Host "Selected CPF final completion gates PASS. sourceSha=$ExpectedSourceSha headSha=$headSha"
     Write-Host 'Runtime/Browser/3-DB/multi-instance/release evidence is PASS only when the command actually ran on the current commit.'
 } finally {
     Pop-Location

@@ -84,9 +84,13 @@ ADM과 BZA는 일반 고객 Domain과 목적은 다르지만 Runtime Architectur
 
 공통 진입 제어가 필요한 환경에서 선택하는 Edge Adapter입니다.
 
-- Channel Routing과 Standard Header 정규화
-- Authentication Bridge와 접근 통제
-- Rate, Timeout과 Failure Isolation
+- Service Registry 기반 Server Group, Route와 Environment Binding
+- HTTP/HTTPS, gRPC, TCP와 Same-JVM Local Target 선택
+- Round Robin, Weight, Rendezvous Hash, Priority Failover와 Least Load
+- Active/Passive Health, Hysteresis, Drain, Maintenance와 Fail-closed 안전 상한
+- Connection Test, Versioned Apply, Instance ACK와 Configuration Drift 추적
+- Transaction Timeline과 Retry·Failover Attempt 추적
+- Authentication Bridge, Standard Header, Rate, Timeout과 Failure Isolation
 - 업무 Domain 직접 진입과 함께 선택 가능
 
 Gateway는 필수 진입점이 아닙니다. 각 업무 Domain 또는 Channel이 자체 Endpoint와 등록 정책을 소유하면 Gateway 없이 직접 호출할 수 있습니다. 또한 내부 Domain 간 호출을 불필요하게 Gateway로 재경유시키지 않습니다.
@@ -95,11 +99,12 @@ Gateway는 필수 진입점이 아닙니다. 각 업무 Domain 또는 Channel이
 
 업무 Domain이 제공한 Batch Contract를 실행하는 독립 Runtime 제품 영역입니다.
 
-- Control Server
-- Scheduler
-- Worker
-- Center-Cut Runner
-- Host Agent
+- Versioned Job Definition, Typed Parameter, Dependency와 승인·배포 이력
+- Control Server와 Runtime Query/Command
+- Scheduler, Calendar와 Trigger
+- Worker와 Restartable File Watch
+- Approved Shell Artifact, Hash/Signature와 Process Tree Control
+- Center-Cut Runner와 Host Agent
 - Runtime Common, Contract와 Testkit
 
 Batch는 `cpf-common`의 하위 기능이 아니며 Scheduler, Worker, Center-Cut와 Remote Agent 책임을 별도 Runtime으로 구성합니다.
@@ -215,7 +220,8 @@ Inbound Request
 ### Service Call Capability
 
 - Local / Remote Invocation Abstraction
-- Service Registry와 Instance Selection
+- Service Registry, Server Group과 Instance Selection
+- Gateway Binding, Health와 Configuration Apply ACK
 - Timeout, Retry, Backoff와 Circuit State
 - Multi-instance Failover
 - Distributed Trace Context 전달
@@ -275,7 +281,8 @@ HTTP, Messaging, File, 전문과 Trace 같은 기술 기반은 Framework가 제�
 
 ### Control Plane
 
-- JobPack Registry
+- JobPack Registry와 Versioned Job Definition
+- 공통 `CpfParameterSchema` 기반 Typed Parameter와 Secret Reference
 - Runtime Command와 Query
 - Scheduler, Calendar와 Trigger
 - Instance State와 Deployment Control
@@ -286,6 +293,8 @@ HTTP, Messaging, File, 전문과 Trace 같은 기술 기반은 Framework가 제�
 - Worker 기반 Spring Batch Job / Step 실행
 - Center-Cut Partition, Target, Claim과 Runner
 - Host Agent 기반 Remote Process 실행
+- File Stability Window, Marker, Checksum, Claim과 Restart Scan
+- Approved Script Hash/Signature, Parameter File, Output Masking과 Process Tree 종료
 - Checkpoint와 Restartability
 - Lease와 Fencing Token 기반 Owner 보호
 
@@ -305,9 +314,10 @@ ADM은 Batch Runtime 상태를 조회하고 승인된 Command를 전달할 수 �
 
 `cpf-admin`은 Platform Runtime을 운영하고 통제하는 독립 Application입니다.
 
-- Service Registry와 Instance Health
+- Service Registry, Server Group, Gateway Binding과 Instance Health
+- Gateway Connection Test, Apply ACK, Transaction/Attempt Timeline
 - Transaction, Timeline, Log와 Trace 조회
-- Batch, Center-Cut와 Runtime Control
+- Batch Job Definition, Center-Cut와 Runtime Control
 - Cache, Dynamic Log Level과 Configuration Control
 - Secret Metadata와 Security Operation
 - 승인, Break-glass, Reason과 Audit
@@ -417,6 +427,8 @@ Generator는 `DomainName`과 3자리 대문자 `SystemCode`를 입력받아 독�
 - Install, Seed, Migration, Verify와 Rollback
 - Unit, Integration과 Runtime Test
 - OpenAPI, JavaDoc, Guide와 Evidence 연결
+- Service Registry 등록 후보, Endpoint와 Health Metadata
+- Gateway 외부 공개 기본 거부와 승인·연결시험 정책
 - CI/CD와 Repository Federation 설정
 
 ### Preflight Validation

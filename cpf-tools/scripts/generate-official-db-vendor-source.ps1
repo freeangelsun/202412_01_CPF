@@ -248,7 +248,7 @@ function Render-Table([string]$v,$t){
  $createPrefix=if($v -eq 'mariadb'){'CREATE TABLE IF NOT EXISTS '}else{'CREATE TABLE '}
  $createSuffix=if($v -eq 'mariadb'){"`n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"+$(if($t.comment){" COMMENT='$(Q ([string]$t.comment))'"}else{''})+";`n"}else{"`n);`n"}
  $out=$createPrefix+$t.name+" (`n"+($lines -join ",`n")+$createSuffix
- if($v -ne 'mariadb'){foreach($i in $t.indexes){$isUnique=$null -ne $i.PSObject.Properties['unique'] -and [bool]$i.unique;$out+='CREATE '+($(if($isUnique){'UNIQUE '}else{''}))+'INDEX '+$i.name+' ON '+$t.name+' ('+($i.columns -join ', ')+");`n"}}
+ if($v -ne 'mariadb'){foreach($i in $t.indexes){$isUnique=$null -ne $i.PSObject.Properties['unique'] -and [bool]$i.unique;$portableColumns=@($i.columns | ForEach-Object { [regex]::Replace([string]$_,'\(\d+\)$','') });$out+='CREATE '+($(if($isUnique){'UNIQUE '}else{''}))+'INDEX '+$i.name+' ON '+$t.name+' ('+($portableColumns -join ', ')+");`n"}}
  if($v -ne 'mariadb'){
   if($t.comment){$out+="COMMENT ON TABLE $($t.name) IS '$(Q $t.comment)';`n"}
   foreach($c in $t.columns){if($c.comment){$out+="COMMENT ON COLUMN $($t.name).$($c.name) IS '$(Q $c.comment)';`n"}}

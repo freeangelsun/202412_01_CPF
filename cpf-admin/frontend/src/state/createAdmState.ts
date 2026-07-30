@@ -33,6 +33,15 @@ export function createAdmState() {
           { id: "standardExecutions", menuId: "STANDARD_EXECUTION", label: "표준 실행" },
           { id: "channelPolicy", menuId: "CHANNEL_POLICY", label: "채널 정책" },
           { id: "serviceRegistry", menuId: "SERVICE_REGISTRY", label: "서비스 레지스트리" },
+          { id: "gateway-dashboard", menuId: "GATEWAY_DASHBOARD", label: "Gateway 대시보드" },
+          { id: "gateway-servers", menuId: "GATEWAY_SERVERS", label: "Gateway 연동 서버" },
+          { id: "gateway-groups", menuId: "GATEWAY_GROUPS", label: "Gateway 서버 그룹" },
+          { id: "gateway-routes", menuId: "GATEWAY_ROUTES", label: "Gateway 경로·라우팅" },
+          { id: "gateway-security", menuId: "GATEWAY_SECURITY", label: "Gateway 보안·제한" },
+          { id: "gateway-health", menuId: "GATEWAY_HEALTH", label: "Gateway Health·연결시험" },
+          { id: "gateway-transactions", menuId: "GATEWAY_TRANSACTIONS", label: "Gateway 거래 조회" },
+          { id: "gateway-log-policies", menuId: "GATEWAY_LOG_POLICY", label: "Gateway 로그 정책" },
+          { id: "gateway-apply-status", menuId: "GATEWAY_APPLY_STATUS", label: "Gateway 적용 상태·이력" },
           { id: "runtimeControl", menuId: "RUNTIME_CONTROL", label: "Runtime Change Center" },
           { id: "maintenance", menuId: "MAINTENANCE", label: "점검·Drain" },
           { id: "cache", menuId: "CACHE", label: "캐시" },
@@ -259,6 +268,13 @@ export function createAdmState() {
           fileLogEnabledYn: "Y",
           requestBodyLogYn: "N",
           responseBodyLogYn: "N",
+          requestBodyCaptureMode: "NONE",
+          responseBodyCaptureMode: "NONE",
+          queryCaptureMode: "NONE",
+          headerCaptureMode: "ALLOWLIST",
+          allowedFieldPaths: "",
+          maskingPolicyKey: "CPF_SAFE_DEFAULT",
+          maxBodyBytes: 65536,
           errorStackLogYn: "Y",
           retentionDays: 90,
           samplingRate: 100,
@@ -394,6 +410,7 @@ export function createAdmState() {
         responseCodeResult: {} as Record<string, any>,
         logLevelResult: {} as Record<string, any>,
         logPolicyResult: {} as Record<string, any>,
+        logPolicyDistributionResult: {} as Record<string, any>,
         operatorResult: {} as Record<string, any>,
         operatorRawResult: {} as Record<string, any>,
         operatorRawOpen: false,
@@ -452,6 +469,7 @@ export function resetAdmSensitiveState(state: Record<string, any>) {
   state.responseCodeResult = {};
   state.logLevelResult = {};
   state.logPolicyResult = {};
+  state.logPolicyDistributionResult = {};
   state.operatorResult = {};
   state.operatorRawResult = {};
   state.operatorRawOpen = false;

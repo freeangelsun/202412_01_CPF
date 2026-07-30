@@ -69,6 +69,42 @@ public class BatchRuntimeControlController extends AdmBaseController {
         }
     }
 
+    @GetMapping("/job-definitions")
+    @Operation(operationId = "admBatchJobDefinitions", summary = "Versioned Batch Job Definition 조회")
+    ResponseEntity<Map<String, Object>> jobDefinitions(@RequestParam(required = false) String jobId,
+                                                       @RequestParam(required = false) String state,
+                                                       @RequestParam(defaultValue = "200") int limit) {
+        try {
+            return ResponseEntity.ok(Map.of("fetchedAt", Instant.now(), "stale", false, "partial", false,
+                    "items", client.jobDefinitions(jobId, state, limit)));
+        } catch (RuntimeException failure) {
+            return ResponseEntity.status(503).body(Map.of("fetchedAt", Instant.now(), "stale", true, "partial", true,
+                    "items", List.of(), "errorCode", "BAT_CONTROL_UNREACHABLE"));
+        }
+    }
+
+    @PostMapping("/job-definitions/validate")
+    @Operation(operationId = "admBatchJobDefinitionValidate", summary = "Batch Job Definition 검증")
+    ResponseEntity<Map<String, Object>> validateJobDefinition(@RequestBody Map<String, Object> request) {
+        try { return ResponseEntity.ok(client.validateJobDefinition(request)); }
+        catch (RuntimeException failure) { return ResponseEntity.status(503).body(Map.of("valid", false, "errors", List.of("BAT_CONTROL_UNREACHABLE"))); }
+    }
+
+    @PostMapping("/job-definitions/drafts")
+    @Operation(operationId = "admBatchJobDefinitionSave", summary = "Batch Job Definition Draft 저장")
+    ResponseEntity<Map<String, Object>> saveJobDefinition(@RequestBody Map<String, Object> request) {
+        try { return ResponseEntity.status(201).body(client.saveJobDefinition(request)); }
+        catch (RuntimeException failure) { return ResponseEntity.status(503).body(Map.of("state", "UNKNOWN_RESULT", "errorCode", "BAT_CONTROL_UNREACHABLE")); }
+    }
+
+    @PostMapping("/job-definitions/{jobId}/versions/{version}/transition")
+    @Operation(operationId = "admBatchJobDefinitionTransition", summary = "Batch Job Definition 승인·배포 상태 전환")
+    ResponseEntity<Map<String, Object>> transitionJobDefinition(@PathVariable String jobId, @PathVariable long version,
+                                                                 @RequestBody Map<String, Object> request) {
+        try { return ResponseEntity.ok(client.transitionJobDefinition(jobId, version, request)); }
+        catch (RuntimeException failure) { return ResponseEntity.status(503).body(Map.of("state", "UNKNOWN_RESULT", "errorCode", "BAT_CONTROL_UNREACHABLE")); }
+    }
+
     @PostMapping("/deployment-plans")
     @Operation(operationId = "admBatchRuntimeCreateDeploymentPlan", summary = "BAT 배포 계획 생성")
     ResponseEntity<Map<String, Object>> plan(@RequestBody Map<String, Object> request) {

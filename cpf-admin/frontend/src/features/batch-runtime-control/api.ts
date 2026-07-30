@@ -49,3 +49,18 @@ export async function createDeploymentPlan(body: unknown): Promise<Record<string
     method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
   })
 }
+
+export async function fetchJobDefinitions(jobId = "", state = ""): Promise<BatchViewEnvelope> {
+  const params = new URLSearchParams({ limit: "500" });
+  if (jobId) params.set("jobId", jobId); if (state) params.set("state", state);
+  return request(`/adm/api/batch-runtime/job-definitions?${params.toString()}`, { credentials: "same-origin" });
+}
+export async function validateJobDefinition(body: unknown): Promise<Record<string, unknown>> {
+  return request('/adm/api/batch-runtime/job-definitions/validate', { method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+}
+export async function saveJobDefinition(body: unknown): Promise<Record<string, unknown>> {
+  return request('/adm/api/batch-runtime/job-definitions/drafts', { method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+}
+export async function transitionJobDefinition(jobId:string, version:number, body:unknown): Promise<Record<string, unknown>> {
+  return request(`/adm/api/batch-runtime/job-definitions/${encodeURIComponent(jobId)}/versions/${version}/transition`, { method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+}

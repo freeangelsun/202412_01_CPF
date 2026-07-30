@@ -329,5 +329,13 @@ export const observabilityMethods: Record<string, any> = {
         const params = this.buildParams({ reason: this.logPolicyForm.reason });
         this.logPolicyResult = await this.sendJson(`/adm/api/log-policies/cache/clear?${params.toString()}`, "POST");
         this.setMessage("로그 정책 cache를 전체 비웠습니다.");
+      },
+  async loadLogPolicyDistributionStatus() {
+        const params = this.buildParams({
+          targetType: this.logPolicyForm.targetType,
+          targetId: this.logPolicyForm.targetId,
+          limit: 500
+        });
+        this.logPolicyDistributionResult = await this.getJson(`/adm/api/log-policies/distribution?${params.toString()}`);
       }
 };

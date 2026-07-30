@@ -120,6 +120,16 @@ public class AdmLogPolicyController extends com.cpf.admin.common.base.AdmBaseCon
         return ResponseEntity.ok(logPolicyService.disableOverride(overrideId, reason, requestUser(servletRequest, "ADM"), servletRequest.getRemoteAddr()));
     }
 
+    @GetMapping("/distribution")
+    @CpfOnlineTransaction(id = "OADMLG0023", name = "ADMLogPolicyDistributionStatus")
+    @Operation(operationId = "admLogPolicyDistributionStatus", summary = "로그 정책 다중 인스턴스 적용 상태", description = "정책 변경 Event의 Gateway 인스턴스별 ACK, 실패, 재시도 상태를 조회합니다.")
+    public ResponseEntity<Map<String, Object>> findDistributionStatus(
+            @RequestParam(required = false) String targetType,
+            @RequestParam(required = false) String targetId,
+            @RequestParam(defaultValue = "200") int limit) {
+        return ResponseEntity.ok(logPolicyService.findDistributionStatus(targetType, targetId, limit));
+    }
+
     @PostMapping("/cache/refresh")
     @CpfOnlineTransaction(id = "OADMLG0016", name = "ADMLogPolicyCacheRefresh")
     @Operation(operationId = "admLogPolicyRefreshCache", summary = "로그 정책 cache refresh", description = "지정 대상의 로그 정책을 즉시 재평가하고 현재 인스턴스 cache에 반영합니다.")

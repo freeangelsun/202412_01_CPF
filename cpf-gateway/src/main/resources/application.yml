@@ -18,6 +18,7 @@ spring:
 
 server:
   port: ${GWY_SERVER_PORT:8070}
+  max-http-request-header-size: ${GWY_HEADER_BYTES_CAP:64KB}
 
 cpf:
   framework:
@@ -25,7 +26,23 @@ cpf:
     instance-id: ${GWY_INSTANCE_ID:gwy-local-01}
     was-id: ${GWY_WAS_ID:gwLC001}
   gateway:
-    route-refresh-millis: ${GWY_ROUTE_REFRESH_MILLIS:30000}
+    # 설치 Property는 운영 정책이 넘을 수 없는 안전 상한입니다.
+    route-refresh: ${GWY_ROUTE_REFRESH:30s}
+    policy-refresh: ${GWY_POLICY_REFRESH:15s}
+    health-probe-interval: ${GWY_HEALTH_PROBE_INTERVAL:30s}
+    stale-after: ${GWY_HEALTH_STALE_AFTER:90s}
+    connect-timeout-cap: ${GWY_CONNECT_TIMEOUT_CAP:10s}
+    response-timeout-cap: ${GWY_RESPONSE_TIMEOUT_CAP:60s}
+    overall-timeout-cap: ${GWY_OVERALL_TIMEOUT_CAP:90s}
+    retry-count-cap: ${GWY_RETRY_COUNT_CAP:2}
+    request-body-bytes-cap: ${GWY_REQUEST_BODY_BYTES_CAP:10485760}
+    response-body-bytes-cap: ${GWY_RESPONSE_BODY_BYTES_CAP:10485760}
+    header-count-cap: ${GWY_HEADER_COUNT_CAP:100}
+    header-bytes-cap: ${GWY_HEADER_BYTES_CAP:65536}
+    raw-body-capture-allowed: ${GWY_RAW_BODY_CAPTURE_ALLOWED:false}
+    log-spool-bytes-cap: ${GWY_LOG_SPOOL_BYTES_CAP:2147483648}
+    log-spool-directory: ${GWY_LOG_SPOOL_DIR:./data/gateway-log-spool}
+    bootstrap-mode: ${GWY_BOOTSTRAP_MODE:FAIL_CLOSED}
 
 management:
   endpoint:

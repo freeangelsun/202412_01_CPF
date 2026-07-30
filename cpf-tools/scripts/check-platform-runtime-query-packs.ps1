@@ -59,6 +59,27 @@ function Add-Failure {
     $failures.Add($Message)
 }
 
+function Get-InlineSqlFragments {
+    param([Parameter(Mandatory = $true)][string] $Text)
+    $fragments = [System.Collections.Generic.List[object]]::new()
+    foreach ($match in [regex]::Matches($Text, $inlineSqlPattern)) {
+        $start = $match.Index
+        $remaining = $Text.Length - $start
+        $maxLength = [Math]::Min($remaining, 12000)
+        $window = $Text.Substring($start, $maxLength)
+        $terminator = $window.IndexOf(');')
+        if ($terminator -ge 0) {
+            $window = $window.Substring(0, $terminator + 2)
+        } elseif ($window.Length -eq 12000) {
+            # Unbounded fragments are suspicious. Keep the bounded fragment and fail below when needed.
+            $window = $window.Substring(0, 12000)
+        }
+        $line = 1 + ([regex]::Matches($Text.Substring(0, $start), "`n")).Count
+        $fragments.Add([pscustomobject]@{ line = $line; text = $window }) | Out-Null
+    }
+    return @($fragments)
+}
+
 function Get-ScriptAstErrors {
     param([Parameter(Mandatory = $true)][string] $Path)
     $tokens = $null
@@ -142,21 +163,23 @@ foreach ($module in @($contract.modules)) {
                 '\.required\(\s*"(?<key>[a-z][a-z0-9-]{1,63})"\s*\)')) {
                 $sourceKeys.Add($match.Groups["key"].Value)
             }
-            $inlineCount = ([regex]::Matches($text, $inlineSqlPattern)).Count
-            if ($inlineCount -gt 0) {
+            $inlineFragments = @(Get-InlineSqlFragments -Text $text)
+            if ($inlineFragments.Count -gt 0) {
                 $relative = [System.IO.Path]::GetRelativePath($Root, $file.FullName).Replace("\", "/")
                 $inlineInventory.Add([pscustomobject][ordered]@{
                     module = $moduleCode
                     path = $relative
-                    statements = $inlineCount
+                    statements = $inlineFragments.Count
                     policy = $inlineSqlPolicy
                 })
-                foreach ($vendorPattern in $vendorOnlyInlinePatterns) {
-                    if ($text -match [string] $vendorPattern.pattern) {
-                        Add-Failure (
-                            "Vendor-only inline SQL is forbidden: " +
-                            "module=$moduleCode path=$relative token=$($vendorPattern.name)"
-                        )
+                foreach ($fragment in $inlineFragments) {
+                    foreach ($vendorPattern in $vendorOnlyInlinePatterns) {
+                        if ([string]$fragment.text -match [string]$vendorPattern.pattern) {
+                            Add-Failure (
+                                "Vendor-only inline SQL is forbidden: " +
+                                "module=$moduleCode path=$relative line=$($fragment.line) token=$($vendorPattern.name)"
+                            )
+                        }
                     }
                 }
             }

@@ -1,9 +1,9 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": "2026-07-30-batch-job-definition-v76",
   "generatedBy": "cpf-tools/scripts/generate-database-schema-manifest.ps1",
   "sourcePlan": "cpf-tools/config/database-source-plan.json",
   "generatedBusinessDomainPolicy": "NO_FIXED_BUSINESS_DOMAIN_SCHEMA",
-  "tableCount": 160,
+  "tableCount": 173,
   "tables": [
     {
       "vendor": "mariadb",
@@ -1477,6 +1477,174 @@
           "referencedTable": "adm_menu",
           "referencedColumns": [
             "MENU_ID"
+          ]
+        }
+      ]
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "batDB",
+      "sourceFile": "35_bat_schema.sql",
+      "tableName": "BATCH_JOB_EXECUTION",
+      "columns": [
+        "JOB_EXECUTION_ID",
+        "VERSION",
+        "JOB_INSTANCE_ID",
+        "CREATE_TIME",
+        "START_TIME",
+        "END_TIME",
+        "STATUS",
+        "EXIT_CODE",
+        "EXIT_MESSAGE",
+        "LAST_UPDATED"
+      ],
+      "indexes": [],
+      "foreignKeys": [
+        {
+          "name": "JOB_INST_EXEC_FK",
+          "columns": [
+            "JOB_INSTANCE_ID"
+          ],
+          "referencedTable": "BATCH_JOB_INSTANCE",
+          "referencedColumns": [
+            "JOB_INSTANCE_ID"
+          ]
+        }
+      ]
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "batDB",
+      "sourceFile": "35_bat_schema.sql",
+      "tableName": "BATCH_JOB_EXECUTION_CONTEXT",
+      "columns": [
+        "JOB_EXECUTION_ID",
+        "SHORT_CONTEXT",
+        "SERIALIZED_CONTEXT"
+      ],
+      "indexes": [],
+      "foreignKeys": [
+        {
+          "name": "JOB_EXEC_CTX_FK",
+          "columns": [
+            "JOB_EXECUTION_ID"
+          ],
+          "referencedTable": "BATCH_JOB_EXECUTION",
+          "referencedColumns": [
+            "JOB_EXECUTION_ID"
+          ]
+        }
+      ]
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "batDB",
+      "sourceFile": "35_bat_schema.sql",
+      "tableName": "BATCH_JOB_EXECUTION_PARAMS",
+      "columns": [
+        "JOB_EXECUTION_ID",
+        "PARAMETER_NAME",
+        "PARAMETER_TYPE",
+        "PARAMETER_VALUE",
+        "IDENTIFYING"
+      ],
+      "indexes": [],
+      "foreignKeys": [
+        {
+          "name": "JOB_EXEC_PARAMS_FK",
+          "columns": [
+            "JOB_EXECUTION_ID"
+          ],
+          "referencedTable": "BATCH_JOB_EXECUTION",
+          "referencedColumns": [
+            "JOB_EXECUTION_ID"
+          ]
+        }
+      ]
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "batDB",
+      "sourceFile": "35_bat_schema.sql",
+      "tableName": "BATCH_JOB_INSTANCE",
+      "columns": [
+        "JOB_INSTANCE_ID",
+        "VERSION",
+        "JOB_NAME",
+        "JOB_KEY"
+      ],
+      "indexes": [
+        {
+          "name": "JOB_INST_UN",
+          "unique": true,
+          "columns": [
+            "JOB_NAME",
+            "JOB_KEY"
+          ]
+        }
+      ],
+      "foreignKeys": []
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "batDB",
+      "sourceFile": "35_bat_schema.sql",
+      "tableName": "BATCH_STEP_EXECUTION",
+      "columns": [
+        "STEP_EXECUTION_ID",
+        "VERSION",
+        "STEP_NAME",
+        "JOB_EXECUTION_ID",
+        "CREATE_TIME",
+        "START_TIME",
+        "END_TIME",
+        "STATUS",
+        "COMMIT_COUNT",
+        "READ_COUNT",
+        "FILTER_COUNT",
+        "WRITE_COUNT",
+        "READ_SKIP_COUNT",
+        "WRITE_SKIP_COUNT",
+        "PROCESS_SKIP_COUNT",
+        "ROLLBACK_COUNT",
+        "EXIT_CODE",
+        "EXIT_MESSAGE",
+        "LAST_UPDATED"
+      ],
+      "indexes": [],
+      "foreignKeys": [
+        {
+          "name": "JOB_EXEC_STEP_FK",
+          "columns": [
+            "JOB_EXECUTION_ID"
+          ],
+          "referencedTable": "BATCH_JOB_EXECUTION",
+          "referencedColumns": [
+            "JOB_EXECUTION_ID"
+          ]
+        }
+      ]
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "batDB",
+      "sourceFile": "35_bat_schema.sql",
+      "tableName": "BATCH_STEP_EXECUTION_CONTEXT",
+      "columns": [
+        "STEP_EXECUTION_ID",
+        "SHORT_CONTEXT",
+        "SERIALIZED_CONTEXT"
+      ],
+      "indexes": [],
+      "foreignKeys": [
+        {
+          "name": "STEP_EXEC_CTX_FK",
+          "columns": [
+            "STEP_EXECUTION_ID"
+          ],
+          "referencedTable": "BATCH_STEP_EXECUTION",
+          "referencedColumns": [
+            "STEP_EXECUTION_ID"
           ]
         }
       ]
@@ -3316,174 +3484,6 @@
         }
       ],
       "foreignKeys": []
-    },
-    {
-      "vendor": "mariadb",
-      "logicalDatabase": "batDB",
-      "sourceFile": "35_bat_schema.sql",
-      "tableName": "BATCH_JOB_EXECUTION",
-      "columns": [
-        "JOB_EXECUTION_ID",
-        "VERSION",
-        "JOB_INSTANCE_ID",
-        "CREATE_TIME",
-        "START_TIME",
-        "END_TIME",
-        "STATUS",
-        "EXIT_CODE",
-        "EXIT_MESSAGE",
-        "LAST_UPDATED"
-      ],
-      "indexes": [],
-      "foreignKeys": [
-        {
-          "name": "JOB_INST_EXEC_FK",
-          "columns": [
-            "JOB_INSTANCE_ID"
-          ],
-          "referencedTable": "BATCH_JOB_INSTANCE",
-          "referencedColumns": [
-            "JOB_INSTANCE_ID"
-          ]
-        }
-      ]
-    },
-    {
-      "vendor": "mariadb",
-      "logicalDatabase": "batDB",
-      "sourceFile": "35_bat_schema.sql",
-      "tableName": "BATCH_JOB_EXECUTION_CONTEXT",
-      "columns": [
-        "JOB_EXECUTION_ID",
-        "SHORT_CONTEXT",
-        "SERIALIZED_CONTEXT"
-      ],
-      "indexes": [],
-      "foreignKeys": [
-        {
-          "name": "JOB_EXEC_CTX_FK",
-          "columns": [
-            "JOB_EXECUTION_ID"
-          ],
-          "referencedTable": "BATCH_JOB_EXECUTION",
-          "referencedColumns": [
-            "JOB_EXECUTION_ID"
-          ]
-        }
-      ]
-    },
-    {
-      "vendor": "mariadb",
-      "logicalDatabase": "batDB",
-      "sourceFile": "35_bat_schema.sql",
-      "tableName": "BATCH_JOB_EXECUTION_PARAMS",
-      "columns": [
-        "JOB_EXECUTION_ID",
-        "PARAMETER_NAME",
-        "PARAMETER_TYPE",
-        "PARAMETER_VALUE",
-        "IDENTIFYING"
-      ],
-      "indexes": [],
-      "foreignKeys": [
-        {
-          "name": "JOB_EXEC_PARAMS_FK",
-          "columns": [
-            "JOB_EXECUTION_ID"
-          ],
-          "referencedTable": "BATCH_JOB_EXECUTION",
-          "referencedColumns": [
-            "JOB_EXECUTION_ID"
-          ]
-        }
-      ]
-    },
-    {
-      "vendor": "mariadb",
-      "logicalDatabase": "batDB",
-      "sourceFile": "35_bat_schema.sql",
-      "tableName": "BATCH_JOB_INSTANCE",
-      "columns": [
-        "JOB_INSTANCE_ID",
-        "VERSION",
-        "JOB_NAME",
-        "JOB_KEY"
-      ],
-      "indexes": [
-        {
-          "name": "JOB_INST_UN",
-          "unique": true,
-          "columns": [
-            "JOB_NAME",
-            "JOB_KEY"
-          ]
-        }
-      ],
-      "foreignKeys": []
-    },
-    {
-      "vendor": "mariadb",
-      "logicalDatabase": "batDB",
-      "sourceFile": "35_bat_schema.sql",
-      "tableName": "BATCH_STEP_EXECUTION",
-      "columns": [
-        "STEP_EXECUTION_ID",
-        "VERSION",
-        "STEP_NAME",
-        "JOB_EXECUTION_ID",
-        "CREATE_TIME",
-        "START_TIME",
-        "END_TIME",
-        "STATUS",
-        "COMMIT_COUNT",
-        "READ_COUNT",
-        "FILTER_COUNT",
-        "WRITE_COUNT",
-        "READ_SKIP_COUNT",
-        "WRITE_SKIP_COUNT",
-        "PROCESS_SKIP_COUNT",
-        "ROLLBACK_COUNT",
-        "EXIT_CODE",
-        "EXIT_MESSAGE",
-        "LAST_UPDATED"
-      ],
-      "indexes": [],
-      "foreignKeys": [
-        {
-          "name": "JOB_EXEC_STEP_FK",
-          "columns": [
-            "JOB_EXECUTION_ID"
-          ],
-          "referencedTable": "BATCH_JOB_EXECUTION",
-          "referencedColumns": [
-            "JOB_EXECUTION_ID"
-          ]
-        }
-      ]
-    },
-    {
-      "vendor": "mariadb",
-      "logicalDatabase": "batDB",
-      "sourceFile": "35_bat_schema.sql",
-      "tableName": "BATCH_STEP_EXECUTION_CONTEXT",
-      "columns": [
-        "STEP_EXECUTION_ID",
-        "SHORT_CONTEXT",
-        "SERIALIZED_CONTEXT"
-      ],
-      "indexes": [],
-      "foreignKeys": [
-        {
-          "name": "STEP_EXEC_CTX_FK",
-          "columns": [
-            "STEP_EXECUTION_ID"
-          ],
-          "referencedTable": "BATCH_STEP_EXECUTION",
-          "referencedColumns": [
-            "STEP_EXECUTION_ID"
-          ]
-        }
-      ]
     },
     {
       "vendor": "mariadb",
@@ -5629,6 +5629,392 @@
         }
       ],
       "foreignKeys": []
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "cpfDB",
+      "sourceFile": "10_cpf_schema.sql",
+      "tableName": "cpf_gateway_apply_status",
+      "columns": [
+        "binding_id",
+        "gateway_instance_id",
+        "expected_version",
+        "applied_version",
+        "apply_status",
+        "error_code",
+        "error_message",
+        "acknowledged_at",
+        "last_seen_at"
+      ],
+      "indexes": [
+        {
+          "name": "ix_cpf_gwy_apply_status",
+          "unique": false,
+          "columns": [
+            "apply_status",
+            "last_seen_at"
+          ]
+        }
+      ],
+      "foreignKeys": [
+        {
+          "name": "fk_cpf_gwy_apply_binding",
+          "columns": [
+            "binding_id"
+          ],
+          "referencedTable": "cpf_gateway_binding",
+          "referencedColumns": [
+            "binding_id"
+          ]
+        }
+      ]
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "cpfDB",
+      "sourceFile": "10_cpf_schema.sql",
+      "tableName": "cpf_gateway_attempt",
+      "columns": [
+        "attempt_id",
+        "gateway_transaction_id",
+        "attempt_no",
+        "instance_id",
+        "target_host",
+        "target_port",
+        "target_protocol",
+        "connect_duration_ms",
+        "response_duration_ms",
+        "attempt_status",
+        "protocol_status",
+        "failure_code",
+        "failure_message",
+        "started_at",
+        "finished_at"
+      ],
+      "indexes": [
+        {
+          "name": "uk_cpf_gwy_attempt_no",
+          "unique": true,
+          "columns": [
+            "gateway_transaction_id",
+            "attempt_no"
+          ]
+        }
+      ],
+      "foreignKeys": [
+        {
+          "name": "fk_cpf_gwy_attempt_tx",
+          "columns": [
+            "gateway_transaction_id"
+          ],
+          "referencedTable": "cpf_gateway_transaction",
+          "referencedColumns": [
+            "gateway_transaction_id"
+          ]
+        }
+      ]
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "cpfDB",
+      "sourceFile": "10_cpf_schema.sql",
+      "tableName": "cpf_gateway_binding",
+      "columns": [
+        "binding_id",
+        "route_id",
+        "environment_code",
+        "host_pattern",
+        "path_pattern",
+        "http_method",
+        "api_version",
+        "ingress_protocol",
+        "target_protocol",
+        "service_id",
+        "server_group_id",
+        "route_version",
+        "tls_policy_id",
+        "authentication_policy_id",
+        "authorization_policy_id",
+        "header_policy_id",
+        "rate_limit_policy_id",
+        "health_policy_id",
+        "connect_timeout_ms",
+        "response_timeout_ms",
+        "overall_timeout_ms",
+        "max_retry_count",
+        "idempotent_yn",
+        "failover_group_id",
+        "gateway_allowed_yn",
+        "direct_allowed_yn",
+        "binding_status",
+        "approval_id",
+        "effective_from",
+        "effective_to",
+        "created_by",
+        "created_at",
+        "updated_by",
+        "updated_at",
+        "row_version"
+      ],
+      "indexes": [
+        {
+          "name": "uk_cpf_gwy_binding_key",
+          "unique": true,
+          "columns": [
+            "environment_code",
+            "host_pattern",
+            "path_pattern",
+            "http_method",
+            "api_version",
+            "route_version"
+          ]
+        },
+        {
+          "name": "ix_cpf_gwy_binding_route",
+          "unique": false,
+          "columns": [
+            "environment_code",
+            "route_id",
+            "binding_status"
+          ]
+        }
+      ],
+      "foreignKeys": [
+        {
+          "name": "fk_cpf_gwy_binding_service",
+          "columns": [
+            "service_id"
+          ],
+          "referencedTable": "cpf_service",
+          "referencedColumns": [
+            "service_id"
+          ]
+        },
+        {
+          "name": "fk_cpf_gwy_binding_group",
+          "columns": [
+            "server_group_id"
+          ],
+          "referencedTable": "cpf_gateway_server_group",
+          "referencedColumns": [
+            "server_group_id"
+          ]
+        }
+      ]
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "cpfDB",
+      "sourceFile": "10_cpf_schema.sql",
+      "tableName": "cpf_gateway_connection_test",
+      "columns": [
+        "test_id",
+        "binding_id",
+        "gateway_instance_id",
+        "instance_id",
+        "test_type",
+        "test_status",
+        "failure_stage",
+        "duration_ms",
+        "trace_id",
+        "operation_id",
+        "tested_at",
+        "tested_by"
+      ],
+      "indexes": [
+        {
+          "name": "ix_cpf_gwy_test_binding",
+          "unique": false,
+          "columns": [
+            "binding_id",
+            "tested_at"
+          ]
+        }
+      ],
+      "foreignKeys": [
+        {
+          "name": "fk_cpf_gwy_test_binding",
+          "columns": [
+            "binding_id"
+          ],
+          "referencedTable": "cpf_gateway_binding",
+          "referencedColumns": [
+            "binding_id"
+          ]
+        }
+      ]
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "cpfDB",
+      "sourceFile": "10_cpf_schema.sql",
+      "tableName": "cpf_gateway_server_group",
+      "columns": [
+        "server_group_id",
+        "group_name",
+        "environment_code",
+        "service_id",
+        "endpoint_code",
+        "target_protocol",
+        "load_balance_policy",
+        "hash_key_source",
+        "health_policy_id",
+        "failover_group_id",
+        "group_status",
+        "direct_allowed_yn",
+        "created_by",
+        "created_at",
+        "updated_by",
+        "updated_at",
+        "row_version"
+      ],
+      "indexes": [
+        {
+          "name": "ix_cpf_gwy_group_service",
+          "unique": false,
+          "columns": [
+            "environment_code",
+            "service_id",
+            "group_status"
+          ]
+        }
+      ],
+      "foreignKeys": [
+        {
+          "name": "fk_cpf_gwy_group_service",
+          "columns": [
+            "service_id"
+          ],
+          "referencedTable": "cpf_service",
+          "referencedColumns": [
+            "service_id"
+          ]
+        },
+        {
+          "name": "fk_cpf_gwy_group_endpoint",
+          "columns": [
+            "endpoint_code"
+          ],
+          "referencedTable": "cpf_service_endpoint",
+          "referencedColumns": [
+            "endpoint_code"
+          ]
+        }
+      ]
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "cpfDB",
+      "sourceFile": "10_cpf_schema.sql",
+      "tableName": "cpf_gateway_server_group_member",
+      "columns": [
+        "server_group_id",
+        "instance_id",
+        "weight",
+        "priority_no",
+        "enabled_yn",
+        "effective_status",
+        "fencing_token",
+        "created_by",
+        "created_at",
+        "updated_by",
+        "updated_at"
+      ],
+      "indexes": [
+        {
+          "name": "ix_cpf_gwy_member_status",
+          "unique": false,
+          "columns": [
+            "server_group_id",
+            "enabled_yn",
+            "effective_status",
+            "priority_no"
+          ]
+        }
+      ],
+      "foreignKeys": [
+        {
+          "name": "fk_cpf_gwy_member_group",
+          "columns": [
+            "server_group_id"
+          ],
+          "referencedTable": "cpf_gateway_server_group",
+          "referencedColumns": [
+            "server_group_id"
+          ]
+        },
+        {
+          "name": "fk_cpf_gwy_member_instance",
+          "columns": [
+            "instance_id"
+          ],
+          "referencedTable": "cpf_service_instance",
+          "referencedColumns": [
+            "instance_id"
+          ]
+        }
+      ]
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "cpfDB",
+      "sourceFile": "10_cpf_schema.sql",
+      "tableName": "cpf_gateway_transaction",
+      "columns": [
+        "gateway_transaction_id",
+        "transaction_id",
+        "trace_id",
+        "channel_id",
+        "source_ip",
+        "source_port",
+        "gateway_instance_id",
+        "binding_id",
+        "route_id",
+        "route_version",
+        "server_group_id",
+        "final_instance_id",
+        "result_status",
+        "protocol_status",
+        "business_code",
+        "failure_stage",
+        "unknown_yn",
+        "total_duration_ms",
+        "request_size",
+        "response_size",
+        "created_at"
+      ],
+      "indexes": [
+        {
+          "name": "ix_cpf_gwy_tx_trace",
+          "unique": false,
+          "columns": [
+            "transaction_id",
+            "trace_id",
+            "created_at"
+          ]
+        },
+        {
+          "name": "ix_cpf_gwy_tx_route",
+          "unique": false,
+          "columns": [
+            "route_id",
+            "result_status",
+            "created_at"
+          ]
+        }
+      ],
+      "foreignKeys": [
+        {
+          "name": "fk_cpf_gwy_tx_binding",
+          "columns": [
+            "binding_id"
+          ],
+          "referencedTable": "cpf_gateway_binding",
+          "referencedColumns": [
+            "binding_id"
+          ]
+        }
+      ]
     },
     {
       "vendor": "mariadb",
@@ -8158,6 +8544,868 @@
         }
       ],
       "foreignKeys": []
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "cpfDB",
+      "sourceFile": "10_cpf_schema.sql",
+      "tableName": "cpf_runtime_policy_event",
+      "columns": [
+        "event_id",
+        "event_type",
+        "aggregate_type",
+        "aggregate_id",
+        "aggregate_version",
+        "action_code",
+        "payload_checksum",
+        "metadata_text",
+        "reason",
+        "requested_by",
+        "occurred_at",
+        "event_status",
+        "created_at"
+      ],
+      "indexes": [
+        {
+          "name": "ix_cpf_runtime_policy_event_pending",
+          "unique": false,
+          "columns": [
+            "event_status",
+            "event_type",
+            "occurred_at",
+            "event_id"
+          ]
+        },
+        {
+          "name": "ix_cpf_runtime_policy_event_aggregate",
+          "unique": false,
+          "columns": [
+            "aggregate_type",
+            "aggregate_id",
+            "aggregate_version"
+          ]
+        }
+      ],
+      "foreignKeys": []
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "cpfDB",
+      "sourceFile": "10_cpf_schema.sql",
+      "tableName": "cpf_runtime_policy_delivery",
+      "columns": [
+        "event_id",
+        "consumer_id",
+        "delivery_status",
+        "attempt_count",
+        "fencing_token",
+        "leased_until",
+        "error_code",
+        "error_message",
+        "acknowledged_at",
+        "created_at",
+        "updated_at"
+      ],
+      "indexes": [
+        {
+          "name": "ix_cpf_runtime_policy_delivery_status",
+          "unique": false,
+          "columns": [
+            "consumer_id",
+            "delivery_status",
+            "leased_until",
+            "updated_at"
+          ]
+        }
+      ],
+      "foreignKeys": [
+        {
+          "name": "fk_cpf_runtime_policy_delivery_event",
+          "columns": [
+            "event_id"
+          ],
+          "onDelete": "CASCADE",
+          "referencedTable": "cpf_runtime_policy_event",
+          "referencedColumns": [
+            "event_id"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "bat_job_definition_version",
+      "columns": [
+        {
+          "name": "job_id",
+          "type": "VARCHAR(80)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "배치 Job ID"
+        },
+        {
+          "name": "definition_version",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "불변 Definition Version"
+        },
+        {
+          "name": "job_name",
+          "type": "VARCHAR(200)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "배치 Job 이름"
+        },
+        {
+          "name": "executor_type",
+          "type": "VARCHAR(40)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Executor 유형"
+        },
+        {
+          "name": "definition_state",
+          "type": "VARCHAR(20)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Definition 상태"
+        },
+        {
+          "name": "owner_domain",
+          "type": "VARCHAR(80)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "소유 업무영역"
+        },
+        {
+          "name": "description",
+          "type": "VARCHAR(1000)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "설명"
+        },
+        {
+          "name": "trigger_type",
+          "type": "VARCHAR(30)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Trigger 유형"
+        },
+        {
+          "name": "trigger_expression",
+          "type": "VARCHAR(500)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Trigger 조건"
+        },
+        {
+          "name": "timezone_id",
+          "type": "VARCHAR(60)",
+          "nullable": false,
+          "default": "'Asia/Seoul'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Timezone"
+        },
+        {
+          "name": "misfire_policy",
+          "type": "VARCHAR(30)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Misfire 정책"
+        },
+        {
+          "name": "agent_pool",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Agent Pool"
+        },
+        {
+          "name": "zone_id",
+          "type": "VARCHAR(80)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "실행 Zone"
+        },
+        {
+          "name": "max_concurrency",
+          "type": "INT",
+          "nullable": false,
+          "default": "1",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "최대 동시 실행"
+        },
+        {
+          "name": "timeout_seconds",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "3600",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Timeout 초"
+        },
+        {
+          "name": "restartable_yn",
+          "type": "CHAR(1)",
+          "nullable": false,
+          "default": "'Y'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "재시작 가능 여부"
+        },
+        {
+          "name": "max_attempts",
+          "type": "INT",
+          "nullable": false,
+          "default": "1",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "최대 시도"
+        },
+        {
+          "name": "initial_backoff_seconds",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "0",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "초기 Backoff"
+        },
+        {
+          "name": "backoff_multiplier",
+          "type": "DECIMAL(10,4)",
+          "nullable": false,
+          "default": "1",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Backoff 배수"
+        },
+        {
+          "name": "max_backoff_seconds",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "0",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "최대 Backoff"
+        },
+        {
+          "name": "skip_limit",
+          "type": "INT",
+          "nullable": false,
+          "default": "0",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Skip 허용"
+        },
+        {
+          "name": "unknown_result_policy",
+          "type": "VARCHAR(30)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "결과 불명 처리 정책"
+        },
+        {
+          "name": "compensation_reference",
+          "type": "VARCHAR(200)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "보상 처리 참조"
+        },
+        {
+          "name": "alert_delay_seconds",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "0",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "지연 알림"
+        },
+        {
+          "name": "sla_seconds",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "0",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "SLA"
+        },
+        {
+          "name": "notify_failure_yn",
+          "type": "CHAR(1)",
+          "nullable": false,
+          "default": "'Y'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "실패 알림"
+        },
+        {
+          "name": "notify_missed_yn",
+          "type": "CHAR(1)",
+          "nullable": false,
+          "default": "'Y'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "미실행 알림"
+        },
+        {
+          "name": "executor_reference",
+          "type": "VARCHAR(300)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Executor 참조"
+        },
+        {
+          "name": "definition_json",
+          "type": "TEXT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Definition JSON"
+        },
+        {
+          "name": "checksum",
+          "type": "VARCHAR(128)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Checksum"
+        },
+        {
+          "name": "effective_from",
+          "type": "DATETIME",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "시행 시작"
+        },
+        {
+          "name": "effective_until",
+          "type": "DATETIME",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "시행 종료"
+        },
+        {
+          "name": "row_version",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "1",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "낙관적 잠금"
+        },
+        {
+          "name": "created_by",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "등록자"
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "등록일시"
+        },
+        {
+          "name": "updated_by",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "수정자"
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "수정일시"
+        }
+      ],
+      "primaryKey": [
+        "job_id",
+        "definition_version"
+      ],
+      "uniqueKeys": [],
+      "indexes": [
+        {
+          "name": "idx_bat_job_def_state",
+          "columns": [
+            "definition_state",
+            "updated_at"
+          ]
+        },
+        {
+          "name": "idx_bat_job_def_owner",
+          "columns": [
+            "owner_domain",
+            "job_id"
+          ]
+        }
+      ],
+      "foreignKeys": [],
+      "checks": [
+        {
+          "name": "ck_bat_job_def_state",
+          "expression": "definition_state IN ('DRAFT','VALIDATED','APPROVAL','PUBLISHED','RETIRED')"
+        }
+      ],
+      "comment": "BAT Versioned Job Definition 정본",
+      "module": "bat",
+      "logicalDatabase": "batDB"
+    },
+    {
+      "name": "bat_job_parameter_definition",
+      "columns": [
+        {
+          "name": "job_id",
+          "type": "VARCHAR(80)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Job ID"
+        },
+        {
+          "name": "definition_version",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Definition Version"
+        },
+        {
+          "name": "parameter_name",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Parameter 이름"
+        },
+        {
+          "name": "parameter_type",
+          "type": "VARCHAR(40)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Parameter 유형"
+        },
+        {
+          "name": "label_text",
+          "type": "VARCHAR(200)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "UI Label"
+        },
+        {
+          "name": "description_text",
+          "type": "VARCHAR(1000)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "설명"
+        },
+        {
+          "name": "required_yn",
+          "type": "CHAR(1)",
+          "nullable": false,
+          "default": "'N'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "필수 여부"
+        },
+        {
+          "name": "sensitive_yn",
+          "type": "CHAR(1)",
+          "nullable": false,
+          "default": "'N'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "민감정보 여부"
+        },
+        {
+          "name": "default_value",
+          "type": "VARCHAR(1000)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "기본값"
+        },
+        {
+          "name": "allowed_values",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "허용값"
+        },
+        {
+          "name": "validation_pattern",
+          "type": "VARCHAR(1000)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "검증 Pattern"
+        },
+        {
+          "name": "min_value",
+          "type": "DECIMAL(38,10)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "최솟값"
+        },
+        {
+          "name": "max_value",
+          "type": "DECIMAL(38,10)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "최댓값"
+        },
+        {
+          "name": "min_length",
+          "type": "INT",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "최소 길이"
+        },
+        {
+          "name": "max_length",
+          "type": "INT",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "최대 길이"
+        },
+        {
+          "name": "reference_type",
+          "type": "VARCHAR(80)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "참조 유형"
+        },
+        {
+          "name": "alias_required_yn",
+          "type": "CHAR(1)",
+          "nullable": false,
+          "default": "'N'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Alias 강제"
+        },
+        {
+          "name": "runtime_override_allowed_yn",
+          "type": "CHAR(1)",
+          "nullable": false,
+          "default": "'N'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "실행 Override"
+        },
+        {
+          "name": "sort_order",
+          "type": "INT",
+          "nullable": false,
+          "default": "0",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "정렬"
+        }
+      ],
+      "primaryKey": [
+        "job_id",
+        "definition_version",
+        "parameter_name"
+      ],
+      "uniqueKeys": [],
+      "indexes": [],
+      "foreignKeys": [
+        {
+          "name": "fk_bat_job_param_def",
+          "columns": [
+            "job_id",
+            "definition_version"
+          ],
+          "referencedTable": "bat_job_definition_version",
+          "referencedColumns": [
+            "job_id",
+            "definition_version"
+          ],
+          "onDelete": "CASCADE"
+        }
+      ],
+      "checks": [],
+      "comment": "BAT Typed Parameter Schema",
+      "module": "bat",
+      "logicalDatabase": "batDB"
+    },
+    {
+      "name": "bat_job_dependency",
+      "columns": [
+        {
+          "name": "job_id",
+          "type": "VARCHAR(80)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Job ID"
+        },
+        {
+          "name": "definition_version",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Definition Version"
+        },
+        {
+          "name": "related_job_id",
+          "type": "VARCHAR(80)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "선행 Job"
+        },
+        {
+          "name": "condition_code",
+          "type": "VARCHAR(40)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "의존 조건"
+        },
+        {
+          "name": "timeout_seconds",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "0",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "대기 Timeout"
+        },
+        {
+          "name": "required_yn",
+          "type": "CHAR(1)",
+          "nullable": false,
+          "default": "'Y'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "필수 여부"
+        },
+        {
+          "name": "sort_order",
+          "type": "INT",
+          "nullable": false,
+          "default": "0",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "정렬"
+        }
+      ],
+      "primaryKey": [
+        "job_id",
+        "definition_version",
+        "related_job_id"
+      ],
+      "uniqueKeys": [],
+      "indexes": [],
+      "foreignKeys": [
+        {
+          "name": "fk_bat_job_dep_def",
+          "columns": [
+            "job_id",
+            "definition_version"
+          ],
+          "referencedTable": "bat_job_definition_version",
+          "referencedColumns": [
+            "job_id",
+            "definition_version"
+          ],
+          "onDelete": "CASCADE"
+        }
+      ],
+      "checks": [
+        {
+          "name": "ck_bat_job_dep_self",
+          "expression": "job_id <> related_job_id"
+        }
+      ],
+      "comment": "BAT Versioned Job Dependency",
+      "module": "bat",
+      "logicalDatabase": "batDB"
+    },
+    {
+      "name": "bat_job_definition_audit",
+      "columns": [
+        {
+          "name": "audit_id",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "감사 ID"
+        },
+        {
+          "name": "job_id",
+          "type": "VARCHAR(80)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Job ID"
+        },
+        {
+          "name": "definition_version",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Definition Version"
+        },
+        {
+          "name": "action_code",
+          "type": "VARCHAR(40)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "행위"
+        },
+        {
+          "name": "from_state",
+          "type": "VARCHAR(20)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "이전 상태"
+        },
+        {
+          "name": "to_state",
+          "type": "VARCHAR(20)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "다음 상태"
+        },
+        {
+          "name": "reason",
+          "type": "VARCHAR(1000)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "사유"
+        },
+        {
+          "name": "operator_id",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "운영자"
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "발생시각"
+        }
+      ],
+      "primaryKey": [
+        "audit_id"
+      ],
+      "uniqueKeys": [],
+      "indexes": [
+        {
+          "name": "idx_bat_job_def_audit",
+          "columns": [
+            "job_id",
+            "definition_version",
+            "created_at"
+          ]
+        }
+      ],
+      "foreignKeys": [],
+      "checks": [],
+      "comment": "BAT Job Definition 승인·상태 감사",
+      "module": "bat",
+      "logicalDatabase": "batDB"
     }
   ]
 }

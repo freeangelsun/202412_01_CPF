@@ -22,7 +22,10 @@
     "physicalTableContract",
     "minimalTransactionContract",
     "idempotencyLedgerContract",
-    "runtimeAgent"
+    "runtimeAgent",
+    "serviceRegistration",
+    "parameterSchemas",
+    "gatewayBindingDefaults"
   ],
   "allOf": [
     {
@@ -433,6 +436,145 @@
           }
         },
         "failClosed": {
+          "const": true
+        }
+      }
+    },
+    "serviceRegistration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "candidate",
+        "serviceId",
+        "ownerModule",
+        "environmentBinding",
+        "directAllowedByDefault",
+        "gatewayAllowedByDefault",
+        "endpoints"
+      ],
+      "properties": {
+        "candidate": {
+          "const": true
+        },
+        "serviceId": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]{1,49}$"
+        },
+        "ownerModule": {
+          "type": "string",
+          "pattern": "^cpf-[a-z][a-z0-9-]{1,49}$"
+        },
+        "environmentBinding": {
+          "const": "runtime-profile"
+        },
+        "directAllowedByDefault": {
+          "type": "boolean"
+        },
+        "gatewayAllowedByDefault": {
+          "const": false
+        },
+        "endpoints": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "enabled",
+              "endpointCode",
+              "protocol",
+              "basePath",
+              "healthMethod",
+              "healthPath",
+              "contractVersion"
+            ],
+            "properties": {
+              "enabled": {
+                "type": "boolean"
+              },
+              "endpointCode": {
+                "type": "string",
+                "pattern": "^[A-Z][A-Z0-9_]{2,79}$"
+              },
+              "protocol": {
+                "enum": [
+                  "HTTP",
+                  "HTTPS",
+                  "GRPC",
+                  "WEBSOCKET",
+                  "SSE"
+                ]
+              },
+              "basePath": {
+                "type": "string",
+                "pattern": "^/.*"
+              },
+              "healthMethod": {
+                "enum": [
+                  "HTTP",
+                  "HTTPS",
+                  "GRPC",
+                  "TCP"
+                ]
+              },
+              "healthPath": {
+                "type": "string",
+                "pattern": "^/.*"
+              },
+              "contractVersion": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 40
+              }
+            }
+          }
+        }
+      }
+    },
+    "parameterSchemas": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract",
+        "schemaVersion",
+        "runtimeOverrideDefault",
+        "secretReferenceOnly"
+      ],
+      "properties": {
+        "contract": {
+          "const": "com.cpf.core.api.parameter.CpfParameterSchema"
+        },
+        "schemaVersion": {
+          "const": "1.0"
+        },
+        "runtimeOverrideDefault": {
+          "const": false
+        },
+        "secretReferenceOnly": {
+          "const": true
+        }
+      }
+    },
+    "gatewayBindingDefaults": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "externalExposure",
+        "approvalRequired",
+        "connectionTestRequired",
+        "healthValidationRequired"
+      ],
+      "properties": {
+        "externalExposure": {
+          "const": "DENY"
+        },
+        "approvalRequired": {
+          "const": true
+        },
+        "connectionTestRequired": {
+          "const": true
+        },
+        "healthValidationRequired": {
           "const": true
         }
       }

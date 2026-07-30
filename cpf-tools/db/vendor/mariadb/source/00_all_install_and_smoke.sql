@@ -289,6 +289,179 @@ CREATE TABLE IF NOT EXISTS cpf_file_transfer_history (
     INDEX ix_cpf_file_transfer_status (transfer_status, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 파일 전송 이력';
 
+CREATE TABLE IF NOT EXISTS cpf_gateway_apply_status (
+    binding_id VARCHAR(100) NOT NULL COMMENT 'Binding ID',
+    gateway_instance_id VARCHAR(100) NOT NULL COMMENT 'Gateway Instance ID',
+    expected_version VARCHAR(100) NOT NULL COMMENT '기대 Version',
+    applied_version VARCHAR(100) NOT NULL DEFAULT '' COMMENT '적용 Version',
+    apply_status VARCHAR(30) NOT NULL COMMENT '적용 상태',
+    error_code VARCHAR(100) NOT NULL DEFAULT '' COMMENT '오류 코드',
+    error_message VARCHAR(1000) NOT NULL DEFAULT '' COMMENT '오류 메시지',
+    acknowledged_at DATETIME NULL COMMENT 'ACK 시각',
+    last_seen_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '마지막 상태 시각',
+    CONSTRAINT pk_cpf_gateway_apply_status PRIMARY KEY (binding_id, gateway_instance_id),
+    CONSTRAINT fk_cpf_gwy_apply_binding FOREIGN KEY (binding_id) REFERENCES cpf_gateway_binding (binding_id) ON DELETE CASCADE,
+    INDEX ix_cpf_gwy_apply_status (apply_status, last_seen_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Gateway Instance별 적용 ACK/Drift';
+
+CREATE TABLE IF NOT EXISTS cpf_gateway_attempt (
+    attempt_id VARCHAR(100) NOT NULL COMMENT 'Attempt ID',
+    gateway_transaction_id VARCHAR(100) NOT NULL COMMENT 'Gateway 거래 ID',
+    attempt_no INT NOT NULL COMMENT 'Attempt 순번',
+    instance_id VARCHAR(100) NOT NULL COMMENT 'Target Instance',
+    target_host VARCHAR(300) NOT NULL DEFAULT '' COMMENT 'Target Host',
+    target_port INT NULL COMMENT 'Target Port',
+    target_protocol VARCHAR(30) NOT NULL COMMENT 'Target Protocol',
+    connect_duration_ms BIGINT NOT NULL DEFAULT 0 COMMENT 'Connect 시간',
+    response_duration_ms BIGINT NOT NULL DEFAULT 0 COMMENT 'Response 시간',
+    attempt_status VARCHAR(30) NOT NULL COMMENT 'Attempt 상태',
+    protocol_status VARCHAR(30) NOT NULL DEFAULT '' COMMENT 'Protocol 상태',
+    failure_code VARCHAR(100) NOT NULL DEFAULT '' COMMENT '실패 코드',
+    failure_message VARCHAR(1000) NOT NULL DEFAULT '' COMMENT '실패 메시지',
+    started_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '시작 시각',
+    finished_at DATETIME NULL COMMENT '종료 시각',
+    CONSTRAINT pk_cpf_gateway_attempt PRIMARY KEY (attempt_id),
+    CONSTRAINT uk_cpf_gwy_attempt_no UNIQUE (gateway_transaction_id, attempt_no),
+    CONSTRAINT fk_cpf_gwy_attempt_tx FOREIGN KEY (gateway_transaction_id) REFERENCES cpf_gateway_transaction (gateway_transaction_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Gateway Retry/Failover Attempt 원장';
+
+CREATE TABLE IF NOT EXISTS cpf_gateway_binding (
+    binding_id VARCHAR(100) NOT NULL COMMENT 'Binding ID',
+    route_id VARCHAR(100) NOT NULL COMMENT 'Route ID',
+    environment_code VARCHAR(50) NOT NULL COMMENT '환경 코드',
+    host_pattern VARCHAR(300) NOT NULL COMMENT 'Host Pattern',
+    path_pattern VARCHAR(500) NOT NULL COMMENT 'Path Pattern',
+    http_method VARCHAR(20) NOT NULL DEFAULT '*' COMMENT 'HTTP Method',
+    api_version VARCHAR(50) NOT NULL COMMENT 'API Version',
+    ingress_protocol VARCHAR(30) NOT NULL COMMENT 'Ingress Protocol',
+    target_protocol VARCHAR(30) NOT NULL COMMENT 'Target Protocol',
+    service_id VARCHAR(100) NOT NULL COMMENT '서비스 ID',
+    server_group_id VARCHAR(100) NOT NULL COMMENT '서버 그룹 ID',
+    route_version VARCHAR(100) NOT NULL COMMENT 'Route Version',
+    tls_policy_id VARCHAR(100) NOT NULL DEFAULT '' COMMENT 'TLS 정책',
+    authentication_policy_id VARCHAR(100) NOT NULL DEFAULT '' COMMENT '인증 정책',
+    authorization_policy_id VARCHAR(100) NOT NULL DEFAULT '' COMMENT '권한 정책',
+    header_policy_id VARCHAR(100) NOT NULL DEFAULT '' COMMENT 'Header 정책',
+    rate_limit_policy_id VARCHAR(100) NOT NULL DEFAULT '' COMMENT 'Rate Limit 정책',
+    health_policy_id VARCHAR(100) NOT NULL DEFAULT '' COMMENT 'Health 정책',
+    connect_timeout_ms INT NOT NULL COMMENT 'Connect Timeout',
+    response_timeout_ms INT NOT NULL COMMENT 'Response Timeout',
+    overall_timeout_ms INT NOT NULL COMMENT 'Overall Timeout',
+    max_retry_count INT NOT NULL DEFAULT 0 COMMENT '최대 재시도',
+    idempotent_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '멱등 여부',
+    failover_group_id VARCHAR(100) NOT NULL DEFAULT '' COMMENT 'Failover 그룹',
+    gateway_allowed_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT 'Gateway 공개 허용',
+    direct_allowed_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '직접 호출 허용',
+    binding_status VARCHAR(30) NOT NULL DEFAULT 'DRAFT' COMMENT 'Binding 상태',
+    approval_id VARCHAR(100) NOT NULL DEFAULT '' COMMENT '승인 ID',
+    effective_from DATETIME NULL COMMENT '시행 시작',
+    effective_to DATETIME NULL COMMENT '시행 종료',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    row_version BIGINT NOT NULL DEFAULT 1 COMMENT '낙관적 잠금 버전',
+    CONSTRAINT pk_cpf_gateway_binding PRIMARY KEY (binding_id),
+    CONSTRAINT uk_cpf_gwy_binding_key UNIQUE (environment_code, host_pattern, path_pattern, http_method, api_version, route_version),
+    CONSTRAINT ck_cpf_gwy_binding_gateway CHECK (gateway_allowed_yn IN ('Y','N')),
+    CONSTRAINT ck_cpf_gwy_binding_direct CHECK (direct_allowed_yn IN ('Y','N')),
+    CONSTRAINT ck_cpf_gwy_binding_idempotent CHECK (idempotent_yn IN ('Y','N')),
+    CONSTRAINT fk_cpf_gwy_binding_service FOREIGN KEY (service_id) REFERENCES cpf_service (service_id),
+    CONSTRAINT fk_cpf_gwy_binding_group FOREIGN KEY (server_group_id) REFERENCES cpf_gateway_server_group (server_group_id),
+    INDEX ix_cpf_gwy_binding_route (environment_code, route_id, binding_status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Gateway Versioned Binding';
+
+CREATE TABLE IF NOT EXISTS cpf_gateway_connection_test (
+    test_id VARCHAR(100) NOT NULL COMMENT '시험 ID',
+    binding_id VARCHAR(100) NOT NULL COMMENT 'Binding ID',
+    gateway_instance_id VARCHAR(100) NOT NULL DEFAULT '' COMMENT 'Gateway Instance ID',
+    instance_id VARCHAR(100) NOT NULL DEFAULT '' COMMENT 'Target Instance ID',
+    test_type VARCHAR(50) NOT NULL COMMENT '시험 유형',
+    test_status VARCHAR(30) NOT NULL COMMENT '시험 상태',
+    failure_stage VARCHAR(50) NOT NULL DEFAULT '' COMMENT '실패 단계',
+    duration_ms BIGINT NOT NULL DEFAULT 0 COMMENT '소요시간',
+    trace_id VARCHAR(100) NOT NULL DEFAULT '' COMMENT 'Trace ID',
+    operation_id VARCHAR(100) NOT NULL DEFAULT '' COMMENT 'Operation ID',
+    tested_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '시험 시각',
+    tested_by VARCHAR(100) NOT NULL COMMENT '시험자',
+    CONSTRAINT pk_cpf_gateway_connection_test PRIMARY KEY (test_id),
+    CONSTRAINT fk_cpf_gwy_test_binding FOREIGN KEY (binding_id) REFERENCES cpf_gateway_binding (binding_id) ON DELETE CASCADE,
+    INDEX ix_cpf_gwy_test_binding (binding_id, tested_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Gateway 직접/E2E 연결시험 결과';
+
+CREATE TABLE IF NOT EXISTS cpf_gateway_server_group (
+    server_group_id VARCHAR(100) NOT NULL COMMENT '서버 그룹 ID',
+    group_name VARCHAR(200) NOT NULL COMMENT '서버 그룹명',
+    environment_code VARCHAR(50) NOT NULL COMMENT '환경 코드',
+    service_id VARCHAR(100) NOT NULL COMMENT '서비스 ID',
+    endpoint_code VARCHAR(100) NOT NULL COMMENT 'Endpoint 코드',
+    target_protocol VARCHAR(30) NOT NULL COMMENT 'Target Protocol',
+    load_balance_policy VARCHAR(50) NOT NULL COMMENT 'Load Balance 정책',
+    hash_key_source VARCHAR(200) NOT NULL DEFAULT '' COMMENT 'Hash Key Source',
+    health_policy_id VARCHAR(100) NOT NULL DEFAULT '' COMMENT 'Health 정책 ID',
+    failover_group_id VARCHAR(100) NOT NULL DEFAULT '' COMMENT 'Failover 그룹 ID',
+    group_status VARCHAR(30) NOT NULL DEFAULT 'DRAFT' COMMENT '그룹 상태',
+    direct_allowed_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '직접 호출 허용 여부',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    row_version BIGINT NOT NULL DEFAULT 1 COMMENT '낙관적 잠금 버전',
+    CONSTRAINT pk_cpf_gateway_server_group PRIMARY KEY (server_group_id),
+    CONSTRAINT ck_cpf_gwy_group_direct CHECK (direct_allowed_yn IN ('Y','N')),
+    CONSTRAINT fk_cpf_gwy_group_service FOREIGN KEY (service_id) REFERENCES cpf_service (service_id),
+    CONSTRAINT fk_cpf_gwy_group_endpoint FOREIGN KEY (endpoint_code) REFERENCES cpf_service_endpoint (endpoint_code),
+    INDEX ix_cpf_gwy_group_service (environment_code, service_id, group_status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Gateway Server Group';
+
+CREATE TABLE IF NOT EXISTS cpf_gateway_server_group_member (
+    server_group_id VARCHAR(100) NOT NULL COMMENT '서버 그룹 ID',
+    instance_id VARCHAR(100) NOT NULL COMMENT 'Instance ID',
+    weight INT NOT NULL DEFAULT 1 COMMENT '가중치',
+    priority_no INT NOT NULL DEFAULT 0 COMMENT '우선순위',
+    enabled_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    effective_status VARCHAR(30) NOT NULL DEFAULT 'UNKNOWN' COMMENT '합성 Health 상태',
+    fencing_token BIGINT NOT NULL DEFAULT 0 COMMENT 'Fencing Token',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_cpf_gateway_server_group_member PRIMARY KEY (server_group_id, instance_id),
+    CONSTRAINT ck_cpf_gwy_member_enabled CHECK (enabled_yn IN ('Y','N')),
+    CONSTRAINT fk_cpf_gwy_member_group FOREIGN KEY (server_group_id) REFERENCES cpf_gateway_server_group (server_group_id) ON DELETE CASCADE,
+    CONSTRAINT fk_cpf_gwy_member_instance FOREIGN KEY (instance_id) REFERENCES cpf_service_instance (instance_id),
+    INDEX ix_cpf_gwy_member_status (server_group_id, enabled_yn, effective_status, priority_no)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Gateway Server Group Member';
+
+CREATE TABLE IF NOT EXISTS cpf_gateway_transaction (
+    gateway_transaction_id VARCHAR(100) NOT NULL COMMENT 'Gateway 거래 ID',
+    transaction_id VARCHAR(100) NOT NULL COMMENT 'CPF 거래 ID',
+    trace_id VARCHAR(100) NOT NULL COMMENT 'Trace ID',
+    channel_id VARCHAR(100) NOT NULL DEFAULT '' COMMENT 'Channel ID',
+    source_ip VARCHAR(100) NOT NULL DEFAULT '' COMMENT 'Source IP',
+    source_port INT NULL COMMENT 'Source Port',
+    gateway_instance_id VARCHAR(100) NOT NULL COMMENT 'Gateway Instance',
+    binding_id VARCHAR(100) NOT NULL COMMENT 'Binding ID',
+    route_id VARCHAR(100) NOT NULL COMMENT 'Route ID',
+    route_version VARCHAR(100) NOT NULL COMMENT 'Route Version',
+    server_group_id VARCHAR(100) NOT NULL COMMENT 'Server Group',
+    final_instance_id VARCHAR(100) NOT NULL DEFAULT '' COMMENT '최종 Instance',
+    result_status VARCHAR(30) NOT NULL COMMENT '최종 상태',
+    protocol_status VARCHAR(30) NOT NULL DEFAULT '' COMMENT 'Protocol 상태',
+    business_code VARCHAR(100) NOT NULL DEFAULT '' COMMENT '업무 코드',
+    failure_stage VARCHAR(50) NOT NULL DEFAULT '' COMMENT '실패 단계',
+    unknown_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '결과 불명 여부',
+    total_duration_ms BIGINT NOT NULL DEFAULT 0 COMMENT '전체 소요시간',
+    request_size BIGINT NOT NULL DEFAULT 0 COMMENT '요청 크기',
+    response_size BIGINT NOT NULL DEFAULT 0 COMMENT '응답 크기',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '생성 시각',
+    CONSTRAINT pk_cpf_gateway_transaction PRIMARY KEY (gateway_transaction_id),
+    CONSTRAINT ck_cpf_gwy_tx_unknown CHECK (unknown_yn IN ('Y','N')),
+    CONSTRAINT fk_cpf_gwy_tx_binding FOREIGN KEY (binding_id) REFERENCES cpf_gateway_binding (binding_id),
+    INDEX ix_cpf_gwy_tx_trace (transaction_id, trace_id, created_at),
+    INDEX ix_cpf_gwy_tx_route (route_id, result_status, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Gateway IN/GATEWAY/OUT/RESULT 거래 원장';
+
 CREATE TABLE IF NOT EXISTS cpf_idempotency_record (
     idempotency_seq BIGINT NOT NULL AUTO_INCREMENT COMMENT '중복 처리 내부 순번',
     scope VARCHAR(40) NOT NULL COMMENT '중복 처리 적용 범위',
@@ -675,6 +848,46 @@ CREATE TABLE IF NOT EXISTS cpf_runtime_instance_state (
     INDEX ix_cpf_runtime_instance_lease (lease_until),
     INDEX ix_cpf_runtime_instance_drift (drift_state, heartbeat_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Runtime desired/actual/lease/fencing 상태';
+
+CREATE TABLE IF NOT EXISTS cpf_runtime_policy_delivery (
+    event_id VARCHAR(64) NOT NULL COMMENT '정책 이벤트 ID',
+    consumer_id VARCHAR(100) NOT NULL COMMENT 'Runtime Instance ID',
+    delivery_status VARCHAR(30) NOT NULL DEFAULT 'PENDING' COMMENT '전달 상태',
+    attempt_count INT NOT NULL DEFAULT 0 COMMENT '전달 시도 횟수',
+    fencing_token BIGINT NOT NULL DEFAULT 0 COMMENT 'Claim Fencing Token',
+    leased_until DATETIME(3) NULL COMMENT 'Claim 만료시각',
+    error_code VARCHAR(100) NULL COMMENT '적용 오류 코드',
+    error_message VARCHAR(1000) NULL COMMENT '민감정보 제거 오류 메시지',
+    acknowledged_at DATETIME(3) NULL COMMENT 'ACK 시각',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
+    CONSTRAINT pk_cpf_runtime_policy_delivery PRIMARY KEY (event_id, consumer_id),
+    CONSTRAINT ck_cpf_runtime_policy_delivery_status CHECK (delivery_status IN ('PENDING', 'CLAIMED', 'APPLIED', 'FAILED', 'IGNORED')),
+    CONSTRAINT ck_cpf_runtime_policy_delivery_attempt CHECK (attempt_count >= 0),
+    CONSTRAINT ck_cpf_runtime_policy_delivery_fencing CHECK (fencing_token >= 0),
+    CONSTRAINT fk_cpf_runtime_policy_delivery_event FOREIGN KEY (event_id) REFERENCES cpf_runtime_policy_event (event_id) ON DELETE CASCADE,
+    INDEX ix_cpf_runtime_policy_delivery_status (consumer_id, delivery_status, leased_until, updated_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Runtime Policy Consumer Delivery ACK';
+
+CREATE TABLE IF NOT EXISTS cpf_runtime_policy_event (
+    event_id VARCHAR(64) NOT NULL COMMENT '내구성 정책 이벤트 ID',
+    event_type VARCHAR(50) NOT NULL COMMENT '정책 이벤트 유형',
+    aggregate_type VARCHAR(80) NOT NULL COMMENT '정책 대상 유형',
+    aggregate_id VARCHAR(200) NOT NULL COMMENT '정책 대상 ID',
+    aggregate_version BIGINT NOT NULL COMMENT '정책 버전',
+    action_code VARCHAR(50) NOT NULL COMMENT '정책 조치 코드',
+    payload_checksum VARCHAR(128) NULL COMMENT '정책 Snapshot Checksum',
+    metadata_text TEXT NULL COMMENT '민감정보를 제외한 전달 Metadata',
+    reason VARCHAR(1000) NOT NULL COMMENT '운영 변경 사유',
+    requested_by VARCHAR(100) NOT NULL COMMENT '요청 운영자',
+    occurred_at DATETIME(3) NOT NULL COMMENT '정책 변경 시각',
+    event_status VARCHAR(30) NOT NULL DEFAULT 'PENDING' COMMENT '이벤트 상태',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
+    CONSTRAINT pk_cpf_runtime_policy_event PRIMARY KEY (event_id),
+    CONSTRAINT ck_cpf_runtime_policy_event_status CHECK (event_status IN ('PENDING', 'RETIRED')),
+    INDEX ix_cpf_runtime_policy_event_pending (event_status, event_type, occurred_at, event_id),
+    INDEX ix_cpf_runtime_policy_event_aggregate (aggregate_type, aggregate_id, aggregate_version)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Runtime Policy Durable Event';
 
 CREATE TABLE IF NOT EXISTS cpf_runtime_rate_bucket (
     bucket_key VARCHAR(180) NOT NULL COMMENT 'Rate bucket identifier',
@@ -1991,6 +2204,79 @@ CREATE TABLE IF NOT EXISTS adm_role_menu (
 
 -- CPF_LOGICAL_DATABASE=batDB
 USE batDB;
+CREATE TABLE IF NOT EXISTS BATCH_JOB_EXECUTION (
+    JOB_EXECUTION_ID BIGINT NOT NULL COMMENT 'Spring Batch JobExecution 순번',
+    VERSION BIGINT NULL COMMENT '낙관적 잠금 버전',
+    JOB_INSTANCE_ID BIGINT NOT NULL COMMENT 'Spring Batch JobInstance 순번',
+    CREATE_TIME DATETIME(6) NOT NULL COMMENT '실행 생성 일시',
+    START_TIME DATETIME(6) NULL DEFAULT NULL COMMENT '실행 시작 일시',
+    END_TIME DATETIME(6) NULL DEFAULT NULL COMMENT '실행 종료 일시',
+    STATUS VARCHAR(10) NULL COMMENT '실행 상태',
+    EXIT_CODE VARCHAR(2500) NULL COMMENT '종료 코드',
+    EXIT_MESSAGE VARCHAR(2500) NULL COMMENT '종료 메시지',
+    LAST_UPDATED DATETIME(6) NULL COMMENT '마지막 수정 일시',
+    CONSTRAINT pk_BATCH_JOB_EXECUTION PRIMARY KEY (JOB_EXECUTION_ID),
+    CONSTRAINT JOB_INST_EXEC_FK FOREIGN KEY (JOB_INSTANCE_ID) REFERENCES BATCH_JOB_INSTANCE (JOB_INSTANCE_ID)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Spring Batch 표준 JobExecution 저장소';
+
+CREATE TABLE IF NOT EXISTS BATCH_JOB_EXECUTION_CONTEXT (
+    JOB_EXECUTION_ID BIGINT NOT NULL COMMENT 'Spring Batch JobExecution 순번',
+    SHORT_CONTEXT VARCHAR(2500) NOT NULL COMMENT '짧은 실행 컨텍스트',
+    SERIALIZED_CONTEXT TEXT NULL COMMENT '직렬화 실행 컨텍스트',
+    CONSTRAINT pk_BATCH_JOB_EXECUTION_CONTEXT PRIMARY KEY (JOB_EXECUTION_ID),
+    CONSTRAINT JOB_EXEC_CTX_FK FOREIGN KEY (JOB_EXECUTION_ID) REFERENCES BATCH_JOB_EXECUTION (JOB_EXECUTION_ID)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Spring Batch 표준 Job 컨텍스트 저장소';
+
+CREATE TABLE IF NOT EXISTS BATCH_JOB_EXECUTION_PARAMS (
+    JOB_EXECUTION_ID BIGINT NOT NULL COMMENT 'Spring Batch JobExecution 순번',
+    PARAMETER_NAME VARCHAR(100) NOT NULL COMMENT '파라미터 이름',
+    PARAMETER_TYPE VARCHAR(100) NOT NULL COMMENT '파라미터 Java 유형',
+    PARAMETER_VALUE VARCHAR(2500) NULL COMMENT '파라미터 값',
+    IDENTIFYING CHAR(1) NOT NULL COMMENT 'JobInstance 식별 파라미터 여부',
+    CONSTRAINT JOB_EXEC_PARAMS_FK FOREIGN KEY (JOB_EXECUTION_ID) REFERENCES BATCH_JOB_EXECUTION (JOB_EXECUTION_ID)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Spring Batch 표준 Job 파라미터 저장소';
+
+CREATE TABLE IF NOT EXISTS BATCH_JOB_INSTANCE (
+    JOB_INSTANCE_ID BIGINT NOT NULL COMMENT 'Spring Batch JobInstance 순번',
+    VERSION BIGINT NULL COMMENT '낙관적 잠금 버전',
+    JOB_NAME VARCHAR(100) NOT NULL COMMENT 'Spring Batch Job 이름',
+    JOB_KEY VARCHAR(32) NOT NULL COMMENT 'Job 파라미터 식별 키',
+    CONSTRAINT pk_BATCH_JOB_INSTANCE PRIMARY KEY (JOB_INSTANCE_ID),
+    CONSTRAINT JOB_INST_UN UNIQUE (JOB_NAME, JOB_KEY)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Spring Batch 표준 JobInstance 저장소';
+
+CREATE TABLE IF NOT EXISTS BATCH_STEP_EXECUTION (
+    STEP_EXECUTION_ID BIGINT NOT NULL COMMENT 'Spring Batch StepExecution 순번',
+    VERSION BIGINT NOT NULL COMMENT '낙관적 잠금 버전',
+    STEP_NAME VARCHAR(100) NOT NULL COMMENT 'Step 이름',
+    JOB_EXECUTION_ID BIGINT NOT NULL COMMENT 'Spring Batch JobExecution 순번',
+    CREATE_TIME DATETIME(6) NOT NULL COMMENT 'Step 생성 일시',
+    START_TIME DATETIME(6) NULL DEFAULT NULL COMMENT 'Step 시작 일시',
+    END_TIME DATETIME(6) NULL DEFAULT NULL COMMENT 'Step 종료 일시',
+    STATUS VARCHAR(10) NULL COMMENT 'Step 상태',
+    COMMIT_COUNT BIGINT NULL COMMENT '커밋 횟수',
+    READ_COUNT BIGINT NULL COMMENT '읽은 건수',
+    FILTER_COUNT BIGINT NULL COMMENT '필터 건수',
+    WRITE_COUNT BIGINT NULL COMMENT '쓴 건수',
+    READ_SKIP_COUNT BIGINT NULL COMMENT '읽기 skip 건수',
+    WRITE_SKIP_COUNT BIGINT NULL COMMENT '쓰기 skip 건수',
+    PROCESS_SKIP_COUNT BIGINT NULL COMMENT '처리 skip 건수',
+    ROLLBACK_COUNT BIGINT NULL COMMENT 'rollback 건수',
+    EXIT_CODE VARCHAR(2500) NULL COMMENT '종료 코드',
+    EXIT_MESSAGE VARCHAR(2500) NULL COMMENT '종료 메시지',
+    LAST_UPDATED DATETIME(6) NULL COMMENT '마지막 수정 일시',
+    CONSTRAINT pk_BATCH_STEP_EXECUTION PRIMARY KEY (STEP_EXECUTION_ID),
+    CONSTRAINT JOB_EXEC_STEP_FK FOREIGN KEY (JOB_EXECUTION_ID) REFERENCES BATCH_JOB_EXECUTION (JOB_EXECUTION_ID)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Spring Batch 표준 StepExecution 저장소';
+
+CREATE TABLE IF NOT EXISTS BATCH_STEP_EXECUTION_CONTEXT (
+    STEP_EXECUTION_ID BIGINT NOT NULL COMMENT 'Spring Batch StepExecution 순번',
+    SHORT_CONTEXT VARCHAR(2500) NOT NULL COMMENT '짧은 실행 컨텍스트',
+    SERIALIZED_CONTEXT TEXT NULL COMMENT '직렬화 실행 컨텍스트',
+    CONSTRAINT pk_BATCH_STEP_EXECUTION_CONTEXT PRIMARY KEY (STEP_EXECUTION_ID),
+    CONSTRAINT STEP_EXEC_CTX_FK FOREIGN KEY (STEP_EXECUTION_ID) REFERENCES BATCH_STEP_EXECUTION (STEP_EXECUTION_ID)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Spring Batch 표준 Step 컨텍스트 저장소';
+
 CREATE TABLE IF NOT EXISTS bat_center_cut_claim (
     center_cut_item_id BIGINT NULL COMMENT 'Claimed center-cut item identifier',
     runner_id VARCHAR(160) NOT NULL COMMENT 'Owning runner identifier',
@@ -2400,6 +2686,77 @@ CREATE TABLE IF NOT EXISTS bat_job (
     INDEX ix_bat_job_use (use_yn, job_type)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 배치 Job 기준';
 
+CREATE TABLE IF NOT EXISTS bat_job_definition_audit (
+    audit_id BIGINT NOT NULL COMMENT '감사 ID',
+    job_id VARCHAR(80) NOT NULL COMMENT 'Job ID',
+    definition_version BIGINT NOT NULL COMMENT 'Definition Version',
+    action_code VARCHAR(40) NOT NULL COMMENT '행위',
+    from_state VARCHAR(20) NULL COMMENT '이전 상태',
+    to_state VARCHAR(20) NULL COMMENT '다음 상태',
+    reason VARCHAR(1000) NOT NULL COMMENT '사유',
+    operator_id VARCHAR(100) NOT NULL COMMENT '운영자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '발생시각',
+    CONSTRAINT pk_bat_job_definition_audit PRIMARY KEY (audit_id),
+    INDEX idx_bat_job_def_audit (job_id, definition_version, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT Job Definition 승인·상태 감사';
+
+CREATE TABLE IF NOT EXISTS bat_job_definition_version (
+    job_id VARCHAR(80) NOT NULL COMMENT '배치 Job ID',
+    definition_version BIGINT NOT NULL COMMENT '불변 Definition Version',
+    job_name VARCHAR(200) NOT NULL COMMENT '배치 Job 이름',
+    executor_type VARCHAR(40) NOT NULL COMMENT 'Executor 유형',
+    definition_state VARCHAR(20) NOT NULL COMMENT 'Definition 상태',
+    owner_domain VARCHAR(80) NOT NULL COMMENT '소유 업무영역',
+    description VARCHAR(1000) NULL COMMENT '설명',
+    trigger_type VARCHAR(30) NOT NULL COMMENT 'Trigger 유형',
+    trigger_expression VARCHAR(500) NULL COMMENT 'Trigger 조건',
+    timezone_id VARCHAR(60) NOT NULL DEFAULT 'Asia/Seoul' COMMENT 'Timezone',
+    misfire_policy VARCHAR(30) NOT NULL COMMENT 'Misfire 정책',
+    agent_pool VARCHAR(100) NOT NULL COMMENT 'Agent Pool',
+    zone_id VARCHAR(80) NULL COMMENT '실행 Zone',
+    max_concurrency INT NOT NULL DEFAULT 1 COMMENT '최대 동시 실행',
+    timeout_seconds BIGINT NOT NULL DEFAULT 3600 COMMENT 'Timeout 초',
+    restartable_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '재시작 가능 여부',
+    max_attempts INT NOT NULL DEFAULT 1 COMMENT '최대 시도',
+    initial_backoff_seconds BIGINT NOT NULL DEFAULT 0 COMMENT '초기 Backoff',
+    backoff_multiplier DECIMAL(10,4) NOT NULL DEFAULT 1 COMMENT 'Backoff 배수',
+    max_backoff_seconds BIGINT NOT NULL DEFAULT 0 COMMENT '최대 Backoff',
+    skip_limit INT NOT NULL DEFAULT 0 COMMENT 'Skip 허용',
+    unknown_result_policy VARCHAR(30) NOT NULL COMMENT '결과 불명 처리 정책',
+    compensation_reference VARCHAR(200) NULL COMMENT '보상 처리 참조',
+    alert_delay_seconds BIGINT NOT NULL DEFAULT 0 COMMENT '지연 알림',
+    sla_seconds BIGINT NOT NULL DEFAULT 0 COMMENT 'SLA',
+    notify_failure_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '실패 알림',
+    notify_missed_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '미실행 알림',
+    executor_reference VARCHAR(300) NOT NULL COMMENT 'Executor 참조',
+    definition_json TEXT NOT NULL COMMENT 'Definition JSON',
+    checksum VARCHAR(128) NULL COMMENT 'Checksum',
+    effective_from DATETIME NULL COMMENT '시행 시작',
+    effective_until DATETIME NULL COMMENT '시행 종료',
+    row_version BIGINT NOT NULL DEFAULT 1 COMMENT '낙관적 잠금',
+    created_by VARCHAR(100) NOT NULL COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '수정일시',
+    CONSTRAINT pk_bat_job_definition_version PRIMARY KEY (job_id, definition_version),
+    CONSTRAINT ck_bat_job_def_state CHECK (definition_state IN ('DRAFT','VALIDATED','APPROVAL','PUBLISHED','RETIRED')),
+    INDEX idx_bat_job_def_state (definition_state, updated_at),
+    INDEX idx_bat_job_def_owner (owner_domain, job_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT Versioned Job Definition 정본';
+
+CREATE TABLE IF NOT EXISTS bat_job_dependency (
+    job_id VARCHAR(80) NOT NULL COMMENT 'Job ID',
+    definition_version BIGINT NOT NULL COMMENT 'Definition Version',
+    related_job_id VARCHAR(80) NOT NULL COMMENT '선행 Job',
+    condition_code VARCHAR(40) NOT NULL COMMENT '의존 조건',
+    timeout_seconds BIGINT NOT NULL DEFAULT 0 COMMENT '대기 Timeout',
+    required_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '필수 여부',
+    sort_order INT NOT NULL DEFAULT 0 COMMENT '정렬',
+    CONSTRAINT pk_bat_job_dependency PRIMARY KEY (job_id, definition_version, related_job_id),
+    CONSTRAINT ck_bat_job_dep_self CHECK (job_id <> related_job_id),
+    CONSTRAINT fk_bat_job_dep_def FOREIGN KEY (job_id, definition_version) REFERENCES bat_job_definition_version (job_id, definition_version) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT Versioned Job Dependency';
+
 CREATE TABLE IF NOT EXISTS bat_job_pack (
     job_pack_id VARCHAR(120) NOT NULL COMMENT 'Job-pack identifier',
     owner_domain VARCHAR(20) NOT NULL COMMENT 'Owning domain SystemCode',
@@ -2423,6 +2780,30 @@ CREATE TABLE IF NOT EXISTS bat_job_pack_job (
     CONSTRAINT pk_bat_job_pack_job PRIMARY KEY (job_pack_id, job_id),
     CONSTRAINT fk_bat_job_pack_job_pack FOREIGN KEY (job_pack_id) REFERENCES bat_job_pack (job_pack_id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT job-pack job projection';
+
+CREATE TABLE IF NOT EXISTS bat_job_parameter_definition (
+    job_id VARCHAR(80) NOT NULL COMMENT 'Job ID',
+    definition_version BIGINT NOT NULL COMMENT 'Definition Version',
+    parameter_name VARCHAR(100) NOT NULL COMMENT 'Parameter 이름',
+    parameter_type VARCHAR(40) NOT NULL COMMENT 'Parameter 유형',
+    label_text VARCHAR(200) NULL COMMENT 'UI Label',
+    description_text VARCHAR(1000) NULL COMMENT '설명',
+    required_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '필수 여부',
+    sensitive_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '민감정보 여부',
+    default_value VARCHAR(1000) NULL COMMENT '기본값',
+    allowed_values TEXT NULL COMMENT '허용값',
+    validation_pattern VARCHAR(1000) NULL COMMENT '검증 Pattern',
+    min_value DECIMAL(38,10) NULL COMMENT '최솟값',
+    max_value DECIMAL(38,10) NULL COMMENT '최댓값',
+    min_length INT NULL COMMENT '최소 길이',
+    max_length INT NULL COMMENT '최대 길이',
+    reference_type VARCHAR(80) NULL COMMENT '참조 유형',
+    alias_required_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT 'Alias 강제',
+    runtime_override_allowed_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '실행 Override',
+    sort_order INT NOT NULL DEFAULT 0 COMMENT '정렬',
+    CONSTRAINT pk_bat_job_parameter_definition PRIMARY KEY (job_id, definition_version, parameter_name),
+    CONSTRAINT fk_bat_job_param_def FOREIGN KEY (job_id, definition_version) REFERENCES bat_job_definition_version (job_id, definition_version) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT Typed Parameter Schema';
 
 CREATE TABLE IF NOT EXISTS bat_job_relation (
     relation_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '배치 관계 순번',
@@ -2752,79 +3133,6 @@ CREATE TABLE IF NOT EXISTS bat_worker (
     INDEX ix_bat_worker_control (control_status, active_yn, last_heartbeat_at),
     INDEX ix_bat_worker_current_job (current_job_id, current_execution_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 배치 worker heartbeat';
-
-CREATE TABLE IF NOT EXISTS BATCH_JOB_EXECUTION (
-    JOB_EXECUTION_ID BIGINT NOT NULL COMMENT 'Spring Batch JobExecution 순번',
-    VERSION BIGINT NULL COMMENT '낙관적 잠금 버전',
-    JOB_INSTANCE_ID BIGINT NOT NULL COMMENT 'Spring Batch JobInstance 순번',
-    CREATE_TIME DATETIME(6) NOT NULL COMMENT '실행 생성 일시',
-    START_TIME DATETIME(6) NULL DEFAULT NULL COMMENT '실행 시작 일시',
-    END_TIME DATETIME(6) NULL DEFAULT NULL COMMENT '실행 종료 일시',
-    STATUS VARCHAR(10) NULL COMMENT '실행 상태',
-    EXIT_CODE VARCHAR(2500) NULL COMMENT '종료 코드',
-    EXIT_MESSAGE VARCHAR(2500) NULL COMMENT '종료 메시지',
-    LAST_UPDATED DATETIME(6) NULL COMMENT '마지막 수정 일시',
-    CONSTRAINT pk_BATCH_JOB_EXECUTION PRIMARY KEY (JOB_EXECUTION_ID),
-    CONSTRAINT JOB_INST_EXEC_FK FOREIGN KEY (JOB_INSTANCE_ID) REFERENCES BATCH_JOB_INSTANCE (JOB_INSTANCE_ID)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Spring Batch 표준 JobExecution 저장소';
-
-CREATE TABLE IF NOT EXISTS BATCH_JOB_EXECUTION_CONTEXT (
-    JOB_EXECUTION_ID BIGINT NOT NULL COMMENT 'Spring Batch JobExecution 순번',
-    SHORT_CONTEXT VARCHAR(2500) NOT NULL COMMENT '짧은 실행 컨텍스트',
-    SERIALIZED_CONTEXT TEXT NULL COMMENT '직렬화 실행 컨텍스트',
-    CONSTRAINT pk_BATCH_JOB_EXECUTION_CONTEXT PRIMARY KEY (JOB_EXECUTION_ID),
-    CONSTRAINT JOB_EXEC_CTX_FK FOREIGN KEY (JOB_EXECUTION_ID) REFERENCES BATCH_JOB_EXECUTION (JOB_EXECUTION_ID)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Spring Batch 표준 Job 컨텍스트 저장소';
-
-CREATE TABLE IF NOT EXISTS BATCH_JOB_EXECUTION_PARAMS (
-    JOB_EXECUTION_ID BIGINT NOT NULL COMMENT 'Spring Batch JobExecution 순번',
-    PARAMETER_NAME VARCHAR(100) NOT NULL COMMENT '파라미터 이름',
-    PARAMETER_TYPE VARCHAR(100) NOT NULL COMMENT '파라미터 Java 유형',
-    PARAMETER_VALUE VARCHAR(2500) NULL COMMENT '파라미터 값',
-    IDENTIFYING CHAR(1) NOT NULL COMMENT 'JobInstance 식별 파라미터 여부',
-    CONSTRAINT JOB_EXEC_PARAMS_FK FOREIGN KEY (JOB_EXECUTION_ID) REFERENCES BATCH_JOB_EXECUTION (JOB_EXECUTION_ID)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Spring Batch 표준 Job 파라미터 저장소';
-
-CREATE TABLE IF NOT EXISTS BATCH_JOB_INSTANCE (
-    JOB_INSTANCE_ID BIGINT NOT NULL COMMENT 'Spring Batch JobInstance 순번',
-    VERSION BIGINT NULL COMMENT '낙관적 잠금 버전',
-    JOB_NAME VARCHAR(100) NOT NULL COMMENT 'Spring Batch Job 이름',
-    JOB_KEY VARCHAR(32) NOT NULL COMMENT 'Job 파라미터 식별 키',
-    CONSTRAINT pk_BATCH_JOB_INSTANCE PRIMARY KEY (JOB_INSTANCE_ID),
-    CONSTRAINT JOB_INST_UN UNIQUE (JOB_NAME, JOB_KEY)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Spring Batch 표준 JobInstance 저장소';
-
-CREATE TABLE IF NOT EXISTS BATCH_STEP_EXECUTION (
-    STEP_EXECUTION_ID BIGINT NOT NULL COMMENT 'Spring Batch StepExecution 순번',
-    VERSION BIGINT NOT NULL COMMENT '낙관적 잠금 버전',
-    STEP_NAME VARCHAR(100) NOT NULL COMMENT 'Step 이름',
-    JOB_EXECUTION_ID BIGINT NOT NULL COMMENT 'Spring Batch JobExecution 순번',
-    CREATE_TIME DATETIME(6) NOT NULL COMMENT 'Step 생성 일시',
-    START_TIME DATETIME(6) NULL DEFAULT NULL COMMENT 'Step 시작 일시',
-    END_TIME DATETIME(6) NULL DEFAULT NULL COMMENT 'Step 종료 일시',
-    STATUS VARCHAR(10) NULL COMMENT 'Step 상태',
-    COMMIT_COUNT BIGINT NULL COMMENT '커밋 횟수',
-    READ_COUNT BIGINT NULL COMMENT '읽은 건수',
-    FILTER_COUNT BIGINT NULL COMMENT '필터 건수',
-    WRITE_COUNT BIGINT NULL COMMENT '쓴 건수',
-    READ_SKIP_COUNT BIGINT NULL COMMENT '읽기 skip 건수',
-    WRITE_SKIP_COUNT BIGINT NULL COMMENT '쓰기 skip 건수',
-    PROCESS_SKIP_COUNT BIGINT NULL COMMENT '처리 skip 건수',
-    ROLLBACK_COUNT BIGINT NULL COMMENT 'rollback 건수',
-    EXIT_CODE VARCHAR(2500) NULL COMMENT '종료 코드',
-    EXIT_MESSAGE VARCHAR(2500) NULL COMMENT '종료 메시지',
-    LAST_UPDATED DATETIME(6) NULL COMMENT '마지막 수정 일시',
-    CONSTRAINT pk_BATCH_STEP_EXECUTION PRIMARY KEY (STEP_EXECUTION_ID),
-    CONSTRAINT JOB_EXEC_STEP_FK FOREIGN KEY (JOB_EXECUTION_ID) REFERENCES BATCH_JOB_EXECUTION (JOB_EXECUTION_ID)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Spring Batch 표준 StepExecution 저장소';
-
-CREATE TABLE IF NOT EXISTS BATCH_STEP_EXECUTION_CONTEXT (
-    STEP_EXECUTION_ID BIGINT NOT NULL COMMENT 'Spring Batch StepExecution 순번',
-    SHORT_CONTEXT VARCHAR(2500) NOT NULL COMMENT '짧은 실행 컨텍스트',
-    SERIALIZED_CONTEXT TEXT NULL COMMENT '직렬화 실행 컨텍스트',
-    CONSTRAINT pk_BATCH_STEP_EXECUTION_CONTEXT PRIMARY KEY (STEP_EXECUTION_ID),
-    CONSTRAINT STEP_EXEC_CTX_FK FOREIGN KEY (STEP_EXECUTION_ID) REFERENCES BATCH_STEP_EXECUTION (STEP_EXECUTION_ID)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Spring Batch 표준 Step 컨텍스트 저장소';
 
 -- CPF_CANONICAL_OBJECTS_BEGIN spring-batch-6-sequences
 -- Generated from cpf-tools/db/canonical/platform-non-table-objects.json.

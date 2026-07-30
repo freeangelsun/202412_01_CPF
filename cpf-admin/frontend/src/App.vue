@@ -47,7 +47,7 @@
         <p class="status" v-if="uiMessage">{{ uiMessage }}</p>
         <section class="summary-grid">
           <div class="metric"><span>등록 서비스</span><strong>{{ serviceRegistryResult.services?.length || 0 }}</strong></div>
-          <div class="metric"><span>활성 인스턴스</span><strong>{{ (serviceRegistryResult.instances || []).filter((i:any) => i.instanceStatus === 'UP').length }}</strong></div>
+          <div class="metric"><span>활성 인스턴스</span><strong>{{ (serviceRegistryResult.instances || []).filter((i:any) => i.status === 'UP').length }}</strong></div>
           <div class="metric"><span>복구 대기</span><strong>{{ (reliabilityResult.unknownResults || []).length + (reliabilityResult.dlq || []).length }}</strong></div>
           <div class="metric"><span>운영자</span><strong>{{ currentOperator.operatorId }}</strong></div>
         </section>

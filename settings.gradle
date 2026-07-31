@@ -13,6 +13,7 @@ pluginManagement {
     plugins {
         id 'org.springframework.boot' version cpfStackProperties.getProperty('springBootVersion')
         id 'io.spring.dependency-management' version cpfStackProperties.getProperty('springDependencyManagementVersion')
+        id 'org.cyclonedx.bom' version cpfStackProperties.getProperty('cycloneDxGradleVersion')
     }
 
     def cpfArtifactMode = providers.gradleProperty('cpfArtifactMode')
@@ -69,11 +70,13 @@ pluginManagement {
                 content { includeGroupByRegex 'com[.]cpf([.].*)?' }
             }
         }
-        gradlePluginPortal {
-            content { excludeGroupByRegex 'com[.]cpf([.].*)?' }
-        }
-        mavenCentral {
-            content { excludeGroupByRegex 'com[.]cpf([.].*)?' }
+        if (cpfArtifactMode != 'OFFLINE') {
+            gradlePluginPortal {
+                content { excludeGroupByRegex 'com[.]cpf([.].*)?' }
+            }
+            mavenCentral {
+                content { excludeGroupByRegex 'com[.]cpf([.].*)?' }
+            }
         }
     }
 }
@@ -81,6 +84,13 @@ pluginManagement {
 rootProject.name = 'cpf-core-platform-framework'
 
 include 'cpf-core', 'cpf-common'
+include 'cpf-starter-security'
+include 'cpf-starter-messaging-kafka'
+include 'cpf-starter-cache'
+include 'cpf-starter-observability'
+include 'cpf-starter-resilience'
+include 'cpf-starter-featureflag'
+include 'cpf-starter-secret'
 include 'cpf-admin', 'cpf-biz-admin', 'cpf-gateway', 'cpf-reference'
 include 'cpf-local-runtime', 'cpf-local-batch-runtime'
 
@@ -89,6 +99,7 @@ include 'cpf-local-runtime', 'cpf-local-batch-runtime'
 include 'cpf-member'
 include ':cpf-batch:contract'
 include ':cpf-batch:runtime-common'
+include ':cpf-batch:execution-runtime'
 include ':cpf-batch:control-server'
 include ':cpf-batch:scheduler'
 include ':cpf-batch:worker'
@@ -100,6 +111,13 @@ include ':cpf-batch:testkit'
 
 project(':cpf-core').projectDir = file('cpf-core')
 project(':cpf-common').projectDir = file('cpf-common')
+project(':cpf-starter-security').projectDir = file('cpf-starters/security')
+project(':cpf-starter-messaging-kafka').projectDir = file('cpf-starters/messaging-kafka')
+project(':cpf-starter-cache').projectDir = file('cpf-starters/cache')
+project(':cpf-starter-observability').projectDir = file('cpf-starters/observability')
+project(':cpf-starter-resilience').projectDir = file('cpf-starters/resilience')
+project(':cpf-starter-featureflag').projectDir = file('cpf-starters/featureflag')
+project(':cpf-starter-secret').projectDir = file('cpf-starters/secret')
 project(':cpf-member').projectDir = file('cpf-member')
 project(':cpf-reference').projectDir = file('cpf-reference')
 project(':cpf-admin').projectDir = file('cpf-admin')

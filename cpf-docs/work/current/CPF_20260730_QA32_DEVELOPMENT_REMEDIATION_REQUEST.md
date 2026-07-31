@@ -253,3 +253,8 @@ MariaDB/PostgreSQL/Oracle 각각:
 - ZIP SHA-256과 파일 수를 출력한다.
 - 사용자에게 실제 다운로드 가능한 링크를 제공한다.
 - 사용자의 명시 승인 전 Commit·Push·Branch·Tag·PR을 만들지 않는다.
+
+
+## QA32 Spring Batch Primary Engine 정정 (2026-07-31)
+
+기존 “지정 범위만 사용”, `ADOPT_SCOPED`, “Metadata 일부만 사용” 표현은 폐기한다. Spring Batch 6는 CPF 전체 Batch의 `ADOPT_NOW` Primary Execution Engine이다. Center-Cut, Scheduler가 시작한 실행, Local/Parallel/Distributed Worker, File/DB/API/Shell/Message 작업은 모두 Spring Batch Job/Step으로 실행한다. CPF는 승인·권한·Topology·배포·Artifact/Agent/File/Shell 보안·감사·Fencing·`UNKNOWN_RESULT` 대사와 Spring Batch ID 연결만 소유한다. 자체 Job/Step 상태, 실행 Repository, Restart/Checkpoint, Partition Dispatcher, Polling, Worker 완료 집계는 Consumer parity 후 제거한다. 완료는 단일 Primary Path와 실제 장애·재시작·3DB·Kafka Evidence가 있을 때만 인정한다.

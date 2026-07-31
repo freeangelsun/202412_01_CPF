@@ -70,4 +70,13 @@ export const admFeatureRoutes: Record<string,AdmFeatureRoute> = {
 export function featureGroupForMenu(menuId:string):AdmFeatureGroup{return admFeatureRoutes[menuId]?.group||"home";}
 export function componentForMenu(menuId:string):Component{return admFeatureRoutes[menuId]?.component||admFeatureRoutes.dashboard.component;}
 export function iconForMenu(menuId:string):string{return admFeatureRoutes[menuId]?.icon||"logs";}
-export function menuIdFromHash(hash:string):string{return hash.replace(/^#\/?/,"").trim();}
+
+
+import type { RouteRecordRaw } from "vue-router";
+export const admRouterRecords: RouteRecordRaw[] = Object.entries(admFeatureRoutes).map(([id, route]) => ({
+  path: id === "dashboard" ? "/" : `/${id}`,
+  name: id,
+  component: route.component,
+  meta: { menuId: id, group: route.group }
+}));
+export function menuIdFromRouteName(name: unknown): string { return typeof name === "string" && admFeatureRoutes[name] ? name : "dashboard"; }

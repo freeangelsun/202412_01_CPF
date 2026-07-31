@@ -50,7 +50,16 @@ export const bzaRoutes: BzaRoute[] = [
   { id:"downloadAudits", label:"다운로드 감사", menuCode:"AUDIT", group:"support", description:"다운로드 감사", load:()=>import("../features/download-audits/DownloadAuditsPage.vue") }
 ];
 
-export function routeFromHash(hash: string): BzaRouteId {
-  const candidate = hash.replace(/^#\/?/, "").trim() as BzaRouteId;
+
+
+import type { RouteRecordRaw } from "vue-router";
+export const bzaRouterRecords: RouteRecordRaw[] = bzaRoutes.map(route => ({
+  path: route.id === "dashboard" ? "/" : `/${route.id}`,
+  name: route.id,
+  component: route.load,
+  meta: { menuCode: route.menuCode, routeId: route.id, group: route.group, label: route.label, description: route.description }
+}));
+export function routeFromName(name: unknown): BzaRouteId {
+  const candidate = typeof name === "string" ? name as BzaRouteId : "dashboard";
   return bzaRoutes.some(route => route.id === candidate) ? candidate : "dashboard";
 }

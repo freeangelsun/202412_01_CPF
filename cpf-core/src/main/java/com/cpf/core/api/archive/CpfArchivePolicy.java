@@ -27,6 +27,11 @@ public record CpfArchivePolicy(
         archivedSuffix = archivedSuffix == null || archivedSuffix.isBlank() ? ".archived" : archivedSuffix;
     }
 
+    /** 압축 폭탄 방지를 위한 archive entry 수 상한입니다. */
+    public int maxEntries() {
+        return 10_000;
+    }
+
     public static CpfArchivePolicy local(Path allowedBaseDirectory) {
         return new CpfArchivePolicy(
                 allowedBaseDirectory,

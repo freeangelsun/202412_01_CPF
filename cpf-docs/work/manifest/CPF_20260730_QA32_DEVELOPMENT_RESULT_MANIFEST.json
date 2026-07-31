@@ -1,0 +1,2611 @@
+{
+  "schemaVersion": 1,
+  "repository": "freeangelsun/202412_01_CPF",
+  "branch": "master",
+  "baseSha": "d31bd127aa12bb9368933216642a5a9d25bd0bfd",
+  "headState": "WORKTREE_OVERLAY_UNCOMMITTED",
+  "sourcePayloadSha256": "1867798de867160153657964ee8f2ac4b994fdfa5e75cb0e624a7b0c6358b301",
+  "generatedAt": "2026-07-30T22:21:57.526856+00:00",
+  "payloadFileCount": 511,
+  "deleteFileCount": 12,
+  "readmeGuideFileCount": 0,
+  "gitWritePerformed": false,
+  "files": [
+    {
+      "path": "build.gradle",
+      "size": 99277,
+      "sha256": "84620309cadd254e2c07ee212cd4408f6886e35f9a606fefb2753bd730411470"
+    },
+    {
+      "path": "cpf-admin/build.gradle",
+      "size": 4497,
+      "sha256": "cdcb61aac03e9207193a197ff3737285bdf7700ba54f495c73a56f5426a5b0e2"
+    },
+    {
+      "path": "cpf-admin/frontend/.npmrc",
+      "size": 119,
+      "sha256": "132a62148832b873372e4864deae07e8344865f8abd96a5fa5ca7cf209fd6e84"
+    },
+    {
+      "path": "cpf-admin/frontend/.nvmrc",
+      "size": 8,
+      "sha256": "177d20030d4dcc37eae9ef92865ec54dadce60e8f19e9a34a5d4f37502195a36"
+    },
+    {
+      "path": "cpf-admin/frontend/e2e/primary-runtime.spec.ts",
+      "size": 1438,
+      "sha256": "28376177d2461ce05b5b1d8758b6526c69f121a945b809223fa566553d6fd7f2"
+    },
+    {
+      "path": "cpf-admin/frontend/orval.config.ts",
+      "size": 393,
+      "sha256": "d68b0d171f0f799f1d3150fff66b1e411c75018f5c5dd20e07485b7aed9c706d"
+    },
+    {
+      "path": "cpf-admin/frontend/package.json",
+      "size": 1422,
+      "sha256": "01b11291e2a37eab56f19f67ed5821adf51ea359c253b45796431f446d6561b0"
+    },
+    {
+      "path": "cpf-admin/frontend/playwright.config.ts",
+      "size": 512,
+      "sha256": "a154e1daf9a9f1fc9d7cbffd9ff82208186dc77a0e16bd00d0165183192a8e5a"
+    },
+    {
+      "path": "cpf-admin/frontend/scripts/verify-generated-client.mjs",
+      "size": 591,
+      "sha256": "4dce488117a9a63d77409b34ecf0abceb83f0b32f5d575c05c66fa7fbb65c6fd"
+    },
+    {
+      "path": "cpf-admin/frontend/scripts/verify-primary-frontend.mjs",
+      "size": 930,
+      "sha256": "6b361dfb3120c97ae8724824b9693d5149b3c3c7ad78cdc3893a26fcdca49fd2"
+    },
+    {
+      "path": "cpf-admin/frontend/src/App.vue",
+      "size": 11155,
+      "sha256": "1ba092983f8faf6e9dd1146e60474e260ca1156579632ca815f1b790c29d9663"
+    },
+    {
+      "path": "cpf-admin/frontend/src/app/methods/accessMethods.ts",
+      "size": 13642,
+      "sha256": "885902a9ac48bfb7b524862a7deb2a0038e04dd5f041d5cad9fe4768e1b61273"
+    },
+    {
+      "path": "cpf-admin/frontend/src/app/router.ts",
+      "size": 351,
+      "sha256": "2669c20de59166725ed4894945c64de15190466bbe7874dea45de297e9c4f45f"
+    },
+    {
+      "path": "cpf-admin/frontend/src/app/routes.ts",
+      "size": 9701,
+      "sha256": "91dae13056c02e4878a1d0933e4cddcb77ecade3e3e19bb0de05841df508b17c"
+    },
+    {
+      "path": "cpf-admin/frontend/src/components/ui/CpfDataTable.vue",
+      "size": 1973,
+      "sha256": "6c8744c591ac1823980ee0bd9be6800f1555f8f90f0ea44566d3962b22b3cd55"
+    },
+    {
+      "path": "cpf-admin/frontend/src/components/ui/CpfValidatedForm.vue",
+      "size": 999,
+      "sha256": "db1ecbefa52dd85d32f5fd0b0cc15737589f6986b0f2e7efbb8c7b7d54a92c0e"
+    },
+    {
+      "path": "cpf-admin/frontend/src/features/core/methods.ts",
+      "size": 9580,
+      "sha256": "64ec279d1c7e39b91badbe4b7bf3536c5967a3cfd21803f5c39301a5c2b9341b"
+    },
+    {
+      "path": "cpf-admin/frontend/src/main.ts",
+      "size": 669,
+      "sha256": "fe5316dc8590c2ffc8b4ac1e56532a76360dc90e7254f8bf623b17b43d35feb8"
+    },
+    {
+      "path": "cpf-admin/frontend/src/shared/cpfApi.ts",
+      "size": 1763,
+      "sha256": "a22dead402f12ab3b7d031ef81eb96a2bc148f29d61c56c31e06cf1a8a270612"
+    },
+    {
+      "path": "cpf-admin/frontend/src/shared/orval-mutator.ts",
+      "size": 1191,
+      "sha256": "8600d951c042250b6c73be2b18477a6dfdf6f029309a219631813dd7e85f50af"
+    },
+    {
+      "path": "cpf-admin/frontend/src/stores/admConsoleStore.ts",
+      "size": 5634,
+      "sha256": "e5f0b58cb488bdb8ed0176f4a0815453611a5a2b227d850fb45e7f6bf0451881"
+    },
+    {
+      "path": "cpf-batch/center-cut-runner/build.gradle",
+      "size": 1465,
+      "sha256": "ea46fa8fae008cab0e69b690f6e1644a02f91270f16663cb38dd20091d151c06"
+    },
+    {
+      "path": "cpf-batch/center-cut-runner/src/main/java/com/cpf/batch/centercut/runner/CenterCutControlController.java",
+      "size": 3675,
+      "sha256": "1d6be25d1174c578c4ab11801fc4991f652c77af4f63c6a90cd3852916ac82b8"
+    },
+    {
+      "path": "cpf-batch/center-cut-runner/src/main/java/com/cpf/batch/centercut/runner/CenterCutRunnerApplication.java",
+      "size": 1123,
+      "sha256": "813f672eb4540cf27956774d2b748fa4fe1f0ab7a7b36f28e440eeba595dd95d"
+    },
+    {
+      "path": "cpf-batch/center-cut-runner/src/main/resources/application.properties",
+      "size": 180,
+      "sha256": "4f404203f4019be5dacef361a7ec1d2e13b5bf2909ac9009176f09db0696e23b"
+    },
+    {
+      "path": "cpf-batch/contract/src/main/java/com/cpf/batch/api/AgentArtifactRequest.java",
+      "size": 593,
+      "sha256": "b6c95f0770e1eb018d81bd3cd0afa7c099a44f24a18655e467d2270a9ee5bebe"
+    },
+    {
+      "path": "cpf-batch/contract/src/main/java/com/cpf/batch/api/BatchApprovedLaunchRequest.java",
+      "size": 1491,
+      "sha256": "7e80055d98fefca6c879520cc1858c5f25e0266776c96769b7abfdcb0c239ecb"
+    },
+    {
+      "path": "cpf-batch/contract/src/main/java/com/cpf/batch/api/BatchExecutionControlPort.java",
+      "size": 550,
+      "sha256": "f64d99c30ed362fe9f94c606f976b3537d1c2df11be984d4cd3d2204a7536c91"
+    },
+    {
+      "path": "cpf-batch/contract/src/main/java/com/cpf/batch/api/BatchExecutionLink.java",
+      "size": 866,
+      "sha256": "d8c08ce7a2440ad9405ace99629af47692adc3927d724e95eabc659dca5a5e80"
+    },
+    {
+      "path": "cpf-batch/contract/src/main/java/com/cpf/batch/api/BatchExecutionPlan.java",
+      "size": 1675,
+      "sha256": "57df1df1b962c7df38bf5d9778aa659763d08e6074c10c967692b6c46c327021"
+    },
+    {
+      "path": "cpf-batch/contract/src/main/java/com/cpf/batch/api/BatchExecutionTopology.java",
+      "size": 238,
+      "sha256": "089fe83b1176f172979c9d9ced1b2cf9b610e865bde90c35242e519ec3414b63"
+    },
+    {
+      "path": "cpf-batch/contract/src/main/java/com/cpf/batch/api/BatchStepDefinition.java",
+      "size": 1332,
+      "sha256": "555568ecfd62577fe5920e7b62c23fc005ac4c591a3ef56133ea92207fa7aaff"
+    },
+    {
+      "path": "cpf-batch/contract/src/main/java/com/cpf/batch/spi/BatchApprovedLaunchRequestResolver.java",
+      "size": 995,
+      "sha256": "f3ed052b1ee19fa1e9f79bd1dde29a023c34b962e8668e615e4819f27b33eba1"
+    },
+    {
+      "path": "cpf-batch/contract/src/main/java/com/cpf/batch/spi/BatchExecutionLedgerPort.java",
+      "size": 549,
+      "sha256": "52259474b6fcab68f52375a4959172ccd48eb8b0f0c915f7e5add37c1423ebe9"
+    },
+    {
+      "path": "cpf-batch/contract/src/main/java/com/cpf/batch/spi/BatchFencingPort.java",
+      "size": 261,
+      "sha256": "e40eeb854a2f76ec676c9d91fdb493c7391671acc65f2aa02475b698544c56f7"
+    },
+    {
+      "path": "cpf-batch/contract/src/main/java/com/cpf/batch/spi/BatchStepHandler.java",
+      "size": 1780,
+      "sha256": "6a1fad0d1eee83e74fe768d38d5fe4dbba060ec96ae28161a578419642c6e8da"
+    },
+    {
+      "path": "cpf-batch/control-server/build.gradle",
+      "size": 1571,
+      "sha256": "d070453297aa6721ab426d3634dcdc06a236adedb31abcc85857e087ab3bfb79"
+    },
+    {
+      "path": "cpf-batch/control-server/src/main/java/com/cpf/batch/control/deploy/DeploymentEngine.java",
+      "size": 12589,
+      "sha256": "4d0dfe14173ee7cb74416a98733baee007f092d9c78219124bd34aa8e2d95b1c"
+    },
+    {
+      "path": "cpf-batch/control-server/src/main/java/com/cpf/batch/control/deploy/HttpRuntimeHealthProbe.java",
+      "size": 1288,
+      "sha256": "731cce657a0300f12d2dfce5fae265a13f6e018a6a35033eee3aea3ae8c75af1"
+    },
+    {
+      "path": "cpf-batch/control-server/src/main/java/com/cpf/batch/control/deploy/RuntimeLifecycleService.java",
+      "size": 4248,
+      "sha256": "00356cc6a8f79ac89d6a48088bfa215061f597ce95e8ba0b8046cacbd9b9da91"
+    },
+    {
+      "path": "cpf-batch/control-server/src/main/resources/application.properties",
+      "size": 180,
+      "sha256": "4f404203f4019be5dacef361a7ec1d2e13b5bf2909ac9009176f09db0696e23b"
+    },
+    {
+      "path": "cpf-batch/execution-runtime/build.gradle",
+      "size": 1030,
+      "sha256": "4bde9f63e84aaef5f0ce81f45e1be936eb8b78116677558fc75ae9051cffb3a9"
+    },
+    {
+      "path": "cpf-batch/execution-runtime/src/main/java/com/cpf/batch/execution/CpfBatchExecutionAutoConfiguration.java",
+      "size": 5290,
+      "sha256": "63154990ea294384e1452c96824cbb0afb77fc5d53ffb58c08d2292398f60081"
+    },
+    {
+      "path": "cpf-batch/execution-runtime/src/main/java/com/cpf/batch/execution/CpfBatchExecutionException.java",
+      "size": 407,
+      "sha256": "04c6ed1798f6414a18e24f2494c0df80b14e4357659b6bf150b21b51bc1ed128"
+    },
+    {
+      "path": "cpf-batch/execution-runtime/src/main/java/com/cpf/batch/execution/CpfBatchExecutionListener.java",
+      "size": 3118,
+      "sha256": "6a781080c609fd8660fe735a5161bea8c8b5d7cc1abe76bc00faf3bb9b296fa3"
+    },
+    {
+      "path": "cpf-batch/execution-runtime/src/main/java/com/cpf/batch/execution/CpfBatchExecutionProperties.java",
+      "size": 983,
+      "sha256": "23716516ed84adcd5f4d1af145e80ce315d3b022fe88521fd596966d590ab946"
+    },
+    {
+      "path": "cpf-batch/execution-runtime/src/main/java/com/cpf/batch/execution/CpfBatchJobFactory.java",
+      "size": 10194,
+      "sha256": "0f52b331cf05f8163e3836bef940c38c4dda370a36166aef0682dd62fadf2958"
+    },
+    {
+      "path": "cpf-batch/execution-runtime/src/main/java/com/cpf/batch/execution/CpfBatchKafkaInboundBridge.java",
+      "size": 1448,
+      "sha256": "696d3a89fefd41d40257b48bdf31ea6f98c121a7d7e8b2b08a3d2d04e1b1a2bd"
+    },
+    {
+      "path": "cpf-batch/execution-runtime/src/main/java/com/cpf/batch/execution/CpfBatchKafkaManagerListener.java",
+      "size": 616,
+      "sha256": "02974cb4abf917b66eaec97cb2fb21d16775e211bed3cf353548f69b84f44b1e"
+    },
+    {
+      "path": "cpf-batch/execution-runtime/src/main/java/com/cpf/batch/execution/CpfBatchKafkaRemoteConfiguration.java",
+      "size": 3573,
+      "sha256": "4fcd0b6e20f266627be1048db703f626e1fb7e54f1e2c67d2ab85d26450b09e7"
+    },
+    {
+      "path": "cpf-batch/execution-runtime/src/main/java/com/cpf/batch/execution/CpfBatchKafkaRemoteProperties.java",
+      "size": 1339,
+      "sha256": "82c755e4ca47f932b3128dd7bf74013cca19e29800d33bcf87aec44b348c3d4a"
+    },
+    {
+      "path": "cpf-batch/execution-runtime/src/main/java/com/cpf/batch/execution/CpfBatchKafkaWorkerListener.java",
+      "size": 643,
+      "sha256": "03728da323b668808d5d6bff43f23274fd8372337e6f4f650cbf8b2e9f70cdb1"
+    },
+    {
+      "path": "cpf-batch/execution-runtime/src/main/java/com/cpf/batch/execution/CpfBatchPartitioner.java",
+      "size": 1532,
+      "sha256": "938bbade544a8af21013598ac9beaa95f4ff6bfd502288d0e7e882737af1d917"
+    },
+    {
+      "path": "cpf-batch/execution-runtime/src/main/java/com/cpf/batch/execution/CpfBatchRemoteCodec.java",
+      "size": 3835,
+      "sha256": "ea305f9134bdfce5dfcb12d77d01d2a08a1124a90b8cbae6c33949b0143b1659"
+    },
+    {
+      "path": "cpf-batch/execution-runtime/src/main/java/com/cpf/batch/execution/CpfBatchRemoteEnvelope.java",
+      "size": 862,
+      "sha256": "cc94cd8cadb9c78dc5ca44c65f8299a6461ae1c8d3826f39b14759a86a382d7d"
+    },
+    {
+      "path": "cpf-batch/execution-runtime/src/main/java/com/cpf/batch/execution/CpfBatchRemoteWorkerConfiguration.java",
+      "size": 4076,
+      "sha256": "e77a5ec1076d80ce6faeabe6cdf821a789c950e3bd0e25635c1d897c3d915581"
+    },
+    {
+      "path": "cpf-batch/execution-runtime/src/main/java/com/cpf/batch/execution/CpfBatchRetryableException.java",
+      "size": 211,
+      "sha256": "5c58df676e13d349c6f9308ccf97385de321689b628133e6c46b557708c2d88f"
+    },
+    {
+      "path": "cpf-batch/execution-runtime/src/main/java/com/cpf/batch/execution/CpfBatchStepHandlerRegistry.java",
+      "size": 849,
+      "sha256": "81f32c860dc43b54584356a9f77b7024f504795b8d38ef07f5f5c12d5c958cee"
+    },
+    {
+      "path": "cpf-batch/execution-runtime/src/main/java/com/cpf/batch/execution/CpfBatchStoppedException.java",
+      "size": 207,
+      "sha256": "9579e159c537ad58c511d54c9c1f71c40a9899785ababa92df2aece59dfe4429"
+    },
+    {
+      "path": "cpf-batch/execution-runtime/src/main/java/com/cpf/batch/execution/CpfBatchTasklet.java",
+      "size": 4242,
+      "sha256": "aa39a341cec69b55608782c4fa8abc6500a23a6aaf2312b6ccabc305c63a38a0"
+    },
+    {
+      "path": "cpf-batch/execution-runtime/src/main/java/com/cpf/batch/execution/CpfBatchUnknownResultException.java",
+      "size": 219,
+      "sha256": "df00c271e624d26d363bb496af56089ca18532bd99758fcbd792865f5dba46f4"
+    },
+    {
+      "path": "cpf-batch/execution-runtime/src/main/java/com/cpf/batch/execution/CpfKafkaOutboundMessageChannel.java",
+      "size": 1735,
+      "sha256": "6dee72598e82ac7010b574605bc5a97ba1a132d01b01f1929457da9ce747b425"
+    },
+    {
+      "path": "cpf-batch/execution-runtime/src/main/java/com/cpf/batch/execution/CpfRemoteChunkItemProcessor.java",
+      "size": 4999,
+      "sha256": "5cd363bf979af74d0f3b3cb9bc4ad6c21b951377528020961e616f3ed12f7608"
+    },
+    {
+      "path": "cpf-batch/execution-runtime/src/main/java/com/cpf/batch/execution/CpfRemoteStepDefinition.java",
+      "size": 2629,
+      "sha256": "cc85ecdc9b33f922571b86bb712fbaf44b285ad15536fdedd491152ec3b87e3a"
+    },
+    {
+      "path": "cpf-batch/execution-runtime/src/main/java/com/cpf/batch/execution/CpfRemoteStepDefinitionListener.java",
+      "size": 871,
+      "sha256": "f9184a055111a153e3b18b5f90dc064d7177d8815108c4ec4e28c1623ac80dbb"
+    },
+    {
+      "path": "cpf-batch/execution-runtime/src/main/java/com/cpf/batch/execution/CpfRemoteWorkerTasklet.java",
+      "size": 1174,
+      "sha256": "556cd647e06e19540a873e9ddac89c7b82dd652a76c976d43df6d5d1fe049029"
+    },
+    {
+      "path": "cpf-batch/execution-runtime/src/main/java/com/cpf/batch/execution/CpfSpringBatchExecutionControl.java",
+      "size": 7972,
+      "sha256": "785cbaa0fbfe219e4fffc9605877924d4d9d338ecca9f9069e147d2556639095"
+    },
+    {
+      "path": "cpf-batch/execution-runtime/src/main/java/com/cpf/batch/execution/JdbcBatchApprovedLaunchRequestResolver.java",
+      "size": 3669,
+      "sha256": "a46743ca545e629406baa32de849ccc0b2dcc56d0c9a74a962eab33fce8d422f"
+    },
+    {
+      "path": "cpf-batch/execution-runtime/src/main/java/com/cpf/batch/execution/JdbcBatchExecutionControlPlaneAdapter.java",
+      "size": 7426,
+      "sha256": "0ae99f76b9b05b77a5e6e7ba1d40ac96933011a20385a00acb324e187053c780"
+    },
+    {
+      "path": "cpf-batch/execution-runtime/src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports",
+      "size": 174,
+      "sha256": "187ac522a0977cf3d896520b0a20b307744777d9580af734b77ff8a613ed62c6"
+    },
+    {
+      "path": "cpf-batch/host-agent/src/main/java/com/cpf/batch/agent/AgentController.java",
+      "size": 10014,
+      "sha256": "ef0dddc5736e69915e80f2e242f9ac4f29fb79a85ae3869ce6bbf0527c34c908"
+    },
+    {
+      "path": "cpf-batch/host-agent/src/main/java/com/cpf/batch/agent/AgentProperties.java",
+      "size": 3688,
+      "sha256": "dd89604bda1f7bc2f03e7ca30a1b7230f28b89cb203bc5c5b9dc46382b4d92b1"
+    },
+    {
+      "path": "cpf-batch/host-agent/src/main/java/com/cpf/batch/agent/internal/ArtifactInstaller.java",
+      "size": 16176,
+      "sha256": "bcd3b4c0e782dbbc50936c6c279310891d231fb6803abc8fe3ce94d57ee4f98d"
+    },
+    {
+      "path": "cpf-batch/host-agent/src/main/java/com/cpf/batch/agent/internal/ArtifactVerifier.java",
+      "size": 2724,
+      "sha256": "6ffc05c79f691fb7857e57a7725eb66ce02835e42ec0363234e6fa0d1d110ab4"
+    },
+    {
+      "path": "cpf-batch/host-agent/src/main/java/com/cpf/batch/agent/internal/LogArchiveService.java",
+      "size": 3180,
+      "sha256": "7610c4ab19b98c05f0d2c3c15d96508de76a5c6fc1ed73d32dd0153127ed573d"
+    },
+    {
+      "path": "cpf-batch/host-agent/src/main/java/com/cpf/batch/agent/internal/ServiceManager.java",
+      "size": 3113,
+      "sha256": "c80940afbcea977fe8089284d2d4d192042485afd98d70bf091f3d76b2b5f3fe"
+    },
+    {
+      "path": "cpf-batch/runtime-common/build.gradle",
+      "size": 523,
+      "sha256": "7d462b73e186d3d7ebf601846cda1f42e9103bce0c104e48f4520f430f4343c5"
+    },
+    {
+      "path": "cpf-batch/scheduler/build.gradle",
+      "size": 1464,
+      "sha256": "572ed04125d93df987e22842d408b2746ae580b9a11a39dcefd63780f9ff8fdf"
+    },
+    {
+      "path": "cpf-batch/scheduler/src/main/java/com/cpf/batch/scheduler/DbSchedulerPrimaryConfiguration.java",
+      "size": 1698,
+      "sha256": "0f43b25a6ed45d87dacec7a1b934c2793c51bfea72560d9c68adaaa424a09e4a"
+    },
+    {
+      "path": "cpf-batch/scheduler/src/main/java/com/cpf/batch/scheduler/SchedulerDispatchService.java",
+      "size": 10040,
+      "sha256": "b65d7d341b15e0aab5434d438dd902c43303928ad288a3fe3dd001dc6bf72a69"
+    },
+    {
+      "path": "cpf-batch/scheduler/src/main/resources/application.properties",
+      "size": 180,
+      "sha256": "4f404203f4019be5dacef361a7ec1d2e13b5bf2909ac9009176f09db0696e23b"
+    },
+    {
+      "path": "cpf-batch/testkit/build.gradle",
+      "size": 1130,
+      "sha256": "8322056cca9ddf646ccbd8613882c0eb936d747d7513b89b2baf657b6f957de4"
+    },
+    {
+      "path": "cpf-batch/testkit/src/test/java/com/cpf/batch/qa32/Qa32RuntimeEnvironmentContractTest.java",
+      "size": 2579,
+      "sha256": "86a2dc4613241865f31afc9ad3096733a55953f2ab6d63735fec5630ce3c0274"
+    },
+    {
+      "path": "cpf-batch/worker/build.gradle",
+      "size": 1505,
+      "sha256": "2a1da5fcaef1a1223a5ea4c28928295a9bbc18e80b025c09591be900f528c7c9"
+    },
+    {
+      "path": "cpf-batch/worker/src/main/java/com/cpf/batch/worker/BatchWorkerApplication.java",
+      "size": 1722,
+      "sha256": "9d4de6866efa655115fdfc1d4e8ffde582d4addbba3b346feaf13fd464dcad44"
+    },
+    {
+      "path": "cpf-batch/worker/src/main/java/com/cpf/batch/worker/SpringBatchWorkerStepHandler.java",
+      "size": 11061,
+      "sha256": "9673e40c2b7eaa26987075ec3afc113da2cd8d742e5832a02227ffaf5858da3d"
+    },
+    {
+      "path": "cpf-batch/worker/src/main/resources/application.properties",
+      "size": 178,
+      "sha256": "14541b6f5f97fd7a14a47c34a6258598c6d9ab393680677789893832048a557e"
+    },
+    {
+      "path": "cpf-biz-admin/build.gradle",
+      "size": 4130,
+      "sha256": "b9c330b68410b58018f69a36d1075ed6ac1a13d1fb9c930816197dc141f54737"
+    },
+    {
+      "path": "cpf-biz-admin/frontend/.npmrc",
+      "size": 119,
+      "sha256": "132a62148832b873372e4864deae07e8344865f8abd96a5fa5ca7cf209fd6e84"
+    },
+    {
+      "path": "cpf-biz-admin/frontend/.nvmrc",
+      "size": 8,
+      "sha256": "177d20030d4dcc37eae9ef92865ec54dadce60e8f19e9a34a5d4f37502195a36"
+    },
+    {
+      "path": "cpf-biz-admin/frontend/e2e/primary-runtime.spec.ts",
+      "size": 1438,
+      "sha256": "28376177d2461ce05b5b1d8758b6526c69f121a945b809223fa566553d6fd7f2"
+    },
+    {
+      "path": "cpf-biz-admin/frontend/orval.config.ts",
+      "size": 393,
+      "sha256": "d68b0d171f0f799f1d3150fff66b1e411c75018f5c5dd20e07485b7aed9c706d"
+    },
+    {
+      "path": "cpf-biz-admin/frontend/package.json",
+      "size": 1422,
+      "sha256": "e9d2186ed19d4473c4d2857ce6cbb33ecae013e163f144e1344763c305b7409a"
+    },
+    {
+      "path": "cpf-biz-admin/frontend/playwright.config.ts",
+      "size": 512,
+      "sha256": "a154e1daf9a9f1fc9d7cbffd9ff82208186dc77a0e16bd00d0165183192a8e5a"
+    },
+    {
+      "path": "cpf-biz-admin/frontend/scripts/verify-generated-client.mjs",
+      "size": 591,
+      "sha256": "4dce488117a9a63d77409b34ecf0abceb83f0b32f5d575c05c66fa7fbb65c6fd"
+    },
+    {
+      "path": "cpf-biz-admin/frontend/scripts/verify-primary-frontend.mjs",
+      "size": 930,
+      "sha256": "6b361dfb3120c97ae8724824b9693d5149b3c3c7ad78cdc3893a26fcdca49fd2"
+    },
+    {
+      "path": "cpf-biz-admin/frontend/src/App.vue",
+      "size": 7746,
+      "sha256": "a8b321d92fcc2775bd1c1f77b015895180bfe20005faa72538604507434eaf3e"
+    },
+    {
+      "path": "cpf-biz-admin/frontend/src/app/router.ts",
+      "size": 808,
+      "sha256": "4fdc74df2c9a626bbf57879bb725704b452b25d104555112250ba10610a5b87e"
+    },
+    {
+      "path": "cpf-biz-admin/frontend/src/app/routes.ts",
+      "size": 6326,
+      "sha256": "a87386d18bfebb2b07b39d1cdc6405f42739b5de24d3985dec1b9802ab0d2407"
+    },
+    {
+      "path": "cpf-biz-admin/frontend/src/components/ui/CpfDataTable.vue",
+      "size": 1973,
+      "sha256": "6c8744c591ac1823980ee0bd9be6800f1555f8f90f0ea44566d3962b22b3cd55"
+    },
+    {
+      "path": "cpf-biz-admin/frontend/src/components/ui/CpfValidatedForm.vue",
+      "size": 999,
+      "sha256": "db1ecbefa52dd85d32f5fd0b0cc15737589f6986b0f2e7efbb8c7b7d54a92c0e"
+    },
+    {
+      "path": "cpf-biz-admin/frontend/src/features/auth/session.ts",
+      "size": 4434,
+      "sha256": "543da61dbd495f0d522a5e3fa5ba7a40a199a577605affdc5667da5030273b4b"
+    },
+    {
+      "path": "cpf-biz-admin/frontend/src/main.ts",
+      "size": 668,
+      "sha256": "b39afac090f903d795841eb4e7faa864f7fa6ac3b63ad2241309bee462728bc0"
+    },
+    {
+      "path": "cpf-biz-admin/frontend/src/shared/orval-mutator.ts",
+      "size": 1191,
+      "sha256": "8600d951c042250b6c73be2b18477a6dfdf6f029309a219631813dd7e85f50af"
+    },
+    {
+      "path": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/auth/repository/BzaAuthRepository.java",
+      "size": 24558,
+      "sha256": "e9c53d63fb82533d23c666b06fcc025a56a9ea1da9a5c1187e31b5e95c7dea94"
+    },
+    {
+      "path": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/auth/service/BzaBootstrapApprovalRepository.java",
+      "size": 5722,
+      "sha256": "ae171438874def918b8b13318c3e5bc416afabc366601e32af43242e23e8c650"
+    },
+    {
+      "path": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/auth/service/BzaBootstrapRunner.java",
+      "size": 8711,
+      "sha256": "e33296838fa03183c9e168894b822009f485971ccbe7888ab58e7db2678e077d"
+    },
+    {
+      "path": "cpf-common/build.gradle",
+      "size": 2636,
+      "sha256": "194ff11f7a62d03d91600971e0880722baee2c94c8e421fbdc0f55177a05df6c"
+    },
+    {
+      "path": "cpf-core/build.gradle",
+      "size": 4025,
+      "sha256": "8aedc33f96990623f8f6c30f96d5de06a15c3349c2be2c34cc781324b00fb486"
+    },
+    {
+      "path": "cpf-core/src/main/java/com/cpf/core/api/archive/CpfArchivePolicy.java",
+      "size": 1505,
+      "sha256": "1861346662a3ed864940f38efee7c4408024b0900acb10248b2fae78af838e6b"
+    },
+    {
+      "path": "cpf-core/src/main/java/com/cpf/core/api/archive/CpfArchiveService.java",
+      "size": 367,
+      "sha256": "90f8cf5943c67b76ee4e4ca5edc698c65cf53538010d653974d62252707bc8c3"
+    },
+    {
+      "path": "cpf-core/src/main/java/com/cpf/core/api/archive/CpfExtractedArchiveEntry.java",
+      "size": 254,
+      "sha256": "9323f1fd06b0cfcd0eba7975d938cdbafa07ae962197b81d492ae67982c5e432"
+    },
+    {
+      "path": "cpf-core/src/main/java/com/cpf/core/api/attachment/CpfAttachmentStoragePort.java",
+      "size": 408,
+      "sha256": "b2766751282754c1c3f087527def67c410a42a1358f24ac78cd867dfdfbb63d9"
+    },
+    {
+      "path": "cpf-core/src/main/java/com/cpf/core/api/attachment/CpfAttachmentStream.java",
+      "size": 525,
+      "sha256": "5c16d911980834042464e08490b6a8fa2fe3e366b6855f01d04fdcf8d257d2ae"
+    },
+    {
+      "path": "cpf-core/src/main/java/com/cpf/core/common/archive/LocalCpfArchiveService.java",
+      "size": 15599,
+      "sha256": "3e05a0886b6667ed4fbe096445277555cba5ffeea83a2c04481b2bc76021be14"
+    },
+    {
+      "path": "cpf-core/src/main/java/com/cpf/core/common/attachment/LocalCpfAttachmentStorageAdapter.java",
+      "size": 7621,
+      "sha256": "9ffea7b85e765de32371b701c6d91ca8da4c55ecec9cbb909b0581a609a33b25"
+    },
+    {
+      "path": "cpf-docs/architecture/ADR_OSS_FIRST_PLATFORM_DIRECTION.md",
+      "size": 6436,
+      "sha256": "71ed062bdaafc93e8ac5ba02b055d91014270667990faca9828a235e5705fe04"
+    },
+    {
+      "path": "cpf-docs/architecture/CPF_BUILD_VS_BUY_MATRIX.md",
+      "size": 5463,
+      "sha256": "60183e0058cc886e000284e5ea7c87ee138a68b0201a23131ad9a5176c215c6c"
+    },
+    {
+      "path": "cpf-docs/evidence/current/CPF_20260730_QA32_COMPLETION_EVIDENCE.json",
+      "size": 1940,
+      "sha256": "fc523ad144e6c04d0e59432b09baa4cf6aaa273b9c567cb4adaa1af6188f0d03"
+    },
+    {
+      "path": "cpf-docs/evidence/current/qa32-development-completion.json",
+      "size": 124,
+      "sha256": "400997b8812d778b48d4af8876e38b395c254ffa77bea8e671fb74f6188ea10f"
+    },
+    {
+      "path": "cpf-docs/evidence/current/qa32-release-gate-not-executed.json",
+      "size": 14956,
+      "sha256": "fb63d24b8ab335f3525d2892b6401fcdbb69fdc6b74f626395cc5193a597ebd5"
+    },
+    {
+      "path": "cpf-docs/evidence/current/qa32-secret-hygiene.json",
+      "size": 41,
+      "sha256": "44ca24764896b56c10a97a0f8df84d4bc1d46ff34ec0f87c0c8d1fb5de75f98b"
+    },
+    {
+      "path": "cpf-docs/evidence/current/qa32-static-primary-engines.json",
+      "size": 59,
+      "sha256": "aea8826f4523f500961d3f0bd0094cc41ee59a0b4a9c50ebe02c6f00b01ac371"
+    },
+    {
+      "path": "cpf-docs/evidence/current/qa32-static-security.json",
+      "size": 59,
+      "sha256": "b2a09629dd15181fdc107357497eb4b727d60b4dac5253f7f71f959d4f9c4488"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/BUILD-API-001.json",
+      "size": 1216,
+      "sha256": "f69e10b0213d2a43bd0cfd2b3bcfede6c8e263429e61d68093c400e094ef59fc"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/BUILD-ART-001.json",
+      "size": 1359,
+      "sha256": "94a188e67871025020cf268927ff323ac25c51b3a22897761dc7566cdb3be35b"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/BUILD-ART-002.json",
+      "size": 1535,
+      "sha256": "22eaae963a3e8791be75169ddae34f6e43f0a6a25a1c0d3d2a87ce55dcfc0f53"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/BUILD-ART-003.json",
+      "size": 1506,
+      "sha256": "ed7d36eee70948e5a8fc99a919eb090e0d03474fd13e0c349214007792dfe491"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/BUILD-ART-004.json",
+      "size": 1359,
+      "sha256": "9751501b202e37c4556b8689e0329a558076ea87630c0e0b14f70f9fe0a81b6b"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/BUILD-ART-005.json",
+      "size": 1535,
+      "sha256": "c8ac89544e790113fdffbf42d2f97f2d270338a5b3ac471498e38316ca4d1431"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/BUILD-ART-006.json",
+      "size": 1478,
+      "sha256": "2dd9d85cade11c25548acdf962f9b76223321ff3157776943139f06fa11264ed"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/BUILD-DEP-001.json",
+      "size": 1188,
+      "sha256": "bdfd419d4cb493efd83dfcd4aa658eb9ba82a6bc235380141e9407e16532057c"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/BUILD-DEP-002.json",
+      "size": 1392,
+      "sha256": "564cba8ceddbe1a28e05e07620d4503606ca145f5699d40f9d9124cc3e9ca0b8"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/BUILD-FE-001.json",
+      "size": 1391,
+      "sha256": "c25b2922967e1fc8054d6133ade631cb0ef25e0d7376221ca4868c74e8c0a41a"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/BUILD-FE-002.json",
+      "size": 1505,
+      "sha256": "f0dfd8d77d385ec1b5d0e6fff5b6af2e08f54e22acb3020a89785789a6116e4b"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/BUILD-GEN-001.json",
+      "size": 1216,
+      "sha256": "bde9c2b539a638cf319ba8a455d333ba6244aa77b1feb0161b099809442c8717"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/BUILD-GEN-002.json",
+      "size": 1188,
+      "sha256": "95bf46c4e1d639cdcd18df0b618e21131b84cb96309862763e2a2ad848bc35e4"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/BUILD-GEN-003.json",
+      "size": 1667,
+      "sha256": "05910683aebeff8ad1abc1aa6dac4b6f7c617e5fcf887a770a3b9392a9a5db71"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/BUILD-GEN-004.json",
+      "size": 1245,
+      "sha256": "90c3da41ea89ca1f9e34c3a1e7439bc2ba142d2c225008074147b288c32b0597"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/BUILD-GOV-001.json",
+      "size": 1363,
+      "sha256": "831918d324a828fbb3a660a33b1d2ed5f4d6ebdca616bf25db75ea6bd323fd9b"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/BUILD-OBS-001.json",
+      "size": 1280,
+      "sha256": "fdb2db06e3a6854813618f23dffc7c2e6001b32da2c28c2bca9eaa955a7029f4"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/BUILD-PKG-001.json",
+      "size": 1810,
+      "sha256": "140d01a129599864d12d3f3c0fdc7444dee2df11cf83bf1ddc782dd4e6bae4ab"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/BUILD-PKG-002.json",
+      "size": 1810,
+      "sha256": "95a7ad140d35dd77609c51a8303a5ef9a50a18d741d517835bcb59aa88fb2d33"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/BUILD-PROV-001.json",
+      "size": 1875,
+      "sha256": "8073c11ea3cd6f240b835f931d78f0f51d4b60d83073bdcfe1240a31a71922ea"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/BUILD-PROV-002.json",
+      "size": 1332,
+      "sha256": "06890d75be24c564b44dfa4933a9d1579caf49e4f2fed256be146e8782aa0132"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/BUILD-PROV-003.json",
+      "size": 1360,
+      "sha256": "7465a4a620f6b02e7b4130a6cbbe3fa9f9d65fc9c21a415dc1bff6796636e5a3"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/BUILD-PS-001.json",
+      "size": 1774,
+      "sha256": "330c1fe2ad7a5a35e8793179e076e97a5c52b7db2e2f2a5eeb1efd0dbbb81653"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/BUILD-REL-001.json",
+      "size": 1667,
+      "sha256": "bb3699678585bf65655ecfd3ca3a75efeda9bae84659661648755b1521052980"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/CFG-ENV-001.json",
+      "size": 1158,
+      "sha256": "1b397eb5c895949b548cf85f4b3f6de494d43b02cbea356447f656735da1baad"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/OPS-DEPLOY-001.json",
+      "size": 1497,
+      "sha256": "83162238a4e65c31d26e85528e2a6ec7fb068c6c4ffec607bec1ec2b8e95e930"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/OPS-PROBE-001.json",
+      "size": 1211,
+      "sha256": "f4450215bb8fa44071bb6429c2b5521ab883d4ec0f52d9bbcefc3896a916deb0"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/OSS-API-001.json",
+      "size": 1082,
+      "sha256": "cf31d4c1389f8a2974ff79f7c5602632826a586bd86c47d31f7a5cb6bda08834"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/OSS-ARCH-001.json",
+      "size": 1624,
+      "sha256": "35ceb5eea6aa89c748eb5aa8c04467f24247b4fb57e7356ad53ca53c8c24da23"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/OSS-BATCH-001.json",
+      "size": 1865,
+      "sha256": "b5b6cc9f3e9f7ba3f469adb2a08f2802d77ec9b3494538073155068db10993e2"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/OSS-BFF-001.json",
+      "size": 1664,
+      "sha256": "d8fbd095d8ddb93f4a9349cf7ae9d0f6988671c557fcdd1524b606b1a51342cf"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/OSS-CACHE-001.json",
+      "size": 1282,
+      "sha256": "e338374bc4a3bb3c9cbc091080934b696750aaf347987a1e05146bdfd3c304fc"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/OSS-DB-001.json",
+      "size": 1125,
+      "sha256": "31fb380ed917ccc14668d17c4dabd0651b7045a8ce49ddcfa7effd2fceba2a6c"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/OSS-FE-001.json",
+      "size": 969,
+      "sha256": "84fae1838c0d1ab0dc4a5a7e8274a846d33623f23b8dedbef24b25bd13ccf1fc"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/OSS-FLAG-001.json",
+      "size": 1261,
+      "sha256": "e47f0db89dc61249174aafd485904eda60f863750733af4e8cf2a975b5d1f84a"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/OSS-GOV-001.json",
+      "size": 1773,
+      "sha256": "e84c3e57b38880b1d04e59d4e00c64a90b0366efd08c0fd24cdc1cfb947ebbb3"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/OSS-GWY-001.json",
+      "size": 1694,
+      "sha256": "4d9fae9a41bc9391fdf343560dd2bdce3bbc4087dd5be8c233f04fb0af0dbcfd"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/OSS-MSG-001.json",
+      "size": 1844,
+      "sha256": "97c084ed5f806551600e48f72a5095d286bb25ce76fa9334dff129314c9e3480"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/OSS-OBS-001.json",
+      "size": 1378,
+      "sha256": "43e170e6d73a35bfaaa75800d996a3b173d905e989450de5cc2601ef2925fe75"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/OSS-RES-001.json",
+      "size": 1648,
+      "sha256": "5e192f1025be812592100757031b1c837c88ec63c6f22d2cf2d1450780032b0d"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/OSS-SCHED-001.json",
+      "size": 1632,
+      "sha256": "c22b47861ace31aac18f188259bdb30556628be876c344874dc2c84108c1a029"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/OSS-SECRET-001.json",
+      "size": 1252,
+      "sha256": "199a9b9fcac3be7b9d9c5e483659e493db493eb1635f34e72c0b8d7b27c3d964"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/OSS-SUPPLY-001.json",
+      "size": 1571,
+      "sha256": "38bb133c4cfeac0e17e2ffd4164702364af450acf65c6285ad9701028b6442ee"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/OSS-TEST-001.json",
+      "size": 2031,
+      "sha256": "49c93d82f002ddd1144b1e362a4e0d8267578b53bdc796c4fd8de2824f55b92a"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/OSS-UI-001.json",
+      "size": 1397,
+      "sha256": "12b6debeddab1261faf7b4a0dc021b5eb6c47d052017ece197ab579984fd6d8b"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/SEC-ARTIFACT-001.json",
+      "size": 1263,
+      "sha256": "66425316975ff7a59528b7f6f988f58e8cea81f72b099ca5dedac958d3350d9d"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/SEC-BOOTSTRAP-001.json",
+      "size": 1310,
+      "sha256": "ca4cafbbab8aee9aacc99917c4ca2a3605c573db2a8fb41795bb685ec12b3fa2"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/SEC-CRYPTO-001.json",
+      "size": 986,
+      "sha256": "f6482c69c7fe3c44e22092f8aaf924e5b56ae485a3629404122adeefe30c875a"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/SEC-HTTP-001.json",
+      "size": 1446,
+      "sha256": "87bb6297e60b1b10727c393c8a44f72e1a5ce816ce8bb099562af31e350a74f5"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/SEC-PARSER-001.json",
+      "size": 1021,
+      "sha256": "d3cb16c7003098cc24066512d45072b22f9b937b7c8f9d90376c8d00c848aec2"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/SEC-SCRIPT-001.json",
+      "size": 1255,
+      "sha256": "12254c2b0c7d2c776cf53bca844befd52cb041f4bc9d5f02fc0b11fdc91b9291"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/SRC-ABSENCE-001.json",
+      "size": 812,
+      "sha256": "f41c4843c532e4181294b43653ce7fd8c96fde9696c6a70b9e4348692c713b52"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/SRC-CONC-001.json",
+      "size": 1051,
+      "sha256": "8840265ae116668afd74efe3df016d3687d45251ba15c9e1eb7da6b66f862024"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/SRC-DESER-001.json",
+      "size": 1289,
+      "sha256": "9a77f5889ed40890477fb27779dd9a40c3caca275c6d42314a0d92ecf1e29cde"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/SRC-EGRESS-001.json",
+      "size": 1200,
+      "sha256": "d036b937614e294cda37c50271ede13310de075f494592b821d8c2734eee3229"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/SRC-ERR-001.json",
+      "size": 1201,
+      "sha256": "2e040c7dd64b7c591110bfce8ec94c9f89aab03d65f1cfc0191419b0aed41bcc"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/SRC-EXEC-001.json",
+      "size": 1516,
+      "sha256": "123bd69b08f0c143aed85d667b36460677577c3eb64796043fb2fd434ed6cfbc"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/SRC-FS-001.json",
+      "size": 1286,
+      "sha256": "7047f0e8158311c04e2cf637a02b1667845c553e07be95ff2fd6fb2e135710aa"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/SRC-INCOMPLETE-001.json",
+      "size": 962,
+      "sha256": "353832ac5146b9aeb8463e69555a209cc890dbde732e1db2730aabbb1f09068f"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/SRC-REFLECT-001.json",
+      "size": 1248,
+      "sha256": "00266baf2cb4205e90e9f9c99f0b5d7669411bd054e01fc3f886a25c1ca5a9b7"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/SRC-RESOURCE-001.json",
+      "size": 1435,
+      "sha256": "ebbf7ae30fa3f271ced2aadae7f2db4b4c863372ade2fb05f3b013b1aeeea527"
+    },
+    {
+      "path": "cpf-docs/evidence/current/requirements/SRC-SQL-001.json",
+      "size": 1278,
+      "sha256": "91b9941c8fe5b5d79c04c68b0090d530e80134cea09d2ed16ced115cb08e8d36"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S001.json",
+      "size": 1381,
+      "sha256": "6370cc5db770ee0fbccd91aebbc565e212f68de86a31a7e8ee695765e28a16a4"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S002.json",
+      "size": 1091,
+      "sha256": "aad0cbd7fc7fdd49f858d0033a40d0d268768f32de28d6aeb8034c72b51ef02a"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S003.json",
+      "size": 1288,
+      "sha256": "68cdccc95f1eb43b29a08075cee2a31f2ce930dab30ceb076074f8892ff38dcb"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S004.json",
+      "size": 1601,
+      "sha256": "56286370868c70bd9d5ffe58933294945db035c6164128306c61029c8249e79e"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S005.json",
+      "size": 1179,
+      "sha256": "5cf0170e70b664d90798f7ee1f958972bbcd81d30acb0bb5e3178a22412ae139"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S006.json",
+      "size": 682,
+      "sha256": "4ff1be7a70cfbb933142b47fe16892c3b617127f2850e06b8fae1861a62bb786"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S007.json",
+      "size": 979,
+      "sha256": "61bee53bc9a1d224648c527c1fa8e08590838848743182a648ecd922f7b21a4a"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S008.json",
+      "size": 1307,
+      "sha256": "04bece9ac8101545f55bf1acf325f9e9066f8266c2a8475b38b2e1f6e9f9f2c3"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S009.json",
+      "size": 930,
+      "sha256": "3537b115b90779f1a6518b2319d0ccaafbdcfdde7656f61bf65223ab388e2b06"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S010.json",
+      "size": 783,
+      "sha256": "46e81a5fee1b86c05bffd02f7b64cfda6850f0dae419bb2f21a5cc03bd3ede82"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S011.json",
+      "size": 1287,
+      "sha256": "e73d809322a9d4999e5b3d460cf636835fd87141934814e538d4f26f67dc1e94"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S012.json",
+      "size": 812,
+      "sha256": "ddcadd29e2ddf08586a84f9ec2a79a51d2968346f5a46919aa615fc21008e573"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S013.json",
+      "size": 817,
+      "sha256": "5160fcd4b21a3b7f78be7ed1e98310c82a6fee17fa3e2970cbf2fd6afb7fbebc"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S014.json",
+      "size": 1140,
+      "sha256": "bfc38162a6c41dd6884b7b5b87dd2375ed62b8f8e228b9cad1340dfeb227cbb1"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S015.json",
+      "size": 784,
+      "sha256": "5bc3b4711e726ae503edf8b83df6c08ef6af175cc826cf467159d49f5922131b"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S016.json",
+      "size": 784,
+      "sha256": "ce54dad4bc8368a0faacaf820b44df89beba6d2ee314de02bbda51013c8dcd31"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S017.json",
+      "size": 1141,
+      "sha256": "3359f2f1fba40237a1dff81c6c9ec6e0d047d709ae13109fbfb7b1e8d4dcbdd3"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S018.json",
+      "size": 848,
+      "sha256": "fab78eaee595e40baf40bb0a59720b96019d705e96a1d405ef21ea4350ebc81c"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S019.json",
+      "size": 1115,
+      "sha256": "87645612118de49e418ea1ef76718627b5deda42019ba51be6bb14b9bada96eb"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S020.json",
+      "size": 1205,
+      "sha256": "ccf9892f68932d2ae77e204e86370ea88e28082297259b298cf97c9bbaef19e6"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S021.json",
+      "size": 1469,
+      "sha256": "bab95a3fa1b8fea7eb40daac27c07f9e6a413d32ee7d9ddd3bcb98b18f1378af"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S022.json",
+      "size": 1258,
+      "sha256": "53a510470d81a3cce736aeae9d4b4f98673cfad751e48ce704e4b9363679395d"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S023.json",
+      "size": 1408,
+      "sha256": "c8d0e2aad67d2063cd933beff02dc6461a5288f24b6a6c87dd124651359f0f25"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S024.json",
+      "size": 1281,
+      "sha256": "ff5d18d7a724422ccd7edebac8db1e29e39e3fac5c02b44f4cfb01c94799b8f8"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S025.json",
+      "size": 1462,
+      "sha256": "28105adc928e33efabcada1458765757428eaba79471ccd6b70a52c428cd1285"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S026.json",
+      "size": 1097,
+      "sha256": "33ffc7ffd7034a30304d064620e02af8c7c0947a80288e6e0305e28085ed3177"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S027.json",
+      "size": 753,
+      "sha256": "e257ca4f85aa24d04dc37e9f30d23403cf0d3c0e46853effa050ca43d72efc23"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S028.json",
+      "size": 1273,
+      "sha256": "93f87d1158ff99b5dff6a6e58c32dbc8253358af11f65f471e2b654ef2eabf54"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S029.json",
+      "size": 1438,
+      "sha256": "8254e3cec48b264e2a88b5acf9f720ff454f5e951d4705b6295b19170fac9c65"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S030.json",
+      "size": 1149,
+      "sha256": "6b26f6ba785e9a07728855159255f4b5deca28bff86c33a41831d9ceec993deb"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S031.json",
+      "size": 1057,
+      "sha256": "963a99948f1911b5fac8e2d67f01714261d976b034ea5cf7fb3b948d39228ff8"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S032.json",
+      "size": 1175,
+      "sha256": "d53ff412d5ece77e159a557c078392a327521690bf89598c17ea0390c6748111"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S033.json",
+      "size": 1055,
+      "sha256": "406c2305deac73a772a0b76134e81154163f5d63feffcc6c294569e3647b04c6"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S034.json",
+      "size": 1233,
+      "sha256": "68a5b2aec36579cc0460ba8c0bff996f43d17729bf434b1955c4bc971c4b3224"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S035.json",
+      "size": 1249,
+      "sha256": "62b994f14dd853b4892d075bbf602a1e90a9f63308d0713efafa7f901d8e1d84"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S036.json",
+      "size": 1202,
+      "sha256": "9b315806f9cffd78de128e991ca1701423459fe5c2778b73e1b8fbf39ae7d088"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S037.json",
+      "size": 892,
+      "sha256": "8056a1f08549d652ab1809d689ca75f78d57934069434cf982174680bc97ade2"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S038.json",
+      "size": 1412,
+      "sha256": "ef75edcb915a44bf322624298d18ed801308beaa93810868de6deb4ae777b865"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S039.json",
+      "size": 926,
+      "sha256": "d4c3f52dcea875a77d9e87e141a8cb29b7cb39165946690aa9e7d6c90e87771f"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S040.json",
+      "size": 684,
+      "sha256": "dc0e2a96c118c646a896a41d05e6aa9668a81123bc37c9418058fbe9c6eb3a2a"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S041.json",
+      "size": 977,
+      "sha256": "02604d2c70edd8e1bec754eb8de720eb2b5d97c09475596fbd3144332048b0c9"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S042.json",
+      "size": 1305,
+      "sha256": "24981ec72df9abb46f119d8ada516523b1dd401036df2fa2131acfd58bc65a3c"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S043.json",
+      "size": 964,
+      "sha256": "a921e651f63b9d5b30ad62eb449f740b94b86cbf3b2fcf59038498bb77f975e6"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S044.json",
+      "size": 933,
+      "sha256": "84171997455531e2256d626f77b3ceee775bd5630b5501b264d620ac8ea0e3ce"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S045.json",
+      "size": 978,
+      "sha256": "485dc38c7536b0cfc555db4c2314b888712c913c5d200575f99e2e3fc2f882eb"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S046.json",
+      "size": 815,
+      "sha256": "ce0c9c257f6e5782782218522743c274ae0397e86da26c3d74ed8c23c8fff7b1"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S047.json",
+      "size": 652,
+      "sha256": "2296afb5f6cfdee8aaab47ce415426f9727e5c490ed560dbe972604f27e1057a"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S048.json",
+      "size": 1009,
+      "sha256": "0c9699ee196766edd86d8c5de4f45fa386054cd9b70b0fca571bb10e5628eb4b"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S049.json",
+      "size": 820,
+      "sha256": "8a98542e146fc9343aef76d1944118e197be483cc15b8a145596e1a35be11fb8"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S050.json",
+      "size": 995,
+      "sha256": "054c262991b4132de05f2b5eee16729c0271543e36a63693a3070c4a5380ed74"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S051.json",
+      "size": 1014,
+      "sha256": "eeb07cef2d3d1bcdf65f8389795e8fd855840f4f95a8384fdeb496e44b986a39"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S052.json",
+      "size": 906,
+      "sha256": "b5ba2cdb699ba3c03dbe37edf4d32e658ab072708a4388280686ee6266e96b2d"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S053.json",
+      "size": 918,
+      "sha256": "d707ec481b240d15363f13b6f72199c2bf905d8446dc25c9b74d15bb18a0df5d"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S054.json",
+      "size": 1247,
+      "sha256": "048813de6baad89e453c7b092e3d5fc734cafff0ad1a6e77271ec54865c98fb3"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S055.json",
+      "size": 1428,
+      "sha256": "bfde2bf825795704547440e7b3f40f1d9633cd7a18799d26d0a3de5bdb08d49c"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S056.json",
+      "size": 1273,
+      "sha256": "06f9d5a23fac3c8cc60a8891f7c2cfbaf9b2bd416eb74e1bc2be36278db3faa8"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S057.json",
+      "size": 1221,
+      "sha256": "a40e7deacb36494b105498b8153f8a954e273bfd3566ea9d54ac64d1542846eb"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S058.json",
+      "size": 1128,
+      "sha256": "333d7c44812b133cb2744c31dc75cfb9577d45f62302a3bd907077b05d82d81e"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S059.json",
+      "size": 1456,
+      "sha256": "5658733f29dd2830c69086e64198c3ab9fd1555adffabcce26cf16013ae1e9e4"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S060.json",
+      "size": 1204,
+      "sha256": "22e530dc9228fd0f82bf2279eca5e34615c093f55f430d1184c04dd9962c335d"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S061.json",
+      "size": 1107,
+      "sha256": "01a7aa6d41fc405f4a7e3af27649e6eac8c6e05296dfd5a432e156209bea6070"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S062.json",
+      "size": 1142,
+      "sha256": "212598e7b17b15de10155ff9f3132d72c28e2b3f1a5780196e75664bd8a2fc1b"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S063.json",
+      "size": 786,
+      "sha256": "cb438e7b1f775a1b0ebdf7a9d0ad44d9eff42033a050f638f387c60f77164636"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S064.json",
+      "size": 683,
+      "sha256": "064bb15d7577129e0e79733c7bee0ad06d67b5d3d9d6666ea214ca4953b543f4"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S065.json",
+      "size": 980,
+      "sha256": "5a87ab4917e272fe445fde590d4ff9c79660f6a5250565d300e8622501c3d216"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S066.json",
+      "size": 1308,
+      "sha256": "6b50eb24b1e6a7a6f3c35fe29cf9e39df6b84b9b351e147dc1bf04263ad3c503"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S067.json",
+      "size": 1093,
+      "sha256": "69dfebea8c9ea81005db7d27822c2fc1cc7eeb0172704e7dfcef40164f1fe28e"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S068.json",
+      "size": 959,
+      "sha256": "5a9de07e8792cab0e0a32711140ca5a666977f666c4daa512d0ea9ab0e7f9638"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S069.json",
+      "size": 980,
+      "sha256": "8b4830ccbe651b33a7c40631c981c8924d340ddea70777bd28d1955fdbc7842f"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S070.json",
+      "size": 1440,
+      "sha256": "5e57bd6ba1a9385702bca885ebcd29fcc4986f59fcb5277da86d4b6dc2e33036"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S071.json",
+      "size": 1094,
+      "sha256": "06f449a394a4f69bb2f8f26b5a7072bb8c8b02281824302fa97a814e00970a05"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S072.json",
+      "size": 1223,
+      "sha256": "3f5c1d84e48a70611d3ecd677c21d99913247c1beb306e9ce3f27f243a59e712"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S073.json",
+      "size": 981,
+      "sha256": "0dc2ce2765f0e1136c52782ff2c4c6ab7fea2af38502b16bdb478037b0cafccf"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S074.json",
+      "size": 1441,
+      "sha256": "62bb3c0c32f5553e265621c7def77bc657212c8450b5270ed85c362292cafdc6"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S075.json",
+      "size": 1104,
+      "sha256": "a198b5bb5513ecc49df589cfa466fb5845d446b8364399e1647c0d8cc3a4d35a"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S076.json",
+      "size": 941,
+      "sha256": "aa1a1e515e0bf5cc394839cc6cf43cedb4f2b3619f7f6902bf5752cfa20ff453"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S077.json",
+      "size": 980,
+      "sha256": "556ce158d2ef97ffaec26c90b444a9ab363b52e72f8e25f462f6f6f153b8f3fe"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S078.json",
+      "size": 947,
+      "sha256": "80d0e0fbdb334547f5469291683cf12ac27699e424b8b23c0ed84bbb9e058d3d"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S079.json",
+      "size": 1090,
+      "sha256": "2f05014694768f8a816d45940c569aa704029f93ccc3d1d1fb537ad66b17a899"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S080.json",
+      "size": 980,
+      "sha256": "3c4e86d0023b166714fee76e711e9cb946df5a5dc680d2e98a5b985f4f594b96"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S081.json",
+      "size": 1251,
+      "sha256": "1e3f6b3333c158e474381028841e6eff8e30765968e1390e05c3ebadffc1647c"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S082.json",
+      "size": 1245,
+      "sha256": "2552cc849c7aa0eff852f446263d9019a8f76962d77f742bcaa11ab5fc481b0f"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S083.json",
+      "size": 980,
+      "sha256": "034f5fb506cb2bc3fc1c2c7778d98b616221d180639c36bbc55834a70b1ba81f"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S084.json",
+      "size": 1092,
+      "sha256": "7bdbf3e3eb7959822b3dab7e257dbe25a98e22295ffbdcf3cf862c4e5420a0d6"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S085.json",
+      "size": 1121,
+      "sha256": "2708ff94f6df8f0dfe37c8c7e2a77f5c2255b01d001c2df09929f627e5fd7ada"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S086.json",
+      "size": 979,
+      "sha256": "d6be1b9a400b406d94177c10a8554d4c5dd05122253c8448020ee66c89f42d5a"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S087.json",
+      "size": 1092,
+      "sha256": "fe6c47a3ce8758cdb1444079f16fb1416d4dd7fea517771a232657ef1dfd9338"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S088.json",
+      "size": 1239,
+      "sha256": "645c21938ee4c3dccd14c8534b633a66736c73fc17d6008f2beb9077074f0e58"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S089.json",
+      "size": 1142,
+      "sha256": "37d42e66587a24710959dd69540cf416e141b2999cd29d130f7461e0c413a87f"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S090.json",
+      "size": 786,
+      "sha256": "8ef2c769c0e6809053ae78f12d768a251da0035f1ceddb4cb3d569df180968a1"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S091.json",
+      "size": 683,
+      "sha256": "54e44bac4b6bb4d148ef87343c8395f88c693d1d4b948c3f40362781590dd978"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S092.json",
+      "size": 980,
+      "sha256": "a6de7d05a9eddf866311384636518085db121b0fe7bcfcd17843a26632c6ddea"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S093.json",
+      "size": 933,
+      "sha256": "9816d1ef8a9b9f15c42c18754415a4fc4203b922c9c7afd68b9d060936ddc92a"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S094.json",
+      "size": 1065,
+      "sha256": "7ba5ae7965fec5fe0ac00a9a87e1f130418f7eb56beb2a39f6b77ffae495791b"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S095.json",
+      "size": 1127,
+      "sha256": "c6fd5c0b8d8cbddc3b5ecb4fa2b580b96e5b92270abeeb315c6d48e133c0cb2a"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S096.json",
+      "size": 1412,
+      "sha256": "0da06cb85d109b5f1f645680690acbaceaccade242a20c09cb8b6aac5bd554e5"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S097.json",
+      "size": 798,
+      "sha256": "c4209dc8a919b40864fbc27bbd87a4c532c3de54e2154ad3d978bc416cf45674"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S098.json",
+      "size": 980,
+      "sha256": "d13418c2399c26ad0e4757e6f72287a567fb9e4c9f6cf2e0d510f7169e219be6"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S099.json",
+      "size": 961,
+      "sha256": "94ef58cd300d97583a9ccd2bde852caf0723ae124576c43e2f2709decea76df1"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S100.json",
+      "size": 798,
+      "sha256": "e95ca78fc54b5ac6019a6f3561ddf4c7e8c7a7d357e959b33cb0786e85b175bc"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S101.json",
+      "size": 980,
+      "sha256": "ad0b55bb8dc1922070d44d037ca30f3ddf8752fbc853e92e26bb6e99dcc9715c"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S102.json",
+      "size": 1104,
+      "sha256": "e30ceb7b00fd0c3f6d8be9f9671c5bd869bb9fbaf37c23c062c5d32167156a96"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S103.json",
+      "size": 766,
+      "sha256": "b51c00df3a5cbece4c9b403a406ca36f631ebd256ae54c907c7209b318a199fc"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S104.json",
+      "size": 980,
+      "sha256": "6b38bd60fbd30d081070147f7c72556aef06b842562969f58b5565f975e63fe1"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S105.json",
+      "size": 918,
+      "sha256": "d22acd58797cc8543ad3ae9531d9dcd3311d5123a08dbafe5899e5bafb5ae304"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S106.json",
+      "size": 755,
+      "sha256": "948e82b832b386f77dd7d943b899cca4d109bbd8505524bfaae67b420ee88134"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S107.json",
+      "size": 980,
+      "sha256": "ccbe5729b0d593db3c3f9f3b68239d5dacb6f65dfd24ef799fa68635beb23f8b"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S108.json",
+      "size": 933,
+      "sha256": "8a2ec041194320d2f75b93909bebc302e08aeb16ad11e2e10ff95227d5a4f166"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S109.json",
+      "size": 927,
+      "sha256": "fee01d9c72975825ee00c339bdb53eb05f8875447d77cca184a2f2884dea386d"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S110.json",
+      "size": 980,
+      "sha256": "7d735d51984dcf1b10735cac98286cc63be8c55983cac94d4794d195fb324887"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S111.json",
+      "size": 930,
+      "sha256": "1eef1e7118cf7865457717a9f714b9071bac61643be83e5c134e7c3dbba21334"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S112.json",
+      "size": 767,
+      "sha256": "ba9c8681f92a588b3f3f6b270c4dbd71474b60defc683bee2be8170fb8ead5cf"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S113.json",
+      "size": 981,
+      "sha256": "60bb18cf05ede0a3746f776a130d4772f262e678d21f9d7a2c5fbba421f324fe"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S114.json",
+      "size": 947,
+      "sha256": "a3dc5e7a369e533efcfaf603ebbcbc6348b1f825569247e10e0696a8bb8ad033"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S115.json",
+      "size": 755,
+      "sha256": "fb03ca4aeab37ffd16f5af7b449b39bbe9b91858f82bee3f53c50e6da2a785fe"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S116.json",
+      "size": 980,
+      "sha256": "09f6c2adcb0303560dbd20d4638a557dbdebdbc5132364be79774d60dfdd668b"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S117.json",
+      "size": 1061,
+      "sha256": "c67b97f56d91641427c137ea37f741a7b6345ec00b97eda6807a9911445c881d"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S118.json",
+      "size": 898,
+      "sha256": "dfca5c8696fa3dc6a95219c5dee2321a26ba607618cf8c7e318756707efe2e9b"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S119.json",
+      "size": 1284,
+      "sha256": "d72efd3c3a7683aa0d0b221bc87346d36bfc960bd47d819c255ace43cd0eacda"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S120.json",
+      "size": 1104,
+      "sha256": "33bbc1993b43674a0f13d302340285a63ca13998d49345b3a4cca95a04af47ea"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S121.json",
+      "size": 927,
+      "sha256": "4db4ced759438ea9b0825e4f2301667261f520500ff3bb1cf3eec20c97eff57d"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S122.json",
+      "size": 980,
+      "sha256": "79d084a24aae254358bd6232b4757f0475155cfa3204ada2085cc885fb253e4b"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S123.json",
+      "size": 1062,
+      "sha256": "dd842abc03ac97f432b697147dba4c87035e518d22324fc958abaa9d55c762e8"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S124.json",
+      "size": 899,
+      "sha256": "3d3ad19d727e86e50486f9e43031f5b660ab6337977892c2d5f92b3d9db0a188"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S125.json",
+      "size": 981,
+      "sha256": "bacbe7e8a75b4eb051cdea03734e569c4fef5846e3c30ad8e94bea260bd51bbe"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S126.json",
+      "size": 1441,
+      "sha256": "8557e995a79c62a4aed3a919325fec5373300f89f85fb716fdd2f83634ee8aee"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S127.json",
+      "size": 1037,
+      "sha256": "db14deb43540f1cb6ab75484181de4b17862566ac321f130fb36ba01d193e5fa"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S128.json",
+      "size": 1049,
+      "sha256": "8393e22bfb0c737323f4becb62f577ea603d68818b224b2afe9a6bd4f8ed8b9f"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S129.json",
+      "size": 1099,
+      "sha256": "6ae4c4c609d1f8cf992718ab06f41b4c2bc155d202f8b16bf9a005f4a8d744d8"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S130.json",
+      "size": 933,
+      "sha256": "30e4d993b5ddc646fe87d558773829ad2bae4e7b0318357f3da7386f7c955db1"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S131.json",
+      "size": 770,
+      "sha256": "738b6ee2091095a375fe9197875a48dd5b3b0bbc6a6e60effca7ba8807a14d98"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S132.json",
+      "size": 1127,
+      "sha256": "a4b3572060fe38fdb755fc0bdca4f34ef5eda077c3171dfd685d4333c2ca0d24"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S133.json",
+      "size": 982,
+      "sha256": "bfe95690dc19aeba767f1eb63060562bb1618caa57f88490700038d5b6aed9d8"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S134.json",
+      "size": 982,
+      "sha256": "c0565e7a4bffd8470d368934508af4c30ed139b62f11cf4ea1461f4accb7b58e"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S135.json",
+      "size": 1143,
+      "sha256": "d8d6954b8fab7d638f286317c608a19abb1de3c2e87e7e1e0ac729c7f8db1941"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S136.json",
+      "size": 788,
+      "sha256": "27257ab8524bfc39c236cefd1dec83c3bf75b40d5cebe6b4554d2af5175f17ee"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S137.json",
+      "size": 685,
+      "sha256": "fc9e4108f67350daa0cfbe2ef72d540a23db3ac8cad3cf77109a858b4184c6b3"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S138.json",
+      "size": 982,
+      "sha256": "541c1cc96278e5f140fb4833581dd29709344eeb950d5f9b0372cc597d268140"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S139.json",
+      "size": 848,
+      "sha256": "beef0405f84dcdde9af5aa54a47dd3b20c3a33ce1c12639387bb9113f405d7df"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S140.json",
+      "size": 685,
+      "sha256": "ccd384cb54a8f1e086eaf1f5736798a8e2cacf7e739d7ec223d25a1d8664024d"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S141.json",
+      "size": 1079,
+      "sha256": "eaed0ba5962ea68c06c82eb0fd36ba7846ffffffed74fe0a98708c1ab25675cb"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S142.json",
+      "size": 785,
+      "sha256": "41a863881486e052cdfa02de5e34d9f0a8bf720f7d360d1da98d602121965e51"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S143.json",
+      "size": 682,
+      "sha256": "8571dbfc2d4ccd6616542aea1036e9c72dc977be044180ee221bd5178496a9b9"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S144.json",
+      "size": 979,
+      "sha256": "05abecf2145f0cbecbb5d37b73b6bc42484d85e1c585665df5e50fc55f17c1fe"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S145.json",
+      "size": 1118,
+      "sha256": "469fddc682a9fed5285c7f7cb2b19b3062e4c45a42de204e084a535242a11944"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S146.json",
+      "size": 981,
+      "sha256": "9566d438349a51f53b25bd22472a7a7bd1e59df2352ef187cd49751044095f2a"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S147.json",
+      "size": 1043,
+      "sha256": "d2458cd2aa28f97bab8eb3dd861ce9271fd755a2687ceffc879bdf02a062a7a6"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S148.json",
+      "size": 1307,
+      "sha256": "14fc84d07e3eb5ca58363236a358e2a86adbb242b524d71ada79c5ff48fe2813"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S149.json",
+      "size": 964,
+      "sha256": "5959eb35c5d7be859f6113262f899c64f7784415a443acad76bd0f419b9ba90e"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S150.json",
+      "size": 801,
+      "sha256": "eefd0a777d68acba1a12f272d436823c897a08898cbab43de996dd0add4f61d4"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S151.json",
+      "size": 1015,
+      "sha256": "66cd717763fb44a72b904ca8b2de8fd58916fcb6d778b480c1826c8b55e249a3"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S152.json",
+      "size": 903,
+      "sha256": "bc1623125d6d1588d5ea4a37adf792c21ec854e6ed644ce6b7a9455bc7f6783e"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S153.json",
+      "size": 740,
+      "sha256": "df1d0dd599fc76994f4e414852da23534df37d91d96fea72d92a0dd46ee3c5a9"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S154.json",
+      "size": 1097,
+      "sha256": "ce1cbe1edb611ba84decdcf2d0951632a8979461eab39beccf5f5ee71a61d9dd"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S155.json",
+      "size": 938,
+      "sha256": "df6ddf71e47c531938d081d1756b2d76baa476f5e4310441bf36c4f9de3c1db4"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S156.json",
+      "size": 775,
+      "sha256": "32cd4a5a1c6fde1f33406495701c1f5f4b4198b556368c638a44289c55d6dafd"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S157.json",
+      "size": 1132,
+      "sha256": "a81994eae766051b8f9fc5449837095a90f7ab86db686d401d522fd98c25104d"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S158.json",
+      "size": 1056,
+      "sha256": "0a56a99b0a1d5376f6d425e39e8655fc5194cbaef3c8706592948046fd674acd"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S159.json",
+      "size": 893,
+      "sha256": "1e07cd837112e48f64dbadc26835ff786ed8b2514a9d8f3b0233b893aa5ae21b"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S160.json",
+      "size": 1250,
+      "sha256": "5dde0437d661543d8c7f525929f0b8f4295937f18793154f954d63b3ec55ebea"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S161.json",
+      "size": 1197,
+      "sha256": "5afc722371c23551760dc536931645d8db91f481061111c3627f0a917add605f"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S162.json",
+      "size": 1034,
+      "sha256": "fa72f39278a1d41c16d5ec51a8745831ea5ccca9b58c53702bf0968e4ca5073e"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S163.json",
+      "size": 1248,
+      "sha256": "6c74f82ff255ee1ff77b12fbd1f2cf48f02b779e8c073703b758bbcd457382f0"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S164.json",
+      "size": 847,
+      "sha256": "775099ac60d2c5ce3d878f268fa89185fb5b5ffbf2ff71782670bd658c42706a"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S165.json",
+      "size": 684,
+      "sha256": "a55a4475a5c3e4abc9c5edfca1dc9449cad1a1a75327e92015279e741927a152"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S166.json",
+      "size": 1041,
+      "sha256": "d2772a0f079eb824308b6228a867baffbe6379112367470f4add2d37cfff9650"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S167.json",
+      "size": 852,
+      "sha256": "ff2fedc70a6ce73602d64508a388e356746a4832528188ce1d63c70d16743989"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S168.json",
+      "size": 689,
+      "sha256": "d745db1c82641f34eae1f3d765d3cd6f4803f2568fe61f2d75bf9bcf88733c5b"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S169.json",
+      "size": 1046,
+      "sha256": "2b0495689d12969e4a73d6cddbe38fb85914825ef74fd9d6599a454f36ccbd28"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S170.json",
+      "size": 786,
+      "sha256": "59a638ee036681fd5ca3eb0f510ad1e7803795558aefbad8e10120b8677f4c8f"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S171.json",
+      "size": 683,
+      "sha256": "7ca0296c6399b2438724c9ccc256de2d3fe55c07c4a42be8610aa702989a3876"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S172.json",
+      "size": 1044,
+      "sha256": "ed1c9aa9f7d707e3dc23608b79c3f3df34f6f446d643e6c21fbebba405612a02"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S173.json",
+      "size": 1026,
+      "sha256": "c92d2ed8184f2e4066f7887935ae92fb51101357a41cdff62537c68db3cf9c4f"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S174.json",
+      "size": 863,
+      "sha256": "9c030adf3da82522a81af5d9a0d25814bb510e2d207bfd976e761e06b50e0672"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S175.json",
+      "size": 1045,
+      "sha256": "11c8989895ebe6ab1295d443dffcb865bce762f26adafe6964eb37bd5086631e"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S176.json",
+      "size": 848,
+      "sha256": "8404ea9dbcd37755d8e67ad6f915c27ca24168c9c2d366d9d4c29f2d7a9dc47f"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S177.json",
+      "size": 980,
+      "sha256": "8263f61f6a03b5ee8c5f8d7cd4ae0f7fa4c04d4bff92014a3b38dc832c8ef2ed"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S178.json",
+      "size": 1042,
+      "sha256": "ffe0a61a05e7b798a6223a3d7de0ff92f419f747643c80fa81e8dd194917d513"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S179.json",
+      "size": 853,
+      "sha256": "1bc428ded485fed214365a57fd517c62d14eb2101ddc5a6b4651363681f873ec"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S180.json",
+      "size": 690,
+      "sha256": "f8acd345700cbc6d7ce71fb89ab0963b99e52529e5c4b17d98712238a1561485"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S181.json",
+      "size": 1351,
+      "sha256": "1d4f369ce08cd283ff8fa8c4947e341ab877090a34bc89f9e3f4c79accd8cff7"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S182.json",
+      "size": 1123,
+      "sha256": "ea4204a0d137d689182eddb986ddd77733af5ca1a0c33ba23c7b60768de36584"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S183.json",
+      "size": 785,
+      "sha256": "b0eb2a5070edc2015ec7e9bc48dde331c84fdef2b7d4ba2edd7a6ffc9406bd15"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S184.json",
+      "size": 1142,
+      "sha256": "458c7a892aa4817cfb9977fddcb7327b61a90d34106ed5f5d2de029bd88faea7"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S185.json",
+      "size": 1470,
+      "sha256": "50438a139fe50443424141dddd8f2ad6f2711d9480576203eb178f04a3e5c273"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S186.json",
+      "size": 1105,
+      "sha256": "da1de276877ecf51c8806dda65129d7d181b0857c346ad30d74db42a09771ee8"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S187.json",
+      "size": 767,
+      "sha256": "797dfb81687fe298e6dd52600eb523e1a5585d766909fd07c5942e038a27c857"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S188.json",
+      "size": 981,
+      "sha256": "58e4d1dde2654a4cc8e786e01e95eb35bf7448c02ba01a8e5f542d330e6b5b62"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S189.json",
+      "size": 1309,
+      "sha256": "f50a34660d46d8df609463f4b8070ea5f7004c494ffe7b026181d414c06299be"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S190.json",
+      "size": 929,
+      "sha256": "dbf415b24419ad015c64142e28e57f3343fadda00b79a68eb5862aa0a8d617af"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S191.json",
+      "size": 766,
+      "sha256": "8b961e14d11ea3be8adf2b11f84eaddf634c5a1405dcef11f931732b51b62bb7"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S192.json",
+      "size": 980,
+      "sha256": "a8151c77246e01d7a140711de463286152e74f9f62c94fe81e5acdf85c25a5f4"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S193.json",
+      "size": 932,
+      "sha256": "0805087a2bb09120bf6c4f1671c5e95609686e2b2fde0d3101b80303eb6ff3e3"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S194.json",
+      "size": 769,
+      "sha256": "2d15cbb01722ef0724c37fbb38e5f96cc5fb8df9438566bdff16951eaca88b9c"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S195.json",
+      "size": 983,
+      "sha256": "7516ae2905ec5dad286c76edb0b18d0aecf820fbfffe787b81abe779267193a3"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S196.json",
+      "size": 1311,
+      "sha256": "2ef2fb4b311c0b250a9faede87a15ad08442ab7dd4521fe490eb92a8dd2c99f9"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S197.json",
+      "size": 928,
+      "sha256": "2c42cbb86629e8406d37f745e55123e32d30be117dda1f18eab05410af9a906f"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S198.json",
+      "size": 765,
+      "sha256": "92a5d88a80bef5e4bfe15eece2903dfc299bd0872fc613ae8782f11e1ee11627"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S199.json",
+      "size": 1043,
+      "sha256": "6f1ae6aa1d57957010a6bbb207e2f4d195ec61cab580f8d638bae5d26c650054"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S200.json",
+      "size": 851,
+      "sha256": "03f9ac3cd7e9c6b059a464d663253f7a9c355d0178231767be9f3371231a41cb"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S201.json",
+      "size": 688,
+      "sha256": "7c2b24df5a23ea318588088228def715fc76600edbb4dc309d5506f696346f74"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S202.json",
+      "size": 1045,
+      "sha256": "f63537cc96afd3685b2424392abad45f71486d82ada586b4f96c63f872e7695f"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S203.json",
+      "size": 1067,
+      "sha256": "1eac09e34d360722c0d0d04a32f4c4e271d5c5def2da5450a9ba7baed473d6e9"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S204.json",
+      "size": 1067,
+      "sha256": "3d8f8b17a0889cb7a3d5d88844fffbdfb1e7c26c869bd8f2ac9b744a40b41b19"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S205.json",
+      "size": 1067,
+      "sha256": "45c63b15ee5ea2e0ff98664982fa38e103f7ed09cfc8e65323e4541e3d168983"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S206.json",
+      "size": 1067,
+      "sha256": "9c28537914b63a29b4aae47d36be61bf04d6eccdab482560686c5bb003539b22"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S207.json",
+      "size": 1067,
+      "sha256": "df6e145e58fc5c19ba3602905fbabf061f42c0e937ac9eb40dd7d2f9e9646558"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S208.json",
+      "size": 1067,
+      "sha256": "da6c54d1e9a09b0e12c61ecb3793e7a3b7059fc384c47d68dad91b023e32bd8c"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S209.json",
+      "size": 1067,
+      "sha256": "aa9963c682a3cc0475d53fe154186a1128e6851f0ba35a9101399b53c7fc5ab0"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S210.json",
+      "size": 1067,
+      "sha256": "8679145a558cc934d3b5737464b8ca2e0b61bbe5f324385c41080ee54af79e2c"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S211.json",
+      "size": 1067,
+      "sha256": "c4ecd828da6a0c6823b22511edcdfc33b6365df1f95fb5f1765c3ff71dd40509"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S212.json",
+      "size": 1067,
+      "sha256": "b96d3ac784355a3b1c6925eb078ef4bad0765649cf16b562b2ec1eb2429e5b05"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S213.json",
+      "size": 1067,
+      "sha256": "e329cfce7e5d315763715514f504fd8dfa7bce55217024d7d8d667eba4170142"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S214.json",
+      "size": 1067,
+      "sha256": "d284f76195c4512219304b6d6a118dd460ec4b9ab71f64d40994d23fb8e3708c"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S215.json",
+      "size": 1067,
+      "sha256": "a1e8d80f720ee46b2e053394bd4dc0f34c0111e5b3bf537c2a3db9bf44c0bce0"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S216.json",
+      "size": 1067,
+      "sha256": "d60920073753ebff66e7044594bbe634cf2884c9a29142e3423f9ca1cf7c4600"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S217.json",
+      "size": 1067,
+      "sha256": "5ee0171eba711fb73f0cbe975ba6764ce6e3f46aec6aaa0f3cdafa728846e399"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S218.json",
+      "size": 1067,
+      "sha256": "32602e1a21e927c296b934c2c26f9ea7dc2d053e08a914856010dd57c7e983da"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S219.json",
+      "size": 1067,
+      "sha256": "2455cf0343994d635d9a55ec366432283c1ea2e59a464364883bb18ce7215266"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S220.json",
+      "size": 1067,
+      "sha256": "36453b1a22db3d7d6b837fc27f44c70064c6063c85295e45f6c83bd2282bc627"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S221.json",
+      "size": 1230,
+      "sha256": "369a236f84046597462c2911f9a58b8146dae700286c1fb17921da2805f35d8b"
+    },
+    {
+      "path": "cpf-docs/evidence/current/scenarios/QA32-S222.json",
+      "size": 1263,
+      "sha256": "b1da98e89593ac85aea364addb0da854e7729a725999906793f7daa3ca4ec3ff"
+    },
+    {
+      "path": "cpf-docs/legal/THIRD_PARTY_NOTICES_QA32.md",
+      "size": 617,
+      "sha256": "f048ef2db16e9e4226dae4044e4474b6e686eefab8164fd33b271f88d8601dcf"
+    },
+    {
+      "path": "cpf-docs/quality/CPF_20260730_QA32_DEFECT_REGISTER.csv",
+      "size": 27321,
+      "sha256": "fec775c3ac6fb35e97f9d5fd89cc9dc2e5d52d9f274390b31ce3723bad29cb8b"
+    },
+    {
+      "path": "cpf-docs/quality/CPF_20260730_QA32_OSS_MIGRATION_MATRIX.csv",
+      "size": 8723,
+      "sha256": "6a98a1141b0d4d9444c9f269ec37d2dd40790709721599a2ebaba35eddc8e895"
+    },
+    {
+      "path": "cpf-docs/quality/CPF_20260730_QA32_OSS_MIGRATION_RESULT.csv",
+      "size": 5781,
+      "sha256": "fdebf52b25d161b882837e47476b5fa0ac7d06cd71a179e34462a1b462b7869d"
+    },
+    {
+      "path": "cpf-docs/quality/CPF_20260730_QA32_REQUIREMENT_MATRIX.csv",
+      "size": 47435,
+      "sha256": "614eac27bf1708db3c73303ec9528c8038fcee806a21f32ddfd3dc0dbaf1d3f5"
+    },
+    {
+      "path": "cpf-docs/quality/CPF_20260730_QA32_RESULT_MATRIX.csv",
+      "size": 188225,
+      "sha256": "e1c078a89bc330756f0f241d43d5c825fa9d88bd92b8696118d8b65d9b3f6757"
+    },
+    {
+      "path": "cpf-docs/quality/CPF_20260730_QA32_SCENARIO_MATRIX.csv",
+      "size": 169980,
+      "sha256": "50be4deef8eafbfcdf8fafdedefd2c0a4aed78cff2196c675112bc1d25788ae6"
+    },
+    {
+      "path": "cpf-docs/quality/CPF_20260730_QA32_UNRESOLVED_REGISTER.csv",
+      "size": 1651,
+      "sha256": "a74d0a8042438d930aff6bbeb0c390d3db2ff2952849852f61ef275a98efab8d"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_20260730_QA32_CODEX_REVIEW_READY.md",
+      "size": 943,
+      "sha256": "d5e797bd4b0ea6335e01ac075726fe613989b7f82bb2d6755ad89d03ce609e59"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_20260730_QA32_DEVELOPMENT_REMEDIATION_REQUEST.md",
+      "size": 11132,
+      "sha256": "57151c2a4e5ed273ce70e3b3c798b8c6db1ec584305c6f3712c88a7cd2a45273"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_20260730_QA32_GPT_DEVELOPMENT_INSTRUCTION.md",
+      "size": 11794,
+      "sha256": "8f1371027068b142c221fe5c4de4be5459502bfc758a3830bd81ec022e7c0447"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_20260730_QA32_PACKAGE_INDEX.md",
+      "size": 4640,
+      "sha256": "3a3b7e89e79dce6b6886b73daea5577de7213081aebd2242bd0db815fed3eff4"
+    },
+    {
+      "path": "cpf-docs/work/handover/CPF_20260730_QA32_DEVELOPMENT_HANDOVER.md",
+      "size": 2889,
+      "sha256": "0652bc44e1ec3dcd761e59f27627593e09d5470e468f11b76589e005748d65a7"
+    },
+    {
+      "path": "cpf-docs/work/handover/CPF_20260730_QA32_DEVELOPMENT_HANDOVER_RESULT.md",
+      "size": 1207,
+      "sha256": "c8d24d6f9b461324e43579a05f3d4797d96f0660d904cab98d8d08731098cbbe"
+    },
+    {
+      "path": "cpf-docs/work/manifest/CPF_20260731_QA32_DELETE_MANIFEST.txt",
+      "size": 1125,
+      "sha256": "5f78162dd29086db556310042a42d9f72a4ff5ccbf0fcf3e1cea5e24893235d7"
+    },
+    {
+      "path": "cpf-docs/work/review/CPF_20260730_QA32_DEVELOPMENT_COMPLETION_REPORT.md",
+      "size": 4580,
+      "sha256": "af1bd108cf8bca956b66e4c6fb27aef27c70f25ca8762a684bc6374294e2faa7"
+    },
+    {
+      "path": "cpf-docs/work/review/CPF_20260730_QA32_PRE_DEVELOPMENT_REVIEW.md",
+      "size": 1821,
+      "sha256": "3d553a5ea67f37b9fe14d9d77891a3d0e9f65c3b9176ba268f1ac2149250e8cd"
+    },
+    {
+      "path": "cpf-gateway/build.gradle",
+      "size": 791,
+      "sha256": "74d31210b2e3eec5fa5f9ce334140f427d73ce9e25b09ff624e0e74773c17e24"
+    },
+    {
+      "path": "cpf-gateway/src/main/java/com/cpf/gateway/scg/CpfGatewayLedgerCompletionFilter.java",
+      "size": 3263,
+      "sha256": "eb33f4ceaac748a4bdd32ae0573865486e10c8a386a06e1b3d2fa33ec646dc30"
+    },
+    {
+      "path": "cpf-gateway/src/main/java/com/cpf/gateway/scg/CpfScgPrimaryHandler.java",
+      "size": 8624,
+      "sha256": "edfedc2e54f6d22078eecdc7359adaf639d64805d07f823b25f40d9c93b95c76"
+    },
+    {
+      "path": "cpf-gateway/src/main/java/com/cpf/gateway/scg/CpfScgPrimaryRouteConfiguration.java",
+      "size": 1103,
+      "sha256": "28eb894c56cf14f681f6f467cc2154c9ec4c5ca5ba0e937a640d7d35a815b03c"
+    },
+    {
+      "path": "cpf-gateway/src/main/java/com/cpf/gateway/scg/CpfScgTargetResolver.java",
+      "size": 1869,
+      "sha256": "0f323e2824d6dd226dab4294446d50c3284c366259ae125cd260718c6ad13ebc"
+    },
+    {
+      "path": "cpf-starters/cache/build.gradle",
+      "size": 449,
+      "sha256": "65ff7a08aad38168cac8d5109fb1c31c32aad53a04b59059720832c64c8b4709"
+    },
+    {
+      "path": "cpf-starters/cache/src/main/java/com/cpf/starter/cache/CaffeineCpfCachePort.java",
+      "size": 2866,
+      "sha256": "e99f1c749e2da853bc2ae1ee53cfee74b17a69311ea6a8571419b2c21baa62ef"
+    },
+    {
+      "path": "cpf-starters/cache/src/main/java/com/cpf/starter/cache/CpfCacheAutoConfiguration.java",
+      "size": 1265,
+      "sha256": "d99632399b5d95b72e53e32f212a6f79037fa53bb3764ff5206c3bdd2b89471c"
+    },
+    {
+      "path": "cpf-starters/cache/src/main/java/com/cpf/starter/cache/CpfCaffeineCacheProperties.java",
+      "size": 675,
+      "sha256": "015796819fd05859366314e8b0b34046d080de392c5474c0f4846491491fd58c"
+    },
+    {
+      "path": "cpf-starters/cache/src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports",
+      "size": 48,
+      "sha256": "7c405890a550c51fa11e0f8f31cbe8d7c0673f917cb2620e3daa924ddd39e9ad"
+    },
+    {
+      "path": "cpf-starters/featureflag/build.gradle",
+      "size": 356,
+      "sha256": "a0eb557e5767c9b0e31100cbe10259d4c1180ef5f0af97e888d8651dfe6013e2"
+    },
+    {
+      "path": "cpf-starters/featureflag/src/main/java/com/cpf/starter/featureflag/CpfFeatureFlagAutoConfiguration.java",
+      "size": 638,
+      "sha256": "ca011ff326d00c3c0357c95165fea33660d128af3a9e0965ac7b9ff319e46ddb"
+    },
+    {
+      "path": "cpf-starters/featureflag/src/main/java/com/cpf/starter/featureflag/CpfFeatureFlagService.java",
+      "size": 675,
+      "sha256": "895640bbcea0ab5c199db36f65a26892ca0f9a8830b93aaca2567ff47997f396"
+    },
+    {
+      "path": "cpf-starters/featureflag/src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports",
+      "size": 60,
+      "sha256": "de6563febdf1127ff05b69abb62fc596c48a2f1d40ded0f38dfa856f3fad8f9f"
+    },
+    {
+      "path": "cpf-starters/messaging-kafka/build.gradle",
+      "size": 578,
+      "sha256": "0df9309c2023c7c11d3f64948151712a63e40248ebe98831fe905c9d44ac5416"
+    },
+    {
+      "path": "cpf-starters/messaging-kafka/src/main/java/com/cpf/starter/kafka/CpfKafkaAutoConfiguration.java",
+      "size": 903,
+      "sha256": "c74b32346a2b6afbae0c08eb57b9c1facb00d199c485aeedaca5723759dda83a"
+    },
+    {
+      "path": "cpf-starters/messaging-kafka/src/main/java/com/cpf/starter/kafka/CpfKafkaProperties.java",
+      "size": 840,
+      "sha256": "b09c2b703646cc7ec09c3ac1e40867224fcf0cfe5510190e9b2fb101415fd8bb"
+    },
+    {
+      "path": "cpf-starters/messaging-kafka/src/main/java/com/cpf/starter/kafka/KafkaCpfBrokerClient.java",
+      "size": 2592,
+      "sha256": "e1060285681535a3e7f735a060d400341a5998a56d2878bee9fdc12887f7268b"
+    },
+    {
+      "path": "cpf-starters/messaging-kafka/src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports",
+      "size": 48,
+      "sha256": "7f45fee9b4bf3f21daaf5e18f46ecb561592a297c86f562308eb4352f8827d3e"
+    },
+    {
+      "path": "cpf-starters/observability/build.gradle",
+      "size": 478,
+      "sha256": "71982d3bdf84b86d49ba82c7bc3692114f9ba88013504adaebe4d55ddac0d8cc"
+    },
+    {
+      "path": "cpf-starters/observability/src/main/java/com/cpf/starter/observability/CpfObservabilityAutoConfiguration.java",
+      "size": 649,
+      "sha256": "a45e6519719dae74ae81dedb9cb125f8916408797b4766101bfd7b55ddf07c8f"
+    },
+    {
+      "path": "cpf-starters/observability/src/main/java/com/cpf/starter/observability/CpfObservationSupport.java",
+      "size": 962,
+      "sha256": "48b000e520bad3790ff977f863feb7ebddbe887242712d2955200971067dce33"
+    },
+    {
+      "path": "cpf-starters/observability/src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports",
+      "size": 64,
+      "sha256": "59e32307635d3dc4d0a12ad6b4de0900d545f2da31baf97cc847c6519f8dbbfb"
+    },
+    {
+      "path": "cpf-starters/resilience/build.gradle",
+      "size": 403,
+      "sha256": "a7df91abe2d8fef8040f47aa097b0466d9381d1f0fb3e3b61dfb2de4f1506784"
+    },
+    {
+      "path": "cpf-starters/resilience/src/main/java/com/cpf/starter/resilience/CpfResilienceAutoConfiguration.java",
+      "size": 675,
+      "sha256": "f6a78ef2db850ac57015ae5091eb471c154020ce3bfbce412c5d1674229b1abd"
+    },
+    {
+      "path": "cpf-starters/resilience/src/main/java/com/cpf/starter/resilience/CpfResilienceExecutor.java",
+      "size": 804,
+      "sha256": "17e242beec2180af1f04bef85b3af3d27c50f2be5312077db3d35879cae5cea8"
+    },
+    {
+      "path": "cpf-starters/resilience/src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports",
+      "size": 58,
+      "sha256": "fa8c726db106520104a8cce572391106233bd9bd8f0326ff004a42fefedb7f03"
+    },
+    {
+      "path": "cpf-starters/secret/build.gradle",
+      "size": 401,
+      "sha256": "28fb0248b3e7e85c7b0dd9ccc2f82b7b053fd14221c17973bd2294c6b95ac958"
+    },
+    {
+      "path": "cpf-starters/secret/src/main/java/com/cpf/starter/secret/CpfSecretAutoConfiguration.java",
+      "size": 713,
+      "sha256": "a5055c6517f5f0612c2316093af23c5c5cc3f140a15e16b1533a4bca959af56c"
+    },
+    {
+      "path": "cpf-starters/secret/src/main/java/com/cpf/starter/secret/CpfSecretProviderRegistry.java",
+      "size": 1416,
+      "sha256": "92f1d903efa4317b086a26ecc83d89c9033106726ab31ad220ab13491dc066b3"
+    },
+    {
+      "path": "cpf-starters/secret/src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports",
+      "size": 50,
+      "sha256": "7d41bc3a11cd9c73a48b4d4d497c8b4e741513b461088f20f6195edd3a54022d"
+    },
+    {
+      "path": "cpf-starters/security/build.gradle",
+      "size": 655,
+      "sha256": "fd2bad0d9a312ac604876ac36e8d18bf57b8666dd540e3928d2b5db2a6ddcdb2"
+    },
+    {
+      "path": "cpf-starters/security/src/main/java/com/cpf/starter/security/CpfBffCredentialResponseAdvice.java",
+      "size": 2098,
+      "sha256": "022abc6816db07f8185cfcca36ad3ea1a29777bd976a5e921f4ae03d401a619b"
+    },
+    {
+      "path": "cpf-starters/security/src/main/java/com/cpf/starter/security/CpfBffCsrfFilter.java",
+      "size": 1754,
+      "sha256": "7cb5a61ba01bd9e75ea998c996b99b3599e68869c3170458e753acf078f2413b"
+    },
+    {
+      "path": "cpf-starters/security/src/main/java/com/cpf/starter/security/CpfBffSessionBridgeFilter.java",
+      "size": 1947,
+      "sha256": "70fd74f49be8a5b1092894770b1defb446c2f5faa49ae89eee3da7f9646297e7"
+    },
+    {
+      "path": "cpf-starters/security/src/main/java/com/cpf/starter/security/CpfServerSessionProperties.java",
+      "size": 1162,
+      "sha256": "83c122a0af12316a0b7803bef6f82a5c9275544e4badef6c902eaa4e2582204f"
+    },
+    {
+      "path": "cpf-starters/security/src/main/java/com/cpf/starter/security/CpfServerSessionSecurityAutoConfiguration.java",
+      "size": 2636,
+      "sha256": "371d28dd606a7fd8f809c3759cc138e99cfde813ecff676e46f9d6acea198125"
+    },
+    {
+      "path": "cpf-starters/security/src/main/java/com/cpf/starter/security/CpfSessionReadinessVerifier.java",
+      "size": 1448,
+      "sha256": "e13360b5c4982c7b4c3540a05e3d3ecda77ba7b5d32c65a6423c98f15bee2d79"
+    },
+    {
+      "path": "cpf-starters/security/src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports",
+      "size": 67,
+      "sha256": "273fd45daf47cdf0a62be8aa8e6f07c004a29ec50268ab58b698a3dae56a7c1e"
+    },
+    {
+      "path": "cpf-tools/db/vendor/mariadb/migration/flyway/V82__spring_batch_primary_control_link.sql",
+      "size": 2898,
+      "sha256": "2819e545923131c99a66bc98e1fe7eacc139afd3c6dcc31e4ec3e34d565e356d"
+    },
+    {
+      "path": "cpf-tools/db/vendor/mariadb/migration/flyway/V83__spring_session_jdbc_bff.sql",
+      "size": 753,
+      "sha256": "c61d7bfd3cf1c4ad9e03c31d66c2a48d3ee4f5b2a2023deb70e2629d577e43d1"
+    },
+    {
+      "path": "cpf-tools/db/vendor/mariadb/migration/flyway/V84__db_scheduler_primary.sql",
+      "size": 493,
+      "sha256": "c97f3d4c2b509467f21c84909bb8468ae3a3ad86e2e2c3ab5471b4c6f4444c44"
+    },
+    {
+      "path": "cpf-tools/db/vendor/mariadb/migration/flyway/V85__bza_bootstrap_approval.sql",
+      "size": 965,
+      "sha256": "2f0f1d9d426748e8a37d152f47758106ef0e17339bc182a291d9607f2e50f251"
+    },
+    {
+      "path": "cpf-tools/db/vendor/mariadb/migration/flyway/checksums.sha256",
+      "size": 8936,
+      "sha256": "618563c24daf7eca4cda57e3028a3b2828c6bd5d9eb794263d00988a08391887"
+    },
+    {
+      "path": "cpf-tools/db/vendor/mariadb/rollback/R82__spring_batch_primary_control_link.sql",
+      "size": 115,
+      "sha256": "544816551d28d94de5fc209d5e0d0edb0b0b22d4986698ac814a600530e2d9a7"
+    },
+    {
+      "path": "cpf-tools/db/vendor/mariadb/rollback/R83__spring_session_jdbc_bff.sql",
+      "size": 85,
+      "sha256": "5d84cc3c3d9bf93484a8185f97c8b19c1279c414baf54597585843597581d80d"
+    },
+    {
+      "path": "cpf-tools/db/vendor/mariadb/rollback/R84__db_scheduler_primary.sql",
+      "size": 38,
+      "sha256": "e26ce94ffef427cfe179a2aed3117ae5ca9ce8e57124d31c2cc4fa14b35b0dfa"
+    },
+    {
+      "path": "cpf-tools/db/vendor/mariadb/rollback/R85__bza_bootstrap_approval.sql",
+      "size": 45,
+      "sha256": "98cf9cc1afc75a20a5504fc26c4b490e4bf762409e6c06564e0efb9207195a4a"
+    },
+    {
+      "path": "cpf-tools/db/vendor/oracle/migration/flyway/admDB/V83__spring_session_jdbc_bff.sql",
+      "size": 868,
+      "sha256": "b6cf17077c4b597650c7c13bc341eb99440e7271b80ace6e77971f6f17f94ef7"
+    },
+    {
+      "path": "cpf-tools/db/vendor/oracle/migration/flyway/admDB/checksums.sha256",
+      "size": 810,
+      "sha256": "367196cc342a77f4d6efb76da3cbb96d9b238212715297d4b1f35519e3faeb92"
+    },
+    {
+      "path": "cpf-tools/db/vendor/oracle/migration/flyway/batDB/V82__spring_batch_primary_control_link.sql",
+      "size": 2930,
+      "sha256": "15232735538e05406b9fd40fc8f66c43fffe8b0b58a5405497ce9bd547a2a8d3"
+    },
+    {
+      "path": "cpf-tools/db/vendor/oracle/migration/flyway/batDB/V84__db_scheduler_primary.sql",
+      "size": 645,
+      "sha256": "6388d7ba98f075ed6ec5284f12cda773030597a6f80176af78f35aad62dca866"
+    },
+    {
+      "path": "cpf-tools/db/vendor/oracle/migration/flyway/batDB/checksums.sha256",
+      "size": 824,
+      "sha256": "616c6e34201c3ac207dae81d3739a8e61b2205c11d15224df3b2b83fb8067002"
+    },
+    {
+      "path": "cpf-tools/db/vendor/oracle/migration/flyway/bzaDB/V85__bza_bootstrap_approval.sql",
+      "size": 972,
+      "sha256": "29f3f898d015589c1835bcdcfc09aaa1dd005847932300e19e0500ccbbb38f7a"
+    },
+    {
+      "path": "cpf-tools/db/vendor/oracle/migration/flyway/bzaDB/checksums.sha256",
+      "size": 403,
+      "sha256": "78918e35d7b609b75445c602df45a0526bef343a8069c801c6eff93fbbd9ad2c"
+    },
+    {
+      "path": "cpf-tools/db/vendor/oracle/migration/rollback/admDB/R83__spring_session_jdbc_bff.sql",
+      "size": 117,
+      "sha256": "a046cfd1ea0bba199cb522ecc50f904f5cae200e9f36320cb2c9367b7bc5c155"
+    },
+    {
+      "path": "cpf-tools/db/vendor/oracle/migration/rollback/batDB/R82__spring_batch_primary_control_link.sql",
+      "size": 115,
+      "sha256": "544816551d28d94de5fc209d5e0d0edb0b0b22d4986698ac814a600530e2d9a7"
+    },
+    {
+      "path": "cpf-tools/db/vendor/oracle/migration/rollback/batDB/R84__db_scheduler_primary.sql",
+      "size": 54,
+      "sha256": "a1a8881c181f4a7aa6c27a7de66405b3a0a8b269336893c057ef311b08f380c6"
+    },
+    {
+      "path": "cpf-tools/db/vendor/oracle/migration/rollback/bzaDB/R85__bza_bootstrap_approval.sql",
+      "size": 61,
+      "sha256": "91cf046ddd3d500701de3f12d905948d352399619618150b1d153d2d8b76c102"
+    },
+    {
+      "path": "cpf-tools/db/vendor/postgresql/migration/flyway/admDB/V83__spring_session_jdbc_bff.sql",
+      "size": 844,
+      "sha256": "0cc406c9c7a254c1b049e1ab4ed7c41ead96e5eb1bece7af768ffd2e8378e128"
+    },
+    {
+      "path": "cpf-tools/db/vendor/postgresql/migration/flyway/admDB/checksums.sha256",
+      "size": 810,
+      "sha256": "c739b54ccabf6d1aac4483dcf9ea76cbc18b3d781a77fa62d8c5b2b6064e25c5"
+    },
+    {
+      "path": "cpf-tools/db/vendor/postgresql/migration/flyway/batDB/V82__spring_batch_primary_control_link.sql",
+      "size": 2723,
+      "sha256": "9012e83d827737676a959b91d7509fe9c56b14a6da076b24b23a811927a9735e"
+    },
+    {
+      "path": "cpf-tools/db/vendor/postgresql/migration/flyway/batDB/V84__db_scheduler_primary.sql",
+      "size": 541,
+      "sha256": "f2f0b45494ca94b101e3cc3a8741985b844e7748afcba04bc6050334e40f4a11"
+    },
+    {
+      "path": "cpf-tools/db/vendor/postgresql/migration/flyway/batDB/checksums.sha256",
+      "size": 824,
+      "sha256": "88294b98dcfe445503155fc280bc2706f848c716fae150bc24d213ba9a77135b"
+    },
+    {
+      "path": "cpf-tools/db/vendor/postgresql/migration/flyway/bzaDB/V85__bza_bootstrap_approval.sql",
+      "size": 974,
+      "sha256": "f21e47fadbe21b3a332750b958a26de2964b7d3300e2be38e65497ebeddb7971"
+    },
+    {
+      "path": "cpf-tools/db/vendor/postgresql/migration/flyway/bzaDB/checksums.sha256",
+      "size": 403,
+      "sha256": "2bb2ecb28d9f9b94627f3c46dcfb085a38657e8380cbb06509c4c7d9184a9033"
+    },
+    {
+      "path": "cpf-tools/db/vendor/postgresql/migration/rollback/admDB/R83__spring_session_jdbc_bff.sql",
+      "size": 85,
+      "sha256": "5d84cc3c3d9bf93484a8185f97c8b19c1279c414baf54597585843597581d80d"
+    },
+    {
+      "path": "cpf-tools/db/vendor/postgresql/migration/rollback/batDB/R82__spring_batch_primary_control_link.sql",
+      "size": 115,
+      "sha256": "544816551d28d94de5fc209d5e0d0edb0b0b22d4986698ac814a600530e2d9a7"
+    },
+    {
+      "path": "cpf-tools/db/vendor/postgresql/migration/rollback/batDB/R84__db_scheduler_primary.sql",
+      "size": 38,
+      "sha256": "e26ce94ffef427cfe179a2aed3117ae5ca9ce8e57124d31c2cc4fa14b35b0dfa"
+    },
+    {
+      "path": "cpf-tools/db/vendor/postgresql/migration/rollback/bzaDB/R85__bza_bootstrap_approval.sql",
+      "size": 45,
+      "sha256": "98cf9cc1afc75a20a5504fc26c4b490e4bf762409e6c06564e0efb9207195a4a"
+    },
+    {
+      "path": "cpf-tools/scripts/apply-cpf-qa32-development-result.ps1",
+      "size": 2227,
+      "sha256": "668fabab489be12c0de2126f1d0bc53a98814f561459984cd7f522a3d21a223b"
+    },
+    {
+      "path": "cpf-tools/scripts/generate-cpf-supply-chain-evidence.ps1",
+      "size": 1140,
+      "sha256": "321b966c8df9d8264a3dd0efb9fcd1936df1a52ec75ab782e05de4195d02b919"
+    },
+    {
+      "path": "cpf-tools/scripts/package-cpf-qa32-development-result.ps1",
+      "size": 1264,
+      "sha256": "bc832c8ec524762bc2d1d5e140e8c4d880555c79349474df61666e3d1acdb152"
+    },
+    {
+      "path": "cpf-tools/scripts/test-cpf-qa32-negative-fixtures.py",
+      "size": 1152,
+      "sha256": "b86b51c3335498766211bca58c4e08d50bef4eb54fdbfd28d6a5c86b3e30d0b3"
+    },
+    {
+      "path": "cpf-tools/scripts/verify-cpf-offline-bundle.py",
+      "size": 1066,
+      "sha256": "0927d4084dc34bc8cd1d6a542f451321f28f9b279f3619f51846ef24c1fe0d7c"
+    },
+    {
+      "path": "cpf-tools/scripts/verify-cpf-qa32-all.ps1",
+      "size": 773,
+      "sha256": "e7eaf77700af16190c08bbd59d0a941f1d425aa506d599d1c1fb710c8c02336f"
+    },
+    {
+      "path": "cpf-tools/scripts/verify-cpf-qa32-completion.py",
+      "size": 2263,
+      "sha256": "245523a8228ec9cf9b6b5343f1765ffd9ea5c3895a69afdb4a010fe11cc49390"
+    },
+    {
+      "path": "cpf-tools/scripts/verify-cpf-qa32-generator.py",
+      "size": 963,
+      "sha256": "a289f8a1a3ef239e146ca0ea95cb505ed196f0886988fc3a67308eb1e74a2f8b"
+    },
+    {
+      "path": "cpf-tools/scripts/verify-cpf-qa32-primary-engines.py",
+      "size": 7682,
+      "sha256": "fd36bec0567034385bed5bbae257952dd30c26de6fdbce70ddb67be900eb5ba0"
+    },
+    {
+      "path": "cpf-tools/scripts/verify-cpf-qa32-repository-security.py",
+      "size": 2226,
+      "sha256": "96a9d152d0c23c6e8e22464ed74da5556ec5a216ab4fc51f4332f794e7ce674a"
+    },
+    {
+      "path": "cpf-tools/scripts/verify-cpf-qa32-runtime.ps1",
+      "size": 1754,
+      "sha256": "116c461c1ba840bb1f7a6d92ca8ecbe3f450a394821d918725f2e5c7015298d2"
+    },
+    {
+      "path": "cpf-tools/scripts/verify-cpf-supply-chain.py",
+      "size": 1877,
+      "sha256": "6e2f279d5f1c87d08c6df5fcafe90ec9d91eda26471f358f9b2c04ea7102dfb8"
+    },
+    {
+      "path": "cpf-tools/supply-chain/approved-primary-oss.csv",
+      "size": 2325,
+      "sha256": "65a4d70a5815d7c4059bdab0b1502015840fad78983b161e33b724c7359ccd7d"
+    },
+    {
+      "path": "cpf-tools/supply-chain/license-policy.yml",
+      "size": 488,
+      "sha256": "47866393e04ad6233b1ba08b1874a64142684ff3222a03902333ee79ace13c0c"
+    },
+    {
+      "path": "gradle/cpf-stack.properties",
+      "size": 483,
+      "sha256": "ddf54521c94932c9b058b036f750abfa8f1d1ee12cad39ae890996490380d392"
+    },
+    {
+      "path": "settings.gradle",
+      "size": 6772,
+      "sha256": "e904144aaa0e89b1f779142aa9be7ed0e2623b27202ce00cd213da06bb92db59"
+    }
+  ],
+  "deletePaths": [
+    "cpf-gateway/src/main/java/com/cpf/gateway/controller/CpfGatewayController.java",
+    "cpf-gateway/src/main/java/com/cpf/gateway/controller/CpfGatewayPublicController.java",
+    "cpf-gateway/src/main/java/com/cpf/gateway/service/CpfGatewayProxyService.java",
+    "cpf-gateway/src/main/java/com/cpf/gateway/transport/JdkCpfGatewayHttpExchangeAdapter.java",
+    "cpf-gateway/src/main/java/com/cpf/gateway/transport/CpfGatewayHttpExchangePort.java",
+    "cpf-batch/center-cut-runner/src/main/java/com/cpf/batch/centercut/runner/CenterCutRuntime.java",
+    "cpf-batch/center-cut-runner/src/main/java/com/cpf/batch/centercut/runner/CenterCutDispatcher.java",
+    "cpf-batch/center-cut-runner/src/main/java/com/cpf/batch/centercut/runner/CenterCutLifecycleReconciler.java",
+    "cpf-batch/worker/src/main/java/com/cpf/batch/worker/WorkerRuntime.java",
+    "cpf-batch/worker/src/main/java/com/cpf/batch/worker/JobPackDispatcher.java",
+    "cpf-batch/worker/src/main/java/com/cpf/batch/worker/internal/JdbcWorkerExecutionRepository.java",
+    "cpf-admin/frontend/src/app/admConsoleMixin.ts"
+  ],
+  "verification": {
+    "primaryEngineGate": {
+      "exitCode": 0,
+      "checks": 2863,
+      "evidence": "cpf-docs/evidence/current/qa32-static-primary-engines.json"
+    },
+    "repositorySecurityGate": {
+      "exitCode": 0,
+      "checks": 1253,
+      "evidence": "cpf-docs/evidence/current/qa32-static-security.json"
+    },
+    "negativeFixtures": {
+      "exitCode": 0,
+      "count": 3
+    },
+    "developmentCoverageGate": {
+      "exitCode": 0,
+      "requirements": 62,
+      "defects": 60,
+      "scenarios": 222
+    },
+    "releaseRuntimeGate": {
+      "exitCode": 1,
+      "status": "미검증",
+      "reason": "Java25/3DB/Kafka/Browser/final artifact environment unavailable"
+    }
+  }
+}

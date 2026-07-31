@@ -71,16 +71,22 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
+import { storeToRefs } from "pinia";
 import CpfIcon from "./components/CpfIcon.vue";
-import { admConsoleMixin } from "./app/admConsoleMixin";
-import { admGroupLabels, componentForMenu, featureGroupForMenu, iconForMenu, menuIdFromHash, type AdmFeatureGroup } from "./app/routes";
-
+import { admConsoleActionNames, useAdmConsoleStore } from "./stores/admConsoleStore";
+import { admGroupLabels, componentForMenu, featureGroupForMenu, iconForMenu, menuIdFromRouteName, type AdmFeatureGroup } from "./app/routes";
+import { admRouter } from "./app/router";
 
 export default defineComponent({
   name: "AdmApp",
   components: { CpfIcon },
-  mixins: [admConsoleMixin],
-  data() { return { sidebarOpen: false, menuSearch: "", favoriteMenus: [] as string[], recentMenus: [] as string[] }; },
+  setup() {
+    const store = useAdmConsoleStore();
+    const refs = storeToRefs(store);
+    const actions = Object.fromEntries(admConsoleActionNames.map(name => [name, (...args: unknown[]) => (store as any)[name](...args)]));
+    return { ...refs, ...actions, admRouter };
+  },
+  data() { return { sidebarOpen: false, menuSearch: "", favoriteMenus: [] as string[], recentMenus: [] as string[], unregisterRouteHook: null as null | (() => void) }; },
   computed: {
     activeFeatureGroup(): AdmFeatureGroup { return featureGroupForMenu(this.activeMenu); },
     activeFeatureComponent() { return componentForMenu(this.activeMenu); },
@@ -94,28 +100,27 @@ export default defineComponent({
         .filter(group => group.items.length > 0)
         .sort((a, b) => Number(b.items.some((menu: any) => this.isFavorite(menu.id))) - Number(a.items.some((menu: any) => this.isFavorite(menu.id))));
     },
-    recentMenuItems(): any[] {
-      return this.recentMenus.map(id => this.visibleMenus.find((menu: any) => menu.id === id)).filter(Boolean).slice(0, 5);
-    }
+    recentMenuItems(): any[] { return this.recentMenus.map(id => this.visibleMenus.find((menu: any) => menu.id === id)).filter(Boolean).slice(0, 5); }
   },
-  mounted() {
-    window.addEventListener("hashchange", this.syncMenuFromHash);
+  async mounted() {
     window.addEventListener("keydown", this.handleGlobalShortcut);
     this.favoriteMenus = this.readStoredMenuIds("cpf.adm.favoriteMenus");
     this.recentMenus = this.readStoredMenuIds("cpf.adm.recentMenus");
-    this.syncMenuFromHash();
-    if (this.authenticated) this.loadInitialData();
+    await this.restoreServerSession();
+    this.syncMenuFromRoute();
+    this.unregisterRouteHook = this.admRouter.afterEach(() => this.syncMenuFromRoute());
+    if (this.authenticated) await this.loadInitialData();
   },
-  beforeUnmount() { window.removeEventListener("hashchange", this.syncMenuFromHash); window.removeEventListener("keydown", this.handleGlobalShortcut); },
+  beforeUnmount() { window.removeEventListener("keydown", this.handleGlobalShortcut); this.unregisterRouteHook?.(); },
   methods: {
     iconForMenu,
-    selectMenu(menuId: string) {
-      if (this.activeMenu !== menuId) this.activeMenu = menuId;
+    async selectMenu(menuId: string) {
+      if (!this.visibleMenus.some((menu: any) => menu.id === menuId)) return;
+      this.activeMenu = menuId;
       this.recentMenus = [menuId, ...this.recentMenus.filter(id => id !== menuId)].slice(0, 8);
       localStorage.setItem("cpf.adm.recentMenus", JSON.stringify(this.recentMenus));
-      this.sidebarOpen = false;
-      this.menuSearch = "";
-      if (location.hash !== `#/${menuId}`) location.hash = `#/${menuId}`;
+      this.sidebarOpen = false; this.menuSearch = "";
+      await this.admRouter.push({ name: menuId });
     },
     isFavorite(menuId: string): boolean { return this.favoriteMenus.includes(menuId); },
     toggleFavorite(menuId: string) {
@@ -129,11 +134,11 @@ export default defineComponent({
     handleGlobalShortcut(event: KeyboardEvent) {
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") { event.preventDefault(); this.sidebarOpen = true; this.$nextTick(() => (this.$refs.globalMenuSearch as HTMLInputElement | undefined)?.focus()); }
     },
-    syncMenuFromHash() {
-      const requested = menuIdFromHash(location.hash);
-      if (requested && this.visibleMenus.some((menu: any) => menu.id === requested)) this.activeMenu = requested;
+    syncMenuFromRoute() {
+      const requested = menuIdFromRouteName(this.admRouter.currentRoute.value.name);
+      if (this.visibleMenus.some((menu: any) => menu.id === requested)) this.activeMenu = requested;
       else if (!this.visibleMenus.some((menu: any) => menu.id === this.activeMenu)) this.activeMenu = this.visibleMenus[0]?.id || "dashboard";
-      if (location.hash !== `#/${this.activeMenu}`) history.replaceState(null, "", `#/${this.activeMenu}`);
+      if (this.admRouter.currentRoute.value.name !== this.activeMenu) void this.admRouter.replace({ name: this.activeMenu });
     }
   }
 });

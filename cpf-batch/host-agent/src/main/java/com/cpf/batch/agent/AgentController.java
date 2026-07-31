@@ -12,7 +12,6 @@ import com.cpf.batch.runtime.SensitiveTextSanitizer;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +21,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.nio.file.Path;
 import java.time.Instant;
@@ -129,7 +129,11 @@ public class AgentController {
         try {
             requireCommandPolicy();
             catalog.requireAllowed("ROLLBACK");
-            manager.execute(id, ServiceManager.Action.STOP);
+            var stopResult = manager.execute(id, ServiceManager.Action.STOP);
+            if (!stopResult.success() || !manager.stopped(id)) {
+                return result(commandId, id, "ROLLBACK", CommandState.UNKNOWN_RESULT,
+                        "STOP_NOT_CONFIRMED", "Runtime stop result is not confirmed; artifact rollback was not attempted", null, startedAt);
+            }
             String version = installer.rollback(id);
             var startResult = manager.execute(id, ServiceManager.Action.START);
             return result(commandId, id, "ROLLBACK",
@@ -157,15 +161,11 @@ public class AgentController {
 
     @GetMapping("/services/{id}/logs")
     @Operation(summary = "제한된 Runtime 로그 묶음 수집")
-    ResponseEntity<FileSystemResource> logs(@PathVariable String id) throws Exception {
-        requireLogCollectionPolicy();
-        catalog.requireAllowed("COLLECT_LOGS");
-        Path archive = logs.collect(id);
-        return ResponseEntity.ok()
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .header(HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename=\"" + archive.getFileName() + "\"")
-                .body(new FileSystemResource(archive));
+    ResponseEntity<StreamingResponseBody> logs(@PathVariable String id) throws Exception {
+        requireLogCollectionPolicy(); catalog.requireAllowed("COLLECT_LOGS"); Path archive = logs.collect(id);
+        StreamingResponseBody body=output->{try(var input=java.nio.file.Files.newInputStream(archive,java.nio.file.LinkOption.NOFOLLOW_LINKS)){input.transferTo(output);output.flush();}finally{logs.delete(archive);}};
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .header(HttpHeaders.CONTENT_DISPOSITION,"attachment; filename=\""+archive.getFileName()+"\"").body(body);
     }
 
     private AgentCommandResult runtimeCommand(String id, String command, String operation) {

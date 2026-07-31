@@ -1,0 +1,9 @@
+plugins { id 'java-library'; id 'maven-publish' }
+group = 'com.cpf.starter'
+dependencies {
+    api project(':cpf-core')
+    api 'com.github.ben-manes.caffeine:caffeine'
+    implementation 'org.springframework.boot:spring-boot-autoconfigure'
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+}
+publishing { publications { mavenJava(MavenPublication) { from components.java; artifactId = 'cpf-starter-cache' } } }

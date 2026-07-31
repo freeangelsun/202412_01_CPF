@@ -1,168 +1,114 @@
-<div align="center">
+# CPF 문서 안내
 
-<picture>
-  <source media="(max-width: 720px)" srcset="../assets/readme/cpf-guide-map-mobile.png">
-  <img src="../assets/readme/cpf-guide-map-desktop.png" alt="CPF 문서 체계" width="100%">
-</picture>
+> **기준 Repository** `freeangelsun/202412_01_CPF` · **기준 Branch** `master` · **작성 기준 SHA** `d31bd127aa12bb9368933216642a5a9d25bd0bfd`
+> 이 디렉터리는 개발·운영 작업자가 실제로 따라 사용하는 제품 매뉴얼의 정본이다. Architecture Decision, QA Request, Matrix, Evidence는 각자의 기존 정본 경로를 유지한다.
 
-# CPF 문서 홈
+## 1. 문서 구조
 
-**설계자, 개발자, 운영자, 데이터베이스 담당자와 배포 담당자가 같은 제품 기준을 찾는 시작점**
+| 순서 | 문서 | 독자 | 이 문서를 읽고 할 수 있어야 하는 일 |
+|---:|---|---|---|
+| 00 | [프레임워크 안내](00_프레임워크안내.md) | 전체 역할 | 제품 스펙·구조·책임·배포 구성과 다음 문서를 선택한다. |
+| 01 | [개발자 매뉴얼](01_개발자매뉴얼.md) | 일반 개발자 | 온라인 기능, Transaction, Kafka, File, 외부 연계, Generator와 Test를 완성한다. |
+| 02 | [배치 개발 매뉴얼](02_배치개발매뉴얼.md) | Batch 개발자 | Spring Batch Job·Step·Scheduler·Worker·Agent·센터컷과 Restart를 구현한다. |
+| 03 | [ADM 개발자 매뉴얼](03_ADM개발자매뉴얼.md) | ADM 개발자 | ADM Backend·Frontend·Menu·권한·승인·감사 기능을 구현한다. |
+| 04 | [ADM 운영자 매뉴얼](04_ADM운영자매뉴얼.md) | ADM 운영관리자 | 화면에서 조회·승인·제어·대사·감사를 안전하게 수행한다. |
+| 05 | [플랫폼 운영 매뉴얼](05_플랫폼운영매뉴얼.md) | 시스템 운영자 | Profile·Property·DB·배포·기동·관측·Backup·복구를 수행한다. |
+| 90 | [BZA 매뉴얼](90_BZA매뉴얼.md) | 선택 제품 담당자 | BZA를 선택 설치하고 사용자·조직·권한·결재를 개발·운영한다. |
+| 91 | [게이트웨이 매뉴얼](91_게이트웨이매뉴얼.md) | 선택 제품 담당자 | SCG 기반 Gateway Route를 개발·설치·운영·Rollback한다. |
 
-[← 제품 소개](../../README.md) · [용어와 계약](CPF_TERMINOLOGY_AND_CONTRACT_REFERENCE.md) · [구조와 배포](CPF_ARCHITECTURE_AND_TOPOLOGY_GUIDE.md)
+![CPF 문서 지도](../assets/readme/cpf-guide-map-desktop.svg)
 
-</div>
+## 2. 역할별 읽는 순서
 
----
+### 처음 CPF를 접하는 사람
 
-## 문서의 역할
+`00 → 자신의 역할 문서 → 관련 선택 제품 문서`
 
-CPF 문서는 목적에 따라 분리합니다.
+### 일반 개발자
 
-| 문서 종류 | 역할 | 포함하지 않는 내용 |
+`00 → 01 → 적용되는 경우 02/03/90/91 → 05의 개발 환경·DB 부분`
+
+### Batch 개발자
+
+`00 → 01의 공통 Transaction·Messaging → 02 → 04의 Batch 운영 화면 → 05의 Runtime·DB`
+
+### ADM 개발자
+
+`00 → 01의 공통 API·보안 → 03 → 04 → 선택 기능은 02/90/91`
+
+### ADM 운영관리자
+
+`00의 제품 구조 → 04 → 장애가 Runtime 문제면 05 → 선택 제품은 90/91`
+
+### 플랫폼 운영자
+
+`00 → 05 → Batch Runtime은 02의 운영 연결 → ADM 화면 협업은 04`
+
+## 3. 문서 책임 경계
+
+```text
+00  무엇을 제공하고 어떤 계약을 보장하는가
+01  일반 기능을 어떻게 개발하는가
+02  Spring Batch 기반 배치를 어떻게 개발하는가
+03  ADM 기능과 화면을 어떻게 개발하는가
+04  ADM 화면을 어떻게 사용하는가
+05  Runtime을 어떻게 설치·설정·배포·감시·복구하는가
+90  선택형 BZA를 어떻게 개발·운영하는가
+91  선택형 Gateway를 어떻게 개발·운영하는가
+```
+
+중복되는 개념은 독자 관점으로 분리한다.
+
+| 주제 | 개발자 문서 | 운영자 문서 |
 |---|---|---|
-| 제품 소개 | CPF의 가치, 구조, 핵심 실행 모델과 시작 경로 | 상세 옵션, 장애별 명령, 작업 진행률 |
-| 구조·정책 가이드 | 소유권, 의존성, 배포 구성과 제품 계약 | 특정 세션 작업 내역 |
-| 사용·운영 가이드 | 실제 작업을 처음부터 끝까지 수행하는 절차 | 검증하지 않은 완료 보고 |
-| API·도구 참조 | 입력, 출력, 기본값, 오류와 예제 | 개념 설명의 불필요한 반복 |
-| 교육 문서 | 실제 제품 API를 사용하는 실습과 복구 훈련 | 별도 장난감 규격 |
-| 작업·검토·인수인계 | 현재 개발 요청, 검수 상태와 다음 작업 | 완성 제품의 사용 설명 |
-| 검증 증적 | 기준 Commit, 실행 명령, 환경과 실제 결과 | 민감정보 원문 |
+| Transaction | 구현 경계·Rollback·Outbox·Unknown | 거래 조회·대사·재처리 판단 |
+| Batch | Job·Step·Checkpoint·Partition | JobExecution 조회·Stop·Restart·Abandon |
+| ADM | Backend·Frontend·권한·승인 개발 | 화면 검색·상세·조치·승인 절차 |
+| 설정 | Property를 소비하는 Source·Validation | 실제 Profile·YAML·Secret·재기동·Drift |
+| Gateway | 업무 API가 지켜야 할 Header·계약 | 선택 제품 문서의 Route 개발·운영 |
 
----
+## 4. 각 단락의 품질 기준
 
-## 역할별 추천 순서
+매뉴얼의 핵심 단락은 가능한 범위에서 다음 정보를 갖는다.
 
-### 구조를 설계하는 사람
+1. 목적과 적용 시점
+2. Owner Module과 실제 Consumer
+3. 처리 흐름 또는 상태 전이 그림
+4. Source·API·SQL·설정·화면 경로
+5. 단계별 구현 또는 운영 절차
+6. 입력·출력·명령 예
+7. 정상 결과
+8. 오류·중복·응답 유실·부분 실패
+9. 재시도·재시작·대사·복구
+10. 보안·권한·승인·감사·마스킹
+11. Test·Runtime 검증·Evidence
+12. 완료 금지 조건
 
-1. [구조와 배포 구성](CPF_ARCHITECTURE_AND_TOPOLOGY_GUIDE.md)
-2. [공개 API와 생성 업무영역](CPF_PUBLIC_API_AND_GENERATED_DOMAIN_GUIDE.md)
-3. [개발자 가이드](CPF_DEVELOPER_GUIDE.md)
-4. [보안·재해복구·데이터 보존](CPF_SECURITY_DR_RETENTION_GUIDE.md)
-5. [테스트와 검증 증적](CPF_TEST_AND_EVIDENCE_GUIDE.md)
+## 5. 현재 구현과 제품 계약
 
-### 업무 기능을 개발하는 사람
+매뉴얼은 제품 계약과 목표 구조를 설명하지만, 실제 완료 판정은 최신 `master`의 Source와 Runtime Evidence를 따른다.
 
-1. [개발자 가이드](CPF_DEVELOPER_GUIDE.md)
-2. [기반 API](CPF_FOUNDATION_API_GUIDE.md)
-3. [공개 API와 생성 업무영역](CPF_PUBLIC_API_AND_GENERATED_DOMAIN_GUIDE.md)
-4. [업무영역 생성기](CPF_GENERATOR_TOOL_GUIDE.md)
-5. [교육·예제 범위](CPF_EDU_COVERAGE_GUIDE.md)
+- ADR·Matrix에 적힌 기술 이름만으로 구현 완료가 아니다.
+- Dependency·Interface·Adapter·Sample만 존재하면 미구현 또는 부분 구현이다.
+- 모든 실제 Consumer가 Primary Path를 사용하고 Legacy가 제거돼야 한다.
+- 실행하지 않은 DB·Kafka·Browser·Multi-instance·Failure Scenario는 미검증이다.
+- 다른 SHA의 Evidence를 현재 완료 결과로 사용하지 않는다.
 
-### 플랫폼과 업무를 운영하는 사람
+## 6. 기존 문서 교체
 
-1. [플랫폼 운영자](CPF_ADMIN_OPERATOR_GUIDE.md)
-2. [업무 관리자](CPF_BIZ_ADMIN_GUIDE.md)
-3. [화면 표준](CPF_ADMIN_BZA_UI_STANDARD_GUIDE.md)
-4. [관측·장애대응·복구](CPF_OBSERVABILITY_INCIDENT_AND_RECOVERY_GUIDE.md)
-5. [보안·재해복구·데이터 보존](CPF_SECURITY_DR_RETENTION_GUIDE.md)
+기존의 세분화된 Guide는 내용이 여러 독자와 용도를 섞고 있어 위 8개 정본으로 통합한다. 정확한 삭제 대상은 다음 Manifest가 관리한다.
 
-### 배치와 연계를 운영하는 사람
+- `cpf-docs/work/manifest/CPF_GUIDE_REBUILD_DELETE_MANIFEST.txt`
+- 적용 Script: `cpf-tools/scripts/apply-cpf-guide-cleanup.ps1`
+- 검증 Script: `cpf-tools/scripts/verify-cpf-guide-system.ps1`
 
-1. [비동기·메시징·보상](CPF_ASYNC_MESSAGING_AND_COMPENSATION_GUIDE.md)
-2. [배치 실행 환경과 원격 에이전트](CPF_BATCH_RUNTIME_AND_REMOTE_AGENT_GUIDE.md)
-3. [배치 스케줄러와 실행 생명주기](CPF_BATCH_SCHEDULER_INSTANCE_LIFECYCLE_GUIDE.md)
-4. [게이트웨이 운영](CPF_GATEWAY_OPERATIONS_GUIDE.md)
-5. [상태 점검과 서비스 등록부](CPF_HEALTH_AND_SERVICE_REGISTRY_GUIDE.md)
+Repository Root에는 신규 Manifest나 결과 문서를 만들지 않는다.
 
-### 설치·데이터베이스·배포를 담당하는 사람
+## 7. 문서 갱신 규칙
 
-1. [설치·업그레이드·되돌리기](CPF_INSTALL_UPGRADE_ROLLBACK_GUIDE.md)
-2. [데이터베이스 도구](CPF_DATABASE_TOOL_GUIDE.md)
-3. [데이터베이스 프로필과 업무영역 DB](DATABASE_PROFILE_AND_DOMAIN_DB_GUIDE.md)
-4. [설정과 실행 정책 배포](CPF_CONFIGURATION_AND_RUNTIME_POLICY_GUIDE.md)
-5. [산출물 공급과 CI/CD](CPF_ARTIFACT_SUPPLY_AND_CICD_GUIDE.md)
-6. [도구 운영](CPF_TOOLS_GUIDE.md)과 [도구 상세 참조](CPF_TOOL_REFERENCE.md)
-
----
-
-## 전체 문서 지도
-
-### 구조와 개발
-
-- [CPF 구조와 배포 구성 가이드](CPF_ARCHITECTURE_AND_TOPOLOGY_GUIDE.md) — 모듈 소유권, 의존성, 동일 JVM·분리 WAS, 제어 영역과 실행 영역
-- [CPF 개발자 가이드](CPF_DEVELOPER_GUIDE.md) — 기능 설계부터 구현·검증까지의 개발 표준
-- [CPF 기반 API 가이드](CPF_FOUNDATION_API_GUIDE.md) — 문자열, 숫자, 날짜, 식별자, 오류, 페이징과 공통 자료구조
-- [CPF 공개 API와 생성 업무영역 가이드](CPF_PUBLIC_API_AND_GENERATED_DOMAIN_GUIDE.md) — 공개 경계, 로컬·원격 호출, 생성 업무영역 확장
-- [CPF 업무영역 생성기 가이드](CPF_GENERATOR_TOOL_GUIDE.md) — 계획, 충돌 검사, 생성, 재실행, 업그레이드와 제거
-- [CPF 교육·예제 범위 가이드](CPF_EDU_COVERAGE_GUIDE.md) — 학습 경로, 실습, 오류·복구·운영 시나리오
-
-### 운영과 화면
-
-- [CPF 플랫폼 운영자 가이드](CPF_ADMIN_OPERATOR_GUIDE.md) — 서비스·거래·로그·배치·설정·보안 운영
-- [CPF 업무 관리자 가이드](CPF_BIZ_ADMIN_GUIDE.md) — 사용자·조직·권한·결재·알림·첨부와 감사
-- [CPF ADM·BZA 화면 표준 가이드](CPF_ADMIN_BZA_UI_STANDARD_GUIDE.md) — 탐색, 검색, 표, 양식, 접근성, 위험 조치와 화면 구조
-- [CPF 관측·장애대응·복구 가이드](CPF_OBSERVABILITY_INCIDENT_AND_RECOVERY_GUIDE.md) — 로그·추적·지표·경보·사고 대응과 복구 절차
-- [CPF 상태 점검과 서비스 등록부 가이드](CPF_HEALTH_AND_SERVICE_REGISTRY_GUIDE.md) — 생존·준비 상태, 등록·심박·만료·배수·점검 상태
-
-### 실행과 연계
-
-- [CPF 게이트웨이 운영 가이드](CPF_GATEWAY_OPERATIONS_GUIDE.md) — 경로·대상군·정책·연결시험·적용·대사·되돌리기
-- [CPF 비동기·메시징·보상 처리 가이드](CPF_ASYNC_MESSAGING_AND_COMPENSATION_GUIDE.md) — 송신함·수신함·재시도·격리·재생·대사·보상
-- [CPF 배치 실행 환경과 원격 에이전트 가이드](CPF_BATCH_RUNTIME_AND_REMOTE_AGENT_GUIDE.md) — 작업정의, 제어 서버, 작업자, 에이전트와 대량 실행
-- [CPF 배치 스케줄러와 실행 생명주기 가이드](CPF_BATCH_SCHEDULER_INSTANCE_LIFECYCLE_GUIDE.md) — 일정, 달력, 시간대, 오실행, 재시작·재실행·재처리
-
-### 보안·설정·데이터
-
-- [CPF 보안·재해복구·데이터 보존 가이드](CPF_SECURITY_DR_RETENTION_GUIDE.md) — 인증·권한·비밀값·인증서·마스킹·백업·보존과 법적 보류
-- [CPF 설정과 실행 정책 배포 가이드](CPF_CONFIGURATION_AND_RUNTIME_POLICY_GUIDE.md) — 설정 우선순위, 버전, 승인, 적용 확인, 정본 불일치와 되돌리기
-- [CPF 데이터베이스 도구 가이드](CPF_DATABASE_TOOL_GUIDE.md) — 정본 SQL, 설치, 이관, 업그레이드, 되돌리기, 백업과 복구
-- [CPF 데이터베이스 프로필과 업무영역 DB 가이드](DATABASE_PROFILE_AND_DOMAIN_DB_GUIDE.md) — 공급자별 연결, 계정, 논리 DB, 다중 자료원과 읽기 복제본
-
-### 공급·도구·검증
-
-- [CPF 설치·업그레이드·되돌리기 가이드](CPF_INSTALL_UPGRADE_ROLLBACK_GUIDE.md) — 신규 설치, 단계적 배포, 이중 환경 전환, 데이터베이스 호환과 복구
-- [CPF 산출물 공급과 CI/CD 가이드](CPF_ARTIFACT_SUPPLY_AND_CICD_GUIDE.md) — 저장소, 승격, 서명, 자재 명세서, 폐쇄망과 공급망 검증
-- [CPF 도구 운영 가이드](CPF_TOOLS_GUIDE.md) — 도구 분류, 공통 안전 규칙과 대표 작업 흐름
-- [CPF 도구 상세 참조](CPF_TOOL_REFERENCE.md) — 명령별 매개변수, 입력·출력, 종료 코드와 복구
-- [CPF 테스트와 검증 증적 가이드](CPF_TEST_AND_EVIDENCE_GUIDE.md) — 단위·계약·통합·실행·장애·브라우저·다중 인스턴스 검증
-- [CPF 용어와 계약 참조](CPF_TERMINOLOGY_AND_CONTRACT_REFERENCE.md) — 한글 우선 용어, 상태 코드와 공통 계약
-
----
-
-## 문서를 사용하는 원칙
-
-1. 제품 소개에서 전체 지도를 파악합니다.
-2. 구조 가이드에서 소유권과 배포 경계를 확인합니다.
-3. 수행하려는 작업의 상세 가이드로 이동합니다.
-4. 정확한 매개변수는 도구 참조, 정확한 프로그램 계약은 OpenAPI·JavaDoc에서 확인합니다.
-5. 현재 개발 상태는 작업 요청·검토·인수인계 문서에서 확인하고 제품 가이드에 섞지 않습니다.
-6. 실행하지 않은 검증을 성공으로 기록하지 않습니다.
-
----
-
-## 상세 가이드의 품질 기준
-
-CPF 상세 가이드는 개념을 설명하는 문서에서 끝나지 않는다. 독자가 실제 작업을 완료하고 실패를 복구하며 검증 증적을 남길 수 있어야 한다.
-
-| 단계 | 가이드가 제공해야 하는 내용 |
-|---|---|
-| 문서 계약 | 대상, Owner, 적용 범위, 이 문서로 완료할 일, 완료 판정 |
-| 책임 경계 | Public API·SPI·Internal, 데이터 Owner, 실제 Consumer, Transaction 경계 |
-| 실행 준비 | 권한, Profile, Secret Reference, DB, Artifact, Network, 승인 |
-| 정상 절차 | 명령·API·입력·예상 결과·상태 전이 |
-| 오류와 부분 실패 | Validation, 권한, Version 충돌, Timeout, 일부 적용, 결과 불명 |
-| 복구 | Retry, Replay, Reconcile, Compensation, Rollback, Forward Fix |
-| 운영 | 조회 Key, 상태, 원인, 위험 조치, 사유, 승인, 감사 |
-| 추적 | Source, Controller, Port, Config, SQL, Test와 Generator 영향 |
-| 검증 | Unit, Integration, Runtime, Fault, Browser, Multi-instance, DB Vendor |
-| Evidence | 기준 Commit, 정확한 명령, 환경, 시각, 실제 결과, Sanitizing |
-
-### 가이드를 읽을 때 구분할 것
-
-- **제품 정책**은 구현이 따라야 하는 장기 규칙이다.
-- **실행 절차**는 현재 제품에서 작업을 수행하는 순서다.
-- **참조 정보**는 정확한 Parameter, API, 상태 Code와 Source 경로다.
-- **검증 결과**는 현재 Commit과 환경에서 실제 실행된 Evidence에서만 확정한다.
-
-가이드의 설명이 Source보다 앞서거나 Source가 가이드보다 앞선 경우 `완료`가 아니라 `재확인 필요` 또는 `부분 구현`으로 다룬다.
-
----
-
-## 공통 문서 구성
-
-각 상세 가이드는 가능한 한 다음 순서를 따릅니다.
-
-`대상과 목적 → 선행 조건 → 책임 경계 → 전체 흐름 → 설정과 계약 → 정상 절차 → 오류·부분 실패 → 복구·되돌리기 → 보안·감사 → 테스트 → 문제 해결 → 완료 점검`
-
-용어가 혼동될 때는 [CPF 용어와 계약 참조](CPF_TERMINOLOGY_AND_CONTRACT_REFERENCE.md)를 먼저 확인합니다.
+- 제품 계약이 변경되면 00과 영향받는 역할 매뉴얼을 함께 갱신한다.
+- Public API·Header·Error·Property·DB 변경은 Source·OpenAPI·Test·Guide를 함께 수정한다.
+- Frontend Menu·Route 변경은 03과 04를 함께 수정한다.
+- Batch 실행 계약 변경은 02, ADM Batch 운영 절차, 플랫폼 DB·Runtime 항목을 함께 확인한다.
+- 선택 제품 변경은 90/91과 00의 선택 기준만 갱신하고 기본 제품 문서를 불필요하게 비대하게 만들지 않는다.
+- 직접 실행하지 않은 검증은 성공으로 기록하지 않는다.

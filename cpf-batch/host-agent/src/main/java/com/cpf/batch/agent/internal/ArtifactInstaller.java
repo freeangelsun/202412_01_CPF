@@ -2,245 +2,321 @@ package com.cpf.batch.agent.internal;
 
 import com.cpf.batch.agent.AgentProperties;
 import com.cpf.batch.api.AgentArtifactRequest;
-
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.InetAddress;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
+import java.nio.channels.OverlappingFileLockException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.time.Duration;
+import java.util.Locale;
 import java.util.Objects;
+import java.util.Properties;
 import java.util.regex.Pattern;
 
+/** 서명·환경 결합·anti-rollback·서비스별 fencing lock을 적용하는 Artifact Installer입니다. */
 public final class ArtifactInstaller {
-    private static final Pattern VERSION = Pattern.compile("[A-Za-z0-9._-]{1,80}");
-    private static final Pattern SHA256 = Pattern.compile("[A-Fa-f0-9]{64}");
-    private static final Pattern GROUP_ID =
-            Pattern.compile("[A-Za-z0-9_]+(?:\\.[A-Za-z0-9_-]+)*");
-    private static final Pattern ARTIFACT_ID =
-            Pattern.compile("[A-Za-z0-9][A-Za-z0-9._-]{0,127}");
+    private static final Pattern SAFE = Pattern.compile("[A-Za-z0-9._-]{1,128}");
+    private static final Pattern COORDINATE = Pattern.compile("[A-Za-z0-9_.-]+:[A-Za-z0-9_.-]+");
     private final AgentProperties properties;
     private final ArtifactVerifier verifier;
+    private final HttpClient httpClient;
 
     public ArtifactInstaller(AgentProperties properties, ArtifactVerifier verifier) {
         this.properties = properties;
         this.verifier = verifier;
+        this.httpClient = HttpClient.newBuilder()
+                .followRedirects(HttpClient.Redirect.NEVER)
+                .connectTimeout(Duration.ofSeconds(20))
+                .build();
     }
 
     public Result install(AgentArtifactRequest request) throws Exception {
         Objects.requireNonNull(request, "request");
         AgentProperties.ServiceDefinition service = service(request.serviceId());
-        Coordinate coordinate = parseCoordinate(request.coordinate());
-        if (!coordinate.artifactId().equals(service.getArtifactId())) {
-            throw new SecurityException("artifact/service mismatch");
-        }
-        String extension = artifactExtension(request.runtimeMode(), service.getRuntimeMode());
-        if (!VERSION.matcher(request.version()).matches()) {
-            throw new SecurityException("unsafe version");
-        }
-        if (request.sha256() == null || !SHA256.matcher(request.sha256()).matches()) {
-            throw new SecurityException("invalid artifact checksum");
-        }
-
+        validate(request, service);
+        String extension = extension(request.runtimeMode());
         Path root = secureRoot(service.getInstallRoot());
-        Path releases = secureDirectory(root, "releases");
-        Path releaseDirectory = secureDirectory(releases, request.version());
-        Path target = secureChild(releaseDirectory, service.getArtifactId() + extension);
-        Path temporary = secureChild(releaseDirectory, service.getArtifactId() + extension + ".part");
-        URI artifactUri = artifactUri(coordinate, request.version(), extension);
-
-        try {
-            download(artifactUri, temporary);
-            verifier.verify(temporary, request.sha256(), request.signatureBase64());
-            moveAtomically(temporary, target);
-        } finally {
-            Files.deleteIfExists(temporary);
-        }
-
-        if (request.configRef() != null && !request.configRef().isBlank()) {
-            if (!request.configRef().matches("(?i)^(vault|secret|config)://[A-Za-z0-9._/@:-]+$")) {
-                throw new SecurityException("Only approved secret/config references are allowed");
+        Path part = null;
+        try (FileChannel channel = FileChannel.open(root.resolve(".install.lock"),
+                StandardOpenOption.CREATE, StandardOpenOption.WRITE);
+                FileLock ignored = exclusiveLock(channel)) {
+            Properties current = read(root.resolve("artifact-state.properties"));
+            long currentSequence = longValue(current, "releaseSequence", -1);
+            validateSequence(request, current, currentSequence);
+            if (isExactReplay(request, current, currentSequence)) {
+                return new Result(request.version(), current.getProperty("previousVersion", ""),
+                        current.getProperty("path", ""));
             }
-            Path configDirectory = secureDirectory(root, "config");
-            writeAtomically(configDirectory.resolve("deployment-config.ref"), request.configRef());
-        }
 
-        Path currentVersion = secureChild(root, "current.version");
-        String previous = Files.isRegularFile(currentVersion, LinkOption.NOFOLLOW_LINKS)
-                ? Files.readString(currentVersion).trim() : "";
-        if (!previous.isBlank()) {
-            writeAtomically(secureChild(root, "previous.version"), previous);
+            Path releases = secureDirectory(root, root.resolve("releases"));
+            Path release = secureDirectory(root, releases.resolve(request.version()));
+            part = release.resolve(service.getArtifactId() + extension + ".part").normalize();
+            Path target = release.resolve(service.getArtifactId() + extension).normalize();
+            requireChild(root, part);
+            requireChild(root, target);
+            Files.deleteIfExists(part);
+
+            long size = download(artifactUri(request, extension), part);
+            ArtifactVerifier.Verified verified = verifier.verify(part, request, size);
+            move(part, target);
+            part = null;
+
+            if (request.configRef() != null && !request.configRef().isBlank()) {
+                if (!request.configRef().matches("(?i)^(vault|secret|config)://[A-Za-z0-9._/@:-]+$")) {
+                    throw new SecurityException("ARTIFACT_CONFIG_REFERENCE_INVALID");
+                }
+                write(root.resolve("deployment-config.ref"), request.configRef());
+            }
+
+            if (!current.isEmpty()) writeProperties(root.resolve("artifact-previous.properties"), current);
+            Properties next = state(request, current, verified, target);
+            writeProperties(root.resolve("artifact-state.properties"), next);
+            return new Result(request.version(), current.getProperty("version", ""), target.toString());
+        } catch (OverlappingFileLockException failure) {
+            throw new IllegalStateException("ARTIFACT_INSTALL_ALREADY_RUNNING", failure);
+        } finally {
+            if (part != null) Files.deleteIfExists(part);
         }
-        writeAtomically(currentVersion, request.version());
-        return new Result(request.version(), previous, target.toString());
     }
 
     public String rollback(String serviceId) throws Exception {
         AgentProperties.ServiceDefinition service = service(serviceId);
         Path root = secureRoot(service.getInstallRoot());
-        Path previousVersion = secureChild(root, "previous.version");
-        if (!Files.isRegularFile(previousVersion, LinkOption.NOFOLLOW_LINKS)) {
-            throw new IllegalStateException("no rollback version");
+        try (FileChannel channel = FileChannel.open(root.resolve(".install.lock"),
+                StandardOpenOption.CREATE, StandardOpenOption.WRITE);
+                FileLock ignored = exclusiveLock(channel)) {
+            Path previousPath = root.resolve("artifact-previous.properties");
+            Properties previous = read(previousPath);
+            if (previous.isEmpty()) throw new IllegalStateException("ARTIFACT_ROLLBACK_STATE_MISSING");
+            Path artifact = Path.of(previous.getProperty("path", "")).toAbsolutePath().normalize();
+            requireChild(root, artifact);
+            if (!Files.isRegularFile(artifact, LinkOption.NOFOLLOW_LINKS) || Files.isSymbolicLink(artifact)) {
+                throw new SecurityException("ARTIFACT_ROLLBACK_BINARY_MISSING_OR_UNSAFE");
+            }
+            String expected = previous.getProperty("sha256", "");
+            if (expected.isBlank()) throw new SecurityException("ARTIFACT_ROLLBACK_DIGEST_MISSING");
+            Properties current = read(root.resolve("artifact-state.properties"));
+            writeProperties(root.resolve("artifact-state.properties"), previous);
+            writeProperties(previousPath, current);
+            return previous.getProperty("version");
+        } catch (OverlappingFileLockException failure) {
+            throw new IllegalStateException("ARTIFACT_INSTALL_ALREADY_RUNNING", failure);
         }
-        String previous = Files.readString(previousVersion).trim();
-        if (!VERSION.matcher(previous).matches()) {
-            throw new SecurityException("invalid rollback version");
-        }
-        Path release = secureDirectory(secureDirectory(root, "releases"), previous);
-        if (!Files.isDirectory(release, LinkOption.NOFOLLOW_LINKS)) {
-            throw new IllegalStateException("rollback release missing");
-        }
-        Path currentVersion = secureChild(root, "current.version");
-        String current = Files.readString(currentVersion).trim();
-        writeAtomically(currentVersion, previous);
-        writeAtomically(previousVersion, current);
-        return previous;
     }
 
-    private void download(URI uri, Path target) throws Exception {
-        HttpResponse<InputStream> response = HttpClient.newBuilder()
-                .followRedirects(HttpClient.Redirect.NEVER)
-                .connectTimeout(Duration.ofSeconds(30))
-                .build()
-                .send(HttpRequest.newBuilder(uri).timeout(Duration.ofMinutes(5)).GET().build(),
-                        HttpResponse.BodyHandlers.ofInputStream());
-        if (response.statusCode() != 200) {
-            try (InputStream ignored = response.body()) {
-                throw new IOException("repository status=" + response.statusCode());
-            }
+    private static FileLock exclusiveLock(FileChannel channel) throws IOException {
+        FileLock lock = channel.tryLock();
+        if (lock == null) throw new IllegalStateException("ARTIFACT_INSTALL_ALREADY_RUNNING");
+        return lock;
+    }
+
+    private void validate(AgentArtifactRequest request, AgentProperties.ServiceDefinition service) {
+        if (request.serviceId() == null || !SAFE.matcher(request.serviceId()).matches()) {
+            throw new SecurityException("ARTIFACT_SERVICE_ID_INVALID");
         }
-        long declaredLength = response.headers().firstValueAsLong("Content-Length").orElse(-1L);
-        if (declaredLength > properties.getMaxArtifactBytes()) {
-            try (InputStream ignored = response.body()) {
-                throw new SecurityException("artifact too large");
-            }
+        if (request.coordinate() == null || !COORDINATE.matcher(request.coordinate()).matches()
+                || !request.coordinate().endsWith(":" + service.getArtifactId())) {
+            throw new SecurityException("ARTIFACT_SERVICE_MISMATCH");
+        }
+        if (request.version() == null || !SAFE.matcher(request.version()).matches() || request.releaseSequence() <= 0) {
+            throw new SecurityException("ARTIFACT_RELEASE_IDENTITY_INVALID");
+        }
+        if (!Objects.equals(request.environmentCode(), service.getEnvironmentCode())
+                || !Objects.equals(request.channel(), service.getReleaseChannel())) {
+            throw new SecurityException("ARTIFACT_ENVIRONMENT_CHANNEL_MISMATCH");
+        }
+        if (request.reason() == null || request.reason().trim().length() < 5
+                || request.requestedBy() == null || request.requestedBy().isBlank()) {
+            throw new SecurityException("ARTIFACT_OPERATOR_REASON_REQUIRED");
+        }
+    }
+
+    private static void validateSequence(
+            AgentArtifactRequest request, Properties current, long currentSequence) {
+        if (request.releaseSequence() < currentSequence) {
+            throw new SecurityException("ARTIFACT_ROLLBACK_SEQUENCE_REJECTED");
+        }
+        if (request.releaseSequence() == currentSequence && !isExactReplay(request, current, currentSequence)) {
+            throw new SecurityException("ARTIFACT_RELEASE_SEQUENCE_COLLISION");
+        }
+    }
+
+    private static boolean isExactReplay(
+            AgentArtifactRequest request, Properties current, long currentSequence) {
+        return request.releaseSequence() == currentSequence
+                && request.version().equals(current.getProperty("version"))
+                && request.sha256().equalsIgnoreCase(current.getProperty("sha256", ""))
+                && request.environmentCode().equals(current.getProperty("environment", ""))
+                && request.channel().equals(current.getProperty("channel", ""));
+    }
+
+    private Properties state(
+            AgentArtifactRequest request,
+            Properties current,
+            ArtifactVerifier.Verified verified,
+            Path target) {
+        Properties next = new Properties();
+        next.setProperty("version", request.version());
+        next.setProperty("sha256", verified.sha256());
+        next.setProperty("size", Long.toString(verified.size()));
+        next.setProperty("releaseSequence", Long.toString(request.releaseSequence()));
+        next.setProperty("path", target.toString());
+        next.setProperty("environment", request.environmentCode());
+        next.setProperty("channel", request.channel());
+        next.setProperty("keyId", request.keyId());
+        next.setProperty("previousVersion", current.getProperty("version", ""));
+        return next;
+    }
+
+    private long download(URI uri, Path target) throws Exception {
+        HttpResponse<InputStream> response = httpClient.send(
+                HttpRequest.newBuilder(uri).timeout(Duration.ofMinutes(5)).GET().build(),
+                HttpResponse.BodyHandlers.ofInputStream());
+        if (response.statusCode() != 200) throw new IOException("ARTIFACT_REPOSITORY_STATUS:" + response.statusCode());
+        long declared = response.headers().firstValueAsLong("Content-Length").orElse(-1);
+        if (declared < 0 || declared > properties.getMaxArtifactBytes()) {
+            throw new SecurityException("ARTIFACT_CONTENT_LENGTH_INVALID");
         }
         try (InputStream input = response.body();
-             var output = Files.newOutputStream(target, StandardOpenOption.CREATE,
-                     StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE)) {
+                OutputStream output = Files.newOutputStream(target, StandardOpenOption.CREATE_NEW)) {
             byte[] buffer = new byte[8192];
-            long total = 0L;
-            int read;
-            while ((read = input.read(buffer)) >= 0) {
+            long total = 0;
+            for (int read; (read = input.read(buffer)) >= 0;) {
+                if (read == 0) continue;
                 total += read;
-                if (total > properties.getMaxArtifactBytes()) {
-                    throw new SecurityException("artifact too large");
+                if (total > declared || total > properties.getMaxArtifactBytes()) {
+                    throw new SecurityException("ARTIFACT_STREAM_SIZE_EXCEEDED");
                 }
                 output.write(buffer, 0, read);
             }
+            if (total != declared) throw new SecurityException("ARTIFACT_CONTENT_LENGTH_MISMATCH");
+            return total;
         }
     }
 
-    private URI artifactUri(Coordinate coordinate, String version, String extension) {
-        URI base = URI.create(Objects.requireNonNull(
-                properties.getArtifactRepositoryBaseUrl(), "artifactRepositoryBaseUrl"));
+    private URI artifactUri(AgentArtifactRequest request, String extension) {
+        URI base = URI.create(Objects.requireNonNull(properties.getArtifactRepositoryBaseUrl())).normalize();
+        validateRepositoryBase(base);
+        String[] coordinate = request.coordinate().split(":", 2);
+        URI root = URI.create(base.toString().replaceAll("/+$", "") + "/");
+        URI artifact = root.resolve(coordinate[0].replace('.', '/') + "/" + coordinate[1] + "/"
+                + request.version() + "/" + coordinate[1] + "-" + request.version() + extension).normalize();
+        if (!Objects.equals(root.getScheme(), artifact.getScheme())
+                || !Objects.equals(root.getHost(), artifact.getHost())
+                || root.getPort() != artifact.getPort()
+                || !artifact.getPath().startsWith(root.getPath())) {
+            throw new SecurityException("ARTIFACT_REPOSITORY_ESCAPE");
+        }
+        return artifact;
+    }
+
+    private static void validateRepositoryBase(URI base) {
         if (!base.isAbsolute() || base.getHost() == null || base.getUserInfo() != null
                 || base.getQuery() != null || base.getFragment() != null) {
-            throw new SecurityException("invalid artifact repository base URL");
+            throw new SecurityException("ARTIFACT_REPOSITORY_URL_INVALID");
         }
-        URI repositoryRoot = URI.create(base.toString().replaceAll("/+$", "") + "/").normalize();
-        URI uri = repositoryRoot.resolve(coordinate.groupId().replace('.', '/') + "/"
-                + coordinate.artifactId() + "/" + version + "/"
-                + coordinate.artifactId() + "-" + version + extension).normalize();
-        if (!Objects.equals(base.getHost(), uri.getHost())
-                || !Objects.equals(base.getScheme(), uri.getScheme())
-                || base.getPort() != uri.getPort()
-                || !uri.getPath().startsWith(repositoryRoot.getPath())) {
-            throw new SecurityException("repository escape");
+        if (!"https".equalsIgnoreCase(base.getScheme()) && !isLoopback(base.getHost())) {
+            throw new SecurityException("ARTIFACT_REPOSITORY_TLS_REQUIRED");
         }
-        return uri;
     }
 
-    static Coordinate parseCoordinate(String value) {
-        if (value == null) {
-            throw new SecurityException("coordinate is required");
-        }
-        String[] parts = value.split(":", -1);
-        if (parts.length != 2 || !GROUP_ID.matcher(parts[0]).matches()
-                || !ARTIFACT_ID.matcher(parts[1]).matches()) {
-            throw new SecurityException("invalid artifact coordinate");
-        }
-        return new Coordinate(parts[0], parts[1]);
+    private static boolean isLoopback(String host) {
+        try { return InetAddress.getByName(host).isLoopbackAddress(); }
+        catch (Exception failure) { return false; }
     }
 
-    static String artifactExtension(String requestedMode, String approvedMode) {
-        if (requestedMode == null || approvedMode == null
-                || !requestedMode.equalsIgnoreCase(approvedMode)) {
-            throw new SecurityException("runtime mode is not approved for service");
-        }
-        return switch (approvedMode.toLowerCase(java.util.Locale.ROOT)) {
+    private AgentProperties.ServiceDefinition service(String id) {
+        return properties.getServices().values().stream()
+                .filter(candidate -> id != null && id.equals(candidate.getServiceId()))
+                .findFirst()
+                .orElseThrow(() -> new SecurityException("ARTIFACT_SERVICE_NOT_APPROVED"));
+    }
+
+    private static String extension(String runtimeMode) {
+        if (runtimeMode == null) throw new SecurityException("ARTIFACT_RUNTIME_MODE_REQUIRED");
+        return switch (runtimeMode.toLowerCase(Locale.ROOT)) {
             case "embedded-bootjar" -> ".jar";
             case "external-tomcat-war" -> ".war";
-            default -> throw new SecurityException("unsupported host-agent runtime mode");
+            default -> throw new SecurityException("ARTIFACT_RUNTIME_MODE_UNSUPPORTED");
         };
     }
 
-    private AgentProperties.ServiceDefinition service(String serviceId) {
-        return properties.getServices().values().stream()
-                .filter(candidate -> Objects.equals(serviceId, candidate.getServiceId()))
-                .findFirst()
-                .orElseThrow(() -> new SecurityException("service not approved"));
-    }
-
-    private static Path secureRoot(String configuredRoot) throws IOException {
-        Path root = Path.of(Objects.requireNonNull(configuredRoot, "installRoot")).toAbsolutePath().normalize();
+    private static Path secureRoot(String value) throws IOException {
+        Path root = Path.of(value).toAbsolutePath().normalize();
         if (Files.exists(root, LinkOption.NOFOLLOW_LINKS) && Files.isSymbolicLink(root)) {
-            throw new SecurityException("install root symlink is forbidden");
+            throw new SecurityException("ARTIFACT_INSTALL_ROOT_SYMLINK");
         }
         Files.createDirectories(root);
         return root.toRealPath(LinkOption.NOFOLLOW_LINKS);
     }
 
-    private static Path secureDirectory(Path root, String child) throws IOException {
-        Path candidate = secureChild(root, child);
-        if (Files.exists(candidate, LinkOption.NOFOLLOW_LINKS) && Files.isSymbolicLink(candidate)) {
-            throw new SecurityException("sandbox directory symlink is forbidden");
+    private static Path secureDirectory(Path root, Path path) throws IOException {
+        Path normalized = path.toAbsolutePath().normalize();
+        requireChild(root, normalized);
+        if (Files.exists(normalized, LinkOption.NOFOLLOW_LINKS) && Files.isSymbolicLink(normalized)) {
+            throw new SecurityException("ARTIFACT_DIRECTORY_SYMLINK");
         }
-        Files.createDirectories(candidate);
-        Path real = candidate.toRealPath(LinkOption.NOFOLLOW_LINKS);
-        if (!real.startsWith(root)) {
-            throw new SecurityException("path escape");
-        }
-        return real;
+        Files.createDirectories(normalized);
+        return normalized.toRealPath(LinkOption.NOFOLLOW_LINKS);
     }
 
-    private static Path secureChild(Path root, String child) {
-        Path candidate = root.resolve(child).normalize();
-        if (!candidate.startsWith(root)) {
-            throw new SecurityException("path escape");
+    private static void requireChild(Path root, Path path) {
+        if (!path.toAbsolutePath().normalize().startsWith(root.toAbsolutePath().normalize())) {
+            throw new SecurityException("ARTIFACT_PATH_ESCAPE");
         }
-        if (Files.exists(candidate, LinkOption.NOFOLLOW_LINKS) && Files.isSymbolicLink(candidate)) {
-            throw new SecurityException("sandbox file symlink is forbidden");
-        }
-        return candidate;
     }
 
-    private static void writeAtomically(Path target, String value) throws IOException {
-        Path temporary = secureChild(target.getParent(), target.getFileName() + ".part");
+    private static void move(Path source, Path target) throws IOException {
         try {
-            Files.writeString(temporary, value, StandardCharsets.UTF_8,
-                    StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
-            moveAtomically(temporary, target);
-        } finally {
-            Files.deleteIfExists(temporary);
-        }
-    }
-
-    private static void moveAtomically(Path source, Path target) throws IOException {
-        try {
-            Files.move(source, target, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
-        } catch (java.nio.file.AtomicMoveNotSupportedException unsupported) {
+            Files.move(source, target, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+        } catch (AtomicMoveNotSupportedException ignored) {
             Files.move(source, target, StandardCopyOption.REPLACE_EXISTING);
         }
     }
 
-    record Coordinate(String groupId, String artifactId) {}
-    public record Result(String version, String previousVersion, String artifactPath) {}
+    private static void write(Path path, String value) throws IOException {
+        Path temporary = path.resolveSibling(path.getFileName() + ".tmp");
+        Files.writeString(temporary, value, StandardCharsets.UTF_8,
+                StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+        move(temporary, path);
+    }
+
+    private static Properties read(Path path) throws IOException {
+        Properties properties = new Properties();
+        if (Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS)) {
+            try (InputStream input = Files.newInputStream(path, LinkOption.NOFOLLOW_LINKS)) {
+                properties.load(input);
+            }
+        }
+        return properties;
+    }
+
+    private static void writeProperties(Path path, Properties properties) throws IOException {
+        Path temporary = path.resolveSibling(path.getFileName() + ".tmp");
+        try (OutputStream output = Files.newOutputStream(temporary,
+                StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
+            properties.store(output, "CPF verified artifact state");
+        }
+        move(temporary, path);
+    }
+
+    private static long longValue(Properties properties, String name, long fallback) {
+        try { return Long.parseLong(properties.getProperty(name)); }
+        catch (RuntimeException failure) { return fallback; }
+    }
+
+    public record Result(String version, String previousVersion, String path) {}
 }

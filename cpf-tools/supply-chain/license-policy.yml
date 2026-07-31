@@ -1,0 +1,29 @@
+version: 1
+mode: fail-closed
+allow:
+  automatic:
+    - Apache-2.0
+    - MIT
+    - BSD-2-Clause
+    - BSD-3-Clause
+    - ISC
+  conditional:
+    - MPL-2.0
+    - EPL-2.0
+    - LGPL-2.1-only
+    - LGPL-3.0-only
+deny:
+  - GPL-2.0-only
+  - GPL-3.0-only
+  - AGPL-3.0-only
+  - SSPL-1.0
+  - BUSL-1.1
+  - BSL-1.1
+  - RSAL
+  - UNKNOWN
+rules:
+  require_exact_version: true
+  require_source_url: true
+  require_notice: true
+  require_transitive_components: true
+  require_exception_owner_expiry: true

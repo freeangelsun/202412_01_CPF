@@ -56,7 +56,7 @@
 | `cpf-docs/governance/CPF_OSS_LICENSE_AND_SUPPLY_CHAIN_STANDARD.md` | OSS 라이선스·공급망 정책 |
 | `cpf-docs/quality/CPF_20260730_QA32_REQUIREMENT_MATRIX.csv` | Requirement 62건 원장 |
 | `cpf-docs/quality/CPF_20260730_QA32_DEFECT_REGISTER.csv` | Defect/Gap 60건 원장 |
-| `cpf-docs/quality/CPF_20260730_QA32_SCENARIO_MATRIX.csv` | Mandatory Scenario 202건 원장 |
+| `cpf-docs/quality/CPF_20260730_QA32_SCENARIO_MATRIX.csv` | Mandatory Scenario 222건 원장 |
 | `cpf-docs/quality/CPF_20260730_QA32_OSS_MIGRATION_MATRIX.csv` | OSS Migration 23건 원장 |
 | `cpf-docs/quality/CPF_20260730_QA32_EVIDENCE_SCHEMA.md` | Evidence 필수 Schema |
 | `cpf-docs/quality/CPF_20260730_QA32_REQUEST_INTEGRITY.json` | 요청 패키지 파일 Hash Manifest |
@@ -75,7 +75,7 @@
 1. 실제 `HEAD`, branch/ref, remote URL, clean 여부를 기록한다.
 2. 이 요청 패키지가 Push된 Commit을 개발 시작 SHA로 사용하되, Source 변경이 같이 섞였는지 먼저 확인한다.
 3. QA31과 과거 문서의 `완료`, `PASS`, `WORKTREE-OVERLAY`, 이전 SHA 기록을 완료 증적으로 승계하지 않는다.
-4. 최신 exact SHA에서 Requirement 62건, Defect 60건, Scenario 202건, OSS Migration 23건을 다시 판정한다.
+4. 최신 exact SHA에서 Requirement 62건, Defect 60건, Scenario 222건, OSS Migration 23건을 다시 판정한다.
 5. 사용자의 명시 승인 전 Commit, Push, Branch, Tag, PR, Release를 생성하지 않는다.
 
 시작 직후 실행할 요청 무결성 Gate:
@@ -141,7 +141,7 @@ pwsh -NoProfile -File cpf-tools/scripts/verify-cpf-qa32-request-integrity.ps1 -R
 - `cpf-docs/evidence/current/scenarios/<SCENARIO_ID>.json`
 - `cpf-docs/work/manifest/CPF_20260730_QA32_DEVELOPMENT_RESULT_MANIFEST.json`
 
-모든 Requirement 62건과 Mandatory Scenario 202건의 ID Coverage가 있어야 한다.
+모든 Requirement 62건과 Mandatory Scenario 222건의 ID Coverage가 있어야 한다.
 
 ## 9. 사용자 전달 ZIP 규칙
 
@@ -177,3 +177,8 @@ pwsh -NoProfile -File cpf-tools/scripts/package-cpf-qa32-development-result.ps1 
 6. ZIP SHA-256과 파일 수
 7. `cpf-docs/work/review/CPF_20260730_QA32_DEVELOPMENT_COMPLETION_REPORT.md` 경로
 8. Commit·Push를 하지 않았다는 사실
+
+
+## QA32 Spring Batch Primary Engine 정정 (2026-07-31)
+
+기존 “지정 범위만 사용”, `ADOPT_SCOPED`, “Metadata 일부만 사용” 표현은 폐기한다. Spring Batch 6는 CPF 전체 Batch의 `ADOPT_NOW` Primary Execution Engine이다. Center-Cut, Scheduler가 시작한 실행, Local/Parallel/Distributed Worker, File/DB/API/Shell/Message 작업은 모두 Spring Batch Job/Step으로 실행한다. CPF는 승인·권한·Topology·배포·Artifact/Agent/File/Shell 보안·감사·Fencing·`UNKNOWN_RESULT` 대사와 Spring Batch ID 연결만 소유한다. 자체 Job/Step 상태, 실행 Repository, Restart/Checkpoint, Partition Dispatcher, Polling, Worker 완료 집계는 Consumer parity 후 제거한다. 완료는 단일 Primary Path와 실제 장애·재시작·3DB·Kafka Evidence가 있을 때만 인정한다.

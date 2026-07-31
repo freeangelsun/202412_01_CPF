@@ -14,6 +14,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.net.URI;
+import java.time.Duration;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 
 @Service
 public class RuntimeLifecycleService {
@@ -54,8 +57,12 @@ public class RuntimeLifecycleService {
                     "Deployment inventory is incomplete for " + instanceId);
         }
         try {
+            URI agentUri=validatedAgentUri(agent);
+            JdkClientHttpRequestFactory requestFactory=new JdkClientHttpRequestFactory();
+            requestFactory.setReadTimeout(Duration.ofSeconds(30));
             AgentCommandResult result = builder
-                    .baseUrl(agent)
+                    .requestFactory(requestFactory)
+                    .baseUrl(agentUri.toString())
                     .build()
                     .post()
                     .uri("/api/v1/agent/services/{service}/{op}", service, normalized)
@@ -66,6 +73,13 @@ public class RuntimeLifecycleService {
             return unknown(service, normalized, "TRANSPORT_UNKNOWN");
         }
     }
+
+    private static URI validatedAgentUri(String value) {
+        URI uri=URI.create(value); if(!uri.isAbsolute()||uri.getHost()==null||uri.getUserInfo()!=null||uri.getQuery()!=null||uri.getFragment()!=null)throw new SecurityException("invalid agent URL");
+        if(!"https".equalsIgnoreCase(uri.getScheme())&&!isLoopback(uri.getHost()))throw new SecurityException("agent URL requires HTTPS");
+        return uri;
+    }
+    private static boolean isLoopback(String host){return "localhost".equalsIgnoreCase(host)||"127.0.0.1".equals(host)||"::1".equals(host);}
 
     private static AgentCommandResult unknown(String service, String operation, String code) {
         Instant now = Instant.now();

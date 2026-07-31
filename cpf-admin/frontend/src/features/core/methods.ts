@@ -33,10 +33,10 @@ export const coreMethods: Record<string, any> = {
         return true;
       },
   apiHeaders(extraHeaders = {}) {
-        return createAdmHeaders(extraHeaders, this.token);
+        return createAdmHeaders(extraHeaders);
       },
   async getJson(url) {
-        const response = await fetch(url, { headers: this.apiHeaders() });
+        const response = await fetch(url, { headers: this.apiHeaders(), credentials: "include", cache: "no-store" });
         return this.parseResponse(response);
       },
   async sendJson(url, method, body) {
@@ -108,8 +108,12 @@ export const coreMethods: Record<string, any> = {
           throw error;
         }
       },
-  clearToken(message) {
-        this.token = "";
+  clearSession(message) {
+        this.sessionLoaded = false;
+        this.currentOperator = {};
+        this.authorizedMenus = [];
+        this.authorizedButtons = [];
+        this.permissionsLoaded = false;
         this.currentOperator = {};
         this.authorizedMenus = [];
         this.authorizedButtons = [];

@@ -3,24 +3,21 @@ group='com.cpf.batch'
 dependencies {
     implementation project(':cpf-batch:contract')
     implementation project(':cpf-batch:runtime-common')
+    implementation project(':cpf-batch:execution-runtime')
     implementation project(':cpf-core')
     implementation project(':cpf-common')
+    implementation project(':cpf-starter-observability')
+    implementation project(':cpf-starter-messaging-kafka')
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+    implementation 'org.springframework.boot:spring-boot-starter-batch-jdbc'
+    implementation 'org.springframework.batch:spring-batch-integration'
+    implementation 'org.springframework.integration:spring-integration-kafka'
+    implementation "com.github.kagkarlsson:db-scheduler:${rootProject.ext.cpfStack['dbSchedulerVersion']}"
     testImplementation project(':cpf-batch:testkit')
+    testImplementation 'org.springframework.batch:spring-batch-test'
 }
 tasks.named('bootJar') { archiveFileName = "cpf-batch-scheduler-${project.version}.jar" }
 tasks.named('test') { useJUnitPlatform() }
-
-
-publishing {
-    publications {
-        executable(MavenPublication) {
-            groupId = 'com.cpf.batch'
-            artifactId = 'cpf-batch-scheduler'
-            version = project.version.toString()
-            artifact tasks.named('bootJar')
-        }
-    }
-}
+publishing { publications { executable(MavenPublication) { groupId='com.cpf.batch'; artifactId='cpf-batch-scheduler'; version=project.version.toString(); artifact tasks.named('bootJar') } } }

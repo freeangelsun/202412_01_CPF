@@ -1,4 +1,3 @@
-import { setAdmAccessToken } from "../../shared/cpfApi";
 
 export const accessMethods: Record<string, any> = {
   permission(menuId) {
@@ -16,17 +15,16 @@ export const accessMethods: Record<string, any> = {
           body: JSON.stringify(this.loginForm)
         });
         const data = await this.parseResponse(response, false);
-        if (!response.ok || !data.accessToken) {
+        if (!response.ok || !data.operator?.operatorId) {
           this.authMessage = JSON.stringify(data, null, 2);
           return;
         }
-        this.token = data.accessToken;
+        this.sessionLoaded = true;
         this.currentOperator = data.operator || {};
         this.authorizedMenus = data.menus || [];
         this.authorizedButtons = Array.isArray(data.buttonIds) ? data.buttonIds : [];
         this.buttonsLoaded = Array.isArray(data.buttonIds);
         this.permissionsLoaded = true;
-        setAdmAccessToken(this.token);
         this.authMessage = "";
         if (this.passwordChangeRequired) {
           this.setMessage("비밀번호 변경이 필요합니다.");
@@ -54,7 +52,6 @@ export const accessMethods: Record<string, any> = {
           currentPassword: form.currentPassword,
           newPassword: form.newPassword,
           newPasswordConfirm: form.newPasswordConfirm,
-          requestUser: operatorId,
           reason: form.reason
         });
         if (!result?.operatorId) {
@@ -64,7 +61,7 @@ export const accessMethods: Record<string, any> = {
         this.forcedPasswordForm.currentPassword = "";
         this.forcedPasswordForm.newPassword = "";
         this.forcedPasswordForm.newPasswordConfirm = "";
-        this.clearToken("비밀번호가 변경되었습니다. 새 비밀번호로 다시 로그인하세요.");
+        this.clearSession("비밀번호가 변경되었습니다. 새 비밀번호로 다시 로그인하세요.");
       },
   async logout() {
         try {
@@ -72,7 +69,7 @@ export const accessMethods: Record<string, any> = {
         } catch (error) {
           // 서버 세션 폐기가 실패해도 Browser 자격증명/민감 상태는 반드시 제거한다.
         } finally {
-          this.clearToken("로그아웃되었습니다.");
+          this.clearSession("로그아웃되었습니다.");
         }
       },
   async loadPermissions() {
@@ -91,7 +88,6 @@ export const accessMethods: Record<string, any> = {
           readYn: this.permissionForm.readYn,
           writeYn: this.permissionForm.writeYn,
           deleteYn: this.permissionForm.deleteYn,
-          requestUser: this.currentOperator.operatorId,
           reason: this.permissionForm.reason
         });
         this.setMessage("메뉴 권한을 저장했습니다.");
@@ -100,7 +96,6 @@ export const accessMethods: Record<string, any> = {
         if (!this.permissionForm.roleId || !this.permissionForm.buttonId || !this.requireReason(this.permissionForm.reason)) return;
         this.permissionResult = await this.sendJson(`/adm/api/permissions/roles/${this.permissionForm.roleId}/buttons/${this.permissionForm.buttonId}`, "PUT", {
           allowYn: this.permissionForm.buttonAllowYn,
-          requestUser: this.currentOperator.operatorId,
           reason: this.permissionForm.reason
         });
         this.setMessage("버튼 권한을 저장했습니다.");
@@ -109,7 +104,6 @@ export const accessMethods: Record<string, any> = {
         if (!this.permissionForm.roleId || !this.permissionForm.apiPermissionId || !this.requireReason(this.permissionForm.reason)) return;
         this.permissionResult = await this.sendJson(`/adm/api/permissions/roles/${this.permissionForm.roleId}/api-permissions/${this.permissionForm.apiPermissionId}`, "PUT", {
           allowYn: this.permissionForm.apiAllowYn,
-          requestUser: this.currentOperator.operatorId,
           reason: this.permissionForm.reason
         });
         this.setMessage("API 권한을 저장했습니다.");
@@ -142,7 +136,6 @@ export const accessMethods: Record<string, any> = {
           mobileNo: this.operatorForm.mobileNo || null,
           officePhoneNo: this.operatorForm.officePhoneNo || null,
           password: this.operatorForm.password,
-          requestUser: this.currentOperator.operatorId,
           reason: this.operatorForm.reason
         };
         try {
@@ -204,7 +197,6 @@ export const accessMethods: Record<string, any> = {
         this.operatorResult = await this.sendJson(`/adm/api/operators/${encodeURIComponent(operator.operatorId)}/status`, "PUT", {
           accountStatus: "ACTIVE",
           expectedVersion: operator.versionNo,
-          requestUser: this.currentOperator.operatorId,
           reason
         });
         await this.loadOperators();
@@ -217,7 +209,6 @@ export const accessMethods: Record<string, any> = {
         this.passwordResult = await this.sendJson(`/adm/api/operators/${this.passwordForm.operatorId}/password/reset`, "POST", {
           newPassword: this.passwordForm.newPassword,
           forceChange: this.passwordForm.forceChange,
-          requestUser: this.currentOperator.operatorId,
           reason: this.passwordForm.reason
         });
         this.setMessage("비밀번호 초기화를 요청했습니다.");
@@ -225,7 +216,6 @@ export const accessMethods: Record<string, any> = {
   async unlockOperator() {
         if (!this.passwordForm.operatorId || !this.requireReason(this.passwordForm.reason)) return;
         this.passwordResult = await this.sendJson(`/adm/api/operators/${this.passwordForm.operatorId}/unlock`, "POST", {
-          requestUser: this.currentOperator.operatorId,
           reason: this.passwordForm.reason
         });
         this.setMessage("계정 잠금 해제를 요청했습니다.");
@@ -237,7 +227,6 @@ export const accessMethods: Record<string, any> = {
   async revokeSession() {
         if (!this.passwordForm.sessionId || !this.requireReason(this.passwordForm.reason)) return;
         this.passwordResult = await this.sendJson(`/adm/api/operators/sessions/${this.passwordForm.sessionId}/revoke`, "POST", {
-          requestUser: this.currentOperator.operatorId,
           reason: this.passwordForm.reason
         });
         this.setMessage("세션 강제 종료를 요청했습니다.");
@@ -245,7 +234,6 @@ export const accessMethods: Record<string, any> = {
   async cleanupExpiredSessions() {
         if (!this.requireReason(this.passwordForm.reason)) return;
         this.passwordResult = await this.sendJson("/adm/api/operators/sessions/cleanup-expired", "POST", {
-          requestUser: this.currentOperator.operatorId,
           reason: this.passwordForm.reason
         });
         this.setMessage("만료 세션 정리를 요청했습니다.");
@@ -259,7 +247,6 @@ export const accessMethods: Record<string, any> = {
         if (!this.securityForm.operatorId || !this.securityForm.secretRef || !this.requireReason(this.securityForm.reason)) return;
         this.securityResult = await this.sendJson(`/adm/api/security/mfa/${this.securityForm.operatorId}/register`, "POST", {
           secretRef: this.securityForm.secretRef,
-          requestUser: this.currentOperator.operatorId,
           reason: this.securityForm.reason
         });
         this.setMessage("MFA 등록을 요청했습니다.");
@@ -268,7 +255,6 @@ export const accessMethods: Record<string, any> = {
         if (!this.securityForm.operatorId || !this.securityForm.otpCode || !this.requireReason(this.securityForm.reason)) return;
         this.securityResult = await this.sendJson(`/adm/api/security/mfa/${this.securityForm.operatorId}/verify`, "POST", {
           otpCode: this.securityForm.otpCode,
-          requestUser: this.currentOperator.operatorId,
           reason: this.securityForm.reason
         });
         this.setMessage("MFA 검증을 요청했습니다.");

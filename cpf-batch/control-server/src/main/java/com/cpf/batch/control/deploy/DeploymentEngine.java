@@ -109,7 +109,15 @@ public class DeploymentEngine {
     }
     private DeploymentResult rollbackAfterFailure(DeploymentRequest r,List<DeploymentResult.InstanceResult> results,Instant start,String stage,int seq,String failureDetail){
         boolean rollbackFailed=false;int sequence=seq;
-        for(var instance:r.manifest().instances()){
+        LinkedHashSet<String> touchedIds=new LinkedHashSet<>();
+        for(DeploymentResult.InstanceResult result:results){
+            if(Set.of("DRAIN","INSTALL","ADMISSION","READINESS","FUNCTIONAL_SMOKE").contains(result.stage())
+                    && (result.state()==CommandState.SUCCEEDED||result.state()==CommandState.UNKNOWN_RESULT)) touchedIds.add(result.instanceId());
+        }
+        List<DeploymentCellManifest.Instance> touched=r.manifest().instances().stream().filter(i->touchedIds.contains(i.instanceId())).toList();
+        ListIterator<DeploymentCellManifest.Instance> iterator=touched.listIterator(touched.size());
+        while(iterator.hasPrevious()){
+            var instance=iterator.previous();
             try{var rb=adapter(r.manifest(),instance).rollback(r.manifest(),instance);record(r,++sequence,rb,results);rollbackFailed|=!success(rb);}catch(RuntimeException e){var x=new DeploymentResult.InstanceResult(instance.instanceId(),CommandState.UNKNOWN_RESULT,"ROLLBACK",e.getClass().getSimpleName());record(r,++sequence,x,results);rollbackFailed=true;}
         }
         return finish(r,rollbackFailed?CommandState.PARTIALLY_ROLLED_BACK:CommandState.ROLLED_BACK,stage,

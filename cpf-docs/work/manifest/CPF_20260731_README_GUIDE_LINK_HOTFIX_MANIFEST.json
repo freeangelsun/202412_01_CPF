@@ -1,0 +1,39 @@
+{
+  "repository": "freeangelsun/202412_01_CPF",
+  "baseSha": "d31bd127aa12bb9368933216642a5a9d25bd0bfd",
+  "revision": "R1",
+  "purpose": "Fix stale cpf-tools README link after canonical Guide cleanup",
+  "fileCount": 6,
+  "files": {
+    "cpf-docs/work/manifest/CPF_20260731_README_GUIDE_REBUILD_RESULT.json": {
+      "bytes": 7684,
+      "sha256": "74a3f4fb8e9616ce6421995620cc253c78a363b4fb397e89b1368a48dc602481",
+      "lines": 212
+    },
+    "cpf-docs/work/review/CPF_20260731_README_GUIDE_LINK_HOTFIX_REPORT.md": {
+      "bytes": 803,
+      "sha256": "83484e5484534c545a141c8876a5cf45328e86ac6468b7e20b3a28ad999d66f0",
+      "lines": 23
+    },
+    "cpf-docs/work/review/CPF_20260731_README_GUIDE_REBUILD_REPORT.md": {
+      "bytes": 3400,
+      "sha256": "4c44e380239d3af269f60badc787cf2e0148cf147329d081ebed8723fff4a18a",
+      "lines": 66
+    },
+    "cpf-tools/README.md": {
+      "bytes": 2951,
+      "sha256": "411288eb74be35aa79fba2271de0afd4affc7137b9728126bf1bfe6ac519dea4",
+      "lines": 55
+    },
+    "cpf-tools/scripts/verify-cpf-guide-system.ps1": {
+      "bytes": 3289,
+      "sha256": "e0a1c87776c4eb56c38b93245028fa238c60367d9b698ec87d0744163529b152",
+      "lines": 69
+    }
+  },
+  "gitWrites": false,
+  "validation": {
+    "staticPackage": "PASS",
+    "powershell": "NOT_EXECUTED"
+  }
+}

@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'org.springframework.boot' apply false
     id 'io.spring.dependency-management' apply false
+    id 'org.cyclonedx.bom'
 }
 
 def cpfPlatformProperties = new Properties()
@@ -15,11 +16,36 @@ ext.cpfJavaVersion = (findProperty('cpfJavaVersion') ?: System.getenv('CPF_JAVA_
         ?: cpfStackProperties.getProperty('javaVersion')).toString().toInteger()
 ext.cpfSpringBootVersion = cpfStackProperties.getProperty('springBootVersion')
 ext.cpfSpringDependencyManagementVersion = cpfStackProperties.getProperty('springDependencyManagementVersion')
+ext.cpfSpringCloudVersion = cpfStackProperties.getProperty('springCloudVersion')
 ext.cpfStackState = cpfStackProperties.getProperty('stackState', 'UNKNOWN').toUpperCase(Locale.ROOT)
 ext.cpfTargetSpringBootVersion = cpfStackProperties.getProperty('springBootTargetVersion')
 
 if (ext.cpfPlatformVersion == null || ext.cpfPlatformVersion.isBlank()) {
     throw new GradleException('gradle/cpf-platform.properties의 platformVersion은 필수입니다.')
+}
+
+// QA32: Source identity는 추정하거나 빈 값으로 대체하지 않습니다.
+def cpfReadGitValue = { List<String> arguments ->
+    def stdout = new ByteArrayOutputStream()
+    def stderr = new ByteArrayOutputStream()
+    def result = exec {
+        commandLine(['git'] + arguments)
+        standardOutput = stdout
+        errorOutput = stderr
+        ignoreExitValue = true
+    }
+    def value = stdout.toString('UTF-8').trim()
+    if (result.exitValue != 0 || value.isBlank()) {
+        throw new GradleException("CPF source identity resolution failed: git ${arguments.join(' ')}; ${stderr.toString('UTF-8').trim()}")
+    }
+    value
+}
+ext.cpfSourceSha = providers.gradleProperty('cpfSourceSha')
+        .orElse(providers.environmentVariable('CPF_SOURCE_SHA'))
+        .orElse(providers.provider { cpfReadGitValue(['rev-parse', 'HEAD']) })
+        .get().trim()
+if (!(ext.cpfSourceSha ==~ /[0-9a-fA-F]{40}/)) {
+    throw new GradleException("CPF_SOURCE_SHA must be an exact 40-character git SHA: ${ext.cpfSourceSha}")
 }
 
 // 독립 Domain/Standalone WAS가 같은 CPF build의 public artifact를 즉시 소비할 수 있도록
@@ -81,8 +107,10 @@ allprojects { targetProject ->
                 content { includeGroupByRegex 'com[.]cpf([.].*)?' }
             }
         }
-        mavenCentral {
-            content { excludeGroupByRegex 'com[.]cpf([.].*)?' }
+        if (rootProject.ext.cpfArtifactMode != 'OFFLINE') {
+            mavenCentral {
+                content { excludeGroupByRegex 'com[.]cpf([.].*)?' }
+            }
         }
     }
 }
@@ -109,6 +137,7 @@ subprojects { targetProject ->
     dependencyManagement {
         imports {
             mavenBom "org.springframework.boot:spring-boot-dependencies:${rootProject.ext.cpfSpringBootVersion}"
+            mavenBom "org.springframework.cloud:spring-cloud-dependencies:${rootProject.ext.cpfSpringCloudVersion}"
         }
     }
 
@@ -230,10 +259,7 @@ subprojects { targetProject ->
                     'Implementation-Version': project.version,
                     'CPF-Platform-Version': rootProject.ext.cpfPlatformVersion,
                     'CPF-Compatible-Range': rootProject.ext.cpfCompatibleRange,
-                    'Git-Commit': providers.exec {
-                        commandLine 'git', 'rev-parse', 'HEAD'
-                        ignoreExitValue = true
-                    }.standardOutput.asText.get().trim(),
+                    'Git-Commit': rootProject.ext.cpfSourceSha,
                     'Build-Number': System.getenv('BUILD_NUMBER') ?: 'local',
                     'Build-Time': System.getenv('SOURCE_DATE_EPOCH') ?: 'reproducible-build',
                     'Artifact-Checksum': 'external-sha256'
@@ -450,10 +476,7 @@ tasks.register('generateReleaseMetadata') {
             ]
         }
 
-        def gitSha = providers.exec {
-            commandLine 'git', 'rev-parse', 'HEAD'
-            ignoreExitValue = true
-        }.standardOutput.asText.get().trim()
+        def gitSha = rootProject.ext.cpfSourceSha
         def gitBranch = providers.exec {
             commandLine 'git', 'rev-parse', '--abbrev-ref', 'HEAD'
             ignoreExitValue = true
@@ -1922,4 +1945,29 @@ tasks.register('commercialReleaseGate', Exec) {
                 'cpf-tools/release/check-commercial-release.ps1', '-ReleaseDir', releaseDir.get().asFile.absolutePath,
                 '-PublicKey', publicKey.get(), '-VulnerabilityReport', vulnerabilityReport.get()
     }
+}
+
+
+// QA32 OSS Primary Engine / 부분 구현 금지 Gate
+tasks.register('verifyQa32PrimaryEngines', Exec) {
+    group = 'verification'
+    description = 'QA32 ADOPT_NOW OSS의 실제 Consumer 이관과 Legacy 제거를 fail-closed로 검사합니다.'
+    commandLine 'python', file('cpf-tools/scripts/verify-cpf-qa32-primary-engines.py').absolutePath, '--root', rootDir.absolutePath
+}
+
+tasks.register('verifyQa32ReleaseReadiness') {
+    group = 'verification'
+    dependsOn 'verifyQa32PrimaryEngines', 'verifyVersionConsistency', 'cyclonedxBom'
+    doLast {
+        if (rootProject.ext.cpfArtifactMode == 'OFFLINE' && !gradle.startParameter.offline) {
+            throw new GradleException('CPF_ARTIFACT_MODE=OFFLINE requires Gradle --offline; silent network fallback is prohibited.')
+        }
+        logger.lifecycle("QA32 release readiness static gates passed for source ${rootProject.ext.cpfSourceSha}")
+    }
+}
+
+
+tasks.register('qa32IntegrationTest') {
+    group = 'verification'
+    dependsOn ':cpf-batch:testkit:qa32IntegrationTest'
 }

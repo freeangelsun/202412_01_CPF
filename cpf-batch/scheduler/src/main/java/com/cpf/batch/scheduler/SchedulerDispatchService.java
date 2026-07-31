@@ -1,6 +1,9 @@
 package com.cpf.batch.scheduler;
 
+import com.cpf.batch.api.BatchExecutionControlPort;
+import com.cpf.batch.api.BatchExecutionLink;
 import com.cpf.batch.runtime.BatchRuntimePolicy;
+import com.cpf.batch.spi.BatchApprovedLaunchRequestResolver;
 import com.cpf.batch.scheduler.internal.JdbcSchedulerLeaderRepository;
 import com.cpf.common.calendar.CmnBusinessCalendar;
 import com.cpf.core.api.database.CpfVendorSqlCatalog;
@@ -8,14 +11,11 @@ import com.cpf.core.api.database.CpfVendorSqlCatalogProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.support.GeneratedKeyHolder;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.support.CronExpression;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import java.sql.PreparedStatement;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.time.LocalDate;
@@ -33,6 +33,8 @@ public class SchedulerDispatchService {
     private final JdbcTemplate jdbc;
     private final CmnBusinessCalendar calendar;
     private final TransactionTemplate transaction;
+    private final BatchExecutionControlPort executionControl;
+    private final BatchApprovedLaunchRequestResolver launchRequestResolver;
     private final CpfVendorSqlCatalog sql;
     private volatile BatchRuntimePolicy runtimePolicy = new BatchRuntimePolicy();
 
@@ -41,12 +43,16 @@ public class SchedulerDispatchService {
             JdbcTemplate jdbc,
             CmnBusinessCalendar calendar,
             PlatformTransactionManager transactionManager,
-            CpfVendorSqlCatalogProvider sqlCatalogProvider) {
+            CpfVendorSqlCatalogProvider sqlCatalogProvider,
+            BatchExecutionControlPort executionControl,
+            BatchApprovedLaunchRequestResolver launchRequestResolver) {
         this.coordinator = coordinator;
         this.jdbc = jdbc;
         this.calendar = calendar;
         this.transaction = new TransactionTemplate(transactionManager);
         this.sql = sqlCatalogProvider.forModule("bat");
+        this.executionControl = executionControl;
+        this.launchRequestResolver = launchRequestResolver;
     }
 
     /** 기존 생성자 기반 Test/Consumer를 깨지 않으면서 공통 Runtime 정책을 실제 dispatch gate에 연결합니다. */
@@ -63,7 +69,6 @@ public class SchedulerDispatchService {
         return runtimePolicy.current().calendarEnabled();
     }
 
-    @Scheduled(fixedDelayString = "${cpf.batch.scheduler.dispatch-ms:1000}")
     public void dispatchDue() {
         if (!runtimeEnabled()) {
             return;
@@ -124,10 +129,16 @@ public class SchedulerDispatchService {
         }
 
         if (inserted == 1) {
-            long executionId = createExecution(
-                    jobId, scheduleId, businessDate, definitionVersion, definitionChecksum);
+            String idempotencyKey = scheduleId + ":" + scheduledAt.toInstant();
+            BatchExecutionLink execution = executionControl.start(launchRequestResolver.resolve(
+                    new BatchApprovedLaunchRequestResolver.TriggerContext(
+                            scheduleId, jobId, definitionVersion, definitionChecksum, businessDate,
+                            fireAt.toOffsetDateTime(), lease.fencingToken(), idempotencyKey)));
+            if (execution.jobExecutionId() == null) {
+                throw new IllegalStateException("Spring Batch JobExecution identity was not returned");
+            }
             jdbc.update(sql.required("scheduler-trigger-mark-dispatched"),
-                    executionId, scheduleId, scheduledAt, lease.fencingToken());
+                    execution.jobExecutionId(), scheduleId, scheduledAt, lease.fencingToken());
         } else {
             Integer existing = jdbc.queryForObject(sql.required("scheduler-trigger-count"),
                     Integer.class, scheduleId, scheduledAt);
@@ -136,31 +147,6 @@ public class SchedulerDispatchService {
             }
         }
         advance(row, fireAt, lease);
-    }
-
-    private long createExecution(
-            String jobId,
-            String scheduleId,
-            LocalDate businessDate,
-            long definitionVersion,
-            String definitionChecksum) {
-        GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
-        jdbc.update(connection -> {
-            PreparedStatement statement = connection.prepareStatement(
-                    sql.required("scheduler-execution-insert"),
-                    new String[] {"execution_id"});
-            statement.setString(1, jobId);
-            statement.setString(2, scheduleId);
-            statement.setObject(3, businessDate);
-            statement.setLong(4, definitionVersion);
-            statement.setString(5, definitionChecksum);
-            return statement;
-        }, keyHolder);
-        Number key = keyHolder.getKey();
-        if (key == null) {
-            throw new IllegalStateException("Scheduler execution identity was not returned");
-        }
-        return key.longValue();
     }
 
     private void advance(

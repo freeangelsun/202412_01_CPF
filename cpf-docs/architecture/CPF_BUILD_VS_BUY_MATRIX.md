@@ -1,9 +1,5 @@
 # CPF Build-vs-Buy Matrix — QA32
 
-- 기준일: 2026-07-31
-- 적용 기준 Source: `4f675c7f89998cdbba7202e6c83320a0a4421a1f`
-- Amendment: `CPF_20260731_QA32_OSS_PRIMARY_ENGINE_STEERING.md`
-
 이 문서는 `CPF_20260730_QA32_OSS_MIGRATION_MATRIX.csv`의 사람이 읽는 요약이다.
 
 | Change ID | 영역 | 결정 | Primary OSS | CPF가 소유 | 제거 대상 |
@@ -19,8 +15,8 @@
 | `OSS-MIG-009` | Messaging | ADOPT_NOW | Apache Kafka | message contract, schema/version, idempotency, DLT, attempt ledger | AMQP primary and broker dependencies from core API |
 | `OSS-MIG-010` | Messaging Unit Test | ADOPT_NOW | CPF In-memory Test Adapter | simple deterministic contract adapter | none; must not emulate full Kafka |
 | `OSS-MIG-011` | Resilience | ADOPT_NOW | Spring Cloud CircuitBreaker + Resilience4j | retry eligibility, request hash, unknown result, policy approval, attempt ledger | custom retry/circuit loops and duplicated layers |
-| `OSS-MIG-012` | Batch Primary Execution Engine | ADOPT_NOW | Spring Batch | definition/version/approval/topology/agent security/unknown/fencing/audit/ADM | custom Job/Step execution engine, duplicate metadata owner, restart/checkpoint/partition/center-cut dispatcher and worker completion aggregation after parity |
-| `OSS-MIG-013` | Persistent Scheduler Trigger | ADOPT_SCOPED | db-scheduler; Quartz only advanced optional adapter | schedule approval/version/windows/audit; Spring Batch Job linkage | duplicated persistent cron/cluster logic and scheduler-owned Job execution state |
+| `OSS-MIG-012` | Batch Primary Execution Engine | ADOPT_NOW | Spring Batch 6 | CPF definition/version/approval/permission/topology/artifact/agent/file-shell security/audit/fencing/UNKNOWN_RESULT/reconciliation/ADM linkage only | custom Job/Step lifecycle, execution repository, restart/checkpoint, partition dispatcher, center-cut dispatcher, worker completion aggregation after consumer parity |
+| `OSS-MIG-013` | Persistent Scheduler | ADOPT_SCOPED | db-scheduler; Quartz only advanced optional adapter | schedule approval/version/windows/audit and job ownership | duplicated persistent cron/cluster logic |
 | `OSS-MIG-014` | DB Migration | ADOPT_NOW | Flyway OSS Core | vendor SQL, backup/restore, rollback scripts, evidence | duplicated history/order execution logic after parity |
 | `OSS-MIG-015` | Observability | ADOPT_NOW | Micrometer Observation + OpenTelemetry OTLP | CPF execution IDs, attribute policy, masking, attempt semantics | OTel SDK types from public API and duplicate instrumentation |
 | `OSS-MIG-016` | Local Cache | ADOPT_NOW | Caffeine | key/TTL/invalidation/fail policy | cache dependency from common API |
@@ -34,14 +30,12 @@
 
 ## 판단 원칙
 
-- `ADOPT_NOW`: QA32에서 해당 책임 범위의 실제 Product Primary Engine으로 전환하고 Consumer 전수 이관과 Legacy 제거를 완료한다.
-- `ADOPT_SCOPED`: 제품 책임을 분할한 뒤 OSS에 위임한 범위에서는 OSS 표준 기능을 Primary Path로 사용하고, CPF 고유 Control Plane만 유지한다.
+- `ADOPT_NOW`: QA32에서 실제 Primary Path로 전환하고 Legacy를 제거한다.
+- `ADOPT_SCOPED`: 선택 Adapter에만 사용한다. **Spring Batch에는 적용하지 않으며 Spring Batch는 `ADOPT_NOW` 전체 Primary Engine이다.**
 - `OPTIONAL_ADAPTER`: 제품 기본 의존성이나 Server Bundle로 만들지 않는다.
 - `CONDITIONAL`: 실제 Product Requirement와 ADR 없이는 구현하지 않는다.
 - `EXCLUDED_CURRENT_SCOPE`: Build Module·Artifact·Dependency를 생성하지 않는다.
 
-`ADOPT_NOW` 또는 `ADOPT_SCOPED`는 Dependency만 추가하거나 OSS 위에 동일 기능의 자체 엔진을 다시 만드는 것을 허용하지 않는다.
-
 ## 완료 판정
 
-각 행은 `dependency added`가 아니라 `consumer migrated + OSS-native runtime used + legacy removed + failure/recovery evidence`일 때만 완료다. 일부 Consumer, Sample, Wrapper, Skeleton 또는 Dual Primary 상태는 `PARTIAL`이다.
+각 행은 `dependency added`가 아니라 `consumer migrated + legacy removed + runtime evidence`일 때만 완료다.

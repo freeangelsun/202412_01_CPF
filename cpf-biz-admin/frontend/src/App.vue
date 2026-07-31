@@ -1,16 +1,15 @@
 <script setup lang="ts">
-import { computed, markRaw, onBeforeUnmount, onMounted, reactive, ref } from "vue";
-import type { Component } from "vue";
-import { bzaRoutes, routeFromHash, type BzaRoute } from "./app/routes";
+import { computed, onMounted, reactive, ref, watch } from "vue";
+import { bzaRoutes, routeFromName, type BzaRoute } from "./app/routes";
+import { useRoute, useRouter } from "vue-router";
 import CpfIcon from "./components/CpfIcon.vue";
 import { authenticated, bzaSession, changeBzaPassword, hasBzaMenu, loginBza, logoutBza, restoreBzaSession } from "./features/auth/session";
 
 const loginForm=reactive({loginId:"",password:""});
 const passwordForm=reactive({currentPassword:"",newPassword:"",newPasswordConfirm:""});
 const activeRoute=ref<BzaRoute>(bzaRoutes[0]);
-const activeComponent=ref<Component | null>(null);
-const routeLoading=ref(false);
-const loginMessage=ref(""); const passwordMessage=ref(""); const routeError=ref(""); const passwordOpen=ref(false); const sidebarOpen=ref(false);
+const loginMessage=ref(""); const passwordMessage=ref(""); const passwordOpen=ref(false); const sidebarOpen=ref(false);
+const router=useRouter(); const route=useRoute();
 
 const visibleRoutes=computed(()=>bzaRoutes.filter(route=>hasBzaMenu(route.menuCode)));
 const routeGroups=computed(()=>[
@@ -25,22 +24,19 @@ function iconForRoute(route:BzaRoute):string{
   if(route.id==='dashboard')return 'dashboard'; if(route.group==='people')return route.id==='organizations'?'org':'users';
   if(route.group==='approval')return 'approval'; if(route.group==='access')return 'role'; if(route.id==='settings')return 'settings'; return 'service';
 }
-async function navigateFromHash():Promise<void>{
-  const requested=routeFromHash(location.hash);
+async function syncRoute():Promise<void>{
+  const requested=routeFromName(route.name);
   const allowed=visibleRoutes.value;
-  const route=allowed.find(item=>item.id===requested) || allowed[0] || bzaRoutes[0];
-  if(location.hash!==`#/${route.id}`) history.replaceState(null,"",`#/${route.id}`);
-  activeRoute.value=route; routeLoading.value=true;routeError.value="";
-  try{activeComponent.value=markRaw((await route.load()).default);}
-  catch(e){activeComponent.value=null;routeError.value=e instanceof Error?e.message:String(e);}
-  finally{routeLoading.value=false;}
+  const selected=allowed.find(item=>item.id===requested) || allowed[0] || bzaRoutes[0];
+  activeRoute.value=selected;
+  if(route.name!==selected.id) await router.replace({name:selected.id});
 }
-async function submitLogin(){loginMessage.value='';try{await loginBza(loginForm.loginId,loginForm.password);loginForm.password='';await navigateFromHash();if(bzaSession.operator?.passwordChangeRequiredYn==='Y')passwordOpen.value=true;}catch(e){loginMessage.value=e instanceof Error?e.message:String(e);}}
+async function submitLogin(){loginMessage.value='';try{await loginBza(loginForm.loginId,loginForm.password);loginForm.password='';await syncRoute();if(bzaSession.operator?.passwordChangeRequiredYn==='Y')passwordOpen.value=true;}catch(e){loginMessage.value=e instanceof Error?e.message:String(e);}}
 async function submitPassword(){passwordMessage.value='';if(passwordForm.newPassword!==passwordForm.newPasswordConfirm){passwordMessage.value='새 비밀번호 확인이 일치하지 않습니다.';return;}try{await changeBzaPassword(passwordForm.currentPassword,passwordForm.newPassword,passwordForm.newPasswordConfirm);passwordOpen.value=false;loginMessage.value='비밀번호가 변경되었습니다. 다시 로그인하세요.';passwordForm.currentPassword='';passwordForm.newPassword='';passwordForm.newPasswordConfirm='';}catch(e){passwordMessage.value=e instanceof Error?e.message:String(e);}}
-function go(routeId:string){sidebarOpen.value=false;location.hash=`#/${routeId}`;}
-async function logout(){await logoutBza();activeComponent.value=null;routeError.value="";passwordOpen.value=false;passwordForm.currentPassword='';passwordForm.newPassword='';passwordForm.newPasswordConfirm='';}
-onMounted(async()=>{window.addEventListener('hashchange',navigateFromHash);await restoreBzaSession();if(authenticated.value)await navigateFromHash();});
-onBeforeUnmount(()=>window.removeEventListener('hashchange',navigateFromHash));
+async function go(routeId:string){sidebarOpen.value=false;await router.push({name:routeId});await syncRoute();}
+async function logout(){await logoutBza();passwordOpen.value=false;passwordForm.currentPassword='';passwordForm.newPassword='';passwordForm.newPasswordConfirm='';await router.replace({name:'dashboard'});}
+watch(() => route.name, async () => { if (authenticated.value) await syncRoute(); });
+onMounted(async()=>{await restoreBzaSession();if(authenticated.value)await syncRoute();});
 </script>
 
 <template>
@@ -67,8 +63,8 @@ onBeforeUnmount(()=>window.removeEventListener('hashchange',navigateFromHash));
       <div class="sidebar-footer"><div class="operator"><span class="avatar">{{(bzaSession.operator?.operatorName||bzaSession.operator?.loginId||'U').toString().slice(0,1)}}</span><div><strong>{{bzaSession.operator?.operatorName||bzaSession.operator?.loginId}}</strong><small>업무 운영자</small></div></div><button class="text-button" @click="logout">로그아웃</button></div>
     </aside>
     <div class="workspace">
-      <header class="workspace-header"><button class="ghost mobile-menu" type="button" aria-label="메뉴 열기" @click="sidebarOpen=true"><CpfIcon name="menu" /></button><div><p class="eyebrow">BZA / {{activeRoute.group.toUpperCase()}}</p><h1>{{activeRoute.label}}</h1><p>{{activeRoute.description}}</p></div><div class="toolbar"><button class="ghost" @click="passwordOpen=true">비밀번호 변경</button><button class="primary" @click="navigateFromHash"><CpfIcon name="refresh" /> 새로고침</button></div></header>
-      <main class="content"><div v-if="routeLoading" class="route-loading">화면을 준비하고 있습니다...</div><div v-else-if="routeError" class="error-banner">화면을 불러오지 못했습니다. {{routeError}} <button class="ghost" type="button" @click="navigateFromHash">다시 시도</button></div><component v-else-if="activeComponent" :is="activeComponent" :route-id="activeRoute.id" /></main>
+      <header class="workspace-header"><button class="ghost mobile-menu" type="button" aria-label="메뉴 열기" @click="sidebarOpen=true"><CpfIcon name="menu" /></button><div><p class="eyebrow">BZA / {{activeRoute.group.toUpperCase()}}</p><h1>{{activeRoute.label}}</h1><p>{{activeRoute.description}}</p></div><div class="toolbar"><button class="ghost" @click="passwordOpen=true">비밀번호 변경</button><button class="primary" @click="syncRoute"><CpfIcon name="refresh" /> 새로고침</button></div></header>
+      <main class="content"><Suspense><router-view /><template #fallback><div class="route-loading">화면을 준비하고 있습니다...</div></template></Suspense></main>
     </div>
   </div>
 

@@ -1,0 +1,8 @@
+﻿unresolved_id,status,area,description,reason,required_command
+QA32-V001,미검증,Build,Java 25 전체 Gradle Build/Test 및 published dependency graph,현재 실행 환경 Java 21이며 전체 Repository Working Tree가 없음,gradlew.bat clean test verifyQa32ReleaseReadiness --no-daemon --stacktrace
+QA32-V002,미검증,Frontend,ADM/BZA npm ci/typecheck/unit/build/Playwright Chromium·Firefox·WebKit,내부 npm Registry에 승인 패키지 Cache가 없고 Browser Runtime 없음,각 frontend에서 npm ci; npm run verify; npx playwright test
+QA32-V003,미검증,Database,Oracle·PostgreSQL·MariaDB Install→V82~V85→Rollback→재적용·데이터 보존,3개 DB Runtime 없음,"gradlew.bat qa32IntegrationTest -Pqa32Vendors=oracle,postgresql,mariadb"
+QA32-V004,미검증,Batch/Kafka,Remote Partition/Chunk/Step Broker 지연·중복·Crash·Restart,Kafka/Testcontainers/Docker Runtime 없음,gradlew.bat qa32IntegrationTest -Pqa32Kafka=true
+QA32-V005,미검증,Gateway/Operations,실제 Streaming Client Disconnect·Retry/Failover·Selective Rollback·Agent Crash,다중 Process/Agent Runtime 없음,pwsh -NoProfile -File cpf-tools/scripts/verify-cpf-qa32-runtime.ps1 -Root .
+QA32-V006,미검증,Supply Chain,CycloneDX·ORT·Syft·Grype final artifact scan,ORT/Syft/Grype 실행 파일과 final artifact 없음,pwsh -NoProfile -File cpf-tools/scripts/generate-cpf-supply-chain-evidence.ps1 -Root .
+QA32-V007,재확인 필요,Evidence,적용·Push 후 최신 exact SHA Evidence 재생성,사용자 승인 전 Commit/Push 금지이며 현재는 Root-relative Overlay,Overlay 적용/검수/Push 후 verify-cpf-qa32-runtime.ps1 실행

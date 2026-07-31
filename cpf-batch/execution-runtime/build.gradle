@@ -1,0 +1,24 @@
+plugins {
+    id 'java-library'
+    id 'org.springframework.boot'
+}
+
+dependencies {
+    api project(':cpf-batch:contract')
+    implementation project(':cpf-core')
+    implementation project(':cpf-common')
+    implementation project(':cpf-starter-resilience')
+    implementation project(':cpf-starter-observability')
+
+    api 'org.springframework.boot:spring-boot-starter-batch-jdbc'
+    api 'org.springframework.batch:spring-batch-integration'
+    implementation 'org.springframework.integration:spring-integration-core'
+    implementation 'org.springframework.integration:spring-integration-kafka'
+    implementation 'org.springframework.kafka:spring-kafka'
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'org.springframework.boot:spring-boot-autoconfigure'
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+
+    testImplementation 'org.springframework.batch:spring-batch-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}

@@ -1,503 +1,333 @@
 # CPF 최종 목표 요구사항 정본
 
+> Canonical path: `cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md`  
+> Revision date: `2026-07-31`  
+> Previous reviewed blob SHA: `f5650f502fc11d87afb92f775588c710a02373d4`  
+> Canonical Requirement Count: **162개**  
+> Legacy Alias: **8개** — 완료율 중복 집계 금지
+
 ## 1. 문서 목적과 정본성
 
-이 문서는 **Core Platform Framework(CPF)**의 최상위 제품 목표, 장기 아키텍처, Module Ownership, 확장 모델, 완료 판정과 Requirement Catalog를 정의하는 정본이다.
+이 문서는 **Core Platform Framework(CPF)**의 최상위 제품 목표, 장기 Architecture, Module Ownership, Public Contract, 운영·보안·배포 품질, 최종 완료 판정과 Requirement Catalog를 정의하는 최우선 정본이다.
 
-이 문서는 작업 일지나 날짜별 Evidence를 쌓는 문서가 아니다. 구현 상태와 실행 근거는 Gap Matrix, Review 문서, Generated Matrix와 Evidence에서 관리하되 모든 판단은 이 문서의 제품 목표를 기준으로 한다.
+이 문서는 작업 일지, 현재 진행률, 특정 QA 회차의 완료 보고 또는 날짜별 Evidence 저장소가 아니다. 구현 상태는 Current Request, Gap/Result Matrix, Review, Handover와 Evidence가 관리하지만, 모든 요구 도출·구현·검수·완료 판정은 이 문서에 종속된다.
 
-## 2. 제품 정의
+하위 문서나 구현이 이 문서와 충돌하면 다음 순서로 처리한다.
 
-CPF는 금융권을 포함한 다양한 업무 시스템을 구축·운영·감사·확장·검증·배포·상용화할 수 있는 **Business Platform 품질의 Framework**다.
+1. 실제 최신 Git 구현과 실행 결과를 확인한다.
+2. 이 문서의 제품 목표와 Architecture 원칙에 맞는 Owner를 결정한다.
+3. 하위 문서·Source·SQL·API·Test·Generator·Guide·Evidence를 함께 이관한다.
+4. 잘못된 Legacy와 중복 정본을 제거한다.
+5. Requirement Continuity Ledger에 ID 이동·분해·통합 근거를 남긴다.
 
-CPF는 단순 공통 Library, Sample 또는 개발 예제가 아니다. 다음을 하나의 제품 상태로 제공해야 한다.
+## 2. 규범 용어와 완료 상태
+
+- **MUST / 필수**: GA 완료에 반드시 충족해야 한다.
+- **MUST NOT / 금지**: 존재하면 Release 또는 완료 판정을 차단한다.
+- **SHOULD / 권고**: 미적용 시 ADR과 대체 통제를 요구한다.
+- **MAY / 선택**: 제품 정책에 따라 활성화할 수 있으나 선택하지 않은 Runtime을 강제 의존시키면 안 된다.
+
+허용 상태는 다음뿐이다.
+
+- 완료
+- 부분 구현
+- 미구현
+- 미검증
+- 실패
+- 재확인 필요
+
+`개발 완료`와 `검증 완료`는 서로 다른 축이다. Source가 존재해도 실제 Consumer, 오류·복구, 다중 인스턴스, 보안·운영, 최신 exact-SHA Evidence가 없으면 전체 완료가 아니다.
+
+## 3. 제품 정의와 최종 결과
+
+CPF는 금융권을 포함한 다양한 업무 시스템을 구축·운영·감사·확장·검증·배포·상용화할 수 있는 **Business Platform 품질의 상용 Framework**다. 단순 공통 Library, Sample, 예제 모음, 특정 프로젝트의 Base Code가 아니다.
+
+최종 제품은 다음을 하나의 일관된 제품 구조로 제공해야 한다.
 
 - MSA와 Modular Monolith
 - 동일 JVM Local Call과 분리 WAS Remote Call
-- 다중 인스턴스, 부분 실패, 재시도, 복구와 분산 추적
-- 금융권 수준의 인증, 권한, 감사, 마스킹과 승인
-- 멱등성, 비동기, 재처리, 보상과 결과 불명 복구
-- 외부 시스템, 전문, 파일, 첨부, 압축과 메시징
-- Batch, Scheduler, Agent, Runner, Worker와 Center-Cut
-- 운영 조회, 제어, 승인, 감사, 통계와 알림
-- 신규 업무 도메인을 표준 구조로 확장하는 Generator
-- EDU, OpenAPI, JavaDoc, Test Kit와 Reference
-- 설치, Migration, Upgrade, Rollback, 배포, Backup, Restore와 DR
-- Source, SQL, API, Test, Guide와 Evidence의 양방향 정합성
+- Embedded JAR, External WAS WAR, 독립 Static Web Artifact와 독립 Worker Process
+- Multi-instance, 부분 실패, retry, failover, restart, reconciliation과 DR
+- 금융권 수준의 인증, 권한, 승인, 감사, masking, 개인정보와 credential 통제
+- idempotency, async, outbox/inbox, DLQ, compensation, unknown-result recovery
+- Gateway, 외부 REST/전문/파일, Kafka messaging
+- Spring Batch, Scheduler, Agent, Runner, Worker와 Center-Cut
+- ADM/BZA 운영 조회·제어·승인·감사·통계·incident
+- 표준 Generator와 신규 업무 Domain lifecycle
+- OpenAPI, JavaDoc, Test Kit, EDU와 실제 Reference Runtime
+- install, migration, upgrade, rollback/forward recovery, backup/restore, deploy와 artifact trust
+- Source, SQL, API, Test, Config, Frontend, Script, Guide와 Evidence의 양방향 일치
 
-## 3. 지원 Topology
+단기 구현 편의보다 장기 제품 구조, 확장성, 운영성, 보안성, 복구 가능성, 재현성과 상용 배포 가능성을 우선한다.
 
-- Embedded JAR
+## 4. 지원 Topology와 동등성
+
+공식 지원 Topology:
+
+- Embedded Boot JAR
 - External WAS WAR
 - Modular Monolith
 - 독립 Microservice
 - 동일 JVM Local Facade
 - 분리 WAS Remote Facade
-- ADM/BZA 독립 Static Web Artifact와 Web Server
+- ADM/BZA 독립 Static Artifact + Web Server
+- Gateway 독립 Runtime
 - Agent/Runner/Worker 독립 Process
-- Multi-instance
-- Rolling, Canary, Blue-Green와 DR
+- Multi-instance와 Multi-zone
+- Rolling, Canary, Blue-Green
+- Backup/Restore와 DR Failover/Failback
 
-특정 배포 방식이 Public Contract를 바꾸면 안 된다. Local과 Remote는 동일한 업무 계약, 표준 Header, 오류, 권한과 추적 기준을 사용한다.
+Topology가 달라도 다음 계약은 동일해야 한다.
 
-## 4. 공식 명칭, Module과 식별 표준
+- 업무 요청·응답 DTO와 validation
+- Standard/Extension Header
+- transactionId, trace, segment와 attempt
+- authentication/authorization와 service identity
+- timeout budget, idempotency와 error taxonomy
+- audit, masking와 observability
+- version/compatibility와 failure/recovery semantics
 
-- 정식 명칭: **Core Platform Framework**
-- Business Platform: 제품 품질과 지향 수준
-- 공식 Module: `cpf-` 접두사
-- Java Root Package: `com.cpf.<domain>`
-- SystemCode: 내부 식별용 3자리 대문자
-- 읽을 수 있는 DomainName과 SystemCode는 서로 다른 개념
+Local 구현이 Remote보다 기능이 적거나, Remote 전환을 위해 업무 Source를 다시 작성하거나, 내부 호출이 필수적으로 Gateway를 경유하면 Architecture 실패다.
 
-| 역할 | Module | Java Root Package | SystemCode | Owner 책임 |
+## 5. 공식 Module·식별·Ownership
+
+| 역할 | Module | Java Root Package | SystemCode | 필수 Owner 책임 |
 |---|---|---|---:|---|
-| 기술 공통 Framework | `cpf-core` | `com.cpf.core` | CPF | Contract, SPI, Technical Runtime |
-| 고객 업무 공통 | `cpf-common` | `com.cpf.common` | CMN | 고객 공통 정책과 Core SPI 확장 |
-| 플랫폼 관리자 | `cpf-admin` | `com.cpf.admin` | ADM | 플랫폼 운영 Control Plane |
-| 고객 업무 관리자 | `cpf-biz-admin` | `com.cpf.bizadmin` | BZA | 고객 업무 관리, 승인과 선택형 Sample |
-| Batch 실행 기반 | `cpf-batch` | `com.cpf.batch` | BAT | Batch, Scheduler, Agent, Runner, Worker, Center-Cut |
-| Gateway Runtime | `cpf-gateway` | `com.cpf.gateway` | GWY | 외부 진입, Routing과 정책 집행 |
-| 생성형 업무 Reference Instance | `cpf-member` | `com.cpf.member` | MBR | Generator Golden Contract를 검증하는 최소 생성형 업무 Domain Instance |
-| 교육·참조 | `cpf-reference` | `com.cpf.reference` | REF | CPF 기능 EDU와 선택형 참조 구현 |
+| 기술 공통 Framework | `cpf-core` | `com.cpf.core` | CPF | topology-independent Public API/SPI, 기술 계약과 최소 Runtime |
+| 고객 업무 공통 | `cpf-common` | `com.cpf.common` | CMN | 고객 공통 정책, Core SPI 확장, Calendar/Code/Message 등 명시된 고객 공통 |
+| 플랫폼 관리자 | `cpf-admin` | `com.cpf.admin` | ADM | 플랫폼 운영 Control Plane, 플랫폼 위험조치 승인과 운영자 감사 |
+| 고객 업무 관리자 | `cpf-biz-admin` | `com.cpf.bizadmin` | BZA | 고객 업무 관리, 조직·업무 결재, 선택형 Customization Sample |
+| Batch 실행 기반 | `cpf-batch` | `com.cpf.batch` | BAT | Spring Batch, Scheduler, Center-Cut, Agent, Runner, Worker |
+| Gateway Runtime | `cpf-gateway` | `com.cpf.gateway` | GWY | 외부 진입, trust boundary, route/load balance/resilience와 attempt ledger |
+| Golden Generated Domain | `cpf-member` | `com.cpf.member` | MBR | Generator 산출물과 동일한 최소 업무 Domain Reference |
+| 교육·참조 | `cpf-reference` | `com.cpf.reference` | REF | 제품 Public API의 실제 EDU·복구·운영 예제 |
 
-`cpf-member`의 MBR은 고정 업무기능 표준이 아니라 **Generator 산출물과 동일해야 하는 Golden Reference Instance**다.
-향후 `cpf-account`, `cpf-payment`, `cpf-insurance`, `cpf-lng`, `cpf-ing` 등 고객 업무 Domain은 공식 고정 목록이 아니며
-사용자는 임의의 `DomainName + 3자리 SystemCode`로 동일한 표준 구조를 생성할 수 있어야 한다.
-기본 생성형 Domain의 Source/DB/Test 구조는 Metadata를 제외하면 동일하고, DB 사용 시 중앙 Vendor Domain Template로
-`${TablePrefix}_sample_item` CRUD/Search/Paging/Validation 예제가 실제 DB까지 연결되어야 한다.
-신규 Domain 추가 때문에 CPF 본체의 `if/switch`, 고정 Domain 배열 또는 Vendor별 수작업 SQL 복제가 늘어나면 Generator 설계 실패다.
+영구 고정 `cpf-external`/EXS Module은 두지 않는다. 외부기관 Adapter는 범용 기술 Contract/SPI, 고객 공통 정책, Generated Domain 또는 고객 확장 Module 중 실제 Owner가 소유한다.
 
-`cpf-external`/EXS는 영구 고정 업무 Domain으로 제공하지 않는다. 기존 Repository에 남은 대외연계 기능은
-범용 기술 Contract/SPI, 고객 공통 정책, Generated Domain Adapter 또는 `cpf-reference` EDU 중 실제 책임에 맞는 Owner로
-이관한 뒤 고정 Module/SystemCode/DB를 제거한다. 기관별 업무 Adapter 때문에 중앙 Generator에 EXS를 하드코딩하지 않는다.
-
-구 명칭 `PFW`, `XYZ`는 승인된 호환성 이력 외에는 Active Source, Package, Config, SQL, Seed, Route, Queue, Topic, Cache, Log, Guide와 Evidence에 남기지 않는다.
-
-## 5. 아키텍처와 의존성 원칙
-
-### 5.1 Ownership
-
-- 기술 공통: `cpf-core`
-- 고객사 업무 공통: `cpf-common`
-- 플랫폼 운영·보안·감사: `cpf-admin`
-- 고객 업무 관리: `cpf-biz-admin`
-- Batch·Scheduler·Agent·Runner·Worker·Center-Cut: `cpf-batch`
-- 대외연계 기술 Contract/SPI: `cpf-core`; 고객 공통 연계정책: `cpf-common`; 기관/업무 Adapter: 해당 Generated Domain 또는 고객 확장 Module
-- 업무 기능과 원장: 해당 업무 도메인
-
-파일이나 Class가 존재해도 실제 Consumer, 오류 처리, 복구, 운영 기능과 Runtime Evidence가 없으면 완료가 아니다.
-
-### 5.2 의존성 방향
+### 5.1 의존성 방향
 
 ```text
-Business Domain → cpf-common → cpf-core
-cpf-gateway → cpf-core
-cpf-batch → cpf-core + Business Public Contract
+Generated/Business Domain → cpf-common → cpf-core
+cpf-gateway → cpf-core Public Contract + 선택 Starter
+cpf-batch → cpf-core Public Contract + Business Public Contract
 cpf-admin → Operations Command/Query Contract
 cpf-biz-admin → Business Public Contract
-Generated Domain/Customer Adapter → cpf-common → cpf-core External SPI
+Customer Adapter/Plugin → cpf-common/core SPI
 ```
 
-다음을 금지한다.
+금지:
 
-- `cpf-core`의 업무·Common·Admin·Batch 역방향 의존
-- 업무 도메인 간 DB 직접 접근
-- Admin의 업무 원장 직접 갱신
+- `cpf-core`의 Common/Admin/Batch/업무 역방향 의존
+- 선택 기능 Runtime(Kafka, Redis, OTel exporter 등)의 Core 강제 포함
+- 업무 Domain 간 DB 직접 접근
+- ADM/BZA의 Owner DB 직접 갱신
 - 내부 호출의 Gateway 재경유
-- 순환 의존
-- 실제 Consumer 없는 추상화
-- Sample을 제품 Runtime으로 간주하는 구조
+- 순환 의존과 Internal Package 직접 참조
+- 실제 Product Consumer 없는 Interface/Adapter/Starter
+- OSS와 Legacy의 Dual Primary
+- Sample 또는 Generated Reference를 제품 원장으로 간주
 
-### 5.3 API 경계
-
-- Public API: 고객 개발자가 안정적으로 사용하는 계약
-- SPI: 고객·업무·Adapter가 확장하는 계약
-- Internal: 제품 내부 구현이며 호환성 보장 대상이 아님
-
-Public API, SPI와 Internal 경계는 Package, Module Metadata, JavaDoc, ArchUnit와 Build Gate로 강제한다.
-
-## 6. cpf-core 목표
-
-### 6.1 Runtime Foundation
-
-- Standard/Extension Header
-- Transaction, Trace, Segment와 Context Propagation
-- Standard Error, Message와 Validation
-- Local/Remote Service Call
-- Timeout Budget, Retry, Circuit Breaker, Bulkhead와 Backpressure
-- Idempotency, State Machine, Optimistic/Distributed Lock
-- Unknown Result, Reconciliation와 Compensation Hook
-- File/Attachment/Compression Technical Contract
-- Broker Envelope, Outbox/Inbox와 DLQ Contract
-- Fixed-Length Message Engine
-- Collection, List, Page, Slice와 Cursor
-- Security Context, Masking와 Audit Hook
-- File/DB Log, Metrics와 Trace Boost
-- Progressive Configuration와 Public Test Kit
-
-### 6.2 Public API 구조
+### 5.2 Public API / SPI / Internal
 
 ```text
-com.cpf.core.api
-com.cpf.core.spi
-com.cpf.core.internal
+com.cpf.<owner>.api
+com.cpf.<owner>.spi
+com.cpf.<owner>.internal
 ```
 
-공개 API는 IDE에서 발견 가능하고 최소 입력으로 안전하게 사용할 수 있어야 한다. 거대한 `Utils` Class와 의미 없는 JDK Wrapper는 금지한다.
+- Public API는 semantic version과 compatibility 대상이다.
+- SPI는 capability, lifecycle, failure, thread-safety와 version contract를 문서화한다.
+- Internal은 외부 Module에서 compile되지 않도록 module metadata, package rule, ArchUnit와 publication gate로 차단한다.
+- Public API에 선택 OSS 구현 type을 직접 노출하지 않는다.
+- Public API/SPI와 중요 복구·동시성·보안 로직에는 한글 JavaDoc/주석을 제공한다.
 
-권장 API 묶음:
+## 6. 모든 Requirement에 적용되는 공통 완료 축
 
-- `CpfDates`, `CpfTimes`, `CpfClock`
-- `CpfStrings`, `CpfNumbers`, `CpfDecimals`
-- `CpfLists`, `CpfMaps`, `CpfAttributes`
-- `CpfIds`, `CpfHashes`, `CpfFiles`
-- `CpfValidation`, `CpfPages`, `CpfHeaders`
+각 Requirement는 적용 가능한 항목을 모두 충족해야 한다. `N/A`는 이유와 검수 승인이 있어야 한다.
 
-### 6.3 설정 우선순위
+| 완료 축 | 필수 기준 |
+|---|---|
+| Ownership | 단일 Owner Module, Public API/SPI/Internal 경계, 역방향·순환 의존 없음 |
+| Consumer | 실제 Product Consumer, Bean/Route/SQL/Frontend/Script 연결, Dead abstraction 없음 |
+| 정상 기능 | 대표 정상 흐름과 실제 Runtime 결과 |
+| 오류·경계 | invalid input, 권한, timeout, conflict, empty, oversize, dependency failure |
+| 동시성 | race, optimistic/distributed lock, idempotency, duplicate와 multi-thread |
+| Multi-instance | lease, fencing, rebalance, failover, stale writer와 shared state |
+| 결과 불명 | side effect 전후·DB commit 전후·ACK/response loss 분류와 reconciliation |
+| 복구 | retry, restart, reprocess, compensation, rollback/forward recovery와 manual recovery |
+| Security | authN/authZ, trust boundary, secret/PII masking, negative corpus와 secure default |
+| Audit/Operations | 조회, status, control, reason, approval, immutable audit, metric/alert/runbook |
+| Resource | memory/disk/thread/connection/queue/time budget, bounded streaming, cleanup |
+| Data/DB | schema/query owner, 3 Vendor 또는 DB-less 근거, migration/rollback/drift |
+| Compatibility | Local/Remote, mixed version, API/message/file/DB/config compatibility |
+| Test | unit, contract, integration, runtime/browser/broker/fault 중 적용 항목 |
+| Documentation | OpenAPI, JavaDoc, developer/operation/install/recovery guide |
+| Evidence | exact Source SHA, command, environment, time, exit code, report/artifact hash, sanitization |
+| Hygiene | Legacy/Dead Code/Stale Evidence/임시 산출물/Secret 제거와 회귀 방지 |
 
-```text
-CPF safe default
-→ customer property
-→ profile
-→ operation override
-→ per-call override
-```
+## 7. 기술 정본과 OSS Primary 정책
 
-Override는 허용 범위, 권한, 버전, Audit와 Rollback을 가져야 한다.
+기술 Stack의 exact version은 `gradle/cpf-stack.properties`, Wrapper, BOM과 Lockfile을 단일 정본으로 한다. 이 Revision의 목표 baseline은 Java 25 LTS, Gradle 9.x, Spring Boot 4.1 계열, Spring Cloud 2025.1 계열, Spring Batch 6 계열이며, 공식 지원 Matrix 밖 조합은 `TRANSITION`으로 관리하고 GA를 차단한다.
 
-## 7. cpf-common과 cmnDB 정책
+승인된 Primary 방향:
 
-`cpf-common`은 고객사 업무 공통 Extension Layer다. 고객 Header·User Context, 고객 Validation, Error Mapping, Web Client Profile, Masking·Audit 정책, 공통 Facade와 Core SPI 구현을 제공한다.
+| 영역 | Primary 방향 | 제품 경계 |
+|---|---|---|
+| Gateway | Spring Cloud Gateway Server Web MVC | CPF는 route/trust/audit/ledger 정책 확장 |
+| Batch | Spring Batch | Job/Step/Repository/ExecutionContext/Restart 정본 |
+| Scheduler | db-scheduler 기본, 고급 Adapter 선택 | Trigger 소유권과 Batch 실행 경계 명확화 |
+| Messaging | Kafka | in-memory는 unit/local test Adapter만 |
+| Resilience | Spring Cloud CircuitBreaker + Resilience4j | operation 정책·timeout budget 정본 |
+| Observability | Micrometer Observation + OpenTelemetry | SDK/exporter는 Starter가 소유 |
+| Cache | Caffeine local + 선택형 distributed provider | `cpf-common`/Core에 선택 Runtime 강제 금지 |
+| Feature Flag | OpenFeature + CPF Provider | evaluation/audit/secure override |
+| Session/BFF | Spring Security + Spring Session JDBC | Browser credential 저장 금지 |
+| Frontend | Vue 3, Router, Pinia, TanStack Query/Table, Zod, Orval, Element Plus | 실제 Consumer 이관과 lock/generated drift 검증 |
+| Migration | Flyway OSS Core | 기존 자체 migration Primary 제거 |
+| Supply Chain | CycloneDX, ORT, Syft, Grype | 동일 final artifact와 exact SHA 검사 |
 
-`cpf-common`은 기술 Engine이나 추정성 고객 업무를 선점하지 않는다.
+Dependency나 파일만 추가하고 실제 Consumer가 Legacy를 사용하면 전환 완료가 아니다.
 
-### 7.1 cmnDB
+## 8. 거래·신뢰·오류 표준
 
-초기 설치 시 `cmnDB` Schema는 생성한다. 고객 업무를 추정해 Table을 선점하지 않는 것이 기본 원칙이며,
-**검증용 Sample Table 1개 + Final Target에서 명시적으로 CPF 제품 기능으로 확정된 최소 공통 Table**만 제공한다.
-현재 정식 제품 Table은 `CMN-CALENDAR`의 `cmn_business_calendar_day`이며, 그 외 고객 업무 Table은 기본 설치에 추가하지 않는다.
+- 거래 실행 인스턴스 ID는 `transactionId` 하나다.
+- 기본 생성 규격은 `yyyyMMddHHmmssSSS(17)+SystemCode(3)+wasId(7)+sequence(7)`의 34자리다.
+- Local/Remote/Async/Retry/Batch/File 후속 처리는 동일 transactionId를 사용하고 호출 계층은 segmentId/parentSegmentId/attempt로 구분한다.
+- Client가 보낸 내부 Header, principal, environment, instance ID를 무조건 신뢰하지 않는다.
+- 오류는 code, message, field/offset, retryability, failure stage, unknown-result 여부와 operator guidance를 가져야 한다.
+- pre-execution failure, side-effect confirmed failure, success, stopped, retryable failure와 unknown result를 구분한다.
+- 결과 불명은 자동 성공이나 무조건 재시도로 닫지 않는다.
 
-검증용 Sample Table 한 개로 다음을 검증한다.
+## 9. 데이터·SQL·Migration 정본
 
-- Connection과 Migration
-- CRUD
-- Search와 Sort Allowlist
-- Offset Page, Slice와 Keyset/Cursor
-- Validation과 Duplicate Key
-- Optimistic Version Collision
-- Transaction Commit과 Rollback
-
-다음은 기본 `cmnDB`에 두지 않는다.
-
-- `cmn_sequence*`
-- `cmn_fixed_length_*`
-- 통합 Business Log
-- Notification Log
-- 다수 EDU 전용 Table
-- 실제 고객 요구 없이 추정한 업무 Table
-
-`cpf-common`은 DB-less Library/Extension으로도 사용할 수 있어야 한다. DB-less 모드의 Calendar는 주말 기반 조회만 제공하고
-운영 Override 변경은 fail-closed한다. CPF 제품 설치에서는 CMN canonical Calendar Store를 사용한다.
-
-## 8. 데이터, SQL과 Migration 원칙
-
-### 8.1 Physical Ownership
-
-모든 Schema, Table, View, Procedure, Trigger, Index, Constraint와 Seed는 하나의 Owner와 실제 Consumer를 가진다.
+공식 지원 DB Vendor는 MariaDB, PostgreSQL, Oracle 3종이다. MySQL/MSSQL은 지원 선택값에서 제거한다.
 
 권장 Schema:
 
 ```text
 cpfDB, cmnDB, admDB, bzaDB, batDB, refDB
-+ Generator Manifest로 선언된 업무 Domain Schema(예: mbrDB, lngDB, ingDB)
++ Generator Manifest가 선언한 Domain Schema
 ```
 
-물리 이름은 Owner의 SystemCode와 일치해야 한다. 예외는 Architecture Decision과 Migration 근거가 있어야 한다.
+- 모든 DB Artifact는 `cpf-tools/db/vendor/<vendor>` Owner 경계에서 동일 구조로 관리한다.
+- Canonical Schema/Metadata에서 Vendor-native install/seed/migration/rollback/runtime query를 생성·동기화한다.
+- 특정 Vendor SQL의 복사·치환만으로 완료 처리하지 않는다.
+- Index/FK가 없는 Column을 참조하면 DB 실행 전 생성 Gate에서 실패해야 한다.
+- Flyway 적용 Migration은 불변이며 신규 변경은 새 Version으로 제공한다.
+- Empty Install과 Upgrade 최종상태는 schema manifest로 동등해야 한다.
+- 기존 Schema가 다르면 조용히 skip하지 않고 drift 또는 migration 문제로 실패한다.
+- destructive rollback은 데이터 보존/backup/승인/대체 recovery가 명시되어야 한다.
+- 업무/관리 SQL은 Java literal이 아닌 Owner Query ID와 Vendor Resource로 관리한다.
+- DB 변경은 Generator domain-template, Generated Domain, checksum, install/upgrade/rollback까지 한 작업 단위로 검토한다.
 
-### 8.2 설치와 데이터 분리
+## 10. File·Attachment·Archive·전문
 
-- Schema/User Provision
-- Product Table/Constraint/Index
-- Product Mandatory Meta Seed
-- Optional Sample/EDU/Test Seed
-- Verify/Smoke
-- Reset
-- Upgrade Migration
-- Rollback/Recovery
+- create/extract/upload/download/transfer 전 경로를 bounded streaming으로 처리한다.
+- 대용량 payload를 `byte[]`, `readAllBytes`, 전체 DOM/문자열로 적재하지 않는다.
+- 임시 파일→fsync/checksum→atomic publish를 사용하고 실패 시 partial target을 제거한다.
+- path alias, canonical path, symlink/hardlink/device/FIFO, zip slip, duplicate canonical entry, 압축률·entry/total budget을 통제한다.
+- client cancellation, timeout, disk full, process kill과 restart cleanup을 검증한다.
+- 고정길이 전문은 byte length·encoding·padding·group·version·field offset·masking·streaming을 지원한다.
+- 기관별 Layout/Endpoint/Auth는 고객 Adapter가 소유한다.
 
-위 책임을 하나의 파괴적 `all install` Script에 섞지 않는다.
+## 11. Gateway·외부연계·Event
 
-Product Meta에는 System/Module Registry, 표준 Error/Response Code, Menu/Permission, Runtime Type Catalog, Masking/Retention Policy 등 실제 실행에 필요한 최소 데이터만 둔다. Password, Token, Private Key와 개인정보 원문은 Seed에 넣지 않는다.
+Gateway:
 
-### 8.3 Query Ownership
+- Control Plane과 Data Plane을 분리한다.
+- Route snapshot은 atomic refresh하고 stale/invalid snapshot을 fail-closed한다.
+- trusted header allowlist와 proxy chain을 적용하고 내부 Header spoof를 차단한다.
+- SSRF 방지를 위해 scheme/host/port/CIDR/service allowlist, URI canonicalization, redirect와 DNS 정책을 적용한다.
+- one-shot/streaming body는 안전한 replay 조건이 없으면 retry하지 않는다.
+- 실제 async/stream 종료와 client disconnect 시점에 ledger를 닫는다.
+- connect/send/response/read failure를 분류한다.
+- audit/ledger 저장 실패가 원 업무를 불필요하게 오염시키지 않도록 transaction 경계를 분리한다.
 
-업무/관리 Module의 Vendor SQL은 Java String literal에 두지 않고 Owner가 식별 가능한 Query ID와 `cpf-tools/db/vendor/<vendor>/runtime/<owner>` Resource로 관리한다. 업무/관리/Generated Domain은 `com.cpf.core.common.*` 내부 구현을 직접 참조하지 않고 Public API/SPI를 사용한다. Query Resource는 Owner, Consumer, Parameter/Result Contract와 Vendor별 검증 근거를 가져야 한다.
+Kafka/Event:
 
-### 8.4 Migration
+- stable message ID, schema version, key/partition/order, TTL, size/depth, producer/environment binding을 제공한다.
+- at-least-once + idempotent consumer를 기본으로 한다.
+- ACK/transaction/consumer commit과 업무 side effect 경계를 명시한다.
+- retry topic, DLT, poison isolation, replay approval와 audit를 제공한다.
+- 다중 Manager/Worker에서 reply/correlation이 인스턴스 로컬 queue에 의존하지 않게 한다.
+- rebalance, broker outage, duplicate, late reply, process kill과 response loss를 검증한다.
 
-- 적용된 Flyway Migration은 불변
-- 신규 변경은 새 Version Migration으로 제공
-- Upgrade와 Rollback 또는 Forward Recovery 제공
-- Expand-Migrate-Contract 사용
-- Backup, Restore와 Schema Version 검증
-- 신규 설치 SQL과 Upgrade 최종 상태 일치
+## 12. Batch·Scheduler·Center-Cut·Agent
 
-정식 적용 이력이 전혀 없고 모든 개발 DB를 폐기하는 Pre-release Re-baseline은 사용자 승인, 근거, Checksum 폐기와 Empty Install Evidence를 한 번에 갖춰야 한다.
+- Spring Batch가 Primary Engine이며 자체 Job/Step/Execution Repository를 중복 구현하지 않는다.
+- CPF 승인·idempotency·fencing·unknown-result 원장과 Spring Batch JobInstance/JobExecution/StepExecution ID를 연결한다.
+- idempotency key 재사용 시 canonical request hash와 scope가 다르면 conflict로 거부한다.
+- fencing은 실행 행에 저장된 token이 아니라 최신 owner/lease epoch를 검증한다.
+- reserve→start→bind 사이 response loss와 고아 상태를 reconciliation한다.
+- STOPPED/RETRYABLE_FAILURE/FAILED/UNKNOWN_RESULT가 Spring Batch 상태와 운영 UI에서 정확히 일치해야 한다.
+- ExecutionContext에 Secret, 전체 stdout/stderr, 대용량 payload를 저장하지 않는다.
+- Remote Partition/Chunk/Step은 Kafka transport와 stable correlation, DLT, backpressure를 사용한다.
+- Product Profile에서 Remote topology가 in-memory channel로 조용히 fallback하면 안 된다.
+- Scheduler trigger claim과 Job start 사이를 outbox/state machine으로 복구 가능하게 한다.
+- Center-Cut은 immutable parameter, item claim/lease/fencing, global rate, failed-only reprocess와 unknown reconciliation을 제공한다.
+- Agent는 승인 Script/Artifact만 실행하고 process tree, output budget, timeout, drain, takeover, artifact trust를 제공한다.
 
-## 9. 고정길이 전문, File과 대외연계
+## 13. ADM·BZA·Frontend·BFF
 
-### 9.1 Fixed-Length Owner
+ADM은 플랫폼 운영 Control Plane이며 Owner DB를 직접 수정하지 않는다. 위험조치는 Owner Command API로 수행한다.
 
-`cpf-core`가 범용 기술 Engine을 소유한다.
+BZA는 고객 업무 관리와 업무 결재를 소유하며 플랫폼 Runtime을 직접 제어하지 않는다.
 
-- Layout, Field, Group과 Version Contract
-- Byte Length와 Encoding
-- Padding, Alignment와 Required Validation
-- Header, Body, Trailer와 Repeated Group
-- Numeric, Date, Amount Converter
-- Parser와 Writer
-- Error Field, Byte Offset와 Original Position
-- Masking과 Secure Diagnostic
-- Large Message Streaming
-- Codec, Converter, Validator SPI
+공통 Frontend 기준:
 
-기관별 Layout, Mapping, Endpoint, Authentication, Adapter는 해당 고객/Generated Domain 또는 선택적 고객 확장 Module이 소유한다. `cpf-core`는 범용 External SPI, Retry/Timeout/Unknown/Reconciliation 기술 Primitive를 제공하고 `cpf-common`은 고객 공통 연계 정책을 확장할 수 있다.
+- ADM/BZA 독립 Vue 3 + TypeScript + Vite Application/Artifact
+- feature folder, route registry, Pinia state, TanStack Query API boundary
+- Orval exact-SHA generated client와 drift gate
+- package.json/package-lock exact 일치와 clean `npm ci`
+- Element Plus/TanStack Table/Zod를 실제 화면 Consumer에 적용
+- raw `fetch`는 단일 승인 mutator/auth bootstrap 경계 외 금지
+- search/paging/sort/detail/status/loading/empty/error/retry UX
+- deep link, 403/404, session expiry, browser history
+- responsive, keyboard, accessibility와 Chromium/Firefox/WebKit E2E
+- 외부 Runtime CDN/font/script 의존 금지
 
-DB 기반 Dynamic Layout이 제품 필수라면 canonical Table은 Core 소유 Schema에 두고 ADM이 Core API를 통해 관리한다. Admin UI는 데이터 Owner가 아니다.
+BFF/Session 기준:
 
-### 9.2 File/Attachment
+- Browser Local/Session Storage, URL, DOM, response body, console/log에 Access Token, Refresh Token, Session ID를 노출하지 않는다.
+- 인증 응답 형태가 Map/DTO/record 중 무엇이든 credential stripping은 fail-closed한다.
+- JDBC Session의 credential 저장은 최소화·암호화/참조화하고 DB dump/운영화면에 원문을 노출하지 않는다.
+- Session fixation 보호, rotation, timeout, concurrency, 권한회수, 강제 logout을 제공한다.
+- Spring Security 표준 CSRF와 route inventory 기반 보호를 사용하고 mutation 전체를 검증한다.
+- Session Store readiness는 연결뿐 아니라 schema/index/create-read-delete를 검증한다.
+- 제품 Profile에서 DB 오류를 Memory Session/Repository 성공으로 대체하지 않는다.
 
-Core는 범용 File, Attachment, Chunk, Compression, Checksum, Path Alias와 Transfer Contract를 제공한다. 기관별 SFTP, File Naming, Ack/Nack와 Reconciliation은 해당 고객/Generated Domain의 External Adapter가 소유한다.
+## 14. Security·Privacy·Audit
 
-### 9.3 Messaging
+- 관리자 MFA, IP/Network policy, Session policy와 service mTLS/OIDC/OAuth/JWT/API key를 지원한다.
+- credential/secret/certificate는 외부화하고 keyId 기반 trust, rotation, expiry, revocation을 제공한다.
+- PII는 분류·최소수집·masking·raw 승인·retention/deletion을 제공한다.
+- 위험조치는 requester/approver 분리, 자기승인 금지, ALL/ANY/N_OF_M, expiry와 immutable command hash를 제공한다.
+- Break-glass는 별도 권한, TTL, 긴급사유, 사후 Review와 immutable audit가 필수다.
+- Audit는 append-only/tamper-evident하고 before/after snapshot은 credential/PII를 redaction한다.
+- XSS, CSRF, SSRF, injection, path traversal, deserialization, upload/archive bomb, unsafe process 실행을 negative corpus로 검증한다.
+- Evidence와 로그도 제품 보안 경계이며 Secret/Token/Session/Private Key 원문을 저장하지 않는다.
 
-- Standard Envelope
-- Correlation과 transactionId
-- Outbox/Inbox
-- Idempotent Consumer
-- DLQ, Replay와 Poison Isolation
-- Ordering Policy
-- Schema/Version Compatibility
-- 운영 조회와 Audit
+## 15. 운영·Observability·Reliability
 
-## 9.4 거래 식별자 표준
-
-- CPF의 거래 실행 인스턴스 식별자는 **`transactionId` 하나**다. 과거 별도 Global 거래 ID 명칭은 제품 개념으로 유지하지 않는다.
-- 외부/선행 거래가 유효한 transactionId를 제공하면 그대로 승계한다.
-- 내부 Scheduler/Batch/Worker/Center-Cut/Agent 등에서 독립 거래가 시작되면 `cpf-core`가 신규 transactionId를 생성한다.
-- 기본 생성 규격은 `yyyyMMddHHmmssSSS(17) + SystemCode(3) + wasId(7) + sequence(7)`의 34자리다.
-- 동일 업무 흐름의 Local/Remote/Async/Retry/Batch 후속 처리는 같은 transactionId를 사용한다.
-- 호출 세부 계층은 `segmentId`, `parentSegmentId`, call depth와 attempt로 표현한다.
-- `standardExecutionId`는 `OXYZAA0001` 같은 실행 정의 ID이며 transactionId와 별개다.
-- File Log, DB Log, ADM Timeline, Broker Envelope, Idempotency/Reconciliation, Batch/Center-Cut, OpenAPI/EDU가 같은 계약을 사용한다.
-- DB/Source/API에서 과거 Global/root/parent/child 거래 식별자 명칭을 신규로 만들지 않는다. 고객/Release에 적용된 Historical Migration은 불변으로 추적하되, 외부 배포 전 pre-GA 개발 Migration은 잘못된 명칭을 영구 보존하지 않고 적용 이력·호환성 영향을 확인한 뒤 정본화할 수 있다.
-
-## 10. 업무 채번 정책
-
-업무 번호 채번은 `cpf-core` 또는 `cpf-common`의 필수 Framework 기능이 아니다.
-
-- `cmn_sequence`, `cmn_sequence_issue_log`와 관련 기본 Runtime 제거
-- UUID/ULID, transaction ID, trace ID, idempotency key 같은 기술 ID는 Core가 제공 가능
-- `cpf-biz-admin`은 규칙 관리, 현재값, 시험 발급, 이력, 승인과 Audit을 보여주는 **선택형 Customization Sample**을 제공
-- 실제 Runtime Owner는 고객 `cpf-common` 확장, 해당 업무 도메인 또는 별도 고객 중앙 채번 Service
-- 온라인 업무가 BZA 관리자 Application 가용성에 필수 의존하는 구조 금지
-
-BZA Sample은 운영 기본 설치에서 자동 활성화하지 않으며 Dev/EDU 또는 선택 Migration으로 제공한다.
-
-## 11. Gateway 목표
-
-- External Entry와 Authentication Policy
-- Routing, Discovery, Load Balance와 Direct Instance
-- Health, Timeout, Circuit Breaker와 Failover
-- Header Trust Boundary와 재작성
-- Rate Limit, Manual Block와 Maintenance
-- Registry, Metrics와 Audit
-
-Gateway는 내부 업무 호출의 Mandatory Hop이 아니다.
-
-## 12. Batch, Center-Cut와 Agent 목표
-
-### 12.1 General Batch
-
-- Job, Step, Parameter와 Dependency
-- Schedule, Calendar와 Misfire
-- Checkpoint, Restart와 Partial Retry
-- Java, approved Shell, File Watch, File Process와 File Transfer Executor
-- Timeout, Retry, Skip, Threshold, Pause와 Rollback
-- Agent Pool, Capability, Zone와 Path Alias
-
-Shell Executor는 승인된 Script Catalog만 실행하며 임의 Command 실행을 금지한다.
-
-### 12.2 Center-Cut
-
-`cpf-batch`는 Batch Agent와 구분되는 `CenterCutRunner` Runtime 책임을 제공한다.
-
-```text
-request → validate → create job
-→ persist immutable parameter/execution policy
-→ target generation → item claim
-→ worker dispatch → business transaction
-→ result/error/attempt
-→ aggregate → ADM timeline/recovery
-```
+주요 실행 흐름은 system/domain/instance/transaction/segment/attempt/job/execution/item/agent 식별자를 연결한다.
 
 필수:
 
-- Job, Item, Attempt
-- 동일 `transactionId` 승계 + `segmentId`/`parentSegmentId` 호출 계층
-- Immutable Parameter Snapshot, hash, schema, encryption과 masking
-- Chunked/Streaming Target Generation과 Resume
-- Claim, Lease, Fencing과 Multi-instance Duplicate Prevention
-- Global TPS/RPS, Backpressure와 Concurrency
-- Pause, Resume, Cancel과 Drain
-- Failed-only Reprocess
-- Unknown Result 확인 후 재처리
-- Compensation와 Manual Recovery
-- Runner를 Agent 내장 또는 별도 Process로 배포 가능
+- metrics, logs, traces, transaction timeline
+- bounded cardinality와 masking
+- SLI/SLO, error budget와 burn-rate
+- alert dedup/group/routing/escalation
+- incident, runbook, recovery action와 postmortem
+- topology/service catalog
+- maintenance/drain/quiesce
+- runtime config version/approval/rollback
+- desired/actual drift
+- capacity trend/load limit
+- backup/restore와 DR drill
 
-### 12.3 Agent/Worker
+운영 기능 자체의 장애가 원 업무를 불필요하게 오염시키지 않도록 보안 결정과 관측 기록의 transaction 경계를 분리한다.
 
-- Registry와 Capability
-- Primary/Secondary, Failover와 Failback
-- Lease와 Fencing Token
-- Drain과 Takeover
-- Pre-execution Failure와 Mid-execution Unknown 구분
-- Shared Durable Storage가 없는 File Job의 Blind Failover 금지
-
-## 13. ADM과 BZA 목표
-
-### 13.1 ADM
-
-플랫폼 운영 Control Plane:
-
-- Online Transaction과 Timeline
-- Async, Unknown Result와 Reconciliation
-- Batch, Center-Cut, Agent, Runner와 Worker
-- Gateway, Registry와 Health
-- Log, Trace, Metric와 Alert
-- Security, Approval와 Immutable Audit
-- Recovery, Compensation와 Incident
-
-상태를 DB에서 직접 수정하지 않고 Owner Command API를 사용한다. 위험 조치는 권한, 승인, 사유와 감사가 필수다.
-
-### 13.2 BZA
-
-고객 업무 관리:
-
-- 업무 Menu와 Permission
-- 고객 업무 조회, Download와 Approval
-- 고객 Extension
-- 선택형 Reference Sample
-
-BZA는 고객·상품·주문 같은 추정성 원장을 임의 소유하지 않으며 CPF Platform Runtime을 직접 제어하지 않는다.
-
-
-### 13.3 ADM 운영자 Directory와 위험조치 승인
-
-ADM은 HR 원장을 소유하지 않지만 금융권 운영 승인과 Immutable Audit에 필요한 운영자 조직 문맥을 확보해야 한다.
-`adm_operator`는 인증 Identity로 유지하고 조직·직급·직책·사번·외부 Directory Subject 등은 별도 Profile/Directory 경계에서 관리한다.
-기본 DB Adapter를 제공할 수 있으나 LDAP/AD/IAM/HR 연계를 위한 확장 Port를 허용하며 실제 Password, Token, Private Key를 Profile에 저장하지 않는다.
-운영자 연락처는 인증 Identity 컬럼이 아니라 `adm_operator_profile` 등 Directory/Profile 경계가 소유한다. 휴대폰은 `연락처(휴대폰)`, 사내/내선 전화는 `내부 전화번호`로 구분하고 둘 다 선택값/문자열로 저장하여 국가번호와 선행 0을 보존한다. 목록·다운로드·로그·Evidence에서는 개인정보 Masking/Audit 정책을 적용한다.
-
-ADM 제품 Runtime은 영속 DB를 fail-closed로 사용한다. DB 오류를 메모리 저장소 성공으로 변환하지 않으며, MEMORY 저장소는 `local/test/demo/library` 등 명시적 비제품 Profile에서만 허용한다. 일반 운영자 생성은 `PENDING_ACTIVATION`, Role 미부여, 비밀번호 변경 필요를 기본으로 하고 Identity/Profile/Role Mapping은 하나의 Transaction 경계와 생성 `operationId` 멱등성으로 보호한다.
-
-기본 운영자 API는 연락처 Masked Projection만 반환한다. Raw PII는 별도 권한·사유·`transactionId`·감사가 필요하고 조회 사유는 URL query string이 아니라 POST body로 전달하며 응답은 `Cache-Control: no-store`를 사용한다.
-
-ADM 위험조치는 단순 RBAC 버튼 권한만으로 실행하지 않는다. 다음을 만족하는 독립 Approval Runtime을 `cpf-admin`이 소유한다.
-
-- 승인 정책 Version과 시행일/만료일
-- 요청자와 승인자의 분리, 자기승인 금지 기본값
-- Operator/Role/Organization/Organization Manager 대상 해석
-- 순차, 병렬, `ALL`, `ANY`, `N_OF_M` 결정 규칙
-- 요청 Reason과 대상 명령의 불변 Hash/Snapshot
-- 승인 만료, 취소, 반려, 재요청과 Idempotency
-- Owner Command API 실행과 승인 실행 결과의 연결
-- 실행 결과 불명 시 자동 성공 처리 금지 및 Recovery 상태
-- Break-glass는 별도 권한, 긴급 사유, TTL, 사후 Review와 Immutable Audit 필수
-- Service 차단/재개, Routing 강제 변경, Batch 강제 제어, Center-Cut 재처리, Unknown Result 수동 확정, Compensation, DLQ Replay, 대량 Download, Masking 해제, Runtime Config, Credential/Certificate Rotation 등 위험행위를 정책 대상으로 확장 가능
-
-ADM은 다른 Owner DB를 직접 수정하거나 승인 완료 후 SQL을 직접 갱신하는 방식으로 제어하지 않는다. 승인 완료 후에도 실제 실행은 Owner의 Command API/Facade로 수행하고 Local/Remote Topology에서 동일 계약을 유지한다.
-
-### 13.4 BZA 조직·직원·업무결재
-
-BZA는 고객 업무 관리자와 업무 결재를 소유한다. `bza_admin_user` 인증 Identity와 직원/조직 Directory를 분리하고 다음 모델을 지원한다.
-
-- 조직 Hierarchy와 조직 유형, 사용기간
-- 직원, 사번, 조직 소속, 직급, 직책, 재직 상태
-- 업무 이메일, `연락처(휴대폰)`, `내부 전화번호`를 서로 다른 선택 Profile 값으로 관리하고 전화번호는 숫자형으로 저장하지 않음
-- 신규 직원 재직 상태의 Safe Default는 `EMPLOYED`; 기존 데이터는 Migration 정책 없이 임의 변환하지 않음
-- 직원 재직 상태와 관리자 인증 계정 상태는 서로 다른 Catalog로 관리하며 `ACTIVE`를 직원 재직상태와 혼용하지 않음
-- 일반 BZA 관리자 생성은 `PENDING_ACTIVATION`, Role 미부여, 비밀번호 변경 필요를 기본으로 하며 Role 유효성 확인 후에만 `ACTIVE` 전환
-- BZA 기본 직원 목록/API는 이메일·휴대폰·내부전화 Masked Projection을 사용하고 Raw 조회는 별도 `PII_RAW` 권한·사유·Audit·`no-store`를 요구
-- BZA Audit Snapshot은 PII를 Masking하고 Password/Secret/Token/Credential/Attachment 원문을 Redaction한 canonical snapshot으로 Hash Chain을 구성
-- 겸직/복수 조직/파견/직무대행을 표현할 수 있는 유효기간 기반 Assignment
-- 직원 한 명의 복수 Role을 지원하는 User-Role Mapping과 역할 유효기간
-- 조직개편·인사변경 후에도 과거 결재가 변하지 않도록 결재 생성 시 조직·직급·직책·결재자 Snapshot 보존
-
-BZA Approval은 최소 다음을 실제 Engine으로 지원한다. 컬럼이나 Enum만 존재하는 것은 구현으로 보지 않는다.
-
-- 순차 결재와 병렬 결재
-- 개인 승인, Role 승인, 부서/조직 합의, 조직 책임자 승인
-- 부서 전원 합의(`ALL`), 한 명 이상 합의(`ANY`), N명 중 M명 합의(`N_OF_M`)
-- 필수 부서와 선택 부서
-- 승인, 합의, 검토의 Step 의미 구분
-- 위임, 대결, 부재기간과 위임 유효기간
-- 요청자 자기승인 방지, 승인자 자격 재검증과 Separation of Duties
-- Approval Policy Version, 시행일, 종료일과 변경 Audit
-- 정책 정의와 실제 Approval Instance 분리
-- Instance 생성 시 참여자 해석 결과 Snapshot
-- 낙관적 잠금, 동시 승인, 중복 결정 Idempotency
-- 반려, 회수, 취소, 재상신, 만료와 Escalation
-- 결재선/정책 Simulation API와 운영 UI
-- 결재 이력, 업무 Audit, transactionId와 Attachment 연결
-
-ADM Approval과 BZA Approval은 정책·DB·Service를 공유하지 않는다. 공통화가 필요하면 상태/결정 같은 작은 기술 Primitive만 `cpf-core`에 둘 수 있으며 업무 Approval Engine을 Core로 올리지 않는다.
-
-## 14. Frontend 목표
-
-- Vue 3, TypeScript와 Vite
-- ADM/BZA 독립 Application과 Artifact
-- Feature Folder 구조
-- API Contract와 Server-side Authorization
-- Accessibility와 Keyboard Navigation
-- CSP, Cookie, CSRF와 Secure Header
-- SPA Deep Link
-- Production Build
-- Web Server와 Java API/WAS 분리 배포
-- 독립 Version, Compatibility와 Rollback
-- Browser E2E
-
-메뉴 숨김만으로 권한을 처리하지 않는다.
-
-## 15. API 목표
-
-- Standard Header와 Trust Boundary
-- Standard Success/Error Envelope
-- List, Page, Slice와 Signed Cursor
-- Field/Operator/Sort Allowlist
-- Async 202, Polling, Callback와 Event
-- File, Multipart, Range와 Streaming
-- SSE
-- Idempotency와 Conflict Contract
-- Versioning, Deprecation과 Compatibility
-- OpenAPI operationId, Example, Error와 Permission
-- JavaDoc와 Consumer Contract Test
-
-## 16. Security와 Audit 목표
-
-- AuthN, AuthZ, RBAC와 필요한 범위의 ABAC
-- 관리자 MFA, IP Allowlist와 Session Policy
-- mTLS, OAuth2/OIDC, JWT와 API Key
-- Secret 외부화, Rotation과 Revocation
-- PII Classification, Masking와 최소 수집
-- Download Approval, Watermark, Expiry와 Audit
-- Dual Control, Break-glass와 사후 Review
-- Immutable Audit와 Tamper Detection
-- Secure Coding, Dependency, SBOM과 Secret Scan
-
-License/Edition 정책은 제품 안정화 후 별도 결정하며 완료되지 않은 License 문서를 GA 산출물처럼 제공하지 않는다.
-
-## 17. Generator와 Developer Experience
+## 16. Generator·Developer Experience·EDU
 
 Generator 입력:
 
@@ -507,316 +337,390 @@ Generator 입력:
 - DB Vendor
 - Capability
 
-필수 Lifecycle:
+필수 lifecycle:
 
 ```text
-create → optional DB bootstrap → CRUD/Search/Paging/Validation/Commit/Rollback 검증
-→ build/test/runtime → remove → regenerate → normalized parity verification
+create → optional DB bootstrap → build/test/runtime
+→ CRUD/Search/Paging/Validation/Commit/Rollback
+→ remove → regenerate → normalized parity
 ```
 
-필수 특성:
+- Module/Package/SystemCode/Config/Route/Menu/SQL/DB 충돌을 사전 검증한다.
+- 하나의 표준 Template을 사용하고 특정 Domain 예외 `if/switch`를 늘리지 않는다.
+- 사용자 소유 영역을 덮어쓰지 않는다.
+- Generator-owned 영역은 checksum과 deterministic output으로 관리한다.
+- 중앙 `domain-template`만 DB 정본으로 사용한다.
+- `cpf-member`와 임의 생성 Domain을 이름 normalize 후 parity 비교한다.
+- Generated Domain은 CPF BOM + Convention Plugin + Versioned Maven Artifact를 사용하고 Source/JAR 수동 복사를 금지한다.
+- EDU와 Sample은 실제 제품 Header/API/DB/Event/Batch/Security 계약을 사용하고 정상뿐 아니라 오류·복구·권한·운영을 교육한다.
 
-- 예약 Code와 기존 등록 충돌
-- Module, Package, Config, Route, Menu와 SQL 충돌
-- 선택 Capability만 생성
-- Local/Remote Contract Parity
-- 사용자 소유 File 보호
-- 반복 생성 결정성
-- 안전 삭제
-- Manifest와 Ownership Metadata
-- 공식 CPF Public API를 실제 사용하는 Sample
-- 생성형 기본 DB는 중앙 `cpf-tools/db/vendor/<vendor>/domain-template`만 정본으로 사용하고 Generator 내부에 DDL을 복제하지 않는다.
-- DB Capability 사용 시 `${TablePrefix}_sample_item` 한 개의 Golden Sample Table과 CRUD/Search/Paging/Validation/Idempotency/Optimistic Lock/Commit/Rollback Example을 생성한다.
-- Generator는 선택적으로 DB bootstrap을 orchestration할 수 있으나 공식 `initialize-domain-database.ps1`를 호출해야 한다.
-- MBR 등 Reference Instance와 임의 LNG/ING/TST 생성 결과를 이름 Normalize 후 Source/DB/Test 구조 parity로 비교하는 Quality Gate를 둔다.
-- 독립 Generated Domain/독립 WAS는 CPF Public Artifact를 임의 Source/JAR 복사로 포함하지 않고 CPF BOM + Convention Plugin + Versioned Maven Artifact 계약으로 소비한다.
-- CPF Artifact 공급은 `LOCAL_DEV` / `REMOTE` / `OFFLINE` 세 모드를 같은 BOM/Version 계약으로 지원한다. `LOCAL_DEV`는 검증된 Shared Local Maven Repository, `REMOTE`는 Nexus/Artifactory 등 승인 Registry, `OFFLINE`은 Manifest/Checksum을 포함한 Versioned Offline Maven Bundle을 사용한다.
-- CI/STG/PROD의 `REMOTE` 모드는 Remote Artifact가 없을 때 개발자 Local Repository로 fallback하지 않고 fail-closed한다. Shared Local Repository 자동 갱신은 개발 편의용 opt-in이며, Quality Gate를 통과한 staging artifact를 검증한 뒤 승격한다.
-- Generated `bootJar`/`bootWar`는 필요한 `cpf-core`, `cpf-common` 및 선택 Capability의 Public Contract JAR가 실제 패키지 내부에 포함됐는지 Gate로 검증한다.
+## 17. Build·Artifact·배포·Supply Chain
 
-CPF의 공식 지원 DB Vendor는 MariaDB, PostgreSQL, Oracle 3종으로 한정한다. MySQL과 Microsoft SQL Server(MSSQL)는 제품 지원 범위와 Generator/Tool 선택값에서 제거한다. 세 공식 Vendor 모두 Vendor-native Script, Dialect, Type, Paging, Lock, Canonical Schema/Seed, Migration, Upgrade/Rollback, Runtime Query와 Runtime Evidence가 있을 때만 Release 검증 완료로 표기한다.
+Artifact 공급 모드:
 
-## 18. Reliability와 Observability
+- `LOCAL_DEV`: 검증된 shared local Maven repository
+- `REMOTE`: Nexus/Artifactory 등 승인 Registry
+- `OFFLINE`: Manifest/Checksum이 있는 versioned offline Maven bundle
 
-### Reliability
+REMOTE/OFFLINE 실패 시 개발자 Local Repository로 fallback하지 않는다.
 
-- Multi-instance
-- Idempotency
-- Timeout Budget
-- Retry와 Retry Storm 방지
-- Circuit Breaker와 Bulkhead
-- Backpressure
-- Lease와 Fencing
-- Checkpoint와 Durable Recovery
-- Partial Failure
-- Unknown Result와 Reconciliation
-- Compensation
-- Fault Injection과 Chaos Smoke
+Build 필수:
 
-### Observability
+- fresh clone, clean Gradle/npm cache
+- settings/includeBuild/project path 전체 존재와 resolution
+- Java 25 toolchain, Wrapper/BOM/Plugin/Lock 정합성
+- Published POM/BOM/source/javadoc
+- deterministic/reproducible artifact
+- final JAR/WAR/static artifact dependency inclusion
+- ADM/BZA package lock와 generated client
+- unsupported stack fail-closed
 
-- File Log와 DB Log
-- transactionId, segment와 timeline
-- Metrics와 SLI/SLO
-- Instance, Host와 Container
-- Agent, Runner와 Worker
-- Failure Stage
-- Dynamic Log Level과 Trace Boost
-- Alert와 Incident Link
-- Retention, Masking과 Secure Evidence
+Artifact/Deploy 필수:
 
+- canonical manifest와 SHA-256
+- environment/channel/service/version/release sequence binding
+- keyId 기반 signature/trust/revocation
+- local artifact state tamper protection
+- install lock와 atomic activation
+- health/service identity/build SHA 검증
+- 실제 side effect가 발생한 instance만 selective rollback
+- deployment request hash/idempotency와 unknown-result reconciliation
+- power loss/process kill 후 이전 또는 새 version 중 하나로 복구
 
-### 18.1 DB Vendor source ownership 정본
+Supply-chain은 Source directory가 아니라 **각 최종 Release Artifact**를 검사한다.
 
-Platform DB의 canonical source, domain-template, install/seed/migration/rollback/verify는 모두 `cpf-tools/db/vendor/<vendor>` Owner 경계 안에서 동일하게 관리한다. 특정 Vendor만 별도 `cpf-tools/db/source/<vendor>` 경로를 갖지 않는다. 공식 3 Vendor의 산출물은 Canonical Schema/Seed에서 Vendor-native 형태로 생성·동기화한다. 다른 Vendor SQL의 단순 복사·치환을 완료 근거로 사용하지 않으며, lifecycle/readiness 또는 Runtime Evidence가 부족하면 Release Gate에서 fail-closed한다.
+- CycloneDX resolved graph
+- ORT analyze + evaluate + report
+- Syft final artifact SBOM
+- Grype final artifact vulnerability
+- Approved OSS lock와 PURL/name/version/hash 양방향 대조
+- conditional license 승인과 THIRD_PARTY_NOTICES/source obligation
+- 모든 도구의 source SHA, input artifact hash, config/tool binary hash 일치
 
-DB/SQL/Metadata 변경 후 `sync-database-artifacts.ps1`은 각 하위 gate의 실제 process exit code를 판정해야 하며 과거 native `$LASTEXITCODE` 잔존값을 성공/실패로 오판해서는 안 된다.
+## 18. 설치·Migration·Upgrade·Rollback·Compatibility
 
-### 18.2 Tooling/Deploy/Frontend Repository 정책
-
-- `cpf-tools/README.md`와 `cpf-docs/guides/CPF_TOOLS_GUIDE.md`를 공식 Tooling 진입점으로 유지한다.
-- Docker Compose, 환경별 배포 파일은 Root에 두지 않고 `deploy/` 아래에 둔다.
-- `logs/`, 임시 ZIP, patch staging, build output은 Root 정식 파일이 아니다.
-- ADM/BZA는 Vue 3 + TypeScript + Vite를 사용하고 App Shell, feature package, route registry, state/API boundary를 분리한다. 대형 단일 `App.vue` 또는 단일 `console.ts`에 운영 기능을 계속 누적하지 않는다.
-- 화면 자산은 제품 Artifact에 self-contained 되어야 하며 외부 CDN/원격 CSS/font/icon을 Runtime 의존성으로 사용하지 않는다.
-- route-level lazy import 또는 동등한 code splitting을 적용하고 Browser E2E 없이 완료 처리하지 않는다.
-
-## 19. 설치, 배포와 호환성
-
-필수:
+GA 지원 표기는 다음이 실제 실행됐을 때만 가능하다.
 
 - Empty Install
-- Allowlisted Reset
-- Service User Provision과 최소 권한
-- Idempotent Product Seed
-- Reinstall
-- Upgrade와 Rollback/Forward Recovery
-- Backup, Restore와 DR
-- JAR와 WAR
-- Java/Gradle/Spring Boot/Spring Framework 등 핵심 Build Runtime은 공식 지원 Matrix 안의 조합만 GA Release로 허용하며, 지원 범위 밖 조합은 명시적 `TRANSITION` 상태로 관리하고 Commercial Release Gate를 차단한다.
-- CPF Public Artifact의 `LOCAL_DEV`/`REMOTE`/`OFFLINE` Repository Federation, Version/BOM/Plugin Marker/Hash/Manifest 정합성
-- 독립 배포 Artifact는 Runtime에 필요한 CPF Public Dependency를 self-contained packaging하거나 제품이 명시한 Shared Runtime 방식으로 결정적으로 해석해야 하며, 개발자 수동 JAR 복사를 정상 배포 절차로 사용하지 않음
-- ADM/BZA Static Artifact
-- Docker/Kubernetes는 실제 검증 후 지원 표기
-- Rolling, Canary와 Blue-Green
-- API, DB, Config, Message, File와 전문 호환성
+- 최소권한 Service User Provision
+- idempotent mandatory seed
+- reinstall
+- upgrade
+- rollback 또는 forward recovery
+- backup/restore
+- mixed-version rolling compatibility
+- JAR/WAR/static artifact
+- 3 DB Vendor
+- Local/Remote topology
+- multi-instance
+- signed deploy와 rollback
+- API/DB/config/message/file/전문 compatibility
 
-회사 PC와 집 PC의 CPF DB가 비어 있어도 동일한 정본 Script로 Schema, Table, Constraint, Index와 Product Meta를 재생성할 수 있어야 한다.
+지원하지 않은 Docker/Kubernetes/Cloud/DB/Browser/OS는 문서 문자열만으로 지원 표기하지 않는다.
 
-## 20. Repository와 문서 정본화
+## 19. Repository·문서·Evidence 정본
 
-Root에는 제품 식별, Build와 실행에 필요한 최소 파일과 공식 Module만 둔다. **Root의 문서 파일은 `README.md`만 허용한다.**
+Repository Root에는 제품 식별, Build, 실행에 필요한 최소 파일과 공식 Module만 둔다. Root 문서는 `README.md` 하나만 허용한다.
 
-- Root `README.md`: 유일한 제품 README
-- `cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md`: 작업/검수 기간의 최상위 목표 정본. 최종 제품 정본화 완료 후 영구 Architecture/Specification에 흡수하고 작업 정본은 제거 대상
-- Architecture/Specification: 제품 구조와 계약
-- Guide: 개발, 운영, 설치와 복구
-- Work/Review: 요청, 검수와 진행
-- Evidence: 실행 근거
-- Generated: 재생성 가능한 파생 산출물
-- Release: 실제 Release가 있을 때만 CHANGELOG/Release Note
+정본 역할:
 
-기능과 구조가 안정되기 전에는 Markdown을 정본으로 사용한다. DOCX/PDF는 최종 제품화 단계에서 Source와 일치하도록 생성한다.
+- Final Target: 최상위 제품 목표와 Requirement Catalog
+- Continuity Ledger: Requirement ID 영속성
+- Architecture/ADR/Specification: 구조·계약·결정
+- Guide: 개발·운영·설치·복구
+- Current Request: 현재 작업
+- Review/Handover: 독립 검수와 연속성
+- Evidence: 직접 실행 근거
+- Generated: 재생성 가능한 파생물
+- Release: 실제 Release만
 
-## 21. Evidence와 완료 판정
+Evidence 최소 필드:
 
-허용 상태값:
+- exact source SHA와 clean tree
+- 실행 명령
+- profile/environment/topology
+- tool/runtime version
+- 시작·종료 시각
+- requirement/scenario ID
+- exit code와 실제 결과
+- report/log/artifact SHA-256
+- 민감정보 정제 여부
+- 현재 Commit 유효성
 
-- 완료
-- 부분 구현
-- 미구현
-- 미검증
-- 실패
-- 재확인 필요
+파일 존재, 문자열 Marker 수, 정적 검색, Swagger 노출, 일부 Test, 과거 Commit Evidence, 작업자 보고는 단독 완료 근거가 아니다.
 
-각 요구사항은 적용 가능한 범위에서 다음과 대조한다.
+## 20. 최종 제품화 Gate
 
-- Source와 계층 연결, 실제 Consumer
-- Module, Package와 Ownership
-- API Contract, 오류와 권한
-- SQL, Migration, Install, Upgrade와 Rollback
-- 정상, 오류, 경계와 부분 실패
-- 멱등성, 동시성, Retry, Unknown과 Recovery
-- Multi-instance, Lease와 Fencing
-- Security, Audit와 Masking
-- 운영 조회, 제어, 통계와 Alert
-- EDU, OpenAPI와 JavaDoc
-- Unit, Integration, Runtime와 Browser
-- 최신 Commit/환경과 일치하는 Evidence
-- 기존 성공 기능 회귀
-- Dead Code, Stale Evidence와 Garbage 제거
+다음이 모두 최신 exact Commit과 재현 가능한 환경에서 확인돼야 GA 완료다.
 
-파일·Class 존재, 정적 검색, Swagger 노출, 일부 Test, 과거 Evidence, Codex 보고와 문서의 완료 표시는 단독 완료 근거가 아니다.
+1. 공식 Module/Package/SystemCode/DB Ownership과 dependency 방향
+2. fresh clean settings evaluation, full build/test와 published artifact
+3. Empty DB install, reinstall, upgrade, rollback/forward recovery, backup/restore
+4. 주요 API와 Runtime E2E
+5. Local/Remote parity와 mixed-version compatibility
+6. Multi-instance, lease, fencing, rebalance, failover와 recovery
+7. 실제 Kafka, 외부 failure, response loss와 unknown-result reconciliation
+8. Spring Batch, Scheduler, Center-Cut, Agent/Runner/Worker
+9. Gateway streaming/disconnect/retry/failover와 ledger
+10. ADM/BZA Server Authorization, Production Build와 3 Browser E2E
+11. Session/BFF, Security, Approval, Audit, Privacy와 Masking
+12. Generator create→runtime→remove→regenerate lifecycle
+13. Final Artifact signature, deploy, selective rollback와 supply-chain scan
+14. EDU, OpenAPI, JavaDoc, 개발/운영/설치/복구 Guide
+15. Requirement→Source/API/SQL/Test/Runtime/Evidence와 역방향 추적
+16. Root Hygiene, No Legacy/Dual Primary/Dead Code/Stale Evidence/Secret
 
+하나라도 `부분 구현`, `미구현`, `미검증`, `실패`, `재확인 필요`이면 전체 GA 완료가 아니다.
 
-## 21.1 Requirement ID 연속성과 삭제 금지
+## 21. Requirement ID 연속성
 
-Requirement ID는 세션, PC, Codex 계정, Architecture Rename과 무관한 장기 추적 Key다.
-한 번 정본에 등록된 Requirement는 조용히 삭제하거나 새로운 이름으로 다시 집계하지 않는다.
+- Requirement ID는 세션, PC, AI 계정, Architecture Rename과 무관한 영구 Key다.
+- 통합은 `superseded-by`, 분해는 `split-into`, 폐기는 근거·영향·대체·승인을 Continuity Ledger에 기록한다.
+- Owner 변경으로 ID 의미를 지우지 않는다.
+- Legacy Alias와 Canonical ID를 완료율에 중복 집계하지 않는다.
+- Canonical Count 감소는 Continuity Mapping으로 완전히 설명돼야 한다.
+- 새 요구는 `REQ-GAP` 절차로 기존 ID와 중복을 먼저 검사한다.
 
-- 통합되면 기존 ID를 `superseded-by` 관계로 Continuity Ledger에 남긴다.
-- 분해되면 기존 ID에서 신규 ID들로 `split-into` 관계를 남긴다.
-- Owner가 바뀌어도 기존 요구 의미를 잃지 않고 Migration 사유를 기록한다.
-- 같은 요구를 Legacy ID와 신규 ID 양쪽에서 완료율에 중복 집계하지 않는다.
-- Requirement 삭제는 오직 제품 정책에서 요구 자체를 폐기한 경우에만 가능하며 폐기 이유, 영향, 대체 요구와 승인 근거가 있어야 한다.
-- 최신 정본의 Count가 이전 정본보다 감소하면 반드시 Continuity Ledger의 Mapping과 폐기 근거로 설명 가능해야 한다.
+현재 Canonical Requirement Count는 **162개**이며, 아래 Catalog가 각 ID의 최소 제품 의미와 완료 증명을 정의한다.
 
-`a63380e6c736fa9c5ae7e425d0e301d21ef3b848` 정본의 133개 Catalog와 `22b1874e67547372b51a4bcd21f47aea6fcb5c25` 정본의 126개 Catalog를 재조정한 결과, 의미가 실제로 남아 있는 34개 Requirement를 복구한다. 8개 Legacy ID는 새로운 Owner/세분화된 ID로 명시적으로 Mapping하며 중복 집계하지 않는다. 이번 전수검수에서 독립 검증축이 필요하다고 확인한 `ADM-APPROVAL`, `BZA-ORG` 2개를 신규 정본화하여 현재 Canonical Requirement Count는 **162개**다.
+## 22. 상세 Requirement Catalog
 
-## 21.2 복구된 독립 Requirement의 의미
+### 22.1 Architecture/Core
 
-133→126 축소 과정에서 추적 ID가 사라졌지만 현재 제품 목표에서 여전히 독립적으로 검증해야 하는 34개 Requirement를 다음 의미로 복구한다. 이 정의는 이름만 되살리는 것이 아니라 다음 요청과 Gap/검수의 최소 범위다.
+| Requirement | Owner | 최소 제품 목표 | 필수 완료 증명 |
+|---|---|---|---|
+| `ARCH-MISSION` | cpf-core / repository architecture | CPF를 샘플이나 공통 라이브러리가 아닌 금융권 포함 엔터프라이즈 업무시스템의 구축·운영·감사·확장·배포를 책임지는 상용 Business Platform Framework로 완성한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
+| `ARCH-MSA` | cpf-core / repository architecture | 동일 Public Contract로 Modular Monolith, 동일 JVM Local Call, 분리 WAS Remote Call, 독립 Microservice를 지원하며 topology 변경이 업무 계약을 바꾸지 않게 한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
+| `ARCH-BOUNDARY` | cpf-core / repository architecture | 기술 공통·고객 공통·플랫폼 운영·업무 관리·Batch·Gateway·Generated Domain의 Owner를 단일화하고 역방향·순환·DB 직접 접근을 금지한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
+| `ARCH-LAYER` | cpf-core / repository architecture | Public API, 확장 SPI, Internal 구현을 Module·Package·Publication·JavaDoc·ArchUnit로 구분하고 외부 Consumer가 Internal Package를 참조하지 못하게 한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
+| `CORE-API` | cpf-core / repository architecture | 고객 개발자가 최소 입력으로 안전하게 사용할 수 있는 발견 가능한 Public API를 제공하고 거대 Utils·의미 없는 Wrapper·선택 Runtime type 노출을 금지한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
+| `CORE-SPI` | cpf-core / repository architecture | 고객·Generated Domain·기관 Adapter가 구현할 안정된 SPI와 lifecycle, capability, version compatibility, failure contract를 제공한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
+| `CORE-CONFIG` | cpf-core / repository architecture | safe default→customer property→profile→operation override→per-call override 순서와 허용범위·권한·버전·감사·rollback을 보장한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
+| `CORE-TESTKIT` | cpf-core / repository architecture | Public Contract, Header, 오류, idempotency, Local/Remote parity, failure injection을 외부 Consumer가 재사용할 수 있는 Test Kit로 제공한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
+| `CPF-CALL` | cpf-core / repository architecture | 동일 JVM과 분리 WAS 호출에 동일한 Header·권한·timeout budget·오류·추적·idempotency를 적용하고 내부 호출의 Gateway 재경유를 금지한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
+| `CPF-REGISTRY` | cpf-core / repository architecture | Service·Endpoint·Instance·capability·version·zone·health·maintenance·draining 상태의 등록, lease, TTL, stale 제거와 조회 계약을 제공한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
+| `CPF-ROUTING` | cpf-core / repository architecture | service/instance/zone/version/weight/maintenance 정책에 따른 routing과 failover를 결정적으로 수행하고 승인된 운영 override와 audit를 제공한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
+| `CPF-HEALTH` | cpf-core / repository architecture | liveness·readiness·startup·dependency·business readiness를 구분하고 service identity·build SHA·schema version까지 검증 가능한 health 계약을 제공한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
+| `CPF-HEADER` | cpf-core / repository architecture | 표준/확장 Header의 이름·형식·신뢰경계·생성자·전파·masking·최대크기·호환성을 정본화하고 spoofing을 차단한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
+| `CPF-CONTEXT` | cpf-core / repository architecture | transaction, trace, segment, caller, principal, environment, channel, deadline, attempt context를 동기·비동기·Batch 전 구간에 보존한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
+| `CPF-TXID` | cpf-core / repository architecture | 34자리 transactionId 단일 정본을 생성·검증·승계하며 Local/Remote/Async/Batch/File/Log/ADM Timeline이 같은 값을 사용한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
+| `CPF-ROLE` | cpf-core / repository architecture | transaction role, direction, source/target, caller/receiver 관계를 표준 Context·Log·Audit에 일관되게 기록한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
+| `CPF-ERROR` | cpf-core / repository architecture | 표준 오류 코드·HTTP/Protocol mapping·retryability·unknown-result·field error·operator message를 버전 가능한 계약으로 제공한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
+| `CPF-VALID` | cpf-core / repository architecture | 입력·출력·설정·Header·파일·메시지·SQL parameter 검증과 오류 위치, allowlist, 크기·깊이·개수 상한을 제공한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
+| `CPF-IDEMP` | cpf-core / repository architecture | canonical request hash, scope, TTL, result replay, conflict semantics와 concurrent race를 포함한 idempotency 원장을 제공한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
+| `CPF-STATE` | cpf-core / repository architecture | 승인·비동기·배치·배포·복구 등 장기 거래의 허용 상태전이, 낙관적 잠금, terminal state, reconciliation을 명시한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
+| `CPF-LOCK` | cpf-core / repository architecture | optimistic/distributed lock, lease, fencing token, owner epoch, expiry, takeover와 stale writer 차단을 제공한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
+| `CPF-RESILIENCE` | cpf-core / repository architecture | timeout, retry, circuit breaker, bulkhead, rate/backpressure, retry storm 방지와 operation별 정책을 제공한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
+| `CPF-DEADLINE` | cpf-core / repository architecture | 요청 전체 deadline budget을 하위 호출·DB·Broker·파일·process에 분배하고 초과 시 cancel·cleanup·unknown-result 규칙을 적용한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
+| `CPF-SCHED` | cpf-core / repository architecture | 기술 Scheduler의 trigger, cluster claim, misfire, calendar, idempotency, pause/resume, 운영 제어 계약을 정의하고 Batch Scheduler와 Owner를 분리한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
+| `CPF-OPSDB` | cpf-core / repository architecture | 운영 DB의 공유/분리 topology, schema ownership, 연결 장애 시 fail-open/fail-closed, backpressure, 복구와 readiness를 정의한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
+| `CPF-LOGDB` | cpf-core / repository architecture | DB Log의 schema·index·retention·masking·비동기 적재·조회 성능·장애 격리와 ADM projection을 제공한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
+| `CPF-FILELOG` | cpf-core / repository architecture | 환경·Domain·Instance·transactionId·execution 단위로 탐색 가능한 구조화 File Log, rotation, retention, secure permission과 수집 계약을 제공한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
+| `CPF-LOGFAIL` | cpf-core / repository architecture | 로그 저장 실패가 업무를 오염시키지 않도록 정책별 fail-open/closed, local spool, 재전송, 중복 제거, 유실 탐지와 alert를 제공한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
+| `CPF-TRACE` | cpf-core / repository architecture | transactionId와 trace/span/segment/attempt를 연결하고 sampling, trace boost, baggage allowlist, cardinality·민감정보 통제를 제공한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
+| `CPF-MASK` | cpf-core / repository architecture | PII/Secret/Credential 분류, context-aware masking/redaction, raw 조회 승인, logging/evidence/download 정책과 테스트 corpus를 제공한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
+| `CORE-FIXED` | cpf-core / repository architecture | 고정길이 전문 Layout/Field/Group/encoding/byte length/parser/writer/validator/version/streaming과 secure diagnostic engine을 제공한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
+| `CORE-FILE` | cpf-core / repository architecture | Path Alias, bounded streaming, checksum, atomic publish, symlink/path traversal 방지, cleanup, cancellation을 포함한 File/Attachment/Archive 기술 계약을 제공한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
+| `CORE-MESSAGE` | cpf-core / repository architecture | versioned broker envelope, correlation, idempotency key, schema, TTL, producer/environment binding, size limit와 serialization allowlist를 제공한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
 
-| Requirement | 복구 의미 |
+### 22.37 Common/Data
+
+| Requirement | Owner | 최소 제품 목표 | 필수 완료 증명 |
+|---|---|---|---|
+| `CMN-EXTENSION` | cpf-common | 고객 Header·User Context·Validation·Error Mapping·Masking·Audit·Web Client 정책을 cpf-core SPI 위에서 확장하며 기술 Engine을 중복 소유하지 않는다. | Owner/Consumer 추적, MariaDB·PostgreSQL·Oracle SQL 또는 DB-less 근거, install·upgrade·rollback·runtime Evidence |
+| `CMN-SAMPLE-DB` | cpf-common | cmnDB의 단일 Golden Sample Table로 CRUD/Search/Paging/Validation/duplicate/optimistic lock/commit/rollback을 3 Vendor에서 검증한다. | Owner/Consumer 추적, MariaDB·PostgreSQL·Oracle SQL 또는 DB-less 근거, install·upgrade·rollback·runtime Evidence |
+| `CMN-CODE` | cpf-common | 고객 공통 코드·참조데이터의 group/item/version/유효기간/cache/invalidation/조회·관리·audit 계약을 제공한다. | Owner/Consumer 추적, MariaDB·PostgreSQL·Oracle SQL 또는 DB-less 근거, install·upgrade·rollback·runtime Evidence |
+| `CMN-MSG` | cpf-common | 다국어·오류·업무 메시지의 code, locale, parameter schema, fallback, cache, version과 관리 계약을 제공한다. | Owner/Consumer 추적, MariaDB·PostgreSQL·Oracle SQL 또는 DB-less 근거, install·upgrade·rollback·runtime Evidence |
+| `CMN-CALENDAR` | cpf-common | 영업일·휴일·기관 calendar, 기준일 계산, DB-less fallback, override 승인과 Batch/업무 공통 소비 계약을 제공한다. | Owner/Consumer 추적, MariaDB·PostgreSQL·Oracle SQL 또는 DB-less 근거, install·upgrade·rollback·runtime Evidence |
+| `CMN-TEMPLATE` | cpf-common | 알림·문서 Template의 version, variable schema, escaping, preview, channel extension, approval과 audit를 제공한다. | Owner/Consumer 추적, MariaDB·PostgreSQL·Oracle SQL 또는 DB-less 근거, install·upgrade·rollback·runtime Evidence |
+| `DB-OWNERSHIP` | cpf-tools DB + owning module | 모든 schema/table/view/index/FK/trigger/seed/query에 단일 Owner와 실제 Consumer를 부여하고 Admin/타 Domain의 직접 갱신을 금지한다. | Owner/Consumer 추적, MariaDB·PostgreSQL·Oracle SQL 또는 DB-less 근거, install·upgrade·rollback·runtime Evidence |
+| `DB-INSTALL` | cpf-tools DB + owning module | Schema/User provision, 최소권한, product table/index/constraint, mandatory seed, verify/smoke를 Vendor-native 정본으로 재현 가능하게 제공한다. | Owner/Consumer 추적, MariaDB·PostgreSQL·Oracle SQL 또는 DB-less 근거, install·upgrade·rollback·runtime Evidence |
+| `DB-MIGRATION` | cpf-tools DB + owning module | 불변 version migration, expand-migrate-contract, checksum, drift fail-closed, restart, data transform와 신규설치 최종상태 parity를 제공한다. | Owner/Consumer 추적, MariaDB·PostgreSQL·Oracle SQL 또는 DB-less 근거, install·upgrade·rollback·runtime Evidence |
+| `DB-ROLLBACK` | cpf-tools DB + owning module | rollback/forward recovery 가능성 분류, 데이터 보존·backup checkpoint·승인·재적용·부분 실패 복구를 Vendor별로 제공한다. | Owner/Consumer 추적, MariaDB·PostgreSQL·Oracle SQL 또는 DB-less 근거, install·upgrade·rollback·runtime Evidence |
+| `DB-BACKUP` | cpf-tools DB + owning module | schema/data/config/key metadata의 backup, encryption, retention, restore validation, PITR와 DR 연계 절차를 제공한다. | Owner/Consumer 추적, MariaDB·PostgreSQL·Oracle SQL 또는 DB-less 근거, install·upgrade·rollback·runtime Evidence |
+| `DB-MULTI-VENDOR` | cpf-tools DB + owning module | MariaDB·PostgreSQL·Oracle의 type/default/index/FK/paging/locking/error semantics와 install→upgrade→rollback→reapply 동등성을 보장한다. | Owner/Consumer 추적, MariaDB·PostgreSQL·Oracle SQL 또는 DB-less 근거, install·upgrade·rollback·runtime Evidence |
+| `DB-SQL` | cpf-tools DB + owning module | Query ID·Owner·parameter/result contract·sort/filter allowlist·Vendor SQL resource·MyBatis/JDBC 규칙과 Java literal SQL 금지를 적용한다. | Owner/Consumer 추적, MariaDB·PostgreSQL·Oracle SQL 또는 DB-less 근거, install·upgrade·rollback·runtime Evidence |
+| `DB-PERF` | cpf-tools DB + owning module | index/plan/statistics/partition/slow query/capacity/purge 성능 기준과 대표 데이터 규모의 regression gate를 제공한다. | Owner/Consumer 추적, MariaDB·PostgreSQL·Oracle SQL 또는 DB-less 근거, install·upgrade·rollback·runtime Evidence |
+| `DB-MULTI` | cpf-tools DB + owning module | multi datasource, read replica, read/write routing, transaction consistency, lag, failover/failback와 tenant/domain isolation을 제공한다. | Owner/Consumer 추적, MariaDB·PostgreSQL·Oracle SQL 또는 DB-less 근거, install·upgrade·rollback·runtime Evidence |
+| `DATA-LINEAGE` | cpf-tools DB + owning module | 입력 source→처리→저장→외부전달의 dataset/field lineage, quality rule, reconciliation, owner와 audit 연결을 제공한다. | Owner/Consumer 추적, MariaDB·PostgreSQL·Oracle SQL 또는 DB-less 근거, install·upgrade·rollback·runtime Evidence |
+| `DATA-RETENTION` | cpf-tools DB + owning module | retention, purge, archive, legal hold, 개인정보 삭제, backup 예외와 실행 증적을 데이터 유형별로 제공한다. | Owner/Consumer 추적, MariaDB·PostgreSQL·Oracle SQL 또는 DB-less 근거, install·upgrade·rollback·runtime Evidence |
+
+### 22.57 Gateway/External/Event
+
+| Requirement | Owner | 최소 제품 목표 | 필수 완료 증명 |
+|---|---|---|---|
+| `GWY-ENTRY` | cpf-gateway | 외부 진입점의 TLS, listener, protocol, client identity, request limit, maintenance와 control/data plane 분리를 제공한다. | 실제 Gateway/Kafka/외부 Mock·다중 인스턴스, timeout·duplicate·disconnect·unknown·recovery Evidence |
+| `GWY-ROUTING` | cpf-gateway | Spring Cloud Gateway 기반 route snapshot, service registry, path/query rewrite, load balancing, version/zone/weight routing과 atomic refresh를 제공한다. | 실제 Gateway/Kafka/외부 Mock·다중 인스턴스, timeout·duplicate·disconnect·unknown·recovery Evidence |
+| `GWY-TRUST` | cpf-gateway | trusted proxy와 client header allowlist, internal header overwrite, forwarded chain, principal/context 생성과 SSRF target allowlist를 제공한다. | 실제 Gateway/Kafka/외부 Mock·다중 인스턴스, timeout·duplicate·disconnect·unknown·recovery Evidence |
+| `GWY-RESILIENCE` | cpf-gateway | connect/send/response/read 단계별 timeout·retry·failover·circuit breaker·streaming completion·client disconnect·unknown-result ledger를 제공한다. | 실제 Gateway/Kafka/외부 Mock·다중 인스턴스, timeout·duplicate·disconnect·unknown·recovery Evidence |
+| `API-LIMIT` | cpf-gateway + cpf-core contract | client/channel/API/tenant별 rate limit·quota·burst·abuse detection·distributed counter·429/Retry-After·운영 override를 제공한다. | 실제 Gateway/Kafka/외부 Mock·다중 인스턴스, timeout·duplicate·disconnect·unknown·recovery Evidence |
+| `EXS-INST` | generated domain / customer adapter | 기관별 외부연계 Adapter를 Generated Domain/고객 확장 Owner로 생성·배포하며 중앙 cpf-external 고정 Module을 두지 않는다. | 실제 Gateway/Kafka/외부 Mock·다중 인스턴스, timeout·duplicate·disconnect·unknown·recovery Evidence |
+| `EXS-REST` | generated domain / customer adapter | 외부 REST 호출의 auth, timeout, retry, idempotency, schema, mapping, audit, mock/test contract를 제공한다. | 실제 Gateway/Kafka/외부 Mock·다중 인스턴스, timeout·duplicate·disconnect·unknown·recovery Evidence |
+| `EXS-FIXED` | generated domain / customer adapter | 기관별 고정길이 Layout/Mapping/endpoint를 CORE-FIXED Engine 위에 versioned Adapter로 구현한다. | 실제 Gateway/Kafka/외부 Mock·다중 인스턴스, timeout·duplicate·disconnect·unknown·recovery Evidence |
+| `EXS-SEC` | generated domain / customer adapter | 외부연계 mTLS/OAuth/API key/certificate/secret rotation, endpoint allowlist, payload masking과 non-repudiation을 제공한다. | 실제 Gateway/Kafka/외부 Mock·다중 인스턴스, timeout·duplicate·disconnect·unknown·recovery Evidence |
+| `EXS-FILE` | generated domain / customer adapter | SFTP/파일명/ack-nack/checksum/claim/transfer/reconciliation/retention을 고객 Adapter가 안전하게 소유한다. | 실제 Gateway/Kafka/외부 Mock·다중 인스턴스, timeout·duplicate·disconnect·unknown·recovery Evidence |
+| `EXS-UNKNOWN` | generated domain / customer adapter | 외부 요청의 전송 전 실패·전송 후 응답 유실·상대 처리 불명 상태를 분류하고 자동 성공·무조건 재시도를 금지한다. | 실제 Gateway/Kafka/외부 Mock·다중 인스턴스, timeout·duplicate·disconnect·unknown·recovery Evidence |
+| `EXS-RECON` | generated domain / customer adapter | 상대 조회·callback·file ack·수동 확인을 통한 reconciliation, compensation, reprocess, SLA와 운영 UI를 제공한다. | 실제 Gateway/Kafka/외부 Mock·다중 인스턴스, timeout·duplicate·disconnect·unknown·recovery Evidence |
+| `EVENT-CORE` | cpf-core contract + owning business adapter | Kafka Primary의 topic naming, versioned envelope, key/partition/order, producer/consumer contract와 in-memory test adapter를 제공한다. | 실제 Gateway/Kafka/외부 Mock·다중 인스턴스, timeout·duplicate·disconnect·unknown·recovery Evidence |
+| `EVENT-OUTBOX` | cpf-core contract + owning business adapter | 업무 transaction과 event publish 사이 outbox, claim, stable message ID, retry, ordering, cleanup과 duplicate prevention을 제공한다. | 실제 Gateway/Kafka/외부 Mock·다중 인스턴스, timeout·duplicate·disconnect·unknown·recovery Evidence |
+| `EVENT-BROKER` | cpf-core contract + owning business adapter | Kafka ACK/transaction/consumer group/rebalance/backpressure/schema/TTL/security/observability와 multi-instance correlation을 제공한다. | 실제 Gateway/Kafka/외부 Mock·다중 인스턴스, timeout·duplicate·disconnect·unknown·recovery Evidence |
+| `EVENT-DLQ` | cpf-core contract + owning business adapter | retry topic, DLT, poison isolation, replay approval, payload masking, idempotent reprocess와 운영 추적을 제공한다. | 실제 Gateway/Kafka/외부 Mock·다중 인스턴스, timeout·duplicate·disconnect·unknown·recovery Evidence |
+| `SAGA-CORE` | cpf-core contract + owning business adapter | 장기 업무 흐름의 step, state, version, timeout, idempotency, event/call correlation과 durable orchestration/choreography 계약을 제공한다. | 실제 Gateway/Kafka/외부 Mock·다중 인스턴스, timeout·duplicate·disconnect·unknown·recovery Evidence |
+| `SAGA-COMP` | cpf-core contract + owning business adapter | 각 step의 compensation eligibility, reverse order, idempotency, partial compensation와 unknown-result 분리를 제공한다. | 실제 Gateway/Kafka/외부 Mock·다중 인스턴스, timeout·duplicate·disconnect·unknown·recovery Evidence |
+| `SAGA-MANUAL` | cpf-core contract + owning business adapter | 자동 복구 불가 Saga의 승인된 수동 확정·보상·재실행·audit·operator guidance를 제공한다. | 실제 Gateway/Kafka/외부 Mock·다중 인스턴스, timeout·duplicate·disconnect·unknown·recovery Evidence |
+
+### 22.79 Batch/Center-Cut
+
+| Requirement | Owner | 최소 제품 목표 | 필수 완료 증명 |
+|---|---|---|---|
+| `BAT-CORE` | cpf-batch | Spring Batch를 Job/Step/Repository/ExecutionContext/Restart의 단일 Primary Engine으로 사용하고 자체 중복 실행 Engine을 제거한다. | Spring Batch Repository/Execution ID, 2개 이상 Instance, Kafka/DB, process kill·restart·reconcile Evidence |
+| `BAT-JOB` | cpf-batch | immutable approved definition/plan checksum, Job identity, parameter schema, start/stop/restart/abandon/recover/reconcile와 상태 연결을 제공한다. | Spring Batch Repository/Execution ID, 2개 이상 Instance, Kafka/DB, process kill·restart·reconcile Evidence |
+| `BAT-ITEM` | cpf-batch | reader/processor/writer, chunk/skip/retry/checkpoint, item idempotency, partition, restart와 대용량 memory bound를 제공한다. | Spring Batch Repository/Execution ID, 2개 이상 Instance, Kafka/DB, process kill·restart·reconcile Evidence |
+| `BAT-EXECUTOR` | cpf-batch | Java, approved Shell, File Watch/Process/Transfer, Service/API, Message Executor를 Step 안에서 timeout·resource·security 정책과 함께 제공한다. | Spring Batch Repository/Execution ID, 2개 이상 Instance, Kafka/DB, process kill·restart·reconcile Evidence |
+| `BAT-AGENT` | cpf-batch | Agent pool, capability, zone, lease, heartbeat, drain, takeover, artifact/config, process tree와 execution output budget을 제공한다. | Spring Batch Repository/Execution ID, 2개 이상 Instance, Kafka/DB, process kill·restart·reconcile Evidence |
+| `BAT-CALL-SYNC` | cpf-batch | Batch/Worker의 업무 Domain 동기 호출에 Local/Remote parity, Header, deadline, idempotency, retry/unknown-result를 적용한다. | Spring Batch Repository/Execution ID, 2개 이상 Instance, Kafka/DB, process kill·restart·reconcile Evidence |
+| `BAT-CALL-ASYNC` | cpf-batch | Batch/Worker의 Event/Outbox 비동기 호출에 stable message ID, retry/DLT, consumer idempotency와 completion correlation을 적용한다. | Spring Batch Repository/Execution ID, 2개 이상 Instance, Kafka/DB, process kill·restart·reconcile Evidence |
+| `BAT-SHARED` | cpf-batch | Batch가 온라인/공유 Facade를 재사용할 때 Owner, transaction boundary, load isolation, version, topology와 운영 영향도를 정의한다. | Spring Batch Repository/Execution ID, 2개 이상 Instance, Kafka/DB, process kill·restart·reconcile Evidence |
+| `CENTER-CORE` | cpf-batch | Center-Cut의 job/item/attempt/aggregate 상태모델, immutable policy와 Spring Batch/업무 transaction 경계를 제공한다. | Spring Batch Repository/Execution ID, 2개 이상 Instance, Kafka/DB, process kill·restart·reconcile Evidence |
+| `CENTER-RUNNER` | cpf-batch | CenterCutRunner를 Agent 내장 또는 독립 Process로 배포하고 target generation→claim→dispatch→aggregate lifecycle을 제공한다. | Spring Batch Repository/Execution ID, 2개 이상 Instance, Kafka/DB, process kill·restart·reconcile Evidence |
+| `CENTER-PARAM` | cpf-batch | 대량 작업 parameter snapshot, schema, canonical hash, encryption/masking, version과 replay 재현성을 제공한다. | Spring Batch Repository/Execution ID, 2개 이상 Instance, Kafka/DB, process kill·restart·reconcile Evidence |
+| `CENTER-CLAIM` | cpf-batch | item claim, lease, fencing, chunk assignment, stale worker 차단, duplicate prevention과 restart를 제공한다. | Spring Batch Repository/Execution ID, 2개 이상 Instance, Kafka/DB, process kill·restart·reconcile Evidence |
+| `CENTER-RATE` | cpf-batch | global/domain/target TPS·RPS, concurrency, backpressure, adaptive throttle, pause/drain과 multi-instance 일관성을 제공한다. | Spring Batch Repository/Execution ID, 2개 이상 Instance, Kafka/DB, process kill·restart·reconcile Evidence |
+| `CENTER-REPROCESS` | cpf-batch | failed-only·selected·range 재처리, approval, idempotency, prior result 보존, compensation와 결과 비교를 제공한다. | Spring Batch Repository/Execution ID, 2개 이상 Instance, Kafka/DB, process kill·restart·reconcile Evidence |
+| `CENTER-UNKNOWN` | cpf-batch | item/attempt 결과 불명을 분류·대사하고 확인 전 무조건 재처리를 금지하며 수동 확정과 audit를 제공한다. | Spring Batch Repository/Execution ID, 2개 이상 Instance, Kafka/DB, process kill·restart·reconcile Evidence |
+| `CENTER-OPS` | cpf-batch | ADM에서 job/item/attempt/timeline/progress/error/reprocess/pause/cancel/drain을 권한·사유·승인과 함께 제공한다. | Spring Batch Repository/Execution ID, 2개 이상 Instance, Kafka/DB, process kill·restart·reconcile Evidence |
+
+### 22.98 Admin/Security/Operations
+
+| Requirement | Owner | 최소 제품 목표 | 필수 완료 증명 |
+|---|---|---|---|
+| `ADM-AUTH` | cpf-admin | 운영자 identity, password/MFA/OIDC, JDBC Session, session fixation·concurrency·revocation·force logout과 fail-closed product profile을 제공한다. | Server 권한 Test, API/OpenAPI, DB migration, Chromium·Firefox·WebKit E2E, 위험조치 audit Evidence |
+| `ADM-RBAC` | cpf-admin | menu/button/API/command 권한, role mapping, 유효기간, organization context, server-side enforcement와 cache invalidation을 제공한다. | Server 권한 Test, API/OpenAPI, DB migration, Chromium·Firefox·WebKit E2E, 위험조치 audit Evidence |
+| `ADM-AUDIT` | cpf-admin | 운영자·대상·before/after masked snapshot·reason·approval·result·transactionId의 immutable/tamper-evident audit를 제공한다. | Server 권한 Test, API/OpenAPI, DB migration, Chromium·Firefox·WebKit E2E, 위험조치 audit Evidence |
+| `ADM-TX` | cpf-admin | 온라인/비동기/Batch/외부연계 transaction 검색, 표준 Header, payload masking, segment/attempt linkage와 상세 조회를 제공한다. | Server 권한 Test, API/OpenAPI, DB migration, Chromium·Firefox·WebKit E2E, 위험조치 audit Evidence |
+| `ADM-TIMELINE` | cpf-admin | transactionId 기준 Local/Remote/Event/Batch/Gateway/File/Agent timeline을 순서·시각·instance·failure stage로 재구성한다. | Server 권한 Test, API/OpenAPI, DB migration, Chromium·Firefox·WebKit E2E, 위험조치 audit Evidence |
+| `ADM-SERVICE` | cpf-admin | service/endpoint/instance/health/version/zone/routing/maintenance/draining을 조회·제어하되 Owner Command API를 사용한다. | Server 권한 Test, API/OpenAPI, DB migration, Chromium·Firefox·WebKit E2E, 위험조치 audit Evidence |
+| `ADM-LOG` | cpf-admin | File/DB Log 조회, saved search, trace boost, dynamic log level, retention, download guard와 권한·audit를 제공한다. | Server 권한 Test, API/OpenAPI, DB migration, Chromium·Firefox·WebKit E2E, 위험조치 audit Evidence |
+| `ADM-BATCH` | cpf-admin | Job definition/execution/step/checkpoint/restart/stop/recover와 승인·사유·Spring Batch ID 연계를 제공한다. | Server 권한 Test, API/OpenAPI, DB migration, Chromium·Firefox·WebKit E2E, 위험조치 audit Evidence |
+| `ADM-CENTER` | cpf-admin | Center-Cut job/item/attempt/progress/reprocess/unknown/compensation 운영 기능을 제공한다. | Server 권한 Test, API/OpenAPI, DB migration, Chromium·Firefox·WebKit E2E, 위험조치 audit Evidence |
+| `ADM-AGENT` | cpf-admin | Agent/Runner/Worker registry, capability, heartbeat, artifact, process, drain/takeover와 위험조치 승인을 제공한다. | Server 권한 Test, API/OpenAPI, DB migration, Chromium·Firefox·WebKit E2E, 위험조치 audit Evidence |
+| `ADM-EXS` | cpf-admin | 외부기관 endpoint, health, credential/certificate status, request/response timeline, unknown/reconciliation을 기술 Owner API로 관제한다. | Server 권한 Test, API/OpenAPI, DB migration, Chromium·Firefox·WebKit E2E, 위험조치 audit Evidence |
+| `ADM-RECOVERY` | cpf-admin | unknown-result, DLQ, Saga, deployment, file/batch 실패의 runbook, 승인된 recover/compensate/reconcile와 결과 추적을 제공한다. | Server 권한 Test, API/OpenAPI, DB migration, Chromium·Firefox·WebKit E2E, 위험조치 audit Evidence |
+| `ADM-INCIDENT` | cpf-admin | alert→incident→severity/owner→runbook/action→postmortem/closure 흐름과 관련 transaction/evidence를 연결한다. | Server 권한 Test, API/OpenAPI, DB migration, Chromium·Firefox·WebKit E2E, 위험조치 audit Evidence |
+| `ADM-UX` | cpf-admin | 대량 검색·paging·sort·filter·saved condition·status·empty/error/loading·responsive·keyboard·accessibility·safe download UX를 제공한다. | Server 권한 Test, API/OpenAPI, DB migration, Chromium·Firefox·WebKit E2E, 위험조치 audit Evidence |
+| `ADM-APPROVAL` | cpf-admin | 플랫폼 위험조치의 versioned policy, ALL/ANY/N_OF_M, SoD, expiry, break-glass, immutable command hash와 owner-command execution을 제공한다. | Server 권한 Test, API/OpenAPI, DB migration, Chromium·Firefox·WebKit E2E, 위험조치 audit Evidence |
+| `BZA-BUSINESS` | cpf-biz-admin | 고객 업무 관리자 메뉴·권한·업무 조회·등록·변경·download·approval을 업무 Domain Public Contract로 수행한다. | Server 권한 Test, API/OpenAPI, DB migration, Chromium·Firefox·WebKit E2E, 위험조치 audit Evidence |
+| `BZA-ORG` | cpf-biz-admin | 조직 hierarchy, 직원, 사번, 직급/직책, 유효기간 assignment, 겸직/파견/대행, masked profile과 결재 snapshot을 제공한다. | Server 권한 Test, API/OpenAPI, DB migration, Chromium·Firefox·WebKit E2E, 위험조치 audit Evidence |
+| `BZA-APPROVAL` | cpf-biz-admin | 순차/병렬/개인/role/조직/ALL/ANY/N_OF_M/위임/대결/회수/재상신/만료/동시승인과 policy/instance 분리를 제공한다. | Server 권한 Test, API/OpenAPI, DB migration, Chromium·Firefox·WebKit E2E, 위험조치 audit Evidence |
+| `BZA-SEQUENCE-SAMPLE` | cpf-biz-admin | 업무 채번을 선택형 Customization Sample로 제공하되 기본 Runtime 의존을 만들지 않고 규칙·시험·승인·audit를 교육한다. | Server 권한 Test, API/OpenAPI, DB migration, Chromium·Firefox·WebKit E2E, 위험조치 audit Evidence |
+| `SEC-AUTHN` | cpf-core security contract + product owner | 사용자·운영자·service의 MFA/OIDC/OAuth2/JWT/API key/mTLS 인증, credential lifecycle, session/token replay 방어를 제공한다. | 보안 Negative Corpus, credential/PII leak scan, rotation/revocation, 권한·audit와 침해경계 Evidence |
+| `SEC-AUTHZ` | cpf-core security contract + product owner | RBAC/ABAC, least privilege, server-side resource/action authorization, SoD, permission version과 즉시 회수를 제공한다. | 보안 Negative Corpus, credential/PII leak scan, rotation/revocation, 권한·audit와 침해경계 Evidence |
+| `SEC-SECRET` | cpf-core security contract + product owner | Secret Provider SPI, 외부 Vault/file/env integration, encryption, rotation, revocation, zeroization와 log/evidence 원문 금지를 제공한다. | 보안 Negative Corpus, credential/PII leak scan, rotation/revocation, 권한·audit와 침해경계 Evidence |
+| `SEC-CERT` | cpf-core security contract + product owner | certificate/key trust store, issuance/import, expiry alert, rotation, revocation, mTLS identity와 keyId 기반 검증을 제공한다. | 보안 Negative Corpus, credential/PII leak scan, rotation/revocation, 권한·audit와 침해경계 Evidence |
+| `SEC-PRIVACY` | cpf-core security contract + product owner | PII catalog, 목적·최소수집·동의/법적근거, masking, raw access, retention/deletion, export와 audit를 제공한다. | 보안 Negative Corpus, credential/PII leak scan, rotation/revocation, 권한·audit와 침해경계 Evidence |
+| `SEC-DOWNLOAD` | cpf-core security contract + product owner | 대량/민감 download의 권한·사유·승인·watermark·row/size limit·expiry·encryption·one-time link와 audit를 제공한다. | 보안 Negative Corpus, credential/PII leak scan, rotation/revocation, 권한·audit와 침해경계 Evidence |
+| `SEC-APP` | cpf-core security contract + product owner | injection, SSRF, path traversal, upload/archive bomb, XSS/CSRF, deserialization, process execution, security header와 secure default를 통제한다. | 보안 Negative Corpus, credential/PII leak scan, rotation/revocation, 권한·audit와 침해경계 Evidence |
+| `SEC-APPROVAL` | cpf-core security contract + product owner | 보안 위험행위의 dual control, 자기승인 금지, immutable target hash, expiry, break-glass, 사후 review를 제공한다. | 보안 Negative Corpus, credential/PII leak scan, rotation/revocation, 권한·audit와 침해경계 Evidence |
+| `SEC-AUDIT` | cpf-core security contract + product owner | audit append-only/tamper detection, hash chain/signature, clock/identity, retention, search, export와 evidence integrity를 제공한다. | 보안 Negative Corpus, credential/PII leak scan, rotation/revocation, 권한·audit와 침해경계 Evidence |
+| `OPS-METRIC` | cpf-admin control plane + runtime owner | transaction/service/instance/DB/Broker/Batch/Gateway/Agent의 bounded-cardinality metric과 dashboard/export를 제공한다. | 운영 API/UI, multi-instance 상태, alert/runbook, 장애주입·복구·감사 Evidence |
+| `OPS-SLO` | cpf-admin control plane + runtime owner | availability, latency, error, freshness, backlog, recovery SLI/SLO와 error budget, burn-rate alert를 제공한다. | 운영 API/UI, multi-instance 상태, alert/runbook, 장애주입·복구·감사 Evidence |
+| `OPS-ALERT` | cpf-admin control plane + runtime owner | dedup, grouping, inhibition, severity, routing, escalation, maintenance suppression와 acknowledgement를 제공한다. | 운영 API/UI, multi-instance 상태, alert/runbook, 장애주입·복구·감사 Evidence |
+| `OPS-INCIDENT` | cpf-admin control plane + runtime owner | incident lifecycle, commander/owner, communication, timeline, evidence, action item와 problem linkage를 제공한다. | 운영 API/UI, multi-instance 상태, alert/runbook, 장애주입·복구·감사 Evidence |
+| `OPS-RUNBOOK` | cpf-admin control plane + runtime owner | 탐지조건·영향·진단·안전조치·rollback·escalation·검증·종결 기준을 실행 가능한 runbook으로 제공한다. | 운영 API/UI, multi-instance 상태, alert/runbook, 장애주입·복구·감사 Evidence |
+| `OPS-SELF` | cpf-admin control plane + runtime owner | 자동진단/자동복구의 allowlist, rate/attempt limit, circuit stop, approval boundary, rollback와 immutable audit를 제공한다. | 운영 API/UI, multi-instance 상태, alert/runbook, 장애주입·복구·감사 Evidence |
+| `OPS-TOPOLOGY` | cpf-admin control plane + runtime owner | service/instance/dependency/domain/owner/database/broker/endpoint 관계를 versioned topology/service catalog로 제공한다. | 운영 API/UI, multi-instance 상태, alert/runbook, 장애주입·복구·감사 Evidence |
+| `OPS-MAINT` | cpf-admin control plane + runtime owner | maintenance, admission block, drain/quiesce, in-flight deadline, health/routing 반영, resume와 audit를 제공한다. | 운영 API/UI, multi-instance 상태, alert/runbook, 장애주입·복구·감사 Evidence |
+| `OPS-CONFIG` | cpf-admin control plane + runtime owner | runtime config catalog, schema, encryption, version, staged rollout, approval, dynamic apply, rollback와 drift detection을 제공한다. | 운영 API/UI, multi-instance 상태, alert/runbook, 장애주입·복구·감사 Evidence |
+| `OPS-DRIFT` | cpf-admin control plane + runtime owner | Source/Artifact/Config/DB/Route/Permission/Runtime version의 desired-actual drift를 탐지·차단·복구한다. | 운영 API/UI, multi-instance 상태, alert/runbook, 장애주입·복구·감사 Evidence |
+| `OPS-CAPACITY` | cpf-admin control plane + runtime owner | CPU/memory/thread/connection/queue/storage/DB/Broker 용량과 threshold, trend, forecast, load test 기준을 제공한다. | 운영 API/UI, multi-instance 상태, alert/runbook, 장애주입·복구·감사 Evidence |
+| `OPS-DR` | cpf-admin control plane + runtime owner | RTO/RPO, multi-zone/site, backup/restore, failover/failback, data consistency, runbook와 정기 DR drill을 제공한다. | 운영 API/UI, multi-instance 상태, alert/runbook, 장애주입·복구·감사 Evidence |
+
+### 22.141 Generator/EDU/API/Quality/Productization
+
+| Requirement | Owner | 최소 제품 목표 | 필수 완료 증명 |
+|---|---|---|---|
+| `DEVEX-QUICK` | cpf-tools + public artifacts | 신규 개발자가 표준 환경에서 설치→생성→빌드→실행→테스트→디버깅을 문서대로 재현할 수 있는 quick start를 제공한다. | fresh clone에서 생성→build→runtime→remove→regenerate, normalized parity와 사용자 코드 보호 Evidence |
+| `DEVEX-CODEGEN` | cpf-tools + public artifacts | OpenAPI/Orval/DB metadata/domain template 등 code generation의 exact input SHA, deterministic output, drift gate와 user-owned 영역 보호를 제공한다. | fresh clone에서 생성→build→runtime→remove→regenerate, normalized parity와 사용자 코드 보호 Evidence |
+| `DEVEX-COMMENT` | cpf-tools + public artifacts | Public API/SPI, 주요 Service/Controller, 복구·동시성·보안 로직에 유지보수 가능한 한글 JavaDoc/주석과 설정 설명을 제공한다. | fresh clone에서 생성→build→runtime→remove→regenerate, normalized parity와 사용자 코드 보호 Evidence |
+| `ONBOARD-DOMAIN` | cpf-tools + public artifacts | DomainName+SystemCode로 신규 업무 Domain을 충돌 검증 후 생성·DB bootstrap·build/runtime·remove/regenerate할 수 있게 한다. | fresh clone에서 생성→build→runtime→remove→regenerate, normalized parity와 사용자 코드 보호 Evidence |
+| `SAMPLE-ACC` | cpf-reference / generated reference | 범용 계정/업무 흐름을 과도한 제품 원장 없이 Local/Remote·validation·transaction·error 사용법을 보여주는 선택형 Sample로 제공한다. | fresh clone에서 생성→build→runtime→remove→regenerate, normalized parity와 사용자 코드 보호 Evidence |
+| `SAMPLE-MBR` | cpf-reference / generated reference | cpf-member를 Generator output과 동일한 Golden Reference Instance로 유지하고 normalize parity gate를 통과시킨다. | fresh clone에서 생성→build→runtime→remove→regenerate, normalized parity와 사용자 코드 보호 Evidence |
+| `SAMPLE-REF` | cpf-reference / generated reference | cpf-reference에서 제품 Public API의 정상·오류·경계·복구·권한·운영 사용법을 실제 Runtime으로 교육한다. | fresh clone에서 생성→build→runtime→remove→regenerate, normalized parity와 사용자 코드 보호 Evidence |
+| `SAMPLE-BIZADM` | cpf-reference / generated reference | BZA 선택형 업무관리/채번/결재 Customization Sample을 기본 활성화 없이 제공한다. | fresh clone에서 생성→build→runtime→remove→regenerate, normalized parity와 사용자 코드 보호 Evidence |
+| `SAMPLE-EDU` | cpf-reference / generated reference | 교육 시나리오가 장난감 계약을 만들지 않고 실제 Header/API/DB/Event/Batch/Security 표준을 사용한다. | fresh clone에서 생성→build→runtime→remove→regenerate, normalized parity와 사용자 코드 보호 Evidence |
+| `API-CONTRACT` | cpf-core API contract + endpoint owner | HTTP/Local/Remote API의 header, auth, success/error, version, idempotency, permission, content type, example과 consumer compatibility를 정의한다. | OpenAPI/Generated Client/Consumer Contract, 정상·오류·경계·호환성·streaming Runtime Evidence |
+| `API-PAGING` | cpf-core API contract + endpoint owner | offset page, slice, keyset/signed cursor, sort/filter allowlist, stable ordering, max size와 count 비용 정책을 제공한다. | OpenAPI/Generated Client/Consumer Contract, 정상·오류·경계·호환성·streaming Runtime Evidence |
+| `API-ASYNC` | cpf-core API contract + endpoint owner | 202 acceptance, operationId, status/result polling, callback/event, cancellation, idempotency, expiry와 unknown-result를 제공한다. | OpenAPI/Generated Client/Consumer Contract, 정상·오류·경계·호환성·streaming Runtime Evidence |
+| `API-FILE` | cpf-core API contract + endpoint owner | multipart, streaming upload/download, range, checksum, content disposition/type, size/virus policy, cancellation와 secure filename을 제공한다. | OpenAPI/Generated Client/Consumer Contract, 정상·오류·경계·호환성·streaming Runtime Evidence |
+| `RULE-ARCH` | cpf-tools quality gates | Module/package/dependency/owner/internal API/DB access/dual primary/generated drift 위반을 자동 Architecture Gate로 차단한다. | 정상 저장소 PASS와 의도적 위반 Negative Fixture FAIL Evidence |
+| `RULE-SEC` | cpf-tools quality gates | secret/credential/URL/TLS/security header/unsafe API/path/query/log/evidence pattern과 dependency vulnerability를 자동 Gate로 차단한다. | 정상 저장소 PASS와 의도적 위반 Negative Fixture FAIL Evidence |
+| `RULE-QUALITY` | cpf-tools quality gates | compile/static analysis/duplication/dead code/dependency lock/license/SBOM/test coverage/marker-only 구현을 자동 Gate로 검증한다. | 정상 저장소 PASS와 의도적 위반 Negative Fixture FAIL Evidence |
+| `TEST-UNIT` | repository-wide test ownership | 순수 로직·validation·state transition·error mapping·serialization·security utility를 deterministic unit test로 검증한다. | exact SHA·명령·환경·exit code·report hash가 있는 직접 실행 Evidence |
+| `TEST-CONTRACT` | repository-wide test ownership | Public API/SPI, Local/Remote, OpenAPI, message schema, DB query, generated client와 published artifact compatibility를 검증한다. | exact SHA·명령·환경·exit code·report hash가 있는 직접 실행 Evidence |
+| `TEST-RUNTIME` | repository-wide test ownership | 실제 Java25/WAS/DB/Process 환경에서 startup, endpoint, transaction, shutdown, recovery와 resource leak를 검증한다. | exact SHA·명령·환경·exit code·report hash가 있는 직접 실행 Evidence |
+| `TEST-BROWSER` | repository-wide test ownership | ADM/BZA의 Chromium/Firefox/WebKit, route/deep link/session/permission/error/a11y/keyboard/responsive를 검증한다. | exact SHA·명령·환경·exit code·report hash가 있는 직접 실행 Evidence |
+| `TEST-BROKER` | repository-wide test ownership | 실제 Kafka에서 ACK, transaction, duplicate, ordering, rebalance, retry/DLT, broker outage, consumer crash를 검증한다. | exact SHA·명령·환경·exit code·report hash가 있는 직접 실행 Evidence |
+| `TEST-FAULT` | repository-wide test ownership | DB/network/broker/disk/process/time/response loss를 side-effect 전후에 주입해 idempotency·unknown·recovery·compensation을 검증한다. | exact SHA·명령·환경·exit code·report hash가 있는 직접 실행 Evidence |
+| `TEST-EVIDENCE` | repository-wide test ownership | 모든 검증의 exact SHA, command, environment, time, exit code, report/artifact hash, sanitized 여부를 schema로 검증한다. | exact SHA·명령·환경·exit code·report hash가 있는 직접 실행 Evidence |
+| `REL-BUILD` | cpf-tools release/deploy | fresh clone과 clean cache에서 Java25/Gradle build, LOCAL_DEV/REMOTE/OFFLINE resolution, lock/POM/BOM/source/javadoc/reproducible artifact를 제공한다. | fresh clean build, signed final artifact, install/upgrade/rollback, mixed-version와 final-artifact SBOM Evidence |
+| `REL-DEPLOY` | cpf-tools release/deploy | signed artifact, environment/channel binding, install lock, rolling/canary/blue-green, health/smoke, selective rollback와 deployment reconciliation을 제공한다. | fresh clean build, signed final artifact, install/upgrade/rollback, mixed-version와 final-artifact SBOM Evidence |
+| `REL-MIG` | cpf-tools release/deploy | 제품/DB/config/API/message/file schema의 install/upgrade/downgrade/forward recovery, compatibility window와 migration guide를 제공한다. | fresh clean build, signed final artifact, install/upgrade/rollback, mixed-version와 final-artifact SBOM Evidence |
+| `REL-COMPAT` | cpf-tools release/deploy | semantic version, compatibility range, deprecation, consumer matrix, rolling mixed-version, rollback와 unsupported combination fail-closed를 제공한다. | fresh clean build, signed final artifact, install/upgrade/rollback, mixed-version와 final-artifact SBOM Evidence |
+| `DOC-GOV` | cpf-docs + source owner | Final Target, ADR, Requirement Continuity, Current Request, Review, Handover의 역할·정본·폐기·변경 승인 규칙을 제공한다. | Source/API/SQL/Test와 문서의 링크·예제·명령을 현재 exact SHA에서 검증한 Evidence |
+| `DOC-PRODUCT` | cpf-docs + source owner | 개발자·운영자·ADM/BZA·Gateway·Batch·설치·Migration·복구 Guide, OpenAPI, JavaDoc가 실제 Source와 일치하게 한다. | Source/API/SQL/Test와 문서의 링크·예제·명령을 현재 exact SHA에서 검증한 Evidence |
+| `PROD-EDITION` | product governance | Edition/License/Capability packaging을 기술 Runtime과 분리하고 미결정 정책을 GA 완료처럼 노출하지 않는다. | ADR, capability boundary, packaging/compatibility/security prototype와 명시적 지원 상태 |
+| `PROD-MULTITENANT` | product governance | tenant context, data/config/permission/secret/quota/audit isolation과 tenant lifecycle을 선택 기능으로 설계한다. | ADR, capability boundary, packaging/compatibility/security prototype와 명시적 지원 상태 |
+| `PROD-PLUGIN` | product governance | 고객/기관 Plugin·Adapter의 SPI, package, signature, compatibility, isolation, lifecycle, permission와 marketplace 후보 정책을 제공한다. | ADR, capability boundary, packaging/compatibility/security prototype와 명시적 지원 상태 |
+| `PROD-PACKAGE` | product governance | 산업군·금융권별 capability package의 dependency, install/upgrade, config, license, compatibility와 support boundary를 제공한다. | ADR, capability boundary, packaging/compatibility/security prototype와 명시적 지원 상태 |
+| `REQ-GOV` | requirement governance | Requirement ID, owner, priority, acceptance, status, continuity, traceability와 변경 승인 규칙을 영속 정본으로 관리한다. | Continuity Ledger, 양방향 Trace Matrix, 독립 Review와 Count/상태 무결성 Gate |
+| `REQ-REVIEW` | requirement governance | 각 작업 전후 Requirement→구현과 구현→Requirement를 독립 검수하고 완료 보고와 실제 Git 차이를 기록한다. | Continuity Ledger, 양방향 Trace Matrix, 독립 Review와 Count/상태 무결성 Gate |
+| `REQ-CODEX` | requirement governance | Codex/AI 요청서가 이전 대화 없이 실행 가능하도록 baseline, scope, architecture, acceptance, evidence, 금지조건과 output을 포함한다. | Continuity Ledger, 양방향 Trace Matrix, 독립 Review와 Count/상태 무결성 Gate |
+| `REQ-GAP` | requirement governance | 새 상용 필수 요구를 기존 ID와 중복 검사해 intake하고 split/supersede/deprecate 관계와 count 변화를 기록한다. | Continuity Ledger, 양방향 Trace Matrix, 독립 Review와 Count/상태 무결성 Gate |
+
+## 23. Legacy Alias Mapping
+
+아래 ID는 검색과 과거 Evidence 연속성만 유지하고 Canonical 완료율에 포함하지 않는다.
+
+| Legacy ID | 현재 Canonical 추적 대상 |
 |---|---|
-| `CPF-ROLE` | 거래의 role/direction/source-target을 표준 Context·Log·Audit에 일관되게 전달 |
-| `CPF-OPSDB` | CPF 운영 DB의 가용성, 공유/분리 topology, 장애 시 fail-open/fail-closed 경계 |
-| `CPF-LOGFAIL` | DB/원격 로그 실패 시 업무 영향 정책, local spool, 재전송, 유실 탐지 |
-| `CPF-SCHED` | 기술 Scheduler 계약, 중복 실행 방지, lease/cluster 실행과 운영 제어 |
-| `CMN-CODE` | 고객 업무 공통 코드/참조데이터의 Version, Cache, 유효기간과 조회 계약 |
-| `CMN-MSG` | 공통 메시지·다국어·오류 메시지 외부화와 Parameter 조립 |
-| `CMN-CALENDAR` | 영업일/휴일/기관 Calendar와 기준일 계산 확장 |
-| `CMN-TEMPLATE` | 알림/문서 Template의 Version, 변수 검증, Channel 확장 |
-| `ADM-SERVICE` | Service/Endpoint/Instance/Health/Routing Control Plane과 Owner Command 경계 |
-| `ADM-LOG` | 운영 Log 조회/정책/Trace Boost/동적 Level과 권한·감사 |
-| `ADM-INCIDENT` | Alert→Incident→Runbook→조치→종결의 운영 흐름 |
-| `ADM-UX` | 대량 운영화면의 검색, Paging, Download Guard, Accessibility, 오류 UX |
-| `SEC-APP` | Secure coding, Input/Output validation, SSRF/Injection/Upload 등 Application Security 기본 통제 |
-| `OPS-SELF` | 자동진단/자동복구 조건, 안전한 제한, 반복실패 차단과 감사 |
-| `OPS-TOPOLOGY` | Service/Instance/Dependency/Owner 관계를 운영자가 추적 가능한 Topology/Service Catalog |
-| `OPS-MAINT` | Maintenance/Drain/Quiesce와 신규 유입 차단, in-flight 종료 정책 |
-| `DB-SQL` | SQL/MyBatis 표준, Naming, Query ownership, Vendor-neutral Java와 성능 기본 규칙 |
-| `DB-PERF` | Index/Plan/Partition/Statistics/Slow Query/Capacity와 DB 성능 운영 |
-| `DB-MULTI` | Multi Datasource, Read Replica, Read/Write routing, failover와 transaction consistency |
-| `DATA-LINEAGE` | Source→처리→저장→외부전달의 Data Lineage, 품질/정합성 추적 |
-| `DATA-RETENTION` | Retention/Purge/Legal Hold/Archive/개인정보 삭제와 운영 증적 |
-| `API-LIMIT` | Rate Limit, Quota, Abuse Detection, Client/Channel별 정책과 429 계약 |
-| `DEVEX-COMMENT` | Public API JavaDoc, 중요 복구/동시성 로직 주석, 설정 주석의 유지보수 표준 |
-| `RULE-ARCH` | Module/Package/Dependency/Owner 위반의 자동 Architecture Gate |
-| `RULE-SEC` | Secret/URL/취약 설정/민감정보 패턴과 보안 정책 자동 Gate |
-| `RULE-QUALITY` | Static Analysis, Dependency/License, Dead Code와 품질 Gate |
-| `PROD-EDITION` | 제품 Edition/License/Capability Packaging 정책 후보와 런타임 분리 원칙 |
-| `PROD-MULTITENANT` | Multi-customer/tenant 격리 후보, Tenant Context/DB/권한/감사 경계 |
-| `PROD-PLUGIN` | 고객/기관 Adapter와 Plugin의 SPI, Version/Compatibility/Isolation |
-| `PROD-PACKAGE` | 금융/산업군별 선택 Capability Package와 설치/Upgrade 호환 모델 |
-| `REQ-GAP` | 새 상용 필수요건을 중복 없이 Intake하고 Requirement ID로 정본화하는 절차 |
-| `BAT-CALL-SYNC` | Batch/Worker에서 업무 Domain을 동기 호출할 때 Local/Remote parity와 Header/Timeout |
-| `BAT-CALL-ASYNC` | Batch/Worker→Event/Outbox 비동기 호출, Retry/DLQ/Idempotency |
-| `BAT-SHARED` | Batch가 온라인/공유 Facade를 재사용할 때 Owner/Transaction/Topology 경계 |
+| `FACADE-LOCAL` | `ARCH-MSA + CPF-CALL` |
+| `FACADE-REMOTE` | `ARCH-MSA + CPF-CALL` |
+| `CMN-ID` | `CPF-TXID + BZA-SEQUENCE-SAMPLE/업무 Domain` |
+| `CMN-FILE` | `CORE-FILE` |
+| `CMN-FIXED` | `CORE-FIXED` |
+| `ADM-COMP` | `ADM-RECOVERY` |
+| `CENTER-ADV` | `CENTER-RUNNER + CENTER-PARAM + CENTER-CLAIM + CENTER-RATE + CENTER-REPROCESS + CENTER-UNKNOWN + CENTER-OPS` |
+| `API-GATEWAY` | `GWY-ENTRY + GWY-ROUTING + GWY-TRUST + GWY-RESILIENCE + API-CONTRACT` |
 
-8개 Legacy Alias(`FACADE-LOCAL`, `FACADE-REMOTE`, `CMN-ID`, `CMN-FILE`, `CMN-FIXED`, `ADM-COMP`, `CENTER-ADV`, `API-GATEWAY`)는 Continuity Ledger의 `superseded-by/split-into` 관계로만 추적하고 Canonical Count에는 중복 포함하지 않는다.
+## 24. 영구 완료 금지 조건
 
+다음 상태에서는 어떤 Requirement도 `완료`로 처리하지 않는다.
 
-## 21.3 이번 전수검수에서 신규 정본화한 Requirement
+- Dependency, Interface, DTO, Adapter, 화면, Table 또는 Script만 존재
+- 실제 Product Consumer가 없음
+- OSS와 Legacy가 동시에 Primary
+- 일부 Module/화면/Vendor/Topology만 이관
+- compile 또는 static Marker Gate만 통과
+- package manifest와 lock/generated artifact 불일치
+- Local에서만 동작하고 Remote/Multi-instance가 미검증
+- 정상 예제만 있고 오류·권한·부분 실패·복구가 없음
+- idempotency/fencing/unknown-result가 문자열이나 Column만 존재
+- 위험 운영조치의 권한·사유·승인·감사가 없음
+- DB/Generator/Vendor/Migration/Rollback 영향 누락
+- final artifact가 아닌 Source directory만 SBOM/보안 검사
+- 다른 Commit·장비·Artifact의 Evidence를 현재 결과로 사용
+- 실행하지 않은 Test를 성공으로 기록
+- 민감정보 원문이 Log, DB, Browser, Evidence 또는 운영화면에 존재
+- 기존 성공 기능 회귀, Dead Code, Stale Evidence 또는 Repository garbage 잔존
+- README/Guide/문서만 변경하고 실제 Source·Runtime이 불일치
 
-| Requirement | 신규 정본화 이유와 최소 범위 |
-|---|---|
-| `ADM-APPROVAL` | 플랫폼 위험조치 승인 Runtime은 일반 `SEC-APPROVAL` 통제만으로는 Owner/Command/Unknown/Break-glass 실행 책임을 추적하기 부족하다. `cpf-admin` Owner, 정책 Version, Operator/Role/Organization Target, ALL/ANY/N_OF_M, SoD, Owner Command, Unknown Recovery, Immutable Audit와 UI/API를 독립 검증한다. |
-| `BZA-ORG` | BZA 업무결재가 실제 기업 조직을 해석하려면 조직 Hierarchy, 직원, Position, JobTitle, 다중 Role, 유효기간 Assignment, 겸직/파견/직무대행과 결재 Snapshot을 독립 제품 기능으로 추적해야 한다. 단순 `BZA-APPROVAL` 하위 컬럼 존재만으로 완료 처리하지 않는다. |
+## 25. 작업과 검수의 영구 원칙
 
-## 22. Requirement Catalog
-
-현재 Canonical Requirement Count: **162개**. Legacy Alias 8개는 `cpf-docs/governance/CPF_REQUIREMENT_CONTINUITY_LEDGER.md`에서 별도 추적하고 완료율에는 중복 집계하지 않는다.
-
-### Architecture/Core
-
-- `ARCH-MISSION`, `ARCH-MSA`, `ARCH-BOUNDARY`, `ARCH-LAYER`
-- `CORE-API`, `CORE-SPI`, `CORE-CONFIG`, `CORE-TESTKIT`
-- `CPF-CALL`, `CPF-REGISTRY`, `CPF-ROUTING`, `CPF-HEALTH`
-- `CPF-HEADER`, `CPF-CONTEXT`, `CPF-TXID`, `CPF-ROLE`, `CPF-ERROR`, `CPF-VALID`
-- `CPF-IDEMP`, `CPF-STATE`, `CPF-LOCK`, `CPF-RESILIENCE`, `CPF-DEADLINE`, `CPF-SCHED`
-- `CPF-OPSDB`, `CPF-LOGDB`, `CPF-FILELOG`, `CPF-LOGFAIL`, `CPF-TRACE`, `CPF-MASK`
-- `CORE-FIXED`, `CORE-FILE`, `CORE-MESSAGE`
-
-### Common/Data
-
-- `CMN-EXTENSION`, `CMN-SAMPLE-DB`, `CMN-CODE`, `CMN-MSG`, `CMN-CALENDAR`, `CMN-TEMPLATE`
-- `DB-OWNERSHIP`, `DB-INSTALL`, `DB-MIGRATION`, `DB-ROLLBACK`, `DB-BACKUP`
-- `DB-MULTI-VENDOR`, `DB-SQL`, `DB-PERF`, `DB-MULTI`
-- `DATA-LINEAGE`, `DATA-RETENTION`
-
-### Gateway/External/Event
-
-- `GWY-ENTRY`, `GWY-ROUTING`, `GWY-TRUST`, `GWY-RESILIENCE`, `API-LIMIT`
-- `EXS-INST`, `EXS-REST`, `EXS-FIXED`, `EXS-SEC`, `EXS-FILE`, `EXS-UNKNOWN`, `EXS-RECON`
-- `EVENT-CORE`, `EVENT-OUTBOX`, `EVENT-BROKER`, `EVENT-DLQ`
-- `SAGA-CORE`, `SAGA-COMP`, `SAGA-MANUAL`
-
-### Batch/Center-Cut
-
-- `BAT-CORE`, `BAT-JOB`, `BAT-ITEM`, `BAT-EXECUTOR`, `BAT-AGENT`
-- `BAT-CALL-SYNC`, `BAT-CALL-ASYNC`, `BAT-SHARED`
-- `CENTER-CORE`, `CENTER-RUNNER`, `CENTER-PARAM`, `CENTER-CLAIM`
-- `CENTER-RATE`, `CENTER-REPROCESS`, `CENTER-UNKNOWN`, `CENTER-OPS`
-
-### Admin/Security/Operations
-
-- `ADM-AUTH`, `ADM-RBAC`, `ADM-AUDIT`, `ADM-TX`, `ADM-TIMELINE`
-- `ADM-SERVICE`, `ADM-LOG`, `ADM-BATCH`, `ADM-CENTER`, `ADM-AGENT`, `ADM-EXS`, `ADM-RECOVERY`, `ADM-INCIDENT`, `ADM-UX`, `ADM-APPROVAL`
-- `BZA-BUSINESS`, `BZA-ORG`, `BZA-APPROVAL`, `BZA-SEQUENCE-SAMPLE`
-- `SEC-AUTHN`, `SEC-AUTHZ`, `SEC-SECRET`, `SEC-CERT`, `SEC-PRIVACY`
-- `SEC-DOWNLOAD`, `SEC-APP`, `SEC-APPROVAL`, `SEC-AUDIT`
-- `OPS-METRIC`, `OPS-SLO`, `OPS-ALERT`, `OPS-INCIDENT`, `OPS-RUNBOOK`
-- `OPS-SELF`, `OPS-TOPOLOGY`, `OPS-MAINT`, `OPS-CONFIG`, `OPS-DRIFT`, `OPS-CAPACITY`, `OPS-DR`
-
-### Generator/EDU/API/Quality/Productization
-
-- `DEVEX-QUICK`, `DEVEX-CODEGEN`, `DEVEX-COMMENT`, `ONBOARD-DOMAIN`
-- `SAMPLE-ACC`, `SAMPLE-MBR`, `SAMPLE-REF`, `SAMPLE-BIZADM`, `SAMPLE-EDU`
-- `API-CONTRACT`, `API-PAGING`, `API-ASYNC`, `API-FILE`
-- `RULE-ARCH`, `RULE-SEC`, `RULE-QUALITY`
-- `TEST-UNIT`, `TEST-CONTRACT`, `TEST-RUNTIME`, `TEST-BROWSER`, `TEST-BROKER`, `TEST-FAULT`, `TEST-EVIDENCE`
-- `REL-BUILD`, `REL-DEPLOY`, `REL-MIG`, `REL-COMPAT`
-- `DOC-GOV`, `DOC-PRODUCT`
-- `PROD-EDITION`, `PROD-MULTITENANT`, `PROD-PLUGIN`, `PROD-PACKAGE`
-- `REQ-GOV`, `REQ-REVIEW`, `REQ-CODEX`, `REQ-GAP`
-
-## 23. 최종 제품화 Gate
-
-다음이 모두 최신 Commit과 재현 가능한 환경에서 확인돼야 GA 완료다.
-
-- 공식 Module/Package/SystemCode와 DB Physical Ownership
-- Clean Build와 Full Test
-- Empty DB Install, Reinstall, Upgrade와 Rollback
-- 전체 Runtime과 주요 API E2E
-- Multi-instance, Worker, Lease, Fencing과 Recovery
-- 실제 Broker, External Failure와 Unknown Result
-- Batch, Center-Cut, Agent/Runner/Worker
-- ADM/BZA Runtime, Production Build와 Browser E2E
-- Security, Approval, Audit와 Masking
-- EDU, OpenAPI, JavaDoc와 Generator Lifecycle
-- 설치, 배포, 운영, Migration과 Recovery Guide
-- Source, SQL, API, Test, Document와 Evidence 정합성
-- Root Hygiene, No Stale Name, No Stale Evidence와 No Secret
-
-## DB / Query / Metadata Generator 동기화 가드레일
-
-DB Schema, Column, Index, FK, Seed, Migration, Runtime Mapper SQL, Vendor SQL 또는 Generated Domain metadata를 변경하는 모든 작업은
-`cpf-tools/scripts/sync-database-artifacts.ps1`을 실행하여 canonical source → install/seed Vendor Pack → generated schema manifest를 동기화해야 한다.
-
-- 수작업으로 generated bundle 또는 Vendor Pack만 수정하는 것은 금지한다.
-- Index/FK가 존재하지 않는 Column을 참조하면 생성 단계에서 실패해야 한다.
-- `database-schema-manifest.json` drift가 있으면 완료 처리하지 않는다.
-- Fresh Install은 기존 완전 Schema를 덮어쓰지 않으며, Column drift는 Migration 대상으로 실패한다.
-- 모든 Generated Business Domain은 중앙 `domain-template`을 동일하게 사용한다.
-- EXS는 고정 `cpf-external`/`exsDB`를 갖지 않는다. 필요한 경우 다른 업무 Domain과 동일하게 `DomainName=external`, `SystemCode=EXS`로 생성한다.
-- 이후 Codex 요청서의 DB/SQL/metadata 변경 항목에는 위 generator 동기화와 drift gate를 반드시 완료 조건으로 포함한다.
-
-## R10 작업·생성·검증 일관성 가드레일
-
-다음은 CPF 개발 중 모든 요청서와 작업자가 공통으로 지켜야 하는 제품 정책이다.
-
-- 작업 시작 전에 Final Target, Requirement Continuity, Current Work Request, Decision Log, Continuity State와 최신 Git Diff를 반드시 확인한다.
-- EXS는 저장소 정식 Module이 아니라 Generated Domain 검증 대상이다. Baseline에는 `cpf-external`을 남기지 않고 통합 검증에서 `external/EXS` 생성 → verify → remove를 수행한다.
-- DB Schema/SQL/Mapper/Metadata/Generated Domain Template 변경은 `sync-database-artifacts.ps1`과 Generated Domain artifact parity를 함께 통과해야 한다. 기존 Generated Domain의 generator-owned DB/MyBatis/SQL은 `sync-generated-domain-artifacts.ps1`로 checksum 보호 하에 동기화한다.
-- 특정 Vendor만 수작업으로 맞추지 않는다. 지원 Vendor는 동일 계약으로 갱신하고, 미지원 Vendor는 coverage metadata에서 fail-closed한다.
-- 검증은 개발 작업마다 같은 Runtime 시나리오를 반복하지 않고 통합 검증 계획에 누적한다. 최종 검증은 Build/Test/DB/Generator/Runtime/Browser/Multi-instance/Evidence를 한 번의 Runner로 실행할 수 있어야 한다.
-- Framework 기술 편의 API와 자료구조는 `cpf-core` Public API가 소유한다. 거대한 Utils Class는 만들지 않고 목적별 `Cpf*` API와 Page/Slice/Cursor 계약을 제공한다. EDU/Generated Domain은 임의 DTO 대신 표준 계약을 우선 사용한다.
-- 고객 업무공통 Calendar는 `cpf-common`이 소유하고 ADM은 관리 UI/API, BAT/Scheduler/업무 Domain은 동일 `CmnBusinessCalendar` 계약을 소비한다. BAT 전용 영업일 정본을 별도로 만들지 않는다.
-- transactionId/표준 Header는 `cpf-core`가 생성·검증·전파한다. transactionId는 34자리 단일 정본이며 Local/Remote/Async/Batch 로그와 운영 Timeline이 같은 값을 사용한다.
-- File Log는 Environment/Domain/Instance와 transactionId 단위 탐색이 가능해야 하고, DB Log는 ADM에서 Module/Instance/transactionId를 교차 조회할 수 있어야 한다. Batch는 Job/Execution/Worker/transactionId를 연결해 관제한다.
-- 작업 중 생성된 `logs/`, build output, 임시 ZIP, patch staging, stale report와 사용하지 않는 package는 정식 Repository에 남기지 않는다.
-- Source/SQL/API/Test/Guide/Evidence 중 적용 가능한 항목을 같은 작업에서 함께 닫는다. 구현 가능한 항목을 관성적으로 “추후 구현”으로 넘기지 않는다.
-- 실행하지 않은 검증, 빈 Adapter, TODO만 있는 화면/Interface, 실제 Consumer가 없는 추상화를 완료라고 기록하는 가짜 구현·가짜 검증을 금지한다.
-- Public API, 주요 Class/Method, 복구·동시성·보안 로직은 유지보수 가능한 한글 JavaDoc/주석을 제공한다. Controller는 OpenAPI `@Tag/@Operation`, 요청/응답 의미와 대표 Example을 갖춘다.
-- 작업 종료 시 Current Request/Guide/상태/Handover/검증 계획을 최신화하고, 사용자 전달 패치는 CPF Root 상대경로를 보존한 ZIP + APPLY/VERIFY Script로 제공한다.
+- 작업 시작 전 Final Target, Continuity Ledger, Current Request, ADR, 최신 master와 실제 Git diff를 확인한다.
+- 어떤 Requirement를 해결하는지, 실제 Owner와 Consumer가 누구인지 먼저 결정한다.
+- MSA와 동일 JVM, 다중 인스턴스와 부분 실패, 보안·감사·운영·DB·Generator 영향을 함께 검토한다.
+- 잘못된 구조를 영향도라는 이유로 무기한 보존하지 않는다. 대체 구현과 Consumer 이관 후 Legacy를 제거한다.
+- 구현 가능한 Source·SQL·Test·Script·Guide·Evidence를 관성적으로 추후 작업으로 넘기지 않는다.
+- 반복 비용이 큰 Runtime 검증은 통합 계획에 누적할 수 있으나 실행 전에는 `미검증`이다.
+- 작업 종료 시 최신 Handover와 Requirement 상태를 갱신하되 README를 작업 일지로 사용하지 않는다.
+- 사용자 승인 없이 Commit, Push, Branch, Tag와 PR을 생성하지 않는다.

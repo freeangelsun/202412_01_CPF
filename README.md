@@ -153,7 +153,7 @@ pwsh -File .\cpf-tools\generator\create-domain.ps1 `
 | [04 ADM 운영자 매뉴얼](cpf-docs/guides/04_ADM운영자매뉴얼.md) | ADM 메뉴로 조회·제어·대사를 수행할 때 |
 | [05 플랫폼 운영 매뉴얼](cpf-docs/guides/05_플랫폼운영매뉴얼.md) | Profile·Property·DB·배포·관측·복구를 담당할 때 |
 | [90 BZA 매뉴얼](cpf-docs/guides/90_BZA매뉴얼.md) | 선택형 업무 관리자 제품을 사용할 때 |
-| [91 게이트웨이 매뉴얼](cpf-docs/guides/91_Gateway매뉴얼.md) | 선택형 Gateway를 개발·운영할 때 |
+| [91 Gateway 매뉴얼](cpf-docs/guides/91_Gateway매뉴얼.md) | 선택형 Gateway를 개발·운영할 때 |
 
 [문서 역할과 읽는 순서 →](cpf-docs/guides/00_프레임워크안내.md#18-문서-지도와-읽는-순서)
 
@@ -202,16 +202,14 @@ pwsh -File .\cpf-tools\scripts\stop-cpf-local.ps1
 
 ---
 
----
+## 매뉴얼을 이용한 업무 수행
 
-## 제품 완료를 판단하는 기준
+README는 제품 구조와 공식 매뉴얼 진입점을 제공합니다. 실제 개발·운영 작업은 역할별 매뉴얼의 선행 조건, 단계별 절차, 정상 결과, 오류·복구, 감사 확인 순서로 수행합니다.
 
-CPF는 파일, Class, 화면, Dependency 또는 Sample의 존재만으로 완료를 선언하지 않습니다.
-
-- 실제 Product Consumer가 정본 Runtime을 사용합니다.
-- 동일 책임의 Legacy와 이중 상태 정본을 제거합니다.
-- 정상·오류·중단·재시작·중복·응답 유실·부분 실패를 검증합니다.
-- Oracle·PostgreSQL·MariaDB, Kafka, Browser, Multi-instance 등 적용 환경을 실제 실행합니다.
-- Source·API·SQL·Test·문서·Artifact가 같은 exact SHA를 가리킵니다.
-
-> README는 제품 구조와 사용 시작점을 설명합니다. 현재 구현 상태와 사용 가능 범위는 최신 Source와 역할별 공식 매뉴얼을 기준으로 판정합니다.
+- 신규 업무 기능 개발: [01 개발자 매뉴얼](cpf-docs/guides/01_개발자매뉴얼.md)
+- Batch 개발·실행·복구: [02 배치 개발 매뉴얼](cpf-docs/guides/02_배치개발매뉴얼.md)
+- ADM 기능 개발: [03 ADM 개발자 매뉴얼](cpf-docs/guides/03_ADM개발자매뉴얼.md)
+- ADM 전체 화면 운영: [04 ADM 운영자 매뉴얼](cpf-docs/guides/04_ADM운영자매뉴얼.md)
+- 설치·설정·배포·복구: [05 플랫폼 운영 매뉴얼](cpf-docs/guides/05_플랫폼운영매뉴얼.md)
+- BZA 전체 기능: [90 BZA 매뉴얼](cpf-docs/guides/90_BZA매뉴얼.md)
+- Gateway 전체 기능: [91 Gateway 매뉴얼](cpf-docs/guides/91_Gateway매뉴얼.md)

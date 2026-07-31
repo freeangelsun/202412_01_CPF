@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 2,
+  "sourceSha": "0000000000000000000000000000000000000000",
+  "sanitized": true,
+  "records": [
+    {
+      "recordType": "REQUIREMENT",
+      "recordId": "REPLACE_WITH_REQUIREMENT_ID",
+      "sourceSha": "0000000000000000000000000000000000000000",
+      "startedAt": "1970-01-01T00:00:00Z",
+      "finishedAt": "1970-01-01T00:00:00Z",
+      "exitCode": 0,
+      "commands": ["REPLACE_WITH_ACTUAL_COMMAND"],
+      "sourcePaths": ["REPLACE_WITH_SOURCE_PATH"],
+      "testPaths": ["REPLACE_WITH_TEST_PATH"],
+      "artifacts": [
+        {
+          "path": "REPLACE_WITH_SANITIZED_REPORT_PATH",
+          "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+        }
+      ],
+      "sanitized": true
+    }
+  ]
+}

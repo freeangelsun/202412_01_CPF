@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "CPF_QA32_EVIDENCE_INDEX_SCHEMA.json",
+  "title": "CPF QA32 exact-SHA evidence index",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "sourceSha", "sanitized", "records"],
+  "properties": {
+    "schemaVersion": { "const": 2 },
+    "sourceSha": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "sanitized": { "const": true },
+    "records": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/record" }
+    }
+  },
+  "$defs": {
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+      }
+    },
+    "record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "recordType", "recordId", "sourceSha", "startedAt", "finishedAt",
+        "exitCode", "commands", "sourcePaths", "testPaths", "artifacts", "sanitized"
+      ],
+      "properties": {
+        "recordType": { "enum": ["REQUIREMENT", "DEFECT", "SCENARIO"] },
+        "recordId": { "type": "string", "minLength": 1 },
+        "sourceSha": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "startedAt": { "type": "string", "format": "date-time" },
+        "finishedAt": { "type": "string", "format": "date-time" },
+        "exitCode": { "const": 0 },
+        "commands": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+        "sourcePaths": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+        "testPaths": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+        "artifacts": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/artifact" } },
+        "sanitized": { "const": true }
+      }
+    }
+  }
+}

@@ -151,8 +151,8 @@ subprojects { targetProject ->
         testImplementation 'net.bytebuddy:byte-buddy-agent:1.18.7'
         testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-        // MariaDB는 현재 실검증 지원 Vendor다. Candidate Vendor driver는 검증된 Vendor Pack/Runtime profile에서만 추가한다.
-        runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
+        // DB Vendor driver는 실제 DataSource/Runtime Owner module이 명시적으로 소유합니다.
+        // 모든 subproject에 특정 Vendor driver를 강제하지 않습니다.
     }
 
     plugins.withId('maven-publish') {

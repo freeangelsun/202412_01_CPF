@@ -1,4 +1,4 @@
-import { clearAdmAccessToken, createAdmHeaders } from "../../shared/cpfApi";
+import { createAdmHeaders } from "../../shared/cpfApi";
 
 export const coreMethods: Record<string, any> = {
   pretty(value) {
@@ -113,13 +113,9 @@ export const coreMethods: Record<string, any> = {
         this.currentOperator = {};
         this.authorizedMenus = [];
         this.authorizedButtons = [];
-        this.permissionsLoaded = false;
-        this.currentOperator = {};
-        this.authorizedMenus = [];
-        this.authorizedButtons = [];
         this.buttonsLoaded = false;
         this.permissionsLoaded = false;
-        clearAdmAccessToken();
+        // Browser에는 지울 access token이 존재하지 않는다. 서버 세션 종료 후 화면의 민감 상태만 폐기한다.
         if (typeof this.resetSensitiveState === "function") this.resetSensitiveState();
         this.authMessage = message || "";
       },

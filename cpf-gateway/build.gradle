@@ -8,8 +8,8 @@ group = 'com.cpf.gateway'
 dependencies {
     implementation project(':cpf-core')
     implementation 'org.springframework.cloud:spring-cloud-starter-gateway-server-webmvc'
-    implementation project(':cpf-starters:resilience')
-    implementation project(':cpf-starters:observability')
+    implementation project(':cpf-starter-resilience')
+    implementation project(':cpf-starter-observability')
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework:spring-jdbc'
     implementation 'com.fasterxml.jackson.core:jackson-databind'
@@ -17,5 +17,4 @@ dependencies {
 }
 
 tasks.named('test') { useJUnitPlatform() }
-tasks.named('bootJar') { enabled = true }
 tasks.named('bootJar') { enabled = true }

@@ -1,8 +1,7 @@
 HELP.md
 .gradle
 build/
-# 제품 Build Tooling Source는 cpf-tools 소유이며 산출물 build 디렉터리가 아닙니다.
-!/cpf-tools/build/
+# 삭제된 cpf-tools/build composite source는 다시 추적하지 않습니다.
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
@@ -59,6 +58,10 @@ cpf-docs/evidence/**
 !cpf-docs/evidence/**/*.sanitized.log
 !cpf-docs/evidence/**/*.sanitized.json
 !cpf-docs/evidence/**/*.sanitized.png
+# Evidence 계약 정본은 실행 원문과 분리해 추적합니다.
+!cpf-docs/evidence/templates/**/*.json
+!cpf-docs/evidence/schema/**/*.json
+!cpf-docs/evidence/fixtures/**/*.json
 !cpf-docs/evidence/**/cpf-current-work-request.baseline.sha256
 
 ### CPF transient runtime directories ###
@@ -87,3 +90,16 @@ yarn-debug.log*
 yarn-error.log*
 Thumbs.db
 .DS_Store
+
+# cpf-tools/build contains tracked BOM/convention-plugin source; nested Gradle outputs stay ignored.
+!/cpf-tools/build/
+!/cpf-tools/build/platform-bom/
+!/cpf-tools/build/platform-bom/settings.gradle
+!/cpf-tools/build/platform-bom/build.gradle
+!/cpf-tools/build/gradle-plugin/
+!/cpf-tools/build/gradle-plugin/settings.gradle
+!/cpf-tools/build/gradle-plugin/build.gradle
+!/cpf-tools/build/gradle-plugin/src/
+!/cpf-tools/build/gradle-plugin/src/**
+/cpf-tools/build/**/build/
+/cpf-tools/build/**/.gradle/

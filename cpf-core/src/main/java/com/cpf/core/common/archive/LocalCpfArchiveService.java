@@ -23,7 +23,9 @@ import java.security.MessageDigest;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HexFormat;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
@@ -58,48 +60,66 @@ public class LocalCpfArchiveService implements CpfArchiveService {
     private CpfArchiveResult zip(CpfArchiveRequest request) {
         validateTarget(request);
         long total = 0;
+        Path temporary = createTemporaryTarget(request);
+        Set<String> names = new HashSet<>();
         try {
-            Files.createDirectories(request.targetPath().toAbsolutePath().getParent());
             try (ZipOutputStream output = new ZipOutputStream(Files.newOutputStream(
-                    request.targetPath(), StandardOpenOption.CREATE_NEW))) {
+                    temporary, StandardOpenOption.TRUNCATE_EXISTING))) {
                 for (CpfArchiveEntry entry : request.entries()) {
                     validateEntry(entry, request.policy(), total);
+                    requireUniqueEntry(names, entry.name());
                     output.putNextEntry(new ZipEntry(entry.name()));
-                    output.write(entry.content());
+                    try (InputStream input = entry.openStream()) {
+                        requireExactSize(entry, copy(input, output, entry.size()));
+                    }
                     output.closeEntry();
                     total += entry.size();
                 }
             }
+            publish(temporary, request.targetPath(), request.policy().overwriteExisting());
             return result(request, total);
         } catch (IOException failure) {
+            deleteQuietly(temporary);
             throw new IllegalStateException("ZIP_CREATE_FAILED", failure);
+        } catch (RuntimeException failure) {
+            deleteQuietly(temporary);
+            throw failure;
         }
     }
 
     private CpfArchiveResult tar(CpfArchiveRequest request) {
         validateTarget(request);
         long total = 0;
+        Path temporary = createTemporaryTarget(request);
+        Set<String> names = new HashSet<>();
         try {
-            Files.createDirectories(request.targetPath().toAbsolutePath().getParent());
             try (TarArchiveOutputStream output = new TarArchiveOutputStream(Files.newOutputStream(
-                    request.targetPath(), StandardOpenOption.CREATE_NEW))) {
+                    temporary, StandardOpenOption.TRUNCATE_EXISTING))) {
                 output.setLongFileMode(TarArchiveOutputStream.LONGFILE_ERROR);
                 output.setBigNumberMode(TarArchiveOutputStream.BIGNUMBER_ERROR);
                 for (CpfArchiveEntry entry : request.entries()) {
                     validateEntry(entry, request.policy(), total);
+                    requireUniqueEntry(names, entry.name());
                     TarArchiveEntry tarEntry = new TarArchiveEntry(entry.name());
                     tarEntry.setSize(entry.size());
                     tarEntry.setMode(0640);
                     output.putArchiveEntry(tarEntry);
-                    output.write(entry.content());
+                    try (InputStream input = entry.openStream()) {
+                        requireExactSize(entry, copy(input, output, entry.size()));
+                    }
                     output.closeArchiveEntry();
                     total += entry.size();
                 }
                 output.finish();
             }
+            publish(temporary, request.targetPath(), request.policy().overwriteExisting());
             return result(request, total);
         } catch (IOException failure) {
+            deleteQuietly(temporary);
             throw new IllegalStateException("TAR_CREATE_FAILED", failure);
+        } catch (RuntimeException failure) {
+            deleteQuietly(temporary);
+            throw failure;
         }
     }
 
@@ -107,31 +127,39 @@ public class LocalCpfArchiveService implements CpfArchiveService {
         validateTarget(request);
         Path source = request.sourcePath();
         requireRegularArchive(source);
+        Path temporary = createTemporaryTarget(request);
         try {
             long size = Files.size(source);
             if (size > request.policy().maxEntrySizeBytes() || size > request.policy().maxTotalSizeBytes()) {
                 throw new IllegalArgumentException("GZIP_BUDGET_EXCEEDED");
             }
-            Files.createDirectories(request.targetPath().toAbsolutePath().getParent());
             try (InputStream input = Files.newInputStream(source, LinkOption.NOFOLLOW_LINKS);
                     OutputStream output = new GZIPOutputStream(Files.newOutputStream(
-                            request.targetPath(), StandardOpenOption.CREATE_NEW))) {
-                copy(input, output, size);
+                            temporary, StandardOpenOption.TRUNCATE_EXISTING))) {
+                long copied = copy(input, output, size);
+                if (copied != size) throw new IllegalStateException("GZIP_SOURCE_SIZE_CHANGED");
             }
+            publish(temporary, request.targetPath(), request.policy().overwriteExisting());
             return new CpfArchiveResult("SUCCESS", CpfArchiveFormat.GZIP, request.targetPath(), 1, size,
                     CpfArchiveChecksum.sha256(request.targetPath()), Instant.now(), List.of());
         } catch (IOException failure) {
+            deleteQuietly(temporary);
             throw new IllegalStateException("GZIP_CREATE_FAILED", failure);
+        } catch (RuntimeException failure) {
+            deleteQuietly(temporary);
+            throw failure;
         }
     }
 
     private List<CpfExtractedArchiveEntry> unzip(Path archive, Path target, CpfArchivePolicy policy) {
         List<CpfExtractedArchiveEntry> result = new ArrayList<>();
         ExtractionBudget budget = new ExtractionBudget(policy);
+        Set<String> names = new HashSet<>();
         Path base = secureTarget(target, policy);
         try (ZipInputStream input = new ZipInputStream(Files.newInputStream(archive, LinkOption.NOFOLLOW_LINKS))) {
             for (ZipEntry entry; (entry = input.getNextEntry()) != null;) {
                 if (entry.isDirectory()) continue;
+                requireUniqueEntry(names, entry.getName());
                 result.add(extractEntry(input, entry.getName(), base, policy, budget));
             }
         } catch (IOException failure) {
@@ -143,11 +171,13 @@ public class LocalCpfArchiveService implements CpfArchiveService {
     private List<CpfExtractedArchiveEntry> untar(Path archive, Path target, CpfArchivePolicy policy) {
         List<CpfExtractedArchiveEntry> result = new ArrayList<>();
         ExtractionBudget budget = new ExtractionBudget(policy);
+        Set<String> names = new HashSet<>();
         Path base = secureTarget(target, policy);
         try (TarArchiveInputStream input = new TarArchiveInputStream(
                 Files.newInputStream(archive, LinkOption.NOFOLLOW_LINKS))) {
             for (TarArchiveEntry entry; (entry = input.getNextEntry()) != null;) {
                 if (entry.isDirectory()) continue;
+                requireUniqueEntry(names, entry.getName());
                 if (entry.isSymbolicLink() || entry.isLink() || entry.isCharacterDevice()
                         || entry.isBlockDevice() || entry.isFIFO()) {
                     throw new SecurityException("TAR_SPECIAL_ENTRY_DENIED:" + entry.getName());
@@ -197,6 +227,48 @@ public class LocalCpfArchiveService implements CpfArchiveService {
             throw failure;
         }
         return new CpfExtractedArchiveEntry(entryName, output, copied.size(), copied.sha256());
+    }
+
+    private static Path createTemporaryTarget(CpfArchiveRequest request) {
+        Path target = request.targetPath().toAbsolutePath().normalize();
+        Path parent = target.getParent();
+        if (parent == null) throw new IllegalArgumentException("ARCHIVE_TARGET_PARENT_MISSING");
+        try {
+            Files.createDirectories(parent);
+            return Files.createTempFile(parent, target.getFileName() + ".", request.policy().tempSuffix());
+        } catch (IOException failure) {
+            throw new IllegalStateException("ARCHIVE_TEMP_TARGET_CREATE_FAILED", failure);
+        }
+    }
+
+    private static void publish(Path temporary, Path target, boolean overwrite) throws IOException {
+        Path normalized = target.toAbsolutePath().normalize();
+        StandardCopyOption[] options = overwrite
+                ? new StandardCopyOption[] {StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING}
+                : new StandardCopyOption[] {StandardCopyOption.ATOMIC_MOVE};
+        try {
+            Files.move(temporary, normalized, options);
+        } catch (AtomicMoveNotSupportedException ignored) {
+            if (overwrite) Files.move(temporary, normalized, StandardCopyOption.REPLACE_EXISTING);
+            else Files.move(temporary, normalized);
+        }
+    }
+
+    private static void deleteQuietly(Path path) {
+        if (path == null) return;
+        try { Files.deleteIfExists(path); }
+        catch (IOException ignored) { /* recovery cleanup is best-effort; original failure remains primary */ }
+    }
+
+    private static void requireExactSize(CpfArchiveEntry entry, long copied) {
+        if (copied != entry.size()) {
+            throw new IllegalStateException("ARCHIVE_ENTRY_SIZE_CHANGED:" + entry.name());
+        }
+    }
+
+    private static void requireUniqueEntry(Set<String> names, String entryName) {
+        String normalized = entryName.replace('\\', '/');
+        if (!names.add(normalized)) throw new SecurityException("ARCHIVE_DUPLICATE_ENTRY:" + entryName);
     }
 
     private static void validateEntry(CpfArchiveEntry entry, CpfArchivePolicy policy, long total) {

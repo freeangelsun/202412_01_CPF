@@ -125,8 +125,10 @@ project(':cpf-biz-admin').projectDir = file('cpf-biz-admin')
 project(':cpf-gateway').projectDir = file('cpf-gateway')
 project(':cpf-local-runtime').projectDir = file('cpf-tools/runtime/cpf-local-runtime')
 project(':cpf-local-batch-runtime').projectDir = file('cpf-tools/runtime/cpf-local-batch-runtime')
+// CPF BOM과 convention 정책은 root build/gradle 정본에서 관리합니다.
+// 삭제된 cpf-tools/build/* composite build를 다시 참조하지 않습니다.
+
 // Published dependency BOM and convention plugin are cpf-tools-owned isolated builds.
-// cpf-tools/build is tracked tooling source; each nested build output remains ignored.
 includeBuild 'cpf-tools/build/platform-bom'
 includeBuild 'cpf-tools/build/gradle-plugin'
 

@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 2,
+  "sourceSha": "0000000000000000000000000000000000000000",
+  "artifactSha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "command": "pwsh -NoProfile -File cpf-tools/scripts/verify-cpf-qa32-all.ps1 -Root . -Release",
+  "profile": "QA32_RELEASE",
+  "environment": "REPLACE_WITH_SANITIZED_ENVIRONMENT",
+  "topology": "REPLACE_WITH_ACTUAL_INSTANCE_TOPOLOGY",
+  "startedAt": "1970-01-01T00:00:00Z",
+  "finishedAt": "1970-01-01T00:00:00Z",
+  "exitCode": 0,
+  "reportSha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "sanitized": true
+}

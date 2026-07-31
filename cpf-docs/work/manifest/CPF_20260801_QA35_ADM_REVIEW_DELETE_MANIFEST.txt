@@ -1,0 +1,1 @@
+# No automatic tracked deletion in this review overlay.

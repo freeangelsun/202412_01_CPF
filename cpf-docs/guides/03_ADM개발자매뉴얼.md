@@ -2,7 +2,7 @@
 
 > **기준 Repository** `freeangelsun/202412_01_CPF`
 > **기준 Branch** `master`
-> **기준 Commit** `e1f8bef7b7193522f2cd8e36cc6857dd1ff6694a`
+> **기준 Commit** `95e592c05fc457301efdb13ee50e0d7453325806`
 > **문서 목적** ADM Backend·Frontend, Owner Query·Command Port, Local·Remote, Timeout·Expected Version·Idempotency, Permission·Approval·Audit, OpenAPI·Orval과 Browser·Fault Test를 설명한다.
 > **주요 독자** cpf-admin Backend·Frontend 개발자, 운영 API 개발자, 보안·감사 개발자
 > **문서 사용 결과** ADM 기능 하나를 Owner Runtime과 연결하고 화면·권한·조치·복구·Test까지 구현한다.
@@ -326,7 +326,7 @@ Same-JVM Adapter와 Remote Adapter 모두 Query·Command·Status Query·Reconcil
 
 - Repository: `https://github.com/freeangelsun/202412_01_CPF`
 - Branch: `master`
-- 기준 Commit: `e1f8bef7b7193522f2cd8e36cc6857dd1ff6694a`
+- 기준 Commit: `95e592c05fc457301efdb13ee50e0d7453325806`
 - 문서 표준: `cpf-docs/specification/CPF_DOCUMENTATION_STANDARD.md`
 - 제품 목표 정본: `cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md`
 - 사실 우선순위: 실제 Source·SQL·API·Config·Frontend·Script·Test → Architecture·Specification → 이 매뉴얼
@@ -699,7 +699,7 @@ npm run build
 npm run test:e2e
 ```
 
-OpenAPI, Generated Marker, Generated Client, Operation Consumer, Bundle Manifest의 Source SHA를 `e1f8bef7b7193522f2cd8e36cc6857dd1ff6694a`와 연결한다. Page에서 임의 URL·중복 DTO·수동 Error Enum을 새로 만들지 않는다.
+OpenAPI, Generated Marker, Generated Client, Operation Consumer, Bundle Manifest의 Source SHA를 `95e592c05fc457301efdb13ee50e0d7453325806`와 연결한다. Page에서 임의 URL·중복 DTO·수동 Error Enum을 새로 만들지 않는다.
 
 ## 37. Permission 개발 상세
 
@@ -785,1971 +785,4775 @@ Cache, Config, Response Code, Business Calendar, Code, Permission, Operator, Pas
 
 ---
 
-## 제4부. ADM Route별 개발 참조
+## 제4부. ADM Route별 개발 계약
 
-> Route가 추가·변경될 때 아래 카드의 Frontend, Backend, Owner, Permission, 오류·복구, Test를 한 변경으로 유지한다.
+이 부는 `cpf-admin/frontend/src/app/routes.ts`의 전체 Route를 기능 Slice로 구현할 때 사용하는 개발 계약이다. 각 Route는 Frontend 입력·표시·Button, Backend Query·Command, Permission, 상태, 오류·복구, Browser Test를 하나의 단위로 유지한다.
+
 
 ### dashboard — 운영 대시보드
 
-**Route** `/` · **Group** 홈 · **Page** ``cpf-admin/frontend/src/features/dashboard/DashboardPage.vue``
+| 항목 | 계약 |
+|---|---|
+| Route | `/` |
+| Group | 홈 |
+| Page | `cpf-admin/frontend/src/features/dashboard/DashboardPage.vue` |
+| Permission | 조회 권한 |
 
-#### Frontend 구현
+#### Frontend Query·Form
 
-- 검색·입력: 초기 데이터 자동 조회
-- Column·상세: 등록 인스턴스·정상 수, 비정상 Health, 결과 미확정, DLQ, 서비스 상태, 최근 Service Call
-- Action: 새로고침
-- Empty·Loading·Error·Stale·Partial·Conflict·Unknown 상태를 구분한다.
-- Query Key는 Environment·Tenant·Filter·Paging·Sort를 포함하고, Mutation 성공 뒤 필요한 Query만 무효화한다.
+- 초기 데이터 자동 조회
 
-#### Backend·Owner 연결
+- 검색 Default와 Reset 결과를 같은 Query Key 규칙으로 관리한다.
+- 기간·Timezone·Paging·Sort·Data Scope를 URL 또는 Store 상태와 일치시킨다.
+- Password·Token·Secret·PII 원문은 Store·Browser Storage·Error Message에 남기지 않는다.
 
-1. Query DTO는 검색 Field·Default·Paging·Sort·Data Scope를 검증한다.
-2. Command DTO는 Target, Action, Reason, Approval, Expected Version, Idempotency Key를 포함한다.
-3. Owner Port는 Same-JVM·Remote Adapter를 제공하고 결과 상태 조회·Reconcile을 함께 제공한다.
-4. Page는 Orval Generated Client Operation을 사용한다.
-5. 필요한 Permission은 `조회 권한`이며 Backend에서 다시 검증한다.
+#### Table·Detail
 
-#### 정상·오류·복구 Contract
+- 등록 인스턴스·정상 수
+- 비정상 Health
+- 결과 미확정
+- DLQ
+- 서비스 상태
+- 최근 Service Call
 
-정상 결과는 Row·Detail·Owner 상태·Version·Audit가 일치해야 한다. 복구 핵심은 **Loading/Empty/Error**다. 409, Timeout, Response loss, Partial Apply를 각각 Fixture로 재현하고 Reconcile·Rollback UI를 시험한다.
+- Stable Row Key와 Detail ID·Version을 일치시킨다.
+- Empty·Stale·Partial·Unknown을 일반 Success와 구분한다.
+- Masked Field와 Raw Field의 DTO·Permission·Audit를 분리한다.
+
+#### Button·활성 조건
+
+Action: **새로고침**
+
+- 조회 Permission이 있고 Page가 Loading 중이 아닐 때 조회·새로고침을 허용한다.
+- Stale·Partial 표시 중에는 변경 Button을 제공하지 않는다.
+
+#### Backend·Owner API 계약
+
+- Query DTO: 초기 데이터 자동 조회
+- Response DTO: 등록 인스턴스·정상 수, 비정상 Health, 결과 미확정, DLQ, 서비스 상태, 최근 Service Call
+- Query는 Environment·Data Scope·Paging·Sort·조회 시각을 포함한다.
+- Empty, Stale, Partial을 별도 응답 상태로 표현한다.
+- Permission: 조회 권한.
+
+- Same-JVM과 Remote Adapter가 같은 Request·Response·Error 의미를 제공한다.
+- Owner DB를 ADM Repository에서 직접 갱신하지 않는다.
+- 202·Accepted 응답은 Operation 상태 조회와 Reconcile API를 연결한다.
+
+#### 화면 상태 모델
+
+Loading, Empty, Success, Validation Error, 403, 409, Timeout, Response Loss
+
+- 상태 전이는 Store와 URL·Dialog·Table Selection에 일관되게 반영한다.
+- Route 이동·Session 만료·Response Loss 후 민감 Form과 진행 중 Operation ID를 분리해 보존한다.
+
+#### 오류·부분 적용·Rollback
+
+- Validation은 Field별 Message와 허용 범위를 표시한다.
+- 403은 Menu/Button 숨김과 별도로 Backend Permission 거부를 표시한다.
+- 409는 최신 Version·변경자·변경 시각을 보여주고 Blind Retry하지 않는다.
+- Timeout·응답 유실은 기존 Operation ID를 조회한다.
+- Partial은 Target별 성공·실패·미응답을 표시한다.
+- Rollback은 변경 전 Version·Checksum·LKG 또는 Owner가 정의한 보정 Command를 사용한다.
 
 #### Test
 
-- Route deep link와 Menu Permission
+- Deep Link·Refresh·404
 - 검색 Default·Reset·Paging·Sort
-- Form validation과 Duplicate submit
-- 401·403·409·429·503·Timeout
-- Response loss 뒤 Operation 조회
+- Loading·Empty·Error 상태
+- 401·403 Backend 직접 호출
+- 409 Expected Version
+- Timeout·응답 유실 후 Operation 조회
 - Audit Masking·Before/After
-- Keyboard·Focus·Accessible name
+- Keyboard·Focus·Accessible Name
+- 화면별 복구 기준: Loading/Empty/Error
+
+
 ### topology — 서비스 토폴로지
 
-**Route** `/topology` · **Group** 홈 · **Page** ``.../features/topology/TopologyPage.vue``
+| 항목 | 계약 |
+|---|---|
+| Route | `/topology` |
+| Group | 홈 |
+| Page | `cpf-admin/frontend/src/features/topology/TopologyPage.vue` |
+| Permission | 조회 권한 |
 
-#### Frontend 구현
+#### Frontend Query·Form
 
-- 검색·입력: 없음
-- Column·상세: Service ID·명, Instance ID·명, Endpoint, Weight, Status
-- Action: 새로고침
-- Empty·Loading·Error·Stale·Partial·Conflict·Unknown 상태를 구분한다.
-- Query Key는 Environment·Tenant·Filter·Paging·Sort를 포함하고, Mutation 성공 뒤 필요한 Query만 무효화한다.
+- 없음
 
-#### Backend·Owner 연결
+- 검색 Default와 Reset 결과를 같은 Query Key 규칙으로 관리한다.
+- 기간·Timezone·Paging·Sort·Data Scope를 URL 또는 Store 상태와 일치시킨다.
+- Password·Token·Secret·PII 원문은 Store·Browser Storage·Error Message에 남기지 않는다.
 
-1. Query DTO는 검색 Field·Default·Paging·Sort·Data Scope를 검증한다.
-2. Command DTO는 Target, Action, Reason, Approval, Expected Version, Idempotency Key를 포함한다.
-3. Owner Port는 Same-JVM·Remote Adapter를 제공하고 결과 상태 조회·Reconcile을 함께 제공한다.
-4. Page는 Orval Generated Client Operation을 사용한다.
-5. 필요한 Permission은 `조회 권한`이며 Backend에서 다시 검증한다.
+#### Table·Detail
 
-#### 정상·오류·복구 Contract
+- Service ID·명
+- Instance ID·명
+- Endpoint
+- Weight
+- Status
 
-정상 결과는 Row·Detail·Owner 상태·Version·Audit가 일치해야 한다. 복구 핵심은 **Registry 0건 Empty**다. 409, Timeout, Response loss, Partial Apply를 각각 Fixture로 재현하고 Reconcile·Rollback UI를 시험한다.
+- Stable Row Key와 Detail ID·Version을 일치시킨다.
+- Empty·Stale·Partial·Unknown을 일반 Success와 구분한다.
+- Masked Field와 Raw Field의 DTO·Permission·Audit를 분리한다.
+
+#### Button·활성 조건
+
+Action: **새로고침**
+
+- 조회 Permission이 있고 Page가 Loading 중이 아닐 때 조회·새로고침을 허용한다.
+- Stale·Partial 표시 중에는 변경 Button을 제공하지 않는다.
+
+#### Backend·Owner API 계약
+
+- Query DTO: 없음
+- Response DTO: Service ID·명, Instance ID·명, Endpoint, Weight, Status
+- Query는 Environment·Data Scope·Paging·Sort·조회 시각을 포함한다.
+- Empty, Stale, Partial을 별도 응답 상태로 표현한다.
+- Permission: 조회 권한.
+
+- Same-JVM과 Remote Adapter가 같은 Request·Response·Error 의미를 제공한다.
+- Owner DB를 ADM Repository에서 직접 갱신하지 않는다.
+- 202·Accepted 응답은 Operation 상태 조회와 Reconcile API를 연결한다.
+
+#### 화면 상태 모델
+
+Loading, Empty, Success, Validation Error, 403, 409, Timeout, Response Loss
+
+- 상태 전이는 Store와 URL·Dialog·Table Selection에 일관되게 반영한다.
+- Route 이동·Session 만료·Response Loss 후 민감 Form과 진행 중 Operation ID를 분리해 보존한다.
+
+#### 오류·부분 적용·Rollback
+
+- Validation은 Field별 Message와 허용 범위를 표시한다.
+- 403은 Menu/Button 숨김과 별도로 Backend Permission 거부를 표시한다.
+- 409는 최신 Version·변경자·변경 시각을 보여주고 Blind Retry하지 않는다.
+- Timeout·응답 유실은 기존 Operation ID를 조회한다.
+- Partial은 Target별 성공·실패·미응답을 표시한다.
+- Rollback은 변경 전 Version·Checksum·LKG 또는 Owner가 정의한 보정 Command를 사용한다.
 
 #### Test
 
-- Route deep link와 Menu Permission
+- Deep Link·Refresh·404
 - 검색 Default·Reset·Paging·Sort
-- Form validation과 Duplicate submit
-- 401·403·409·429·503·Timeout
-- Response loss 뒤 Operation 조회
+- Loading·Empty·Error 상태
+- 401·403 Backend 직접 호출
+- 409 Expected Version
+- Timeout·응답 유실 후 Operation 조회
 - Audit Masking·Before/After
-- Keyboard·Focus·Accessible name
+- Keyboard·Focus·Accessible Name
+- 화면별 복구 기준: Registry 0건 Empty
+
+
 ### capacity — 용량·SLO 기본 Signal
 
-**Route** `/capacity` · **Group** 홈 · **Page** ``.../features/capacity/CapacityPage.vue``
+| 항목 | 계약 |
+|---|---|
+| Route | `/capacity` |
+| Group | 홈 |
+| Page | `cpf-admin/frontend/src/features/capacity/CapacityPage.vue` |
+| Permission | 조회 권한 |
 
-#### Frontend 구현
+#### Frontend Query·Form
 
-- 검색·입력: 없음
-- Column·상세: 최근 호출, 평균 지연, 실패율, 인스턴스; Service/Endpoint/Status/Latency/Transaction
-- Action: 새로고침
-- Empty·Loading·Error·Stale·Partial·Conflict·Unknown 상태를 구분한다.
-- Query Key는 Environment·Tenant·Filter·Paging·Sort를 포함하고, Mutation 성공 뒤 필요한 Query만 무효화한다.
+- 없음
 
-#### Backend·Owner 연결
+- 검색 Default와 Reset 결과를 같은 Query Key 규칙으로 관리한다.
+- 기간·Timezone·Paging·Sort·Data Scope를 URL 또는 Store 상태와 일치시킨다.
+- Password·Token·Secret·PII 원문은 Store·Browser Storage·Error Message에 남기지 않는다.
 
-1. Query DTO는 검색 Field·Default·Paging·Sort·Data Scope를 검증한다.
-2. Command DTO는 Target, Action, Reason, Approval, Expected Version, Idempotency Key를 포함한다.
-3. Owner Port는 Same-JVM·Remote Adapter를 제공하고 결과 상태 조회·Reconcile을 함께 제공한다.
-4. Page는 Orval Generated Client Operation을 사용한다.
-5. 필요한 Permission은 `조회 권한`이며 Backend에서 다시 검증한다.
+#### Table·Detail
 
-#### 정상·오류·복구 Contract
+- 최근 호출
+- 평균 지연
+- 실패율
+- 인스턴스
+- Service/Endpoint/Status/Latency/Transaction
 
-정상 결과는 Row·Detail·Owner 상태·Version·Audit가 일치해야 한다. 복구 핵심은 **장기 Percentile·Forecast는 Metrics Backend와 함께 확인**다. 409, Timeout, Response loss, Partial Apply를 각각 Fixture로 재현하고 Reconcile·Rollback UI를 시험한다.
+- Stable Row Key와 Detail ID·Version을 일치시킨다.
+- Empty·Stale·Partial·Unknown을 일반 Success와 구분한다.
+- Masked Field와 Raw Field의 DTO·Permission·Audit를 분리한다.
+
+#### Button·활성 조건
+
+Action: **새로고침**
+
+- 조회 Permission이 있고 Page가 Loading 중이 아닐 때 조회·새로고침을 허용한다.
+- Stale·Partial 표시 중에는 변경 Button을 제공하지 않는다.
+
+#### Backend·Owner API 계약
+
+- Query DTO: 없음
+- Response DTO: 최근 호출, 평균 지연, 실패율, 인스턴스; Service/Endpoint/Status/Latency/Transaction
+- Query는 Environment·Data Scope·Paging·Sort·조회 시각을 포함한다.
+- Empty, Stale, Partial을 별도 응답 상태로 표현한다.
+- Permission: 조회 권한.
+
+- Same-JVM과 Remote Adapter가 같은 Request·Response·Error 의미를 제공한다.
+- Owner DB를 ADM Repository에서 직접 갱신하지 않는다.
+- 202·Accepted 응답은 Operation 상태 조회와 Reconcile API를 연결한다.
+
+#### 화면 상태 모델
+
+Loading, Empty, Success, Validation Error, 403, 409, Timeout, Response Loss
+
+- 상태 전이는 Store와 URL·Dialog·Table Selection에 일관되게 반영한다.
+- Route 이동·Session 만료·Response Loss 후 민감 Form과 진행 중 Operation ID를 분리해 보존한다.
+
+#### 오류·부분 적용·Rollback
+
+- Validation은 Field별 Message와 허용 범위를 표시한다.
+- 403은 Menu/Button 숨김과 별도로 Backend Permission 거부를 표시한다.
+- 409는 최신 Version·변경자·변경 시각을 보여주고 Blind Retry하지 않는다.
+- Timeout·응답 유실은 기존 Operation ID를 조회한다.
+- Partial은 Target별 성공·실패·미응답을 표시한다.
+- Rollback은 변경 전 Version·Checksum·LKG 또는 Owner가 정의한 보정 Command를 사용한다.
 
 #### Test
 
-- Route deep link와 Menu Permission
+- Deep Link·Refresh·404
 - 검색 Default·Reset·Paging·Sort
-- Form validation과 Duplicate submit
-- 401·403·409·429·503·Timeout
-- Response loss 뒤 Operation 조회
+- Loading·Empty·Error 상태
+- 401·403 Backend 직접 호출
+- 409 Expected Version
+- Timeout·응답 유실 후 Operation 조회
 - Audit Masking·Before/After
-- Keyboard·Focus·Accessible name
+- Keyboard·Focus·Accessible Name
+- 화면별 복구 기준: 장기 Percentile·Forecast는 Metrics Backend와 함께 확인
+
+
 ### logs — 로그 조회
 
-**Route** `/logs` · **Group** 통합 관제 · **Page** ``.../features/logs/LogsPage.vue``
+| 항목 | 계약 |
+|---|---|
+| Route | `/logs` |
+| Group | 통합 관제 |
+| Page | `cpf-admin/frontend/src/features/logs/LogsPage.vue` |
+| Permission | 해당 없음 |
 
-#### Frontend 구현
+#### Frontend Query·Form
 
-- 검색·입력: 해당 없음
-- Column·상세: 해당 없음
-- Action: 해당 없음
-- Empty·Loading·Error·Stale·Partial·Conflict·Unknown 상태를 구분한다.
-- Query Key는 Environment·Tenant·Filter·Paging·Sort를 포함하고, Mutation 성공 뒤 필요한 Query만 무효화한다.
+- 해당 없음
 
-#### Backend·Owner 연결
+- 검색 Default와 Reset 결과를 같은 Query Key 규칙으로 관리한다.
+- 기간·Timezone·Paging·Sort·Data Scope를 URL 또는 Store 상태와 일치시킨다.
+- Password·Token·Secret·PII 원문은 Store·Browser Storage·Error Message에 남기지 않는다.
 
-1. Query DTO는 검색 Field·Default·Paging·Sort·Data Scope를 검증한다.
-2. Command DTO는 Target, Action, Reason, Approval, Expected Version, Idempotency Key를 포함한다.
-3. Owner Port는 Same-JVM·Remote Adapter를 제공하고 결과 상태 조회·Reconcile을 함께 제공한다.
-4. Page는 Orval Generated Client Operation을 사용한다.
-5. 필요한 Permission은 `해당 없음`이며 Backend에서 다시 검증한다.
+#### Table·Detail
 
-#### 정상·오류·복구 Contract
+- 해당 없음
 
-정상 결과는 Row·Detail·Owner 상태·Version·Audit가 일치해야 한다. 복구 핵심은 **표준 로그 조회 화면**다. 409, Timeout, Response loss, Partial Apply를 각각 Fixture로 재현하고 Reconcile·Rollback UI를 시험한다.
+- Stable Row Key와 Detail ID·Version을 일치시킨다.
+- Empty·Stale·Partial·Unknown을 일반 Success와 구분한다.
+- Masked Field와 Raw Field의 DTO·Permission·Audit를 분리한다.
+
+#### Button·활성 조건
+
+Action: **해당 없음**
+
+- Write/Delete Permission과 대상 최신 Version을 확인한 뒤 변경 Button을 활성화한다.
+- Reason·Approval이 필요한 조치는 값이 비어 있으면 제출을 비활성화한다.
+- 기존 Operation이 Processing·Unknown이면 중복 제출 대신 상태 조회를 제공한다.
+
+#### Backend·Owner API 계약
+
+- Query DTO: 해당 없음
+- Response DTO: 해당 없음
+- Command: 해당 없음
+- Command 공통 Field: Target ID, Reason, Expected Version, Idempotency Key, 필요 시 Approval ID.
+- Permission: 해당 없음; 복구 핵심: 표준 로그 조회 화면.
+
+- Same-JVM과 Remote Adapter가 같은 Request·Response·Error 의미를 제공한다.
+- Owner DB를 ADM Repository에서 직접 갱신하지 않는다.
+- 202·Accepted 응답은 Operation 상태 조회와 Reconcile API를 연결한다.
+
+#### 화면 상태 모델
+
+Loading, Empty, Success, Validation Error, 403, 409, Timeout, Response Loss
+
+- 상태 전이는 Store와 URL·Dialog·Table Selection에 일관되게 반영한다.
+- Route 이동·Session 만료·Response Loss 후 민감 Form과 진행 중 Operation ID를 분리해 보존한다.
+
+#### 오류·부분 적용·Rollback
+
+- Validation은 Field별 Message와 허용 범위를 표시한다.
+- 403은 Menu/Button 숨김과 별도로 Backend Permission 거부를 표시한다.
+- 409는 최신 Version·변경자·변경 시각을 보여주고 Blind Retry하지 않는다.
+- Timeout·응답 유실은 기존 Operation ID를 조회한다.
+- Partial은 Target별 성공·실패·미응답을 표시한다.
+- Rollback은 변경 전 Version·Checksum·LKG 또는 Owner가 정의한 보정 Command를 사용한다.
 
 #### Test
 
-- Route deep link와 Menu Permission
+- Deep Link·Refresh·404
 - 검색 Default·Reset·Paging·Sort
-- Form validation과 Duplicate submit
-- 401·403·409·429·503·Timeout
-- Response loss 뒤 Operation 조회
+- Loading·Empty·Error 상태
+- 401·403 Backend 직접 호출
+- 409 Expected Version
+- Timeout·응답 유실 후 Operation 조회
 - Audit Masking·Before/After
-- Keyboard·Focus·Accessible name
+- Keyboard·Focus·Accessible Name
+- 화면별 복구 기준: 표준 로그 조회 화면
+
+
 ### transactionGroups — 거래 그룹·구간 추적
 
-**Route** `/transactionGroups` · **Group** 온라인 운영 · **Page** ``.../features/transaction-groups/TransactionGroupsPage.vue``
+| 항목 | 계약 |
+|---|---|
+| Route | `/transactionGroups` |
+| Group | 온라인 운영 |
+| Page | `cpf-admin/frontend/src/features/transaction-groups/TransactionGroupsPage.vue` |
+| Permission | 거래 조회 Permission·Data Scope |
 
-#### Frontend 구현
+#### Frontend Query·Form
 
-- 검색·입력: 기간, Transaction/Segment, Status, 실패, Module/Source/Target/Role/Direction, 고객·회원·사용자·운영자, Channel, 외부기관/거래, API/거래명/오류, Duration, Header 검색
-- Column·상세: 거래/모듈 흐름/시간/소요/상태/실패/Masked 고객·회원/Channel/외부 연계
-- Action: 조회·초기화·정렬·Paging·상세 Tab
-- Empty·Loading·Error·Stale·Partial·Conflict·Unknown 상태를 구분한다.
-- Query Key는 Environment·Tenant·Filter·Paging·Sort를 포함하고, Mutation 성공 뒤 필요한 Query만 무효화한다.
+- 기간
+- Transaction/Segment
+- Status
+- 실패
+- Module/Source/Target/Role/Direction
+- 고객·회원·사용자·운영자
+- Channel
+- 외부기관/거래
+- API/거래명/오류
+- Duration
+- Header 검색
 
-#### Backend·Owner 연결
+- 검색 Default와 Reset 결과를 같은 Query Key 규칙으로 관리한다.
+- 기간·Timezone·Paging·Sort·Data Scope를 URL 또는 Store 상태와 일치시킨다.
+- Password·Token·Secret·PII 원문은 Store·Browser Storage·Error Message에 남기지 않는다.
 
-1. Query DTO는 검색 Field·Default·Paging·Sort·Data Scope를 검증한다.
-2. Command DTO는 Target, Action, Reason, Approval, Expected Version, Idempotency Key를 포함한다.
-3. Owner Port는 Same-JVM·Remote Adapter를 제공하고 결과 상태 조회·Reconcile을 함께 제공한다.
-4. Page는 Orval Generated Client Operation을 사용한다.
-5. 필요한 Permission은 `거래 조회 Permission·Data Scope`이며 Backend에서 다시 검증한다.
+#### Table·Detail
 
-#### 정상·오류·복구 Contract
+- 거래/모듈 흐름/시간/소요/상태/실패/Masked 고객·회원/Channel/외부 연계
 
-정상 결과는 Row·Detail·Owner 상태·Version·Audit가 일치해야 한다. 복구 핵심은 **Authorization/API Key/Token 등 원문 미표시**다. 409, Timeout, Response loss, Partial Apply를 각각 Fixture로 재현하고 Reconcile·Rollback UI를 시험한다.
+- Stable Row Key와 Detail ID·Version을 일치시킨다.
+- Empty·Stale·Partial·Unknown을 일반 Success와 구분한다.
+- Masked Field와 Raw Field의 DTO·Permission·Audit를 분리한다.
+
+#### Button·활성 조건
+
+Action: **조회·초기화·정렬·Paging·상세 Tab**
+
+- Write/Delete Permission과 대상 최신 Version을 확인한 뒤 변경 Button을 활성화한다.
+- Reason·Approval이 필요한 조치는 값이 비어 있으면 제출을 비활성화한다.
+- 기존 Operation이 Processing·Unknown이면 중복 제출 대신 상태 조회를 제공한다.
+
+#### Backend·Owner API 계약
+
+- Query DTO: 기간, Transaction/Segment, Status, 실패, Module/Source/Target/Role/Direction, 고객·회원·사용자·운영자, Channel, 외부기관/거래, API/거래명/오류, Duration, Header 검색
+- Response DTO: 거래/모듈 흐름/시간/소요/상태/실패/Masked 고객·회원/Channel/외부 연계
+- Command: 조회·초기화·정렬·Paging·상세 Tab
+- Command 공통 Field: Target ID, Reason, Expected Version, Idempotency Key, 필요 시 Approval ID.
+- Permission: 거래 조회 Permission·Data Scope; 복구 핵심: Authorization/API Key/Token 등 원문 미표시.
+
+- Same-JVM과 Remote Adapter가 같은 Request·Response·Error 의미를 제공한다.
+- Owner DB를 ADM Repository에서 직접 갱신하지 않는다.
+- 202·Accepted 응답은 Operation 상태 조회와 Reconcile API를 연결한다.
+
+#### 화면 상태 모델
+
+Loading, Empty, Success, Validation Error, 403, 409, Timeout, Response Loss
+
+- 상태 전이는 Store와 URL·Dialog·Table Selection에 일관되게 반영한다.
+- Route 이동·Session 만료·Response Loss 후 민감 Form과 진행 중 Operation ID를 분리해 보존한다.
+
+#### 오류·부분 적용·Rollback
+
+- Validation은 Field별 Message와 허용 범위를 표시한다.
+- 403은 Menu/Button 숨김과 별도로 Backend Permission 거부를 표시한다.
+- 409는 최신 Version·변경자·변경 시각을 보여주고 Blind Retry하지 않는다.
+- Timeout·응답 유실은 기존 Operation ID를 조회한다.
+- Partial은 Target별 성공·실패·미응답을 표시한다.
+- Rollback은 변경 전 Version·Checksum·LKG 또는 Owner가 정의한 보정 Command를 사용한다.
 
 #### Test
 
-- Route deep link와 Menu Permission
+- Deep Link·Refresh·404
 - 검색 Default·Reset·Paging·Sort
-- Form validation과 Duplicate submit
-- 401·403·409·429·503·Timeout
-- Response loss 뒤 Operation 조회
+- Loading·Empty·Error 상태
+- 401·403 Backend 직접 호출
+- 409 Expected Version
+- Timeout·응답 유실 후 Operation 조회
 - Audit Masking·Before/After
-- Keyboard·Focus·Accessible name
+- Keyboard·Focus·Accessible Name
+- 화면별 복구 기준: Authorization/API Key/Token 등 원문 미표시
+
+
 ### transactions — 거래 Metadata
 
-**Route** `/transactions` · **Group** 온라인 운영 · **Page** ``.../features/transactions/TransactionsPage.vue``
+| 항목 | 계약 |
+|---|---|
+| Route | `/transactions` |
+| Group | 온라인 운영 |
+| Page | `cpf-admin/frontend/src/features/transactions/TransactionsPage.vue` |
+| Permission | `TRANSACTION_META` Write for mutation |
 
-#### Frontend 구현
+#### Frontend Query·Form
 
-- 검색·입력: Module 기본 ADM, Active Y, Transaction ID, 선택 ID, Reason
-- Column·상세: Pretty Result
-- Action: 조회·재스캔·비활성화
-- Empty·Loading·Error·Stale·Partial·Conflict·Unknown 상태를 구분한다.
-- Query Key는 Environment·Tenant·Filter·Paging·Sort를 포함하고, Mutation 성공 뒤 필요한 Query만 무효화한다.
+- Module 기본 ADM
+- Active Y
+- Transaction ID
+- 선택 ID
+- Reason
 
-#### Backend·Owner 연결
+- 검색 Default와 Reset 결과를 같은 Query Key 규칙으로 관리한다.
+- 기간·Timezone·Paging·Sort·Data Scope를 URL 또는 Store 상태와 일치시킨다.
+- Password·Token·Secret·PII 원문은 Store·Browser Storage·Error Message에 남기지 않는다.
 
-1. Query DTO는 검색 Field·Default·Paging·Sort·Data Scope를 검증한다.
-2. Command DTO는 Target, Action, Reason, Approval, Expected Version, Idempotency Key를 포함한다.
-3. Owner Port는 Same-JVM·Remote Adapter를 제공하고 결과 상태 조회·Reconcile을 함께 제공한다.
-4. Page는 Orval Generated Client Operation을 사용한다.
-5. 필요한 Permission은 ``TRANSACTION_META` Write for mutation`이며 Backend에서 다시 검증한다.
+#### Table·Detail
 
-#### 정상·오류·복구 Contract
+- Pretty Result
 
-정상 결과는 Row·Detail·Owner 상태·Version·Audit가 일치해야 한다. 복구 핵심은 **재스캔/비활성화 응답 유실 시 Transaction ID 대사**다. 409, Timeout, Response loss, Partial Apply를 각각 Fixture로 재현하고 Reconcile·Rollback UI를 시험한다.
+- Stable Row Key와 Detail ID·Version을 일치시킨다.
+- Empty·Stale·Partial·Unknown을 일반 Success와 구분한다.
+- Masked Field와 Raw Field의 DTO·Permission·Audit를 분리한다.
+
+#### Button·활성 조건
+
+Action: **조회·재스캔·비활성화**
+
+- Write/Delete Permission과 대상 최신 Version을 확인한 뒤 변경 Button을 활성화한다.
+- Reason·Approval이 필요한 조치는 값이 비어 있으면 제출을 비활성화한다.
+- 기존 Operation이 Processing·Unknown이면 중복 제출 대신 상태 조회를 제공한다.
+
+#### Backend·Owner API 계약
+
+- Query DTO: Module 기본 ADM, Active Y, Transaction ID, 선택 ID, Reason
+- Response DTO: Pretty Result
+- Command: 조회·재스캔·비활성화
+- Command 공통 Field: Target ID, Reason, Expected Version, Idempotency Key, 필요 시 Approval ID.
+- Permission: `TRANSACTION_META` Write for mutation; 복구 핵심: 재스캔/비활성화 응답 유실 시 Transaction ID 대사.
+
+- Same-JVM과 Remote Adapter가 같은 Request·Response·Error 의미를 제공한다.
+- Owner DB를 ADM Repository에서 직접 갱신하지 않는다.
+- 202·Accepted 응답은 Operation 상태 조회와 Reconcile API를 연결한다.
+
+#### 화면 상태 모델
+
+Loading, Empty, Success, Validation Error, 403, 409, Timeout, Response Loss
+
+- 상태 전이는 Store와 URL·Dialog·Table Selection에 일관되게 반영한다.
+- Route 이동·Session 만료·Response Loss 후 민감 Form과 진행 중 Operation ID를 분리해 보존한다.
+
+#### 오류·부분 적용·Rollback
+
+- Validation은 Field별 Message와 허용 범위를 표시한다.
+- 403은 Menu/Button 숨김과 별도로 Backend Permission 거부를 표시한다.
+- 409는 최신 Version·변경자·변경 시각을 보여주고 Blind Retry하지 않는다.
+- Timeout·응답 유실은 기존 Operation ID를 조회한다.
+- Partial은 Target별 성공·실패·미응답을 표시한다.
+- Rollback은 변경 전 Version·Checksum·LKG 또는 Owner가 정의한 보정 Command를 사용한다.
 
 #### Test
 
-- Route deep link와 Menu Permission
+- Deep Link·Refresh·404
 - 검색 Default·Reset·Paging·Sort
-- Form validation과 Duplicate submit
-- 401·403·409·429·503·Timeout
-- Response loss 뒤 Operation 조회
+- Loading·Empty·Error 상태
+- 401·403 Backend 직접 호출
+- 409 Expected Version
+- Timeout·응답 유실 후 Operation 조회
 - Audit Masking·Before/After
-- Keyboard·Focus·Accessible name
+- Keyboard·Focus·Accessible Name
+- 화면별 복구 기준: 재스캔/비활성화 응답 유실 시 Transaction ID 대사
+
+
 ### standardExecutions — 표준 실행 Catalog
 
-**Route** `/standardExecutions` · **Group** 온라인 운영 · **Page** ``.../features/standard-executions/StandardExecutionsPage.vue``
+| 항목 | 계약 |
+|---|---|
+| Route | `/standardExecutions` |
+| Group | 온라인 운영 |
+| Page | `cpf-admin/frontend/src/features/standard-executions/StandardExecutionsPage.vue` |
+| Permission | 조회 권한 |
 
-#### Frontend 구현
+#### Frontend Query·Form
 
-- 검색·입력: 유형 ONLINE/BATCH, Owner Domain, Keyword
-- Column·상세: ID, 유형, 실행명, Owner, Source Module, Endpoint
-- Action: 조회·상세
-- Empty·Loading·Error·Stale·Partial·Conflict·Unknown 상태를 구분한다.
-- Query Key는 Environment·Tenant·Filter·Paging·Sort를 포함하고, Mutation 성공 뒤 필요한 Query만 무효화한다.
+- 유형 ONLINE/BATCH
+- Owner Domain
+- Keyword
 
-#### Backend·Owner 연결
+- 검색 Default와 Reset 결과를 같은 Query Key 규칙으로 관리한다.
+- 기간·Timezone·Paging·Sort·Data Scope를 URL 또는 Store 상태와 일치시킨다.
+- Password·Token·Secret·PII 원문은 Store·Browser Storage·Error Message에 남기지 않는다.
 
-1. Query DTO는 검색 Field·Default·Paging·Sort·Data Scope를 검증한다.
-2. Command DTO는 Target, Action, Reason, Approval, Expected Version, Idempotency Key를 포함한다.
-3. Owner Port는 Same-JVM·Remote Adapter를 제공하고 결과 상태 조회·Reconcile을 함께 제공한다.
-4. Page는 Orval Generated Client Operation을 사용한다.
-5. 필요한 Permission은 `조회 권한`이며 Backend에서 다시 검증한다.
+#### Table·Detail
 
-#### 정상·오류·복구 Contract
+- ID
+- 유형
+- 실행명
+- Owner
+- Source Module
+- Endpoint
 
-정상 결과는 Row·Detail·Owner 상태·Version·Audit가 일치해야 한다. 복구 핵심은 **Catalog/Source 불일치 조사**다. 409, Timeout, Response loss, Partial Apply를 각각 Fixture로 재현하고 Reconcile·Rollback UI를 시험한다.
+- Stable Row Key와 Detail ID·Version을 일치시킨다.
+- Empty·Stale·Partial·Unknown을 일반 Success와 구분한다.
+- Masked Field와 Raw Field의 DTO·Permission·Audit를 분리한다.
+
+#### Button·활성 조건
+
+Action: **조회·상세**
+
+- 조회 Permission이 있고 Page가 Loading 중이 아닐 때 조회·새로고침을 허용한다.
+- Stale·Partial 표시 중에는 변경 Button을 제공하지 않는다.
+
+#### Backend·Owner API 계약
+
+- Query DTO: 유형 ONLINE/BATCH, Owner Domain, Keyword
+- Response DTO: ID, 유형, 실행명, Owner, Source Module, Endpoint
+- Query는 Environment·Data Scope·Paging·Sort·조회 시각을 포함한다.
+- Empty, Stale, Partial을 별도 응답 상태로 표현한다.
+- Permission: 조회 권한.
+
+- Same-JVM과 Remote Adapter가 같은 Request·Response·Error 의미를 제공한다.
+- Owner DB를 ADM Repository에서 직접 갱신하지 않는다.
+- 202·Accepted 응답은 Operation 상태 조회와 Reconcile API를 연결한다.
+
+#### 화면 상태 모델
+
+Loading, Empty, Success, Validation Error, 403, 409, Timeout, Response Loss
+
+- 상태 전이는 Store와 URL·Dialog·Table Selection에 일관되게 반영한다.
+- Route 이동·Session 만료·Response Loss 후 민감 Form과 진행 중 Operation ID를 분리해 보존한다.
+
+#### 오류·부분 적용·Rollback
+
+- Validation은 Field별 Message와 허용 범위를 표시한다.
+- 403은 Menu/Button 숨김과 별도로 Backend Permission 거부를 표시한다.
+- 409는 최신 Version·변경자·변경 시각을 보여주고 Blind Retry하지 않는다.
+- Timeout·응답 유실은 기존 Operation ID를 조회한다.
+- Partial은 Target별 성공·실패·미응답을 표시한다.
+- Rollback은 변경 전 Version·Checksum·LKG 또는 Owner가 정의한 보정 Command를 사용한다.
 
 #### Test
 
-- Route deep link와 Menu Permission
+- Deep Link·Refresh·404
 - 검색 Default·Reset·Paging·Sort
-- Form validation과 Duplicate submit
-- 401·403·409·429·503·Timeout
-- Response loss 뒤 Operation 조회
+- Loading·Empty·Error 상태
+- 401·403 Backend 직접 호출
+- 409 Expected Version
+- Timeout·응답 유실 후 Operation 조회
 - Audit Masking·Before/After
-- Keyboard·Focus·Accessible name
+- Keyboard·Focus·Accessible Name
+- 화면별 복구 기준: Catalog/Source 불일치 조사
+
+
 ### channelPolicy — Channel·거래 정책 Snapshot
 
-**Route** `/channelPolicy` · **Group** 온라인 운영 · **Page** ``.../features/channel-policy/ChannelPolicyPage.vue``
+| 항목 | 계약 |
+|---|---|
+| Route | `/channelPolicy` |
+| Group | 온라인 운영 |
+| Page | `cpf-admin/frontend/src/features/channel-policy/ChannelPolicyPage.vue` |
+| Permission | `CHANNEL_POLICY` Write |
 
-#### Frontend 구현
+#### Frontend Query·Form
 
-- 검색·입력: Channel/Policy Form; Package JSON; Import Dry Run
-- Column·상세: Channel 인증·서명·신뢰·Version; 정책 허용·TPS·Version
-- Action: 조회·Snapshot 갱신·Package 반출/반입·Channel/Policy 저장
-- Empty·Loading·Error·Stale·Partial·Conflict·Unknown 상태를 구분한다.
-- Query Key는 Environment·Tenant·Filter·Paging·Sort를 포함하고, Mutation 성공 뒤 필요한 Query만 무효화한다.
+- Channel/Policy Form
+- Package JSON
+- Import Dry Run
 
-#### Backend·Owner 연결
+- 검색 Default와 Reset 결과를 같은 Query Key 규칙으로 관리한다.
+- 기간·Timezone·Paging·Sort·Data Scope를 URL 또는 Store 상태와 일치시킨다.
+- Password·Token·Secret·PII 원문은 Store·Browser Storage·Error Message에 남기지 않는다.
 
-1. Query DTO는 검색 Field·Default·Paging·Sort·Data Scope를 검증한다.
-2. Command DTO는 Target, Action, Reason, Approval, Expected Version, Idempotency Key를 포함한다.
-3. Owner Port는 Same-JVM·Remote Adapter를 제공하고 결과 상태 조회·Reconcile을 함께 제공한다.
-4. Page는 Orval Generated Client Operation을 사용한다.
-5. 필요한 Permission은 ``CHANNEL_POLICY` Write`이며 Backend에서 다시 검증한다.
+#### Table·Detail
 
-#### 정상·오류·복구 Contract
+- Channel 인증·서명·신뢰·Version
+- 정책 허용·TPS·Version
 
-정상 결과는 Row·Detail·Owner 상태·Version·Audit가 일치해야 한다. 복구 핵심은 **Snapshot Version·Import Dry Run·부분 적용 확인**다. 409, Timeout, Response loss, Partial Apply를 각각 Fixture로 재현하고 Reconcile·Rollback UI를 시험한다.
+- Stable Row Key와 Detail ID·Version을 일치시킨다.
+- Empty·Stale·Partial·Unknown을 일반 Success와 구분한다.
+- Masked Field와 Raw Field의 DTO·Permission·Audit를 분리한다.
+
+#### Button·활성 조건
+
+Action: **조회·Snapshot 갱신·Package 반출/반입·Channel/Policy 저장**
+
+- Write/Delete Permission과 대상 최신 Version을 확인한 뒤 변경 Button을 활성화한다.
+- Reason·Approval이 필요한 조치는 값이 비어 있으면 제출을 비활성화한다.
+- 기존 Operation이 Processing·Unknown이면 중복 제출 대신 상태 조회를 제공한다.
+
+#### Backend·Owner API 계약
+
+- Query DTO: Channel/Policy Form; Package JSON; Import Dry Run
+- Response DTO: Channel 인증·서명·신뢰·Version; 정책 허용·TPS·Version
+- Command: 조회·Snapshot 갱신·Package 반출/반입·Channel/Policy 저장
+- Command 공통 Field: Target ID, Reason, Expected Version, Idempotency Key, 필요 시 Approval ID.
+- Permission: `CHANNEL_POLICY` Write; 복구 핵심: Snapshot Version·Import Dry Run·부분 적용 확인.
+
+- Same-JVM과 Remote Adapter가 같은 Request·Response·Error 의미를 제공한다.
+- Owner DB를 ADM Repository에서 직접 갱신하지 않는다.
+- 202·Accepted 응답은 Operation 상태 조회와 Reconcile API를 연결한다.
+
+#### 화면 상태 모델
+
+Loading, Empty, Success, Validation Error, 403, 409, Timeout, Response Loss
+
+- 상태 전이는 Store와 URL·Dialog·Table Selection에 일관되게 반영한다.
+- Route 이동·Session 만료·Response Loss 후 민감 Form과 진행 중 Operation ID를 분리해 보존한다.
+
+#### 오류·부분 적용·Rollback
+
+- Validation은 Field별 Message와 허용 범위를 표시한다.
+- 403은 Menu/Button 숨김과 별도로 Backend Permission 거부를 표시한다.
+- 409는 최신 Version·변경자·변경 시각을 보여주고 Blind Retry하지 않는다.
+- Timeout·응답 유실은 기존 Operation ID를 조회한다.
+- Partial은 Target별 성공·실패·미응답을 표시한다.
+- Rollback은 변경 전 Version·Checksum·LKG 또는 Owner가 정의한 보정 Command를 사용한다.
 
 #### Test
 
-- Route deep link와 Menu Permission
+- Deep Link·Refresh·404
 - 검색 Default·Reset·Paging·Sort
-- Form validation과 Duplicate submit
-- 401·403·409·429·503·Timeout
-- Response loss 뒤 Operation 조회
+- Loading·Empty·Error 상태
+- 401·403 Backend 직접 호출
+- 409 Expected Version
+- Timeout·응답 유실 후 Operation 조회
 - Audit Masking·Before/After
-- Keyboard·Focus·Accessible name
+- Keyboard·Focus·Accessible Name
+- 화면별 복구 기준: Snapshot Version·Import Dry Run·부분 적용 확인
+
+
 ### serviceRegistry — Service·Endpoint·Instance·Health·Routing
 
-**Route** `/serviceRegistry` · **Group** 온라인 운영 · **Page** ``.../features/service-registry/ServiceRegistryPage.vue``
+| 항목 | 계약 |
+|---|---|
+| Route | `/serviceRegistry` |
+| Group | 온라인 운영 |
+| Page | `cpf-admin/frontend/src/features/service-registry/ServiceRegistryPage.vue` |
+| Permission | `SERVICE_REGISTRY` Write |
 
-#### Frontend 구현
+#### Frontend Query·Form
 
-- 검색·입력: Service ID, Endpoint, Instance Status; 각 등록 Form
-- Column·상세: Service/Endpoint/Instance/Health/Routing/Circuit/Call
-- Action: 등록·수정·Drain·Resume·Disable·새로고침
-- Empty·Loading·Error·Stale·Partial·Conflict·Unknown 상태를 구분한다.
-- Query Key는 Environment·Tenant·Filter·Paging·Sort를 포함하고, Mutation 성공 뒤 필요한 Query만 무효화한다.
+- Service ID
+- Endpoint
+- Instance Status
+- 각 등록 Form
 
-#### Backend·Owner 연결
+- 검색 Default와 Reset 결과를 같은 Query Key 규칙으로 관리한다.
+- 기간·Timezone·Paging·Sort·Data Scope를 URL 또는 Store 상태와 일치시킨다.
+- Password·Token·Secret·PII 원문은 Store·Browser Storage·Error Message에 남기지 않는다.
 
-1. Query DTO는 검색 Field·Default·Paging·Sort·Data Scope를 검증한다.
-2. Command DTO는 Target, Action, Reason, Approval, Expected Version, Idempotency Key를 포함한다.
-3. Owner Port는 Same-JVM·Remote Adapter를 제공하고 결과 상태 조회·Reconcile을 함께 제공한다.
-4. Page는 Orval Generated Client Operation을 사용한다.
-5. 필요한 Permission은 ``SERVICE_REGISTRY` Write`이며 Backend에서 다시 검증한다.
+#### Table·Detail
 
-#### 정상·오류·복구 Contract
+- Service/Endpoint/Instance/Health/Routing/Circuit/Call
 
-정상 결과는 Row·Detail·Owner 상태·Version·Audit가 일치해야 한다. 복구 핵심은 **Version·Heartbeat·Draining·Maintenance·Health 분리**다. 409, Timeout, Response loss, Partial Apply를 각각 Fixture로 재현하고 Reconcile·Rollback UI를 시험한다.
+- Stable Row Key와 Detail ID·Version을 일치시킨다.
+- Empty·Stale·Partial·Unknown을 일반 Success와 구분한다.
+- Masked Field와 Raw Field의 DTO·Permission·Audit를 분리한다.
+
+#### Button·활성 조건
+
+Action: **등록·수정·Drain·Resume·Disable·새로고침**
+
+- Write/Delete Permission과 대상 최신 Version을 확인한 뒤 변경 Button을 활성화한다.
+- Reason·Approval이 필요한 조치는 값이 비어 있으면 제출을 비활성화한다.
+- 기존 Operation이 Processing·Unknown이면 중복 제출 대신 상태 조회를 제공한다.
+
+#### Backend·Owner API 계약
+
+- Query DTO: Service ID, Endpoint, Instance Status; 각 등록 Form
+- Response DTO: Service/Endpoint/Instance/Health/Routing/Circuit/Call
+- Command: 등록·수정·Drain·Resume·Disable·새로고침
+- Command 공통 Field: Target ID, Reason, Expected Version, Idempotency Key, 필요 시 Approval ID.
+- Permission: `SERVICE_REGISTRY` Write; 복구 핵심: Version·Heartbeat·Draining·Maintenance·Health 분리.
+
+- Same-JVM과 Remote Adapter가 같은 Request·Response·Error 의미를 제공한다.
+- Owner DB를 ADM Repository에서 직접 갱신하지 않는다.
+- 202·Accepted 응답은 Operation 상태 조회와 Reconcile API를 연결한다.
+
+#### 화면 상태 모델
+
+Loading, Empty, Success, Validation Error, 403, 409, Timeout, Response Loss
+
+- 상태 전이는 Store와 URL·Dialog·Table Selection에 일관되게 반영한다.
+- Route 이동·Session 만료·Response Loss 후 민감 Form과 진행 중 Operation ID를 분리해 보존한다.
+
+#### 오류·부분 적용·Rollback
+
+- Validation은 Field별 Message와 허용 범위를 표시한다.
+- 403은 Menu/Button 숨김과 별도로 Backend Permission 거부를 표시한다.
+- 409는 최신 Version·변경자·변경 시각을 보여주고 Blind Retry하지 않는다.
+- Timeout·응답 유실은 기존 Operation ID를 조회한다.
+- Partial은 Target별 성공·실패·미응답을 표시한다.
+- Rollback은 변경 전 Version·Checksum·LKG 또는 Owner가 정의한 보정 Command를 사용한다.
 
 #### Test
 
-- Route deep link와 Menu Permission
+- Deep Link·Refresh·404
 - 검색 Default·Reset·Paging·Sort
-- Form validation과 Duplicate submit
-- 401·403·409·429·503·Timeout
-- Response loss 뒤 Operation 조회
+- Loading·Empty·Error 상태
+- 401·403 Backend 직접 호출
+- 409 Expected Version
+- Timeout·응답 유실 후 Operation 조회
 - Audit Masking·Before/After
-- Keyboard·Focus·Accessible name
+- Keyboard·Focus·Accessible Name
+- 화면별 복구 기준: Version·Heartbeat·Draining·Maintenance·Health 분리
+
+
 ### runtimeControl — Runtime 변경 Control Plane
 
-**Route** `/runtimeControl` · **Group** 온라인 운영 · **Page** ``.../features/runtime-control/RuntimeControlPage.vue``
+| 항목 | 계약 |
+|---|---|
+| Route | `/runtimeControl` |
+| Group | 온라인 운영 |
+| Page | `cpf-admin/frontend/src/features/runtime-control/RuntimeControlPage.vue` |
+| Permission | Runtime Control Permission + Approval/Break-glass |
 
-#### Frontend 구현
+#### Frontend Query·Form
 
-- 검색·입력: Operation/Change/Target/Expected Version/Rollout/Approval/Payload/Reason
-- Column·상세: Readiness, Pending, Poison, Drift; ACK/Failed/Drift/Hash
-- Action: Target/Diff Preview·생성·조회·Audit 검증·Cancel·Exact Rollback·Group CRUD
-- Empty·Loading·Error·Stale·Partial·Conflict·Unknown 상태를 구분한다.
-- Query Key는 Environment·Tenant·Filter·Paging·Sort를 포함하고, Mutation 성공 뒤 필요한 Query만 무효화한다.
+- Operation/Change/Target/Expected Version/Rollout/Approval/Payload/Reason
 
-#### Backend·Owner 연결
+- 검색 Default와 Reset 결과를 같은 Query Key 규칙으로 관리한다.
+- 기간·Timezone·Paging·Sort·Data Scope를 URL 또는 Store 상태와 일치시킨다.
+- Password·Token·Secret·PII 원문은 Store·Browser Storage·Error Message에 남기지 않는다.
 
-1. Query DTO는 검색 Field·Default·Paging·Sort·Data Scope를 검증한다.
-2. Command DTO는 Target, Action, Reason, Approval, Expected Version, Idempotency Key를 포함한다.
-3. Owner Port는 Same-JVM·Remote Adapter를 제공하고 결과 상태 조회·Reconcile을 함께 제공한다.
-4. Page는 Orval Generated Client Operation을 사용한다.
-5. 필요한 Permission은 `Runtime Control Permission + Approval/Break-glass`이며 Backend에서 다시 검증한다.
+#### Table·Detail
 
-#### 정상·오류·복구 Contract
+- Readiness
+- Pending
+- Poison
+- Drift
+- ACK/Failed/Drift/Hash
 
-정상 결과는 Row·Detail·Owner 상태·Version·Audit가 일치해야 한다. 복구 핵심은 **UNKNOWN/PARTIAL/Drift를 성공으로 처리 금지**다. 409, Timeout, Response loss, Partial Apply를 각각 Fixture로 재현하고 Reconcile·Rollback UI를 시험한다.
+- Stable Row Key와 Detail ID·Version을 일치시킨다.
+- Empty·Stale·Partial·Unknown을 일반 Success와 구분한다.
+- Masked Field와 Raw Field의 DTO·Permission·Audit를 분리한다.
+
+#### Button·활성 조건
+
+Action: **Target/Diff Preview·생성·조회·Audit 검증·Cancel·Exact Rollback·Group CRUD**
+
+- Write/Delete Permission과 대상 최신 Version을 확인한 뒤 변경 Button을 활성화한다.
+- Reason·Approval이 필요한 조치는 값이 비어 있으면 제출을 비활성화한다.
+- 기존 Operation이 Processing·Unknown이면 중복 제출 대신 상태 조회를 제공한다.
+
+#### Backend·Owner API 계약
+
+- Query DTO: Operation/Change/Target/Expected Version/Rollout/Approval/Payload/Reason
+- Response DTO: Readiness, Pending, Poison, Drift; ACK/Failed/Drift/Hash
+- Command: Target/Diff Preview·생성·조회·Audit 검증·Cancel·Exact Rollback·Group CRUD
+- Command 공통 Field: Target ID, Reason, Expected Version, Idempotency Key, 필요 시 Approval ID.
+- Permission: Runtime Control Permission + Approval/Break-glass; 복구 핵심: UNKNOWN/PARTIAL/Drift를 성공으로 처리 금지.
+
+- Same-JVM과 Remote Adapter가 같은 Request·Response·Error 의미를 제공한다.
+- Owner DB를 ADM Repository에서 직접 갱신하지 않는다.
+- 202·Accepted 응답은 Operation 상태 조회와 Reconcile API를 연결한다.
+
+#### 화면 상태 모델
+
+Loading, Empty, Success, Validation Error, 403, 409, Timeout, Response Loss
+
+- 상태 전이는 Store와 URL·Dialog·Table Selection에 일관되게 반영한다.
+- Route 이동·Session 만료·Response Loss 후 민감 Form과 진행 중 Operation ID를 분리해 보존한다.
+
+#### 오류·부분 적용·Rollback
+
+- Validation은 Field별 Message와 허용 범위를 표시한다.
+- 403은 Menu/Button 숨김과 별도로 Backend Permission 거부를 표시한다.
+- 409는 최신 Version·변경자·변경 시각을 보여주고 Blind Retry하지 않는다.
+- Timeout·응답 유실은 기존 Operation ID를 조회한다.
+- Partial은 Target별 성공·실패·미응답을 표시한다.
+- Rollback은 변경 전 Version·Checksum·LKG 또는 Owner가 정의한 보정 Command를 사용한다.
 
 #### Test
 
-- Route deep link와 Menu Permission
+- Deep Link·Refresh·404
 - 검색 Default·Reset·Paging·Sort
-- Form validation과 Duplicate submit
-- 401·403·409·429·503·Timeout
-- Response loss 뒤 Operation 조회
+- Loading·Empty·Error 상태
+- 401·403 Backend 직접 호출
+- 409 Expected Version
+- Timeout·응답 유실 후 Operation 조회
 - Audit Masking·Before/After
-- Keyboard·Focus·Accessible name
+- Keyboard·Focus·Accessible Name
+- 화면별 복구 기준: UNKNOWN/PARTIAL/Drift를 성공으로 처리 금지
+
+
 ### maintenance — 점검·Drain 제어
 
-**Route** `/maintenance` · **Group** 프레임워크 · **Page** ``.../features/maintenance/MaintenancePage.vue``
+| 항목 | 계약 |
+|---|---|
+| Route | `/maintenance` |
+| Group | 프레임워크 |
+| Page | `cpf-admin/frontend/src/features/maintenance/MaintenancePage.vue` |
+| Permission | Owner Command Permission |
 
-#### Frontend 구현
+#### Frontend Query·Form
 
-- 검색·입력: Service, Endpoint, Instance, DRAIN/DISABLE/RESUME, Reason
-- Column·상세: 시간, Service, Instance, Action, Result, Reason
-- Action: 명령 실행·조회
-- Empty·Loading·Error·Stale·Partial·Conflict·Unknown 상태를 구분한다.
-- Query Key는 Environment·Tenant·Filter·Paging·Sort를 포함하고, Mutation 성공 뒤 필요한 Query만 무효화한다.
+- Service
+- Endpoint
+- Instance
+- DRAIN/DISABLE/RESUME
+- Reason
 
-#### Backend·Owner 연결
+- 검색 Default와 Reset 결과를 같은 Query Key 규칙으로 관리한다.
+- 기간·Timezone·Paging·Sort·Data Scope를 URL 또는 Store 상태와 일치시킨다.
+- Password·Token·Secret·PII 원문은 Store·Browser Storage·Error Message에 남기지 않는다.
 
-1. Query DTO는 검색 Field·Default·Paging·Sort·Data Scope를 검증한다.
-2. Command DTO는 Target, Action, Reason, Approval, Expected Version, Idempotency Key를 포함한다.
-3. Owner Port는 Same-JVM·Remote Adapter를 제공하고 결과 상태 조회·Reconcile을 함께 제공한다.
-4. Page는 Orval Generated Client Operation을 사용한다.
-5. 필요한 Permission은 `Owner Command Permission`이며 Backend에서 다시 검증한다.
+#### Table·Detail
 
-#### 정상·오류·복구 Contract
+- 시간
+- Service
+- Instance
+- Action
+- Result
+- Reason
 
-정상 결과는 Row·Detail·Owner 상태·Version·Audit가 일치해야 한다. 복구 핵심은 **Routing 제외 영향·Audit 확인**다. 409, Timeout, Response loss, Partial Apply를 각각 Fixture로 재현하고 Reconcile·Rollback UI를 시험한다.
+- Stable Row Key와 Detail ID·Version을 일치시킨다.
+- Empty·Stale·Partial·Unknown을 일반 Success와 구분한다.
+- Masked Field와 Raw Field의 DTO·Permission·Audit를 분리한다.
+
+#### Button·활성 조건
+
+Action: **명령 실행·조회**
+
+- Write/Delete Permission과 대상 최신 Version을 확인한 뒤 변경 Button을 활성화한다.
+- Reason·Approval이 필요한 조치는 값이 비어 있으면 제출을 비활성화한다.
+- 기존 Operation이 Processing·Unknown이면 중복 제출 대신 상태 조회를 제공한다.
+
+#### Backend·Owner API 계약
+
+- Query DTO: Service, Endpoint, Instance, DRAIN/DISABLE/RESUME, Reason
+- Response DTO: 시간, Service, Instance, Action, Result, Reason
+- Command: 명령 실행·조회
+- Command 공통 Field: Target ID, Reason, Expected Version, Idempotency Key, 필요 시 Approval ID.
+- Permission: Owner Command Permission; 복구 핵심: Routing 제외 영향·Audit 확인.
+
+- Same-JVM과 Remote Adapter가 같은 Request·Response·Error 의미를 제공한다.
+- Owner DB를 ADM Repository에서 직접 갱신하지 않는다.
+- 202·Accepted 응답은 Operation 상태 조회와 Reconcile API를 연결한다.
+
+#### 화면 상태 모델
+
+Loading, Empty, Success, Validation Error, 403, 409, Timeout, Response Loss
+
+- 상태 전이는 Store와 URL·Dialog·Table Selection에 일관되게 반영한다.
+- Route 이동·Session 만료·Response Loss 후 민감 Form과 진행 중 Operation ID를 분리해 보존한다.
+
+#### 오류·부분 적용·Rollback
+
+- Validation은 Field별 Message와 허용 범위를 표시한다.
+- 403은 Menu/Button 숨김과 별도로 Backend Permission 거부를 표시한다.
+- 409는 최신 Version·변경자·변경 시각을 보여주고 Blind Retry하지 않는다.
+- Timeout·응답 유실은 기존 Operation ID를 조회한다.
+- Partial은 Target별 성공·실패·미응답을 표시한다.
+- Rollback은 변경 전 Version·Checksum·LKG 또는 Owner가 정의한 보정 Command를 사용한다.
 
 #### Test
 
-- Route deep link와 Menu Permission
+- Deep Link·Refresh·404
 - 검색 Default·Reset·Paging·Sort
-- Form validation과 Duplicate submit
-- 401·403·409·429·503·Timeout
-- Response loss 뒤 Operation 조회
+- Loading·Empty·Error 상태
+- 401·403 Backend 직접 호출
+- 409 Expected Version
+- Timeout·응답 유실 후 Operation 조회
 - Audit Masking·Before/After
-- Keyboard·Focus·Accessible name
+- Keyboard·Focus·Accessible Name
+- 화면별 복구 기준: Routing 제외 영향·Audit 확인
+
+
 ### cache — Cache 조회·Evict·Reconcile
 
-**Route** `/cache` · **Group** 프레임워크 · **Page** ``.../features/cache/CachePage.vue``
+| 항목 | 계약 |
+|---|---|
+| Route | `/cache` |
+| Group | 프레임워크 |
+| Page | `cpf-admin/frontend/src/features/cache/CachePage.vue` |
+| Permission | Button Permission `CACHE_*` |
 
-#### Frontend 구현
+#### Frontend Query·Form
 
-- 검색·입력: Tenant, Namespace, Key, Version, Reason
-- Column·상세: Cache Summary/Result
-- Action: Target 갱신·Key/Namespace Evict·Durable Reconcile
-- Empty·Loading·Error·Stale·Partial·Conflict·Unknown 상태를 구분한다.
-- Query Key는 Environment·Tenant·Filter·Paging·Sort를 포함하고, Mutation 성공 뒤 필요한 Query만 무효화한다.
+- Tenant
+- Namespace
+- Key
+- Version
+- Reason
 
-#### Backend·Owner 연결
+- 검색 Default와 Reset 결과를 같은 Query Key 규칙으로 관리한다.
+- 기간·Timezone·Paging·Sort·Data Scope를 URL 또는 Store 상태와 일치시킨다.
+- Password·Token·Secret·PII 원문은 Store·Browser Storage·Error Message에 남기지 않는다.
 
-1. Query DTO는 검색 Field·Default·Paging·Sort·Data Scope를 검증한다.
-2. Command DTO는 Target, Action, Reason, Approval, Expected Version, Idempotency Key를 포함한다.
-3. Owner Port는 Same-JVM·Remote Adapter를 제공하고 결과 상태 조회·Reconcile을 함께 제공한다.
-4. Page는 Orval Generated Client Operation을 사용한다.
-5. 필요한 Permission은 `Button Permission `CACHE_*``이며 Backend에서 다시 검증한다.
+#### Table·Detail
 
-#### 정상·오류·복구 Contract
+- Cache Summary/Result
 
-정상 결과는 Row·Detail·Owner 상태·Version·Audit가 일치해야 한다. 복구 핵심은 **Cache는 정본 아님; Reconcile 뒤 Owner 확인**다. 409, Timeout, Response loss, Partial Apply를 각각 Fixture로 재현하고 Reconcile·Rollback UI를 시험한다.
+- Stable Row Key와 Detail ID·Version을 일치시킨다.
+- Empty·Stale·Partial·Unknown을 일반 Success와 구분한다.
+- Masked Field와 Raw Field의 DTO·Permission·Audit를 분리한다.
+
+#### Button·활성 조건
+
+Action: **Target 갱신·Key/Namespace Evict·Durable Reconcile**
+
+- Write/Delete Permission과 대상 최신 Version을 확인한 뒤 변경 Button을 활성화한다.
+- Reason·Approval이 필요한 조치는 값이 비어 있으면 제출을 비활성화한다.
+- 기존 Operation이 Processing·Unknown이면 중복 제출 대신 상태 조회를 제공한다.
+
+#### Backend·Owner API 계약
+
+- Query DTO: Tenant, Namespace, Key, Version, Reason
+- Response DTO: Cache Summary/Result
+- Command: Target 갱신·Key/Namespace Evict·Durable Reconcile
+- Command 공통 Field: Target ID, Reason, Expected Version, Idempotency Key, 필요 시 Approval ID.
+- Permission: Button Permission `CACHE_*`; 복구 핵심: Cache는 정본 아님; Reconcile 뒤 Owner 확인.
+
+- Same-JVM과 Remote Adapter가 같은 Request·Response·Error 의미를 제공한다.
+- Owner DB를 ADM Repository에서 직접 갱신하지 않는다.
+- 202·Accepted 응답은 Operation 상태 조회와 Reconcile API를 연결한다.
+
+#### 화면 상태 모델
+
+Loading, Empty, Success, Validation Error, 403, 409, Timeout, Response Loss
+
+- 상태 전이는 Store와 URL·Dialog·Table Selection에 일관되게 반영한다.
+- Route 이동·Session 만료·Response Loss 후 민감 Form과 진행 중 Operation ID를 분리해 보존한다.
+
+#### 오류·부분 적용·Rollback
+
+- Validation은 Field별 Message와 허용 범위를 표시한다.
+- 403은 Menu/Button 숨김과 별도로 Backend Permission 거부를 표시한다.
+- 409는 최신 Version·변경자·변경 시각을 보여주고 Blind Retry하지 않는다.
+- Timeout·응답 유실은 기존 Operation ID를 조회한다.
+- Partial은 Target별 성공·실패·미응답을 표시한다.
+- Rollback은 변경 전 Version·Checksum·LKG 또는 Owner가 정의한 보정 Command를 사용한다.
 
 #### Test
 
-- Route deep link와 Menu Permission
+- Deep Link·Refresh·404
 - 검색 Default·Reset·Paging·Sort
-- Form validation과 Duplicate submit
-- 401·403·409·429·503·Timeout
-- Response loss 뒤 Operation 조회
+- Loading·Empty·Error 상태
+- 401·403 Backend 직접 호출
+- 409 Expected Version
+- Timeout·응답 유실 후 Operation 조회
 - Audit Masking·Before/After
-- Keyboard·Focus·Accessible name
+- Keyboard·Focus·Accessible Name
+- 화면별 복구 기준: Cache는 정본 아님; Reconcile 뒤 Owner 확인
+
+
 ### configs — 설정 관리
 
-**Route** `/configs` · **Group** 프레임워크 · **Page** ``.../features/configs/ConfigsPage.vue``
+| 항목 | 계약 |
+|---|---|
+| Route | `/configs` |
+| Group | 프레임워크 |
+| Page | `cpf-admin/frontend/src/features/configs/ConfigsPage.vue` |
+| Permission | `CONFIG` Write |
 
-#### Frontend 구현
+#### Frontend Query·Form
 
-- 검색·입력: Config ID/Key/Value/Type/Encrypted YN/Reason
-- Column·상세: Pretty Result
-- Action: 조회·등록·수정
-- Empty·Loading·Error·Stale·Partial·Conflict·Unknown 상태를 구분한다.
-- Query Key는 Environment·Tenant·Filter·Paging·Sort를 포함하고, Mutation 성공 뒤 필요한 Query만 무효화한다.
+- Config ID/Key/Value/Type/Encrypted YN/Reason
 
-#### Backend·Owner 연결
+- 검색 Default와 Reset 결과를 같은 Query Key 규칙으로 관리한다.
+- 기간·Timezone·Paging·Sort·Data Scope를 URL 또는 Store 상태와 일치시킨다.
+- Password·Token·Secret·PII 원문은 Store·Browser Storage·Error Message에 남기지 않는다.
 
-1. Query DTO는 검색 Field·Default·Paging·Sort·Data Scope를 검증한다.
-2. Command DTO는 Target, Action, Reason, Approval, Expected Version, Idempotency Key를 포함한다.
-3. Owner Port는 Same-JVM·Remote Adapter를 제공하고 결과 상태 조회·Reconcile을 함께 제공한다.
-4. Page는 Orval Generated Client Operation을 사용한다.
-5. 필요한 Permission은 ``CONFIG` Write`이며 Backend에서 다시 검증한다.
+#### Table·Detail
 
-#### 정상·오류·복구 Contract
+- Pretty Result
 
-정상 결과는 Row·Detail·Owner 상태·Version·Audit가 일치해야 한다. 복구 핵심은 **Secret 원문을 일반 Config에 저장 금지**다. 409, Timeout, Response loss, Partial Apply를 각각 Fixture로 재현하고 Reconcile·Rollback UI를 시험한다.
+- Stable Row Key와 Detail ID·Version을 일치시킨다.
+- Empty·Stale·Partial·Unknown을 일반 Success와 구분한다.
+- Masked Field와 Raw Field의 DTO·Permission·Audit를 분리한다.
+
+#### Button·활성 조건
+
+Action: **조회·등록·수정**
+
+- Write/Delete Permission과 대상 최신 Version을 확인한 뒤 변경 Button을 활성화한다.
+- Reason·Approval이 필요한 조치는 값이 비어 있으면 제출을 비활성화한다.
+- 기존 Operation이 Processing·Unknown이면 중복 제출 대신 상태 조회를 제공한다.
+
+#### Backend·Owner API 계약
+
+- Query DTO: Config ID/Key/Value/Type/Encrypted YN/Reason
+- Response DTO: Pretty Result
+- Command: 조회·등록·수정
+- Command 공통 Field: Target ID, Reason, Expected Version, Idempotency Key, 필요 시 Approval ID.
+- Permission: `CONFIG` Write; 복구 핵심: Secret 원문을 일반 Config에 저장 금지.
+
+- Same-JVM과 Remote Adapter가 같은 Request·Response·Error 의미를 제공한다.
+- Owner DB를 ADM Repository에서 직접 갱신하지 않는다.
+- 202·Accepted 응답은 Operation 상태 조회와 Reconcile API를 연결한다.
+
+#### 화면 상태 모델
+
+Loading, Empty, Success, Validation Error, 403, 409, Timeout, Response Loss
+
+- 상태 전이는 Store와 URL·Dialog·Table Selection에 일관되게 반영한다.
+- Route 이동·Session 만료·Response Loss 후 민감 Form과 진행 중 Operation ID를 분리해 보존한다.
+
+#### 오류·부분 적용·Rollback
+
+- Validation은 Field별 Message와 허용 범위를 표시한다.
+- 403은 Menu/Button 숨김과 별도로 Backend Permission 거부를 표시한다.
+- 409는 최신 Version·변경자·변경 시각을 보여주고 Blind Retry하지 않는다.
+- Timeout·응답 유실은 기존 Operation ID를 조회한다.
+- Partial은 Target별 성공·실패·미응답을 표시한다.
+- Rollback은 변경 전 Version·Checksum·LKG 또는 Owner가 정의한 보정 Command를 사용한다.
 
 #### Test
 
-- Route deep link와 Menu Permission
+- Deep Link·Refresh·404
 - 검색 Default·Reset·Paging·Sort
-- Form validation과 Duplicate submit
-- 401·403·409·429·503·Timeout
-- Response loss 뒤 Operation 조회
+- Loading·Empty·Error 상태
+- 401·403 Backend 직접 호출
+- 409 Expected Version
+- Timeout·응답 유실 후 Operation 조회
 - Audit Masking·Before/After
-- Keyboard·Focus·Accessible name
+- Keyboard·Focus·Accessible Name
+- 화면별 복구 기준: Secret 원문을 일반 Config에 저장 금지
+
+
 ### responseCodes — 응답코드 관리
 
-**Route** `/responseCodes` · **Group** 프레임워크 · **Page** ``.../features/response-codes/ResponseCodesPage.vue``
+| 항목 | 계약 |
+|---|---|
+| Route | `/responseCodes` |
+| Group | 프레임워크 |
+| Page | `cpf-admin/frontend/src/features/response-codes/ResponseCodesPage.vue` |
+| Permission | `RESPONSE_CODE` Write/Delete |
 
-#### Frontend 구현
+#### Frontend Query·Form
 
-- 검색·입력: Response/Message Code, S/E, Module, Group, Sequence, HTTP, Reason
-- Column·상세: Pretty Result
-- Action: 조회·등록·수정·삭제
-- Empty·Loading·Error·Stale·Partial·Conflict·Unknown 상태를 구분한다.
-- Query Key는 Environment·Tenant·Filter·Paging·Sort를 포함하고, Mutation 성공 뒤 필요한 Query만 무효화한다.
+- Response/Message Code
+- S/E
+- Module
+- Group
+- Sequence
+- HTTP
+- Reason
 
-#### Backend·Owner 연결
+- 검색 Default와 Reset 결과를 같은 Query Key 규칙으로 관리한다.
+- 기간·Timezone·Paging·Sort·Data Scope를 URL 또는 Store 상태와 일치시킨다.
+- Password·Token·Secret·PII 원문은 Store·Browser Storage·Error Message에 남기지 않는다.
 
-1. Query DTO는 검색 Field·Default·Paging·Sort·Data Scope를 검증한다.
-2. Command DTO는 Target, Action, Reason, Approval, Expected Version, Idempotency Key를 포함한다.
-3. Owner Port는 Same-JVM·Remote Adapter를 제공하고 결과 상태 조회·Reconcile을 함께 제공한다.
-4. Page는 Orval Generated Client Operation을 사용한다.
-5. 필요한 Permission은 ``RESPONSE_CODE` Write/Delete`이며 Backend에서 다시 검증한다.
+#### Table·Detail
 
-#### 정상·오류·복구 Contract
+- Pretty Result
 
-정상 결과는 Row·Detail·Owner 상태·Version·Audit가 일치해야 한다. 복구 핵심은 **Consumer·Message Mapping 영향 확인**다. 409, Timeout, Response loss, Partial Apply를 각각 Fixture로 재현하고 Reconcile·Rollback UI를 시험한다.
+- Stable Row Key와 Detail ID·Version을 일치시킨다.
+- Empty·Stale·Partial·Unknown을 일반 Success와 구분한다.
+- Masked Field와 Raw Field의 DTO·Permission·Audit를 분리한다.
+
+#### Button·활성 조건
+
+Action: **조회·등록·수정·삭제**
+
+- Write/Delete Permission과 대상 최신 Version을 확인한 뒤 변경 Button을 활성화한다.
+- Reason·Approval이 필요한 조치는 값이 비어 있으면 제출을 비활성화한다.
+- 기존 Operation이 Processing·Unknown이면 중복 제출 대신 상태 조회를 제공한다.
+
+#### Backend·Owner API 계약
+
+- Query DTO: Response/Message Code, S/E, Module, Group, Sequence, HTTP, Reason
+- Response DTO: Pretty Result
+- Command: 조회·등록·수정·삭제
+- Command 공통 Field: Target ID, Reason, Expected Version, Idempotency Key, 필요 시 Approval ID.
+- Permission: `RESPONSE_CODE` Write/Delete; 복구 핵심: Consumer·Message Mapping 영향 확인.
+
+- Same-JVM과 Remote Adapter가 같은 Request·Response·Error 의미를 제공한다.
+- Owner DB를 ADM Repository에서 직접 갱신하지 않는다.
+- 202·Accepted 응답은 Operation 상태 조회와 Reconcile API를 연결한다.
+
+#### 화면 상태 모델
+
+Loading, Empty, Success, Validation Error, 403, 409, Timeout, Response Loss
+
+- 상태 전이는 Store와 URL·Dialog·Table Selection에 일관되게 반영한다.
+- Route 이동·Session 만료·Response Loss 후 민감 Form과 진행 중 Operation ID를 분리해 보존한다.
+
+#### 오류·부분 적용·Rollback
+
+- Validation은 Field별 Message와 허용 범위를 표시한다.
+- 403은 Menu/Button 숨김과 별도로 Backend Permission 거부를 표시한다.
+- 409는 최신 Version·변경자·변경 시각을 보여주고 Blind Retry하지 않는다.
+- Timeout·응답 유실은 기존 Operation ID를 조회한다.
+- Partial은 Target별 성공·실패·미응답을 표시한다.
+- Rollback은 변경 전 Version·Checksum·LKG 또는 Owner가 정의한 보정 Command를 사용한다.
 
 #### Test
 
-- Route deep link와 Menu Permission
+- Deep Link·Refresh·404
 - 검색 Default·Reset·Paging·Sort
-- Form validation과 Duplicate submit
-- 401·403·409·429·503·Timeout
-- Response loss 뒤 Operation 조회
+- Loading·Empty·Error 상태
+- 401·403 Backend 직접 호출
+- 409 Expected Version
+- Timeout·응답 유실 후 Operation 조회
 - Audit Masking·Before/After
-- Keyboard·Focus·Accessible name
+- Keyboard·Focus·Accessible Name
+- 화면별 복구 기준: Consumer·Message Mapping 영향 확인
+
+
 ### businessCalendar — 영업일·휴일 Override
 
-**Route** `/businessCalendar` · **Group** 프레임워크 · **Page** ``.../features/business-calendar/BusinessCalendarPage.vue``
+| 항목 | 계약 |
+|---|---|
+| Route | `/businessCalendar` |
+| Group | 프레임워크 |
+| Page | `cpf-admin/frontend/src/features/business-calendar/BusinessCalendarPage.vue` |
+| Permission | Menu Write/Delete + Writable Provider |
 
-#### Frontend 구현
+#### Frontend Query·Form
 
-- 검색·입력: Calendar DEFAULT, Date, Business/Holiday, Day Type, Institution, Business/Audit Reason
-- Column·상세: Date, Type, Institution, Reason, Version
-- Action: 조회·저장·삭제
-- Empty·Loading·Error·Stale·Partial·Conflict·Unknown 상태를 구분한다.
-- Query Key는 Environment·Tenant·Filter·Paging·Sort를 포함하고, Mutation 성공 뒤 필요한 Query만 무효화한다.
+- Calendar DEFAULT
+- Date
+- Business/Holiday
+- Day Type
+- Institution
+- Business/Audit Reason
 
-#### Backend·Owner 연결
+- 검색 Default와 Reset 결과를 같은 Query Key 규칙으로 관리한다.
+- 기간·Timezone·Paging·Sort·Data Scope를 URL 또는 Store 상태와 일치시킨다.
+- Password·Token·Secret·PII 원문은 Store·Browser Storage·Error Message에 남기지 않는다.
 
-1. Query DTO는 검색 Field·Default·Paging·Sort·Data Scope를 검증한다.
-2. Command DTO는 Target, Action, Reason, Approval, Expected Version, Idempotency Key를 포함한다.
-3. Owner Port는 Same-JVM·Remote Adapter를 제공하고 결과 상태 조회·Reconcile을 함께 제공한다.
-4. Page는 Orval Generated Client Operation을 사용한다.
-5. 필요한 Permission은 `Menu Write/Delete + Writable Provider`이며 Backend에서 다시 검증한다.
+#### Table·Detail
 
-#### 정상·오류·복구 Contract
+- Date
+- Type
+- Institution
+- Reason
+- Version
 
-정상 결과는 Row·Detail·Owner 상태·Version·Audit가 일치해야 한다. 복구 핵심은 **Expected Version 409 충돌 재조회**다. 409, Timeout, Response loss, Partial Apply를 각각 Fixture로 재현하고 Reconcile·Rollback UI를 시험한다.
+- Stable Row Key와 Detail ID·Version을 일치시킨다.
+- Empty·Stale·Partial·Unknown을 일반 Success와 구분한다.
+- Masked Field와 Raw Field의 DTO·Permission·Audit를 분리한다.
+
+#### Button·활성 조건
+
+Action: **조회·저장·삭제**
+
+- Write/Delete Permission과 대상 최신 Version을 확인한 뒤 변경 Button을 활성화한다.
+- Reason·Approval이 필요한 조치는 값이 비어 있으면 제출을 비활성화한다.
+- 기존 Operation이 Processing·Unknown이면 중복 제출 대신 상태 조회를 제공한다.
+
+#### Backend·Owner API 계약
+
+- Query DTO: Calendar DEFAULT, Date, Business/Holiday, Day Type, Institution, Business/Audit Reason
+- Response DTO: Date, Type, Institution, Reason, Version
+- Command: 조회·저장·삭제
+- Command 공통 Field: Target ID, Reason, Expected Version, Idempotency Key, 필요 시 Approval ID.
+- Permission: Menu Write/Delete + Writable Provider; 복구 핵심: Expected Version 409 충돌 재조회.
+
+- Same-JVM과 Remote Adapter가 같은 Request·Response·Error 의미를 제공한다.
+- Owner DB를 ADM Repository에서 직접 갱신하지 않는다.
+- 202·Accepted 응답은 Operation 상태 조회와 Reconcile API를 연결한다.
+
+#### 화면 상태 모델
+
+Loading, Empty, Success, Validation Error, 403, 409, Timeout, Response Loss
+
+- 상태 전이는 Store와 URL·Dialog·Table Selection에 일관되게 반영한다.
+- Route 이동·Session 만료·Response Loss 후 민감 Form과 진행 중 Operation ID를 분리해 보존한다.
+
+#### 오류·부분 적용·Rollback
+
+- Validation은 Field별 Message와 허용 범위를 표시한다.
+- 403은 Menu/Button 숨김과 별도로 Backend Permission 거부를 표시한다.
+- 409는 최신 Version·변경자·변경 시각을 보여주고 Blind Retry하지 않는다.
+- Timeout·응답 유실은 기존 Operation ID를 조회한다.
+- Partial은 Target별 성공·실패·미응답을 표시한다.
+- Rollback은 변경 전 Version·Checksum·LKG 또는 Owner가 정의한 보정 Command를 사용한다.
 
 #### Test
 
-- Route deep link와 Menu Permission
+- Deep Link·Refresh·404
 - 검색 Default·Reset·Paging·Sort
-- Form validation과 Duplicate submit
-- 401·403·409·429·503·Timeout
-- Response loss 뒤 Operation 조회
+- Loading·Empty·Error 상태
+- 401·403 Backend 직접 호출
+- 409 Expected Version
+- Timeout·응답 유실 후 Operation 조회
 - Audit Masking·Before/After
-- Keyboard·Focus·Accessible name
+- Keyboard·Focus·Accessible Name
+- 화면별 복구 기준: Expected Version 409 충돌 재조회
+
+
 ### codes — 공통 코드
 
-**Route** `/codes` · **Group** 프레임워크 · **Page** ``.../features/codes/CodesPage.vue``
+| 항목 | 계약 |
+|---|---|
+| Route | `/codes` |
+| Group | 프레임워크 |
+| Page | `cpf-admin/frontend/src/features/codes/CodesPage.vue` |
+| Permission | `CODE` Write |
 
-#### Frontend 구현
+#### Frontend Query·Form
 
-- 검색·입력: Code ID, Parent ID, Key, Value, Description, Reason
-- Column·상세: Pretty Result
-- Action: 조회·등록·수정
-- Empty·Loading·Error·Stale·Partial·Conflict·Unknown 상태를 구분한다.
-- Query Key는 Environment·Tenant·Filter·Paging·Sort를 포함하고, Mutation 성공 뒤 필요한 Query만 무효화한다.
+- Code ID
+- Parent ID
+- Key
+- Value
+- Description
+- Reason
 
-#### Backend·Owner 연결
+- 검색 Default와 Reset 결과를 같은 Query Key 규칙으로 관리한다.
+- 기간·Timezone·Paging·Sort·Data Scope를 URL 또는 Store 상태와 일치시킨다.
+- Password·Token·Secret·PII 원문은 Store·Browser Storage·Error Message에 남기지 않는다.
 
-1. Query DTO는 검색 Field·Default·Paging·Sort·Data Scope를 검증한다.
-2. Command DTO는 Target, Action, Reason, Approval, Expected Version, Idempotency Key를 포함한다.
-3. Owner Port는 Same-JVM·Remote Adapter를 제공하고 결과 상태 조회·Reconcile을 함께 제공한다.
-4. Page는 Orval Generated Client Operation을 사용한다.
-5. 필요한 Permission은 ``CODE` Write`이며 Backend에서 다시 검증한다.
+#### Table·Detail
 
-#### 정상·오류·복구 Contract
+- Pretty Result
 
-정상 결과는 Row·Detail·Owner 상태·Version·Audit가 일치해야 한다. 복구 핵심은 **Parent 순환·Consumer Cache 갱신 확인**다. 409, Timeout, Response loss, Partial Apply를 각각 Fixture로 재현하고 Reconcile·Rollback UI를 시험한다.
+- Stable Row Key와 Detail ID·Version을 일치시킨다.
+- Empty·Stale·Partial·Unknown을 일반 Success와 구분한다.
+- Masked Field와 Raw Field의 DTO·Permission·Audit를 분리한다.
+
+#### Button·활성 조건
+
+Action: **조회·등록·수정**
+
+- Write/Delete Permission과 대상 최신 Version을 확인한 뒤 변경 Button을 활성화한다.
+- Reason·Approval이 필요한 조치는 값이 비어 있으면 제출을 비활성화한다.
+- 기존 Operation이 Processing·Unknown이면 중복 제출 대신 상태 조회를 제공한다.
+
+#### Backend·Owner API 계약
+
+- Query DTO: Code ID, Parent ID, Key, Value, Description, Reason
+- Response DTO: Pretty Result
+- Command: 조회·등록·수정
+- Command 공통 Field: Target ID, Reason, Expected Version, Idempotency Key, 필요 시 Approval ID.
+- Permission: `CODE` Write; 복구 핵심: Parent 순환·Consumer Cache 갱신 확인.
+
+- Same-JVM과 Remote Adapter가 같은 Request·Response·Error 의미를 제공한다.
+- Owner DB를 ADM Repository에서 직접 갱신하지 않는다.
+- 202·Accepted 응답은 Operation 상태 조회와 Reconcile API를 연결한다.
+
+#### 화면 상태 모델
+
+Loading, Empty, Success, Validation Error, 403, 409, Timeout, Response Loss
+
+- 상태 전이는 Store와 URL·Dialog·Table Selection에 일관되게 반영한다.
+- Route 이동·Session 만료·Response Loss 후 민감 Form과 진행 중 Operation ID를 분리해 보존한다.
+
+#### 오류·부분 적용·Rollback
+
+- Validation은 Field별 Message와 허용 범위를 표시한다.
+- 403은 Menu/Button 숨김과 별도로 Backend Permission 거부를 표시한다.
+- 409는 최신 Version·변경자·변경 시각을 보여주고 Blind Retry하지 않는다.
+- Timeout·응답 유실은 기존 Operation ID를 조회한다.
+- Partial은 Target별 성공·실패·미응답을 표시한다.
+- Rollback은 변경 전 Version·Checksum·LKG 또는 Owner가 정의한 보정 Command를 사용한다.
 
 #### Test
 
-- Route deep link와 Menu Permission
+- Deep Link·Refresh·404
 - 검색 Default·Reset·Paging·Sort
-- Form validation과 Duplicate submit
-- 401·403·409·429·503·Timeout
-- Response loss 뒤 Operation 조회
+- Loading·Empty·Error 상태
+- 401·403 Backend 직접 호출
+- 409 Expected Version
+- Timeout·응답 유실 후 Operation 조회
 - Audit Masking·Before/After
-- Keyboard·Focus·Accessible name
+- Keyboard·Focus·Accessible Name
+- 화면별 복구 기준: Parent 순환·Consumer Cache 갱신 확인
+
+
 ### messages — 다국어 Message
 
-**Route** `/messages` · **Group** 연계 관리 · **Page** ``.../features/messages/MessagesPage.vue``
+| 항목 | 계약 |
+|---|---|
+| Route | `/messages` |
+| Group | 연계 관리 |
+| Page | `cpf-admin/frontend/src/features/messages/MessagesPage.vue` |
+| Permission | `MESSAGE` Write |
 
-#### Frontend 구현
+#### Frontend Query·Form
 
-- 검색·입력: Message ID/Code/Locale/External/Internal/Reason
-- Column·상세: Pretty Result
-- Action: 조회·등록·수정
-- Empty·Loading·Error·Stale·Partial·Conflict·Unknown 상태를 구분한다.
-- Query Key는 Environment·Tenant·Filter·Paging·Sort를 포함하고, Mutation 성공 뒤 필요한 Query만 무효화한다.
+- Message ID/Code/Locale/External/Internal/Reason
 
-#### Backend·Owner 연결
+- 검색 Default와 Reset 결과를 같은 Query Key 규칙으로 관리한다.
+- 기간·Timezone·Paging·Sort·Data Scope를 URL 또는 Store 상태와 일치시킨다.
+- Password·Token·Secret·PII 원문은 Store·Browser Storage·Error Message에 남기지 않는다.
 
-1. Query DTO는 검색 Field·Default·Paging·Sort·Data Scope를 검증한다.
-2. Command DTO는 Target, Action, Reason, Approval, Expected Version, Idempotency Key를 포함한다.
-3. Owner Port는 Same-JVM·Remote Adapter를 제공하고 결과 상태 조회·Reconcile을 함께 제공한다.
-4. Page는 Orval Generated Client Operation을 사용한다.
-5. 필요한 Permission은 ``MESSAGE` Write`이며 Backend에서 다시 검증한다.
+#### Table·Detail
 
-#### 정상·오류·복구 Contract
+- Pretty Result
 
-정상 결과는 Row·Detail·Owner 상태·Version·Audit가 일치해야 한다. 복구 핵심은 **External/Internal 노출 범위 분리**다. 409, Timeout, Response loss, Partial Apply를 각각 Fixture로 재현하고 Reconcile·Rollback UI를 시험한다.
+- Stable Row Key와 Detail ID·Version을 일치시킨다.
+- Empty·Stale·Partial·Unknown을 일반 Success와 구분한다.
+- Masked Field와 Raw Field의 DTO·Permission·Audit를 분리한다.
+
+#### Button·활성 조건
+
+Action: **조회·등록·수정**
+
+- Write/Delete Permission과 대상 최신 Version을 확인한 뒤 변경 Button을 활성화한다.
+- Reason·Approval이 필요한 조치는 값이 비어 있으면 제출을 비활성화한다.
+- 기존 Operation이 Processing·Unknown이면 중복 제출 대신 상태 조회를 제공한다.
+
+#### Backend·Owner API 계약
+
+- Query DTO: Message ID/Code/Locale/External/Internal/Reason
+- Response DTO: Pretty Result
+- Command: 조회·등록·수정
+- Command 공통 Field: Target ID, Reason, Expected Version, Idempotency Key, 필요 시 Approval ID.
+- Permission: `MESSAGE` Write; 복구 핵심: External/Internal 노출 범위 분리.
+
+- Same-JVM과 Remote Adapter가 같은 Request·Response·Error 의미를 제공한다.
+- Owner DB를 ADM Repository에서 직접 갱신하지 않는다.
+- 202·Accepted 응답은 Operation 상태 조회와 Reconcile API를 연결한다.
+
+#### 화면 상태 모델
+
+Loading, Empty, Success, Validation Error, 403, 409, Timeout, Response Loss
+
+- 상태 전이는 Store와 URL·Dialog·Table Selection에 일관되게 반영한다.
+- Route 이동·Session 만료·Response Loss 후 민감 Form과 진행 중 Operation ID를 분리해 보존한다.
+
+#### 오류·부분 적용·Rollback
+
+- Validation은 Field별 Message와 허용 범위를 표시한다.
+- 403은 Menu/Button 숨김과 별도로 Backend Permission 거부를 표시한다.
+- 409는 최신 Version·변경자·변경 시각을 보여주고 Blind Retry하지 않는다.
+- Timeout·응답 유실은 기존 Operation ID를 조회한다.
+- Partial은 Target별 성공·실패·미응답을 표시한다.
+- Rollback은 변경 전 Version·Checksum·LKG 또는 Owner가 정의한 보정 Command를 사용한다.
 
 #### Test
 
-- Route deep link와 Menu Permission
+- Deep Link·Refresh·404
 - 검색 Default·Reset·Paging·Sort
-- Form validation과 Duplicate submit
-- 401·403·409·429·503·Timeout
-- Response loss 뒤 Operation 조회
+- Loading·Empty·Error 상태
+- 401·403 Backend 직접 호출
+- 409 Expected Version
+- Timeout·응답 유실 후 Operation 조회
 - Audit Masking·Before/After
-- Keyboard·Focus·Accessible name
+- Keyboard·Focus·Accessible Name
+- 화면별 복구 기준: External/Internal 노출 범위 분리
+
+
 ### remoteLogs — 원격 Log Artifact
 
-**Route** `/remoteLogs` · **Group** 통합 관제 · **Page** ``.../features/remote-logs/RemoteLogsPage.vue``
+| 항목 | 계약 |
+|---|---|
+| Route | `/remoteLogs` |
+| Group | 통합 관제 |
+| Page | `cpf-admin/frontend/src/features/remote-logs/RemoteLogsPage.vue` |
+| Permission | `REMOTE_LOG` Write for download |
 
-#### Frontend 구현
+#### Frontend Query·Form
 
-- 검색·입력: 환경/Module/Service/Instance/Type/File/표준 ID/Transaction/Batch IDs/기간/Size/압축/활성/Lines/Keyword/Reason
-- Column·상세: Artifact Metadata·Preview·Bundle Job·Diagnostics
-- Action: 조회·단건/선택/비동기 ZIP·상태·Download·진단
-- Empty·Loading·Error·Stale·Partial·Conflict·Unknown 상태를 구분한다.
-- Query Key는 Environment·Tenant·Filter·Paging·Sort를 포함하고, Mutation 성공 뒤 필요한 Query만 무효화한다.
+- 환경/Module/Service/Instance/Type/File/표준 ID/Transaction/Batch IDs/기간/Size/압축/활성/Lines/Keyword/Reason
 
-#### Backend·Owner 연결
+- 검색 Default와 Reset 결과를 같은 Query Key 규칙으로 관리한다.
+- 기간·Timezone·Paging·Sort·Data Scope를 URL 또는 Store 상태와 일치시킨다.
+- Password·Token·Secret·PII 원문은 Store·Browser Storage·Error Message에 남기지 않는다.
 
-1. Query DTO는 검색 Field·Default·Paging·Sort·Data Scope를 검증한다.
-2. Command DTO는 Target, Action, Reason, Approval, Expected Version, Idempotency Key를 포함한다.
-3. Owner Port는 Same-JVM·Remote Adapter를 제공하고 결과 상태 조회·Reconcile을 함께 제공한다.
-4. Page는 Orval Generated Client Operation을 사용한다.
-5. 필요한 Permission은 ``REMOTE_LOG` Write for download`이며 Backend에서 다시 검증한다.
+#### Table·Detail
 
-#### 정상·오류·복구 Contract
+- Artifact Metadata·Preview·Bundle Job·Diagnostics
 
-정상 결과는 Row·Detail·Owner 상태·Version·Audit가 일치해야 한다. 복구 핵심은 **Retention·Size·Masking·Download Audit**다. 409, Timeout, Response loss, Partial Apply를 각각 Fixture로 재현하고 Reconcile·Rollback UI를 시험한다.
+- Stable Row Key와 Detail ID·Version을 일치시킨다.
+- Empty·Stale·Partial·Unknown을 일반 Success와 구분한다.
+- Masked Field와 Raw Field의 DTO·Permission·Audit를 분리한다.
+
+#### Button·활성 조건
+
+Action: **조회·단건/선택/비동기 ZIP·상태·Download·진단**
+
+- Write/Delete Permission과 대상 최신 Version을 확인한 뒤 변경 Button을 활성화한다.
+- Reason·Approval이 필요한 조치는 값이 비어 있으면 제출을 비활성화한다.
+- 기존 Operation이 Processing·Unknown이면 중복 제출 대신 상태 조회를 제공한다.
+
+#### Backend·Owner API 계약
+
+- Query DTO: 환경/Module/Service/Instance/Type/File/표준 ID/Transaction/Batch IDs/기간/Size/압축/활성/Lines/Keyword/Reason
+- Response DTO: Artifact Metadata·Preview·Bundle Job·Diagnostics
+- Command: 조회·단건/선택/비동기 ZIP·상태·Download·진단
+- Command 공통 Field: Target ID, Reason, Expected Version, Idempotency Key, 필요 시 Approval ID.
+- Permission: `REMOTE_LOG` Write for download; 복구 핵심: Retention·Size·Masking·Download Audit.
+
+- Same-JVM과 Remote Adapter가 같은 Request·Response·Error 의미를 제공한다.
+- Owner DB를 ADM Repository에서 직접 갱신하지 않는다.
+- 202·Accepted 응답은 Operation 상태 조회와 Reconcile API를 연결한다.
+
+#### 화면 상태 모델
+
+Loading, Empty, Success, Validation Error, 403, 409, Timeout, Response Loss
+
+- 상태 전이는 Store와 URL·Dialog·Table Selection에 일관되게 반영한다.
+- Route 이동·Session 만료·Response Loss 후 민감 Form과 진행 중 Operation ID를 분리해 보존한다.
+
+#### 오류·부분 적용·Rollback
+
+- Validation은 Field별 Message와 허용 범위를 표시한다.
+- 403은 Menu/Button 숨김과 별도로 Backend Permission 거부를 표시한다.
+- 409는 최신 Version·변경자·변경 시각을 보여주고 Blind Retry하지 않는다.
+- Timeout·응답 유실은 기존 Operation ID를 조회한다.
+- Partial은 Target별 성공·실패·미응답을 표시한다.
+- Rollback은 변경 전 Version·Checksum·LKG 또는 Owner가 정의한 보정 Command를 사용한다.
 
 #### Test
 
-- Route deep link와 Menu Permission
+- Deep Link·Refresh·404
 - 검색 Default·Reset·Paging·Sort
-- Form validation과 Duplicate submit
-- 401·403·409·429·503·Timeout
-- Response loss 뒤 Operation 조회
+- Loading·Empty·Error 상태
+- 401·403 Backend 직접 호출
+- 409 Expected Version
+- Timeout·응답 유실 후 Operation 조회
 - Audit Masking·Before/After
-- Keyboard·Focus·Accessible name
+- Keyboard·Focus·Accessible Name
+- 화면별 복구 기준: Retention·Size·Masking·Download Audit
+
+
 ### auditLogs — Audit 조회·Delivery 복구
 
-**Route** `/auditLogs` · **Group** 통합 관제 · **Page** ``.../features/audit-logs/AuditLogsPage.vue``
+| 항목 | 계약 |
+|---|---|
+| Route | `/auditLogs` |
+| Group | 통합 관제 |
+| Page | `cpf-admin/frontend/src/features/audit-logs/AuditLogsPage.vue` |
+| Permission | `AUDIT_LOG` Write for retry |
 
-#### Frontend 구현
+#### Frontend Query·Form
 
-- 검색·입력: Operator, Action, Target Type/ID; Delivery Status, Retry Reason
-- Column·상세: Audit Result; Delivery ID/Status/Attempt/Error
-- Action: 조회·Delivery 조회·재처리
-- Empty·Loading·Error·Stale·Partial·Conflict·Unknown 상태를 구분한다.
-- Query Key는 Environment·Tenant·Filter·Paging·Sort를 포함하고, Mutation 성공 뒤 필요한 Query만 무효화한다.
+- Operator
+- Action
+- Target Type/ID
+- Delivery Status, Retry Reason
 
-#### Backend·Owner 연결
+- 검색 Default와 Reset 결과를 같은 Query Key 규칙으로 관리한다.
+- 기간·Timezone·Paging·Sort·Data Scope를 URL 또는 Store 상태와 일치시킨다.
+- Password·Token·Secret·PII 원문은 Store·Browser Storage·Error Message에 남기지 않는다.
 
-1. Query DTO는 검색 Field·Default·Paging·Sort·Data Scope를 검증한다.
-2. Command DTO는 Target, Action, Reason, Approval, Expected Version, Idempotency Key를 포함한다.
-3. Owner Port는 Same-JVM·Remote Adapter를 제공하고 결과 상태 조회·Reconcile을 함께 제공한다.
-4. Page는 Orval Generated Client Operation을 사용한다.
-5. 필요한 Permission은 ``AUDIT_LOG` Write for retry`이며 Backend에서 다시 검증한다.
+#### Table·Detail
 
-#### 정상·오류·복구 Contract
+- Audit Result
+- Delivery ID/Status/Attempt/Error
 
-정상 결과는 Row·Detail·Owner 상태·Version·Audit가 일치해야 한다. 복구 핵심은 **업무 결과와 Audit Delivery 분리**다. 409, Timeout, Response loss, Partial Apply를 각각 Fixture로 재현하고 Reconcile·Rollback UI를 시험한다.
+- Stable Row Key와 Detail ID·Version을 일치시킨다.
+- Empty·Stale·Partial·Unknown을 일반 Success와 구분한다.
+- Masked Field와 Raw Field의 DTO·Permission·Audit를 분리한다.
+
+#### Button·활성 조건
+
+Action: **조회·Delivery 조회·재처리**
+
+- Write/Delete Permission과 대상 최신 Version을 확인한 뒤 변경 Button을 활성화한다.
+- Reason·Approval이 필요한 조치는 값이 비어 있으면 제출을 비활성화한다.
+- 기존 Operation이 Processing·Unknown이면 중복 제출 대신 상태 조회를 제공한다.
+
+#### Backend·Owner API 계약
+
+- Query DTO: Operator, Action, Target Type/ID; Delivery Status, Retry Reason
+- Response DTO: Audit Result; Delivery ID/Status/Attempt/Error
+- Command: 조회·Delivery 조회·재처리
+- Command 공통 Field: Target ID, Reason, Expected Version, Idempotency Key, 필요 시 Approval ID.
+- Permission: `AUDIT_LOG` Write for retry; 복구 핵심: 업무 결과와 Audit Delivery 분리.
+
+- Same-JVM과 Remote Adapter가 같은 Request·Response·Error 의미를 제공한다.
+- Owner DB를 ADM Repository에서 직접 갱신하지 않는다.
+- 202·Accepted 응답은 Operation 상태 조회와 Reconcile API를 연결한다.
+
+#### 화면 상태 모델
+
+Loading, Empty, Success, Validation Error, 403, 409, Timeout, Response Loss
+
+- 상태 전이는 Store와 URL·Dialog·Table Selection에 일관되게 반영한다.
+- Route 이동·Session 만료·Response Loss 후 민감 Form과 진행 중 Operation ID를 분리해 보존한다.
+
+#### 오류·부분 적용·Rollback
+
+- Validation은 Field별 Message와 허용 범위를 표시한다.
+- 403은 Menu/Button 숨김과 별도로 Backend Permission 거부를 표시한다.
+- 409는 최신 Version·변경자·변경 시각을 보여주고 Blind Retry하지 않는다.
+- Timeout·응답 유실은 기존 Operation ID를 조회한다.
+- Partial은 Target별 성공·실패·미응답을 표시한다.
+- Rollback은 변경 전 Version·Checksum·LKG 또는 Owner가 정의한 보정 Command를 사용한다.
 
 #### Test
 
-- Route deep link와 Menu Permission
+- Deep Link·Refresh·404
 - 검색 Default·Reset·Paging·Sort
-- Form validation과 Duplicate submit
-- 401·403·409·429·503·Timeout
-- Response loss 뒤 Operation 조회
+- Loading·Empty·Error 상태
+- 401·403 Backend 직접 호출
+- 409 Expected Version
+- Timeout·응답 유실 후 Operation 조회
 - Audit Masking·Before/After
-- Keyboard·Focus·Accessible name
+- Keyboard·Focus·Accessible Name
+- 화면별 복구 기준: 업무 결과와 Audit Delivery 분리
+
+
 ### logLevel — Dynamic Log Level
 
-**Route** `/logLevel` · **Group** 통합 관제 · **Page** ``.../features/log-level/LogLevelPage.vue``
+| 항목 | 계약 |
+|---|---|
+| Route | `/logLevel` |
+| Group | 통합 관제 |
+| Page | `cpf-admin/frontend/src/features/log-level/LogLevelPage.vue` |
+| Permission | `DYNAMIC_LOG` Write |
 
-#### Frontend 구현
+#### Frontend Query·Form
 
-- 검색·입력: Business Transaction ID, Transaction ID, DEBUG/INFO/TRACE, TTL, Reason
-- Column·상세: Rule Result
-- Action: 조회·등록
-- Empty·Loading·Error·Stale·Partial·Conflict·Unknown 상태를 구분한다.
-- Query Key는 Environment·Tenant·Filter·Paging·Sort를 포함하고, Mutation 성공 뒤 필요한 Query만 무효화한다.
+- Business Transaction ID
+- Transaction ID
+- DEBUG/INFO/TRACE
+- TTL
+- Reason
 
-#### Backend·Owner 연결
+- 검색 Default와 Reset 결과를 같은 Query Key 규칙으로 관리한다.
+- 기간·Timezone·Paging·Sort·Data Scope를 URL 또는 Store 상태와 일치시킨다.
+- Password·Token·Secret·PII 원문은 Store·Browser Storage·Error Message에 남기지 않는다.
 
-1. Query DTO는 검색 Field·Default·Paging·Sort·Data Scope를 검증한다.
-2. Command DTO는 Target, Action, Reason, Approval, Expected Version, Idempotency Key를 포함한다.
-3. Owner Port는 Same-JVM·Remote Adapter를 제공하고 결과 상태 조회·Reconcile을 함께 제공한다.
-4. Page는 Orval Generated Client Operation을 사용한다.
-5. 필요한 Permission은 ``DYNAMIC_LOG` Write`이며 Backend에서 다시 검증한다.
+#### Table·Detail
 
-#### 정상·오류·복구 Contract
+- Rule Result
 
-정상 결과는 Row·Detail·Owner 상태·Version·Audit가 일치해야 한다. 복구 핵심은 **TTL 만료·민감정보 Capture 정책 확인**다. 409, Timeout, Response loss, Partial Apply를 각각 Fixture로 재현하고 Reconcile·Rollback UI를 시험한다.
+- Stable Row Key와 Detail ID·Version을 일치시킨다.
+- Empty·Stale·Partial·Unknown을 일반 Success와 구분한다.
+- Masked Field와 Raw Field의 DTO·Permission·Audit를 분리한다.
+
+#### Button·활성 조건
+
+Action: **조회·등록**
+
+- Write/Delete Permission과 대상 최신 Version을 확인한 뒤 변경 Button을 활성화한다.
+- Reason·Approval이 필요한 조치는 값이 비어 있으면 제출을 비활성화한다.
+- 기존 Operation이 Processing·Unknown이면 중복 제출 대신 상태 조회를 제공한다.
+
+#### Backend·Owner API 계약
+
+- Query DTO: Business Transaction ID, Transaction ID, DEBUG/INFO/TRACE, TTL, Reason
+- Response DTO: Rule Result
+- Command: 조회·등록
+- Command 공통 Field: Target ID, Reason, Expected Version, Idempotency Key, 필요 시 Approval ID.
+- Permission: `DYNAMIC_LOG` Write; 복구 핵심: TTL 만료·민감정보 Capture 정책 확인.
+
+- Same-JVM과 Remote Adapter가 같은 Request·Response·Error 의미를 제공한다.
+- Owner DB를 ADM Repository에서 직접 갱신하지 않는다.
+- 202·Accepted 응답은 Operation 상태 조회와 Reconcile API를 연결한다.
+
+#### 화면 상태 모델
+
+Loading, Empty, Success, Validation Error, 403, 409, Timeout, Response Loss
+
+- 상태 전이는 Store와 URL·Dialog·Table Selection에 일관되게 반영한다.
+- Route 이동·Session 만료·Response Loss 후 민감 Form과 진행 중 Operation ID를 분리해 보존한다.
+
+#### 오류·부분 적용·Rollback
+
+- Validation은 Field별 Message와 허용 범위를 표시한다.
+- 403은 Menu/Button 숨김과 별도로 Backend Permission 거부를 표시한다.
+- 409는 최신 Version·변경자·변경 시각을 보여주고 Blind Retry하지 않는다.
+- Timeout·응답 유실은 기존 Operation ID를 조회한다.
+- Partial은 Target별 성공·실패·미응답을 표시한다.
+- Rollback은 변경 전 Version·Checksum·LKG 또는 Owner가 정의한 보정 Command를 사용한다.
 
 #### Test
 
-- Route deep link와 Menu Permission
+- Deep Link·Refresh·404
 - 검색 Default·Reset·Paging·Sort
-- Form validation과 Duplicate submit
-- 401·403·409·429·503·Timeout
-- Response loss 뒤 Operation 조회
+- Loading·Empty·Error 상태
+- 401·403 Backend 직접 호출
+- 409 Expected Version
+- Timeout·응답 유실 후 Operation 조회
 - Audit Masking·Before/After
-- Keyboard·Focus·Accessible name
+- Keyboard·Focus·Accessible Name
+- 화면별 복구 기준: TTL 만료·민감정보 Capture 정책 확인
+
+
 ### logPolicies — Log Capture·Retention·Trace Boost
 
-**Route** `/logPolicies` · **Group** 통합 관제 · **Page** ``.../features/log-policies/LogPoliciesPage.vue``
+| 항목 | 계약 |
+|---|---|
+| Route | `/logPolicies` |
+| Group | 통합 관제 |
+| Page | `cpf-admin/frontend/src/features/log-policies/LogPoliciesPage.vue` |
+| Permission | `LOG_POLICY` Write |
 
-#### Frontend 구현
+#### Frontend Query·Form
 
-- 검색·입력: Target/Level/DB/File/Stack/Retention/Sampling/Capture Mode/Allowlist/Masking/Byte Cap/Reason/Trace Boost
-- Column·상세: Policy·Distribution Event/Gateway/Version/Status/Attempt/Fencing/Error/ACK
-- Action: 조회·저장·중지·Override·Trace Boost·Cache Refresh/Clear·적용 상태
-- Empty·Loading·Error·Stale·Partial·Conflict·Unknown 상태를 구분한다.
-- Query Key는 Environment·Tenant·Filter·Paging·Sort를 포함하고, Mutation 성공 뒤 필요한 Query만 무효화한다.
+- Target/Level/DB/File/Stack/Retention/Sampling/Capture Mode/Allowlist/Masking/Byte Cap/Reason/Trace Boost
 
-#### Backend·Owner 연결
+- 검색 Default와 Reset 결과를 같은 Query Key 규칙으로 관리한다.
+- 기간·Timezone·Paging·Sort·Data Scope를 URL 또는 Store 상태와 일치시킨다.
+- Password·Token·Secret·PII 원문은 Store·Browser Storage·Error Message에 남기지 않는다.
 
-1. Query DTO는 검색 Field·Default·Paging·Sort·Data Scope를 검증한다.
-2. Command DTO는 Target, Action, Reason, Approval, Expected Version, Idempotency Key를 포함한다.
-3. Owner Port는 Same-JVM·Remote Adapter를 제공하고 결과 상태 조회·Reconcile을 함께 제공한다.
-4. Page는 Orval Generated Client Operation을 사용한다.
-5. 필요한 Permission은 ``LOG_POLICY` Write`이며 Backend에서 다시 검증한다.
+#### Table·Detail
 
-#### 정상·오류·복구 Contract
+- Policy·Distribution Event/Gateway/Version/Status/Attempt/Fencing/Error/ACK
 
-정상 결과는 Row·Detail·Owner 상태·Version·Audit가 일치해야 한다. 복구 핵심은 **Raw Authorization/Cookie/Token·FULL RAW 금지; ACK 실패 대사**다. 409, Timeout, Response loss, Partial Apply를 각각 Fixture로 재현하고 Reconcile·Rollback UI를 시험한다.
+- Stable Row Key와 Detail ID·Version을 일치시킨다.
+- Empty·Stale·Partial·Unknown을 일반 Success와 구분한다.
+- Masked Field와 Raw Field의 DTO·Permission·Audit를 분리한다.
+
+#### Button·활성 조건
+
+Action: **조회·저장·중지·Override·Trace Boost·Cache Refresh/Clear·적용 상태**
+
+- Write/Delete Permission과 대상 최신 Version을 확인한 뒤 변경 Button을 활성화한다.
+- Reason·Approval이 필요한 조치는 값이 비어 있으면 제출을 비활성화한다.
+- 기존 Operation이 Processing·Unknown이면 중복 제출 대신 상태 조회를 제공한다.
+
+#### Backend·Owner API 계약
+
+- Query DTO: Target/Level/DB/File/Stack/Retention/Sampling/Capture Mode/Allowlist/Masking/Byte Cap/Reason/Trace Boost
+- Response DTO: Policy·Distribution Event/Gateway/Version/Status/Attempt/Fencing/Error/ACK
+- Command: 조회·저장·중지·Override·Trace Boost·Cache Refresh/Clear·적용 상태
+- Command 공통 Field: Target ID, Reason, Expected Version, Idempotency Key, 필요 시 Approval ID.
+- Permission: `LOG_POLICY` Write; 복구 핵심: Raw Authorization/Cookie/Token·FULL RAW 금지; ACK 실패 대사.
+
+- Same-JVM과 Remote Adapter가 같은 Request·Response·Error 의미를 제공한다.
+- Owner DB를 ADM Repository에서 직접 갱신하지 않는다.
+- 202·Accepted 응답은 Operation 상태 조회와 Reconcile API를 연결한다.
+
+#### 화면 상태 모델
+
+Loading, Empty, Success, Validation Error, 403, 409, Timeout, Response Loss
+
+- 상태 전이는 Store와 URL·Dialog·Table Selection에 일관되게 반영한다.
+- Route 이동·Session 만료·Response Loss 후 민감 Form과 진행 중 Operation ID를 분리해 보존한다.
+
+#### 오류·부분 적용·Rollback
+
+- Validation은 Field별 Message와 허용 범위를 표시한다.
+- 403은 Menu/Button 숨김과 별도로 Backend Permission 거부를 표시한다.
+- 409는 최신 Version·변경자·변경 시각을 보여주고 Blind Retry하지 않는다.
+- Timeout·응답 유실은 기존 Operation ID를 조회한다.
+- Partial은 Target별 성공·실패·미응답을 표시한다.
+- Rollback은 변경 전 Version·Checksum·LKG 또는 Owner가 정의한 보정 Command를 사용한다.
 
 #### Test
 
-- Route deep link와 Menu Permission
+- Deep Link·Refresh·404
 - 검색 Default·Reset·Paging·Sort
-- Form validation과 Duplicate submit
-- 401·403·409·429·503·Timeout
-- Response loss 뒤 Operation 조회
+- Loading·Empty·Error 상태
+- 401·403 Backend 직접 호출
+- 409 Expected Version
+- Timeout·응답 유실 후 Operation 조회
 - Audit Masking·Before/After
-- Keyboard·Focus·Accessible name
+- Keyboard·Focus·Accessible Name
+- 화면별 복구 기준: Raw Authorization/Cookie/Token·FULL RAW 금지; ACK 실패 대사
+
+
 ### recoveryCenter — Unknown·DLQ·Outbox·File Transfer 통합 조회
 
-**Route** `/recoveryCenter` · **Group** 통합 관제 · **Page** ``.../features/recovery-center/RecoveryCenterPage.vue``
+| 항목 | 계약 |
+|---|---|
+| Route | `/recoveryCenter` |
+| Group | 통합 관제 |
+| Page | `cpf-admin/frontend/src/features/recovery-center/RecoveryCenterPage.vue` |
+| Permission | 조회 권한 |
 
-#### Frontend 구현
+#### Frontend Query·Form
 
-- 검색·입력: 없음
-- Column·상세: Unknown/DLQ/Outbox/File Transfer KPI·후보
-- Action: 새로고침
-- Empty·Loading·Error·Stale·Partial·Conflict·Unknown 상태를 구분한다.
-- Query Key는 Environment·Tenant·Filter·Paging·Sort를 포함하고, Mutation 성공 뒤 필요한 Query만 무효화한다.
+- 없음
 
-#### Backend·Owner 연결
+- 검색 Default와 Reset 결과를 같은 Query Key 규칙으로 관리한다.
+- 기간·Timezone·Paging·Sort·Data Scope를 URL 또는 Store 상태와 일치시킨다.
+- Password·Token·Secret·PII 원문은 Store·Browser Storage·Error Message에 남기지 않는다.
 
-1. Query DTO는 검색 Field·Default·Paging·Sort·Data Scope를 검증한다.
-2. Command DTO는 Target, Action, Reason, Approval, Expected Version, Idempotency Key를 포함한다.
-3. Owner Port는 Same-JVM·Remote Adapter를 제공하고 결과 상태 조회·Reconcile을 함께 제공한다.
-4. Page는 Orval Generated Client Operation을 사용한다.
-5. 필요한 Permission은 `조회 권한`이며 Backend에서 다시 검증한다.
+#### Table·Detail
 
-#### 정상·오류·복구 Contract
+- Unknown/DLQ/Outbox/File Transfer KPI·후보
 
-정상 결과는 Row·Detail·Owner 상태·Version·Audit가 일치해야 한다. 복구 핵심은 **실제 조치는 Reliability 화면 Gate 사용**다. 409, Timeout, Response loss, Partial Apply를 각각 Fixture로 재현하고 Reconcile·Rollback UI를 시험한다.
+- Stable Row Key와 Detail ID·Version을 일치시킨다.
+- Empty·Stale·Partial·Unknown을 일반 Success와 구분한다.
+- Masked Field와 Raw Field의 DTO·Permission·Audit를 분리한다.
+
+#### Button·활성 조건
+
+Action: **새로고침**
+
+- 조회 Permission이 있고 Page가 Loading 중이 아닐 때 조회·새로고침을 허용한다.
+- Stale·Partial 표시 중에는 변경 Button을 제공하지 않는다.
+
+#### Backend·Owner API 계약
+
+- Query DTO: 없음
+- Response DTO: Unknown/DLQ/Outbox/File Transfer KPI·후보
+- Query는 Environment·Data Scope·Paging·Sort·조회 시각을 포함한다.
+- Empty, Stale, Partial을 별도 응답 상태로 표현한다.
+- Permission: 조회 권한.
+
+- Same-JVM과 Remote Adapter가 같은 Request·Response·Error 의미를 제공한다.
+- Owner DB를 ADM Repository에서 직접 갱신하지 않는다.
+- 202·Accepted 응답은 Operation 상태 조회와 Reconcile API를 연결한다.
+
+#### 화면 상태 모델
+
+Loading, Empty, Success, Validation Error, 403, 409, Timeout, Response Loss
+
+- 상태 전이는 Store와 URL·Dialog·Table Selection에 일관되게 반영한다.
+- Route 이동·Session 만료·Response Loss 후 민감 Form과 진행 중 Operation ID를 분리해 보존한다.
+
+#### 오류·부분 적용·Rollback
+
+- Validation은 Field별 Message와 허용 범위를 표시한다.
+- 403은 Menu/Button 숨김과 별도로 Backend Permission 거부를 표시한다.
+- 409는 최신 Version·변경자·변경 시각을 보여주고 Blind Retry하지 않는다.
+- Timeout·응답 유실은 기존 Operation ID를 조회한다.
+- Partial은 Target별 성공·실패·미응답을 표시한다.
+- Rollback은 변경 전 Version·Checksum·LKG 또는 Owner가 정의한 보정 Command를 사용한다.
 
 #### Test
 
-- Route deep link와 Menu Permission
+- Deep Link·Refresh·404
 - 검색 Default·Reset·Paging·Sort
-- Form validation과 Duplicate submit
-- 401·403·409·429·503·Timeout
-- Response loss 뒤 Operation 조회
+- Loading·Empty·Error 상태
+- 401·403 Backend 직접 호출
+- 409 Expected Version
+- Timeout·응답 유실 후 Operation 조회
 - Audit Masking·Before/After
-- Keyboard·Focus·Accessible name
+- Keyboard·Focus·Accessible Name
+- 화면별 복구 기준: 실제 조치는 Reliability 화면 Gate 사용
+
+
 ### incidents — Incident Lifecycle
 
-**Route** `/incidents` · **Group** 통합 관제 · **Page** ``.../features/incidents/IncidentsPage.vue``
+| 항목 | 계약 |
+|---|---|
+| Route | `/incidents` |
+| Group | 통합 관제 |
+| Page | `cpf-admin/frontend/src/features/incidents/IncidentsPage.vue` |
+| Permission | Incident Write |
 
-#### Frontend 구현
+#### Frontend Query·Form
 
-- 검색·입력: Severity SEV1~4, Title, Summary, Source, Reason
-- Column·상세: ID, Severity, Title, Status, Detected
-- Action: 생성·ACKNOWLEDGED·MITIGATED·RESOLVED
-- Empty·Loading·Error·Stale·Partial·Conflict·Unknown 상태를 구분한다.
-- Query Key는 Environment·Tenant·Filter·Paging·Sort를 포함하고, Mutation 성공 뒤 필요한 Query만 무효화한다.
+- Severity SEV1~4
+- Title
+- Summary
+- Source
+- Reason
 
-#### Backend·Owner 연결
+- 검색 Default와 Reset 결과를 같은 Query Key 규칙으로 관리한다.
+- 기간·Timezone·Paging·Sort·Data Scope를 URL 또는 Store 상태와 일치시킨다.
+- Password·Token·Secret·PII 원문은 Store·Browser Storage·Error Message에 남기지 않는다.
 
-1. Query DTO는 검색 Field·Default·Paging·Sort·Data Scope를 검증한다.
-2. Command DTO는 Target, Action, Reason, Approval, Expected Version, Idempotency Key를 포함한다.
-3. Owner Port는 Same-JVM·Remote Adapter를 제공하고 결과 상태 조회·Reconcile을 함께 제공한다.
-4. Page는 Orval Generated Client Operation을 사용한다.
-5. 필요한 Permission은 `Incident Write`이며 Backend에서 다시 검증한다.
+#### Table·Detail
 
-#### 정상·오류·복구 Contract
+- ID
+- Severity
+- Title
+- Status
+- Detected
 
-정상 결과는 Row·Detail·Owner 상태·Version·Audit가 일치해야 한다. 복구 핵심은 **각 전이에 구체적 Reason**다. 409, Timeout, Response loss, Partial Apply를 각각 Fixture로 재현하고 Reconcile·Rollback UI를 시험한다.
+- Stable Row Key와 Detail ID·Version을 일치시킨다.
+- Empty·Stale·Partial·Unknown을 일반 Success와 구분한다.
+- Masked Field와 Raw Field의 DTO·Permission·Audit를 분리한다.
+
+#### Button·활성 조건
+
+Action: **생성·ACKNOWLEDGED·MITIGATED·RESOLVED**
+
+- Write/Delete Permission과 대상 최신 Version을 확인한 뒤 변경 Button을 활성화한다.
+- Reason·Approval이 필요한 조치는 값이 비어 있으면 제출을 비활성화한다.
+- 기존 Operation이 Processing·Unknown이면 중복 제출 대신 상태 조회를 제공한다.
+
+#### Backend·Owner API 계약
+
+- Query DTO: Severity SEV1~4, Title, Summary, Source, Reason
+- Response DTO: ID, Severity, Title, Status, Detected
+- Command: 생성·ACKNOWLEDGED·MITIGATED·RESOLVED
+- Command 공통 Field: Target ID, Reason, Expected Version, Idempotency Key, 필요 시 Approval ID.
+- Permission: Incident Write; 복구 핵심: 각 전이에 구체적 Reason.
+
+- Same-JVM과 Remote Adapter가 같은 Request·Response·Error 의미를 제공한다.
+- Owner DB를 ADM Repository에서 직접 갱신하지 않는다.
+- 202·Accepted 응답은 Operation 상태 조회와 Reconcile API를 연결한다.
+
+#### 화면 상태 모델
+
+Loading, Empty, Success, Validation Error, 403, 409, Timeout, Response Loss
+
+- 상태 전이는 Store와 URL·Dialog·Table Selection에 일관되게 반영한다.
+- Route 이동·Session 만료·Response Loss 후 민감 Form과 진행 중 Operation ID를 분리해 보존한다.
+
+#### 오류·부분 적용·Rollback
+
+- Validation은 Field별 Message와 허용 범위를 표시한다.
+- 403은 Menu/Button 숨김과 별도로 Backend Permission 거부를 표시한다.
+- 409는 최신 Version·변경자·변경 시각을 보여주고 Blind Retry하지 않는다.
+- Timeout·응답 유실은 기존 Operation ID를 조회한다.
+- Partial은 Target별 성공·실패·미응답을 표시한다.
+- Rollback은 변경 전 Version·Checksum·LKG 또는 Owner가 정의한 보정 Command를 사용한다.
 
 #### Test
 
-- Route deep link와 Menu Permission
+- Deep Link·Refresh·404
 - 검색 Default·Reset·Paging·Sort
-- Form validation과 Duplicate submit
-- 401·403·409·429·503·Timeout
-- Response loss 뒤 Operation 조회
+- Loading·Empty·Error 상태
+- 401·403 Backend 직접 호출
+- 409 Expected Version
+- Timeout·응답 유실 후 Operation 조회
 - Audit Masking·Before/After
-- Keyboard·Focus·Accessible name
+- Keyboard·Focus·Accessible Name
+- 화면별 복구 기준: 각 전이에 구체적 Reason
+
+
 ### reliability — DLQ·Unknown·Batch Log 대사
 
-**Route** `/reliability` · **Group** 통합 관제 · **Page** ``.../features/reliability/ReliabilityPage.vue``
+| 항목 | 계약 |
+|---|---|
+| Route | `/reliability` |
+| Group | 통합 관제 |
+| Page | `cpf-admin/frontend/src/features/reliability/ReliabilityPage.vue` |
+| Permission | `RELIABILITY` Write |
 
-#### Frontend 구현
+#### Frontend Query·Form
 
-- 검색·입력: Scope/Status/Key/Transaction/Topic/Endpoint/Type/Business Date/Job/Instance/Limit; Message/Unknown ID/Target Status/Reason
-- Column·상세: 통합 Result
-- Action: 조회·BAT 상세·DLQ Replay·Unknown 수동 확정
-- Empty·Loading·Error·Stale·Partial·Conflict·Unknown 상태를 구분한다.
-- Query Key는 Environment·Tenant·Filter·Paging·Sort를 포함하고, Mutation 성공 뒤 필요한 Query만 무효화한다.
+- Scope/Status/Key/Transaction/Topic/Endpoint/Type/Business Date/Job/Instance/Limit
+- Message/Unknown ID/Target Status/Reason
 
-#### Backend·Owner 연결
+- 검색 Default와 Reset 결과를 같은 Query Key 규칙으로 관리한다.
+- 기간·Timezone·Paging·Sort·Data Scope를 URL 또는 Store 상태와 일치시킨다.
+- Password·Token·Secret·PII 원문은 Store·Browser Storage·Error Message에 남기지 않는다.
 
-1. Query DTO는 검색 Field·Default·Paging·Sort·Data Scope를 검증한다.
-2. Command DTO는 Target, Action, Reason, Approval, Expected Version, Idempotency Key를 포함한다.
-3. Owner Port는 Same-JVM·Remote Adapter를 제공하고 결과 상태 조회·Reconcile을 함께 제공한다.
-4. Page는 Orval Generated Client Operation을 사용한다.
-5. 필요한 Permission은 ``RELIABILITY` Write`이며 Backend에서 다시 검증한다.
+#### Table·Detail
 
-#### 정상·오류·복구 Contract
+- 통합 Result
 
-정상 결과는 Row·Detail·Owner 상태·Version·Audit가 일치해야 한다. 복구 핵심은 **실제 Side Effect 근거 없이 수동 성공 확정 금지**다. 409, Timeout, Response loss, Partial Apply를 각각 Fixture로 재현하고 Reconcile·Rollback UI를 시험한다.
+- Stable Row Key와 Detail ID·Version을 일치시킨다.
+- Empty·Stale·Partial·Unknown을 일반 Success와 구분한다.
+- Masked Field와 Raw Field의 DTO·Permission·Audit를 분리한다.
+
+#### Button·활성 조건
+
+Action: **조회·BAT 상세·DLQ Replay·Unknown 수동 확정**
+
+- Write/Delete Permission과 대상 최신 Version을 확인한 뒤 변경 Button을 활성화한다.
+- Reason·Approval이 필요한 조치는 값이 비어 있으면 제출을 비활성화한다.
+- 기존 Operation이 Processing·Unknown이면 중복 제출 대신 상태 조회를 제공한다.
+
+#### Backend·Owner API 계약
+
+- Query DTO: Scope/Status/Key/Transaction/Topic/Endpoint/Type/Business Date/Job/Instance/Limit; Message/Unknown ID/Target Status/Reason
+- Response DTO: 통합 Result
+- Command: 조회·BAT 상세·DLQ Replay·Unknown 수동 확정
+- Command 공통 Field: Target ID, Reason, Expected Version, Idempotency Key, 필요 시 Approval ID.
+- Permission: `RELIABILITY` Write; 복구 핵심: 실제 Side Effect 근거 없이 수동 성공 확정 금지.
+
+- Same-JVM과 Remote Adapter가 같은 Request·Response·Error 의미를 제공한다.
+- Owner DB를 ADM Repository에서 직접 갱신하지 않는다.
+- 202·Accepted 응답은 Operation 상태 조회와 Reconcile API를 연결한다.
+
+#### 화면 상태 모델
+
+Loading, Empty, Success, Validation Error, 403, 409, Timeout, Response Loss
+
+- 상태 전이는 Store와 URL·Dialog·Table Selection에 일관되게 반영한다.
+- Route 이동·Session 만료·Response Loss 후 민감 Form과 진행 중 Operation ID를 분리해 보존한다.
+
+#### 오류·부분 적용·Rollback
+
+- Validation은 Field별 Message와 허용 범위를 표시한다.
+- 403은 Menu/Button 숨김과 별도로 Backend Permission 거부를 표시한다.
+- 409는 최신 Version·변경자·변경 시각을 보여주고 Blind Retry하지 않는다.
+- Timeout·응답 유실은 기존 Operation ID를 조회한다.
+- Partial은 Target별 성공·실패·미응답을 표시한다.
+- Rollback은 변경 전 Version·Checksum·LKG 또는 Owner가 정의한 보정 Command를 사용한다.
 
 #### Test
 
-- Route deep link와 Menu Permission
+- Deep Link·Refresh·404
 - 검색 Default·Reset·Paging·Sort
-- Form validation과 Duplicate submit
-- 401·403·409·429·503·Timeout
-- Response loss 뒤 Operation 조회
+- Loading·Empty·Error 상태
+- 401·403 Backend 직접 호출
+- 409 Expected Version
+- Timeout·응답 유실 후 Operation 조회
 - Audit Masking·Before/After
-- Keyboard·Focus·Accessible name
+- Keyboard·Focus·Accessible Name
+- 화면별 복구 기준: 실제 Side Effect 근거 없이 수동 성공 확정 금지
+
+
 ### notifications — 알림 Rule·Durable Delivery
 
-**Route** `/notifications` · **Group** 연계 관리 · **Page** ``.../features/notifications/NotificationsPage.vue``
+| 항목 | 계약 |
+|---|---|
+| Route | `/notifications` |
+| Group | 연계 관리 |
+| Page | `cpf-admin/frontend/src/features/notifications/NotificationsPage.vue` |
+| Permission | `NOTIFICATION_*` Button Permission |
 
-#### Frontend 구현
+#### Frontend Query·Form
 
-- 검색·입력: Rule/Event/Channel/Severity/Receiver/Reason; Delivery Expected Version/Operation/Reason
-- Column·상세: Rule; Delivery/Hash/Status/Attempt/Lease/Version; Provider Attempt
-- Action: 저장·중지·Test·CSV·Retry·Cancel
-- Empty·Loading·Error·Stale·Partial·Conflict·Unknown 상태를 구분한다.
-- Query Key는 Environment·Tenant·Filter·Paging·Sort를 포함하고, Mutation 성공 뒤 필요한 Query만 무효화한다.
+- Rule/Event/Channel/Severity/Receiver/Reason
+- Delivery Expected Version/Operation/Reason
 
-#### Backend·Owner 연결
+- 검색 Default와 Reset 결과를 같은 Query Key 규칙으로 관리한다.
+- 기간·Timezone·Paging·Sort·Data Scope를 URL 또는 Store 상태와 일치시킨다.
+- Password·Token·Secret·PII 원문은 Store·Browser Storage·Error Message에 남기지 않는다.
 
-1. Query DTO는 검색 Field·Default·Paging·Sort·Data Scope를 검증한다.
-2. Command DTO는 Target, Action, Reason, Approval, Expected Version, Idempotency Key를 포함한다.
-3. Owner Port는 Same-JVM·Remote Adapter를 제공하고 결과 상태 조회·Reconcile을 함께 제공한다.
-4. Page는 Orval Generated Client Operation을 사용한다.
-5. 필요한 Permission은 ``NOTIFICATION_*` Button Permission`이며 Backend에서 다시 검증한다.
+#### Table·Detail
 
-#### 정상·오류·복구 Contract
+- Rule
+- Delivery/Hash/Status/Attempt/Lease/Version
+- Provider Attempt
 
-정상 결과는 Row·Detail·Owner 상태·Version·Audit가 일치해야 한다. 복구 핵심은 **Expected Version·Lease·Attempt 확인**다. 409, Timeout, Response loss, Partial Apply를 각각 Fixture로 재현하고 Reconcile·Rollback UI를 시험한다.
+- Stable Row Key와 Detail ID·Version을 일치시킨다.
+- Empty·Stale·Partial·Unknown을 일반 Success와 구분한다.
+- Masked Field와 Raw Field의 DTO·Permission·Audit를 분리한다.
+
+#### Button·활성 조건
+
+Action: **저장·중지·Test·CSV·Retry·Cancel**
+
+- Write/Delete Permission과 대상 최신 Version을 확인한 뒤 변경 Button을 활성화한다.
+- Reason·Approval이 필요한 조치는 값이 비어 있으면 제출을 비활성화한다.
+- 기존 Operation이 Processing·Unknown이면 중복 제출 대신 상태 조회를 제공한다.
+
+#### Backend·Owner API 계약
+
+- Query DTO: Rule/Event/Channel/Severity/Receiver/Reason; Delivery Expected Version/Operation/Reason
+- Response DTO: Rule; Delivery/Hash/Status/Attempt/Lease/Version; Provider Attempt
+- Command: 저장·중지·Test·CSV·Retry·Cancel
+- Command 공통 Field: Target ID, Reason, Expected Version, Idempotency Key, 필요 시 Approval ID.
+- Permission: `NOTIFICATION_*` Button Permission; 복구 핵심: Expected Version·Lease·Attempt 확인.
+
+- Same-JVM과 Remote Adapter가 같은 Request·Response·Error 의미를 제공한다.
+- Owner DB를 ADM Repository에서 직접 갱신하지 않는다.
+- 202·Accepted 응답은 Operation 상태 조회와 Reconcile API를 연결한다.
+
+#### 화면 상태 모델
+
+Loading, Empty, Success, Validation Error, 403, 409, Timeout, Response Loss
+
+- 상태 전이는 Store와 URL·Dialog·Table Selection에 일관되게 반영한다.
+- Route 이동·Session 만료·Response Loss 후 민감 Form과 진행 중 Operation ID를 분리해 보존한다.
+
+#### 오류·부분 적용·Rollback
+
+- Validation은 Field별 Message와 허용 범위를 표시한다.
+- 403은 Menu/Button 숨김과 별도로 Backend Permission 거부를 표시한다.
+- 409는 최신 Version·변경자·변경 시각을 보여주고 Blind Retry하지 않는다.
+- Timeout·응답 유실은 기존 Operation ID를 조회한다.
+- Partial은 Target별 성공·실패·미응답을 표시한다.
+- Rollback은 변경 전 Version·Checksum·LKG 또는 Owner가 정의한 보정 Command를 사용한다.
 
 #### Test
 
-- Route deep link와 Menu Permission
+- Deep Link·Refresh·404
 - 검색 Default·Reset·Paging·Sort
-- Form validation과 Duplicate submit
-- 401·403·409·429·503·Timeout
-- Response loss 뒤 Operation 조회
+- Loading·Empty·Error 상태
+- 401·403 Backend 직접 호출
+- 409 Expected Version
+- Timeout·응답 유실 후 Operation 조회
 - Audit Masking·Before/After
-- Keyboard·Focus·Accessible name
+- Keyboard·Focus·Accessible Name
+- 화면별 복구 기준: Expected Version·Lease·Attempt 확인
+
+
 ### downloads — CSV Download·Audit
 
-**Route** `/downloads` · **Group** 연계 관리 · **Page** ``.../features/downloads/DownloadsPage.vue``
+| 항목 | 계약 |
+|---|---|
+| Route | `/downloads` |
+| Group | 연계 관리 |
+| Page | `cpf-admin/frontend/src/features/downloads/DownloadsPage.vue` |
+| Permission | Download Permission·Reason |
 
-#### Frontend 구현
+#### Frontend Query·Form
 
-- 검색·입력: Type, Target, Date Range, Transaction/Trace/Job, Limit, Reason
-- Column·상세: Download Result
-- Action: 정책 조회·CSV
-- Empty·Loading·Error·Stale·Partial·Conflict·Unknown 상태를 구분한다.
-- Query Key는 Environment·Tenant·Filter·Paging·Sort를 포함하고, Mutation 성공 뒤 필요한 Query만 무효화한다.
+- Type
+- Target
+- Date Range
+- Transaction/Trace/Job
+- Limit
+- Reason
 
-#### Backend·Owner 연결
+- 검색 Default와 Reset 결과를 같은 Query Key 규칙으로 관리한다.
+- 기간·Timezone·Paging·Sort·Data Scope를 URL 또는 Store 상태와 일치시킨다.
+- Password·Token·Secret·PII 원문은 Store·Browser Storage·Error Message에 남기지 않는다.
 
-1. Query DTO는 검색 Field·Default·Paging·Sort·Data Scope를 검증한다.
-2. Command DTO는 Target, Action, Reason, Approval, Expected Version, Idempotency Key를 포함한다.
-3. Owner Port는 Same-JVM·Remote Adapter를 제공하고 결과 상태 조회·Reconcile을 함께 제공한다.
-4. Page는 Orval Generated Client Operation을 사용한다.
-5. 필요한 Permission은 `Download Permission·Reason`이며 Backend에서 다시 검증한다.
+#### Table·Detail
 
-#### 정상·오류·복구 Contract
+- Download Result
 
-정상 결과는 Row·Detail·Owner 상태·Version·Audit가 일치해야 한다. 복구 핵심은 **Data Scope·Masking·건수 상한**다. 409, Timeout, Response loss, Partial Apply를 각각 Fixture로 재현하고 Reconcile·Rollback UI를 시험한다.
+- Stable Row Key와 Detail ID·Version을 일치시킨다.
+- Empty·Stale·Partial·Unknown을 일반 Success와 구분한다.
+- Masked Field와 Raw Field의 DTO·Permission·Audit를 분리한다.
+
+#### Button·활성 조건
+
+Action: **정책 조회·CSV**
+
+- Write/Delete Permission과 대상 최신 Version을 확인한 뒤 변경 Button을 활성화한다.
+- Reason·Approval이 필요한 조치는 값이 비어 있으면 제출을 비활성화한다.
+- 기존 Operation이 Processing·Unknown이면 중복 제출 대신 상태 조회를 제공한다.
+
+#### Backend·Owner API 계약
+
+- Query DTO: Type, Target, Date Range, Transaction/Trace/Job, Limit, Reason
+- Response DTO: Download Result
+- Command: 정책 조회·CSV
+- Command 공통 Field: Target ID, Reason, Expected Version, Idempotency Key, 필요 시 Approval ID.
+- Permission: Download Permission·Reason; 복구 핵심: Data Scope·Masking·건수 상한.
+
+- Same-JVM과 Remote Adapter가 같은 Request·Response·Error 의미를 제공한다.
+- Owner DB를 ADM Repository에서 직접 갱신하지 않는다.
+- 202·Accepted 응답은 Operation 상태 조회와 Reconcile API를 연결한다.
+
+#### 화면 상태 모델
+
+Loading, Empty, Success, Validation Error, 403, 409, Timeout, Response Loss
+
+- 상태 전이는 Store와 URL·Dialog·Table Selection에 일관되게 반영한다.
+- Route 이동·Session 만료·Response Loss 후 민감 Form과 진행 중 Operation ID를 분리해 보존한다.
+
+#### 오류·부분 적용·Rollback
+
+- Validation은 Field별 Message와 허용 범위를 표시한다.
+- 403은 Menu/Button 숨김과 별도로 Backend Permission 거부를 표시한다.
+- 409는 최신 Version·변경자·변경 시각을 보여주고 Blind Retry하지 않는다.
+- Timeout·응답 유실은 기존 Operation ID를 조회한다.
+- Partial은 Target별 성공·실패·미응답을 표시한다.
+- Rollback은 변경 전 Version·Checksum·LKG 또는 Owner가 정의한 보정 Command를 사용한다.
 
 #### Test
 
-- Route deep link와 Menu Permission
+- Deep Link·Refresh·404
 - 검색 Default·Reset·Paging·Sort
-- Form validation과 Duplicate submit
-- 401·403·409·429·503·Timeout
-- Response loss 뒤 Operation 조회
+- Loading·Empty·Error 상태
+- 401·403 Backend 직접 호출
+- 409 Expected Version
+- Timeout·응답 유실 후 Operation 조회
 - Audit Masking·Before/After
-- Keyboard·Focus·Accessible name
+- Keyboard·Focus·Accessible Name
+- 화면별 복구 기준: Data Scope·Masking·건수 상한
+
+
 ### file-jobs — 대량 File Job
 
-**Route** `/file-jobs` · **Group** 배치 운영 · **Page** ``.../features/file-jobs/FileJobsPage.vue``
+| 항목 | 계약 |
+|---|---|
+| Route | `/file-jobs` |
+| Group | 배치 운영 |
+| Page | `cpf-admin/frontend/src/features/file-jobs/FileJobsPage.vue` |
+| Permission | `FILE_JOB_*` Button Permission |
 
-#### Frontend 구현
+#### Frontend Query·Form
 
-- 검색·입력: Operation, Template/Version, CSV/XLSX, Dry Run, File, Reason; Control Approval/Reason; Unknown Resolution
-- Column·상세: Job/State/Rows/Checksum; Row State/Business Key/Error
-- Action: Upload·Detail·Apply·Retry·Cancel·Rollback·Unknown Resolve·Artifact
-- Empty·Loading·Error·Stale·Partial·Conflict·Unknown 상태를 구분한다.
-- Query Key는 Environment·Tenant·Filter·Paging·Sort를 포함하고, Mutation 성공 뒤 필요한 Query만 무효화한다.
+- Operation
+- Template/Version
+- CSV/XLSX
+- Dry Run
+- File
+- Reason
+- Control Approval/Reason
+- Unknown Resolution
 
-#### Backend·Owner 연결
+- 검색 Default와 Reset 결과를 같은 Query Key 규칙으로 관리한다.
+- 기간·Timezone·Paging·Sort·Data Scope를 URL 또는 Store 상태와 일치시킨다.
+- Password·Token·Secret·PII 원문은 Store·Browser Storage·Error Message에 남기지 않는다.
 
-1. Query DTO는 검색 Field·Default·Paging·Sort·Data Scope를 검증한다.
-2. Command DTO는 Target, Action, Reason, Approval, Expected Version, Idempotency Key를 포함한다.
-3. Owner Port는 Same-JVM·Remote Adapter를 제공하고 결과 상태 조회·Reconcile을 함께 제공한다.
-4. Page는 Orval Generated Client Operation을 사용한다.
-5. 필요한 Permission은 ``FILE_JOB_*` Button Permission`이며 Backend에서 다시 검증한다.
+#### Table·Detail
 
-#### 정상·오류·복구 Contract
+- Job/State/Rows/Checksum
+- Row State/Business Key/Error
 
-정상 결과는 Row·Detail·Owner 상태·Version·Audit가 일치해야 한다. 복구 핵심은 **상태별 Button 활성; Side Effect 대사·Rollback Token**다. 409, Timeout, Response loss, Partial Apply를 각각 Fixture로 재현하고 Reconcile·Rollback UI를 시험한다.
+- Stable Row Key와 Detail ID·Version을 일치시킨다.
+- Empty·Stale·Partial·Unknown을 일반 Success와 구분한다.
+- Masked Field와 Raw Field의 DTO·Permission·Audit를 분리한다.
+
+#### Button·활성 조건
+
+Action: **Upload·Detail·Apply·Retry·Cancel·Rollback·Unknown Resolve·Artifact**
+
+- Published Definition·Artifact·Parameter·Approval·Fencing이 유효할 때 Start를 허용한다.
+- Stop·Restart·Abandon·Reprocess는 현재 Execution 상태와 Restart 가능성에 따라 활성화한다.
+- Unknown 상태에서는 신규 실행보다 Reconcile 조치를 우선한다.
+
+#### Backend·Owner API 계약
+
+- Query: Job·Definition·Schedule·Execution·Worker·Lease·Artifact·Plan ID.
+- Command: Upload·Detail·Apply·Retry·Cancel·Rollback·Unknown Resolve·Artifact.
+- 필수 실행 Field: Parameter, Approval, Idempotency Key, Fencing Token, Reason.
+- 결과: CPF Execution ID, Spring Job/Step ID, 처리·Skip·Error·Checkpoint·Worker·Partition 상태.
+- Permission: `FILE_JOB_*` Button Permission; 복구 핵심: 상태별 Button 활성; Side Effect 대사·Rollback Token.
+
+- Same-JVM과 Remote Adapter가 같은 Request·Response·Error 의미를 제공한다.
+- Owner DB를 ADM Repository에서 직접 갱신하지 않는다.
+- 202·Accepted 응답은 Operation 상태 조회와 Reconcile API를 연결한다.
+
+#### 화면 상태 모델
+
+Loading, Empty, Success, Validation Error, 403, 409, Timeout, Response Loss, Starting, Started, Stopping, Stopped, Failed, Unknown, Restarted, Abandoned
+
+- 상태 전이는 Store와 URL·Dialog·Table Selection에 일관되게 반영한다.
+- Route 이동·Session 만료·Response Loss 후 민감 Form과 진행 중 Operation ID를 분리해 보존한다.
+
+#### 오류·부분 적용·Rollback
+
+- Validation은 Field별 Message와 허용 범위를 표시한다.
+- 403은 Menu/Button 숨김과 별도로 Backend Permission 거부를 표시한다.
+- 409는 최신 Version·변경자·변경 시각을 보여주고 Blind Retry하지 않는다.
+- Timeout·응답 유실은 기존 Operation ID를 조회한다.
+- Partial은 Target별 성공·실패·미응답을 표시한다.
+- Rollback은 변경 전 Version·Checksum·LKG 또는 Owner가 정의한 보정 Command를 사용한다.
 
 #### Test
 
-- Route deep link와 Menu Permission
+- Deep Link·Refresh·404
 - 검색 Default·Reset·Paging·Sort
-- Form validation과 Duplicate submit
-- 401·403·409·429·503·Timeout
-- Response loss 뒤 Operation 조회
+- Loading·Empty·Error 상태
+- 401·403 Backend 직접 호출
+- 409 Expected Version
+- Timeout·응답 유실 후 Operation 조회
 - Audit Masking·Before/After
-- Keyboard·Focus·Accessible name
+- Keyboard·Focus·Accessible Name
+- Stop·Restart·Abandon 활성 조건
+- Unknown·Lease·Fencing·Reconcile
+- 화면별 복구 기준: 상태별 Button 활성; Side Effect 대사·Rollback Token
+
+
 ### batch — Batch·Center-Cut 종합 통제
 
-**Route** `/batch` · **Group** 배치 운영 · **Page** ``.../features/batch/BatchPage.vue``
+| 항목 | 계약 |
+|---|---|
+| Route | `/batch` |
+| Group | 배치 운영 |
+| Page | `cpf-admin/frontend/src/features/batch/BatchPage.vue` |
+| Permission | `BATCH` Write |
 
-#### Frontend 구현
+#### Frontend Query·Form
 
-- 검색·입력: Job/Execution/Schedule/Parameter/Calendar/Date/Simulation/Dispatch/Heartbeat/Lock/Ghost/Reason
-- Column·상세: Execution Trace; Center-Cut Job/Target/Result
-- Action: 등록·실행·재수행·중지·Scheduler 1회·Lock/Ghost·조회·CSV
-- Empty·Loading·Error·Stale·Partial·Conflict·Unknown 상태를 구분한다.
-- Query Key는 Environment·Tenant·Filter·Paging·Sort를 포함하고, Mutation 성공 뒤 필요한 Query만 무효화한다.
+- Job/Execution/Schedule/Parameter/Calendar/Date/Simulation/Dispatch/Heartbeat/Lock/Ghost/Reason
 
-#### Backend·Owner 연결
+- 검색 Default와 Reset 결과를 같은 Query Key 규칙으로 관리한다.
+- 기간·Timezone·Paging·Sort·Data Scope를 URL 또는 Store 상태와 일치시킨다.
+- Password·Token·Secret·PII 원문은 Store·Browser Storage·Error Message에 남기지 않는다.
 
-1. Query DTO는 검색 Field·Default·Paging·Sort·Data Scope를 검증한다.
-2. Command DTO는 Target, Action, Reason, Approval, Expected Version, Idempotency Key를 포함한다.
-3. Owner Port는 Same-JVM·Remote Adapter를 제공하고 결과 상태 조회·Reconcile을 함께 제공한다.
-4. Page는 Orval Generated Client Operation을 사용한다.
-5. 필요한 Permission은 ``BATCH` Write`이며 Backend에서 다시 검증한다.
+#### Table·Detail
 
-#### 정상·오류·복구 Contract
+- Execution Trace
+- Center-Cut Job/Target/Result
 
-정상 결과는 Row·Detail·Owner 상태·Version·Audit가 일치해야 한다. 복구 핵심은 **Unknown/Lock/Ghost 조치 전 원장·Heartbeat 대사**다. 409, Timeout, Response loss, Partial Apply를 각각 Fixture로 재현하고 Reconcile·Rollback UI를 시험한다.
+- Stable Row Key와 Detail ID·Version을 일치시킨다.
+- Empty·Stale·Partial·Unknown을 일반 Success와 구분한다.
+- Masked Field와 Raw Field의 DTO·Permission·Audit를 분리한다.
+
+#### Button·활성 조건
+
+Action: **등록·실행·재수행·중지·Scheduler 1회·Lock/Ghost·조회·CSV**
+
+- Published Definition·Artifact·Parameter·Approval·Fencing이 유효할 때 Start를 허용한다.
+- Stop·Restart·Abandon·Reprocess는 현재 Execution 상태와 Restart 가능성에 따라 활성화한다.
+- Unknown 상태에서는 신규 실행보다 Reconcile 조치를 우선한다.
+
+#### Backend·Owner API 계약
+
+- Query: Job·Definition·Schedule·Execution·Worker·Lease·Artifact·Plan ID.
+- Command: 등록·실행·재수행·중지·Scheduler 1회·Lock/Ghost·조회·CSV.
+- 필수 실행 Field: Parameter, Approval, Idempotency Key, Fencing Token, Reason.
+- 결과: CPF Execution ID, Spring Job/Step ID, 처리·Skip·Error·Checkpoint·Worker·Partition 상태.
+- Permission: `BATCH` Write; 복구 핵심: Unknown/Lock/Ghost 조치 전 원장·Heartbeat 대사.
+
+- Same-JVM과 Remote Adapter가 같은 Request·Response·Error 의미를 제공한다.
+- Owner DB를 ADM Repository에서 직접 갱신하지 않는다.
+- 202·Accepted 응답은 Operation 상태 조회와 Reconcile API를 연결한다.
+
+#### 화면 상태 모델
+
+Loading, Empty, Success, Validation Error, 403, 409, Timeout, Response Loss, Starting, Started, Stopping, Stopped, Failed, Unknown, Restarted, Abandoned
+
+- 상태 전이는 Store와 URL·Dialog·Table Selection에 일관되게 반영한다.
+- Route 이동·Session 만료·Response Loss 후 민감 Form과 진행 중 Operation ID를 분리해 보존한다.
+
+#### 오류·부분 적용·Rollback
+
+- Validation은 Field별 Message와 허용 범위를 표시한다.
+- 403은 Menu/Button 숨김과 별도로 Backend Permission 거부를 표시한다.
+- 409는 최신 Version·변경자·변경 시각을 보여주고 Blind Retry하지 않는다.
+- Timeout·응답 유실은 기존 Operation ID를 조회한다.
+- Partial은 Target별 성공·실패·미응답을 표시한다.
+- Rollback은 변경 전 Version·Checksum·LKG 또는 Owner가 정의한 보정 Command를 사용한다.
 
 #### Test
 
-- Route deep link와 Menu Permission
+- Deep Link·Refresh·404
 - 검색 Default·Reset·Paging·Sort
-- Form validation과 Duplicate submit
-- 401·403·409·429·503·Timeout
-- Response loss 뒤 Operation 조회
+- Loading·Empty·Error 상태
+- 401·403 Backend 직접 호출
+- 409 Expected Version
+- Timeout·응답 유실 후 Operation 조회
 - Audit Masking·Before/After
-- Keyboard·Focus·Accessible name
+- Keyboard·Focus·Accessible Name
+- Stop·Restart·Abandon 활성 조건
+- Unknown·Lease·Fencing·Reconcile
+- 화면별 복구 기준: Unknown/Lock/Ghost 조치 전 원장·Heartbeat 대사
+
+
 ### batch-overview — Batch Overview
 
-**Route** `/batch-overview` · **Group** 배치/통합 관제 · **Page** ``BatchViewPage.vue`, view=`overview``
+| 항목 | 계약 |
+|---|---|
+| Route | `/batch-overview` |
+| Group | 배치/통합 관제 |
+| Page | `BatchViewPage.vue`, view=`overview` |
+| Permission | 조회 권한 |
 
-#### Frontend 구현
+#### Frontend Query·Form
 
-- 검색·입력: View 고정; 별도 검색 UI 없음
-- Column·상세: Control Server가 반환한 최대 18개 동적 Column
-- Action: 새로고침
-- Empty·Loading·Error·Stale·Partial·Conflict·Unknown 상태를 구분한다.
-- Query Key는 Environment·Tenant·Filter·Paging·Sort를 포함하고, Mutation 성공 뒤 필요한 Query만 무효화한다.
+- View 고정
+- 별도 검색 UI 없음
 
-#### Backend·Owner 연결
+- 검색 Default와 Reset 결과를 같은 Query Key 규칙으로 관리한다.
+- 기간·Timezone·Paging·Sort·Data Scope를 URL 또는 Store 상태와 일치시킨다.
+- Password·Token·Secret·PII 원문은 Store·Browser Storage·Error Message에 남기지 않는다.
 
-1. Query DTO는 검색 Field·Default·Paging·Sort·Data Scope를 검증한다.
-2. Command DTO는 Target, Action, Reason, Approval, Expected Version, Idempotency Key를 포함한다.
-3. Owner Port는 Same-JVM·Remote Adapter를 제공하고 결과 상태 조회·Reconcile을 함께 제공한다.
-4. Page는 Orval Generated Client Operation을 사용한다.
-5. 필요한 Permission은 `조회 권한`이며 Backend에서 다시 검증한다.
+#### Table·Detail
 
-#### 정상·오류·복구 Contract
+- Control Server가 반환한 최대 18개 동적 Column
 
-정상 결과는 Row·Detail·Owner 상태·Version·Audit가 일치해야 한다. 복구 핵심은 **`stale`/`partial` 경고를 정상·Empty로 해석 금지**다. 409, Timeout, Response loss, Partial Apply를 각각 Fixture로 재현하고 Reconcile·Rollback UI를 시험한다.
+- Stable Row Key와 Detail ID·Version을 일치시킨다.
+- Empty·Stale·Partial·Unknown을 일반 Success와 구분한다.
+- Masked Field와 Raw Field의 DTO·Permission·Audit를 분리한다.
+
+#### Button·활성 조건
+
+Action: **새로고침**
+
+- 조회 Permission이 있고 Page가 Loading 중이 아닐 때 조회·새로고침을 허용한다.
+- Stale·Partial 표시 중에는 변경 Button을 제공하지 않는다.
+
+#### Backend·Owner API 계약
+
+- Query DTO: View 고정; 별도 검색 UI 없음
+- Response DTO: Control Server가 반환한 최대 18개 동적 Column
+- Query는 Environment·Data Scope·Paging·Sort·조회 시각을 포함한다.
+- Empty, Stale, Partial을 별도 응답 상태로 표현한다.
+- Permission: 조회 권한.
+
+- Same-JVM과 Remote Adapter가 같은 Request·Response·Error 의미를 제공한다.
+- Owner DB를 ADM Repository에서 직접 갱신하지 않는다.
+- 202·Accepted 응답은 Operation 상태 조회와 Reconcile API를 연결한다.
+
+#### 화면 상태 모델
+
+Loading, Empty, Success, Validation Error, 403, 409, Timeout, Response Loss, Starting, Started, Stopping, Stopped, Failed, Unknown, Restarted, Abandoned
+
+- 상태 전이는 Store와 URL·Dialog·Table Selection에 일관되게 반영한다.
+- Route 이동·Session 만료·Response Loss 후 민감 Form과 진행 중 Operation ID를 분리해 보존한다.
+
+#### 오류·부분 적용·Rollback
+
+- Validation은 Field별 Message와 허용 범위를 표시한다.
+- 403은 Menu/Button 숨김과 별도로 Backend Permission 거부를 표시한다.
+- 409는 최신 Version·변경자·변경 시각을 보여주고 Blind Retry하지 않는다.
+- Timeout·응답 유실은 기존 Operation ID를 조회한다.
+- Partial은 Target별 성공·실패·미응답을 표시한다.
+- Rollback은 변경 전 Version·Checksum·LKG 또는 Owner가 정의한 보정 Command를 사용한다.
 
 #### Test
 
-- Route deep link와 Menu Permission
+- Deep Link·Refresh·404
 - 검색 Default·Reset·Paging·Sort
-- Form validation과 Duplicate submit
-- 401·403·409·429·503·Timeout
-- Response loss 뒤 Operation 조회
+- Loading·Empty·Error 상태
+- 401·403 Backend 직접 호출
+- 409 Expected Version
+- Timeout·응답 유실 후 Operation 조회
 - Audit Masking·Before/After
-- Keyboard·Focus·Accessible name
+- Keyboard·Focus·Accessible Name
+- Stop·Restart·Abandon 활성 조건
+- Unknown·Lease·Fencing·Reconcile
+- 화면별 복구 기준: `stale`/`partial` 경고를 정상·Empty로 해석 금지
+
+
 ### batch-runtime — Runtime Topology
 
-**Route** `/batch-runtime` · **Group** 배치/통합 관제 · **Page** ``BatchViewPage.vue`, view=`runtime``
+| 항목 | 계약 |
+|---|---|
+| Route | `/batch-runtime` |
+| Group | 배치/통합 관제 |
+| Page | `BatchViewPage.vue`, view=`runtime` |
+| Permission | 조회 권한 |
 
-#### Frontend 구현
+#### Frontend Query·Form
 
-- 검색·입력: View 고정; 별도 검색 UI 없음
-- Column·상세: Control Server가 반환한 최대 18개 동적 Column
-- Action: 새로고침
-- Empty·Loading·Error·Stale·Partial·Conflict·Unknown 상태를 구분한다.
-- Query Key는 Environment·Tenant·Filter·Paging·Sort를 포함하고, Mutation 성공 뒤 필요한 Query만 무효화한다.
+- View 고정
+- 별도 검색 UI 없음
 
-#### Backend·Owner 연결
+- 검색 Default와 Reset 결과를 같은 Query Key 규칙으로 관리한다.
+- 기간·Timezone·Paging·Sort·Data Scope를 URL 또는 Store 상태와 일치시킨다.
+- Password·Token·Secret·PII 원문은 Store·Browser Storage·Error Message에 남기지 않는다.
 
-1. Query DTO는 검색 Field·Default·Paging·Sort·Data Scope를 검증한다.
-2. Command DTO는 Target, Action, Reason, Approval, Expected Version, Idempotency Key를 포함한다.
-3. Owner Port는 Same-JVM·Remote Adapter를 제공하고 결과 상태 조회·Reconcile을 함께 제공한다.
-4. Page는 Orval Generated Client Operation을 사용한다.
-5. 필요한 Permission은 `조회 권한`이며 Backend에서 다시 검증한다.
+#### Table·Detail
 
-#### 정상·오류·복구 Contract
+- Control Server가 반환한 최대 18개 동적 Column
 
-정상 결과는 Row·Detail·Owner 상태·Version·Audit가 일치해야 한다. 복구 핵심은 **`stale`/`partial` 경고를 정상·Empty로 해석 금지**다. 409, Timeout, Response loss, Partial Apply를 각각 Fixture로 재현하고 Reconcile·Rollback UI를 시험한다.
+- Stable Row Key와 Detail ID·Version을 일치시킨다.
+- Empty·Stale·Partial·Unknown을 일반 Success와 구분한다.
+- Masked Field와 Raw Field의 DTO·Permission·Audit를 분리한다.
+
+#### Button·활성 조건
+
+Action: **새로고침**
+
+- 조회 Permission이 있고 Page가 Loading 중이 아닐 때 조회·새로고침을 허용한다.
+- Stale·Partial 표시 중에는 변경 Button을 제공하지 않는다.
+
+#### Backend·Owner API 계약
+
+- Query DTO: View 고정; 별도 검색 UI 없음
+- Response DTO: Control Server가 반환한 최대 18개 동적 Column
+- Query는 Environment·Data Scope·Paging·Sort·조회 시각을 포함한다.
+- Empty, Stale, Partial을 별도 응답 상태로 표현한다.
+- Permission: 조회 권한.
+
+- Same-JVM과 Remote Adapter가 같은 Request·Response·Error 의미를 제공한다.
+- Owner DB를 ADM Repository에서 직접 갱신하지 않는다.
+- 202·Accepted 응답은 Operation 상태 조회와 Reconcile API를 연결한다.
+
+#### 화면 상태 모델
+
+Loading, Empty, Success, Validation Error, 403, 409, Timeout, Response Loss, Starting, Started, Stopping, Stopped, Failed, Unknown, Restarted, Abandoned
+
+- 상태 전이는 Store와 URL·Dialog·Table Selection에 일관되게 반영한다.
+- Route 이동·Session 만료·Response Loss 후 민감 Form과 진행 중 Operation ID를 분리해 보존한다.
+
+#### 오류·부분 적용·Rollback
+
+- Validation은 Field별 Message와 허용 범위를 표시한다.
+- 403은 Menu/Button 숨김과 별도로 Backend Permission 거부를 표시한다.
+- 409는 최신 Version·변경자·변경 시각을 보여주고 Blind Retry하지 않는다.
+- Timeout·응답 유실은 기존 Operation ID를 조회한다.
+- Partial은 Target별 성공·실패·미응답을 표시한다.
+- Rollback은 변경 전 Version·Checksum·LKG 또는 Owner가 정의한 보정 Command를 사용한다.
 
 #### Test
 
-- Route deep link와 Menu Permission
+- Deep Link·Refresh·404
 - 검색 Default·Reset·Paging·Sort
-- Form validation과 Duplicate submit
-- 401·403·409·429·503·Timeout
-- Response loss 뒤 Operation 조회
+- Loading·Empty·Error 상태
+- 401·403 Backend 직접 호출
+- 409 Expected Version
+- Timeout·응답 유실 후 Operation 조회
 - Audit Masking·Before/After
-- Keyboard·Focus·Accessible name
+- Keyboard·Focus·Accessible Name
+- Stop·Restart·Abandon 활성 조건
+- Unknown·Lease·Fencing·Reconcile
+- 화면별 복구 기준: `stale`/`partial` 경고를 정상·Empty로 해석 금지
+
+
 ### batch-instances — Batch Instances
 
-**Route** `/batch-instances` · **Group** 배치/통합 관제 · **Page** ``BatchViewPage.vue`, view=`instances``
+| 항목 | 계약 |
+|---|---|
+| Route | `/batch-instances` |
+| Group | 배치/통합 관제 |
+| Page | `BatchViewPage.vue`, view=`instances` |
+| Permission | 조회 권한 |
 
-#### Frontend 구현
+#### Frontend Query·Form
 
-- 검색·입력: View 고정; 별도 검색 UI 없음
-- Column·상세: Control Server가 반환한 최대 18개 동적 Column
-- Action: 새로고침
-- Empty·Loading·Error·Stale·Partial·Conflict·Unknown 상태를 구분한다.
-- Query Key는 Environment·Tenant·Filter·Paging·Sort를 포함하고, Mutation 성공 뒤 필요한 Query만 무효화한다.
+- View 고정
+- 별도 검색 UI 없음
 
-#### Backend·Owner 연결
+- 검색 Default와 Reset 결과를 같은 Query Key 규칙으로 관리한다.
+- 기간·Timezone·Paging·Sort·Data Scope를 URL 또는 Store 상태와 일치시킨다.
+- Password·Token·Secret·PII 원문은 Store·Browser Storage·Error Message에 남기지 않는다.
 
-1. Query DTO는 검색 Field·Default·Paging·Sort·Data Scope를 검증한다.
-2. Command DTO는 Target, Action, Reason, Approval, Expected Version, Idempotency Key를 포함한다.
-3. Owner Port는 Same-JVM·Remote Adapter를 제공하고 결과 상태 조회·Reconcile을 함께 제공한다.
-4. Page는 Orval Generated Client Operation을 사용한다.
-5. 필요한 Permission은 `조회 권한`이며 Backend에서 다시 검증한다.
+#### Table·Detail
 
-#### 정상·오류·복구 Contract
+- Control Server가 반환한 최대 18개 동적 Column
 
-정상 결과는 Row·Detail·Owner 상태·Version·Audit가 일치해야 한다. 복구 핵심은 **`stale`/`partial` 경고를 정상·Empty로 해석 금지**다. 409, Timeout, Response loss, Partial Apply를 각각 Fixture로 재현하고 Reconcile·Rollback UI를 시험한다.
+- Stable Row Key와 Detail ID·Version을 일치시킨다.
+- Empty·Stale·Partial·Unknown을 일반 Success와 구분한다.
+- Masked Field와 Raw Field의 DTO·Permission·Audit를 분리한다.
+
+#### Button·활성 조건
+
+Action: **새로고침**
+
+- 조회 Permission이 있고 Page가 Loading 중이 아닐 때 조회·새로고침을 허용한다.
+- Stale·Partial 표시 중에는 변경 Button을 제공하지 않는다.
+
+#### Backend·Owner API 계약
+
+- Query DTO: View 고정; 별도 검색 UI 없음
+- Response DTO: Control Server가 반환한 최대 18개 동적 Column
+- Query는 Environment·Data Scope·Paging·Sort·조회 시각을 포함한다.
+- Empty, Stale, Partial을 별도 응답 상태로 표현한다.
+- Permission: 조회 권한.
+
+- Same-JVM과 Remote Adapter가 같은 Request·Response·Error 의미를 제공한다.
+- Owner DB를 ADM Repository에서 직접 갱신하지 않는다.
+- 202·Accepted 응답은 Operation 상태 조회와 Reconcile API를 연결한다.
+
+#### 화면 상태 모델
+
+Loading, Empty, Success, Validation Error, 403, 409, Timeout, Response Loss, Starting, Started, Stopping, Stopped, Failed, Unknown, Restarted, Abandoned
+
+- 상태 전이는 Store와 URL·Dialog·Table Selection에 일관되게 반영한다.
+- Route 이동·Session 만료·Response Loss 후 민감 Form과 진행 중 Operation ID를 분리해 보존한다.
+
+#### 오류·부분 적용·Rollback
+
+- Validation은 Field별 Message와 허용 범위를 표시한다.
+- 403은 Menu/Button 숨김과 별도로 Backend Permission 거부를 표시한다.
+- 409는 최신 Version·변경자·변경 시각을 보여주고 Blind Retry하지 않는다.
+- Timeout·응답 유실은 기존 Operation ID를 조회한다.
+- Partial은 Target별 성공·실패·미응답을 표시한다.
+- Rollback은 변경 전 Version·Checksum·LKG 또는 Owner가 정의한 보정 Command를 사용한다.
 
 #### Test
 
-- Route deep link와 Menu Permission
+- Deep Link·Refresh·404
 - 검색 Default·Reset·Paging·Sort
-- Form validation과 Duplicate submit
-- 401·403·409·429·503·Timeout
-- Response loss 뒤 Operation 조회
+- Loading·Empty·Error 상태
+- 401·403 Backend 직접 호출
+- 409 Expected Version
+- Timeout·응답 유실 후 Operation 조회
 - Audit Masking·Before/After
-- Keyboard·Focus·Accessible name
+- Keyboard·Focus·Accessible Name
+- Stop·Restart·Abandon 활성 조건
+- Unknown·Lease·Fencing·Reconcile
+- 화면별 복구 기준: `stale`/`partial` 경고를 정상·Empty로 해석 금지
+
+
 ### batch-scheduler — Scheduler
 
-**Route** `/batch-scheduler` · **Group** 배치/통합 관제 · **Page** ``BatchViewPage.vue`, view=`scheduler``
+| 항목 | 계약 |
+|---|---|
+| Route | `/batch-scheduler` |
+| Group | 배치/통합 관제 |
+| Page | `BatchViewPage.vue`, view=`scheduler` |
+| Permission | 조회 권한 |
 
-#### Frontend 구현
+#### Frontend Query·Form
 
-- 검색·입력: View 고정; 별도 검색 UI 없음
-- Column·상세: Control Server가 반환한 최대 18개 동적 Column
-- Action: 새로고침
-- Empty·Loading·Error·Stale·Partial·Conflict·Unknown 상태를 구분한다.
-- Query Key는 Environment·Tenant·Filter·Paging·Sort를 포함하고, Mutation 성공 뒤 필요한 Query만 무효화한다.
+- View 고정
+- 별도 검색 UI 없음
 
-#### Backend·Owner 연결
+- 검색 Default와 Reset 결과를 같은 Query Key 규칙으로 관리한다.
+- 기간·Timezone·Paging·Sort·Data Scope를 URL 또는 Store 상태와 일치시킨다.
+- Password·Token·Secret·PII 원문은 Store·Browser Storage·Error Message에 남기지 않는다.
 
-1. Query DTO는 검색 Field·Default·Paging·Sort·Data Scope를 검증한다.
-2. Command DTO는 Target, Action, Reason, Approval, Expected Version, Idempotency Key를 포함한다.
-3. Owner Port는 Same-JVM·Remote Adapter를 제공하고 결과 상태 조회·Reconcile을 함께 제공한다.
-4. Page는 Orval Generated Client Operation을 사용한다.
-5. 필요한 Permission은 `조회 권한`이며 Backend에서 다시 검증한다.
+#### Table·Detail
 
-#### 정상·오류·복구 Contract
+- Control Server가 반환한 최대 18개 동적 Column
 
-정상 결과는 Row·Detail·Owner 상태·Version·Audit가 일치해야 한다. 복구 핵심은 **`stale`/`partial` 경고를 정상·Empty로 해석 금지**다. 409, Timeout, Response loss, Partial Apply를 각각 Fixture로 재현하고 Reconcile·Rollback UI를 시험한다.
+- Stable Row Key와 Detail ID·Version을 일치시킨다.
+- Empty·Stale·Partial·Unknown을 일반 Success와 구분한다.
+- Masked Field와 Raw Field의 DTO·Permission·Audit를 분리한다.
+
+#### Button·활성 조건
+
+Action: **새로고침**
+
+- 조회 Permission이 있고 Page가 Loading 중이 아닐 때 조회·새로고침을 허용한다.
+- Stale·Partial 표시 중에는 변경 Button을 제공하지 않는다.
+
+#### Backend·Owner API 계약
+
+- Query DTO: View 고정; 별도 검색 UI 없음
+- Response DTO: Control Server가 반환한 최대 18개 동적 Column
+- Query는 Environment·Data Scope·Paging·Sort·조회 시각을 포함한다.
+- Empty, Stale, Partial을 별도 응답 상태로 표현한다.
+- Permission: 조회 권한.
+
+- Same-JVM과 Remote Adapter가 같은 Request·Response·Error 의미를 제공한다.
+- Owner DB를 ADM Repository에서 직접 갱신하지 않는다.
+- 202·Accepted 응답은 Operation 상태 조회와 Reconcile API를 연결한다.
+
+#### 화면 상태 모델
+
+Loading, Empty, Success, Validation Error, 403, 409, Timeout, Response Loss, Starting, Started, Stopping, Stopped, Failed, Unknown, Restarted, Abandoned
+
+- 상태 전이는 Store와 URL·Dialog·Table Selection에 일관되게 반영한다.
+- Route 이동·Session 만료·Response Loss 후 민감 Form과 진행 중 Operation ID를 분리해 보존한다.
+
+#### 오류·부분 적용·Rollback
+
+- Validation은 Field별 Message와 허용 범위를 표시한다.
+- 403은 Menu/Button 숨김과 별도로 Backend Permission 거부를 표시한다.
+- 409는 최신 Version·변경자·변경 시각을 보여주고 Blind Retry하지 않는다.
+- Timeout·응답 유실은 기존 Operation ID를 조회한다.
+- Partial은 Target별 성공·실패·미응답을 표시한다.
+- Rollback은 변경 전 Version·Checksum·LKG 또는 Owner가 정의한 보정 Command를 사용한다.
 
 #### Test
 
-- Route deep link와 Menu Permission
+- Deep Link·Refresh·404
 - 검색 Default·Reset·Paging·Sort
-- Form validation과 Duplicate submit
-- 401·403·409·429·503·Timeout
-- Response loss 뒤 Operation 조회
+- Loading·Empty·Error 상태
+- 401·403 Backend 직접 호출
+- 409 Expected Version
+- Timeout·응답 유실 후 Operation 조회
 - Audit Masking·Before/After
-- Keyboard·Focus·Accessible name
+- Keyboard·Focus·Accessible Name
+- Stop·Restart·Abandon 활성 조건
+- Unknown·Lease·Fencing·Reconcile
+- 화면별 복구 기준: `stale`/`partial` 경고를 정상·Empty로 해석 금지
+
+
 ### batch-worker-pools — Worker Pools
 
-**Route** `/batch-worker-pools` · **Group** 배치/통합 관제 · **Page** ``BatchViewPage.vue`, view=`worker-pools``
+| 항목 | 계약 |
+|---|---|
+| Route | `/batch-worker-pools` |
+| Group | 배치/통합 관제 |
+| Page | `BatchViewPage.vue`, view=`worker-pools` |
+| Permission | 조회 권한 |
 
-#### Frontend 구현
+#### Frontend Query·Form
 
-- 검색·입력: View 고정; 별도 검색 UI 없음
-- Column·상세: Control Server가 반환한 최대 18개 동적 Column
-- Action: 새로고침
-- Empty·Loading·Error·Stale·Partial·Conflict·Unknown 상태를 구분한다.
-- Query Key는 Environment·Tenant·Filter·Paging·Sort를 포함하고, Mutation 성공 뒤 필요한 Query만 무효화한다.
+- View 고정
+- 별도 검색 UI 없음
 
-#### Backend·Owner 연결
+- 검색 Default와 Reset 결과를 같은 Query Key 규칙으로 관리한다.
+- 기간·Timezone·Paging·Sort·Data Scope를 URL 또는 Store 상태와 일치시킨다.
+- Password·Token·Secret·PII 원문은 Store·Browser Storage·Error Message에 남기지 않는다.
 
-1. Query DTO는 검색 Field·Default·Paging·Sort·Data Scope를 검증한다.
-2. Command DTO는 Target, Action, Reason, Approval, Expected Version, Idempotency Key를 포함한다.
-3. Owner Port는 Same-JVM·Remote Adapter를 제공하고 결과 상태 조회·Reconcile을 함께 제공한다.
-4. Page는 Orval Generated Client Operation을 사용한다.
-5. 필요한 Permission은 `조회 권한`이며 Backend에서 다시 검증한다.
+#### Table·Detail
 
-#### 정상·오류·복구 Contract
+- Control Server가 반환한 최대 18개 동적 Column
 
-정상 결과는 Row·Detail·Owner 상태·Version·Audit가 일치해야 한다. 복구 핵심은 **`stale`/`partial` 경고를 정상·Empty로 해석 금지**다. 409, Timeout, Response loss, Partial Apply를 각각 Fixture로 재현하고 Reconcile·Rollback UI를 시험한다.
+- Stable Row Key와 Detail ID·Version을 일치시킨다.
+- Empty·Stale·Partial·Unknown을 일반 Success와 구분한다.
+- Masked Field와 Raw Field의 DTO·Permission·Audit를 분리한다.
+
+#### Button·활성 조건
+
+Action: **새로고침**
+
+- 조회 Permission이 있고 Page가 Loading 중이 아닐 때 조회·새로고침을 허용한다.
+- Stale·Partial 표시 중에는 변경 Button을 제공하지 않는다.
+
+#### Backend·Owner API 계약
+
+- Query DTO: View 고정; 별도 검색 UI 없음
+- Response DTO: Control Server가 반환한 최대 18개 동적 Column
+- Query는 Environment·Data Scope·Paging·Sort·조회 시각을 포함한다.
+- Empty, Stale, Partial을 별도 응답 상태로 표현한다.
+- Permission: 조회 권한.
+
+- Same-JVM과 Remote Adapter가 같은 Request·Response·Error 의미를 제공한다.
+- Owner DB를 ADM Repository에서 직접 갱신하지 않는다.
+- 202·Accepted 응답은 Operation 상태 조회와 Reconcile API를 연결한다.
+
+#### 화면 상태 모델
+
+Loading, Empty, Success, Validation Error, 403, 409, Timeout, Response Loss, Starting, Started, Stopping, Stopped, Failed, Unknown, Restarted, Abandoned
+
+- 상태 전이는 Store와 URL·Dialog·Table Selection에 일관되게 반영한다.
+- Route 이동·Session 만료·Response Loss 후 민감 Form과 진행 중 Operation ID를 분리해 보존한다.
+
+#### 오류·부분 적용·Rollback
+
+- Validation은 Field별 Message와 허용 범위를 표시한다.
+- 403은 Menu/Button 숨김과 별도로 Backend Permission 거부를 표시한다.
+- 409는 최신 Version·변경자·변경 시각을 보여주고 Blind Retry하지 않는다.
+- Timeout·응답 유실은 기존 Operation ID를 조회한다.
+- Partial은 Target별 성공·실패·미응답을 표시한다.
+- Rollback은 변경 전 Version·Checksum·LKG 또는 Owner가 정의한 보정 Command를 사용한다.
 
 #### Test
 
-- Route deep link와 Menu Permission
+- Deep Link·Refresh·404
 - 검색 Default·Reset·Paging·Sort
-- Form validation과 Duplicate submit
-- 401·403·409·429·503·Timeout
-- Response loss 뒤 Operation 조회
+- Loading·Empty·Error 상태
+- 401·403 Backend 직접 호출
+- 409 Expected Version
+- Timeout·응답 유실 후 Operation 조회
 - Audit Masking·Before/After
-- Keyboard·Focus·Accessible name
+- Keyboard·Focus·Accessible Name
+- Stop·Restart·Abandon 활성 조건
+- Unknown·Lease·Fencing·Reconcile
+- 화면별 복구 기준: `stale`/`partial` 경고를 정상·Empty로 해석 금지
+
+
 ### batch-center-cut — Center-Cut
 
-**Route** `/batch-center-cut` · **Group** 배치/통합 관제 · **Page** ``BatchViewPage.vue`, view=`center-cut``
+| 항목 | 계약 |
+|---|---|
+| Route | `/batch-center-cut` |
+| Group | 배치/통합 관제 |
+| Page | `BatchViewPage.vue`, view=`center-cut` |
+| Permission | 조회 권한 |
 
-#### Frontend 구현
+#### Frontend Query·Form
 
-- 검색·입력: View 고정; 별도 검색 UI 없음
-- Column·상세: Control Server가 반환한 최대 18개 동적 Column
-- Action: 새로고침
-- Empty·Loading·Error·Stale·Partial·Conflict·Unknown 상태를 구분한다.
-- Query Key는 Environment·Tenant·Filter·Paging·Sort를 포함하고, Mutation 성공 뒤 필요한 Query만 무효화한다.
+- View 고정
+- 별도 검색 UI 없음
 
-#### Backend·Owner 연결
+- 검색 Default와 Reset 결과를 같은 Query Key 규칙으로 관리한다.
+- 기간·Timezone·Paging·Sort·Data Scope를 URL 또는 Store 상태와 일치시킨다.
+- Password·Token·Secret·PII 원문은 Store·Browser Storage·Error Message에 남기지 않는다.
 
-1. Query DTO는 검색 Field·Default·Paging·Sort·Data Scope를 검증한다.
-2. Command DTO는 Target, Action, Reason, Approval, Expected Version, Idempotency Key를 포함한다.
-3. Owner Port는 Same-JVM·Remote Adapter를 제공하고 결과 상태 조회·Reconcile을 함께 제공한다.
-4. Page는 Orval Generated Client Operation을 사용한다.
-5. 필요한 Permission은 `조회 권한`이며 Backend에서 다시 검증한다.
+#### Table·Detail
 
-#### 정상·오류·복구 Contract
+- Control Server가 반환한 최대 18개 동적 Column
 
-정상 결과는 Row·Detail·Owner 상태·Version·Audit가 일치해야 한다. 복구 핵심은 **`stale`/`partial` 경고를 정상·Empty로 해석 금지**다. 409, Timeout, Response loss, Partial Apply를 각각 Fixture로 재현하고 Reconcile·Rollback UI를 시험한다.
+- Stable Row Key와 Detail ID·Version을 일치시킨다.
+- Empty·Stale·Partial·Unknown을 일반 Success와 구분한다.
+- Masked Field와 Raw Field의 DTO·Permission·Audit를 분리한다.
+
+#### Button·활성 조건
+
+Action: **새로고침**
+
+- 조회 Permission이 있고 Page가 Loading 중이 아닐 때 조회·새로고침을 허용한다.
+- Stale·Partial 표시 중에는 변경 Button을 제공하지 않는다.
+
+#### Backend·Owner API 계약
+
+- Query DTO: View 고정; 별도 검색 UI 없음
+- Response DTO: Control Server가 반환한 최대 18개 동적 Column
+- Query는 Environment·Data Scope·Paging·Sort·조회 시각을 포함한다.
+- Empty, Stale, Partial을 별도 응답 상태로 표현한다.
+- Permission: 조회 권한.
+
+- Same-JVM과 Remote Adapter가 같은 Request·Response·Error 의미를 제공한다.
+- Owner DB를 ADM Repository에서 직접 갱신하지 않는다.
+- 202·Accepted 응답은 Operation 상태 조회와 Reconcile API를 연결한다.
+
+#### 화면 상태 모델
+
+Loading, Empty, Success, Validation Error, 403, 409, Timeout, Response Loss, Starting, Started, Stopping, Stopped, Failed, Unknown, Restarted, Abandoned
+
+- 상태 전이는 Store와 URL·Dialog·Table Selection에 일관되게 반영한다.
+- Route 이동·Session 만료·Response Loss 후 민감 Form과 진행 중 Operation ID를 분리해 보존한다.
+
+#### 오류·부분 적용·Rollback
+
+- Validation은 Field별 Message와 허용 범위를 표시한다.
+- 403은 Menu/Button 숨김과 별도로 Backend Permission 거부를 표시한다.
+- 409는 최신 Version·변경자·변경 시각을 보여주고 Blind Retry하지 않는다.
+- Timeout·응답 유실은 기존 Operation ID를 조회한다.
+- Partial은 Target별 성공·실패·미응답을 표시한다.
+- Rollback은 변경 전 Version·Checksum·LKG 또는 Owner가 정의한 보정 Command를 사용한다.
 
 #### Test
 
-- Route deep link와 Menu Permission
+- Deep Link·Refresh·404
 - 검색 Default·Reset·Paging·Sort
-- Form validation과 Duplicate submit
-- 401·403·409·429·503·Timeout
-- Response loss 뒤 Operation 조회
+- Loading·Empty·Error 상태
+- 401·403 Backend 직접 호출
+- 409 Expected Version
+- Timeout·응답 유실 후 Operation 조회
 - Audit Masking·Before/After
-- Keyboard·Focus·Accessible name
+- Keyboard·Focus·Accessible Name
+- Stop·Restart·Abandon 활성 조건
+- Unknown·Lease·Fencing·Reconcile
+- 화면별 복구 기준: `stale`/`partial` 경고를 정상·Empty로 해석 금지
+
+
 ### batch-agents — Agents
 
-**Route** `/batch-agents` · **Group** 배치/통합 관제 · **Page** ``BatchViewPage.vue`, view=`agents``
+| 항목 | 계약 |
+|---|---|
+| Route | `/batch-agents` |
+| Group | 배치/통합 관제 |
+| Page | `BatchViewPage.vue`, view=`agents` |
+| Permission | 조회 권한 |
 
-#### Frontend 구현
+#### Frontend Query·Form
 
-- 검색·입력: View 고정; 별도 검색 UI 없음
-- Column·상세: Control Server가 반환한 최대 18개 동적 Column
-- Action: 새로고침
-- Empty·Loading·Error·Stale·Partial·Conflict·Unknown 상태를 구분한다.
-- Query Key는 Environment·Tenant·Filter·Paging·Sort를 포함하고, Mutation 성공 뒤 필요한 Query만 무효화한다.
+- View 고정
+- 별도 검색 UI 없음
 
-#### Backend·Owner 연결
+- 검색 Default와 Reset 결과를 같은 Query Key 규칙으로 관리한다.
+- 기간·Timezone·Paging·Sort·Data Scope를 URL 또는 Store 상태와 일치시킨다.
+- Password·Token·Secret·PII 원문은 Store·Browser Storage·Error Message에 남기지 않는다.
 
-1. Query DTO는 검색 Field·Default·Paging·Sort·Data Scope를 검증한다.
-2. Command DTO는 Target, Action, Reason, Approval, Expected Version, Idempotency Key를 포함한다.
-3. Owner Port는 Same-JVM·Remote Adapter를 제공하고 결과 상태 조회·Reconcile을 함께 제공한다.
-4. Page는 Orval Generated Client Operation을 사용한다.
-5. 필요한 Permission은 `조회 권한`이며 Backend에서 다시 검증한다.
+#### Table·Detail
 
-#### 정상·오류·복구 Contract
+- Control Server가 반환한 최대 18개 동적 Column
 
-정상 결과는 Row·Detail·Owner 상태·Version·Audit가 일치해야 한다. 복구 핵심은 **`stale`/`partial` 경고를 정상·Empty로 해석 금지**다. 409, Timeout, Response loss, Partial Apply를 각각 Fixture로 재현하고 Reconcile·Rollback UI를 시험한다.
+- Stable Row Key와 Detail ID·Version을 일치시킨다.
+- Empty·Stale·Partial·Unknown을 일반 Success와 구분한다.
+- Masked Field와 Raw Field의 DTO·Permission·Audit를 분리한다.
+
+#### Button·활성 조건
+
+Action: **새로고침**
+
+- 조회 Permission이 있고 Page가 Loading 중이 아닐 때 조회·새로고침을 허용한다.
+- Stale·Partial 표시 중에는 변경 Button을 제공하지 않는다.
+
+#### Backend·Owner API 계약
+
+- Query DTO: View 고정; 별도 검색 UI 없음
+- Response DTO: Control Server가 반환한 최대 18개 동적 Column
+- Query는 Environment·Data Scope·Paging·Sort·조회 시각을 포함한다.
+- Empty, Stale, Partial을 별도 응답 상태로 표현한다.
+- Permission: 조회 권한.
+
+- Same-JVM과 Remote Adapter가 같은 Request·Response·Error 의미를 제공한다.
+- Owner DB를 ADM Repository에서 직접 갱신하지 않는다.
+- 202·Accepted 응답은 Operation 상태 조회와 Reconcile API를 연결한다.
+
+#### 화면 상태 모델
+
+Loading, Empty, Success, Validation Error, 403, 409, Timeout, Response Loss, Starting, Started, Stopping, Stopped, Failed, Unknown, Restarted, Abandoned
+
+- 상태 전이는 Store와 URL·Dialog·Table Selection에 일관되게 반영한다.
+- Route 이동·Session 만료·Response Loss 후 민감 Form과 진행 중 Operation ID를 분리해 보존한다.
+
+#### 오류·부분 적용·Rollback
+
+- Validation은 Field별 Message와 허용 범위를 표시한다.
+- 403은 Menu/Button 숨김과 별도로 Backend Permission 거부를 표시한다.
+- 409는 최신 Version·변경자·변경 시각을 보여주고 Blind Retry하지 않는다.
+- Timeout·응답 유실은 기존 Operation ID를 조회한다.
+- Partial은 Target별 성공·실패·미응답을 표시한다.
+- Rollback은 변경 전 Version·Checksum·LKG 또는 Owner가 정의한 보정 Command를 사용한다.
 
 #### Test
 
-- Route deep link와 Menu Permission
+- Deep Link·Refresh·404
 - 검색 Default·Reset·Paging·Sort
-- Form validation과 Duplicate submit
-- 401·403·409·429·503·Timeout
-- Response loss 뒤 Operation 조회
+- Loading·Empty·Error 상태
+- 401·403 Backend 직접 호출
+- 409 Expected Version
+- Timeout·응답 유실 후 Operation 조회
 - Audit Masking·Before/After
-- Keyboard·Focus·Accessible name
+- Keyboard·Focus·Accessible Name
+- Stop·Restart·Abandon 활성 조건
+- Unknown·Lease·Fencing·Reconcile
+- 화면별 복구 기준: `stale`/`partial` 경고를 정상·Empty로 해석 금지
+
+
 ### batch-job-packs — Job Packs
 
-**Route** `/batch-job-packs` · **Group** 배치/통합 관제 · **Page** ``BatchViewPage.vue`, view=`job-packs``
+| 항목 | 계약 |
+|---|---|
+| Route | `/batch-job-packs` |
+| Group | 배치/통합 관제 |
+| Page | `BatchViewPage.vue`, view=`job-packs` |
+| Permission | 조회 권한 |
 
-#### Frontend 구현
+#### Frontend Query·Form
 
-- 검색·입력: View 고정; 별도 검색 UI 없음
-- Column·상세: Control Server가 반환한 최대 18개 동적 Column
-- Action: 새로고침
-- Empty·Loading·Error·Stale·Partial·Conflict·Unknown 상태를 구분한다.
-- Query Key는 Environment·Tenant·Filter·Paging·Sort를 포함하고, Mutation 성공 뒤 필요한 Query만 무효화한다.
+- View 고정
+- 별도 검색 UI 없음
 
-#### Backend·Owner 연결
+- 검색 Default와 Reset 결과를 같은 Query Key 규칙으로 관리한다.
+- 기간·Timezone·Paging·Sort·Data Scope를 URL 또는 Store 상태와 일치시킨다.
+- Password·Token·Secret·PII 원문은 Store·Browser Storage·Error Message에 남기지 않는다.
 
-1. Query DTO는 검색 Field·Default·Paging·Sort·Data Scope를 검증한다.
-2. Command DTO는 Target, Action, Reason, Approval, Expected Version, Idempotency Key를 포함한다.
-3. Owner Port는 Same-JVM·Remote Adapter를 제공하고 결과 상태 조회·Reconcile을 함께 제공한다.
-4. Page는 Orval Generated Client Operation을 사용한다.
-5. 필요한 Permission은 `조회 권한`이며 Backend에서 다시 검증한다.
+#### Table·Detail
 
-#### 정상·오류·복구 Contract
+- Control Server가 반환한 최대 18개 동적 Column
 
-정상 결과는 Row·Detail·Owner 상태·Version·Audit가 일치해야 한다. 복구 핵심은 **`stale`/`partial` 경고를 정상·Empty로 해석 금지**다. 409, Timeout, Response loss, Partial Apply를 각각 Fixture로 재현하고 Reconcile·Rollback UI를 시험한다.
+- Stable Row Key와 Detail ID·Version을 일치시킨다.
+- Empty·Stale·Partial·Unknown을 일반 Success와 구분한다.
+- Masked Field와 Raw Field의 DTO·Permission·Audit를 분리한다.
+
+#### Button·활성 조건
+
+Action: **새로고침**
+
+- 조회 Permission이 있고 Page가 Loading 중이 아닐 때 조회·새로고침을 허용한다.
+- Stale·Partial 표시 중에는 변경 Button을 제공하지 않는다.
+
+#### Backend·Owner API 계약
+
+- Query DTO: View 고정; 별도 검색 UI 없음
+- Response DTO: Control Server가 반환한 최대 18개 동적 Column
+- Query는 Environment·Data Scope·Paging·Sort·조회 시각을 포함한다.
+- Empty, Stale, Partial을 별도 응답 상태로 표현한다.
+- Permission: 조회 권한.
+
+- Same-JVM과 Remote Adapter가 같은 Request·Response·Error 의미를 제공한다.
+- Owner DB를 ADM Repository에서 직접 갱신하지 않는다.
+- 202·Accepted 응답은 Operation 상태 조회와 Reconcile API를 연결한다.
+
+#### 화면 상태 모델
+
+Loading, Empty, Success, Validation Error, 403, 409, Timeout, Response Loss, Starting, Started, Stopping, Stopped, Failed, Unknown, Restarted, Abandoned
+
+- 상태 전이는 Store와 URL·Dialog·Table Selection에 일관되게 반영한다.
+- Route 이동·Session 만료·Response Loss 후 민감 Form과 진행 중 Operation ID를 분리해 보존한다.
+
+#### 오류·부분 적용·Rollback
+
+- Validation은 Field별 Message와 허용 범위를 표시한다.
+- 403은 Menu/Button 숨김과 별도로 Backend Permission 거부를 표시한다.
+- 409는 최신 Version·변경자·변경 시각을 보여주고 Blind Retry하지 않는다.
+- Timeout·응답 유실은 기존 Operation ID를 조회한다.
+- Partial은 Target별 성공·실패·미응답을 표시한다.
+- Rollback은 변경 전 Version·Checksum·LKG 또는 Owner가 정의한 보정 Command를 사용한다.
 
 #### Test
 
-- Route deep link와 Menu Permission
+- Deep Link·Refresh·404
 - 검색 Default·Reset·Paging·Sort
-- Form validation과 Duplicate submit
-- 401·403·409·429·503·Timeout
-- Response loss 뒤 Operation 조회
+- Loading·Empty·Error 상태
+- 401·403 Backend 직접 호출
+- 409 Expected Version
+- Timeout·응답 유실 후 Operation 조회
 - Audit Masking·Before/After
-- Keyboard·Focus·Accessible name
+- Keyboard·Focus·Accessible Name
+- Stop·Restart·Abandon 활성 조건
+- Unknown·Lease·Fencing·Reconcile
+- 화면별 복구 기준: `stale`/`partial` 경고를 정상·Empty로 해석 금지
+
+
 ### batch-executions — Executions
 
-**Route** `/batch-executions` · **Group** 배치/통합 관제 · **Page** ``BatchViewPage.vue`, view=`executions``
+| 항목 | 계약 |
+|---|---|
+| Route | `/batch-executions` |
+| Group | 배치/통합 관제 |
+| Page | `BatchViewPage.vue`, view=`executions` |
+| Permission | 조회 권한 |
 
-#### Frontend 구현
+#### Frontend Query·Form
 
-- 검색·입력: View 고정; 별도 검색 UI 없음
-- Column·상세: Control Server가 반환한 최대 18개 동적 Column
-- Action: 새로고침
-- Empty·Loading·Error·Stale·Partial·Conflict·Unknown 상태를 구분한다.
-- Query Key는 Environment·Tenant·Filter·Paging·Sort를 포함하고, Mutation 성공 뒤 필요한 Query만 무효화한다.
+- View 고정
+- 별도 검색 UI 없음
 
-#### Backend·Owner 연결
+- 검색 Default와 Reset 결과를 같은 Query Key 규칙으로 관리한다.
+- 기간·Timezone·Paging·Sort·Data Scope를 URL 또는 Store 상태와 일치시킨다.
+- Password·Token·Secret·PII 원문은 Store·Browser Storage·Error Message에 남기지 않는다.
 
-1. Query DTO는 검색 Field·Default·Paging·Sort·Data Scope를 검증한다.
-2. Command DTO는 Target, Action, Reason, Approval, Expected Version, Idempotency Key를 포함한다.
-3. Owner Port는 Same-JVM·Remote Adapter를 제공하고 결과 상태 조회·Reconcile을 함께 제공한다.
-4. Page는 Orval Generated Client Operation을 사용한다.
-5. 필요한 Permission은 `조회 권한`이며 Backend에서 다시 검증한다.
+#### Table·Detail
 
-#### 정상·오류·복구 Contract
+- Control Server가 반환한 최대 18개 동적 Column
 
-정상 결과는 Row·Detail·Owner 상태·Version·Audit가 일치해야 한다. 복구 핵심은 **`stale`/`partial` 경고를 정상·Empty로 해석 금지**다. 409, Timeout, Response loss, Partial Apply를 각각 Fixture로 재현하고 Reconcile·Rollback UI를 시험한다.
+- Stable Row Key와 Detail ID·Version을 일치시킨다.
+- Empty·Stale·Partial·Unknown을 일반 Success와 구분한다.
+- Masked Field와 Raw Field의 DTO·Permission·Audit를 분리한다.
+
+#### Button·활성 조건
+
+Action: **새로고침**
+
+- 조회 Permission이 있고 Page가 Loading 중이 아닐 때 조회·새로고침을 허용한다.
+- Stale·Partial 표시 중에는 변경 Button을 제공하지 않는다.
+
+#### Backend·Owner API 계약
+
+- Query DTO: View 고정; 별도 검색 UI 없음
+- Response DTO: Control Server가 반환한 최대 18개 동적 Column
+- Query는 Environment·Data Scope·Paging·Sort·조회 시각을 포함한다.
+- Empty, Stale, Partial을 별도 응답 상태로 표현한다.
+- Permission: 조회 권한.
+
+- Same-JVM과 Remote Adapter가 같은 Request·Response·Error 의미를 제공한다.
+- Owner DB를 ADM Repository에서 직접 갱신하지 않는다.
+- 202·Accepted 응답은 Operation 상태 조회와 Reconcile API를 연결한다.
+
+#### 화면 상태 모델
+
+Loading, Empty, Success, Validation Error, 403, 409, Timeout, Response Loss, Starting, Started, Stopping, Stopped, Failed, Unknown, Restarted, Abandoned
+
+- 상태 전이는 Store와 URL·Dialog·Table Selection에 일관되게 반영한다.
+- Route 이동·Session 만료·Response Loss 후 민감 Form과 진행 중 Operation ID를 분리해 보존한다.
+
+#### 오류·부분 적용·Rollback
+
+- Validation은 Field별 Message와 허용 범위를 표시한다.
+- 403은 Menu/Button 숨김과 별도로 Backend Permission 거부를 표시한다.
+- 409는 최신 Version·변경자·변경 시각을 보여주고 Blind Retry하지 않는다.
+- Timeout·응답 유실은 기존 Operation ID를 조회한다.
+- Partial은 Target별 성공·실패·미응답을 표시한다.
+- Rollback은 변경 전 Version·Checksum·LKG 또는 Owner가 정의한 보정 Command를 사용한다.
 
 #### Test
 
-- Route deep link와 Menu Permission
+- Deep Link·Refresh·404
 - 검색 Default·Reset·Paging·Sort
-- Form validation과 Duplicate submit
-- 401·403·409·429·503·Timeout
-- Response loss 뒤 Operation 조회
+- Loading·Empty·Error 상태
+- 401·403 Backend 직접 호출
+- 409 Expected Version
+- Timeout·응답 유실 후 Operation 조회
 - Audit Masking·Before/After
-- Keyboard·Focus·Accessible name
+- Keyboard·Focus·Accessible Name
+- Stop·Restart·Abandon 활성 조건
+- Unknown·Lease·Fencing·Reconcile
+- 화면별 복구 기준: `stale`/`partial` 경고를 정상·Empty로 해석 금지
+
+
 ### batch-recovery — Recovery/Unknown
 
-**Route** `/batch-recovery` · **Group** 배치/통합 관제 · **Page** ``BatchViewPage.vue`, view=`recovery``
+| 항목 | 계약 |
+|---|---|
+| Route | `/batch-recovery` |
+| Group | 배치/통합 관제 |
+| Page | `BatchViewPage.vue`, view=`recovery` |
+| Permission | 조회 권한 |
 
-#### Frontend 구현
+#### Frontend Query·Form
 
-- 검색·입력: View 고정; 별도 검색 UI 없음
-- Column·상세: Control Server가 반환한 최대 18개 동적 Column
-- Action: 새로고침
-- Empty·Loading·Error·Stale·Partial·Conflict·Unknown 상태를 구분한다.
-- Query Key는 Environment·Tenant·Filter·Paging·Sort를 포함하고, Mutation 성공 뒤 필요한 Query만 무효화한다.
+- View 고정
+- 별도 검색 UI 없음
 
-#### Backend·Owner 연결
+- 검색 Default와 Reset 결과를 같은 Query Key 규칙으로 관리한다.
+- 기간·Timezone·Paging·Sort·Data Scope를 URL 또는 Store 상태와 일치시킨다.
+- Password·Token·Secret·PII 원문은 Store·Browser Storage·Error Message에 남기지 않는다.
 
-1. Query DTO는 검색 Field·Default·Paging·Sort·Data Scope를 검증한다.
-2. Command DTO는 Target, Action, Reason, Approval, Expected Version, Idempotency Key를 포함한다.
-3. Owner Port는 Same-JVM·Remote Adapter를 제공하고 결과 상태 조회·Reconcile을 함께 제공한다.
-4. Page는 Orval Generated Client Operation을 사용한다.
-5. 필요한 Permission은 `조회 권한`이며 Backend에서 다시 검증한다.
+#### Table·Detail
 
-#### 정상·오류·복구 Contract
+- Control Server가 반환한 최대 18개 동적 Column
 
-정상 결과는 Row·Detail·Owner 상태·Version·Audit가 일치해야 한다. 복구 핵심은 **`stale`/`partial` 경고를 정상·Empty로 해석 금지**다. 409, Timeout, Response loss, Partial Apply를 각각 Fixture로 재현하고 Reconcile·Rollback UI를 시험한다.
+- Stable Row Key와 Detail ID·Version을 일치시킨다.
+- Empty·Stale·Partial·Unknown을 일반 Success와 구분한다.
+- Masked Field와 Raw Field의 DTO·Permission·Audit를 분리한다.
+
+#### Button·활성 조건
+
+Action: **새로고침**
+
+- 조회 Permission이 있고 Page가 Loading 중이 아닐 때 조회·새로고침을 허용한다.
+- Stale·Partial 표시 중에는 변경 Button을 제공하지 않는다.
+
+#### Backend·Owner API 계약
+
+- Query DTO: View 고정; 별도 검색 UI 없음
+- Response DTO: Control Server가 반환한 최대 18개 동적 Column
+- Query는 Environment·Data Scope·Paging·Sort·조회 시각을 포함한다.
+- Empty, Stale, Partial을 별도 응답 상태로 표현한다.
+- Permission: 조회 권한.
+
+- Same-JVM과 Remote Adapter가 같은 Request·Response·Error 의미를 제공한다.
+- Owner DB를 ADM Repository에서 직접 갱신하지 않는다.
+- 202·Accepted 응답은 Operation 상태 조회와 Reconcile API를 연결한다.
+
+#### 화면 상태 모델
+
+Loading, Empty, Success, Validation Error, 403, 409, Timeout, Response Loss, Starting, Started, Stopping, Stopped, Failed, Unknown, Restarted, Abandoned
+
+- 상태 전이는 Store와 URL·Dialog·Table Selection에 일관되게 반영한다.
+- Route 이동·Session 만료·Response Loss 후 민감 Form과 진행 중 Operation ID를 분리해 보존한다.
+
+#### 오류·부분 적용·Rollback
+
+- Validation은 Field별 Message와 허용 범위를 표시한다.
+- 403은 Menu/Button 숨김과 별도로 Backend Permission 거부를 표시한다.
+- 409는 최신 Version·변경자·변경 시각을 보여주고 Blind Retry하지 않는다.
+- Timeout·응답 유실은 기존 Operation ID를 조회한다.
+- Partial은 Target별 성공·실패·미응답을 표시한다.
+- Rollback은 변경 전 Version·Checksum·LKG 또는 Owner가 정의한 보정 Command를 사용한다.
 
 #### Test
 
-- Route deep link와 Menu Permission
+- Deep Link·Refresh·404
 - 검색 Default·Reset·Paging·Sort
-- Form validation과 Duplicate submit
-- 401·403·409·429·503·Timeout
-- Response loss 뒤 Operation 조회
+- Loading·Empty·Error 상태
+- 401·403 Backend 직접 호출
+- 409 Expected Version
+- Timeout·응답 유실 후 Operation 조회
 - Audit Masking·Before/After
-- Keyboard·Focus·Accessible name
+- Keyboard·Focus·Accessible Name
+- Stop·Restart·Abandon 활성 조건
+- Unknown·Lease·Fencing·Reconcile
+- 화면별 복구 기준: `stale`/`partial` 경고를 정상·Empty로 해석 금지
+
+
 ### batch-leases — Leases
 
-**Route** `/batch-leases` · **Group** 배치/통합 관제 · **Page** ``BatchViewPage.vue`, view=`leases``
+| 항목 | 계약 |
+|---|---|
+| Route | `/batch-leases` |
+| Group | 배치/통합 관제 |
+| Page | `BatchViewPage.vue`, view=`leases` |
+| Permission | 조회 권한 |
 
-#### Frontend 구현
+#### Frontend Query·Form
 
-- 검색·입력: View 고정; 별도 검색 UI 없음
-- Column·상세: Control Server가 반환한 최대 18개 동적 Column
-- Action: 새로고침
-- Empty·Loading·Error·Stale·Partial·Conflict·Unknown 상태를 구분한다.
-- Query Key는 Environment·Tenant·Filter·Paging·Sort를 포함하고, Mutation 성공 뒤 필요한 Query만 무효화한다.
+- View 고정
+- 별도 검색 UI 없음
 
-#### Backend·Owner 연결
+- 검색 Default와 Reset 결과를 같은 Query Key 규칙으로 관리한다.
+- 기간·Timezone·Paging·Sort·Data Scope를 URL 또는 Store 상태와 일치시킨다.
+- Password·Token·Secret·PII 원문은 Store·Browser Storage·Error Message에 남기지 않는다.
 
-1. Query DTO는 검색 Field·Default·Paging·Sort·Data Scope를 검증한다.
-2. Command DTO는 Target, Action, Reason, Approval, Expected Version, Idempotency Key를 포함한다.
-3. Owner Port는 Same-JVM·Remote Adapter를 제공하고 결과 상태 조회·Reconcile을 함께 제공한다.
-4. Page는 Orval Generated Client Operation을 사용한다.
-5. 필요한 Permission은 `조회 권한`이며 Backend에서 다시 검증한다.
+#### Table·Detail
 
-#### 정상·오류·복구 Contract
+- Control Server가 반환한 최대 18개 동적 Column
 
-정상 결과는 Row·Detail·Owner 상태·Version·Audit가 일치해야 한다. 복구 핵심은 **`stale`/`partial` 경고를 정상·Empty로 해석 금지**다. 409, Timeout, Response loss, Partial Apply를 각각 Fixture로 재현하고 Reconcile·Rollback UI를 시험한다.
+- Stable Row Key와 Detail ID·Version을 일치시킨다.
+- Empty·Stale·Partial·Unknown을 일반 Success와 구분한다.
+- Masked Field와 Raw Field의 DTO·Permission·Audit를 분리한다.
+
+#### Button·활성 조건
+
+Action: **새로고침**
+
+- 조회 Permission이 있고 Page가 Loading 중이 아닐 때 조회·새로고침을 허용한다.
+- Stale·Partial 표시 중에는 변경 Button을 제공하지 않는다.
+
+#### Backend·Owner API 계약
+
+- Query DTO: View 고정; 별도 검색 UI 없음
+- Response DTO: Control Server가 반환한 최대 18개 동적 Column
+- Query는 Environment·Data Scope·Paging·Sort·조회 시각을 포함한다.
+- Empty, Stale, Partial을 별도 응답 상태로 표현한다.
+- Permission: 조회 권한.
+
+- Same-JVM과 Remote Adapter가 같은 Request·Response·Error 의미를 제공한다.
+- Owner DB를 ADM Repository에서 직접 갱신하지 않는다.
+- 202·Accepted 응답은 Operation 상태 조회와 Reconcile API를 연결한다.
+
+#### 화면 상태 모델
+
+Loading, Empty, Success, Validation Error, 403, 409, Timeout, Response Loss, Starting, Started, Stopping, Stopped, Failed, Unknown, Restarted, Abandoned
+
+- 상태 전이는 Store와 URL·Dialog·Table Selection에 일관되게 반영한다.
+- Route 이동·Session 만료·Response Loss 후 민감 Form과 진행 중 Operation ID를 분리해 보존한다.
+
+#### 오류·부분 적용·Rollback
+
+- Validation은 Field별 Message와 허용 범위를 표시한다.
+- 403은 Menu/Button 숨김과 별도로 Backend Permission 거부를 표시한다.
+- 409는 최신 Version·변경자·변경 시각을 보여주고 Blind Retry하지 않는다.
+- Timeout·응답 유실은 기존 Operation ID를 조회한다.
+- Partial은 Target별 성공·실패·미응답을 표시한다.
+- Rollback은 변경 전 Version·Checksum·LKG 또는 Owner가 정의한 보정 Command를 사용한다.
 
 #### Test
 
-- Route deep link와 Menu Permission
+- Deep Link·Refresh·404
 - 검색 Default·Reset·Paging·Sort
-- Form validation과 Duplicate submit
-- 401·403·409·429·503·Timeout
-- Response loss 뒤 Operation 조회
+- Loading·Empty·Error 상태
+- 401·403 Backend 직접 호출
+- 409 Expected Version
+- Timeout·응답 유실 후 Operation 조회
 - Audit Masking·Before/After
-- Keyboard·Focus·Accessible name
+- Keyboard·Focus·Accessible Name
+- Stop·Restart·Abandon 활성 조건
+- Unknown·Lease·Fencing·Reconcile
+- 화면별 복구 기준: `stale`/`partial` 경고를 정상·Empty로 해석 금지
+
+
 ### batch-alerts — Alerts
 
-**Route** `/batch-alerts` · **Group** 배치/통합 관제 · **Page** ``BatchViewPage.vue`, view=`alerts``
+| 항목 | 계약 |
+|---|---|
+| Route | `/batch-alerts` |
+| Group | 배치/통합 관제 |
+| Page | `BatchViewPage.vue`, view=`alerts` |
+| Permission | 조회 권한 |
 
-#### Frontend 구현
+#### Frontend Query·Form
 
-- 검색·입력: View 고정; 별도 검색 UI 없음
-- Column·상세: Control Server가 반환한 최대 18개 동적 Column
-- Action: 새로고침
-- Empty·Loading·Error·Stale·Partial·Conflict·Unknown 상태를 구분한다.
-- Query Key는 Environment·Tenant·Filter·Paging·Sort를 포함하고, Mutation 성공 뒤 필요한 Query만 무효화한다.
+- View 고정
+- 별도 검색 UI 없음
 
-#### Backend·Owner 연결
+- 검색 Default와 Reset 결과를 같은 Query Key 규칙으로 관리한다.
+- 기간·Timezone·Paging·Sort·Data Scope를 URL 또는 Store 상태와 일치시킨다.
+- Password·Token·Secret·PII 원문은 Store·Browser Storage·Error Message에 남기지 않는다.
 
-1. Query DTO는 검색 Field·Default·Paging·Sort·Data Scope를 검증한다.
-2. Command DTO는 Target, Action, Reason, Approval, Expected Version, Idempotency Key를 포함한다.
-3. Owner Port는 Same-JVM·Remote Adapter를 제공하고 결과 상태 조회·Reconcile을 함께 제공한다.
-4. Page는 Orval Generated Client Operation을 사용한다.
-5. 필요한 Permission은 `조회 권한`이며 Backend에서 다시 검증한다.
+#### Table·Detail
 
-#### 정상·오류·복구 Contract
+- Control Server가 반환한 최대 18개 동적 Column
 
-정상 결과는 Row·Detail·Owner 상태·Version·Audit가 일치해야 한다. 복구 핵심은 **`stale`/`partial` 경고를 정상·Empty로 해석 금지**다. 409, Timeout, Response loss, Partial Apply를 각각 Fixture로 재현하고 Reconcile·Rollback UI를 시험한다.
+- Stable Row Key와 Detail ID·Version을 일치시킨다.
+- Empty·Stale·Partial·Unknown을 일반 Success와 구분한다.
+- Masked Field와 Raw Field의 DTO·Permission·Audit를 분리한다.
+
+#### Button·활성 조건
+
+Action: **새로고침**
+
+- 조회 Permission이 있고 Page가 Loading 중이 아닐 때 조회·새로고침을 허용한다.
+- Stale·Partial 표시 중에는 변경 Button을 제공하지 않는다.
+
+#### Backend·Owner API 계약
+
+- Query DTO: View 고정; 별도 검색 UI 없음
+- Response DTO: Control Server가 반환한 최대 18개 동적 Column
+- Query는 Environment·Data Scope·Paging·Sort·조회 시각을 포함한다.
+- Empty, Stale, Partial을 별도 응답 상태로 표현한다.
+- Permission: 조회 권한.
+
+- Same-JVM과 Remote Adapter가 같은 Request·Response·Error 의미를 제공한다.
+- Owner DB를 ADM Repository에서 직접 갱신하지 않는다.
+- 202·Accepted 응답은 Operation 상태 조회와 Reconcile API를 연결한다.
+
+#### 화면 상태 모델
+
+Loading, Empty, Success, Validation Error, 403, 409, Timeout, Response Loss, Starting, Started, Stopping, Stopped, Failed, Unknown, Restarted, Abandoned
+
+- 상태 전이는 Store와 URL·Dialog·Table Selection에 일관되게 반영한다.
+- Route 이동·Session 만료·Response Loss 후 민감 Form과 진행 중 Operation ID를 분리해 보존한다.
+
+#### 오류·부분 적용·Rollback
+
+- Validation은 Field별 Message와 허용 범위를 표시한다.
+- 403은 Menu/Button 숨김과 별도로 Backend Permission 거부를 표시한다.
+- 409는 최신 Version·변경자·변경 시각을 보여주고 Blind Retry하지 않는다.
+- Timeout·응답 유실은 기존 Operation ID를 조회한다.
+- Partial은 Target별 성공·실패·미응답을 표시한다.
+- Rollback은 변경 전 Version·Checksum·LKG 또는 Owner가 정의한 보정 Command를 사용한다.
 
 #### Test
 
-- Route deep link와 Menu Permission
+- Deep Link·Refresh·404
 - 검색 Default·Reset·Paging·Sort
-- Form validation과 Duplicate submit
-- 401·403·409·429·503·Timeout
-- Response loss 뒤 Operation 조회
+- Loading·Empty·Error 상태
+- 401·403 Backend 직접 호출
+- 409 Expected Version
+- Timeout·응답 유실 후 Operation 조회
 - Audit Masking·Before/After
-- Keyboard·Focus·Accessible name
+- Keyboard·Focus·Accessible Name
+- Stop·Restart·Abandon 활성 조건
+- Unknown·Lease·Fencing·Reconcile
+- 화면별 복구 기준: `stale`/`partial` 경고를 정상·Empty로 해석 금지
+
+
 ### batch-audit — Audit Evidence
 
-**Route** `/batch-audit` · **Group** 배치/통합 관제 · **Page** ``BatchViewPage.vue`, view=`audit``
+| 항목 | 계약 |
+|---|---|
+| Route | `/batch-audit` |
+| Group | 배치/통합 관제 |
+| Page | `BatchViewPage.vue`, view=`audit` |
+| Permission | 조회 권한 |
 
-#### Frontend 구현
+#### Frontend Query·Form
 
-- 검색·입력: View 고정; 별도 검색 UI 없음
-- Column·상세: Control Server가 반환한 최대 18개 동적 Column
-- Action: 새로고침
-- Empty·Loading·Error·Stale·Partial·Conflict·Unknown 상태를 구분한다.
-- Query Key는 Environment·Tenant·Filter·Paging·Sort를 포함하고, Mutation 성공 뒤 필요한 Query만 무효화한다.
+- View 고정
+- 별도 검색 UI 없음
 
-#### Backend·Owner 연결
+- 검색 Default와 Reset 결과를 같은 Query Key 규칙으로 관리한다.
+- 기간·Timezone·Paging·Sort·Data Scope를 URL 또는 Store 상태와 일치시킨다.
+- Password·Token·Secret·PII 원문은 Store·Browser Storage·Error Message에 남기지 않는다.
 
-1. Query DTO는 검색 Field·Default·Paging·Sort·Data Scope를 검증한다.
-2. Command DTO는 Target, Action, Reason, Approval, Expected Version, Idempotency Key를 포함한다.
-3. Owner Port는 Same-JVM·Remote Adapter를 제공하고 결과 상태 조회·Reconcile을 함께 제공한다.
-4. Page는 Orval Generated Client Operation을 사용한다.
-5. 필요한 Permission은 `조회 권한`이며 Backend에서 다시 검증한다.
+#### Table·Detail
 
-#### 정상·오류·복구 Contract
+- Control Server가 반환한 최대 18개 동적 Column
 
-정상 결과는 Row·Detail·Owner 상태·Version·Audit가 일치해야 한다. 복구 핵심은 **`stale`/`partial` 경고를 정상·Empty로 해석 금지**다. 409, Timeout, Response loss, Partial Apply를 각각 Fixture로 재현하고 Reconcile·Rollback UI를 시험한다.
+- Stable Row Key와 Detail ID·Version을 일치시킨다.
+- Empty·Stale·Partial·Unknown을 일반 Success와 구분한다.
+- Masked Field와 Raw Field의 DTO·Permission·Audit를 분리한다.
+
+#### Button·활성 조건
+
+Action: **새로고침**
+
+- 조회 Permission이 있고 Page가 Loading 중이 아닐 때 조회·새로고침을 허용한다.
+- Stale·Partial 표시 중에는 변경 Button을 제공하지 않는다.
+
+#### Backend·Owner API 계약
+
+- Query DTO: View 고정; 별도 검색 UI 없음
+- Response DTO: Control Server가 반환한 최대 18개 동적 Column
+- Query는 Environment·Data Scope·Paging·Sort·조회 시각을 포함한다.
+- Empty, Stale, Partial을 별도 응답 상태로 표현한다.
+- Permission: 조회 권한.
+
+- Same-JVM과 Remote Adapter가 같은 Request·Response·Error 의미를 제공한다.
+- Owner DB를 ADM Repository에서 직접 갱신하지 않는다.
+- 202·Accepted 응답은 Operation 상태 조회와 Reconcile API를 연결한다.
+
+#### 화면 상태 모델
+
+Loading, Empty, Success, Validation Error, 403, 409, Timeout, Response Loss, Starting, Started, Stopping, Stopped, Failed, Unknown, Restarted, Abandoned
+
+- 상태 전이는 Store와 URL·Dialog·Table Selection에 일관되게 반영한다.
+- Route 이동·Session 만료·Response Loss 후 민감 Form과 진행 중 Operation ID를 분리해 보존한다.
+
+#### 오류·부분 적용·Rollback
+
+- Validation은 Field별 Message와 허용 범위를 표시한다.
+- 403은 Menu/Button 숨김과 별도로 Backend Permission 거부를 표시한다.
+- 409는 최신 Version·변경자·변경 시각을 보여주고 Blind Retry하지 않는다.
+- Timeout·응답 유실은 기존 Operation ID를 조회한다.
+- Partial은 Target별 성공·실패·미응답을 표시한다.
+- Rollback은 변경 전 Version·Checksum·LKG 또는 Owner가 정의한 보정 Command를 사용한다.
 
 #### Test
 
-- Route deep link와 Menu Permission
+- Deep Link·Refresh·404
 - 검색 Default·Reset·Paging·Sort
-- Form validation과 Duplicate submit
-- 401·403·409·429·503·Timeout
-- Response loss 뒤 Operation 조회
+- Loading·Empty·Error 상태
+- 401·403 Backend 직접 호출
+- 409 Expected Version
+- Timeout·응답 유실 후 Operation 조회
 - Audit Masking·Before/After
-- Keyboard·Focus·Accessible name
+- Keyboard·Focus·Accessible Name
+- Stop·Restart·Abandon 활성 조건
+- Unknown·Lease·Fencing·Reconcile
+- 화면별 복구 기준: `stale`/`partial` 경고를 정상·Empty로 해석 금지
+
+
 ### workers — Workers
 
-**Route** `/workers` · **Group** 배치/통합 관제 · **Page** ``BatchViewPage.vue`, view=`workers``
+| 항목 | 계약 |
+|---|---|
+| Route | `/workers` |
+| Group | 배치/통합 관제 |
+| Page | `BatchViewPage.vue`, view=`workers` |
+| Permission | 조회 권한 |
 
-#### Frontend 구현
+#### Frontend Query·Form
 
-- 검색·입력: View 고정; 별도 검색 UI 없음
-- Column·상세: Control Server가 반환한 최대 18개 동적 Column
-- Action: 새로고침
-- Empty·Loading·Error·Stale·Partial·Conflict·Unknown 상태를 구분한다.
-- Query Key는 Environment·Tenant·Filter·Paging·Sort를 포함하고, Mutation 성공 뒤 필요한 Query만 무효화한다.
+- View 고정
+- 별도 검색 UI 없음
 
-#### Backend·Owner 연결
+- 검색 Default와 Reset 결과를 같은 Query Key 규칙으로 관리한다.
+- 기간·Timezone·Paging·Sort·Data Scope를 URL 또는 Store 상태와 일치시킨다.
+- Password·Token·Secret·PII 원문은 Store·Browser Storage·Error Message에 남기지 않는다.
 
-1. Query DTO는 검색 Field·Default·Paging·Sort·Data Scope를 검증한다.
-2. Command DTO는 Target, Action, Reason, Approval, Expected Version, Idempotency Key를 포함한다.
-3. Owner Port는 Same-JVM·Remote Adapter를 제공하고 결과 상태 조회·Reconcile을 함께 제공한다.
-4. Page는 Orval Generated Client Operation을 사용한다.
-5. 필요한 Permission은 `조회 권한`이며 Backend에서 다시 검증한다.
+#### Table·Detail
 
-#### 정상·오류·복구 Contract
+- Control Server가 반환한 최대 18개 동적 Column
 
-정상 결과는 Row·Detail·Owner 상태·Version·Audit가 일치해야 한다. 복구 핵심은 **`stale`/`partial` 경고를 정상·Empty로 해석 금지**다. 409, Timeout, Response loss, Partial Apply를 각각 Fixture로 재현하고 Reconcile·Rollback UI를 시험한다.
+- Stable Row Key와 Detail ID·Version을 일치시킨다.
+- Empty·Stale·Partial·Unknown을 일반 Success와 구분한다.
+- Masked Field와 Raw Field의 DTO·Permission·Audit를 분리한다.
+
+#### Button·활성 조건
+
+Action: **새로고침**
+
+- 조회 Permission이 있고 Page가 Loading 중이 아닐 때 조회·새로고침을 허용한다.
+- Stale·Partial 표시 중에는 변경 Button을 제공하지 않는다.
+
+#### Backend·Owner API 계약
+
+- Query DTO: View 고정; 별도 검색 UI 없음
+- Response DTO: Control Server가 반환한 최대 18개 동적 Column
+- Query는 Environment·Data Scope·Paging·Sort·조회 시각을 포함한다.
+- Empty, Stale, Partial을 별도 응답 상태로 표현한다.
+- Permission: 조회 권한.
+
+- Same-JVM과 Remote Adapter가 같은 Request·Response·Error 의미를 제공한다.
+- Owner DB를 ADM Repository에서 직접 갱신하지 않는다.
+- 202·Accepted 응답은 Operation 상태 조회와 Reconcile API를 연결한다.
+
+#### 화면 상태 모델
+
+Loading, Empty, Success, Validation Error, 403, 409, Timeout, Response Loss, Starting, Started, Stopping, Stopped, Failed, Unknown, Restarted, Abandoned
+
+- 상태 전이는 Store와 URL·Dialog·Table Selection에 일관되게 반영한다.
+- Route 이동·Session 만료·Response Loss 후 민감 Form과 진행 중 Operation ID를 분리해 보존한다.
+
+#### 오류·부분 적용·Rollback
+
+- Validation은 Field별 Message와 허용 범위를 표시한다.
+- 403은 Menu/Button 숨김과 별도로 Backend Permission 거부를 표시한다.
+- 409는 최신 Version·변경자·변경 시각을 보여주고 Blind Retry하지 않는다.
+- Timeout·응답 유실은 기존 Operation ID를 조회한다.
+- Partial은 Target별 성공·실패·미응답을 표시한다.
+- Rollback은 변경 전 Version·Checksum·LKG 또는 Owner가 정의한 보정 Command를 사용한다.
 
 #### Test
 
-- Route deep link와 Menu Permission
+- Deep Link·Refresh·404
 - 검색 Default·Reset·Paging·Sort
-- Form validation과 Duplicate submit
-- 401·403·409·429·503·Timeout
-- Response loss 뒤 Operation 조회
+- Loading·Empty·Error 상태
+- 401·403 Backend 직접 호출
+- 409 Expected Version
+- Timeout·응답 유실 후 Operation 조회
 - Audit Masking·Before/After
-- Keyboard·Focus·Accessible name
+- Keyboard·Focus·Accessible Name
+- Stop·Restart·Abandon 활성 조건
+- Unknown·Lease·Fencing·Reconcile
+- 화면별 복구 기준: `stale`/`partial` 경고를 정상·Empty로 해석 금지
+
+
 ### batch-deployment — Deployment History·Plan
 
-**Route** `/batch-deployment` · **Group** 배치 운영 · **Page** ``BatchDeploymentPage.vue`, `DeploymentPage.vue``
+| 항목 | 계약 |
+|---|---|
+| Route | `/batch-deployment` |
+| Group | 배치 운영 |
+| Page | `BatchDeploymentPage.vue`, `DeploymentPage.vue` |
+| Permission | 배포 Plan 권한 + BAT Approval |
 
-#### Frontend 구현
+#### Frontend Query·Form
 
-- 검색·입력: Manifest JSON, Reason
-- Column·상세: Cell별 Deployment/Rollback·Failure Stage; 생성 Plan
-- Action: 새로고침·Plan 생성 후 Approval
-- Empty·Loading·Error·Stale·Partial·Conflict·Unknown 상태를 구분한다.
-- Query Key는 Environment·Tenant·Filter·Paging·Sort를 포함하고, Mutation 성공 뒤 필요한 Query만 무효화한다.
+- Manifest JSON, Reason
 
-#### Backend·Owner 연결
+- 검색 Default와 Reset 결과를 같은 Query Key 규칙으로 관리한다.
+- 기간·Timezone·Paging·Sort·Data Scope를 URL 또는 Store 상태와 일치시킨다.
+- Password·Token·Secret·PII 원문은 Store·Browser Storage·Error Message에 남기지 않는다.
 
-1. Query DTO는 검색 Field·Default·Paging·Sort·Data Scope를 검증한다.
-2. Command DTO는 Target, Action, Reason, Approval, Expected Version, Idempotency Key를 포함한다.
-3. Owner Port는 Same-JVM·Remote Adapter를 제공하고 결과 상태 조회·Reconcile을 함께 제공한다.
-4. Page는 Orval Generated Client Operation을 사용한다.
-5. 필요한 Permission은 `배포 Plan 권한 + BAT Approval`이며 Backend에서 다시 검증한다.
+#### Table·Detail
 
-#### 정상·오류·복구 Contract
+- Cell별 Deployment/Rollback·Failure Stage
+- 생성 Plan
 
-정상 결과는 Row·Detail·Owner 상태·Version·Audit가 일치해야 한다. 복구 핵심은 **Plan 생성은 실행 완료 아님; Partial/Reconcile 필요**다. 409, Timeout, Response loss, Partial Apply를 각각 Fixture로 재현하고 Reconcile·Rollback UI를 시험한다.
+- Stable Row Key와 Detail ID·Version을 일치시킨다.
+- Empty·Stale·Partial·Unknown을 일반 Success와 구분한다.
+- Masked Field와 Raw Field의 DTO·Permission·Audit를 분리한다.
+
+#### Button·활성 조건
+
+Action: **새로고침·Plan 생성 후 Approval**
+
+- Published Definition·Artifact·Parameter·Approval·Fencing이 유효할 때 Start를 허용한다.
+- Stop·Restart·Abandon·Reprocess는 현재 Execution 상태와 Restart 가능성에 따라 활성화한다.
+- Unknown 상태에서는 신규 실행보다 Reconcile 조치를 우선한다.
+
+#### Backend·Owner API 계약
+
+- Query: Job·Definition·Schedule·Execution·Worker·Lease·Artifact·Plan ID.
+- Command: 새로고침·Plan 생성 후 Approval.
+- 필수 실행 Field: Parameter, Approval, Idempotency Key, Fencing Token, Reason.
+- 결과: CPF Execution ID, Spring Job/Step ID, 처리·Skip·Error·Checkpoint·Worker·Partition 상태.
+- Permission: 배포 Plan 권한 + BAT Approval; 복구 핵심: Plan 생성은 실행 완료 아님; Partial/Reconcile 필요.
+
+- Same-JVM과 Remote Adapter가 같은 Request·Response·Error 의미를 제공한다.
+- Owner DB를 ADM Repository에서 직접 갱신하지 않는다.
+- 202·Accepted 응답은 Operation 상태 조회와 Reconcile API를 연결한다.
+
+#### 화면 상태 모델
+
+Loading, Empty, Success, Validation Error, 403, 409, Timeout, Response Loss, Starting, Started, Stopping, Stopped, Failed, Unknown, Restarted, Abandoned
+
+- 상태 전이는 Store와 URL·Dialog·Table Selection에 일관되게 반영한다.
+- Route 이동·Session 만료·Response Loss 후 민감 Form과 진행 중 Operation ID를 분리해 보존한다.
+
+#### 오류·부분 적용·Rollback
+
+- Validation은 Field별 Message와 허용 범위를 표시한다.
+- 403은 Menu/Button 숨김과 별도로 Backend Permission 거부를 표시한다.
+- 409는 최신 Version·변경자·변경 시각을 보여주고 Blind Retry하지 않는다.
+- Timeout·응답 유실은 기존 Operation ID를 조회한다.
+- Partial은 Target별 성공·실패·미응답을 표시한다.
+- Rollback은 변경 전 Version·Checksum·LKG 또는 Owner가 정의한 보정 Command를 사용한다.
 
 #### Test
 
-- Route deep link와 Menu Permission
+- Deep Link·Refresh·404
 - 검색 Default·Reset·Paging·Sort
-- Form validation과 Duplicate submit
-- 401·403·409·429·503·Timeout
-- Response loss 뒤 Operation 조회
+- Loading·Empty·Error 상태
+- 401·403 Backend 직접 호출
+- 409 Expected Version
+- Timeout·응답 유실 후 Operation 조회
 - Audit Masking·Before/After
-- Keyboard·Focus·Accessible name
+- Keyboard·Focus·Accessible Name
+- Stop·Restart·Abandon 활성 조건
+- Unknown·Lease·Fencing·Reconcile
+- 화면별 복구 기준: Plan 생성은 실행 완료 아님; Partial/Reconcile 필요
+
+
 ### gateway-dashboard — Gateway Dashboard
 
-**Route** `/gateway-dashboard` · **Group** 온라인 운영 · **Page** ``.../features/gateway-operations/GatewayOperationsPage.vue``
+| 항목 | 계약 |
+|---|---|
+| Route | `/gateway-dashboard` |
+| Group | 온라인 운영 |
+| Page | `cpf-admin/frontend/src/features/gateway-operations/GatewayOperationsPage.vue` |
+| Permission | Gateway Menu/Action Permission + Approval |
 
-#### Frontend 구현
+#### Frontend Query·Form
 
-- 검색·입력: Environment, Service ID, Route ID; Tab별 Group/Binding/Test 입력
-- Column·상세: TPS/Success/Error/P95/P99/Drift/Circuit/Cert/Spool/Test 및 Group/Binding/ACK
-- Action: 조회·Group/Binding Draft·Connection Test·Publish/Block/Rollback 관련 조치
-- Empty·Loading·Error·Stale·Partial·Conflict·Unknown 상태를 구분한다.
-- Query Key는 Environment·Tenant·Filter·Paging·Sort를 포함하고, Mutation 성공 뒤 필요한 Query만 무효화한다.
+- Environment
+- Service ID
+- Route ID
+- Tab별 Group/Binding/Test 입력
 
-#### Backend·Owner 연결
+- 검색 Default와 Reset 결과를 같은 Query Key 규칙으로 관리한다.
+- 기간·Timezone·Paging·Sort·Data Scope를 URL 또는 Store 상태와 일치시킨다.
+- Password·Token·Secret·PII 원문은 Store·Browser Storage·Error Message에 남기지 않는다.
 
-1. Query DTO는 검색 Field·Default·Paging·Sort·Data Scope를 검증한다.
-2. Command DTO는 Target, Action, Reason, Approval, Expected Version, Idempotency Key를 포함한다.
-3. Owner Port는 Same-JVM·Remote Adapter를 제공하고 결과 상태 조회·Reconcile을 함께 제공한다.
-4. Page는 Orval Generated Client Operation을 사용한다.
-5. 필요한 Permission은 `Gateway Menu/Action Permission + Approval`이며 Backend에서 다시 검증한다.
+#### Table·Detail
 
-#### 정상·오류·복구 Contract
+- TPS/Success/Error/P95/P99/Drift/Circuit/Cert/Spool/Test 및 Group/Binding/ACK
 
-정상 결과는 Row·Detail·Owner 상태·Version·Audit가 일치해야 한다. 복구 핵심은 **Capability unavailable·ACK/NACK·Drift·Spool Backlog 분리**다. 409, Timeout, Response loss, Partial Apply를 각각 Fixture로 재현하고 Reconcile·Rollback UI를 시험한다.
+- Stable Row Key와 Detail ID·Version을 일치시킨다.
+- Empty·Stale·Partial·Unknown을 일반 Success와 구분한다.
+- Masked Field와 Raw Field의 DTO·Permission·Audit를 분리한다.
+
+#### Button·활성 조건
+
+Action: **조회·Group/Binding Draft·Connection Test·Publish/Block/Rollback 관련 조치**
+
+- Draft·Expected Version·Approval·Connection Test가 유효할 때 Publish를 허용한다.
+- NACK·Drift가 있으면 Failed-only Retry 또는 LKG Rollback만 활성화한다.
+- Route/Group/Binding 상태와 선택 Tab에 따라 Button을 분리한다.
+
+#### Backend·Owner API 계약
+
+- Query: Environment·Service ID·Route ID와 Candidate/Published/LKG/ACK·Drift 조회.
+- Command: Group·Binding·Route Draft, Validate, Connection Test, Publish, Block, Rollback.
+- 필수 Command Field: Reason, Approval ID, Expected Version, Request Hash.
+- 결과: Instance별 ACK/NACK·Actual Version·Checksum·Drift와 Operation 상태.
+- Permission: Gateway Menu/Action Permission + Approval; 복구 핵심: Capability unavailable·ACK/NACK·Drift·Spool Backlog 분리.
+
+- Same-JVM과 Remote Adapter가 같은 Request·Response·Error 의미를 제공한다.
+- Owner DB를 ADM Repository에서 직접 갱신하지 않는다.
+- 202·Accepted 응답은 Operation 상태 조회와 Reconcile API를 연결한다.
+
+#### 화면 상태 모델
+
+Loading, Empty, Success, Validation Error, 403, 409, Timeout, Response Loss, Draft, Validated, Published, ACK, NACK, Drift, Rolled Back
+
+- 상태 전이는 Store와 URL·Dialog·Table Selection에 일관되게 반영한다.
+- Route 이동·Session 만료·Response Loss 후 민감 Form과 진행 중 Operation ID를 분리해 보존한다.
+
+#### 오류·부분 적용·Rollback
+
+- Validation은 Field별 Message와 허용 범위를 표시한다.
+- 403은 Menu/Button 숨김과 별도로 Backend Permission 거부를 표시한다.
+- 409는 최신 Version·변경자·변경 시각을 보여주고 Blind Retry하지 않는다.
+- Timeout·응답 유실은 기존 Operation ID를 조회한다.
+- Partial은 Target별 성공·실패·미응답을 표시한다.
+- Rollback은 변경 전 Version·Checksum·LKG 또는 Owner가 정의한 보정 Command를 사용한다.
 
 #### Test
 
-- Route deep link와 Menu Permission
+- Deep Link·Refresh·404
 - 검색 Default·Reset·Paging·Sort
-- Form validation과 Duplicate submit
-- 401·403·409·429·503·Timeout
-- Response loss 뒤 Operation 조회
+- Loading·Empty·Error 상태
+- 401·403 Backend 직접 호출
+- 409 Expected Version
+- Timeout·응답 유실 후 Operation 조회
 - Audit Masking·Before/After
-- Keyboard·Focus·Accessible name
+- Keyboard·Focus·Accessible Name
+- Collision·Connection·SSRF·HMAC
+- ACK/NACK·Drift·LKG Rollback
+- 화면별 복구 기준: Capability unavailable·ACK/NACK·Drift·Spool Backlog 분리
+
+
 ### gateway-servers — Gateway Servers
 
-**Route** `/gateway-servers` · **Group** 온라인 운영 · **Page** ``.../features/gateway-operations/GatewayOperationsPage.vue``
+| 항목 | 계약 |
+|---|---|
+| Route | `/gateway-servers` |
+| Group | 온라인 운영 |
+| Page | `cpf-admin/frontend/src/features/gateway-operations/GatewayOperationsPage.vue` |
+| Permission | Gateway Menu/Action Permission + Approval |
 
-#### Frontend 구현
+#### Frontend Query·Form
 
-- 검색·입력: Environment, Service ID, Route ID; Tab별 Group/Binding/Test 입력
-- Column·상세: TPS/Success/Error/P95/P99/Drift/Circuit/Cert/Spool/Test 및 Group/Binding/ACK
-- Action: 조회·Group/Binding Draft·Connection Test·Publish/Block/Rollback 관련 조치
-- Empty·Loading·Error·Stale·Partial·Conflict·Unknown 상태를 구분한다.
-- Query Key는 Environment·Tenant·Filter·Paging·Sort를 포함하고, Mutation 성공 뒤 필요한 Query만 무효화한다.
+- Environment
+- Service ID
+- Route ID
+- Tab별 Group/Binding/Test 입력
 
-#### Backend·Owner 연결
+- 검색 Default와 Reset 결과를 같은 Query Key 규칙으로 관리한다.
+- 기간·Timezone·Paging·Sort·Data Scope를 URL 또는 Store 상태와 일치시킨다.
+- Password·Token·Secret·PII 원문은 Store·Browser Storage·Error Message에 남기지 않는다.
 
-1. Query DTO는 검색 Field·Default·Paging·Sort·Data Scope를 검증한다.
-2. Command DTO는 Target, Action, Reason, Approval, Expected Version, Idempotency Key를 포함한다.
-3. Owner Port는 Same-JVM·Remote Adapter를 제공하고 결과 상태 조회·Reconcile을 함께 제공한다.
-4. Page는 Orval Generated Client Operation을 사용한다.
-5. 필요한 Permission은 `Gateway Menu/Action Permission + Approval`이며 Backend에서 다시 검증한다.
+#### Table·Detail
 
-#### 정상·오류·복구 Contract
+- TPS/Success/Error/P95/P99/Drift/Circuit/Cert/Spool/Test 및 Group/Binding/ACK
 
-정상 결과는 Row·Detail·Owner 상태·Version·Audit가 일치해야 한다. 복구 핵심은 **Capability unavailable·ACK/NACK·Drift·Spool Backlog 분리**다. 409, Timeout, Response loss, Partial Apply를 각각 Fixture로 재현하고 Reconcile·Rollback UI를 시험한다.
+- Stable Row Key와 Detail ID·Version을 일치시킨다.
+- Empty·Stale·Partial·Unknown을 일반 Success와 구분한다.
+- Masked Field와 Raw Field의 DTO·Permission·Audit를 분리한다.
+
+#### Button·활성 조건
+
+Action: **조회·Group/Binding Draft·Connection Test·Publish/Block/Rollback 관련 조치**
+
+- Draft·Expected Version·Approval·Connection Test가 유효할 때 Publish를 허용한다.
+- NACK·Drift가 있으면 Failed-only Retry 또는 LKG Rollback만 활성화한다.
+- Route/Group/Binding 상태와 선택 Tab에 따라 Button을 분리한다.
+
+#### Backend·Owner API 계약
+
+- Query: Environment·Service ID·Route ID와 Candidate/Published/LKG/ACK·Drift 조회.
+- Command: Group·Binding·Route Draft, Validate, Connection Test, Publish, Block, Rollback.
+- 필수 Command Field: Reason, Approval ID, Expected Version, Request Hash.
+- 결과: Instance별 ACK/NACK·Actual Version·Checksum·Drift와 Operation 상태.
+- Permission: Gateway Menu/Action Permission + Approval; 복구 핵심: Capability unavailable·ACK/NACK·Drift·Spool Backlog 분리.
+
+- Same-JVM과 Remote Adapter가 같은 Request·Response·Error 의미를 제공한다.
+- Owner DB를 ADM Repository에서 직접 갱신하지 않는다.
+- 202·Accepted 응답은 Operation 상태 조회와 Reconcile API를 연결한다.
+
+#### 화면 상태 모델
+
+Loading, Empty, Success, Validation Error, 403, 409, Timeout, Response Loss, Draft, Validated, Published, ACK, NACK, Drift, Rolled Back
+
+- 상태 전이는 Store와 URL·Dialog·Table Selection에 일관되게 반영한다.
+- Route 이동·Session 만료·Response Loss 후 민감 Form과 진행 중 Operation ID를 분리해 보존한다.
+
+#### 오류·부분 적용·Rollback
+
+- Validation은 Field별 Message와 허용 범위를 표시한다.
+- 403은 Menu/Button 숨김과 별도로 Backend Permission 거부를 표시한다.
+- 409는 최신 Version·변경자·변경 시각을 보여주고 Blind Retry하지 않는다.
+- Timeout·응답 유실은 기존 Operation ID를 조회한다.
+- Partial은 Target별 성공·실패·미응답을 표시한다.
+- Rollback은 변경 전 Version·Checksum·LKG 또는 Owner가 정의한 보정 Command를 사용한다.
 
 #### Test
 
-- Route deep link와 Menu Permission
+- Deep Link·Refresh·404
 - 검색 Default·Reset·Paging·Sort
-- Form validation과 Duplicate submit
-- 401·403·409·429·503·Timeout
-- Response loss 뒤 Operation 조회
+- Loading·Empty·Error 상태
+- 401·403 Backend 직접 호출
+- 409 Expected Version
+- Timeout·응답 유실 후 Operation 조회
 - Audit Masking·Before/After
-- Keyboard·Focus·Accessible name
+- Keyboard·Focus·Accessible Name
+- Collision·Connection·SSRF·HMAC
+- ACK/NACK·Drift·LKG Rollback
+- 화면별 복구 기준: Capability unavailable·ACK/NACK·Drift·Spool Backlog 분리
+
+
 ### gateway-groups — Gateway Groups
 
-**Route** `/gateway-groups` · **Group** 온라인 운영 · **Page** ``.../features/gateway-operations/GatewayOperationsPage.vue``
+| 항목 | 계약 |
+|---|---|
+| Route | `/gateway-groups` |
+| Group | 온라인 운영 |
+| Page | `cpf-admin/frontend/src/features/gateway-operations/GatewayOperationsPage.vue` |
+| Permission | Gateway Menu/Action Permission + Approval |
 
-#### Frontend 구현
+#### Frontend Query·Form
 
-- 검색·입력: Environment, Service ID, Route ID; Tab별 Group/Binding/Test 입력
-- Column·상세: TPS/Success/Error/P95/P99/Drift/Circuit/Cert/Spool/Test 및 Group/Binding/ACK
-- Action: 조회·Group/Binding Draft·Connection Test·Publish/Block/Rollback 관련 조치
-- Empty·Loading·Error·Stale·Partial·Conflict·Unknown 상태를 구분한다.
-- Query Key는 Environment·Tenant·Filter·Paging·Sort를 포함하고, Mutation 성공 뒤 필요한 Query만 무효화한다.
+- Environment
+- Service ID
+- Route ID
+- Tab별 Group/Binding/Test 입력
 
-#### Backend·Owner 연결
+- 검색 Default와 Reset 결과를 같은 Query Key 규칙으로 관리한다.
+- 기간·Timezone·Paging·Sort·Data Scope를 URL 또는 Store 상태와 일치시킨다.
+- Password·Token·Secret·PII 원문은 Store·Browser Storage·Error Message에 남기지 않는다.
 
-1. Query DTO는 검색 Field·Default·Paging·Sort·Data Scope를 검증한다.
-2. Command DTO는 Target, Action, Reason, Approval, Expected Version, Idempotency Key를 포함한다.
-3. Owner Port는 Same-JVM·Remote Adapter를 제공하고 결과 상태 조회·Reconcile을 함께 제공한다.
-4. Page는 Orval Generated Client Operation을 사용한다.
-5. 필요한 Permission은 `Gateway Menu/Action Permission + Approval`이며 Backend에서 다시 검증한다.
+#### Table·Detail
 
-#### 정상·오류·복구 Contract
+- TPS/Success/Error/P95/P99/Drift/Circuit/Cert/Spool/Test 및 Group/Binding/ACK
 
-정상 결과는 Row·Detail·Owner 상태·Version·Audit가 일치해야 한다. 복구 핵심은 **Capability unavailable·ACK/NACK·Drift·Spool Backlog 분리**다. 409, Timeout, Response loss, Partial Apply를 각각 Fixture로 재현하고 Reconcile·Rollback UI를 시험한다.
+- Stable Row Key와 Detail ID·Version을 일치시킨다.
+- Empty·Stale·Partial·Unknown을 일반 Success와 구분한다.
+- Masked Field와 Raw Field의 DTO·Permission·Audit를 분리한다.
+
+#### Button·활성 조건
+
+Action: **조회·Group/Binding Draft·Connection Test·Publish/Block/Rollback 관련 조치**
+
+- Draft·Expected Version·Approval·Connection Test가 유효할 때 Publish를 허용한다.
+- NACK·Drift가 있으면 Failed-only Retry 또는 LKG Rollback만 활성화한다.
+- Route/Group/Binding 상태와 선택 Tab에 따라 Button을 분리한다.
+
+#### Backend·Owner API 계약
+
+- Query: Environment·Service ID·Route ID와 Candidate/Published/LKG/ACK·Drift 조회.
+- Command: Group·Binding·Route Draft, Validate, Connection Test, Publish, Block, Rollback.
+- 필수 Command Field: Reason, Approval ID, Expected Version, Request Hash.
+- 결과: Instance별 ACK/NACK·Actual Version·Checksum·Drift와 Operation 상태.
+- Permission: Gateway Menu/Action Permission + Approval; 복구 핵심: Capability unavailable·ACK/NACK·Drift·Spool Backlog 분리.
+
+- Same-JVM과 Remote Adapter가 같은 Request·Response·Error 의미를 제공한다.
+- Owner DB를 ADM Repository에서 직접 갱신하지 않는다.
+- 202·Accepted 응답은 Operation 상태 조회와 Reconcile API를 연결한다.
+
+#### 화면 상태 모델
+
+Loading, Empty, Success, Validation Error, 403, 409, Timeout, Response Loss, Draft, Validated, Published, ACK, NACK, Drift, Rolled Back
+
+- 상태 전이는 Store와 URL·Dialog·Table Selection에 일관되게 반영한다.
+- Route 이동·Session 만료·Response Loss 후 민감 Form과 진행 중 Operation ID를 분리해 보존한다.
+
+#### 오류·부분 적용·Rollback
+
+- Validation은 Field별 Message와 허용 범위를 표시한다.
+- 403은 Menu/Button 숨김과 별도로 Backend Permission 거부를 표시한다.
+- 409는 최신 Version·변경자·변경 시각을 보여주고 Blind Retry하지 않는다.
+- Timeout·응답 유실은 기존 Operation ID를 조회한다.
+- Partial은 Target별 성공·실패·미응답을 표시한다.
+- Rollback은 변경 전 Version·Checksum·LKG 또는 Owner가 정의한 보정 Command를 사용한다.
 
 #### Test
 
-- Route deep link와 Menu Permission
+- Deep Link·Refresh·404
 - 검색 Default·Reset·Paging·Sort
-- Form validation과 Duplicate submit
-- 401·403·409·429·503·Timeout
-- Response loss 뒤 Operation 조회
+- Loading·Empty·Error 상태
+- 401·403 Backend 직접 호출
+- 409 Expected Version
+- Timeout·응답 유실 후 Operation 조회
 - Audit Masking·Before/After
-- Keyboard·Focus·Accessible name
+- Keyboard·Focus·Accessible Name
+- Collision·Connection·SSRF·HMAC
+- ACK/NACK·Drift·LKG Rollback
+- 화면별 복구 기준: Capability unavailable·ACK/NACK·Drift·Spool Backlog 분리
+
+
 ### gateway-routes — Gateway Routes
 
-**Route** `/gateway-routes` · **Group** 온라인 운영 · **Page** ``.../features/gateway-operations/GatewayOperationsPage.vue``
+| 항목 | 계약 |
+|---|---|
+| Route | `/gateway-routes` |
+| Group | 온라인 운영 |
+| Page | `cpf-admin/frontend/src/features/gateway-operations/GatewayOperationsPage.vue` |
+| Permission | Gateway Menu/Action Permission + Approval |
 
-#### Frontend 구현
+#### Frontend Query·Form
 
-- 검색·입력: Environment, Service ID, Route ID; Tab별 Group/Binding/Test 입력
-- Column·상세: TPS/Success/Error/P95/P99/Drift/Circuit/Cert/Spool/Test 및 Group/Binding/ACK
-- Action: 조회·Group/Binding Draft·Connection Test·Publish/Block/Rollback 관련 조치
-- Empty·Loading·Error·Stale·Partial·Conflict·Unknown 상태를 구분한다.
-- Query Key는 Environment·Tenant·Filter·Paging·Sort를 포함하고, Mutation 성공 뒤 필요한 Query만 무효화한다.
+- Environment
+- Service ID
+- Route ID
+- Tab별 Group/Binding/Test 입력
 
-#### Backend·Owner 연결
+- 검색 Default와 Reset 결과를 같은 Query Key 규칙으로 관리한다.
+- 기간·Timezone·Paging·Sort·Data Scope를 URL 또는 Store 상태와 일치시킨다.
+- Password·Token·Secret·PII 원문은 Store·Browser Storage·Error Message에 남기지 않는다.
 
-1. Query DTO는 검색 Field·Default·Paging·Sort·Data Scope를 검증한다.
-2. Command DTO는 Target, Action, Reason, Approval, Expected Version, Idempotency Key를 포함한다.
-3. Owner Port는 Same-JVM·Remote Adapter를 제공하고 결과 상태 조회·Reconcile을 함께 제공한다.
-4. Page는 Orval Generated Client Operation을 사용한다.
-5. 필요한 Permission은 `Gateway Menu/Action Permission + Approval`이며 Backend에서 다시 검증한다.
+#### Table·Detail
 
-#### 정상·오류·복구 Contract
+- TPS/Success/Error/P95/P99/Drift/Circuit/Cert/Spool/Test 및 Group/Binding/ACK
 
-정상 결과는 Row·Detail·Owner 상태·Version·Audit가 일치해야 한다. 복구 핵심은 **Capability unavailable·ACK/NACK·Drift·Spool Backlog 분리**다. 409, Timeout, Response loss, Partial Apply를 각각 Fixture로 재현하고 Reconcile·Rollback UI를 시험한다.
+- Stable Row Key와 Detail ID·Version을 일치시킨다.
+- Empty·Stale·Partial·Unknown을 일반 Success와 구분한다.
+- Masked Field와 Raw Field의 DTO·Permission·Audit를 분리한다.
+
+#### Button·활성 조건
+
+Action: **조회·Group/Binding Draft·Connection Test·Publish/Block/Rollback 관련 조치**
+
+- Draft·Expected Version·Approval·Connection Test가 유효할 때 Publish를 허용한다.
+- NACK·Drift가 있으면 Failed-only Retry 또는 LKG Rollback만 활성화한다.
+- Route/Group/Binding 상태와 선택 Tab에 따라 Button을 분리한다.
+
+#### Backend·Owner API 계약
+
+- Query: Environment·Service ID·Route ID와 Candidate/Published/LKG/ACK·Drift 조회.
+- Command: Group·Binding·Route Draft, Validate, Connection Test, Publish, Block, Rollback.
+- 필수 Command Field: Reason, Approval ID, Expected Version, Request Hash.
+- 결과: Instance별 ACK/NACK·Actual Version·Checksum·Drift와 Operation 상태.
+- Permission: Gateway Menu/Action Permission + Approval; 복구 핵심: Capability unavailable·ACK/NACK·Drift·Spool Backlog 분리.
+
+- Same-JVM과 Remote Adapter가 같은 Request·Response·Error 의미를 제공한다.
+- Owner DB를 ADM Repository에서 직접 갱신하지 않는다.
+- 202·Accepted 응답은 Operation 상태 조회와 Reconcile API를 연결한다.
+
+#### 화면 상태 모델
+
+Loading, Empty, Success, Validation Error, 403, 409, Timeout, Response Loss, Draft, Validated, Published, ACK, NACK, Drift, Rolled Back
+
+- 상태 전이는 Store와 URL·Dialog·Table Selection에 일관되게 반영한다.
+- Route 이동·Session 만료·Response Loss 후 민감 Form과 진행 중 Operation ID를 분리해 보존한다.
+
+#### 오류·부분 적용·Rollback
+
+- Validation은 Field별 Message와 허용 범위를 표시한다.
+- 403은 Menu/Button 숨김과 별도로 Backend Permission 거부를 표시한다.
+- 409는 최신 Version·변경자·변경 시각을 보여주고 Blind Retry하지 않는다.
+- Timeout·응답 유실은 기존 Operation ID를 조회한다.
+- Partial은 Target별 성공·실패·미응답을 표시한다.
+- Rollback은 변경 전 Version·Checksum·LKG 또는 Owner가 정의한 보정 Command를 사용한다.
 
 #### Test
 
-- Route deep link와 Menu Permission
+- Deep Link·Refresh·404
 - 검색 Default·Reset·Paging·Sort
-- Form validation과 Duplicate submit
-- 401·403·409·429·503·Timeout
-- Response loss 뒤 Operation 조회
+- Loading·Empty·Error 상태
+- 401·403 Backend 직접 호출
+- 409 Expected Version
+- Timeout·응답 유실 후 Operation 조회
 - Audit Masking·Before/After
-- Keyboard·Focus·Accessible name
+- Keyboard·Focus·Accessible Name
+- Collision·Connection·SSRF·HMAC
+- ACK/NACK·Drift·LKG Rollback
+- 화면별 복구 기준: Capability unavailable·ACK/NACK·Drift·Spool Backlog 분리
+
+
 ### gateway-security — Gateway Security
 
-**Route** `/gateway-security` · **Group** 온라인 운영 · **Page** ``.../features/gateway-operations/GatewayOperationsPage.vue``
+| 항목 | 계약 |
+|---|---|
+| Route | `/gateway-security` |
+| Group | 온라인 운영 |
+| Page | `cpf-admin/frontend/src/features/gateway-operations/GatewayOperationsPage.vue` |
+| Permission | Gateway Menu/Action Permission + Approval |
 
-#### Frontend 구현
+#### Frontend Query·Form
 
-- 검색·입력: Environment, Service ID, Route ID; Tab별 Group/Binding/Test 입력
-- Column·상세: TPS/Success/Error/P95/P99/Drift/Circuit/Cert/Spool/Test 및 Group/Binding/ACK
-- Action: 조회·Group/Binding Draft·Connection Test·Publish/Block/Rollback 관련 조치
-- Empty·Loading·Error·Stale·Partial·Conflict·Unknown 상태를 구분한다.
-- Query Key는 Environment·Tenant·Filter·Paging·Sort를 포함하고, Mutation 성공 뒤 필요한 Query만 무효화한다.
+- Environment
+- Service ID
+- Route ID
+- Tab별 Group/Binding/Test 입력
 
-#### Backend·Owner 연결
+- 검색 Default와 Reset 결과를 같은 Query Key 규칙으로 관리한다.
+- 기간·Timezone·Paging·Sort·Data Scope를 URL 또는 Store 상태와 일치시킨다.
+- Password·Token·Secret·PII 원문은 Store·Browser Storage·Error Message에 남기지 않는다.
 
-1. Query DTO는 검색 Field·Default·Paging·Sort·Data Scope를 검증한다.
-2. Command DTO는 Target, Action, Reason, Approval, Expected Version, Idempotency Key를 포함한다.
-3. Owner Port는 Same-JVM·Remote Adapter를 제공하고 결과 상태 조회·Reconcile을 함께 제공한다.
-4. Page는 Orval Generated Client Operation을 사용한다.
-5. 필요한 Permission은 `Gateway Menu/Action Permission + Approval`이며 Backend에서 다시 검증한다.
+#### Table·Detail
 
-#### 정상·오류·복구 Contract
+- TPS/Success/Error/P95/P99/Drift/Circuit/Cert/Spool/Test 및 Group/Binding/ACK
 
-정상 결과는 Row·Detail·Owner 상태·Version·Audit가 일치해야 한다. 복구 핵심은 **Capability unavailable·ACK/NACK·Drift·Spool Backlog 분리**다. 409, Timeout, Response loss, Partial Apply를 각각 Fixture로 재현하고 Reconcile·Rollback UI를 시험한다.
+- Stable Row Key와 Detail ID·Version을 일치시킨다.
+- Empty·Stale·Partial·Unknown을 일반 Success와 구분한다.
+- Masked Field와 Raw Field의 DTO·Permission·Audit를 분리한다.
+
+#### Button·활성 조건
+
+Action: **조회·Group/Binding Draft·Connection Test·Publish/Block/Rollback 관련 조치**
+
+- Draft·Expected Version·Approval·Connection Test가 유효할 때 Publish를 허용한다.
+- NACK·Drift가 있으면 Failed-only Retry 또는 LKG Rollback만 활성화한다.
+- Route/Group/Binding 상태와 선택 Tab에 따라 Button을 분리한다.
+
+#### Backend·Owner API 계약
+
+- Query: Environment·Service ID·Route ID와 Candidate/Published/LKG/ACK·Drift 조회.
+- Command: Group·Binding·Route Draft, Validate, Connection Test, Publish, Block, Rollback.
+- 필수 Command Field: Reason, Approval ID, Expected Version, Request Hash.
+- 결과: Instance별 ACK/NACK·Actual Version·Checksum·Drift와 Operation 상태.
+- Permission: Gateway Menu/Action Permission + Approval; 복구 핵심: Capability unavailable·ACK/NACK·Drift·Spool Backlog 분리.
+
+- Same-JVM과 Remote Adapter가 같은 Request·Response·Error 의미를 제공한다.
+- Owner DB를 ADM Repository에서 직접 갱신하지 않는다.
+- 202·Accepted 응답은 Operation 상태 조회와 Reconcile API를 연결한다.
+
+#### 화면 상태 모델
+
+Loading, Empty, Success, Validation Error, 403, 409, Timeout, Response Loss, Draft, Validated, Published, ACK, NACK, Drift, Rolled Back
+
+- 상태 전이는 Store와 URL·Dialog·Table Selection에 일관되게 반영한다.
+- Route 이동·Session 만료·Response Loss 후 민감 Form과 진행 중 Operation ID를 분리해 보존한다.
+
+#### 오류·부분 적용·Rollback
+
+- Validation은 Field별 Message와 허용 범위를 표시한다.
+- 403은 Menu/Button 숨김과 별도로 Backend Permission 거부를 표시한다.
+- 409는 최신 Version·변경자·변경 시각을 보여주고 Blind Retry하지 않는다.
+- Timeout·응답 유실은 기존 Operation ID를 조회한다.
+- Partial은 Target별 성공·실패·미응답을 표시한다.
+- Rollback은 변경 전 Version·Checksum·LKG 또는 Owner가 정의한 보정 Command를 사용한다.
 
 #### Test
 
-- Route deep link와 Menu Permission
+- Deep Link·Refresh·404
 - 검색 Default·Reset·Paging·Sort
-- Form validation과 Duplicate submit
-- 401·403·409·429·503·Timeout
-- Response loss 뒤 Operation 조회
+- Loading·Empty·Error 상태
+- 401·403 Backend 직접 호출
+- 409 Expected Version
+- Timeout·응답 유실 후 Operation 조회
 - Audit Masking·Before/After
-- Keyboard·Focus·Accessible name
+- Keyboard·Focus·Accessible Name
+- Collision·Connection·SSRF·HMAC
+- ACK/NACK·Drift·LKG Rollback
+- 화면별 복구 기준: Capability unavailable·ACK/NACK·Drift·Spool Backlog 분리
+
+
 ### gateway-health — Gateway Health
 
-**Route** `/gateway-health` · **Group** 온라인 운영 · **Page** ``.../features/gateway-operations/GatewayOperationsPage.vue``
+| 항목 | 계약 |
+|---|---|
+| Route | `/gateway-health` |
+| Group | 온라인 운영 |
+| Page | `cpf-admin/frontend/src/features/gateway-operations/GatewayOperationsPage.vue` |
+| Permission | Gateway Menu/Action Permission + Approval |
 
-#### Frontend 구현
+#### Frontend Query·Form
 
-- 검색·입력: Environment, Service ID, Route ID; Tab별 Group/Binding/Test 입력
-- Column·상세: TPS/Success/Error/P95/P99/Drift/Circuit/Cert/Spool/Test 및 Group/Binding/ACK
-- Action: 조회·Group/Binding Draft·Connection Test·Publish/Block/Rollback 관련 조치
-- Empty·Loading·Error·Stale·Partial·Conflict·Unknown 상태를 구분한다.
-- Query Key는 Environment·Tenant·Filter·Paging·Sort를 포함하고, Mutation 성공 뒤 필요한 Query만 무효화한다.
+- Environment
+- Service ID
+- Route ID
+- Tab별 Group/Binding/Test 입력
 
-#### Backend·Owner 연결
+- 검색 Default와 Reset 결과를 같은 Query Key 규칙으로 관리한다.
+- 기간·Timezone·Paging·Sort·Data Scope를 URL 또는 Store 상태와 일치시킨다.
+- Password·Token·Secret·PII 원문은 Store·Browser Storage·Error Message에 남기지 않는다.
 
-1. Query DTO는 검색 Field·Default·Paging·Sort·Data Scope를 검증한다.
-2. Command DTO는 Target, Action, Reason, Approval, Expected Version, Idempotency Key를 포함한다.
-3. Owner Port는 Same-JVM·Remote Adapter를 제공하고 결과 상태 조회·Reconcile을 함께 제공한다.
-4. Page는 Orval Generated Client Operation을 사용한다.
-5. 필요한 Permission은 `Gateway Menu/Action Permission + Approval`이며 Backend에서 다시 검증한다.
+#### Table·Detail
 
-#### 정상·오류·복구 Contract
+- TPS/Success/Error/P95/P99/Drift/Circuit/Cert/Spool/Test 및 Group/Binding/ACK
 
-정상 결과는 Row·Detail·Owner 상태·Version·Audit가 일치해야 한다. 복구 핵심은 **Capability unavailable·ACK/NACK·Drift·Spool Backlog 분리**다. 409, Timeout, Response loss, Partial Apply를 각각 Fixture로 재현하고 Reconcile·Rollback UI를 시험한다.
+- Stable Row Key와 Detail ID·Version을 일치시킨다.
+- Empty·Stale·Partial·Unknown을 일반 Success와 구분한다.
+- Masked Field와 Raw Field의 DTO·Permission·Audit를 분리한다.
+
+#### Button·활성 조건
+
+Action: **조회·Group/Binding Draft·Connection Test·Publish/Block/Rollback 관련 조치**
+
+- Draft·Expected Version·Approval·Connection Test가 유효할 때 Publish를 허용한다.
+- NACK·Drift가 있으면 Failed-only Retry 또는 LKG Rollback만 활성화한다.
+- Route/Group/Binding 상태와 선택 Tab에 따라 Button을 분리한다.
+
+#### Backend·Owner API 계약
+
+- Query: Environment·Service ID·Route ID와 Candidate/Published/LKG/ACK·Drift 조회.
+- Command: Group·Binding·Route Draft, Validate, Connection Test, Publish, Block, Rollback.
+- 필수 Command Field: Reason, Approval ID, Expected Version, Request Hash.
+- 결과: Instance별 ACK/NACK·Actual Version·Checksum·Drift와 Operation 상태.
+- Permission: Gateway Menu/Action Permission + Approval; 복구 핵심: Capability unavailable·ACK/NACK·Drift·Spool Backlog 분리.
+
+- Same-JVM과 Remote Adapter가 같은 Request·Response·Error 의미를 제공한다.
+- Owner DB를 ADM Repository에서 직접 갱신하지 않는다.
+- 202·Accepted 응답은 Operation 상태 조회와 Reconcile API를 연결한다.
+
+#### 화면 상태 모델
+
+Loading, Empty, Success, Validation Error, 403, 409, Timeout, Response Loss, Draft, Validated, Published, ACK, NACK, Drift, Rolled Back
+
+- 상태 전이는 Store와 URL·Dialog·Table Selection에 일관되게 반영한다.
+- Route 이동·Session 만료·Response Loss 후 민감 Form과 진행 중 Operation ID를 분리해 보존한다.
+
+#### 오류·부분 적용·Rollback
+
+- Validation은 Field별 Message와 허용 범위를 표시한다.
+- 403은 Menu/Button 숨김과 별도로 Backend Permission 거부를 표시한다.
+- 409는 최신 Version·변경자·변경 시각을 보여주고 Blind Retry하지 않는다.
+- Timeout·응답 유실은 기존 Operation ID를 조회한다.
+- Partial은 Target별 성공·실패·미응답을 표시한다.
+- Rollback은 변경 전 Version·Checksum·LKG 또는 Owner가 정의한 보정 Command를 사용한다.
 
 #### Test
 
-- Route deep link와 Menu Permission
+- Deep Link·Refresh·404
 - 검색 Default·Reset·Paging·Sort
-- Form validation과 Duplicate submit
-- 401·403·409·429·503·Timeout
-- Response loss 뒤 Operation 조회
+- Loading·Empty·Error 상태
+- 401·403 Backend 직접 호출
+- 409 Expected Version
+- Timeout·응답 유실 후 Operation 조회
 - Audit Masking·Before/After
-- Keyboard·Focus·Accessible name
+- Keyboard·Focus·Accessible Name
+- Collision·Connection·SSRF·HMAC
+- ACK/NACK·Drift·LKG Rollback
+- 화면별 복구 기준: Capability unavailable·ACK/NACK·Drift·Spool Backlog 분리
+
+
 ### gateway-transactions — Gateway Transactions
 
-**Route** `/gateway-transactions` · **Group** 온라인 운영 · **Page** ``.../features/gateway-operations/GatewayOperationsPage.vue``
+| 항목 | 계약 |
+|---|---|
+| Route | `/gateway-transactions` |
+| Group | 온라인 운영 |
+| Page | `cpf-admin/frontend/src/features/gateway-operations/GatewayOperationsPage.vue` |
+| Permission | Gateway Menu/Action Permission + Approval |
 
-#### Frontend 구현
+#### Frontend Query·Form
 
-- 검색·입력: Environment, Service ID, Route ID; Tab별 Group/Binding/Test 입력
-- Column·상세: TPS/Success/Error/P95/P99/Drift/Circuit/Cert/Spool/Test 및 Group/Binding/ACK
-- Action: 조회·Group/Binding Draft·Connection Test·Publish/Block/Rollback 관련 조치
-- Empty·Loading·Error·Stale·Partial·Conflict·Unknown 상태를 구분한다.
-- Query Key는 Environment·Tenant·Filter·Paging·Sort를 포함하고, Mutation 성공 뒤 필요한 Query만 무효화한다.
+- Environment
+- Service ID
+- Route ID
+- Tab별 Group/Binding/Test 입력
 
-#### Backend·Owner 연결
+- 검색 Default와 Reset 결과를 같은 Query Key 규칙으로 관리한다.
+- 기간·Timezone·Paging·Sort·Data Scope를 URL 또는 Store 상태와 일치시킨다.
+- Password·Token·Secret·PII 원문은 Store·Browser Storage·Error Message에 남기지 않는다.
 
-1. Query DTO는 검색 Field·Default·Paging·Sort·Data Scope를 검증한다.
-2. Command DTO는 Target, Action, Reason, Approval, Expected Version, Idempotency Key를 포함한다.
-3. Owner Port는 Same-JVM·Remote Adapter를 제공하고 결과 상태 조회·Reconcile을 함께 제공한다.
-4. Page는 Orval Generated Client Operation을 사용한다.
-5. 필요한 Permission은 `Gateway Menu/Action Permission + Approval`이며 Backend에서 다시 검증한다.
+#### Table·Detail
 
-#### 정상·오류·복구 Contract
+- TPS/Success/Error/P95/P99/Drift/Circuit/Cert/Spool/Test 및 Group/Binding/ACK
 
-정상 결과는 Row·Detail·Owner 상태·Version·Audit가 일치해야 한다. 복구 핵심은 **Capability unavailable·ACK/NACK·Drift·Spool Backlog 분리**다. 409, Timeout, Response loss, Partial Apply를 각각 Fixture로 재현하고 Reconcile·Rollback UI를 시험한다.
+- Stable Row Key와 Detail ID·Version을 일치시킨다.
+- Empty·Stale·Partial·Unknown을 일반 Success와 구분한다.
+- Masked Field와 Raw Field의 DTO·Permission·Audit를 분리한다.
+
+#### Button·활성 조건
+
+Action: **조회·Group/Binding Draft·Connection Test·Publish/Block/Rollback 관련 조치**
+
+- Draft·Expected Version·Approval·Connection Test가 유효할 때 Publish를 허용한다.
+- NACK·Drift가 있으면 Failed-only Retry 또는 LKG Rollback만 활성화한다.
+- Route/Group/Binding 상태와 선택 Tab에 따라 Button을 분리한다.
+
+#### Backend·Owner API 계약
+
+- Query: Environment·Service ID·Route ID와 Candidate/Published/LKG/ACK·Drift 조회.
+- Command: Group·Binding·Route Draft, Validate, Connection Test, Publish, Block, Rollback.
+- 필수 Command Field: Reason, Approval ID, Expected Version, Request Hash.
+- 결과: Instance별 ACK/NACK·Actual Version·Checksum·Drift와 Operation 상태.
+- Permission: Gateway Menu/Action Permission + Approval; 복구 핵심: Capability unavailable·ACK/NACK·Drift·Spool Backlog 분리.
+
+- Same-JVM과 Remote Adapter가 같은 Request·Response·Error 의미를 제공한다.
+- Owner DB를 ADM Repository에서 직접 갱신하지 않는다.
+- 202·Accepted 응답은 Operation 상태 조회와 Reconcile API를 연결한다.
+
+#### 화면 상태 모델
+
+Loading, Empty, Success, Validation Error, 403, 409, Timeout, Response Loss, Draft, Validated, Published, ACK, NACK, Drift, Rolled Back
+
+- 상태 전이는 Store와 URL·Dialog·Table Selection에 일관되게 반영한다.
+- Route 이동·Session 만료·Response Loss 후 민감 Form과 진행 중 Operation ID를 분리해 보존한다.
+
+#### 오류·부분 적용·Rollback
+
+- Validation은 Field별 Message와 허용 범위를 표시한다.
+- 403은 Menu/Button 숨김과 별도로 Backend Permission 거부를 표시한다.
+- 409는 최신 Version·변경자·변경 시각을 보여주고 Blind Retry하지 않는다.
+- Timeout·응답 유실은 기존 Operation ID를 조회한다.
+- Partial은 Target별 성공·실패·미응답을 표시한다.
+- Rollback은 변경 전 Version·Checksum·LKG 또는 Owner가 정의한 보정 Command를 사용한다.
 
 #### Test
 
-- Route deep link와 Menu Permission
+- Deep Link·Refresh·404
 - 검색 Default·Reset·Paging·Sort
-- Form validation과 Duplicate submit
-- 401·403·409·429·503·Timeout
-- Response loss 뒤 Operation 조회
+- Loading·Empty·Error 상태
+- 401·403 Backend 직접 호출
+- 409 Expected Version
+- Timeout·응답 유실 후 Operation 조회
 - Audit Masking·Before/After
-- Keyboard·Focus·Accessible name
+- Keyboard·Focus·Accessible Name
+- Collision·Connection·SSRF·HMAC
+- ACK/NACK·Drift·LKG Rollback
+- 화면별 복구 기준: Capability unavailable·ACK/NACK·Drift·Spool Backlog 분리
+
+
 ### gateway-log-policies — Gateway Log Policies
 
-**Route** `/gateway-log-policies` · **Group** 온라인 운영 · **Page** ``.../features/gateway-operations/GatewayOperationsPage.vue``
+| 항목 | 계약 |
+|---|---|
+| Route | `/gateway-log-policies` |
+| Group | 온라인 운영 |
+| Page | `cpf-admin/frontend/src/features/gateway-operations/GatewayOperationsPage.vue` |
+| Permission | Gateway Menu/Action Permission + Approval |
 
-#### Frontend 구현
+#### Frontend Query·Form
 
-- 검색·입력: Environment, Service ID, Route ID; Tab별 Group/Binding/Test 입력
-- Column·상세: TPS/Success/Error/P95/P99/Drift/Circuit/Cert/Spool/Test 및 Group/Binding/ACK
-- Action: 조회·Group/Binding Draft·Connection Test·Publish/Block/Rollback 관련 조치
-- Empty·Loading·Error·Stale·Partial·Conflict·Unknown 상태를 구분한다.
-- Query Key는 Environment·Tenant·Filter·Paging·Sort를 포함하고, Mutation 성공 뒤 필요한 Query만 무효화한다.
+- Environment
+- Service ID
+- Route ID
+- Tab별 Group/Binding/Test 입력
 
-#### Backend·Owner 연결
+- 검색 Default와 Reset 결과를 같은 Query Key 규칙으로 관리한다.
+- 기간·Timezone·Paging·Sort·Data Scope를 URL 또는 Store 상태와 일치시킨다.
+- Password·Token·Secret·PII 원문은 Store·Browser Storage·Error Message에 남기지 않는다.
 
-1. Query DTO는 검색 Field·Default·Paging·Sort·Data Scope를 검증한다.
-2. Command DTO는 Target, Action, Reason, Approval, Expected Version, Idempotency Key를 포함한다.
-3. Owner Port는 Same-JVM·Remote Adapter를 제공하고 결과 상태 조회·Reconcile을 함께 제공한다.
-4. Page는 Orval Generated Client Operation을 사용한다.
-5. 필요한 Permission은 `Gateway Menu/Action Permission + Approval`이며 Backend에서 다시 검증한다.
+#### Table·Detail
 
-#### 정상·오류·복구 Contract
+- TPS/Success/Error/P95/P99/Drift/Circuit/Cert/Spool/Test 및 Group/Binding/ACK
 
-정상 결과는 Row·Detail·Owner 상태·Version·Audit가 일치해야 한다. 복구 핵심은 **Capability unavailable·ACK/NACK·Drift·Spool Backlog 분리**다. 409, Timeout, Response loss, Partial Apply를 각각 Fixture로 재현하고 Reconcile·Rollback UI를 시험한다.
+- Stable Row Key와 Detail ID·Version을 일치시킨다.
+- Empty·Stale·Partial·Unknown을 일반 Success와 구분한다.
+- Masked Field와 Raw Field의 DTO·Permission·Audit를 분리한다.
+
+#### Button·활성 조건
+
+Action: **조회·Group/Binding Draft·Connection Test·Publish/Block/Rollback 관련 조치**
+
+- Draft·Expected Version·Approval·Connection Test가 유효할 때 Publish를 허용한다.
+- NACK·Drift가 있으면 Failed-only Retry 또는 LKG Rollback만 활성화한다.
+- Route/Group/Binding 상태와 선택 Tab에 따라 Button을 분리한다.
+
+#### Backend·Owner API 계약
+
+- Query: Environment·Service ID·Route ID와 Candidate/Published/LKG/ACK·Drift 조회.
+- Command: Group·Binding·Route Draft, Validate, Connection Test, Publish, Block, Rollback.
+- 필수 Command Field: Reason, Approval ID, Expected Version, Request Hash.
+- 결과: Instance별 ACK/NACK·Actual Version·Checksum·Drift와 Operation 상태.
+- Permission: Gateway Menu/Action Permission + Approval; 복구 핵심: Capability unavailable·ACK/NACK·Drift·Spool Backlog 분리.
+
+- Same-JVM과 Remote Adapter가 같은 Request·Response·Error 의미를 제공한다.
+- Owner DB를 ADM Repository에서 직접 갱신하지 않는다.
+- 202·Accepted 응답은 Operation 상태 조회와 Reconcile API를 연결한다.
+
+#### 화면 상태 모델
+
+Loading, Empty, Success, Validation Error, 403, 409, Timeout, Response Loss, Draft, Validated, Published, ACK, NACK, Drift, Rolled Back
+
+- 상태 전이는 Store와 URL·Dialog·Table Selection에 일관되게 반영한다.
+- Route 이동·Session 만료·Response Loss 후 민감 Form과 진행 중 Operation ID를 분리해 보존한다.
+
+#### 오류·부분 적용·Rollback
+
+- Validation은 Field별 Message와 허용 범위를 표시한다.
+- 403은 Menu/Button 숨김과 별도로 Backend Permission 거부를 표시한다.
+- 409는 최신 Version·변경자·변경 시각을 보여주고 Blind Retry하지 않는다.
+- Timeout·응답 유실은 기존 Operation ID를 조회한다.
+- Partial은 Target별 성공·실패·미응답을 표시한다.
+- Rollback은 변경 전 Version·Checksum·LKG 또는 Owner가 정의한 보정 Command를 사용한다.
 
 #### Test
 
-- Route deep link와 Menu Permission
+- Deep Link·Refresh·404
 - 검색 Default·Reset·Paging·Sort
-- Form validation과 Duplicate submit
-- 401·403·409·429·503·Timeout
-- Response loss 뒤 Operation 조회
+- Loading·Empty·Error 상태
+- 401·403 Backend 직접 호출
+- 409 Expected Version
+- Timeout·응답 유실 후 Operation 조회
 - Audit Masking·Before/After
-- Keyboard·Focus·Accessible name
+- Keyboard·Focus·Accessible Name
+- Collision·Connection·SSRF·HMAC
+- ACK/NACK·Drift·LKG Rollback
+- 화면별 복구 기준: Capability unavailable·ACK/NACK·Drift·Spool Backlog 분리
+
+
 ### gateway-apply-status — Gateway Apply Status
 
-**Route** `/gateway-apply-status` · **Group** 온라인 운영 · **Page** ``.../features/gateway-operations/GatewayOperationsPage.vue``
+| 항목 | 계약 |
+|---|---|
+| Route | `/gateway-apply-status` |
+| Group | 온라인 운영 |
+| Page | `cpf-admin/frontend/src/features/gateway-operations/GatewayOperationsPage.vue` |
+| Permission | Gateway Menu/Action Permission + Approval |
 
-#### Frontend 구현
+#### Frontend Query·Form
 
-- 검색·입력: Environment, Service ID, Route ID; Tab별 Group/Binding/Test 입력
-- Column·상세: TPS/Success/Error/P95/P99/Drift/Circuit/Cert/Spool/Test 및 Group/Binding/ACK
-- Action: 조회·Group/Binding Draft·Connection Test·Publish/Block/Rollback 관련 조치
-- Empty·Loading·Error·Stale·Partial·Conflict·Unknown 상태를 구분한다.
-- Query Key는 Environment·Tenant·Filter·Paging·Sort를 포함하고, Mutation 성공 뒤 필요한 Query만 무효화한다.
+- Environment
+- Service ID
+- Route ID
+- Tab별 Group/Binding/Test 입력
 
-#### Backend·Owner 연결
+- 검색 Default와 Reset 결과를 같은 Query Key 규칙으로 관리한다.
+- 기간·Timezone·Paging·Sort·Data Scope를 URL 또는 Store 상태와 일치시킨다.
+- Password·Token·Secret·PII 원문은 Store·Browser Storage·Error Message에 남기지 않는다.
 
-1. Query DTO는 검색 Field·Default·Paging·Sort·Data Scope를 검증한다.
-2. Command DTO는 Target, Action, Reason, Approval, Expected Version, Idempotency Key를 포함한다.
-3. Owner Port는 Same-JVM·Remote Adapter를 제공하고 결과 상태 조회·Reconcile을 함께 제공한다.
-4. Page는 Orval Generated Client Operation을 사용한다.
-5. 필요한 Permission은 `Gateway Menu/Action Permission + Approval`이며 Backend에서 다시 검증한다.
+#### Table·Detail
 
-#### 정상·오류·복구 Contract
+- TPS/Success/Error/P95/P99/Drift/Circuit/Cert/Spool/Test 및 Group/Binding/ACK
 
-정상 결과는 Row·Detail·Owner 상태·Version·Audit가 일치해야 한다. 복구 핵심은 **Capability unavailable·ACK/NACK·Drift·Spool Backlog 분리**다. 409, Timeout, Response loss, Partial Apply를 각각 Fixture로 재현하고 Reconcile·Rollback UI를 시험한다.
+- Stable Row Key와 Detail ID·Version을 일치시킨다.
+- Empty·Stale·Partial·Unknown을 일반 Success와 구분한다.
+- Masked Field와 Raw Field의 DTO·Permission·Audit를 분리한다.
+
+#### Button·활성 조건
+
+Action: **조회·Group/Binding Draft·Connection Test·Publish/Block/Rollback 관련 조치**
+
+- Draft·Expected Version·Approval·Connection Test가 유효할 때 Publish를 허용한다.
+- NACK·Drift가 있으면 Failed-only Retry 또는 LKG Rollback만 활성화한다.
+- Route/Group/Binding 상태와 선택 Tab에 따라 Button을 분리한다.
+
+#### Backend·Owner API 계약
+
+- Query: Environment·Service ID·Route ID와 Candidate/Published/LKG/ACK·Drift 조회.
+- Command: Group·Binding·Route Draft, Validate, Connection Test, Publish, Block, Rollback.
+- 필수 Command Field: Reason, Approval ID, Expected Version, Request Hash.
+- 결과: Instance별 ACK/NACK·Actual Version·Checksum·Drift와 Operation 상태.
+- Permission: Gateway Menu/Action Permission + Approval; 복구 핵심: Capability unavailable·ACK/NACK·Drift·Spool Backlog 분리.
+
+- Same-JVM과 Remote Adapter가 같은 Request·Response·Error 의미를 제공한다.
+- Owner DB를 ADM Repository에서 직접 갱신하지 않는다.
+- 202·Accepted 응답은 Operation 상태 조회와 Reconcile API를 연결한다.
+
+#### 화면 상태 모델
+
+Loading, Empty, Success, Validation Error, 403, 409, Timeout, Response Loss, Draft, Validated, Published, ACK, NACK, Drift, Rolled Back
+
+- 상태 전이는 Store와 URL·Dialog·Table Selection에 일관되게 반영한다.
+- Route 이동·Session 만료·Response Loss 후 민감 Form과 진행 중 Operation ID를 분리해 보존한다.
+
+#### 오류·부분 적용·Rollback
+
+- Validation은 Field별 Message와 허용 범위를 표시한다.
+- 403은 Menu/Button 숨김과 별도로 Backend Permission 거부를 표시한다.
+- 409는 최신 Version·변경자·변경 시각을 보여주고 Blind Retry하지 않는다.
+- Timeout·응답 유실은 기존 Operation ID를 조회한다.
+- Partial은 Target별 성공·실패·미응답을 표시한다.
+- Rollback은 변경 전 Version·Checksum·LKG 또는 Owner가 정의한 보정 Command를 사용한다.
 
 #### Test
 
-- Route deep link와 Menu Permission
+- Deep Link·Refresh·404
 - 검색 Default·Reset·Paging·Sort
-- Form validation과 Duplicate submit
-- 401·403·409·429·503·Timeout
-- Response loss 뒤 Operation 조회
+- Loading·Empty·Error 상태
+- 401·403 Backend 직접 호출
+- 409 Expected Version
+- Timeout·응답 유실 후 Operation 조회
 - Audit Masking·Before/After
-- Keyboard·Focus·Accessible name
+- Keyboard·Focus·Accessible Name
+- Collision·Connection·SSRF·HMAC
+- ACK/NACK·Drift·LKG Rollback
+- 화면별 복구 기준: Capability unavailable·ACK/NACK·Drift·Spool Backlog 분리
+
+
 ### permissions — Role·Menu·Button·API Permission
 
-**Route** `/permissions` · **Group** 프레임워크 · **Page** ``.../features/permissions/PermissionsPage.vue``
+| 항목 | 계약 |
+|---|---|
+| Route | `/permissions` |
+| Group | 프레임워크 |
+| Page | `cpf-admin/frontend/src/features/permissions/PermissionsPage.vue` |
+| Permission | `PERMISSION` Write |
 
-#### Frontend 구현
+#### Frontend Query·Form
 
-- 검색·입력: Role/Menu/Button/API ID, Read/Write/Delete/Allow, Reason; Registry Fields
-- Column·상세: Matrix/Registry Result
-- Action: 조회·각 Permission 저장·Role/Menu/Button/API 등록/수정
-- Empty·Loading·Error·Stale·Partial·Conflict·Unknown 상태를 구분한다.
-- Query Key는 Environment·Tenant·Filter·Paging·Sort를 포함하고, Mutation 성공 뒤 필요한 Query만 무효화한다.
+- Role/Menu/Button/API ID
+- Read/Write/Delete/Allow
+- Reason
+- Registry Fields
 
-#### Backend·Owner 연결
+- 검색 Default와 Reset 결과를 같은 Query Key 규칙으로 관리한다.
+- 기간·Timezone·Paging·Sort·Data Scope를 URL 또는 Store 상태와 일치시킨다.
+- Password·Token·Secret·PII 원문은 Store·Browser Storage·Error Message에 남기지 않는다.
 
-1. Query DTO는 검색 Field·Default·Paging·Sort·Data Scope를 검증한다.
-2. Command DTO는 Target, Action, Reason, Approval, Expected Version, Idempotency Key를 포함한다.
-3. Owner Port는 Same-JVM·Remote Adapter를 제공하고 결과 상태 조회·Reconcile을 함께 제공한다.
-4. Page는 Orval Generated Client Operation을 사용한다.
-5. 필요한 Permission은 ``PERMISSION` Write`이며 Backend에서 다시 검증한다.
+#### Table·Detail
 
-#### 정상·오류·복구 Contract
+- Matrix/Registry Result
 
-정상 결과는 Row·Detail·Owner 상태·Version·Audit가 일치해야 한다. 복구 핵심은 **Frontend 숨김과 Backend 403 모두 검증**다. 409, Timeout, Response loss, Partial Apply를 각각 Fixture로 재현하고 Reconcile·Rollback UI를 시험한다.
+- Stable Row Key와 Detail ID·Version을 일치시킨다.
+- Empty·Stale·Partial·Unknown을 일반 Success와 구분한다.
+- Masked Field와 Raw Field의 DTO·Permission·Audit를 분리한다.
+
+#### Button·활성 조건
+
+Action: **조회·각 Permission 저장·Role/Menu/Button/API 등록/수정**
+
+- Backend Permission, 대상 상태, Expected Version, Reason가 모두 유효해야 변경 Button을 활성화한다.
+- Raw·Rotate·Approve·Break-glass는 별도 Permission·TTL·Approval 조건을 적용한다.
+- Password·Secret·PII 원문이 빈 값이거나 Policy를 위반하면 제출을 비활성화한다.
+
+#### Backend·Owner API 계약
+
+- Query DTO: Role/Menu/Button/API ID, Read/Write/Delete/Allow, Reason; Registry Fields
+- Command: 조회·각 Permission 저장·Role/Menu/Button/API 등록/수정
+- 필수 Field: Target, Reason, Expected Version, 필요 시 Approval·TTL·Data Scope.
+- Response: Matrix/Registry Result
+- Permission: `PERMISSION` Write; Raw/Rotate/Approve API는 별도 Method Security를 적용한다.
+- 복구 핵심: Frontend 숨김과 Backend 403 모두 검증.
+
+- Same-JVM과 Remote Adapter가 같은 Request·Response·Error 의미를 제공한다.
+- Owner DB를 ADM Repository에서 직접 갱신하지 않는다.
+- 202·Accepted 응답은 Operation 상태 조회와 Reconcile API를 연결한다.
+
+#### 화면 상태 모델
+
+Loading, Empty, Success, Validation Error, 403, 409, Timeout, Response Loss, Masked, Raw Granted, Approval Pending, Expired, Revoked
+
+- 상태 전이는 Store와 URL·Dialog·Table Selection에 일관되게 반영한다.
+- Route 이동·Session 만료·Response Loss 후 민감 Form과 진행 중 Operation ID를 분리해 보존한다.
+
+#### 오류·부분 적용·Rollback
+
+- Validation은 Field별 Message와 허용 범위를 표시한다.
+- 403은 Menu/Button 숨김과 별도로 Backend Permission 거부를 표시한다.
+- 409는 최신 Version·변경자·변경 시각을 보여주고 Blind Retry하지 않는다.
+- Timeout·응답 유실은 기존 Operation ID를 조회한다.
+- Partial은 Target별 성공·실패·미응답을 표시한다.
+- Rollback은 변경 전 Version·Checksum·LKG 또는 Owner가 정의한 보정 Command를 사용한다.
 
 #### Test
 
-- Route deep link와 Menu Permission
+- Deep Link·Refresh·404
 - 검색 Default·Reset·Paging·Sort
-- Form validation과 Duplicate submit
-- 401·403·409·429·503·Timeout
-- Response loss 뒤 Operation 조회
+- Loading·Empty·Error 상태
+- 401·403 Backend 직접 호출
+- 409 Expected Version
+- Timeout·응답 유실 후 Operation 조회
 - Audit Masking·Before/After
-- Keyboard·Focus·Accessible name
+- Keyboard·Focus·Accessible Name
+- Raw·Secret·Password 원문 미노출
+- Session·Permission 회수
+- 화면별 복구 기준: Frontend 숨김과 Backend 403 모두 검증
+
+
 ### operators — 운영자
 
-**Route** `/operators` · **Group** 프레임워크 · **Page** ``.../features/operators/OperatorsPage.vue``
+| 항목 | 계약 |
+|---|---|
+| Route | `/operators` |
+| Group | 프레임워크 |
+| Page | `cpf-admin/frontend/src/features/operators/OperatorsPage.vue` |
+| Permission | `OPERATOR` Write, Raw 별도 |
 
-#### Frontend 구현
+#### Frontend Query·Form
 
-- 검색·입력: ID/Name/Mobile/Office/Initial Password/Reason; Raw Reason
-- Column·상세: ID/Name/Status/Masked Contact/Roles/Lock
-- Action: 등록·원문 보기·Role 보유 후 활성화
-- Empty·Loading·Error·Stale·Partial·Conflict·Unknown 상태를 구분한다.
-- Query Key는 Environment·Tenant·Filter·Paging·Sort를 포함하고, Mutation 성공 뒤 필요한 Query만 무효화한다.
+- ID/Name/Mobile/Office/Initial Password/Reason
+- Raw Reason
 
-#### Backend·Owner 연결
+- 검색 Default와 Reset 결과를 같은 Query Key 규칙으로 관리한다.
+- 기간·Timezone·Paging·Sort·Data Scope를 URL 또는 Store 상태와 일치시킨다.
+- Password·Token·Secret·PII 원문은 Store·Browser Storage·Error Message에 남기지 않는다.
 
-1. Query DTO는 검색 Field·Default·Paging·Sort·Data Scope를 검증한다.
-2. Command DTO는 Target, Action, Reason, Approval, Expected Version, Idempotency Key를 포함한다.
-3. Owner Port는 Same-JVM·Remote Adapter를 제공하고 결과 상태 조회·Reconcile을 함께 제공한다.
-4. Page는 Orval Generated Client Operation을 사용한다.
-5. 필요한 Permission은 ``OPERATOR` Write, Raw 별도`이며 Backend에서 다시 검증한다.
+#### Table·Detail
 
-#### 정상·오류·복구 Contract
+- ID/Name/Status/Masked Contact/Roles/Lock
 
-정상 결과는 Row·Detail·Owner 상태·Version·Audit가 일치해야 한다. 복구 핵심은 **Operation ID 대사; Raw Dialog 종료 시 Clear**다. 409, Timeout, Response loss, Partial Apply를 각각 Fixture로 재현하고 Reconcile·Rollback UI를 시험한다.
+- Stable Row Key와 Detail ID·Version을 일치시킨다.
+- Empty·Stale·Partial·Unknown을 일반 Success와 구분한다.
+- Masked Field와 Raw Field의 DTO·Permission·Audit를 분리한다.
+
+#### Button·활성 조건
+
+Action: **등록·원문 보기·Role 보유 후 활성화**
+
+- Backend Permission, 대상 상태, Expected Version, Reason가 모두 유효해야 변경 Button을 활성화한다.
+- Raw·Rotate·Approve·Break-glass는 별도 Permission·TTL·Approval 조건을 적용한다.
+- Password·Secret·PII 원문이 빈 값이거나 Policy를 위반하면 제출을 비활성화한다.
+
+#### Backend·Owner API 계약
+
+- Query DTO: ID/Name/Mobile/Office/Initial Password/Reason; Raw Reason
+- Command: 등록·원문 보기·Role 보유 후 활성화
+- 필수 Field: Target, Reason, Expected Version, 필요 시 Approval·TTL·Data Scope.
+- Response: ID/Name/Status/Masked Contact/Roles/Lock
+- Permission: `OPERATOR` Write, Raw 별도; Raw/Rotate/Approve API는 별도 Method Security를 적용한다.
+- 복구 핵심: Operation ID 대사; Raw Dialog 종료 시 Clear.
+
+- Same-JVM과 Remote Adapter가 같은 Request·Response·Error 의미를 제공한다.
+- Owner DB를 ADM Repository에서 직접 갱신하지 않는다.
+- 202·Accepted 응답은 Operation 상태 조회와 Reconcile API를 연결한다.
+
+#### 화면 상태 모델
+
+Loading, Empty, Success, Validation Error, 403, 409, Timeout, Response Loss, Masked, Raw Granted, Approval Pending, Expired, Revoked
+
+- 상태 전이는 Store와 URL·Dialog·Table Selection에 일관되게 반영한다.
+- Route 이동·Session 만료·Response Loss 후 민감 Form과 진행 중 Operation ID를 분리해 보존한다.
+
+#### 오류·부분 적용·Rollback
+
+- Validation은 Field별 Message와 허용 범위를 표시한다.
+- 403은 Menu/Button 숨김과 별도로 Backend Permission 거부를 표시한다.
+- 409는 최신 Version·변경자·변경 시각을 보여주고 Blind Retry하지 않는다.
+- Timeout·응답 유실은 기존 Operation ID를 조회한다.
+- Partial은 Target별 성공·실패·미응답을 표시한다.
+- Rollback은 변경 전 Version·Checksum·LKG 또는 Owner가 정의한 보정 Command를 사용한다.
 
 #### Test
 
-- Route deep link와 Menu Permission
+- Deep Link·Refresh·404
 - 검색 Default·Reset·Paging·Sort
-- Form validation과 Duplicate submit
-- 401·403·409·429·503·Timeout
-- Response loss 뒤 Operation 조회
+- Loading·Empty·Error 상태
+- 401·403 Backend 직접 호출
+- 409 Expected Version
+- Timeout·응답 유실 후 Operation 조회
 - Audit Masking·Before/After
-- Keyboard·Focus·Accessible name
+- Keyboard·Focus·Accessible Name
+- Raw·Secret·Password 원문 미노출
+- Session·Permission 회수
+- 화면별 복구 기준: Operation ID 대사; Raw Dialog 종료 시 Clear
+
+
 ### password — Password·Session
 
-**Route** `/password` · **Group** 프레임워크 · **Page** ``.../features/password/PasswordPage.vue``
+| 항목 | 계약 |
+|---|---|
+| Route | `/password` |
+| Group | 프레임워크 |
+| Page | `cpf-admin/frontend/src/features/password/PasswordPage.vue` |
+| Permission | `PASSWORD` 또는 `OPERATOR` Write |
 
-#### Frontend 구현
+#### Frontend Query·Form
 
-- 검색·입력: Operator, New Password, Force Change, Session ID, Reason
-- Column·상세: Policy/Session/Action Result
-- Action: 정책 조회·Reset·Unlock·Session 조회/강제 종료/만료 정리
-- Empty·Loading·Error·Stale·Partial·Conflict·Unknown 상태를 구분한다.
-- Query Key는 Environment·Tenant·Filter·Paging·Sort를 포함하고, Mutation 성공 뒤 필요한 Query만 무효화한다.
+- Operator
+- New Password
+- Force Change
+- Session ID
+- Reason
 
-#### Backend·Owner 연결
+- 검색 Default와 Reset 결과를 같은 Query Key 규칙으로 관리한다.
+- 기간·Timezone·Paging·Sort·Data Scope를 URL 또는 Store 상태와 일치시킨다.
+- Password·Token·Secret·PII 원문은 Store·Browser Storage·Error Message에 남기지 않는다.
 
-1. Query DTO는 검색 Field·Default·Paging·Sort·Data Scope를 검증한다.
-2. Command DTO는 Target, Action, Reason, Approval, Expected Version, Idempotency Key를 포함한다.
-3. Owner Port는 Same-JVM·Remote Adapter를 제공하고 결과 상태 조회·Reconcile을 함께 제공한다.
-4. Page는 Orval Generated Client Operation을 사용한다.
-5. 필요한 Permission은 ``PASSWORD` 또는 `OPERATOR` Write`이며 Backend에서 다시 검증한다.
+#### Table·Detail
 
-#### 정상·오류·복구 Contract
+- Policy/Session/Action Result
 
-정상 결과는 Row·Detail·Owner 상태·Version·Audit가 일치해야 한다. 복구 핵심은 **Reset 뒤 강제 변경·Session 폐기 확인**다. 409, Timeout, Response loss, Partial Apply를 각각 Fixture로 재현하고 Reconcile·Rollback UI를 시험한다.
+- Stable Row Key와 Detail ID·Version을 일치시킨다.
+- Empty·Stale·Partial·Unknown을 일반 Success와 구분한다.
+- Masked Field와 Raw Field의 DTO·Permission·Audit를 분리한다.
+
+#### Button·활성 조건
+
+Action: **정책 조회·Reset·Unlock·Session 조회/강제 종료/만료 정리**
+
+- Backend Permission, 대상 상태, Expected Version, Reason가 모두 유효해야 변경 Button을 활성화한다.
+- Raw·Rotate·Approve·Break-glass는 별도 Permission·TTL·Approval 조건을 적용한다.
+- Password·Secret·PII 원문이 빈 값이거나 Policy를 위반하면 제출을 비활성화한다.
+
+#### Backend·Owner API 계약
+
+- Query DTO: Operator, New Password, Force Change, Session ID, Reason
+- Command: 정책 조회·Reset·Unlock·Session 조회/강제 종료/만료 정리
+- 필수 Field: Target, Reason, Expected Version, 필요 시 Approval·TTL·Data Scope.
+- Response: Policy/Session/Action Result
+- Permission: `PASSWORD` 또는 `OPERATOR` Write; Raw/Rotate/Approve API는 별도 Method Security를 적용한다.
+- 복구 핵심: Reset 뒤 강제 변경·Session 폐기 확인.
+
+- Same-JVM과 Remote Adapter가 같은 Request·Response·Error 의미를 제공한다.
+- Owner DB를 ADM Repository에서 직접 갱신하지 않는다.
+- 202·Accepted 응답은 Operation 상태 조회와 Reconcile API를 연결한다.
+
+#### 화면 상태 모델
+
+Loading, Empty, Success, Validation Error, 403, 409, Timeout, Response Loss, Masked, Raw Granted, Approval Pending, Expired, Revoked
+
+- 상태 전이는 Store와 URL·Dialog·Table Selection에 일관되게 반영한다.
+- Route 이동·Session 만료·Response Loss 후 민감 Form과 진행 중 Operation ID를 분리해 보존한다.
+
+#### 오류·부분 적용·Rollback
+
+- Validation은 Field별 Message와 허용 범위를 표시한다.
+- 403은 Menu/Button 숨김과 별도로 Backend Permission 거부를 표시한다.
+- 409는 최신 Version·변경자·변경 시각을 보여주고 Blind Retry하지 않는다.
+- Timeout·응답 유실은 기존 Operation ID를 조회한다.
+- Partial은 Target별 성공·실패·미응답을 표시한다.
+- Rollback은 변경 전 Version·Checksum·LKG 또는 Owner가 정의한 보정 Command를 사용한다.
 
 #### Test
 
-- Route deep link와 Menu Permission
+- Deep Link·Refresh·404
 - 검색 Default·Reset·Paging·Sort
-- Form validation과 Duplicate submit
-- 401·403·409·429·503·Timeout
-- Response loss 뒤 Operation 조회
+- Loading·Empty·Error 상태
+- 401·403 Backend 직접 호출
+- 409 Expected Version
+- Timeout·응답 유실 후 Operation 조회
 - Audit Masking·Before/After
-- Keyboard·Focus·Accessible name
+- Keyboard·Focus·Accessible Name
+- Raw·Secret·Password 원문 미노출
+- Session·Permission 회수
+- 화면별 복구 기준: Reset 뒤 강제 변경·Session 폐기 확인
+
+
 ### security — IP Allowlist·MFA
 
-**Route** `/security` · **Group** 프레임워크 · **Page** ``.../features/security/SecurityPage.vue``
+| 항목 | 계약 |
+|---|---|
+| Route | `/security` |
+| Group | 프레임워크 |
+| Page | `cpf-admin/frontend/src/features/security/SecurityPage.vue` |
+| Permission | `SECURITY` Write |
 
-#### Frontend 구현
+#### Frontend Query·Form
 
-- 검색·입력: IP/CIDR, Description, Operator, Secret Ref, OTP, Reason
-- Column·상세: Security Result
-- Action: 조회·IP 저장·MFA 등록/검증
-- Empty·Loading·Error·Stale·Partial·Conflict·Unknown 상태를 구분한다.
-- Query Key는 Environment·Tenant·Filter·Paging·Sort를 포함하고, Mutation 성공 뒤 필요한 Query만 무효화한다.
+- IP/CIDR
+- Description
+- Operator
+- Secret Ref
+- OTP
+- Reason
 
-#### Backend·Owner 연결
+- 검색 Default와 Reset 결과를 같은 Query Key 규칙으로 관리한다.
+- 기간·Timezone·Paging·Sort·Data Scope를 URL 또는 Store 상태와 일치시킨다.
+- Password·Token·Secret·PII 원문은 Store·Browser Storage·Error Message에 남기지 않는다.
 
-1. Query DTO는 검색 Field·Default·Paging·Sort·Data Scope를 검증한다.
-2. Command DTO는 Target, Action, Reason, Approval, Expected Version, Idempotency Key를 포함한다.
-3. Owner Port는 Same-JVM·Remote Adapter를 제공하고 결과 상태 조회·Reconcile을 함께 제공한다.
-4. Page는 Orval Generated Client Operation을 사용한다.
-5. 필요한 Permission은 ``SECURITY` Write`이며 Backend에서 다시 검증한다.
+#### Table·Detail
 
-#### 정상·오류·복구 Contract
+- Security Result
 
-정상 결과는 Row·Detail·Owner 상태·Version·Audit가 일치해야 한다. 복구 핵심은 **Secret 원문 금지; BFF 401/403 재검증**다. 409, Timeout, Response loss, Partial Apply를 각각 Fixture로 재현하고 Reconcile·Rollback UI를 시험한다.
+- Stable Row Key와 Detail ID·Version을 일치시킨다.
+- Empty·Stale·Partial·Unknown을 일반 Success와 구분한다.
+- Masked Field와 Raw Field의 DTO·Permission·Audit를 분리한다.
+
+#### Button·활성 조건
+
+Action: **조회·IP 저장·MFA 등록/검증**
+
+- Backend Permission, 대상 상태, Expected Version, Reason가 모두 유효해야 변경 Button을 활성화한다.
+- Raw·Rotate·Approve·Break-glass는 별도 Permission·TTL·Approval 조건을 적용한다.
+- Password·Secret·PII 원문이 빈 값이거나 Policy를 위반하면 제출을 비활성화한다.
+
+#### Backend·Owner API 계약
+
+- Query DTO: IP/CIDR, Description, Operator, Secret Ref, OTP, Reason
+- Command: 조회·IP 저장·MFA 등록/검증
+- 필수 Field: Target, Reason, Expected Version, 필요 시 Approval·TTL·Data Scope.
+- Response: Security Result
+- Permission: `SECURITY` Write; Raw/Rotate/Approve API는 별도 Method Security를 적용한다.
+- 복구 핵심: Secret 원문 금지; BFF 401/403 재검증.
+
+- Same-JVM과 Remote Adapter가 같은 Request·Response·Error 의미를 제공한다.
+- Owner DB를 ADM Repository에서 직접 갱신하지 않는다.
+- 202·Accepted 응답은 Operation 상태 조회와 Reconcile API를 연결한다.
+
+#### 화면 상태 모델
+
+Loading, Empty, Success, Validation Error, 403, 409, Timeout, Response Loss, Masked, Raw Granted, Approval Pending, Expired, Revoked
+
+- 상태 전이는 Store와 URL·Dialog·Table Selection에 일관되게 반영한다.
+- Route 이동·Session 만료·Response Loss 후 민감 Form과 진행 중 Operation ID를 분리해 보존한다.
+
+#### 오류·부분 적용·Rollback
+
+- Validation은 Field별 Message와 허용 범위를 표시한다.
+- 403은 Menu/Button 숨김과 별도로 Backend Permission 거부를 표시한다.
+- 409는 최신 Version·변경자·변경 시각을 보여주고 Blind Retry하지 않는다.
+- Timeout·응답 유실은 기존 Operation ID를 조회한다.
+- Partial은 Target별 성공·실패·미응답을 표시한다.
+- Rollback은 변경 전 Version·Checksum·LKG 또는 Owner가 정의한 보정 Command를 사용한다.
 
 #### Test
 
-- Route deep link와 Menu Permission
+- Deep Link·Refresh·404
 - 검색 Default·Reset·Paging·Sort
-- Form validation과 Duplicate submit
-- 401·403·409·429·503·Timeout
-- Response loss 뒤 Operation 조회
+- Loading·Empty·Error 상태
+- 401·403 Backend 직접 호출
+- 409 Expected Version
+- Timeout·응답 유실 후 Operation 조회
 - Audit Masking·Before/After
-- Keyboard·Focus·Accessible name
+- Keyboard·Focus·Accessible Name
+- Raw·Secret·Password 원문 미노출
+- Session·Permission 회수
+- 화면별 복구 기준: Secret 원문 금지; BFF 401/403 재검증
+
+
 ### secrets — Secret Metadata·Rotation
 
-**Route** `/secrets` · **Group** 프레임워크 · **Page** ``.../features/secrets/SecretsPage.vue``
+| 항목 | 계약 |
+|---|---|
+| Route | `/secrets` |
+| Group | 프레임워크 |
+| Page | `cpf-admin/frontend/src/features/secrets/SecretsPage.vue` |
+| Permission | Secret Permission |
 
-#### Frontend 구현
+#### Frontend Query·Form
 
-- 검색·입력: Provider, Key, Rotation Reason
-- Column·상세: Reference/Version/Created/Expires/Rotatable/Attributes
-- Action: Provider 조회·Metadata 조회·Rotation
-- Empty·Loading·Error·Stale·Partial·Conflict·Unknown 상태를 구분한다.
-- Query Key는 Environment·Tenant·Filter·Paging·Sort를 포함하고, Mutation 성공 뒤 필요한 Query만 무효화한다.
+- Provider
+- Key
+- Rotation Reason
 
-#### Backend·Owner 연결
+- 검색 Default와 Reset 결과를 같은 Query Key 규칙으로 관리한다.
+- 기간·Timezone·Paging·Sort·Data Scope를 URL 또는 Store 상태와 일치시킨다.
+- Password·Token·Secret·PII 원문은 Store·Browser Storage·Error Message에 남기지 않는다.
 
-1. Query DTO는 검색 Field·Default·Paging·Sort·Data Scope를 검증한다.
-2. Command DTO는 Target, Action, Reason, Approval, Expected Version, Idempotency Key를 포함한다.
-3. Owner Port는 Same-JVM·Remote Adapter를 제공하고 결과 상태 조회·Reconcile을 함께 제공한다.
-4. Page는 Orval Generated Client Operation을 사용한다.
-5. 필요한 Permission은 `Secret Permission`이며 Backend에서 다시 검증한다.
+#### Table·Detail
 
-#### 정상·오류·복구 Contract
+- Reference/Version/Created/Expires/Rotatable/Attributes
 
-정상 결과는 Row·Detail·Owner 상태·Version·Audit가 일치해야 한다. 복구 핵심은 **Provider와 Secret 모두 Rotatable일 때만**다. 409, Timeout, Response loss, Partial Apply를 각각 Fixture로 재현하고 Reconcile·Rollback UI를 시험한다.
+- Stable Row Key와 Detail ID·Version을 일치시킨다.
+- Empty·Stale·Partial·Unknown을 일반 Success와 구분한다.
+- Masked Field와 Raw Field의 DTO·Permission·Audit를 분리한다.
+
+#### Button·활성 조건
+
+Action: **Provider 조회·Metadata 조회·Rotation**
+
+- Backend Permission, 대상 상태, Expected Version, Reason가 모두 유효해야 변경 Button을 활성화한다.
+- Raw·Rotate·Approve·Break-glass는 별도 Permission·TTL·Approval 조건을 적용한다.
+- Password·Secret·PII 원문이 빈 값이거나 Policy를 위반하면 제출을 비활성화한다.
+
+#### Backend·Owner API 계약
+
+- Query DTO: Provider, Key, Rotation Reason
+- Command: Provider 조회·Metadata 조회·Rotation
+- 필수 Field: Target, Reason, Expected Version, 필요 시 Approval·TTL·Data Scope.
+- Response: Reference/Version/Created/Expires/Rotatable/Attributes
+- Permission: Secret Permission; Raw/Rotate/Approve API는 별도 Method Security를 적용한다.
+- 복구 핵심: Provider와 Secret 모두 Rotatable일 때만.
+
+- Same-JVM과 Remote Adapter가 같은 Request·Response·Error 의미를 제공한다.
+- Owner DB를 ADM Repository에서 직접 갱신하지 않는다.
+- 202·Accepted 응답은 Operation 상태 조회와 Reconcile API를 연결한다.
+
+#### 화면 상태 모델
+
+Loading, Empty, Success, Validation Error, 403, 409, Timeout, Response Loss, Masked, Raw Granted, Approval Pending, Expired, Revoked
+
+- 상태 전이는 Store와 URL·Dialog·Table Selection에 일관되게 반영한다.
+- Route 이동·Session 만료·Response Loss 후 민감 Form과 진행 중 Operation ID를 분리해 보존한다.
+
+#### 오류·부분 적용·Rollback
+
+- Validation은 Field별 Message와 허용 범위를 표시한다.
+- 403은 Menu/Button 숨김과 별도로 Backend Permission 거부를 표시한다.
+- 409는 최신 Version·변경자·변경 시각을 보여주고 Blind Retry하지 않는다.
+- Timeout·응답 유실은 기존 Operation ID를 조회한다.
+- Partial은 Target별 성공·실패·미응답을 표시한다.
+- Rollback은 변경 전 Version·Checksum·LKG 또는 Owner가 정의한 보정 Command를 사용한다.
 
 #### Test
 
-- Route deep link와 Menu Permission
+- Deep Link·Refresh·404
 - 검색 Default·Reset·Paging·Sort
-- Form validation과 Duplicate submit
-- 401·403·409·429·503·Timeout
-- Response loss 뒤 Operation 조회
+- Loading·Empty·Error 상태
+- 401·403 Backend 직접 호출
+- 409 Expected Version
+- Timeout·응답 유실 후 Operation 조회
 - Audit Masking·Before/After
-- Keyboard·Focus·Accessible name
+- Keyboard·Focus·Accessible Name
+- Raw·Secret·Password 원문 미노출
+- Session·Permission 회수
+- 화면별 복구 기준: Provider와 Secret 모두 Rotatable일 때만
+
+
 ### approvals — 위험조치 승인
 
-**Route** `/approvals` · **Group** 프레임워크 · **Page** ``.../features/approvals/ApprovalsPage.vue``
+| 항목 | 계약 |
+|---|---|
+| Route | `/approvals` |
+| Group | 프레임워크 |
+| Page | `cpf-admin/frontend/src/features/approvals/ApprovalsPage.vue` |
+| Permission | Approval Role |
 
-#### Frontend 구현
+#### Frontend Query·Form
 
-- 검색·입력: Action/Policy/Owner/Target/Request Key/Expire/Reason/Masked Snapshot; Decision/Idempotency
-- Column·상세: Request/Execution/Policy
-- Action: 요청·결정·승인 Command 실행
-- Empty·Loading·Error·Stale·Partial·Conflict·Unknown 상태를 구분한다.
-- Query Key는 Environment·Tenant·Filter·Paging·Sort를 포함하고, Mutation 성공 뒤 필요한 Query만 무효화한다.
+- Action/Policy/Owner/Target/Request Key/Expire/Reason/Masked Snapshot
+- Decision/Idempotency
 
-#### Backend·Owner 연결
+- 검색 Default와 Reset 결과를 같은 Query Key 규칙으로 관리한다.
+- 기간·Timezone·Paging·Sort·Data Scope를 URL 또는 Store 상태와 일치시킨다.
+- Password·Token·Secret·PII 원문은 Store·Browser Storage·Error Message에 남기지 않는다.
 
-1. Query DTO는 검색 Field·Default·Paging·Sort·Data Scope를 검증한다.
-2. Command DTO는 Target, Action, Reason, Approval, Expected Version, Idempotency Key를 포함한다.
-3. Owner Port는 Same-JVM·Remote Adapter를 제공하고 결과 상태 조회·Reconcile을 함께 제공한다.
-4. Page는 Orval Generated Client Operation을 사용한다.
-5. 필요한 Permission은 `Approval Role`이며 Backend에서 다시 검증한다.
+#### Table·Detail
 
-#### 정상·오류·복구 Contract
+- Request/Execution/Policy
 
-정상 결과는 Row·Detail·Owner 상태·Version·Audit가 일치해야 한다. 복구 핵심은 **UNKNOWN은 recoveryRequiredYn으로 대사**다. 409, Timeout, Response loss, Partial Apply를 각각 Fixture로 재현하고 Reconcile·Rollback UI를 시험한다.
+- Stable Row Key와 Detail ID·Version을 일치시킨다.
+- Empty·Stale·Partial·Unknown을 일반 Success와 구분한다.
+- Masked Field와 Raw Field의 DTO·Permission·Audit를 분리한다.
+
+#### Button·활성 조건
+
+Action: **요청·결정·승인 Command 실행**
+
+- Backend Permission, 대상 상태, Expected Version, Reason가 모두 유효해야 변경 Button을 활성화한다.
+- Raw·Rotate·Approve·Break-glass는 별도 Permission·TTL·Approval 조건을 적용한다.
+- Password·Secret·PII 원문이 빈 값이거나 Policy를 위반하면 제출을 비활성화한다.
+
+#### Backend·Owner API 계약
+
+- Query DTO: Action/Policy/Owner/Target/Request Key/Expire/Reason/Masked Snapshot; Decision/Idempotency
+- Command: 요청·결정·승인 Command 실행
+- 필수 Field: Target, Reason, Expected Version, 필요 시 Approval·TTL·Data Scope.
+- Response: Request/Execution/Policy
+- Permission: Approval Role; Raw/Rotate/Approve API는 별도 Method Security를 적용한다.
+- 복구 핵심: UNKNOWN은 recoveryRequiredYn으로 대사.
+
+- Same-JVM과 Remote Adapter가 같은 Request·Response·Error 의미를 제공한다.
+- Owner DB를 ADM Repository에서 직접 갱신하지 않는다.
+- 202·Accepted 응답은 Operation 상태 조회와 Reconcile API를 연결한다.
+
+#### 화면 상태 모델
+
+Loading, Empty, Success, Validation Error, 403, 409, Timeout, Response Loss, Masked, Raw Granted, Approval Pending, Expired, Revoked
+
+- 상태 전이는 Store와 URL·Dialog·Table Selection에 일관되게 반영한다.
+- Route 이동·Session 만료·Response Loss 후 민감 Form과 진행 중 Operation ID를 분리해 보존한다.
+
+#### 오류·부분 적용·Rollback
+
+- Validation은 Field별 Message와 허용 범위를 표시한다.
+- 403은 Menu/Button 숨김과 별도로 Backend Permission 거부를 표시한다.
+- 409는 최신 Version·변경자·변경 시각을 보여주고 Blind Retry하지 않는다.
+- Timeout·응답 유실은 기존 Operation ID를 조회한다.
+- Partial은 Target별 성공·실패·미응답을 표시한다.
+- Rollback은 변경 전 Version·Checksum·LKG 또는 Owner가 정의한 보정 Command를 사용한다.
 
 #### Test
 
-- Route deep link와 Menu Permission
+- Deep Link·Refresh·404
 - 검색 Default·Reset·Paging·Sort
-- Form validation과 Duplicate submit
-- 401·403·409·429·503·Timeout
-- Response loss 뒤 Operation 조회
+- Loading·Empty·Error 상태
+- 401·403 Backend 직접 호출
+- 409 Expected Version
+- Timeout·응답 유실 후 Operation 조회
 - Audit Masking·Before/After
-- Keyboard·Focus·Accessible name
+- Keyboard·Focus·Accessible Name
+- Raw·Secret·Password 원문 미노출
+- Session·Permission 회수
+- 화면별 복구 기준: UNKNOWN은 recoveryRequiredYn으로 대사
+
+
 ### breakGlass — 비상 권한
 
-**Route** `/breakGlass` · **Group** 프레임워크 · **Page** ``.../features/break-glass/BreakGlassPage.vue``
+| 항목 | 계약 |
+|---|---|
+| Route | `/breakGlass` |
+| Group | 프레임워크 |
+| Page | `cpf-admin/frontend/src/features/break-glass/BreakGlassPage.vue` |
+| Permission | Break-glass Permission |
 
-#### Frontend 구현
+#### Frontend Query·Form
 
-- 검색·입력: Scope SERVICE/BATCH/CENTER_CUT/RECOVERY/SECURITY, Target, TTL 1~30, Reason
-- Column·상세: Session/Status/Expiry/Post Review
-- Action: 발급·종료·사후 승인/문제 기록
-- Empty·Loading·Error·Stale·Partial·Conflict·Unknown 상태를 구분한다.
-- Query Key는 Environment·Tenant·Filter·Paging·Sort를 포함하고, Mutation 성공 뒤 필요한 Query만 무효화한다.
+- Scope SERVICE/BATCH/CENTER_CUT/RECOVERY/SECURITY
+- Target
+- TTL 1~30
+- Reason
 
-#### Backend·Owner 연결
+- 검색 Default와 Reset 결과를 같은 Query Key 규칙으로 관리한다.
+- 기간·Timezone·Paging·Sort·Data Scope를 URL 또는 Store 상태와 일치시킨다.
+- Password·Token·Secret·PII 원문은 Store·Browser Storage·Error Message에 남기지 않는다.
 
-1. Query DTO는 검색 Field·Default·Paging·Sort·Data Scope를 검증한다.
-2. Command DTO는 Target, Action, Reason, Approval, Expected Version, Idempotency Key를 포함한다.
-3. Owner Port는 Same-JVM·Remote Adapter를 제공하고 결과 상태 조회·Reconcile을 함께 제공한다.
-4. Page는 Orval Generated Client Operation을 사용한다.
-5. 필요한 Permission은 `Break-glass Permission`이며 Backend에서 다시 검증한다.
+#### Table·Detail
 
-#### 정상·오류·복구 Contract
+- Session/Status/Expiry/Post Review
 
-정상 결과는 Row·Detail·Owner 상태·Version·Audit가 일치해야 한다. 복구 핵심은 **Owner Command가 Scope를 명시적으로 소비**다. 409, Timeout, Response loss, Partial Apply를 각각 Fixture로 재현하고 Reconcile·Rollback UI를 시험한다.
+- Stable Row Key와 Detail ID·Version을 일치시킨다.
+- Empty·Stale·Partial·Unknown을 일반 Success와 구분한다.
+- Masked Field와 Raw Field의 DTO·Permission·Audit를 분리한다.
+
+#### Button·활성 조건
+
+Action: **발급·종료·사후 승인/문제 기록**
+
+- Backend Permission, 대상 상태, Expected Version, Reason가 모두 유효해야 변경 Button을 활성화한다.
+- Raw·Rotate·Approve·Break-glass는 별도 Permission·TTL·Approval 조건을 적용한다.
+- Password·Secret·PII 원문이 빈 값이거나 Policy를 위반하면 제출을 비활성화한다.
+
+#### Backend·Owner API 계약
+
+- Query DTO: Scope SERVICE/BATCH/CENTER_CUT/RECOVERY/SECURITY, Target, TTL 1~30, Reason
+- Command: 발급·종료·사후 승인/문제 기록
+- 필수 Field: Target, Reason, Expected Version, 필요 시 Approval·TTL·Data Scope.
+- Response: Session/Status/Expiry/Post Review
+- Permission: Break-glass Permission; Raw/Rotate/Approve API는 별도 Method Security를 적용한다.
+- 복구 핵심: Owner Command가 Scope를 명시적으로 소비.
+
+- Same-JVM과 Remote Adapter가 같은 Request·Response·Error 의미를 제공한다.
+- Owner DB를 ADM Repository에서 직접 갱신하지 않는다.
+- 202·Accepted 응답은 Operation 상태 조회와 Reconcile API를 연결한다.
+
+#### 화면 상태 모델
+
+Loading, Empty, Success, Validation Error, 403, 409, Timeout, Response Loss, Masked, Raw Granted, Approval Pending, Expired, Revoked
+
+- 상태 전이는 Store와 URL·Dialog·Table Selection에 일관되게 반영한다.
+- Route 이동·Session 만료·Response Loss 후 민감 Form과 진행 중 Operation ID를 분리해 보존한다.
+
+#### 오류·부분 적용·Rollback
+
+- Validation은 Field별 Message와 허용 범위를 표시한다.
+- 403은 Menu/Button 숨김과 별도로 Backend Permission 거부를 표시한다.
+- 409는 최신 Version·변경자·변경 시각을 보여주고 Blind Retry하지 않는다.
+- Timeout·응답 유실은 기존 Operation ID를 조회한다.
+- Partial은 Target별 성공·실패·미응답을 표시한다.
+- Rollback은 변경 전 Version·Checksum·LKG 또는 Owner가 정의한 보정 Command를 사용한다.
 
 #### Test
 
-- Route deep link와 Menu Permission
+- Deep Link·Refresh·404
 - 검색 Default·Reset·Paging·Sort
-- Form validation과 Duplicate submit
-- 401·403·409·429·503·Timeout
-- Response loss 뒤 Operation 조회
+- Loading·Empty·Error 상태
+- 401·403 Backend 직접 호출
+- 409 Expected Version
+- Timeout·응답 유실 후 Operation 조회
 - Audit Masking·Before/After
-- Keyboard·Focus·Accessible name
+- Keyboard·Focus·Accessible Name
+- Raw·Secret·Password 원문 미노출
+- Session·Permission 회수
+- 화면별 복구 기준: Owner Command가 Scope를 명시적으로 소비
 
 
-## 42. ADM 공통 Component 계약
+---
 
-| Component | 책임 | 포함하면 안 되는 책임 |
+## 제5부. ADM 기능 Slice 전체 개발 워크북
+
+## 47. 기능 Slice 설계
+
+```text
+Menu/Route
+→ Vue Page·Form·Table
+→ Pinia/TanStack Query
+→ Generated Client
+→ ADM Controller
+→ Query/Command Application Service
+→ Owner Port(Local/Remote)
+→ Owner Runtime
+→ Operation Result·Reconcile
+→ Audit·Metric·Trace
+```
+
+기능 하나를 추가할 때 위 경로의 실제 Consumer가 모두 연결돼야 한다.
+
+## 48. Backend Query 구현
+
+Query DTO에는 검색 Field·Default·Paging·Sort·Timezone·Data Scope를 정의한다.
+
+1. Controller가 Validation·Permission을 검사한다.
+2. Application Service가 Data Scope를 Query 조건에 적용한다.
+3. Owner Query Port 또는 Projection을 호출한다.
+4. PII는 Masked DTO를 기본으로 반환한다.
+5. Empty·Stale·Partial과 조회 시각을 명시한다.
+6. Table Column과 Detail DTO가 같은 ID·Version을 사용한다.
+
+## 49. Backend Command 구현
+
+Command 입력:
+
+- Target ID와 Action
+- Reason
+- Approval ID
+- Expected Version
+- Idempotency Key·Canonical Request Hash
+- Deadline·Timeout Budget
+- Operator·Permission·Data Scope
+
+처리 순서:
+
+1. Backend Permission·Data Scope·상태를 재검증한다.
+2. Approval Snapshot·Hash·만료를 확인한다.
+3. Idempotency Reservation을 생성하거나 기존 결과를 조회한다.
+4. Local 또는 Remote Owner Port를 호출한다.
+5. `ACCEPTED`, `SUCCESS`, `FAILED`, `UNKNOWN_RESULT`, `PARTIAL`을 구분한다.
+6. Operation 상태 조회와 Reconcile API를 제공한다.
+7. Before/After·Reason·Approval·Owner Result를 Audit한다.
+
+## 50. Same-JVM·Remote Adapter
+
+| 항목 | Same JVM | Remote |
 |---|---|---|
-| Search Form | Field Schema, Default, Reset, Submit | Owner 상태 변경 |
-| Data Table | Column, Sort, Paging, Empty, Masking | Permission 정본 |
-| Detail Drawer | ID, Version, State, Audit Link | DB 직접 조회 |
-| Command Dialog | Preview, Reason, Approval, Version | HTTP 202를 성공 확정 |
-| Operation Result | Poll, Partial, Unknown, Reconcile | Blind Retry |
-| Raw Viewer | 별도 Permission, Reason, Auto Clear | 일반 Detail에 원문 노출 |
-| Download Job | Preview, Status, Expiry, Audit | Browser Memory 대용량 생성 |
+| Contract | 같은 Owner Port | 같은 Owner Port |
+| 인증 | 내부 Principal 재검증 | Service Identity·Audience·Signature |
+| Transaction | Owner Transaction | 분리 Transaction |
+| Timeout | Deadline 확인 | Connect·Response·Overall |
+| 오류 | 표준 Error | Transport Mapping 후 표준 Error |
+| 응답 유실 | 상태 조회 | Operation·상대 상태 조회 |
 
-## 43. ADM Release 인계
+ADM DB에서 Owner Table을 직접 Update하지 않는다. Local·Remote Contract Test를 같은 Scenario로 실행한다.
 
-Frontend Bundle Manifest, OpenAPI Hash, Generated Marker, Backend Artifact SHA, DB Migration, Route Registry, Permission Seed, Browser 결과를 같은 Release 단위로 전달한다.
+## 51. Frontend Route·State 개발
+
+1. `cpf-admin/frontend/src/app/routes.ts`에 Menu ID·Group·Component를 등록한다.
+2. Backend Menu·Permission Registry와 ID를 맞춘다.
+3. Page는 Loading·Empty·Error·Stale·Partial 상태를 구분한다.
+4. 검색 Field·Default·Reset·Paging·Sort를 명시한다.
+5. Detail은 ID·Version·Owner·Masked Field·Audit Link를 표시한다.
+6. Button은 상태·Permission·Approval·Version에 따라 활성화한다.
+7. Double Click·Duplicate Submit을 Idempotency Key로 막는다.
+8. 202 응답을 성공으로 표시하지 않고 Operation 최종 상태를 조회한다.
+
+## 52. Generated Client 연결
+
+```powershell
+cd cpf-admin/frontend
+npm ci
+npm run generate:api
+npm run verify:generated
+npm run verify:consumer
+npm run lint
+npm run typecheck
+npm run test
+npm run build
+```
+
+OpenAPI·Generated Marker·Bundle Manifest에는 같은 Source SHA, OpenAPI Hash, Generated File Hash를 연결한다. Page에서 수동 URL·중복 DTO·Raw Fetch를 만들지 않고 Generated Client를 실제 호출한다.
+
+## 53. Form·Table 구현 기준
+
+### Form
+
+- Field Label·Help·Required·Length·Pattern·Enum·Timezone
+- Masked·Raw Field 분리
+- Server Validation Error Mapping
+- Reason·Approval·Expected Version·Idempotency
+- 변경 영향 Preview와 Confirm
+
+### Table
+
+- Stable Row Key·Column·Sort Allowlist
+- Paging Size·최대 Size
+- Loading·Empty·Stale·Partial 표시
+- Masking·Data Scope
+- 상세·Audit·Trace Link
+- 큰 결과와 긴 문자열·Locale·Timezone 처리
+
+## 54. 위험 조치 화면
+
+```text
+대상 조회
+→ 영향 Preview
+→ Reason 입력
+→ Approval 선택·요청
+→ Expected Version 확인
+→ Command 제출
+→ Operation ID 표시
+→ 상태 Poll/Push
+→ Success/Failed/Partial/Unknown
+→ Reconcile·Rollback
+→ Audit 확인
+```
+
+일부 Instance ACK만 받은 경우 전체 성공으로 표시하지 않는다. Failed Target만 Retry하거나 LKG·Exact Version Rollback을 선택한다.
+
+## 55. 로그인·Permission·Operator API 연결
+
+`cpf-admin/frontend/src/app/methods/accessMethods.ts`의 주요 호출:
+
+| 기능 | Method·Path | 핵심 입력 |
+|---|---|---|
+| 로그인 | `POST /adm/api/auth/login` | operatorId, password |
+| 로그아웃 | `POST /adm/api/auth/logout` | Session 종료 |
+| 내 비밀번호 변경 | `POST /adm/api/operators/{operatorId}/password` | 현재·신규·확인 Password, reason |
+| Role·Menu·Button·API Matrix | `GET /adm/api/permissions/*` | Permission 화면 초기 데이터 |
+| Menu 권한 변경 | `PUT /adm/api/permissions/roles/{roleId}/menus/{menuId}` | read/write/delete, reason |
+| Button 권한 변경 | `PUT /adm/api/permissions/roles/{roleId}/buttons/{buttonId}` | allow, reason |
+| API Role 변경 | `PUT /adm/api/permissions/roles/{roleId}/api-permissions/{id}` | allow, reason |
+| 운영자 등록 | `POST /adm/api/operators` | ID·Name·Contact·Password·Reason·Operation ID |
+| 등록 결과 조회 | `GET /adm/api/operators/operations/{operationId}` | 응답 유실 대사 |
+| 상태 변경 | `PUT /adm/api/operators/{operatorId}/status` | status·expectedVersion·reason |
+| Raw 연락처 | `POST /adm/api/operators/{operatorId}/contacts/raw` | 별도 Permission·reason |
+| Password 초기화 | `POST /adm/api/operators/{operatorId}/password/reset` | newPassword·forceChange·reason |
+| Session 폐기 | `POST /adm/api/operators/sessions/{sessionId}/revoke` | reason |
+
+Frontend의 `permission(menuId)` Default Deny는 UX 경계이며 Backend API가 동일 Permission을 다시 검사한다.
+
+## 56. Browser·Fault Test
+
+- 59개 Route Direct Link·Refresh·404
+- Chromium·Firefox·WebKit
+- 로그인·Session 회전·Logout·동시 Session 정책
+- Menu·Button 숨김과 Backend 직접 호출 401/403
+- CSRF 누락·신뢰하지 않는 Origin
+- Validation·409 Version Conflict·429·503
+- Duplicate Click·Slow Response·Response Loss
+- Partial Apply·NACK·Drift·Rollback
+- PII Raw·Export·Break-glass
+- Keyboard·Focus·Label·Table Navigation
+
+## 57. ADM 기능 인계 확인표
+
+- [ ] Menu·Route·Page·Generated Client·Controller가 연결됐다.
+- [ ] Query Field·Default·Column·Detail·Paging·Sort가 문서화됐다.
+- [ ] Button 활성 조건·Permission·Reason·Approval·Version이 구현됐다.
+- [ ] Same-JVM·Remote Owner Port의 계약이 같다.
+- [ ] Timeout·Response Loss·Unknown·Partial·Reconcile가 있다.
+- [ ] Audit·Metric·Trace·Owner 상태를 화면에서 찾을 수 있다.
+- [ ] 59 Route와 3 Browser·401/403·Fault Test가 정의됐다.

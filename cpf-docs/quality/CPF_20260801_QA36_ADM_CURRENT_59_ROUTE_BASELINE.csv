@@ -1,0 +1,60 @@
+﻿route_id,path,menu_id,group,label,component,owner_module,api_operations,button_permissions,data_scope,risk_level,current_finding,development_status,verification_status,required_acceptance
+dashboard,/,DASHBOARD,home,운영 대시보드,DashboardPage.vue,미확정,미수집,미수집,미수집,MEDIUM,Route 존재만 확인,재확인 필요,미검증,Route identity·기대 API·권한·Empty/Error·상호작용·Audit를 Matrix에 확정
+topology,/topology,TOPOLOGY,home,서비스 토폴로지,TopologyPage.vue,미확정,미수집,미수집,미수집,MEDIUM,Route 존재만 확인,재확인 필요,미검증,Route identity·기대 API·권한·Empty/Error·상호작용·Audit를 Matrix에 확정
+capacity,/capacity,CAPACITY,home,용량·SLO,CapacityPage.vue,미확정,미수집,미수집,미수집,MEDIUM,Route 존재만 확인,재확인 필요,미검증,Route identity·기대 API·권한·Empty/Error·상호작용·Audit를 Matrix에 확정
+logs,/logs,LOG_LIST,monitoring,거래 로그,LogsPage.vue,미확정,미수집,미수집,미수집,MEDIUM,LOG_LIST Permission 공유,재확인 필요,미검증,Route identity·기대 API·권한·Empty/Error·상호작용·Audit를 Matrix에 확정
+transactionGroups,/transactionGroups,LOG_LIST,online,거래 그룹,TransactionGroupsPage.vue,미확정,미수집,미수집,미수집,MEDIUM,LOG_LIST Permission 공유,재확인 필요,미검증,Route identity·기대 API·권한·Empty/Error·상호작용·Audit를 Matrix에 확정
+transactions,/transactions,TRANSACTION_META,online,거래 메타,TransactionsPage.vue,미확정,미수집,미수집,미수집,MEDIUM,Route 존재만 확인,재확인 필요,미검증,Route identity·기대 API·권한·Empty/Error·상호작용·Audit를 Matrix에 확정
+remoteLogs,/remoteLogs,REMOTE_LOG,monitoring,원격 로그,RemoteLogsPage.vue,미확정,미수집,미수집,미수집,MEDIUM,Route 존재만 확인,재확인 필요,미검증,Route identity·기대 API·권한·Empty/Error·상호작용·Audit를 Matrix에 확정
+auditLogs,/auditLogs,AUDIT_LOG,monitoring,감사 로그,AuditLogsPage.vue,미확정,미수집,미수집,미수집,MEDIUM,Route 존재만 확인,재확인 필요,미검증,Route identity·기대 API·권한·Empty/Error·상호작용·Audit를 Matrix에 확정
+logLevel,/logLevel,DYNAMIC_LOG,monitoring,동적 로그,LogLevelPage.vue,미확정,미수집,미수집,미수집,HIGH,Route 존재만 확인,재확인 필요,미검증,Route identity·기대 API·권한·Empty/Error·상호작용·Audit를 Matrix에 확정
+logPolicies,/logPolicies,LOG_POLICY,monitoring,로그 정책,LogPoliciesPage.vue,미확정,미수집,미수집,미수집,MEDIUM,Route 존재만 확인,재확인 필요,미검증,Route identity·기대 API·권한·Empty/Error·상호작용·Audit를 Matrix에 확정
+standardExecutions,/standardExecutions,STANDARD_EXECUTION,online,표준 실행,StandardExecutionsPage.vue,미확정,미수집,미수집,미수집,MEDIUM,Route 존재만 확인,재확인 필요,미검증,Route identity·기대 API·권한·Empty/Error·상호작용·Audit를 Matrix에 확정
+channelPolicy,/channelPolicy,CHANNEL_POLICY,online,채널 정책,ChannelPolicyPage.vue,미확정,미수집,미수집,미수집,HIGH,Route 존재만 확인,재확인 필요,미검증,Route identity·기대 API·권한·Empty/Error·상호작용·Audit를 Matrix에 확정
+serviceRegistry,/serviceRegistry,SERVICE_REGISTRY,online,서비스 레지스트리,ServiceRegistryPage.vue,미확정,미수집,미수집,미수집,MEDIUM,Route 존재만 확인,재확인 필요,미검증,Route identity·기대 API·권한·Empty/Error·상호작용·Audit를 Matrix에 확정
+runtimeControl,/runtimeControl,RUNTIME_CONTROL,online,Runtime Change Center,RuntimeControlPage.vue,미확정,미수집,미수집,미수집,HIGH,Route 존재만 확인,재확인 필요,미검증,Route identity·기대 API·권한·Empty/Error·상호작용·Audit를 Matrix에 확정
+maintenance,/maintenance,MAINTENANCE,framework,점검·Drain,MaintenancePage.vue,미확정,미수집,미수집,미수집,HIGH,Route 존재만 확인,재확인 필요,미검증,Route identity·기대 API·권한·Empty/Error·상호작용·Audit를 Matrix에 확정
+cache,/cache,CACHE,framework,캐시,CachePage.vue,미확정,미수집,미수집,미수집,HIGH,Route 존재만 확인,재확인 필요,미검증,Route identity·기대 API·권한·Empty/Error·상호작용·Audit를 Matrix에 확정
+configs,/configs,CONFIG,framework,설정,ConfigsPage.vue,미확정,미수집,미수집,미수집,HIGH,Route 존재만 확인,재확인 필요,미검증,Route identity·기대 API·권한·Empty/Error·상호작용·Audit를 Matrix에 확정
+responseCodes,/responseCodes,RESPONSE_CODE,framework,응답코드,ResponseCodesPage.vue,미확정,미수집,미수집,미수집,MEDIUM,Route 존재만 확인,재확인 필요,미검증,Route identity·기대 API·권한·Empty/Error·상호작용·Audit를 Matrix에 확정
+businessCalendar,/businessCalendar,BUSINESS_CALENDAR,framework,영업일 · 휴일,BusinessCalendarPage.vue,미확정,미수집,미수집,미수집,MEDIUM,Route 존재만 확인,재확인 필요,미검증,Route identity·기대 API·권한·Empty/Error·상호작용·Audit를 Matrix에 확정
+recoveryCenter,/recoveryCenter,RECOVERY_CENTER,monitoring,복구 센터,RecoveryCenterPage.vue,미확정,미수집,미수집,미수집,MEDIUM,Route 존재만 확인,재확인 필요,미검증,Route identity·기대 API·권한·Empty/Error·상호작용·Audit를 Matrix에 확정
+incidents,/incidents,INCIDENT,monitoring,Incident,IncidentsPage.vue,미확정,미수집,미수집,미수집,MEDIUM,Route 존재만 확인,재확인 필요,미검증,Route identity·기대 API·권한·Empty/Error·상호작용·Audit를 Matrix에 확정
+reliability,/reliability,RELIABILITY,monitoring,신뢰성 상세,ReliabilityPage.vue,미확정,미수집,미수집,미수집,MEDIUM,Route 존재만 확인,재확인 필요,미검증,Route identity·기대 API·권한·Empty/Error·상호작용·Audit를 Matrix에 확정
+notifications,/notifications,NOTIFICATION,integration,알림,NotificationsPage.vue,미확정,미수집,미수집,미수집,MEDIUM,Route 존재만 확인,재확인 필요,미검증,Route identity·기대 API·권한·Empty/Error·상호작용·Audit를 Matrix에 확정
+batch,/batch,BATCH,batch,Batch / Center-Cut,BatchPage.vue,미확정,미수집,미수집,미수집,MEDIUM,EDU/REF 기본값 경계 확인,재확인 필요,미검증,Route identity·기대 API·권한·Empty/Error·상호작용·Audit를 Matrix에 확정
+batch-overview,/batch-overview,BATCH_OVERVIEW,batch,Batch Overview,BatchOverviewPage.vue,미확정,미수집,미수집,미수집,MEDIUM,Route 존재만 확인,재확인 필요,미검증,Route identity·기대 API·권한·Empty/Error·상호작용·Audit를 Matrix에 확정
+batch-runtime,/batch-runtime,BATCH_RUNTIME,batch,Runtime Topology,RuntimeTopologyPage.vue,미확정,미수집,미수집,미수집,HIGH,Route 존재만 확인,재확인 필요,미검증,Route identity·기대 API·권한·Empty/Error·상호작용·Audit를 Matrix에 확정
+batch-instances,/batch-instances,BATCH_INSTANCES,batch,Runtime Instances,BatchInstancesPage.vue,미확정,미수집,미수집,미수집,MEDIUM,Route 존재만 확인,재확인 필요,미검증,Route identity·기대 API·권한·Empty/Error·상호작용·Audit를 Matrix에 확정
+batch-scheduler,/batch-scheduler,BATCH_SCHEDULER,batch,Scheduler HA,BatchSchedulerPage.vue,미확정,미수집,미수집,미수집,MEDIUM,Route 존재만 확인,재확인 필요,미검증,Route identity·기대 API·권한·Empty/Error·상호작용·Audit를 Matrix에 확정
+batch-worker-pools,/batch-worker-pools,BATCH_WORKER_POOLS,batch,Worker Pools,BatchWorkerPoolsPage.vue,미확정,미수집,미수집,미수집,MEDIUM,Route 존재만 확인,재확인 필요,미검증,Route identity·기대 API·권한·Empty/Error·상호작용·Audit를 Matrix에 확정
+batch-center-cut,/batch-center-cut,BATCH_CENTER_CUT,batch,Center-Cut,BatchCenterCutPage.vue,미확정,미수집,미수집,미수집,MEDIUM,EDU/REF 기본값 경계 확인,재확인 필요,미검증,Route identity·기대 API·권한·Empty/Error·상호작용·Audit를 Matrix에 확정
+batch-agents,/batch-agents,BATCH_AGENTS,batch,Host Agents,BatchAgentsPage.vue,미확정,미수집,미수집,미수집,MEDIUM,Route 존재만 확인,재확인 필요,미검증,Route identity·기대 API·권한·Empty/Error·상호작용·Audit를 Matrix에 확정
+batch-job-packs,/batch-job-packs,BATCH_JOB_PACKS,batch,Job Packs,BatchJobPacksPage.vue,미확정,미수집,미수집,미수집,MEDIUM,Route 존재만 확인,재확인 필요,미검증,Route identity·기대 API·권한·Empty/Error·상호작용·Audit를 Matrix에 확정
+batch-executions,/batch-executions,BATCH_EXECUTIONS,batch,Executions,BatchExecutionsPage.vue,미확정,미수집,미수집,미수집,MEDIUM,Route 존재만 확인,재확인 필요,미검증,Route identity·기대 API·권한·Empty/Error·상호작용·Audit를 Matrix에 확정
+batch-deployment,/batch-deployment,BATCH_DEPLOYMENT,batch,Deployment / Rollback,BatchDeploymentPage.vue,미확정,미수집,미수집,미수집,HIGH,Route 존재만 확인,재확인 필요,미검증,Route identity·기대 API·권한·Empty/Error·상호작용·Audit를 Matrix에 확정
+batch-recovery,/batch-recovery,BATCH_RECOVERY,monitoring,Recovery / Unknown,BatchRecoveryPage.vue,미확정,미수집,미수집,미수집,MEDIUM,Route 존재만 확인,재확인 필요,미검증,Route identity·기대 API·권한·Empty/Error·상호작용·Audit를 Matrix에 확정
+batch-leases,/batch-leases,BATCH_LEASES,monitoring,Lease / Fencing,BatchLeasesPage.vue,미확정,미수집,미수집,미수집,MEDIUM,Route 존재만 확인,재확인 필요,미검증,Route identity·기대 API·권한·Empty/Error·상호작용·Audit를 Matrix에 확정
+batch-alerts,/batch-alerts,BATCH_ALERTS,monitoring,Batch Alerts,BatchAlertsPage.vue,미확정,미수집,미수집,미수집,MEDIUM,Route 존재만 확인,재확인 필요,미검증,Route identity·기대 API·권한·Empty/Error·상호작용·Audit를 Matrix에 확정
+batch-audit,/batch-audit,BATCH_AUDIT,monitoring,Audit / Evidence,BatchAuditEvidencePage.vue,미확정,미수집,미수집,미수집,MEDIUM,Route 존재만 확인,재확인 필요,미검증,Route identity·기대 API·권한·Empty/Error·상호작용·Audit를 Matrix에 확정
+workers,/workers,WORKER,batch,Agent / Worker,WorkersPage.vue,미확정,미수집,미수집,미수집,MEDIUM,Route 존재만 확인,재확인 필요,미검증,Route identity·기대 API·권한·Empty/Error·상호작용·Audit를 Matrix에 확정
+downloads,/downloads,DOWNLOAD,integration,다운로드,DownloadsPage.vue,미확정,미수집,미수집,미수집,MEDIUM,Route 존재만 확인,재확인 필요,미검증,Route identity·기대 API·권한·Empty/Error·상호작용·Audit를 Matrix에 확정
+file-jobs,/file-jobs,FILE_JOB,batch,대량파일 Job,FileJobsPage.vue,미확정,미수집,미수집,미수집,MEDIUM,Route 존재만 확인,재확인 필요,미검증,Route identity·기대 API·권한·Empty/Error·상호작용·Audit를 Matrix에 확정
+messages,/messages,MESSAGE,integration,메시지,MessagesPage.vue,미확정,미수집,미수집,미수집,MEDIUM,Route 존재만 확인,재확인 필요,미검증,Route identity·기대 API·권한·Empty/Error·상호작용·Audit를 Matrix에 확정
+codes,/codes,CODE,framework,코드,CodesPage.vue,미확정,미수집,미수집,미수집,MEDIUM,Route 존재만 확인,재확인 필요,미검증,Route identity·기대 API·권한·Empty/Error·상호작용·Audit를 Matrix에 확정
+gateway-dashboard,/gateway-dashboard,GATEWAY_DASHBOARD,online,Gateway 대시보드,GatewayOperationsPage.vue,미확정,미수집,미수집,미수집,MEDIUM,Gateway 9개 메뉴 동일 Component,재확인 필요,미검증,Route identity·기대 API·권한·Empty/Error·상호작용·Audit를 Matrix에 확정
+gateway-servers,/gateway-servers,GATEWAY_SERVERS,online,Gateway 연동 서버,GatewayOperationsPage.vue,미확정,미수집,미수집,미수집,MEDIUM,Gateway 9개 메뉴 동일 Component,재확인 필요,미검증,Route identity·기대 API·권한·Empty/Error·상호작용·Audit를 Matrix에 확정
+gateway-groups,/gateway-groups,GATEWAY_GROUPS,online,Gateway 서버 그룹,GatewayOperationsPage.vue,미확정,미수집,미수집,미수집,MEDIUM,Gateway 9개 메뉴 동일 Component,재확인 필요,미검증,Route identity·기대 API·권한·Empty/Error·상호작용·Audit를 Matrix에 확정
+gateway-routes,/gateway-routes,GATEWAY_ROUTES,online,Gateway 경로·라우팅,GatewayOperationsPage.vue,미확정,미수집,미수집,미수집,MEDIUM,Gateway 9개 메뉴 동일 Component,재확인 필요,미검증,Route identity·기대 API·권한·Empty/Error·상호작용·Audit를 Matrix에 확정
+gateway-security,/gateway-security,GATEWAY_SECURITY,online,Gateway 보안·제한,GatewayOperationsPage.vue,미확정,미수집,미수집,미수집,HIGH,Gateway 9개 메뉴 동일 Component,재확인 필요,미검증,Route identity·기대 API·권한·Empty/Error·상호작용·Audit를 Matrix에 확정
+gateway-health,/gateway-health,GATEWAY_HEALTH,online,Gateway Health·연결시험,GatewayOperationsPage.vue,미확정,미수집,미수집,미수집,MEDIUM,Gateway 9개 메뉴 동일 Component,재확인 필요,미검증,Route identity·기대 API·권한·Empty/Error·상호작용·Audit를 Matrix에 확정
+gateway-transactions,/gateway-transactions,GATEWAY_TRANSACTIONS,online,Gateway 거래 조회,GatewayOperationsPage.vue,미확정,미수집,미수집,미수집,MEDIUM,Gateway 9개 메뉴 동일 Component,재확인 필요,미검증,Route identity·기대 API·권한·Empty/Error·상호작용·Audit를 Matrix에 확정
+gateway-log-policies,/gateway-log-policies,GATEWAY_LOG_POLICY,online,Gateway 로그 정책,GatewayOperationsPage.vue,미확정,미수집,미수집,미수집,MEDIUM,Gateway 9개 메뉴 동일 Component,재확인 필요,미검증,Route identity·기대 API·권한·Empty/Error·상호작용·Audit를 Matrix에 확정
+gateway-apply-status,/gateway-apply-status,GATEWAY_APPLY_STATUS,online,Gateway 적용 상태·이력,GatewayOperationsPage.vue,미확정,미수집,미수집,미수집,MEDIUM,Gateway 9개 메뉴 동일 Component,재확인 필요,미검증,Route identity·기대 API·권한·Empty/Error·상호작용·Audit를 Matrix에 확정
+permissions,/permissions,PERMISSION,framework,권한,PermissionsPage.vue,미확정,미수집,미수집,미수집,MEDIUM,Route 존재만 확인,재확인 필요,미검증,Route identity·기대 API·권한·Empty/Error·상호작용·Audit를 Matrix에 확정
+password,/password,PASSWORD,framework,비밀번호,PasswordPage.vue,미확정,미수집,미수집,미수집,HIGH,Route 존재만 확인,재확인 필요,미검증,Route identity·기대 API·권한·Empty/Error·상호작용·Audit를 Matrix에 확정
+security,/security,SECURITY,framework,보안,SecurityPage.vue,미확정,미수집,미수집,미수집,HIGH,Route 존재만 확인,재확인 필요,미검증,Route identity·기대 API·권한·Empty/Error·상호작용·Audit를 Matrix에 확정
+operators,/operators,OPERATOR,framework,운영자,OperatorsPage.vue,미확정,미수집,미수집,미수집,HIGH,Route 존재만 확인,재확인 필요,미검증,Route identity·기대 API·권한·Empty/Error·상호작용·Audit를 Matrix에 확정
+secrets,/secrets,SECRET,framework,Secret / Key,SecretsPage.vue,미확정,미수집,미수집,미수집,HIGH,Route 존재만 확인,재확인 필요,미검증,Route identity·기대 API·권한·Empty/Error·상호작용·Audit를 Matrix에 확정
+approvals,/approvals,APPROVAL,framework,위험조치 승인,ApprovalsPage.vue,미확정,미수집,미수집,미수집,HIGH,Route 존재만 확인,재확인 필요,미검증,Route identity·기대 API·권한·Empty/Error·상호작용·Audit를 Matrix에 확정
+breakGlass,/breakGlass,BREAK_GLASS,framework,Break-glass,BreakGlassPage.vue,미확정,미수집,미수집,미수집,HIGH,Route 존재만 확인,재확인 필요,미검증,Route identity·기대 API·권한·Empty/Error·상호작용·Audit를 Matrix에 확정

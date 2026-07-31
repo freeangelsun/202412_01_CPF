@@ -1,0 +1,33 @@
+﻿surface_id,path,package_or_coordinate,owner_responsibility,consumers,development_status,verification_status,next_required_verification
+ROOT,Repository Root,build.gradle/settings.gradle/gradle/**,Architecture/Build/Version/Global gates,모든 Module,부분 구현,미검증,Java25 fresh cache·CI·publication·full aggregate
+cpf-core,cpf-core,com.cpf.core,Public API/SPI·Core engine,전체 Module,부분 구현,미검증,Public/Internal inventory·consumer·Local/Remote/fault
+cpf-common,cpf-common,com.cpf.common,고객 공통 Code/Message/Calendar/Template,Generated/Business/Batch/BZA,부분 구현,미검증,3DB·cache invalidation·owner/consumer
+starter-security,cpf-starters/security,com.cpf.*,선택 Security runtime,Applications,부분 구현,미검증,secure defaults·actual consumer·negative corpus
+starter-kafka,cpf-starters/messaging-kafka,com.cpf.*,Kafka adapter/auto-configuration,Event/Batch/Domain,부분 구현,미검증,actual Kafka·rebalance·DLT·process kill
+starter-cache,cpf-starters/cache,com.cpf.*,Caffeine/distributed cache adapter,Common/Applications,부분 구현,미검증,provider parity·invalidation·multi-instance
+starter-observability,cpf-starters/observability,com.cpf.*,Micrometer/OTel runtime,전체 Runtime,부분 구현,미검증,actual exporter·cardinality·masking
+starter-resilience,cpf-starters/resilience,com.cpf.*,CircuitBreaker/Resilience4j runtime,Call/Gateway/External,부분 구현,미검증,operation policy·timeout budget·storm
+starter-featureflag,cpf-starters/featureflag,com.cpf.*,OpenFeature provider,Applications/ADM,부분 구현,미검증,evaluation/audit/override/EDU
+starter-secret,cpf-starters/secret,com.cpf.*,Secret provider runtime,Applications,부분 구현,미검증,rotation/revocation/zeroization/leak scan
+cpf-admin,cpf-admin,com.cpf.admin + frontend,Platform Control Plane,운영자,실패,미검증,OpenAPI/generated contradiction·59 route/87 capability·3 browser
+cpf-biz-admin,cpf-biz-admin,com.cpf.bizadmin + frontend,Optional Business Admin,업무 관리자,부분 구현,미검증,BZA contract/OpenAPI/generated/org/approval
+cpf-gateway,cpf-gateway,com.cpf.gateway,Optional Gateway runtime,External clients/services,부분 구현,미검증,streaming/disconnect/retry/rebinding/multi-instance
+cpf-reference,cpf-reference,com.cpf.reference,EDU/Reference runtime,개발자/운영자,부분 구현,미검증,162/Public API EDU catalog·actual runtime·ADM links
+cpf-member,cpf-member,com.cpf.member,Golden generated domain,Generator parity,부분 구현,미검증,create/remove/regenerate normalized parity
+local-web,cpf-tools/runtime/cpf-local-runtime,com.cpf.local.runtime,1 JVM local web topology,개발자,부분 구현,미검증,1 port startup/API/UI/shutdown/resource evidence
+local-batch,cpf-tools/runtime/cpf-local-batch-runtime,com.cpf.local.batch,별도 local batch topology,개발자,부분 구현,미검증,scheduler/worker/runner/agent selective profile
+batch-contract,cpf-batch/contract,com.cpf.batch.*,Batch Public contract,Batch/Domain/ADM,부분 구현,미검증,public/internal boundary·compatibility
+batch-runtime-common,cpf-batch/runtime-common,com.cpf.batch.*,Shared batch runtime,Batch modules,부분 구현,미검증,owner state/transaction/resource
+batch-execution,cpf-batch/execution-runtime,com.cpf.batch.*,Spring Batch execution,Jobs/Workers,부분 구현,미검증,job/step/checkpoint/restart/unknown
+batch-control,cpf-batch/control-server,com.cpf.batch.*,Batch control API,ADM/Scheduler/Agent,부분 구현,미검증,dangerous commands/approval/idempotency/reconcile
+batch-scheduler,cpf-batch/scheduler,com.cpf.batch.*,HA scheduler,Batch jobs,부분 구현,미검증,lease/fencing/outbox/misfire/takeover
+batch-worker,cpf-batch/worker,com.cpf.batch.*,Remote worker,Execution runtime,부분 구현,미검증,Kafka ACK/reply loss/DLT/rebalance
+center-cut,cpf-batch/center-cut-runner,com.cpf.batch.*,Center-Cut runner,ADM/Worker,부분 구현,미검증,claim/rate/reprocess/unknown/process kill
+host-agent,cpf-batch/host-agent,com.cpf.batch.*,Host agent/artifact/process,Control server,부분 구현,미검증,signature/install/atomic/rollback/output budget
+batch-testkit,cpf-batch/testkit,com.cpf.batch.*,Batch integration/fault testkit,QA/Consumers,부분 구현,미검증,actual environment execution and evidence
+platform-bom,cpf-tools/build/platform-bom,com.cpf:cpf-platform-bom,Version platform,모든 external consumer,부분 구현,미검증,LOCAL/REMOTE/OFFLINE POM/BOM consumer
+gradle-plugin,cpf-tools/build/gradle-plugin,com.cpf.platform-conventions,Convention plugin,Generated domains,부분 구현,미검증,marker/plugin ID/release25/publication/fresh home
+generator,cpf-tools/generator,PowerShell/templates,Domain lifecycle,Customer domains,부분 구현,미검증,all capabilities/EDU/ADM/OpenAPI/user ownership
+database,cpf-tools/db/vendor,SQL/Migration packs,3DB lifecycle,모든 DB owner,부분 구현,미검증,actual 3DB install/upgrade/rollback/backup/perf
+release-tools,cpf-tools/scripts,PowerShell/Python,Build/Runtime/Evidence/Packaging,QA/Release,부분 구현,미검증,semantic evidence/artifact catalog/CI
+documentation,README.md/cpf-docs/guides,Korean docs,Product documentation,전체 사용자,실패,미검증,latest docs-only commit/source/evidence drift

@@ -1,0 +1,42 @@
+﻿target_menu_id,level1,level2,scope,current_route_or_action,required_business_outcome
+ADM-TGT-001,통합 홈,운영 대시보드,전체,dashboard,통합 KPI·SLO·Incident·승인대기·복구대기·배치 Critical Path
+ADM-TGT-002,통합 홈,Global Search,전체,신규,거래/Trace/Job/Execution/Instance/Incident/Artifact
+ADM-TGT-003,통합 홈,서비스·배치 Topology,전체,topology 확장,온라인 서비스·Gateway·외부연계·Batch DAG·Worker/Agent
+ADM-TGT-010,온라인 설계,거래 Metadata,온라인,transactions 확장,거래 정의·Owner·Version·Channel·Class·배포
+ADM-TGT-011,온라인 설계,거래 Profile,온라인,신규,Profile·속성 Schema·거래 매핑·Effective Version
+ADM-TGT-012,온라인 설계,처리 Pipeline,온라인,standardExecutions 확장,전/후처리·조건·순서·오류/Timeout 정책·DAG
+ADM-TGT-013,온라인 설계,DBIO·Query Registry,온라인,신규,Query ID·Vendor SQL·Datasource·Version·Plan
+ADM-TGT-014,온라인 설계,거래 테스트,온라인,신규,안전한 Test/Replay·Header/Body·Result Compare
+ADM-TGT-020,온라인 운영,거래 그룹·Timeline,온라인,transactionGroups 확장,Segment Graph·latency·partial failure·linked logs
+ADM-TGT-021,온라인 운영,거래·전문·Error Log,온라인,logs 확장,거래/전문/Error/Debug 특화 탭과 통계
+ADM-TGT-022,온라인 운영,서비스 처리량·Executor,온라인,capacity 확장,TPS/Latency/Error·Thread/Queue/Reject/Deadlock
+ADM-TGT-023,온라인 운영,지연·비동기·Deferred,온라인,reliability 확장,Queue age·retry/DLT·unknown/reconcile
+ADM-TGT-024,온라인 운영,Component·Adapter 배포,온라인,신규/통합,Service/XIO/FIO/Gateway artifact rollout/drift/rollback
+ADM-TGT-030,배치 설계,Job 정의,배치,batch-job-packs 확장,Definition·Parameter·Program·Version·Clone·Publish
+ADM-TGT-031,배치 설계,Job Group·DAG,배치,신규,Group·Dependency Graph·Cycle/Critical Path
+ADM-TGT-032,배치 설계,Schedule·Calendar,배치,batch-scheduler 확장,Cron/Business Calendar/Misfire/Simulation
+ADM-TGT-033,배치 설계,Center-Cut Profile,배치,batch-center-cut 확장,Profile·Encoding·Rate·Split·Simulation
+ADM-TGT-040,배치 운영,Executions·Instances,배치,batch-executions 확장,Search·Detail·Step·Progress·Parameter·Report
+ADM-TGT-041,배치 운영,긴급/수동 실행,배치,approvals 연계,Dry-run·Reason·Maker-checker·Idempotency
+ADM-TGT-042,배치 운영,Recovery·Unknown,배치,batch-recovery 확장,Restart/Reprocess/Reconcile/Compensate
+ADM-TGT-043,배치 운영,Worker Pool·Agent·Host,배치,기존 확장,Heartbeat·Capacity·Queue·JVM/OS/Disk·Quarantine
+ADM-TGT-044,배치 운영,Artifact·Deployment,배치,기존 확장,Signed Job Pack·Rollout·Rollback·Cell State
+ADM-TGT-050,연계 관리,Gateway 운영,연계,gateway 9 routes 재구성,Server/Group/Route/Security/Health/Transaction/Policy/Apply
+ADM-TGT-051,연계 관리,외부 REST·전문 Adapter,연계,신규,Endpoint·TLS/DNS·Timeout·Protocol·Connectivity
+ADM-TGT-052,연계 관리,File·Download,연계,file-jobs/downloads 확장,File pipeline·archive·artifact·safe download
+ADM-TGT-053,연계 관리,Notification,연계,notifications 확장,Rule·Template·Receiver Group·Delivery·Retry
+ADM-TGT-060,통합 관제,Incident·Alert,전체,기존 확장,Event correlation·ack/assign/resolve/runbook
+ADM-TGT-061,통합 관제,Recovery Center,전체,기존 확장,Online/Batch/Gateway/File/Notification unified cases
+ADM-TGT-062,통합 관제,Audit·Evidence,전체,기존 확장,Actor/Menu/API/Command/Result/Artifact/SHA
+ADM-TGT-070,분석,거래·전문 통계,온라인,신규,채널/업무/기관/Error/Latency multidimensional
+ADM-TGT-071,분석,Batch SLA·Critical Path,배치,신규,Job/Group/Schedule delay/critical path/capacity
+ADM-TGT-072,분석,SQL·DBIO 분석,전체,신규,Plan/slow query/transaction impact
+ADM-TGT-073,분석,XIO/FIO·연계 분석,연계,신규,Endpoint/File throughput/error/volume
+ADM-TGT-074,분석,영향도 분석,전체,신규,Config/API/DB/Artifact/Job/Menu consumer graph
+ADM-TGT-080,플랫폼 관리,Node·Service Registry,전체,기존 확장,lifecycle/version/config/health/quarantine
+ADM-TGT-081,플랫폼 관리,Config·Secret·Cache·Log Policy,전체,기존 재편,Draft/Publish/Rollback/Propagation
+ADM-TGT-082,플랫폼 관리,Code·Message·Response Code·Calendar,전체,기존 재편,version/effective/locale/cache impact
+ADM-TGT-090,보안·권한,Operator·Role·Menu·Permission,전체,기존+신규,Role lifecycle/Menu Registry/Button/API/Data Scope matrix
+ADM-TGT-091,보안·권한,Approval·Break-glass,전체,기존 확장,위험조치 registry·expiry·command hash
+ADM-TGT-092,보안·권한,Session·Login History,전체,신규/확장,MFA/session/device/login risk/revoke
+ADM-TGT-093,시스템,공지·점검·운영 Broadcast,전체,신규,기간/대상/승인/회수/Incident Banner

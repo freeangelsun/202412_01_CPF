@@ -1,0 +1,9 @@
+cpf-docs/quality/CPF_SELF_DEVELOPMENT_REQUIREMENT_MATRIX.csv
+cpf-docs/work/current/CPF_CODEX_SELF_DEVELOPMENT_VERIFICATION_REQUEST.md
+cpf-docs/work/current/CPF_CURRENT_SELF_DEVELOPMENT_REQUEST.md
+cpf-docs/work/current/CPF_SELF_DEVELOPMENT_EXECUTION_PROMPT.md
+cpf-docs/work/current/CPF_SELF_DEVELOPMENT_REQUIREMENTS.md
+cpf-docs/work/handover/CPF_SELF_DEVELOPMENT_HANDOVER.md
+cpf-docs/work/manifest/CPF_SELF_DEVELOPMENT_DELETE_MANIFEST.txt
+cpf-docs/work/review/CPF_SELF_DEVELOPMENT_SOURCE_REVIEW.md
+cpf-tools/scripts/verify-cpf-self-development-request.py

@@ -1,0 +1,10 @@
+﻿baseline,requirement_count,scenario_count,status,relationship,latest_sha_action
+Canonical Final Target,162,2754,활성,최상위 제품 요구와 17축 전수 시나리오,162행 latest SHA 재판정
+Enterprise Legacy QA,1214,201,활성·미재판정,20260728 이전 상세 QA 정본,원본 CSV를 import하여 Canonical ID와 Mapping; 폐기 금지
+Enterprise Delta QA,659,240,활성·미재판정,WP00~WP15 상세 Delta,원본 CSV를 import하여 중복·split·supersede Mapping
+Enterprise Merged Detail,1873,441,활성·미재판정,"Legacy 1214 + Delta 659, 시나리오 201 + 240",latest SHA 전수 재판정; 단순 합산 완료율 금지
+QA32,62,202,연속성 참조,OSS-first 교체·QA31 carry-over,1873/Canonical과 Root Cause 중복 Mapping
+QA33,138,414,연속성 참조·전체 미검증,개발/검증 분리 Result 552,QA34/QA36 결과로 재판정
+QA34,20,0,Source 완료 주장 취소·미검증,Build/OpenAPI/Runtime closure,Frontend Source 모순과 exact-SHA runtime 재검증
+QA35 V2,55,0,활성 Gap,ADM 87 capability·EDU 32 feature·Frontend,QA36 Active Gap에 ID 보존
+QA36 Active Gaps,85,0,신규 기준선,QA35 55 + project-wide 30,Canonical Mapping 후 개발

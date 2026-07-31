@@ -2,7 +2,7 @@
 
 > **기준 Repository** `freeangelsun/202412_01_CPF`
 > **기준 Branch** `master`
-> **기준 Commit** `e1f8bef7b7193522f2cd8e36cc6857dd1ff6694a`
+> **기준 Commit** `95e592c05fc457301efdb13ee50e0d7453325806`
 > **문서 목적** ADM Route별 조회·판단·승인·제어·대사·복구와 Permission·Reason·Expected Version·Audit 절차를 설명한다.
 > **주요 독자** 플랫폼 운영관리자, 승인자, 감사자, 보안 운영자, 장애 대응 담당자
 > **문서 사용 결과** 운영자가 화면의 상태를 실제 Owner 결과와 대조하고 위험 조치·부분 적용·결과 불명을 처리한다.
@@ -386,7 +386,7 @@ Stop·Restart·Abandon·Reprocess Button 활성 조건이 Spring Batch 상태와
 
 - Repository: `https://github.com/freeangelsun/202412_01_CPF`
 - Branch: `master`
-- 기준 Commit: `e1f8bef7b7193522f2cd8e36cc6857dd1ff6694a`
+- 기준 Commit: `95e592c05fc457301efdb13ee50e0d7453325806`
 - 문서 표준: `cpf-docs/specification/CPF_DOCUMENTATION_STANDARD.md`
 - 제품 목표 정본: `cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md`
 - 사실 우선순위: 실제 Source·SQL·API·Config·Frontend·Script·Test → Architecture·Specification → 이 매뉴얼
@@ -791,4576 +791,4574 @@ Log·Metric·Trace·Audit:
 
 ---
 
-## 제3부. ADM 59개 화면별 상세 운영 절차
+## 제3부. ADM 전체 화면별 운영 절차
 
-> 이 부는 Route 목록이 아니라 화면마다 실제로 무엇을 준비하고, 입력하고, 확인하고, 실패 시 어떻게 복구할지를 설명한다. 공통 규칙과 각 화면 고유 Field·Column·Action을 함께 적용한다.
+이 부는 `cpf-admin/frontend/src/app/routes.ts`에 등록된 전체 Route를 화면별로 설명한다. 각 절은 실제 검색·입력, Column·상세, Button·조치, Permission, 오류·복구 기준을 Inventory와 연결한다.
 
-## 33. 화면별 기능 카드 사용법
+### 화면 기능 카드 읽는 순서
 
-1. Route와 Menu ID가 현재 로그인 권한에 포함되는지 확인한다.
-2. 기능 카드의 선행 조건과 입력을 준비한다.
-3. 정상 결과의 상태·Version·Audit·Metric을 모두 확인한다.
-4. 오류 표에서 해당 상황을 찾아 신규 실행·Retry·Reconcile·Rollback 여부를 결정한다.
-5. 교대 시 카드 마지막의 인계 항목을 기록한다.
+1. 접근 경로와 Source를 확인한다.
+2. 검색·입력값과 Default를 준비한다.
+3. Column·상세의 식별자와 Version을 확인한다.
+4. Button 조치 전 Permission·Reason·Approval·Expected Version을 확인한다.
+5. 정상 상태뿐 아니라 응답 유실·부분 적용·동시 변경의 대사 절차를 수행한다.
+6. Audit·Log·Metric·Trace와 교대 기록을 남긴다.
+
 
 ### dashboard — 운영 대시보드
 
-**접근 위치**: `/`
-**메뉴 그룹**: 홈
-**화면 Source**: ``cpf-admin/frontend/src/features/dashboard/DashboardPage.vue``
+| 항목 | 값 |
+|---|---|
+| Route | `/` |
+| 그룹 | 홈 |
+| Frontend | `cpf-admin/frontend/src/features/dashboard/DashboardPage.vue` |
+| Permission | 조회 권한 |
 
-#### 사용 목적과 사용 시점
+#### 사용 목적과 사용하지 말아야 할 경우
 
-이 화면은 **운영 대시보드** 업무를 수행한다. 조회 결과를 다른 화면의 상태와 연결해야 할 때는 Transaction ID, Trace ID, Operation ID, Version, Checksum, Instance ID 중 화면이 제공하는 식별자를 인계 키로 사용한다. 화면의 HTTP 응답만으로 업무 결과를 확정하지 않고 Owner 상태와 Audit를 함께 확인한다.
+이 화면은 **운영 대시보드** 기능을 수행한다. 다른 Owner의 상태를 직접 변경하거나, Browser 개발자 도구로 권한을 우회하거나, HTTP 200/202만으로 최종 결과를 확정하는 용도로 사용하지 않는다.
 
-#### 선행 조건
+#### 검색·입력값
 
-1. 대상 Environment와 Tenant·Data Scope가 맞는지 확인한다.
-2. 메뉴 조회 권한과 조치 권한을 구분한다. 필요한 권한은 `조회 권한`이다.
-3. 변경 조치 전 대상의 최신 Version·상태·Owner를 새로 조회한다.
-4. Reason·Approval·Expected Version이 필요한 조치는 값을 준비한다.
-5. 이전 요청이 `PROCESSING`, `UNKNOWN_RESULT`, `PARTIAL`이면 신규 요청을 만들기 전에 기존 Operation을 대사한다.
+- 초기 데이터 자동 조회
 
-#### 검색·입력
+- 기간은 환경 표준 Timezone과 종료 시각 포함 여부를 확인한다.
+- ID는 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
+- 변경 조치의 Reason에는 목적, 영향 범위, 원복 기준, Incident·Approval ID를 적는다.
+- Password·Token·Secret·서명·PII 원문은 일반 Log나 교대 문서에 복사하지 않는다.
 
-초기 데이터 자동 조회
+#### 목록·상세에서 확인할 값
 
-- 기간 입력은 운영 표준 Timezone을 사용하고 종료 시각 포함 여부를 확인한다.
-- 빈 문자열과 `null`, 전체 선택의 의미를 구분한다.
-- ID 입력은 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
-- Reason은 작업 목적, 영향 범위, 원복 기준, 관련 Incident·Approval ID를 포함한다.
-- 비밀번호·Token·Secret·서명 원문은 일반 입력·Log·Audit에 남기지 않는다.
+- 등록 인스턴스·정상 수
+- 비정상 Health
+- 결과 미확정
+- DLQ
+- 서비스 상태
+- 최근 Service Call
 
-#### 결과와 상세 확인
+- 목록과 상세의 ID·Version·Owner가 다르면 조치를 중단하고 상세를 다시 조회한다.
+- `stale`, `partial`, `unknown`, Empty는 서로 다른 상태다.
+- Masked 값의 원문은 별도 Permission과 Reason이 있을 때만 조회한다.
 
-등록 인스턴스·정상 수, 비정상 Health, 결과 미확정, DLQ, 서비스 상태, 최근 Service Call
+#### Button·조치
 
-조회 후 다음 순서로 판정한다.
+- 새로고침
 
-1. 결과 생성 시각과 `stale`·`partial` 표식을 확인한다.
-2. Row 식별자와 상세의 Owner·Version이 동일한지 확인한다.
-3. Masked 값은 원문 조회 권한 없이 복호화하거나 우회하지 않는다.
-4. 상태가 집계값과 상세값에서 다르면 상세 Owner 상태를 기준으로 Reconcile한다.
-5. Empty 결과는 권한·Filter·Environment·시간 범위를 확인한 뒤에만 0건으로 판정한다.
+1. 화면 진입 직후 Environment·시간 기준·Data Scope를 확인한다.
+2. `새로고침`을 실행하고 조회 시각, `stale`, `partial`, Empty 여부를 먼저 판정한다.
+3. 목록의 식별자를 상세 화면이나 연관 메뉴로 넘겨 Owner 상태를 교차 확인한다.
+4. 집계와 상세가 다르면 집계를 정상 근거로 사용하지 않고 상세 Owner·Audit·Metric을 기준으로 대사한다.
+5. 교대 기록에는 검색 조건, 조회 시각, 식별자, 불일치 항목과 다음 확인 시각을 남긴다.
 
-#### 조치 절차
+#### 화면별 핵심 판정
 
-사용 가능한 조치는 **새로고침**이다.
-
-1. 조치 직전 대상 상세를 다시 조회한다.
-2. 영향 Preview가 있으면 대상 Instance·거래·사용자·배치·Route 수를 기록한다.
-3. Reason, Approval ID, Expected Version, Idempotency Key를 입력한다.
-4. 실행 후 반환된 Operation ID·Transaction ID를 기록한다.
-5. `ACCEPTED` 또는 HTTP 202는 접수 상태이므로 최종 상태를 조회한다.
-6. Success에서는 상태·Version·Checksum·Audit·Metric이 함께 바뀌었는지 확인한다.
+- 대시보드 수치는 탐지용 집계다. 조치 결정은 원본 상세 메뉴에서 수행한다.
+- 비정상 Health·DLQ·결과 미확정 수치를 클릭하거나 식별자로 연관 화면을 조회한다.
 
 #### 정상 결과
 
-- 대상 Owner 상태가 요청한 상태로 전이된다.
-- Version 또는 Checksum이 변경 조치와 일치한다.
-- Audit에 Operator, Permission, Reason, Approval, Before/After, Result가 남는다.
-- 관련 Log·Metric·Trace에서 같은 Operation/Transaction 식별자를 찾을 수 있다.
-- 부분 적용 대상이 없거나, 대상별 결과가 명시적으로 구분된다.
+- Owner의 실제 상태와 화면 표시 상태가 일치한다.
+- 변경 조치라면 Version·Checksum·상태 전이가 요청 내용과 일치한다.
+- 부분 적용 대상은 Instance·Partition·Delivery·Row별로 구분된다.
+- Audit에 Operator, Permission, Reason, Approval, Before/After, Operation ID와 결과가 기록된다.
+- 같은 식별자로 Log·Metric·Trace 또는 Owner 원장을 조회할 수 있다.
 
 #### 오류·응답 유실·복구
 
-핵심 복구 기준: Loading/Empty/Error
+핵심 기준: **Loading/Empty/Error**
 
-| 상황 | 운영 절차 |
+| 상황 | 조치 |
 |---|---|
-| 400·Validation | Field 오류와 허용 범위를 수정하고 새 요청을 만든다. |
+| Validation·400 | 오류 Field·허용 범위·상위 기준정보를 수정하고 새 요청을 만든다. |
 | 401 | Session·CSRF·Origin을 확인하고 재로그인한다. 기존 변경 요청을 자동 재전송하지 않는다. |
-| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. UI 우회 호출을 하지 않는다. |
-| 409 | 최신 Version과 변경자를 조회하고 변경 의도를 다시 확인한다. Blind Retry하지 않는다. |
-| 429 | `Retry-After`와 Rate Limit을 확인한다. 비멱등 조치는 결과 대사 후 재실행한다. |
+| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. 우회 호출하지 않는다. |
+| 409 | 최신 Version·변경자·변경 시각을 조회하고 변경 의도를 다시 확인한다. |
+| 429 | `Retry-After`를 따르며 비멱등 조치는 결과 대사 후 재실행한다. |
 | Timeout·응답 유실 | Operation ID·Transaction ID·Idempotency Key로 기존 결과를 조회한다. |
-| PARTIAL | 성공·실패·미응답 Target을 분리하고 Failed-only Retry 또는 Exact Rollback을 선택한다. |
-| UNKNOWN_RESULT | Owner 원장, 상대 시스템, Ledger, Audit를 대사해 결과를 확정한 뒤 다음 조치를 선택한다. |
+| PARTIAL | 성공·실패·미응답 Target을 분리해 Failed-only Retry 또는 Exact Rollback을 선택한다. |
+| UNKNOWN_RESULT | Owner 원장·상대 시스템·Ledger·Audit를 대사해 결과를 확정한다. |
 
-#### 감사·교대 인계
+#### 교대·감사 기록
 
-교대 기록에는 화면 Route, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 결과 상태, 미확정 항목, 다음 확인 시각, Rollback 기준을 남긴다.
+Route, Environment, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 최종 상태, 미확정 대상, 다음 확인 시각과 Rollback 기준을 기록한다.
+
+
 ### topology — 서비스 토폴로지
 
-**접근 위치**: `/topology`
-**메뉴 그룹**: 홈
-**화면 Source**: ``.../features/topology/TopologyPage.vue``
+| 항목 | 값 |
+|---|---|
+| Route | `/topology` |
+| 그룹 | 홈 |
+| Frontend | `cpf-admin/frontend/src/features/topology/TopologyPage.vue` |
+| Permission | 조회 권한 |
 
-#### 사용 목적과 사용 시점
+#### 사용 목적과 사용하지 말아야 할 경우
 
-이 화면은 **서비스 토폴로지** 업무를 수행한다. 조회 결과를 다른 화면의 상태와 연결해야 할 때는 Transaction ID, Trace ID, Operation ID, Version, Checksum, Instance ID 중 화면이 제공하는 식별자를 인계 키로 사용한다. 화면의 HTTP 응답만으로 업무 결과를 확정하지 않고 Owner 상태와 Audit를 함께 확인한다.
+이 화면은 **서비스 토폴로지** 기능을 수행한다. 다른 Owner의 상태를 직접 변경하거나, Browser 개발자 도구로 권한을 우회하거나, HTTP 200/202만으로 최종 결과를 확정하는 용도로 사용하지 않는다.
 
-#### 선행 조건
+#### 검색·입력값
 
-1. 대상 Environment와 Tenant·Data Scope가 맞는지 확인한다.
-2. 메뉴 조회 권한과 조치 권한을 구분한다. 필요한 권한은 `조회 권한`이다.
-3. 변경 조치 전 대상의 최신 Version·상태·Owner를 새로 조회한다.
-4. Reason·Approval·Expected Version이 필요한 조치는 값을 준비한다.
-5. 이전 요청이 `PROCESSING`, `UNKNOWN_RESULT`, `PARTIAL`이면 신규 요청을 만들기 전에 기존 Operation을 대사한다.
+- 없음
 
-#### 검색·입력
+- 기간은 환경 표준 Timezone과 종료 시각 포함 여부를 확인한다.
+- ID는 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
+- 변경 조치의 Reason에는 목적, 영향 범위, 원복 기준, Incident·Approval ID를 적는다.
+- Password·Token·Secret·서명·PII 원문은 일반 Log나 교대 문서에 복사하지 않는다.
 
-없음
+#### 목록·상세에서 확인할 값
 
-- 기간 입력은 운영 표준 Timezone을 사용하고 종료 시각 포함 여부를 확인한다.
-- 빈 문자열과 `null`, 전체 선택의 의미를 구분한다.
-- ID 입력은 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
-- Reason은 작업 목적, 영향 범위, 원복 기준, 관련 Incident·Approval ID를 포함한다.
-- 비밀번호·Token·Secret·서명 원문은 일반 입력·Log·Audit에 남기지 않는다.
+- Service ID·명
+- Instance ID·명
+- Endpoint
+- Weight
+- Status
 
-#### 결과와 상세 확인
+- 목록과 상세의 ID·Version·Owner가 다르면 조치를 중단하고 상세를 다시 조회한다.
+- `stale`, `partial`, `unknown`, Empty는 서로 다른 상태다.
+- Masked 값의 원문은 별도 Permission과 Reason이 있을 때만 조회한다.
 
-Service ID·명, Instance ID·명, Endpoint, Weight, Status
+#### Button·조치
 
-조회 후 다음 순서로 판정한다.
+- 새로고침
 
-1. 결과 생성 시각과 `stale`·`partial` 표식을 확인한다.
-2. Row 식별자와 상세의 Owner·Version이 동일한지 확인한다.
-3. Masked 값은 원문 조회 권한 없이 복호화하거나 우회하지 않는다.
-4. 상태가 집계값과 상세값에서 다르면 상세 Owner 상태를 기준으로 Reconcile한다.
-5. Empty 결과는 권한·Filter·Environment·시간 범위를 확인한 뒤에만 0건으로 판정한다.
+1. 화면 진입 직후 Environment·시간 기준·Data Scope를 확인한다.
+2. `새로고침`을 실행하고 조회 시각, `stale`, `partial`, Empty 여부를 먼저 판정한다.
+3. 목록의 식별자를 상세 화면이나 연관 메뉴로 넘겨 Owner 상태를 교차 확인한다.
+4. 집계와 상세가 다르면 집계를 정상 근거로 사용하지 않고 상세 Owner·Audit·Metric을 기준으로 대사한다.
+5. 교대 기록에는 검색 조건, 조회 시각, 식별자, 불일치 항목과 다음 확인 시각을 남긴다.
 
-#### 조치 절차
+#### 화면별 핵심 판정
 
-사용 가능한 조치는 **새로고침**이다.
-
-1. 조치 직전 대상 상세를 다시 조회한다.
-2. 영향 Preview가 있으면 대상 Instance·거래·사용자·배치·Route 수를 기록한다.
-3. Reason, Approval ID, Expected Version, Idempotency Key를 입력한다.
-4. 실행 후 반환된 Operation ID·Transaction ID를 기록한다.
-5. `ACCEPTED` 또는 HTTP 202는 접수 상태이므로 최종 상태를 조회한다.
-6. Success에서는 상태·Version·Checksum·Audit·Metric이 함께 바뀌었는지 확인한다.
+- Service→Endpoint→Instance 연결이 끊긴 고아 항목을 확인한다.
+- Weight와 Status가 Routing 결과와 일치하는지 Service Registry에서 확인한다.
 
 #### 정상 결과
 
-- 대상 Owner 상태가 요청한 상태로 전이된다.
-- Version 또는 Checksum이 변경 조치와 일치한다.
-- Audit에 Operator, Permission, Reason, Approval, Before/After, Result가 남는다.
-- 관련 Log·Metric·Trace에서 같은 Operation/Transaction 식별자를 찾을 수 있다.
-- 부분 적용 대상이 없거나, 대상별 결과가 명시적으로 구분된다.
+- Owner의 실제 상태와 화면 표시 상태가 일치한다.
+- 변경 조치라면 Version·Checksum·상태 전이가 요청 내용과 일치한다.
+- 부분 적용 대상은 Instance·Partition·Delivery·Row별로 구분된다.
+- Audit에 Operator, Permission, Reason, Approval, Before/After, Operation ID와 결과가 기록된다.
+- 같은 식별자로 Log·Metric·Trace 또는 Owner 원장을 조회할 수 있다.
 
 #### 오류·응답 유실·복구
 
-핵심 복구 기준: Registry 0건 Empty
+핵심 기준: **Registry 0건 Empty**
 
-| 상황 | 운영 절차 |
+| 상황 | 조치 |
 |---|---|
-| 400·Validation | Field 오류와 허용 범위를 수정하고 새 요청을 만든다. |
+| Validation·400 | 오류 Field·허용 범위·상위 기준정보를 수정하고 새 요청을 만든다. |
 | 401 | Session·CSRF·Origin을 확인하고 재로그인한다. 기존 변경 요청을 자동 재전송하지 않는다. |
-| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. UI 우회 호출을 하지 않는다. |
-| 409 | 최신 Version과 변경자를 조회하고 변경 의도를 다시 확인한다. Blind Retry하지 않는다. |
-| 429 | `Retry-After`와 Rate Limit을 확인한다. 비멱등 조치는 결과 대사 후 재실행한다. |
+| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. 우회 호출하지 않는다. |
+| 409 | 최신 Version·변경자·변경 시각을 조회하고 변경 의도를 다시 확인한다. |
+| 429 | `Retry-After`를 따르며 비멱등 조치는 결과 대사 후 재실행한다. |
 | Timeout·응답 유실 | Operation ID·Transaction ID·Idempotency Key로 기존 결과를 조회한다. |
-| PARTIAL | 성공·실패·미응답 Target을 분리하고 Failed-only Retry 또는 Exact Rollback을 선택한다. |
-| UNKNOWN_RESULT | Owner 원장, 상대 시스템, Ledger, Audit를 대사해 결과를 확정한 뒤 다음 조치를 선택한다. |
+| PARTIAL | 성공·실패·미응답 Target을 분리해 Failed-only Retry 또는 Exact Rollback을 선택한다. |
+| UNKNOWN_RESULT | Owner 원장·상대 시스템·Ledger·Audit를 대사해 결과를 확정한다. |
 
-#### 감사·교대 인계
+#### 교대·감사 기록
 
-교대 기록에는 화면 Route, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 결과 상태, 미확정 항목, 다음 확인 시각, Rollback 기준을 남긴다.
+Route, Environment, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 최종 상태, 미확정 대상, 다음 확인 시각과 Rollback 기준을 기록한다.
+
+
 ### capacity — 용량·SLO 기본 Signal
 
-**접근 위치**: `/capacity`
-**메뉴 그룹**: 홈
-**화면 Source**: ``.../features/capacity/CapacityPage.vue``
+| 항목 | 값 |
+|---|---|
+| Route | `/capacity` |
+| 그룹 | 홈 |
+| Frontend | `cpf-admin/frontend/src/features/capacity/CapacityPage.vue` |
+| Permission | 조회 권한 |
 
-#### 사용 목적과 사용 시점
+#### 사용 목적과 사용하지 말아야 할 경우
 
-이 화면은 **용량·SLO 기본 Signal** 업무를 수행한다. 조회 결과를 다른 화면의 상태와 연결해야 할 때는 Transaction ID, Trace ID, Operation ID, Version, Checksum, Instance ID 중 화면이 제공하는 식별자를 인계 키로 사용한다. 화면의 HTTP 응답만으로 업무 결과를 확정하지 않고 Owner 상태와 Audit를 함께 확인한다.
+이 화면은 **용량·SLO 기본 Signal** 기능을 수행한다. 다른 Owner의 상태를 직접 변경하거나, Browser 개발자 도구로 권한을 우회하거나, HTTP 200/202만으로 최종 결과를 확정하는 용도로 사용하지 않는다.
 
-#### 선행 조건
+#### 검색·입력값
 
-1. 대상 Environment와 Tenant·Data Scope가 맞는지 확인한다.
-2. 메뉴 조회 권한과 조치 권한을 구분한다. 필요한 권한은 `조회 권한`이다.
-3. 변경 조치 전 대상의 최신 Version·상태·Owner를 새로 조회한다.
-4. Reason·Approval·Expected Version이 필요한 조치는 값을 준비한다.
-5. 이전 요청이 `PROCESSING`, `UNKNOWN_RESULT`, `PARTIAL`이면 신규 요청을 만들기 전에 기존 Operation을 대사한다.
+- 없음
 
-#### 검색·입력
+- 기간은 환경 표준 Timezone과 종료 시각 포함 여부를 확인한다.
+- ID는 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
+- 변경 조치의 Reason에는 목적, 영향 범위, 원복 기준, Incident·Approval ID를 적는다.
+- Password·Token·Secret·서명·PII 원문은 일반 Log나 교대 문서에 복사하지 않는다.
 
-없음
+#### 목록·상세에서 확인할 값
 
-- 기간 입력은 운영 표준 Timezone을 사용하고 종료 시각 포함 여부를 확인한다.
-- 빈 문자열과 `null`, 전체 선택의 의미를 구분한다.
-- ID 입력은 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
-- Reason은 작업 목적, 영향 범위, 원복 기준, 관련 Incident·Approval ID를 포함한다.
-- 비밀번호·Token·Secret·서명 원문은 일반 입력·Log·Audit에 남기지 않는다.
+- 최근 호출
+- 평균 지연
+- 실패율
+- 인스턴스
+- Service/Endpoint/Status/Latency/Transaction
 
-#### 결과와 상세 확인
+- 목록과 상세의 ID·Version·Owner가 다르면 조치를 중단하고 상세를 다시 조회한다.
+- `stale`, `partial`, `unknown`, Empty는 서로 다른 상태다.
+- Masked 값의 원문은 별도 Permission과 Reason이 있을 때만 조회한다.
 
-최근 호출, 평균 지연, 실패율, 인스턴스; Service/Endpoint/Status/Latency/Transaction
+#### Button·조치
 
-조회 후 다음 순서로 판정한다.
+- 새로고침
 
-1. 결과 생성 시각과 `stale`·`partial` 표식을 확인한다.
-2. Row 식별자와 상세의 Owner·Version이 동일한지 확인한다.
-3. Masked 값은 원문 조회 권한 없이 복호화하거나 우회하지 않는다.
-4. 상태가 집계값과 상세값에서 다르면 상세 Owner 상태를 기준으로 Reconcile한다.
-5. Empty 결과는 권한·Filter·Environment·시간 범위를 확인한 뒤에만 0건으로 판정한다.
+1. 화면 진입 직후 Environment·시간 기준·Data Scope를 확인한다.
+2. `새로고침`을 실행하고 조회 시각, `stale`, `partial`, Empty 여부를 먼저 판정한다.
+3. 목록의 식별자를 상세 화면이나 연관 메뉴로 넘겨 Owner 상태를 교차 확인한다.
+4. 집계와 상세가 다르면 집계를 정상 근거로 사용하지 않고 상세 Owner·Audit·Metric을 기준으로 대사한다.
+5. 교대 기록에는 검색 조건, 조회 시각, 식별자, 불일치 항목과 다음 확인 시각을 남긴다.
 
-#### 조치 절차
+#### 화면별 핵심 판정
 
-사용 가능한 조치는 **새로고침**이다.
-
-1. 조치 직전 대상 상세를 다시 조회한다.
-2. 영향 Preview가 있으면 대상 Instance·거래·사용자·배치·Route 수를 기록한다.
-3. Reason, Approval ID, Expected Version, Idempotency Key를 입력한다.
-4. 실행 후 반환된 Operation ID·Transaction ID를 기록한다.
-5. `ACCEPTED` 또는 HTTP 202는 접수 상태이므로 최종 상태를 조회한다.
-6. Success에서는 상태·Version·Checksum·Audit·Metric이 함께 바뀌었는지 확인한다.
+- 평균값만으로 SLO를 판정하지 않고 P95/P99와 실패율을 함께 본다.
+- 호출 증가와 Instance·DB Pool·Kafka Lag·Gateway Retry 증가를 같은 시간축으로 비교한다.
 
 #### 정상 결과
 
-- 대상 Owner 상태가 요청한 상태로 전이된다.
-- Version 또는 Checksum이 변경 조치와 일치한다.
-- Audit에 Operator, Permission, Reason, Approval, Before/After, Result가 남는다.
-- 관련 Log·Metric·Trace에서 같은 Operation/Transaction 식별자를 찾을 수 있다.
-- 부분 적용 대상이 없거나, 대상별 결과가 명시적으로 구분된다.
+- Owner의 실제 상태와 화면 표시 상태가 일치한다.
+- 변경 조치라면 Version·Checksum·상태 전이가 요청 내용과 일치한다.
+- 부분 적용 대상은 Instance·Partition·Delivery·Row별로 구분된다.
+- Audit에 Operator, Permission, Reason, Approval, Before/After, Operation ID와 결과가 기록된다.
+- 같은 식별자로 Log·Metric·Trace 또는 Owner 원장을 조회할 수 있다.
 
 #### 오류·응답 유실·복구
 
-핵심 복구 기준: 장기 Percentile·Forecast는 Metrics Backend와 함께 확인
+핵심 기준: **장기 Percentile·Forecast는 Metrics Backend와 함께 확인**
 
-| 상황 | 운영 절차 |
+| 상황 | 조치 |
 |---|---|
-| 400·Validation | Field 오류와 허용 범위를 수정하고 새 요청을 만든다. |
+| Validation·400 | 오류 Field·허용 범위·상위 기준정보를 수정하고 새 요청을 만든다. |
 | 401 | Session·CSRF·Origin을 확인하고 재로그인한다. 기존 변경 요청을 자동 재전송하지 않는다. |
-| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. UI 우회 호출을 하지 않는다. |
-| 409 | 최신 Version과 변경자를 조회하고 변경 의도를 다시 확인한다. Blind Retry하지 않는다. |
-| 429 | `Retry-After`와 Rate Limit을 확인한다. 비멱등 조치는 결과 대사 후 재실행한다. |
+| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. 우회 호출하지 않는다. |
+| 409 | 최신 Version·변경자·변경 시각을 조회하고 변경 의도를 다시 확인한다. |
+| 429 | `Retry-After`를 따르며 비멱등 조치는 결과 대사 후 재실행한다. |
 | Timeout·응답 유실 | Operation ID·Transaction ID·Idempotency Key로 기존 결과를 조회한다. |
-| PARTIAL | 성공·실패·미응답 Target을 분리하고 Failed-only Retry 또는 Exact Rollback을 선택한다. |
-| UNKNOWN_RESULT | Owner 원장, 상대 시스템, Ledger, Audit를 대사해 결과를 확정한 뒤 다음 조치를 선택한다. |
+| PARTIAL | 성공·실패·미응답 Target을 분리해 Failed-only Retry 또는 Exact Rollback을 선택한다. |
+| UNKNOWN_RESULT | Owner 원장·상대 시스템·Ledger·Audit를 대사해 결과를 확정한다. |
 
-#### 감사·교대 인계
+#### 교대·감사 기록
 
-교대 기록에는 화면 Route, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 결과 상태, 미확정 항목, 다음 확인 시각, Rollback 기준을 남긴다.
+Route, Environment, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 최종 상태, 미확정 대상, 다음 확인 시각과 Rollback 기준을 기록한다.
+
+
 ### logs — 로그 조회
 
-**접근 위치**: `/logs`
-**메뉴 그룹**: 통합 관제
-**화면 Source**: ``.../features/logs/LogsPage.vue``
+| 항목 | 값 |
+|---|---|
+| Route | `/logs` |
+| 그룹 | 통합 관제 |
+| Frontend | `cpf-admin/frontend/src/features/logs/LogsPage.vue` |
+| Permission | 해당 없음 |
 
-#### 사용 목적과 사용 시점
+#### 사용 목적과 사용하지 말아야 할 경우
 
-이 화면은 **로그 조회** 업무를 수행한다. 조회 결과를 다른 화면의 상태와 연결해야 할 때는 Transaction ID, Trace ID, Operation ID, Version, Checksum, Instance ID 중 화면이 제공하는 식별자를 인계 키로 사용한다. 화면의 HTTP 응답만으로 업무 결과를 확정하지 않고 Owner 상태와 Audit를 함께 확인한다.
+이 화면은 **로그 조회** 기능을 수행한다. 다른 Owner의 상태를 직접 변경하거나, Browser 개발자 도구로 권한을 우회하거나, HTTP 200/202만으로 최종 결과를 확정하는 용도로 사용하지 않는다.
 
-#### 선행 조건
+#### 검색·입력값
 
-1. 대상 Environment와 Tenant·Data Scope가 맞는지 확인한다.
-2. 메뉴 조회 권한과 조치 권한을 구분한다. 필요한 권한은 `해당 없음`이다.
-3. 변경 조치 전 대상의 최신 Version·상태·Owner를 새로 조회한다.
-4. Reason·Approval·Expected Version이 필요한 조치는 값을 준비한다.
-5. 이전 요청이 `PROCESSING`, `UNKNOWN_RESULT`, `PARTIAL`이면 신규 요청을 만들기 전에 기존 Operation을 대사한다.
+- 해당 없음
 
-#### 검색·입력
+- 기간은 환경 표준 Timezone과 종료 시각 포함 여부를 확인한다.
+- ID는 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
+- 변경 조치의 Reason에는 목적, 영향 범위, 원복 기준, Incident·Approval ID를 적는다.
+- Password·Token·Secret·서명·PII 원문은 일반 Log나 교대 문서에 복사하지 않는다.
 
-해당 없음
+#### 목록·상세에서 확인할 값
 
-- 기간 입력은 운영 표준 Timezone을 사용하고 종료 시각 포함 여부를 확인한다.
-- 빈 문자열과 `null`, 전체 선택의 의미를 구분한다.
-- ID 입력은 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
-- Reason은 작업 목적, 영향 범위, 원복 기준, 관련 Incident·Approval ID를 포함한다.
-- 비밀번호·Token·Secret·서명 원문은 일반 입력·Log·Audit에 남기지 않는다.
+- 해당 없음
 
-#### 결과와 상세 확인
+- 목록과 상세의 ID·Version·Owner가 다르면 조치를 중단하고 상세를 다시 조회한다.
+- `stale`, `partial`, `unknown`, Empty는 서로 다른 상태다.
+- Masked 값의 원문은 별도 Permission과 Reason이 있을 때만 조회한다.
 
-해당 없음
+#### Button·조치
 
-조회 후 다음 순서로 판정한다.
+- 해당 없음
 
-1. 결과 생성 시각과 `stale`·`partial` 표식을 확인한다.
-2. Row 식별자와 상세의 Owner·Version이 동일한지 확인한다.
-3. Masked 값은 원문 조회 권한 없이 복호화하거나 우회하지 않는다.
-4. 상태가 집계값과 상세값에서 다르면 상세 Owner 상태를 기준으로 Reconcile한다.
-5. Empty 결과는 권한·Filter·Environment·시간 범위를 확인한 뒤에만 0건으로 판정한다.
+1. 대상의 최신 상세와 Version을 조회하고 입력값의 Default·허용 범위를 확인한다.
+2. `해당 없음` 중 수행할 조치를 선택해 영향 대상과 연관 Consumer를 확인한다.
+3. 변경 조치는 Reason, Approval ID, Expected Version, Idempotency Key가 필요한지 확인한다.
+4. 요청 후 Operation ID·Transaction ID·새 Version을 기록하고 최종 상태까지 조회한다.
+5. 연관 Projection·Cache·Snapshot·Audit·Metric이 같은 결과를 반영하는지 확인한다.
+6. `표준 로그 조회 화면` 기준으로 오류·응답 유실·부분 적용을 분류한다.
+7. 실패 Target만 재처리하거나 변경 전 Version으로 보정·Rollback한 뒤 정상화 기준을 재확인한다.
 
-#### 조치 절차
+#### 화면별 핵심 판정
 
-사용 가능한 조치는 **해당 없음**이다.
-
-1. 조치 직전 대상 상세를 다시 조회한다.
-2. 영향 Preview가 있으면 대상 Instance·거래·사용자·배치·Route 수를 기록한다.
-3. Reason, Approval ID, Expected Version, Idempotency Key를 입력한다.
-4. 실행 후 반환된 Operation ID·Transaction ID를 기록한다.
-5. `ACCEPTED` 또는 HTTP 202는 접수 상태이므로 최종 상태를 조회한다.
-6. Success에서는 상태·Version·Checksum·Audit·Metric이 함께 바뀌었는지 확인한다.
+- 핵심 입력은 `해당 없음`이며 핵심 결과는 `해당 없음`다.
+- 오류·복구는 `표준 로그 조회 화면`를 우선 확인한다.
 
 #### 정상 결과
 
-- 대상 Owner 상태가 요청한 상태로 전이된다.
-- Version 또는 Checksum이 변경 조치와 일치한다.
-- Audit에 Operator, Permission, Reason, Approval, Before/After, Result가 남는다.
-- 관련 Log·Metric·Trace에서 같은 Operation/Transaction 식별자를 찾을 수 있다.
-- 부분 적용 대상이 없거나, 대상별 결과가 명시적으로 구분된다.
+- Owner의 실제 상태와 화면 표시 상태가 일치한다.
+- 변경 조치라면 Version·Checksum·상태 전이가 요청 내용과 일치한다.
+- 부분 적용 대상은 Instance·Partition·Delivery·Row별로 구분된다.
+- Audit에 Operator, Permission, Reason, Approval, Before/After, Operation ID와 결과가 기록된다.
+- 같은 식별자로 Log·Metric·Trace 또는 Owner 원장을 조회할 수 있다.
 
 #### 오류·응답 유실·복구
 
-핵심 복구 기준: 표준 로그 조회 화면
+핵심 기준: **표준 로그 조회 화면**
 
-| 상황 | 운영 절차 |
+| 상황 | 조치 |
 |---|---|
-| 400·Validation | Field 오류와 허용 범위를 수정하고 새 요청을 만든다. |
+| Validation·400 | 오류 Field·허용 범위·상위 기준정보를 수정하고 새 요청을 만든다. |
 | 401 | Session·CSRF·Origin을 확인하고 재로그인한다. 기존 변경 요청을 자동 재전송하지 않는다. |
-| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. UI 우회 호출을 하지 않는다. |
-| 409 | 최신 Version과 변경자를 조회하고 변경 의도를 다시 확인한다. Blind Retry하지 않는다. |
-| 429 | `Retry-After`와 Rate Limit을 확인한다. 비멱등 조치는 결과 대사 후 재실행한다. |
+| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. 우회 호출하지 않는다. |
+| 409 | 최신 Version·변경자·변경 시각을 조회하고 변경 의도를 다시 확인한다. |
+| 429 | `Retry-After`를 따르며 비멱등 조치는 결과 대사 후 재실행한다. |
 | Timeout·응답 유실 | Operation ID·Transaction ID·Idempotency Key로 기존 결과를 조회한다. |
-| PARTIAL | 성공·실패·미응답 Target을 분리하고 Failed-only Retry 또는 Exact Rollback을 선택한다. |
-| UNKNOWN_RESULT | Owner 원장, 상대 시스템, Ledger, Audit를 대사해 결과를 확정한 뒤 다음 조치를 선택한다. |
+| PARTIAL | 성공·실패·미응답 Target을 분리해 Failed-only Retry 또는 Exact Rollback을 선택한다. |
+| UNKNOWN_RESULT | Owner 원장·상대 시스템·Ledger·Audit를 대사해 결과를 확정한다. |
 
-#### 감사·교대 인계
+#### 교대·감사 기록
 
-교대 기록에는 화면 Route, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 결과 상태, 미확정 항목, 다음 확인 시각, Rollback 기준을 남긴다.
+Route, Environment, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 최종 상태, 미확정 대상, 다음 확인 시각과 Rollback 기준을 기록한다.
+
+
 ### transactionGroups — 거래 그룹·구간 추적
 
-**접근 위치**: `/transactionGroups`
-**메뉴 그룹**: 온라인 운영
-**화면 Source**: ``.../features/transaction-groups/TransactionGroupsPage.vue``
+| 항목 | 값 |
+|---|---|
+| Route | `/transactionGroups` |
+| 그룹 | 온라인 운영 |
+| Frontend | `cpf-admin/frontend/src/features/transaction-groups/TransactionGroupsPage.vue` |
+| Permission | 거래 조회 Permission·Data Scope |
 
-#### 사용 목적과 사용 시점
+#### 사용 목적과 사용하지 말아야 할 경우
 
-이 화면은 **거래 그룹·구간 추적** 업무를 수행한다. 조회 결과를 다른 화면의 상태와 연결해야 할 때는 Transaction ID, Trace ID, Operation ID, Version, Checksum, Instance ID 중 화면이 제공하는 식별자를 인계 키로 사용한다. 화면의 HTTP 응답만으로 업무 결과를 확정하지 않고 Owner 상태와 Audit를 함께 확인한다.
+이 화면은 **거래 그룹·구간 추적** 기능을 수행한다. 다른 Owner의 상태를 직접 변경하거나, Browser 개발자 도구로 권한을 우회하거나, HTTP 200/202만으로 최종 결과를 확정하는 용도로 사용하지 않는다.
 
-#### 선행 조건
+#### 검색·입력값
 
-1. 대상 Environment와 Tenant·Data Scope가 맞는지 확인한다.
-2. 메뉴 조회 권한과 조치 권한을 구분한다. 필요한 권한은 `거래 조회 Permission·Data Scope`이다.
-3. 변경 조치 전 대상의 최신 Version·상태·Owner를 새로 조회한다.
-4. Reason·Approval·Expected Version이 필요한 조치는 값을 준비한다.
-5. 이전 요청이 `PROCESSING`, `UNKNOWN_RESULT`, `PARTIAL`이면 신규 요청을 만들기 전에 기존 Operation을 대사한다.
+- 기간
+- Transaction/Segment
+- Status
+- 실패
+- Module/Source/Target/Role/Direction
+- 고객·회원·사용자·운영자
+- Channel
+- 외부기관/거래
+- API/거래명/오류
+- Duration
+- Header 검색
 
-#### 검색·입력
+- 기간은 환경 표준 Timezone과 종료 시각 포함 여부를 확인한다.
+- ID는 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
+- 변경 조치의 Reason에는 목적, 영향 범위, 원복 기준, Incident·Approval ID를 적는다.
+- Password·Token·Secret·서명·PII 원문은 일반 Log나 교대 문서에 복사하지 않는다.
 
-기간, Transaction/Segment, Status, 실패, Module/Source/Target/Role/Direction, 고객·회원·사용자·운영자, Channel, 외부기관/거래, API/거래명/오류, Duration, Header 검색
+#### 목록·상세에서 확인할 값
 
-- 기간 입력은 운영 표준 Timezone을 사용하고 종료 시각 포함 여부를 확인한다.
-- 빈 문자열과 `null`, 전체 선택의 의미를 구분한다.
-- ID 입력은 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
-- Reason은 작업 목적, 영향 범위, 원복 기준, 관련 Incident·Approval ID를 포함한다.
-- 비밀번호·Token·Secret·서명 원문은 일반 입력·Log·Audit에 남기지 않는다.
+- 거래/모듈 흐름/시간/소요/상태/실패/Masked 고객·회원/Channel/외부 연계
 
-#### 결과와 상세 확인
+- 목록과 상세의 ID·Version·Owner가 다르면 조치를 중단하고 상세를 다시 조회한다.
+- `stale`, `partial`, `unknown`, Empty는 서로 다른 상태다.
+- Masked 값의 원문은 별도 Permission과 Reason이 있을 때만 조회한다.
 
-거래/모듈 흐름/시간/소요/상태/실패/Masked 고객·회원/Channel/외부 연계
+#### Button·조치
 
-조회 후 다음 순서로 판정한다.
+- 조회·초기화·정렬·Paging·상세 Tab
 
-1. 결과 생성 시각과 `stale`·`partial` 표식을 확인한다.
-2. Row 식별자와 상세의 Owner·Version이 동일한지 확인한다.
-3. Masked 값은 원문 조회 권한 없이 복호화하거나 우회하지 않는다.
-4. 상태가 집계값과 상세값에서 다르면 상세 Owner 상태를 기준으로 Reconcile한다.
-5. Empty 결과는 권한·Filter·Environment·시간 범위를 확인한 뒤에만 0건으로 판정한다.
+1. 대상의 최신 상세와 Version을 조회하고 입력값의 Default·허용 범위를 확인한다.
+2. `조회·초기화·정렬·Paging·상세 Tab` 중 수행할 조치를 선택해 영향 대상과 연관 Consumer를 확인한다.
+3. 변경 조치는 Reason, Approval ID, Expected Version, Idempotency Key가 필요한지 확인한다.
+4. 요청 후 Operation ID·Transaction ID·새 Version을 기록하고 최종 상태까지 조회한다.
+5. 연관 Projection·Cache·Snapshot·Audit·Metric이 같은 결과를 반영하는지 확인한다.
+6. `Authorization/API Key/Token 등 원문 미표시` 기준으로 오류·응답 유실·부분 적용을 분류한다.
+7. 실패 Target만 재처리하거나 변경 전 Version으로 보정·Rollback한 뒤 정상화 기준을 재확인한다.
 
-#### 조치 절차
+#### 화면별 핵심 판정
 
-사용 가능한 조치는 **조회·초기화·정렬·Paging·상세 Tab**이다.
-
-1. 조치 직전 대상 상세를 다시 조회한다.
-2. 영향 Preview가 있으면 대상 Instance·거래·사용자·배치·Route 수를 기록한다.
-3. Reason, Approval ID, Expected Version, Idempotency Key를 입력한다.
-4. 실행 후 반환된 Operation ID·Transaction ID를 기록한다.
-5. `ACCEPTED` 또는 HTTP 202는 접수 상태이므로 최종 상태를 조회한다.
-6. Success에서는 상태·Version·Checksum·Audit·Metric이 함께 바뀌었는지 확인한다.
+- 기간·Status·Module·Direction·Channel·외부기관·Duration 조건을 한 번에 과도하게 넓히지 않는다.
+- 고객·회원·사용자 식별자는 Masked 값과 Data Scope를 확인한다.
 
 #### 정상 결과
 
-- 대상 Owner 상태가 요청한 상태로 전이된다.
-- Version 또는 Checksum이 변경 조치와 일치한다.
-- Audit에 Operator, Permission, Reason, Approval, Before/After, Result가 남는다.
-- 관련 Log·Metric·Trace에서 같은 Operation/Transaction 식별자를 찾을 수 있다.
-- 부분 적용 대상이 없거나, 대상별 결과가 명시적으로 구분된다.
+- Owner의 실제 상태와 화면 표시 상태가 일치한다.
+- 변경 조치라면 Version·Checksum·상태 전이가 요청 내용과 일치한다.
+- 부분 적용 대상은 Instance·Partition·Delivery·Row별로 구분된다.
+- Audit에 Operator, Permission, Reason, Approval, Before/After, Operation ID와 결과가 기록된다.
+- 같은 식별자로 Log·Metric·Trace 또는 Owner 원장을 조회할 수 있다.
 
 #### 오류·응답 유실·복구
 
-핵심 복구 기준: Authorization/API Key/Token 등 원문 미표시
+핵심 기준: **Authorization/API Key/Token 등 원문 미표시**
 
-| 상황 | 운영 절차 |
+| 상황 | 조치 |
 |---|---|
-| 400·Validation | Field 오류와 허용 범위를 수정하고 새 요청을 만든다. |
+| Validation·400 | 오류 Field·허용 범위·상위 기준정보를 수정하고 새 요청을 만든다. |
 | 401 | Session·CSRF·Origin을 확인하고 재로그인한다. 기존 변경 요청을 자동 재전송하지 않는다. |
-| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. UI 우회 호출을 하지 않는다. |
-| 409 | 최신 Version과 변경자를 조회하고 변경 의도를 다시 확인한다. Blind Retry하지 않는다. |
-| 429 | `Retry-After`와 Rate Limit을 확인한다. 비멱등 조치는 결과 대사 후 재실행한다. |
+| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. 우회 호출하지 않는다. |
+| 409 | 최신 Version·변경자·변경 시각을 조회하고 변경 의도를 다시 확인한다. |
+| 429 | `Retry-After`를 따르며 비멱등 조치는 결과 대사 후 재실행한다. |
 | Timeout·응답 유실 | Operation ID·Transaction ID·Idempotency Key로 기존 결과를 조회한다. |
-| PARTIAL | 성공·실패·미응답 Target을 분리하고 Failed-only Retry 또는 Exact Rollback을 선택한다. |
-| UNKNOWN_RESULT | Owner 원장, 상대 시스템, Ledger, Audit를 대사해 결과를 확정한 뒤 다음 조치를 선택한다. |
+| PARTIAL | 성공·실패·미응답 Target을 분리해 Failed-only Retry 또는 Exact Rollback을 선택한다. |
+| UNKNOWN_RESULT | Owner 원장·상대 시스템·Ledger·Audit를 대사해 결과를 확정한다. |
 
-#### 감사·교대 인계
+#### 교대·감사 기록
 
-교대 기록에는 화면 Route, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 결과 상태, 미확정 항목, 다음 확인 시각, Rollback 기준을 남긴다.
+Route, Environment, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 최종 상태, 미확정 대상, 다음 확인 시각과 Rollback 기준을 기록한다.
+
+
 ### transactions — 거래 Metadata
 
-**접근 위치**: `/transactions`
-**메뉴 그룹**: 온라인 운영
-**화면 Source**: ``.../features/transactions/TransactionsPage.vue``
+| 항목 | 값 |
+|---|---|
+| Route | `/transactions` |
+| 그룹 | 온라인 운영 |
+| Frontend | `cpf-admin/frontend/src/features/transactions/TransactionsPage.vue` |
+| Permission | `TRANSACTION_META` Write for mutation |
 
-#### 사용 목적과 사용 시점
+#### 사용 목적과 사용하지 말아야 할 경우
 
-이 화면은 **거래 Metadata** 업무를 수행한다. 조회 결과를 다른 화면의 상태와 연결해야 할 때는 Transaction ID, Trace ID, Operation ID, Version, Checksum, Instance ID 중 화면이 제공하는 식별자를 인계 키로 사용한다. 화면의 HTTP 응답만으로 업무 결과를 확정하지 않고 Owner 상태와 Audit를 함께 확인한다.
+이 화면은 **거래 Metadata** 기능을 수행한다. 다른 Owner의 상태를 직접 변경하거나, Browser 개발자 도구로 권한을 우회하거나, HTTP 200/202만으로 최종 결과를 확정하는 용도로 사용하지 않는다.
 
-#### 선행 조건
+#### 검색·입력값
 
-1. 대상 Environment와 Tenant·Data Scope가 맞는지 확인한다.
-2. 메뉴 조회 권한과 조치 권한을 구분한다. 필요한 권한은 ``TRANSACTION_META` Write for mutation`이다.
-3. 변경 조치 전 대상의 최신 Version·상태·Owner를 새로 조회한다.
-4. Reason·Approval·Expected Version이 필요한 조치는 값을 준비한다.
-5. 이전 요청이 `PROCESSING`, `UNKNOWN_RESULT`, `PARTIAL`이면 신규 요청을 만들기 전에 기존 Operation을 대사한다.
+- Module 기본 ADM
+- Active Y
+- Transaction ID
+- 선택 ID
+- Reason
 
-#### 검색·입력
+- 기간은 환경 표준 Timezone과 종료 시각 포함 여부를 확인한다.
+- ID는 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
+- 변경 조치의 Reason에는 목적, 영향 범위, 원복 기준, Incident·Approval ID를 적는다.
+- Password·Token·Secret·서명·PII 원문은 일반 Log나 교대 문서에 복사하지 않는다.
 
-Module 기본 ADM, Active Y, Transaction ID, 선택 ID, Reason
+#### 목록·상세에서 확인할 값
 
-- 기간 입력은 운영 표준 Timezone을 사용하고 종료 시각 포함 여부를 확인한다.
-- 빈 문자열과 `null`, 전체 선택의 의미를 구분한다.
-- ID 입력은 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
-- Reason은 작업 목적, 영향 범위, 원복 기준, 관련 Incident·Approval ID를 포함한다.
-- 비밀번호·Token·Secret·서명 원문은 일반 입력·Log·Audit에 남기지 않는다.
+- Pretty Result
 
-#### 결과와 상세 확인
+- 목록과 상세의 ID·Version·Owner가 다르면 조치를 중단하고 상세를 다시 조회한다.
+- `stale`, `partial`, `unknown`, Empty는 서로 다른 상태다.
+- Masked 값의 원문은 별도 Permission과 Reason이 있을 때만 조회한다.
 
-Pretty Result
+#### Button·조치
 
-조회 후 다음 순서로 판정한다.
+- 조회·재스캔·비활성화
 
-1. 결과 생성 시각과 `stale`·`partial` 표식을 확인한다.
-2. Row 식별자와 상세의 Owner·Version이 동일한지 확인한다.
-3. Masked 값은 원문 조회 권한 없이 복호화하거나 우회하지 않는다.
-4. 상태가 집계값과 상세값에서 다르면 상세 Owner 상태를 기준으로 Reconcile한다.
-5. Empty 결과는 권한·Filter·Environment·시간 범위를 확인한 뒤에만 0건으로 판정한다.
+1. 대상의 최신 상세와 Version을 조회하고 입력값의 Default·허용 범위를 확인한다.
+2. `조회·재스캔·비활성화` 중 수행할 조치를 선택해 영향 대상과 연관 Consumer를 확인한다.
+3. 변경 조치는 Reason, Approval ID, Expected Version, Idempotency Key가 필요한지 확인한다.
+4. 요청 후 Operation ID·Transaction ID·새 Version을 기록하고 최종 상태까지 조회한다.
+5. 연관 Projection·Cache·Snapshot·Audit·Metric이 같은 결과를 반영하는지 확인한다.
+6. `재스캔/비활성화 응답 유실 시 Transaction ID 대사` 기준으로 오류·응답 유실·부분 적용을 분류한다.
+7. 실패 Target만 재처리하거나 변경 전 Version으로 보정·Rollback한 뒤 정상화 기준을 재확인한다.
 
-#### 조치 절차
+#### 화면별 핵심 판정
 
-사용 가능한 조치는 **조회·재스캔·비활성화**이다.
-
-1. 조치 직전 대상 상세를 다시 조회한다.
-2. 영향 Preview가 있으면 대상 Instance·거래·사용자·배치·Route 수를 기록한다.
-3. Reason, Approval ID, Expected Version, Idempotency Key를 입력한다.
-4. 실행 후 반환된 Operation ID·Transaction ID를 기록한다.
-5. `ACCEPTED` 또는 HTTP 202는 접수 상태이므로 최종 상태를 조회한다.
-6. Success에서는 상태·Version·Checksum·Audit·Metric이 함께 바뀌었는지 확인한다.
+- 기본 Module `ADM`, Active `Y`를 변경했는지 확인한다.
+- 재스캔은 Source Metadata를 재수집하고 비활성화는 Consumer 영향과 Reason을 확인한다.
 
 #### 정상 결과
 
-- 대상 Owner 상태가 요청한 상태로 전이된다.
-- Version 또는 Checksum이 변경 조치와 일치한다.
-- Audit에 Operator, Permission, Reason, Approval, Before/After, Result가 남는다.
-- 관련 Log·Metric·Trace에서 같은 Operation/Transaction 식별자를 찾을 수 있다.
-- 부분 적용 대상이 없거나, 대상별 결과가 명시적으로 구분된다.
+- Owner의 실제 상태와 화면 표시 상태가 일치한다.
+- 변경 조치라면 Version·Checksum·상태 전이가 요청 내용과 일치한다.
+- 부분 적용 대상은 Instance·Partition·Delivery·Row별로 구분된다.
+- Audit에 Operator, Permission, Reason, Approval, Before/After, Operation ID와 결과가 기록된다.
+- 같은 식별자로 Log·Metric·Trace 또는 Owner 원장을 조회할 수 있다.
 
 #### 오류·응답 유실·복구
 
-핵심 복구 기준: 재스캔/비활성화 응답 유실 시 Transaction ID 대사
+핵심 기준: **재스캔/비활성화 응답 유실 시 Transaction ID 대사**
 
-| 상황 | 운영 절차 |
+| 상황 | 조치 |
 |---|---|
-| 400·Validation | Field 오류와 허용 범위를 수정하고 새 요청을 만든다. |
+| Validation·400 | 오류 Field·허용 범위·상위 기준정보를 수정하고 새 요청을 만든다. |
 | 401 | Session·CSRF·Origin을 확인하고 재로그인한다. 기존 변경 요청을 자동 재전송하지 않는다. |
-| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. UI 우회 호출을 하지 않는다. |
-| 409 | 최신 Version과 변경자를 조회하고 변경 의도를 다시 확인한다. Blind Retry하지 않는다. |
-| 429 | `Retry-After`와 Rate Limit을 확인한다. 비멱등 조치는 결과 대사 후 재실행한다. |
+| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. 우회 호출하지 않는다. |
+| 409 | 최신 Version·변경자·변경 시각을 조회하고 변경 의도를 다시 확인한다. |
+| 429 | `Retry-After`를 따르며 비멱등 조치는 결과 대사 후 재실행한다. |
 | Timeout·응답 유실 | Operation ID·Transaction ID·Idempotency Key로 기존 결과를 조회한다. |
-| PARTIAL | 성공·실패·미응답 Target을 분리하고 Failed-only Retry 또는 Exact Rollback을 선택한다. |
-| UNKNOWN_RESULT | Owner 원장, 상대 시스템, Ledger, Audit를 대사해 결과를 확정한 뒤 다음 조치를 선택한다. |
+| PARTIAL | 성공·실패·미응답 Target을 분리해 Failed-only Retry 또는 Exact Rollback을 선택한다. |
+| UNKNOWN_RESULT | Owner 원장·상대 시스템·Ledger·Audit를 대사해 결과를 확정한다. |
 
-#### 감사·교대 인계
+#### 교대·감사 기록
 
-교대 기록에는 화면 Route, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 결과 상태, 미확정 항목, 다음 확인 시각, Rollback 기준을 남긴다.
+Route, Environment, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 최종 상태, 미확정 대상, 다음 확인 시각과 Rollback 기준을 기록한다.
+
+
 ### standardExecutions — 표준 실행 Catalog
 
-**접근 위치**: `/standardExecutions`
-**메뉴 그룹**: 온라인 운영
-**화면 Source**: ``.../features/standard-executions/StandardExecutionsPage.vue``
+| 항목 | 값 |
+|---|---|
+| Route | `/standardExecutions` |
+| 그룹 | 온라인 운영 |
+| Frontend | `cpf-admin/frontend/src/features/standard-executions/StandardExecutionsPage.vue` |
+| Permission | 조회 권한 |
 
-#### 사용 목적과 사용 시점
+#### 사용 목적과 사용하지 말아야 할 경우
 
-이 화면은 **표준 실행 Catalog** 업무를 수행한다. 조회 결과를 다른 화면의 상태와 연결해야 할 때는 Transaction ID, Trace ID, Operation ID, Version, Checksum, Instance ID 중 화면이 제공하는 식별자를 인계 키로 사용한다. 화면의 HTTP 응답만으로 업무 결과를 확정하지 않고 Owner 상태와 Audit를 함께 확인한다.
+이 화면은 **표준 실행 Catalog** 기능을 수행한다. 다른 Owner의 상태를 직접 변경하거나, Browser 개발자 도구로 권한을 우회하거나, HTTP 200/202만으로 최종 결과를 확정하는 용도로 사용하지 않는다.
 
-#### 선행 조건
+#### 검색·입력값
 
-1. 대상 Environment와 Tenant·Data Scope가 맞는지 확인한다.
-2. 메뉴 조회 권한과 조치 권한을 구분한다. 필요한 권한은 `조회 권한`이다.
-3. 변경 조치 전 대상의 최신 Version·상태·Owner를 새로 조회한다.
-4. Reason·Approval·Expected Version이 필요한 조치는 값을 준비한다.
-5. 이전 요청이 `PROCESSING`, `UNKNOWN_RESULT`, `PARTIAL`이면 신규 요청을 만들기 전에 기존 Operation을 대사한다.
+- 유형 ONLINE/BATCH
+- Owner Domain
+- Keyword
 
-#### 검색·입력
+- 기간은 환경 표준 Timezone과 종료 시각 포함 여부를 확인한다.
+- ID는 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
+- 변경 조치의 Reason에는 목적, 영향 범위, 원복 기준, Incident·Approval ID를 적는다.
+- Password·Token·Secret·서명·PII 원문은 일반 Log나 교대 문서에 복사하지 않는다.
 
-유형 ONLINE/BATCH, Owner Domain, Keyword
+#### 목록·상세에서 확인할 값
 
-- 기간 입력은 운영 표준 Timezone을 사용하고 종료 시각 포함 여부를 확인한다.
-- 빈 문자열과 `null`, 전체 선택의 의미를 구분한다.
-- ID 입력은 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
-- Reason은 작업 목적, 영향 범위, 원복 기준, 관련 Incident·Approval ID를 포함한다.
-- 비밀번호·Token·Secret·서명 원문은 일반 입력·Log·Audit에 남기지 않는다.
+- ID
+- 유형
+- 실행명
+- Owner
+- Source Module
+- Endpoint
 
-#### 결과와 상세 확인
+- 목록과 상세의 ID·Version·Owner가 다르면 조치를 중단하고 상세를 다시 조회한다.
+- `stale`, `partial`, `unknown`, Empty는 서로 다른 상태다.
+- Masked 값의 원문은 별도 Permission과 Reason이 있을 때만 조회한다.
 
-ID, 유형, 실행명, Owner, Source Module, Endpoint
+#### Button·조치
 
-조회 후 다음 순서로 판정한다.
+- 조회·상세
 
-1. 결과 생성 시각과 `stale`·`partial` 표식을 확인한다.
-2. Row 식별자와 상세의 Owner·Version이 동일한지 확인한다.
-3. Masked 값은 원문 조회 권한 없이 복호화하거나 우회하지 않는다.
-4. 상태가 집계값과 상세값에서 다르면 상세 Owner 상태를 기준으로 Reconcile한다.
-5. Empty 결과는 권한·Filter·Environment·시간 범위를 확인한 뒤에만 0건으로 판정한다.
+1. 화면 진입 직후 Environment·시간 기준·Data Scope를 확인한다.
+2. `조회·상세`를 실행하고 조회 시각, `stale`, `partial`, Empty 여부를 먼저 판정한다.
+3. 목록의 식별자를 상세 화면이나 연관 메뉴로 넘겨 Owner 상태를 교차 확인한다.
+4. 집계와 상세가 다르면 집계를 정상 근거로 사용하지 않고 상세 Owner·Audit·Metric을 기준으로 대사한다.
+5. 교대 기록에는 검색 조건, 조회 시각, 식별자, 불일치 항목과 다음 확인 시각을 남긴다.
 
-#### 조치 절차
+#### 화면별 핵심 판정
 
-사용 가능한 조치는 **조회·상세**이다.
-
-1. 조치 직전 대상 상세를 다시 조회한다.
-2. 영향 Preview가 있으면 대상 Instance·거래·사용자·배치·Route 수를 기록한다.
-3. Reason, Approval ID, Expected Version, Idempotency Key를 입력한다.
-4. 실행 후 반환된 Operation ID·Transaction ID를 기록한다.
-5. `ACCEPTED` 또는 HTTP 202는 접수 상태이므로 최종 상태를 조회한다.
-6. Success에서는 상태·Version·Checksum·Audit·Metric이 함께 바뀌었는지 확인한다.
+- 핵심 입력은 `유형 ONLINE/BATCH, Owner Domain, Keyword`이며 핵심 결과는 `ID, 유형, 실행명, Owner, Source Module, Endpoint`다.
+- 오류·복구는 `Catalog/Source 불일치 조사`를 우선 확인한다.
 
 #### 정상 결과
 
-- 대상 Owner 상태가 요청한 상태로 전이된다.
-- Version 또는 Checksum이 변경 조치와 일치한다.
-- Audit에 Operator, Permission, Reason, Approval, Before/After, Result가 남는다.
-- 관련 Log·Metric·Trace에서 같은 Operation/Transaction 식별자를 찾을 수 있다.
-- 부분 적용 대상이 없거나, 대상별 결과가 명시적으로 구분된다.
+- Owner의 실제 상태와 화면 표시 상태가 일치한다.
+- 변경 조치라면 Version·Checksum·상태 전이가 요청 내용과 일치한다.
+- 부분 적용 대상은 Instance·Partition·Delivery·Row별로 구분된다.
+- Audit에 Operator, Permission, Reason, Approval, Before/After, Operation ID와 결과가 기록된다.
+- 같은 식별자로 Log·Metric·Trace 또는 Owner 원장을 조회할 수 있다.
 
 #### 오류·응답 유실·복구
 
-핵심 복구 기준: Catalog/Source 불일치 조사
+핵심 기준: **Catalog/Source 불일치 조사**
 
-| 상황 | 운영 절차 |
+| 상황 | 조치 |
 |---|---|
-| 400·Validation | Field 오류와 허용 범위를 수정하고 새 요청을 만든다. |
+| Validation·400 | 오류 Field·허용 범위·상위 기준정보를 수정하고 새 요청을 만든다. |
 | 401 | Session·CSRF·Origin을 확인하고 재로그인한다. 기존 변경 요청을 자동 재전송하지 않는다. |
-| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. UI 우회 호출을 하지 않는다. |
-| 409 | 최신 Version과 변경자를 조회하고 변경 의도를 다시 확인한다. Blind Retry하지 않는다. |
-| 429 | `Retry-After`와 Rate Limit을 확인한다. 비멱등 조치는 결과 대사 후 재실행한다. |
+| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. 우회 호출하지 않는다. |
+| 409 | 최신 Version·변경자·변경 시각을 조회하고 변경 의도를 다시 확인한다. |
+| 429 | `Retry-After`를 따르며 비멱등 조치는 결과 대사 후 재실행한다. |
 | Timeout·응답 유실 | Operation ID·Transaction ID·Idempotency Key로 기존 결과를 조회한다. |
-| PARTIAL | 성공·실패·미응답 Target을 분리하고 Failed-only Retry 또는 Exact Rollback을 선택한다. |
-| UNKNOWN_RESULT | Owner 원장, 상대 시스템, Ledger, Audit를 대사해 결과를 확정한 뒤 다음 조치를 선택한다. |
+| PARTIAL | 성공·실패·미응답 Target을 분리해 Failed-only Retry 또는 Exact Rollback을 선택한다. |
+| UNKNOWN_RESULT | Owner 원장·상대 시스템·Ledger·Audit를 대사해 결과를 확정한다. |
 
-#### 감사·교대 인계
+#### 교대·감사 기록
 
-교대 기록에는 화면 Route, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 결과 상태, 미확정 항목, 다음 확인 시각, Rollback 기준을 남긴다.
+Route, Environment, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 최종 상태, 미확정 대상, 다음 확인 시각과 Rollback 기준을 기록한다.
+
+
 ### channelPolicy — Channel·거래 정책 Snapshot
 
-**접근 위치**: `/channelPolicy`
-**메뉴 그룹**: 온라인 운영
-**화면 Source**: ``.../features/channel-policy/ChannelPolicyPage.vue``
+| 항목 | 값 |
+|---|---|
+| Route | `/channelPolicy` |
+| 그룹 | 온라인 운영 |
+| Frontend | `cpf-admin/frontend/src/features/channel-policy/ChannelPolicyPage.vue` |
+| Permission | `CHANNEL_POLICY` Write |
 
-#### 사용 목적과 사용 시점
+#### 사용 목적과 사용하지 말아야 할 경우
 
-이 화면은 **Channel·거래 정책 Snapshot** 업무를 수행한다. 조회 결과를 다른 화면의 상태와 연결해야 할 때는 Transaction ID, Trace ID, Operation ID, Version, Checksum, Instance ID 중 화면이 제공하는 식별자를 인계 키로 사용한다. 화면의 HTTP 응답만으로 업무 결과를 확정하지 않고 Owner 상태와 Audit를 함께 확인한다.
+이 화면은 **Channel·거래 정책 Snapshot** 기능을 수행한다. 다른 Owner의 상태를 직접 변경하거나, Browser 개발자 도구로 권한을 우회하거나, HTTP 200/202만으로 최종 결과를 확정하는 용도로 사용하지 않는다.
 
-#### 선행 조건
+#### 검색·입력값
 
-1. 대상 Environment와 Tenant·Data Scope가 맞는지 확인한다.
-2. 메뉴 조회 권한과 조치 권한을 구분한다. 필요한 권한은 ``CHANNEL_POLICY` Write`이다.
-3. 변경 조치 전 대상의 최신 Version·상태·Owner를 새로 조회한다.
-4. Reason·Approval·Expected Version이 필요한 조치는 값을 준비한다.
-5. 이전 요청이 `PROCESSING`, `UNKNOWN_RESULT`, `PARTIAL`이면 신규 요청을 만들기 전에 기존 Operation을 대사한다.
+- Channel/Policy Form
+- Package JSON
+- Import Dry Run
 
-#### 검색·입력
+- 기간은 환경 표준 Timezone과 종료 시각 포함 여부를 확인한다.
+- ID는 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
+- 변경 조치의 Reason에는 목적, 영향 범위, 원복 기준, Incident·Approval ID를 적는다.
+- Password·Token·Secret·서명·PII 원문은 일반 Log나 교대 문서에 복사하지 않는다.
 
-Channel/Policy Form; Package JSON; Import Dry Run
+#### 목록·상세에서 확인할 값
 
-- 기간 입력은 운영 표준 Timezone을 사용하고 종료 시각 포함 여부를 확인한다.
-- 빈 문자열과 `null`, 전체 선택의 의미를 구분한다.
-- ID 입력은 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
-- Reason은 작업 목적, 영향 범위, 원복 기준, 관련 Incident·Approval ID를 포함한다.
-- 비밀번호·Token·Secret·서명 원문은 일반 입력·Log·Audit에 남기지 않는다.
+- Channel 인증·서명·신뢰·Version
+- 정책 허용·TPS·Version
 
-#### 결과와 상세 확인
+- 목록과 상세의 ID·Version·Owner가 다르면 조치를 중단하고 상세를 다시 조회한다.
+- `stale`, `partial`, `unknown`, Empty는 서로 다른 상태다.
+- Masked 값의 원문은 별도 Permission과 Reason이 있을 때만 조회한다.
 
-Channel 인증·서명·신뢰·Version; 정책 허용·TPS·Version
+#### Button·조치
 
-조회 후 다음 순서로 판정한다.
+- 조회·Snapshot 갱신·Package 반출/반입·Channel/Policy 저장
 
-1. 결과 생성 시각과 `stale`·`partial` 표식을 확인한다.
-2. Row 식별자와 상세의 Owner·Version이 동일한지 확인한다.
-3. Masked 값은 원문 조회 권한 없이 복호화하거나 우회하지 않는다.
-4. 상태가 집계값과 상세값에서 다르면 상세 Owner 상태를 기준으로 Reconcile한다.
-5. Empty 결과는 권한·Filter·Environment·시간 범위를 확인한 뒤에만 0건으로 판정한다.
+1. 대상의 최신 상세와 Version을 조회하고 입력값의 Default·허용 범위를 확인한다.
+2. `조회·Snapshot 갱신·Package 반출/반입·Channel/Policy 저장` 중 수행할 조치를 선택해 영향 대상과 연관 Consumer를 확인한다.
+3. 변경 조치는 Reason, Approval ID, Expected Version, Idempotency Key가 필요한지 확인한다.
+4. 요청 후 Operation ID·Transaction ID·새 Version을 기록하고 최종 상태까지 조회한다.
+5. 연관 Projection·Cache·Snapshot·Audit·Metric이 같은 결과를 반영하는지 확인한다.
+6. `Snapshot Version·Import Dry Run·부분 적용 확인` 기준으로 오류·응답 유실·부분 적용을 분류한다.
+7. 실패 Target만 재처리하거나 변경 전 Version으로 보정·Rollback한 뒤 정상화 기준을 재확인한다.
 
-#### 조치 절차
+#### 화면별 핵심 판정
 
-사용 가능한 조치는 **조회·Snapshot 갱신·Package 반출/반입·Channel/Policy 저장**이다.
-
-1. 조치 직전 대상 상세를 다시 조회한다.
-2. 영향 Preview가 있으면 대상 Instance·거래·사용자·배치·Route 수를 기록한다.
-3. Reason, Approval ID, Expected Version, Idempotency Key를 입력한다.
-4. 실행 후 반환된 Operation ID·Transaction ID를 기록한다.
-5. `ACCEPTED` 또는 HTTP 202는 접수 상태이므로 최종 상태를 조회한다.
-6. Success에서는 상태·Version·Checksum·Audit·Metric이 함께 바뀌었는지 확인한다.
+- Package 반입은 Dry Run 결과와 Snapshot Version을 확인한 뒤 적용한다.
+- 채널 정의와 거래별 실행 정책을 분리해 Version과 인증·서명·TPS 정책을 확인한다.
 
 #### 정상 결과
 
-- 대상 Owner 상태가 요청한 상태로 전이된다.
-- Version 또는 Checksum이 변경 조치와 일치한다.
-- Audit에 Operator, Permission, Reason, Approval, Before/After, Result가 남는다.
-- 관련 Log·Metric·Trace에서 같은 Operation/Transaction 식별자를 찾을 수 있다.
-- 부분 적용 대상이 없거나, 대상별 결과가 명시적으로 구분된다.
+- Owner의 실제 상태와 화면 표시 상태가 일치한다.
+- 변경 조치라면 Version·Checksum·상태 전이가 요청 내용과 일치한다.
+- 부분 적용 대상은 Instance·Partition·Delivery·Row별로 구분된다.
+- Audit에 Operator, Permission, Reason, Approval, Before/After, Operation ID와 결과가 기록된다.
+- 같은 식별자로 Log·Metric·Trace 또는 Owner 원장을 조회할 수 있다.
 
 #### 오류·응답 유실·복구
 
-핵심 복구 기준: Snapshot Version·Import Dry Run·부분 적용 확인
+핵심 기준: **Snapshot Version·Import Dry Run·부분 적용 확인**
 
-| 상황 | 운영 절차 |
+| 상황 | 조치 |
 |---|---|
-| 400·Validation | Field 오류와 허용 범위를 수정하고 새 요청을 만든다. |
+| Validation·400 | 오류 Field·허용 범위·상위 기준정보를 수정하고 새 요청을 만든다. |
 | 401 | Session·CSRF·Origin을 확인하고 재로그인한다. 기존 변경 요청을 자동 재전송하지 않는다. |
-| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. UI 우회 호출을 하지 않는다. |
-| 409 | 최신 Version과 변경자를 조회하고 변경 의도를 다시 확인한다. Blind Retry하지 않는다. |
-| 429 | `Retry-After`와 Rate Limit을 확인한다. 비멱등 조치는 결과 대사 후 재실행한다. |
+| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. 우회 호출하지 않는다. |
+| 409 | 최신 Version·변경자·변경 시각을 조회하고 변경 의도를 다시 확인한다. |
+| 429 | `Retry-After`를 따르며 비멱등 조치는 결과 대사 후 재실행한다. |
 | Timeout·응답 유실 | Operation ID·Transaction ID·Idempotency Key로 기존 결과를 조회한다. |
-| PARTIAL | 성공·실패·미응답 Target을 분리하고 Failed-only Retry 또는 Exact Rollback을 선택한다. |
-| UNKNOWN_RESULT | Owner 원장, 상대 시스템, Ledger, Audit를 대사해 결과를 확정한 뒤 다음 조치를 선택한다. |
+| PARTIAL | 성공·실패·미응답 Target을 분리해 Failed-only Retry 또는 Exact Rollback을 선택한다. |
+| UNKNOWN_RESULT | Owner 원장·상대 시스템·Ledger·Audit를 대사해 결과를 확정한다. |
 
-#### 감사·교대 인계
+#### 교대·감사 기록
 
-교대 기록에는 화면 Route, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 결과 상태, 미확정 항목, 다음 확인 시각, Rollback 기준을 남긴다.
+Route, Environment, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 최종 상태, 미확정 대상, 다음 확인 시각과 Rollback 기준을 기록한다.
+
+
 ### serviceRegistry — Service·Endpoint·Instance·Health·Routing
 
-**접근 위치**: `/serviceRegistry`
-**메뉴 그룹**: 온라인 운영
-**화면 Source**: ``.../features/service-registry/ServiceRegistryPage.vue``
+| 항목 | 값 |
+|---|---|
+| Route | `/serviceRegistry` |
+| 그룹 | 온라인 운영 |
+| Frontend | `cpf-admin/frontend/src/features/service-registry/ServiceRegistryPage.vue` |
+| Permission | `SERVICE_REGISTRY` Write |
 
-#### 사용 목적과 사용 시점
+#### 사용 목적과 사용하지 말아야 할 경우
 
-이 화면은 **Service·Endpoint·Instance·Health·Routing** 업무를 수행한다. 조회 결과를 다른 화면의 상태와 연결해야 할 때는 Transaction ID, Trace ID, Operation ID, Version, Checksum, Instance ID 중 화면이 제공하는 식별자를 인계 키로 사용한다. 화면의 HTTP 응답만으로 업무 결과를 확정하지 않고 Owner 상태와 Audit를 함께 확인한다.
+이 화면은 **Service·Endpoint·Instance·Health·Routing** 기능을 수행한다. 다른 Owner의 상태를 직접 변경하거나, Browser 개발자 도구로 권한을 우회하거나, HTTP 200/202만으로 최종 결과를 확정하는 용도로 사용하지 않는다.
 
-#### 선행 조건
+#### 검색·입력값
 
-1. 대상 Environment와 Tenant·Data Scope가 맞는지 확인한다.
-2. 메뉴 조회 권한과 조치 권한을 구분한다. 필요한 권한은 ``SERVICE_REGISTRY` Write`이다.
-3. 변경 조치 전 대상의 최신 Version·상태·Owner를 새로 조회한다.
-4. Reason·Approval·Expected Version이 필요한 조치는 값을 준비한다.
-5. 이전 요청이 `PROCESSING`, `UNKNOWN_RESULT`, `PARTIAL`이면 신규 요청을 만들기 전에 기존 Operation을 대사한다.
+- Service ID
+- Endpoint
+- Instance Status
+- 각 등록 Form
 
-#### 검색·입력
+- 기간은 환경 표준 Timezone과 종료 시각 포함 여부를 확인한다.
+- ID는 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
+- 변경 조치의 Reason에는 목적, 영향 범위, 원복 기준, Incident·Approval ID를 적는다.
+- Password·Token·Secret·서명·PII 원문은 일반 Log나 교대 문서에 복사하지 않는다.
 
-Service ID, Endpoint, Instance Status; 각 등록 Form
+#### 목록·상세에서 확인할 값
 
-- 기간 입력은 운영 표준 Timezone을 사용하고 종료 시각 포함 여부를 확인한다.
-- 빈 문자열과 `null`, 전체 선택의 의미를 구분한다.
-- ID 입력은 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
-- Reason은 작업 목적, 영향 범위, 원복 기준, 관련 Incident·Approval ID를 포함한다.
-- 비밀번호·Token·Secret·서명 원문은 일반 입력·Log·Audit에 남기지 않는다.
+- Service/Endpoint/Instance/Health/Routing/Circuit/Call
 
-#### 결과와 상세 확인
+- 목록과 상세의 ID·Version·Owner가 다르면 조치를 중단하고 상세를 다시 조회한다.
+- `stale`, `partial`, `unknown`, Empty는 서로 다른 상태다.
+- Masked 값의 원문은 별도 Permission과 Reason이 있을 때만 조회한다.
 
-Service/Endpoint/Instance/Health/Routing/Circuit/Call
+#### Button·조치
 
-조회 후 다음 순서로 판정한다.
+- 등록·수정·Drain·Resume·Disable·새로고침
 
-1. 결과 생성 시각과 `stale`·`partial` 표식을 확인한다.
-2. Row 식별자와 상세의 Owner·Version이 동일한지 확인한다.
-3. Masked 값은 원문 조회 권한 없이 복호화하거나 우회하지 않는다.
-4. 상태가 집계값과 상세값에서 다르면 상세 Owner 상태를 기준으로 Reconcile한다.
-5. Empty 결과는 권한·Filter·Environment·시간 범위를 확인한 뒤에만 0건으로 판정한다.
+1. 대상의 최신 상세와 Version을 조회하고 입력값의 Default·허용 범위를 확인한다.
+2. `등록·수정·Drain·Resume·Disable·새로고침` 중 수행할 조치를 선택해 영향 대상과 연관 Consumer를 확인한다.
+3. 변경 조치는 Reason, Approval ID, Expected Version, Idempotency Key가 필요한지 확인한다.
+4. 요청 후 Operation ID·Transaction ID·새 Version을 기록하고 최종 상태까지 조회한다.
+5. 연관 Projection·Cache·Snapshot·Audit·Metric이 같은 결과를 반영하는지 확인한다.
+6. `Version·Heartbeat·Draining·Maintenance·Health 분리` 기준으로 오류·응답 유실·부분 적용을 분류한다.
+7. 실패 Target만 재처리하거나 변경 전 Version으로 보정·Rollback한 뒤 정상화 기준을 재확인한다.
 
-#### 조치 절차
+#### 화면별 핵심 판정
 
-사용 가능한 조치는 **등록·수정·Drain·Resume·Disable·새로고침**이다.
-
-1. 조치 직전 대상 상세를 다시 조회한다.
-2. 영향 Preview가 있으면 대상 Instance·거래·사용자·배치·Route 수를 기록한다.
-3. Reason, Approval ID, Expected Version, Idempotency Key를 입력한다.
-4. 실행 후 반환된 Operation ID·Transaction ID를 기록한다.
-5. `ACCEPTED` 또는 HTTP 202는 접수 상태이므로 최종 상태를 조회한다.
-6. Success에서는 상태·Version·Checksum·Audit·Metric이 함께 바뀌었는지 확인한다.
+- Service, Endpoint, Instance 등록 순서를 지키고 Heartbeat·Maintenance·Draining을 분리한다.
+- Drain은 신규 Routing 제외 후 In-flight 종료를 확인하며 Disable과 혼동하지 않는다.
 
 #### 정상 결과
 
-- 대상 Owner 상태가 요청한 상태로 전이된다.
-- Version 또는 Checksum이 변경 조치와 일치한다.
-- Audit에 Operator, Permission, Reason, Approval, Before/After, Result가 남는다.
-- 관련 Log·Metric·Trace에서 같은 Operation/Transaction 식별자를 찾을 수 있다.
-- 부분 적용 대상이 없거나, 대상별 결과가 명시적으로 구분된다.
+- Owner의 실제 상태와 화면 표시 상태가 일치한다.
+- 변경 조치라면 Version·Checksum·상태 전이가 요청 내용과 일치한다.
+- 부분 적용 대상은 Instance·Partition·Delivery·Row별로 구분된다.
+- Audit에 Operator, Permission, Reason, Approval, Before/After, Operation ID와 결과가 기록된다.
+- 같은 식별자로 Log·Metric·Trace 또는 Owner 원장을 조회할 수 있다.
 
 #### 오류·응답 유실·복구
 
-핵심 복구 기준: Version·Heartbeat·Draining·Maintenance·Health 분리
+핵심 기준: **Version·Heartbeat·Draining·Maintenance·Health 분리**
 
-| 상황 | 운영 절차 |
+| 상황 | 조치 |
 |---|---|
-| 400·Validation | Field 오류와 허용 범위를 수정하고 새 요청을 만든다. |
+| Validation·400 | 오류 Field·허용 범위·상위 기준정보를 수정하고 새 요청을 만든다. |
 | 401 | Session·CSRF·Origin을 확인하고 재로그인한다. 기존 변경 요청을 자동 재전송하지 않는다. |
-| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. UI 우회 호출을 하지 않는다. |
-| 409 | 최신 Version과 변경자를 조회하고 변경 의도를 다시 확인한다. Blind Retry하지 않는다. |
-| 429 | `Retry-After`와 Rate Limit을 확인한다. 비멱등 조치는 결과 대사 후 재실행한다. |
+| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. 우회 호출하지 않는다. |
+| 409 | 최신 Version·변경자·변경 시각을 조회하고 변경 의도를 다시 확인한다. |
+| 429 | `Retry-After`를 따르며 비멱등 조치는 결과 대사 후 재실행한다. |
 | Timeout·응답 유실 | Operation ID·Transaction ID·Idempotency Key로 기존 결과를 조회한다. |
-| PARTIAL | 성공·실패·미응답 Target을 분리하고 Failed-only Retry 또는 Exact Rollback을 선택한다. |
-| UNKNOWN_RESULT | Owner 원장, 상대 시스템, Ledger, Audit를 대사해 결과를 확정한 뒤 다음 조치를 선택한다. |
+| PARTIAL | 성공·실패·미응답 Target을 분리해 Failed-only Retry 또는 Exact Rollback을 선택한다. |
+| UNKNOWN_RESULT | Owner 원장·상대 시스템·Ledger·Audit를 대사해 결과를 확정한다. |
 
-#### 감사·교대 인계
+#### 교대·감사 기록
 
-교대 기록에는 화면 Route, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 결과 상태, 미확정 항목, 다음 확인 시각, Rollback 기준을 남긴다.
+Route, Environment, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 최종 상태, 미확정 대상, 다음 확인 시각과 Rollback 기준을 기록한다.
+
+
 ### runtimeControl — Runtime 변경 Control Plane
 
-**접근 위치**: `/runtimeControl`
-**메뉴 그룹**: 온라인 운영
-**화면 Source**: ``.../features/runtime-control/RuntimeControlPage.vue``
+| 항목 | 값 |
+|---|---|
+| Route | `/runtimeControl` |
+| 그룹 | 온라인 운영 |
+| Frontend | `cpf-admin/frontend/src/features/runtime-control/RuntimeControlPage.vue` |
+| Permission | Runtime Control Permission + Approval/Break-glass |
 
-#### 사용 목적과 사용 시점
+#### 사용 목적과 사용하지 말아야 할 경우
 
-이 화면은 **Runtime 변경 Control Plane** 업무를 수행한다. 조회 결과를 다른 화면의 상태와 연결해야 할 때는 Transaction ID, Trace ID, Operation ID, Version, Checksum, Instance ID 중 화면이 제공하는 식별자를 인계 키로 사용한다. 화면의 HTTP 응답만으로 업무 결과를 확정하지 않고 Owner 상태와 Audit를 함께 확인한다.
+이 화면은 **Runtime 변경 Control Plane** 기능을 수행한다. 다른 Owner의 상태를 직접 변경하거나, Browser 개발자 도구로 권한을 우회하거나, HTTP 200/202만으로 최종 결과를 확정하는 용도로 사용하지 않는다.
 
-#### 선행 조건
+#### 검색·입력값
 
-1. 대상 Environment와 Tenant·Data Scope가 맞는지 확인한다.
-2. 메뉴 조회 권한과 조치 권한을 구분한다. 필요한 권한은 `Runtime Control Permission + Approval/Break-glass`이다.
-3. 변경 조치 전 대상의 최신 Version·상태·Owner를 새로 조회한다.
-4. Reason·Approval·Expected Version이 필요한 조치는 값을 준비한다.
-5. 이전 요청이 `PROCESSING`, `UNKNOWN_RESULT`, `PARTIAL`이면 신규 요청을 만들기 전에 기존 Operation을 대사한다.
+- Operation/Change/Target/Expected Version/Rollout/Approval/Payload/Reason
 
-#### 검색·입력
+- 기간은 환경 표준 Timezone과 종료 시각 포함 여부를 확인한다.
+- ID는 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
+- 변경 조치의 Reason에는 목적, 영향 범위, 원복 기준, Incident·Approval ID를 적는다.
+- Password·Token·Secret·서명·PII 원문은 일반 Log나 교대 문서에 복사하지 않는다.
 
-Operation/Change/Target/Expected Version/Rollout/Approval/Payload/Reason
+#### 목록·상세에서 확인할 값
 
-- 기간 입력은 운영 표준 Timezone을 사용하고 종료 시각 포함 여부를 확인한다.
-- 빈 문자열과 `null`, 전체 선택의 의미를 구분한다.
-- ID 입력은 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
-- Reason은 작업 목적, 영향 범위, 원복 기준, 관련 Incident·Approval ID를 포함한다.
-- 비밀번호·Token·Secret·서명 원문은 일반 입력·Log·Audit에 남기지 않는다.
+- Readiness
+- Pending
+- Poison
+- Drift
+- ACK/Failed/Drift/Hash
 
-#### 결과와 상세 확인
+- 목록과 상세의 ID·Version·Owner가 다르면 조치를 중단하고 상세를 다시 조회한다.
+- `stale`, `partial`, `unknown`, Empty는 서로 다른 상태다.
+- Masked 값의 원문은 별도 Permission과 Reason이 있을 때만 조회한다.
 
-Readiness, Pending, Poison, Drift; ACK/Failed/Drift/Hash
+#### Button·조치
 
-조회 후 다음 순서로 판정한다.
+- Target/Diff Preview·생성·조회·Audit 검증·Cancel·Exact Rollback·Group CRUD
 
-1. 결과 생성 시각과 `stale`·`partial` 표식을 확인한다.
-2. Row 식별자와 상세의 Owner·Version이 동일한지 확인한다.
-3. Masked 값은 원문 조회 권한 없이 복호화하거나 우회하지 않는다.
-4. 상태가 집계값과 상세값에서 다르면 상세 Owner 상태를 기준으로 Reconcile한다.
-5. Empty 결과는 권한·Filter·Environment·시간 범위를 확인한 뒤에만 0건으로 판정한다.
+1. 대상의 최신 상세와 Version을 조회하고 입력값의 Default·허용 범위를 확인한다.
+2. `Target/Diff Preview·생성·조회·Audit 검증·Cancel·Exact Rollback·Group CRUD` 중 수행할 조치를 선택해 영향 대상과 연관 Consumer를 확인한다.
+3. 변경 조치는 Reason, Approval ID, Expected Version, Idempotency Key가 필요한지 확인한다.
+4. 요청 후 Operation ID·Transaction ID·새 Version을 기록하고 최종 상태까지 조회한다.
+5. 연관 Projection·Cache·Snapshot·Audit·Metric이 같은 결과를 반영하는지 확인한다.
+6. `UNKNOWN/PARTIAL/Drift를 성공으로 처리 금지` 기준으로 오류·응답 유실·부분 적용을 분류한다.
+7. 실패 Target만 재처리하거나 변경 전 Version으로 보정·Rollback한 뒤 정상화 기준을 재확인한다.
 
-#### 조치 절차
+#### 화면별 핵심 판정
 
-사용 가능한 조치는 **Target/Diff Preview·생성·조회·Audit 검증·Cancel·Exact Rollback·Group CRUD**이다.
-
-1. 조치 직전 대상 상세를 다시 조회한다.
-2. 영향 Preview가 있으면 대상 Instance·거래·사용자·배치·Route 수를 기록한다.
-3. Reason, Approval ID, Expected Version, Idempotency Key를 입력한다.
-4. 실행 후 반환된 Operation ID·Transaction ID를 기록한다.
-5. `ACCEPTED` 또는 HTTP 202는 접수 상태이므로 최종 상태를 조회한다.
-6. Success에서는 상태·Version·Checksum·Audit·Metric이 함께 바뀌었는지 확인한다.
+- Preview·CAS·Rollout·Quorum·Audit 검증 후 변경을 생성한다.
+- Cancel은 미적용 Target만 중지하고 적용 완료 Target은 Exact Rollback 대상으로 분리한다.
 
 #### 정상 결과
 
-- 대상 Owner 상태가 요청한 상태로 전이된다.
-- Version 또는 Checksum이 변경 조치와 일치한다.
-- Audit에 Operator, Permission, Reason, Approval, Before/After, Result가 남는다.
-- 관련 Log·Metric·Trace에서 같은 Operation/Transaction 식별자를 찾을 수 있다.
-- 부분 적용 대상이 없거나, 대상별 결과가 명시적으로 구분된다.
+- Owner의 실제 상태와 화면 표시 상태가 일치한다.
+- 변경 조치라면 Version·Checksum·상태 전이가 요청 내용과 일치한다.
+- 부분 적용 대상은 Instance·Partition·Delivery·Row별로 구분된다.
+- Audit에 Operator, Permission, Reason, Approval, Before/After, Operation ID와 결과가 기록된다.
+- 같은 식별자로 Log·Metric·Trace 또는 Owner 원장을 조회할 수 있다.
 
 #### 오류·응답 유실·복구
 
-핵심 복구 기준: UNKNOWN/PARTIAL/Drift를 성공으로 처리 금지
+핵심 기준: **UNKNOWN/PARTIAL/Drift를 성공으로 처리 금지**
 
-| 상황 | 운영 절차 |
+| 상황 | 조치 |
 |---|---|
-| 400·Validation | Field 오류와 허용 범위를 수정하고 새 요청을 만든다. |
+| Validation·400 | 오류 Field·허용 범위·상위 기준정보를 수정하고 새 요청을 만든다. |
 | 401 | Session·CSRF·Origin을 확인하고 재로그인한다. 기존 변경 요청을 자동 재전송하지 않는다. |
-| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. UI 우회 호출을 하지 않는다. |
-| 409 | 최신 Version과 변경자를 조회하고 변경 의도를 다시 확인한다. Blind Retry하지 않는다. |
-| 429 | `Retry-After`와 Rate Limit을 확인한다. 비멱등 조치는 결과 대사 후 재실행한다. |
+| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. 우회 호출하지 않는다. |
+| 409 | 최신 Version·변경자·변경 시각을 조회하고 변경 의도를 다시 확인한다. |
+| 429 | `Retry-After`를 따르며 비멱등 조치는 결과 대사 후 재실행한다. |
 | Timeout·응답 유실 | Operation ID·Transaction ID·Idempotency Key로 기존 결과를 조회한다. |
-| PARTIAL | 성공·실패·미응답 Target을 분리하고 Failed-only Retry 또는 Exact Rollback을 선택한다. |
-| UNKNOWN_RESULT | Owner 원장, 상대 시스템, Ledger, Audit를 대사해 결과를 확정한 뒤 다음 조치를 선택한다. |
+| PARTIAL | 성공·실패·미응답 Target을 분리해 Failed-only Retry 또는 Exact Rollback을 선택한다. |
+| UNKNOWN_RESULT | Owner 원장·상대 시스템·Ledger·Audit를 대사해 결과를 확정한다. |
 
-#### 감사·교대 인계
+#### 교대·감사 기록
 
-교대 기록에는 화면 Route, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 결과 상태, 미확정 항목, 다음 확인 시각, Rollback 기준을 남긴다.
+Route, Environment, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 최종 상태, 미확정 대상, 다음 확인 시각과 Rollback 기준을 기록한다.
+
+
 ### maintenance — 점검·Drain 제어
 
-**접근 위치**: `/maintenance`
-**메뉴 그룹**: 프레임워크
-**화면 Source**: ``.../features/maintenance/MaintenancePage.vue``
+| 항목 | 값 |
+|---|---|
+| Route | `/maintenance` |
+| 그룹 | 프레임워크 |
+| Frontend | `cpf-admin/frontend/src/features/maintenance/MaintenancePage.vue` |
+| Permission | Owner Command Permission |
 
-#### 사용 목적과 사용 시점
+#### 사용 목적과 사용하지 말아야 할 경우
 
-이 화면은 **점검·Drain 제어** 업무를 수행한다. 조회 결과를 다른 화면의 상태와 연결해야 할 때는 Transaction ID, Trace ID, Operation ID, Version, Checksum, Instance ID 중 화면이 제공하는 식별자를 인계 키로 사용한다. 화면의 HTTP 응답만으로 업무 결과를 확정하지 않고 Owner 상태와 Audit를 함께 확인한다.
+이 화면은 **점검·Drain 제어** 기능을 수행한다. 다른 Owner의 상태를 직접 변경하거나, Browser 개발자 도구로 권한을 우회하거나, HTTP 200/202만으로 최종 결과를 확정하는 용도로 사용하지 않는다.
 
-#### 선행 조건
+#### 검색·입력값
 
-1. 대상 Environment와 Tenant·Data Scope가 맞는지 확인한다.
-2. 메뉴 조회 권한과 조치 권한을 구분한다. 필요한 권한은 `Owner Command Permission`이다.
-3. 변경 조치 전 대상의 최신 Version·상태·Owner를 새로 조회한다.
-4. Reason·Approval·Expected Version이 필요한 조치는 값을 준비한다.
-5. 이전 요청이 `PROCESSING`, `UNKNOWN_RESULT`, `PARTIAL`이면 신규 요청을 만들기 전에 기존 Operation을 대사한다.
+- Service
+- Endpoint
+- Instance
+- DRAIN/DISABLE/RESUME
+- Reason
 
-#### 검색·입력
+- 기간은 환경 표준 Timezone과 종료 시각 포함 여부를 확인한다.
+- ID는 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
+- 변경 조치의 Reason에는 목적, 영향 범위, 원복 기준, Incident·Approval ID를 적는다.
+- Password·Token·Secret·서명·PII 원문은 일반 Log나 교대 문서에 복사하지 않는다.
 
-Service, Endpoint, Instance, DRAIN/DISABLE/RESUME, Reason
+#### 목록·상세에서 확인할 값
 
-- 기간 입력은 운영 표준 Timezone을 사용하고 종료 시각 포함 여부를 확인한다.
-- 빈 문자열과 `null`, 전체 선택의 의미를 구분한다.
-- ID 입력은 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
-- Reason은 작업 목적, 영향 범위, 원복 기준, 관련 Incident·Approval ID를 포함한다.
-- 비밀번호·Token·Secret·서명 원문은 일반 입력·Log·Audit에 남기지 않는다.
+- 시간
+- Service
+- Instance
+- Action
+- Result
+- Reason
 
-#### 결과와 상세 확인
+- 목록과 상세의 ID·Version·Owner가 다르면 조치를 중단하고 상세를 다시 조회한다.
+- `stale`, `partial`, `unknown`, Empty는 서로 다른 상태다.
+- Masked 값의 원문은 별도 Permission과 Reason이 있을 때만 조회한다.
 
-시간, Service, Instance, Action, Result, Reason
+#### Button·조치
 
-조회 후 다음 순서로 판정한다.
+- 명령 실행·조회
 
-1. 결과 생성 시각과 `stale`·`partial` 표식을 확인한다.
-2. Row 식별자와 상세의 Owner·Version이 동일한지 확인한다.
-3. Masked 값은 원문 조회 권한 없이 복호화하거나 우회하지 않는다.
-4. 상태가 집계값과 상세값에서 다르면 상세 Owner 상태를 기준으로 Reconcile한다.
-5. Empty 결과는 권한·Filter·Environment·시간 범위를 확인한 뒤에만 0건으로 판정한다.
+1. 대상의 최신 상세와 Version을 조회하고 입력값의 Default·허용 범위를 확인한다.
+2. `명령 실행·조회` 중 수행할 조치를 선택해 영향 대상과 연관 Consumer를 확인한다.
+3. 변경 조치는 Reason, Approval ID, Expected Version, Idempotency Key가 필요한지 확인한다.
+4. 요청 후 Operation ID·Transaction ID·새 Version을 기록하고 최종 상태까지 조회한다.
+5. 연관 Projection·Cache·Snapshot·Audit·Metric이 같은 결과를 반영하는지 확인한다.
+6. `Routing 제외 영향·Audit 확인` 기준으로 오류·응답 유실·부분 적용을 분류한다.
+7. 실패 Target만 재처리하거나 변경 전 Version으로 보정·Rollback한 뒤 정상화 기준을 재확인한다.
 
-#### 조치 절차
+#### 화면별 핵심 판정
 
-사용 가능한 조치는 **명령 실행·조회**이다.
-
-1. 조치 직전 대상 상세를 다시 조회한다.
-2. 영향 Preview가 있으면 대상 Instance·거래·사용자·배치·Route 수를 기록한다.
-3. Reason, Approval ID, Expected Version, Idempotency Key를 입력한다.
-4. 실행 후 반환된 Operation ID·Transaction ID를 기록한다.
-5. `ACCEPTED` 또는 HTTP 202는 접수 상태이므로 최종 상태를 조회한다.
-6. Success에서는 상태·Version·Checksum·Audit·Metric이 함께 바뀌었는지 확인한다.
+- 핵심 입력은 `Service, Endpoint, Instance, DRAIN/DISABLE/RESUME, Reason`이며 핵심 결과는 `시간, Service, Instance, Action, Result, Reason`다.
+- 오류·복구는 `Routing 제외 영향·Audit 확인`를 우선 확인한다.
 
 #### 정상 결과
 
-- 대상 Owner 상태가 요청한 상태로 전이된다.
-- Version 또는 Checksum이 변경 조치와 일치한다.
-- Audit에 Operator, Permission, Reason, Approval, Before/After, Result가 남는다.
-- 관련 Log·Metric·Trace에서 같은 Operation/Transaction 식별자를 찾을 수 있다.
-- 부분 적용 대상이 없거나, 대상별 결과가 명시적으로 구분된다.
+- Owner의 실제 상태와 화면 표시 상태가 일치한다.
+- 변경 조치라면 Version·Checksum·상태 전이가 요청 내용과 일치한다.
+- 부분 적용 대상은 Instance·Partition·Delivery·Row별로 구분된다.
+- Audit에 Operator, Permission, Reason, Approval, Before/After, Operation ID와 결과가 기록된다.
+- 같은 식별자로 Log·Metric·Trace 또는 Owner 원장을 조회할 수 있다.
 
 #### 오류·응답 유실·복구
 
-핵심 복구 기준: Routing 제외 영향·Audit 확인
+핵심 기준: **Routing 제외 영향·Audit 확인**
 
-| 상황 | 운영 절차 |
+| 상황 | 조치 |
 |---|---|
-| 400·Validation | Field 오류와 허용 범위를 수정하고 새 요청을 만든다. |
+| Validation·400 | 오류 Field·허용 범위·상위 기준정보를 수정하고 새 요청을 만든다. |
 | 401 | Session·CSRF·Origin을 확인하고 재로그인한다. 기존 변경 요청을 자동 재전송하지 않는다. |
-| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. UI 우회 호출을 하지 않는다. |
-| 409 | 최신 Version과 변경자를 조회하고 변경 의도를 다시 확인한다. Blind Retry하지 않는다. |
-| 429 | `Retry-After`와 Rate Limit을 확인한다. 비멱등 조치는 결과 대사 후 재실행한다. |
+| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. 우회 호출하지 않는다. |
+| 409 | 최신 Version·변경자·변경 시각을 조회하고 변경 의도를 다시 확인한다. |
+| 429 | `Retry-After`를 따르며 비멱등 조치는 결과 대사 후 재실행한다. |
 | Timeout·응답 유실 | Operation ID·Transaction ID·Idempotency Key로 기존 결과를 조회한다. |
-| PARTIAL | 성공·실패·미응답 Target을 분리하고 Failed-only Retry 또는 Exact Rollback을 선택한다. |
-| UNKNOWN_RESULT | Owner 원장, 상대 시스템, Ledger, Audit를 대사해 결과를 확정한 뒤 다음 조치를 선택한다. |
+| PARTIAL | 성공·실패·미응답 Target을 분리해 Failed-only Retry 또는 Exact Rollback을 선택한다. |
+| UNKNOWN_RESULT | Owner 원장·상대 시스템·Ledger·Audit를 대사해 결과를 확정한다. |
 
-#### 감사·교대 인계
+#### 교대·감사 기록
 
-교대 기록에는 화면 Route, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 결과 상태, 미확정 항목, 다음 확인 시각, Rollback 기준을 남긴다.
+Route, Environment, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 최종 상태, 미확정 대상, 다음 확인 시각과 Rollback 기준을 기록한다.
+
+
 ### cache — Cache 조회·Evict·Reconcile
 
-**접근 위치**: `/cache`
-**메뉴 그룹**: 프레임워크
-**화면 Source**: ``.../features/cache/CachePage.vue``
+| 항목 | 값 |
+|---|---|
+| Route | `/cache` |
+| 그룹 | 프레임워크 |
+| Frontend | `cpf-admin/frontend/src/features/cache/CachePage.vue` |
+| Permission | Button Permission `CACHE_*` |
 
-#### 사용 목적과 사용 시점
+#### 사용 목적과 사용하지 말아야 할 경우
 
-이 화면은 **Cache 조회·Evict·Reconcile** 업무를 수행한다. 조회 결과를 다른 화면의 상태와 연결해야 할 때는 Transaction ID, Trace ID, Operation ID, Version, Checksum, Instance ID 중 화면이 제공하는 식별자를 인계 키로 사용한다. 화면의 HTTP 응답만으로 업무 결과를 확정하지 않고 Owner 상태와 Audit를 함께 확인한다.
+이 화면은 **Cache 조회·Evict·Reconcile** 기능을 수행한다. 다른 Owner의 상태를 직접 변경하거나, Browser 개발자 도구로 권한을 우회하거나, HTTP 200/202만으로 최종 결과를 확정하는 용도로 사용하지 않는다.
 
-#### 선행 조건
+#### 검색·입력값
 
-1. 대상 Environment와 Tenant·Data Scope가 맞는지 확인한다.
-2. 메뉴 조회 권한과 조치 권한을 구분한다. 필요한 권한은 `Button Permission `CACHE_*``이다.
-3. 변경 조치 전 대상의 최신 Version·상태·Owner를 새로 조회한다.
-4. Reason·Approval·Expected Version이 필요한 조치는 값을 준비한다.
-5. 이전 요청이 `PROCESSING`, `UNKNOWN_RESULT`, `PARTIAL`이면 신규 요청을 만들기 전에 기존 Operation을 대사한다.
+- Tenant
+- Namespace
+- Key
+- Version
+- Reason
 
-#### 검색·입력
+- 기간은 환경 표준 Timezone과 종료 시각 포함 여부를 확인한다.
+- ID는 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
+- 변경 조치의 Reason에는 목적, 영향 범위, 원복 기준, Incident·Approval ID를 적는다.
+- Password·Token·Secret·서명·PII 원문은 일반 Log나 교대 문서에 복사하지 않는다.
 
-Tenant, Namespace, Key, Version, Reason
+#### 목록·상세에서 확인할 값
 
-- 기간 입력은 운영 표준 Timezone을 사용하고 종료 시각 포함 여부를 확인한다.
-- 빈 문자열과 `null`, 전체 선택의 의미를 구분한다.
-- ID 입력은 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
-- Reason은 작업 목적, 영향 범위, 원복 기준, 관련 Incident·Approval ID를 포함한다.
-- 비밀번호·Token·Secret·서명 원문은 일반 입력·Log·Audit에 남기지 않는다.
+- Cache Summary/Result
 
-#### 결과와 상세 확인
+- 목록과 상세의 ID·Version·Owner가 다르면 조치를 중단하고 상세를 다시 조회한다.
+- `stale`, `partial`, `unknown`, Empty는 서로 다른 상태다.
+- Masked 값의 원문은 별도 Permission과 Reason이 있을 때만 조회한다.
 
-Cache Summary/Result
+#### Button·조치
 
-조회 후 다음 순서로 판정한다.
+- Target 갱신·Key/Namespace Evict·Durable Reconcile
 
-1. 결과 생성 시각과 `stale`·`partial` 표식을 확인한다.
-2. Row 식별자와 상세의 Owner·Version이 동일한지 확인한다.
-3. Masked 값은 원문 조회 권한 없이 복호화하거나 우회하지 않는다.
-4. 상태가 집계값과 상세값에서 다르면 상세 Owner 상태를 기준으로 Reconcile한다.
-5. Empty 결과는 권한·Filter·Environment·시간 범위를 확인한 뒤에만 0건으로 판정한다.
+1. 대상의 최신 상세와 Version을 조회하고 입력값의 Default·허용 범위를 확인한다.
+2. `Target 갱신·Key/Namespace Evict·Durable Reconcile` 중 수행할 조치를 선택해 영향 대상과 연관 Consumer를 확인한다.
+3. 변경 조치는 Reason, Approval ID, Expected Version, Idempotency Key가 필요한지 확인한다.
+4. 요청 후 Operation ID·Transaction ID·새 Version을 기록하고 최종 상태까지 조회한다.
+5. 연관 Projection·Cache·Snapshot·Audit·Metric이 같은 결과를 반영하는지 확인한다.
+6. `Cache는 정본 아님; Reconcile 뒤 Owner 확인` 기준으로 오류·응답 유실·부분 적용을 분류한다.
+7. 실패 Target만 재처리하거나 변경 전 Version으로 보정·Rollback한 뒤 정상화 기준을 재확인한다.
 
-#### 조치 절차
+#### 화면별 핵심 판정
 
-사용 가능한 조치는 **Target 갱신·Key/Namespace Evict·Durable Reconcile**이다.
-
-1. 조치 직전 대상 상세를 다시 조회한다.
-2. 영향 Preview가 있으면 대상 Instance·거래·사용자·배치·Route 수를 기록한다.
-3. Reason, Approval ID, Expected Version, Idempotency Key를 입력한다.
-4. 실행 후 반환된 Operation ID·Transaction ID를 기록한다.
-5. `ACCEPTED` 또는 HTTP 202는 접수 상태이므로 최종 상태를 조회한다.
-6. Success에서는 상태·Version·Checksum·Audit·Metric이 함께 바뀌었는지 확인한다.
+- 핵심 입력은 `Tenant, Namespace, Key, Version, Reason`이며 핵심 결과는 `Cache Summary/Result`다.
+- 오류·복구는 `Cache는 정본 아님; Reconcile 뒤 Owner 확인`를 우선 확인한다.
 
 #### 정상 결과
 
-- 대상 Owner 상태가 요청한 상태로 전이된다.
-- Version 또는 Checksum이 변경 조치와 일치한다.
-- Audit에 Operator, Permission, Reason, Approval, Before/After, Result가 남는다.
-- 관련 Log·Metric·Trace에서 같은 Operation/Transaction 식별자를 찾을 수 있다.
-- 부분 적용 대상이 없거나, 대상별 결과가 명시적으로 구분된다.
+- Owner의 실제 상태와 화면 표시 상태가 일치한다.
+- 변경 조치라면 Version·Checksum·상태 전이가 요청 내용과 일치한다.
+- 부분 적용 대상은 Instance·Partition·Delivery·Row별로 구분된다.
+- Audit에 Operator, Permission, Reason, Approval, Before/After, Operation ID와 결과가 기록된다.
+- 같은 식별자로 Log·Metric·Trace 또는 Owner 원장을 조회할 수 있다.
 
 #### 오류·응답 유실·복구
 
-핵심 복구 기준: Cache는 정본 아님; Reconcile 뒤 Owner 확인
+핵심 기준: **Cache는 정본 아님; Reconcile 뒤 Owner 확인**
 
-| 상황 | 운영 절차 |
+| 상황 | 조치 |
 |---|---|
-| 400·Validation | Field 오류와 허용 범위를 수정하고 새 요청을 만든다. |
+| Validation·400 | 오류 Field·허용 범위·상위 기준정보를 수정하고 새 요청을 만든다. |
 | 401 | Session·CSRF·Origin을 확인하고 재로그인한다. 기존 변경 요청을 자동 재전송하지 않는다. |
-| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. UI 우회 호출을 하지 않는다. |
-| 409 | 최신 Version과 변경자를 조회하고 변경 의도를 다시 확인한다. Blind Retry하지 않는다. |
-| 429 | `Retry-After`와 Rate Limit을 확인한다. 비멱등 조치는 결과 대사 후 재실행한다. |
+| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. 우회 호출하지 않는다. |
+| 409 | 최신 Version·변경자·변경 시각을 조회하고 변경 의도를 다시 확인한다. |
+| 429 | `Retry-After`를 따르며 비멱등 조치는 결과 대사 후 재실행한다. |
 | Timeout·응답 유실 | Operation ID·Transaction ID·Idempotency Key로 기존 결과를 조회한다. |
-| PARTIAL | 성공·실패·미응답 Target을 분리하고 Failed-only Retry 또는 Exact Rollback을 선택한다. |
-| UNKNOWN_RESULT | Owner 원장, 상대 시스템, Ledger, Audit를 대사해 결과를 확정한 뒤 다음 조치를 선택한다. |
+| PARTIAL | 성공·실패·미응답 Target을 분리해 Failed-only Retry 또는 Exact Rollback을 선택한다. |
+| UNKNOWN_RESULT | Owner 원장·상대 시스템·Ledger·Audit를 대사해 결과를 확정한다. |
 
-#### 감사·교대 인계
+#### 교대·감사 기록
 
-교대 기록에는 화면 Route, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 결과 상태, 미확정 항목, 다음 확인 시각, Rollback 기준을 남긴다.
+Route, Environment, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 최종 상태, 미확정 대상, 다음 확인 시각과 Rollback 기준을 기록한다.
+
+
 ### configs — 설정 관리
 
-**접근 위치**: `/configs`
-**메뉴 그룹**: 프레임워크
-**화면 Source**: ``.../features/configs/ConfigsPage.vue``
+| 항목 | 값 |
+|---|---|
+| Route | `/configs` |
+| 그룹 | 프레임워크 |
+| Frontend | `cpf-admin/frontend/src/features/configs/ConfigsPage.vue` |
+| Permission | `CONFIG` Write |
 
-#### 사용 목적과 사용 시점
+#### 사용 목적과 사용하지 말아야 할 경우
 
-이 화면은 **설정 관리** 업무를 수행한다. 조회 결과를 다른 화면의 상태와 연결해야 할 때는 Transaction ID, Trace ID, Operation ID, Version, Checksum, Instance ID 중 화면이 제공하는 식별자를 인계 키로 사용한다. 화면의 HTTP 응답만으로 업무 결과를 확정하지 않고 Owner 상태와 Audit를 함께 확인한다.
+이 화면은 **설정 관리** 기능을 수행한다. 다른 Owner의 상태를 직접 변경하거나, Browser 개발자 도구로 권한을 우회하거나, HTTP 200/202만으로 최종 결과를 확정하는 용도로 사용하지 않는다.
 
-#### 선행 조건
+#### 검색·입력값
 
-1. 대상 Environment와 Tenant·Data Scope가 맞는지 확인한다.
-2. 메뉴 조회 권한과 조치 권한을 구분한다. 필요한 권한은 ``CONFIG` Write`이다.
-3. 변경 조치 전 대상의 최신 Version·상태·Owner를 새로 조회한다.
-4. Reason·Approval·Expected Version이 필요한 조치는 값을 준비한다.
-5. 이전 요청이 `PROCESSING`, `UNKNOWN_RESULT`, `PARTIAL`이면 신규 요청을 만들기 전에 기존 Operation을 대사한다.
+- Config ID/Key/Value/Type/Encrypted YN/Reason
 
-#### 검색·입력
+- 기간은 환경 표준 Timezone과 종료 시각 포함 여부를 확인한다.
+- ID는 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
+- 변경 조치의 Reason에는 목적, 영향 범위, 원복 기준, Incident·Approval ID를 적는다.
+- Password·Token·Secret·서명·PII 원문은 일반 Log나 교대 문서에 복사하지 않는다.
 
-Config ID/Key/Value/Type/Encrypted YN/Reason
+#### 목록·상세에서 확인할 값
 
-- 기간 입력은 운영 표준 Timezone을 사용하고 종료 시각 포함 여부를 확인한다.
-- 빈 문자열과 `null`, 전체 선택의 의미를 구분한다.
-- ID 입력은 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
-- Reason은 작업 목적, 영향 범위, 원복 기준, 관련 Incident·Approval ID를 포함한다.
-- 비밀번호·Token·Secret·서명 원문은 일반 입력·Log·Audit에 남기지 않는다.
+- Pretty Result
 
-#### 결과와 상세 확인
+- 목록과 상세의 ID·Version·Owner가 다르면 조치를 중단하고 상세를 다시 조회한다.
+- `stale`, `partial`, `unknown`, Empty는 서로 다른 상태다.
+- Masked 값의 원문은 별도 Permission과 Reason이 있을 때만 조회한다.
 
-Pretty Result
+#### Button·조치
 
-조회 후 다음 순서로 판정한다.
+- 조회·등록·수정
 
-1. 결과 생성 시각과 `stale`·`partial` 표식을 확인한다.
-2. Row 식별자와 상세의 Owner·Version이 동일한지 확인한다.
-3. Masked 값은 원문 조회 권한 없이 복호화하거나 우회하지 않는다.
-4. 상태가 집계값과 상세값에서 다르면 상세 Owner 상태를 기준으로 Reconcile한다.
-5. Empty 결과는 권한·Filter·Environment·시간 범위를 확인한 뒤에만 0건으로 판정한다.
+1. 대상의 최신 상세와 Version을 조회하고 입력값의 Default·허용 범위를 확인한다.
+2. `조회·등록·수정` 중 수행할 조치를 선택해 영향 대상과 연관 Consumer를 확인한다.
+3. 변경 조치는 Reason, Approval ID, Expected Version, Idempotency Key가 필요한지 확인한다.
+4. 요청 후 Operation ID·Transaction ID·새 Version을 기록하고 최종 상태까지 조회한다.
+5. 연관 Projection·Cache·Snapshot·Audit·Metric이 같은 결과를 반영하는지 확인한다.
+6. `Secret 원문을 일반 Config에 저장 금지` 기준으로 오류·응답 유실·부분 적용을 분류한다.
+7. 실패 Target만 재처리하거나 변경 전 Version으로 보정·Rollback한 뒤 정상화 기준을 재확인한다.
 
-#### 조치 절차
+#### 화면별 핵심 판정
 
-사용 가능한 조치는 **조회·등록·수정**이다.
-
-1. 조치 직전 대상 상세를 다시 조회한다.
-2. 영향 Preview가 있으면 대상 Instance·거래·사용자·배치·Route 수를 기록한다.
-3. Reason, Approval ID, Expected Version, Idempotency Key를 입력한다.
-4. 실행 후 반환된 Operation ID·Transaction ID를 기록한다.
-5. `ACCEPTED` 또는 HTTP 202는 접수 상태이므로 최종 상태를 조회한다.
-6. Success에서는 상태·Version·Checksum·Audit·Metric이 함께 바뀌었는지 확인한다.
+- 핵심 입력은 `Config ID/Key/Value/Type/Encrypted YN/Reason`이며 핵심 결과는 `Pretty Result`다.
+- 오류·복구는 `Secret 원문을 일반 Config에 저장 금지`를 우선 확인한다.
 
 #### 정상 결과
 
-- 대상 Owner 상태가 요청한 상태로 전이된다.
-- Version 또는 Checksum이 변경 조치와 일치한다.
-- Audit에 Operator, Permission, Reason, Approval, Before/After, Result가 남는다.
-- 관련 Log·Metric·Trace에서 같은 Operation/Transaction 식별자를 찾을 수 있다.
-- 부분 적용 대상이 없거나, 대상별 결과가 명시적으로 구분된다.
+- Owner의 실제 상태와 화면 표시 상태가 일치한다.
+- 변경 조치라면 Version·Checksum·상태 전이가 요청 내용과 일치한다.
+- 부분 적용 대상은 Instance·Partition·Delivery·Row별로 구분된다.
+- Audit에 Operator, Permission, Reason, Approval, Before/After, Operation ID와 결과가 기록된다.
+- 같은 식별자로 Log·Metric·Trace 또는 Owner 원장을 조회할 수 있다.
 
 #### 오류·응답 유실·복구
 
-핵심 복구 기준: Secret 원문을 일반 Config에 저장 금지
+핵심 기준: **Secret 원문을 일반 Config에 저장 금지**
 
-| 상황 | 운영 절차 |
+| 상황 | 조치 |
 |---|---|
-| 400·Validation | Field 오류와 허용 범위를 수정하고 새 요청을 만든다. |
+| Validation·400 | 오류 Field·허용 범위·상위 기준정보를 수정하고 새 요청을 만든다. |
 | 401 | Session·CSRF·Origin을 확인하고 재로그인한다. 기존 변경 요청을 자동 재전송하지 않는다. |
-| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. UI 우회 호출을 하지 않는다. |
-| 409 | 최신 Version과 변경자를 조회하고 변경 의도를 다시 확인한다. Blind Retry하지 않는다. |
-| 429 | `Retry-After`와 Rate Limit을 확인한다. 비멱등 조치는 결과 대사 후 재실행한다. |
+| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. 우회 호출하지 않는다. |
+| 409 | 최신 Version·변경자·변경 시각을 조회하고 변경 의도를 다시 확인한다. |
+| 429 | `Retry-After`를 따르며 비멱등 조치는 결과 대사 후 재실행한다. |
 | Timeout·응답 유실 | Operation ID·Transaction ID·Idempotency Key로 기존 결과를 조회한다. |
-| PARTIAL | 성공·실패·미응답 Target을 분리하고 Failed-only Retry 또는 Exact Rollback을 선택한다. |
-| UNKNOWN_RESULT | Owner 원장, 상대 시스템, Ledger, Audit를 대사해 결과를 확정한 뒤 다음 조치를 선택한다. |
+| PARTIAL | 성공·실패·미응답 Target을 분리해 Failed-only Retry 또는 Exact Rollback을 선택한다. |
+| UNKNOWN_RESULT | Owner 원장·상대 시스템·Ledger·Audit를 대사해 결과를 확정한다. |
 
-#### 감사·교대 인계
+#### 교대·감사 기록
 
-교대 기록에는 화면 Route, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 결과 상태, 미확정 항목, 다음 확인 시각, Rollback 기준을 남긴다.
+Route, Environment, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 최종 상태, 미확정 대상, 다음 확인 시각과 Rollback 기준을 기록한다.
+
+
 ### responseCodes — 응답코드 관리
 
-**접근 위치**: `/responseCodes`
-**메뉴 그룹**: 프레임워크
-**화면 Source**: ``.../features/response-codes/ResponseCodesPage.vue``
+| 항목 | 값 |
+|---|---|
+| Route | `/responseCodes` |
+| 그룹 | 프레임워크 |
+| Frontend | `cpf-admin/frontend/src/features/response-codes/ResponseCodesPage.vue` |
+| Permission | `RESPONSE_CODE` Write/Delete |
 
-#### 사용 목적과 사용 시점
+#### 사용 목적과 사용하지 말아야 할 경우
 
-이 화면은 **응답코드 관리** 업무를 수행한다. 조회 결과를 다른 화면의 상태와 연결해야 할 때는 Transaction ID, Trace ID, Operation ID, Version, Checksum, Instance ID 중 화면이 제공하는 식별자를 인계 키로 사용한다. 화면의 HTTP 응답만으로 업무 결과를 확정하지 않고 Owner 상태와 Audit를 함께 확인한다.
+이 화면은 **응답코드 관리** 기능을 수행한다. 다른 Owner의 상태를 직접 변경하거나, Browser 개발자 도구로 권한을 우회하거나, HTTP 200/202만으로 최종 결과를 확정하는 용도로 사용하지 않는다.
 
-#### 선행 조건
+#### 검색·입력값
 
-1. 대상 Environment와 Tenant·Data Scope가 맞는지 확인한다.
-2. 메뉴 조회 권한과 조치 권한을 구분한다. 필요한 권한은 ``RESPONSE_CODE` Write/Delete`이다.
-3. 변경 조치 전 대상의 최신 Version·상태·Owner를 새로 조회한다.
-4. Reason·Approval·Expected Version이 필요한 조치는 값을 준비한다.
-5. 이전 요청이 `PROCESSING`, `UNKNOWN_RESULT`, `PARTIAL`이면 신규 요청을 만들기 전에 기존 Operation을 대사한다.
+- Response/Message Code
+- S/E
+- Module
+- Group
+- Sequence
+- HTTP
+- Reason
 
-#### 검색·입력
+- 기간은 환경 표준 Timezone과 종료 시각 포함 여부를 확인한다.
+- ID는 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
+- 변경 조치의 Reason에는 목적, 영향 범위, 원복 기준, Incident·Approval ID를 적는다.
+- Password·Token·Secret·서명·PII 원문은 일반 Log나 교대 문서에 복사하지 않는다.
 
-Response/Message Code, S/E, Module, Group, Sequence, HTTP, Reason
+#### 목록·상세에서 확인할 값
 
-- 기간 입력은 운영 표준 Timezone을 사용하고 종료 시각 포함 여부를 확인한다.
-- 빈 문자열과 `null`, 전체 선택의 의미를 구분한다.
-- ID 입력은 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
-- Reason은 작업 목적, 영향 범위, 원복 기준, 관련 Incident·Approval ID를 포함한다.
-- 비밀번호·Token·Secret·서명 원문은 일반 입력·Log·Audit에 남기지 않는다.
+- Pretty Result
 
-#### 결과와 상세 확인
+- 목록과 상세의 ID·Version·Owner가 다르면 조치를 중단하고 상세를 다시 조회한다.
+- `stale`, `partial`, `unknown`, Empty는 서로 다른 상태다.
+- Masked 값의 원문은 별도 Permission과 Reason이 있을 때만 조회한다.
 
-Pretty Result
+#### Button·조치
 
-조회 후 다음 순서로 판정한다.
+- 조회·등록·수정·삭제
 
-1. 결과 생성 시각과 `stale`·`partial` 표식을 확인한다.
-2. Row 식별자와 상세의 Owner·Version이 동일한지 확인한다.
-3. Masked 값은 원문 조회 권한 없이 복호화하거나 우회하지 않는다.
-4. 상태가 집계값과 상세값에서 다르면 상세 Owner 상태를 기준으로 Reconcile한다.
-5. Empty 결과는 권한·Filter·Environment·시간 범위를 확인한 뒤에만 0건으로 판정한다.
+1. 대상의 최신 상세와 Version을 조회하고 입력값의 Default·허용 범위를 확인한다.
+2. `조회·등록·수정·삭제` 중 수행할 조치를 선택해 영향 대상과 연관 Consumer를 확인한다.
+3. 변경 조치는 Reason, Approval ID, Expected Version, Idempotency Key가 필요한지 확인한다.
+4. 요청 후 Operation ID·Transaction ID·새 Version을 기록하고 최종 상태까지 조회한다.
+5. 연관 Projection·Cache·Snapshot·Audit·Metric이 같은 결과를 반영하는지 확인한다.
+6. `Consumer·Message Mapping 영향 확인` 기준으로 오류·응답 유실·부분 적용을 분류한다.
+7. 실패 Target만 재처리하거나 변경 전 Version으로 보정·Rollback한 뒤 정상화 기준을 재확인한다.
 
-#### 조치 절차
+#### 화면별 핵심 판정
 
-사용 가능한 조치는 **조회·등록·수정·삭제**이다.
-
-1. 조치 직전 대상 상세를 다시 조회한다.
-2. 영향 Preview가 있으면 대상 Instance·거래·사용자·배치·Route 수를 기록한다.
-3. Reason, Approval ID, Expected Version, Idempotency Key를 입력한다.
-4. 실행 후 반환된 Operation ID·Transaction ID를 기록한다.
-5. `ACCEPTED` 또는 HTTP 202는 접수 상태이므로 최종 상태를 조회한다.
-6. Success에서는 상태·Version·Checksum·Audit·Metric이 함께 바뀌었는지 확인한다.
+- 핵심 입력은 `Response/Message Code, S/E, Module, Group, Sequence, HTTP, Reason`이며 핵심 결과는 `Pretty Result`다.
+- 오류·복구는 `Consumer·Message Mapping 영향 확인`를 우선 확인한다.
 
 #### 정상 결과
 
-- 대상 Owner 상태가 요청한 상태로 전이된다.
-- Version 또는 Checksum이 변경 조치와 일치한다.
-- Audit에 Operator, Permission, Reason, Approval, Before/After, Result가 남는다.
-- 관련 Log·Metric·Trace에서 같은 Operation/Transaction 식별자를 찾을 수 있다.
-- 부분 적용 대상이 없거나, 대상별 결과가 명시적으로 구분된다.
+- Owner의 실제 상태와 화면 표시 상태가 일치한다.
+- 변경 조치라면 Version·Checksum·상태 전이가 요청 내용과 일치한다.
+- 부분 적용 대상은 Instance·Partition·Delivery·Row별로 구분된다.
+- Audit에 Operator, Permission, Reason, Approval, Before/After, Operation ID와 결과가 기록된다.
+- 같은 식별자로 Log·Metric·Trace 또는 Owner 원장을 조회할 수 있다.
 
 #### 오류·응답 유실·복구
 
-핵심 복구 기준: Consumer·Message Mapping 영향 확인
+핵심 기준: **Consumer·Message Mapping 영향 확인**
 
-| 상황 | 운영 절차 |
+| 상황 | 조치 |
 |---|---|
-| 400·Validation | Field 오류와 허용 범위를 수정하고 새 요청을 만든다. |
+| Validation·400 | 오류 Field·허용 범위·상위 기준정보를 수정하고 새 요청을 만든다. |
 | 401 | Session·CSRF·Origin을 확인하고 재로그인한다. 기존 변경 요청을 자동 재전송하지 않는다. |
-| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. UI 우회 호출을 하지 않는다. |
-| 409 | 최신 Version과 변경자를 조회하고 변경 의도를 다시 확인한다. Blind Retry하지 않는다. |
-| 429 | `Retry-After`와 Rate Limit을 확인한다. 비멱등 조치는 결과 대사 후 재실행한다. |
+| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. 우회 호출하지 않는다. |
+| 409 | 최신 Version·변경자·변경 시각을 조회하고 변경 의도를 다시 확인한다. |
+| 429 | `Retry-After`를 따르며 비멱등 조치는 결과 대사 후 재실행한다. |
 | Timeout·응답 유실 | Operation ID·Transaction ID·Idempotency Key로 기존 결과를 조회한다. |
-| PARTIAL | 성공·실패·미응답 Target을 분리하고 Failed-only Retry 또는 Exact Rollback을 선택한다. |
-| UNKNOWN_RESULT | Owner 원장, 상대 시스템, Ledger, Audit를 대사해 결과를 확정한 뒤 다음 조치를 선택한다. |
+| PARTIAL | 성공·실패·미응답 Target을 분리해 Failed-only Retry 또는 Exact Rollback을 선택한다. |
+| UNKNOWN_RESULT | Owner 원장·상대 시스템·Ledger·Audit를 대사해 결과를 확정한다. |
 
-#### 감사·교대 인계
+#### 교대·감사 기록
 
-교대 기록에는 화면 Route, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 결과 상태, 미확정 항목, 다음 확인 시각, Rollback 기준을 남긴다.
+Route, Environment, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 최종 상태, 미확정 대상, 다음 확인 시각과 Rollback 기준을 기록한다.
+
+
 ### businessCalendar — 영업일·휴일 Override
 
-**접근 위치**: `/businessCalendar`
-**메뉴 그룹**: 프레임워크
-**화면 Source**: ``.../features/business-calendar/BusinessCalendarPage.vue``
+| 항목 | 값 |
+|---|---|
+| Route | `/businessCalendar` |
+| 그룹 | 프레임워크 |
+| Frontend | `cpf-admin/frontend/src/features/business-calendar/BusinessCalendarPage.vue` |
+| Permission | Menu Write/Delete + Writable Provider |
 
-#### 사용 목적과 사용 시점
+#### 사용 목적과 사용하지 말아야 할 경우
 
-이 화면은 **영업일·휴일 Override** 업무를 수행한다. 조회 결과를 다른 화면의 상태와 연결해야 할 때는 Transaction ID, Trace ID, Operation ID, Version, Checksum, Instance ID 중 화면이 제공하는 식별자를 인계 키로 사용한다. 화면의 HTTP 응답만으로 업무 결과를 확정하지 않고 Owner 상태와 Audit를 함께 확인한다.
+이 화면은 **영업일·휴일 Override** 기능을 수행한다. 다른 Owner의 상태를 직접 변경하거나, Browser 개발자 도구로 권한을 우회하거나, HTTP 200/202만으로 최종 결과를 확정하는 용도로 사용하지 않는다.
 
-#### 선행 조건
+#### 검색·입력값
 
-1. 대상 Environment와 Tenant·Data Scope가 맞는지 확인한다.
-2. 메뉴 조회 권한과 조치 권한을 구분한다. 필요한 권한은 `Menu Write/Delete + Writable Provider`이다.
-3. 변경 조치 전 대상의 최신 Version·상태·Owner를 새로 조회한다.
-4. Reason·Approval·Expected Version이 필요한 조치는 값을 준비한다.
-5. 이전 요청이 `PROCESSING`, `UNKNOWN_RESULT`, `PARTIAL`이면 신규 요청을 만들기 전에 기존 Operation을 대사한다.
+- Calendar DEFAULT
+- Date
+- Business/Holiday
+- Day Type
+- Institution
+- Business/Audit Reason
 
-#### 검색·입력
+- 기간은 환경 표준 Timezone과 종료 시각 포함 여부를 확인한다.
+- ID는 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
+- 변경 조치의 Reason에는 목적, 영향 범위, 원복 기준, Incident·Approval ID를 적는다.
+- Password·Token·Secret·서명·PII 원문은 일반 Log나 교대 문서에 복사하지 않는다.
 
-Calendar DEFAULT, Date, Business/Holiday, Day Type, Institution, Business/Audit Reason
+#### 목록·상세에서 확인할 값
 
-- 기간 입력은 운영 표준 Timezone을 사용하고 종료 시각 포함 여부를 확인한다.
-- 빈 문자열과 `null`, 전체 선택의 의미를 구분한다.
-- ID 입력은 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
-- Reason은 작업 목적, 영향 범위, 원복 기준, 관련 Incident·Approval ID를 포함한다.
-- 비밀번호·Token·Secret·서명 원문은 일반 입력·Log·Audit에 남기지 않는다.
+- Date
+- Type
+- Institution
+- Reason
+- Version
 
-#### 결과와 상세 확인
+- 목록과 상세의 ID·Version·Owner가 다르면 조치를 중단하고 상세를 다시 조회한다.
+- `stale`, `partial`, `unknown`, Empty는 서로 다른 상태다.
+- Masked 값의 원문은 별도 Permission과 Reason이 있을 때만 조회한다.
 
-Date, Type, Institution, Reason, Version
+#### Button·조치
 
-조회 후 다음 순서로 판정한다.
+- 조회·저장·삭제
 
-1. 결과 생성 시각과 `stale`·`partial` 표식을 확인한다.
-2. Row 식별자와 상세의 Owner·Version이 동일한지 확인한다.
-3. Masked 값은 원문 조회 권한 없이 복호화하거나 우회하지 않는다.
-4. 상태가 집계값과 상세값에서 다르면 상세 Owner 상태를 기준으로 Reconcile한다.
-5. Empty 결과는 권한·Filter·Environment·시간 범위를 확인한 뒤에만 0건으로 판정한다.
+1. 대상의 최신 상세와 Version을 조회하고 입력값의 Default·허용 범위를 확인한다.
+2. `조회·저장·삭제` 중 수행할 조치를 선택해 영향 대상과 연관 Consumer를 확인한다.
+3. 변경 조치는 Reason, Approval ID, Expected Version, Idempotency Key가 필요한지 확인한다.
+4. 요청 후 Operation ID·Transaction ID·새 Version을 기록하고 최종 상태까지 조회한다.
+5. 연관 Projection·Cache·Snapshot·Audit·Metric이 같은 결과를 반영하는지 확인한다.
+6. `Expected Version 409 충돌 재조회` 기준으로 오류·응답 유실·부분 적용을 분류한다.
+7. 실패 Target만 재처리하거나 변경 전 Version으로 보정·Rollback한 뒤 정상화 기준을 재확인한다.
 
-#### 조치 절차
+#### 화면별 핵심 판정
 
-사용 가능한 조치는 **조회·저장·삭제**이다.
-
-1. 조치 직전 대상 상세를 다시 조회한다.
-2. 영향 Preview가 있으면 대상 Instance·거래·사용자·배치·Route 수를 기록한다.
-3. Reason, Approval ID, Expected Version, Idempotency Key를 입력한다.
-4. 실행 후 반환된 Operation ID·Transaction ID를 기록한다.
-5. `ACCEPTED` 또는 HTTP 202는 접수 상태이므로 최종 상태를 조회한다.
-6. Success에서는 상태·Version·Checksum·Audit·Metric이 함께 바뀌었는지 확인한다.
+- Calendar ID와 Date별 `expectedVersion`을 저장·삭제 요청에 전달한다.
+- 409 충돌 시 최신 Override를 조회하고 업무일 산정 Consumer를 확인한다.
 
 #### 정상 결과
 
-- 대상 Owner 상태가 요청한 상태로 전이된다.
-- Version 또는 Checksum이 변경 조치와 일치한다.
-- Audit에 Operator, Permission, Reason, Approval, Before/After, Result가 남는다.
-- 관련 Log·Metric·Trace에서 같은 Operation/Transaction 식별자를 찾을 수 있다.
-- 부분 적용 대상이 없거나, 대상별 결과가 명시적으로 구분된다.
+- Owner의 실제 상태와 화면 표시 상태가 일치한다.
+- 변경 조치라면 Version·Checksum·상태 전이가 요청 내용과 일치한다.
+- 부분 적용 대상은 Instance·Partition·Delivery·Row별로 구분된다.
+- Audit에 Operator, Permission, Reason, Approval, Before/After, Operation ID와 결과가 기록된다.
+- 같은 식별자로 Log·Metric·Trace 또는 Owner 원장을 조회할 수 있다.
 
 #### 오류·응답 유실·복구
 
-핵심 복구 기준: Expected Version 409 충돌 재조회
+핵심 기준: **Expected Version 409 충돌 재조회**
 
-| 상황 | 운영 절차 |
+| 상황 | 조치 |
 |---|---|
-| 400·Validation | Field 오류와 허용 범위를 수정하고 새 요청을 만든다. |
+| Validation·400 | 오류 Field·허용 범위·상위 기준정보를 수정하고 새 요청을 만든다. |
 | 401 | Session·CSRF·Origin을 확인하고 재로그인한다. 기존 변경 요청을 자동 재전송하지 않는다. |
-| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. UI 우회 호출을 하지 않는다. |
-| 409 | 최신 Version과 변경자를 조회하고 변경 의도를 다시 확인한다. Blind Retry하지 않는다. |
-| 429 | `Retry-After`와 Rate Limit을 확인한다. 비멱등 조치는 결과 대사 후 재실행한다. |
+| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. 우회 호출하지 않는다. |
+| 409 | 최신 Version·변경자·변경 시각을 조회하고 변경 의도를 다시 확인한다. |
+| 429 | `Retry-After`를 따르며 비멱등 조치는 결과 대사 후 재실행한다. |
 | Timeout·응답 유실 | Operation ID·Transaction ID·Idempotency Key로 기존 결과를 조회한다. |
-| PARTIAL | 성공·실패·미응답 Target을 분리하고 Failed-only Retry 또는 Exact Rollback을 선택한다. |
-| UNKNOWN_RESULT | Owner 원장, 상대 시스템, Ledger, Audit를 대사해 결과를 확정한 뒤 다음 조치를 선택한다. |
+| PARTIAL | 성공·실패·미응답 Target을 분리해 Failed-only Retry 또는 Exact Rollback을 선택한다. |
+| UNKNOWN_RESULT | Owner 원장·상대 시스템·Ledger·Audit를 대사해 결과를 확정한다. |
 
-#### 감사·교대 인계
+#### 교대·감사 기록
 
-교대 기록에는 화면 Route, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 결과 상태, 미확정 항목, 다음 확인 시각, Rollback 기준을 남긴다.
+Route, Environment, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 최종 상태, 미확정 대상, 다음 확인 시각과 Rollback 기준을 기록한다.
+
+
 ### codes — 공통 코드
 
-**접근 위치**: `/codes`
-**메뉴 그룹**: 프레임워크
-**화면 Source**: ``.../features/codes/CodesPage.vue``
+| 항목 | 값 |
+|---|---|
+| Route | `/codes` |
+| 그룹 | 프레임워크 |
+| Frontend | `cpf-admin/frontend/src/features/codes/CodesPage.vue` |
+| Permission | `CODE` Write |
 
-#### 사용 목적과 사용 시점
+#### 사용 목적과 사용하지 말아야 할 경우
 
-이 화면은 **공통 코드** 업무를 수행한다. 조회 결과를 다른 화면의 상태와 연결해야 할 때는 Transaction ID, Trace ID, Operation ID, Version, Checksum, Instance ID 중 화면이 제공하는 식별자를 인계 키로 사용한다. 화면의 HTTP 응답만으로 업무 결과를 확정하지 않고 Owner 상태와 Audit를 함께 확인한다.
+이 화면은 **공통 코드** 기능을 수행한다. 다른 Owner의 상태를 직접 변경하거나, Browser 개발자 도구로 권한을 우회하거나, HTTP 200/202만으로 최종 결과를 확정하는 용도로 사용하지 않는다.
 
-#### 선행 조건
+#### 검색·입력값
 
-1. 대상 Environment와 Tenant·Data Scope가 맞는지 확인한다.
-2. 메뉴 조회 권한과 조치 권한을 구분한다. 필요한 권한은 ``CODE` Write`이다.
-3. 변경 조치 전 대상의 최신 Version·상태·Owner를 새로 조회한다.
-4. Reason·Approval·Expected Version이 필요한 조치는 값을 준비한다.
-5. 이전 요청이 `PROCESSING`, `UNKNOWN_RESULT`, `PARTIAL`이면 신규 요청을 만들기 전에 기존 Operation을 대사한다.
+- Code ID
+- Parent ID
+- Key
+- Value
+- Description
+- Reason
 
-#### 검색·입력
+- 기간은 환경 표준 Timezone과 종료 시각 포함 여부를 확인한다.
+- ID는 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
+- 변경 조치의 Reason에는 목적, 영향 범위, 원복 기준, Incident·Approval ID를 적는다.
+- Password·Token·Secret·서명·PII 원문은 일반 Log나 교대 문서에 복사하지 않는다.
 
-Code ID, Parent ID, Key, Value, Description, Reason
+#### 목록·상세에서 확인할 값
 
-- 기간 입력은 운영 표준 Timezone을 사용하고 종료 시각 포함 여부를 확인한다.
-- 빈 문자열과 `null`, 전체 선택의 의미를 구분한다.
-- ID 입력은 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
-- Reason은 작업 목적, 영향 범위, 원복 기준, 관련 Incident·Approval ID를 포함한다.
-- 비밀번호·Token·Secret·서명 원문은 일반 입력·Log·Audit에 남기지 않는다.
+- Pretty Result
 
-#### 결과와 상세 확인
+- 목록과 상세의 ID·Version·Owner가 다르면 조치를 중단하고 상세를 다시 조회한다.
+- `stale`, `partial`, `unknown`, Empty는 서로 다른 상태다.
+- Masked 값의 원문은 별도 Permission과 Reason이 있을 때만 조회한다.
 
-Pretty Result
+#### Button·조치
 
-조회 후 다음 순서로 판정한다.
+- 조회·등록·수정
 
-1. 결과 생성 시각과 `stale`·`partial` 표식을 확인한다.
-2. Row 식별자와 상세의 Owner·Version이 동일한지 확인한다.
-3. Masked 값은 원문 조회 권한 없이 복호화하거나 우회하지 않는다.
-4. 상태가 집계값과 상세값에서 다르면 상세 Owner 상태를 기준으로 Reconcile한다.
-5. Empty 결과는 권한·Filter·Environment·시간 범위를 확인한 뒤에만 0건으로 판정한다.
+1. 대상의 최신 상세와 Version을 조회하고 입력값의 Default·허용 범위를 확인한다.
+2. `조회·등록·수정` 중 수행할 조치를 선택해 영향 대상과 연관 Consumer를 확인한다.
+3. 변경 조치는 Reason, Approval ID, Expected Version, Idempotency Key가 필요한지 확인한다.
+4. 요청 후 Operation ID·Transaction ID·새 Version을 기록하고 최종 상태까지 조회한다.
+5. 연관 Projection·Cache·Snapshot·Audit·Metric이 같은 결과를 반영하는지 확인한다.
+6. `Parent 순환·Consumer Cache 갱신 확인` 기준으로 오류·응답 유실·부분 적용을 분류한다.
+7. 실패 Target만 재처리하거나 변경 전 Version으로 보정·Rollback한 뒤 정상화 기준을 재확인한다.
 
-#### 조치 절차
+#### 화면별 핵심 판정
 
-사용 가능한 조치는 **조회·등록·수정**이다.
-
-1. 조치 직전 대상 상세를 다시 조회한다.
-2. 영향 Preview가 있으면 대상 Instance·거래·사용자·배치·Route 수를 기록한다.
-3. Reason, Approval ID, Expected Version, Idempotency Key를 입력한다.
-4. 실행 후 반환된 Operation ID·Transaction ID를 기록한다.
-5. `ACCEPTED` 또는 HTTP 202는 접수 상태이므로 최종 상태를 조회한다.
-6. Success에서는 상태·Version·Checksum·Audit·Metric이 함께 바뀌었는지 확인한다.
+- 핵심 입력은 `Code ID, Parent ID, Key, Value, Description, Reason`이며 핵심 결과는 `Pretty Result`다.
+- 오류·복구는 `Parent 순환·Consumer Cache 갱신 확인`를 우선 확인한다.
 
 #### 정상 결과
 
-- 대상 Owner 상태가 요청한 상태로 전이된다.
-- Version 또는 Checksum이 변경 조치와 일치한다.
-- Audit에 Operator, Permission, Reason, Approval, Before/After, Result가 남는다.
-- 관련 Log·Metric·Trace에서 같은 Operation/Transaction 식별자를 찾을 수 있다.
-- 부분 적용 대상이 없거나, 대상별 결과가 명시적으로 구분된다.
+- Owner의 실제 상태와 화면 표시 상태가 일치한다.
+- 변경 조치라면 Version·Checksum·상태 전이가 요청 내용과 일치한다.
+- 부분 적용 대상은 Instance·Partition·Delivery·Row별로 구분된다.
+- Audit에 Operator, Permission, Reason, Approval, Before/After, Operation ID와 결과가 기록된다.
+- 같은 식별자로 Log·Metric·Trace 또는 Owner 원장을 조회할 수 있다.
 
 #### 오류·응답 유실·복구
 
-핵심 복구 기준: Parent 순환·Consumer Cache 갱신 확인
+핵심 기준: **Parent 순환·Consumer Cache 갱신 확인**
 
-| 상황 | 운영 절차 |
+| 상황 | 조치 |
 |---|---|
-| 400·Validation | Field 오류와 허용 범위를 수정하고 새 요청을 만든다. |
+| Validation·400 | 오류 Field·허용 범위·상위 기준정보를 수정하고 새 요청을 만든다. |
 | 401 | Session·CSRF·Origin을 확인하고 재로그인한다. 기존 변경 요청을 자동 재전송하지 않는다. |
-| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. UI 우회 호출을 하지 않는다. |
-| 409 | 최신 Version과 변경자를 조회하고 변경 의도를 다시 확인한다. Blind Retry하지 않는다. |
-| 429 | `Retry-After`와 Rate Limit을 확인한다. 비멱등 조치는 결과 대사 후 재실행한다. |
+| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. 우회 호출하지 않는다. |
+| 409 | 최신 Version·변경자·변경 시각을 조회하고 변경 의도를 다시 확인한다. |
+| 429 | `Retry-After`를 따르며 비멱등 조치는 결과 대사 후 재실행한다. |
 | Timeout·응답 유실 | Operation ID·Transaction ID·Idempotency Key로 기존 결과를 조회한다. |
-| PARTIAL | 성공·실패·미응답 Target을 분리하고 Failed-only Retry 또는 Exact Rollback을 선택한다. |
-| UNKNOWN_RESULT | Owner 원장, 상대 시스템, Ledger, Audit를 대사해 결과를 확정한 뒤 다음 조치를 선택한다. |
+| PARTIAL | 성공·실패·미응답 Target을 분리해 Failed-only Retry 또는 Exact Rollback을 선택한다. |
+| UNKNOWN_RESULT | Owner 원장·상대 시스템·Ledger·Audit를 대사해 결과를 확정한다. |
 
-#### 감사·교대 인계
+#### 교대·감사 기록
 
-교대 기록에는 화면 Route, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 결과 상태, 미확정 항목, 다음 확인 시각, Rollback 기준을 남긴다.
+Route, Environment, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 최종 상태, 미확정 대상, 다음 확인 시각과 Rollback 기준을 기록한다.
+
+
 ### messages — 다국어 Message
 
-**접근 위치**: `/messages`
-**메뉴 그룹**: 연계 관리
-**화면 Source**: ``.../features/messages/MessagesPage.vue``
+| 항목 | 값 |
+|---|---|
+| Route | `/messages` |
+| 그룹 | 연계 관리 |
+| Frontend | `cpf-admin/frontend/src/features/messages/MessagesPage.vue` |
+| Permission | `MESSAGE` Write |
 
-#### 사용 목적과 사용 시점
+#### 사용 목적과 사용하지 말아야 할 경우
 
-이 화면은 **다국어 Message** 업무를 수행한다. 조회 결과를 다른 화면의 상태와 연결해야 할 때는 Transaction ID, Trace ID, Operation ID, Version, Checksum, Instance ID 중 화면이 제공하는 식별자를 인계 키로 사용한다. 화면의 HTTP 응답만으로 업무 결과를 확정하지 않고 Owner 상태와 Audit를 함께 확인한다.
+이 화면은 **다국어 Message** 기능을 수행한다. 다른 Owner의 상태를 직접 변경하거나, Browser 개발자 도구로 권한을 우회하거나, HTTP 200/202만으로 최종 결과를 확정하는 용도로 사용하지 않는다.
 
-#### 선행 조건
+#### 검색·입력값
 
-1. 대상 Environment와 Tenant·Data Scope가 맞는지 확인한다.
-2. 메뉴 조회 권한과 조치 권한을 구분한다. 필요한 권한은 ``MESSAGE` Write`이다.
-3. 변경 조치 전 대상의 최신 Version·상태·Owner를 새로 조회한다.
-4. Reason·Approval·Expected Version이 필요한 조치는 값을 준비한다.
-5. 이전 요청이 `PROCESSING`, `UNKNOWN_RESULT`, `PARTIAL`이면 신규 요청을 만들기 전에 기존 Operation을 대사한다.
+- Message ID/Code/Locale/External/Internal/Reason
 
-#### 검색·입력
+- 기간은 환경 표준 Timezone과 종료 시각 포함 여부를 확인한다.
+- ID는 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
+- 변경 조치의 Reason에는 목적, 영향 범위, 원복 기준, Incident·Approval ID를 적는다.
+- Password·Token·Secret·서명·PII 원문은 일반 Log나 교대 문서에 복사하지 않는다.
 
-Message ID/Code/Locale/External/Internal/Reason
+#### 목록·상세에서 확인할 값
 
-- 기간 입력은 운영 표준 Timezone을 사용하고 종료 시각 포함 여부를 확인한다.
-- 빈 문자열과 `null`, 전체 선택의 의미를 구분한다.
-- ID 입력은 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
-- Reason은 작업 목적, 영향 범위, 원복 기준, 관련 Incident·Approval ID를 포함한다.
-- 비밀번호·Token·Secret·서명 원문은 일반 입력·Log·Audit에 남기지 않는다.
+- Pretty Result
 
-#### 결과와 상세 확인
+- 목록과 상세의 ID·Version·Owner가 다르면 조치를 중단하고 상세를 다시 조회한다.
+- `stale`, `partial`, `unknown`, Empty는 서로 다른 상태다.
+- Masked 값의 원문은 별도 Permission과 Reason이 있을 때만 조회한다.
 
-Pretty Result
+#### Button·조치
 
-조회 후 다음 순서로 판정한다.
+- 조회·등록·수정
 
-1. 결과 생성 시각과 `stale`·`partial` 표식을 확인한다.
-2. Row 식별자와 상세의 Owner·Version이 동일한지 확인한다.
-3. Masked 값은 원문 조회 권한 없이 복호화하거나 우회하지 않는다.
-4. 상태가 집계값과 상세값에서 다르면 상세 Owner 상태를 기준으로 Reconcile한다.
-5. Empty 결과는 권한·Filter·Environment·시간 범위를 확인한 뒤에만 0건으로 판정한다.
+1. 대상의 최신 상세와 Version을 조회하고 입력값의 Default·허용 범위를 확인한다.
+2. `조회·등록·수정` 중 수행할 조치를 선택해 영향 대상과 연관 Consumer를 확인한다.
+3. 변경 조치는 Reason, Approval ID, Expected Version, Idempotency Key가 필요한지 확인한다.
+4. 요청 후 Operation ID·Transaction ID·새 Version을 기록하고 최종 상태까지 조회한다.
+5. 연관 Projection·Cache·Snapshot·Audit·Metric이 같은 결과를 반영하는지 확인한다.
+6. `External/Internal 노출 범위 분리` 기준으로 오류·응답 유실·부분 적용을 분류한다.
+7. 실패 Target만 재처리하거나 변경 전 Version으로 보정·Rollback한 뒤 정상화 기준을 재확인한다.
 
-#### 조치 절차
+#### 화면별 핵심 판정
 
-사용 가능한 조치는 **조회·등록·수정**이다.
-
-1. 조치 직전 대상 상세를 다시 조회한다.
-2. 영향 Preview가 있으면 대상 Instance·거래·사용자·배치·Route 수를 기록한다.
-3. Reason, Approval ID, Expected Version, Idempotency Key를 입력한다.
-4. 실행 후 반환된 Operation ID·Transaction ID를 기록한다.
-5. `ACCEPTED` 또는 HTTP 202는 접수 상태이므로 최종 상태를 조회한다.
-6. Success에서는 상태·Version·Checksum·Audit·Metric이 함께 바뀌었는지 확인한다.
+- 핵심 입력은 `Message ID/Code/Locale/External/Internal/Reason`이며 핵심 결과는 `Pretty Result`다.
+- 오류·복구는 `External/Internal 노출 범위 분리`를 우선 확인한다.
 
 #### 정상 결과
 
-- 대상 Owner 상태가 요청한 상태로 전이된다.
-- Version 또는 Checksum이 변경 조치와 일치한다.
-- Audit에 Operator, Permission, Reason, Approval, Before/After, Result가 남는다.
-- 관련 Log·Metric·Trace에서 같은 Operation/Transaction 식별자를 찾을 수 있다.
-- 부분 적용 대상이 없거나, 대상별 결과가 명시적으로 구분된다.
+- Owner의 실제 상태와 화면 표시 상태가 일치한다.
+- 변경 조치라면 Version·Checksum·상태 전이가 요청 내용과 일치한다.
+- 부분 적용 대상은 Instance·Partition·Delivery·Row별로 구분된다.
+- Audit에 Operator, Permission, Reason, Approval, Before/After, Operation ID와 결과가 기록된다.
+- 같은 식별자로 Log·Metric·Trace 또는 Owner 원장을 조회할 수 있다.
 
 #### 오류·응답 유실·복구
 
-핵심 복구 기준: External/Internal 노출 범위 분리
+핵심 기준: **External/Internal 노출 범위 분리**
 
-| 상황 | 운영 절차 |
+| 상황 | 조치 |
 |---|---|
-| 400·Validation | Field 오류와 허용 범위를 수정하고 새 요청을 만든다. |
+| Validation·400 | 오류 Field·허용 범위·상위 기준정보를 수정하고 새 요청을 만든다. |
 | 401 | Session·CSRF·Origin을 확인하고 재로그인한다. 기존 변경 요청을 자동 재전송하지 않는다. |
-| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. UI 우회 호출을 하지 않는다. |
-| 409 | 최신 Version과 변경자를 조회하고 변경 의도를 다시 확인한다. Blind Retry하지 않는다. |
-| 429 | `Retry-After`와 Rate Limit을 확인한다. 비멱등 조치는 결과 대사 후 재실행한다. |
+| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. 우회 호출하지 않는다. |
+| 409 | 최신 Version·변경자·변경 시각을 조회하고 변경 의도를 다시 확인한다. |
+| 429 | `Retry-After`를 따르며 비멱등 조치는 결과 대사 후 재실행한다. |
 | Timeout·응답 유실 | Operation ID·Transaction ID·Idempotency Key로 기존 결과를 조회한다. |
-| PARTIAL | 성공·실패·미응답 Target을 분리하고 Failed-only Retry 또는 Exact Rollback을 선택한다. |
-| UNKNOWN_RESULT | Owner 원장, 상대 시스템, Ledger, Audit를 대사해 결과를 확정한 뒤 다음 조치를 선택한다. |
+| PARTIAL | 성공·실패·미응답 Target을 분리해 Failed-only Retry 또는 Exact Rollback을 선택한다. |
+| UNKNOWN_RESULT | Owner 원장·상대 시스템·Ledger·Audit를 대사해 결과를 확정한다. |
 
-#### 감사·교대 인계
+#### 교대·감사 기록
 
-교대 기록에는 화면 Route, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 결과 상태, 미확정 항목, 다음 확인 시각, Rollback 기준을 남긴다.
+Route, Environment, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 최종 상태, 미확정 대상, 다음 확인 시각과 Rollback 기준을 기록한다.
+
+
 ### remoteLogs — 원격 Log Artifact
 
-**접근 위치**: `/remoteLogs`
-**메뉴 그룹**: 통합 관제
-**화면 Source**: ``.../features/remote-logs/RemoteLogsPage.vue``
+| 항목 | 값 |
+|---|---|
+| Route | `/remoteLogs` |
+| 그룹 | 통합 관제 |
+| Frontend | `cpf-admin/frontend/src/features/remote-logs/RemoteLogsPage.vue` |
+| Permission | `REMOTE_LOG` Write for download |
 
-#### 사용 목적과 사용 시점
+#### 사용 목적과 사용하지 말아야 할 경우
 
-이 화면은 **원격 Log Artifact** 업무를 수행한다. 조회 결과를 다른 화면의 상태와 연결해야 할 때는 Transaction ID, Trace ID, Operation ID, Version, Checksum, Instance ID 중 화면이 제공하는 식별자를 인계 키로 사용한다. 화면의 HTTP 응답만으로 업무 결과를 확정하지 않고 Owner 상태와 Audit를 함께 확인한다.
+이 화면은 **원격 Log Artifact** 기능을 수행한다. 다른 Owner의 상태를 직접 변경하거나, Browser 개발자 도구로 권한을 우회하거나, HTTP 200/202만으로 최종 결과를 확정하는 용도로 사용하지 않는다.
 
-#### 선행 조건
+#### 검색·입력값
 
-1. 대상 Environment와 Tenant·Data Scope가 맞는지 확인한다.
-2. 메뉴 조회 권한과 조치 권한을 구분한다. 필요한 권한은 ``REMOTE_LOG` Write for download`이다.
-3. 변경 조치 전 대상의 최신 Version·상태·Owner를 새로 조회한다.
-4. Reason·Approval·Expected Version이 필요한 조치는 값을 준비한다.
-5. 이전 요청이 `PROCESSING`, `UNKNOWN_RESULT`, `PARTIAL`이면 신규 요청을 만들기 전에 기존 Operation을 대사한다.
+- 환경/Module/Service/Instance/Type/File/표준 ID/Transaction/Batch IDs/기간/Size/압축/활성/Lines/Keyword/Reason
 
-#### 검색·입력
+- 기간은 환경 표준 Timezone과 종료 시각 포함 여부를 확인한다.
+- ID는 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
+- 변경 조치의 Reason에는 목적, 영향 범위, 원복 기준, Incident·Approval ID를 적는다.
+- Password·Token·Secret·서명·PII 원문은 일반 Log나 교대 문서에 복사하지 않는다.
 
-환경/Module/Service/Instance/Type/File/표준 ID/Transaction/Batch IDs/기간/Size/압축/활성/Lines/Keyword/Reason
+#### 목록·상세에서 확인할 값
 
-- 기간 입력은 운영 표준 Timezone을 사용하고 종료 시각 포함 여부를 확인한다.
-- 빈 문자열과 `null`, 전체 선택의 의미를 구분한다.
-- ID 입력은 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
-- Reason은 작업 목적, 영향 범위, 원복 기준, 관련 Incident·Approval ID를 포함한다.
-- 비밀번호·Token·Secret·서명 원문은 일반 입력·Log·Audit에 남기지 않는다.
+- Artifact Metadata·Preview·Bundle Job·Diagnostics
 
-#### 결과와 상세 확인
+- 목록과 상세의 ID·Version·Owner가 다르면 조치를 중단하고 상세를 다시 조회한다.
+- `stale`, `partial`, `unknown`, Empty는 서로 다른 상태다.
+- Masked 값의 원문은 별도 Permission과 Reason이 있을 때만 조회한다.
 
-Artifact Metadata·Preview·Bundle Job·Diagnostics
+#### Button·조치
 
-조회 후 다음 순서로 판정한다.
+- 조회·단건/선택/비동기 ZIP·상태·Download·진단
 
-1. 결과 생성 시각과 `stale`·`partial` 표식을 확인한다.
-2. Row 식별자와 상세의 Owner·Version이 동일한지 확인한다.
-3. Masked 값은 원문 조회 권한 없이 복호화하거나 우회하지 않는다.
-4. 상태가 집계값과 상세값에서 다르면 상세 Owner 상태를 기준으로 Reconcile한다.
-5. Empty 결과는 권한·Filter·Environment·시간 범위를 확인한 뒤에만 0건으로 판정한다.
+1. 대상의 최신 상세와 Version을 조회하고 입력값의 Default·허용 범위를 확인한다.
+2. `조회·단건/선택/비동기 ZIP·상태·Download·진단` 중 수행할 조치를 선택해 영향 대상과 연관 Consumer를 확인한다.
+3. 변경 조치는 Reason, Approval ID, Expected Version, Idempotency Key가 필요한지 확인한다.
+4. 요청 후 Operation ID·Transaction ID·새 Version을 기록하고 최종 상태까지 조회한다.
+5. 연관 Projection·Cache·Snapshot·Audit·Metric이 같은 결과를 반영하는지 확인한다.
+6. `Retention·Size·Masking·Download Audit` 기준으로 오류·응답 유실·부분 적용을 분류한다.
+7. 실패 Target만 재처리하거나 변경 전 Version으로 보정·Rollback한 뒤 정상화 기준을 재확인한다.
 
-#### 조치 절차
+#### 화면별 핵심 판정
 
-사용 가능한 조치는 **조회·단건/선택/비동기 ZIP·상태·Download·진단**이다.
-
-1. 조치 직전 대상 상세를 다시 조회한다.
-2. 영향 Preview가 있으면 대상 Instance·거래·사용자·배치·Route 수를 기록한다.
-3. Reason, Approval ID, Expected Version, Idempotency Key를 입력한다.
-4. 실행 후 반환된 Operation ID·Transaction ID를 기록한다.
-5. `ACCEPTED` 또는 HTTP 202는 접수 상태이므로 최종 상태를 조회한다.
-6. Success에서는 상태·Version·Checksum·Audit·Metric이 함께 바뀌었는지 확인한다.
+- Preview Line 상한과 Artifact Size·Retention을 확인한다.
+- 선택 ZIP과 비동기 Bundle Job의 Download Audit·Checksum을 확인한다.
 
 #### 정상 결과
 
-- 대상 Owner 상태가 요청한 상태로 전이된다.
-- Version 또는 Checksum이 변경 조치와 일치한다.
-- Audit에 Operator, Permission, Reason, Approval, Before/After, Result가 남는다.
-- 관련 Log·Metric·Trace에서 같은 Operation/Transaction 식별자를 찾을 수 있다.
-- 부분 적용 대상이 없거나, 대상별 결과가 명시적으로 구분된다.
+- Owner의 실제 상태와 화면 표시 상태가 일치한다.
+- 변경 조치라면 Version·Checksum·상태 전이가 요청 내용과 일치한다.
+- 부분 적용 대상은 Instance·Partition·Delivery·Row별로 구분된다.
+- Audit에 Operator, Permission, Reason, Approval, Before/After, Operation ID와 결과가 기록된다.
+- 같은 식별자로 Log·Metric·Trace 또는 Owner 원장을 조회할 수 있다.
 
 #### 오류·응답 유실·복구
 
-핵심 복구 기준: Retention·Size·Masking·Download Audit
+핵심 기준: **Retention·Size·Masking·Download Audit**
 
-| 상황 | 운영 절차 |
+| 상황 | 조치 |
 |---|---|
-| 400·Validation | Field 오류와 허용 범위를 수정하고 새 요청을 만든다. |
+| Validation·400 | 오류 Field·허용 범위·상위 기준정보를 수정하고 새 요청을 만든다. |
 | 401 | Session·CSRF·Origin을 확인하고 재로그인한다. 기존 변경 요청을 자동 재전송하지 않는다. |
-| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. UI 우회 호출을 하지 않는다. |
-| 409 | 최신 Version과 변경자를 조회하고 변경 의도를 다시 확인한다. Blind Retry하지 않는다. |
-| 429 | `Retry-After`와 Rate Limit을 확인한다. 비멱등 조치는 결과 대사 후 재실행한다. |
+| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. 우회 호출하지 않는다. |
+| 409 | 최신 Version·변경자·변경 시각을 조회하고 변경 의도를 다시 확인한다. |
+| 429 | `Retry-After`를 따르며 비멱등 조치는 결과 대사 후 재실행한다. |
 | Timeout·응답 유실 | Operation ID·Transaction ID·Idempotency Key로 기존 결과를 조회한다. |
-| PARTIAL | 성공·실패·미응답 Target을 분리하고 Failed-only Retry 또는 Exact Rollback을 선택한다. |
-| UNKNOWN_RESULT | Owner 원장, 상대 시스템, Ledger, Audit를 대사해 결과를 확정한 뒤 다음 조치를 선택한다. |
+| PARTIAL | 성공·실패·미응답 Target을 분리해 Failed-only Retry 또는 Exact Rollback을 선택한다. |
+| UNKNOWN_RESULT | Owner 원장·상대 시스템·Ledger·Audit를 대사해 결과를 확정한다. |
 
-#### 감사·교대 인계
+#### 교대·감사 기록
 
-교대 기록에는 화면 Route, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 결과 상태, 미확정 항목, 다음 확인 시각, Rollback 기준을 남긴다.
+Route, Environment, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 최종 상태, 미확정 대상, 다음 확인 시각과 Rollback 기준을 기록한다.
+
+
 ### auditLogs — Audit 조회·Delivery 복구
 
-**접근 위치**: `/auditLogs`
-**메뉴 그룹**: 통합 관제
-**화면 Source**: ``.../features/audit-logs/AuditLogsPage.vue``
+| 항목 | 값 |
+|---|---|
+| Route | `/auditLogs` |
+| 그룹 | 통합 관제 |
+| Frontend | `cpf-admin/frontend/src/features/audit-logs/AuditLogsPage.vue` |
+| Permission | `AUDIT_LOG` Write for retry |
 
-#### 사용 목적과 사용 시점
+#### 사용 목적과 사용하지 말아야 할 경우
 
-이 화면은 **Audit 조회·Delivery 복구** 업무를 수행한다. 조회 결과를 다른 화면의 상태와 연결해야 할 때는 Transaction ID, Trace ID, Operation ID, Version, Checksum, Instance ID 중 화면이 제공하는 식별자를 인계 키로 사용한다. 화면의 HTTP 응답만으로 업무 결과를 확정하지 않고 Owner 상태와 Audit를 함께 확인한다.
+이 화면은 **Audit 조회·Delivery 복구** 기능을 수행한다. 다른 Owner의 상태를 직접 변경하거나, Browser 개발자 도구로 권한을 우회하거나, HTTP 200/202만으로 최종 결과를 확정하는 용도로 사용하지 않는다.
 
-#### 선행 조건
+#### 검색·입력값
 
-1. 대상 Environment와 Tenant·Data Scope가 맞는지 확인한다.
-2. 메뉴 조회 권한과 조치 권한을 구분한다. 필요한 권한은 ``AUDIT_LOG` Write for retry`이다.
-3. 변경 조치 전 대상의 최신 Version·상태·Owner를 새로 조회한다.
-4. Reason·Approval·Expected Version이 필요한 조치는 값을 준비한다.
-5. 이전 요청이 `PROCESSING`, `UNKNOWN_RESULT`, `PARTIAL`이면 신규 요청을 만들기 전에 기존 Operation을 대사한다.
+- Operator
+- Action
+- Target Type/ID
+- Delivery Status, Retry Reason
 
-#### 검색·입력
+- 기간은 환경 표준 Timezone과 종료 시각 포함 여부를 확인한다.
+- ID는 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
+- 변경 조치의 Reason에는 목적, 영향 범위, 원복 기준, Incident·Approval ID를 적는다.
+- Password·Token·Secret·서명·PII 원문은 일반 Log나 교대 문서에 복사하지 않는다.
 
-Operator, Action, Target Type/ID; Delivery Status, Retry Reason
+#### 목록·상세에서 확인할 값
 
-- 기간 입력은 운영 표준 Timezone을 사용하고 종료 시각 포함 여부를 확인한다.
-- 빈 문자열과 `null`, 전체 선택의 의미를 구분한다.
-- ID 입력은 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
-- Reason은 작업 목적, 영향 범위, 원복 기준, 관련 Incident·Approval ID를 포함한다.
-- 비밀번호·Token·Secret·서명 원문은 일반 입력·Log·Audit에 남기지 않는다.
+- Audit Result
+- Delivery ID/Status/Attempt/Error
 
-#### 결과와 상세 확인
+- 목록과 상세의 ID·Version·Owner가 다르면 조치를 중단하고 상세를 다시 조회한다.
+- `stale`, `partial`, `unknown`, Empty는 서로 다른 상태다.
+- Masked 값의 원문은 별도 Permission과 Reason이 있을 때만 조회한다.
 
-Audit Result; Delivery ID/Status/Attempt/Error
+#### Button·조치
 
-조회 후 다음 순서로 판정한다.
+- 조회·Delivery 조회·재처리
 
-1. 결과 생성 시각과 `stale`·`partial` 표식을 확인한다.
-2. Row 식별자와 상세의 Owner·Version이 동일한지 확인한다.
-3. Masked 값은 원문 조회 권한 없이 복호화하거나 우회하지 않는다.
-4. 상태가 집계값과 상세값에서 다르면 상세 Owner 상태를 기준으로 Reconcile한다.
-5. Empty 결과는 권한·Filter·Environment·시간 범위를 확인한 뒤에만 0건으로 판정한다.
+1. 대상의 최신 상세와 Version을 조회하고 입력값의 Default·허용 범위를 확인한다.
+2. `조회·Delivery 조회·재처리` 중 수행할 조치를 선택해 영향 대상과 연관 Consumer를 확인한다.
+3. 변경 조치는 Reason, Approval ID, Expected Version, Idempotency Key가 필요한지 확인한다.
+4. 요청 후 Operation ID·Transaction ID·새 Version을 기록하고 최종 상태까지 조회한다.
+5. 연관 Projection·Cache·Snapshot·Audit·Metric이 같은 결과를 반영하는지 확인한다.
+6. `업무 결과와 Audit Delivery 분리` 기준으로 오류·응답 유실·부분 적용을 분류한다.
+7. 실패 Target만 재처리하거나 변경 전 Version으로 보정·Rollback한 뒤 정상화 기준을 재확인한다.
 
-#### 조치 절차
+#### 화면별 핵심 판정
 
-사용 가능한 조치는 **조회·Delivery 조회·재처리**이다.
-
-1. 조치 직전 대상 상세를 다시 조회한다.
-2. 영향 Preview가 있으면 대상 Instance·거래·사용자·배치·Route 수를 기록한다.
-3. Reason, Approval ID, Expected Version, Idempotency Key를 입력한다.
-4. 실행 후 반환된 Operation ID·Transaction ID를 기록한다.
-5. `ACCEPTED` 또는 HTTP 202는 접수 상태이므로 최종 상태를 조회한다.
-6. Success에서는 상태·Version·Checksum·Audit·Metric이 함께 바뀌었는지 확인한다.
+- 업무 Audit 생성과 외부 Delivery 성공은 별도 상태다.
+- Delivery 재처리는 원 Audit를 변경하지 않고 Attempt를 추가한다.
 
 #### 정상 결과
 
-- 대상 Owner 상태가 요청한 상태로 전이된다.
-- Version 또는 Checksum이 변경 조치와 일치한다.
-- Audit에 Operator, Permission, Reason, Approval, Before/After, Result가 남는다.
-- 관련 Log·Metric·Trace에서 같은 Operation/Transaction 식별자를 찾을 수 있다.
-- 부분 적용 대상이 없거나, 대상별 결과가 명시적으로 구분된다.
+- Owner의 실제 상태와 화면 표시 상태가 일치한다.
+- 변경 조치라면 Version·Checksum·상태 전이가 요청 내용과 일치한다.
+- 부분 적용 대상은 Instance·Partition·Delivery·Row별로 구분된다.
+- Audit에 Operator, Permission, Reason, Approval, Before/After, Operation ID와 결과가 기록된다.
+- 같은 식별자로 Log·Metric·Trace 또는 Owner 원장을 조회할 수 있다.
 
 #### 오류·응답 유실·복구
 
-핵심 복구 기준: 업무 결과와 Audit Delivery 분리
+핵심 기준: **업무 결과와 Audit Delivery 분리**
 
-| 상황 | 운영 절차 |
+| 상황 | 조치 |
 |---|---|
-| 400·Validation | Field 오류와 허용 범위를 수정하고 새 요청을 만든다. |
+| Validation·400 | 오류 Field·허용 범위·상위 기준정보를 수정하고 새 요청을 만든다. |
 | 401 | Session·CSRF·Origin을 확인하고 재로그인한다. 기존 변경 요청을 자동 재전송하지 않는다. |
-| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. UI 우회 호출을 하지 않는다. |
-| 409 | 최신 Version과 변경자를 조회하고 변경 의도를 다시 확인한다. Blind Retry하지 않는다. |
-| 429 | `Retry-After`와 Rate Limit을 확인한다. 비멱등 조치는 결과 대사 후 재실행한다. |
+| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. 우회 호출하지 않는다. |
+| 409 | 최신 Version·변경자·변경 시각을 조회하고 변경 의도를 다시 확인한다. |
+| 429 | `Retry-After`를 따르며 비멱등 조치는 결과 대사 후 재실행한다. |
 | Timeout·응답 유실 | Operation ID·Transaction ID·Idempotency Key로 기존 결과를 조회한다. |
-| PARTIAL | 성공·실패·미응답 Target을 분리하고 Failed-only Retry 또는 Exact Rollback을 선택한다. |
-| UNKNOWN_RESULT | Owner 원장, 상대 시스템, Ledger, Audit를 대사해 결과를 확정한 뒤 다음 조치를 선택한다. |
+| PARTIAL | 성공·실패·미응답 Target을 분리해 Failed-only Retry 또는 Exact Rollback을 선택한다. |
+| UNKNOWN_RESULT | Owner 원장·상대 시스템·Ledger·Audit를 대사해 결과를 확정한다. |
 
-#### 감사·교대 인계
+#### 교대·감사 기록
 
-교대 기록에는 화면 Route, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 결과 상태, 미확정 항목, 다음 확인 시각, Rollback 기준을 남긴다.
+Route, Environment, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 최종 상태, 미확정 대상, 다음 확인 시각과 Rollback 기준을 기록한다.
+
+
 ### logLevel — Dynamic Log Level
 
-**접근 위치**: `/logLevel`
-**메뉴 그룹**: 통합 관제
-**화면 Source**: ``.../features/log-level/LogLevelPage.vue``
+| 항목 | 값 |
+|---|---|
+| Route | `/logLevel` |
+| 그룹 | 통합 관제 |
+| Frontend | `cpf-admin/frontend/src/features/log-level/LogLevelPage.vue` |
+| Permission | `DYNAMIC_LOG` Write |
 
-#### 사용 목적과 사용 시점
+#### 사용 목적과 사용하지 말아야 할 경우
 
-이 화면은 **Dynamic Log Level** 업무를 수행한다. 조회 결과를 다른 화면의 상태와 연결해야 할 때는 Transaction ID, Trace ID, Operation ID, Version, Checksum, Instance ID 중 화면이 제공하는 식별자를 인계 키로 사용한다. 화면의 HTTP 응답만으로 업무 결과를 확정하지 않고 Owner 상태와 Audit를 함께 확인한다.
+이 화면은 **Dynamic Log Level** 기능을 수행한다. 다른 Owner의 상태를 직접 변경하거나, Browser 개발자 도구로 권한을 우회하거나, HTTP 200/202만으로 최종 결과를 확정하는 용도로 사용하지 않는다.
 
-#### 선행 조건
+#### 검색·입력값
 
-1. 대상 Environment와 Tenant·Data Scope가 맞는지 확인한다.
-2. 메뉴 조회 권한과 조치 권한을 구분한다. 필요한 권한은 ``DYNAMIC_LOG` Write`이다.
-3. 변경 조치 전 대상의 최신 Version·상태·Owner를 새로 조회한다.
-4. Reason·Approval·Expected Version이 필요한 조치는 값을 준비한다.
-5. 이전 요청이 `PROCESSING`, `UNKNOWN_RESULT`, `PARTIAL`이면 신규 요청을 만들기 전에 기존 Operation을 대사한다.
+- Business Transaction ID
+- Transaction ID
+- DEBUG/INFO/TRACE
+- TTL
+- Reason
 
-#### 검색·입력
+- 기간은 환경 표준 Timezone과 종료 시각 포함 여부를 확인한다.
+- ID는 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
+- 변경 조치의 Reason에는 목적, 영향 범위, 원복 기준, Incident·Approval ID를 적는다.
+- Password·Token·Secret·서명·PII 원문은 일반 Log나 교대 문서에 복사하지 않는다.
 
-Business Transaction ID, Transaction ID, DEBUG/INFO/TRACE, TTL, Reason
+#### 목록·상세에서 확인할 값
 
-- 기간 입력은 운영 표준 Timezone을 사용하고 종료 시각 포함 여부를 확인한다.
-- 빈 문자열과 `null`, 전체 선택의 의미를 구분한다.
-- ID 입력은 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
-- Reason은 작업 목적, 영향 범위, 원복 기준, 관련 Incident·Approval ID를 포함한다.
-- 비밀번호·Token·Secret·서명 원문은 일반 입력·Log·Audit에 남기지 않는다.
+- Rule Result
 
-#### 결과와 상세 확인
+- 목록과 상세의 ID·Version·Owner가 다르면 조치를 중단하고 상세를 다시 조회한다.
+- `stale`, `partial`, `unknown`, Empty는 서로 다른 상태다.
+- Masked 값의 원문은 별도 Permission과 Reason이 있을 때만 조회한다.
 
-Rule Result
+#### Button·조치
 
-조회 후 다음 순서로 판정한다.
+- 조회·등록
 
-1. 결과 생성 시각과 `stale`·`partial` 표식을 확인한다.
-2. Row 식별자와 상세의 Owner·Version이 동일한지 확인한다.
-3. Masked 값은 원문 조회 권한 없이 복호화하거나 우회하지 않는다.
-4. 상태가 집계값과 상세값에서 다르면 상세 Owner 상태를 기준으로 Reconcile한다.
-5. Empty 결과는 권한·Filter·Environment·시간 범위를 확인한 뒤에만 0건으로 판정한다.
+1. 대상의 최신 상세와 Version을 조회하고 입력값의 Default·허용 범위를 확인한다.
+2. `조회·등록` 중 수행할 조치를 선택해 영향 대상과 연관 Consumer를 확인한다.
+3. 변경 조치는 Reason, Approval ID, Expected Version, Idempotency Key가 필요한지 확인한다.
+4. 요청 후 Operation ID·Transaction ID·새 Version을 기록하고 최종 상태까지 조회한다.
+5. 연관 Projection·Cache·Snapshot·Audit·Metric이 같은 결과를 반영하는지 확인한다.
+6. `TTL 만료·민감정보 Capture 정책 확인` 기준으로 오류·응답 유실·부분 적용을 분류한다.
+7. 실패 Target만 재처리하거나 변경 전 Version으로 보정·Rollback한 뒤 정상화 기준을 재확인한다.
 
-#### 조치 절차
+#### 화면별 핵심 판정
 
-사용 가능한 조치는 **조회·등록**이다.
-
-1. 조치 직전 대상 상세를 다시 조회한다.
-2. 영향 Preview가 있으면 대상 Instance·거래·사용자·배치·Route 수를 기록한다.
-3. Reason, Approval ID, Expected Version, Idempotency Key를 입력한다.
-4. 실행 후 반환된 Operation ID·Transaction ID를 기록한다.
-5. `ACCEPTED` 또는 HTTP 202는 접수 상태이므로 최종 상태를 조회한다.
-6. Success에서는 상태·Version·Checksum·Audit·Metric이 함께 바뀌었는지 확인한다.
+- 핵심 입력은 `Business Transaction ID, Transaction ID, DEBUG/INFO/TRACE, TTL, Reason`이며 핵심 결과는 `Rule Result`다.
+- 오류·복구는 `TTL 만료·민감정보 Capture 정책 확인`를 우선 확인한다.
 
 #### 정상 결과
 
-- 대상 Owner 상태가 요청한 상태로 전이된다.
-- Version 또는 Checksum이 변경 조치와 일치한다.
-- Audit에 Operator, Permission, Reason, Approval, Before/After, Result가 남는다.
-- 관련 Log·Metric·Trace에서 같은 Operation/Transaction 식별자를 찾을 수 있다.
-- 부분 적용 대상이 없거나, 대상별 결과가 명시적으로 구분된다.
+- Owner의 실제 상태와 화면 표시 상태가 일치한다.
+- 변경 조치라면 Version·Checksum·상태 전이가 요청 내용과 일치한다.
+- 부분 적용 대상은 Instance·Partition·Delivery·Row별로 구분된다.
+- Audit에 Operator, Permission, Reason, Approval, Before/After, Operation ID와 결과가 기록된다.
+- 같은 식별자로 Log·Metric·Trace 또는 Owner 원장을 조회할 수 있다.
 
 #### 오류·응답 유실·복구
 
-핵심 복구 기준: TTL 만료·민감정보 Capture 정책 확인
+핵심 기준: **TTL 만료·민감정보 Capture 정책 확인**
 
-| 상황 | 운영 절차 |
+| 상황 | 조치 |
 |---|---|
-| 400·Validation | Field 오류와 허용 범위를 수정하고 새 요청을 만든다. |
+| Validation·400 | 오류 Field·허용 범위·상위 기준정보를 수정하고 새 요청을 만든다. |
 | 401 | Session·CSRF·Origin을 확인하고 재로그인한다. 기존 변경 요청을 자동 재전송하지 않는다. |
-| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. UI 우회 호출을 하지 않는다. |
-| 409 | 최신 Version과 변경자를 조회하고 변경 의도를 다시 확인한다. Blind Retry하지 않는다. |
-| 429 | `Retry-After`와 Rate Limit을 확인한다. 비멱등 조치는 결과 대사 후 재실행한다. |
+| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. 우회 호출하지 않는다. |
+| 409 | 최신 Version·변경자·변경 시각을 조회하고 변경 의도를 다시 확인한다. |
+| 429 | `Retry-After`를 따르며 비멱등 조치는 결과 대사 후 재실행한다. |
 | Timeout·응답 유실 | Operation ID·Transaction ID·Idempotency Key로 기존 결과를 조회한다. |
-| PARTIAL | 성공·실패·미응답 Target을 분리하고 Failed-only Retry 또는 Exact Rollback을 선택한다. |
-| UNKNOWN_RESULT | Owner 원장, 상대 시스템, Ledger, Audit를 대사해 결과를 확정한 뒤 다음 조치를 선택한다. |
+| PARTIAL | 성공·실패·미응답 Target을 분리해 Failed-only Retry 또는 Exact Rollback을 선택한다. |
+| UNKNOWN_RESULT | Owner 원장·상대 시스템·Ledger·Audit를 대사해 결과를 확정한다. |
 
-#### 감사·교대 인계
+#### 교대·감사 기록
 
-교대 기록에는 화면 Route, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 결과 상태, 미확정 항목, 다음 확인 시각, Rollback 기준을 남긴다.
+Route, Environment, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 최종 상태, 미확정 대상, 다음 확인 시각과 Rollback 기준을 기록한다.
+
+
 ### logPolicies — Log Capture·Retention·Trace Boost
 
-**접근 위치**: `/logPolicies`
-**메뉴 그룹**: 통합 관제
-**화면 Source**: ``.../features/log-policies/LogPoliciesPage.vue``
+| 항목 | 값 |
+|---|---|
+| Route | `/logPolicies` |
+| 그룹 | 통합 관제 |
+| Frontend | `cpf-admin/frontend/src/features/log-policies/LogPoliciesPage.vue` |
+| Permission | `LOG_POLICY` Write |
 
-#### 사용 목적과 사용 시점
+#### 사용 목적과 사용하지 말아야 할 경우
 
-이 화면은 **Log Capture·Retention·Trace Boost** 업무를 수행한다. 조회 결과를 다른 화면의 상태와 연결해야 할 때는 Transaction ID, Trace ID, Operation ID, Version, Checksum, Instance ID 중 화면이 제공하는 식별자를 인계 키로 사용한다. 화면의 HTTP 응답만으로 업무 결과를 확정하지 않고 Owner 상태와 Audit를 함께 확인한다.
+이 화면은 **Log Capture·Retention·Trace Boost** 기능을 수행한다. 다른 Owner의 상태를 직접 변경하거나, Browser 개발자 도구로 권한을 우회하거나, HTTP 200/202만으로 최종 결과를 확정하는 용도로 사용하지 않는다.
 
-#### 선행 조건
+#### 검색·입력값
 
-1. 대상 Environment와 Tenant·Data Scope가 맞는지 확인한다.
-2. 메뉴 조회 권한과 조치 권한을 구분한다. 필요한 권한은 ``LOG_POLICY` Write`이다.
-3. 변경 조치 전 대상의 최신 Version·상태·Owner를 새로 조회한다.
-4. Reason·Approval·Expected Version이 필요한 조치는 값을 준비한다.
-5. 이전 요청이 `PROCESSING`, `UNKNOWN_RESULT`, `PARTIAL`이면 신규 요청을 만들기 전에 기존 Operation을 대사한다.
+- Target/Level/DB/File/Stack/Retention/Sampling/Capture Mode/Allowlist/Masking/Byte Cap/Reason/Trace Boost
 
-#### 검색·입력
+- 기간은 환경 표준 Timezone과 종료 시각 포함 여부를 확인한다.
+- ID는 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
+- 변경 조치의 Reason에는 목적, 영향 범위, 원복 기준, Incident·Approval ID를 적는다.
+- Password·Token·Secret·서명·PII 원문은 일반 Log나 교대 문서에 복사하지 않는다.
 
-Target/Level/DB/File/Stack/Retention/Sampling/Capture Mode/Allowlist/Masking/Byte Cap/Reason/Trace Boost
+#### 목록·상세에서 확인할 값
 
-- 기간 입력은 운영 표준 Timezone을 사용하고 종료 시각 포함 여부를 확인한다.
-- 빈 문자열과 `null`, 전체 선택의 의미를 구분한다.
-- ID 입력은 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
-- Reason은 작업 목적, 영향 범위, 원복 기준, 관련 Incident·Approval ID를 포함한다.
-- 비밀번호·Token·Secret·서명 원문은 일반 입력·Log·Audit에 남기지 않는다.
+- Policy·Distribution Event/Gateway/Version/Status/Attempt/Fencing/Error/ACK
 
-#### 결과와 상세 확인
+- 목록과 상세의 ID·Version·Owner가 다르면 조치를 중단하고 상세를 다시 조회한다.
+- `stale`, `partial`, `unknown`, Empty는 서로 다른 상태다.
+- Masked 값의 원문은 별도 Permission과 Reason이 있을 때만 조회한다.
 
-Policy·Distribution Event/Gateway/Version/Status/Attempt/Fencing/Error/ACK
+#### Button·조치
 
-조회 후 다음 순서로 판정한다.
+- 조회·저장·중지·Override·Trace Boost·Cache Refresh/Clear·적용 상태
 
-1. 결과 생성 시각과 `stale`·`partial` 표식을 확인한다.
-2. Row 식별자와 상세의 Owner·Version이 동일한지 확인한다.
-3. Masked 값은 원문 조회 권한 없이 복호화하거나 우회하지 않는다.
-4. 상태가 집계값과 상세값에서 다르면 상세 Owner 상태를 기준으로 Reconcile한다.
-5. Empty 결과는 권한·Filter·Environment·시간 범위를 확인한 뒤에만 0건으로 판정한다.
+1. 대상의 최신 상세와 Version을 조회하고 입력값의 Default·허용 범위를 확인한다.
+2. `조회·저장·중지·Override·Trace Boost·Cache Refresh/Clear·적용 상태` 중 수행할 조치를 선택해 영향 대상과 연관 Consumer를 확인한다.
+3. 변경 조치는 Reason, Approval ID, Expected Version, Idempotency Key가 필요한지 확인한다.
+4. 요청 후 Operation ID·Transaction ID·새 Version을 기록하고 최종 상태까지 조회한다.
+5. 연관 Projection·Cache·Snapshot·Audit·Metric이 같은 결과를 반영하는지 확인한다.
+6. `Raw Authorization/Cookie/Token·FULL RAW 금지; ACK 실패 대사` 기준으로 오류·응답 유실·부분 적용을 분류한다.
+7. 실패 Target만 재처리하거나 변경 전 Version으로 보정·Rollback한 뒤 정상화 기준을 재확인한다.
 
-#### 조치 절차
+#### 화면별 핵심 판정
 
-사용 가능한 조치는 **조회·저장·중지·Override·Trace Boost·Cache Refresh/Clear·적용 상태**이다.
-
-1. 조치 직전 대상 상세를 다시 조회한다.
-2. 영향 Preview가 있으면 대상 Instance·거래·사용자·배치·Route 수를 기록한다.
-3. Reason, Approval ID, Expected Version, Idempotency Key를 입력한다.
-4. 실행 후 반환된 Operation ID·Transaction ID를 기록한다.
-5. `ACCEPTED` 또는 HTTP 202는 접수 상태이므로 최종 상태를 조회한다.
-6. Success에서는 상태·Version·Checksum·Audit·Metric이 함께 바뀌었는지 확인한다.
+- Capture Mode·Allowlist·Masking·Byte Cap·Sampling·Trace Boost를 함께 검토한다.
+- Gateway ACK와 Instance 적용 Version을 확인하고 Raw Authorization·Cookie·Token Capture를 금지한다.
 
 #### 정상 결과
 
-- 대상 Owner 상태가 요청한 상태로 전이된다.
-- Version 또는 Checksum이 변경 조치와 일치한다.
-- Audit에 Operator, Permission, Reason, Approval, Before/After, Result가 남는다.
-- 관련 Log·Metric·Trace에서 같은 Operation/Transaction 식별자를 찾을 수 있다.
-- 부분 적용 대상이 없거나, 대상별 결과가 명시적으로 구분된다.
+- Owner의 실제 상태와 화면 표시 상태가 일치한다.
+- 변경 조치라면 Version·Checksum·상태 전이가 요청 내용과 일치한다.
+- 부분 적용 대상은 Instance·Partition·Delivery·Row별로 구분된다.
+- Audit에 Operator, Permission, Reason, Approval, Before/After, Operation ID와 결과가 기록된다.
+- 같은 식별자로 Log·Metric·Trace 또는 Owner 원장을 조회할 수 있다.
 
 #### 오류·응답 유실·복구
 
-핵심 복구 기준: Raw Authorization/Cookie/Token·FULL RAW 금지; ACK 실패 대사
+핵심 기준: **Raw Authorization/Cookie/Token·FULL RAW 금지; ACK 실패 대사**
 
-| 상황 | 운영 절차 |
+| 상황 | 조치 |
 |---|---|
-| 400·Validation | Field 오류와 허용 범위를 수정하고 새 요청을 만든다. |
+| Validation·400 | 오류 Field·허용 범위·상위 기준정보를 수정하고 새 요청을 만든다. |
 | 401 | Session·CSRF·Origin을 확인하고 재로그인한다. 기존 변경 요청을 자동 재전송하지 않는다. |
-| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. UI 우회 호출을 하지 않는다. |
-| 409 | 최신 Version과 변경자를 조회하고 변경 의도를 다시 확인한다. Blind Retry하지 않는다. |
-| 429 | `Retry-After`와 Rate Limit을 확인한다. 비멱등 조치는 결과 대사 후 재실행한다. |
+| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. 우회 호출하지 않는다. |
+| 409 | 최신 Version·변경자·변경 시각을 조회하고 변경 의도를 다시 확인한다. |
+| 429 | `Retry-After`를 따르며 비멱등 조치는 결과 대사 후 재실행한다. |
 | Timeout·응답 유실 | Operation ID·Transaction ID·Idempotency Key로 기존 결과를 조회한다. |
-| PARTIAL | 성공·실패·미응답 Target을 분리하고 Failed-only Retry 또는 Exact Rollback을 선택한다. |
-| UNKNOWN_RESULT | Owner 원장, 상대 시스템, Ledger, Audit를 대사해 결과를 확정한 뒤 다음 조치를 선택한다. |
+| PARTIAL | 성공·실패·미응답 Target을 분리해 Failed-only Retry 또는 Exact Rollback을 선택한다. |
+| UNKNOWN_RESULT | Owner 원장·상대 시스템·Ledger·Audit를 대사해 결과를 확정한다. |
 
-#### 감사·교대 인계
+#### 교대·감사 기록
 
-교대 기록에는 화면 Route, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 결과 상태, 미확정 항목, 다음 확인 시각, Rollback 기준을 남긴다.
+Route, Environment, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 최종 상태, 미확정 대상, 다음 확인 시각과 Rollback 기준을 기록한다.
+
+
 ### recoveryCenter — Unknown·DLQ·Outbox·File Transfer 통합 조회
 
-**접근 위치**: `/recoveryCenter`
-**메뉴 그룹**: 통합 관제
-**화면 Source**: ``.../features/recovery-center/RecoveryCenterPage.vue``
+| 항목 | 값 |
+|---|---|
+| Route | `/recoveryCenter` |
+| 그룹 | 통합 관제 |
+| Frontend | `cpf-admin/frontend/src/features/recovery-center/RecoveryCenterPage.vue` |
+| Permission | 조회 권한 |
 
-#### 사용 목적과 사용 시점
+#### 사용 목적과 사용하지 말아야 할 경우
 
-이 화면은 **Unknown·DLQ·Outbox·File Transfer 통합 조회** 업무를 수행한다. 조회 결과를 다른 화면의 상태와 연결해야 할 때는 Transaction ID, Trace ID, Operation ID, Version, Checksum, Instance ID 중 화면이 제공하는 식별자를 인계 키로 사용한다. 화면의 HTTP 응답만으로 업무 결과를 확정하지 않고 Owner 상태와 Audit를 함께 확인한다.
+이 화면은 **Unknown·DLQ·Outbox·File Transfer 통합 조회** 기능을 수행한다. 다른 Owner의 상태를 직접 변경하거나, Browser 개발자 도구로 권한을 우회하거나, HTTP 200/202만으로 최종 결과를 확정하는 용도로 사용하지 않는다.
 
-#### 선행 조건
+#### 검색·입력값
 
-1. 대상 Environment와 Tenant·Data Scope가 맞는지 확인한다.
-2. 메뉴 조회 권한과 조치 권한을 구분한다. 필요한 권한은 `조회 권한`이다.
-3. 변경 조치 전 대상의 최신 Version·상태·Owner를 새로 조회한다.
-4. Reason·Approval·Expected Version이 필요한 조치는 값을 준비한다.
-5. 이전 요청이 `PROCESSING`, `UNKNOWN_RESULT`, `PARTIAL`이면 신규 요청을 만들기 전에 기존 Operation을 대사한다.
+- 없음
 
-#### 검색·입력
+- 기간은 환경 표준 Timezone과 종료 시각 포함 여부를 확인한다.
+- ID는 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
+- 변경 조치의 Reason에는 목적, 영향 범위, 원복 기준, Incident·Approval ID를 적는다.
+- Password·Token·Secret·서명·PII 원문은 일반 Log나 교대 문서에 복사하지 않는다.
 
-없음
+#### 목록·상세에서 확인할 값
 
-- 기간 입력은 운영 표준 Timezone을 사용하고 종료 시각 포함 여부를 확인한다.
-- 빈 문자열과 `null`, 전체 선택의 의미를 구분한다.
-- ID 입력은 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
-- Reason은 작업 목적, 영향 범위, 원복 기준, 관련 Incident·Approval ID를 포함한다.
-- 비밀번호·Token·Secret·서명 원문은 일반 입력·Log·Audit에 남기지 않는다.
+- Unknown/DLQ/Outbox/File Transfer KPI·후보
 
-#### 결과와 상세 확인
+- 목록과 상세의 ID·Version·Owner가 다르면 조치를 중단하고 상세를 다시 조회한다.
+- `stale`, `partial`, `unknown`, Empty는 서로 다른 상태다.
+- Masked 값의 원문은 별도 Permission과 Reason이 있을 때만 조회한다.
 
-Unknown/DLQ/Outbox/File Transfer KPI·후보
+#### Button·조치
 
-조회 후 다음 순서로 판정한다.
+- 새로고침
 
-1. 결과 생성 시각과 `stale`·`partial` 표식을 확인한다.
-2. Row 식별자와 상세의 Owner·Version이 동일한지 확인한다.
-3. Masked 값은 원문 조회 권한 없이 복호화하거나 우회하지 않는다.
-4. 상태가 집계값과 상세값에서 다르면 상세 Owner 상태를 기준으로 Reconcile한다.
-5. Empty 결과는 권한·Filter·Environment·시간 범위를 확인한 뒤에만 0건으로 판정한다.
+1. 화면 진입 직후 Environment·시간 기준·Data Scope를 확인한다.
+2. `새로고침`을 실행하고 조회 시각, `stale`, `partial`, Empty 여부를 먼저 판정한다.
+3. 목록의 식별자를 상세 화면이나 연관 메뉴로 넘겨 Owner 상태를 교차 확인한다.
+4. 집계와 상세가 다르면 집계를 정상 근거로 사용하지 않고 상세 Owner·Audit·Metric을 기준으로 대사한다.
+5. 교대 기록에는 검색 조건, 조회 시각, 식별자, 불일치 항목과 다음 확인 시각을 남긴다.
 
-#### 조치 절차
+#### 화면별 핵심 판정
 
-사용 가능한 조치는 **새로고침**이다.
-
-1. 조치 직전 대상 상세를 다시 조회한다.
-2. 영향 Preview가 있으면 대상 Instance·거래·사용자·배치·Route 수를 기록한다.
-3. Reason, Approval ID, Expected Version, Idempotency Key를 입력한다.
-4. 실행 후 반환된 Operation ID·Transaction ID를 기록한다.
-5. `ACCEPTED` 또는 HTTP 202는 접수 상태이므로 최종 상태를 조회한다.
-6. Success에서는 상태·Version·Checksum·Audit·Metric이 함께 바뀌었는지 확인한다.
+- 핵심 입력은 `없음`이며 핵심 결과는 `Unknown/DLQ/Outbox/File Transfer KPI·후보`다.
+- 오류·복구는 `실제 조치는 Reliability 화면 Gate 사용`를 우선 확인한다.
 
 #### 정상 결과
 
-- 대상 Owner 상태가 요청한 상태로 전이된다.
-- Version 또는 Checksum이 변경 조치와 일치한다.
-- Audit에 Operator, Permission, Reason, Approval, Before/After, Result가 남는다.
-- 관련 Log·Metric·Trace에서 같은 Operation/Transaction 식별자를 찾을 수 있다.
-- 부분 적용 대상이 없거나, 대상별 결과가 명시적으로 구분된다.
+- Owner의 실제 상태와 화면 표시 상태가 일치한다.
+- 변경 조치라면 Version·Checksum·상태 전이가 요청 내용과 일치한다.
+- 부분 적용 대상은 Instance·Partition·Delivery·Row별로 구분된다.
+- Audit에 Operator, Permission, Reason, Approval, Before/After, Operation ID와 결과가 기록된다.
+- 같은 식별자로 Log·Metric·Trace 또는 Owner 원장을 조회할 수 있다.
 
 #### 오류·응답 유실·복구
 
-핵심 복구 기준: 실제 조치는 Reliability 화면 Gate 사용
+핵심 기준: **실제 조치는 Reliability 화면 Gate 사용**
 
-| 상황 | 운영 절차 |
+| 상황 | 조치 |
 |---|---|
-| 400·Validation | Field 오류와 허용 범위를 수정하고 새 요청을 만든다. |
+| Validation·400 | 오류 Field·허용 범위·상위 기준정보를 수정하고 새 요청을 만든다. |
 | 401 | Session·CSRF·Origin을 확인하고 재로그인한다. 기존 변경 요청을 자동 재전송하지 않는다. |
-| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. UI 우회 호출을 하지 않는다. |
-| 409 | 최신 Version과 변경자를 조회하고 변경 의도를 다시 확인한다. Blind Retry하지 않는다. |
-| 429 | `Retry-After`와 Rate Limit을 확인한다. 비멱등 조치는 결과 대사 후 재실행한다. |
+| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. 우회 호출하지 않는다. |
+| 409 | 최신 Version·변경자·변경 시각을 조회하고 변경 의도를 다시 확인한다. |
+| 429 | `Retry-After`를 따르며 비멱등 조치는 결과 대사 후 재실행한다. |
 | Timeout·응답 유실 | Operation ID·Transaction ID·Idempotency Key로 기존 결과를 조회한다. |
-| PARTIAL | 성공·실패·미응답 Target을 분리하고 Failed-only Retry 또는 Exact Rollback을 선택한다. |
-| UNKNOWN_RESULT | Owner 원장, 상대 시스템, Ledger, Audit를 대사해 결과를 확정한 뒤 다음 조치를 선택한다. |
+| PARTIAL | 성공·실패·미응답 Target을 분리해 Failed-only Retry 또는 Exact Rollback을 선택한다. |
+| UNKNOWN_RESULT | Owner 원장·상대 시스템·Ledger·Audit를 대사해 결과를 확정한다. |
 
-#### 감사·교대 인계
+#### 교대·감사 기록
 
-교대 기록에는 화면 Route, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 결과 상태, 미확정 항목, 다음 확인 시각, Rollback 기준을 남긴다.
+Route, Environment, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 최종 상태, 미확정 대상, 다음 확인 시각과 Rollback 기준을 기록한다.
+
+
 ### incidents — Incident Lifecycle
 
-**접근 위치**: `/incidents`
-**메뉴 그룹**: 통합 관제
-**화면 Source**: ``.../features/incidents/IncidentsPage.vue``
+| 항목 | 값 |
+|---|---|
+| Route | `/incidents` |
+| 그룹 | 통합 관제 |
+| Frontend | `cpf-admin/frontend/src/features/incidents/IncidentsPage.vue` |
+| Permission | Incident Write |
 
-#### 사용 목적과 사용 시점
+#### 사용 목적과 사용하지 말아야 할 경우
 
-이 화면은 **Incident Lifecycle** 업무를 수행한다. 조회 결과를 다른 화면의 상태와 연결해야 할 때는 Transaction ID, Trace ID, Operation ID, Version, Checksum, Instance ID 중 화면이 제공하는 식별자를 인계 키로 사용한다. 화면의 HTTP 응답만으로 업무 결과를 확정하지 않고 Owner 상태와 Audit를 함께 확인한다.
+이 화면은 **Incident Lifecycle** 기능을 수행한다. 다른 Owner의 상태를 직접 변경하거나, Browser 개발자 도구로 권한을 우회하거나, HTTP 200/202만으로 최종 결과를 확정하는 용도로 사용하지 않는다.
 
-#### 선행 조건
+#### 검색·입력값
 
-1. 대상 Environment와 Tenant·Data Scope가 맞는지 확인한다.
-2. 메뉴 조회 권한과 조치 권한을 구분한다. 필요한 권한은 `Incident Write`이다.
-3. 변경 조치 전 대상의 최신 Version·상태·Owner를 새로 조회한다.
-4. Reason·Approval·Expected Version이 필요한 조치는 값을 준비한다.
-5. 이전 요청이 `PROCESSING`, `UNKNOWN_RESULT`, `PARTIAL`이면 신규 요청을 만들기 전에 기존 Operation을 대사한다.
+- Severity SEV1~4
+- Title
+- Summary
+- Source
+- Reason
 
-#### 검색·입력
+- 기간은 환경 표준 Timezone과 종료 시각 포함 여부를 확인한다.
+- ID는 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
+- 변경 조치의 Reason에는 목적, 영향 범위, 원복 기준, Incident·Approval ID를 적는다.
+- Password·Token·Secret·서명·PII 원문은 일반 Log나 교대 문서에 복사하지 않는다.
 
-Severity SEV1~4, Title, Summary, Source, Reason
+#### 목록·상세에서 확인할 값
 
-- 기간 입력은 운영 표준 Timezone을 사용하고 종료 시각 포함 여부를 확인한다.
-- 빈 문자열과 `null`, 전체 선택의 의미를 구분한다.
-- ID 입력은 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
-- Reason은 작업 목적, 영향 범위, 원복 기준, 관련 Incident·Approval ID를 포함한다.
-- 비밀번호·Token·Secret·서명 원문은 일반 입력·Log·Audit에 남기지 않는다.
+- ID
+- Severity
+- Title
+- Status
+- Detected
 
-#### 결과와 상세 확인
+- 목록과 상세의 ID·Version·Owner가 다르면 조치를 중단하고 상세를 다시 조회한다.
+- `stale`, `partial`, `unknown`, Empty는 서로 다른 상태다.
+- Masked 값의 원문은 별도 Permission과 Reason이 있을 때만 조회한다.
 
-ID, Severity, Title, Status, Detected
+#### Button·조치
 
-조회 후 다음 순서로 판정한다.
+- 생성·ACKNOWLEDGED·MITIGATED·RESOLVED
 
-1. 결과 생성 시각과 `stale`·`partial` 표식을 확인한다.
-2. Row 식별자와 상세의 Owner·Version이 동일한지 확인한다.
-3. Masked 값은 원문 조회 권한 없이 복호화하거나 우회하지 않는다.
-4. 상태가 집계값과 상세값에서 다르면 상세 Owner 상태를 기준으로 Reconcile한다.
-5. Empty 결과는 권한·Filter·Environment·시간 범위를 확인한 뒤에만 0건으로 판정한다.
+1. 대상의 최신 상세와 Version을 조회하고 입력값의 Default·허용 범위를 확인한다.
+2. `생성·ACKNOWLEDGED·MITIGATED·RESOLVED` 중 수행할 조치를 선택해 영향 대상과 연관 Consumer를 확인한다.
+3. 변경 조치는 Reason, Approval ID, Expected Version, Idempotency Key가 필요한지 확인한다.
+4. 요청 후 Operation ID·Transaction ID·새 Version을 기록하고 최종 상태까지 조회한다.
+5. 연관 Projection·Cache·Snapshot·Audit·Metric이 같은 결과를 반영하는지 확인한다.
+6. `각 전이에 구체적 Reason` 기준으로 오류·응답 유실·부분 적용을 분류한다.
+7. 실패 Target만 재처리하거나 변경 전 Version으로 보정·Rollback한 뒤 정상화 기준을 재확인한다.
 
-#### 조치 절차
+#### 화면별 핵심 판정
 
-사용 가능한 조치는 **생성·ACKNOWLEDGED·MITIGATED·RESOLVED**이다.
-
-1. 조치 직전 대상 상세를 다시 조회한다.
-2. 영향 Preview가 있으면 대상 Instance·거래·사용자·배치·Route 수를 기록한다.
-3. Reason, Approval ID, Expected Version, Idempotency Key를 입력한다.
-4. 실행 후 반환된 Operation ID·Transaction ID를 기록한다.
-5. `ACCEPTED` 또는 HTTP 202는 접수 상태이므로 최종 상태를 조회한다.
-6. Success에서는 상태·Version·Checksum·Audit·Metric이 함께 바뀌었는지 확인한다.
+- 상태 전이는 ACKNOWLEDGED→MITIGATED→RESOLVED 순서와 구체적 Reason을 사용한다.
+- Mitigation과 원인 제거·데이터 대사를 구분한다.
 
 #### 정상 결과
 
-- 대상 Owner 상태가 요청한 상태로 전이된다.
-- Version 또는 Checksum이 변경 조치와 일치한다.
-- Audit에 Operator, Permission, Reason, Approval, Before/After, Result가 남는다.
-- 관련 Log·Metric·Trace에서 같은 Operation/Transaction 식별자를 찾을 수 있다.
-- 부분 적용 대상이 없거나, 대상별 결과가 명시적으로 구분된다.
+- Owner의 실제 상태와 화면 표시 상태가 일치한다.
+- 변경 조치라면 Version·Checksum·상태 전이가 요청 내용과 일치한다.
+- 부분 적용 대상은 Instance·Partition·Delivery·Row별로 구분된다.
+- Audit에 Operator, Permission, Reason, Approval, Before/After, Operation ID와 결과가 기록된다.
+- 같은 식별자로 Log·Metric·Trace 또는 Owner 원장을 조회할 수 있다.
 
 #### 오류·응답 유실·복구
 
-핵심 복구 기준: 각 전이에 구체적 Reason
+핵심 기준: **각 전이에 구체적 Reason**
 
-| 상황 | 운영 절차 |
+| 상황 | 조치 |
 |---|---|
-| 400·Validation | Field 오류와 허용 범위를 수정하고 새 요청을 만든다. |
+| Validation·400 | 오류 Field·허용 범위·상위 기준정보를 수정하고 새 요청을 만든다. |
 | 401 | Session·CSRF·Origin을 확인하고 재로그인한다. 기존 변경 요청을 자동 재전송하지 않는다. |
-| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. UI 우회 호출을 하지 않는다. |
-| 409 | 최신 Version과 변경자를 조회하고 변경 의도를 다시 확인한다. Blind Retry하지 않는다. |
-| 429 | `Retry-After`와 Rate Limit을 확인한다. 비멱등 조치는 결과 대사 후 재실행한다. |
+| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. 우회 호출하지 않는다. |
+| 409 | 최신 Version·변경자·변경 시각을 조회하고 변경 의도를 다시 확인한다. |
+| 429 | `Retry-After`를 따르며 비멱등 조치는 결과 대사 후 재실행한다. |
 | Timeout·응답 유실 | Operation ID·Transaction ID·Idempotency Key로 기존 결과를 조회한다. |
-| PARTIAL | 성공·실패·미응답 Target을 분리하고 Failed-only Retry 또는 Exact Rollback을 선택한다. |
-| UNKNOWN_RESULT | Owner 원장, 상대 시스템, Ledger, Audit를 대사해 결과를 확정한 뒤 다음 조치를 선택한다. |
+| PARTIAL | 성공·실패·미응답 Target을 분리해 Failed-only Retry 또는 Exact Rollback을 선택한다. |
+| UNKNOWN_RESULT | Owner 원장·상대 시스템·Ledger·Audit를 대사해 결과를 확정한다. |
 
-#### 감사·교대 인계
+#### 교대·감사 기록
 
-교대 기록에는 화면 Route, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 결과 상태, 미확정 항목, 다음 확인 시각, Rollback 기준을 남긴다.
+Route, Environment, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 최종 상태, 미확정 대상, 다음 확인 시각과 Rollback 기준을 기록한다.
+
+
 ### reliability — DLQ·Unknown·Batch Log 대사
 
-**접근 위치**: `/reliability`
-**메뉴 그룹**: 통합 관제
-**화면 Source**: ``.../features/reliability/ReliabilityPage.vue``
+| 항목 | 값 |
+|---|---|
+| Route | `/reliability` |
+| 그룹 | 통합 관제 |
+| Frontend | `cpf-admin/frontend/src/features/reliability/ReliabilityPage.vue` |
+| Permission | `RELIABILITY` Write |
 
-#### 사용 목적과 사용 시점
+#### 사용 목적과 사용하지 말아야 할 경우
 
-이 화면은 **DLQ·Unknown·Batch Log 대사** 업무를 수행한다. 조회 결과를 다른 화면의 상태와 연결해야 할 때는 Transaction ID, Trace ID, Operation ID, Version, Checksum, Instance ID 중 화면이 제공하는 식별자를 인계 키로 사용한다. 화면의 HTTP 응답만으로 업무 결과를 확정하지 않고 Owner 상태와 Audit를 함께 확인한다.
+이 화면은 **DLQ·Unknown·Batch Log 대사** 기능을 수행한다. 다른 Owner의 상태를 직접 변경하거나, Browser 개발자 도구로 권한을 우회하거나, HTTP 200/202만으로 최종 결과를 확정하는 용도로 사용하지 않는다.
 
-#### 선행 조건
+#### 검색·입력값
 
-1. 대상 Environment와 Tenant·Data Scope가 맞는지 확인한다.
-2. 메뉴 조회 권한과 조치 권한을 구분한다. 필요한 권한은 ``RELIABILITY` Write`이다.
-3. 변경 조치 전 대상의 최신 Version·상태·Owner를 새로 조회한다.
-4. Reason·Approval·Expected Version이 필요한 조치는 값을 준비한다.
-5. 이전 요청이 `PROCESSING`, `UNKNOWN_RESULT`, `PARTIAL`이면 신규 요청을 만들기 전에 기존 Operation을 대사한다.
+- Scope/Status/Key/Transaction/Topic/Endpoint/Type/Business Date/Job/Instance/Limit
+- Message/Unknown ID/Target Status/Reason
 
-#### 검색·입력
+- 기간은 환경 표준 Timezone과 종료 시각 포함 여부를 확인한다.
+- ID는 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
+- 변경 조치의 Reason에는 목적, 영향 범위, 원복 기준, Incident·Approval ID를 적는다.
+- Password·Token·Secret·서명·PII 원문은 일반 Log나 교대 문서에 복사하지 않는다.
 
-Scope/Status/Key/Transaction/Topic/Endpoint/Type/Business Date/Job/Instance/Limit; Message/Unknown ID/Target Status/Reason
+#### 목록·상세에서 확인할 값
 
-- 기간 입력은 운영 표준 Timezone을 사용하고 종료 시각 포함 여부를 확인한다.
-- 빈 문자열과 `null`, 전체 선택의 의미를 구분한다.
-- ID 입력은 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
-- Reason은 작업 목적, 영향 범위, 원복 기준, 관련 Incident·Approval ID를 포함한다.
-- 비밀번호·Token·Secret·서명 원문은 일반 입력·Log·Audit에 남기지 않는다.
+- 통합 Result
 
-#### 결과와 상세 확인
+- 목록과 상세의 ID·Version·Owner가 다르면 조치를 중단하고 상세를 다시 조회한다.
+- `stale`, `partial`, `unknown`, Empty는 서로 다른 상태다.
+- Masked 값의 원문은 별도 Permission과 Reason이 있을 때만 조회한다.
 
-통합 Result
+#### Button·조치
 
-조회 후 다음 순서로 판정한다.
+- 조회·BAT 상세·DLQ Replay·Unknown 수동 확정
 
-1. 결과 생성 시각과 `stale`·`partial` 표식을 확인한다.
-2. Row 식별자와 상세의 Owner·Version이 동일한지 확인한다.
-3. Masked 값은 원문 조회 권한 없이 복호화하거나 우회하지 않는다.
-4. 상태가 집계값과 상세값에서 다르면 상세 Owner 상태를 기준으로 Reconcile한다.
-5. Empty 결과는 권한·Filter·Environment·시간 범위를 확인한 뒤에만 0건으로 판정한다.
+1. 대상의 최신 상세와 Version을 조회하고 입력값의 Default·허용 범위를 확인한다.
+2. `조회·BAT 상세·DLQ Replay·Unknown 수동 확정` 중 수행할 조치를 선택해 영향 대상과 연관 Consumer를 확인한다.
+3. 변경 조치는 Reason, Approval ID, Expected Version, Idempotency Key가 필요한지 확인한다.
+4. 요청 후 Operation ID·Transaction ID·새 Version을 기록하고 최종 상태까지 조회한다.
+5. 연관 Projection·Cache·Snapshot·Audit·Metric이 같은 결과를 반영하는지 확인한다.
+6. `실제 Side Effect 근거 없이 수동 성공 확정 금지` 기준으로 오류·응답 유실·부분 적용을 분류한다.
+7. 실패 Target만 재처리하거나 변경 전 Version으로 보정·Rollback한 뒤 정상화 기준을 재확인한다.
 
-#### 조치 절차
+#### 화면별 핵심 판정
 
-사용 가능한 조치는 **조회·BAT 상세·DLQ Replay·Unknown 수동 확정**이다.
-
-1. 조치 직전 대상 상세를 다시 조회한다.
-2. 영향 Preview가 있으면 대상 Instance·거래·사용자·배치·Route 수를 기록한다.
-3. Reason, Approval ID, Expected Version, Idempotency Key를 입력한다.
-4. 실행 후 반환된 Operation ID·Transaction ID를 기록한다.
-5. `ACCEPTED` 또는 HTTP 202는 접수 상태이므로 최종 상태를 조회한다.
-6. Success에서는 상태·Version·Checksum·Audit·Metric이 함께 바뀌었는지 확인한다.
+- DLQ Replay와 Unknown 수동 확정은 별도 권한·근거를 요구한다.
+- 실제 Side Effect 근거 없이 SUCCESS로 수동 확정하지 않는다.
 
 #### 정상 결과
 
-- 대상 Owner 상태가 요청한 상태로 전이된다.
-- Version 또는 Checksum이 변경 조치와 일치한다.
-- Audit에 Operator, Permission, Reason, Approval, Before/After, Result가 남는다.
-- 관련 Log·Metric·Trace에서 같은 Operation/Transaction 식별자를 찾을 수 있다.
-- 부분 적용 대상이 없거나, 대상별 결과가 명시적으로 구분된다.
+- Owner의 실제 상태와 화면 표시 상태가 일치한다.
+- 변경 조치라면 Version·Checksum·상태 전이가 요청 내용과 일치한다.
+- 부분 적용 대상은 Instance·Partition·Delivery·Row별로 구분된다.
+- Audit에 Operator, Permission, Reason, Approval, Before/After, Operation ID와 결과가 기록된다.
+- 같은 식별자로 Log·Metric·Trace 또는 Owner 원장을 조회할 수 있다.
 
 #### 오류·응답 유실·복구
 
-핵심 복구 기준: 실제 Side Effect 근거 없이 수동 성공 확정 금지
+핵심 기준: **실제 Side Effect 근거 없이 수동 성공 확정 금지**
 
-| 상황 | 운영 절차 |
+| 상황 | 조치 |
 |---|---|
-| 400·Validation | Field 오류와 허용 범위를 수정하고 새 요청을 만든다. |
+| Validation·400 | 오류 Field·허용 범위·상위 기준정보를 수정하고 새 요청을 만든다. |
 | 401 | Session·CSRF·Origin을 확인하고 재로그인한다. 기존 변경 요청을 자동 재전송하지 않는다. |
-| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. UI 우회 호출을 하지 않는다. |
-| 409 | 최신 Version과 변경자를 조회하고 변경 의도를 다시 확인한다. Blind Retry하지 않는다. |
-| 429 | `Retry-After`와 Rate Limit을 확인한다. 비멱등 조치는 결과 대사 후 재실행한다. |
+| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. 우회 호출하지 않는다. |
+| 409 | 최신 Version·변경자·변경 시각을 조회하고 변경 의도를 다시 확인한다. |
+| 429 | `Retry-After`를 따르며 비멱등 조치는 결과 대사 후 재실행한다. |
 | Timeout·응답 유실 | Operation ID·Transaction ID·Idempotency Key로 기존 결과를 조회한다. |
-| PARTIAL | 성공·실패·미응답 Target을 분리하고 Failed-only Retry 또는 Exact Rollback을 선택한다. |
-| UNKNOWN_RESULT | Owner 원장, 상대 시스템, Ledger, Audit를 대사해 결과를 확정한 뒤 다음 조치를 선택한다. |
+| PARTIAL | 성공·실패·미응답 Target을 분리해 Failed-only Retry 또는 Exact Rollback을 선택한다. |
+| UNKNOWN_RESULT | Owner 원장·상대 시스템·Ledger·Audit를 대사해 결과를 확정한다. |
 
-#### 감사·교대 인계
+#### 교대·감사 기록
 
-교대 기록에는 화면 Route, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 결과 상태, 미확정 항목, 다음 확인 시각, Rollback 기준을 남긴다.
+Route, Environment, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 최종 상태, 미확정 대상, 다음 확인 시각과 Rollback 기준을 기록한다.
+
+
 ### notifications — 알림 Rule·Durable Delivery
 
-**접근 위치**: `/notifications`
-**메뉴 그룹**: 연계 관리
-**화면 Source**: ``.../features/notifications/NotificationsPage.vue``
+| 항목 | 값 |
+|---|---|
+| Route | `/notifications` |
+| 그룹 | 연계 관리 |
+| Frontend | `cpf-admin/frontend/src/features/notifications/NotificationsPage.vue` |
+| Permission | `NOTIFICATION_*` Button Permission |
 
-#### 사용 목적과 사용 시점
+#### 사용 목적과 사용하지 말아야 할 경우
 
-이 화면은 **알림 Rule·Durable Delivery** 업무를 수행한다. 조회 결과를 다른 화면의 상태와 연결해야 할 때는 Transaction ID, Trace ID, Operation ID, Version, Checksum, Instance ID 중 화면이 제공하는 식별자를 인계 키로 사용한다. 화면의 HTTP 응답만으로 업무 결과를 확정하지 않고 Owner 상태와 Audit를 함께 확인한다.
+이 화면은 **알림 Rule·Durable Delivery** 기능을 수행한다. 다른 Owner의 상태를 직접 변경하거나, Browser 개발자 도구로 권한을 우회하거나, HTTP 200/202만으로 최종 결과를 확정하는 용도로 사용하지 않는다.
 
-#### 선행 조건
+#### 검색·입력값
 
-1. 대상 Environment와 Tenant·Data Scope가 맞는지 확인한다.
-2. 메뉴 조회 권한과 조치 권한을 구분한다. 필요한 권한은 ``NOTIFICATION_*` Button Permission`이다.
-3. 변경 조치 전 대상의 최신 Version·상태·Owner를 새로 조회한다.
-4. Reason·Approval·Expected Version이 필요한 조치는 값을 준비한다.
-5. 이전 요청이 `PROCESSING`, `UNKNOWN_RESULT`, `PARTIAL`이면 신규 요청을 만들기 전에 기존 Operation을 대사한다.
+- Rule/Event/Channel/Severity/Receiver/Reason
+- Delivery Expected Version/Operation/Reason
 
-#### 검색·입력
+- 기간은 환경 표준 Timezone과 종료 시각 포함 여부를 확인한다.
+- ID는 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
+- 변경 조치의 Reason에는 목적, 영향 범위, 원복 기준, Incident·Approval ID를 적는다.
+- Password·Token·Secret·서명·PII 원문은 일반 Log나 교대 문서에 복사하지 않는다.
 
-Rule/Event/Channel/Severity/Receiver/Reason; Delivery Expected Version/Operation/Reason
+#### 목록·상세에서 확인할 값
 
-- 기간 입력은 운영 표준 Timezone을 사용하고 종료 시각 포함 여부를 확인한다.
-- 빈 문자열과 `null`, 전체 선택의 의미를 구분한다.
-- ID 입력은 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
-- Reason은 작업 목적, 영향 범위, 원복 기준, 관련 Incident·Approval ID를 포함한다.
-- 비밀번호·Token·Secret·서명 원문은 일반 입력·Log·Audit에 남기지 않는다.
+- Rule
+- Delivery/Hash/Status/Attempt/Lease/Version
+- Provider Attempt
 
-#### 결과와 상세 확인
+- 목록과 상세의 ID·Version·Owner가 다르면 조치를 중단하고 상세를 다시 조회한다.
+- `stale`, `partial`, `unknown`, Empty는 서로 다른 상태다.
+- Masked 값의 원문은 별도 Permission과 Reason이 있을 때만 조회한다.
 
-Rule; Delivery/Hash/Status/Attempt/Lease/Version; Provider Attempt
+#### Button·조치
 
-조회 후 다음 순서로 판정한다.
+- 저장·중지·Test·CSV·Retry·Cancel
 
-1. 결과 생성 시각과 `stale`·`partial` 표식을 확인한다.
-2. Row 식별자와 상세의 Owner·Version이 동일한지 확인한다.
-3. Masked 값은 원문 조회 권한 없이 복호화하거나 우회하지 않는다.
-4. 상태가 집계값과 상세값에서 다르면 상세 Owner 상태를 기준으로 Reconcile한다.
-5. Empty 결과는 권한·Filter·Environment·시간 범위를 확인한 뒤에만 0건으로 판정한다.
+1. 대상의 최신 상세와 Version을 조회하고 입력값의 Default·허용 범위를 확인한다.
+2. `저장·중지·Test·CSV·Retry·Cancel` 중 수행할 조치를 선택해 영향 대상과 연관 Consumer를 확인한다.
+3. 변경 조치는 Reason, Approval ID, Expected Version, Idempotency Key가 필요한지 확인한다.
+4. 요청 후 Operation ID·Transaction ID·새 Version을 기록하고 최종 상태까지 조회한다.
+5. 연관 Projection·Cache·Snapshot·Audit·Metric이 같은 결과를 반영하는지 확인한다.
+6. `Expected Version·Lease·Attempt 확인` 기준으로 오류·응답 유실·부분 적용을 분류한다.
+7. 실패 Target만 재처리하거나 변경 전 Version으로 보정·Rollback한 뒤 정상화 기준을 재확인한다.
 
-#### 조치 절차
+#### 화면별 핵심 판정
 
-사용 가능한 조치는 **저장·중지·Test·CSV·Retry·Cancel**이다.
-
-1. 조치 직전 대상 상세를 다시 조회한다.
-2. 영향 Preview가 있으면 대상 Instance·거래·사용자·배치·Route 수를 기록한다.
-3. Reason, Approval ID, Expected Version, Idempotency Key를 입력한다.
-4. 실행 후 반환된 Operation ID·Transaction ID를 기록한다.
-5. `ACCEPTED` 또는 HTTP 202는 접수 상태이므로 최종 상태를 조회한다.
-6. Success에서는 상태·Version·Checksum·Audit·Metric이 함께 바뀌었는지 확인한다.
+- Rule과 Durable Delivery·Provider Attempt를 분리한다.
+- Retry·Cancel은 Expected Version·Lease·Attempt를 확인한다.
 
 #### 정상 결과
 
-- 대상 Owner 상태가 요청한 상태로 전이된다.
-- Version 또는 Checksum이 변경 조치와 일치한다.
-- Audit에 Operator, Permission, Reason, Approval, Before/After, Result가 남는다.
-- 관련 Log·Metric·Trace에서 같은 Operation/Transaction 식별자를 찾을 수 있다.
-- 부분 적용 대상이 없거나, 대상별 결과가 명시적으로 구분된다.
+- Owner의 실제 상태와 화면 표시 상태가 일치한다.
+- 변경 조치라면 Version·Checksum·상태 전이가 요청 내용과 일치한다.
+- 부분 적용 대상은 Instance·Partition·Delivery·Row별로 구분된다.
+- Audit에 Operator, Permission, Reason, Approval, Before/After, Operation ID와 결과가 기록된다.
+- 같은 식별자로 Log·Metric·Trace 또는 Owner 원장을 조회할 수 있다.
 
 #### 오류·응답 유실·복구
 
-핵심 복구 기준: Expected Version·Lease·Attempt 확인
+핵심 기준: **Expected Version·Lease·Attempt 확인**
 
-| 상황 | 운영 절차 |
+| 상황 | 조치 |
 |---|---|
-| 400·Validation | Field 오류와 허용 범위를 수정하고 새 요청을 만든다. |
+| Validation·400 | 오류 Field·허용 범위·상위 기준정보를 수정하고 새 요청을 만든다. |
 | 401 | Session·CSRF·Origin을 확인하고 재로그인한다. 기존 변경 요청을 자동 재전송하지 않는다. |
-| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. UI 우회 호출을 하지 않는다. |
-| 409 | 최신 Version과 변경자를 조회하고 변경 의도를 다시 확인한다. Blind Retry하지 않는다. |
-| 429 | `Retry-After`와 Rate Limit을 확인한다. 비멱등 조치는 결과 대사 후 재실행한다. |
+| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. 우회 호출하지 않는다. |
+| 409 | 최신 Version·변경자·변경 시각을 조회하고 변경 의도를 다시 확인한다. |
+| 429 | `Retry-After`를 따르며 비멱등 조치는 결과 대사 후 재실행한다. |
 | Timeout·응답 유실 | Operation ID·Transaction ID·Idempotency Key로 기존 결과를 조회한다. |
-| PARTIAL | 성공·실패·미응답 Target을 분리하고 Failed-only Retry 또는 Exact Rollback을 선택한다. |
-| UNKNOWN_RESULT | Owner 원장, 상대 시스템, Ledger, Audit를 대사해 결과를 확정한 뒤 다음 조치를 선택한다. |
+| PARTIAL | 성공·실패·미응답 Target을 분리해 Failed-only Retry 또는 Exact Rollback을 선택한다. |
+| UNKNOWN_RESULT | Owner 원장·상대 시스템·Ledger·Audit를 대사해 결과를 확정한다. |
 
-#### 감사·교대 인계
+#### 교대·감사 기록
 
-교대 기록에는 화면 Route, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 결과 상태, 미확정 항목, 다음 확인 시각, Rollback 기준을 남긴다.
+Route, Environment, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 최종 상태, 미확정 대상, 다음 확인 시각과 Rollback 기준을 기록한다.
+
+
 ### downloads — CSV Download·Audit
 
-**접근 위치**: `/downloads`
-**메뉴 그룹**: 연계 관리
-**화면 Source**: ``.../features/downloads/DownloadsPage.vue``
+| 항목 | 값 |
+|---|---|
+| Route | `/downloads` |
+| 그룹 | 연계 관리 |
+| Frontend | `cpf-admin/frontend/src/features/downloads/DownloadsPage.vue` |
+| Permission | Download Permission·Reason |
 
-#### 사용 목적과 사용 시점
+#### 사용 목적과 사용하지 말아야 할 경우
 
-이 화면은 **CSV Download·Audit** 업무를 수행한다. 조회 결과를 다른 화면의 상태와 연결해야 할 때는 Transaction ID, Trace ID, Operation ID, Version, Checksum, Instance ID 중 화면이 제공하는 식별자를 인계 키로 사용한다. 화면의 HTTP 응답만으로 업무 결과를 확정하지 않고 Owner 상태와 Audit를 함께 확인한다.
+이 화면은 **CSV Download·Audit** 기능을 수행한다. 다른 Owner의 상태를 직접 변경하거나, Browser 개발자 도구로 권한을 우회하거나, HTTP 200/202만으로 최종 결과를 확정하는 용도로 사용하지 않는다.
 
-#### 선행 조건
+#### 검색·입력값
 
-1. 대상 Environment와 Tenant·Data Scope가 맞는지 확인한다.
-2. 메뉴 조회 권한과 조치 권한을 구분한다. 필요한 권한은 `Download Permission·Reason`이다.
-3. 변경 조치 전 대상의 최신 Version·상태·Owner를 새로 조회한다.
-4. Reason·Approval·Expected Version이 필요한 조치는 값을 준비한다.
-5. 이전 요청이 `PROCESSING`, `UNKNOWN_RESULT`, `PARTIAL`이면 신규 요청을 만들기 전에 기존 Operation을 대사한다.
+- Type
+- Target
+- Date Range
+- Transaction/Trace/Job
+- Limit
+- Reason
 
-#### 검색·입력
+- 기간은 환경 표준 Timezone과 종료 시각 포함 여부를 확인한다.
+- ID는 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
+- 변경 조치의 Reason에는 목적, 영향 범위, 원복 기준, Incident·Approval ID를 적는다.
+- Password·Token·Secret·서명·PII 원문은 일반 Log나 교대 문서에 복사하지 않는다.
 
-Type, Target, Date Range, Transaction/Trace/Job, Limit, Reason
+#### 목록·상세에서 확인할 값
 
-- 기간 입력은 운영 표준 Timezone을 사용하고 종료 시각 포함 여부를 확인한다.
-- 빈 문자열과 `null`, 전체 선택의 의미를 구분한다.
-- ID 입력은 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
-- Reason은 작업 목적, 영향 범위, 원복 기준, 관련 Incident·Approval ID를 포함한다.
-- 비밀번호·Token·Secret·서명 원문은 일반 입력·Log·Audit에 남기지 않는다.
+- Download Result
 
-#### 결과와 상세 확인
+- 목록과 상세의 ID·Version·Owner가 다르면 조치를 중단하고 상세를 다시 조회한다.
+- `stale`, `partial`, `unknown`, Empty는 서로 다른 상태다.
+- Masked 값의 원문은 별도 Permission과 Reason이 있을 때만 조회한다.
 
-Download Result
+#### Button·조치
 
-조회 후 다음 순서로 판정한다.
+- 정책 조회·CSV
 
-1. 결과 생성 시각과 `stale`·`partial` 표식을 확인한다.
-2. Row 식별자와 상세의 Owner·Version이 동일한지 확인한다.
-3. Masked 값은 원문 조회 권한 없이 복호화하거나 우회하지 않는다.
-4. 상태가 집계값과 상세값에서 다르면 상세 Owner 상태를 기준으로 Reconcile한다.
-5. Empty 결과는 권한·Filter·Environment·시간 범위를 확인한 뒤에만 0건으로 판정한다.
+1. 대상의 최신 상세와 Version을 조회하고 입력값의 Default·허용 범위를 확인한다.
+2. `정책 조회·CSV` 중 수행할 조치를 선택해 영향 대상과 연관 Consumer를 확인한다.
+3. 변경 조치는 Reason, Approval ID, Expected Version, Idempotency Key가 필요한지 확인한다.
+4. 요청 후 Operation ID·Transaction ID·새 Version을 기록하고 최종 상태까지 조회한다.
+5. 연관 Projection·Cache·Snapshot·Audit·Metric이 같은 결과를 반영하는지 확인한다.
+6. `Data Scope·Masking·건수 상한` 기준으로 오류·응답 유실·부분 적용을 분류한다.
+7. 실패 Target만 재처리하거나 변경 전 Version으로 보정·Rollback한 뒤 정상화 기준을 재확인한다.
 
-#### 조치 절차
+#### 화면별 핵심 판정
 
-사용 가능한 조치는 **정책 조회·CSV**이다.
-
-1. 조치 직전 대상 상세를 다시 조회한다.
-2. 영향 Preview가 있으면 대상 Instance·거래·사용자·배치·Route 수를 기록한다.
-3. Reason, Approval ID, Expected Version, Idempotency Key를 입력한다.
-4. 실행 후 반환된 Operation ID·Transaction ID를 기록한다.
-5. `ACCEPTED` 또는 HTTP 202는 접수 상태이므로 최종 상태를 조회한다.
-6. Success에서는 상태·Version·Checksum·Audit·Metric이 함께 바뀌었는지 확인한다.
+- 핵심 입력은 `Type, Target, Date Range, Transaction/Trace/Job, Limit, Reason`이며 핵심 결과는 `Download Result`다.
+- 오류·복구는 `Data Scope·Masking·건수 상한`를 우선 확인한다.
 
 #### 정상 결과
 
-- 대상 Owner 상태가 요청한 상태로 전이된다.
-- Version 또는 Checksum이 변경 조치와 일치한다.
-- Audit에 Operator, Permission, Reason, Approval, Before/After, Result가 남는다.
-- 관련 Log·Metric·Trace에서 같은 Operation/Transaction 식별자를 찾을 수 있다.
-- 부분 적용 대상이 없거나, 대상별 결과가 명시적으로 구분된다.
+- Owner의 실제 상태와 화면 표시 상태가 일치한다.
+- 변경 조치라면 Version·Checksum·상태 전이가 요청 내용과 일치한다.
+- 부분 적용 대상은 Instance·Partition·Delivery·Row별로 구분된다.
+- Audit에 Operator, Permission, Reason, Approval, Before/After, Operation ID와 결과가 기록된다.
+- 같은 식별자로 Log·Metric·Trace 또는 Owner 원장을 조회할 수 있다.
 
 #### 오류·응답 유실·복구
 
-핵심 복구 기준: Data Scope·Masking·건수 상한
+핵심 기준: **Data Scope·Masking·건수 상한**
 
-| 상황 | 운영 절차 |
+| 상황 | 조치 |
 |---|---|
-| 400·Validation | Field 오류와 허용 범위를 수정하고 새 요청을 만든다. |
+| Validation·400 | 오류 Field·허용 범위·상위 기준정보를 수정하고 새 요청을 만든다. |
 | 401 | Session·CSRF·Origin을 확인하고 재로그인한다. 기존 변경 요청을 자동 재전송하지 않는다. |
-| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. UI 우회 호출을 하지 않는다. |
-| 409 | 최신 Version과 변경자를 조회하고 변경 의도를 다시 확인한다. Blind Retry하지 않는다. |
-| 429 | `Retry-After`와 Rate Limit을 확인한다. 비멱등 조치는 결과 대사 후 재실행한다. |
+| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. 우회 호출하지 않는다. |
+| 409 | 최신 Version·변경자·변경 시각을 조회하고 변경 의도를 다시 확인한다. |
+| 429 | `Retry-After`를 따르며 비멱등 조치는 결과 대사 후 재실행한다. |
 | Timeout·응답 유실 | Operation ID·Transaction ID·Idempotency Key로 기존 결과를 조회한다. |
-| PARTIAL | 성공·실패·미응답 Target을 분리하고 Failed-only Retry 또는 Exact Rollback을 선택한다. |
-| UNKNOWN_RESULT | Owner 원장, 상대 시스템, Ledger, Audit를 대사해 결과를 확정한 뒤 다음 조치를 선택한다. |
+| PARTIAL | 성공·실패·미응답 Target을 분리해 Failed-only Retry 또는 Exact Rollback을 선택한다. |
+| UNKNOWN_RESULT | Owner 원장·상대 시스템·Ledger·Audit를 대사해 결과를 확정한다. |
 
-#### 감사·교대 인계
+#### 교대·감사 기록
 
-교대 기록에는 화면 Route, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 결과 상태, 미확정 항목, 다음 확인 시각, Rollback 기준을 남긴다.
+Route, Environment, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 최종 상태, 미확정 대상, 다음 확인 시각과 Rollback 기준을 기록한다.
+
+
 ### file-jobs — 대량 File Job
 
-**접근 위치**: `/file-jobs`
-**메뉴 그룹**: 배치 운영
-**화면 Source**: ``.../features/file-jobs/FileJobsPage.vue``
+| 항목 | 값 |
+|---|---|
+| Route | `/file-jobs` |
+| 그룹 | 배치 운영 |
+| Frontend | `cpf-admin/frontend/src/features/file-jobs/FileJobsPage.vue` |
+| Permission | `FILE_JOB_*` Button Permission |
 
-#### 사용 목적과 사용 시점
+#### 사용 목적과 사용하지 말아야 할 경우
 
-이 화면은 **대량 File Job** 업무를 수행한다. 조회 결과를 다른 화면의 상태와 연결해야 할 때는 Transaction ID, Trace ID, Operation ID, Version, Checksum, Instance ID 중 화면이 제공하는 식별자를 인계 키로 사용한다. 화면의 HTTP 응답만으로 업무 결과를 확정하지 않고 Owner 상태와 Audit를 함께 확인한다.
+이 화면은 **대량 File Job** 기능을 수행한다. 다른 Owner의 상태를 직접 변경하거나, Browser 개발자 도구로 권한을 우회하거나, HTTP 200/202만으로 최종 결과를 확정하는 용도로 사용하지 않는다.
 
-#### 선행 조건
+#### 검색·입력값
 
-1. 대상 Environment와 Tenant·Data Scope가 맞는지 확인한다.
-2. 메뉴 조회 권한과 조치 권한을 구분한다. 필요한 권한은 ``FILE_JOB_*` Button Permission`이다.
-3. 변경 조치 전 대상의 최신 Version·상태·Owner를 새로 조회한다.
-4. Reason·Approval·Expected Version이 필요한 조치는 값을 준비한다.
-5. 이전 요청이 `PROCESSING`, `UNKNOWN_RESULT`, `PARTIAL`이면 신규 요청을 만들기 전에 기존 Operation을 대사한다.
+- Operation
+- Template/Version
+- CSV/XLSX
+- Dry Run
+- File
+- Reason
+- Control Approval/Reason
+- Unknown Resolution
 
-#### 검색·입력
+- 기간은 환경 표준 Timezone과 종료 시각 포함 여부를 확인한다.
+- ID는 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
+- 변경 조치의 Reason에는 목적, 영향 범위, 원복 기준, Incident·Approval ID를 적는다.
+- Password·Token·Secret·서명·PII 원문은 일반 Log나 교대 문서에 복사하지 않는다.
 
-Operation, Template/Version, CSV/XLSX, Dry Run, File, Reason; Control Approval/Reason; Unknown Resolution
+#### 목록·상세에서 확인할 값
 
-- 기간 입력은 운영 표준 Timezone을 사용하고 종료 시각 포함 여부를 확인한다.
-- 빈 문자열과 `null`, 전체 선택의 의미를 구분한다.
-- ID 입력은 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
-- Reason은 작업 목적, 영향 범위, 원복 기준, 관련 Incident·Approval ID를 포함한다.
-- 비밀번호·Token·Secret·서명 원문은 일반 입력·Log·Audit에 남기지 않는다.
+- Job/State/Rows/Checksum
+- Row State/Business Key/Error
 
-#### 결과와 상세 확인
+- 목록과 상세의 ID·Version·Owner가 다르면 조치를 중단하고 상세를 다시 조회한다.
+- `stale`, `partial`, `unknown`, Empty는 서로 다른 상태다.
+- Masked 값의 원문은 별도 Permission과 Reason이 있을 때만 조회한다.
 
-Job/State/Rows/Checksum; Row State/Business Key/Error
+#### Button·조치
 
-조회 후 다음 순서로 판정한다.
+- Upload·Detail·Apply·Retry·Cancel·Rollback·Unknown Resolve·Artifact
 
-1. 결과 생성 시각과 `stale`·`partial` 표식을 확인한다.
-2. Row 식별자와 상세의 Owner·Version이 동일한지 확인한다.
-3. Masked 값은 원문 조회 권한 없이 복호화하거나 우회하지 않는다.
-4. 상태가 집계값과 상세값에서 다르면 상세 Owner 상태를 기준으로 Reconcile한다.
-5. Empty 결과는 권한·Filter·Environment·시간 범위를 확인한 뒤에만 0건으로 판정한다.
+1. Job·Definition·Artifact·Schedule·Execution 중 현재 화면의 Owner ID와 Version을 조회한다.
+2. 실행 또는 변경 전에 Parameter, Dry Run, 대상 건수, Approval, Idempotency Key, Fencing Token을 확인한다.
+3. `Upload·Detail·Apply·Retry·Cancel·Rollback·Unknown Resolve·Artifact`을 실행한 뒤 CPF Execution ID와 Spring Batch Job/Step ID 또는 Deployment Plan ID를 기록한다.
+4. 처리 건수·Skip·Error·Checkpoint·Worker·Partition·Lease·Heartbeat를 함께 확인한다.
+5. Stop·Restart·Retry·Abandon은 현재 상태와 Restart 가능성, 최신 Fencing, Side Effect 대사 후 실행한다.
+6. `UNKNOWN_RESULT`, Lock, Ghost, Partial 상태는 Control 원장·Spring Metadata·업무 Item·Worker Ledger를 대사한다.
+7. 복구 후 합계·건수·Checksum·Audit가 일치하는지 확인한다.
 
-#### 조치 절차
+#### 화면별 핵심 판정
 
-사용 가능한 조치는 **Upload·Detail·Apply·Retry·Cancel·Rollback·Unknown Resolve·Artifact**이다.
-
-1. 조치 직전 대상 상세를 다시 조회한다.
-2. 영향 Preview가 있으면 대상 Instance·거래·사용자·배치·Route 수를 기록한다.
-3. Reason, Approval ID, Expected Version, Idempotency Key를 입력한다.
-4. 실행 후 반환된 Operation ID·Transaction ID를 기록한다.
-5. `ACCEPTED` 또는 HTTP 202는 접수 상태이므로 최종 상태를 조회한다.
-6. Success에서는 상태·Version·Checksum·Audit·Metric이 함께 바뀌었는지 확인한다.
+- Upload Dry Run 결과와 Row별 오류를 확인한 뒤 Apply한다.
+- `UNKNOWN_RESULT` 수동 확정과 Rollback은 승인·Rollback Token·업무 대사를 요구한다.
 
 #### 정상 결과
 
-- 대상 Owner 상태가 요청한 상태로 전이된다.
-- Version 또는 Checksum이 변경 조치와 일치한다.
-- Audit에 Operator, Permission, Reason, Approval, Before/After, Result가 남는다.
-- 관련 Log·Metric·Trace에서 같은 Operation/Transaction 식별자를 찾을 수 있다.
-- 부분 적용 대상이 없거나, 대상별 결과가 명시적으로 구분된다.
+- Owner의 실제 상태와 화면 표시 상태가 일치한다.
+- 변경 조치라면 Version·Checksum·상태 전이가 요청 내용과 일치한다.
+- 부분 적용 대상은 Instance·Partition·Delivery·Row별로 구분된다.
+- Audit에 Operator, Permission, Reason, Approval, Before/After, Operation ID와 결과가 기록된다.
+- 같은 식별자로 Log·Metric·Trace 또는 Owner 원장을 조회할 수 있다.
 
 #### 오류·응답 유실·복구
 
-핵심 복구 기준: 상태별 Button 활성; Side Effect 대사·Rollback Token
+핵심 기준: **상태별 Button 활성; Side Effect 대사·Rollback Token**
 
-| 상황 | 운영 절차 |
+| 상황 | 조치 |
 |---|---|
-| 400·Validation | Field 오류와 허용 범위를 수정하고 새 요청을 만든다. |
+| Validation·400 | 오류 Field·허용 범위·상위 기준정보를 수정하고 새 요청을 만든다. |
 | 401 | Session·CSRF·Origin을 확인하고 재로그인한다. 기존 변경 요청을 자동 재전송하지 않는다. |
-| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. UI 우회 호출을 하지 않는다. |
-| 409 | 최신 Version과 변경자를 조회하고 변경 의도를 다시 확인한다. Blind Retry하지 않는다. |
-| 429 | `Retry-After`와 Rate Limit을 확인한다. 비멱등 조치는 결과 대사 후 재실행한다. |
+| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. 우회 호출하지 않는다. |
+| 409 | 최신 Version·변경자·변경 시각을 조회하고 변경 의도를 다시 확인한다. |
+| 429 | `Retry-After`를 따르며 비멱등 조치는 결과 대사 후 재실행한다. |
 | Timeout·응답 유실 | Operation ID·Transaction ID·Idempotency Key로 기존 결과를 조회한다. |
-| PARTIAL | 성공·실패·미응답 Target을 분리하고 Failed-only Retry 또는 Exact Rollback을 선택한다. |
-| UNKNOWN_RESULT | Owner 원장, 상대 시스템, Ledger, Audit를 대사해 결과를 확정한 뒤 다음 조치를 선택한다. |
+| PARTIAL | 성공·실패·미응답 Target을 분리해 Failed-only Retry 또는 Exact Rollback을 선택한다. |
+| UNKNOWN_RESULT | Owner 원장·상대 시스템·Ledger·Audit를 대사해 결과를 확정한다. |
 
-#### 감사·교대 인계
+#### 교대·감사 기록
 
-교대 기록에는 화면 Route, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 결과 상태, 미확정 항목, 다음 확인 시각, Rollback 기준을 남긴다.
+Route, Environment, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 최종 상태, 미확정 대상, 다음 확인 시각과 Rollback 기준을 기록한다.
+
+
 ### batch — Batch·Center-Cut 종합 통제
 
-**접근 위치**: `/batch`
-**메뉴 그룹**: 배치 운영
-**화면 Source**: ``.../features/batch/BatchPage.vue``
+| 항목 | 값 |
+|---|---|
+| Route | `/batch` |
+| 그룹 | 배치 운영 |
+| Frontend | `cpf-admin/frontend/src/features/batch/BatchPage.vue` |
+| Permission | `BATCH` Write |
 
-#### 사용 목적과 사용 시점
+#### 사용 목적과 사용하지 말아야 할 경우
 
-이 화면은 **Batch·Center-Cut 종합 통제** 업무를 수행한다. 조회 결과를 다른 화면의 상태와 연결해야 할 때는 Transaction ID, Trace ID, Operation ID, Version, Checksum, Instance ID 중 화면이 제공하는 식별자를 인계 키로 사용한다. 화면의 HTTP 응답만으로 업무 결과를 확정하지 않고 Owner 상태와 Audit를 함께 확인한다.
+이 화면은 **Batch·Center-Cut 종합 통제** 기능을 수행한다. 다른 Owner의 상태를 직접 변경하거나, Browser 개발자 도구로 권한을 우회하거나, HTTP 200/202만으로 최종 결과를 확정하는 용도로 사용하지 않는다.
 
-#### 선행 조건
+#### 검색·입력값
 
-1. 대상 Environment와 Tenant·Data Scope가 맞는지 확인한다.
-2. 메뉴 조회 권한과 조치 권한을 구분한다. 필요한 권한은 ``BATCH` Write`이다.
-3. 변경 조치 전 대상의 최신 Version·상태·Owner를 새로 조회한다.
-4. Reason·Approval·Expected Version이 필요한 조치는 값을 준비한다.
-5. 이전 요청이 `PROCESSING`, `UNKNOWN_RESULT`, `PARTIAL`이면 신규 요청을 만들기 전에 기존 Operation을 대사한다.
+- Job/Execution/Schedule/Parameter/Calendar/Date/Simulation/Dispatch/Heartbeat/Lock/Ghost/Reason
 
-#### 검색·입력
+- 기간은 환경 표준 Timezone과 종료 시각 포함 여부를 확인한다.
+- ID는 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
+- 변경 조치의 Reason에는 목적, 영향 범위, 원복 기준, Incident·Approval ID를 적는다.
+- Password·Token·Secret·서명·PII 원문은 일반 Log나 교대 문서에 복사하지 않는다.
 
-Job/Execution/Schedule/Parameter/Calendar/Date/Simulation/Dispatch/Heartbeat/Lock/Ghost/Reason
+#### 목록·상세에서 확인할 값
 
-- 기간 입력은 운영 표준 Timezone을 사용하고 종료 시각 포함 여부를 확인한다.
-- 빈 문자열과 `null`, 전체 선택의 의미를 구분한다.
-- ID 입력은 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
-- Reason은 작업 목적, 영향 범위, 원복 기준, 관련 Incident·Approval ID를 포함한다.
-- 비밀번호·Token·Secret·서명 원문은 일반 입력·Log·Audit에 남기지 않는다.
+- Execution Trace
+- Center-Cut Job/Target/Result
 
-#### 결과와 상세 확인
+- 목록과 상세의 ID·Version·Owner가 다르면 조치를 중단하고 상세를 다시 조회한다.
+- `stale`, `partial`, `unknown`, Empty는 서로 다른 상태다.
+- Masked 값의 원문은 별도 Permission과 Reason이 있을 때만 조회한다.
 
-Execution Trace; Center-Cut Job/Target/Result
+#### Button·조치
 
-조회 후 다음 순서로 판정한다.
+- 등록·실행·재수행·중지·Scheduler 1회·Lock/Ghost·조회·CSV
 
-1. 결과 생성 시각과 `stale`·`partial` 표식을 확인한다.
-2. Row 식별자와 상세의 Owner·Version이 동일한지 확인한다.
-3. Masked 값은 원문 조회 권한 없이 복호화하거나 우회하지 않는다.
-4. 상태가 집계값과 상세값에서 다르면 상세 Owner 상태를 기준으로 Reconcile한다.
-5. Empty 결과는 권한·Filter·Environment·시간 범위를 확인한 뒤에만 0건으로 판정한다.
+1. Job·Definition·Artifact·Schedule·Execution 중 현재 화면의 Owner ID와 Version을 조회한다.
+2. 실행 또는 변경 전에 Parameter, Dry Run, 대상 건수, Approval, Idempotency Key, Fencing Token을 확인한다.
+3. `등록·실행·재수행·중지·Scheduler 1회·Lock/Ghost·조회·CSV`을 실행한 뒤 CPF Execution ID와 Spring Batch Job/Step ID 또는 Deployment Plan ID를 기록한다.
+4. 처리 건수·Skip·Error·Checkpoint·Worker·Partition·Lease·Heartbeat를 함께 확인한다.
+5. Stop·Restart·Retry·Abandon은 현재 상태와 Restart 가능성, 최신 Fencing, Side Effect 대사 후 실행한다.
+6. `UNKNOWN_RESULT`, Lock, Ghost, Partial 상태는 Control 원장·Spring Metadata·업무 Item·Worker Ledger를 대사한다.
+7. 복구 후 합계·건수·Checksum·Audit가 일치하는지 확인한다.
 
-#### 조치 절차
+#### 화면별 핵심 판정
 
-사용 가능한 조치는 **등록·실행·재수행·중지·Scheduler 1회·Lock/Ghost·조회·CSV**이다.
-
-1. 조치 직전 대상 상세를 다시 조회한다.
-2. 영향 Preview가 있으면 대상 Instance·거래·사용자·배치·Route 수를 기록한다.
-3. Reason, Approval ID, Expected Version, Idempotency Key를 입력한다.
-4. 실행 후 반환된 Operation ID·Transaction ID를 기록한다.
-5. `ACCEPTED` 또는 HTTP 202는 접수 상태이므로 최종 상태를 조회한다.
-6. Success에서는 상태·Version·Checksum·Audit·Metric이 함께 바뀌었는지 확인한다.
+- 핵심 입력은 `Job/Execution/Schedule/Parameter/Calendar/Date/Simulation/Dispatch/Heartbeat/Lock/Ghost/Reason`이며 핵심 결과는 `Execution Trace; Center-Cut Job/Target/Result`다.
+- 오류·복구는 `Unknown/Lock/Ghost 조치 전 원장·Heartbeat 대사`를 우선 확인한다.
 
 #### 정상 결과
 
-- 대상 Owner 상태가 요청한 상태로 전이된다.
-- Version 또는 Checksum이 변경 조치와 일치한다.
-- Audit에 Operator, Permission, Reason, Approval, Before/After, Result가 남는다.
-- 관련 Log·Metric·Trace에서 같은 Operation/Transaction 식별자를 찾을 수 있다.
-- 부분 적용 대상이 없거나, 대상별 결과가 명시적으로 구분된다.
+- Owner의 실제 상태와 화면 표시 상태가 일치한다.
+- 변경 조치라면 Version·Checksum·상태 전이가 요청 내용과 일치한다.
+- 부분 적용 대상은 Instance·Partition·Delivery·Row별로 구분된다.
+- Audit에 Operator, Permission, Reason, Approval, Before/After, Operation ID와 결과가 기록된다.
+- 같은 식별자로 Log·Metric·Trace 또는 Owner 원장을 조회할 수 있다.
 
 #### 오류·응답 유실·복구
 
-핵심 복구 기준: Unknown/Lock/Ghost 조치 전 원장·Heartbeat 대사
+핵심 기준: **Unknown/Lock/Ghost 조치 전 원장·Heartbeat 대사**
 
-| 상황 | 운영 절차 |
+| 상황 | 조치 |
 |---|---|
-| 400·Validation | Field 오류와 허용 범위를 수정하고 새 요청을 만든다. |
+| Validation·400 | 오류 Field·허용 범위·상위 기준정보를 수정하고 새 요청을 만든다. |
 | 401 | Session·CSRF·Origin을 확인하고 재로그인한다. 기존 변경 요청을 자동 재전송하지 않는다. |
-| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. UI 우회 호출을 하지 않는다. |
-| 409 | 최신 Version과 변경자를 조회하고 변경 의도를 다시 확인한다. Blind Retry하지 않는다. |
-| 429 | `Retry-After`와 Rate Limit을 확인한다. 비멱등 조치는 결과 대사 후 재실행한다. |
+| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. 우회 호출하지 않는다. |
+| 409 | 최신 Version·변경자·변경 시각을 조회하고 변경 의도를 다시 확인한다. |
+| 429 | `Retry-After`를 따르며 비멱등 조치는 결과 대사 후 재실행한다. |
 | Timeout·응답 유실 | Operation ID·Transaction ID·Idempotency Key로 기존 결과를 조회한다. |
-| PARTIAL | 성공·실패·미응답 Target을 분리하고 Failed-only Retry 또는 Exact Rollback을 선택한다. |
-| UNKNOWN_RESULT | Owner 원장, 상대 시스템, Ledger, Audit를 대사해 결과를 확정한 뒤 다음 조치를 선택한다. |
+| PARTIAL | 성공·실패·미응답 Target을 분리해 Failed-only Retry 또는 Exact Rollback을 선택한다. |
+| UNKNOWN_RESULT | Owner 원장·상대 시스템·Ledger·Audit를 대사해 결과를 확정한다. |
 
-#### 감사·교대 인계
+#### 교대·감사 기록
 
-교대 기록에는 화면 Route, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 결과 상태, 미확정 항목, 다음 확인 시각, Rollback 기준을 남긴다.
+Route, Environment, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 최종 상태, 미확정 대상, 다음 확인 시각과 Rollback 기준을 기록한다.
+
+
 ### batch-overview — Batch Overview
 
-**접근 위치**: `/batch-overview`
-**메뉴 그룹**: 배치/통합 관제
-**화면 Source**: ``BatchViewPage.vue`, view=`overview``
+| 항목 | 값 |
+|---|---|
+| Route | `/batch-overview` |
+| 그룹 | 배치/통합 관제 |
+| Frontend | `cpf-admin/frontend/src/features/batch-runtime-control/BatchViewPage.vue`, view=`overview` |
+| Permission | 조회 권한 |
 
-#### 사용 목적과 사용 시점
+#### 사용 목적과 사용하지 말아야 할 경우
 
-이 화면은 **Batch Overview** 업무를 수행한다. 조회 결과를 다른 화면의 상태와 연결해야 할 때는 Transaction ID, Trace ID, Operation ID, Version, Checksum, Instance ID 중 화면이 제공하는 식별자를 인계 키로 사용한다. 화면의 HTTP 응답만으로 업무 결과를 확정하지 않고 Owner 상태와 Audit를 함께 확인한다.
+이 화면은 **Batch Overview** 기능을 수행한다. 다른 Owner의 상태를 직접 변경하거나, Browser 개발자 도구로 권한을 우회하거나, HTTP 200/202만으로 최종 결과를 확정하는 용도로 사용하지 않는다.
 
-#### 선행 조건
+#### 검색·입력값
 
-1. 대상 Environment와 Tenant·Data Scope가 맞는지 확인한다.
-2. 메뉴 조회 권한과 조치 권한을 구분한다. 필요한 권한은 `조회 권한`이다.
-3. 변경 조치 전 대상의 최신 Version·상태·Owner를 새로 조회한다.
-4. Reason·Approval·Expected Version이 필요한 조치는 값을 준비한다.
-5. 이전 요청이 `PROCESSING`, `UNKNOWN_RESULT`, `PARTIAL`이면 신규 요청을 만들기 전에 기존 Operation을 대사한다.
+- View 고정
+- 별도 검색 UI 없음
 
-#### 검색·입력
+- 기간은 환경 표준 Timezone과 종료 시각 포함 여부를 확인한다.
+- ID는 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
+- 변경 조치의 Reason에는 목적, 영향 범위, 원복 기준, Incident·Approval ID를 적는다.
+- Password·Token·Secret·서명·PII 원문은 일반 Log나 교대 문서에 복사하지 않는다.
 
-View 고정; 별도 검색 UI 없음
+#### 목록·상세에서 확인할 값
 
-- 기간 입력은 운영 표준 Timezone을 사용하고 종료 시각 포함 여부를 확인한다.
-- 빈 문자열과 `null`, 전체 선택의 의미를 구분한다.
-- ID 입력은 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
-- Reason은 작업 목적, 영향 범위, 원복 기준, 관련 Incident·Approval ID를 포함한다.
-- 비밀번호·Token·Secret·서명 원문은 일반 입력·Log·Audit에 남기지 않는다.
+- Control Server가 반환한 최대 18개 동적 Column
 
-#### 결과와 상세 확인
+- 목록과 상세의 ID·Version·Owner가 다르면 조치를 중단하고 상세를 다시 조회한다.
+- `stale`, `partial`, `unknown`, Empty는 서로 다른 상태다.
+- Masked 값의 원문은 별도 Permission과 Reason이 있을 때만 조회한다.
 
-Control Server가 반환한 최대 18개 동적 Column
+#### Button·조치
 
-조회 후 다음 순서로 판정한다.
+- 새로고침
 
-1. 결과 생성 시각과 `stale`·`partial` 표식을 확인한다.
-2. Row 식별자와 상세의 Owner·Version이 동일한지 확인한다.
-3. Masked 값은 원문 조회 권한 없이 복호화하거나 우회하지 않는다.
-4. 상태가 집계값과 상세값에서 다르면 상세 Owner 상태를 기준으로 Reconcile한다.
-5. Empty 결과는 권한·Filter·Environment·시간 범위를 확인한 뒤에만 0건으로 판정한다.
+1. 화면 진입 직후 Environment·시간 기준·Data Scope를 확인한다.
+2. `새로고침`을 실행하고 조회 시각, `stale`, `partial`, Empty 여부를 먼저 판정한다.
+3. 목록의 식별자를 상세 화면이나 연관 메뉴로 넘겨 Owner 상태를 교차 확인한다.
+4. 집계와 상세가 다르면 집계를 정상 근거로 사용하지 않고 상세 Owner·Audit·Metric을 기준으로 대사한다.
+5. 교대 기록에는 검색 조건, 조회 시각, 식별자, 불일치 항목과 다음 확인 시각을 남긴다.
 
-#### 조치 절차
+#### 화면별 핵심 판정
 
-사용 가능한 조치는 **새로고침**이다.
-
-1. 조치 직전 대상 상세를 다시 조회한다.
-2. 영향 Preview가 있으면 대상 Instance·거래·사용자·배치·Route 수를 기록한다.
-3. Reason, Approval ID, Expected Version, Idempotency Key를 입력한다.
-4. 실행 후 반환된 Operation ID·Transaction ID를 기록한다.
-5. `ACCEPTED` 또는 HTTP 202는 접수 상태이므로 최종 상태를 조회한다.
-6. Success에서는 상태·Version·Checksum·Audit·Metric이 함께 바뀌었는지 확인한다.
+- Control Server가 반환한 동적 Column은 View마다 다르며 최대 18개다.
+- `stale`·`partial` 응답을 Empty나 정상 상태로 해석하지 않는다.
 
 #### 정상 결과
 
-- 대상 Owner 상태가 요청한 상태로 전이된다.
-- Version 또는 Checksum이 변경 조치와 일치한다.
-- Audit에 Operator, Permission, Reason, Approval, Before/After, Result가 남는다.
-- 관련 Log·Metric·Trace에서 같은 Operation/Transaction 식별자를 찾을 수 있다.
-- 부분 적용 대상이 없거나, 대상별 결과가 명시적으로 구분된다.
+- Owner의 실제 상태와 화면 표시 상태가 일치한다.
+- 변경 조치라면 Version·Checksum·상태 전이가 요청 내용과 일치한다.
+- 부분 적용 대상은 Instance·Partition·Delivery·Row별로 구분된다.
+- Audit에 Operator, Permission, Reason, Approval, Before/After, Operation ID와 결과가 기록된다.
+- 같은 식별자로 Log·Metric·Trace 또는 Owner 원장을 조회할 수 있다.
 
 #### 오류·응답 유실·복구
 
-핵심 복구 기준: `stale`/`partial` 경고를 정상·Empty로 해석 금지
+핵심 기준: **`stale`/`partial` 경고를 정상·Empty로 해석 금지**
 
-| 상황 | 운영 절차 |
+| 상황 | 조치 |
 |---|---|
-| 400·Validation | Field 오류와 허용 범위를 수정하고 새 요청을 만든다. |
+| Validation·400 | 오류 Field·허용 범위·상위 기준정보를 수정하고 새 요청을 만든다. |
 | 401 | Session·CSRF·Origin을 확인하고 재로그인한다. 기존 변경 요청을 자동 재전송하지 않는다. |
-| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. UI 우회 호출을 하지 않는다. |
-| 409 | 최신 Version과 변경자를 조회하고 변경 의도를 다시 확인한다. Blind Retry하지 않는다. |
-| 429 | `Retry-After`와 Rate Limit을 확인한다. 비멱등 조치는 결과 대사 후 재실행한다. |
+| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. 우회 호출하지 않는다. |
+| 409 | 최신 Version·변경자·변경 시각을 조회하고 변경 의도를 다시 확인한다. |
+| 429 | `Retry-After`를 따르며 비멱등 조치는 결과 대사 후 재실행한다. |
 | Timeout·응답 유실 | Operation ID·Transaction ID·Idempotency Key로 기존 결과를 조회한다. |
-| PARTIAL | 성공·실패·미응답 Target을 분리하고 Failed-only Retry 또는 Exact Rollback을 선택한다. |
-| UNKNOWN_RESULT | Owner 원장, 상대 시스템, Ledger, Audit를 대사해 결과를 확정한 뒤 다음 조치를 선택한다. |
+| PARTIAL | 성공·실패·미응답 Target을 분리해 Failed-only Retry 또는 Exact Rollback을 선택한다. |
+| UNKNOWN_RESULT | Owner 원장·상대 시스템·Ledger·Audit를 대사해 결과를 확정한다. |
 
-#### 감사·교대 인계
+#### 교대·감사 기록
 
-교대 기록에는 화면 Route, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 결과 상태, 미확정 항목, 다음 확인 시각, Rollback 기준을 남긴다.
+Route, Environment, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 최종 상태, 미확정 대상, 다음 확인 시각과 Rollback 기준을 기록한다.
+
+
 ### batch-runtime — Runtime Topology
 
-**접근 위치**: `/batch-runtime`
-**메뉴 그룹**: 배치/통합 관제
-**화면 Source**: ``BatchViewPage.vue`, view=`runtime``
+| 항목 | 값 |
+|---|---|
+| Route | `/batch-runtime` |
+| 그룹 | 배치/통합 관제 |
+| Frontend | `cpf-admin/frontend/src/features/batch-runtime-control/BatchViewPage.vue`, view=`runtime` |
+| Permission | 조회 권한 |
 
-#### 사용 목적과 사용 시점
+#### 사용 목적과 사용하지 말아야 할 경우
 
-이 화면은 **Runtime Topology** 업무를 수행한다. 조회 결과를 다른 화면의 상태와 연결해야 할 때는 Transaction ID, Trace ID, Operation ID, Version, Checksum, Instance ID 중 화면이 제공하는 식별자를 인계 키로 사용한다. 화면의 HTTP 응답만으로 업무 결과를 확정하지 않고 Owner 상태와 Audit를 함께 확인한다.
+이 화면은 **Runtime Topology** 기능을 수행한다. 다른 Owner의 상태를 직접 변경하거나, Browser 개발자 도구로 권한을 우회하거나, HTTP 200/202만으로 최종 결과를 확정하는 용도로 사용하지 않는다.
 
-#### 선행 조건
+#### 검색·입력값
 
-1. 대상 Environment와 Tenant·Data Scope가 맞는지 확인한다.
-2. 메뉴 조회 권한과 조치 권한을 구분한다. 필요한 권한은 `조회 권한`이다.
-3. 변경 조치 전 대상의 최신 Version·상태·Owner를 새로 조회한다.
-4. Reason·Approval·Expected Version이 필요한 조치는 값을 준비한다.
-5. 이전 요청이 `PROCESSING`, `UNKNOWN_RESULT`, `PARTIAL`이면 신규 요청을 만들기 전에 기존 Operation을 대사한다.
+- View 고정
+- 별도 검색 UI 없음
 
-#### 검색·입력
+- 기간은 환경 표준 Timezone과 종료 시각 포함 여부를 확인한다.
+- ID는 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
+- 변경 조치의 Reason에는 목적, 영향 범위, 원복 기준, Incident·Approval ID를 적는다.
+- Password·Token·Secret·서명·PII 원문은 일반 Log나 교대 문서에 복사하지 않는다.
 
-View 고정; 별도 검색 UI 없음
+#### 목록·상세에서 확인할 값
 
-- 기간 입력은 운영 표준 Timezone을 사용하고 종료 시각 포함 여부를 확인한다.
-- 빈 문자열과 `null`, 전체 선택의 의미를 구분한다.
-- ID 입력은 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
-- Reason은 작업 목적, 영향 범위, 원복 기준, 관련 Incident·Approval ID를 포함한다.
-- 비밀번호·Token·Secret·서명 원문은 일반 입력·Log·Audit에 남기지 않는다.
+- Control Server가 반환한 최대 18개 동적 Column
 
-#### 결과와 상세 확인
+- 목록과 상세의 ID·Version·Owner가 다르면 조치를 중단하고 상세를 다시 조회한다.
+- `stale`, `partial`, `unknown`, Empty는 서로 다른 상태다.
+- Masked 값의 원문은 별도 Permission과 Reason이 있을 때만 조회한다.
 
-Control Server가 반환한 최대 18개 동적 Column
+#### Button·조치
 
-조회 후 다음 순서로 판정한다.
+- 새로고침
 
-1. 결과 생성 시각과 `stale`·`partial` 표식을 확인한다.
-2. Row 식별자와 상세의 Owner·Version이 동일한지 확인한다.
-3. Masked 값은 원문 조회 권한 없이 복호화하거나 우회하지 않는다.
-4. 상태가 집계값과 상세값에서 다르면 상세 Owner 상태를 기준으로 Reconcile한다.
-5. Empty 결과는 권한·Filter·Environment·시간 범위를 확인한 뒤에만 0건으로 판정한다.
+1. 화면 진입 직후 Environment·시간 기준·Data Scope를 확인한다.
+2. `새로고침`을 실행하고 조회 시각, `stale`, `partial`, Empty 여부를 먼저 판정한다.
+3. 목록의 식별자를 상세 화면이나 연관 메뉴로 넘겨 Owner 상태를 교차 확인한다.
+4. 집계와 상세가 다르면 집계를 정상 근거로 사용하지 않고 상세 Owner·Audit·Metric을 기준으로 대사한다.
+5. 교대 기록에는 검색 조건, 조회 시각, 식별자, 불일치 항목과 다음 확인 시각을 남긴다.
 
-#### 조치 절차
+#### 화면별 핵심 판정
 
-사용 가능한 조치는 **새로고침**이다.
-
-1. 조치 직전 대상 상세를 다시 조회한다.
-2. 영향 Preview가 있으면 대상 Instance·거래·사용자·배치·Route 수를 기록한다.
-3. Reason, Approval ID, Expected Version, Idempotency Key를 입력한다.
-4. 실행 후 반환된 Operation ID·Transaction ID를 기록한다.
-5. `ACCEPTED` 또는 HTTP 202는 접수 상태이므로 최종 상태를 조회한다.
-6. Success에서는 상태·Version·Checksum·Audit·Metric이 함께 바뀌었는지 확인한다.
+- Control Server가 반환한 동적 Column은 View마다 다르며 최대 18개다.
+- `stale`·`partial` 응답을 Empty나 정상 상태로 해석하지 않는다.
 
 #### 정상 결과
 
-- 대상 Owner 상태가 요청한 상태로 전이된다.
-- Version 또는 Checksum이 변경 조치와 일치한다.
-- Audit에 Operator, Permission, Reason, Approval, Before/After, Result가 남는다.
-- 관련 Log·Metric·Trace에서 같은 Operation/Transaction 식별자를 찾을 수 있다.
-- 부분 적용 대상이 없거나, 대상별 결과가 명시적으로 구분된다.
+- Owner의 실제 상태와 화면 표시 상태가 일치한다.
+- 변경 조치라면 Version·Checksum·상태 전이가 요청 내용과 일치한다.
+- 부분 적용 대상은 Instance·Partition·Delivery·Row별로 구분된다.
+- Audit에 Operator, Permission, Reason, Approval, Before/After, Operation ID와 결과가 기록된다.
+- 같은 식별자로 Log·Metric·Trace 또는 Owner 원장을 조회할 수 있다.
 
 #### 오류·응답 유실·복구
 
-핵심 복구 기준: `stale`/`partial` 경고를 정상·Empty로 해석 금지
+핵심 기준: **`stale`/`partial` 경고를 정상·Empty로 해석 금지**
 
-| 상황 | 운영 절차 |
+| 상황 | 조치 |
 |---|---|
-| 400·Validation | Field 오류와 허용 범위를 수정하고 새 요청을 만든다. |
+| Validation·400 | 오류 Field·허용 범위·상위 기준정보를 수정하고 새 요청을 만든다. |
 | 401 | Session·CSRF·Origin을 확인하고 재로그인한다. 기존 변경 요청을 자동 재전송하지 않는다. |
-| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. UI 우회 호출을 하지 않는다. |
-| 409 | 최신 Version과 변경자를 조회하고 변경 의도를 다시 확인한다. Blind Retry하지 않는다. |
-| 429 | `Retry-After`와 Rate Limit을 확인한다. 비멱등 조치는 결과 대사 후 재실행한다. |
+| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. 우회 호출하지 않는다. |
+| 409 | 최신 Version·변경자·변경 시각을 조회하고 변경 의도를 다시 확인한다. |
+| 429 | `Retry-After`를 따르며 비멱등 조치는 결과 대사 후 재실행한다. |
 | Timeout·응답 유실 | Operation ID·Transaction ID·Idempotency Key로 기존 결과를 조회한다. |
-| PARTIAL | 성공·실패·미응답 Target을 분리하고 Failed-only Retry 또는 Exact Rollback을 선택한다. |
-| UNKNOWN_RESULT | Owner 원장, 상대 시스템, Ledger, Audit를 대사해 결과를 확정한 뒤 다음 조치를 선택한다. |
+| PARTIAL | 성공·실패·미응답 Target을 분리해 Failed-only Retry 또는 Exact Rollback을 선택한다. |
+| UNKNOWN_RESULT | Owner 원장·상대 시스템·Ledger·Audit를 대사해 결과를 확정한다. |
 
-#### 감사·교대 인계
+#### 교대·감사 기록
 
-교대 기록에는 화면 Route, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 결과 상태, 미확정 항목, 다음 확인 시각, Rollback 기준을 남긴다.
+Route, Environment, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 최종 상태, 미확정 대상, 다음 확인 시각과 Rollback 기준을 기록한다.
+
+
 ### batch-instances — Batch Instances
 
-**접근 위치**: `/batch-instances`
-**메뉴 그룹**: 배치/통합 관제
-**화면 Source**: ``BatchViewPage.vue`, view=`instances``
+| 항목 | 값 |
+|---|---|
+| Route | `/batch-instances` |
+| 그룹 | 배치/통합 관제 |
+| Frontend | `cpf-admin/frontend/src/features/batch-runtime-control/BatchViewPage.vue`, view=`instances` |
+| Permission | 조회 권한 |
 
-#### 사용 목적과 사용 시점
+#### 사용 목적과 사용하지 말아야 할 경우
 
-이 화면은 **Batch Instances** 업무를 수행한다. 조회 결과를 다른 화면의 상태와 연결해야 할 때는 Transaction ID, Trace ID, Operation ID, Version, Checksum, Instance ID 중 화면이 제공하는 식별자를 인계 키로 사용한다. 화면의 HTTP 응답만으로 업무 결과를 확정하지 않고 Owner 상태와 Audit를 함께 확인한다.
+이 화면은 **Batch Instances** 기능을 수행한다. 다른 Owner의 상태를 직접 변경하거나, Browser 개발자 도구로 권한을 우회하거나, HTTP 200/202만으로 최종 결과를 확정하는 용도로 사용하지 않는다.
 
-#### 선행 조건
+#### 검색·입력값
 
-1. 대상 Environment와 Tenant·Data Scope가 맞는지 확인한다.
-2. 메뉴 조회 권한과 조치 권한을 구분한다. 필요한 권한은 `조회 권한`이다.
-3. 변경 조치 전 대상의 최신 Version·상태·Owner를 새로 조회한다.
-4. Reason·Approval·Expected Version이 필요한 조치는 값을 준비한다.
-5. 이전 요청이 `PROCESSING`, `UNKNOWN_RESULT`, `PARTIAL`이면 신규 요청을 만들기 전에 기존 Operation을 대사한다.
+- View 고정
+- 별도 검색 UI 없음
 
-#### 검색·입력
+- 기간은 환경 표준 Timezone과 종료 시각 포함 여부를 확인한다.
+- ID는 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
+- 변경 조치의 Reason에는 목적, 영향 범위, 원복 기준, Incident·Approval ID를 적는다.
+- Password·Token·Secret·서명·PII 원문은 일반 Log나 교대 문서에 복사하지 않는다.
 
-View 고정; 별도 검색 UI 없음
+#### 목록·상세에서 확인할 값
 
-- 기간 입력은 운영 표준 Timezone을 사용하고 종료 시각 포함 여부를 확인한다.
-- 빈 문자열과 `null`, 전체 선택의 의미를 구분한다.
-- ID 입력은 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
-- Reason은 작업 목적, 영향 범위, 원복 기준, 관련 Incident·Approval ID를 포함한다.
-- 비밀번호·Token·Secret·서명 원문은 일반 입력·Log·Audit에 남기지 않는다.
+- Control Server가 반환한 최대 18개 동적 Column
 
-#### 결과와 상세 확인
+- 목록과 상세의 ID·Version·Owner가 다르면 조치를 중단하고 상세를 다시 조회한다.
+- `stale`, `partial`, `unknown`, Empty는 서로 다른 상태다.
+- Masked 값의 원문은 별도 Permission과 Reason이 있을 때만 조회한다.
 
-Control Server가 반환한 최대 18개 동적 Column
+#### Button·조치
 
-조회 후 다음 순서로 판정한다.
+- 새로고침
 
-1. 결과 생성 시각과 `stale`·`partial` 표식을 확인한다.
-2. Row 식별자와 상세의 Owner·Version이 동일한지 확인한다.
-3. Masked 값은 원문 조회 권한 없이 복호화하거나 우회하지 않는다.
-4. 상태가 집계값과 상세값에서 다르면 상세 Owner 상태를 기준으로 Reconcile한다.
-5. Empty 결과는 권한·Filter·Environment·시간 범위를 확인한 뒤에만 0건으로 판정한다.
+1. 화면 진입 직후 Environment·시간 기준·Data Scope를 확인한다.
+2. `새로고침`을 실행하고 조회 시각, `stale`, `partial`, Empty 여부를 먼저 판정한다.
+3. 목록의 식별자를 상세 화면이나 연관 메뉴로 넘겨 Owner 상태를 교차 확인한다.
+4. 집계와 상세가 다르면 집계를 정상 근거로 사용하지 않고 상세 Owner·Audit·Metric을 기준으로 대사한다.
+5. 교대 기록에는 검색 조건, 조회 시각, 식별자, 불일치 항목과 다음 확인 시각을 남긴다.
 
-#### 조치 절차
+#### 화면별 핵심 판정
 
-사용 가능한 조치는 **새로고침**이다.
-
-1. 조치 직전 대상 상세를 다시 조회한다.
-2. 영향 Preview가 있으면 대상 Instance·거래·사용자·배치·Route 수를 기록한다.
-3. Reason, Approval ID, Expected Version, Idempotency Key를 입력한다.
-4. 실행 후 반환된 Operation ID·Transaction ID를 기록한다.
-5. `ACCEPTED` 또는 HTTP 202는 접수 상태이므로 최종 상태를 조회한다.
-6. Success에서는 상태·Version·Checksum·Audit·Metric이 함께 바뀌었는지 확인한다.
+- Control Server가 반환한 동적 Column은 View마다 다르며 최대 18개다.
+- `stale`·`partial` 응답을 Empty나 정상 상태로 해석하지 않는다.
 
 #### 정상 결과
 
-- 대상 Owner 상태가 요청한 상태로 전이된다.
-- Version 또는 Checksum이 변경 조치와 일치한다.
-- Audit에 Operator, Permission, Reason, Approval, Before/After, Result가 남는다.
-- 관련 Log·Metric·Trace에서 같은 Operation/Transaction 식별자를 찾을 수 있다.
-- 부분 적용 대상이 없거나, 대상별 결과가 명시적으로 구분된다.
+- Owner의 실제 상태와 화면 표시 상태가 일치한다.
+- 변경 조치라면 Version·Checksum·상태 전이가 요청 내용과 일치한다.
+- 부분 적용 대상은 Instance·Partition·Delivery·Row별로 구분된다.
+- Audit에 Operator, Permission, Reason, Approval, Before/After, Operation ID와 결과가 기록된다.
+- 같은 식별자로 Log·Metric·Trace 또는 Owner 원장을 조회할 수 있다.
 
 #### 오류·응답 유실·복구
 
-핵심 복구 기준: `stale`/`partial` 경고를 정상·Empty로 해석 금지
+핵심 기준: **`stale`/`partial` 경고를 정상·Empty로 해석 금지**
 
-| 상황 | 운영 절차 |
+| 상황 | 조치 |
 |---|---|
-| 400·Validation | Field 오류와 허용 범위를 수정하고 새 요청을 만든다. |
+| Validation·400 | 오류 Field·허용 범위·상위 기준정보를 수정하고 새 요청을 만든다. |
 | 401 | Session·CSRF·Origin을 확인하고 재로그인한다. 기존 변경 요청을 자동 재전송하지 않는다. |
-| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. UI 우회 호출을 하지 않는다. |
-| 409 | 최신 Version과 변경자를 조회하고 변경 의도를 다시 확인한다. Blind Retry하지 않는다. |
-| 429 | `Retry-After`와 Rate Limit을 확인한다. 비멱등 조치는 결과 대사 후 재실행한다. |
+| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. 우회 호출하지 않는다. |
+| 409 | 최신 Version·변경자·변경 시각을 조회하고 변경 의도를 다시 확인한다. |
+| 429 | `Retry-After`를 따르며 비멱등 조치는 결과 대사 후 재실행한다. |
 | Timeout·응답 유실 | Operation ID·Transaction ID·Idempotency Key로 기존 결과를 조회한다. |
-| PARTIAL | 성공·실패·미응답 Target을 분리하고 Failed-only Retry 또는 Exact Rollback을 선택한다. |
-| UNKNOWN_RESULT | Owner 원장, 상대 시스템, Ledger, Audit를 대사해 결과를 확정한 뒤 다음 조치를 선택한다. |
+| PARTIAL | 성공·실패·미응답 Target을 분리해 Failed-only Retry 또는 Exact Rollback을 선택한다. |
+| UNKNOWN_RESULT | Owner 원장·상대 시스템·Ledger·Audit를 대사해 결과를 확정한다. |
 
-#### 감사·교대 인계
+#### 교대·감사 기록
 
-교대 기록에는 화면 Route, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 결과 상태, 미확정 항목, 다음 확인 시각, Rollback 기준을 남긴다.
+Route, Environment, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 최종 상태, 미확정 대상, 다음 확인 시각과 Rollback 기준을 기록한다.
+
+
 ### batch-scheduler — Scheduler
 
-**접근 위치**: `/batch-scheduler`
-**메뉴 그룹**: 배치/통합 관제
-**화면 Source**: ``BatchViewPage.vue`, view=`scheduler``
+| 항목 | 값 |
+|---|---|
+| Route | `/batch-scheduler` |
+| 그룹 | 배치/통합 관제 |
+| Frontend | `cpf-admin/frontend/src/features/batch-runtime-control/BatchViewPage.vue`, view=`scheduler` |
+| Permission | 조회 권한 |
 
-#### 사용 목적과 사용 시점
+#### 사용 목적과 사용하지 말아야 할 경우
 
-이 화면은 **Scheduler** 업무를 수행한다. 조회 결과를 다른 화면의 상태와 연결해야 할 때는 Transaction ID, Trace ID, Operation ID, Version, Checksum, Instance ID 중 화면이 제공하는 식별자를 인계 키로 사용한다. 화면의 HTTP 응답만으로 업무 결과를 확정하지 않고 Owner 상태와 Audit를 함께 확인한다.
+이 화면은 **Scheduler** 기능을 수행한다. 다른 Owner의 상태를 직접 변경하거나, Browser 개발자 도구로 권한을 우회하거나, HTTP 200/202만으로 최종 결과를 확정하는 용도로 사용하지 않는다.
 
-#### 선행 조건
+#### 검색·입력값
 
-1. 대상 Environment와 Tenant·Data Scope가 맞는지 확인한다.
-2. 메뉴 조회 권한과 조치 권한을 구분한다. 필요한 권한은 `조회 권한`이다.
-3. 변경 조치 전 대상의 최신 Version·상태·Owner를 새로 조회한다.
-4. Reason·Approval·Expected Version이 필요한 조치는 값을 준비한다.
-5. 이전 요청이 `PROCESSING`, `UNKNOWN_RESULT`, `PARTIAL`이면 신규 요청을 만들기 전에 기존 Operation을 대사한다.
+- View 고정
+- 별도 검색 UI 없음
 
-#### 검색·입력
+- 기간은 환경 표준 Timezone과 종료 시각 포함 여부를 확인한다.
+- ID는 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
+- 변경 조치의 Reason에는 목적, 영향 범위, 원복 기준, Incident·Approval ID를 적는다.
+- Password·Token·Secret·서명·PII 원문은 일반 Log나 교대 문서에 복사하지 않는다.
 
-View 고정; 별도 검색 UI 없음
+#### 목록·상세에서 확인할 값
 
-- 기간 입력은 운영 표준 Timezone을 사용하고 종료 시각 포함 여부를 확인한다.
-- 빈 문자열과 `null`, 전체 선택의 의미를 구분한다.
-- ID 입력은 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
-- Reason은 작업 목적, 영향 범위, 원복 기준, 관련 Incident·Approval ID를 포함한다.
-- 비밀번호·Token·Secret·서명 원문은 일반 입력·Log·Audit에 남기지 않는다.
+- Control Server가 반환한 최대 18개 동적 Column
 
-#### 결과와 상세 확인
+- 목록과 상세의 ID·Version·Owner가 다르면 조치를 중단하고 상세를 다시 조회한다.
+- `stale`, `partial`, `unknown`, Empty는 서로 다른 상태다.
+- Masked 값의 원문은 별도 Permission과 Reason이 있을 때만 조회한다.
 
-Control Server가 반환한 최대 18개 동적 Column
+#### Button·조치
 
-조회 후 다음 순서로 판정한다.
+- 새로고침
 
-1. 결과 생성 시각과 `stale`·`partial` 표식을 확인한다.
-2. Row 식별자와 상세의 Owner·Version이 동일한지 확인한다.
-3. Masked 값은 원문 조회 권한 없이 복호화하거나 우회하지 않는다.
-4. 상태가 집계값과 상세값에서 다르면 상세 Owner 상태를 기준으로 Reconcile한다.
-5. Empty 결과는 권한·Filter·Environment·시간 범위를 확인한 뒤에만 0건으로 판정한다.
+1. 화면 진입 직후 Environment·시간 기준·Data Scope를 확인한다.
+2. `새로고침`을 실행하고 조회 시각, `stale`, `partial`, Empty 여부를 먼저 판정한다.
+3. 목록의 식별자를 상세 화면이나 연관 메뉴로 넘겨 Owner 상태를 교차 확인한다.
+4. 집계와 상세가 다르면 집계를 정상 근거로 사용하지 않고 상세 Owner·Audit·Metric을 기준으로 대사한다.
+5. 교대 기록에는 검색 조건, 조회 시각, 식별자, 불일치 항목과 다음 확인 시각을 남긴다.
 
-#### 조치 절차
+#### 화면별 핵심 판정
 
-사용 가능한 조치는 **새로고침**이다.
-
-1. 조치 직전 대상 상세를 다시 조회한다.
-2. 영향 Preview가 있으면 대상 Instance·거래·사용자·배치·Route 수를 기록한다.
-3. Reason, Approval ID, Expected Version, Idempotency Key를 입력한다.
-4. 실행 후 반환된 Operation ID·Transaction ID를 기록한다.
-5. `ACCEPTED` 또는 HTTP 202는 접수 상태이므로 최종 상태를 조회한다.
-6. Success에서는 상태·Version·Checksum·Audit·Metric이 함께 바뀌었는지 확인한다.
+- Control Server가 반환한 동적 Column은 View마다 다르며 최대 18개다.
+- `stale`·`partial` 응답을 Empty나 정상 상태로 해석하지 않는다.
 
 #### 정상 결과
 
-- 대상 Owner 상태가 요청한 상태로 전이된다.
-- Version 또는 Checksum이 변경 조치와 일치한다.
-- Audit에 Operator, Permission, Reason, Approval, Before/After, Result가 남는다.
-- 관련 Log·Metric·Trace에서 같은 Operation/Transaction 식별자를 찾을 수 있다.
-- 부분 적용 대상이 없거나, 대상별 결과가 명시적으로 구분된다.
+- Owner의 실제 상태와 화면 표시 상태가 일치한다.
+- 변경 조치라면 Version·Checksum·상태 전이가 요청 내용과 일치한다.
+- 부분 적용 대상은 Instance·Partition·Delivery·Row별로 구분된다.
+- Audit에 Operator, Permission, Reason, Approval, Before/After, Operation ID와 결과가 기록된다.
+- 같은 식별자로 Log·Metric·Trace 또는 Owner 원장을 조회할 수 있다.
 
 #### 오류·응답 유실·복구
 
-핵심 복구 기준: `stale`/`partial` 경고를 정상·Empty로 해석 금지
+핵심 기준: **`stale`/`partial` 경고를 정상·Empty로 해석 금지**
 
-| 상황 | 운영 절차 |
+| 상황 | 조치 |
 |---|---|
-| 400·Validation | Field 오류와 허용 범위를 수정하고 새 요청을 만든다. |
+| Validation·400 | 오류 Field·허용 범위·상위 기준정보를 수정하고 새 요청을 만든다. |
 | 401 | Session·CSRF·Origin을 확인하고 재로그인한다. 기존 변경 요청을 자동 재전송하지 않는다. |
-| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. UI 우회 호출을 하지 않는다. |
-| 409 | 최신 Version과 변경자를 조회하고 변경 의도를 다시 확인한다. Blind Retry하지 않는다. |
-| 429 | `Retry-After`와 Rate Limit을 확인한다. 비멱등 조치는 결과 대사 후 재실행한다. |
+| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. 우회 호출하지 않는다. |
+| 409 | 최신 Version·변경자·변경 시각을 조회하고 변경 의도를 다시 확인한다. |
+| 429 | `Retry-After`를 따르며 비멱등 조치는 결과 대사 후 재실행한다. |
 | Timeout·응답 유실 | Operation ID·Transaction ID·Idempotency Key로 기존 결과를 조회한다. |
-| PARTIAL | 성공·실패·미응답 Target을 분리하고 Failed-only Retry 또는 Exact Rollback을 선택한다. |
-| UNKNOWN_RESULT | Owner 원장, 상대 시스템, Ledger, Audit를 대사해 결과를 확정한 뒤 다음 조치를 선택한다. |
+| PARTIAL | 성공·실패·미응답 Target을 분리해 Failed-only Retry 또는 Exact Rollback을 선택한다. |
+| UNKNOWN_RESULT | Owner 원장·상대 시스템·Ledger·Audit를 대사해 결과를 확정한다. |
 
-#### 감사·교대 인계
+#### 교대·감사 기록
 
-교대 기록에는 화면 Route, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 결과 상태, 미확정 항목, 다음 확인 시각, Rollback 기준을 남긴다.
+Route, Environment, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 최종 상태, 미확정 대상, 다음 확인 시각과 Rollback 기준을 기록한다.
+
+
 ### batch-worker-pools — Worker Pools
 
-**접근 위치**: `/batch-worker-pools`
-**메뉴 그룹**: 배치/통합 관제
-**화면 Source**: ``BatchViewPage.vue`, view=`worker-pools``
+| 항목 | 값 |
+|---|---|
+| Route | `/batch-worker-pools` |
+| 그룹 | 배치/통합 관제 |
+| Frontend | `cpf-admin/frontend/src/features/batch-runtime-control/BatchViewPage.vue`, view=`worker-pools` |
+| Permission | 조회 권한 |
 
-#### 사용 목적과 사용 시점
+#### 사용 목적과 사용하지 말아야 할 경우
 
-이 화면은 **Worker Pools** 업무를 수행한다. 조회 결과를 다른 화면의 상태와 연결해야 할 때는 Transaction ID, Trace ID, Operation ID, Version, Checksum, Instance ID 중 화면이 제공하는 식별자를 인계 키로 사용한다. 화면의 HTTP 응답만으로 업무 결과를 확정하지 않고 Owner 상태와 Audit를 함께 확인한다.
+이 화면은 **Worker Pools** 기능을 수행한다. 다른 Owner의 상태를 직접 변경하거나, Browser 개발자 도구로 권한을 우회하거나, HTTP 200/202만으로 최종 결과를 확정하는 용도로 사용하지 않는다.
 
-#### 선행 조건
+#### 검색·입력값
 
-1. 대상 Environment와 Tenant·Data Scope가 맞는지 확인한다.
-2. 메뉴 조회 권한과 조치 권한을 구분한다. 필요한 권한은 `조회 권한`이다.
-3. 변경 조치 전 대상의 최신 Version·상태·Owner를 새로 조회한다.
-4. Reason·Approval·Expected Version이 필요한 조치는 값을 준비한다.
-5. 이전 요청이 `PROCESSING`, `UNKNOWN_RESULT`, `PARTIAL`이면 신규 요청을 만들기 전에 기존 Operation을 대사한다.
+- View 고정
+- 별도 검색 UI 없음
 
-#### 검색·입력
+- 기간은 환경 표준 Timezone과 종료 시각 포함 여부를 확인한다.
+- ID는 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
+- 변경 조치의 Reason에는 목적, 영향 범위, 원복 기준, Incident·Approval ID를 적는다.
+- Password·Token·Secret·서명·PII 원문은 일반 Log나 교대 문서에 복사하지 않는다.
 
-View 고정; 별도 검색 UI 없음
+#### 목록·상세에서 확인할 값
 
-- 기간 입력은 운영 표준 Timezone을 사용하고 종료 시각 포함 여부를 확인한다.
-- 빈 문자열과 `null`, 전체 선택의 의미를 구분한다.
-- ID 입력은 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
-- Reason은 작업 목적, 영향 범위, 원복 기준, 관련 Incident·Approval ID를 포함한다.
-- 비밀번호·Token·Secret·서명 원문은 일반 입력·Log·Audit에 남기지 않는다.
+- Control Server가 반환한 최대 18개 동적 Column
 
-#### 결과와 상세 확인
+- 목록과 상세의 ID·Version·Owner가 다르면 조치를 중단하고 상세를 다시 조회한다.
+- `stale`, `partial`, `unknown`, Empty는 서로 다른 상태다.
+- Masked 값의 원문은 별도 Permission과 Reason이 있을 때만 조회한다.
 
-Control Server가 반환한 최대 18개 동적 Column
+#### Button·조치
 
-조회 후 다음 순서로 판정한다.
+- 새로고침
 
-1. 결과 생성 시각과 `stale`·`partial` 표식을 확인한다.
-2. Row 식별자와 상세의 Owner·Version이 동일한지 확인한다.
-3. Masked 값은 원문 조회 권한 없이 복호화하거나 우회하지 않는다.
-4. 상태가 집계값과 상세값에서 다르면 상세 Owner 상태를 기준으로 Reconcile한다.
-5. Empty 결과는 권한·Filter·Environment·시간 범위를 확인한 뒤에만 0건으로 판정한다.
+1. 화면 진입 직후 Environment·시간 기준·Data Scope를 확인한다.
+2. `새로고침`을 실행하고 조회 시각, `stale`, `partial`, Empty 여부를 먼저 판정한다.
+3. 목록의 식별자를 상세 화면이나 연관 메뉴로 넘겨 Owner 상태를 교차 확인한다.
+4. 집계와 상세가 다르면 집계를 정상 근거로 사용하지 않고 상세 Owner·Audit·Metric을 기준으로 대사한다.
+5. 교대 기록에는 검색 조건, 조회 시각, 식별자, 불일치 항목과 다음 확인 시각을 남긴다.
 
-#### 조치 절차
+#### 화면별 핵심 판정
 
-사용 가능한 조치는 **새로고침**이다.
-
-1. 조치 직전 대상 상세를 다시 조회한다.
-2. 영향 Preview가 있으면 대상 Instance·거래·사용자·배치·Route 수를 기록한다.
-3. Reason, Approval ID, Expected Version, Idempotency Key를 입력한다.
-4. 실행 후 반환된 Operation ID·Transaction ID를 기록한다.
-5. `ACCEPTED` 또는 HTTP 202는 접수 상태이므로 최종 상태를 조회한다.
-6. Success에서는 상태·Version·Checksum·Audit·Metric이 함께 바뀌었는지 확인한다.
+- Control Server가 반환한 동적 Column은 View마다 다르며 최대 18개다.
+- `stale`·`partial` 응답을 Empty나 정상 상태로 해석하지 않는다.
 
 #### 정상 결과
 
-- 대상 Owner 상태가 요청한 상태로 전이된다.
-- Version 또는 Checksum이 변경 조치와 일치한다.
-- Audit에 Operator, Permission, Reason, Approval, Before/After, Result가 남는다.
-- 관련 Log·Metric·Trace에서 같은 Operation/Transaction 식별자를 찾을 수 있다.
-- 부분 적용 대상이 없거나, 대상별 결과가 명시적으로 구분된다.
+- Owner의 실제 상태와 화면 표시 상태가 일치한다.
+- 변경 조치라면 Version·Checksum·상태 전이가 요청 내용과 일치한다.
+- 부분 적용 대상은 Instance·Partition·Delivery·Row별로 구분된다.
+- Audit에 Operator, Permission, Reason, Approval, Before/After, Operation ID와 결과가 기록된다.
+- 같은 식별자로 Log·Metric·Trace 또는 Owner 원장을 조회할 수 있다.
 
 #### 오류·응답 유실·복구
 
-핵심 복구 기준: `stale`/`partial` 경고를 정상·Empty로 해석 금지
+핵심 기준: **`stale`/`partial` 경고를 정상·Empty로 해석 금지**
 
-| 상황 | 운영 절차 |
+| 상황 | 조치 |
 |---|---|
-| 400·Validation | Field 오류와 허용 범위를 수정하고 새 요청을 만든다. |
+| Validation·400 | 오류 Field·허용 범위·상위 기준정보를 수정하고 새 요청을 만든다. |
 | 401 | Session·CSRF·Origin을 확인하고 재로그인한다. 기존 변경 요청을 자동 재전송하지 않는다. |
-| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. UI 우회 호출을 하지 않는다. |
-| 409 | 최신 Version과 변경자를 조회하고 변경 의도를 다시 확인한다. Blind Retry하지 않는다. |
-| 429 | `Retry-After`와 Rate Limit을 확인한다. 비멱등 조치는 결과 대사 후 재실행한다. |
+| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. 우회 호출하지 않는다. |
+| 409 | 최신 Version·변경자·변경 시각을 조회하고 변경 의도를 다시 확인한다. |
+| 429 | `Retry-After`를 따르며 비멱등 조치는 결과 대사 후 재실행한다. |
 | Timeout·응답 유실 | Operation ID·Transaction ID·Idempotency Key로 기존 결과를 조회한다. |
-| PARTIAL | 성공·실패·미응답 Target을 분리하고 Failed-only Retry 또는 Exact Rollback을 선택한다. |
-| UNKNOWN_RESULT | Owner 원장, 상대 시스템, Ledger, Audit를 대사해 결과를 확정한 뒤 다음 조치를 선택한다. |
+| PARTIAL | 성공·실패·미응답 Target을 분리해 Failed-only Retry 또는 Exact Rollback을 선택한다. |
+| UNKNOWN_RESULT | Owner 원장·상대 시스템·Ledger·Audit를 대사해 결과를 확정한다. |
 
-#### 감사·교대 인계
+#### 교대·감사 기록
 
-교대 기록에는 화면 Route, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 결과 상태, 미확정 항목, 다음 확인 시각, Rollback 기준을 남긴다.
+Route, Environment, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 최종 상태, 미확정 대상, 다음 확인 시각과 Rollback 기준을 기록한다.
+
+
 ### batch-center-cut — Center-Cut
 
-**접근 위치**: `/batch-center-cut`
-**메뉴 그룹**: 배치/통합 관제
-**화면 Source**: ``BatchViewPage.vue`, view=`center-cut``
+| 항목 | 값 |
+|---|---|
+| Route | `/batch-center-cut` |
+| 그룹 | 배치/통합 관제 |
+| Frontend | `cpf-admin/frontend/src/features/batch-runtime-control/BatchViewPage.vue`, view=`center-cut` |
+| Permission | 조회 권한 |
 
-#### 사용 목적과 사용 시점
+#### 사용 목적과 사용하지 말아야 할 경우
 
-이 화면은 **Center-Cut** 업무를 수행한다. 조회 결과를 다른 화면의 상태와 연결해야 할 때는 Transaction ID, Trace ID, Operation ID, Version, Checksum, Instance ID 중 화면이 제공하는 식별자를 인계 키로 사용한다. 화면의 HTTP 응답만으로 업무 결과를 확정하지 않고 Owner 상태와 Audit를 함께 확인한다.
+이 화면은 **Center-Cut** 기능을 수행한다. 다른 Owner의 상태를 직접 변경하거나, Browser 개발자 도구로 권한을 우회하거나, HTTP 200/202만으로 최종 결과를 확정하는 용도로 사용하지 않는다.
 
-#### 선행 조건
+#### 검색·입력값
 
-1. 대상 Environment와 Tenant·Data Scope가 맞는지 확인한다.
-2. 메뉴 조회 권한과 조치 권한을 구분한다. 필요한 권한은 `조회 권한`이다.
-3. 변경 조치 전 대상의 최신 Version·상태·Owner를 새로 조회한다.
-4. Reason·Approval·Expected Version이 필요한 조치는 값을 준비한다.
-5. 이전 요청이 `PROCESSING`, `UNKNOWN_RESULT`, `PARTIAL`이면 신규 요청을 만들기 전에 기존 Operation을 대사한다.
+- View 고정
+- 별도 검색 UI 없음
 
-#### 검색·입력
+- 기간은 환경 표준 Timezone과 종료 시각 포함 여부를 확인한다.
+- ID는 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
+- 변경 조치의 Reason에는 목적, 영향 범위, 원복 기준, Incident·Approval ID를 적는다.
+- Password·Token·Secret·서명·PII 원문은 일반 Log나 교대 문서에 복사하지 않는다.
 
-View 고정; 별도 검색 UI 없음
+#### 목록·상세에서 확인할 값
 
-- 기간 입력은 운영 표준 Timezone을 사용하고 종료 시각 포함 여부를 확인한다.
-- 빈 문자열과 `null`, 전체 선택의 의미를 구분한다.
-- ID 입력은 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
-- Reason은 작업 목적, 영향 범위, 원복 기준, 관련 Incident·Approval ID를 포함한다.
-- 비밀번호·Token·Secret·서명 원문은 일반 입력·Log·Audit에 남기지 않는다.
+- Control Server가 반환한 최대 18개 동적 Column
 
-#### 결과와 상세 확인
+- 목록과 상세의 ID·Version·Owner가 다르면 조치를 중단하고 상세를 다시 조회한다.
+- `stale`, `partial`, `unknown`, Empty는 서로 다른 상태다.
+- Masked 값의 원문은 별도 Permission과 Reason이 있을 때만 조회한다.
 
-Control Server가 반환한 최대 18개 동적 Column
+#### Button·조치
 
-조회 후 다음 순서로 판정한다.
+- 새로고침
 
-1. 결과 생성 시각과 `stale`·`partial` 표식을 확인한다.
-2. Row 식별자와 상세의 Owner·Version이 동일한지 확인한다.
-3. Masked 값은 원문 조회 권한 없이 복호화하거나 우회하지 않는다.
-4. 상태가 집계값과 상세값에서 다르면 상세 Owner 상태를 기준으로 Reconcile한다.
-5. Empty 결과는 권한·Filter·Environment·시간 범위를 확인한 뒤에만 0건으로 판정한다.
+1. 화면 진입 직후 Environment·시간 기준·Data Scope를 확인한다.
+2. `새로고침`을 실행하고 조회 시각, `stale`, `partial`, Empty 여부를 먼저 판정한다.
+3. 목록의 식별자를 상세 화면이나 연관 메뉴로 넘겨 Owner 상태를 교차 확인한다.
+4. 집계와 상세가 다르면 집계를 정상 근거로 사용하지 않고 상세 Owner·Audit·Metric을 기준으로 대사한다.
+5. 교대 기록에는 검색 조건, 조회 시각, 식별자, 불일치 항목과 다음 확인 시각을 남긴다.
 
-#### 조치 절차
+#### 화면별 핵심 판정
 
-사용 가능한 조치는 **새로고침**이다.
-
-1. 조치 직전 대상 상세를 다시 조회한다.
-2. 영향 Preview가 있으면 대상 Instance·거래·사용자·배치·Route 수를 기록한다.
-3. Reason, Approval ID, Expected Version, Idempotency Key를 입력한다.
-4. 실행 후 반환된 Operation ID·Transaction ID를 기록한다.
-5. `ACCEPTED` 또는 HTTP 202는 접수 상태이므로 최종 상태를 조회한다.
-6. Success에서는 상태·Version·Checksum·Audit·Metric이 함께 바뀌었는지 확인한다.
+- Control Server가 반환한 동적 Column은 View마다 다르며 최대 18개다.
+- `stale`·`partial` 응답을 Empty나 정상 상태로 해석하지 않는다.
 
 #### 정상 결과
 
-- 대상 Owner 상태가 요청한 상태로 전이된다.
-- Version 또는 Checksum이 변경 조치와 일치한다.
-- Audit에 Operator, Permission, Reason, Approval, Before/After, Result가 남는다.
-- 관련 Log·Metric·Trace에서 같은 Operation/Transaction 식별자를 찾을 수 있다.
-- 부분 적용 대상이 없거나, 대상별 결과가 명시적으로 구분된다.
+- Owner의 실제 상태와 화면 표시 상태가 일치한다.
+- 변경 조치라면 Version·Checksum·상태 전이가 요청 내용과 일치한다.
+- 부분 적용 대상은 Instance·Partition·Delivery·Row별로 구분된다.
+- Audit에 Operator, Permission, Reason, Approval, Before/After, Operation ID와 결과가 기록된다.
+- 같은 식별자로 Log·Metric·Trace 또는 Owner 원장을 조회할 수 있다.
 
 #### 오류·응답 유실·복구
 
-핵심 복구 기준: `stale`/`partial` 경고를 정상·Empty로 해석 금지
+핵심 기준: **`stale`/`partial` 경고를 정상·Empty로 해석 금지**
 
-| 상황 | 운영 절차 |
+| 상황 | 조치 |
 |---|---|
-| 400·Validation | Field 오류와 허용 범위를 수정하고 새 요청을 만든다. |
+| Validation·400 | 오류 Field·허용 범위·상위 기준정보를 수정하고 새 요청을 만든다. |
 | 401 | Session·CSRF·Origin을 확인하고 재로그인한다. 기존 변경 요청을 자동 재전송하지 않는다. |
-| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. UI 우회 호출을 하지 않는다. |
-| 409 | 최신 Version과 변경자를 조회하고 변경 의도를 다시 확인한다. Blind Retry하지 않는다. |
-| 429 | `Retry-After`와 Rate Limit을 확인한다. 비멱등 조치는 결과 대사 후 재실행한다. |
+| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. 우회 호출하지 않는다. |
+| 409 | 최신 Version·변경자·변경 시각을 조회하고 변경 의도를 다시 확인한다. |
+| 429 | `Retry-After`를 따르며 비멱등 조치는 결과 대사 후 재실행한다. |
 | Timeout·응답 유실 | Operation ID·Transaction ID·Idempotency Key로 기존 결과를 조회한다. |
-| PARTIAL | 성공·실패·미응답 Target을 분리하고 Failed-only Retry 또는 Exact Rollback을 선택한다. |
-| UNKNOWN_RESULT | Owner 원장, 상대 시스템, Ledger, Audit를 대사해 결과를 확정한 뒤 다음 조치를 선택한다. |
+| PARTIAL | 성공·실패·미응답 Target을 분리해 Failed-only Retry 또는 Exact Rollback을 선택한다. |
+| UNKNOWN_RESULT | Owner 원장·상대 시스템·Ledger·Audit를 대사해 결과를 확정한다. |
 
-#### 감사·교대 인계
+#### 교대·감사 기록
 
-교대 기록에는 화면 Route, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 결과 상태, 미확정 항목, 다음 확인 시각, Rollback 기준을 남긴다.
+Route, Environment, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 최종 상태, 미확정 대상, 다음 확인 시각과 Rollback 기준을 기록한다.
+
+
 ### batch-agents — Agents
 
-**접근 위치**: `/batch-agents`
-**메뉴 그룹**: 배치/통합 관제
-**화면 Source**: ``BatchViewPage.vue`, view=`agents``
+| 항목 | 값 |
+|---|---|
+| Route | `/batch-agents` |
+| 그룹 | 배치/통합 관제 |
+| Frontend | `cpf-admin/frontend/src/features/batch-runtime-control/BatchViewPage.vue`, view=`agents` |
+| Permission | 조회 권한 |
 
-#### 사용 목적과 사용 시점
+#### 사용 목적과 사용하지 말아야 할 경우
 
-이 화면은 **Agents** 업무를 수행한다. 조회 결과를 다른 화면의 상태와 연결해야 할 때는 Transaction ID, Trace ID, Operation ID, Version, Checksum, Instance ID 중 화면이 제공하는 식별자를 인계 키로 사용한다. 화면의 HTTP 응답만으로 업무 결과를 확정하지 않고 Owner 상태와 Audit를 함께 확인한다.
+이 화면은 **Agents** 기능을 수행한다. 다른 Owner의 상태를 직접 변경하거나, Browser 개발자 도구로 권한을 우회하거나, HTTP 200/202만으로 최종 결과를 확정하는 용도로 사용하지 않는다.
 
-#### 선행 조건
+#### 검색·입력값
 
-1. 대상 Environment와 Tenant·Data Scope가 맞는지 확인한다.
-2. 메뉴 조회 권한과 조치 권한을 구분한다. 필요한 권한은 `조회 권한`이다.
-3. 변경 조치 전 대상의 최신 Version·상태·Owner를 새로 조회한다.
-4. Reason·Approval·Expected Version이 필요한 조치는 값을 준비한다.
-5. 이전 요청이 `PROCESSING`, `UNKNOWN_RESULT`, `PARTIAL`이면 신규 요청을 만들기 전에 기존 Operation을 대사한다.
+- View 고정
+- 별도 검색 UI 없음
 
-#### 검색·입력
+- 기간은 환경 표준 Timezone과 종료 시각 포함 여부를 확인한다.
+- ID는 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
+- 변경 조치의 Reason에는 목적, 영향 범위, 원복 기준, Incident·Approval ID를 적는다.
+- Password·Token·Secret·서명·PII 원문은 일반 Log나 교대 문서에 복사하지 않는다.
 
-View 고정; 별도 검색 UI 없음
+#### 목록·상세에서 확인할 값
 
-- 기간 입력은 운영 표준 Timezone을 사용하고 종료 시각 포함 여부를 확인한다.
-- 빈 문자열과 `null`, 전체 선택의 의미를 구분한다.
-- ID 입력은 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
-- Reason은 작업 목적, 영향 범위, 원복 기준, 관련 Incident·Approval ID를 포함한다.
-- 비밀번호·Token·Secret·서명 원문은 일반 입력·Log·Audit에 남기지 않는다.
+- Control Server가 반환한 최대 18개 동적 Column
 
-#### 결과와 상세 확인
+- 목록과 상세의 ID·Version·Owner가 다르면 조치를 중단하고 상세를 다시 조회한다.
+- `stale`, `partial`, `unknown`, Empty는 서로 다른 상태다.
+- Masked 값의 원문은 별도 Permission과 Reason이 있을 때만 조회한다.
 
-Control Server가 반환한 최대 18개 동적 Column
+#### Button·조치
 
-조회 후 다음 순서로 판정한다.
+- 새로고침
 
-1. 결과 생성 시각과 `stale`·`partial` 표식을 확인한다.
-2. Row 식별자와 상세의 Owner·Version이 동일한지 확인한다.
-3. Masked 값은 원문 조회 권한 없이 복호화하거나 우회하지 않는다.
-4. 상태가 집계값과 상세값에서 다르면 상세 Owner 상태를 기준으로 Reconcile한다.
-5. Empty 결과는 권한·Filter·Environment·시간 범위를 확인한 뒤에만 0건으로 판정한다.
+1. 화면 진입 직후 Environment·시간 기준·Data Scope를 확인한다.
+2. `새로고침`을 실행하고 조회 시각, `stale`, `partial`, Empty 여부를 먼저 판정한다.
+3. 목록의 식별자를 상세 화면이나 연관 메뉴로 넘겨 Owner 상태를 교차 확인한다.
+4. 집계와 상세가 다르면 집계를 정상 근거로 사용하지 않고 상세 Owner·Audit·Metric을 기준으로 대사한다.
+5. 교대 기록에는 검색 조건, 조회 시각, 식별자, 불일치 항목과 다음 확인 시각을 남긴다.
 
-#### 조치 절차
+#### 화면별 핵심 판정
 
-사용 가능한 조치는 **새로고침**이다.
-
-1. 조치 직전 대상 상세를 다시 조회한다.
-2. 영향 Preview가 있으면 대상 Instance·거래·사용자·배치·Route 수를 기록한다.
-3. Reason, Approval ID, Expected Version, Idempotency Key를 입력한다.
-4. 실행 후 반환된 Operation ID·Transaction ID를 기록한다.
-5. `ACCEPTED` 또는 HTTP 202는 접수 상태이므로 최종 상태를 조회한다.
-6. Success에서는 상태·Version·Checksum·Audit·Metric이 함께 바뀌었는지 확인한다.
+- Control Server가 반환한 동적 Column은 View마다 다르며 최대 18개다.
+- `stale`·`partial` 응답을 Empty나 정상 상태로 해석하지 않는다.
 
 #### 정상 결과
 
-- 대상 Owner 상태가 요청한 상태로 전이된다.
-- Version 또는 Checksum이 변경 조치와 일치한다.
-- Audit에 Operator, Permission, Reason, Approval, Before/After, Result가 남는다.
-- 관련 Log·Metric·Trace에서 같은 Operation/Transaction 식별자를 찾을 수 있다.
-- 부분 적용 대상이 없거나, 대상별 결과가 명시적으로 구분된다.
+- Owner의 실제 상태와 화면 표시 상태가 일치한다.
+- 변경 조치라면 Version·Checksum·상태 전이가 요청 내용과 일치한다.
+- 부분 적용 대상은 Instance·Partition·Delivery·Row별로 구분된다.
+- Audit에 Operator, Permission, Reason, Approval, Before/After, Operation ID와 결과가 기록된다.
+- 같은 식별자로 Log·Metric·Trace 또는 Owner 원장을 조회할 수 있다.
 
 #### 오류·응답 유실·복구
 
-핵심 복구 기준: `stale`/`partial` 경고를 정상·Empty로 해석 금지
+핵심 기준: **`stale`/`partial` 경고를 정상·Empty로 해석 금지**
 
-| 상황 | 운영 절차 |
+| 상황 | 조치 |
 |---|---|
-| 400·Validation | Field 오류와 허용 범위를 수정하고 새 요청을 만든다. |
+| Validation·400 | 오류 Field·허용 범위·상위 기준정보를 수정하고 새 요청을 만든다. |
 | 401 | Session·CSRF·Origin을 확인하고 재로그인한다. 기존 변경 요청을 자동 재전송하지 않는다. |
-| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. UI 우회 호출을 하지 않는다. |
-| 409 | 최신 Version과 변경자를 조회하고 변경 의도를 다시 확인한다. Blind Retry하지 않는다. |
-| 429 | `Retry-After`와 Rate Limit을 확인한다. 비멱등 조치는 결과 대사 후 재실행한다. |
+| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. 우회 호출하지 않는다. |
+| 409 | 최신 Version·변경자·변경 시각을 조회하고 변경 의도를 다시 확인한다. |
+| 429 | `Retry-After`를 따르며 비멱등 조치는 결과 대사 후 재실행한다. |
 | Timeout·응답 유실 | Operation ID·Transaction ID·Idempotency Key로 기존 결과를 조회한다. |
-| PARTIAL | 성공·실패·미응답 Target을 분리하고 Failed-only Retry 또는 Exact Rollback을 선택한다. |
-| UNKNOWN_RESULT | Owner 원장, 상대 시스템, Ledger, Audit를 대사해 결과를 확정한 뒤 다음 조치를 선택한다. |
+| PARTIAL | 성공·실패·미응답 Target을 분리해 Failed-only Retry 또는 Exact Rollback을 선택한다. |
+| UNKNOWN_RESULT | Owner 원장·상대 시스템·Ledger·Audit를 대사해 결과를 확정한다. |
 
-#### 감사·교대 인계
+#### 교대·감사 기록
 
-교대 기록에는 화면 Route, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 결과 상태, 미확정 항목, 다음 확인 시각, Rollback 기준을 남긴다.
+Route, Environment, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 최종 상태, 미확정 대상, 다음 확인 시각과 Rollback 기준을 기록한다.
+
+
 ### batch-job-packs — Job Packs
 
-**접근 위치**: `/batch-job-packs`
-**메뉴 그룹**: 배치/통합 관제
-**화면 Source**: ``BatchViewPage.vue`, view=`job-packs``
+| 항목 | 값 |
+|---|---|
+| Route | `/batch-job-packs` |
+| 그룹 | 배치/통합 관제 |
+| Frontend | `cpf-admin/frontend/src/features/batch-runtime-control/BatchViewPage.vue`, view=`job-packs` |
+| Permission | 조회 권한 |
 
-#### 사용 목적과 사용 시점
+#### 사용 목적과 사용하지 말아야 할 경우
 
-이 화면은 **Job Packs** 업무를 수행한다. 조회 결과를 다른 화면의 상태와 연결해야 할 때는 Transaction ID, Trace ID, Operation ID, Version, Checksum, Instance ID 중 화면이 제공하는 식별자를 인계 키로 사용한다. 화면의 HTTP 응답만으로 업무 결과를 확정하지 않고 Owner 상태와 Audit를 함께 확인한다.
+이 화면은 **Job Packs** 기능을 수행한다. 다른 Owner의 상태를 직접 변경하거나, Browser 개발자 도구로 권한을 우회하거나, HTTP 200/202만으로 최종 결과를 확정하는 용도로 사용하지 않는다.
 
-#### 선행 조건
+#### 검색·입력값
 
-1. 대상 Environment와 Tenant·Data Scope가 맞는지 확인한다.
-2. 메뉴 조회 권한과 조치 권한을 구분한다. 필요한 권한은 `조회 권한`이다.
-3. 변경 조치 전 대상의 최신 Version·상태·Owner를 새로 조회한다.
-4. Reason·Approval·Expected Version이 필요한 조치는 값을 준비한다.
-5. 이전 요청이 `PROCESSING`, `UNKNOWN_RESULT`, `PARTIAL`이면 신규 요청을 만들기 전에 기존 Operation을 대사한다.
+- View 고정
+- 별도 검색 UI 없음
 
-#### 검색·입력
+- 기간은 환경 표준 Timezone과 종료 시각 포함 여부를 확인한다.
+- ID는 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
+- 변경 조치의 Reason에는 목적, 영향 범위, 원복 기준, Incident·Approval ID를 적는다.
+- Password·Token·Secret·서명·PII 원문은 일반 Log나 교대 문서에 복사하지 않는다.
 
-View 고정; 별도 검색 UI 없음
+#### 목록·상세에서 확인할 값
 
-- 기간 입력은 운영 표준 Timezone을 사용하고 종료 시각 포함 여부를 확인한다.
-- 빈 문자열과 `null`, 전체 선택의 의미를 구분한다.
-- ID 입력은 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
-- Reason은 작업 목적, 영향 범위, 원복 기준, 관련 Incident·Approval ID를 포함한다.
-- 비밀번호·Token·Secret·서명 원문은 일반 입력·Log·Audit에 남기지 않는다.
+- Control Server가 반환한 최대 18개 동적 Column
 
-#### 결과와 상세 확인
+- 목록과 상세의 ID·Version·Owner가 다르면 조치를 중단하고 상세를 다시 조회한다.
+- `stale`, `partial`, `unknown`, Empty는 서로 다른 상태다.
+- Masked 값의 원문은 별도 Permission과 Reason이 있을 때만 조회한다.
 
-Control Server가 반환한 최대 18개 동적 Column
+#### Button·조치
 
-조회 후 다음 순서로 판정한다.
+- 새로고침
 
-1. 결과 생성 시각과 `stale`·`partial` 표식을 확인한다.
-2. Row 식별자와 상세의 Owner·Version이 동일한지 확인한다.
-3. Masked 값은 원문 조회 권한 없이 복호화하거나 우회하지 않는다.
-4. 상태가 집계값과 상세값에서 다르면 상세 Owner 상태를 기준으로 Reconcile한다.
-5. Empty 결과는 권한·Filter·Environment·시간 범위를 확인한 뒤에만 0건으로 판정한다.
+1. 화면 진입 직후 Environment·시간 기준·Data Scope를 확인한다.
+2. `새로고침`을 실행하고 조회 시각, `stale`, `partial`, Empty 여부를 먼저 판정한다.
+3. 목록의 식별자를 상세 화면이나 연관 메뉴로 넘겨 Owner 상태를 교차 확인한다.
+4. 집계와 상세가 다르면 집계를 정상 근거로 사용하지 않고 상세 Owner·Audit·Metric을 기준으로 대사한다.
+5. 교대 기록에는 검색 조건, 조회 시각, 식별자, 불일치 항목과 다음 확인 시각을 남긴다.
 
-#### 조치 절차
+#### 화면별 핵심 판정
 
-사용 가능한 조치는 **새로고침**이다.
-
-1. 조치 직전 대상 상세를 다시 조회한다.
-2. 영향 Preview가 있으면 대상 Instance·거래·사용자·배치·Route 수를 기록한다.
-3. Reason, Approval ID, Expected Version, Idempotency Key를 입력한다.
-4. 실행 후 반환된 Operation ID·Transaction ID를 기록한다.
-5. `ACCEPTED` 또는 HTTP 202는 접수 상태이므로 최종 상태를 조회한다.
-6. Success에서는 상태·Version·Checksum·Audit·Metric이 함께 바뀌었는지 확인한다.
+- Control Server가 반환한 동적 Column은 View마다 다르며 최대 18개다.
+- `stale`·`partial` 응답을 Empty나 정상 상태로 해석하지 않는다.
 
 #### 정상 결과
 
-- 대상 Owner 상태가 요청한 상태로 전이된다.
-- Version 또는 Checksum이 변경 조치와 일치한다.
-- Audit에 Operator, Permission, Reason, Approval, Before/After, Result가 남는다.
-- 관련 Log·Metric·Trace에서 같은 Operation/Transaction 식별자를 찾을 수 있다.
-- 부분 적용 대상이 없거나, 대상별 결과가 명시적으로 구분된다.
+- Owner의 실제 상태와 화면 표시 상태가 일치한다.
+- 변경 조치라면 Version·Checksum·상태 전이가 요청 내용과 일치한다.
+- 부분 적용 대상은 Instance·Partition·Delivery·Row별로 구분된다.
+- Audit에 Operator, Permission, Reason, Approval, Before/After, Operation ID와 결과가 기록된다.
+- 같은 식별자로 Log·Metric·Trace 또는 Owner 원장을 조회할 수 있다.
 
 #### 오류·응답 유실·복구
 
-핵심 복구 기준: `stale`/`partial` 경고를 정상·Empty로 해석 금지
+핵심 기준: **`stale`/`partial` 경고를 정상·Empty로 해석 금지**
 
-| 상황 | 운영 절차 |
+| 상황 | 조치 |
 |---|---|
-| 400·Validation | Field 오류와 허용 범위를 수정하고 새 요청을 만든다. |
+| Validation·400 | 오류 Field·허용 범위·상위 기준정보를 수정하고 새 요청을 만든다. |
 | 401 | Session·CSRF·Origin을 확인하고 재로그인한다. 기존 변경 요청을 자동 재전송하지 않는다. |
-| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. UI 우회 호출을 하지 않는다. |
-| 409 | 최신 Version과 변경자를 조회하고 변경 의도를 다시 확인한다. Blind Retry하지 않는다. |
-| 429 | `Retry-After`와 Rate Limit을 확인한다. 비멱등 조치는 결과 대사 후 재실행한다. |
+| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. 우회 호출하지 않는다. |
+| 409 | 최신 Version·변경자·변경 시각을 조회하고 변경 의도를 다시 확인한다. |
+| 429 | `Retry-After`를 따르며 비멱등 조치는 결과 대사 후 재실행한다. |
 | Timeout·응답 유실 | Operation ID·Transaction ID·Idempotency Key로 기존 결과를 조회한다. |
-| PARTIAL | 성공·실패·미응답 Target을 분리하고 Failed-only Retry 또는 Exact Rollback을 선택한다. |
-| UNKNOWN_RESULT | Owner 원장, 상대 시스템, Ledger, Audit를 대사해 결과를 확정한 뒤 다음 조치를 선택한다. |
+| PARTIAL | 성공·실패·미응답 Target을 분리해 Failed-only Retry 또는 Exact Rollback을 선택한다. |
+| UNKNOWN_RESULT | Owner 원장·상대 시스템·Ledger·Audit를 대사해 결과를 확정한다. |
 
-#### 감사·교대 인계
+#### 교대·감사 기록
 
-교대 기록에는 화면 Route, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 결과 상태, 미확정 항목, 다음 확인 시각, Rollback 기준을 남긴다.
+Route, Environment, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 최종 상태, 미확정 대상, 다음 확인 시각과 Rollback 기준을 기록한다.
+
+
 ### batch-executions — Executions
 
-**접근 위치**: `/batch-executions`
-**메뉴 그룹**: 배치/통합 관제
-**화면 Source**: ``BatchViewPage.vue`, view=`executions``
+| 항목 | 값 |
+|---|---|
+| Route | `/batch-executions` |
+| 그룹 | 배치/통합 관제 |
+| Frontend | `cpf-admin/frontend/src/features/batch-runtime-control/BatchViewPage.vue`, view=`executions` |
+| Permission | 조회 권한 |
 
-#### 사용 목적과 사용 시점
+#### 사용 목적과 사용하지 말아야 할 경우
 
-이 화면은 **Executions** 업무를 수행한다. 조회 결과를 다른 화면의 상태와 연결해야 할 때는 Transaction ID, Trace ID, Operation ID, Version, Checksum, Instance ID 중 화면이 제공하는 식별자를 인계 키로 사용한다. 화면의 HTTP 응답만으로 업무 결과를 확정하지 않고 Owner 상태와 Audit를 함께 확인한다.
+이 화면은 **Executions** 기능을 수행한다. 다른 Owner의 상태를 직접 변경하거나, Browser 개발자 도구로 권한을 우회하거나, HTTP 200/202만으로 최종 결과를 확정하는 용도로 사용하지 않는다.
 
-#### 선행 조건
+#### 검색·입력값
 
-1. 대상 Environment와 Tenant·Data Scope가 맞는지 확인한다.
-2. 메뉴 조회 권한과 조치 권한을 구분한다. 필요한 권한은 `조회 권한`이다.
-3. 변경 조치 전 대상의 최신 Version·상태·Owner를 새로 조회한다.
-4. Reason·Approval·Expected Version이 필요한 조치는 값을 준비한다.
-5. 이전 요청이 `PROCESSING`, `UNKNOWN_RESULT`, `PARTIAL`이면 신규 요청을 만들기 전에 기존 Operation을 대사한다.
+- View 고정
+- 별도 검색 UI 없음
 
-#### 검색·입력
+- 기간은 환경 표준 Timezone과 종료 시각 포함 여부를 확인한다.
+- ID는 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
+- 변경 조치의 Reason에는 목적, 영향 범위, 원복 기준, Incident·Approval ID를 적는다.
+- Password·Token·Secret·서명·PII 원문은 일반 Log나 교대 문서에 복사하지 않는다.
 
-View 고정; 별도 검색 UI 없음
+#### 목록·상세에서 확인할 값
 
-- 기간 입력은 운영 표준 Timezone을 사용하고 종료 시각 포함 여부를 확인한다.
-- 빈 문자열과 `null`, 전체 선택의 의미를 구분한다.
-- ID 입력은 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
-- Reason은 작업 목적, 영향 범위, 원복 기준, 관련 Incident·Approval ID를 포함한다.
-- 비밀번호·Token·Secret·서명 원문은 일반 입력·Log·Audit에 남기지 않는다.
+- Control Server가 반환한 최대 18개 동적 Column
 
-#### 결과와 상세 확인
+- 목록과 상세의 ID·Version·Owner가 다르면 조치를 중단하고 상세를 다시 조회한다.
+- `stale`, `partial`, `unknown`, Empty는 서로 다른 상태다.
+- Masked 값의 원문은 별도 Permission과 Reason이 있을 때만 조회한다.
 
-Control Server가 반환한 최대 18개 동적 Column
+#### Button·조치
 
-조회 후 다음 순서로 판정한다.
+- 새로고침
 
-1. 결과 생성 시각과 `stale`·`partial` 표식을 확인한다.
-2. Row 식별자와 상세의 Owner·Version이 동일한지 확인한다.
-3. Masked 값은 원문 조회 권한 없이 복호화하거나 우회하지 않는다.
-4. 상태가 집계값과 상세값에서 다르면 상세 Owner 상태를 기준으로 Reconcile한다.
-5. Empty 결과는 권한·Filter·Environment·시간 범위를 확인한 뒤에만 0건으로 판정한다.
+1. 화면 진입 직후 Environment·시간 기준·Data Scope를 확인한다.
+2. `새로고침`을 실행하고 조회 시각, `stale`, `partial`, Empty 여부를 먼저 판정한다.
+3. 목록의 식별자를 상세 화면이나 연관 메뉴로 넘겨 Owner 상태를 교차 확인한다.
+4. 집계와 상세가 다르면 집계를 정상 근거로 사용하지 않고 상세 Owner·Audit·Metric을 기준으로 대사한다.
+5. 교대 기록에는 검색 조건, 조회 시각, 식별자, 불일치 항목과 다음 확인 시각을 남긴다.
 
-#### 조치 절차
+#### 화면별 핵심 판정
 
-사용 가능한 조치는 **새로고침**이다.
-
-1. 조치 직전 대상 상세를 다시 조회한다.
-2. 영향 Preview가 있으면 대상 Instance·거래·사용자·배치·Route 수를 기록한다.
-3. Reason, Approval ID, Expected Version, Idempotency Key를 입력한다.
-4. 실행 후 반환된 Operation ID·Transaction ID를 기록한다.
-5. `ACCEPTED` 또는 HTTP 202는 접수 상태이므로 최종 상태를 조회한다.
-6. Success에서는 상태·Version·Checksum·Audit·Metric이 함께 바뀌었는지 확인한다.
+- Control Server가 반환한 동적 Column은 View마다 다르며 최대 18개다.
+- `stale`·`partial` 응답을 Empty나 정상 상태로 해석하지 않는다.
 
 #### 정상 결과
 
-- 대상 Owner 상태가 요청한 상태로 전이된다.
-- Version 또는 Checksum이 변경 조치와 일치한다.
-- Audit에 Operator, Permission, Reason, Approval, Before/After, Result가 남는다.
-- 관련 Log·Metric·Trace에서 같은 Operation/Transaction 식별자를 찾을 수 있다.
-- 부분 적용 대상이 없거나, 대상별 결과가 명시적으로 구분된다.
+- Owner의 실제 상태와 화면 표시 상태가 일치한다.
+- 변경 조치라면 Version·Checksum·상태 전이가 요청 내용과 일치한다.
+- 부분 적용 대상은 Instance·Partition·Delivery·Row별로 구분된다.
+- Audit에 Operator, Permission, Reason, Approval, Before/After, Operation ID와 결과가 기록된다.
+- 같은 식별자로 Log·Metric·Trace 또는 Owner 원장을 조회할 수 있다.
 
 #### 오류·응답 유실·복구
 
-핵심 복구 기준: `stale`/`partial` 경고를 정상·Empty로 해석 금지
+핵심 기준: **`stale`/`partial` 경고를 정상·Empty로 해석 금지**
 
-| 상황 | 운영 절차 |
+| 상황 | 조치 |
 |---|---|
-| 400·Validation | Field 오류와 허용 범위를 수정하고 새 요청을 만든다. |
+| Validation·400 | 오류 Field·허용 범위·상위 기준정보를 수정하고 새 요청을 만든다. |
 | 401 | Session·CSRF·Origin을 확인하고 재로그인한다. 기존 변경 요청을 자동 재전송하지 않는다. |
-| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. UI 우회 호출을 하지 않는다. |
-| 409 | 최신 Version과 변경자를 조회하고 변경 의도를 다시 확인한다. Blind Retry하지 않는다. |
-| 429 | `Retry-After`와 Rate Limit을 확인한다. 비멱등 조치는 결과 대사 후 재실행한다. |
+| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. 우회 호출하지 않는다. |
+| 409 | 최신 Version·변경자·변경 시각을 조회하고 변경 의도를 다시 확인한다. |
+| 429 | `Retry-After`를 따르며 비멱등 조치는 결과 대사 후 재실행한다. |
 | Timeout·응답 유실 | Operation ID·Transaction ID·Idempotency Key로 기존 결과를 조회한다. |
-| PARTIAL | 성공·실패·미응답 Target을 분리하고 Failed-only Retry 또는 Exact Rollback을 선택한다. |
-| UNKNOWN_RESULT | Owner 원장, 상대 시스템, Ledger, Audit를 대사해 결과를 확정한 뒤 다음 조치를 선택한다. |
+| PARTIAL | 성공·실패·미응답 Target을 분리해 Failed-only Retry 또는 Exact Rollback을 선택한다. |
+| UNKNOWN_RESULT | Owner 원장·상대 시스템·Ledger·Audit를 대사해 결과를 확정한다. |
 
-#### 감사·교대 인계
+#### 교대·감사 기록
 
-교대 기록에는 화면 Route, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 결과 상태, 미확정 항목, 다음 확인 시각, Rollback 기준을 남긴다.
+Route, Environment, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 최종 상태, 미확정 대상, 다음 확인 시각과 Rollback 기준을 기록한다.
+
+
 ### batch-recovery — Recovery/Unknown
 
-**접근 위치**: `/batch-recovery`
-**메뉴 그룹**: 배치/통합 관제
-**화면 Source**: ``BatchViewPage.vue`, view=`recovery``
+| 항목 | 값 |
+|---|---|
+| Route | `/batch-recovery` |
+| 그룹 | 배치/통합 관제 |
+| Frontend | `cpf-admin/frontend/src/features/batch-runtime-control/BatchViewPage.vue`, view=`recovery` |
+| Permission | 조회 권한 |
 
-#### 사용 목적과 사용 시점
+#### 사용 목적과 사용하지 말아야 할 경우
 
-이 화면은 **Recovery/Unknown** 업무를 수행한다. 조회 결과를 다른 화면의 상태와 연결해야 할 때는 Transaction ID, Trace ID, Operation ID, Version, Checksum, Instance ID 중 화면이 제공하는 식별자를 인계 키로 사용한다. 화면의 HTTP 응답만으로 업무 결과를 확정하지 않고 Owner 상태와 Audit를 함께 확인한다.
+이 화면은 **Recovery/Unknown** 기능을 수행한다. 다른 Owner의 상태를 직접 변경하거나, Browser 개발자 도구로 권한을 우회하거나, HTTP 200/202만으로 최종 결과를 확정하는 용도로 사용하지 않는다.
 
-#### 선행 조건
+#### 검색·입력값
 
-1. 대상 Environment와 Tenant·Data Scope가 맞는지 확인한다.
-2. 메뉴 조회 권한과 조치 권한을 구분한다. 필요한 권한은 `조회 권한`이다.
-3. 변경 조치 전 대상의 최신 Version·상태·Owner를 새로 조회한다.
-4. Reason·Approval·Expected Version이 필요한 조치는 값을 준비한다.
-5. 이전 요청이 `PROCESSING`, `UNKNOWN_RESULT`, `PARTIAL`이면 신규 요청을 만들기 전에 기존 Operation을 대사한다.
+- View 고정
+- 별도 검색 UI 없음
 
-#### 검색·입력
+- 기간은 환경 표준 Timezone과 종료 시각 포함 여부를 확인한다.
+- ID는 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
+- 변경 조치의 Reason에는 목적, 영향 범위, 원복 기준, Incident·Approval ID를 적는다.
+- Password·Token·Secret·서명·PII 원문은 일반 Log나 교대 문서에 복사하지 않는다.
 
-View 고정; 별도 검색 UI 없음
+#### 목록·상세에서 확인할 값
 
-- 기간 입력은 운영 표준 Timezone을 사용하고 종료 시각 포함 여부를 확인한다.
-- 빈 문자열과 `null`, 전체 선택의 의미를 구분한다.
-- ID 입력은 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
-- Reason은 작업 목적, 영향 범위, 원복 기준, 관련 Incident·Approval ID를 포함한다.
-- 비밀번호·Token·Secret·서명 원문은 일반 입력·Log·Audit에 남기지 않는다.
+- Control Server가 반환한 최대 18개 동적 Column
 
-#### 결과와 상세 확인
+- 목록과 상세의 ID·Version·Owner가 다르면 조치를 중단하고 상세를 다시 조회한다.
+- `stale`, `partial`, `unknown`, Empty는 서로 다른 상태다.
+- Masked 값의 원문은 별도 Permission과 Reason이 있을 때만 조회한다.
 
-Control Server가 반환한 최대 18개 동적 Column
+#### Button·조치
 
-조회 후 다음 순서로 판정한다.
+- 새로고침
 
-1. 결과 생성 시각과 `stale`·`partial` 표식을 확인한다.
-2. Row 식별자와 상세의 Owner·Version이 동일한지 확인한다.
-3. Masked 값은 원문 조회 권한 없이 복호화하거나 우회하지 않는다.
-4. 상태가 집계값과 상세값에서 다르면 상세 Owner 상태를 기준으로 Reconcile한다.
-5. Empty 결과는 권한·Filter·Environment·시간 범위를 확인한 뒤에만 0건으로 판정한다.
+1. 화면 진입 직후 Environment·시간 기준·Data Scope를 확인한다.
+2. `새로고침`을 실행하고 조회 시각, `stale`, `partial`, Empty 여부를 먼저 판정한다.
+3. 목록의 식별자를 상세 화면이나 연관 메뉴로 넘겨 Owner 상태를 교차 확인한다.
+4. 집계와 상세가 다르면 집계를 정상 근거로 사용하지 않고 상세 Owner·Audit·Metric을 기준으로 대사한다.
+5. 교대 기록에는 검색 조건, 조회 시각, 식별자, 불일치 항목과 다음 확인 시각을 남긴다.
 
-#### 조치 절차
+#### 화면별 핵심 판정
 
-사용 가능한 조치는 **새로고침**이다.
-
-1. 조치 직전 대상 상세를 다시 조회한다.
-2. 영향 Preview가 있으면 대상 Instance·거래·사용자·배치·Route 수를 기록한다.
-3. Reason, Approval ID, Expected Version, Idempotency Key를 입력한다.
-4. 실행 후 반환된 Operation ID·Transaction ID를 기록한다.
-5. `ACCEPTED` 또는 HTTP 202는 접수 상태이므로 최종 상태를 조회한다.
-6. Success에서는 상태·Version·Checksum·Audit·Metric이 함께 바뀌었는지 확인한다.
+- Control Server가 반환한 동적 Column은 View마다 다르며 최대 18개다.
+- `stale`·`partial` 응답을 Empty나 정상 상태로 해석하지 않는다.
 
 #### 정상 결과
 
-- 대상 Owner 상태가 요청한 상태로 전이된다.
-- Version 또는 Checksum이 변경 조치와 일치한다.
-- Audit에 Operator, Permission, Reason, Approval, Before/After, Result가 남는다.
-- 관련 Log·Metric·Trace에서 같은 Operation/Transaction 식별자를 찾을 수 있다.
-- 부분 적용 대상이 없거나, 대상별 결과가 명시적으로 구분된다.
+- Owner의 실제 상태와 화면 표시 상태가 일치한다.
+- 변경 조치라면 Version·Checksum·상태 전이가 요청 내용과 일치한다.
+- 부분 적용 대상은 Instance·Partition·Delivery·Row별로 구분된다.
+- Audit에 Operator, Permission, Reason, Approval, Before/After, Operation ID와 결과가 기록된다.
+- 같은 식별자로 Log·Metric·Trace 또는 Owner 원장을 조회할 수 있다.
 
 #### 오류·응답 유실·복구
 
-핵심 복구 기준: `stale`/`partial` 경고를 정상·Empty로 해석 금지
+핵심 기준: **`stale`/`partial` 경고를 정상·Empty로 해석 금지**
 
-| 상황 | 운영 절차 |
+| 상황 | 조치 |
 |---|---|
-| 400·Validation | Field 오류와 허용 범위를 수정하고 새 요청을 만든다. |
+| Validation·400 | 오류 Field·허용 범위·상위 기준정보를 수정하고 새 요청을 만든다. |
 | 401 | Session·CSRF·Origin을 확인하고 재로그인한다. 기존 변경 요청을 자동 재전송하지 않는다. |
-| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. UI 우회 호출을 하지 않는다. |
-| 409 | 최신 Version과 변경자를 조회하고 변경 의도를 다시 확인한다. Blind Retry하지 않는다. |
-| 429 | `Retry-After`와 Rate Limit을 확인한다. 비멱등 조치는 결과 대사 후 재실행한다. |
+| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. 우회 호출하지 않는다. |
+| 409 | 최신 Version·변경자·변경 시각을 조회하고 변경 의도를 다시 확인한다. |
+| 429 | `Retry-After`를 따르며 비멱등 조치는 결과 대사 후 재실행한다. |
 | Timeout·응답 유실 | Operation ID·Transaction ID·Idempotency Key로 기존 결과를 조회한다. |
-| PARTIAL | 성공·실패·미응답 Target을 분리하고 Failed-only Retry 또는 Exact Rollback을 선택한다. |
-| UNKNOWN_RESULT | Owner 원장, 상대 시스템, Ledger, Audit를 대사해 결과를 확정한 뒤 다음 조치를 선택한다. |
+| PARTIAL | 성공·실패·미응답 Target을 분리해 Failed-only Retry 또는 Exact Rollback을 선택한다. |
+| UNKNOWN_RESULT | Owner 원장·상대 시스템·Ledger·Audit를 대사해 결과를 확정한다. |
 
-#### 감사·교대 인계
+#### 교대·감사 기록
 
-교대 기록에는 화면 Route, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 결과 상태, 미확정 항목, 다음 확인 시각, Rollback 기준을 남긴다.
+Route, Environment, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 최종 상태, 미확정 대상, 다음 확인 시각과 Rollback 기준을 기록한다.
+
+
 ### batch-leases — Leases
 
-**접근 위치**: `/batch-leases`
-**메뉴 그룹**: 배치/통합 관제
-**화면 Source**: ``BatchViewPage.vue`, view=`leases``
+| 항목 | 값 |
+|---|---|
+| Route | `/batch-leases` |
+| 그룹 | 배치/통합 관제 |
+| Frontend | `cpf-admin/frontend/src/features/batch-runtime-control/BatchViewPage.vue`, view=`leases` |
+| Permission | 조회 권한 |
 
-#### 사용 목적과 사용 시점
+#### 사용 목적과 사용하지 말아야 할 경우
 
-이 화면은 **Leases** 업무를 수행한다. 조회 결과를 다른 화면의 상태와 연결해야 할 때는 Transaction ID, Trace ID, Operation ID, Version, Checksum, Instance ID 중 화면이 제공하는 식별자를 인계 키로 사용한다. 화면의 HTTP 응답만으로 업무 결과를 확정하지 않고 Owner 상태와 Audit를 함께 확인한다.
+이 화면은 **Leases** 기능을 수행한다. 다른 Owner의 상태를 직접 변경하거나, Browser 개발자 도구로 권한을 우회하거나, HTTP 200/202만으로 최종 결과를 확정하는 용도로 사용하지 않는다.
 
-#### 선행 조건
+#### 검색·입력값
 
-1. 대상 Environment와 Tenant·Data Scope가 맞는지 확인한다.
-2. 메뉴 조회 권한과 조치 권한을 구분한다. 필요한 권한은 `조회 권한`이다.
-3. 변경 조치 전 대상의 최신 Version·상태·Owner를 새로 조회한다.
-4. Reason·Approval·Expected Version이 필요한 조치는 값을 준비한다.
-5. 이전 요청이 `PROCESSING`, `UNKNOWN_RESULT`, `PARTIAL`이면 신규 요청을 만들기 전에 기존 Operation을 대사한다.
+- View 고정
+- 별도 검색 UI 없음
 
-#### 검색·입력
+- 기간은 환경 표준 Timezone과 종료 시각 포함 여부를 확인한다.
+- ID는 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
+- 변경 조치의 Reason에는 목적, 영향 범위, 원복 기준, Incident·Approval ID를 적는다.
+- Password·Token·Secret·서명·PII 원문은 일반 Log나 교대 문서에 복사하지 않는다.
 
-View 고정; 별도 검색 UI 없음
+#### 목록·상세에서 확인할 값
 
-- 기간 입력은 운영 표준 Timezone을 사용하고 종료 시각 포함 여부를 확인한다.
-- 빈 문자열과 `null`, 전체 선택의 의미를 구분한다.
-- ID 입력은 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
-- Reason은 작업 목적, 영향 범위, 원복 기준, 관련 Incident·Approval ID를 포함한다.
-- 비밀번호·Token·Secret·서명 원문은 일반 입력·Log·Audit에 남기지 않는다.
+- Control Server가 반환한 최대 18개 동적 Column
 
-#### 결과와 상세 확인
+- 목록과 상세의 ID·Version·Owner가 다르면 조치를 중단하고 상세를 다시 조회한다.
+- `stale`, `partial`, `unknown`, Empty는 서로 다른 상태다.
+- Masked 값의 원문은 별도 Permission과 Reason이 있을 때만 조회한다.
 
-Control Server가 반환한 최대 18개 동적 Column
+#### Button·조치
 
-조회 후 다음 순서로 판정한다.
+- 새로고침
 
-1. 결과 생성 시각과 `stale`·`partial` 표식을 확인한다.
-2. Row 식별자와 상세의 Owner·Version이 동일한지 확인한다.
-3. Masked 값은 원문 조회 권한 없이 복호화하거나 우회하지 않는다.
-4. 상태가 집계값과 상세값에서 다르면 상세 Owner 상태를 기준으로 Reconcile한다.
-5. Empty 결과는 권한·Filter·Environment·시간 범위를 확인한 뒤에만 0건으로 판정한다.
+1. 화면 진입 직후 Environment·시간 기준·Data Scope를 확인한다.
+2. `새로고침`을 실행하고 조회 시각, `stale`, `partial`, Empty 여부를 먼저 판정한다.
+3. 목록의 식별자를 상세 화면이나 연관 메뉴로 넘겨 Owner 상태를 교차 확인한다.
+4. 집계와 상세가 다르면 집계를 정상 근거로 사용하지 않고 상세 Owner·Audit·Metric을 기준으로 대사한다.
+5. 교대 기록에는 검색 조건, 조회 시각, 식별자, 불일치 항목과 다음 확인 시각을 남긴다.
 
-#### 조치 절차
+#### 화면별 핵심 판정
 
-사용 가능한 조치는 **새로고침**이다.
-
-1. 조치 직전 대상 상세를 다시 조회한다.
-2. 영향 Preview가 있으면 대상 Instance·거래·사용자·배치·Route 수를 기록한다.
-3. Reason, Approval ID, Expected Version, Idempotency Key를 입력한다.
-4. 실행 후 반환된 Operation ID·Transaction ID를 기록한다.
-5. `ACCEPTED` 또는 HTTP 202는 접수 상태이므로 최종 상태를 조회한다.
-6. Success에서는 상태·Version·Checksum·Audit·Metric이 함께 바뀌었는지 확인한다.
+- Control Server가 반환한 동적 Column은 View마다 다르며 최대 18개다.
+- `stale`·`partial` 응답을 Empty나 정상 상태로 해석하지 않는다.
 
 #### 정상 결과
 
-- 대상 Owner 상태가 요청한 상태로 전이된다.
-- Version 또는 Checksum이 변경 조치와 일치한다.
-- Audit에 Operator, Permission, Reason, Approval, Before/After, Result가 남는다.
-- 관련 Log·Metric·Trace에서 같은 Operation/Transaction 식별자를 찾을 수 있다.
-- 부분 적용 대상이 없거나, 대상별 결과가 명시적으로 구분된다.
+- Owner의 실제 상태와 화면 표시 상태가 일치한다.
+- 변경 조치라면 Version·Checksum·상태 전이가 요청 내용과 일치한다.
+- 부분 적용 대상은 Instance·Partition·Delivery·Row별로 구분된다.
+- Audit에 Operator, Permission, Reason, Approval, Before/After, Operation ID와 결과가 기록된다.
+- 같은 식별자로 Log·Metric·Trace 또는 Owner 원장을 조회할 수 있다.
 
 #### 오류·응답 유실·복구
 
-핵심 복구 기준: `stale`/`partial` 경고를 정상·Empty로 해석 금지
+핵심 기준: **`stale`/`partial` 경고를 정상·Empty로 해석 금지**
 
-| 상황 | 운영 절차 |
+| 상황 | 조치 |
 |---|---|
-| 400·Validation | Field 오류와 허용 범위를 수정하고 새 요청을 만든다. |
+| Validation·400 | 오류 Field·허용 범위·상위 기준정보를 수정하고 새 요청을 만든다. |
 | 401 | Session·CSRF·Origin을 확인하고 재로그인한다. 기존 변경 요청을 자동 재전송하지 않는다. |
-| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. UI 우회 호출을 하지 않는다. |
-| 409 | 최신 Version과 변경자를 조회하고 변경 의도를 다시 확인한다. Blind Retry하지 않는다. |
-| 429 | `Retry-After`와 Rate Limit을 확인한다. 비멱등 조치는 결과 대사 후 재실행한다. |
+| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. 우회 호출하지 않는다. |
+| 409 | 최신 Version·변경자·변경 시각을 조회하고 변경 의도를 다시 확인한다. |
+| 429 | `Retry-After`를 따르며 비멱등 조치는 결과 대사 후 재실행한다. |
 | Timeout·응답 유실 | Operation ID·Transaction ID·Idempotency Key로 기존 결과를 조회한다. |
-| PARTIAL | 성공·실패·미응답 Target을 분리하고 Failed-only Retry 또는 Exact Rollback을 선택한다. |
-| UNKNOWN_RESULT | Owner 원장, 상대 시스템, Ledger, Audit를 대사해 결과를 확정한 뒤 다음 조치를 선택한다. |
+| PARTIAL | 성공·실패·미응답 Target을 분리해 Failed-only Retry 또는 Exact Rollback을 선택한다. |
+| UNKNOWN_RESULT | Owner 원장·상대 시스템·Ledger·Audit를 대사해 결과를 확정한다. |
 
-#### 감사·교대 인계
+#### 교대·감사 기록
 
-교대 기록에는 화면 Route, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 결과 상태, 미확정 항목, 다음 확인 시각, Rollback 기준을 남긴다.
+Route, Environment, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 최종 상태, 미확정 대상, 다음 확인 시각과 Rollback 기준을 기록한다.
+
+
 ### batch-alerts — Alerts
 
-**접근 위치**: `/batch-alerts`
-**메뉴 그룹**: 배치/통합 관제
-**화면 Source**: ``BatchViewPage.vue`, view=`alerts``
+| 항목 | 값 |
+|---|---|
+| Route | `/batch-alerts` |
+| 그룹 | 배치/통합 관제 |
+| Frontend | `cpf-admin/frontend/src/features/batch-runtime-control/BatchViewPage.vue`, view=`alerts` |
+| Permission | 조회 권한 |
 
-#### 사용 목적과 사용 시점
+#### 사용 목적과 사용하지 말아야 할 경우
 
-이 화면은 **Alerts** 업무를 수행한다. 조회 결과를 다른 화면의 상태와 연결해야 할 때는 Transaction ID, Trace ID, Operation ID, Version, Checksum, Instance ID 중 화면이 제공하는 식별자를 인계 키로 사용한다. 화면의 HTTP 응답만으로 업무 결과를 확정하지 않고 Owner 상태와 Audit를 함께 확인한다.
+이 화면은 **Alerts** 기능을 수행한다. 다른 Owner의 상태를 직접 변경하거나, Browser 개발자 도구로 권한을 우회하거나, HTTP 200/202만으로 최종 결과를 확정하는 용도로 사용하지 않는다.
 
-#### 선행 조건
+#### 검색·입력값
 
-1. 대상 Environment와 Tenant·Data Scope가 맞는지 확인한다.
-2. 메뉴 조회 권한과 조치 권한을 구분한다. 필요한 권한은 `조회 권한`이다.
-3. 변경 조치 전 대상의 최신 Version·상태·Owner를 새로 조회한다.
-4. Reason·Approval·Expected Version이 필요한 조치는 값을 준비한다.
-5. 이전 요청이 `PROCESSING`, `UNKNOWN_RESULT`, `PARTIAL`이면 신규 요청을 만들기 전에 기존 Operation을 대사한다.
+- View 고정
+- 별도 검색 UI 없음
 
-#### 검색·입력
+- 기간은 환경 표준 Timezone과 종료 시각 포함 여부를 확인한다.
+- ID는 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
+- 변경 조치의 Reason에는 목적, 영향 범위, 원복 기준, Incident·Approval ID를 적는다.
+- Password·Token·Secret·서명·PII 원문은 일반 Log나 교대 문서에 복사하지 않는다.
 
-View 고정; 별도 검색 UI 없음
+#### 목록·상세에서 확인할 값
 
-- 기간 입력은 운영 표준 Timezone을 사용하고 종료 시각 포함 여부를 확인한다.
-- 빈 문자열과 `null`, 전체 선택의 의미를 구분한다.
-- ID 입력은 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
-- Reason은 작업 목적, 영향 범위, 원복 기준, 관련 Incident·Approval ID를 포함한다.
-- 비밀번호·Token·Secret·서명 원문은 일반 입력·Log·Audit에 남기지 않는다.
+- Control Server가 반환한 최대 18개 동적 Column
 
-#### 결과와 상세 확인
+- 목록과 상세의 ID·Version·Owner가 다르면 조치를 중단하고 상세를 다시 조회한다.
+- `stale`, `partial`, `unknown`, Empty는 서로 다른 상태다.
+- Masked 값의 원문은 별도 Permission과 Reason이 있을 때만 조회한다.
 
-Control Server가 반환한 최대 18개 동적 Column
+#### Button·조치
 
-조회 후 다음 순서로 판정한다.
+- 새로고침
 
-1. 결과 생성 시각과 `stale`·`partial` 표식을 확인한다.
-2. Row 식별자와 상세의 Owner·Version이 동일한지 확인한다.
-3. Masked 값은 원문 조회 권한 없이 복호화하거나 우회하지 않는다.
-4. 상태가 집계값과 상세값에서 다르면 상세 Owner 상태를 기준으로 Reconcile한다.
-5. Empty 결과는 권한·Filter·Environment·시간 범위를 확인한 뒤에만 0건으로 판정한다.
+1. 화면 진입 직후 Environment·시간 기준·Data Scope를 확인한다.
+2. `새로고침`을 실행하고 조회 시각, `stale`, `partial`, Empty 여부를 먼저 판정한다.
+3. 목록의 식별자를 상세 화면이나 연관 메뉴로 넘겨 Owner 상태를 교차 확인한다.
+4. 집계와 상세가 다르면 집계를 정상 근거로 사용하지 않고 상세 Owner·Audit·Metric을 기준으로 대사한다.
+5. 교대 기록에는 검색 조건, 조회 시각, 식별자, 불일치 항목과 다음 확인 시각을 남긴다.
 
-#### 조치 절차
+#### 화면별 핵심 판정
 
-사용 가능한 조치는 **새로고침**이다.
-
-1. 조치 직전 대상 상세를 다시 조회한다.
-2. 영향 Preview가 있으면 대상 Instance·거래·사용자·배치·Route 수를 기록한다.
-3. Reason, Approval ID, Expected Version, Idempotency Key를 입력한다.
-4. 실행 후 반환된 Operation ID·Transaction ID를 기록한다.
-5. `ACCEPTED` 또는 HTTP 202는 접수 상태이므로 최종 상태를 조회한다.
-6. Success에서는 상태·Version·Checksum·Audit·Metric이 함께 바뀌었는지 확인한다.
+- Control Server가 반환한 동적 Column은 View마다 다르며 최대 18개다.
+- `stale`·`partial` 응답을 Empty나 정상 상태로 해석하지 않는다.
 
 #### 정상 결과
 
-- 대상 Owner 상태가 요청한 상태로 전이된다.
-- Version 또는 Checksum이 변경 조치와 일치한다.
-- Audit에 Operator, Permission, Reason, Approval, Before/After, Result가 남는다.
-- 관련 Log·Metric·Trace에서 같은 Operation/Transaction 식별자를 찾을 수 있다.
-- 부분 적용 대상이 없거나, 대상별 결과가 명시적으로 구분된다.
+- Owner의 실제 상태와 화면 표시 상태가 일치한다.
+- 변경 조치라면 Version·Checksum·상태 전이가 요청 내용과 일치한다.
+- 부분 적용 대상은 Instance·Partition·Delivery·Row별로 구분된다.
+- Audit에 Operator, Permission, Reason, Approval, Before/After, Operation ID와 결과가 기록된다.
+- 같은 식별자로 Log·Metric·Trace 또는 Owner 원장을 조회할 수 있다.
 
 #### 오류·응답 유실·복구
 
-핵심 복구 기준: `stale`/`partial` 경고를 정상·Empty로 해석 금지
+핵심 기준: **`stale`/`partial` 경고를 정상·Empty로 해석 금지**
 
-| 상황 | 운영 절차 |
+| 상황 | 조치 |
 |---|---|
-| 400·Validation | Field 오류와 허용 범위를 수정하고 새 요청을 만든다. |
+| Validation·400 | 오류 Field·허용 범위·상위 기준정보를 수정하고 새 요청을 만든다. |
 | 401 | Session·CSRF·Origin을 확인하고 재로그인한다. 기존 변경 요청을 자동 재전송하지 않는다. |
-| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. UI 우회 호출을 하지 않는다. |
-| 409 | 최신 Version과 변경자를 조회하고 변경 의도를 다시 확인한다. Blind Retry하지 않는다. |
-| 429 | `Retry-After`와 Rate Limit을 확인한다. 비멱등 조치는 결과 대사 후 재실행한다. |
+| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. 우회 호출하지 않는다. |
+| 409 | 최신 Version·변경자·변경 시각을 조회하고 변경 의도를 다시 확인한다. |
+| 429 | `Retry-After`를 따르며 비멱등 조치는 결과 대사 후 재실행한다. |
 | Timeout·응답 유실 | Operation ID·Transaction ID·Idempotency Key로 기존 결과를 조회한다. |
-| PARTIAL | 성공·실패·미응답 Target을 분리하고 Failed-only Retry 또는 Exact Rollback을 선택한다. |
-| UNKNOWN_RESULT | Owner 원장, 상대 시스템, Ledger, Audit를 대사해 결과를 확정한 뒤 다음 조치를 선택한다. |
+| PARTIAL | 성공·실패·미응답 Target을 분리해 Failed-only Retry 또는 Exact Rollback을 선택한다. |
+| UNKNOWN_RESULT | Owner 원장·상대 시스템·Ledger·Audit를 대사해 결과를 확정한다. |
 
-#### 감사·교대 인계
+#### 교대·감사 기록
 
-교대 기록에는 화면 Route, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 결과 상태, 미확정 항목, 다음 확인 시각, Rollback 기준을 남긴다.
+Route, Environment, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 최종 상태, 미확정 대상, 다음 확인 시각과 Rollback 기준을 기록한다.
+
+
 ### batch-audit — Audit Evidence
 
-**접근 위치**: `/batch-audit`
-**메뉴 그룹**: 배치/통합 관제
-**화면 Source**: ``BatchViewPage.vue`, view=`audit``
+| 항목 | 값 |
+|---|---|
+| Route | `/batch-audit` |
+| 그룹 | 배치/통합 관제 |
+| Frontend | `cpf-admin/frontend/src/features/batch-runtime-control/BatchViewPage.vue`, view=`audit` |
+| Permission | 조회 권한 |
 
-#### 사용 목적과 사용 시점
+#### 사용 목적과 사용하지 말아야 할 경우
 
-이 화면은 **Audit Evidence** 업무를 수행한다. 조회 결과를 다른 화면의 상태와 연결해야 할 때는 Transaction ID, Trace ID, Operation ID, Version, Checksum, Instance ID 중 화면이 제공하는 식별자를 인계 키로 사용한다. 화면의 HTTP 응답만으로 업무 결과를 확정하지 않고 Owner 상태와 Audit를 함께 확인한다.
+이 화면은 **Audit Evidence** 기능을 수행한다. 다른 Owner의 상태를 직접 변경하거나, Browser 개발자 도구로 권한을 우회하거나, HTTP 200/202만으로 최종 결과를 확정하는 용도로 사용하지 않는다.
 
-#### 선행 조건
+#### 검색·입력값
 
-1. 대상 Environment와 Tenant·Data Scope가 맞는지 확인한다.
-2. 메뉴 조회 권한과 조치 권한을 구분한다. 필요한 권한은 `조회 권한`이다.
-3. 변경 조치 전 대상의 최신 Version·상태·Owner를 새로 조회한다.
-4. Reason·Approval·Expected Version이 필요한 조치는 값을 준비한다.
-5. 이전 요청이 `PROCESSING`, `UNKNOWN_RESULT`, `PARTIAL`이면 신규 요청을 만들기 전에 기존 Operation을 대사한다.
+- View 고정
+- 별도 검색 UI 없음
 
-#### 검색·입력
+- 기간은 환경 표준 Timezone과 종료 시각 포함 여부를 확인한다.
+- ID는 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
+- 변경 조치의 Reason에는 목적, 영향 범위, 원복 기준, Incident·Approval ID를 적는다.
+- Password·Token·Secret·서명·PII 원문은 일반 Log나 교대 문서에 복사하지 않는다.
 
-View 고정; 별도 검색 UI 없음
+#### 목록·상세에서 확인할 값
 
-- 기간 입력은 운영 표준 Timezone을 사용하고 종료 시각 포함 여부를 확인한다.
-- 빈 문자열과 `null`, 전체 선택의 의미를 구분한다.
-- ID 입력은 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
-- Reason은 작업 목적, 영향 범위, 원복 기준, 관련 Incident·Approval ID를 포함한다.
-- 비밀번호·Token·Secret·서명 원문은 일반 입력·Log·Audit에 남기지 않는다.
+- Control Server가 반환한 최대 18개 동적 Column
 
-#### 결과와 상세 확인
+- 목록과 상세의 ID·Version·Owner가 다르면 조치를 중단하고 상세를 다시 조회한다.
+- `stale`, `partial`, `unknown`, Empty는 서로 다른 상태다.
+- Masked 값의 원문은 별도 Permission과 Reason이 있을 때만 조회한다.
 
-Control Server가 반환한 최대 18개 동적 Column
+#### Button·조치
 
-조회 후 다음 순서로 판정한다.
+- 새로고침
 
-1. 결과 생성 시각과 `stale`·`partial` 표식을 확인한다.
-2. Row 식별자와 상세의 Owner·Version이 동일한지 확인한다.
-3. Masked 값은 원문 조회 권한 없이 복호화하거나 우회하지 않는다.
-4. 상태가 집계값과 상세값에서 다르면 상세 Owner 상태를 기준으로 Reconcile한다.
-5. Empty 결과는 권한·Filter·Environment·시간 범위를 확인한 뒤에만 0건으로 판정한다.
+1. 화면 진입 직후 Environment·시간 기준·Data Scope를 확인한다.
+2. `새로고침`을 실행하고 조회 시각, `stale`, `partial`, Empty 여부를 먼저 판정한다.
+3. 목록의 식별자를 상세 화면이나 연관 메뉴로 넘겨 Owner 상태를 교차 확인한다.
+4. 집계와 상세가 다르면 집계를 정상 근거로 사용하지 않고 상세 Owner·Audit·Metric을 기준으로 대사한다.
+5. 교대 기록에는 검색 조건, 조회 시각, 식별자, 불일치 항목과 다음 확인 시각을 남긴다.
 
-#### 조치 절차
+#### 화면별 핵심 판정
 
-사용 가능한 조치는 **새로고침**이다.
-
-1. 조치 직전 대상 상세를 다시 조회한다.
-2. 영향 Preview가 있으면 대상 Instance·거래·사용자·배치·Route 수를 기록한다.
-3. Reason, Approval ID, Expected Version, Idempotency Key를 입력한다.
-4. 실행 후 반환된 Operation ID·Transaction ID를 기록한다.
-5. `ACCEPTED` 또는 HTTP 202는 접수 상태이므로 최종 상태를 조회한다.
-6. Success에서는 상태·Version·Checksum·Audit·Metric이 함께 바뀌었는지 확인한다.
+- Control Server가 반환한 동적 Column은 View마다 다르며 최대 18개다.
+- `stale`·`partial` 응답을 Empty나 정상 상태로 해석하지 않는다.
 
 #### 정상 결과
 
-- 대상 Owner 상태가 요청한 상태로 전이된다.
-- Version 또는 Checksum이 변경 조치와 일치한다.
-- Audit에 Operator, Permission, Reason, Approval, Before/After, Result가 남는다.
-- 관련 Log·Metric·Trace에서 같은 Operation/Transaction 식별자를 찾을 수 있다.
-- 부분 적용 대상이 없거나, 대상별 결과가 명시적으로 구분된다.
+- Owner의 실제 상태와 화면 표시 상태가 일치한다.
+- 변경 조치라면 Version·Checksum·상태 전이가 요청 내용과 일치한다.
+- 부분 적용 대상은 Instance·Partition·Delivery·Row별로 구분된다.
+- Audit에 Operator, Permission, Reason, Approval, Before/After, Operation ID와 결과가 기록된다.
+- 같은 식별자로 Log·Metric·Trace 또는 Owner 원장을 조회할 수 있다.
 
 #### 오류·응답 유실·복구
 
-핵심 복구 기준: `stale`/`partial` 경고를 정상·Empty로 해석 금지
+핵심 기준: **`stale`/`partial` 경고를 정상·Empty로 해석 금지**
 
-| 상황 | 운영 절차 |
+| 상황 | 조치 |
 |---|---|
-| 400·Validation | Field 오류와 허용 범위를 수정하고 새 요청을 만든다. |
+| Validation·400 | 오류 Field·허용 범위·상위 기준정보를 수정하고 새 요청을 만든다. |
 | 401 | Session·CSRF·Origin을 확인하고 재로그인한다. 기존 변경 요청을 자동 재전송하지 않는다. |
-| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. UI 우회 호출을 하지 않는다. |
-| 409 | 최신 Version과 변경자를 조회하고 변경 의도를 다시 확인한다. Blind Retry하지 않는다. |
-| 429 | `Retry-After`와 Rate Limit을 확인한다. 비멱등 조치는 결과 대사 후 재실행한다. |
+| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. 우회 호출하지 않는다. |
+| 409 | 최신 Version·변경자·변경 시각을 조회하고 변경 의도를 다시 확인한다. |
+| 429 | `Retry-After`를 따르며 비멱등 조치는 결과 대사 후 재실행한다. |
 | Timeout·응답 유실 | Operation ID·Transaction ID·Idempotency Key로 기존 결과를 조회한다. |
-| PARTIAL | 성공·실패·미응답 Target을 분리하고 Failed-only Retry 또는 Exact Rollback을 선택한다. |
-| UNKNOWN_RESULT | Owner 원장, 상대 시스템, Ledger, Audit를 대사해 결과를 확정한 뒤 다음 조치를 선택한다. |
+| PARTIAL | 성공·실패·미응답 Target을 분리해 Failed-only Retry 또는 Exact Rollback을 선택한다. |
+| UNKNOWN_RESULT | Owner 원장·상대 시스템·Ledger·Audit를 대사해 결과를 확정한다. |
 
-#### 감사·교대 인계
+#### 교대·감사 기록
 
-교대 기록에는 화면 Route, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 결과 상태, 미확정 항목, 다음 확인 시각, Rollback 기준을 남긴다.
+Route, Environment, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 최종 상태, 미확정 대상, 다음 확인 시각과 Rollback 기준을 기록한다.
+
+
 ### workers — Workers
 
-**접근 위치**: `/workers`
-**메뉴 그룹**: 배치/통합 관제
-**화면 Source**: ``BatchViewPage.vue`, view=`workers``
+| 항목 | 값 |
+|---|---|
+| Route | `/workers` |
+| 그룹 | 배치/통합 관제 |
+| Frontend | `cpf-admin/frontend/src/features/batch-runtime-control/BatchViewPage.vue`, view=`workers` |
+| Permission | 조회 권한 |
 
-#### 사용 목적과 사용 시점
+#### 사용 목적과 사용하지 말아야 할 경우
 
-이 화면은 **Workers** 업무를 수행한다. 조회 결과를 다른 화면의 상태와 연결해야 할 때는 Transaction ID, Trace ID, Operation ID, Version, Checksum, Instance ID 중 화면이 제공하는 식별자를 인계 키로 사용한다. 화면의 HTTP 응답만으로 업무 결과를 확정하지 않고 Owner 상태와 Audit를 함께 확인한다.
+이 화면은 **Workers** 기능을 수행한다. 다른 Owner의 상태를 직접 변경하거나, Browser 개발자 도구로 권한을 우회하거나, HTTP 200/202만으로 최종 결과를 확정하는 용도로 사용하지 않는다.
 
-#### 선행 조건
+#### 검색·입력값
 
-1. 대상 Environment와 Tenant·Data Scope가 맞는지 확인한다.
-2. 메뉴 조회 권한과 조치 권한을 구분한다. 필요한 권한은 `조회 권한`이다.
-3. 변경 조치 전 대상의 최신 Version·상태·Owner를 새로 조회한다.
-4. Reason·Approval·Expected Version이 필요한 조치는 값을 준비한다.
-5. 이전 요청이 `PROCESSING`, `UNKNOWN_RESULT`, `PARTIAL`이면 신규 요청을 만들기 전에 기존 Operation을 대사한다.
+- View 고정
+- 별도 검색 UI 없음
 
-#### 검색·입력
+- 기간은 환경 표준 Timezone과 종료 시각 포함 여부를 확인한다.
+- ID는 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
+- 변경 조치의 Reason에는 목적, 영향 범위, 원복 기준, Incident·Approval ID를 적는다.
+- Password·Token·Secret·서명·PII 원문은 일반 Log나 교대 문서에 복사하지 않는다.
 
-View 고정; 별도 검색 UI 없음
+#### 목록·상세에서 확인할 값
 
-- 기간 입력은 운영 표준 Timezone을 사용하고 종료 시각 포함 여부를 확인한다.
-- 빈 문자열과 `null`, 전체 선택의 의미를 구분한다.
-- ID 입력은 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
-- Reason은 작업 목적, 영향 범위, 원복 기준, 관련 Incident·Approval ID를 포함한다.
-- 비밀번호·Token·Secret·서명 원문은 일반 입력·Log·Audit에 남기지 않는다.
+- Control Server가 반환한 최대 18개 동적 Column
 
-#### 결과와 상세 확인
+- 목록과 상세의 ID·Version·Owner가 다르면 조치를 중단하고 상세를 다시 조회한다.
+- `stale`, `partial`, `unknown`, Empty는 서로 다른 상태다.
+- Masked 값의 원문은 별도 Permission과 Reason이 있을 때만 조회한다.
 
-Control Server가 반환한 최대 18개 동적 Column
+#### Button·조치
 
-조회 후 다음 순서로 판정한다.
+- 새로고침
 
-1. 결과 생성 시각과 `stale`·`partial` 표식을 확인한다.
-2. Row 식별자와 상세의 Owner·Version이 동일한지 확인한다.
-3. Masked 값은 원문 조회 권한 없이 복호화하거나 우회하지 않는다.
-4. 상태가 집계값과 상세값에서 다르면 상세 Owner 상태를 기준으로 Reconcile한다.
-5. Empty 결과는 권한·Filter·Environment·시간 범위를 확인한 뒤에만 0건으로 판정한다.
+1. 화면 진입 직후 Environment·시간 기준·Data Scope를 확인한다.
+2. `새로고침`을 실행하고 조회 시각, `stale`, `partial`, Empty 여부를 먼저 판정한다.
+3. 목록의 식별자를 상세 화면이나 연관 메뉴로 넘겨 Owner 상태를 교차 확인한다.
+4. 집계와 상세가 다르면 집계를 정상 근거로 사용하지 않고 상세 Owner·Audit·Metric을 기준으로 대사한다.
+5. 교대 기록에는 검색 조건, 조회 시각, 식별자, 불일치 항목과 다음 확인 시각을 남긴다.
 
-#### 조치 절차
+#### 화면별 핵심 판정
 
-사용 가능한 조치는 **새로고침**이다.
-
-1. 조치 직전 대상 상세를 다시 조회한다.
-2. 영향 Preview가 있으면 대상 Instance·거래·사용자·배치·Route 수를 기록한다.
-3. Reason, Approval ID, Expected Version, Idempotency Key를 입력한다.
-4. 실행 후 반환된 Operation ID·Transaction ID를 기록한다.
-5. `ACCEPTED` 또는 HTTP 202는 접수 상태이므로 최종 상태를 조회한다.
-6. Success에서는 상태·Version·Checksum·Audit·Metric이 함께 바뀌었는지 확인한다.
+- Control Server가 반환한 동적 Column은 View마다 다르며 최대 18개다.
+- `stale`·`partial` 응답을 Empty나 정상 상태로 해석하지 않는다.
 
 #### 정상 결과
 
-- 대상 Owner 상태가 요청한 상태로 전이된다.
-- Version 또는 Checksum이 변경 조치와 일치한다.
-- Audit에 Operator, Permission, Reason, Approval, Before/After, Result가 남는다.
-- 관련 Log·Metric·Trace에서 같은 Operation/Transaction 식별자를 찾을 수 있다.
-- 부분 적용 대상이 없거나, 대상별 결과가 명시적으로 구분된다.
+- Owner의 실제 상태와 화면 표시 상태가 일치한다.
+- 변경 조치라면 Version·Checksum·상태 전이가 요청 내용과 일치한다.
+- 부분 적용 대상은 Instance·Partition·Delivery·Row별로 구분된다.
+- Audit에 Operator, Permission, Reason, Approval, Before/After, Operation ID와 결과가 기록된다.
+- 같은 식별자로 Log·Metric·Trace 또는 Owner 원장을 조회할 수 있다.
 
 #### 오류·응답 유실·복구
 
-핵심 복구 기준: `stale`/`partial` 경고를 정상·Empty로 해석 금지
+핵심 기준: **`stale`/`partial` 경고를 정상·Empty로 해석 금지**
 
-| 상황 | 운영 절차 |
+| 상황 | 조치 |
 |---|---|
-| 400·Validation | Field 오류와 허용 범위를 수정하고 새 요청을 만든다. |
+| Validation·400 | 오류 Field·허용 범위·상위 기준정보를 수정하고 새 요청을 만든다. |
 | 401 | Session·CSRF·Origin을 확인하고 재로그인한다. 기존 변경 요청을 자동 재전송하지 않는다. |
-| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. UI 우회 호출을 하지 않는다. |
-| 409 | 최신 Version과 변경자를 조회하고 변경 의도를 다시 확인한다. Blind Retry하지 않는다. |
-| 429 | `Retry-After`와 Rate Limit을 확인한다. 비멱등 조치는 결과 대사 후 재실행한다. |
+| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. 우회 호출하지 않는다. |
+| 409 | 최신 Version·변경자·변경 시각을 조회하고 변경 의도를 다시 확인한다. |
+| 429 | `Retry-After`를 따르며 비멱등 조치는 결과 대사 후 재실행한다. |
 | Timeout·응답 유실 | Operation ID·Transaction ID·Idempotency Key로 기존 결과를 조회한다. |
-| PARTIAL | 성공·실패·미응답 Target을 분리하고 Failed-only Retry 또는 Exact Rollback을 선택한다. |
-| UNKNOWN_RESULT | Owner 원장, 상대 시스템, Ledger, Audit를 대사해 결과를 확정한 뒤 다음 조치를 선택한다. |
+| PARTIAL | 성공·실패·미응답 Target을 분리해 Failed-only Retry 또는 Exact Rollback을 선택한다. |
+| UNKNOWN_RESULT | Owner 원장·상대 시스템·Ledger·Audit를 대사해 결과를 확정한다. |
 
-#### 감사·교대 인계
+#### 교대·감사 기록
 
-교대 기록에는 화면 Route, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 결과 상태, 미확정 항목, 다음 확인 시각, Rollback 기준을 남긴다.
+Route, Environment, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 최종 상태, 미확정 대상, 다음 확인 시각과 Rollback 기준을 기록한다.
+
+
 ### batch-deployment — Deployment History·Plan
 
-**접근 위치**: `/batch-deployment`
-**메뉴 그룹**: 배치 운영
-**화면 Source**: ``BatchDeploymentPage.vue`, `DeploymentPage.vue``
+| 항목 | 값 |
+|---|---|
+| Route | `/batch-deployment` |
+| 그룹 | 배치 운영 |
+| Frontend | `BatchDeploymentPage.vue`, `DeploymentPage.vue` |
+| Permission | 배포 Plan 권한 + BAT Approval |
 
-#### 사용 목적과 사용 시점
+#### 사용 목적과 사용하지 말아야 할 경우
 
-이 화면은 **Deployment History·Plan** 업무를 수행한다. 조회 결과를 다른 화면의 상태와 연결해야 할 때는 Transaction ID, Trace ID, Operation ID, Version, Checksum, Instance ID 중 화면이 제공하는 식별자를 인계 키로 사용한다. 화면의 HTTP 응답만으로 업무 결과를 확정하지 않고 Owner 상태와 Audit를 함께 확인한다.
+이 화면은 **Deployment History·Plan** 기능을 수행한다. 다른 Owner의 상태를 직접 변경하거나, Browser 개발자 도구로 권한을 우회하거나, HTTP 200/202만으로 최종 결과를 확정하는 용도로 사용하지 않는다.
 
-#### 선행 조건
+#### 검색·입력값
 
-1. 대상 Environment와 Tenant·Data Scope가 맞는지 확인한다.
-2. 메뉴 조회 권한과 조치 권한을 구분한다. 필요한 권한은 `배포 Plan 권한 + BAT Approval`이다.
-3. 변경 조치 전 대상의 최신 Version·상태·Owner를 새로 조회한다.
-4. Reason·Approval·Expected Version이 필요한 조치는 값을 준비한다.
-5. 이전 요청이 `PROCESSING`, `UNKNOWN_RESULT`, `PARTIAL`이면 신규 요청을 만들기 전에 기존 Operation을 대사한다.
+- Manifest JSON, Reason
 
-#### 검색·입력
+- 기간은 환경 표준 Timezone과 종료 시각 포함 여부를 확인한다.
+- ID는 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
+- 변경 조치의 Reason에는 목적, 영향 범위, 원복 기준, Incident·Approval ID를 적는다.
+- Password·Token·Secret·서명·PII 원문은 일반 Log나 교대 문서에 복사하지 않는다.
 
-Manifest JSON, Reason
+#### 목록·상세에서 확인할 값
 
-- 기간 입력은 운영 표준 Timezone을 사용하고 종료 시각 포함 여부를 확인한다.
-- 빈 문자열과 `null`, 전체 선택의 의미를 구분한다.
-- ID 입력은 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
-- Reason은 작업 목적, 영향 범위, 원복 기준, 관련 Incident·Approval ID를 포함한다.
-- 비밀번호·Token·Secret·서명 원문은 일반 입력·Log·Audit에 남기지 않는다.
+- Cell별 Deployment/Rollback·Failure Stage
+- 생성 Plan
 
-#### 결과와 상세 확인
+- 목록과 상세의 ID·Version·Owner가 다르면 조치를 중단하고 상세를 다시 조회한다.
+- `stale`, `partial`, `unknown`, Empty는 서로 다른 상태다.
+- Masked 값의 원문은 별도 Permission과 Reason이 있을 때만 조회한다.
 
-Cell별 Deployment/Rollback·Failure Stage; 생성 Plan
+#### Button·조치
 
-조회 후 다음 순서로 판정한다.
+- 새로고침·Plan 생성 후 Approval
 
-1. 결과 생성 시각과 `stale`·`partial` 표식을 확인한다.
-2. Row 식별자와 상세의 Owner·Version이 동일한지 확인한다.
-3. Masked 값은 원문 조회 권한 없이 복호화하거나 우회하지 않는다.
-4. 상태가 집계값과 상세값에서 다르면 상세 Owner 상태를 기준으로 Reconcile한다.
-5. Empty 결과는 권한·Filter·Environment·시간 범위를 확인한 뒤에만 0건으로 판정한다.
+1. Job·Definition·Artifact·Schedule·Execution 중 현재 화면의 Owner ID와 Version을 조회한다.
+2. 실행 또는 변경 전에 Parameter, Dry Run, 대상 건수, Approval, Idempotency Key, Fencing Token을 확인한다.
+3. `새로고침·Plan 생성 후 Approval`을 실행한 뒤 CPF Execution ID와 Spring Batch Job/Step ID 또는 Deployment Plan ID를 기록한다.
+4. 처리 건수·Skip·Error·Checkpoint·Worker·Partition·Lease·Heartbeat를 함께 확인한다.
+5. Stop·Restart·Retry·Abandon은 현재 상태와 Restart 가능성, 최신 Fencing, Side Effect 대사 후 실행한다.
+6. `UNKNOWN_RESULT`, Lock, Ghost, Partial 상태는 Control 원장·Spring Metadata·업무 Item·Worker Ledger를 대사한다.
+7. 복구 후 합계·건수·Checksum·Audit가 일치하는지 확인한다.
 
-#### 조치 절차
+#### 화면별 핵심 판정
 
-사용 가능한 조치는 **새로고침·Plan 생성 후 Approval**이다.
-
-1. 조치 직전 대상 상세를 다시 조회한다.
-2. 영향 Preview가 있으면 대상 Instance·거래·사용자·배치·Route 수를 기록한다.
-3. Reason, Approval ID, Expected Version, Idempotency Key를 입력한다.
-4. 실행 후 반환된 Operation ID·Transaction ID를 기록한다.
-5. `ACCEPTED` 또는 HTTP 202는 접수 상태이므로 최종 상태를 조회한다.
-6. Success에서는 상태·Version·Checksum·Audit·Metric이 함께 바뀌었는지 확인한다.
+- Manifest JSON과 Reason으로 Plan을 생성하며 Plan 생성은 배포 실행이 아니다.
+- 실행은 Approval의 DEPLOY_PLAN/ROLLBACK_PLAN 절차와 Instance별 Reconciliation을 따른다.
 
 #### 정상 결과
 
-- 대상 Owner 상태가 요청한 상태로 전이된다.
-- Version 또는 Checksum이 변경 조치와 일치한다.
-- Audit에 Operator, Permission, Reason, Approval, Before/After, Result가 남는다.
-- 관련 Log·Metric·Trace에서 같은 Operation/Transaction 식별자를 찾을 수 있다.
-- 부분 적용 대상이 없거나, 대상별 결과가 명시적으로 구분된다.
+- Owner의 실제 상태와 화면 표시 상태가 일치한다.
+- 변경 조치라면 Version·Checksum·상태 전이가 요청 내용과 일치한다.
+- 부분 적용 대상은 Instance·Partition·Delivery·Row별로 구분된다.
+- Audit에 Operator, Permission, Reason, Approval, Before/After, Operation ID와 결과가 기록된다.
+- 같은 식별자로 Log·Metric·Trace 또는 Owner 원장을 조회할 수 있다.
 
 #### 오류·응답 유실·복구
 
-핵심 복구 기준: Plan 생성은 실행 완료 아님; Partial/Reconcile 필요
+핵심 기준: **Plan 생성은 실행 완료 아님; Partial/Reconcile 필요**
 
-| 상황 | 운영 절차 |
+| 상황 | 조치 |
 |---|---|
-| 400·Validation | Field 오류와 허용 범위를 수정하고 새 요청을 만든다. |
+| Validation·400 | 오류 Field·허용 범위·상위 기준정보를 수정하고 새 요청을 만든다. |
 | 401 | Session·CSRF·Origin을 확인하고 재로그인한다. 기존 변경 요청을 자동 재전송하지 않는다. |
-| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. UI 우회 호출을 하지 않는다. |
-| 409 | 최신 Version과 변경자를 조회하고 변경 의도를 다시 확인한다. Blind Retry하지 않는다. |
-| 429 | `Retry-After`와 Rate Limit을 확인한다. 비멱등 조치는 결과 대사 후 재실행한다. |
+| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. 우회 호출하지 않는다. |
+| 409 | 최신 Version·변경자·변경 시각을 조회하고 변경 의도를 다시 확인한다. |
+| 429 | `Retry-After`를 따르며 비멱등 조치는 결과 대사 후 재실행한다. |
 | Timeout·응답 유실 | Operation ID·Transaction ID·Idempotency Key로 기존 결과를 조회한다. |
-| PARTIAL | 성공·실패·미응답 Target을 분리하고 Failed-only Retry 또는 Exact Rollback을 선택한다. |
-| UNKNOWN_RESULT | Owner 원장, 상대 시스템, Ledger, Audit를 대사해 결과를 확정한 뒤 다음 조치를 선택한다. |
+| PARTIAL | 성공·실패·미응답 Target을 분리해 Failed-only Retry 또는 Exact Rollback을 선택한다. |
+| UNKNOWN_RESULT | Owner 원장·상대 시스템·Ledger·Audit를 대사해 결과를 확정한다. |
 
-#### 감사·교대 인계
+#### 교대·감사 기록
 
-교대 기록에는 화면 Route, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 결과 상태, 미확정 항목, 다음 확인 시각, Rollback 기준을 남긴다.
+Route, Environment, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 최종 상태, 미확정 대상, 다음 확인 시각과 Rollback 기준을 기록한다.
+
+
 ### gateway-dashboard — Gateway Dashboard
 
-**접근 위치**: `/gateway-dashboard`
-**메뉴 그룹**: 온라인 운영
-**화면 Source**: ``.../features/gateway-operations/GatewayOperationsPage.vue``
+| 항목 | 값 |
+|---|---|
+| Route | `/gateway-dashboard` |
+| 그룹 | 온라인 운영 |
+| Frontend | `cpf-admin/frontend/src/features/gateway-operations/GatewayOperationsPage.vue` |
+| Permission | Gateway Menu/Action Permission + Approval |
 
-#### 사용 목적과 사용 시점
+#### 사용 목적과 사용하지 말아야 할 경우
 
-이 화면은 **Gateway Dashboard** 업무를 수행한다. 조회 결과를 다른 화면의 상태와 연결해야 할 때는 Transaction ID, Trace ID, Operation ID, Version, Checksum, Instance ID 중 화면이 제공하는 식별자를 인계 키로 사용한다. 화면의 HTTP 응답만으로 업무 결과를 확정하지 않고 Owner 상태와 Audit를 함께 확인한다.
+이 화면은 **Gateway Dashboard** 기능을 수행한다. 다른 Owner의 상태를 직접 변경하거나, Browser 개발자 도구로 권한을 우회하거나, HTTP 200/202만으로 최종 결과를 확정하는 용도로 사용하지 않는다.
 
-#### 선행 조건
+#### 검색·입력값
 
-1. 대상 Environment와 Tenant·Data Scope가 맞는지 확인한다.
-2. 메뉴 조회 권한과 조치 권한을 구분한다. 필요한 권한은 `Gateway Menu/Action Permission + Approval`이다.
-3. 변경 조치 전 대상의 최신 Version·상태·Owner를 새로 조회한다.
-4. Reason·Approval·Expected Version이 필요한 조치는 값을 준비한다.
-5. 이전 요청이 `PROCESSING`, `UNKNOWN_RESULT`, `PARTIAL`이면 신규 요청을 만들기 전에 기존 Operation을 대사한다.
+- Environment
+- Service ID
+- Route ID
+- Tab별 Group/Binding/Test 입력
 
-#### 검색·입력
+- 기간은 환경 표준 Timezone과 종료 시각 포함 여부를 확인한다.
+- ID는 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
+- 변경 조치의 Reason에는 목적, 영향 범위, 원복 기준, Incident·Approval ID를 적는다.
+- Password·Token·Secret·서명·PII 원문은 일반 Log나 교대 문서에 복사하지 않는다.
 
-Environment, Service ID, Route ID; Tab별 Group/Binding/Test 입력
+#### 목록·상세에서 확인할 값
 
-- 기간 입력은 운영 표준 Timezone을 사용하고 종료 시각 포함 여부를 확인한다.
-- 빈 문자열과 `null`, 전체 선택의 의미를 구분한다.
-- ID 입력은 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
-- Reason은 작업 목적, 영향 범위, 원복 기준, 관련 Incident·Approval ID를 포함한다.
-- 비밀번호·Token·Secret·서명 원문은 일반 입력·Log·Audit에 남기지 않는다.
+- TPS/Success/Error/P95/P99/Drift/Circuit/Cert/Spool/Test 및 Group/Binding/ACK
 
-#### 결과와 상세 확인
+- 목록과 상세의 ID·Version·Owner가 다르면 조치를 중단하고 상세를 다시 조회한다.
+- `stale`, `partial`, `unknown`, Empty는 서로 다른 상태다.
+- Masked 값의 원문은 별도 Permission과 Reason이 있을 때만 조회한다.
 
-TPS/Success/Error/P95/P99/Drift/Circuit/Cert/Spool/Test 및 Group/Binding/ACK
+#### Button·조치
 
-조회 후 다음 순서로 판정한다.
+- 조회·Group/Binding Draft·Connection Test·Publish/Block/Rollback 관련 조치
 
-1. 결과 생성 시각과 `stale`·`partial` 표식을 확인한다.
-2. Row 식별자와 상세의 Owner·Version이 동일한지 확인한다.
-3. Masked 값은 원문 조회 권한 없이 복호화하거나 우회하지 않는다.
-4. 상태가 집계값과 상세값에서 다르면 상세 Owner 상태를 기준으로 Reconcile한다.
-5. Empty 결과는 권한·Filter·Environment·시간 범위를 확인한 뒤에만 0건으로 판정한다.
+1. 현재 메뉴가 선택한 Gateway Mode와 일치하는지 확인한다. 동일 Component를 사용하므로 Route ID가 기능 Context다.
+2. Environment·Service ID·Route ID를 입력하고 현재 Candidate, Published, Last Known Good Version을 조회한다.
+3. `조회·Group/Binding Draft·Connection Test·Publish/Block/Rollback 관련 조치` 중 실행할 조치를 선택하고 Collision·Connection·Security·Target Probe를 먼저 수행한다.
+4. 변경 조치는 Reason, Approval ID, Expected Version, Request Hash를 포함해 제출한다.
+5. 게시 후 Instance별 ACK/NACK, Actual Version, Checksum, Drift, Traffic 상태를 확인한다.
+6. 일부 NACK이면 전체 성공으로 확정하지 않고 Failed Instance 격리·재시도 또는 LKG Rollback을 수행한다.
+7. Attempt Ledger·Transaction Completion·Recovery Spool에서 요청 결과와 응답 유실 여부를 대사한다.
 
-#### 조치 절차
+#### 화면별 핵심 판정
 
-사용 가능한 조치는 **조회·Group/Binding Draft·Connection Test·Publish/Block/Rollback 관련 조치**이다.
-
-1. 조치 직전 대상 상세를 다시 조회한다.
-2. 영향 Preview가 있으면 대상 Instance·거래·사용자·배치·Route 수를 기록한다.
-3. Reason, Approval ID, Expected Version, Idempotency Key를 입력한다.
-4. 실행 후 반환된 Operation ID·Transaction ID를 기록한다.
-5. `ACCEPTED` 또는 HTTP 202는 접수 상태이므로 최종 상태를 조회한다.
-6. Success에서는 상태·Version·Checksum·Audit·Metric이 함께 바뀌었는지 확인한다.
+- 동일 `GatewayOperationsPage.vue`가 Route ID별 Mode를 사용하므로 선택 메뉴와 API Mode를 확인한다.
+- Candidate·Published·LKG·Instance ACK·Drift를 한 화면 결과로 연결한다.
 
 #### 정상 결과
 
-- 대상 Owner 상태가 요청한 상태로 전이된다.
-- Version 또는 Checksum이 변경 조치와 일치한다.
-- Audit에 Operator, Permission, Reason, Approval, Before/After, Result가 남는다.
-- 관련 Log·Metric·Trace에서 같은 Operation/Transaction 식별자를 찾을 수 있다.
-- 부분 적용 대상이 없거나, 대상별 결과가 명시적으로 구분된다.
+- Owner의 실제 상태와 화면 표시 상태가 일치한다.
+- 변경 조치라면 Version·Checksum·상태 전이가 요청 내용과 일치한다.
+- 부분 적용 대상은 Instance·Partition·Delivery·Row별로 구분된다.
+- Audit에 Operator, Permission, Reason, Approval, Before/After, Operation ID와 결과가 기록된다.
+- 같은 식별자로 Log·Metric·Trace 또는 Owner 원장을 조회할 수 있다.
 
 #### 오류·응답 유실·복구
 
-핵심 복구 기준: Capability unavailable·ACK/NACK·Drift·Spool Backlog 분리
+핵심 기준: **Capability unavailable·ACK/NACK·Drift·Spool Backlog 분리**
 
-| 상황 | 운영 절차 |
+| 상황 | 조치 |
 |---|---|
-| 400·Validation | Field 오류와 허용 범위를 수정하고 새 요청을 만든다. |
+| Validation·400 | 오류 Field·허용 범위·상위 기준정보를 수정하고 새 요청을 만든다. |
 | 401 | Session·CSRF·Origin을 확인하고 재로그인한다. 기존 변경 요청을 자동 재전송하지 않는다. |
-| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. UI 우회 호출을 하지 않는다. |
-| 409 | 최신 Version과 변경자를 조회하고 변경 의도를 다시 확인한다. Blind Retry하지 않는다. |
-| 429 | `Retry-After`와 Rate Limit을 확인한다. 비멱등 조치는 결과 대사 후 재실행한다. |
+| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. 우회 호출하지 않는다. |
+| 409 | 최신 Version·변경자·변경 시각을 조회하고 변경 의도를 다시 확인한다. |
+| 429 | `Retry-After`를 따르며 비멱등 조치는 결과 대사 후 재실행한다. |
 | Timeout·응답 유실 | Operation ID·Transaction ID·Idempotency Key로 기존 결과를 조회한다. |
-| PARTIAL | 성공·실패·미응답 Target을 분리하고 Failed-only Retry 또는 Exact Rollback을 선택한다. |
-| UNKNOWN_RESULT | Owner 원장, 상대 시스템, Ledger, Audit를 대사해 결과를 확정한 뒤 다음 조치를 선택한다. |
+| PARTIAL | 성공·실패·미응답 Target을 분리해 Failed-only Retry 또는 Exact Rollback을 선택한다. |
+| UNKNOWN_RESULT | Owner 원장·상대 시스템·Ledger·Audit를 대사해 결과를 확정한다. |
 
-#### 감사·교대 인계
+#### 교대·감사 기록
 
-교대 기록에는 화면 Route, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 결과 상태, 미확정 항목, 다음 확인 시각, Rollback 기준을 남긴다.
+Route, Environment, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 최종 상태, 미확정 대상, 다음 확인 시각과 Rollback 기준을 기록한다.
+
+
 ### gateway-servers — Gateway Servers
 
-**접근 위치**: `/gateway-servers`
-**메뉴 그룹**: 온라인 운영
-**화면 Source**: ``.../features/gateway-operations/GatewayOperationsPage.vue``
+| 항목 | 값 |
+|---|---|
+| Route | `/gateway-servers` |
+| 그룹 | 온라인 운영 |
+| Frontend | `cpf-admin/frontend/src/features/gateway-operations/GatewayOperationsPage.vue` |
+| Permission | Gateway Menu/Action Permission + Approval |
 
-#### 사용 목적과 사용 시점
+#### 사용 목적과 사용하지 말아야 할 경우
 
-이 화면은 **Gateway Servers** 업무를 수행한다. 조회 결과를 다른 화면의 상태와 연결해야 할 때는 Transaction ID, Trace ID, Operation ID, Version, Checksum, Instance ID 중 화면이 제공하는 식별자를 인계 키로 사용한다. 화면의 HTTP 응답만으로 업무 결과를 확정하지 않고 Owner 상태와 Audit를 함께 확인한다.
+이 화면은 **Gateway Servers** 기능을 수행한다. 다른 Owner의 상태를 직접 변경하거나, Browser 개발자 도구로 권한을 우회하거나, HTTP 200/202만으로 최종 결과를 확정하는 용도로 사용하지 않는다.
 
-#### 선행 조건
+#### 검색·입력값
 
-1. 대상 Environment와 Tenant·Data Scope가 맞는지 확인한다.
-2. 메뉴 조회 권한과 조치 권한을 구분한다. 필요한 권한은 `Gateway Menu/Action Permission + Approval`이다.
-3. 변경 조치 전 대상의 최신 Version·상태·Owner를 새로 조회한다.
-4. Reason·Approval·Expected Version이 필요한 조치는 값을 준비한다.
-5. 이전 요청이 `PROCESSING`, `UNKNOWN_RESULT`, `PARTIAL`이면 신규 요청을 만들기 전에 기존 Operation을 대사한다.
+- Environment
+- Service ID
+- Route ID
+- Tab별 Group/Binding/Test 입력
 
-#### 검색·입력
+- 기간은 환경 표준 Timezone과 종료 시각 포함 여부를 확인한다.
+- ID는 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
+- 변경 조치의 Reason에는 목적, 영향 범위, 원복 기준, Incident·Approval ID를 적는다.
+- Password·Token·Secret·서명·PII 원문은 일반 Log나 교대 문서에 복사하지 않는다.
 
-Environment, Service ID, Route ID; Tab별 Group/Binding/Test 입력
+#### 목록·상세에서 확인할 값
 
-- 기간 입력은 운영 표준 Timezone을 사용하고 종료 시각 포함 여부를 확인한다.
-- 빈 문자열과 `null`, 전체 선택의 의미를 구분한다.
-- ID 입력은 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
-- Reason은 작업 목적, 영향 범위, 원복 기준, 관련 Incident·Approval ID를 포함한다.
-- 비밀번호·Token·Secret·서명 원문은 일반 입력·Log·Audit에 남기지 않는다.
+- TPS/Success/Error/P95/P99/Drift/Circuit/Cert/Spool/Test 및 Group/Binding/ACK
 
-#### 결과와 상세 확인
+- 목록과 상세의 ID·Version·Owner가 다르면 조치를 중단하고 상세를 다시 조회한다.
+- `stale`, `partial`, `unknown`, Empty는 서로 다른 상태다.
+- Masked 값의 원문은 별도 Permission과 Reason이 있을 때만 조회한다.
 
-TPS/Success/Error/P95/P99/Drift/Circuit/Cert/Spool/Test 및 Group/Binding/ACK
+#### Button·조치
 
-조회 후 다음 순서로 판정한다.
+- 조회·Group/Binding Draft·Connection Test·Publish/Block/Rollback 관련 조치
 
-1. 결과 생성 시각과 `stale`·`partial` 표식을 확인한다.
-2. Row 식별자와 상세의 Owner·Version이 동일한지 확인한다.
-3. Masked 값은 원문 조회 권한 없이 복호화하거나 우회하지 않는다.
-4. 상태가 집계값과 상세값에서 다르면 상세 Owner 상태를 기준으로 Reconcile한다.
-5. Empty 결과는 권한·Filter·Environment·시간 범위를 확인한 뒤에만 0건으로 판정한다.
+1. 현재 메뉴가 선택한 Gateway Mode와 일치하는지 확인한다. 동일 Component를 사용하므로 Route ID가 기능 Context다.
+2. Environment·Service ID·Route ID를 입력하고 현재 Candidate, Published, Last Known Good Version을 조회한다.
+3. `조회·Group/Binding Draft·Connection Test·Publish/Block/Rollback 관련 조치` 중 실행할 조치를 선택하고 Collision·Connection·Security·Target Probe를 먼저 수행한다.
+4. 변경 조치는 Reason, Approval ID, Expected Version, Request Hash를 포함해 제출한다.
+5. 게시 후 Instance별 ACK/NACK, Actual Version, Checksum, Drift, Traffic 상태를 확인한다.
+6. 일부 NACK이면 전체 성공으로 확정하지 않고 Failed Instance 격리·재시도 또는 LKG Rollback을 수행한다.
+7. Attempt Ledger·Transaction Completion·Recovery Spool에서 요청 결과와 응답 유실 여부를 대사한다.
 
-#### 조치 절차
+#### 화면별 핵심 판정
 
-사용 가능한 조치는 **조회·Group/Binding Draft·Connection Test·Publish/Block/Rollback 관련 조치**이다.
-
-1. 조치 직전 대상 상세를 다시 조회한다.
-2. 영향 Preview가 있으면 대상 Instance·거래·사용자·배치·Route 수를 기록한다.
-3. Reason, Approval ID, Expected Version, Idempotency Key를 입력한다.
-4. 실행 후 반환된 Operation ID·Transaction ID를 기록한다.
-5. `ACCEPTED` 또는 HTTP 202는 접수 상태이므로 최종 상태를 조회한다.
-6. Success에서는 상태·Version·Checksum·Audit·Metric이 함께 바뀌었는지 확인한다.
+- 동일 `GatewayOperationsPage.vue`가 Route ID별 Mode를 사용하므로 선택 메뉴와 API Mode를 확인한다.
+- Candidate·Published·LKG·Instance ACK·Drift를 한 화면 결과로 연결한다.
 
 #### 정상 결과
 
-- 대상 Owner 상태가 요청한 상태로 전이된다.
-- Version 또는 Checksum이 변경 조치와 일치한다.
-- Audit에 Operator, Permission, Reason, Approval, Before/After, Result가 남는다.
-- 관련 Log·Metric·Trace에서 같은 Operation/Transaction 식별자를 찾을 수 있다.
-- 부분 적용 대상이 없거나, 대상별 결과가 명시적으로 구분된다.
+- Owner의 실제 상태와 화면 표시 상태가 일치한다.
+- 변경 조치라면 Version·Checksum·상태 전이가 요청 내용과 일치한다.
+- 부분 적용 대상은 Instance·Partition·Delivery·Row별로 구분된다.
+- Audit에 Operator, Permission, Reason, Approval, Before/After, Operation ID와 결과가 기록된다.
+- 같은 식별자로 Log·Metric·Trace 또는 Owner 원장을 조회할 수 있다.
 
 #### 오류·응답 유실·복구
 
-핵심 복구 기준: Capability unavailable·ACK/NACK·Drift·Spool Backlog 분리
+핵심 기준: **Capability unavailable·ACK/NACK·Drift·Spool Backlog 분리**
 
-| 상황 | 운영 절차 |
+| 상황 | 조치 |
 |---|---|
-| 400·Validation | Field 오류와 허용 범위를 수정하고 새 요청을 만든다. |
+| Validation·400 | 오류 Field·허용 범위·상위 기준정보를 수정하고 새 요청을 만든다. |
 | 401 | Session·CSRF·Origin을 확인하고 재로그인한다. 기존 변경 요청을 자동 재전송하지 않는다. |
-| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. UI 우회 호출을 하지 않는다. |
-| 409 | 최신 Version과 변경자를 조회하고 변경 의도를 다시 확인한다. Blind Retry하지 않는다. |
-| 429 | `Retry-After`와 Rate Limit을 확인한다. 비멱등 조치는 결과 대사 후 재실행한다. |
+| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. 우회 호출하지 않는다. |
+| 409 | 최신 Version·변경자·변경 시각을 조회하고 변경 의도를 다시 확인한다. |
+| 429 | `Retry-After`를 따르며 비멱등 조치는 결과 대사 후 재실행한다. |
 | Timeout·응답 유실 | Operation ID·Transaction ID·Idempotency Key로 기존 결과를 조회한다. |
-| PARTIAL | 성공·실패·미응답 Target을 분리하고 Failed-only Retry 또는 Exact Rollback을 선택한다. |
-| UNKNOWN_RESULT | Owner 원장, 상대 시스템, Ledger, Audit를 대사해 결과를 확정한 뒤 다음 조치를 선택한다. |
+| PARTIAL | 성공·실패·미응답 Target을 분리해 Failed-only Retry 또는 Exact Rollback을 선택한다. |
+| UNKNOWN_RESULT | Owner 원장·상대 시스템·Ledger·Audit를 대사해 결과를 확정한다. |
 
-#### 감사·교대 인계
+#### 교대·감사 기록
 
-교대 기록에는 화면 Route, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 결과 상태, 미확정 항목, 다음 확인 시각, Rollback 기준을 남긴다.
+Route, Environment, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 최종 상태, 미확정 대상, 다음 확인 시각과 Rollback 기준을 기록한다.
+
+
 ### gateway-groups — Gateway Groups
 
-**접근 위치**: `/gateway-groups`
-**메뉴 그룹**: 온라인 운영
-**화면 Source**: ``.../features/gateway-operations/GatewayOperationsPage.vue``
+| 항목 | 값 |
+|---|---|
+| Route | `/gateway-groups` |
+| 그룹 | 온라인 운영 |
+| Frontend | `cpf-admin/frontend/src/features/gateway-operations/GatewayOperationsPage.vue` |
+| Permission | Gateway Menu/Action Permission + Approval |
 
-#### 사용 목적과 사용 시점
+#### 사용 목적과 사용하지 말아야 할 경우
 
-이 화면은 **Gateway Groups** 업무를 수행한다. 조회 결과를 다른 화면의 상태와 연결해야 할 때는 Transaction ID, Trace ID, Operation ID, Version, Checksum, Instance ID 중 화면이 제공하는 식별자를 인계 키로 사용한다. 화면의 HTTP 응답만으로 업무 결과를 확정하지 않고 Owner 상태와 Audit를 함께 확인한다.
+이 화면은 **Gateway Groups** 기능을 수행한다. 다른 Owner의 상태를 직접 변경하거나, Browser 개발자 도구로 권한을 우회하거나, HTTP 200/202만으로 최종 결과를 확정하는 용도로 사용하지 않는다.
 
-#### 선행 조건
+#### 검색·입력값
 
-1. 대상 Environment와 Tenant·Data Scope가 맞는지 확인한다.
-2. 메뉴 조회 권한과 조치 권한을 구분한다. 필요한 권한은 `Gateway Menu/Action Permission + Approval`이다.
-3. 변경 조치 전 대상의 최신 Version·상태·Owner를 새로 조회한다.
-4. Reason·Approval·Expected Version이 필요한 조치는 값을 준비한다.
-5. 이전 요청이 `PROCESSING`, `UNKNOWN_RESULT`, `PARTIAL`이면 신규 요청을 만들기 전에 기존 Operation을 대사한다.
+- Environment
+- Service ID
+- Route ID
+- Tab별 Group/Binding/Test 입력
 
-#### 검색·입력
+- 기간은 환경 표준 Timezone과 종료 시각 포함 여부를 확인한다.
+- ID는 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
+- 변경 조치의 Reason에는 목적, 영향 범위, 원복 기준, Incident·Approval ID를 적는다.
+- Password·Token·Secret·서명·PII 원문은 일반 Log나 교대 문서에 복사하지 않는다.
 
-Environment, Service ID, Route ID; Tab별 Group/Binding/Test 입력
+#### 목록·상세에서 확인할 값
 
-- 기간 입력은 운영 표준 Timezone을 사용하고 종료 시각 포함 여부를 확인한다.
-- 빈 문자열과 `null`, 전체 선택의 의미를 구분한다.
-- ID 입력은 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
-- Reason은 작업 목적, 영향 범위, 원복 기준, 관련 Incident·Approval ID를 포함한다.
-- 비밀번호·Token·Secret·서명 원문은 일반 입력·Log·Audit에 남기지 않는다.
+- TPS/Success/Error/P95/P99/Drift/Circuit/Cert/Spool/Test 및 Group/Binding/ACK
 
-#### 결과와 상세 확인
+- 목록과 상세의 ID·Version·Owner가 다르면 조치를 중단하고 상세를 다시 조회한다.
+- `stale`, `partial`, `unknown`, Empty는 서로 다른 상태다.
+- Masked 값의 원문은 별도 Permission과 Reason이 있을 때만 조회한다.
 
-TPS/Success/Error/P95/P99/Drift/Circuit/Cert/Spool/Test 및 Group/Binding/ACK
+#### Button·조치
 
-조회 후 다음 순서로 판정한다.
+- 조회·Group/Binding Draft·Connection Test·Publish/Block/Rollback 관련 조치
 
-1. 결과 생성 시각과 `stale`·`partial` 표식을 확인한다.
-2. Row 식별자와 상세의 Owner·Version이 동일한지 확인한다.
-3. Masked 값은 원문 조회 권한 없이 복호화하거나 우회하지 않는다.
-4. 상태가 집계값과 상세값에서 다르면 상세 Owner 상태를 기준으로 Reconcile한다.
-5. Empty 결과는 권한·Filter·Environment·시간 범위를 확인한 뒤에만 0건으로 판정한다.
+1. 현재 메뉴가 선택한 Gateway Mode와 일치하는지 확인한다. 동일 Component를 사용하므로 Route ID가 기능 Context다.
+2. Environment·Service ID·Route ID를 입력하고 현재 Candidate, Published, Last Known Good Version을 조회한다.
+3. `조회·Group/Binding Draft·Connection Test·Publish/Block/Rollback 관련 조치` 중 실행할 조치를 선택하고 Collision·Connection·Security·Target Probe를 먼저 수행한다.
+4. 변경 조치는 Reason, Approval ID, Expected Version, Request Hash를 포함해 제출한다.
+5. 게시 후 Instance별 ACK/NACK, Actual Version, Checksum, Drift, Traffic 상태를 확인한다.
+6. 일부 NACK이면 전체 성공으로 확정하지 않고 Failed Instance 격리·재시도 또는 LKG Rollback을 수행한다.
+7. Attempt Ledger·Transaction Completion·Recovery Spool에서 요청 결과와 응답 유실 여부를 대사한다.
 
-#### 조치 절차
+#### 화면별 핵심 판정
 
-사용 가능한 조치는 **조회·Group/Binding Draft·Connection Test·Publish/Block/Rollback 관련 조치**이다.
-
-1. 조치 직전 대상 상세를 다시 조회한다.
-2. 영향 Preview가 있으면 대상 Instance·거래·사용자·배치·Route 수를 기록한다.
-3. Reason, Approval ID, Expected Version, Idempotency Key를 입력한다.
-4. 실행 후 반환된 Operation ID·Transaction ID를 기록한다.
-5. `ACCEPTED` 또는 HTTP 202는 접수 상태이므로 최종 상태를 조회한다.
-6. Success에서는 상태·Version·Checksum·Audit·Metric이 함께 바뀌었는지 확인한다.
+- 동일 `GatewayOperationsPage.vue`가 Route ID별 Mode를 사용하므로 선택 메뉴와 API Mode를 확인한다.
+- Candidate·Published·LKG·Instance ACK·Drift를 한 화면 결과로 연결한다.
 
 #### 정상 결과
 
-- 대상 Owner 상태가 요청한 상태로 전이된다.
-- Version 또는 Checksum이 변경 조치와 일치한다.
-- Audit에 Operator, Permission, Reason, Approval, Before/After, Result가 남는다.
-- 관련 Log·Metric·Trace에서 같은 Operation/Transaction 식별자를 찾을 수 있다.
-- 부분 적용 대상이 없거나, 대상별 결과가 명시적으로 구분된다.
+- Owner의 실제 상태와 화면 표시 상태가 일치한다.
+- 변경 조치라면 Version·Checksum·상태 전이가 요청 내용과 일치한다.
+- 부분 적용 대상은 Instance·Partition·Delivery·Row별로 구분된다.
+- Audit에 Operator, Permission, Reason, Approval, Before/After, Operation ID와 결과가 기록된다.
+- 같은 식별자로 Log·Metric·Trace 또는 Owner 원장을 조회할 수 있다.
 
 #### 오류·응답 유실·복구
 
-핵심 복구 기준: Capability unavailable·ACK/NACK·Drift·Spool Backlog 분리
+핵심 기준: **Capability unavailable·ACK/NACK·Drift·Spool Backlog 분리**
 
-| 상황 | 운영 절차 |
+| 상황 | 조치 |
 |---|---|
-| 400·Validation | Field 오류와 허용 범위를 수정하고 새 요청을 만든다. |
+| Validation·400 | 오류 Field·허용 범위·상위 기준정보를 수정하고 새 요청을 만든다. |
 | 401 | Session·CSRF·Origin을 확인하고 재로그인한다. 기존 변경 요청을 자동 재전송하지 않는다. |
-| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. UI 우회 호출을 하지 않는다. |
-| 409 | 최신 Version과 변경자를 조회하고 변경 의도를 다시 확인한다. Blind Retry하지 않는다. |
-| 429 | `Retry-After`와 Rate Limit을 확인한다. 비멱등 조치는 결과 대사 후 재실행한다. |
+| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. 우회 호출하지 않는다. |
+| 409 | 최신 Version·변경자·변경 시각을 조회하고 변경 의도를 다시 확인한다. |
+| 429 | `Retry-After`를 따르며 비멱등 조치는 결과 대사 후 재실행한다. |
 | Timeout·응답 유실 | Operation ID·Transaction ID·Idempotency Key로 기존 결과를 조회한다. |
-| PARTIAL | 성공·실패·미응답 Target을 분리하고 Failed-only Retry 또는 Exact Rollback을 선택한다. |
-| UNKNOWN_RESULT | Owner 원장, 상대 시스템, Ledger, Audit를 대사해 결과를 확정한 뒤 다음 조치를 선택한다. |
+| PARTIAL | 성공·실패·미응답 Target을 분리해 Failed-only Retry 또는 Exact Rollback을 선택한다. |
+| UNKNOWN_RESULT | Owner 원장·상대 시스템·Ledger·Audit를 대사해 결과를 확정한다. |
 
-#### 감사·교대 인계
+#### 교대·감사 기록
 
-교대 기록에는 화면 Route, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 결과 상태, 미확정 항목, 다음 확인 시각, Rollback 기준을 남긴다.
+Route, Environment, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 최종 상태, 미확정 대상, 다음 확인 시각과 Rollback 기준을 기록한다.
+
+
 ### gateway-routes — Gateway Routes
 
-**접근 위치**: `/gateway-routes`
-**메뉴 그룹**: 온라인 운영
-**화면 Source**: ``.../features/gateway-operations/GatewayOperationsPage.vue``
+| 항목 | 값 |
+|---|---|
+| Route | `/gateway-routes` |
+| 그룹 | 온라인 운영 |
+| Frontend | `cpf-admin/frontend/src/features/gateway-operations/GatewayOperationsPage.vue` |
+| Permission | Gateway Menu/Action Permission + Approval |
 
-#### 사용 목적과 사용 시점
+#### 사용 목적과 사용하지 말아야 할 경우
 
-이 화면은 **Gateway Routes** 업무를 수행한다. 조회 결과를 다른 화면의 상태와 연결해야 할 때는 Transaction ID, Trace ID, Operation ID, Version, Checksum, Instance ID 중 화면이 제공하는 식별자를 인계 키로 사용한다. 화면의 HTTP 응답만으로 업무 결과를 확정하지 않고 Owner 상태와 Audit를 함께 확인한다.
+이 화면은 **Gateway Routes** 기능을 수행한다. 다른 Owner의 상태를 직접 변경하거나, Browser 개발자 도구로 권한을 우회하거나, HTTP 200/202만으로 최종 결과를 확정하는 용도로 사용하지 않는다.
 
-#### 선행 조건
+#### 검색·입력값
 
-1. 대상 Environment와 Tenant·Data Scope가 맞는지 확인한다.
-2. 메뉴 조회 권한과 조치 권한을 구분한다. 필요한 권한은 `Gateway Menu/Action Permission + Approval`이다.
-3. 변경 조치 전 대상의 최신 Version·상태·Owner를 새로 조회한다.
-4. Reason·Approval·Expected Version이 필요한 조치는 값을 준비한다.
-5. 이전 요청이 `PROCESSING`, `UNKNOWN_RESULT`, `PARTIAL`이면 신규 요청을 만들기 전에 기존 Operation을 대사한다.
+- Environment
+- Service ID
+- Route ID
+- Tab별 Group/Binding/Test 입력
 
-#### 검색·입력
+- 기간은 환경 표준 Timezone과 종료 시각 포함 여부를 확인한다.
+- ID는 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
+- 변경 조치의 Reason에는 목적, 영향 범위, 원복 기준, Incident·Approval ID를 적는다.
+- Password·Token·Secret·서명·PII 원문은 일반 Log나 교대 문서에 복사하지 않는다.
 
-Environment, Service ID, Route ID; Tab별 Group/Binding/Test 입력
+#### 목록·상세에서 확인할 값
 
-- 기간 입력은 운영 표준 Timezone을 사용하고 종료 시각 포함 여부를 확인한다.
-- 빈 문자열과 `null`, 전체 선택의 의미를 구분한다.
-- ID 입력은 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
-- Reason은 작업 목적, 영향 범위, 원복 기준, 관련 Incident·Approval ID를 포함한다.
-- 비밀번호·Token·Secret·서명 원문은 일반 입력·Log·Audit에 남기지 않는다.
+- TPS/Success/Error/P95/P99/Drift/Circuit/Cert/Spool/Test 및 Group/Binding/ACK
 
-#### 결과와 상세 확인
+- 목록과 상세의 ID·Version·Owner가 다르면 조치를 중단하고 상세를 다시 조회한다.
+- `stale`, `partial`, `unknown`, Empty는 서로 다른 상태다.
+- Masked 값의 원문은 별도 Permission과 Reason이 있을 때만 조회한다.
 
-TPS/Success/Error/P95/P99/Drift/Circuit/Cert/Spool/Test 및 Group/Binding/ACK
+#### Button·조치
 
-조회 후 다음 순서로 판정한다.
+- 조회·Group/Binding Draft·Connection Test·Publish/Block/Rollback 관련 조치
 
-1. 결과 생성 시각과 `stale`·`partial` 표식을 확인한다.
-2. Row 식별자와 상세의 Owner·Version이 동일한지 확인한다.
-3. Masked 값은 원문 조회 권한 없이 복호화하거나 우회하지 않는다.
-4. 상태가 집계값과 상세값에서 다르면 상세 Owner 상태를 기준으로 Reconcile한다.
-5. Empty 결과는 권한·Filter·Environment·시간 범위를 확인한 뒤에만 0건으로 판정한다.
+1. 현재 메뉴가 선택한 Gateway Mode와 일치하는지 확인한다. 동일 Component를 사용하므로 Route ID가 기능 Context다.
+2. Environment·Service ID·Route ID를 입력하고 현재 Candidate, Published, Last Known Good Version을 조회한다.
+3. `조회·Group/Binding Draft·Connection Test·Publish/Block/Rollback 관련 조치` 중 실행할 조치를 선택하고 Collision·Connection·Security·Target Probe를 먼저 수행한다.
+4. 변경 조치는 Reason, Approval ID, Expected Version, Request Hash를 포함해 제출한다.
+5. 게시 후 Instance별 ACK/NACK, Actual Version, Checksum, Drift, Traffic 상태를 확인한다.
+6. 일부 NACK이면 전체 성공으로 확정하지 않고 Failed Instance 격리·재시도 또는 LKG Rollback을 수행한다.
+7. Attempt Ledger·Transaction Completion·Recovery Spool에서 요청 결과와 응답 유실 여부를 대사한다.
 
-#### 조치 절차
+#### 화면별 핵심 판정
 
-사용 가능한 조치는 **조회·Group/Binding Draft·Connection Test·Publish/Block/Rollback 관련 조치**이다.
-
-1. 조치 직전 대상 상세를 다시 조회한다.
-2. 영향 Preview가 있으면 대상 Instance·거래·사용자·배치·Route 수를 기록한다.
-3. Reason, Approval ID, Expected Version, Idempotency Key를 입력한다.
-4. 실행 후 반환된 Operation ID·Transaction ID를 기록한다.
-5. `ACCEPTED` 또는 HTTP 202는 접수 상태이므로 최종 상태를 조회한다.
-6. Success에서는 상태·Version·Checksum·Audit·Metric이 함께 바뀌었는지 확인한다.
+- 동일 `GatewayOperationsPage.vue`가 Route ID별 Mode를 사용하므로 선택 메뉴와 API Mode를 확인한다.
+- Candidate·Published·LKG·Instance ACK·Drift를 한 화면 결과로 연결한다.
 
 #### 정상 결과
 
-- 대상 Owner 상태가 요청한 상태로 전이된다.
-- Version 또는 Checksum이 변경 조치와 일치한다.
-- Audit에 Operator, Permission, Reason, Approval, Before/After, Result가 남는다.
-- 관련 Log·Metric·Trace에서 같은 Operation/Transaction 식별자를 찾을 수 있다.
-- 부분 적용 대상이 없거나, 대상별 결과가 명시적으로 구분된다.
+- Owner의 실제 상태와 화면 표시 상태가 일치한다.
+- 변경 조치라면 Version·Checksum·상태 전이가 요청 내용과 일치한다.
+- 부분 적용 대상은 Instance·Partition·Delivery·Row별로 구분된다.
+- Audit에 Operator, Permission, Reason, Approval, Before/After, Operation ID와 결과가 기록된다.
+- 같은 식별자로 Log·Metric·Trace 또는 Owner 원장을 조회할 수 있다.
 
 #### 오류·응답 유실·복구
 
-핵심 복구 기준: Capability unavailable·ACK/NACK·Drift·Spool Backlog 분리
+핵심 기준: **Capability unavailable·ACK/NACK·Drift·Spool Backlog 분리**
 
-| 상황 | 운영 절차 |
+| 상황 | 조치 |
 |---|---|
-| 400·Validation | Field 오류와 허용 범위를 수정하고 새 요청을 만든다. |
+| Validation·400 | 오류 Field·허용 범위·상위 기준정보를 수정하고 새 요청을 만든다. |
 | 401 | Session·CSRF·Origin을 확인하고 재로그인한다. 기존 변경 요청을 자동 재전송하지 않는다. |
-| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. UI 우회 호출을 하지 않는다. |
-| 409 | 최신 Version과 변경자를 조회하고 변경 의도를 다시 확인한다. Blind Retry하지 않는다. |
-| 429 | `Retry-After`와 Rate Limit을 확인한다. 비멱등 조치는 결과 대사 후 재실행한다. |
+| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. 우회 호출하지 않는다. |
+| 409 | 최신 Version·변경자·변경 시각을 조회하고 변경 의도를 다시 확인한다. |
+| 429 | `Retry-After`를 따르며 비멱등 조치는 결과 대사 후 재실행한다. |
 | Timeout·응답 유실 | Operation ID·Transaction ID·Idempotency Key로 기존 결과를 조회한다. |
-| PARTIAL | 성공·실패·미응답 Target을 분리하고 Failed-only Retry 또는 Exact Rollback을 선택한다. |
-| UNKNOWN_RESULT | Owner 원장, 상대 시스템, Ledger, Audit를 대사해 결과를 확정한 뒤 다음 조치를 선택한다. |
+| PARTIAL | 성공·실패·미응답 Target을 분리해 Failed-only Retry 또는 Exact Rollback을 선택한다. |
+| UNKNOWN_RESULT | Owner 원장·상대 시스템·Ledger·Audit를 대사해 결과를 확정한다. |
 
-#### 감사·교대 인계
+#### 교대·감사 기록
 
-교대 기록에는 화면 Route, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 결과 상태, 미확정 항목, 다음 확인 시각, Rollback 기준을 남긴다.
+Route, Environment, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 최종 상태, 미확정 대상, 다음 확인 시각과 Rollback 기준을 기록한다.
+
+
 ### gateway-security — Gateway Security
 
-**접근 위치**: `/gateway-security`
-**메뉴 그룹**: 온라인 운영
-**화면 Source**: ``.../features/gateway-operations/GatewayOperationsPage.vue``
+| 항목 | 값 |
+|---|---|
+| Route | `/gateway-security` |
+| 그룹 | 온라인 운영 |
+| Frontend | `cpf-admin/frontend/src/features/gateway-operations/GatewayOperationsPage.vue` |
+| Permission | Gateway Menu/Action Permission + Approval |
 
-#### 사용 목적과 사용 시점
+#### 사용 목적과 사용하지 말아야 할 경우
 
-이 화면은 **Gateway Security** 업무를 수행한다. 조회 결과를 다른 화면의 상태와 연결해야 할 때는 Transaction ID, Trace ID, Operation ID, Version, Checksum, Instance ID 중 화면이 제공하는 식별자를 인계 키로 사용한다. 화면의 HTTP 응답만으로 업무 결과를 확정하지 않고 Owner 상태와 Audit를 함께 확인한다.
+이 화면은 **Gateway Security** 기능을 수행한다. 다른 Owner의 상태를 직접 변경하거나, Browser 개발자 도구로 권한을 우회하거나, HTTP 200/202만으로 최종 결과를 확정하는 용도로 사용하지 않는다.
 
-#### 선행 조건
+#### 검색·입력값
 
-1. 대상 Environment와 Tenant·Data Scope가 맞는지 확인한다.
-2. 메뉴 조회 권한과 조치 권한을 구분한다. 필요한 권한은 `Gateway Menu/Action Permission + Approval`이다.
-3. 변경 조치 전 대상의 최신 Version·상태·Owner를 새로 조회한다.
-4. Reason·Approval·Expected Version이 필요한 조치는 값을 준비한다.
-5. 이전 요청이 `PROCESSING`, `UNKNOWN_RESULT`, `PARTIAL`이면 신규 요청을 만들기 전에 기존 Operation을 대사한다.
+- Environment
+- Service ID
+- Route ID
+- Tab별 Group/Binding/Test 입력
 
-#### 검색·입력
+- 기간은 환경 표준 Timezone과 종료 시각 포함 여부를 확인한다.
+- ID는 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
+- 변경 조치의 Reason에는 목적, 영향 범위, 원복 기준, Incident·Approval ID를 적는다.
+- Password·Token·Secret·서명·PII 원문은 일반 Log나 교대 문서에 복사하지 않는다.
 
-Environment, Service ID, Route ID; Tab별 Group/Binding/Test 입력
+#### 목록·상세에서 확인할 값
 
-- 기간 입력은 운영 표준 Timezone을 사용하고 종료 시각 포함 여부를 확인한다.
-- 빈 문자열과 `null`, 전체 선택의 의미를 구분한다.
-- ID 입력은 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
-- Reason은 작업 목적, 영향 범위, 원복 기준, 관련 Incident·Approval ID를 포함한다.
-- 비밀번호·Token·Secret·서명 원문은 일반 입력·Log·Audit에 남기지 않는다.
+- TPS/Success/Error/P95/P99/Drift/Circuit/Cert/Spool/Test 및 Group/Binding/ACK
 
-#### 결과와 상세 확인
+- 목록과 상세의 ID·Version·Owner가 다르면 조치를 중단하고 상세를 다시 조회한다.
+- `stale`, `partial`, `unknown`, Empty는 서로 다른 상태다.
+- Masked 값의 원문은 별도 Permission과 Reason이 있을 때만 조회한다.
 
-TPS/Success/Error/P95/P99/Drift/Circuit/Cert/Spool/Test 및 Group/Binding/ACK
+#### Button·조치
 
-조회 후 다음 순서로 판정한다.
+- 조회·Group/Binding Draft·Connection Test·Publish/Block/Rollback 관련 조치
 
-1. 결과 생성 시각과 `stale`·`partial` 표식을 확인한다.
-2. Row 식별자와 상세의 Owner·Version이 동일한지 확인한다.
-3. Masked 값은 원문 조회 권한 없이 복호화하거나 우회하지 않는다.
-4. 상태가 집계값과 상세값에서 다르면 상세 Owner 상태를 기준으로 Reconcile한다.
-5. Empty 결과는 권한·Filter·Environment·시간 범위를 확인한 뒤에만 0건으로 판정한다.
+1. 현재 메뉴가 선택한 Gateway Mode와 일치하는지 확인한다. 동일 Component를 사용하므로 Route ID가 기능 Context다.
+2. Environment·Service ID·Route ID를 입력하고 현재 Candidate, Published, Last Known Good Version을 조회한다.
+3. `조회·Group/Binding Draft·Connection Test·Publish/Block/Rollback 관련 조치` 중 실행할 조치를 선택하고 Collision·Connection·Security·Target Probe를 먼저 수행한다.
+4. 변경 조치는 Reason, Approval ID, Expected Version, Request Hash를 포함해 제출한다.
+5. 게시 후 Instance별 ACK/NACK, Actual Version, Checksum, Drift, Traffic 상태를 확인한다.
+6. 일부 NACK이면 전체 성공으로 확정하지 않고 Failed Instance 격리·재시도 또는 LKG Rollback을 수행한다.
+7. Attempt Ledger·Transaction Completion·Recovery Spool에서 요청 결과와 응답 유실 여부를 대사한다.
 
-#### 조치 절차
+#### 화면별 핵심 판정
 
-사용 가능한 조치는 **조회·Group/Binding Draft·Connection Test·Publish/Block/Rollback 관련 조치**이다.
-
-1. 조치 직전 대상 상세를 다시 조회한다.
-2. 영향 Preview가 있으면 대상 Instance·거래·사용자·배치·Route 수를 기록한다.
-3. Reason, Approval ID, Expected Version, Idempotency Key를 입력한다.
-4. 실행 후 반환된 Operation ID·Transaction ID를 기록한다.
-5. `ACCEPTED` 또는 HTTP 202는 접수 상태이므로 최종 상태를 조회한다.
-6. Success에서는 상태·Version·Checksum·Audit·Metric이 함께 바뀌었는지 확인한다.
+- 동일 `GatewayOperationsPage.vue`가 Route ID별 Mode를 사용하므로 선택 메뉴와 API Mode를 확인한다.
+- Candidate·Published·LKG·Instance ACK·Drift를 한 화면 결과로 연결한다.
 
 #### 정상 결과
 
-- 대상 Owner 상태가 요청한 상태로 전이된다.
-- Version 또는 Checksum이 변경 조치와 일치한다.
-- Audit에 Operator, Permission, Reason, Approval, Before/After, Result가 남는다.
-- 관련 Log·Metric·Trace에서 같은 Operation/Transaction 식별자를 찾을 수 있다.
-- 부분 적용 대상이 없거나, 대상별 결과가 명시적으로 구분된다.
+- Owner의 실제 상태와 화면 표시 상태가 일치한다.
+- 변경 조치라면 Version·Checksum·상태 전이가 요청 내용과 일치한다.
+- 부분 적용 대상은 Instance·Partition·Delivery·Row별로 구분된다.
+- Audit에 Operator, Permission, Reason, Approval, Before/After, Operation ID와 결과가 기록된다.
+- 같은 식별자로 Log·Metric·Trace 또는 Owner 원장을 조회할 수 있다.
 
 #### 오류·응답 유실·복구
 
-핵심 복구 기준: Capability unavailable·ACK/NACK·Drift·Spool Backlog 분리
+핵심 기준: **Capability unavailable·ACK/NACK·Drift·Spool Backlog 분리**
 
-| 상황 | 운영 절차 |
+| 상황 | 조치 |
 |---|---|
-| 400·Validation | Field 오류와 허용 범위를 수정하고 새 요청을 만든다. |
+| Validation·400 | 오류 Field·허용 범위·상위 기준정보를 수정하고 새 요청을 만든다. |
 | 401 | Session·CSRF·Origin을 확인하고 재로그인한다. 기존 변경 요청을 자동 재전송하지 않는다. |
-| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. UI 우회 호출을 하지 않는다. |
-| 409 | 최신 Version과 변경자를 조회하고 변경 의도를 다시 확인한다. Blind Retry하지 않는다. |
-| 429 | `Retry-After`와 Rate Limit을 확인한다. 비멱등 조치는 결과 대사 후 재실행한다. |
+| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. 우회 호출하지 않는다. |
+| 409 | 최신 Version·변경자·변경 시각을 조회하고 변경 의도를 다시 확인한다. |
+| 429 | `Retry-After`를 따르며 비멱등 조치는 결과 대사 후 재실행한다. |
 | Timeout·응답 유실 | Operation ID·Transaction ID·Idempotency Key로 기존 결과를 조회한다. |
-| PARTIAL | 성공·실패·미응답 Target을 분리하고 Failed-only Retry 또는 Exact Rollback을 선택한다. |
-| UNKNOWN_RESULT | Owner 원장, 상대 시스템, Ledger, Audit를 대사해 결과를 확정한 뒤 다음 조치를 선택한다. |
+| PARTIAL | 성공·실패·미응답 Target을 분리해 Failed-only Retry 또는 Exact Rollback을 선택한다. |
+| UNKNOWN_RESULT | Owner 원장·상대 시스템·Ledger·Audit를 대사해 결과를 확정한다. |
 
-#### 감사·교대 인계
+#### 교대·감사 기록
 
-교대 기록에는 화면 Route, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 결과 상태, 미확정 항목, 다음 확인 시각, Rollback 기준을 남긴다.
+Route, Environment, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 최종 상태, 미확정 대상, 다음 확인 시각과 Rollback 기준을 기록한다.
+
+
 ### gateway-health — Gateway Health
 
-**접근 위치**: `/gateway-health`
-**메뉴 그룹**: 온라인 운영
-**화면 Source**: ``.../features/gateway-operations/GatewayOperationsPage.vue``
+| 항목 | 값 |
+|---|---|
+| Route | `/gateway-health` |
+| 그룹 | 온라인 운영 |
+| Frontend | `cpf-admin/frontend/src/features/gateway-operations/GatewayOperationsPage.vue` |
+| Permission | Gateway Menu/Action Permission + Approval |
 
-#### 사용 목적과 사용 시점
+#### 사용 목적과 사용하지 말아야 할 경우
 
-이 화면은 **Gateway Health** 업무를 수행한다. 조회 결과를 다른 화면의 상태와 연결해야 할 때는 Transaction ID, Trace ID, Operation ID, Version, Checksum, Instance ID 중 화면이 제공하는 식별자를 인계 키로 사용한다. 화면의 HTTP 응답만으로 업무 결과를 확정하지 않고 Owner 상태와 Audit를 함께 확인한다.
+이 화면은 **Gateway Health** 기능을 수행한다. 다른 Owner의 상태를 직접 변경하거나, Browser 개발자 도구로 권한을 우회하거나, HTTP 200/202만으로 최종 결과를 확정하는 용도로 사용하지 않는다.
 
-#### 선행 조건
+#### 검색·입력값
 
-1. 대상 Environment와 Tenant·Data Scope가 맞는지 확인한다.
-2. 메뉴 조회 권한과 조치 권한을 구분한다. 필요한 권한은 `Gateway Menu/Action Permission + Approval`이다.
-3. 변경 조치 전 대상의 최신 Version·상태·Owner를 새로 조회한다.
-4. Reason·Approval·Expected Version이 필요한 조치는 값을 준비한다.
-5. 이전 요청이 `PROCESSING`, `UNKNOWN_RESULT`, `PARTIAL`이면 신규 요청을 만들기 전에 기존 Operation을 대사한다.
+- Environment
+- Service ID
+- Route ID
+- Tab별 Group/Binding/Test 입력
 
-#### 검색·입력
+- 기간은 환경 표준 Timezone과 종료 시각 포함 여부를 확인한다.
+- ID는 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
+- 변경 조치의 Reason에는 목적, 영향 범위, 원복 기준, Incident·Approval ID를 적는다.
+- Password·Token·Secret·서명·PII 원문은 일반 Log나 교대 문서에 복사하지 않는다.
 
-Environment, Service ID, Route ID; Tab별 Group/Binding/Test 입력
+#### 목록·상세에서 확인할 값
 
-- 기간 입력은 운영 표준 Timezone을 사용하고 종료 시각 포함 여부를 확인한다.
-- 빈 문자열과 `null`, 전체 선택의 의미를 구분한다.
-- ID 입력은 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
-- Reason은 작업 목적, 영향 범위, 원복 기준, 관련 Incident·Approval ID를 포함한다.
-- 비밀번호·Token·Secret·서명 원문은 일반 입력·Log·Audit에 남기지 않는다.
+- TPS/Success/Error/P95/P99/Drift/Circuit/Cert/Spool/Test 및 Group/Binding/ACK
 
-#### 결과와 상세 확인
+- 목록과 상세의 ID·Version·Owner가 다르면 조치를 중단하고 상세를 다시 조회한다.
+- `stale`, `partial`, `unknown`, Empty는 서로 다른 상태다.
+- Masked 값의 원문은 별도 Permission과 Reason이 있을 때만 조회한다.
 
-TPS/Success/Error/P95/P99/Drift/Circuit/Cert/Spool/Test 및 Group/Binding/ACK
+#### Button·조치
 
-조회 후 다음 순서로 판정한다.
+- 조회·Group/Binding Draft·Connection Test·Publish/Block/Rollback 관련 조치
 
-1. 결과 생성 시각과 `stale`·`partial` 표식을 확인한다.
-2. Row 식별자와 상세의 Owner·Version이 동일한지 확인한다.
-3. Masked 값은 원문 조회 권한 없이 복호화하거나 우회하지 않는다.
-4. 상태가 집계값과 상세값에서 다르면 상세 Owner 상태를 기준으로 Reconcile한다.
-5. Empty 결과는 권한·Filter·Environment·시간 범위를 확인한 뒤에만 0건으로 판정한다.
+1. 현재 메뉴가 선택한 Gateway Mode와 일치하는지 확인한다. 동일 Component를 사용하므로 Route ID가 기능 Context다.
+2. Environment·Service ID·Route ID를 입력하고 현재 Candidate, Published, Last Known Good Version을 조회한다.
+3. `조회·Group/Binding Draft·Connection Test·Publish/Block/Rollback 관련 조치` 중 실행할 조치를 선택하고 Collision·Connection·Security·Target Probe를 먼저 수행한다.
+4. 변경 조치는 Reason, Approval ID, Expected Version, Request Hash를 포함해 제출한다.
+5. 게시 후 Instance별 ACK/NACK, Actual Version, Checksum, Drift, Traffic 상태를 확인한다.
+6. 일부 NACK이면 전체 성공으로 확정하지 않고 Failed Instance 격리·재시도 또는 LKG Rollback을 수행한다.
+7. Attempt Ledger·Transaction Completion·Recovery Spool에서 요청 결과와 응답 유실 여부를 대사한다.
 
-#### 조치 절차
+#### 화면별 핵심 판정
 
-사용 가능한 조치는 **조회·Group/Binding Draft·Connection Test·Publish/Block/Rollback 관련 조치**이다.
-
-1. 조치 직전 대상 상세를 다시 조회한다.
-2. 영향 Preview가 있으면 대상 Instance·거래·사용자·배치·Route 수를 기록한다.
-3. Reason, Approval ID, Expected Version, Idempotency Key를 입력한다.
-4. 실행 후 반환된 Operation ID·Transaction ID를 기록한다.
-5. `ACCEPTED` 또는 HTTP 202는 접수 상태이므로 최종 상태를 조회한다.
-6. Success에서는 상태·Version·Checksum·Audit·Metric이 함께 바뀌었는지 확인한다.
+- 동일 `GatewayOperationsPage.vue`가 Route ID별 Mode를 사용하므로 선택 메뉴와 API Mode를 확인한다.
+- Candidate·Published·LKG·Instance ACK·Drift를 한 화면 결과로 연결한다.
 
 #### 정상 결과
 
-- 대상 Owner 상태가 요청한 상태로 전이된다.
-- Version 또는 Checksum이 변경 조치와 일치한다.
-- Audit에 Operator, Permission, Reason, Approval, Before/After, Result가 남는다.
-- 관련 Log·Metric·Trace에서 같은 Operation/Transaction 식별자를 찾을 수 있다.
-- 부분 적용 대상이 없거나, 대상별 결과가 명시적으로 구분된다.
+- Owner의 실제 상태와 화면 표시 상태가 일치한다.
+- 변경 조치라면 Version·Checksum·상태 전이가 요청 내용과 일치한다.
+- 부분 적용 대상은 Instance·Partition·Delivery·Row별로 구분된다.
+- Audit에 Operator, Permission, Reason, Approval, Before/After, Operation ID와 결과가 기록된다.
+- 같은 식별자로 Log·Metric·Trace 또는 Owner 원장을 조회할 수 있다.
 
 #### 오류·응답 유실·복구
 
-핵심 복구 기준: Capability unavailable·ACK/NACK·Drift·Spool Backlog 분리
+핵심 기준: **Capability unavailable·ACK/NACK·Drift·Spool Backlog 분리**
 
-| 상황 | 운영 절차 |
+| 상황 | 조치 |
 |---|---|
-| 400·Validation | Field 오류와 허용 범위를 수정하고 새 요청을 만든다. |
+| Validation·400 | 오류 Field·허용 범위·상위 기준정보를 수정하고 새 요청을 만든다. |
 | 401 | Session·CSRF·Origin을 확인하고 재로그인한다. 기존 변경 요청을 자동 재전송하지 않는다. |
-| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. UI 우회 호출을 하지 않는다. |
-| 409 | 최신 Version과 변경자를 조회하고 변경 의도를 다시 확인한다. Blind Retry하지 않는다. |
-| 429 | `Retry-After`와 Rate Limit을 확인한다. 비멱등 조치는 결과 대사 후 재실행한다. |
+| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. 우회 호출하지 않는다. |
+| 409 | 최신 Version·변경자·변경 시각을 조회하고 변경 의도를 다시 확인한다. |
+| 429 | `Retry-After`를 따르며 비멱등 조치는 결과 대사 후 재실행한다. |
 | Timeout·응답 유실 | Operation ID·Transaction ID·Idempotency Key로 기존 결과를 조회한다. |
-| PARTIAL | 성공·실패·미응답 Target을 분리하고 Failed-only Retry 또는 Exact Rollback을 선택한다. |
-| UNKNOWN_RESULT | Owner 원장, 상대 시스템, Ledger, Audit를 대사해 결과를 확정한 뒤 다음 조치를 선택한다. |
+| PARTIAL | 성공·실패·미응답 Target을 분리해 Failed-only Retry 또는 Exact Rollback을 선택한다. |
+| UNKNOWN_RESULT | Owner 원장·상대 시스템·Ledger·Audit를 대사해 결과를 확정한다. |
 
-#### 감사·교대 인계
+#### 교대·감사 기록
 
-교대 기록에는 화면 Route, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 결과 상태, 미확정 항목, 다음 확인 시각, Rollback 기준을 남긴다.
+Route, Environment, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 최종 상태, 미확정 대상, 다음 확인 시각과 Rollback 기준을 기록한다.
+
+
 ### gateway-transactions — Gateway Transactions
 
-**접근 위치**: `/gateway-transactions`
-**메뉴 그룹**: 온라인 운영
-**화면 Source**: ``.../features/gateway-operations/GatewayOperationsPage.vue``
+| 항목 | 값 |
+|---|---|
+| Route | `/gateway-transactions` |
+| 그룹 | 온라인 운영 |
+| Frontend | `cpf-admin/frontend/src/features/gateway-operations/GatewayOperationsPage.vue` |
+| Permission | Gateway Menu/Action Permission + Approval |
 
-#### 사용 목적과 사용 시점
+#### 사용 목적과 사용하지 말아야 할 경우
 
-이 화면은 **Gateway Transactions** 업무를 수행한다. 조회 결과를 다른 화면의 상태와 연결해야 할 때는 Transaction ID, Trace ID, Operation ID, Version, Checksum, Instance ID 중 화면이 제공하는 식별자를 인계 키로 사용한다. 화면의 HTTP 응답만으로 업무 결과를 확정하지 않고 Owner 상태와 Audit를 함께 확인한다.
+이 화면은 **Gateway Transactions** 기능을 수행한다. 다른 Owner의 상태를 직접 변경하거나, Browser 개발자 도구로 권한을 우회하거나, HTTP 200/202만으로 최종 결과를 확정하는 용도로 사용하지 않는다.
 
-#### 선행 조건
+#### 검색·입력값
 
-1. 대상 Environment와 Tenant·Data Scope가 맞는지 확인한다.
-2. 메뉴 조회 권한과 조치 권한을 구분한다. 필요한 권한은 `Gateway Menu/Action Permission + Approval`이다.
-3. 변경 조치 전 대상의 최신 Version·상태·Owner를 새로 조회한다.
-4. Reason·Approval·Expected Version이 필요한 조치는 값을 준비한다.
-5. 이전 요청이 `PROCESSING`, `UNKNOWN_RESULT`, `PARTIAL`이면 신규 요청을 만들기 전에 기존 Operation을 대사한다.
+- Environment
+- Service ID
+- Route ID
+- Tab별 Group/Binding/Test 입력
 
-#### 검색·입력
+- 기간은 환경 표준 Timezone과 종료 시각 포함 여부를 확인한다.
+- ID는 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
+- 변경 조치의 Reason에는 목적, 영향 범위, 원복 기준, Incident·Approval ID를 적는다.
+- Password·Token·Secret·서명·PII 원문은 일반 Log나 교대 문서에 복사하지 않는다.
 
-Environment, Service ID, Route ID; Tab별 Group/Binding/Test 입력
+#### 목록·상세에서 확인할 값
 
-- 기간 입력은 운영 표준 Timezone을 사용하고 종료 시각 포함 여부를 확인한다.
-- 빈 문자열과 `null`, 전체 선택의 의미를 구분한다.
-- ID 입력은 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
-- Reason은 작업 목적, 영향 범위, 원복 기준, 관련 Incident·Approval ID를 포함한다.
-- 비밀번호·Token·Secret·서명 원문은 일반 입력·Log·Audit에 남기지 않는다.
+- TPS/Success/Error/P95/P99/Drift/Circuit/Cert/Spool/Test 및 Group/Binding/ACK
 
-#### 결과와 상세 확인
+- 목록과 상세의 ID·Version·Owner가 다르면 조치를 중단하고 상세를 다시 조회한다.
+- `stale`, `partial`, `unknown`, Empty는 서로 다른 상태다.
+- Masked 값의 원문은 별도 Permission과 Reason이 있을 때만 조회한다.
 
-TPS/Success/Error/P95/P99/Drift/Circuit/Cert/Spool/Test 및 Group/Binding/ACK
+#### Button·조치
 
-조회 후 다음 순서로 판정한다.
+- 조회·Group/Binding Draft·Connection Test·Publish/Block/Rollback 관련 조치
 
-1. 결과 생성 시각과 `stale`·`partial` 표식을 확인한다.
-2. Row 식별자와 상세의 Owner·Version이 동일한지 확인한다.
-3. Masked 값은 원문 조회 권한 없이 복호화하거나 우회하지 않는다.
-4. 상태가 집계값과 상세값에서 다르면 상세 Owner 상태를 기준으로 Reconcile한다.
-5. Empty 결과는 권한·Filter·Environment·시간 범위를 확인한 뒤에만 0건으로 판정한다.
+1. 현재 메뉴가 선택한 Gateway Mode와 일치하는지 확인한다. 동일 Component를 사용하므로 Route ID가 기능 Context다.
+2. Environment·Service ID·Route ID를 입력하고 현재 Candidate, Published, Last Known Good Version을 조회한다.
+3. `조회·Group/Binding Draft·Connection Test·Publish/Block/Rollback 관련 조치` 중 실행할 조치를 선택하고 Collision·Connection·Security·Target Probe를 먼저 수행한다.
+4. 변경 조치는 Reason, Approval ID, Expected Version, Request Hash를 포함해 제출한다.
+5. 게시 후 Instance별 ACK/NACK, Actual Version, Checksum, Drift, Traffic 상태를 확인한다.
+6. 일부 NACK이면 전체 성공으로 확정하지 않고 Failed Instance 격리·재시도 또는 LKG Rollback을 수행한다.
+7. Attempt Ledger·Transaction Completion·Recovery Spool에서 요청 결과와 응답 유실 여부를 대사한다.
 
-#### 조치 절차
+#### 화면별 핵심 판정
 
-사용 가능한 조치는 **조회·Group/Binding Draft·Connection Test·Publish/Block/Rollback 관련 조치**이다.
-
-1. 조치 직전 대상 상세를 다시 조회한다.
-2. 영향 Preview가 있으면 대상 Instance·거래·사용자·배치·Route 수를 기록한다.
-3. Reason, Approval ID, Expected Version, Idempotency Key를 입력한다.
-4. 실행 후 반환된 Operation ID·Transaction ID를 기록한다.
-5. `ACCEPTED` 또는 HTTP 202는 접수 상태이므로 최종 상태를 조회한다.
-6. Success에서는 상태·Version·Checksum·Audit·Metric이 함께 바뀌었는지 확인한다.
+- 동일 `GatewayOperationsPage.vue`가 Route ID별 Mode를 사용하므로 선택 메뉴와 API Mode를 확인한다.
+- Candidate·Published·LKG·Instance ACK·Drift를 한 화면 결과로 연결한다.
 
 #### 정상 결과
 
-- 대상 Owner 상태가 요청한 상태로 전이된다.
-- Version 또는 Checksum이 변경 조치와 일치한다.
-- Audit에 Operator, Permission, Reason, Approval, Before/After, Result가 남는다.
-- 관련 Log·Metric·Trace에서 같은 Operation/Transaction 식별자를 찾을 수 있다.
-- 부분 적용 대상이 없거나, 대상별 결과가 명시적으로 구분된다.
+- Owner의 실제 상태와 화면 표시 상태가 일치한다.
+- 변경 조치라면 Version·Checksum·상태 전이가 요청 내용과 일치한다.
+- 부분 적용 대상은 Instance·Partition·Delivery·Row별로 구분된다.
+- Audit에 Operator, Permission, Reason, Approval, Before/After, Operation ID와 결과가 기록된다.
+- 같은 식별자로 Log·Metric·Trace 또는 Owner 원장을 조회할 수 있다.
 
 #### 오류·응답 유실·복구
 
-핵심 복구 기준: Capability unavailable·ACK/NACK·Drift·Spool Backlog 분리
+핵심 기준: **Capability unavailable·ACK/NACK·Drift·Spool Backlog 분리**
 
-| 상황 | 운영 절차 |
+| 상황 | 조치 |
 |---|---|
-| 400·Validation | Field 오류와 허용 범위를 수정하고 새 요청을 만든다. |
+| Validation·400 | 오류 Field·허용 범위·상위 기준정보를 수정하고 새 요청을 만든다. |
 | 401 | Session·CSRF·Origin을 확인하고 재로그인한다. 기존 변경 요청을 자동 재전송하지 않는다. |
-| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. UI 우회 호출을 하지 않는다. |
-| 409 | 최신 Version과 변경자를 조회하고 변경 의도를 다시 확인한다. Blind Retry하지 않는다. |
-| 429 | `Retry-After`와 Rate Limit을 확인한다. 비멱등 조치는 결과 대사 후 재실행한다. |
+| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. 우회 호출하지 않는다. |
+| 409 | 최신 Version·변경자·변경 시각을 조회하고 변경 의도를 다시 확인한다. |
+| 429 | `Retry-After`를 따르며 비멱등 조치는 결과 대사 후 재실행한다. |
 | Timeout·응답 유실 | Operation ID·Transaction ID·Idempotency Key로 기존 결과를 조회한다. |
-| PARTIAL | 성공·실패·미응답 Target을 분리하고 Failed-only Retry 또는 Exact Rollback을 선택한다. |
-| UNKNOWN_RESULT | Owner 원장, 상대 시스템, Ledger, Audit를 대사해 결과를 확정한 뒤 다음 조치를 선택한다. |
+| PARTIAL | 성공·실패·미응답 Target을 분리해 Failed-only Retry 또는 Exact Rollback을 선택한다. |
+| UNKNOWN_RESULT | Owner 원장·상대 시스템·Ledger·Audit를 대사해 결과를 확정한다. |
 
-#### 감사·교대 인계
+#### 교대·감사 기록
 
-교대 기록에는 화면 Route, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 결과 상태, 미확정 항목, 다음 확인 시각, Rollback 기준을 남긴다.
+Route, Environment, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 최종 상태, 미확정 대상, 다음 확인 시각과 Rollback 기준을 기록한다.
+
+
 ### gateway-log-policies — Gateway Log Policies
 
-**접근 위치**: `/gateway-log-policies`
-**메뉴 그룹**: 온라인 운영
-**화면 Source**: ``.../features/gateway-operations/GatewayOperationsPage.vue``
+| 항목 | 값 |
+|---|---|
+| Route | `/gateway-log-policies` |
+| 그룹 | 온라인 운영 |
+| Frontend | `cpf-admin/frontend/src/features/gateway-operations/GatewayOperationsPage.vue` |
+| Permission | Gateway Menu/Action Permission + Approval |
 
-#### 사용 목적과 사용 시점
+#### 사용 목적과 사용하지 말아야 할 경우
 
-이 화면은 **Gateway Log Policies** 업무를 수행한다. 조회 결과를 다른 화면의 상태와 연결해야 할 때는 Transaction ID, Trace ID, Operation ID, Version, Checksum, Instance ID 중 화면이 제공하는 식별자를 인계 키로 사용한다. 화면의 HTTP 응답만으로 업무 결과를 확정하지 않고 Owner 상태와 Audit를 함께 확인한다.
+이 화면은 **Gateway Log Policies** 기능을 수행한다. 다른 Owner의 상태를 직접 변경하거나, Browser 개발자 도구로 권한을 우회하거나, HTTP 200/202만으로 최종 결과를 확정하는 용도로 사용하지 않는다.
 
-#### 선행 조건
+#### 검색·입력값
 
-1. 대상 Environment와 Tenant·Data Scope가 맞는지 확인한다.
-2. 메뉴 조회 권한과 조치 권한을 구분한다. 필요한 권한은 `Gateway Menu/Action Permission + Approval`이다.
-3. 변경 조치 전 대상의 최신 Version·상태·Owner를 새로 조회한다.
-4. Reason·Approval·Expected Version이 필요한 조치는 값을 준비한다.
-5. 이전 요청이 `PROCESSING`, `UNKNOWN_RESULT`, `PARTIAL`이면 신규 요청을 만들기 전에 기존 Operation을 대사한다.
+- Environment
+- Service ID
+- Route ID
+- Tab별 Group/Binding/Test 입력
 
-#### 검색·입력
+- 기간은 환경 표준 Timezone과 종료 시각 포함 여부를 확인한다.
+- ID는 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
+- 변경 조치의 Reason에는 목적, 영향 범위, 원복 기준, Incident·Approval ID를 적는다.
+- Password·Token·Secret·서명·PII 원문은 일반 Log나 교대 문서에 복사하지 않는다.
 
-Environment, Service ID, Route ID; Tab별 Group/Binding/Test 입력
+#### 목록·상세에서 확인할 값
 
-- 기간 입력은 운영 표준 Timezone을 사용하고 종료 시각 포함 여부를 확인한다.
-- 빈 문자열과 `null`, 전체 선택의 의미를 구분한다.
-- ID 입력은 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
-- Reason은 작업 목적, 영향 범위, 원복 기준, 관련 Incident·Approval ID를 포함한다.
-- 비밀번호·Token·Secret·서명 원문은 일반 입력·Log·Audit에 남기지 않는다.
+- TPS/Success/Error/P95/P99/Drift/Circuit/Cert/Spool/Test 및 Group/Binding/ACK
 
-#### 결과와 상세 확인
+- 목록과 상세의 ID·Version·Owner가 다르면 조치를 중단하고 상세를 다시 조회한다.
+- `stale`, `partial`, `unknown`, Empty는 서로 다른 상태다.
+- Masked 값의 원문은 별도 Permission과 Reason이 있을 때만 조회한다.
 
-TPS/Success/Error/P95/P99/Drift/Circuit/Cert/Spool/Test 및 Group/Binding/ACK
+#### Button·조치
 
-조회 후 다음 순서로 판정한다.
+- 조회·Group/Binding Draft·Connection Test·Publish/Block/Rollback 관련 조치
 
-1. 결과 생성 시각과 `stale`·`partial` 표식을 확인한다.
-2. Row 식별자와 상세의 Owner·Version이 동일한지 확인한다.
-3. Masked 값은 원문 조회 권한 없이 복호화하거나 우회하지 않는다.
-4. 상태가 집계값과 상세값에서 다르면 상세 Owner 상태를 기준으로 Reconcile한다.
-5. Empty 결과는 권한·Filter·Environment·시간 범위를 확인한 뒤에만 0건으로 판정한다.
+1. 현재 메뉴가 선택한 Gateway Mode와 일치하는지 확인한다. 동일 Component를 사용하므로 Route ID가 기능 Context다.
+2. Environment·Service ID·Route ID를 입력하고 현재 Candidate, Published, Last Known Good Version을 조회한다.
+3. `조회·Group/Binding Draft·Connection Test·Publish/Block/Rollback 관련 조치` 중 실행할 조치를 선택하고 Collision·Connection·Security·Target Probe를 먼저 수행한다.
+4. 변경 조치는 Reason, Approval ID, Expected Version, Request Hash를 포함해 제출한다.
+5. 게시 후 Instance별 ACK/NACK, Actual Version, Checksum, Drift, Traffic 상태를 확인한다.
+6. 일부 NACK이면 전체 성공으로 확정하지 않고 Failed Instance 격리·재시도 또는 LKG Rollback을 수행한다.
+7. Attempt Ledger·Transaction Completion·Recovery Spool에서 요청 결과와 응답 유실 여부를 대사한다.
 
-#### 조치 절차
+#### 화면별 핵심 판정
 
-사용 가능한 조치는 **조회·Group/Binding Draft·Connection Test·Publish/Block/Rollback 관련 조치**이다.
-
-1. 조치 직전 대상 상세를 다시 조회한다.
-2. 영향 Preview가 있으면 대상 Instance·거래·사용자·배치·Route 수를 기록한다.
-3. Reason, Approval ID, Expected Version, Idempotency Key를 입력한다.
-4. 실행 후 반환된 Operation ID·Transaction ID를 기록한다.
-5. `ACCEPTED` 또는 HTTP 202는 접수 상태이므로 최종 상태를 조회한다.
-6. Success에서는 상태·Version·Checksum·Audit·Metric이 함께 바뀌었는지 확인한다.
+- 동일 `GatewayOperationsPage.vue`가 Route ID별 Mode를 사용하므로 선택 메뉴와 API Mode를 확인한다.
+- Candidate·Published·LKG·Instance ACK·Drift를 한 화면 결과로 연결한다.
 
 #### 정상 결과
 
-- 대상 Owner 상태가 요청한 상태로 전이된다.
-- Version 또는 Checksum이 변경 조치와 일치한다.
-- Audit에 Operator, Permission, Reason, Approval, Before/After, Result가 남는다.
-- 관련 Log·Metric·Trace에서 같은 Operation/Transaction 식별자를 찾을 수 있다.
-- 부분 적용 대상이 없거나, 대상별 결과가 명시적으로 구분된다.
+- Owner의 실제 상태와 화면 표시 상태가 일치한다.
+- 변경 조치라면 Version·Checksum·상태 전이가 요청 내용과 일치한다.
+- 부분 적용 대상은 Instance·Partition·Delivery·Row별로 구분된다.
+- Audit에 Operator, Permission, Reason, Approval, Before/After, Operation ID와 결과가 기록된다.
+- 같은 식별자로 Log·Metric·Trace 또는 Owner 원장을 조회할 수 있다.
 
 #### 오류·응답 유실·복구
 
-핵심 복구 기준: Capability unavailable·ACK/NACK·Drift·Spool Backlog 분리
+핵심 기준: **Capability unavailable·ACK/NACK·Drift·Spool Backlog 분리**
 
-| 상황 | 운영 절차 |
+| 상황 | 조치 |
 |---|---|
-| 400·Validation | Field 오류와 허용 범위를 수정하고 새 요청을 만든다. |
+| Validation·400 | 오류 Field·허용 범위·상위 기준정보를 수정하고 새 요청을 만든다. |
 | 401 | Session·CSRF·Origin을 확인하고 재로그인한다. 기존 변경 요청을 자동 재전송하지 않는다. |
-| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. UI 우회 호출을 하지 않는다. |
-| 409 | 최신 Version과 변경자를 조회하고 변경 의도를 다시 확인한다. Blind Retry하지 않는다. |
-| 429 | `Retry-After`와 Rate Limit을 확인한다. 비멱등 조치는 결과 대사 후 재실행한다. |
+| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. 우회 호출하지 않는다. |
+| 409 | 최신 Version·변경자·변경 시각을 조회하고 변경 의도를 다시 확인한다. |
+| 429 | `Retry-After`를 따르며 비멱등 조치는 결과 대사 후 재실행한다. |
 | Timeout·응답 유실 | Operation ID·Transaction ID·Idempotency Key로 기존 결과를 조회한다. |
-| PARTIAL | 성공·실패·미응답 Target을 분리하고 Failed-only Retry 또는 Exact Rollback을 선택한다. |
-| UNKNOWN_RESULT | Owner 원장, 상대 시스템, Ledger, Audit를 대사해 결과를 확정한 뒤 다음 조치를 선택한다. |
+| PARTIAL | 성공·실패·미응답 Target을 분리해 Failed-only Retry 또는 Exact Rollback을 선택한다. |
+| UNKNOWN_RESULT | Owner 원장·상대 시스템·Ledger·Audit를 대사해 결과를 확정한다. |
 
-#### 감사·교대 인계
+#### 교대·감사 기록
 
-교대 기록에는 화면 Route, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 결과 상태, 미확정 항목, 다음 확인 시각, Rollback 기준을 남긴다.
+Route, Environment, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 최종 상태, 미확정 대상, 다음 확인 시각과 Rollback 기준을 기록한다.
+
+
 ### gateway-apply-status — Gateway Apply Status
 
-**접근 위치**: `/gateway-apply-status`
-**메뉴 그룹**: 온라인 운영
-**화면 Source**: ``.../features/gateway-operations/GatewayOperationsPage.vue``
+| 항목 | 값 |
+|---|---|
+| Route | `/gateway-apply-status` |
+| 그룹 | 온라인 운영 |
+| Frontend | `cpf-admin/frontend/src/features/gateway-operations/GatewayOperationsPage.vue` |
+| Permission | Gateway Menu/Action Permission + Approval |
 
-#### 사용 목적과 사용 시점
+#### 사용 목적과 사용하지 말아야 할 경우
 
-이 화면은 **Gateway Apply Status** 업무를 수행한다. 조회 결과를 다른 화면의 상태와 연결해야 할 때는 Transaction ID, Trace ID, Operation ID, Version, Checksum, Instance ID 중 화면이 제공하는 식별자를 인계 키로 사용한다. 화면의 HTTP 응답만으로 업무 결과를 확정하지 않고 Owner 상태와 Audit를 함께 확인한다.
+이 화면은 **Gateway Apply Status** 기능을 수행한다. 다른 Owner의 상태를 직접 변경하거나, Browser 개발자 도구로 권한을 우회하거나, HTTP 200/202만으로 최종 결과를 확정하는 용도로 사용하지 않는다.
 
-#### 선행 조건
+#### 검색·입력값
 
-1. 대상 Environment와 Tenant·Data Scope가 맞는지 확인한다.
-2. 메뉴 조회 권한과 조치 권한을 구분한다. 필요한 권한은 `Gateway Menu/Action Permission + Approval`이다.
-3. 변경 조치 전 대상의 최신 Version·상태·Owner를 새로 조회한다.
-4. Reason·Approval·Expected Version이 필요한 조치는 값을 준비한다.
-5. 이전 요청이 `PROCESSING`, `UNKNOWN_RESULT`, `PARTIAL`이면 신규 요청을 만들기 전에 기존 Operation을 대사한다.
+- Environment
+- Service ID
+- Route ID
+- Tab별 Group/Binding/Test 입력
 
-#### 검색·입력
+- 기간은 환경 표준 Timezone과 종료 시각 포함 여부를 확인한다.
+- ID는 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
+- 변경 조치의 Reason에는 목적, 영향 범위, 원복 기준, Incident·Approval ID를 적는다.
+- Password·Token·Secret·서명·PII 원문은 일반 Log나 교대 문서에 복사하지 않는다.
 
-Environment, Service ID, Route ID; Tab별 Group/Binding/Test 입력
+#### 목록·상세에서 확인할 값
 
-- 기간 입력은 운영 표준 Timezone을 사용하고 종료 시각 포함 여부를 확인한다.
-- 빈 문자열과 `null`, 전체 선택의 의미를 구분한다.
-- ID 입력은 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
-- Reason은 작업 목적, 영향 범위, 원복 기준, 관련 Incident·Approval ID를 포함한다.
-- 비밀번호·Token·Secret·서명 원문은 일반 입력·Log·Audit에 남기지 않는다.
+- TPS/Success/Error/P95/P99/Drift/Circuit/Cert/Spool/Test 및 Group/Binding/ACK
 
-#### 결과와 상세 확인
+- 목록과 상세의 ID·Version·Owner가 다르면 조치를 중단하고 상세를 다시 조회한다.
+- `stale`, `partial`, `unknown`, Empty는 서로 다른 상태다.
+- Masked 값의 원문은 별도 Permission과 Reason이 있을 때만 조회한다.
 
-TPS/Success/Error/P95/P99/Drift/Circuit/Cert/Spool/Test 및 Group/Binding/ACK
+#### Button·조치
 
-조회 후 다음 순서로 판정한다.
+- 조회·Group/Binding Draft·Connection Test·Publish/Block/Rollback 관련 조치
 
-1. 결과 생성 시각과 `stale`·`partial` 표식을 확인한다.
-2. Row 식별자와 상세의 Owner·Version이 동일한지 확인한다.
-3. Masked 값은 원문 조회 권한 없이 복호화하거나 우회하지 않는다.
-4. 상태가 집계값과 상세값에서 다르면 상세 Owner 상태를 기준으로 Reconcile한다.
-5. Empty 결과는 권한·Filter·Environment·시간 범위를 확인한 뒤에만 0건으로 판정한다.
+1. 현재 메뉴가 선택한 Gateway Mode와 일치하는지 확인한다. 동일 Component를 사용하므로 Route ID가 기능 Context다.
+2. Environment·Service ID·Route ID를 입력하고 현재 Candidate, Published, Last Known Good Version을 조회한다.
+3. `조회·Group/Binding Draft·Connection Test·Publish/Block/Rollback 관련 조치` 중 실행할 조치를 선택하고 Collision·Connection·Security·Target Probe를 먼저 수행한다.
+4. 변경 조치는 Reason, Approval ID, Expected Version, Request Hash를 포함해 제출한다.
+5. 게시 후 Instance별 ACK/NACK, Actual Version, Checksum, Drift, Traffic 상태를 확인한다.
+6. 일부 NACK이면 전체 성공으로 확정하지 않고 Failed Instance 격리·재시도 또는 LKG Rollback을 수행한다.
+7. Attempt Ledger·Transaction Completion·Recovery Spool에서 요청 결과와 응답 유실 여부를 대사한다.
 
-#### 조치 절차
+#### 화면별 핵심 판정
 
-사용 가능한 조치는 **조회·Group/Binding Draft·Connection Test·Publish/Block/Rollback 관련 조치**이다.
-
-1. 조치 직전 대상 상세를 다시 조회한다.
-2. 영향 Preview가 있으면 대상 Instance·거래·사용자·배치·Route 수를 기록한다.
-3. Reason, Approval ID, Expected Version, Idempotency Key를 입력한다.
-4. 실행 후 반환된 Operation ID·Transaction ID를 기록한다.
-5. `ACCEPTED` 또는 HTTP 202는 접수 상태이므로 최종 상태를 조회한다.
-6. Success에서는 상태·Version·Checksum·Audit·Metric이 함께 바뀌었는지 확인한다.
+- 동일 `GatewayOperationsPage.vue`가 Route ID별 Mode를 사용하므로 선택 메뉴와 API Mode를 확인한다.
+- Candidate·Published·LKG·Instance ACK·Drift를 한 화면 결과로 연결한다.
 
 #### 정상 결과
 
-- 대상 Owner 상태가 요청한 상태로 전이된다.
-- Version 또는 Checksum이 변경 조치와 일치한다.
-- Audit에 Operator, Permission, Reason, Approval, Before/After, Result가 남는다.
-- 관련 Log·Metric·Trace에서 같은 Operation/Transaction 식별자를 찾을 수 있다.
-- 부분 적용 대상이 없거나, 대상별 결과가 명시적으로 구분된다.
+- Owner의 실제 상태와 화면 표시 상태가 일치한다.
+- 변경 조치라면 Version·Checksum·상태 전이가 요청 내용과 일치한다.
+- 부분 적용 대상은 Instance·Partition·Delivery·Row별로 구분된다.
+- Audit에 Operator, Permission, Reason, Approval, Before/After, Operation ID와 결과가 기록된다.
+- 같은 식별자로 Log·Metric·Trace 또는 Owner 원장을 조회할 수 있다.
 
 #### 오류·응답 유실·복구
 
-핵심 복구 기준: Capability unavailable·ACK/NACK·Drift·Spool Backlog 분리
+핵심 기준: **Capability unavailable·ACK/NACK·Drift·Spool Backlog 분리**
 
-| 상황 | 운영 절차 |
+| 상황 | 조치 |
 |---|---|
-| 400·Validation | Field 오류와 허용 범위를 수정하고 새 요청을 만든다. |
+| Validation·400 | 오류 Field·허용 범위·상위 기준정보를 수정하고 새 요청을 만든다. |
 | 401 | Session·CSRF·Origin을 확인하고 재로그인한다. 기존 변경 요청을 자동 재전송하지 않는다. |
-| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. UI 우회 호출을 하지 않는다. |
-| 409 | 최신 Version과 변경자를 조회하고 변경 의도를 다시 확인한다. Blind Retry하지 않는다. |
-| 429 | `Retry-After`와 Rate Limit을 확인한다. 비멱등 조치는 결과 대사 후 재실행한다. |
+| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. 우회 호출하지 않는다. |
+| 409 | 최신 Version·변경자·변경 시각을 조회하고 변경 의도를 다시 확인한다. |
+| 429 | `Retry-After`를 따르며 비멱등 조치는 결과 대사 후 재실행한다. |
 | Timeout·응답 유실 | Operation ID·Transaction ID·Idempotency Key로 기존 결과를 조회한다. |
-| PARTIAL | 성공·실패·미응답 Target을 분리하고 Failed-only Retry 또는 Exact Rollback을 선택한다. |
-| UNKNOWN_RESULT | Owner 원장, 상대 시스템, Ledger, Audit를 대사해 결과를 확정한 뒤 다음 조치를 선택한다. |
+| PARTIAL | 성공·실패·미응답 Target을 분리해 Failed-only Retry 또는 Exact Rollback을 선택한다. |
+| UNKNOWN_RESULT | Owner 원장·상대 시스템·Ledger·Audit를 대사해 결과를 확정한다. |
 
-#### 감사·교대 인계
+#### 교대·감사 기록
 
-교대 기록에는 화면 Route, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 결과 상태, 미확정 항목, 다음 확인 시각, Rollback 기준을 남긴다.
+Route, Environment, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 최종 상태, 미확정 대상, 다음 확인 시각과 Rollback 기준을 기록한다.
+
+
 ### permissions — Role·Menu·Button·API Permission
 
-**접근 위치**: `/permissions`
-**메뉴 그룹**: 프레임워크
-**화면 Source**: ``.../features/permissions/PermissionsPage.vue``
+| 항목 | 값 |
+|---|---|
+| Route | `/permissions` |
+| 그룹 | 프레임워크 |
+| Frontend | `cpf-admin/frontend/src/features/permissions/PermissionsPage.vue` |
+| Permission | `PERMISSION` Write |
 
-#### 사용 목적과 사용 시점
+#### 사용 목적과 사용하지 말아야 할 경우
 
-이 화면은 **Role·Menu·Button·API Permission** 업무를 수행한다. 조회 결과를 다른 화면의 상태와 연결해야 할 때는 Transaction ID, Trace ID, Operation ID, Version, Checksum, Instance ID 중 화면이 제공하는 식별자를 인계 키로 사용한다. 화면의 HTTP 응답만으로 업무 결과를 확정하지 않고 Owner 상태와 Audit를 함께 확인한다.
+이 화면은 **Role·Menu·Button·API Permission** 기능을 수행한다. 다른 Owner의 상태를 직접 변경하거나, Browser 개발자 도구로 권한을 우회하거나, HTTP 200/202만으로 최종 결과를 확정하는 용도로 사용하지 않는다.
 
-#### 선행 조건
+#### 검색·입력값
 
-1. 대상 Environment와 Tenant·Data Scope가 맞는지 확인한다.
-2. 메뉴 조회 권한과 조치 권한을 구분한다. 필요한 권한은 ``PERMISSION` Write`이다.
-3. 변경 조치 전 대상의 최신 Version·상태·Owner를 새로 조회한다.
-4. Reason·Approval·Expected Version이 필요한 조치는 값을 준비한다.
-5. 이전 요청이 `PROCESSING`, `UNKNOWN_RESULT`, `PARTIAL`이면 신규 요청을 만들기 전에 기존 Operation을 대사한다.
+- Role/Menu/Button/API ID
+- Read/Write/Delete/Allow
+- Reason
+- Registry Fields
 
-#### 검색·입력
+- 기간은 환경 표준 Timezone과 종료 시각 포함 여부를 확인한다.
+- ID는 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
+- 변경 조치의 Reason에는 목적, 영향 범위, 원복 기준, Incident·Approval ID를 적는다.
+- Password·Token·Secret·서명·PII 원문은 일반 Log나 교대 문서에 복사하지 않는다.
 
-Role/Menu/Button/API ID, Read/Write/Delete/Allow, Reason; Registry Fields
+#### 목록·상세에서 확인할 값
 
-- 기간 입력은 운영 표준 Timezone을 사용하고 종료 시각 포함 여부를 확인한다.
-- 빈 문자열과 `null`, 전체 선택의 의미를 구분한다.
-- ID 입력은 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
-- Reason은 작업 목적, 영향 범위, 원복 기준, 관련 Incident·Approval ID를 포함한다.
-- 비밀번호·Token·Secret·서명 원문은 일반 입력·Log·Audit에 남기지 않는다.
+- Matrix/Registry Result
 
-#### 결과와 상세 확인
+- 목록과 상세의 ID·Version·Owner가 다르면 조치를 중단하고 상세를 다시 조회한다.
+- `stale`, `partial`, `unknown`, Empty는 서로 다른 상태다.
+- Masked 값의 원문은 별도 Permission과 Reason이 있을 때만 조회한다.
 
-Matrix/Registry Result
+#### Button·조치
 
-조회 후 다음 순서로 판정한다.
+- 조회·각 Permission 저장·Role/Menu/Button/API 등록/수정
 
-1. 결과 생성 시각과 `stale`·`partial` 표식을 확인한다.
-2. Row 식별자와 상세의 Owner·Version이 동일한지 확인한다.
-3. Masked 값은 원문 조회 권한 없이 복호화하거나 우회하지 않는다.
-4. 상태가 집계값과 상세값에서 다르면 상세 Owner 상태를 기준으로 Reconcile한다.
-5. Empty 결과는 권한·Filter·Environment·시간 범위를 확인한 뒤에만 0건으로 판정한다.
+1. 대상 Operator·Role·Permission·Session·Secret·Approval의 현재 상태와 Version을 조회한다.
+2. 조회 권한과 변경·Raw·Rotate·Approve·Break-glass 권한을 분리해 확인한다.
+3. `조회·각 Permission 저장·Role/Menu/Button/API 등록/수정` 실행 전 Reason, Approval, Expected Version, TTL, Data Scope를 준비한다.
+4. Secret·Password·OTP·PII 원문은 일반 Log·Audit·Clipboard 기록에 남기지 않는다.
+5. 저장 후 Backend 403 경계, 기존 Session 권한 회수, Masking, Audit Before/After를 확인한다.
+6. 응답 유실은 Operation ID·Request Key로 결과를 조회하고 같은 위험 조치를 Blind Retry하지 않는다.
+7. 긴급 권한은 만료·종료·사후 검토와 Owner Command의 Scope 소비를 확인한다.
 
-#### 조치 절차
+#### 화면별 핵심 판정
 
-사용 가능한 조치는 **조회·각 Permission 저장·Role/Menu/Button/API 등록/수정**이다.
-
-1. 조치 직전 대상 상세를 다시 조회한다.
-2. 영향 Preview가 있으면 대상 Instance·거래·사용자·배치·Route 수를 기록한다.
-3. Reason, Approval ID, Expected Version, Idempotency Key를 입력한다.
-4. 실행 후 반환된 Operation ID·Transaction ID를 기록한다.
-5. `ACCEPTED` 또는 HTTP 202는 접수 상태이므로 최종 상태를 조회한다.
-6. Success에서는 상태·Version·Checksum·Audit·Metric이 함께 바뀌었는지 확인한다.
+- Role·Menu·Button·API Permission Registry와 Matrix 변경을 구분한다.
+- Frontend 숨김뿐 아니라 Backend 직접 호출 403을 확인한다.
 
 #### 정상 결과
 
-- 대상 Owner 상태가 요청한 상태로 전이된다.
-- Version 또는 Checksum이 변경 조치와 일치한다.
-- Audit에 Operator, Permission, Reason, Approval, Before/After, Result가 남는다.
-- 관련 Log·Metric·Trace에서 같은 Operation/Transaction 식별자를 찾을 수 있다.
-- 부분 적용 대상이 없거나, 대상별 결과가 명시적으로 구분된다.
+- Owner의 실제 상태와 화면 표시 상태가 일치한다.
+- 변경 조치라면 Version·Checksum·상태 전이가 요청 내용과 일치한다.
+- 부분 적용 대상은 Instance·Partition·Delivery·Row별로 구분된다.
+- Audit에 Operator, Permission, Reason, Approval, Before/After, Operation ID와 결과가 기록된다.
+- 같은 식별자로 Log·Metric·Trace 또는 Owner 원장을 조회할 수 있다.
 
 #### 오류·응답 유실·복구
 
-핵심 복구 기준: Frontend 숨김과 Backend 403 모두 검증
+핵심 기준: **Frontend 숨김과 Backend 403 모두 검증**
 
-| 상황 | 운영 절차 |
+| 상황 | 조치 |
 |---|---|
-| 400·Validation | Field 오류와 허용 범위를 수정하고 새 요청을 만든다. |
+| Validation·400 | 오류 Field·허용 범위·상위 기준정보를 수정하고 새 요청을 만든다. |
 | 401 | Session·CSRF·Origin을 확인하고 재로그인한다. 기존 변경 요청을 자동 재전송하지 않는다. |
-| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. UI 우회 호출을 하지 않는다. |
-| 409 | 최신 Version과 변경자를 조회하고 변경 의도를 다시 확인한다. Blind Retry하지 않는다. |
-| 429 | `Retry-After`와 Rate Limit을 확인한다. 비멱등 조치는 결과 대사 후 재실행한다. |
+| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. 우회 호출하지 않는다. |
+| 409 | 최신 Version·변경자·변경 시각을 조회하고 변경 의도를 다시 확인한다. |
+| 429 | `Retry-After`를 따르며 비멱등 조치는 결과 대사 후 재실행한다. |
 | Timeout·응답 유실 | Operation ID·Transaction ID·Idempotency Key로 기존 결과를 조회한다. |
-| PARTIAL | 성공·실패·미응답 Target을 분리하고 Failed-only Retry 또는 Exact Rollback을 선택한다. |
-| UNKNOWN_RESULT | Owner 원장, 상대 시스템, Ledger, Audit를 대사해 결과를 확정한 뒤 다음 조치를 선택한다. |
+| PARTIAL | 성공·실패·미응답 Target을 분리해 Failed-only Retry 또는 Exact Rollback을 선택한다. |
+| UNKNOWN_RESULT | Owner 원장·상대 시스템·Ledger·Audit를 대사해 결과를 확정한다. |
 
-#### 감사·교대 인계
+#### 교대·감사 기록
 
-교대 기록에는 화면 Route, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 결과 상태, 미확정 항목, 다음 확인 시각, Rollback 기준을 남긴다.
+Route, Environment, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 최종 상태, 미확정 대상, 다음 확인 시각과 Rollback 기준을 기록한다.
+
+
 ### operators — 운영자
 
-**접근 위치**: `/operators`
-**메뉴 그룹**: 프레임워크
-**화면 Source**: ``.../features/operators/OperatorsPage.vue``
+| 항목 | 값 |
+|---|---|
+| Route | `/operators` |
+| 그룹 | 프레임워크 |
+| Frontend | `cpf-admin/frontend/src/features/operators/OperatorsPage.vue` |
+| Permission | `OPERATOR` Write, Raw 별도 |
 
-#### 사용 목적과 사용 시점
+#### 사용 목적과 사용하지 말아야 할 경우
 
-이 화면은 **운영자** 업무를 수행한다. 조회 결과를 다른 화면의 상태와 연결해야 할 때는 Transaction ID, Trace ID, Operation ID, Version, Checksum, Instance ID 중 화면이 제공하는 식별자를 인계 키로 사용한다. 화면의 HTTP 응답만으로 업무 결과를 확정하지 않고 Owner 상태와 Audit를 함께 확인한다.
+이 화면은 **운영자** 기능을 수행한다. 다른 Owner의 상태를 직접 변경하거나, Browser 개발자 도구로 권한을 우회하거나, HTTP 200/202만으로 최종 결과를 확정하는 용도로 사용하지 않는다.
 
-#### 선행 조건
+#### 검색·입력값
 
-1. 대상 Environment와 Tenant·Data Scope가 맞는지 확인한다.
-2. 메뉴 조회 권한과 조치 권한을 구분한다. 필요한 권한은 ``OPERATOR` Write, Raw 별도`이다.
-3. 변경 조치 전 대상의 최신 Version·상태·Owner를 새로 조회한다.
-4. Reason·Approval·Expected Version이 필요한 조치는 값을 준비한다.
-5. 이전 요청이 `PROCESSING`, `UNKNOWN_RESULT`, `PARTIAL`이면 신규 요청을 만들기 전에 기존 Operation을 대사한다.
+- ID/Name/Mobile/Office/Initial Password/Reason
+- Raw Reason
 
-#### 검색·입력
+- 기간은 환경 표준 Timezone과 종료 시각 포함 여부를 확인한다.
+- ID는 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
+- 변경 조치의 Reason에는 목적, 영향 범위, 원복 기준, Incident·Approval ID를 적는다.
+- Password·Token·Secret·서명·PII 원문은 일반 Log나 교대 문서에 복사하지 않는다.
 
-ID/Name/Mobile/Office/Initial Password/Reason; Raw Reason
+#### 목록·상세에서 확인할 값
 
-- 기간 입력은 운영 표준 Timezone을 사용하고 종료 시각 포함 여부를 확인한다.
-- 빈 문자열과 `null`, 전체 선택의 의미를 구분한다.
-- ID 입력은 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
-- Reason은 작업 목적, 영향 범위, 원복 기준, 관련 Incident·Approval ID를 포함한다.
-- 비밀번호·Token·Secret·서명 원문은 일반 입력·Log·Audit에 남기지 않는다.
+- ID/Name/Status/Masked Contact/Roles/Lock
 
-#### 결과와 상세 확인
+- 목록과 상세의 ID·Version·Owner가 다르면 조치를 중단하고 상세를 다시 조회한다.
+- `stale`, `partial`, `unknown`, Empty는 서로 다른 상태다.
+- Masked 값의 원문은 별도 Permission과 Reason이 있을 때만 조회한다.
 
-ID/Name/Status/Masked Contact/Roles/Lock
+#### Button·조치
 
-조회 후 다음 순서로 판정한다.
+- 등록·원문 보기·Role 보유 후 활성화
 
-1. 결과 생성 시각과 `stale`·`partial` 표식을 확인한다.
-2. Row 식별자와 상세의 Owner·Version이 동일한지 확인한다.
-3. Masked 값은 원문 조회 권한 없이 복호화하거나 우회하지 않는다.
-4. 상태가 집계값과 상세값에서 다르면 상세 Owner 상태를 기준으로 Reconcile한다.
-5. Empty 결과는 권한·Filter·Environment·시간 범위를 확인한 뒤에만 0건으로 판정한다.
+1. 대상 Operator·Role·Permission·Session·Secret·Approval의 현재 상태와 Version을 조회한다.
+2. 조회 권한과 변경·Raw·Rotate·Approve·Break-glass 권한을 분리해 확인한다.
+3. `등록·원문 보기·Role 보유 후 활성화` 실행 전 Reason, Approval, Expected Version, TTL, Data Scope를 준비한다.
+4. Secret·Password·OTP·PII 원문은 일반 Log·Audit·Clipboard 기록에 남기지 않는다.
+5. 저장 후 Backend 403 경계, 기존 Session 권한 회수, Masking, Audit Before/After를 확인한다.
+6. 응답 유실은 Operation ID·Request Key로 결과를 조회하고 같은 위험 조치를 Blind Retry하지 않는다.
+7. 긴급 권한은 만료·종료·사후 검토와 Owner Command의 Scope 소비를 확인한다.
 
-#### 조치 절차
+#### 화면별 핵심 판정
 
-사용 가능한 조치는 **등록·원문 보기·Role 보유 후 활성화**이다.
-
-1. 조치 직전 대상 상세를 다시 조회한다.
-2. 영향 Preview가 있으면 대상 Instance·거래·사용자·배치·Route 수를 기록한다.
-3. Reason, Approval ID, Expected Version, Idempotency Key를 입력한다.
-4. 실행 후 반환된 Operation ID·Transaction ID를 기록한다.
-5. `ACCEPTED` 또는 HTTP 202는 접수 상태이므로 최종 상태를 조회한다.
-6. Success에서는 상태·Version·Checksum·Audit·Metric이 함께 바뀌었는지 확인한다.
+- Role이 없는 운영자는 활성화하지 않는다.
+- 원문 연락처 Dialog를 닫을 때 메모리 상태를 지우고 별도 Reason을 남긴다.
 
 #### 정상 결과
 
-- 대상 Owner 상태가 요청한 상태로 전이된다.
-- Version 또는 Checksum이 변경 조치와 일치한다.
-- Audit에 Operator, Permission, Reason, Approval, Before/After, Result가 남는다.
-- 관련 Log·Metric·Trace에서 같은 Operation/Transaction 식별자를 찾을 수 있다.
-- 부분 적용 대상이 없거나, 대상별 결과가 명시적으로 구분된다.
+- Owner의 실제 상태와 화면 표시 상태가 일치한다.
+- 변경 조치라면 Version·Checksum·상태 전이가 요청 내용과 일치한다.
+- 부분 적용 대상은 Instance·Partition·Delivery·Row별로 구분된다.
+- Audit에 Operator, Permission, Reason, Approval, Before/After, Operation ID와 결과가 기록된다.
+- 같은 식별자로 Log·Metric·Trace 또는 Owner 원장을 조회할 수 있다.
 
 #### 오류·응답 유실·복구
 
-핵심 복구 기준: Operation ID 대사; Raw Dialog 종료 시 Clear
+핵심 기준: **Operation ID 대사; Raw Dialog 종료 시 Clear**
 
-| 상황 | 운영 절차 |
+| 상황 | 조치 |
 |---|---|
-| 400·Validation | Field 오류와 허용 범위를 수정하고 새 요청을 만든다. |
+| Validation·400 | 오류 Field·허용 범위·상위 기준정보를 수정하고 새 요청을 만든다. |
 | 401 | Session·CSRF·Origin을 확인하고 재로그인한다. 기존 변경 요청을 자동 재전송하지 않는다. |
-| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. UI 우회 호출을 하지 않는다. |
-| 409 | 최신 Version과 변경자를 조회하고 변경 의도를 다시 확인한다. Blind Retry하지 않는다. |
-| 429 | `Retry-After`와 Rate Limit을 확인한다. 비멱등 조치는 결과 대사 후 재실행한다. |
+| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. 우회 호출하지 않는다. |
+| 409 | 최신 Version·변경자·변경 시각을 조회하고 변경 의도를 다시 확인한다. |
+| 429 | `Retry-After`를 따르며 비멱등 조치는 결과 대사 후 재실행한다. |
 | Timeout·응답 유실 | Operation ID·Transaction ID·Idempotency Key로 기존 결과를 조회한다. |
-| PARTIAL | 성공·실패·미응답 Target을 분리하고 Failed-only Retry 또는 Exact Rollback을 선택한다. |
-| UNKNOWN_RESULT | Owner 원장, 상대 시스템, Ledger, Audit를 대사해 결과를 확정한 뒤 다음 조치를 선택한다. |
+| PARTIAL | 성공·실패·미응답 Target을 분리해 Failed-only Retry 또는 Exact Rollback을 선택한다. |
+| UNKNOWN_RESULT | Owner 원장·상대 시스템·Ledger·Audit를 대사해 결과를 확정한다. |
 
-#### 감사·교대 인계
+#### 교대·감사 기록
 
-교대 기록에는 화면 Route, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 결과 상태, 미확정 항목, 다음 확인 시각, Rollback 기준을 남긴다.
+Route, Environment, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 최종 상태, 미확정 대상, 다음 확인 시각과 Rollback 기준을 기록한다.
+
+
 ### password — Password·Session
 
-**접근 위치**: `/password`
-**메뉴 그룹**: 프레임워크
-**화면 Source**: ``.../features/password/PasswordPage.vue``
+| 항목 | 값 |
+|---|---|
+| Route | `/password` |
+| 그룹 | 프레임워크 |
+| Frontend | `cpf-admin/frontend/src/features/password/PasswordPage.vue` |
+| Permission | `PASSWORD` 또는 `OPERATOR` Write |
 
-#### 사용 목적과 사용 시점
+#### 사용 목적과 사용하지 말아야 할 경우
 
-이 화면은 **Password·Session** 업무를 수행한다. 조회 결과를 다른 화면의 상태와 연결해야 할 때는 Transaction ID, Trace ID, Operation ID, Version, Checksum, Instance ID 중 화면이 제공하는 식별자를 인계 키로 사용한다. 화면의 HTTP 응답만으로 업무 결과를 확정하지 않고 Owner 상태와 Audit를 함께 확인한다.
+이 화면은 **Password·Session** 기능을 수행한다. 다른 Owner의 상태를 직접 변경하거나, Browser 개발자 도구로 권한을 우회하거나, HTTP 200/202만으로 최종 결과를 확정하는 용도로 사용하지 않는다.
 
-#### 선행 조건
+#### 검색·입력값
 
-1. 대상 Environment와 Tenant·Data Scope가 맞는지 확인한다.
-2. 메뉴 조회 권한과 조치 권한을 구분한다. 필요한 권한은 ``PASSWORD` 또는 `OPERATOR` Write`이다.
-3. 변경 조치 전 대상의 최신 Version·상태·Owner를 새로 조회한다.
-4. Reason·Approval·Expected Version이 필요한 조치는 값을 준비한다.
-5. 이전 요청이 `PROCESSING`, `UNKNOWN_RESULT`, `PARTIAL`이면 신규 요청을 만들기 전에 기존 Operation을 대사한다.
+- Operator
+- New Password
+- Force Change
+- Session ID
+- Reason
 
-#### 검색·입력
+- 기간은 환경 표준 Timezone과 종료 시각 포함 여부를 확인한다.
+- ID는 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
+- 변경 조치의 Reason에는 목적, 영향 범위, 원복 기준, Incident·Approval ID를 적는다.
+- Password·Token·Secret·서명·PII 원문은 일반 Log나 교대 문서에 복사하지 않는다.
 
-Operator, New Password, Force Change, Session ID, Reason
+#### 목록·상세에서 확인할 값
 
-- 기간 입력은 운영 표준 Timezone을 사용하고 종료 시각 포함 여부를 확인한다.
-- 빈 문자열과 `null`, 전체 선택의 의미를 구분한다.
-- ID 입력은 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
-- Reason은 작업 목적, 영향 범위, 원복 기준, 관련 Incident·Approval ID를 포함한다.
-- 비밀번호·Token·Secret·서명 원문은 일반 입력·Log·Audit에 남기지 않는다.
+- Policy/Session/Action Result
 
-#### 결과와 상세 확인
+- 목록과 상세의 ID·Version·Owner가 다르면 조치를 중단하고 상세를 다시 조회한다.
+- `stale`, `partial`, `unknown`, Empty는 서로 다른 상태다.
+- Masked 값의 원문은 별도 Permission과 Reason이 있을 때만 조회한다.
 
-Policy/Session/Action Result
+#### Button·조치
 
-조회 후 다음 순서로 판정한다.
+- 정책 조회·Reset·Unlock·Session 조회/강제 종료/만료 정리
 
-1. 결과 생성 시각과 `stale`·`partial` 표식을 확인한다.
-2. Row 식별자와 상세의 Owner·Version이 동일한지 확인한다.
-3. Masked 값은 원문 조회 권한 없이 복호화하거나 우회하지 않는다.
-4. 상태가 집계값과 상세값에서 다르면 상세 Owner 상태를 기준으로 Reconcile한다.
-5. Empty 결과는 권한·Filter·Environment·시간 범위를 확인한 뒤에만 0건으로 판정한다.
+1. 대상 Operator·Role·Permission·Session·Secret·Approval의 현재 상태와 Version을 조회한다.
+2. 조회 권한과 변경·Raw·Rotate·Approve·Break-glass 권한을 분리해 확인한다.
+3. `정책 조회·Reset·Unlock·Session 조회/강제 종료/만료 정리` 실행 전 Reason, Approval, Expected Version, TTL, Data Scope를 준비한다.
+4. Secret·Password·OTP·PII 원문은 일반 Log·Audit·Clipboard 기록에 남기지 않는다.
+5. 저장 후 Backend 403 경계, 기존 Session 권한 회수, Masking, Audit Before/After를 확인한다.
+6. 응답 유실은 Operation ID·Request Key로 결과를 조회하고 같은 위험 조치를 Blind Retry하지 않는다.
+7. 긴급 권한은 만료·종료·사후 검토와 Owner Command의 Scope 소비를 확인한다.
 
-#### 조치 절차
+#### 화면별 핵심 판정
 
-사용 가능한 조치는 **정책 조회·Reset·Unlock·Session 조회/강제 종료/만료 정리**이다.
-
-1. 조치 직전 대상 상세를 다시 조회한다.
-2. 영향 Preview가 있으면 대상 Instance·거래·사용자·배치·Route 수를 기록한다.
-3. Reason, Approval ID, Expected Version, Idempotency Key를 입력한다.
-4. 실행 후 반환된 Operation ID·Transaction ID를 기록한다.
-5. `ACCEPTED` 또는 HTTP 202는 접수 상태이므로 최종 상태를 조회한다.
-6. Success에서는 상태·Version·Checksum·Audit·Metric이 함께 바뀌었는지 확인한다.
+- 초기화·잠금 해제·Session 강제 종료·만료 정리를 구분한다.
+- Password 초기화 후 Force Change와 기존 Session 폐기를 확인한다.
 
 #### 정상 결과
 
-- 대상 Owner 상태가 요청한 상태로 전이된다.
-- Version 또는 Checksum이 변경 조치와 일치한다.
-- Audit에 Operator, Permission, Reason, Approval, Before/After, Result가 남는다.
-- 관련 Log·Metric·Trace에서 같은 Operation/Transaction 식별자를 찾을 수 있다.
-- 부분 적용 대상이 없거나, 대상별 결과가 명시적으로 구분된다.
+- Owner의 실제 상태와 화면 표시 상태가 일치한다.
+- 변경 조치라면 Version·Checksum·상태 전이가 요청 내용과 일치한다.
+- 부분 적용 대상은 Instance·Partition·Delivery·Row별로 구분된다.
+- Audit에 Operator, Permission, Reason, Approval, Before/After, Operation ID와 결과가 기록된다.
+- 같은 식별자로 Log·Metric·Trace 또는 Owner 원장을 조회할 수 있다.
 
 #### 오류·응답 유실·복구
 
-핵심 복구 기준: Reset 뒤 강제 변경·Session 폐기 확인
+핵심 기준: **Reset 뒤 강제 변경·Session 폐기 확인**
 
-| 상황 | 운영 절차 |
+| 상황 | 조치 |
 |---|---|
-| 400·Validation | Field 오류와 허용 범위를 수정하고 새 요청을 만든다. |
+| Validation·400 | 오류 Field·허용 범위·상위 기준정보를 수정하고 새 요청을 만든다. |
 | 401 | Session·CSRF·Origin을 확인하고 재로그인한다. 기존 변경 요청을 자동 재전송하지 않는다. |
-| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. UI 우회 호출을 하지 않는다. |
-| 409 | 최신 Version과 변경자를 조회하고 변경 의도를 다시 확인한다. Blind Retry하지 않는다. |
-| 429 | `Retry-After`와 Rate Limit을 확인한다. 비멱등 조치는 결과 대사 후 재실행한다. |
+| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. 우회 호출하지 않는다. |
+| 409 | 최신 Version·변경자·변경 시각을 조회하고 변경 의도를 다시 확인한다. |
+| 429 | `Retry-After`를 따르며 비멱등 조치는 결과 대사 후 재실행한다. |
 | Timeout·응답 유실 | Operation ID·Transaction ID·Idempotency Key로 기존 결과를 조회한다. |
-| PARTIAL | 성공·실패·미응답 Target을 분리하고 Failed-only Retry 또는 Exact Rollback을 선택한다. |
-| UNKNOWN_RESULT | Owner 원장, 상대 시스템, Ledger, Audit를 대사해 결과를 확정한 뒤 다음 조치를 선택한다. |
+| PARTIAL | 성공·실패·미응답 Target을 분리해 Failed-only Retry 또는 Exact Rollback을 선택한다. |
+| UNKNOWN_RESULT | Owner 원장·상대 시스템·Ledger·Audit를 대사해 결과를 확정한다. |
 
-#### 감사·교대 인계
+#### 교대·감사 기록
 
-교대 기록에는 화면 Route, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 결과 상태, 미확정 항목, 다음 확인 시각, Rollback 기준을 남긴다.
+Route, Environment, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 최종 상태, 미확정 대상, 다음 확인 시각과 Rollback 기준을 기록한다.
+
+
 ### security — IP Allowlist·MFA
 
-**접근 위치**: `/security`
-**메뉴 그룹**: 프레임워크
-**화면 Source**: ``.../features/security/SecurityPage.vue``
+| 항목 | 값 |
+|---|---|
+| Route | `/security` |
+| 그룹 | 프레임워크 |
+| Frontend | `cpf-admin/frontend/src/features/security/SecurityPage.vue` |
+| Permission | `SECURITY` Write |
 
-#### 사용 목적과 사용 시점
+#### 사용 목적과 사용하지 말아야 할 경우
 
-이 화면은 **IP Allowlist·MFA** 업무를 수행한다. 조회 결과를 다른 화면의 상태와 연결해야 할 때는 Transaction ID, Trace ID, Operation ID, Version, Checksum, Instance ID 중 화면이 제공하는 식별자를 인계 키로 사용한다. 화면의 HTTP 응답만으로 업무 결과를 확정하지 않고 Owner 상태와 Audit를 함께 확인한다.
+이 화면은 **IP Allowlist·MFA** 기능을 수행한다. 다른 Owner의 상태를 직접 변경하거나, Browser 개발자 도구로 권한을 우회하거나, HTTP 200/202만으로 최종 결과를 확정하는 용도로 사용하지 않는다.
 
-#### 선행 조건
+#### 검색·입력값
 
-1. 대상 Environment와 Tenant·Data Scope가 맞는지 확인한다.
-2. 메뉴 조회 권한과 조치 권한을 구분한다. 필요한 권한은 ``SECURITY` Write`이다.
-3. 변경 조치 전 대상의 최신 Version·상태·Owner를 새로 조회한다.
-4. Reason·Approval·Expected Version이 필요한 조치는 값을 준비한다.
-5. 이전 요청이 `PROCESSING`, `UNKNOWN_RESULT`, `PARTIAL`이면 신규 요청을 만들기 전에 기존 Operation을 대사한다.
+- IP/CIDR
+- Description
+- Operator
+- Secret Ref
+- OTP
+- Reason
 
-#### 검색·입력
+- 기간은 환경 표준 Timezone과 종료 시각 포함 여부를 확인한다.
+- ID는 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
+- 변경 조치의 Reason에는 목적, 영향 범위, 원복 기준, Incident·Approval ID를 적는다.
+- Password·Token·Secret·서명·PII 원문은 일반 Log나 교대 문서에 복사하지 않는다.
 
-IP/CIDR, Description, Operator, Secret Ref, OTP, Reason
+#### 목록·상세에서 확인할 값
 
-- 기간 입력은 운영 표준 Timezone을 사용하고 종료 시각 포함 여부를 확인한다.
-- 빈 문자열과 `null`, 전체 선택의 의미를 구분한다.
-- ID 입력은 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
-- Reason은 작업 목적, 영향 범위, 원복 기준, 관련 Incident·Approval ID를 포함한다.
-- 비밀번호·Token·Secret·서명 원문은 일반 입력·Log·Audit에 남기지 않는다.
+- Security Result
 
-#### 결과와 상세 확인
+- 목록과 상세의 ID·Version·Owner가 다르면 조치를 중단하고 상세를 다시 조회한다.
+- `stale`, `partial`, `unknown`, Empty는 서로 다른 상태다.
+- Masked 값의 원문은 별도 Permission과 Reason이 있을 때만 조회한다.
 
-Security Result
+#### Button·조치
 
-조회 후 다음 순서로 판정한다.
+- 조회·IP 저장·MFA 등록/검증
 
-1. 결과 생성 시각과 `stale`·`partial` 표식을 확인한다.
-2. Row 식별자와 상세의 Owner·Version이 동일한지 확인한다.
-3. Masked 값은 원문 조회 권한 없이 복호화하거나 우회하지 않는다.
-4. 상태가 집계값과 상세값에서 다르면 상세 Owner 상태를 기준으로 Reconcile한다.
-5. Empty 결과는 권한·Filter·Environment·시간 범위를 확인한 뒤에만 0건으로 판정한다.
+1. 대상 Operator·Role·Permission·Session·Secret·Approval의 현재 상태와 Version을 조회한다.
+2. 조회 권한과 변경·Raw·Rotate·Approve·Break-glass 권한을 분리해 확인한다.
+3. `조회·IP 저장·MFA 등록/검증` 실행 전 Reason, Approval, Expected Version, TTL, Data Scope를 준비한다.
+4. Secret·Password·OTP·PII 원문은 일반 Log·Audit·Clipboard 기록에 남기지 않는다.
+5. 저장 후 Backend 403 경계, 기존 Session 권한 회수, Masking, Audit Before/After를 확인한다.
+6. 응답 유실은 Operation ID·Request Key로 결과를 조회하고 같은 위험 조치를 Blind Retry하지 않는다.
+7. 긴급 권한은 만료·종료·사후 검토와 Owner Command의 Scope 소비를 확인한다.
 
-#### 조치 절차
+#### 화면별 핵심 판정
 
-사용 가능한 조치는 **조회·IP 저장·MFA 등록/검증**이다.
-
-1. 조치 직전 대상 상세를 다시 조회한다.
-2. 영향 Preview가 있으면 대상 Instance·거래·사용자·배치·Route 수를 기록한다.
-3. Reason, Approval ID, Expected Version, Idempotency Key를 입력한다.
-4. 실행 후 반환된 Operation ID·Transaction ID를 기록한다.
-5. `ACCEPTED` 또는 HTTP 202는 접수 상태이므로 최종 상태를 조회한다.
-6. Success에서는 상태·Version·Checksum·Audit·Metric이 함께 바뀌었는지 확인한다.
+- 핵심 입력은 `IP/CIDR, Description, Operator, Secret Ref, OTP, Reason`이며 핵심 결과는 `Security Result`다.
+- 오류·복구는 `Secret 원문 금지; BFF 401/403 재검증`를 우선 확인한다.
 
 #### 정상 결과
 
-- 대상 Owner 상태가 요청한 상태로 전이된다.
-- Version 또는 Checksum이 변경 조치와 일치한다.
-- Audit에 Operator, Permission, Reason, Approval, Before/After, Result가 남는다.
-- 관련 Log·Metric·Trace에서 같은 Operation/Transaction 식별자를 찾을 수 있다.
-- 부분 적용 대상이 없거나, 대상별 결과가 명시적으로 구분된다.
+- Owner의 실제 상태와 화면 표시 상태가 일치한다.
+- 변경 조치라면 Version·Checksum·상태 전이가 요청 내용과 일치한다.
+- 부분 적용 대상은 Instance·Partition·Delivery·Row별로 구분된다.
+- Audit에 Operator, Permission, Reason, Approval, Before/After, Operation ID와 결과가 기록된다.
+- 같은 식별자로 Log·Metric·Trace 또는 Owner 원장을 조회할 수 있다.
 
 #### 오류·응답 유실·복구
 
-핵심 복구 기준: Secret 원문 금지; BFF 401/403 재검증
+핵심 기준: **Secret 원문 금지; BFF 401/403 재검증**
 
-| 상황 | 운영 절차 |
+| 상황 | 조치 |
 |---|---|
-| 400·Validation | Field 오류와 허용 범위를 수정하고 새 요청을 만든다. |
+| Validation·400 | 오류 Field·허용 범위·상위 기준정보를 수정하고 새 요청을 만든다. |
 | 401 | Session·CSRF·Origin을 확인하고 재로그인한다. 기존 변경 요청을 자동 재전송하지 않는다. |
-| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. UI 우회 호출을 하지 않는다. |
-| 409 | 최신 Version과 변경자를 조회하고 변경 의도를 다시 확인한다. Blind Retry하지 않는다. |
-| 429 | `Retry-After`와 Rate Limit을 확인한다. 비멱등 조치는 결과 대사 후 재실행한다. |
+| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. 우회 호출하지 않는다. |
+| 409 | 최신 Version·변경자·변경 시각을 조회하고 변경 의도를 다시 확인한다. |
+| 429 | `Retry-After`를 따르며 비멱등 조치는 결과 대사 후 재실행한다. |
 | Timeout·응답 유실 | Operation ID·Transaction ID·Idempotency Key로 기존 결과를 조회한다. |
-| PARTIAL | 성공·실패·미응답 Target을 분리하고 Failed-only Retry 또는 Exact Rollback을 선택한다. |
-| UNKNOWN_RESULT | Owner 원장, 상대 시스템, Ledger, Audit를 대사해 결과를 확정한 뒤 다음 조치를 선택한다. |
+| PARTIAL | 성공·실패·미응답 Target을 분리해 Failed-only Retry 또는 Exact Rollback을 선택한다. |
+| UNKNOWN_RESULT | Owner 원장·상대 시스템·Ledger·Audit를 대사해 결과를 확정한다. |
 
-#### 감사·교대 인계
+#### 교대·감사 기록
 
-교대 기록에는 화면 Route, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 결과 상태, 미확정 항목, 다음 확인 시각, Rollback 기준을 남긴다.
+Route, Environment, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 최종 상태, 미확정 대상, 다음 확인 시각과 Rollback 기준을 기록한다.
+
+
 ### secrets — Secret Metadata·Rotation
 
-**접근 위치**: `/secrets`
-**메뉴 그룹**: 프레임워크
-**화면 Source**: ``.../features/secrets/SecretsPage.vue``
+| 항목 | 값 |
+|---|---|
+| Route | `/secrets` |
+| 그룹 | 프레임워크 |
+| Frontend | `cpf-admin/frontend/src/features/secrets/SecretsPage.vue` |
+| Permission | Secret Permission |
 
-#### 사용 목적과 사용 시점
+#### 사용 목적과 사용하지 말아야 할 경우
 
-이 화면은 **Secret Metadata·Rotation** 업무를 수행한다. 조회 결과를 다른 화면의 상태와 연결해야 할 때는 Transaction ID, Trace ID, Operation ID, Version, Checksum, Instance ID 중 화면이 제공하는 식별자를 인계 키로 사용한다. 화면의 HTTP 응답만으로 업무 결과를 확정하지 않고 Owner 상태와 Audit를 함께 확인한다.
+이 화면은 **Secret Metadata·Rotation** 기능을 수행한다. 다른 Owner의 상태를 직접 변경하거나, Browser 개발자 도구로 권한을 우회하거나, HTTP 200/202만으로 최종 결과를 확정하는 용도로 사용하지 않는다.
 
-#### 선행 조건
+#### 검색·입력값
 
-1. 대상 Environment와 Tenant·Data Scope가 맞는지 확인한다.
-2. 메뉴 조회 권한과 조치 권한을 구분한다. 필요한 권한은 `Secret Permission`이다.
-3. 변경 조치 전 대상의 최신 Version·상태·Owner를 새로 조회한다.
-4. Reason·Approval·Expected Version이 필요한 조치는 값을 준비한다.
-5. 이전 요청이 `PROCESSING`, `UNKNOWN_RESULT`, `PARTIAL`이면 신규 요청을 만들기 전에 기존 Operation을 대사한다.
+- Provider
+- Key
+- Rotation Reason
 
-#### 검색·입력
+- 기간은 환경 표준 Timezone과 종료 시각 포함 여부를 확인한다.
+- ID는 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
+- 변경 조치의 Reason에는 목적, 영향 범위, 원복 기준, Incident·Approval ID를 적는다.
+- Password·Token·Secret·서명·PII 원문은 일반 Log나 교대 문서에 복사하지 않는다.
 
-Provider, Key, Rotation Reason
+#### 목록·상세에서 확인할 값
 
-- 기간 입력은 운영 표준 Timezone을 사용하고 종료 시각 포함 여부를 확인한다.
-- 빈 문자열과 `null`, 전체 선택의 의미를 구분한다.
-- ID 입력은 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
-- Reason은 작업 목적, 영향 범위, 원복 기준, 관련 Incident·Approval ID를 포함한다.
-- 비밀번호·Token·Secret·서명 원문은 일반 입력·Log·Audit에 남기지 않는다.
+- Reference/Version/Created/Expires/Rotatable/Attributes
 
-#### 결과와 상세 확인
+- 목록과 상세의 ID·Version·Owner가 다르면 조치를 중단하고 상세를 다시 조회한다.
+- `stale`, `partial`, `unknown`, Empty는 서로 다른 상태다.
+- Masked 값의 원문은 별도 Permission과 Reason이 있을 때만 조회한다.
 
-Reference/Version/Created/Expires/Rotatable/Attributes
+#### Button·조치
 
-조회 후 다음 순서로 판정한다.
+- Provider 조회·Metadata 조회·Rotation
 
-1. 결과 생성 시각과 `stale`·`partial` 표식을 확인한다.
-2. Row 식별자와 상세의 Owner·Version이 동일한지 확인한다.
-3. Masked 값은 원문 조회 권한 없이 복호화하거나 우회하지 않는다.
-4. 상태가 집계값과 상세값에서 다르면 상세 Owner 상태를 기준으로 Reconcile한다.
-5. Empty 결과는 권한·Filter·Environment·시간 범위를 확인한 뒤에만 0건으로 판정한다.
+1. 대상 Operator·Role·Permission·Session·Secret·Approval의 현재 상태와 Version을 조회한다.
+2. 조회 권한과 변경·Raw·Rotate·Approve·Break-glass 권한을 분리해 확인한다.
+3. `Provider 조회·Metadata 조회·Rotation` 실행 전 Reason, Approval, Expected Version, TTL, Data Scope를 준비한다.
+4. Secret·Password·OTP·PII 원문은 일반 Log·Audit·Clipboard 기록에 남기지 않는다.
+5. 저장 후 Backend 403 경계, 기존 Session 권한 회수, Masking, Audit Before/After를 확인한다.
+6. 응답 유실은 Operation ID·Request Key로 결과를 조회하고 같은 위험 조치를 Blind Retry하지 않는다.
+7. 긴급 권한은 만료·종료·사후 검토와 Owner Command의 Scope 소비를 확인한다.
 
-#### 조치 절차
+#### 화면별 핵심 판정
 
-사용 가능한 조치는 **Provider 조회·Metadata 조회·Rotation**이다.
-
-1. 조치 직전 대상 상세를 다시 조회한다.
-2. 영향 Preview가 있으면 대상 Instance·거래·사용자·배치·Route 수를 기록한다.
-3. Reason, Approval ID, Expected Version, Idempotency Key를 입력한다.
-4. 실행 후 반환된 Operation ID·Transaction ID를 기록한다.
-5. `ACCEPTED` 또는 HTTP 202는 접수 상태이므로 최종 상태를 조회한다.
-6. Success에서는 상태·Version·Checksum·Audit·Metric이 함께 바뀌었는지 확인한다.
+- Provider와 Secret Metadata 양쪽이 Rotatable일 때만 Rotation한다.
+- Rotation 후 Consumer Reload와 이전 Version Rollback 유효기간을 확인한다.
 
 #### 정상 결과
 
-- 대상 Owner 상태가 요청한 상태로 전이된다.
-- Version 또는 Checksum이 변경 조치와 일치한다.
-- Audit에 Operator, Permission, Reason, Approval, Before/After, Result가 남는다.
-- 관련 Log·Metric·Trace에서 같은 Operation/Transaction 식별자를 찾을 수 있다.
-- 부분 적용 대상이 없거나, 대상별 결과가 명시적으로 구분된다.
+- Owner의 실제 상태와 화면 표시 상태가 일치한다.
+- 변경 조치라면 Version·Checksum·상태 전이가 요청 내용과 일치한다.
+- 부분 적용 대상은 Instance·Partition·Delivery·Row별로 구분된다.
+- Audit에 Operator, Permission, Reason, Approval, Before/After, Operation ID와 결과가 기록된다.
+- 같은 식별자로 Log·Metric·Trace 또는 Owner 원장을 조회할 수 있다.
 
 #### 오류·응답 유실·복구
 
-핵심 복구 기준: Provider와 Secret 모두 Rotatable일 때만
+핵심 기준: **Provider와 Secret 모두 Rotatable일 때만**
 
-| 상황 | 운영 절차 |
+| 상황 | 조치 |
 |---|---|
-| 400·Validation | Field 오류와 허용 범위를 수정하고 새 요청을 만든다. |
+| Validation·400 | 오류 Field·허용 범위·상위 기준정보를 수정하고 새 요청을 만든다. |
 | 401 | Session·CSRF·Origin을 확인하고 재로그인한다. 기존 변경 요청을 자동 재전송하지 않는다. |
-| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. UI 우회 호출을 하지 않는다. |
-| 409 | 최신 Version과 변경자를 조회하고 변경 의도를 다시 확인한다. Blind Retry하지 않는다. |
-| 429 | `Retry-After`와 Rate Limit을 확인한다. 비멱등 조치는 결과 대사 후 재실행한다. |
+| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. 우회 호출하지 않는다. |
+| 409 | 최신 Version·변경자·변경 시각을 조회하고 변경 의도를 다시 확인한다. |
+| 429 | `Retry-After`를 따르며 비멱등 조치는 결과 대사 후 재실행한다. |
 | Timeout·응답 유실 | Operation ID·Transaction ID·Idempotency Key로 기존 결과를 조회한다. |
-| PARTIAL | 성공·실패·미응답 Target을 분리하고 Failed-only Retry 또는 Exact Rollback을 선택한다. |
-| UNKNOWN_RESULT | Owner 원장, 상대 시스템, Ledger, Audit를 대사해 결과를 확정한 뒤 다음 조치를 선택한다. |
+| PARTIAL | 성공·실패·미응답 Target을 분리해 Failed-only Retry 또는 Exact Rollback을 선택한다. |
+| UNKNOWN_RESULT | Owner 원장·상대 시스템·Ledger·Audit를 대사해 결과를 확정한다. |
 
-#### 감사·교대 인계
+#### 교대·감사 기록
 
-교대 기록에는 화면 Route, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 결과 상태, 미확정 항목, 다음 확인 시각, Rollback 기준을 남긴다.
+Route, Environment, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 최종 상태, 미확정 대상, 다음 확인 시각과 Rollback 기준을 기록한다.
+
+
 ### approvals — 위험조치 승인
 
-**접근 위치**: `/approvals`
-**메뉴 그룹**: 프레임워크
-**화면 Source**: ``.../features/approvals/ApprovalsPage.vue``
+| 항목 | 값 |
+|---|---|
+| Route | `/approvals` |
+| 그룹 | 프레임워크 |
+| Frontend | `cpf-admin/frontend/src/features/approvals/ApprovalsPage.vue` |
+| Permission | Approval Role |
 
-#### 사용 목적과 사용 시점
+#### 사용 목적과 사용하지 말아야 할 경우
 
-이 화면은 **위험조치 승인** 업무를 수행한다. 조회 결과를 다른 화면의 상태와 연결해야 할 때는 Transaction ID, Trace ID, Operation ID, Version, Checksum, Instance ID 중 화면이 제공하는 식별자를 인계 키로 사용한다. 화면의 HTTP 응답만으로 업무 결과를 확정하지 않고 Owner 상태와 Audit를 함께 확인한다.
+이 화면은 **위험조치 승인** 기능을 수행한다. 다른 Owner의 상태를 직접 변경하거나, Browser 개발자 도구로 권한을 우회하거나, HTTP 200/202만으로 최종 결과를 확정하는 용도로 사용하지 않는다.
 
-#### 선행 조건
+#### 검색·입력값
 
-1. 대상 Environment와 Tenant·Data Scope가 맞는지 확인한다.
-2. 메뉴 조회 권한과 조치 권한을 구분한다. 필요한 권한은 `Approval Role`이다.
-3. 변경 조치 전 대상의 최신 Version·상태·Owner를 새로 조회한다.
-4. Reason·Approval·Expected Version이 필요한 조치는 값을 준비한다.
-5. 이전 요청이 `PROCESSING`, `UNKNOWN_RESULT`, `PARTIAL`이면 신규 요청을 만들기 전에 기존 Operation을 대사한다.
+- Action/Policy/Owner/Target/Request Key/Expire/Reason/Masked Snapshot
+- Decision/Idempotency
 
-#### 검색·입력
+- 기간은 환경 표준 Timezone과 종료 시각 포함 여부를 확인한다.
+- ID는 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
+- 변경 조치의 Reason에는 목적, 영향 범위, 원복 기준, Incident·Approval ID를 적는다.
+- Password·Token·Secret·서명·PII 원문은 일반 Log나 교대 문서에 복사하지 않는다.
 
-Action/Policy/Owner/Target/Request Key/Expire/Reason/Masked Snapshot; Decision/Idempotency
+#### 목록·상세에서 확인할 값
 
-- 기간 입력은 운영 표준 Timezone을 사용하고 종료 시각 포함 여부를 확인한다.
-- 빈 문자열과 `null`, 전체 선택의 의미를 구분한다.
-- ID 입력은 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
-- Reason은 작업 목적, 영향 범위, 원복 기준, 관련 Incident·Approval ID를 포함한다.
-- 비밀번호·Token·Secret·서명 원문은 일반 입력·Log·Audit에 남기지 않는다.
+- Request/Execution/Policy
 
-#### 결과와 상세 확인
+- 목록과 상세의 ID·Version·Owner가 다르면 조치를 중단하고 상세를 다시 조회한다.
+- `stale`, `partial`, `unknown`, Empty는 서로 다른 상태다.
+- Masked 값의 원문은 별도 Permission과 Reason이 있을 때만 조회한다.
 
-Request/Execution/Policy
+#### Button·조치
 
-조회 후 다음 순서로 판정한다.
+- 요청·결정·승인 Command 실행
 
-1. 결과 생성 시각과 `stale`·`partial` 표식을 확인한다.
-2. Row 식별자와 상세의 Owner·Version이 동일한지 확인한다.
-3. Masked 값은 원문 조회 권한 없이 복호화하거나 우회하지 않는다.
-4. 상태가 집계값과 상세값에서 다르면 상세 Owner 상태를 기준으로 Reconcile한다.
-5. Empty 결과는 권한·Filter·Environment·시간 범위를 확인한 뒤에만 0건으로 판정한다.
+1. 대상 Operator·Role·Permission·Session·Secret·Approval의 현재 상태와 Version을 조회한다.
+2. 조회 권한과 변경·Raw·Rotate·Approve·Break-glass 권한을 분리해 확인한다.
+3. `요청·결정·승인 Command 실행` 실행 전 Reason, Approval, Expected Version, TTL, Data Scope를 준비한다.
+4. Secret·Password·OTP·PII 원문은 일반 Log·Audit·Clipboard 기록에 남기지 않는다.
+5. 저장 후 Backend 403 경계, 기존 Session 권한 회수, Masking, Audit Before/After를 확인한다.
+6. 응답 유실은 Operation ID·Request Key로 결과를 조회하고 같은 위험 조치를 Blind Retry하지 않는다.
+7. 긴급 권한은 만료·종료·사후 검토와 Owner Command의 Scope 소비를 확인한다.
 
-#### 조치 절차
+#### 화면별 핵심 판정
 
-사용 가능한 조치는 **요청·결정·승인 Command 실행**이다.
-
-1. 조치 직전 대상 상세를 다시 조회한다.
-2. 영향 Preview가 있으면 대상 Instance·거래·사용자·배치·Route 수를 기록한다.
-3. Reason, Approval ID, Expected Version, Idempotency Key를 입력한다.
-4. 실행 후 반환된 Operation ID·Transaction ID를 기록한다.
-5. `ACCEPTED` 또는 HTTP 202는 접수 상태이므로 최종 상태를 조회한다.
-6. Success에서는 상태·Version·Checksum·Audit·Metric이 함께 바뀌었는지 확인한다.
+- 승인 Snapshot은 마스킹 Payload와 SHA-256 Hash를 기준으로 한다.
+- 승인 결정과 승인 Command 실행 결과를 분리하고 `recoveryRequiredYn`을 확인한다.
 
 #### 정상 결과
 
-- 대상 Owner 상태가 요청한 상태로 전이된다.
-- Version 또는 Checksum이 변경 조치와 일치한다.
-- Audit에 Operator, Permission, Reason, Approval, Before/After, Result가 남는다.
-- 관련 Log·Metric·Trace에서 같은 Operation/Transaction 식별자를 찾을 수 있다.
-- 부분 적용 대상이 없거나, 대상별 결과가 명시적으로 구분된다.
+- Owner의 실제 상태와 화면 표시 상태가 일치한다.
+- 변경 조치라면 Version·Checksum·상태 전이가 요청 내용과 일치한다.
+- 부분 적용 대상은 Instance·Partition·Delivery·Row별로 구분된다.
+- Audit에 Operator, Permission, Reason, Approval, Before/After, Operation ID와 결과가 기록된다.
+- 같은 식별자로 Log·Metric·Trace 또는 Owner 원장을 조회할 수 있다.
 
 #### 오류·응답 유실·복구
 
-핵심 복구 기준: UNKNOWN은 recoveryRequiredYn으로 대사
+핵심 기준: **UNKNOWN은 recoveryRequiredYn으로 대사**
 
-| 상황 | 운영 절차 |
+| 상황 | 조치 |
 |---|---|
-| 400·Validation | Field 오류와 허용 범위를 수정하고 새 요청을 만든다. |
+| Validation·400 | 오류 Field·허용 범위·상위 기준정보를 수정하고 새 요청을 만든다. |
 | 401 | Session·CSRF·Origin을 확인하고 재로그인한다. 기존 변경 요청을 자동 재전송하지 않는다. |
-| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. UI 우회 호출을 하지 않는다. |
-| 409 | 최신 Version과 변경자를 조회하고 변경 의도를 다시 확인한다. Blind Retry하지 않는다. |
-| 429 | `Retry-After`와 Rate Limit을 확인한다. 비멱등 조치는 결과 대사 후 재실행한다. |
+| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. 우회 호출하지 않는다. |
+| 409 | 최신 Version·변경자·변경 시각을 조회하고 변경 의도를 다시 확인한다. |
+| 429 | `Retry-After`를 따르며 비멱등 조치는 결과 대사 후 재실행한다. |
 | Timeout·응답 유실 | Operation ID·Transaction ID·Idempotency Key로 기존 결과를 조회한다. |
-| PARTIAL | 성공·실패·미응답 Target을 분리하고 Failed-only Retry 또는 Exact Rollback을 선택한다. |
-| UNKNOWN_RESULT | Owner 원장, 상대 시스템, Ledger, Audit를 대사해 결과를 확정한 뒤 다음 조치를 선택한다. |
+| PARTIAL | 성공·실패·미응답 Target을 분리해 Failed-only Retry 또는 Exact Rollback을 선택한다. |
+| UNKNOWN_RESULT | Owner 원장·상대 시스템·Ledger·Audit를 대사해 결과를 확정한다. |
 
-#### 감사·교대 인계
+#### 교대·감사 기록
 
-교대 기록에는 화면 Route, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 결과 상태, 미확정 항목, 다음 확인 시각, Rollback 기준을 남긴다.
+Route, Environment, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 최종 상태, 미확정 대상, 다음 확인 시각과 Rollback 기준을 기록한다.
+
+
 ### breakGlass — 비상 권한
 
-**접근 위치**: `/breakGlass`
-**메뉴 그룹**: 프레임워크
-**화면 Source**: ``.../features/break-glass/BreakGlassPage.vue``
+| 항목 | 값 |
+|---|---|
+| Route | `/breakGlass` |
+| 그룹 | 프레임워크 |
+| Frontend | `cpf-admin/frontend/src/features/break-glass/BreakGlassPage.vue` |
+| Permission | Break-glass Permission |
 
-#### 사용 목적과 사용 시점
+#### 사용 목적과 사용하지 말아야 할 경우
 
-이 화면은 **비상 권한** 업무를 수행한다. 조회 결과를 다른 화면의 상태와 연결해야 할 때는 Transaction ID, Trace ID, Operation ID, Version, Checksum, Instance ID 중 화면이 제공하는 식별자를 인계 키로 사용한다. 화면의 HTTP 응답만으로 업무 결과를 확정하지 않고 Owner 상태와 Audit를 함께 확인한다.
+이 화면은 **비상 권한** 기능을 수행한다. 다른 Owner의 상태를 직접 변경하거나, Browser 개발자 도구로 권한을 우회하거나, HTTP 200/202만으로 최종 결과를 확정하는 용도로 사용하지 않는다.
 
-#### 선행 조건
+#### 검색·입력값
 
-1. 대상 Environment와 Tenant·Data Scope가 맞는지 확인한다.
-2. 메뉴 조회 권한과 조치 권한을 구분한다. 필요한 권한은 `Break-glass Permission`이다.
-3. 변경 조치 전 대상의 최신 Version·상태·Owner를 새로 조회한다.
-4. Reason·Approval·Expected Version이 필요한 조치는 값을 준비한다.
-5. 이전 요청이 `PROCESSING`, `UNKNOWN_RESULT`, `PARTIAL`이면 신규 요청을 만들기 전에 기존 Operation을 대사한다.
+- Scope SERVICE/BATCH/CENTER_CUT/RECOVERY/SECURITY
+- Target
+- TTL 1~30
+- Reason
 
-#### 검색·입력
+- 기간은 환경 표준 Timezone과 종료 시각 포함 여부를 확인한다.
+- ID는 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
+- 변경 조치의 Reason에는 목적, 영향 범위, 원복 기준, Incident·Approval ID를 적는다.
+- Password·Token·Secret·서명·PII 원문은 일반 Log나 교대 문서에 복사하지 않는다.
 
-Scope SERVICE/BATCH/CENTER_CUT/RECOVERY/SECURITY, Target, TTL 1~30, Reason
+#### 목록·상세에서 확인할 값
 
-- 기간 입력은 운영 표준 Timezone을 사용하고 종료 시각 포함 여부를 확인한다.
-- 빈 문자열과 `null`, 전체 선택의 의미를 구분한다.
-- ID 입력은 앞뒤 공백을 제거하되 대소문자를 임의 변경하지 않는다.
-- Reason은 작업 목적, 영향 범위, 원복 기준, 관련 Incident·Approval ID를 포함한다.
-- 비밀번호·Token·Secret·서명 원문은 일반 입력·Log·Audit에 남기지 않는다.
+- Session/Status/Expiry/Post Review
 
-#### 결과와 상세 확인
+- 목록과 상세의 ID·Version·Owner가 다르면 조치를 중단하고 상세를 다시 조회한다.
+- `stale`, `partial`, `unknown`, Empty는 서로 다른 상태다.
+- Masked 값의 원문은 별도 Permission과 Reason이 있을 때만 조회한다.
 
-Session/Status/Expiry/Post Review
+#### Button·조치
 
-조회 후 다음 순서로 판정한다.
+- 발급·종료·사후 승인/문제 기록
 
-1. 결과 생성 시각과 `stale`·`partial` 표식을 확인한다.
-2. Row 식별자와 상세의 Owner·Version이 동일한지 확인한다.
-3. Masked 값은 원문 조회 권한 없이 복호화하거나 우회하지 않는다.
-4. 상태가 집계값과 상세값에서 다르면 상세 Owner 상태를 기준으로 Reconcile한다.
-5. Empty 결과는 권한·Filter·Environment·시간 범위를 확인한 뒤에만 0건으로 판정한다.
+1. 대상 Operator·Role·Permission·Session·Secret·Approval의 현재 상태와 Version을 조회한다.
+2. 조회 권한과 변경·Raw·Rotate·Approve·Break-glass 권한을 분리해 확인한다.
+3. `발급·종료·사후 승인/문제 기록` 실행 전 Reason, Approval, Expected Version, TTL, Data Scope를 준비한다.
+4. Secret·Password·OTP·PII 원문은 일반 Log·Audit·Clipboard 기록에 남기지 않는다.
+5. 저장 후 Backend 403 경계, 기존 Session 권한 회수, Masking, Audit Before/After를 확인한다.
+6. 응답 유실은 Operation ID·Request Key로 결과를 조회하고 같은 위험 조치를 Blind Retry하지 않는다.
+7. 긴급 권한은 만료·종료·사후 검토와 Owner Command의 Scope 소비를 확인한다.
 
-#### 조치 절차
+#### 화면별 핵심 판정
 
-사용 가능한 조치는 **발급·종료·사후 승인/문제 기록**이다.
-
-1. 조치 직전 대상 상세를 다시 조회한다.
-2. 영향 Preview가 있으면 대상 Instance·거래·사용자·배치·Route 수를 기록한다.
-3. Reason, Approval ID, Expected Version, Idempotency Key를 입력한다.
-4. 실행 후 반환된 Operation ID·Transaction ID를 기록한다.
-5. `ACCEPTED` 또는 HTTP 202는 접수 상태이므로 최종 상태를 조회한다.
-6. Success에서는 상태·Version·Checksum·Audit·Metric이 함께 바뀌었는지 확인한다.
+- Scope·Target·TTL 1~30분을 최소화한다.
+- 종료 후 사용 Command·조회 범위·사후 승인 또는 문제 기록을 검토한다.
 
 #### 정상 결과
 
-- 대상 Owner 상태가 요청한 상태로 전이된다.
-- Version 또는 Checksum이 변경 조치와 일치한다.
-- Audit에 Operator, Permission, Reason, Approval, Before/After, Result가 남는다.
-- 관련 Log·Metric·Trace에서 같은 Operation/Transaction 식별자를 찾을 수 있다.
-- 부분 적용 대상이 없거나, 대상별 결과가 명시적으로 구분된다.
+- Owner의 실제 상태와 화면 표시 상태가 일치한다.
+- 변경 조치라면 Version·Checksum·상태 전이가 요청 내용과 일치한다.
+- 부분 적용 대상은 Instance·Partition·Delivery·Row별로 구분된다.
+- Audit에 Operator, Permission, Reason, Approval, Before/After, Operation ID와 결과가 기록된다.
+- 같은 식별자로 Log·Metric·Trace 또는 Owner 원장을 조회할 수 있다.
 
 #### 오류·응답 유실·복구
 
-핵심 복구 기준: Owner Command가 Scope를 명시적으로 소비
+핵심 기준: **Owner Command가 Scope를 명시적으로 소비**
 
-| 상황 | 운영 절차 |
+| 상황 | 조치 |
 |---|---|
-| 400·Validation | Field 오류와 허용 범위를 수정하고 새 요청을 만든다. |
+| Validation·400 | 오류 Field·허용 범위·상위 기준정보를 수정하고 새 요청을 만든다. |
 | 401 | Session·CSRF·Origin을 확인하고 재로그인한다. 기존 변경 요청을 자동 재전송하지 않는다. |
-| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. UI 우회 호출을 하지 않는다. |
-| 409 | 최신 Version과 변경자를 조회하고 변경 의도를 다시 확인한다. Blind Retry하지 않는다. |
-| 429 | `Retry-After`와 Rate Limit을 확인한다. 비멱등 조치는 결과 대사 후 재실행한다. |
+| 403 | Menu·Button·API Permission과 Data Scope를 확인한다. 우회 호출하지 않는다. |
+| 409 | 최신 Version·변경자·변경 시각을 조회하고 변경 의도를 다시 확인한다. |
+| 429 | `Retry-After`를 따르며 비멱등 조치는 결과 대사 후 재실행한다. |
 | Timeout·응답 유실 | Operation ID·Transaction ID·Idempotency Key로 기존 결과를 조회한다. |
-| PARTIAL | 성공·실패·미응답 Target을 분리하고 Failed-only Retry 또는 Exact Rollback을 선택한다. |
-| UNKNOWN_RESULT | Owner 원장, 상대 시스템, Ledger, Audit를 대사해 결과를 확정한 뒤 다음 조치를 선택한다. |
+| PARTIAL | 성공·실패·미응답 Target을 분리해 Failed-only Retry 또는 Exact Rollback을 선택한다. |
+| UNKNOWN_RESULT | Owner 원장·상대 시스템·Ledger·Audit를 대사해 결과를 확정한다. |
 
-#### 감사·교대 인계
+#### 교대·감사 기록
 
-교대 기록에는 화면 Route, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 결과 상태, 미확정 항목, 다음 확인 시각, Rollback 기준을 남긴다.
-
-
-## 34. ADM 일일 운영 순서
-
-1. Dashboard에서 비정상 Health, Unknown Result, DLQ, 최근 실패를 확인한다.
-2. Topology·Capacity에서 Instance·Version·Resource 이상을 확인한다.
-3. Runtime·Gateway·Batch의 Desired/Actual·ACK/NACK·Lease·Drift를 확인한다.
-4. Audit Delivery·Notification Outbox·Recovery Center의 적체를 확인한다.
-5. 만료 예정 Approval·Break-glass·Secret·Certificate·Download를 확인한다.
-6. 교대 전 미확정 Operation과 다음 Reconcile 시각을 기록한다.
-
-## 35. 월간 운영 검토
-
-- Permission Matrix와 휴면·퇴직 운영자 계정을 검토한다.
-- Raw 조회·Export·Break-glass·Secret Rotation Audit를 검토한다.
-- Runtime Config·Route·Log Policy·Business Calendar 변경 이력을 검토한다.
-- Incident·DLQ·Unknown Result의 반복 원인과 Runbook 개선을 검토한다.
-- Batch Restart·Reprocess·Abandon과 Gateway Rollback 빈도를 검토한다.
+Route, Environment, 검색 조건, 대상 ID, Before/After Version, Operation ID, Approval ID, 최종 상태, 미확정 대상, 다음 확인 시각과 Rollback 기준을 기록한다.

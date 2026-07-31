@@ -2,7 +2,7 @@
 
 > **기준 Repository** `freeangelsun/202412_01_CPF`
 > **기준 Branch** `master`
-> **기준 Commit** `e1f8bef7b7193522f2cd8e36cc6857dd1ff6694a`
+> **기준 Commit** `95e592c05fc457301efdb13ee50e0d7453325806`
 > **문서 목적** BZA 도입 판단, 설치·초기 관리자, 조직·직원·사용자, Role·Permission·Data Scope, 결재·위임, Attachment·Notification, Session·Audit·Export, Domain 연계·복구를 설명한다.
 > **주요 독자** BZA 도입 책임자, 개발자, 업무 관리자, 권한·조직·결재 운영자
 > **문서 사용 결과** BZA를 선택 설치하고 업무 관리 기능을 권한·승인·감사·복구 계약과 함께 운영한다.
@@ -403,7 +403,7 @@ BZA 확장은 조직·사용자·Role·Permission·결재 같은 업무 관리 C
 
 - Repository: `https://github.com/freeangelsun/202412_01_CPF`
 - Branch: `master`
-- 기준 Commit: `e1f8bef7b7193522f2cd8e36cc6857dd1ff6694a`
+- 기준 Commit: `95e592c05fc457301efdb13ee50e0d7453325806`
 - 문서 표준: `cpf-docs/specification/CPF_DOCUMENTATION_STANDARD.md`
 - 제품 목표 정본: `cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md`
 - 사실 우선순위: 실제 Source·SQL·API·Config·Frontend·Script·Test → Architecture·Specification → 이 매뉴얼
@@ -732,1606 +732,1548 @@ Scanner/Storage/Checksum/Quarantine/Retention을 확인하고 CLEAN을 추정으
 
 ---
 
-## 제3부. BZA 26개 화면별 상세 사용 절차
+## 제3부. BZA 전체 화면별 업무 절차
 
-## 30. BZA 기능 카드 사용법
+이 부는 `cpf-biz-admin/frontend/src/app/routes.ts`에 등록된 전체 Route를 조직·권한·결재·첨부·지원 업무별로 설명한다. 모든 변경은 기준일·유효기간·Expected Version·Data Scope·Audit를 함께 확인한다.
 
-조직·직원·사용자·Role·결재는 서로 영향을 주므로 화면 하나의 저장 결과만 확인하지 않는다. 변경 후 연관 Projection, Permission Evaluation, Approval Simulation, Audit를 순서대로 확인한다.
-
-
-
-## 31. 신규 조직·직원·사용자 Onboarding 전체 절차
-
-1. Organization Code·Name·Parent·유효기간을 등록한다.
-2. Position·Job Title 기준정보를 등록한다.
-3. Employee Profile을 Masking 정책과 함께 등록한다.
-4. Assignment로 주 조직·겸직·파견·대행과 기간을 지정한다.
-5. Organization Responsibility로 조직장·승인 Owner를 지정한다.
-6. User를 Employee와 연결하고 인증 상태를 설정한다.
-7. Role과 User Role 유효기간을 등록한다.
-8. Menu·Action·API·Data Scope Permission을 확인한다.
-9. Approval Simulation으로 조직·Role·위임 경로를 확인한다.
-10. 로그인·메뉴·업무 조회·상신·첨부·Audit를 확인한다.
-
-## 32. 퇴직·이동·권한 회수 절차
-
-1. 진행 중 결재와 위임·대결을 조회한다.
-2. 업무 Owner와 조직 책임을 새 담당자에게 이관한다.
-3. User Role 종료일과 Assignment 종료일을 적용한다.
-4. Session을 폐기한다.
-5. Download·Raw Data·Break-glass 권한을 회수한다.
-6. 미처리 결재 Inbox를 재배정하거나 정책에 따라 처리한다.
-7. 변경 전후 Permission Simulation과 Audit를 확인한다.
-
-## 33. 결재 정책 변경 절차
-
-1. 기존 Policy Version과 사용 중인 Approval Instance를 조회한다.
-2. ALL·ANY·N_OF_M, 참여자 해석, 조직·Role·책임·위임 규칙을 작성한다.
-3. Simulation으로 대표 조직·직원·대행·위임 Scenario를 실행한다.
-4. 자기승인·순환·빈 참여자·만료·중복 위임을 검사한다.
-5. 새 Version을 게시하고 적용 시작 시각을 기록한다.
-6. 기존 상신은 기존 Snapshot을 유지하는지 확인한다.
-7. 실제 상신·Inbox·승인·반려·회수·만료를 시험한다.
-
-## 34. BZA 업무 Domain 연계 계약
-
-업무 Domain은 BZA DB를 직접 조회하지 않고 조직·사용자·Permission·Approval Public API를 사용한다. 응답에는 Version·기준 시각·Data Scope·Masking 정보를 포함하고, Remote Timeout 시 Operation 또는 Approval ID로 상태를 조회한다.
-
----
-
-## 제4부. BZA 화면별 업무 완결 절차
-
-> 아래 26개 기능 카드는 화면 진입부터 입력, 정상 결과, 오류, 복구, 감사 확인까지 한 단위로 설명한다.
 
 ### dashboard — 업무 운영 현황
 
-**Route**: `/`
-**Menu Code**: `DASHBOARD`
-**Frontend**: `cpf-biz-admin/frontend/src/features/dashboard/DashboardPage.vue`
+| 항목 | 값 |
+|---|---|
+| Route | `/` |
+| Menu Code | `DASHBOARD` |
+| Frontend | `cpf-biz-admin/frontend/src/features/dashboard/DashboardPage.vue` |
+| Permission | 조회 |
 
-#### 기능 목적
+#### 사용 목적과 업무 영향
 
-업무 운영 현황 기능을 조회·등록·변경·감사한다. 이 기능의 변경은 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer에 영향을 줄 수 있으므로 단일 화면 저장 결과만으로 종료하지 않는다.
+이 화면은 **업무 운영 현황** 기능을 제공한다. 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer 중 영향을 받는 항목을 변경 전후에 확인한다.
 
-#### 선행 조건
+#### 입력·검색·표시 값
 
-1. 로그인 사용자에게 `조회` 권한이 있는지 확인한다.
-2. 상위 기준정보와 대상의 현재 Version·유효기간·Active 상태를 조회한다.
-3. 개인정보·첨부·Download 기능은 Raw·Export 권한과 Reason을 별도로 확인한다.
-4. 변경 중인 Operation 또는 Approval이 있으면 기존 ID로 결과를 확인한다.
+- 통계·최근 상태
 
-#### 검색·입력·표시 값
+- ID·Code의 변경 가능 여부와 참조 Consumer를 확인한다.
+- 날짜는 시작·종료 포함 경계와 업무 Timezone을 기록한다.
+- 빈 값, `null`, Clear Flag, Use N의 의미를 구분한다.
+- PII·Password·첨부 원문은 Masking·Raw 권한·Reason을 적용한다.
 
-통계·최근 상태
+#### Button·조치
 
-입력 Field마다 필수 여부, 공백·Null 의미, 최대 길이, 날짜 포함 경계, Code 불변성, Expected Version을 확인한다. 조직·Role·Assignment·Delegation은 기간 중복과 순환을 검사한다.
+- 새로고침
 
-#### 조치
-
-화면 조치: **새로고침**
-
-1. 조회 조건을 제한하고 대상을 선택한다.
-2. Detail에서 ID·Version·유효기간·최근 변경자를 확인한다.
-3. 변경 영향 Preview 또는 Simulation을 실행한다.
-4. Reason과 Expected Version을 입력한다.
-5. 등록·수정·결정 요청 후 Operation ID·Approval ID를 기록한다.
-6. 업무 상태와 Audit가 함께 반영됐는지 확인한다.
+1. 업무 기준일·Environment·Data Scope를 확인한다.
+2. `새로고침`으로 통계와 최근 상태를 조회한다.
+3. 이상 수치는 조직·권한·결재·첨부·감사 상세 화면의 원본 ID로 추적한다.
+4. 집계 시각과 Stale 여부를 확인하고 대시보드 수치만으로 변경 조치를 수행하지 않는다.
+5. 교대 시 조회 조건·이상 항목·연관 ID와 다음 확인 시각을 기록한다.
 
 #### 정상 결과
 
-- 대상 Version이 증가하고 입력한 유효기간·상태가 반영된다.
-- 조직 Tree, User Role, Permission Evaluation, Approval Simulation 등 연관 Projection이 같은 결과를 반환한다.
-- Masking 정책과 Data Scope가 로그인 사용자에게 적용된다.
-- Audit에 Actor, Action, Target, Reason, Before/After, Version, 결과가 남는다.
+- 대상 Version·상태·유효기간이 입력과 일치한다.
+- 조직 Tree, Assignment, Effective Permission, Approval Simulation, Session, Attachment Metadata 등 연관 Projection이 같은 결과를 반환한다.
+- Masking과 Data Scope가 Backend Query에 적용된다.
+- Audit에 Actor, Menu·Action Permission, Target, Reason, Before/After, Version과 결과가 남는다.
 
-#### 오류·동시성·응답 유실
+#### 오류·동시성·응답 유실·복구
 
 | 상황 | 처리 |
 |---|---|
-| Validation | Field 오류와 정책을 수정해 새 요청을 만든다. |
-| 403 | Menu·Action·API·Data Scope를 확인한다. |
-| 409 | 최신 Version·유효기간·변경자를 조회하고 다시 작성한다. |
-| 중복 기간 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
+| Validation | Field 정책·상위 기준정보·기간 경계를 수정해 새 요청을 만든다. |
+| 403 | Menu·Action·API·Data Scope·Raw 권한을 확인한다. |
+| 409 | 최신 Version·유효기간·변경자를 조회하고 변경 의도를 다시 작성한다. |
+| 기간 중복·순환 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
 | 응답 유실 | 같은 Operation ID·Idempotency Key로 결과를 조회한다. |
-| 부분 반영 | 연관 Projection과 Consumer를 Reconcile하고 Failed Target만 재처리한다. |
+| 부분 반영 | 연관 Projection과 업무 Consumer를 Reconcile하고 실패 대상만 재처리한다. |
+| Rollback | 변경 전 Version·Snapshot·유효기간을 근거로 새 보정 Operation을 수행한다. |
 
-#### Rollback·복구
+#### 개인정보·감사·교대
 
-변경 전 Version과 유효기간을 기준으로 새 보정 변경을 수행한다. 물리 삭제 대신 비활성화·종료일 적용이 계약인 기능은 해당 방법을 사용한다. 권한·결재 변경은 현재 Session과 진행 중 Snapshot에 미치는 영향을 확인한다.
+Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별도 Permission과 구체적 Reason을 기록한다. 교대 시 대상 ID, Version, 유효기간, Operation ID, Approval ID, 결과, 미확정 Consumer와 다음 확인 시각을 남긴다.
 
-#### 운영 확인
 
-Audit, Session, Permission Simulation, Approval Simulation, 업무 Domain 조회를 연결하고 교대 기록에 대상 ID·Version·Operation·미확정 항목을 남긴다.
 ### organizations — 조직 계층
 
-**Route**: `/organizations`
-**Menu Code**: `ORGANIZATION`
-**Frontend**: `cpf-biz-admin/frontend/src/features/organizations/OrganizationsPage.vue`
+| 항목 | 값 |
+|---|---|
+| Route | `/organizations` |
+| Menu Code | `ORGANIZATION` |
+| Frontend | `cpf-biz-admin/frontend/src/features/organizations/OrganizationsPage.vue` |
+| Permission | Read; 변경 안내는 Write |
 
-#### 기능 목적
+#### 사용 목적과 업무 영향
 
-조직 계층 기능을 조회·등록·변경·감사한다. 이 기능의 변경은 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer에 영향을 줄 수 있으므로 단일 화면 저장 결과만으로 종료하지 않는다.
+이 화면은 **조직 계층** 기능을 제공한다. 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer 중 영향을 받는 항목을 변경 전후에 확인한다.
 
-#### 선행 조건
+#### 입력·검색·표시 값
 
-1. 로그인 사용자에게 `Read; 변경 안내는 Write` 권한이 있는지 확인한다.
-2. 상위 기준정보와 대상의 현재 Version·유효기간·Active 상태를 조회한다.
-3. 개인정보·첨부·Download 기능은 Raw·Export 권한과 Reason을 별도로 확인한다.
-4. 변경 중인 Operation 또는 Approval이 있으면 기존 ID로 결과를 확인한다.
+- 조직명·코드 검색, 중지 포함
+- Tree/상세/고아·순환 경고
 
-#### 검색·입력·표시 값
+- ID·Code의 변경 가능 여부와 참조 Consumer를 확인한다.
+- 날짜는 시작·종료 포함 경계와 업무 Timezone을 기록한다.
+- 빈 값, `null`, Clear Flag, Use N의 의미를 구분한다.
+- PII·Password·첨부 원문은 Masking·Raw 권한·Reason을 적용한다.
 
-조직명·코드 검색, 중지 포함; Tree/상세/고아·순환 경고
+#### Button·조치
 
-입력 Field마다 필수 여부, 공백·Null 의미, 최대 길이, 날짜 포함 경계, Code 불변성, Expected Version을 확인한다. 조직·Role·Assignment·Delegation은 기간 중복과 순환을 검사한다.
+- 조회·상세 선택
 
-#### 조치
-
-화면 조치: **조회·상세 선택**
-
-1. 조회 조건을 제한하고 대상을 선택한다.
-2. Detail에서 ID·Version·유효기간·최근 변경자를 확인한다.
-3. 변경 영향 Preview 또는 Simulation을 실행한다.
-4. Reason과 Expected Version을 입력한다.
-5. 등록·수정·결정 요청 후 Operation ID·Approval ID를 기록한다.
-6. 업무 상태와 Audit가 함께 반영됐는지 확인한다.
+1. 조직 기준일과 상위 조직·직원·직급·직책의 Active 상태를 조회한다.
+2. `조직명·코드 검색, 중지 포함; Tree/상세/고아·순환 경고`를 입력하고 조직 순환, 유효기간 겹침, Primary 중복, 퇴직자 책임을 검사한다.
+3. `조회·상세 선택` 실행 후 Version과 유효기간을 확인한다.
+4. 조직 Tree·Assignment·Data Scope·결재 경로 Simulation을 다시 실행한다.
+5. PII 변경은 Masked 목록과 Raw 조회 권한을 분리하고 Clear Flag가 없는 빈 값은 기존 값 유지로 처리한다.
+6. 변경 영향을 받는 진행 중 결재·업무 Consumer와 Audit Before/After를 확인한다.
 
 #### 정상 결과
 
-- 대상 Version이 증가하고 입력한 유효기간·상태가 반영된다.
-- 조직 Tree, User Role, Permission Evaluation, Approval Simulation 등 연관 Projection이 같은 결과를 반환한다.
-- Masking 정책과 Data Scope가 로그인 사용자에게 적용된다.
-- Audit에 Actor, Action, Target, Reason, Before/After, Version, 결과가 남는다.
+- 대상 Version·상태·유효기간이 입력과 일치한다.
+- 조직 Tree, Assignment, Effective Permission, Approval Simulation, Session, Attachment Metadata 등 연관 Projection이 같은 결과를 반환한다.
+- Masking과 Data Scope가 Backend Query에 적용된다.
+- Audit에 Actor, Menu·Action Permission, Target, Reason, Before/After, Version과 결과가 남는다.
 
-#### 오류·동시성·응답 유실
+#### 오류·동시성·응답 유실·복구
 
 | 상황 | 처리 |
 |---|---|
-| Validation | Field 오류와 정책을 수정해 새 요청을 만든다. |
-| 403 | Menu·Action·API·Data Scope를 확인한다. |
-| 409 | 최신 Version·유효기간·변경자를 조회하고 다시 작성한다. |
-| 중복 기간 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
+| Validation | Field 정책·상위 기준정보·기간 경계를 수정해 새 요청을 만든다. |
+| 403 | Menu·Action·API·Data Scope·Raw 권한을 확인한다. |
+| 409 | 최신 Version·유효기간·변경자를 조회하고 변경 의도를 다시 작성한다. |
+| 기간 중복·순환 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
 | 응답 유실 | 같은 Operation ID·Idempotency Key로 결과를 조회한다. |
-| 부분 반영 | 연관 Projection과 Consumer를 Reconcile하고 Failed Target만 재처리한다. |
+| 부분 반영 | 연관 Projection과 업무 Consumer를 Reconcile하고 실패 대상만 재처리한다. |
+| Rollback | 변경 전 Version·Snapshot·유효기간을 근거로 새 보정 Operation을 수행한다. |
 
-#### Rollback·복구
+#### 개인정보·감사·교대
 
-변경 전 Version과 유효기간을 기준으로 새 보정 변경을 수행한다. 물리 삭제 대신 비활성화·종료일 적용이 계약인 기능은 해당 방법을 사용한다. 권한·결재 변경은 현재 Session과 진행 중 Snapshot에 미치는 영향을 확인한다.
+Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별도 Permission과 구체적 Reason을 기록한다. 교대 시 대상 ID, Version, 유효기간, Operation ID, Approval ID, 결과, 미확정 Consumer와 다음 확인 시각을 남긴다.
 
-#### 운영 확인
 
-Audit, Session, Permission Simulation, Approval Simulation, 업무 Domain 조회를 연결하고 교대 기록에 대상 ID·Version·Operation·미확정 항목을 남긴다.
 ### employees — 직원 Profile
 
-**Route**: `/employees`
-**Menu Code**: `EMPLOYEE`
-**Frontend**: `cpf-biz-admin/frontend/src/features/employees/EmployeesPage.vue`
+| 항목 | 값 |
+|---|---|
+| Route | `/employees` |
+| Menu Code | `EMPLOYEE` |
+| Frontend | `cpf-biz-admin/frontend/src/features/employees/EmployeesPage.vue` |
+| Permission | Write, PII_RAW |
 
-#### 기능 목적
+#### 사용 목적과 업무 영향
 
-직원 Profile 기능을 조회·등록·변경·감사한다. 이 기능의 변경은 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer에 영향을 줄 수 있으므로 단일 화면 저장 결과만으로 종료하지 않는다.
+이 화면은 **직원 Profile** 기능을 제공한다. 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer 중 영향을 받는 항목을 변경 전후에 확인한다.
 
-#### 선행 조건
+#### 입력·검색·표시 값
 
-1. 로그인 사용자에게 `Write, PII_RAW` 권한이 있는지 확인한다.
-2. 상위 기준정보와 대상의 현재 Version·유효기간·Active 상태를 조회한다.
-3. 개인정보·첨부·Download 기능은 Raw·Export 권한과 Reason을 별도로 확인한다.
-4. 변경 중인 Operation 또는 Approval이 있으면 기존 ID로 결과를 확인한다.
+- 직원번호
+- 대표조직
+- 이름
+- 직급
+- 직책
+- 재직상태
+- Email/Mobile/Office
+- Clear Flag
+- Use
 
-#### 검색·입력·표시 값
+- ID·Code의 변경 가능 여부와 참조 Consumer를 확인한다.
+- 날짜는 시작·종료 포함 경계와 업무 Timezone을 기록한다.
+- 빈 값, `null`, Clear Flag, Use N의 의미를 구분한다.
+- PII·Password·첨부 원문은 Masking·Raw 권한·Reason을 적용한다.
 
-직원번호, 대표조직, 이름, 직급, 직책, 재직상태, Email/Mobile/Office, Clear Flag, Use
+#### Button·조치
 
-입력 Field마다 필수 여부, 공백·Null 의미, 최대 길이, 날짜 포함 경계, Code 불변성, Expected Version을 확인한다. 조직·Role·Assignment·Delegation은 기간 중복과 순환을 검사한다.
+- 등록·수정·PII Raw
 
-#### 조치
-
-화면 조치: **등록·수정·PII Raw**
-
-1. 조회 조건을 제한하고 대상을 선택한다.
-2. Detail에서 ID·Version·유효기간·최근 변경자를 확인한다.
-3. 변경 영향 Preview 또는 Simulation을 실행한다.
-4. Reason과 Expected Version을 입력한다.
-5. 등록·수정·결정 요청 후 Operation ID·Approval ID를 기록한다.
-6. 업무 상태와 Audit가 함께 반영됐는지 확인한다.
+1. 조직 기준일과 상위 조직·직원·직급·직책의 Active 상태를 조회한다.
+2. `직원번호, 대표조직, 이름, 직급, 직책, 재직상태, Email/Mobile/Office, Clear Flag, Use`를 입력하고 조직 순환, 유효기간 겹침, Primary 중복, 퇴직자 책임을 검사한다.
+3. `등록·수정·PII Raw` 실행 후 Version과 유효기간을 확인한다.
+4. 조직 Tree·Assignment·Data Scope·결재 경로 Simulation을 다시 실행한다.
+5. PII 변경은 Masked 목록과 Raw 조회 권한을 분리하고 Clear Flag가 없는 빈 값은 기존 값 유지로 처리한다.
+6. 변경 영향을 받는 진행 중 결재·업무 Consumer와 Audit Before/After를 확인한다.
 
 #### 정상 결과
 
-- 대상 Version이 증가하고 입력한 유효기간·상태가 반영된다.
-- 조직 Tree, User Role, Permission Evaluation, Approval Simulation 등 연관 Projection이 같은 결과를 반환한다.
-- Masking 정책과 Data Scope가 로그인 사용자에게 적용된다.
-- Audit에 Actor, Action, Target, Reason, Before/After, Version, 결과가 남는다.
+- 대상 Version·상태·유효기간이 입력과 일치한다.
+- 조직 Tree, Assignment, Effective Permission, Approval Simulation, Session, Attachment Metadata 등 연관 Projection이 같은 결과를 반환한다.
+- Masking과 Data Scope가 Backend Query에 적용된다.
+- Audit에 Actor, Menu·Action Permission, Target, Reason, Before/After, Version과 결과가 남는다.
 
-#### 오류·동시성·응답 유실
+#### 오류·동시성·응답 유실·복구
 
 | 상황 | 처리 |
 |---|---|
-| Validation | Field 오류와 정책을 수정해 새 요청을 만든다. |
-| 403 | Menu·Action·API·Data Scope를 확인한다. |
-| 409 | 최신 Version·유효기간·변경자를 조회하고 다시 작성한다. |
-| 중복 기간 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
+| Validation | Field 정책·상위 기준정보·기간 경계를 수정해 새 요청을 만든다. |
+| 403 | Menu·Action·API·Data Scope·Raw 권한을 확인한다. |
+| 409 | 최신 Version·유효기간·변경자를 조회하고 변경 의도를 다시 작성한다. |
+| 기간 중복·순환 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
 | 응답 유실 | 같은 Operation ID·Idempotency Key로 결과를 조회한다. |
-| 부분 반영 | 연관 Projection과 Consumer를 Reconcile하고 Failed Target만 재처리한다. |
+| 부분 반영 | 연관 Projection과 업무 Consumer를 Reconcile하고 실패 대상만 재처리한다. |
+| Rollback | 변경 전 Version·Snapshot·유효기간을 근거로 새 보정 Operation을 수행한다. |
 
-#### Rollback·복구
+#### 개인정보·감사·교대
 
-변경 전 Version과 유효기간을 기준으로 새 보정 변경을 수행한다. 물리 삭제 대신 비활성화·종료일 적용이 계약인 기능은 해당 방법을 사용한다. 권한·결재 변경은 현재 Session과 진행 중 Snapshot에 미치는 영향을 확인한다.
+Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별도 Permission과 구체적 Reason을 기록한다. 교대 시 대상 ID, Version, 유효기간, Operation ID, Approval ID, 결과, 미확정 Consumer와 다음 확인 시각을 남긴다.
 
-#### 운영 확인
 
-Audit, Session, Permission Simulation, Approval Simulation, 업무 Domain 조회를 연결하고 교대 기록에 대상 ID·Version·Operation·미확정 항목을 남긴다.
 ### positions — 직급 기준
 
-**Route**: `/positions`
-**Menu Code**: `EMPLOYEE`
-**Frontend**: `cpf-biz-admin/frontend/src/features/positions/PositionsPage.vue`
+| 항목 | 값 |
+|---|---|
+| Route | `/positions` |
+| Menu Code | `EMPLOYEE` |
+| Frontend | `cpf-biz-admin/frontend/src/features/positions/PositionsPage.vue` |
+| Permission | Write |
 
-#### 기능 목적
+#### 사용 목적과 업무 영향
 
-직급 기준 기능을 조회·등록·변경·감사한다. 이 기능의 변경은 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer에 영향을 줄 수 있으므로 단일 화면 저장 결과만으로 종료하지 않는다.
+이 화면은 **직급 기준** 기능을 제공한다. 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer 중 영향을 받는 항목을 변경 전후에 확인한다.
 
-#### 선행 조건
+#### 입력·검색·표시 값
 
-1. 로그인 사용자에게 `Write` 권한이 있는지 확인한다.
-2. 상위 기준정보와 대상의 현재 Version·유효기간·Active 상태를 조회한다.
-3. 개인정보·첨부·Download 기능은 Raw·Export 권한과 Reason을 별도로 확인한다.
-4. 변경 중인 Operation 또는 Approval이 있으면 기존 ID로 결과를 확인한다.
+- Code
+- Name
+- Rank Order
+- Use
 
-#### 검색·입력·표시 값
+- ID·Code의 변경 가능 여부와 참조 Consumer를 확인한다.
+- 날짜는 시작·종료 포함 경계와 업무 Timezone을 기록한다.
+- 빈 값, `null`, Clear Flag, Use N의 의미를 구분한다.
+- PII·Password·첨부 원문은 Masking·Raw 권한·Reason을 적용한다.
 
-Code, Name, Rank Order, Use
+#### Button·조치
 
-입력 Field마다 필수 여부, 공백·Null 의미, 최대 길이, 날짜 포함 경계, Code 불변성, Expected Version을 확인한다. 조직·Role·Assignment·Delegation은 기간 중복과 순환을 검사한다.
+- 등록·수정
 
-#### 조치
-
-화면 조치: **등록·수정**
-
-1. 조회 조건을 제한하고 대상을 선택한다.
-2. Detail에서 ID·Version·유효기간·최근 변경자를 확인한다.
-3. 변경 영향 Preview 또는 Simulation을 실행한다.
-4. Reason과 Expected Version을 입력한다.
-5. 등록·수정·결정 요청 후 Operation ID·Approval ID를 기록한다.
-6. 업무 상태와 Audit가 함께 반영됐는지 확인한다.
+1. 조직 기준일과 상위 조직·직원·직급·직책의 Active 상태를 조회한다.
+2. `Code, Name, Rank Order, Use`를 입력하고 조직 순환, 유효기간 겹침, Primary 중복, 퇴직자 책임을 검사한다.
+3. `등록·수정` 실행 후 Version과 유효기간을 확인한다.
+4. 조직 Tree·Assignment·Data Scope·결재 경로 Simulation을 다시 실행한다.
+5. PII 변경은 Masked 목록과 Raw 조회 권한을 분리하고 Clear Flag가 없는 빈 값은 기존 값 유지로 처리한다.
+6. 변경 영향을 받는 진행 중 결재·업무 Consumer와 Audit Before/After를 확인한다.
 
 #### 정상 결과
 
-- 대상 Version이 증가하고 입력한 유효기간·상태가 반영된다.
-- 조직 Tree, User Role, Permission Evaluation, Approval Simulation 등 연관 Projection이 같은 결과를 반환한다.
-- Masking 정책과 Data Scope가 로그인 사용자에게 적용된다.
-- Audit에 Actor, Action, Target, Reason, Before/After, Version, 결과가 남는다.
+- 대상 Version·상태·유효기간이 입력과 일치한다.
+- 조직 Tree, Assignment, Effective Permission, Approval Simulation, Session, Attachment Metadata 등 연관 Projection이 같은 결과를 반환한다.
+- Masking과 Data Scope가 Backend Query에 적용된다.
+- Audit에 Actor, Menu·Action Permission, Target, Reason, Before/After, Version과 결과가 남는다.
 
-#### 오류·동시성·응답 유실
+#### 오류·동시성·응답 유실·복구
 
 | 상황 | 처리 |
 |---|---|
-| Validation | Field 오류와 정책을 수정해 새 요청을 만든다. |
-| 403 | Menu·Action·API·Data Scope를 확인한다. |
-| 409 | 최신 Version·유효기간·변경자를 조회하고 다시 작성한다. |
-| 중복 기간 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
+| Validation | Field 정책·상위 기준정보·기간 경계를 수정해 새 요청을 만든다. |
+| 403 | Menu·Action·API·Data Scope·Raw 권한을 확인한다. |
+| 409 | 최신 Version·유효기간·변경자를 조회하고 변경 의도를 다시 작성한다. |
+| 기간 중복·순환 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
 | 응답 유실 | 같은 Operation ID·Idempotency Key로 결과를 조회한다. |
-| 부분 반영 | 연관 Projection과 Consumer를 Reconcile하고 Failed Target만 재처리한다. |
+| 부분 반영 | 연관 Projection과 업무 Consumer를 Reconcile하고 실패 대상만 재처리한다. |
+| Rollback | 변경 전 Version·Snapshot·유효기간을 근거로 새 보정 Operation을 수행한다. |
 
-#### Rollback·복구
+#### 개인정보·감사·교대
 
-변경 전 Version과 유효기간을 기준으로 새 보정 변경을 수행한다. 물리 삭제 대신 비활성화·종료일 적용이 계약인 기능은 해당 방법을 사용한다. 권한·결재 변경은 현재 Session과 진행 중 Snapshot에 미치는 영향을 확인한다.
+Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별도 Permission과 구체적 Reason을 기록한다. 교대 시 대상 ID, Version, 유효기간, Operation ID, Approval ID, 결과, 미확정 Consumer와 다음 확인 시각을 남긴다.
 
-#### 운영 확인
 
-Audit, Session, Permission Simulation, Approval Simulation, 업무 Domain 조회를 연결하고 교대 기록에 대상 ID·Version·Operation·미확정 항목을 남긴다.
 ### jobTitles — 직책 기준
 
-**Route**: `/jobTitles`
-**Menu Code**: `EMPLOYEE`
-**Frontend**: `cpf-biz-admin/frontend/src/features/job-titles/JobTitlesPage.vue`
+| 항목 | 값 |
+|---|---|
+| Route | `/jobTitles` |
+| Menu Code | `EMPLOYEE` |
+| Frontend | `cpf-biz-admin/frontend/src/features/job-titles/JobTitlesPage.vue` |
+| Permission | Write |
 
-#### 기능 목적
+#### 사용 목적과 업무 영향
 
-직책 기준 기능을 조회·등록·변경·감사한다. 이 기능의 변경은 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer에 영향을 줄 수 있으므로 단일 화면 저장 결과만으로 종료하지 않는다.
+이 화면은 **직책 기준** 기능을 제공한다. 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer 중 영향을 받는 항목을 변경 전후에 확인한다.
 
-#### 선행 조건
+#### 입력·검색·표시 값
 
-1. 로그인 사용자에게 `Write` 권한이 있는지 확인한다.
-2. 상위 기준정보와 대상의 현재 Version·유효기간·Active 상태를 조회한다.
-3. 개인정보·첨부·Download 기능은 Raw·Export 권한과 Reason을 별도로 확인한다.
-4. 변경 중인 Operation 또는 Approval이 있으면 기존 ID로 결과를 확인한다.
+- Code
+- Name
+- Manager YN
+- Use
 
-#### 검색·입력·표시 값
+- ID·Code의 변경 가능 여부와 참조 Consumer를 확인한다.
+- 날짜는 시작·종료 포함 경계와 업무 Timezone을 기록한다.
+- 빈 값, `null`, Clear Flag, Use N의 의미를 구분한다.
+- PII·Password·첨부 원문은 Masking·Raw 권한·Reason을 적용한다.
 
-Code, Name, Manager YN, Use
+#### Button·조치
 
-입력 Field마다 필수 여부, 공백·Null 의미, 최대 길이, 날짜 포함 경계, Code 불변성, Expected Version을 확인한다. 조직·Role·Assignment·Delegation은 기간 중복과 순환을 검사한다.
+- 등록·수정
 
-#### 조치
-
-화면 조치: **등록·수정**
-
-1. 조회 조건을 제한하고 대상을 선택한다.
-2. Detail에서 ID·Version·유효기간·최근 변경자를 확인한다.
-3. 변경 영향 Preview 또는 Simulation을 실행한다.
-4. Reason과 Expected Version을 입력한다.
-5. 등록·수정·결정 요청 후 Operation ID·Approval ID를 기록한다.
-6. 업무 상태와 Audit가 함께 반영됐는지 확인한다.
+1. 조직 기준일과 상위 조직·직원·직급·직책의 Active 상태를 조회한다.
+2. `Code, Name, Manager YN, Use`를 입력하고 조직 순환, 유효기간 겹침, Primary 중복, 퇴직자 책임을 검사한다.
+3. `등록·수정` 실행 후 Version과 유효기간을 확인한다.
+4. 조직 Tree·Assignment·Data Scope·결재 경로 Simulation을 다시 실행한다.
+5. PII 변경은 Masked 목록과 Raw 조회 권한을 분리하고 Clear Flag가 없는 빈 값은 기존 값 유지로 처리한다.
+6. 변경 영향을 받는 진행 중 결재·업무 Consumer와 Audit Before/After를 확인한다.
 
 #### 정상 결과
 
-- 대상 Version이 증가하고 입력한 유효기간·상태가 반영된다.
-- 조직 Tree, User Role, Permission Evaluation, Approval Simulation 등 연관 Projection이 같은 결과를 반환한다.
-- Masking 정책과 Data Scope가 로그인 사용자에게 적용된다.
-- Audit에 Actor, Action, Target, Reason, Before/After, Version, 결과가 남는다.
+- 대상 Version·상태·유효기간이 입력과 일치한다.
+- 조직 Tree, Assignment, Effective Permission, Approval Simulation, Session, Attachment Metadata 등 연관 Projection이 같은 결과를 반환한다.
+- Masking과 Data Scope가 Backend Query에 적용된다.
+- Audit에 Actor, Menu·Action Permission, Target, Reason, Before/After, Version과 결과가 남는다.
 
-#### 오류·동시성·응답 유실
+#### 오류·동시성·응답 유실·복구
 
 | 상황 | 처리 |
 |---|---|
-| Validation | Field 오류와 정책을 수정해 새 요청을 만든다. |
-| 403 | Menu·Action·API·Data Scope를 확인한다. |
-| 409 | 최신 Version·유효기간·변경자를 조회하고 다시 작성한다. |
-| 중복 기간 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
+| Validation | Field 정책·상위 기준정보·기간 경계를 수정해 새 요청을 만든다. |
+| 403 | Menu·Action·API·Data Scope·Raw 권한을 확인한다. |
+| 409 | 최신 Version·유효기간·변경자를 조회하고 변경 의도를 다시 작성한다. |
+| 기간 중복·순환 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
 | 응답 유실 | 같은 Operation ID·Idempotency Key로 결과를 조회한다. |
-| 부분 반영 | 연관 Projection과 Consumer를 Reconcile하고 Failed Target만 재처리한다. |
+| 부분 반영 | 연관 Projection과 업무 Consumer를 Reconcile하고 실패 대상만 재처리한다. |
+| Rollback | 변경 전 Version·Snapshot·유효기간을 근거로 새 보정 Operation을 수행한다. |
 
-#### Rollback·복구
+#### 개인정보·감사·교대
 
-변경 전 Version과 유효기간을 기준으로 새 보정 변경을 수행한다. 물리 삭제 대신 비활성화·종료일 적용이 계약인 기능은 해당 방법을 사용한다. 권한·결재 변경은 현재 Session과 진행 중 Snapshot에 미치는 영향을 확인한다.
+Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별도 Permission과 구체적 Reason을 기록한다. 교대 시 대상 ID, Version, 유효기간, Operation ID, Approval ID, 결과, 미확정 Consumer와 다음 확인 시각을 남긴다.
 
-#### 운영 확인
 
-Audit, Session, Permission Simulation, Approval Simulation, 업무 Domain 조회를 연결하고 교대 기록에 대상 ID·Version·Operation·미확정 항목을 남긴다.
 ### assignments — 발령·겸직·파견
 
-**Route**: `/assignments`
-**Menu Code**: `EMPLOYEE`
-**Frontend**: `cpf-biz-admin/frontend/src/features/assignments/AssignmentsPage.vue`
+| 항목 | 값 |
+|---|---|
+| Route | `/assignments` |
+| Menu Code | `EMPLOYEE` |
+| Frontend | `cpf-biz-admin/frontend/src/features/assignments/AssignmentsPage.vue` |
+| Permission | Write |
 
-#### 기능 목적
+#### 사용 목적과 업무 영향
 
-발령·겸직·파견 기능을 조회·등록·변경·감사한다. 이 기능의 변경은 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer에 영향을 줄 수 있으므로 단일 화면 저장 결과만으로 종료하지 않는다.
+이 화면은 **발령·겸직·파견** 기능을 제공한다. 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer 중 영향을 받는 항목을 변경 전후에 확인한다.
 
-#### 선행 조건
+#### 입력·검색·표시 값
 
-1. 로그인 사용자에게 `Write` 권한이 있는지 확인한다.
-2. 상위 기준정보와 대상의 현재 Version·유효기간·Active 상태를 조회한다.
-3. 개인정보·첨부·Download 기능은 Raw·Export 권한과 Reason을 별도로 확인한다.
-4. 변경 중인 Operation 또는 Approval이 있으면 기존 ID로 결과를 확인한다.
+- Assignment ID
+- Employee
+- Organization
+- Position
+- Job Title
+- Type
+- Primary
+- From/To
 
-#### 검색·입력·표시 값
+- ID·Code의 변경 가능 여부와 참조 Consumer를 확인한다.
+- 날짜는 시작·종료 포함 경계와 업무 Timezone을 기록한다.
+- 빈 값, `null`, Clear Flag, Use N의 의미를 구분한다.
+- PII·Password·첨부 원문은 Masking·Raw 권한·Reason을 적용한다.
 
-Assignment ID, Employee, Organization, Position, Job Title, Type, Primary, From/To
+#### Button·조치
 
-입력 Field마다 필수 여부, 공백·Null 의미, 최대 길이, 날짜 포함 경계, Code 불변성, Expected Version을 확인한다. 조직·Role·Assignment·Delegation은 기간 중복과 순환을 검사한다.
+- 등록·수정
 
-#### 조치
-
-화면 조치: **등록·수정**
-
-1. 조회 조건을 제한하고 대상을 선택한다.
-2. Detail에서 ID·Version·유효기간·최근 변경자를 확인한다.
-3. 변경 영향 Preview 또는 Simulation을 실행한다.
-4. Reason과 Expected Version을 입력한다.
-5. 등록·수정·결정 요청 후 Operation ID·Approval ID를 기록한다.
-6. 업무 상태와 Audit가 함께 반영됐는지 확인한다.
+1. 조직 기준일과 상위 조직·직원·직급·직책의 Active 상태를 조회한다.
+2. `Assignment ID, Employee, Organization, Position, Job Title, Type, Primary, From/To`를 입력하고 조직 순환, 유효기간 겹침, Primary 중복, 퇴직자 책임을 검사한다.
+3. `등록·수정` 실행 후 Version과 유효기간을 확인한다.
+4. 조직 Tree·Assignment·Data Scope·결재 경로 Simulation을 다시 실행한다.
+5. PII 변경은 Masked 목록과 Raw 조회 권한을 분리하고 Clear Flag가 없는 빈 값은 기존 값 유지로 처리한다.
+6. 변경 영향을 받는 진행 중 결재·업무 Consumer와 Audit Before/After를 확인한다.
 
 #### 정상 결과
 
-- 대상 Version이 증가하고 입력한 유효기간·상태가 반영된다.
-- 조직 Tree, User Role, Permission Evaluation, Approval Simulation 등 연관 Projection이 같은 결과를 반환한다.
-- Masking 정책과 Data Scope가 로그인 사용자에게 적용된다.
-- Audit에 Actor, Action, Target, Reason, Before/After, Version, 결과가 남는다.
+- 대상 Version·상태·유효기간이 입력과 일치한다.
+- 조직 Tree, Assignment, Effective Permission, Approval Simulation, Session, Attachment Metadata 등 연관 Projection이 같은 결과를 반환한다.
+- Masking과 Data Scope가 Backend Query에 적용된다.
+- Audit에 Actor, Menu·Action Permission, Target, Reason, Before/After, Version과 결과가 남는다.
 
-#### 오류·동시성·응답 유실
+#### 오류·동시성·응답 유실·복구
 
 | 상황 | 처리 |
 |---|---|
-| Validation | Field 오류와 정책을 수정해 새 요청을 만든다. |
-| 403 | Menu·Action·API·Data Scope를 확인한다. |
-| 409 | 최신 Version·유효기간·변경자를 조회하고 다시 작성한다. |
-| 중복 기간 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
+| Validation | Field 정책·상위 기준정보·기간 경계를 수정해 새 요청을 만든다. |
+| 403 | Menu·Action·API·Data Scope·Raw 권한을 확인한다. |
+| 409 | 최신 Version·유효기간·변경자를 조회하고 변경 의도를 다시 작성한다. |
+| 기간 중복·순환 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
 | 응답 유실 | 같은 Operation ID·Idempotency Key로 결과를 조회한다. |
-| 부분 반영 | 연관 Projection과 Consumer를 Reconcile하고 Failed Target만 재처리한다. |
+| 부분 반영 | 연관 Projection과 업무 Consumer를 Reconcile하고 실패 대상만 재처리한다. |
+| Rollback | 변경 전 Version·Snapshot·유효기간을 근거로 새 보정 Operation을 수행한다. |
 
-#### Rollback·복구
+#### 개인정보·감사·교대
 
-변경 전 Version과 유효기간을 기준으로 새 보정 변경을 수행한다. 물리 삭제 대신 비활성화·종료일 적용이 계약인 기능은 해당 방법을 사용한다. 권한·결재 변경은 현재 Session과 진행 중 Snapshot에 미치는 영향을 확인한다.
+Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별도 Permission과 구체적 Reason을 기록한다. 교대 시 대상 ID, Version, 유효기간, Operation ID, Approval ID, 결과, 미확정 Consumer와 다음 확인 시각을 남긴다.
 
-#### 운영 확인
 
-Audit, Session, Permission Simulation, Approval Simulation, 업무 Domain 조회를 연결하고 교대 기록에 대상 ID·Version·Operation·미확정 항목을 남긴다.
 ### organizationResponsibilities — 조직장·대행·승인 Owner
 
-**Route**: `/organizationResponsibilities`
-**Menu Code**: `ORGANIZATION`
-**Frontend**: `cpf-biz-admin/frontend/src/features/organization-responsibilities/OrganizationResponsibilitiesPage.vue`
+| 항목 | 값 |
+|---|---|
+| Route | `/organizationResponsibilities` |
+| Menu Code | `ORGANIZATION` |
+| Frontend | `cpf-biz-admin/frontend/src/features/organization-responsibilities/OrganizationResponsibilitiesPage.vue` |
+| Permission | Write |
 
-#### 기능 목적
+#### 사용 목적과 업무 영향
 
-조직장·대행·승인 Owner 기능을 조회·등록·변경·감사한다. 이 기능의 변경은 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer에 영향을 줄 수 있으므로 단일 화면 저장 결과만으로 종료하지 않는다.
+이 화면은 **조직장·대행·승인 Owner** 기능을 제공한다. 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer 중 영향을 받는 항목을 변경 전후에 확인한다.
 
-#### 선행 조건
+#### 입력·검색·표시 값
 
-1. 로그인 사용자에게 `Write` 권한이 있는지 확인한다.
-2. 상위 기준정보와 대상의 현재 Version·유효기간·Active 상태를 조회한다.
-3. 개인정보·첨부·Download 기능은 Raw·Export 권한과 Reason을 별도로 확인한다.
-4. 변경 중인 Operation 또는 Approval이 있으면 기존 ID로 결과를 확인한다.
+- Responsibility ID
+- Organization
+- Type
+- Employee
+- From/To
 
-#### 검색·입력·표시 값
+- ID·Code의 변경 가능 여부와 참조 Consumer를 확인한다.
+- 날짜는 시작·종료 포함 경계와 업무 Timezone을 기록한다.
+- 빈 값, `null`, Clear Flag, Use N의 의미를 구분한다.
+- PII·Password·첨부 원문은 Masking·Raw 권한·Reason을 적용한다.
 
-Responsibility ID, Organization, Type, Employee, From/To
+#### Button·조치
 
-입력 Field마다 필수 여부, 공백·Null 의미, 최대 길이, 날짜 포함 경계, Code 불변성, Expected Version을 확인한다. 조직·Role·Assignment·Delegation은 기간 중복과 순환을 검사한다.
+- 등록·수정
 
-#### 조치
-
-화면 조치: **등록·수정**
-
-1. 조회 조건을 제한하고 대상을 선택한다.
-2. Detail에서 ID·Version·유효기간·최근 변경자를 확인한다.
-3. 변경 영향 Preview 또는 Simulation을 실행한다.
-4. Reason과 Expected Version을 입력한다.
-5. 등록·수정·결정 요청 후 Operation ID·Approval ID를 기록한다.
-6. 업무 상태와 Audit가 함께 반영됐는지 확인한다.
+1. 조직 기준일과 상위 조직·직원·직급·직책의 Active 상태를 조회한다.
+2. `Responsibility ID, Organization, Type, Employee, From/To`를 입력하고 조직 순환, 유효기간 겹침, Primary 중복, 퇴직자 책임을 검사한다.
+3. `등록·수정` 실행 후 Version과 유효기간을 확인한다.
+4. 조직 Tree·Assignment·Data Scope·결재 경로 Simulation을 다시 실행한다.
+5. PII 변경은 Masked 목록과 Raw 조회 권한을 분리하고 Clear Flag가 없는 빈 값은 기존 값 유지로 처리한다.
+6. 변경 영향을 받는 진행 중 결재·업무 Consumer와 Audit Before/After를 확인한다.
 
 #### 정상 결과
 
-- 대상 Version이 증가하고 입력한 유효기간·상태가 반영된다.
-- 조직 Tree, User Role, Permission Evaluation, Approval Simulation 등 연관 Projection이 같은 결과를 반환한다.
-- Masking 정책과 Data Scope가 로그인 사용자에게 적용된다.
-- Audit에 Actor, Action, Target, Reason, Before/After, Version, 결과가 남는다.
+- 대상 Version·상태·유효기간이 입력과 일치한다.
+- 조직 Tree, Assignment, Effective Permission, Approval Simulation, Session, Attachment Metadata 등 연관 Projection이 같은 결과를 반환한다.
+- Masking과 Data Scope가 Backend Query에 적용된다.
+- Audit에 Actor, Menu·Action Permission, Target, Reason, Before/After, Version과 결과가 남는다.
 
-#### 오류·동시성·응답 유실
+#### 오류·동시성·응답 유실·복구
 
 | 상황 | 처리 |
 |---|---|
-| Validation | Field 오류와 정책을 수정해 새 요청을 만든다. |
-| 403 | Menu·Action·API·Data Scope를 확인한다. |
-| 409 | 최신 Version·유효기간·변경자를 조회하고 다시 작성한다. |
-| 중복 기간 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
+| Validation | Field 정책·상위 기준정보·기간 경계를 수정해 새 요청을 만든다. |
+| 403 | Menu·Action·API·Data Scope·Raw 권한을 확인한다. |
+| 409 | 최신 Version·유효기간·변경자를 조회하고 변경 의도를 다시 작성한다. |
+| 기간 중복·순환 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
 | 응답 유실 | 같은 Operation ID·Idempotency Key로 결과를 조회한다. |
-| 부분 반영 | 연관 Projection과 Consumer를 Reconcile하고 Failed Target만 재처리한다. |
+| 부분 반영 | 연관 Projection과 업무 Consumer를 Reconcile하고 실패 대상만 재처리한다. |
+| Rollback | 변경 전 Version·Snapshot·유효기간을 근거로 새 보정 Operation을 수행한다. |
 
-#### Rollback·복구
+#### 개인정보·감사·교대
 
-변경 전 Version과 유효기간을 기준으로 새 보정 변경을 수행한다. 물리 삭제 대신 비활성화·종료일 적용이 계약인 기능은 해당 방법을 사용한다. 권한·결재 변경은 현재 Session과 진행 중 Snapshot에 미치는 영향을 확인한다.
+Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별도 Permission과 구체적 Reason을 기록한다. 교대 시 대상 ID, Version, 유효기간, Operation ID, Approval ID, 결과, 미확정 Consumer와 다음 확인 시각을 남긴다.
 
-#### 운영 확인
 
-Audit, Session, Permission Simulation, Approval Simulation, 업무 Domain 조회를 연결하고 교대 기록에 대상 ID·Version·Operation·미확정 항목을 남긴다.
 ### users — BZA 인증 사용자
 
-**Route**: `/users`
-**Menu Code**: `AUTHORIZATION`
-**Frontend**: `cpf-biz-admin/frontend/src/features/users/UsersPage.vue`
+| 항목 | 값 |
+|---|---|
+| Route | `/users` |
+| Menu Code | `AUTHORIZATION` |
+| Frontend | `cpf-biz-admin/frontend/src/features/users/UsersPage.vue` |
+| Permission | Write |
 
-#### 기능 목적
+#### 사용 목적과 업무 영향
 
-BZA 인증 사용자 기능을 조회·등록·변경·감사한다. 이 기능의 변경은 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer에 영향을 줄 수 있으므로 단일 화면 저장 결과만으로 종료하지 않는다.
+이 화면은 **BZA 인증 사용자** 기능을 제공한다. 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer 중 영향을 받는 항목을 변경 전후에 확인한다.
 
-#### 선행 조건
+#### 입력·검색·표시 값
 
-1. 로그인 사용자에게 `Write` 권한이 있는지 확인한다.
-2. 상위 기준정보와 대상의 현재 Version·유효기간·Active 상태를 조회한다.
-3. 개인정보·첨부·Download 기능은 Raw·Export 권한과 Reason을 별도로 확인한다.
-4. 변경 중인 Operation 또는 Approval이 있으면 기존 ID로 결과를 확인한다.
+- Login ID
+- Name
+- Password
+- Account Status
+- Use
+- Lock
+- Force Change
+- Expected Version
+- Reason
 
-#### 검색·입력·표시 값
+- ID·Code의 변경 가능 여부와 참조 Consumer를 확인한다.
+- 날짜는 시작·종료 포함 경계와 업무 Timezone을 기록한다.
+- 빈 값, `null`, Clear Flag, Use N의 의미를 구분한다.
+- PII·Password·첨부 원문은 Masking·Raw 권한·Reason을 적용한다.
 
-Login ID, Name, Password, Account Status, Use, Lock, Force Change, Expected Version, Reason
+#### Button·조치
 
-입력 Field마다 필수 여부, 공백·Null 의미, 최대 길이, 날짜 포함 경계, Code 불변성, Expected Version을 확인한다. 조직·Role·Assignment·Delegation은 기간 중복과 순환을 검사한다.
+- 등록·수정·Paging
 
-#### 조치
-
-화면 조치: **등록·수정·Paging**
-
-1. 조회 조건을 제한하고 대상을 선택한다.
-2. Detail에서 ID·Version·유효기간·최근 변경자를 확인한다.
-3. 변경 영향 Preview 또는 Simulation을 실행한다.
-4. Reason과 Expected Version을 입력한다.
-5. 등록·수정·결정 요청 후 Operation ID·Approval ID를 기록한다.
-6. 업무 상태와 Audit가 함께 반영됐는지 확인한다.
+1. Login ID·Role·Menu·Permission·Session의 현재 Version과 유효기간을 조회한다.
+2. `Login ID, Name, Password, Account Status, Use, Lock, Force Change, Expected Version, Reason`를 입력하고 중복 Role, 기간 겹침, Data Scope 확대, API Pattern 충돌을 확인한다.
+3. `등록·수정·Paging` 실행 후 Effective Permission Simulation을 같은 사용자·시각·조직 Version으로 수행한다.
+4. Menu 표시, Button 활성, Backend 직접 호출, 다른 조직 데이터 조회를 각각 시험한다.
+5. 권한 축소 시 기존 Session·Cache·위임·진행 중 결재에 반영됐는지 확인한다.
+6. 응답 유실은 Operation ID로 조회하고 중복 등록을 만들지 않는다.
 
 #### 정상 결과
 
-- 대상 Version이 증가하고 입력한 유효기간·상태가 반영된다.
-- 조직 Tree, User Role, Permission Evaluation, Approval Simulation 등 연관 Projection이 같은 결과를 반환한다.
-- Masking 정책과 Data Scope가 로그인 사용자에게 적용된다.
-- Audit에 Actor, Action, Target, Reason, Before/After, Version, 결과가 남는다.
+- 대상 Version·상태·유효기간이 입력과 일치한다.
+- 조직 Tree, Assignment, Effective Permission, Approval Simulation, Session, Attachment Metadata 등 연관 Projection이 같은 결과를 반환한다.
+- Masking과 Data Scope가 Backend Query에 적용된다.
+- Audit에 Actor, Menu·Action Permission, Target, Reason, Before/After, Version과 결과가 남는다.
 
-#### 오류·동시성·응답 유실
+#### 오류·동시성·응답 유실·복구
 
 | 상황 | 처리 |
 |---|---|
-| Validation | Field 오류와 정책을 수정해 새 요청을 만든다. |
-| 403 | Menu·Action·API·Data Scope를 확인한다. |
-| 409 | 최신 Version·유효기간·변경자를 조회하고 다시 작성한다. |
-| 중복 기간 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
+| Validation | Field 정책·상위 기준정보·기간 경계를 수정해 새 요청을 만든다. |
+| 403 | Menu·Action·API·Data Scope·Raw 권한을 확인한다. |
+| 409 | 최신 Version·유효기간·변경자를 조회하고 변경 의도를 다시 작성한다. |
+| 기간 중복·순환 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
 | 응답 유실 | 같은 Operation ID·Idempotency Key로 결과를 조회한다. |
-| 부분 반영 | 연관 Projection과 Consumer를 Reconcile하고 Failed Target만 재처리한다. |
+| 부분 반영 | 연관 Projection과 업무 Consumer를 Reconcile하고 실패 대상만 재처리한다. |
+| Rollback | 변경 전 Version·Snapshot·유효기간을 근거로 새 보정 Operation을 수행한다. |
 
-#### Rollback·복구
+#### 개인정보·감사·교대
 
-변경 전 Version과 유효기간을 기준으로 새 보정 변경을 수행한다. 물리 삭제 대신 비활성화·종료일 적용이 계약인 기능은 해당 방법을 사용한다. 권한·결재 변경은 현재 Session과 진행 중 Snapshot에 미치는 영향을 확인한다.
+Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별도 Permission과 구체적 Reason을 기록한다. 교대 시 대상 ID, Version, 유효기간, Operation ID, Approval ID, 결과, 미확정 Consumer와 다음 확인 시각을 남긴다.
 
-#### 운영 확인
 
-Audit, Session, Permission Simulation, Approval Simulation, 업무 Domain 조회를 연결하고 교대 기록에 대상 ID·Version·Operation·미확정 항목을 남긴다.
 ### roles — 업무 Role
 
-**Route**: `/roles`
-**Menu Code**: `AUTHORIZATION`
-**Frontend**: `cpf-biz-admin/frontend/src/features/roles/RolesPage.vue`
+| 항목 | 값 |
+|---|---|
+| Route | `/roles` |
+| Menu Code | `AUTHORIZATION` |
+| Frontend | `cpf-biz-admin/frontend/src/features/roles/RolesPage.vue` |
+| Permission | Write |
 
-#### 기능 목적
+#### 사용 목적과 업무 영향
 
-업무 Role 기능을 조회·등록·변경·감사한다. 이 기능의 변경은 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer에 영향을 줄 수 있으므로 단일 화면 저장 결과만으로 종료하지 않는다.
+이 화면은 **업무 Role** 기능을 제공한다. 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer 중 영향을 받는 항목을 변경 전후에 확인한다.
 
-#### 선행 조건
+#### 입력·검색·표시 값
 
-1. 로그인 사용자에게 `Write` 권한이 있는지 확인한다.
-2. 상위 기준정보와 대상의 현재 Version·유효기간·Active 상태를 조회한다.
-3. 개인정보·첨부·Download 기능은 Raw·Export 권한과 Reason을 별도로 확인한다.
-4. 변경 중인 Operation 또는 Approval이 있으면 기존 ID로 결과를 확인한다.
+- Role Code/Name
+- Write Allowed
+- Data Scope
+- Use
 
-#### 검색·입력·표시 값
+- ID·Code의 변경 가능 여부와 참조 Consumer를 확인한다.
+- 날짜는 시작·종료 포함 경계와 업무 Timezone을 기록한다.
+- 빈 값, `null`, Clear Flag, Use N의 의미를 구분한다.
+- PII·Password·첨부 원문은 Masking·Raw 권한·Reason을 적용한다.
 
-Role Code/Name, Write Allowed, Data Scope, Use
+#### Button·조치
 
-입력 Field마다 필수 여부, 공백·Null 의미, 최대 길이, 날짜 포함 경계, Code 불변성, Expected Version을 확인한다. 조직·Role·Assignment·Delegation은 기간 중복과 순환을 검사한다.
+- 등록·수정
 
-#### 조치
-
-화면 조치: **등록·수정**
-
-1. 조회 조건을 제한하고 대상을 선택한다.
-2. Detail에서 ID·Version·유효기간·최근 변경자를 확인한다.
-3. 변경 영향 Preview 또는 Simulation을 실행한다.
-4. Reason과 Expected Version을 입력한다.
-5. 등록·수정·결정 요청 후 Operation ID·Approval ID를 기록한다.
-6. 업무 상태와 Audit가 함께 반영됐는지 확인한다.
+1. Login ID·Role·Menu·Permission·Session의 현재 Version과 유효기간을 조회한다.
+2. `Role Code/Name, Write Allowed, Data Scope, Use`를 입력하고 중복 Role, 기간 겹침, Data Scope 확대, API Pattern 충돌을 확인한다.
+3. `등록·수정` 실행 후 Effective Permission Simulation을 같은 사용자·시각·조직 Version으로 수행한다.
+4. Menu 표시, Button 활성, Backend 직접 호출, 다른 조직 데이터 조회를 각각 시험한다.
+5. 권한 축소 시 기존 Session·Cache·위임·진행 중 결재에 반영됐는지 확인한다.
+6. 응답 유실은 Operation ID로 조회하고 중복 등록을 만들지 않는다.
 
 #### 정상 결과
 
-- 대상 Version이 증가하고 입력한 유효기간·상태가 반영된다.
-- 조직 Tree, User Role, Permission Evaluation, Approval Simulation 등 연관 Projection이 같은 결과를 반환한다.
-- Masking 정책과 Data Scope가 로그인 사용자에게 적용된다.
-- Audit에 Actor, Action, Target, Reason, Before/After, Version, 결과가 남는다.
+- 대상 Version·상태·유효기간이 입력과 일치한다.
+- 조직 Tree, Assignment, Effective Permission, Approval Simulation, Session, Attachment Metadata 등 연관 Projection이 같은 결과를 반환한다.
+- Masking과 Data Scope가 Backend Query에 적용된다.
+- Audit에 Actor, Menu·Action Permission, Target, Reason, Before/After, Version과 결과가 남는다.
 
-#### 오류·동시성·응답 유실
+#### 오류·동시성·응답 유실·복구
 
 | 상황 | 처리 |
 |---|---|
-| Validation | Field 오류와 정책을 수정해 새 요청을 만든다. |
-| 403 | Menu·Action·API·Data Scope를 확인한다. |
-| 409 | 최신 Version·유효기간·변경자를 조회하고 다시 작성한다. |
-| 중복 기간 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
+| Validation | Field 정책·상위 기준정보·기간 경계를 수정해 새 요청을 만든다. |
+| 403 | Menu·Action·API·Data Scope·Raw 권한을 확인한다. |
+| 409 | 최신 Version·유효기간·변경자를 조회하고 변경 의도를 다시 작성한다. |
+| 기간 중복·순환 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
 | 응답 유실 | 같은 Operation ID·Idempotency Key로 결과를 조회한다. |
-| 부분 반영 | 연관 Projection과 Consumer를 Reconcile하고 Failed Target만 재처리한다. |
+| 부분 반영 | 연관 Projection과 업무 Consumer를 Reconcile하고 실패 대상만 재처리한다. |
+| Rollback | 변경 전 Version·Snapshot·유효기간을 근거로 새 보정 Operation을 수행한다. |
 
-#### Rollback·복구
+#### 개인정보·감사·교대
 
-변경 전 Version과 유효기간을 기준으로 새 보정 변경을 수행한다. 물리 삭제 대신 비활성화·종료일 적용이 계약인 기능은 해당 방법을 사용한다. 권한·결재 변경은 현재 Session과 진행 중 Snapshot에 미치는 영향을 확인한다.
+Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별도 Permission과 구체적 Reason을 기록한다. 교대 시 대상 ID, Version, 유효기간, Operation ID, Approval ID, 결과, 미확정 Consumer와 다음 확인 시각을 남긴다.
 
-#### 운영 확인
 
-Audit, Session, Permission Simulation, Approval Simulation, 업무 Domain 조회를 연결하고 교대 기록에 대상 ID·Version·Operation·미확정 항목을 남긴다.
 ### userRoles — 사용자 Role 유효기간
 
-**Route**: `/userRoles`
-**Menu Code**: `AUTHORIZATION`
-**Frontend**: `cpf-biz-admin/frontend/src/features/user-roles/UserRolesPage.vue`
+| 항목 | 값 |
+|---|---|
+| Route | `/userRoles` |
+| Menu Code | `AUTHORIZATION` |
+| Frontend | `cpf-biz-admin/frontend/src/features/user-roles/UserRolesPage.vue` |
+| Permission | Write |
 
-#### 기능 목적
+#### 사용 목적과 업무 영향
 
-사용자 Role 유효기간 기능을 조회·등록·변경·감사한다. 이 기능의 변경은 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer에 영향을 줄 수 있으므로 단일 화면 저장 결과만으로 종료하지 않는다.
+이 화면은 **사용자 Role 유효기간** 기능을 제공한다. 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer 중 영향을 받는 항목을 변경 전후에 확인한다.
 
-#### 선행 조건
+#### 입력·검색·표시 값
 
-1. 로그인 사용자에게 `Write` 권한이 있는지 확인한다.
-2. 상위 기준정보와 대상의 현재 Version·유효기간·Active 상태를 조회한다.
-3. 개인정보·첨부·Download 기능은 Raw·Export 권한과 Reason을 별도로 확인한다.
-4. 변경 중인 Operation 또는 Approval이 있으면 기존 ID로 결과를 확인한다.
+- Operation ID
+- Login ID
+- Role
+- Valid From/To
+- Primary
 
-#### 검색·입력·표시 값
+- ID·Code의 변경 가능 여부와 참조 Consumer를 확인한다.
+- 날짜는 시작·종료 포함 경계와 업무 Timezone을 기록한다.
+- 빈 값, `null`, Clear Flag, Use N의 의미를 구분한다.
+- PII·Password·첨부 원문은 Masking·Raw 권한·Reason을 적용한다.
 
-Operation ID, Login ID, Role, Valid From/To, Primary
+#### Button·조치
 
-입력 Field마다 필수 여부, 공백·Null 의미, 최대 길이, 날짜 포함 경계, Code 불변성, Expected Version을 확인한다. 조직·Role·Assignment·Delegation은 기간 중복과 순환을 검사한다.
+- 등록·수정·Paging
 
-#### 조치
-
-화면 조치: **등록·수정·Paging**
-
-1. 조회 조건을 제한하고 대상을 선택한다.
-2. Detail에서 ID·Version·유효기간·최근 변경자를 확인한다.
-3. 변경 영향 Preview 또는 Simulation을 실행한다.
-4. Reason과 Expected Version을 입력한다.
-5. 등록·수정·결정 요청 후 Operation ID·Approval ID를 기록한다.
-6. 업무 상태와 Audit가 함께 반영됐는지 확인한다.
+1. Login ID·Role·Menu·Permission·Session의 현재 Version과 유효기간을 조회한다.
+2. `Operation ID, Login ID, Role, Valid From/To, Primary`를 입력하고 중복 Role, 기간 겹침, Data Scope 확대, API Pattern 충돌을 확인한다.
+3. `등록·수정·Paging` 실행 후 Effective Permission Simulation을 같은 사용자·시각·조직 Version으로 수행한다.
+4. Menu 표시, Button 활성, Backend 직접 호출, 다른 조직 데이터 조회를 각각 시험한다.
+5. 권한 축소 시 기존 Session·Cache·위임·진행 중 결재에 반영됐는지 확인한다.
+6. 응답 유실은 Operation ID로 조회하고 중복 등록을 만들지 않는다.
 
 #### 정상 결과
 
-- 대상 Version이 증가하고 입력한 유효기간·상태가 반영된다.
-- 조직 Tree, User Role, Permission Evaluation, Approval Simulation 등 연관 Projection이 같은 결과를 반환한다.
-- Masking 정책과 Data Scope가 로그인 사용자에게 적용된다.
-- Audit에 Actor, Action, Target, Reason, Before/After, Version, 결과가 남는다.
+- 대상 Version·상태·유효기간이 입력과 일치한다.
+- 조직 Tree, Assignment, Effective Permission, Approval Simulation, Session, Attachment Metadata 등 연관 Projection이 같은 결과를 반환한다.
+- Masking과 Data Scope가 Backend Query에 적용된다.
+- Audit에 Actor, Menu·Action Permission, Target, Reason, Before/After, Version과 결과가 남는다.
 
-#### 오류·동시성·응답 유실
+#### 오류·동시성·응답 유실·복구
 
 | 상황 | 처리 |
 |---|---|
-| Validation | Field 오류와 정책을 수정해 새 요청을 만든다. |
-| 403 | Menu·Action·API·Data Scope를 확인한다. |
-| 409 | 최신 Version·유효기간·변경자를 조회하고 다시 작성한다. |
-| 중복 기간 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
+| Validation | Field 정책·상위 기준정보·기간 경계를 수정해 새 요청을 만든다. |
+| 403 | Menu·Action·API·Data Scope·Raw 권한을 확인한다. |
+| 409 | 최신 Version·유효기간·변경자를 조회하고 변경 의도를 다시 작성한다. |
+| 기간 중복·순환 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
 | 응답 유실 | 같은 Operation ID·Idempotency Key로 결과를 조회한다. |
-| 부분 반영 | 연관 Projection과 Consumer를 Reconcile하고 Failed Target만 재처리한다. |
+| 부분 반영 | 연관 Projection과 업무 Consumer를 Reconcile하고 실패 대상만 재처리한다. |
+| Rollback | 변경 전 Version·Snapshot·유효기간을 근거로 새 보정 Operation을 수행한다. |
 
-#### Rollback·복구
+#### 개인정보·감사·교대
 
-변경 전 Version과 유효기간을 기준으로 새 보정 변경을 수행한다. 물리 삭제 대신 비활성화·종료일 적용이 계약인 기능은 해당 방법을 사용한다. 권한·결재 변경은 현재 Session과 진행 중 Snapshot에 미치는 영향을 확인한다.
+Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별도 Permission과 구체적 Reason을 기록한다. 교대 시 대상 ID, Version, 유효기간, Operation ID, Approval ID, 결과, 미확정 Consumer와 다음 확인 시각을 남긴다.
 
-#### 운영 확인
 
-Audit, Session, Permission Simulation, Approval Simulation, 업무 Domain 조회를 연결하고 교대 기록에 대상 ID·Version·Operation·미확정 항목을 남긴다.
 ### menus — Menu Registry
 
-**Route**: `/menus`
-**Menu Code**: `AUTHORIZATION`
-**Frontend**: `cpf-biz-admin/frontend/src/features/authorization/MenusPage.vue`
+| 항목 | 값 |
+|---|---|
+| Route | `/menus` |
+| Menu Code | `AUTHORIZATION` |
+| Frontend | `cpf-biz-admin/frontend/src/features/authorization/MenusPage.vue` |
+| Permission | Write |
 
-#### 기능 목적
+#### 사용 목적과 업무 영향
 
-Menu Registry 기능을 조회·등록·변경·감사한다. 이 기능의 변경은 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer에 영향을 줄 수 있으므로 단일 화면 저장 결과만으로 종료하지 않는다.
+이 화면은 **Menu Registry** 기능을 제공한다. 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer 중 영향을 받는 항목을 변경 전후에 확인한다.
 
-#### 선행 조건
+#### 입력·검색·표시 값
 
-1. 로그인 사용자에게 `Write` 권한이 있는지 확인한다.
-2. 상위 기준정보와 대상의 현재 Version·유효기간·Active 상태를 조회한다.
-3. 개인정보·첨부·Download 기능은 Raw·Export 권한과 Reason을 별도로 확인한다.
-4. 변경 중인 Operation 또는 Approval이 있으면 기존 ID로 결과를 확인한다.
+- Code
+- Parent
+- Name
+- Route
+- Sort
+- Use
+- Reason
+- Tree 검색
 
-#### 검색·입력·표시 값
+- ID·Code의 변경 가능 여부와 참조 Consumer를 확인한다.
+- 날짜는 시작·종료 포함 경계와 업무 Timezone을 기록한다.
+- 빈 값, `null`, Clear Flag, Use N의 의미를 구분한다.
+- PII·Password·첨부 원문은 Masking·Raw 권한·Reason을 적용한다.
 
-Code, Parent, Name, Route, Sort, Use, Reason; Tree 검색
+#### Button·조치
 
-입력 Field마다 필수 여부, 공백·Null 의미, 최대 길이, 날짜 포함 경계, Code 불변성, Expected Version을 확인한다. 조직·Role·Assignment·Delegation은 기간 중복과 순환을 검사한다.
+- 등록·수정
 
-#### 조치
-
-화면 조치: **등록·수정**
-
-1. 조회 조건을 제한하고 대상을 선택한다.
-2. Detail에서 ID·Version·유효기간·최근 변경자를 확인한다.
-3. 변경 영향 Preview 또는 Simulation을 실행한다.
-4. Reason과 Expected Version을 입력한다.
-5. 등록·수정·결정 요청 후 Operation ID·Approval ID를 기록한다.
-6. 업무 상태와 Audit가 함께 반영됐는지 확인한다.
+1. Login ID·Role·Menu·Permission·Session의 현재 Version과 유효기간을 조회한다.
+2. `Code, Parent, Name, Route, Sort, Use, Reason; Tree 검색`를 입력하고 중복 Role, 기간 겹침, Data Scope 확대, API Pattern 충돌을 확인한다.
+3. `등록·수정` 실행 후 Effective Permission Simulation을 같은 사용자·시각·조직 Version으로 수행한다.
+4. Menu 표시, Button 활성, Backend 직접 호출, 다른 조직 데이터 조회를 각각 시험한다.
+5. 권한 축소 시 기존 Session·Cache·위임·진행 중 결재에 반영됐는지 확인한다.
+6. 응답 유실은 Operation ID로 조회하고 중복 등록을 만들지 않는다.
 
 #### 정상 결과
 
-- 대상 Version이 증가하고 입력한 유효기간·상태가 반영된다.
-- 조직 Tree, User Role, Permission Evaluation, Approval Simulation 등 연관 Projection이 같은 결과를 반환한다.
-- Masking 정책과 Data Scope가 로그인 사용자에게 적용된다.
-- Audit에 Actor, Action, Target, Reason, Before/After, Version, 결과가 남는다.
+- 대상 Version·상태·유효기간이 입력과 일치한다.
+- 조직 Tree, Assignment, Effective Permission, Approval Simulation, Session, Attachment Metadata 등 연관 Projection이 같은 결과를 반환한다.
+- Masking과 Data Scope가 Backend Query에 적용된다.
+- Audit에 Actor, Menu·Action Permission, Target, Reason, Before/After, Version과 결과가 남는다.
 
-#### 오류·동시성·응답 유실
+#### 오류·동시성·응답 유실·복구
 
 | 상황 | 처리 |
 |---|---|
-| Validation | Field 오류와 정책을 수정해 새 요청을 만든다. |
-| 403 | Menu·Action·API·Data Scope를 확인한다. |
-| 409 | 최신 Version·유효기간·변경자를 조회하고 다시 작성한다. |
-| 중복 기간 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
+| Validation | Field 정책·상위 기준정보·기간 경계를 수정해 새 요청을 만든다. |
+| 403 | Menu·Action·API·Data Scope·Raw 권한을 확인한다. |
+| 409 | 최신 Version·유효기간·변경자를 조회하고 변경 의도를 다시 작성한다. |
+| 기간 중복·순환 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
 | 응답 유실 | 같은 Operation ID·Idempotency Key로 결과를 조회한다. |
-| 부분 반영 | 연관 Projection과 Consumer를 Reconcile하고 Failed Target만 재처리한다. |
+| 부분 반영 | 연관 Projection과 업무 Consumer를 Reconcile하고 실패 대상만 재처리한다. |
+| Rollback | 변경 전 Version·Snapshot·유효기간을 근거로 새 보정 Operation을 수행한다. |
 
-#### Rollback·복구
+#### 개인정보·감사·교대
 
-변경 전 Version과 유효기간을 기준으로 새 보정 변경을 수행한다. 물리 삭제 대신 비활성화·종료일 적용이 계약인 기능은 해당 방법을 사용한다. 권한·결재 변경은 현재 Session과 진행 중 Snapshot에 미치는 영향을 확인한다.
+Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별도 Permission과 구체적 Reason을 기록한다. 교대 시 대상 ID, Version, 유효기간, Operation ID, Approval ID, 결과, 미확정 Consumer와 다음 확인 시각을 남긴다.
 
-#### 운영 확인
 
-Audit, Session, Permission Simulation, Approval Simulation, 업무 Domain 조회를 연결하고 교대 기록에 대상 ID·Version·Operation·미확정 항목을 남긴다.
 ### permissions — Menu·Button·API·Data Scope Permission
 
-**Route**: `/permissions`
-**Menu Code**: `AUTHORIZATION`
-**Frontend**: `cpf-biz-admin/frontend/src/features/authorization/PermissionsPage.vue`
+| 항목 | 값 |
+|---|---|
+| Route | `/permissions` |
+| Menu Code | `AUTHORIZATION` |
+| Frontend | `cpf-biz-admin/frontend/src/features/authorization/PermissionsPage.vue` |
+| Permission | WRITE, SIMULATE |
 
-#### 기능 목적
+#### 사용 목적과 업무 영향
 
-Menu·Button·API·Data Scope Permission 기능을 조회·등록·변경·감사한다. 이 기능의 변경은 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer에 영향을 줄 수 있으므로 단일 화면 저장 결과만으로 종료하지 않는다.
+이 화면은 **Menu·Button·API·Data Scope Permission** 기능을 제공한다. 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer 중 영향을 받는 항목을 변경 전후에 확인한다.
 
-#### 선행 조건
+#### 입력·검색·표시 값
 
-1. 로그인 사용자에게 `WRITE, SIMULATE` 권한이 있는지 확인한다.
-2. 상위 기준정보와 대상의 현재 Version·유효기간·Active 상태를 조회한다.
-3. 개인정보·첨부·Download 기능은 Raw·Export 권한과 Reason을 별도로 확인한다.
-4. 변경 중인 Operation 또는 Approval이 있으면 기존 ID로 결과를 확인한다.
+- Permission ID
+- Role
+- Menu
+- Button
+- Type
+- HTTP
+- API Pattern
+- Domain/Env
+- Data Scope
+- Allow/Use
 
-#### 검색·입력·표시 값
+- ID·Code의 변경 가능 여부와 참조 Consumer를 확인한다.
+- 날짜는 시작·종료 포함 경계와 업무 Timezone을 기록한다.
+- 빈 값, `null`, Clear Flag, Use N의 의미를 구분한다.
+- PII·Password·첨부 원문은 Masking·Raw 권한·Reason을 적용한다.
 
-Permission ID, Role, Menu, Button, Type, HTTP, API Pattern, Domain/Env, Data Scope, Allow/Use
+#### Button·조치
 
-입력 Field마다 필수 여부, 공백·Null 의미, 최대 길이, 날짜 포함 경계, Code 불변성, Expected Version을 확인한다. 조직·Role·Assignment·Delegation은 기간 중복과 순환을 검사한다.
+- Assignment 등록/수정·실효 권한 Simulation
 
-#### 조치
-
-화면 조치: **Assignment 등록/수정·실효 권한 Simulation**
-
-1. 조회 조건을 제한하고 대상을 선택한다.
-2. Detail에서 ID·Version·유효기간·최근 변경자를 확인한다.
-3. 변경 영향 Preview 또는 Simulation을 실행한다.
-4. Reason과 Expected Version을 입력한다.
-5. 등록·수정·결정 요청 후 Operation ID·Approval ID를 기록한다.
-6. 업무 상태와 Audit가 함께 반영됐는지 확인한다.
+1. Login ID·Role·Menu·Permission·Session의 현재 Version과 유효기간을 조회한다.
+2. `Permission ID, Role, Menu, Button, Type, HTTP, API Pattern, Domain/Env, Data Scope, Allow/Use`를 입력하고 중복 Role, 기간 겹침, Data Scope 확대, API Pattern 충돌을 확인한다.
+3. `Assignment 등록/수정·실효 권한 Simulation` 실행 후 Effective Permission Simulation을 같은 사용자·시각·조직 Version으로 수행한다.
+4. Menu 표시, Button 활성, Backend 직접 호출, 다른 조직 데이터 조회를 각각 시험한다.
+5. 권한 축소 시 기존 Session·Cache·위임·진행 중 결재에 반영됐는지 확인한다.
+6. 응답 유실은 Operation ID로 조회하고 중복 등록을 만들지 않는다.
 
 #### 정상 결과
 
-- 대상 Version이 증가하고 입력한 유효기간·상태가 반영된다.
-- 조직 Tree, User Role, Permission Evaluation, Approval Simulation 등 연관 Projection이 같은 결과를 반환한다.
-- Masking 정책과 Data Scope가 로그인 사용자에게 적용된다.
-- Audit에 Actor, Action, Target, Reason, Before/After, Version, 결과가 남는다.
+- 대상 Version·상태·유효기간이 입력과 일치한다.
+- 조직 Tree, Assignment, Effective Permission, Approval Simulation, Session, Attachment Metadata 등 연관 Projection이 같은 결과를 반환한다.
+- Masking과 Data Scope가 Backend Query에 적용된다.
+- Audit에 Actor, Menu·Action Permission, Target, Reason, Before/After, Version과 결과가 남는다.
 
-#### 오류·동시성·응답 유실
+#### 오류·동시성·응답 유실·복구
 
 | 상황 | 처리 |
 |---|---|
-| Validation | Field 오류와 정책을 수정해 새 요청을 만든다. |
-| 403 | Menu·Action·API·Data Scope를 확인한다. |
-| 409 | 최신 Version·유효기간·변경자를 조회하고 다시 작성한다. |
-| 중복 기간 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
+| Validation | Field 정책·상위 기준정보·기간 경계를 수정해 새 요청을 만든다. |
+| 403 | Menu·Action·API·Data Scope·Raw 권한을 확인한다. |
+| 409 | 최신 Version·유효기간·변경자를 조회하고 변경 의도를 다시 작성한다. |
+| 기간 중복·순환 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
 | 응답 유실 | 같은 Operation ID·Idempotency Key로 결과를 조회한다. |
-| 부분 반영 | 연관 Projection과 Consumer를 Reconcile하고 Failed Target만 재처리한다. |
+| 부분 반영 | 연관 Projection과 업무 Consumer를 Reconcile하고 실패 대상만 재처리한다. |
+| Rollback | 변경 전 Version·Snapshot·유효기간을 근거로 새 보정 Operation을 수행한다. |
 
-#### Rollback·복구
+#### 개인정보·감사·교대
 
-변경 전 Version과 유효기간을 기준으로 새 보정 변경을 수행한다. 물리 삭제 대신 비활성화·종료일 적용이 계약인 기능은 해당 방법을 사용한다. 권한·결재 변경은 현재 Session과 진행 중 Snapshot에 미치는 영향을 확인한다.
+Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별도 Permission과 구체적 Reason을 기록한다. 교대 시 대상 ID, Version, 유효기간, Operation ID, Approval ID, 결과, 미확정 Consumer와 다음 확인 시각을 남긴다.
 
-#### 운영 확인
 
-Audit, Session, Permission Simulation, Approval Simulation, 업무 Domain 조회를 연결하고 교대 기록에 대상 ID·Version·Operation·미확정 항목을 남긴다.
 ### permissionTools — Role 비교·권한 분석
 
-**Route**: `/permissionTools`
-**Menu Code**: `AUTHORIZATION`
-**Frontend**: `cpf-biz-admin/frontend/src/features/permission-tools/PermissionToolsPage.vue`
+| 항목 | 값 |
+|---|---|
+| Route | `/permissionTools` |
+| Menu Code | `AUTHORIZATION` |
+| Frontend | `cpf-biz-admin/frontend/src/features/permission-tools/PermissionToolsPage.vue` |
+| Permission | SIMULATE |
 
-#### 기능 목적
+#### 사용 목적과 업무 영향
 
-Role 비교·권한 분석 기능을 조회·등록·변경·감사한다. 이 기능의 변경은 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer에 영향을 줄 수 있으므로 단일 화면 저장 결과만으로 종료하지 않는다.
+이 화면은 **Role 비교·권한 분석** 기능을 제공한다. 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer 중 영향을 받는 항목을 변경 전후에 확인한다.
 
-#### 선행 조건
+#### 입력·검색·표시 값
 
-1. 로그인 사용자에게 `SIMULATE` 권한이 있는지 확인한다.
-2. 상위 기준정보와 대상의 현재 Version·유효기간·Active 상태를 조회한다.
-3. 개인정보·첨부·Download 기능은 Raw·Export 권한과 Reason을 별도로 확인한다.
-4. 변경 중인 Operation 또는 Approval이 있으면 기존 ID로 결과를 확인한다.
+- 비교 Role/User·Simulation 입력
 
-#### 검색·입력·표시 값
+- ID·Code의 변경 가능 여부와 참조 Consumer를 확인한다.
+- 날짜는 시작·종료 포함 경계와 업무 Timezone을 기록한다.
+- 빈 값, `null`, Clear Flag, Use N의 의미를 구분한다.
+- PII·Password·첨부 원문은 Masking·Raw 권한·Reason을 적용한다.
 
-비교 Role/User·Simulation 입력
+#### Button·조치
 
-입력 Field마다 필수 여부, 공백·Null 의미, 최대 길이, 날짜 포함 경계, Code 불변성, Expected Version을 확인한다. 조직·Role·Assignment·Delegation은 기간 중복과 순환을 검사한다.
+- 조회·비교
 
-#### 조치
-
-화면 조치: **조회·비교**
-
-1. 조회 조건을 제한하고 대상을 선택한다.
-2. Detail에서 ID·Version·유효기간·최근 변경자를 확인한다.
-3. 변경 영향 Preview 또는 Simulation을 실행한다.
-4. Reason과 Expected Version을 입력한다.
-5. 등록·수정·결정 요청 후 Operation ID·Approval ID를 기록한다.
-6. 업무 상태와 Audit가 함께 반영됐는지 확인한다.
+1. Login ID·Role·Menu·Permission·Session의 현재 Version과 유효기간을 조회한다.
+2. `비교 Role/User·Simulation 입력`를 입력하고 중복 Role, 기간 겹침, Data Scope 확대, API Pattern 충돌을 확인한다.
+3. `조회·비교` 실행 후 Effective Permission Simulation을 같은 사용자·시각·조직 Version으로 수행한다.
+4. Menu 표시, Button 활성, Backend 직접 호출, 다른 조직 데이터 조회를 각각 시험한다.
+5. 권한 축소 시 기존 Session·Cache·위임·진행 중 결재에 반영됐는지 확인한다.
+6. 응답 유실은 Operation ID로 조회하고 중복 등록을 만들지 않는다.
 
 #### 정상 결과
 
-- 대상 Version이 증가하고 입력한 유효기간·상태가 반영된다.
-- 조직 Tree, User Role, Permission Evaluation, Approval Simulation 등 연관 Projection이 같은 결과를 반환한다.
-- Masking 정책과 Data Scope가 로그인 사용자에게 적용된다.
-- Audit에 Actor, Action, Target, Reason, Before/After, Version, 결과가 남는다.
+- 대상 Version·상태·유효기간이 입력과 일치한다.
+- 조직 Tree, Assignment, Effective Permission, Approval Simulation, Session, Attachment Metadata 등 연관 Projection이 같은 결과를 반환한다.
+- Masking과 Data Scope가 Backend Query에 적용된다.
+- Audit에 Actor, Menu·Action Permission, Target, Reason, Before/After, Version과 결과가 남는다.
 
-#### 오류·동시성·응답 유실
+#### 오류·동시성·응답 유실·복구
 
 | 상황 | 처리 |
 |---|---|
-| Validation | Field 오류와 정책을 수정해 새 요청을 만든다. |
-| 403 | Menu·Action·API·Data Scope를 확인한다. |
-| 409 | 최신 Version·유효기간·변경자를 조회하고 다시 작성한다. |
-| 중복 기간 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
+| Validation | Field 정책·상위 기준정보·기간 경계를 수정해 새 요청을 만든다. |
+| 403 | Menu·Action·API·Data Scope·Raw 권한을 확인한다. |
+| 409 | 최신 Version·유효기간·변경자를 조회하고 변경 의도를 다시 작성한다. |
+| 기간 중복·순환 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
 | 응답 유실 | 같은 Operation ID·Idempotency Key로 결과를 조회한다. |
-| 부분 반영 | 연관 Projection과 Consumer를 Reconcile하고 Failed Target만 재처리한다. |
+| 부분 반영 | 연관 Projection과 업무 Consumer를 Reconcile하고 실패 대상만 재처리한다. |
+| Rollback | 변경 전 Version·Snapshot·유효기간을 근거로 새 보정 Operation을 수행한다. |
 
-#### Rollback·복구
+#### 개인정보·감사·교대
 
-변경 전 Version과 유효기간을 기준으로 새 보정 변경을 수행한다. 물리 삭제 대신 비활성화·종료일 적용이 계약인 기능은 해당 방법을 사용한다. 권한·결재 변경은 현재 Session과 진행 중 Snapshot에 미치는 영향을 확인한다.
+Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별도 Permission과 구체적 Reason을 기록한다. 교대 시 대상 ID, Version, 유효기간, Operation ID, Approval ID, 결과, 미확정 Consumer와 다음 확인 시각을 남긴다.
 
-#### 운영 확인
 
-Audit, Session, Permission Simulation, Approval Simulation, 업무 Domain 조회를 연결하고 교대 기록에 대상 ID·Version·Operation·미확정 항목을 남긴다.
 ### approvalInbox — 결재 처리
 
-**Route**: `/approvalInbox`
-**Menu Code**: `APPROVAL`
-**Frontend**: `cpf-biz-admin/frontend/src/features/approval-inbox/ApprovalInboxPage.vue`
+| 항목 | 값 |
+|---|---|
+| Route | `/approvalInbox` |
+| Menu Code | `APPROVAL` |
+| Frontend | `cpf-biz-admin/frontend/src/features/approval-inbox/ApprovalInboxPage.vue` |
+| Permission | 결재 참여자 |
 
-#### 기능 목적
+#### 사용 목적과 업무 영향
 
-결재 처리 기능을 조회·등록·변경·감사한다. 이 기능의 변경은 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer에 영향을 줄 수 있으므로 단일 화면 저장 결과만으로 종료하지 않는다.
+이 화면은 **결재 처리** 기능을 제공한다. 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer 중 영향을 받는 항목을 변경 전후에 확인한다.
 
-#### 선행 조건
+#### 입력·검색·표시 값
 
-1. 로그인 사용자에게 `결재 참여자` 권한이 있는지 확인한다.
-2. 상위 기준정보와 대상의 현재 Version·유효기간·Active 상태를 조회한다.
-3. 개인정보·첨부·Download 기능은 Raw·Export 권한과 Reason을 별도로 확인한다.
-4. 변경 중인 Operation 또는 Approval이 있으면 기존 ID로 결과를 확인한다.
+- 처리대기/완료/기타 Lane
+- Decision Reason
 
-#### 검색·입력·표시 값
+- ID·Code의 변경 가능 여부와 참조 Consumer를 확인한다.
+- 날짜는 시작·종료 포함 경계와 업무 Timezone을 기록한다.
+- 빈 값, `null`, Clear Flag, Use N의 의미를 구분한다.
+- PII·Password·첨부 원문은 Masking·Raw 권한·Reason을 적용한다.
 
-처리대기/완료/기타 Lane; Decision Reason
+#### Button·조치
 
-입력 Field마다 필수 여부, 공백·Null 의미, 최대 길이, 날짜 포함 경계, Code 불변성, Expected Version을 확인한다. 조직·Role·Assignment·Delegation은 기간 중복과 순환을 검사한다.
+- APPROVE·AGREE·REJECT
 
-#### 조치
-
-화면 조치: **APPROVE·AGREE·REJECT**
-
-1. 조회 조건을 제한하고 대상을 선택한다.
-2. Detail에서 ID·Version·유효기간·최근 변경자를 확인한다.
-3. 변경 영향 Preview 또는 Simulation을 실행한다.
-4. Reason과 Expected Version을 입력한다.
-5. 등록·수정·결정 요청 후 Operation ID·Approval ID를 기록한다.
-6. 업무 상태와 Audit가 함께 반영됐는지 확인한다.
+1. Policy ID·Version·유효기간·Domain·Type과 조직·Role·위임 Context를 조회한다.
+2. `처리대기/완료/기타 Lane; Decision Reason`를 입력하고 자기승인, 위임 순환, 만료, ALL·ANY·N_OF_M 조건을 확인한다.
+3. Simulation으로 참여자와 단계 순서를 확인한 뒤 `APPROVE·AGREE·REJECT`을 수행한다.
+4. 상신 시 Participant Snapshot, Request Hash, Idempotency Key를 기록한다.
+5. 승인·합의·반려·철회·취소·재상신은 허용 상태와 Actor를 확인한다.
+6. 응답 유실은 Approval Instance·Operation ID를 조회하고 같은 결정을 반복 전송하지 않는다.
 
 #### 정상 결과
 
-- 대상 Version이 증가하고 입력한 유효기간·상태가 반영된다.
-- 조직 Tree, User Role, Permission Evaluation, Approval Simulation 등 연관 Projection이 같은 결과를 반환한다.
-- Masking 정책과 Data Scope가 로그인 사용자에게 적용된다.
-- Audit에 Actor, Action, Target, Reason, Before/After, Version, 결과가 남는다.
+- 대상 Version·상태·유효기간이 입력과 일치한다.
+- 조직 Tree, Assignment, Effective Permission, Approval Simulation, Session, Attachment Metadata 등 연관 Projection이 같은 결과를 반환한다.
+- Masking과 Data Scope가 Backend Query에 적용된다.
+- Audit에 Actor, Menu·Action Permission, Target, Reason, Before/After, Version과 결과가 남는다.
 
-#### 오류·동시성·응답 유실
+#### 오류·동시성·응답 유실·복구
 
 | 상황 | 처리 |
 |---|---|
-| Validation | Field 오류와 정책을 수정해 새 요청을 만든다. |
-| 403 | Menu·Action·API·Data Scope를 확인한다. |
-| 409 | 최신 Version·유효기간·변경자를 조회하고 다시 작성한다. |
-| 중복 기간 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
+| Validation | Field 정책·상위 기준정보·기간 경계를 수정해 새 요청을 만든다. |
+| 403 | Menu·Action·API·Data Scope·Raw 권한을 확인한다. |
+| 409 | 최신 Version·유효기간·변경자를 조회하고 변경 의도를 다시 작성한다. |
+| 기간 중복·순환 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
 | 응답 유실 | 같은 Operation ID·Idempotency Key로 결과를 조회한다. |
-| 부분 반영 | 연관 Projection과 Consumer를 Reconcile하고 Failed Target만 재처리한다. |
+| 부분 반영 | 연관 Projection과 업무 Consumer를 Reconcile하고 실패 대상만 재처리한다. |
+| Rollback | 변경 전 Version·Snapshot·유효기간을 근거로 새 보정 Operation을 수행한다. |
 
-#### Rollback·복구
+#### 개인정보·감사·교대
 
-변경 전 Version과 유효기간을 기준으로 새 보정 변경을 수행한다. 물리 삭제 대신 비활성화·종료일 적용이 계약인 기능은 해당 방법을 사용한다. 권한·결재 변경은 현재 Session과 진행 중 Snapshot에 미치는 영향을 확인한다.
+Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별도 Permission과 구체적 Reason을 기록한다. 교대 시 대상 ID, Version, 유효기간, Operation ID, Approval ID, 결과, 미확정 Consumer와 다음 확인 시각을 남긴다.
 
-#### 운영 확인
 
-Audit, Session, Permission Simulation, Approval Simulation, 업무 Domain 조회를 연결하고 교대 기록에 대상 ID·Version·Operation·미확정 항목을 남긴다.
 ### approvalSubmissions — 상신·철회·취소·재상신
 
-**Route**: `/approvalSubmissions`
-**Menu Code**: `APPROVAL`
-**Frontend**: `cpf-biz-admin/frontend/src/features/approval-submissions/ApprovalSubmissionsPage.vue`
+| 항목 | 값 |
+|---|---|
+| Route | `/approvalSubmissions` |
+| Menu Code | `APPROVAL` |
+| Frontend | `cpf-biz-admin/frontend/src/features/approval-submissions/ApprovalSubmissionsPage.vue` |
+| Permission | 요청자/상신 권한 |
 
-#### 기능 목적
+#### 사용 목적과 업무 영향
 
-상신·철회·취소·재상신 기능을 조회·등록·변경·감사한다. 이 기능의 변경은 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer에 영향을 줄 수 있으므로 단일 화면 저장 결과만으로 종료하지 않는다.
+이 화면은 **상신·철회·취소·재상신** 기능을 제공한다. 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer 중 영향을 받는 항목을 변경 전후에 확인한다.
 
-#### 선행 조건
+#### 입력·검색·표시 값
 
-1. 로그인 사용자에게 `요청자/상신 권한` 권한이 있는지 확인한다.
-2. 상위 기준정보와 대상의 현재 Version·유효기간·Active 상태를 조회한다.
-3. 개인정보·첨부·Download 기능은 Raw·Export 권한과 Reason을 별도로 확인한다.
-4. 변경 중인 Operation 또는 Approval이 있으면 기존 ID로 결과를 확인한다.
+- Policy/Version/Domain/Type/Requester/Title/Mode/Due/Payload/Attachment/Key/Reason
 
-#### 검색·입력·표시 값
+- ID·Code의 변경 가능 여부와 참조 Consumer를 확인한다.
+- 날짜는 시작·종료 포함 경계와 업무 Timezone을 기록한다.
+- 빈 값, `null`, Clear Flag, Use N의 의미를 구분한다.
+- PII·Password·첨부 원문은 Masking·Raw 권한·Reason을 적용한다.
 
-Policy/Version/Domain/Type/Requester/Title/Mode/Due/Payload/Attachment/Key/Reason
+#### Button·조치
 
-입력 Field마다 필수 여부, 공백·Null 의미, 최대 길이, 날짜 포함 경계, Code 불변성, Expected Version을 확인한다. 조직·Role·Assignment·Delegation은 기간 중복과 순환을 검사한다.
+- 상신·철회·취소·재상신
 
-#### 조치
-
-화면 조치: **상신·철회·취소·재상신**
-
-1. 조회 조건을 제한하고 대상을 선택한다.
-2. Detail에서 ID·Version·유효기간·최근 변경자를 확인한다.
-3. 변경 영향 Preview 또는 Simulation을 실행한다.
-4. Reason과 Expected Version을 입력한다.
-5. 등록·수정·결정 요청 후 Operation ID·Approval ID를 기록한다.
-6. 업무 상태와 Audit가 함께 반영됐는지 확인한다.
+1. Policy ID·Version·유효기간·Domain·Type과 조직·Role·위임 Context를 조회한다.
+2. `Policy/Version/Domain/Type/Requester/Title/Mode/Due/Payload/Attachment/Key/Reason`를 입력하고 자기승인, 위임 순환, 만료, ALL·ANY·N_OF_M 조건을 확인한다.
+3. Simulation으로 참여자와 단계 순서를 확인한 뒤 `상신·철회·취소·재상신`을 수행한다.
+4. 상신 시 Participant Snapshot, Request Hash, Idempotency Key를 기록한다.
+5. 승인·합의·반려·철회·취소·재상신은 허용 상태와 Actor를 확인한다.
+6. 응답 유실은 Approval Instance·Operation ID를 조회하고 같은 결정을 반복 전송하지 않는다.
 
 #### 정상 결과
 
-- 대상 Version이 증가하고 입력한 유효기간·상태가 반영된다.
-- 조직 Tree, User Role, Permission Evaluation, Approval Simulation 등 연관 Projection이 같은 결과를 반환한다.
-- Masking 정책과 Data Scope가 로그인 사용자에게 적용된다.
-- Audit에 Actor, Action, Target, Reason, Before/After, Version, 결과가 남는다.
+- 대상 Version·상태·유효기간이 입력과 일치한다.
+- 조직 Tree, Assignment, Effective Permission, Approval Simulation, Session, Attachment Metadata 등 연관 Projection이 같은 결과를 반환한다.
+- Masking과 Data Scope가 Backend Query에 적용된다.
+- Audit에 Actor, Menu·Action Permission, Target, Reason, Before/After, Version과 결과가 남는다.
 
-#### 오류·동시성·응답 유실
+#### 오류·동시성·응답 유실·복구
 
 | 상황 | 처리 |
 |---|---|
-| Validation | Field 오류와 정책을 수정해 새 요청을 만든다. |
-| 403 | Menu·Action·API·Data Scope를 확인한다. |
-| 409 | 최신 Version·유효기간·변경자를 조회하고 다시 작성한다. |
-| 중복 기간 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
+| Validation | Field 정책·상위 기준정보·기간 경계를 수정해 새 요청을 만든다. |
+| 403 | Menu·Action·API·Data Scope·Raw 권한을 확인한다. |
+| 409 | 최신 Version·유효기간·변경자를 조회하고 변경 의도를 다시 작성한다. |
+| 기간 중복·순환 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
 | 응답 유실 | 같은 Operation ID·Idempotency Key로 결과를 조회한다. |
-| 부분 반영 | 연관 Projection과 Consumer를 Reconcile하고 Failed Target만 재처리한다. |
+| 부분 반영 | 연관 Projection과 업무 Consumer를 Reconcile하고 실패 대상만 재처리한다. |
+| Rollback | 변경 전 Version·Snapshot·유효기간을 근거로 새 보정 Operation을 수행한다. |
 
-#### Rollback·복구
+#### 개인정보·감사·교대
 
-변경 전 Version과 유효기간을 기준으로 새 보정 변경을 수행한다. 물리 삭제 대신 비활성화·종료일 적용이 계약인 기능은 해당 방법을 사용한다. 권한·결재 변경은 현재 Session과 진행 중 Snapshot에 미치는 영향을 확인한다.
+Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별도 Permission과 구체적 Reason을 기록한다. 교대 시 대상 ID, Version, 유효기간, Operation ID, Approval ID, 결과, 미확정 Consumer와 다음 확인 시각을 남긴다.
 
-#### 운영 확인
 
-Audit, Session, Permission Simulation, Approval Simulation, 업무 Domain 조회를 연결하고 교대 기록에 대상 ID·Version·Operation·미확정 항목을 남긴다.
 ### approvalPolicies — Versioned 결재 정책
 
-**Route**: `/approvalPolicies`
-**Menu Code**: `APPROVAL`
-**Frontend**: `cpf-biz-admin/frontend/src/features/approval-policies/ApprovalPoliciesPage.vue`
+| 항목 | 값 |
+|---|---|
+| Route | `/approvalPolicies` |
+| Menu Code | `APPROVAL` |
+| Frontend | `cpf-biz-admin/frontend/src/features/approval-policies/ApprovalPoliciesPage.vue` |
+| Permission | 정책 Write |
 
-#### 기능 목적
+#### 사용 목적과 업무 영향
 
-Versioned 결재 정책 기능을 조회·등록·변경·감사한다. 이 기능의 변경은 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer에 영향을 줄 수 있으므로 단일 화면 저장 결과만으로 종료하지 않는다.
+이 화면은 **Versioned 결재 정책** 기능을 제공한다. 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer 중 영향을 받는 항목을 변경 전후에 확인한다.
 
-#### 선행 조건
+#### 입력·검색·표시 값
 
-1. 로그인 사용자에게 `정책 Write` 권한이 있는지 확인한다.
-2. 상위 기준정보와 대상의 현재 Version·유효기간·Active 상태를 조회한다.
-3. 개인정보·첨부·Download 기능은 Raw·Export 권한과 Reason을 별도로 확인한다.
-4. 변경 중인 Operation 또는 Approval이 있으면 기존 ID로 결과를 확인한다.
+- Policy/Version/Name/Domain/Type/From/To/Enabled/Self Approval/Description/Steps JSON/Reason
 
-#### 검색·입력·표시 값
+- ID·Code의 변경 가능 여부와 참조 Consumer를 확인한다.
+- 날짜는 시작·종료 포함 경계와 업무 Timezone을 기록한다.
+- 빈 값, `null`, Clear Flag, Use N의 의미를 구분한다.
+- PII·Password·첨부 원문은 Masking·Raw 권한·Reason을 적용한다.
 
-Policy/Version/Name/Domain/Type/From/To/Enabled/Self Approval/Description/Steps JSON/Reason
+#### Button·조치
 
-입력 Field마다 필수 여부, 공백·Null 의미, 최대 길이, 날짜 포함 경계, Code 불변성, Expected Version을 확인한다. 조직·Role·Assignment·Delegation은 기간 중복과 순환을 검사한다.
+- 저장·조회
 
-#### 조치
-
-화면 조치: **저장·조회**
-
-1. 조회 조건을 제한하고 대상을 선택한다.
-2. Detail에서 ID·Version·유효기간·최근 변경자를 확인한다.
-3. 변경 영향 Preview 또는 Simulation을 실행한다.
-4. Reason과 Expected Version을 입력한다.
-5. 등록·수정·결정 요청 후 Operation ID·Approval ID를 기록한다.
-6. 업무 상태와 Audit가 함께 반영됐는지 확인한다.
+1. Policy ID·Version·유효기간·Domain·Type과 조직·Role·위임 Context를 조회한다.
+2. `Policy/Version/Name/Domain/Type/From/To/Enabled/Self Approval/Description/Steps JSON/Reason`를 입력하고 자기승인, 위임 순환, 만료, ALL·ANY·N_OF_M 조건을 확인한다.
+3. Simulation으로 참여자와 단계 순서를 확인한 뒤 `저장·조회`을 수행한다.
+4. 상신 시 Participant Snapshot, Request Hash, Idempotency Key를 기록한다.
+5. 승인·합의·반려·철회·취소·재상신은 허용 상태와 Actor를 확인한다.
+6. 응답 유실은 Approval Instance·Operation ID를 조회하고 같은 결정을 반복 전송하지 않는다.
 
 #### 정상 결과
 
-- 대상 Version이 증가하고 입력한 유효기간·상태가 반영된다.
-- 조직 Tree, User Role, Permission Evaluation, Approval Simulation 등 연관 Projection이 같은 결과를 반환한다.
-- Masking 정책과 Data Scope가 로그인 사용자에게 적용된다.
-- Audit에 Actor, Action, Target, Reason, Before/After, Version, 결과가 남는다.
+- 대상 Version·상태·유효기간이 입력과 일치한다.
+- 조직 Tree, Assignment, Effective Permission, Approval Simulation, Session, Attachment Metadata 등 연관 Projection이 같은 결과를 반환한다.
+- Masking과 Data Scope가 Backend Query에 적용된다.
+- Audit에 Actor, Menu·Action Permission, Target, Reason, Before/After, Version과 결과가 남는다.
 
-#### 오류·동시성·응답 유실
+#### 오류·동시성·응답 유실·복구
 
 | 상황 | 처리 |
 |---|---|
-| Validation | Field 오류와 정책을 수정해 새 요청을 만든다. |
-| 403 | Menu·Action·API·Data Scope를 확인한다. |
-| 409 | 최신 Version·유효기간·변경자를 조회하고 다시 작성한다. |
-| 중복 기간 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
+| Validation | Field 정책·상위 기준정보·기간 경계를 수정해 새 요청을 만든다. |
+| 403 | Menu·Action·API·Data Scope·Raw 권한을 확인한다. |
+| 409 | 최신 Version·유효기간·변경자를 조회하고 변경 의도를 다시 작성한다. |
+| 기간 중복·순환 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
 | 응답 유실 | 같은 Operation ID·Idempotency Key로 결과를 조회한다. |
-| 부분 반영 | 연관 Projection과 Consumer를 Reconcile하고 Failed Target만 재처리한다. |
+| 부분 반영 | 연관 Projection과 업무 Consumer를 Reconcile하고 실패 대상만 재처리한다. |
+| Rollback | 변경 전 Version·Snapshot·유효기간을 근거로 새 보정 Operation을 수행한다. |
 
-#### Rollback·복구
+#### 개인정보·감사·교대
 
-변경 전 Version과 유효기간을 기준으로 새 보정 변경을 수행한다. 물리 삭제 대신 비활성화·종료일 적용이 계약인 기능은 해당 방법을 사용한다. 권한·결재 변경은 현재 Session과 진행 중 Snapshot에 미치는 영향을 확인한다.
+Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별도 Permission과 구체적 Reason을 기록한다. 교대 시 대상 ID, Version, 유효기간, Operation ID, Approval ID, 결과, 미확정 Consumer와 다음 확인 시각을 남긴다.
 
-#### 운영 확인
 
-Audit, Session, Permission Simulation, Approval Simulation, 업무 Domain 조회를 연결하고 교대 기록에 대상 ID·Version·Operation·미확정 항목을 남긴다.
 ### approvalSimulation — 결재 경로 사전 해석
 
-**Route**: `/approvalSimulation`
-**Menu Code**: `APPROVAL`
-**Frontend**: `cpf-biz-admin/frontend/src/features/approval-simulation/ApprovalSimulationPage.vue`
+| 항목 | 값 |
+|---|---|
+| Route | `/approvalSimulation` |
+| Menu Code | `APPROVAL` |
+| Frontend | `cpf-biz-admin/frontend/src/features/approval-simulation/ApprovalSimulationPage.vue` |
+| Permission | 조회/Simulation |
 
-#### 기능 목적
+#### 사용 목적과 업무 영향
 
-결재 경로 사전 해석 기능을 조회·등록·변경·감사한다. 이 기능의 변경은 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer에 영향을 줄 수 있으므로 단일 화면 저장 결과만으로 종료하지 않는다.
+이 화면은 **결재 경로 사전 해석** 기능을 제공한다. 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer 중 영향을 받는 항목을 변경 전후에 확인한다.
 
-#### 선행 조건
+#### 입력·검색·표시 값
 
-1. 로그인 사용자에게 `조회/Simulation` 권한이 있는지 확인한다.
-2. 상위 기준정보와 대상의 현재 Version·유효기간·Active 상태를 조회한다.
-3. 개인정보·첨부·Download 기능은 Raw·Export 권한과 Reason을 별도로 확인한다.
-4. 변경 중인 Operation 또는 Approval이 있으면 기존 ID로 결과를 확인한다.
+- 조직·Role·위임·정책 Context
 
-#### 검색·입력·표시 값
+- ID·Code의 변경 가능 여부와 참조 Consumer를 확인한다.
+- 날짜는 시작·종료 포함 경계와 업무 Timezone을 기록한다.
+- 빈 값, `null`, Clear Flag, Use N의 의미를 구분한다.
+- PII·Password·첨부 원문은 Masking·Raw 권한·Reason을 적용한다.
 
-조직·Role·위임·정책 Context
+#### Button·조치
 
-입력 Field마다 필수 여부, 공백·Null 의미, 최대 길이, 날짜 포함 경계, Code 불변성, Expected Version을 확인한다. 조직·Role·Assignment·Delegation은 기간 중복과 순환을 검사한다.
+- Simulation
 
-#### 조치
-
-화면 조치: **Simulation**
-
-1. 조회 조건을 제한하고 대상을 선택한다.
-2. Detail에서 ID·Version·유효기간·최근 변경자를 확인한다.
-3. 변경 영향 Preview 또는 Simulation을 실행한다.
-4. Reason과 Expected Version을 입력한다.
-5. 등록·수정·결정 요청 후 Operation ID·Approval ID를 기록한다.
-6. 업무 상태와 Audit가 함께 반영됐는지 확인한다.
+1. Policy ID·Version·유효기간·Domain·Type과 조직·Role·위임 Context를 조회한다.
+2. `조직·Role·위임·정책 Context`를 입력하고 자기승인, 위임 순환, 만료, ALL·ANY·N_OF_M 조건을 확인한다.
+3. Simulation으로 참여자와 단계 순서를 확인한 뒤 `Simulation`을 수행한다.
+4. 상신 시 Participant Snapshot, Request Hash, Idempotency Key를 기록한다.
+5. 승인·합의·반려·철회·취소·재상신은 허용 상태와 Actor를 확인한다.
+6. 응답 유실은 Approval Instance·Operation ID를 조회하고 같은 결정을 반복 전송하지 않는다.
 
 #### 정상 결과
 
-- 대상 Version이 증가하고 입력한 유효기간·상태가 반영된다.
-- 조직 Tree, User Role, Permission Evaluation, Approval Simulation 등 연관 Projection이 같은 결과를 반환한다.
-- Masking 정책과 Data Scope가 로그인 사용자에게 적용된다.
-- Audit에 Actor, Action, Target, Reason, Before/After, Version, 결과가 남는다.
+- 대상 Version·상태·유효기간이 입력과 일치한다.
+- 조직 Tree, Assignment, Effective Permission, Approval Simulation, Session, Attachment Metadata 등 연관 Projection이 같은 결과를 반환한다.
+- Masking과 Data Scope가 Backend Query에 적용된다.
+- Audit에 Actor, Menu·Action Permission, Target, Reason, Before/After, Version과 결과가 남는다.
 
-#### 오류·동시성·응답 유실
+#### 오류·동시성·응답 유실·복구
 
 | 상황 | 처리 |
 |---|---|
-| Validation | Field 오류와 정책을 수정해 새 요청을 만든다. |
-| 403 | Menu·Action·API·Data Scope를 확인한다. |
-| 409 | 최신 Version·유효기간·변경자를 조회하고 다시 작성한다. |
-| 중복 기간 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
+| Validation | Field 정책·상위 기준정보·기간 경계를 수정해 새 요청을 만든다. |
+| 403 | Menu·Action·API·Data Scope·Raw 권한을 확인한다. |
+| 409 | 최신 Version·유효기간·변경자를 조회하고 변경 의도를 다시 작성한다. |
+| 기간 중복·순환 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
 | 응답 유실 | 같은 Operation ID·Idempotency Key로 결과를 조회한다. |
-| 부분 반영 | 연관 Projection과 Consumer를 Reconcile하고 Failed Target만 재처리한다. |
+| 부분 반영 | 연관 Projection과 업무 Consumer를 Reconcile하고 실패 대상만 재처리한다. |
+| Rollback | 변경 전 Version·Snapshot·유효기간을 근거로 새 보정 Operation을 수행한다. |
 
-#### Rollback·복구
+#### 개인정보·감사·교대
 
-변경 전 Version과 유효기간을 기준으로 새 보정 변경을 수행한다. 물리 삭제 대신 비활성화·종료일 적용이 계약인 기능은 해당 방법을 사용한다. 권한·결재 변경은 현재 Session과 진행 중 Snapshot에 미치는 영향을 확인한다.
+Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별도 Permission과 구체적 Reason을 기록한다. 교대 시 대상 ID, Version, 유효기간, Operation ID, Approval ID, 결과, 미확정 Consumer와 다음 확인 시각을 남긴다.
 
-#### 운영 확인
 
-Audit, Session, Permission Simulation, Approval Simulation, 업무 Domain 조회를 연결하고 교대 기록에 대상 ID·Version·Operation·미확정 항목을 남긴다.
 ### approvalDelegations — 결재 위임·대결
 
-**Route**: `/approvalDelegations`
-**Menu Code**: `APPROVAL`
-**Frontend**: `cpf-biz-admin/frontend/src/features/approval-delegations/ApprovalDelegationsPage.vue`
+| 항목 | 값 |
+|---|---|
+| Route | `/approvalDelegations` |
+| Menu Code | `APPROVAL` |
+| Frontend | `cpf-biz-admin/frontend/src/features/approval-delegations/ApprovalDelegationsPage.vue` |
+| Permission | Write |
 
-#### 기능 목적
+#### 사용 목적과 업무 영향
 
-결재 위임·대결 기능을 조회·등록·변경·감사한다. 이 기능의 변경은 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer에 영향을 줄 수 있으므로 단일 화면 저장 결과만으로 종료하지 않는다.
+이 화면은 **결재 위임·대결** 기능을 제공한다. 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer 중 영향을 받는 항목을 변경 전후에 확인한다.
 
-#### 선행 조건
+#### 입력·검색·표시 값
 
-1. 로그인 사용자에게 `Write` 권한이 있는지 확인한다.
-2. 상위 기준정보와 대상의 현재 Version·유효기간·Active 상태를 조회한다.
-3. 개인정보·첨부·Download 기능은 Raw·Export 권한과 Reason을 별도로 확인한다.
-4. 변경 중인 Operation 또는 Approval이 있으면 기존 ID로 결과를 확인한다.
+- 위임자/수임자/범위/From/To/Reason
 
-#### 검색·입력·표시 값
+- ID·Code의 변경 가능 여부와 참조 Consumer를 확인한다.
+- 날짜는 시작·종료 포함 경계와 업무 Timezone을 기록한다.
+- 빈 값, `null`, Clear Flag, Use N의 의미를 구분한다.
+- PII·Password·첨부 원문은 Masking·Raw 권한·Reason을 적용한다.
 
-위임자/수임자/범위/From/To/Reason
+#### Button·조치
 
-입력 Field마다 필수 여부, 공백·Null 의미, 최대 길이, 날짜 포함 경계, Code 불변성, Expected Version을 확인한다. 조직·Role·Assignment·Delegation은 기간 중복과 순환을 검사한다.
+- 등록·수정·중지
 
-#### 조치
-
-화면 조치: **등록·수정·중지**
-
-1. 조회 조건을 제한하고 대상을 선택한다.
-2. Detail에서 ID·Version·유효기간·최근 변경자를 확인한다.
-3. 변경 영향 Preview 또는 Simulation을 실행한다.
-4. Reason과 Expected Version을 입력한다.
-5. 등록·수정·결정 요청 후 Operation ID·Approval ID를 기록한다.
-6. 업무 상태와 Audit가 함께 반영됐는지 확인한다.
+1. Policy ID·Version·유효기간·Domain·Type과 조직·Role·위임 Context를 조회한다.
+2. `위임자/수임자/범위/From/To/Reason`를 입력하고 자기승인, 위임 순환, 만료, ALL·ANY·N_OF_M 조건을 확인한다.
+3. Simulation으로 참여자와 단계 순서를 확인한 뒤 `등록·수정·중지`을 수행한다.
+4. 상신 시 Participant Snapshot, Request Hash, Idempotency Key를 기록한다.
+5. 승인·합의·반려·철회·취소·재상신은 허용 상태와 Actor를 확인한다.
+6. 응답 유실은 Approval Instance·Operation ID를 조회하고 같은 결정을 반복 전송하지 않는다.
 
 #### 정상 결과
 
-- 대상 Version이 증가하고 입력한 유효기간·상태가 반영된다.
-- 조직 Tree, User Role, Permission Evaluation, Approval Simulation 등 연관 Projection이 같은 결과를 반환한다.
-- Masking 정책과 Data Scope가 로그인 사용자에게 적용된다.
-- Audit에 Actor, Action, Target, Reason, Before/After, Version, 결과가 남는다.
+- 대상 Version·상태·유효기간이 입력과 일치한다.
+- 조직 Tree, Assignment, Effective Permission, Approval Simulation, Session, Attachment Metadata 등 연관 Projection이 같은 결과를 반환한다.
+- Masking과 Data Scope가 Backend Query에 적용된다.
+- Audit에 Actor, Menu·Action Permission, Target, Reason, Before/After, Version과 결과가 남는다.
 
-#### 오류·동시성·응답 유실
+#### 오류·동시성·응답 유실·복구
 
 | 상황 | 처리 |
 |---|---|
-| Validation | Field 오류와 정책을 수정해 새 요청을 만든다. |
-| 403 | Menu·Action·API·Data Scope를 확인한다. |
-| 409 | 최신 Version·유효기간·변경자를 조회하고 다시 작성한다. |
-| 중복 기간 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
+| Validation | Field 정책·상위 기준정보·기간 경계를 수정해 새 요청을 만든다. |
+| 403 | Menu·Action·API·Data Scope·Raw 권한을 확인한다. |
+| 409 | 최신 Version·유효기간·변경자를 조회하고 변경 의도를 다시 작성한다. |
+| 기간 중복·순환 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
 | 응답 유실 | 같은 Operation ID·Idempotency Key로 결과를 조회한다. |
-| 부분 반영 | 연관 Projection과 Consumer를 Reconcile하고 Failed Target만 재처리한다. |
+| 부분 반영 | 연관 Projection과 업무 Consumer를 Reconcile하고 실패 대상만 재처리한다. |
+| Rollback | 변경 전 Version·Snapshot·유효기간을 근거로 새 보정 Operation을 수행한다. |
 
-#### Rollback·복구
+#### 개인정보·감사·교대
 
-변경 전 Version과 유효기간을 기준으로 새 보정 변경을 수행한다. 물리 삭제 대신 비활성화·종료일 적용이 계약인 기능은 해당 방법을 사용한다. 권한·결재 변경은 현재 Session과 진행 중 Snapshot에 미치는 영향을 확인한다.
+Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별도 Permission과 구체적 Reason을 기록한다. 교대 시 대상 ID, Version, 유효기간, Operation ID, Approval ID, 결과, 미확정 Consumer와 다음 확인 시각을 남긴다.
 
-#### 운영 확인
 
-Audit, Session, Permission Simulation, Approval Simulation, 업무 Domain 조회를 연결하고 교대 기록에 대상 ID·Version·Operation·미확정 항목을 남긴다.
 ### sessions — 본인 Refresh Session
 
-**Route**: `/sessions`
-**Menu Code**: `AUTHORIZATION`
-**Frontend**: `cpf-biz-admin/frontend/src/features/sessions/SessionsPage.vue`
+| 항목 | 값 |
+|---|---|
+| Route | `/sessions` |
+| Menu Code | `AUTHORIZATION` |
+| Frontend | `cpf-biz-admin/frontend/src/features/sessions/SessionsPage.vue` |
+| Permission | 본인/관리 권한 |
 
-#### 기능 목적
+#### 사용 목적과 업무 영향
 
-본인 Refresh Session 기능을 조회·등록·변경·감사한다. 이 기능의 변경은 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer에 영향을 줄 수 있으므로 단일 화면 저장 결과만으로 종료하지 않는다.
+이 화면은 **본인 Refresh Session** 기능을 제공한다. 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer 중 영향을 받는 항목을 변경 전후에 확인한다.
 
-#### 선행 조건
+#### 입력·검색·표시 값
 
-1. 로그인 사용자에게 `본인/관리 권한` 권한이 있는지 확인한다.
-2. 상위 기준정보와 대상의 현재 Version·유효기간·Active 상태를 조회한다.
-3. 개인정보·첨부·Download 기능은 Raw·Export 권한과 Reason을 별도로 확인한다.
-4. 변경 중인 Operation 또는 Approval이 있으면 기존 ID로 결과를 확인한다.
+- Session 목록·Device/Expiry
 
-#### 검색·입력·표시 값
+- ID·Code의 변경 가능 여부와 참조 Consumer를 확인한다.
+- 날짜는 시작·종료 포함 경계와 업무 Timezone을 기록한다.
+- 빈 값, `null`, Clear Flag, Use N의 의미를 구분한다.
+- PII·Password·첨부 원문은 Masking·Raw 권한·Reason을 적용한다.
 
-Session 목록·Device/Expiry
+#### Button·조치
 
-입력 Field마다 필수 여부, 공백·Null 의미, 최대 길이, 날짜 포함 경계, Code 불변성, Expected Version을 확인한다. 조직·Role·Assignment·Delegation은 기간 중복과 순환을 검사한다.
+- 조회·폐기
 
-#### 조치
-
-화면 조치: **조회·폐기**
-
-1. 조회 조건을 제한하고 대상을 선택한다.
-2. Detail에서 ID·Version·유효기간·최근 변경자를 확인한다.
-3. 변경 영향 Preview 또는 Simulation을 실행한다.
-4. Reason과 Expected Version을 입력한다.
-5. 등록·수정·결정 요청 후 Operation ID·Approval ID를 기록한다.
-6. 업무 상태와 Audit가 함께 반영됐는지 확인한다.
+1. Login ID·Role·Menu·Permission·Session의 현재 Version과 유효기간을 조회한다.
+2. `Session 목록·Device/Expiry`를 입력하고 중복 Role, 기간 겹침, Data Scope 확대, API Pattern 충돌을 확인한다.
+3. `조회·폐기` 실행 후 Effective Permission Simulation을 같은 사용자·시각·조직 Version으로 수행한다.
+4. Menu 표시, Button 활성, Backend 직접 호출, 다른 조직 데이터 조회를 각각 시험한다.
+5. 권한 축소 시 기존 Session·Cache·위임·진행 중 결재에 반영됐는지 확인한다.
+6. 응답 유실은 Operation ID로 조회하고 중복 등록을 만들지 않는다.
 
 #### 정상 결과
 
-- 대상 Version이 증가하고 입력한 유효기간·상태가 반영된다.
-- 조직 Tree, User Role, Permission Evaluation, Approval Simulation 등 연관 Projection이 같은 결과를 반환한다.
-- Masking 정책과 Data Scope가 로그인 사용자에게 적용된다.
-- Audit에 Actor, Action, Target, Reason, Before/After, Version, 결과가 남는다.
+- 대상 Version·상태·유효기간이 입력과 일치한다.
+- 조직 Tree, Assignment, Effective Permission, Approval Simulation, Session, Attachment Metadata 등 연관 Projection이 같은 결과를 반환한다.
+- Masking과 Data Scope가 Backend Query에 적용된다.
+- Audit에 Actor, Menu·Action Permission, Target, Reason, Before/After, Version과 결과가 남는다.
 
-#### 오류·동시성·응답 유실
+#### 오류·동시성·응답 유실·복구
 
 | 상황 | 처리 |
 |---|---|
-| Validation | Field 오류와 정책을 수정해 새 요청을 만든다. |
-| 403 | Menu·Action·API·Data Scope를 확인한다. |
-| 409 | 최신 Version·유효기간·변경자를 조회하고 다시 작성한다. |
-| 중복 기간 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
+| Validation | Field 정책·상위 기준정보·기간 경계를 수정해 새 요청을 만든다. |
+| 403 | Menu·Action·API·Data Scope·Raw 권한을 확인한다. |
+| 409 | 최신 Version·유효기간·변경자를 조회하고 변경 의도를 다시 작성한다. |
+| 기간 중복·순환 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
 | 응답 유실 | 같은 Operation ID·Idempotency Key로 결과를 조회한다. |
-| 부분 반영 | 연관 Projection과 Consumer를 Reconcile하고 Failed Target만 재처리한다. |
+| 부분 반영 | 연관 Projection과 업무 Consumer를 Reconcile하고 실패 대상만 재처리한다. |
+| Rollback | 변경 전 Version·Snapshot·유효기간을 근거로 새 보정 Operation을 수행한다. |
 
-#### Rollback·복구
+#### 개인정보·감사·교대
 
-변경 전 Version과 유효기간을 기준으로 새 보정 변경을 수행한다. 물리 삭제 대신 비활성화·종료일 적용이 계약인 기능은 해당 방법을 사용한다. 권한·결재 변경은 현재 Session과 진행 중 Snapshot에 미치는 영향을 확인한다.
+Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별도 Permission과 구체적 Reason을 기록한다. 교대 시 대상 ID, Version, 유효기간, Operation ID, Approval ID, 결과, 미확정 Consumer와 다음 확인 시각을 남긴다.
 
-#### 운영 확인
 
-Audit, Session, Permission Simulation, Approval Simulation, 업무 Domain 조회를 연결하고 교대 기록에 대상 ID·Version·Operation·미확정 항목을 남긴다.
 ### audits — Immutable 업무 감사
 
-**Route**: `/audits`
-**Menu Code**: `AUDIT`
-**Frontend**: `cpf-biz-admin/frontend/src/features/audits/AuditsPage.vue`
+| 항목 | 값 |
+|---|---|
+| Route | `/audits` |
+| Menu Code | `AUDIT` |
+| Frontend | `cpf-biz-admin/frontend/src/features/audits/AuditsPage.vue` |
+| Permission | Audit Read |
 
-#### 기능 목적
+#### 사용 목적과 업무 영향
 
-Immutable 업무 감사 기능을 조회·등록·변경·감사한다. 이 기능의 변경은 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer에 영향을 줄 수 있으므로 단일 화면 저장 결과만으로 종료하지 않는다.
+이 화면은 **Immutable 업무 감사** 기능을 제공한다. 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer 중 영향을 받는 항목을 변경 전후에 확인한다.
 
-#### 선행 조건
+#### 입력·검색·표시 값
 
-1. 로그인 사용자에게 `Audit Read` 권한이 있는지 확인한다.
-2. 상위 기준정보와 대상의 현재 Version·유효기간·Active 상태를 조회한다.
-3. 개인정보·첨부·Download 기능은 Raw·Export 권한과 Reason을 별도로 확인한다.
-4. 변경 중인 Operation 또는 Approval이 있으면 기존 ID로 결과를 확인한다.
+- Actor/Action/Target/기간/Operation
 
-#### 검색·입력·표시 값
+- ID·Code의 변경 가능 여부와 참조 Consumer를 확인한다.
+- 날짜는 시작·종료 포함 경계와 업무 Timezone을 기록한다.
+- 빈 값, `null`, Clear Flag, Use N의 의미를 구분한다.
+- PII·Password·첨부 원문은 Masking·Raw 권한·Reason을 적용한다.
 
-Actor/Action/Target/기간/Operation
+#### Button·조치
 
-입력 Field마다 필수 여부, 공백·Null 의미, 최대 길이, 날짜 포함 경계, Code 불변성, Expected Version을 확인한다. 조직·Role·Assignment·Delegation은 기간 중복과 순환을 검사한다.
+- 조회·상세
 
-#### 조치
-
-화면 조치: **조회·상세**
-
-1. 조회 조건을 제한하고 대상을 선택한다.
-2. Detail에서 ID·Version·유효기간·최근 변경자를 확인한다.
-3. 변경 영향 Preview 또는 Simulation을 실행한다.
-4. Reason과 Expected Version을 입력한다.
-5. 등록·수정·결정 요청 후 Operation ID·Approval ID를 기록한다.
-6. 업무 상태와 Audit가 함께 반영됐는지 확인한다.
+1. 사용자·환경·Menu Scope와 현재 설정 Version을 확인한다.
+2. `Actor/Action/Target/기간/Operation`를 입력하고 개인 설정과 전체 업무 설정을 구분한다.
+3. `조회·상세` 실행 후 적용 대상, Version, Audit 또는 읽음 상태를 확인한다.
+4. 설정 변경은 Consumer Cache·Session·Frontend 반영 여부를 확인한다.
+5. 응답 유실은 Operation ID나 최신 Version으로 결과를 조회한다.
+6. 삭제 계약이 없는 항목은 비활성화 또는 종료일을 사용한다.
 
 #### 정상 결과
 
-- 대상 Version이 증가하고 입력한 유효기간·상태가 반영된다.
-- 조직 Tree, User Role, Permission Evaluation, Approval Simulation 등 연관 Projection이 같은 결과를 반환한다.
-- Masking 정책과 Data Scope가 로그인 사용자에게 적용된다.
-- Audit에 Actor, Action, Target, Reason, Before/After, Version, 결과가 남는다.
+- 대상 Version·상태·유효기간이 입력과 일치한다.
+- 조직 Tree, Assignment, Effective Permission, Approval Simulation, Session, Attachment Metadata 등 연관 Projection이 같은 결과를 반환한다.
+- Masking과 Data Scope가 Backend Query에 적용된다.
+- Audit에 Actor, Menu·Action Permission, Target, Reason, Before/After, Version과 결과가 남는다.
 
-#### 오류·동시성·응답 유실
+#### 오류·동시성·응답 유실·복구
 
 | 상황 | 처리 |
 |---|---|
-| Validation | Field 오류와 정책을 수정해 새 요청을 만든다. |
-| 403 | Menu·Action·API·Data Scope를 확인한다. |
-| 409 | 최신 Version·유효기간·변경자를 조회하고 다시 작성한다. |
-| 중복 기간 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
+| Validation | Field 정책·상위 기준정보·기간 경계를 수정해 새 요청을 만든다. |
+| 403 | Menu·Action·API·Data Scope·Raw 권한을 확인한다. |
+| 409 | 최신 Version·유효기간·변경자를 조회하고 변경 의도를 다시 작성한다. |
+| 기간 중복·순환 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
 | 응답 유실 | 같은 Operation ID·Idempotency Key로 결과를 조회한다. |
-| 부분 반영 | 연관 Projection과 Consumer를 Reconcile하고 Failed Target만 재처리한다. |
+| 부분 반영 | 연관 Projection과 업무 Consumer를 Reconcile하고 실패 대상만 재처리한다. |
+| Rollback | 변경 전 Version·Snapshot·유효기간을 근거로 새 보정 Operation을 수행한다. |
 
-#### Rollback·복구
+#### 개인정보·감사·교대
 
-변경 전 Version과 유효기간을 기준으로 새 보정 변경을 수행한다. 물리 삭제 대신 비활성화·종료일 적용이 계약인 기능은 해당 방법을 사용한다. 권한·결재 변경은 현재 Session과 진행 중 Snapshot에 미치는 영향을 확인한다.
+Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별도 Permission과 구체적 Reason을 기록한다. 교대 시 대상 ID, Version, 유효기간, Operation ID, Approval ID, 결과, 미확정 Consumer와 다음 확인 시각을 남긴다.
 
-#### 운영 확인
 
-Audit, Session, Permission Simulation, Approval Simulation, 업무 Domain 조회를 연결하고 교대 기록에 대상 ID·Version·Operation·미확정 항목을 남긴다.
 ### notifications — 업무 알림
 
-**Route**: `/notifications`
-**Menu Code**: `SETTING`
-**Frontend**: `cpf-biz-admin/frontend/src/features/notifications/NotificationsPage.vue`
+| 항목 | 값 |
+|---|---|
+| Route | `/notifications` |
+| Menu Code | `SETTING` |
+| Frontend | `cpf-biz-admin/frontend/src/features/notifications/NotificationsPage.vue` |
+| Permission | 본인/Setting |
 
-#### 기능 목적
+#### 사용 목적과 업무 영향
 
-업무 알림 기능을 조회·등록·변경·감사한다. 이 기능의 변경은 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer에 영향을 줄 수 있으므로 단일 화면 저장 결과만으로 종료하지 않는다.
+이 화면은 **업무 알림** 기능을 제공한다. 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer 중 영향을 받는 항목을 변경 전후에 확인한다.
 
-#### 선행 조건
+#### 입력·검색·표시 값
 
-1. 로그인 사용자에게 `본인/Setting` 권한이 있는지 확인한다.
-2. 상위 기준정보와 대상의 현재 Version·유효기간·Active 상태를 조회한다.
-3. 개인정보·첨부·Download 기능은 Raw·Export 권한과 Reason을 별도로 확인한다.
-4. 변경 중인 Operation 또는 Approval이 있으면 기존 ID로 결과를 확인한다.
+- 알림 상태·채널·사용자 Filter
 
-#### 검색·입력·표시 값
+- ID·Code의 변경 가능 여부와 참조 Consumer를 확인한다.
+- 날짜는 시작·종료 포함 경계와 업무 Timezone을 기록한다.
+- 빈 값, `null`, Clear Flag, Use N의 의미를 구분한다.
+- PII·Password·첨부 원문은 Masking·Raw 권한·Reason을 적용한다.
 
-알림 상태·채널·사용자 Filter
+#### Button·조치
 
-입력 Field마다 필수 여부, 공백·Null 의미, 최대 길이, 날짜 포함 경계, Code 불변성, Expected Version을 확인한다. 조직·Role·Assignment·Delegation은 기간 중복과 순환을 검사한다.
+- 조회·읽음/설정
 
-#### 조치
-
-화면 조치: **조회·읽음/설정**
-
-1. 조회 조건을 제한하고 대상을 선택한다.
-2. Detail에서 ID·Version·유효기간·최근 변경자를 확인한다.
-3. 변경 영향 Preview 또는 Simulation을 실행한다.
-4. Reason과 Expected Version을 입력한다.
-5. 등록·수정·결정 요청 후 Operation ID·Approval ID를 기록한다.
-6. 업무 상태와 Audit가 함께 반영됐는지 확인한다.
+1. 사용자·환경·Menu Scope와 현재 설정 Version을 확인한다.
+2. `알림 상태·채널·사용자 Filter`를 입력하고 개인 설정과 전체 업무 설정을 구분한다.
+3. `조회·읽음/설정` 실행 후 적용 대상, Version, Audit 또는 읽음 상태를 확인한다.
+4. 설정 변경은 Consumer Cache·Session·Frontend 반영 여부를 확인한다.
+5. 응답 유실은 Operation ID나 최신 Version으로 결과를 조회한다.
+6. 삭제 계약이 없는 항목은 비활성화 또는 종료일을 사용한다.
 
 #### 정상 결과
 
-- 대상 Version이 증가하고 입력한 유효기간·상태가 반영된다.
-- 조직 Tree, User Role, Permission Evaluation, Approval Simulation 등 연관 Projection이 같은 결과를 반환한다.
-- Masking 정책과 Data Scope가 로그인 사용자에게 적용된다.
-- Audit에 Actor, Action, Target, Reason, Before/After, Version, 결과가 남는다.
+- 대상 Version·상태·유효기간이 입력과 일치한다.
+- 조직 Tree, Assignment, Effective Permission, Approval Simulation, Session, Attachment Metadata 등 연관 Projection이 같은 결과를 반환한다.
+- Masking과 Data Scope가 Backend Query에 적용된다.
+- Audit에 Actor, Menu·Action Permission, Target, Reason, Before/After, Version과 결과가 남는다.
 
-#### 오류·동시성·응답 유실
+#### 오류·동시성·응답 유실·복구
 
 | 상황 | 처리 |
 |---|---|
-| Validation | Field 오류와 정책을 수정해 새 요청을 만든다. |
-| 403 | Menu·Action·API·Data Scope를 확인한다. |
-| 409 | 최신 Version·유효기간·변경자를 조회하고 다시 작성한다. |
-| 중복 기간 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
+| Validation | Field 정책·상위 기준정보·기간 경계를 수정해 새 요청을 만든다. |
+| 403 | Menu·Action·API·Data Scope·Raw 권한을 확인한다. |
+| 409 | 최신 Version·유효기간·변경자를 조회하고 변경 의도를 다시 작성한다. |
+| 기간 중복·순환 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
 | 응답 유실 | 같은 Operation ID·Idempotency Key로 결과를 조회한다. |
-| 부분 반영 | 연관 Projection과 Consumer를 Reconcile하고 Failed Target만 재처리한다. |
+| 부분 반영 | 연관 Projection과 업무 Consumer를 Reconcile하고 실패 대상만 재처리한다. |
+| Rollback | 변경 전 Version·Snapshot·유효기간을 근거로 새 보정 Operation을 수행한다. |
 
-#### Rollback·복구
+#### 개인정보·감사·교대
 
-변경 전 Version과 유효기간을 기준으로 새 보정 변경을 수행한다. 물리 삭제 대신 비활성화·종료일 적용이 계약인 기능은 해당 방법을 사용한다. 권한·결재 변경은 현재 Session과 진행 중 Snapshot에 미치는 영향을 확인한다.
+Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별도 Permission과 구체적 Reason을 기록한다. 교대 시 대상 ID, Version, 유효기간, Operation ID, Approval ID, 결과, 미확정 Consumer와 다음 확인 시각을 남긴다.
 
-#### 운영 확인
 
-Audit, Session, Permission Simulation, Approval Simulation, 업무 Domain 조회를 연결하고 교대 기록에 대상 ID·Version·Operation·미확정 항목을 남긴다.
 ### attachments — 첨부 업로드·검사·격리
 
-**Route**: `/attachments`
-**Menu Code**: `ATTACHMENT`
-**Frontend**: `cpf-biz-admin/frontend/src/features/attachments/AttachmentsPage.vue`
+| 항목 | 값 |
+|---|---|
+| Route | `/attachments` |
+| Menu Code | `ATTACHMENT` |
+| Frontend | `cpf-biz-admin/frontend/src/features/attachments/AttachmentsPage.vue` |
+| Permission | Write |
 
-#### 기능 목적
+#### 사용 목적과 업무 영향
 
-첨부 업로드·검사·격리 기능을 조회·등록·변경·감사한다. 이 기능의 변경은 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer에 영향을 줄 수 있으므로 단일 화면 저장 결과만으로 종료하지 않는다.
+이 화면은 **첨부 업로드·검사·격리** 기능을 제공한다. 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer 중 영향을 받는 항목을 변경 전후에 확인한다.
 
-#### 선행 조건
+#### 입력·검색·표시 값
 
-1. 로그인 사용자에게 `Write` 권한이 있는지 확인한다.
-2. 상위 기준정보와 대상의 현재 Version·유효기간·Active 상태를 조회한다.
-3. 개인정보·첨부·Download 기능은 Raw·Export 권한과 Reason을 별도로 확인한다.
-4. 변경 중인 Operation 또는 Approval이 있으면 기존 ID로 결과를 확인한다.
+- Group ID
+- File
+- Reason
+- Scan/Data Classification/Quarantine/Retention
 
-#### 검색·입력·표시 값
+- ID·Code의 변경 가능 여부와 참조 Consumer를 확인한다.
+- 날짜는 시작·종료 포함 경계와 업무 Timezone을 기록한다.
+- 빈 값, `null`, Clear Flag, Use N의 의미를 구분한다.
+- PII·Password·첨부 원문은 Masking·Raw 권한·Reason을 적용한다.
 
-Group ID, File, Reason; Scan/Data Classification/Quarantine/Retention
+#### Button·조치
 
-입력 Field마다 필수 여부, 공백·Null 의미, 최대 길이, 날짜 포함 경계, Code 불변성, Expected Version을 확인한다. 조직·Role·Assignment·Delegation은 기간 중복과 순환을 검사한다.
+- Upload·재검사·CLEAN·QUARANTINED
 
-#### 조치
-
-화면 조치: **Upload·재검사·CLEAN·QUARANTINED**
-
-1. 조회 조건을 제한하고 대상을 선택한다.
-2. Detail에서 ID·Version·유효기간·최근 변경자를 확인한다.
-3. 변경 영향 Preview 또는 Simulation을 실행한다.
-4. Reason과 Expected Version을 입력한다.
-5. 등록·수정·결정 요청 후 Operation ID·Approval ID를 기록한다.
-6. 업무 상태와 Audit가 함께 반영됐는지 확인한다.
+1. Permission·Data Scope·Reason·Approval 요구 여부를 확인한다.
+2. `Group ID, File, Reason; Scan/Data Classification/Quarantine/Retention`를 입력하고 File Size·Extension·MIME·Checksum·Scan·Retention 또는 Download 건수·Masking 정책을 확인한다.
+3. `Upload·재검사·CLEAN·QUARANTINED` 실행 후 Metadata·Checksum·Scan/Quarantine·Audit를 확인한다.
+4. Download는 Query 조건·Column·Masking·파일 Hash·만료를 기록한다.
+5. Timeout·취소·Disk Full·부분 파일은 Temp Cleanup과 Metadata를 대사한다.
+6. 재검사·재다운로드·Rollback은 기존 Artifact와 Audit를 보존한 새 Operation으로 수행한다.
 
 #### 정상 결과
 
-- 대상 Version이 증가하고 입력한 유효기간·상태가 반영된다.
-- 조직 Tree, User Role, Permission Evaluation, Approval Simulation 등 연관 Projection이 같은 결과를 반환한다.
-- Masking 정책과 Data Scope가 로그인 사용자에게 적용된다.
-- Audit에 Actor, Action, Target, Reason, Before/After, Version, 결과가 남는다.
+- 대상 Version·상태·유효기간이 입력과 일치한다.
+- 조직 Tree, Assignment, Effective Permission, Approval Simulation, Session, Attachment Metadata 등 연관 Projection이 같은 결과를 반환한다.
+- Masking과 Data Scope가 Backend Query에 적용된다.
+- Audit에 Actor, Menu·Action Permission, Target, Reason, Before/After, Version과 결과가 남는다.
 
-#### 오류·동시성·응답 유실
+#### 오류·동시성·응답 유실·복구
 
 | 상황 | 처리 |
 |---|---|
-| Validation | Field 오류와 정책을 수정해 새 요청을 만든다. |
-| 403 | Menu·Action·API·Data Scope를 확인한다. |
-| 409 | 최신 Version·유효기간·변경자를 조회하고 다시 작성한다. |
-| 중복 기간 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
+| Validation | Field 정책·상위 기준정보·기간 경계를 수정해 새 요청을 만든다. |
+| 403 | Menu·Action·API·Data Scope·Raw 권한을 확인한다. |
+| 409 | 최신 Version·유효기간·변경자를 조회하고 변경 의도를 다시 작성한다. |
+| 기간 중복·순환 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
 | 응답 유실 | 같은 Operation ID·Idempotency Key로 결과를 조회한다. |
-| 부분 반영 | 연관 Projection과 Consumer를 Reconcile하고 Failed Target만 재처리한다. |
+| 부분 반영 | 연관 Projection과 업무 Consumer를 Reconcile하고 실패 대상만 재처리한다. |
+| Rollback | 변경 전 Version·Snapshot·유효기간을 근거로 새 보정 Operation을 수행한다. |
 
-#### Rollback·복구
+#### 개인정보·감사·교대
 
-변경 전 Version과 유효기간을 기준으로 새 보정 변경을 수행한다. 물리 삭제 대신 비활성화·종료일 적용이 계약인 기능은 해당 방법을 사용한다. 권한·결재 변경은 현재 Session과 진행 중 Snapshot에 미치는 영향을 확인한다.
+Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별도 Permission과 구체적 Reason을 기록한다. 교대 시 대상 ID, Version, 유효기간, Operation ID, Approval ID, 결과, 미확정 Consumer와 다음 확인 시각을 남긴다.
 
-#### 운영 확인
 
-Audit, Session, Permission Simulation, Approval Simulation, 업무 Domain 조회를 연결하고 교대 기록에 대상 ID·Version·Operation·미확정 항목을 남긴다.
 ### savedSearches — 저장 검색
 
-**Route**: `/savedSearches`
-**Menu Code**: `SETTING`
-**Frontend**: `cpf-biz-admin/frontend/src/features/saved-searches/SavedSearchesPage.vue`
+| 항목 | 값 |
+|---|---|
+| Route | `/savedSearches` |
+| Menu Code | `SETTING` |
+| Frontend | `cpf-biz-admin/frontend/src/features/saved-searches/SavedSearchesPage.vue` |
+| Permission | 본인/Setting |
 
-#### 기능 목적
+#### 사용 목적과 업무 영향
 
-저장 검색 기능을 조회·등록·변경·감사한다. 이 기능의 변경은 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer에 영향을 줄 수 있으므로 단일 화면 저장 결과만으로 종료하지 않는다.
+이 화면은 **저장 검색** 기능을 제공한다. 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer 중 영향을 받는 항목을 변경 전후에 확인한다.
 
-#### 선행 조건
+#### 입력·검색·표시 값
 
-1. 로그인 사용자에게 `본인/Setting` 권한이 있는지 확인한다.
-2. 상위 기준정보와 대상의 현재 Version·유효기간·Active 상태를 조회한다.
-3. 개인정보·첨부·Download 기능은 Raw·Export 권한과 Reason을 별도로 확인한다.
-4. 변경 중인 Operation 또는 Approval이 있으면 기존 ID로 결과를 확인한다.
+- Menu/Name/Condition/Use
 
-#### 검색·입력·표시 값
+- ID·Code의 변경 가능 여부와 참조 Consumer를 확인한다.
+- 날짜는 시작·종료 포함 경계와 업무 Timezone을 기록한다.
+- 빈 값, `null`, Clear Flag, Use N의 의미를 구분한다.
+- PII·Password·첨부 원문은 Masking·Raw 권한·Reason을 적용한다.
 
-Menu/Name/Condition/Use
+#### Button·조치
 
-입력 Field마다 필수 여부, 공백·Null 의미, 최대 길이, 날짜 포함 경계, Code 불변성, Expected Version을 확인한다. 조직·Role·Assignment·Delegation은 기간 중복과 순환을 검사한다.
+- 등록·수정·삭제
 
-#### 조치
-
-화면 조치: **등록·수정·삭제**
-
-1. 조회 조건을 제한하고 대상을 선택한다.
-2. Detail에서 ID·Version·유효기간·최근 변경자를 확인한다.
-3. 변경 영향 Preview 또는 Simulation을 실행한다.
-4. Reason과 Expected Version을 입력한다.
-5. 등록·수정·결정 요청 후 Operation ID·Approval ID를 기록한다.
-6. 업무 상태와 Audit가 함께 반영됐는지 확인한다.
+1. 사용자·환경·Menu Scope와 현재 설정 Version을 확인한다.
+2. `Menu/Name/Condition/Use`를 입력하고 개인 설정과 전체 업무 설정을 구분한다.
+3. `등록·수정·삭제` 실행 후 적용 대상, Version, Audit 또는 읽음 상태를 확인한다.
+4. 설정 변경은 Consumer Cache·Session·Frontend 반영 여부를 확인한다.
+5. 응답 유실은 Operation ID나 최신 Version으로 결과를 조회한다.
+6. 삭제 계약이 없는 항목은 비활성화 또는 종료일을 사용한다.
 
 #### 정상 결과
 
-- 대상 Version이 증가하고 입력한 유효기간·상태가 반영된다.
-- 조직 Tree, User Role, Permission Evaluation, Approval Simulation 등 연관 Projection이 같은 결과를 반환한다.
-- Masking 정책과 Data Scope가 로그인 사용자에게 적용된다.
-- Audit에 Actor, Action, Target, Reason, Before/After, Version, 결과가 남는다.
+- 대상 Version·상태·유효기간이 입력과 일치한다.
+- 조직 Tree, Assignment, Effective Permission, Approval Simulation, Session, Attachment Metadata 등 연관 Projection이 같은 결과를 반환한다.
+- Masking과 Data Scope가 Backend Query에 적용된다.
+- Audit에 Actor, Menu·Action Permission, Target, Reason, Before/After, Version과 결과가 남는다.
 
-#### 오류·동시성·응답 유실
+#### 오류·동시성·응답 유실·복구
 
 | 상황 | 처리 |
 |---|---|
-| Validation | Field 오류와 정책을 수정해 새 요청을 만든다. |
-| 403 | Menu·Action·API·Data Scope를 확인한다. |
-| 409 | 최신 Version·유효기간·변경자를 조회하고 다시 작성한다. |
-| 중복 기간 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
+| Validation | Field 정책·상위 기준정보·기간 경계를 수정해 새 요청을 만든다. |
+| 403 | Menu·Action·API·Data Scope·Raw 권한을 확인한다. |
+| 409 | 최신 Version·유효기간·변경자를 조회하고 변경 의도를 다시 작성한다. |
+| 기간 중복·순환 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
 | 응답 유실 | 같은 Operation ID·Idempotency Key로 결과를 조회한다. |
-| 부분 반영 | 연관 Projection과 Consumer를 Reconcile하고 Failed Target만 재처리한다. |
+| 부분 반영 | 연관 Projection과 업무 Consumer를 Reconcile하고 실패 대상만 재처리한다. |
+| Rollback | 변경 전 Version·Snapshot·유효기간을 근거로 새 보정 Operation을 수행한다. |
 
-#### Rollback·복구
+#### 개인정보·감사·교대
 
-변경 전 Version과 유효기간을 기준으로 새 보정 변경을 수행한다. 물리 삭제 대신 비활성화·종료일 적용이 계약인 기능은 해당 방법을 사용한다. 권한·결재 변경은 현재 Session과 진행 중 Snapshot에 미치는 영향을 확인한다.
+Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별도 Permission과 구체적 Reason을 기록한다. 교대 시 대상 ID, Version, 유효기간, Operation ID, Approval ID, 결과, 미확정 Consumer와 다음 확인 시각을 남긴다.
 
-#### 운영 확인
 
-Audit, Session, Permission Simulation, Approval Simulation, 업무 Domain 조회를 연결하고 교대 기록에 대상 ID·Version·Operation·미확정 항목을 남긴다.
 ### settings — BZA 업무 설정
 
-**Route**: `/settings`
-**Menu Code**: `SETTING`
-**Frontend**: `cpf-biz-admin/frontend/src/features/settings/SettingsPage.vue`
+| 항목 | 값 |
+|---|---|
+| Route | `/settings` |
+| Menu Code | `SETTING` |
+| Frontend | `cpf-biz-admin/frontend/src/features/settings/SettingsPage.vue` |
+| Permission | Write |
 
-#### 기능 목적
+#### 사용 목적과 업무 영향
 
-BZA 업무 설정 기능을 조회·등록·변경·감사한다. 이 기능의 변경은 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer에 영향을 줄 수 있으므로 단일 화면 저장 결과만으로 종료하지 않는다.
+이 화면은 **BZA 업무 설정** 기능을 제공한다. 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer 중 영향을 받는 항목을 변경 전후에 확인한다.
 
-#### 선행 조건
+#### 입력·검색·표시 값
 
-1. 로그인 사용자에게 `Write` 권한이 있는지 확인한다.
-2. 상위 기준정보와 대상의 현재 Version·유효기간·Active 상태를 조회한다.
-3. 개인정보·첨부·Download 기능은 Raw·Export 권한과 Reason을 별도로 확인한다.
-4. 변경 중인 Operation 또는 Approval이 있으면 기존 ID로 결과를 확인한다.
+- Key/Value/Type/Scope/Version/Reason
 
-#### 검색·입력·표시 값
+- ID·Code의 변경 가능 여부와 참조 Consumer를 확인한다.
+- 날짜는 시작·종료 포함 경계와 업무 Timezone을 기록한다.
+- 빈 값, `null`, Clear Flag, Use N의 의미를 구분한다.
+- PII·Password·첨부 원문은 Masking·Raw 권한·Reason을 적용한다.
 
-Key/Value/Type/Scope/Version/Reason
+#### Button·조치
 
-입력 Field마다 필수 여부, 공백·Null 의미, 최대 길이, 날짜 포함 경계, Code 불변성, Expected Version을 확인한다. 조직·Role·Assignment·Delegation은 기간 중복과 순환을 검사한다.
+- 조회·저장
 
-#### 조치
-
-화면 조치: **조회·저장**
-
-1. 조회 조건을 제한하고 대상을 선택한다.
-2. Detail에서 ID·Version·유효기간·최근 변경자를 확인한다.
-3. 변경 영향 Preview 또는 Simulation을 실행한다.
-4. Reason과 Expected Version을 입력한다.
-5. 등록·수정·결정 요청 후 Operation ID·Approval ID를 기록한다.
-6. 업무 상태와 Audit가 함께 반영됐는지 확인한다.
+1. 사용자·환경·Menu Scope와 현재 설정 Version을 확인한다.
+2. `Key/Value/Type/Scope/Version/Reason`를 입력하고 개인 설정과 전체 업무 설정을 구분한다.
+3. `조회·저장` 실행 후 적용 대상, Version, Audit 또는 읽음 상태를 확인한다.
+4. 설정 변경은 Consumer Cache·Session·Frontend 반영 여부를 확인한다.
+5. 응답 유실은 Operation ID나 최신 Version으로 결과를 조회한다.
+6. 삭제 계약이 없는 항목은 비활성화 또는 종료일을 사용한다.
 
 #### 정상 결과
 
-- 대상 Version이 증가하고 입력한 유효기간·상태가 반영된다.
-- 조직 Tree, User Role, Permission Evaluation, Approval Simulation 등 연관 Projection이 같은 결과를 반환한다.
-- Masking 정책과 Data Scope가 로그인 사용자에게 적용된다.
-- Audit에 Actor, Action, Target, Reason, Before/After, Version, 결과가 남는다.
+- 대상 Version·상태·유효기간이 입력과 일치한다.
+- 조직 Tree, Assignment, Effective Permission, Approval Simulation, Session, Attachment Metadata 등 연관 Projection이 같은 결과를 반환한다.
+- Masking과 Data Scope가 Backend Query에 적용된다.
+- Audit에 Actor, Menu·Action Permission, Target, Reason, Before/After, Version과 결과가 남는다.
 
-#### 오류·동시성·응답 유실
+#### 오류·동시성·응답 유실·복구
 
 | 상황 | 처리 |
 |---|---|
-| Validation | Field 오류와 정책을 수정해 새 요청을 만든다. |
-| 403 | Menu·Action·API·Data Scope를 확인한다. |
-| 409 | 최신 Version·유효기간·변경자를 조회하고 다시 작성한다. |
-| 중복 기간 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
+| Validation | Field 정책·상위 기준정보·기간 경계를 수정해 새 요청을 만든다. |
+| 403 | Menu·Action·API·Data Scope·Raw 권한을 확인한다. |
+| 409 | 최신 Version·유효기간·변경자를 조회하고 변경 의도를 다시 작성한다. |
+| 기간 중복·순환 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
 | 응답 유실 | 같은 Operation ID·Idempotency Key로 결과를 조회한다. |
-| 부분 반영 | 연관 Projection과 Consumer를 Reconcile하고 Failed Target만 재처리한다. |
+| 부분 반영 | 연관 Projection과 업무 Consumer를 Reconcile하고 실패 대상만 재처리한다. |
+| Rollback | 변경 전 Version·Snapshot·유효기간을 근거로 새 보정 Operation을 수행한다. |
 
-#### Rollback·복구
+#### 개인정보·감사·교대
 
-변경 전 Version과 유효기간을 기준으로 새 보정 변경을 수행한다. 물리 삭제 대신 비활성화·종료일 적용이 계약인 기능은 해당 방법을 사용한다. 권한·결재 변경은 현재 Session과 진행 중 Snapshot에 미치는 영향을 확인한다.
+Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별도 Permission과 구체적 Reason을 기록한다. 교대 시 대상 ID, Version, 유효기간, Operation ID, Approval ID, 결과, 미확정 Consumer와 다음 확인 시각을 남긴다.
 
-#### 운영 확인
 
-Audit, Session, Permission Simulation, Approval Simulation, 업무 Domain 조회를 연결하고 교대 기록에 대상 ID·Version·Operation·미확정 항목을 남긴다.
 ### downloads — Download 정책
 
-**Route**: `/downloads`
-**Menu Code**: `SETTING`
-**Frontend**: `cpf-biz-admin/frontend/src/features/downloads/DownloadsPage.vue`
+| 항목 | 값 |
+|---|---|
+| Route | `/downloads` |
+| Menu Code | `SETTING` |
+| Frontend | `cpf-biz-admin/frontend/src/features/downloads/DownloadsPage.vue` |
+| Permission | Write |
 
-#### 기능 목적
+#### 사용 목적과 업무 영향
 
-Download 정책 기능을 조회·등록·변경·감사한다. 이 기능의 변경은 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer에 영향을 줄 수 있으므로 단일 화면 저장 결과만으로 종료하지 않는다.
+이 화면은 **Download 정책** 기능을 제공한다. 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer 중 영향을 받는 항목을 변경 전후에 확인한다.
 
-#### 선행 조건
+#### 입력·검색·표시 값
 
-1. 로그인 사용자에게 `Write` 권한이 있는지 확인한다.
-2. 상위 기준정보와 대상의 현재 Version·유효기간·Active 상태를 조회한다.
-3. 개인정보·첨부·Download 기능은 Raw·Export 권한과 Reason을 별도로 확인한다.
-4. 변경 중인 Operation 또는 Approval이 있으면 기존 ID로 결과를 확인한다.
+- 유형/건수/Data Scope/Masking/Approval/Reason
 
-#### 검색·입력·표시 값
+- ID·Code의 변경 가능 여부와 참조 Consumer를 확인한다.
+- 날짜는 시작·종료 포함 경계와 업무 Timezone을 기록한다.
+- 빈 값, `null`, Clear Flag, Use N의 의미를 구분한다.
+- PII·Password·첨부 원문은 Masking·Raw 권한·Reason을 적용한다.
 
-유형/건수/Data Scope/Masking/Approval/Reason
+#### Button·조치
 
-입력 Field마다 필수 여부, 공백·Null 의미, 최대 길이, 날짜 포함 경계, Code 불변성, Expected Version을 확인한다. 조직·Role·Assignment·Delegation은 기간 중복과 순환을 검사한다.
+- 조회·정책 변경
 
-#### 조치
-
-화면 조치: **조회·정책 변경**
-
-1. 조회 조건을 제한하고 대상을 선택한다.
-2. Detail에서 ID·Version·유효기간·최근 변경자를 확인한다.
-3. 변경 영향 Preview 또는 Simulation을 실행한다.
-4. Reason과 Expected Version을 입력한다.
-5. 등록·수정·결정 요청 후 Operation ID·Approval ID를 기록한다.
-6. 업무 상태와 Audit가 함께 반영됐는지 확인한다.
+1. Permission·Data Scope·Reason·Approval 요구 여부를 확인한다.
+2. `유형/건수/Data Scope/Masking/Approval/Reason`를 입력하고 File Size·Extension·MIME·Checksum·Scan·Retention 또는 Download 건수·Masking 정책을 확인한다.
+3. `조회·정책 변경` 실행 후 Metadata·Checksum·Scan/Quarantine·Audit를 확인한다.
+4. Download는 Query 조건·Column·Masking·파일 Hash·만료를 기록한다.
+5. Timeout·취소·Disk Full·부분 파일은 Temp Cleanup과 Metadata를 대사한다.
+6. 재검사·재다운로드·Rollback은 기존 Artifact와 Audit를 보존한 새 Operation으로 수행한다.
 
 #### 정상 결과
 
-- 대상 Version이 증가하고 입력한 유효기간·상태가 반영된다.
-- 조직 Tree, User Role, Permission Evaluation, Approval Simulation 등 연관 Projection이 같은 결과를 반환한다.
-- Masking 정책과 Data Scope가 로그인 사용자에게 적용된다.
-- Audit에 Actor, Action, Target, Reason, Before/After, Version, 결과가 남는다.
+- 대상 Version·상태·유효기간이 입력과 일치한다.
+- 조직 Tree, Assignment, Effective Permission, Approval Simulation, Session, Attachment Metadata 등 연관 Projection이 같은 결과를 반환한다.
+- Masking과 Data Scope가 Backend Query에 적용된다.
+- Audit에 Actor, Menu·Action Permission, Target, Reason, Before/After, Version과 결과가 남는다.
 
-#### 오류·동시성·응답 유실
+#### 오류·동시성·응답 유실·복구
 
 | 상황 | 처리 |
 |---|---|
-| Validation | Field 오류와 정책을 수정해 새 요청을 만든다. |
-| 403 | Menu·Action·API·Data Scope를 확인한다. |
-| 409 | 최신 Version·유효기간·변경자를 조회하고 다시 작성한다. |
-| 중복 기간 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
+| Validation | Field 정책·상위 기준정보·기간 경계를 수정해 새 요청을 만든다. |
+| 403 | Menu·Action·API·Data Scope·Raw 권한을 확인한다. |
+| 409 | 최신 Version·유효기간·변경자를 조회하고 변경 의도를 다시 작성한다. |
+| 기간 중복·순환 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
 | 응답 유실 | 같은 Operation ID·Idempotency Key로 결과를 조회한다. |
-| 부분 반영 | 연관 Projection과 Consumer를 Reconcile하고 Failed Target만 재처리한다. |
+| 부분 반영 | 연관 Projection과 업무 Consumer를 Reconcile하고 실패 대상만 재처리한다. |
+| Rollback | 변경 전 Version·Snapshot·유효기간을 근거로 새 보정 Operation을 수행한다. |
 
-#### Rollback·복구
+#### 개인정보·감사·교대
 
-변경 전 Version과 유효기간을 기준으로 새 보정 변경을 수행한다. 물리 삭제 대신 비활성화·종료일 적용이 계약인 기능은 해당 방법을 사용한다. 권한·결재 변경은 현재 Session과 진행 중 Snapshot에 미치는 영향을 확인한다.
+Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별도 Permission과 구체적 Reason을 기록한다. 교대 시 대상 ID, Version, 유효기간, Operation ID, Approval ID, 결과, 미확정 Consumer와 다음 확인 시각을 남긴다.
 
-#### 운영 확인
 
-Audit, Session, Permission Simulation, Approval Simulation, 업무 Domain 조회를 연결하고 교대 기록에 대상 ID·Version·Operation·미확정 항목을 남긴다.
 ### downloadAudits — Download 감사
 
-**Route**: `/downloadAudits`
-**Menu Code**: `AUDIT`
-**Frontend**: `cpf-biz-admin/frontend/src/features/download-audits/DownloadAuditsPage.vue`
+| 항목 | 값 |
+|---|---|
+| Route | `/downloadAudits` |
+| Menu Code | `AUDIT` |
+| Frontend | `cpf-biz-admin/frontend/src/features/download-audits/DownloadAuditsPage.vue` |
+| Permission | Audit Read |
 
-#### 기능 목적
+#### 사용 목적과 업무 영향
 
-Download 감사 기능을 조회·등록·변경·감사한다. 이 기능의 변경은 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer에 영향을 줄 수 있으므로 단일 화면 저장 결과만으로 종료하지 않는다.
+이 화면은 **Download 감사** 기능을 제공한다. 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer 중 영향을 받는 항목을 변경 전후에 확인한다.
 
-#### 선행 조건
+#### 입력·검색·표시 값
 
-1. 로그인 사용자에게 `Audit Read` 권한이 있는지 확인한다.
-2. 상위 기준정보와 대상의 현재 Version·유효기간·Active 상태를 조회한다.
-3. 개인정보·첨부·Download 기능은 Raw·Export 권한과 Reason을 별도로 확인한다.
-4. 변경 중인 Operation 또는 Approval이 있으면 기존 ID로 결과를 확인한다.
+- 사용자/유형/대상/기간/Reason
 
-#### 검색·입력·표시 값
+- ID·Code의 변경 가능 여부와 참조 Consumer를 확인한다.
+- 날짜는 시작·종료 포함 경계와 업무 Timezone을 기록한다.
+- 빈 값, `null`, Clear Flag, Use N의 의미를 구분한다.
+- PII·Password·첨부 원문은 Masking·Raw 권한·Reason을 적용한다.
 
-사용자/유형/대상/기간/Reason
+#### Button·조치
 
-입력 Field마다 필수 여부, 공백·Null 의미, 최대 길이, 날짜 포함 경계, Code 불변성, Expected Version을 확인한다. 조직·Role·Assignment·Delegation은 기간 중복과 순환을 검사한다.
+- 조회·상세
 
-#### 조치
-
-화면 조치: **조회·상세**
-
-1. 조회 조건을 제한하고 대상을 선택한다.
-2. Detail에서 ID·Version·유효기간·최근 변경자를 확인한다.
-3. 변경 영향 Preview 또는 Simulation을 실행한다.
-4. Reason과 Expected Version을 입력한다.
-5. 등록·수정·결정 요청 후 Operation ID·Approval ID를 기록한다.
-6. 업무 상태와 Audit가 함께 반영됐는지 확인한다.
+1. Permission·Data Scope·Reason·Approval 요구 여부를 확인한다.
+2. `사용자/유형/대상/기간/Reason`를 입력하고 File Size·Extension·MIME·Checksum·Scan·Retention 또는 Download 건수·Masking 정책을 확인한다.
+3. `조회·상세` 실행 후 Metadata·Checksum·Scan/Quarantine·Audit를 확인한다.
+4. Download는 Query 조건·Column·Masking·파일 Hash·만료를 기록한다.
+5. Timeout·취소·Disk Full·부분 파일은 Temp Cleanup과 Metadata를 대사한다.
+6. 재검사·재다운로드·Rollback은 기존 Artifact와 Audit를 보존한 새 Operation으로 수행한다.
 
 #### 정상 결과
 
-- 대상 Version이 증가하고 입력한 유효기간·상태가 반영된다.
-- 조직 Tree, User Role, Permission Evaluation, Approval Simulation 등 연관 Projection이 같은 결과를 반환한다.
-- Masking 정책과 Data Scope가 로그인 사용자에게 적용된다.
-- Audit에 Actor, Action, Target, Reason, Before/After, Version, 결과가 남는다.
+- 대상 Version·상태·유효기간이 입력과 일치한다.
+- 조직 Tree, Assignment, Effective Permission, Approval Simulation, Session, Attachment Metadata 등 연관 Projection이 같은 결과를 반환한다.
+- Masking과 Data Scope가 Backend Query에 적용된다.
+- Audit에 Actor, Menu·Action Permission, Target, Reason, Before/After, Version과 결과가 남는다.
 
-#### 오류·동시성·응답 유실
+#### 오류·동시성·응답 유실·복구
 
 | 상황 | 처리 |
 |---|---|
-| Validation | Field 오류와 정책을 수정해 새 요청을 만든다. |
-| 403 | Menu·Action·API·Data Scope를 확인한다. |
-| 409 | 최신 Version·유효기간·변경자를 조회하고 다시 작성한다. |
-| 중복 기간 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
+| Validation | Field 정책·상위 기준정보·기간 경계를 수정해 새 요청을 만든다. |
+| 403 | Menu·Action·API·Data Scope·Raw 권한을 확인한다. |
+| 409 | 최신 Version·유효기간·변경자를 조회하고 변경 의도를 다시 작성한다. |
+| 기간 중복·순환 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
 | 응답 유실 | 같은 Operation ID·Idempotency Key로 결과를 조회한다. |
-| 부분 반영 | 연관 Projection과 Consumer를 Reconcile하고 Failed Target만 재처리한다. |
+| 부분 반영 | 연관 Projection과 업무 Consumer를 Reconcile하고 실패 대상만 재처리한다. |
+| Rollback | 변경 전 Version·Snapshot·유효기간을 근거로 새 보정 Operation을 수행한다. |
 
-#### Rollback·복구
+#### 개인정보·감사·교대
 
-변경 전 Version과 유효기간을 기준으로 새 보정 변경을 수행한다. 물리 삭제 대신 비활성화·종료일 적용이 계약인 기능은 해당 방법을 사용한다. 권한·결재 변경은 현재 Session과 진행 중 Snapshot에 미치는 영향을 확인한다.
-
-#### 운영 확인
-
-Audit, Session, Permission Simulation, Approval Simulation, 업무 Domain 조회를 연결하고 교대 기록에 대상 ID·Version·Operation·미확정 항목을 남긴다.
-
-
-## 35. BZA 일일 운영
-
-1. Dashboard에서 사용자·결재·Attachment·Notification 상태를 확인한다.
-2. 조직·직원·Assignment의 기준일과 고아·순환·중복을 확인한다.
-3. User·Role·Permission의 만료·잠금·Data Scope를 확인한다.
-4. Approval Inbox·만료·위임·대결 충돌을 확인한다.
-5. Quarantine Attachment, 실패 Notification, 만료 Download를 확인한다.
-6. Raw·Export·Permission·Approval 변경 Audit를 검토한다.
-
-## 36. BZA 월간 점검
-
-- 퇴직·휴직·파견·겸직 상태와 User·Role·Session을 대조한다.
-- 조직 책임과 결재 Owner·위임 기간을 대조한다.
-- Role 비교와 Permission Simulation으로 과다 권한을 검토한다.
-- Attachment Retention·Quarantine·Download Audit를 검토한다.
-- 업무 Domain Consumer와 BZA 기준정보 Version을 대조한다.
+Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별도 Permission과 구체적 Reason을 기록한다. 교대 시 대상 ID, Version, 유효기간, Operation ID, Approval ID, 결과, 미확정 Consumer와 다음 확인 시각을 남긴다.

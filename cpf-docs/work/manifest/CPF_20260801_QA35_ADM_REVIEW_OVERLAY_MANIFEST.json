@@ -1,0 +1,109 @@
+{
+  "baselineSha": "e1f8bef7b7193522f2cd8e36cc6857dd1ff6694a",
+  "artifactType": "root-relative-review-overlay",
+  "productSourceModified": false,
+  "fileCountExcludingManifest": 20,
+  "files": [
+    {
+      "path": "cpf-docs/quality/CPF_20260801_QA35_ADM_CAPABILITY_MATRIX.csv",
+      "size": 18608,
+      "sha256": "fb09a6ece56c967f4b43325e361ecf29653ba26dbd7cfec700e73a8dbd681a76"
+    },
+    {
+      "path": "cpf-docs/quality/CPF_20260801_QA35_ADM_MENU_ROUTE_MATRIX.csv",
+      "size": 20469,
+      "sha256": "f66adf03dbed399608e692be14634fca0772454f7921ee320f852ed11504edbd"
+    },
+    {
+      "path": "cpf-docs/quality/CPF_20260801_QA35_DEFECT_REGISTER.csv",
+      "size": 23744,
+      "sha256": "e795a5b17c1de77ee2b5fae450a3b1431698925250ec3a1164f852f4bf754f10"
+    },
+    {
+      "path": "cpf-docs/quality/CPF_20260801_QA35_REQUIREMENT_MATRIX.csv",
+      "size": 20797,
+      "sha256": "80762bebbcb8f02d8f66f4896038486b78e439c6428f357c693570c8ed01967c"
+    },
+    {
+      "path": "cpf-docs/quality/CPF_20260801_QA35_ROOT_CAUSE_MATRIX.csv",
+      "size": 4602,
+      "sha256": "fb8706b93de900874bab2d0967730cb615837b788c7e8843a8d3fc8d0fbfe203"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_20260801_QA35_ADM_BENCHMARK_REVIEW_COMPLETION_REPORT.md",
+      "size": 574,
+      "sha256": "e265ce821eabe260b36bf8b8eac6824dcf903b3b6bf80edd0fdd4a9bbe2d1c1a"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_20260801_QA35_CODEX_FINAL_VERIFICATION_REQUEST.md",
+      "size": 3881,
+      "sha256": "bdf4d7f79ac0297dfdb3149e02d657fb4b751fa7004efb5107e86aa147d6eb0e"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_20260801_QA35_FINAL_COMPLETION_DEVELOPMENT_REQUEST.md",
+      "size": 7392,
+      "sha256": "b74d10d52bc666c759e1e6fe6061eb5576708f6664da79d213c5adc7342bec08"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_20260801_QA35_SELF_DEVELOPMENT_REQUIREMENTS.md",
+      "size": 3925,
+      "sha256": "0953fc018da54f6ce4fced76b78aebe979c125d962e4ae1519bac486b59ffddf"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_CURRENT_WORK_REQUEST.md",
+      "size": 1104,
+      "sha256": "8616e9f284392522f1dd7ee9f364e7ecb7ad3017130406c69c8d93ca99f7b19e"
+    },
+    {
+      "path": "cpf-docs/work/handover/CPF_20260801_QA34_TO_QA35_HANDOVER.md",
+      "size": 2182,
+      "sha256": "d5fbce964af2843fb7d223decdf1182583a8454800594cbfeb04468d904ac58e"
+    },
+    {
+      "path": "cpf-docs/work/manifest/CPF_20260801_QA35_ADM_REVIEW_DELETE_MANIFEST.txt",
+      "size": 56,
+      "sha256": "b31ec11376d8969554b3ed4b4af38d0e35699c1aea6391d1454686c234f46af0"
+    },
+    {
+      "path": "cpf-docs/work/manifest/CPF_20260801_QA35_ADM_REVIEW_OVERLAY_FILES.txt",
+      "size": 1395,
+      "sha256": "8d9ef3d62e51883cc352826967ebfc1dc8d7e731e324e604ca8823b38f50f209"
+    },
+    {
+      "path": "cpf-docs/work/review/CPF_20260801_QA34_POST_PUSH_INDEPENDENT_SOURCE_REVIEW.md",
+      "size": 5837,
+      "sha256": "9fbb75af7349b2cf5a697f5a5a341e7afe4793ca8a0baf24297b8ceb5a5a2ddb"
+    },
+    {
+      "path": "cpf-docs/work/review/CPF_20260801_QA34_POST_PUSH_REVIEW_PLAN.md",
+      "size": 1886,
+      "sha256": "7c7a10a41194a70f2e02c5704cfb0fc2621ff501cd136f86dc84323eb1c1aa38"
+    },
+    {
+      "path": "cpf-docs/work/review/CPF_20260801_QA35_ADM_BATCH_ONLINE_BENCHMARK_REVIEW.md",
+      "size": 4443,
+      "sha256": "31904f0f3c05e92cb4c7136cce5726057d9d88c7db0e24a481819527f1079944"
+    },
+    {
+      "path": "cpf-docs/work/review/CPF_20260801_QA35_ADM_BENCHMARK_REVIEW_PLAN.md",
+      "size": 1518,
+      "sha256": "936791bf3b78d514f1e0f10eb21f3d48ee59c57efca6e240917fc885228b1349"
+    },
+    {
+      "path": "cpf-docs/work/review/CPF_20260801_QA35_ADM_REFERENCE_INVENTORY.md",
+      "size": 1443,
+      "sha256": "961393f602f0676d773b784af5e3c73dbd777e016609817e798c4ba53321c805"
+    },
+    {
+      "path": "cpf-docs/work/state/CPF_20260801_QA35_CONTINUITY_STATE.md",
+      "size": 997,
+      "sha256": "964459391d3dcc33c1d948c395a48b51ae4aefed0dfa6009f41a94a7b0c40ab3"
+    },
+    {
+      "path": "cpf-tools/scripts/verify-cpf-qa35-request-integrity.py",
+      "size": 3412,
+      "sha256": "d41f2f45a8aa259eb38677cf03568af95e1e6dc393bf7d53c5829f95b1ec9e1c"
+    }
+  ],
+  "deleteManifest": "cpf-docs/work/manifest/CPF_20260801_QA35_ADM_REVIEW_DELETE_MANIFEST.txt"
+}

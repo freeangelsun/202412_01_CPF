@@ -1,0 +1,21 @@
+﻿quality_id,applicable_scope,quality_axis,acceptance_criteria,mandatory
+ADM-Q-001,모든 목록 화면,검색조건,업무 식별자·기간·상태·Owner·Instance 등 적용 가능한 필드를 제공하고 초기값·Timezone·최대기간을 명시,필수
+ADM-Q-002,모든 목록 화면,Server-side Paging/Sort,"대량 데이터에서 client slice 금지, total/page/size/sort 계약과 count 성능 검증",필수
+ADM-Q-003,모든 목록 화면,상태 표현,코드만 표시하지 않고 표준 Label·색상·Terminal/Unknown·마지막 갱신시각 제공,필수
+ADM-Q-004,모든 화면,Loading/Empty/Error,"Skeleton/Loading, Empty reason/action, 401/403/409/429/500/503·partial failure를 구분",필수
+ADM-Q-005,상세 화면,Deep Link,ID가 URL에 포함되고 refresh/back/bookmark로 동일 상세 복원,필수
+ADM-Q-006,상세 화면,Correlation,Transaction/Trace/Job/Execution/Instance/Incident/Artifact 링크 제공,필수
+ADM-Q-007,위험조치,안전 Confirmation,대상·영향·현재상태·Expected Version·Reason·Approval·Idempotency Key 확인,필수
+ADM-Q-008,위험조치,Unknown Result,"응답 유실 시 성공/실패 단정 금지, 상태조회·Reconcile·Audit 링크",필수
+ADM-Q-009,민감정보 화면,Masking/Data Scope,"원문 기본 노출 금지, 승인된 reveal도 만료·감사·다운로드 제한",필수
+ADM-Q-010,다운로드,안전/무결성,"bounded stream, checksum, row/file limit, expiry, reason/approval, audit",필수
+ADM-Q-011,모든 화면,Typed API,"OpenAPI operation과 Generated Client 사용, generic URL 예외 Allowlist",필수
+ADM-Q-012,모든 화면,접근성,"keyboard, focus, label/name, table semantics, contrast, reduced motion",필수
+ADM-Q-013,모든 화면,반응형,1280/1440/1920 및 390px에서 horizontal overflow·control loss 없음,필수
+ADM-Q-014,모든 Route,3 Browser,Chromium/Firefox/WebKit 실제 Backend E2E와 Route별 interaction,필수
+ADM-Q-015,운영 화면,Freshness,"auto refresh interval, pause, stale indicator, manual refresh, last success/error",필수
+ADM-Q-016,통계/Chart,근거와 Drill-down,"집계 정의·Timezone·Sampling·데이터 지연 표시, 원본 목록 Drill-down",필수
+ADM-Q-017,Config/Definition,Version/Compare,"Draft/current/target 비교, validation, impact preview, publish/rollback",필수
+ADM-Q-018,Multi-instance,적용 상태,요청 버전과 instance별 effective version/실패/재시도/rollback,필수
+ADM-Q-019,Audit,불변 Evidence,Actor·Permission·Reason·Target·Before/After·Result·Transaction ID·Source SHA,필수
+ADM-Q-020,성능,화면 SLO,"검색/상세/조치 응답 SLO, timeout, cancellation, large-data/browser memory",필수

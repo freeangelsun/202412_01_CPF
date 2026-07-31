@@ -1,0 +1,56 @@
+﻿requirement_id,priority,area,development_status,verification_status,evidence,next_check
+QA35-REQ-001,P0,Truth Reset,미구현,미검증,QA35 V2 request baseline only,QA34 Matrix/Unresolved/Completion Report가 동일 상태를 사용하며 근거 없는 완료 0건
+QA35-REQ-002,P0,Current Request,미구현,미검증,QA35 V2 request baseline only,Current Request가 QA35 Matrix·Review·수용조건을 가리킴
+QA35-REQ-003,P0,Governance/Guide,미구현,미검증,QA35 V2 request baseline only,"README/Guide Drift Gate 통과, stale SHA와 해결된 blocker 0건"
+QA35-REQ-004,P0,OpenAPI Canonical,미구현,미검증,QA35 V2 request baseline only,ADM/BZA validate-openapi와 marker writer가 동일 Snapshot을 통과
+QA35-REQ-005,P0,OpenAPI Coverage,미구현,미검증,QA35 V2 request baseline only,"Controller inventory 대비 operation 누락 0, 인증 전용 snapshot 금지, empty schema/additionalProperties 자유 Map 제거"
+QA35-REQ-006,P0,Generated Client,미구현,미검증,QA35 V2 request baseline only,"required generated artifact 전부 존재, marker schema 3/hash 일치"
+QA35-REQ-007,P0,Generation Reproducibility,미구현,미검증,QA35 V2 request baseline only,"fresh clone generate 후 git diff --exit-code 0, stale/missing negative fixture 실패"
+QA35-REQ-008,P0,Frontend Preflight,미구현,미검증,QA35 V2 request baseline only,"ADM/BZA preflight Exit 0, Runtime URL·DB 없이 실행 가능"
+QA35-REQ-009,P0,CI,미구현,미검증,QA35 V2 request baseline only,"latest SHA workflow run/status 존재, 실패 시 merge/release 차단"
+QA35-REQ-010,P0,Source Closure,미구현,미검증,QA35 V2 request baseline only,Source Closure가 의도적 stale OpenAPI·schema2 marker·missing artifact fixture를 모두 실패시킴
+QA35-REQ-011,P0,Runnable Verification,미구현,미검증,QA35 V2 request baseline only,"명령 누락 Parameter 0, preflight input checker 통과"
+QA35-REQ-012,P0,Evidence Semantics,미구현,미검증,QA35 V2 request baseline only,"Exit 0만으로 Requirement 완료 불가, 누락 artifact/empty scenario fixture 실패"
+QA35-REQ-013,P0,QA34 Closure,미구현,미검증,QA35 V2 request baseline only,QA34 development/verification status가 실제 Evidence와 일치
+QA35-REQ-014,P0,ADM Inventory,미구현,미검증,QA35 V2 request baseline only,"59/59 행 완성, orphan route/menu/API 0"
+QA35-REQ-015,P0,ADM Menu Contract,미구현,미검증,QA35 V2 request baseline only,"실제 Session DTO fixture, route/menu/permission mismatch 0"
+QA35-REQ-016,P0,ADM Authorization,미구현,미검증,QA35 V2 request baseline only,"권한 없는 메뉴/API/버튼 401/403, 범위 초과·상태 위반 차단"
+QA35-REQ-017,P1,ADM Gateway UX,미구현,미검증,QA35 V2 request baseline only,각 메뉴 고유 목적/URL/API/권한/상호작용 Test
+QA35-REQ-018,P0,ADM Interaction Matrix,미구현,미검증,QA35 V2 request baseline only,"모든 Route interaction 1개 이상 또는 승인된 read-only 기준, 외부 임의 Fixture 금지"
+QA35-REQ-019,P0,ADM Route E2E,미구현,미검증,QA35 V2 request baseline only,fallback/redirect/mock-shape-negative fixture가 실패
+QA35-REQ-020,P0,ADM State E2E,미구현,미검증,QA35 V2 request baseline only,"Route별 적용 가능한 상태 Matrix 100%, assertion 없는 PASS 0"
+QA35-REQ-021,P0,ADM Dangerous Actions,미구현,미검증,QA35 V2 request baseline only,대표 조치별 정상/거절/중복/충돌/결과불명/감사 E2E
+QA35-REQ-022,P1,ADM Quality,미구현,미검증,QA35 V2 request baseline only,3 Browser exact-SHA report와 route count 일치
+QA35-REQ-023,P0,ADM Typed Consumer,미구현,미검증,QA35 V2 request baseline only,OpenAPI operation ↔ generated client ↔ frontend consumer 1:1 또는 승인된 server-only N/A
+QA35-REQ-024,P0,ADM Operations,미구현,미검증,QA35 V2 request baseline only,"Mock 아닌 Runtime Consumer, transaction/execution/instance 단위 추적"
+QA35-REQ-025,P0,EDU Catalog,미구현,미검증,QA35 V2 request baseline only,"Coverage 100% 또는 승인된 N/A, orphan public contract/sample 0"
+QA35-REQ-026,P0,EDU Ownership,미구현,미검증,QA35 V2 request baseline only,ArchUnit/Dependency Gate와 실제 Consumer Bean/Route
+QA35-REQ-027,P0,EDU Scenario Quality,미구현,미검증,QA35 V2 request baseline only,"Happy path 전용 예제 0, Scenario와 expected result 명시"
+QA35-REQ-028,P0,EDU Runtime Coverage,미구현,미검증,QA35 V2 request baseline only,fresh clone profile별 start→invoke→fault→recover→stop Evidence
+QA35-REQ-029,P0,EDU ADM Link,미구현,미검증,QA35 V2 request baseline only,EDU transaction/execution/incident가 ADM Route와 Operation에 연결
+QA35-REQ-030,P1,Generator/EDU,미구현,미검증,QA35 V2 request baseline only,새 Domain 생성→build→runtime→ADM→remove/regenerate parity
+QA35-REQ-031,P1,EDU Isolation,미구현,미검증,QA35 V2 request baseline only,"product profile에 EDU default 0, EDU profile에서만 명시 활성화"
+QA35-REQ-032,P0,EDU Impact Gate,미구현,미검증,QA35 V2 request baseline only,변경된 contract에 EDU impact 누락 시 CI 실패
+QA35-REQ-033,P0,Artifact Catalog,미구현,미검증,QA35 V2 request baseline only,"Glob 추정 제거, artifact별 SHA/SBOM/license/vulnerability/signature"
+QA35-REQ-034,P0,Final Exact SHA,미구현,미검증,QA35 V2 request baseline only,"sourceSha=resultSha=latest, dirty=false, releaseEligible=true, 미검증 0"
+QA35-REQ-035,P0,Codex One-pass,미구현,미검증,QA35 V2 request baseline only,"REVIEW_INDEX 순서 1회, 실패 단계만 재실행, 전체 반복 금지"
+QA35-REQ-036,P0,ADM External Baseline,미구현,미검증,QA35 V2 request baseline only,87개 capability 모두 충족/고급 대체/명시적 N/A 판정과 근거 Source·Runtime Evidence
+QA35-REQ-037,P0,ADM Information Architecture,미구현,미검증,QA35 V2 request baseline only,"Target Menu Architecture 전 항목, breadcrumb/deep link/global search, 중복/고아 menu 0"
+QA35-REQ-038,P0,ADM System Management,미구현,미검증,QA35 V2 request baseline only,각 기능 CRUD/조회/승인/감사/negative test와 실제 backend consumer
+QA35-REQ-039,P0,ADM Common Operations,미구현,미검증,QA35 V2 request baseline only,"요청값과 instance별 effective값, partial failure, retry/rollback, audit"
+QA35-REQ-040,P0,ADM Online Design,미구현,미검증,QA35 V2 request baseline only,"Draft/validate/impact/publish/rollback, typed API, consumer linkage"
+QA35-REQ-041,P0,ADM Online Runtime Monitoring,미구현,미검증,QA35 V2 request baseline only,"RED/USE metric, stale indicator, drill-down, alert/recovery links"
+QA35-REQ-042,P0,ADM Online Logs and Statistics,미구현,미검증,QA35 V2 request baseline only,"대량 검색, masking, segment detail, percentile, export approval, source log link"
+QA35-REQ-043,P0,ADM Unified Deployment,미구현,미검증,QA35 V2 request baseline only,Artifact catalog→rollout→effective state→partial failure→rollback/reconcile
+QA35-REQ-044,P0,ADM Batch Definition,미구현,미검증,QA35 V2 request baseline only,"Definition detail completeness, version/impact, consumer and execution linkage"
+QA35-REQ-045,P0,ADM Batch DAG,미구현,미검증,QA35 V2 request baseline only,"DAG persisted version, cycle fail, critical path, execution overlay"
+QA35-REQ-046,P0,ADM Batch Execution Safety,미구현,미검증,QA35 V2 request baseline only,"maker-checker, duplicate/conflict/response-loss/process-kill evidence"
+QA35-REQ-047,P0,ADM Batch Infrastructure,미구현,미검증,QA35 V2 request baseline only,stale/takeover/quarantine/capacity alert and audit
+QA35-REQ-048,P0,ADM Batch Operational Configuration,미구현,미검증,QA35 V2 request baseline only,"schema validation, rollout, safe log/report download, notification delivery trace"
+QA35-REQ-049,P0,ADM Center-Cut,미구현,미검증,QA35 V2 request baseline only,"profile version/publish, rate/partition metrics, failure/restart/reconcile"
+QA35-REQ-050,P0,ADM Cross-domain Operations,미구현,미검증,QA35 V2 request baseline only,"공통 correlation ID, entity resolution, deep links, partial/unknown/recovery timeline"
+QA35-REQ-051,P0,ADM Analytics,미구현,미검증,QA35 V2 request baseline only,집계 정의·timezone·freshness·drill-down·governed export·saved report
+QA35-REQ-052,P0,ADM Screen Completeness,미구현,미검증,QA35 V2 request baseline only,"ADM-Q-001~020 applicable row 100%, N/A 근거 필수"
+QA35-REQ-053,P0,ADM Browser Product Verification,미구현,미검증,QA35 V2 request baseline only,"URL/menu/heading/component/operation/result/state/permission assertions, false-green fixtures"
+QA35-REQ-054,P0,ADM Superset Closure,미구현,미검증,QA35 V2 request baseline only,"87 capability + CPF advanced capabilities 양방향 closure, orphan command 0"
+QA35-REQ-055,P0,ADM Baseline Regression Gate,미구현,미검증,QA35 V2 request baseline only,"capability row count/hash, route/API/permission/test evidence, approved N/A only"

@@ -1,0 +1,16 @@
+﻿evidence_id,path_or_source,blob_or_hash,observation
+SRC-001,cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md,262077e913db1d83731c0f3b643565859af431c1,"Canonical 162, 17 completion axes, 16 final gates"
+SRC-002,settings.gradle,73b4003a9845d823b5c1e015ed8283c9f490b730,"Official modules, starters, batch submodules, included builds"
+SRC-003,cpf-docs/work/current/CPF_CURRENT_WORK_REQUEST.md,959005987b6b8e12052bc2bba46058873ce20fff,Incorrectly says only one independent verification remains
+SRC-004,cpf-admin/frontend/openapi/cpf-openapi.json,45820631ed4783b39397ddc8bba74f0d5a05b2d5,"Old source SHA, auth-only 2 operations, empty schemas"
+SRC-005,cpf-admin/frontend/src/generated/.cpf-openapi-source.json,6443fc027d326b90c05d0b3c6f739ca9ba4518b1,schemaVersion 2 and old source SHA
+SRC-006,cpf-admin/frontend/scripts/verify-generated-client.mjs,7957e72d119e4010bd1b8960c89ce650f1377194,Requires schemaVersion 3 and three generated artifacts
+SRC-007,cpf-reference/build.gradle,df98cb185c74959ce9d6c203c84d622809489585,Reference module dependencies exist; no full coverage evidence
+SRC-008,cpf-tools/runtime/cpf-local-runtime/build.gradle,02f7c3facad46d1cef7fe31c02c30d7e694c3a8d,ADM/BZA/Gateway local web module exists
+SRC-009,cpf-tools/runtime/cpf-local-batch-runtime/build.gradle,aaa038f34ded4b8d6140c20a0d3d66da35673db5,Separate local batch runtime exists
+SRC-010,cpf-docs/guides/03_ADM개발자매뉴얼.md,b2778a69977b9a700965d281ef8e6f3747ae3d8e,Guide baseline e1 and describes 59-route/full-generation procedures
+SRC-011,README.md,0725ff4de83536f45c3920c1df539b7b59fac0e9,Latest docs entry and manual links
+SRC-012,GitHub combined status,N/A,Latest SHA has zero status checks
+SRC-013,GitHub workflow runs,N/A,Latest SHA has zero workflow runs
+SRC-014,20260728 Enterprise QA manifest,cc5900110e3982c6ff33b7f592c677abbbea45de471ea5c615b9229f9ca4455c,"1,873 requirements/441 scenarios continuity"
+SRC-015,User ADM screenshot evidence,44 images indexed,"Minimum functional benchmark, not UI copy target"

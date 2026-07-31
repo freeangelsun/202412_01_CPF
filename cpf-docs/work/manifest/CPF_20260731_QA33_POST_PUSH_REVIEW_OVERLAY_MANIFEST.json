@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "repository": "freeangelsun/202412_01_CPF",
+  "branch": "master",
+  "reviewedHead": "da491b3f5210e36efc63a7a627ad07c9481fac63",
+  "rootRelative": true,
+  "purpose": "QA33 post-push final review and next remediation request",
+  "readmeGuideFilesIncluded": 0,
+  "sourceCodeChangesIncluded": 0,
+  "files": [
+    {
+      "path": "cpf-docs/work/current/CPF_20260731_QA33_POST_PUSH_REMEDIATION_REQUEST.md",
+      "size": 10973,
+      "sha256": "2fdf8ab85fb92ec45b45348b0ebe5a072956fb5c50d5d5c0e8c6789e2d5031a1"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_NEXT_WORK_REQUEST.md",
+      "size": 978,
+      "sha256": "1094a5e540c566c3fe44b8e4eee97e05ec07939a47498f254c0d656c88d014df"
+    },
+    {
+      "path": "cpf-docs/work/manifest/CPF_20260731_QA33_POST_PUSH_REVIEW_OVERLAY_FILES.txt",
+      "size": 261,
+      "sha256": "5b619c462918771ba61bea179515d7d593ec7cda9c991fd3781fb484d166c372"
+    },
+    {
+      "path": "cpf-docs/work/review/CPF_20260731_QA33_POST_PUSH_FINAL_REVIEW.md",
+      "size": 12979,
+      "sha256": "de08c36b77d6a03646e5b419a561eec161213f614df53ebee0c4fbc91a39f94b"
+    }
+  ]
+}

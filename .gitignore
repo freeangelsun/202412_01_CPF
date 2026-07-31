@@ -1,10 +1,34 @@
 HELP.md
 .gradle
-build/
-# 삭제된 cpf-tools/build composite source는 다시 추적하지 않습니다.
+
+### Gradle build outputs ###
+# `cpf-tools/build`는 제품 Build Tooling Source Owner이므로 전역 `build/` 패턴을 사용하지 않습니다.
+# 실제 Gradle 산출물 경로만 명시적으로 제외합니다.
+/build/
+/cpf-admin/build/
+/cpf-batch/build/
+/cpf-batch/*/build/
+/cpf-biz-admin/build/
+/cpf-common/build/
+/cpf-core/build/
+/cpf-gateway/build/
+/cpf-member/build/
+/cpf-reference/build/
+/cpf-starters/*/build/
+/cpf-tools/runtime/*/build/
+/local-domains/*/build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
+
+### CPF tracked build tooling source ###
+# `cpf-tools/build` 아래 Platform BOM과 Convention Plugin Source는 반드시 Git 추적 대상입니다.
+!/cpf-tools/
+!/cpf-tools/build/
+!/cpf-tools/build/**
+# 격리 Build에서 생성되는 실행 산출물만 제외합니다.
+/cpf-tools/build/*/build/
+/cpf-tools/build/*/.gradle/
 
 ### STS ###
 .apt_generated
@@ -90,16 +114,3 @@ yarn-debug.log*
 yarn-error.log*
 Thumbs.db
 .DS_Store
-
-# cpf-tools/build contains tracked BOM/convention-plugin source; nested Gradle outputs stay ignored.
-!/cpf-tools/build/
-!/cpf-tools/build/platform-bom/
-!/cpf-tools/build/platform-bom/settings.gradle
-!/cpf-tools/build/platform-bom/build.gradle
-!/cpf-tools/build/gradle-plugin/
-!/cpf-tools/build/gradle-plugin/settings.gradle
-!/cpf-tools/build/gradle-plugin/build.gradle
-!/cpf-tools/build/gradle-plugin/src/
-!/cpf-tools/build/gradle-plugin/src/**
-/cpf-tools/build/**/build/
-/cpf-tools/build/**/.gradle/

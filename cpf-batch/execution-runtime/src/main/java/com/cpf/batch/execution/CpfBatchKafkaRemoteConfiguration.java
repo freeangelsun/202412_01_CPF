@@ -11,7 +11,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
@@ -52,9 +51,9 @@ public class CpfBatchKafkaRemoteConfiguration {
     @Bean("cpfBatchRemoteRequests") MessageChannel cpfBatchRemoteRequests(KafkaTemplate<String,String> kafka,CpfBatchRemoteCodec codec,CpfBatchKafkaRemoteProperties p){return new CpfKafkaOutboundMessageChannel(kafka,codec,p.requestTopic(),null,p.sendTimeout());}
     @Bean("cpfBatchWorkerReplies") MessageChannel cpfBatchWorkerReplies(KafkaTemplate<String,String> kafka,CpfBatchRemoteCodec codec,CpfBatchKafkaRemoteProperties p){return new CpfKafkaOutboundMessageChannel(kafka,codec,null,p.replyTopicPrefix(),p.sendTimeout());}
     @Bean("cpfBatchRemoteReplies") PollableChannel cpfBatchRemoteReplies(CpfBatchKafkaRemoteProperties p){return new QueueChannel(p.replyQueueCapacity());}
-    @Bean("cpfBatchWorkerRequests") MessageChannel cpfBatchWorkerRequests(){return new DirectChannel();}
-    @Bean("cpfBatchChunkWorkerRequests") MessageChannel cpfBatchChunkWorkerRequests(){return new DirectChannel();}
-    @Bean CpfBatchKafkaInboundBridge cpfBatchKafkaInboundBridge(CpfBatchRemoteCodec codec,@Qualifier("cpfBatchWorkerRequests")MessageChannel steps,@Qualifier("cpfBatchChunkWorkerRequests")MessageChannel chunks,@Qualifier("cpfBatchRemoteReplies")PollableChannel replies,CpfBatchRemoteMessageLedger ledger,CpfBatchKafkaRemoteProperties p){return new CpfBatchKafkaInboundBridge(codec,steps,chunks,replies,ledger,p.producerId());}
+    @Bean("cpfBatchWorkerRequests") CpfSynchronousWorkerChannel cpfBatchWorkerRequests(){return new CpfSynchronousWorkerChannel();}
+    @Bean("cpfBatchChunkWorkerRequests") CpfSynchronousWorkerChannel cpfBatchChunkWorkerRequests(){return new CpfSynchronousWorkerChannel();}
+    @Bean CpfBatchKafkaInboundBridge cpfBatchKafkaInboundBridge(CpfBatchRemoteCodec codec,@Qualifier("cpfBatchWorkerRequests")CpfSynchronousWorkerChannel steps,@Qualifier("cpfBatchChunkWorkerRequests")CpfSynchronousWorkerChannel chunks,@Qualifier("cpfBatchRemoteReplies")PollableChannel replies,CpfBatchRemoteMessageLedger ledger,CpfBatchKafkaRemoteProperties p){return new CpfBatchKafkaInboundBridge(codec,steps,chunks,replies,ledger,p.producerId());}
     @Bean @ConditionalOnExpression("'${cpf.batch.remote.kafka.role:ALL}'.equalsIgnoreCase('WORKER') || '${cpf.batch.remote.kafka.role:ALL}'.equalsIgnoreCase('ALL')") CpfBatchKafkaWorkerListener cpfBatchKafkaWorkerListener(CpfBatchKafkaInboundBridge bridge){return new CpfBatchKafkaWorkerListener(bridge);}
     @Bean @ConditionalOnExpression("'${cpf.batch.remote.kafka.role:ALL}'.equalsIgnoreCase('MANAGER') || '${cpf.batch.remote.kafka.role:ALL}'.equalsIgnoreCase('ALL')") CpfBatchKafkaManagerListener cpfBatchKafkaManagerListener(CpfBatchKafkaInboundBridge bridge){return new CpfBatchKafkaManagerListener(bridge);}
 }

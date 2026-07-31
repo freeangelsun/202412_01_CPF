@@ -1,8 +1,13 @@
-import { admMutation, admQuery } from "../../shared/cpfApi";
+import { admMutation, admQuery, admRawResponse, createAdmHeaders } from "../../shared/cpfApi";
 import { getAdmAuthMe } from "../../generated/cpf-api";
 import { useAdmInitializationStore } from "../../stores/admInitializationStore";
 
 export const coreMethods: Record<string, any> = {
+  apiHeaders(extraHeaders: HeadersInit = {}) { return createAdmHeaders(extraHeaders); },
+  async getJson(url: string) { return admQuery(url); },
+  async sendJson(url: string, method: "POST" | "PUT" | "PATCH" | "DELETE" = "POST", body?: unknown) { return admMutation(url, method, body); },
+  async rawResponse(url: string, method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE" = "GET", body?: unknown, headers: HeadersInit = {}) { return admRawResponse(url, method, body, headers); },
+  clearToken(message = "") { this.clearSession(message); },
   pretty(value) {
         if (value === null || value === undefined || value === "") {
           return "";

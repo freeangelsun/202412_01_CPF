@@ -24,10 +24,7 @@ export const platformMethods: Record<string, any> = {
           reason: this.channelPolicyForm.reason,
           requestUser: this.currentOperator.operatorId
         });
-        const response = await fetch(`/adm/api/channels/refresh?${params.toString()}`, {
-          method: "POST",
-          headers: this.apiHeaders()
-        });
+        const response = await this.rawResponse(`/adm/api/channels/refresh?${params.toString()}`, "POST");
         this.channelSnapshot = await this.parseResponse(response);
         this.setMessage(`채널 정책 스냅샷을 갱신했습니다. version=${this.channelSnapshot.version}`);
       },

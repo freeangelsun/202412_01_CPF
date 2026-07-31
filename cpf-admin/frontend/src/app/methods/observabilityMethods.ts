@@ -22,16 +22,12 @@ export const observabilityMethods: Record<string, any> = {
           this.setMessage("먼저 로그 상세를 선택하세요.");
           return;
         }
-        const response = await fetch(`/adm/api/log-exports`, {
-          method: "POST",
-          headers: this.apiHeaders({ "Content-Type": "application/json" }),
-          body: JSON.stringify({
-            logId: String(logId),
-            action,
-            reason: this.downloadForm.reason,
-            format: "JSON",
-            requestedBy: this.currentOperator.operatorId
-          })
+        const response = await this.rawResponse("/adm/api/log-exports", "POST", {
+          logId: String(logId),
+          action,
+          reason: this.downloadForm.reason,
+          format: "JSON",
+          requestedBy: this.currentOperator.operatorId
         });
         if (!response.ok) {
           await this.parseResponse(response, false);
@@ -45,7 +41,7 @@ export const observabilityMethods: Record<string, any> = {
           return;
         }
         if (!result.downloadUrl) throw new Error("서버가 만료 다운로드 URL을 반환하지 않았습니다.");
-        const artifact = await fetch(result.downloadUrl, { headers: this.apiHeaders() });
+        const artifact = await this.rawResponse(result.downloadUrl, "GET");
         if (!artifact.ok) {
           await this.parseResponse(artifact, false);
           return;
@@ -60,11 +56,7 @@ export const observabilityMethods: Record<string, any> = {
       },
   async downloadCsv(downloadType) {
         if (!this.requireReason(this.downloadForm.reason)) return;
-        const response = await fetch("/adm/api/downloads/csv", {
-          method: "POST",
-          headers: this.apiHeaders({ "Content-Type": "application/json" }),
-          body: JSON.stringify({ ...this.downloadForm, downloadType })
-        });
+        const response = await this.rawResponse("/adm/api/downloads/csv", "POST", { ...this.downloadForm, downloadType });
         if (!response.ok) {
           await this.parseResponse(response, false);
           return;
@@ -175,9 +167,9 @@ export const observabilityMethods: Record<string, any> = {
   async downloadRemoteLog() {
         if (!this.selectedRemoteLog?.artifactId || !this.requireReason(this.remoteLogSearch.reason)) return;
         const params = this.buildParams({ reason: this.remoteLogSearch.reason });
-        const response = await fetch(
+        const response = await this.rawResponse(
           `/adm/api/remote-logs/${encodeURIComponent(this.selectedRemoteLog.artifactId)}/download?${params.toString()}`,
-          { headers: this.apiHeaders() }
+          "GET"
         );
         if (!response.ok) {
           await this.parseResponse(response, false);
@@ -195,10 +187,8 @@ export const observabilityMethods: Record<string, any> = {
       },
   async downloadRemoteLogBundle() {
         if (this.remoteLogSelectedIds.length === 0 || !this.requireReason(this.remoteLogSearch.reason)) return;
-        const response = await fetch('/adm/api/remote-logs/bundles', {
-          method: 'POST',
-          headers: this.apiHeaders(),
-          body: JSON.stringify({ artifactIds: this.remoteLogSelectedIds, reason: this.remoteLogSearch.reason })
+        const response = await this.rawResponse('/adm/api/remote-logs/bundles', 'POST', {
+          artifactIds: this.remoteLogSelectedIds, reason: this.remoteLogSearch.reason
         });
         if (!response.ok) {
           await this.parseResponse(response, false);

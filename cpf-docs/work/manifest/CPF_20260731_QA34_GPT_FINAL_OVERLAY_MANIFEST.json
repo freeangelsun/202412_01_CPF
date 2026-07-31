@@ -1,0 +1,591 @@
+{
+  "schemaVersion": 3,
+  "artifactId": "CPF-20260731-QA34-GPT-FINAL-OVERLAY",
+  "baseSha": "c2e1680fcf42467d445df97f1a3a0c36dab783ef",
+  "generatedAt": "2026-07-31T13:59:43.452267+00:00",
+  "fileCount": 115,
+  "deleteCount": 0,
+  "files": [
+    {
+      "path": "build.gradle",
+      "sha256": "8b032c4ecfdb31cca81f7cc6e20c1907db3ec9cc63980663dcbc1d3c84ae14eb",
+      "bytes": 100843
+    },
+    {
+      "path": "cpf-admin/frontend/e2e/bff-security.spec.ts",
+      "sha256": "c3698f5049ec265818723ca3ec4299e5f2d25ec4365418d50966060df29fc9be",
+      "bytes": 4786
+    },
+    {
+      "path": "cpf-admin/frontend/e2e/route-quality.spec.ts",
+      "sha256": "23bf27eaaf654a4b1ca9a0b3d67f4da2891b2251c88667bc12e9f51e0b6ea04d",
+      "bytes": 7226
+    },
+    {
+      "path": "cpf-admin/frontend/orval.config.ts",
+      "sha256": "b66ce9fcab98fcc2b3bca2522e5a64d7fe39bc3d13a7c096949066772802a76c",
+      "bytes": 473
+    },
+    {
+      "path": "cpf-admin/frontend/package.json",
+      "sha256": "b94baec157b4d53e831b9dc6f8db7856c8952ba6386936f574a807f97046ee9a",
+      "bytes": 1973
+    },
+    {
+      "path": "cpf-admin/frontend/playwright.config.ts",
+      "sha256": "0228efbe326d0e5f425fbf728c9b43f3a58cb7dd765e30e12eeee8f6ad5fdcad",
+      "bytes": 1345
+    },
+    {
+      "path": "cpf-admin/frontend/scripts/generate-checked-client.mjs",
+      "sha256": "cc0eaaa0c370d05afde206025ad7f54f82198a1965f9972f9f8ab658f3b27157",
+      "bytes": 1052
+    },
+    {
+      "path": "cpf-admin/frontend/scripts/test-generated-client-contract.mjs",
+      "sha256": "a5fc72907864246b05eeff07d076bea19edcb1494977b8e856d67af45bda6ee2",
+      "bytes": 2595
+    },
+    {
+      "path": "cpf-admin/frontend/scripts/validate-openapi.mjs",
+      "sha256": "eb988f954df5a282683a86a23762da39ba2cdf545f5f3716e02c269b9134cbc5",
+      "bytes": 1854
+    },
+    {
+      "path": "cpf-admin/frontend/scripts/verify-generated-client.mjs",
+      "sha256": "b04f635b6cb8c315635cfa2cd12206739975d03ce7c4e69cbcbc1103ddc964de",
+      "bytes": 4749
+    },
+    {
+      "path": "cpf-admin/frontend/scripts/verify-installed-dependencies.mjs",
+      "sha256": "ded7f1a1f8567c468488369d4c12a5bcae6f4fefc0eff977fb4c675a1045c062",
+      "bytes": 2140
+    },
+    {
+      "path": "cpf-admin/frontend/scripts/verify-lockfile.mjs",
+      "sha256": "6a688e2254fdafd48012f64469fdc8c57257ad00474b54965b0ee9138f2c52d8",
+      "bytes": 2339
+    },
+    {
+      "path": "cpf-admin/frontend/scripts/verify-operation-consumer.mjs",
+      "sha256": "e3edc67de587e8028975a815f5fe238ce4f74be7eab44adc370f300a08418d05",
+      "bytes": 3478
+    },
+    {
+      "path": "cpf-admin/frontend/scripts/write-bundle-manifest.mjs",
+      "sha256": "963cff063a6d1097cf3d56ab4128be5457dcebd84c140768b0a1e38081488c29",
+      "bytes": 1099
+    },
+    {
+      "path": "cpf-admin/frontend/scripts/write-generated-marker.mjs",
+      "sha256": "6cce5cd7f22e215ded75d8590da50683cf1c3b600d5ba59214e52b394b274239",
+      "bytes": 3594
+    },
+    {
+      "path": "cpf-admin/frontend/scripts/write-operation-contract.mjs",
+      "sha256": "8357660a342aaaa9ca2a0a33798e185aaef3d3136f4cd51fd649bd83fb229e7d",
+      "bytes": 4526
+    },
+    {
+      "path": "cpf-admin/frontend/src/app/methods/accessMethods.ts",
+      "sha256": "9e6a37c5a13ae33e80e678816b067661880ce98b144e37258be62da02640dcb9",
+      "bytes": 13664
+    },
+    {
+      "path": "cpf-admin/frontend/src/app/methods/observabilityMethods.ts",
+      "sha256": "2f2367067263c4f5e3b8e6eaef162281d15584b6196150d2e0d3317e2a856dd4",
+      "bytes": 20586
+    },
+    {
+      "path": "cpf-admin/frontend/src/app/methods/platformMethods.ts",
+      "sha256": "1971f36b31aa0af388c70618553b8999d334a4e13b8a8fff53613a3307b8278e",
+      "bytes": 6505
+    },
+    {
+      "path": "cpf-admin/frontend/src/app/methods/referenceMethods.ts",
+      "sha256": "fdab05df54bf266aa57f85c25e03b451c034b2edb1ae71edf958543e322913ac",
+      "bytes": 14442
+    },
+    {
+      "path": "cpf-admin/frontend/src/features/batch/methods.ts",
+      "sha256": "e35b82123d101b51968aa35e526525a110520d1c4566306f66e7cb3f5832b971",
+      "bytes": 15469
+    },
+    {
+      "path": "cpf-admin/frontend/src/features/core/methods.ts",
+      "sha256": "52b3972d9845b7c50dc253a1d45abaa500ad21b2a9301135c3a0acb11236db9e",
+      "bytes": 10871
+    },
+    {
+      "path": "cpf-admin/frontend/src/main.ts",
+      "sha256": "d1e48409b9e689ba237368c36d117f37d5e6ff1e12b54f5b41112e326892aac5",
+      "bytes": 524
+    },
+    {
+      "path": "cpf-admin/frontend/src/shared/cpfApi.ts",
+      "sha256": "0793b2ff577b341d885e15fa0b415114e94126dabfc4fd7363cb7d668eb1d1e0",
+      "bytes": 6380
+    },
+    {
+      "path": "cpf-admin/frontend/src/shared/orval-mutator.ts",
+      "sha256": "cdd74da4a104f1ba45ea7f79eb8571f7c1a5db5dd2be1209e0d7e2c7ec7380ba",
+      "bytes": 2923
+    },
+    {
+      "path": "cpf-admin/frontend/src/shared/queryClient.ts",
+      "sha256": "bc9041a2606c2c2c6e61fbb2bea5d1c8ade64442471ac4088a23317a103462d5",
+      "bytes": 235
+    },
+    {
+      "path": "cpf-batch/execution-runtime/src/main/java/com/cpf/batch/execution/CpfBatchInboundHandler.java",
+      "sha256": "d76c36d212c12f5f45dd3cbe4a0397c364bbdc151e2a5dcc0037d9014c72d056",
+      "bytes": 223
+    },
+    {
+      "path": "cpf-batch/execution-runtime/src/main/java/com/cpf/batch/execution/CpfBatchKafkaInboundBridge.java",
+      "sha256": "0d00b6d9374352b16f1c05bda72897d249fae56ab996335ebb767624992beff4",
+      "bytes": 2429
+    },
+    {
+      "path": "cpf-batch/execution-runtime/src/main/java/com/cpf/batch/execution/CpfBatchKafkaRemoteConfiguration.java",
+      "sha256": "d19844f2582708a70d86d4e1e1b9b3a8f5207a463e0f78705725d5f6604c5d12",
+      "bytes": 5693
+    },
+    {
+      "path": "cpf-batch/execution-runtime/src/main/java/com/cpf/batch/execution/CpfBatchKafkaWorkerListener.java",
+      "sha256": "a91f18ce9023ff3eff22baa279c2289a2f6f75baf0848db9f41c122c3c9d9cc4",
+      "bytes": 695
+    },
+    {
+      "path": "cpf-batch/execution-runtime/src/main/java/com/cpf/batch/execution/CpfSynchronousWorkerChannel.java",
+      "sha256": "9312841132132c46a72bb24e2c7c36ae0b73a1e6b0173af3d29af0aa5e0ed654",
+      "bytes": 404
+    },
+    {
+      "path": "cpf-batch/execution-runtime/src/test/java/com/cpf/batch/execution/CpfBatchKafkaWorkerListenerAckBoundaryTest.java",
+      "sha256": "7528c464e457fb5aac7c8d64e0d660ab2832048d19038379040280908f8204b2",
+      "bytes": 1479
+    },
+    {
+      "path": "cpf-batch/execution-runtime/src/test/java/com/cpf/batch/execution/CpfSynchronousWorkerChannelTest.java",
+      "sha256": "67cc13dcbdcd87f57bb30866cf78e12096d7c355c883a086b833a1de18e1e67d",
+      "bytes": 862
+    },
+    {
+      "path": "cpf-batch/host-agent/src/main/java/com/cpf/batch/agent/AgentProperties.java",
+      "sha256": "d061deef76f0c7d454945840907fd9f10ae7a3571752d2b1c6326f0560f64d9b",
+      "bytes": 10616
+    },
+    {
+      "path": "cpf-batch/host-agent/src/main/java/com/cpf/batch/agent/internal/ArtifactInstaller.java",
+      "sha256": "5c6302179ff8b4cde7ad277695849160f814b6389de4cb7e874bc82713b66f4c",
+      "bytes": 17619
+    },
+    {
+      "path": "cpf-batch/host-agent/src/main/java/com/cpf/batch/agent/internal/PinnedArtifactHttpTransport.java",
+      "sha256": "1ea840f54ac9bb87c8ca75861c17f52ecee6078423d022c05fd75541941864d1",
+      "bytes": 20441
+    },
+    {
+      "path": "cpf-batch/host-agent/src/test/java/com/cpf/batch/agent/internal/PinnedArtifactHttpTransportTest.java",
+      "sha256": "2fbe4520ef14d1f5dc0b4e5b054ccfad63b6c4b070e8e45ad00ece89968c9be6",
+      "bytes": 5172
+    },
+    {
+      "path": "cpf-batch/testkit/build.gradle",
+      "sha256": "8534e6a1f24cfa84d93a337f0c856f371af5902b6aa4b9c8a0f83cd16a8c8f55",
+      "bytes": 1855
+    },
+    {
+      "path": "cpf-batch/worker/src/main/java/com/cpf/batch/worker/BatchOutboundHttpPolicy.java",
+      "sha256": "9de5c5fbcfc7892d0609ab056128406764cace2b015a345cab3c87ff9c04c89e",
+      "bytes": 7879
+    },
+    {
+      "path": "cpf-batch/worker/src/main/java/com/cpf/batch/worker/BatchRuntimeExecutorRegistry.java",
+      "sha256": "d7894d1578e710709dd5c50188dcb50bd551510a15e7325e8f93896ae985e72b",
+      "bytes": 18856
+    },
+    {
+      "path": "cpf-batch/worker/src/main/java/com/cpf/batch/worker/PinnedBatchHttpTransport.java",
+      "sha256": "9d0780c3c0a22db66ff01758a08cf70ea8bac02ec24cfce5c80127e259a1eca4",
+      "bytes": 9800
+    },
+    {
+      "path": "cpf-batch/worker/src/main/java/com/cpf/batch/worker/WorkerOperationalProperties.java",
+      "sha256": "12aa7e7cc975c5a033f423de74c681e34471e7990a6c7ada4ebcb3ef42dde0ba",
+      "bytes": 19257
+    },
+    {
+      "path": "cpf-batch/worker/src/test/java/com/cpf/batch/worker/BatchOutboundHttpPolicyTest.java",
+      "sha256": "cf5d040455db1cff9cd159d71451dd5242807b90ca23c8f205dd8936346656af",
+      "bytes": 5343
+    },
+    {
+      "path": "cpf-biz-admin/frontend/e2e/bff-security.spec.ts",
+      "sha256": "c3698f5049ec265818723ca3ec4299e5f2d25ec4365418d50966060df29fc9be",
+      "bytes": 4786
+    },
+    {
+      "path": "cpf-biz-admin/frontend/e2e/route-quality.spec.ts",
+      "sha256": "01c29313605809c8096d196a32819cf78e97628c8f31d76a60d2a72ebbfb2d25",
+      "bytes": 7226
+    },
+    {
+      "path": "cpf-biz-admin/frontend/orval.config.ts",
+      "sha256": "b66ce9fcab98fcc2b3bca2522e5a64d7fe39bc3d13a7c096949066772802a76c",
+      "bytes": 473
+    },
+    {
+      "path": "cpf-biz-admin/frontend/package.json",
+      "sha256": "a60123249045dd36acf8212764ebff5ca1329b86bd18acc9b0ec44a54dfc34ef",
+      "bytes": 1973
+    },
+    {
+      "path": "cpf-biz-admin/frontend/playwright.config.ts",
+      "sha256": "0228efbe326d0e5f425fbf728c9b43f3a58cb7dd765e30e12eeee8f6ad5fdcad",
+      "bytes": 1345
+    },
+    {
+      "path": "cpf-biz-admin/frontend/scripts/generate-checked-client.mjs",
+      "sha256": "cc0eaaa0c370d05afde206025ad7f54f82198a1965f9972f9f8ab658f3b27157",
+      "bytes": 1052
+    },
+    {
+      "path": "cpf-biz-admin/frontend/scripts/test-generated-client-contract.mjs",
+      "sha256": "a5fc72907864246b05eeff07d076bea19edcb1494977b8e856d67af45bda6ee2",
+      "bytes": 2595
+    },
+    {
+      "path": "cpf-biz-admin/frontend/scripts/validate-openapi.mjs",
+      "sha256": "eb988f954df5a282683a86a23762da39ba2cdf545f5f3716e02c269b9134cbc5",
+      "bytes": 1854
+    },
+    {
+      "path": "cpf-biz-admin/frontend/scripts/verify-generated-client.mjs",
+      "sha256": "b04f635b6cb8c315635cfa2cd12206739975d03ce7c4e69cbcbc1103ddc964de",
+      "bytes": 4749
+    },
+    {
+      "path": "cpf-biz-admin/frontend/scripts/verify-installed-dependencies.mjs",
+      "sha256": "ded7f1a1f8567c468488369d4c12a5bcae6f4fefc0eff977fb4c675a1045c062",
+      "bytes": 2140
+    },
+    {
+      "path": "cpf-biz-admin/frontend/scripts/verify-lockfile.mjs",
+      "sha256": "6a688e2254fdafd48012f64469fdc8c57257ad00474b54965b0ee9138f2c52d8",
+      "bytes": 2339
+    },
+    {
+      "path": "cpf-biz-admin/frontend/scripts/verify-operation-consumer.mjs",
+      "sha256": "e3edc67de587e8028975a815f5fe238ce4f74be7eab44adc370f300a08418d05",
+      "bytes": 3478
+    },
+    {
+      "path": "cpf-biz-admin/frontend/scripts/write-bundle-manifest.mjs",
+      "sha256": "963cff063a6d1097cf3d56ab4128be5457dcebd84c140768b0a1e38081488c29",
+      "bytes": 1099
+    },
+    {
+      "path": "cpf-biz-admin/frontend/scripts/write-generated-marker.mjs",
+      "sha256": "6cce5cd7f22e215ded75d8590da50683cf1c3b600d5ba59214e52b394b274239",
+      "bytes": 3594
+    },
+    {
+      "path": "cpf-biz-admin/frontend/scripts/write-operation-contract.mjs",
+      "sha256": "8357660a342aaaa9ca2a0a33798e185aaef3d3136f4cd51fd649bd83fb229e7d",
+      "bytes": 4526
+    },
+    {
+      "path": "cpf-biz-admin/frontend/src/features/auth/session.ts",
+      "sha256": "3018728d961f8d4a270c7def8e844b5771c10e9bdf6afa15599644847ed9e4d8",
+      "bytes": 3134
+    },
+    {
+      "path": "cpf-biz-admin/frontend/src/main.ts",
+      "sha256": "b826a8734024062042e78e36de2992b1d156fe725975a015ff9e8ce9783a3c11",
+      "bytes": 523
+    },
+    {
+      "path": "cpf-biz-admin/frontend/src/shared/cpfApi.ts",
+      "sha256": "bb92e6628cb3ff83aeb0cf7a3642abf3d337c7347e34680a828c5b681ebe75ec",
+      "bytes": 3085
+    },
+    {
+      "path": "cpf-biz-admin/frontend/src/shared/orval-mutator.ts",
+      "sha256": "cdd74da4a104f1ba45ea7f79eb8571f7c1a5db5dd2be1209e0d7e2c7ec7380ba",
+      "bytes": 2923
+    },
+    {
+      "path": "cpf-biz-admin/frontend/src/shared/queryClient.ts",
+      "sha256": "bc9041a2606c2c2c6e61fbb2bea5d1c8ade64442471ac4088a23317a103462d5",
+      "bytes": 235
+    },
+    {
+      "path": "cpf-docs/evidence/schema/CPF_QA34_INDEPENDENT_REVIEW_SCHEMA.json",
+      "sha256": "89b50c34cf948045f29e2e734f12b20902c8c098547b26ab638d8c4ca5e4062b",
+      "bytes": 1102
+    },
+    {
+      "path": "cpf-docs/evidence/templates/CPF_QA34_INDEPENDENT_REVIEW_TEMPLATE.json",
+      "sha256": "1dd546882eccd74aec686583385d36690e77539f2d2673754f44a01d6606fce9",
+      "bytes": 618
+    },
+    {
+      "path": "cpf-docs/quality/CPF_20260731_QA34_DEFECT_REGISTER.csv",
+      "sha256": "a5d0affe4581dbd9b15ca7366cf1a4867a14cfad56f141804d520141fd89bcd4",
+      "bytes": 7210
+    },
+    {
+      "path": "cpf-docs/quality/CPF_20260731_QA34_REQUIREMENT_MATRIX.csv",
+      "sha256": "7f7c8b74e35fb3f1a45da456c041b246488c10358ca7aead70e8b0f992cbb91e",
+      "bytes": 10202
+    },
+    {
+      "path": "cpf-docs/quality/CPF_20260731_QA34_RESULT_MATRIX.csv",
+      "sha256": "a2884ef3288a5a045cfb916593042e659d95f8b1528b84e865ed0272e0237c8b",
+      "bytes": 14468
+    },
+    {
+      "path": "cpf-docs/quality/CPF_20260731_QA34_SCENARIO_MATRIX.csv",
+      "sha256": "81cbf372ab8c90b0687a78cdcebeec7a5dacb169e4208bc42e5edd443a00cf1b",
+      "bytes": 17901
+    },
+    {
+      "path": "cpf-docs/quality/CPF_20260731_QA34_UNRESOLVED_REGISTER.csv",
+      "sha256": "abb69e38ca20b364c96b10dff6cd6350c29b66ce2f4ce5f42f82ee9cf8cdd542",
+      "bytes": 4243
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_20260731_QA34_CODEX_FINAL_INDEPENDENT_VERIFICATION_REQUEST.md",
+      "sha256": "9b5ee264264b10766d8216df50415a7b7d20ceaddb08811a23eeb71367b7ad90",
+      "bytes": 2379
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_20260731_QA34_GPT_FINAL_DEVELOPMENT_COMPLETION_REPORT.md",
+      "sha256": "fad255a37218c6168ae21f69ab4093fdbeecfc823a1cc30df40a79d175d9deb0",
+      "bytes": 2252
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_CURRENT_WORK_REQUEST.md",
+      "sha256": "52940c5ee0deb3c663eac18e276a51fe2f9b464aca140af22179eb577d7286ca",
+      "bytes": 293
+    },
+    {
+      "path": "cpf-docs/work/handover/CPF_20260731_QA34_GPT_FINAL_HANDOVER.md",
+      "sha256": "0cc1cdbfaf00f3a989286ac18372e79d24336a984ec54131792fae4f05c4291f",
+      "bytes": 1352
+    },
+    {
+      "path": "cpf-docs/work/manifest/CPF_20260731_QA34_GPT_FINAL_DELETE_MANIFEST.txt",
+      "sha256": "d0c2f0a0cf590c2bcbcd59c9088aef105df6a353c6337c0fdb1a3ba542a2d4f1",
+      "bytes": 23
+    },
+    {
+      "path": "cpf-gateway/build.gradle",
+      "sha256": "473f13385f5bf27c56271ee2b971b1986d0ee50478dc529265dc4dc02667688f",
+      "bytes": 814
+    },
+    {
+      "path": "cpf-gateway/src/main/java/com/cpf/gateway/scg/CpfGatewayPinnedAddressContext.java",
+      "sha256": "d871fc3d4a662ab6879a093fda9c6e55cdc16c23f5954a5fffc8a5ecf239917a",
+      "bytes": 1727
+    },
+    {
+      "path": "cpf-gateway/src/main/java/com/cpf/gateway/scg/CpfGatewayPinnedHttpClientConfiguration.java",
+      "sha256": "75183870437115da9ee4e8a4665b3e8a167112b0d44869a3fbf478af4bd5baa7",
+      "bytes": 2784
+    },
+    {
+      "path": "cpf-gateway/src/main/java/com/cpf/gateway/scg/CpfScgPrimaryHandler.java",
+      "sha256": "d0c5048af19568d523123fd229421f70bce7aec2615cb8ebb15364670f8e1a42",
+      "bytes": 24816
+    },
+    {
+      "path": "cpf-gateway/src/main/java/com/cpf/gateway/scg/CpfScgTargetResolver.java",
+      "sha256": "65aeffa0051757d4a87edbd45408e89ac3b7aabdd16094595c2ee711205c5eb6",
+      "bytes": 11335
+    },
+    {
+      "path": "cpf-gateway/src/test/java/com/cpf/gateway/scg/CpfScgTargetResolverTest.java",
+      "sha256": "fff95e6cbf3a4c916e39983f53129a7c026a64200cef212b26ebdddfcf5bd5be",
+      "bytes": 4198
+    },
+    {
+      "path": "cpf-member/build.gradle",
+      "sha256": "39fb308d0be4aae75e2687a36461738b1d024531476b2a52c153face54d96c5b",
+      "bytes": 7273
+    },
+    {
+      "path": "cpf-starters/security/build.gradle",
+      "sha256": "e71607d33a71f378cc08311b2bfcd12e889c7b71097858524444931bc75a5029",
+      "bytes": 925
+    },
+    {
+      "path": "cpf-starters/security/src/main/java/com/cpf/starter/security/CpfServerSessionSecurityAutoConfiguration.java",
+      "sha256": "3880e134c532039e8ef8ff0a3c090aeaefb71c2cf0d3ecb180bce6c77a297012",
+      "bytes": 8471
+    },
+    {
+      "path": "cpf-starters/security/src/test/java/com/cpf/starter/security/CpfServerSessionSecurityFilterChainTest.java",
+      "sha256": "9f58472372d40c0ee21ae2d11b409d3b1138f123a6cf29c308c0eaf23359e8be",
+      "bytes": 4650
+    },
+    {
+      "path": "cpf-tools/build/gradle-plugin/build.gradle",
+      "sha256": "99af582d784c8015b4143faa369b380ef861019959d85703ac2223202beaac2f",
+      "bytes": 2891
+    },
+    {
+      "path": "cpf-tools/build/gradle-plugin/src/test/java/com/cpf/gradle/CpfPlatformConventionPluginTest.java",
+      "sha256": "8dc2d615c9d968aaee5010c5e6c54dcefe75a8c6a65f6cc4557ed8b5a5b71a66",
+      "bytes": 3120
+    },
+    {
+      "path": "cpf-tools/build/platform-bom/build.gradle",
+      "sha256": "7279fc01d3f397c5153b10800c5f6d39c7c79133cbdec448b9f0805c6a7ad55e",
+      "bytes": 3147
+    },
+    {
+      "path": "cpf-tools/generator/create-domain.ps1",
+      "sha256": "5d6bb834688d5edf72ac96b36577c55e040bc6d244013b1961e823688cd0bee9",
+      "bytes": 140409
+    },
+    {
+      "path": "cpf-tools/scripts/canonicalize-cpf-openapi.py",
+      "sha256": "03d9ee1a085ff9a6135e3e8b5c8fbb3afc9b5045c3af3e715c8b5959a4b4b1c1",
+      "bytes": 1329
+    },
+    {
+      "path": "cpf-tools/scripts/export-cpf-backend-openapi.ps1",
+      "sha256": "4df44026163884068970668f24fc0187e35c95dc31842e8fd59a47b97c6024ad",
+      "bytes": 7081
+    },
+    {
+      "path": "cpf-tools/scripts/generate-cpf-supply-chain-evidence.ps1",
+      "sha256": "a71d7e036f1fba7d4c156f57999f9cc43cd986c4ba3ea55c312077547fb4578e",
+      "bytes": 5691
+    },
+    {
+      "path": "cpf-tools/scripts/invoke-cpf-qa34-db-runtime-matrix.ps1",
+      "sha256": "07dcc3eebe4781b0ba459fb853b4933332fed7d87517988d575ec1ecee340cf8",
+      "bytes": 6328
+    },
+    {
+      "path": "cpf-tools/scripts/reclassify-cpf-qa33-matrices.py",
+      "sha256": "2e125d6094bb28ff08ab2b55d6709a958e8f7b69de6ffe2ee633e9678284875f",
+      "bytes": 9872
+    },
+    {
+      "path": "cpf-tools/scripts/verify-cpf-db-vendor-semantic-parity.py",
+      "sha256": "6227475dc5bea0a8f0f22dc413b74071e78061981ea49df18b00b26ea12de653",
+      "bytes": 478
+    },
+    {
+      "path": "cpf-tools/scripts/verify-cpf-db-vendor-static-token-parity.py",
+      "sha256": "af70512e7b153b366cebde776751539b23d06a93a8d57034c25536f8d3bdd51e",
+      "bytes": 4236
+    },
+    {
+      "path": "cpf-tools/scripts/verify-cpf-openapi-controller-coverage.py",
+      "sha256": "e4dc6ddcf61f3218a0d12fa1214c09582f1ee3441c4dfcfc5ffc08d9d3b9b3a5",
+      "bytes": 2113
+    },
+    {
+      "path": "cpf-tools/scripts/verify-cpf-qa34-all.ps1",
+      "sha256": "7bcc698e7d7e21c0d217c110890db84c46768a2cda2c123ea9fa185ca826088e",
+      "bytes": 4843
+    },
+    {
+      "path": "cpf-tools/scripts/verify-cpf-qa34-batch-outbound-policy.py",
+      "sha256": "08acfd693b4cd515575dde9fee3a680e42899fcfced77052bc42cb880c27584d",
+      "bytes": 2990
+    },
+    {
+      "path": "cpf-tools/scripts/verify-cpf-qa34-bff-security.py",
+      "sha256": "7afb6a8a5a937bee4535a8ad7d400817d7663038e73c1539700529605ea34e97",
+      "bytes": 1014
+    },
+    {
+      "path": "cpf-tools/scripts/verify-cpf-qa34-browser-contract.py",
+      "sha256": "f2e3c4dd7361a96136e3282c9d7f15dd6678ecdfd66d77237c97f9fbd677d0a8",
+      "bytes": 2205
+    },
+    {
+      "path": "cpf-tools/scripts/verify-cpf-qa34-build-contract.py",
+      "sha256": "890d3ee3960d521eef20d61c96e41eaa45af9704bdb6d128ec17b8ff896bf7bc",
+      "bytes": 2621
+    },
+    {
+      "path": "cpf-tools/scripts/verify-cpf-qa34-final-closure.ps1",
+      "sha256": "9b200311e2263c5cb6c248f48f100b92ec6ac7f148a82a376d715266e310025c",
+      "bytes": 4039
+    },
+    {
+      "path": "cpf-tools/scripts/verify-cpf-qa34-finalize.ps1",
+      "sha256": "a4321bc6bad6fe910963b1c9184fc257cbaa3a2318c3d47cf2bc1349a1775df4",
+      "bytes": 1004
+    },
+    {
+      "path": "cpf-tools/scripts/verify-cpf-qa34-frontend-runtime.ps1",
+      "sha256": "a49343cc8d73e6eb444dd8c288c0e28ebc363140525430999d49a9146de7d0c0",
+      "bytes": 11773
+    },
+    {
+      "path": "cpf-tools/scripts/verify-cpf-qa34-independent-review.ps1",
+      "sha256": "241e4de44ca03a83a1979c61c92f6fffe7e33b5d3e727a598b068fb46c32fa1e",
+      "bytes": 3929
+    },
+    {
+      "path": "cpf-tools/scripts/verify-cpf-qa34-java-build.ps1",
+      "sha256": "465d98701e615fb925a07ae40601ddf116c04b72278abb34dbe34daf3ab99c37",
+      "bytes": 4686
+    },
+    {
+      "path": "cpf-tools/scripts/verify-cpf-qa34-kafka-ack-contract.py",
+      "sha256": "006e40b66f9a53d68d09d49b36b4ea52fe403d18daf253cda41ed66fd55760e7",
+      "bytes": 1182
+    },
+    {
+      "path": "cpf-tools/scripts/verify-cpf-qa34-network-identity.py",
+      "sha256": "d4083e68de708a898cb0d539fb4e47cc5208ac4b842c29a8b8a26138b4d9a359",
+      "bytes": 4259
+    },
+    {
+      "path": "cpf-tools/scripts/verify-cpf-qa34-runtime-contracts.py",
+      "sha256": "c12320218ba348da9889514b61ef64c9e4c03ddf68227b0e1bd4661b2403cc6c",
+      "bytes": 1729
+    },
+    {
+      "path": "cpf-tools/scripts/verify-cpf-qa34-runtime-matrix.ps1",
+      "sha256": "c31710693ddbf8000f2d921b7a59b4681a4ba0304e2318cc2b062dc42c7c0214",
+      "bytes": 7159
+    },
+    {
+      "path": "cpf-tools/scripts/verify-cpf-qa34-source-closure.py",
+      "sha256": "91815a2501d5a4d192f9b858c9d31d9813b03e347bddc789771570515be8e0fc",
+      "bytes": 5084
+    },
+    {
+      "path": "cpf-tools/scripts/verify-cpf-supply-chain.py",
+      "sha256": "aa03c9f2251843da08b97335a16cfff9dac5e72e1e6487881252274120761711",
+      "bytes": 1867
+    },
+    {
+      "path": "cpf-tools/scripts/verify-local-artifact-propagation.ps1",
+      "sha256": "1829d8da09e2cfda26de3b54a8387dcf2ea4a762811c1d2f04cf28c98380691f",
+      "bytes": 13407
+    },
+    {
+      "path": "settings.gradle",
+      "sha256": "5f645670e29b6b1e3eda2878ad62cc0a84c551ebfad6f3a69f34cd7245a1b2ba",
+      "bytes": 6991
+    }
+  ],
+  "notes": [
+    "Root-relative overlay",
+    "No commit/push/branch performed",
+    "README and cpf-docs/guides untouched",
+    "Exact-SHA runtime evidence must be generated after push in fresh clone"
+  ]
+}

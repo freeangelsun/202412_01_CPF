@@ -6,10 +6,10 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 
 /** Kafka Envelope를 Durable claim 후 Spring Batch Remote Channel로 전달합니다. */
-public final class CpfBatchKafkaInboundBridge {
-    private final CpfBatchRemoteCodec codec; private final MessageChannel stepRequests; private final MessageChannel chunkRequests;
+public final class CpfBatchKafkaInboundBridge implements CpfBatchInboundHandler {
+    private final CpfBatchRemoteCodec codec; private final CpfSynchronousWorkerChannel stepRequests; private final CpfSynchronousWorkerChannel chunkRequests;
     private final PollableChannel replies; private final CpfBatchRemoteMessageLedger ledger; private final String ownerId;
-    public CpfBatchKafkaInboundBridge(CpfBatchRemoteCodec codec,MessageChannel stepRequests,MessageChannel chunkRequests,
+    public CpfBatchKafkaInboundBridge(CpfBatchRemoteCodec codec,CpfSynchronousWorkerChannel stepRequests,CpfSynchronousWorkerChannel chunkRequests,
             PollableChannel replies,CpfBatchRemoteMessageLedger ledger,String ownerId){this.codec=codec;this.stepRequests=stepRequests;this.chunkRequests=chunkRequests;this.replies=replies;this.ledger=ledger;this.ownerId=ownerId;}
     public boolean request(String json){return accept("REQUEST",json,message->{boolean accepted=message.getPayload() instanceof ChunkRequest<?>?chunkRequests.send(message):stepRequests.send(message);if(!accepted)throw new IllegalStateException("BATCH_REMOTE_WORKER_CHANNEL_REJECTED");});}
     public boolean reply(String json){return accept("REPLY",json,message->{if(!replies.send(message))throw new IllegalStateException("BATCH_REMOTE_MANAGER_REPLY_REJECTED");});}

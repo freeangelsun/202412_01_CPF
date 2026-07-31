@@ -9,14 +9,15 @@ export const accessMethods: Record<string, any> = {
           this.authMessage = "운영자 ID와 비밀번호를 입력하세요.";
           return;
         }
-        const response = await fetch("/adm/api/auth/login", {
-          method: "POST",
-          headers: this.apiHeaders({ "Content-Type": "application/json" }),
-          body: JSON.stringify(this.loginForm)
-        });
-        const data = await this.parseResponse(response, false);
-        if (!response.ok || !data.operator?.operatorId) {
-          this.authMessage = JSON.stringify(data, null, 2);
+        let data;
+        try {
+          data = await this.sendJson("/adm/api/auth/login", "POST", this.loginForm);
+        } catch (error: any) {
+          this.authMessage = error?.message || "로그인에 실패했습니다.";
+          return;
+        }
+        if (!data?.operator?.operatorId) {
+          this.authMessage = JSON.stringify(data || { message: "서버 세션이 생성되지 않았습니다." }, null, 2);
           return;
         }
         this.sessionLoaded = true;

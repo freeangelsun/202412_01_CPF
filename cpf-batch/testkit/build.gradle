@@ -21,3 +21,22 @@ tasks.register('qa32IntegrationTest', Test) {
     environment System.getenv()
 }
 publishing { publications { mavenJava(MavenPublication) { from components.java; artifactId='cpf-batch-testkit' } } }
+
+tasks.register('qa34IntegrationTest', Test) {
+    group = 'verification'
+    description = 'QA34 real Oracle/PostgreSQL/MariaDB/Kafka/multi-instance contract tests.'
+    useJUnitPlatform {
+        includeTags 'qa32-runtime', 'qa34-runtime'
+    }
+    shouldRunAfter test
+    systemProperties System.properties
+    environment System.getenv()
+    doFirst {
+        ['CPF_QA34_RUNTIME_ENABLED', 'CPF_KAFKA_BOOTSTRAP_SERVERS',
+         'CPF_MARIADB_JDBC_URL', 'CPF_POSTGRESQL_JDBC_URL', 'CPF_ORACLE_JDBC_URL'].each { key ->
+            if (!(System.getenv(key) ?: '').trim()) {
+                throw new GradleException("qa34IntegrationTest requires ${key}; runtime checks never skip silently.")
+            }
+        }
+    }
+}

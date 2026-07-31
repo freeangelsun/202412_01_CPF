@@ -9,18 +9,20 @@
     "npm": "10.9.2"
   },
   "scripts": {
-    "generate:api": "orval --config orval.config.ts && node scripts/write-generated-marker.mjs",
-    "verify:generated": "node scripts/verify-generated-client.mjs",
-    "build": "npm run verify:generated && vite build",
+    "generate:api": "npm run validate:openapi && node scripts/generate-checked-client.mjs",
+    "verify:generated": "node scripts/verify-generated-client.mjs && node scripts/test-generated-client-contract.mjs",
+    "build": "npm run validate:openapi && npm run verify:generated && npm run verify:consumer && vite build && node scripts/write-bundle-manifest.mjs",
     "lint": "eslint src vite.config.ts playwright.config.ts",
     "typecheck": "vue-tsc --noEmit",
     "test": "vitest run",
     "test:e2e": "playwright test",
     "test:a11y": "playwright test --grep @a11y",
     "verify:primary": "node scripts/verify-primary-frontend.mjs",
-    "verify": "npm run verify:lock && npm run verify:primary && npm run lint && npm run typecheck && npm run test && npm run build",
+    "verify": "npm run verify:lock && npm run verify:installed && npm run verify:primary && npm run validate:openapi && npm run verify:consumer && npm run lint && npm run typecheck && npm run test && npm run build",
     "verify:lock": "node scripts/verify-lockfile.mjs",
-    "generate:api:bootstrap": "node scripts/generate-checked-client.mjs && node scripts/write-generated-marker.mjs"
+    "validate:openapi": "node scripts/validate-openapi.mjs",
+    "verify:consumer": "node scripts/verify-operation-consumer.mjs",
+    "verify:installed": "node scripts/verify-installed-dependencies.mjs"
   },
   "dependencies": {
     "@tanstack/vue-query": "5.101.4",

@@ -128,8 +128,8 @@ $coordinates = @(
     @{ group='com.cpf.batch'; artifact='cpf-batch-worker'; packaging='jar' },
     @{ group='com.cpf.batch'; artifact='cpf-center-cut-runner'; packaging='jar' },
     @{ group='com.cpf.batch'; artifact='cpf-batch-host-agent'; packaging='jar' },
-    @{ group='com.cpf'; artifact='cpf-bom'; packaging='pom' },
-    @{ group='com.cpf.build'; artifact='cpf-gradle-plugin'; packaging='jar' }
+    @{ group='com.cpf'; artifact='cpf-platform-bom'; packaging='pom' },
+    @{ group='com.cpf.gradle'; artifact='cpf-gradle-plugin'; packaging='jar' }
 )
 $files = [System.Collections.Generic.List[object]]::new()
 $fileIndex = @{}
@@ -173,20 +173,20 @@ foreach ($coordinate in $coordinates) {
     Add-VersionDirectoryFiles $base $coordinate.artifact $version
 }
 
-$markerGroup = 'com.cpf.domain-conventions'
-$markerArtifact = 'com.cpf.domain-conventions.gradle.plugin'
+$markerGroup = 'com.cpf.platform-conventions'
+$markerArtifact = 'com.cpf.platform-conventions.gradle.plugin'
 $markerBase = "$($markerGroup.Replace('.','/'))/$markerArtifact/$version/$markerArtifact-$version"
 $markerPom = Require-File "$markerBase.pom"
 Assert-PomIdentity $markerPom $markerGroup $markerArtifact $version
 [xml]$markerXml = Get-Content -LiteralPath $markerPom -Raw -Encoding UTF8
 $markerDependency = @($markerXml.project.dependencies.dependency) | Where-Object {
-    [string]$_.groupId -eq 'com.cpf.build' -and [string]$_.artifactId -eq 'cpf-gradle-plugin' -and [string]$_.version -eq $version
+    [string]$_.groupId -eq 'com.cpf.gradle' -and [string]$_.artifactId -eq 'cpf-gradle-plugin' -and [string]$_.version -eq $version
 }
 if ($markerDependency.Count -ne 1) { throw 'CPF Gradle plugin marker does not point to the exact implementation version.' }
 Add-ManifestFile "$markerBase.pom" 'plugin-marker'
 Add-VersionDirectoryFiles $markerBase $markerArtifact $version
 
-$bomPomPath = Join-Path $LocalRepository (("com/cpf/cpf-bom/$version/cpf-bom-$version.pom").Replace('/', [IO.Path]::DirectorySeparatorChar))
+$bomPomPath = Join-Path $LocalRepository (("com/cpf/cpf-platform-bom/$version/cpf-platform-bom-$version.pom").Replace('/', [IO.Path]::DirectorySeparatorChar))
 [xml]$bomXml = Get-Content -LiteralPath $bomPomPath -Raw -Encoding UTF8
 $bomDependencies = @($bomXml.project.dependencyManagement.dependencies.dependency)
 foreach ($required in @('cpf-core','cpf-common','cpf-batch-contract','cpf-batch-testkit')) {

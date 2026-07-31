@@ -12,10 +12,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfFilter;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
@@ -92,7 +94,18 @@ public class CpfServerSessionSecurityAutoConfiguration {
             CpfBffLogoutFilter logoutFilter,
             CpfServerSessionProperties properties) throws Exception {
         http.securityMatcher("/adm/**", "/api/bza/**", "/bza/**")
-                .authorizeHttpRequests(authorize -> authorize.anyRequest().permitAll())
+                .authorizeHttpRequests(authorize -> authorize
+                        // 정적 Shell과 최초 로그인만 공개합니다. 권한은 Browser 표시가 아니라 Server Chain이 소유합니다.
+                        .requestMatchers(
+                                "/adm", "/adm/", "/adm/index.html", "/adm/assets/**",
+                                "/bza", "/bza/", "/bza/index.html", "/bza/assets/**",
+                                "/api/bza/auth/login")
+                        .permitAll()
+                        .anyRequest().authenticated())
+                .exceptionHandling(errors -> errors
+                        .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
+                        .accessDeniedHandler((request, response, failure) ->
+                                response.sendError(HttpStatus.FORBIDDEN.value())))
                 .csrf(csrf -> csrf.csrfTokenRepository(csrfRepository))
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)

@@ -8,6 +8,7 @@ group = 'com.cpf.gateway'
 dependencies {
     implementation project(':cpf-core')
     implementation 'org.springframework.cloud:spring-cloud-starter-gateway-server-webmvc'
+    implementation 'org.apache.httpcomponents.client5:httpclient5'
     implementation project(':cpf-starter-resilience')
     implementation project(':cpf-starter-observability')
     implementation 'org.springframework.boot:spring-boot-starter-actuator'

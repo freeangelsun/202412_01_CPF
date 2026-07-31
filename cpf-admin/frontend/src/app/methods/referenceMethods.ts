@@ -18,7 +18,7 @@ export const referenceMethods: Record<string, any> = {
             : response.status === 403
               ? (data?.message || "해당 작업 권한이 없습니다.")
               : (data?.message || `요청 실패: status=${response.status}`);
-          if (response.status === 401) this.clearToken(message);
+          if (response.status === 401) this.clearSession(message);
           else this.setMessage(message);
           if (throwOnError) {
             throw Object.assign(new Error(message), {

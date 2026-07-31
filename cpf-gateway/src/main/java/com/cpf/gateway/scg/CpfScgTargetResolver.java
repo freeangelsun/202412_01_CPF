@@ -10,6 +10,7 @@ import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -22,12 +23,21 @@ public final class CpfScgTargetResolver {
     private final CpfServiceRegistryQueryPort registry;
     private final CpfGatewaySafetyProperties safety;
     private final ConcurrentHashMap<String, AtomicLong> cursors = new ConcurrentHashMap<>();
+    private final AddressResolver addressResolver;
 
     public CpfScgTargetResolver(
             CpfServiceRegistryQueryPort registry,
             CpfGatewaySafetyProperties safety) {
+        this(registry, safety, InetAddress::getAllByName);
+    }
+
+    CpfScgTargetResolver(
+            CpfServiceRegistryQueryPort registry,
+            CpfGatewaySafetyProperties safety,
+            AddressResolver addressResolver) {
         this.registry = registry;
         this.safety = safety;
+        this.addressResolver = addressResolver;
     }
 
     public Target resolve(CpfGatewayRoute route, String targetPath, String rawQuery) {
@@ -67,9 +77,15 @@ public final class CpfScgTargetResolver {
         CpfServiceRegistryView.Instance selected = weighted(route.serverGroupId(), candidates);
         URI base = URI.create(selected.baseUrl()).normalize();
         validateBaseUri(base);
-        validateResolvedAddresses(base, safety.isAllowPublicTargets());
-        URI resolved = resolveCanonical(base, targetPath, rawQuery);
-        return new Target(selected.instanceId(), resolved);
+        List<InetAddress> approved = validateResolvedAddresses(
+                base, safety.isAllowPublicTargets(), addressResolver);
+        URI canonical = resolveCanonical(base, targetPath, rawQuery);
+        InetAddress pinned = approved.getFirst();
+        return new Target(
+                selected.instanceId(),
+                canonical,
+                authorityHeader(base),
+                pinned);
     }
 
     private CpfServiceRegistryView.Instance weighted(
@@ -142,42 +158,56 @@ public final class CpfScgTargetResolver {
         rejectControl(base.toString(), "base URI");
     }
 
-    private static void validateResolvedAddresses(URI base, boolean allowPublic) {
+    static List<InetAddress> validateResolvedAddresses(
+            URI base,
+            boolean allowPublic,
+            AddressResolver resolver) {
         try {
-            InetAddress[] addresses = InetAddress.getAllByName(base.getHost());
-            if (addresses.length == 0) {
+            InetAddress[] resolved = resolver.resolve(base.getHost());
+            if (resolved == null || resolved.length == 0) {
                 throw new SecurityException("Gateway upstream DNS returned no addresses");
             }
+            List<InetAddress> addresses = Arrays.stream(resolved)
+                    .distinct()
+                    .sorted(Comparator.comparing(InetAddress::getHostAddress))
+                    .toList();
+            boolean privateSeen = false;
+            boolean publicSeen = false;
             for (InetAddress address : addresses) {
-                if (address.isAnyLocalAddress()
-                        || address.isLoopbackAddress()
-                        || address.isLinkLocalAddress()
-                        || address.isMulticastAddress()) {
-                    throw new SecurityException(
-                            "Gateway upstream address denied: " + address.getHostAddress());
-                }
-                if (!allowPublic && !privateAddress(address)) {
-                    throw new SecurityException(
-                            "Gateway public upstream address denied: " + address.getHostAddress());
-                }
+                validateAddress(address, allowPublic);
+                if (privateAddress(address)) privateSeen = true;
+                else publicSeen = true;
             }
+            if (privateSeen && publicSeen) {
+                throw new SecurityException("Gateway mixed private/public DNS response denied");
+            }
+            return addresses;
         } catch (java.net.UnknownHostException failure) {
             throw new SecurityException("Gateway upstream DNS resolution failed", failure);
         }
     }
 
-    private static boolean privateAddress(InetAddress address) {
-        if (address.isSiteLocalAddress()) {
-            return true;
+    private static void validateAddress(InetAddress address, boolean allowPublic) {
+        String text = address.getHostAddress().toLowerCase(java.util.Locale.ROOT);
+        if (address.isAnyLocalAddress()
+                || address.isLoopbackAddress()
+                || address.isLinkLocalAddress()
+                || address.isMulticastAddress()
+                || "169.254.169.254".equals(text)
+                || "100.100.100.200".equals(text)
+                || text.startsWith("fd00:ec2:")) {
+            throw new SecurityException("Gateway upstream address denied: " + address.getHostAddress());
         }
-        if (address instanceof Inet4Address) {
-            byte[] value = address.getAddress();
-            int first = Byte.toUnsignedInt(value[0]);
-            int second = Byte.toUnsignedInt(value[1]);
-            return first == 100 && second >= 64 && second <= 127;
+        if (!allowPublic && !privateAddress(address)) {
+            throw new SecurityException("Gateway public upstream address denied: " + address.getHostAddress());
         }
-        byte first = address.getAddress()[0];
-        return (first & 0xfe) == 0xfc; // IPv6 unique-local fc00::/7
+    }
+
+    private static String authorityHeader(URI base) {
+        int port = effectivePort(base);
+        boolean defaultPort = ("https".equalsIgnoreCase(base.getScheme()) && port == 443)
+                || ("http".equalsIgnoreCase(base.getScheme()) && port == 80);
+        return defaultPort ? base.getHost() : base.getHost() + ":" + port;
     }
 
     private static String validateQuery(String rawQuery) {
@@ -221,5 +251,22 @@ public final class CpfScgTargetResolver {
                 : ("https".equalsIgnoreCase(uri.getScheme()) ? 443 : 80);
     }
 
-    public record Target(String instanceId, URI uri) {}
+    @FunctionalInterface
+    interface AddressResolver {
+        InetAddress[] resolve(String host) throws java.net.UnknownHostException;
+    }
+
+    /**
+     * URI는 원 hostname을 유지해 TLS SNI/hostname 검증을 보존하고, pinnedAddress는
+     * 전용 DNS resolver가 실제 연결 주소로만 사용합니다.
+     */
+    public record Target(
+            String instanceId,
+            URI uri,
+            String authorityHeader,
+            InetAddress pinnedAddress) {
+        public String resolvedAddress() {
+            return pinnedAddress.getHostAddress();
+        }
+    }
 }

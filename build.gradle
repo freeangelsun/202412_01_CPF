@@ -1971,3 +1971,33 @@ tasks.register('qa32IntegrationTest') {
     group = 'verification'
     dependsOn ':cpf-batch:testkit:qa32IntegrationTest'
 }
+
+// QA34 canonical full-development closure. The task names below are real dependencies, not document markers.
+tasks.register('qa34IntegrationTest') {
+    group = 'verification'
+    description = 'Runs the real CPF batch/database/Kafka integration suite used by QA34.'
+    dependsOn ':cpf-batch:testkit:qa34IntegrationTest'
+}
+
+tasks.register('qa34SourceClosure') {
+    group = 'verification'
+    description = 'Runs QA34 fail-closed source contracts before expensive runtime verification.'
+    dependsOn 'aggregateQualityBuild'
+    doLast {
+        def commands = [
+                ['python', 'cpf-tools/scripts/verify-cpf-qa34-build-contract.py', '--root', '.'],
+                ['python', 'cpf-tools/scripts/verify-cpf-qa34-bff-security.py', '--root', '.'],
+                ['python', 'cpf-tools/scripts/verify-cpf-qa34-batch-outbound-policy.py', '--root', '.'],
+                ['python', 'cpf-tools/scripts/verify-cpf-qa34-kafka-ack-contract.py', '--root', '.'],
+                ['python', 'cpf-tools/scripts/verify-cpf-qa34-network-identity.py', '--root', '.'],
+                ['python', 'cpf-tools/scripts/verify-cpf-qa34-browser-contract.py', '--root', '.'],
+                ['python', 'cpf-tools/scripts/verify-cpf-qa34-runtime-contracts.py', '--root', '.']
+        ]
+        commands.each { command ->
+            def result = exec { commandLine command; ignoreExitValue = true }
+            if (result.exitValue != 0) {
+                throw new GradleException("QA34 source gate failed: ${command.join(' ')} (exit=${result.exitValue})")
+            }
+        }
+    }
+}

@@ -3,6 +3,7 @@ package com.cpf.gateway.scg;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.net.InetAddress;
 import java.net.URI;
 import org.junit.jupiter.api.Test;
 
@@ -15,6 +16,49 @@ class CpfScgTargetResolverTest {
                 "view=summary");
         assertThat(resolved).isEqualTo(URI.create(
                 "https://service.internal:8443/base/orders/100?view=summary"));
+    }
+
+    @Test
+    void canonicalUriPreservesTlsHostnameWhilePinnedContextOwnsConnectionAddress() throws Exception {
+        URI canonical = URI.create("https://service.internal:8443/base/orders");
+        InetAddress pinned = InetAddress.getByName("10.20.30.40");
+        String result = CpfGatewayPinnedAddressContext.call(
+                canonical.getHost(), pinned,
+                () -> CpfGatewayPinnedAddressContext.resolve(canonical.getHost())[0].getHostAddress());
+        assertThat(canonical.getHost()).isEqualTo("service.internal");
+        assertThat(result).isEqualTo("10.20.30.40");
+        assertThat(CpfGatewayPinnedAddressContext.active()).isFalse();
+    }
+
+    @Test
+    void rejectsMixedPrivatePublicAndMetadataResponses() throws Exception {
+        URI base = URI.create("https://service.internal/base");
+        assertThatThrownBy(() -> CpfScgTargetResolver.validateResolvedAddresses(
+                base, true, ignored -> new InetAddress[] {
+                    InetAddress.getByName("10.0.0.10"),
+                    InetAddress.getByName("203.0.113.10")
+                })).isInstanceOf(SecurityException.class)
+                .hasMessageContaining("mixed private/public");
+        assertThatThrownBy(() -> CpfScgTargetResolver.validateResolvedAddresses(
+                base, true, ignored -> new InetAddress[] {
+                    InetAddress.getByName("169.254.169.254")
+                })).isInstanceOf(SecurityException.class)
+                .hasMessageContaining("address denied");
+    }
+
+    @Test
+    void dnsChangeCannotAlterActivePinnedConnectionIdentity() throws Exception {
+        URI base = URI.create("https://service.internal/base");
+        var approved = CpfScgTargetResolver.validateResolvedAddresses(
+                base, false, ignored -> new InetAddress[] {InetAddress.getByName("10.0.0.7")});
+        URI canonical = CpfScgTargetResolver.resolveCanonical(base, "/orders", null);
+        String actual = CpfGatewayPinnedAddressContext.call(
+                canonical.getHost(), approved.getFirst(),
+                () -> CpfGatewayPinnedAddressContext.resolve("service.internal")[0].getHostAddress());
+        assertThat(canonical.getHost()).isEqualTo("service.internal");
+        assertThat(actual).isEqualTo("10.0.0.7");
+        assertThatThrownBy(() -> CpfGatewayPinnedAddressContext.resolve("attacker.internal"))
+                .isInstanceOf(java.net.UnknownHostException.class);
     }
 
     @Test

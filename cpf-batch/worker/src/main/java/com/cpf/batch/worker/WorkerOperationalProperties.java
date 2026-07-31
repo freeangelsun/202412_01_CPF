@@ -13,6 +13,7 @@ public class WorkerOperationalProperties {
     private Map<String, ShellDefinition> scripts = new LinkedHashMap<>();
     private Map<String, PathAlias> pathAliases = new LinkedHashMap<>();
     private Map<String, String> trustedSigningKeys = new LinkedHashMap<>();
+    private OutboundHttp outboundHttp = new OutboundHttp();
 
     public Map<String, ShellDefinition> getScripts() { return scripts; }
     public void setScripts(Map<String, ShellDefinition> scripts) { this.scripts = scripts == null ? new LinkedHashMap<>() : scripts; }
@@ -20,6 +21,114 @@ public class WorkerOperationalProperties {
     public Map<String, String> getTrustedSigningKeys() { return trustedSigningKeys; }
     public void setTrustedSigningKeys(Map<String, String> trustedSigningKeys) { this.trustedSigningKeys = trustedSigningKeys == null ? new LinkedHashMap<>() : new LinkedHashMap<>(trustedSigningKeys); }
     public void setPathAliases(Map<String, PathAlias> pathAliases) { this.pathAliases = pathAliases == null ? new LinkedHashMap<>() : pathAliases; }
+    public OutboundHttp getOutboundHttp() { return outboundHttp; }
+    public void setOutboundHttp(OutboundHttp value) { this.outboundHttp = value == null ? new OutboundHttp() : value; }
+
+    /** PROTOCOL_ADAPTER 외부 HTTP 호출의 제품 보안 계약입니다. 기본값은 비활성입니다. */
+    public static class OutboundHttp {
+        private boolean enabled;
+        private boolean allowHttpLoopback;
+        private boolean allowPrivateAddresses;
+        private boolean requireDnsPin = true;
+        private long maxRequestBytes = 1_048_576L;
+        private long maxResponseBytes = 10_485_760L;
+        private int connectTimeoutSeconds = 10;
+        private int readTimeoutSeconds = 60;
+        private int maxAttempts = 3;
+        private long retryBackoffMillis = 100L;
+        private int maxResponseHeaderCount = 100;
+        private int maxResponseHeaderBytes = 65_536;
+        private List<String> allowedHosts = new ArrayList<>();
+        private Set<Integer> allowedPorts = new LinkedHashSet<>(Set.of(443));
+        private Map<String, List<String>> hostPins = new LinkedHashMap<>();
+        private List<String> allowedCidrs = new ArrayList<>();
+        private Set<String> allowedMethods = new LinkedHashSet<>(Set.of("GET", "POST", "PUT", "PATCH", "DELETE"));
+        private Set<String> allowedRequestHeaders = new LinkedHashSet<>(Set.of(
+                "content-type", "accept", "x-cpf-idempotency-key", "x-cpf-reconcile-key"));
+        private Set<String> allowedResponseContentTypes = new LinkedHashSet<>(Set.of(
+                "application/json", "application/problem+json", "text/plain"));
+
+        public boolean isEnabled() { return enabled; }
+        public void setEnabled(boolean enabled) { this.enabled = enabled; }
+        public boolean isAllowHttpLoopback() { return allowHttpLoopback; }
+        public void setAllowHttpLoopback(boolean value) { this.allowHttpLoopback = value; }
+        public boolean isAllowPrivateAddresses() { return allowPrivateAddresses; }
+        public void setAllowPrivateAddresses(boolean value) { this.allowPrivateAddresses = value; }
+        public boolean isRequireDnsPin() { return requireDnsPin; }
+        public void setRequireDnsPin(boolean value) { this.requireDnsPin = value; }
+        public long getMaxRequestBytes() { return maxRequestBytes; }
+        public void setMaxRequestBytes(long value) { this.maxRequestBytes = value; }
+        public long getMaxResponseBytes() { return maxResponseBytes; }
+        public void setMaxResponseBytes(long value) { this.maxResponseBytes = value; }
+        public int getConnectTimeoutSeconds() { return connectTimeoutSeconds; }
+        public void setConnectTimeoutSeconds(int value) { this.connectTimeoutSeconds = value; }
+        public int getReadTimeoutSeconds() { return readTimeoutSeconds; }
+        public void setReadTimeoutSeconds(int value) { this.readTimeoutSeconds = value; }
+        public int getMaxAttempts() { return maxAttempts; }
+        public void setMaxAttempts(int value) { this.maxAttempts = value; }
+        public long getRetryBackoffMillis() { return retryBackoffMillis; }
+        public void setRetryBackoffMillis(long value) { this.retryBackoffMillis = value; }
+        public int getMaxResponseHeaderCount() { return maxResponseHeaderCount; }
+        public void setMaxResponseHeaderCount(int value) { this.maxResponseHeaderCount = value; }
+        public int getMaxResponseHeaderBytes() { return maxResponseHeaderBytes; }
+        public void setMaxResponseHeaderBytes(int value) { this.maxResponseHeaderBytes = value; }
+        public List<String> getAllowedHosts() { return allowedHosts; }
+        public void setAllowedHosts(List<String> value) { this.allowedHosts = value == null ? new ArrayList<>() : new ArrayList<>(value); }
+        public Set<Integer> getAllowedPorts() { return allowedPorts; }
+        public void setAllowedPorts(Set<Integer> value) { this.allowedPorts = value == null ? new LinkedHashSet<>() : new LinkedHashSet<>(value); }
+        public Map<String, List<String>> getHostPins() { return hostPins; }
+        public void setHostPins(Map<String, List<String>> value) {
+            this.hostPins = value == null ? new LinkedHashMap<>() : new LinkedHashMap<>(value);
+        }
+        public List<String> getAllowedCidrs() { return allowedCidrs; }
+        public void setAllowedCidrs(List<String> value) {
+            this.allowedCidrs = value == null ? new ArrayList<>() : new ArrayList<>(value);
+        }
+        public Set<String> getAllowedMethods() { return allowedMethods; }
+        public void setAllowedMethods(Set<String> value) {
+            this.allowedMethods = normalizeUpper(value);
+        }
+        public Set<String> getAllowedRequestHeaders() { return allowedRequestHeaders; }
+        public void setAllowedRequestHeaders(Set<String> value) {
+            this.allowedRequestHeaders = normalizeLower(value);
+        }
+        public Set<String> getAllowedResponseContentTypes() { return allowedResponseContentTypes; }
+        public void setAllowedResponseContentTypes(Set<String> value) {
+            this.allowedResponseContentTypes = normalizeLower(value);
+        }
+
+        /** 제품 프로필이 시작될 때 잘못된 외부 호출 정책을 fail-closed 합니다. */
+        public void validate() {
+            if (maxRequestBytes < 0 || maxResponseBytes < 0) throw new IllegalStateException("outbound HTTP size cap is invalid");
+            if (connectTimeoutSeconds < 1 || readTimeoutSeconds < 1) throw new IllegalStateException("outbound HTTP timeout is invalid");
+            if (maxAttempts < 1 || maxAttempts > 10) throw new IllegalStateException("outbound HTTP maxAttempts is invalid");
+            if (retryBackoffMillis < 0 || retryBackoffMillis > 60_000) throw new IllegalStateException("outbound HTTP retry backoff is invalid");
+            if (maxResponseHeaderCount < 1 || maxResponseHeaderCount > 500 || maxResponseHeaderBytes < 1024) {
+                throw new IllegalStateException("outbound HTTP response header budget is invalid");
+            }
+            if (enabled && (allowedHosts.isEmpty() || allowedPorts.isEmpty() || allowedMethods.isEmpty())) {
+                throw new IllegalStateException("enabled outbound HTTP requires host/port/method allowlists");
+            }
+            if (enabled && requireDnsPin && hostPins.isEmpty()) {
+                throw new IllegalStateException("enabled outbound HTTP requires DNS pins");
+            }
+            allowedPorts.forEach(port -> { if (port == null || port < 1 || port > 65535) throw new IllegalStateException("outbound HTTP port is invalid"); });
+        }
+
+        private static Set<String> normalizeLower(Set<String> values) {
+            LinkedHashSet<String> normalized = new LinkedHashSet<>();
+            if (values != null) values.stream().filter(Objects::nonNull).map(String::trim).filter(v -> !v.isEmpty())
+                    .map(v -> v.toLowerCase(Locale.ROOT)).forEach(normalized::add);
+            return normalized;
+        }
+
+        private static Set<String> normalizeUpper(Set<String> values) {
+            LinkedHashSet<String> normalized = new LinkedHashSet<>();
+            if (values != null) values.stream().filter(Objects::nonNull).map(String::trim).filter(v -> !v.isEmpty())
+                    .map(v -> v.toUpperCase(Locale.ROOT)).forEach(normalized::add);
+            return normalized;
+        }
+    }
 
     public static class ShellDefinition {
         private String scriptId;

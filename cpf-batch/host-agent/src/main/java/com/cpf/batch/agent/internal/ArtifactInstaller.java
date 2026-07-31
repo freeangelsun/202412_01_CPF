@@ -3,15 +3,7 @@ package com.cpf.batch.agent.internal;
 import com.cpf.batch.agent.AgentProperties;
 import com.cpf.batch.api.AgentArtifactRequest;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.ProxySelector;
 import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.channels.OverlappingFileLockException;
@@ -23,8 +15,6 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.time.Duration;
-import java.util.Base64;
-import java.util.HexFormat;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Properties;
@@ -40,23 +30,17 @@ public final class ArtifactInstaller {
     private final AgentProperties properties;
     private final ArtifactVerifier verifier;
     private final ArtifactStateStore stateStore;
-    private final HttpClient httpClient;
+    private final PinnedArtifactHttpTransport artifactTransport;
 
     public ArtifactInstaller(AgentProperties properties, ArtifactVerifier verifier, ArtifactStateStore stateStore) {
         this.properties = Objects.requireNonNull(properties, "properties");
         this.verifier = Objects.requireNonNull(verifier, "verifier");
         this.stateStore = Objects.requireNonNull(stateStore, "stateStore");
-        HttpClient.Builder builder = HttpClient.newBuilder()
-                .followRedirects(HttpClient.Redirect.NEVER)
-                .connectTimeout(Duration.ofSeconds(20));
-        if (properties.getArtifactProxyHost() != null && !properties.getArtifactProxyHost().isBlank()) {
-            if (properties.getArtifactProxyPort() < 1 || properties.getArtifactProxyPort() > 65535) {
-                throw new IllegalStateException("ARTIFACT_PROXY_PORT_INVALID");
-            }
-            builder.proxy(ProxySelector.of(new InetSocketAddress(
-                    properties.getArtifactProxyHost().trim(), properties.getArtifactProxyPort())));
+        if (properties.getArtifactProxyHost() != null && !properties.getArtifactProxyHost().isBlank()
+                && (properties.getArtifactProxyPort() < 1 || properties.getArtifactProxyPort() > 65535)) {
+            throw new IllegalStateException("ARTIFACT_PROXY_PORT_INVALID");
         }
-        this.httpClient = builder.build();
+        this.artifactTransport = new PinnedArtifactHttpTransport(properties);
     }
 
     public Result install(AgentArtifactRequest request) throws Exception {
@@ -219,82 +203,7 @@ public final class ArtifactInstaller {
     }
 
     private long download(URI uri, Path target, AgentArtifactRequest request, String extension) throws Exception {
-        validateResolvedAddresses(uri.getHost());
-        HttpResponse<InputStream> response = httpClient.send(
-                HttpRequest.newBuilder(uri)
-                        .timeout(Duration.ofMinutes(5))
-                        .header("Accept", expectedMime(extension))
-                        .GET()
-                        .build(),
-                HttpResponse.BodyHandlers.ofInputStream());
-        if (response.statusCode() != 200) throw new IOException("ARTIFACT_REPOSITORY_STATUS:" + response.statusCode());
-        String contentType = response.headers().firstValue("Content-Type")
-                .map(value -> value.split(";", 2)[0].trim().toLowerCase(Locale.ROOT))
-                .orElseThrow(() -> new SecurityException("ARTIFACT_CONTENT_TYPE_MISSING"));
-        if (!properties.getArtifactAllowedContentTypes().stream()
-                .map(value -> value.toLowerCase(Locale.ROOT))
-                .anyMatch(contentType::equals)) {
-            throw new SecurityException("ARTIFACT_CONTENT_TYPE_DENIED:" + contentType);
-        }
-        validateDigestHeader(response, request.sha256());
-        long declared = response.headers().firstValueAsLong("Content-Length").orElse(-1);
-        if (declared < 0 || declared > properties.getMaxArtifactBytes()) {
-            throw new SecurityException("ARTIFACT_CONTENT_LENGTH_INVALID");
-        }
-        try (InputStream input = response.body();
-                OutputStream output = Files.newOutputStream(target, StandardOpenOption.CREATE_NEW)) {
-            byte[] buffer = new byte[8192];
-            long total = 0;
-            for (int read; (read = input.read(buffer)) >= 0;) {
-                if (read == 0) continue;
-                total += read;
-                if (total > declared || total > properties.getMaxArtifactBytes()) {
-                    throw new SecurityException("ARTIFACT_STREAM_SIZE_EXCEEDED");
-                }
-                output.write(buffer, 0, read);
-            }
-            if (total != declared) throw new SecurityException("ARTIFACT_CONTENT_LENGTH_MISMATCH");
-            return total;
-        }
-    }
-
-    private void validateDigestHeader(HttpResponse<?> response, String expectedHex) {
-        String checksum = response.headers().firstValue("X-Checksum-Sha256").orElse(null);
-        if (checksum == null) {
-            String digest = response.headers().firstValue("Digest").orElse(null);
-            if (digest != null) {
-                for (String part : digest.split(",")) {
-                    String trimmed = part.trim();
-                    if (trimmed.regionMatches(true, 0, "sha-256=", 0, 8)) {
-                        try { checksum = HexFormat.of().formatHex(Base64.getDecoder().decode(trimmed.substring(8))); }
-                        catch (IllegalArgumentException failure) {
-                            throw new SecurityException("ARTIFACT_DIGEST_HEADER_INVALID", failure);
-                        }
-                        break;
-                    }
-                }
-            }
-        }
-        if (checksum == null || checksum.isBlank()) {
-            if (properties.isRequireRepositoryDigestHeader()) {
-                throw new SecurityException("ARTIFACT_DIGEST_HEADER_REQUIRED");
-            }
-            return;
-        }
-        String normalized = checksum.trim().toLowerCase(Locale.ROOT);
-        if (!normalized.matches("[0-9a-f]{64}") || !normalized.equals(expectedHex.toLowerCase(Locale.ROOT))) {
-            throw new SecurityException("ARTIFACT_DIGEST_HEADER_MISMATCH");
-        }
-    }
-
-    private void validateResolvedAddresses(String host) throws Exception {
-        if (properties.isAllowPrivateRepositoryAddresses()) return;
-        for (InetAddress address : InetAddress.getAllByName(host)) {
-            if (address.isAnyLocalAddress() || address.isLoopbackAddress() || address.isLinkLocalAddress()
-                    || address.isSiteLocalAddress() || address.isMulticastAddress()) {
-                throw new SecurityException("ARTIFACT_REPOSITORY_ADDRESS_DENIED:" + address.getHostAddress());
-            }
-        }
+        return artifactTransport.download(uri, target, expectedMime(extension), request.sha256());
     }
 
     private static String expectedMime(String extension) {
@@ -322,8 +231,12 @@ public final class ArtifactInstaller {
                 || base.getQuery() != null || base.getFragment() != null) {
             throw new SecurityException("ARTIFACT_REPOSITORY_URL_INVALID");
         }
-        if (!"https".equalsIgnoreCase(base.getScheme()) && !isLoopback(base.getHost())) {
-            throw new SecurityException("ARTIFACT_REPOSITORY_TLS_REQUIRED");
+        if (!"https".equalsIgnoreCase(base.getScheme())) {
+            if (!"http".equalsIgnoreCase(base.getScheme())
+                    || !properties.isAllowHttpLoopback()
+                    || !literalLoopback(base.getHost())) {
+                throw new SecurityException("ARTIFACT_REPOSITORY_TLS_REQUIRED");
+            }
         }
         if (!properties.getArtifactAllowedHosts().isEmpty()
                 && properties.getArtifactAllowedHosts().stream().noneMatch(base.getHost()::equalsIgnoreCase)) {
@@ -331,9 +244,11 @@ public final class ArtifactInstaller {
         }
     }
 
-    private static boolean isLoopback(String host) {
-        try { return InetAddress.getByName(host).isLoopbackAddress(); }
-        catch (Exception failure) { return false; }
+    private static boolean literalLoopback(String host) {
+        if (host == null) return false;
+        String value = host.trim().toLowerCase(Locale.ROOT);
+        return "localhost".equals(value) || "127.0.0.1".equals(value) || "::1".equals(value)
+                || "0:0:0:0:0:0:0:1".equals(value);
     }
 
     private AgentProperties.ServiceDefinition service(String id) {

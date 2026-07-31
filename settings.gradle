@@ -3,6 +3,9 @@
  * 품질 gate는 offline 실행을 기본으로 보장해야 하므로 외부 Build Scan 플러그인은 필수 경로에서 제외합니다.
  */
 pluginManagement {
+    // Convention Plugin은 plugin resolution 단계에서 Included Build로 공급한다.
+    // 빈 GRADLE_USER_HOME에서도 과거 로컬 Marker 없이 해석되어야 한다.
+    includeBuild('cpf-tools/build/gradle-plugin')
     def cpfStackProperties = new Properties()
     def cpfStackFile = file('gradle/cpf-stack.properties')
     if (!cpfStackFile.isFile()) {
@@ -128,7 +131,6 @@ project(':cpf-local-batch-runtime').projectDir = file('cpf-tools/runtime/cpf-loc
 // CPF BOM과 convention 정책은 cpf-tools 소유의 추적 가능한 isolated build 정본으로 관리합니다.
 // Root Build는 아래 Included Build의 check/publication task를 직접 소비합니다.
 includeBuild 'cpf-tools/build/platform-bom'
-includeBuild 'cpf-tools/build/gradle-plugin'
 
 // Additional customer domains are independent repositories. local-domains is development-only composite mounting.
 def localDomainsDir = file('local-domains')

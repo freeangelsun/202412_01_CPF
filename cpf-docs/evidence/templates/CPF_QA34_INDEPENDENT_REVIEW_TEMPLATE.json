@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 3,
+  "evidenceId": "QA34-INDEPENDENT-FRESH-CLONE-REVIEW",
+  "reviewType": "INDEPENDENT_FRESH_CLONE",
+  "sourceSha": "<40-char exact source SHA>",
+  "resultSha": "<same 40-char exact source SHA>",
+  "sourceDirty": false,
+  "reviewer": "<independent reviewer identifier>",
+  "startedAt": "<UTC ISO-8601>",
+  "finishedAt": "<UTC ISO-8601>",
+  "exitCode": 0,
+  "requirements": ["QA34-REQ-020"],
+  "commands": ["<fresh clone commands actually executed>"],
+  "candidateIndexSha256": "<CPF_QA34_CANDIDATE_INDEX.sanitized.json SHA-256>",
+  "findings": [],
+  "sanitized": true,
+  "releaseEligible": true
+}

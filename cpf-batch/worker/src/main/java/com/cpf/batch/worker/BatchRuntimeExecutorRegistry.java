@@ -21,6 +21,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.time.Duration;
 import java.util.*;
 
@@ -28,7 +29,7 @@ import java.util.*;
  * Published Job Definition의 SERVICE_CALL/MESSAGE/PROTOCOL 실행 Adapter Registry입니다.
  *
  * <p>설치되지 않은 Capability를 성공으로 위장하지 않습니다. SERVICE_CALL은 CPF Typed Service
- * Caller를, MESSAGE_TRIGGER는 CPF Broker Outbox Client를, HTTP Protocol은 JDK HttpClient를 사용합니다.</p>
+ * Caller를, MESSAGE_TRIGGER는 CPF Broker Outbox Client를, HTTP Protocol은 검증된 IP에 고정된 전송기를 사용합니다.</p>
  */
 @Component
 public class BatchRuntimeExecutorRegistry {
@@ -36,12 +37,16 @@ public class BatchRuntimeExecutorRegistry {
     private final ObjectProvider<CpfBrokerClient> brokerClient;
     private final HttpClient httpClient;
     private final ObjectMapper canonicalJson;
+    private final WorkerOperationalProperties operationalProperties;
+    private final BatchOutboundHttpPolicy outboundPolicy;
+    private final PinnedBatchHttpTransport outboundTransport;
 
     @Autowired
     public BatchRuntimeExecutorRegistry(
             ObjectProvider<CpfServiceCaller> serviceCaller,
             ObjectProvider<CpfBrokerClient> brokerClient,
-            ObjectMapper objectMapper) {
+            ObjectMapper objectMapper,
+            WorkerOperationalProperties operationalProperties) {
         this.serviceCaller = serviceCaller;
         this.brokerClient = brokerClient;
         this.canonicalJson = objectMapper.copy()
@@ -51,14 +56,19 @@ public class BatchRuntimeExecutorRegistry {
                 .followRedirects(HttpClient.Redirect.NEVER)
                 .connectTimeout(Duration.ofSeconds(10))
                 .build();
+        this.operationalProperties = operationalProperties;
+        operationalProperties.getOutboundHttp().validate();
+        this.outboundPolicy = new BatchOutboundHttpPolicy(operationalProperties.getOutboundHttp());
+        this.outboundTransport = new PinnedBatchHttpTransport(operationalProperties.getOutboundHttp());
     }
 
     /** Test/standalone Source compatibility. Production Spring wiring injects the managed mapper. */
     public BatchRuntimeExecutorRegistry(
             ObjectProvider<CpfServiceCaller> serviceCaller,
             ObjectProvider<CpfBrokerClient> brokerClient) {
-        this(serviceCaller, brokerClient, new ObjectMapper());
+        this(serviceCaller, brokerClient, new ObjectMapper(), new WorkerOperationalProperties());
     }
+
 
     public ExecutionResult execute(
             BatchApprovedExecutorSnapshot definition,
@@ -186,29 +196,101 @@ public class BatchRuntimeExecutorRegistry {
         }
         URI uri = URI.create(uriText);
         String method = text(parameters.get("httpMethod"), "POST").toUpperCase(Locale.ROOT);
-        HttpRequest.Builder builder = HttpRequest.newBuilder(uri)
-                .timeout(Duration.ofSeconds(definition.timeoutSeconds()));
-        if ("GET".equals(method) || "DELETE".equals(method)) {
-            builder.method(method, HttpRequest.BodyPublishers.noBody());
-        } else {
-            builder.header("Content-Type", text(parameters.get("contentType"), "application/json"))
-                    .method(method, HttpRequest.BodyPublishers.ofString(
-                            jsonBody(parameters.getOrDefault("body", parameters)), StandardCharsets.UTF_8));
+        if (!operationalProperties.getOutboundHttp().getAllowedMethods().contains(method)) {
+            return ExecutionResult.failed("PROTOCOL_METHOD_DENIED", method, false);
         }
-        try {
-            HttpResponse<String> response = httpClient.send(
-                    builder.build(), HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-            if (response.statusCode() >= 200 && response.statusCode() < 300) {
-                return ExecutionResult.completed(response.body(), 1);
+        byte[] body = ("GET".equals(method) || "DELETE".equals(method))
+                ? new byte[0]
+                : jsonBody(parameters.getOrDefault("body", parameters)).getBytes(StandardCharsets.UTF_8);
+        BatchOutboundHttpPolicy.ApprovedTarget target = outboundPolicy.approve(uri, body.length);
+        String idempotencyKey = text(parameters.get("idempotencyKey"), stableProtocolKey(definition, method, uri, body));
+        String reconcileKey = text(parameters.get("reconcileKey"), idempotencyKey);
+        Map<String, String> headers = requestHeaders(parameters);
+        headers.putIfAbsent("Content-Type", text(parameters.get("contentType"), "application/json"));
+        headers.put("X-Cpf-Idempotency-Key", idempotencyKey);
+        headers.put("X-Cpf-Reconcile-Key", reconcileKey);
+        int maxAttempts = Math.max(1, Math.min(definition.maxAttempts(),
+                operationalProperties.getOutboundHttp().getMaxAttempts()));
+        for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+            try {
+                PinnedBatchHttpTransport.Response response = outboundTransport.exchange(target, method, body, headers);
+                if (response.statusCode() >= 200 && response.statusCode() < 300) {
+                    return ExecutionResult.completed(response.body(), attempt);
+                }
+                if (response.statusCode() >= 500 && attempt < maxAttempts) {
+                    pauseProtocol(attempt);
+                    continue;
+                }
+                return ExecutionResult.failed("PROTOCOL_HTTP_" + response.statusCode(),
+                        mask(response.body()), false, attempt);
+            } catch (java.net.SocketTimeoutException timeout) {
+                if (attempt < maxAttempts) { pauseProtocol(attempt); continue; }
+                return ExecutionResult.failed("PROTOCOL_TIMEOUT_UNKNOWN",
+                        "Protocol result is unknown; reconcileKey=" + reconcileKey, true, attempt);
+            } catch (java.io.IOException transportFailure) {
+                if (attempt < maxAttempts) { pauseProtocol(attempt); continue; }
+                return ExecutionResult.failed("PROTOCOL_TRANSPORT_UNKNOWN",
+                        "Protocol result is unknown; reconcileKey=" + reconcileKey, true, attempt);
+            } catch (SecurityException denied) {
+                return ExecutionResult.failed("PROTOCOL_POLICY_DENIED", denied.getMessage(), false, attempt);
             }
-            return ExecutionResult.failed("PROTOCOL_HTTP_" + response.statusCode(),
-                    response.body(), false);
+        }
+        return ExecutionResult.failed("PROTOCOL_UNKNOWN", "Protocol result is unknown", true, maxAttempts);
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, String> requestHeaders(Map<String, Object> parameters) {
+        Object value = parameters.get("headers");
+        if (value == null) return new LinkedHashMap<>();
+        if (!(value instanceof Map<?, ?> raw)) {
+            throw new SecurityException("PROTOCOL_HEADERS_INVALID");
+        }
+        Map<String, String> headers = new LinkedHashMap<>();
+        raw.forEach((name, headerValue) -> {
+            String key = Objects.toString(name, "").trim();
+            String text = Objects.toString(headerValue, "");
+            if (key.isEmpty() || key.indexOf('\r') >= 0 || key.indexOf('\n') >= 0
+                    || text.indexOf('\r') >= 0 || text.indexOf('\n') >= 0) {
+                throw new SecurityException("BATCH_OUTBOUND_HEADER_INJECTION_DENIED");
+            }
+            String normalized = key.toLowerCase(Locale.ROOT);
+            if (!operationalProperties.getOutboundHttp().getAllowedRequestHeaders().contains(normalized)) {
+                throw new SecurityException("BATCH_OUTBOUND_HEADER_DENIED:" + normalized);
+            }
+            headers.put(key, text);
+        });
+        return headers;
+    }
+
+    private void pauseProtocol(int attempt) {
+        long base = operationalProperties.getOutboundHttp().getRetryBackoffMillis();
+        long delay = Math.min(60_000L, base * (1L << Math.min(10, Math.max(0, attempt - 1))));
+        if (delay <= 0) return;
+        try {
+            Thread.sleep(delay);
         } catch (InterruptedException interrupted) {
             Thread.currentThread().interrupt();
-            return ExecutionResult.failed("PROTOCOL_INTERRUPTED", "Protocol execution interrupted", true);
-        } catch (java.net.http.HttpTimeoutException timeout) {
-            return ExecutionResult.failed("PROTOCOL_TIMEOUT", timeout.getMessage(), true);
+            throw new IllegalStateException("PROTOCOL_RETRY_INTERRUPTED", interrupted);
         }
+    }
+
+    private static String stableProtocolKey(BatchApprovedExecutorSnapshot definition, String method, URI uri, byte[] body) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            digest.update(definition.jobId().getBytes(StandardCharsets.UTF_8));
+            digest.update(Long.toString(definition.definitionVersion()).getBytes(StandardCharsets.UTF_8));
+            digest.update(method.getBytes(StandardCharsets.UTF_8));
+            digest.update(uri.normalize().toASCIIString().getBytes(StandardCharsets.UTF_8));
+            digest.update(body);
+            return "cpf-batch-" + HexFormat.of().formatHex(digest.digest());
+        } catch (Exception impossible) {
+            throw new IllegalStateException("PROTOCOL_IDEMPOTENCY_KEY_FAILED", impossible);
+        }
+    }
+
+    private static String mask(String value) {
+        if (value == null) return "";
+        return value.replaceAll("(?i)(authorization|token|secret|password)\\s*[:=]\\s*[^,}\\s]+", "$1=***");
     }
 
     /**
@@ -268,9 +350,12 @@ public class BatchRuntimeExecutorRegistry {
                     attempts == null ? 1 : Math.max(1, attempts));
         }
         public static ExecutionResult failed(String code, String message, boolean unknown) {
+            return failed(code, message, unknown, 1);
+        }
+        public static ExecutionResult failed(String code, String message, boolean unknown, int attempts) {
             return new ExecutionResult(unknown ? "UNKNOWN_RESULT" : "FAILED",
                     blankTo(code, unknown ? "UNKNOWN_RESULT" : "FAILED"),
-                    blankTo(message, "Execution failed"), unknown, 1);
+                    blankTo(message, "Execution failed"), unknown, Math.max(1, attempts));
         }
     }
 }

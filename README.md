@@ -76,14 +76,14 @@ CPF는 공통 Library 묶음이나 특정 프로젝트용 예제가 아닙니다
 
 ---
 
-## 처리 상태를 잃지 않고 안전하게 이어갑니다
+## 처리 상태와 복구 근거를 이어갑니다
 
 <picture>
   <source media="(max-width: 720px)" srcset="cpf-docs/assets/readme/cpf-execution-mobile.png">
   <img src="cpf-docs/assets/readme/cpf-execution-desktop.png" alt="요청부터 상태 확정과 복구까지 이어지는 CPF 실행 흐름" width="100%">
 </picture>
 
-온라인·비동기·배치·외부 연계 전 과정의 상태와 이력을 일관되게 관리해 중단 이후에도 재시작·대사·복구를 안정적으로 수행합니다.
+온라인·비동기·배치·외부 연계 전 과정의 상태와 이력을 일관되게 관리해 중단 이후 재시작·대사·복구 절차와 판정 근거를 유지합니다.
 
 대상에 요청을 보낸 뒤 응답을 받지 못한 경우에는 실제 처리 여부를 확인하기 전까지 결과를 임의로 확정하지 않습니다. 거래 식별자, 요청 Hash, 멱등성 Key, Attempt와 상대 상태 조회를 연결해 실제 결과를 확정한 뒤 재처리·보상·운영 확정을 수행합니다.
 
@@ -153,9 +153,9 @@ pwsh -File .\cpf-tools\generator\create-domain.ps1 `
 | [04 ADM 운영자 매뉴얼](cpf-docs/guides/04_ADM운영자매뉴얼.md) | ADM 메뉴로 조회·제어·대사를 수행할 때 |
 | [05 플랫폼 운영 매뉴얼](cpf-docs/guides/05_플랫폼운영매뉴얼.md) | Profile·Property·DB·배포·관측·복구를 담당할 때 |
 | [90 BZA 매뉴얼](cpf-docs/guides/90_BZA매뉴얼.md) | 선택형 업무 관리자 제품을 사용할 때 |
-| [91 게이트웨이 매뉴얼](cpf-docs/guides/91_게이트웨이매뉴얼.md) | 선택형 Gateway를 개발·운영할 때 |
+| [91 게이트웨이 매뉴얼](cpf-docs/guides/91_Gateway매뉴얼.md) | 선택형 Gateway를 개발·운영할 때 |
 
-[문서 안내와 역할별 읽는 순서 →](cpf-docs/guides/README.md)
+[문서 역할과 읽는 순서 →](cpf-docs/guides/00_프레임워크안내.md#18-문서-지도와-읽는-순서)
 
 ---
 
@@ -202,6 +202,8 @@ pwsh -File .\cpf-tools\scripts\stop-cpf-local.ps1
 
 ---
 
+---
+
 ## 제품 완료를 판단하는 기준
 
 CPF는 파일, Class, 화면, Dependency 또는 Sample의 존재만으로 완료를 선언하지 않습니다.
@@ -210,6 +212,6 @@ CPF는 파일, Class, 화면, Dependency 또는 Sample의 존재만으로 완료
 - 동일 책임의 Legacy와 이중 상태 정본을 제거합니다.
 - 정상·오류·중단·재시작·중복·응답 유실·부분 실패를 검증합니다.
 - Oracle·PostgreSQL·MariaDB, Kafka, Browser, Multi-instance 등 적용 환경을 실제 실행합니다.
-- Source·API·SQL·Test·문서·Artifact·Evidence가 같은 exact SHA를 가리킵니다.
+- Source·API·SQL·Test·문서·Artifact가 같은 exact SHA를 가리킵니다.
 
-> README는 제품 구조와 사용 시작점을 설명합니다. 현재 구현 완료 상태는 최신 Source, Requirement Matrix와 exact-SHA Evidence를 기준으로 판정합니다.
+> README는 제품 구조와 사용 시작점을 설명합니다. 현재 구현 상태와 사용 가능 범위는 최신 Source와 역할별 공식 매뉴얼을 기준으로 판정합니다.

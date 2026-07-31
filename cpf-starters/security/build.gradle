@@ -10,5 +10,7 @@ dependencies {
     api 'org.springframework.session:spring-session-jdbc'
     implementation 'org.springframework.boot:spring-boot-autoconfigure'
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
 }
 publishing { publications { mavenJava(MavenPublication) { from components.java; artifactId = 'cpf-starter-security' } } }

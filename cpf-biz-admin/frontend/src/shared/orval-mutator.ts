@@ -52,6 +52,7 @@ async function responsePayload(response: Response): Promise<unknown> {
 
 export async function cpfOrvalRequest<T>(config: CpfOrvalRequestConfig): Promise<T> {
   const url = new URL(config.url, window.location.origin);
+  if (url.origin !== window.location.origin) throw new Error("CPF BFF request must be same-origin");
   Object.entries(config.params || {}).forEach(([key, value]) => {
     if (value !== undefined && value !== null) url.searchParams.set(key, String(value));
   });
@@ -69,7 +70,8 @@ export async function cpfOrvalRequest<T>(config: CpfOrvalRequestConfig): Promise
     body: requestBody(config.data, headers),
     signal: config.signal,
     credentials: "include",
-    cache: "no-store"
+    cache: "no-store",
+    redirect: "error"
   });
   const payload = await responsePayload(response);
   if (!response.ok) {

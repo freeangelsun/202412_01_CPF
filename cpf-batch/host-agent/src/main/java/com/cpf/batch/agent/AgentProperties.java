@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.LinkedHashSet;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /** Host Agent 제품 설정입니다. 임시 디렉터리가 아니라 명시된 영속 경로를 사용합니다. */
@@ -14,12 +16,21 @@ public class AgentProperties {
     private String artifactStateMacKeyBase64;
     private Map<String, TrustedKey> artifactTrustStore = new LinkedHashMap<>();
     private List<String> artifactAllowedHosts = new ArrayList<>();
+    private List<String> artifactPinnedAddresses = new ArrayList<>();
+    private List<String> artifactAllowedCidrs = new ArrayList<>();
+    private Set<Integer> artifactAllowedPorts = new LinkedHashSet<>(Set.of(443));
+    private boolean allowHttpLoopback;
     private List<String> artifactAllowedContentTypes = new ArrayList<>(List.of(
             "application/java-archive", "application/octet-stream", "application/zip"));
     private boolean requireRepositoryDigestHeader = true;
     private boolean allowPrivateRepositoryAddresses;
     private String artifactProxyHost;
     private int artifactProxyPort;
+    private List<String> artifactProxyPinnedAddresses = new ArrayList<>();
+    private List<String> artifactProxyAllowedCidrs = new ArrayList<>();
+    private boolean allowPrivateProxyAddresses;
+    private int artifactConnectTimeoutSeconds = 20;
+    private int artifactReadTimeoutSeconds = 300;
     private String commandLedgerRoot = "./data/agent-command-ledger";
     private boolean requireSignature = true;
     private long maxArtifactBytes = 536_870_912L;
@@ -41,6 +52,14 @@ public class AgentProperties {
     public void setArtifactTrustStore(Map<String, TrustedKey> value) { artifactTrustStore = value == null ? new LinkedHashMap<>() : value; }
     public List<String> getArtifactAllowedHosts() { return artifactAllowedHosts; }
     public void setArtifactAllowedHosts(List<String> value) { artifactAllowedHosts = value == null ? new ArrayList<>() : value; }
+    public List<String> getArtifactPinnedAddresses() { return artifactPinnedAddresses; }
+    public void setArtifactPinnedAddresses(List<String> value) { artifactPinnedAddresses = value == null ? new ArrayList<>() : new ArrayList<>(value); }
+    public List<String> getArtifactAllowedCidrs() { return artifactAllowedCidrs; }
+    public void setArtifactAllowedCidrs(List<String> value) { artifactAllowedCidrs = value == null ? new ArrayList<>() : new ArrayList<>(value); }
+    public Set<Integer> getArtifactAllowedPorts() { return artifactAllowedPorts; }
+    public void setArtifactAllowedPorts(Set<Integer> value) { artifactAllowedPorts = value == null ? new LinkedHashSet<>() : new LinkedHashSet<>(value); }
+    public boolean isAllowHttpLoopback() { return allowHttpLoopback; }
+    public void setAllowHttpLoopback(boolean value) { allowHttpLoopback = value; }
     public List<String> getArtifactAllowedContentTypes() { return artifactAllowedContentTypes; }
     public void setArtifactAllowedContentTypes(List<String> value) { artifactAllowedContentTypes = value == null ? new ArrayList<>() : value; }
     public boolean isRequireRepositoryDigestHeader() { return requireRepositoryDigestHeader; }
@@ -51,6 +70,16 @@ public class AgentProperties {
     public void setArtifactProxyHost(String value) { artifactProxyHost = value; }
     public int getArtifactProxyPort() { return artifactProxyPort; }
     public void setArtifactProxyPort(int value) { artifactProxyPort = value; }
+    public List<String> getArtifactProxyPinnedAddresses() { return artifactProxyPinnedAddresses; }
+    public void setArtifactProxyPinnedAddresses(List<String> value) { artifactProxyPinnedAddresses = value == null ? new ArrayList<>() : new ArrayList<>(value); }
+    public List<String> getArtifactProxyAllowedCidrs() { return artifactProxyAllowedCidrs; }
+    public void setArtifactProxyAllowedCidrs(List<String> value) { artifactProxyAllowedCidrs = value == null ? new ArrayList<>() : new ArrayList<>(value); }
+    public boolean isAllowPrivateProxyAddresses() { return allowPrivateProxyAddresses; }
+    public void setAllowPrivateProxyAddresses(boolean value) { allowPrivateProxyAddresses = value; }
+    public int getArtifactConnectTimeoutSeconds() { return artifactConnectTimeoutSeconds; }
+    public void setArtifactConnectTimeoutSeconds(int value) { artifactConnectTimeoutSeconds = value; }
+    public int getArtifactReadTimeoutSeconds() { return artifactReadTimeoutSeconds; }
+    public void setArtifactReadTimeoutSeconds(int value) { artifactReadTimeoutSeconds = value; }
     public String getCommandLedgerRoot() { return commandLedgerRoot; }
     public void setCommandLedgerRoot(String value) { commandLedgerRoot = value; }
     public boolean isRequireSignature() { return requireSignature; }

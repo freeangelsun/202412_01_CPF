@@ -1368,7 +1368,7 @@ $batchDependency = if ($BatchEnabled) {
 
 $platformDependencies = if ($DependencyModel -eq "published-artifact") {
 @"
-    implementation platform('com.cpf:cpf-bom:$PlatformVersion')
+    implementation platform('com.cpf:cpf-platform-bom:$PlatformVersion')
     implementation 'com.cpf.core:cpf-core:$PlatformVersion'
     implementation 'com.cpf.common:cpf-common:$PlatformVersion'
 "@
@@ -1397,9 +1397,9 @@ $dependencyManagementPlugin = if ($DependencyModel -eq "published-artifact") {
     "    id 'io.spring.dependency-management'"
 }
 $cpfConventionPlugin = if ($DependencyModel -eq "published-artifact") {
-    "    id 'com.cpf.domain-conventions' version '$PlatformVersion'"
+    "    id 'com.cpf.platform-conventions' version '$PlatformVersion'"
 } else {
-    "    id 'com.cpf.domain-conventions'"
+    "    id 'com.cpf.platform-conventions'"
 }
 
 $databaseDependencies = if ($DatabaseEnabled) {

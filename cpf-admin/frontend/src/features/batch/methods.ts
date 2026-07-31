@@ -67,9 +67,7 @@ export const batchMethods: Record<string, any> = {
           token: this.remoteLogBundleGrant.token,
           reason: this.remoteLogSearch.reason
         });
-        const response = await fetch(`/adm/api/remote-logs/bundle-jobs/${jobId}/download?${params.toString()}`, {
-          headers: this.apiHeaders()
-        });
+        const response = await this.rawResponse(`/adm/api/remote-logs/bundle-jobs/${jobId}/download?${params.toString()}`, "GET");
         if (!response.ok) {
           await this.parseResponse(response);
           return;

@@ -168,11 +168,14 @@ public final class CpfScgPrimaryHandler implements HandlerFunction<ServerRespons
             request.servletRequest().setAttribute(TARGET_ATTR, target.instanceId());
             URI uri = target.uri();
             ServerRequest upstreamRequest = upstreamRequest(
-                    request, body, trusted, principal, transactionId, tx, route, uri);
+                    request, body, trusted, principal, transactionId, tx, route, target);
             try {
                 ServerResponse response = circuitBreaker.run(() -> {
                     try {
-                        return http().handle(upstreamRequest);
+                        return CpfGatewayPinnedAddressContext.call(
+                                target.uri().getHost(),
+                                target.pinnedAddress(),
+                                () -> http().handle(upstreamRequest));
                     } catch (Exception failure) {
                         throw new GatewayUpstreamException(failure);
                     }
@@ -234,7 +237,7 @@ public final class CpfScgPrimaryHandler implements HandlerFunction<ServerRespons
             String transactionId,
             String gatewayTransactionId,
             CpfGatewayRoute route,
-            URI targetUri) {
+            CpfScgTargetResolver.Target target) {
         ServerRequest bodyRequest;
         if (body.buffered()) {
             bodyRequest = ServerRequest.from(original).body(body.bytes()).build();
@@ -253,6 +256,7 @@ public final class CpfScgPrimaryHandler implements HandlerFunction<ServerRespons
                         }
                     });
                     headers.remove(HttpHeaders.HOST);
+                    headers.set(HttpHeaders.HOST, target.authorityHeader());
                     headers.remove(HttpHeaders.COOKIE);
                     headers.remove(HttpHeaders.CONTENT_LENGTH);
                     headers.set("X-Cpf-Principal-Id", principal.principalId());
@@ -262,7 +266,7 @@ public final class CpfScgPrimaryHandler implements HandlerFunction<ServerRespons
                     headers.set("X-Cpf-Gateway-Instance-Id", safety.getInstanceId());
                 })
                 .cookies(cookies -> cookies.clear())
-                .attribute(MvcUtils.GATEWAY_REQUEST_URL_ATTR, targetUri)
+                .attribute(MvcUtils.GATEWAY_REQUEST_URL_ATTR, target.uri())
                 .build();
     }
 

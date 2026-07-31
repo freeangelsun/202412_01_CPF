@@ -1,6 +1,6 @@
 import { computed, reactive } from "vue";
 import { canonicalBzaMenuCode } from "../../shared/bzaPermissionManifest";
-import { CpfOrvalError, cpfOrvalRequest } from "../../shared/orval-mutator";
+import { bzaApi } from "../../shared/cpfApi";
 import {
   getBzaAuthMe,
   postBzaAuthLogin,
@@ -19,25 +19,7 @@ let pendingLoginOperationId: string | null = null;
 
 export function clearBzaSession(): void { bzaSession.operator = null; bzaSession.loaded = false; bzaSession.message = ""; }
 
-function decodeBody(body: BodyInit | null | undefined): unknown {
-  if (typeof body !== "string") return body;
-  try { return JSON.parse(body); } catch { return body; }
-}
-
-export async function bzaApi<T = unknown>(url: string, options: RequestInit = {}): Promise<T> {
-  try {
-    return await cpfOrvalRequest<T>({
-      url,
-      method: options.method || "GET",
-      headers: options.headers,
-      data: decodeBody(options.body),
-      signal: options.signal || undefined
-    });
-  } catch (error) {
-    if (error instanceof CpfOrvalError && error.status === 401) clearBzaSession();
-    throw error;
-  }
-}
+export { bzaApi };
 
 export async function loginBza(loginId: string, password: string): Promise<void> {
   clearBzaSession(); bzaSession.busy = true;

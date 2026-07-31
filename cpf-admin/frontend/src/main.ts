@@ -1,12 +1,12 @@
 import { createApp } from "vue";
 import { createPinia } from "pinia";
-import { VueQueryPlugin, type VueQueryPluginOptions } from "@tanstack/vue-query";
+import { VueQueryPlugin } from "@tanstack/vue-query";
 import ElementPlus from "element-plus";
 import "element-plus/dist/index.css";
 import App from "./App.vue";
 import { admRouter } from "./app/router";
+import { cpfQueryClient } from "./shared/queryClient";
 import "./styles/adm.css";
 import "./styles/cpf-design.css";
 
-const queryOptions: VueQueryPluginOptions = { queryClientConfig: { defaultOptions: { queries: { retry: 1, staleTime: 15_000, refetchOnWindowFocus: false }, mutations: { retry: false } } } };
-createApp(App).use(createPinia()).use(admRouter).use(VueQueryPlugin, queryOptions).use(ElementPlus).mount("#app");
+createApp(App).use(createPinia()).use(admRouter).use(VueQueryPlugin, { queryClient: cpfQueryClient }).use(ElementPlus).mount("#app");

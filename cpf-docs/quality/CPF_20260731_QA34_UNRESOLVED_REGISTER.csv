@@ -1,0 +1,21 @@
+﻿requirement_id,development_status,verification_status,blocker,resolution_command
+QA34-REQ-001,완료,미검증,Overlay 적용·Commit·Push 이후 exact SHA fresh-clone 실행이 아직 수행되지 않음,python cpf-tools/scripts/verify-cpf-qa34-build-contract.py --root . && .\gradlew.bat help projects --no-daemon
+QA34-REQ-002,완료,미검증,Overlay 적용·Commit·Push 이후 exact SHA fresh-clone 실행이 아직 수행되지 않음,python cpf-tools/scripts/verify-cpf-qa34-build-contract.py --root . && pwsh -File cpf-tools/scripts/verify-local-artifact-propagation.ps1
+QA34-REQ-003,완료,미검증,Overlay 적용·Commit·Push 이후 exact SHA fresh-clone 실행이 아직 수행되지 않음,pwsh -File cpf-tools/scripts/verify-cpf-qa34-java-build.ps1
+QA34-REQ-004,완료,미검증,Overlay 적용·Commit·Push 이후 exact SHA fresh-clone 실행이 아직 수행되지 않음,pwsh -File cpf-tools/scripts/verify-cpf-qa34-final-closure.ps1
+QA34-REQ-005,완료,미검증,Overlay 적용·Commit·Push 이후 exact SHA fresh-clone 실행이 아직 수행되지 않음,pwsh -File cpf-tools/scripts/export-cpf-backend-openapi.ps1 -Release
+QA34-REQ-006,완료,미검증,Overlay 적용·Commit·Push 이후 exact SHA fresh-clone 실행이 아직 수행되지 않음,node cpf-admin/frontend/scripts/test-generated-client-contract.mjs && node cpf-biz-admin/frontend/scripts/test-generated-client-contract.mjs
+QA34-REQ-007,완료,미검증,Overlay 적용·Commit·Push 이후 exact SHA fresh-clone 실행이 아직 수행되지 않음,pwsh -File cpf-tools/scripts/verify-cpf-qa34-frontend-runtime.ps1
+QA34-REQ-008,완료,미검증,Overlay 적용·Commit·Push 이후 exact SHA fresh-clone 실행이 아직 수행되지 않음,pwsh -File cpf-tools/scripts/verify-cpf-qa34-frontend-runtime.ps1
+QA34-REQ-009,완료,미검증,Overlay 적용·Commit·Push 이후 exact SHA fresh-clone 실행이 아직 수행되지 않음,python cpf-tools/scripts/verify-cpf-qa34-bff-security.py --root . && .\gradlew.bat :cpf-starters:security:test
+QA34-REQ-010,완료,미검증,Overlay 적용·Commit·Push 이후 exact SHA fresh-clone 실행이 아직 수행되지 않음,pwsh -File cpf-tools/scripts/invoke-cpf-qa34-db-runtime-matrix.ps1
+QA34-REQ-011,완료,미검증,Overlay 적용·Commit·Push 이후 exact SHA fresh-clone 실행이 아직 수행되지 않음,python cpf-tools/scripts/verify-cpf-qa34-kafka-ack-contract.py --root . && pwsh -File cpf-tools/scripts/smoke-bat-two-worker-runtime.ps1
+QA34-REQ-012,완료,미검증,Overlay 적용·Commit·Push 이후 exact SHA fresh-clone 실행이 아직 수행되지 않음,python cpf-tools/scripts/verify-cpf-qa34-batch-outbound-policy.py --root .
+QA34-REQ-013,완료,미검증,Overlay 적용·Commit·Push 이후 exact SHA fresh-clone 실행이 아직 수행되지 않음,pwsh -File cpf-tools/scripts/verify-cpf-qa34-runtime-matrix.ps1
+QA34-REQ-014,완료,미검증,Overlay 적용·Commit·Push 이후 exact SHA fresh-clone 실행이 아직 수행되지 않음,python cpf-tools/scripts/verify-cpf-qa34-network-identity.py --root .
+QA34-REQ-015,완료,미검증,Overlay 적용·Commit·Push 이후 exact SHA fresh-clone 실행이 아직 수행되지 않음,pwsh -File cpf-tools/scripts/verify-cpf-qa34-runtime-matrix.ps1
+QA34-REQ-016,완료,미검증,Overlay 적용·Commit·Push 이후 exact SHA fresh-clone 실행이 아직 수행되지 않음,python cpf-tools/scripts/verify-cpf-qa34-network-identity.py --root .
+QA34-REQ-017,완료,미검증,Overlay 적용·Commit·Push 이후 exact SHA fresh-clone 실행이 아직 수행되지 않음,pwsh -File cpf-tools/scripts/verify-cpf-qa34-runtime-matrix.ps1
+QA34-REQ-018,완료,미검증,Overlay 적용·Commit·Push 이후 exact SHA fresh-clone 실행이 아직 수행되지 않음,pwsh -File cpf-tools/scripts/generate-cpf-supply-chain-evidence.ps1
+QA34-REQ-019,완료,미검증,Overlay 적용·Commit·Push 이후 exact SHA fresh-clone 실행이 아직 수행되지 않음,python cpf-tools/scripts/reclassify-cpf-qa33-matrices.py --strict
+QA34-REQ-020,완료,미검증,Overlay 적용·Commit·Push 이후 exact SHA fresh-clone 실행이 아직 수행되지 않음,pwsh -File cpf-tools/scripts/verify-cpf-qa34-independent-review.ps1

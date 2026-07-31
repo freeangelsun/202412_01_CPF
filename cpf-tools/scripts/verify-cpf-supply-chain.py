@@ -3,7 +3,7 @@ import argparse,csv,json,re,sys
 from pathlib import Path
 ALLOW={'Apache-2.0','MIT','BSD-2-Clause','BSD-3-Clause','ISC'}
 CONDITIONAL={'MPL-2.0','EPL-2.0','LGPL-2.1-only','LGPL-3.0-only'}
-DENY={'GPL-2.0-only','GPL-3.0-only','AGPL-3.0-only','SSPL-1.0','BUSL-1.1','BSL-1.1','RSAL','UNKNOWN','NOASSERTION'}
+DENY={'GPL-2.0-only','GPL-3.0-only','AGPL-3.0-only','SSPL-1.0','BUSL-1.1','RSAL','UNKNOWN','NOASSERTION'}
 def main():
  ap=argparse.ArgumentParser();ap.add_argument('--root',default='.');ap.add_argument('--sbom');ap.add_argument('--release',action='store_true');a=ap.parse_args();root=Path(a.root);fail=[]
  lock=root/'cpf-tools/supply-chain/approved-primary-oss.csv'; policy=root/'cpf-tools/supply-chain/license-policy.yml'; notice=root/'cpf-docs/legal/THIRD_PARTY_NOTICES_QA32.md'

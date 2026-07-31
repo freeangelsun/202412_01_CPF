@@ -6,8 +6,8 @@ import com.cpf.batch.api.BatchStepDefinition;
 import com.cpf.batch.spi.BatchFencingPort;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.batch.core.job.Job;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.job.builder.SimpleJobBuilder;
@@ -39,7 +39,7 @@ public final class CpfBatchJobFactory {
     private final MessageChannel remoteRequests;
     private final PollableChannel remoteReplies;
     private final MessagingTemplate remoteMessagingTemplate;
-    private final Map<String, Job> cache = new ConcurrentHashMap<>();
+    private final Map<String, Job> cache;
 
     public CpfBatchJobFactory(
             JobRepository repository,
@@ -62,15 +62,32 @@ public final class CpfBatchJobFactory {
         this.remoteRequests = remoteRequests;
         this.remoteReplies = remoteReplies;
         this.remoteMessagingTemplate = remoteMessagingTemplate;
+        this.cache = new LinkedHashMap<>(128, 0.75f, true) {
+            @Override protected boolean removeEldestEntry(Map.Entry<String, Job> eldest) {
+                return size() > properties.maxMaterializedJobs();
+            }
+        };
     }
 
-    public Job materialize(BatchExecutionPlan plan) {
+    public synchronized Job materialize(BatchExecutionPlan plan) {
+        plan.verifyIntegrity();
         String cacheKey = plan.planId() + "@" + plan.planVersion() + ":" + plan.checksum();
-        return cache.computeIfAbsent(cacheKey, ignored -> build(plan));
+        Job existing = cache.get(cacheKey);
+        if (existing != null) return existing;
+        Job created = build(plan);
+        cache.put(cacheKey, created);
+        return created;
+    }
+
+    public static String jobName(String planId, long planVersion, String checksum) {
+        if (checksum == null || !checksum.matches("[0-9a-f]{64}")) {
+            throw new IllegalArgumentException("plan checksum must be canonical SHA-256");
+        }
+        return planId + "_V" + planVersion + "_" + checksum.substring(0, 16);
     }
 
     private Job build(BatchExecutionPlan plan) {
-        String jobName = plan.planId() + "_V" + plan.planVersion();
+        String jobName = jobName(plan.planId(), plan.planVersion(), plan.checksum());
         List<Step> steps = plan.steps().stream().map(step -> step(plan.topology(), step)).toList();
         JobBuilder builder = new JobBuilder(jobName, repository).listener(listener);
         if (plan.topology() == BatchExecutionTopology.PARALLEL_STEPS) {

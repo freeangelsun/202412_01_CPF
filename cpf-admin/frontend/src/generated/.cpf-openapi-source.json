@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 2,
+  "sourceSha": "c1f273f1ea4fafac6fd5d23bd837adfc38a04497",
+  "openApiPath": "openapi/cpf-openapi.json",
+  "openApiSha256": "e591a7d85ef30d3f9dd0c0569be7ecbd48c198ca4a0db556aa866fb59268c5d0",
+  "generatedFiles": [
+    {
+      "path": "src/generated/cpf-api.ts",
+      "sha256": "0b8e1c6e8cd46ea5d17d5cf78fb8b060a0fedd875da11d14735aa9d11dc0c826"
+    }
+  ],
+  "generator": "orval",
+  "generatorConfigPath": "orval.config.ts",
+  "generatorConfigSha256": "fce6bff86e5cb784d50296ec807008aaf8a4282e3a779f06419256d25c8a41a8"
+}

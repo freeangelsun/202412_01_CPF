@@ -8,7 +8,6 @@ import com.cpf.core.api.archive.CpfArchiveRequest;
 import com.cpf.core.api.archive.CpfArchiveResult;
 import com.cpf.core.api.archive.CpfArchiveService;
 import com.cpf.core.api.archive.CpfExtractedArchiveEntry;
-import com.cpf.core.api.archive.CpfZipSlipGuard;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -25,7 +24,9 @@ import java.util.ArrayList;
 import java.util.HexFormat;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
+import java.util.UUID;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
@@ -67,7 +68,7 @@ public class LocalCpfArchiveService implements CpfArchiveService {
                     temporary, StandardOpenOption.TRUNCATE_EXISTING))) {
                 for (CpfArchiveEntry entry : request.entries()) {
                     validateEntry(entry, request.policy(), total);
-                    requireUniqueEntry(names, entry.name());
+                    requireUniqueEntry(names, entry.name(), request.policy());
                     output.putNextEntry(new ZipEntry(entry.name()));
                     try (InputStream input = entry.openStream()) {
                         requireExactSize(entry, copy(input, output, entry.size()));
@@ -99,7 +100,7 @@ public class LocalCpfArchiveService implements CpfArchiveService {
                 output.setBigNumberMode(TarArchiveOutputStream.BIGNUMBER_ERROR);
                 for (CpfArchiveEntry entry : request.entries()) {
                     validateEntry(entry, request.policy(), total);
-                    requireUniqueEntry(names, entry.name());
+                    requireUniqueEntry(names, entry.name(), request.policy());
                     TarArchiveEntry tarEntry = new TarArchiveEntry(entry.name());
                     tarEntry.setSize(entry.size());
                     tarEntry.setMode(0640);
@@ -156,16 +157,21 @@ public class LocalCpfArchiveService implements CpfArchiveService {
         ExtractionBudget budget = new ExtractionBudget(policy);
         Set<String> names = new HashSet<>();
         Path base = secureTarget(target, policy);
+        ExtractionTransaction transaction = new ExtractionTransaction(base);
         try (ZipInputStream input = new ZipInputStream(Files.newInputStream(archive, LinkOption.NOFOLLOW_LINKS))) {
             for (ZipEntry entry; (entry = input.getNextEntry()) != null;) {
                 if (entry.isDirectory()) continue;
-                requireUniqueEntry(names, entry.getName());
-                result.add(extractEntry(input, entry.getName(), base, policy, budget));
+                requireUniqueEntry(names, entry.getName(), policy);
+                validateZipMetadata(entry, policy);
+                result.add(extractEntry(input, entry.getName(), base, policy, budget, transaction));
             }
-        } catch (IOException failure) {
-            throw new IllegalStateException("ZIP_EXTRACT_FAILED", failure);
+            transaction.commit();
+        } catch (RuntimeException | IOException failure) {
+            transaction.rollback(failure);
+            if (failure instanceof IOException io) throw new IllegalStateException("ZIP_EXTRACT_FAILED", io);
+            throw (RuntimeException) failure;
         }
-        return List.copyOf(result);
+        return remapResults(result, base, target);
     }
 
     private List<CpfExtractedArchiveEntry> untar(Path archive, Path target, CpfArchivePolicy policy) {
@@ -173,11 +179,12 @@ public class LocalCpfArchiveService implements CpfArchiveService {
         ExtractionBudget budget = new ExtractionBudget(policy);
         Set<String> names = new HashSet<>();
         Path base = secureTarget(target, policy);
+        ExtractionTransaction transaction = new ExtractionTransaction(base);
         try (TarArchiveInputStream input = new TarArchiveInputStream(
                 Files.newInputStream(archive, LinkOption.NOFOLLOW_LINKS))) {
             for (TarArchiveEntry entry; (entry = input.getNextEntry()) != null;) {
                 if (entry.isDirectory()) continue;
-                requireUniqueEntry(names, entry.getName());
+                requireUniqueEntry(names, entry.getName(), policy);
                 if (entry.isSymbolicLink() || entry.isLink() || entry.isCharacterDevice()
                         || entry.isBlockDevice() || entry.isFIFO()) {
                     throw new SecurityException("TAR_SPECIAL_ENTRY_DENIED:" + entry.getName());
@@ -185,27 +192,36 @@ public class LocalCpfArchiveService implements CpfArchiveService {
                 if (entry.getSize() < 0 || entry.getSize() > policy.maxEntrySizeBytes()) {
                     throw new IllegalArgumentException("TAR_ENTRY_BUDGET_EXCEEDED:" + entry.getName());
                 }
-                result.add(extractEntry(input, entry.getName(), base, policy, budget));
+                result.add(extractEntry(input, entry.getName(), base, policy, budget, transaction));
             }
-        } catch (IOException failure) {
-            throw new IllegalStateException("TAR_EXTRACT_FAILED", failure);
+            transaction.commit();
+        } catch (RuntimeException | IOException failure) {
+            transaction.rollback(failure);
+            if (failure instanceof IOException io) throw new IllegalStateException("TAR_EXTRACT_FAILED", io);
+            throw (RuntimeException) failure;
         }
-        return List.copyOf(result);
+        return remapResults(result, base, target);
     }
 
     private List<CpfExtractedArchiveEntry> gunzip(Path archive, Path target, CpfArchivePolicy policy) {
         Path base = secureTarget(target, policy);
         String name = archive.getFileName().toString().replaceFirst("(?i)\\.gz$", "");
+        ExtractionTransaction transaction = new ExtractionTransaction(base);
         try (InputStream input = new GZIPInputStream(Files.newInputStream(archive, LinkOption.NOFOLLOW_LINKS))) {
             ExtractionBudget budget = new ExtractionBudget(policy);
-            return List.of(extractEntry(input, name, base, policy, budget));
-        } catch (IOException failure) {
-            throw new IllegalStateException("GZIP_EXTRACT_FAILED", failure);
+            CpfExtractedArchiveEntry result = extractEntry(input, name, base, policy, budget, transaction);
+            transaction.commit();
+            return remapResults(List.of(result), base, target);
+        } catch (RuntimeException | IOException failure) {
+            transaction.rollback(failure);
+            if (failure instanceof IOException io) throw new IllegalStateException("GZIP_EXTRACT_FAILED", io);
+            throw (RuntimeException) failure;
         }
     }
 
     private CpfExtractedArchiveEntry extractEntry(
-            InputStream input, String entryName, Path base, CpfArchivePolicy policy, ExtractionBudget budget)
+            InputStream input, String entryName, Path base, CpfArchivePolicy policy,
+            ExtractionBudget budget, ExtractionTransaction transaction)
             throws IOException {
         Path output = CpfZipSlipGuard.safeResolve(base, entryName).toAbsolutePath().normalize();
         if (!output.startsWith(base)) throw new SecurityException("ARCHIVE_PATH_ESCAPE:" + entryName);
@@ -218,10 +234,26 @@ public class LocalCpfArchiveService implements CpfArchiveService {
         Path temporary = output.resolveSibling(output.getFileName() + policy.tempSuffix());
         Files.deleteIfExists(temporary);
         DigestCopy copied;
+        Path backup = null;
         try {
             copied = copyEntry(input, temporary, budget.remainingEntryBudget());
             budget.consume(copied.size());
-            move(temporary, output);
+            if (Files.exists(output, LinkOption.NOFOLLOW_LINKS)) {
+                if (!Files.isRegularFile(output, LinkOption.NOFOLLOW_LINKS)) {
+                    throw new SecurityException("ARCHIVE_TARGET_NOT_REGULAR_FILE:" + entryName);
+                }
+                backup = output.resolveSibling(output.getFileName() + ".cpf-backup-" + UUID.randomUUID());
+                moveNoReplace(output, backup);
+            }
+            try {
+                move(temporary, output);
+            } catch (RuntimeException | IOException publishFailure) {
+                if (backup != null && Files.exists(backup, LinkOption.NOFOLLOW_LINKS)) {
+                    move(backup, output);
+                }
+                throw publishFailure;
+            }
+            transaction.record(output, backup);
         } catch (RuntimeException | IOException failure) {
             Files.deleteIfExists(temporary);
             throw failure;
@@ -266,9 +298,48 @@ public class LocalCpfArchiveService implements CpfArchiveService {
         }
     }
 
-    private static void requireUniqueEntry(Set<String> names, String entryName) {
+    private static void requireUniqueEntry(Set<String> names, String entryName, CpfArchivePolicy policy) {
         String normalized = entryName.replace('\\', '/');
-        if (!names.add(normalized)) throw new SecurityException("ARCHIVE_DUPLICATE_ENTRY:" + entryName);
+        if (normalized.indexOf('\0') >= 0 || normalized.chars().anyMatch(Character::isISOControl)) {
+            throw new SecurityException("ARCHIVE_CONTROL_CHARACTER_ENTRY:" + entryName);
+        }
+        String[] segments = normalized.split("/");
+        if (segments.length > policy.maxPathDepth()) {
+            throw new SecurityException("ARCHIVE_PATH_DEPTH_EXCEEDED:" + entryName);
+        }
+        for (String segment : segments) validatePortableSegment(segment, entryName);
+        String canonical = normalized.toLowerCase(Locale.ROOT);
+        if (!names.add(canonical)) throw new SecurityException("ARCHIVE_DUPLICATE_CANONICAL_ENTRY:" + entryName);
+        if (policy.maxNestedArchiveDepth() == 0 && isArchiveName(canonical)) {
+            throw new SecurityException("ARCHIVE_NESTED_ENTRY_DENIED:" + entryName);
+        }
+    }
+
+    private static void validatePortableSegment(String segment, String entryName) {
+        if (segment.isBlank() || segment.endsWith(".") || segment.endsWith(" ")) {
+            throw new SecurityException("ARCHIVE_NON_PORTABLE_ENTRY:" + entryName);
+        }
+        String base = segment.toLowerCase(Locale.ROOT).split("\\.", 2)[0];
+        if (base.matches("con|prn|aux|nul|com[1-9]|lpt[1-9]")) {
+            throw new SecurityException("ARCHIVE_RESERVED_NAME:" + entryName);
+        }
+    }
+
+    private static boolean isArchiveName(String name) {
+        return name.endsWith(".zip") || name.endsWith(".jar") || name.endsWith(".war")
+                || name.endsWith(".tar") || name.endsWith(".tgz") || name.endsWith(".gz")
+                || name.endsWith(".7z") || name.endsWith(".rar");
+    }
+
+    private static void validateZipMetadata(ZipEntry entry, CpfArchivePolicy policy) {
+        long size = entry.getSize();
+        long compressed = entry.getCompressedSize();
+        if (size > policy.maxEntrySizeBytes()) {
+            throw new IllegalArgumentException("ZIP_ENTRY_BUDGET_EXCEEDED:" + entry.getName());
+        }
+        if (size > 0 && compressed > 0 && ((double) size / (double) compressed) > policy.maxCompressionRatio()) {
+            throw new SecurityException("ARCHIVE_COMPRESSION_RATIO_EXCEEDED:" + entry.getName());
+        }
     }
 
     private static void validateEntry(CpfArchiveEntry entry, CpfArchivePolicy policy, long total) {
@@ -357,6 +428,26 @@ public class LocalCpfArchiveService implements CpfArchiveService {
         throw new SecurityException("ARCHIVE_PARENT_OUTSIDE_ALLOWED_BASE");
     }
 
+    private static List<CpfExtractedArchiveEntry> remapResults(
+            List<CpfExtractedArchiveEntry> entries, Path base, Path requestedTarget) {
+        Path target = requestedTarget.toAbsolutePath().normalize();
+        return entries.stream()
+                .map(entry -> new CpfExtractedArchiveEntry(
+                        entry.name(),
+                        target.resolve(base.relativize(entry.path())).normalize(),
+                        entry.size(),
+                        entry.checksumSha256()))
+                .toList();
+    }
+
+    private static void moveNoReplace(Path source, Path target) throws IOException {
+        try {
+            Files.move(source, target, StandardCopyOption.ATOMIC_MOVE);
+        } catch (AtomicMoveNotSupportedException ignored) {
+            Files.move(source, target);
+        }
+    }
+
     private static void move(Path source, Path target) throws IOException {
         try {
             Files.move(source, target, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
@@ -371,6 +462,54 @@ public class LocalCpfArchiveService implements CpfArchiveService {
     }
 
     private record DigestCopy(long size, String sha256) {}
+
+    private static final class ExtractionTransaction {
+        private final Path base;
+        private final List<PublishedEntry> published = new ArrayList<>();
+        private boolean committed;
+
+        private ExtractionTransaction(Path base) { this.base = base; }
+        private void record(Path output, Path backup) { published.add(new PublishedEntry(output, backup)); }
+        private void commit() {
+            committed = true;
+            for (PublishedEntry entry : published) {
+                if (entry.backup() != null) deleteQuietly(entry.backup());
+            }
+        }
+        private void rollback(Throwable primary) {
+            if (committed) return;
+            for (int index = published.size() - 1; index >= 0; index--) {
+                PublishedEntry entry = published.get(index);
+                try {
+                    Files.deleteIfExists(entry.output());
+                    if (entry.backup() != null && Files.exists(entry.backup(), LinkOption.NOFOLLOW_LINKS)) {
+                        move(entry.backup(), entry.output());
+                    }
+                } catch (IOException rollbackFailure) {
+                    primary.addSuppressed(rollbackFailure);
+                }
+            }
+            cleanupEmptyDirectories(base, primary);
+        }
+        private static void cleanupEmptyDirectories(Path base, Throwable primary) {
+            try (var paths = Files.walk(base)) {
+                paths.filter(Files::isDirectory)
+                        .sorted(java.util.Comparator.reverseOrder())
+                        .filter(path -> !path.equals(base))
+                        .forEach(path -> {
+                            try (var children = Files.list(path)) {
+                                if (children.findAny().isEmpty()) Files.deleteIfExists(path);
+                            } catch (IOException failure) {
+                                primary.addSuppressed(failure);
+                            }
+                        });
+            } catch (IOException failure) {
+                primary.addSuppressed(failure);
+            }
+        }
+    }
+
+    private record PublishedEntry(Path output, Path backup) {}
 
     private static final class ExtractionBudget {
         private final CpfArchivePolicy policy;

@@ -28,12 +28,10 @@ dependencies {
 	implementation 'org.aspectj:aspectjweaver:1.9.20'
 
 	// 주제영역 간 HTTP 호출과 거래 헤더 전파에 사용합니다.
-	implementation 'org.springframework.boot:spring-boot-starter-webflux'
-	implementation 'org.springframework.boot:spring-boot-restclient'
+	compileOnly 'org.springframework.boot:spring-boot-starter-webflux'
+	compileOnly 'org.springframework.boot:spring-boot-restclient'
 
-	// Kafka와 RabbitMQ의 실제 client adapter는 프레임워크 broker port 구현인 CPF가 소유합니다.
-	implementation 'org.springframework.kafka:spring-kafka'
-	implementation 'org.springframework.boot:spring-boot-starter-amqp'
+	// Kafka·AMQP Runtime은 cpf-starter-messaging-* Adapter가 소유합니다. Core POM에는 전이시키지 않습니다.
 
 	// CPF 표준 배치 API 컴파일에만 사용합니다. 실제 Batch 런타임은 ADM/REF/BAT 같은 배치 사용 모듈이 명시합니다.
 	compileOnly 'org.springframework.batch:spring-batch-core'
@@ -44,11 +42,11 @@ dependencies {
 	compileOnly 'org.springframework:spring-web'
 	compileOnly 'org.springframework:spring-webmvc'
 
-	// Vendor-neutral observability export. CPF public API는 OTel type을 노출하지 않고 runtime adapter만 소유합니다.
-	implementation platform('io.opentelemetry:opentelemetry-bom:1.64.0')
-	implementation 'io.opentelemetry:opentelemetry-api'
-	implementation 'io.opentelemetry:opentelemetry-sdk'
-	implementation 'io.opentelemetry:opentelemetry-exporter-otlp'
+	// OTel API는 compile boundary로만 사용하며 SDK/Exporter Runtime은 observability Starter가 소유합니다.
+	compileOnly platform('io.opentelemetry:opentelemetry-bom:1.64.0')
+	compileOnly 'io.opentelemetry:opentelemetry-api'
+	compileOnly 'io.opentelemetry:opentelemetry-sdk'
+	compileOnly 'io.opentelemetry:opentelemetry-exporter-otlp'
 	implementation 'org.apache.commons:commons-compress:1.28.0'
 
 	// OpenAPI 3 문서, Swagger UI, Scalar API Reference를 제공합니다.

@@ -1,4 +1,6 @@
-import { createAdmHeaders } from "../../shared/cpfApi";
+import { admMutation, admQuery } from "../../shared/cpfApi";
+import { getAdmAuthMe } from "../../generated/cpf-api";
+import { useAdmInitializationStore } from "../../stores/admInitializationStore";
 
 export const coreMethods: Record<string, any> = {
   pretty(value) {
@@ -32,68 +34,73 @@ export const coreMethods: Record<string, any> = {
         }
         return true;
       },
-  apiHeaders(extraHeaders = {}) {
-        return createAdmHeaders(extraHeaders);
-      },
-  async getJson(url) {
-        const response = await fetch(url, { headers: this.apiHeaders(), credentials: "include", cache: "no-store" });
-        return this.parseResponse(response);
-      },
-  async sendJson(url, method, body) {
-        const mutation = ["POST", "PUT", "PATCH", "DELETE"].includes(String(method).toUpperCase());
-        let resolvedUrl = url;
-        let resolvedBody = body;
-        if (mutation) {
-          const actor = this.currentOperator?.operatorId;
-          if (!actor) throw new Error("검증된 ADM 운영자 ID가 없습니다.");
-          const parsed = new URL(url, window.location.origin);
-          if (parsed.searchParams.has("requestUser")) parsed.searchParams.set("requestUser", actor);
-          resolvedUrl = parsed.pathname + parsed.search + parsed.hash;
-          if (body && typeof body === "object" && !Array.isArray(body) && Object.prototype.hasOwnProperty.call(body, "requestUser")) {
-            resolvedBody = { ...body, requestUser: actor };
-          }
-        }
-        const response = await fetch(resolvedUrl, {
-          method,
-          headers: this.apiHeaders({ "Content-Type": "application/json" }),
-          body: resolvedBody ? JSON.stringify(resolvedBody) : undefined
-        });
-        return this.parseResponse(response);
-      },
   async loadInitialData() {
+        const initialization = useAdmInitializationStore();
+        initialization.begin();
+        this.initializationStatus = initialization.status;
+        this.initializationFailures = [];
         await this.loadMe();
         if (!this.authenticated || this.passwordChangeRequired) {
+          initialization.blocked();
+          this.initializationStatus = initialization.status;
           return;
         }
-        await Promise.allSettled([
-          this.searchLogs(),
-          this.loadTransactionGroups(),
-          this.loadTransactions(),
-          this.loadStandardExecutions(),
-          this.loadChannelPolicy(),
-          this.loadRemoteLogs(),
-          this.loadAuditLogs(),
-          this.loadServiceRegistry(),
-          this.loadBatch(),
-          this.loadCenterCut(),
-          this.loadNotifications(),
-          this.loadDownloadPolicies(),
-          this.loadOperators(),
-          this.loadResponseCodes(),
-          this.loadLogLevelRules(),
-          this.loadLogPolicies(),
-          this.loadMessages(),
-          this.loadCodes(),
-          this.loadConfigs(),
-          this.loadCacheSummary(),
-          this.loadPermissions(),
-          this.loadSecurity()
-        ]);
+
+        const required = [
+          { name: "permissions", run: () => this.loadPermissions() },
+          { name: "security", run: () => this.loadSecurity() },
+          { name: "service-registry", run: () => this.loadServiceRegistry() }
+        ];
+        for (const item of required) {
+          try {
+            await item.run();
+          } catch (error) {
+            const message = initialization.record(item.name, error, true);
+            this.initializationFailures = initialization.failures;
+            this.initializationStatus = initialization.status;
+            this.setMessage(`필수 운영 API 초기화 실패: ${item.name} - ${message}`);
+            throw error;
+          }
+        }
+
+        const optional = [
+          { name: "logs", run: () => this.searchLogs() },
+          { name: "transaction-groups", run: () => this.loadTransactionGroups() },
+          { name: "transactions", run: () => this.loadTransactions() },
+          { name: "standard-executions", run: () => this.loadStandardExecutions() },
+          { name: "channel-policy", run: () => this.loadChannelPolicy() },
+          { name: "remote-logs", run: () => this.loadRemoteLogs() },
+          { name: "audit-logs", run: () => this.loadAuditLogs() },
+          { name: "batch", run: () => this.loadBatch() },
+          { name: "center-cut", run: () => this.loadCenterCut() },
+          { name: "notifications", run: () => this.loadNotifications() },
+          { name: "downloads", run: () => this.loadDownloadPolicies() },
+          { name: "operators", run: () => this.loadOperators() },
+          { name: "response-codes", run: () => this.loadResponseCodes() },
+          { name: "log-level", run: () => this.loadLogLevelRules() },
+          { name: "log-policies", run: () => this.loadLogPolicies() },
+          { name: "messages", run: () => this.loadMessages() },
+          { name: "codes", run: () => this.loadCodes() },
+          { name: "configs", run: () => this.loadConfigs() },
+          { name: "cache", run: () => this.loadCacheSummary() }
+        ];
+        const settled = await Promise.allSettled(optional.map(item => item.run()));
+        settled.forEach((result, index) => {
+          if (result.status === "rejected") {
+            initialization.record(optional[index].name, result.reason, false);
+          }
+        });
+        initialization.complete();
+        this.initializationFailures = initialization.failures;
+        this.initializationStatus = initialization.status;
+        if (this.initializationFailures.length) {
+          this.setMessage(`선택 운영 API ${this.initializationFailures.length}건을 불러오지 못했습니다. 화면별 재시도를 사용하세요.`);
+        }
       },
   async loadMe() {
         this.permissionsLoaded = false;
         try {
-          const data = await this.getJson("/adm/api/auth/me") || {};
+          const data = await getAdmAuthMe<any>() || {};
           this.currentOperator = data.operatorId ? data : {};
           this.authorizedMenus = Array.isArray(data.menus) ? data.menus : [];
           this.authorizedButtons = Array.isArray(data.buttonIds) ? data.buttonIds : [];
@@ -137,22 +144,21 @@ export const coreMethods: Record<string, any> = {
       },
   async replayDlq() {
         if (!this.reliabilityAction.messageId || !this.requireReason(this.reliabilityAction.reason)) return;
-        this.reliabilityResult = await this.sendJson(
+        this.reliabilityResult = await admMutation(
           `/adm/api/reliability/broker/dlq/${encodeURIComponent(this.reliabilityAction.messageId)}/replay`,
           "POST",
-          { reason: this.reliabilityAction.reason, requestUser: this.currentOperator.operatorId }
+          { reason: this.reliabilityAction.reason }
         );
         this.setMessage("DLQ 재처리를 요청했습니다.");
       },
   async resolveUnknownResult() {
         if (!this.reliabilityAction.unknownId || !this.requireReason(this.reliabilityAction.reason)) return;
-        this.reliabilityResult = await this.sendJson(
+        this.reliabilityResult = await admMutation(
           `/adm/api/reliability/unknown-results/${encodeURIComponent(this.reliabilityAction.unknownId)}/resolve`,
           "POST",
           {
             targetStatus: this.reliabilityAction.targetStatus,
             reason: this.reliabilityAction.reason,
-            requestUser: this.currentOperator.operatorId
           }
         );
         this.setMessage("결과 미확정 건의 수동 처리를 요청했습니다.");
@@ -160,41 +166,40 @@ export const coreMethods: Record<string, any> = {
 
   async createRole() {
         if (!this.roleForm.roleId || !this.roleForm.roleName || !this.requireReason(this.roleForm.reason)) return;
-        this.permissionResult = await this.sendJson("/adm/api/permissions/roles", "POST", this.roleForm);
+        this.permissionResult = await admMutation("/adm/api/permissions/roles", "POST", this.roleForm);
         this.setMessage("역할을 등록했습니다.");
       },
   async updateRole() {
         if (!this.roleForm.roleId || !this.roleForm.roleName || !this.requireReason(this.roleForm.reason)) return;
-        this.permissionResult = await this.sendJson(`/adm/api/permissions/roles/${this.roleForm.roleId}`, "PUT", this.roleForm);
+        this.permissionResult = await admMutation(`/adm/api/permissions/roles/${this.roleForm.roleId}`, "PUT", this.roleForm);
         this.setMessage("역할을 수정했습니다.");
       },
   async createManagedMenu() {
         if (!this.menuManageForm.menuId || !this.menuManageForm.menuName || !this.requireReason(this.menuManageForm.reason)) return;
-        this.permissionResult = await this.sendJson("/adm/api/permissions/menus", "POST", this.menuManageForm);
+        this.permissionResult = await admMutation("/adm/api/permissions/menus", "POST", this.menuManageForm);
         this.setMessage("메뉴를 등록했습니다.");
       },
   async updateManagedMenu() {
         if (!this.menuManageForm.menuId || !this.menuManageForm.menuName || !this.requireReason(this.menuManageForm.reason)) return;
-        this.permissionResult = await this.sendJson(`/adm/api/permissions/menus/${this.menuManageForm.menuId}`, "PUT", this.menuManageForm);
+        this.permissionResult = await admMutation(`/adm/api/permissions/menus/${this.menuManageForm.menuId}`, "PUT", this.menuManageForm);
         this.setMessage("메뉴를 수정했습니다.");
       },
   async createButton() {
         if (!this.buttonForm.buttonId || !this.buttonForm.menuId || !this.buttonForm.buttonName || !this.requireReason(this.buttonForm.reason)) return;
-        this.permissionResult = await this.sendJson("/adm/api/permissions/buttons", "POST", this.buttonForm);
+        this.permissionResult = await admMutation("/adm/api/permissions/buttons", "POST", this.buttonForm);
         this.setMessage("버튼을 등록했습니다.");
       },
   async updateButton() {
         if (!this.buttonForm.buttonId || !this.buttonForm.menuId || !this.buttonForm.buttonName || !this.requireReason(this.buttonForm.reason)) return;
-        this.permissionResult = await this.sendJson(`/adm/api/permissions/buttons/${this.buttonForm.buttonId}`, "PUT", this.buttonForm);
+        this.permissionResult = await admMutation(`/adm/api/permissions/buttons/${this.buttonForm.buttonId}`, "PUT", this.buttonForm);
         this.setMessage("버튼을 수정했습니다.");
       },
   async saveIpAllowlist() {
         if (!this.securityForm.ipPattern || !this.requireReason(this.securityForm.reason)) return;
-        this.securityResult = await this.sendJson("/adm/api/security/ip-allowlist", "POST", {
+        this.securityResult = await admMutation("/adm/api/security/ip-allowlist", "POST", {
           ipPattern: this.securityForm.ipPattern,
           description: this.securityForm.description,
           useYn: "Y",
-          requestUser: this.currentOperator.operatorId,
           reason: this.securityForm.reason
         });
         this.setMessage("IP allowlist를 저장했습니다.");

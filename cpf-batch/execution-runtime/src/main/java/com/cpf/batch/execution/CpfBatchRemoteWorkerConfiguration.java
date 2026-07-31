@@ -80,8 +80,8 @@ public class CpfBatchRemoteWorkerConfiguration {
         return new RemoteChunkingWorkerBuilder<Map<String, Object>, Map<String, Object>>()
                 .inputChannel(input)
                 .outputChannel(output)
-                .itemProcessor(new CpfRemoteChunkItemProcessor(handlers, fencing))
-                .itemWriter(chunk -> { /* side effects are committed by the CPF handler */ })
+                .itemProcessor(new CpfRemoteChunkItemProcessor())
+                .itemWriter(new CpfRemoteChunkItemWriter(handlers, fencing))
                 .build();
     }
 }

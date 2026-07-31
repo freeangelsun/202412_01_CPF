@@ -1,80 +1,166 @@
 # CPF Requirement Continuity Ledger
 
+> Canonical path: `cpf-docs/governance/CPF_REQUIREMENT_CONTINUITY_LEDGER.md`  
+> Synchronized with Final Target revision: `2026-07-31`  
+> Synchronization review baseline: `c1f273f1ea4fafac6fd5d23bd837adfc38a04497`  
+> Final Target reviewed blob: `262077e913db1d83731c0f3b643565859af431c1`
+
 ## 1. 목적
 
-이 문서는 Requirement ID가 PC, Codex 계정, 세션 또는 Architecture Rename 때문에 사라지는 것을 막는 영속 추적 정본이다.
+이 문서는 Requirement ID가 PC, 세션, AI 계정, 작업차수, Architecture Rename 또는 Owner 이동 때문에 사라지거나 중복 집계되는 것을 방지하는 영속 추적 정본이다.
 
-- 기준 과거 정본: `a63380e6c736fa9c5ae7e425d0e301d21ef3b848` — 133개
-- 검수 기준 정본: `22b1874e67547372b51a4bcd21f47aea6fcb5c25` — 126개
-- 이번 재조정/신규 정본화 Canonical Count: **162개**
-- Legacy Alias: **8개**, 완료율 중복 집계 금지
-- 복구 Requirement: **34개**
+최상위 제품 의미와 상세 완료 증명은 다음 파일이 소유한다.
 
-## 2. Count 변경 원인
+`cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md`
 
-126개 정본은 133개 정본에서 42개 ID가 제거되고 35개 신규 ID가 추가되어 만들어졌다. 이 과정에 명시적 Old→New Mapping이 없었던 것이 추적성 결함이다. 이번 보정에서는 실제 의미가 계속 필요한 34개를 Canonical Catalog로 복구하고, Owner 이동/세분화에 해당하는 8개는 Alias로 남긴다.
+이 Ledger는 다음만 소유한다.
 
-## 3. Legacy Alias Mapping
+- Canonical Requirement Count
+- Requirement ID 생성·분해·통합·폐기 이력
+- Legacy Alias Mapping
+- Owner 이동과 의미 연속성
+- 신규 Requirement Intake 절차
+- QA/작업 패키지 ID와 제품 Requirement ID의 구분
 
-| Legacy ID | 현재 추적 대상 | 정책 |
+## 2. 현재 Canonical 상태
+
+| 구분 | 수량 | 완료율 집계 |
+|---|---:|---|
+| Canonical Product Requirement | **162개** | 포함 |
+| Legacy Alias | **8개** | 제외 |
+| QA33 Remediation Requirement | **138개** | 별도 작업 원장, 제품 Requirement 수에 미포함 |
+| QA33 Mandatory Scenario | **414개** | 별도 검증 원장, 제품 Requirement 수에 미포함 |
+
+QA33의 `QA33-REQ-*`, `QA33-DF-*`, `QA33-SC-*`는 특정 Source 결함 수정과 검증을 위한 **작업 패키지 ID**다. 이 ID를 162개 Canonical Product Requirement에 추가하거나 완료율에 합산하지 않는다.
+
+작업 패키지의 각 행은 반드시 하나 이상의 Canonical Product Requirement와 연결해야 한다. 연결이 없으면 `REQ-GAP` 절차로 신규 제품 Requirement 필요성을 먼저 검토한다.
+
+## 3. Count 변화 이력
+
+| 기준 | Canonical Count | 설명 |
+|---|---:|---|
+| `a63380e6c736fa9c5ae7e425d0e301d21ef3b848` | 133 | 과거 Catalog |
+| `22b1874e67547372b51a4bcd21f47aea6fcb5c25` | 126 | 42개 제거·35개 추가, Mapping 부족 |
+| Requirement 연속성 보정 | 160 | 의미가 남은 34개 복구, 8개 Alias 분리 |
+| 전수검수 신규 정본화 | **162** | `ADM-APPROVAL`, `BZA-ORG` 신규 추가 |
+| 2026-07-31 상세 현행화 | **162** | ID 증감 없이 Owner·최소 목표·완료 증명 상세화 |
+
+2026-07-31 현행화는 Requirement 추가·삭제가 아니다. 기존 162개 각각에 상세 Owner, 최소 제품 목표와 필수 완료 증명을 부여한 정본 강화다.
+
+## 4. Legacy Alias Mapping
+
+| Legacy ID | 현재 Canonical 추적 대상 | 정책 |
 |---|---|---|
-| `FACADE-LOCAL` | `ARCH-MSA + CPF-CALL` | Legacy ID 보존, 완료율 중복 집계 금지 |
-| `FACADE-REMOTE` | `ARCH-MSA + CPF-CALL` | Legacy ID 보존, 완료율 중복 집계 금지 |
-| `CMN-ID` | `CPF-TXID(기술 ID/추적) + BZA-SEQUENCE-SAMPLE/업무 Domain(업무 채번)` | Legacy ID 보존, 완료율 중복 집계 금지 |
-| `CMN-FILE` | `CORE-FILE` | Legacy ID 보존, 완료율 중복 집계 금지 |
-| `CMN-FIXED` | `CORE-FIXED` | Legacy ID 보존, 완료율 중복 집계 금지 |
-| `ADM-COMP` | `ADM-RECOVERY` | Legacy ID 보존, 완료율 중복 집계 금지 |
-| `CENTER-ADV` | `CENTER-RUNNER + CENTER-PARAM + CENTER-CLAIM + CENTER-RATE + CENTER-REPROCESS + CENTER-UNKNOWN + CENTER-OPS` | Legacy ID 보존, 완료율 중복 집계 금지 |
-| `API-GATEWAY` | `GWY-ENTRY + GWY-ROUTING + GWY-TRUST + GWY-RESILIENCE + API-CONTRACT` | Legacy ID 보존, 완료율 중복 집계 금지 |
+| `FACADE-LOCAL` | `ARCH-MSA + CPF-CALL` | 과거 검색 Key만 유지, 중복 집계 금지 |
+| `FACADE-REMOTE` | `ARCH-MSA + CPF-CALL` | 과거 검색 Key만 유지, 중복 집계 금지 |
+| `CMN-ID` | `CPF-TXID + BZA-SEQUENCE-SAMPLE/업무 Domain` | 기술 ID와 업무 채번을 분리 |
+| `CMN-FILE` | `CORE-FILE` | 중복 집계 금지 |
+| `CMN-FIXED` | `CORE-FIXED` | 중복 집계 금지 |
+| `ADM-COMP` | `ADM-RECOVERY` | 중복 집계 금지 |
+| `CENTER-ADV` | `CENTER-RUNNER + CENTER-PARAM + CENTER-CLAIM + CENTER-RATE + CENTER-REPROCESS + CENTER-UNKNOWN + CENTER-OPS` | 분해 관계 |
+| `API-GATEWAY` | `GWY-ENTRY + GWY-ROUTING + GWY-TRUST + GWY-RESILIENCE + API-CONTRACT` | 분해 관계 |
 
-## 4. 복구된 Canonical Requirement
+## 5. 복구 Requirement 34개
 
-- `CPF-ROLE` — transactionRole, direction, source/target를 표준 거래 문맥과 로그/추적에 유지
-- `CPF-OPSDB` — 운영 DB 공유/장애모드, 로그 DB 장애 시 Runtime 영향과 복구 정책
-- `CPF-LOGFAIL` — DB 로그 실패 시 fail-open/fail-closed 정책, local spool, 재전송과 유실 탐지
-- `CPF-SCHED` — 기술 Scheduler 표준과 cpf-batch Scheduler Runtime의 경계
-- `CMN-CODE` — 고객 업무 공통 코드/참조데이터 확장 계약
-- `CMN-MSG` — 고객 업무 공통 메시지/다국어/오류 메시지 확장 계약
-- `CMN-CALENDAR` — 영업일/휴일/기관 캘린더 확장 계약
-- `CMN-TEMPLATE` — 고객 업무 템플릿/알림 확장 계약; 기술 메시징 엔진과 분리
-- `ADM-SERVICE` — Service Instance/Routing/Health 운영 관제
-- `ADM-LOG` — 로그 정책/Trace Boost 운영 화면과 제어
-- `ADM-INCIDENT` — Alert/Incident/Runbook 연결과 운영 처리
-- `ADM-UX` — 운영 검색, 대시보드, 저장조건, 안전 다운로드 UX
-- `SEC-APP` — Application Security 기본 통제, 보안 헤더/입력/출력/취약 구성
-- `OPS-SELF` — Self-healing 정책과 자동조치 안전장치
-- `OPS-TOPOLOGY` — Topology/Dependency Map/Service Catalog
-- `OPS-MAINT` — Maintenance Mode, Drain, 신규 유입 차단과 안전 복귀
-- `DB-SQL` — SQL/MyBatis/Index/Query 표준과 정적·실행 검증
-- `DB-PERF` — DB 성능, Index, Partition, 대용량 Retention/Purge 성능
-- `DB-MULTI` — Multi Datasource/Read Replica/Read-Write routing; Multi-Vendor와 별도 요구
-- `DATA-LINEAGE` — 데이터 계보, 품질, Reconciliation 추적
-- `DATA-RETENTION` — Retention/Purge/Legal Hold/Archive와 감사
-- `API-LIMIT` — Rate Limit/Quota/Abuse Detection
-- `DEVEX-COMMENT` — JavaDoc, 공개 API/설정 주석, 한글 운영설명 표준
-- `RULE-ARCH` — Architecture Ownership/Dependency 자동 Gate
-- `RULE-SEC` — Secret/URL/취약 설정/보안 규칙 Gate
-- `RULE-QUALITY` — Static Analysis/Dependency/License/중복/Dead Code 품질 Gate
-- `PROD-EDITION` — 상용 Edition/License 정책 후보를 장기 Backlog로 추적
-- `PROD-MULTITENANT` — Multi-tenant/Multi-customer 확장 후보를 장기 Backlog로 추적
-- `PROD-PLUGIN` — Plugin/Adapter/Marketplace 확장 후보를 장기 Backlog로 추적
-- `PROD-PACKAGE` — 산업군별 Package/Distribution 확장 후보를 장기 Backlog로 추적
-- `REQ-GAP` — 새 Future Requirement를 기존 ID와 중복 없이 Intake하는 절차
-- `BAT-CALL-SYNC` — Batch→업무 Domain 동기 호출과 Local/Remote parity
-- `BAT-CALL-ASYNC` — Batch→Event/Outbox 비동기 호출, 재시도/중복/복구
-- `BAT-SHARED` — Batch가 SHARED/온라인 Facade를 재사용할 때의 계약과 의존성 경계
+다음 ID는 133→126 축소 중 사라졌으나 제품 의미가 계속 존재해 Canonical Catalog로 복구했다.
 
-## 5. 이번 검수에서 신규 정본화한 Requirement
+- `CPF-ROLE`, `CPF-OPSDB`, `CPF-LOGFAIL`, `CPF-SCHED`
+- `CMN-CODE`, `CMN-MSG`, `CMN-CALENDAR`, `CMN-TEMPLATE`
+- `ADM-SERVICE`, `ADM-LOG`, `ADM-INCIDENT`, `ADM-UX`
+- `SEC-APP`
+- `OPS-SELF`, `OPS-TOPOLOGY`, `OPS-MAINT`
+- `DB-SQL`, `DB-PERF`, `DB-MULTI`
+- `DATA-LINEAGE`, `DATA-RETENTION`
+- `API-LIMIT`
+- `DEVEX-COMMENT`
+- `RULE-ARCH`, `RULE-SEC`, `RULE-QUALITY`
+- `PROD-EDITION`, `PROD-MULTITENANT`, `PROD-PLUGIN`, `PROD-PACKAGE`
+- `REQ-GAP`
+- `BAT-CALL-SYNC`, `BAT-CALL-ASYNC`, `BAT-SHARED`
 
-- `ADM-APPROVAL` — `cpf-admin`이 소유하는 플랫폼 위험조치 승인 Runtime. 일반 보안 승인 통제와 별개로 Owner Command 실행/Unknown/Break-glass까지 추적한다.
-- `BZA-ORG` — BZA 조직·직원·직급·직책·다중 Role·유효기간 Assignment와 결재 Snapshot Directory 모델.
+각 ID의 현재 의미와 완료 증명은 Final Target 상세 Catalog가 정본이다. 이 Ledger에서 별도 축약 정의를 다시 만들어 내용이 갈라지지 않게 한다.
 
-이 두 ID는 과거 ID의 Rename이 아니라 `22b1874` 전수검수에서 독립 완료 판정이 필요하다고 새로 발견한 Requirement다.
+## 6. 신규 정본화 Requirement
 
-## 6. 영구 운영 규칙
+| ID | 신규 정본화 사유 |
+|---|---|
+| `ADM-APPROVAL` | 플랫폼 위험조치 승인 Runtime의 Owner Command 실행, 결과 불명, Break-glass와 Immutable Audit를 독립 추적해야 함 |
+| `BZA-ORG` | 조직·직원·직급·직책·유효기간 Assignment와 업무결재 Snapshot을 독립 제품 기능으로 추적해야 함 |
 
-1. 다음 요청서 작성 전 이 Ledger와 Final Target을 함께 비교한다.
-2. ID를 Rename하거나 분해할 때 Mapping을 먼저 추가한 뒤 Catalog를 변경한다.
-3. 완료율 계산은 Canonical ID만 사용한다.
-4. Legacy Alias가 Source/Evidence 검색 Key로 남아 있어도 중복 완료로 집계하지 않는다.
-5. 과거 문서나 Git에서 새 의미가 발견되면 `REQ-GAP` 절차로 누락 여부를 검토한다.
+## 7. Requirement 변경 절차
+
+### 7.1 신규
+
+1. 기존 162개와 의미·Owner·완료 증명을 비교한다.
+2. 기존 ID의 상세화로 해결되면 신규 ID를 만들지 않는다.
+3. 독립 Owner·Consumer·상태기계·완료 증명이 필요하면 `REQ-GAP` 기록을 생성한다.
+4. Final Target에 ID와 상세 Catalog를 먼저 추가한다.
+5. 이 Ledger에 생성 근거와 Count 변화를 기록한다.
+6. Matrix·Guide·Test·Evidence의 참조를 갱신한다.
+
+### 7.2 분해
+
+- 기존 ID를 삭제하지 않는다.
+- `split-into` 관계와 분해 이유를 남긴다.
+- 기존 Evidence와 신규 ID의 적용 범위를 Mapping한다.
+- 전환 기간에도 완료율을 중복 집계하지 않는다.
+
+### 7.3 통합
+
+- 기존 ID를 `superseded-by`로 남긴다.
+- 통합된 Acceptance가 누락되지 않았음을 증명한다.
+- 과거 검색·Evidence Key를 유지한다.
+
+### 7.4 폐기
+
+제품 정책에서 요구 자체를 폐기할 때만 허용한다.
+
+필수:
+
+- 폐기 이유
+- 사용자·API·DB·배포 영향
+- 대체 Requirement
+- Migration과 호환성
+- 사용자 승인 근거
+- 완료율 Count 변경
+
+## 8. QA·개발 패키지와 Canonical Requirement 연결
+
+QA Matrix는 다음 Column 또는 동등한 구조를 가져야 한다.
+
+- `record_id`
+- `canonical_requirement_ids`
+- `defect_or_gap`
+- `owner_module`
+- `source_scope`
+- `consumer_scope`
+- `acceptance`
+- `evidence`
+- `development_status`
+- `verification_status`
+
+`canonical_requirement_ids`가 비어 있으면 다음 중 하나로 처리한다.
+
+- 기존 Requirement 연결 누락: 수정
+- Repository Hygiene·요청서 자체 결함: `REQ-GOV`, `REQ-REVIEW`, `REQ-CODEX` 중 연결
+- 실제 신규 제품 요구: `REQ-GAP` 검토
+- 오판 또는 범위 외: 근거와 함께 기각
+
+## 9. 완료율 계산 규칙
+
+- 분모는 Canonical 162개다.
+- Legacy Alias, QA Defect, QA Scenario, OSS Migration Decision ID를 분모에 합산하지 않는다.
+- Requirement 하나가 여러 QA 행에 연결돼도 한 번만 집계한다.
+- `완료`는 Final Target 공통 완료 축과 해당 Requirement의 필수 완료 증명을 모두 만족할 때만 가능하다.
+- 하나의 적용 Scenario라도 `부분 구현`, `미구현`, `미검증`, `실패`, `재확인 필요`면 해당 Requirement는 완료가 아니다.
+- 과거 Evidence가 현재 Source·Artifact에 유효하지 않으면 다시 연다.
+
+## 10. 영구 운영 규칙
+
+1. 모든 작업자는 Final Target과 이 Ledger를 함께 읽는다.
+2. Final Target Count와 이 Ledger Count가 다르면 작업을 중단하고 정합성을 복구한다.
+3. Current Request는 작업 패키지 ID와 Canonical Requirement를 명확히 구분한다.
+4. 과거 Review·Evidence의 ID를 소급 변경하지 않는다.
+5. 이름만 바꾼 동일 Gap을 신규 Requirement로 중복 등록하지 않는다.
+6. Owner 이동은 Source·Consumer·SQL·Test·Guide·Evidence를 함께 이관한다.
+7. 사용자 승인 없는 Canonical Requirement 삭제·Count 감소를 금지한다.

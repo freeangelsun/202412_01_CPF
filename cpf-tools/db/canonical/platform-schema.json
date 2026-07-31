@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 41,
+  "schemaVersion": 45,
   "canonicalPolicy": {
     "officialVendors": [
       "mariadb",
@@ -41,7 +41,7 @@
     "gatewayIngressTargetPathPolicy": "Ingress path_pattern and target_path are separate; wildcard suffix is validated and rewritten before dispatch.",
     "batchExecutionAttemptDetailPolicy": "Shell/external attempt detail including exit/stdout/stderr/truncation/duration/artifactHash/unknown is durable and transactionally finalized."
   },
-  "tableCount": 185,
+  "tableCount": 189,
   "tables": [
     {
       "name": "BATCH_JOB_EXECUTION",
@@ -7384,6 +7384,87 @@
           "autoIncrement": false,
           "onUpdate": null,
           "comment": "Deployment record time"
+        },
+        {
+          "name": "idempotency_scope",
+          "type": "VARCHAR(120)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Cell-scoped deployment idempotency scope"
+        },
+        {
+          "name": "request_hash",
+          "type": "CHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Canonical approved deployment request SHA-256"
+        },
+        {
+          "name": "expected_version",
+          "type": "BIGINT",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Expected deployment plan version"
+        },
+        {
+          "name": "approval_request_id",
+          "type": "VARCHAR(120)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Approval request identifier"
+        },
+        {
+          "name": "reconcile_requested_by",
+          "type": "VARCHAR(120)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Reconciliation requester"
+        },
+        {
+          "name": "reconcile_approved_by",
+          "type": "VARCHAR(120)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Reconciliation approver"
+        },
+        {
+          "name": "reconcile_approval_request_id",
+          "type": "VARCHAR(120)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Reconciliation approval request identifier"
+        },
+        {
+          "name": "reconcile_reason",
+          "type": "VARCHAR(1000)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Mandatory reconciliation reason"
+        },
+        {
+          "name": "reconciled_at",
+          "type": "DATETIME(6)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Reconciliation completion time"
         }
       ],
       "primaryKey": [
@@ -7391,8 +7472,9 @@
       ],
       "uniqueKeys": [
         {
-          "name": "uk_bat_deployment_execution_idempotency",
+          "name": "uk_bat_deploy_exec_scope_idem",
           "columns": [
+            "idempotency_scope",
             "idempotency_key"
           ]
         }
@@ -7403,6 +7485,19 @@
           "columns": [
             "cell_id",
             "execution_state"
+          ]
+        },
+        {
+          "name": "ix_bat_deploy_exec_request_hash",
+          "columns": [
+            "request_hash"
+          ]
+        },
+        {
+          "name": "ix_bat_deploy_exec_reconciled",
+          "columns": [
+            "execution_state",
+            "reconciled_at"
           ]
         }
       ],
@@ -7420,7 +7515,12 @@
           "onUpdate": null
         }
       ],
-      "checks": [],
+      "checks": [
+        {
+          "name": "ck_bat_deploy_exec_request_hash",
+          "expression": "request_hash REGEXP '^[0-9a-f]{64}$'"
+        }
+      ],
       "comment": "BAT approved deployment execution",
       "module": "bat",
       "logicalDatabase": "batDB"
@@ -12026,6 +12126,155 @@
       "logicalDatabase": "batDB"
     },
     {
+      "name": "bat_remote_message_ledger",
+      "columns": [
+        {
+          "name": "direction_cd",
+          "type": "VARCHAR(20)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "REQUEST 또는 REPLY"
+        },
+        {
+          "name": "message_id",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "안정 Remote Message 식별자"
+        },
+        {
+          "name": "payload_sha256",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Payload SHA-256"
+        },
+        {
+          "name": "status_cd",
+          "type": "VARCHAR(20)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "PROCESSING COMPLETE FAILED"
+        },
+        {
+          "name": "owner_id",
+          "type": "VARCHAR(150)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "현재 처리 인스턴스"
+        },
+        {
+          "name": "lease_until",
+          "type": "DATETIME(6)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "처리 Lease 만료 일시"
+        },
+        {
+          "name": "expires_at",
+          "type": "DATETIME(6)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Message TTL 만료 일시"
+        },
+        {
+          "name": "attempt_no",
+          "type": "INT",
+          "nullable": false,
+          "default": "1",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "처리 시도 횟수"
+        },
+        {
+          "name": "last_error_cd",
+          "type": "VARCHAR(100)",
+          "nullable": true,
+          "default": "NULL",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "마지막 Sanitized 오류 코드"
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME(6)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "최초 수신 일시"
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME(6)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "최종 상태 변경 일시"
+        },
+        {
+          "name": "version_no",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "1",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Fencing/낙관적 잠금 버전"
+        }
+      ],
+      "primaryKey": [
+        "direction_cd",
+        "message_id"
+      ],
+      "uniqueKeys": [],
+      "indexes": [
+        {
+          "name": "idx_bat_remote_msg_status",
+          "columns": [
+            "status_cd",
+            "lease_until"
+          ],
+          "unique": false
+        },
+        {
+          "name": "idx_bat_remote_msg_expiry",
+          "columns": [
+            "expires_at"
+          ],
+          "unique": false
+        }
+      ],
+      "foreignKeys": [],
+      "checks": [
+        {
+          "name": "ck_bat_remote_msg_attempt",
+          "expression": "attempt_no > 0"
+        },
+        {
+          "name": "ck_bat_remote_msg_version",
+          "expression": "version_no > 0"
+        }
+      ],
+      "comment": "Kafka Remote Batch at-least-once Idempotency/Fencing Ledger",
+      "module": "bat",
+      "logicalDatabase": "batDB"
+    },
+    {
       "name": "bat_runtime_capability",
       "columns": [
         {
@@ -13067,14 +13316,156 @@
           "autoIncrement": false,
           "onUpdate": null,
           "comment": "Trigger record time"
+        },
+        {
+          "name": "job_id",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "실행 Job ID"
+        },
+        {
+          "name": "definition_version",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "고정 Job definition version"
+        },
+        {
+          "name": "definition_checksum",
+          "type": "VARCHAR(128)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "고정 Job definition checksum"
+        },
+        {
+          "name": "business_date",
+          "type": "DATE",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "실행 영업일"
+        },
+        {
+          "name": "fire_zone",
+          "type": "VARCHAR(50)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "예정시각 timezone"
+        },
+        {
+          "name": "idempotency_key",
+          "type": "VARCHAR(200)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "재시작에도 고정되는 실행 멱등키"
+        },
+        {
+          "name": "dispatch_owner",
+          "type": "VARCHAR(160)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "현재 dispatch lease owner"
+        },
+        {
+          "name": "dispatch_token",
+          "type": "BIGINT",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "dispatch fencing token"
+        },
+        {
+          "name": "dispatch_lease_until",
+          "type": "DATETIME(6)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "dispatch lease 만료시각"
+        },
+        {
+          "name": "attempt_count",
+          "type": "INTEGER",
+          "nullable": false,
+          "default": "0",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "dispatch 시도 횟수"
+        },
+        {
+          "name": "last_error_code",
+          "type": "VARCHAR(100)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "최근 오류 코드"
+        },
+        {
+          "name": "last_error_at",
+          "type": "DATETIME(6)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "최근 오류 시각"
+        },
+        {
+          "name": "dispatched_at",
+          "type": "DATETIME(6)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "실제 dispatch 완료 시각"
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME(6)",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP(6)",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "최근 상태 변경 시각"
         }
       ],
       "primaryKey": [
         "schedule_id",
         "scheduled_fire_at"
       ],
-      "uniqueKeys": [],
-      "indexes": [],
+      "uniqueKeys": [
+        {
+          "name": "uq_bat_schedule_trigger_idem",
+          "columns": [
+            "idempotency_key"
+          ]
+        }
+      ],
+      "indexes": [
+        {
+          "name": "ix_bat_schedule_trigger_dispatch",
+          "columns": [
+            "trigger_status",
+            "dispatch_lease_until",
+            "scheduled_fire_at"
+          ]
+        }
+      ],
       "foreignKeys": [
         {
           "name": "fk_bat_schedule_trigger_schedule",
@@ -15829,6 +16220,227 @@
       "foreignKeys": [],
       "checks": [],
       "comment": "BZA 감사 체인 동시성/무결성 head",
+      "module": "biz",
+      "logicalDatabase": "bzaDB"
+    },
+    {
+      "name": "bza_bootstrap_approval",
+      "columns": [
+        {
+          "name": "token_hash",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "1회 승인 Token SHA-256"
+        },
+        {
+          "name": "env_fingerprint",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "환경 및 승인 Scope Fingerprint"
+        },
+        {
+          "name": "status",
+          "type": "VARCHAR(20)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "APPROVED/CLAIMED/COMPLETED/FAILED/EXPIRED"
+        },
+        {
+          "name": "operation_id",
+          "type": "VARCHAR(100)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Bootstrap 멱등 Operation ID"
+        },
+        {
+          "name": "expires_at",
+          "type": "DATETIME(6)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "승인 Token 만료 시각"
+        },
+        {
+          "name": "claimed_at",
+          "type": "DATETIME(6)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Claim 시각"
+        },
+        {
+          "name": "claim_owner_id",
+          "type": "VARCHAR(100)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Claim한 Runtime Instance ID"
+        },
+        {
+          "name": "claim_expires_at",
+          "type": "DATETIME(6)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Claim Lease 만료 시각"
+        },
+        {
+          "name": "completed_at",
+          "type": "DATETIME(6)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Terminal 처리 시각"
+        },
+        {
+          "name": "admin_user_id",
+          "type": "BIGINT",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "생성된 BZA 관리자 사용자 순번"
+        },
+        {
+          "name": "failure_code",
+          "type": "VARCHAR(100)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "마스킹된 Bootstrap 실패 코드"
+        },
+        {
+          "name": "cleanup_status",
+          "type": "VARCHAR(20)",
+          "nullable": false,
+          "default": "'PENDING'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Secret Cleanup 상태"
+        },
+        {
+          "name": "cleanup_failure_code",
+          "type": "VARCHAR(100)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "마스킹된 Secret Cleanup 실패 코드"
+        },
+        {
+          "name": "cleanup_updated_at",
+          "type": "DATETIME(6)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Secret Cleanup 상태 갱신 시각"
+        },
+        {
+          "name": "requested_by",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "승인 요청자"
+        },
+        {
+          "name": "approved_by",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "승인자"
+        },
+        {
+          "name": "approval_reason",
+          "type": "VARCHAR(500)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "승인 사유"
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME(6)",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP(6)",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "등록 일시"
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME(6)",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP(6)",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "수정 일시"
+        }
+      ],
+      "primaryKey": [
+        "token_hash"
+      ],
+      "uniqueKeys": [
+        {
+          "name": "ux_bza_bootstrap_operation",
+          "columns": [
+            "operation_id"
+          ]
+        }
+      ],
+      "indexes": [
+        {
+          "name": "ix_bza_bootstrap_expiry",
+          "columns": [
+            "status",
+            "expires_at"
+          ]
+        },
+        {
+          "name": "ix_bza_bootstrap_claim_lease",
+          "columns": [
+            "status",
+            "claim_expires_at"
+          ]
+        }
+      ],
+      "foreignKeys": [],
+      "checks": [
+        {
+          "name": "ck_bza_bootstrap_status",
+          "expression": "status IN ('APPROVED','CLAIMED','COMPLETED','FAILED','EXPIRED')"
+        },
+        {
+          "name": "ck_bza_bootstrap_maker_checker",
+          "expression": "requested_by <> approved_by"
+        },
+        {
+          "name": "ck_bza_bootstrap_cleanup_status",
+          "expression": "cleanup_status IN ('PENDING','COMPLETED','FAILED')"
+        }
+      ],
+      "comment": "BZA 최초 특권 운영자 Bootstrap 승인 및 복구 원장",
       "module": "biz",
       "logicalDatabase": "bzaDB"
     },
@@ -19154,6 +19766,213 @@
       "comment": "CMN DB 연결·CRUD·검색·Paging·낙관적 잠금 검증용 단일 샘플",
       "module": "cmn",
       "logicalDatabase": "cmnDB"
+    },
+    {
+      "name": "cpf_batch_execution_epoch",
+      "columns": [
+        {
+          "name": "job_id",
+          "type": "VARCHAR(80)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Batch Job ID별 최신 Fencing Epoch 식별자"
+        },
+        {
+          "name": "current_fencing_token",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "현재 유효한 최신 Fencing Token"
+        },
+        {
+          "name": "epoch_version",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "1",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Epoch 낙관적 잠금 버전"
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME(6)",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP(6)",
+          "autoIncrement": false,
+          "onUpdate": "CURRENT_TIMESTAMP(6)",
+          "comment": "최신 Epoch 변경 시각"
+        }
+      ],
+      "primaryKey": [
+        "job_id"
+      ],
+      "uniqueKeys": [],
+      "indexes": [
+        {
+          "name": "ix_cpf_batch_execution_epoch_updated",
+          "columns": [
+            "updated_at"
+          ],
+          "unique": false
+        }
+      ],
+      "foreignKeys": [],
+      "checks": [
+        {
+          "name": "ck_cpf_batch_execution_epoch_token",
+          "expression": "current_fencing_token > 0"
+        },
+        {
+          "name": "ck_cpf_batch_execution_epoch_version",
+          "expression": "epoch_version > 0"
+        }
+      ],
+      "comment": "Batch Job별 최신 Fencing Epoch Ledger",
+      "module": "bat",
+      "logicalDatabase": "batDB"
+    },
+    {
+      "name": "cpf_bff_credential_vault",
+      "columns": [
+        {
+          "name": "handle_id",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Session에 저장되는 난수 Credential Handle"
+        },
+        {
+          "name": "key_id",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "암호화 Key 식별자"
+        },
+        {
+          "name": "access_iv",
+          "type": "VARBINARY(32)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Access Token AES-GCM IV"
+        },
+        {
+          "name": "access_cipher_text",
+          "type": "LONGBLOB",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Access Token AES-GCM Ciphertext"
+        },
+        {
+          "name": "refresh_iv",
+          "type": "VARBINARY(32)",
+          "nullable": true,
+          "default": "NULL",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Refresh Token AES-GCM IV"
+        },
+        {
+          "name": "refresh_cipher_text",
+          "type": "LONGBLOB",
+          "nullable": true,
+          "default": "NULL",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Refresh Token AES-GCM Ciphertext"
+        },
+        {
+          "name": "access_expires_at",
+          "type": "DATETIME(6)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Access Token 만료 일시"
+        },
+        {
+          "name": "refresh_expires_at",
+          "type": "DATETIME(6)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Refresh Token 만료 일시"
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME(6)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Credential 생성 일시"
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME(6)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Credential 최종 회전 일시"
+        },
+        {
+          "name": "version_no",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "1",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "낙관적 회전 버전"
+        }
+      ],
+      "primaryKey": [
+        "handle_id"
+      ],
+      "uniqueKeys": [],
+      "indexes": [
+        {
+          "name": "idx_cpf_bff_credential_expiry",
+          "columns": [
+            "refresh_expires_at"
+          ],
+          "unique": false
+        },
+        {
+          "name": "idx_cpf_bff_credential_key",
+          "columns": [
+            "key_id",
+            "updated_at"
+          ],
+          "unique": false
+        }
+      ],
+      "foreignKeys": [],
+      "checks": [
+        {
+          "name": "ck_cpf_bff_credential_version",
+          "expression": "version_no > 0"
+        },
+        {
+          "name": "ck_cpf_bff_credential_expiry",
+          "expression": "refresh_expires_at >= access_expires_at"
+        }
+      ],
+      "comment": "ADM/BZA BFF Access/Refresh Token 암호화 Vault",
+      "module": "adm",
+      "logicalDatabase": "admDB"
     },
     {
       "name": "cpf_broker_dlq",

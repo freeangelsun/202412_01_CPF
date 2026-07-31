@@ -1,6 +1,6 @@
 package com.cpf.batch.worker;
 
-import com.cpf.batch.api.BatchJobDefinition;
+import com.cpf.batch.api.BatchApprovedExecutorSnapshot;
 import com.cpf.core.api.broker.CpfBrokerClient;
 import com.cpf.core.api.broker.CpfBrokerPublishRequest;
 import com.cpf.core.api.broker.CpfBrokerPublishResult;
@@ -61,7 +61,7 @@ public class BatchRuntimeExecutorRegistry {
     }
 
     public ExecutionResult execute(
-            BatchJobDefinition definition,
+            BatchApprovedExecutorSnapshot definition,
             Map<String, Object> parameters,
             long executionId,
             String transactionId,
@@ -75,7 +75,7 @@ public class BatchRuntimeExecutorRegistry {
         };
     }
 
-    private ExecutionResult executeServiceCall(BatchJobDefinition definition, Map<String, Object> parameters) {
+    private ExecutionResult executeServiceCall(BatchApprovedExecutorSnapshot definition, Map<String, Object> parameters) {
         CpfServiceCaller caller = serviceCaller.getIfAvailable();
         if (caller == null) {
             return ExecutionResult.failed("CAPABILITY_UNAVAILABLE",
@@ -90,8 +90,8 @@ public class BatchRuntimeExecutorRegistry {
                 .httpMethod(method)
                 .requestPath(path)
                 .timeoutMillis(Math.toIntExact(Math.min(Integer.MAX_VALUE,
-                        definition.resourcePolicy().timeoutSeconds() * 1_000L)))
-                .retryCount(Math.max(0, definition.recoveryPolicy().maxAttempts() - 1))
+                        definition.timeoutSeconds() * 1_000L)))
+                .retryCount(Math.max(0, definition.maxAttempts() - 1))
                 .attribute("batchJobId", definition.jobId())
                 .attribute("batchDefinitionVersion", definition.definitionVersion())
                 .build();
@@ -100,7 +100,7 @@ public class BatchRuntimeExecutorRegistry {
                     ? URI.create(target.baseUrl().substring(0, target.baseUrl().length() - 1) + path)
                     : URI.create(target.baseUrl() + path);
             HttpRequest.Builder builder = HttpRequest.newBuilder(uri)
-                    .timeout(Duration.ofSeconds(definition.resourcePolicy().timeoutSeconds()));
+                    .timeout(Duration.ofSeconds(definition.timeoutSeconds()));
             if ("GET".equals(method) || "DELETE".equals(method)) {
                 builder.method(method, HttpRequest.BodyPublishers.noBody());
             } else {
@@ -137,7 +137,7 @@ public class BatchRuntimeExecutorRegistry {
     }
 
     private ExecutionResult executeMessage(
-            BatchJobDefinition definition,
+            BatchApprovedExecutorSnapshot definition,
             Map<String, Object> parameters,
             long executionId,
             String transactionId,
@@ -172,7 +172,7 @@ public class BatchRuntimeExecutorRegistry {
     }
 
     private ExecutionResult executeProtocol(
-            BatchJobDefinition definition,
+            BatchApprovedExecutorSnapshot definition,
             Map<String, Object> parameters) throws Exception {
         String reference = definition.executorReference();
         String uriText;
@@ -187,7 +187,7 @@ public class BatchRuntimeExecutorRegistry {
         URI uri = URI.create(uriText);
         String method = text(parameters.get("httpMethod"), "POST").toUpperCase(Locale.ROOT);
         HttpRequest.Builder builder = HttpRequest.newBuilder(uri)
-                .timeout(Duration.ofSeconds(definition.resourcePolicy().timeoutSeconds()));
+                .timeout(Duration.ofSeconds(definition.timeoutSeconds()));
         if ("GET".equals(method) || "DELETE".equals(method)) {
             builder.method(method, HttpRequest.BodyPublishers.noBody());
         } else {

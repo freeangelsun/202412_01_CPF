@@ -57,10 +57,11 @@ public class CellOperationsController {
                 http,
                 request.requestedBy(),
                 request.approvedBy(),
-                null);
+                request.approvalRequestId());
         return new CellOperationsService.ApprovedRequest(
                 actors.requestedBy(),
                 actors.approvedBy(),
+                actors.approvalRequestId(),
                 request.reason());
     }
 

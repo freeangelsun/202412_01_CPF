@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "module": "bat",
   "ownerArtifact": "cpf-batch",
   "parameterStyle": "JDBC_POSITIONAL",
@@ -22,7 +22,8 @@
     "LIMIT_500": "ORDER BY 뒤의 Vendor별 500-row 제한 절",
     "LIMIT_PARAM": "ORDER BY 뒤의 Vendor별 JDBC parameter row 제한 절",
     "NOW6_MINUS_30_SECONDS": "Vendor별 현재 시각에서 30초를 차감한 표현식",
-    "NOW3_MINUS_SECONDS_PARAM": "Vendor별 JDBC 초 parameter를 현재 시각에서 차감한 표현식"
+    "NOW3_MINUS_SECONDS_PARAM": "Vendor별 JDBC 초 parameter를 현재 시각에서 차감한 표현식",
+    "NOW6_PLUS_60_SECONDS": "Vendor별 현재 시각에 60초를 더한 표현식"
   },
   "vendorOverrides": {
     "worker-registry-upsert": [
@@ -318,11 +319,17 @@
     },
     {
       "key": "scheduler-trigger-insert-fenced",
-      "consumer": "SchedulerDispatchService.fire",
+      "consumer": "SchedulerDispatchService",
       "parameters": [
         "scheduleId",
         "scheduledFireAt",
         "fencingToken",
+        "jobId",
+        "definitionVersion",
+        "definitionChecksum",
+        "businessDate",
+        "fireZone",
+        "idempotencyKey",
         "schedulerKey",
         "instanceId",
         "currentFencingToken"
@@ -330,12 +337,13 @@
     },
     {
       "key": "scheduler-trigger-mark-dispatched",
-      "consumer": "SchedulerDispatchService.fire",
+      "consumer": "SchedulerDispatchService",
       "parameters": [
         "executionId",
         "scheduleId",
         "scheduledFireAt",
-        "fencingToken"
+        "dispatchOwner",
+        "dispatchToken"
       ]
     },
     {
@@ -1164,9 +1172,13 @@
       "parameters": [
         "deploymentId",
         "cellId",
+        "idempotencyScope",
         "idempotencyKey",
+        "requestHash",
         "toVersion",
         "strategyCode",
+        "expectedVersion",
+        "approvalRequestId",
         "requestedBy",
         "approvedBy",
         "reasonText"
@@ -1198,6 +1210,7 @@
       "key": "deploy-execution-find-idempotency",
       "consumer": "DeploymentExecutionRepository.findByIdempotency",
       "parameters": [
+        "idempotencyScope",
         "idempotencyKey"
       ]
     },
@@ -1527,6 +1540,65 @@
       "consumer": "BatOperationLogRetentionHandler.execute",
       "parameters": [
         "cutoff"
+      ]
+    },
+    {
+      "key": "scheduler-trigger-find-dispatchable",
+      "consumer": "SchedulerDispatchService.dispatchPending",
+      "parameters": [
+        "limit"
+      ]
+    },
+    {
+      "key": "scheduler-trigger-claim",
+      "consumer": "SchedulerDispatchService.dispatchPending",
+      "parameters": [
+        "dispatchOwner",
+        "dispatchToken",
+        "scheduleId",
+        "scheduledFireAt",
+        "schedulerKey",
+        "leaderInstanceId",
+        "leaderFencingToken"
+      ]
+    },
+    {
+      "key": "scheduler-trigger-mark-unknown",
+      "consumer": "SchedulerDispatchService.dispatchClaimed",
+      "parameters": [
+        "errorCode",
+        "scheduleId",
+        "scheduledFireAt",
+        "dispatchOwner",
+        "dispatchToken"
+      ]
+    },
+    {
+      "key": "deploy-execution-find-by-id",
+      "consumer": "DeploymentExecutionRepository.find_by_id",
+      "parameters": [
+        "deploymentId"
+      ]
+    },
+    {
+      "key": "deploy-execution-instance-results",
+      "consumer": "DeploymentExecutionRepository.instance_results",
+      "parameters": [
+        "deploymentId"
+      ]
+    },
+    {
+      "key": "deploy-execution-reconcile-terminal",
+      "consumer": "DeploymentExecutionRepository.reconcile_terminal",
+      "parameters": [
+        "executionState",
+        "failureStage",
+        "resultMessage",
+        "requestedBy",
+        "approvedBy",
+        "approvalRequestId",
+        "reason",
+        "deploymentId"
       ]
     }
   ],

@@ -22,7 +22,7 @@ def main():
  for p in root.rglob('*'):
   if not p.is_file() or p.suffix.lower() not in EXT or any(x in IGNORE for x in p.parts):continue
   rel=p.relative_to(root).as_posix();text=p.read_text(encoding='utf-8',errors='ignore')
-  if rel.startswith('cpf-tools/scripts/verify-cpf-qa32-repository-security.py'):continue
+  if rel in {'cpf-tools/scripts/verify-cpf-qa32-repository-security.py','cpf-tools/scripts/verify-cpf-qa33-repository-closure.py'}:continue
   for name,rx in RULES.items():
    checks+=1
    if rel not in ALLOW.get(name,set()) and rx.search(text):fail.append(f'{name}:{rel}')

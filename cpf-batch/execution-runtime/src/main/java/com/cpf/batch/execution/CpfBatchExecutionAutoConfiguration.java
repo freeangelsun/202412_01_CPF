@@ -6,6 +6,7 @@ import com.cpf.batch.spi.BatchFencingPort;
 import com.cpf.batch.spi.BatchStepHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
+import org.springframework.batch.core.explore.JobExplorer;
 import org.springframework.batch.core.launch.JobOperator;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -15,9 +16,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.core.task.support.TaskExecutorAdapter;
-import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.messaging.MessageChannel;
@@ -37,25 +35,23 @@ public class CpfBatchExecutionAutoConfiguration {
 
     @Bean("cpfBatchTaskExecutor")
     @ConditionalOnMissingBean(name = "cpfBatchTaskExecutor")
-    TaskExecutor cpfBatchTaskExecutor() {
+    TaskExecutor cpfBatchTaskExecutor(CpfBatchExecutionProperties properties) {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setThreadNamePrefix("cpf-batch-");
-        executor.setCorePoolSize(4);
-        executor.setMaxPoolSize(32);
-        executor.setQueueCapacity(0);
+        executor.setCorePoolSize(properties.executorCoreSize());
+        executor.setMaxPoolSize(properties.executorMaxSize());
+        executor.setQueueCapacity(properties.executorQueueCapacity());
         executor.setWaitForTasksToCompleteOnShutdown(true);
         executor.setAwaitTerminationSeconds(60);
         executor.initialize();
         return executor;
     }
 
-    @Bean("cpfBatchRemoteRequests")
-    @ConditionalOnMissingBean(name = "cpfBatchRemoteRequests")
-    MessageChannel cpfBatchRemoteRequests() { return new PublishSubscribeChannel(); }
-
-    @Bean("cpfBatchRemoteReplies")
-    @ConditionalOnMissingBean(name = "cpfBatchRemoteReplies")
-    PollableChannel cpfBatchRemoteReplies() { return new QueueChannel(); }
+    @Bean(name = {"cpfBatchRemoteRequests", "cpfBatchRemoteReplies"})
+    @ConditionalOnMissingBean(name = {"cpfBatchRemoteRequests", "cpfBatchRemoteReplies"})
+    PollableChannel cpfBatchDisabledRemoteChannel() {
+        return new CpfDisabledRemoteChannel();
+    }
 
     @Bean("cpfBatchRemoteMessagingTemplate")
     @ConditionalOnMissingBean(name = "cpfBatchRemoteMessagingTemplate")
@@ -108,9 +104,10 @@ public class CpfBatchExecutionAutoConfiguration {
     BatchExecutionControlPort cpfSpringBatchExecutionControl(
             JobOperator operator,
             JobRepository repository,
+            JobExplorer explorer,
             CpfBatchJobFactory jobs,
             BatchExecutionLedgerPort ledger,
             BatchFencingPort fencing) {
-        return new CpfSpringBatchExecutionControl(operator, repository, jobs, ledger, fencing);
+        return new CpfSpringBatchExecutionControl(operator, repository, explorer, jobs, ledger, fencing);
     }
 }

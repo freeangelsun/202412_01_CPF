@@ -4,6 +4,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  * 설치자가 허용하는 Gateway 안전 상한입니다.
@@ -29,6 +31,13 @@ public class CpfGatewaySafetyProperties {
     private long logSpoolBytesCap = 2L * 1024 * 1024 * 1024;
     private String logSpoolDirectory = "./data/gateway-log-spool";
     private String bootstrapMode = "FAIL_CLOSED";
+    private String environmentCode = "local";
+    private String instanceId = "gateway";
+    private String zoneCode = "";
+    private boolean allowPublicTargets;
+    private Set<String> trustedContextHeaders = new LinkedHashSet<>(Set.of(
+            "accept", "content-type", "idempotency-key", "traceparent", "tracestate",
+            "x-api-version", "x-channel-id", "x-client-id", "x-operation-reason", "x-transaction-id"));
 
     public void validate() {
         positive(routeRefresh,"routeRefresh"); positive(policyRefresh,"policyRefresh");
@@ -36,8 +45,13 @@ public class CpfGatewaySafetyProperties {
         positive(connectTimeoutCap,"connectTimeoutCap"); positive(responseTimeoutCap,"responseTimeoutCap"); positive(overallTimeoutCap,"overallTimeoutCap");
         if (overallTimeoutCap.compareTo(connectTimeoutCap) < 0 || overallTimeoutCap.compareTo(responseTimeoutCap) < 0) throw new IllegalStateException("overallTimeoutCap must cover connect/response caps");
         if (retryCountCap < 0 || retryCountCap > 10) throw new IllegalStateException("retryCountCap out of range");
-        if (requestBodyBytesCap < 0 || responseBodyBytesCap < 0 || headerCountCap < 1 || headerBytesCap < 1024 || logSpoolBytesCap < 0) throw new IllegalStateException("Gateway size caps are invalid");
+        if (requestBodyBytesCap < 0 || responseBodyBytesCap < 0 || headerCountCap < 1 || headerBytesCap < 1024 || logSpoolBytesCap < 1024) throw new IllegalStateException("Gateway size caps are invalid");
+        if (logSpoolDirectory == null || logSpoolDirectory.isBlank()) throw new IllegalStateException("Gateway logSpoolDirectory is required");
         if (!"FAIL_CLOSED".equalsIgnoreCase(bootstrapMode) && !"LAST_KNOWN_GOOD".equalsIgnoreCase(bootstrapMode)) throw new IllegalStateException("Unsupported bootstrapMode");
+        if (environmentCode == null || environmentCode.isBlank()) throw new IllegalStateException("Gateway environmentCode is required");
+        if (instanceId == null || instanceId.isBlank()) throw new IllegalStateException("Gateway instanceId is required");
+        if (zoneCode == null) zoneCode = "";
+        if (trustedContextHeaders == null || trustedContextHeaders.isEmpty()) throw new IllegalStateException("trustedContextHeaders must not be empty");
     }
 
     private static void positive(Duration value,String name){if(value==null||value.isZero()||value.isNegative())throw new IllegalStateException(name+" must be positive");}
@@ -57,4 +71,10 @@ public class CpfGatewaySafetyProperties {
     public long getLogSpoolBytesCap(){return logSpoolBytesCap;} public void setLogSpoolBytesCap(long v){logSpoolBytesCap=v;}
     public String getLogSpoolDirectory(){return logSpoolDirectory;} public void setLogSpoolDirectory(String v){logSpoolDirectory=v;}
     public String getBootstrapMode(){return bootstrapMode;} public void setBootstrapMode(String v){bootstrapMode=v;}
+    public String getEnvironmentCode(){return environmentCode;} public void setEnvironmentCode(String v){environmentCode=v;}
+    public String getInstanceId(){return instanceId;} public void setInstanceId(String v){instanceId=v;}
+    public String getZoneCode(){return zoneCode;} public void setZoneCode(String v){zoneCode=v==null?"":v.trim();}
+    public boolean isAllowPublicTargets(){return allowPublicTargets;} public void setAllowPublicTargets(boolean v){allowPublicTargets=v;}
+    public Set<String> getTrustedContextHeaders(){return Set.copyOf(trustedContextHeaders);}
+    public void setTrustedContextHeaders(Set<String> values){trustedContextHeaders=new LinkedHashSet<>();if(values!=null)values.stream().filter(v->v!=null&&!v.isBlank()).map(v->v.toLowerCase(java.util.Locale.ROOT)).forEach(trustedContextHeaders::add);}
 }

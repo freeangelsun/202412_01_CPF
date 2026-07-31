@@ -1,0 +1,40 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "CPF ADM API",
+    "version": "1.0.0"
+  },
+  "x-cpf-source-sha": "c1f273f1ea4fafac6fd5d23bd837adfc38a04497",
+  "paths": {
+    "/adm/api/auth/me": {
+      "get": {
+        "operationId": "getAdmAuthMe",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/adm/api/auth/session": {
+      "get": {
+        "operationId": "getAdmAuthSession",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

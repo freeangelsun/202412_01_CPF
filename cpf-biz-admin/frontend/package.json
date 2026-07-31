@@ -9,7 +9,7 @@
     "npm": "10.9.2"
   },
   "scripts": {
-    "generate:api": "orval --config orval.config.ts",
+    "generate:api": "orval --config orval.config.ts && node scripts/write-generated-marker.mjs",
     "verify:generated": "node scripts/verify-generated-client.mjs",
     "build": "npm run verify:generated && vite build",
     "lint": "eslint src vite.config.ts playwright.config.ts",
@@ -18,7 +18,9 @@
     "test:e2e": "playwright test",
     "test:a11y": "playwright test --grep @a11y",
     "verify:primary": "node scripts/verify-primary-frontend.mjs",
-    "verify": "npm run verify:primary && npm run lint && npm run typecheck && npm run test && npm run build"
+    "verify": "npm run verify:lock && npm run verify:primary && npm run lint && npm run typecheck && npm run test && npm run build",
+    "verify:lock": "node scripts/verify-lockfile.mjs",
+    "generate:api:bootstrap": "node scripts/generate-checked-client.mjs && node scripts/write-generated-marker.mjs"
   },
   "dependencies": {
     "@tanstack/vue-query": "5.101.4",

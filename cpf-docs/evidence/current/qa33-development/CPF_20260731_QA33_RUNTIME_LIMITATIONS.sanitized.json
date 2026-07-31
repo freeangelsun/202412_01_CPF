@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "sourceSha": "c1f273f1ea4fafac6fd5d23bd837adfc38a04497",
+  "status": "미검증",
+  "releaseEligible": false,
+  "unverifiedResultRows": 401,
+  "developmentPartialRequirements": [
+    "QA33-REQ-017",
+    "QA33-REQ-018",
+    "QA33-REQ-120"
+  ],
+  "requiredEnvironment": [
+    "Java 25",
+    "PowerShell 7",
+    "approved npm registry",
+    "Chromium/Firefox/WebKit",
+    "Oracle/PostgreSQL/MariaDB",
+    "Kafka",
+    "multi-instance runtime"
+  ],
+  "sanitized": true
+}

@@ -3,6 +3,7 @@ package com.cpf.bizadmin.auth.controller;
 import com.cpf.bizadmin.auth.service.BzaAuthService;
 import com.cpf.bizadmin.auth.dto.*;
 import com.cpf.core.api.execution.CpfOnlineTransaction;
+import com.cpf.starter.security.CpfBffSessionBridgeFilter;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -62,15 +63,23 @@ public class BzaAuthController extends com.cpf.bizadmin.common.base.BzaBaseContr
     @PostMapping("/refresh")
     @CpfOnlineTransaction(id = "OBZAAU0002", name = "BzaTokenRefresh")
     @Operation(operationId = "bzaAuthRefresh", summary = "업무 관리자 token 재발급", description = "원문 refresh token을 hash 비교한 뒤 BZA access token을 재발급합니다.")
-    public ResponseEntity<BzaAuthService.LoginResult> refresh(@RequestBody BzaAuthService.RefreshRequest request) {
-        return ResponseEntity.ok(authService.refresh(request));
+    public ResponseEntity<BzaAuthService.LoginResult> refresh(HttpServletRequest servletRequest) {
+        String refreshToken = CpfBffSessionBridgeFilter.internalRefreshToken(servletRequest);
+        if (refreshToken == null) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.UNAUTHORIZED,
+                    "BFF refresh credential이 유효하지 않습니다.");
+        }
+        return ResponseEntity.ok(authService.refresh(new BzaAuthService.RefreshRequest(refreshToken)));
     }
 
     @PostMapping("/logout")
     @CpfOnlineTransaction(id = "OBZAAU0003", name = "BzaLogout")
     @Operation(operationId = "bzaAuthLogout", summary = "업무 관리자 로그아웃", description = "DB에 저장된 refresh token hash 상태를 폐기 처리합니다.")
-    public ResponseEntity<BzaLogoutResponse> logout(@RequestBody(required = false) BzaAuthService.RefreshRequest request) {
-        return ResponseEntity.ok(authService.logout(request));
+    public ResponseEntity<BzaLogoutResponse> logout(HttpServletRequest servletRequest) {
+        String refreshToken = CpfBffSessionBridgeFilter.internalRefreshToken(servletRequest);
+        return ResponseEntity.ok(authService.logout(
+                refreshToken == null ? null : new BzaAuthService.RefreshRequest(refreshToken)));
     }
 
     @GetMapping("/me")

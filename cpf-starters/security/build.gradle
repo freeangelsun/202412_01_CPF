@@ -4,6 +4,8 @@ dependencies {
     api project(':cpf-core')
     api 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.security:spring-security-web'
+    implementation 'org.springframework:spring-webmvc'
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
     api 'org.springframework.boot:spring-boot-starter-jdbc'
     api 'org.springframework.session:spring-session-jdbc'
     implementation 'org.springframework.boot:spring-boot-autoconfigure'

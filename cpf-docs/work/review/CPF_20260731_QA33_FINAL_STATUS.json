@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 3,
+  "baseSha": "c1f273f1ea4fafac6fd5d23bd837adfc38a04497",
+  "verificationScope": "BASE_SHA_PLUS_ROOT_OVERLAY",
+  "requirements": {
+    "total": 138,
+    "development": {
+      "완료": 135,
+      "부분 구현": 3
+    },
+    "verification": {
+      "미검증": 138
+    }
+  },
+  "resultRows": {
+    "total": 552,
+    "development": {
+      "완료": 540,
+      "부분 구현": 12
+    },
+    "verification": {
+      "미검증": 401,
+      "완료": 151
+    }
+  },
+  "developmentBlockers": [
+    "QA33-REQ-017",
+    "QA33-REQ-018",
+    "QA33-REQ-120"
+  ],
+  "developmentGateStatus": "PASS",
+  "developmentEvidence": "cpf-docs/evidence/current/qa33-development/CPF_20260731_QA33_FINAL_SOURCE_VALIDATION.sanitized.json",
+  "developmentEvidenceSha256": "8b144b04c02a40dbd6b53f6326d6fbb22542f7ab46fdf764280c19e91fb87130",
+  "releaseStatus": "미검증",
+  "releaseEligible": false,
+  "sanitized": true,
+  "generatedAt": "2026-07-31T10:56:58.252147Z"
+}

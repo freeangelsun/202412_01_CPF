@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.ProxySelector;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -21,26 +23,40 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.time.Duration;
+import java.util.Base64;
+import java.util.HexFormat;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.regex.Pattern;
 
-/** 서명·환경 결합·anti-rollback·서비스별 fencing lock을 적용하는 Artifact Installer입니다. */
+/**
+ * 서명·환경 결합·anti-rollback·서비스별 fencing lock을 적용하는 Artifact Installer입니다.
+ * Artifact 상태는 HMAC으로 보호하며 rollback 직전에 Binary와 원 서명을 다시 검증합니다.
+ */
 public final class ArtifactInstaller {
     private static final Pattern SAFE = Pattern.compile("[A-Za-z0-9._-]{1,128}");
     private static final Pattern COORDINATE = Pattern.compile("[A-Za-z0-9_.-]+:[A-Za-z0-9_.-]+");
     private final AgentProperties properties;
     private final ArtifactVerifier verifier;
+    private final ArtifactStateStore stateStore;
     private final HttpClient httpClient;
 
-    public ArtifactInstaller(AgentProperties properties, ArtifactVerifier verifier) {
-        this.properties = properties;
-        this.verifier = verifier;
-        this.httpClient = HttpClient.newBuilder()
+    public ArtifactInstaller(AgentProperties properties, ArtifactVerifier verifier, ArtifactStateStore stateStore) {
+        this.properties = Objects.requireNonNull(properties, "properties");
+        this.verifier = Objects.requireNonNull(verifier, "verifier");
+        this.stateStore = Objects.requireNonNull(stateStore, "stateStore");
+        HttpClient.Builder builder = HttpClient.newBuilder()
                 .followRedirects(HttpClient.Redirect.NEVER)
-                .connectTimeout(Duration.ofSeconds(20))
-                .build();
+                .connectTimeout(Duration.ofSeconds(20));
+        if (properties.getArtifactProxyHost() != null && !properties.getArtifactProxyHost().isBlank()) {
+            if (properties.getArtifactProxyPort() < 1 || properties.getArtifactProxyPort() > 65535) {
+                throw new IllegalStateException("ARTIFACT_PROXY_PORT_INVALID");
+            }
+            builder.proxy(ProxySelector.of(new InetSocketAddress(
+                    properties.getArtifactProxyHost().trim(), properties.getArtifactProxyPort())));
+        }
+        this.httpClient = builder.build();
     }
 
     public Result install(AgentArtifactRequest request) throws Exception {
@@ -53,12 +69,16 @@ public final class ArtifactInstaller {
         try (FileChannel channel = FileChannel.open(root.resolve(".install.lock"),
                 StandardOpenOption.CREATE, StandardOpenOption.WRITE);
                 FileLock ignored = exclusiveLock(channel)) {
-            Properties current = read(root.resolve("artifact-state.properties"));
+            Path currentStatePath = root.resolve("artifact-state.properties");
+            Path previousStatePath = root.resolve("artifact-previous.properties");
+            Properties current = stateStore.read(currentStatePath, false);
             long currentSequence = longValue(current, "releaseSequence", -1);
             validateSequence(request, current, currentSequence);
             if (isExactReplay(request, current, currentSequence)) {
-                return new Result(request.version(), current.getProperty("previousVersion", ""),
-                        current.getProperty("path", ""));
+                // State와 Binary가 모두 온전한 경우에만 idempotent replay로 인정합니다.
+                Path replayArtifact = secureArtifactPath(root, required(current, "path"));
+                verifier.verifyStored(replayArtifact, current, service);
+                return new Result(request.version(), current.getProperty("previousVersion", ""), replayArtifact.toString());
             }
 
             Path releases = secureDirectory(root, root.resolve("releases"));
@@ -69,7 +89,7 @@ public final class ArtifactInstaller {
             requireChild(root, target);
             Files.deleteIfExists(part);
 
-            long size = download(artifactUri(request, extension), part);
+            long size = download(artifactUri(request, extension), part, request, extension);
             ArtifactVerifier.Verified verified = verifier.verify(part, request, size);
             move(part, target);
             part = null;
@@ -81,9 +101,14 @@ public final class ArtifactInstaller {
                 write(root.resolve("deployment-config.ref"), request.configRef());
             }
 
-            if (!current.isEmpty()) writeProperties(root.resolve("artifact-previous.properties"), current);
+            if (!current.isEmpty()) {
+                // 기존 active state도 쓰기 전에 Binary/서명을 재검증하여 손상 상태를 previous로 승격하지 않습니다.
+                Path activeArtifact = secureArtifactPath(root, required(current, "path"));
+                verifier.verifyStored(activeArtifact, current, service);
+                stateStore.write(previousStatePath, current);
+            }
             Properties next = state(request, current, verified, target);
-            writeProperties(root.resolve("artifact-state.properties"), next);
+            stateStore.write(currentStatePath, next);
             return new Result(request.version(), current.getProperty("version", ""), target.toString());
         } catch (OverlappingFileLockException failure) {
             throw new IllegalStateException("ARTIFACT_INSTALL_ALREADY_RUNNING", failure);
@@ -98,20 +123,26 @@ public final class ArtifactInstaller {
         try (FileChannel channel = FileChannel.open(root.resolve(".install.lock"),
                 StandardOpenOption.CREATE, StandardOpenOption.WRITE);
                 FileLock ignored = exclusiveLock(channel)) {
-            Path previousPath = root.resolve("artifact-previous.properties");
-            Properties previous = read(previousPath);
-            if (previous.isEmpty()) throw new IllegalStateException("ARTIFACT_ROLLBACK_STATE_MISSING");
-            Path artifact = Path.of(previous.getProperty("path", "")).toAbsolutePath().normalize();
-            requireChild(root, artifact);
-            if (!Files.isRegularFile(artifact, LinkOption.NOFOLLOW_LINKS) || Files.isSymbolicLink(artifact)) {
-                throw new SecurityException("ARTIFACT_ROLLBACK_BINARY_MISSING_OR_UNSAFE");
+            Path currentStatePath = root.resolve("artifact-state.properties");
+            Path previousStatePath = root.resolve("artifact-previous.properties");
+            Properties previous = stateStore.read(previousStatePath, true);
+            Properties current = stateStore.read(currentStatePath, true);
+
+            Path previousArtifact = secureArtifactPath(root, required(previous, "path"));
+            Path currentArtifact = secureArtifactPath(root, required(current, "path"));
+            // Rollback 전 양쪽 상태를 모두 검증합니다. 손상된 active를 previous slot에 저장하지 않습니다.
+            verifier.verifyStored(previousArtifact, previous, service);
+            verifier.verifyStored(currentArtifact, current, service);
+
+            stateStore.write(currentStatePath, previous);
+            try {
+                stateStore.write(previousStatePath, current);
+            } catch (Exception failure) {
+                // 두 상태 파일 publish 중 부분 실패가 발생하면 active pointer를 원래 상태로 복구합니다.
+                stateStore.write(currentStatePath, current);
+                throw new IllegalStateException("ARTIFACT_ROLLBACK_STATE_SWAP_FAILED", failure);
             }
-            String expected = previous.getProperty("sha256", "");
-            if (expected.isBlank()) throw new SecurityException("ARTIFACT_ROLLBACK_DIGEST_MISSING");
-            Properties current = read(root.resolve("artifact-state.properties"));
-            writeProperties(root.resolve("artifact-state.properties"), previous);
-            writeProperties(previousPath, current);
-            return previous.getProperty("version");
+            return required(previous, "version");
         } catch (OverlappingFileLockException failure) {
             throw new IllegalStateException("ARTIFACT_INSTALL_ALREADY_RUNNING", failure);
         }
@@ -134,6 +165,9 @@ public final class ArtifactInstaller {
         if (request.version() == null || !SAFE.matcher(request.version()).matches() || request.releaseSequence() <= 0) {
             throw new SecurityException("ARTIFACT_RELEASE_IDENTITY_INVALID");
         }
+        if (!Objects.equals(request.runtimeMode(), service.getRuntimeMode())) {
+            throw new SecurityException("ARTIFACT_RUNTIME_MODE_MISMATCH");
+        }
         if (!Objects.equals(request.environmentCode(), service.getEnvironmentCode())
                 || !Objects.equals(request.channel(), service.getReleaseChannel())) {
             throw new SecurityException("ARTIFACT_ENVIRONMENT_CHANNEL_MISMATCH");
@@ -144,8 +178,7 @@ public final class ArtifactInstaller {
         }
     }
 
-    private static void validateSequence(
-            AgentArtifactRequest request, Properties current, long currentSequence) {
+    private static void validateSequence(AgentArtifactRequest request, Properties current, long currentSequence) {
         if (request.releaseSequence() < currentSequence) {
             throw new SecurityException("ARTIFACT_ROLLBACK_SEQUENCE_REJECTED");
         }
@@ -154,38 +187,56 @@ public final class ArtifactInstaller {
         }
     }
 
-    private static boolean isExactReplay(
-            AgentArtifactRequest request, Properties current, long currentSequence) {
+    private static boolean isExactReplay(AgentArtifactRequest request, Properties current, long currentSequence) {
         return request.releaseSequence() == currentSequence
+                && request.serviceId().equals(current.getProperty("serviceId"))
+                && request.coordinate().equals(current.getProperty("coordinate"))
                 && request.version().equals(current.getProperty("version"))
                 && request.sha256().equalsIgnoreCase(current.getProperty("sha256", ""))
                 && request.environmentCode().equals(current.getProperty("environment", ""))
-                && request.channel().equals(current.getProperty("channel", ""));
+                && request.channel().equals(current.getProperty("channel", ""))
+                && request.keyId().equals(current.getProperty("keyId", ""));
     }
 
-    private Properties state(
-            AgentArtifactRequest request,
-            Properties current,
-            ArtifactVerifier.Verified verified,
-            Path target) {
+    private Properties state(AgentArtifactRequest request, Properties current,
+            ArtifactVerifier.Verified verified, Path target) {
         Properties next = new Properties();
+        next.setProperty("serviceId", request.serviceId());
+        next.setProperty("coordinate", request.coordinate());
         next.setProperty("version", request.version());
         next.setProperty("sha256", verified.sha256());
         next.setProperty("size", Long.toString(verified.size()));
         next.setProperty("releaseSequence", Long.toString(request.releaseSequence()));
-        next.setProperty("path", target.toString());
+        next.setProperty("path", target.toAbsolutePath().normalize().toString());
         next.setProperty("environment", request.environmentCode());
         next.setProperty("channel", request.channel());
         next.setProperty("keyId", request.keyId());
+        next.setProperty("runtimeMode", request.runtimeMode());
+        next.setProperty("signatureBase64", request.signatureBase64());
+        next.setProperty("configRef", request.configRef() == null ? "" : request.configRef());
         next.setProperty("previousVersion", current.getProperty("version", ""));
         return next;
     }
 
-    private long download(URI uri, Path target) throws Exception {
+    private long download(URI uri, Path target, AgentArtifactRequest request, String extension) throws Exception {
+        validateResolvedAddresses(uri.getHost());
         HttpResponse<InputStream> response = httpClient.send(
-                HttpRequest.newBuilder(uri).timeout(Duration.ofMinutes(5)).GET().build(),
+                HttpRequest.newBuilder(uri)
+                        .timeout(Duration.ofMinutes(5))
+                        .header("Accept", expectedMime(extension))
+                        .GET()
+                        .build(),
                 HttpResponse.BodyHandlers.ofInputStream());
         if (response.statusCode() != 200) throw new IOException("ARTIFACT_REPOSITORY_STATUS:" + response.statusCode());
+        String contentType = response.headers().firstValue("Content-Type")
+                .map(value -> value.split(";", 2)[0].trim().toLowerCase(Locale.ROOT))
+                .orElseThrow(() -> new SecurityException("ARTIFACT_CONTENT_TYPE_MISSING"));
+        if (!properties.getArtifactAllowedContentTypes().stream()
+                .map(value -> value.toLowerCase(Locale.ROOT))
+                .anyMatch(contentType::equals)) {
+            throw new SecurityException("ARTIFACT_CONTENT_TYPE_DENIED:" + contentType);
+        }
+        validateDigestHeader(response, request.sha256());
         long declared = response.headers().firstValueAsLong("Content-Length").orElse(-1);
         if (declared < 0 || declared > properties.getMaxArtifactBytes()) {
             throw new SecurityException("ARTIFACT_CONTENT_LENGTH_INVALID");
@@ -207,6 +258,49 @@ public final class ArtifactInstaller {
         }
     }
 
+    private void validateDigestHeader(HttpResponse<?> response, String expectedHex) {
+        String checksum = response.headers().firstValue("X-Checksum-Sha256").orElse(null);
+        if (checksum == null) {
+            String digest = response.headers().firstValue("Digest").orElse(null);
+            if (digest != null) {
+                for (String part : digest.split(",")) {
+                    String trimmed = part.trim();
+                    if (trimmed.regionMatches(true, 0, "sha-256=", 0, 8)) {
+                        try { checksum = HexFormat.of().formatHex(Base64.getDecoder().decode(trimmed.substring(8))); }
+                        catch (IllegalArgumentException failure) {
+                            throw new SecurityException("ARTIFACT_DIGEST_HEADER_INVALID", failure);
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+        if (checksum == null || checksum.isBlank()) {
+            if (properties.isRequireRepositoryDigestHeader()) {
+                throw new SecurityException("ARTIFACT_DIGEST_HEADER_REQUIRED");
+            }
+            return;
+        }
+        String normalized = checksum.trim().toLowerCase(Locale.ROOT);
+        if (!normalized.matches("[0-9a-f]{64}") || !normalized.equals(expectedHex.toLowerCase(Locale.ROOT))) {
+            throw new SecurityException("ARTIFACT_DIGEST_HEADER_MISMATCH");
+        }
+    }
+
+    private void validateResolvedAddresses(String host) throws Exception {
+        if (properties.isAllowPrivateRepositoryAddresses()) return;
+        for (InetAddress address : InetAddress.getAllByName(host)) {
+            if (address.isAnyLocalAddress() || address.isLoopbackAddress() || address.isLinkLocalAddress()
+                    || address.isSiteLocalAddress() || address.isMulticastAddress()) {
+                throw new SecurityException("ARTIFACT_REPOSITORY_ADDRESS_DENIED:" + address.getHostAddress());
+            }
+        }
+    }
+
+    private static String expectedMime(String extension) {
+        return ".jar".equals(extension) ? "application/java-archive" : "application/zip";
+    }
+
     private URI artifactUri(AgentArtifactRequest request, String extension) {
         URI base = URI.create(Objects.requireNonNull(properties.getArtifactRepositoryBaseUrl())).normalize();
         validateRepositoryBase(base);
@@ -223,13 +317,17 @@ public final class ArtifactInstaller {
         return artifact;
     }
 
-    private static void validateRepositoryBase(URI base) {
+    private void validateRepositoryBase(URI base) {
         if (!base.isAbsolute() || base.getHost() == null || base.getUserInfo() != null
                 || base.getQuery() != null || base.getFragment() != null) {
             throw new SecurityException("ARTIFACT_REPOSITORY_URL_INVALID");
         }
         if (!"https".equalsIgnoreCase(base.getScheme()) && !isLoopback(base.getHost())) {
             throw new SecurityException("ARTIFACT_REPOSITORY_TLS_REQUIRED");
+        }
+        if (!properties.getArtifactAllowedHosts().isEmpty()
+                && properties.getArtifactAllowedHosts().stream().noneMatch(base.getHost()::equalsIgnoreCase)) {
+            throw new SecurityException("ARTIFACT_REPOSITORY_HOST_DENIED");
         }
     }
 
@@ -273,6 +371,15 @@ public final class ArtifactInstaller {
         return normalized.toRealPath(LinkOption.NOFOLLOW_LINKS);
     }
 
+    private static Path secureArtifactPath(Path root, String value) throws IOException {
+        Path artifact = Path.of(value).toAbsolutePath().normalize();
+        requireChild(root, artifact);
+        if (Files.isSymbolicLink(artifact) || !Files.isRegularFile(artifact, LinkOption.NOFOLLOW_LINKS)) {
+            throw new SecurityException("ARTIFACT_BINARY_MISSING_OR_UNSAFE");
+        }
+        return artifact;
+    }
+
     private static void requireChild(Path root, Path path) {
         if (!path.toAbsolutePath().normalize().startsWith(root.toAbsolutePath().normalize())) {
             throw new SecurityException("ARTIFACT_PATH_ESCAPE");
@@ -282,8 +389,8 @@ public final class ArtifactInstaller {
     private static void move(Path source, Path target) throws IOException {
         try {
             Files.move(source, target, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
-        } catch (AtomicMoveNotSupportedException ignored) {
-            Files.move(source, target, StandardCopyOption.REPLACE_EXISTING);
+        } catch (AtomicMoveNotSupportedException failure) {
+            throw new IOException("ARTIFACT_ATOMIC_MOVE_REQUIRED", failure);
         }
     }
 
@@ -294,23 +401,10 @@ public final class ArtifactInstaller {
         move(temporary, path);
     }
 
-    private static Properties read(Path path) throws IOException {
-        Properties properties = new Properties();
-        if (Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS)) {
-            try (InputStream input = Files.newInputStream(path, LinkOption.NOFOLLOW_LINKS)) {
-                properties.load(input);
-            }
-        }
-        return properties;
-    }
-
-    private static void writeProperties(Path path, Properties properties) throws IOException {
-        Path temporary = path.resolveSibling(path.getFileName() + ".tmp");
-        try (OutputStream output = Files.newOutputStream(temporary,
-                StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
-            properties.store(output, "CPF verified artifact state");
-        }
-        move(temporary, path);
+    private static String required(Properties state, String name) {
+        String value = state.getProperty(name, "").trim();
+        if (value.isEmpty()) throw new SecurityException("ARTIFACT_STATE_FIELD_MISSING:" + name);
+        return value;
     }
 
     private static long longValue(Properties properties, String name, long fallback) {

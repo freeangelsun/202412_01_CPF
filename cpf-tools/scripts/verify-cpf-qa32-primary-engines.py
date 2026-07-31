@@ -71,6 +71,8 @@ FORBIDDEN_PATTERNS = [
 ALLOW_PATTERN_PATHS = {
     "cpf-tools/scripts/verify-cpf-qa32-primary-engines.py",
     "cpf-tools/scripts/test-cpf-qa32-negative-fixtures.py",
+    "cpf-tools/scripts/verify-cpf-qa33-repository-closure.py",
+    "cpf-tools/config/qa33-repository-closure-policy.json",
     "cpf-admin/frontend/scripts/verify-primary-frontend.mjs",
     "cpf-biz-admin/frontend/scripts/verify-primary-frontend.mjs",
 }

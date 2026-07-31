@@ -1,5 +1,7 @@
 import { defineStore } from "pinia";
-import { admApi } from "../shared/cpfApi";
+import { composeAdmFeatureActions } from "./admFeatureActionRegistry";
+import { useAdmSessionStore } from "./admSessionStore";
+import { getAdmAuthSession } from "../generated/cpf-api";
 import { createAdmState } from "../state/createAdmState";
 import { accessMethods } from "../app/methods/accessMethods";
 import { batchMethods } from "../features/batch/methods";
@@ -9,38 +11,46 @@ import { observabilityMethods } from "../app/methods/observabilityMethods";
 import { platformMethods } from "../app/methods/platformMethods";
 import { referenceMethods } from "../app/methods/referenceMethods";
 
-const actions = {
-  ...accessMethods,
-  ...approvalMethods,
-  ...batchMethods,
-  ...coreMethods,
-  ...observabilityMethods,
-  ...platformMethods,
-  ...referenceMethods,
+const sessionActions = {
   async restoreServerSession(this: any) {
     try {
-      const data: any = await admApi("/adm/api/auth/session");
-      this.currentOperator = data.operator || {};
-      this.authorizedMenus = Array.isArray(data.menus) ? data.menus : [];
-      this.authorizedButtons = Array.isArray(data.buttonIds) ? data.buttonIds : [];
+      const data: any = await getAdmAuthSession<any>();
+      const session = useAdmSessionStore();
+      session.replace({ operator: data.operator || {}, menus: data.menus || [], buttonIds: data.buttonIds || [] });
+      this.currentOperator = session.operator;
+      this.authorizedMenus = session.menus;
+      this.authorizedButtons = session.buttonIds;
       this.permissionsLoaded = Array.isArray(data.menus);
       this.buttonsLoaded = Array.isArray(data.buttonIds);
-      this.sessionLoaded = Boolean(data.operator?.operatorId);
+      this.sessionLoaded = session.loaded;
     } catch {
       this.clearSession("");
     }
   },
   clearSession(this: any, message = "") {
-    this.sessionLoaded = false;
-    this.currentOperator = {};
-    this.authorizedMenus = [];
-    this.authorizedButtons = [];
+    const session = useAdmSessionStore();
+    session.clear();
+    this.sessionLoaded = session.loaded;
+    this.currentOperator = session.operator;
+    this.authorizedMenus = session.menus;
+    this.authorizedButtons = session.buttonIds;
     this.permissionsLoaded = false;
     this.buttonsLoaded = false;
     if (typeof this.resetSensitiveState === "function") this.resetSensitiveState();
     if (message) this.authMessage = message;
   }
 };
+
+const actions = composeAdmFeatureActions([
+  { owner: "access", actions: accessMethods },
+  { owner: "approvals", actions: approvalMethods },
+  { owner: "batch", actions: batchMethods },
+  { owner: "core", actions: coreMethods },
+  { owner: "observability", actions: observabilityMethods },
+  { owner: "platform", actions: platformMethods },
+  { owner: "reference", actions: referenceMethods },
+  { owner: "session", actions: sessionActions }
+]);
 
 export const admConsoleActionNames = Object.freeze(Object.keys(actions));
 

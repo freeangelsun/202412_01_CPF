@@ -3,9 +3,17 @@ group = 'com.cpf.starter'
 dependencies {
     api project(':cpf-core')
     api 'org.springframework.kafka:spring-kafka'
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
     implementation 'org.springframework.boot:spring-boot-autoconfigure'
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
     testImplementation 'org.springframework.kafka:spring-kafka-test'
     testImplementation 'org.testcontainers:kafka'
 }
-publishing { publications { mavenJava(MavenPublication) { from components.java; artifactId = 'cpf-starter-messaging-kafka' } } }
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            artifactId = 'cpf-starter-messaging-kafka'
+        }
+    }
+}

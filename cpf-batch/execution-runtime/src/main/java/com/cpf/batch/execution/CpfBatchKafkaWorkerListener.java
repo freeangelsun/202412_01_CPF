@@ -1,12 +1,12 @@
 package com.cpf.batch.execution;
 
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.support.Acknowledgment;
 
-/** Worker 역할에서만 Remote Step/Partition/Chunk 요청 Topic을 소비합니다. */
+/** Worker가 Durable Ledger 완료 후에만 Kafka offset을 manual ACK합니다. */
 public final class CpfBatchKafkaWorkerListener {
     private final CpfBatchKafkaInboundBridge bridge;
-    public CpfBatchKafkaWorkerListener(CpfBatchKafkaInboundBridge bridge) { this.bridge = bridge; }
-    @KafkaListener(topics = "${cpf.batch.remote.kafka.request-topic:cpf.batch.remote.requests.v1}",
-            groupId = "${cpf.batch.remote.kafka.consumer-group:cpf-batch-remote-workers}")
-    public void request(String json) { bridge.request(json); }
+    public CpfBatchKafkaWorkerListener(CpfBatchKafkaInboundBridge bridge){this.bridge=bridge;}
+    @KafkaListener(topics="#{@cpfBatchRequestTopic}",groupId="#{@cpfBatchWorkerGroupId}",containerFactory="cpfBatchKafkaManualAckContainerFactory")
+    public void request(String json,Acknowledgment acknowledgment){bridge.request(json);acknowledgment.acknowledge();}
 }

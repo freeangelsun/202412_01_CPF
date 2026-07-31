@@ -30,8 +30,10 @@ dependencies {
     // ADM 소유 DB와 CPF 플랫폼 read-model만 JdbcTemplate으로 조회합니다.
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
 
-    // MariaDB 운영 DB에 연결합니다.
+    // 공식 지원 Vendor(Oracle/PostgreSQL/MariaDB) Driver는 DataSource Owner가 명시적으로 소유합니다.
     runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
+    runtimeOnly 'org.postgresql:postgresql'
+    runtimeOnly 'com.oracle.database.jdbc:ojdbc11'
     providedRuntime('org.springframework.boot:spring-boot-starter-tomcat') {
         // 외부 Tomcat만 provided 처리하고, 애플리케이션 소유 Spring Web은 WAR/runtime에서 제외하지 않습니다.
         exclude group: 'org.springframework', module: 'spring-web'

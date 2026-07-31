@@ -1,6 +1,5 @@
 UPDATE bat_schedule_trigger
-   SET execution_id = ?,
-       trigger_status = 'DISPATCHED'
- WHERE schedule_id = ?
-   AND scheduled_fire_at = ?
-   AND fencing_token = ?
+   SET execution_id = ?, trigger_status = 'DISPATCHED', dispatched_at = @NOW6@,
+       dispatch_lease_until = NULL, last_error_code = NULL, updated_at = @NOW6@
+ WHERE schedule_id = ? AND scheduled_fire_at = ?
+   AND trigger_status = 'DISPATCHING' AND dispatch_owner = ? AND dispatch_token = ?

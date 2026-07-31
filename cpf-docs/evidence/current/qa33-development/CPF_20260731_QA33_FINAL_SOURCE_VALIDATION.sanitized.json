@@ -1,0 +1,276 @@
+{
+  "schemaVersion": 4,
+  "evidenceType": "QA33_DEVELOPMENT_SOURCE_VALIDATION",
+  "sourceSha": "c1f273f1ea4fafac6fd5d23bd837adfc38a04497",
+  "resultSha": null,
+  "branch": "master",
+  "verificationScope": "BASE_SHA_PLUS_ROOT_OVERLAY",
+  "releaseEligible": false,
+  "startedAt": "2026-07-31T10:53:35.077040Z",
+  "finishedAt": "2026-07-31T10:56:58.252147Z",
+  "environment": {
+    "os": "Linux-6.12.13-x86_64-with-glibc2.41",
+    "java": "21.0.10 (Java 25 unavailable)",
+    "node": "22.16.0",
+    "npm": "10.9.2",
+    "python": "3.13.5",
+    "powershell": "unavailable",
+    "network": "approved npm registry returned E404 for required metadata; public registry connection timed out"
+  },
+  "status": "PARTIAL",
+  "developmentGateStatus": "PASS",
+  "counts": {
+    "requirements": {
+      "total": 138,
+      "development": {
+        "완료": 135,
+        "부분 구현": 3
+      },
+      "verification": {
+        "미검증": 138
+      }
+    },
+    "scenarios": {
+      "total": 414,
+      "development": {
+        "완료": 405,
+        "부분 구현": 9
+      },
+      "verification": {
+        "완료": 151,
+        "미검증": 263
+      }
+    },
+    "resultRows": {
+      "total": 552,
+      "development": {
+        "완료": 540,
+        "부분 구현": 12
+      },
+      "verification": {
+        "미검증": 401,
+        "완료": 151
+      }
+    }
+  },
+  "gates": [
+    {
+      "name": "request",
+      "command": "python cpf-tools/scripts/verify-cpf-qa33-request-integrity.py --root .",
+      "exitCode": 0,
+      "status": "PASS",
+      "stdoutSha256": "f4dd9dd38e3250402df97670fbe8dee834ccbf114bfa3c075f9ca22a8dd14575",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "combinedOutputSha256": "f4dd9dd38e3250402df97670fbe8dee834ccbf114bfa3c075f9ca22a8dd14575",
+      "sanitized": true
+    },
+    {
+      "name": "source",
+      "command": "python cpf-tools/scripts/verify-cpf-qa33-source-integrity.py --root . --overlay",
+      "exitCode": 0,
+      "status": "PASS",
+      "stdoutSha256": "1804cbc8399773f82b019ceb6e7dec5921a71702b35f064f1ef88dbc8bbe1659",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "combinedOutputSha256": "1804cbc8399773f82b019ceb6e7dec5921a71702b35f064f1ef88dbc8bbe1659",
+      "sanitized": true
+    },
+    {
+      "name": "batch",
+      "command": "python cpf-tools/scripts/verify-cpf-qa33-batch-control-plane.py --root .",
+      "exitCode": 0,
+      "status": "PASS",
+      "stdoutSha256": "691e18892f29898374465ba6e7525b472897898877e10982df89c1e93f5ba2d8",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "combinedOutputSha256": "691e18892f29898374465ba6e7525b472897898877e10982df89c1e93f5ba2d8",
+      "sanitized": true
+    },
+    {
+      "name": "db",
+      "command": "python cpf-tools/scripts/verify-cpf-db-vendor-semantic-parity.py --root .",
+      "exitCode": 0,
+      "status": "PASS",
+      "stdoutSha256": "8c74cde239ed5442b5fb3f9e7781f3d6650ee451166d6749f1aa11f2a6b45b8e",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "combinedOutputSha256": "8c74cde239ed5442b5fb3f9e7781f3d6650ee451166d6749f1aa11f2a6b45b8e",
+      "sanitized": true
+    },
+    {
+      "name": "repo_self",
+      "command": "python cpf-tools/scripts/verify-cpf-qa33-repository-closure.py --root . --self-test",
+      "exitCode": 0,
+      "status": "PASS",
+      "stdoutSha256": "1b77fb61b54884f049f5a9114fed088979ddce3d2821850475bada6e9785b63a",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "combinedOutputSha256": "1b77fb61b54884f049f5a9114fed088979ddce3d2821850475bada6e9785b63a",
+      "sanitized": true
+    },
+    {
+      "name": "repo",
+      "command": "python cpf-tools/scripts/verify-cpf-qa33-repository-closure.py --root . --overlay",
+      "exitCode": 0,
+      "status": "PASS",
+      "stdoutSha256": "4475a721e9f8592dbff16e14ac38a8d10331b7d4a4c686327b7a7ab8a79398e2",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "combinedOutputSha256": "4475a721e9f8592dbff16e14ac38a8d10331b7d4a4c686327b7a7ab8a79398e2",
+      "sanitized": true
+    },
+    {
+      "name": "frontend_self",
+      "command": "python cpf-tools/scripts/verify-cpf-qa33-frontend-closure.py --root . --self-test",
+      "exitCode": 0,
+      "status": "PASS",
+      "stdoutSha256": "110d8d4b5c49db9a10d7233e8cd6714c44709b2932838c4af81503c24b821232",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "combinedOutputSha256": "110d8d4b5c49db9a10d7233e8cd6714c44709b2932838c4af81503c24b821232",
+      "sanitized": true
+    },
+    {
+      "name": "frontend",
+      "command": "python cpf-tools/scripts/verify-cpf-qa33-frontend-closure.py --root . --overlay",
+      "exitCode": 0,
+      "status": "PASS",
+      "stdoutSha256": "536828c3d9a3e3173ad110b8495bd0db09e88f65b3a71f3df03d8462ceb4ce82",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "combinedOutputSha256": "536828c3d9a3e3173ad110b8495bd0db09e88f65b3a71f3df03d8462ceb4ce82",
+      "sanitized": true
+    },
+    {
+      "name": "coverage",
+      "command": "python cpf-tools/scripts/verify-cpf-qa33-result-coverage-v2.py --root .",
+      "exitCode": 0,
+      "status": "PASS",
+      "stdoutSha256": "4ddcaefd8a94c3224dff20d4de1450e1b5a4512d1db20152fd55947f114fdb74",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "combinedOutputSha256": "4ddcaefd8a94c3224dff20d4de1450e1b5a4512d1db20152fd55947f114fdb74",
+      "sanitized": true
+    },
+    {
+      "name": "cpf_admin_frontend_lock",
+      "command": "node cpf-admin/frontend/scripts/verify-lockfile.mjs",
+      "exitCode": 0,
+      "status": "PASS",
+      "stdoutSha256": "ba658564a49dfc080c9f8ed137e138cf9f757bbc9273b775518c8b6c676deaf0",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "combinedOutputSha256": "ba658564a49dfc080c9f8ed137e138cf9f757bbc9273b775518c8b6c676deaf0",
+      "sanitized": true
+    },
+    {
+      "name": "cpf_admin_frontend_generated",
+      "command": "node cpf-admin/frontend/scripts/verify-generated-client.mjs",
+      "exitCode": 0,
+      "status": "PASS",
+      "stdoutSha256": "cf289a809288664f4252c8463b9c8f093b083403af3fb948eeff2c460ffaa12a",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "combinedOutputSha256": "cf289a809288664f4252c8463b9c8f093b083403af3fb948eeff2c460ffaa12a",
+      "sanitized": true
+    },
+    {
+      "name": "cpf_biz_admin_frontend_lock",
+      "command": "node cpf-biz-admin/frontend/scripts/verify-lockfile.mjs",
+      "exitCode": 0,
+      "status": "PASS",
+      "stdoutSha256": "ba658564a49dfc080c9f8ed137e138cf9f757bbc9273b775518c8b6c676deaf0",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "combinedOutputSha256": "ba658564a49dfc080c9f8ed137e138cf9f757bbc9273b775518c8b6c676deaf0",
+      "sanitized": true
+    },
+    {
+      "name": "cpf_biz_admin_frontend_generated",
+      "command": "node cpf-biz-admin/frontend/scripts/verify-generated-client.mjs",
+      "exitCode": 0,
+      "status": "PASS",
+      "stdoutSha256": "cf289a809288664f4252c8463b9c8f093b083403af3fb948eeff2c460ffaa12a",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "combinedOutputSha256": "cf289a809288664f4252c8463b9c8f093b083403af3fb948eeff2c460ffaa12a",
+      "sanitized": true
+    }
+  ],
+  "sanityChecks": [
+    {
+      "name": "typescript_parser",
+      "status": "PASS",
+      "exitCode": 0,
+      "reportSha256": "2ecc0751f2a4c98db71d11ccb8f1e07a8308a2234a436ea15dade19b1f0ef880",
+      "details": {
+        "status": "PASS",
+        "files": 23,
+        "failures": []
+      }
+    },
+    {
+      "name": "json_csv_sanity",
+      "status": "PASS",
+      "exitCode": 0,
+      "reportSha256": "3703db2e00826410b63f12b795c2437b2bfb2405d7ecd83b2b266cd94fcb2209",
+      "details": {
+        "status": "PASS",
+        "jsonFiles": 22,
+        "csvFiles": 7,
+        "failures": []
+      }
+    },
+    {
+      "name": "repository_hygiene",
+      "status": "PASS",
+      "exitCode": 0,
+      "reportSha256": "09be4af24ec2b3be0d0adfb7a8abaac1a278bc4a8f7a210075a2d1146d67fac4",
+      "details": {
+        "status": "PASS",
+        "failures": []
+      }
+    }
+  ],
+  "frontendLock": {
+    "admPackages": 792,
+    "bzaPackages": 792,
+    "dependencyRangeFailures": 0,
+    "directExactMismatches": 0,
+    "nodeVerification": [
+      "verify-lockfile.mjs PASS",
+      "verify-generated-client.mjs PASS"
+    ],
+    "npmCi": {
+      "status": "FAIL",
+      "exitCode": 1,
+      "strictPeerMode": true,
+      "approvedRegistryFailure": "E404 commander@~15.0.0 metadata unavailable",
+      "publicRegistryFailure": "connection timeout",
+      "classification": "ENVIRONMENT_BLOCKER_NOT_RECORDED_AS_PASS"
+    }
+  },
+  "artifacts": {
+    "cpf-admin/frontend/package-lock.json": {
+      "sha256": "af6272a4d7272873c6c6be3f8af983199c3afbb3a0dc86f0e77388a9ea47c072",
+      "size": 408246
+    },
+    "cpf-biz-admin/frontend/package-lock.json": {
+      "sha256": "4d54e4d88d95f1908e59ecda05b46c858f0ff7e4d0c4ee0170fad18a18a9f723",
+      "size": 408246
+    },
+    "cpf-admin/frontend/src/generated/.cpf-openapi-source.json": {
+      "sha256": "f12f44c311bc83849d50337beb9e773c15b1158c8de8eee7b38feae7d2fbc7b9",
+      "size": 543
+    },
+    "cpf-biz-admin/frontend/src/generated/.cpf-openapi-source.json": {
+      "sha256": "1822ef8f22589cdcb5c4bed0246c96aa30c87cee696fc5a8c6efc9806708145d",
+      "size": 543
+    },
+    "cpf-docs/quality/CPF_20260731_QA33_RESULT_MATRIX.csv": {
+      "sha256": "220f32a7feb7820b1f5591dad5458c65c3b1be1f2734c9c8bcabeecd27fba9a0",
+      "size": 280135
+    },
+    "cpf-docs/quality/CPF_20260731_QA33_UNRESOLVED_REGISTER.csv": {
+      "sha256": "bf60de191746852af8025ca77a9f9447a968920f200cf95a3918b8b555e9c0df",
+      "size": 98678
+    }
+  },
+  "limitations": [
+    "Java 25 full Gradle build/test was not executed.",
+    "PowerShell QA33 runtime/all runners were not executed.",
+    "ADM/BZA clean npm ci, typecheck, unit test, production build and Playwright 3-browser runs were not executed because approved registry metadata/tarballs were unavailable and public registry timed out.",
+    "Oracle/PostgreSQL/MariaDB actual migration/rollback/reapply was not executed.",
+    "Kafka/Gateway/Scheduler/Deployment/Agent multi-instance failure/recovery runtime was not executed.",
+    "No commit, push, branch, tag or PR was created by the assistant."
+  ],
+  "sanitized": true
+}

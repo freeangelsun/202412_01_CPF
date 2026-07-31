@@ -36,8 +36,19 @@ public class DeploymentCellLock {
         return deploymentId.equals(owner) ? Acquisition.ACQUIRED : Acquisition.CONTENDED;
     }
 
+    public String owner(String cellId) {
+        return jdbc.queryForObject(sql.required("deploy-lock-owner"), String.class, cellId);
+    }
+
     public void release(String cellId, String deploymentId) {
-        jdbc.update(sql.required("deploy-lock-release"), cellId, deploymentId);
+        int changed = jdbc.update(sql.required("deploy-lock-release"), cellId, deploymentId);
+        if (changed == 1) return;
+        String currentOwner = owner(cellId);
+        if (currentOwner == null || currentOwner.isBlank()) return;
+        if (!deploymentId.equals(currentOwner)) {
+            throw new SecurityException("Deployment lock is owned by another execution");
+        }
+        throw new IllegalStateException("Deployment lock release was not persisted");
     }
 
     public enum Acquisition {

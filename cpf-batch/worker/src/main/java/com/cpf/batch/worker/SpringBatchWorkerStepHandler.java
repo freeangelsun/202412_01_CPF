@@ -58,8 +58,7 @@ public final class SpringBatchWorkerStepHandler implements BatchStepHandler {
                 "shell.durationMs", result.durationMs(),
                 "shell.artifactHash", result.artifactHash(),
                 "shell.outputTruncated", result.truncated(),
-                "shell.stdout", result.stdout(),
-                "shell.stderr", result.stderr());
+                "shell.logStorage", "SANITIZED_ARTIFACT_ONLY");
         if (result.success()) {
             return BatchStepResult.completed(result.status(), 1, 1, checkpoint);
         }
@@ -161,24 +160,21 @@ public final class SpringBatchWorkerStepHandler implements BatchStepHandler {
         return Map.copyOf(values);
     }
 
-    private static BatchJobDefinition definition(BatchStepCommand command, Map<String, Object> p) {
-        return new BatchJobDefinition(
-                required(p, "jobId"), longValue(p, "definitionVersion", 1L),
-                Objects.toString(p.getOrDefault("jobName", p.get("jobId"))),
-                command.step().executorType(), BatchJobDefinition.State.PUBLISHED,
-                Objects.toString(p.getOrDefault("ownerDomain", "BAT")),
-                Objects.toString(p.getOrDefault("description", "Spring Batch dynamic step")),
-                new BatchJobDefinition.Trigger(BatchJobDefinition.TriggerType.MANUAL, "", "Asia/Seoul",
-                        BatchJobDefinition.MisfirePolicy.FAIL_CLOSED, true),
-                java.util.List.of(), java.util.List.of(),
-                new BatchJobDefinition.ResourcePolicy("DEFAULT", "", 1,
-                        longValue(p, "timeoutSeconds", 3600L), 0, 0),
-                BatchJobDefinition.RecoveryPolicy.defaults(), BatchJobDefinition.AlertPolicy.defaults(),
-                command.step().executorReference(), Objects.toString(p.getOrDefault("definitionChecksum",
-                        "0000000000000000000000000000000000000000000000000000000000000000")),
-                Objects.toString(p.getOrDefault("operatorId", "cpf-batch")),
-                Objects.toString(p.getOrDefault("reason", "approved Spring Batch execution")),
-                null, null, 0L);
+    private static BatchJobDefinition definition(BatchStepCommand command, Map<String, Object> parameters) {
+        Object snapshot = parameters.get("approvedDefinitionSnapshot");
+        if (!(snapshot instanceof BatchJobDefinition definition)) {
+            throw new IllegalStateException(
+                    "Immutable approvedDefinitionSnapshot is required for external Batch executor");
+        }
+        if (!definition.executorType().equals(command.step().executorType())
+                || !definition.executorReference().equals(command.step().executorReference())) {
+            throw new SecurityException("Approved Definition executor binding mismatch");
+        }
+        String checksum = required(parameters, "definitionChecksum");
+        if (!checksum.equals(definition.checksum())) {
+            throw new SecurityException("Approved Definition checksum mismatch");
+        }
+        return definition;
     }
 
     private static String processorId(String reference) {

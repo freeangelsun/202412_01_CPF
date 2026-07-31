@@ -23,7 +23,9 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
-    runtimeOnly 'org.mariadb.jdbc:mariadb-java-client:3.4.1'
+    runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
+    runtimeOnly 'org.postgresql:postgresql'
+    runtimeOnly 'com.oracle.database.jdbc:ojdbc11'
     providedRuntime('org.springframework.boot:spring-boot-starter-tomcat') {
         // Servlet container만 provided 처리하고 애플리케이션 소유 Spring Web은 제외하지 않습니다.
         exclude group: 'org.springframework', module: 'spring-web'

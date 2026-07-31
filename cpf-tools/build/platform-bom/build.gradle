@@ -1,0 +1,25 @@
+plugins { id 'java-platform'; id 'maven-publish' }
+
+def platform = new Properties()
+file('../../../gradle/cpf-platform.properties').withInputStream { platform.load(it) }
+group = 'com.cpf'
+version = platform.getProperty('platformVersion')
+javaPlatform { allowDependencies() }
+
+def cpfArtifacts = ['cpf-core','cpf-common','cpf-starter-security','cpf-starter-messaging-kafka','cpf-starter-cache','cpf-starter-observability','cpf-starter-resilience','cpf-starter-featureflag','cpf-starter-secret','cpf-batch-contract']
+dependencies { constraints { cpfArtifacts.each { api("com.cpf:${it}:${project.version}") } } }
+
+publishing {
+ publications { cpfBom(MavenPublication) { from project.components.javaPlatform; artifactId = 'cpf-platform-bom' } }
+ repositories {
+  maven { name='CpfLocal'; url=uri(providers.gradleProperty('cpfLocalArtifactRepository').orElse(providers.environmentVariable('CPF_LOCAL_ARTIFACT_REPOSITORY')).orElse(new File(System.getProperty('user.home'), '.cpf/repository').absolutePath).get()) }
+  maven { name='CpfStaging'; url=uri(providers.gradleProperty('cpfArtifactStagingRepository').orElse(new File(rootDir, '../../../build/cpf-artifact-staging/repository').absolutePath).get()) }
+  maven { name='CpfInternal'; url=uri(providers.gradleProperty('cpfArtifactRepositoryUrl').orElse(providers.environmentVariable('CPF_ARTIFACT_REPOSITORY_URL')).orElse(new File(buildDir,'disabled-internal').absolutePath).get()) }
+ }
+}
+tasks.register('publishCpfBomToLocal') { dependsOn 'publishCpfBomPublicationToCpfLocalRepository' }
+tasks.register('publishCpfBomToStaging') { dependsOn 'publishCpfBomPublicationToCpfStagingRepository' }
+tasks.register('publishCpfBomToInternal') {
+ doFirst { if (!providers.gradleProperty('cpfArtifactRepositoryUrl').isPresent() && !providers.environmentVariable('CPF_ARTIFACT_REPOSITORY_URL').isPresent()) throw new GradleException('Internal repository URL is required.') }
+ dependsOn 'publishCpfBomPublicationToCpfInternalRepository'
+}

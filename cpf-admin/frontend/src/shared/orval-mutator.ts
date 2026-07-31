@@ -1,10 +1,86 @@
-export async function cpfOrvalRequest<T>(config: {url:string;method:string;headers?:HeadersInit;data?:unknown;params?:Record<string,unknown>;signal?:AbortSignal}): Promise<T> {
-  const url=new URL(config.url,location.origin);Object.entries(config.params||{}).forEach(([k,v])=>{if(v!==undefined&&v!==null)url.searchParams.set(k,String(v))});
-  const headers=new Headers(config.headers);if(config.data!==undefined&&!headers.has('Content-Type'))headers.set('Content-Type','application/json');
-  const csrf=document.cookie.split(';').map(v=>v.trim()).find(v=>v.startsWith('XSRF-TOKEN='));if(csrf)headers.set('X-XSRF-TOKEN',decodeURIComponent(csrf.split('=',2)[1]||''));
-  if(headers.has('Authorization'))throw new Error('Browser Bearer Token 금지');
-  const response=await fetch(url,{method:config.method,headers,body:config.data===undefined?undefined:JSON.stringify(config.data),signal:config.signal,credentials:'include',cache:'no-store'});
-  if(!response.ok)throw Object.assign(new Error(`HTTP ${response.status}`),{status:response.status,payload:await response.text()});
-  if(response.status===204)return undefined as T;return await response.json() as T;
+export interface CpfOrvalRequestConfig {
+  url: string;
+  method: string;
+  headers?: HeadersInit;
+  data?: unknown;
+  params?: Record<string, unknown>;
+  signal?: AbortSignal;
 }
+
+export class CpfOrvalError extends Error {
+  constructor(
+    public readonly status: number,
+    message: string,
+    public readonly payload: unknown
+  ) {
+    super(message);
+    this.name = "CpfOrvalError";
+  }
+}
+
+function csrfToken(): string {
+  const entry = document.cookie
+    .split(";")
+    .map(value => value.trim())
+    .find(value => value.startsWith("XSRF-TOKEN="));
+  return entry ? decodeURIComponent(entry.substring("XSRF-TOKEN=".length)) : "";
+}
+
+function requestBody(data: unknown, headers: Headers): BodyInit | undefined {
+  if (data === undefined || data === null) return undefined;
+  if (
+    typeof data === "string" ||
+    data instanceof FormData ||
+    data instanceof Blob ||
+    data instanceof URLSearchParams ||
+    data instanceof ArrayBuffer ||
+    ArrayBuffer.isView(data)
+  ) {
+    return data as BodyInit;
+  }
+  if (!headers.has("Content-Type")) headers.set("Content-Type", "application/json");
+  return JSON.stringify(data);
+}
+
+async function responsePayload(response: Response): Promise<unknown> {
+  if (response.status === 204) return undefined;
+  const contentType = response.headers.get("Content-Type") || "";
+  if (contentType.includes("application/json")) return response.json();
+  if (contentType.startsWith("text/")) return response.text();
+  return response.blob();
+}
+
+export async function cpfOrvalRequest<T>(config: CpfOrvalRequestConfig): Promise<T> {
+  const url = new URL(config.url, window.location.origin);
+  Object.entries(config.params || {}).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) url.searchParams.set(key, String(value));
+  });
+  url.searchParams.delete("requestUser");
+  url.searchParams.delete("actorId");
+
+  const headers = new Headers(config.headers);
+  const csrf = csrfToken();
+  if (csrf && !headers.has("X-XSRF-TOKEN")) headers.set("X-XSRF-TOKEN", csrf);
+  if (headers.has("Authorization")) throw new Error("Browser Bearer Token 금지");
+
+  const response = await fetch(url, {
+    method: config.method,
+    headers,
+    body: requestBody(config.data, headers),
+    signal: config.signal,
+    credentials: "include",
+    cache: "no-store"
+  });
+  const payload = await responsePayload(response);
+  if (!response.ok) {
+    const message = typeof payload === "object" && payload && "message" in payload
+      ? String((payload as { message?: unknown }).message || `HTTP ${response.status}`)
+      : typeof payload === "string" && payload
+        ? payload
+        : `HTTP ${response.status}`;
+    throw new CpfOrvalError(response.status, message, payload);
+  }
+  return payload as T;
+}
+
 export default cpfOrvalRequest;

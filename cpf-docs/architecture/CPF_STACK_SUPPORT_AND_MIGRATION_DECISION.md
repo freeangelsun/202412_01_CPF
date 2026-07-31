@@ -1,90 +1,200 @@
 # CPF 기술 Stack 지원 상태와 Migration 결정
 
-## 1. 현재 상태
+> Canonical path: `cpf-docs/architecture/CPF_STACK_SUPPORT_AND_MIGRATION_DECISION.md`  
+> Source of truth: `gradle/cpf-stack.properties` + Gradle Wrapper + BOM/Lock  
+> Reviewed baseline: `c1f273f1ea4fafac6fd5d23bd837adfc38a04497`  
+> Synchronized: `2026-07-31`
 
-현재 Source 기준:
+## 1. 현재 Source Target
 
-- Java: 25
-- Gradle Wrapper: 9.1.0
-- Spring Boot: 3.4.13
-- Spring Dependency Management Plugin: 1.1.7
+현재 `gradle/cpf-stack.properties` 기준:
 
-현재 조합은 CPF 상용 Release 기준으로 `TRANSITION`이다.
-Spring Boot 3.4.13의 공식 System Requirements는 Java 24까지, Gradle 7.6.4+/8.4+를 명시하므로 Java 25 + Gradle 9.1.0 조합을 공식 지원 조합으로 볼 수 없다.
-
-## 1.1 공식 기준 확인 — 2026-07-27
-
-| 구성 | 공식 확인 |
+| 구성 | Target |
 |---|---|
-| Spring Boot 3.4.13 | Java 17~24, Gradle 7.6.4+ 또는 8.4+, Servlet 6.0 계열 |
-| Gradle 9.1.0 | Java 25 실행/Toolchain 지원 |
-| Spring Boot 4.1.0 | Java 17~26, Gradle 8.14+ 및 9.x, Servlet 6.1 계열 |
+| Java | 25 |
+| Gradle | 9.1.0 |
+| Spring Boot | 4.1.0 |
+| Spring Cloud | 2025.1.2 |
+| Spring Batch | 6.0.4 |
+| Servlet | 6.1 |
+| Stack State | `TARGET` |
 
-따라서 Java 25 + Gradle 9.1.0을 유지하려면 Spring Boot 3.4.13을 GA 기준으로 고정할 수 없다.
-Boot 3.5.x는 Java 25 자체는 지원하지만 공식 System Requirements가 Gradle 9를 명시하지 않으므로 현재 Java25/Gradle9 목표의 최종 해법으로 확정하지 않는다.
+과거 Spring Boot 3.4.13 `TRANSITION` 설명은 현재 Source 상태가 아니다.
 
-공식 Source는 Spring Boot System Requirements/Gradle Plugin 문서와 Gradle Java Compatibility Matrix를 사용한다.
-버전 채택 시점에는 다시 최신 공식 문서를 확인한다.
+## 2. `TARGET`과 `SUPPORTED_GA` 구분
 
-## 2. 결정
+`stackState=TARGET`은 Source와 Build 설정이 해당 Stack을 목표로 이관됐다는 뜻이다.
 
-CPF는 Java 25와 Gradle 9 계열 목표를 유지한다.
-Spring Boot는 4.x 공식 지원 Line으로 별도 Migration Change Set에서 이관한다.
+다음을 의미하지 않는다.
 
-현재 검증 Candidate는 `4.1.0`으로 기록한다. Candidate 숫자만 보고 즉시 전환하지 않고 다음 compatibility가 모두 닫힌 뒤 실제 Target을 확정한다.
+- 전체 Repository Build 성공
+- 모든 Module Runtime 성공
+- 외부 WAS 지원 완료
+- 3 DB Vendor 완료
+- Kafka·Browser·Multi-instance 완료
+- 상용 Release 지원 완료
 
-- Spring Framework 7
-- Spring Security
-- Spring Batch
-- MyBatis / MyBatis Spring Boot Starter
-- Flyway
-- Tomcat/외부 WAS
-- Servlet 6.1
-- Jakarta API
-- Actuator
-- Testcontainers
-- Byte Buddy
-- springdoc/OpenAPI
-- CPF Gradle Convention Plugin
-- Generated Domain
-- bootJar / bootWar / Exploded WAR
+`SUPPORTED_GA`는 별도 Release Gate와 Evidence를 모두 통과한 뒤에만 선언한다.
 
-## 3. Release 정책
+## 3. Version Single Source
 
-`gradle/cpf-stack.properties`의 `stackState=TRANSITION` 동안:
-
-- 일반 개발/검증은 가능하다.
-- 현재 Stack을 "공식 지원 완료"로 문서화하지 않는다.
-- `commercialReleaseGate`는 실패해야 한다.
-- Build가 우연히 성공한다는 이유만으로 GA 지원 상태로 바꾸지 않는다.
-
-Migration과 Runtime/External WAS Evidence가 완료된 후에만 `SUPPORTED_GA`로 전환한다.
-
-## 4. Version Single Source
-
-다음 값은 `gradle/cpf-stack.properties`를 정본으로 사용한다.
+다음 값은 `gradle/cpf-stack.properties` 또는 명시된 정본만 사용한다.
 
 - Java Version
 - Gradle Version
-- Spring Boot Version
-- Spring Dependency Management Plugin Version
-- Migration Candidate Boot Version
-- Stack State
+- Spring Boot/Cloud/Batch
+- dependency-management plugin
+- Servlet
+- 주요 Tool/OSS version
+- stackState
 
-Root/Module/Generator/Standalone Export에서 별도 Version literal을 만들지 않는다.
+금지:
 
-## 5. Migration 완료조건
+- Root/Module/Generator/Script의 별도 version literal
+- README/Guide/ADR가 properties와 다른 현재 버전을 주장
+- `latest`, dynamic range, SNAPSHOT
+- lockfile 미반영
+- Generated Domain의 별도 BOM/version
 
-1. Java 25/Gradle 9에서 전체 configuration/compile/test
-2. Spring Boot Plugin/BOM 정상 동작
-3. BAT Runtime/Spring Batch 회귀
-4. ADM/BZA/Gateway/Generated Domain boot
-5. bootJar/bootWar
-6. 외부 WAS 실제 배포
-7. DB/Flyway/MyBatis 회귀
-8. Frontend/API/OpenAPI 영향 없음
-9. Dependency Lock 갱신
-10. CVE/License 확인
-11. 기존 주요 Evidence 중 영향권 항목 재검증
+## 4. Build 지원 완료 조건
 
-실행하지 않은 항목은 `미검증`이다.
+1. fresh clone
+2. clean Gradle cache
+3. Wrapper checksum
+4. Java 25 toolchain
+5. settings/includeBuild/project graph
+6. Plugin/BOM resolution
+7. 전체 compile/test
+8. Published POM/source/javadoc
+9. bootJar/bootWar
+10. Generated Domain standalone build
+11. LOCAL_DEV/REMOTE/OFFLINE
+12. dependency lock convergence
+13. reproducible artifact
+14. final artifact dependency verification
+15. no local fallback in REMOTE/OFFLINE
+
+## 5. Framework compatibility
+
+실제 Source와 Runtime에서 검증한다.
+
+- Spring Framework 7
+- Spring Security
+- Spring Session
+- Spring Batch 6
+- Spring Cloud Gateway MVC
+- MyBatis/Spring integration
+- Flyway OSS Core
+- Micrometer/OTel
+- Tomcat/External WAS
+- Jakarta/Servlet 6.1
+- Actuator
+- Testcontainers
+- Byte Buddy/Mock/Test tooling
+- springdoc/OpenAPI
+- CPF Convention Plugin/BOM
+- Generated Domain
+- Java Agent/Worker/Process
+
+Compile 성공만으로 compatibility 완료를 선언하지 않는다.
+
+## 6. Artifact별 Runtime 검증
+
+- `cpf-core`/`cpf-common` public artifact consumer
+- ADM Backend
+- BZA Backend
+- Gateway BootJar
+- Batch Control/Worker/Agent/Runner
+- Generated Domain BootJar
+- External WAS BootWar/War
+- ADM/BZA static artifact
+- Offline bundle
+
+각 Artifact는 startup, health, representative request, failure, shutdown과 package content를 검증한다.
+
+## 7. DB·Broker·Browser 검증
+
+### DB
+
+MariaDB, PostgreSQL, Oracle 각각:
+
+- empty install
+- migration
+- upgrade
+- rollback/forward recovery
+- reapply
+- schema drift
+- runtime query
+- Spring Batch repository
+- Spring Session
+- backup/restore 영향
+
+### Kafka
+
+- publish/consume
+- duplicate
+- ordering
+- rebalance
+- retry/DLT
+- broker outage
+- manager/worker crash
+- response loss
+
+### Browser
+
+ADM/BZA:
+
+- clean npm ci
+- generated client
+- typecheck/unit/build
+- Chromium/Firefox/WebKit
+- session/CSRF/permission
+- deep link
+- accessibility
+- error/recovery
+
+## 8. Stack State 전이
+
+```text
+PROPOSED
+→ TARGET
+→ VERIFIED_CANDIDATE
+→ SUPPORTED_GA
+→ DEPRECATED
+→ UNSUPPORTED
+```
+
+- `TARGET`: Source 목표
+- `VERIFIED_CANDIDATE`: Build·핵심 Runtime은 통과했으나 전체 GA Matrix 미완료
+- `SUPPORTED_GA`: Final Target Release Gate 전체 통과
+- `DEPRECATED`: 지원 종료 일정·Migration 제공
+- `UNSUPPORTED`: Build/Runtime/보안 지원 없음
+
+현재 상태는 Source 정본의 `TARGET`이다.
+
+## 9. Release 차단
+
+다음 중 하나라도 존재하면 `SUPPORTED_GA` 금지:
+
+- full Gradle 미실행/실패
+- unsupported plugin/dependency
+- lock/POM/BOM drift
+- 외부 WAS 미검증인데 지원 표기
+- 3DB/Kafka/Browser 미검증
+- Generated Domain 미검증
+- final Artifact SBOM/License/CVE 미검증
+- exact-SHA Evidence 없음
+- Stack 문서와 properties 불일치
+
+## 10. 관련 Requirement
+
+- `REL-BUILD`
+- `REL-DEPLOY`
+- `REL-COMPAT`
+- `RULE-ARCH`
+- `RULE-QUALITY`
+- `TEST-RUNTIME`
+- `TEST-BROKER`
+- `TEST-BROWSER`
+- `TEST-EVIDENCE`
+- `DEVEX-CODEGEN`

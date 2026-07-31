@@ -1,0 +1,144 @@
+{
+  "schemaVersion": 1,
+  "requiredFiles": [
+    "settings.gradle",
+    "build.gradle",
+    "cpf-tools/scripts/verify-cpf-qa32-primary-engines.py",
+    "cpf-tools/scripts/verify-cpf-qa32-repository-security.py",
+    "cpf-tools/scripts/verify-cpf-qa32-generator.py",
+    "cpf-tools/scripts/verify-cpf-supply-chain.py",
+    "cpf-tools/scripts/verify-cpf-qa33-source-integrity.py",
+    "cpf-tools/scripts/verify-cpf-db-vendor-semantic-parity.py",
+    "cpf-tools/scripts/verify-cpf-qa33-runtime.ps1"
+  ],
+  "requiredMarkers": {
+    "build.gradle": [
+      "dependencyLocking",
+      "lockAllConfigurations()",
+      "publishCpfVerifiedLocalPlatformArtifacts",
+      "verifyCpfLocalArtifactPropagation",
+      "commercialReleaseGate"
+    ],
+    "cpf-tools/scripts/verify-cpf-qa33-runtime.ps1": [
+      "Java 25 is required",
+      "qa33-gradle-integration",
+      "qa33-final-artifact-supply-chain"
+    ],
+    "cpf-tools/scripts/verify-cpf-qa32-generator.py": [
+      "com\\.cpf\\.core\\.common",
+      "generator/template source missing"
+    ]
+  },
+  "forbiddenExistingPaths": [
+    "cpf-gateway/src/main/java/com/cpf/gateway/controller/CpfGatewayController.java",
+    "cpf-gateway/src/main/java/com/cpf/gateway/controller/CpfGatewayPublicController.java",
+    "cpf-gateway/src/main/java/com/cpf/gateway/service/CpfGatewayProxyService.java",
+    "cpf-gateway/src/main/java/com/cpf/gateway/transport/JdkCpfGatewayHttpExchangeAdapter.java",
+    "cpf-batch/center-cut-runner/src/main/java/com/cpf/batch/centercut/runner/CenterCutRuntime.java",
+    "cpf-batch/center-cut-runner/src/main/java/com/cpf/batch/centercut/runner/CenterCutDispatcher.java",
+    "cpf-batch/worker/src/main/java/com/cpf/batch/worker/WorkerRuntime.java",
+    "cpf-batch/worker/src/main/java/com/cpf/batch/worker/JobPackDispatcher.java",
+    "cpf-batch/worker/src/main/java/com/cpf/batch/worker/internal/JdbcWorkerExecutionRepository.java",
+    "cpf-admin/frontend/src/app/admConsoleMixin.ts"
+  ],
+  "forbiddenPatterns": [
+    {
+      "id": "DYNAMIC_GRADLE_VERSION",
+      "regex": "(?:[\"'](?:latest\\.(?:release|integration)|[^\"']*\\+)[\"'])",
+      "extensions": [
+        ".gradle",
+        ".kts"
+      ]
+    },
+    {
+      "id": "UNBOUNDED_READ_ALL_BYTES",
+      "regex": "\\breadAllBytes\\s*\\(",
+      "extensions": [
+        ".java",
+        ".kt"
+      ]
+    },
+    {
+      "id": "LEGACY_HASH_ROUTER",
+      "regex": "location\\.hash|hashchange",
+      "extensions": [
+        ".ts",
+        ".js",
+        ".mjs",
+        ".vue"
+      ]
+    },
+    {
+      "id": "BROWSER_TOKEN_STORAGE",
+      "regex": "localStorage\\.(?:setItem|getItem)\\([^\\n]*(?:token|access|refresh)",
+      "extensions": [
+        ".ts",
+        ".js",
+        ".mjs",
+        ".vue"
+      ]
+    },
+    {
+      "id": "CUSTOM_MIGRATION_EXECUTOR",
+      "regex": "(?:class|interface)\\s+(?:Cpf)?(?:Schema|Sql|Database)?MigrationExecutor\\b",
+      "extensions": [
+        ".java",
+        ".kt"
+      ]
+    }
+  ],
+  "patternAllowlist": {
+    "UNBOUNDED_READ_ALL_BYTES": [
+      "cpf-tools/scripts/verify-cpf-qa32-primary-engines.py",
+      "cpf-tools/scripts/verify-cpf-qa32-repository-security.py",
+      "cpf-tools/scripts/verify-cpf-qa33-repository-closure.py"
+    ],
+    "DYNAMIC_GRADLE_VERSION": [],
+    "LEGACY_HASH_ROUTER": [
+      "cpf-tools/scripts/verify-cpf-qa32-primary-engines.py",
+      "cpf-tools/scripts/verify-cpf-qa32-generator.py",
+      "cpf-tools/scripts/verify-cpf-qa33-repository-closure.py"
+    ],
+    "BROWSER_TOKEN_STORAGE": [
+      "cpf-tools/scripts/verify-cpf-qa32-primary-engines.py",
+      "cpf-tools/scripts/verify-cpf-qa32-generator.py",
+      "cpf-tools/scripts/verify-cpf-qa33-repository-closure.py"
+    ],
+    "CUSTOM_MIGRATION_EXECUTOR": [
+      "cpf-tools/scripts/verify-cpf-qa33-repository-closure.py"
+    ]
+  },
+  "fullRepositoryRequirements": {
+    "minimumGradleLockfiles": 1,
+    "requiredGeneratorPaths": [
+      "cpf-tools/generator",
+      "cpf-tools/templates",
+      "cpf-tools/scripts/check-generated-domain-parity.ps1",
+      "cpf-tools/scripts/check-generator-golden-path.ps1",
+      "cpf-tools/scripts/smoke-generated-domain-lifecycle.ps1"
+    ],
+    "requiredMigrationMarkers": [
+      "org.flywaydb",
+      "flyway"
+    ],
+    "requiredObservabilityTokens": [
+      "transactionGlobalId",
+      "instanceId",
+      "executionId",
+      "attempt"
+    ],
+    "requiredRepositoryGatePaths": [
+      "cpf-tools/scripts/check-architecture-ownership.ps1",
+      "cpf-tools/scripts/check-legacy-batch-migration.ps1",
+      "cpf-tools/scripts/check-platform-database-migration-tool.ps1",
+      "cpf-tools/scripts/smoke-attachment-edu-runtime.ps1",
+      "cpf-tools/scripts/check-r8-approval-security.ps1",
+      "cpf-tools/scripts/check-log-management-standard.ps1",
+      "cpf-tools/scripts/check-generated-domain-parity.ps1",
+      "cpf-tools/scripts/check-generator-golden-path.ps1",
+      "cpf-tools/scripts/verify-local-artifact-propagation.ps1",
+      "cpf-tools/scripts/generate-cpf-supply-chain-evidence.ps1",
+      "cpf-tools/scripts/verify-cpf-final-completion.ps1"
+    ]
+  }
+}

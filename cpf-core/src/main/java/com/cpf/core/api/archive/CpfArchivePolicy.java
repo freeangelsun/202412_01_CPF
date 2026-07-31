@@ -28,9 +28,16 @@ public record CpfArchivePolicy(
     }
 
     /** 압축 폭탄 방지를 위한 archive entry 수 상한입니다. */
-    public int maxEntries() {
-        return 10_000;
-    }
+    public int maxEntries() { return 10_000; }
+
+    /** 경로 탐색과 비정상적으로 깊은 Directory Tree를 차단합니다. */
+    public int maxPathDepth() { return 32; }
+
+    /** ZIP metadata가 제공되는 경우 허용할 최대 압축률입니다. */
+    public double maxCompressionRatio() { return 100.0d; }
+
+    /** Nested archive는 기본 제품 정책에서 허용하지 않습니다. */
+    public int maxNestedArchiveDepth() { return 0; }
 
     public static CpfArchivePolicy local(Path allowedBaseDirectory) {
         return new CpfArchivePolicy(

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">CPF 전체 제품 Architecture</title>
+  <desc id="desc">CPF 공식 매뉴얼 설명 그림</desc>
+  <rect width="100%" height="100%" fill="#F7F9FC"/>
+  <text x="70" y="72" font-family="Arial, Noto Sans KR, sans-serif" font-size="42" font-weight="700" fill="#17324D" text-anchor="start">CPF 전체 제품 Architecture</text>
+  <text x="70" y="112" font-family="Arial, Noto Sans KR, sans-serif" font-size="22" font-weight="400" fill="#64748B" text-anchor="start">업무 시스템 구축·운영·감사·복구를 연결하는 Module Ownership</text>
+  <line x1="70" y1="140" x2="1530" y2="140" stroke="#E8EEF6" stroke-width="3"/>
+  <rect x="70" y="210" width="330" height="480" rx="22" fill="#FFFFFF" stroke="#2F6FED" stroke-width="4"/>
+  <text x="100" y="260" font-family="Arial, Noto Sans KR, sans-serif" font-size="28" font-weight="700" fill="#2F6FED" text-anchor="start">사용자·외부 채널</text>
+  <text x="100" y="320" font-family="Arial, Noto Sans KR, sans-serif" font-size="24" font-weight="500" fill="#0F172A" text-anchor="start">
+    <tspan x="100" dy="0">Web·Mobile·Partner</tspan>
+    <tspan x="100" dy="46">External REST·File·Message</tspan>
+  </text>
+  <line x1="400" y1="450" x2="450" y2="450" stroke="#2F6FED" stroke-width="4"/>
+  <polygon points="450,450 432,440 432,460" fill="#2F6FED"/>
+  <rect x="450" y="210" width="330" height="480" rx="22" fill="#FFFFFF" stroke="#7A5AF8" stroke-width="4"/>
+  <text x="480" y="260" font-family="Arial, Noto Sans KR, sans-serif" font-size="28" font-weight="700" fill="#7A5AF8" text-anchor="start">진입·관리 Plane</text>
+  <text x="480" y="320" font-family="Arial, Noto Sans KR, sans-serif" font-size="24" font-weight="500" fill="#0F172A" text-anchor="start">
+    <tspan x="480" dy="0">Gateway Data Plane</tspan>
+    <tspan x="480" dy="46">ADM·BZA Control Plane</tspan>
+  </text>
+  <line x1="780" y1="450" x2="830" y2="450" stroke="#2F6FED" stroke-width="4"/>
+  <polygon points="830,450 812,440 812,460" fill="#2F6FED"/>
+  <rect x="830" y="210" width="330" height="480" rx="22" fill="#FFFFFF" stroke="#1F9D6A" stroke-width="4"/>
+  <text x="860" y="260" font-family="Arial, Noto Sans KR, sans-serif" font-size="28" font-weight="700" fill="#1F9D6A" text-anchor="start">업무 실행 Plane</text>
+  <text x="860" y="320" font-family="Arial, Noto Sans KR, sans-serif" font-size="24" font-weight="500" fill="#0F172A" text-anchor="start">
+    <tspan x="860" dy="0">Generated Domain</tspan>
+    <tspan x="860" dy="46">Local·Remote Service</tspan>
+    <tspan x="860" dy="46">Kafka·File·Batch</tspan>
+  </text>
+  <line x1="1160" y1="450" x2="1210" y2="450" stroke="#2F6FED" stroke-width="4"/>
+  <polygon points="1210,450 1192,440 1192,460" fill="#2F6FED"/>
+  <rect x="1210" y="210" width="330" height="480" rx="22" fill="#FFFFFF" stroke="#E9822C" stroke-width="4"/>
+  <text x="1240" y="260" font-family="Arial, Noto Sans KR, sans-serif" font-size="28" font-weight="700" fill="#E9822C" text-anchor="start">플랫폼 기반</text>
+  <text x="1240" y="320" font-family="Arial, Noto Sans KR, sans-serif" font-size="24" font-weight="500" fill="#0F172A" text-anchor="start">
+    <tspan x="1240" dy="0">cpf-core·cpf-common</tspan>
+    <tspan x="1240" dy="46">Security·Audit·Observability</tspan>
+    <tspan x="1240" dy="46">DB·Artifact·Agent</tspan>
+  </text>
+  <rect x="180" y="740" width="1240" height="90" rx="20" fill="#17324D" stroke="#17324D" stroke-width="0"/>
+  <text x="800" y="795" font-family="Arial, Noto Sans KR, sans-serif" font-size="26" font-weight="700" fill="#FFFFFF" text-anchor="middle">공통 계약: transactionId · idempotency · permission · approval · audit · timeout · reconciliation</text>
+</svg>

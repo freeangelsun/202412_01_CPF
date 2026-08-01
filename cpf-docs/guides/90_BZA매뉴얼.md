@@ -2,20 +2,36 @@
 
 > **기준 Repository** `freeangelsun/202412_01_CPF`
 > **기준 Branch** `master`
-> **기준 Commit** `95e592c05fc457301efdb13ee50e0d7453325806`
+> **기준 Commit** `23babb9140b90e501d6ac715e7b77f55b66198a5`
 > **문서 목적** BZA 도입 판단, 설치·초기 관리자, 조직·직원·사용자, Role·Permission·Data Scope, 결재·위임, Attachment·Notification, Session·Audit·Export, Domain 연계·복구를 설명한다.
 > **주요 독자** BZA 도입 책임자, 개발자, 업무 관리자, 권한·조직·결재 운영자
 > **문서 사용 결과** BZA를 선택 설치하고 업무 관리 기능을 권한·승인·감사·복구 계약과 함께 운영한다.
 
-## 0. 문서 사용 계약
 
-이 문서는 제품 목표, 기준 Commit의 구현, 실제 실행 검증을 분리한다.
+## 이 문서에서 먼저 볼 그림
 
-- 목표는 구현·검증 여부와 무관한 제품 계약이다.
-- 기능 설명은 최신 Source·SQL·API·Config·Frontend·Script·Test의 exact path를 기준으로 한다.
-- 적용 환경에서는 Build·DB·Kafka·Browser·다중 인스턴스·장애 시나리오의 실행 결과를 환경 기록에 남긴다.
-- Source에 없는 Class·API·Property·Route·Permission·상태를 만들지 않는다.
-- 기능 상태와 운영 상태는 Owner가 정의한 실제 상태값과 Terminal 조건을 사용한다.
+### BZA 전체 메뉴 지도
+
+![BZA 전체 메뉴 지도](../assets/guides/cpf-bza-menu-map.svg)
+
+### 조직·권한·결재 영향 흐름
+
+![BZA 조직 권한 결재 영향 흐름](../assets/guides/cpf-bza-organization-approval.svg)
+
+### Permission·Reason·Approval·Audit
+
+![Permission Reason Approval Audit](../assets/guides/cpf-security-approval-audit.svg)
+
+
+## 0. 제품 사용 계약
+
+이 매뉴얼은 CPF의 기능을 제품 기능으로 설명하며, 대상 사용자가 다른 사람의 구두 설명이나 Source 역분석 없이 자신의 업무를 끝내도록 구성한다.
+
+- 기능별 목적·대상 역할·Owner Module·실제 Consumer와 사용 위치를 먼저 제시한다.
+- Source·SQL·API·Config·Frontend·Script·Test의 정확한 경로와 제품 사용 절차를 함께 제공한다.
+- 입력값·기본값·권한·상태·정상 결과·오류·응답 유실·부분 적용·복구 절차를 기능 단위로 연결한다.
+- Class·API·Property·Route·Permission·상태 이름은 제품 정본의 실제 식별자를 사용한다.
+- 운영 종료는 Owner 상태·Version·Checksum·Audit·업무 합계와 화면 재조회 결과로 판단한다.
 - 명령 실행 전 Local Working Tree를 확인하고 기존 변경을 보호한다.
 
 
@@ -248,12 +264,6 @@ Storage·Disk·Checksum·Temp·Malware 검사·Permission 확인. Metadata와 �
 9. Backup·Restore 후 대사.
 10. Browser·Audit·Evidence 확인.
 
-## 15. 적용 환경 확인 항목
-
-- Route와 Bootstrap Source는 확인했다.
-- 조직·권한·결재·Session·Attachment의 DB·API·Browser Scenario를 Release마다 실행한다.
-- Permission·Field·Button 전수 Inventory는 미실행이다.
-
 ## 부록 A. BZA Route 전수 지도
 
 Source: `cpf-biz-admin/frontend/src/app/routes.ts`.
@@ -403,7 +413,7 @@ BZA 확장은 조직·사용자·Role·Permission·결재 같은 업무 관리 C
 
 - Repository: `https://github.com/freeangelsun/202412_01_CPF`
 - Branch: `master`
-- 기준 Commit: `95e592c05fc457301efdb13ee50e0d7453325806`
+- 기준 Commit: `23babb9140b90e501d6ac715e7b77f55b66198a5`
 - 문서 표준: `cpf-docs/specification/CPF_DOCUMENTATION_STANDARD.md`
 - 제품 목표 정본: `cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md`
 - 사실 우선순위: 실제 Source·SQL·API·Config·Frontend·Script·Test → Architecture·Specification → 이 매뉴얼
@@ -746,6 +756,8 @@ Scanner/Storage/Checksum/Quarantine/Retention을 확인하고 CLEAN을 추정으
 | Frontend | `cpf-biz-admin/frontend/src/features/dashboard/DashboardPage.vue` |
 | Permission | 조회 |
 
+> 공통 유효기간·Data Scope·Masking·Audit·복구 규칙은 7~13절과 46~54절을 적용한다. 아래에는 이 화면 고유 업무만 기록한다.
+
 #### 사용 목적과 업무 영향
 
 이 화면은 **업무 운영 현황** 기능을 제공한다. 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer 중 영향을 받는 항목을 변경 전후에 확인한다.
@@ -754,10 +766,6 @@ Scanner/Storage/Checksum/Quarantine/Retention을 확인하고 CLEAN을 추정으
 
 - 통계·최근 상태
 
-- ID·Code의 변경 가능 여부와 참조 Consumer를 확인한다.
-- 날짜는 시작·종료 포함 경계와 업무 Timezone을 기록한다.
-- 빈 값, `null`, Clear Flag, Use N의 의미를 구분한다.
-- PII·Password·첨부 원문은 Masking·Raw 권한·Reason을 적용한다.
 
 #### Button·조치
 
@@ -771,26 +779,12 @@ Scanner/Storage/Checksum/Quarantine/Retention을 확인하고 CLEAN을 추정으
 
 #### 정상 결과
 
-- 대상 Version·상태·유효기간이 입력과 일치한다.
-- 조직 Tree, Assignment, Effective Permission, Approval Simulation, Session, Attachment Metadata 등 연관 Projection이 같은 결과를 반환한다.
-- Masking과 Data Scope가 Backend Query에 적용된다.
-- Audit에 Actor, Menu·Action Permission, Target, Reason, Before/After, Version과 결과가 남는다.
 
 #### 오류·동시성·응답 유실·복구
 
-| 상황 | 처리 |
-|---|---|
-| Validation | Field 정책·상위 기준정보·기간 경계를 수정해 새 요청을 만든다. |
-| 403 | Menu·Action·API·Data Scope·Raw 권한을 확인한다. |
-| 409 | 최신 Version·유효기간·변경자를 조회하고 변경 의도를 다시 작성한다. |
-| 기간 중복·순환 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
-| 응답 유실 | 같은 Operation ID·Idempotency Key로 결과를 조회한다. |
-| 부분 반영 | 연관 Projection과 업무 Consumer를 Reconcile하고 실패 대상만 재처리한다. |
-| Rollback | 변경 전 Version·Snapshot·유효기간을 근거로 새 보정 Operation을 수행한다. |
+- 공통 Validation·권한·동시성·응답 유실·보정 절차는 7~13절과 46~54절을 적용한다.
 
 #### 개인정보·감사·교대
-
-Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별도 Permission과 구체적 Reason을 기록한다. 교대 시 대상 ID, Version, 유효기간, Operation ID, Approval ID, 결과, 미확정 Consumer와 다음 확인 시각을 남긴다.
 
 
 ### organizations — 조직 계층
@@ -802,6 +796,8 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 | Frontend | `cpf-biz-admin/frontend/src/features/organizations/OrganizationsPage.vue` |
 | Permission | Read; 변경 안내는 Write |
 
+> 공통 유효기간·Data Scope·Masking·Audit·복구 규칙은 7~13절과 46~54절을 적용한다. 아래에는 이 화면 고유 업무만 기록한다.
+
 #### 사용 목적과 업무 영향
 
 이 화면은 **조직 계층** 기능을 제공한다. 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer 중 영향을 받는 항목을 변경 전후에 확인한다.
@@ -811,10 +807,6 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 - 조직명·코드 검색, 중지 포함
 - Tree/상세/고아·순환 경고
 
-- ID·Code의 변경 가능 여부와 참조 Consumer를 확인한다.
-- 날짜는 시작·종료 포함 경계와 업무 Timezone을 기록한다.
-- 빈 값, `null`, Clear Flag, Use N의 의미를 구분한다.
-- PII·Password·첨부 원문은 Masking·Raw 권한·Reason을 적용한다.
 
 #### Button·조치
 
@@ -829,26 +821,12 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 
 #### 정상 결과
 
-- 대상 Version·상태·유효기간이 입력과 일치한다.
-- 조직 Tree, Assignment, Effective Permission, Approval Simulation, Session, Attachment Metadata 등 연관 Projection이 같은 결과를 반환한다.
-- Masking과 Data Scope가 Backend Query에 적용된다.
-- Audit에 Actor, Menu·Action Permission, Target, Reason, Before/After, Version과 결과가 남는다.
 
 #### 오류·동시성·응답 유실·복구
 
-| 상황 | 처리 |
-|---|---|
-| Validation | Field 정책·상위 기준정보·기간 경계를 수정해 새 요청을 만든다. |
-| 403 | Menu·Action·API·Data Scope·Raw 권한을 확인한다. |
-| 409 | 최신 Version·유효기간·변경자를 조회하고 변경 의도를 다시 작성한다. |
-| 기간 중복·순환 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
-| 응답 유실 | 같은 Operation ID·Idempotency Key로 결과를 조회한다. |
-| 부분 반영 | 연관 Projection과 업무 Consumer를 Reconcile하고 실패 대상만 재처리한다. |
-| Rollback | 변경 전 Version·Snapshot·유효기간을 근거로 새 보정 Operation을 수행한다. |
+- 공통 Validation·권한·동시성·응답 유실·보정 절차는 7~13절과 46~54절을 적용한다.
 
 #### 개인정보·감사·교대
-
-Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별도 Permission과 구체적 Reason을 기록한다. 교대 시 대상 ID, Version, 유효기간, Operation ID, Approval ID, 결과, 미확정 Consumer와 다음 확인 시각을 남긴다.
 
 
 ### employees — 직원 Profile
@@ -859,6 +837,8 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 | Menu Code | `EMPLOYEE` |
 | Frontend | `cpf-biz-admin/frontend/src/features/employees/EmployeesPage.vue` |
 | Permission | Write, PII_RAW |
+
+> 공통 유효기간·Data Scope·Masking·Audit·복구 규칙은 7~13절과 46~54절을 적용한다. 아래에는 이 화면 고유 업무만 기록한다.
 
 #### 사용 목적과 업무 영향
 
@@ -876,10 +856,6 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 - Clear Flag
 - Use
 
-- ID·Code의 변경 가능 여부와 참조 Consumer를 확인한다.
-- 날짜는 시작·종료 포함 경계와 업무 Timezone을 기록한다.
-- 빈 값, `null`, Clear Flag, Use N의 의미를 구분한다.
-- PII·Password·첨부 원문은 Masking·Raw 권한·Reason을 적용한다.
 
 #### Button·조치
 
@@ -894,26 +870,12 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 
 #### 정상 결과
 
-- 대상 Version·상태·유효기간이 입력과 일치한다.
-- 조직 Tree, Assignment, Effective Permission, Approval Simulation, Session, Attachment Metadata 등 연관 Projection이 같은 결과를 반환한다.
-- Masking과 Data Scope가 Backend Query에 적용된다.
-- Audit에 Actor, Menu·Action Permission, Target, Reason, Before/After, Version과 결과가 남는다.
 
 #### 오류·동시성·응답 유실·복구
 
-| 상황 | 처리 |
-|---|---|
-| Validation | Field 정책·상위 기준정보·기간 경계를 수정해 새 요청을 만든다. |
-| 403 | Menu·Action·API·Data Scope·Raw 권한을 확인한다. |
-| 409 | 최신 Version·유효기간·변경자를 조회하고 변경 의도를 다시 작성한다. |
-| 기간 중복·순환 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
-| 응답 유실 | 같은 Operation ID·Idempotency Key로 결과를 조회한다. |
-| 부분 반영 | 연관 Projection과 업무 Consumer를 Reconcile하고 실패 대상만 재처리한다. |
-| Rollback | 변경 전 Version·Snapshot·유효기간을 근거로 새 보정 Operation을 수행한다. |
+- 공통 Validation·권한·동시성·응답 유실·보정 절차는 7~13절과 46~54절을 적용한다.
 
 #### 개인정보·감사·교대
-
-Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별도 Permission과 구체적 Reason을 기록한다. 교대 시 대상 ID, Version, 유효기간, Operation ID, Approval ID, 결과, 미확정 Consumer와 다음 확인 시각을 남긴다.
 
 
 ### positions — 직급 기준
@@ -924,6 +886,8 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 | Menu Code | `EMPLOYEE` |
 | Frontend | `cpf-biz-admin/frontend/src/features/positions/PositionsPage.vue` |
 | Permission | Write |
+
+> 공통 유효기간·Data Scope·Masking·Audit·복구 규칙은 7~13절과 46~54절을 적용한다. 아래에는 이 화면 고유 업무만 기록한다.
 
 #### 사용 목적과 업무 영향
 
@@ -936,10 +900,6 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 - Rank Order
 - Use
 
-- ID·Code의 변경 가능 여부와 참조 Consumer를 확인한다.
-- 날짜는 시작·종료 포함 경계와 업무 Timezone을 기록한다.
-- 빈 값, `null`, Clear Flag, Use N의 의미를 구분한다.
-- PII·Password·첨부 원문은 Masking·Raw 권한·Reason을 적용한다.
 
 #### Button·조치
 
@@ -954,26 +914,12 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 
 #### 정상 결과
 
-- 대상 Version·상태·유효기간이 입력과 일치한다.
-- 조직 Tree, Assignment, Effective Permission, Approval Simulation, Session, Attachment Metadata 등 연관 Projection이 같은 결과를 반환한다.
-- Masking과 Data Scope가 Backend Query에 적용된다.
-- Audit에 Actor, Menu·Action Permission, Target, Reason, Before/After, Version과 결과가 남는다.
 
 #### 오류·동시성·응답 유실·복구
 
-| 상황 | 처리 |
-|---|---|
-| Validation | Field 정책·상위 기준정보·기간 경계를 수정해 새 요청을 만든다. |
-| 403 | Menu·Action·API·Data Scope·Raw 권한을 확인한다. |
-| 409 | 최신 Version·유효기간·변경자를 조회하고 변경 의도를 다시 작성한다. |
-| 기간 중복·순환 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
-| 응답 유실 | 같은 Operation ID·Idempotency Key로 결과를 조회한다. |
-| 부분 반영 | 연관 Projection과 업무 Consumer를 Reconcile하고 실패 대상만 재처리한다. |
-| Rollback | 변경 전 Version·Snapshot·유효기간을 근거로 새 보정 Operation을 수행한다. |
+- 공통 Validation·권한·동시성·응답 유실·보정 절차는 7~13절과 46~54절을 적용한다.
 
 #### 개인정보·감사·교대
-
-Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별도 Permission과 구체적 Reason을 기록한다. 교대 시 대상 ID, Version, 유효기간, Operation ID, Approval ID, 결과, 미확정 Consumer와 다음 확인 시각을 남긴다.
 
 
 ### jobTitles — 직책 기준
@@ -984,6 +930,8 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 | Menu Code | `EMPLOYEE` |
 | Frontend | `cpf-biz-admin/frontend/src/features/job-titles/JobTitlesPage.vue` |
 | Permission | Write |
+
+> 공통 유효기간·Data Scope·Masking·Audit·복구 규칙은 7~13절과 46~54절을 적용한다. 아래에는 이 화면 고유 업무만 기록한다.
 
 #### 사용 목적과 업무 영향
 
@@ -996,10 +944,6 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 - Manager YN
 - Use
 
-- ID·Code의 변경 가능 여부와 참조 Consumer를 확인한다.
-- 날짜는 시작·종료 포함 경계와 업무 Timezone을 기록한다.
-- 빈 값, `null`, Clear Flag, Use N의 의미를 구분한다.
-- PII·Password·첨부 원문은 Masking·Raw 권한·Reason을 적용한다.
 
 #### Button·조치
 
@@ -1014,26 +958,12 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 
 #### 정상 결과
 
-- 대상 Version·상태·유효기간이 입력과 일치한다.
-- 조직 Tree, Assignment, Effective Permission, Approval Simulation, Session, Attachment Metadata 등 연관 Projection이 같은 결과를 반환한다.
-- Masking과 Data Scope가 Backend Query에 적용된다.
-- Audit에 Actor, Menu·Action Permission, Target, Reason, Before/After, Version과 결과가 남는다.
 
 #### 오류·동시성·응답 유실·복구
 
-| 상황 | 처리 |
-|---|---|
-| Validation | Field 정책·상위 기준정보·기간 경계를 수정해 새 요청을 만든다. |
-| 403 | Menu·Action·API·Data Scope·Raw 권한을 확인한다. |
-| 409 | 최신 Version·유효기간·변경자를 조회하고 변경 의도를 다시 작성한다. |
-| 기간 중복·순환 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
-| 응답 유실 | 같은 Operation ID·Idempotency Key로 결과를 조회한다. |
-| 부분 반영 | 연관 Projection과 업무 Consumer를 Reconcile하고 실패 대상만 재처리한다. |
-| Rollback | 변경 전 Version·Snapshot·유효기간을 근거로 새 보정 Operation을 수행한다. |
+- 공통 Validation·권한·동시성·응답 유실·보정 절차는 7~13절과 46~54절을 적용한다.
 
 #### 개인정보·감사·교대
-
-Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별도 Permission과 구체적 Reason을 기록한다. 교대 시 대상 ID, Version, 유효기간, Operation ID, Approval ID, 결과, 미확정 Consumer와 다음 확인 시각을 남긴다.
 
 
 ### assignments — 발령·겸직·파견
@@ -1044,6 +974,8 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 | Menu Code | `EMPLOYEE` |
 | Frontend | `cpf-biz-admin/frontend/src/features/assignments/AssignmentsPage.vue` |
 | Permission | Write |
+
+> 공통 유효기간·Data Scope·Masking·Audit·복구 규칙은 7~13절과 46~54절을 적용한다. 아래에는 이 화면 고유 업무만 기록한다.
 
 #### 사용 목적과 업무 영향
 
@@ -1060,10 +992,6 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 - Primary
 - From/To
 
-- ID·Code의 변경 가능 여부와 참조 Consumer를 확인한다.
-- 날짜는 시작·종료 포함 경계와 업무 Timezone을 기록한다.
-- 빈 값, `null`, Clear Flag, Use N의 의미를 구분한다.
-- PII·Password·첨부 원문은 Masking·Raw 권한·Reason을 적용한다.
 
 #### Button·조치
 
@@ -1078,26 +1006,12 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 
 #### 정상 결과
 
-- 대상 Version·상태·유효기간이 입력과 일치한다.
-- 조직 Tree, Assignment, Effective Permission, Approval Simulation, Session, Attachment Metadata 등 연관 Projection이 같은 결과를 반환한다.
-- Masking과 Data Scope가 Backend Query에 적용된다.
-- Audit에 Actor, Menu·Action Permission, Target, Reason, Before/After, Version과 결과가 남는다.
 
 #### 오류·동시성·응답 유실·복구
 
-| 상황 | 처리 |
-|---|---|
-| Validation | Field 정책·상위 기준정보·기간 경계를 수정해 새 요청을 만든다. |
-| 403 | Menu·Action·API·Data Scope·Raw 권한을 확인한다. |
-| 409 | 최신 Version·유효기간·변경자를 조회하고 변경 의도를 다시 작성한다. |
-| 기간 중복·순환 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
-| 응답 유실 | 같은 Operation ID·Idempotency Key로 결과를 조회한다. |
-| 부분 반영 | 연관 Projection과 업무 Consumer를 Reconcile하고 실패 대상만 재처리한다. |
-| Rollback | 변경 전 Version·Snapshot·유효기간을 근거로 새 보정 Operation을 수행한다. |
+- 공통 Validation·권한·동시성·응답 유실·보정 절차는 7~13절과 46~54절을 적용한다.
 
 #### 개인정보·감사·교대
-
-Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별도 Permission과 구체적 Reason을 기록한다. 교대 시 대상 ID, Version, 유효기간, Operation ID, Approval ID, 결과, 미확정 Consumer와 다음 확인 시각을 남긴다.
 
 
 ### organizationResponsibilities — 조직장·대행·승인 Owner
@@ -1108,6 +1022,8 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 | Menu Code | `ORGANIZATION` |
 | Frontend | `cpf-biz-admin/frontend/src/features/organization-responsibilities/OrganizationResponsibilitiesPage.vue` |
 | Permission | Write |
+
+> 공통 유효기간·Data Scope·Masking·Audit·복구 규칙은 7~13절과 46~54절을 적용한다. 아래에는 이 화면 고유 업무만 기록한다.
 
 #### 사용 목적과 업무 영향
 
@@ -1121,10 +1037,6 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 - Employee
 - From/To
 
-- ID·Code의 변경 가능 여부와 참조 Consumer를 확인한다.
-- 날짜는 시작·종료 포함 경계와 업무 Timezone을 기록한다.
-- 빈 값, `null`, Clear Flag, Use N의 의미를 구분한다.
-- PII·Password·첨부 원문은 Masking·Raw 권한·Reason을 적용한다.
 
 #### Button·조치
 
@@ -1139,26 +1051,12 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 
 #### 정상 결과
 
-- 대상 Version·상태·유효기간이 입력과 일치한다.
-- 조직 Tree, Assignment, Effective Permission, Approval Simulation, Session, Attachment Metadata 등 연관 Projection이 같은 결과를 반환한다.
-- Masking과 Data Scope가 Backend Query에 적용된다.
-- Audit에 Actor, Menu·Action Permission, Target, Reason, Before/After, Version과 결과가 남는다.
 
 #### 오류·동시성·응답 유실·복구
 
-| 상황 | 처리 |
-|---|---|
-| Validation | Field 정책·상위 기준정보·기간 경계를 수정해 새 요청을 만든다. |
-| 403 | Menu·Action·API·Data Scope·Raw 권한을 확인한다. |
-| 409 | 최신 Version·유효기간·변경자를 조회하고 변경 의도를 다시 작성한다. |
-| 기간 중복·순환 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
-| 응답 유실 | 같은 Operation ID·Idempotency Key로 결과를 조회한다. |
-| 부분 반영 | 연관 Projection과 업무 Consumer를 Reconcile하고 실패 대상만 재처리한다. |
-| Rollback | 변경 전 Version·Snapshot·유효기간을 근거로 새 보정 Operation을 수행한다. |
+- 공통 Validation·권한·동시성·응답 유실·보정 절차는 7~13절과 46~54절을 적용한다.
 
 #### 개인정보·감사·교대
-
-Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별도 Permission과 구체적 Reason을 기록한다. 교대 시 대상 ID, Version, 유효기간, Operation ID, Approval ID, 결과, 미확정 Consumer와 다음 확인 시각을 남긴다.
 
 
 ### users — BZA 인증 사용자
@@ -1169,6 +1067,8 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 | Menu Code | `AUTHORIZATION` |
 | Frontend | `cpf-biz-admin/frontend/src/features/users/UsersPage.vue` |
 | Permission | Write |
+
+> 공통 유효기간·Data Scope·Masking·Audit·복구 규칙은 7~13절과 46~54절을 적용한다. 아래에는 이 화면 고유 업무만 기록한다.
 
 #### 사용 목적과 업무 영향
 
@@ -1186,10 +1086,6 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 - Expected Version
 - Reason
 
-- ID·Code의 변경 가능 여부와 참조 Consumer를 확인한다.
-- 날짜는 시작·종료 포함 경계와 업무 Timezone을 기록한다.
-- 빈 값, `null`, Clear Flag, Use N의 의미를 구분한다.
-- PII·Password·첨부 원문은 Masking·Raw 권한·Reason을 적용한다.
 
 #### Button·조치
 
@@ -1204,26 +1100,12 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 
 #### 정상 결과
 
-- 대상 Version·상태·유효기간이 입력과 일치한다.
-- 조직 Tree, Assignment, Effective Permission, Approval Simulation, Session, Attachment Metadata 등 연관 Projection이 같은 결과를 반환한다.
-- Masking과 Data Scope가 Backend Query에 적용된다.
-- Audit에 Actor, Menu·Action Permission, Target, Reason, Before/After, Version과 결과가 남는다.
 
 #### 오류·동시성·응답 유실·복구
 
-| 상황 | 처리 |
-|---|---|
-| Validation | Field 정책·상위 기준정보·기간 경계를 수정해 새 요청을 만든다. |
-| 403 | Menu·Action·API·Data Scope·Raw 권한을 확인한다. |
-| 409 | 최신 Version·유효기간·변경자를 조회하고 변경 의도를 다시 작성한다. |
-| 기간 중복·순환 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
-| 응답 유실 | 같은 Operation ID·Idempotency Key로 결과를 조회한다. |
-| 부분 반영 | 연관 Projection과 업무 Consumer를 Reconcile하고 실패 대상만 재처리한다. |
-| Rollback | 변경 전 Version·Snapshot·유효기간을 근거로 새 보정 Operation을 수행한다. |
+- 공통 Validation·권한·동시성·응답 유실·보정 절차는 7~13절과 46~54절을 적용한다.
 
 #### 개인정보·감사·교대
-
-Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별도 Permission과 구체적 Reason을 기록한다. 교대 시 대상 ID, Version, 유효기간, Operation ID, Approval ID, 결과, 미확정 Consumer와 다음 확인 시각을 남긴다.
 
 
 ### roles — 업무 Role
@@ -1234,6 +1116,8 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 | Menu Code | `AUTHORIZATION` |
 | Frontend | `cpf-biz-admin/frontend/src/features/roles/RolesPage.vue` |
 | Permission | Write |
+
+> 공통 유효기간·Data Scope·Masking·Audit·복구 규칙은 7~13절과 46~54절을 적용한다. 아래에는 이 화면 고유 업무만 기록한다.
 
 #### 사용 목적과 업무 영향
 
@@ -1246,10 +1130,6 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 - Data Scope
 - Use
 
-- ID·Code의 변경 가능 여부와 참조 Consumer를 확인한다.
-- 날짜는 시작·종료 포함 경계와 업무 Timezone을 기록한다.
-- 빈 값, `null`, Clear Flag, Use N의 의미를 구분한다.
-- PII·Password·첨부 원문은 Masking·Raw 권한·Reason을 적용한다.
 
 #### Button·조치
 
@@ -1264,26 +1144,12 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 
 #### 정상 결과
 
-- 대상 Version·상태·유효기간이 입력과 일치한다.
-- 조직 Tree, Assignment, Effective Permission, Approval Simulation, Session, Attachment Metadata 등 연관 Projection이 같은 결과를 반환한다.
-- Masking과 Data Scope가 Backend Query에 적용된다.
-- Audit에 Actor, Menu·Action Permission, Target, Reason, Before/After, Version과 결과가 남는다.
 
 #### 오류·동시성·응답 유실·복구
 
-| 상황 | 처리 |
-|---|---|
-| Validation | Field 정책·상위 기준정보·기간 경계를 수정해 새 요청을 만든다. |
-| 403 | Menu·Action·API·Data Scope·Raw 권한을 확인한다. |
-| 409 | 최신 Version·유효기간·변경자를 조회하고 변경 의도를 다시 작성한다. |
-| 기간 중복·순환 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
-| 응답 유실 | 같은 Operation ID·Idempotency Key로 결과를 조회한다. |
-| 부분 반영 | 연관 Projection과 업무 Consumer를 Reconcile하고 실패 대상만 재처리한다. |
-| Rollback | 변경 전 Version·Snapshot·유효기간을 근거로 새 보정 Operation을 수행한다. |
+- 공통 Validation·권한·동시성·응답 유실·보정 절차는 7~13절과 46~54절을 적용한다.
 
 #### 개인정보·감사·교대
-
-Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별도 Permission과 구체적 Reason을 기록한다. 교대 시 대상 ID, Version, 유효기간, Operation ID, Approval ID, 결과, 미확정 Consumer와 다음 확인 시각을 남긴다.
 
 
 ### userRoles — 사용자 Role 유효기간
@@ -1294,6 +1160,8 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 | Menu Code | `AUTHORIZATION` |
 | Frontend | `cpf-biz-admin/frontend/src/features/user-roles/UserRolesPage.vue` |
 | Permission | Write |
+
+> 공통 유효기간·Data Scope·Masking·Audit·복구 규칙은 7~13절과 46~54절을 적용한다. 아래에는 이 화면 고유 업무만 기록한다.
 
 #### 사용 목적과 업무 영향
 
@@ -1307,10 +1175,6 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 - Valid From/To
 - Primary
 
-- ID·Code의 변경 가능 여부와 참조 Consumer를 확인한다.
-- 날짜는 시작·종료 포함 경계와 업무 Timezone을 기록한다.
-- 빈 값, `null`, Clear Flag, Use N의 의미를 구분한다.
-- PII·Password·첨부 원문은 Masking·Raw 권한·Reason을 적용한다.
 
 #### Button·조치
 
@@ -1325,26 +1189,12 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 
 #### 정상 결과
 
-- 대상 Version·상태·유효기간이 입력과 일치한다.
-- 조직 Tree, Assignment, Effective Permission, Approval Simulation, Session, Attachment Metadata 등 연관 Projection이 같은 결과를 반환한다.
-- Masking과 Data Scope가 Backend Query에 적용된다.
-- Audit에 Actor, Menu·Action Permission, Target, Reason, Before/After, Version과 결과가 남는다.
 
 #### 오류·동시성·응답 유실·복구
 
-| 상황 | 처리 |
-|---|---|
-| Validation | Field 정책·상위 기준정보·기간 경계를 수정해 새 요청을 만든다. |
-| 403 | Menu·Action·API·Data Scope·Raw 권한을 확인한다. |
-| 409 | 최신 Version·유효기간·변경자를 조회하고 변경 의도를 다시 작성한다. |
-| 기간 중복·순환 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
-| 응답 유실 | 같은 Operation ID·Idempotency Key로 결과를 조회한다. |
-| 부분 반영 | 연관 Projection과 업무 Consumer를 Reconcile하고 실패 대상만 재처리한다. |
-| Rollback | 변경 전 Version·Snapshot·유효기간을 근거로 새 보정 Operation을 수행한다. |
+- 공통 Validation·권한·동시성·응답 유실·보정 절차는 7~13절과 46~54절을 적용한다.
 
 #### 개인정보·감사·교대
-
-Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별도 Permission과 구체적 Reason을 기록한다. 교대 시 대상 ID, Version, 유효기간, Operation ID, Approval ID, 결과, 미확정 Consumer와 다음 확인 시각을 남긴다.
 
 
 ### menus — Menu Registry
@@ -1355,6 +1205,8 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 | Menu Code | `AUTHORIZATION` |
 | Frontend | `cpf-biz-admin/frontend/src/features/authorization/MenusPage.vue` |
 | Permission | Write |
+
+> 공통 유효기간·Data Scope·Masking·Audit·복구 규칙은 7~13절과 46~54절을 적용한다. 아래에는 이 화면 고유 업무만 기록한다.
 
 #### 사용 목적과 업무 영향
 
@@ -1371,10 +1223,6 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 - Reason
 - Tree 검색
 
-- ID·Code의 변경 가능 여부와 참조 Consumer를 확인한다.
-- 날짜는 시작·종료 포함 경계와 업무 Timezone을 기록한다.
-- 빈 값, `null`, Clear Flag, Use N의 의미를 구분한다.
-- PII·Password·첨부 원문은 Masking·Raw 권한·Reason을 적용한다.
 
 #### Button·조치
 
@@ -1389,26 +1237,12 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 
 #### 정상 결과
 
-- 대상 Version·상태·유효기간이 입력과 일치한다.
-- 조직 Tree, Assignment, Effective Permission, Approval Simulation, Session, Attachment Metadata 등 연관 Projection이 같은 결과를 반환한다.
-- Masking과 Data Scope가 Backend Query에 적용된다.
-- Audit에 Actor, Menu·Action Permission, Target, Reason, Before/After, Version과 결과가 남는다.
 
 #### 오류·동시성·응답 유실·복구
 
-| 상황 | 처리 |
-|---|---|
-| Validation | Field 정책·상위 기준정보·기간 경계를 수정해 새 요청을 만든다. |
-| 403 | Menu·Action·API·Data Scope·Raw 권한을 확인한다. |
-| 409 | 최신 Version·유효기간·변경자를 조회하고 변경 의도를 다시 작성한다. |
-| 기간 중복·순환 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
-| 응답 유실 | 같은 Operation ID·Idempotency Key로 결과를 조회한다. |
-| 부분 반영 | 연관 Projection과 업무 Consumer를 Reconcile하고 실패 대상만 재처리한다. |
-| Rollback | 변경 전 Version·Snapshot·유효기간을 근거로 새 보정 Operation을 수행한다. |
+- 공통 Validation·권한·동시성·응답 유실·보정 절차는 7~13절과 46~54절을 적용한다.
 
 #### 개인정보·감사·교대
-
-Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별도 Permission과 구체적 Reason을 기록한다. 교대 시 대상 ID, Version, 유효기간, Operation ID, Approval ID, 결과, 미확정 Consumer와 다음 확인 시각을 남긴다.
 
 
 ### permissions — Menu·Button·API·Data Scope Permission
@@ -1419,6 +1253,8 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 | Menu Code | `AUTHORIZATION` |
 | Frontend | `cpf-biz-admin/frontend/src/features/authorization/PermissionsPage.vue` |
 | Permission | WRITE, SIMULATE |
+
+> 공통 유효기간·Data Scope·Masking·Audit·복구 규칙은 7~13절과 46~54절을 적용한다. 아래에는 이 화면 고유 업무만 기록한다.
 
 #### 사용 목적과 업무 영향
 
@@ -1437,10 +1273,6 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 - Data Scope
 - Allow/Use
 
-- ID·Code의 변경 가능 여부와 참조 Consumer를 확인한다.
-- 날짜는 시작·종료 포함 경계와 업무 Timezone을 기록한다.
-- 빈 값, `null`, Clear Flag, Use N의 의미를 구분한다.
-- PII·Password·첨부 원문은 Masking·Raw 권한·Reason을 적용한다.
 
 #### Button·조치
 
@@ -1455,26 +1287,12 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 
 #### 정상 결과
 
-- 대상 Version·상태·유효기간이 입력과 일치한다.
-- 조직 Tree, Assignment, Effective Permission, Approval Simulation, Session, Attachment Metadata 등 연관 Projection이 같은 결과를 반환한다.
-- Masking과 Data Scope가 Backend Query에 적용된다.
-- Audit에 Actor, Menu·Action Permission, Target, Reason, Before/After, Version과 결과가 남는다.
 
 #### 오류·동시성·응답 유실·복구
 
-| 상황 | 처리 |
-|---|---|
-| Validation | Field 정책·상위 기준정보·기간 경계를 수정해 새 요청을 만든다. |
-| 403 | Menu·Action·API·Data Scope·Raw 권한을 확인한다. |
-| 409 | 최신 Version·유효기간·변경자를 조회하고 변경 의도를 다시 작성한다. |
-| 기간 중복·순환 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
-| 응답 유실 | 같은 Operation ID·Idempotency Key로 결과를 조회한다. |
-| 부분 반영 | 연관 Projection과 업무 Consumer를 Reconcile하고 실패 대상만 재처리한다. |
-| Rollback | 변경 전 Version·Snapshot·유효기간을 근거로 새 보정 Operation을 수행한다. |
+- 공통 Validation·권한·동시성·응답 유실·보정 절차는 7~13절과 46~54절을 적용한다.
 
 #### 개인정보·감사·교대
-
-Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별도 Permission과 구체적 Reason을 기록한다. 교대 시 대상 ID, Version, 유효기간, Operation ID, Approval ID, 결과, 미확정 Consumer와 다음 확인 시각을 남긴다.
 
 
 ### permissionTools — Role 비교·권한 분석
@@ -1486,6 +1304,8 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 | Frontend | `cpf-biz-admin/frontend/src/features/permission-tools/PermissionToolsPage.vue` |
 | Permission | SIMULATE |
 
+> 공통 유효기간·Data Scope·Masking·Audit·복구 규칙은 7~13절과 46~54절을 적용한다. 아래에는 이 화면 고유 업무만 기록한다.
+
 #### 사용 목적과 업무 영향
 
 이 화면은 **Role 비교·권한 분석** 기능을 제공한다. 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer 중 영향을 받는 항목을 변경 전후에 확인한다.
@@ -1494,10 +1314,6 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 
 - 비교 Role/User·Simulation 입력
 
-- ID·Code의 변경 가능 여부와 참조 Consumer를 확인한다.
-- 날짜는 시작·종료 포함 경계와 업무 Timezone을 기록한다.
-- 빈 값, `null`, Clear Flag, Use N의 의미를 구분한다.
-- PII·Password·첨부 원문은 Masking·Raw 권한·Reason을 적용한다.
 
 #### Button·조치
 
@@ -1512,26 +1328,12 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 
 #### 정상 결과
 
-- 대상 Version·상태·유효기간이 입력과 일치한다.
-- 조직 Tree, Assignment, Effective Permission, Approval Simulation, Session, Attachment Metadata 등 연관 Projection이 같은 결과를 반환한다.
-- Masking과 Data Scope가 Backend Query에 적용된다.
-- Audit에 Actor, Menu·Action Permission, Target, Reason, Before/After, Version과 결과가 남는다.
 
 #### 오류·동시성·응답 유실·복구
 
-| 상황 | 처리 |
-|---|---|
-| Validation | Field 정책·상위 기준정보·기간 경계를 수정해 새 요청을 만든다. |
-| 403 | Menu·Action·API·Data Scope·Raw 권한을 확인한다. |
-| 409 | 최신 Version·유효기간·변경자를 조회하고 변경 의도를 다시 작성한다. |
-| 기간 중복·순환 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
-| 응답 유실 | 같은 Operation ID·Idempotency Key로 결과를 조회한다. |
-| 부분 반영 | 연관 Projection과 업무 Consumer를 Reconcile하고 실패 대상만 재처리한다. |
-| Rollback | 변경 전 Version·Snapshot·유효기간을 근거로 새 보정 Operation을 수행한다. |
+- 공통 Validation·권한·동시성·응답 유실·보정 절차는 7~13절과 46~54절을 적용한다.
 
 #### 개인정보·감사·교대
-
-Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별도 Permission과 구체적 Reason을 기록한다. 교대 시 대상 ID, Version, 유효기간, Operation ID, Approval ID, 결과, 미확정 Consumer와 다음 확인 시각을 남긴다.
 
 
 ### approvalInbox — 결재 처리
@@ -1543,6 +1345,8 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 | Frontend | `cpf-biz-admin/frontend/src/features/approval-inbox/ApprovalInboxPage.vue` |
 | Permission | 결재 참여자 |
 
+> 공통 유효기간·Data Scope·Masking·Audit·복구 규칙은 7~13절과 46~54절을 적용한다. 아래에는 이 화면 고유 업무만 기록한다.
+
 #### 사용 목적과 업무 영향
 
 이 화면은 **결재 처리** 기능을 제공한다. 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer 중 영향을 받는 항목을 변경 전후에 확인한다.
@@ -1552,10 +1356,6 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 - 처리대기/완료/기타 Lane
 - Decision Reason
 
-- ID·Code의 변경 가능 여부와 참조 Consumer를 확인한다.
-- 날짜는 시작·종료 포함 경계와 업무 Timezone을 기록한다.
-- 빈 값, `null`, Clear Flag, Use N의 의미를 구분한다.
-- PII·Password·첨부 원문은 Masking·Raw 권한·Reason을 적용한다.
 
 #### Button·조치
 
@@ -1570,26 +1370,12 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 
 #### 정상 결과
 
-- 대상 Version·상태·유효기간이 입력과 일치한다.
-- 조직 Tree, Assignment, Effective Permission, Approval Simulation, Session, Attachment Metadata 등 연관 Projection이 같은 결과를 반환한다.
-- Masking과 Data Scope가 Backend Query에 적용된다.
-- Audit에 Actor, Menu·Action Permission, Target, Reason, Before/After, Version과 결과가 남는다.
 
 #### 오류·동시성·응답 유실·복구
 
-| 상황 | 처리 |
-|---|---|
-| Validation | Field 정책·상위 기준정보·기간 경계를 수정해 새 요청을 만든다. |
-| 403 | Menu·Action·API·Data Scope·Raw 권한을 확인한다. |
-| 409 | 최신 Version·유효기간·변경자를 조회하고 변경 의도를 다시 작성한다. |
-| 기간 중복·순환 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
-| 응답 유실 | 같은 Operation ID·Idempotency Key로 결과를 조회한다. |
-| 부분 반영 | 연관 Projection과 업무 Consumer를 Reconcile하고 실패 대상만 재처리한다. |
-| Rollback | 변경 전 Version·Snapshot·유효기간을 근거로 새 보정 Operation을 수행한다. |
+- 공통 Validation·권한·동시성·응답 유실·보정 절차는 7~13절과 46~54절을 적용한다.
 
 #### 개인정보·감사·교대
-
-Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별도 Permission과 구체적 Reason을 기록한다. 교대 시 대상 ID, Version, 유효기간, Operation ID, Approval ID, 결과, 미확정 Consumer와 다음 확인 시각을 남긴다.
 
 
 ### approvalSubmissions — 상신·철회·취소·재상신
@@ -1601,6 +1387,8 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 | Frontend | `cpf-biz-admin/frontend/src/features/approval-submissions/ApprovalSubmissionsPage.vue` |
 | Permission | 요청자/상신 권한 |
 
+> 공통 유효기간·Data Scope·Masking·Audit·복구 규칙은 7~13절과 46~54절을 적용한다. 아래에는 이 화면 고유 업무만 기록한다.
+
 #### 사용 목적과 업무 영향
 
 이 화면은 **상신·철회·취소·재상신** 기능을 제공한다. 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer 중 영향을 받는 항목을 변경 전후에 확인한다.
@@ -1609,10 +1397,6 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 
 - Policy/Version/Domain/Type/Requester/Title/Mode/Due/Payload/Attachment/Key/Reason
 
-- ID·Code의 변경 가능 여부와 참조 Consumer를 확인한다.
-- 날짜는 시작·종료 포함 경계와 업무 Timezone을 기록한다.
-- 빈 값, `null`, Clear Flag, Use N의 의미를 구분한다.
-- PII·Password·첨부 원문은 Masking·Raw 권한·Reason을 적용한다.
 
 #### Button·조치
 
@@ -1627,26 +1411,12 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 
 #### 정상 결과
 
-- 대상 Version·상태·유효기간이 입력과 일치한다.
-- 조직 Tree, Assignment, Effective Permission, Approval Simulation, Session, Attachment Metadata 등 연관 Projection이 같은 결과를 반환한다.
-- Masking과 Data Scope가 Backend Query에 적용된다.
-- Audit에 Actor, Menu·Action Permission, Target, Reason, Before/After, Version과 결과가 남는다.
 
 #### 오류·동시성·응답 유실·복구
 
-| 상황 | 처리 |
-|---|---|
-| Validation | Field 정책·상위 기준정보·기간 경계를 수정해 새 요청을 만든다. |
-| 403 | Menu·Action·API·Data Scope·Raw 권한을 확인한다. |
-| 409 | 최신 Version·유효기간·변경자를 조회하고 변경 의도를 다시 작성한다. |
-| 기간 중복·순환 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
-| 응답 유실 | 같은 Operation ID·Idempotency Key로 결과를 조회한다. |
-| 부분 반영 | 연관 Projection과 업무 Consumer를 Reconcile하고 실패 대상만 재처리한다. |
-| Rollback | 변경 전 Version·Snapshot·유효기간을 근거로 새 보정 Operation을 수행한다. |
+- 공통 Validation·권한·동시성·응답 유실·보정 절차는 7~13절과 46~54절을 적용한다.
 
 #### 개인정보·감사·교대
-
-Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별도 Permission과 구체적 Reason을 기록한다. 교대 시 대상 ID, Version, 유효기간, Operation ID, Approval ID, 결과, 미확정 Consumer와 다음 확인 시각을 남긴다.
 
 
 ### approvalPolicies — Versioned 결재 정책
@@ -1658,6 +1428,8 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 | Frontend | `cpf-biz-admin/frontend/src/features/approval-policies/ApprovalPoliciesPage.vue` |
 | Permission | 정책 Write |
 
+> 공통 유효기간·Data Scope·Masking·Audit·복구 규칙은 7~13절과 46~54절을 적용한다. 아래에는 이 화면 고유 업무만 기록한다.
+
 #### 사용 목적과 업무 영향
 
 이 화면은 **Versioned 결재 정책** 기능을 제공한다. 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer 중 영향을 받는 항목을 변경 전후에 확인한다.
@@ -1666,10 +1438,6 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 
 - Policy/Version/Name/Domain/Type/From/To/Enabled/Self Approval/Description/Steps JSON/Reason
 
-- ID·Code의 변경 가능 여부와 참조 Consumer를 확인한다.
-- 날짜는 시작·종료 포함 경계와 업무 Timezone을 기록한다.
-- 빈 값, `null`, Clear Flag, Use N의 의미를 구분한다.
-- PII·Password·첨부 원문은 Masking·Raw 권한·Reason을 적용한다.
 
 #### Button·조치
 
@@ -1684,26 +1452,12 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 
 #### 정상 결과
 
-- 대상 Version·상태·유효기간이 입력과 일치한다.
-- 조직 Tree, Assignment, Effective Permission, Approval Simulation, Session, Attachment Metadata 등 연관 Projection이 같은 결과를 반환한다.
-- Masking과 Data Scope가 Backend Query에 적용된다.
-- Audit에 Actor, Menu·Action Permission, Target, Reason, Before/After, Version과 결과가 남는다.
 
 #### 오류·동시성·응답 유실·복구
 
-| 상황 | 처리 |
-|---|---|
-| Validation | Field 정책·상위 기준정보·기간 경계를 수정해 새 요청을 만든다. |
-| 403 | Menu·Action·API·Data Scope·Raw 권한을 확인한다. |
-| 409 | 최신 Version·유효기간·변경자를 조회하고 변경 의도를 다시 작성한다. |
-| 기간 중복·순환 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
-| 응답 유실 | 같은 Operation ID·Idempotency Key로 결과를 조회한다. |
-| 부분 반영 | 연관 Projection과 업무 Consumer를 Reconcile하고 실패 대상만 재처리한다. |
-| Rollback | 변경 전 Version·Snapshot·유효기간을 근거로 새 보정 Operation을 수행한다. |
+- 공통 Validation·권한·동시성·응답 유실·보정 절차는 7~13절과 46~54절을 적용한다.
 
 #### 개인정보·감사·교대
-
-Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별도 Permission과 구체적 Reason을 기록한다. 교대 시 대상 ID, Version, 유효기간, Operation ID, Approval ID, 결과, 미확정 Consumer와 다음 확인 시각을 남긴다.
 
 
 ### approvalSimulation — 결재 경로 사전 해석
@@ -1715,6 +1469,8 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 | Frontend | `cpf-biz-admin/frontend/src/features/approval-simulation/ApprovalSimulationPage.vue` |
 | Permission | 조회/Simulation |
 
+> 공통 유효기간·Data Scope·Masking·Audit·복구 규칙은 7~13절과 46~54절을 적용한다. 아래에는 이 화면 고유 업무만 기록한다.
+
 #### 사용 목적과 업무 영향
 
 이 화면은 **결재 경로 사전 해석** 기능을 제공한다. 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer 중 영향을 받는 항목을 변경 전후에 확인한다.
@@ -1723,10 +1479,6 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 
 - 조직·Role·위임·정책 Context
 
-- ID·Code의 변경 가능 여부와 참조 Consumer를 확인한다.
-- 날짜는 시작·종료 포함 경계와 업무 Timezone을 기록한다.
-- 빈 값, `null`, Clear Flag, Use N의 의미를 구분한다.
-- PII·Password·첨부 원문은 Masking·Raw 권한·Reason을 적용한다.
 
 #### Button·조치
 
@@ -1741,26 +1493,12 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 
 #### 정상 결과
 
-- 대상 Version·상태·유효기간이 입력과 일치한다.
-- 조직 Tree, Assignment, Effective Permission, Approval Simulation, Session, Attachment Metadata 등 연관 Projection이 같은 결과를 반환한다.
-- Masking과 Data Scope가 Backend Query에 적용된다.
-- Audit에 Actor, Menu·Action Permission, Target, Reason, Before/After, Version과 결과가 남는다.
 
 #### 오류·동시성·응답 유실·복구
 
-| 상황 | 처리 |
-|---|---|
-| Validation | Field 정책·상위 기준정보·기간 경계를 수정해 새 요청을 만든다. |
-| 403 | Menu·Action·API·Data Scope·Raw 권한을 확인한다. |
-| 409 | 최신 Version·유효기간·변경자를 조회하고 변경 의도를 다시 작성한다. |
-| 기간 중복·순환 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
-| 응답 유실 | 같은 Operation ID·Idempotency Key로 결과를 조회한다. |
-| 부분 반영 | 연관 Projection과 업무 Consumer를 Reconcile하고 실패 대상만 재처리한다. |
-| Rollback | 변경 전 Version·Snapshot·유효기간을 근거로 새 보정 Operation을 수행한다. |
+- 공통 Validation·권한·동시성·응답 유실·보정 절차는 7~13절과 46~54절을 적용한다.
 
 #### 개인정보·감사·교대
-
-Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별도 Permission과 구체적 Reason을 기록한다. 교대 시 대상 ID, Version, 유효기간, Operation ID, Approval ID, 결과, 미확정 Consumer와 다음 확인 시각을 남긴다.
 
 
 ### approvalDelegations — 결재 위임·대결
@@ -1772,6 +1510,8 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 | Frontend | `cpf-biz-admin/frontend/src/features/approval-delegations/ApprovalDelegationsPage.vue` |
 | Permission | Write |
 
+> 공통 유효기간·Data Scope·Masking·Audit·복구 규칙은 7~13절과 46~54절을 적용한다. 아래에는 이 화면 고유 업무만 기록한다.
+
 #### 사용 목적과 업무 영향
 
 이 화면은 **결재 위임·대결** 기능을 제공한다. 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer 중 영향을 받는 항목을 변경 전후에 확인한다.
@@ -1780,10 +1520,6 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 
 - 위임자/수임자/범위/From/To/Reason
 
-- ID·Code의 변경 가능 여부와 참조 Consumer를 확인한다.
-- 날짜는 시작·종료 포함 경계와 업무 Timezone을 기록한다.
-- 빈 값, `null`, Clear Flag, Use N의 의미를 구분한다.
-- PII·Password·첨부 원문은 Masking·Raw 권한·Reason을 적용한다.
 
 #### Button·조치
 
@@ -1798,26 +1534,12 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 
 #### 정상 결과
 
-- 대상 Version·상태·유효기간이 입력과 일치한다.
-- 조직 Tree, Assignment, Effective Permission, Approval Simulation, Session, Attachment Metadata 등 연관 Projection이 같은 결과를 반환한다.
-- Masking과 Data Scope가 Backend Query에 적용된다.
-- Audit에 Actor, Menu·Action Permission, Target, Reason, Before/After, Version과 결과가 남는다.
 
 #### 오류·동시성·응답 유실·복구
 
-| 상황 | 처리 |
-|---|---|
-| Validation | Field 정책·상위 기준정보·기간 경계를 수정해 새 요청을 만든다. |
-| 403 | Menu·Action·API·Data Scope·Raw 권한을 확인한다. |
-| 409 | 최신 Version·유효기간·변경자를 조회하고 변경 의도를 다시 작성한다. |
-| 기간 중복·순환 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
-| 응답 유실 | 같은 Operation ID·Idempotency Key로 결과를 조회한다. |
-| 부분 반영 | 연관 Projection과 업무 Consumer를 Reconcile하고 실패 대상만 재처리한다. |
-| Rollback | 변경 전 Version·Snapshot·유효기간을 근거로 새 보정 Operation을 수행한다. |
+- 공통 Validation·권한·동시성·응답 유실·보정 절차는 7~13절과 46~54절을 적용한다.
 
 #### 개인정보·감사·교대
-
-Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별도 Permission과 구체적 Reason을 기록한다. 교대 시 대상 ID, Version, 유효기간, Operation ID, Approval ID, 결과, 미확정 Consumer와 다음 확인 시각을 남긴다.
 
 
 ### sessions — 본인 Refresh Session
@@ -1829,6 +1551,8 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 | Frontend | `cpf-biz-admin/frontend/src/features/sessions/SessionsPage.vue` |
 | Permission | 본인/관리 권한 |
 
+> 공통 유효기간·Data Scope·Masking·Audit·복구 규칙은 7~13절과 46~54절을 적용한다. 아래에는 이 화면 고유 업무만 기록한다.
+
 #### 사용 목적과 업무 영향
 
 이 화면은 **본인 Refresh Session** 기능을 제공한다. 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer 중 영향을 받는 항목을 변경 전후에 확인한다.
@@ -1837,10 +1561,6 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 
 - Session 목록·Device/Expiry
 
-- ID·Code의 변경 가능 여부와 참조 Consumer를 확인한다.
-- 날짜는 시작·종료 포함 경계와 업무 Timezone을 기록한다.
-- 빈 값, `null`, Clear Flag, Use N의 의미를 구분한다.
-- PII·Password·첨부 원문은 Masking·Raw 권한·Reason을 적용한다.
 
 #### Button·조치
 
@@ -1855,26 +1575,12 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 
 #### 정상 결과
 
-- 대상 Version·상태·유효기간이 입력과 일치한다.
-- 조직 Tree, Assignment, Effective Permission, Approval Simulation, Session, Attachment Metadata 등 연관 Projection이 같은 결과를 반환한다.
-- Masking과 Data Scope가 Backend Query에 적용된다.
-- Audit에 Actor, Menu·Action Permission, Target, Reason, Before/After, Version과 결과가 남는다.
 
 #### 오류·동시성·응답 유실·복구
 
-| 상황 | 처리 |
-|---|---|
-| Validation | Field 정책·상위 기준정보·기간 경계를 수정해 새 요청을 만든다. |
-| 403 | Menu·Action·API·Data Scope·Raw 권한을 확인한다. |
-| 409 | 최신 Version·유효기간·변경자를 조회하고 변경 의도를 다시 작성한다. |
-| 기간 중복·순환 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
-| 응답 유실 | 같은 Operation ID·Idempotency Key로 결과를 조회한다. |
-| 부분 반영 | 연관 Projection과 업무 Consumer를 Reconcile하고 실패 대상만 재처리한다. |
-| Rollback | 변경 전 Version·Snapshot·유효기간을 근거로 새 보정 Operation을 수행한다. |
+- 공통 Validation·권한·동시성·응답 유실·보정 절차는 7~13절과 46~54절을 적용한다.
 
 #### 개인정보·감사·교대
-
-Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별도 Permission과 구체적 Reason을 기록한다. 교대 시 대상 ID, Version, 유효기간, Operation ID, Approval ID, 결과, 미확정 Consumer와 다음 확인 시각을 남긴다.
 
 
 ### audits — Immutable 업무 감사
@@ -1886,6 +1592,8 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 | Frontend | `cpf-biz-admin/frontend/src/features/audits/AuditsPage.vue` |
 | Permission | Audit Read |
 
+> 공통 유효기간·Data Scope·Masking·Audit·복구 규칙은 7~13절과 46~54절을 적용한다. 아래에는 이 화면 고유 업무만 기록한다.
+
 #### 사용 목적과 업무 영향
 
 이 화면은 **Immutable 업무 감사** 기능을 제공한다. 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer 중 영향을 받는 항목을 변경 전후에 확인한다.
@@ -1894,10 +1602,6 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 
 - Actor/Action/Target/기간/Operation
 
-- ID·Code의 변경 가능 여부와 참조 Consumer를 확인한다.
-- 날짜는 시작·종료 포함 경계와 업무 Timezone을 기록한다.
-- 빈 값, `null`, Clear Flag, Use N의 의미를 구분한다.
-- PII·Password·첨부 원문은 Masking·Raw 권한·Reason을 적용한다.
 
 #### Button·조치
 
@@ -1912,26 +1616,12 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 
 #### 정상 결과
 
-- 대상 Version·상태·유효기간이 입력과 일치한다.
-- 조직 Tree, Assignment, Effective Permission, Approval Simulation, Session, Attachment Metadata 등 연관 Projection이 같은 결과를 반환한다.
-- Masking과 Data Scope가 Backend Query에 적용된다.
-- Audit에 Actor, Menu·Action Permission, Target, Reason, Before/After, Version과 결과가 남는다.
 
 #### 오류·동시성·응답 유실·복구
 
-| 상황 | 처리 |
-|---|---|
-| Validation | Field 정책·상위 기준정보·기간 경계를 수정해 새 요청을 만든다. |
-| 403 | Menu·Action·API·Data Scope·Raw 권한을 확인한다. |
-| 409 | 최신 Version·유효기간·변경자를 조회하고 변경 의도를 다시 작성한다. |
-| 기간 중복·순환 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
-| 응답 유실 | 같은 Operation ID·Idempotency Key로 결과를 조회한다. |
-| 부분 반영 | 연관 Projection과 업무 Consumer를 Reconcile하고 실패 대상만 재처리한다. |
-| Rollback | 변경 전 Version·Snapshot·유효기간을 근거로 새 보정 Operation을 수행한다. |
+- 공통 Validation·권한·동시성·응답 유실·보정 절차는 7~13절과 46~54절을 적용한다.
 
 #### 개인정보·감사·교대
-
-Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별도 Permission과 구체적 Reason을 기록한다. 교대 시 대상 ID, Version, 유효기간, Operation ID, Approval ID, 결과, 미확정 Consumer와 다음 확인 시각을 남긴다.
 
 
 ### notifications — 업무 알림
@@ -1943,6 +1633,8 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 | Frontend | `cpf-biz-admin/frontend/src/features/notifications/NotificationsPage.vue` |
 | Permission | 본인/Setting |
 
+> 공통 유효기간·Data Scope·Masking·Audit·복구 규칙은 7~13절과 46~54절을 적용한다. 아래에는 이 화면 고유 업무만 기록한다.
+
 #### 사용 목적과 업무 영향
 
 이 화면은 **업무 알림** 기능을 제공한다. 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer 중 영향을 받는 항목을 변경 전후에 확인한다.
@@ -1951,10 +1643,6 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 
 - 알림 상태·채널·사용자 Filter
 
-- ID·Code의 변경 가능 여부와 참조 Consumer를 확인한다.
-- 날짜는 시작·종료 포함 경계와 업무 Timezone을 기록한다.
-- 빈 값, `null`, Clear Flag, Use N의 의미를 구분한다.
-- PII·Password·첨부 원문은 Masking·Raw 권한·Reason을 적용한다.
 
 #### Button·조치
 
@@ -1969,26 +1657,12 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 
 #### 정상 결과
 
-- 대상 Version·상태·유효기간이 입력과 일치한다.
-- 조직 Tree, Assignment, Effective Permission, Approval Simulation, Session, Attachment Metadata 등 연관 Projection이 같은 결과를 반환한다.
-- Masking과 Data Scope가 Backend Query에 적용된다.
-- Audit에 Actor, Menu·Action Permission, Target, Reason, Before/After, Version과 결과가 남는다.
 
 #### 오류·동시성·응답 유실·복구
 
-| 상황 | 처리 |
-|---|---|
-| Validation | Field 정책·상위 기준정보·기간 경계를 수정해 새 요청을 만든다. |
-| 403 | Menu·Action·API·Data Scope·Raw 권한을 확인한다. |
-| 409 | 최신 Version·유효기간·변경자를 조회하고 변경 의도를 다시 작성한다. |
-| 기간 중복·순환 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
-| 응답 유실 | 같은 Operation ID·Idempotency Key로 결과를 조회한다. |
-| 부분 반영 | 연관 Projection과 업무 Consumer를 Reconcile하고 실패 대상만 재처리한다. |
-| Rollback | 변경 전 Version·Snapshot·유효기간을 근거로 새 보정 Operation을 수행한다. |
+- 공통 Validation·권한·동시성·응답 유실·보정 절차는 7~13절과 46~54절을 적용한다.
 
 #### 개인정보·감사·교대
-
-Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별도 Permission과 구체적 Reason을 기록한다. 교대 시 대상 ID, Version, 유효기간, Operation ID, Approval ID, 결과, 미확정 Consumer와 다음 확인 시각을 남긴다.
 
 
 ### attachments — 첨부 업로드·검사·격리
@@ -1999,6 +1673,8 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 | Menu Code | `ATTACHMENT` |
 | Frontend | `cpf-biz-admin/frontend/src/features/attachments/AttachmentsPage.vue` |
 | Permission | Write |
+
+> 공통 유효기간·Data Scope·Masking·Audit·복구 규칙은 7~13절과 46~54절을 적용한다. 아래에는 이 화면 고유 업무만 기록한다.
 
 #### 사용 목적과 업무 영향
 
@@ -2011,10 +1687,6 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 - Reason
 - Scan/Data Classification/Quarantine/Retention
 
-- ID·Code의 변경 가능 여부와 참조 Consumer를 확인한다.
-- 날짜는 시작·종료 포함 경계와 업무 Timezone을 기록한다.
-- 빈 값, `null`, Clear Flag, Use N의 의미를 구분한다.
-- PII·Password·첨부 원문은 Masking·Raw 권한·Reason을 적용한다.
 
 #### Button·조치
 
@@ -2029,26 +1701,12 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 
 #### 정상 결과
 
-- 대상 Version·상태·유효기간이 입력과 일치한다.
-- 조직 Tree, Assignment, Effective Permission, Approval Simulation, Session, Attachment Metadata 등 연관 Projection이 같은 결과를 반환한다.
-- Masking과 Data Scope가 Backend Query에 적용된다.
-- Audit에 Actor, Menu·Action Permission, Target, Reason, Before/After, Version과 결과가 남는다.
 
 #### 오류·동시성·응답 유실·복구
 
-| 상황 | 처리 |
-|---|---|
-| Validation | Field 정책·상위 기준정보·기간 경계를 수정해 새 요청을 만든다. |
-| 403 | Menu·Action·API·Data Scope·Raw 권한을 확인한다. |
-| 409 | 최신 Version·유효기간·변경자를 조회하고 변경 의도를 다시 작성한다. |
-| 기간 중복·순환 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
-| 응답 유실 | 같은 Operation ID·Idempotency Key로 결과를 조회한다. |
-| 부분 반영 | 연관 Projection과 업무 Consumer를 Reconcile하고 실패 대상만 재처리한다. |
-| Rollback | 변경 전 Version·Snapshot·유효기간을 근거로 새 보정 Operation을 수행한다. |
+- 공통 Validation·권한·동시성·응답 유실·보정 절차는 7~13절과 46~54절을 적용한다.
 
 #### 개인정보·감사·교대
-
-Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별도 Permission과 구체적 Reason을 기록한다. 교대 시 대상 ID, Version, 유효기간, Operation ID, Approval ID, 결과, 미확정 Consumer와 다음 확인 시각을 남긴다.
 
 
 ### savedSearches — 저장 검색
@@ -2060,6 +1718,8 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 | Frontend | `cpf-biz-admin/frontend/src/features/saved-searches/SavedSearchesPage.vue` |
 | Permission | 본인/Setting |
 
+> 공통 유효기간·Data Scope·Masking·Audit·복구 규칙은 7~13절과 46~54절을 적용한다. 아래에는 이 화면 고유 업무만 기록한다.
+
 #### 사용 목적과 업무 영향
 
 이 화면은 **저장 검색** 기능을 제공한다. 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer 중 영향을 받는 항목을 변경 전후에 확인한다.
@@ -2068,10 +1728,6 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 
 - Menu/Name/Condition/Use
 
-- ID·Code의 변경 가능 여부와 참조 Consumer를 확인한다.
-- 날짜는 시작·종료 포함 경계와 업무 Timezone을 기록한다.
-- 빈 값, `null`, Clear Flag, Use N의 의미를 구분한다.
-- PII·Password·첨부 원문은 Masking·Raw 권한·Reason을 적용한다.
 
 #### Button·조치
 
@@ -2086,26 +1742,12 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 
 #### 정상 결과
 
-- 대상 Version·상태·유효기간이 입력과 일치한다.
-- 조직 Tree, Assignment, Effective Permission, Approval Simulation, Session, Attachment Metadata 등 연관 Projection이 같은 결과를 반환한다.
-- Masking과 Data Scope가 Backend Query에 적용된다.
-- Audit에 Actor, Menu·Action Permission, Target, Reason, Before/After, Version과 결과가 남는다.
 
 #### 오류·동시성·응답 유실·복구
 
-| 상황 | 처리 |
-|---|---|
-| Validation | Field 정책·상위 기준정보·기간 경계를 수정해 새 요청을 만든다. |
-| 403 | Menu·Action·API·Data Scope·Raw 권한을 확인한다. |
-| 409 | 최신 Version·유효기간·변경자를 조회하고 변경 의도를 다시 작성한다. |
-| 기간 중복·순환 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
-| 응답 유실 | 같은 Operation ID·Idempotency Key로 결과를 조회한다. |
-| 부분 반영 | 연관 Projection과 업무 Consumer를 Reconcile하고 실패 대상만 재처리한다. |
-| Rollback | 변경 전 Version·Snapshot·유효기간을 근거로 새 보정 Operation을 수행한다. |
+- 공통 Validation·권한·동시성·응답 유실·보정 절차는 7~13절과 46~54절을 적용한다.
 
 #### 개인정보·감사·교대
-
-Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별도 Permission과 구체적 Reason을 기록한다. 교대 시 대상 ID, Version, 유효기간, Operation ID, Approval ID, 결과, 미확정 Consumer와 다음 확인 시각을 남긴다.
 
 
 ### settings — BZA 업무 설정
@@ -2117,6 +1759,8 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 | Frontend | `cpf-biz-admin/frontend/src/features/settings/SettingsPage.vue` |
 | Permission | Write |
 
+> 공통 유효기간·Data Scope·Masking·Audit·복구 규칙은 7~13절과 46~54절을 적용한다. 아래에는 이 화면 고유 업무만 기록한다.
+
 #### 사용 목적과 업무 영향
 
 이 화면은 **BZA 업무 설정** 기능을 제공한다. 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer 중 영향을 받는 항목을 변경 전후에 확인한다.
@@ -2125,10 +1769,6 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 
 - Key/Value/Type/Scope/Version/Reason
 
-- ID·Code의 변경 가능 여부와 참조 Consumer를 확인한다.
-- 날짜는 시작·종료 포함 경계와 업무 Timezone을 기록한다.
-- 빈 값, `null`, Clear Flag, Use N의 의미를 구분한다.
-- PII·Password·첨부 원문은 Masking·Raw 권한·Reason을 적용한다.
 
 #### Button·조치
 
@@ -2143,26 +1783,12 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 
 #### 정상 결과
 
-- 대상 Version·상태·유효기간이 입력과 일치한다.
-- 조직 Tree, Assignment, Effective Permission, Approval Simulation, Session, Attachment Metadata 등 연관 Projection이 같은 결과를 반환한다.
-- Masking과 Data Scope가 Backend Query에 적용된다.
-- Audit에 Actor, Menu·Action Permission, Target, Reason, Before/After, Version과 결과가 남는다.
 
 #### 오류·동시성·응답 유실·복구
 
-| 상황 | 처리 |
-|---|---|
-| Validation | Field 정책·상위 기준정보·기간 경계를 수정해 새 요청을 만든다. |
-| 403 | Menu·Action·API·Data Scope·Raw 권한을 확인한다. |
-| 409 | 최신 Version·유효기간·변경자를 조회하고 변경 의도를 다시 작성한다. |
-| 기간 중복·순환 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
-| 응답 유실 | 같은 Operation ID·Idempotency Key로 결과를 조회한다. |
-| 부분 반영 | 연관 Projection과 업무 Consumer를 Reconcile하고 실패 대상만 재처리한다. |
-| Rollback | 변경 전 Version·Snapshot·유효기간을 근거로 새 보정 Operation을 수행한다. |
+- 공통 Validation·권한·동시성·응답 유실·보정 절차는 7~13절과 46~54절을 적용한다.
 
 #### 개인정보·감사·교대
-
-Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별도 Permission과 구체적 Reason을 기록한다. 교대 시 대상 ID, Version, 유효기간, Operation ID, Approval ID, 결과, 미확정 Consumer와 다음 확인 시각을 남긴다.
 
 
 ### downloads — Download 정책
@@ -2174,6 +1800,8 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 | Frontend | `cpf-biz-admin/frontend/src/features/downloads/DownloadsPage.vue` |
 | Permission | Write |
 
+> 공통 유효기간·Data Scope·Masking·Audit·복구 규칙은 7~13절과 46~54절을 적용한다. 아래에는 이 화면 고유 업무만 기록한다.
+
 #### 사용 목적과 업무 영향
 
 이 화면은 **Download 정책** 기능을 제공한다. 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer 중 영향을 받는 항목을 변경 전후에 확인한다.
@@ -2182,10 +1810,6 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 
 - 유형/건수/Data Scope/Masking/Approval/Reason
 
-- ID·Code의 변경 가능 여부와 참조 Consumer를 확인한다.
-- 날짜는 시작·종료 포함 경계와 업무 Timezone을 기록한다.
-- 빈 값, `null`, Clear Flag, Use N의 의미를 구분한다.
-- PII·Password·첨부 원문은 Masking·Raw 권한·Reason을 적용한다.
 
 #### Button·조치
 
@@ -2200,26 +1824,12 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 
 #### 정상 결과
 
-- 대상 Version·상태·유효기간이 입력과 일치한다.
-- 조직 Tree, Assignment, Effective Permission, Approval Simulation, Session, Attachment Metadata 등 연관 Projection이 같은 결과를 반환한다.
-- Masking과 Data Scope가 Backend Query에 적용된다.
-- Audit에 Actor, Menu·Action Permission, Target, Reason, Before/After, Version과 결과가 남는다.
 
 #### 오류·동시성·응답 유실·복구
 
-| 상황 | 처리 |
-|---|---|
-| Validation | Field 정책·상위 기준정보·기간 경계를 수정해 새 요청을 만든다. |
-| 403 | Menu·Action·API·Data Scope·Raw 권한을 확인한다. |
-| 409 | 최신 Version·유효기간·변경자를 조회하고 변경 의도를 다시 작성한다. |
-| 기간 중복·순환 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
-| 응답 유실 | 같은 Operation ID·Idempotency Key로 결과를 조회한다. |
-| 부분 반영 | 연관 Projection과 업무 Consumer를 Reconcile하고 실패 대상만 재처리한다. |
-| Rollback | 변경 전 Version·Snapshot·유효기간을 근거로 새 보정 Operation을 수행한다. |
+- 공통 Validation·권한·동시성·응답 유실·보정 절차는 7~13절과 46~54절을 적용한다.
 
 #### 개인정보·감사·교대
-
-Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별도 Permission과 구체적 Reason을 기록한다. 교대 시 대상 ID, Version, 유효기간, Operation ID, Approval ID, 결과, 미확정 Consumer와 다음 확인 시각을 남긴다.
 
 
 ### downloadAudits — Download 감사
@@ -2231,6 +1841,8 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 | Frontend | `cpf-biz-admin/frontend/src/features/download-audits/DownloadAuditsPage.vue` |
 | Permission | Audit Read |
 
+> 공통 유효기간·Data Scope·Masking·Audit·복구 규칙은 7~13절과 46~54절을 적용한다. 아래에는 이 화면 고유 업무만 기록한다.
+
 #### 사용 목적과 업무 영향
 
 이 화면은 **Download 감사** 기능을 제공한다. 조직 기준일, 사용자·Role 유효기간, Data Scope, 결재 Snapshot, 업무 Domain Consumer 중 영향을 받는 항목을 변경 전후에 확인한다.
@@ -2239,10 +1851,6 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 
 - 사용자/유형/대상/기간/Reason
 
-- ID·Code의 변경 가능 여부와 참조 Consumer를 확인한다.
-- 날짜는 시작·종료 포함 경계와 업무 Timezone을 기록한다.
-- 빈 값, `null`, Clear Flag, Use N의 의미를 구분한다.
-- PII·Password·첨부 원문은 Masking·Raw 권한·Reason을 적용한다.
 
 #### Button·조치
 
@@ -2257,23 +1865,4564 @@ Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별�
 
 #### 정상 결과
 
-- 대상 Version·상태·유효기간이 입력과 일치한다.
-- 조직 Tree, Assignment, Effective Permission, Approval Simulation, Session, Attachment Metadata 등 연관 Projection이 같은 결과를 반환한다.
-- Masking과 Data Scope가 Backend Query에 적용된다.
-- Audit에 Actor, Menu·Action Permission, Target, Reason, Before/After, Version과 결과가 남는다.
 
 #### 오류·동시성·응답 유실·복구
 
-| 상황 | 처리 |
-|---|---|
-| Validation | Field 정책·상위 기준정보·기간 경계를 수정해 새 요청을 만든다. |
-| 403 | Menu·Action·API·Data Scope·Raw 권한을 확인한다. |
-| 409 | 최신 Version·유효기간·변경자를 조회하고 변경 의도를 다시 작성한다. |
-| 기간 중복·순환 | 겹치는 Assignment·Role·Delegation·Policy를 종료하거나 기간을 조정한다. |
-| 응답 유실 | 같은 Operation ID·Idempotency Key로 결과를 조회한다. |
-| 부분 반영 | 연관 Projection과 업무 Consumer를 Reconcile하고 실패 대상만 재처리한다. |
-| Rollback | 변경 전 Version·Snapshot·유효기간을 근거로 새 보정 Operation을 수행한다. |
+- 공통 Validation·권한·동시성·응답 유실·보정 절차는 7~13절과 46~54절을 적용한다.
 
 #### 개인정보·감사·교대
 
-Masked 값을 기본으로 사용한다. 원문 조회·Export·Download는 별도 Permission과 구체적 Reason을 기록한다. 교대 시 대상 ID, Version, 유효기간, Operation ID, Approval ID, 결과, 미확정 Consumer와 다음 확인 시각을 남긴다.
+
+---
+
+## 제4부. BZA 도입부터 조직·권한·결재 운영까지의 실전 Workbook
+
+### 46. 최초 도입 순서
+
+```text
+BZA 선택 판단
+→ Artifact·DB·Static Web 설치
+→ Bootstrap Approval Token 준비
+→ 최초 관리자 Claim
+→ 조직·직원 기준정보
+→ 사용자·Role·Permission
+→ 결재 정책·위임
+→ 첨부·알림·감사
+→ 업무 Domain 연계
+→ Backup·Restore·운영 인계
+```
+
+### 47. 최초 관리자 Bootstrap
+
+- Approval Token의 발급자·대상 Environment·유효기간을 확인한다.
+- Password는 File 또는 승인된 Secret 전달 경로를 사용한다.
+- Bootstrap Operation ID를 기록한다.
+- Claim Lease가 만료되거나 Process가 종료된 경우 기존 Operation을 조회한다.
+- 최초 Role·Permission이 필요한 최소 범위인지 확인한다.
+- Bootstrap Secret File 삭제 실패는 성공으로 처리하지 않는다.
+- 최초 로그인 뒤 Password 변경·MFA·Session 정책을 적용한다.
+
+### 48. 조직 개편 Scenario
+
+예: 조직 A의 하위 조직 B를 조직 C 아래로 이동한다.
+
+1. 기준일과 조직 A·B·C의 Version·유효기간을 조회한다.
+2. 순환 구조가 생기지 않는지 확인한다.
+3. B 소속 직원의 Primary·겸직·파견 Assignment를 조회한다.
+4. 조직 책임자·대행·결재 Owner를 확인한다.
+5. Data Scope와 진행 중 결재 Snapshot 영향을 Simulation한다.
+6. Reason·Approval·Expected Version으로 변경한다.
+7. 조직 Tree와 Assignment Projection을 다시 조회한다.
+8. Effective Permission과 결재 경로 Simulation을 수행한다.
+9. 업무 Domain Consumer가 조직 변경을 반영했는지 확인한다.
+10. Audit Before/After와 Rollback 기준일을 기록한다.
+
+### 49. 직원 PII 변경 Scenario
+
+- 목록은 Masked 값을 사용한다.
+- Raw 조회는 별도 Permission·Reason을 요구한다.
+- Email·Mobile을 빈 문자열로 보내는 것과 Clear Flag를 구분한다.
+- 퇴직 상태 변경 전 사용자·Session·Role·진행 중 결재·조직 책임을 확인한다.
+- 변경 뒤 기존 Session 폐기와 Notification 결과를 확인한다.
+- Export·Download에 원문이 포함되면 별도 Audit를 확인한다.
+
+### 50. Role·Permission 부여 Scenario
+
+1. 사용자와 Role의 유효기간을 확인한다.
+2. Menu·Action·API Permission을 분리해 확인한다.
+3. Data Scope가 조직·업무 Domain 범위와 일치하는지 Simulation한다.
+4. 상충 Role·자기승인·Raw·Export 권한을 확인한다.
+5. Expected Version과 Reason으로 부여한다.
+6. Effective Permission을 다시 계산한다.
+7. 실제 메뉴 표시와 Backend API 403 Negative Test를 수행한다.
+8. 만료 시각과 회수 담당자를 기록한다.
+
+### 51. 결재 정책 Scenario
+
+- Policy ID·Version·Effective From/To
+- ALL·ANY·N_OF_M 조건
+- 조직장·Role·지정 사용자 Resolver
+- 자기승인 금지·최소 승인자 수
+- 위임·대결 유효기간
+- 상신 시 참여자 Snapshot
+- 진행 중 건에 새 Policy Version 적용 여부
+- 취소·반려·재상신·응답 유실 처리
+
+정책 변경 전 Approval Simulation으로 대표 조직·Role·위임 사례를 실행한다.
+
+### 52. 첨부·Download Scenario
+
+1. 파일명·확장자·Content Type·Size 정책을 확인한다.
+2. Upload Session과 Attachment ID를 기록한다.
+3. SHA-256·Malware Scan·상태를 확인한다.
+4. 업무 Entity 연결이 성공했는지 확인한다.
+5. 응답 유실 시 Attachment Metadata와 실제 Object를 대사한다.
+6. Download Permission·Reason·Watermark·만료 URL을 확인한다.
+7. 다운로드 감사와 보존·삭제 정책을 확인한다.
+
+### 53. BZA 장애 대사
+
+| 장애 | 확인 원장 | 복구 |
+|---|---|---|
+| Bootstrap 응답 유실 | Approval·Claim·Operation | 기존 관리자 생성 여부 조회 |
+| 조직 변경 부분 반영 | 조직·Assignment·Projection | Reconcile·보정 Operation |
+| Role 부여 응답 유실 | UserRole Version·Audit | 기존 Operation 조회 |
+| 결재 알림 실패 | Approval Snapshot·Notification | 알림만 재전송 |
+| 첨부 Upload 유실 | Metadata·Object Hash | Orphan 정리·연결 재시도 |
+| Download 실패 | Download Operation·Audit | 새 승인 URL 발급 |
+
+### 54. BZA 독립 수행 Gate
+
+BZA 담당자는 다음을 문서만 보고 수행할 수 있어야 한다.
+
+- 설치와 최초 관리자 Bootstrap
+- 조직·직원·직급·직책·발령·조직 책임 관리
+- 사용자·Role·Menu·Action·API·Data Scope 관리
+- 결재 정책·상신·Inbox·Simulation·위임·대결
+- Session·Masking·Audit·Export
+- Attachment·Notification·Saved Search·Setting
+- 업무 Domain 연계와 확장
+- Backup·Restore·Upgrade·Rollback
+---
+
+## 제5부. BZA 26개 메뉴 독립 업무 상세 장
+
+이 부는 BZA 메뉴 하나만 읽어도 조직·사용자·Role·Permission·결재·첨부·감사 업무를 수행하도록 구성한다. 모든 변경은 기준일·유효기간·Expected Version·Data Scope·Masking·Reason·Approval·Audit와 진행 중 업무 Snapshot 영향을 함께 판정한다.
+
+## 1. dashboard — 업무 운영 현황
+
+![업무 운영 현황 화면·업무 흐름](../assets/guides/menu-detail/bza-dashboard.svg)
+
+### 이 장에서 끝내는 업무
+
+조직·직원·결재·알림·감사 KPI를 우선순위로 확인한다.
+
+### 메뉴 식별·책임
+
+| 항목 | 값 |
+|---|---|
+| Route | `/` |
+| 메뉴 ID | `dashboard` |
+| Menu Code | `DASHBOARD` |
+| 업무 그룹 | overview |
+| Frontend Page | `cpf-biz-admin/frontend/src/features/dashboard/DashboardPage.vue` |
+| Permission | 조회 |
+| 기준 Commit | `23babb9140b90e501d6ac715e7b77f55b66198a5` |
+
+### Source·API 근거
+
+| 구분 | 기준 |
+|---|---|
+| Frontend Page | `cpf-biz-admin/frontend/src/features/dashboard/DashboardPage.vue` |
+| Router | `/` |
+| API 1 | `GET /api/bza/dashboard` |
+| API 2 | `GET /api/bza/approvals/inbox?decisionStatus=WAITING&limit=12` |
+| API 3 | `GET /api/bza/backoffice/organizations?limit=300` |
+| API 4 | `GET /api/bza/backoffice/employees?limit=300` |
+| Source 해석 | DashboardPage.vue는 4개 API를 Promise.all로 조회하고 Menu Permission에 따라 조직·직원·결재 요청을 생략한다. |
+
+아래 표는 이 메뉴에서 실제로 확인·입력·실행할 항목을 정리한다. 화면에 없는 Field·Button·상태를 임의로 가정하지 않는다.
+
+### 검색·입력 Field
+
+별도 사용자 입력 Control이 없다. 현재 Session·Permission·Data Scope와 Page가 정의한 초기 Query로 데이터를 읽는다. 새로고침은 같은 Context를 다시 조회하며 Owner 데이터는 변경하지 않는다.
+
+### 목록 Column·상세 Field
+
+| 표시값 | 운영 의미 | 교차 확인 |
+|---|---|---|
+| `활성 직원` | 업무 운영 현황 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `조직 수` | 동일한 집계 시간 창·단위·Filter에서 비교해야 하는 수치다. | 같은 Filter·집계 시간 창·단위의 상세 Row 또는 Metric으로 대사한다. |
+| `진행 결재` | 업무 운영 현황 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `미확인 알림` | 업무 운영 현황 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `오늘 감사` | 업무 운영 현황 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `결재 제목` | 운영자가 대상을 구분하는 표시명 또는 설명이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `결재 상태` | 현재 상태와 Terminal 여부, 다음 Action 가능 여부를 판단하는 값이다. | Last Updated·Terminal 조건·Owner 상태와 함께 확인한다. |
+| `요청자` | 작업 주체·Owner·변경 사유를 확인하는 감사 정보다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `현재 Step` | 업무 운영 현황 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `업데이트 시각` | 상태 발생·갱신·유효 시점을 나타내며 화면 Timezone을 기준으로 해석한다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `활성 사용자` | 업무 운영 현황 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+
+#### 결과 판독 순서
+
+1. 조회 완료 시각·Filter·Paging·Sort와 화면 Warning을 확인한다.
+2. Empty·Stale·Partial을 정상 0건과 구분한다.
+3. 식별자·상태·Version·오류·시각을 같은 Query Context의 상세와 Owner 원장에서 비교한다.
+4. Masking된 값은 Raw Permission과 Reason 없이 복원·Export하지 않는다.
+5. 집계와 상세가 다르면 집계 시간 창·Timezone·Owner Update 시각을 맞춰 대사한다.
+
+### Button·Action
+
+| Action | 분류 | 활성 조건 | Side Effect·정상 결과 |
+|---|---|---|---|
+| **새로고침** | 조회·탐색 | 조회 Permission과 Query Validation을 충족하고 동일 조회가 진행 중이 아님 | 새로고침 결과의 조회 시각·Filter·Source Version·Warning이 갱신되며 Owner 데이터는 변경하지 않는다. |
+
+### 정상 업무 전체 절차
+
+1. `/`에 진입해 Page Header와 Route가 **업무 운영 현황** 기능을 가리키는지 확인한다.
+2. 로그인 Session·Environment·Data Scope·기준일·Timezone을 고정한다.
+3. 별도 사용자 입력 없이 초기 조회가 끝날 때까지 기다리고, 필요할 때만 같은 Context로 새로고침한다.
+4. Loading 종료 후 Empty·Error·Stale·Partial 상태와 화면 Warning을 먼저 판정한다.
+5. **활성 직원, 조직 수, 진행 결재, 미확인 알림, 오늘 감사**를 읽고 식별자·상태·Version·시각을 Owner 원장과 대사한다.
+6. 화면이 제공하는 Log·Metric·Trace와 조회·Raw·Export 접근 기록이 있으면 해당 Audit를 교차 확인한다.
+7. 이 장의 **종료 판정**과 다음 확인 시각·Evidence Link를 교대 기록에 남긴다.
+
+### 메뉴 고유 판정·금지 사항
+
+- **목적:** 조직·직원·결재·알림·감사 KPI를 우선순위로 확인한다.
+- **종료 판정:** 대시보드 집계는 원본 조직·결재·감사 화면과 같은 조회 시각으로 대사한다.
+- 조회 화면에서 직접 Owner 데이터를 변경하거나 Browser Tool로 우회하지 않는다.
+- Partial 조회를 정상 전체 결과로 합치지 않는다.
+
+### 오류·경계·동시성·복구
+
+| 상황 | 화면 징후 | 운영 조치 | 종료 증적 |
+|---|---|---|---|
+| 401·Session | Session 만료·CSRF·Origin 실패 | 로그인 상태와 BFF Session을 확인한 뒤 같은 Query Context로 다시 조회한다. | 401/403 응답·Session Audit |
+| 403·Data Scope | 메뉴·Button·Raw·Export가 거부됨 | Menu·Button·API·Owner Permission과 Data Scope를 확인하고 우회하지 않는다. | Deny Audit·요청 Permission |
+| Timeout·Dependency | 일부 조회 Source 응답 지연 | Correlation ID·Query Context·실패 Source를 기록하고 같은 조건으로 재조회한다. | 조회 시각·실패 Source·재조회 결과 |
+| Partial·Stale | 일부 대상만 Success 또는 조회 Source 누락 | 성공·실패·미응답을 분리하고 누락 범위와 Version을 표시한다. | Target별 결과·Version |
+
+### 응답 유실·부분 조회 처리
+
+1. 검색 조건·Data Scope·Paging·조회 시각·Correlation ID를 기록한다.
+2. 같은 조건으로 재조회하되 실패 Source만 분리한다.
+3. 정상 Source 결과를 유지하고 실패·Stale Source를 명시한다.
+4. 집계와 원본 상세가 다르면 Owner 상세를 기준으로 Reconcile Case를 연다.
+5. 조회 시각·Source Version·0건 또는 일치 결과를 증적으로 남긴다.
+
+### Log·Metric·Trace·Audit와 교대 기록
+
+| 증적 | 필수 값 |
+|---|---|
+| Audit | Actor·Permission·Data Scope·Raw/Export 접근·Query Context·Result |
+| Log | Environment·Instance·operationId·transactionId·failureStage·errorCode |
+| Metric | 동일 시간 창의 Success·Failure·Latency·Queue·Retry·Partial·Unknown |
+| Trace | root/segment/attempt·Owner·DB/Kafka/외부 의존성 Span |
+| 상태 원장 | Target ID·Version·Checksum·Desired/Actual·Last Updated·Terminal 여부 |
+
+```text
+Menu=
+Route=
+Environment=
+DataScope=
+Query=
+QueryAt=
+CorrelationId=
+SourceVersion=
+Result=SUCCESS|EMPTY|STALE|PARTIAL|FAILED
+FailedSources=
+EvidenceLinks=
+NextCheckAt=
+```
+
+### 실무 Workbook
+
+**상황:** 조직·직원·결재·알림·감사 KPI를 우선순위로 확인한다. 화면이 일부 Source Timeout 때문에 Partial 결과를 표시했다.
+
+1. Query·Data Scope·조회 시각·Correlation ID를 기록한다.
+2. 정상 결과를 0건으로 덮어쓰지 않고 실패 Source만 재조회한다.
+3. 활성 직원, 조직 수, 진행 결재 값을 원본 상세와 같은 시간 기준으로 비교한다.
+4. 불일치가 계속되면 Incident 또는 Reconcile Case를 생성한다.
+5. 대시보드 집계는 원본 조직·결재·감사 화면과 같은 조회 시각으로 대사한다.
+6. Source Version과 다음 확인 시각을 교대 기록에 남긴다.
+
+### 독립 수행 검수 Checklist
+
+- [ ] `/`와 Page Source를 찾고 화면 목적을 설명할 수 있다.
+- [ ] 별도 사용자 입력이 없고 자동 Query Context·새로고침 동작을 설명할 수 있다.
+- [ ] 11개 표시값을 Owner 상태·Version·Audit와 대사할 수 있다.
+- [ ] 1개 Action의 분류·활성 조건·Side Effect를 설명할 수 있다.
+- [ ] Empty·401·403·Timeout·Stale·Partial을 서로 다른 조회 상태로 처리할 수 있다.
+- [ ] 조회 응답 유실 시 같은 Query Context로 재조회하고 Correlation ID·조회 시각·Source Version으로 결과를 대사할 수 있다.
+- [ ] 교대 기록만으로 다음 담당자가 Target·상태·복구 기한을 이어받을 수 있다.
+
+## 2. organizations — 조직 계층
+
+![조직 계층 화면·업무 흐름](../assets/guides/menu-detail/bza-organizations.svg)
+
+### 이 장에서 끝내는 업무
+
+전체 조직 Tree를 검색하고 고아·순환 구조를 식별한다.
+
+### 메뉴 식별·책임
+
+| 항목 | 값 |
+|---|---|
+| Route | `/organizations` |
+| 메뉴 ID | `organizations` |
+| Menu Code | `ORGANIZATION` |
+| 업무 그룹 | people |
+| Frontend Page | `cpf-biz-admin/frontend/src/features/organizations/OrganizationsPage.vue` |
+| Permission | Read; 변경 안내는 Write |
+| 기준 Commit | `23babb9140b90e501d6ac715e7b77f55b66198a5` |
+
+### Source·API 근거
+
+| 구분 | 기준 |
+|---|---|
+| Frontend Page | `cpf-biz-admin/frontend/src/features/organizations/OrganizationsPage.vue` |
+| Router | `/organizations` |
+| API 1 | `GET /api/bza/backoffice/organizations?limit=5000` |
+| Source 해석 | OrganizationsPage.vue는 전체 Tree를 Client에서 구성하고 고아·순환 구조를 경고한다. 이 Page 자체에는 저장 Button이 없다. |
+
+아래 표는 이 메뉴에서 실제로 확인·입력·실행할 항목을 정리한다. 화면에 없는 Field·Button·상태를 임의로 가정하지 않는다.
+
+### 검색·입력 Field
+
+| Field | Control | 업무 의미 | 기본값·Validation·주의 |
+|---|---|---|---|
+| `조직명·코드 검색` | 문자열 입력·검색 | 조직명 또는 조직 코드로 Tree를 필터링한다. | Source의 단일 검색 Control이며 앞뒤 공백을 제거한 뒤 조직명·코드에 대해 대소문자 구분 없이 검색한다. |
+| `중지 조직 포함` | Checkbox | 중지 상태(`useYn=N`) 조직을 Tree와 검색 결과에 포함할지 선택한다. | Source 기본값은 `true`다. 해제하면 제외된 조직 수와 검색 범위를 작업 기록에 남긴다. |
+
+#### 입력 순서
+
+1. **조직명·코드 검색**에 조직명 또는 조직 코드를 입력한다.
+2. **중지 조직 포함**의 기본값 `선택`을 유지할지 결정한다.
+3. 검색 결과의 Tree와 경고 목록이 같은 Filter를 사용하는지 확인한다.
+
+### 목록 Column·상세 Field
+
+| 표시값 | 운영 의미 | 교차 확인 |
+|---|---|---|
+| `조직 Tree` | 전체 조직 계층과 검색 결과를 표시하며 고아·순환 경고의 기준 구조다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `조직 코드` | 조직 계층의 대상 레코드를 상세·Owner·Audit에서 연결하는 식별자다. | 상세·Log·Trace·Audit에서 같은 대상을 가리키는지 확인한다. |
+| `조직명` | 운영자가 대상을 구분하는 표시명 또는 설명이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `상위 조직` | 선택 조직의 Parent Code이며 ROOT·고아 관계를 판단하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `조직 유형` | 조직의 업무 분류이며 허용 Child·책임·Data Scope 해석에 사용한다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `사용 여부` | 현재 상태와 Terminal 여부, 다음 Action 가능 여부를 판단하는 값이다. | Last Updated·Terminal 조건·Owner 상태와 함께 확인한다. |
+| `하위 조직 수` | 현재 Tree Filter에서 선택 조직 아래에 표시되는 Child 수다. | 같은 Filter·집계 시간 창·단위의 상세 Row 또는 Metric으로 대사한다. |
+| `고아 조직 경고` | 오류·Drift·결과 불명 범위를 나타내며 원인과 복구 Owner를 연결해야 한다. | 원인 식별자·실패 Stage·마지막 갱신 시각을 상세와 대조한다. |
+| `순환 조직 경고` | 오류·Drift·결과 불명 범위를 나타내며 원인과 복구 Owner를 연결해야 한다. | 원인 식별자·실패 Stage·마지막 갱신 시각을 상세와 대조한다. |
+
+#### 결과 판독 순서
+
+1. 조회 완료 시각·Filter·Paging·Sort와 화면 Warning을 확인한다.
+2. Empty·Stale·Partial을 정상 0건과 구분한다.
+3. 식별자·상태·Version·오류·시각을 같은 Query Context의 상세와 Owner 원장에서 비교한다.
+4. Masking된 값은 Raw Permission과 Reason 없이 복원·Export하지 않는다.
+5. 집계와 상세가 다르면 집계 시간 창·Timezone·Owner Update 시각을 맞춰 대사한다.
+
+### Button·Action
+
+| Action | 분류 | 활성 조건 | Side Effect·정상 결과 |
+|---|---|---|---|
+| **새로고침** | 조회·탐색 | 조회 Permission과 Query Validation을 충족하고 동일 조회가 진행 중이 아님 | 새로고침 결과의 조회 시각·Filter·Source Version·Warning이 갱신되며 Owner 데이터는 변경하지 않는다. |
+| **Tree Node 선택** | 조회·탐색 | 조회 Permission과 Query Validation을 충족하고 동일 조회가 진행 중이 아님 | Tree Node 선택 결과의 조회 시각·Filter·Source Version·Warning이 갱신되며 Owner 데이터는 변경하지 않는다. |
+
+### 정상 업무 전체 절차
+
+1. `/organizations`에 진입해 Page Header와 Route가 **조직 계층** 기능을 가리키는지 확인한다.
+2. 로그인 Session·Environment·Data Scope·기준일·Timezone을 고정한다.
+3. 화면에 제공된 조회 Control만 사용하고, 표시되지 않은 변경 Field나 Server Command가 있다고 가정하지 않는다.
+4. Loading 종료 후 Empty·Error·Stale·Partial 상태와 화면 Warning을 먼저 판정한다.
+5. **조직 Tree, 조직 코드, 조직명, 상위 조직, 조직 유형**를 읽고 식별자·상태·Version·시각을 Owner 원장과 대사한다.
+6. 화면이 제공하는 Log·Metric·Trace와 조회·Raw·Export 접근 기록이 있으면 해당 Audit를 교차 확인한다.
+7. 이 장의 **종료 판정**과 다음 확인 시각·Evidence Link를 교대 기록에 남긴다.
+
+### 메뉴 고유 판정·금지 사항
+
+- **목적:** 전체 조직 Tree를 검색하고 고아·순환 구조를 식별한다.
+- **종료 판정:** 이 화면은 조회 중심이며 변경은 Write 권한이 적용되는 원본 조직 관리 절차에서 수행한다.
+- 이 Page의 `WRITE` 안내 문구를 저장 기능으로 해석하지 않는다. 실제 Source에는 Tree 조회·선택·새로고침만 있다.
+- 조회 화면에서 직접 Owner 데이터를 변경하거나 Browser Tool로 우회하지 않는다.
+- Partial 조회를 정상 전체 결과로 합치지 않는다.
+
+### 오류·경계·동시성·복구
+
+| 상황 | 화면 징후 | 운영 조치 | 종료 증적 |
+|---|---|---|---|
+| 401·Session | Session 만료·CSRF·Origin 실패 | 로그인 상태와 BFF Session을 확인한 뒤 같은 Query Context로 다시 조회한다. | 401/403 응답·Session Audit |
+| 403·Data Scope | 메뉴·Button·Raw·Export가 거부됨 | Menu·Button·API·Owner Permission과 Data Scope를 확인하고 우회하지 않는다. | Deny Audit·요청 Permission |
+| Timeout·Dependency | 일부 조회 Source 응답 지연 | Correlation ID·Query Context·실패 Source를 기록하고 같은 조건으로 재조회한다. | 조회 시각·실패 Source·재조회 결과 |
+| Partial·Stale | 일부 대상만 Success 또는 조회 Source 누락 | 성공·실패·미응답을 분리하고 누락 범위와 Version을 표시한다. | Target별 결과·Version |
+| 계층·기간 충돌 | 고아·순환·기간 중복이 탐지됨 | 대상 관계와 기준일을 수정하고 영향 사용자·결재 Snapshot을 재계산한다. | 관계 Diff·Simulation 결과 |
+
+### 응답 유실·부분 조회 처리
+
+1. 검색 조건·Data Scope·Paging·조회 시각·Correlation ID를 기록한다.
+2. 같은 조건으로 재조회하되 실패 Source만 분리한다.
+3. 정상 Source 결과를 유지하고 실패·Stale Source를 명시한다.
+4. 집계와 원본 상세가 다르면 Owner 상세를 기준으로 Reconcile Case를 연다.
+5. 조회 시각·Source Version·0건 또는 일치 결과를 증적으로 남긴다.
+
+### Log·Metric·Trace·Audit와 교대 기록
+
+| 증적 | 필수 값 |
+|---|---|
+| Audit | Actor·Permission·Data Scope·Raw/Export 접근·Query Context·Result |
+| Log | Environment·Instance·operationId·transactionId·failureStage·errorCode |
+| Metric | 동일 시간 창의 Success·Failure·Latency·Queue·Retry·Partial·Unknown |
+| Trace | root/segment/attempt·Owner·DB/Kafka/외부 의존성 Span |
+| 상태 원장 | Target ID·Version·Checksum·Desired/Actual·Last Updated·Terminal 여부 |
+
+```text
+Menu=
+Route=
+Environment=
+DataScope=
+Query=
+QueryAt=
+CorrelationId=
+SourceVersion=
+Result=SUCCESS|EMPTY|STALE|PARTIAL|FAILED
+FailedSources=
+EvidenceLinks=
+NextCheckAt=
+```
+
+### 실무 Workbook
+
+**상황:** 조직 검색 결과에 `고아 조직` 또는 `순환 조직` 경고가 표시됐다.
+
+1. `중지 조직 포함` 값과 검색어를 기록하고 전체 Tree를 다시 조회한다.
+2. 경고에 표시된 Child Code·Parent Code 또는 Cycle 경로를 작업 기록에 남긴다.
+3. 이 Page에는 저장 Button이 없으므로 Browser에서 데이터를 수정하지 않는다.
+4. 조직 원본 관리 절차에서 관계 변경 영향과 결재 Snapshot·Data Scope 영향을 검토한다.
+5. 변경 후 `GET /api/bza/backoffice/organizations?limit=5000` 결과로 고아·순환 경고가 사라졌는지 확인한다.
+6. 이 화면은 조회 중심이며 변경은 Write 권한이 적용되는 원본 조직 관리 절차에서 수행한다.
+
+### 독립 수행 검수 Checklist
+
+- [ ] `/organizations`와 Page Source를 찾고 화면 목적을 설명할 수 있다.
+- [ ] 2개 조회 Control의 기본값과 검색 범위를 설명할 수 있다.
+- [ ] 9개 표시값을 Owner 상태·Version·Audit와 대사할 수 있다.
+- [ ] 2개 Action의 분류·활성 조건·Side Effect를 설명할 수 있다.
+- [ ] Empty·401·403·Timeout·Stale·Partial을 서로 다른 조회 상태로 처리할 수 있다.
+- [ ] 조회 응답 유실 시 같은 Query Context로 재조회하고 Correlation ID·조회 시각·Source Version으로 결과를 대사할 수 있다.
+- [ ] 교대 기록만으로 다음 담당자가 Target·상태·복구 기한을 이어받을 수 있다.
+
+## 3. employees — 직원 Profile
+
+![직원 Profile 화면·업무 흐름](../assets/guides/menu-detail/bza-employees.svg)
+
+### 이 장에서 끝내는 업무
+
+직원 기본정보·대표조직·직급·직책·재직상태를 관리한다.
+
+### 메뉴 식별·책임
+
+| 항목 | 값 |
+|---|---|
+| Route | `/employees` |
+| 메뉴 ID | `employees` |
+| Menu Code | `EMPLOYEE` |
+| 업무 그룹 | people |
+| Frontend Page | `cpf-biz-admin/frontend/src/features/employees/EmployeesPage.vue` |
+| Permission | Write, PII_RAW |
+| 기준 Commit | `23babb9140b90e501d6ac715e7b77f55b66198a5` |
+
+### Source·API 근거
+
+| 구분 | 기준 |
+|---|---|
+| Frontend Page | `cpf-biz-admin/frontend/src/features/employees/EmployeesPage.vue` |
+| Router | `/employees` |
+| API 추적 | 화면에서 제공하는 기능을 통해 호출한다. 문서에 명시되지 않은 Endpoint를 Browser나 외부 Script에서 임의 호출하지 않는다. |
+
+아래 표는 이 메뉴에서 실제로 확인·입력·실행할 항목을 정리한다. 화면에 없는 Field·Button·상태를 임의로 가정하지 않는다.
+
+### 검색·입력 Field
+
+| Field | Control | 업무 의미 | 기본값·Validation·주의 |
+|---|---|---|---|
+| `직원번호` | 문자열 입력·검색 | 조회·상세·Audit에서 같은 대상을 다시 찾기 위한 식별 조건이다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+| `대표조직` | 문자열 입력·검색 | 조회·상세·Audit에서 같은 대상을 다시 찾기 위한 식별 조건이다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+| `이름` | 문자열 입력·검색 | 직원 Profile 화면의 조회 조건 또는 편집 Form에 포함되는 값이며 화면 Label과 Help를 기준으로 사용한다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+| `직급` | 문자열 입력·검색 | 직원 Profile 화면의 조회 조건 또는 편집 Form에 포함되는 값이며 화면 Label과 Help를 기준으로 사용한다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+| `직책` | 문자열 입력·검색 | 직원 Profile 화면의 조회 조건 또는 편집 Form에 포함되는 값이며 화면 Label과 Help를 기준으로 사용한다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+| `재직상태` | Select·검색 | 현재 상태를 조회하거나 다음 Action의 허용 조건을 지정한다. | 허용 목록과 현재 Environment·Data Scope에 맞는 값만 선택한다. |
+| `Email` | 문자열 입력·검색 | 직원 Profile 화면의 조회 조건 또는 편집 Form에 포함되는 값이며 화면 Label과 Help를 기준으로 사용한다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+| `Mobile` | 문자열 입력·검색 | 직원 Profile 화면의 조회 조건 또는 편집 Form에 포함되는 값이며 화면 Label과 Help를 기준으로 사용한다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+| `Office` | 문자열 입력·검색 | 직원 Profile 화면의 조회 조건 또는 편집 Form에 포함되는 값이며 화면 Label과 Help를 기준으로 사용한다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+| `Clear Flag` | Checkbox·Switch | 직원 Profile 화면의 조회 조건 또는 편집 Form에 포함되는 값이며 화면 Label과 Help를 기준으로 사용한다. | 현재 선택과 변경 후 영향 범위를 비교하고 화면의 Source 기본값을 확인한다. |
+| `Use` | Checkbox·Switch | 현재 상태를 조회하거나 다음 Action의 허용 조건을 지정한다. | 현재 선택과 변경 후 영향 범위를 비교하고 화면의 Source 기본값을 확인한다. |
+
+#### 입력 순서
+
+1. **직원번호** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+2. **대표조직** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+3. **이름** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+4. **직급** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+5. **직책** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+6. **재직상태** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+7. **Email** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+8. **Mobile** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+9. **Office** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+10. **Clear Flag** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+11. **Use** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+12. 조회 Control과 변경 Form을 분리해 기록하고, 실행 전 Environment·Data Scope·Timezone과 제출할 값만 다시 검토한다.
+
+### 목록 Column·상세 Field
+
+| 표시값 | 운영 의미 | 교차 확인 |
+|---|---|---|
+| `직원번호` | 직원 Profile 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `대표조직` | 직원 Profile 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `이름` | 직원 Profile 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `직급` | 직원 Profile 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `직책` | 직원 Profile 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `재직상태` | 현재 상태와 Terminal 여부, 다음 Action 가능 여부를 판단하는 값이다. | Last Updated·Terminal 조건·Owner 상태와 함께 확인한다. |
+| `Email` | 직원 Profile 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Mobile` | 직원 Profile 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Office` | 직원 Profile 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Clear Flag` | 직원 Profile 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Use` | 현재 상태와 Terminal 여부, 다음 Action 가능 여부를 판단하는 값이다. | Last Updated·Terminal 조건·Owner 상태와 함께 확인한다. |
+
+#### 결과 판독 순서
+
+1. 조회 완료 시각·Filter·Paging·Sort와 화면 Warning을 확인한다.
+2. Empty·Stale·Partial을 정상 0건과 구분한다.
+3. 식별자·상태·Version·오류·시각을 같은 Query Context의 상세와 Owner 원장에서 비교한다.
+4. Masking된 값은 Raw Permission과 Reason 없이 복원·Export하지 않는다.
+5. 집계와 상세가 다르면 집계 시간 창·Timezone·Owner Update 시각을 맞춰 대사한다.
+
+### Button·Action
+
+| Action | 분류 | 활성 조건 | Side Effect·정상 결과 |
+|---|---|---|---|
+| **등록** | 등록·Draft 변경 | 화면이 실제로 요구하는 Write Permission·필수 Field·Reason·Version 조건을 충족함 | 직원 Profile의 재조회 결과가 요청 내용과 일치한다. Version·Before/After·Audit는 해당 Owner가 제공하는 경우 함께 확인한다. |
+| **수정** | 등록·Draft 변경 | 화면이 실제로 요구하는 Write Permission·필수 Field·Reason·Version 조건을 충족함 | 직원 Profile의 재조회 결과가 요청 내용과 일치한다. Version·Before/After·Audit는 해당 Owner가 제공하는 경우 함께 확인한다. |
+| **PII Raw** | 조회·탐색 | 조회 Permission과 Query Validation을 충족하고 동일 조회가 진행 중이 아님 | PII Raw 결과의 조회 시각·Filter·Source Version·Warning이 갱신되며 Owner 데이터는 변경하지 않는다. |
+
+### 정상 업무 전체 절차
+
+1. `/employees`에 진입해 Page Header와 Route가 **직원 Profile** 기능을 가리키는지 확인한다.
+2. 로그인 Session·Environment·Data Scope·기준일·Timezone을 고정한다.
+3. 화면의 조회 Control과 변경 Form을 구분한다. 조회 조건이 제공되면 먼저 조회하고, 변경 Form은 대상 선택 또는 등록 Action 뒤에 열린 실제 Field만 사용한다.
+4. Loading 종료 후 Empty·Error·Stale·Partial 상태와 화면 Warning을 먼저 판정한다.
+5. **직원번호, 대표조직, 이름, 직급, 직책**를 읽고 식별자·상태·Version·시각을 Owner 원장과 대사한다.
+6. **등록** 전에 화면과 Owner가 실제로 요구하는 Permission·현재 상태·영향 범위·Reason·승인·Version 조건을 확인하고 한 번만 제출한다.
+7. **등록**의 HTTP 응답과 재조회 결과를 확인한다. 비동기·다중 대상 기능은 Owner Terminal 상태·Version·대상별 Success/Failed/Unknown·Audit를 별도로 확인한다.
+8. **수정** 전에 화면과 Owner가 실제로 요구하는 Permission·현재 상태·영향 범위·Reason·승인·Version 조건을 확인하고 한 번만 제출한다.
+9. **수정**의 HTTP 응답과 재조회 결과를 확인한다. 비동기·다중 대상 기능은 Owner Terminal 상태·Version·대상별 Success/Failed/Unknown·Audit를 별도로 확인한다.
+10. 화면이 제공하는 Log·Metric·Trace와, 변경·Export·승인 조치에 생성된 Audit를 교차 확인한다.
+11. 이 장의 **종료 판정**과 다음 확인 시각·Evidence Link를 교대 기록에 남긴다.
+
+### 메뉴 고유 판정·금지 사항
+
+- **목적:** 직원 기본정보·대표조직·직급·직책·재직상태를 관리한다.
+- **종료 판정:** PII Raw 조회는 별도 Permission·Reason·Audit가 필요하다.
+- 응답을 받지 못한 경우 Owner 상태와 기존 Operation을 확인하기 전에 동일 Action을 반복하지 않는다.
+- HTTP 성공 응답이나 Toast만으로 비동기 Owner 상태 또는 다중 대상 적용을 확정하지 않는다.
+
+### 오류·경계·동시성·복구
+
+| 상황 | 화면 징후 | 운영 조치 | 종료 증적 |
+|---|---|---|---|
+| 401·Session | Session 만료·CSRF·Origin 실패 | 로그인 상태와 BFF Session을 확인한다. Command 자동 Replay는 금지한다. | 401/403 응답·Session Audit |
+| 403·Data Scope | 메뉴·Button·Raw·Export가 거부됨 | Menu·Button·API·Owner Permission과 Data Scope를 확인하고 우회하지 않는다. | Deny Audit·요청 Permission |
+| Validation | 필수값·범위·형식·기간 오류 | Field Error만 수정하고 기존 성공 Operation을 다시 제출하지 않는다. | Error Code·Field·입력값 |
+| Timeout·Dependency | 일부 Source 또는 Command 응답 지연 | Correlation/Operation ID와 실패 Stage를 기록하고 Owner 상태를 조회한다. | Dependency 상태·Retryability |
+| Partial·Stale | 일부 대상만 Success 또는 조회 Source 누락 | 성공·실패·미응답을 분리하고 누락 범위와 Version을 표시한다. | Target별 결과·Version |
+| 409·동시 변경 | Expected Version 불일치 | 최신 상세를 재조회하고 Diff·영향을 다시 검토한 뒤 새 요청으로 제출한다. | 현재/요청 Version·변경자 |
+| 응답 유실·Unknown | 요청 후 실제 처리 여부를 알 수 없음 | Operation ID·Request Hash·Audit·Owner 상태로 대사하고 중복 제출하지 않는다. | Operation·Owner·Audit |
+| 복구 실패 | Retry/Rollback 뒤에도 상태 불일치 | 자동 반복을 중단하고 Incident·Reconcile Case·다음 확인 시각을 기록한다. | Case ID·복구 Owner·기한 |
+
+### 응답 유실·결과 불명·부분 적용 처리
+
+1. 동일 Action을 다시 누르지 않고 Browser Network와 응답 Header를 보존한다. `operationId`·`transactionId`·`idempotencyKey`가 제공되면 기록하고, 없으면 Target ID·Actor·요청 시각·Request Body Hash로 대사한다.
+2. 기능이 제공하는 상세·Operation Status(있는 경우)·Audit에서 Request Hash와 대상 Version을 검색한다.
+3. Side Effect 전 실패가 확인된 경우에만 새 요청을 검토한다.
+4. Success·Failed·Unknown 대상을 분리하고 Source가 제공하는 Failed-only Retry·Compensation·Rollback을 선택하고, 지원되지 않으면 수동 Reconcile Case로 이관한다.
+5. Rollback을 지원하는 기능은 Owner Version·Checksum·업무 합계가 Rollback Point와 일치하는지 확인한다.
+6. 확정되지 않은 대상은 `UNKNOWN_RESULT`로 유지하고 담당자·대사 기한·다음 확인 시각을 기록한다.
+
+### Log·Metric·Trace·Audit와 교대 기록
+
+| 증적 | 필수 값 |
+|---|---|
+| Audit | Actor·Permission·Reason·Approval·Target·Before/After·Result·Recovery Action |
+| Log | Environment·Instance·operationId·transactionId·failureStage·errorCode |
+| Metric | 동일 시간 창의 Success·Failure·Latency·Queue·Retry·Partial·Unknown |
+| Trace | root/segment/attempt·Owner·DB/Kafka/외부 의존성 Span |
+| 상태 원장 | Target ID·Version·Checksum·Desired/Actual·Last Updated·Terminal 여부 |
+
+```text
+Menu=employees
+Route=/employees
+Environment=
+DataScope=
+Query=
+TargetId=
+BeforeVersion=
+Action=
+Reason=
+ApprovalId=
+OperationId=
+TransactionId=
+Result=SUCCESS|FAILED|PARTIAL|UNKNOWN_RESULT
+OwnerState=
+FailedTargets=
+ReconcileBy=
+RollbackPoint=
+EvidenceLinks=
+NextCheckAt=
+```
+
+### 실무 Workbook
+
+**상황:** 직원 기본정보·대표조직·직급·직책·재직상태를 관리한다. 담당자가 **등록**을 수행한 뒤 Browser 응답을 받지 못했다.
+
+1. 대상 식별자와 Before Version, 입력값, Reason·Approval을 작업 기록에서 확인한다.
+2. 동일 **등록**을 반복하지 않고 Operation·Audit·Owner 상태를 조회한다.
+3. Owner 상태가 변경됐고 Request Hash가 같으면 응답 유실로 분류해 중복 조치를 금지한다.
+4. 일부 대상만 변경됐으면 Success·Failed·Unknown을 분리해 Failed-only Retry 또는 Rollback을 선택한다.
+5. PII Raw 조회는 별도 Permission·Reason·Audit가 필요하다.
+6. Evidence Link와 다음 확인 시각을 교대 기록에 남긴다.
+
+### 독립 수행 검수 Checklist
+
+- [ ] `/employees`와 Page Source를 찾고 화면 목적을 설명할 수 있다.
+- [ ] 1별도 사용자 입력이 없는 경우 자동 Query Context를 설명할 수 있다.
+- [ ] 11개 표시값을 Owner 상태·Version·Audit와 대사할 수 있다.
+- [ ] 3개 Action의 분류·활성 조건·Side Effect를 설명할 수 있다.
+- [ ] Empty·403·409·Timeout·Partial·Unknown을 서로 다른 상태로 처리할 수 있다.
+- [ ] 응답 유실 뒤 중복 제출 없이 Operation·Owner·Audit로 결과를 확정할 수 있다.
+- [ ] 교대 기록만으로 다음 담당자가 Target·상태·복구 기한을 이어받을 수 있다.
+
+## 4. positions — 직급 기준
+
+![직급 기준 화면·업무 흐름](../assets/guides/menu-detail/bza-positions.svg)
+
+### 이 장에서 끝내는 업무
+
+직급 Code·명·정렬 순서·사용 여부를 관리한다.
+
+### 메뉴 식별·책임
+
+| 항목 | 값 |
+|---|---|
+| Route | `/positions` |
+| 메뉴 ID | `positions` |
+| Menu Code | `EMPLOYEE` |
+| 업무 그룹 | people |
+| Frontend Page | `cpf-biz-admin/frontend/src/features/positions/PositionsPage.vue` |
+| Permission | Write |
+| 기준 Commit | `23babb9140b90e501d6ac715e7b77f55b66198a5` |
+
+### Source·API 근거
+
+| 구분 | 기준 |
+|---|---|
+| Frontend Page | `cpf-biz-admin/frontend/src/features/positions/PositionsPage.vue` |
+| Router | `/positions` |
+| API 추적 | 화면에서 제공하는 기능을 통해 호출한다. 문서에 명시되지 않은 Endpoint를 Browser나 외부 Script에서 임의 호출하지 않는다. |
+
+아래 표는 이 메뉴에서 실제로 확인·입력·실행할 항목을 정리한다. 화면에 없는 Field·Button·상태를 임의로 가정하지 않는다.
+
+### 검색·입력 Field
+
+| Field | Control | 업무 의미 | 기본값·Validation·주의 |
+|---|---|---|---|
+| `Code` | 문자열 입력·검색 | 조회·상세·Audit에서 같은 대상을 다시 찾기 위한 식별 조건이다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+| `Name` | 문자열 입력·검색 | 대상의 표시명 또는 업무명을 검색·입력한다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+| `Rank Order` | 숫자·Version 입력 | 실행 한도·순서·용량 또는 재시도 범위를 지정한다. | 화면의 min·max·단위와 0 허용 여부를 확인하고 음수·Overflow를 차단한다. |
+| `Use` | Checkbox·Switch | 현재 상태를 조회하거나 다음 Action의 허용 조건을 지정한다. | 현재 선택과 변경 후 영향 범위를 비교하고 화면의 Source 기본값을 확인한다. |
+
+#### 입력 순서
+
+1. **Code** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+2. **Name** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+3. **Rank Order** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+4. **Use** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+5. 조회 Control과 변경 Form을 분리해 기록하고, 실행 전 Environment·Data Scope·Timezone과 제출할 값만 다시 검토한다.
+
+### 목록 Column·상세 Field
+
+| 표시값 | 운영 의미 | 교차 확인 |
+|---|---|---|
+| `Code` | 직급 기준의 대상 레코드를 상세·Owner·Audit에서 연결하는 식별자다. | 상세·Log·Trace·Audit에서 같은 대상을 가리키는지 확인한다. |
+| `Name` | 운영자가 대상을 구분하는 표시명 또는 설명이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Rank Order` | 직급 기준 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Use` | 현재 상태와 Terminal 여부, 다음 Action 가능 여부를 판단하는 값이다. | Last Updated·Terminal 조건·Owner 상태와 함께 확인한다. |
+
+#### 결과 판독 순서
+
+1. 조회 완료 시각·Filter·Paging·Sort와 화면 Warning을 확인한다.
+2. Empty·Stale·Partial을 정상 0건과 구분한다.
+3. 식별자·상태·Version·오류·시각을 같은 Query Context의 상세와 Owner 원장에서 비교한다.
+4. Masking된 값은 Raw Permission과 Reason 없이 복원·Export하지 않는다.
+5. 집계와 상세가 다르면 집계 시간 창·Timezone·Owner Update 시각을 맞춰 대사한다.
+
+### Button·Action
+
+| Action | 분류 | 활성 조건 | Side Effect·정상 결과 |
+|---|---|---|---|
+| **등록** | 등록·Draft 변경 | 화면이 실제로 요구하는 Write Permission·필수 Field·Reason·Version 조건을 충족함 | 직급 기준의 재조회 결과가 요청 내용과 일치한다. Version·Before/After·Audit는 해당 Owner가 제공하는 경우 함께 확인한다. |
+| **수정** | 등록·Draft 변경 | 화면이 실제로 요구하는 Write Permission·필수 Field·Reason·Version 조건을 충족함 | 직급 기준의 재조회 결과가 요청 내용과 일치한다. Version·Before/After·Audit는 해당 Owner가 제공하는 경우 함께 확인한다. |
+
+### 정상 업무 전체 절차
+
+1. `/positions`에 진입해 Page Header와 Route가 **직급 기준** 기능을 가리키는지 확인한다.
+2. 로그인 Session·Environment·Data Scope·기준일·Timezone을 고정한다.
+3. 화면의 조회 Control과 변경 Form을 구분한다. 조회 조건이 제공되면 먼저 조회하고, 변경 Form은 대상 선택 또는 등록 Action 뒤에 열린 실제 Field만 사용한다.
+4. Loading 종료 후 Empty·Error·Stale·Partial 상태와 화면 Warning을 먼저 판정한다.
+5. **Code, Name, Rank Order, Use**를 읽고 식별자·상태·Version·시각을 Owner 원장과 대사한다.
+6. **등록** 전에 화면과 Owner가 실제로 요구하는 Permission·현재 상태·영향 범위·Reason·승인·Version 조건을 확인하고 한 번만 제출한다.
+7. **등록**의 HTTP 응답과 재조회 결과를 확인한다. 비동기·다중 대상 기능은 Owner Terminal 상태·Version·대상별 Success/Failed/Unknown·Audit를 별도로 확인한다.
+8. **수정** 전에 화면과 Owner가 실제로 요구하는 Permission·현재 상태·영향 범위·Reason·승인·Version 조건을 확인하고 한 번만 제출한다.
+9. **수정**의 HTTP 응답과 재조회 결과를 확인한다. 비동기·다중 대상 기능은 Owner Terminal 상태·Version·대상별 Success/Failed/Unknown·Audit를 별도로 확인한다.
+10. 화면이 제공하는 Log·Metric·Trace와, 변경·Export·승인 조치에 생성된 Audit를 교차 확인한다.
+11. 이 장의 **종료 판정**과 다음 확인 시각·Evidence Link를 교대 기록에 남긴다.
+
+### 메뉴 고유 판정·금지 사항
+
+- **목적:** 직급 Code·명·정렬 순서·사용 여부를 관리한다.
+- **종료 판정:** Rank Order 중복과 사용 중지 영향 직원을 확인한다.
+- 응답을 받지 못한 경우 Owner 상태와 기존 Operation을 확인하기 전에 동일 Action을 반복하지 않는다.
+- HTTP 성공 응답이나 Toast만으로 비동기 Owner 상태 또는 다중 대상 적용을 확정하지 않는다.
+
+### 오류·경계·동시성·복구
+
+| 상황 | 화면 징후 | 운영 조치 | 종료 증적 |
+|---|---|---|---|
+| 401·Session | Session 만료·CSRF·Origin 실패 | 로그인 상태와 BFF Session을 확인한다. Command 자동 Replay는 금지한다. | 401/403 응답·Session Audit |
+| 403·Data Scope | 메뉴·Button·Raw·Export가 거부됨 | Menu·Button·API·Owner Permission과 Data Scope를 확인하고 우회하지 않는다. | Deny Audit·요청 Permission |
+| Validation | 필수값·범위·형식·기간 오류 | Field Error만 수정하고 기존 성공 Operation을 다시 제출하지 않는다. | Error Code·Field·입력값 |
+| Timeout·Dependency | 일부 Source 또는 Command 응답 지연 | Correlation/Operation ID와 실패 Stage를 기록하고 Owner 상태를 조회한다. | Dependency 상태·Retryability |
+| Partial·Stale | 일부 대상만 Success 또는 조회 Source 누락 | 성공·실패·미응답을 분리하고 누락 범위와 Version을 표시한다. | Target별 결과·Version |
+| 409·동시 변경 | Expected Version 불일치 | 최신 상세를 재조회하고 Diff·영향을 다시 검토한 뒤 새 요청으로 제출한다. | 현재/요청 Version·변경자 |
+| 응답 유실·Unknown | 요청 후 실제 처리 여부를 알 수 없음 | Operation ID·Request Hash·Audit·Owner 상태로 대사하고 중복 제출하지 않는다. | Operation·Owner·Audit |
+| 복구 실패 | Retry/Rollback 뒤에도 상태 불일치 | 자동 반복을 중단하고 Incident·Reconcile Case·다음 확인 시각을 기록한다. | Case ID·복구 Owner·기한 |
+
+### 응답 유실·결과 불명·부분 적용 처리
+
+1. 동일 Action을 다시 누르지 않고 Browser Network와 응답 Header를 보존한다. `operationId`·`transactionId`·`idempotencyKey`가 제공되면 기록하고, 없으면 Target ID·Actor·요청 시각·Request Body Hash로 대사한다.
+2. 기능이 제공하는 상세·Operation Status(있는 경우)·Audit에서 Request Hash와 대상 Version을 검색한다.
+3. Side Effect 전 실패가 확인된 경우에만 새 요청을 검토한다.
+4. Success·Failed·Unknown 대상을 분리하고 Source가 제공하는 Failed-only Retry·Compensation·Rollback을 선택하고, 지원되지 않으면 수동 Reconcile Case로 이관한다.
+5. Rollback을 지원하는 기능은 Owner Version·Checksum·업무 합계가 Rollback Point와 일치하는지 확인한다.
+6. 확정되지 않은 대상은 `UNKNOWN_RESULT`로 유지하고 담당자·대사 기한·다음 확인 시각을 기록한다.
+
+### Log·Metric·Trace·Audit와 교대 기록
+
+| 증적 | 필수 값 |
+|---|---|
+| Audit | Actor·Permission·Reason·Approval·Target·Before/After·Result·Recovery Action |
+| Log | Environment·Instance·operationId·transactionId·failureStage·errorCode |
+| Metric | 동일 시간 창의 Success·Failure·Latency·Queue·Retry·Partial·Unknown |
+| Trace | root/segment/attempt·Owner·DB/Kafka/외부 의존성 Span |
+| 상태 원장 | Target ID·Version·Checksum·Desired/Actual·Last Updated·Terminal 여부 |
+
+```text
+Menu=positions
+Route=/positions
+Environment=
+DataScope=
+Query=
+TargetId=
+BeforeVersion=
+Action=
+Reason=
+ApprovalId=
+OperationId=
+TransactionId=
+Result=SUCCESS|FAILED|PARTIAL|UNKNOWN_RESULT
+OwnerState=
+FailedTargets=
+ReconcileBy=
+RollbackPoint=
+EvidenceLinks=
+NextCheckAt=
+```
+
+### 실무 Workbook
+
+**상황:** 직급 Code·명·정렬 순서·사용 여부를 관리한다. 담당자가 **등록**을 수행한 뒤 Browser 응답을 받지 못했다.
+
+1. 대상 식별자와 Before Version, 입력값, Reason·Approval을 작업 기록에서 확인한다.
+2. 동일 **등록**을 반복하지 않고 Operation·Audit·Owner 상태를 조회한다.
+3. Owner 상태가 변경됐고 Request Hash가 같으면 응답 유실로 분류해 중복 조치를 금지한다.
+4. 일부 대상만 변경됐으면 Success·Failed·Unknown을 분리해 Failed-only Retry 또는 Rollback을 선택한다.
+5. Rank Order 중복과 사용 중지 영향 직원을 확인한다.
+6. Evidence Link와 다음 확인 시각을 교대 기록에 남긴다.
+
+### 독립 수행 검수 Checklist
+
+- [ ] `/positions`와 Page Source를 찾고 화면 목적을 설명할 수 있다.
+- [ ] 4개 입력·검색 항목의 Control·기본값·Validation을 설명할 수 있다.
+- [ ] 4개 표시값을 Owner 상태·Version·Audit와 대사할 수 있다.
+- [ ] 2개 Action의 분류·활성 조건·Side Effect를 설명할 수 있다.
+- [ ] Empty·403·409·Timeout·Partial·Unknown을 서로 다른 상태로 처리할 수 있다.
+- [ ] 응답 유실 뒤 중복 제출 없이 Operation·Owner·Audit로 결과를 확정할 수 있다.
+- [ ] 교대 기록만으로 다음 담당자가 Target·상태·복구 기한을 이어받을 수 있다.
+
+## 5. jobTitles — 직책 기준
+
+![직책 기준 화면·업무 흐름](../assets/guides/menu-detail/bza-jobtitles.svg)
+
+### 이 장에서 끝내는 업무
+
+직책 Code·관리자 여부·사용 여부를 관리한다.
+
+### 메뉴 식별·책임
+
+| 항목 | 값 |
+|---|---|
+| Route | `/jobTitles` |
+| 메뉴 ID | `jobTitles` |
+| Menu Code | `EMPLOYEE` |
+| 업무 그룹 | people |
+| Frontend Page | `cpf-biz-admin/frontend/src/features/job-titles/JobTitlesPage.vue` |
+| Permission | Write |
+| 기준 Commit | `23babb9140b90e501d6ac715e7b77f55b66198a5` |
+
+### Source·API 근거
+
+| 구분 | 기준 |
+|---|---|
+| Frontend Page | `cpf-biz-admin/frontend/src/features/job-titles/JobTitlesPage.vue` |
+| Router | `/jobTitles` |
+| API 추적 | 화면에서 제공하는 기능을 통해 호출한다. 문서에 명시되지 않은 Endpoint를 Browser나 외부 Script에서 임의 호출하지 않는다. |
+
+아래 표는 이 메뉴에서 실제로 확인·입력·실행할 항목을 정리한다. 화면에 없는 Field·Button·상태를 임의로 가정하지 않는다.
+
+### 검색·입력 Field
+
+| Field | Control | 업무 의미 | 기본값·Validation·주의 |
+|---|---|---|---|
+| `Code` | 문자열 입력·검색 | 조회·상세·Audit에서 같은 대상을 다시 찾기 위한 식별 조건이다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+| `Name` | 문자열 입력·검색 | 대상의 표시명 또는 업무명을 검색·입력한다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+| `Manager YN` | Checkbox·Switch | 직책 기준 화면의 조회 조건 또는 편집 Form에 포함되는 값이며 화면 Label과 Help를 기준으로 사용한다. | 현재 선택과 변경 후 영향 범위를 비교하고 화면의 Source 기본값을 확인한다. |
+| `Use` | Checkbox·Switch | 현재 상태를 조회하거나 다음 Action의 허용 조건을 지정한다. | 현재 선택과 변경 후 영향 범위를 비교하고 화면의 Source 기본값을 확인한다. |
+
+#### 입력 순서
+
+1. **Code** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+2. **Name** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+3. **Manager YN** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+4. **Use** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+5. 조회 Control과 변경 Form을 분리해 기록하고, 실행 전 Environment·Data Scope·Timezone과 제출할 값만 다시 검토한다.
+
+### 목록 Column·상세 Field
+
+| 표시값 | 운영 의미 | 교차 확인 |
+|---|---|---|
+| `Code` | 직책 기준의 대상 레코드를 상세·Owner·Audit에서 연결하는 식별자다. | 상세·Log·Trace·Audit에서 같은 대상을 가리키는지 확인한다. |
+| `Name` | 운영자가 대상을 구분하는 표시명 또는 설명이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Manager YN` | 직책 기준 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Use` | 현재 상태와 Terminal 여부, 다음 Action 가능 여부를 판단하는 값이다. | Last Updated·Terminal 조건·Owner 상태와 함께 확인한다. |
+
+#### 결과 판독 순서
+
+1. 조회 완료 시각·Filter·Paging·Sort와 화면 Warning을 확인한다.
+2. Empty·Stale·Partial을 정상 0건과 구분한다.
+3. 식별자·상태·Version·오류·시각을 같은 Query Context의 상세와 Owner 원장에서 비교한다.
+4. Masking된 값은 Raw Permission과 Reason 없이 복원·Export하지 않는다.
+5. 집계와 상세가 다르면 집계 시간 창·Timezone·Owner Update 시각을 맞춰 대사한다.
+
+### Button·Action
+
+| Action | 분류 | 활성 조건 | Side Effect·정상 결과 |
+|---|---|---|---|
+| **등록** | 등록·Draft 변경 | 화면이 실제로 요구하는 Write Permission·필수 Field·Reason·Version 조건을 충족함 | 직책 기준의 재조회 결과가 요청 내용과 일치한다. Version·Before/After·Audit는 해당 Owner가 제공하는 경우 함께 확인한다. |
+| **수정** | 등록·Draft 변경 | 화면이 실제로 요구하는 Write Permission·필수 Field·Reason·Version 조건을 충족함 | 직책 기준의 재조회 결과가 요청 내용과 일치한다. Version·Before/After·Audit는 해당 Owner가 제공하는 경우 함께 확인한다. |
+
+### 정상 업무 전체 절차
+
+1. `/jobTitles`에 진입해 Page Header와 Route가 **직책 기준** 기능을 가리키는지 확인한다.
+2. 로그인 Session·Environment·Data Scope·기준일·Timezone을 고정한다.
+3. 화면의 조회 Control과 변경 Form을 구분한다. 조회 조건이 제공되면 먼저 조회하고, 변경 Form은 대상 선택 또는 등록 Action 뒤에 열린 실제 Field만 사용한다.
+4. Loading 종료 후 Empty·Error·Stale·Partial 상태와 화면 Warning을 먼저 판정한다.
+5. **Code, Name, Manager YN, Use**를 읽고 식별자·상태·Version·시각을 Owner 원장과 대사한다.
+6. **등록** 전에 화면과 Owner가 실제로 요구하는 Permission·현재 상태·영향 범위·Reason·승인·Version 조건을 확인하고 한 번만 제출한다.
+7. **등록**의 HTTP 응답과 재조회 결과를 확인한다. 비동기·다중 대상 기능은 Owner Terminal 상태·Version·대상별 Success/Failed/Unknown·Audit를 별도로 확인한다.
+8. **수정** 전에 화면과 Owner가 실제로 요구하는 Permission·현재 상태·영향 범위·Reason·승인·Version 조건을 확인하고 한 번만 제출한다.
+9. **수정**의 HTTP 응답과 재조회 결과를 확인한다. 비동기·다중 대상 기능은 Owner Terminal 상태·Version·대상별 Success/Failed/Unknown·Audit를 별도로 확인한다.
+10. 화면이 제공하는 Log·Metric·Trace와, 변경·Export·승인 조치에 생성된 Audit를 교차 확인한다.
+11. 이 장의 **종료 판정**과 다음 확인 시각·Evidence Link를 교대 기록에 남긴다.
+
+### 메뉴 고유 판정·금지 사항
+
+- **목적:** 직책 Code·관리자 여부·사용 여부를 관리한다.
+- **종료 판정:** Manager YN 변경이 조직 책임·결재 경로에 미치는 영향을 확인한다.
+- 응답을 받지 못한 경우 Owner 상태와 기존 Operation을 확인하기 전에 동일 Action을 반복하지 않는다.
+- HTTP 성공 응답이나 Toast만으로 비동기 Owner 상태 또는 다중 대상 적용을 확정하지 않는다.
+
+### 오류·경계·동시성·복구
+
+| 상황 | 화면 징후 | 운영 조치 | 종료 증적 |
+|---|---|---|---|
+| 401·Session | Session 만료·CSRF·Origin 실패 | 로그인 상태와 BFF Session을 확인한다. Command 자동 Replay는 금지한다. | 401/403 응답·Session Audit |
+| 403·Data Scope | 메뉴·Button·Raw·Export가 거부됨 | Menu·Button·API·Owner Permission과 Data Scope를 확인하고 우회하지 않는다. | Deny Audit·요청 Permission |
+| Validation | 필수값·범위·형식·기간 오류 | Field Error만 수정하고 기존 성공 Operation을 다시 제출하지 않는다. | Error Code·Field·입력값 |
+| Timeout·Dependency | 일부 Source 또는 Command 응답 지연 | Correlation/Operation ID와 실패 Stage를 기록하고 Owner 상태를 조회한다. | Dependency 상태·Retryability |
+| Partial·Stale | 일부 대상만 Success 또는 조회 Source 누락 | 성공·실패·미응답을 분리하고 누락 범위와 Version을 표시한다. | Target별 결과·Version |
+| 409·동시 변경 | Expected Version 불일치 | 최신 상세를 재조회하고 Diff·영향을 다시 검토한 뒤 새 요청으로 제출한다. | 현재/요청 Version·변경자 |
+| 응답 유실·Unknown | 요청 후 실제 처리 여부를 알 수 없음 | Operation ID·Request Hash·Audit·Owner 상태로 대사하고 중복 제출하지 않는다. | Operation·Owner·Audit |
+| 복구 실패 | Retry/Rollback 뒤에도 상태 불일치 | 자동 반복을 중단하고 Incident·Reconcile Case·다음 확인 시각을 기록한다. | Case ID·복구 Owner·기한 |
+
+### 응답 유실·결과 불명·부분 적용 처리
+
+1. 동일 Action을 다시 누르지 않고 Browser Network와 응답 Header를 보존한다. `operationId`·`transactionId`·`idempotencyKey`가 제공되면 기록하고, 없으면 Target ID·Actor·요청 시각·Request Body Hash로 대사한다.
+2. 기능이 제공하는 상세·Operation Status(있는 경우)·Audit에서 Request Hash와 대상 Version을 검색한다.
+3. Side Effect 전 실패가 확인된 경우에만 새 요청을 검토한다.
+4. Success·Failed·Unknown 대상을 분리하고 Source가 제공하는 Failed-only Retry·Compensation·Rollback을 선택하고, 지원되지 않으면 수동 Reconcile Case로 이관한다.
+5. Rollback을 지원하는 기능은 Owner Version·Checksum·업무 합계가 Rollback Point와 일치하는지 확인한다.
+6. 확정되지 않은 대상은 `UNKNOWN_RESULT`로 유지하고 담당자·대사 기한·다음 확인 시각을 기록한다.
+
+### Log·Metric·Trace·Audit와 교대 기록
+
+| 증적 | 필수 값 |
+|---|---|
+| Audit | Actor·Permission·Reason·Approval·Target·Before/After·Result·Recovery Action |
+| Log | Environment·Instance·operationId·transactionId·failureStage·errorCode |
+| Metric | 동일 시간 창의 Success·Failure·Latency·Queue·Retry·Partial·Unknown |
+| Trace | root/segment/attempt·Owner·DB/Kafka/외부 의존성 Span |
+| 상태 원장 | Target ID·Version·Checksum·Desired/Actual·Last Updated·Terminal 여부 |
+
+```text
+Menu=jobTitles
+Route=/jobTitles
+Environment=
+DataScope=
+Query=
+TargetId=
+BeforeVersion=
+Action=
+Reason=
+ApprovalId=
+OperationId=
+TransactionId=
+Result=SUCCESS|FAILED|PARTIAL|UNKNOWN_RESULT
+OwnerState=
+FailedTargets=
+ReconcileBy=
+RollbackPoint=
+EvidenceLinks=
+NextCheckAt=
+```
+
+### 실무 Workbook
+
+**상황:** 직책 Code·관리자 여부·사용 여부를 관리한다. 담당자가 **등록**을 수행한 뒤 Browser 응답을 받지 못했다.
+
+1. 대상 식별자와 Before Version, 입력값, Reason·Approval을 작업 기록에서 확인한다.
+2. 동일 **등록**을 반복하지 않고 Operation·Audit·Owner 상태를 조회한다.
+3. Owner 상태가 변경됐고 Request Hash가 같으면 응답 유실로 분류해 중복 조치를 금지한다.
+4. 일부 대상만 변경됐으면 Success·Failed·Unknown을 분리해 Failed-only Retry 또는 Rollback을 선택한다.
+5. Manager YN 변경이 조직 책임·결재 경로에 미치는 영향을 확인한다.
+6. Evidence Link와 다음 확인 시각을 교대 기록에 남긴다.
+
+### 독립 수행 검수 Checklist
+
+- [ ] `/jobTitles`와 Page Source를 찾고 화면 목적을 설명할 수 있다.
+- [ ] 4개 입력·검색 항목의 Control·기본값·Validation을 설명할 수 있다.
+- [ ] 4개 표시값을 Owner 상태·Version·Audit와 대사할 수 있다.
+- [ ] 2개 Action의 분류·활성 조건·Side Effect를 설명할 수 있다.
+- [ ] Empty·403·409·Timeout·Partial·Unknown을 서로 다른 상태로 처리할 수 있다.
+- [ ] 응답 유실 뒤 중복 제출 없이 Operation·Owner·Audit로 결과를 확정할 수 있다.
+- [ ] 교대 기록만으로 다음 담당자가 Target·상태·복구 기한을 이어받을 수 있다.
+
+## 6. assignments — 발령·겸직·파견
+
+![발령·겸직·파견 화면·업무 흐름](../assets/guides/menu-detail/bza-assignments.svg)
+
+### 이 장에서 끝내는 업무
+
+발령·겸직·파견·대행의 소속과 유효기간을 관리한다.
+
+### 메뉴 식별·책임
+
+| 항목 | 값 |
+|---|---|
+| Route | `/assignments` |
+| 메뉴 ID | `assignments` |
+| Menu Code | `EMPLOYEE` |
+| 업무 그룹 | people |
+| Frontend Page | `cpf-biz-admin/frontend/src/features/assignments/AssignmentsPage.vue` |
+| Permission | Write |
+| 기준 Commit | `23babb9140b90e501d6ac715e7b77f55b66198a5` |
+
+### Source·API 근거
+
+| 구분 | 기준 |
+|---|---|
+| Frontend Page | `cpf-biz-admin/frontend/src/features/assignments/AssignmentsPage.vue` |
+| Router | `/assignments` |
+| API 추적 | 화면에서 제공하는 기능을 통해 호출한다. 문서에 명시되지 않은 Endpoint를 Browser나 외부 Script에서 임의 호출하지 않는다. |
+
+아래 표는 이 메뉴에서 실제로 확인·입력·실행할 항목을 정리한다. 화면에 없는 Field·Button·상태를 임의로 가정하지 않는다.
+
+### 검색·입력 Field
+
+| Field | Control | 업무 의미 | 기본값·Validation·주의 |
+|---|---|---|---|
+| `Assignment ID` | 문자열 입력·검색 | 조회·상세·Audit에서 같은 대상을 다시 찾기 위한 식별 조건이다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+| `Employee` | 문자열 입력·검색 | 조회·상세·Audit에서 같은 대상을 다시 찾기 위한 식별 조건이다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+| `Organization` | 문자열 입력·검색 | 조회·상세·Audit에서 같은 대상을 다시 찾기 위한 식별 조건이다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+| `Position` | 문자열 입력·검색 | 발령·겸직·파견 화면의 조회 조건 또는 편집 Form에 포함되는 값이며 화면 Label과 Help를 기준으로 사용한다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+| `Job Title` | 문자열 입력·검색 | 조회·상세·Audit에서 같은 대상을 다시 찾기 위한 식별 조건이다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+| `Type` | Select·검색 | 발령·겸직·파견에서 적용하거나 조회할 정책·권한·처리 유형을 선택한다. | 허용 목록과 현재 Environment·Data Scope에 맞는 값만 선택한다. |
+| `Primary` | Checkbox·Switch | 현재 상태를 조회하거나 다음 Action의 허용 조건을 지정한다. | 현재 선택과 변경 후 영향 범위를 비교하고 화면의 Source 기본값을 확인한다. |
+| `유효기간 From/To` | 날짜·시간 입력 | 조회 또는 적용의 유효 시간 범위를 정하며 Timezone과 시작·종료 순서를 함께 확인한다. | Timezone을 고정하고 시작≤종료·유효기간 겹침·기준일 포함 여부를 확인한다. |
+
+#### 입력 순서
+
+1. **Assignment ID** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+2. **Employee** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+3. **Organization** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+4. **Position** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+5. **Job Title** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+6. **Type** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+7. **Primary** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+8. **유효기간 From/To** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+9. 조회 Control과 변경 Form을 분리해 기록하고, 실행 전 Environment·Data Scope·Timezone과 제출할 값만 다시 검토한다.
+
+### 목록 Column·상세 Field
+
+| 표시값 | 운영 의미 | 교차 확인 |
+|---|---|---|
+| `Assignment ID` | 발령·겸직·파견의 대상 레코드를 상세·Owner·Audit에서 연결하는 식별자다. | 상세·Log·Trace·Audit에서 같은 대상을 가리키는지 확인한다. |
+| `Employee` | 발령·겸직·파견의 대상 레코드를 상세·Owner·Audit에서 연결하는 식별자다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Organization` | 발령·겸직·파견의 대상 레코드를 상세·Owner·Audit에서 연결하는 식별자다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Position` | 발령·겸직·파견 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Job Title` | 발령·겸직·파견의 대상 레코드를 상세·Owner·Audit에서 연결하는 식별자다. | 상세·Log·Trace·Audit에서 같은 대상을 가리키는지 확인한다. |
+| `Type` | 발령·겸직·파견 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Primary` | 발령·겸직·파견 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `유효기간 From/To` | 상태 발생·갱신·유효 시점을 나타내며 화면 Timezone을 기준으로 해석한다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+
+#### 결과 판독 순서
+
+1. 조회 완료 시각·Filter·Paging·Sort와 화면 Warning을 확인한다.
+2. Empty·Stale·Partial을 정상 0건과 구분한다.
+3. 식별자·상태·Version·오류·시각을 같은 Query Context의 상세와 Owner 원장에서 비교한다.
+4. Masking된 값은 Raw Permission과 Reason 없이 복원·Export하지 않는다.
+5. 집계와 상세가 다르면 집계 시간 창·Timezone·Owner Update 시각을 맞춰 대사한다.
+
+### Button·Action
+
+| Action | 분류 | 활성 조건 | Side Effect·정상 결과 |
+|---|---|---|---|
+| **등록** | 등록·Draft 변경 | 화면이 실제로 요구하는 Write Permission·필수 Field·Reason·Version 조건을 충족함 | 발령·겸직·파견의 재조회 결과가 요청 내용과 일치한다. Version·Before/After·Audit는 해당 Owner가 제공하는 경우 함께 확인한다. |
+| **수정** | 등록·Draft 변경 | 화면이 실제로 요구하는 Write Permission·필수 Field·Reason·Version 조건을 충족함 | 발령·겸직·파견의 재조회 결과가 요청 내용과 일치한다. Version·Before/After·Audit는 해당 Owner가 제공하는 경우 함께 확인한다. |
+
+### 정상 업무 전체 절차
+
+1. `/assignments`에 진입해 Page Header와 Route가 **발령·겸직·파견** 기능을 가리키는지 확인한다.
+2. 로그인 Session·Environment·Data Scope·기준일·Timezone을 고정한다.
+3. 화면의 조회 Control과 변경 Form을 구분한다. 조회 조건이 제공되면 먼저 조회하고, 변경 Form은 대상 선택 또는 등록 Action 뒤에 열린 실제 Field만 사용한다.
+4. Loading 종료 후 Empty·Error·Stale·Partial 상태와 화면 Warning을 먼저 판정한다.
+5. **Assignment ID, Employee, Organization, Position, Job Title**를 읽고 식별자·상태·Version·시각을 Owner 원장과 대사한다.
+6. **등록** 전에 화면과 Owner가 실제로 요구하는 Permission·현재 상태·영향 범위·Reason·승인·Version 조건을 확인하고 한 번만 제출한다.
+7. **등록**의 HTTP 응답과 재조회 결과를 확인한다. 비동기·다중 대상 기능은 Owner Terminal 상태·Version·대상별 Success/Failed/Unknown·Audit를 별도로 확인한다.
+8. **수정** 전에 화면과 Owner가 실제로 요구하는 Permission·현재 상태·영향 범위·Reason·승인·Version 조건을 확인하고 한 번만 제출한다.
+9. **수정**의 HTTP 응답과 재조회 결과를 확인한다. 비동기·다중 대상 기능은 Owner Terminal 상태·Version·대상별 Success/Failed/Unknown·Audit를 별도로 확인한다.
+10. 화면이 제공하는 Log·Metric·Trace와, 변경·Export·승인 조치에 생성된 Audit를 교차 확인한다.
+11. 이 장의 **종료 판정**과 다음 확인 시각·Evidence Link를 교대 기록에 남긴다.
+
+### 메뉴 고유 판정·금지 사항
+
+- **목적:** 발령·겸직·파견·대행의 소속과 유효기간을 관리한다.
+- **종료 판정:** Primary 중복·기간 겹침·조직/직급/직책 유효성을 확인한다.
+- 응답을 받지 못한 경우 Owner 상태와 기존 Operation을 확인하기 전에 동일 Action을 반복하지 않는다.
+- HTTP 성공 응답이나 Toast만으로 비동기 Owner 상태 또는 다중 대상 적용을 확정하지 않는다.
+
+### 오류·경계·동시성·복구
+
+| 상황 | 화면 징후 | 운영 조치 | 종료 증적 |
+|---|---|---|---|
+| 401·Session | Session 만료·CSRF·Origin 실패 | 로그인 상태와 BFF Session을 확인한다. Command 자동 Replay는 금지한다. | 401/403 응답·Session Audit |
+| 403·Data Scope | 메뉴·Button·Raw·Export가 거부됨 | Menu·Button·API·Owner Permission과 Data Scope를 확인하고 우회하지 않는다. | Deny Audit·요청 Permission |
+| Validation | 필수값·범위·형식·기간 오류 | Field Error만 수정하고 기존 성공 Operation을 다시 제출하지 않는다. | Error Code·Field·입력값 |
+| Timeout·Dependency | 일부 Source 또는 Command 응답 지연 | Correlation/Operation ID와 실패 Stage를 기록하고 Owner 상태를 조회한다. | Dependency 상태·Retryability |
+| Partial·Stale | 일부 대상만 Success 또는 조회 Source 누락 | 성공·실패·미응답을 분리하고 누락 범위와 Version을 표시한다. | Target별 결과·Version |
+| 409·동시 변경 | Expected Version 불일치 | 최신 상세를 재조회하고 Diff·영향을 다시 검토한 뒤 새 요청으로 제출한다. | 현재/요청 Version·변경자 |
+| 응답 유실·Unknown | 요청 후 실제 처리 여부를 알 수 없음 | Operation ID·Request Hash·Audit·Owner 상태로 대사하고 중복 제출하지 않는다. | Operation·Owner·Audit |
+| 복구 실패 | Retry/Rollback 뒤에도 상태 불일치 | 자동 반복을 중단하고 Incident·Reconcile Case·다음 확인 시각을 기록한다. | Case ID·복구 Owner·기한 |
+| 계층·기간 충돌 | 고아·순환·기간 중복이 탐지됨 | 대상 관계와 기준일을 수정하고 영향 사용자·결재 Snapshot을 재계산한다. | 관계 Diff·Simulation 결과 |
+
+### 응답 유실·결과 불명·부분 적용 처리
+
+1. 동일 Action을 다시 누르지 않고 Browser Network와 응답 Header를 보존한다. `operationId`·`transactionId`·`idempotencyKey`가 제공되면 기록하고, 없으면 Target ID·Actor·요청 시각·Request Body Hash로 대사한다.
+2. 기능이 제공하는 상세·Operation Status(있는 경우)·Audit에서 Request Hash와 대상 Version을 검색한다.
+3. Side Effect 전 실패가 확인된 경우에만 새 요청을 검토한다.
+4. Success·Failed·Unknown 대상을 분리하고 Source가 제공하는 Failed-only Retry·Compensation·Rollback을 선택하고, 지원되지 않으면 수동 Reconcile Case로 이관한다.
+5. Rollback을 지원하는 기능은 Owner Version·Checksum·업무 합계가 Rollback Point와 일치하는지 확인한다.
+6. 확정되지 않은 대상은 `UNKNOWN_RESULT`로 유지하고 담당자·대사 기한·다음 확인 시각을 기록한다.
+
+### Log·Metric·Trace·Audit와 교대 기록
+
+| 증적 | 필수 값 |
+|---|---|
+| Audit | Actor·Permission·Reason·Approval·Target·Before/After·Result·Recovery Action |
+| Log | Environment·Instance·operationId·transactionId·failureStage·errorCode |
+| Metric | 동일 시간 창의 Success·Failure·Latency·Queue·Retry·Partial·Unknown |
+| Trace | root/segment/attempt·Owner·DB/Kafka/외부 의존성 Span |
+| 상태 원장 | Target ID·Version·Checksum·Desired/Actual·Last Updated·Terminal 여부 |
+
+```text
+Menu=assignments
+Route=/assignments
+Environment=
+DataScope=
+Query=
+TargetId=
+BeforeVersion=
+Action=
+Reason=
+ApprovalId=
+OperationId=
+TransactionId=
+Result=SUCCESS|FAILED|PARTIAL|UNKNOWN_RESULT
+OwnerState=
+FailedTargets=
+ReconcileBy=
+RollbackPoint=
+EvidenceLinks=
+NextCheckAt=
+```
+
+### 실무 Workbook
+
+**상황:** 발령·겸직·파견·대행의 소속과 유효기간을 관리한다. 담당자가 **등록**을 수행한 뒤 Browser 응답을 받지 못했다.
+
+1. 대상 식별자와 Before Version, 입력값, Reason·Approval을 작업 기록에서 확인한다.
+2. 동일 **등록**을 반복하지 않고 Operation·Audit·Owner 상태를 조회한다.
+3. Owner 상태가 변경됐고 Request Hash가 같으면 응답 유실로 분류해 중복 조치를 금지한다.
+4. 일부 대상만 변경됐으면 Success·Failed·Unknown을 분리해 Failed-only Retry 또는 Rollback을 선택한다.
+5. Primary 중복·기간 겹침·조직/직급/직책 유효성을 확인한다.
+6. Evidence Link와 다음 확인 시각을 교대 기록에 남긴다.
+
+### 독립 수행 검수 Checklist
+
+- [ ] `/assignments`와 Page Source를 찾고 화면 목적을 설명할 수 있다.
+- [ ] 8개 입력·검색 항목의 Control·기본값·Validation을 설명할 수 있다.
+- [ ] 8개 표시값을 Owner 상태·Version·Audit와 대사할 수 있다.
+- [ ] 2개 Action의 분류·활성 조건·Side Effect를 설명할 수 있다.
+- [ ] Empty·403·409·Timeout·Partial·Unknown을 서로 다른 상태로 처리할 수 있다.
+- [ ] 응답 유실 뒤 중복 제출 없이 Operation·Owner·Audit로 결과를 확정할 수 있다.
+- [ ] 교대 기록만으로 다음 담당자가 Target·상태·복구 기한을 이어받을 수 있다.
+
+## 7. organizationResponsibilities — 조직장·대행·승인 Owner
+
+![조직장·대행·승인 Owner 화면·업무 흐름](../assets/guides/menu-detail/bza-organizationresponsibilities.svg)
+
+### 이 장에서 끝내는 업무
+
+조직장·대행·승인 Owner 책임과 유효기간을 관리한다.
+
+### 메뉴 식별·책임
+
+| 항목 | 값 |
+|---|---|
+| Route | `/organizationResponsibilities` |
+| 메뉴 ID | `organizationResponsibilities` |
+| Menu Code | `ORGANIZATION` |
+| 업무 그룹 | people |
+| Frontend Page | `cpf-biz-admin/frontend/src/features/organization-responsibilities/OrganizationResponsibilitiesPage.vue` |
+| Permission | Write |
+| 기준 Commit | `23babb9140b90e501d6ac715e7b77f55b66198a5` |
+
+### Source·API 근거
+
+| 구분 | 기준 |
+|---|---|
+| Frontend Page | `cpf-biz-admin/frontend/src/features/organization-responsibilities/OrganizationResponsibilitiesPage.vue` |
+| Router | `/organizationResponsibilities` |
+| API 추적 | 화면에서 제공하는 기능을 통해 호출한다. 문서에 명시되지 않은 Endpoint를 Browser나 외부 Script에서 임의 호출하지 않는다. |
+
+아래 표는 이 메뉴에서 실제로 확인·입력·실행할 항목을 정리한다. 화면에 없는 Field·Button·상태를 임의로 가정하지 않는다.
+
+### 검색·입력 Field
+
+| Field | Control | 업무 의미 | 기본값·Validation·주의 |
+|---|---|---|---|
+| `Responsibility ID` | 문자열 입력·검색 | 조회·상세·Audit에서 같은 대상을 다시 찾기 위한 식별 조건이다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+| `Organization` | 문자열 입력·검색 | 조회·상세·Audit에서 같은 대상을 다시 찾기 위한 식별 조건이다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+| `Type` | Select·검색 | 조직장·대행·승인 Owner에서 적용하거나 조회할 정책·권한·처리 유형을 선택한다. | 허용 목록과 현재 Environment·Data Scope에 맞는 값만 선택한다. |
+| `Employee` | 문자열 입력·검색 | 조회·상세·Audit에서 같은 대상을 다시 찾기 위한 식별 조건이다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+| `유효기간 From/To` | 날짜·시간 입력 | 조회 또는 적용의 유효 시간 범위를 정하며 Timezone과 시작·종료 순서를 함께 확인한다. | Timezone을 고정하고 시작≤종료·유효기간 겹침·기준일 포함 여부를 확인한다. |
+
+#### 입력 순서
+
+1. **Responsibility ID** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+2. **Organization** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+3. **Type** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+4. **Employee** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+5. **유효기간 From/To** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+6. 조회 Control과 변경 Form을 분리해 기록하고, 실행 전 Environment·Data Scope·Timezone과 제출할 값만 다시 검토한다.
+
+### 목록 Column·상세 Field
+
+| 표시값 | 운영 의미 | 교차 확인 |
+|---|---|---|
+| `Responsibility ID` | 조직장·대행·승인 Owner의 대상 레코드를 상세·Owner·Audit에서 연결하는 식별자다. | 상세·Log·Trace·Audit에서 같은 대상을 가리키는지 확인한다. |
+| `Organization` | 조직장·대행·승인 Owner의 대상 레코드를 상세·Owner·Audit에서 연결하는 식별자다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Type` | 조직장·대행·승인 Owner 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Employee` | 조직장·대행·승인 Owner의 대상 레코드를 상세·Owner·Audit에서 연결하는 식별자다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `유효기간 From/To` | 상태 발생·갱신·유효 시점을 나타내며 화면 Timezone을 기준으로 해석한다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+
+#### 결과 판독 순서
+
+1. 조회 완료 시각·Filter·Paging·Sort와 화면 Warning을 확인한다.
+2. Empty·Stale·Partial을 정상 0건과 구분한다.
+3. 식별자·상태·Version·오류·시각을 같은 Query Context의 상세와 Owner 원장에서 비교한다.
+4. Masking된 값은 Raw Permission과 Reason 없이 복원·Export하지 않는다.
+5. 집계와 상세가 다르면 집계 시간 창·Timezone·Owner Update 시각을 맞춰 대사한다.
+
+### Button·Action
+
+| Action | 분류 | 활성 조건 | Side Effect·정상 결과 |
+|---|---|---|---|
+| **등록** | 등록·Draft 변경 | 화면이 실제로 요구하는 Write Permission·필수 Field·Reason·Version 조건을 충족함 | 조직장·대행·승인 Owner의 재조회 결과가 요청 내용과 일치한다. Version·Before/After·Audit는 해당 Owner가 제공하는 경우 함께 확인한다. |
+| **수정** | 등록·Draft 변경 | 화면이 실제로 요구하는 Write Permission·필수 Field·Reason·Version 조건을 충족함 | 조직장·대행·승인 Owner의 재조회 결과가 요청 내용과 일치한다. Version·Before/After·Audit는 해당 Owner가 제공하는 경우 함께 확인한다. |
+
+### 정상 업무 전체 절차
+
+1. `/organizationResponsibilities`에 진입해 Page Header와 Route가 **조직장·대행·승인 Owner** 기능을 가리키는지 확인한다.
+2. 로그인 Session·Environment·Data Scope·기준일·Timezone을 고정한다.
+3. 화면의 조회 Control과 변경 Form을 구분한다. 조회 조건이 제공되면 먼저 조회하고, 변경 Form은 대상 선택 또는 등록 Action 뒤에 열린 실제 Field만 사용한다.
+4. Loading 종료 후 Empty·Error·Stale·Partial 상태와 화면 Warning을 먼저 판정한다.
+5. **Responsibility ID, Organization, Type, Employee, 유효기간 From/To**를 읽고 식별자·상태·Version·시각을 Owner 원장과 대사한다.
+6. **등록** 전에 화면과 Owner가 실제로 요구하는 Permission·현재 상태·영향 범위·Reason·승인·Version 조건을 확인하고 한 번만 제출한다.
+7. **등록**의 HTTP 응답과 재조회 결과를 확인한다. 비동기·다중 대상 기능은 Owner Terminal 상태·Version·대상별 Success/Failed/Unknown·Audit를 별도로 확인한다.
+8. **수정** 전에 화면과 Owner가 실제로 요구하는 Permission·현재 상태·영향 범위·Reason·승인·Version 조건을 확인하고 한 번만 제출한다.
+9. **수정**의 HTTP 응답과 재조회 결과를 확인한다. 비동기·다중 대상 기능은 Owner Terminal 상태·Version·대상별 Success/Failed/Unknown·Audit를 별도로 확인한다.
+10. 화면이 제공하는 Log·Metric·Trace와, 변경·Export·승인 조치에 생성된 Audit를 교차 확인한다.
+11. 이 장의 **종료 판정**과 다음 확인 시각·Evidence Link를 교대 기록에 남긴다.
+
+### 메뉴 고유 판정·금지 사항
+
+- **목적:** 조직장·대행·승인 Owner 책임과 유효기간을 관리한다.
+- **종료 판정:** 같은 조직·책임 유형의 기간 중복과 결재 Snapshot 영향을 확인한다.
+- 응답을 받지 못한 경우 Owner 상태와 기존 Operation을 확인하기 전에 동일 Action을 반복하지 않는다.
+- HTTP 성공 응답이나 Toast만으로 비동기 Owner 상태 또는 다중 대상 적용을 확정하지 않는다.
+
+### 오류·경계·동시성·복구
+
+| 상황 | 화면 징후 | 운영 조치 | 종료 증적 |
+|---|---|---|---|
+| 401·Session | Session 만료·CSRF·Origin 실패 | 로그인 상태와 BFF Session을 확인한다. Command 자동 Replay는 금지한다. | 401/403 응답·Session Audit |
+| 403·Data Scope | 메뉴·Button·Raw·Export가 거부됨 | Menu·Button·API·Owner Permission과 Data Scope를 확인하고 우회하지 않는다. | Deny Audit·요청 Permission |
+| Validation | 필수값·범위·형식·기간 오류 | Field Error만 수정하고 기존 성공 Operation을 다시 제출하지 않는다. | Error Code·Field·입력값 |
+| Timeout·Dependency | 일부 Source 또는 Command 응답 지연 | Correlation/Operation ID와 실패 Stage를 기록하고 Owner 상태를 조회한다. | Dependency 상태·Retryability |
+| Partial·Stale | 일부 대상만 Success 또는 조회 Source 누락 | 성공·실패·미응답을 분리하고 누락 범위와 Version을 표시한다. | Target별 결과·Version |
+| 409·동시 변경 | Expected Version 불일치 | 최신 상세를 재조회하고 Diff·영향을 다시 검토한 뒤 새 요청으로 제출한다. | 현재/요청 Version·변경자 |
+| 응답 유실·Unknown | 요청 후 실제 처리 여부를 알 수 없음 | Operation ID·Request Hash·Audit·Owner 상태로 대사하고 중복 제출하지 않는다. | Operation·Owner·Audit |
+| 복구 실패 | Retry/Rollback 뒤에도 상태 불일치 | 자동 반복을 중단하고 Incident·Reconcile Case·다음 확인 시각을 기록한다. | Case ID·복구 Owner·기한 |
+
+### 응답 유실·결과 불명·부분 적용 처리
+
+1. 동일 Action을 다시 누르지 않고 Browser Network와 응답 Header를 보존한다. `operationId`·`transactionId`·`idempotencyKey`가 제공되면 기록하고, 없으면 Target ID·Actor·요청 시각·Request Body Hash로 대사한다.
+2. 기능이 제공하는 상세·Operation Status(있는 경우)·Audit에서 Request Hash와 대상 Version을 검색한다.
+3. Side Effect 전 실패가 확인된 경우에만 새 요청을 검토한다.
+4. Success·Failed·Unknown 대상을 분리하고 Source가 제공하는 Failed-only Retry·Compensation·Rollback을 선택하고, 지원되지 않으면 수동 Reconcile Case로 이관한다.
+5. Rollback을 지원하는 기능은 Owner Version·Checksum·업무 합계가 Rollback Point와 일치하는지 확인한다.
+6. 확정되지 않은 대상은 `UNKNOWN_RESULT`로 유지하고 담당자·대사 기한·다음 확인 시각을 기록한다.
+
+### Log·Metric·Trace·Audit와 교대 기록
+
+| 증적 | 필수 값 |
+|---|---|
+| Audit | Actor·Permission·Reason·Approval·Target·Before/After·Result·Recovery Action |
+| Log | Environment·Instance·operationId·transactionId·failureStage·errorCode |
+| Metric | 동일 시간 창의 Success·Failure·Latency·Queue·Retry·Partial·Unknown |
+| Trace | root/segment/attempt·Owner·DB/Kafka/외부 의존성 Span |
+| 상태 원장 | Target ID·Version·Checksum·Desired/Actual·Last Updated·Terminal 여부 |
+
+```text
+Menu=organizationResponsibilities
+Route=/organizationResponsibilities
+Environment=
+DataScope=
+Query=
+TargetId=
+BeforeVersion=
+Action=
+Reason=
+ApprovalId=
+OperationId=
+TransactionId=
+Result=SUCCESS|FAILED|PARTIAL|UNKNOWN_RESULT
+OwnerState=
+FailedTargets=
+ReconcileBy=
+RollbackPoint=
+EvidenceLinks=
+NextCheckAt=
+```
+
+### 실무 Workbook
+
+**상황:** 조직장·대행·승인 Owner 책임과 유효기간을 관리한다. 담당자가 **등록**을 수행한 뒤 Browser 응답을 받지 못했다.
+
+1. 대상 식별자와 Before Version, 입력값, Reason·Approval을 작업 기록에서 확인한다.
+2. 동일 **등록**을 반복하지 않고 Operation·Audit·Owner 상태를 조회한다.
+3. Owner 상태가 변경됐고 Request Hash가 같으면 응답 유실로 분류해 중복 조치를 금지한다.
+4. 일부 대상만 변경됐으면 Success·Failed·Unknown을 분리해 Failed-only Retry 또는 Rollback을 선택한다.
+5. 같은 조직·책임 유형의 기간 중복과 결재 Snapshot 영향을 확인한다.
+6. Evidence Link와 다음 확인 시각을 교대 기록에 남긴다.
+
+### 독립 수행 검수 Checklist
+
+- [ ] `/organizationResponsibilities`와 Page Source를 찾고 화면 목적을 설명할 수 있다.
+- [ ] 5개 입력·검색 항목의 Control·기본값·Validation을 설명할 수 있다.
+- [ ] 5개 표시값을 Owner 상태·Version·Audit와 대사할 수 있다.
+- [ ] 2개 Action의 분류·활성 조건·Side Effect를 설명할 수 있다.
+- [ ] Empty·403·409·Timeout·Partial·Unknown을 서로 다른 상태로 처리할 수 있다.
+- [ ] 응답 유실 뒤 중복 제출 없이 Operation·Owner·Audit로 결과를 확정할 수 있다.
+- [ ] 교대 기록만으로 다음 담당자가 Target·상태·복구 기한을 이어받을 수 있다.
+
+## 8. users — BZA 인증 사용자
+
+![BZA 인증 사용자 화면·업무 흐름](../assets/guides/menu-detail/bza-users.svg)
+
+### 이 장에서 끝내는 업무
+
+BZA 로그인 사용자·계정 상태·잠금·Password 변경 요구 여부를 관리한다.
+
+### 메뉴 식별·책임
+
+| 항목 | 값 |
+|---|---|
+| Route | `/users` |
+| 메뉴 ID | `users` |
+| Menu Code | `AUTHORIZATION` |
+| 업무 그룹 | access |
+| Frontend Page | `cpf-biz-admin/frontend/src/features/users/UsersPage.vue` |
+| Permission | Write |
+| 기준 Commit | `23babb9140b90e501d6ac715e7b77f55b66198a5` |
+
+### Source·API 근거
+
+| 구분 | 기준 |
+|---|---|
+| Frontend Page | `cpf-biz-admin/frontend/src/features/users/UsersPage.vue` |
+| 목록 조회 | `GET /api/bza/admin-users/page?page={page}&size={size}` |
+| 등록·수정 저장 | `POST /api/bza/admin-users` |
+| 수정 동시성 | 선택 Row의 `versionNo`를 내부 `expectedVersion`으로 전송한다. 화면 입력 Field로 노출하지 않는다. |
+| 신규 상태 | 저장 직전 `accountStatus=PENDING_ACTIVATION`으로 고정하며 `expectedVersion`은 보내지 않는다. |
+| Password | `rawPassword`가 비어 있으면 Request Body에서 제거한다. 기존 값은 조회·재표시하지 않는다. |
+| Role 변경 | 이 화면에서 변경하지 않고 사용자 Role 이력 화면에서 수행한다. |
+
+### 검색·입력 Field
+
+| Field | Control | 업무 의미 | 기본값·Validation·주의 |
+|---|---|---|---|
+| `Login ID` | 문자열 입력 | BZA 로그인 식별자다. 등록 시 필수이며 수정 Dialog에서는 `readonly`다. | 앞뒤 공백·허용 문자·중복 여부를 확인한다. |
+| `Name` | 문자열 입력 | 관리자 표시명이다. 등록·수정 시 필수다. | 빈 값과 허용 길이를 확인한다. |
+| `Account Status` | Select | 계정 상태다. 신규 등록 시 `PENDING_ACTIVATION`으로 고정되고 수정할 때만 선택할 수 있다. | 허용값은 PENDING_ACTIVATION·ACTIVE·LOCKED·SUSPENDED·DISABLED다. |
+| `Password` | 보안 입력 | 신규 사용자 등록이나 Password 변경 요청에만 사용하는 비밀값이며 조회 결과에는 표시하지 않는다. | 복잡도·재사용 제한을 지키고 원문을 Browser 저장·Log·Screenshot·교대 기록에 남기지 않는다. |
+| `Use` | Select | 계정 사용 여부다. | 신규 Form 기본값은 `Y`; 허용값은 Y·N이다. |
+| `Lock` | Select | 계정 잠금 여부다. | 신규 Form 기본값은 `N`; 허용값은 N·Y이다. |
+| `Force Password Change` | Select | 다음 로그인에서 Password 변경을 요구할지 지정한다. | 신규 Form 기본값은 `Y`; 허용값은 Y·N이다. |
+| `Reason` | 다중행 입력 | 사용자 등록·수정 사유를 Audit에 남긴다. | 화면에서 `required`이며 Password 원문을 포함하지 않는다. |
+
+> **화면 입력 계약:** 목록에는 검색 Field가 없다. 등록 또는 수정 Action으로 Dialog를 연 뒤 Form을 입력한다. Password는 새 값만 입력하며 기존 값은 조회·재표시하지 않는다. expectedVersion은 수정 Row의 versionNo에서 내부 설정되고 화면 입력 Field로 노출되지 않는다.
+
+#### 입력 순서
+
+1. **Login ID** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+2. **Name** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+3. **Account Status** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+4. **Password**는 현재값을 조회하거나 재표시하지 않는다. 신규 등록·변경 요청에서 필요한 경우에만 새 비밀값의 형식과 취급 기준을 확인한다.
+5. **Use** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+6. **Lock** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+7. **Force Password Change** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+8. **Reason** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+9. 조회 Control과 변경 Form을 분리해 기록하고, 실행 전 Environment·Data Scope·Timezone과 제출할 값만 다시 검토한다.
+
+### 목록 Column·상세 Field
+
+| 표시값 | 운영 의미 | 교차 확인 |
+|---|---|---|
+| `Login ID` | BZA 인증 사용자의 대상 레코드를 상세·Owner·Audit에서 연결하는 식별자다. | 상세·Log·Trace·Audit에서 같은 대상을 가리키는지 확인한다. |
+| `Name` | 운영자가 대상을 구분하는 표시명 또는 설명이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Primary Role` | BZA 인증 사용자 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Account Status` | 현재 상태와 Terminal 여부, 다음 Action 가능 여부를 판단하는 값이다. | Last Updated·Terminal 조건·Owner 상태와 함께 확인한다. |
+| `Use` | 현재 상태와 Terminal 여부, 다음 Action 가능 여부를 판단하는 값이다. | Last Updated·Terminal 조건·Owner 상태와 함께 확인한다. |
+| `Lock` | 현재 상태와 Terminal 여부, 다음 Action 가능 여부를 판단하는 값이다. | Last Updated·Terminal 조건·Owner 상태와 함께 확인한다. |
+
+#### 결과 판독 순서
+
+1. 조회 완료 시각·Filter·Paging·Sort와 화면 Warning을 확인한다.
+2. Empty·Stale·Partial을 정상 0건과 구분한다.
+3. 식별자·상태·Version·오류·시각을 같은 Query Context의 상세와 Owner 원장에서 비교한다.
+4. Masking된 값은 Raw Permission과 Reason 없이 복원·Export하지 않는다.
+5. 집계와 상세가 다르면 집계 시간 창·Timezone·Owner Update 시각을 맞춰 대사한다.
+
+### Button·Action
+
+| Action | 분류 | 활성 조건 | Side Effect·정상 결과 |
+|---|---|---|---|
+| **등록 Form 열기** | 편집 Context 전환 | 등록 Permission이 있고 다른 Dialog 제출이 진행 중이 아니며 신규 Form을 열 수 있음 | 신규 Form을 열고 Source 기본값을 표시하며 저장 전에는 Owner 상태를 변경하지 않는다. |
+| **수정 Form 열기** | 편집 Context 전환 | 대상 Row가 선택되고 편집 Permission과 현재 상태를 확인함 | 선택한 대상의 현재 Form과 Source가 제공하는 Version 정보를 표시하며 저장 전에는 Owner 상태를 변경하지 않는다. |
+| **저장** | 등록·Draft 변경 | 화면이 실제로 요구하는 Write Permission·필수 Field·Reason·Version 조건을 충족함 | BZA 인증 사용자의 재조회 결과가 요청 내용과 일치한다. Version·Before/After·Audit는 해당 Owner가 제공하는 경우 함께 확인한다. |
+| **취소** | 화면 Draft 편집 | 화면 Form이 열려 있고 아직 Server Command를 제출하지 않음 | Dialog를 닫고 Browser Draft를 폐기하며 Server Side Effect는 발생하지 않는다. |
+| **이전 Page** | 조회·탐색 | 조회 Permission과 Query Validation을 충족하고 동일 조회가 진행 중이 아님 | 이전 Page 결과의 조회 시각·Filter·Source Version·Warning이 갱신되며 Owner 데이터는 변경하지 않는다. |
+| **다음 Page** | 조회·탐색 | 조회 Permission과 Query Validation을 충족하고 동일 조회가 진행 중이 아님 | 다음 Page 결과의 조회 시각·Filter·Source Version·Warning이 갱신되며 Owner 데이터는 변경하지 않는다. |
+
+### 정상 업무 전체 절차
+
+1. `/users`에 진입해 Page가 `GET /api/bza/admin-users/page?page={page}&size={size}`로 현재 Page를 조회했는지 확인한다.
+2. 목록의 Login ID·이름·Primary Role·계정 상태·사용·잠금 값을 확인한다. 이 화면에는 검색 Form이 없다.
+3. 신규 등록은 **등록 Form 열기**, 기존 변경은 대상 Row의 **수정 Form 열기**를 선택한다.
+4. 수정 Form에서는 Login ID가 `readonly`이고, 내부 `expectedVersion`은 선택 Row의 `versionNo`에서 설정된다. 운영자가 Version을 직접 입력하지 않는다.
+5. 신규 등록 시 계정 상태는 `PENDING_ACTIVATION`으로 고정된다. Role은 이 화면에서 변경하지 않고 사용자 Role 이력 화면에서 별도로 부여한다.
+6. Password는 필요한 경우에만 새 값을 입력한다. 기존 Password는 조회·재표시·교대 기록하지 않는다.
+7. 이름·계정 상태·사용·잠금·강제 Password 변경·사유를 검토하고 **저장**을 한 번만 제출한다.
+8. 저장 후 Page를 재조회해 목록 상태와 Version 변경 결과를 확인하고, 사용자 Role·Session 영향은 관련 화면에서 별도로 확인한다.
+9. 응답을 받지 못한 경우 같은 저장을 반복하지 않고 Login ID와 Audit·Owner 상태로 생성·변경 여부를 대사한다.
+10. **이전 Page**·**다음 Page**는 조회 Context만 변경하며 Owner 데이터를 변경하지 않는다.
+11. 결과·사유·대사 근거·다음 확인 시각을 교대 기록에 남기되 Password 원문은 기록하지 않는다.
+
+### 메뉴 고유 판정·금지 사항
+
+- **목적:** BZA 로그인 사용자·계정 상태·잠금·Password 변경 요구 여부를 관리한다.
+- **종료 판정:** Expected Version과 Session·Role 상태를 함께 확인한다.
+- 응답을 받지 못한 경우 Owner 상태와 기존 Operation을 확인하기 전에 동일 Action을 반복하지 않는다.
+- HTTP 성공 응답이나 Toast만으로 비동기 Owner 상태 또는 다중 대상 적용을 확정하지 않는다.
+- Raw·PII·Password·Secret은 Screenshot·Clipboard·교대 기록·일반 Log에 남기지 않는다.
+
+### 오류·경계·동시성·복구
+
+| 상황 | 화면 징후 | 운영 조치 | 종료 증적 |
+|---|---|---|---|
+| 401·Session | Session 만료·CSRF·Origin 실패 | 로그인 상태와 BFF Session을 확인한다. Command 자동 Replay는 금지한다. | 401/403 응답·Session Audit |
+| 403·Data Scope | 메뉴·Button·Raw·Export가 거부됨 | Menu·Button·API·Owner Permission과 Data Scope를 확인하고 우회하지 않는다. | Deny Audit·요청 Permission |
+| Validation | 필수값·범위·형식·기간 오류 | Field Error만 수정하고 기존 성공 Operation을 다시 제출하지 않는다. | Error Code·Field·입력값 |
+| Timeout·Dependency | 일부 Source 또는 Command 응답 지연 | Correlation/Operation ID와 실패 Stage를 기록하고 Owner 상태를 조회한다. | Dependency 상태·Retryability |
+| Partial·Stale | 일부 대상만 Success 또는 조회 Source 누락 | 성공·실패·미응답을 분리하고 누락 범위와 Version을 표시한다. | Target별 결과·Version |
+| 409·동시 변경 | Expected Version 불일치 | 최신 상세를 재조회하고 Diff·영향을 다시 검토한 뒤 새 요청으로 제출한다. | 현재/요청 Version·변경자 |
+| 응답 유실·Unknown | 요청 후 실제 처리 여부를 알 수 없음 | Operation ID·Request Hash·Audit·Owner 상태로 대사하고 중복 제출하지 않는다. | Operation·Owner·Audit |
+| 복구 실패 | Retry/Rollback 뒤에도 상태 불일치 | 자동 반복을 중단하고 Incident·Reconcile Case·다음 확인 시각을 기록한다. | Case ID·복구 Owner·기한 |
+
+### 응답 유실·결과 불명·부분 적용 처리
+
+1. 동일 Action을 다시 누르지 않고 Browser Network와 응답 Header를 보존한다. `operationId`·`transactionId`·`idempotencyKey`가 제공되면 기록하고, 없으면 Target ID·Actor·요청 시각·Request Body Hash로 대사한다.
+2. 기능이 제공하는 상세·Operation Status(있는 경우)·Audit에서 Request Hash와 대상 Version을 검색한다.
+3. Side Effect 전 실패가 확인된 경우에만 새 요청을 검토한다.
+4. Success·Failed·Unknown 대상을 분리하고 Source가 제공하는 Failed-only Retry·Compensation·Rollback을 선택하고, 지원되지 않으면 수동 Reconcile Case로 이관한다.
+5. Rollback을 지원하는 기능은 Owner Version·Checksum·업무 합계가 Rollback Point와 일치하는지 확인한다.
+6. 확정되지 않은 대상은 `UNKNOWN_RESULT`로 유지하고 담당자·대사 기한·다음 확인 시각을 기록한다.
+
+### Log·Metric·Trace·Audit와 교대 기록
+
+| 증적 | 필수 값 |
+|---|---|
+| Audit | Actor·Permission·Reason·Approval·Target·Before/After·Result·Recovery Action |
+| Log | Environment·Instance·operationId·transactionId·failureStage·errorCode |
+| Metric | 동일 시간 창의 Success·Failure·Latency·Queue·Retry·Partial·Unknown |
+| Trace | root/segment/attempt·Owner·DB/Kafka/외부 의존성 Span |
+| 상태 원장 | Target ID·Version·Checksum·Desired/Actual·Last Updated·Terminal 여부 |
+
+```text
+Menu=users
+Route=/users
+Environment=
+DataScope=
+Query=
+TargetId=
+BeforeVersion=
+Action=
+Reason=
+ApprovalId=
+OperationId=
+TransactionId=
+Result=SUCCESS|FAILED|PARTIAL|UNKNOWN_RESULT
+OwnerState=
+FailedTargets=
+ReconcileBy=
+RollbackPoint=
+EvidenceLinks=
+NextCheckAt=
+```
+
+### 실무 Workbook
+
+**상황:** BZA 로그인 사용자·계정 상태·잠금·Password 변경 요구 여부를 관리한다. 담당자가 **등록**을 수행한 뒤 Browser 응답을 받지 못했다.
+
+1. 대상 식별자와 Before Version, 입력값, Reason·Approval을 작업 기록에서 확인한다.
+2. 동일 **등록**을 반복하지 않고 Operation·Audit·Owner 상태를 조회한다.
+3. Owner 상태가 변경됐고 Request Hash가 같으면 응답 유실로 분류해 중복 조치를 금지한다.
+4. 일부 대상만 변경됐으면 Success·Failed·Unknown을 분리해 Failed-only Retry 또는 Rollback을 선택한다.
+5. Expected Version과 Session·Role 상태를 함께 확인한다.
+6. Evidence Link와 다음 확인 시각을 교대 기록에 남긴다.
+
+### 독립 수행 검수 Checklist
+
+- [ ] `/users`와 Page Source를 찾고 화면 목적을 설명할 수 있다.
+- [ ] 9개 입력·검색 항목의 Control·기본값·Validation을 설명할 수 있다.
+- [ ] 6개 표시값을 Owner 상태·Version·Audit와 대사할 수 있다.
+- [ ] 6개 Action의 분류·활성 조건·Side Effect를 설명할 수 있다.
+- [ ] Empty·403·409·Timeout·Partial·Unknown을 서로 다른 상태로 처리할 수 있다.
+- [ ] 응답 유실 뒤 중복 제출 없이 Operation·Owner·Audit로 결과를 확정할 수 있다.
+- [ ] 교대 기록만으로 다음 담당자가 Target·상태·복구 기한을 이어받을 수 있다.
+
+## 9. roles — 업무 Role
+
+![업무 Role 화면·업무 흐름](../assets/guides/menu-detail/bza-roles.svg)
+
+### 이 장에서 끝내는 업무
+
+업무 Role·Write 허용·Data Scope·사용 여부를 관리한다.
+
+### 메뉴 식별·책임
+
+| 항목 | 값 |
+|---|---|
+| Route | `/roles` |
+| 메뉴 ID | `roles` |
+| Menu Code | `AUTHORIZATION` |
+| 업무 그룹 | access |
+| Frontend Page | `cpf-biz-admin/frontend/src/features/roles/RolesPage.vue` |
+| Permission | Write |
+| 기준 Commit | `23babb9140b90e501d6ac715e7b77f55b66198a5` |
+
+### Source·API 근거
+
+| 구분 | 기준 |
+|---|---|
+| Frontend Page | `cpf-biz-admin/frontend/src/features/roles/RolesPage.vue` |
+| Router | `/roles` |
+| API 추적 | 화면에서 제공하는 기능을 통해 호출한다. 문서에 명시되지 않은 Endpoint를 Browser나 외부 Script에서 임의 호출하지 않는다. |
+
+아래 표는 이 메뉴에서 실제로 확인·입력·실행할 항목을 정리한다. 화면에 없는 Field·Button·상태를 임의로 가정하지 않는다.
+
+### 검색·입력 Field
+
+| Field | Control | 업무 의미 | 기본값·Validation·주의 |
+|---|---|---|---|
+| `Role Code` | Select·검색 | 업무 Role에서 적용하거나 조회할 정책·권한·처리 유형을 선택한다. | 허용 목록과 현재 Environment·Data Scope에 맞는 값만 선택한다. |
+| `Name` | 문자열 입력·검색 | 대상의 표시명 또는 업무명을 검색·입력한다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+| `Write Allowed` | Checkbox·Switch | 현재 상태를 조회하거나 다음 Action의 허용 조건을 지정한다. | 현재 선택과 변경 후 영향 범위를 비교하고 화면의 Source 기본값을 확인한다. |
+| `Data Scope` | Select·검색 | 업무 Role 조회·조치가 적용되는 환경과 데이터 경계를 제한한다. | 허용 목록과 현재 Environment·Data Scope에 맞는 값만 선택한다. |
+| `Use` | Checkbox·Switch | 현재 상태를 조회하거나 다음 Action의 허용 조건을 지정한다. | 현재 선택과 변경 후 영향 범위를 비교하고 화면의 Source 기본값을 확인한다. |
+
+#### 입력 순서
+
+1. **Role Code** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+2. **Name** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+3. **Write Allowed** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+4. **Data Scope** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+5. **Use** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+6. 조회 Control과 변경 Form을 분리해 기록하고, 실행 전 Environment·Data Scope·Timezone과 제출할 값만 다시 검토한다.
+
+### 목록 Column·상세 Field
+
+| 표시값 | 운영 의미 | 교차 확인 |
+|---|---|---|
+| `Role Code` | 업무 Role의 대상 레코드를 상세·Owner·Audit에서 연결하는 식별자다. | 상세·Log·Trace·Audit에서 같은 대상을 가리키는지 확인한다. |
+| `Name` | 운영자가 대상을 구분하는 표시명 또는 설명이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Write Allowed` | 현재 상태와 Terminal 여부, 다음 Action 가능 여부를 판단하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Data Scope` | 업무 Role 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Use` | 현재 상태와 Terminal 여부, 다음 Action 가능 여부를 판단하는 값이다. | Last Updated·Terminal 조건·Owner 상태와 함께 확인한다. |
+
+#### 결과 판독 순서
+
+1. 조회 완료 시각·Filter·Paging·Sort와 화면 Warning을 확인한다.
+2. Empty·Stale·Partial을 정상 0건과 구분한다.
+3. 식별자·상태·Version·오류·시각을 같은 Query Context의 상세와 Owner 원장에서 비교한다.
+4. Masking된 값은 Raw Permission과 Reason 없이 복원·Export하지 않는다.
+5. 집계와 상세가 다르면 집계 시간 창·Timezone·Owner Update 시각을 맞춰 대사한다.
+
+### Button·Action
+
+| Action | 분류 | 활성 조건 | Side Effect·정상 결과 |
+|---|---|---|---|
+| **등록** | 등록·Draft 변경 | 화면이 실제로 요구하는 Write Permission·필수 Field·Reason·Version 조건을 충족함 | 업무 Role의 재조회 결과가 요청 내용과 일치한다. Version·Before/After·Audit는 해당 Owner가 제공하는 경우 함께 확인한다. |
+| **수정** | 등록·Draft 변경 | 화면이 실제로 요구하는 Write Permission·필수 Field·Reason·Version 조건을 충족함 | 업무 Role의 재조회 결과가 요청 내용과 일치한다. Version·Before/After·Audit는 해당 Owner가 제공하는 경우 함께 확인한다. |
+
+### 정상 업무 전체 절차
+
+1. `/roles`에 진입해 Page Header와 Route가 **업무 Role** 기능을 가리키는지 확인한다.
+2. 로그인 Session·Environment·Data Scope·기준일·Timezone을 고정한다.
+3. 화면의 조회 Control과 변경 Form을 구분한다. 조회 조건이 제공되면 먼저 조회하고, 변경 Form은 대상 선택 또는 등록 Action 뒤에 열린 실제 Field만 사용한다.
+4. Loading 종료 후 Empty·Error·Stale·Partial 상태와 화면 Warning을 먼저 판정한다.
+5. **Role Code, Name, Write Allowed, Data Scope, Use**를 읽고 식별자·상태·Version·시각을 Owner 원장과 대사한다.
+6. **등록** 전에 화면과 Owner가 실제로 요구하는 Permission·현재 상태·영향 범위·Reason·승인·Version 조건을 확인하고 한 번만 제출한다.
+7. **등록**의 HTTP 응답과 재조회 결과를 확인한다. 비동기·다중 대상 기능은 Owner Terminal 상태·Version·대상별 Success/Failed/Unknown·Audit를 별도로 확인한다.
+8. **수정** 전에 화면과 Owner가 실제로 요구하는 Permission·현재 상태·영향 범위·Reason·승인·Version 조건을 확인하고 한 번만 제출한다.
+9. **수정**의 HTTP 응답과 재조회 결과를 확인한다. 비동기·다중 대상 기능은 Owner Terminal 상태·Version·대상별 Success/Failed/Unknown·Audit를 별도로 확인한다.
+10. 화면이 제공하는 Log·Metric·Trace와, 변경·Export·승인 조치에 생성된 Audit를 교차 확인한다.
+11. 이 장의 **종료 판정**과 다음 확인 시각·Evidence Link를 교대 기록에 남긴다.
+
+### 메뉴 고유 판정·금지 사항
+
+- **목적:** 업무 Role·Write 허용·Data Scope·사용 여부를 관리한다.
+- **종료 판정:** Role 변경 전 사용자 수와 Effective Permission 영향을 Preview한다.
+- 응답을 받지 못한 경우 Owner 상태와 기존 Operation을 확인하기 전에 동일 Action을 반복하지 않는다.
+- HTTP 성공 응답이나 Toast만으로 비동기 Owner 상태 또는 다중 대상 적용을 확정하지 않는다.
+
+### 오류·경계·동시성·복구
+
+| 상황 | 화면 징후 | 운영 조치 | 종료 증적 |
+|---|---|---|---|
+| 401·Session | Session 만료·CSRF·Origin 실패 | 로그인 상태와 BFF Session을 확인한다. Command 자동 Replay는 금지한다. | 401/403 응답·Session Audit |
+| 403·Data Scope | 메뉴·Button·Raw·Export가 거부됨 | Menu·Button·API·Owner Permission과 Data Scope를 확인하고 우회하지 않는다. | Deny Audit·요청 Permission |
+| Validation | 필수값·범위·형식·기간 오류 | Field Error만 수정하고 기존 성공 Operation을 다시 제출하지 않는다. | Error Code·Field·입력값 |
+| Timeout·Dependency | 일부 Source 또는 Command 응답 지연 | Correlation/Operation ID와 실패 Stage를 기록하고 Owner 상태를 조회한다. | Dependency 상태·Retryability |
+| Partial·Stale | 일부 대상만 Success 또는 조회 Source 누락 | 성공·실패·미응답을 분리하고 누락 범위와 Version을 표시한다. | Target별 결과·Version |
+| 409·동시 변경 | Expected Version 불일치 | 최신 상세를 재조회하고 Diff·영향을 다시 검토한 뒤 새 요청으로 제출한다. | 현재/요청 Version·변경자 |
+| 응답 유실·Unknown | 요청 후 실제 처리 여부를 알 수 없음 | Operation ID·Request Hash·Audit·Owner 상태로 대사하고 중복 제출하지 않는다. | Operation·Owner·Audit |
+| 복구 실패 | Retry/Rollback 뒤에도 상태 불일치 | 자동 반복을 중단하고 Incident·Reconcile Case·다음 확인 시각을 기록한다. | Case ID·복구 Owner·기한 |
+
+### 응답 유실·결과 불명·부분 적용 처리
+
+1. 동일 Action을 다시 누르지 않고 Browser Network와 응답 Header를 보존한다. `operationId`·`transactionId`·`idempotencyKey`가 제공되면 기록하고, 없으면 Target ID·Actor·요청 시각·Request Body Hash로 대사한다.
+2. 기능이 제공하는 상세·Operation Status(있는 경우)·Audit에서 Request Hash와 대상 Version을 검색한다.
+3. Side Effect 전 실패가 확인된 경우에만 새 요청을 검토한다.
+4. Success·Failed·Unknown 대상을 분리하고 Source가 제공하는 Failed-only Retry·Compensation·Rollback을 선택하고, 지원되지 않으면 수동 Reconcile Case로 이관한다.
+5. Rollback을 지원하는 기능은 Owner Version·Checksum·업무 합계가 Rollback Point와 일치하는지 확인한다.
+6. 확정되지 않은 대상은 `UNKNOWN_RESULT`로 유지하고 담당자·대사 기한·다음 확인 시각을 기록한다.
+
+### Log·Metric·Trace·Audit와 교대 기록
+
+| 증적 | 필수 값 |
+|---|---|
+| Audit | Actor·Permission·Reason·Approval·Target·Before/After·Result·Recovery Action |
+| Log | Environment·Instance·operationId·transactionId·failureStage·errorCode |
+| Metric | 동일 시간 창의 Success·Failure·Latency·Queue·Retry·Partial·Unknown |
+| Trace | root/segment/attempt·Owner·DB/Kafka/외부 의존성 Span |
+| 상태 원장 | Target ID·Version·Checksum·Desired/Actual·Last Updated·Terminal 여부 |
+
+```text
+Menu=roles
+Route=/roles
+Environment=
+DataScope=
+Query=
+TargetId=
+BeforeVersion=
+Action=
+Reason=
+ApprovalId=
+OperationId=
+TransactionId=
+Result=SUCCESS|FAILED|PARTIAL|UNKNOWN_RESULT
+OwnerState=
+FailedTargets=
+ReconcileBy=
+RollbackPoint=
+EvidenceLinks=
+NextCheckAt=
+```
+
+### 실무 Workbook
+
+**상황:** 업무 Role·Write 허용·Data Scope·사용 여부를 관리한다. 담당자가 **등록**을 수행한 뒤 Browser 응답을 받지 못했다.
+
+1. 대상 식별자와 Before Version, 입력값, Reason·Approval을 작업 기록에서 확인한다.
+2. 동일 **등록**을 반복하지 않고 Operation·Audit·Owner 상태를 조회한다.
+3. Owner 상태가 변경됐고 Request Hash가 같으면 응답 유실로 분류해 중복 조치를 금지한다.
+4. 일부 대상만 변경됐으면 Success·Failed·Unknown을 분리해 Failed-only Retry 또는 Rollback을 선택한다.
+5. Role 변경 전 사용자 수와 Effective Permission 영향을 Preview한다.
+6. Evidence Link와 다음 확인 시각을 교대 기록에 남긴다.
+
+### 독립 수행 검수 Checklist
+
+- [ ] `/roles`와 Page Source를 찾고 화면 목적을 설명할 수 있다.
+- [ ] 5개 입력·검색 항목의 Control·기본값·Validation을 설명할 수 있다.
+- [ ] 5개 표시값을 Owner 상태·Version·Audit와 대사할 수 있다.
+- [ ] 2개 Action의 분류·활성 조건·Side Effect를 설명할 수 있다.
+- [ ] Empty·403·409·Timeout·Partial·Unknown을 서로 다른 상태로 처리할 수 있다.
+- [ ] 응답 유실 뒤 중복 제출 없이 Operation·Owner·Audit로 결과를 확정할 수 있다.
+- [ ] 교대 기록만으로 다음 담당자가 Target·상태·복구 기한을 이어받을 수 있다.
+
+## 10. userRoles — 사용자 Role 유효기간
+
+![사용자 Role 유효기간 화면·업무 흐름](../assets/guides/menu-detail/bza-userroles.svg)
+
+### 이 장에서 끝내는 업무
+
+사용자와 Role의 유효기간·Primary 관계를 관리한다.
+
+### 메뉴 식별·책임
+
+| 항목 | 값 |
+|---|---|
+| Route | `/userRoles` |
+| 메뉴 ID | `userRoles` |
+| Menu Code | `AUTHORIZATION` |
+| 업무 그룹 | access |
+| Frontend Page | `cpf-biz-admin/frontend/src/features/user-roles/UserRolesPage.vue` |
+| Permission | Write |
+| 기준 Commit | `23babb9140b90e501d6ac715e7b77f55b66198a5` |
+
+### Source·API 근거
+
+| 구분 | 기준 |
+|---|---|
+| Frontend Page | `cpf-biz-admin/frontend/src/features/user-roles/UserRolesPage.vue` |
+| Router | `/userRoles` |
+| API 추적 | 화면에서 제공하는 기능을 통해 호출한다. 문서에 명시되지 않은 Endpoint를 Browser나 외부 Script에서 임의 호출하지 않는다. |
+
+아래 표는 이 메뉴에서 실제로 확인·입력·실행할 항목을 정리한다. 화면에 없는 Field·Button·상태를 임의로 가정하지 않는다.
+
+### 검색·입력 Field
+
+| Field | Control | 업무 의미 | 기본값·Validation·주의 |
+|---|---|---|---|
+| `Operation ID` | 문자열 입력·검색 | 조회·상세·Audit에서 같은 대상을 다시 찾기 위한 식별 조건이다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+| `Login ID` | 문자열 입력·검색 | 조회·상세·Audit에서 같은 대상을 다시 찾기 위한 식별 조건이다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+| `Role` | Select·검색 | 사용자 Role 유효기간에서 적용하거나 조회할 정책·권한·처리 유형을 선택한다. | 허용 목록과 현재 Environment·Data Scope에 맞는 값만 선택한다. |
+| `유효기간 From/To` | 날짜·시간 입력 | 조회 또는 적용의 유효 시간 범위를 정하며 Timezone과 시작·종료 순서를 함께 확인한다. | Timezone을 고정하고 시작≤종료·유효기간 겹침·기준일 포함 여부를 확인한다. |
+| `Primary` | Checkbox·Switch | 현재 상태를 조회하거나 다음 Action의 허용 조건을 지정한다. | 현재 선택과 변경 후 영향 범위를 비교하고 화면의 Source 기본값을 확인한다. |
+
+#### 입력 순서
+
+1. **Operation ID** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+2. **Login ID** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+3. **Role** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+4. **유효기간 From/To** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+5. **Primary** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+6. 조회 Control과 변경 Form을 분리해 기록하고, 실행 전 Environment·Data Scope·Timezone과 제출할 값만 다시 검토한다.
+
+### 목록 Column·상세 Field
+
+| 표시값 | 운영 의미 | 교차 확인 |
+|---|---|---|
+| `Operation ID` | 사용자 Role 유효기간의 대상 레코드를 상세·Owner·Audit에서 연결하는 식별자다. | 상세·Log·Trace·Audit에서 같은 대상을 가리키는지 확인한다. |
+| `Login ID` | 사용자 Role 유효기간의 대상 레코드를 상세·Owner·Audit에서 연결하는 식별자다. | 상세·Log·Trace·Audit에서 같은 대상을 가리키는지 확인한다. |
+| `Role` | 사용자 Role 유효기간 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `유효기간 From/To` | 상태 발생·갱신·유효 시점을 나타내며 화면 Timezone을 기준으로 해석한다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Primary` | 사용자 Role 유효기간 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+
+#### 결과 판독 순서
+
+1. 조회 완료 시각·Filter·Paging·Sort와 화면 Warning을 확인한다.
+2. Empty·Stale·Partial을 정상 0건과 구분한다.
+3. 식별자·상태·Version·오류·시각을 같은 Query Context의 상세와 Owner 원장에서 비교한다.
+4. Masking된 값은 Raw Permission과 Reason 없이 복원·Export하지 않는다.
+5. 집계와 상세가 다르면 집계 시간 창·Timezone·Owner Update 시각을 맞춰 대사한다.
+
+### Button·Action
+
+| Action | 분류 | 활성 조건 | Side Effect·정상 결과 |
+|---|---|---|---|
+| **등록** | 등록·Draft 변경 | 화면이 실제로 요구하는 Write Permission·필수 Field·Reason·Version 조건을 충족함 | 사용자 Role 유효기간의 재조회 결과가 요청 내용과 일치한다. Version·Before/After·Audit는 해당 Owner가 제공하는 경우 함께 확인한다. |
+| **수정** | 등록·Draft 변경 | 화면이 실제로 요구하는 Write Permission·필수 Field·Reason·Version 조건을 충족함 | 사용자 Role 유효기간의 재조회 결과가 요청 내용과 일치한다. Version·Before/After·Audit는 해당 Owner가 제공하는 경우 함께 확인한다. |
+| **Paging** | 조회·탐색 | 조회 Permission과 Query Validation을 충족하고 동일 조회가 진행 중이 아님 | Paging 결과의 조회 시각·Filter·Source Version·Warning이 갱신되며 Owner 데이터는 변경하지 않는다. |
+
+### 정상 업무 전체 절차
+
+1. `/userRoles`에 진입해 Page Header와 Route가 **사용자 Role 유효기간** 기능을 가리키는지 확인한다.
+2. 로그인 Session·Environment·Data Scope·기준일·Timezone을 고정한다.
+3. 화면의 조회 Control과 변경 Form을 구분한다. 조회 조건이 제공되면 먼저 조회하고, 변경 Form은 대상 선택 또는 등록 Action 뒤에 열린 실제 Field만 사용한다.
+4. Loading 종료 후 Empty·Error·Stale·Partial 상태와 화면 Warning을 먼저 판정한다.
+5. **Operation ID, Login ID, Role, 유효기간 From/To, Primary**를 읽고 식별자·상태·Version·시각을 Owner 원장과 대사한다.
+6. **등록** 전에 화면과 Owner가 실제로 요구하는 Permission·현재 상태·영향 범위·Reason·승인·Version 조건을 확인하고 한 번만 제출한다.
+7. **등록**의 HTTP 응답과 재조회 결과를 확인한다. 비동기·다중 대상 기능은 Owner Terminal 상태·Version·대상별 Success/Failed/Unknown·Audit를 별도로 확인한다.
+8. **수정** 전에 화면과 Owner가 실제로 요구하는 Permission·현재 상태·영향 범위·Reason·승인·Version 조건을 확인하고 한 번만 제출한다.
+9. **수정**의 HTTP 응답과 재조회 결과를 확인한다. 비동기·다중 대상 기능은 Owner Terminal 상태·Version·대상별 Success/Failed/Unknown·Audit를 별도로 확인한다.
+10. 화면이 제공하는 Log·Metric·Trace와, 변경·Export·승인 조치에 생성된 Audit를 교차 확인한다.
+11. 이 장의 **종료 판정**과 다음 확인 시각·Evidence Link를 교대 기록에 남긴다.
+
+### 메뉴 고유 판정·금지 사항
+
+- **목적:** 사용자와 Role의 유효기간·Primary 관계를 관리한다.
+- **종료 판정:** 중복 Role·기간 겹침·기준일 Effective Role을 확인한다.
+- 응답을 받지 못한 경우 Owner 상태와 기존 Operation을 확인하기 전에 동일 Action을 반복하지 않는다.
+- HTTP 성공 응답이나 Toast만으로 비동기 Owner 상태 또는 다중 대상 적용을 확정하지 않는다.
+
+### 오류·경계·동시성·복구
+
+| 상황 | 화면 징후 | 운영 조치 | 종료 증적 |
+|---|---|---|---|
+| 401·Session | Session 만료·CSRF·Origin 실패 | 로그인 상태와 BFF Session을 확인한다. Command 자동 Replay는 금지한다. | 401/403 응답·Session Audit |
+| 403·Data Scope | 메뉴·Button·Raw·Export가 거부됨 | Menu·Button·API·Owner Permission과 Data Scope를 확인하고 우회하지 않는다. | Deny Audit·요청 Permission |
+| Validation | 필수값·범위·형식·기간 오류 | Field Error만 수정하고 기존 성공 Operation을 다시 제출하지 않는다. | Error Code·Field·입력값 |
+| Timeout·Dependency | 일부 Source 또는 Command 응답 지연 | Correlation/Operation ID와 실패 Stage를 기록하고 Owner 상태를 조회한다. | Dependency 상태·Retryability |
+| Partial·Stale | 일부 대상만 Success 또는 조회 Source 누락 | 성공·실패·미응답을 분리하고 누락 범위와 Version을 표시한다. | Target별 결과·Version |
+| 409·동시 변경 | Expected Version 불일치 | 최신 상세를 재조회하고 Diff·영향을 다시 검토한 뒤 새 요청으로 제출한다. | 현재/요청 Version·변경자 |
+| 응답 유실·Unknown | 요청 후 실제 처리 여부를 알 수 없음 | Operation ID·Request Hash·Audit·Owner 상태로 대사하고 중복 제출하지 않는다. | Operation·Owner·Audit |
+| 복구 실패 | Retry/Rollback 뒤에도 상태 불일치 | 자동 반복을 중단하고 Incident·Reconcile Case·다음 확인 시각을 기록한다. | Case ID·복구 Owner·기한 |
+
+### 응답 유실·결과 불명·부분 적용 처리
+
+1. 동일 Action을 다시 누르지 않고 Browser Network와 응답 Header를 보존한다. `operationId`·`transactionId`·`idempotencyKey`가 제공되면 기록하고, 없으면 Target ID·Actor·요청 시각·Request Body Hash로 대사한다.
+2. 기능이 제공하는 상세·Operation Status(있는 경우)·Audit에서 Request Hash와 대상 Version을 검색한다.
+3. Side Effect 전 실패가 확인된 경우에만 새 요청을 검토한다.
+4. Success·Failed·Unknown 대상을 분리하고 Source가 제공하는 Failed-only Retry·Compensation·Rollback을 선택하고, 지원되지 않으면 수동 Reconcile Case로 이관한다.
+5. Rollback을 지원하는 기능은 Owner Version·Checksum·업무 합계가 Rollback Point와 일치하는지 확인한다.
+6. 확정되지 않은 대상은 `UNKNOWN_RESULT`로 유지하고 담당자·대사 기한·다음 확인 시각을 기록한다.
+
+### Log·Metric·Trace·Audit와 교대 기록
+
+| 증적 | 필수 값 |
+|---|---|
+| Audit | Actor·Permission·Reason·Approval·Target·Before/After·Result·Recovery Action |
+| Log | Environment·Instance·operationId·transactionId·failureStage·errorCode |
+| Metric | 동일 시간 창의 Success·Failure·Latency·Queue·Retry·Partial·Unknown |
+| Trace | root/segment/attempt·Owner·DB/Kafka/외부 의존성 Span |
+| 상태 원장 | Target ID·Version·Checksum·Desired/Actual·Last Updated·Terminal 여부 |
+
+```text
+Menu=userRoles
+Route=/userRoles
+Environment=
+DataScope=
+Query=
+TargetId=
+BeforeVersion=
+Action=
+Reason=
+ApprovalId=
+OperationId=
+TransactionId=
+Result=SUCCESS|FAILED|PARTIAL|UNKNOWN_RESULT
+OwnerState=
+FailedTargets=
+ReconcileBy=
+RollbackPoint=
+EvidenceLinks=
+NextCheckAt=
+```
+
+### 실무 Workbook
+
+**상황:** 사용자와 Role의 유효기간·Primary 관계를 관리한다. 담당자가 **등록**을 수행한 뒤 Browser 응답을 받지 못했다.
+
+1. 대상 식별자와 Before Version, 입력값, Reason·Approval을 작업 기록에서 확인한다.
+2. 동일 **등록**을 반복하지 않고 Operation·Audit·Owner 상태를 조회한다.
+3. Owner 상태가 변경됐고 Request Hash가 같으면 응답 유실로 분류해 중복 조치를 금지한다.
+4. 일부 대상만 변경됐으면 Success·Failed·Unknown을 분리해 Failed-only Retry 또는 Rollback을 선택한다.
+5. 중복 Role·기간 겹침·기준일 Effective Role을 확인한다.
+6. Evidence Link와 다음 확인 시각을 교대 기록에 남긴다.
+
+### 독립 수행 검수 Checklist
+
+- [ ] `/userRoles`와 Page Source를 찾고 화면 목적을 설명할 수 있다.
+- [ ] 5개 입력·검색 항목의 Control·기본값·Validation을 설명할 수 있다.
+- [ ] 5개 표시값을 Owner 상태·Version·Audit와 대사할 수 있다.
+- [ ] 3개 Action의 분류·활성 조건·Side Effect를 설명할 수 있다.
+- [ ] Empty·403·409·Timeout·Partial·Unknown을 서로 다른 상태로 처리할 수 있다.
+- [ ] 응답 유실 뒤 중복 제출 없이 Operation·Owner·Audit로 결과를 확정할 수 있다.
+- [ ] 교대 기록만으로 다음 담당자가 Target·상태·복구 기한을 이어받을 수 있다.
+
+## 11. menus — Menu Registry
+
+![Menu Registry 화면·업무 흐름](../assets/guides/menu-detail/bza-menus.svg)
+
+### 이 장에서 끝내는 업무
+
+업무 메뉴 Tree·Route·정렬·사용 여부를 관리한다.
+
+### 메뉴 식별·책임
+
+| 항목 | 값 |
+|---|---|
+| Route | `/menus` |
+| 메뉴 ID | `menus` |
+| Menu Code | `AUTHORIZATION` |
+| 업무 그룹 | access |
+| Frontend Page | `cpf-biz-admin/frontend/src/features/authorization/MenusPage.vue` |
+| Permission | Write |
+| 기준 Commit | `23babb9140b90e501d6ac715e7b77f55b66198a5` |
+
+### Source·API 근거
+
+| 구분 | 기준 |
+|---|---|
+| Frontend Page | `cpf-biz-admin/frontend/src/features/authorization/MenusPage.vue` |
+| Router | `/menus` |
+| API 추적 | 화면에서 제공하는 기능을 통해 호출한다. 문서에 명시되지 않은 Endpoint를 Browser나 외부 Script에서 임의 호출하지 않는다. |
+
+아래 표는 이 메뉴에서 실제로 확인·입력·실행할 항목을 정리한다. 화면에 없는 Field·Button·상태를 임의로 가정하지 않는다.
+
+### 검색·입력 Field
+
+| Field | Control | 업무 의미 | 기본값·Validation·주의 |
+|---|---|---|---|
+| `Code` | 문자열 입력·검색 | 조회·상세·Audit에서 같은 대상을 다시 찾기 위한 식별 조건이다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+| `Parent` | 문자열 입력·검색 | Menu Registry 화면의 조회 조건 또는 편집 Form에 포함되는 값이며 화면 Label과 Help를 기준으로 사용한다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+| `Name` | 문자열 입력·검색 | 대상의 표시명 또는 업무명을 검색·입력한다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+| `Route` | 문자열 입력·검색 | 조회·상세·Audit에서 같은 대상을 다시 찾기 위한 식별 조건이다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+| `Sort` | 문자열 입력·검색 | Menu Registry 화면의 조회 조건 또는 편집 Form에 포함되는 값이며 화면 Label과 Help를 기준으로 사용한다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+| `Use` | Checkbox·Switch | 현재 상태를 조회하거나 다음 Action의 허용 조건을 지정한다. | 현재 선택과 변경 후 영향 범위를 비교하고 화면의 Source 기본값을 확인한다. |
+| `Reason` | 다중행 입력 | 작업 목적·영향 범위·승인 또는 복구 기준을 기록해 Audit와 교대 기록에 연결한다. | Ticket·영향 범위·복구점을 포함하고 화면이 요구하는 최소 길이를 충족한다. |
+| `Tree 검색` | 문자열 입력·검색 | Menu Registry 화면의 조회 조건 또는 편집 Form에 포함되는 값이며 화면 Label과 Help를 기준으로 사용한다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+
+#### 입력 순서
+
+1. **Code** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+2. **Parent** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+3. **Name** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+4. **Route** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+5. **Sort** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+6. **Use** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+7. **Reason** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+8. **Tree 검색** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+9. 조회 Control과 변경 Form을 분리해 기록하고, 실행 전 Environment·Data Scope·Timezone과 제출할 값만 다시 검토한다.
+
+### 목록 Column·상세 Field
+
+| 표시값 | 운영 의미 | 교차 확인 |
+|---|---|---|
+| `Code` | Menu Registry의 대상 레코드를 상세·Owner·Audit에서 연결하는 식별자다. | 상세·Log·Trace·Audit에서 같은 대상을 가리키는지 확인한다. |
+| `Parent` | Menu Registry 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Name` | 운영자가 대상을 구분하는 표시명 또는 설명이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Route` | Menu Registry의 대상 레코드를 상세·Owner·Audit에서 연결하는 식별자다. | 상세·Log·Trace·Audit에서 같은 대상을 가리키는지 확인한다. |
+| `Sort` | Menu Registry 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Use` | 현재 상태와 Terminal 여부, 다음 Action 가능 여부를 판단하는 값이다. | Last Updated·Terminal 조건·Owner 상태와 함께 확인한다. |
+| `Reason` | 작업 주체·Owner·변경 사유를 확인하는 감사 정보다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Tree 검색` | Menu Registry 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+
+#### 결과 판독 순서
+
+1. 조회 완료 시각·Filter·Paging·Sort와 화면 Warning을 확인한다.
+2. Empty·Stale·Partial을 정상 0건과 구분한다.
+3. 식별자·상태·Version·오류·시각을 같은 Query Context의 상세와 Owner 원장에서 비교한다.
+4. Masking된 값은 Raw Permission과 Reason 없이 복원·Export하지 않는다.
+5. 집계와 상세가 다르면 집계 시간 창·Timezone·Owner Update 시각을 맞춰 대사한다.
+
+### Button·Action
+
+| Action | 분류 | 활성 조건 | Side Effect·정상 결과 |
+|---|---|---|---|
+| **등록** | 등록·Draft 변경 | 화면이 실제로 요구하는 Write Permission·필수 Field·Reason·Version 조건을 충족함 | Menu Registry의 재조회 결과가 요청 내용과 일치한다. Version·Before/After·Audit는 해당 Owner가 제공하는 경우 함께 확인한다. |
+| **수정** | 등록·Draft 변경 | 화면이 실제로 요구하는 Write Permission·필수 Field·Reason·Version 조건을 충족함 | Menu Registry의 재조회 결과가 요청 내용과 일치한다. Version·Before/After·Audit는 해당 Owner가 제공하는 경우 함께 확인한다. |
+
+### 정상 업무 전체 절차
+
+1. `/menus`에 진입해 Page Header와 Route가 **Menu Registry** 기능을 가리키는지 확인한다.
+2. 로그인 Session·Environment·Data Scope·기준일·Timezone을 고정한다.
+3. 화면의 조회 Control과 변경 Form을 구분한다. 조회 조건이 제공되면 먼저 조회하고, 변경 Form은 대상 선택 또는 등록 Action 뒤에 열린 실제 Field만 사용한다.
+4. Loading 종료 후 Empty·Error·Stale·Partial 상태와 화면 Warning을 먼저 판정한다.
+5. **Code, Parent, Name, Route, Sort**를 읽고 식별자·상태·Version·시각을 Owner 원장과 대사한다.
+6. **등록** 전에 화면과 Owner가 실제로 요구하는 Permission·현재 상태·영향 범위·Reason·승인·Version 조건을 확인하고 한 번만 제출한다.
+7. **등록**의 HTTP 응답과 재조회 결과를 확인한다. 비동기·다중 대상 기능은 Owner Terminal 상태·Version·대상별 Success/Failed/Unknown·Audit를 별도로 확인한다.
+8. **수정** 전에 화면과 Owner가 실제로 요구하는 Permission·현재 상태·영향 범위·Reason·승인·Version 조건을 확인하고 한 번만 제출한다.
+9. **수정**의 HTTP 응답과 재조회 결과를 확인한다. 비동기·다중 대상 기능은 Owner Terminal 상태·Version·대상별 Success/Failed/Unknown·Audit를 별도로 확인한다.
+10. 화면이 제공하는 Log·Metric·Trace와, 변경·Export·승인 조치에 생성된 Audit를 교차 확인한다.
+11. 이 장의 **종료 판정**과 다음 확인 시각·Evidence Link를 교대 기록에 남긴다.
+
+### 메뉴 고유 판정·금지 사항
+
+- **목적:** 업무 메뉴 Tree·Route·정렬·사용 여부를 관리한다.
+- **종료 판정:** Parent 순환·Route 중복·Permission 참조 영향을 확인한다.
+- 응답을 받지 못한 경우 Owner 상태와 기존 Operation을 확인하기 전에 동일 Action을 반복하지 않는다.
+- HTTP 성공 응답이나 Toast만으로 비동기 Owner 상태 또는 다중 대상 적용을 확정하지 않는다.
+
+### 오류·경계·동시성·복구
+
+| 상황 | 화면 징후 | 운영 조치 | 종료 증적 |
+|---|---|---|---|
+| 401·Session | Session 만료·CSRF·Origin 실패 | 로그인 상태와 BFF Session을 확인한다. Command 자동 Replay는 금지한다. | 401/403 응답·Session Audit |
+| 403·Data Scope | 메뉴·Button·Raw·Export가 거부됨 | Menu·Button·API·Owner Permission과 Data Scope를 확인하고 우회하지 않는다. | Deny Audit·요청 Permission |
+| Validation | 필수값·범위·형식·기간 오류 | Field Error만 수정하고 기존 성공 Operation을 다시 제출하지 않는다. | Error Code·Field·입력값 |
+| Timeout·Dependency | 일부 Source 또는 Command 응답 지연 | Correlation/Operation ID와 실패 Stage를 기록하고 Owner 상태를 조회한다. | Dependency 상태·Retryability |
+| Partial·Stale | 일부 대상만 Success 또는 조회 Source 누락 | 성공·실패·미응답을 분리하고 누락 범위와 Version을 표시한다. | Target별 결과·Version |
+| 409·동시 변경 | Expected Version 불일치 | 최신 상세를 재조회하고 Diff·영향을 다시 검토한 뒤 새 요청으로 제출한다. | 현재/요청 Version·변경자 |
+| 응답 유실·Unknown | 요청 후 실제 처리 여부를 알 수 없음 | Operation ID·Request Hash·Audit·Owner 상태로 대사하고 중복 제출하지 않는다. | Operation·Owner·Audit |
+| 복구 실패 | Retry/Rollback 뒤에도 상태 불일치 | 자동 반복을 중단하고 Incident·Reconcile Case·다음 확인 시각을 기록한다. | Case ID·복구 Owner·기한 |
+| 계층·기간 충돌 | 고아·순환·기간 중복이 탐지됨 | 대상 관계와 기준일을 수정하고 영향 사용자·결재 Snapshot을 재계산한다. | 관계 Diff·Simulation 결과 |
+
+### 응답 유실·결과 불명·부분 적용 처리
+
+1. 동일 Action을 다시 누르지 않고 Browser Network와 응답 Header를 보존한다. `operationId`·`transactionId`·`idempotencyKey`가 제공되면 기록하고, 없으면 Target ID·Actor·요청 시각·Request Body Hash로 대사한다.
+2. 기능이 제공하는 상세·Operation Status(있는 경우)·Audit에서 Request Hash와 대상 Version을 검색한다.
+3. Side Effect 전 실패가 확인된 경우에만 새 요청을 검토한다.
+4. Success·Failed·Unknown 대상을 분리하고 Source가 제공하는 Failed-only Retry·Compensation·Rollback을 선택하고, 지원되지 않으면 수동 Reconcile Case로 이관한다.
+5. Rollback을 지원하는 기능은 Owner Version·Checksum·업무 합계가 Rollback Point와 일치하는지 확인한다.
+6. 확정되지 않은 대상은 `UNKNOWN_RESULT`로 유지하고 담당자·대사 기한·다음 확인 시각을 기록한다.
+
+### Log·Metric·Trace·Audit와 교대 기록
+
+| 증적 | 필수 값 |
+|---|---|
+| Audit | Actor·Permission·Reason·Approval·Target·Before/After·Result·Recovery Action |
+| Log | Environment·Instance·operationId·transactionId·failureStage·errorCode |
+| Metric | 동일 시간 창의 Success·Failure·Latency·Queue·Retry·Partial·Unknown |
+| Trace | root/segment/attempt·Owner·DB/Kafka/외부 의존성 Span |
+| 상태 원장 | Target ID·Version·Checksum·Desired/Actual·Last Updated·Terminal 여부 |
+
+```text
+Menu=menus
+Route=/menus
+Environment=
+DataScope=
+Query=
+TargetId=
+BeforeVersion=
+Action=
+Reason=
+ApprovalId=
+OperationId=
+TransactionId=
+Result=SUCCESS|FAILED|PARTIAL|UNKNOWN_RESULT
+OwnerState=
+FailedTargets=
+ReconcileBy=
+RollbackPoint=
+EvidenceLinks=
+NextCheckAt=
+```
+
+### 실무 Workbook
+
+**상황:** 업무 메뉴 Tree·Route·정렬·사용 여부를 관리한다. 담당자가 **등록**을 수행한 뒤 Browser 응답을 받지 못했다.
+
+1. 대상 식별자와 Before Version, 입력값, Reason·Approval을 작업 기록에서 확인한다.
+2. 동일 **등록**을 반복하지 않고 Operation·Audit·Owner 상태를 조회한다.
+3. Owner 상태가 변경됐고 Request Hash가 같으면 응답 유실로 분류해 중복 조치를 금지한다.
+4. 일부 대상만 변경됐으면 Success·Failed·Unknown을 분리해 Failed-only Retry 또는 Rollback을 선택한다.
+5. Parent 순환·Route 중복·Permission 참조 영향을 확인한다.
+6. Evidence Link와 다음 확인 시각을 교대 기록에 남긴다.
+
+### 독립 수행 검수 Checklist
+
+- [ ] `/menus`와 Page Source를 찾고 화면 목적을 설명할 수 있다.
+- [ ] 8개 입력·검색 항목의 Control·기본값·Validation을 설명할 수 있다.
+- [ ] 8개 표시값을 Owner 상태·Version·Audit와 대사할 수 있다.
+- [ ] 2개 Action의 분류·활성 조건·Side Effect를 설명할 수 있다.
+- [ ] Empty·403·409·Timeout·Partial·Unknown을 서로 다른 상태로 처리할 수 있다.
+- [ ] 응답 유실 뒤 중복 제출 없이 Operation·Owner·Audit로 결과를 확정할 수 있다.
+- [ ] 교대 기록만으로 다음 담당자가 Target·상태·복구 기한을 이어받을 수 있다.
+
+## 12. permissions — Menu·Button·API·Data Scope Permission
+
+![Menu·Button·API·Data Scope Permission 화면·업무 흐름](../assets/guides/menu-detail/bza-permissions.svg)
+
+### 이 장에서 끝내는 업무
+
+Role·Menu·Button·API·Data Scope Permission을 관리한다.
+
+### 메뉴 식별·책임
+
+| 항목 | 값 |
+|---|---|
+| Route | `/permissions` |
+| 메뉴 ID | `permissions` |
+| Menu Code | `AUTHORIZATION` |
+| 업무 그룹 | access |
+| Frontend Page | `cpf-biz-admin/frontend/src/features/authorization/PermissionsPage.vue` |
+| Permission | WRITE, SIMULATE |
+| 기준 Commit | `23babb9140b90e501d6ac715e7b77f55b66198a5` |
+
+### Source·API 근거
+
+| 구분 | 기준 |
+|---|---|
+| Frontend Page | `cpf-biz-admin/frontend/src/features/authorization/PermissionsPage.vue` |
+| Router | `/permissions` |
+| API 추적 | 화면에서 제공하는 기능을 통해 호출한다. 문서에 명시되지 않은 Endpoint를 Browser나 외부 Script에서 임의 호출하지 않는다. |
+
+아래 표는 이 메뉴에서 실제로 확인·입력·실행할 항목을 정리한다. 화면에 없는 Field·Button·상태를 임의로 가정하지 않는다.
+
+### 검색·입력 Field
+
+| Field | Control | 업무 의미 | 기본값·Validation·주의 |
+|---|---|---|---|
+| `Permission ID` | 문자열 입력·검색 | Menu·Button·API·Data Scope Permission에서 적용하거나 조회할 정책·권한·처리 유형을 선택한다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+| `Role` | Select·검색 | Menu·Button·API·Data Scope Permission에서 적용하거나 조회할 정책·권한·처리 유형을 선택한다. | 허용 목록과 현재 Environment·Data Scope에 맞는 값만 선택한다. |
+| `Menu` | Select·검색 | Menu·Button·API·Data Scope Permission에서 적용하거나 조회할 정책·권한·처리 유형을 선택한다. | 허용 목록과 현재 Environment·Data Scope에 맞는 값만 선택한다. |
+| `Button` | 날짜·시간 입력 | 조회 또는 적용의 유효 시간 범위를 정하며 Timezone과 시작·종료 순서를 함께 확인한다. | Timezone을 고정하고 시작≤종료·유효기간 겹침·기준일 포함 여부를 확인한다. |
+| `Type` | Select·검색 | Menu·Button·API·Data Scope Permission에서 적용하거나 조회할 정책·권한·처리 유형을 선택한다. | 허용 목록과 현재 Environment·Data Scope에 맞는 값만 선택한다. |
+| `HTTP` | 문자열 입력·검색 | Menu·Button·API·Data Scope Permission 화면의 조회 조건 또는 편집 Form에 포함되는 값이며 화면 Label과 Help를 기준으로 사용한다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+| `API Pattern` | 문자열 입력·검색 | Menu·Button·API·Data Scope Permission 화면의 조회 조건 또는 편집 Form에 포함되는 값이며 화면 Label과 Help를 기준으로 사용한다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+| `Domain` | Select·검색 | Menu·Button·API·Data Scope Permission 조회·조치가 적용되는 환경과 데이터 경계를 제한한다. | 허용 목록과 현재 Environment·Data Scope에 맞는 값만 선택한다. |
+| `Env` | 문자열 입력·검색 | Menu·Button·API·Data Scope Permission 화면의 조회 조건 또는 편집 Form에 포함되는 값이며 화면 Label과 Help를 기준으로 사용한다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+| `Data Scope` | Select·검색 | Menu·Button·API·Data Scope Permission 조회·조치가 적용되는 환경과 데이터 경계를 제한한다. | 허용 목록과 현재 Environment·Data Scope에 맞는 값만 선택한다. |
+| `Allow` | 문자열 입력·검색 | Menu·Button·API·Data Scope Permission 화면의 조회 조건 또는 편집 Form에 포함되는 값이며 화면 Label과 Help를 기준으로 사용한다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+| `Use` | Checkbox·Switch | 현재 상태를 조회하거나 다음 Action의 허용 조건을 지정한다. | 현재 선택과 변경 후 영향 범위를 비교하고 화면의 Source 기본값을 확인한다. |
+
+#### 입력 순서
+
+1. **Permission ID** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+2. **Role** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+3. **Menu** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+4. **Button** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+5. **Type** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+6. **HTTP** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+7. **API Pattern** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+8. **Domain** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+9. **Env** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+10. **Data Scope** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+11. **Allow** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+12. **Use** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+13. 조회 Control과 변경 Form을 분리해 기록하고, 실행 전 Environment·Data Scope·Timezone과 제출할 값만 다시 검토한다.
+
+### 목록 Column·상세 Field
+
+| 표시값 | 운영 의미 | 교차 확인 |
+|---|---|---|
+| `Permission ID` | Menu·Button·API·Data Scope Permission의 대상 레코드를 상세·Owner·Audit에서 연결하는 식별자다. | 상세·Log·Trace·Audit에서 같은 대상을 가리키는지 확인한다. |
+| `Role` | Menu·Button·API·Data Scope Permission 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Menu` | Menu·Button·API·Data Scope Permission 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Button` | 상태 발생·갱신·유효 시점을 나타내며 화면 Timezone을 기준으로 해석한다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Type` | Menu·Button·API·Data Scope Permission 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `HTTP` | Menu·Button·API·Data Scope Permission 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `API Pattern` | Menu·Button·API·Data Scope Permission 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Domain` | Menu·Button·API·Data Scope Permission 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Env` | Menu·Button·API·Data Scope Permission 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Data Scope` | Menu·Button·API·Data Scope Permission 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Allow` | Menu·Button·API·Data Scope Permission 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Use` | 현재 상태와 Terminal 여부, 다음 Action 가능 여부를 판단하는 값이다. | Last Updated·Terminal 조건·Owner 상태와 함께 확인한다. |
+
+#### 결과 판독 순서
+
+1. 조회 완료 시각·Filter·Paging·Sort와 화면 Warning을 확인한다.
+2. Empty·Stale·Partial을 정상 0건과 구분한다.
+3. 식별자·상태·Version·오류·시각을 같은 Query Context의 상세와 Owner 원장에서 비교한다.
+4. Masking된 값은 Raw Permission과 Reason 없이 복원·Export하지 않는다.
+5. 집계와 상세가 다르면 집계 시간 창·Timezone·Owner Update 시각을 맞춰 대사한다.
+
+### Button·Action
+
+| Action | 분류 | 활성 조건 | Side Effect·정상 결과 |
+|---|---|---|---|
+| **Assignment 등록** | 등록·Draft 변경 | 화면이 실제로 요구하는 Write Permission·필수 Field·Reason·Version 조건을 충족함 | Menu·Button·API·Data Scope Permission의 재조회 결과가 요청 내용과 일치한다. Version·Before/After·Audit는 해당 Owner가 제공하는 경우 함께 확인한다. |
+| **수정** | 등록·Draft 변경 | 화면이 실제로 요구하는 Write Permission·필수 Field·Reason·Version 조건을 충족함 | Menu·Button·API·Data Scope Permission의 재조회 결과가 요청 내용과 일치한다. Version·Before/After·Audit는 해당 Owner가 제공하는 경우 함께 확인한다. |
+| **실효 권한 Simulation** | 조회·탐색 | 조회 Permission과 Query Validation을 충족하고 동일 조회가 진행 중이 아님 | 실효 권한 Simulation 결과의 조회 시각·Filter·Source Version·Warning이 갱신되며 Owner 데이터는 변경하지 않는다. |
+
+### 정상 업무 전체 절차
+
+1. `/permissions`에 진입해 Page Header와 Route가 **Menu·Button·API·Data Scope Permission** 기능을 가리키는지 확인한다.
+2. 로그인 Session·Environment·Data Scope·기준일·Timezone을 고정한다.
+3. 화면의 조회 Control과 변경 Form을 구분한다. 조회 조건이 제공되면 먼저 조회하고, 변경 Form은 대상 선택 또는 등록 Action 뒤에 열린 실제 Field만 사용한다.
+4. Loading 종료 후 Empty·Error·Stale·Partial 상태와 화면 Warning을 먼저 판정한다.
+5. **Permission ID, Role, Menu, Button, Type**를 읽고 식별자·상태·Version·시각을 Owner 원장과 대사한다.
+6. **Assignment 등록** 전에 화면과 Owner가 실제로 요구하는 Permission·현재 상태·영향 범위·Reason·승인·Version 조건을 확인하고 한 번만 제출한다.
+7. **Assignment 등록**의 HTTP 응답과 재조회 결과를 확인한다. 비동기·다중 대상 기능은 Owner Terminal 상태·Version·대상별 Success/Failed/Unknown·Audit를 별도로 확인한다.
+8. **수정** 전에 화면과 Owner가 실제로 요구하는 Permission·현재 상태·영향 범위·Reason·승인·Version 조건을 확인하고 한 번만 제출한다.
+9. **수정**의 HTTP 응답과 재조회 결과를 확인한다. 비동기·다중 대상 기능은 Owner Terminal 상태·Version·대상별 Success/Failed/Unknown·Audit를 별도로 확인한다.
+10. 화면이 제공하는 Log·Metric·Trace와, 변경·Export·승인 조치에 생성된 Audit를 교차 확인한다.
+11. 이 장의 **종료 판정**과 다음 확인 시각·Evidence Link를 교대 기록에 남긴다.
+
+### 메뉴 고유 판정·금지 사항
+
+- **목적:** Role·Menu·Button·API·Data Scope Permission을 관리한다.
+- **종료 판정:** Simulation 결과와 실제 Backend Deny가 같은지 확인한다.
+- 응답을 받지 못한 경우 Owner 상태와 기존 Operation을 확인하기 전에 동일 Action을 반복하지 않는다.
+- HTTP 성공 응답이나 Toast만으로 비동기 Owner 상태 또는 다중 대상 적용을 확정하지 않는다.
+
+### 오류·경계·동시성·복구
+
+| 상황 | 화면 징후 | 운영 조치 | 종료 증적 |
+|---|---|---|---|
+| 401·Session | Session 만료·CSRF·Origin 실패 | 로그인 상태와 BFF Session을 확인한다. Command 자동 Replay는 금지한다. | 401/403 응답·Session Audit |
+| 403·Data Scope | 메뉴·Button·Raw·Export가 거부됨 | Menu·Button·API·Owner Permission과 Data Scope를 확인하고 우회하지 않는다. | Deny Audit·요청 Permission |
+| Validation | 필수값·범위·형식·기간 오류 | Field Error만 수정하고 기존 성공 Operation을 다시 제출하지 않는다. | Error Code·Field·입력값 |
+| Timeout·Dependency | 일부 Source 또는 Command 응답 지연 | Correlation/Operation ID와 실패 Stage를 기록하고 Owner 상태를 조회한다. | Dependency 상태·Retryability |
+| Partial·Stale | 일부 대상만 Success 또는 조회 Source 누락 | 성공·실패·미응답을 분리하고 누락 범위와 Version을 표시한다. | Target별 결과·Version |
+| 409·동시 변경 | Expected Version 불일치 | 최신 상세를 재조회하고 Diff·영향을 다시 검토한 뒤 새 요청으로 제출한다. | 현재/요청 Version·변경자 |
+| 응답 유실·Unknown | 요청 후 실제 처리 여부를 알 수 없음 | Operation ID·Request Hash·Audit·Owner 상태로 대사하고 중복 제출하지 않는다. | Operation·Owner·Audit |
+| 복구 실패 | Retry/Rollback 뒤에도 상태 불일치 | 자동 반복을 중단하고 Incident·Reconcile Case·다음 확인 시각을 기록한다. | Case ID·복구 Owner·기한 |
+
+### 응답 유실·결과 불명·부분 적용 처리
+
+1. 동일 Action을 다시 누르지 않고 Browser Network와 응답 Header를 보존한다. `operationId`·`transactionId`·`idempotencyKey`가 제공되면 기록하고, 없으면 Target ID·Actor·요청 시각·Request Body Hash로 대사한다.
+2. 기능이 제공하는 상세·Operation Status(있는 경우)·Audit에서 Request Hash와 대상 Version을 검색한다.
+3. Side Effect 전 실패가 확인된 경우에만 새 요청을 검토한다.
+4. Success·Failed·Unknown 대상을 분리하고 Source가 제공하는 Failed-only Retry·Compensation·Rollback을 선택하고, 지원되지 않으면 수동 Reconcile Case로 이관한다.
+5. Rollback을 지원하는 기능은 Owner Version·Checksum·업무 합계가 Rollback Point와 일치하는지 확인한다.
+6. 확정되지 않은 대상은 `UNKNOWN_RESULT`로 유지하고 담당자·대사 기한·다음 확인 시각을 기록한다.
+
+### Log·Metric·Trace·Audit와 교대 기록
+
+| 증적 | 필수 값 |
+|---|---|
+| Audit | Actor·Permission·Reason·Approval·Target·Before/After·Result·Recovery Action |
+| Log | Environment·Instance·operationId·transactionId·failureStage·errorCode |
+| Metric | 동일 시간 창의 Success·Failure·Latency·Queue·Retry·Partial·Unknown |
+| Trace | root/segment/attempt·Owner·DB/Kafka/외부 의존성 Span |
+| 상태 원장 | Target ID·Version·Checksum·Desired/Actual·Last Updated·Terminal 여부 |
+
+```text
+Menu=permissions
+Route=/permissions
+Environment=
+DataScope=
+Query=
+TargetId=
+BeforeVersion=
+Action=
+Reason=
+ApprovalId=
+OperationId=
+TransactionId=
+Result=SUCCESS|FAILED|PARTIAL|UNKNOWN_RESULT
+OwnerState=
+FailedTargets=
+ReconcileBy=
+RollbackPoint=
+EvidenceLinks=
+NextCheckAt=
+```
+
+### 실무 Workbook
+
+**상황:** Role·Menu·Button·API·Data Scope Permission을 관리한다. 담당자가 **Assignment 등록**을 수행한 뒤 Browser 응답을 받지 못했다.
+
+1. 대상 식별자와 Before Version, 입력값, Reason·Approval을 작업 기록에서 확인한다.
+2. 동일 **Assignment 등록**을 반복하지 않고 Operation·Audit·Owner 상태를 조회한다.
+3. Owner 상태가 변경됐고 Request Hash가 같으면 응답 유실로 분류해 중복 조치를 금지한다.
+4. 일부 대상만 변경됐으면 Success·Failed·Unknown을 분리해 Failed-only Retry 또는 Rollback을 선택한다.
+5. Simulation 결과와 실제 Backend Deny가 같은지 확인한다.
+6. Evidence Link와 다음 확인 시각을 교대 기록에 남긴다.
+
+### 독립 수행 검수 Checklist
+
+- [ ] `/permissions`와 Page Source를 찾고 화면 목적을 설명할 수 있다.
+- [ ] 12개 입력·검색 항목의 Control·기본값·Validation을 설명할 수 있다.
+- [ ] 12개 표시값을 Owner 상태·Version·Audit와 대사할 수 있다.
+- [ ] 3개 Action의 분류·활성 조건·Side Effect를 설명할 수 있다.
+- [ ] Empty·403·409·Timeout·Partial·Unknown을 서로 다른 상태로 처리할 수 있다.
+- [ ] 응답 유실 뒤 중복 제출 없이 Operation·Owner·Audit로 결과를 확정할 수 있다.
+- [ ] 교대 기록만으로 다음 담당자가 Target·상태·복구 기한을 이어받을 수 있다.
+
+## 13. permissionTools — Role 비교·권한 분석
+
+![Role 비교·권한 분석 화면·업무 흐름](../assets/guides/menu-detail/bza-permissiontools.svg)
+
+### 이 장에서 끝내는 업무
+
+Role·User 간 Effective Permission을 비교·Simulation한다.
+
+### 메뉴 식별·책임
+
+| 항목 | 값 |
+|---|---|
+| Route | `/permissionTools` |
+| 메뉴 ID | `permissionTools` |
+| Menu Code | `AUTHORIZATION` |
+| 업무 그룹 | access |
+| Frontend Page | `cpf-biz-admin/frontend/src/features/permission-tools/PermissionToolsPage.vue` |
+| Permission | SIMULATE |
+| 기준 Commit | `23babb9140b90e501d6ac715e7b77f55b66198a5` |
+
+### Source·API 근거
+
+| 구분 | 기준 |
+|---|---|
+| Frontend Page | `cpf-biz-admin/frontend/src/features/permission-tools/PermissionToolsPage.vue` |
+| Router | `/permissionTools` |
+| API 추적 | 화면에서 제공하는 기능을 통해 호출한다. 문서에 명시되지 않은 Endpoint를 Browser나 외부 Script에서 임의 호출하지 않는다. |
+
+아래 표는 이 메뉴에서 실제로 확인·입력·실행할 항목을 정리한다. 화면에 없는 Field·Button·상태를 임의로 가정하지 않는다.
+
+### 검색·입력 Field
+
+| Field | Control | 업무 의미 | 기본값·Validation·주의 |
+|---|---|---|---|
+| `비교 Role` | Select·검색 | Role 비교·권한 분석에서 적용하거나 조회할 정책·권한·처리 유형을 선택한다. | 허용 목록과 현재 Environment·Data Scope에 맞는 값만 선택한다. |
+| `User` | Checkbox·Switch | 현재 상태를 조회하거나 다음 Action의 허용 조건을 지정한다. | 현재 선택과 변경 후 영향 범위를 비교하고 화면의 Source 기본값을 확인한다. |
+| `Simulation 입력` | 문자열 입력·검색 | Role 비교·권한 분석 화면의 조회 조건 또는 편집 Form에 포함되는 값이며 화면 Label과 Help를 기준으로 사용한다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+
+#### 입력 순서
+
+1. **비교 Role** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+2. **User** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+3. **Simulation 입력** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+4. 조회 Control과 변경 Form을 분리해 기록하고, 실행 전 Environment·Data Scope·Timezone과 제출할 값만 다시 검토한다.
+
+### 목록 Column·상세 Field
+
+| 표시값 | 운영 의미 | 교차 확인 |
+|---|---|---|
+| `비교 Role` | Role 비교·권한 분석 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `User` | Role 비교·권한 분석의 대상 레코드를 상세·Owner·Audit에서 연결하는 식별자다. | Last Updated·Terminal 조건·Owner 상태와 함께 확인한다. |
+| `Simulation 입력` | Role 비교·권한 분석 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+
+#### 결과 판독 순서
+
+1. 조회 완료 시각·Filter·Paging·Sort와 화면 Warning을 확인한다.
+2. Empty·Stale·Partial을 정상 0건과 구분한다.
+3. 식별자·상태·Version·오류·시각을 같은 Query Context의 상세와 Owner 원장에서 비교한다.
+4. Masking된 값은 Raw Permission과 Reason 없이 복원·Export하지 않는다.
+5. 집계와 상세가 다르면 집계 시간 창·Timezone·Owner Update 시각을 맞춰 대사한다.
+
+### Button·Action
+
+| Action | 분류 | 활성 조건 | Side Effect·정상 결과 |
+|---|---|---|---|
+| **Role 비교** | 조회·탐색 | 조회 Permission과 Query Validation을 충족하고 동일 조회가 진행 중이 아님 | Role 비교 결과의 조회 시각·Filter·Source Version·Warning이 갱신되며 Owner 데이터는 변경하지 않는다. |
+| **실효 권한 Simulation** | 조회·탐색 | 조회 Permission과 Query Validation을 충족하고 동일 조회가 진행 중이 아님 | 실효 권한 Simulation 결과의 조회 시각·Filter·Source Version·Warning이 갱신되며 Owner 데이터는 변경하지 않는다. |
+
+### 정상 업무 전체 절차
+
+1. `/permissionTools`에 진입해 Page Header와 Route가 **Role 비교·권한 분석** 기능을 가리키는지 확인한다.
+2. 로그인 Session·Environment·Data Scope·기준일·Timezone을 고정한다.
+3. 화면에 제공된 조회 Control만 사용하고, 표시되지 않은 변경 Field나 Server Command가 있다고 가정하지 않는다.
+4. Loading 종료 후 Empty·Error·Stale·Partial 상태와 화면 Warning을 먼저 판정한다.
+5. **비교 Role, User, Simulation 입력**를 읽고 식별자·상태·Version·시각을 Owner 원장과 대사한다.
+6. 화면이 제공하는 Log·Metric·Trace와 조회·Raw·Export 접근 기록이 있으면 해당 Audit를 교차 확인한다.
+7. 이 장의 **종료 판정**과 다음 확인 시각·Evidence Link를 교대 기록에 남긴다.
+
+### 메뉴 고유 판정·금지 사항
+
+- **목적:** Role·User 간 Effective Permission을 비교·Simulation한다.
+- **종료 판정:** 비교 기준일·조직·Role·위임 Context를 고정한다.
+- 조회 화면에서 직접 Owner 데이터를 변경하거나 Browser Tool로 우회하지 않는다.
+- Partial 조회를 정상 전체 결과로 합치지 않는다.
+
+### 오류·경계·동시성·복구
+
+| 상황 | 화면 징후 | 운영 조치 | 종료 증적 |
+|---|---|---|---|
+| 401·Session | Session 만료·CSRF·Origin 실패 | 로그인 상태와 BFF Session을 확인한 뒤 같은 Query Context로 다시 조회한다. | 401/403 응답·Session Audit |
+| 403·Data Scope | 메뉴·Button·Raw·Export가 거부됨 | Menu·Button·API·Owner Permission과 Data Scope를 확인하고 우회하지 않는다. | Deny Audit·요청 Permission |
+| Timeout·Dependency | 일부 조회 Source 응답 지연 | Correlation ID·Query Context·실패 Source를 기록하고 같은 조건으로 재조회한다. | 조회 시각·실패 Source·재조회 결과 |
+| Partial·Stale | 일부 대상만 Success 또는 조회 Source 누락 | 성공·실패·미응답을 분리하고 누락 범위와 Version을 표시한다. | Target별 결과·Version |
+
+### 응답 유실·부분 조회 처리
+
+1. 검색 조건·Data Scope·Paging·조회 시각·Correlation ID를 기록한다.
+2. 같은 조건으로 재조회하되 실패 Source만 분리한다.
+3. 정상 Source 결과를 유지하고 실패·Stale Source를 명시한다.
+4. 집계와 원본 상세가 다르면 Owner 상세를 기준으로 Reconcile Case를 연다.
+5. 조회 시각·Source Version·0건 또는 일치 결과를 증적으로 남긴다.
+
+### Log·Metric·Trace·Audit와 교대 기록
+
+| 증적 | 필수 값 |
+|---|---|
+| Audit | Actor·Permission·Data Scope·Raw/Export 접근·Query Context·Result |
+| Log | Environment·Instance·operationId·transactionId·failureStage·errorCode |
+| Metric | 동일 시간 창의 Success·Failure·Latency·Queue·Retry·Partial·Unknown |
+| Trace | root/segment/attempt·Owner·DB/Kafka/외부 의존성 Span |
+| 상태 원장 | Target ID·Version·Checksum·Desired/Actual·Last Updated·Terminal 여부 |
+
+```text
+Menu=
+Route=
+Environment=
+DataScope=
+Query=
+QueryAt=
+CorrelationId=
+SourceVersion=
+Result=SUCCESS|EMPTY|STALE|PARTIAL|FAILED
+FailedSources=
+EvidenceLinks=
+NextCheckAt=
+```
+
+### 실무 Workbook
+
+**상황:** Role·User 간 Effective Permission을 비교·Simulation한다. 화면이 일부 Source Timeout 때문에 Partial 결과를 표시했다.
+
+1. Query·Data Scope·조회 시각·Correlation ID를 기록한다.
+2. 정상 결과를 0건으로 덮어쓰지 않고 실패 Source만 재조회한다.
+3. 비교 Role, User, Simulation 입력 값을 원본 상세와 같은 시간 기준으로 비교한다.
+4. 불일치가 계속되면 Incident 또는 Reconcile Case를 생성한다.
+5. 비교 기준일·조직·Role·위임 Context를 고정한다.
+6. Source Version과 다음 확인 시각을 교대 기록에 남긴다.
+
+### 독립 수행 검수 Checklist
+
+- [ ] `/permissionTools`와 Page Source를 찾고 화면 목적을 설명할 수 있다.
+- [ ] 3개 입력·검색 항목의 Control·기본값·Validation을 설명할 수 있다.
+- [ ] 3개 표시값을 Owner 상태·Version·Audit와 대사할 수 있다.
+- [ ] 2개 Action의 분류·활성 조건·Side Effect를 설명할 수 있다.
+- [ ] Empty·401·403·Timeout·Stale·Partial을 서로 다른 조회 상태로 처리할 수 있다.
+- [ ] 조회 응답 유실 시 같은 Query Context로 재조회하고 Correlation ID·조회 시각·Source Version으로 결과를 대사할 수 있다.
+- [ ] 교대 기록만으로 다음 담당자가 Target·상태·복구 기한을 이어받을 수 있다.
+
+## 14. approvalInbox — 결재 처리
+
+![결재 처리 화면·업무 흐름](../assets/guides/menu-detail/bza-approvalinbox.svg)
+
+### 이 장에서 끝내는 업무
+
+결재 처리 대상과 완료·기타 Lane을 조회하고 의사결정한다.
+
+### 메뉴 식별·책임
+
+| 항목 | 값 |
+|---|---|
+| Route | `/approvalInbox` |
+| 메뉴 ID | `approvalInbox` |
+| Menu Code | `APPROVAL` |
+| 업무 그룹 | approval |
+| Frontend Page | `cpf-biz-admin/frontend/src/features/approval-inbox/ApprovalInboxPage.vue` |
+| Permission | 결재 참여자 |
+| 기준 Commit | `23babb9140b90e501d6ac715e7b77f55b66198a5` |
+
+### Source·API 근거
+
+| 구분 | 기준 |
+|---|---|
+| Frontend Page | `cpf-biz-admin/frontend/src/features/approval-inbox/ApprovalInboxPage.vue` |
+| Router | `/approvalInbox` |
+| API 추적 | 화면에서 제공하는 기능을 통해 호출한다. 문서에 명시되지 않은 Endpoint를 Browser나 외부 Script에서 임의 호출하지 않는다. |
+
+아래 표는 이 메뉴에서 실제로 확인·입력·실행할 항목을 정리한다. 화면에 없는 Field·Button·상태를 임의로 가정하지 않는다.
+
+### 검색·입력 Field
+
+| Field | Control | 업무 의미 | 기본값·Validation·주의 |
+|---|---|---|---|
+| `처리대기` | 문자열 입력·검색 | 결재 처리 화면의 조회 조건 또는 편집 Form에 포함되는 값이며 화면 Label과 Help를 기준으로 사용한다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+| `완료` | 문자열 입력·검색 | 결재 처리 화면의 조회 조건 또는 편집 Form에 포함되는 값이며 화면 Label과 Help를 기준으로 사용한다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+| `기타 Lane` | 문자열 입력·검색 | 결재 처리 화면의 조회 조건 또는 편집 Form에 포함되는 값이며 화면 Label과 Help를 기준으로 사용한다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+| `Decision Reason` | 다중행 입력 | 작업 목적·영향 범위·승인 또는 복구 기준을 기록해 Audit와 교대 기록에 연결한다. | Ticket·영향 범위·복구점을 포함하고 화면이 요구하는 최소 길이를 충족한다. |
+
+#### 입력 순서
+
+1. **처리대기** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+2. **완료** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+3. **기타 Lane** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+4. **Decision Reason** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+5. 조회 Control과 변경 Form을 분리해 기록하고, 실행 전 Environment·Data Scope·Timezone과 제출할 값만 다시 검토한다.
+
+### 목록 Column·상세 Field
+
+| 표시값 | 운영 의미 | 교차 확인 |
+|---|---|---|
+| `처리대기` | 결재 처리 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `완료` | 결재 처리 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `기타 Lane` | 결재 처리 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Decision Reason` | 작업 주체·Owner·변경 사유를 확인하는 감사 정보다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+
+#### 결과 판독 순서
+
+1. 조회 완료 시각·Filter·Paging·Sort와 화면 Warning을 확인한다.
+2. Empty·Stale·Partial을 정상 0건과 구분한다.
+3. 식별자·상태·Version·오류·시각을 같은 Query Context의 상세와 Owner 원장에서 비교한다.
+4. Masking된 값은 Raw Permission과 Reason 없이 복원·Export하지 않는다.
+5. 집계와 상세가 다르면 집계 시간 창·Timezone·Owner Update 시각을 맞춰 대사한다.
+
+### Button·Action
+
+| Action | 분류 | 활성 조건 | Side Effect·정상 결과 |
+|---|---|---|---|
+| **APPROVE** | 승인·의사결정 | 화면에 표시된 승인 권한·현재 Step·Snapshot·중복 결정 방지 조건을 충족함 | 승인 Snapshot과 Decision Audit가 기록되고 현재 Step·Terminal 상태가 갱신된다. |
+| **AGREE** | 승인·의사결정 | 화면에 표시된 승인 권한·현재 Step·Snapshot·중복 결정 방지 조건을 충족함 | 승인 Snapshot과 Decision Audit가 기록되고 현재 Step·Terminal 상태가 갱신된다. |
+| **REJECT** | 승인·의사결정 | 화면에 표시된 승인 권한·현재 Step·Snapshot·중복 결정 방지 조건을 충족함 | 승인 Snapshot과 Decision Audit가 기록되고 현재 Step·Terminal 상태가 갱신된다. |
+
+### 정상 업무 전체 절차
+
+1. `/approvalInbox`에 진입해 Page Header와 Route가 **결재 처리** 기능을 가리키는지 확인한다.
+2. 로그인 Session·Environment·Data Scope·기준일·Timezone을 고정한다.
+3. 화면의 조회 Control과 변경 Form을 구분한다. 조회 조건이 제공되면 먼저 조회하고, 변경 Form은 대상 선택 또는 등록 Action 뒤에 열린 실제 Field만 사용한다.
+4. Loading 종료 후 Empty·Error·Stale·Partial 상태와 화면 Warning을 먼저 판정한다.
+5. **처리대기, 완료, 기타 Lane, Decision Reason**를 읽고 식별자·상태·Version·시각을 Owner 원장과 대사한다.
+6. **APPROVE** 전에 화면과 Owner가 실제로 요구하는 Permission·현재 상태·영향 범위·Reason·승인·Version 조건을 확인하고 한 번만 제출한다.
+7. **APPROVE**의 HTTP 응답과 재조회 결과를 확인한다. 비동기·다중 대상 기능은 Owner Terminal 상태·Version·대상별 Success/Failed/Unknown·Audit를 별도로 확인한다.
+8. **AGREE** 전에 화면과 Owner가 실제로 요구하는 Permission·현재 상태·영향 범위·Reason·승인·Version 조건을 확인하고 한 번만 제출한다.
+9. **AGREE**의 HTTP 응답과 재조회 결과를 확인한다. 비동기·다중 대상 기능은 Owner Terminal 상태·Version·대상별 Success/Failed/Unknown·Audit를 별도로 확인한다.
+10. **REJECT** 전에 화면과 Owner가 실제로 요구하는 Permission·현재 상태·영향 범위·Reason·승인·Version 조건을 확인하고 한 번만 제출한다.
+11. **REJECT**의 HTTP 응답과 재조회 결과를 확인한다. 비동기·다중 대상 기능은 Owner Terminal 상태·Version·대상별 Success/Failed/Unknown·Audit를 별도로 확인한다.
+12. 화면이 제공하는 Log·Metric·Trace와, 변경·Export·승인 조치에 생성된 Audit를 교차 확인한다.
+13. 이 장의 **종료 판정**과 다음 확인 시각·Evidence Link를 교대 기록에 남긴다.
+
+### 메뉴 고유 판정·금지 사항
+
+- **목적:** 결재 처리 대상과 완료·기타 Lane을 조회하고 의사결정한다.
+- **종료 판정:** Snapshot 참여자·현재 Step·Decision Reason·Terminal 상태를 확인한다.
+- 응답을 받지 못한 경우 Owner 상태와 기존 Operation을 확인하기 전에 동일 Action을 반복하지 않는다.
+- HTTP 성공 응답이나 Toast만으로 비동기 Owner 상태 또는 다중 대상 적용을 확정하지 않는다.
+
+### 오류·경계·동시성·복구
+
+| 상황 | 화면 징후 | 운영 조치 | 종료 증적 |
+|---|---|---|---|
+| 401·Session | Session 만료·CSRF·Origin 실패 | 로그인 상태와 BFF Session을 확인한다. Command 자동 Replay는 금지한다. | 401/403 응답·Session Audit |
+| 403·Data Scope | 메뉴·Button·Raw·Export가 거부됨 | Menu·Button·API·Owner Permission과 Data Scope를 확인하고 우회하지 않는다. | Deny Audit·요청 Permission |
+| Validation | 필수값·범위·형식·기간 오류 | Field Error만 수정하고 기존 성공 Operation을 다시 제출하지 않는다. | Error Code·Field·입력값 |
+| Timeout·Dependency | 일부 Source 또는 Command 응답 지연 | Correlation/Operation ID와 실패 Stage를 기록하고 Owner 상태를 조회한다. | Dependency 상태·Retryability |
+| Partial·Stale | 일부 대상만 Success 또는 조회 Source 누락 | 성공·실패·미응답을 분리하고 누락 범위와 Version을 표시한다. | Target별 결과·Version |
+| 409·동시 변경 | Expected Version 불일치 | 최신 상세를 재조회하고 Diff·영향을 다시 검토한 뒤 새 요청으로 제출한다. | 현재/요청 Version·변경자 |
+| 응답 유실·Unknown | 요청 후 실제 처리 여부를 알 수 없음 | Operation ID·Request Hash·Audit·Owner 상태로 대사하고 중복 제출하지 않는다. | Operation·Owner·Audit |
+| 복구 실패 | Retry/Rollback 뒤에도 상태 불일치 | 자동 반복을 중단하고 Incident·Reconcile Case·다음 확인 시각을 기록한다. | Case ID·복구 Owner·기한 |
+
+### 응답 유실·결과 불명·부분 적용 처리
+
+1. 동일 Action을 다시 누르지 않고 Browser Network와 응답 Header를 보존한다. `operationId`·`transactionId`·`idempotencyKey`가 제공되면 기록하고, 없으면 Target ID·Actor·요청 시각·Request Body Hash로 대사한다.
+2. 기능이 제공하는 상세·Operation Status(있는 경우)·Audit에서 Request Hash와 대상 Version을 검색한다.
+3. Side Effect 전 실패가 확인된 경우에만 새 요청을 검토한다.
+4. Success·Failed·Unknown 대상을 분리하고 Source가 제공하는 Failed-only Retry·Compensation·Rollback을 선택하고, 지원되지 않으면 수동 Reconcile Case로 이관한다.
+5. Rollback을 지원하는 기능은 Owner Version·Checksum·업무 합계가 Rollback Point와 일치하는지 확인한다.
+6. 확정되지 않은 대상은 `UNKNOWN_RESULT`로 유지하고 담당자·대사 기한·다음 확인 시각을 기록한다.
+
+### Log·Metric·Trace·Audit와 교대 기록
+
+| 증적 | 필수 값 |
+|---|---|
+| Audit | Actor·Permission·Reason·Approval·Target·Before/After·Result·Recovery Action |
+| Log | Environment·Instance·operationId·transactionId·failureStage·errorCode |
+| Metric | 동일 시간 창의 Success·Failure·Latency·Queue·Retry·Partial·Unknown |
+| Trace | root/segment/attempt·Owner·DB/Kafka/외부 의존성 Span |
+| 상태 원장 | Target ID·Version·Checksum·Desired/Actual·Last Updated·Terminal 여부 |
+
+```text
+Menu=approvalInbox
+Route=/approvalInbox
+Environment=
+DataScope=
+Query=
+TargetId=
+BeforeVersion=
+Action=
+Reason=
+ApprovalId=
+OperationId=
+TransactionId=
+Result=SUCCESS|FAILED|PARTIAL|UNKNOWN_RESULT
+OwnerState=
+FailedTargets=
+ReconcileBy=
+RollbackPoint=
+EvidenceLinks=
+NextCheckAt=
+```
+
+### 실무 Workbook
+
+**상황:** 결재 처리 대상과 완료·기타 Lane을 조회하고 의사결정한다. 담당자가 **APPROVE**을 수행한 뒤 Browser 응답을 받지 못했다.
+
+1. 대상 식별자와 Before Version, 입력값, Reason·Approval을 작업 기록에서 확인한다.
+2. 동일 **APPROVE**을 반복하지 않고 Operation·Audit·Owner 상태를 조회한다.
+3. Owner 상태가 변경됐고 Request Hash가 같으면 응답 유실로 분류해 중복 조치를 금지한다.
+4. 일부 대상만 변경됐으면 Success·Failed·Unknown을 분리해 Failed-only Retry 또는 Rollback을 선택한다.
+5. Snapshot 참여자·현재 Step·Decision Reason·Terminal 상태를 확인한다.
+6. Evidence Link와 다음 확인 시각을 교대 기록에 남긴다.
+
+### 독립 수행 검수 Checklist
+
+- [ ] `/approvalInbox`와 Page Source를 찾고 화면 목적을 설명할 수 있다.
+- [ ] 4개 입력·검색 항목의 Control·기본값·Validation을 설명할 수 있다.
+- [ ] 4개 표시값을 Owner 상태·Version·Audit와 대사할 수 있다.
+- [ ] 3개 Action의 분류·활성 조건·Side Effect를 설명할 수 있다.
+- [ ] Empty·403·409·Timeout·Partial·Unknown을 서로 다른 상태로 처리할 수 있다.
+- [ ] 응답 유실 뒤 중복 제출 없이 Operation·Owner·Audit로 결과를 확정할 수 있다.
+- [ ] 교대 기록만으로 다음 담당자가 Target·상태·복구 기한을 이어받을 수 있다.
+
+## 15. approvalSubmissions — 상신·철회·취소·재상신
+
+![상신·철회·취소·재상신 화면·업무 흐름](../assets/guides/menu-detail/bza-approvalsubmissions.svg)
+
+### 이 장에서 끝내는 업무
+
+정책 기반 결재 상신·철회·취소·재상신을 관리한다.
+
+### 메뉴 식별·책임
+
+| 항목 | 값 |
+|---|---|
+| Route | `/approvalSubmissions` |
+| 메뉴 ID | `approvalSubmissions` |
+| Menu Code | `APPROVAL` |
+| 업무 그룹 | approval |
+| Frontend Page | `cpf-biz-admin/frontend/src/features/approval-submissions/ApprovalSubmissionsPage.vue` |
+| Permission | 요청자/상신 권한 |
+| 기준 Commit | `23babb9140b90e501d6ac715e7b77f55b66198a5` |
+
+### Source·API 근거
+
+| 구분 | 기준 |
+|---|---|
+| Frontend Page | `cpf-biz-admin/frontend/src/features/approval-submissions/ApprovalSubmissionsPage.vue` |
+| Router | `/approvalSubmissions` |
+| API 추적 | 화면에서 제공하는 기능을 통해 호출한다. 문서에 명시되지 않은 Endpoint를 Browser나 외부 Script에서 임의 호출하지 않는다. |
+
+아래 표는 이 메뉴에서 실제로 확인·입력·실행할 항목을 정리한다. 화면에 없는 Field·Button·상태를 임의로 가정하지 않는다.
+
+### 검색·입력 Field
+
+| Field | Control | 업무 의미 | 기본값·Validation·주의 |
+|---|---|---|---|
+| `Policy` | Select·검색 | 상신·철회·취소·재상신에서 적용하거나 조회할 정책·권한·처리 유형을 선택한다. | 허용 목록과 현재 Environment·Data Scope에 맞는 값만 선택한다. |
+| `Version` | 숫자·Version 입력 | 동시 변경을 막고 요청 대상의 현재 Revision을 확인하는 값이다. | 상세 재조회로 최신 값을 얻고 409 발생 시 기존 값을 덮어쓰지 않는다. |
+| `Domain` | Select·검색 | 상신·철회·취소·재상신 조회·조치가 적용되는 환경과 데이터 경계를 제한한다. | 허용 목록과 현재 Environment·Data Scope에 맞는 값만 선택한다. |
+| `Type` | Select·검색 | 상신·철회·취소·재상신에서 적용하거나 조회할 정책·권한·처리 유형을 선택한다. | 허용 목록과 현재 Environment·Data Scope에 맞는 값만 선택한다. |
+| `Requester` | 문자열 입력·검색 | 상신·철회·취소·재상신 화면의 조회 조건 또는 편집 Form에 포함되는 값이며 화면 Label과 Help를 기준으로 사용한다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+| `Title` | 문자열 입력·검색 | 대상의 표시명 또는 업무명을 검색·입력한다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+| `Mode` | 문자열 입력·검색 | 상신·철회·취소·재상신 화면의 조회 조건 또는 편집 Form에 포함되는 값이며 화면 Label과 Help를 기준으로 사용한다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+| `Due` | 날짜·시간 입력 | 조회 또는 적용의 유효 시간 범위를 정하며 Timezone과 시작·종료 순서를 함께 확인한다. | Timezone을 고정하고 시작≤종료·유효기간 겹침·기준일 포함 여부를 확인한다. |
+| `Payload` | 다중행 입력 | 검증·등록·Export에 사용할 입력 Artifact 또는 구조화된 본문이다. | 허용 Schema·길이·민감정보 포함 여부를 확인하고 Preview 또는 Validation 결과를 검토한다. |
+| `Attachment` | 문자열 입력·검색 | 상신·철회·취소·재상신 화면의 조회 조건 또는 편집 Form에 포함되는 값이며 화면 Label과 Help를 기준으로 사용한다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+| `Key` | 문자열 입력·검색 | 조회·상세·Audit에서 같은 대상을 다시 찾기 위한 식별 조건이다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+| `Reason` | 다중행 입력 | 작업 목적·영향 범위·승인 또는 복구 기준을 기록해 Audit와 교대 기록에 연결한다. | Ticket·영향 범위·복구점을 포함하고 화면이 요구하는 최소 길이를 충족한다. |
+
+#### 입력 순서
+
+1. **Policy** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+2. **Version** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+3. **Domain** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+4. **Type** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+5. **Requester** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+6. **Title** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+7. **Mode** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+8. **Due** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+9. **Payload** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+10. **Attachment** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+11. **Key** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+12. **Reason** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+13. 조회 Control과 변경 Form을 분리해 기록하고, 실행 전 Environment·Data Scope·Timezone과 제출할 값만 다시 검토한다.
+
+### 목록 Column·상세 Field
+
+| 표시값 | 운영 의미 | 교차 확인 |
+|---|---|---|
+| `Policy` | 상신·철회·취소·재상신 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Version` | 요청·Owner·Instance 사이의 Version 또는 내용 동일성을 판단하는 값이다. | 목록·상세·Owner 또는 Instance 보고값에서 일치하는지 확인한다. |
+| `Domain` | 상신·철회·취소·재상신 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Type` | 상신·철회·취소·재상신 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Requester` | 작업 주체·Owner·변경 사유를 확인하는 감사 정보다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Title` | 운영자가 대상을 구분하는 표시명 또는 설명이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Mode` | 상신·철회·취소·재상신 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Due` | 상신·철회·취소·재상신 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Payload` | 상신·철회·취소·재상신 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Attachment` | 상신·철회·취소·재상신 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Key` | 상신·철회·취소·재상신의 대상 레코드를 상세·Owner·Audit에서 연결하는 식별자다. | 상세·Log·Trace·Audit에서 같은 대상을 가리키는지 확인한다. |
+| `Reason` | 작업 주체·Owner·변경 사유를 확인하는 감사 정보다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+
+#### 결과 판독 순서
+
+1. 조회 완료 시각·Filter·Paging·Sort와 화면 Warning을 확인한다.
+2. Empty·Stale·Partial을 정상 0건과 구분한다.
+3. 식별자·상태·Version·오류·시각을 같은 Query Context의 상세와 Owner 원장에서 비교한다.
+4. Masking된 값은 Raw Permission과 Reason 없이 복원·Export하지 않는다.
+5. 집계와 상세가 다르면 집계 시간 창·Timezone·Owner Update 시각을 맞춰 대사한다.
+
+### Button·Action
+
+| Action | 분류 | 활성 조건 | Side Effect·정상 결과 |
+|---|---|---|---|
+| **상신** | 등록·Draft 변경 | 화면이 실제로 요구하는 Write Permission·필수 Field·Reason·Version 조건을 충족함 | 상신·철회·취소·재상신의 재조회 결과가 요청 내용과 일치한다. Version·Before/After·Audit는 해당 Owner가 제공하는 경우 함께 확인한다. |
+| **철회** | 복구·상태 변경 | 화면과 Owner가 요구하는 복구 Permission·대상 상태·Reason·승인·Version 조건을 충족함 | 복구 Operation을 생성하고 Owner 상태·대상별 결과·Audit로 종료를 판정한다. |
+| **취소** | 변경·위험 조치 | 화면과 Owner가 요구하는 Write Permission·대상 상태·영향 범위·Reason·승인·Version 조건을 충족함 | 변경 Operation을 생성하고 Accepted 응답과 Owner Terminal 상태·Version·Audit를 분리해 확인한다. |
+| **재상신** | 등록·Draft 변경 | 화면이 실제로 요구하는 Write Permission·필수 Field·Reason·Version 조건을 충족함 | 상신·철회·취소·재상신의 재조회 결과가 요청 내용과 일치한다. Version·Before/After·Audit는 해당 Owner가 제공하는 경우 함께 확인한다. |
+
+### 정상 업무 전체 절차
+
+1. `/approvalSubmissions`에 진입해 Page Header와 Route가 **상신·철회·취소·재상신** 기능을 가리키는지 확인한다.
+2. 로그인 Session·Environment·Data Scope·기준일·Timezone을 고정한다.
+3. 화면의 조회 Control과 변경 Form을 구분한다. 조회 조건이 제공되면 먼저 조회하고, 변경 Form은 대상 선택 또는 등록 Action 뒤에 열린 실제 Field만 사용한다.
+4. Loading 종료 후 Empty·Error·Stale·Partial 상태와 화면 Warning을 먼저 판정한다.
+5. **Policy, Version, Domain, Type, Requester**를 읽고 식별자·상태·Version·시각을 Owner 원장과 대사한다.
+6. **상신** 전에 화면과 Owner가 실제로 요구하는 Permission·현재 상태·영향 범위·Reason·승인·Version 조건을 확인하고 한 번만 제출한다.
+7. **상신**의 HTTP 응답과 재조회 결과를 확인한다. 비동기·다중 대상 기능은 Owner Terminal 상태·Version·대상별 Success/Failed/Unknown·Audit를 별도로 확인한다.
+8. **철회** 전에 화면과 Owner가 실제로 요구하는 Permission·현재 상태·영향 범위·Reason·승인·Version 조건을 확인하고 한 번만 제출한다.
+9. **철회**의 HTTP 응답과 재조회 결과를 확인한다. 비동기·다중 대상 기능은 Owner Terminal 상태·Version·대상별 Success/Failed/Unknown·Audit를 별도로 확인한다.
+10. **취소** 전에 화면과 Owner가 실제로 요구하는 Permission·현재 상태·영향 범위·Reason·승인·Version 조건을 확인하고 한 번만 제출한다.
+11. **취소**의 HTTP 응답과 재조회 결과를 확인한다. 비동기·다중 대상 기능은 Owner Terminal 상태·Version·대상별 Success/Failed/Unknown·Audit를 별도로 확인한다.
+12. **재상신** 전에 화면과 Owner가 실제로 요구하는 Permission·현재 상태·영향 범위·Reason·승인·Version 조건을 확인하고 한 번만 제출한다.
+13. **재상신**의 HTTP 응답과 재조회 결과를 확인한다. 비동기·다중 대상 기능은 Owner Terminal 상태·Version·대상별 Success/Failed/Unknown·Audit를 별도로 확인한다.
+14. 화면이 제공하는 Log·Metric·Trace와, 변경·Export·승인 조치에 생성된 Audit를 교차 확인한다.
+15. 이 장의 **종료 판정**과 다음 확인 시각·Evidence Link를 교대 기록에 남긴다.
+
+### 메뉴 고유 판정·금지 사항
+
+- **목적:** 정책 기반 결재 상신·철회·취소·재상신을 관리한다.
+- **종료 판정:** Policy Version·Payload Hash·Attachment·Idempotency Key를 고정한다.
+- 응답을 받지 못한 경우 Owner 상태와 기존 Operation을 확인하기 전에 동일 Action을 반복하지 않는다.
+- HTTP 성공 응답이나 Toast만으로 비동기 Owner 상태 또는 다중 대상 적용을 확정하지 않는다.
+
+### 오류·경계·동시성·복구
+
+| 상황 | 화면 징후 | 운영 조치 | 종료 증적 |
+|---|---|---|---|
+| 401·Session | Session 만료·CSRF·Origin 실패 | 로그인 상태와 BFF Session을 확인한다. Command 자동 Replay는 금지한다. | 401/403 응답·Session Audit |
+| 403·Data Scope | 메뉴·Button·Raw·Export가 거부됨 | Menu·Button·API·Owner Permission과 Data Scope를 확인하고 우회하지 않는다. | Deny Audit·요청 Permission |
+| Validation | 필수값·범위·형식·기간 오류 | Field Error만 수정하고 기존 성공 Operation을 다시 제출하지 않는다. | Error Code·Field·입력값 |
+| Timeout·Dependency | 일부 Source 또는 Command 응답 지연 | Correlation/Operation ID와 실패 Stage를 기록하고 Owner 상태를 조회한다. | Dependency 상태·Retryability |
+| Partial·Stale | 일부 대상만 Success 또는 조회 Source 누락 | 성공·실패·미응답을 분리하고 누락 범위와 Version을 표시한다. | Target별 결과·Version |
+| 409·동시 변경 | Expected Version 불일치 | 최신 상세를 재조회하고 Diff·영향을 다시 검토한 뒤 새 요청으로 제출한다. | 현재/요청 Version·변경자 |
+| 응답 유실·Unknown | 요청 후 실제 처리 여부를 알 수 없음 | Operation ID·Request Hash·Audit·Owner 상태로 대사하고 중복 제출하지 않는다. | Operation·Owner·Audit |
+| 복구 실패 | Retry/Rollback 뒤에도 상태 불일치 | 자동 반복을 중단하고 Incident·Reconcile Case·다음 확인 시각을 기록한다. | Case ID·복구 Owner·기한 |
+
+### 응답 유실·결과 불명·부분 적용 처리
+
+1. 동일 Action을 다시 누르지 않고 Browser Network와 응답 Header를 보존한다. `operationId`·`transactionId`·`idempotencyKey`가 제공되면 기록하고, 없으면 Target ID·Actor·요청 시각·Request Body Hash로 대사한다.
+2. 기능이 제공하는 상세·Operation Status(있는 경우)·Audit에서 Request Hash와 대상 Version을 검색한다.
+3. Side Effect 전 실패가 확인된 경우에만 새 요청을 검토한다.
+4. Success·Failed·Unknown 대상을 분리하고 Source가 제공하는 Failed-only Retry·Compensation·Rollback을 선택하고, 지원되지 않으면 수동 Reconcile Case로 이관한다.
+5. Rollback을 지원하는 기능은 Owner Version·Checksum·업무 합계가 Rollback Point와 일치하는지 확인한다.
+6. 확정되지 않은 대상은 `UNKNOWN_RESULT`로 유지하고 담당자·대사 기한·다음 확인 시각을 기록한다.
+
+### Log·Metric·Trace·Audit와 교대 기록
+
+| 증적 | 필수 값 |
+|---|---|
+| Audit | Actor·Permission·Reason·Approval·Target·Before/After·Result·Recovery Action |
+| Log | Environment·Instance·operationId·transactionId·failureStage·errorCode |
+| Metric | 동일 시간 창의 Success·Failure·Latency·Queue·Retry·Partial·Unknown |
+| Trace | root/segment/attempt·Owner·DB/Kafka/외부 의존성 Span |
+| 상태 원장 | Target ID·Version·Checksum·Desired/Actual·Last Updated·Terminal 여부 |
+
+```text
+Menu=approvalSubmissions
+Route=/approvalSubmissions
+Environment=
+DataScope=
+Query=
+TargetId=
+BeforeVersion=
+Action=
+Reason=
+ApprovalId=
+OperationId=
+TransactionId=
+Result=SUCCESS|FAILED|PARTIAL|UNKNOWN_RESULT
+OwnerState=
+FailedTargets=
+ReconcileBy=
+RollbackPoint=
+EvidenceLinks=
+NextCheckAt=
+```
+
+### 실무 Workbook
+
+**상황:** 정책 기반 결재 상신·철회·취소·재상신을 관리한다. 담당자가 **상신**을 수행한 뒤 Browser 응답을 받지 못했다.
+
+1. 대상 식별자와 Before Version, 입력값, Reason·Approval을 작업 기록에서 확인한다.
+2. 동일 **상신**을 반복하지 않고 Operation·Audit·Owner 상태를 조회한다.
+3. Owner 상태가 변경됐고 Request Hash가 같으면 응답 유실로 분류해 중복 조치를 금지한다.
+4. 일부 대상만 변경됐으면 Success·Failed·Unknown을 분리해 Failed-only Retry 또는 Rollback을 선택한다.
+5. Policy Version·Payload Hash·Attachment·Idempotency Key를 고정한다.
+6. Evidence Link와 다음 확인 시각을 교대 기록에 남긴다.
+
+### 독립 수행 검수 Checklist
+
+- [ ] `/approvalSubmissions`와 Page Source를 찾고 화면 목적을 설명할 수 있다.
+- [ ] 12개 입력·검색 항목의 Control·기본값·Validation을 설명할 수 있다.
+- [ ] 12개 표시값을 Owner 상태·Version·Audit와 대사할 수 있다.
+- [ ] 4개 Action의 분류·활성 조건·Side Effect를 설명할 수 있다.
+- [ ] Empty·403·409·Timeout·Partial·Unknown을 서로 다른 상태로 처리할 수 있다.
+- [ ] 응답 유실 뒤 중복 제출 없이 Operation·Owner·Audit로 결과를 확정할 수 있다.
+- [ ] 교대 기록만으로 다음 담당자가 Target·상태·복구 기한을 이어받을 수 있다.
+
+## 16. approvalPolicies — Versioned 결재 정책
+
+![Versioned 결재 정책 화면·업무 흐름](../assets/guides/menu-detail/bza-approvalpolicies.svg)
+
+### 이 장에서 끝내는 업무
+
+Versioned 결재 정책과 Step JSON·유효기간을 관리한다.
+
+### 메뉴 식별·책임
+
+| 항목 | 값 |
+|---|---|
+| Route | `/approvalPolicies` |
+| 메뉴 ID | `approvalPolicies` |
+| Menu Code | `APPROVAL` |
+| 업무 그룹 | approval |
+| Frontend Page | `cpf-biz-admin/frontend/src/features/approval-policies/ApprovalPoliciesPage.vue` |
+| Permission | 정책 Write |
+| 기준 Commit | `23babb9140b90e501d6ac715e7b77f55b66198a5` |
+
+### Source·API 근거
+
+| 구분 | 기준 |
+|---|---|
+| Frontend Page | `cpf-biz-admin/frontend/src/features/approval-policies/ApprovalPoliciesPage.vue` |
+| Router | `/approvalPolicies` |
+| API 추적 | 화면에서 제공하는 기능을 통해 호출한다. 문서에 명시되지 않은 Endpoint를 Browser나 외부 Script에서 임의 호출하지 않는다. |
+
+아래 표는 이 메뉴에서 실제로 확인·입력·실행할 항목을 정리한다. 화면에 없는 Field·Button·상태를 임의로 가정하지 않는다.
+
+### 검색·입력 Field
+
+| Field | Control | 업무 의미 | 기본값·Validation·주의 |
+|---|---|---|---|
+| `Policy` | Select·검색 | Versioned 결재 정책에서 적용하거나 조회할 정책·권한·처리 유형을 선택한다. | 허용 목록과 현재 Environment·Data Scope에 맞는 값만 선택한다. |
+| `Version` | 숫자·Version 입력 | 동시 변경을 막고 요청 대상의 현재 Revision을 확인하는 값이다. | 상세 재조회로 최신 값을 얻고 409 발생 시 기존 값을 덮어쓰지 않는다. |
+| `Name` | 문자열 입력·검색 | 대상의 표시명 또는 업무명을 검색·입력한다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+| `Domain` | Select·검색 | Versioned 결재 정책 조회·조치가 적용되는 환경과 데이터 경계를 제한한다. | 허용 목록과 현재 Environment·Data Scope에 맞는 값만 선택한다. |
+| `Type` | Select·검색 | Versioned 결재 정책에서 적용하거나 조회할 정책·권한·처리 유형을 선택한다. | 허용 목록과 현재 Environment·Data Scope에 맞는 값만 선택한다. |
+| `유효기간 From/To` | 날짜·시간 입력 | 조회 또는 적용의 유효 시간 범위를 정하며 Timezone과 시작·종료 순서를 함께 확인한다. | Timezone을 고정하고 시작≤종료·유효기간 겹침·기준일 포함 여부를 확인한다. |
+| `Enabled` | Checkbox·Switch | 현재 상태를 조회하거나 다음 Action의 허용 조건을 지정한다. | 현재 선택과 변경 후 영향 범위를 비교하고 화면의 Source 기본값을 확인한다. |
+| `Self Approval` | Checkbox·Switch | Versioned 결재 정책 화면의 조회 조건 또는 편집 Form에 포함되는 값이며 화면 Label과 Help를 기준으로 사용한다. | 현재 선택과 변경 후 영향 범위를 비교하고 화면의 Source 기본값을 확인한다. |
+| `Description` | 다중행 입력 | 작업 목적·영향 범위·승인 또는 복구 기준을 기록해 Audit와 교대 기록에 연결한다. | 허용 Schema·길이·민감정보 포함 여부를 확인하고 Preview 또는 Validation 결과를 검토한다. |
+| `Steps JSON` | 다중행 입력 | 검증·등록·Export에 사용할 입력 Artifact 또는 구조화된 본문이다. | 허용 Schema·길이·민감정보 포함 여부를 확인하고 Preview 또는 Validation 결과를 검토한다. |
+| `Reason` | 다중행 입력 | 작업 목적·영향 범위·승인 또는 복구 기준을 기록해 Audit와 교대 기록에 연결한다. | Ticket·영향 범위·복구점을 포함하고 화면이 요구하는 최소 길이를 충족한다. |
+
+#### 입력 순서
+
+1. **Policy** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+2. **Version** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+3. **Name** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+4. **Domain** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+5. **Type** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+6. **유효기간 From/To** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+7. **Enabled** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+8. **Self Approval** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+9. **Description** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+10. **Steps JSON** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+11. **Reason** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+12. 조회 Control과 변경 Form을 분리해 기록하고, 실행 전 Environment·Data Scope·Timezone과 제출할 값만 다시 검토한다.
+
+### 목록 Column·상세 Field
+
+| 표시값 | 운영 의미 | 교차 확인 |
+|---|---|---|
+| `Policy` | Versioned 결재 정책 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Version` | 요청·Owner·Instance 사이의 Version 또는 내용 동일성을 판단하는 값이다. | 목록·상세·Owner 또는 Instance 보고값에서 일치하는지 확인한다. |
+| `Name` | 운영자가 대상을 구분하는 표시명 또는 설명이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Domain` | Versioned 결재 정책 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Type` | Versioned 결재 정책 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `유효기간 From/To` | 상태 발생·갱신·유효 시점을 나타내며 화면 Timezone을 기준으로 해석한다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Enabled` | 현재 상태와 Terminal 여부, 다음 Action 가능 여부를 판단하는 값이다. | Last Updated·Terminal 조건·Owner 상태와 함께 확인한다. |
+| `Self Approval` | Versioned 결재 정책 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Description` | 운영자가 대상을 구분하는 표시명 또는 설명이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Steps JSON` | Versioned 결재 정책 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Reason` | 작업 주체·Owner·변경 사유를 확인하는 감사 정보다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+
+#### 결과 판독 순서
+
+1. 조회 완료 시각·Filter·Paging·Sort와 화면 Warning을 확인한다.
+2. Empty·Stale·Partial을 정상 0건과 구분한다.
+3. 식별자·상태·Version·오류·시각을 같은 Query Context의 상세와 Owner 원장에서 비교한다.
+4. Masking된 값은 Raw Permission과 Reason 없이 복원·Export하지 않는다.
+5. 집계와 상세가 다르면 집계 시간 창·Timezone·Owner Update 시각을 맞춰 대사한다.
+
+### Button·Action
+
+| Action | 분류 | 활성 조건 | Side Effect·정상 결과 |
+|---|---|---|---|
+| **저장** | 등록·Draft 변경 | 화면이 실제로 요구하는 Write Permission·필수 Field·Reason·Version 조건을 충족함 | Versioned 결재 정책의 재조회 결과가 요청 내용과 일치한다. Version·Before/After·Audit는 해당 Owner가 제공하는 경우 함께 확인한다. |
+| **조회** | 조회·탐색 | 조회 Permission과 Query Validation을 충족하고 동일 조회가 진행 중이 아님 | 조회 결과의 조회 시각·Filter·Source Version·Warning이 갱신되며 Owner 데이터는 변경하지 않는다. |
+
+### 정상 업무 전체 절차
+
+1. `/approvalPolicies`에 진입해 Page Header와 Route가 **Versioned 결재 정책** 기능을 가리키는지 확인한다.
+2. 로그인 Session·Environment·Data Scope·기준일·Timezone을 고정한다.
+3. 화면의 조회 Control과 변경 Form을 구분한다. 조회 조건이 제공되면 먼저 조회하고, 변경 Form은 대상 선택 또는 등록 Action 뒤에 열린 실제 Field만 사용한다.
+4. Loading 종료 후 Empty·Error·Stale·Partial 상태와 화면 Warning을 먼저 판정한다.
+5. **Policy, Version, Name, Domain, Type**를 읽고 식별자·상태·Version·시각을 Owner 원장과 대사한다.
+6. **저장** 전에 화면과 Owner가 실제로 요구하는 Permission·현재 상태·영향 범위·Reason·승인·Version 조건을 확인하고 한 번만 제출한다.
+7. **저장**의 HTTP 응답과 재조회 결과를 확인한다. 비동기·다중 대상 기능은 Owner Terminal 상태·Version·대상별 Success/Failed/Unknown·Audit를 별도로 확인한다.
+8. 화면이 제공하는 Log·Metric·Trace와, 변경·Export·승인 조치에 생성된 Audit를 교차 확인한다.
+9. 이 장의 **종료 판정**과 다음 확인 시각·Evidence Link를 교대 기록에 남긴다.
+
+### 메뉴 고유 판정·금지 사항
+
+- **목적:** Versioned 결재 정책과 Step JSON·유효기간을 관리한다.
+- **종료 판정:** ALL·ANY·N_OF_M·Self Approval·기간 겹침을 검증한다.
+- 응답을 받지 못한 경우 Owner 상태와 기존 Operation을 확인하기 전에 동일 Action을 반복하지 않는다.
+- HTTP 성공 응답이나 Toast만으로 비동기 Owner 상태 또는 다중 대상 적용을 확정하지 않는다.
+
+### 오류·경계·동시성·복구
+
+| 상황 | 화면 징후 | 운영 조치 | 종료 증적 |
+|---|---|---|---|
+| 401·Session | Session 만료·CSRF·Origin 실패 | 로그인 상태와 BFF Session을 확인한다. Command 자동 Replay는 금지한다. | 401/403 응답·Session Audit |
+| 403·Data Scope | 메뉴·Button·Raw·Export가 거부됨 | Menu·Button·API·Owner Permission과 Data Scope를 확인하고 우회하지 않는다. | Deny Audit·요청 Permission |
+| Validation | 필수값·범위·형식·기간 오류 | Field Error만 수정하고 기존 성공 Operation을 다시 제출하지 않는다. | Error Code·Field·입력값 |
+| Timeout·Dependency | 일부 Source 또는 Command 응답 지연 | Correlation/Operation ID와 실패 Stage를 기록하고 Owner 상태를 조회한다. | Dependency 상태·Retryability |
+| Partial·Stale | 일부 대상만 Success 또는 조회 Source 누락 | 성공·실패·미응답을 분리하고 누락 범위와 Version을 표시한다. | Target별 결과·Version |
+| 409·동시 변경 | Expected Version 불일치 | 최신 상세를 재조회하고 Diff·영향을 다시 검토한 뒤 새 요청으로 제출한다. | 현재/요청 Version·변경자 |
+| 응답 유실·Unknown | 요청 후 실제 처리 여부를 알 수 없음 | Operation ID·Request Hash·Audit·Owner 상태로 대사하고 중복 제출하지 않는다. | Operation·Owner·Audit |
+| 복구 실패 | Retry/Rollback 뒤에도 상태 불일치 | 자동 반복을 중단하고 Incident·Reconcile Case·다음 확인 시각을 기록한다. | Case ID·복구 Owner·기한 |
+
+### 응답 유실·결과 불명·부분 적용 처리
+
+1. 동일 Action을 다시 누르지 않고 Browser Network와 응답 Header를 보존한다. `operationId`·`transactionId`·`idempotencyKey`가 제공되면 기록하고, 없으면 Target ID·Actor·요청 시각·Request Body Hash로 대사한다.
+2. 기능이 제공하는 상세·Operation Status(있는 경우)·Audit에서 Request Hash와 대상 Version을 검색한다.
+3. Side Effect 전 실패가 확인된 경우에만 새 요청을 검토한다.
+4. Success·Failed·Unknown 대상을 분리하고 Source가 제공하는 Failed-only Retry·Compensation·Rollback을 선택하고, 지원되지 않으면 수동 Reconcile Case로 이관한다.
+5. Rollback을 지원하는 기능은 Owner Version·Checksum·업무 합계가 Rollback Point와 일치하는지 확인한다.
+6. 확정되지 않은 대상은 `UNKNOWN_RESULT`로 유지하고 담당자·대사 기한·다음 확인 시각을 기록한다.
+
+### Log·Metric·Trace·Audit와 교대 기록
+
+| 증적 | 필수 값 |
+|---|---|
+| Audit | Actor·Permission·Reason·Approval·Target·Before/After·Result·Recovery Action |
+| Log | Environment·Instance·operationId·transactionId·failureStage·errorCode |
+| Metric | 동일 시간 창의 Success·Failure·Latency·Queue·Retry·Partial·Unknown |
+| Trace | root/segment/attempt·Owner·DB/Kafka/외부 의존성 Span |
+| 상태 원장 | Target ID·Version·Checksum·Desired/Actual·Last Updated·Terminal 여부 |
+
+```text
+Menu=approvalPolicies
+Route=/approvalPolicies
+Environment=
+DataScope=
+Query=
+TargetId=
+BeforeVersion=
+Action=
+Reason=
+ApprovalId=
+OperationId=
+TransactionId=
+Result=SUCCESS|FAILED|PARTIAL|UNKNOWN_RESULT
+OwnerState=
+FailedTargets=
+ReconcileBy=
+RollbackPoint=
+EvidenceLinks=
+NextCheckAt=
+```
+
+### 실무 Workbook
+
+**상황:** Versioned 결재 정책과 Step JSON·유효기간을 관리한다. 담당자가 **저장**을 수행한 뒤 Browser 응답을 받지 못했다.
+
+1. 대상 식별자와 Before Version, 입력값, Reason·Approval을 작업 기록에서 확인한다.
+2. 동일 **저장**을 반복하지 않고 Operation·Audit·Owner 상태를 조회한다.
+3. Owner 상태가 변경됐고 Request Hash가 같으면 응답 유실로 분류해 중복 조치를 금지한다.
+4. 일부 대상만 변경됐으면 Success·Failed·Unknown을 분리해 Failed-only Retry 또는 Rollback을 선택한다.
+5. ALL·ANY·N_OF_M·Self Approval·기간 겹침을 검증한다.
+6. Evidence Link와 다음 확인 시각을 교대 기록에 남긴다.
+
+### 독립 수행 검수 Checklist
+
+- [ ] `/approvalPolicies`와 Page Source를 찾고 화면 목적을 설명할 수 있다.
+- [ ] 1별도 사용자 입력이 없는 경우 자동 Query Context를 설명할 수 있다.
+- [ ] 11개 표시값을 Owner 상태·Version·Audit와 대사할 수 있다.
+- [ ] 2개 Action의 분류·활성 조건·Side Effect를 설명할 수 있다.
+- [ ] Empty·403·409·Timeout·Partial·Unknown을 서로 다른 상태로 처리할 수 있다.
+- [ ] 응답 유실 뒤 중복 제출 없이 Operation·Owner·Audit로 결과를 확정할 수 있다.
+- [ ] 교대 기록만으로 다음 담당자가 Target·상태·복구 기한을 이어받을 수 있다.
+
+## 17. approvalSimulation — 결재 경로 사전 해석
+
+![결재 경로 사전 해석 화면·업무 흐름](../assets/guides/menu-detail/bza-approvalsimulation.svg)
+
+### 이 장에서 끝내는 업무
+
+조직·Role·위임을 적용한 결재 경로를 사전 계산한다.
+
+### 메뉴 식별·책임
+
+| 항목 | 값 |
+|---|---|
+| Route | `/approvalSimulation` |
+| 메뉴 ID | `approvalSimulation` |
+| Menu Code | `APPROVAL` |
+| 업무 그룹 | approval |
+| Frontend Page | `cpf-biz-admin/frontend/src/features/approval-simulation/ApprovalSimulationPage.vue` |
+| Permission | 조회/Simulation |
+| 기준 Commit | `23babb9140b90e501d6ac715e7b77f55b66198a5` |
+
+### Source·API 근거
+
+| 구분 | 기준 |
+|---|---|
+| Frontend Page | `cpf-biz-admin/frontend/src/features/approval-simulation/ApprovalSimulationPage.vue` |
+| Router | `/approvalSimulation` |
+| API 추적 | 화면에서 제공하는 기능을 통해 호출한다. 문서에 명시되지 않은 Endpoint를 Browser나 외부 Script에서 임의 호출하지 않는다. |
+
+아래 표는 이 메뉴에서 실제로 확인·입력·실행할 항목을 정리한다. 화면에 없는 Field·Button·상태를 임의로 가정하지 않는다.
+
+### 검색·입력 Field
+
+| Field | Control | 업무 의미 | 기본값·Validation·주의 |
+|---|---|---|---|
+| `조직` | 문자열 입력·검색 | 조회·상세·Audit에서 같은 대상을 다시 찾기 위한 식별 조건이다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+| `Role` | Select·검색 | 결재 경로 사전 해석에서 적용하거나 조회할 정책·권한·처리 유형을 선택한다. | 허용 목록과 현재 Environment·Data Scope에 맞는 값만 선택한다. |
+| `위임` | 문자열 입력·검색 | 결재 경로 사전 해석 화면의 조회 조건 또는 편집 Form에 포함되는 값이며 화면 Label과 Help를 기준으로 사용한다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+| `정책 Context` | Select·검색 | 결재 경로 사전 해석에서 적용하거나 조회할 정책·권한·처리 유형을 선택한다. | 허용 목록과 현재 Environment·Data Scope에 맞는 값만 선택한다. |
+
+#### 입력 순서
+
+1. **조직** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+2. **Role** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+3. **위임** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+4. **정책 Context** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+5. 조회 Control과 변경 Form을 분리해 기록하고, 실행 전 Environment·Data Scope·Timezone과 제출할 값만 다시 검토한다.
+
+### 목록 Column·상세 Field
+
+| 표시값 | 운영 의미 | 교차 확인 |
+|---|---|---|
+| `조직` | 결재 경로 사전 해석 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Role` | 결재 경로 사전 해석 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `위임` | 결재 경로 사전 해석 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `정책 Context` | 결재 경로 사전 해석 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+
+#### 결과 판독 순서
+
+1. 조회 완료 시각·Filter·Paging·Sort와 화면 Warning을 확인한다.
+2. Empty·Stale·Partial을 정상 0건과 구분한다.
+3. 식별자·상태·Version·오류·시각을 같은 Query Context의 상세와 Owner 원장에서 비교한다.
+4. Masking된 값은 Raw Permission과 Reason 없이 복원·Export하지 않는다.
+5. 집계와 상세가 다르면 집계 시간 창·Timezone·Owner Update 시각을 맞춰 대사한다.
+
+### Button·Action
+
+| Action | 분류 | 활성 조건 | Side Effect·정상 결과 |
+|---|---|---|---|
+| **Simulation** | 조회·탐색 | 조회 Permission과 Query Validation을 충족하고 동일 조회가 진행 중이 아님 | Simulation 결과의 조회 시각·Filter·Source Version·Warning이 갱신되며 Owner 데이터는 변경하지 않는다. |
+
+### 정상 업무 전체 절차
+
+1. `/approvalSimulation`에 진입해 Page Header와 Route가 **결재 경로 사전 해석** 기능을 가리키는지 확인한다.
+2. 로그인 Session·Environment·Data Scope·기준일·Timezone을 고정한다.
+3. 화면에 제공된 조회 Control만 사용하고, 표시되지 않은 변경 Field나 Server Command가 있다고 가정하지 않는다.
+4. Loading 종료 후 Empty·Error·Stale·Partial 상태와 화면 Warning을 먼저 판정한다.
+5. **조직, Role, 위임, 정책 Context**를 읽고 식별자·상태·Version·시각을 Owner 원장과 대사한다.
+6. 화면이 제공하는 Log·Metric·Trace와 조회·Raw·Export 접근 기록이 있으면 해당 Audit를 교차 확인한다.
+7. 이 장의 **종료 판정**과 다음 확인 시각·Evidence Link를 교대 기록에 남긴다.
+
+### 메뉴 고유 판정·금지 사항
+
+- **목적:** 조직·Role·위임을 적용한 결재 경로를 사전 계산한다.
+- **종료 판정:** Simulation 기준일과 실제 상신 Snapshot이 같은 Policy Version인지 확인한다.
+- 조회 화면에서 직접 Owner 데이터를 변경하거나 Browser Tool로 우회하지 않는다.
+- Partial 조회를 정상 전체 결과로 합치지 않는다.
+
+### 오류·경계·동시성·복구
+
+| 상황 | 화면 징후 | 운영 조치 | 종료 증적 |
+|---|---|---|---|
+| 401·Session | Session 만료·CSRF·Origin 실패 | 로그인 상태와 BFF Session을 확인한 뒤 같은 Query Context로 다시 조회한다. | 401/403 응답·Session Audit |
+| 403·Data Scope | 메뉴·Button·Raw·Export가 거부됨 | Menu·Button·API·Owner Permission과 Data Scope를 확인하고 우회하지 않는다. | Deny Audit·요청 Permission |
+| Timeout·Dependency | 일부 조회 Source 응답 지연 | Correlation ID·Query Context·실패 Source를 기록하고 같은 조건으로 재조회한다. | 조회 시각·실패 Source·재조회 결과 |
+| Partial·Stale | 일부 대상만 Success 또는 조회 Source 누락 | 성공·실패·미응답을 분리하고 누락 범위와 Version을 표시한다. | Target별 결과·Version |
+
+### 응답 유실·부분 조회 처리
+
+1. 검색 조건·Data Scope·Paging·조회 시각·Correlation ID를 기록한다.
+2. 같은 조건으로 재조회하되 실패 Source만 분리한다.
+3. 정상 Source 결과를 유지하고 실패·Stale Source를 명시한다.
+4. 집계와 원본 상세가 다르면 Owner 상세를 기준으로 Reconcile Case를 연다.
+5. 조회 시각·Source Version·0건 또는 일치 결과를 증적으로 남긴다.
+
+### Log·Metric·Trace·Audit와 교대 기록
+
+| 증적 | 필수 값 |
+|---|---|
+| Audit | Actor·Permission·Data Scope·Raw/Export 접근·Query Context·Result |
+| Log | Environment·Instance·operationId·transactionId·failureStage·errorCode |
+| Metric | 동일 시간 창의 Success·Failure·Latency·Queue·Retry·Partial·Unknown |
+| Trace | root/segment/attempt·Owner·DB/Kafka/외부 의존성 Span |
+| 상태 원장 | Target ID·Version·Checksum·Desired/Actual·Last Updated·Terminal 여부 |
+
+```text
+Menu=
+Route=
+Environment=
+DataScope=
+Query=
+QueryAt=
+CorrelationId=
+SourceVersion=
+Result=SUCCESS|EMPTY|STALE|PARTIAL|FAILED
+FailedSources=
+EvidenceLinks=
+NextCheckAt=
+```
+
+### 실무 Workbook
+
+**상황:** 조직·Role·위임을 적용한 결재 경로를 사전 계산한다. 화면이 일부 Source Timeout 때문에 Partial 결과를 표시했다.
+
+1. Query·Data Scope·조회 시각·Correlation ID를 기록한다.
+2. 정상 결과를 0건으로 덮어쓰지 않고 실패 Source만 재조회한다.
+3. 조직, Role, 위임 값을 원본 상세와 같은 시간 기준으로 비교한다.
+4. 불일치가 계속되면 Incident 또는 Reconcile Case를 생성한다.
+5. Simulation 기준일과 실제 상신 Snapshot이 같은 Policy Version인지 확인한다.
+6. Source Version과 다음 확인 시각을 교대 기록에 남긴다.
+
+### 독립 수행 검수 Checklist
+
+- [ ] `/approvalSimulation`와 Page Source를 찾고 화면 목적을 설명할 수 있다.
+- [ ] 4개 입력·검색 항목의 Control·기본값·Validation을 설명할 수 있다.
+- [ ] 4개 표시값을 Owner 상태·Version·Audit와 대사할 수 있다.
+- [ ] 1개 Action의 분류·활성 조건·Side Effect를 설명할 수 있다.
+- [ ] Empty·401·403·Timeout·Stale·Partial을 서로 다른 조회 상태로 처리할 수 있다.
+- [ ] 조회 응답 유실 시 같은 Query Context로 재조회하고 Correlation ID·조회 시각·Source Version으로 결과를 대사할 수 있다.
+- [ ] 교대 기록만으로 다음 담당자가 Target·상태·복구 기한을 이어받을 수 있다.
+
+## 18. approvalDelegations — 결재 위임·대결
+
+![결재 위임·대결 화면·업무 흐름](../assets/guides/menu-detail/bza-approvaldelegations.svg)
+
+### 이 장에서 끝내는 업무
+
+결재 위임·대결의 범위와 유효기간을 관리한다.
+
+### 메뉴 식별·책임
+
+| 항목 | 값 |
+|---|---|
+| Route | `/approvalDelegations` |
+| 메뉴 ID | `approvalDelegations` |
+| Menu Code | `APPROVAL` |
+| 업무 그룹 | approval |
+| Frontend Page | `cpf-biz-admin/frontend/src/features/approval-delegations/ApprovalDelegationsPage.vue` |
+| Permission | Write |
+| 기준 Commit | `23babb9140b90e501d6ac715e7b77f55b66198a5` |
+
+### Source·API 근거
+
+| 구분 | 기준 |
+|---|---|
+| Frontend Page | `cpf-biz-admin/frontend/src/features/approval-delegations/ApprovalDelegationsPage.vue` |
+| Router | `/approvalDelegations` |
+| API 추적 | 화면에서 제공하는 기능을 통해 호출한다. 문서에 명시되지 않은 Endpoint를 Browser나 외부 Script에서 임의 호출하지 않는다. |
+
+아래 표는 이 메뉴에서 실제로 확인·입력·실행할 항목을 정리한다. 화면에 없는 Field·Button·상태를 임의로 가정하지 않는다.
+
+### 검색·입력 Field
+
+| Field | Control | 업무 의미 | 기본값·Validation·주의 |
+|---|---|---|---|
+| `위임자` | 문자열 입력·검색 | 결재 위임·대결 화면의 조회 조건 또는 편집 Form에 포함되는 값이며 화면 Label과 Help를 기준으로 사용한다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+| `수임자` | 문자열 입력·검색 | 결재 위임·대결 화면의 조회 조건 또는 편집 Form에 포함되는 값이며 화면 Label과 Help를 기준으로 사용한다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+| `범위` | Select·검색 | 결재 위임·대결 조회·조치가 적용되는 환경과 데이터 경계를 제한한다. | 허용 목록과 현재 Environment·Data Scope에 맞는 값만 선택한다. |
+| `유효기간 From/To` | 날짜·시간 입력 | 조회 또는 적용의 유효 시간 범위를 정하며 Timezone과 시작·종료 순서를 함께 확인한다. | Timezone을 고정하고 시작≤종료·유효기간 겹침·기준일 포함 여부를 확인한다. |
+| `Reason` | 다중행 입력 | 작업 목적·영향 범위·승인 또는 복구 기준을 기록해 Audit와 교대 기록에 연결한다. | Ticket·영향 범위·복구점을 포함하고 화면이 요구하는 최소 길이를 충족한다. |
+
+#### 입력 순서
+
+1. **위임자** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+2. **수임자** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+3. **범위** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+4. **유효기간 From/To** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+5. **Reason** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+6. 조회 Control과 변경 Form을 분리해 기록하고, 실행 전 Environment·Data Scope·Timezone과 제출할 값만 다시 검토한다.
+
+### 목록 Column·상세 Field
+
+| 표시값 | 운영 의미 | 교차 확인 |
+|---|---|---|
+| `위임자` | 결재 위임·대결 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `수임자` | 동일한 집계 시간 창·단위·Filter에서 비교해야 하는 수치다. | 같은 Filter·집계 시간 창·단위의 상세 Row 또는 Metric으로 대사한다. |
+| `범위` | 결재 위임·대결 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `유효기간 From/To` | 상태 발생·갱신·유효 시점을 나타내며 화면 Timezone을 기준으로 해석한다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Reason` | 작업 주체·Owner·변경 사유를 확인하는 감사 정보다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+
+#### 결과 판독 순서
+
+1. 조회 완료 시각·Filter·Paging·Sort와 화면 Warning을 확인한다.
+2. Empty·Stale·Partial을 정상 0건과 구분한다.
+3. 식별자·상태·Version·오류·시각을 같은 Query Context의 상세와 Owner 원장에서 비교한다.
+4. Masking된 값은 Raw Permission과 Reason 없이 복원·Export하지 않는다.
+5. 집계와 상세가 다르면 집계 시간 창·Timezone·Owner Update 시각을 맞춰 대사한다.
+
+### Button·Action
+
+| Action | 분류 | 활성 조건 | Side Effect·정상 결과 |
+|---|---|---|---|
+| **등록** | 등록·Draft 변경 | 화면이 실제로 요구하는 Write Permission·필수 Field·Reason·Version 조건을 충족함 | 결재 위임·대결의 재조회 결과가 요청 내용과 일치한다. Version·Before/After·Audit는 해당 Owner가 제공하는 경우 함께 확인한다. |
+| **수정** | 등록·Draft 변경 | 화면이 실제로 요구하는 Write Permission·필수 Field·Reason·Version 조건을 충족함 | 결재 위임·대결의 재조회 결과가 요청 내용과 일치한다. Version·Before/After·Audit는 해당 Owner가 제공하는 경우 함께 확인한다. |
+| **중지** | 변경·위험 조치 | 화면과 Owner가 요구하는 Write Permission·대상 상태·영향 범위·Reason·승인·Version 조건을 충족함 | 변경 Operation을 생성하고 Accepted 응답과 Owner Terminal 상태·Version·Audit를 분리해 확인한다. |
+
+### 정상 업무 전체 절차
+
+1. `/approvalDelegations`에 진입해 Page Header와 Route가 **결재 위임·대결** 기능을 가리키는지 확인한다.
+2. 로그인 Session·Environment·Data Scope·기준일·Timezone을 고정한다.
+3. 화면의 조회 Control과 변경 Form을 구분한다. 조회 조건이 제공되면 먼저 조회하고, 변경 Form은 대상 선택 또는 등록 Action 뒤에 열린 실제 Field만 사용한다.
+4. Loading 종료 후 Empty·Error·Stale·Partial 상태와 화면 Warning을 먼저 판정한다.
+5. **위임자, 수임자, 범위, 유효기간 From/To, Reason**를 읽고 식별자·상태·Version·시각을 Owner 원장과 대사한다.
+6. **등록** 전에 화면과 Owner가 실제로 요구하는 Permission·현재 상태·영향 범위·Reason·승인·Version 조건을 확인하고 한 번만 제출한다.
+7. **등록**의 HTTP 응답과 재조회 결과를 확인한다. 비동기·다중 대상 기능은 Owner Terminal 상태·Version·대상별 Success/Failed/Unknown·Audit를 별도로 확인한다.
+8. **수정** 전에 화면과 Owner가 실제로 요구하는 Permission·현재 상태·영향 범위·Reason·승인·Version 조건을 확인하고 한 번만 제출한다.
+9. **수정**의 HTTP 응답과 재조회 결과를 확인한다. 비동기·다중 대상 기능은 Owner Terminal 상태·Version·대상별 Success/Failed/Unknown·Audit를 별도로 확인한다.
+10. **중지** 전에 화면과 Owner가 실제로 요구하는 Permission·현재 상태·영향 범위·Reason·승인·Version 조건을 확인하고 한 번만 제출한다.
+11. **중지**의 HTTP 응답과 재조회 결과를 확인한다. 비동기·다중 대상 기능은 Owner Terminal 상태·Version·대상별 Success/Failed/Unknown·Audit를 별도로 확인한다.
+12. 화면이 제공하는 Log·Metric·Trace와, 변경·Export·승인 조치에 생성된 Audit를 교차 확인한다.
+13. 이 장의 **종료 판정**과 다음 확인 시각·Evidence Link를 교대 기록에 남긴다.
+
+### 메뉴 고유 판정·금지 사항
+
+- **목적:** 결재 위임·대결의 범위와 유효기간을 관리한다.
+- **종료 판정:** 위임 순환·기간 겹침·대상 Scope를 확인한다.
+- 응답을 받지 못한 경우 Owner 상태와 기존 Operation을 확인하기 전에 동일 Action을 반복하지 않는다.
+- HTTP 성공 응답이나 Toast만으로 비동기 Owner 상태 또는 다중 대상 적용을 확정하지 않는다.
+
+### 오류·경계·동시성·복구
+
+| 상황 | 화면 징후 | 운영 조치 | 종료 증적 |
+|---|---|---|---|
+| 401·Session | Session 만료·CSRF·Origin 실패 | 로그인 상태와 BFF Session을 확인한다. Command 자동 Replay는 금지한다. | 401/403 응답·Session Audit |
+| 403·Data Scope | 메뉴·Button·Raw·Export가 거부됨 | Menu·Button·API·Owner Permission과 Data Scope를 확인하고 우회하지 않는다. | Deny Audit·요청 Permission |
+| Validation | 필수값·범위·형식·기간 오류 | Field Error만 수정하고 기존 성공 Operation을 다시 제출하지 않는다. | Error Code·Field·입력값 |
+| Timeout·Dependency | 일부 Source 또는 Command 응답 지연 | Correlation/Operation ID와 실패 Stage를 기록하고 Owner 상태를 조회한다. | Dependency 상태·Retryability |
+| Partial·Stale | 일부 대상만 Success 또는 조회 Source 누락 | 성공·실패·미응답을 분리하고 누락 범위와 Version을 표시한다. | Target별 결과·Version |
+| 409·동시 변경 | Expected Version 불일치 | 최신 상세를 재조회하고 Diff·영향을 다시 검토한 뒤 새 요청으로 제출한다. | 현재/요청 Version·변경자 |
+| 응답 유실·Unknown | 요청 후 실제 처리 여부를 알 수 없음 | Operation ID·Request Hash·Audit·Owner 상태로 대사하고 중복 제출하지 않는다. | Operation·Owner·Audit |
+| 복구 실패 | Retry/Rollback 뒤에도 상태 불일치 | 자동 반복을 중단하고 Incident·Reconcile Case·다음 확인 시각을 기록한다. | Case ID·복구 Owner·기한 |
+| 계층·기간 충돌 | 고아·순환·기간 중복이 탐지됨 | 대상 관계와 기준일을 수정하고 영향 사용자·결재 Snapshot을 재계산한다. | 관계 Diff·Simulation 결과 |
+
+### 응답 유실·결과 불명·부분 적용 처리
+
+1. 동일 Action을 다시 누르지 않고 Browser Network와 응답 Header를 보존한다. `operationId`·`transactionId`·`idempotencyKey`가 제공되면 기록하고, 없으면 Target ID·Actor·요청 시각·Request Body Hash로 대사한다.
+2. 기능이 제공하는 상세·Operation Status(있는 경우)·Audit에서 Request Hash와 대상 Version을 검색한다.
+3. Side Effect 전 실패가 확인된 경우에만 새 요청을 검토한다.
+4. Success·Failed·Unknown 대상을 분리하고 Source가 제공하는 Failed-only Retry·Compensation·Rollback을 선택하고, 지원되지 않으면 수동 Reconcile Case로 이관한다.
+5. Rollback을 지원하는 기능은 Owner Version·Checksum·업무 합계가 Rollback Point와 일치하는지 확인한다.
+6. 확정되지 않은 대상은 `UNKNOWN_RESULT`로 유지하고 담당자·대사 기한·다음 확인 시각을 기록한다.
+
+### Log·Metric·Trace·Audit와 교대 기록
+
+| 증적 | 필수 값 |
+|---|---|
+| Audit | Actor·Permission·Reason·Approval·Target·Before/After·Result·Recovery Action |
+| Log | Environment·Instance·operationId·transactionId·failureStage·errorCode |
+| Metric | 동일 시간 창의 Success·Failure·Latency·Queue·Retry·Partial·Unknown |
+| Trace | root/segment/attempt·Owner·DB/Kafka/외부 의존성 Span |
+| 상태 원장 | Target ID·Version·Checksum·Desired/Actual·Last Updated·Terminal 여부 |
+
+```text
+Menu=approvalDelegations
+Route=/approvalDelegations
+Environment=
+DataScope=
+Query=
+TargetId=
+BeforeVersion=
+Action=
+Reason=
+ApprovalId=
+OperationId=
+TransactionId=
+Result=SUCCESS|FAILED|PARTIAL|UNKNOWN_RESULT
+OwnerState=
+FailedTargets=
+ReconcileBy=
+RollbackPoint=
+EvidenceLinks=
+NextCheckAt=
+```
+
+### 실무 Workbook
+
+**상황:** 결재 위임·대결의 범위와 유효기간을 관리한다. 담당자가 **등록**을 수행한 뒤 Browser 응답을 받지 못했다.
+
+1. 대상 식별자와 Before Version, 입력값, Reason·Approval을 작업 기록에서 확인한다.
+2. 동일 **등록**을 반복하지 않고 Operation·Audit·Owner 상태를 조회한다.
+3. Owner 상태가 변경됐고 Request Hash가 같으면 응답 유실로 분류해 중복 조치를 금지한다.
+4. 일부 대상만 변경됐으면 Success·Failed·Unknown을 분리해 Failed-only Retry 또는 Rollback을 선택한다.
+5. 위임 순환·기간 겹침·대상 Scope를 확인한다.
+6. Evidence Link와 다음 확인 시각을 교대 기록에 남긴다.
+
+### 독립 수행 검수 Checklist
+
+- [ ] `/approvalDelegations`와 Page Source를 찾고 화면 목적을 설명할 수 있다.
+- [ ] 5개 입력·검색 항목의 Control·기본값·Validation을 설명할 수 있다.
+- [ ] 5개 표시값을 Owner 상태·Version·Audit와 대사할 수 있다.
+- [ ] 3개 Action의 분류·활성 조건·Side Effect를 설명할 수 있다.
+- [ ] Empty·403·409·Timeout·Partial·Unknown을 서로 다른 상태로 처리할 수 있다.
+- [ ] 응답 유실 뒤 중복 제출 없이 Operation·Owner·Audit로 결과를 확정할 수 있다.
+- [ ] 교대 기록만으로 다음 담당자가 Target·상태·복구 기한을 이어받을 수 있다.
+
+## 19. sessions — 본인 Refresh Session
+
+![본인 Refresh Session 화면·업무 흐름](../assets/guides/menu-detail/bza-sessions.svg)
+
+### 이 장에서 끝내는 업무
+
+본인 Refresh Session과 Device·만료 상태를 조회·폐기한다.
+
+### 메뉴 식별·책임
+
+| 항목 | 값 |
+|---|---|
+| Route | `/sessions` |
+| 메뉴 ID | `sessions` |
+| Menu Code | `AUTHORIZATION` |
+| 업무 그룹 | support |
+| Frontend Page | `cpf-biz-admin/frontend/src/features/sessions/SessionsPage.vue` |
+| Permission | 본인/관리 권한 |
+| 기준 Commit | `23babb9140b90e501d6ac715e7b77f55b66198a5` |
+
+### Source·API 근거
+
+| 구분 | 기준 |
+|---|---|
+| Frontend Page | `cpf-biz-admin/frontend/src/features/sessions/SessionsPage.vue` |
+| Router | `/sessions` |
+| API 추적 | 화면에서 제공하는 기능을 통해 호출한다. 문서에 명시되지 않은 Endpoint를 Browser나 외부 Script에서 임의 호출하지 않는다. |
+
+아래 표는 이 메뉴에서 실제로 확인·입력·실행할 항목을 정리한다. 화면에 없는 Field·Button·상태를 임의로 가정하지 않는다.
+
+### 검색·입력 Field
+
+| Field | Control | 업무 의미 | 기본값·Validation·주의 |
+|---|---|---|---|
+| `Session 목록` | 문자열 입력·검색 | 본인 Refresh Session 화면의 조회 조건 또는 편집 Form에 포함되는 값이며 화면 Label과 Help를 기준으로 사용한다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+| `Device` | 문자열 입력·검색 | 본인 Refresh Session 화면의 조회 조건 또는 편집 Form에 포함되는 값이며 화면 Label과 Help를 기준으로 사용한다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+| `Expiry` | 날짜·시간 입력 | 조회 또는 적용의 유효 시간 범위를 정하며 Timezone과 시작·종료 순서를 함께 확인한다. | Timezone을 고정하고 시작≤종료·유효기간 겹침·기준일 포함 여부를 확인한다. |
+
+#### 입력 순서
+
+1. **Session 목록** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+2. **Device** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+3. **Expiry** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+4. 조회 Control과 변경 Form을 분리해 기록하고, 실행 전 Environment·Data Scope·Timezone과 제출할 값만 다시 검토한다.
+
+### 목록 Column·상세 Field
+
+| 표시값 | 운영 의미 | 교차 확인 |
+|---|---|---|
+| `Session 목록` | 본인 Refresh Session 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Device` | 본인 Refresh Session 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Expiry` | 상태 발생·갱신·유효 시점을 나타내며 화면 Timezone을 기준으로 해석한다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+
+#### 결과 판독 순서
+
+1. 조회 완료 시각·Filter·Paging·Sort와 화면 Warning을 확인한다.
+2. Empty·Stale·Partial을 정상 0건과 구분한다.
+3. 식별자·상태·Version·오류·시각을 같은 Query Context의 상세와 Owner 원장에서 비교한다.
+4. Masking된 값은 Raw Permission과 Reason 없이 복원·Export하지 않는다.
+5. 집계와 상세가 다르면 집계 시간 창·Timezone·Owner Update 시각을 맞춰 대사한다.
+
+### Button·Action
+
+| Action | 분류 | 활성 조건 | Side Effect·정상 결과 |
+|---|---|---|---|
+| **조회** | 조회·탐색 | 조회 Permission과 Query Validation을 충족하고 동일 조회가 진행 중이 아님 | 조회 결과의 조회 시각·Filter·Source Version·Warning이 갱신되며 Owner 데이터는 변경하지 않는다. |
+| **폐기** | 복구·상태 변경 | 화면과 Owner가 요구하는 복구 Permission·대상 상태·Reason·승인·Version 조건을 충족함 | 복구 Operation을 생성하고 Owner 상태·대상별 결과·Audit로 종료를 판정한다. |
+
+### 정상 업무 전체 절차
+
+1. `/sessions`에 진입해 Page Header와 Route가 **본인 Refresh Session** 기능을 가리키는지 확인한다.
+2. 로그인 Session·Environment·Data Scope·기준일·Timezone을 고정한다.
+3. 화면의 조회 Control과 변경 Form을 구분한다. 조회 조건이 제공되면 먼저 조회하고, 변경 Form은 대상 선택 또는 등록 Action 뒤에 열린 실제 Field만 사용한다.
+4. Loading 종료 후 Empty·Error·Stale·Partial 상태와 화면 Warning을 먼저 판정한다.
+5. **Session 목록, Device, Expiry**를 읽고 식별자·상태·Version·시각을 Owner 원장과 대사한다.
+6. **폐기** 전에 화면과 Owner가 실제로 요구하는 Permission·현재 상태·영향 범위·Reason·승인·Version 조건을 확인하고 한 번만 제출한다.
+7. **폐기**의 HTTP 응답과 재조회 결과를 확인한다. 비동기·다중 대상 기능은 Owner Terminal 상태·Version·대상별 Success/Failed/Unknown·Audit를 별도로 확인한다.
+8. 화면이 제공하는 Log·Metric·Trace와, 변경·Export·승인 조치에 생성된 Audit를 교차 확인한다.
+9. 이 장의 **종료 판정**과 다음 확인 시각·Evidence Link를 교대 기록에 남긴다.
+
+### 메뉴 고유 판정·금지 사항
+
+- **목적:** 본인 Refresh Session과 Device·만료 상태를 조회·폐기한다.
+- **종료 판정:** 폐기 후 같은 Session이 보호 API에 접근하지 못하는지 확인한다.
+- 응답을 받지 못한 경우 Owner 상태와 기존 Operation을 확인하기 전에 동일 Action을 반복하지 않는다.
+- HTTP 성공 응답이나 Toast만으로 비동기 Owner 상태 또는 다중 대상 적용을 확정하지 않는다.
+
+### 오류·경계·동시성·복구
+
+| 상황 | 화면 징후 | 운영 조치 | 종료 증적 |
+|---|---|---|---|
+| 401·Session | Session 만료·CSRF·Origin 실패 | 로그인 상태와 BFF Session을 확인한다. Command 자동 Replay는 금지한다. | 401/403 응답·Session Audit |
+| 403·Data Scope | 메뉴·Button·Raw·Export가 거부됨 | Menu·Button·API·Owner Permission과 Data Scope를 확인하고 우회하지 않는다. | Deny Audit·요청 Permission |
+| Validation | 필수값·범위·형식·기간 오류 | Field Error만 수정하고 기존 성공 Operation을 다시 제출하지 않는다. | Error Code·Field·입력값 |
+| Timeout·Dependency | 일부 Source 또는 Command 응답 지연 | Correlation/Operation ID와 실패 Stage를 기록하고 Owner 상태를 조회한다. | Dependency 상태·Retryability |
+| Partial·Stale | 일부 대상만 Success 또는 조회 Source 누락 | 성공·실패·미응답을 분리하고 누락 범위와 Version을 표시한다. | Target별 결과·Version |
+| 409·동시 변경 | Expected Version 불일치 | 최신 상세를 재조회하고 Diff·영향을 다시 검토한 뒤 새 요청으로 제출한다. | 현재/요청 Version·변경자 |
+| 응답 유실·Unknown | 요청 후 실제 처리 여부를 알 수 없음 | Operation ID·Request Hash·Audit·Owner 상태로 대사하고 중복 제출하지 않는다. | Operation·Owner·Audit |
+| 복구 실패 | Retry/Rollback 뒤에도 상태 불일치 | 자동 반복을 중단하고 Incident·Reconcile Case·다음 확인 시각을 기록한다. | Case ID·복구 Owner·기한 |
+
+### 응답 유실·결과 불명·부분 적용 처리
+
+1. 동일 Action을 다시 누르지 않고 Browser Network와 응답 Header를 보존한다. `operationId`·`transactionId`·`idempotencyKey`가 제공되면 기록하고, 없으면 Target ID·Actor·요청 시각·Request Body Hash로 대사한다.
+2. 기능이 제공하는 상세·Operation Status(있는 경우)·Audit에서 Request Hash와 대상 Version을 검색한다.
+3. Side Effect 전 실패가 확인된 경우에만 새 요청을 검토한다.
+4. Success·Failed·Unknown 대상을 분리하고 Source가 제공하는 Failed-only Retry·Compensation·Rollback을 선택하고, 지원되지 않으면 수동 Reconcile Case로 이관한다.
+5. Rollback을 지원하는 기능은 Owner Version·Checksum·업무 합계가 Rollback Point와 일치하는지 확인한다.
+6. 확정되지 않은 대상은 `UNKNOWN_RESULT`로 유지하고 담당자·대사 기한·다음 확인 시각을 기록한다.
+
+### Log·Metric·Trace·Audit와 교대 기록
+
+| 증적 | 필수 값 |
+|---|---|
+| Audit | Actor·Permission·Reason·Approval·Target·Before/After·Result·Recovery Action |
+| Log | Environment·Instance·operationId·transactionId·failureStage·errorCode |
+| Metric | 동일 시간 창의 Success·Failure·Latency·Queue·Retry·Partial·Unknown |
+| Trace | root/segment/attempt·Owner·DB/Kafka/외부 의존성 Span |
+| 상태 원장 | Target ID·Version·Checksum·Desired/Actual·Last Updated·Terminal 여부 |
+
+```text
+Menu=sessions
+Route=/sessions
+Environment=
+DataScope=
+Query=
+TargetId=
+BeforeVersion=
+Action=
+Reason=
+ApprovalId=
+OperationId=
+TransactionId=
+Result=SUCCESS|FAILED|PARTIAL|UNKNOWN_RESULT
+OwnerState=
+FailedTargets=
+ReconcileBy=
+RollbackPoint=
+EvidenceLinks=
+NextCheckAt=
+```
+
+### 실무 Workbook
+
+**상황:** 본인 Refresh Session과 Device·만료 상태를 조회·폐기한다. 담당자가 **폐기**을 수행한 뒤 Browser 응답을 받지 못했다.
+
+1. 대상 식별자와 Before Version, 입력값, Reason·Approval을 작업 기록에서 확인한다.
+2. 동일 **폐기**을 반복하지 않고 Operation·Audit·Owner 상태를 조회한다.
+3. Owner 상태가 변경됐고 Request Hash가 같으면 응답 유실로 분류해 중복 조치를 금지한다.
+4. 일부 대상만 변경됐으면 Success·Failed·Unknown을 분리해 Failed-only Retry 또는 Rollback을 선택한다.
+5. 폐기 후 같은 Session이 보호 API에 접근하지 못하는지 확인한다.
+6. Evidence Link와 다음 확인 시각을 교대 기록에 남긴다.
+
+### 독립 수행 검수 Checklist
+
+- [ ] `/sessions`와 Page Source를 찾고 화면 목적을 설명할 수 있다.
+- [ ] 3개 입력·검색 항목의 Control·기본값·Validation을 설명할 수 있다.
+- [ ] 3개 표시값을 Owner 상태·Version·Audit와 대사할 수 있다.
+- [ ] 2개 Action의 분류·활성 조건·Side Effect를 설명할 수 있다.
+- [ ] Empty·403·409·Timeout·Partial·Unknown을 서로 다른 상태로 처리할 수 있다.
+- [ ] 응답 유실 뒤 중복 제출 없이 Operation·Owner·Audit로 결과를 확정할 수 있다.
+- [ ] 교대 기록만으로 다음 담당자가 Target·상태·복구 기한을 이어받을 수 있다.
+
+## 20. audits — Immutable 업무 감사
+
+![Immutable 업무 감사 화면·업무 흐름](../assets/guides/menu-detail/bza-audits.svg)
+
+### 이 장에서 끝내는 업무
+
+업무 변경 Audit를 Actor·Action·Target·Operation으로 조회한다.
+
+### 메뉴 식별·책임
+
+| 항목 | 값 |
+|---|---|
+| Route | `/audits` |
+| 메뉴 ID | `audits` |
+| Menu Code | `AUDIT` |
+| 업무 그룹 | support |
+| Frontend Page | `cpf-biz-admin/frontend/src/features/audits/AuditsPage.vue` |
+| Permission | Audit Read |
+| 기준 Commit | `23babb9140b90e501d6ac715e7b77f55b66198a5` |
+
+### Source·API 근거
+
+| 구분 | 기준 |
+|---|---|
+| Frontend Page | `cpf-biz-admin/frontend/src/features/audits/AuditsPage.vue` |
+| Router | `/audits` |
+| API 추적 | 화면에서 제공하는 기능을 통해 호출한다. 문서에 명시되지 않은 Endpoint를 Browser나 외부 Script에서 임의 호출하지 않는다. |
+
+아래 표는 이 메뉴에서 실제로 확인·입력·실행할 항목을 정리한다. 화면에 없는 Field·Button·상태를 임의로 가정하지 않는다.
+
+### 검색·입력 Field
+
+| Field | Control | 업무 의미 | 기본값·Validation·주의 |
+|---|---|---|---|
+| `Actor` | 날짜·시간 입력 | 조회 또는 적용의 유효 시간 범위를 정하며 Timezone과 시작·종료 순서를 함께 확인한다. | Timezone을 고정하고 시작≤종료·유효기간 겹침·기준일 포함 여부를 확인한다. |
+| `Action` | Select·검색 | Immutable 업무 감사에서 적용하거나 조회할 정책·권한·처리 유형을 선택한다. | 허용 목록과 현재 Environment·Data Scope에 맞는 값만 선택한다. |
+| `Target` | 문자열 입력·검색 | Immutable 업무 감사 화면의 조회 조건 또는 편집 Form에 포함되는 값이며 화면 Label과 Help를 기준으로 사용한다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+| `기간` | 날짜·시간 입력 | 조회 또는 적용의 유효 시간 범위를 정하며 Timezone과 시작·종료 순서를 함께 확인한다. | Timezone을 고정하고 시작≤종료·유효기간 겹침·기준일 포함 여부를 확인한다. |
+| `Operation` | 문자열 입력·검색 | Immutable 업무 감사 화면의 조회 조건 또는 편집 Form에 포함되는 값이며 화면 Label과 Help를 기준으로 사용한다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+
+#### 입력 순서
+
+1. **Actor** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+2. **Action** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+3. **Target** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+4. **기간** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+5. **Operation** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+6. 조회 Control과 변경 Form을 분리해 기록하고, 실행 전 Environment·Data Scope·Timezone과 제출할 값만 다시 검토한다.
+
+### 목록 Column·상세 Field
+
+| 표시값 | 운영 의미 | 교차 확인 |
+|---|---|---|
+| `Actor` | 상태 발생·갱신·유효 시점을 나타내며 화면 Timezone을 기준으로 해석한다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Action` | Immutable 업무 감사 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Target` | Immutable 업무 감사 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `기간` | 상태 발생·갱신·유효 시점을 나타내며 화면 Timezone을 기준으로 해석한다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Operation` | Immutable 업무 감사 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+
+#### 결과 판독 순서
+
+1. 조회 완료 시각·Filter·Paging·Sort와 화면 Warning을 확인한다.
+2. Empty·Stale·Partial을 정상 0건과 구분한다.
+3. 식별자·상태·Version·오류·시각을 같은 Query Context의 상세와 Owner 원장에서 비교한다.
+4. Masking된 값은 Raw Permission과 Reason 없이 복원·Export하지 않는다.
+5. 집계와 상세가 다르면 집계 시간 창·Timezone·Owner Update 시각을 맞춰 대사한다.
+
+### Button·Action
+
+| Action | 분류 | 활성 조건 | Side Effect·정상 결과 |
+|---|---|---|---|
+| **조회** | 조회·탐색 | 조회 Permission과 Query Validation을 충족하고 동일 조회가 진행 중이 아님 | 조회 결과의 조회 시각·Filter·Source Version·Warning이 갱신되며 Owner 데이터는 변경하지 않는다. |
+| **상세** | 조회·탐색 | 조회 Permission과 Query Validation을 충족하고 동일 조회가 진행 중이 아님 | 상세 결과의 조회 시각·Filter·Source Version·Warning이 갱신되며 Owner 데이터는 변경하지 않는다. |
+
+### 정상 업무 전체 절차
+
+1. `/audits`에 진입해 Page Header와 Route가 **Immutable 업무 감사** 기능을 가리키는지 확인한다.
+2. 로그인 Session·Environment·Data Scope·기준일·Timezone을 고정한다.
+3. 화면에 제공된 조회 Control만 사용하고, 표시되지 않은 변경 Field나 Server Command가 있다고 가정하지 않는다.
+4. Loading 종료 후 Empty·Error·Stale·Partial 상태와 화면 Warning을 먼저 판정한다.
+5. **Actor, Action, Target, 기간, Operation**를 읽고 식별자·상태·Version·시각을 Owner 원장과 대사한다.
+6. 화면이 제공하는 Log·Metric·Trace와 조회·Raw·Export 접근 기록이 있으면 해당 Audit를 교차 확인한다.
+7. 이 장의 **종료 판정**과 다음 확인 시각·Evidence Link를 교대 기록에 남긴다.
+
+### 메뉴 고유 판정·금지 사항
+
+- **목적:** 업무 변경 Audit를 Actor·Action·Target·Operation으로 조회한다.
+- **종료 판정:** Before/After·Reason·Permission·결과를 원본 업무와 대사한다.
+- 조회 화면에서 직접 Owner 데이터를 변경하거나 Browser Tool로 우회하지 않는다.
+- Partial 조회를 정상 전체 결과로 합치지 않는다.
+
+### 오류·경계·동시성·복구
+
+| 상황 | 화면 징후 | 운영 조치 | 종료 증적 |
+|---|---|---|---|
+| 401·Session | Session 만료·CSRF·Origin 실패 | 로그인 상태와 BFF Session을 확인한 뒤 같은 Query Context로 다시 조회한다. | 401/403 응답·Session Audit |
+| 403·Data Scope | 메뉴·Button·Raw·Export가 거부됨 | Menu·Button·API·Owner Permission과 Data Scope를 확인하고 우회하지 않는다. | Deny Audit·요청 Permission |
+| Timeout·Dependency | 일부 조회 Source 응답 지연 | Correlation ID·Query Context·실패 Source를 기록하고 같은 조건으로 재조회한다. | 조회 시각·실패 Source·재조회 결과 |
+| Partial·Stale | 일부 대상만 Success 또는 조회 Source 누락 | 성공·실패·미응답을 분리하고 누락 범위와 Version을 표시한다. | Target별 결과·Version |
+
+### 응답 유실·부분 조회 처리
+
+1. 검색 조건·Data Scope·Paging·조회 시각·Correlation ID를 기록한다.
+2. 같은 조건으로 재조회하되 실패 Source만 분리한다.
+3. 정상 Source 결과를 유지하고 실패·Stale Source를 명시한다.
+4. 집계와 원본 상세가 다르면 Owner 상세를 기준으로 Reconcile Case를 연다.
+5. 조회 시각·Source Version·0건 또는 일치 결과를 증적으로 남긴다.
+
+### Log·Metric·Trace·Audit와 교대 기록
+
+| 증적 | 필수 값 |
+|---|---|
+| Audit | Actor·Permission·Data Scope·Raw/Export 접근·Query Context·Result |
+| Log | Environment·Instance·operationId·transactionId·failureStage·errorCode |
+| Metric | 동일 시간 창의 Success·Failure·Latency·Queue·Retry·Partial·Unknown |
+| Trace | root/segment/attempt·Owner·DB/Kafka/외부 의존성 Span |
+| 상태 원장 | Target ID·Version·Checksum·Desired/Actual·Last Updated·Terminal 여부 |
+
+```text
+Menu=
+Route=
+Environment=
+DataScope=
+Query=
+QueryAt=
+CorrelationId=
+SourceVersion=
+Result=SUCCESS|EMPTY|STALE|PARTIAL|FAILED
+FailedSources=
+EvidenceLinks=
+NextCheckAt=
+```
+
+### 실무 Workbook
+
+**상황:** 업무 변경 Audit를 Actor·Action·Target·Operation으로 조회한다. 화면이 일부 Source Timeout 때문에 Partial 결과를 표시했다.
+
+1. Query·Data Scope·조회 시각·Correlation ID를 기록한다.
+2. 정상 결과를 0건으로 덮어쓰지 않고 실패 Source만 재조회한다.
+3. Actor, Action, Target 값을 원본 상세와 같은 시간 기준으로 비교한다.
+4. 불일치가 계속되면 Incident 또는 Reconcile Case를 생성한다.
+5. Before/After·Reason·Permission·결과를 원본 업무와 대사한다.
+6. Source Version과 다음 확인 시각을 교대 기록에 남긴다.
+
+### 독립 수행 검수 Checklist
+
+- [ ] `/audits`와 Page Source를 찾고 화면 목적을 설명할 수 있다.
+- [ ] 5개 입력·검색 항목의 Control·기본값·Validation을 설명할 수 있다.
+- [ ] 5개 표시값을 Owner 상태·Version·Audit와 대사할 수 있다.
+- [ ] 2개 Action의 분류·활성 조건·Side Effect를 설명할 수 있다.
+- [ ] Empty·401·403·Timeout·Stale·Partial을 서로 다른 조회 상태로 처리할 수 있다.
+- [ ] 조회 응답 유실 시 같은 Query Context로 재조회하고 Correlation ID·조회 시각·Source Version으로 결과를 대사할 수 있다.
+- [ ] 교대 기록만으로 다음 담당자가 Target·상태·복구 기한을 이어받을 수 있다.
+
+## 21. notifications — 업무 알림
+
+![업무 알림 화면·업무 흐름](../assets/guides/menu-detail/bza-notifications.svg)
+
+### 이 장에서 끝내는 업무
+
+업무 알림 상태·채널·사용자 Filter를 조회하고 읽음·설정을 관리한다.
+
+### 메뉴 식별·책임
+
+| 항목 | 값 |
+|---|---|
+| Route | `/notifications` |
+| 메뉴 ID | `notifications` |
+| Menu Code | `SETTING` |
+| 업무 그룹 | support |
+| Frontend Page | `cpf-biz-admin/frontend/src/features/notifications/NotificationsPage.vue` |
+| Permission | 본인/Setting |
+| 기준 Commit | `23babb9140b90e501d6ac715e7b77f55b66198a5` |
+
+### Source·API 근거
+
+| 구분 | 기준 |
+|---|---|
+| Frontend Page | `cpf-biz-admin/frontend/src/features/notifications/NotificationsPage.vue` |
+| Router | `/notifications` |
+| API 추적 | 화면에서 제공하는 기능을 통해 호출한다. 문서에 명시되지 않은 Endpoint를 Browser나 외부 Script에서 임의 호출하지 않는다. |
+
+아래 표는 이 메뉴에서 실제로 확인·입력·실행할 항목을 정리한다. 화면에 없는 Field·Button·상태를 임의로 가정하지 않는다.
+
+### 검색·입력 Field
+
+| Field | Control | 업무 의미 | 기본값·Validation·주의 |
+|---|---|---|---|
+| `알림 상태` | Select·검색 | 현재 상태를 조회하거나 다음 Action의 허용 조건을 지정한다. | 허용 목록과 현재 Environment·Data Scope에 맞는 값만 선택한다. |
+| `채널` | Select·검색 | 업무 알림에서 적용하거나 조회할 정책·권한·처리 유형을 선택한다. | 허용 목록과 현재 Environment·Data Scope에 맞는 값만 선택한다. |
+| `사용자 Filter` | Checkbox·Switch | 현재 상태를 조회하거나 다음 Action의 허용 조건을 지정한다. | 현재 선택과 변경 후 영향 범위를 비교하고 화면의 Source 기본값을 확인한다. |
+
+#### 입력 순서
+
+1. **알림 상태** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+2. **채널** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+3. **사용자 Filter** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+4. 조회 Control과 변경 Form을 분리해 기록하고, 실행 전 Environment·Data Scope·Timezone과 제출할 값만 다시 검토한다.
+
+### 목록 Column·상세 Field
+
+| 표시값 | 운영 의미 | 교차 확인 |
+|---|---|---|
+| `알림 상태` | 현재 상태와 Terminal 여부, 다음 Action 가능 여부를 판단하는 값이다. | Last Updated·Terminal 조건·Owner 상태와 함께 확인한다. |
+| `채널` | 업무 알림 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `사용자 Filter` | 업무 알림 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+
+#### 결과 판독 순서
+
+1. 조회 완료 시각·Filter·Paging·Sort와 화면 Warning을 확인한다.
+2. Empty·Stale·Partial을 정상 0건과 구분한다.
+3. 식별자·상태·Version·오류·시각을 같은 Query Context의 상세와 Owner 원장에서 비교한다.
+4. Masking된 값은 Raw Permission과 Reason 없이 복원·Export하지 않는다.
+5. 집계와 상세가 다르면 집계 시간 창·Timezone·Owner Update 시각을 맞춰 대사한다.
+
+### Button·Action
+
+| Action | 분류 | 활성 조건 | Side Effect·정상 결과 |
+|---|---|---|---|
+| **조회** | 조회·탐색 | 조회 Permission과 Query Validation을 충족하고 동일 조회가 진행 중이 아님 | 조회 결과의 조회 시각·Filter·Source Version·Warning이 갱신되며 Owner 데이터는 변경하지 않는다. |
+| **읽음 처리** | 등록·Draft 변경 | 화면이 실제로 요구하는 Write Permission·필수 Field·Reason·Version 조건을 충족함 | 업무 알림의 재조회 결과가 요청 내용과 일치한다. Version·Before/After·Audit는 해당 Owner가 제공하는 경우 함께 확인한다. |
+| **설정 저장** | 등록·Draft 변경 | 화면이 실제로 요구하는 Write Permission·필수 Field·Reason·Version 조건을 충족함 | 업무 알림의 재조회 결과가 요청 내용과 일치한다. Version·Before/After·Audit는 해당 Owner가 제공하는 경우 함께 확인한다. |
+
+### 정상 업무 전체 절차
+
+1. `/notifications`에 진입해 Page Header와 Route가 **업무 알림** 기능을 가리키는지 확인한다.
+2. 로그인 Session·Environment·Data Scope·기준일·Timezone을 고정한다.
+3. 화면의 조회 Control과 변경 Form을 구분한다. 조회 조건이 제공되면 먼저 조회하고, 변경 Form은 대상 선택 또는 등록 Action 뒤에 열린 실제 Field만 사용한다.
+4. Loading 종료 후 Empty·Error·Stale·Partial 상태와 화면 Warning을 먼저 판정한다.
+5. **알림 상태, 채널, 사용자 Filter**를 읽고 식별자·상태·Version·시각을 Owner 원장과 대사한다.
+6. **읽음 처리** 전에 화면과 Owner가 실제로 요구하는 Permission·현재 상태·영향 범위·Reason·승인·Version 조건을 확인하고 한 번만 제출한다.
+7. **읽음 처리**의 HTTP 응답과 재조회 결과를 확인한다. 비동기·다중 대상 기능은 Owner Terminal 상태·Version·대상별 Success/Failed/Unknown·Audit를 별도로 확인한다.
+8. **설정 저장** 전에 화면과 Owner가 실제로 요구하는 Permission·현재 상태·영향 범위·Reason·승인·Version 조건을 확인하고 한 번만 제출한다.
+9. **설정 저장**의 HTTP 응답과 재조회 결과를 확인한다. 비동기·다중 대상 기능은 Owner Terminal 상태·Version·대상별 Success/Failed/Unknown·Audit를 별도로 확인한다.
+10. 화면이 제공하는 Log·Metric·Trace와, 변경·Export·승인 조치에 생성된 Audit를 교차 확인한다.
+11. 이 장의 **종료 판정**과 다음 확인 시각·Evidence Link를 교대 기록에 남긴다.
+
+### 메뉴 고유 판정·금지 사항
+
+- **목적:** 업무 알림 상태·채널·사용자 Filter를 조회하고 읽음·설정을 관리한다.
+- **종료 판정:** Delivery 상태와 사용자 읽음 상태를 분리한다.
+- 응답을 받지 못한 경우 Owner 상태와 기존 Operation을 확인하기 전에 동일 Action을 반복하지 않는다.
+- HTTP 성공 응답이나 Toast만으로 비동기 Owner 상태 또는 다중 대상 적용을 확정하지 않는다.
+
+### 오류·경계·동시성·복구
+
+| 상황 | 화면 징후 | 운영 조치 | 종료 증적 |
+|---|---|---|---|
+| 401·Session | Session 만료·CSRF·Origin 실패 | 로그인 상태와 BFF Session을 확인한다. Command 자동 Replay는 금지한다. | 401/403 응답·Session Audit |
+| 403·Data Scope | 메뉴·Button·Raw·Export가 거부됨 | Menu·Button·API·Owner Permission과 Data Scope를 확인하고 우회하지 않는다. | Deny Audit·요청 Permission |
+| Validation | 필수값·범위·형식·기간 오류 | Field Error만 수정하고 기존 성공 Operation을 다시 제출하지 않는다. | Error Code·Field·입력값 |
+| Timeout·Dependency | 일부 Source 또는 Command 응답 지연 | Correlation/Operation ID와 실패 Stage를 기록하고 Owner 상태를 조회한다. | Dependency 상태·Retryability |
+| Partial·Stale | 일부 대상만 Success 또는 조회 Source 누락 | 성공·실패·미응답을 분리하고 누락 범위와 Version을 표시한다. | Target별 결과·Version |
+| 409·동시 변경 | Expected Version 불일치 | 최신 상세를 재조회하고 Diff·영향을 다시 검토한 뒤 새 요청으로 제출한다. | 현재/요청 Version·변경자 |
+| 응답 유실·Unknown | 요청 후 실제 처리 여부를 알 수 없음 | Operation ID·Request Hash·Audit·Owner 상태로 대사하고 중복 제출하지 않는다. | Operation·Owner·Audit |
+| 복구 실패 | Retry/Rollback 뒤에도 상태 불일치 | 자동 반복을 중단하고 Incident·Reconcile Case·다음 확인 시각을 기록한다. | Case ID·복구 Owner·기한 |
+
+### 응답 유실·결과 불명·부분 적용 처리
+
+1. 동일 Action을 다시 누르지 않고 Browser Network와 응답 Header를 보존한다. `operationId`·`transactionId`·`idempotencyKey`가 제공되면 기록하고, 없으면 Target ID·Actor·요청 시각·Request Body Hash로 대사한다.
+2. 기능이 제공하는 상세·Operation Status(있는 경우)·Audit에서 Request Hash와 대상 Version을 검색한다.
+3. Side Effect 전 실패가 확인된 경우에만 새 요청을 검토한다.
+4. Success·Failed·Unknown 대상을 분리하고 Source가 제공하는 Failed-only Retry·Compensation·Rollback을 선택하고, 지원되지 않으면 수동 Reconcile Case로 이관한다.
+5. Rollback을 지원하는 기능은 Owner Version·Checksum·업무 합계가 Rollback Point와 일치하는지 확인한다.
+6. 확정되지 않은 대상은 `UNKNOWN_RESULT`로 유지하고 담당자·대사 기한·다음 확인 시각을 기록한다.
+
+### Log·Metric·Trace·Audit와 교대 기록
+
+| 증적 | 필수 값 |
+|---|---|
+| Audit | Actor·Permission·Reason·Approval·Target·Before/After·Result·Recovery Action |
+| Log | Environment·Instance·operationId·transactionId·failureStage·errorCode |
+| Metric | 동일 시간 창의 Success·Failure·Latency·Queue·Retry·Partial·Unknown |
+| Trace | root/segment/attempt·Owner·DB/Kafka/외부 의존성 Span |
+| 상태 원장 | Target ID·Version·Checksum·Desired/Actual·Last Updated·Terminal 여부 |
+
+```text
+Menu=notifications
+Route=/notifications
+Environment=
+DataScope=
+Query=
+TargetId=
+BeforeVersion=
+Action=
+Reason=
+ApprovalId=
+OperationId=
+TransactionId=
+Result=SUCCESS|FAILED|PARTIAL|UNKNOWN_RESULT
+OwnerState=
+FailedTargets=
+ReconcileBy=
+RollbackPoint=
+EvidenceLinks=
+NextCheckAt=
+```
+
+### 실무 Workbook
+
+**상황:** 업무 알림 상태·채널·사용자 Filter를 조회하고 읽음·설정을 관리한다. 담당자가 **읽음 처리**을 수행한 뒤 Browser 응답을 받지 못했다.
+
+1. 대상 식별자와 Before Version, 입력값, Reason·Approval을 작업 기록에서 확인한다.
+2. 동일 **읽음 처리**을 반복하지 않고 Operation·Audit·Owner 상태를 조회한다.
+3. Owner 상태가 변경됐고 Request Hash가 같으면 응답 유실로 분류해 중복 조치를 금지한다.
+4. 일부 대상만 변경됐으면 Success·Failed·Unknown을 분리해 Failed-only Retry 또는 Rollback을 선택한다.
+5. Delivery 상태와 사용자 읽음 상태를 분리한다.
+6. Evidence Link와 다음 확인 시각을 교대 기록에 남긴다.
+
+### 독립 수행 검수 Checklist
+
+- [ ] `/notifications`와 Page Source를 찾고 화면 목적을 설명할 수 있다.
+- [ ] 3개 입력·검색 항목의 Control·기본값·Validation을 설명할 수 있다.
+- [ ] 3개 표시값을 Owner 상태·Version·Audit와 대사할 수 있다.
+- [ ] 3개 Action의 분류·활성 조건·Side Effect를 설명할 수 있다.
+- [ ] Empty·403·409·Timeout·Partial·Unknown을 서로 다른 상태로 처리할 수 있다.
+- [ ] 응답 유실 뒤 중복 제출 없이 Operation·Owner·Audit로 결과를 확정할 수 있다.
+- [ ] 교대 기록만으로 다음 담당자가 Target·상태·복구 기한을 이어받을 수 있다.
+
+## 22. attachments — 첨부 업로드·검사·격리
+
+![첨부 업로드·검사·격리 화면·업무 흐름](../assets/guides/menu-detail/bza-attachments.svg)
+
+### 이 장에서 끝내는 업무
+
+Attachment Group과 Scan·분류·Quarantine·Retention을 관리한다.
+
+### 메뉴 식별·책임
+
+| 항목 | 값 |
+|---|---|
+| Route | `/attachments` |
+| 메뉴 ID | `attachments` |
+| Menu Code | `ATTACHMENT` |
+| 업무 그룹 | support |
+| Frontend Page | `cpf-biz-admin/frontend/src/features/attachments/AttachmentsPage.vue` |
+| Permission | Write |
+| 기준 Commit | `23babb9140b90e501d6ac715e7b77f55b66198a5` |
+
+### Source·API 근거
+
+| 구분 | 기준 |
+|---|---|
+| Frontend Page | `cpf-biz-admin/frontend/src/features/attachments/AttachmentsPage.vue` |
+| Router | `/attachments` |
+| API 추적 | 화면에서 제공하는 기능을 통해 호출한다. 문서에 명시되지 않은 Endpoint를 Browser나 외부 Script에서 임의 호출하지 않는다. |
+
+아래 표는 이 메뉴에서 실제로 확인·입력·실행할 항목을 정리한다. 화면에 없는 Field·Button·상태를 임의로 가정하지 않는다.
+
+### 검색·입력 Field
+
+| Field | Control | 업무 의미 | 기본값·Validation·주의 |
+|---|---|---|---|
+| `Group ID` | 문자열 입력·검색 | 조회·상세·Audit에서 같은 대상을 다시 찾기 위한 식별 조건이다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+| `File` | 파일·본문 입력 | 검증·등록·Export에 사용할 입력 Artifact 또는 구조화된 본문이다. | 확장자·크기·Encoding·Schema·Checksum을 검증하고 Dry Run이 있으면 먼저 실행한다. |
+| `Reason` | 다중행 입력 | 작업 목적·영향 범위·승인 또는 복구 기준을 기록해 Audit와 교대 기록에 연결한다. | Ticket·영향 범위·복구점을 포함하고 화면이 요구하는 최소 길이를 충족한다. |
+| `Scan` | 문자열 입력·검색 | 첨부 업로드·검사·격리 화면의 조회 조건 또는 편집 Form에 포함되는 값이며 화면 Label과 Help를 기준으로 사용한다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+| `Data Classification` | 문자열 입력·검색 | 첨부 업로드·검사·격리 화면의 조회 조건 또는 편집 Form에 포함되는 값이며 화면 Label과 Help를 기준으로 사용한다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+| `Quarantine` | 문자열 입력·검색 | 첨부 업로드·검사·격리 화면의 조회 조건 또는 편집 Form에 포함되는 값이며 화면 Label과 Help를 기준으로 사용한다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+| `Retention` | 문자열 입력·검색 | 첨부 업로드·검사·격리 화면의 조회 조건 또는 편집 Form에 포함되는 값이며 화면 Label과 Help를 기준으로 사용한다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+
+#### 입력 순서
+
+1. **Group ID** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+2. **File** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+3. **Reason** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+4. **Scan** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+5. **Data Classification** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+6. **Quarantine** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+7. **Retention** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+8. 조회 Control과 변경 Form을 분리해 기록하고, 실행 전 Environment·Data Scope·Timezone과 제출할 값만 다시 검토한다.
+
+### 목록 Column·상세 Field
+
+| 표시값 | 운영 의미 | 교차 확인 |
+|---|---|---|
+| `Group ID` | 첨부 업로드·검사·격리의 대상 레코드를 상세·Owner·Audit에서 연결하는 식별자다. | 상세·Log·Trace·Audit에서 같은 대상을 가리키는지 확인한다. |
+| `File` | 첨부 업로드·검사·격리 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Reason` | 작업 주체·Owner·변경 사유를 확인하는 감사 정보다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Scan` | 첨부 업로드·검사·격리 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Data Classification` | 첨부 업로드·검사·격리 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Quarantine` | 첨부 업로드·검사·격리 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Retention` | 첨부 업로드·검사·격리 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+
+#### 결과 판독 순서
+
+1. 조회 완료 시각·Filter·Paging·Sort와 화면 Warning을 확인한다.
+2. Empty·Stale·Partial을 정상 0건과 구분한다.
+3. 식별자·상태·Version·오류·시각을 같은 Query Context의 상세와 Owner 원장에서 비교한다.
+4. Masking된 값은 Raw Permission과 Reason 없이 복원·Export하지 않는다.
+5. 집계와 상세가 다르면 집계 시간 창·Timezone·Owner Update 시각을 맞춰 대사한다.
+
+### Button·Action
+
+| Action | 분류 | 활성 조건 | Side Effect·정상 결과 |
+|---|---|---|---|
+| **조회** | 조회·탐색 | 조회 Permission과 Query Validation을 충족하고 동일 조회가 진행 중이 아님 | 조회 결과의 조회 시각·Filter·Source Version·Warning이 갱신되며 Owner 데이터는 변경하지 않는다. |
+| **Upload** | 등록·Draft 변경 | 화면이 실제로 요구하는 Write Permission·필수 Field·Reason·Version 조건을 충족함 | 첨부 업로드·검사·격리의 재조회 결과가 요청 내용과 일치한다. Version·Before/After·Audit는 해당 Owner가 제공하는 경우 함께 확인한다. |
+| **Download** | Export·Artifact | 화면이 요구하는 Export Permission·Data Scope·Masking·Reason과 승인 조건을 충족함 | Export Operation과 Artifact ID·Checksum·만료·Download Audit가 생성되고 원본 데이터는 변경하지 않는다. |
+| **재검사** | 등록·Draft 변경 | 화면이 실제로 요구하는 Write Permission·필수 Field·Reason·Version 조건을 충족함 | 첨부 업로드·검사·격리의 재조회 결과가 요청 내용과 일치한다. Version·Before/After·Audit는 해당 Owner가 제공하는 경우 함께 확인한다. |
+
+### 정상 업무 전체 절차
+
+1. `/attachments`에 진입해 Page Header와 Route가 **첨부 업로드·검사·격리** 기능을 가리키는지 확인한다.
+2. 로그인 Session·Environment·Data Scope·기준일·Timezone을 고정한다.
+3. 화면의 조회 Control과 변경 Form을 구분한다. 조회 조건이 제공되면 먼저 조회하고, 변경 Form은 대상 선택 또는 등록 Action 뒤에 열린 실제 Field만 사용한다.
+4. Loading 종료 후 Empty·Error·Stale·Partial 상태와 화면 Warning을 먼저 판정한다.
+5. **Group ID, File, Reason, Scan, Data Classification**를 읽고 식별자·상태·Version·시각을 Owner 원장과 대사한다.
+6. **Upload** 전에 화면과 Owner가 실제로 요구하는 Permission·현재 상태·영향 범위·Reason·승인·Version 조건을 확인하고 한 번만 제출한다.
+7. **Upload**의 HTTP 응답과 재조회 결과를 확인한다. 비동기·다중 대상 기능은 Owner Terminal 상태·Version·대상별 Success/Failed/Unknown·Audit를 별도로 확인한다.
+8. **Download** 전에 화면과 Owner가 실제로 요구하는 Permission·현재 상태·영향 범위·Reason·승인·Version 조건을 확인하고 한 번만 제출한다.
+9. **Download**의 HTTP 응답과 재조회 결과를 확인한다. 비동기·다중 대상 기능은 Owner Terminal 상태·Version·대상별 Success/Failed/Unknown·Audit를 별도로 확인한다.
+10. **재검사** 전에 화면과 Owner가 실제로 요구하는 Permission·현재 상태·영향 범위·Reason·승인·Version 조건을 확인하고 한 번만 제출한다.
+11. **재검사**의 HTTP 응답과 재조회 결과를 확인한다. 비동기·다중 대상 기능은 Owner Terminal 상태·Version·대상별 Success/Failed/Unknown·Audit를 별도로 확인한다.
+12. 화면이 제공하는 Log·Metric·Trace와, 변경·Export·승인 조치에 생성된 Audit를 교차 확인한다.
+13. 이 장의 **종료 판정**과 다음 확인 시각·Evidence Link를 교대 기록에 남긴다.
+
+### 메뉴 고유 판정·금지 사항
+
+- **목적:** Attachment Group과 Scan·분류·Quarantine·Retention을 관리한다.
+- **종료 판정:** CLEAN 확정 전 Download/업무 연결을 허용하지 않는다.
+- 응답을 받지 못한 경우 Owner 상태와 기존 Operation을 확인하기 전에 동일 Action을 반복하지 않는다.
+- HTTP 성공 응답이나 Toast만으로 비동기 Owner 상태 또는 다중 대상 적용을 확정하지 않는다.
+
+### 오류·경계·동시성·복구
+
+| 상황 | 화면 징후 | 운영 조치 | 종료 증적 |
+|---|---|---|---|
+| 401·Session | Session 만료·CSRF·Origin 실패 | 로그인 상태와 BFF Session을 확인한다. Command 자동 Replay는 금지한다. | 401/403 응답·Session Audit |
+| 403·Data Scope | 메뉴·Button·Raw·Export가 거부됨 | Menu·Button·API·Owner Permission과 Data Scope를 확인하고 우회하지 않는다. | Deny Audit·요청 Permission |
+| Validation | 필수값·범위·형식·기간 오류 | Field Error만 수정하고 기존 성공 Operation을 다시 제출하지 않는다. | Error Code·Field·입력값 |
+| Timeout·Dependency | 일부 Source 또는 Command 응답 지연 | Correlation/Operation ID와 실패 Stage를 기록하고 Owner 상태를 조회한다. | Dependency 상태·Retryability |
+| Partial·Stale | 일부 대상만 Success 또는 조회 Source 누락 | 성공·실패·미응답을 분리하고 누락 범위와 Version을 표시한다. | Target별 결과·Version |
+| 409·동시 변경 | Expected Version 불일치 | 최신 상세를 재조회하고 Diff·영향을 다시 검토한 뒤 새 요청으로 제출한다. | 현재/요청 Version·변경자 |
+| 응답 유실·Unknown | 요청 후 실제 처리 여부를 알 수 없음 | Operation ID·Request Hash·Audit·Owner 상태로 대사하고 중복 제출하지 않는다. | Operation·Owner·Audit |
+| 복구 실패 | Retry/Rollback 뒤에도 상태 불일치 | 자동 반복을 중단하고 Incident·Reconcile Case·다음 확인 시각을 기록한다. | Case ID·복구 Owner·기한 |
+
+### 응답 유실·결과 불명·부분 적용 처리
+
+1. 동일 Action을 다시 누르지 않고 Browser Network와 응답 Header를 보존한다. `operationId`·`transactionId`·`idempotencyKey`가 제공되면 기록하고, 없으면 Target ID·Actor·요청 시각·Request Body Hash로 대사한다.
+2. 기능이 제공하는 상세·Operation Status(있는 경우)·Audit에서 Request Hash와 대상 Version을 검색한다.
+3. Side Effect 전 실패가 확인된 경우에만 새 요청을 검토한다.
+4. Success·Failed·Unknown 대상을 분리하고 Source가 제공하는 Failed-only Retry·Compensation·Rollback을 선택하고, 지원되지 않으면 수동 Reconcile Case로 이관한다.
+5. Rollback을 지원하는 기능은 Owner Version·Checksum·업무 합계가 Rollback Point와 일치하는지 확인한다.
+6. 확정되지 않은 대상은 `UNKNOWN_RESULT`로 유지하고 담당자·대사 기한·다음 확인 시각을 기록한다.
+
+### Log·Metric·Trace·Audit와 교대 기록
+
+| 증적 | 필수 값 |
+|---|---|
+| Audit | Actor·Permission·Reason·Approval·Target·Before/After·Result·Recovery Action |
+| Log | Environment·Instance·operationId·transactionId·failureStage·errorCode |
+| Metric | 동일 시간 창의 Success·Failure·Latency·Queue·Retry·Partial·Unknown |
+| Trace | root/segment/attempt·Owner·DB/Kafka/외부 의존성 Span |
+| 상태 원장 | Target ID·Version·Checksum·Desired/Actual·Last Updated·Terminal 여부 |
+
+```text
+Menu=attachments
+Route=/attachments
+Environment=
+DataScope=
+Query=
+TargetId=
+BeforeVersion=
+Action=
+Reason=
+ApprovalId=
+OperationId=
+TransactionId=
+Result=SUCCESS|FAILED|PARTIAL|UNKNOWN_RESULT
+OwnerState=
+FailedTargets=
+ReconcileBy=
+RollbackPoint=
+EvidenceLinks=
+NextCheckAt=
+```
+
+### 실무 Workbook
+
+**상황:** Attachment Group과 Scan·분류·Quarantine·Retention을 관리한다. 담당자가 **Upload**을 수행한 뒤 Browser 응답을 받지 못했다.
+
+1. 대상 식별자와 Before Version, 입력값, Reason·Approval을 작업 기록에서 확인한다.
+2. 동일 **Upload**을 반복하지 않고 Operation·Audit·Owner 상태를 조회한다.
+3. Owner 상태가 변경됐고 Request Hash가 같으면 응답 유실로 분류해 중복 조치를 금지한다.
+4. 일부 대상만 변경됐으면 Success·Failed·Unknown을 분리해 Failed-only Retry 또는 Rollback을 선택한다.
+5. CLEAN 확정 전 Download/업무 연결을 허용하지 않는다.
+6. Evidence Link와 다음 확인 시각을 교대 기록에 남긴다.
+
+### 독립 수행 검수 Checklist
+
+- [ ] `/attachments`와 Page Source를 찾고 화면 목적을 설명할 수 있다.
+- [ ] 7개 입력·검색 항목의 Control·기본값·Validation을 설명할 수 있다.
+- [ ] 7개 표시값을 Owner 상태·Version·Audit와 대사할 수 있다.
+- [ ] 4개 Action의 분류·활성 조건·Side Effect를 설명할 수 있다.
+- [ ] Empty·403·409·Timeout·Partial·Unknown을 서로 다른 상태로 처리할 수 있다.
+- [ ] 응답 유실 뒤 중복 제출 없이 Operation·Owner·Audit로 결과를 확정할 수 있다.
+- [ ] 교대 기록만으로 다음 담당자가 Target·상태·복구 기한을 이어받을 수 있다.
+
+## 23. savedSearches — 저장 검색
+
+![저장 검색 화면·업무 흐름](../assets/guides/menu-detail/bza-savedsearches.svg)
+
+### 이 장에서 끝내는 업무
+
+메뉴별 검색 조건을 저장·수정·삭제한다.
+
+### 메뉴 식별·책임
+
+| 항목 | 값 |
+|---|---|
+| Route | `/savedSearches` |
+| 메뉴 ID | `savedSearches` |
+| Menu Code | `SETTING` |
+| 업무 그룹 | support |
+| Frontend Page | `cpf-biz-admin/frontend/src/features/saved-searches/SavedSearchesPage.vue` |
+| Permission | 본인/Setting |
+| 기준 Commit | `23babb9140b90e501d6ac715e7b77f55b66198a5` |
+
+### Source·API 근거
+
+| 구분 | 기준 |
+|---|---|
+| Frontend Page | `cpf-biz-admin/frontend/src/features/saved-searches/SavedSearchesPage.vue` |
+| Router | `/savedSearches` |
+| API 추적 | 화면에서 제공하는 기능을 통해 호출한다. 문서에 명시되지 않은 Endpoint를 Browser나 외부 Script에서 임의 호출하지 않는다. |
+
+아래 표는 이 메뉴에서 실제로 확인·입력·실행할 항목을 정리한다. 화면에 없는 Field·Button·상태를 임의로 가정하지 않는다.
+
+### 검색·입력 Field
+
+| Field | Control | 업무 의미 | 기본값·Validation·주의 |
+|---|---|---|---|
+| `Menu` | Select·검색 | 저장 검색에서 적용하거나 조회할 정책·권한·처리 유형을 선택한다. | 허용 목록과 현재 Environment·Data Scope에 맞는 값만 선택한다. |
+| `Name` | 문자열 입력·검색 | 대상의 표시명 또는 업무명을 검색·입력한다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+| `Condition` | 문자열 입력·검색 | 저장 검색 화면의 조회 조건 또는 편집 Form에 포함되는 값이며 화면 Label과 Help를 기준으로 사용한다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+| `Use` | Checkbox·Switch | 현재 상태를 조회하거나 다음 Action의 허용 조건을 지정한다. | 현재 선택과 변경 후 영향 범위를 비교하고 화면의 Source 기본값을 확인한다. |
+
+#### 입력 순서
+
+1. **Menu** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+2. **Name** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+3. **Condition** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+4. **Use** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+5. 조회 Control과 변경 Form을 분리해 기록하고, 실행 전 Environment·Data Scope·Timezone과 제출할 값만 다시 검토한다.
+
+### 목록 Column·상세 Field
+
+| 표시값 | 운영 의미 | 교차 확인 |
+|---|---|---|
+| `Menu` | 저장 검색 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Name` | 운영자가 대상을 구분하는 표시명 또는 설명이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Condition` | 저장 검색 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Use` | 현재 상태와 Terminal 여부, 다음 Action 가능 여부를 판단하는 값이다. | Last Updated·Terminal 조건·Owner 상태와 함께 확인한다. |
+
+#### 결과 판독 순서
+
+1. 조회 완료 시각·Filter·Paging·Sort와 화면 Warning을 확인한다.
+2. Empty·Stale·Partial을 정상 0건과 구분한다.
+3. 식별자·상태·Version·오류·시각을 같은 Query Context의 상세와 Owner 원장에서 비교한다.
+4. Masking된 값은 Raw Permission과 Reason 없이 복원·Export하지 않는다.
+5. 집계와 상세가 다르면 집계 시간 창·Timezone·Owner Update 시각을 맞춰 대사한다.
+
+### Button·Action
+
+| Action | 분류 | 활성 조건 | Side Effect·정상 결과 |
+|---|---|---|---|
+| **등록** | 등록·Draft 변경 | 화면이 실제로 요구하는 Write Permission·필수 Field·Reason·Version 조건을 충족함 | 저장 검색의 재조회 결과가 요청 내용과 일치한다. Version·Before/After·Audit는 해당 Owner가 제공하는 경우 함께 확인한다. |
+| **수정** | 등록·Draft 변경 | 화면이 실제로 요구하는 Write Permission·필수 Field·Reason·Version 조건을 충족함 | 저장 검색의 재조회 결과가 요청 내용과 일치한다. Version·Before/After·Audit는 해당 Owner가 제공하는 경우 함께 확인한다. |
+| **삭제** | 변경·위험 조치 | 화면과 Owner가 요구하는 Write Permission·대상 상태·영향 범위·Reason·승인·Version 조건을 충족함 | 변경 Operation을 생성하고 Accepted 응답과 Owner Terminal 상태·Version·Audit를 분리해 확인한다. |
+
+### 정상 업무 전체 절차
+
+1. `/savedSearches`에 진입해 Page Header와 Route가 **저장 검색** 기능을 가리키는지 확인한다.
+2. 로그인 Session·Environment·Data Scope·기준일·Timezone을 고정한다.
+3. 화면의 조회 Control과 변경 Form을 구분한다. 조회 조건이 제공되면 먼저 조회하고, 변경 Form은 대상 선택 또는 등록 Action 뒤에 열린 실제 Field만 사용한다.
+4. Loading 종료 후 Empty·Error·Stale·Partial 상태와 화면 Warning을 먼저 판정한다.
+5. **Menu, Name, Condition, Use**를 읽고 식별자·상태·Version·시각을 Owner 원장과 대사한다.
+6. **등록** 전에 화면과 Owner가 실제로 요구하는 Permission·현재 상태·영향 범위·Reason·승인·Version 조건을 확인하고 한 번만 제출한다.
+7. **등록**의 HTTP 응답과 재조회 결과를 확인한다. 비동기·다중 대상 기능은 Owner Terminal 상태·Version·대상별 Success/Failed/Unknown·Audit를 별도로 확인한다.
+8. **수정** 전에 화면과 Owner가 실제로 요구하는 Permission·현재 상태·영향 범위·Reason·승인·Version 조건을 확인하고 한 번만 제출한다.
+9. **수정**의 HTTP 응답과 재조회 결과를 확인한다. 비동기·다중 대상 기능은 Owner Terminal 상태·Version·대상별 Success/Failed/Unknown·Audit를 별도로 확인한다.
+10. **삭제** 전에 화면과 Owner가 실제로 요구하는 Permission·현재 상태·영향 범위·Reason·승인·Version 조건을 확인하고 한 번만 제출한다.
+11. **삭제**의 HTTP 응답과 재조회 결과를 확인한다. 비동기·다중 대상 기능은 Owner Terminal 상태·Version·대상별 Success/Failed/Unknown·Audit를 별도로 확인한다.
+12. 화면이 제공하는 Log·Metric·Trace와, 변경·Export·승인 조치에 생성된 Audit를 교차 확인한다.
+13. 이 장의 **종료 판정**과 다음 확인 시각·Evidence Link를 교대 기록에 남긴다.
+
+### 메뉴 고유 판정·금지 사항
+
+- **목적:** 메뉴별 검색 조건을 저장·수정·삭제한다.
+- **종료 판정:** 본인 Scope와 Condition Schema Version을 확인한다.
+- 응답을 받지 못한 경우 Owner 상태와 기존 Operation을 확인하기 전에 동일 Action을 반복하지 않는다.
+- HTTP 성공 응답이나 Toast만으로 비동기 Owner 상태 또는 다중 대상 적용을 확정하지 않는다.
+
+### 오류·경계·동시성·복구
+
+| 상황 | 화면 징후 | 운영 조치 | 종료 증적 |
+|---|---|---|---|
+| 401·Session | Session 만료·CSRF·Origin 실패 | 로그인 상태와 BFF Session을 확인한다. Command 자동 Replay는 금지한다. | 401/403 응답·Session Audit |
+| 403·Data Scope | 메뉴·Button·Raw·Export가 거부됨 | Menu·Button·API·Owner Permission과 Data Scope를 확인하고 우회하지 않는다. | Deny Audit·요청 Permission |
+| Validation | 필수값·범위·형식·기간 오류 | Field Error만 수정하고 기존 성공 Operation을 다시 제출하지 않는다. | Error Code·Field·입력값 |
+| Timeout·Dependency | 일부 Source 또는 Command 응답 지연 | Correlation/Operation ID와 실패 Stage를 기록하고 Owner 상태를 조회한다. | Dependency 상태·Retryability |
+| Partial·Stale | 일부 대상만 Success 또는 조회 Source 누락 | 성공·실패·미응답을 분리하고 누락 범위와 Version을 표시한다. | Target별 결과·Version |
+| 409·동시 변경 | Expected Version 불일치 | 최신 상세를 재조회하고 Diff·영향을 다시 검토한 뒤 새 요청으로 제출한다. | 현재/요청 Version·변경자 |
+| 응답 유실·Unknown | 요청 후 실제 처리 여부를 알 수 없음 | Operation ID·Request Hash·Audit·Owner 상태로 대사하고 중복 제출하지 않는다. | Operation·Owner·Audit |
+| 복구 실패 | Retry/Rollback 뒤에도 상태 불일치 | 자동 반복을 중단하고 Incident·Reconcile Case·다음 확인 시각을 기록한다. | Case ID·복구 Owner·기한 |
+
+### 응답 유실·결과 불명·부분 적용 처리
+
+1. 동일 Action을 다시 누르지 않고 Browser Network와 응답 Header를 보존한다. `operationId`·`transactionId`·`idempotencyKey`가 제공되면 기록하고, 없으면 Target ID·Actor·요청 시각·Request Body Hash로 대사한다.
+2. 기능이 제공하는 상세·Operation Status(있는 경우)·Audit에서 Request Hash와 대상 Version을 검색한다.
+3. Side Effect 전 실패가 확인된 경우에만 새 요청을 검토한다.
+4. Success·Failed·Unknown 대상을 분리하고 Source가 제공하는 Failed-only Retry·Compensation·Rollback을 선택하고, 지원되지 않으면 수동 Reconcile Case로 이관한다.
+5. Rollback을 지원하는 기능은 Owner Version·Checksum·업무 합계가 Rollback Point와 일치하는지 확인한다.
+6. 확정되지 않은 대상은 `UNKNOWN_RESULT`로 유지하고 담당자·대사 기한·다음 확인 시각을 기록한다.
+
+### Log·Metric·Trace·Audit와 교대 기록
+
+| 증적 | 필수 값 |
+|---|---|
+| Audit | Actor·Permission·Reason·Approval·Target·Before/After·Result·Recovery Action |
+| Log | Environment·Instance·operationId·transactionId·failureStage·errorCode |
+| Metric | 동일 시간 창의 Success·Failure·Latency·Queue·Retry·Partial·Unknown |
+| Trace | root/segment/attempt·Owner·DB/Kafka/외부 의존성 Span |
+| 상태 원장 | Target ID·Version·Checksum·Desired/Actual·Last Updated·Terminal 여부 |
+
+```text
+Menu=savedSearches
+Route=/savedSearches
+Environment=
+DataScope=
+Query=
+TargetId=
+BeforeVersion=
+Action=
+Reason=
+ApprovalId=
+OperationId=
+TransactionId=
+Result=SUCCESS|FAILED|PARTIAL|UNKNOWN_RESULT
+OwnerState=
+FailedTargets=
+ReconcileBy=
+RollbackPoint=
+EvidenceLinks=
+NextCheckAt=
+```
+
+### 실무 Workbook
+
+**상황:** 메뉴별 검색 조건을 저장·수정·삭제한다. 담당자가 **등록**을 수행한 뒤 Browser 응답을 받지 못했다.
+
+1. 대상 식별자와 Before Version, 입력값, Reason·Approval을 작업 기록에서 확인한다.
+2. 동일 **등록**을 반복하지 않고 Operation·Audit·Owner 상태를 조회한다.
+3. Owner 상태가 변경됐고 Request Hash가 같으면 응답 유실로 분류해 중복 조치를 금지한다.
+4. 일부 대상만 변경됐으면 Success·Failed·Unknown을 분리해 Failed-only Retry 또는 Rollback을 선택한다.
+5. 본인 Scope와 Condition Schema Version을 확인한다.
+6. Evidence Link와 다음 확인 시각을 교대 기록에 남긴다.
+
+### 독립 수행 검수 Checklist
+
+- [ ] `/savedSearches`와 Page Source를 찾고 화면 목적을 설명할 수 있다.
+- [ ] 4개 입력·검색 항목의 Control·기본값·Validation을 설명할 수 있다.
+- [ ] 4개 표시값을 Owner 상태·Version·Audit와 대사할 수 있다.
+- [ ] 3개 Action의 분류·활성 조건·Side Effect를 설명할 수 있다.
+- [ ] Empty·403·409·Timeout·Partial·Unknown을 서로 다른 상태로 처리할 수 있다.
+- [ ] 응답 유실 뒤 중복 제출 없이 Operation·Owner·Audit로 결과를 확정할 수 있다.
+- [ ] 교대 기록만으로 다음 담당자가 Target·상태·복구 기한을 이어받을 수 있다.
+
+## 24. settings — BZA 업무 설정
+
+![BZA 업무 설정 화면·업무 흐름](../assets/guides/menu-detail/bza-settings.svg)
+
+### 이 장에서 끝내는 업무
+
+BZA 업무 설정 Key·Type·Scope·Version을 관리한다.
+
+### 메뉴 식별·책임
+
+| 항목 | 값 |
+|---|---|
+| Route | `/settings` |
+| 메뉴 ID | `settings` |
+| Menu Code | `SETTING` |
+| 업무 그룹 | support |
+| Frontend Page | `cpf-biz-admin/frontend/src/features/settings/SettingsPage.vue` |
+| Permission | Write |
+| 기준 Commit | `23babb9140b90e501d6ac715e7b77f55b66198a5` |
+
+### Source·API 근거
+
+| 구분 | 기준 |
+|---|---|
+| Frontend Page | `cpf-biz-admin/frontend/src/features/settings/SettingsPage.vue` |
+| Router | `/settings` |
+| API 추적 | 화면에서 제공하는 기능을 통해 호출한다. 문서에 명시되지 않은 Endpoint를 Browser나 외부 Script에서 임의 호출하지 않는다. |
+
+아래 표는 이 메뉴에서 실제로 확인·입력·실행할 항목을 정리한다. 화면에 없는 Field·Button·상태를 임의로 가정하지 않는다.
+
+### 검색·입력 Field
+
+| Field | Control | 업무 의미 | 기본값·Validation·주의 |
+|---|---|---|---|
+| `Key` | 문자열 입력·검색 | 조회·상세·Audit에서 같은 대상을 다시 찾기 위한 식별 조건이다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+| `Value` | 문자열 입력·검색 | BZA 업무 설정 화면의 조회 조건 또는 편집 Form에 포함되는 값이며 화면 Label과 Help를 기준으로 사용한다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+| `Type` | Select·검색 | BZA 업무 설정에서 적용하거나 조회할 정책·권한·처리 유형을 선택한다. | 허용 목록과 현재 Environment·Data Scope에 맞는 값만 선택한다. |
+| `Scope` | Select·검색 | BZA 업무 설정 조회·조치가 적용되는 환경과 데이터 경계를 제한한다. | 허용 목록과 현재 Environment·Data Scope에 맞는 값만 선택한다. |
+| `Version` | 숫자·Version 입력 | 동시 변경을 막고 요청 대상의 현재 Revision을 확인하는 값이다. | 상세 재조회로 최신 값을 얻고 409 발생 시 기존 값을 덮어쓰지 않는다. |
+| `Reason` | 다중행 입력 | 작업 목적·영향 범위·승인 또는 복구 기준을 기록해 Audit와 교대 기록에 연결한다. | Ticket·영향 범위·복구점을 포함하고 화면이 요구하는 최소 길이를 충족한다. |
+
+#### 입력 순서
+
+1. **Key** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+2. **Value** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+3. **Type** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+4. **Scope** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+5. **Version** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+6. **Reason** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+7. 조회 Control과 변경 Form을 분리해 기록하고, 실행 전 Environment·Data Scope·Timezone과 제출할 값만 다시 검토한다.
+
+### 목록 Column·상세 Field
+
+| 표시값 | 운영 의미 | 교차 확인 |
+|---|---|---|
+| `Key` | BZA 업무 설정의 대상 레코드를 상세·Owner·Audit에서 연결하는 식별자다. | 상세·Log·Trace·Audit에서 같은 대상을 가리키는지 확인한다. |
+| `Value` | BZA 업무 설정 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Type` | BZA 업무 설정 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Scope` | BZA 업무 설정 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Version` | 요청·Owner·Instance 사이의 Version 또는 내용 동일성을 판단하는 값이다. | 목록·상세·Owner 또는 Instance 보고값에서 일치하는지 확인한다. |
+| `Reason` | 작업 주체·Owner·변경 사유를 확인하는 감사 정보다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+
+#### 결과 판독 순서
+
+1. 조회 완료 시각·Filter·Paging·Sort와 화면 Warning을 확인한다.
+2. Empty·Stale·Partial을 정상 0건과 구분한다.
+3. 식별자·상태·Version·오류·시각을 같은 Query Context의 상세와 Owner 원장에서 비교한다.
+4. Masking된 값은 Raw Permission과 Reason 없이 복원·Export하지 않는다.
+5. 집계와 상세가 다르면 집계 시간 창·Timezone·Owner Update 시각을 맞춰 대사한다.
+
+### Button·Action
+
+| Action | 분류 | 활성 조건 | Side Effect·정상 결과 |
+|---|---|---|---|
+| **조회** | 조회·탐색 | 조회 Permission과 Query Validation을 충족하고 동일 조회가 진행 중이 아님 | 조회 결과의 조회 시각·Filter·Source Version·Warning이 갱신되며 Owner 데이터는 변경하지 않는다. |
+| **저장** | 등록·Draft 변경 | 화면이 실제로 요구하는 Write Permission·필수 Field·Reason·Version 조건을 충족함 | BZA 업무 설정의 재조회 결과가 요청 내용과 일치한다. Version·Before/After·Audit는 해당 Owner가 제공하는 경우 함께 확인한다. |
+
+### 정상 업무 전체 절차
+
+1. `/settings`에 진입해 Page Header와 Route가 **BZA 업무 설정** 기능을 가리키는지 확인한다.
+2. 로그인 Session·Environment·Data Scope·기준일·Timezone을 고정한다.
+3. 화면의 조회 Control과 변경 Form을 구분한다. 조회 조건이 제공되면 먼저 조회하고, 변경 Form은 대상 선택 또는 등록 Action 뒤에 열린 실제 Field만 사용한다.
+4. Loading 종료 후 Empty·Error·Stale·Partial 상태와 화면 Warning을 먼저 판정한다.
+5. **Key, Value, Type, Scope, Version**를 읽고 식별자·상태·Version·시각을 Owner 원장과 대사한다.
+6. **저장** 전에 화면과 Owner가 실제로 요구하는 Permission·현재 상태·영향 범위·Reason·승인·Version 조건을 확인하고 한 번만 제출한다.
+7. **저장**의 HTTP 응답과 재조회 결과를 확인한다. 비동기·다중 대상 기능은 Owner Terminal 상태·Version·대상별 Success/Failed/Unknown·Audit를 별도로 확인한다.
+8. 화면이 제공하는 Log·Metric·Trace와, 변경·Export·승인 조치에 생성된 Audit를 교차 확인한다.
+9. 이 장의 **종료 판정**과 다음 확인 시각·Evidence Link를 교대 기록에 남긴다.
+
+### 메뉴 고유 판정·금지 사항
+
+- **목적:** BZA 업무 설정 Key·Type·Scope·Version을 관리한다.
+- **종료 판정:** Secret 포함 여부와 Consumer 적용·Rollback을 확인한다.
+- 응답을 받지 못한 경우 Owner 상태와 기존 Operation을 확인하기 전에 동일 Action을 반복하지 않는다.
+- HTTP 성공 응답이나 Toast만으로 비동기 Owner 상태 또는 다중 대상 적용을 확정하지 않는다.
+
+### 오류·경계·동시성·복구
+
+| 상황 | 화면 징후 | 운영 조치 | 종료 증적 |
+|---|---|---|---|
+| 401·Session | Session 만료·CSRF·Origin 실패 | 로그인 상태와 BFF Session을 확인한다. Command 자동 Replay는 금지한다. | 401/403 응답·Session Audit |
+| 403·Data Scope | 메뉴·Button·Raw·Export가 거부됨 | Menu·Button·API·Owner Permission과 Data Scope를 확인하고 우회하지 않는다. | Deny Audit·요청 Permission |
+| Validation | 필수값·범위·형식·기간 오류 | Field Error만 수정하고 기존 성공 Operation을 다시 제출하지 않는다. | Error Code·Field·입력값 |
+| Timeout·Dependency | 일부 Source 또는 Command 응답 지연 | Correlation/Operation ID와 실패 Stage를 기록하고 Owner 상태를 조회한다. | Dependency 상태·Retryability |
+| Partial·Stale | 일부 대상만 Success 또는 조회 Source 누락 | 성공·실패·미응답을 분리하고 누락 범위와 Version을 표시한다. | Target별 결과·Version |
+| 409·동시 변경 | Expected Version 불일치 | 최신 상세를 재조회하고 Diff·영향을 다시 검토한 뒤 새 요청으로 제출한다. | 현재/요청 Version·변경자 |
+| 응답 유실·Unknown | 요청 후 실제 처리 여부를 알 수 없음 | Operation ID·Request Hash·Audit·Owner 상태로 대사하고 중복 제출하지 않는다. | Operation·Owner·Audit |
+| 복구 실패 | Retry/Rollback 뒤에도 상태 불일치 | 자동 반복을 중단하고 Incident·Reconcile Case·다음 확인 시각을 기록한다. | Case ID·복구 Owner·기한 |
+
+### 응답 유실·결과 불명·부분 적용 처리
+
+1. 동일 Action을 다시 누르지 않고 Browser Network와 응답 Header를 보존한다. `operationId`·`transactionId`·`idempotencyKey`가 제공되면 기록하고, 없으면 Target ID·Actor·요청 시각·Request Body Hash로 대사한다.
+2. 기능이 제공하는 상세·Operation Status(있는 경우)·Audit에서 Request Hash와 대상 Version을 검색한다.
+3. Side Effect 전 실패가 확인된 경우에만 새 요청을 검토한다.
+4. Success·Failed·Unknown 대상을 분리하고 Source가 제공하는 Failed-only Retry·Compensation·Rollback을 선택하고, 지원되지 않으면 수동 Reconcile Case로 이관한다.
+5. Rollback을 지원하는 기능은 Owner Version·Checksum·업무 합계가 Rollback Point와 일치하는지 확인한다.
+6. 확정되지 않은 대상은 `UNKNOWN_RESULT`로 유지하고 담당자·대사 기한·다음 확인 시각을 기록한다.
+
+### Log·Metric·Trace·Audit와 교대 기록
+
+| 증적 | 필수 값 |
+|---|---|
+| Audit | Actor·Permission·Reason·Approval·Target·Before/After·Result·Recovery Action |
+| Log | Environment·Instance·operationId·transactionId·failureStage·errorCode |
+| Metric | 동일 시간 창의 Success·Failure·Latency·Queue·Retry·Partial·Unknown |
+| Trace | root/segment/attempt·Owner·DB/Kafka/외부 의존성 Span |
+| 상태 원장 | Target ID·Version·Checksum·Desired/Actual·Last Updated·Terminal 여부 |
+
+```text
+Menu=settings
+Route=/settings
+Environment=
+DataScope=
+Query=
+TargetId=
+BeforeVersion=
+Action=
+Reason=
+ApprovalId=
+OperationId=
+TransactionId=
+Result=SUCCESS|FAILED|PARTIAL|UNKNOWN_RESULT
+OwnerState=
+FailedTargets=
+ReconcileBy=
+RollbackPoint=
+EvidenceLinks=
+NextCheckAt=
+```
+
+### 실무 Workbook
+
+**상황:** BZA 업무 설정 Key·Type·Scope·Version을 관리한다. 담당자가 **저장**을 수행한 뒤 Browser 응답을 받지 못했다.
+
+1. 대상 식별자와 Before Version, 입력값, Reason·Approval을 작업 기록에서 확인한다.
+2. 동일 **저장**을 반복하지 않고 Operation·Audit·Owner 상태를 조회한다.
+3. Owner 상태가 변경됐고 Request Hash가 같으면 응답 유실로 분류해 중복 조치를 금지한다.
+4. 일부 대상만 변경됐으면 Success·Failed·Unknown을 분리해 Failed-only Retry 또는 Rollback을 선택한다.
+5. Secret 포함 여부와 Consumer 적용·Rollback을 확인한다.
+6. Evidence Link와 다음 확인 시각을 교대 기록에 남긴다.
+
+### 독립 수행 검수 Checklist
+
+- [ ] `/settings`와 Page Source를 찾고 화면 목적을 설명할 수 있다.
+- [ ] 6개 입력·검색 항목의 Control·기본값·Validation을 설명할 수 있다.
+- [ ] 6개 표시값을 Owner 상태·Version·Audit와 대사할 수 있다.
+- [ ] 2개 Action의 분류·활성 조건·Side Effect를 설명할 수 있다.
+- [ ] Empty·403·409·Timeout·Partial·Unknown을 서로 다른 상태로 처리할 수 있다.
+- [ ] 응답 유실 뒤 중복 제출 없이 Operation·Owner·Audit로 결과를 확정할 수 있다.
+- [ ] 교대 기록만으로 다음 담당자가 Target·상태·복구 기한을 이어받을 수 있다.
+
+## 25. downloads — Download 정책
+
+![Download 정책 화면·업무 흐름](../assets/guides/menu-detail/bza-downloads.svg)
+
+### 이 장에서 끝내는 업무
+
+Download 정책의 유형·건수·Data Scope·Masking·승인을 관리한다.
+
+### 메뉴 식별·책임
+
+| 항목 | 값 |
+|---|---|
+| Route | `/downloads` |
+| 메뉴 ID | `downloads` |
+| Menu Code | `SETTING` |
+| 업무 그룹 | support |
+| Frontend Page | `cpf-biz-admin/frontend/src/features/downloads/DownloadsPage.vue` |
+| Permission | Write |
+| 기준 Commit | `23babb9140b90e501d6ac715e7b77f55b66198a5` |
+
+### Source·API 근거
+
+| 구분 | 기준 |
+|---|---|
+| Frontend Page | `cpf-biz-admin/frontend/src/features/downloads/DownloadsPage.vue` |
+| Router | `/downloads` |
+| API 추적 | 화면에서 제공하는 기능을 통해 호출한다. 문서에 명시되지 않은 Endpoint를 Browser나 외부 Script에서 임의 호출하지 않는다. |
+
+아래 표는 이 메뉴에서 실제로 확인·입력·실행할 항목을 정리한다. 화면에 없는 Field·Button·상태를 임의로 가정하지 않는다.
+
+### 검색·입력 Field
+
+| Field | Control | 업무 의미 | 기본값·Validation·주의 |
+|---|---|---|---|
+| `유형` | Select·검색 | Download 정책에서 적용하거나 조회할 정책·권한·처리 유형을 선택한다. | 허용 목록과 현재 Environment·Data Scope에 맞는 값만 선택한다. |
+| `건수` | 숫자·Version 입력 | 실행 한도·순서·용량 또는 재시도 범위를 지정한다. | 화면의 min·max·단위와 0 허용 여부를 확인하고 음수·Overflow를 차단한다. |
+| `Data Scope` | Select·검색 | Download 정책 조회·조치가 적용되는 환경과 데이터 경계를 제한한다. | 허용 목록과 현재 Environment·Data Scope에 맞는 값만 선택한다. |
+| `Masking` | Checkbox·Switch | Download 정책 화면의 조회 조건 또는 편집 Form에 포함되는 값이며 화면 Label과 Help를 기준으로 사용한다. | 현재 선택과 변경 후 영향 범위를 비교하고 화면의 Source 기본값을 확인한다. |
+| `Approval` | Checkbox·Switch | Download 정책 화면의 조회 조건 또는 편집 Form에 포함되는 값이며 화면 Label과 Help를 기준으로 사용한다. | 현재 선택과 변경 후 영향 범위를 비교하고 화면의 Source 기본값을 확인한다. |
+| `Reason` | 다중행 입력 | 작업 목적·영향 범위·승인 또는 복구 기준을 기록해 Audit와 교대 기록에 연결한다. | Ticket·영향 범위·복구점을 포함하고 화면이 요구하는 최소 길이를 충족한다. |
+
+#### 입력 순서
+
+1. **유형** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+2. **건수** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+3. **Data Scope** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+4. **Masking** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+5. **Approval** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+6. **Reason** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+7. 조회 Control과 변경 Form을 분리해 기록하고, 실행 전 Environment·Data Scope·Timezone과 제출할 값만 다시 검토한다.
+
+### 목록 Column·상세 Field
+
+| 표시값 | 운영 의미 | 교차 확인 |
+|---|---|---|
+| `유형` | Download 정책 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `건수` | 동일한 집계 시간 창·단위·Filter에서 비교해야 하는 수치다. | 같은 Filter·집계 시간 창·단위의 상세 Row 또는 Metric으로 대사한다. |
+| `Data Scope` | Download 정책 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Masking` | Download 정책 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Approval` | Download 정책 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Reason` | 작업 주체·Owner·변경 사유를 확인하는 감사 정보다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+
+#### 결과 판독 순서
+
+1. 조회 완료 시각·Filter·Paging·Sort와 화면 Warning을 확인한다.
+2. Empty·Stale·Partial을 정상 0건과 구분한다.
+3. 식별자·상태·Version·오류·시각을 같은 Query Context의 상세와 Owner 원장에서 비교한다.
+4. Masking된 값은 Raw Permission과 Reason 없이 복원·Export하지 않는다.
+5. 집계와 상세가 다르면 집계 시간 창·Timezone·Owner Update 시각을 맞춰 대사한다.
+
+### Button·Action
+
+| Action | 분류 | 활성 조건 | Side Effect·정상 결과 |
+|---|---|---|---|
+| **조회** | 조회·탐색 | 조회 Permission과 Query Validation을 충족하고 동일 조회가 진행 중이 아님 | 조회 결과의 조회 시각·Filter·Source Version·Warning이 갱신되며 Owner 데이터는 변경하지 않는다. |
+| **정책 변경** | 변경·위험 조치 | 화면과 Owner가 요구하는 Write Permission·대상 상태·영향 범위·Reason·승인·Version 조건을 충족함 | 변경 Operation을 생성하고 Accepted 응답과 Owner Terminal 상태·Version·Audit를 분리해 확인한다. |
+
+### 정상 업무 전체 절차
+
+1. `/downloads`에 진입해 Page Header와 Route가 **Download 정책** 기능을 가리키는지 확인한다.
+2. 로그인 Session·Environment·Data Scope·기준일·Timezone을 고정한다.
+3. 화면의 조회 Control과 변경 Form을 구분한다. 조회 조건이 제공되면 먼저 조회하고, 변경 Form은 대상 선택 또는 등록 Action 뒤에 열린 실제 Field만 사용한다.
+4. Loading 종료 후 Empty·Error·Stale·Partial 상태와 화면 Warning을 먼저 판정한다.
+5. **유형, 건수, Data Scope, Masking, Approval**를 읽고 식별자·상태·Version·시각을 Owner 원장과 대사한다.
+6. **정책 변경** 전에 화면과 Owner가 실제로 요구하는 Permission·현재 상태·영향 범위·Reason·승인·Version 조건을 확인하고 한 번만 제출한다.
+7. **정책 변경**의 HTTP 응답과 재조회 결과를 확인한다. 비동기·다중 대상 기능은 Owner Terminal 상태·Version·대상별 Success/Failed/Unknown·Audit를 별도로 확인한다.
+8. 화면이 제공하는 Log·Metric·Trace와, 변경·Export·승인 조치에 생성된 Audit를 교차 확인한다.
+9. 이 장의 **종료 판정**과 다음 확인 시각·Evidence Link를 교대 기록에 남긴다.
+
+### 메뉴 고유 판정·금지 사항
+
+- **목적:** Download 정책의 유형·건수·Data Scope·Masking·승인을 관리한다.
+- **종료 판정:** 정책 변경 후 생성된 Download에 실제 적용됐는지 확인한다.
+- 응답을 받지 못한 경우 Owner 상태와 기존 Operation을 확인하기 전에 동일 Action을 반복하지 않는다.
+- HTTP 성공 응답이나 Toast만으로 비동기 Owner 상태 또는 다중 대상 적용을 확정하지 않는다.
+
+### 오류·경계·동시성·복구
+
+| 상황 | 화면 징후 | 운영 조치 | 종료 증적 |
+|---|---|---|---|
+| 401·Session | Session 만료·CSRF·Origin 실패 | 로그인 상태와 BFF Session을 확인한다. Command 자동 Replay는 금지한다. | 401/403 응답·Session Audit |
+| 403·Data Scope | 메뉴·Button·Raw·Export가 거부됨 | Menu·Button·API·Owner Permission과 Data Scope를 확인하고 우회하지 않는다. | Deny Audit·요청 Permission |
+| Validation | 필수값·범위·형식·기간 오류 | Field Error만 수정하고 기존 성공 Operation을 다시 제출하지 않는다. | Error Code·Field·입력값 |
+| Timeout·Dependency | 일부 Source 또는 Command 응답 지연 | Correlation/Operation ID와 실패 Stage를 기록하고 Owner 상태를 조회한다. | Dependency 상태·Retryability |
+| Partial·Stale | 일부 대상만 Success 또는 조회 Source 누락 | 성공·실패·미응답을 분리하고 누락 범위와 Version을 표시한다. | Target별 결과·Version |
+| 409·동시 변경 | Expected Version 불일치 | 최신 상세를 재조회하고 Diff·영향을 다시 검토한 뒤 새 요청으로 제출한다. | 현재/요청 Version·변경자 |
+| 응답 유실·Unknown | 요청 후 실제 처리 여부를 알 수 없음 | Operation ID·Request Hash·Audit·Owner 상태로 대사하고 중복 제출하지 않는다. | Operation·Owner·Audit |
+| 복구 실패 | Retry/Rollback 뒤에도 상태 불일치 | 자동 반복을 중단하고 Incident·Reconcile Case·다음 확인 시각을 기록한다. | Case ID·복구 Owner·기한 |
+
+### 응답 유실·결과 불명·부분 적용 처리
+
+1. 동일 Action을 다시 누르지 않고 Browser Network와 응답 Header를 보존한다. `operationId`·`transactionId`·`idempotencyKey`가 제공되면 기록하고, 없으면 Target ID·Actor·요청 시각·Request Body Hash로 대사한다.
+2. 기능이 제공하는 상세·Operation Status(있는 경우)·Audit에서 Request Hash와 대상 Version을 검색한다.
+3. Side Effect 전 실패가 확인된 경우에만 새 요청을 검토한다.
+4. Success·Failed·Unknown 대상을 분리하고 Source가 제공하는 Failed-only Retry·Compensation·Rollback을 선택하고, 지원되지 않으면 수동 Reconcile Case로 이관한다.
+5. Rollback을 지원하는 기능은 Owner Version·Checksum·업무 합계가 Rollback Point와 일치하는지 확인한다.
+6. 확정되지 않은 대상은 `UNKNOWN_RESULT`로 유지하고 담당자·대사 기한·다음 확인 시각을 기록한다.
+
+### Log·Metric·Trace·Audit와 교대 기록
+
+| 증적 | 필수 값 |
+|---|---|
+| Audit | Actor·Permission·Reason·Approval·Target·Before/After·Result·Recovery Action |
+| Log | Environment·Instance·operationId·transactionId·failureStage·errorCode |
+| Metric | 동일 시간 창의 Success·Failure·Latency·Queue·Retry·Partial·Unknown |
+| Trace | root/segment/attempt·Owner·DB/Kafka/외부 의존성 Span |
+| 상태 원장 | Target ID·Version·Checksum·Desired/Actual·Last Updated·Terminal 여부 |
+
+```text
+Menu=downloads
+Route=/downloads
+Environment=
+DataScope=
+Query=
+TargetId=
+BeforeVersion=
+Action=
+Reason=
+ApprovalId=
+OperationId=
+TransactionId=
+Result=SUCCESS|FAILED|PARTIAL|UNKNOWN_RESULT
+OwnerState=
+FailedTargets=
+ReconcileBy=
+RollbackPoint=
+EvidenceLinks=
+NextCheckAt=
+```
+
+### 실무 Workbook
+
+**상황:** Download 정책의 유형·건수·Data Scope·Masking·승인을 관리한다. 담당자가 **정책 변경**을 수행한 뒤 Browser 응답을 받지 못했다.
+
+1. 대상 식별자와 Before Version, 입력값, Reason·Approval을 작업 기록에서 확인한다.
+2. 동일 **정책 변경**을 반복하지 않고 Operation·Audit·Owner 상태를 조회한다.
+3. Owner 상태가 변경됐고 Request Hash가 같으면 응답 유실로 분류해 중복 조치를 금지한다.
+4. 일부 대상만 변경됐으면 Success·Failed·Unknown을 분리해 Failed-only Retry 또는 Rollback을 선택한다.
+5. 정책 변경 후 생성된 Download에 실제 적용됐는지 확인한다.
+6. Evidence Link와 다음 확인 시각을 교대 기록에 남긴다.
+
+### 독립 수행 검수 Checklist
+
+- [ ] `/downloads`와 Page Source를 찾고 화면 목적을 설명할 수 있다.
+- [ ] 6개 입력·검색 항목의 Control·기본값·Validation을 설명할 수 있다.
+- [ ] 6개 표시값을 Owner 상태·Version·Audit와 대사할 수 있다.
+- [ ] 2개 Action의 분류·활성 조건·Side Effect를 설명할 수 있다.
+- [ ] Empty·403·409·Timeout·Partial·Unknown을 서로 다른 상태로 처리할 수 있다.
+- [ ] 응답 유실 뒤 중복 제출 없이 Operation·Owner·Audit로 결과를 확정할 수 있다.
+- [ ] 교대 기록만으로 다음 담당자가 Target·상태·복구 기한을 이어받을 수 있다.
+
+## 26. downloadAudits — Download 감사
+
+![Download 감사 화면·업무 흐름](../assets/guides/menu-detail/bza-downloadaudits.svg)
+
+### 이 장에서 끝내는 업무
+
+Download 사용자·유형·대상·기간·Reason을 감사한다.
+
+### 메뉴 식별·책임
+
+| 항목 | 값 |
+|---|---|
+| Route | `/downloadAudits` |
+| 메뉴 ID | `downloadAudits` |
+| Menu Code | `AUDIT` |
+| 업무 그룹 | support |
+| Frontend Page | `cpf-biz-admin/frontend/src/features/download-audits/DownloadAuditsPage.vue` |
+| Permission | Audit Read |
+| 기준 Commit | `23babb9140b90e501d6ac715e7b77f55b66198a5` |
+
+### Source·API 근거
+
+| 구분 | 기준 |
+|---|---|
+| Frontend Page | `cpf-biz-admin/frontend/src/features/download-audits/DownloadAuditsPage.vue` |
+| Router | `/downloadAudits` |
+| API 추적 | 화면에서 제공하는 기능을 통해 호출한다. 문서에 명시되지 않은 Endpoint를 Browser나 외부 Script에서 임의 호출하지 않는다. |
+
+아래 표는 이 메뉴에서 실제로 확인·입력·실행할 항목을 정리한다. 화면에 없는 Field·Button·상태를 임의로 가정하지 않는다.
+
+### 검색·입력 Field
+
+| Field | Control | 업무 의미 | 기본값·Validation·주의 |
+|---|---|---|---|
+| `사용자` | Checkbox·Switch | 현재 상태를 조회하거나 다음 Action의 허용 조건을 지정한다. | 현재 선택과 변경 후 영향 범위를 비교하고 화면의 Source 기본값을 확인한다. |
+| `유형` | Select·검색 | Download 감사에서 적용하거나 조회할 정책·권한·처리 유형을 선택한다. | 허용 목록과 현재 Environment·Data Scope에 맞는 값만 선택한다. |
+| `대상` | 문자열 입력·검색 | Download 감사 화면의 조회 조건 또는 편집 Form에 포함되는 값이며 화면 Label과 Help를 기준으로 사용한다. | 앞뒤 공백·허용 문자·길이와 대소문자 규칙을 확인한다. |
+| `기간` | 날짜·시간 입력 | 조회 또는 적용의 유효 시간 범위를 정하며 Timezone과 시작·종료 순서를 함께 확인한다. | Timezone을 고정하고 시작≤종료·유효기간 겹침·기준일 포함 여부를 확인한다. |
+| `Reason` | 다중행 입력 | 작업 목적·영향 범위·승인 또는 복구 기준을 기록해 Audit와 교대 기록에 연결한다. | Ticket·영향 범위·복구점을 포함하고 화면이 요구하는 최소 길이를 충족한다. |
+
+#### 입력 순서
+
+1. **사용자** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+2. **유형** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+3. **대상** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+4. **기간** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+5. **Reason** 항목이 조회 Control인지 변경 Form인지 화면 위치로 구분하고, 표시된 값·필수 여부·허용 형식을 확인한다.
+6. 조회 Control과 변경 Form을 분리해 기록하고, 실행 전 Environment·Data Scope·Timezone과 제출할 값만 다시 검토한다.
+
+### 목록 Column·상세 Field
+
+| 표시값 | 운영 의미 | 교차 확인 |
+|---|---|---|
+| `사용자` | Download 감사 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `유형` | Download 감사 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `대상` | Download 감사 상세에서 대상의 현재 속성 또는 처리 결과를 확인하는 값이다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `기간` | 상태 발생·갱신·유효 시점을 나타내며 화면 Timezone을 기준으로 해석한다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+| `Reason` | 작업 주체·Owner·변경 사유를 확인하는 감사 정보다. | 상세·재조회 결과와 비교하고 Stale·Masking·단위 차이를 확인한다. |
+
+#### 결과 판독 순서
+
+1. 조회 완료 시각·Filter·Paging·Sort와 화면 Warning을 확인한다.
+2. Empty·Stale·Partial을 정상 0건과 구분한다.
+3. 식별자·상태·Version·오류·시각을 같은 Query Context의 상세와 Owner 원장에서 비교한다.
+4. Masking된 값은 Raw Permission과 Reason 없이 복원·Export하지 않는다.
+5. 집계와 상세가 다르면 집계 시간 창·Timezone·Owner Update 시각을 맞춰 대사한다.
+
+### Button·Action
+
+| Action | 분류 | 활성 조건 | Side Effect·정상 결과 |
+|---|---|---|---|
+| **조회** | 조회·탐색 | 조회 Permission과 Query Validation을 충족하고 동일 조회가 진행 중이 아님 | 조회 결과의 조회 시각·Filter·Source Version·Warning이 갱신되며 Owner 데이터는 변경하지 않는다. |
+| **상세** | 조회·탐색 | 조회 Permission과 Query Validation을 충족하고 동일 조회가 진행 중이 아님 | 상세 결과의 조회 시각·Filter·Source Version·Warning이 갱신되며 Owner 데이터는 변경하지 않는다. |
+
+### 정상 업무 전체 절차
+
+1. `/downloadAudits`에 진입해 Page Header와 Route가 **Download 감사** 기능을 가리키는지 확인한다.
+2. 로그인 Session·Environment·Data Scope·기준일·Timezone을 고정한다.
+3. 화면에 제공된 조회 Control만 사용하고, 표시되지 않은 변경 Field나 Server Command가 있다고 가정하지 않는다.
+4. Loading 종료 후 Empty·Error·Stale·Partial 상태와 화면 Warning을 먼저 판정한다.
+5. **사용자, 유형, 대상, 기간, Reason**를 읽고 식별자·상태·Version·시각을 Owner 원장과 대사한다.
+6. 화면이 제공하는 Log·Metric·Trace와 조회·Raw·Export 접근 기록이 있으면 해당 Audit를 교차 확인한다.
+7. 이 장의 **종료 판정**과 다음 확인 시각·Evidence Link를 교대 기록에 남긴다.
+
+### 메뉴 고유 판정·금지 사항
+
+- **목적:** Download 사용자·유형·대상·기간·Reason을 감사한다.
+- **종료 판정:** 정책 Version·건수·Masking·Artifact Hash와 연결한다.
+- 조회 화면에서 직접 Owner 데이터를 변경하거나 Browser Tool로 우회하지 않는다.
+- Partial 조회를 정상 전체 결과로 합치지 않는다.
+
+### 오류·경계·동시성·복구
+
+| 상황 | 화면 징후 | 운영 조치 | 종료 증적 |
+|---|---|---|---|
+| 401·Session | Session 만료·CSRF·Origin 실패 | 로그인 상태와 BFF Session을 확인한 뒤 같은 Query Context로 다시 조회한다. | 401/403 응답·Session Audit |
+| 403·Data Scope | 메뉴·Button·Raw·Export가 거부됨 | Menu·Button·API·Owner Permission과 Data Scope를 확인하고 우회하지 않는다. | Deny Audit·요청 Permission |
+| Timeout·Dependency | 일부 조회 Source 응답 지연 | Correlation ID·Query Context·실패 Source를 기록하고 같은 조건으로 재조회한다. | 조회 시각·실패 Source·재조회 결과 |
+| Partial·Stale | 일부 대상만 Success 또는 조회 Source 누락 | 성공·실패·미응답을 분리하고 누락 범위와 Version을 표시한다. | Target별 결과·Version |
+
+### 응답 유실·부분 조회 처리
+
+1. 검색 조건·Data Scope·Paging·조회 시각·Correlation ID를 기록한다.
+2. 같은 조건으로 재조회하되 실패 Source만 분리한다.
+3. 정상 Source 결과를 유지하고 실패·Stale Source를 명시한다.
+4. 집계와 원본 상세가 다르면 Owner 상세를 기준으로 Reconcile Case를 연다.
+5. 조회 시각·Source Version·0건 또는 일치 결과를 증적으로 남긴다.
+
+### Log·Metric·Trace·Audit와 교대 기록
+
+| 증적 | 필수 값 |
+|---|---|
+| Audit | Actor·Permission·Data Scope·Raw/Export 접근·Query Context·Result |
+| Log | Environment·Instance·operationId·transactionId·failureStage·errorCode |
+| Metric | 동일 시간 창의 Success·Failure·Latency·Queue·Retry·Partial·Unknown |
+| Trace | root/segment/attempt·Owner·DB/Kafka/외부 의존성 Span |
+| 상태 원장 | Target ID·Version·Checksum·Desired/Actual·Last Updated·Terminal 여부 |
+
+```text
+Menu=
+Route=
+Environment=
+DataScope=
+Query=
+QueryAt=
+CorrelationId=
+SourceVersion=
+Result=SUCCESS|EMPTY|STALE|PARTIAL|FAILED
+FailedSources=
+EvidenceLinks=
+NextCheckAt=
+```
+
+### 실무 Workbook
+
+**상황:** Download 사용자·유형·대상·기간·Reason을 감사한다. 화면이 일부 Source Timeout 때문에 Partial 결과를 표시했다.
+
+1. Query·Data Scope·조회 시각·Correlation ID를 기록한다.
+2. 정상 결과를 0건으로 덮어쓰지 않고 실패 Source만 재조회한다.
+3. 사용자, 유형, 대상 값을 원본 상세와 같은 시간 기준으로 비교한다.
+4. 불일치가 계속되면 Incident 또는 Reconcile Case를 생성한다.
+5. 정책 Version·건수·Masking·Artifact Hash와 연결한다.
+6. Source Version과 다음 확인 시각을 교대 기록에 남긴다.
+
+### 독립 수행 검수 Checklist
+
+- [ ] `/downloadAudits`와 Page Source를 찾고 화면 목적을 설명할 수 있다.
+- [ ] 5개 입력·검색 항목의 Control·기본값·Validation을 설명할 수 있다.
+- [ ] 5개 표시값을 Owner 상태·Version·Audit와 대사할 수 있다.
+- [ ] 2개 Action의 분류·활성 조건·Side Effect를 설명할 수 있다.
+- [ ] Empty·401·403·Timeout·Stale·Partial을 서로 다른 조회 상태로 처리할 수 있다.
+- [ ] 조회 응답 유실 시 같은 Query Context로 재조회하고 Correlation ID·조회 시각·Source Version으로 결과를 대사할 수 있다.
+- [ ] 교대 기록만으로 다음 담당자가 Target·상태·복구 기한을 이어받을 수 있다.
+## 제6부. 기준일·유효기간·결재 Snapshot 심화
+
+![BZA 기준일·유효기간 영향](../assets/guides/deep-dive/cpf-bza-effective-date.svg)
+
+### 75. 기준일 변경 검토
+
+조직·Assignment·Role·Permission·위임 변경 전 현재 기준일과 변경 Effective From/To를 고정한다. 소급 변경은 현재 Active 상태뿐 아니라 진행 중 결재 Snapshot과 업무 Domain Consumer를 별도 분석한다.
+
+### 76. 보정과 원장 보존
+
+이미 감사된 변경을 DB에서 직접 수정하지 않는다. 보정 Operation을 새로 만들고 원 요청·승인·Before/After·영향 대상을 연결한다.

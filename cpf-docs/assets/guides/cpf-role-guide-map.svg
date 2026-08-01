@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">역할별 공식 매뉴얼 지도</title>
+  <desc id="desc">CPF 공식 매뉴얼 설명 그림</desc>
+  <rect width="100%" height="100%" fill="#F7F9FC"/>
+  <text x="70" y="72" font-family="Arial, Noto Sans KR, sans-serif" font-size="42" font-weight="700" fill="#17324D" text-anchor="start">역할별 공식 매뉴얼 지도</text>
+  <text x="70" y="112" font-family="Arial, Noto Sans KR, sans-serif" font-size="22" font-weight="400" fill="#64748B" text-anchor="start">README에서 역할별 업무 완료 경로로 이동</text>
+  <line x1="70" y1="140" x2="1530" y2="140" stroke="#E8EEF6" stroke-width="3"/>
+  <rect x="70" y="190" width="330" height="230" rx="20" fill="#FFFFFF" stroke="#2F6FED" stroke-width="3"/>
+  <circle cx="122" cy="245" r="32" fill="#2F6FED" stroke="#2F6FED" stroke-width="0"/>
+  <text x="122" y="256" font-family="Arial, Noto Sans KR, sans-serif" font-size="23" font-weight="700" fill="#FFFFFF" text-anchor="middle">00</text>
+  <text x="170" y="252" font-family="Arial, Noto Sans KR, sans-serif" font-size="26" font-weight="700" fill="#17324D" text-anchor="start">프레임워크 안내</text>
+  <text x="100" y="315" font-family="Arial, Noto Sans KR, sans-serif" font-size="22" font-weight="400" fill="#0F172A" text-anchor="start">
+    <tspan x="100" dy="0">Architecture·Module·Topology</tspan>
+    <tspan x="100" dy="38">정상·오류·복구·Audit</tspan>
+  </text>
+  <rect x="450" y="190" width="330" height="230" rx="20" fill="#FFFFFF" stroke="#1F9D6A" stroke-width="3"/>
+  <circle cx="502" cy="245" r="32" fill="#1F9D6A" stroke="#1F9D6A" stroke-width="0"/>
+  <text x="502" y="256" font-family="Arial, Noto Sans KR, sans-serif" font-size="23" font-weight="700" fill="#FFFFFF" text-anchor="middle">01</text>
+  <text x="550" y="252" font-family="Arial, Noto Sans KR, sans-serif" font-size="26" font-weight="700" fill="#17324D" text-anchor="start">개발자</text>
+  <text x="480" y="315" font-family="Arial, Noto Sans KR, sans-serif" font-size="22" font-weight="400" fill="#0F172A" text-anchor="start">
+    <tspan x="480" dy="0">업무 Domain 개발·Test·인계</tspan>
+    <tspan x="480" dy="38">정상·오류·복구·Audit</tspan>
+  </text>
+  <rect x="830" y="190" width="330" height="230" rx="20" fill="#FFFFFF" stroke="#E9822C" stroke-width="3"/>
+  <circle cx="882" cy="245" r="32" fill="#E9822C" stroke="#E9822C" stroke-width="0"/>
+  <text x="882" y="256" font-family="Arial, Noto Sans KR, sans-serif" font-size="23" font-weight="700" fill="#FFFFFF" text-anchor="middle">02</text>
+  <text x="930" y="252" font-family="Arial, Noto Sans KR, sans-serif" font-size="26" font-weight="700" fill="#17324D" text-anchor="start">배치 개발</text>
+  <text x="860" y="315" font-family="Arial, Noto Sans KR, sans-serif" font-size="22" font-weight="400" fill="#0F172A" text-anchor="start">
+    <tspan x="860" dy="0">Job·Scheduler·Worker·복구</tspan>
+    <tspan x="860" dy="38">정상·오류·복구·Audit</tspan>
+  </text>
+  <rect x="1210" y="190" width="330" height="230" rx="20" fill="#FFFFFF" stroke="#7A5AF8" stroke-width="3"/>
+  <circle cx="1262" cy="245" r="32" fill="#7A5AF8" stroke="#7A5AF8" stroke-width="0"/>
+  <text x="1262" y="256" font-family="Arial, Noto Sans KR, sans-serif" font-size="23" font-weight="700" fill="#FFFFFF" text-anchor="middle">03</text>
+  <text x="1310" y="252" font-family="Arial, Noto Sans KR, sans-serif" font-size="26" font-weight="700" fill="#17324D" text-anchor="start">ADM 개발</text>
+  <text x="1240" y="315" font-family="Arial, Noto Sans KR, sans-serif" font-size="22" font-weight="400" fill="#0F172A" text-anchor="start">
+    <tspan x="1240" dy="0">Backend·Frontend·59 Route</tspan>
+    <tspan x="1240" dy="38">정상·오류·복구·Audit</tspan>
+  </text>
+  <rect x="70" y="490" width="330" height="230" rx="20" fill="#FFFFFF" stroke="#D64545" stroke-width="3"/>
+  <circle cx="122" cy="545" r="32" fill="#D64545" stroke="#D64545" stroke-width="0"/>
+  <text x="122" y="556" font-family="Arial, Noto Sans KR, sans-serif" font-size="23" font-weight="700" fill="#FFFFFF" text-anchor="middle">04</text>
+  <text x="170" y="552" font-family="Arial, Noto Sans KR, sans-serif" font-size="26" font-weight="700" fill="#17324D" text-anchor="start">ADM 운영</text>
+  <text x="100" y="615" font-family="Arial, Noto Sans KR, sans-serif" font-size="22" font-weight="400" fill="#0F172A" text-anchor="start">
+    <tspan x="100" dy="0">전체 메뉴 조회·조치·대사</tspan>
+    <tspan x="100" dy="38">정상·오류·복구·Audit</tspan>
+  </text>
+  <rect x="450" y="490" width="330" height="230" rx="20" fill="#FFFFFF" stroke="#16A6B6" stroke-width="3"/>
+  <circle cx="502" cy="545" r="32" fill="#16A6B6" stroke="#16A6B6" stroke-width="0"/>
+  <text x="502" y="556" font-family="Arial, Noto Sans KR, sans-serif" font-size="23" font-weight="700" fill="#FFFFFF" text-anchor="middle">05</text>
+  <text x="550" y="552" font-family="Arial, Noto Sans KR, sans-serif" font-size="26" font-weight="700" fill="#17324D" text-anchor="start">플랫폼 운영</text>
+  <text x="480" y="615" font-family="Arial, Noto Sans KR, sans-serif" font-size="22" font-weight="400" fill="#0F172A" text-anchor="start">
+    <tspan x="480" dy="0">설치·설정·배포·DR</tspan>
+    <tspan x="480" dy="38">정상·오류·복구·Audit</tspan>
+  </text>
+  <rect x="830" y="490" width="330" height="230" rx="20" fill="#FFFFFF" stroke="#1F9D6A" stroke-width="3"/>
+  <circle cx="882" cy="545" r="32" fill="#1F9D6A" stroke="#1F9D6A" stroke-width="0"/>
+  <text x="882" y="556" font-family="Arial, Noto Sans KR, sans-serif" font-size="23" font-weight="700" fill="#FFFFFF" text-anchor="middle">90</text>
+  <text x="930" y="552" font-family="Arial, Noto Sans KR, sans-serif" font-size="26" font-weight="700" fill="#17324D" text-anchor="start">BZA</text>
+  <text x="860" y="615" font-family="Arial, Noto Sans KR, sans-serif" font-size="22" font-weight="400" fill="#0F172A" text-anchor="start">
+    <tspan x="860" dy="0">조직·권한·결재·감사</tspan>
+    <tspan x="860" dy="38">정상·오류·복구·Audit</tspan>
+  </text>
+  <rect x="1210" y="490" width="330" height="230" rx="20" fill="#FFFFFF" stroke="#2F6FED" stroke-width="3"/>
+  <circle cx="1262" cy="545" r="32" fill="#2F6FED" stroke="#2F6FED" stroke-width="0"/>
+  <text x="1262" y="556" font-family="Arial, Noto Sans KR, sans-serif" font-size="23" font-weight="700" fill="#FFFFFF" text-anchor="middle">91</text>
+  <text x="1310" y="552" font-family="Arial, Noto Sans KR, sans-serif" font-size="26" font-weight="700" fill="#17324D" text-anchor="start">Gateway</text>
+  <text x="1240" y="615" font-family="Arial, Noto Sans KR, sans-serif" font-size="22" font-weight="400" fill="#0F172A" text-anchor="start">
+    <tspan x="1240" dy="0">Route·보안·게시·Rollback</tspan>
+    <tspan x="1240" dy="38">정상·오류·복구·Audit</tspan>
+  </text>
+</svg>

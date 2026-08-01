@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">표준 요청 상태 확정 Lifecycle</title>
+  <desc id="desc">CPF 공식 매뉴얼 설명 그림</desc>
+  <rect width="100%" height="100%" fill="#F7F9FC"/>
+  <text x="70" y="72" font-family="Arial, Noto Sans KR, sans-serif" font-size="42" font-weight="700" fill="#17324D" text-anchor="start">표준 요청·상태 확정 Lifecycle</text>
+  <text x="70" y="112" font-family="Arial, Noto Sans KR, sans-serif" font-size="22" font-weight="400" fill="#64748B" text-anchor="start">응답 수신 여부와 실제 업무 결과를 분리</text>
+  <line x1="70" y1="140" x2="1530" y2="140" stroke="#E8EEF6" stroke-width="3"/>
+  <circle cx="150" cy="330" r="58" fill="#FFFFFF" stroke="#2F6FED" stroke-width="5"/>
+  <text x="150" y="345" font-family="Arial, Noto Sans KR, sans-serif" font-size="34" font-weight="700" fill="#2F6FED" text-anchor="middle">1</text>
+  <text x="150" y="430" font-family="Arial, Noto Sans KR, sans-serif" font-size="24" font-weight="700" fill="#17324D" text-anchor="middle">요청 검증</text>
+  <line x1="210" y1="330" x2="330" y2="330" stroke="#64748B" stroke-width="4"/>
+  <polygon points="330,330 312,320 312,340" fill="#64748B"/>
+  <circle cx="400" cy="330" r="58" fill="#FFFFFF" stroke="#7A5AF8" stroke-width="5"/>
+  <text x="400" y="345" font-family="Arial, Noto Sans KR, sans-serif" font-size="34" font-weight="700" fill="#7A5AF8" text-anchor="middle">2</text>
+  <text x="400" y="430" font-family="Arial, Noto Sans KR, sans-serif" font-size="24" font-weight="700" fill="#17324D" text-anchor="middle">권한·승인</text>
+  <line x1="460" y1="330" x2="580" y2="330" stroke="#64748B" stroke-width="4"/>
+  <polygon points="580,330 562,320 562,340" fill="#64748B"/>
+  <circle cx="650" cy="330" r="58" fill="#FFFFFF" stroke="#E9822C" stroke-width="5"/>
+  <text x="650" y="345" font-family="Arial, Noto Sans KR, sans-serif" font-size="34" font-weight="700" fill="#E9822C" text-anchor="middle">3</text>
+  <text x="650" y="430" font-family="Arial, Noto Sans KR, sans-serif" font-size="24" font-weight="700" fill="#17324D" text-anchor="middle">멱등 예약</text>
+  <line x1="710" y1="330" x2="830" y2="330" stroke="#64748B" stroke-width="4"/>
+  <polygon points="830,330 812,320 812,340" fill="#64748B"/>
+  <circle cx="900" cy="330" r="58" fill="#FFFFFF" stroke="#1F9D6A" stroke-width="5"/>
+  <text x="900" y="345" font-family="Arial, Noto Sans KR, sans-serif" font-size="34" font-weight="700" fill="#1F9D6A" text-anchor="middle">4</text>
+  <text x="900" y="430" font-family="Arial, Noto Sans KR, sans-serif" font-size="24" font-weight="700" fill="#17324D" text-anchor="middle">업무 처리</text>
+  <line x1="960" y1="330" x2="1080" y2="330" stroke="#64748B" stroke-width="4"/>
+  <polygon points="1080,330 1062,320 1062,340" fill="#64748B"/>
+  <circle cx="1150" cy="330" r="58" fill="#FFFFFF" stroke="#16A6B6" stroke-width="5"/>
+  <text x="1150" y="345" font-family="Arial, Noto Sans KR, sans-serif" font-size="34" font-weight="700" fill="#16A6B6" text-anchor="middle">5</text>
+  <text x="1150" y="430" font-family="Arial, Noto Sans KR, sans-serif" font-size="24" font-weight="700" fill="#17324D" text-anchor="middle">원장 기록</text>
+  <line x1="1210" y1="330" x2="1330" y2="330" stroke="#64748B" stroke-width="4"/>
+  <polygon points="1330,330 1312,320 1312,340" fill="#64748B"/>
+  <circle cx="1400" cy="330" r="58" fill="#FFFFFF" stroke="#D64545" stroke-width="5"/>
+  <text x="1400" y="345" font-family="Arial, Noto Sans KR, sans-serif" font-size="34" font-weight="700" fill="#D64545" text-anchor="middle">6</text>
+  <text x="1400" y="430" font-family="Arial, Noto Sans KR, sans-serif" font-size="24" font-weight="700" fill="#17324D" text-anchor="middle">응답·대사</text>
+  <rect x="150" y="560" width="1300" height="190" rx="24" fill="#FFFFFF" stroke="#D64545" stroke-width="4"/>
+  <text x="200" y="615" font-family="Arial, Noto Sans KR, sans-serif" font-size="28" font-weight="700" fill="#D64545" text-anchor="start">응답 유실 또는 Timeout</text>
+  <text x="200" y="665" font-family="Arial, Noto Sans KR, sans-serif" font-size="24" font-weight="500" fill="#0F172A" text-anchor="start">
+    <tspan x="200" dy="0">Blind Retry 금지 → Operation ID·transactionId·Idempotency Key로 상태 조회</tspan>
+    <tspan x="200" dy="40">Owner 원장·상대 시스템·Outbox/Inbox·Attempt Ledger를 대사해 SUCCESS / FAILED / UNKNOWN_RESULT 확정</tspan>
+  </text>
+</svg>

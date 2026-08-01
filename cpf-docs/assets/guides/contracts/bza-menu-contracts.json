@@ -1,0 +1,1005 @@
+[
+  {
+    "id": "dashboard",
+    "label": "업무 운영 현황",
+    "route": "/",
+    "page": "cpf-biz-admin/frontend/src/features/dashboard/DashboardPage.vue",
+    "permission": "조회",
+    "fields": [],
+    "columns": [
+      "활성 직원",
+      "조직 수",
+      "진행 결재",
+      "미확인 알림",
+      "오늘 감사",
+      "결재 제목",
+      "결재 상태",
+      "요청자",
+      "현재 Step",
+      "업데이트 시각",
+      "활성 사용자"
+    ],
+    "actions": [
+      {
+        "name": "새로고침",
+        "class": "조회·탐색"
+      }
+    ],
+    "apis": [
+      "GET /api/bza/dashboard",
+      "GET /api/bza/approvals/inbox?decisionStatus=WAITING&limit=12",
+      "GET /api/bza/backoffice/organizations?limit=300",
+      "GET /api/bza/backoffice/employees?limit=300"
+    ],
+    "baselineCommit": "23babb9140b90e501d6ac715e7b77f55b66198a5",
+    "inputMode": "AUTO_QUERY_OR_CONTEXT_ONLY",
+    "inputNote": "별도 사용자 입력 Control 없음. 현재 Session·Permission·Data Scope와 화면의 초기 조회 조건을 사용한다."
+  },
+  {
+    "id": "organizations",
+    "label": "조직 계층",
+    "route": "/organizations",
+    "page": "cpf-biz-admin/frontend/src/features/organizations/OrganizationsPage.vue",
+    "permission": "Read; 변경 안내는 Write",
+    "fields": [
+      "조직명·코드 검색",
+      "중지 조직 포함"
+    ],
+    "columns": [
+      "조직 Tree",
+      "조직 코드",
+      "조직명",
+      "상위 조직",
+      "조직 유형",
+      "사용 여부",
+      "하위 조직 수",
+      "고아 조직 경고",
+      "순환 조직 경고"
+    ],
+    "actions": [
+      {
+        "name": "새로고침",
+        "class": "조회·탐색"
+      },
+      {
+        "name": "Tree Node 선택",
+        "class": "조회·탐색"
+      }
+    ],
+    "apis": [
+      "GET /api/bza/backoffice/organizations?limit=5000"
+    ],
+    "baselineCommit": "23babb9140b90e501d6ac715e7b77f55b66198a5",
+    "inputMode": "USER_INPUT"
+  },
+  {
+    "id": "employees",
+    "label": "직원 Profile",
+    "route": "/employees",
+    "page": "cpf-biz-admin/frontend/src/features/employees/EmployeesPage.vue",
+    "permission": "Write, PII_RAW",
+    "fields": [
+      "직원번호",
+      "대표조직",
+      "이름",
+      "직급",
+      "직책",
+      "재직상태",
+      "Email",
+      "Mobile",
+      "Office",
+      "Clear Flag",
+      "Use"
+    ],
+    "columns": [
+      "직원번호",
+      "대표조직",
+      "이름",
+      "직급",
+      "직책",
+      "재직상태",
+      "Email",
+      "Mobile",
+      "Office",
+      "Clear Flag",
+      "Use"
+    ],
+    "actions": [
+      {
+        "name": "등록",
+        "class": "등록·Draft 변경"
+      },
+      {
+        "name": "수정",
+        "class": "등록·Draft 변경"
+      },
+      {
+        "name": "PII Raw",
+        "class": "조회·탐색"
+      }
+    ],
+    "apis": [],
+    "baselineCommit": "23babb9140b90e501d6ac715e7b77f55b66198a5",
+    "inputMode": "USER_INPUT"
+  },
+  {
+    "id": "positions",
+    "label": "직급 기준",
+    "route": "/positions",
+    "page": "cpf-biz-admin/frontend/src/features/positions/PositionsPage.vue",
+    "permission": "Write",
+    "fields": [
+      "Code",
+      "Name",
+      "Rank Order",
+      "Use"
+    ],
+    "columns": [
+      "Code",
+      "Name",
+      "Rank Order",
+      "Use"
+    ],
+    "actions": [
+      {
+        "name": "등록",
+        "class": "등록·Draft 변경"
+      },
+      {
+        "name": "수정",
+        "class": "등록·Draft 변경"
+      }
+    ],
+    "apis": [],
+    "baselineCommit": "23babb9140b90e501d6ac715e7b77f55b66198a5",
+    "inputMode": "USER_INPUT"
+  },
+  {
+    "id": "jobTitles",
+    "label": "직책 기준",
+    "route": "/jobTitles",
+    "page": "cpf-biz-admin/frontend/src/features/job-titles/JobTitlesPage.vue",
+    "permission": "Write",
+    "fields": [
+      "Code",
+      "Name",
+      "Manager YN",
+      "Use"
+    ],
+    "columns": [
+      "Code",
+      "Name",
+      "Manager YN",
+      "Use"
+    ],
+    "actions": [
+      {
+        "name": "등록",
+        "class": "등록·Draft 변경"
+      },
+      {
+        "name": "수정",
+        "class": "등록·Draft 변경"
+      }
+    ],
+    "apis": [],
+    "baselineCommit": "23babb9140b90e501d6ac715e7b77f55b66198a5",
+    "inputMode": "USER_INPUT"
+  },
+  {
+    "id": "assignments",
+    "label": "발령·겸직·파견",
+    "route": "/assignments",
+    "page": "cpf-biz-admin/frontend/src/features/assignments/AssignmentsPage.vue",
+    "permission": "Write",
+    "fields": [
+      "Assignment ID",
+      "Employee",
+      "Organization",
+      "Position",
+      "Job Title",
+      "Type",
+      "Primary",
+      "유효기간 From/To"
+    ],
+    "columns": [
+      "Assignment ID",
+      "Employee",
+      "Organization",
+      "Position",
+      "Job Title",
+      "Type",
+      "Primary",
+      "유효기간 From/To"
+    ],
+    "actions": [
+      {
+        "name": "등록",
+        "class": "등록·Draft 변경"
+      },
+      {
+        "name": "수정",
+        "class": "등록·Draft 변경"
+      }
+    ],
+    "apis": [],
+    "baselineCommit": "23babb9140b90e501d6ac715e7b77f55b66198a5",
+    "inputMode": "USER_INPUT"
+  },
+  {
+    "id": "organizationResponsibilities",
+    "label": "조직장·대행·승인 Owner",
+    "route": "/organizationResponsibilities",
+    "page": "cpf-biz-admin/frontend/src/features/organization-responsibilities/OrganizationResponsibilitiesPage.vue",
+    "permission": "Write",
+    "fields": [
+      "Responsibility ID",
+      "Organization",
+      "Type",
+      "Employee",
+      "유효기간 From/To"
+    ],
+    "columns": [
+      "Responsibility ID",
+      "Organization",
+      "Type",
+      "Employee",
+      "유효기간 From/To"
+    ],
+    "actions": [
+      {
+        "name": "등록",
+        "class": "등록·Draft 변경"
+      },
+      {
+        "name": "수정",
+        "class": "등록·Draft 변경"
+      }
+    ],
+    "apis": [],
+    "baselineCommit": "23babb9140b90e501d6ac715e7b77f55b66198a5",
+    "inputMode": "USER_INPUT"
+  },
+  {
+    "id": "users",
+    "label": "BZA 인증 사용자",
+    "route": "/users",
+    "page": "cpf-biz-admin/frontend/src/features/users/UsersPage.vue",
+    "permission": "Write",
+    "fields": [
+      "Login ID",
+      "Name",
+      "Account Status",
+      "Password",
+      "Use",
+      "Lock",
+      "Force Password Change",
+      "Reason"
+    ],
+    "columns": [
+      "Login ID",
+      "Name",
+      "Primary Role",
+      "Account Status",
+      "Use",
+      "Lock"
+    ],
+    "actions": [
+      {
+        "name": "등록 Form 열기",
+        "class": "편집 Context 전환"
+      },
+      {
+        "name": "수정 Form 열기",
+        "class": "편집 Context 전환"
+      },
+      {
+        "name": "저장",
+        "class": "등록·Draft 변경"
+      },
+      {
+        "name": "취소",
+        "class": "화면 Draft 편집"
+      },
+      {
+        "name": "이전 Page",
+        "class": "조회·탐색"
+      },
+      {
+        "name": "다음 Page",
+        "class": "조회·탐색"
+      }
+    ],
+    "apis": [
+      "GET /api/bza/admin-users/page?page={page}&size={size}",
+      "POST /api/bza/admin-users"
+    ],
+    "baselineCommit": "23babb9140b90e501d6ac715e7b77f55b66198a5",
+    "inputMode": "FORM_AFTER_ACTION",
+    "inputNote": "목록에는 검색 Field가 없다. 등록 또는 수정 Action으로 Dialog를 연 뒤 Form을 입력한다. Password는 새 값만 입력하며 기존 값은 조회·재표시하지 않는다. expectedVersion은 수정 Row의 versionNo에서 내부 설정되고 화면 입력 Field로 노출되지 않는다."
+  },
+  {
+    "id": "roles",
+    "label": "업무 Role",
+    "route": "/roles",
+    "page": "cpf-biz-admin/frontend/src/features/roles/RolesPage.vue",
+    "permission": "Write",
+    "fields": [
+      "Role Code",
+      "Name",
+      "Write Allowed",
+      "Data Scope",
+      "Use"
+    ],
+    "columns": [
+      "Role Code",
+      "Name",
+      "Write Allowed",
+      "Data Scope",
+      "Use"
+    ],
+    "actions": [
+      {
+        "name": "등록",
+        "class": "등록·Draft 변경"
+      },
+      {
+        "name": "수정",
+        "class": "등록·Draft 변경"
+      }
+    ],
+    "apis": [],
+    "baselineCommit": "23babb9140b90e501d6ac715e7b77f55b66198a5",
+    "inputMode": "USER_INPUT"
+  },
+  {
+    "id": "userRoles",
+    "label": "사용자 Role 유효기간",
+    "route": "/userRoles",
+    "page": "cpf-biz-admin/frontend/src/features/user-roles/UserRolesPage.vue",
+    "permission": "Write",
+    "fields": [
+      "Operation ID",
+      "Login ID",
+      "Role",
+      "유효기간 From/To",
+      "Primary"
+    ],
+    "columns": [
+      "Operation ID",
+      "Login ID",
+      "Role",
+      "유효기간 From/To",
+      "Primary"
+    ],
+    "actions": [
+      {
+        "name": "등록",
+        "class": "등록·Draft 변경"
+      },
+      {
+        "name": "수정",
+        "class": "등록·Draft 변경"
+      },
+      {
+        "name": "Paging",
+        "class": "조회·탐색"
+      }
+    ],
+    "apis": [],
+    "baselineCommit": "23babb9140b90e501d6ac715e7b77f55b66198a5",
+    "inputMode": "USER_INPUT"
+  },
+  {
+    "id": "menus",
+    "label": "Menu Registry",
+    "route": "/menus",
+    "page": "cpf-biz-admin/frontend/src/features/authorization/MenusPage.vue",
+    "permission": "Write",
+    "fields": [
+      "Code",
+      "Parent",
+      "Name",
+      "Route",
+      "Sort",
+      "Use",
+      "Reason",
+      "Tree 검색"
+    ],
+    "columns": [
+      "Code",
+      "Parent",
+      "Name",
+      "Route",
+      "Sort",
+      "Use",
+      "Reason",
+      "Tree 검색"
+    ],
+    "actions": [
+      {
+        "name": "등록",
+        "class": "등록·Draft 변경"
+      },
+      {
+        "name": "수정",
+        "class": "등록·Draft 변경"
+      }
+    ],
+    "apis": [],
+    "baselineCommit": "23babb9140b90e501d6ac715e7b77f55b66198a5",
+    "inputMode": "USER_INPUT"
+  },
+  {
+    "id": "permissions",
+    "label": "Menu·Button·API·Data Scope Permission",
+    "route": "/permissions",
+    "page": "cpf-biz-admin/frontend/src/features/authorization/PermissionsPage.vue",
+    "permission": "WRITE, SIMULATE",
+    "fields": [
+      "Permission ID",
+      "Role",
+      "Menu",
+      "Button",
+      "Type",
+      "HTTP",
+      "API Pattern",
+      "Domain",
+      "Env",
+      "Data Scope",
+      "Allow",
+      "Use"
+    ],
+    "columns": [
+      "Permission ID",
+      "Role",
+      "Menu",
+      "Button",
+      "Type",
+      "HTTP",
+      "API Pattern",
+      "Domain",
+      "Env",
+      "Data Scope",
+      "Allow",
+      "Use"
+    ],
+    "actions": [
+      {
+        "name": "Assignment 등록",
+        "class": "등록·Draft 변경"
+      },
+      {
+        "name": "수정",
+        "class": "등록·Draft 변경"
+      },
+      {
+        "name": "실효 권한 Simulation",
+        "class": "조회·탐색"
+      }
+    ],
+    "apis": [],
+    "baselineCommit": "23babb9140b90e501d6ac715e7b77f55b66198a5",
+    "inputMode": "USER_INPUT"
+  },
+  {
+    "id": "permissionTools",
+    "label": "Role 비교·권한 분석",
+    "route": "/permissionTools",
+    "page": "cpf-biz-admin/frontend/src/features/permission-tools/PermissionToolsPage.vue",
+    "permission": "SIMULATE",
+    "fields": [
+      "비교 Role",
+      "User",
+      "Simulation 입력"
+    ],
+    "columns": [
+      "비교 Role",
+      "User",
+      "Simulation 입력"
+    ],
+    "actions": [
+      {
+        "name": "Role 비교",
+        "class": "조회·탐색"
+      },
+      {
+        "name": "실효 권한 Simulation",
+        "class": "조회·탐색"
+      }
+    ],
+    "apis": [],
+    "baselineCommit": "23babb9140b90e501d6ac715e7b77f55b66198a5",
+    "inputMode": "USER_INPUT"
+  },
+  {
+    "id": "approvalInbox",
+    "label": "결재 처리",
+    "route": "/approvalInbox",
+    "page": "cpf-biz-admin/frontend/src/features/approval-inbox/ApprovalInboxPage.vue",
+    "permission": "결재 참여자",
+    "fields": [
+      "처리대기",
+      "완료",
+      "기타 Lane",
+      "Decision Reason"
+    ],
+    "columns": [
+      "처리대기",
+      "완료",
+      "기타 Lane",
+      "Decision Reason"
+    ],
+    "actions": [
+      {
+        "name": "APPROVE",
+        "class": "승인·의사결정"
+      },
+      {
+        "name": "AGREE",
+        "class": "승인·의사결정"
+      },
+      {
+        "name": "REJECT",
+        "class": "승인·의사결정"
+      }
+    ],
+    "apis": [],
+    "baselineCommit": "23babb9140b90e501d6ac715e7b77f55b66198a5",
+    "inputMode": "USER_INPUT"
+  },
+  {
+    "id": "approvalSubmissions",
+    "label": "상신·철회·취소·재상신",
+    "route": "/approvalSubmissions",
+    "page": "cpf-biz-admin/frontend/src/features/approval-submissions/ApprovalSubmissionsPage.vue",
+    "permission": "요청자/상신 권한",
+    "fields": [
+      "Policy",
+      "Version",
+      "Domain",
+      "Type",
+      "Requester",
+      "Title",
+      "Mode",
+      "Due",
+      "Payload",
+      "Attachment",
+      "Key",
+      "Reason"
+    ],
+    "columns": [
+      "Policy",
+      "Version",
+      "Domain",
+      "Type",
+      "Requester",
+      "Title",
+      "Mode",
+      "Due",
+      "Payload",
+      "Attachment",
+      "Key",
+      "Reason"
+    ],
+    "actions": [
+      {
+        "name": "상신",
+        "class": "등록·Draft 변경"
+      },
+      {
+        "name": "철회",
+        "class": "복구·상태 변경"
+      },
+      {
+        "name": "취소",
+        "class": "변경·위험 조치"
+      },
+      {
+        "name": "재상신",
+        "class": "등록·Draft 변경"
+      }
+    ],
+    "apis": [],
+    "baselineCommit": "23babb9140b90e501d6ac715e7b77f55b66198a5",
+    "inputMode": "USER_INPUT"
+  },
+  {
+    "id": "approvalPolicies",
+    "label": "Versioned 결재 정책",
+    "route": "/approvalPolicies",
+    "page": "cpf-biz-admin/frontend/src/features/approval-policies/ApprovalPoliciesPage.vue",
+    "permission": "정책 Write",
+    "fields": [
+      "Policy",
+      "Version",
+      "Name",
+      "Domain",
+      "Type",
+      "유효기간 From/To",
+      "Enabled",
+      "Self Approval",
+      "Description",
+      "Steps JSON",
+      "Reason"
+    ],
+    "columns": [
+      "Policy",
+      "Version",
+      "Name",
+      "Domain",
+      "Type",
+      "유효기간 From/To",
+      "Enabled",
+      "Self Approval",
+      "Description",
+      "Steps JSON",
+      "Reason"
+    ],
+    "actions": [
+      {
+        "name": "저장",
+        "class": "등록·Draft 변경"
+      },
+      {
+        "name": "조회",
+        "class": "조회·탐색"
+      }
+    ],
+    "apis": [],
+    "baselineCommit": "23babb9140b90e501d6ac715e7b77f55b66198a5",
+    "inputMode": "USER_INPUT"
+  },
+  {
+    "id": "approvalSimulation",
+    "label": "결재 경로 사전 해석",
+    "route": "/approvalSimulation",
+    "page": "cpf-biz-admin/frontend/src/features/approval-simulation/ApprovalSimulationPage.vue",
+    "permission": "조회/Simulation",
+    "fields": [
+      "조직",
+      "Role",
+      "위임",
+      "정책 Context"
+    ],
+    "columns": [
+      "조직",
+      "Role",
+      "위임",
+      "정책 Context"
+    ],
+    "actions": [
+      {
+        "name": "Simulation",
+        "class": "조회·탐색"
+      }
+    ],
+    "apis": [],
+    "baselineCommit": "23babb9140b90e501d6ac715e7b77f55b66198a5",
+    "inputMode": "USER_INPUT"
+  },
+  {
+    "id": "approvalDelegations",
+    "label": "결재 위임·대결",
+    "route": "/approvalDelegations",
+    "page": "cpf-biz-admin/frontend/src/features/approval-delegations/ApprovalDelegationsPage.vue",
+    "permission": "Write",
+    "fields": [
+      "위임자",
+      "수임자",
+      "범위",
+      "유효기간 From/To",
+      "Reason"
+    ],
+    "columns": [
+      "위임자",
+      "수임자",
+      "범위",
+      "유효기간 From/To",
+      "Reason"
+    ],
+    "actions": [
+      {
+        "name": "등록",
+        "class": "등록·Draft 변경"
+      },
+      {
+        "name": "수정",
+        "class": "등록·Draft 변경"
+      },
+      {
+        "name": "중지",
+        "class": "변경·위험 조치"
+      }
+    ],
+    "apis": [],
+    "baselineCommit": "23babb9140b90e501d6ac715e7b77f55b66198a5",
+    "inputMode": "USER_INPUT"
+  },
+  {
+    "id": "sessions",
+    "label": "본인 Refresh Session",
+    "route": "/sessions",
+    "page": "cpf-biz-admin/frontend/src/features/sessions/SessionsPage.vue",
+    "permission": "본인/관리 권한",
+    "fields": [
+      "Session 목록",
+      "Device",
+      "Expiry"
+    ],
+    "columns": [
+      "Session 목록",
+      "Device",
+      "Expiry"
+    ],
+    "actions": [
+      {
+        "name": "조회",
+        "class": "조회·탐색"
+      },
+      {
+        "name": "폐기",
+        "class": "복구·상태 변경"
+      }
+    ],
+    "apis": [],
+    "baselineCommit": "23babb9140b90e501d6ac715e7b77f55b66198a5",
+    "inputMode": "USER_INPUT"
+  },
+  {
+    "id": "audits",
+    "label": "Immutable 업무 감사",
+    "route": "/audits",
+    "page": "cpf-biz-admin/frontend/src/features/audits/AuditsPage.vue",
+    "permission": "Audit Read",
+    "fields": [
+      "Actor",
+      "Action",
+      "Target",
+      "기간",
+      "Operation"
+    ],
+    "columns": [
+      "Actor",
+      "Action",
+      "Target",
+      "기간",
+      "Operation"
+    ],
+    "actions": [
+      {
+        "name": "조회",
+        "class": "조회·탐색"
+      },
+      {
+        "name": "상세",
+        "class": "조회·탐색"
+      }
+    ],
+    "apis": [],
+    "baselineCommit": "23babb9140b90e501d6ac715e7b77f55b66198a5",
+    "inputMode": "USER_INPUT"
+  },
+  {
+    "id": "notifications",
+    "label": "업무 알림",
+    "route": "/notifications",
+    "page": "cpf-biz-admin/frontend/src/features/notifications/NotificationsPage.vue",
+    "permission": "본인/Setting",
+    "fields": [
+      "알림 상태",
+      "채널",
+      "사용자 Filter"
+    ],
+    "columns": [
+      "알림 상태",
+      "채널",
+      "사용자 Filter"
+    ],
+    "actions": [
+      {
+        "name": "조회",
+        "class": "조회·탐색"
+      },
+      {
+        "name": "읽음 처리",
+        "class": "등록·Draft 변경"
+      },
+      {
+        "name": "설정 저장",
+        "class": "등록·Draft 변경"
+      }
+    ],
+    "apis": [],
+    "baselineCommit": "23babb9140b90e501d6ac715e7b77f55b66198a5",
+    "inputMode": "USER_INPUT"
+  },
+  {
+    "id": "attachments",
+    "label": "첨부 업로드·검사·격리",
+    "route": "/attachments",
+    "page": "cpf-biz-admin/frontend/src/features/attachments/AttachmentsPage.vue",
+    "permission": "Write",
+    "fields": [
+      "Group ID",
+      "File",
+      "Reason",
+      "Scan",
+      "Data Classification",
+      "Quarantine",
+      "Retention"
+    ],
+    "columns": [
+      "Group ID",
+      "File",
+      "Reason",
+      "Scan",
+      "Data Classification",
+      "Quarantine",
+      "Retention"
+    ],
+    "actions": [
+      {
+        "name": "조회",
+        "class": "조회·탐색"
+      },
+      {
+        "name": "Upload",
+        "class": "등록·Draft 변경"
+      },
+      {
+        "name": "Download",
+        "class": "Export·Artifact"
+      },
+      {
+        "name": "재검사",
+        "class": "등록·Draft 변경"
+      }
+    ],
+    "apis": [],
+    "baselineCommit": "23babb9140b90e501d6ac715e7b77f55b66198a5",
+    "inputMode": "USER_INPUT"
+  },
+  {
+    "id": "savedSearches",
+    "label": "저장 검색",
+    "route": "/savedSearches",
+    "page": "cpf-biz-admin/frontend/src/features/saved-searches/SavedSearchesPage.vue",
+    "permission": "본인/Setting",
+    "fields": [
+      "Menu",
+      "Name",
+      "Condition",
+      "Use"
+    ],
+    "columns": [
+      "Menu",
+      "Name",
+      "Condition",
+      "Use"
+    ],
+    "actions": [
+      {
+        "name": "등록",
+        "class": "등록·Draft 변경"
+      },
+      {
+        "name": "수정",
+        "class": "등록·Draft 변경"
+      },
+      {
+        "name": "삭제",
+        "class": "변경·위험 조치"
+      }
+    ],
+    "apis": [],
+    "baselineCommit": "23babb9140b90e501d6ac715e7b77f55b66198a5",
+    "inputMode": "USER_INPUT"
+  },
+  {
+    "id": "settings",
+    "label": "BZA 업무 설정",
+    "route": "/settings",
+    "page": "cpf-biz-admin/frontend/src/features/settings/SettingsPage.vue",
+    "permission": "Write",
+    "fields": [
+      "Key",
+      "Value",
+      "Type",
+      "Scope",
+      "Version",
+      "Reason"
+    ],
+    "columns": [
+      "Key",
+      "Value",
+      "Type",
+      "Scope",
+      "Version",
+      "Reason"
+    ],
+    "actions": [
+      {
+        "name": "조회",
+        "class": "조회·탐색"
+      },
+      {
+        "name": "저장",
+        "class": "등록·Draft 변경"
+      }
+    ],
+    "apis": [],
+    "baselineCommit": "23babb9140b90e501d6ac715e7b77f55b66198a5",
+    "inputMode": "USER_INPUT"
+  },
+  {
+    "id": "downloads",
+    "label": "Download 정책",
+    "route": "/downloads",
+    "page": "cpf-biz-admin/frontend/src/features/downloads/DownloadsPage.vue",
+    "permission": "Write",
+    "fields": [
+      "유형",
+      "건수",
+      "Data Scope",
+      "Masking",
+      "Approval",
+      "Reason"
+    ],
+    "columns": [
+      "유형",
+      "건수",
+      "Data Scope",
+      "Masking",
+      "Approval",
+      "Reason"
+    ],
+    "actions": [
+      {
+        "name": "조회",
+        "class": "조회·탐색"
+      },
+      {
+        "name": "정책 변경",
+        "class": "변경·위험 조치"
+      }
+    ],
+    "apis": [],
+    "baselineCommit": "23babb9140b90e501d6ac715e7b77f55b66198a5",
+    "inputMode": "USER_INPUT"
+  },
+  {
+    "id": "downloadAudits",
+    "label": "Download 감사",
+    "route": "/downloadAudits",
+    "page": "cpf-biz-admin/frontend/src/features/download-audits/DownloadAuditsPage.vue",
+    "permission": "Audit Read",
+    "fields": [
+      "사용자",
+      "유형",
+      "대상",
+      "기간",
+      "Reason"
+    ],
+    "columns": [
+      "사용자",
+      "유형",
+      "대상",
+      "기간",
+      "Reason"
+    ],
+    "actions": [
+      {
+        "name": "조회",
+        "class": "조회·탐색"
+      },
+      {
+        "name": "상세",
+        "class": "조회·탐색"
+      }
+    ],
+    "apis": [],
+    "baselineCommit": "23babb9140b90e501d6ac715e7b77f55b66198a5",
+    "inputMode": "USER_INPUT"
+  }
+]

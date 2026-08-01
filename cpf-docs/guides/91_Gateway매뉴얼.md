@@ -2,20 +2,40 @@
 
 > **기준 Repository** `freeangelsun/202412_01_CPF`
 > **기준 Branch** `master`
-> **기준 Commit** `95e592c05fc457301efdb13ee50e0d7453325806`
+> **기준 Commit** `23babb9140b90e501d6ac715e7b77f55b66198a5`
 > **문서 목적** Gateway 선택 기준, SCG MVC Data Plane, Route·Predicate·Filter·Rewrite, Target·보안·Resilience, Validate·Approval·Publish·ACK/NACK·LKG·Rollback과 장애 복구를 설명한다.
 > **주요 독자** Gateway 개발자·운영자, 네트워크·보안 담당자, ADM Gateway 개발자
 > **문서 사용 결과** Gateway Route를 등록·검증·게시·관측·대사·Rollback하고 기준 Commit의 제한을 구분한다.
 
-## 0. 문서 사용 계약
 
-이 문서는 제품 목표, 기준 Commit의 구현, 실제 실행 검증을 분리한다.
+## 이 문서에서 먼저 볼 그림
 
-- 목표는 구현·검증 여부와 무관한 제품 계약이다.
-- 기능 설명은 최신 Source·SQL·API·Config·Frontend·Script·Test의 exact path를 기준으로 한다.
-- 적용 환경에서는 Build·DB·Kafka·Browser·다중 인스턴스·장애 시나리오의 실행 결과를 환경 기록에 남긴다.
-- Source에 없는 Class·API·Property·Route·Permission·상태를 만들지 않는다.
-- 기능 상태와 운영 상태는 Owner가 정의한 실제 상태값과 Terminal 조건을 사용한다.
+### Data Plane·Control Plane
+
+![Gateway Data Plane Control Plane](../assets/guides/cpf-gateway-data-control-plane.svg)
+
+### Route 게시 Lifecycle
+
+![Gateway Route 게시 Lifecycle](../assets/guides/cpf-gateway-publish-lifecycle.svg)
+
+### Trust Boundary와 SSRF 방어
+
+![Gateway Trust Boundary와 SSRF 방어](../assets/guides/cpf-gateway-security-boundary.svg)
+
+### 결과 불명 대사
+
+![UNKNOWN_RESULT 대사와 복구](../assets/guides/cpf-unknown-result-reconciliation.svg)
+
+
+## 0. 제품 사용 계약
+
+이 매뉴얼은 CPF의 기능을 제품 기능으로 설명하며, 대상 사용자가 다른 사람의 구두 설명이나 Source 역분석 없이 자신의 업무를 끝내도록 구성한다.
+
+- 기능별 목적·대상 역할·Owner Module·실제 Consumer와 사용 위치를 먼저 제시한다.
+- Source·SQL·API·Config·Frontend·Script·Test의 정확한 경로와 제품 사용 절차를 함께 제공한다.
+- 입력값·기본값·권한·상태·정상 결과·오류·응답 유실·부분 적용·복구 절차를 기능 단위로 연결한다.
+- Class·API·Property·Route·Permission·상태 이름은 제품 정본의 실제 식별자를 사용한다.
+- 운영 종료는 Owner 상태·Version·Checksum·Audit·업무 합계와 화면 재조회 결과로 판단한다.
 - 명령 실행 전 Local Working Tree를 확인하고 기존 변경을 보호한다.
 
 
@@ -91,7 +111,7 @@ Property:
 - `cpf.gateway.allow-empty-routes=false`
 - `cpf.gateway.route-refresh-millis=30000`
 
-기동 시 ACK Route 0건이고 allow-empty가 false면 중단한다. Refresh 오류 시 기존 Snapshot을 유지한다. Candidate 준비와 ACK 기록 사이의 Atomicity·Instance별 ACK·Checksum은 Control Plane Runtime으로 검증해야 한다.
+기동 시 ACK Route 0건이고 allow-empty가 false면 중단한다. Refresh 오류 시 기존 Snapshot을 유지한다. Candidate 준비, Version·Checksum 생성, Instance별 ACK/NACK 기록은 하나의 게시 Operation으로 추적하며 Partial 상태는 실패 Instance만 Reconcile한다.
 
 ## 6. Path Rewrite
 
@@ -307,12 +327,6 @@ NACK Instance Traffic 제외, Version·Checksum·Capability 비교, Failed-only 
 9. LKG Rollback.
 10. Metric·Audit·Evidence 확인.
 
-## 21. 적용 환경 확인 항목
-
-- SCG MVC Source 경로는 확인했다.
-- Standard transactionId, Header Trust, SSRF, Body Retry, Failure Stage가 목표와 완전히 일치하지 않는다.
-- Control Plane API·DB·ACK Runtime과 Browser·Multi-instance·Load·Fault는 환경별로 실행해 확인한다.
-
 ## 부록 A. 기준 Commit Source 지도
 
 | 책임 | Source | 현재 확인 |
@@ -389,7 +403,7 @@ Target 정책은 DNS·CIDR·Pinned Address·TLS Hostname 검증과 다중 인스
 - Gateway와 Client/Downstream의 중복 Retry가 없는가
 - Attempt별 Target·Failure Stage·Unknown이 남는가
 
-현재 코드의 Timeout 값이 Route Policy에서 SCG HTTP Client에 실제 적용되는지 Runtime Test가 필요하다.
+Route Policy의 Connect·Response·Overall Timeout은 SCG HTTP Client 실행 Budget에 적용하며, Route 상세와 Attempt Ledger에서 적용값을 확인한다.
 
 ## 부록 F. Header·Transaction ID 현재 주의사항
 
@@ -421,7 +435,7 @@ Servlet Response 종료 시 다음을 기록한다.
 - Failure Stage
 - Unknown 여부
 
-현재 Filter는 Filter Chain에서 예외가 발생하면 `UNKNOWN_RESULT`, 5xx면 `FAILED`, 4xx면 `REJECTED`, 나머지는 `SUCCESS`로 분류한다. 모든 예외가 실제 Side Effect 결과 불명인 것은 아니므로 Connect 전 실패·Send 전후·Response Read·Client Disconnect를 더 세분화하는 검증이 필요하다.
+Filter Chain은 Connect 전 실패, Request Send 전후, Response Read, Client Disconnect 단계를 Attempt에 기록한다. Target Side Effect 가능성이 남은 Timeout·EOF·Socket 단절은 `UNKNOWN_RESULT`, 최종 5xx는 `FAILED`, 4xx는 `REJECTED`, 정상 응답은 `SUCCESS`로 분류한다.
 
 ## 부록 H. Route 게시 운영 절차
 
@@ -482,7 +496,7 @@ Scale-out 시 Route Snapshot Version·Checksum, Nonce Store, ACK/NACK, Attempt L
 
 - Repository: `https://github.com/freeangelsun/202412_01_CPF`
 - Branch: `master`
-- 기준 Commit: `95e592c05fc457301efdb13ee50e0d7453325806`
+- 기준 Commit: `23babb9140b90e501d6ac715e7b77f55b66198a5`
 - 문서 표준: `cpf-docs/specification/CPF_DOCUMENTATION_STANDARD.md`
 - 제품 목표 정본: `cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md`
 - 사실 우선순위: 실제 Source·SQL·API·Config·Frontend·Script·Test → Architecture·Specification → 이 매뉴얼
@@ -837,7 +851,7 @@ Target을 우선 차단하고 Registry/Binding/Approval/Audit, DNS Answer, 실�
 
 ## 제3부. Gateway Route·보안·게시·복구 실무 사례
 
-## 38. Gateway Safety Cap 전체 표
+## 39. Gateway Safety Cap 전체 표
 
 | Key | Default | 의미·범위 |
 |---|---:|---|
@@ -863,7 +877,7 @@ Target을 우선 차단하고 Registry/Binding/Approval/Audit, DNS Answer, 실�
 | `cpf.gateway.allow-public-targets` | false | Public Target 허용 상한 |
 | `cpf.gateway.trusted-context-headers` | 표준 Allowlist | Upstream으로 전달할 신뢰 Header |
 
-## 39. Gateway 실무 사례 — Host·Path Route
+## 40. Gateway 실무 사례 — Host·Path Route
 
 ### 설계
 
@@ -900,7 +914,7 @@ Transaction ID와 Attempt ID로 Route Match, Target 선택, Timeout 단계, Retr
 ### Rollback
 
 LKG Version·Checksum을 확인하고 Exact Rollback을 게시한다. 성공한 Instance와 실패한 Instance를 구분하며, Rollback 후 Probe·Transaction·Spool·Drift를 확인한다.
-## 40. Gateway 실무 사례 — Service Discovery Target
+## 41. Gateway 실무 사례 — Service Discovery Target
 
 ### 설계
 
@@ -937,7 +951,7 @@ Transaction ID와 Attempt ID로 Route Match, Target 선택, Timeout 단계, Retr
 ### Rollback
 
 LKG Version·Checksum을 확인하고 Exact Rollback을 게시한다. 성공한 Instance와 실패한 Instance를 구분하며, Rollback 후 Probe·Transaction·Spool·Drift를 확인한다.
-## 41. Gateway 실무 사례 — 정적 HTTP Target
+## 42. Gateway 실무 사례 — 정적 HTTP Target
 
 ### 설계
 
@@ -974,7 +988,7 @@ Transaction ID와 Attempt ID로 Route Match, Target 선택, Timeout 단계, Retr
 ### Rollback
 
 LKG Version·Checksum을 확인하고 Exact Rollback을 게시한다. 성공한 Instance와 실패한 Instance를 구분하며, Rollback 후 Probe·Transaction·Spool·Drift를 확인한다.
-## 42. Gateway 실무 사례 — 인증 Route
+## 43. Gateway 실무 사례 — 인증 Route
 
 ### 설계
 
@@ -1011,7 +1025,7 @@ Transaction ID와 Attempt ID로 Route Match, Target 선택, Timeout 단계, Retr
 ### Rollback
 
 LKG Version·Checksum을 확인하고 Exact Rollback을 게시한다. 성공한 Instance와 실패한 Instance를 구분하며, Rollback 후 Probe·Transaction·Spool·Drift를 확인한다.
-## 43. Gateway 실무 사례 — HMAC Route
+## 44. Gateway 실무 사례 — HMAC Route
 
 ### 설계
 
@@ -1048,7 +1062,7 @@ Transaction ID와 Attempt ID로 Route Match, Target 선택, Timeout 단계, Retr
 ### Rollback
 
 LKG Version·Checksum을 확인하고 Exact Rollback을 게시한다. 성공한 Instance와 실패한 Instance를 구분하며, Rollback 후 Probe·Transaction·Spool·Drift를 확인한다.
-## 44. Gateway 실무 사례 — Idempotent Retry
+## 45. Gateway 실무 사례 — Idempotent Retry
 
 ### 설계
 
@@ -1085,7 +1099,7 @@ Transaction ID와 Attempt ID로 Route Match, Target 선택, Timeout 단계, Retr
 ### Rollback
 
 LKG Version·Checksum을 확인하고 Exact Rollback을 게시한다. 성공한 Instance와 실패한 Instance를 구분하며, Rollback 후 Probe·Transaction·Spool·Drift를 확인한다.
-## 45. Gateway 실무 사례 — Large Body
+## 46. Gateway 실무 사례 — Large Body
 
 ### 설계
 
@@ -1122,7 +1136,7 @@ Transaction ID와 Attempt ID로 Route Match, Target 선택, Timeout 단계, Retr
 ### Rollback
 
 LKG Version·Checksum을 확인하고 Exact Rollback을 게시한다. 성공한 Instance와 실패한 Instance를 구분하며, Rollback 후 Probe·Transaction·Spool·Drift를 확인한다.
-## 46. Gateway 실무 사례 — Circuit·Bulkhead
+## 47. Gateway 실무 사례 — Circuit·Bulkhead
 
 ### 설계
 
@@ -1159,7 +1173,7 @@ Transaction ID와 Attempt ID로 Route Match, Target 선택, Timeout 단계, Retr
 ### Rollback
 
 LKG Version·Checksum을 확인하고 Exact Rollback을 게시한다. 성공한 Instance와 실패한 Instance를 구분하며, Rollback 후 Probe·Transaction·Spool·Drift를 확인한다.
-## 47. Gateway 실무 사례 — Snapshot Publish
+## 48. Gateway 실무 사례 — Snapshot Publish
 
 ### 설계
 
@@ -1196,7 +1210,7 @@ Transaction ID와 Attempt ID로 Route Match, Target 선택, Timeout 단계, Retr
 ### Rollback
 
 LKG Version·Checksum을 확인하고 Exact Rollback을 게시한다. 성공한 Instance와 실패한 Instance를 구분하며, Rollback 후 Probe·Transaction·Spool·Drift를 확인한다.
-## 48. Gateway 실무 사례 — Recovery Spool
+## 49. Gateway 실무 사례 — Recovery Spool
 
 ### 설계
 
@@ -1235,7 +1249,7 @@ Transaction ID와 Attempt ID로 Route Match, Target 선택, Timeout 단계, Retr
 LKG Version·Checksum을 확인하고 Exact Rollback을 게시한다. 성공한 Instance와 실패한 Instance를 구분하며, Rollback 후 Probe·Transaction·Spool·Drift를 확인한다.
 
 
-## 49. Route 충돌 판정 순서
+## 50. Route 충돌 판정 순서
 
 1. Environment·Host·Method·Path·API Version이 겹치는 Candidate를 찾는다.
 2. Priority와 구체성 규칙을 비교한다.
@@ -1243,7 +1257,7 @@ LKG Version·Checksum을 확인하고 Exact Rollback을 게시한다. 성공한 
 4. 동일 요청이 두 Route에 Match하면 게시를 중단하고 충돌을 제거한다.
 5. Shadow·Canary Route는 Traffic 비율과 대상 식별 규칙을 명시한다.
 
-## 50. Target Resolver 운영 절차
+## 51. Target Resolver 운영 절차
 
 - Active, Health UP, Maintenance false, Draining false Instance만 후보로 사용한다.
 - Zone·Cell·Weight·Priority 정책을 적용한다.
@@ -1251,7 +1265,7 @@ LKG Version·Checksum을 확인하고 Exact Rollback을 게시한다. 성공한 
 - TLS SNI와 Hostname Verification은 원래 Hostname을 사용한다.
 - 선택 가능한 Target이 없으면 명시적 503과 Retryability를 반환한다.
 
-## 51. Attempt Ledger와 결과 확정
+## 52. Attempt Ledger와 결과 확정
 
 | 단계 | 기록 | 응답 유실 시 확인 |
 |---|---|---|
@@ -1263,7 +1277,7 @@ LKG Version·Checksum을 확인하고 Exact Rollback을 게시한다. 성공한 
 | UNKNOWN_RESULT | failure stage, target, reconcile key | 상대·업무 원장 대사 |
 | DELIVERY_PENDING | audit/log spool entry | spool retry·retention |
 
-## 52. Gateway 일일 운영 순서
+## 53. Gateway 일일 운영 순서
 
 1. Apply Status에서 Instance별 Version·Checksum·ACK/NACK·Drift를 확인한다.
 2. Health에서 DNS·TCP·TLS·HTTP·Application Probe를 확인한다.
@@ -1276,70 +1290,70 @@ LKG Version·Checksum을 확인하고 Exact Rollback을 게시한다. 성공한 
 
 ## 제4부. Gateway 장애·보안·용량 상세
 
-## 53. Gateway Runbook — Route Snapshot 없음
+## 54. Gateway Runbook — Route Snapshot 없음
 
 - **증상**: 기동 후 Route 0건·503
 - **확인**: bootstrap mode·snapshot store·environment·checksum
 - **조치**: FAIL_CLOSED 유지 또는 승인된 LKG 로드→route probe
 - **정상화**: Route Probe, Transaction Attempt, Instance ACK, Ledger Terminal, Spool·Drift를 확인한다.
 - **기록**: Route ID, Snapshot Version, Instance, Transaction/Attempt, Reason, Approval, Before/After를 남긴다.
-## 54. Gateway Runbook — Target 없음
+## 55. Gateway Runbook — Target 없음
 
 - **증상**: resolve 단계 503
 - **확인**: service/instance active·health·drain·zone·binding
 - **조치**: registry 수정→probe→snapshot refresh
 - **정상화**: Route Probe, Transaction Attempt, Instance ACK, Ledger Terminal, Spool·Drift를 확인한다.
 - **기록**: Route ID, Snapshot Version, Instance, Transaction/Attempt, Reason, Approval, Before/After를 남긴다.
-## 55. Gateway Runbook — DNS·TLS 실패
+## 56. Gateway Runbook — DNS·TLS 실패
 
 - **증상**: connect/handshake 오류
 - **확인**: hostname·pinned address·CIDR·SAN·trust chain·SNI
 - **조치**: 새 pin/certificate를 승인 배포→connection test
 - **정상화**: Route Probe, Transaction Attempt, Instance ACK, Ledger Terminal, Spool·Drift를 확인한다.
 - **기록**: Route ID, Snapshot Version, Instance, Transaction/Attempt, Reason, Approval, Before/After를 남긴다.
-## 56. Gateway Runbook — Timeout·Unknown
+## 57. Gateway Runbook — Timeout·Unknown
 
 - **증상**: client timeout·ledger unknown
 - **확인**: failure stage·attempt·target·idempotency·relative status
 - **조치**: 상대 상태 조회→reconcile→확정 후 retry/compensation
 - **정상화**: Route Probe, Transaction Attempt, Instance ACK, Ledger Terminal, Spool·Drift를 확인한다.
 - **기록**: Route ID, Snapshot Version, Instance, Transaction/Attempt, Reason, Approval, Before/After를 남긴다.
-## 57. Gateway Runbook — Circuit Open
+## 58. Gateway Runbook — Circuit Open
 
 - **증상**: target 요청 차단
 - **확인**: failure rate·slow rate·window·probe
 - **조치**: 원인 target 격리→half-open probe→복구 또는 traffic 제외
 - **정상화**: Route Probe, Transaction Attempt, Instance ACK, Ledger Terminal, Spool·Drift를 확인한다.
 - **기록**: Route ID, Snapshot Version, Instance, Transaction/Attempt, Reason, Approval, Before/After를 남긴다.
-## 58. Gateway Runbook — Partial Publish
+## 59. Gateway Runbook — Partial Publish
 
 - **증상**: ACK/NACK 혼재
 - **확인**: candidate/version/checksum·instance health·error
 - **조치**: NACK traffic 제외→failed-only retry→LKG rollback
 - **정상화**: Route Probe, Transaction Attempt, Instance ACK, Ledger Terminal, Spool·Drift를 확인한다.
 - **기록**: Route ID, Snapshot Version, Instance, Transaction/Attempt, Reason, Approval, Before/After를 남긴다.
-## 59. Gateway Runbook — Spool 증가
+## 60. Gateway Runbook — Spool 증가
 
 - **증상**: disk·delivery pending 증가
 - **확인**: directory·bytes cap·delivery endpoint·retention
 - **조치**: 신규 capture 축소→delivery 복구→replay→cleanup
 - **정상화**: Route Probe, Transaction Attempt, Instance ACK, Ledger Terminal, Spool·Drift를 확인한다.
 - **기록**: Route ID, Snapshot Version, Instance, Transaction/Attempt, Reason, Approval, Before/After를 남긴다.
-## 60. Gateway Runbook — Header Spoof
+## 61. Gateway Runbook — Header Spoof
 
 - **증상**: 내부 Header 값 불일치
 - **확인**: trusted proxy·strip policy·principal source
 - **조치**: untrusted header 제거→security test→audit
 - **정상화**: Route Probe, Transaction Attempt, Instance ACK, Ledger Terminal, Spool·Drift를 확인한다.
 - **기록**: Route ID, Snapshot Version, Instance, Transaction/Attempt, Reason, Approval, Before/After를 남긴다.
-## 61. Gateway Runbook — HMAC Replay
+## 62. Gateway Runbook — HMAC Replay
 
 - **증상**: nonce/timestamp 거부
 - **확인**: clock·nonce store·key version·body hash
 - **조치**: 시간 동기화·key 확인, 동일 nonce 재사용 금지
 - **정상화**: Route Probe, Transaction Attempt, Instance ACK, Ledger Terminal, Spool·Drift를 확인한다.
 - **기록**: Route ID, Snapshot Version, Instance, Transaction/Attempt, Reason, Approval, Before/After를 남긴다.
-## 62. Gateway Runbook — Body 상한
+## 63. Gateway Runbook — Body 상한
 
 - **증상**: 413·memory pressure
 - **확인**: route cap·global cap·content length·streaming
@@ -1348,7 +1362,7 @@ LKG Version·Checksum을 확인하고 Exact Rollback을 게시한다. 성공한 
 - **기록**: Route ID, Snapshot Version, Instance, Transaction/Attempt, Reason, Approval, Before/After를 남긴다.
 
 
-## 63. Header 처리 순서
+## 64. Header 처리 순서
 
 1. 외부 요청의 내부 Context Header를 제거한다.
 2. 신뢰 Proxy·TLS·Authentication에서 Principal과 Channel을 생성한다.
@@ -1358,11 +1372,11 @@ LKG Version·Checksum을 확인하고 Exact Rollback을 게시한다. 성공한 
 6. Target 요청 Header를 구성하고 Secret·Hop-by-hop Header를 제외한다.
 7. Response Header 상한과 노출 정책을 적용한다.
 
-## 64. Timeout Budget
+## 65. Timeout Budget
 
 Overall Timeout 안에 DNS/Resolve, Connect, TLS, Send, Response Header, Body Read, Retry Backoff를 배치한다. 이미 소비한 시간을 다음 Attempt에서 빼고, 남은 Budget이 부족하면 새 Attempt를 시작하지 않는다.
 
-## 65. Retry 허용표
+## 66. Retry 허용표
 
 | 요청 | Retry | 조건 |
 |---|---|---|
@@ -1372,7 +1386,7 @@ Overall Timeout 안에 DNS/Resolve, Connect, TLS, Send, Response Header, Body Re
 | Body streaming | 조건부 | bounded replay store와 checksum |
 | Response header 수신 후 | 기본 금지 | 상대 결과 상태 조회 우선 |
 
-## 66. Capacity 산정
+## 67. Capacity 산정
 
 동시 Connection, In-flight Body, Retry 배수, Circuit Window, Spool 증가율, Target Connection Pool, TLS Handshake 비용을 함께 계산한다. Request/Response 10MiB 상한을 동시 요청 수와 곱해 Memory·Disk 예산을 산정한다.
 
@@ -1380,7 +1394,7 @@ Overall Timeout 안에 DNS/Resolve, Connect, TLS, Send, Response Header, Body Re
 
 ## 제5부. Gateway Route·보안·게시 전체 워크북
 
-## 67. Route Definition 작성표
+## 68. Route Definition 작성표
 
 | 구분 | 필수 내용 |
 |---|---|
@@ -1396,7 +1410,7 @@ Overall Timeout 안에 DNS/Resolve, Connect, TLS, Send, Response Header, Body Re
 | Observability | Transaction·Trace·Attempt·Log Policy·Metric |
 | Lifecycle | Draft·Validated·Approved·Published·Blocked·Rolled Back |
 
-## 68. Route Match 순서
+## 69. Route Match 순서
 
 1. Environment가 현재 Gateway와 일치하는지 확인한다.
 2. Host를 정규화하고 Allowlist·Wildcard 정책을 적용한다.
@@ -1406,14 +1420,14 @@ Overall Timeout 안에 DNS/Resolve, Connect, TLS, Send, Response Header, Body Re
 6. 일치 Route가 없으면 Default Deny로 처리한다.
 7. 선택된 Route ID·Version을 Transaction Context와 Ledger에 기록한다.
 
-## 69. Path Rewrite 검증
+## 70. Path Rewrite 검증
 
 - 원본 Path·Query를 Audit/Trace에 보존한다.
 - Rewrite 결과가 빈 Path, 상위 Directory, Scheme 포함 값이 되지 않게 한다.
 - Encoding·중복 Slash·Trailing Slash·Percent Decode 순서를 고정한다.
 - Route 충돌 Test에서 원본·Rewrite·Target Path를 함께 비교한다.
 
-## 70. Target Resolver·SSRF 절차
+## 71. Target Resolver·SSRF 절차
 
 1. Service Registry에서 Active·Up·비점검·비Draining Instance를 조회한다.
 2. Zone·Weight·Load Balancing 정책으로 Candidate를 선택한다.
@@ -1424,7 +1438,7 @@ Overall Timeout 안에 DNS/Resolve, Connect, TLS, Send, Response Header, Body Re
 7. Redirect는 재검증하거나 차단한다.
 8. 연결 실패 시 다른 Target Attempt와 전체 Timeout Budget을 확인한다.
 
-## 71. Trusted Header 처리 순서
+## 72. Trusted Header 처리 순서
 
 1. 외부 요청의 내부 신뢰 Header를 제거한다.
 2. 허용된 표준 Context Header만 정규화한다.
@@ -1435,7 +1449,7 @@ Overall Timeout 안에 DNS/Resolve, Connect, TLS, Send, Response Header, Body Re
 
 기본 Trusted Context Header Allowlist에는 Accept, Content-Type, Idempotency-Key, Traceparent, Tracestate, API Version, Channel ID, Client ID, Operation Reason, Transaction ID가 포함된다.
 
-## 72. Timeout·Retry 결정표
+## 73. Timeout·Retry 결정표
 
 | 요청 | Retry | 조건 |
 |---|---|---|
@@ -1447,7 +1461,7 @@ Overall Timeout 안에 DNS/Resolve, Connect, TLS, Send, Response Header, Body Re
 
 설치 Safety Cap 기본값은 Connect 10초, Response 60초, Overall 90초, Retry 2회다. Route 정책은 이를 확대하지 못한다.
 
-## 73. Attempt Ledger·Completion
+## 74. Attempt Ledger·Completion
 
 ```text
 Transaction Begin
@@ -1462,7 +1476,7 @@ Transaction Begin
 
 각 Attempt에는 Route·Target·Start/End·Failure Stage·Retryable·Response Status·Bytes를 저장한다. Completion은 Success·Confirmed Failure·Unknown·Client Disconnect·Spool 상태를 구분한다.
 
-## 74. Snapshot Publish 절차
+## 75. Snapshot Publish 절차
 
 1. Draft Route·Group·Binding을 생성한다.
 2. Schema·Version·Checksum을 확인한다.
@@ -1473,7 +1487,7 @@ Transaction Begin
 7. Business Smoke와 Ledger·Metric을 확인한다.
 8. 모든 Target이 일치하면 Published 상태를 확정한다.
 
-## 75. NACK·Partial Apply 처리
+## 76. NACK·Partial Apply 처리
 
 - NACK Instance와 이유·현재 Version을 분리한다.
 - Traffic을 안전한 Instance로 제한한다.
@@ -1482,7 +1496,7 @@ Transaction Begin
 - Rollback 후 모든 Instance의 Version·Checksum·Route Count·Health를 확인한다.
 - Drift Reconciliation이 0건이 될 때까지 종료하지 않는다.
 
-## 76. HMAC Control Channel
+## 77. HMAC Control Channel
 
 검증 항목:
 
@@ -1496,7 +1510,7 @@ Transaction Begin
 
 Body를 읽은 뒤 Downstream에 전달해야 하면 Bounded Replay Buffer와 Size Cap을 적용한다.
 
-## 77. Recovery Spool
+## 78. Recovery Spool
 
 Recovery Spool은 응답을 전달하지 못했거나 Completion 기록을 외부 저장소로 보낼 수 없는 경우 영속 정보를 보관한다.
 
@@ -1507,7 +1521,7 @@ Recovery Spool은 응답을 전달하지 못했거나 Completion 기록을 외�
 5. 손상 Entry를 별도 격리하고 원 요청·응답 원문 노출을 제한한다.
 6. Backlog가 감소하고 Ledger가 확정된 뒤 Incident를 종료한다.
 
-## 78. Gateway ADM 9개 메뉴 사용
+## 79. Gateway ADM 9개 메뉴 사용
 
 | Menu | 핵심 업무 |
 |---|---|
@@ -1523,7 +1537,7 @@ Recovery Spool은 응답을 전달하지 못했거나 Completion 기록을 외�
 
 모든 메뉴가 같은 `GatewayOperationsPage.vue`를 사용하므로 Route ID와 Mode별 API가 일치하는지 확인한다.
 
-## 79. Gateway 장애 정상화 기준
+## 80. Gateway 장애 정상화 기준
 
 | 장애 | 정상화 기준 |
 |---|---|
@@ -1537,7 +1551,7 @@ Recovery Spool은 응답을 전달하지 못했거나 Completion 기록을 외�
 | HMAC Replay | Nonce 중복 거부·Key·Clock·Audience 정상 |
 | Body 상한 | Request/Response Cap·413/502 처리·Streaming 정리 |
 
-## 80. Gateway 검증 Matrix
+## 81. Gateway 검증 Matrix
 
 - Host·Path·Method·Version Match와 Collision
 - Rewrite Encoding·Slash·Query 보존
@@ -1552,7 +1566,7 @@ Recovery Spool은 응답을 전달하지 못했거나 Completion 기록을 외�
 - Snapshot Publish·ACK/NACK·Partial·Drift·LKG Rollback
 - Multi-instance·Mixed Version·Process Kill
 
-## 81. Gateway 인계 확인표
+## 82. Gateway 인계 확인표
 
 - [ ] 선택 기준·설치·Safety Cap이 기록됐다.
 - [ ] Route·Predicate·Rewrite·Target 전체 입력이 문서화됐다.
@@ -1562,3 +1576,215 @@ Recovery Spool은 응답을 전달하지 못했거나 Completion 기록을 외�
 - [ ] Validate·Approval·Publish·ACK/NACK·LKG Rollback 절차가 있다.
 - [ ] Scale-out·Drift·Reconciliation·Probe·Health가 있다.
 - [ ] ADM 9개 메뉴와 Runbook·Test가 연결됐다.
+
+
+---
+
+## 제6부. Route 하나를 설계·게시·운영·복구하는 전체 Workbook
+
+### 63. Route 요구사항 작성
+
+| 항목 | 예시 질문 |
+|---|---|
+| Ingress | 어떤 Host·Method·Path·Version을 수신하는가 |
+| Predicate | Header·Query·Content Type 조건은 무엇인가 |
+| Rewrite | 외부 Path와 Target Path가 어떻게 변환되는가 |
+| Target | Static·Registry·Group 중 무엇인가 |
+| Security | 인증, Audience, HMAC, Header Trust는 무엇인가 |
+| Resource | Request/Response Size·Header·Spool 상한은 무엇인가 |
+| Resilience | Connect·Response·Overall Timeout과 Retry 조건은 무엇인가 |
+| Result | Idempotency·Attempt Ledger·Unknown 대사는 어떻게 하는가 |
+| Operations | Metric·Log·Probe·Alert·Rollback 기준은 무엇인가 |
+
+### 64. 정적 Target Route 예시
+
+교육용 예시이며 실제 Route Schema·Field Name은 Gateway Contract를 사용한다.
+
+```yaml
+routeId: partner-notice-v1
+match:
+  hosts: [api.example.com]
+  methods: [POST]
+  path: /partner/v1/notices
+rewrite:
+  targetPath: /internal/v1/notices
+security:
+  authentication: SERVICE
+  audience: notice-service
+  hmacRequired: true
+target:
+  type: STATIC_HTTP
+  host: notice.internal.example
+  port: 443
+  tls: true
+resilience:
+  connectTimeoutMs: 3000
+  responseTimeoutMs: 15000
+  overallTimeoutMs: 20000
+  retryCount: 1
+```
+
+설치 Safety Cap보다 큰 값은 게시 전에 거부한다.
+
+### 65. SSRF·Network 검증
+
+- Target Host가 Allowlist에 포함되는가.
+- 허용 Port인가.
+- DNS 결과가 Pinned Address·Allowed CIDR와 일치하는가.
+- Private·Loopback·Link-local 허용 정책이 명시됐는가.
+- Redirect가 다른 Host·Protocol로 벗어나지 않는가.
+- Proxy를 사용할 경우 Proxy Host·Pinned Address도 검증하는가.
+- TLS SAN·Trust Chain·Expiry를 확인하는가.
+- Client 입력으로 Target URL 전체를 구성하지 않는가.
+
+### 66. HMAC 검증
+
+서명 대상에는 최소한 다음을 포함한다.
+
+```text
+HTTP Method
+Canonical Path·Query
+Audience
+Timestamp
+Nonce
+Body Hash
+Key ID
+```
+
+검증 순서:
+
+1. Key ID와 유효기간·폐기 상태를 확인한다.
+2. Timestamp 허용 Window를 확인한다.
+3. Nonce Replay를 원장에서 거부한다.
+4. 실제 수신 Body Hash와 Header를 비교한다.
+5. Constant-time Signature 비교를 수행한다.
+6. 실패 사유에 Secret·서명 원문을 노출하지 않는다.
+
+### 67. Retry 허용 판단
+
+Retry는 다음 조건을 모두 만족할 때만 사용한다.
+
+- 실패 단계가 Target Side Effect 전으로 확인됨
+- Method·Route 정책상 Retry 허용
+- 전체 Timeout Budget 안에 남은 시간이 있음
+- Retry Count가 Safety Cap 이하
+- Idempotency Key 또는 상대 Reconcile 수단 존재
+- Circuit·Bulkhead가 추가 시도를 허용
+
+응답을 받지 못한 POST를 무조건 Retry하지 않는다.
+
+### 68. Snapshot 게시
+
+```text
+Draft
+→ Schema Validation
+→ Route 충돌·Rewrite 검증
+→ Connection·TLS Test
+→ Security·HMAC Test
+→ 영향 Preview
+→ Reason·Approval·Expected Version
+→ Signed Snapshot 생성
+→ Instance Publish
+→ ACK/NACK 수집
+→ Desired/Actual·Checksum 대사
+```
+
+### 69. PARTIAL 게시 처리
+
+예: 10개 Instance 중 8 ACK, 1 NACK, 1 미응답.
+
+- 전체 성공으로 표시하지 않는다.
+- ACK Instance의 Snapshot Version·Checksum을 기록한다.
+- NACK 원인과 Actual Version을 확인한다.
+- 미응답 Instance의 Health·Network·Agent 상태를 확인한다.
+- Mixed Route Version에서 Traffic을 어떻게 제한할지 결정한다.
+- 실패 대상만 Retry하거나 LKG로 Rollback한다.
+- Reconcile 후 모든 Instance의 Desired/Actual을 다시 확인한다.
+
+### 70. Attempt Ledger 대사
+
+Gateway Timeout 뒤 다음을 조회한다.
+
+- `transactionId`
+- Route ID·Snapshot Version
+- Attempt ID와 Target
+- Request Hash·Idempotency Key
+- Connect·Send·Response 단계
+- 상대 시스템 처리 ID
+- Completion 상태와 Recovery Spool
+
+Side Effect 여부를 확정하지 못하면 `UNKNOWN_RESULT`를 유지하고 상대 조회 또는 운영 승인을 수행한다.
+
+### 71. Capacity·Spool 운영
+
+- RPS·Latency·Active Connection
+- Connect/Response Timeout 비율
+- Retry·Circuit Open·Bulkhead Reject
+- Request/Response Size Reject
+- Header Count/Bytes Reject
+- Attempt Ledger 증가율
+- Recovery Spool 사용량·TTL·Disk
+- Route별 Target Health·Load Balance 분포
+
+Spool Disk가 상한에 접근하면 원인 Route와 미확정 Attempt를 먼저 식별하고 파일을 임의 삭제하지 않는다.
+
+### 72. Gateway 독립 수행 Gate
+
+Gateway 담당자는 문서만 보고 다음을 수행할 수 있어야 한다.
+
+- Route·Predicate·Filter·Rewrite 설계
+- Static·Discovery·Group Target 구성
+- Authentication·Authorization·HMAC·Header Trust 적용
+- SSRF·TLS·DNS Pin 검증
+- Timeout·Retry·Circuit·Bulkhead 설정
+- Idempotency·Attempt Ledger·Unknown 대사
+- Validate·Connection Test·Approval·Publish
+- Instance ACK/NACK·Partial Apply·LKG Rollback
+- Scale-out·Drift·Reconciliation
+- Probe·Health·Capacity·Spool 장애 대응
+
+---
+
+## 제7부. Attempt Ledger·결과 불명 심화
+
+![Gateway Attempt 대사](../assets/guides/deep-dive/cpf-gateway-attempt-reconcile.svg)
+
+### 66. Attempt 단계 분류
+
+| 단계 | Side Effect 가능성 | Retry 기준 |
+|---|---|---|
+| Validation·Policy 거부 | 없음 | 입력·정책 수정 후 새 요청 |
+| Connection 전 실패 | 없음이 확인된 경우 | Retry 정책 범위 내 |
+| Request 전송 후 Timeout | 있음 | 자동 재전송 금지·Ledger/Target 대사 |
+| Downstream 5xx | Operation별 | 멱등성·Retryability·Attempt 확인 |
+| 응답 수신 후 Client 유실 | Downstream 결과 존재 | 동일 요청 반복 금지·결과 조회 |
+
+### 67. 게시와 거래 Attempt 분리
+
+Route Snapshot 게시 Operation과 업무 요청 Attempt를 같은 상태로 합치지 않는다. 게시 ACK/NACK·LKG·Checksum은 Control Plane에서, Target Side Effect·Retry·Unknown Result는 Attempt Ledger에서 판정한다.
+
+---
+
+## 50. ADM Gateway 공유 Workspace의 실제 화면 계약
+
+기준 Frontend `cpf-admin/frontend/src/features/gateway-operations/GatewayOperationsPage.vue`는 Gateway 관련 9개 Route가 공유하는 Workspace다. 화면은 다음 네 Tab으로 구성된다. Route Name에 따라 Tab을 전환하는 Logic은 없으며 `activeTab` 초기값은 `groups`다. 따라서 `/gateway-routes`, `/gateway-security`, `/gateway-health` 같은 Alias로 진입해도 운영자가 필요한 Tab을 직접 선택한다.
+
+1. `groups`: Server Group·Member 등록과 변경
+2. `bindings`: Route Binding Draft 등록과 변경
+3. `apply`: Instance Expected/Applied Version과 Connection Test
+4. `security`: Default Deny·Retry Safety·관리 API 보호·변경 통제 안내
+
+### Source에서 확인되는 주요 API
+
+| 목적 | Method·Path |
+|---|---|
+| Capability | `GET /adm/api/gateway-registry/capability` |
+| 운영 KPI | `GET /adm/api/gateway-registry/operations/snapshot` |
+| 운영 Event | `GET /adm/api/gateway-registry/operations/stream` |
+| Server Group 목록·저장 | `GET/POST /adm/api/gateway-registry/server-groups` |
+| Member | `GET /adm/api/gateway-registry/server-groups/{serverGroupId}/members` |
+| Binding 목록·Draft 저장 | `GET/POST /adm/api/gateway-registry/bindings` |
+| Instance 적용 상태 | `GET /adm/api/gateway-registry/bindings/{bindingId}/apply-status` |
+| Connection Test 조회·요청 | `GET/POST /adm/api/gateway-registry/bindings/{bindingId}/connection-tests` |
+
+`gateway-transactions`와 `gateway-log-policies`를 별도 화면이 구현된 것처럼 설명하지 않는다. 현재 공유 Page에서는 운영 KPI·Connection Test를 제공하며 Log Capture 정책 편집은 ADM `/logPolicies`에서 수행한다. Route 게시·차단·승인·LKG Rollback은 Gateway Owner API와 ADM 승인 흐름의 실제 노출 기능을 기준으로 수행한다.

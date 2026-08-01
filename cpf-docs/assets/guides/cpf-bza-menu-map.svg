@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">BZA 전체 메뉴 지도</title>
+  <desc id="desc">CPF 공식 매뉴얼 설명 그림</desc>
+  <rect width="100%" height="100%" fill="#F7F9FC"/>
+  <text x="70" y="72" font-family="Arial, Noto Sans KR, sans-serif" font-size="42" font-weight="700" fill="#17324D" text-anchor="start">BZA 전체 메뉴 지도</text>
+  <text x="70" y="112" font-family="Arial, Noto Sans KR, sans-serif" font-size="22" font-weight="400" fill="#64748B" text-anchor="start">조직·권한·결재·지원 업무의 기준정보와 유효기간 연결</text>
+  <line x1="70" y1="140" x2="1530" y2="140" stroke="#E8EEF6" stroke-width="3"/>
+  <rect x="80" y="190" width="450" height="230" rx="20" fill="#FFFFFF" stroke="#2F6FED" stroke-width="3"/>
+  <text x="115" y="245" font-family="Arial, Noto Sans KR, sans-serif" font-size="29" font-weight="700" fill="#2F6FED" text-anchor="start">Overview</text>
+  <text x="115" y="305" font-family="Arial, Noto Sans KR, sans-serif" font-size="21" font-weight="500" fill="#0F172A" text-anchor="start">
+    <tspan x="115" dy="0">Dashboard</tspan>
+  </text>
+  <rect x="590" y="190" width="450" height="230" rx="20" fill="#FFFFFF" stroke="#1F9D6A" stroke-width="3"/>
+  <text x="625" y="245" font-family="Arial, Noto Sans KR, sans-serif" font-size="29" font-weight="700" fill="#1F9D6A" text-anchor="start">People</text>
+  <text x="625" y="305" font-family="Arial, Noto Sans KR, sans-serif" font-size="21" font-weight="500" fill="#0F172A" text-anchor="start">
+    <tspan x="625" dy="0">조직</tspan>
+    <tspan x="625" dy="34">직원</tspan>
+    <tspan x="625" dy="34">직급</tspan>
+    <tspan x="625" dy="34">직책</tspan>
+    <tspan x="625" dy="34">발령</tspan>
+    <tspan x="625" dy="34">책임</tspan>
+  </text>
+  <rect x="1100" y="190" width="450" height="230" rx="20" fill="#FFFFFF" stroke="#7A5AF8" stroke-width="3"/>
+  <text x="1135" y="245" font-family="Arial, Noto Sans KR, sans-serif" font-size="29" font-weight="700" fill="#7A5AF8" text-anchor="start">Access</text>
+  <text x="1135" y="305" font-family="Arial, Noto Sans KR, sans-serif" font-size="21" font-weight="500" fill="#0F172A" text-anchor="start">
+    <tspan x="1135" dy="0">사용자</tspan>
+    <tspan x="1135" dy="34">Role</tspan>
+    <tspan x="1135" dy="34">메뉴</tspan>
+    <tspan x="1135" dy="34">Permission</tspan>
+    <tspan x="1135" dy="34">Simulation</tspan>
+  </text>
+  <rect x="80" y="490" width="450" height="230" rx="20" fill="#FFFFFF" stroke="#E9822C" stroke-width="3"/>
+  <text x="115" y="545" font-family="Arial, Noto Sans KR, sans-serif" font-size="29" font-weight="700" fill="#E9822C" text-anchor="start">Approval</text>
+  <text x="115" y="605" font-family="Arial, Noto Sans KR, sans-serif" font-size="21" font-weight="500" fill="#0F172A" text-anchor="start">
+    <tspan x="115" dy="0">Inbox</tspan>
+    <tspan x="115" dy="34">상신</tspan>
+    <tspan x="115" dy="34">정책</tspan>
+    <tspan x="115" dy="34">Simulation</tspan>
+    <tspan x="115" dy="34">위임</tspan>
+  </text>
+  <rect x="590" y="490" width="450" height="230" rx="20" fill="#FFFFFF" stroke="#16A6B6" stroke-width="3"/>
+  <text x="625" y="545" font-family="Arial, Noto Sans KR, sans-serif" font-size="29" font-weight="700" fill="#16A6B6" text-anchor="start">Support</text>
+  <text x="625" y="605" font-family="Arial, Noto Sans KR, sans-serif" font-size="21" font-weight="500" fill="#0F172A" text-anchor="start">
+    <tspan x="625" dy="0">Session</tspan>
+    <tspan x="625" dy="34">Audit</tspan>
+    <tspan x="625" dy="34">알림</tspan>
+    <tspan x="625" dy="34">첨부</tspan>
+    <tspan x="625" dy="34">설정</tspan>
+    <tspan x="625" dy="34">Download</tspan>
+  </text>
+</svg>

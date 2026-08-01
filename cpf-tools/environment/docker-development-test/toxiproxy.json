@@ -1,0 +1,32 @@
+[
+  {
+    "name": "cpf_mariadb",
+    "listen": "0.0.0.0:13306",
+    "upstream": "cpf-mariadb:3306",
+    "enabled": true
+  },
+  {
+    "name": "cpf_postgresql",
+    "listen": "0.0.0.0:15432",
+    "upstream": "cpf-postgresql:5432",
+    "enabled": true
+  },
+  {
+    "name": "cpf_oracle",
+    "listen": "0.0.0.0:11521",
+    "upstream": "cpf-oracle:1521",
+    "enabled": true
+  },
+  {
+    "name": "cpf_redis",
+    "listen": "0.0.0.0:16379",
+    "upstream": "cpf-redis:6379",
+    "enabled": true
+  },
+  {
+    "name": "cpf_kafka",
+    "listen": "0.0.0.0:19093",
+    "upstream": "cpf-kafka:19092",
+    "enabled": true
+  }
+]

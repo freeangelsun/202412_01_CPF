@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">Permission Reason Approval Audit</title>
+  <desc id="desc">CPF 공식 매뉴얼 설명 그림</desc>
+  <rect width="100%" height="100%" fill="#F7F9FC"/>
+  <text x="70" y="72" font-family="Arial, Noto Sans KR, sans-serif" font-size="42" font-weight="700" fill="#17324D" text-anchor="start">Permission·Reason·Approval·Audit</text>
+  <text x="70" y="112" font-family="Arial, Noto Sans KR, sans-serif" font-size="22" font-weight="400" fill="#64748B" text-anchor="start">위험 조치는 UI Button부터 Owner 결과까지 하나의 감사 Chain으로 연결</text>
+  <line x1="70" y1="140" x2="1530" y2="140" stroke="#E8EEF6" stroke-width="3"/>
+  <rect x="70" y="260" width="210" height="190" rx="18" fill="#FFFFFF" stroke="#2F6FED" stroke-width="3"/>
+  <text x="175" y="315" font-family="Arial, Noto Sans KR, sans-serif" font-size="22" font-weight="700" fill="#2F6FED" text-anchor="middle">Menu·Route</text>
+  <text x="175" y="360" font-family="Arial, Noto Sans KR, sans-serif" font-size="19" font-weight="500" fill="#0F172A" text-anchor="middle">
+    <tspan x="175" dy="0">접근 Permission</tspan>
+  </text>
+  <line x1="280" y1="355" x2="320" y2="355" stroke="#64748B" stroke-width="3"/>
+  <polygon points="320,355 302,345 302,365" fill="#64748B"/>
+  <rect x="320" y="260" width="210" height="190" rx="18" fill="#FFFFFF" stroke="#16A6B6" stroke-width="3"/>
+  <text x="425" y="315" font-family="Arial, Noto Sans KR, sans-serif" font-size="22" font-weight="700" fill="#16A6B6" text-anchor="middle">Query·Action</text>
+  <text x="425" y="360" font-family="Arial, Noto Sans KR, sans-serif" font-size="19" font-weight="500" fill="#0F172A" text-anchor="middle">
+    <tspan x="425" dy="0">Data Scope</tspan>
+    <tspan x="425" dy="31">Masking</tspan>
+  </text>
+  <line x1="530" y1="355" x2="570" y2="355" stroke="#64748B" stroke-width="3"/>
+  <polygon points="570,355 552,345 552,365" fill="#64748B"/>
+  <rect x="570" y="260" width="210" height="190" rx="18" fill="#FFFFFF" stroke="#E9822C" stroke-width="3"/>
+  <text x="675" y="315" font-family="Arial, Noto Sans KR, sans-serif" font-size="22" font-weight="700" fill="#E9822C" text-anchor="middle">Reason</text>
+  <text x="675" y="360" font-family="Arial, Noto Sans KR, sans-serif" font-size="19" font-weight="500" fill="#0F172A" text-anchor="middle">
+    <tspan x="675" dy="0">목적</tspan>
+    <tspan x="675" dy="31">영향</tspan>
+    <tspan x="675" dy="31">원복</tspan>
+  </text>
+  <line x1="780" y1="355" x2="820" y2="355" stroke="#64748B" stroke-width="3"/>
+  <polygon points="820,355 802,345 802,365" fill="#64748B"/>
+  <rect x="820" y="260" width="210" height="190" rx="18" fill="#FFFFFF" stroke="#7A5AF8" stroke-width="3"/>
+  <text x="925" y="315" font-family="Arial, Noto Sans KR, sans-serif" font-size="22" font-weight="700" fill="#7A5AF8" text-anchor="middle">Approval</text>
+  <text x="925" y="360" font-family="Arial, Noto Sans KR, sans-serif" font-size="19" font-weight="500" fill="#0F172A" text-anchor="middle">
+    <tspan x="925" dy="0">승인자</tspan>
+    <tspan x="925" dy="31">유효기간</tspan>
+  </text>
+  <line x1="1030" y1="355" x2="1070" y2="355" stroke="#64748B" stroke-width="3"/>
+  <polygon points="1070,355 1052,345 1052,365" fill="#64748B"/>
+  <rect x="1070" y="260" width="210" height="190" rx="18" fill="#FFFFFF" stroke="#1F9D6A" stroke-width="3"/>
+  <text x="1175" y="315" font-family="Arial, Noto Sans KR, sans-serif" font-size="22" font-weight="700" fill="#1F9D6A" text-anchor="middle">Owner Command</text>
+  <text x="1175" y="360" font-family="Arial, Noto Sans KR, sans-serif" font-size="19" font-weight="500" fill="#0F172A" text-anchor="middle">
+    <tspan x="1175" dy="0">Expected Version</tspan>
+  </text>
+  <line x1="1280" y1="355" x2="1320" y2="355" stroke="#64748B" stroke-width="3"/>
+  <polygon points="1320,355 1302,345 1302,365" fill="#64748B"/>
+  <rect x="1320" y="260" width="210" height="190" rx="18" fill="#FFFFFF" stroke="#D64545" stroke-width="3"/>
+  <text x="1425" y="315" font-family="Arial, Noto Sans KR, sans-serif" font-size="22" font-weight="700" fill="#D64545" text-anchor="middle">Audit</text>
+  <text x="1425" y="360" font-family="Arial, Noto Sans KR, sans-serif" font-size="19" font-weight="500" fill="#0F172A" text-anchor="middle">
+    <tspan x="1425" dy="0">Before/After</tspan>
+    <tspan x="1425" dy="31">Result</tspan>
+  </text>
+  <rect x="220" y="585" width="1160" height="140" rx="20" fill="#17324D" stroke="#17324D" stroke-width="0"/>
+  <text x="800" y="640" font-family="Arial, Noto Sans KR, sans-serif" font-size="25" font-weight="700" fill="#FFFFFF" text-anchor="middle">Frontend 조건은 UX이며 Backend·Owner Permission 판정이 정본</text>
+  <text x="800" y="682" font-family="Arial, Noto Sans KR, sans-serif" font-size="21" font-weight="500" fill="#FFFFFF" text-anchor="middle">Raw 조회·Export·Break-glass는 별도 권한과 구체적 Reason을 요구</text>
+</svg>

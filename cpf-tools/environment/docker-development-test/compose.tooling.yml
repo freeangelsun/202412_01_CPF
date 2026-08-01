@@ -1,0 +1,33 @@
+services:
+  toxiproxy:
+    image: ${TOXIPROXY_IMAGE}
+    container_name: cpf-toxiproxy
+    restart: "no"
+    command: ["-host=0.0.0.0", "-config=/config/toxiproxy.json"]
+    ports:
+      - "127.0.0.1:8474:8474"
+      - "127.0.0.1:13306:13306"
+      - "127.0.0.1:15432:15432"
+      - "127.0.0.1:11521:11521"
+      - "127.0.0.1:16379:16379"
+      - "127.0.0.1:19093:19093"
+    volumes:
+      - ./toxiproxy.json:/config/toxiproxy.json:ro
+    healthcheck:
+      test: ["CMD", "/toxiproxy-cli", "-host=localhost:8474", "list"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  otel-collector:
+    image: ${OTEL_COLLECTOR_IMAGE}
+    container_name: cpf-otel-collector
+    restart: "no"
+    command: ["--config=/etc/otelcol-contrib/config.yaml"]
+    ports:
+      - "127.0.0.1:4317:4317"
+      - "127.0.0.1:4318:4318"
+      - "127.0.0.1:8888:8888"
+    volumes:
+      - ./otel-collector-config.yml:/etc/otelcol-contrib/config.yaml:ro
+      - ./output/otel:/var/lib/otel

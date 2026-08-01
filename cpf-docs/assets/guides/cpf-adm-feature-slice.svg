@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">ADM 기능 Slice</title>
+  <desc id="desc">CPF 공식 매뉴얼 설명 그림</desc>
+  <rect width="100%" height="100%" fill="#F7F9FC"/>
+  <text x="70" y="72" font-family="Arial, Noto Sans KR, sans-serif" font-size="42" font-weight="700" fill="#17324D" text-anchor="start">ADM 기능 Slice</text>
+  <text x="70" y="112" font-family="Arial, Noto Sans KR, sans-serif" font-size="22" font-weight="400" fill="#64748B" text-anchor="start">Route·UI·Generated Client·Backend·Owner·Audit를 하나의 변경 단위로 관리</text>
+  <line x1="70" y1="140" x2="1530" y2="140" stroke="#E8EEF6" stroke-width="3"/>
+  <rect x="45" y="300" width="190" height="150" rx="18" fill="#FFFFFF" stroke="#2F6FED" stroke-width="3"/>
+  <text x="140" y="365" font-family="Arial, Noto Sans KR, sans-serif" font-size="22" font-weight="700" fill="#2F6FED" text-anchor="middle">Menu·Route</text>
+  <line x1="235" y1="375" x2="265" y2="375" stroke="#64748B" stroke-width="3"/>
+  <polygon points="265,375 247,365 247,385" fill="#64748B"/>
+  <rect x="265" y="300" width="190" height="150" rx="18" fill="#FFFFFF" stroke="#16A6B6" stroke-width="3"/>
+  <text x="360" y="365" font-family="Arial, Noto Sans KR, sans-serif" font-size="22" font-weight="700" fill="#16A6B6" text-anchor="middle">Vue Page</text>
+  <line x1="455" y1="375" x2="485" y2="375" stroke="#64748B" stroke-width="3"/>
+  <polygon points="485,375 467,365 467,385" fill="#64748B"/>
+  <rect x="485" y="300" width="190" height="150" rx="18" fill="#FFFFFF" stroke="#7A5AF8" stroke-width="3"/>
+  <text x="580" y="365" font-family="Arial, Noto Sans KR, sans-serif" font-size="22" font-weight="700" fill="#7A5AF8" text-anchor="middle">Pinia·Query</text>
+  <line x1="675" y1="375" x2="705" y2="375" stroke="#64748B" stroke-width="3"/>
+  <polygon points="705,375 687,365 687,385" fill="#64748B"/>
+  <rect x="705" y="300" width="190" height="150" rx="18" fill="#FFFFFF" stroke="#E9822C" stroke-width="3"/>
+  <text x="800" y="365" font-family="Arial, Noto Sans KR, sans-serif" font-size="22" font-weight="700" fill="#E9822C" text-anchor="middle">Generated Client</text>
+  <line x1="895" y1="375" x2="925" y2="375" stroke="#64748B" stroke-width="3"/>
+  <polygon points="925,375 907,365 907,385" fill="#64748B"/>
+  <rect x="925" y="300" width="190" height="150" rx="18" fill="#FFFFFF" stroke="#2F6FED" stroke-width="3"/>
+  <text x="1020" y="365" font-family="Arial, Noto Sans KR, sans-serif" font-size="22" font-weight="700" fill="#2F6FED" text-anchor="middle">ADM Controller</text>
+  <line x1="1115" y1="375" x2="1145" y2="375" stroke="#64748B" stroke-width="3"/>
+  <polygon points="1145,375 1127,365 1127,385" fill="#64748B"/>
+  <rect x="1145" y="300" width="190" height="150" rx="18" fill="#FFFFFF" stroke="#1F9D6A" stroke-width="3"/>
+  <text x="1240" y="365" font-family="Arial, Noto Sans KR, sans-serif" font-size="22" font-weight="700" fill="#1F9D6A" text-anchor="middle">Owner Port</text>
+  <line x1="1335" y1="375" x2="1365" y2="375" stroke="#64748B" stroke-width="3"/>
+  <polygon points="1365,375 1347,365 1347,385" fill="#64748B"/>
+  <rect x="1365" y="300" width="190" height="150" rx="18" fill="#FFFFFF" stroke="#D64545" stroke-width="3"/>
+  <text x="1460" y="365" font-family="Arial, Noto Sans KR, sans-serif" font-size="22" font-weight="700" fill="#D64545" text-anchor="middle">Owner Runtime</text>
+  <rect x="190" y="570" width="1220" height="170" rx="22" fill="#FFFFFF" stroke="#7A5AF8" stroke-width="3"/>
+  <text x="230" y="625" font-family="Arial, Noto Sans KR, sans-serif" font-size="23" font-weight="500" fill="#0F172A" text-anchor="start">
+    <tspan x="230" dy="0">변경 조치 공통 입력: target · desiredAction · reason · approvalId · expectedVersion · idempotencyKey</tspan>
+    <tspan x="230" dy="42">결과 상태: SUCCESS · FAILED · PARTIAL · UNKNOWN_RESULT · RECONCILING</tspan>
+  </text>
+</svg>

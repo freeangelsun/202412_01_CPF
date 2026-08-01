@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">Batch 실행 제어 Lifecycle</title>
+  <desc id="desc">CPF 공식 매뉴얼 설명 그림</desc>
+  <rect width="100%" height="100%" fill="#F7F9FC"/>
+  <text x="70" y="72" font-family="Arial, Noto Sans KR, sans-serif" font-size="42" font-weight="700" fill="#17324D" text-anchor="start">Batch 실행 제어 Lifecycle</text>
+  <text x="70" y="112" font-family="Arial, Noto Sans KR, sans-serif" font-size="22" font-weight="400" fill="#64748B" text-anchor="start">승인·예약·Spring Batch Metadata·CPF 실행 원장을 연결</text>
+  <line x1="70" y1="140" x2="1530" y2="140" stroke="#E8EEF6" stroke-width="3"/>
+  <rect x="55" y="250" width="190" height="180" rx="18" fill="#FFFFFF" stroke="#2F6FED" stroke-width="3"/>
+  <text x="150" y="305" font-family="Arial, Noto Sans KR, sans-serif" font-size="23" font-weight="700" fill="#2F6FED" text-anchor="middle">Definition</text>
+  <text x="150" y="350" font-family="Arial, Noto Sans KR, sans-serif" font-size="19" font-weight="500" fill="#0F172A" text-anchor="middle">
+    <tspan x="150" dy="0">Version</tspan>
+    <tspan x="150" dy="30">Checksum</tspan>
+  </text>
+  <line x1="245" y1="340" x2="275" y2="340" stroke="#64748B" stroke-width="3"/>
+  <polygon points="275,340 257,330 257,350" fill="#64748B"/>
+  <rect x="275" y="250" width="190" height="180" rx="18" fill="#FFFFFF" stroke="#16A6B6" stroke-width="3"/>
+  <text x="370" y="305" font-family="Arial, Noto Sans KR, sans-serif" font-size="23" font-weight="700" fill="#16A6B6" text-anchor="middle">Dry Run</text>
+  <text x="370" y="350" font-family="Arial, Noto Sans KR, sans-serif" font-size="19" font-weight="500" fill="#0F172A" text-anchor="middle">
+    <tspan x="370" dy="0">대상</tspan>
+    <tspan x="370" dy="30">건수</tspan>
+    <tspan x="370" dy="30">용량</tspan>
+  </text>
+  <line x1="465" y1="340" x2="495" y2="340" stroke="#64748B" stroke-width="3"/>
+  <polygon points="495,340 477,330 477,350" fill="#64748B"/>
+  <rect x="495" y="250" width="190" height="180" rx="18" fill="#FFFFFF" stroke="#7A5AF8" stroke-width="3"/>
+  <text x="590" y="305" font-family="Arial, Noto Sans KR, sans-serif" font-size="23" font-weight="700" fill="#7A5AF8" text-anchor="middle">Approval</text>
+  <text x="590" y="350" font-family="Arial, Noto Sans KR, sans-serif" font-size="19" font-weight="500" fill="#0F172A" text-anchor="middle">
+    <tspan x="590" dy="0">Reason</tspan>
+    <tspan x="590" dy="30">Operator</tspan>
+  </text>
+  <line x1="685" y1="340" x2="715" y2="340" stroke="#64748B" stroke-width="3"/>
+  <polygon points="715,340 697,330 697,350" fill="#64748B"/>
+  <rect x="715" y="250" width="190" height="180" rx="18" fill="#FFFFFF" stroke="#E9822C" stroke-width="3"/>
+  <text x="810" y="305" font-family="Arial, Noto Sans KR, sans-serif" font-size="23" font-weight="700" fill="#E9822C" text-anchor="middle">Reserve</text>
+  <text x="810" y="350" font-family="Arial, Noto Sans KR, sans-serif" font-size="19" font-weight="500" fill="#0F172A" text-anchor="middle">
+    <tspan x="810" dy="0">Idempotency</tspan>
+    <tspan x="810" dy="30">Fencing</tspan>
+  </text>
+  <line x1="905" y1="340" x2="935" y2="340" stroke="#64748B" stroke-width="3"/>
+  <polygon points="935,340 917,330 917,350" fill="#64748B"/>
+  <rect x="935" y="250" width="190" height="180" rx="18" fill="#FFFFFF" stroke="#1F9D6A" stroke-width="3"/>
+  <text x="1030" y="305" font-family="Arial, Noto Sans KR, sans-serif" font-size="23" font-weight="700" fill="#1F9D6A" text-anchor="middle">Start</text>
+  <text x="1030" y="350" font-family="Arial, Noto Sans KR, sans-serif" font-size="19" font-weight="500" fill="#0F172A" text-anchor="middle">
+    <tspan x="1030" dy="0">JobExecution</tspan>
+    <tspan x="1030" dy="30">Link</tspan>
+  </text>
+  <line x1="1125" y1="340" x2="1155" y2="340" stroke="#64748B" stroke-width="3"/>
+  <polygon points="1155,340 1137,330 1137,350" fill="#64748B"/>
+  <rect x="1155" y="250" width="190" height="180" rx="18" fill="#FFFFFF" stroke="#D64545" stroke-width="3"/>
+  <text x="1250" y="305" font-family="Arial, Noto Sans KR, sans-serif" font-size="23" font-weight="700" fill="#D64545" text-anchor="middle">Control</text>
+  <text x="1250" y="350" font-family="Arial, Noto Sans KR, sans-serif" font-size="19" font-weight="500" fill="#0F172A" text-anchor="middle">
+    <tspan x="1250" dy="0">Stop</tspan>
+    <tspan x="1250" dy="30">Restart</tspan>
+    <tspan x="1250" dy="30">Abandon</tspan>
+  </text>
+  <line x1="1345" y1="340" x2="1375" y2="340" stroke="#64748B" stroke-width="3"/>
+  <polygon points="1375,340 1357,330 1357,350" fill="#64748B"/>
+  <rect x="1375" y="250" width="190" height="180" rx="18" fill="#FFFFFF" stroke="#2F6FED" stroke-width="3"/>
+  <text x="1470" y="305" font-family="Arial, Noto Sans KR, sans-serif" font-size="23" font-weight="700" fill="#2F6FED" text-anchor="middle">Reconcile</text>
+  <text x="1470" y="350" font-family="Arial, Noto Sans KR, sans-serif" font-size="19" font-weight="500" fill="#0F172A" text-anchor="middle">
+    <tspan x="1470" dy="0">합계</tspan>
+    <tspan x="1470" dy="30">상태 확정</tspan>
+  </text>
+  <rect x="180" y="560" width="1240" height="190" rx="22" fill="#FFFFFF" stroke="#E9822C" stroke-width="3"/>
+  <text x="220" y="615" font-family="Arial, Noto Sans KR, sans-serif" font-size="27" font-weight="700" fill="#E9822C" text-anchor="start">운영 판정 기준</text>
+  <text x="220" y="660" font-family="Arial, Noto Sans KR, sans-serif" font-size="24" font-weight="500" fill="#0F172A" text-anchor="start">
+    <tspan x="220" dy="0">CPF Execution ID ↔ Spring Job/Step ID ↔ Worker/Partition Ledger ↔ 업무 처리 건수</tspan>
+    <tspan x="220" dy="40">응답 유실·Worker Late Reply·Stale Fencing은 Reconcile 후에만 재실행 여부를 결정</tspan>
+  </text>
+</svg>

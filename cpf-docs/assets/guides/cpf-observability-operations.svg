@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">운영 관측과 정상화 판정</title>
+  <desc id="desc">CPF 공식 매뉴얼 설명 그림</desc>
+  <rect width="100%" height="100%" fill="#F7F9FC"/>
+  <text x="70" y="72" font-family="Arial, Noto Sans KR, sans-serif" font-size="42" font-weight="700" fill="#17324D" text-anchor="start">운영 관측과 정상화 판정</text>
+  <text x="70" y="112" font-family="Arial, Noto Sans KR, sans-serif" font-size="22" font-weight="400" fill="#64748B" text-anchor="start">Log·Metric·Trace·Audit를 공통 식별자로 연결</text>
+  <line x1="70" y1="140" x2="1530" y2="140" stroke="#E8EEF6" stroke-width="3"/>
+  <circle cx="800" cy="450" r="120" fill="#FFFFFF" stroke="#2F6FED" stroke-width="5"/>
+  <text x="800" y="435" font-family="Arial, Noto Sans KR, sans-serif" font-size="30" font-weight="700" fill="#2F6FED" text-anchor="middle">Operation</text>
+  <text x="800" y="475" font-family="Arial, Noto Sans KR, sans-serif" font-size="23" font-weight="700" fill="#17324D" text-anchor="middle">transactionId</text>
+  <line x1="800" y1="450" x2="280" y2="230" stroke="#64748B" stroke-width="3"/>
+  <polygon points="280,230 262,220 262,240" fill="#64748B"/>
+  <rect x="90" y="160" width="380" height="140" rx="18" fill="#FFFFFF" stroke="#2F6FED" stroke-width="3"/>
+  <text x="280" y="215" font-family="Arial, Noto Sans KR, sans-serif" font-size="25" font-weight="700" fill="#2F6FED" text-anchor="middle">Log</text>
+  <text x="280" y="255" font-family="Arial, Noto Sans KR, sans-serif" font-size="19" font-weight="500" fill="#0F172A" text-anchor="middle">단계·오류·Masking</text>
+  <line x1="800" y1="450" x2="1120" y2="230" stroke="#64748B" stroke-width="3"/>
+  <polygon points="1120,230 1102,220 1102,240" fill="#64748B"/>
+  <rect x="930" y="160" width="380" height="140" rx="18" fill="#FFFFFF" stroke="#1F9D6A" stroke-width="3"/>
+  <text x="1120" y="215" font-family="Arial, Noto Sans KR, sans-serif" font-size="25" font-weight="700" fill="#1F9D6A" text-anchor="middle">Metric</text>
+  <text x="1120" y="255" font-family="Arial, Noto Sans KR, sans-serif" font-size="19" font-weight="500" fill="#0F172A" text-anchor="middle">Rate·Latency·Queue</text>
+  <line x1="800" y1="450" x2="280" y2="650" stroke="#64748B" stroke-width="3"/>
+  <polygon points="280,650 262,640 262,660" fill="#64748B"/>
+  <rect x="90" y="580" width="380" height="140" rx="18" fill="#FFFFFF" stroke="#7A5AF8" stroke-width="3"/>
+  <text x="280" y="635" font-family="Arial, Noto Sans KR, sans-serif" font-size="25" font-weight="700" fill="#7A5AF8" text-anchor="middle">Trace</text>
+  <text x="280" y="675" font-family="Arial, Noto Sans KR, sans-serif" font-size="19" font-weight="500" fill="#0F172A" text-anchor="middle">Segment·Attempt</text>
+  <line x1="800" y1="450" x2="1120" y2="650" stroke="#64748B" stroke-width="3"/>
+  <polygon points="1120,650 1102,640 1102,660" fill="#64748B"/>
+  <rect x="930" y="580" width="380" height="140" rx="18" fill="#FFFFFF" stroke="#E9822C" stroke-width="3"/>
+  <text x="1120" y="635" font-family="Arial, Noto Sans KR, sans-serif" font-size="25" font-weight="700" fill="#E9822C" text-anchor="middle">Audit</text>
+  <text x="1120" y="675" font-family="Arial, Noto Sans KR, sans-serif" font-size="19" font-weight="500" fill="#0F172A" text-anchor="middle">Actor·Reason·Before/After</text>
+  <text x="800" y="840" font-family="Arial, Noto Sans KR, sans-serif" font-size="23" font-weight="700" fill="#17324D" text-anchor="middle">정상화: Owner Terminal State · Version/Checksum · 합계/건수 · Alert 해제 · 교대 기록</text>
+</svg>

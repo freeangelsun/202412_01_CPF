@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">Backup Restore DR 대사</title>
+  <desc id="desc">CPF 공식 매뉴얼 설명 그림</desc>
+  <rect width="100%" height="100%" fill="#F7F9FC"/>
+  <text x="70" y="72" font-family="Arial, Noto Sans KR, sans-serif" font-size="42" font-weight="700" fill="#17324D" text-anchor="start">Backup·Restore·DR 대사</text>
+  <text x="70" y="112" font-family="Arial, Noto Sans KR, sans-serif" font-size="22" font-weight="400" fill="#64748B" text-anchor="start">데이터 복구 뒤 Pending·Unknown·Offset·Batch Metadata를 함께 정상화</text>
+  <line x1="70" y1="140" x2="1530" y2="140" stroke="#E8EEF6" stroke-width="3"/>
+  <rect x="70" y="250" width="210" height="190" rx="18" fill="#FFFFFF" stroke="#2F6FED" stroke-width="3"/>
+  <text x="175" y="310" font-family="Arial, Noto Sans KR, sans-serif" font-size="24" font-weight="700" fill="#2F6FED" text-anchor="middle">Backup</text>
+  <text x="175" y="360" font-family="Arial, Noto Sans KR, sans-serif" font-size="19" font-weight="500" fill="#0F172A" text-anchor="middle">
+    <tspan x="175" dy="0">DB</tspan>
+    <tspan x="175" dy="31">Config</tspan>
+    <tspan x="175" dy="31">Artifact</tspan>
+    <tspan x="175" dy="31">File</tspan>
+  </text>
+  <line x1="280" y1="345" x2="320" y2="345" stroke="#64748B" stroke-width="3"/>
+  <polygon points="320,345 302,335 302,355" fill="#64748B"/>
+  <rect x="320" y="250" width="210" height="190" rx="18" fill="#FFFFFF" stroke="#D64545" stroke-width="3"/>
+  <text x="425" y="310" font-family="Arial, Noto Sans KR, sans-serif" font-size="24" font-weight="700" fill="#D64545" text-anchor="middle">격리</text>
+  <text x="425" y="360" font-family="Arial, Noto Sans KR, sans-serif" font-size="19" font-weight="500" fill="#0F172A" text-anchor="middle">
+    <tspan x="425" dy="0">Traffic</tspan>
+    <tspan x="425" dy="31">Trigger 중지</tspan>
+  </text>
+  <line x1="530" y1="345" x2="570" y2="345" stroke="#64748B" stroke-width="3"/>
+  <polygon points="570,345 552,335 552,355" fill="#64748B"/>
+  <rect x="570" y="250" width="210" height="190" rx="18" fill="#FFFFFF" stroke="#1F9D6A" stroke-width="3"/>
+  <text x="675" y="310" font-family="Arial, Noto Sans KR, sans-serif" font-size="24" font-weight="700" fill="#1F9D6A" text-anchor="middle">Restore</text>
+  <text x="675" y="360" font-family="Arial, Noto Sans KR, sans-serif" font-size="19" font-weight="500" fill="#0F172A" text-anchor="middle">
+    <tspan x="675" dy="0">Schema</tspan>
+    <tspan x="675" dy="31">File</tspan>
+    <tspan x="675" dy="31">Config</tspan>
+  </text>
+  <line x1="780" y1="345" x2="820" y2="345" stroke="#64748B" stroke-width="3"/>
+  <polygon points="820,345 802,335 802,355" fill="#64748B"/>
+  <rect x="820" y="250" width="210" height="190" rx="18" fill="#FFFFFF" stroke="#E9822C" stroke-width="3"/>
+  <text x="925" y="310" font-family="Arial, Noto Sans KR, sans-serif" font-size="24" font-weight="700" fill="#E9822C" text-anchor="middle">Reconcile</text>
+  <text x="925" y="360" font-family="Arial, Noto Sans KR, sans-serif" font-size="19" font-weight="500" fill="#0F172A" text-anchor="middle">
+    <tspan x="925" dy="0">Kafka</tspan>
+    <tspan x="925" dy="31">Batch</tspan>
+    <tspan x="925" dy="31">Unknown</tspan>
+  </text>
+  <line x1="1030" y1="345" x2="1070" y2="345" stroke="#64748B" stroke-width="3"/>
+  <polygon points="1070,345 1052,335 1052,355" fill="#64748B"/>
+  <rect x="1070" y="250" width="210" height="190" rx="18" fill="#FFFFFF" stroke="#16A6B6" stroke-width="3"/>
+  <text x="1175" y="310" font-family="Arial, Noto Sans KR, sans-serif" font-size="24" font-weight="700" fill="#16A6B6" text-anchor="middle">Probe</text>
+  <text x="1175" y="360" font-family="Arial, Noto Sans KR, sans-serif" font-size="19" font-weight="500" fill="#0F172A" text-anchor="middle">
+    <tspan x="1175" dy="0">Readiness</tspan>
+    <tspan x="1175" dy="31">업무 합계</tspan>
+  </text>
+  <line x1="1280" y1="345" x2="1320" y2="345" stroke="#64748B" stroke-width="3"/>
+  <polygon points="1320,345 1302,335 1302,355" fill="#64748B"/>
+  <rect x="1320" y="250" width="210" height="190" rx="18" fill="#FFFFFF" stroke="#7A5AF8" stroke-width="3"/>
+  <text x="1425" y="310" font-family="Arial, Noto Sans KR, sans-serif" font-size="24" font-weight="700" fill="#7A5AF8" text-anchor="middle">재개 승인</text>
+  <text x="1425" y="360" font-family="Arial, Noto Sans KR, sans-serif" font-size="19" font-weight="500" fill="#0F172A" text-anchor="middle">
+    <tspan x="1425" dy="0">Audit</tspan>
+    <tspan x="1425" dy="31">Failback</tspan>
+  </text>
+  <rect x="220" y="575" width="1160" height="160" rx="22" fill="#FFFFFF" stroke="#E9822C" stroke-width="3"/>
+  <text x="800" y="625" font-family="Arial, Noto Sans KR, sans-serif" font-size="28" font-weight="700" fill="#E9822C" text-anchor="middle">복구 완료 판정</text>
+  <text x="800" y="675" font-family="Arial, Noto Sans KR, sans-serif" font-size="23" font-weight="600" fill="#17324D" text-anchor="middle">Schema Version · Key/Certificate · Pending/Unknown · 합계/Hash · RPO/RTO 측정</text>
+</svg>

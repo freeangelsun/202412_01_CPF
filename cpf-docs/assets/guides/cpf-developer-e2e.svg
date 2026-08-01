@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">신규 업무 기능 End-to-End 개발</title>
+  <desc id="desc">CPF 공식 매뉴얼 설명 그림</desc>
+  <rect width="100%" height="100%" fill="#F7F9FC"/>
+  <text x="70" y="72" font-family="Arial, Noto Sans KR, sans-serif" font-size="42" font-weight="700" fill="#17324D" text-anchor="start">신규 업무 기능 End-to-End 개발</text>
+  <text x="70" y="112" font-family="Arial, Noto Sans KR, sans-serif" font-size="22" font-weight="400" fill="#64748B" text-anchor="start">Generator부터 ADM 확인과 배포 인계까지</text>
+  <line x1="70" y1="140" x2="1530" y2="140" stroke="#E8EEF6" stroke-width="3"/>
+  <rect x="75" y="190" width="255" height="165" rx="18" fill="#FFFFFF" stroke="#2F6FED" stroke-width="3"/>
+  <circle cx="117" cy="232" r="24" fill="#2F6FED" stroke="#2F6FED" stroke-width="0"/>
+  <text x="117" y="241" font-family="Arial, Noto Sans KR, sans-serif" font-size="18" font-weight="700" fill="#FFFFFF" text-anchor="middle">1</text>
+  <text x="100" y="282" font-family="Arial, Noto Sans KR, sans-serif" font-size="22" font-weight="700" fill="#17324D" text-anchor="start">
+    <tspan x="100" dy="0">Baseline</tspan>
+  </text>
+  <line x1="330" y1="272" x2="375" y2="272" stroke="#64748B" stroke-width="3"/>
+  <polygon points="375,272 357,262 357,282" fill="#64748B"/>
+  <rect x="375" y="190" width="255" height="165" rx="18" fill="#FFFFFF" stroke="#1F9D6A" stroke-width="3"/>
+  <circle cx="417" cy="232" r="24" fill="#1F9D6A" stroke="#1F9D6A" stroke-width="0"/>
+  <text x="417" y="241" font-family="Arial, Noto Sans KR, sans-serif" font-size="18" font-weight="700" fill="#FFFFFF" text-anchor="middle">2</text>
+  <text x="400" y="282" font-family="Arial, Noto Sans KR, sans-serif" font-size="22" font-weight="700" fill="#17324D" text-anchor="start">
+    <tspan x="400" dy="0">Generator Dry Run</tspan>
+  </text>
+  <line x1="630" y1="272" x2="675" y2="272" stroke="#64748B" stroke-width="3"/>
+  <polygon points="675,272 657,262 657,282" fill="#64748B"/>
+  <rect x="675" y="190" width="255" height="165" rx="18" fill="#FFFFFF" stroke="#E9822C" stroke-width="3"/>
+  <circle cx="717" cy="232" r="24" fill="#E9822C" stroke="#E9822C" stroke-width="0"/>
+  <text x="717" y="241" font-family="Arial, Noto Sans KR, sans-serif" font-size="18" font-weight="700" fill="#FFFFFF" text-anchor="middle">3</text>
+  <text x="700" y="282" font-family="Arial, Noto Sans KR, sans-serif" font-size="22" font-weight="700" fill="#17324D" text-anchor="start">
+    <tspan x="700" dy="0">API</tspan>
+    <tspan x="700" dy="32">Domain</tspan>
+  </text>
+  <line x1="930" y1="272" x2="975" y2="272" stroke="#64748B" stroke-width="3"/>
+  <polygon points="975,272 957,262 957,282" fill="#64748B"/>
+  <rect x="975" y="190" width="255" height="165" rx="18" fill="#FFFFFF" stroke="#7A5AF8" stroke-width="3"/>
+  <circle cx="1017" cy="232" r="24" fill="#7A5AF8" stroke="#7A5AF8" stroke-width="0"/>
+  <text x="1017" y="241" font-family="Arial, Noto Sans KR, sans-serif" font-size="18" font-weight="700" fill="#FFFFFF" text-anchor="middle">4</text>
+  <text x="1000" y="282" font-family="Arial, Noto Sans KR, sans-serif" font-size="22" font-weight="700" fill="#17324D" text-anchor="start">
+    <tspan x="1000" dy="0">Persistence</tspan>
+    <tspan x="1000" dy="32">3DB</tspan>
+  </text>
+  <line x1="1230" y1="272" x2="1275" y2="272" stroke="#64748B" stroke-width="3"/>
+  <polygon points="1275,272 1257,262 1257,282" fill="#64748B"/>
+  <rect x="1275" y="190" width="255" height="165" rx="18" fill="#FFFFFF" stroke="#16A6B6" stroke-width="3"/>
+  <circle cx="1317" cy="232" r="24" fill="#16A6B6" stroke="#16A6B6" stroke-width="0"/>
+  <text x="1317" y="241" font-family="Arial, Noto Sans KR, sans-serif" font-size="18" font-weight="700" fill="#FFFFFF" text-anchor="middle">5</text>
+  <text x="1300" y="282" font-family="Arial, Noto Sans KR, sans-serif" font-size="22" font-weight="700" fill="#17324D" text-anchor="start">
+    <tspan x="1300" dy="0">Local</tspan>
+    <tspan x="1300" dy="32">Remote</tspan>
+  </text>
+  <line x1="1402" y1="355" x2="1402" y2="470" stroke="#64748B" stroke-width="3"/>
+  <polygon points="1402,470 1384,460 1384,480" fill="#64748B"/>
+  <rect x="75" y="470" width="255" height="165" rx="18" fill="#FFFFFF" stroke="#2F6FED" stroke-width="3"/>
+  <circle cx="117" cy="512" r="24" fill="#2F6FED" stroke="#2F6FED" stroke-width="0"/>
+  <text x="117" y="521" font-family="Arial, Noto Sans KR, sans-serif" font-size="18" font-weight="700" fill="#FFFFFF" text-anchor="middle">6</text>
+  <text x="100" y="562" font-family="Arial, Noto Sans KR, sans-serif" font-size="22" font-weight="700" fill="#17324D" text-anchor="start">
+    <tspan x="100" dy="0">Async</tspan>
+    <tspan x="100" dy="32">File</tspan>
+  </text>
+  <line x1="330" y1="552" x2="375" y2="552" stroke="#64748B" stroke-width="3"/>
+  <polygon points="375,552 357,542 357,562" fill="#64748B"/>
+  <rect x="375" y="470" width="255" height="165" rx="18" fill="#FFFFFF" stroke="#1F9D6A" stroke-width="3"/>
+  <circle cx="417" cy="512" r="24" fill="#1F9D6A" stroke="#1F9D6A" stroke-width="0"/>
+  <text x="417" y="521" font-family="Arial, Noto Sans KR, sans-serif" font-size="18" font-weight="700" fill="#FFFFFF" text-anchor="middle">7</text>
+  <text x="400" y="562" font-family="Arial, Noto Sans KR, sans-serif" font-size="22" font-weight="700" fill="#17324D" text-anchor="start">
+    <tspan x="400" dy="0">Security</tspan>
+    <tspan x="400" dy="32">Audit</tspan>
+  </text>
+  <line x1="630" y1="552" x2="675" y2="552" stroke="#64748B" stroke-width="3"/>
+  <polygon points="675,552 657,542 657,562" fill="#64748B"/>
+  <rect x="675" y="470" width="255" height="165" rx="18" fill="#FFFFFF" stroke="#E9822C" stroke-width="3"/>
+  <circle cx="717" cy="512" r="24" fill="#E9822C" stroke="#E9822C" stroke-width="0"/>
+  <text x="717" y="521" font-family="Arial, Noto Sans KR, sans-serif" font-size="18" font-weight="700" fill="#FFFFFF" text-anchor="middle">8</text>
+  <text x="700" y="562" font-family="Arial, Noto Sans KR, sans-serif" font-size="22" font-weight="700" fill="#17324D" text-anchor="start">
+    <tspan x="700" dy="0">Test</tspan>
+    <tspan x="700" dy="32">Fault</tspan>
+  </text>
+  <line x1="930" y1="552" x2="975" y2="552" stroke="#64748B" stroke-width="3"/>
+  <polygon points="975,552 957,542 957,562" fill="#64748B"/>
+  <rect x="975" y="470" width="255" height="165" rx="18" fill="#FFFFFF" stroke="#7A5AF8" stroke-width="3"/>
+  <circle cx="1017" cy="512" r="24" fill="#7A5AF8" stroke="#7A5AF8" stroke-width="0"/>
+  <text x="1017" y="521" font-family="Arial, Noto Sans KR, sans-serif" font-size="18" font-weight="700" fill="#FFFFFF" text-anchor="middle">9</text>
+  <text x="1000" y="562" font-family="Arial, Noto Sans KR, sans-serif" font-size="22" font-weight="700" fill="#17324D" text-anchor="start">
+    <tspan x="1000" dy="0">ADM 확인</tspan>
+  </text>
+  <line x1="1230" y1="552" x2="1275" y2="552" stroke="#64748B" stroke-width="3"/>
+  <polygon points="1275,552 1257,542 1257,562" fill="#64748B"/>
+  <rect x="1275" y="470" width="255" height="165" rx="18" fill="#FFFFFF" stroke="#16A6B6" stroke-width="3"/>
+  <circle cx="1317" cy="512" r="24" fill="#16A6B6" stroke="#16A6B6" stroke-width="0"/>
+  <text x="1317" y="521" font-family="Arial, Noto Sans KR, sans-serif" font-size="18" font-weight="700" fill="#FFFFFF" text-anchor="middle">10</text>
+  <text x="1300" y="562" font-family="Arial, Noto Sans KR, sans-serif" font-size="22" font-weight="700" fill="#17324D" text-anchor="start">
+    <tspan x="1300" dy="0">배포 인계</tspan>
+  </text>
+  <rect x="260" y="760" width="1080" height="70" rx="18" fill="#17324D" stroke="#17324D" stroke-width="0"/>
+  <text x="800" y="805" font-family="Arial, Noto Sans KR, sans-serif" font-size="24" font-weight="700" fill="#FFFFFF" text-anchor="middle">종료 조건: Source · API · SQL · Config · Test · 문서 · 배포 인계가 같은 SHA로 연결</text>
+</svg>

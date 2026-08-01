@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">ADM 조회 화면 Anatomy</title>
+  <desc id="desc">CPF 공식 매뉴얼 설명 그림</desc>
+  <rect width="100%" height="100%" fill="#F7F9FC"/>
+  <text x="70" y="72" font-family="Arial, Noto Sans KR, sans-serif" font-size="42" font-weight="700" fill="#17324D" text-anchor="start">ADM 조회 화면 Anatomy</text>
+  <text x="70" y="112" font-family="Arial, Noto Sans KR, sans-serif" font-size="22" font-weight="400" fill="#64748B" text-anchor="start">검색 조건·Stale·Data Scope·Detail·Audit 연결</text>
+  <line x1="70" y1="140" x2="1530" y2="140" stroke="#E8EEF6" stroke-width="3"/>
+  <rect x="110" y="190" width="1380" height="600" rx="24" fill="#FFFFFF" stroke="#2F6FED" stroke-width="3"/>
+  <rect x="150" y="230" width="1300" height="90" rx="14" fill="#EEF4FF" stroke="#2F6FED" stroke-width="2"/>
+  <text x="180" y="285" font-family="Arial, Noto Sans KR, sans-serif" font-size="24" font-weight="700" fill="#17324D" text-anchor="start">검색 영역: Environment · 기간 · 상태 · Owner · ID · Reset · 조회</text>
+  <rect x="150" y="350" width="850" height="340" rx="12" fill="#FFFFFF" stroke="#E8EEF6" stroke-width="2"/>
+  <text x="180" y="395" font-family="Arial, Noto Sans KR, sans-serif" font-size="25" font-weight="700" fill="#2F6FED" text-anchor="start">목록 Table</text>
+  <text x="180" y="445" font-family="Arial, Noto Sans KR, sans-serif" font-size="22" font-weight="500" fill="#0F172A" text-anchor="start">
+    <tspan x="180" dy="0">Stable Row Key · Version · Status · UpdatedAt</tspan>
+    <tspan x="180" dy="42">Paging · Sort · Empty · Loading · Partial · Stale</tspan>
+  </text>
+  <rect x="1030" y="350" width="420" height="340" rx="12" fill="#FFFFFF" stroke="#7A5AF8" stroke-width="2"/>
+  <text x="1060" y="395" font-family="Arial, Noto Sans KR, sans-serif" font-size="25" font-weight="700" fill="#7A5AF8" text-anchor="start">상세 Panel</text>
+  <text x="1060" y="445" font-family="Arial, Noto Sans KR, sans-serif" font-size="21" font-weight="500" fill="#0F172A" text-anchor="start">
+    <tspan x="1060" dy="0">Owner 원장 ID</tspan>
+    <tspan x="1060" dy="38">Desired / Actual</tspan>
+    <tspan x="1060" dy="38">Operation · Approval</tspan>
+    <tspan x="1060" dy="38">Audit · Log · Trace</tspan>
+  </text>
+  <rect x="150" y="715" width="1300" height="50" rx="10" fill="#17324D" stroke="#17324D" stroke-width="0"/>
+  <text x="800" y="749" font-family="Arial, Noto Sans KR, sans-serif" font-size="22" font-weight="700" fill="#FFFFFF" text-anchor="middle">조치 전 목록과 상세의 ID·Version·Owner 일치 확인</text>
+</svg>

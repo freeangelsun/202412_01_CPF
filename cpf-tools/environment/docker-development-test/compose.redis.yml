@@ -1,0 +1,25 @@
+services:
+  redis:
+    image: redis:8.8.1-trixie
+    container_name: cpf-redis
+    restart: "no"
+    command: ["sh", "-c", "exec redis-server --requirepass \"$$(cat /run/secrets/redis_password)\" --appendonly yes --appendfsync everysec --maxmemory-policy noeviction"]
+    ports:
+      - "127.0.0.1:6379:6379"
+    secrets:
+      - redis_password
+    volumes:
+      - cpf-redis-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$$(cat /run/secrets/redis_password)\" ping | grep PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+secrets:
+  redis_password:
+    file: C:/dev/Docker/Secrets/redis-password.txt
+
+volumes:
+  cpf-redis-data:
+    name: cpf-redis-data

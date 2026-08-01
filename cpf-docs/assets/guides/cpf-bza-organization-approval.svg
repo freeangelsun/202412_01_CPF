@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">BZA 조직 권한 결재 영향 흐름</title>
+  <desc id="desc">CPF 공식 매뉴얼 설명 그림</desc>
+  <rect width="100%" height="100%" fill="#F7F9FC"/>
+  <text x="70" y="72" font-family="Arial, Noto Sans KR, sans-serif" font-size="42" font-weight="700" fill="#17324D" text-anchor="start">조직·권한·결재 영향 흐름</text>
+  <text x="70" y="112" font-family="Arial, Noto Sans KR, sans-serif" font-size="22" font-weight="400" fill="#64748B" text-anchor="start">조직 변경이 Effective Permission과 진행 중 결재에 미치는 영향 확인</text>
+  <line x1="70" y1="140" x2="1530" y2="140" stroke="#E8EEF6" stroke-width="3"/>
+  <rect x="70" y="250" width="210" height="190" rx="18" fill="#FFFFFF" stroke="#1F9D6A" stroke-width="3"/>
+  <text x="175" y="310" font-family="Arial, Noto Sans KR, sans-serif" font-size="23" font-weight="700" fill="#1F9D6A" text-anchor="middle">조직·직원</text>
+  <text x="175" y="360" font-family="Arial, Noto Sans KR, sans-serif" font-size="19" font-weight="500" fill="#0F172A" text-anchor="middle">
+    <tspan x="175" dy="0">기준일</tspan>
+    <tspan x="175" dy="31">유효기간</tspan>
+  </text>
+  <line x1="280" y1="345" x2="320" y2="345" stroke="#64748B" stroke-width="3"/>
+  <polygon points="320,345 302,335 302,355" fill="#64748B"/>
+  <rect x="320" y="250" width="210" height="190" rx="18" fill="#FFFFFF" stroke="#2F6FED" stroke-width="3"/>
+  <text x="425" y="310" font-family="Arial, Noto Sans KR, sans-serif" font-size="23" font-weight="700" fill="#2F6FED" text-anchor="middle">발령·책임</text>
+  <text x="425" y="360" font-family="Arial, Noto Sans KR, sans-serif" font-size="19" font-weight="500" fill="#0F172A" text-anchor="middle">
+    <tspan x="425" dy="0">Primary</tspan>
+    <tspan x="425" dy="31">대행</tspan>
+  </text>
+  <line x1="530" y1="345" x2="570" y2="345" stroke="#64748B" stroke-width="3"/>
+  <polygon points="570,345 552,335 552,355" fill="#64748B"/>
+  <rect x="570" y="250" width="210" height="190" rx="18" fill="#FFFFFF" stroke="#7A5AF8" stroke-width="3"/>
+  <text x="675" y="310" font-family="Arial, Noto Sans KR, sans-serif" font-size="23" font-weight="700" fill="#7A5AF8" text-anchor="middle">User·Role</text>
+  <text x="675" y="360" font-family="Arial, Noto Sans KR, sans-serif" font-size="19" font-weight="500" fill="#0F172A" text-anchor="middle">
+    <tspan x="675" dy="0">다중 Role</tspan>
+    <tspan x="675" dy="31">Scope</tspan>
+  </text>
+  <line x1="780" y1="345" x2="820" y2="345" stroke="#64748B" stroke-width="3"/>
+  <polygon points="820,345 802,335 802,355" fill="#64748B"/>
+  <rect x="820" y="250" width="210" height="190" rx="18" fill="#FFFFFF" stroke="#E9822C" stroke-width="3"/>
+  <text x="925" y="310" font-family="Arial, Noto Sans KR, sans-serif" font-size="23" font-weight="700" fill="#E9822C" text-anchor="middle">권한 계산</text>
+  <text x="925" y="360" font-family="Arial, Noto Sans KR, sans-serif" font-size="19" font-weight="500" fill="#0F172A" text-anchor="middle">
+    <tspan x="925" dy="0">Menu</tspan>
+    <tspan x="925" dy="31">Action</tspan>
+    <tspan x="925" dy="31">API</tspan>
+  </text>
+  <line x1="1030" y1="345" x2="1070" y2="345" stroke="#64748B" stroke-width="3"/>
+  <polygon points="1070,345 1052,335 1052,355" fill="#64748B"/>
+  <rect x="1070" y="250" width="210" height="190" rx="18" fill="#FFFFFF" stroke="#16A6B6" stroke-width="3"/>
+  <text x="1175" y="310" font-family="Arial, Noto Sans KR, sans-serif" font-size="23" font-weight="700" fill="#16A6B6" text-anchor="middle">결재 Simulation</text>
+  <text x="1175" y="360" font-family="Arial, Noto Sans KR, sans-serif" font-size="19" font-weight="500" fill="#0F172A" text-anchor="middle">
+    <tspan x="1175" dy="0">Policy</tspan>
+    <tspan x="1175" dy="31">Delegation</tspan>
+  </text>
+  <line x1="1280" y1="345" x2="1320" y2="345" stroke="#64748B" stroke-width="3"/>
+  <polygon points="1320,345 1302,335 1302,355" fill="#64748B"/>
+  <rect x="1320" y="250" width="210" height="190" rx="18" fill="#FFFFFF" stroke="#D64545" stroke-width="3"/>
+  <text x="1425" y="310" font-family="Arial, Noto Sans KR, sans-serif" font-size="23" font-weight="700" fill="#D64545" text-anchor="middle">업무 Consumer</text>
+  <text x="1425" y="360" font-family="Arial, Noto Sans KR, sans-serif" font-size="19" font-weight="500" fill="#0F172A" text-anchor="middle">
+    <tspan x="1425" dy="0">Snapshot</tspan>
+    <tspan x="1425" dy="31">Audit</tspan>
+  </text>
+  <rect x="210" y="575" width="1180" height="160" rx="22" fill="#FFFFFF" stroke="#D64545" stroke-width="3"/>
+  <text x="250" y="625" font-family="Arial, Noto Sans KR, sans-serif" font-size="23" font-weight="500" fill="#0F172A" text-anchor="start">
+    <tspan x="250" dy="0">변경 후 필수 대사: 조직 Tree · Assignment · Effective Permission · Approval Path · 진행 중 Snapshot</tspan>
+    <tspan x="250" dy="42">응답 유실은 Operation ID로 조회하고, 변경 전 Version·유효기간을 기준으로 보정 Operation 수행</tspan>
+  </text>
+</svg>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">Gateway Data Plane Control Plane</title>
+  <desc id="desc">CPF 공식 매뉴얼 설명 그림</desc>
+  <rect width="100%" height="100%" fill="#F7F9FC"/>
+  <text x="70" y="72" font-family="Arial, Noto Sans KR, sans-serif" font-size="42" font-weight="700" fill="#17324D" text-anchor="start">Gateway Data Plane·Control Plane</text>
+  <text x="70" y="112" font-family="Arial, Noto Sans KR, sans-serif" font-size="22" font-weight="400" fill="#64748B" text-anchor="start">실시간 요청 처리와 승인된 Route 게시·복구를 분리</text>
+  <line x1="70" y1="140" x2="1530" y2="140" stroke="#E8EEF6" stroke-width="3"/>
+  <rect x="90" y="210" width="650" height="500" rx="24" fill="#FFFFFF" stroke="#2F6FED" stroke-width="4"/>
+  <text x="415" y="270" font-family="Arial, Noto Sans KR, sans-serif" font-size="31" font-weight="700" fill="#2F6FED" text-anchor="middle">Data Plane</text>
+  <text x="150" y="345" font-family="Arial, Noto Sans KR, sans-serif" font-size="24" font-weight="500" fill="#0F172A" text-anchor="start">
+    <tspan x="150" dy="0">Ingress Match·Predicate</tspan>
+    <tspan x="150" dy="54">AuthN/AuthZ·Header Trust</tspan>
+    <tspan x="150" dy="54">Target Resolve·Load Balance</tspan>
+    <tspan x="150" dy="54">Timeout·Retry·Circuit</tspan>
+    <tspan x="150" dy="54">Attempt Ledger·Response</tspan>
+  </text>
+  <rect x="860" y="210" width="650" height="500" rx="24" fill="#FFFFFF" stroke="#7A5AF8" stroke-width="4"/>
+  <text x="1185" y="270" font-family="Arial, Noto Sans KR, sans-serif" font-size="31" font-weight="700" fill="#7A5AF8" text-anchor="middle">Control Plane</text>
+  <text x="920" y="345" font-family="Arial, Noto Sans KR, sans-serif" font-size="24" font-weight="500" fill="#0F172A" text-anchor="start">
+    <tspan x="920" dy="0">Draft·Validate·Connection Test</tspan>
+    <tspan x="920" dy="54">Reason·Approval·Expected Version</tspan>
+    <tspan x="920" dy="54">Snapshot Publish</tspan>
+    <tspan x="920" dy="54">Instance ACK/NACK</tspan>
+    <tspan x="920" dy="54">LKG·Rollback·Reconcile</tspan>
+  </text>
+  <line x1="740" y1="450" x2="860" y2="450" stroke="#E9822C" stroke-width="5"/>
+  <polygon points="860,450 842,440 842,460" fill="#E9822C"/>
+  <text x="800" y="420" font-family="Arial, Noto Sans KR, sans-serif" font-size="22" font-weight="700" fill="#E9822C" text-anchor="middle">Signed Snapshot</text>
+</svg>

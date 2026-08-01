@@ -1,0 +1,61 @@
+name: cpf
+
+services:
+  mariadb:
+    image: mariadb:12.3.2
+    container_name: cpf-mariadb
+    restart: "no"
+    environment:
+      MARIADB_ROOT_PASSWORD: ${CPF_ADMIN_PASSWORD}
+    ports:
+      - "127.0.0.1:3306:3306"
+    volumes:
+      - cpf-mariadb-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+  postgresql:
+    image: postgres:18.4-trixie
+    container_name: cpf-postgresql
+    restart: "no"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_DB: postgres
+      POSTGRES_PASSWORD: ${CPF_ADMIN_PASSWORD}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - cpf-postgresql-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+  oracle:
+    image: container-registry.oracle.com/database/free:26ai-free-23.26.2.0.0
+    container_name: cpf-oracle
+    restart: "no"
+    environment:
+      ORACLE_PWD: ${CPF_ADMIN_PASSWORD}
+    ports:
+      - "127.0.0.1:1521:1521"
+    volumes:
+      - cpf-oracle-data:/opt/oracle/oradata
+    healthcheck:
+      test: ["CMD-SHELL", "healthcheck.sh"]
+      interval: 20s
+      timeout: 10s
+      retries: 60
+      start_period: 120s
+
+volumes:
+  cpf-mariadb-data:
+    name: cpf-mariadb-data
+  cpf-postgresql-data:
+    name: cpf-postgresql-data
+  cpf-oracle-data:
+    name: cpf-oracle-data

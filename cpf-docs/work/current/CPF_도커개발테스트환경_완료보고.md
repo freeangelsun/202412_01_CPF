@@ -45,7 +45,7 @@
 
 ## 연동 및 사용 가이드 보강
 
-`cpf-docs/guides/CPF_도커_연동및사용가이드.md`에 다음 설명을 추가했다.
+`cpf-docs/guides/docker/CPF_도커_연동및사용가이드.md`에 다음 설명을 추가했다.
 
 - Host 실행 기반별 역할
 - DB·Redis·Kafka·Toxiproxy·OpenTelemetry Collector 용도
@@ -63,3 +63,13 @@
 - 문서 개정 시 동일한 정본 파일을 갱신
 - 날짜별 중복 문서 생성 방지
 - Evidence도 장기 유지 경로로 통일
+
+## Docker 가이드 메뉴 구조
+
+Docker 사용자 가이드를 다음 정본 디렉터리로 통합했다.
+
+```text
+cpf-docs/guides/docker/
+```
+
+`README.md`를 메뉴로 두고 안내, 전체 구축, 연동 및 사용, 문제 해결 및 초기화 문서를 같은 디렉터리에 배치했다. 기존 `cpf-docs/guides/` 바로 아래의 Docker 가이드 파일은 삭제 대상 Manifest에 기록했다.

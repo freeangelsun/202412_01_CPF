@@ -7,7 +7,7 @@
 첫 문서:
 
 ```text
-cpf-docs/guides/CPF_도커_개발테스트환경_안내.md
+cpf-docs/guides/docker/CPF_도커_개발테스트환경_안내.md
 ```
 
 한 줄 설치 Script:

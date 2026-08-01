@@ -4,4 +4,4 @@ DOCKER-ALL-002,SCN-002,통합 Toolchain,Java·Node·PowerShell·Playwright·Pyth
 DOCKER-ALL-003,SCN-003,장애 조건,Toxiproxy 5개 Proxy,cpf-tools/environment/docker-development-test/toxiproxy.json,완료,JSON 점검
 DOCKER-ALL-004,SCN-004,Telemetry,OTLP gRPC·HTTP 수집,cpf-tools/environment/docker-development-test/otel-collector-config.yml,완료,YAML 점검
 DOCKER-ALL-005,SCN-005,Supply Chain,Trivy와 ORT 실행 Script,cpf-tools/environment/docker-development-test/run-trivy.ps1,완료,정적 점검
-DOCKER-ALL-006,SCN-006,장기 유지 문서,구축·연동·문제해결·구성명세,cpf-docs/guides/CPF_도커_개발테스트환경_안내.md,완료,문서 점검
+DOCKER-ALL-006,SCN-006,장기 유지 문서,구축·연동·문제해결·구성명세,cpf-docs/guides/docker/CPF_도커_개발테스트환경_안내.md,완료,문서 점검

@@ -1,30 +1,48 @@
-# QA37 Test and Evidence
+# CPF QA37 Codex Docker 통합 요청서 정적 검증 결과
 
-## 수행
+## 기준
 
-- GitHub latest Commit 확인
-- `19dd72b5978f2a3c630943c0fff05bee2d2fed34` → `23a16f35a5633ce1317920468a69fef00c1a6a41` 변경 파일 대조
-- Root/BZA build.gradle Blob·내용 대조
-- settings.gradle Included Build 참조 확인
-- EDU verifier와 Unit Test Source 확인
-- Current Request·Completion·Handover·Static Evidence 확인
-- Manual EDU 135 요구 문서 확인
-- GitHub latest Commit Status·Workflow Run 조회
+- 원격 `master` 확인 SHA: `866b2ff8bbc2a7aaecf91a617b58d79e9a1308a2`
+- Docker 문서 확인:
+  - `cpf-docs/guides/docker/README.md`
+  - `cpf-docs/guides/docker/CPF_도커_개발테스트환경_안내.md`
+  - `cpf-docs/guides/docker/CPF_도커_연동및사용가이드.md`
+  - `cpf-docs/architecture/CPF_도커_개발테스트환경_구성명세.md`
 
-## 실제 결과
+## 확인한 실제 환경 계약
 
-- Root Build Source: 실패
-- Included Build Closure: 실패
-- EDU Source Closure: 재확인 필요
-- exact-SHA Runtime: 미검증
-- CI Result: 확인된 실행 결과 없음
+- Container 7종 명칭
+- Volume 5종 명칭
+- `restart=no`
+- `cpf_default` Network
+- DB·Redis·Kafka 선택 기동
+- Toxiproxy Proxy Port
+- OTLP Endpoint와 Output
+- 통합 Runner
+- Trivy·ORT Script와 Output
+- Repository DB Source Ownership
+- 작업 종료 시 Volume 유지
+
+## 수행한 정적 검증
+
+- UTF-8 문서 생성
+- PowerShell 경로 문자열 확인
+- 비정상 제어문자 검사
+- ZIP Root 상대경로 검사
+- 파일별 SHA-256 생성
+- Delete Manifest에 추적 파일 삭제 0건 확인
 
 ## 미실행
 
-- Fresh clone: 실행 환경 DNS 차단
-- Java 25
-- npm
-- DB·Kafka·Redis
-- Browser
-- Docker
-- Codex
+- 실제 Local Working Tree 확인
+- Docker Container 상태 확인
+- Java 25 Build
+- Frontend
+- DB 3 Vendor
+- Kafka·Redis·Batch Runtime
+- Toxiproxy
+- OpenTelemetry
+- Playwright
+- Trivy·ORT
+
+위 항목은 Codex가 사용자 PC에서 수행해야 하므로 현재 상태는 `미검증`이다.

@@ -1,0 +1,8 @@
+requirement_id,scenario,result,evidence,status
+CDX-DKR-001,Docker docs are read in specified order,Request section 4,cpf-docs/work/codex/qa37/CPF_CODEX_QA37_FINAL_INDEPENDENT_VERIFICATION_REQUEST.md,완료
+CDX-DKR-002,Existing environment is not reinstalled,Install script prohibited,cpf-docs/work/codex/qa37/CPF_CODEX_QA37_FINAL_INDEPENDENT_VERIFICATION_REQUEST.md,완료
+CDX-DKR-003,Initial running containers are preserved,Snapshot and delta stop logic,cpf-docs/work/codex/qa37/CPF_CODEX_QA37_FINAL_INDEPENDENT_VERIFICATION_REQUEST.md,완료
+CDX-DKR-004,CPF business schema is created from repository source,DB lifecycle contract,cpf-docs/work/codex/qa37/CPF_CODEX_QA37_FINAL_INDEPENDENT_VERIFICATION_REQUEST.md,완료
+CDX-DKR-005,Only required services are started,Vendor and feature selective startup,cpf-docs/work/codex/qa37/CPF_CODEX_QA37_FINAL_INDEPENDENT_VERIFICATION_REQUEST.md,완료
+CDX-DKR-006,Destructive Docker cleanup is blocked,Prune reset and volume deletion prohibited,cpf-docs/work/codex/qa37/CPF_CODEX_QA37_FINAL_INDEPENDENT_VERIFICATION_REQUEST.md,완료
+CDX-DKR-007,Codex execution itself passes full CPF validation,Not executed by document author,Runtime evidence required,미검증

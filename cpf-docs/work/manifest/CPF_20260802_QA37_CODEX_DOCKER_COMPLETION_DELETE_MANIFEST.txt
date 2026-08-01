@@ -1,0 +1,9 @@
+# CPF QA37 Codex Docker 통합 요청서 Delete Manifest
+
+삭제 대상 없음.
+
+- Git 추적 파일 삭제 요청: 0건
+- Docker Image 삭제 요청: 0건
+- Docker Container 삭제 요청: 0건
+- Docker Volume 삭제 요청: 0건
+- Guide·Manual·Deliverable 삭제 요청: 0건

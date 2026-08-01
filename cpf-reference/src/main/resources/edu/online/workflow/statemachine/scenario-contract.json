@@ -1,0 +1,92 @@
+{
+  "requirementId": "EDU-DEV-20",
+  "title": "다단계 고객 업무 상태기계와 취소·재개",
+  "implementationPackage": "com.cpf.reference.online.workflow.statemachine",
+  "owner": "cpf-reference",
+  "requiredRole": "CPF_REFERENCE_DEVELOPER",
+  "inputFields": [
+    "applicationId",
+    "action",
+    "reason"
+  ],
+  "businessStates": [
+    "RECEIVED",
+    "REVIEWING",
+    "APPROVED",
+    "EXECUTED",
+    "CANCELLED",
+    "ON_HOLD"
+  ],
+  "workflowSteps": [
+    "VALIDATE",
+    "AUTHORIZE",
+    "SCOPE",
+    "DEDUPE",
+    "VERSION_CHECK",
+    "PROTECT",
+    "MUTATE",
+    "COMMIT",
+    "RECONCILE",
+    "COMPENSATION_READY",
+    "AUDIT",
+    "OBSERVE"
+  ],
+  "failurePoints": [
+    "BEFORE_COMMIT",
+    "AFTER_COMMIT",
+    "PARTIAL_TARGET_FAILURE"
+  ],
+  "exceptionScenarios": [
+    "허용되지 않은 전이",
+    "이전 단계 메시지 지연",
+    "실행 후 취소",
+    "보류 중 재개",
+    "중복 명령",
+    "상태 변경이 있는 경우 DB Commit 전 실패와 Commit 후 응답 유실을 구분한다.",
+    "같은 요청의 중복·동시 실행·순서 역전·늦은 응답을 포함한다.",
+    "Retry 가능한 오류와 즉시 중단해야 하는 업무 오류를 구분한다.",
+    "대량·다중 대상 기능에서 부분 성공이 발생하면 성공 대상을 다시 실행하지 않고 실패 대상만 Reprocess·Reconcile한다.",
+    "복구·보상이 필요한 기능은 복구 실패와 보상 실패도 별도 상태·Attempt·Audit로 남긴다."
+  ],
+  "requiredTests": [
+    "상태표 전수",
+    "전이 Guard",
+    "감사",
+    "멱등",
+    "동시성",
+    "입력 Validation·권한·Data Scope·Masking Negative Test",
+    "해당 기능에 적용되는 중복·동시성·Timeout·응답 유실·부분 실패 Test",
+    "해당 기능의 Failure Injection 후 필요한 Retry·Restart·Reprocess·Reconcile·Rollback Test",
+    "Oracle·PostgreSQL·MariaDB 또는 해당 Infra의 의미 동일성 Test",
+    "Log·Metric·Trace·Audit에 Secret·개인정보 원문이 없는지 검사"
+  ],
+  "readOnly": false,
+  "manualAnchor": "EDU-DEV-20",
+  "idempotent": true,
+  "versioned": true,
+  "leaseRequired": false,
+  "externalEffect": false,
+  "compensationSupported": true,
+  "rollbackSupported": true,
+  "consumerBinding": {
+    "type": "JDBC_COMMAND",
+    "ownerModule": "cpf-reference",
+    "entryPoint": "CPF_EDU_BUSINESS_RECORD",
+    "operation": "ON_HOLD",
+    "publicContract": "cpf-reference REF DB business record contract",
+    "runtimeCommand": "POST /api/reference/edu-capabilities/EDU-DEV-20/executions",
+    "configurationKey": "",
+    "timeoutSeconds": 60,
+    "argumentFields": [
+      "applicationId",
+      "action",
+      "reason"
+    ]
+  },
+  "featurePack": "core",
+  "optionalFeature": false,
+  "featureToggle": "",
+  "generatedDomainIndependent": true,
+  "productModuleIndependent": true,
+  "databaseOwner": "refDB"
+}

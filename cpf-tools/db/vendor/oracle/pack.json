@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "vendor": "oracle",
   "status": "완료",
   "runtimeVerification": "미검증",
@@ -78,6 +78,53 @@
     "officialVendor": true
   },
   "migrationLocationPattern": "cpf-tools/db/vendor/oracle/migration/flyway/{logicalDatabase}",
-  "rollbackLocationPattern": "cpf-tools/db/vendor/oracle/rollback/{logicalDatabase}",
-  "completionPolicy": "Source/SQL/API/Test/Gate 구현은 완료이며 실제 DB Runtime 결과는 runtimeVerification으로만 관리한다."
+  "rollbackLocationPattern": "cpf-tools/db/vendor/oracle/migration/rollback/{logicalDatabase}",
+  "completionPolicy": "Source/SQL/API/Test/Gate 구현은 완료이며 실제 DB Runtime 결과는 runtimeVerification으로만 관리한다.",
+  "operationLedger": {
+    "ownerArtifact": "cpf-reference",
+    "logicalDatabase": "refDB",
+    "canonicalSource": "source/57_reference_edu_operation_ledger.sql",
+    "freshInstall": "install/01_reference_edu_operation_ledger.sql",
+    "migration": "migration/flyway/refDB/V93__manual_edu_135_operation_ledger.sql",
+    "rollback": "migration/rollback/refDB/U93__manual_edu_135_operation_ledger.sql",
+    "runtimeQueries": "runtime/ref/manual_edu_135_operation_queries.sql",
+    "verify": "verify/93_verify_manual_edu_135_operation_ledger.sql",
+    "checksumManifest": "migration/flyway/refDB/checksums.sha256",
+    "tables": [
+      "CPF_EDU_OPERATION",
+      "CPF_EDU_OPERATION_TARGET",
+      "CPF_EDU_OPERATION_AUDIT",
+      "CPF_EDU_OUTBOX",
+      "CPF_EDU_LEASE",
+      "CPF_EDU_BUSINESS_RECORD",
+      "CPF_EDU_COUNTERPARTY_REQUEST"
+    ],
+    "tableCount": 7,
+    "ownerModule": "cpf-reference",
+    "generatedDomainAllowed": false
+  },
+  "referenceBatchPack": {
+    "ownerArtifact": "cpf-reference",
+    "logicalDatabase": "refDB",
+    "optional": true,
+    "featureToggle": "cpf.reference.features.batch.enabled",
+    "canonicalSource": "source/58_reference_batch_job_pack.sql",
+    "freshInstall": "install/02_reference_batch_job_pack.sql",
+    "migration": "migration/flyway/refDB/V94__reference_batch_job_pack.sql",
+    "rollback": "migration/rollback/refDB/U94__reference_batch_job_pack.sql",
+    "runtimeQueries": "runtime/ref/reference_batch_job_queries.sql",
+    "verify": "verify/94_verify_reference_batch_job_pack.sql",
+    "checksumManifest": "migration/flyway/refDB/checksums.sha256",
+    "tables": [
+      "CPF_REF_BAT_JOB_EXECUTION",
+      "CPF_REF_BAT_CHECKPOINT",
+      "CPF_REF_BAT_TARGET_RESULT"
+    ],
+    "removalUnit": [
+      "com.cpf.reference.batch",
+      "src/main/resources/edu/batch",
+      "referenceBatchPack"
+    ],
+    "generatedDomainAllowed": false
+  }
 }

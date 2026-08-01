@@ -1,0 +1,80 @@
+{
+  "requirementId": "EDU-DEV-06",
+  "title": "같은 애플리케이션·분리 서비스 호출 동등성",
+  "implementationPackage": "com.cpf.reference.online.servicecall.topology",
+  "owner": "cpf-reference",
+  "requiredRole": "CPF_REFERENCE_DEVELOPER",
+  "inputFields": [
+    "contractId",
+    "member"
+  ],
+  "businessStates": [
+    "UNKNOWN_RESULT"
+  ],
+  "workflowSteps": [
+    "VALIDATE",
+    "AUTHORIZE",
+    "SCOPE",
+    "DEDUPE",
+    "MUTATE",
+    "COMMIT",
+    "OUTBOX",
+    "EXTERNAL_SEND",
+    "ACK",
+    "RECONCILE",
+    "AUDIT",
+    "OBSERVE"
+  ],
+  "failurePoints": [
+    "BEFORE_COMMIT",
+    "AFTER_COMMIT",
+    "BEFORE_EXTERNAL_SEND",
+    "AFTER_EXTERNAL_SEND",
+    "RESPONSE_LOST",
+    "PARTIAL_TARGET_FAILURE"
+  ],
+  "exceptionScenarios": [
+    "Remote 연결 실패",
+    "응답 Timeout",
+    "잘못된 JSON",
+    "하위 서비스 4xx/5xx",
+    "호출 후 응답 유실",
+    "서비스 주소 변경",
+    "다중 인스턴스 일부 장애"
+  ],
+  "requiredTests": [
+    "같은 Contract Test를 Local/Remote Adapter에 적용",
+    "오류 코드·상태 동일성",
+    "Trace Parent 전달",
+    "시간 예산 초과",
+    "Load Balancing과 장애 인스턴스 제외"
+  ],
+  "readOnly": false,
+  "manualAnchor": "EDU-DEV-06",
+  "idempotent": true,
+  "versioned": false,
+  "leaseRequired": false,
+  "externalEffect": true,
+  "compensationSupported": false,
+  "rollbackSupported": false,
+  "consumerBinding": {
+    "type": "HTTP",
+    "ownerModule": "cpf-reference",
+    "entryPoint": "/external/06",
+    "operation": "UNKNOWN_RESULT",
+    "publicContract": "cpf-reference counterparty simulator HTTP contract",
+    "runtimeCommand": "POST /api/reference/edu-capabilities/EDU-DEV-06/executions",
+    "configurationKey": "cpf.edu.counterparty.base-url",
+    "timeoutSeconds": 60,
+    "argumentFields": [
+      "contractId",
+      "member"
+    ]
+  },
+  "featurePack": "core",
+  "optionalFeature": false,
+  "featureToggle": "",
+  "generatedDomainIndependent": true,
+  "productModuleIndependent": true,
+  "databaseOwner": "refDB"
+}

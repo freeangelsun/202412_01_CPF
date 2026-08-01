@@ -1,0 +1,2 @@
+requirement_id,owner,development_status,acceptance_criteria,verification
+MERGED-RUNTIME-VALIDATION,Codex,완료,Merged repository source/build/runtime evidence must pass,Use the one-pass Codex request; do not redesign source unless a concrete gate fails

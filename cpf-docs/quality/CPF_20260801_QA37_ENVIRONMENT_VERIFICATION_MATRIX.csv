@@ -1,0 +1,10 @@
+﻿id,verification,status,blocker,next_exact_command_group
+ENV-01,Merged repository source closure including EDU32,미검증,Full latest repository is not available in this execution container.,Stage 0
+ENV-02,Java 25 fresh build/test/publication,미검증,"Container Java is 21, not 25.",Stage 1
+ENV-03,Optional pack removal compile matrix,미검증,Requires full Gradle repository and Java 25.,Stage 1.1
+ENV-04,ADM/BZA clean npm verify,미검증,"Container Node is 22.16, required 22.18; full frontend tree not present.",Stage 2
+ENV-05,Oracle/PostgreSQL/MariaDB V93/V94 lifecycle and Batch Off,미검증,Docker and DB images are unavailable.,Stage 3
+ENV-06,Runtime/fault/multi-instance/OTel,미검증,Docker services and fault environment are unavailable.,Stage 4
+ENV-07,Chromium/Firefox/WebKit,미검증,Backend/frontend runtime and browser environment are unavailable.,Stage 5
+ENV-08,Supply-chain/SBOM/license/artifact scan,미검증,Final built artifacts and tools are unavailable.,Stage 6
+ENV-09,Exact result SHA evidence,재확인 필요,Requires user apply/commit/push and clean origin/master.,Stage 7

@@ -1,0 +1,93 @@
+{
+  "requirementId": "EDU-DEV-09",
+  "title": "외부 REST 신용조회와 결과 미확정",
+  "implementationPackage": "com.cpf.reference.online.counterparty.rest",
+  "owner": "cpf-reference",
+  "requiredRole": "CPF_REFERENCE_DEVELOPER",
+  "inputFields": [
+    "credit",
+    "endpointAlias",
+    "institutionRequestId"
+  ],
+  "businessStates": [
+    "REQUESTED",
+    "SENDING",
+    "SENT",
+    "SUCCEEDED",
+    "FAILED",
+    "UNKNOWN_RESULT",
+    "RECONCILED"
+  ],
+  "workflowSteps": [
+    "VALIDATE",
+    "AUTHORIZE",
+    "SCOPE",
+    "DEDUPE",
+    "MUTATE",
+    "COMMIT",
+    "OUTBOX",
+    "EXTERNAL_SEND",
+    "ACK",
+    "RECONCILE",
+    "AUDIT",
+    "OBSERVE"
+  ],
+  "failurePoints": [
+    "BEFORE_COMMIT",
+    "AFTER_COMMIT",
+    "BEFORE_EXTERNAL_SEND",
+    "AFTER_EXTERNAL_SEND",
+    "RESPONSE_LOST",
+    "TIMEOUT",
+    "PROCESS_KILL"
+  ],
+  "exceptionScenarios": [
+    "DNS/연결 실패",
+    "Connect Timeout",
+    "Read Timeout",
+    "5xx",
+    "429",
+    "Malformed JSON",
+    "응답 Signature 오류",
+    "요청 전송 후 Timeout",
+    "상태 조회도 Timeout",
+    "상대 중복 응답"
+  ],
+  "requiredTests": [
+    "재시도 허용 단계·금지 단계",
+    "외부 Stub Failure Matrix",
+    "응답 유실 후 새 요청 없음",
+    "상태 조회 대사",
+    "Circuit Breaker",
+    "비밀 Header 로그 미노출"
+  ],
+  "readOnly": false,
+  "manualAnchor": "EDU-DEV-09",
+  "idempotent": true,
+  "versioned": false,
+  "leaseRequired": false,
+  "externalEffect": true,
+  "compensationSupported": false,
+  "rollbackSupported": false,
+  "consumerBinding": {
+    "type": "HTTP",
+    "ownerModule": "cpf-reference",
+    "entryPoint": "/external/09",
+    "operation": "RECONCILED",
+    "publicContract": "cpf-reference counterparty simulator HTTP contract",
+    "runtimeCommand": "POST /api/reference/edu-capabilities/EDU-DEV-09/executions",
+    "configurationKey": "cpf.edu.counterparty.base-url",
+    "timeoutSeconds": 60,
+    "argumentFields": [
+      "credit",
+      "endpointAlias",
+      "institutionRequestId"
+    ]
+  },
+  "featurePack": "core",
+  "optionalFeature": false,
+  "featureToggle": "",
+  "generatedDomainIndependent": true,
+  "productModuleIndependent": true,
+  "databaseOwner": "refDB"
+}

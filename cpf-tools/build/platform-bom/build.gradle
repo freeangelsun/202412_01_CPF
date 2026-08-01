@@ -1,0 +1,58 @@
+plugins {
+    id 'java-platform'
+    id 'maven-publish'
+}
+
+group = 'com.cpf.platform'
+version = providers.gradleProperty('cpfPlatformVersion').orElse('0.1.0-SNAPSHOT').get()
+
+javaPlatform {
+    allowDependencies()
+}
+
+repositories { mavenCentral() }
+
+def stack = new Properties()
+def rootStack = file('../../../gradle/cpf-stack.properties')
+if (rootStack.exists()) rootStack.withInputStream { stack.load(it) }
+
+def springBootVersion = providers.gradleProperty('cpfSpringBootVersion').orElse(stack.getProperty('springBootVersion', '4.0.0')).get()
+def springCloudVersion = providers.gradleProperty('cpfSpringCloudVersion').orElse(stack.getProperty('springCloudVersion', '2025.0.0')).get()
+
+dependencies {
+    api platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
+    api platform("org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}")
+    constraints {
+        api 'com.cpf.platform:cpf-core:' + version
+        api 'com.cpf.platform:cpf-common:' + version
+        api 'com.cpf.platform:cpf-batch-contract:' + version
+    }
+}
+
+publishing {
+    publications {
+        cpfPlatformBom(MavenPublication) {
+            from components.javaPlatform
+            artifactId = 'cpf-platform-bom'
+            pom {
+                name = 'CPF Platform BOM'
+                description = 'Core Platform Framework supported dependency alignment BOM.'
+            }
+        }
+    }
+    repositories {
+        maven {
+            name = 'cpfInternal'
+            url = uri(providers.gradleProperty('cpfInternalRepositoryUrl').orElse(layout.buildDirectory.dir('repo')))
+            credentials {
+                username = providers.gradleProperty('cpfInternalRepositoryUsername').orNull
+                password = providers.gradleProperty('cpfInternalRepositoryPassword').orNull
+            }
+        }
+    }
+}
+
+tasks.register('publishCpfBomToInternal') {
+    group = 'publishing'
+    dependsOn tasks.named('publishCpfPlatformBomPublicationToCpfInternalRepository')
+}

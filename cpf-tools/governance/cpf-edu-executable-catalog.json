@@ -1,6 +1,6 @@
 {
-  "schemaVersion": 1,
-  "catalogId": "CPF-EDU-EXECUTABLE-32",
+  "schemaVersion": "2.0",
+  "catalogId": "CPF-QA37-EDU-EXECUTABLE-32",
   "featureCount": 32,
   "canonicalRequirementCount": 162,
   "features": [
@@ -10,12 +10,14 @@
       "coverageScope": "BOM·Convention Plugin·LOCAL/REMOTE/OFFLINE 소비와 Artifact hash 검증",
       "ownerModule": "cpf-tools",
       "referenceSources": [
+        "cpf-reference/src/main/java/com/cpf/reference/platform/install/artifact/EduOps01Handler.java",
         "build.gradle",
         "gradle/**/*.gradle",
         "cpf-tools/release/**/*",
         "cpf-tools/supply-chain/**/*"
       ],
       "tests": [
+        "cpf-reference/src/test/java/com/cpf/reference/platform/install/artifact/EduOps01IntegrationTest.java",
         "cpf-tools/scripts/tests/test_verify_cpf_supply_chain.py",
         "cpf-tools/verification/**/*Artifact*Test*"
       ],
@@ -36,7 +38,13 @@
         "./gradlew.bat clean test assemble publishToMavenLocal --no-daemon --stacktrace"
       ],
       "developmentStatus": "완료",
-      "verificationStatus": "미검증"
+      "verificationStatus": "미검증",
+      "sourceBaselineSha": "1edd96c6dcc69b0b4d6e9e22a0709d910d7cfb04",
+      "concreteConsumerRequirementId": "EDU-OPS-01",
+      "concreteRepresentativeSource": "cpf-reference/src/main/java/com/cpf/reference/platform/install/artifact/EduOps01Handler.java",
+      "concreteRepresentativeTest": "cpf-reference/src/test/java/com/cpf/reference/platform/install/artifact/EduOps01IntegrationTest.java",
+      "concreteClass": "EduOps01Handler",
+      "concreteMethod": "buildBusinessResult"
     },
     {
       "featureId": "EDU-002",
@@ -44,11 +52,13 @@
       "coverageScope": "신규 Domain 생성·충돌검사·remove/regenerate·Golden Template parity",
       "ownerModule": "cpf-tools",
       "referenceSources": [
+        "cpf-reference/src/main/java/com/cpf/reference/online/generator/domain/EduDev01Handler.java",
         "cpf-tools/generator/**/*",
         "cpf-tools/scripts/*domain*",
         "cpf-member/**/*"
       ],
       "tests": [
+        "cpf-reference/src/test/java/com/cpf/reference/online/generator/domain/EduDev01IntegrationTest.java",
         "cpf-tools/verification/**/*generator*",
         "cpf-tools/scripts/tests/**/*generator*"
       ],
@@ -69,7 +79,13 @@
         "pwsh -NoProfile -File ./cpf-tools/scripts/create-domain.ps1 -DomainName educheck -SystemCode EDC"
       ],
       "developmentStatus": "완료",
-      "verificationStatus": "미검증"
+      "verificationStatus": "미검증",
+      "sourceBaselineSha": "1edd96c6dcc69b0b4d6e9e22a0709d910d7cfb04",
+      "concreteConsumerRequirementId": "EDU-DEV-01",
+      "concreteRepresentativeSource": "cpf-reference/src/main/java/com/cpf/reference/online/generator/domain/EduDev01Handler.java",
+      "concreteRepresentativeTest": "cpf-reference/src/test/java/com/cpf/reference/online/generator/domain/EduDev01IntegrationTest.java",
+      "concreteClass": "EduDev01Handler",
+      "concreteMethod": "buildBusinessResult"
     },
     {
       "featureId": "EDU-003",
@@ -77,9 +93,11 @@
       "coverageScope": "34자리 transactionId·segment·attempt 전파와 Causal Timeline",
       "ownerModule": "cpf-reference",
       "referenceSources": [
+        "cpf-reference/src/main/java/com/cpf/reference/online/command/audit/EduDev03Handler.java",
         "cpf-reference/src/main/java/com/cpf/reference/transaction/**/*.java"
       ],
       "tests": [
+        "cpf-reference/src/test/java/com/cpf/reference/online/command/audit/EduDev03IntegrationTest.java",
         "cpf-reference/src/test/java/com/cpf/reference/transaction/**/*.java"
       ],
       "publicContracts": [
@@ -100,7 +118,13 @@
         "./gradlew.bat :cpf-reference:test --tests \"com.cpf.reference.transaction.*\" --no-daemon"
       ],
       "developmentStatus": "완료",
-      "verificationStatus": "미검증"
+      "verificationStatus": "미검증",
+      "sourceBaselineSha": "1edd96c6dcc69b0b4d6e9e22a0709d910d7cfb04",
+      "concreteConsumerRequirementId": "EDU-DEV-03",
+      "concreteRepresentativeSource": "cpf-reference/src/main/java/com/cpf/reference/online/command/audit/EduDev03Handler.java",
+      "concreteRepresentativeTest": "cpf-reference/src/test/java/com/cpf/reference/online/command/audit/EduDev03IntegrationTest.java",
+      "concreteClass": "EduDev03Handler",
+      "concreteMethod": "buildBusinessResult"
     },
     {
       "featureId": "EDU-004",
@@ -108,11 +132,13 @@
       "coverageScope": "표준 Header·Validation·Error envelope·masking",
       "ownerModule": "cpf-reference",
       "referenceSources": [
+        "cpf-reference/src/main/java/com/cpf/reference/online/contract/validation/EduDev23Handler.java",
         "cpf-reference/src/main/java/com/cpf/reference/header/**/*.java",
         "cpf-reference/src/main/java/com/cpf/reference/failure/**/*.java",
         "cpf-reference/src/main/java/com/cpf/reference/validation/**/*.java"
       ],
       "tests": [
+        "cpf-reference/src/test/java/com/cpf/reference/online/contract/validation/EduDev23IntegrationTest.java",
         "cpf-reference/src/test/java/com/cpf/reference/header/**/*.java",
         "cpf-reference/src/test/java/com/cpf/reference/failure/**/*.java",
         "cpf-reference/src/test/java/com/cpf/reference/validation/**/*.java"
@@ -135,7 +161,13 @@
         "./gradlew.bat :cpf-reference:test --tests \"com.cpf.reference.header.*\" --tests \"com.cpf.reference.failure.*\" --no-daemon"
       ],
       "developmentStatus": "완료",
-      "verificationStatus": "미검증"
+      "verificationStatus": "미검증",
+      "sourceBaselineSha": "1edd96c6dcc69b0b4d6e9e22a0709d910d7cfb04",
+      "concreteConsumerRequirementId": "EDU-DEV-23",
+      "concreteRepresentativeSource": "cpf-reference/src/main/java/com/cpf/reference/online/contract/validation/EduDev23Handler.java",
+      "concreteRepresentativeTest": "cpf-reference/src/test/java/com/cpf/reference/online/contract/validation/EduDev23IntegrationTest.java",
+      "concreteClass": "EduDev23Handler",
+      "concreteMethod": "buildBusinessResult"
     },
     {
       "featureId": "EDU-005",
@@ -143,9 +175,11 @@
       "coverageScope": "동일 JVM과 분리 WAS Consumer 계약·timeout·retry",
       "ownerModule": "cpf-reference",
       "referenceSources": [
+        "cpf-reference/src/main/java/com/cpf/reference/online/servicecall/topology/EduDev06Handler.java",
         "cpf-reference/src/main/java/com/cpf/reference/servicecall/**/*.java"
       ],
       "tests": [
+        "cpf-reference/src/test/java/com/cpf/reference/online/servicecall/topology/EduDev06IntegrationTest.java",
         "cpf-reference/src/test/java/com/cpf/reference/servicecall/**/*.java"
       ],
       "publicContracts": [
@@ -166,7 +200,13 @@
         "./gradlew.bat :cpf-reference:test --tests \"com.cpf.reference.servicecall.*\" --no-daemon"
       ],
       "developmentStatus": "완료",
-      "verificationStatus": "미검증"
+      "verificationStatus": "미검증",
+      "sourceBaselineSha": "1edd96c6dcc69b0b4d6e9e22a0709d910d7cfb04",
+      "concreteConsumerRequirementId": "EDU-DEV-06",
+      "concreteRepresentativeSource": "cpf-reference/src/main/java/com/cpf/reference/online/servicecall/topology/EduDev06Handler.java",
+      "concreteRepresentativeTest": "cpf-reference/src/test/java/com/cpf/reference/online/servicecall/topology/EduDev06IntegrationTest.java",
+      "concreteClass": "EduDev06Handler",
+      "concreteMethod": "buildBusinessResult"
     },
     {
       "featureId": "EDU-006",
@@ -174,9 +214,11 @@
       "coverageScope": "멱등 Key·중복 요청·재처리 결과 보존",
       "ownerModule": "cpf-reference",
       "referenceSources": [
+        "cpf-reference/src/main/java/com/cpf/reference/online/idempotency/payment/EduDev05Handler.java",
         "cpf-reference/src/main/java/com/cpf/reference/idempotency/**/*.java"
       ],
       "tests": [
+        "cpf-reference/src/test/java/com/cpf/reference/online/idempotency/payment/EduDev05IntegrationTest.java",
         "cpf-reference/src/test/java/com/cpf/reference/idempotency/**/*.java"
       ],
       "publicContracts": [
@@ -196,7 +238,13 @@
         "./gradlew.bat :cpf-reference:test --tests \"com.cpf.reference.idempotency.*\" --no-daemon"
       ],
       "developmentStatus": "완료",
-      "verificationStatus": "미검증"
+      "verificationStatus": "미검증",
+      "sourceBaselineSha": "1edd96c6dcc69b0b4d6e9e22a0709d910d7cfb04",
+      "concreteConsumerRequirementId": "EDU-DEV-05",
+      "concreteRepresentativeSource": "cpf-reference/src/main/java/com/cpf/reference/online/idempotency/payment/EduDev05Handler.java",
+      "concreteRepresentativeTest": "cpf-reference/src/test/java/com/cpf/reference/online/idempotency/payment/EduDev05IntegrationTest.java",
+      "concreteClass": "EduDev05Handler",
+      "concreteMethod": "buildBusinessResult"
     },
     {
       "featureId": "EDU-007",
@@ -204,10 +252,12 @@
       "coverageScope": "Optimistic Lock·CAS·중복 실행·동시 갱신 충돌",
       "ownerModule": "cpf-reference",
       "referenceSources": [
+        "cpf-reference/src/main/java/com/cpf/reference/online/concurrency/optimisticlock/EduDev04Handler.java",
         "cpf-reference/src/main/java/com/cpf/reference/crud/**/*.java",
         "cpf-reference/src/main/java/com/cpf/reference/idempotency/**/*.java"
       ],
       "tests": [
+        "cpf-reference/src/test/java/com/cpf/reference/online/concurrency/optimisticlock/EduDev04IntegrationTest.java",
         "cpf-reference/src/test/java/com/cpf/reference/crud/**/*.java",
         "cpf-reference/src/test/java/com/cpf/reference/idempotency/**/*.java"
       ],
@@ -229,7 +279,13 @@
         "./gradlew.bat :cpf-reference:test --tests \"com.cpf.reference.crud.*Concurrency*\" --no-daemon"
       ],
       "developmentStatus": "완료",
-      "verificationStatus": "미검증"
+      "verificationStatus": "미검증",
+      "sourceBaselineSha": "1edd96c6dcc69b0b4d6e9e22a0709d910d7cfb04",
+      "concreteConsumerRequirementId": "EDU-DEV-04",
+      "concreteRepresentativeSource": "cpf-reference/src/main/java/com/cpf/reference/online/concurrency/optimisticlock/EduDev04Handler.java",
+      "concreteRepresentativeTest": "cpf-reference/src/test/java/com/cpf/reference/online/concurrency/optimisticlock/EduDev04IntegrationTest.java",
+      "concreteClass": "EduDev04Handler",
+      "concreteMethod": "buildBusinessResult"
     },
     {
       "featureId": "EDU-008",
@@ -237,10 +293,12 @@
       "coverageScope": "결과불명 분류·Reconcile·Replay·Compensation",
       "ownerModule": "cpf-reference",
       "referenceSources": [
+        "cpf-reference/src/main/java/com/cpf/reference/online/resilience/recovery/EduDev15Handler.java",
         "cpf-reference/src/main/java/com/cpf/reference/failure/**/*.java",
         "cpf-reference/src/main/java/com/cpf/reference/transaction/**/*.java"
       ],
       "tests": [
+        "cpf-reference/src/test/java/com/cpf/reference/online/resilience/recovery/EduDev15IntegrationTest.java",
         "cpf-reference/src/test/java/com/cpf/reference/failure/**/*.java",
         "cpf-reference/src/test/java/com/cpf/reference/transaction/**/*Unknown*"
       ],
@@ -262,7 +320,13 @@
         "./gradlew.bat :cpf-reference:test --tests \"*UnknownResult*\" --no-daemon"
       ],
       "developmentStatus": "완료",
-      "verificationStatus": "미검증"
+      "verificationStatus": "미검증",
+      "sourceBaselineSha": "1edd96c6dcc69b0b4d6e9e22a0709d910d7cfb04",
+      "concreteConsumerRequirementId": "EDU-DEV-15",
+      "concreteRepresentativeSource": "cpf-reference/src/main/java/com/cpf/reference/online/resilience/recovery/EduDev15Handler.java",
+      "concreteRepresentativeTest": "cpf-reference/src/test/java/com/cpf/reference/online/resilience/recovery/EduDev15IntegrationTest.java",
+      "concreteClass": "EduDev15Handler",
+      "concreteMethod": "buildBusinessResult"
     },
     {
       "featureId": "EDU-009",
@@ -270,9 +334,11 @@
       "coverageScope": "Transactional Outbox·Inbox dedupe·retry·DLQ",
       "ownerModule": "cpf-reference",
       "referenceSources": [
+        "cpf-reference/src/main/java/com/cpf/reference/online/messaging/transactionaloutbox/EduDev21Handler.java",
         "cpf-reference/src/main/java/com/cpf/reference/messaging/**/*.java"
       ],
       "tests": [
+        "cpf-reference/src/test/java/com/cpf/reference/online/messaging/transactionaloutbox/EduDev21IntegrationTest.java",
         "cpf-reference/src/test/java/com/cpf/reference/messaging/**/*.java"
       ],
       "publicContracts": [
@@ -293,7 +359,13 @@
         "./gradlew.bat :cpf-reference:test --tests \"com.cpf.reference.messaging.*Outbox*\" --no-daemon"
       ],
       "developmentStatus": "완료",
-      "verificationStatus": "미검증"
+      "verificationStatus": "미검증",
+      "sourceBaselineSha": "1edd96c6dcc69b0b4d6e9e22a0709d910d7cfb04",
+      "concreteConsumerRequirementId": "EDU-DEV-21",
+      "concreteRepresentativeSource": "cpf-reference/src/main/java/com/cpf/reference/online/messaging/transactionaloutbox/EduDev21Handler.java",
+      "concreteRepresentativeTest": "cpf-reference/src/test/java/com/cpf/reference/online/messaging/transactionaloutbox/EduDev21IntegrationTest.java",
+      "concreteClass": "EduDev21Handler",
+      "concreteMethod": "buildBusinessResult"
     },
     {
       "featureId": "EDU-010",
@@ -301,9 +373,11 @@
       "coverageScope": "Broker publish/consume·partition·retry·DLQ·lag",
       "ownerModule": "cpf-reference",
       "referenceSources": [
+        "cpf-reference/src/main/java/com/cpf/reference/online/messaging/outboxinbox/EduDev07Handler.java",
         "cpf-reference/src/main/java/com/cpf/reference/messaging/**/*.java"
       ],
       "tests": [
+        "cpf-reference/src/test/java/com/cpf/reference/online/messaging/outboxinbox/EduDev07IntegrationTest.java",
         "cpf-reference/src/test/java/com/cpf/reference/messaging/**/*Kafka*"
       ],
       "publicContracts": [
@@ -323,7 +397,13 @@
         "./gradlew.bat :cpf-reference:test --tests \"*Kafka*\" --no-daemon"
       ],
       "developmentStatus": "완료",
-      "verificationStatus": "미검증"
+      "verificationStatus": "미검증",
+      "sourceBaselineSha": "1edd96c6dcc69b0b4d6e9e22a0709d910d7cfb04",
+      "concreteConsumerRequirementId": "EDU-DEV-07",
+      "concreteRepresentativeSource": "cpf-reference/src/main/java/com/cpf/reference/online/messaging/outboxinbox/EduDev07Handler.java",
+      "concreteRepresentativeTest": "cpf-reference/src/test/java/com/cpf/reference/online/messaging/outboxinbox/EduDev07IntegrationTest.java",
+      "concreteClass": "EduDev07Handler",
+      "concreteMethod": "buildBusinessResult"
     },
     {
       "featureId": "EDU-011",
@@ -331,10 +411,12 @@
       "coverageScope": "External REST timeout·retry·circuit·TLS·masking",
       "ownerModule": "cpf-reference",
       "referenceSources": [
+        "cpf-reference/src/main/java/com/cpf/reference/online/counterparty/rest/EduDev09Handler.java",
         "cpf-reference/src/main/java/com/cpf/reference/external/**/*.java",
         "cpf-reference/src/main/java/com/cpf/reference/servicecall/**/*.java"
       ],
       "tests": [
+        "cpf-reference/src/test/java/com/cpf/reference/online/counterparty/rest/EduDev09IntegrationTest.java",
         "cpf-reference/src/test/java/com/cpf/reference/external/**/*.java"
       ],
       "publicContracts": [
@@ -355,7 +437,13 @@
         "./gradlew.bat :cpf-reference:test --tests \"com.cpf.reference.external.*Rest*\" --no-daemon"
       ],
       "developmentStatus": "완료",
-      "verificationStatus": "미검증"
+      "verificationStatus": "미검증",
+      "sourceBaselineSha": "1edd96c6dcc69b0b4d6e9e22a0709d910d7cfb04",
+      "concreteConsumerRequirementId": "EDU-DEV-09",
+      "concreteRepresentativeSource": "cpf-reference/src/main/java/com/cpf/reference/online/counterparty/rest/EduDev09Handler.java",
+      "concreteRepresentativeTest": "cpf-reference/src/test/java/com/cpf/reference/online/counterparty/rest/EduDev09IntegrationTest.java",
+      "concreteClass": "EduDev09Handler",
+      "concreteMethod": "buildBusinessResult"
     },
     {
       "featureId": "EDU-012",
@@ -363,9 +451,11 @@
       "coverageScope": "고정길이 전문 encode/decode·schema·validation·trace",
       "ownerModule": "cpf-reference",
       "referenceSources": [
+        "cpf-reference/src/main/java/com/cpf/reference/online/counterparty/fixedwidth/EduDev10Handler.java",
         "cpf-reference/src/main/java/com/cpf/reference/telegram/**/*.java"
       ],
       "tests": [
+        "cpf-reference/src/test/java/com/cpf/reference/online/counterparty/fixedwidth/EduDev10IntegrationTest.java",
         "cpf-reference/src/test/java/com/cpf/reference/telegram/**/*.java"
       ],
       "publicContracts": [
@@ -385,7 +475,13 @@
         "./gradlew.bat :cpf-reference:test --tests \"com.cpf.reference.telegram.*\" --no-daemon"
       ],
       "developmentStatus": "완료",
-      "verificationStatus": "미검증"
+      "verificationStatus": "미검증",
+      "sourceBaselineSha": "1edd96c6dcc69b0b4d6e9e22a0709d910d7cfb04",
+      "concreteConsumerRequirementId": "EDU-DEV-10",
+      "concreteRepresentativeSource": "cpf-reference/src/main/java/com/cpf/reference/online/counterparty/fixedwidth/EduDev10Handler.java",
+      "concreteRepresentativeTest": "cpf-reference/src/test/java/com/cpf/reference/online/counterparty/fixedwidth/EduDev10IntegrationTest.java",
+      "concreteClass": "EduDev10Handler",
+      "concreteMethod": "buildBusinessResult"
     },
     {
       "featureId": "EDU-013",
@@ -393,10 +489,12 @@
       "coverageScope": "File transfer·archive·checksum·resume·retention",
       "ownerModule": "cpf-reference",
       "referenceSources": [
+        "cpf-reference/src/main/java/com/cpf/reference/online/file/sftp/EduDev26Handler.java",
         "cpf-reference/src/main/java/com/cpf/reference/filetransfer/**/*.java",
         "cpf-reference/src/main/java/com/cpf/reference/archive/**/*.java"
       ],
       "tests": [
+        "cpf-reference/src/test/java/com/cpf/reference/online/file/sftp/EduDev26IntegrationTest.java",
         "cpf-reference/src/test/java/com/cpf/reference/filetransfer/**/*.java",
         "cpf-reference/src/test/java/com/cpf/reference/archive/**/*.java"
       ],
@@ -417,18 +515,26 @@
         "./gradlew.bat :cpf-reference:test --tests \"com.cpf.reference.filetransfer.*\" --tests \"com.cpf.reference.archive.*\" --no-daemon"
       ],
       "developmentStatus": "완료",
-      "verificationStatus": "미검증"
+      "verificationStatus": "미검증",
+      "sourceBaselineSha": "1edd96c6dcc69b0b4d6e9e22a0709d910d7cfb04",
+      "concreteConsumerRequirementId": "EDU-DEV-26",
+      "concreteRepresentativeSource": "cpf-reference/src/main/java/com/cpf/reference/online/file/sftp/EduDev26Handler.java",
+      "concreteRepresentativeTest": "cpf-reference/src/test/java/com/cpf/reference/online/file/sftp/EduDev26IntegrationTest.java",
+      "concreteClass": "EduDev26Handler",
+      "concreteMethod": "buildBusinessResult"
     },
     {
       "featureId": "EDU-014",
       "area": "Cache",
       "coverageScope": "Cache read/write·evict·namespace·reconcile·fail-closed",
-      "ownerModule": "cpf-admin",
+      "ownerModule": "cpf-reference",
       "referenceSources": [
+        "cpf-reference/src/main/java/com/cpf/reference/online/cache/consistency/EduDev36Handler.java",
         "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmCacheController.java",
         "cpf-reference/src/main/java/com/cpf/reference/config/**/*.java"
       ],
       "tests": [
+        "cpf-reference/src/test/java/com/cpf/reference/online/cache/consistency/EduDev36IntegrationTest.java",
         "cpf-reference/src/test/java/com/cpf/reference/config/**/*.java",
         "cpf-admin/src/test/**/*Cache*Test.java"
       ],
@@ -449,7 +555,13 @@
         "./gradlew.bat :cpf-admin:test --tests \"*Cache*\" --no-daemon"
       ],
       "developmentStatus": "완료",
-      "verificationStatus": "미검증"
+      "verificationStatus": "미검증",
+      "sourceBaselineSha": "1edd96c6dcc69b0b4d6e9e22a0709d910d7cfb04",
+      "concreteConsumerRequirementId": "EDU-DEV-36",
+      "concreteRepresentativeSource": "cpf-reference/src/main/java/com/cpf/reference/online/cache/consistency/EduDev36Handler.java",
+      "concreteRepresentativeTest": "cpf-reference/src/test/java/com/cpf/reference/online/cache/consistency/EduDev36IntegrationTest.java",
+      "concreteClass": "EduDev36Handler",
+      "concreteMethod": "buildBusinessResult"
     },
     {
       "featureId": "EDU-015",
@@ -457,9 +569,11 @@
       "coverageScope": "Feature flag rollout·disabled state·drift·audit",
       "ownerModule": "cpf-reference",
       "referenceSources": [
+        "cpf-reference/src/main/java/com/cpf/reference/online/runtime/featuretoggle/EduDev35Handler.java",
         "cpf-reference/src/main/java/com/cpf/reference/config/**/*.java"
       ],
       "tests": [
+        "cpf-reference/src/test/java/com/cpf/reference/online/runtime/featuretoggle/EduDev35IntegrationTest.java",
         "cpf-reference/src/test/java/com/cpf/reference/config/**/*.java"
       ],
       "publicContracts": [
@@ -479,18 +593,26 @@
         "./gradlew.bat :cpf-reference:test --tests \"com.cpf.reference.config.*Feature*\" --no-daemon"
       ],
       "developmentStatus": "완료",
-      "verificationStatus": "미검증"
+      "verificationStatus": "미검증",
+      "sourceBaselineSha": "1edd96c6dcc69b0b4d6e9e22a0709d910d7cfb04",
+      "concreteConsumerRequirementId": "EDU-DEV-35",
+      "concreteRepresentativeSource": "cpf-reference/src/main/java/com/cpf/reference/online/runtime/featuretoggle/EduDev35Handler.java",
+      "concreteRepresentativeTest": "cpf-reference/src/test/java/com/cpf/reference/online/runtime/featuretoggle/EduDev35IntegrationTest.java",
+      "concreteClass": "EduDev35Handler",
+      "concreteMethod": "buildBusinessResult"
     },
     {
       "featureId": "EDU-016",
       "area": "Secret",
       "coverageScope": "Secret metadata·provider·rotation·원문 비노출",
-      "ownerModule": "cpf-admin",
+      "ownerModule": "cpf-reference",
       "referenceSources": [
+        "cpf-reference/src/main/java/com/cpf/reference/platform/security/secretrotation/EduOps03Handler.java",
         "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmSecretController.java",
         "cpf-reference/src/main/java/com/cpf/reference/security/**/*.java"
       ],
       "tests": [
+        "cpf-reference/src/test/java/com/cpf/reference/platform/security/secretrotation/EduOps03IntegrationTest.java",
         "cpf-reference/src/test/java/com/cpf/reference/security/**/*.java",
         "cpf-admin/src/test/**/*Secret*Test.java"
       ],
@@ -510,7 +632,13 @@
         "./gradlew.bat :cpf-admin:test --tests \"*Secret*\" --no-daemon"
       ],
       "developmentStatus": "완료",
-      "verificationStatus": "미검증"
+      "verificationStatus": "미검증",
+      "sourceBaselineSha": "1edd96c6dcc69b0b4d6e9e22a0709d910d7cfb04",
+      "concreteConsumerRequirementId": "EDU-OPS-03",
+      "concreteRepresentativeSource": "cpf-reference/src/main/java/com/cpf/reference/platform/security/secretrotation/EduOps03Handler.java",
+      "concreteRepresentativeTest": "cpf-reference/src/test/java/com/cpf/reference/platform/security/secretrotation/EduOps03IntegrationTest.java",
+      "concreteClass": "EduOps03Handler",
+      "concreteMethod": "buildBusinessResult"
     },
     {
       "featureId": "EDU-017",
@@ -518,9 +646,11 @@
       "coverageScope": "인증·인가·MFA·IP allowlist·masking·audit",
       "ownerModule": "cpf-reference",
       "referenceSources": [
+        "cpf-reference/src/main/java/com/cpf/reference/online/security/authorization/EduDev11Handler.java",
         "cpf-reference/src/main/java/com/cpf/reference/security/**/*.java"
       ],
       "tests": [
+        "cpf-reference/src/test/java/com/cpf/reference/online/security/authorization/EduDev11IntegrationTest.java",
         "cpf-reference/src/test/java/com/cpf/reference/security/**/*.java"
       ],
       "publicContracts": [
@@ -541,7 +671,13 @@
         "./gradlew.bat :cpf-reference:test --tests \"com.cpf.reference.security.*\" --no-daemon"
       ],
       "developmentStatus": "완료",
-      "verificationStatus": "미검증"
+      "verificationStatus": "미검증",
+      "sourceBaselineSha": "1edd96c6dcc69b0b4d6e9e22a0709d910d7cfb04",
+      "concreteConsumerRequirementId": "EDU-DEV-11",
+      "concreteRepresentativeSource": "cpf-reference/src/main/java/com/cpf/reference/online/security/authorization/EduDev11Handler.java",
+      "concreteRepresentativeTest": "cpf-reference/src/test/java/com/cpf/reference/online/security/authorization/EduDev11IntegrationTest.java",
+      "concreteClass": "EduDev11Handler",
+      "concreteMethod": "buildBusinessResult"
     },
     {
       "featureId": "EDU-018",
@@ -549,10 +685,12 @@
       "coverageScope": "통합 Log·Metric·Trace·Audit·SLO·Alert",
       "ownerModule": "cpf-reference",
       "referenceSources": [
+        "cpf-reference/src/main/java/com/cpf/reference/online/observability/correlation/EduDev42Handler.java",
         "cpf-reference/src/main/java/com/cpf/reference/logging/**/*.java",
         "cpf-reference/src/main/java/com/cpf/reference/audit/**/*.java"
       ],
       "tests": [
+        "cpf-reference/src/test/java/com/cpf/reference/online/observability/correlation/EduDev42IntegrationTest.java",
         "cpf-reference/src/test/java/com/cpf/reference/logging/**/*.java",
         "cpf-reference/src/test/java/com/cpf/reference/audit/**/*.java"
       ],
@@ -575,7 +713,13 @@
         "./gradlew.bat :cpf-reference:test --tests \"com.cpf.reference.logging.*\" --tests \"com.cpf.reference.audit.*\" --no-daemon"
       ],
       "developmentStatus": "완료",
-      "verificationStatus": "미검증"
+      "verificationStatus": "미검증",
+      "sourceBaselineSha": "1edd96c6dcc69b0b4d6e9e22a0709d910d7cfb04",
+      "concreteConsumerRequirementId": "EDU-DEV-42",
+      "concreteRepresentativeSource": "cpf-reference/src/main/java/com/cpf/reference/online/observability/correlation/EduDev42Handler.java",
+      "concreteRepresentativeTest": "cpf-reference/src/test/java/com/cpf/reference/online/observability/correlation/EduDev42IntegrationTest.java",
+      "concreteClass": "EduDev42Handler",
+      "concreteMethod": "buildBusinessResult"
     },
     {
       "featureId": "EDU-019",
@@ -583,12 +727,14 @@
       "coverageScope": "Oracle·PostgreSQL·MariaDB install/query/drift parity",
       "ownerModule": "cpf-tools",
       "referenceSources": [
+        "cpf-reference/src/main/java/com/cpf/reference/online/database/migration/EduDev14Handler.java",
         "cpf-tools/db/vendor/oracle/**/*",
         "cpf-tools/db/vendor/postgresql/**/*",
         "cpf-tools/db/vendor/mariadb/**/*",
         "cpf-tools/db/canonical/**/*"
       ],
       "tests": [
+        "cpf-reference/src/test/java/com/cpf/reference/online/database/migration/EduDev14IntegrationTest.java",
         "cpf-tools/scripts/tests/test_verify_cpf_db_lifecycle_contract.py",
         "cpf-tools/db/**/verify/**/*"
       ],
@@ -609,7 +755,13 @@
         "python ./cpf-tools/scripts/verify-cpf-db-lifecycle-contract.py --root . --release"
       ],
       "developmentStatus": "완료",
-      "verificationStatus": "미검증"
+      "verificationStatus": "미검증",
+      "sourceBaselineSha": "1edd96c6dcc69b0b4d6e9e22a0709d910d7cfb04",
+      "concreteConsumerRequirementId": "EDU-DEV-14",
+      "concreteRepresentativeSource": "cpf-reference/src/main/java/com/cpf/reference/online/database/migration/EduDev14Handler.java",
+      "concreteRepresentativeTest": "cpf-reference/src/test/java/com/cpf/reference/online/database/migration/EduDev14IntegrationTest.java",
+      "concreteClass": "EduDev14Handler",
+      "concreteMethod": "buildBusinessResult"
     },
     {
       "featureId": "EDU-020",
@@ -617,11 +769,13 @@
       "coverageScope": "Baseline→Sequential Upgrade→Rollback→Reapply·checksum",
       "ownerModule": "cpf-tools",
       "referenceSources": [
+        "cpf-reference/src/main/java/com/cpf/reference/platform/database/lifecycle/EduOps04Handler.java",
         "cpf-tools/db/vendor/*/migration/**/*",
         "cpf-tools/db/vendor/*/rollback/**/*",
         "cpf-tools/db/vendor/*/install/**/*"
       ],
       "tests": [
+        "cpf-reference/src/test/java/com/cpf/reference/platform/database/lifecycle/EduOps04IntegrationTest.java",
         "cpf-tools/scripts/tests/test_verify_cpf_db_lifecycle_contract.py",
         "cpf-tools/db/**/verify/**/*"
       ],
@@ -641,7 +795,13 @@
         "pwsh -NoProfile -File ./cpf-tools/scripts/check-canonical-db-lifecycle-contract.ps1"
       ],
       "developmentStatus": "완료",
-      "verificationStatus": "미검증"
+      "verificationStatus": "미검증",
+      "sourceBaselineSha": "1edd96c6dcc69b0b4d6e9e22a0709d910d7cfb04",
+      "concreteConsumerRequirementId": "EDU-OPS-04",
+      "concreteRepresentativeSource": "cpf-reference/src/main/java/com/cpf/reference/platform/database/lifecycle/EduOps04Handler.java",
+      "concreteRepresentativeTest": "cpf-reference/src/test/java/com/cpf/reference/platform/database/lifecycle/EduOps04IntegrationTest.java",
+      "concreteClass": "EduOps04Handler",
+      "concreteMethod": "buildBusinessResult"
     },
     {
       "featureId": "EDU-021",
@@ -649,10 +809,12 @@
       "coverageScope": "Spring Batch Tasklet Job/Step·restart·context",
       "ownerModule": "cpf-batch",
       "referenceSources": [
+        "cpf-reference/src/main/java/com/cpf/reference/batch/tasklet/close/EduBat01Handler.java",
         "cpf-reference/src/main/java/com/cpf/reference/batch/**/*.java",
         "cpf-batch/**/*.java"
       ],
       "tests": [
+        "cpf-reference/src/test/java/com/cpf/reference/batch/tasklet/close/EduBat01IntegrationTest.java",
         "cpf-reference/src/test/java/com/cpf/reference/batch/**/*.java",
         "cpf-batch/**/src/test/**/*.java"
       ],
@@ -674,7 +836,13 @@
         "./gradlew.bat :cpf-reference:test --tests \"com.cpf.reference.batch.*Tasklet*\" --no-daemon"
       ],
       "developmentStatus": "완료",
-      "verificationStatus": "미검증"
+      "verificationStatus": "미검증",
+      "sourceBaselineSha": "1edd96c6dcc69b0b4d6e9e22a0709d910d7cfb04",
+      "concreteConsumerRequirementId": "EDU-BAT-01",
+      "concreteRepresentativeSource": "cpf-reference/src/main/java/com/cpf/reference/batch/tasklet/close/EduBat01Handler.java",
+      "concreteRepresentativeTest": "cpf-reference/src/test/java/com/cpf/reference/batch/tasklet/close/EduBat01IntegrationTest.java",
+      "concreteClass": "EduBat01Handler",
+      "concreteMethod": "buildBusinessResult"
     },
     {
       "featureId": "EDU-022",
@@ -682,10 +850,12 @@
       "coverageScope": "Spring Batch Chunk·checkpoint·retry/skip·partition",
       "ownerModule": "cpf-batch",
       "referenceSources": [
+        "cpf-reference/src/main/java/com/cpf/reference/batch/chunk/membergrade/EduBat02Handler.java",
         "cpf-reference/src/main/java/com/cpf/reference/batch/**/*.java",
         "cpf-batch/**/*.java"
       ],
       "tests": [
+        "cpf-reference/src/test/java/com/cpf/reference/batch/chunk/membergrade/EduBat02IntegrationTest.java",
         "cpf-reference/src/test/java/com/cpf/reference/batch/**/*Chunk*",
         "cpf-batch/**/src/test/**/*Chunk*"
       ],
@@ -706,7 +876,13 @@
         "./gradlew.bat :cpf-reference:test --tests \"com.cpf.reference.batch.*Chunk*\" --no-daemon"
       ],
       "developmentStatus": "완료",
-      "verificationStatus": "미검증"
+      "verificationStatus": "미검증",
+      "sourceBaselineSha": "1edd96c6dcc69b0b4d6e9e22a0709d910d7cfb04",
+      "concreteConsumerRequirementId": "EDU-BAT-02",
+      "concreteRepresentativeSource": "cpf-reference/src/main/java/com/cpf/reference/batch/chunk/membergrade/EduBat02Handler.java",
+      "concreteRepresentativeTest": "cpf-reference/src/test/java/com/cpf/reference/batch/chunk/membergrade/EduBat02IntegrationTest.java",
+      "concreteClass": "EduBat02Handler",
+      "concreteMethod": "buildBusinessResult"
     },
     {
       "featureId": "EDU-023",
@@ -714,10 +890,12 @@
       "coverageScope": "Scheduler lease·leader·fencing·misfire·simulation",
       "ownerModule": "cpf-batch",
       "referenceSources": [
+        "cpf-reference/src/main/java/com/cpf/reference/batch/scheduler/businessday/EduBat07Handler.java",
         "cpf-batch/scheduler/**/*.java",
         "cpf-reference/src/main/java/com/cpf/reference/batch/**/*.java"
       ],
       "tests": [
+        "cpf-reference/src/test/java/com/cpf/reference/batch/scheduler/businessday/EduBat07IntegrationTest.java",
         "cpf-batch/scheduler/src/test/**/*.java",
         "cpf-reference/src/test/java/com/cpf/reference/batch/**/*Scheduler*"
       ],
@@ -738,7 +916,13 @@
         "./gradlew.bat :cpf-batch:scheduler:test --no-daemon"
       ],
       "developmentStatus": "완료",
-      "verificationStatus": "미검증"
+      "verificationStatus": "미검증",
+      "sourceBaselineSha": "1edd96c6dcc69b0b4d6e9e22a0709d910d7cfb04",
+      "concreteConsumerRequirementId": "EDU-BAT-07",
+      "concreteRepresentativeSource": "cpf-reference/src/main/java/com/cpf/reference/batch/scheduler/businessday/EduBat07Handler.java",
+      "concreteRepresentativeTest": "cpf-reference/src/test/java/com/cpf/reference/batch/scheduler/businessday/EduBat07IntegrationTest.java",
+      "concreteClass": "EduBat07Handler",
+      "concreteMethod": "buildBusinessResult"
     },
     {
       "featureId": "EDU-024",
@@ -746,10 +930,12 @@
       "coverageScope": "Worker pool·lease·heartbeat·drain·quarantine",
       "ownerModule": "cpf-batch",
       "referenceSources": [
+        "cpf-reference/src/main/java/com/cpf/reference/batch/remote/reassignment/EduBat24Handler.java",
         "cpf-batch/worker/**/*.java",
         "cpf-batch/**/worker/**/*.java"
       ],
       "tests": [
+        "cpf-reference/src/test/java/com/cpf/reference/batch/remote/reassignment/EduBat24IntegrationTest.java",
         "cpf-batch/**/src/test/**/*Worker*"
       ],
       "publicContracts": [
@@ -769,7 +955,13 @@
         "./gradlew.bat :cpf-batch:worker:test --no-daemon"
       ],
       "developmentStatus": "완료",
-      "verificationStatus": "미검증"
+      "verificationStatus": "미검증",
+      "sourceBaselineSha": "1edd96c6dcc69b0b4d6e9e22a0709d910d7cfb04",
+      "concreteConsumerRequirementId": "EDU-BAT-24",
+      "concreteRepresentativeSource": "cpf-reference/src/main/java/com/cpf/reference/batch/remote/reassignment/EduBat24Handler.java",
+      "concreteRepresentativeTest": "cpf-reference/src/test/java/com/cpf/reference/batch/remote/reassignment/EduBat24IntegrationTest.java",
+      "concreteClass": "EduBat24Handler",
+      "concreteMethod": "buildBusinessResult"
     },
     {
       "featureId": "EDU-025",
@@ -777,10 +969,12 @@
       "coverageScope": "Center-Cut claim·rate·reprocess·unknown result",
       "ownerModule": "cpf-batch",
       "referenceSources": [
+        "cpf-reference/src/main/java/com/cpf/reference/batch/centercut/approval/EduBat06Handler.java",
         "cpf-reference/src/main/java/com/cpf/reference/centercut/**/*.java",
         "cpf-batch/center-cut/**/*.java"
       ],
       "tests": [
+        "cpf-reference/src/test/java/com/cpf/reference/batch/centercut/approval/EduBat06IntegrationTest.java",
         "cpf-reference/src/test/java/com/cpf/reference/centercut/**/*.java",
         "cpf-batch/**/src/test/**/*CenterCut*"
       ],
@@ -802,7 +996,13 @@
         "./gradlew.bat :cpf-reference:test --tests \"com.cpf.reference.centercut.*\" --no-daemon"
       ],
       "developmentStatus": "완료",
-      "verificationStatus": "미검증"
+      "verificationStatus": "미검증",
+      "sourceBaselineSha": "1edd96c6dcc69b0b4d6e9e22a0709d910d7cfb04",
+      "concreteConsumerRequirementId": "EDU-BAT-06",
+      "concreteRepresentativeSource": "cpf-reference/src/main/java/com/cpf/reference/batch/centercut/approval/EduBat06Handler.java",
+      "concreteRepresentativeTest": "cpf-reference/src/test/java/com/cpf/reference/batch/centercut/approval/EduBat06IntegrationTest.java",
+      "concreteClass": "EduBat06Handler",
+      "concreteMethod": "buildBusinessResult"
     },
     {
       "featureId": "EDU-026",
@@ -810,9 +1010,11 @@
       "coverageScope": "Agent identity·mTLS·artifact verify·restart·quarantine",
       "ownerModule": "cpf-batch",
       "referenceSources": [
+        "cpf-reference/src/main/java/com/cpf/reference/batch/agent/offline/EduBat28Handler.java",
         "cpf-batch/host-agent/src/main/java/**/*.java"
       ],
       "tests": [
+        "cpf-reference/src/test/java/com/cpf/reference/batch/agent/offline/EduBat28IntegrationTest.java",
         "cpf-batch/host-agent/src/test/**/*.java"
       ],
       "publicContracts": [
@@ -832,19 +1034,27 @@
         "./gradlew.bat :cpf-batch:host-agent:test --no-daemon"
       ],
       "developmentStatus": "완료",
-      "verificationStatus": "미검증"
+      "verificationStatus": "미검증",
+      "sourceBaselineSha": "1edd96c6dcc69b0b4d6e9e22a0709d910d7cfb04",
+      "concreteConsumerRequirementId": "EDU-BAT-28",
+      "concreteRepresentativeSource": "cpf-reference/src/main/java/com/cpf/reference/batch/agent/offline/EduBat28Handler.java",
+      "concreteRepresentativeTest": "cpf-reference/src/test/java/com/cpf/reference/batch/agent/offline/EduBat28IntegrationTest.java",
+      "concreteClass": "EduBat28Handler",
+      "concreteMethod": "buildBusinessResult"
     },
     {
       "featureId": "EDU-027",
       "area": "Deployment",
       "coverageScope": "Artifact deployment·promotion·rollback·CAS·approval",
-      "ownerModule": "cpf-admin",
+      "ownerModule": "cpf-reference",
       "referenceSources": [
+        "cpf-reference/src/main/java/com/cpf/reference/platform/deployment/rolling/EduOps07Handler.java",
         "deploy/**/*",
         "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmRuntimeControlController.java",
         "cpf-tools/promotion/**/*"
       ],
       "tests": [
+        "cpf-reference/src/test/java/com/cpf/reference/platform/deployment/rolling/EduOps07IntegrationTest.java",
         "cpf-admin/src/test/**/*RuntimeControl*",
         "cpf-tools/scripts/tests/**/*promotion*"
       ],
@@ -865,17 +1075,25 @@
         "./gradlew.bat :cpf-admin:test --tests \"*RuntimeControl*\" --no-daemon"
       ],
       "developmentStatus": "완료",
-      "verificationStatus": "미검증"
+      "verificationStatus": "미검증",
+      "sourceBaselineSha": "1edd96c6dcc69b0b4d6e9e22a0709d910d7cfb04",
+      "concreteConsumerRequirementId": "EDU-OPS-07",
+      "concreteRepresentativeSource": "cpf-reference/src/main/java/com/cpf/reference/platform/deployment/rolling/EduOps07Handler.java",
+      "concreteRepresentativeTest": "cpf-reference/src/test/java/com/cpf/reference/platform/deployment/rolling/EduOps07IntegrationTest.java",
+      "concreteClass": "EduOps07Handler",
+      "concreteMethod": "buildBusinessResult"
     },
     {
       "featureId": "EDU-028",
       "area": "Gateway",
       "coverageScope": "Default deny routing·DNS rebinding·TLS·health·trace",
-      "ownerModule": "cpf-gateway",
+      "ownerModule": "cpf-reference",
       "referenceSources": [
+        "cpf-reference/src/main/java/com/cpf/reference/optional/gateway/registry/EduGw07Handler.java",
         "cpf-gateway/src/main/java/**/*.java"
       ],
       "tests": [
+        "cpf-reference/src/test/java/com/cpf/reference/optional/gateway/registry/EduGw07IntegrationTest.java",
         "cpf-gateway/src/test/**/*.java"
       ],
       "publicContracts": [
@@ -894,22 +1112,30 @@
         "/gateway-health"
       ],
       "runtimeCommands": [
-        "./gradlew.bat :cpf-gateway:test --no-daemon"
+        "./gradlew.bat :cpf-reference:test --no-daemon"
       ],
       "developmentStatus": "완료",
-      "verificationStatus": "미검증"
+      "verificationStatus": "미검증",
+      "sourceBaselineSha": "1edd96c6dcc69b0b4d6e9e22a0709d910d7cfb04",
+      "concreteConsumerRequirementId": "EDU-GW-07",
+      "concreteRepresentativeSource": "cpf-reference/src/main/java/com/cpf/reference/optional/gateway/registry/EduGw07Handler.java",
+      "concreteRepresentativeTest": "cpf-reference/src/test/java/com/cpf/reference/optional/gateway/registry/EduGw07IntegrationTest.java",
+      "concreteClass": "EduGw07Handler",
+      "concreteMethod": "buildBusinessResult"
     },
     {
       "featureId": "EDU-029",
       "area": "ADM",
       "coverageScope": "59 Route 상용 Page·Generated Client·Permission·Audit",
-      "ownerModule": "cpf-admin",
+      "ownerModule": "cpf-reference",
       "referenceSources": [
+        "cpf-reference/src/main/java/com/cpf/reference/optional/operations/search/EduAdm08Handler.java",
         "cpf-admin/src/main/java/**/*.java",
         "cpf-admin/frontend/src/**/*.ts",
         "cpf-admin/frontend/src/**/*.vue"
       ],
       "tests": [
+        "cpf-reference/src/test/java/com/cpf/reference/optional/operations/search/EduAdm08IntegrationTest.java",
         "cpf-admin/src/test/**/*.java",
         "cpf-admin/frontend/src/**/*.test.ts"
       ],
@@ -929,27 +1155,34 @@
         "/auditLogs"
       ],
       "runtimeCommands": [
-        "npm --prefix ./cpf-admin/frontend run verify"
+        "./gradlew.bat :cpf-reference:test --no-daemon"
       ],
       "developmentStatus": "완료",
-      "verificationStatus": "미검증"
+      "verificationStatus": "미검증",
+      "sourceBaselineSha": "1edd96c6dcc69b0b4d6e9e22a0709d910d7cfb04",
+      "concreteConsumerRequirementId": "EDU-ADM-08",
+      "concreteRepresentativeSource": "cpf-reference/src/main/java/com/cpf/reference/optional/operations/search/EduAdm08Handler.java",
+      "concreteRepresentativeTest": "cpf-reference/src/test/java/com/cpf/reference/optional/operations/search/EduAdm08IntegrationTest.java",
+      "concreteClass": "EduAdm08Handler",
+      "concreteMethod": "buildBusinessResult"
     },
     {
       "featureId": "EDU-030",
-      "area": "BZA",
-      "coverageScope": "업무 관리자 조직·승인·감사·Generated Client",
-      "ownerModule": "cpf-biz-admin",
+      "area": "REF_BACKOFFICE",
+      "coverageScope": "독립 REF Backoffice 조직·승인·감사 시나리오; product backoffice module 미사용",
+      "ownerModule": "cpf-reference",
       "referenceSources": [
-        "cpf-biz-admin/src/main/java/**/*.java",
-        "cpf-biz-admin/frontend/src/**/*.ts",
-        "cpf-biz-admin/frontend/src/**/*.vue"
+        "cpf-reference/src/main/java/com/cpf/reference/optional/backoffice/directory/EduBackoffice07Handler.java",
+        "cpf-reference/src/main/java/com/cpf/reference/edu/runtime/api/*.java",
+        "cpf-reference/src/main/java/com/cpf/reference/edu/runtime/consumer/jdbc/*.java"
       ],
       "tests": [
-        "cpf-biz-admin/src/test/**/*.java",
-        "cpf-biz-admin/frontend/src/**/*.test.ts"
+        "cpf-reference/src/test/java/com/cpf/reference/optional/backoffice/directory/EduBackoffice07IntegrationTest.java",
+        "cpf-reference/src/test/java/com/cpf/reference/optional/backoffice/directory/EduBackoffice07FailureTest.java",
+        "cpf-reference/src/test/java/com/cpf/reference/optional/backoffice/directory/EduBackoffice07RecoveryTest.java"
       ],
       "publicContracts": [
-        "cpf-common/src/main/java/com/cpf/common/api/**/*.java"
+        "cpf-reference/src/main/java/com/cpf/reference/edu/runtime/api/*.java"
       ],
       "scenarioAxes": {
         "normal": "EDU-030-SCN-NORMAL",
@@ -957,14 +1190,21 @@
         "recovery": "EDU-030-SCN-RECOVERY",
         "security": "EDU-030-SCN-SECURITY"
       },
-      "admObservationPaths": [
-        "/approvals"
-      ],
+      "admObservationPaths": [],
       "runtimeCommands": [
-        "npm --prefix ./cpf-biz-admin/frontend run verify"
+        "./gradlew.bat :cpf-reference:test --no-daemon"
       ],
       "developmentStatus": "완료",
-      "verificationStatus": "미검증"
+      "verificationStatus": "미검증",
+      "sourceBaselineSha": "1edd96c6dcc69b0b4d6e9e22a0709d910d7cfb04",
+      "concreteConsumerRequirementId": "EDU-BZA-07",
+      "concreteRepresentativeSource": "cpf-reference/src/main/java/com/cpf/reference/optional/backoffice/directory/EduBackoffice07Handler.java",
+      "concreteRepresentativeTest": "cpf-reference/src/test/java/com/cpf/reference/optional/backoffice/directory/EduBackoffice07IntegrationTest.java",
+      "concreteClass": "EduBackoffice07Handler",
+      "concreteMethod": "buildBusinessResult",
+      "generatedDomainIndependent": true,
+      "productModuleIndependent": true,
+      "databaseOwner": "refDB"
     },
     {
       "featureId": "EDU-031",
@@ -972,10 +1212,12 @@
       "coverageScope": "SBOM·Vulnerability·License·Artifact signature/hash",
       "ownerModule": "cpf-tools",
       "referenceSources": [
+        "cpf-reference/src/main/java/com/cpf/reference/online/audit/evidence/EduDev41Handler.java",
         "cpf-tools/supply-chain/**/*",
         "cpf-tools/release/**/*"
       ],
       "tests": [
+        "cpf-reference/src/test/java/com/cpf/reference/online/audit/evidence/EduDev41IntegrationTest.java",
         "cpf-tools/scripts/tests/test_verify_cpf_supply_chain.py"
       ],
       "publicContracts": [
@@ -994,7 +1236,13 @@
         "python ./cpf-tools/scripts/verify-cpf-supply-chain.py --root . --release"
       ],
       "developmentStatus": "완료",
-      "verificationStatus": "미검증"
+      "verificationStatus": "미검증",
+      "sourceBaselineSha": "1edd96c6dcc69b0b4d6e9e22a0709d910d7cfb04",
+      "concreteConsumerRequirementId": "EDU-DEV-41",
+      "concreteRepresentativeSource": "cpf-reference/src/main/java/com/cpf/reference/online/audit/evidence/EduDev41Handler.java",
+      "concreteRepresentativeTest": "cpf-reference/src/test/java/com/cpf/reference/online/audit/evidence/EduDev41IntegrationTest.java",
+      "concreteClass": "EduDev41Handler",
+      "concreteMethod": "buildBusinessResult"
     },
     {
       "featureId": "EDU-032",
@@ -1002,11 +1250,13 @@
       "coverageScope": "다중 인스턴스·process kill·backup/restore·DR·reconcile",
       "ownerModule": "cpf-tools",
       "referenceSources": [
+        "cpf-reference/src/main/java/com/cpf/reference/platform/recovery/disaster/EduOps12Handler.java",
         "cpf-tools/runtime/**/*",
         "deploy/**/*",
         "cpf-core/src/main/java/com/cpf/core/api/runtimecontrol/**/*.java"
       ],
       "tests": [
+        "cpf-reference/src/test/java/com/cpf/reference/platform/recovery/disaster/EduOps12IntegrationTest.java",
         "cpf-tools/runtime/**/*test*",
         "cpf-core/src/test/**/*Runtime*"
       ],
@@ -1028,7 +1278,26 @@
         "pwsh -NoProfile -File ./cpf-tools/scripts/verify-cpf-distributed-runtime.ps1 -Scenario all"
       ],
       "developmentStatus": "완료",
-      "verificationStatus": "미검증"
+      "verificationStatus": "미검증",
+      "sourceBaselineSha": "1edd96c6dcc69b0b4d6e9e22a0709d910d7cfb04",
+      "concreteConsumerRequirementId": "EDU-OPS-12",
+      "concreteRepresentativeSource": "cpf-reference/src/main/java/com/cpf/reference/platform/recovery/disaster/EduOps12Handler.java",
+      "concreteRepresentativeTest": "cpf-reference/src/test/java/com/cpf/reference/platform/recovery/disaster/EduOps12IntegrationTest.java",
+      "concreteClass": "EduOps12Handler",
+      "concreteMethod": "buildBusinessResult"
     }
-  ]
+  ],
+  "sourceBaselineSha": "1edd96c6dcc69b0b4d6e9e22a0709d910d7cfb04",
+  "sourceClosurePolicy": {
+    "resolveSourceInDevelopment": true,
+    "resolveTestsInDevelopment": true,
+    "resolvePublicContractsInDevelopment": true,
+    "rejectDocumentationOnly": true,
+    "rejectInterfaceOnly": true,
+    "rejectConsumerlessAbstraction": true,
+    "rejectFixedResponseOrMockOnly": true,
+    "rejectInternalPackageImport": true,
+    "requireRuntimeCommandTarget": true,
+    "releaseRequiresExactShaEvidence": true
+  }
 }

@@ -1,0 +1,5 @@
+package com.cpf.reference.edu.runtime.model;
+public enum EduFailurePoint {
+    NONE, BEFORE_COMMIT, AFTER_COMMIT, BEFORE_EXTERNAL_SEND, AFTER_EXTERNAL_SEND,
+    RESPONSE_LOST, PARTIAL_TARGET_FAILURE, TIMEOUT, PROCESS_KILL, LEASE_LOST
+}

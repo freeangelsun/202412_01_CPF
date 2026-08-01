@@ -1,0 +1,96 @@
+{
+  "requirementId": "EDU-GW-04",
+  "title": "Timeout·Retry·Circuit Breaker·Bulkhead",
+  "implementationPackage": "com.cpf.reference.optional.gateway.resilience",
+  "owner": "cpf-reference",
+  "requiredRole": "CPF_REFERENCE_GATEWAY_OPERATOR",
+  "inputFields": [
+    "connect",
+    "read",
+    "retry",
+    "circuit",
+    "bulkhead"
+  ],
+  "businessStates": [
+    "DRAFT",
+    "VALIDATED",
+    "APPROVAL_REQUESTED",
+    "APPROVED",
+    "PUBLISHING",
+    "APPLIED",
+    "PARTIAL",
+    "REJECTED",
+    "ROLLED_BACK"
+  ],
+  "workflowSteps": [
+    "VALIDATE",
+    "AUTHORIZE",
+    "SCOPE",
+    "DEDUPE",
+    "VERSION_CHECK",
+    "PROTECT",
+    "MUTATE",
+    "COMMIT",
+    "OUTBOX",
+    "EXTERNAL_SEND",
+    "ACK",
+    "RECONCILE",
+    "AUDIT",
+    "OBSERVE"
+  ],
+  "failurePoints": [
+    "BEFORE_COMMIT",
+    "AFTER_COMMIT",
+    "BEFORE_EXTERNAL_SEND",
+    "AFTER_EXTERNAL_SEND",
+    "RESPONSE_LOST",
+    "PARTIAL_TARGET_FAILURE"
+  ],
+  "exceptionScenarios": [
+    "Connect Timeout",
+    "Read Timeout",
+    "5xx",
+    "Circuit Open",
+    "Queue Full"
+  ],
+  "requiredTests": [
+    "Target 직접/경유 비교",
+    "인증·권한 실패 구분",
+    "Timeout·Retry 단계",
+    "부분 적용·Reconcile",
+    "LKG Rollback",
+    "다중 인스턴스 Drift",
+    "Browser Publish Flow"
+  ],
+  "readOnly": false,
+  "manualAnchor": "EDU-GW-04",
+  "idempotent": true,
+  "versioned": true,
+  "leaseRequired": false,
+  "externalEffect": true,
+  "compensationSupported": false,
+  "rollbackSupported": false,
+  "consumerBinding": {
+    "type": "REFERENCE_GATEWAY",
+    "ownerModule": "cpf-reference",
+    "entryPoint": "CPF_EDU_BUSINESS_RECORD",
+    "operation": "ROLLED_BACK",
+    "publicContract": "cpf-reference REF Gateway simulator + refDB contract",
+    "runtimeCommand": "POST /api/reference/edu-capabilities/EDU-GW-04/executions",
+    "configurationKey": "cpf.reference.features.gateway.enabled",
+    "timeoutSeconds": 60,
+    "argumentFields": [
+      "connect",
+      "read",
+      "retry",
+      "circuit",
+      "bulkhead"
+    ]
+  },
+  "featurePack": "gateway",
+  "optionalFeature": true,
+  "featureToggle": "cpf.reference.features.gateway.enabled",
+  "generatedDomainIndependent": true,
+  "productModuleIndependent": true,
+  "databaseOwner": "refDB"
+}

@@ -8,20 +8,24 @@
     "npm": "10.9.2"
   },
   "scripts": {
-    "generate:api": "npm run validate:openapi && node scripts/generate-checked-client.mjs",
+    "generate:api": "npm run validate:openapi:source && node scripts/generate-checked-client.mjs",
     "verify:generated": "node scripts/verify-generated-client.mjs && node scripts/test-generated-client-contract.mjs",
-    "build": "npm run validate:openapi && npm run verify:generated && npm run verify:consumer && vite build && node scripts/write-bundle-manifest.mjs",
+    "build": "npm run generate:api && npm run verify:generated && npm run verify:consumer && npm run build:prod",
     "lint": "eslint src vite.config.ts playwright.config.ts",
     "typecheck": "vue-tsc --noEmit",
     "test": "vitest run",
     "test:e2e": "playwright test",
     "test:a11y": "playwright test --grep @a11y",
     "verify:primary": "node scripts/verify-primary-frontend.mjs",
-    "verify": "npm run verify:lock && npm run verify:installed && npm run verify:primary && npm run validate:openapi && npm run verify:consumer && npm run lint && npm run typecheck && npm run test && npm run build",
+    "verify": "npm run verify:lock && npm run verify:installed && npm run verify:primary && npm run test:openapi:lifecycle && npm run generate:api && npm run verify:generated && npm run verify:consumer && npm run lint && npm run typecheck && npm run test && npm run build:prod",
     "verify:lock": "node scripts/verify-lockfile.mjs",
-    "validate:openapi": "node scripts/validate-openapi.mjs",
+    "validate:openapi": "npm run validate:openapi:source",
     "verify:consumer": "node scripts/verify-operation-consumer.mjs",
-    "verify:installed": "node scripts/verify-installed-dependencies.mjs"
+    "verify:installed": "node scripts/verify-installed-dependencies.mjs",
+    "validate:openapi:source": "node scripts/validate-openapi.mjs --scope=source",
+    "validate:openapi:release": "node scripts/validate-openapi.mjs --scope=release",
+    "build:prod": "vite build && node scripts/write-bundle-manifest.mjs",
+    "test:openapi:lifecycle": "node scripts/test-openapi-lifecycle.mjs"
   },
   "dependencies": {
     "@tanstack/vue-query": "5.101.4",

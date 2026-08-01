@@ -1,0 +1,82 @@
+{
+  "requirementId": "EDU-DEV-14",
+  "title": "Oracle·PostgreSQL·MariaDB 동일 의미 Migration",
+  "implementationPackage": "com.cpf.reference.online.database.migration",
+  "owner": "cpf-reference",
+  "requiredRole": "CPF_REFERENCE_DEVELOPER",
+  "inputFields": [
+    "customerId"
+  ],
+  "businessStates": [
+    "NOT_APPLIED",
+    "APPLYING",
+    "APPLIED",
+    "VERIFIED",
+    "FAILED",
+    "ROLLED_BACK"
+  ],
+  "workflowSteps": [
+    "VALIDATE",
+    "AUTHORIZE",
+    "SCOPE",
+    "DEDUPE",
+    "VERSION_CHECK",
+    "PROTECT",
+    "MUTATE",
+    "COMMIT",
+    "RECONCILE",
+    "COMPENSATION_READY",
+    "AUDIT",
+    "OBSERVE"
+  ],
+  "failurePoints": [
+    "BEFORE_COMMIT",
+    "AFTER_COMMIT",
+    "TIMEOUT",
+    "PROCESS_KILL"
+  ],
+  "exceptionScenarios": [
+    "중간 중단",
+    "재실행",
+    "기존 Null/불량 데이터",
+    "Lock Timeout",
+    "Index 생성 실패",
+    "Rollback 후 App 호환",
+    "Vendor 문법 차이"
+  ],
+  "requiredTests": [
+    "세 Vendor 신규 설치",
+    "이전 Version→Upgrade",
+    "Upgrade 재실행",
+    "중단 후 재개",
+    "Rollback·Forward Fix",
+    "Schema Diff와 Query 결과 동일성"
+  ],
+  "readOnly": false,
+  "manualAnchor": "EDU-DEV-14",
+  "idempotent": true,
+  "versioned": true,
+  "leaseRequired": false,
+  "externalEffect": false,
+  "compensationSupported": true,
+  "rollbackSupported": true,
+  "consumerBinding": {
+    "type": "PROCESS",
+    "ownerModule": "cpf-reference",
+    "entryPoint": "cpf-reference/src/main/scripts/edu/invoke-reference-edu.ps1",
+    "operation": "ROLLED_BACK",
+    "publicContract": "cpf-reference allowlisted EDU operation script contract",
+    "runtimeCommand": "POST /api/reference/edu-capabilities/EDU-DEV-14/executions",
+    "configurationKey": "cpf.repository-root",
+    "timeoutSeconds": 600,
+    "argumentFields": [
+      "customerId"
+    ]
+  },
+  "featurePack": "core",
+  "optionalFeature": false,
+  "featureToggle": "",
+  "generatedDomainIndependent": true,
+  "productModuleIndependent": true,
+  "databaseOwner": "refDB"
+}

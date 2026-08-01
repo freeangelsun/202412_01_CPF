@@ -1,0 +1,7 @@
+package com.cpf.reference.online.counterparty.soap;
+import com.cpf.reference.edu.runtime.AbstractManualEduIntegrationTest;
+import com.cpf.reference.edu.runtime.application.AbstractEduCapabilityHandler;
+/** EDU-DEV-27 IntegrationTest — SOAP·XML 외부기관 연계와 Fault 처리 */
+public final class EduDev27IntegrationTest extends AbstractManualEduIntegrationTest {
+    @Override protected AbstractEduCapabilityHandler handler() { return new EduDev27Handler(); }
+}

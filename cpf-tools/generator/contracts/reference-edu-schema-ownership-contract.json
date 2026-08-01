@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "contractId": "CPF-REFERENCE-EDU-SCHEMA-OWNERSHIP-V1",
+  "ownerModule": "cpf-reference",
+  "logicalDatabase": "refDB",
+  "generatedDomainAllowed": false,
+  "forbiddenGeneratedDomainPrefixes": [
+    "CPF_EDU_",
+    "CPF_REF_BAT_"
+  ],
+  "requiredVendors": [
+    "oracle",
+    "postgresql",
+    "mariadb"
+  ],
+  "requiredLifecycle": [
+    "source",
+    "install",
+    "upgrade",
+    "rollback",
+    "runtime-query",
+    "verify",
+    "checksum"
+  ],
+  "reason": "Manual EDU state belongs to the removable cpf-reference module and must not couple generated business domains.",
+  "featurePacks": {
+    "core": {
+      "tablesPrefix": "CPF_EDU_",
+      "optional": false,
+      "ownerPackage": "com.cpf.reference.edu"
+    },
+    "batch": {
+      "tablesPrefix": "CPF_REF_BAT_",
+      "optional": true,
+      "ownerPackage": "com.cpf.reference.batch",
+      "featureToggle": "cpf.reference.features.batch.enabled",
+      "removalMigration": "U94__reference_batch_job_pack.sql"
+    }
+  },
+  "queryChangePropagation": [
+    "canonical-refdb-source",
+    "oracle-vendor-pack",
+    "postgresql-vendor-pack",
+    "mariadb-vendor-pack",
+    "install",
+    "upgrade",
+    "rollback",
+    "runtime-query",
+    "verify",
+    "checksum",
+    "generator-exclusion-contract",
+    "generated-domain-negative-test"
+  ]
+}

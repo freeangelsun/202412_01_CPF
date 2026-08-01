@@ -141,9 +141,9 @@ if ($null -eq $runtimeAgentContract -or
     throw "Generated Domain Runtime Agent 중앙 계약이 유효하지 않습니다."
 }
 if ($null -eq $physicalTableContract -or
-        [int]$physicalTableContract.totalTables -ne 2 -or
+        [int]$physicalTableContract.totalTables -ne 8 -or
         [int]$physicalTableContract.businessTableCount -ne 1 -or
-        [int]$physicalTableContract.supportLedgerCount -ne 1 -or
+        [int]$physicalTableContract.supportLedgerCount -ne 7 -or
         [bool]$physicalTableContract.additionalTablesAllowed -or
         [string]::IsNullOrWhiteSpace($minimalDomainModel) -or
         $minimalTableRole -ne "business-sample" -or
@@ -2733,6 +2733,15 @@ class ${ModuleName}CenterCutHandlerTest {
 }
 "@
 
+$operationTemplateRoot = Join-Path $Root "cpf-tools/generator/templates/operation"
+function Render-OperationTemplate {
+    param([Parameter(Mandatory = $true)][string]$Name)
+    $path = Join-Path $operationTemplateRoot $Name
+    if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { throw "Operation Golden Template missing: $path" }
+    $text = [System.IO.File]::ReadAllText($path, [System.Text.Encoding]::UTF8)
+    return $text.Replace('{{package}}', $FeaturePackage).Replace('{{Domain}}', $FeatureClassPrefix).Replace('{{tablePrefix}}', $TablePrefix)
+}
+
 $files = [ordered]@{
     "build.gradle" = $buildGradle
     "README.md" = $readme
@@ -2768,6 +2777,12 @@ $files = [ordered]@{
 }
 
 if ($DatabaseEnabled) {
+    $files["src/main/java/$featurePackagePath/operation/${FeatureClassPrefix}Operation.java"] = Render-OperationTemplate "DomainOperation.java.template"
+    $files["src/main/java/$featurePackagePath/operation/${FeatureClassPrefix}BusinessRecord.java"] = Render-OperationTemplate "DomainBusinessRecord.java.template"
+    $files["src/main/java/$featurePackagePath/operation/${FeatureClassPrefix}OperationPort.java"] = Render-OperationTemplate "DomainOperationPort.java.template"
+    $files["src/main/java/$featurePackagePath/operation/Jdbc${FeatureClassPrefix}OperationRepository.java"] = Render-OperationTemplate "JdbcDomainOperationRepository.java.template"
+    $files["src/main/java/$featurePackagePath/operation/${FeatureClassPrefix}OperationService.java"] = Render-OperationTemplate "DomainOperationService.java.template"
+    $files["src/test/java/$featurePackagePath/operation/${FeatureClassPrefix}OperationRecoveryTest.java"] = Render-OperationTemplate "DomainOperationRecoveryTest.java.template"
     $files["src/main/java/$packagePath/config/${ModuleName}DataSourceConfig.java"] = $dataSourceConfig
     $files["src/main/java/$packagePath/config/${ModuleName}MyBatisConfig.java"] = $myBatisConfig
     $files["src/test/java/$packagePath/config/${ModuleName}DataSourceIsolationTest.java"] = $dataSourceIsolationTest

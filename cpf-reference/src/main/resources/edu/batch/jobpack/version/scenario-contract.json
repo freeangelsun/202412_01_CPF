@@ -1,0 +1,93 @@
+{
+  "requirementId": "EDU-BAT-08",
+  "title": "Job Pack Version·Artifact 배포",
+  "implementationPackage": "com.cpf.reference.batch.jobpack.version",
+  "owner": "cpf-reference",
+  "requiredRole": "CPF_REFERENCE_BATCH_OPERATOR",
+  "inputFields": [
+    "jobPackId",
+    "artifactSha",
+    "fileName",
+    "contentLength",
+    "checksum"
+  ],
+  "businessStates": [
+    "BUILT",
+    "VALIDATED",
+    "APPROVED",
+    "DEPLOYED",
+    "PARTIAL"
+  ],
+  "workflowSteps": [
+    "VALIDATE",
+    "AUTHORIZE",
+    "SCOPE",
+    "DEDUPE",
+    "VERSION_CHECK",
+    "CLAIM_LEASE",
+    "CHECKSUM",
+    "MUTATE",
+    "COMMIT",
+    "CHECKPOINT",
+    "OUTBOX",
+    "EXTERNAL_SEND",
+    "ACK",
+    "RECONCILE",
+    "AUDIT",
+    "OBSERVE"
+  ],
+  "failurePoints": [
+    "BEFORE_COMMIT",
+    "AFTER_COMMIT",
+    "BEFORE_EXTERNAL_SEND",
+    "AFTER_EXTERNAL_SEND",
+    "RESPONSE_LOST",
+    "TIMEOUT",
+    "PROCESS_KILL",
+    "LEASE_LOST"
+  ],
+  "exceptionScenarios": [
+    "Checksum 불일치",
+    "일부 Agent NACK",
+    "이전 Version 실행"
+  ],
+  "requiredTests": [
+    "정상 실행",
+    "중간 실패·Process 종료",
+    "중복 Trigger",
+    "Stop·Restart",
+    "업무 건수·금액·Hash 대사",
+    "ADM Execution ID 연결"
+  ],
+  "readOnly": false,
+  "manualAnchor": "EDU-BAT-08",
+  "idempotent": true,
+  "versioned": true,
+  "leaseRequired": true,
+  "externalEffect": true,
+  "compensationSupported": false,
+  "rollbackSupported": false,
+  "consumerBinding": {
+    "type": "SPRING_BATCH",
+    "ownerModule": "cpf-reference",
+    "entryPoint": "eduBat08Job",
+    "operation": "PARTIAL",
+    "publicContract": "cpf-reference optional Spring Batch Job/Step contract",
+    "runtimeCommand": "POST /api/reference/edu-capabilities/EDU-BAT-08/executions",
+    "configurationKey": "cpf.reference.features.batch.enabled",
+    "timeoutSeconds": 3600,
+    "argumentFields": [
+      "jobPackId",
+      "artifactSha",
+      "fileName",
+      "contentLength",
+      "checksum"
+    ]
+  },
+  "featurePack": "batch",
+  "optionalFeature": true,
+  "featureToggle": "cpf.reference.features.batch.enabled",
+  "generatedDomainIndependent": true,
+  "productModuleIndependent": true,
+  "databaseOwner": "refDB"
+}

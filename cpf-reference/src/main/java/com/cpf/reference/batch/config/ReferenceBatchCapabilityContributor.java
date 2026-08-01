@@ -1,0 +1,44 @@
+package com.cpf.reference.batch.config;
+import com.cpf.reference.edu.runtime.application.*;
+import com.cpf.reference.batch.tasklet.close.EduBat01Handler;
+import com.cpf.reference.batch.chunk.membergrade.EduBat02Handler;
+import com.cpf.reference.batch.file.csv.EduBat03Handler;
+import com.cpf.reference.batch.partition.range.EduBat04Handler;
+import com.cpf.reference.batch.remote.worker.EduBat05Handler;
+import com.cpf.reference.batch.centercut.approval.EduBat06Handler;
+import com.cpf.reference.batch.scheduler.businessday.EduBat07Handler;
+import com.cpf.reference.batch.jobpack.version.EduBat08Handler;
+import com.cpf.reference.batch.recovery.restart.EduBat09Handler;
+import com.cpf.reference.batch.reconcile.requestloss.EduBat10Handler;
+import com.cpf.reference.batch.flow.conditional.EduBat11Handler;
+import com.cpf.reference.batch.faulttolerance.retryskip.EduBat12Handler;
+import com.cpf.reference.batch.checkpoint.writercommit.EduBat13Handler;
+import com.cpf.reference.batch.instance.parameter.EduBat14Handler;
+import com.cpf.reference.batch.backfill.latearrival.EduBat15Handler;
+import com.cpf.reference.batch.incremental.watermark.EduBat16Handler;
+import com.cpf.reference.batch.file.secureoutput.EduBat17Handler;
+import com.cpf.reference.batch.file.validation.EduBat18Handler;
+import com.cpf.reference.batch.file.faninout.EduBat19Handler;
+import com.cpf.reference.batch.scheduler.misfire.EduBat20Handler;
+import com.cpf.reference.batch.concurrency.execution.EduBat21Handler;
+import com.cpf.reference.batch.calendar.businessday.EduBat22Handler;
+import com.cpf.reference.batch.lifecycle.stopabandon.EduBat23Handler;
+import com.cpf.reference.batch.remote.reassignment.EduBat24Handler;
+import com.cpf.reference.batch.partition.rebalance.EduBat25Handler;
+import com.cpf.reference.batch.centercut.reconcile.EduBat26Handler;
+import com.cpf.reference.batch.jobpack.recovery.EduBat27Handler;
+import com.cpf.reference.batch.agent.offline.EduBat28Handler;
+import com.cpf.reference.batch.dryrun.preview.EduBat29Handler;
+import com.cpf.reference.batch.performance.backpressure.EduBat30Handler;
+import org.springframework.stereotype.Component;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import java.util.*;
+/** Product-independent reference-batch EDU contribution owned only by cpf-reference. */
+@Component
+@ConditionalOnProperty(name="cpf.reference.features.batch.enabled",havingValue="true",matchIfMissing=true)
+public final class ReferenceBatchCapabilityContributor implements EduCapabilityContributor {
+    @Override public String featureId() { return "reference-batch"; }
+    @Override public Collection<? extends AbstractEduCapabilityHandler> handlers() {
+        return List.of(new EduBat01Handler(), new EduBat02Handler(), new EduBat03Handler(), new EduBat04Handler(), new EduBat05Handler(), new EduBat06Handler(), new EduBat07Handler(), new EduBat08Handler(), new EduBat09Handler(), new EduBat10Handler(), new EduBat11Handler(), new EduBat12Handler(), new EduBat13Handler(), new EduBat14Handler(), new EduBat15Handler(), new EduBat16Handler(), new EduBat17Handler(), new EduBat18Handler(), new EduBat19Handler(), new EduBat20Handler(), new EduBat21Handler(), new EduBat22Handler(), new EduBat23Handler(), new EduBat24Handler(), new EduBat25Handler(), new EduBat26Handler(), new EduBat27Handler(), new EduBat28Handler(), new EduBat29Handler(), new EduBat30Handler());
+    }
+}

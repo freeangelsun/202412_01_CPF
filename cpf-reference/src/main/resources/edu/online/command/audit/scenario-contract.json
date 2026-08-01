@@ -1,0 +1,75 @@
+{
+  "requirementId": "EDU-DEV-03",
+  "title": "등록·수정·상태 변경과 감사",
+  "implementationPackage": "com.cpf.reference.online.command.audit",
+  "owner": "cpf-reference",
+  "requiredRole": "CPF_REFERENCE_DEVELOPER",
+  "inputFields": [
+    "suspend"
+  ],
+  "businessStates": [
+    "PENDING",
+    "ACTIVE",
+    "SUSPENDED",
+    "CLOSED"
+  ],
+  "workflowSteps": [
+    "VALIDATE",
+    "AUTHORIZE",
+    "SCOPE",
+    "DEDUPE",
+    "VERSION_CHECK",
+    "PROTECT",
+    "MUTATE",
+    "COMMIT",
+    "RECONCILE",
+    "AUDIT",
+    "OBSERVE"
+  ],
+  "failurePoints": [
+    "BEFORE_COMMIT",
+    "AFTER_COMMIT"
+  ],
+  "exceptionScenarios": [
+    "사유 누락",
+    "허용되지 않은 상태 전이",
+    "권한 없음",
+    "Version 충돌",
+    "감사 저장 실패",
+    "Outbox 저장 실패",
+    "응답 유실"
+  ],
+  "requiredTests": [
+    "상태 전이 Matrix Unit Test",
+    "Transaction Rollback 시 상태·감사·Outbox 불일치 없음",
+    "권한별 허용 Action",
+    "응답 유실 후 operation 조회"
+  ],
+  "readOnly": false,
+  "manualAnchor": "EDU-DEV-03",
+  "idempotent": true,
+  "versioned": true,
+  "leaseRequired": false,
+  "externalEffect": false,
+  "compensationSupported": false,
+  "rollbackSupported": false,
+  "consumerBinding": {
+    "type": "JDBC_COMMAND",
+    "ownerModule": "cpf-reference",
+    "entryPoint": "CPF_EDU_BUSINESS_RECORD",
+    "operation": "CLOSED",
+    "publicContract": "cpf-reference REF DB business record contract",
+    "runtimeCommand": "POST /api/reference/edu-capabilities/EDU-DEV-03/executions",
+    "configurationKey": "",
+    "timeoutSeconds": 60,
+    "argumentFields": [
+      "suspend"
+    ]
+  },
+  "featurePack": "core",
+  "optionalFeature": false,
+  "featureToggle": "",
+  "generatedDomainIndependent": true,
+  "productModuleIndependent": true,
+  "databaseOwner": "refDB"
+}

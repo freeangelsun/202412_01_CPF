@@ -3,7 +3,7 @@
 > **주 독자**: 고객사 API 개발자, Gateway 운영자, 보안담당자, 배포승인자
 > **이 문서의 목표**: 완성된 Gateway 제품으로 고객 API의 공개 주소·대상·인증·시간 제한·게시 버전을 구성하고, 연결시험·적용 상태·장애·되돌리기를 운영한다.
 
-![고객 API Gateway 게시 순서](../assets/guides/customer/cpf-customer-gateway-journey.svg)
+![고객 API Gateway 게시 순서](png/cpf-customer-gateway-journey.png)
 
 ## 빠른 찾기
 

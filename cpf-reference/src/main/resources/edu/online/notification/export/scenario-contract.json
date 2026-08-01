@@ -1,0 +1,101 @@
+{
+  "requirementId": "EDU-DEV-13",
+  "title": "알림·비동기 내보내기·다운로드 감사",
+  "implementationPackage": "com.cpf.reference.online.notification.export",
+  "owner": "cpf-reference",
+  "requiredRole": "CPF_REFERENCE_DEVELOPER",
+  "inputFields": [
+    "settlements",
+    "fileName",
+    "contentLength",
+    "checksum",
+    "destination",
+    "messageKey"
+  ],
+  "businessStates": [
+    "REQUESTED",
+    "GENERATING",
+    "AVAILABLE",
+    "FAILED",
+    "EXPIRED",
+    "PENDING",
+    "SENT"
+  ],
+  "workflowSteps": [
+    "VALIDATE",
+    "AUTHORIZE",
+    "SCOPE",
+    "DEDUPE",
+    "CHECKSUM",
+    "PROTECT",
+    "MUTATE",
+    "COMMIT",
+    "OUTBOX",
+    "EXTERNAL_SEND",
+    "ACK",
+    "RECONCILE",
+    "AUDIT",
+    "OBSERVE"
+  ],
+  "failurePoints": [
+    "BEFORE_COMMIT",
+    "AFTER_COMMIT",
+    "BEFORE_EXTERNAL_SEND",
+    "AFTER_EXTERNAL_SEND",
+    "RESPONSE_LOST",
+    "PARTIAL_TARGET_FAILURE",
+    "TIMEOUT",
+    "PROCESS_KILL"
+  ],
+  "exceptionScenarios": [
+    "대량 데이터 Memory 초과",
+    "생성 중 Process 종료",
+    "Storage 실패",
+    "알림 실패",
+    "만료 Token",
+    "권한 없음",
+    "동일 요청 중복",
+    "부분 파일 노출"
+  ],
+  "requiredTests": [
+    "Streaming Export",
+    "Restart/재생성 정책",
+    "Hash·건수 대사",
+    "알림 재시도",
+    "Token 만료",
+    "다운로드 감사",
+    "개인정보 Masking"
+  ],
+  "readOnly": false,
+  "manualAnchor": "EDU-DEV-13",
+  "idempotent": true,
+  "versioned": false,
+  "leaseRequired": false,
+  "externalEffect": true,
+  "compensationSupported": false,
+  "rollbackSupported": false,
+  "consumerBinding": {
+    "type": "OUTBOX",
+    "ownerModule": "cpf-reference",
+    "entryPoint": "CPF_EDU_OUTBOX",
+    "operation": "SENT",
+    "publicContract": "cpf-reference durable outbox/inbox contract",
+    "runtimeCommand": "POST /api/reference/edu-capabilities/EDU-DEV-13/executions",
+    "configurationKey": "",
+    "timeoutSeconds": 60,
+    "argumentFields": [
+      "settlements",
+      "fileName",
+      "contentLength",
+      "checksum",
+      "destination",
+      "messageKey"
+    ]
+  },
+  "featurePack": "core",
+  "optionalFeature": false,
+  "featureToggle": "",
+  "generatedDomainIndependent": true,
+  "productModuleIndependent": true,
+  "databaseOwner": "refDB"
+}

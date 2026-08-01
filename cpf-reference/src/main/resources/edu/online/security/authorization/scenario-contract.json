@@ -1,0 +1,78 @@
+{
+  "requirementId": "EDU-DEV-11",
+  "title": "권한·데이터 범위·개인정보 가림·감사",
+  "implementationPackage": "com.cpf.reference.online.security.authorization",
+  "owner": "cpf-reference",
+  "requiredRole": "CPF_REFERENCE_DEVELOPER",
+  "inputFields": [
+    "organizationId",
+    "subjectId"
+  ],
+  "businessStates": [
+    "MASKED",
+    "REVEALED"
+  ],
+  "workflowSteps": [
+    "VALIDATE",
+    "AUTHORIZE",
+    "SCOPE",
+    "DEDUPE",
+    "VERSION_CHECK",
+    "APPROVAL",
+    "PROTECT",
+    "MUTATE",
+    "COMMIT",
+    "AUDIT",
+    "OBSERVE"
+  ],
+  "failurePoints": [
+    "BEFORE_COMMIT",
+    "AFTER_COMMIT"
+  ],
+  "exceptionScenarios": [
+    "URL 직접 호출",
+    "다른 조직 ID 변조",
+    "권한 없음",
+    "사유 누락",
+    "승인 만료",
+    "Audit 저장 실패",
+    "Export 우회",
+    "Cache에 원문 저장"
+  ],
+  "requiredTests": [
+    "역할×조직×기능 Matrix",
+    "API 직접 호출",
+    "원문 조회 감사",
+    "로그·Trace·Error Body 개인정보 검사",
+    "Export Masking",
+    "세션 변경 후 권한 반영"
+  ],
+  "readOnly": false,
+  "manualAnchor": "EDU-DEV-11",
+  "idempotent": true,
+  "versioned": true,
+  "leaseRequired": false,
+  "externalEffect": false,
+  "compensationSupported": false,
+  "rollbackSupported": false,
+  "consumerBinding": {
+    "type": "JDBC_COMMAND",
+    "ownerModule": "cpf-reference",
+    "entryPoint": "CPF_EDU_BUSINESS_RECORD",
+    "operation": "REVEALED",
+    "publicContract": "cpf-reference REF DB business record contract",
+    "runtimeCommand": "POST /api/reference/edu-capabilities/EDU-DEV-11/executions",
+    "configurationKey": "",
+    "timeoutSeconds": 60,
+    "argumentFields": [
+      "organizationId",
+      "subjectId"
+    ]
+  },
+  "featurePack": "core",
+  "optionalFeature": false,
+  "featureToggle": "",
+  "generatedDomainIndependent": true,
+  "productModuleIndependent": true,
+  "databaseOwner": "refDB"
+}

@@ -1,0 +1,85 @@
+{
+  "requirementId": "EDU-DEV-01",
+  "title": "Generator 기반 신규 업무 영역 생성",
+  "implementationPackage": "com.cpf.reference.online.generator.domain",
+  "owner": "cpf-reference",
+  "requiredRole": "CPF_REFERENCE_DEVELOPER",
+  "inputFields": [
+    "domainName",
+    "systemCode",
+    "databaseVendor",
+    "port",
+    "route",
+    "packageBase"
+  ],
+  "businessStates": [
+    "PLANNED",
+    "VALIDATED",
+    "GENERATED",
+    "VERIFIED"
+  ],
+  "workflowSteps": [
+    "VALIDATE",
+    "AUTHORIZE",
+    "SCOPE",
+    "DEDUPE",
+    "VERSION_CHECK",
+    "PREVIEW",
+    "CHECKSUM",
+    "MUTATE",
+    "COMMIT",
+    "AUDIT",
+    "OBSERVE"
+  ],
+  "failurePoints": [
+    "BEFORE_COMMIT",
+    "AFTER_COMMIT"
+  ],
+  "exceptionScenarios": [
+    "같은 Module명",
+    "같은 SystemCode",
+    "Port 중복",
+    "Route 중복",
+    "지원하지 않는 DB Vendor",
+    "생성 중 Process 종료",
+    "기존 파일 Hash 변경 시 덮어쓰기 시도"
+  ],
+  "requiredTests": [
+    "Dry Run이 Working Tree를 변경하지 않는지 확인",
+    "충돌별 실패 메시지와 Exit Code 확인",
+    "생성 중단 뒤 이번 실행 생성 파일만 안전하게 식별",
+    "생성 결과 Build·Test·DB Pack 참조 확인"
+  ],
+  "readOnly": false,
+  "manualAnchor": "EDU-DEV-01",
+  "idempotent": true,
+  "versioned": true,
+  "leaseRequired": false,
+  "externalEffect": false,
+  "compensationSupported": false,
+  "rollbackSupported": false,
+  "consumerBinding": {
+    "type": "PROCESS",
+    "ownerModule": "cpf-reference",
+    "entryPoint": "cpf-reference/src/main/scripts/edu/invoke-reference-edu.ps1",
+    "operation": "VERIFIED",
+    "publicContract": "cpf-reference allowlisted EDU operation script contract",
+    "runtimeCommand": "POST /api/reference/edu-capabilities/EDU-DEV-01/executions",
+    "configurationKey": "cpf.repository-root",
+    "timeoutSeconds": 600,
+    "argumentFields": [
+      "domainName",
+      "systemCode",
+      "databaseVendor",
+      "port",
+      "route",
+      "packageBase"
+    ]
+  },
+  "featurePack": "core",
+  "optionalFeature": false,
+  "featureToggle": "",
+  "generatedDomainIndependent": true,
+  "productModuleIndependent": true,
+  "databaseOwner": "refDB"
+}

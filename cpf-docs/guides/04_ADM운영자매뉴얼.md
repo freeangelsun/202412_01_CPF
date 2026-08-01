@@ -3,7 +3,7 @@
 > **주 독자**: 고객사 ADM 조회자, 업무 운영자, 배치 운영자, 승인자, 보안담당자, 운영관리자
 > **이 문서의 목표**: 운영자가 데이터베이스나 스크립트를 직접 사용하지 않고, 자신의 권한 범위에서 서비스·거래·배치·Gateway·설정·보안 상태를 조회하고 필요한 조치와 복구를 끝낸다.
 
-![ADM 권한별 업무 흐름](../assets/guides/customer/cpf-customer-adm-roles.svg)
+![ADM 권한별 업무 흐름](png/cpf-customer-adm-roles.png)
 
 ## 빠른 찾기
 

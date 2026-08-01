@@ -1,0 +1,81 @@
+{
+  "requirementId": "EDU-ADM-06",
+  "title": "부분 성공·대상별 복구",
+  "implementationPackage": "com.cpf.reference.optional.operations.partialrecovery",
+  "owner": "cpf-reference",
+  "requiredRole": "CPF_REFERENCE_PLATFORM_OPERATOR",
+  "inputFields": [
+    "businessId",
+    "approvalId"
+  ],
+  "businessStates": [
+    "REQUESTED",
+    "ACCEPTED",
+    "RUNNING",
+    "SUCCEEDED",
+    "FAILED",
+    "UNKNOWN_RESULT",
+    "RECONCILED"
+  ],
+  "workflowSteps": [
+    "VALIDATE",
+    "AUTHORIZE",
+    "SCOPE",
+    "DEDUPE",
+    "VERSION_CHECK",
+    "PROTECT",
+    "MUTATE",
+    "COMMIT",
+    "RECONCILE",
+    "COMPENSATION_READY",
+    "AUDIT",
+    "OBSERVE"
+  ],
+  "failurePoints": [
+    "BEFORE_COMMIT",
+    "AFTER_COMMIT",
+    "PARTIAL_TARGET_FAILURE"
+  ],
+  "exceptionScenarios": [
+    "일부 대상 Timeout",
+    "늦은 성공",
+    "Rollback 일부 실패",
+    "전체 성공으로 오판"
+  ],
+  "requiredTests": [
+    "Backend Contract Test",
+    "Same-JVM/Remote Adapter Test",
+    "권한·Masking Test",
+    "Timeout·응답 유실 Test",
+    "Browser Test",
+    "Audit·Trace 연결"
+  ],
+  "readOnly": false,
+  "manualAnchor": "EDU-ADM-06",
+  "idempotent": true,
+  "versioned": true,
+  "leaseRequired": false,
+  "externalEffect": false,
+  "compensationSupported": true,
+  "rollbackSupported": false,
+  "consumerBinding": {
+    "type": "JDBC_COMMAND",
+    "ownerModule": "cpf-reference",
+    "entryPoint": "CPF_EDU_BUSINESS_RECORD",
+    "operation": "RECONCILED",
+    "publicContract": "cpf-reference REF DB backoffice/operations contract",
+    "runtimeCommand": "POST /api/reference/edu-capabilities/EDU-ADM-06/executions",
+    "configurationKey": "cpf.reference.features.operations.enabled",
+    "timeoutSeconds": 60,
+    "argumentFields": [
+      "businessId",
+      "approvalId"
+    ]
+  },
+  "featurePack": "operations",
+  "optionalFeature": true,
+  "featureToggle": "cpf.reference.features.operations.enabled",
+  "generatedDomainIndependent": true,
+  "productModuleIndependent": true,
+  "databaseOwner": "refDB"
+}

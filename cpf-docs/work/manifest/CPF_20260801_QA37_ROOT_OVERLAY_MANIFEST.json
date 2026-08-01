@@ -1,21 +1,34 @@
 {
-  "schemaVersion": 1,
-  "packageId": "CPF-20260801-QA37-EDU-SOURCE-CLOSURE",
-  "repository": "freeangelsun/202412_01_CPF",
+  "baseSha": "1edd96c6dcc69b0b4d6e9e22a0709d910d7cfb04",
   "branch": "master",
-  "baselineSha": "23a16f35a5633ce1317920468a69fef00c1a6a41",
-  "generatedAt": "2026-08-01T18:22:22+09:00",
-  "fileCount": 17,
+  "rootRelative": true,
+  "fileCount": 1170,
+  "overallStatus": "미검증",
+  "sourceImplementationAssessment": "재확인 필요",
   "deleteManifest": "cpf-docs/work/manifest/CPF_20260801_QA37_DELETE_MANIFEST.txt",
-  "primaryRequest": "cpf-docs/work/current/CPF_20260801_QA37_EDU_SOURCE_CLOSURE_AND_RECOVERY_REQUEST.md",
-  "developmentPrompt": "cpf-docs/work/current/CPF_20260801_QA37_DEVELOPMENT_GPT_PROMPT.md",
-  "handover": "cpf-docs/work/handover/CPF_CONVERSATION_SESSION_HANDOVER_20260801_SESSION8.md",
-  "hashExclusions": [
-    "cpf-docs/work/codex/qa37/PACKAGE_MANIFEST.json",
-    "cpf-docs/work/manifest/CPF_20260801_QA37_FILES.sha256",
-    "cpf-docs/work/manifest/CPF_20260801_QA37_ROOT_OVERLAY_MANIFEST.json"
+  "deleteCandidateCount": 50,
+  "trackedDeletesAutomaticallyApplied": false,
+  "deleteReviewRequired": true,
+  "packageManifest": "cpf-docs/work/manifest/CPF_20260801_QA37_PACKAGE_MANIFEST.json",
+  "hashManifest": "cpf-docs/work/manifest/CPF_20260801_QA37_FILES.sha256",
+  "hashManifestExcludesSelf": true,
+  "changeManifest": "cpf-docs/work/manifest/CPF_20260801_QA37_CHANGE_MANIFEST.csv",
+  "changeManifestExclusions": [
+    "cpf-docs/work/manifest/CPF_20260801_QA37_CHANGE_MANIFEST.csv",
+    "cpf-docs/work/manifest/CPF_20260801_QA37_FILES.sha256"
   ],
-  "gitWritesPerformed": false,
-  "runtimeVerificationPerformed": false,
-  "protectedDocumentPolicy": "README and README-linked Manual/Guide are excluded"
+  "applyScript": "cpf-tools/scripts/apply-cpf-qa37-overlay.ps1",
+  "rollbackScript": "cpf-tools/scripts/rollback-cpf-qa37-overlay.ps1",
+  "protectedDocsExcluded": [
+    "README.md",
+    "cpf-docs/guides/00_프레임워크안내.md",
+    "cpf-docs/guides/01_개발자매뉴얼.md",
+    "cpf-docs/guides/02_배치개발매뉴얼.md",
+    "cpf-docs/guides/03_ADM개발자매뉴얼.md",
+    "cpf-docs/guides/04_ADM운영자매뉴얼.md",
+    "cpf-docs/guides/05_플랫폼운영매뉴얼.md",
+    "cpf-docs/guides/90_BZA매뉴얼.md",
+    "cpf-docs/guides/91_Gateway매뉴얼.md"
+  ],
+  "createdUtc": "2026-08-01T14:13:15Z"
 }

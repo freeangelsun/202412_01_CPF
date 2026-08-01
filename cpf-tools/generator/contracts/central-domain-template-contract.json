@@ -1,5 +1,5 @@
 {
-  "contractVersion": "1.1",
+  "contractVersion": "1.2",
   "owner": "CPF DB Tool",
   "templateRoot": "cpf-tools/db/vendor/{vendor}/domain-template",
   "supportedVendors": [
@@ -224,5 +224,22 @@
     ],
     "failClosed": true,
     "enabledByDefault": false
+  },
+  "referenceOwnedExclusions": {
+    "ownerModule": "cpf-reference",
+    "logicalDatabase": "refDB",
+    "generatedDomainAllowed": false,
+    "forbiddenTablePrefixes": [
+      "CPF_EDU_",
+      "CPF_REF_BAT_"
+    ],
+    "forbiddenTemplateTokens": [
+      "CPF_EDU_",
+      "CPF_REF_BAT_",
+      "REFERENCE_EDU",
+      "MANUAL_EDU",
+      "REFERENCE_BATCH_EDU"
+    ],
+    "reason": "cpf-reference EDU and optional Batch persistence belong only to refDB and must never be copied into generated domains."
   }
 }

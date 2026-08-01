@@ -11,33 +11,127 @@ java {
     }
 }
 
-repositories {
-    mavenCentral()
+repositories { mavenCentral() }
+
+// All EDU code stays in the single cpf-reference module. Optional feature families are package-removable.
+def featureEnabled = { String name ->
+    providers.gradleProperty("cpf.reference.features.${name}.enabled")
+            .map { it.toBoolean() }
+            .orElse(true)
+            .get()
+}
+def batchEnabled = featureEnabled('batch')
+def operationsEnabled = featureEnabled('operations')
+def backofficeEnabled = featureEnabled('backoffice')
+def gatewayEnabled = featureEnabled('gateway')
+def isolationVerification = providers.gradleProperty('cpf.reference.featureIsolationVerification').map { it.toBoolean() }.orElse(false).get()
+def featureVariant = [batchEnabled ? 'batch' : 'no-batch', operationsEnabled ? 'operations' : 'no-operations', backofficeEnabled ? 'backoffice' : 'no-backoffice', gatewayEnabled ? 'gateway' : 'no-gateway'].join('-')
+def referenceDbMigrations = ['V93__manual_edu_135_operation_ledger.sql'] + (batchEnabled ? ['V94__reference_batch_job_pack.sql'] : [])
+if (isolationVerification) {
+    layout.buildDirectory = rootProject.layout.buildDirectory.dir("reference-feature-variants/${featureVariant}")
+}
+
+sourceSets {
+    main {
+        java {
+            if (!batchEnabled) exclude 'com/cpf/reference/batch/**'
+            if (!operationsEnabled) exclude 'com/cpf/reference/optional/operations/**'
+            if (!backofficeEnabled) exclude 'com/cpf/reference/optional/backoffice/**'
+            if (!gatewayEnabled) exclude 'com/cpf/reference/optional/gateway/**'
+        }
+        resources {
+            if (!batchEnabled) exclude 'edu/batch/**'
+            if (!operationsEnabled) exclude 'edu/optional/operations/**'
+            if (!backofficeEnabled) exclude 'edu/optional/backoffice/**'
+            if (!gatewayEnabled) exclude 'edu/optional/gateway/**'
+        }
+    }
+    test {
+        java {
+            if (!batchEnabled) exclude 'com/cpf/reference/batch/**'
+            if (!operationsEnabled) exclude 'com/cpf/reference/optional/operations/**'
+            if (!backofficeEnabled) exclude 'com/cpf/reference/optional/backoffice/**'
+            if (!gatewayEnabled) exclude 'com/cpf/reference/optional/gateway/**'
+        }
+        resources {
+            if (!batchEnabled) exclude 'edu/batch/**'
+            if (!operationsEnabled) exclude 'edu/optional/operations/**'
+            if (!backofficeEnabled) exclude 'edu/optional/backoffice/**'
+            if (!gatewayEnabled) exclude 'edu/optional/gateway/**'
+        }
+    }
 }
 
 dependencies {
-    // REF는 참조 업무 도메인이며 실제 소비 가능한 교육 기능으로 CPF/CMN 사용법을 보여줍니다.
     implementation project(':cpf-core')
     implementation project(':cpf-common')
-    implementation project(':cpf-batch:contract')
-
-    // 참조 업무와 교육 샘플 REST API를 제공합니다.
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
-
-    // 업무 DB 기반 샘플 어댑터가 JdbcTemplate으로 실제 테이블을 다루는 방법을 보여줍니다.
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
 
-    // 배치 유형별 샘플과 ADM 배치 관제 연동 예제를 제공합니다.
-    implementation 'org.springframework.boot:spring-boot-starter-batch-jdbc'
-
-    // 로컬 교육 실행에서 MariaDB를 사용할 수 있게 합니다.
+    if (batchEnabled) {
+        implementation project(':cpf-batch:contract')
+        implementation 'org.springframework.boot:spring-boot-starter-batch-jdbc'
+    }
 
     testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
 }
 
 tasks.named('test') {
     useJUnitPlatform()
-    // REF tests consume the selected central Vendor Pack; module-local SQL/MyBatis fallback is forbidden.
     systemProperty 'cpf.db.vendor', 'mariadb'
     systemProperty 'cpf.db.resource-root', rootProject.file('cpf-tools/db/vendor/mariadb').absolutePath
+    systemProperty 'cpf.reference.features.batch.enabled', batchEnabled
+    systemProperty 'cpf.reference.features.operations.enabled', operationsEnabled
+    systemProperty 'cpf.reference.features.backoffice.enabled', backofficeEnabled
+    systemProperty 'cpf.reference.features.gateway.enabled', gatewayEnabled
+    systemProperty 'cpf.reference.db.migrations', referenceDbMigrations.join(',')
+    systemProperty 'cpf.reference.db.batch-pack.enabled', batchEnabled
 }
+
+tasks.register('verifyReferenceFeatureBoundaries') {
+    group = 'verification'
+    description = 'Fails if mandatory REF online/platform/runtime code imports removable Batch/Operations/Backoffice/Gateway packages.'
+    doLast {
+        def mandatoryRoots = [
+                file('src/main/java/com/cpf/reference/edu/runtime'),
+                file('src/main/java/com/cpf/reference/edu/counterparty'),
+                file('src/main/java/com/cpf/reference/online'),
+                file('src/main/java/com/cpf/reference/platform')
+        ]
+        def forbidden = [
+                'com.cpf.reference.batch.',
+                'com.cpf.reference.optional.operations.',
+                'com.cpf.reference.optional.backoffice.',
+                'com.cpf.reference.optional.gateway.'
+        ]
+        def violations = []
+        mandatoryRoots.findAll { it.exists() }.each { mandatoryRoot ->
+            fileTree(mandatoryRoot).matching { include '**/*.java' }.files.each { source ->
+                def text = source.getText('UTF-8')
+                forbidden.each { prefix ->
+                    if (text.contains('import ' + prefix)) violations << "${source}: ${prefix}"
+                }
+                if (text.contains('CPF_REF_BAT_')) violations << "${source}: CPF_REF_BAT_"
+            }
+        }
+        if (!violations.isEmpty()) throw new GradleException('Reference optional boundary violations:
+' + violations.join('
+'))
+    }
+}
+
+tasks.register('printReferenceDbPackSelection') {
+    group = 'verification'
+    description = 'Prints the exact refDB migration pack selected by cpf.reference.features.batch.enabled.'
+    doLast {
+        println "[CPF][REFERENCE][DB-PACK] ${referenceDbMigrations.join(',')}"
+    }
+}
+
+tasks.register('printReferenceFeatureVariant') {
+    group = 'verification'
+    doLast { println "[CPF][REFERENCE][FEATURE-VARIANT] ${featureVariant}" }
+}
+
+check.dependsOn tasks.named('verifyReferenceFeatureBoundaries')

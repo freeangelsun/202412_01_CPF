@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "ownerModule": "cpf-reference",
+  "logicalDatabase": "refDB",
+  "generatedDomainDependencies": [],
+  "productModuleDependencies": [],
+  "roots": {
+    "online": {
+      "package": "com.cpf.reference.online",
+      "optional": false
+    },
+    "batch": {
+      "package": "com.cpf.reference.batch",
+      "optional": true,
+      "toggle": "cpf.reference.features.batch.enabled",
+      "sqlPack": "reference-batch"
+    },
+    "platform": {
+      "package": "com.cpf.reference.platform",
+      "optional": false
+    },
+    "operations": {
+      "package": "com.cpf.reference.optional.operations",
+      "optional": true,
+      "toggle": "cpf.reference.features.operations.enabled"
+    },
+    "backoffice": {
+      "package": "com.cpf.reference.optional.backoffice",
+      "optional": true,
+      "toggle": "cpf.reference.features.backoffice.enabled"
+    },
+    "gateway": {
+      "package": "com.cpf.reference.optional.gateway",
+      "optional": true,
+      "toggle": "cpf.reference.features.gateway.enabled"
+    }
+  },
+  "trackingPolicy": "Requirement IDs are tracked by class names, catalog, scenario contracts and tests; numeric IDs are forbidden as package segments."
+}

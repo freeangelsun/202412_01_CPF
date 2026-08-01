@@ -1,0 +1,88 @@
+{
+  "requirementId": "EDU-BAT-05",
+  "title": "Manager·Worker·Lease·Fencing",
+  "implementationPackage": "com.cpf.reference.batch.remote.worker",
+  "owner": "cpf-reference",
+  "requiredRole": "CPF_REFERENCE_BATCH_OPERATOR",
+  "inputFields": [
+    "executionId",
+    "partitionId",
+    "leaseDuration",
+    "ownerInstanceId"
+  ],
+  "businessStates": [
+    "AVAILABLE",
+    "CLAIMED",
+    "RUNNING",
+    "COMPLETED",
+    "EXPIRED"
+  ],
+  "workflowSteps": [
+    "VALIDATE",
+    "AUTHORIZE",
+    "SCOPE",
+    "DEDUPE",
+    "VERSION_CHECK",
+    "CLAIM_LEASE",
+    "PARTITION",
+    "CHECKSUM",
+    "MUTATE",
+    "COMMIT",
+    "CHECKPOINT",
+    "RECONCILE",
+    "AUDIT",
+    "OBSERVE"
+  ],
+  "failurePoints": [
+    "BEFORE_COMMIT",
+    "AFTER_COMMIT",
+    "PARTIAL_TARGET_FAILURE",
+    "TIMEOUT",
+    "PROCESS_KILL",
+    "LEASE_LOST"
+  ],
+  "exceptionScenarios": [
+    "Heartbeat 중단",
+    "Lease 상실",
+    "늦은 결과",
+    "Kafka 중복"
+  ],
+  "requiredTests": [
+    "정상 실행",
+    "중간 실패·Process 종료",
+    "중복 Trigger",
+    "Stop·Restart",
+    "업무 건수·금액·Hash 대사",
+    "ADM Execution ID 연결"
+  ],
+  "readOnly": false,
+  "manualAnchor": "EDU-BAT-05",
+  "idempotent": true,
+  "versioned": true,
+  "leaseRequired": true,
+  "externalEffect": false,
+  "compensationSupported": false,
+  "rollbackSupported": false,
+  "consumerBinding": {
+    "type": "SPRING_BATCH",
+    "ownerModule": "cpf-reference",
+    "entryPoint": "eduBat05Job",
+    "operation": "EXPIRED",
+    "publicContract": "cpf-reference optional Spring Batch Job/Step contract",
+    "runtimeCommand": "POST /api/reference/edu-capabilities/EDU-BAT-05/executions",
+    "configurationKey": "cpf.reference.features.batch.enabled",
+    "timeoutSeconds": 3600,
+    "argumentFields": [
+      "executionId",
+      "partitionId",
+      "leaseDuration",
+      "ownerInstanceId"
+    ]
+  },
+  "featurePack": "batch",
+  "optionalFeature": true,
+  "featureToggle": "cpf.reference.features.batch.enabled",
+  "generatedDomainIndependent": true,
+  "productModuleIndependent": true,
+  "databaseOwner": "refDB"
+}

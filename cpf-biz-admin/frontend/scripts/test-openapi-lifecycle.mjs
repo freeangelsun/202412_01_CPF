@@ -1,0 +1,15 @@
+import fs from "node:fs";
+import path from "node:path";
+import {fileURLToPath} from "node:url";
+const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),"..");
+const pkg=JSON.parse(fs.readFileSync(path.join(root,"package.json"),"utf8"));
+const scripts=pkg.scripts||{};
+if(scripts["validate:openapi"]!=="npm run validate:openapi:source") throw new Error("Default OpenAPI scope must be source");
+if(!scripts["validate:openapi:source"]?.includes("--scope=source")) throw new Error("Source OpenAPI scope is missing");
+if(!scripts["validate:openapi:release"]?.includes("--scope=release")) throw new Error("Release runtime gate is missing");
+const verify=scripts.verify||"";
+for(const required of ["generate:api","verify:generated","verify:consumer","lint","typecheck","test","build:prod"]) if(!verify.includes(required)) throw new Error(`verify lifecycle missing ${required}`);
+if(verify.indexOf("generate:api")>verify.indexOf("verify:generated")||verify.indexOf("verify:generated")>verify.indexOf("verify:consumer")) throw new Error("Generated client lifecycle order is invalid");
+const validator=fs.readFileSync(path.join(root,"scripts/validate-openapi.mjs"),"utf8");
+if(!validator.includes('option("scope")')) throw new Error("OpenAPI validator must accept an explicit scope");
+console.log("[CPF][OPENAPI][LIFECYCLE][PASS]");

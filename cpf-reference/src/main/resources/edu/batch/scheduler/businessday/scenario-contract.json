@@ -1,0 +1,87 @@
+{
+  "requirementId": "EDU-BAT-07",
+  "title": "영업일 23시 Scheduler",
+  "implementationPackage": "com.cpf.reference.batch.scheduler.businessday",
+  "owner": "cpf-reference",
+  "requiredRole": "CPF_REFERENCE_BATCH_OPERATOR",
+  "inputFields": [
+    "scheduleId",
+    "calendarId",
+    "misfirePolicy",
+    "businessDate",
+    "timezone"
+  ],
+  "businessStates": [
+    "SCHEDULED",
+    "TRIGGERED",
+    "COMPLETED",
+    "MISFIRED"
+  ],
+  "workflowSteps": [
+    "VALIDATE",
+    "AUTHORIZE",
+    "SCOPE",
+    "DEDUPE",
+    "VERSION_CHECK",
+    "CLAIM_LEASE",
+    "CHECKSUM",
+    "MUTATE",
+    "COMMIT",
+    "CHECKPOINT",
+    "RECONCILE",
+    "AUDIT",
+    "OBSERVE"
+  ],
+  "failurePoints": [
+    "BEFORE_COMMIT",
+    "AFTER_COMMIT",
+    "TIMEOUT",
+    "PROCESS_KILL",
+    "LEASE_LOST"
+  ],
+  "exceptionScenarios": [
+    "이중 Trigger",
+    "Clock 차이",
+    "휴일 Override",
+    "Misfire"
+  ],
+  "requiredTests": [
+    "정상 실행",
+    "중간 실패·Process 종료",
+    "중복 Trigger",
+    "Stop·Restart",
+    "업무 건수·금액·Hash 대사",
+    "ADM Execution ID 연결"
+  ],
+  "readOnly": false,
+  "manualAnchor": "EDU-BAT-07",
+  "idempotent": true,
+  "versioned": true,
+  "leaseRequired": true,
+  "externalEffect": false,
+  "compensationSupported": false,
+  "rollbackSupported": false,
+  "consumerBinding": {
+    "type": "SPRING_BATCH",
+    "ownerModule": "cpf-reference",
+    "entryPoint": "eduBat07Job",
+    "operation": "MISFIRED",
+    "publicContract": "cpf-reference optional Spring Batch Job/Step contract",
+    "runtimeCommand": "POST /api/reference/edu-capabilities/EDU-BAT-07/executions",
+    "configurationKey": "cpf.reference.features.batch.enabled",
+    "timeoutSeconds": 3600,
+    "argumentFields": [
+      "scheduleId",
+      "calendarId",
+      "misfirePolicy",
+      "businessDate",
+      "timezone"
+    ]
+  },
+  "featurePack": "batch",
+  "optionalFeature": true,
+  "featureToggle": "cpf.reference.features.batch.enabled",
+  "generatedDomainIndependent": true,
+  "productModuleIndependent": true,
+  "databaseOwner": "refDB"
+}

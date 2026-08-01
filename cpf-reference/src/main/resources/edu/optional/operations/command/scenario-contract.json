@@ -1,0 +1,79 @@
+{
+  "requirementId": "EDU-ADM-03",
+  "title": "안전한 운영 조치",
+  "implementationPackage": "com.cpf.reference.optional.operations.command",
+  "owner": "cpf-reference",
+  "requiredRole": "CPF_REFERENCE_PLATFORM_OPERATOR",
+  "inputFields": [
+    "businessId",
+    "approvalId"
+  ],
+  "businessStates": [
+    "REQUESTED",
+    "ACCEPTED",
+    "RUNNING",
+    "SUCCEEDED",
+    "FAILED",
+    "UNKNOWN_RESULT",
+    "RECONCILED"
+  ],
+  "workflowSteps": [
+    "VALIDATE",
+    "AUTHORIZE",
+    "SCOPE",
+    "DEDUPE",
+    "VERSION_CHECK",
+    "PROTECT",
+    "MUTATE",
+    "COMMIT",
+    "RECONCILE",
+    "AUDIT",
+    "OBSERVE"
+  ],
+  "failurePoints": [
+    "BEFORE_COMMIT",
+    "AFTER_COMMIT"
+  ],
+  "exceptionScenarios": [
+    "사유 누락",
+    "Version 충돌",
+    "허용 상태 아님",
+    "응답 유실"
+  ],
+  "requiredTests": [
+    "Backend Contract Test",
+    "Same-JVM/Remote Adapter Test",
+    "권한·Masking Test",
+    "Timeout·응답 유실 Test",
+    "Browser Test",
+    "Audit·Trace 연결"
+  ],
+  "readOnly": false,
+  "manualAnchor": "EDU-ADM-03",
+  "idempotent": true,
+  "versioned": true,
+  "leaseRequired": false,
+  "externalEffect": false,
+  "compensationSupported": false,
+  "rollbackSupported": false,
+  "consumerBinding": {
+    "type": "JDBC_COMMAND",
+    "ownerModule": "cpf-reference",
+    "entryPoint": "CPF_EDU_BUSINESS_RECORD",
+    "operation": "RECONCILED",
+    "publicContract": "cpf-reference REF DB backoffice/operations contract",
+    "runtimeCommand": "POST /api/reference/edu-capabilities/EDU-ADM-03/executions",
+    "configurationKey": "cpf.reference.features.operations.enabled",
+    "timeoutSeconds": 60,
+    "argumentFields": [
+      "businessId",
+      "approvalId"
+    ]
+  },
+  "featurePack": "operations",
+  "optionalFeature": true,
+  "featureToggle": "cpf.reference.features.operations.enabled",
+  "generatedDomainIndependent": true,
+  "productModuleIndependent": true,
+  "databaseOwner": "refDB"
+}

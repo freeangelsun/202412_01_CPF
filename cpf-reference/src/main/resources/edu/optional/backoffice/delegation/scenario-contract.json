@@ -1,0 +1,91 @@
+{
+  "requirementId": "EDU-BZA-05",
+  "title": "위임·대결·대행 책임",
+  "implementationPackage": "com.cpf.reference.optional.backoffice.delegation",
+  "owner": "cpf-reference",
+  "requiredRole": "CPF_REFERENCE_BACKOFFICE_OPERATOR",
+  "inputFields": [
+    "delegator",
+    "delegate",
+    "validFrom",
+    "to",
+    "scope",
+    "approvalPolicyId"
+  ],
+  "businessStates": [
+    "DRAFT",
+    "SUBMITTED",
+    "APPROVED",
+    "REJECTED",
+    "WITHDRAWN",
+    "CANCELLED"
+  ],
+  "workflowSteps": [
+    "VALIDATE",
+    "AUTHORIZE",
+    "SCOPE",
+    "DEDUPE",
+    "VERSION_CHECK",
+    "APPROVAL",
+    "PROTECT",
+    "MUTATE",
+    "COMMIT",
+    "RECONCILE",
+    "AUDIT",
+    "OBSERVE"
+  ],
+  "failurePoints": [
+    "BEFORE_COMMIT",
+    "AFTER_COMMIT"
+  ],
+  "exceptionScenarios": [
+    "기간 겹침",
+    "순환 위임",
+    "범위 초과",
+    "만료 후 승인"
+  ],
+  "requiredTests": [
+    "기준일 경계",
+    "유효기간 겹침",
+    "권한 Matrix",
+    "Version 충돌",
+    "응답 유실 대사",
+    "Browser 메뉴 Field·Button",
+    "감사·Download 권한"
+  ],
+  "readOnly": false,
+  "manualAnchor": "EDU-BZA-05",
+  "idempotent": true,
+  "versioned": true,
+  "leaseRequired": false,
+  "externalEffect": false,
+  "compensationSupported": false,
+  "rollbackSupported": false,
+  "consumerBinding": {
+    "type": "JDBC_COMMAND",
+    "ownerModule": "cpf-reference",
+    "entryPoint": "CPF_EDU_BUSINESS_RECORD",
+    "operation": "CANCELLED",
+    "publicContract": "cpf-reference REF DB backoffice/operations contract",
+    "runtimeCommand": "POST /api/reference/edu-capabilities/EDU-BZA-05/executions",
+    "configurationKey": "cpf.reference.features.backoffice.enabled",
+    "timeoutSeconds": 60,
+    "argumentFields": [
+      "delegator",
+      "delegate",
+      "validFrom",
+      "to",
+      "scope",
+      "approvalPolicyId"
+    ]
+  },
+  "featurePack": "backoffice",
+  "optionalFeature": true,
+  "featureToggle": "cpf.reference.features.backoffice.enabled",
+  "generatedDomainIndependent": true,
+  "productModuleIndependent": true,
+  "databaseOwner": "refDB",
+  "kind": "BACKOFFICE",
+  "canonicalRequirementFamily": "EDU-BZA",
+  "productBzaDependency": false
+}

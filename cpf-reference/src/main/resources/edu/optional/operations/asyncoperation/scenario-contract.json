@@ -1,0 +1,87 @@
+{
+  "requirementId": "EDU-ADM-05",
+  "title": "비동기 작업·응답 유실",
+  "implementationPackage": "com.cpf.reference.optional.operations.asyncoperation",
+  "owner": "cpf-reference",
+  "requiredRole": "CPF_REFERENCE_PLATFORM_OPERATOR",
+  "inputFields": [
+    "businessId",
+    "approvalId"
+  ],
+  "businessStates": [
+    "REQUESTED",
+    "ACCEPTED",
+    "RUNNING",
+    "SUCCEEDED",
+    "FAILED",
+    "UNKNOWN_RESULT",
+    "RECONCILED"
+  ],
+  "workflowSteps": [
+    "VALIDATE",
+    "AUTHORIZE",
+    "SCOPE",
+    "DEDUPE",
+    "VERSION_CHECK",
+    "PROTECT",
+    "MUTATE",
+    "COMMIT",
+    "OUTBOX",
+    "EXTERNAL_SEND",
+    "ACK",
+    "RECONCILE",
+    "AUDIT",
+    "OBSERVE"
+  ],
+  "failurePoints": [
+    "BEFORE_COMMIT",
+    "AFTER_COMMIT",
+    "BEFORE_EXTERNAL_SEND",
+    "AFTER_EXTERNAL_SEND",
+    "RESPONSE_LOST",
+    "TIMEOUT",
+    "PROCESS_KILL"
+  ],
+  "exceptionScenarios": [
+    "접수 응답 유실",
+    "Polling 실패",
+    "중복 Operation",
+    "UNKNOWN_RESULT"
+  ],
+  "requiredTests": [
+    "Backend Contract Test",
+    "Same-JVM/Remote Adapter Test",
+    "권한·Masking Test",
+    "Timeout·응답 유실 Test",
+    "Browser Test",
+    "Audit·Trace 연결"
+  ],
+  "readOnly": false,
+  "manualAnchor": "EDU-ADM-05",
+  "idempotent": true,
+  "versioned": true,
+  "leaseRequired": false,
+  "externalEffect": true,
+  "compensationSupported": false,
+  "rollbackSupported": false,
+  "consumerBinding": {
+    "type": "JDBC_COMMAND",
+    "ownerModule": "cpf-reference",
+    "entryPoint": "CPF_EDU_BUSINESS_RECORD",
+    "operation": "RECONCILED",
+    "publicContract": "cpf-reference REF DB backoffice/operations contract",
+    "runtimeCommand": "POST /api/reference/edu-capabilities/EDU-ADM-05/executions",
+    "configurationKey": "cpf.reference.features.operations.enabled",
+    "timeoutSeconds": 60,
+    "argumentFields": [
+      "businessId",
+      "approvalId"
+    ]
+  },
+  "featurePack": "operations",
+  "optionalFeature": true,
+  "featureToggle": "cpf.reference.features.operations.enabled",
+  "generatedDomainIndependent": true,
+  "productModuleIndependent": true,
+  "databaseOwner": "refDB"
+}

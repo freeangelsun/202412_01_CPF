@@ -3,7 +3,7 @@
 > **주 독자**: 고객사 업무 개발자, ADM 연동 개발자, 고객 전용 운영 화면 개발자
 > **이 문서의 목표**: 고객사가 ADM 제품 자체를 수정하는 문서가 아니다. 완성된 ADM을 이용해 고객 업무의 상태·조치·승인·감사·복구를 운영자에게 제공한다.
 
-![고객 업무를 ADM에 연결하는 순서](../assets/guides/customer/cpf-customer-adm-integration.svg)
+![고객 업무를 ADM에 연결하는 순서](png/cpf-customer-adm-integration.png)
 
 ## 빠른 찾기
 

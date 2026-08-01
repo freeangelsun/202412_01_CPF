@@ -1,0 +1,50 @@
+name: CPF QA37 Source and Runtime Closure
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+permissions:
+  contents: read
+concurrency:
+  group: cpf-qa37-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  source-closure:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '25', cache: gradle }
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.13' }
+      - name: Fail-closed QA37 source closure
+        shell: pwsh
+        run: python ./cpf-tools/scripts/verify-cpf-qa37-source-closure.py --root . --skip-java-compile
+      - name: Java 25 fresh Gradle lifecycle and isolated publication
+        shell: pwsh
+        env:
+          GRADLE_USER_HOME: ${{ runner.temp }}\cpf-gradle-home
+        run: .\gradlew.bat clean qa37JavaLifecycle --no-daemon --stacktrace
+      - name: Clean tree after build
+        shell: pwsh
+        run: |
+          $dirty = git status --porcelain=v1 --untracked-files=all
+          if ($dirty) { $dirty; throw 'Build dirtied the working tree.' }
+  frontend:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        module: [cpf-admin, cpf-biz-admin]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+          cache-dependency-path: ${{ matrix.module }}/frontend/package-lock.json
+      - name: Clean install and deterministic verify
+        working-directory: ${{ matrix.module }}/frontend
+        run: npm ci && npm run verify

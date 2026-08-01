@@ -1,0 +1,118 @@
+{
+  "packageId": "CPF-QA37-CODEX-VERIFICATION-READY-ROOT-OVERLAY",
+  "packageVersion": "20260801_05",
+  "baseSha": "1edd96c6dcc69b0b4d6e9e22a0709d910d7cfb04",
+  "branch": "master",
+  "fileCount": 1170,
+  "overallStatus": "미검증",
+  "sourceImplementationAssessment": "재확인 필요",
+  "requirementCounts": {
+    "QA37": 64,
+    "SELF": 30,
+    "EDU32": 32,
+    "MANUAL_EDU135": 135
+  },
+  "manualEdu": {
+    "handlers": 135,
+    "perIdTestClasses": 675,
+    "springBatchJobConfigurations": 30,
+    "ownerModule": "cpf-reference",
+    "databaseOwner": "refDB",
+    "generatedDomainLinks": 0,
+    "productModuleRuntimeDependencies": 0,
+    "distribution": {
+      "DEV": 45,
+      "BAT": 30,
+      "ADM": 17,
+      "BZA": 14,
+      "GW": 14,
+      "OPS": 15
+    }
+  },
+  "packageLayout": {
+    "online": 45,
+    "batch": 30,
+    "platform": 15,
+    "optionalOperations": 17,
+    "optionalBackoffice": 14,
+    "optionalGateway": 14,
+    "numericRequirementPackages": 0
+  },
+  "featurePacks": {
+    "core": {
+      "count": 60,
+      "mandatory": true
+    },
+    "batch": {
+      "count": 30,
+      "optional": true,
+      "package": "com.cpf.reference.batch"
+    },
+    "operations": {
+      "count": 17,
+      "optional": true,
+      "package": "com.cpf.reference.optional.operations"
+    },
+    "backoffice": {
+      "count": 14,
+      "optional": true,
+      "package": "com.cpf.reference.optional.backoffice"
+    },
+    "gateway": {
+      "count": 14,
+      "optional": true,
+      "package": "com.cpf.reference.optional.gateway"
+    }
+  },
+  "dbVendors": [
+    "oracle",
+    "postgresql",
+    "mariadb"
+  ],
+  "refDbEduTableCount": 7,
+  "refDbOptionalBatchTableCount": 3,
+  "dbLifecycle": [
+    "canonical-source",
+    "fresh-install",
+    "V93-core-upgrade",
+    "V94-batch-upgrade",
+    "U94-batch-rollback",
+    "U93-core-rollback",
+    "runtime-query",
+    "verify",
+    "checksum"
+  ],
+  "generatorPolicy": {
+    "goldenDomainTableCount": 2,
+    "referenceEduSchemaGeneratedDomainAllowed": false,
+    "generatedDomainDependencies": []
+  },
+  "deleteManifest": "cpf-docs/work/manifest/CPF_20260801_QA37_DELETE_MANIFEST.txt",
+  "deleteReview": "cpf-docs/work/manifest/CPF_20260801_QA37_DELETE_REVIEW_REASON.csv",
+  "deleteCandidateCount": 50,
+  "trackedDeletesAutomaticallyApplied": false,
+  "protectedDocsExcluded": [
+    "README.md",
+    "cpf-docs/guides/00_프레임워크안내.md",
+    "cpf-docs/guides/01_개발자매뉴얼.md",
+    "cpf-docs/guides/02_배치개발매뉴얼.md",
+    "cpf-docs/guides/03_ADM개발자매뉴얼.md",
+    "cpf-docs/guides/04_ADM운영자매뉴얼.md",
+    "cpf-docs/guides/05_플랫폼운영매뉴얼.md",
+    "cpf-docs/guides/90_BZA매뉴얼.md",
+    "cpf-docs/guides/91_Gateway매뉴얼.md"
+  ],
+  "gitWritesPerformed": false,
+  "completionState": "cpf-docs/evidence/qa37/QA37_COMPLETION_STATE.json",
+  "codexRequest": "cpf-docs/work/codex/qa37/CPF_CODEX_QA37_FINAL_INDEPENDENT_VERIFICATION_REQUEST.md",
+  "validationContract": {
+    "overlaySourceGate": "executed-pass",
+    "mergedRepositorySourceGate": "not-executed",
+    "java25FreshLifecycle": "not-executed",
+    "frontendCleanVerify": "not-executed",
+    "threeVendorRuntime": "not-executed",
+    "runtimeFaultBrowserSupplyChain": "not-executed",
+    "exactResultShaEvidence": "recheck-required"
+  },
+  "createdUtc": "2026-08-01T14:13:15Z"
+}

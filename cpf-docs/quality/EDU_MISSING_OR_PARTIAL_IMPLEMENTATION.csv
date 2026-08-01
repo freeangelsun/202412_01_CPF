@@ -1,0 +1,2 @@
+requirement_id,development_status,reason
+MERGED-REPOSITORY-RECHECK,재확인 필요,No known overlay source gap remains but full repository Java25 compile and actual runtime consumers have not been executed at the exact result SHA

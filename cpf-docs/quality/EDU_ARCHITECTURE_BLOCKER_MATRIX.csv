@@ -1,0 +1,2 @@
+blocker_id,classification,requirement_id,development_status,verification_status,source_evidence,recommended_decision
+MERGED-REPOSITORY-RECHECK,ENVIRONMENT_VALIDATION,ALL,완료,미검증,cpf-docs/evidence/qa37/QA37_COMPLETION_STATE.json,Apply overlay then execute Java25 merged-source/build and runtime gates before overall completion

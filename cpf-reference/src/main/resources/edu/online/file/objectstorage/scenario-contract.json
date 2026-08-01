@@ -1,0 +1,98 @@
+{
+  "requirementId": "EDU-DEV-30",
+  "title": "Object Storage 보존·버전·법적 보류",
+  "implementationPackage": "com.cpf.reference.online.file.objectstorage",
+  "owner": "cpf-reference",
+  "requiredRole": "CPF_REFERENCE_DEVELOPER",
+  "inputFields": [
+    "objectKey",
+    "versionId",
+    "retentionUntil",
+    "legalHold",
+    "fileName",
+    "contentLength",
+    "checksum"
+  ],
+  "businessStates": [
+    "UPLOADED",
+    "RETAINED",
+    "HOLD",
+    "RELEASABLE",
+    "DELETED"
+  ],
+  "workflowSteps": [
+    "VALIDATE",
+    "AUTHORIZE",
+    "SCOPE",
+    "DEDUPE",
+    "VERSION_CHECK",
+    "CHECKSUM",
+    "PROTECT",
+    "MUTATE",
+    "COMMIT",
+    "RECONCILE",
+    "AUDIT",
+    "OBSERVE"
+  ],
+  "failurePoints": [
+    "BEFORE_COMMIT",
+    "AFTER_COMMIT",
+    "PARTIAL_TARGET_FAILURE"
+  ],
+  "exceptionScenarios": [
+    "동일 Key 덮어쓰기",
+    "만료 전 삭제",
+    "legal hold 해제 권한",
+    "Storage ACK 유실",
+    "상태 변경이 있는 경우 DB Commit 전 실패와 Commit 후 응답 유실을 구분한다.",
+    "같은 요청의 중복·동시 실행·순서 역전·늦은 응답을 포함한다.",
+    "Retry 가능한 오류와 즉시 중단해야 하는 업무 오류를 구분한다.",
+    "대량·다중 대상 기능에서 부분 성공이 발생하면 성공 대상을 다시 실행하지 않고 실패 대상만 Reprocess·Reconcile한다.",
+    "복구·보상이 필요한 기능은 복구 실패와 보상 실패도 별도 상태·Attempt·Audit로 남긴다."
+  ],
+  "requiredTests": [
+    "S3 호환 Test",
+    "Versioning",
+    "checksum",
+    "presigned URL 만료",
+    "Audit",
+    "입력 Validation·권한·Data Scope·Masking Negative Test",
+    "해당 기능에 적용되는 중복·동시성·Timeout·응답 유실·부분 실패 Test",
+    "해당 기능의 Failure Injection 후 필요한 Retry·Restart·Reprocess·Reconcile·Rollback Test",
+    "Oracle·PostgreSQL·MariaDB 또는 해당 Infra의 의미 동일성 Test",
+    "Log·Metric·Trace·Audit에 Secret·개인정보 원문이 없는지 검사"
+  ],
+  "readOnly": false,
+  "manualAnchor": "EDU-DEV-30",
+  "idempotent": true,
+  "versioned": true,
+  "leaseRequired": false,
+  "externalEffect": false,
+  "compensationSupported": false,
+  "rollbackSupported": false,
+  "consumerBinding": {
+    "type": "FILE",
+    "ownerModule": "cpf-reference",
+    "entryPoint": "cpf-reference EDU file store",
+    "operation": "DELETED",
+    "publicContract": "cpf-reference safe file/checksum contract",
+    "runtimeCommand": "POST /api/reference/edu-capabilities/EDU-DEV-30/executions",
+    "configurationKey": "cpf.edu.business-file-root",
+    "timeoutSeconds": 120,
+    "argumentFields": [
+      "objectKey",
+      "versionId",
+      "retentionUntil",
+      "legalHold",
+      "fileName",
+      "contentLength",
+      "checksum"
+    ]
+  },
+  "featurePack": "core",
+  "optionalFeature": false,
+  "featureToggle": "",
+  "generatedDomainIndependent": true,
+  "productModuleIndependent": true,
+  "databaseOwner": "refDB"
+}

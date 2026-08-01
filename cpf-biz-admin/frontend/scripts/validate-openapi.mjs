@@ -1,15 +1,25 @@
 import fs from "node:fs";
 import path from "node:path";
-const file = path.resolve(process.env.CPF_OPENAPI_FILE || process.argv[2] || "openapi/cpf-openapi.json");
+
+function option(name) {
+  const prefix = `--${name}=`;
+  const hit = process.argv.slice(2).find(value => value.startsWith(prefix));
+  return hit ? hit.slice(prefix.length) : undefined;
+}
+
+const positionalFile = process.argv.slice(2).find(value => !value.startsWith("--"));
+const file = path.resolve(process.env.CPF_OPENAPI_FILE || option("file") || positionalFile || "openapi/cpf-openapi.json");
 if (!fs.existsSync(file)) throw new Error(`OpenAPI file missing: ${file}`);
 const spec = JSON.parse(fs.readFileSync(file, "utf8"));
 if (spec.openapi?.split('.')[0] !== '3') throw new Error("OpenAPI 3.x 문서가 아닙니다.");
 if (spec["x-cpf-source-sha"] || spec["x-cpf-result-sha"]) throw new Error("Tracked OpenAPI에 Git SHA를 기록할 수 없습니다.");
-const verificationScope = String(process.env.CPF_OPENAPI_SCOPE || "release").toLowerCase();
+const inferredScope = spec["x-cpf-export-origin"] === "BACKEND_RUNTIME" ? "release" : "source";
+const verificationScope = String(process.env.CPF_OPENAPI_SCOPE || option("scope") || inferredScope).toLowerCase();
 if (!["release", "source"].includes(verificationScope)) throw new Error(`Unsupported CPF_OPENAPI_SCOPE=${verificationScope}`);
 const expectedOrigin = verificationScope === "release" ? "BACKEND_RUNTIME" : "CONTROLLER_SOURCE_PRE_RUNTIME";
 if (spec["x-cpf-export-origin"] !== expectedOrigin) throw new Error(`x-cpf-export-origin=${expectedOrigin} 필요`);
 if (verificationScope === "source" && spec["x-cpf-release-eligible"] !== false) throw new Error("Source contract must be release-ineligible");
+if (verificationScope === "release" && spec["x-cpf-release-eligible"] !== true) throw new Error("Runtime contract must be release-eligible");
 if (Number(spec["x-cpf-canonical-schema-version"]) !== 4) throw new Error("canonical OpenAPI schemaVersion 4 필요");
 const module = String(spec["x-cpf-product-module"] || "").toUpperCase();
 const publicPrefix = module === "ADM" ? "/adm/api/" : module === "BZA" ? "/api/bza/" : null;

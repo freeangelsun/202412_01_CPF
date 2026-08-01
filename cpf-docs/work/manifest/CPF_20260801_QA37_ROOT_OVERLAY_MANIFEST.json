@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "packageId": "CPF-20260801-QA37-EDU-SOURCE-CLOSURE",
+  "repository": "freeangelsun/202412_01_CPF",
+  "branch": "master",
+  "baselineSha": "23a16f35a5633ce1317920468a69fef00c1a6a41",
+  "generatedAt": "2026-08-01T18:22:22+09:00",
+  "fileCount": 17,
+  "deleteManifest": "cpf-docs/work/manifest/CPF_20260801_QA37_DELETE_MANIFEST.txt",
+  "primaryRequest": "cpf-docs/work/current/CPF_20260801_QA37_EDU_SOURCE_CLOSURE_AND_RECOVERY_REQUEST.md",
+  "developmentPrompt": "cpf-docs/work/current/CPF_20260801_QA37_DEVELOPMENT_GPT_PROMPT.md",
+  "handover": "cpf-docs/work/handover/CPF_CONVERSATION_SESSION_HANDOVER_20260801_SESSION8.md",
+  "hashExclusions": [
+    "cpf-docs/work/codex/qa37/PACKAGE_MANIFEST.json",
+    "cpf-docs/work/manifest/CPF_20260801_QA37_FILES.sha256",
+    "cpf-docs/work/manifest/CPF_20260801_QA37_ROOT_OVERLAY_MANIFEST.json"
+  ],
+  "gitWritesPerformed": false,
+  "runtimeVerificationPerformed": false,
+  "protectedDocumentPolicy": "README and README-linked Manual/Guide are excluded"
+}

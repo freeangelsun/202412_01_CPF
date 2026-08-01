@@ -1,0 +1,2 @@
+# CPF QA37 Delete Manifest
+NONE

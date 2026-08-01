@@ -3,6 +3,7 @@ package com.cpf.admin.opr.controller;
 import com.cpf.admin.opr.service.AdmAuditLogService;
 import com.cpf.admin.opr.service.AdmServiceRegistryService;
 import com.cpf.core.api.execution.CpfOnlineTransaction;
+import com.cpf.core.api.data.CpfDataRow;
 import com.cpf.core.api.logging.CpfTransactionContext;
 import com.cpf.core.api.servicecall.CpfServiceRegistryControlPort;
 import com.cpf.core.api.servicecall.CpfServiceRegistryCatalog;
@@ -34,8 +35,8 @@ public class AdmServiceRegistryController extends com.cpf.admin.common.base.AdmB
 
     @GetMapping("/capabilities")
     @Operation(operationId="admServiceRegistryCapabilities",summary="Service Registry Code·Capability 조회")
-    public Map<String,Object> capabilities() {
-        return Map.of(
+    public CpfDataRow capabilities() {
+        return CpfDataRow.of(
                 "catalogVersion","1",
                 "serviceTypes",CpfServiceRegistryCatalog.SERVICE_TYPES,
                 "endpointTypes",CpfServiceRegistryCatalog.ENDPOINT_TYPES,

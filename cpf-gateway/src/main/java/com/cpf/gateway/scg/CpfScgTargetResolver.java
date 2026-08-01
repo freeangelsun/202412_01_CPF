@@ -2,9 +2,9 @@ package com.cpf.gateway.scg;
 
 import com.cpf.core.api.gateway.CpfGatewayRoute;
 import com.cpf.core.api.servicecall.CpfServiceRegistryQueryPort;
+import com.cpf.core.api.security.network.CpfNetworkEndpointPolicy;
 import com.cpf.core.api.servicecall.CpfServiceRegistryView;
 import com.cpf.gateway.config.CpfGatewaySafetyProperties;
-import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.URLDecoder;
@@ -77,8 +77,12 @@ public final class CpfScgTargetResolver {
         CpfServiceRegistryView.Instance selected = weighted(route.serverGroupId(), candidates);
         URI base = URI.create(selected.baseUrl()).normalize();
         validateBaseUri(base);
-        List<InetAddress> approved = validateResolvedAddresses(
-                base, safety.isAllowPublicTargets(), addressResolver);
+        CpfNetworkEndpointPolicy endpointPolicy = new CpfNetworkEndpointPolicy(
+                safety.getAllowedTargetCidrs(), safety.getAllowedTargetPorts(),
+                safety.isAllowPrivateTargets(), safety.isAllowPublicTargets(),
+                safety.isAllowDnsTargets(), safety.isRequireTlsTargets());
+        endpointPolicy.validateEndpoint(base.toString());
+        List<InetAddress> approved = validateResolvedAddresses(base, endpointPolicy, addressResolver);
         URI canonical = resolveCanonical(base, targetPath, rawQuery);
         InetAddress pinned = approved.getFirst();
         return new Target(
@@ -160,7 +164,7 @@ public final class CpfScgTargetResolver {
 
     static List<InetAddress> validateResolvedAddresses(
             URI base,
-            boolean allowPublic,
+            CpfNetworkEndpointPolicy endpointPolicy,
             AddressResolver resolver) {
         try {
             InetAddress[] resolved = resolver.resolve(base.getHost());
@@ -171,35 +175,13 @@ public final class CpfScgTargetResolver {
                     .distinct()
                     .sorted(Comparator.comparing(InetAddress::getHostAddress))
                     .toList();
-            boolean privateSeen = false;
-            boolean publicSeen = false;
-            for (InetAddress address : addresses) {
-                validateAddress(address, allowPublic);
-                if (privateAddress(address)) privateSeen = true;
-                else publicSeen = true;
-            }
-            if (privateSeen && publicSeen) {
-                throw new SecurityException("Gateway mixed private/public DNS response denied");
-            }
+            endpointPolicy.validateResolvedAddresses(
+                    base.getHost(), addresses.stream().map(InetAddress::getHostAddress).toList());
             return addresses;
         } catch (java.net.UnknownHostException failure) {
             throw new SecurityException("Gateway upstream DNS resolution failed", failure);
-        }
-    }
-
-    private static void validateAddress(InetAddress address, boolean allowPublic) {
-        String text = address.getHostAddress().toLowerCase(java.util.Locale.ROOT);
-        if (address.isAnyLocalAddress()
-                || address.isLoopbackAddress()
-                || address.isLinkLocalAddress()
-                || address.isMulticastAddress()
-                || "169.254.169.254".equals(text)
-                || "100.100.100.200".equals(text)
-                || text.startsWith("fd00:ec2:")) {
-            throw new SecurityException("Gateway upstream address denied: " + address.getHostAddress());
-        }
-        if (!allowPublic && !privateAddress(address)) {
-            throw new SecurityException("Gateway public upstream address denied: " + address.getHostAddress());
+        } catch (IllegalArgumentException failure) {
+            throw new SecurityException("Gateway upstream network policy denied", failure);
         }
     }
 

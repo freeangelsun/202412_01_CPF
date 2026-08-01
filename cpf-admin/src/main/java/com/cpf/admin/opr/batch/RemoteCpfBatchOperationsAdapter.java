@@ -2,6 +2,7 @@ package com.cpf.admin.opr.batch;
 
 import com.cpf.admin.opr.context.AdmAuthenticatedOperatorContext;
 import com.cpf.core.api.batch.CpfBatchOperationsPort;
+import com.cpf.core.api.data.CpfDataRow;
 import com.cpf.core.api.batch.CpfBatchOwnerUnknownResultException;
 import com.cpf.core.api.servicecall.CpfServiceCaller;
 import com.cpf.core.api.servicecall.CpfServiceRequest;
@@ -83,19 +84,29 @@ public class RemoteCpfBatchOperationsAdapter implements CpfBatchOperationsPort {
         return value.trim();
     }
 
-    @SuppressWarnings("unchecked") private List<Map<String,Object>> list(Object v){return v==null?List.of():(List<Map<String,Object>>)v;}
-    @SuppressWarnings("unchecked") private Map<String,Object> map(Object v){return v==null?Map.of():(Map<String,Object>)v;}
+    private List<CpfDataRow> list(Object value) {
+        if (value == null) {
+            throw new IllegalStateException("BAT Owner 목록 응답 본문이 없습니다.");
+        }
+        return CpfDataRow.copyRows(value);
+    }
+    private CpfDataRow map(Object value) {
+        if (value == null) {
+            throw new IllegalStateException("BAT Owner 상세 응답 본문이 없습니다.");
+        }
+        return CpfDataRow.copyOf(value);
+    }
     private Map<String,Object> p(Object... kv){java.util.LinkedHashMap<String,Object> m=new java.util.LinkedHashMap<>();for(int i=0;i<kv.length;i+=2)if(kv[i+1]!=null)m.put(String.valueOf(kv[i]),kv[i+1]);return m;}
 
-    public List<Map<String,Object>> findJobs(){return list(invokeRead("findJobs",Map.of()));}
-    public Map<String,Object> findJobDetail(String jobId){return map(invokeRead("findJobDetail",p("jobId",jobId)));}
-    public List<Map<String,Object>> findSchedules(){return list(invokeRead("findSchedules",Map.of()));}
-    public List<Map<String,Object>> findExecutions(
+    public List<CpfDataRow> findJobs(){return list(invokeRead("findJobs",Map.of()));}
+    public CpfDataRow findJobDetail(String jobId){return map(invokeRead("findJobDetail",p("jobId",jobId)));}
+    public List<CpfDataRow> findSchedules(){return list(invokeRead("findSchedules",Map.of()));}
+    public List<CpfDataRow> findExecutions(
             String jobId,String transactionId,Long springBatchJobInstanceId,
             String workerId,String serverInstanceId,int limit){
         return findExecutions(jobId, transactionId, springBatchJobInstanceId, workerId, serverInstanceId, null, null, limit);
     }
-    public List<Map<String,Object>> findExecutions(
+    public List<CpfDataRow> findExecutions(
             String jobId,String transactionId,Long springBatchJobInstanceId,
             String workerId,String serverInstanceId,String fromDate,String toDate,int limit){
         return list(invokeRead("findExecutions",p(
@@ -108,23 +119,40 @@ public class RemoteCpfBatchOperationsAdapter implements CpfBatchOperationsPort {
                 "toDate",toDate,
                 "limit",limit)));
     }
-    public Map<String,Object> findExecutionDetail(long executionId){return map(invokeRead("findExecutionDetail",p("executionId",executionId)));}
-    public List<Map<String,Object>> findInstances(){return list(invokeRead("findInstances",Map.of()));}
-    public List<Map<String,Object>> findWorkers(int timeout){return list(invokeRead("findWorkers",p("heartbeatTimeoutSeconds",timeout)));}
-    public List<Map<String,Object>> findStepExecutions(Long executionId,String jobId,int limit){return list(invokeRead("findStepExecutions",p("executionId",executionId,"jobId",jobId,"limit",limit)));}
-    public List<Map<String,Object>> findRelations(String jobId){return list(invokeRead("findRelations",p("jobId",jobId)));}
-    public List<Map<String,Object>> findExecutionTargets(String jobId,String status,int limit){return list(invokeRead("findExecutionTargets",p("jobId",jobId,"dispatchStatus",status,"limit",limit)));}
-    public List<Map<String,Object>> findLocks(String jobId){return list(invokeRead("findLocks",p("jobId",jobId)));}
-    public Map<String,Object> releaseLock(String key,String user,String reason){return map(invoke("releaseLock",p("lockKey",key,"requestUser",user,"reason",reason),user));}
-    public List<Map<String,Object>> findGhostCandidates(int timeout){return list(invokeRead("findGhostCandidates",p("heartbeatTimeoutSeconds",timeout)));}
-    public Map<String,Object> actGhostExecution(long id,String action,String user,String reason){return map(invoke("actGhostExecution",p("executionId",id,"actionType",action,"requestUser",user,"reason",reason),user));}
-    public List<Map<String,Object>> findOperationLogs(String jobId,Long executionId,int limit){return list(invokeRead("findOperationLogs",p("jobId",jobId,"executionId",executionId,"limit",limit)));}
-    public List<Map<String,Object>> simulateSchedule(String id,String base,int days){return list(invokeRead("simulateSchedule",p("scheduleId",id,"baseDate",base,"days",days)));}
-    public Map<String,Object> registerJob(String id,String name,String type,String desc,String user){return map(invoke("registerJob",p("jobId",id,"jobName",name,"jobType",type,"description",desc,"requestUser",user),user));}
-    public Map<String,Object> requestRun(String jobId,String params,String user,String reason){return map(invoke("requestRun",p("jobId",jobId,"jobParameters",params,"requestUser",user,"reason",reason),user));}
-    public Map<String,Object> requestScheduledRun(String schedule,String job,String params,String user,String reason){return map(invoke("requestScheduledRun",p("scheduleId",schedule,"jobId",job,"jobParameters",params,"requestUser",user,"reason",reason),user));}
-    public Map<String,Object> requestRetry(long id,String user,String reason){return map(invoke("requestRetry",p("executionId",id,"requestUser",user,"reason",reason),user));}
-    public Map<String,Object> requestStop(long id,String user,String reason){return map(invoke("requestStop",p("executionId",id,"requestUser",user,"reason",reason),user));}
-    public Map<String,Object> updateScheduleEnabled(String id,boolean enabled,String user,String reason){return map(invoke("updateScheduleEnabled",p("scheduleId",id,"enabled",enabled,"requestUser",user,"reason",reason),user));}
-    public List<Map<String,Object>> runSchedulerOnce(String user){return list(invoke("runSchedulerOnce",p("requestUser",user),user));}
+    public CpfDataRow findExecutionPage(
+            String jobId,String transactionId,Long springBatchJobInstanceId,
+            String workerId,String serverInstanceId,String status,
+            String fromDate,String toDate,int page,int size){
+        return map(invokeRead("findExecutionPage",p(
+                "jobId",jobId,
+                "transactionId",transactionId,
+                "springBatchJobInstanceId",springBatchJobInstanceId,
+                "workerId",workerId,
+                "serverInstanceId",serverInstanceId,
+                "status",status,
+                "fromDate",fromDate,
+                "toDate",toDate,
+                "page",page,
+                "size",size)));
+    }
+    public CpfDataRow findExecutionDetail(long executionId){return map(invokeRead("findExecutionDetail",p("executionId",executionId)));}
+    public List<CpfDataRow> findInstances(){return list(invokeRead("findInstances",Map.of()));}
+    public List<CpfDataRow> findWorkers(int timeout){return list(invokeRead("findWorkers",p("heartbeatTimeoutSeconds",timeout)));}
+    public List<CpfDataRow> findStepExecutions(Long executionId,String jobId,int limit){return list(invokeRead("findStepExecutions",p("executionId",executionId,"jobId",jobId,"limit",limit)));}
+    public List<CpfDataRow> findRelations(String jobId){return list(invokeRead("findRelations",p("jobId",jobId)));}
+    public List<CpfDataRow> findExecutionTargets(String jobId,String status,int limit){return list(invokeRead("findExecutionTargets",p("jobId",jobId,"dispatchStatus",status,"limit",limit)));}
+    public List<CpfDataRow> findLocks(String jobId){return list(invokeRead("findLocks",p("jobId",jobId)));}
+    public CpfDataRow releaseLock(String key,String user,String reason){return map(invoke("releaseLock",p("lockKey",key,"requestUser",user,"reason",reason),user));}
+    public List<CpfDataRow> findGhostCandidates(int timeout){return list(invokeRead("findGhostCandidates",p("heartbeatTimeoutSeconds",timeout)));}
+    public CpfDataRow actGhostExecution(long id,String action,String user,String reason){return map(invoke("actGhostExecution",p("executionId",id,"actionType",action,"requestUser",user,"reason",reason),user));}
+    public List<CpfDataRow> findOperationLogs(String jobId,Long executionId,int limit){return list(invokeRead("findOperationLogs",p("jobId",jobId,"executionId",executionId,"limit",limit)));}
+    public List<CpfDataRow> simulateSchedule(String id,String base,int days){return list(invokeRead("simulateSchedule",p("scheduleId",id,"baseDate",base,"days",days)));}
+    public CpfDataRow registerJob(String id,String name,String type,String desc,String user){return map(invoke("registerJob",p("jobId",id,"jobName",name,"jobType",type,"description",desc,"requestUser",user),user));}
+    public CpfDataRow requestRun(String jobId,String params,String user,String reason){return map(invoke("requestRun",p("jobId",jobId,"jobParameters",params,"requestUser",user,"reason",reason),user));}
+    public CpfDataRow requestScheduledRun(String schedule,String job,String params,String user,String reason){return map(invoke("requestScheduledRun",p("scheduleId",schedule,"jobId",job,
+            "jobParameters",params,"requestUser",user,"reason",reason),user));}
+    public CpfDataRow requestRetry(long id,String user,String reason){return map(invoke("requestRetry",p("executionId",id,"requestUser",user,"reason",reason),user));}
+    public CpfDataRow requestStop(long id,String user,String reason){return map(invoke("requestStop",p("executionId",id,"requestUser",user,"reason",reason),user));}
+    public CpfDataRow updateScheduleEnabled(String id,boolean enabled,String user,String reason){return map(invoke("updateScheduleEnabled",p("scheduleId",id,"enabled",enabled,"requestUser",user,"reason",reason),user));}
+    public List<CpfDataRow> runSchedulerOnce(String user){return list(invoke("runSchedulerOnce",p("requestUser",user),user));}
 }

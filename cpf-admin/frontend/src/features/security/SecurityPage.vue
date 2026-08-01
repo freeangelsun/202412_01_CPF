@@ -19,14 +19,15 @@
         </div>
         <pre class="detail">{{ pretty(securityResult) }}</pre>
       </section>
+
+  <section class="panel route-operation-panel"><h3>MFA 해제</h3><button type="button" v-if="canWrite('SECURITY')" @click="disableMfa">MFA 해제</button></section>
 </template>
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import { admConsoleMixin } from "../../app/admConsoleMixin";
+import { useAdmConsolePage } from "../../app/useAdmConsolePage";
 
-export default defineComponent({
+export default defineComponent({setup(){return useAdmConsolePage()},
   name: "SecurityPage",
-  mixins: [admConsoleMixin]
-});
+  });
 </script>

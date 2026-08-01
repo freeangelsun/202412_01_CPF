@@ -25,6 +25,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+/** Instance별 동적 로그 레벨 변경을 CAS·사유·감사와 함께 제어합니다. */
 @RestController
 @RequestMapping("/adm/api/log-level")
 @Tag(name = "ADM-OPR Dynamic Log", description = "Temporary transaction log-level control APIs")
@@ -75,10 +76,10 @@ public class AdmDynamicLogLevelController extends com.cpf.admin.common.base.AdmB
         request.setLogLevel(logLevel);
         request.setTtl(Duration.ofSeconds(ttlSeconds));
         request.setReason(auditReason);
-        request.setRequestUser(requestUser);
+        String operatorId = requestUser(servletRequest, requestUser);
+        request.setRequestUser(operatorId);
         DynamicLogLevelRule rule = dynamicLogLevelService.register(request);
         ruleStore.save(rule);
-        String operatorId = requestUser(servletRequest, requestUser);
         broadcastService.publishUpsert(rule, operatorId);
         auditLogService.record(
                 com.cpf.core.api.logging.CpfTransactionContext.transactionId(),
@@ -118,10 +119,6 @@ public class AdmDynamicLogLevelController extends com.cpf.admin.common.base.AdmB
     }
 
     private String requestUser(HttpServletRequest request, String fallback) {
-        Object operatorId = request.getAttribute("adm.operatorId");
-        if (operatorId instanceof String value && !value.isBlank()) {
-            return value;
-        }
-        return fallback;
+        return requireOperator(request);
     }
 }

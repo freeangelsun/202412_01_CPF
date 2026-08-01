@@ -12,11 +12,11 @@ import java.util.Set;
  * ADM 영속성 Fail-closed 정책입니다.
  *
  * <p>제품 실행의 기본값은 DATABASE이며 DB 오류를 메모리 성공으로 바꾸지 않습니다.
- * MEMORY는 local/test/demo/library 프로필에서 명시적으로 선택한 경우에만 허용합니다.</p>
+ * MEMORY는 EDU/test 프로필에서 명시적으로 선택한 경우에만 허용합니다. 제품·local·demo·library 실행은 DATABASE fail-closed입니다.</p>
  */
 @Component
 public class AdmPersistencePolicy {
-    private static final Set<String> MEMORY_ALLOWED_PROFILES = Set.of("local", "test", "demo", "library");
+    private static final Set<String> MEMORY_ALLOWED_PROFILES = Set.of("edu", "test");
     private final Mode mode;
 
     public AdmPersistencePolicy(Environment environment) {
@@ -27,7 +27,7 @@ public class AdmPersistencePolicy {
                     .map(value -> value.toLowerCase(Locale.ROOT))
                     .anyMatch(MEMORY_ALLOWED_PROFILES::contains);
             if (!allowed) {
-                throw new CpfValidationException("ADM MEMORY persistence는 local/test/demo/library 프로필에서만 사용할 수 있습니다.");
+                throw new CpfValidationException("ADM MEMORY persistence는 EDU/test 프로필에서만 사용할 수 있습니다.");
             }
         }
     }

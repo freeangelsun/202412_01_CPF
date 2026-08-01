@@ -1,12 +1,13 @@
 package com.cpf.admin.opr.dto;
 
-/**
- * 배치 ghost 후보에 대한 운영 조치 요청입니다.
- *
- * @param actionType 조치 유형. FAIL, ABANDON, RELEASE_LOCK 중 하나를 권장합니다.
- * @param reason 감사 로그와 ghost 이벤트에 남길 운영 사유
- */
+/** Ghost·Unknown Result 운영 판정 요청입니다. */
 public record AdmBatchGhostActionRequest(
         String actionType,
-        String reason) {
+        String reason,
+        String approvalRequestId,
+        Long expectedVersion,
+        String idempotencyKey) {
+    public AdmBatchGhostActionRequest(String actionType, String reason) {
+        this(actionType, reason, null, null, null);
+    }
 }

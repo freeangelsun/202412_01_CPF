@@ -30,6 +30,16 @@ export const referenceMethods: Record<string, any> = {
         }
         return data;
       },
+  async loadNotificationDlq() {
+        const deliveryLogs = await this.getJson("/adm/api/notifications/delivery-logs/dlq?limit=100");
+        this.notificationResult = {
+          ...this.notificationResult,
+          deliveryLogs: Array.isArray(deliveryLogs) ? deliveryLogs : [],
+          attempts: []
+        };
+        this.selectedNotificationDelivery = null;
+        this.setMessage("알림 DLQ를 조회했습니다.");
+      },
   async loadNotifications() {
         const [rules, deliveryLogs] = await Promise.all([
           this.getJson("/adm/api/notifications/rules"),
@@ -74,8 +84,8 @@ export const referenceMethods: Record<string, any> = {
       },
   notificationDeliveryActionAllowed(action) {
         const status = this.notificationDeliveryForm.deliveryStatus;
-        if (action === "retry") return ["FAILED", "UNKNOWN_RESULT", "CANCELLED"].includes(status);
-        if (action === "cancel") return ["READY", "RETRY", "UNKNOWN_RESULT"].includes(status);
+        if (action === "retry") return ["DLQ", "FAILED", "UNKNOWN_RESULT", "CANCELLED"].includes(status);
+        if (action === "cancel") return ["READY", "RETRY", "UNKNOWN_RESULT", "DLQ"].includes(status);
         return false;
       },
   async retryNotificationDelivery() {
@@ -86,7 +96,6 @@ export const referenceMethods: Record<string, any> = {
         const params = this.buildParams({
           expectedVersion: this.notificationDeliveryForm.expectedVersion,
           reason: this.notificationDeliveryForm.reason,
-          requestUser: this.currentOperator.operatorId
         });
         const action = await this.sendJson(
           `/adm/api/notifications/delivery-logs/${this.notificationDeliveryForm.deliveryId}/retry?${params.toString()}`,
@@ -104,7 +113,6 @@ export const referenceMethods: Record<string, any> = {
         const params = this.buildParams({
           expectedVersion: this.notificationDeliveryForm.expectedVersion,
           reason: this.notificationDeliveryForm.reason,
-          requestUser: this.currentOperator.operatorId
         });
         const action = await this.sendJson(
           `/adm/api/notifications/delivery-logs/${this.notificationDeliveryForm.deliveryId}/cancel?${params.toString()}`,
@@ -124,7 +132,6 @@ export const referenceMethods: Record<string, any> = {
           receiverGroup: this.notificationForm.receiverGroup,
           useYn: this.notificationForm.useYn,
           reason: this.notificationForm.reason,
-          requestUser: this.currentOperator.operatorId
         };
       },
   async saveNotificationRule() {
@@ -141,7 +148,6 @@ export const referenceMethods: Record<string, any> = {
         if (!this.notificationForm.ruleId || !this.requireReason(this.notificationForm.reason)) return;
         const params = this.buildParams({
           reason: this.notificationForm.reason,
-          requestUser: this.currentOperator.operatorId
         });
         const action = await this.sendJson(
           `/adm/api/notifications/rules/${this.notificationForm.ruleId}/disable?${params.toString()}`,
@@ -159,14 +165,13 @@ export const referenceMethods: Record<string, any> = {
           receiver: this.notificationForm.receiver,
           message: this.notificationForm.message,
           reason: this.notificationForm.reason,
-          requestUser: this.currentOperator.operatorId
         });
         await this.loadNotifications();
         this.setMessage("알림 테스트 발송을 요청했습니다.");
       },
   async refreshCache(target) {
         if (!this.requireReason(this.cacheReason)) return;
-        const params = this.buildParams({ target, reason: this.cacheReason, requestUser: this.currentOperator.operatorId });
+        const params = this.buildParams({ target, reason: this.cacheReason });
         this.cacheResult = await this.sendJson(`/adm/api/cache/refresh?${params.toString()}`, "POST");
         this.setMessage(`${target} 캐시 갱신을 요청했습니다.`);
       },
@@ -257,7 +262,7 @@ export const referenceMethods: Record<string, any> = {
       },
   async deleteResponseCode() {
         if (!this.requireReason(this.responseCodeReason)) return;
-        const params = this.buildParams({ reason: this.responseCodeReason, requestUser: this.currentOperator.operatorId });
+        const params = this.buildParams({ reason: this.responseCodeReason });
         this.responseCodeResult = await this.sendJson(`/adm/api/response-codes/${this.responseCodeForm.responseCode}?${params.toString()}`, "DELETE");
         this.setMessage("응답코드 삭제를 요청했습니다.");
       }

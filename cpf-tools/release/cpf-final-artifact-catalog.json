@@ -1,0 +1,428 @@
+{
+  "schemaVersion": 1,
+  "catalogId": "CPF-FINAL-ARTIFACT-CATALOG",
+  "sourceShaPolicy": "runtime-exact-sha-evidence",
+  "officialDatabaseVendors": [
+    "oracle",
+    "postgresql",
+    "mariadb"
+  ],
+  "artifacts": [
+    {
+      "artifactId": "cpf-core",
+      "ownerPath": "cpf-core",
+      "kind": "library",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-core/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "repository-module-or-deployment"
+    },
+    {
+      "artifactId": "cpf-common",
+      "ownerPath": "cpf-common",
+      "kind": "library",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-common/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "repository-module-or-deployment"
+    },
+    {
+      "artifactId": "cpf-starter-security",
+      "ownerPath": "cpf-starters/security",
+      "kind": "starter",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/security/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "repository-module-or-deployment"
+    },
+    {
+      "artifactId": "cpf-starter-messaging-kafka",
+      "ownerPath": "cpf-starters/messaging-kafka",
+      "kind": "starter",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/messaging-kafka/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "repository-module-or-deployment"
+    },
+    {
+      "artifactId": "cpf-starter-cache",
+      "ownerPath": "cpf-starters/cache",
+      "kind": "starter",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/cache/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "repository-module-or-deployment"
+    },
+    {
+      "artifactId": "cpf-starter-observability",
+      "ownerPath": "cpf-starters/observability",
+      "kind": "starter",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/observability/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "repository-module-or-deployment"
+    },
+    {
+      "artifactId": "cpf-starter-resilience",
+      "ownerPath": "cpf-starters/resilience",
+      "kind": "starter",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/resilience/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "repository-module-or-deployment"
+    },
+    {
+      "artifactId": "cpf-starter-featureflag",
+      "ownerPath": "cpf-starters/featureflag",
+      "kind": "starter",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/featureflag/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "repository-module-or-deployment"
+    },
+    {
+      "artifactId": "cpf-starter-secret",
+      "ownerPath": "cpf-starters/secret",
+      "kind": "starter",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/secret/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "repository-module-or-deployment"
+    },
+    {
+      "artifactId": "cpf-admin",
+      "ownerPath": "cpf-admin",
+      "kind": "runtime",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-admin/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "repository-module-or-deployment"
+    },
+    {
+      "artifactId": "cpf-biz-admin",
+      "ownerPath": "cpf-biz-admin",
+      "kind": "runtime",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-biz-admin/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "repository-module-or-deployment"
+    },
+    {
+      "artifactId": "cpf-gateway",
+      "ownerPath": "cpf-gateway",
+      "kind": "runtime",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-gateway/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "repository-module-or-deployment"
+    },
+    {
+      "artifactId": "cpf-reference",
+      "ownerPath": "cpf-reference",
+      "kind": "reference-runtime",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-reference/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "repository-module-or-deployment"
+    },
+    {
+      "artifactId": "cpf-local-runtime",
+      "ownerPath": "cpf-tools/runtime/cpf-local-runtime",
+      "kind": "runtime",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-tools/runtime/cpf-local-runtime/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "repository-module-or-deployment"
+    },
+    {
+      "artifactId": "cpf-local-batch-runtime",
+      "ownerPath": "cpf-tools/runtime/cpf-local-batch-runtime",
+      "kind": "runtime",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-tools/runtime/cpf-local-batch-runtime/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "repository-module-or-deployment"
+    },
+    {
+      "artifactId": "cpf-member",
+      "ownerPath": "cpf-member",
+      "kind": "generated-domain",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-member/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "repository-module-or-deployment"
+    },
+    {
+      "artifactId": "cpf-batch-contract",
+      "ownerPath": "cpf-batch/contract",
+      "kind": "library",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-batch/contract/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "repository-module-or-deployment"
+    },
+    {
+      "artifactId": "cpf-batch-runtime-common",
+      "ownerPath": "cpf-batch/runtime-common",
+      "kind": "library",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-batch/runtime-common/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "repository-module-or-deployment"
+    },
+    {
+      "artifactId": "cpf-batch-execution-runtime",
+      "ownerPath": "cpf-batch/execution-runtime",
+      "kind": "runtime",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-batch/execution-runtime/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "repository-module-or-deployment"
+    },
+    {
+      "artifactId": "cpf-batch-control-server",
+      "ownerPath": "cpf-batch/control-server",
+      "kind": "runtime",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-batch/control-server/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "repository-module-or-deployment"
+    },
+    {
+      "artifactId": "cpf-batch-scheduler",
+      "ownerPath": "cpf-batch/scheduler",
+      "kind": "runtime",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-batch/scheduler/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "repository-module-or-deployment"
+    },
+    {
+      "artifactId": "cpf-batch-worker",
+      "ownerPath": "cpf-batch/worker",
+      "kind": "runtime",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-batch/worker/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "repository-module-or-deployment"
+    },
+    {
+      "artifactId": "cpf-batch-center-cut-runner",
+      "ownerPath": "cpf-batch/center-cut-runner",
+      "kind": "runtime",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-batch/center-cut-runner/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "repository-module-or-deployment"
+    },
+    {
+      "artifactId": "cpf-batch-host-agent",
+      "ownerPath": "cpf-batch/host-agent",
+      "kind": "runtime",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-batch/host-agent/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "repository-module-or-deployment"
+    },
+    {
+      "artifactId": "cpf-batch-testkit",
+      "ownerPath": "cpf-batch/testkit",
+      "kind": "testkit",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-batch/testkit/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "repository-module-or-deployment"
+    },
+    {
+      "artifactId": "cpf-admin-frontend",
+      "ownerPath": "cpf-admin/frontend",
+      "kind": "frontend",
+      "producer": "npm run build",
+      "outputPattern": "cpf-admin/frontend/dist/**",
+      "requiredAttestations": [
+        "sha256",
+        "npm-lock",
+        "browser-test"
+      ],
+      "consumer": "cpf-admin-runtime"
+    },
+    {
+      "artifactId": "cpf-biz-admin-frontend",
+      "ownerPath": "cpf-biz-admin/frontend",
+      "kind": "frontend",
+      "producer": "npm run build",
+      "outputPattern": "cpf-biz-admin/frontend/dist/**",
+      "requiredAttestations": [
+        "sha256",
+        "npm-lock",
+        "browser-test"
+      ],
+      "consumer": "cpf-biz-admin-runtime"
+    },
+    {
+      "artifactId": "cpf-db-oracle-pack",
+      "ownerPath": "cpf-tools/db/vendor/oracle",
+      "kind": "database-pack",
+      "producer": "build-official-db-vendor-packs.ps1",
+      "outputPattern": "cpf-tools/db/vendor/oracle/**",
+      "requiredAttestations": [
+        "sha256",
+        "migration-checksum",
+        "lifecycle-evidence"
+      ],
+      "consumer": "oracle-install-upgrade-rollback"
+    },
+    {
+      "artifactId": "cpf-db-postgresql-pack",
+      "ownerPath": "cpf-tools/db/vendor/postgresql",
+      "kind": "database-pack",
+      "producer": "build-official-db-vendor-packs.ps1",
+      "outputPattern": "cpf-tools/db/vendor/postgresql/**",
+      "requiredAttestations": [
+        "sha256",
+        "migration-checksum",
+        "lifecycle-evidence"
+      ],
+      "consumer": "postgresql-install-upgrade-rollback"
+    },
+    {
+      "artifactId": "cpf-db-mariadb-pack",
+      "ownerPath": "cpf-tools/db/vendor/mariadb",
+      "kind": "database-pack",
+      "producer": "build-official-db-vendor-packs.ps1",
+      "outputPattern": "cpf-tools/db/vendor/mariadb/**",
+      "requiredAttestations": [
+        "sha256",
+        "migration-checksum",
+        "lifecycle-evidence"
+      ],
+      "consumer": "mariadb-install-upgrade-rollback"
+    },
+    {
+      "artifactId": "cpf-platform-bom",
+      "ownerPath": "cpf-tools/build/platform-bom",
+      "kind": "bom",
+      "producer": "gradle:publish",
+      "outputPattern": "cpf-tools/build/platform-bom/build/publications/**",
+      "requiredAttestations": [
+        "sha256",
+        "pom-validation",
+        "publication-test"
+      ],
+      "consumer": "external-cpf-consumers"
+    },
+    {
+      "artifactId": "cpf-gradle-plugin",
+      "ownerPath": "cpf-tools/build/gradle-plugin",
+      "kind": "gradle-plugin",
+      "producer": "gradle:publish",
+      "outputPattern": "cpf-tools/build/gradle-plugin/build/publications/**",
+      "requiredAttestations": [
+        "sha256",
+        "plugin-marker",
+        "fresh-cache-test"
+      ],
+      "consumer": "cpf-builds-and-generated-domains"
+    }
+  ]
+}

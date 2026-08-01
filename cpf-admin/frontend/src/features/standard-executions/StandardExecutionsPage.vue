@@ -36,10 +36,9 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import { admConsoleMixin } from "../../app/admConsoleMixin";
+import { useAdmConsolePage } from "../../app/useAdmConsolePage";
 
-export default defineComponent({
+export default defineComponent({setup(){return useAdmConsolePage()},
   name: "StandardExecutionsPage",
-  mixins: [admConsoleMixin]
-});
+  });
 </script>

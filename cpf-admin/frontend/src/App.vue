@@ -63,7 +63,15 @@
           <div class="metric"><span>복구 대기</span><strong>{{ (reliabilityResult.unknownResults || []).length + (reliabilityResult.dlq || []).length }}</strong></div>
           <div class="metric"><span>운영자</span><strong>{{ currentOperator.operatorId }}</strong></div>
         </section>
-        <Suspense><component :is="activeFeatureComponent" /><template #fallback><div class="route-loading">운영 화면을 준비하고 있습니다...</div></template></Suspense>
+        <RouterView v-slot="{ Component }">
+          <AdmCommercialPageBoundary @retry="loadInitialData">
+            <Suspense>
+              <component :is="Component" />
+              <template #fallback><div class="route-loading" role="status" aria-live="polite">운영 화면을 준비하고 있습니다...</div></template>
+            </Suspense>
+          </AdmCommercialPageBoundary>
+        </RouterView>
+        <RouteOperationWorkbench v-if="currentOperationIds.length" :title="currentMenuLabel" :operation-ids="currentOperationIds" />
       </div>
     </section>
   </div>
@@ -71,15 +79,18 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
+import { RouterView } from "vue-router";
 import { storeToRefs } from "pinia";
 import CpfIcon from "./components/CpfIcon.vue";
+import AdmCommercialPageBoundary from "./components/page-contract/AdmCommercialPageBoundary.vue";
+import RouteOperationWorkbench from "./components/RouteOperationWorkbench.vue";
 import { admConsoleActionNames, useAdmConsoleStore } from "./stores/admConsoleStore";
-import { admGroupLabels, componentForMenu, featureGroupForMenu, iconForMenu, menuIdFromRouteName, type AdmFeatureGroup } from "./app/routes";
+import { admGroupLabels, featureGroupForMenu, findCapabilityByRouteName, iconForMenu, type AdmFeatureGroup } from "./app/routes";
 import { admRouter } from "./app/router";
 
 export default defineComponent({
   name: "AdmApp",
-  components: { CpfIcon },
+  components: { CpfIcon, RouterView, AdmCommercialPageBoundary, RouteOperationWorkbench },
   setup() {
     const store = useAdmConsoleStore();
     const refs = storeToRefs(store);
@@ -88,9 +99,19 @@ export default defineComponent({
   },
   data() { return { sidebarOpen: false, menuSearch: "", favoriteMenus: [] as string[], recentMenus: [] as string[], unregisterRouteHook: null as null | (() => void) }; },
   computed: {
-    activeFeatureGroup(): AdmFeatureGroup { return featureGroupForMenu(this.activeMenu); },
-    activeFeatureComponent() { return componentForMenu(this.activeMenu); },
-    currentMenuLabel(): string { return this.visibleMenus.find((menu: any) => menu.id === this.activeMenu)?.label || "운영"; },
+    activeFeatureGroup(): AdmFeatureGroup {
+      return findCapabilityByRouteName(this.admRouter.currentRoute.value.name)?.group
+        ?? featureGroupForMenu(this.activeMenu)
+        ?? "home";
+    },
+    currentMenuLabel(): string {
+      return findCapabilityByRouteName(this.admRouter.currentRoute.value.name)?.label
+        ?? this.visibleMenus.find((menu: any) => menu.id === this.activeMenu)?.label
+        ?? "운영 상태";
+    },
+    currentOperationIds(): readonly any[] {
+      return findCapabilityByRouteName(this.admRouter.currentRoute.value.name)?.expectedOperationIds ?? [];
+    },
     groupedMenus(): Array<{ id: AdmFeatureGroup; label: string; items: any[] }> {
       return (Object.keys(admGroupLabels) as AdmFeatureGroup[]).map(id => ({ id, label: admGroupLabels[id], items: this.visibleMenus.filter((menu: any) => featureGroupForMenu(menu.id) === id) })).filter(group => group.items.length > 0);
     },
@@ -135,10 +156,12 @@ export default defineComponent({
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") { event.preventDefault(); this.sidebarOpen = true; this.$nextTick(() => (this.$refs.globalMenuSearch as HTMLInputElement | undefined)?.focus()); }
     },
     syncMenuFromRoute() {
-      const requested = menuIdFromRouteName(this.admRouter.currentRoute.value.name);
-      if (this.visibleMenus.some((menu: any) => menu.id === requested)) this.activeMenu = requested;
-      else if (!this.visibleMenus.some((menu: any) => menu.id === this.activeMenu)) this.activeMenu = this.visibleMenus[0]?.id || "dashboard";
-      if (this.admRouter.currentRoute.value.name !== this.activeMenu) void this.admRouter.replace({ name: this.activeMenu });
+      const capability = findCapabilityByRouteName(this.admRouter.currentRoute.value.name);
+      // Status/unknown routes remain visible as status pages. Never replace them with Dashboard.
+      if (!capability) return;
+      if (this.visibleMenus.some((menu: any) => menu.id === capability.routeId)) {
+        this.activeMenu = capability.routeId;
+      }
     }
   }
 });

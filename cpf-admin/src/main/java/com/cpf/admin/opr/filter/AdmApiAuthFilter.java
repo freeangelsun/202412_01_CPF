@@ -60,6 +60,7 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
         MENU_BY_PATH_PREFIX.put("/adm/api/notifications", "NOTIFICATION");
         MENU_BY_PATH_PREFIX.put("/adm/api/downloads", "DOWNLOAD");
         MENU_BY_PATH_PREFIX.put("/adm/api/file-jobs", "FILE_JOB");
+        MENU_BY_PATH_PREFIX.put("/adm/api/gateway-registry", "GATEWAY_DASHBOARD");
         MENU_BY_PATH_PREFIX.put("/adm/api/cache", "CACHE");
         MENU_BY_PATH_PREFIX.put("/adm/api/messages", "MESSAGE");
         MENU_BY_PATH_PREFIX.put("/adm/api/codes", "CODE");
@@ -75,10 +76,13 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
         MENU_BY_PATH_PREFIX.put("/adm/api/permissions", "PERMISSION");
         MENU_BY_PATH_PREFIX.put("/adm/api/operators", "OPERATOR");
 
+        BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/audit-logs/deliveries", "AUDIT_LOG_RETRY");
         BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/logs", "LOG_LIST_READ");
         BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/transaction-groups", "LOG_LIST_READ");
         BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/observability", "LOG_LIST_READ");
         BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/service-registry", "SERVICE_REGISTRY_READ");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/service-registry", "SERVICE_REGISTRY_WRITE");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("DELETE /adm/api/service-registry", "SERVICE_REGISTRY_DELETE");
         BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/reliability", "RELIABILITY_READ");
         BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/reliability/broker/dlq", "RELIABILITY_REPLAY");
         BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/reliability/unknown-results", "RELIABILITY_RESOLVE");
@@ -98,13 +102,29 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
         BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/business-calendars", "BUSINESS_CALENDAR_READ");
         BUTTON_BY_METHOD_PATH_PREFIX.put("PUT /adm/api/business-calendars", "BUSINESS_CALENDAR_WRITE");
         BUTTON_BY_METHOD_PATH_PREFIX.put("DELETE /adm/api/business-calendars", "BUSINESS_CALENDAR_DELETE");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/batch-runtime", "BATCH_RUNTIME_READ");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/batch-runtime/job-definitions/validate", "BATCH_DEFINITION_VALIDATE");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/batch-runtime/job-definitions/drafts", "BATCH_DEFINITION_WRITE");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/batch-runtime/job-definitions", "BATCH_DEFINITION_TRANSITION");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/batch-runtime/commands", "BATCH_RUNTIME_COMMAND");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/batch-runtime/deployment-plans", "BATCH_DEPLOYMENT_PLAN");
         BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/batch", "BATCH_READ");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/batch/workbench", "BATCH_READ");
         BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/center-cut", "BATCH_READ");
         BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/notifications", "NOTIFICATION_READ");
         BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/notifications", "NOTIFICATION_WRITE");
         BUTTON_BY_METHOD_PATH_PREFIX.put("PUT /adm/api/notifications", "NOTIFICATION_WRITE");
         BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/downloads", "DOWNLOAD_READ");
         BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/downloads", "DOWNLOAD_EXECUTE");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/file-jobs", "FILE_JOB_READ");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/file-jobs/uploads", "FILE_JOB_UPLOAD");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/file-jobs", "FILE_JOB_APPLY");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/gateway-registry", "GATEWAY_DASHBOARD_READ");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/gateway-registry/server-groups", "GATEWAY_GROUP_WRITE");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("DELETE /adm/api/gateway-registry/server-groups", "GATEWAY_GROUP_DELETE");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/gateway-registry/bindings", "GATEWAY_ROUTE_WRITE");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("DELETE /adm/api/gateway-registry/bindings", "GATEWAY_ROUTE_DELETE");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/gateway-registry/connection-test-operations", "GATEWAY_CONNECTION_TEST");
         BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/batch/jobs", "BATCH_REGISTER");
         BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/batch/schedules", "BATCH_SCHEDULE");
         BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/batch/executions", "BATCH_RETRY");
@@ -122,11 +142,15 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
         BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/response-codes", "RESPONSE_CODE_READ");
         BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/response-codes", "RESPONSE_CODE_WRITE");
         BUTTON_BY_METHOD_PATH_PREFIX.put("PUT /adm/api/response-codes", "RESPONSE_CODE_WRITE");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("DELETE /adm/api/response-codes", "RESPONSE_CODE_DELETE");
         BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/configs", "CONFIG_READ");
         BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/configs", "CONFIG_WRITE");
         BUTTON_BY_METHOD_PATH_PREFIX.put("PUT /adm/api/configs", "CONFIG_WRITE");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("DELETE /adm/api/configs", "CONFIG_DELETE");
         BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/log-level", "DYNAMIC_LOG_READ");
         BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/log-level", "DYNAMIC_LOG_WRITE");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("PUT /adm/api/log-level", "DYNAMIC_LOG_WRITE");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("DELETE /adm/api/log-level", "DYNAMIC_LOG_DELETE");
         BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/log-policy-audits", "LOG_POLICY_READ");
         BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/log-policies", "LOG_POLICY_READ");
         BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/log-policies/cache/refresh", "LOG_POLICY_CACHE_REFRESH");
@@ -134,6 +158,8 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
         BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/log-policies", "LOG_POLICY_WRITE");
         BUTTON_BY_METHOD_PATH_PREFIX.put("PUT /adm/api/log-policies", "LOG_POLICY_WRITE");
         BUTTON_BY_METHOD_PATH_PREFIX.put("PATCH /adm/api/log-policies", "LOG_POLICY_WRITE");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/security", "SECURITY_READ");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/security", "SECURITY_WRITE");
         BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/permissions", "PERMISSION_READ");
         BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/permissions", "PERMISSION_WRITE");
         BUTTON_BY_METHOD_PATH_PREFIX.put("PUT /adm/api/permissions", "PERMISSION_WRITE");
@@ -142,6 +168,22 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
         BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/operators", "OPERATOR_CREATE");
         BUTTON_BY_METHOD_PATH_PREFIX.put("PUT /adm/api/operators", "OPERATOR_ROLE_UPDATE");
         BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/operators", "OPERATOR_READ");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/incidents", "INCIDENT_READ");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/incidents", "INCIDENT_WRITE");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("PUT /adm/api/incidents/policies", "INCIDENT_WRITE");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("PUT /adm/api/incidents/maintenance-windows", "INCIDENT_WRITE");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/maintenance", "MAINTENANCE_READ");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/maintenance", "MAINTENANCE_EXECUTE");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/secrets", "SECRET_READ");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/secrets/rotate", "SECRET_ROTATE");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/break-glass", "BREAK_GLASS_READ");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/break-glass", "BREAK_GLASS_OPEN");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/runtime-control", "RUNTIME_CONTROL_READ");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/runtime-control/preview-targets", "RUNTIME_CONTROL_PREVIEW");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/runtime-control/preview-change", "RUNTIME_CONTROL_PREVIEW");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/runtime-control/changes", "RUNTIME_CONTROL_CHANGE");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/runtime-control/groups", "RUNTIME_CONTROL_GROUP_WRITE");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("DELETE /adm/api/runtime-control/groups", "RUNTIME_CONTROL_GROUP_DELETE");
     }
 
     private final AdmSecurityProperties properties;
@@ -263,7 +305,7 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
             return false;
         }
 
-        // MEMORY는 명시적인 local/test/demo/library 모드에서만 사용하는 개발 편의 정책입니다.
+        // MEMORY는 명시적인 EDU/test 모드에서만 사용하는 개발 편의 정책입니다.
         List<String> roles = session.roleIds();
         if (roles.contains("ADM_ADMIN")) {
             return true;

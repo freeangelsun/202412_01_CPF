@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -19,9 +20,10 @@ import javax.sql.DataSource;
  *
  * <p>cpf-common의 기본 동작은 DB-less입니다. 이 설정은 개발·EDU·통합 테스트에서
  * 연결, CRUD, paging, 낙관적 잠금과 transaction을 검증하는 명시적 sample profile에만
- * 사용하며 업무 채번이나 공통 업무 원장을 제공하지 않습니다.</p>
+ * 사용하며 업무 채번이나 공통 업무 원장을 제공하지 않습니다. 제품 Profile에서는 Property가 설정돼도 Bean을 생성하지 않습니다.</p>
  */
 @Configuration
+@Profile({"edu", "test"})
 @ConditionalOnProperty(prefix = "cpf.cmn.sample-db", name = "enabled", havingValue = "true")
 public class CmnSampleDataSourceConfig {
 

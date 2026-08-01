@@ -1,0 +1,5 @@
+scenario_id,area,title,development_status,verification_status,result,evidence
+CPF-WIN-001,Controller/OpenAPI,SSE operationId 명시,완료,완료,admGatewayOperationsStream 추가; strict controller gate PASS,cpf-docs/evidence/20260801_02/CPF_20260801_02_WINDOWS_VALIDATION_REMEDIATION.sanitized.json
+CPF-WIN-002,Python Test,Windows CP949 비의존 UTF-8 I/O,완료,완료,전체 145 tests PASS; C locale/PYTHONUTF8=0 PASS,cpf-docs/evidence/20260801_02/CPF_20260801_02_WINDOWS_VALIDATION_REMEDIATION.sanitized.json
+CPF-WIN-003,DB Baseline,Git Blob 기반 Migration Hash,완료,완료,core.autocrlf=true fixture 4 tests PASS,cpf-docs/evidence/20260801_02/CPF_20260801_02_WINDOWS_VALIDATION_REMEDIATION.sanitized.json
+CPF-WIN-004,Frontend Toolchain,TypeScript compiler 실행,완료,미검증,Source 결함 아님; 사용자 환경에서 npm ci 필요,cpf-docs/evidence/20260801_02/CPF_20260801_02_ENVIRONMENT_BLOCKER.sanitized.json

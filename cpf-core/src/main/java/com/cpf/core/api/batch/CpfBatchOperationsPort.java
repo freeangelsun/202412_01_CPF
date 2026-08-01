@@ -1,7 +1,7 @@
 package com.cpf.core.api.batch;
 
 import java.util.List;
-import java.util.Map;
+import com.cpf.core.api.data.CpfDataRow;
 
 /**
  * BAT Owner가 제공하고 ADM 같은 Control Plane이 소비하는 Batch 운영 계약입니다.
@@ -10,13 +10,13 @@ import java.util.Map;
  * BAT 구현 Bean을 사용하고, 분리 WAS에서는 동일 계약의 Remote Adapter를 사용합니다.</p>
  */
 public interface CpfBatchOperationsPort {
-    List<Map<String,Object>> findJobs();
-    Map<String,Object> findJobDetail(String jobId);
-    List<Map<String,Object>> findSchedules();
+    List<CpfDataRow> findJobs();
+    CpfDataRow findJobDetail(String jobId);
+    List<CpfDataRow> findSchedules();
     /**
      * 배치 실행을 Job/transactionId/Spring Job Instance/Worker/Server Instance 축으로 통합 검색합니다.
      */
-    List<Map<String,Object>> findExecutions(
+    List<CpfDataRow> findExecutions(
             String jobId,
             String transactionId,
             Long springBatchJobInstanceId,
@@ -27,7 +27,7 @@ public interface CpfBatchOperationsPort {
     /**
      * 운영 다운로드/추적용 실행 조회입니다. 기간 조건은 BAT Owner가 자신의 스키마에 적용합니다.
      */
-    default List<Map<String,Object>> findExecutions(
+    default List<CpfDataRow> findExecutions(
             String jobId,
             String transactionId,
             Long springBatchJobInstanceId,
@@ -39,26 +39,145 @@ public interface CpfBatchOperationsPort {
         return findExecutions(jobId, transactionId, springBatchJobInstanceId, workerId, serverInstanceId, limit);
     }
 
-    default List<Map<String,Object>> findExecutions(String jobId, int limit) {
+    default List<CpfDataRow> findExecutions(String jobId, int limit) {
         return findExecutions(jobId, null, null, null, null, limit);
     }
-    Map<String,Object> findExecutionDetail(long executionId);
-    List<Map<String,Object>> findInstances();
-    List<Map<String,Object>> findWorkers(int heartbeatTimeoutSeconds);
-    List<Map<String,Object>> findStepExecutions(Long executionId, String jobId, int limit);
-    List<Map<String,Object>> findRelations(String jobId);
-    List<Map<String,Object>> findExecutionTargets(String jobId, String dispatchStatus, int limit);
-    List<Map<String,Object>> findLocks(String jobId);
-    Map<String,Object> releaseLock(String lockKey, String requestUser, String reason);
-    List<Map<String,Object>> findGhostCandidates(int heartbeatTimeoutSeconds);
-    Map<String,Object> actGhostExecution(long executionId, String actionType, String requestUser, String reason);
-    List<Map<String,Object>> findOperationLogs(String jobId, Long executionId, int limit);
-    List<Map<String,Object>> simulateSchedule(String scheduleId, String baseDate, int days);
-    Map<String,Object> registerJob(String jobId, String jobName, String jobType, String description, String requestUser);
-    Map<String,Object> requestRun(String jobId, String jobParameters, String requestUser, String reason);
-    Map<String,Object> requestScheduledRun(String scheduleId, String jobId, String jobParameters, String requestUser, String reason);
-    Map<String,Object> requestRetry(long executionId, String requestUser, String reason);
-    Map<String,Object> requestStop(long executionId, String requestUser, String reason);
-    Map<String,Object> updateScheduleEnabled(String scheduleId, boolean enabled, String requestUser, String reason);
-    List<Map<String,Object>> runSchedulerOnce(String requestUser);
+
+
+    /**
+     * 배치 실행 Workbench용 서버 Paging 계약입니다.
+     *
+     * <p>기존 구현과의 호환성을 위해 기본 구현은 BAT Owner 조회 결과를 서버에서 Windowing합니다.
+     * DB Adapter가 offset/cursor paging을 지원하면 이 메서드를 재정의해야 합니다. 응답은
+     * {@code items,page,size,hasNext,totalKnown,pagingMode}를 포함합니다.</p>
+     */
+    default CpfDataRow findExecutionPage(
+            String jobId,
+            String transactionId,
+            Long springBatchJobInstanceId,
+            String workerId,
+            String serverInstanceId,
+            String status,
+            String fromDate,
+            String toDate,
+            int page,
+            int size) {
+        int safePage = Math.max(0, page);
+        int safeSize = Math.max(10, Math.min(size, 200));
+        int required = Math.min(5000, Math.addExact(Math.multiplyExact(safePage + 1, safeSize), 1));
+        List<CpfDataRow> source = findExecutions(
+                jobId, transactionId, springBatchJobInstanceId, workerId, serverInstanceId,
+                fromDate, toDate, required);
+        java.util.function.Predicate<CpfDataRow> statusFilter = row -> {
+            if (status == null || status.isBlank()) return true;
+            String expected = status.trim();
+            for (String key : List.of("status", "execution_status", "batch_status", "STATUS", "EXECUTION_STATUS")) {
+                Object value = row.get(key);
+                if (value != null && expected.equalsIgnoreCase(String.valueOf(value))) return true;
+            }
+            return false;
+        };
+        List<CpfDataRow> filtered = source.stream().filter(statusFilter).toList();
+        int from = Math.min(filtered.size(), safePage * safeSize);
+        int to = Math.min(filtered.size(), from + safeSize);
+        boolean hasNext = filtered.size() > to || source.size() >= required;
+        return CpfDataRow.of(
+                "items", filtered.subList(from, to),
+                "page", safePage,
+                "size", safeSize,
+                "hasNext", hasNext,
+                "totalKnown", false,
+                "pagingMode", "OWNER_WINDOW");
+    }
+
+
+    /** Job Workbench server paging contract owned by BAT. */
+    default CpfDataRow findJobPage(String query, int page, int size, String sort, String direction) {
+        return ownerPage(findJobs(), query, page, size, sort, direction, "BAT_JOB_OWNER_WINDOW");
+    }
+
+    /** Scheduler HA Workbench server paging contract owned by BAT. */
+    default CpfDataRow findSchedulePage(String query, int page, int size, String sort, String direction) {
+        return ownerPage(findSchedules(), query, page, size, sort, direction, "BAT_SCHEDULE_OWNER_WINDOW");
+    }
+
+    /** Instance/Worker/Target snapshot assembled by the BAT owner boundary. */
+    default CpfDataRow findInfrastructureSnapshot(int heartbeatTimeoutSeconds, int limit) {
+        return CpfDataRow.of(
+                "instances", findInstances(),
+                "workers", findWorkers(Math.max(5, heartbeatTimeoutSeconds)),
+                "targets", findExecutionTargets(null, null, Math.max(1, Math.min(limit, 1000))),
+                "partial", false,
+                "stale", false,
+                "pagingMode", "BAT_OWNER_SNAPSHOT");
+    }
+
+    /** Ghost/Lease/Operation snapshot assembled by the BAT owner boundary. */
+    default CpfDataRow findRecoverySnapshot(int heartbeatTimeoutSeconds, int limit) {
+        return CpfDataRow.of(
+                "ghostCandidates", findGhostCandidates(Math.max(5, heartbeatTimeoutSeconds)),
+                "locks", findLocks(null),
+                "operations", findOperationLogs(null, null, Math.max(1, Math.min(limit, 1000))),
+                "partial", false,
+                "stale", false,
+                "pagingMode", "BAT_OWNER_SNAPSHOT");
+    }
+
+    private static CpfDataRow ownerPage(
+            List<CpfDataRow> source,
+            String query,
+            int page,
+            int size,
+            String sort,
+            String direction,
+            String pagingMode) {
+        int safePage = Math.max(0, page);
+        int safeSize = Math.max(10, Math.min(size, 200));
+        String needle = query == null ? "" : query.trim().toLowerCase(java.util.Locale.ROOT);
+        List<CpfDataRow> filtered = source == null ? List.of() : source.stream()
+                .filter(row -> needle.isEmpty() || row.values().stream().anyMatch(value -> value != null
+                        && String.valueOf(value).toLowerCase(java.util.Locale.ROOT).contains(needle)))
+                .map(CpfDataRow::new)
+                .collect(java.util.stream.Collectors.toCollection(java.util.ArrayList::new));
+        String sortKey = sort == null ? "" : sort.trim();
+        if (!sortKey.isEmpty()) {
+            java.util.Comparator<CpfDataRow> comparator = java.util.Comparator.comparing(
+                    row -> String.valueOf(row.getOrDefault(sortKey, "")),
+                    java.util.Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER));
+            if ("desc".equalsIgnoreCase(direction)) comparator = comparator.reversed();
+            filtered.sort(comparator.thenComparing(CpfDataRow::toString));
+        }
+        int from = Math.min(filtered.size(), safePage * safeSize);
+        int to = Math.min(filtered.size(), from + safeSize);
+        return CpfDataRow.of(
+                "items", List.copyOf(filtered.subList(from, to)),
+                "page", safePage,
+                "size", safeSize,
+                "total", filtered.size(),
+                "hasNext", to < filtered.size(),
+                "totalKnown", true,
+                "pagingMode", pagingMode,
+                "partial", false,
+                "stale", false);
+    }
+
+    CpfDataRow findExecutionDetail(long executionId);
+    List<CpfDataRow> findInstances();
+    List<CpfDataRow> findWorkers(int heartbeatTimeoutSeconds);
+    List<CpfDataRow> findStepExecutions(Long executionId, String jobId, int limit);
+    List<CpfDataRow> findRelations(String jobId);
+    List<CpfDataRow> findExecutionTargets(String jobId, String dispatchStatus, int limit);
+    List<CpfDataRow> findLocks(String jobId);
+    CpfDataRow releaseLock(String lockKey, String requestUser, String reason);
+    List<CpfDataRow> findGhostCandidates(int heartbeatTimeoutSeconds);
+    CpfDataRow actGhostExecution(long executionId, String actionType, String requestUser, String reason);
+    List<CpfDataRow> findOperationLogs(String jobId, Long executionId, int limit);
+    List<CpfDataRow> simulateSchedule(String scheduleId, String baseDate, int days);
+    CpfDataRow registerJob(String jobId, String jobName, String jobType, String description, String requestUser);
+    CpfDataRow requestRun(String jobId, String jobParameters, String requestUser, String reason);
+    CpfDataRow requestScheduledRun(String scheduleId, String jobId, String jobParameters, String requestUser, String reason);
+    CpfDataRow requestRetry(long executionId, String requestUser, String reason);
+    CpfDataRow requestStop(long executionId, String requestUser, String reason);
+    CpfDataRow updateScheduleEnabled(String scheduleId, boolean enabled, String requestUser, String reason);
+    List<CpfDataRow> runSchedulerOnce(String requestUser);
 }

@@ -10,6 +10,7 @@ if (fs.existsSync(generatedDir)) fs.rmSync(generatedDir, { recursive: true, forc
 for (const [name, command, args] of [
   ["orval", binary, ["--config", "orval.config.ts"]],
   ["operation-contract", process.execPath, ["scripts/write-operation-contract.mjs"]],
+  ["route-operation-contract", process.execPath, ["scripts/write-route-operation-contract.mjs"]],
   ["marker", process.execPath, ["scripts/write-generated-marker.mjs"]],
   ["verify", process.execPath, ["scripts/verify-generated-client.mjs"]]
 ]) {

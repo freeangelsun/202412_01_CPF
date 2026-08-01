@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.Map;
 
+/** 공통 메시지 코드와 다국어 메시지의 조회·변경·감사 API를 제공합니다. */
 @RestController
 @RequestMapping("/adm/api/messages")
 @Tag(name = "ADM-CPF Messages", description = "CPF 공통 메시지 관리 API")
@@ -121,10 +122,6 @@ public class AdmMessageController extends com.cpf.admin.common.base.AdmBaseContr
     }
 
     private String requestUser(HttpServletRequest request, String fallback) {
-        Object operatorId = request.getAttribute("adm.operatorId");
-        if (operatorId instanceof String value && !value.isBlank()) {
-            return value;
-        }
-        return fallback;
+        return requireOperator(request);
     }
 }

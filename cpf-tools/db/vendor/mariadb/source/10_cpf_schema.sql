@@ -536,6 +536,143 @@ CREATE TABLE IF NOT EXISTS cpf_notification_delivery_attempt (
     INDEX ix_cpf_notification_attempt_status (attempt_status, started_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Durable Notification Provider 호출 Attempt 불변 이력';
 
+
+
+CREATE TABLE IF NOT EXISTS cpf_incident_policy (
+    policy_id BIGINT NOT NULL AUTO_INCREMENT,
+    policy_code VARCHAR(100) NOT NULL,
+    event_type VARCHAR(80) NOT NULL,
+    event_sub_type VARCHAR(80) NULL,
+    severity VARCHAR(20) NOT NULL,
+    threshold_count INT NOT NULL,
+    window_seconds INT NOT NULL,
+    escalation_minutes INT NOT NULL,
+    receiver_group VARCHAR(100) NOT NULL,
+    use_yn CHAR(1) NOT NULL DEFAULT 'Y',
+    version BIGINT NOT NULL DEFAULT 0,
+    created_by VARCHAR(100) NOT NULL,
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    updated_by VARCHAR(100) NOT NULL,
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+    CONSTRAINT pk_cpf_incident_policy PRIMARY KEY (policy_id),
+    CONSTRAINT uk_cpf_incident_policy_code UNIQUE (policy_code),
+    CONSTRAINT ck_cpf_incident_policy_use CHECK (use_yn IN ('Y','N')),
+    CONSTRAINT ck_cpf_incident_policy_threshold CHECK (threshold_count > 0),
+    CONSTRAINT ck_cpf_incident_policy_window CHECK (window_seconds > 0),
+    CONSTRAINT ck_cpf_incident_policy_escalation CHECK (escalation_minutes > 0),
+    INDEX ix_cpf_incident_policy_event (event_type, event_sub_type, use_yn)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF Incident 정책';
+
+CREATE TABLE IF NOT EXISTS cpf_maintenance_window (
+    maintenance_id BIGINT NOT NULL AUTO_INCREMENT,
+    maintenance_code VARCHAR(100) NOT NULL,
+    target_type VARCHAR(80) NOT NULL,
+    target_id VARCHAR(160) NOT NULL,
+    starts_at DATETIME(3) NOT NULL,
+    ends_at DATETIME(3) NOT NULL,
+    use_yn CHAR(1) NOT NULL DEFAULT 'Y',
+    version BIGINT NOT NULL DEFAULT 0,
+    created_by VARCHAR(100) NOT NULL,
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    updated_by VARCHAR(100) NOT NULL,
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+    CONSTRAINT pk_cpf_maintenance_window PRIMARY KEY (maintenance_id),
+    CONSTRAINT uk_cpf_maintenance_code UNIQUE (maintenance_code),
+    CONSTRAINT ck_cpf_maintenance_use CHECK (use_yn IN ('Y','N')),
+    CONSTRAINT ck_cpf_maintenance_period CHECK (ends_at > starts_at),
+    INDEX ix_cpf_maintenance_active (use_yn, starts_at, ends_at),
+    INDEX ix_cpf_maintenance_target (target_type, target_id, starts_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF Maintenance Window';
+
+CREATE TABLE IF NOT EXISTS cpf_incident (
+    incident_id BIGINT NOT NULL AUTO_INCREMENT,
+    policy_id BIGINT NOT NULL,
+    policy_code VARCHAR(100) NOT NULL,
+    severity VARCHAR(20) NOT NULL,
+    status VARCHAR(30) NOT NULL,
+    title VARCHAR(300) NOT NULL,
+    summary VARCHAR(2000) NULL,
+    source_type VARCHAR(80) NOT NULL,
+    source_id VARCHAR(160) NOT NULL,
+    correlation_id VARCHAR(100) NULL,
+    transaction_id VARCHAR(100) NULL,
+    occurrence_count INT NOT NULL DEFAULT 1,
+    escalation_level INT NOT NULL DEFAULT 0,
+    first_occurred_at DATETIME(3) NOT NULL,
+    last_occurred_at DATETIME(3) NOT NULL,
+    acknowledged_at DATETIME(3) NULL,
+    resolved_at DATETIME(3) NULL,
+    owner_id VARCHAR(100) NULL,
+    active_key VARCHAR(400) NULL,
+    version BIGINT NOT NULL DEFAULT 0,
+    created_by VARCHAR(100) NOT NULL,
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    updated_by VARCHAR(100) NOT NULL,
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+    CONSTRAINT pk_cpf_incident PRIMARY KEY (incident_id),
+    CONSTRAINT uk_cpf_incident_active UNIQUE (active_key),
+    CONSTRAINT fk_cpf_incident_policy FOREIGN KEY (policy_id) REFERENCES cpf_incident_policy (policy_id),
+    CONSTRAINT ck_cpf_incident_status CHECK (status IN ('OPEN','ACKNOWLEDGED','RESOLVED')),
+    CONSTRAINT ck_cpf_incident_occurrence CHECK (occurrence_count > 0),
+    CONSTRAINT ck_cpf_incident_escalation CHECK (escalation_level >= 0),
+    INDEX ix_cpf_incident_status (status, last_occurred_at, incident_id),
+    INDEX ix_cpf_incident_source (source_type, source_id, status),
+    INDEX ix_cpf_incident_trace (correlation_id, transaction_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF Incident 원장';
+
+CREATE TABLE IF NOT EXISTS cpf_incident_signal (
+    signal_id BIGINT NOT NULL AUTO_INCREMENT,
+    policy_id BIGINT NOT NULL,
+    source_type VARCHAR(80) NOT NULL,
+    source_id VARCHAR(160) NOT NULL,
+    correlation_id VARCHAR(100) NULL,
+    transaction_id VARCHAR(100) NULL,
+    title VARCHAR(300) NOT NULL,
+    summary VARCHAR(2000) NULL,
+    occurred_at DATETIME(3) NOT NULL,
+    suppressed_yn CHAR(1) NOT NULL DEFAULT 'N',
+    idempotency_key VARCHAR(160) NOT NULL,
+    created_by VARCHAR(100) NOT NULL,
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    CONSTRAINT pk_cpf_incident_signal PRIMARY KEY (signal_id),
+    CONSTRAINT uk_cpf_incident_signal_idem UNIQUE (idempotency_key),
+    CONSTRAINT fk_cpf_incident_signal_policy FOREIGN KEY (policy_id) REFERENCES cpf_incident_policy (policy_id),
+    CONSTRAINT ck_cpf_incident_signal_suppressed CHECK (suppressed_yn IN ('Y','N')),
+    INDEX ix_cpf_incident_signal_window (policy_id, source_type, source_id, occurred_at),
+    INDEX ix_cpf_incident_signal_trace (correlation_id, transaction_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF Incident Signal 원장';
+
+CREATE TABLE IF NOT EXISTS cpf_incident_timeline (
+    timeline_id BIGINT NOT NULL AUTO_INCREMENT,
+    incident_id BIGINT NOT NULL,
+    action_type VARCHAR(40) NOT NULL,
+    before_status VARCHAR(30) NULL,
+    after_status VARCHAR(30) NOT NULL,
+    reason VARCHAR(1000) NULL,
+    approval_request_id VARCHAR(160) NULL,
+    actor_id VARCHAR(100) NOT NULL,
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    CONSTRAINT pk_cpf_incident_timeline PRIMARY KEY (timeline_id),
+    CONSTRAINT fk_cpf_incident_timeline_inc FOREIGN KEY (incident_id) REFERENCES cpf_incident (incident_id) ON DELETE CASCADE,
+    INDEX ix_cpf_incident_timeline_inc (incident_id, timeline_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF Incident immutable Timeline';
+
+CREATE TABLE IF NOT EXISTS cpf_incident_command (
+    command_id BIGINT NOT NULL AUTO_INCREMENT,
+    command_type VARCHAR(80) NOT NULL,
+    idempotency_key VARCHAR(160) NOT NULL,
+    request_hash VARCHAR(64) NOT NULL,
+    status VARCHAR(30) NOT NULL,
+    result_ref VARCHAR(200) NULL,
+    created_by VARCHAR(100) NOT NULL,
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+    CONSTRAINT pk_cpf_incident_command PRIMARY KEY (command_id),
+    CONSTRAINT uk_cpf_incident_command_idem UNIQUE (idempotency_key),
+    CONSTRAINT ck_cpf_incident_command_status CHECK (status IN ('RUNNING','DONE')),
+    INDEX ix_cpf_incident_command_status (status, updated_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF Incident 멱등 Command 원장';
+
 CREATE TABLE IF NOT EXISTS cpf_response_code (
     response_code VARCHAR(20) NOT NULL COMMENT 'CPF 응답 코드',
     message_code VARCHAR(20) NOT NULL COMMENT '연결 메시지 코드',

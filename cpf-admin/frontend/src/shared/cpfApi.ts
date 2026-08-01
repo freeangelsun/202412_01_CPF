@@ -1,6 +1,6 @@
 import { MutationObserver } from "@tanstack/vue-query";
 import { CpfOrvalError, cpfOrvalRequest } from "./orval-mutator";
-import { resolveCpfOperation } from "../generated/cpf-operation-contract";
+import { cpfOperationDescriptors, resolveCpfOperation, type CpfOperationId } from "../generated/cpf-operation-contract";
 import { cpfQueryClient } from "./queryClient";
 import { createTransactionId, defaultHeaders, isValidTransactionId } from "./transaction";
 
@@ -9,7 +9,7 @@ export class CpfApiError extends Error {
     super(message); this.name = "CpfApiError";
   }
 }
-const CLIENT_ACTOR_FIELDS = new Set(["requestUser", "actorId", "operatorIdOverride"]);
+const CLIENT_ACTOR_FIELDS = new Set(["requestUser", "requestedBy", "actorId", "operatorIdOverride"]);
 function csrfToken(): string {
   const entry = document.cookie.split(";").map(value => value.trim()).find(value => value.startsWith("XSRF-TOKEN="));
   return entry ? decodeURIComponent(entry.substring("XSRF-TOKEN=".length)) : "";
@@ -46,7 +46,7 @@ export async function admQuery<T = unknown>(url: string, params?: Record<string,
   try {
     return await cpfQueryClient.fetchQuery<T>({
       queryKey: ["cpf", operation.operationId, target.pathname, target.search],
-      queryFn: () => cpfOrvalRequest<T>({ url: relative, method: "GET", headers: createAdmHeaders() })
+      queryFn: () => cpfOrvalRequest<T>({ url: relative, method: "GET", headers: createAdmHeaders({ "X-CPF-Operation-Id": operation.operationId }) })
     });
   } catch (error) { return convert(error); }
 }
@@ -57,7 +57,7 @@ export async function admMutation<T = unknown>(url: string, method: "POST" | "PU
   const operation = resolveCpfOperation(method, relative);
   const observer = new MutationObserver<T, unknown, unknown, unknown>(cpfQueryClient, {
     mutationKey: ["cpf", operation.operationId],
-    mutationFn: () => cpfOrvalRequest<T>({ url: relative, method, headers: createAdmHeaders({ "Content-Type": "application/json" }), data: body })
+    mutationFn: () => cpfOrvalRequest<T>({ url: relative, method, headers: createAdmHeaders({ "Content-Type": "application/json", "X-CPF-Operation-Id": operation.operationId }), data: body })
   });
   try {
     const result = await observer.mutate(undefined);
@@ -76,8 +76,8 @@ export async function admRawResponse(
   assertNoClientActor(body);
   const target = new URL(url, window.location.origin);
   if (target.origin !== window.location.origin) throw new Error("ADM download target must be same-origin");
-  resolveCpfOperation(method, target.pathname + target.search);
-  const headers = createAdmHeaders(extraHeaders);
+  const operation = resolveCpfOperation(method, target.pathname + target.search);
+  const headers = createAdmHeaders({ ...Object.fromEntries(new Headers(extraHeaders).entries()), "X-CPF-Operation-Id": operation.operationId });
   let requestBody: BodyInit | undefined;
   if (body !== undefined && body !== null) {
     if (typeof body === "string" || body instanceof FormData || body instanceof Blob || body instanceof URLSearchParams) requestBody = body;
@@ -109,3 +109,28 @@ export async function admApi<T = unknown>(url: string, options: RequestInit = {}
   return admMutation<T>(url, method as "POST" | "PUT" | "PATCH" | "DELETE", body);
 }
 export const cpfApi = admApi;
+
+export interface CpfOperationInvokeOptions {
+  path?: Record<string, string | number>;
+  query?: Record<string, unknown>;
+  body?: unknown;
+}
+function renderOperationPath(template: string, values: Record<string, string | number> = {}): string {
+  return template.replace(/\{([^}]+)\}/g, (_, name: string) => {
+    const value=values[name];
+    if(value===undefined||value===null||String(value).trim()==="")throw new Error(`Missing path parameter: ${name}`);
+    return encodeURIComponent(String(value));
+  });
+}
+export async function admInvokeOperation<T = unknown>(operationId: CpfOperationId, options: CpfOperationInvokeOptions = {}): Promise<T> {
+  const descriptor=cpfOperationDescriptors.find(value=>value.operationId===operationId);
+  if(!descriptor)throw new Error(`ADM operation is not registered: ${operationId}`);
+  const target=new URL(renderOperationPath(descriptor.template,options.path),window.location.origin);
+  Object.entries(options.query||{}).forEach(([key,value])=>{
+    if(CLIENT_ACTOR_FIELDS.has(key))throw new Error(`Browser actor query field is forbidden: ${key}`);
+    if(value!==undefined&&value!==null&&String(value).trim()!=="")target.searchParams.set(key,String(value));
+  });
+  const relative=target.pathname+target.search;
+  if(descriptor.method==="GET")return admQuery<T>(relative);
+  return admMutation<T>(relative,descriptor.method as "POST"|"PUT"|"PATCH"|"DELETE",options.body);
+}

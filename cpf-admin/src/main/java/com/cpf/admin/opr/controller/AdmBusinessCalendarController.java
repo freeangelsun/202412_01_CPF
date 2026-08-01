@@ -28,25 +28,33 @@ public class AdmBusinessCalendarController extends AdmBaseController {
     @GetMapping("/{calendarId}/days") @CpfOnlineTransaction(id="OADMCL0001",name="ADMBusinessCalendarDays")
     @Operation(operationId="admCalendarFindDays",summary="영업일 Override 조회")
     public ResponseEntity<Map<String,Object>> findDays(@PathVariable String calendarId,@RequestParam(required=false) LocalDate from,@RequestParam(required=false) LocalDate to,@RequestParam(defaultValue="366") int limit){
-        Map<String,Object> r=new LinkedHashMap<>();r.put("calendarId",calendarId);r.put("writable",calendarService.writable());r.put("productMode",calendarService.productMode());r.put("items",calendarService.findRange(calendarId,from,to,limit));return ResponseEntity.ok(r);
+        Map<String,Object> r=new LinkedHashMap<>();r.put("calendarId",calendarId);r.put("writable",calendarService.writable());r.put("productMode",calendarService.productMode());
+                r.put("items",calendarService.findRange(calendarId,from,to,limit));return ResponseEntity.ok(r);
     }
     @GetMapping("/{calendarId}/resolve") @CpfOnlineTransaction(id="OADMCL0002",name="ADMBusinessCalendarResolve")
     @Operation(operationId="admCalendarResolveDate",summary="영업일 여부/기준일 계산")
-    public ResponseEntity<Map<String,Object>> resolve(@PathVariable String calendarId,@RequestParam LocalDate date,@RequestParam(defaultValue="1") int offset){return ResponseEntity.ok(Map.of("calendarId",calendarId,"date",date,"businessDay",calendarService.isBusinessDay(calendarId,date),"shiftedBusinessDate",calendarService.shiftBusinessDay(calendarId,date,offset)));}
+    public ResponseEntity<Map<String,Object>> resolve(@PathVariable String calendarId,@RequestParam LocalDate date,@RequestParam(defaultValue="1") int offset){return
+            ResponseEntity.ok(Map.of("calendarId",calendarId,"date",date,"businessDay",calendarService.isBusinessDay(calendarId,date),"shiftedBusinessDate",calendarService.shiftBusinessDay(calendarId,date,offset)));}
 
     @PutMapping("/{calendarId}/days/{businessDate}") @CpfOnlineTransaction(id="OADMCL0003",name="ADMBusinessCalendarSave")
     @Operation(operationId="admCalendarSaveDay",summary="영업일/휴일 Override 저장",description="업무 사유와 감사 사유를 분리하며 expectedVersion CAS를 사용합니다.")
-    public ResponseEntity<CmnCalendarDay> save(@PathVariable String calendarId,@PathVariable LocalDate businessDate,@RequestParam(defaultValue="0") long expectedVersion,@RequestBody SaveDayRequest body,HttpServletRequest request){
+    public ResponseEntity<CmnCalendarDay> save(@PathVariable String calendarId,@PathVariable LocalDate businessDate,@RequestParam(defaultValue="0") long expectedVersion,@RequestBody
+            SaveDayRequest body,HttpServletRequest request){
         String operator=requireOperator(request);String auditReason=auditLogService.requireReason(body.auditReason());
-        CmnCalendarDay day=new CmnCalendarDay(calendarId,businessDate,body.businessDay(),defaultText(body.dayType(),body.businessDay()?"BUSINESS":"HOLIDAY"),defaultText(body.institutionCode(),""),defaultText(body.reason(),""),expectedVersion);
-        CmnCalendarDay saved=auditLogService.executeAudited(CpfTransactionContext.transactionId(),operator,"BUSINESS_CALENDAR_SAVE","cmn_business_calendar",calendarId+":"+businessDate,auditReason,String.valueOf(day),clientIp(request),()->calendarService.save(day,expectedVersion,operator),String::valueOf);
+        CmnCalendarDay before=calendarService.findDay(calendarId,businessDate).orElse(null);
+        CmnCalendarDay day=new CmnCalendarDay(calendarId,businessDate,body.businessDay(),defaultText(body.dayType(),body.businessDay()?"BUSINESS":"HOLIDAY"),
+                defaultText(body.institutionCode(),""),defaultText(body.reason(),""),expectedVersion);
+        CmnCalendarDay saved=auditLogService.executeAudited(CpfTransactionContext.transactionId(),operator,"BUSINESS_CALENDAR_SAVE","cmn_business_calendar",calendarId+":"+businessDate,
+                auditReason,before==null?null:String.valueOf(before),clientIp(request),()->calendarService.save(day,expectedVersion,operator),String::valueOf);
         return ResponseEntity.ok(saved);
     }
     @DeleteMapping("/{calendarId}/days/{businessDate}") @CpfOnlineTransaction(id="OADMCL0004",name="ADMBusinessCalendarDelete")
     @Operation(operationId="admCalendarDeleteDay",summary="영업일 Override 삭제")
     public ResponseEntity<Void> delete(@PathVariable String calendarId,@PathVariable LocalDate businessDate,@RequestParam long expectedVersion,@RequestParam String auditReason,HttpServletRequest request){
         String operator=requireOperator(request);String why=auditLogService.requireReason(auditReason);
-        auditLogService.executeAudited(CpfTransactionContext.transactionId(),operator,"BUSINESS_CALENDAR_DELETE","cmn_business_calendar",calendarId+":"+businessDate,why,"expectedVersion="+expectedVersion,clientIp(request),()->{calendarService.delete(calendarId,businessDate,expectedVersion,operator);return Boolean.TRUE;},r->"deleted=true");
+        CmnCalendarDay before=calendarService.findDay(calendarId,businessDate).orElse(null);
+        auditLogService.executeAudited(CpfTransactionContext.transactionId(),operator,"BUSINESS_CALENDAR_DELETE","cmn_business_calendar",calendarId+":"+businessDate,why,
+                before==null?null:String.valueOf(before),clientIp(request),()->{calendarService.delete(calendarId,businessDate,expectedVersion,operator);return Boolean.TRUE;},r->"deleted=true;after=null");
         return ResponseEntity.noContent().build();
     }
     @ExceptionHandler(CmnCalendarConflictException.class)

@@ -2,11 +2,9 @@ name: CPF Final Required Gates
 
 on:
   push:
-    branches:
-      - master
+    branches: [master]
   pull_request:
-    branches:
-      - master
+    branches: [master]
 
 permissions:
   contents: read
@@ -18,23 +16,50 @@ concurrency:
 jobs:
   architecture-evidence:
     runs-on: windows-latest
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '25'
-      - name: Apply repository ownership relocation
-        shell: pwsh
-        run: >-
-          ./cpf-tools/scripts/apply-20260729-final-overlay.ps1
-          -ProjectRoot .
-          -ExpectedBaseSha '${{ github.sha }}'
-          -AllowDifferentBaseSha
-          -SkipStaticVerification
-      - name: Semantic and ownership gates
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.18.0'
+      - name: Reject dirty checkout
         shell: pwsh
         run: |
+          $dirty = @(git status --porcelain=v1 --untracked-files=all)
+          if ($dirty) { $dirty; throw 'Checkout is dirty before validation.' }
+      - name: Semantic, ownership and traceability gates
+        shell: pwsh
+        run: |
+          python ./cpf-tools/scripts/generate-cpf-project-inventory.py --root . --output-dir (Join-Path $env:RUNNER_TEMP 'cpf-project-inventory')
+          python ./cpf-tools/scripts/verify-cpf-project-inventory.py --inventory-dir (Join-Path $env:RUNNER_TEMP 'cpf-project-inventory') --policy ./cpf-tools/governance/cpf-product-surface-policy.json --waivers ./cpf-tools/governance/cpf-project-inventory-waivers.csv
+          python ./cpf-tools/scripts/verify-cpf-requirement-traceability.py --root . --expected-sha '${{ github.sha }}' --require-clean
+          python ./cpf-tools/scripts/verify-cpf-overlay-hygiene.py --root .
+          python ./cpf-tools/scripts/verify-cpf-protected-doc-boundary.py --root .
+          python ./cpf-tools/scripts/verify-cpf-legacy-continuity.py --root .
+          python ./cpf-tools/scripts/verify-cpf-javadoc-coverage.py --root .
+          python ./cpf-tools/scripts/verify-cpf-adm-capability-registry.py --root .
+          python ./cpf-tools/scripts/verify-cpf-adm-commercial-page-contract.py --root .
+          python ./cpf-tools/scripts/verify-cpf-controller-permission-contract.py --root . --strict --report (Join-Path $env:RUNNER_TEMP 'controller-permission-contract.csv')
+          python ./cpf-tools/scripts/verify-cpf-network-policy-consumers.py --root .
+          python ./cpf-tools/scripts/verify-cpf-operator-trust-boundary.py --root .
+          python ./cpf-tools/scripts/verify-cpf-edu-executable-coverage.py --root .
+          python ./cpf-tools/scripts/verify-cpf-edu-profile-isolation.py --root .
+          python ./cpf-tools/scripts/verify-cpf-edu-impact.py --root .
+          python ./cpf-tools/scripts/verify-cpf-openapi-controller-coverage.py --root . --module cpf-admin --openapi cpf-admin/frontend/openapi/cpf-openapi.json
+          python ./cpf-tools/scripts/verify-cpf-openapi-controller-coverage.py --root . --module cpf-biz-admin --openapi cpf-biz-admin/frontend/openapi/cpf-openapi.json
+          python ./cpf-tools/scripts/verify-cpf-final-plan.py --root .
+          python ./cpf-tools/scripts/verify-cpf-final-wrapper-contract.py --root .
+          python ./cpf-tools/scripts/verify-cpf-approved-baseline-metadata.py --root .
+          python ./cpf-tools/scripts/verify-cpf-db-lifecycle-contract.py --root .
+          python ./cpf-tools/scripts/verify-cpf-supply-chain.py --root .
+          python -m unittest discover -s ./cpf-tools/scripts/tests -p 'test_*.py'
           python ./cpf-tools/verification/20260729_04/check_final_source_closure.py .
           python ./cpf-tools/verification/20260729_04/check_generator_idempotency_templates.py .
           python ./cpf-tools/verification/20260729_04/check_generator_java_template_compile.py .
@@ -44,7 +69,12 @@ jobs:
           ./cpf-tools/scripts/check-direct-client-boundary.ps1
           ./cpf-tools/scripts/check-semantic-consumer-graph.ps1
           ./cpf-tools/scripts/check-evidence-contract.ps1
-          ./cpf-tools/scripts/check-work-context-sha.ps1 -ExpectedSha '${{ github.sha }}' -AllowOverlayBaseSha
+          ./cpf-tools/scripts/check-work-context-sha.ps1 -ExpectedSha '${{ github.sha }}'
+      - name: Reject self-dirty validation
+        shell: pwsh
+        run: |
+          $dirty = @(git status --porcelain=v1 --untracked-files=all)
+          if ($dirty) { $dirty; throw 'Validation changed Source or tracked evidence.' }
 
   java-build-test:
     runs-on: windows-latest
@@ -55,7 +85,7 @@ jobs:
           distribution: temurin
           java-version: '25'
           cache: gradle
-      - name: Java 25 / Gradle build and test
+      - name: Java 25 fresh build and test
         shell: pwsh
         run: ./gradlew.bat clean test assemble qualityGate --no-daemon --stacktrace
       - uses: actions/upload-artifact@v4
@@ -67,47 +97,57 @@ jobs:
 
   frontend:
     runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        frontend: [cpf-admin/frontend, cpf-biz-admin/frontend]
+    defaults:
+      run:
+        working-directory: ${{ matrix.frontend }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '22.18.0'
           cache: npm
-          cache-dependency-path: '**/package-lock.json'
-      - uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '25'
-      - name: ADM/BZA frontend build
+          cache-dependency-path: ${{ matrix.frontend }}/package-lock.json
+      - name: Clean install
         shell: pwsh
-        run: ./gradlew.bat :cpf-admin:frontendBuild :cpf-biz-admin:frontendBuild --no-daemon --stacktrace
+        run: npm ci --ignore-scripts
+      - name: OpenAPI, generated client, lint, typecheck, unit and production build
+        shell: pwsh
+        run: npm run verify
+      - name: Reject generated drift and self-dirty build
+        shell: pwsh
+        working-directory: .
+        run: |
+          $dirty = @(git status --porcelain=v1 --untracked-files=all)
+          if ($dirty) { $dirty; throw 'Frontend validation generated untracked or changed files.' }
 
   database-static:
     runs-on: windows-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        vendor:
-          - mariadb
-          - postgresql
-          - oracle
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
     steps:
       - uses: actions/checkout@v4
-      - name: Vendor parity and migration checks
+        with:
+          fetch-depth: 0
+      - name: Approved baseline, vendor parity and migration checks once
         shell: pwsh
         run: |
+          python ./cpf-tools/scripts/verify-cpf-approved-baseline-metadata.py --root .
+          python ./cpf-tools/scripts/verify-cpf-db-lifecycle-contract.py --root .
           ./cpf-tools/scripts/check-db-vendor-pack-parity.ps1
+          ./cpf-tools/scripts/check-canonical-db-lifecycle-contract.ps1
           ./cpf-tools/scripts/check-migration-checksums.ps1
           ./cpf-tools/scripts/check-sql-standard.ps1
           ./cpf-tools/scripts/check-sql-canonical.ps1
+          $dirty = @(git status --porcelain=v1 --untracked-files=all)
+          if ($dirty) { $dirty; throw 'DB validation changed Source or checksum files.' }
 
   final-required:
     if: always()
-    needs:
-      - architecture-evidence
-      - java-build-test
-      - frontend
-      - database-static
+    needs: [architecture-evidence, java-build-test, frontend, database-static]
     runs-on: windows-latest
     steps:
       - name: Reject missing or failed required jobs

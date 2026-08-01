@@ -1,2 +1,2 @@
-<script setup lang="ts">import BatchViewPage from '../batch-runtime-control/BatchViewPage.vue'</script>
-<template><BatchViewPage view="agents" title="Host Agents" description="원격 Host Agent의 Host·버전·Heartbeat 상태를 조회합니다." /></template>
+<script setup lang="ts">import RuntimeFleetWorkbench from '../batch-runtime-control/RuntimeFleetWorkbench.vue'</script>
+<template><RuntimeFleetWorkbench view="agents" title="Host Agent Workbench" description="Host Agent의 Heartbeat·Version·Process·Quarantine·Drain 상태와 승인 기반 재시작·중지를 관리합니다." target-type="AGENT" :id-keys="['agentId','agent_id','instanceId','instance_id']" :allowed-actions="['DRAIN','RESUME','RESTART','STOP','START','ROLLBACK']" /></template>

@@ -1,0 +1,179 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cpf.local/schema/cpf-runtime-environment-manifest.schema.json",
+  "title": "CPF Runtime Environment Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "manifestId",
+    "sourceSha",
+    "sanitized",
+    "operatingSystem",
+    "tools",
+    "databases",
+    "services",
+    "browsers"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "manifestId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "sourceSha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "sanitized": {
+      "const": true
+    },
+    "operatingSystem": {
+      "type": "object",
+      "required": [
+        "name",
+        "version",
+        "architecture"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "architecture": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "tools": {
+      "type": "array",
+      "minItems": 4,
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "version",
+          "command"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "version": {
+            "type": "string",
+            "minLength": 1
+          },
+          "command": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "databases": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "type": "object",
+        "required": [
+          "vendor",
+          "version",
+          "profile",
+          "available"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "vendor": {
+            "enum": [
+              "oracle",
+              "postgresql",
+              "mariadb"
+            ]
+          },
+          "version": {
+            "type": "string",
+            "minLength": 1
+          },
+          "profile": {
+            "type": "string",
+            "minLength": 1
+          },
+          "available": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "services": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "version",
+          "available"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "enum": [
+              "kafka",
+              "redis",
+              "batch-control",
+              "batch-worker",
+              "gateway",
+              "adm",
+              "bza"
+            ]
+          },
+          "version": {
+            "type": "string",
+            "minLength": 1
+          },
+          "available": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "browsers": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "version",
+          "available"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "enum": [
+              "chromium",
+              "firefox",
+              "webkit"
+            ]
+          },
+          "version": {
+            "type": "string",
+            "minLength": 1
+          },
+          "available": {
+            "type": "boolean"
+          }
+        }
+      }
+    }
+  }
+}

@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 
+/** 거래 Metadata·Timeline·Page 조회와 운영 변경 계약을 제공합니다. */
 @RestController
 @RequestMapping("/adm/api/transactions")
 @Tag(name = "ADM-OPR Transaction Meta", description = "CPF 온라인 거래 메타 조회와 scan API")
@@ -41,6 +42,19 @@ public class AdmTransactionMetaController extends com.cpf.admin.common.base.AdmB
             @RequestParam(required = false) String transactionId,
             @RequestParam(defaultValue = "200") int limit) {
         return ResponseEntity.ok(transactionMetaService.findTransactions(moduleCode, activeYn, transactionId, limit));
+    }
+
+    @GetMapping("/page")
+    @CpfOnlineTransaction(id = "OADMTR0014", name = "ADMTransactionMetaPage")
+    @Operation(operationId = "admTransactionMetaFindPage", summary = "거래 메타 Server Paging", description = "3개 공식 DB Vendor의 Owner Repository에서 count와 page를 함께 조회합니다.")
+    public ResponseEntity<com.cpf.core.api.transaction.CpfTransactionMetaOperations.TransactionMetaPage> findPage(
+            @RequestParam(required = false) String moduleCode,
+            @RequestParam(required = false) String activeYn,
+            @RequestParam(required = false) String transactionId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ResponseEntity.ok(transactionMetaService.findPage(
+                moduleCode, activeYn, transactionId, page, size));
     }
 
     @GetMapping("/{transactionId}")
@@ -100,10 +114,6 @@ public class AdmTransactionMetaController extends com.cpf.admin.common.base.AdmB
     }
 
     private String requestUser(HttpServletRequest request, String fallback) {
-        Object operatorId = request.getAttribute("adm.operatorId");
-        if (operatorId instanceof String value && !value.isBlank()) {
-            return value;
-        }
-        return fallback;
+        return requireOperator(request);
     }
 }

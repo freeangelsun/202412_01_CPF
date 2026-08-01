@@ -36,7 +36,7 @@ import java.util.regex.Pattern;
  *
  * <p>요청은 먼저 {@code cpf_notification_delivery_log}에 READY 상태로 저장됩니다. Worker는
  * version/CAS와 lease를 사용해 한 인스턴스만 발송을 소유하며, Provider timeout·실패·응답 유실을
- * RETRY·FAILED·UNKNOWN_RESULT로 구분합니다. 외부 Provider 호출은 DB transaction 밖에서 수행합니다.</p>
+ * RETRY·DLQ·UNKNOWN_RESULT로 구분합니다. 외부 Provider 호출은 DB transaction 밖에서 수행합니다.</p>
  */
 @Service
 public class AdmNotificationOutboxService {
@@ -201,7 +201,7 @@ public class AdmNotificationOutboxService {
                     updated_at = CURRENT_TIMESTAMP
                 WHERE delivery_id = ?
                   AND version = ?
-                  AND delivery_status IN ('FAILED', 'UNKNOWN_RESULT', 'CANCELLED')
+                  AND delivery_status IN ('DLQ', 'FAILED', 'UNKNOWN_RESULT', 'CANCELLED')
                 """,
                 Timestamp.from(Instant.now()),
                 required(operatorId, "operatorId"),
@@ -236,7 +236,7 @@ public class AdmNotificationOutboxService {
                     updated_at = CURRENT_TIMESTAMP
                 WHERE delivery_id = ?
                   AND version = ?
-                  AND delivery_status IN ('READY', 'RETRY', 'UNKNOWN_RESULT')
+                  AND delivery_status IN ('READY', 'RETRY', 'UNKNOWN_RESULT', 'DLQ')
                 """,
                 required(operatorId, "operatorId"),
                 deliveryId,
@@ -408,7 +408,7 @@ public class AdmNotificationOutboxService {
             finalStatus = "RETRY";
             nextAttemptAt = Timestamp.from(Instant.now().plus(retryDelay.multipliedBy(delivery.attemptCount())));
         } else {
-            finalStatus = "FAILED";
+            finalStatus = "DLQ";
         }
         String safeProviderMessage = sanitizeProviderMessage(defaultText(result.deliveryMessage(), finalStatus));
         int updated = jdbcTemplate.update("""

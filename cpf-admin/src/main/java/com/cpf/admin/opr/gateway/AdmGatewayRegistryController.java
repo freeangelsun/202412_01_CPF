@@ -2,6 +2,7 @@ package com.cpf.admin.opr.gateway;
 
 import com.cpf.admin.opr.service.AdmAuditLogService;
 import com.cpf.core.api.execution.CpfOnlineTransaction;
+import com.cpf.core.api.data.CpfDataRow;
 import com.cpf.core.api.gateway.CpfGatewayRegistryPort;
 import com.cpf.core.api.gateway.CpfGatewayProtocol;
 import com.cpf.core.api.gateway.CpfGatewayLoadBalancePolicy;
@@ -37,21 +38,21 @@ public class AdmGatewayRegistryController extends com.cpf.admin.common.base.AdmB
 
     @GetMapping("/capability")
     @Operation(operationId="admGatewayCapability",summary="Gateway Control Plane 설치·연결 상태")
-    public Map<String,Object> capability() {
+    public CpfDataRow capability() {
         CpfGatewayRegistryPort resolved=portProvider.getIfAvailable();
-        Map<String,Object> catalog=Map.of(
+        CpfDataRow catalog=CpfDataRow.of(
                 "protocols",java.util.Arrays.stream(CpfGatewayProtocol.values()).map(Enum::name).toList(),
                 "loadBalancePolicies",java.util.Arrays.stream(CpfGatewayLoadBalancePolicy.values()).map(Enum::name).toList(),
                 "bindingStates",List.of("DRAFT","VALIDATED","APPROVAL_PENDING","APPROVED","ACTIVE","PARTIAL","BLOCKED","RETIRED"),
                 "connectionTestTypes",List.of("NETWORK","TCP","TLS","APPLICATION","GATEWAY_E2E"));
-        if(resolved==null) return Map.of("installed",false,"available",false,"status","NOT_INSTALLED",
+        if(resolved==null) return CpfDataRow.of("installed",false,"available",false,"status","NOT_INSTALLED",
                 "reason","Gateway Control Plane Provider가 구성되지 않았습니다.","catalog",catalog);
         try {
             CpfGatewayRegistryPort.OperationsSnapshot snapshot=resolved.operationsSnapshot();
-            return Map.of("installed",true,"available",true,"status",snapshot.status(),"catalog",catalog,
+            return CpfDataRow.of("installed",true,"available",true,"status",snapshot.status(),"catalog",catalog,
                     "sourceInstanceId",snapshot.sourceInstanceId(),"generatedAt",snapshot.generatedAt());
         } catch (RuntimeException ex) {
-            return Map.of("installed",true,"available",false,"status","UNAVAILABLE","catalog",catalog,
+            return CpfDataRow.of("installed",true,"available",false,"status","UNAVAILABLE","catalog",catalog,
                     "reason","Gateway Control Plane 운영 조회에 실패했습니다.");
         }
     }
@@ -219,7 +220,8 @@ public class AdmGatewayRegistryController extends com.cpf.admin.common.base.AdmB
                 "Gateway Control Plane이 설치되지 않았거나 연결할 수 없습니다.");
         return resolved;
     }
-    private String operator(HttpServletRequest r) { Object v=r.getAttribute("adm.operatorId");if(v instanceof String s&&!s.isBlank())return s;throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,"검증된 ADM 운영자가 필요합니다."); }
+    private String operator(HttpServletRequest r) { Object v=r.getAttribute("adm.operatorId");if(v instanceof String s&&!s.isBlank())return s;throw new
+            ResponseStatusException(HttpStatus.UNAUTHORIZED,"검증된 ADM 운영자가 필요합니다."); }
     private static void reason(String value) { if(value==null||value.trim().length()<5)throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"운영 사유는 5자 이상이어야 합니다."); }
 
     private static String sha256(String value) {
@@ -231,5 +233,6 @@ public class AdmGatewayRegistryController extends com.cpf.admin.common.base.AdmB
         }
     }
 
-    private void record(HttpServletRequest req,String user,String action,String id,String reason,Object after) { audit.record(CpfTransactionContext.transactionId(),user,action,"cpf_gateway_registry",id,reason,"",String.valueOf(after),"Gateway Registry",req.getRemoteAddr()); }
+    private void record(HttpServletRequest req,String user,String action,String id,String reason,Object after) { audit.record(CpfTransactionContext.transactionId(),user,action,
+            "cpf_gateway_registry",id,reason,"",String.valueOf(after),"Gateway Registry",req.getRemoteAddr()); }
 }

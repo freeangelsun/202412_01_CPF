@@ -18,14 +18,15 @@
         </div>
         <pre class="detail">{{ pretty(codeResult) }}</pre>
       </section>
+
+  <section class="panel route-operation-panel"><h3>코드 상세·비활성</h3><div class="actions"><button type="button" @click="loadCodeDetail">상세 조회</button><button type="button" v-if="canWrite('CODE')" @click="deleteCodeById">비활성</button></div></section>
 </template>
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import { admConsoleMixin } from "../../app/admConsoleMixin";
+import { useAdmConsolePage } from "../../app/useAdmConsolePage";
 
-export default defineComponent({
+export default defineComponent({setup(){return useAdmConsolePage()},
   name: "CodesPage",
-  mixins: [admConsoleMixin]
-});
+  });
 </script>

@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "evidenceId": "CPF-20260801-01-ENVIRONMENT-BLOCKERS",
+  "classification": "SANITIZED_ENVIRONMENT_BLOCKER",
+  "baselineSha": "19dd72b5978f2a3c630943c0fff05bee2d2fed34",
+  "capturedAt": "2026-08-01T07:19:37.753562+00:00",
+  "sanitized": true,
+  "blockers": [
+    {
+      "stage": "JAVA25",
+      "command": "java -version; .\\gradlew.bat clean test assemble qualityGate --no-daemon --stacktrace",
+      "exitCode": 2,
+      "status": "미검증",
+      "actual": "OpenJDK 21.0.10; JDK 25 required; Linux gradlew absent and gradle not installed",
+      "sourceDefect": false,
+      "logTail": "openjdk version \"21.0.10\" 2026-01-20\nOpenJDK Runtime Environment (build 21.0.10+7-Debian-1deb13u1)\nOpenJDK 64-Bit Server VM (build 21.0.10+7-Debian-1deb13u1, mixed mode, sharing)\nrequired=25 actual= 21"
+    },
+    {
+      "stage": "ADM_FRONTEND",
+      "command": "npm ci --ignore-scripts --registry=https://registry.npmjs.org/ --fetch-retries=0 --fetch-timeout=15000",
+      "exitCode": 1,
+      "status": "미검증",
+      "actual": "DNS EAI_AGAIN registry.npmjs.org/commander",
+      "sourceDefect": false,
+      "logTail": "npm warn node_modules/orval/node_modules/@commander-js/extra-typings/node_modules/commander\nnpm warn\nnpm warn Could not resolve dependency:\nnpm warn peer commander@\"~15.0.0\" from @commander-js/extra-typings@15.0.0\nnpm warn node_modules/orval/node_modules/@commander-js/extra-typings\nnpm warn   @commander-js/extra-typings@\"^15.0.0\" from orval@8.23.0\nnpm warn   node_modules/orval\nnpm error code EAI_AGAIN\nnpm error syscall getaddrinfo\nnpm error errno EAI_AGAIN\nnpm error request to https://registry.npmjs.org/commander failed, reason: getaddrinfo EAI_AGAIN registry.npmjs.org\nnpm error A complete log of this run can be found in: /home/oai/.npm/_logs/2026-08-01T07_17_39_477Z-debug-0.log"
+    },
+    {
+      "stage": "BZA_FRONTEND",
+      "command": "npm ci --ignore-scripts --registry=https://registry.npmjs.org/ --fetch-retries=0 --fetch-timeout=15000",
+      "exitCode": 1,
+      "status": "미검증",
+      "actual": "DNS EAI_AGAIN registry.npmjs.org/commander",
+      "sourceDefect": false,
+      "logTail": "npm warn node_modules/orval/node_modules/@commander-js/extra-typings/node_modules/commander\nnpm warn\nnpm warn Could not resolve dependency:\nnpm warn peer commander@\"~15.0.0\" from @commander-js/extra-typings@15.0.0\nnpm warn node_modules/orval/node_modules/@commander-js/extra-typings\nnpm warn   @commander-js/extra-typings@\"^15.0.0\" from orval@8.23.0\nnpm warn   node_modules/orval\nnpm error code EAI_AGAIN\nnpm error syscall getaddrinfo\nnpm error errno EAI_AGAIN\nnpm error request to https://registry.npmjs.org/commander failed, reason: getaddrinfo EAI_AGAIN registry.npmjs.org\nnpm error A complete log of this run can be found in: /home/oai/.npm/_logs/2026-08-01T07_17_49_868Z-debug-0.log"
+    },
+    {
+      "stage": "THREE_DB_DISTRIBUTED_RUNTIME",
+      "command": "pwsh/docker/psql/sqlplus/mariadb availability check",
+      "exitCode": 3,
+      "status": "미검증",
+      "actual": "pwsh, docker, psql, sqlplus, mariadb unavailable",
+      "sourceDefect": false,
+      "logTail": "{\n  \"pwsh\": null,\n  \"docker\": null,\n  \"psql\": null,\n  \"sqlplus\": null,\n  \"mariadb\": null\n}"
+    },
+    {
+      "stage": "EXACT_SHA",
+      "command": "git rev-parse HEAD; git rev-parse origin/master; git status --porcelain",
+      "exitCode": null,
+      "status": "미검증",
+      "actual": "Overlay is not applied or committed; result SHA does not exist",
+      "sourceDefect": false,
+      "logTail": ""
+    }
+  ]
+}

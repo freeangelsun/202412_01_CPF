@@ -1,2 +1,2 @@
-<script setup lang="ts">import BatchViewPage from '../batch-runtime-control/BatchViewPage.vue'</script>
-<template><BatchViewPage view="worker-pools" title="Worker Pools" description="Pool·버전·Capacity·Drain 상태를 조회합니다." /></template>
+<script setup lang="ts">import RuntimeFleetWorkbench from '../batch-runtime-control/RuntimeFleetWorkbench.vue'</script>
+<template><RuntimeFleetWorkbench view="worker-pools" title="Worker Pool Workbench" description="Pool별 Capacity·Concurrency·Artifact Version·Drain·Fencing 상태와 승인 기반 조치를 관리합니다." target-type="POOL" :id-keys="['poolId','pool_id','workerPoolId']" :allowed-actions="['DRAIN','RESUME','RESTART']" /></template>

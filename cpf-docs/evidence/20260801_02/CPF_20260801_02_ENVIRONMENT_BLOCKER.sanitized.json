@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "baselineSha": "19dd72b5978f2a3c630943c0fff05bee2d2fed34",
+  "sanitized": true,
+  "blockers": [
+    {
+      "id": "CPF-WIN-004",
+      "type": "ENVIRONMENT",
+      "command": "node cpf-tools/scripts/verify-cpf-frontend-source-syntax.cjs .",
+      "exitCode": 1,
+      "reason": "TypeScript compiler not found. npm ci must complete in cpf-admin/frontend and cpf-biz-admin/frontend before rerun.",
+      "sourceDefect": false
+    }
+  ]
+}

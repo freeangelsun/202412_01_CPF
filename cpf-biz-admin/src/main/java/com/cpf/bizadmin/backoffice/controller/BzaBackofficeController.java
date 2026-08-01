@@ -45,6 +45,7 @@ public class BzaBackofficeController extends com.cpf.bizadmin.common.base.BzaBas
 
     @GetMapping("/organizations/page")
     @CpfOnlineTransaction(id = "OBZAOR1101", name = "BzaOrganizationPage")
+    @Operation(operationId = "bzaBackofficeFindOrganizationsPage", summary = "조직 서버 Paging 조회")
     public ResponseEntity<CpfPage<Map<String,Object>>> organizationsPage(
             @RequestParam(required=false) Integer page,@RequestParam(required=false) Integer size) {
         return ResponseEntity.ok(backofficeService.findOrganizationsPage(page,size));
@@ -71,6 +72,7 @@ public class BzaBackofficeController extends com.cpf.bizadmin.common.base.BzaBas
 
     @GetMapping("/employees/page")
     @CpfOnlineTransaction(id = "OBZAEM1101", name = "BzaEmployeePage")
+    @Operation(operationId = "bzaBackofficeFindEmployeesPage", summary = "직원 서버 Paging 조회")
     public ResponseEntity<CpfPage<Map<String,Object>>> employeesPage(
             @RequestParam(required=false) String organizationCode,@RequestParam(required=false) String status,
             @RequestParam(required=false) Integer page,@RequestParam(required=false) Integer size) {

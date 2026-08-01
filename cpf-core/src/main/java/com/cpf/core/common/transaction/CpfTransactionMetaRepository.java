@@ -1,5 +1,7 @@
 package com.cpf.core.common.transaction;
 
+import com.cpf.core.api.database.CpfDatabaseVendor;
+import com.cpf.core.api.data.CpfDataRow;
 import com.cpf.core.common.database.CpfVendorSqlCatalog;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -100,22 +102,58 @@ public class CpfTransactionMetaRepository {
                 rotateUserToFront(args).toArray());
     }
 
-    public Optional<Map<String, Object>> findById(String transactionId) {
+    public Optional<CpfDataRow> findById(String transactionId) {
         if (!tableAvailable() || transactionId == null || transactionId.isBlank()) {
             return Optional.empty();
         }
-        List<Map<String, Object>> rows = jdbc().queryForList(
-                sql.required("transaction-meta-find-by-id"), transactionId.trim());
+        List<CpfDataRow> rows = CpfDataRow.copyRows(jdbc().queryForList(
+                sql.required("transaction-meta-find-by-id"), transactionId.trim()));
         if (rows.isEmpty()) {
             return Optional.empty();
         }
         return Optional.of(rows.get(0));
     }
 
-    public List<Map<String, Object>> findAll(String moduleCode, String activeYn, String transactionId, int limit) {
+    public List<CpfDataRow> findAll(String moduleCode, String activeYn, String transactionId, int limit) {
+        return findPage(moduleCode, activeYn, transactionId, 0, limit).items();
+    }
+
+    public com.cpf.core.api.transaction.CpfTransactionMetaOperations.TransactionMetaPage findPage(
+            String moduleCode,
+            String activeYn,
+            String transactionId,
+            int page,
+            int size) {
+        int safePage = Math.max(0, page);
+        int safeSize = Math.max(1, Math.min(size, 200));
         if (!tableAvailable()) {
-            return List.of();
+            return new com.cpf.core.api.transaction.CpfTransactionMetaOperations.TransactionMetaPage(
+                    false, List.of(), safePage, safeSize, 0L, 0);
         }
+        QueryCriteria criteria = criteria(moduleCode, activeYn, transactionId);
+        Object[] filterArguments = criteria.arguments();
+        Long total = jdbc().queryForObject(
+                sql.required("transaction-meta-count"), Long.class, filterArguments);
+        long totalElements = total == null ? 0L : Math.max(0L, total);
+        long offset = (long) safePage * safeSize;
+        List<Object> arguments = new ArrayList<>(List.of(filterArguments));
+        if (sql.vendor() == CpfDatabaseVendor.ORACLE) {
+            arguments.add(offset);
+            arguments.add(safeSize);
+        } else {
+            arguments.add(safeSize);
+            arguments.add(offset);
+        }
+        List<CpfDataRow> items = offset >= totalElements
+                ? List.of()
+                : CpfDataRow.copyRows(jdbc().queryForList(
+                        sql.required("transaction-meta-find-page"), arguments.toArray()));
+        int totalPages = totalElements == 0L ? 0 : (int) Math.ceil((double) totalElements / safeSize);
+        return new com.cpf.core.api.transaction.CpfTransactionMetaOperations.TransactionMetaPage(
+                true, items, safePage, safeSize, totalElements, totalPages);
+    }
+
+    private QueryCriteria criteria(String moduleCode, String activeYn, String transactionId) {
         String normalizedModule = blankToNull(moduleCode);
         if (normalizedModule != null) {
             normalizedModule = normalizedModule.toUpperCase();
@@ -128,17 +166,22 @@ public class CpfTransactionMetaRepository {
         if (transactionPattern != null) {
             transactionPattern = "%" + transactionPattern + "%";
         }
-        return jdbc().queryForList(
-                sql.required("transaction-meta-find-all"),
-                normalizedModule, normalizedModule,
-                normalizedActive, normalizedActive,
-                transactionPattern, transactionPattern,
-                Math.max(1, Math.min(limit, 1000)));
+        return new QueryCriteria(normalizedModule, normalizedActive, transactionPattern);
     }
 
-    public Map<String, Object> inactivate(String transactionId, String requestUser) {
-        Map<String, Object> result = new LinkedHashMap<>();
-        Optional<Map<String, Object>> before = findById(transactionId);
+    private record QueryCriteria(String moduleCode, String activeYn, String transactionPattern) {
+        private Object[] arguments() {
+            return new Object[]{
+                    moduleCode, moduleCode,
+                    activeYn, activeYn,
+                    transactionPattern, transactionPattern
+            };
+        }
+    }
+
+    public CpfDataRow inactivate(String transactionId, String requestUser) {
+        CpfDataRow result = new CpfDataRow();
+        Optional<CpfDataRow> before = findById(transactionId);
         int updated = 0;
         if (before.isPresent()) {
             updated = jdbc().update(
@@ -146,8 +189,8 @@ public class CpfTransactionMetaRepository {
                     defaultIfBlank(requestUser, "ADM"), transactionId.trim());
         }
         result.put("updated", updated);
-        result.put("before", before.orElse(Map.of()));
-        result.put("after", findById(transactionId).orElse(Map.of()));
+        result.put("before", before.orElse(CpfDataRow.of()));
+        result.put("after", findById(transactionId).orElse(CpfDataRow.of()));
         return result;
     }
 

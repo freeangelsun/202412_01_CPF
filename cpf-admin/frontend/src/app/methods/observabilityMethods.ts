@@ -26,8 +26,7 @@ export const observabilityMethods: Record<string, any> = {
           logId: String(logId),
           action,
           reason: this.downloadForm.reason,
-          format: "JSON",
-          requestedBy: this.currentOperator.operatorId
+          format: "JSON"
         });
         if (!response.ok) {
           await this.parseResponse(response, false);
@@ -211,13 +210,13 @@ export const observabilityMethods: Record<string, any> = {
       },
   async scanTransactions() {
         if (!this.requireReason(this.transactionSearch.reason)) return;
-        const params = this.buildParams({ reason: this.transactionSearch.reason, requestUser: this.currentOperator.operatorId });
+        const params = this.buildParams({ reason: this.transactionSearch.reason });
         this.transactionResult = await this.sendJson(`/adm/api/transactions/scan?${params.toString()}`, "POST");
         this.setMessage("거래 메타 재스캔을 요청했습니다.");
       },
   async inactivateTransaction() {
         if (!this.transactionSearch.selectedTransactionId || !this.requireReason(this.transactionSearch.reason)) return;
-        const params = this.buildParams({ reason: this.transactionSearch.reason, requestUser: this.currentOperator.operatorId });
+        const params = this.buildParams({ reason: this.transactionSearch.reason });
         this.transactionResult = await this.sendJson(`/adm/api/transactions/${this.transactionSearch.selectedTransactionId}/inactive?${params.toString()}`, "POST");
         this.setMessage("거래 메타를 비활성화했습니다.");
       },
@@ -292,7 +291,6 @@ export const observabilityMethods: Record<string, any> = {
         delete payload.traceBoostTtlSeconds;
         delete payload.effectiveStartAt;
         delete payload.effectiveEndAt;
-        payload.requestUser = undefined;
         this.logPolicyResult = await this.sendJson(url, method, payload);
         await this.loadLogPolicies();
         this.setMessage("로그 정책을 저장했습니다.");
@@ -323,7 +321,6 @@ export const observabilityMethods: Record<string, any> = {
           maskingPolicyKey: this.logPolicyForm.maskingPolicyKey,
           effectiveStartAt: this.logPolicyForm.effectiveStartAt,
           effectiveEndAt: this.logPolicyForm.effectiveEndAt,
-          requestUser: undefined,
           reason: this.logPolicyForm.reason
         });
         this.setMessage("로그 정책 override를 등록했습니다.");
@@ -348,7 +345,6 @@ export const observabilityMethods: Record<string, any> = {
           durationMsGreaterThan: this.logPolicyForm.traceBoostDurationMsGreaterThan,
           logLevel: this.logPolicyForm.logLevel,
           ttlSeconds: this.logPolicyForm.traceBoostTtlSeconds,
-          requestUser: this.currentOperator.operatorId,
           reason: this.logPolicyForm.reason
         });
         this.setMessage("Trace Boost를 등록했습니다.");

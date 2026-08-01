@@ -24,6 +24,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+/** ADM Runtime 설정의 조회·변경·검증·감사 계약을 제공하는 운영 API입니다. */
 @RestController
 @RequestMapping("/adm/api/configs")
 @Tag(name = "ADM-CPF Configs", description = "CPF 공통 설정 관리 API")
@@ -145,10 +146,6 @@ public class AdmConfigController extends com.cpf.admin.common.base.AdmBaseContro
     }
 
     private String requestUser(HttpServletRequest request, String fallback) {
-        Object operatorId = request.getAttribute("adm.operatorId");
-        if (operatorId instanceof String value && !value.isBlank()) {
-            return value;
-        }
-        return fallback;
+        return requireOperator(request);
     }
 }

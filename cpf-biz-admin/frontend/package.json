@@ -3,9 +3,8 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "packageManager": "npm@10.9.2",
   "engines": {
-    "node": "22.16.0",
+    "node": ">=22.18.0 <25",
     "npm": "10.9.2"
   },
   "scripts": {
@@ -48,5 +47,6 @@
     "vite": "8.1.5",
     "vitest": "4.1.10",
     "vue-tsc": "3.3.7"
-  }
+  },
+  "packageManager": "npm@10.9.2"
 }

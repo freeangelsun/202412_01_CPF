@@ -14,7 +14,7 @@ public class AgentProperties {
     private String artifactRepositoryBaseUrl;
     private String artifactPublicKeyPath;
     private String artifactStateMacKeyBase64;
-    private Map<String, TrustedKey> artifactTrustStore = new LinkedHashMap<>();
+    private TrustedKeyRegistry artifactTrustStore = new TrustedKeyRegistry();
     private List<String> artifactAllowedHosts = new ArrayList<>();
     private List<String> artifactPinnedAddresses = new ArrayList<>();
     private List<String> artifactAllowedCidrs = new ArrayList<>();
@@ -40,7 +40,7 @@ public class AgentProperties {
     private long logArchiveTtlSeconds = 600L;
     private long commandLedgerRetentionSeconds = 604_800L;
     private List<String> allowedClientSubjects = new ArrayList<>();
-    private Map<String, ServiceDefinition> services = new LinkedHashMap<>();
+    private ServiceDefinitionRegistry services = new ServiceDefinitionRegistry();
 
     public String getArtifactRepositoryBaseUrl() { return artifactRepositoryBaseUrl; }
     public void setArtifactRepositoryBaseUrl(String value) { artifactRepositoryBaseUrl = value; }
@@ -48,8 +48,8 @@ public class AgentProperties {
     public void setArtifactPublicKeyPath(String value) { artifactPublicKeyPath = value; }
     public String getArtifactStateMacKeyBase64() { return artifactStateMacKeyBase64; }
     public void setArtifactStateMacKeyBase64(String value) { artifactStateMacKeyBase64 = value; }
-    public Map<String, TrustedKey> getArtifactTrustStore() { return artifactTrustStore; }
-    public void setArtifactTrustStore(Map<String, TrustedKey> value) { artifactTrustStore = value == null ? new LinkedHashMap<>() : value; }
+    public TrustedKeyRegistry getArtifactTrustStore() { return artifactTrustStore; }
+    public void setArtifactTrustStore(Map<String, TrustedKey> value) { artifactTrustStore = new TrustedKeyRegistry(value); }
     public List<String> getArtifactAllowedHosts() { return artifactAllowedHosts; }
     public void setArtifactAllowedHosts(List<String> value) { artifactAllowedHosts = value == null ? new ArrayList<>() : value; }
     public List<String> getArtifactPinnedAddresses() { return artifactPinnedAddresses; }
@@ -98,9 +98,34 @@ public class AgentProperties {
     public void setCommandLedgerRetentionSeconds(long value) { commandLedgerRetentionSeconds = value; }
     public List<String> getAllowedClientSubjects() { return allowedClientSubjects; }
     public void setAllowedClientSubjects(List<String> value) { allowedClientSubjects = value == null ? new ArrayList<>() : value; }
-    public Map<String, ServiceDefinition> getServices() { return services; }
-    public void setServices(Map<String, ServiceDefinition> value) { services = value == null ? new LinkedHashMap<>() : value; }
+    public ServiceDefinitionRegistry getServices() { return services; }
+    public void setServices(Map<String, ServiceDefinition> value) { services = new ServiceDefinitionRegistry(value); }
 
+    public static final class TrustedKeyRegistry extends TrustedKeyRegistryStorage {
+        public TrustedKeyRegistry() {
+            super();
+        }
+
+        TrustedKeyRegistry(Map<String, TrustedKey> source) {
+            super();
+            if (source != null) {
+                putAll(source);
+            }
+        }
+    }
+
+    public static final class ServiceDefinitionRegistry extends ServiceDefinitionRegistryStorage {
+        public ServiceDefinitionRegistry() {
+            super();
+        }
+
+        ServiceDefinitionRegistry(Map<String, ServiceDefinition> source) {
+            super();
+            if (source != null) {
+                putAll(source);
+            }
+        }
+    }
 
     public static class TrustedKey {
         private String publicKeyPath;
@@ -152,4 +177,11 @@ public class AgentProperties {
         public String getReleaseChannel() { return releaseChannel; }
         public void setReleaseChannel(String value) { releaseChannel = value; }
     }
+
+}
+
+abstract class TrustedKeyRegistryStorage extends LinkedHashMap<String, AgentProperties.TrustedKey> {
+}
+
+abstract class ServiceDefinitionRegistryStorage extends LinkedHashMap<String, AgentProperties.ServiceDefinition> {
 }

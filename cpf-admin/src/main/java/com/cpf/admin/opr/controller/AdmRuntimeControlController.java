@@ -37,9 +37,11 @@ public class AdmRuntimeControlController extends com.cpf.admin.common.base.AdmBa
 
     @PostMapping("/adm/api/runtime-control/changes")
     @CpfOnlineTransaction(id="OADMRC0010",name="ADMRuntimeChangeCreate")
-    @Operation(summary="Runtime 변경 생성",description="operationId fingerprint/CAS/대상 snapshot/durable delivery를 원자적으로 생성합니다.")
-    public ResponseEntity<CpfRuntimeChangeResult> create(@RequestBody CpfRuntimeChangeCommand command,HttpServletRequest request){
-        String operator=operator(request);requireCommandOwner(command,operator);requireRiskApproval(command);
+    @Operation(operationId="admRuntimeControlCreateChange", summary="Runtime 변경 생성",description="operationId fingerprint/CAS/대상 snapshot/durable delivery를 원자적으로 생성합니다.")
+    public ResponseEntity<CpfRuntimeChangeResult> create(@RequestBody RuntimeChangeRequest body,HttpServletRequest request){
+        String operator=operator(request);
+        CpfRuntimeChangeCommand command=body.toCommand(operator);
+        requireRiskApproval(command);
         CpfRuntimeChangeResult result=controlPlane.createChange(command);
         audit(request,operator,"RUNTIME_CHANGE_CREATE",result.changeId(),command.reason(),Map.of("changeType",command.changeType(),"capability",CpfRuntimeCapabilityCatalog.describe(command
                 .changeType()),"state",result.state(),"requestHash",result.requestHash()));
@@ -48,23 +50,28 @@ public class AdmRuntimeControlController extends com.cpf.admin.common.base.AdmBa
 
     @GetMapping("/adm/api/runtime-control/changes/{changeId}")
     @CpfOnlineTransaction(id="OADMRC0020",name="ADMRuntimeChangeDetail")
+    @Operation(operationId="admRuntimeControlFindChange", summary="Runtime 변경 상세 조회")
     public ResponseEntity<CpfRuntimeChangeResult> get(@PathVariable String changeId,HttpServletRequest request){operator(request);return ResponseEntity.ok(controlPlane.getChange(changeId));}
 
     @GetMapping("/adm/api/runtime-control/operations/{operationId}")
     @CpfOnlineTransaction(id="OADMRC0030",name="ADMRuntimeOperationRecovery")
+    @Operation(operationId="admRuntimeControlFindByOperation", summary="Operation ID 결과 복구 조회")
     public ResponseEntity<CpfRuntimeChangeResult> byOperation(@PathVariable String operationId,HttpServletRequest request){operator(request);return ResponseEntity.ok(controlPlane.getByOperationId(operationId));}
 
     @GetMapping("/adm/api/runtime-control/status")
     @CpfOnlineTransaction(id="OADMRC0040",name="ADMRuntimeStatus")
+    @Operation(operationId="admRuntimeControlFindStatus", summary="Runtime 상태 조회")
     public ResponseEntity<CpfRuntimeStatus> status(@RequestParam(required=false)String environment,@RequestParam(required=false)String serviceId,HttpServletRequest request){operator(request);return
             ResponseEntity.ok(controlPlane.status(environment,serviceId));}
 
     @GetMapping("/adm/api/runtime-control/health")
     @CpfOnlineTransaction(id="OADMRC0050",name="ADMRuntimeHealth")
+    @Operation(operationId="admRuntimeControlFindHealth", summary="Runtime Control Health 조회")
     public ResponseEntity<CpfRuntimeControlHealth> health(HttpServletRequest request){operator(request);return ResponseEntity.ok(controlPlane.health());}
 
     @GetMapping("/adm/api/runtime-control/states")
     @CpfOnlineTransaction(id="OADMRC0060",name="ADMRuntimeStateCatalog")
+    @Operation(operationId="admRuntimeControlFindStateCatalog", summary="Runtime 상태 코드 조회")
     public ResponseEntity<CpfRuntimeStateCatalogResponse> states(HttpServletRequest request){
         operator(request);
         return ResponseEntity.ok(new CpfRuntimeStateCatalogResponse(
@@ -74,7 +81,7 @@ public class AdmRuntimeControlController extends com.cpf.admin.common.base.AdmBa
 
     @GetMapping("/adm/api/runtime-control/capabilities")
     @CpfOnlineTransaction(id="OADMRC0065",name="ADMRuntimeCapabilityCatalog")
-    @Operation(summary="Runtime Capability 목록",description="ADM 실시간 운영·제어의 14개 독립 Capability와 승인 필요 여부를 반환합니다.")
+    @Operation(operationId="admRuntimeControlFindCapabilities", summary="Runtime Capability 목록",description="ADM 실시간 운영·제어의 14개 독립 Capability와 승인 필요 여부를 반환합니다.")
     public ResponseEntity<List<CpfRuntimeCapabilityCatalog.Capability>> capabilities(HttpServletRequest request){
         operator(request);
         return ResponseEntity.ok(CpfRuntimeCapabilityCatalog.capabilities());
@@ -82,18 +89,23 @@ public class AdmRuntimeControlController extends com.cpf.admin.common.base.AdmBa
 
     @PostMapping("/adm/api/runtime-control/preview-targets")
     @CpfOnlineTransaction(id="OADMRC0070",name="ADMRuntimeTargetPreview")
+    @Operation(operationId="admRuntimeControlPreviewTargets", summary="Runtime 변경 대상 Preview")
     public ResponseEntity<CpfRuntimeTargetPreview> previewTargets(@RequestBody PreviewTargetRequest body,HttpServletRequest request){
         operator(request);return ResponseEntity.ok(controlPlane.previewTargets(body.changeType(),body.payloadSchemaVersion(),body.target()));
     }
 
     @PostMapping("/adm/api/runtime-control/preview-change")
     @CpfOnlineTransaction(id="OADMRC0080",name="ADMRuntimeChangePreview")
-    public ResponseEntity<CpfRuntimeChangePreview> previewChange(@RequestBody CpfRuntimeChangeCommand command,HttpServletRequest request){
-        String operator=operator(request);requireCommandOwner(command,operator);return ResponseEntity.ok(controlPlane.previewChange(command));
+    @Operation(operationId="admRuntimeControlPreviewChange", summary="Runtime 변경 Preview")
+    public ResponseEntity<CpfRuntimeChangePreview> previewChange(@RequestBody RuntimeChangeRequest body,HttpServletRequest request){
+        String operator=operator(request);
+        CpfRuntimeChangeCommand command=body.toCommand(operator);
+        return ResponseEntity.ok(controlPlane.previewChange(command));
     }
 
     @GetMapping("/adm/api/runtime-control/changes/{changeId}/audit/verify")
     @CpfOnlineTransaction(id="OADMRC0090",name="ADMRuntimeAuditVerify")
+    @Operation(operationId="admRuntimeControlVerifyAudit", summary="Runtime 변경 Audit Chain 검증")
     public ResponseEntity<CpfRuntimeAuditVerification> verifyAudit(@PathVariable String changeId,HttpServletRequest request){
         operator(request);CpfRuntimeAuditVerification result=controlPlane.verifyAudit(changeId);
         return result.valid()?ResponseEntity.ok(result):ResponseEntity.status(HttpStatus.CONFLICT).body(result);
@@ -101,6 +113,7 @@ public class AdmRuntimeControlController extends com.cpf.admin.common.base.AdmBa
 
     @PostMapping("/adm/api/runtime-control/changes/{changeId}/cancel")
     @CpfOnlineTransaction(id="OADMRC0100",name="ADMRuntimeChangeCancel")
+    @Operation(operationId="admRuntimeControlCancelChange", summary="Runtime 변경 취소")
     public ResponseEntity<CpfRuntimeChangeResult> cancel(@PathVariable String changeId,@RequestBody ControlRequest body,HttpServletRequest request){
         String operator=operator(request); CpfRuntimeChangeResult result=controlPlane.cancel(changeId,body.operationId(),body.reason(),operator);
         audit(request,operator,"RUNTIME_CHANGE_CANCEL",changeId,body.reason(),Map.of("state",result.state()));return ResponseEntity.ok(result);
@@ -108,6 +121,7 @@ public class AdmRuntimeControlController extends com.cpf.admin.common.base.AdmBa
 
     @PostMapping("/adm/api/runtime-control/changes/{changeId}/rollback")
     @CpfOnlineTransaction(id="OADMRC0110",name="ADMRuntimeChangeRollback")
+    @Operation(operationId="admRuntimeControlRollbackChange", summary="Runtime 변경 Rollback")
     public ResponseEntity<CpfRuntimeChangeResult> rollback(@PathVariable String changeId,@RequestBody ControlRequest body,HttpServletRequest request){
         String operator=operator(request); CpfRuntimeChangeResult result=controlPlane.rollback(changeId,body.operationId(),body.reason(),operator);
         audit(request,operator,"RUNTIME_CHANGE_ROLLBACK",changeId,body.reason(),Map.of("rollbackChangeId",result.changeId(),"state",result.state()));return ResponseEntity.ok(result);
@@ -115,53 +129,65 @@ public class AdmRuntimeControlController extends com.cpf.admin.common.base.AdmBa
 
     @PostMapping("/adm/api/runtime-control/groups")
     @CpfOnlineTransaction(id="OADMRC0120",name="ADMRuntimeGroupSave")
-    public ResponseEntity<CpfRuntimeGroupResult> saveGroup(@RequestBody CpfRuntimeGroupCommand command,HttpServletRequest request){String operator=operator(request);if(command.requestedBy()==null||
-            !operator.equals(command.requestedBy()))throw new ResponseStatusException(HttpStatus.FORBIDDEN,"requestedBy mismatch");CpfRuntimeGroupResult result=controlPlane.saveGroup(command);
-            audit(request,operator,"RUNTIME_GROUP_SAVE",result.groupId(),command.reason(),result);return ResponseEntity.ok(result);}
+    @Operation(operationId="admRuntimeControlSaveGroup", summary="Runtime 대상 그룹 저장")
+    public ResponseEntity<CpfRuntimeGroupResult> saveGroup(@RequestBody RuntimeGroupRequest body,HttpServletRequest request){
+        String operator=operator(request);
+        CpfRuntimeGroupCommand command=body.toCommand(operator);
+        CpfRuntimeGroupResult result=controlPlane.saveGroup(command);
+        audit(request,operator,"RUNTIME_GROUP_SAVE",result.groupId(),command.reason(),result);
+        return ResponseEntity.ok(result);
+    }
 
     @GetMapping("/adm/api/runtime-control/groups/{groupId}")
     @CpfOnlineTransaction(id="OADMRC0130",name="ADMRuntimeGroupDetail")
+    @Operation(operationId="admRuntimeControlFindGroup", summary="Runtime 대상 그룹 조회")
     public ResponseEntity<CpfRuntimeGroupResult> getGroup(@PathVariable String groupId,HttpServletRequest request){operator(request);return ResponseEntity.ok(controlPlane.getGroup(groupId));}
 
     @PostMapping("/adm/api/runtime-control/groups/{groupId}/members")
     @CpfOnlineTransaction(id="OADMRC0140",name="ADMRuntimeGroupMember")
-    public ResponseEntity<CpfRuntimeGroupResult> groupMember(@PathVariable String groupId,@RequestBody CpfRuntimeGroupMemberCommand command,HttpServletRequest request){String
-            operator=operator(request);if(!groupId.equals(command.groupId()))throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"groupId mismatch");if(command.requestedBy()==null||!operator
-            .equals(command.requestedBy()))throw new ResponseStatusException(HttpStatus.FORBIDDEN,"requestedBy mismatch");CpfRuntimeGroupResult result=controlPlane.changeGroupMember(command);
-            audit(request,operator,"RUNTIME_GROUP_MEMBER",groupId,command.reason(),result);return ResponseEntity.ok(result);}
+    @Operation(operationId="admRuntimeControlChangeGroupMember", summary="Runtime 대상 그룹 구성원 변경")
+    public ResponseEntity<CpfRuntimeGroupResult> groupMember(@PathVariable String groupId,@RequestBody RuntimeGroupMemberRequest body,HttpServletRequest request){
+        String operator=operator(request);
+        if(!groupId.equals(body.groupId())) throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"groupId mismatch");
+        CpfRuntimeGroupMemberCommand command=body.toCommand(operator);
+        CpfRuntimeGroupResult result=controlPlane.changeGroupMember(command);
+        audit(request,operator,"RUNTIME_GROUP_MEMBER",groupId,command.reason(),result);
+        return ResponseEntity.ok(result);
+    }
 
     @DeleteMapping("/adm/api/runtime-control/groups/{groupId}")
     @CpfOnlineTransaction(id="OADMRC0150",name="ADMRuntimeGroupDelete")
+    @Operation(operationId="admRuntimeControlDeleteGroup", summary="Runtime 대상 그룹 삭제")
     public ResponseEntity<Void> deleteGroup(@PathVariable String groupId,@RequestParam String operationId,@RequestParam long expectedVersion,@RequestParam String reason,HttpServletRequest request){
             String operator=operator(request);controlPlane.deleteGroup(groupId,operationId,expectedVersion,reason,operator);audit(request,operator,"RUNTIME_GROUP_DELETE",groupId,reason,Map
             .of("deleted",true));return ResponseEntity.noContent().build();}
 
-    @PostMapping("/cpf/runtime-control/agent/register") @Operation(summary="Runtime Agent 자기등록")
+    @PostMapping("/cpf/runtime-control/agent/register") @Operation(operationId="cpfRuntimeAgentRegister", summary="Runtime Agent 자기등록")
     public ResponseEntity<CpfRuntimeInstanceLease> register(@RequestHeader(TOKEN_HEADER)String token,@RequestBody CpfRuntimeInstanceRegistration registration){agent(token);return ResponseEntity
             .ok(controlPlane.register(registration));}
 
-    @PostMapping("/cpf/runtime-control/agent/heartbeat") @Operation(summary="Runtime Agent lease heartbeat")
+    @PostMapping("/cpf/runtime-control/agent/heartbeat") @Operation(operationId="cpfRuntimeAgentHeartbeat", summary="Runtime Agent lease heartbeat")
     public ResponseEntity<CpfRuntimeInstanceLease> heartbeat(@RequestHeader(TOKEN_HEADER)String token,@RequestBody HeartbeatRequest body){
         agent(token);
         return ResponseEntity.ok(controlPlane.heartbeat(body.instanceId(),body.fencingToken(),body.actualHash(),
                 body.actualVersion(),body.agentTime()==null?Instant.now():body.agentTime()));
     }
 
-    @PostMapping("/cpf/runtime-control/agent/deregister") @Operation(summary="Runtime Agent graceful deregistration")
+    @PostMapping("/cpf/runtime-control/agent/deregister") @Operation(operationId="cpfRuntimeAgentDeregister", summary="Runtime Agent graceful deregistration")
     public ResponseEntity<Void> deregister(@RequestHeader(TOKEN_HEADER)String token,@RequestBody DeregisterRequest body){
         agent(token);controlPlane.deregister(body.instanceId(),body.fencingToken(),body.reason());return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/cpf/runtime-control/agent/actual-state") @Operation(summary="Runtime Agent durable actual state 재보고")
+    @PostMapping("/cpf/runtime-control/agent/actual-state") @Operation(operationId="cpfRuntimeAgentActualState", summary="Runtime Agent durable actual state 재보고")
     public ResponseEntity<Void> actualState(@RequestHeader(TOKEN_HEADER)String token,@RequestBody ActualStateRequest body){
         agent(token);controlPlane.reconcileActualState(body.instanceId(),body.fencingToken(),body.states());return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/cpf/runtime-control/agent/claim") @Operation(summary="Runtime Agent durable delivery claim")
+    @PostMapping("/cpf/runtime-control/agent/claim") @Operation(operationId="cpfRuntimeAgentClaim", summary="Runtime Agent durable delivery claim")
     public ResponseEntity<List<CpfRuntimeDelivery>> claim(@RequestHeader(TOKEN_HEADER)String token,@RequestBody ClaimRequest body){agent(token);return ResponseEntity.ok(controlPlane.claim(body
             .instanceId(),body.fencingToken(),body.limit()));}
 
-    @PostMapping("/cpf/runtime-control/agent/ack") @Operation(summary="Runtime Agent ACK")
+    @PostMapping("/cpf/runtime-control/agent/ack") @Operation(operationId="cpfRuntimeAgentAck", summary="Runtime Agent ACK")
     public ResponseEntity<CpfRuntimeChangeResult> ack(@RequestHeader(TOKEN_HEADER)String token,@RequestBody CpfRuntimeAck ack){agent(token);return ResponseEntity.ok(controlPlane.acknowledge(ack));}
 
     @ExceptionHandler(CpfRuntimeRateLimitException.class)
@@ -190,8 +216,6 @@ public class AdmRuntimeControlController extends com.cpf.admin.common.base.AdmBa
                 code,message==null?"Runtime Control 요청 처리 실패":message,Instant.now()));
     }
 
-    private void requireCommandOwner(CpfRuntimeChangeCommand c,String operator){if(c.requestedBy()==null||!operator.equals(c.requestedBy()))throw new ResponseStatusException(HttpStatus.FORBIDDEN,
-            "requestedBy는 인증된 ADM 운영자와 일치해야 합니다.");}
     private void requireRiskApproval(CpfRuntimeChangeCommand c){
         if(blank(c.reason()))throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Runtime 변경 사유는 필수입니다.");
         if(blank(c.operationId()))throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"operationId는 필수입니다.");
@@ -212,6 +236,59 @@ public class AdmRuntimeControlController extends com.cpf.admin.common.base.AdmBa
     }
     private void audit(HttpServletRequest req,String user,String action,String id,String reason,Object after){
         audit.record(CpfTransactionContext.transactionId(),user,action,"cpf_runtime_change",id,reason,"",String.valueOf(after),"Runtime Control Plane",req.getRemoteAddr());
+    }
+
+
+    /** Browser가 운영자 ID를 제출하지 못하게 하고, 검증된 Session operator를 서버에서 주입합니다. */
+    public record RuntimeChangeRequest(
+            String operationId,
+            String changeType,
+            int payloadSchemaVersion,
+            CpfRuntimeTargetSelector target,
+            CpfRuntimePayload payload,
+            Long expectedVersion,
+            String rolloutMode,
+            Integer waveSize,
+            Integer quorumPercent,
+            Instant scheduledAt,
+            Instant expiresAt,
+            String reason,
+            String approvalId,
+            String breakGlassId) {
+        CpfRuntimeChangeCommand toCommand(String operator) {
+            return new CpfRuntimeChangeCommand(operationId, changeType, payloadSchemaVersion, target, payload,
+                    expectedVersion, rolloutMode, waveSize, quorumPercent, scheduledAt, expiresAt,
+                    reason, approvalId, breakGlassId, operator);
+        }
+    }
+
+    /** Runtime Group의 requestedBy는 Request Body가 아니라 인증 Session에서만 결정합니다. */
+    public record RuntimeGroupRequest(
+            String operationId,
+            String groupId,
+            String groupName,
+            String parentGroupId,
+            String environment,
+            String description,
+            Long expectedVersion,
+            boolean active,
+            String reason) {
+        CpfRuntimeGroupCommand toCommand(String operator) {
+            return new CpfRuntimeGroupCommand(operationId, groupId, groupName, parentGroupId, environment,
+                    description, expectedVersion, active, reason, operator);
+        }
+    }
+
+    /** Runtime Group Member 변경도 인증 Session의 operator를 서버에서 주입합니다. */
+    public record RuntimeGroupMemberRequest(
+            String operationId,
+            String groupId,
+            String instanceId,
+            boolean active,
+            String reason) {
+        CpfRuntimeGroupMemberCommand toCommand(String operator) {
+            return new CpfRuntimeGroupMemberCommand(operationId, groupId, instanceId, active, reason, operator);
+        }
     }
 
     public record ControlRequest(String operationId,String reason){}

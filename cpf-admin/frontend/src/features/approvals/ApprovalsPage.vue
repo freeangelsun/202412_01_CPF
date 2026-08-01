@@ -1,44 +1,43 @@
 <template>
   <div class="page-stack">
     <section class="panel">
-      <div class="panel-title"><div><h2>위험조치 승인</h2><p class="hint">승인 대상 Payload 원문이 아니라 마스킹 Snapshot과 SHA-256을 고정하고 실제 변경은 Owner Command Port로 실행합니다.</p></div><div class="actions"><button @click="loadApprovalPolicies">정책 조회</button><button @click="loadApprovalRequest">요청 조회</button></div></div>
+      <div class="panel-title"><div><h2>Runtime 위험 변경</h2><p class="hint">위험 변경은 expectedVersion CAS, 사유, approvalId 또는 승인된 breakGlassId를 사용하며 요청 사용자는 Server Session에서 결정됩니다.</p></div><div class="actions"><button @click="loadApprovalPolicies">Capability·상태 조회</button></div></div>
       <div class="filters">
-        <label>Action Type <input v-model="approvalForm.actionType"></label>
-        <label>정책 코드 <input v-model="approvalForm.policyCode"></label>
-        <label>정책 버전 <input v-model="approvalForm.policyVersion" type="number"></label>
-        <label>Owner Module <input v-model="approvalForm.ownerModule"></label>
-        <label>Owner Command <input v-model="approvalForm.ownerCommand"></label>
-        <label>Target Type <input v-model="approvalForm.targetType"></label>
-        <label>Target ID <input v-model="approvalForm.targetId"></label>
-        <label>Request Key <input v-model="approvalForm.requestKey" placeholder="미입력 시 UUID"></label>
-        <label>Expire At <input v-model="approvalForm.expireAt" placeholder="ISO-8601"></label>
+        <label>Operation ID <input v-model="approvalForm.operationId" placeholder="미입력 시 UUID"></label>
+        <label>Change Type <input v-model="approvalForm.changeType"></label>
+        <label>Schema Version <input v-model.number="approvalForm.payloadSchemaVersion" type="number" min="1"></label>
+        <label>Expected Version <input v-model.number="approvalForm.expectedVersion" type="number" min="0"></label>
+        <label>Rollout <select v-model="approvalForm.rolloutMode"><option>ALL_AT_ONCE</option><option>WAVE</option><option>CANARY</option></select></label>
+        <label>Wave Size <input v-model.number="approvalForm.waveSize" type="number" min="1"></label>
+        <label>Quorum % <input v-model.number="approvalForm.quorumPercent" type="number" min="1" max="100"></label>
+        <label>Approval ID <input v-model="approvalForm.approvalId"></label>
+        <label>Break-glass ID <input v-model="approvalForm.breakGlassId"></label>
+        <label>Scheduled At <input v-model="approvalForm.scheduledAt" placeholder="ISO-8601"></label>
+        <label>Expires At <input v-model="approvalForm.expiresAt" placeholder="ISO-8601"></label>
         <label>사유 <input v-model="approvalForm.reason"></label>
       </div>
-      <label class="wide">마스킹 Payload Snapshot <textarea v-model="approvalForm.payloadSnapshot" rows="5"></textarea></label>
-      <div class="actions"><button class="primary" @click="requestDangerousApproval">승인 요청</button></div>
+      <div class="form-grid"><label class="wide">Target JSON <textarea v-model="approvalForm.targetJson" rows="6" spellcheck="false"></textarea></label><label class="wide">Payload JSON <textarea v-model="approvalForm.payloadJson" rows="6" spellcheck="false"></textarea></label></div>
+      <div class="actions"><button @click="previewApprovalTargets">대상 Preview</button><button @click="previewApprovalChange">변경 Preview</button><button class="primary" @click="requestDangerousApproval">변경 생성</button></div>
     </section>
 
     <section class="panel">
-      <div class="panel-title"><h2>승인·실행</h2></div>
+      <div class="panel-title"><div><h2>변경 조회·취소·Rollback·Audit</h2><p class="hint">Unknown Result는 실패로 단정하지 않고 Operation ID 조회와 Audit Chain 검증으로 복구합니다.</p></div></div>
       <div class="filters">
-        <label>Request ID <input v-model="approvalForm.selectedRequestId"></label>
-        <label>결정 <select v-model="approvalForm.decisionAction"><option>APPROVE</option><option>REJECT</option></select></label>
-        <label>멱등 Key <input v-model="approvalForm.idempotencyKey" placeholder="미입력 시 UUID"></label>
+        <label>Change ID <input v-model="approvalForm.selectedRequestId"></label>
+        <label>Control Operation ID <input v-model="approvalForm.controlOperationId" placeholder="미입력 시 UUID"></label>
+        <label>조치 <select v-model="approvalForm.decisionAction"><option>CANCEL</option><option>ROLLBACK</option></select></label>
       </div>
-      <div class="actions"><button @click="decideApprovalRequest">결정 반영</button><button class="primary" @click="executeApprovedRequest">승인 Command 실행</button></div>
-      <p class="hint">UNKNOWN은 실패가 아니며 Execution 상세의 recoveryRequiredYn을 기준으로 대사/복구해야 합니다.</p>
+      <div class="actions"><button @click="loadApprovalRequest">Change 조회</button><button @click="decideApprovalRequest">조치 실행</button><button class="primary" @click="executeApprovedRequest">Audit Chain 검증</button></div>
       <pre class="detail">{{ pretty(approvalResult) }}</pre>
     </section>
 
-    <section class="panel">
-      <div class="panel-title"><h2>Versioned 정책 목록</h2></div>
-      <pre class="detail">{{ pretty(approvalPolicyResult) }}</pre>
-    </section>
+    <section class="panel"><div class="panel-title"><h2>Capability·상태 Catalog</h2></div><pre class="detail">{{ pretty(approvalPolicyResult) }}</pre></section>
   </div>
-</template>
 
+  <section class="panel route-operation-panel"><h3>Break-glass·Operation 복구</h3><div class="filters"><label>Break-glass Session ID <input v-model="operationForm.breakGlassSessionId"></label><label>검토 상태 <select v-model="operationForm.reviewStatus"><option>APPROVED</option><option>REJECTED</option></select></label><label>Runtime Operation ID <input v-model="operationForm.operationId"></label><label>사유 <input v-model="operationForm.reason"></label></div><div class="actions"><button type="button" @click="loadBreakGlassSessions">Break-glass 조회</button><button type="button" @click="reviewBreakGlassSession">사후 검토</button><button type="button" @click="loadRuntimeOperation">Operation 결과 조회</button></div></section>
+</template>
 <script lang="ts">
 import { defineComponent } from "vue";
-import { admConsoleMixin } from "../../app/admConsoleMixin";
-export default defineComponent({ name:"ApprovalsPage", mixins:[admConsoleMixin], mounted(){ this.loadApprovalPolicies(); } });
+import { useAdmConsolePage } from "../../app/useAdmConsolePage";
+export default defineComponent({setup(){return useAdmConsolePage()},name:"ApprovalsPage",mounted(){this.loadApprovalPolicies();}});
 </script>

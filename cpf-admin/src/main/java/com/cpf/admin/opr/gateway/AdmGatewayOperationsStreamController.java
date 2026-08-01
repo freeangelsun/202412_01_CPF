@@ -1,6 +1,7 @@
 package com.cpf.admin.opr.gateway;
 
 import com.cpf.core.api.gateway.CpfGatewayRegistryPort;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.annotation.PreDestroy;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
@@ -39,6 +40,7 @@ public final class AdmGatewayOperationsStreamController {
     }
 
     @GetMapping(value="/stream",produces=MediaType.TEXT_EVENT_STREAM_VALUE)
+    @Operation(operationId="admGatewayOperationsStream",summary="Gateway 운영 Event SSE Stream")
     public SseEmitter stream(
             @RequestHeader(name="Last-Event-ID",required=false) String lastEventId,
             @RequestParam(required=false) String afterEventId,

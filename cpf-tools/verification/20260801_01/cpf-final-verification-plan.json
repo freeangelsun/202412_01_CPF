@@ -1,0 +1,718 @@
+{
+  "schemaVersion": 1,
+  "planId": "CPF-20260801-PROJECT-WIDE-FINAL",
+  "orderedStages": [
+    "source",
+    "java",
+    "frontend-adm",
+    "frontend-bza",
+    "database-static",
+    "database-runtime",
+    "distributed-runtime",
+    "supply-chain"
+  ],
+  "commands": [
+    {
+      "id": "project-inventory-generate",
+      "stage": "source",
+      "runner": "python",
+      "path": "cpf-tools/scripts/generate-cpf-project-inventory.py",
+      "args": [
+        "--root",
+        "{root}",
+        "--output-dir",
+        "{evidence}/project-inventory"
+      ],
+      "required": true
+    },
+    {
+      "id": "project-inventory-verify",
+      "stage": "source",
+      "runner": "python",
+      "path": "cpf-tools/scripts/verify-cpf-project-inventory.py",
+      "args": [
+        "--inventory-dir",
+        "{evidence}/project-inventory",
+        "--policy",
+        "{root}/cpf-tools/governance/cpf-product-surface-policy.json",
+        "--waivers",
+        "{root}/cpf-tools/governance/cpf-project-inventory-waivers.csv"
+      ],
+      "releaseArgs": [
+        "--release"
+      ],
+      "required": true
+    },
+    {
+      "id": "traceability",
+      "stage": "source",
+      "runner": "python",
+      "path": "cpf-tools/scripts/verify-cpf-requirement-traceability.py",
+      "args": [
+        "--root",
+        "{root}",
+        "--expected-sha",
+        "{sha}",
+        "--require-clean"
+      ],
+      "releaseArgs": [
+        "--release"
+      ],
+      "required": true
+    },
+    {
+      "id": "overlay-hygiene",
+      "stage": "source",
+      "runner": "python",
+      "path": "cpf-tools/scripts/verify-cpf-overlay-hygiene.py",
+      "args": [
+        "--root",
+        "{root}"
+      ],
+      "required": true
+    },
+    {
+      "id": "protected-document-boundary",
+      "stage": "source",
+      "runner": "python",
+      "path": "cpf-tools/scripts/verify-cpf-protected-doc-boundary.py",
+      "args": [
+        "--root",
+        "{root}"
+      ],
+      "required": true
+    },
+    {
+      "id": "legacy-continuity",
+      "stage": "source",
+      "runner": "python",
+      "path": "cpf-tools/scripts/verify-cpf-legacy-continuity.py",
+      "args": [
+        "--root",
+        "{root}"
+      ],
+      "required": true
+    },
+    {
+      "id": "javadoc-coverage",
+      "stage": "source",
+      "runner": "python",
+      "path": "cpf-tools/scripts/verify-cpf-javadoc-coverage.py",
+      "args": [
+        "--root",
+        "{root}"
+      ],
+      "required": true
+    },
+    {
+      "id": "adm-capability-registry",
+      "stage": "source",
+      "runner": "python",
+      "path": "cpf-tools/scripts/verify-cpf-adm-capability-registry.py",
+      "args": [
+        "--root",
+        "{root}"
+      ],
+      "required": true
+    },
+    {
+      "id": "adm-commercial-page-contract",
+      "stage": "source",
+      "runner": "python",
+      "path": "cpf-tools/scripts/verify-cpf-adm-commercial-page-contract.py",
+      "args": [
+        "--root",
+        "{root}"
+      ],
+      "required": true
+    },
+    {
+      "id": "adm-route-interaction-contract",
+      "stage": "source",
+      "runner": "python",
+      "path": "cpf-tools/scripts/verify-cpf-adm-route-interaction-contract.py",
+      "args": [
+        "--root",
+        "{root}"
+      ],
+      "required": true
+    },
+    {
+      "id": "adm-route-source-consumers",
+      "stage": "source",
+      "runner": "python",
+      "path": "cpf-tools/scripts/verify-cpf-adm-route-source-consumers.py",
+      "args": [
+        "--root",
+        "{root}"
+      ],
+      "required": true
+    },
+    {
+      "id": "audit-fail-closed",
+      "stage": "source",
+      "runner": "python",
+      "path": "cpf-tools/scripts/verify-cpf-audit-fail-closed.py",
+      "args": [
+        "--root",
+        "{root}"
+      ],
+      "required": true
+    },
+    {
+      "id": "batch-fail-closed",
+      "stage": "source",
+      "runner": "python",
+      "path": "cpf-tools/scripts/verify-cpf-batch-fail-closed.py",
+      "args": [
+        "--root",
+        "{root}"
+      ],
+      "required": true
+    },
+    {
+      "id": "batch-ghost-safety",
+      "stage": "source",
+      "runner": "python",
+      "path": "cpf-tools/scripts/verify-cpf-batch-ghost-safety.py",
+      "args": [
+        "--root",
+        "{root}"
+      ],
+      "required": true
+    },
+    {
+      "id": "calendar-contract",
+      "stage": "source",
+      "runner": "python",
+      "path": "cpf-tools/scripts/verify-cpf-calendar-contract.py",
+      "args": [
+        "--root",
+        "{root}"
+      ],
+      "required": true
+    },
+    {
+      "id": "db-less-fail-closed",
+      "stage": "source",
+      "runner": "python",
+      "path": "cpf-tools/scripts/verify-cpf-db-less-fail-closed.py",
+      "args": [
+        "--root",
+        "{root}"
+      ],
+      "required": true
+    },
+    {
+      "id": "notification-incident-lifecycle",
+      "stage": "source",
+      "runner": "python",
+      "path": "cpf-tools/scripts/verify-cpf-notification-incident-lifecycle.py",
+      "args": [
+        "--root",
+        "{root}"
+      ],
+      "required": true
+    },
+    {
+      "id": "network-policy-consumers",
+      "stage": "source",
+      "runner": "python",
+      "path": "cpf-tools/scripts/verify-cpf-network-policy-consumers.py",
+      "args": [
+        "--root",
+        "{root}"
+      ],
+      "required": true
+    },
+    {
+      "id": "final-wrapper-contract",
+      "stage": "source",
+      "runner": "python",
+      "path": "cpf-tools/scripts/verify-cpf-final-wrapper-contract.py",
+      "args": [
+        "--root",
+        "{root}"
+      ],
+      "required": true
+    },
+    {
+      "id": "controller-permission-contract",
+      "stage": "source",
+      "runner": "python",
+      "path": "cpf-tools/scripts/verify-cpf-controller-permission-contract.py",
+      "args": [
+        "--root",
+        "{root}",
+        "--strict"
+      ],
+      "required": true
+    },
+    {
+      "id": "operator-trust-boundary",
+      "stage": "source",
+      "runner": "python",
+      "path": "cpf-tools/scripts/verify-cpf-operator-trust-boundary.py",
+      "args": [
+        "--root",
+        "{root}"
+      ],
+      "required": true
+    },
+    {
+      "id": "edu-executable-coverage",
+      "stage": "source",
+      "runner": "python",
+      "path": "cpf-tools/scripts/verify-cpf-edu-executable-coverage.py",
+      "args": [
+        "--root",
+        "{root}"
+      ],
+      "releaseArgs": [
+        "--release"
+      ],
+      "required": true
+    },
+    {
+      "id": "edu-profile-isolation",
+      "stage": "source",
+      "runner": "python",
+      "path": "cpf-tools/scripts/verify-cpf-edu-profile-isolation.py",
+      "args": [
+        "--root",
+        "{root}"
+      ],
+      "required": true
+    },
+    {
+      "id": "edu-impact",
+      "stage": "source",
+      "runner": "python",
+      "path": "cpf-tools/scripts/verify-cpf-edu-impact.py",
+      "args": [
+        "--root",
+        "{root}"
+      ],
+      "required": true
+    },
+    {
+      "id": "generator-idempotency",
+      "stage": "source",
+      "runner": "python",
+      "path": "cpf-tools/scripts/verify-cpf-generator-idempotency-templates.py",
+      "args": [
+        "{root}"
+      ],
+      "required": true
+    },
+    {
+      "id": "generator-java-template",
+      "stage": "source",
+      "runner": "python",
+      "path": "cpf-tools/scripts/verify-cpf-generator-java-template-compile.py",
+      "args": [
+        "{root}"
+      ],
+      "required": true
+    },
+    {
+      "id": "generator-lifecycle-contract",
+      "stage": "source",
+      "runner": "python",
+      "path": "cpf-tools/scripts/verify-cpf-generator-lifecycle.py",
+      "args": [
+        "--root",
+        "{root}"
+      ],
+      "required": true
+    },
+    {
+      "id": "java-syntax",
+      "stage": "source",
+      "runner": "python",
+      "path": "cpf-tools/scripts/verify-cpf-java-source-syntax.py",
+      "args": [
+        "{root}"
+      ],
+      "required": true
+    },
+    {
+      "id": "frontend-syntax",
+      "stage": "source",
+      "runner": "node",
+      "path": "cpf-tools/scripts/verify-cpf-frontend-source-syntax.cjs",
+      "args": [
+        "{root}"
+      ],
+      "required": true
+    },
+    {
+      "id": "repository-hygiene",
+      "stage": "source",
+      "runner": "pwsh",
+      "path": "cpf-tools/scripts/check-repository-hygiene.ps1",
+      "args": [],
+      "required": true
+    },
+    {
+      "id": "architecture-ownership",
+      "stage": "source",
+      "runner": "pwsh",
+      "path": "cpf-tools/scripts/check-architecture-ownership.ps1",
+      "args": [],
+      "required": true
+    },
+    {
+      "id": "enterprise-source-closure",
+      "stage": "source",
+      "runner": "pwsh",
+      "path": "cpf-tools/scripts/check-enterprise-source-closure.ps1",
+      "args": [],
+      "required": true
+    },
+    {
+      "id": "direct-client-boundary",
+      "stage": "source",
+      "runner": "pwsh",
+      "path": "cpf-tools/scripts/check-direct-client-boundary.ps1",
+      "args": [],
+      "required": true
+    },
+    {
+      "id": "semantic-consumer-graph",
+      "stage": "source",
+      "runner": "pwsh",
+      "path": "cpf-tools/scripts/check-semantic-consumer-graph.ps1",
+      "args": [],
+      "required": true
+    },
+    {
+      "id": "evidence-contract",
+      "stage": "source",
+      "runner": "pwsh",
+      "path": "cpf-tools/scripts/check-evidence-contract.ps1",
+      "args": [],
+      "required": true
+    },
+    {
+      "id": "evidence-semantics",
+      "stage": "source",
+      "runner": "python",
+      "path": "cpf-tools/scripts/verify-cpf-evidence-semantics.py",
+      "args": [
+        "--root",
+        "{root}",
+        "--expected-sha",
+        "{sha}"
+      ],
+      "required": true
+    },
+    {
+      "id": "adm-openapi-controller-coverage",
+      "stage": "source",
+      "runner": "python",
+      "path": "cpf-tools/scripts/verify-cpf-openapi-controller-coverage.py",
+      "args": [
+        "--root",
+        "{root}",
+        "--module",
+        "cpf-admin",
+        "--openapi",
+        "cpf-admin/frontend/openapi/cpf-openapi.json"
+      ],
+      "required": true
+    },
+    {
+      "id": "bza-openapi-controller-coverage",
+      "stage": "source",
+      "runner": "python",
+      "path": "cpf-tools/scripts/verify-cpf-openapi-controller-coverage.py",
+      "args": [
+        "--root",
+        "{root}",
+        "--module",
+        "cpf-biz-admin",
+        "--openapi",
+        "cpf-biz-admin/frontend/openapi/cpf-openapi.json"
+      ],
+      "required": true
+    },
+    {
+      "id": "adm-browser-e2e-contract",
+      "stage": "source",
+      "runner": "python",
+      "path": "cpf-tools/scripts/verify-cpf-adm-e2e-contract.py",
+      "args": [
+        "--root",
+        "{root}"
+      ],
+      "required": true
+    },
+    {
+      "id": "bza-route-contract",
+      "stage": "source",
+      "runner": "python",
+      "path": "cpf-tools/scripts/verify-cpf-bza-route-contract.py",
+      "args": [
+        "--root",
+        "{root}"
+      ],
+      "required": true
+    },
+    {
+      "id": "java25-fresh-build",
+      "stage": "java",
+      "runner": "gradle",
+      "path": "gradlew.bat",
+      "args": [
+        "clean",
+        "test",
+        "assemble",
+        "qualityGate",
+        "--no-daemon",
+        "--stacktrace"
+      ],
+      "required": true,
+      "requiredTool": "java25"
+    },
+    {
+      "id": "adm-frontend-verify",
+      "stage": "frontend-adm",
+      "runner": "npm",
+      "workingDirectory": "cpf-admin/frontend",
+      "path": "npm",
+      "args": [
+        "run",
+        "verify"
+      ],
+      "preArgs": [
+        "ci",
+        "--ignore-scripts"
+      ],
+      "required": true,
+      "requiredTool": "node22"
+    },
+    {
+      "id": "bza-frontend-verify",
+      "stage": "frontend-bza",
+      "runner": "npm",
+      "workingDirectory": "cpf-biz-admin/frontend",
+      "path": "npm",
+      "args": [
+        "run",
+        "verify"
+      ],
+      "preArgs": [
+        "ci",
+        "--ignore-scripts"
+      ],
+      "required": true,
+      "requiredTool": "node22"
+    },
+    {
+      "id": "db-lifecycle-manifest",
+      "stage": "database-static",
+      "runner": "python",
+      "path": "cpf-tools/scripts/verify-cpf-db-lifecycle-contract.py",
+      "args": [
+        "--root",
+        "{root}"
+      ],
+      "required": true
+    },
+    {
+      "id": "db-vendor-parity",
+      "stage": "database-static",
+      "runner": "pwsh",
+      "path": "cpf-tools/scripts/check-db-vendor-pack-parity.ps1",
+      "args": [],
+      "required": true
+    },
+    {
+      "id": "db-lifecycle-contract",
+      "stage": "database-static",
+      "runner": "pwsh",
+      "path": "cpf-tools/scripts/check-canonical-db-lifecycle-contract.ps1",
+      "args": [],
+      "required": true
+    },
+    {
+      "id": "migration-checksums",
+      "stage": "database-static",
+      "runner": "pwsh",
+      "path": "cpf-tools/scripts/check-migration-checksums.ps1",
+      "args": [],
+      "required": true
+    },
+    {
+      "id": "sql-standard",
+      "stage": "database-static",
+      "runner": "pwsh",
+      "path": "cpf-tools/scripts/check-sql-standard.ps1",
+      "args": [],
+      "required": true
+    },
+    {
+      "id": "sql-canonical",
+      "stage": "database-static",
+      "runner": "pwsh",
+      "path": "cpf-tools/scripts/check-sql-canonical.ps1",
+      "args": [],
+      "required": true
+    },
+    {
+      "id": "db-runtime-matrix",
+      "stage": "database-runtime",
+      "runner": "pwsh",
+      "path": "cpf-tools/scripts/invoke-cpf-qa34-db-runtime-matrix.ps1",
+      "args": [
+        "-EvidenceDirectory",
+        "{evidence}"
+      ],
+      "required": true,
+      "requiredEnvironment": [
+        "CPF_DB_RUNTIME_MANIFEST"
+      ]
+    },
+    {
+      "id": "generator-lifecycle-mariadb",
+      "stage": "database-runtime",
+      "runner": "pwsh",
+      "path": "cpf-tools/generator/verify-domain-lifecycle.ps1",
+      "args": [
+        "-ExpectedSha",
+        "{sha}",
+        "-WorkRoot",
+        "{evidence}/generator-work",
+        "-DatabaseVendor",
+        "mariadb",
+        "-EvidenceRoot",
+        "{evidence}/generator-lifecycle"
+      ],
+      "requiredEnvironment": [
+        "CPF_DB_ROOT_PASSWORD",
+        "CPF_DB_MIGRATION_PASSWORD",
+        "CPF_DB_APP_PASSWORD"
+      ],
+      "required": true
+    },
+    {
+      "id": "generator-lifecycle-postgresql",
+      "stage": "database-runtime",
+      "runner": "pwsh",
+      "path": "cpf-tools/generator/verify-domain-lifecycle.ps1",
+      "args": [
+        "-ExpectedSha",
+        "{sha}",
+        "-WorkRoot",
+        "{evidence}/generator-work",
+        "-DatabaseVendor",
+        "postgresql",
+        "-EvidenceRoot",
+        "{evidence}/generator-lifecycle"
+      ],
+      "requiredEnvironment": [
+        "CPF_DB_ROOT_PASSWORD",
+        "CPF_DB_MIGRATION_PASSWORD",
+        "CPF_DB_APP_PASSWORD"
+      ],
+      "required": true
+    },
+    {
+      "id": "generator-lifecycle-oracle",
+      "stage": "database-runtime",
+      "runner": "pwsh",
+      "path": "cpf-tools/generator/verify-domain-lifecycle.ps1",
+      "args": [
+        "-ExpectedSha",
+        "{sha}",
+        "-WorkRoot",
+        "{evidence}/generator-work",
+        "-DatabaseVendor",
+        "oracle",
+        "-EvidenceRoot",
+        "{evidence}/generator-lifecycle"
+      ],
+      "requiredEnvironment": [
+        "CPF_DB_ROOT_PASSWORD",
+        "CPF_DB_MIGRATION_PASSWORD",
+        "CPF_DB_APP_PASSWORD"
+      ],
+      "required": true
+    },
+    {
+      "id": "generator-lifecycle-evidence",
+      "stage": "database-runtime",
+      "runner": "python",
+      "path": "cpf-tools/scripts/verify-cpf-generator-lifecycle.py",
+      "args": [
+        "--root",
+        "{root}",
+        "--expected-sha",
+        "{sha}",
+        "--evidence-dir",
+        "{evidence}/generator-lifecycle",
+        "--release"
+      ],
+      "required": true
+    },
+    {
+      "id": "batch-two-worker",
+      "stage": "distributed-runtime",
+      "runner": "pwsh",
+      "path": "cpf-tools/scripts/smoke-bat-two-worker-runtime.ps1",
+      "args": [
+        "-EvidenceDirectory",
+        "{evidence}"
+      ],
+      "required": true,
+      "requiredEnvironment": [
+        "CPF_RUNTIME_MANIFEST"
+      ]
+    },
+    {
+      "id": "runtime-closure",
+      "stage": "distributed-runtime",
+      "runner": "pwsh",
+      "path": "cpf-tools/scripts/smoke-runtime-closure.ps1",
+      "args": [
+        "-EvidenceDirectory",
+        "{evidence}"
+      ],
+      "required": true,
+      "requiredEnvironment": [
+        "CPF_RUNTIME_MANIFEST"
+      ]
+    },
+    {
+      "id": "frontend-browser-runtime",
+      "stage": "distributed-runtime",
+      "runner": "pwsh",
+      "path": "cpf-tools/scripts/verify-cpf-qa34-frontend-runtime.ps1",
+      "args": [
+        "-EvidenceDirectory",
+        "{evidence}"
+      ],
+      "required": true,
+      "requiredEnvironment": [
+        "CPF_BROWSER_RUNTIME_MANIFEST"
+      ]
+    },
+    {
+      "id": "supply-chain",
+      "stage": "supply-chain",
+      "runner": "python",
+      "path": "cpf-tools/scripts/verify-cpf-supply-chain.py",
+      "args": [
+        "--root",
+        "{root}",
+        "--evidence-dir",
+        "{evidence}"
+      ],
+      "required": true,
+      "requiredEnvironment": [
+        "CPF_SUPPLY_CHAIN_TOOLS"
+      ]
+    }
+  ]
+}

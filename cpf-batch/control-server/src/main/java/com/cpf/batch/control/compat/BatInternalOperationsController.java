@@ -48,6 +48,17 @@ public class BatInternalOperationsController {
                     textOrNull(a,"fromDate"),
                     textOrNull(a,"toDate"),
                     integer(a,"limit",100));
+            case "findExecutionPage" -> operations.findExecutionPage(
+                    textOrNull(a,"jobId"),
+                    textOrNull(a,"transactionId"),
+                    nullableLong(a,"springBatchJobInstanceId"),
+                    textOrNull(a,"workerId"),
+                    textOrNull(a,"serverInstanceId"),
+                    textOrNull(a,"status"),
+                    textOrNull(a,"fromDate"),
+                    textOrNull(a,"toDate"),
+                    integer(a,"page",0),
+                    integer(a,"size",50));
             case "findExecutionDetail" -> operations.findExecutionDetail(longValue(a,"executionId"));
             case "findInstances" -> operations.findInstances();
             case "findWorkers" -> operations.findWorkers(integer(a,"heartbeatTimeoutSeconds",120));

@@ -1,6 +1,7 @@
 package com.cpf.admin.opr.service;
 
 import com.cpf.core.api.batch.CpfBatchOperationsPort;
+import com.cpf.core.api.data.CpfDataRow;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,31 +18,51 @@ public class AdmBatchOperationService extends com.cpf.admin.common.base.AdmBaseS
     private final CpfBatchOperationsPort operations;
     public AdmBatchOperationService(CpfBatchOperationsPort operations){this.operations=operations;}
 
-    public List<Map<String,Object>> findJobs(){return operations.findJobs();}
-    public Map<String,Object> findJobDetail(String jobId){return operations.findJobDetail(jobId);}
-    public List<Map<String,Object>> findSchedules(){return operations.findSchedules();}
-    public List<Map<String,Object>> findExecutions(
+    public List<CpfDataRow> findJobs(){return operations.findJobs();}
+    public CpfDataRow findJobDetail(String jobId){return operations.findJobDetail(jobId);}
+    public List<CpfDataRow> findSchedules(){return operations.findSchedules();}
+    public List<CpfDataRow> findExecutions(
             String jobId,String transactionId,Long springBatchJobInstanceId,
             String workerId,String serverInstanceId,int limit){
         return operations.findExecutions(jobId,transactionId,springBatchJobInstanceId,workerId,serverInstanceId,limit);
     }
-    public Map<String,Object> findExecutionDetail(long id){return operations.findExecutionDetail(id);}
-    public List<Map<String,Object>> findInstances(){return operations.findInstances();}
-    public List<Map<String,Object>> findWorkers(int timeout){return operations.findWorkers(timeout);}
-    public List<Map<String,Object>> findStepExecutions(Long executionId,String jobId,int limit){return operations.findStepExecutions(executionId,jobId,limit);}
-    public List<Map<String,Object>> findRelations(String jobId){return operations.findRelations(jobId);}
-    public List<Map<String,Object>> findExecutionTargets(String jobId,String status,int limit){return operations.findExecutionTargets(jobId,status,limit);}
-    public List<Map<String,Object>> findLocks(String jobId){return operations.findLocks(jobId);}
-    public Map<String,Object> releaseLock(String key,String user,String reason){return operations.releaseLock(key,user,reason);}
-    public List<Map<String,Object>> findGhostCandidates(int timeout){return operations.findGhostCandidates(timeout);}
-    public Map<String,Object> actGhostExecution(long id,String action,String user,String reason){return operations.actGhostExecution(id,action,user,reason);}
-    public List<Map<String,Object>> findOperationLogs(String jobId,Long executionId,int limit){return operations.findOperationLogs(jobId,executionId,limit);}
-    public List<Map<String,Object>> simulateSchedule(String id,String base,int days){return operations.simulateSchedule(id,base,days);}
-    public Map<String,Object> registerJob(String id,String name,String type,String desc,String user){return operations.registerJob(id,name,type,desc,user);}
-    public Map<String,Object> requestRun(String jobId,String params,String user,String reason){return operations.requestRun(jobId,params,user,reason);}
-    public Map<String,Object> requestScheduledRun(String schedule,String job,String params,String user,String reason){return operations.requestScheduledRun(schedule,job,params,user,reason);}
-    public Map<String,Object> requestRetry(long id,String user,String reason){return operations.requestRetry(id,user,reason);}
-    public Map<String,Object> requestStop(long id,String user,String reason){return operations.requestStop(id,user,reason);}
-    public Map<String,Object> updateScheduleEnabled(String id,boolean enabled,String user,String reason){return operations.updateScheduleEnabled(id,enabled,user,reason);}
-    public List<Map<String,Object>> runSchedulerOnce(String user){return operations.runSchedulerOnce(user);}
+    public CpfDataRow findExecutionPage(
+            String jobId,String transactionId,Long springBatchJobInstanceId,
+            String workerId,String serverInstanceId,String status,
+            String fromDate,String toDate,int page,int size){
+        return operations.findExecutionPage(
+                jobId,transactionId,springBatchJobInstanceId,workerId,serverInstanceId,
+                status,fromDate,toDate,page,size);
+    }
+    public CpfDataRow findJobPage(String query,int page,int size,String sort,String direction){
+        return operations.findJobPage(query,page,size,sort,direction);
+    }
+    public CpfDataRow findSchedulePage(String query,int page,int size,String sort,String direction){
+        return operations.findSchedulePage(query,page,size,sort,direction);
+    }
+    public CpfDataRow findInfrastructureSnapshot(int heartbeatTimeoutSeconds,int limit){
+        return operations.findInfrastructureSnapshot(heartbeatTimeoutSeconds,limit);
+    }
+    public CpfDataRow findRecoverySnapshot(int heartbeatTimeoutSeconds,int limit){
+        return operations.findRecoverySnapshot(heartbeatTimeoutSeconds,limit);
+    }
+    public CpfDataRow findExecutionDetail(long id){return operations.findExecutionDetail(id);}
+    public List<CpfDataRow> findInstances(){return operations.findInstances();}
+    public List<CpfDataRow> findWorkers(int timeout){return operations.findWorkers(timeout);}
+    public List<CpfDataRow> findStepExecutions(Long executionId,String jobId,int limit){return operations.findStepExecutions(executionId,jobId,limit);}
+    public List<CpfDataRow> findRelations(String jobId){return operations.findRelations(jobId);}
+    public List<CpfDataRow> findExecutionTargets(String jobId,String status,int limit){return operations.findExecutionTargets(jobId,status,limit);}
+    public List<CpfDataRow> findLocks(String jobId){return operations.findLocks(jobId);}
+    public CpfDataRow releaseLock(String key,String user,String reason){return operations.releaseLock(key,user,reason);}
+    public List<CpfDataRow> findGhostCandidates(int timeout){return operations.findGhostCandidates(timeout);}
+    public CpfDataRow actGhostExecution(long id,String action,String user,String reason){return operations.actGhostExecution(id,action,user,reason);}
+    public List<CpfDataRow> findOperationLogs(String jobId,Long executionId,int limit){return operations.findOperationLogs(jobId,executionId,limit);}
+    public List<CpfDataRow> simulateSchedule(String id,String base,int days){return operations.simulateSchedule(id,base,days);}
+    public CpfDataRow registerJob(String id,String name,String type,String desc,String user){return operations.registerJob(id,name,type,desc,user);}
+    public CpfDataRow requestRun(String jobId,String params,String user,String reason){return operations.requestRun(jobId,params,user,reason);}
+    public CpfDataRow requestScheduledRun(String schedule,String job,String params,String user,String reason){return operations.requestScheduledRun(schedule,job,params,user,reason);}
+    public CpfDataRow requestRetry(long id,String user,String reason){return operations.requestRetry(id,user,reason);}
+    public CpfDataRow requestStop(long id,String user,String reason){return operations.requestStop(id,user,reason);}
+    public CpfDataRow updateScheduleEnabled(String id,boolean enabled,String user,String reason){return operations.updateScheduleEnabled(id,enabled,user,reason);}
+    public List<CpfDataRow> runSchedulerOnce(String user){return operations.runSchedulerOnce(user);}
 }

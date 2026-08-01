@@ -1,0 +1,328 @@
+{
+  "schemaVersion": 3,
+  "evidenceId": "CPF-20260801-01-LOCAL-STATIC-VERIFICATION",
+  "classification": "LOCAL_STATIC_OVERLAY_NOT_RELEASE_EVIDENCE",
+  "repository": "freeangelsun/202412_01_CPF",
+  "branch": "master",
+  "originalDevelopmentSha": "23babb9140b90e501d6ac715e7b77f55b66198a5",
+  "baselineSha": "19dd72b5978f2a3c630943c0fff05bee2d2fed34",
+  "sourceSha": "19dd72b5978f2a3c630943c0fff05bee2d2fed34",
+  "resultSha": null,
+  "startedAt": "2026-08-01T00:00:00+00:00",
+  "endedAt": "2026-08-01T07:19:37.753562+00:00",
+  "environment": {
+    "platform": "sandbox-linux",
+    "versions": {
+      "python": "Python 3.13.5",
+      "node": "v22.16.0",
+      "npm": "10.9.2",
+      "java": "openjdk version \"21.0.10\" 2026-01-20"
+    }
+  },
+  "gateSummary": {
+    "total": 47,
+    "passed": 47,
+    "failed": 0
+  },
+  "gates": [
+    {
+      "gate": "adm-cap",
+      "exitCode": 0,
+      "status": "PASS",
+      "logTail": "[PASS] ADM capability registry closure: routes=59 statusRoutes=4 silentFallback=0"
+    },
+    {
+      "gate": "adm-commercial",
+      "exitCode": 0,
+      "status": "PASS",
+      "logTail": "[PASS] ADM commercial page contract routes=59 missingComponents=0 failureStatuses=7"
+    },
+    {
+      "gate": "adm-consumer",
+      "exitCode": 0,
+      "status": "PASS",
+      "logTail": "[CPF][FRONTEND][PASS] operation consumer closure scope=source operations=298 consumed=297 waived=0"
+    },
+    {
+      "gate": "adm-generated-negative",
+      "exitCode": 0,
+      "status": "PASS",
+      "logTail": "[CPF][FRONTEND][PASS] generated client negative fixtures"
+    },
+    {
+      "gate": "adm-generated",
+      "exitCode": 0,
+      "status": "PASS",
+      "logTail": "[CPF][FRONTEND][PASS] generated client source=19dd72b5978f2a3c630943c0fff05bee2d2fed34 operations=298"
+    },
+    {
+      "gate": "adm-interaction",
+      "exitCode": 0,
+      "status": "PASS",
+      "logTail": "[PASS] ADM route interaction contract routes=59 errorStatuses=7 contextKeys=10 operationCoverage=complete"
+    },
+    {
+      "gate": "adm-lockfile",
+      "exitCode": 0,
+      "status": "PASS",
+      "logTail": "[CPF][FRONTEND][PASS] package-lock canonical contract packages=791 sha256=18a510a756c80a20aaa4885532245daff8e917272a1207f1d8924a2f50d5d8a3"
+    },
+    {
+      "gate": "adm-openapi",
+      "exitCode": 0,
+      "status": "PASS",
+      "logTail": "[PASS] OpenAPI/controller exact coverage module=cpf-admin source=298 exported=298"
+    },
+    {
+      "gate": "adm-primary",
+      "exitCode": 0,
+      "status": "PASS",
+      "logTail": ""
+    },
+    {
+      "gate": "adm-route-operation-contract",
+      "exitCode": 0,
+      "status": "PASS",
+      "logTail": "[CPF][FRONTEND][PASS] route operation contract fixture routes=59 explicitOperations=241"
+    },
+    {
+      "gate": "adm-route-source",
+      "exitCode": 0,
+      "status": "PASS",
+      "logTail": "[PASS] ADM route source consumer contract routes=59 missingComponents=0 consumedOperations=288 mode=strict"
+    },
+    {
+      "gate": "audit-failclosed",
+      "exitCode": 0,
+      "status": "PASS",
+      "logTail": "[PASS] CPF audit fail-closed contract durableReservation=true enrichmentFailClosed=true"
+    },
+    {
+      "gate": "batch-failclosed",
+      "exitCode": 0,
+      "status": "PASS",
+      "logTail": "[PASS] CPF batch fail-closed contract ownerErrorsSeparated=true nullResponsesRejected=true"
+    },
+    {
+      "gate": "batch-ghost",
+      "exitCode": 0,
+      "status": "PASS",
+      "logTail": "[PASS] CPF BAT ghost safety contract rowLock=true heartbeatRecheck=true exactMutation=true vendors=3"
+    },
+    {
+      "gate": "bza-consumer",
+      "exitCode": 0,
+      "status": "PASS",
+      "logTail": "[CPF][FRONTEND][PASS] operation consumer closure scope=source operations=84 consumed=76 waived=0"
+    },
+    {
+      "gate": "bza-generated-negative",
+      "exitCode": 0,
+      "status": "PASS",
+      "logTail": "[CPF][FRONTEND][PASS] generated client negative fixtures"
+    },
+    {
+      "gate": "bza-generated",
+      "exitCode": 0,
+      "status": "PASS",
+      "logTail": "[CPF][FRONTEND][PASS] generated client source=19dd72b5978f2a3c630943c0fff05bee2d2fed34 operations=84"
+    },
+    {
+      "gate": "bza-lockfile",
+      "exitCode": 0,
+      "status": "PASS",
+      "logTail": "[CPF][FRONTEND][PASS] package-lock canonical contract packages=791 sha256=3b8fb3f23d893b4596cf3e7fe2f4794c250d896fb6ee7fb74d90839f4513bd23"
+    },
+    {
+      "gate": "bza-openapi",
+      "exitCode": 0,
+      "status": "PASS",
+      "logTail": "[PASS] OpenAPI/controller exact coverage module=cpf-biz-admin source=84 exported=84"
+    },
+    {
+      "gate": "bza-primary",
+      "exitCode": 0,
+      "status": "PASS",
+      "logTail": ""
+    },
+    {
+      "gate": "bza-route",
+      "exitCode": 0,
+      "status": "PASS",
+      "logTail": "[PASS] BZA route contract routes=26 operations=84 silentFallback=0"
+    },
+    {
+      "gate": "calendar",
+      "exitCode": 0,
+      "status": "PASS",
+      "logTail": "    \"createRaceMapped\": true,\n    \"updateCas\": true,\n    \"deleteCas\": true,\n    \"actualBeforeAudit\": true,\n    \"auditReasonRequired\": true,\n    \"conflict409\": true,\n    \"writablePermissionUi\": true,\n    \"frontendConflict409\": true,\n    \"resolveOperationWired\": true\n  },\n  \"errors\": []\n}"
+    },
+    {
+      "gate": "controller-permission",
+      "exitCode": 0,
+      "status": "PASS",
+      "logTail": "[PASS] controller permission contract operations=382 operationIds=382 mutations=178 warnings=0 strict=True"
+    },
+    {
+      "gate": "db-lifecycle",
+      "exitCode": 0,
+      "status": "PASS",
+      "logTail": "[PASS] CPF DB lifecycle vendors=3 stages=7 runtimeStatusSeparated=true"
+    },
+    {
+      "gate": "db-token-parity",
+      "exitCode": 0,
+      "status": "PASS",
+      "logTail": "      \"postgresql\": {\n        \"path\": \"cpf-tools/db/vendor/postgresql/migration/flyway/bzaDB/V91__bza_bootstrap_claim_recovery.sql\",\n        \"missing\": []\n      },\n      \"oracle\": {\n        \"path\": \"cpf-tools/db/vendor/oracle/migration/flyway/bzaDB/V91__bza_bootstrap_claim_recovery.sql\",\n        \"missing\": []\n      }\n    }\n  },\n  \"failures\": []\n}"
+    },
+    {
+      "gate": "dbless",
+      "exitCode": 0,
+      "status": "PASS",
+      "logTail": "  \"admMemoryProfiles\": [\n    \"edu\",\n    \"test\"\n  ],\n  \"cmnProductDataSourceConditional\": true,\n  \"cmnMyBatisConditional\": true,\n  \"cmnSampleProfiles\": [\n    \"edu\",\n    \"test\"\n  ],\n  \"errors\": []\n}"
+    },
+    {
+      "gate": "edu-coverage",
+      "exitCode": 0,
+      "status": "PASS",
+      "logTail": "[PASS] CPF EDU executable coverage features=32 canonicalRequirements=162 release=False"
+    },
+    {
+      "gate": "edu-impact",
+      "exitCode": 0,
+      "status": "PASS",
+      "logTail": "[PASS] CPF EDU impact changedFiles=370 impacted=ADM_OPERATION|DB_CONTRACT|GENERATOR|OPENAPI_CONTRACT|PUBLIC_CONTRACT|RUNTIME_CONTRACT"
+    },
+    {
+      "gate": "edu-isolation",
+      "exitCode": 0,
+      "status": "PASS",
+      "logTail": "[PASS] CPF EDU profile isolation productDefaults=0 explicitFixture=1"
+    },
+    {
+      "gate": "evidence",
+      "exitCode": 0,
+      "status": "PASS",
+      "logTail": "[PASS] CPF evidence semantics verifiedRows=0 documents=0 bulkIdForbidden=true"
+    },
+    {
+      "gate": "final-plan",
+      "exitCode": 0,
+      "status": "PASS",
+      "logTail": "[PASS] CPF final plan stages=8 commands=58 preflightOnly=true"
+    },
+    {
+      "gate": "final-wrapper",
+      "exitCode": 0,
+      "status": "PASS",
+      "logTail": "[PASS] final wrapper contract wrappers=4 dependencyCalls=validated"
+    },
+    {
+      "gate": "frontend-syntax",
+      "exitCode": 0,
+      "status": "PASS",
+      "logTail": "FRONTEND_SYNTAX=PASS files=112 errors=0"
+    },
+    {
+      "gate": "generator-idempotency",
+      "exitCode": 0,
+      "status": "PASS",
+      "logTail": "[PASS] Generator Query/Command/Delete idempotency contract\n[PASS] Local/DB adapter request-hash replay and conflict guards\n[PASS] MariaDB/PostgreSQL/Oracle mapper + install/migration/rollback/verify parity\nGENERATOR_IDEMPOTENCY_TEMPLATE=PASS vendors=3"
+    },
+    {
+      "gate": "generator-java",
+      "exitCode": 0,
+      "status": "PASS",
+      "logTail": "GENERATOR_JAVA_TEMPLATE_COMPILE=PASS sources=33 release=21"
+    },
+    {
+      "gate": "generator-lifecycle",
+      "exitCode": 0,
+      "status": "PASS",
+      "logTail": "[PASS] CPF generator lifecycle vendors=3 stages=10 release=False"
+    },
+    {
+      "gate": "hygiene",
+      "exitCode": 0,
+      "status": "PASS",
+      "logTail": "[PASS] CPF overlay hygiene files=370 generatedArtifacts=0 highConfidenceSecrets=0 trailingWhitespace=0"
+    },
+    {
+      "gate": "java-syntax",
+      "exitCode": 0,
+      "status": "PASS",
+      "logTail": "JAVA_SYNTAX=PASS files=98 errors=0"
+    },
+    {
+      "gate": "javadoc",
+      "exitCode": 0,
+      "status": "PASS",
+      "logTail": "[PASS] CPF JavaDoc coverage changedPublicTypes=documented"
+    },
+    {
+      "gate": "legacy",
+      "exitCode": 0,
+      "status": "PASS",
+      "logTail": "[PASS] CPF legacy continuity sourceUnion=complete canonicalTargets=valid duplicateIds=merged readmeManualTruth=false"
+    },
+    {
+      "gate": "network",
+      "exitCode": 0,
+      "status": "PASS",
+      "logTail": "[PASS] CPF shared network policy consumers=3 gateway/batch-outbound/host-agent duplicateClassifiers=0"
+    },
+    {
+      "gate": "notification",
+      "exitCode": 0,
+      "status": "PASS",
+      "logTail": "[PASS] CPF Notification·Incident lifecycle rule=true threshold=true channel=true dlq=true escalation=true maintenance=true audit=true vendors=3 migration=V92 rollback=R92 checksum=true"
+    },
+    {
+      "gate": "operator-trust",
+      "exitCode": 0,
+      "status": "PASS",
+      "logTail": "CPF operator trust boundary PASS"
+    },
+    {
+      "gate": "protected-doc",
+      "exitCode": 0,
+      "status": "PASS",
+      "logTail": "[PASS] CPF protected document boundary readme=false linkedManual=false completionTruth=source"
+    },
+    {
+      "gate": "python-unit-tests",
+      "exitCode": 0,
+      "status": "PASS",
+      "logTail": "  \"status\": \"FAIL\",\n  \"admMemoryProfiles\": [\n    \"edu\",\n    \"test\"\n  ],\n  \"cmnProductDataSourceConditional\": true,\n  \"cmnMyBatisConditional\": true,\n  \"cmnSampleProfiles\": [],\n  \"errors\": [\n    \"CMN sample DB profiles must be exactly edu/test, actual=[]\"\n  ]\n}"
+    },
+    {
+      "gate": "supplychain",
+      "exitCode": 0,
+      "status": "PASS",
+      "logTail": "{\n  \"status\": \"PASS\",\n  \"release\": false,\n  \"headSha\": null,\n  \"includedProjectCount\": 25,\n  \"artifactCount\": 32,\n  \"approvedOssCount\": 23,\n  \"warnings\": [],\n  \"failures\": []\n}"
+    },
+    {
+      "gate": "traceability",
+      "exitCode": 0,
+      "status": "PASS",
+      "logTail": "[PASS] CPF requirement traceability head=UNAVAILABLE self=30 activeGap=85 canonical=162 scenarios=2754 resultRows=115 completed=113 verified=0 release=False"
+    }
+  ],
+  "keyResults": {
+    "pythonUnitTests": "144/144 PASS",
+    "sourceContractGates": "47/47 PASS",
+    "javaSyntax": "98 files / 0 errors",
+    "frontendSyntax": "112 files / 0 errors",
+    "admOpenApi": "298/298",
+    "bzaOpenApi": "84/84",
+    "admConsumer": "297/297 authentication-excluded public operations",
+    "bzaConsumer": "76/76 authentication-excluded public operations",
+    "controllerPermission": "382 operations / 178 mutations / 0 warnings",
+    "dbStaticTokenParity": "Oracle/PostgreSQL/MariaDB PASS",
+    "requirementTrace": "SELF 30 + QA36 Active Gap 85 + Canonical 162 + Mandatory Scenario 2754",
+    "developmentStatus": "완료 113 / README-linked protected document recheck 2"
+  },
+  "verificationStatus": "미검증",
+  "reason": "Result commit SHA and Java25/frontend-clean/3DB/distributed-runtime stages do not exist in this execution environment.",
+  "sanitized": true
+}

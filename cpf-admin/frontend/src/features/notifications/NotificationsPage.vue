@@ -3,7 +3,8 @@
     <div class="panel-title">
       <h2>알림 관리</h2>
       <div class="actions">
-        <button type="button" @click="loadNotifications">조회</button>
+        <button type="button" @click="loadNotifications">전체 조회</button>
+        <button type="button" @click="loadNotificationDlq">DLQ 조회</button>
         <button type="button" v-if="canButton('NOTIFICATION_WRITE','NOTIFICATION')" @click="saveNotificationRule">규칙 저장</button>
         <button type="button" v-if="canButton('NOTIFICATION_DISABLE','NOTIFICATION')" @click="disableNotificationRule">규칙 비활성화</button>
         <button type="button" v-if="canButton('NOTIFICATION_TEST_SEND','NOTIFICATION')" @click="sendNotificationTest">테스트 발송</button>
@@ -101,7 +102,7 @@
               <strong>{{ delivery.operationId }}</strong><br>
               <small>{{ delivery.requestHash }}</small>
             </td>
-            <td>{{ delivery.deliveryStatus }}</td>
+            <td><strong v-if="delivery.deliveryStatus === 'DLQ'">DLQ</strong><span v-else>{{ delivery.deliveryStatus }}</span></td>
             <td>{{ delivery.targetType }} / {{ delivery.targetId }}</td>
             <td>{{ delivery.receiver }}</td>
             <td>{{ delivery.attemptCount }} / {{ delivery.maxAttempts }}</td>
@@ -162,14 +163,15 @@
       Version {{ notificationResult.action.version }}
     </p>
   </section>
+
+  <section class="panel route-operation-panel"><h3>알림 규칙 등록·상세·수정</h3><div class="actions"><button type="button" @click="loadNotificationRuleDetail">상세 조회</button><button type="button" @click="createNotificationRule">신규 등록</button><button type="button" @click="updateNotificationRule">수정</button></div></section>
 </template>
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import { admConsoleMixin } from "../../app/admConsoleMixin";
+import { useAdmConsolePage } from "../../app/useAdmConsolePage";
 
-export default defineComponent({
+export default defineComponent({setup(){return useAdmConsolePage()},
   name: "NotificationsPage",
-  mixins: [admConsoleMixin]
-});
+  });
 </script>

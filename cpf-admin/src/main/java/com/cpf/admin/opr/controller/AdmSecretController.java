@@ -31,14 +31,14 @@ public class AdmSecretController extends com.cpf.admin.common.base.AdmBaseContro
 
     @GetMapping("/providers")
     @CpfOnlineTransaction(id="OADMSE0001",name="ADMSecretProviders")
-    @Operation(summary="Secret Provider 목록",description="Secret 원문이 아닌 Provider ID와 rotation 지원 여부만 반환합니다.")
+    @Operation(operationId="admSecretFindProviders", summary="Secret Provider 목록",description="Secret 원문이 아닌 Provider ID와 rotation 지원 여부만 반환합니다.")
     public ResponseEntity<List<Map<String,Object>>> providers(){
         return ResponseEntity.ok(providers.stream().map(p->Map.<String,Object>of("providerId",p.providerId(),"rotatable",p instanceof CpfRotatableSecretProvider)).toList());
     }
 
     @GetMapping("/metadata")
     @CpfOnlineTransaction(id="OADMSE0002",name="ADMSecretMetadata")
-    @Operation(summary="Secret Metadata 조회",description="원문 값을 반환하지 않고 존재/버전/만료/rotation metadata만 반환합니다.")
+    @Operation(operationId="admSecretFindMetadata", summary="Secret Metadata 조회",description="원문 값을 반환하지 않고 존재/버전/만료/rotation metadata만 반환합니다.")
     public ResponseEntity<CpfSecretMetadata> metadata(@RequestParam String provider,@RequestParam String key,HttpServletRequest request){
         requireOperator(request);
         CpfSecretReference ref=new CpfSecretReference(provider,key);
@@ -47,7 +47,7 @@ public class AdmSecretController extends com.cpf.admin.common.base.AdmBaseContro
 
     @PostMapping("/rotate")
     @CpfOnlineTransaction(id="OADMSE0003",name="ADMSecretRotate")
-    @Operation(summary="Secret Rotation",description="Rotation 지원 Provider만 실행하며 Actor/Reason을 감사합니다. 원문은 반환하지 않습니다.")
+    @Operation(operationId="admSecretRotate", summary="Secret Rotation",description="Rotation 지원 Provider만 실행하며 Actor/Reason을 감사합니다. 원문은 반환하지 않습니다.")
     public ResponseEntity<CpfSecretMetadata> rotate(@RequestBody RotateRequest body,HttpServletRequest request){
         String actor=requireOperator(request); String reason=audit.requireReason(body.reason());
         CpfSecretProvider p=provider(body.provider());

@@ -1,0 +1,1034 @@
+{
+  "schemaVersion": 1,
+  "catalogId": "CPF-EDU-EXECUTABLE-32",
+  "featureCount": 32,
+  "canonicalRequirementCount": 162,
+  "features": [
+    {
+      "featureId": "EDU-001",
+      "area": "Build/Artifact",
+      "coverageScope": "BOM·Convention Plugin·LOCAL/REMOTE/OFFLINE 소비와 Artifact hash 검증",
+      "ownerModule": "cpf-tools",
+      "referenceSources": [
+        "build.gradle",
+        "gradle/**/*.gradle",
+        "cpf-tools/release/**/*",
+        "cpf-tools/supply-chain/**/*"
+      ],
+      "tests": [
+        "cpf-tools/scripts/tests/test_verify_cpf_supply_chain.py",
+        "cpf-tools/verification/**/*Artifact*Test*"
+      ],
+      "publicContracts": [
+        "build.gradle",
+        "cpf-core/src/main/java/com/cpf/core/api/**/*.java"
+      ],
+      "scenarioAxes": {
+        "normal": "EDU-001-SCN-NORMAL",
+        "error": "EDU-001-SCN-ERROR",
+        "recovery": "EDU-001-SCN-RECOVERY",
+        "security": "EDU-001-SCN-SECURITY"
+      },
+      "admObservationPaths": [
+        "/runtimeControl"
+      ],
+      "runtimeCommands": [
+        "./gradlew.bat clean test assemble publishToMavenLocal --no-daemon --stacktrace"
+      ],
+      "developmentStatus": "완료",
+      "verificationStatus": "미검증"
+    },
+    {
+      "featureId": "EDU-002",
+      "area": "Generator",
+      "coverageScope": "신규 Domain 생성·충돌검사·remove/regenerate·Golden Template parity",
+      "ownerModule": "cpf-tools",
+      "referenceSources": [
+        "cpf-tools/generator/**/*",
+        "cpf-tools/scripts/*domain*",
+        "cpf-member/**/*"
+      ],
+      "tests": [
+        "cpf-tools/verification/**/*generator*",
+        "cpf-tools/scripts/tests/**/*generator*"
+      ],
+      "publicContracts": [
+        "cpf-common/src/main/java/com/cpf/common/api/**/*.java",
+        "cpf-core/src/main/java/com/cpf/core/api/**/*.java"
+      ],
+      "scenarioAxes": {
+        "normal": "EDU-002-SCN-NORMAL",
+        "error": "EDU-002-SCN-ERROR",
+        "recovery": "EDU-002-SCN-RECOVERY",
+        "concurrency": "EDU-002-SCN-CONCURRENCY"
+      },
+      "admObservationPaths": [
+        "/configs"
+      ],
+      "runtimeCommands": [
+        "pwsh -NoProfile -File ./cpf-tools/scripts/create-domain.ps1 -DomainName educheck -SystemCode EDC"
+      ],
+      "developmentStatus": "완료",
+      "verificationStatus": "미검증"
+    },
+    {
+      "featureId": "EDU-003",
+      "area": "Transaction",
+      "coverageScope": "34자리 transactionId·segment·attempt 전파와 Causal Timeline",
+      "ownerModule": "cpf-reference",
+      "referenceSources": [
+        "cpf-reference/src/main/java/com/cpf/reference/transaction/**/*.java"
+      ],
+      "tests": [
+        "cpf-reference/src/test/java/com/cpf/reference/transaction/**/*.java"
+      ],
+      "publicContracts": [
+        "cpf-core/src/main/java/com/cpf/core/api/transaction/**/*.java",
+        "cpf-core/src/main/java/com/cpf/core/api/context/**/*.java"
+      ],
+      "scenarioAxes": {
+        "normal": "EDU-003-SCN-NORMAL",
+        "error": "EDU-003-SCN-ERROR",
+        "recovery": "EDU-003-SCN-RECOVERY",
+        "concurrency": "EDU-003-SCN-CONCURRENCY"
+      },
+      "admObservationPaths": [
+        "/transactionGroups",
+        "/transactions"
+      ],
+      "runtimeCommands": [
+        "./gradlew.bat :cpf-reference:test --tests \"com.cpf.reference.transaction.*\" --no-daemon"
+      ],
+      "developmentStatus": "완료",
+      "verificationStatus": "미검증"
+    },
+    {
+      "featureId": "EDU-004",
+      "area": "Header/Error",
+      "coverageScope": "표준 Header·Validation·Error envelope·masking",
+      "ownerModule": "cpf-reference",
+      "referenceSources": [
+        "cpf-reference/src/main/java/com/cpf/reference/header/**/*.java",
+        "cpf-reference/src/main/java/com/cpf/reference/failure/**/*.java",
+        "cpf-reference/src/main/java/com/cpf/reference/validation/**/*.java"
+      ],
+      "tests": [
+        "cpf-reference/src/test/java/com/cpf/reference/header/**/*.java",
+        "cpf-reference/src/test/java/com/cpf/reference/failure/**/*.java",
+        "cpf-reference/src/test/java/com/cpf/reference/validation/**/*.java"
+      ],
+      "publicContracts": [
+        "cpf-core/src/main/java/com/cpf/core/api/header/**/*.java",
+        "cpf-core/src/main/java/com/cpf/core/api/error/**/*.java"
+      ],
+      "scenarioAxes": {
+        "normal": "EDU-004-SCN-NORMAL",
+        "error": "EDU-004-SCN-ERROR",
+        "recovery": "EDU-004-SCN-RECOVERY",
+        "security": "EDU-004-SCN-SECURITY"
+      },
+      "admObservationPaths": [
+        "/responseCodes",
+        "/logs"
+      ],
+      "runtimeCommands": [
+        "./gradlew.bat :cpf-reference:test --tests \"com.cpf.reference.header.*\" --tests \"com.cpf.reference.failure.*\" --no-daemon"
+      ],
+      "developmentStatus": "완료",
+      "verificationStatus": "미검증"
+    },
+    {
+      "featureId": "EDU-005",
+      "area": "Local/Remote",
+      "coverageScope": "동일 JVM과 분리 WAS Consumer 계약·timeout·retry",
+      "ownerModule": "cpf-reference",
+      "referenceSources": [
+        "cpf-reference/src/main/java/com/cpf/reference/servicecall/**/*.java"
+      ],
+      "tests": [
+        "cpf-reference/src/test/java/com/cpf/reference/servicecall/**/*.java"
+      ],
+      "publicContracts": [
+        "cpf-core/src/main/java/com/cpf/core/api/servicecall/**/*.java",
+        "cpf-core/src/main/java/com/cpf/core/spi/**/*.java"
+      ],
+      "scenarioAxes": {
+        "normal": "EDU-005-SCN-NORMAL",
+        "error": "EDU-005-SCN-ERROR",
+        "recovery": "EDU-005-SCN-RECOVERY",
+        "concurrency": "EDU-005-SCN-CONCURRENCY"
+      },
+      "admObservationPaths": [
+        "/serviceRegistry",
+        "/topology"
+      ],
+      "runtimeCommands": [
+        "./gradlew.bat :cpf-reference:test --tests \"com.cpf.reference.servicecall.*\" --no-daemon"
+      ],
+      "developmentStatus": "완료",
+      "verificationStatus": "미검증"
+    },
+    {
+      "featureId": "EDU-006",
+      "area": "Idempotency",
+      "coverageScope": "멱등 Key·중복 요청·재처리 결과 보존",
+      "ownerModule": "cpf-reference",
+      "referenceSources": [
+        "cpf-reference/src/main/java/com/cpf/reference/idempotency/**/*.java"
+      ],
+      "tests": [
+        "cpf-reference/src/test/java/com/cpf/reference/idempotency/**/*.java"
+      ],
+      "publicContracts": [
+        "cpf-core/src/main/java/com/cpf/core/api/idempotency/**/*.java"
+      ],
+      "scenarioAxes": {
+        "normal": "EDU-006-SCN-NORMAL",
+        "error": "EDU-006-SCN-ERROR",
+        "recovery": "EDU-006-SCN-RECOVERY",
+        "concurrency": "EDU-006-SCN-CONCURRENCY"
+      },
+      "admObservationPaths": [
+        "/recoveryCenter",
+        "/transactions"
+      ],
+      "runtimeCommands": [
+        "./gradlew.bat :cpf-reference:test --tests \"com.cpf.reference.idempotency.*\" --no-daemon"
+      ],
+      "developmentStatus": "완료",
+      "verificationStatus": "미검증"
+    },
+    {
+      "featureId": "EDU-007",
+      "area": "Concurrency",
+      "coverageScope": "Optimistic Lock·CAS·중복 실행·동시 갱신 충돌",
+      "ownerModule": "cpf-reference",
+      "referenceSources": [
+        "cpf-reference/src/main/java/com/cpf/reference/crud/**/*.java",
+        "cpf-reference/src/main/java/com/cpf/reference/idempotency/**/*.java"
+      ],
+      "tests": [
+        "cpf-reference/src/test/java/com/cpf/reference/crud/**/*.java",
+        "cpf-reference/src/test/java/com/cpf/reference/idempotency/**/*.java"
+      ],
+      "publicContracts": [
+        "cpf-core/src/main/java/com/cpf/core/api/concurrency/**/*.java",
+        "cpf-common/src/main/java/com/cpf/common/api/**/*.java"
+      ],
+      "scenarioAxes": {
+        "normal": "EDU-007-SCN-NORMAL",
+        "error": "EDU-007-SCN-ERROR",
+        "recovery": "EDU-007-SCN-RECOVERY",
+        "concurrency": "EDU-007-SCN-CONCURRENCY"
+      },
+      "admObservationPaths": [
+        "/recoveryCenter",
+        "/businessCalendar"
+      ],
+      "runtimeCommands": [
+        "./gradlew.bat :cpf-reference:test --tests \"com.cpf.reference.crud.*Concurrency*\" --no-daemon"
+      ],
+      "developmentStatus": "완료",
+      "verificationStatus": "미검증"
+    },
+    {
+      "featureId": "EDU-008",
+      "area": "Unknown Result",
+      "coverageScope": "결과불명 분류·Reconcile·Replay·Compensation",
+      "ownerModule": "cpf-reference",
+      "referenceSources": [
+        "cpf-reference/src/main/java/com/cpf/reference/failure/**/*.java",
+        "cpf-reference/src/main/java/com/cpf/reference/transaction/**/*.java"
+      ],
+      "tests": [
+        "cpf-reference/src/test/java/com/cpf/reference/failure/**/*.java",
+        "cpf-reference/src/test/java/com/cpf/reference/transaction/**/*Unknown*"
+      ],
+      "publicContracts": [
+        "cpf-core/src/main/java/com/cpf/core/api/recovery/**/*.java",
+        "cpf-core/src/main/java/com/cpf/core/api/transaction/**/*.java"
+      ],
+      "scenarioAxes": {
+        "normal": "EDU-008-SCN-NORMAL",
+        "error": "EDU-008-SCN-ERROR",
+        "unknown": "EDU-008-SCN-UNKNOWN",
+        "recovery": "EDU-008-SCN-RECOVERY"
+      },
+      "admObservationPaths": [
+        "/recoveryCenter",
+        "/transactionGroups"
+      ],
+      "runtimeCommands": [
+        "./gradlew.bat :cpf-reference:test --tests \"*UnknownResult*\" --no-daemon"
+      ],
+      "developmentStatus": "완료",
+      "verificationStatus": "미검증"
+    },
+    {
+      "featureId": "EDU-009",
+      "area": "Outbox/Inbox",
+      "coverageScope": "Transactional Outbox·Inbox dedupe·retry·DLQ",
+      "ownerModule": "cpf-reference",
+      "referenceSources": [
+        "cpf-reference/src/main/java/com/cpf/reference/messaging/**/*.java"
+      ],
+      "tests": [
+        "cpf-reference/src/test/java/com/cpf/reference/messaging/**/*.java"
+      ],
+      "publicContracts": [
+        "cpf-core/src/main/java/com/cpf/core/api/messaging/**/*.java",
+        "cpf-core/src/main/java/com/cpf/core/spi/messaging/**/*.java"
+      ],
+      "scenarioAxes": {
+        "normal": "EDU-009-SCN-NORMAL",
+        "error": "EDU-009-SCN-ERROR",
+        "recovery": "EDU-009-SCN-RECOVERY",
+        "concurrency": "EDU-009-SCN-CONCURRENCY"
+      },
+      "admObservationPaths": [
+        "/recoveryCenter",
+        "/dashboard"
+      ],
+      "runtimeCommands": [
+        "./gradlew.bat :cpf-reference:test --tests \"com.cpf.reference.messaging.*Outbox*\" --no-daemon"
+      ],
+      "developmentStatus": "완료",
+      "verificationStatus": "미검증"
+    },
+    {
+      "featureId": "EDU-010",
+      "area": "Kafka",
+      "coverageScope": "Broker publish/consume·partition·retry·DLQ·lag",
+      "ownerModule": "cpf-reference",
+      "referenceSources": [
+        "cpf-reference/src/main/java/com/cpf/reference/messaging/**/*.java"
+      ],
+      "tests": [
+        "cpf-reference/src/test/java/com/cpf/reference/messaging/**/*Kafka*"
+      ],
+      "publicContracts": [
+        "cpf-core/src/main/java/com/cpf/core/api/messaging/**/*.java"
+      ],
+      "scenarioAxes": {
+        "normal": "EDU-010-SCN-NORMAL",
+        "error": "EDU-010-SCN-ERROR",
+        "recovery": "EDU-010-SCN-RECOVERY",
+        "concurrency": "EDU-010-SCN-CONCURRENCY"
+      },
+      "admObservationPaths": [
+        "/capacity",
+        "/recoveryCenter"
+      ],
+      "runtimeCommands": [
+        "./gradlew.bat :cpf-reference:test --tests \"*Kafka*\" --no-daemon"
+      ],
+      "developmentStatus": "완료",
+      "verificationStatus": "미검증"
+    },
+    {
+      "featureId": "EDU-011",
+      "area": "External REST",
+      "coverageScope": "External REST timeout·retry·circuit·TLS·masking",
+      "ownerModule": "cpf-reference",
+      "referenceSources": [
+        "cpf-reference/src/main/java/com/cpf/reference/external/**/*.java",
+        "cpf-reference/src/main/java/com/cpf/reference/servicecall/**/*.java"
+      ],
+      "tests": [
+        "cpf-reference/src/test/java/com/cpf/reference/external/**/*.java"
+      ],
+      "publicContracts": [
+        "cpf-core/src/main/java/com/cpf/core/api/external/**/*.java",
+        "cpf-core/src/main/java/com/cpf/core/api/security/network/**/*.java"
+      ],
+      "scenarioAxes": {
+        "normal": "EDU-011-SCN-NORMAL",
+        "error": "EDU-011-SCN-ERROR",
+        "recovery": "EDU-011-SCN-RECOVERY",
+        "security": "EDU-011-SCN-SECURITY"
+      },
+      "admObservationPaths": [
+        "/gateway-health",
+        "/capacity"
+      ],
+      "runtimeCommands": [
+        "./gradlew.bat :cpf-reference:test --tests \"com.cpf.reference.external.*Rest*\" --no-daemon"
+      ],
+      "developmentStatus": "완료",
+      "verificationStatus": "미검증"
+    },
+    {
+      "featureId": "EDU-012",
+      "area": "Fixed-length Protocol",
+      "coverageScope": "고정길이 전문 encode/decode·schema·validation·trace",
+      "ownerModule": "cpf-reference",
+      "referenceSources": [
+        "cpf-reference/src/main/java/com/cpf/reference/telegram/**/*.java"
+      ],
+      "tests": [
+        "cpf-reference/src/test/java/com/cpf/reference/telegram/**/*.java"
+      ],
+      "publicContracts": [
+        "cpf-core/src/main/java/com/cpf/core/api/message/**/*.java",
+        "cpf-core/src/main/java/com/cpf/core/api/fixed/**/*.java"
+      ],
+      "scenarioAxes": {
+        "normal": "EDU-012-SCN-NORMAL",
+        "error": "EDU-012-SCN-ERROR",
+        "recovery": "EDU-012-SCN-RECOVERY",
+        "security": "EDU-012-SCN-SECURITY"
+      },
+      "admObservationPaths": [
+        "/messages"
+      ],
+      "runtimeCommands": [
+        "./gradlew.bat :cpf-reference:test --tests \"com.cpf.reference.telegram.*\" --no-daemon"
+      ],
+      "developmentStatus": "완료",
+      "verificationStatus": "미검증"
+    },
+    {
+      "featureId": "EDU-013",
+      "area": "File/Archive",
+      "coverageScope": "File transfer·archive·checksum·resume·retention",
+      "ownerModule": "cpf-reference",
+      "referenceSources": [
+        "cpf-reference/src/main/java/com/cpf/reference/filetransfer/**/*.java",
+        "cpf-reference/src/main/java/com/cpf/reference/archive/**/*.java"
+      ],
+      "tests": [
+        "cpf-reference/src/test/java/com/cpf/reference/filetransfer/**/*.java",
+        "cpf-reference/src/test/java/com/cpf/reference/archive/**/*.java"
+      ],
+      "publicContracts": [
+        "cpf-core/src/main/java/com/cpf/core/api/file/**/*.java"
+      ],
+      "scenarioAxes": {
+        "normal": "EDU-013-SCN-NORMAL",
+        "error": "EDU-013-SCN-ERROR",
+        "recovery": "EDU-013-SCN-RECOVERY",
+        "security": "EDU-013-SCN-SECURITY"
+      },
+      "admObservationPaths": [
+        "/fileJobs",
+        "/remoteLogs"
+      ],
+      "runtimeCommands": [
+        "./gradlew.bat :cpf-reference:test --tests \"com.cpf.reference.filetransfer.*\" --tests \"com.cpf.reference.archive.*\" --no-daemon"
+      ],
+      "developmentStatus": "완료",
+      "verificationStatus": "미검증"
+    },
+    {
+      "featureId": "EDU-014",
+      "area": "Cache",
+      "coverageScope": "Cache read/write·evict·namespace·reconcile·fail-closed",
+      "ownerModule": "cpf-admin",
+      "referenceSources": [
+        "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmCacheController.java",
+        "cpf-reference/src/main/java/com/cpf/reference/config/**/*.java"
+      ],
+      "tests": [
+        "cpf-reference/src/test/java/com/cpf/reference/config/**/*.java",
+        "cpf-admin/src/test/**/*Cache*Test.java"
+      ],
+      "publicContracts": [
+        "cpf-core/src/main/java/com/cpf/core/api/cache/**/*.java",
+        "cpf-common/src/main/java/com/cpf/common/api/**/*.java"
+      ],
+      "scenarioAxes": {
+        "normal": "EDU-014-SCN-NORMAL",
+        "error": "EDU-014-SCN-ERROR",
+        "recovery": "EDU-014-SCN-RECOVERY",
+        "concurrency": "EDU-014-SCN-CONCURRENCY"
+      },
+      "admObservationPaths": [
+        "/cache"
+      ],
+      "runtimeCommands": [
+        "./gradlew.bat :cpf-admin:test --tests \"*Cache*\" --no-daemon"
+      ],
+      "developmentStatus": "완료",
+      "verificationStatus": "미검증"
+    },
+    {
+      "featureId": "EDU-015",
+      "area": "Feature Flag",
+      "coverageScope": "Feature flag rollout·disabled state·drift·audit",
+      "ownerModule": "cpf-reference",
+      "referenceSources": [
+        "cpf-reference/src/main/java/com/cpf/reference/config/**/*.java"
+      ],
+      "tests": [
+        "cpf-reference/src/test/java/com/cpf/reference/config/**/*.java"
+      ],
+      "publicContracts": [
+        "cpf-core/src/main/java/com/cpf/core/api/config/**/*.java"
+      ],
+      "scenarioAxes": {
+        "normal": "EDU-015-SCN-NORMAL",
+        "error": "EDU-015-SCN-ERROR",
+        "recovery": "EDU-015-SCN-RECOVERY",
+        "security": "EDU-015-SCN-SECURITY"
+      },
+      "admObservationPaths": [
+        "/configs",
+        "/runtimeControl"
+      ],
+      "runtimeCommands": [
+        "./gradlew.bat :cpf-reference:test --tests \"com.cpf.reference.config.*Feature*\" --no-daemon"
+      ],
+      "developmentStatus": "완료",
+      "verificationStatus": "미검증"
+    },
+    {
+      "featureId": "EDU-016",
+      "area": "Secret",
+      "coverageScope": "Secret metadata·provider·rotation·원문 비노출",
+      "ownerModule": "cpf-admin",
+      "referenceSources": [
+        "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmSecretController.java",
+        "cpf-reference/src/main/java/com/cpf/reference/security/**/*.java"
+      ],
+      "tests": [
+        "cpf-reference/src/test/java/com/cpf/reference/security/**/*.java",
+        "cpf-admin/src/test/**/*Secret*Test.java"
+      ],
+      "publicContracts": [
+        "cpf-core/src/main/java/com/cpf/core/api/security/**/*.java"
+      ],
+      "scenarioAxes": {
+        "normal": "EDU-016-SCN-NORMAL",
+        "error": "EDU-016-SCN-ERROR",
+        "recovery": "EDU-016-SCN-RECOVERY",
+        "security": "EDU-016-SCN-SECURITY"
+      },
+      "admObservationPaths": [
+        "/secrets"
+      ],
+      "runtimeCommands": [
+        "./gradlew.bat :cpf-admin:test --tests \"*Secret*\" --no-daemon"
+      ],
+      "developmentStatus": "완료",
+      "verificationStatus": "미검증"
+    },
+    {
+      "featureId": "EDU-017",
+      "area": "Security",
+      "coverageScope": "인증·인가·MFA·IP allowlist·masking·audit",
+      "ownerModule": "cpf-reference",
+      "referenceSources": [
+        "cpf-reference/src/main/java/com/cpf/reference/security/**/*.java"
+      ],
+      "tests": [
+        "cpf-reference/src/test/java/com/cpf/reference/security/**/*.java"
+      ],
+      "publicContracts": [
+        "cpf-core/src/main/java/com/cpf/core/api/security/**/*.java"
+      ],
+      "scenarioAxes": {
+        "normal": "EDU-017-SCN-NORMAL",
+        "error": "EDU-017-SCN-ERROR",
+        "recovery": "EDU-017-SCN-RECOVERY",
+        "security": "EDU-017-SCN-SECURITY"
+      },
+      "admObservationPaths": [
+        "/security",
+        "/permissions",
+        "/operators"
+      ],
+      "runtimeCommands": [
+        "./gradlew.bat :cpf-reference:test --tests \"com.cpf.reference.security.*\" --no-daemon"
+      ],
+      "developmentStatus": "완료",
+      "verificationStatus": "미검증"
+    },
+    {
+      "featureId": "EDU-018",
+      "area": "Observability",
+      "coverageScope": "통합 Log·Metric·Trace·Audit·SLO·Alert",
+      "ownerModule": "cpf-reference",
+      "referenceSources": [
+        "cpf-reference/src/main/java/com/cpf/reference/logging/**/*.java",
+        "cpf-reference/src/main/java/com/cpf/reference/audit/**/*.java"
+      ],
+      "tests": [
+        "cpf-reference/src/test/java/com/cpf/reference/logging/**/*.java",
+        "cpf-reference/src/test/java/com/cpf/reference/audit/**/*.java"
+      ],
+      "publicContracts": [
+        "cpf-core/src/main/java/com/cpf/core/api/observability/**/*.java",
+        "cpf-core/src/main/java/com/cpf/core/api/audit/**/*.java"
+      ],
+      "scenarioAxes": {
+        "normal": "EDU-018-SCN-NORMAL",
+        "error": "EDU-018-SCN-ERROR",
+        "recovery": "EDU-018-SCN-RECOVERY",
+        "security": "EDU-018-SCN-SECURITY"
+      },
+      "admObservationPaths": [
+        "/logs",
+        "/auditLogs",
+        "/dashboard"
+      ],
+      "runtimeCommands": [
+        "./gradlew.bat :cpf-reference:test --tests \"com.cpf.reference.logging.*\" --tests \"com.cpf.reference.audit.*\" --no-daemon"
+      ],
+      "developmentStatus": "완료",
+      "verificationStatus": "미검증"
+    },
+    {
+      "featureId": "EDU-019",
+      "area": "Database 3 Vendors",
+      "coverageScope": "Oracle·PostgreSQL·MariaDB install/query/drift parity",
+      "ownerModule": "cpf-tools",
+      "referenceSources": [
+        "cpf-tools/db/vendor/oracle/**/*",
+        "cpf-tools/db/vendor/postgresql/**/*",
+        "cpf-tools/db/vendor/mariadb/**/*",
+        "cpf-tools/db/canonical/**/*"
+      ],
+      "tests": [
+        "cpf-tools/scripts/tests/test_verify_cpf_db_lifecycle_contract.py",
+        "cpf-tools/db/**/verify/**/*"
+      ],
+      "publicContracts": [
+        "cpf-common/src/main/java/com/cpf/common/api/**/*.java"
+      ],
+      "scenarioAxes": {
+        "normal": "EDU-019-SCN-NORMAL",
+        "error": "EDU-019-SCN-ERROR",
+        "recovery": "EDU-019-SCN-RECOVERY",
+        "concurrency": "EDU-019-SCN-CONCURRENCY"
+      },
+      "admObservationPaths": [
+        "/configs",
+        "/capacity"
+      ],
+      "runtimeCommands": [
+        "python ./cpf-tools/scripts/verify-cpf-db-lifecycle-contract.py --root . --release"
+      ],
+      "developmentStatus": "완료",
+      "verificationStatus": "미검증"
+    },
+    {
+      "featureId": "EDU-020",
+      "area": "Migration",
+      "coverageScope": "Baseline→Sequential Upgrade→Rollback→Reapply·checksum",
+      "ownerModule": "cpf-tools",
+      "referenceSources": [
+        "cpf-tools/db/vendor/*/migration/**/*",
+        "cpf-tools/db/vendor/*/rollback/**/*",
+        "cpf-tools/db/vendor/*/install/**/*"
+      ],
+      "tests": [
+        "cpf-tools/scripts/tests/test_verify_cpf_db_lifecycle_contract.py",
+        "cpf-tools/db/**/verify/**/*"
+      ],
+      "publicContracts": [
+        "cpf-common/src/main/java/com/cpf/common/api/**/*.java"
+      ],
+      "scenarioAxes": {
+        "normal": "EDU-020-SCN-NORMAL",
+        "error": "EDU-020-SCN-ERROR",
+        "recovery": "EDU-020-SCN-RECOVERY",
+        "concurrency": "EDU-020-SCN-CONCURRENCY"
+      },
+      "admObservationPaths": [
+        "/configs"
+      ],
+      "runtimeCommands": [
+        "pwsh -NoProfile -File ./cpf-tools/scripts/check-canonical-db-lifecycle-contract.ps1"
+      ],
+      "developmentStatus": "완료",
+      "verificationStatus": "미검증"
+    },
+    {
+      "featureId": "EDU-021",
+      "area": "Batch Tasklet",
+      "coverageScope": "Spring Batch Tasklet Job/Step·restart·context",
+      "ownerModule": "cpf-batch",
+      "referenceSources": [
+        "cpf-reference/src/main/java/com/cpf/reference/batch/**/*.java",
+        "cpf-batch/**/*.java"
+      ],
+      "tests": [
+        "cpf-reference/src/test/java/com/cpf/reference/batch/**/*.java",
+        "cpf-batch/**/src/test/**/*.java"
+      ],
+      "publicContracts": [
+        "cpf-batch/contract/src/main/java/**/*.java",
+        "cpf-core/src/main/java/com/cpf/core/api/batch/**/*.java"
+      ],
+      "scenarioAxes": {
+        "normal": "EDU-021-SCN-NORMAL",
+        "error": "EDU-021-SCN-ERROR",
+        "recovery": "EDU-021-SCN-RECOVERY",
+        "concurrency": "EDU-021-SCN-CONCURRENCY"
+      },
+      "admObservationPaths": [
+        "/batchExecutions",
+        "/batchJobs"
+      ],
+      "runtimeCommands": [
+        "./gradlew.bat :cpf-reference:test --tests \"com.cpf.reference.batch.*Tasklet*\" --no-daemon"
+      ],
+      "developmentStatus": "완료",
+      "verificationStatus": "미검증"
+    },
+    {
+      "featureId": "EDU-022",
+      "area": "Batch Chunk",
+      "coverageScope": "Spring Batch Chunk·checkpoint·retry/skip·partition",
+      "ownerModule": "cpf-batch",
+      "referenceSources": [
+        "cpf-reference/src/main/java/com/cpf/reference/batch/**/*.java",
+        "cpf-batch/**/*.java"
+      ],
+      "tests": [
+        "cpf-reference/src/test/java/com/cpf/reference/batch/**/*Chunk*",
+        "cpf-batch/**/src/test/**/*Chunk*"
+      ],
+      "publicContracts": [
+        "cpf-batch/contract/src/main/java/**/*.java"
+      ],
+      "scenarioAxes": {
+        "normal": "EDU-022-SCN-NORMAL",
+        "error": "EDU-022-SCN-ERROR",
+        "recovery": "EDU-022-SCN-RECOVERY",
+        "concurrency": "EDU-022-SCN-CONCURRENCY"
+      },
+      "admObservationPaths": [
+        "/batchExecutions",
+        "/batchWorkerPools"
+      ],
+      "runtimeCommands": [
+        "./gradlew.bat :cpf-reference:test --tests \"com.cpf.reference.batch.*Chunk*\" --no-daemon"
+      ],
+      "developmentStatus": "완료",
+      "verificationStatus": "미검증"
+    },
+    {
+      "featureId": "EDU-023",
+      "area": "Scheduler HA",
+      "coverageScope": "Scheduler lease·leader·fencing·misfire·simulation",
+      "ownerModule": "cpf-batch",
+      "referenceSources": [
+        "cpf-batch/scheduler/**/*.java",
+        "cpf-reference/src/main/java/com/cpf/reference/batch/**/*.java"
+      ],
+      "tests": [
+        "cpf-batch/scheduler/src/test/**/*.java",
+        "cpf-reference/src/test/java/com/cpf/reference/batch/**/*Scheduler*"
+      ],
+      "publicContracts": [
+        "cpf-batch/contract/src/main/java/**/*.java"
+      ],
+      "scenarioAxes": {
+        "normal": "EDU-023-SCN-NORMAL",
+        "error": "EDU-023-SCN-ERROR",
+        "recovery": "EDU-023-SCN-RECOVERY",
+        "concurrency": "EDU-023-SCN-CONCURRENCY"
+      },
+      "admObservationPaths": [
+        "/batchScheduler",
+        "/batchLeases"
+      ],
+      "runtimeCommands": [
+        "./gradlew.bat :cpf-batch:scheduler:test --no-daemon"
+      ],
+      "developmentStatus": "완료",
+      "verificationStatus": "미검증"
+    },
+    {
+      "featureId": "EDU-024",
+      "area": "Remote Worker",
+      "coverageScope": "Worker pool·lease·heartbeat·drain·quarantine",
+      "ownerModule": "cpf-batch",
+      "referenceSources": [
+        "cpf-batch/worker/**/*.java",
+        "cpf-batch/**/worker/**/*.java"
+      ],
+      "tests": [
+        "cpf-batch/**/src/test/**/*Worker*"
+      ],
+      "publicContracts": [
+        "cpf-batch/contract/src/main/java/**/*.java"
+      ],
+      "scenarioAxes": {
+        "normal": "EDU-024-SCN-NORMAL",
+        "error": "EDU-024-SCN-ERROR",
+        "recovery": "EDU-024-SCN-RECOVERY",
+        "concurrency": "EDU-024-SCN-CONCURRENCY"
+      },
+      "admObservationPaths": [
+        "/batchWorkerPools",
+        "/batchInstances"
+      ],
+      "runtimeCommands": [
+        "./gradlew.bat :cpf-batch:worker:test --no-daemon"
+      ],
+      "developmentStatus": "완료",
+      "verificationStatus": "미검증"
+    },
+    {
+      "featureId": "EDU-025",
+      "area": "Center-Cut",
+      "coverageScope": "Center-Cut claim·rate·reprocess·unknown result",
+      "ownerModule": "cpf-batch",
+      "referenceSources": [
+        "cpf-reference/src/main/java/com/cpf/reference/centercut/**/*.java",
+        "cpf-batch/center-cut/**/*.java"
+      ],
+      "tests": [
+        "cpf-reference/src/test/java/com/cpf/reference/centercut/**/*.java",
+        "cpf-batch/**/src/test/**/*CenterCut*"
+      ],
+      "publicContracts": [
+        "cpf-batch/contract/src/main/java/**/*.java",
+        "cpf-core/src/main/java/com/cpf/core/api/centercut/**/*.java"
+      ],
+      "scenarioAxes": {
+        "normal": "EDU-025-SCN-NORMAL",
+        "error": "EDU-025-SCN-ERROR",
+        "unknown": "EDU-025-SCN-UNKNOWN",
+        "recovery": "EDU-025-SCN-RECOVERY"
+      },
+      "admObservationPaths": [
+        "/centerCut",
+        "/batchRecovery"
+      ],
+      "runtimeCommands": [
+        "./gradlew.bat :cpf-reference:test --tests \"com.cpf.reference.centercut.*\" --no-daemon"
+      ],
+      "developmentStatus": "완료",
+      "verificationStatus": "미검증"
+    },
+    {
+      "featureId": "EDU-026",
+      "area": "Host Agent",
+      "coverageScope": "Agent identity·mTLS·artifact verify·restart·quarantine",
+      "ownerModule": "cpf-batch",
+      "referenceSources": [
+        "cpf-batch/host-agent/src/main/java/**/*.java"
+      ],
+      "tests": [
+        "cpf-batch/host-agent/src/test/**/*.java"
+      ],
+      "publicContracts": [
+        "cpf-batch/contract/src/main/java/**/*.java"
+      ],
+      "scenarioAxes": {
+        "normal": "EDU-026-SCN-NORMAL",
+        "error": "EDU-026-SCN-ERROR",
+        "recovery": "EDU-026-SCN-RECOVERY",
+        "security": "EDU-026-SCN-SECURITY"
+      },
+      "admObservationPaths": [
+        "/batchAgents",
+        "/batchInstances"
+      ],
+      "runtimeCommands": [
+        "./gradlew.bat :cpf-batch:host-agent:test --no-daemon"
+      ],
+      "developmentStatus": "완료",
+      "verificationStatus": "미검증"
+    },
+    {
+      "featureId": "EDU-027",
+      "area": "Deployment",
+      "coverageScope": "Artifact deployment·promotion·rollback·CAS·approval",
+      "ownerModule": "cpf-admin",
+      "referenceSources": [
+        "deploy/**/*",
+        "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmRuntimeControlController.java",
+        "cpf-tools/promotion/**/*"
+      ],
+      "tests": [
+        "cpf-admin/src/test/**/*RuntimeControl*",
+        "cpf-tools/scripts/tests/**/*promotion*"
+      ],
+      "publicContracts": [
+        "cpf-core/src/main/java/com/cpf/core/api/runtimecontrol/**/*.java"
+      ],
+      "scenarioAxes": {
+        "normal": "EDU-027-SCN-NORMAL",
+        "error": "EDU-027-SCN-ERROR",
+        "recovery": "EDU-027-SCN-RECOVERY",
+        "security": "EDU-027-SCN-SECURITY"
+      },
+      "admObservationPaths": [
+        "/runtimeControl",
+        "/approvals"
+      ],
+      "runtimeCommands": [
+        "./gradlew.bat :cpf-admin:test --tests \"*RuntimeControl*\" --no-daemon"
+      ],
+      "developmentStatus": "완료",
+      "verificationStatus": "미검증"
+    },
+    {
+      "featureId": "EDU-028",
+      "area": "Gateway",
+      "coverageScope": "Default deny routing·DNS rebinding·TLS·health·trace",
+      "ownerModule": "cpf-gateway",
+      "referenceSources": [
+        "cpf-gateway/src/main/java/**/*.java"
+      ],
+      "tests": [
+        "cpf-gateway/src/test/**/*.java"
+      ],
+      "publicContracts": [
+        "cpf-core/src/main/java/com/cpf/core/api/gateway/**/*.java",
+        "cpf-core/src/main/java/com/cpf/core/api/security/network/**/*.java"
+      ],
+      "scenarioAxes": {
+        "normal": "EDU-028-SCN-NORMAL",
+        "error": "EDU-028-SCN-ERROR",
+        "recovery": "EDU-028-SCN-RECOVERY",
+        "security": "EDU-028-SCN-SECURITY"
+      },
+      "admObservationPaths": [
+        "/gateway-dashboard",
+        "/gateway-routes",
+        "/gateway-health"
+      ],
+      "runtimeCommands": [
+        "./gradlew.bat :cpf-gateway:test --no-daemon"
+      ],
+      "developmentStatus": "완료",
+      "verificationStatus": "미검증"
+    },
+    {
+      "featureId": "EDU-029",
+      "area": "ADM",
+      "coverageScope": "59 Route 상용 Page·Generated Client·Permission·Audit",
+      "ownerModule": "cpf-admin",
+      "referenceSources": [
+        "cpf-admin/src/main/java/**/*.java",
+        "cpf-admin/frontend/src/**/*.ts",
+        "cpf-admin/frontend/src/**/*.vue"
+      ],
+      "tests": [
+        "cpf-admin/src/test/**/*.java",
+        "cpf-admin/frontend/src/**/*.test.ts"
+      ],
+      "publicContracts": [
+        "cpf-core/src/main/java/com/cpf/core/api/**/*.java",
+        "cpf-common/src/main/java/com/cpf/common/api/**/*.java"
+      ],
+      "scenarioAxes": {
+        "normal": "EDU-029-SCN-NORMAL",
+        "error": "EDU-029-SCN-ERROR",
+        "recovery": "EDU-029-SCN-RECOVERY",
+        "security": "EDU-029-SCN-SECURITY"
+      },
+      "admObservationPaths": [
+        "/dashboard",
+        "/approvals",
+        "/auditLogs"
+      ],
+      "runtimeCommands": [
+        "npm --prefix ./cpf-admin/frontend run verify"
+      ],
+      "developmentStatus": "완료",
+      "verificationStatus": "미검증"
+    },
+    {
+      "featureId": "EDU-030",
+      "area": "BZA",
+      "coverageScope": "업무 관리자 조직·승인·감사·Generated Client",
+      "ownerModule": "cpf-biz-admin",
+      "referenceSources": [
+        "cpf-biz-admin/src/main/java/**/*.java",
+        "cpf-biz-admin/frontend/src/**/*.ts",
+        "cpf-biz-admin/frontend/src/**/*.vue"
+      ],
+      "tests": [
+        "cpf-biz-admin/src/test/**/*.java",
+        "cpf-biz-admin/frontend/src/**/*.test.ts"
+      ],
+      "publicContracts": [
+        "cpf-common/src/main/java/com/cpf/common/api/**/*.java"
+      ],
+      "scenarioAxes": {
+        "normal": "EDU-030-SCN-NORMAL",
+        "error": "EDU-030-SCN-ERROR",
+        "recovery": "EDU-030-SCN-RECOVERY",
+        "security": "EDU-030-SCN-SECURITY"
+      },
+      "admObservationPaths": [
+        "/approvals"
+      ],
+      "runtimeCommands": [
+        "npm --prefix ./cpf-biz-admin/frontend run verify"
+      ],
+      "developmentStatus": "완료",
+      "verificationStatus": "미검증"
+    },
+    {
+      "featureId": "EDU-031",
+      "area": "Supply Chain",
+      "coverageScope": "SBOM·Vulnerability·License·Artifact signature/hash",
+      "ownerModule": "cpf-tools",
+      "referenceSources": [
+        "cpf-tools/supply-chain/**/*",
+        "cpf-tools/release/**/*"
+      ],
+      "tests": [
+        "cpf-tools/scripts/tests/test_verify_cpf_supply_chain.py"
+      ],
+      "publicContracts": [
+        "build.gradle"
+      ],
+      "scenarioAxes": {
+        "normal": "EDU-031-SCN-NORMAL",
+        "error": "EDU-031-SCN-ERROR",
+        "recovery": "EDU-031-SCN-RECOVERY",
+        "security": "EDU-031-SCN-SECURITY"
+      },
+      "admObservationPaths": [
+        "/runtimeControl"
+      ],
+      "runtimeCommands": [
+        "python ./cpf-tools/scripts/verify-cpf-supply-chain.py --root . --release"
+      ],
+      "developmentStatus": "완료",
+      "verificationStatus": "미검증"
+    },
+    {
+      "featureId": "EDU-032",
+      "area": "Multi-instance/DR",
+      "coverageScope": "다중 인스턴스·process kill·backup/restore·DR·reconcile",
+      "ownerModule": "cpf-tools",
+      "referenceSources": [
+        "cpf-tools/runtime/**/*",
+        "deploy/**/*",
+        "cpf-core/src/main/java/com/cpf/core/api/runtimecontrol/**/*.java"
+      ],
+      "tests": [
+        "cpf-tools/runtime/**/*test*",
+        "cpf-core/src/test/**/*Runtime*"
+      ],
+      "publicContracts": [
+        "cpf-core/src/main/java/com/cpf/core/api/runtimecontrol/**/*.java"
+      ],
+      "scenarioAxes": {
+        "normal": "EDU-032-SCN-NORMAL",
+        "error": "EDU-032-SCN-ERROR",
+        "unknown": "EDU-032-SCN-UNKNOWN",
+        "recovery": "EDU-032-SCN-RECOVERY"
+      },
+      "admObservationPaths": [
+        "/topology",
+        "/recoveryCenter",
+        "/maintenance"
+      ],
+      "runtimeCommands": [
+        "pwsh -NoProfile -File ./cpf-tools/scripts/verify-cpf-distributed-runtime.ps1 -Scenario all"
+      ],
+      "developmentStatus": "완료",
+      "verificationStatus": "미검증"
+    }
+  ]
+}

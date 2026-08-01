@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "officialDatabaseVendors": ["oracle", "postgresql", "mariadb"],
+  "unsupportedDatabaseTokens": ["mysql", "mssql", "sqlserver", "h2"],
+  "moduleOwners": [
+    {"prefix": "cpf-core/", "owner": "cpf-core", "responsibility": "topology-independent technical contracts and implementations"},
+    {"prefix": "cpf-common/", "owner": "cpf-common", "responsibility": "customer business common capabilities"},
+    {"prefix": "cpf-admin/", "owner": "cpf-admin", "responsibility": "platform operations and administration"},
+    {"prefix": "cpf-biz-admin/", "owner": "cpf-biz-admin", "responsibility": "customer business administration"},
+    {"prefix": "cpf-batch/", "owner": "cpf-batch", "responsibility": "batch worker scheduler and center-cut runtime"},
+    {"prefix": "cpf-gateway/", "owner": "cpf-gateway", "responsibility": "optional gateway runtime"},
+    {"prefix": "cpf-reference/", "owner": "cpf-reference", "responsibility": "public API and SPI reference runtime"},
+    {"prefix": "cpf-member/", "owner": "generated-domain", "responsibility": "generated business domain"},
+    {"prefix": "cpf-starters/", "owner": "cpf-starters", "responsibility": "starter and auto-configuration products"},
+    {"prefix": "cpf-tools/", "owner": "cpf-tools", "responsibility": "generator database verification and release tooling"},
+    {"prefix": "cpf-docs/", "owner": "cpf-docs", "responsibility": "governance requirements matrices evidence and guides"},
+    {"prefix": "deploy/", "owner": "deploy", "responsibility": "deployment topology and environment assets"},
+    {"prefix": ".github/", "owner": "repository-governance", "responsibility": "CI and repository governance"},
+    {"prefix": "gradle/", "owner": "repository-build", "responsibility": "Gradle wrapper and build logic"}
+  ],
+  "rootFiles": ["build.gradle", "settings.gradle", "gradlew", "gradlew.bat", "README.md", ".gitignore", ".gitattributes", ".editorconfig"],
+  "publicPackageMarkers": [".api.", ".spi."],
+  "internalPackageMarkers": [".internal."],
+  "controllerAnnotations": ["@RestController", "@Controller"],
+  "configurationExtensions": [".properties", ".yml", ".yaml", ".toml", ".env", ".json"],
+  "databaseExtensions": [".sql"],
+  "frontendExtensions": [".vue", ".ts", ".tsx", ".js", ".mjs", ".css", ".scss"],
+  "requiredTraceColumns": ["requirement_id", "source_paths", "consumer_paths", "test_paths", "development_status", "verification_status"]
+}

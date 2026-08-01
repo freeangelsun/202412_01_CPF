@@ -1,7 +1,7 @@
 package com.cpf.core.api.transaction;
 
 import java.util.List;
-import java.util.Map;
+import com.cpf.core.api.data.CpfDataRow;
 import java.util.Optional;
 
 /**
@@ -9,17 +9,41 @@ import java.util.Optional;
  * 온라인 거래 메타를 조회·재스캔하는 공개 계약입니다.
  */
 public interface CpfTransactionMetaOperations {
+    /** 거래 메타의 Owner-side server page 계약입니다. */
+    record TransactionMetaPage(
+            boolean available,
+            List<CpfDataRow> items,
+            int page,
+            int size,
+            long totalElements,
+            int totalPages) {
+        public TransactionMetaPage {
+            items = items == null ? List.of() : List.copyOf(items);
+            page = Math.max(0, page);
+            size = Math.max(1, size);
+            totalElements = Math.max(0L, totalElements);
+            totalPages = Math.max(0, totalPages);
+        }
+    }
+
     boolean tableAvailable();
 
-    List<Map<String, Object>> findAll(
+    List<CpfDataRow> findAll(
             String moduleCode,
             String activeYn,
             String transactionId,
             int limit);
 
-    Optional<Map<String, Object>> findById(String transactionId);
+    Optional<CpfDataRow> findById(String transactionId);
+
+    TransactionMetaPage findPage(
+            String moduleCode,
+            String activeYn,
+            String transactionId,
+            int page,
+            int size);
 
     CpfTransactionMetaScanResult scanAndUpsert(String requestUser);
 
-    Map<String, Object> inactivate(String transactionId, String requestUser);
+    CpfDataRow inactivate(String transactionId, String requestUser);
 }

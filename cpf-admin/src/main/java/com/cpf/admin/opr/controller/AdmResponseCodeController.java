@@ -134,11 +134,7 @@ public class AdmResponseCodeController extends com.cpf.admin.common.base.AdmBase
     }
 
     private String requestUser(HttpServletRequest request, String fallback) {
-        Object operatorId = request.getAttribute("adm.operatorId");
-        if (operatorId instanceof String value && !value.isBlank()) {
-            return value;
-        }
-        return fallback;
+        return requireOperator(request);
     }
 }
 

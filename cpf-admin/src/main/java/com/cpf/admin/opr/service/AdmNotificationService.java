@@ -159,15 +159,27 @@ public class AdmNotificationService extends com.cpf.admin.common.base.AdmBaseSer
     }
 
     public List<AdmNotificationDeliveryLogResponse> findDeliveryLogs(int limit) {
-        return queryWithMaxRows("""
+        return findDeliveryLogsByStatus(null, limit);
+    }
+
+    /** 최대 재시도를 소진해 운영자 판단이 필요한 DLQ 발송 건을 조회합니다. */
+    public List<AdmNotificationDeliveryLogResponse> findDlq(int limit) {
+        return findDeliveryLogsByStatus("DLQ", limit);
+    }
+
+    private List<AdmNotificationDeliveryLogResponse> findDeliveryLogsByStatus(String status, int limit) {
+        String where = status == null ? "" : " WHERE delivery_status = ?";
+        String sql = """
                 SELECT delivery_id, rule_id, event_type, target_type, target_id,
                        receiver, delivery_status, delivery_message,
                        operation_id, request_hash, attempt_count, max_attempts,
                        next_attempt_at, lease_owner, lease_until, version, last_error_code,
                        created_by, updated_by, requested_at, delivered_at, created_at, updated_at
                 FROM cpf_notification_delivery_log
-                ORDER BY requested_at DESC, delivery_id DESC
-                """, resolveLimit(limit), (rs, rowNum) -> new AdmNotificationDeliveryLogResponse(
+                """ + where + " ORDER BY requested_at DESC, delivery_id DESC";
+        return queryWithMaxRows(sql, resolveLimit(limit), statement -> {
+            if (status != null) statement.setString(1, status);
+        }, (rs, rowNum) -> new AdmNotificationDeliveryLogResponse(
                 rs.getLong("delivery_id"),
                 objectLong(rs.getObject("rule_id")),
                 rs.getString("event_type"),
@@ -433,6 +445,21 @@ public class AdmNotificationService extends com.cpf.admin.common.base.AdmBaseSer
         } catch (EmptyResultDataAccessException ex) {
             return Map.of();
         }
+    }
+
+    @FunctionalInterface
+    private interface StatementBinder {
+        void bind(PreparedStatement statement) throws java.sql.SQLException;
+    }
+
+    private <T> List<T> queryWithMaxRows(
+            String sql, int maxRows, StatementBinder binder, RowMapper<T> rowMapper) {
+        return cpfJdbcTemplate.query(connection -> {
+            PreparedStatement statement = connection.prepareStatement(sql);
+            statement.setMaxRows(maxRows);
+            binder.bind(statement);
+            return statement;
+        }, rowMapper);
     }
 
     private <T> List<T> queryWithMaxRows(String sql, int maxRows, RowMapper<T> rowMapper) {

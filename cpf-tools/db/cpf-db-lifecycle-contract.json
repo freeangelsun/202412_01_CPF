@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "officialVendors": [
+    "mariadb",
+    "postgresql",
+    "oracle"
+  ],
+  "statusModel": {
+    "development": "완료",
+    "runtimeVerification": "미검증"
+  },
+  "orderedStages": [
+    "baseline-install",
+    "sequential-upgrade",
+    "runtime-query",
+    "schema-drift",
+    "reverse-rollback",
+    "forward-reapply",
+    "backup-restore"
+  ],
+  "runtimeExecutor": "cpf-tools/scripts/invoke-cpf-qa34-db-runtime-matrix.ps1",
+  "environmentManifestVariable": "CPF_DB_RUNTIME_MANIFEST",
+  "requiredStaticGates": [
+    "cpf-tools/scripts/check-db-vendor-pack-parity.ps1",
+    "cpf-tools/scripts/check-canonical-db-lifecycle-contract.ps1",
+    "cpf-tools/scripts/check-migration-checksums.ps1",
+    "cpf-tools/scripts/check-sql-standard.ps1",
+    "cpf-tools/scripts/check-sql-canonical.ps1",
+    "cpf-tools/scripts/check-platform-runtime-query-packs.ps1"
+  ],
+  "vendorContracts": {
+    "mariadb": {
+      "client": "mariadb",
+      "migrationRoot": "cpf-tools/db/vendor/mariadb/migration/flyway",
+      "rollbackRoot": "cpf-tools/db/vendor/mariadb/rollback"
+    },
+    "postgresql": {
+      "client": "psql",
+      "migrationRoot": "cpf-tools/db/vendor/postgresql/migration/flyway/{logicalDatabase}",
+      "rollbackRoot": "cpf-tools/db/vendor/postgresql/rollback/{logicalDatabase}"
+    },
+    "oracle": {
+      "client": "sqlplus",
+      "migrationRoot": "cpf-tools/db/vendor/oracle/migration/flyway/{logicalDatabase}",
+      "rollbackRoot": "cpf-tools/db/vendor/oracle/rollback/{logicalDatabase}"
+    }
+  },
+  "evidenceRequired": [
+    "sourceSha",
+    "resultSha",
+    "vendor",
+    "databaseVersion",
+    "command",
+    "startedAt",
+    "endedAt",
+    "exitCode",
+    "stageResults",
+    "schemaHashBefore",
+    "schemaHashAfter",
+    "sanitized"
+  ]
+}

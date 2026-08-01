@@ -1,11 +1,11 @@
 package com.cpf.core.common.transaction;
 
 import com.cpf.core.api.transaction.CpfTransactionMetaOperations;
+import com.cpf.core.api.data.CpfDataRow;
 import com.cpf.core.api.transaction.CpfTransactionMetaScanResult;
 import org.springframework.beans.factory.ObjectProvider;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 /** Core 내부 repository/scanner를 공개 거래 메타 계약에 연결합니다. */
@@ -26,7 +26,7 @@ public final class DefaultCpfTransactionMetaOperations implements CpfTransaction
     }
 
     @Override
-    public List<Map<String, Object>> findAll(
+    public List<CpfDataRow> findAll(
             String moduleCode,
             String activeYn,
             String transactionId,
@@ -35,8 +35,18 @@ public final class DefaultCpfTransactionMetaOperations implements CpfTransaction
     }
 
     @Override
-    public Optional<Map<String, Object>> findById(String transactionId) {
+    public Optional<CpfDataRow> findById(String transactionId) {
         return repository.findById(transactionId);
+    }
+
+    @Override
+    public TransactionMetaPage findPage(
+            String moduleCode,
+            String activeYn,
+            String transactionId,
+            int page,
+            int size) {
+        return repository.findPage(moduleCode, activeYn, transactionId, page, size);
     }
 
     @Override
@@ -55,7 +65,7 @@ public final class DefaultCpfTransactionMetaOperations implements CpfTransaction
     }
 
     @Override
-    public Map<String, Object> inactivate(String transactionId, String requestUser) {
+    public CpfDataRow inactivate(String transactionId, String requestUser) {
         return repository.inactivate(transactionId, requestUser);
     }
 }

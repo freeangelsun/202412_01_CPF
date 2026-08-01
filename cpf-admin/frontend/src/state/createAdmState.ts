@@ -1,4 +1,7 @@
+import { createAdmEducationFixture } from "./createAdmEducationFixture";
+
 export function createAdmState() {
+      const edu = import.meta.env.VITE_CPF_EDU_PROFILE === "true" ? createAdmEducationFixture() : undefined;
       return {
         activeMenu: "dashboard",
         token: "", // BFF 전환 후 Browser credential 상태는 사용하지 않는다.
@@ -190,12 +193,12 @@ export function createAdmState() {
         auditDeliveryState: "FAILED",
         auditRetryReason: "감사 전달 수동 재처리",
         batchForm: {
-          jobId: "CPF_EDU_TASKLET_JOB",
-          jobName: "CPF EDU Tasklet Job",
-          jobType: "TASKLET",
+          jobId: edu?.batch.jobId ?? "",
+          jobName: edu?.batch.jobName ?? "",
+          jobType: edu?.batch.jobType ?? "TASKLET",
           executionId: null,
-          scheduleId: "CPF_EDU_TASKLET_DAILY",
-          jobParameters: "{\"edu\":true}",
+          scheduleId: edu?.batch.scheduleId ?? "",
+          jobParameters: edu?.batch.jobParameters ?? "{}",
           calendarId: "DEFAULT",
           businessDate: new Date().toISOString().slice(0, 10),
           simulationDays: 14,
@@ -205,11 +208,11 @@ export function createAdmState() {
           ghostActionType: "FAIL",
           holidayYn: "N",
           businessDayYn: "Y",
-          description: "ADM batch education data",
+          description: edu?.batch.description ?? "",
           reason: "배치 운영 변경"
         },
         centerCutForm: {
-          centerCutJobId: "CPF_REF_CENTER_CUT_SAMPLE_JOB",
+          centerCutJobId: edu?.centerCut.centerCutJobId ?? "",
           statusCode: "",
           resultStatus: "",
           limit: 100
@@ -338,20 +341,10 @@ export function createAdmState() {
         passwordForm: { operatorId: "", newPassword: "", forceChange: true, sessionId: "", reason: "비밀번호 운영" },
         securityForm: { ipPattern: "127.0.0.1", description: "local development", operatorId: "admin", secretRef: "ENV:ADM_ADMIN_OTP_SECRET", otpCode: "", reason: "보안 운영" },
         approvalForm: {
-          actionType: "CACHE_CLEAR",
-          policyCode: "",
-          policyVersion: "",
-          ownerModule: "cpf-core",
-          ownerCommand: "CACHE_CLEAR",
-          targetType: "CACHE",
-          targetId: "DEFAULT",
-          payloadSnapshot: "{}",
-          requestKey: "",
-          expireAt: "",
-          reason: "위험조치 승인 요청",
-          decisionAction: "APPROVE",
-          idempotencyKey: "",
-          selectedRequestId: ""
+          operationId: "", changeType: "CACHE_REFRESH", payloadSchemaVersion: 1, expectedVersion: 0,
+          rolloutMode: "ALL_AT_ONCE", waveSize: 1, quorumPercent: 100, scheduledAt: "", expiresAt: "",
+          approvalId: "", breakGlassId: "", targetJson: "{}", payloadJson: "{}",
+          reason: "Runtime 위험 변경", selectedRequestId: "", controlOperationId: "", decisionAction: "CANCEL"
         },
         responseCodeForm: {
           responseCode: "EREF010001",
@@ -391,6 +384,30 @@ export function createAdmState() {
           targetStatus: "MANUAL_REVIEW",
           reason: "신뢰성 운영 조치"
         },
+        operationForm: {
+          exportId: "",
+          ruleId: "",
+          policyId: "",
+          maintenanceAction: "DRAIN",
+          serviceId: "",
+          instanceId: "",
+          expectedVersion: 0,
+          calendarId: "DEFAULT",
+          date: new Date().toISOString().slice(0, 10),
+          offset: 1,
+          recoveryTarget: "TRANSACTION_LOG",
+          recoveryEventId: "",
+          notificationRuleId: "",
+          fileJobId: "",
+          operatorId: "",
+          roleIds: "",
+          breakGlassSessionId: "",
+          reviewStatus: "APPROVED",
+          changeId: "",
+          operationId: "",
+          approvalId: "",
+          reason: "운영 조치"
+        },
         logs: [],
         transactionGroupResult: { items: [] },
         transactionGroupDetail: {} as Record<string, any>,
@@ -426,6 +443,7 @@ export function createAdmState() {
         securityResult: {} as Record<string, any>,
         serviceRegistryResult: {} as Record<string, any>,
         reliabilityResult: {} as Record<string, any>,
+        operationResult: {} as Record<string, any>,
         approvalResult: {} as Record<string, any>,
         approvalPolicyResult: [] as any[],
         remoteLogResult: [],
@@ -485,6 +503,7 @@ export function resetAdmSensitiveState(state: Record<string, any>) {
   state.securityResult = {};
   state.serviceRegistryResult = {};
   state.reliabilityResult = {};
+  state.operationResult = {};
   state.approvalResult = {};
   state.approvalPolicyResult = [];
   if (state.forcedPasswordForm) {

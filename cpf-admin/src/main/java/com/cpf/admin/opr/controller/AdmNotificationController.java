@@ -62,7 +62,7 @@ public class AdmNotificationController extends com.cpf.admin.common.base.AdmBase
     public ResponseEntity<AdmNotificationRuleResponse> saveRule(
             @RequestBody AdmNotificationRuleRequest request,
             HttpServletRequest servletRequest) {
-        String operatorId = operator(servletRequest, request.requestUser());
+        String operatorId = operator(servletRequest, null);
         return ResponseEntity.ok(notificationService.saveRule(
                 null, request, operatorId, servletRequest.getRemoteAddr()));
     }
@@ -74,7 +74,7 @@ public class AdmNotificationController extends com.cpf.admin.common.base.AdmBase
             @PathVariable long ruleId,
             @RequestBody AdmNotificationRuleRequest request,
             HttpServletRequest servletRequest) {
-        String operatorId = operator(servletRequest, request.requestUser());
+        String operatorId = operator(servletRequest, null);
         return ResponseEntity.ok(notificationService.saveRule(
                 ruleId, request, operatorId, servletRequest.getRemoteAddr()));
     }
@@ -87,7 +87,7 @@ public class AdmNotificationController extends com.cpf.admin.common.base.AdmBase
             @RequestParam String reason,
             @RequestParam(required = false) String requestUser,
             HttpServletRequest servletRequest) {
-        String operatorId = operator(servletRequest, requestUser);
+        String operatorId = operator(servletRequest, null);
         return ResponseEntity.ok(notificationService.disableRule(
                 ruleId, reason, operatorId, servletRequest.getRemoteAddr()));
     }
@@ -100,6 +100,18 @@ public class AdmNotificationController extends com.cpf.admin.common.base.AdmBase
             HttpServletRequest servletRequest) {
         operator(servletRequest, null);
         return ResponseEntity.ok(notificationService.findDeliveryLogs(limit));
+    }
+
+
+    @GetMapping("/delivery-logs/dlq")
+    @CpfOnlineTransaction(id = "OADMNT0020", name = "ADMNotificationDlqList")
+    @Operation(operationId = "admNotificationFindDlq", summary = "운영 알림 DLQ 조회",
+            description = "최대 재시도를 소진해 운영자 확인·재처리가 필요한 발송 건만 조회합니다.")
+    public ResponseEntity<List<AdmNotificationDeliveryLogResponse>> findDlq(
+            @RequestParam(defaultValue = "100") int limit,
+            HttpServletRequest servletRequest) {
+        operator(servletRequest, null);
+        return ResponseEntity.ok(notificationService.findDlq(limit));
     }
 
     @GetMapping("/delivery-logs/{deliveryId}/attempts")
@@ -126,7 +138,7 @@ public class AdmNotificationController extends com.cpf.admin.common.base.AdmBase
             @PathVariable long ruleId,
             @RequestBody AdmNotificationTestSendRequest request,
             HttpServletRequest servletRequest) {
-        String operatorId = operator(servletRequest, request.requestUser());
+        String operatorId = operator(servletRequest, null);
         return ResponseEntity.ok(notificationService.sendTest(
                 ruleId, request, operatorId, servletRequest.getRemoteAddr()));
     }
@@ -140,7 +152,7 @@ public class AdmNotificationController extends com.cpf.admin.common.base.AdmBase
             @RequestParam String reason,
             @RequestParam(required = false) String requestUser,
             HttpServletRequest servletRequest) {
-        String operatorId = operator(servletRequest, requestUser);
+        String operatorId = operator(servletRequest, null);
         return ResponseEntity.ok(notificationService.retryDelivery(
                 deliveryId, expectedVersion, reason, operatorId, servletRequest.getRemoteAddr()));
     }
@@ -154,7 +166,7 @@ public class AdmNotificationController extends com.cpf.admin.common.base.AdmBase
             @RequestParam String reason,
             @RequestParam(required = false) String requestUser,
             HttpServletRequest servletRequest) {
-        String operatorId = operator(servletRequest, requestUser);
+        String operatorId = operator(servletRequest, null);
         return ResponseEntity.ok(notificationService.cancelDelivery(
                 deliveryId, expectedVersion, reason, operatorId, servletRequest.getRemoteAddr()));
     }

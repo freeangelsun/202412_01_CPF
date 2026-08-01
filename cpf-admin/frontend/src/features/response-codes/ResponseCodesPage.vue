@@ -21,14 +21,15 @@
         </div>
         <pre class="detail">{{ pretty(responseCodeResult) }}</pre>
       </section>
+
+  <section class="panel route-operation-panel"><h3>응답코드 상세</h3><button type="button" @click="loadResponseCodeDetail">상세 조회</button></section>
 </template>
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import { admConsoleMixin } from "../../app/admConsoleMixin";
+import { useAdmConsolePage } from "../../app/useAdmConsolePage";
 
-export default defineComponent({
+export default defineComponent({setup(){return useAdmConsolePage()},
   name: "ResponseCodesPage",
-  mixins: [admConsoleMixin]
-});
+  });
 </script>

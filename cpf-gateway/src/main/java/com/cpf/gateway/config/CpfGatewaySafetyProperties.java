@@ -6,6 +6,8 @@ import org.springframework.stereotype.Component;
 import java.time.Duration;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * 설치자가 허용하는 Gateway 안전 상한입니다.
@@ -34,7 +36,12 @@ public class CpfGatewaySafetyProperties {
     private String environmentCode = "local";
     private String instanceId = "gateway";
     private String zoneCode = "";
+    private boolean allowPrivateTargets = true;
     private boolean allowPublicTargets;
+    private boolean allowDnsTargets = true;
+    private boolean requireTlsTargets = true;
+    private Set<Integer> allowedTargetPorts = new LinkedHashSet<>(Set.of(443, 8443, 9443));
+    private Set<String> allowedTargetCidrs = new LinkedHashSet<>();
     private Set<String> trustedContextHeaders = new LinkedHashSet<>(Set.of(
             "accept", "content-type", "idempotency-key", "traceparent", "tracestate",
             "x-api-version", "x-channel-id", "x-client-id", "x-operation-reason", "x-transaction-id"));
@@ -51,6 +58,10 @@ public class CpfGatewaySafetyProperties {
         if (environmentCode == null || environmentCode.isBlank()) throw new IllegalStateException("Gateway environmentCode is required");
         if (instanceId == null || instanceId.isBlank()) throw new IllegalStateException("Gateway instanceId is required");
         if (zoneCode == null) zoneCode = "";
+        if (!allowPrivateTargets && !allowPublicTargets) throw new IllegalStateException("Gateway private/public target가 모두 금지됐습니다.");
+        if (allowedTargetPorts == null || allowedTargetPorts.isEmpty() || allowedTargetPorts.stream().anyMatch(v -> v == null || v < 1 || v > 65_535)) throw new
+                IllegalStateException("Gateway allowedTargetPorts is invalid");
+        if (allowedTargetCidrs == null) allowedTargetCidrs = new LinkedHashSet<>();
         if (trustedContextHeaders == null || trustedContextHeaders.isEmpty()) throw new IllegalStateException("trustedContextHeaders must not be empty");
     }
 
@@ -74,7 +85,13 @@ public class CpfGatewaySafetyProperties {
     public String getEnvironmentCode(){return environmentCode;} public void setEnvironmentCode(String v){environmentCode=v;}
     public String getInstanceId(){return instanceId;} public void setInstanceId(String v){instanceId=v;}
     public String getZoneCode(){return zoneCode;} public void setZoneCode(String v){zoneCode=v==null?"":v.trim();}
+    public boolean isAllowPrivateTargets(){return allowPrivateTargets;} public void setAllowPrivateTargets(boolean v){allowPrivateTargets=v;}
     public boolean isAllowPublicTargets(){return allowPublicTargets;} public void setAllowPublicTargets(boolean v){allowPublicTargets=v;}
+    public boolean isAllowDnsTargets(){return allowDnsTargets;} public void setAllowDnsTargets(boolean v){allowDnsTargets=v;}
+    public boolean isRequireTlsTargets(){return requireTlsTargets;} public void setRequireTlsTargets(boolean v){requireTlsTargets=v;}
+    public Set<Integer> getAllowedTargetPorts(){return Set.copyOf(allowedTargetPorts);} public void setAllowedTargetPorts(Set<Integer> v){allowedTargetPorts=v==null?new LinkedHashSet<>():new LinkedHashSet<>(v);}
+    public Set<String> getAllowedTargetCidrs(){return Set.copyOf(allowedTargetCidrs);} public void setAllowedTargetCidrs(Set<String> v){allowedTargetCidrs=v==null?new LinkedHashSet<>():new LinkedHashSet<>(v);}
     public Set<String> getTrustedContextHeaders(){return Set.copyOf(trustedContextHeaders);}
-    public void setTrustedContextHeaders(Set<String> values){trustedContextHeaders=new LinkedHashSet<>();if(values!=null)values.stream().filter(v->v!=null&&!v.isBlank()).map(v->v.toLowerCase(java.util.Locale.ROOT)).forEach(trustedContextHeaders::add);}
+    public void setTrustedContextHeaders(Set<String> values){trustedContextHeaders=new LinkedHashSet<>();
+            if(values!=null)values.stream().filter(v->v!=null&&!v.isBlank()).map(v->v.toLowerCase(java.util.Locale.ROOT)).forEach(trustedContextHeaders::add);}
 }

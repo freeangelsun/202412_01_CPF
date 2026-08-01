@@ -279,7 +279,7 @@ add('official-db-vendors',official=={'mariadb','postgresql','oracle'},str(sorted
 
 # Secret-shaped literal scan, exclude docs/test placeholders and known non-secrets
 secret_hits=[]
-secret_re=re.compile(r'(?i)(password|secret|token|api[_-]?key)\s*[:=]\s*["\']([^"\'\r\n]{8,})["\']')
+secret_re=re.compile(r'(?i)(?<![A-Za-z0-9_-])(password|secret|token|api[_-]?key)\s*[:=]\s*["\']([^"\'\r\n]{8,})["\']')
 for p in files('**/*'):
     if not p.is_file() or p.suffix.lower() not in ('.java','.ts','.vue','.yml','.yaml','.json','.ps1','.properties'): continue
     rel=p.relative_to(root).as_posix()

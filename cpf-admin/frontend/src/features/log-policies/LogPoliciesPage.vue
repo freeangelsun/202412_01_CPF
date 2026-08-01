@@ -73,13 +73,18 @@
       </tbody></table><p v-else class="empty">적용 상태를 조회하면 Instance별 ACK와 실패 원인이 표시됩니다.</p>
     </section>
   </section>
+
+  <section class="panel route-operation-panel">
+    <h3>정책 등록·상세·수정</h3>
+    <div class="actions"><button type="button" @click="createLogPolicy">신규 등록</button><button type="button" @click="loadLogPolicyDetail">상세 조회</button><button type="button" @click="updateLogPolicy">수정</button></div>
+  </section>
 </template>
 <script lang="ts">
 import { defineComponent } from "vue";
 type PolicyItem = { policyId?: number; policy_id?: number; policyKey?: string; policy_key?: string; policyName?: string; policy_name?: string; targetType?: string; target_type?: string; targetId?: string; target_id?: string; logLevel?: string; log_level?: string; dbLogEnabledYn?: string; db_log_enabled_yn?: string; fileLogEnabledYn?: string; file_log_enabled_yn?: string; requestBodyCaptureMode?: string; request_body_capture_mode?: string; responseBodyCaptureMode?: string; response_body_capture_mode?: string; requestBodyLogYn?: string; request_body_log_yn?: string; responseBodyLogYn?: string; response_body_log_yn?: string; samplingRate?: number; sampling_rate?: number; activeYn?: string; active_yn?: string; updatedAt?: string; updated_at?: string };
-import { admConsoleMixin } from "../../app/admConsoleMixin";
+import { useAdmConsolePage } from "../../app/useAdmConsolePage";
 import StructuredDetails from "../../components/StructuredDetails.vue";
-export default defineComponent({name:"LogPoliciesPage",components:{StructuredDetails},mixins:[admConsoleMixin],computed:{
+export default defineComponent({setup(){return useAdmConsolePage()},name:"LogPoliciesPage",components:{StructuredDetails},computed:{
   policyItems():PolicyItem[] {const r=(this as any).logPolicyResult||{};return Array.isArray(r.items)?r.items:(r.item&&Object.keys(r.item).length?[r.item]:[]);},
   hasPolicyResult():boolean{return Object.keys((this as any).logPolicyResult||{}).length>0;},
   distributionItems():Record<string,any>[] {const v=(this as any).logPolicyDistributionResult?.items;return Array.isArray(v)?v:[];},

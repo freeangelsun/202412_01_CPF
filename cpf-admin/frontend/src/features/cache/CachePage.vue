@@ -13,6 +13,6 @@
 </section>
 </template>
 <script lang="ts">
-import {defineComponent} from "vue";import {admConsoleMixin} from "../../app/admConsoleMixin";
-export default defineComponent({name:"CachePage",mixins:[admConsoleMixin]});
+import {defineComponent} from "vue";import {useAdmConsolePage} from "../../app/useAdmConsolePage";
+export default defineComponent({setup(){return useAdmConsolePage()},name:"CachePage",});
 </script>

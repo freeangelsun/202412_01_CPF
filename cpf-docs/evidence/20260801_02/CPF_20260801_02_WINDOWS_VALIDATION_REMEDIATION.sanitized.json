@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "evidenceId": "CPF-20260801-02-WINDOWS-VALIDATION-REMEDIATION",
+  "baselineSha": "19dd72b5978f2a3c630943c0fff05bee2d2fed34",
+  "resultIdentity": "UNCOMMITTED_ROOT_OVERLAY",
+  "startedAt": "2026-08-01T16:40:00+09:00",
+  "endedAt": "2026-08-01T16:40:00+09:00",
+  "sanitized": true,
+  "requirements": [
+    "CPF-WIN-001",
+    "CPF-WIN-002",
+    "CPF-WIN-003"
+  ],
+  "commands": [
+    {
+      "command": "python -m unittest discover -s cpf-tools/scripts/tests -p test_*.py -q",
+      "exitCode": 0,
+      "result": "Ran 145 tests; OK"
+    },
+    {
+      "command": "LC_ALL=C PYTHONUTF8=0 python -m unittest discover ...",
+      "exitCode": 0,
+      "result": "Ran 145 tests; OK"
+    },
+    {
+      "command": "GIT_CONFIG_COUNT=1 core.autocrlf=true python -m unittest test_verify_cpf_approved_baseline_metadata.py -q",
+      "exitCode": 0,
+      "result": "Ran 4 tests; OK"
+    },
+    {
+      "command": "python verify-cpf-controller-permission-contract.py --strict",
+      "exitCode": 0,
+      "result": "PASS; local validation tree operations=383 mutations=178"
+    },
+    {
+      "command": "python verify-cpf-java-source-syntax.py",
+      "exitCode": 0,
+      "result": "PASS; local validation tree files=99 errors=0"
+    },
+    {
+      "command": "AST scan for pathlib read_text/write_text without encoding",
+      "exitCode": 0,
+      "result": "implicit_path_text_io=0"
+    }
+  ],
+  "notes": [
+    "Negative fixture tests intentionally print FAIL-shaped JSON while unittest result remains OK.",
+    "README/Manual/Guide were not modified or used as completion evidence."
+  ]
+}

@@ -145,10 +145,6 @@ public class AdmChannelController extends com.cpf.admin.common.base.AdmBaseContr
     }
 
     private String requestUser(HttpServletRequest request, String fallback) {
-        Object operatorId = request.getAttribute("adm.operatorId");
-        if (operatorId instanceof String value && !value.isBlank()) {
-            return value;
-        }
-        return fallback == null || fallback.isBlank() ? "ADM" : fallback;
+        return requireOperator(request);
     }
 }

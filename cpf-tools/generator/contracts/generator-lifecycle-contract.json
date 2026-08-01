@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "contractId": "CPF-GENERATOR-LIFECYCLE-1",
+  "owner": "cpf-tools/generator",
+  "supportedVendors": [
+    "mariadb",
+    "postgresql",
+    "oracle"
+  ],
+  "disposableRootMarker": ".cpf-disposable-generator-validation-root",
+  "domainName": "qagenerator",
+  "systemCode": "QAG",
+  "stages": [
+    "fresh-clone",
+    "create",
+    "database-bootstrap",
+    "build-test",
+    "runtime-smoke",
+    "adm-registration",
+    "user-change-protection",
+    "safe-remove",
+    "regenerate",
+    "parity"
+  ],
+  "requiredScripts": {
+    "create": "cpf-tools/scripts/create-domain.ps1",
+    "database": "cpf-tools/scripts/initialize-domain-database.ps1",
+    "remove": "cpf-tools/scripts/remove-domain.ps1",
+    "lifecycle": "cpf-tools/generator/verify-domain-lifecycle.ps1"
+  },
+  "requiredGeneratedFiles": [
+    "manifest/domain-manifest.json",
+    "manifest/generator-ownership.json",
+    "deploy/database/database-profile.json",
+    "build.gradle"
+  ],
+  "userProtection": {
+    "changedGeneratedFileBlocksRemoval": true,
+    "userOwnedFileBlocksRemoval": true,
+    "externalReferenceBlocksRemoval": true,
+    "databaseObjectsNeverAutoDropped": true
+  },
+  "parity": {
+    "normalizationFields": [
+      "generatedAt",
+      "createdAt",
+      "updatedAt",
+      "outputDir",
+      "resultPath"
+    ],
+    "ignorePaths": [
+      "build/**",
+      ".gradle/**",
+      "*.log",
+      "*.tmp"
+    ],
+    "requireIdenticalFileSet": true,
+    "requireIdenticalNormalizedSha256": true
+  },
+  "releaseEvidence": {
+    "directory": "cpf-docs/evidence/20260801_01/generator-lifecycle",
+    "filePattern": "{vendor}/generator-lifecycle-result.sanitized.json",
+    "requiredStatus": "PASS",
+    "requireExactSha": true,
+    "requireCleanBeforeAfter": true,
+    "requireAllStages": true,
+    "requireArtifactHashes": true,
+    "requireSanitized": true
+  }
+}

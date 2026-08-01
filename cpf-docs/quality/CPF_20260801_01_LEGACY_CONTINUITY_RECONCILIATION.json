@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "baselineSha": "19dd72b5978f2a3c630943c0fff05bee2d2fed34",
+  "uniqueRecordCount": 3679,
+  "sourceRawCounts": {
+    "FINAL_LEDGER": 2715,
+    "ENTERPRISE_INVENTORY": 816,
+    "ENTERPRISE_SCENARIO": 299,
+    "QA33_REQUIREMENT": 138,
+    "QA33_SCENARIO": 414
+  },
+  "kindCounts": {
+    "REQUIREMENT": 2747,
+    "SCENARIO": 932
+  },
+  "relationshipCounts": {
+    "AREA_SEMANTIC": 3640,
+    "INHERITED": 37,
+    "DIRECT": 2
+  },
+  "canonicalCovered": 159,
+  "canonicalTotal": 162,
+  "declaredContinuity": {
+    "requirements": 1873,
+    "scenarios": 441
+  },
+  "actualSupersetPolicy": "Final Ledger + Enterprise Inventory/Scenario + QA33 union; duplicate IDs merged and no source ID discarded",
+  "readmeManualPolicy": "README와 연결 Manual/Guide는 미래 상태 설명일 수 있으므로 개발 완료 근거에서 제외"
+}

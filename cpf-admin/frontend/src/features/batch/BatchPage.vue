@@ -168,17 +168,19 @@
           />
         </div>
       </section>
-  </template>
+
+  <section class="panel route-operation-panel"><h3>Execution Paging</h3><button type="button" @click="loadBatchExecutionPage">Execution Page 조회</button></section>
+</template>
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import { admConsoleMixin } from "../../app/admConsoleMixin";
+import { useAdmConsolePage } from "../../app/useAdmConsolePage";
 import StructuredDetails from "../../components/StructuredDetails.vue";
 
-export default defineComponent({
+export default defineComponent({setup(){return useAdmConsolePage()},
   name: "BatchPage",
   components: { StructuredDetails },
-  mixins: [admConsoleMixin],
+
   data() {
     return {
       executionTraceForm: {
@@ -195,7 +197,8 @@ export default defineComponent({
   methods: {
     async loadExecutionTrace() {
       const query = this.buildParams(this.executionTraceForm).toString();
-      this.executionTraceRows = await this.getJson(`/adm/api/batch/executions${query ? `?${query}` : ""}`) || [];
+      const endpoint = query ? `/adm/api/batch/executions?${query}` : "/adm/api/batch/executions";
+      this.executionTraceRows = await this.getJson(endpoint) || [];
     },
     traceValue(row: Record<string, any>, ...keys: string[]) {
       for (const key of keys) {

@@ -14,14 +14,19 @@
         </div>
         <pre class="detail">{{ pretty(logLevelResult) }}</pre>
       </section>
+
+      <section class="panel route-operation-panel">
+        <h3>동적 로그 규칙 제거</h3>
+        <div class="filters"><label>Rule ID <input v-model="operationForm.ruleId"></label><label>사유 <input v-model="operationForm.reason"></label></div>
+        <button type="button" v-if="canWrite('DYNAMIC_LOG')" @click="removeLogLevelRule">규칙 제거</button>
+      </section>
 </template>
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import { admConsoleMixin } from "../../app/admConsoleMixin";
+import { useAdmConsolePage } from "../../app/useAdmConsolePage";
 
-export default defineComponent({
+export default defineComponent({setup(){return useAdmConsolePage()},
   name: "LogLevelPage",
-  mixins: [admConsoleMixin]
-});
+  });
 </script>

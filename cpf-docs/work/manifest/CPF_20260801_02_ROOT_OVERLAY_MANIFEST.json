@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "baselineSha": "19dd72b5978f2a3c630943c0fff05bee2d2fed34",
+  "overlayType": "incremental-root-overlay",
+  "readmeManualGuideModified": false,
+  "deleteTargets": [],
+  "primaryAreas": [
+    "controller-openapi",
+    "windows-test-encoding",
+    "baseline-hash-portability"
+  ]
+}

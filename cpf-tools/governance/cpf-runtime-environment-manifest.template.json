@@ -1,0 +1,117 @@
+{
+  "schemaVersion": 1,
+  "manifestId": "CPF-ENVIRONMENT-EXACT-SHA",
+  "sourceSha": "0000000000000000000000000000000000000000",
+  "sanitized": true,
+  "operatingSystem": {
+    "name": "Windows",
+    "version": "REPLACE_WITH_ACTUAL",
+    "architecture": "x86_64"
+  },
+  "tools": [
+    {
+      "name": "java",
+      "version": "25",
+      "command": "java -version"
+    },
+    {
+      "name": "gradle-wrapper",
+      "version": "repository-wrapper",
+      "command": ".\\gradlew.bat --version"
+    },
+    {
+      "name": "node",
+      "version": "22",
+      "command": "node --version"
+    },
+    {
+      "name": "npm",
+      "version": "REPLACE_WITH_ACTUAL",
+      "command": "npm --version"
+    },
+    {
+      "name": "python",
+      "version": "REPLACE_WITH_ACTUAL",
+      "command": "python --version"
+    },
+    {
+      "name": "powershell",
+      "version": "7",
+      "command": "pwsh --version"
+    }
+  ],
+  "databases": [
+    {
+      "vendor": "oracle",
+      "version": "REPLACE_WITH_ACTUAL",
+      "profile": "CPF_ORACLE",
+      "available": false
+    },
+    {
+      "vendor": "postgresql",
+      "version": "REPLACE_WITH_ACTUAL",
+      "profile": "CPF_POSTGRESQL",
+      "available": false
+    },
+    {
+      "vendor": "mariadb",
+      "version": "REPLACE_WITH_ACTUAL",
+      "profile": "CPF_MARIADB",
+      "available": false
+    }
+  ],
+  "services": [
+    {
+      "name": "kafka",
+      "version": "REPLACE_WITH_ACTUAL",
+      "available": false
+    },
+    {
+      "name": "redis",
+      "version": "REPLACE_WITH_ACTUAL",
+      "available": false
+    },
+    {
+      "name": "batch-control",
+      "version": "current-build",
+      "available": false
+    },
+    {
+      "name": "batch-worker",
+      "version": "current-build",
+      "available": false
+    },
+    {
+      "name": "gateway",
+      "version": "current-build",
+      "available": false
+    },
+    {
+      "name": "adm",
+      "version": "current-build",
+      "available": false
+    },
+    {
+      "name": "bza",
+      "version": "current-build",
+      "available": false
+    }
+  ],
+  "browsers": [
+    {
+      "name": "chromium",
+      "version": "REPLACE_WITH_ACTUAL",
+      "available": false
+    },
+    {
+      "name": "firefox",
+      "version": "REPLACE_WITH_ACTUAL",
+      "available": false
+    },
+    {
+      "name": "webkit",
+      "version": "REPLACE_WITH_ACTUAL",
+      "available": false
+    }
+  ]
+}

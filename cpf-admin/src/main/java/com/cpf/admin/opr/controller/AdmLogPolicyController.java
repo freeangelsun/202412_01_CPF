@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 
+/** 동적 로그 정책의 버전·승인·적용·롤백·감사 계약을 제공하는 ADM API입니다. */
 @RestController
 @RequestMapping("/adm/api/log-policies")
 @Tag(name = "ADM-OPR Log Policy", description = "CPF 로그 정책과 임시 override 관리 API")
@@ -151,10 +152,6 @@ public class AdmLogPolicyController extends com.cpf.admin.common.base.AdmBaseCon
     }
 
     private String requestUser(HttpServletRequest request, String fallback) {
-        Object operatorId = request.getAttribute("adm.operatorId");
-        if (operatorId instanceof String value && !value.isBlank()) {
-            return value;
-        }
-        return fallback;
+        return requireOperator(request);
     }
 }

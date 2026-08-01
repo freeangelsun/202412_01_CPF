@@ -58,7 +58,8 @@ try {
     & python (Join-Path $rootPath 'cpf-tools/scripts/canonicalize-cpf-openapi.py') `
         --input $rawPath `
         --output $canonicalPath `
-        --module $Module
+        --module $Module `
+        $(if ($Release) { '--release' } else { $null })
     if ($LASTEXITCODE -ne 0) {
         throw 'OpenAPI canonicalization failed'
     }
@@ -146,7 +147,7 @@ try {
         updateSnapshot = [bool] $UpdateSnapshot
         sanitized = $true
         releaseEligible = [bool] $releaseEligible
-        requirements = @('QA34-REQ-004', 'QA34-REQ-005', 'QA34-REQ-006')
+        requirements = @('CPF-SELF-DEV-025', 'QA35-REQ-004', 'QA35-REQ-005', 'QA35-REQ-006', 'QA35-REQ-007')
     }
     New-Item -ItemType Directory -Path (Split-Path $EvidenceOutput) -Force | Out-Null
     [IO.File]::WriteAllText(
@@ -168,7 +169,7 @@ try {
         error = ($_.Exception.Message -replace '(?i)(password|secret|token|authorization|cookie)\s*[:=]\s*\S+', '$1=***')
         sanitized = $true
         releaseEligible = $false
-        requirements = @('QA34-REQ-004', 'QA34-REQ-005', 'QA34-REQ-006')
+        requirements = @('CPF-SELF-DEV-025', 'QA35-REQ-004', 'QA35-REQ-005', 'QA35-REQ-006', 'QA35-REQ-007')
     }
     New-Item -ItemType Directory -Path (Split-Path $EvidenceOutput) -Force | Out-Null
     [IO.File]::WriteAllText(

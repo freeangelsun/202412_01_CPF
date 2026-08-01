@@ -14,7 +14,6 @@ export const batchMethods: Record<string, any> = {
           ...this.channelPolicyForm,
           ...item,
           reason: "거래별 채널 정책 변경",
-          requestUser: this.currentOperator.operatorId
         };
       },
   async saveChannelExecutionPolicy() {
@@ -91,17 +90,14 @@ export const batchMethods: Record<string, any> = {
           this.setMessage("업무일자, Job 이름, JobInstance ID, Server Instance를 입력하세요.");
           return;
         }
-        const path = [search.businessDate, search.jobName, search.jobInstanceId]
-          .map(value => encodeURIComponent(value))
-          .join("/");
-        const params = this.buildParams({
-          serverInstanceId: search.serverInstanceId,
-          maxRecords: 200
-        });
+        const businessDate = encodeURIComponent(search.businessDate);
+        const jobName = encodeURIComponent(search.jobName);
+        const jobInstanceId = encodeURIComponent(search.jobInstanceId);
+        const params = this.buildParams({ serverInstanceId: search.serverInstanceId, maxRecords: 200 });
         this.reliabilityResult = {
           ...this.reliabilityResult,
           batchJobLogDetail: await this.getJson(
-            `/adm/api/reliability/batch-job-logs/${path}?${params.toString()}`
+            `/adm/api/reliability/batch-job-logs/${businessDate}/${jobName}/${jobInstanceId}?${params.toString()}`
           )
         };
         this.setMessage("BAT JobInstance 로그 상세를 조회했습니다.");

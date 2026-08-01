@@ -1,5 +1,7 @@
 package com.cpf.batch.agent.internal;
 
+import com.cpf.core.api.security.network.CpfNetworkEndpointPolicy;
+
 import com.cpf.batch.agent.AgentProperties;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -7,7 +9,6 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -107,17 +108,20 @@ final class PinnedArtifactHttpTransport {
         if (!properties.getArtifactAllowedPorts().contains(port)) {
             throw new SecurityException("ARTIFACT_REPOSITORY_PORT_DENIED:" + port);
         }
-        ResolvedTarget resolved = resolveIdentity(
-                "ARTIFACT_REPOSITORY",
-                host,
-                port,
-                properties.getArtifactPinnedAddresses(),
-                properties.getArtifactAllowedCidrs(),
-                properties.isAllowPrivateRepositoryAddresses());
-        if ("http".equals(scheme)
-                && !(properties.isAllowHttpLoopback() && literalLoopback(host) && resolved.address().isLoopbackAddress())) {
-            throw new SecurityException("ARTIFACT_REPOSITORY_TLS_REQUIRED");
+        boolean localHttp = "http".equals(scheme) && properties.isAllowHttpLoopback() && literalLoopback(host);
+        CpfNetworkEndpointPolicy policy = new CpfNetworkEndpointPolicy(
+                properties.getArtifactAllowedCidrs(), properties.getArtifactAllowedPorts(),
+                properties.isAllowPrivateRepositoryAddresses(), true, true, !localHttp);
+        if (!localHttp) {
+            try { policy.validateEndpoint(uri.toString()); }
+            catch (IllegalArgumentException denied) { throw new SecurityException("ARTIFACT_REPOSITORY_NETWORK_POLICY_DENIED", denied); }
         }
+        ResolvedTarget resolved = resolveIdentity(
+                "ARTIFACT_REPOSITORY", host, port, properties.getArtifactPinnedAddresses(), policy, localHttp);
+        if (localHttp && !resolved.address().isLoopbackAddress()) {
+            throw new SecurityException("ARTIFACT_REPOSITORY_LOOPBACK_PIN_REQUIRED");
+        }
+        if ("http".equals(scheme) && !localHttp) throw new SecurityException("ARTIFACT_REPOSITORY_TLS_REQUIRED");
         return resolved;
     }
 
@@ -127,13 +131,11 @@ final class PinnedArtifactHttpTransport {
         String host = canonicalHost(configured);
         int port = properties.getArtifactProxyPort();
         if (port < 1 || port > 65535) throw new SecurityException("ARTIFACT_PROXY_PORT_INVALID");
+        CpfNetworkEndpointPolicy policy = new CpfNetworkEndpointPolicy(
+                properties.getArtifactProxyAllowedCidrs(), Set.of(port),
+                properties.isAllowPrivateProxyAddresses(), true, true, false);
         return resolveIdentity(
-                "ARTIFACT_PROXY",
-                host,
-                port,
-                properties.getArtifactProxyPinnedAddresses(),
-                properties.getArtifactProxyAllowedCidrs(),
-                properties.isAllowPrivateProxyAddresses());
+                "ARTIFACT_PROXY", host, port, properties.getArtifactProxyPinnedAddresses(), policy, false);
     }
 
     private ResolvedTarget resolveIdentity(
@@ -141,8 +143,8 @@ final class PinnedArtifactHttpTransport {
             String host,
             int port,
             List<String> configuredPins,
-            List<String> allowedCidrs,
-            boolean allowPrivate) throws Exception {
+            CpfNetworkEndpointPolicy policy,
+            boolean allowLoopback) throws Exception {
         List<InetAddress> resolved = new ArrayList<>(resolver.resolve(host));
         if (resolved.isEmpty()) throw new SecurityException(prefix + "_DNS_EMPTY");
         resolved = resolved.stream().distinct().sorted(Comparator.comparing(InetAddress::getHostAddress)).toList();
@@ -152,17 +154,21 @@ final class PinnedArtifactHttpTransport {
         boolean publicSeen = false;
         boolean allLoopback = true;
         for (InetAddress address : resolved) {
-            validateAddress(prefix, address, allowPrivate);
-            boolean privateAddress = privateAddress(address);
-            privateSeen |= privateAddress;
-            publicSeen |= !privateAddress;
             allLoopback &= address.isLoopbackAddress();
             String normalized = normalizeAddress(address.getHostAddress());
             if (!pins.isEmpty() && !pins.contains(normalized)) {
                 throw new SecurityException(prefix + "_PIN_MISMATCH:" + normalized);
             }
-            if (!allowedCidrs.isEmpty() && allowedCidrs.stream().noneMatch(cidr -> inCidr(address, cidr))) {
-                throw new SecurityException(prefix + "_CIDR_DENIED:" + normalized);
+            if (!(allowLoopback && address.isLoopbackAddress())) {
+                try {
+                    CpfNetworkEndpointPolicy.Address parsed = CpfNetworkEndpointPolicy.Address.parse(normalized);
+                    if (parsed.privateAddress()) privateSeen = true; else publicSeen = true;
+                    policy.validateResolvedAddresses(host, List.of(normalized));
+                } catch (IllegalArgumentException denied) {
+                    throw new SecurityException(prefix + "_NETWORK_POLICY_DENIED:" + normalized, denied);
+                }
+            } else {
+                privateSeen = true;
             }
         }
         if (privateSeen && publicSeen) throw new SecurityException(prefix + "_MIXED_DNS_RESPONSE_DENIED");
@@ -280,57 +286,12 @@ final class PinnedArtifactHttpTransport {
         return null;
     }
 
-    private static void validateAddress(String prefix, InetAddress address, boolean allowPrivate) {
-        String text = normalizeAddress(address.getHostAddress());
-        if (metadataAddress(address) || address.isAnyLocalAddress() || address.isMulticastAddress()) {
-            throw new SecurityException(prefix + "_METADATA_ADDRESS_DENIED:" + text);
-        }
-        if (!allowPrivate && privateAddress(address)) {
-            throw new SecurityException(prefix + "_ADDRESS_DENIED:" + text);
-        }
-    }
-
-    private static boolean metadataAddress(InetAddress address) {
-        byte[] raw = address.getAddress();
-        if (raw.length == 4) {
-            int a = Byte.toUnsignedInt(raw[0]);
-            int b = Byte.toUnsignedInt(raw[1]);
-            int c = Byte.toUnsignedInt(raw[2]);
-            int d = Byte.toUnsignedInt(raw[3]);
-            return a == 169 && b == 254 && c == 169 && d == 254
-                    || a == 100 && b == 100 && c == 100 && d == 200;
-        }
-        String text = normalizeAddress(address.getHostAddress());
-        return text.startsWith("fd00:ec2:") || text.equals("::ffff:169.254.169.254")
-                || text.equals("::ffff:100.100.100.200");
-    }
-
-    private static boolean privateAddress(InetAddress address) {
-        if (address.isLoopbackAddress() || address.isLinkLocalAddress() || address.isSiteLocalAddress()) return true;
-        byte[] raw = address.getAddress();
-        if (address instanceof Inet4Address && raw.length == 4) {
-            int first = Byte.toUnsignedInt(raw[0]);
-            int second = Byte.toUnsignedInt(raw[1]);
-            return first == 100 && second >= 64 && second <= 127;
-        }
-        return raw.length == 16 && (raw[0] & 0xfe) == 0xfc;
-    }
-
+    /** Source-compatible test helper delegated to the common CIDR parser. */
     static boolean inCidr(InetAddress address, String cidr) {
         try {
-            String[] parts = cidr == null ? new String[0] : cidr.trim().split("/", 2);
-            if (parts.length != 2) throw new IllegalArgumentException("missing prefix");
-            byte[] value = address.getAddress();
-            byte[] base = InetAddress.getByName(parts[0]).getAddress();
-            int prefix = Integer.parseInt(parts[1]);
-            if (value.length != base.length || prefix < 0 || prefix > value.length * 8) return false;
-            int bytes = prefix / 8;
-            int bits = prefix % 8;
-            for (int i = 0; i < bytes; i++) if (value[i] != base[i]) return false;
-            if (bits == 0) return true;
-            int mask = 0xff << (8 - bits);
-            return (value[bytes] & mask) == (base[bytes] & mask);
-        } catch (RuntimeException | java.net.UnknownHostException invalid) {
+            return new CpfNetworkEndpointPolicy(List.of(cidr), Set.of(443), true, true, false, false)
+                    .contains(cidr, address.getHostAddress());
+        } catch (IllegalArgumentException invalid) {
             throw new SecurityException("ARTIFACT_CIDR_INVALID:" + cidr, invalid);
         }
     }

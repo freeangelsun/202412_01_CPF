@@ -3,6 +3,7 @@ package com.cpf.bizadmin.audit.controller;
 import com.cpf.bizadmin.audit.service.BzaBusinessAuditService;
 import com.cpf.core.api.execution.CpfOnlineTransaction;
 import java.util.Map;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,6 +19,7 @@ public class BzaBusinessAuditController extends com.cpf.bizadmin.common.base.Bza
 
   @GetMapping("/verify")
   @CpfOnlineTransaction(id = "OBZAUD1101", name = "BzaAuditChainVerify")
+  @Operation(operationId = "bzaBusinessAuditVerify", summary = "업무 감사 체인 무결성 검증")
   public ResponseEntity<Map<String, Object>> verify() {
     return ResponseEntity.ok(s.verify());
   }

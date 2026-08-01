@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.Map;
 
+/** 공통 코드 Group·Item·Version·유효기간을 운영하는 ADM API입니다. */
 @RestController
 @RequestMapping("/adm/api/codes")
 @Tag(name = "ADM-CPF Codes", description = "CPF 공통 코드 관리 API")
@@ -121,10 +122,6 @@ public class AdmCodeController extends com.cpf.admin.common.base.AdmBaseControll
     }
 
     private String requestUser(HttpServletRequest request, String fallback) {
-        Object operatorId = request.getAttribute("adm.operatorId");
-        if (operatorId instanceof String value && !value.isBlank()) {
-            return value;
-        }
-        return fallback;
+        return requireOperator(request);
     }
 }

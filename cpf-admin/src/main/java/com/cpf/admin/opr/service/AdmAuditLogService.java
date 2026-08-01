@@ -44,7 +44,7 @@ public class AdmAuditLogService extends com.cpf.admin.common.base.AdmBaseService
     public <T> T executeAudited(String tx,String operator,String action,String targetType,String targetId,String reason,String before,String ip,Supplier<T> op,Function<T,String> after){
         var c=command(tx,operator,action,targetType,targetId,reason,before,ip); Long mandatory=AdmMandatoryAuditContext.deliveryId();
         if(mandatory==null)return delivery.executeAudited(c,op,after);
-        try{delivery.enrichReservation(mandatory,c);}catch(RuntimeException ex){log.warn("ADM mandatory audit 상세 보강 실패. deliveryId={}, reason={}",mandatory,ex.getClass().getSimpleName());}
+        delivery.enrichReservation(mandatory,c);
         try{T r=op.get();delivery.completeOperation(mandatory,"SUCCEEDED",after==null?null:after.apply(r),null);AdmMandatoryAuditContext.markCompleted();return r;}
         catch(RuntimeException ex){delivery.completeOperation(mandatory,"FAILED",null,"OWNER_OPERATION_FAILED: "+ex.getClass().getSimpleName());AdmMandatoryAuditContext.markCompleted();throw ex;}
     }

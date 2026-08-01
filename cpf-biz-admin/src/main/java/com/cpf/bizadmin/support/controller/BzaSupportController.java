@@ -76,6 +76,7 @@ public class BzaSupportController extends com.cpf.bizadmin.common.base.BzaBaseCo
 
     @PostMapping("/notifications/read-all")
     @CpfOnlineTransaction(id = "OBZANT0004", name = "BzaNotificationReadAll")
+    @Operation(operationId = "bzaSupportReadAllNotifications", summary = "전체 알림 읽음 처리")
     public ResponseEntity<Map<String,Object>> readAllNotifications(
             @RequestParam String reason,@RequestAttribute("bza.operatorId") String operatorId) {
         return ResponseEntity.ok(supportService.markAllNotificationsRead(reason,operatorId));
@@ -128,6 +129,7 @@ public class BzaSupportController extends com.cpf.bizadmin.common.base.BzaBaseCo
 
     @PostMapping("/attachments/{attachmentId}/security")
     @CpfOnlineTransaction(id = "OBZAAT0004", name = "BzaAttachmentSecurityUpdate")
+    @Operation(operationId = "bzaSupportUpdateAttachmentSecurity", summary = "첨부 보안 상태 갱신")
     public ResponseEntity<Map<String,Object>> updateAttachmentSecurity(
             @PathVariable long attachmentId,@RequestBody BzaSupportService.AttachmentSecurityRequest request,
             @RequestAttribute("bza.operatorId") String operatorId) {
@@ -136,6 +138,7 @@ public class BzaSupportController extends com.cpf.bizadmin.common.base.BzaBaseCo
 
     @PostMapping("/attachments/{attachmentId}/recheck")
     @CpfOnlineTransaction(id = "OBZAAT0005", name = "BzaAttachmentRecheck")
+    @Operation(operationId = "bzaSupportRecheckAttachment", summary = "첨부 보안 재검사 요청")
     public ResponseEntity<Map<String,Object>> recheckAttachment(
             @PathVariable long attachmentId,@RequestParam String reason,@RequestAttribute("bza.operatorId") String operatorId) {
         return ResponseEntity.ok(supportService.requestAttachmentRecheck(attachmentId,reason,operatorId));

@@ -7,7 +7,6 @@ export const platformMethods: Record<string, any> = {
           ...this.channelForm,
           ...item,
           reason: "채널 레지스트리 변경",
-          requestUser: this.currentOperator.operatorId
         };
       },
   async saveChannel() {
@@ -22,7 +21,6 @@ export const platformMethods: Record<string, any> = {
         if (!this.requireReason(this.channelPolicyForm.reason)) return;
         const params = new URLSearchParams({
           reason: this.channelPolicyForm.reason,
-          requestUser: this.currentOperator.operatorId
         });
         const response = await this.rawResponse(`/adm/api/channels/refresh?${params.toString()}`, "POST");
         this.channelSnapshot = await this.parseResponse(response);
@@ -46,7 +44,6 @@ export const platformMethods: Record<string, any> = {
           policyPackage,
           dryRun: this.channelImportDryRun,
           reason: this.channelPolicyForm.reason,
-          requestUser: this.currentOperator.operatorId
         });
         this.setMessage(this.channelImportDryRun ? "채널 정책 반입 사전 검증을 완료했습니다." : "채널 정책을 반입했습니다.");
       },

@@ -65,5 +65,5 @@ if (!marker.generator.version || !marker.nodeRequirement || !marker.npmRequireme
 }
 fs.writeFileSync(path.join(generatedDir, ".cpf-openapi-source.json"), JSON.stringify(marker, null, 2) + "\n", "utf8");
 const legacy = path.join(generatedDir, "source-sha.json");
-if (fs.existsSync(legacy)) fs.rmSync(legacy);
+if (fs.existsSync(legacy)) throw new Error("Legacy source-sha.json must be removed explicitly using the tracked Delete Manifest; generation will not delete tracked files.");
 console.log(`[CPF][FRONTEND][PASS] marker schema=3 operations=${operationIds.length} files=${generatedFiles.length}`);

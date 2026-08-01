@@ -1,0 +1,83 @@
+plugins {
+    id 'java-gradle-plugin'
+    id 'maven-publish'
+}
+
+def platform = new Properties()
+file('../../../gradle/cpf-platform.properties').withInputStream { platform.load(it) }
+
+group = 'com.cpf.gradle'
+version = platform.getProperty('platformVersion')
+description = 'CPF canonical Gradle convention plugin'
+
+java {
+    toolchain { languageVersion = JavaLanguageVersion.of(25) }
+    withSourcesJar()
+}
+
+gradlePlugin {
+    plugins {
+        cpfPlatformConventions {
+            id = 'com.cpf.platform-conventions'
+            implementationClass = 'com.cpf.gradle.CpfPlatformConventionPlugin'
+            displayName = 'CPF Platform Conventions'
+            description = 'Applies the canonical CPF Java 25 product build contract.'
+        }
+    }
+}
+
+repositories { mavenCentral() }
+
+dependencies {
+    testImplementation gradleTestKit()
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.13.4'
+}
+
+test {
+    useJUnitPlatform()
+    systemProperty 'cpf.plugin.version', project.version
+}
+
+publishing {
+    publications.withType(MavenPublication).configureEach {
+        pom {
+            name = 'CPF Gradle Plugin'
+            description = 'Canonical CPF product convention plugin.'
+        }
+    }
+    repositories {
+        maven {
+            name = 'CpfLocal'
+            url = uri(providers.gradleProperty('cpfLocalArtifactRepository')
+                    .orElse(providers.environmentVariable('CPF_LOCAL_ARTIFACT_REPOSITORY'))
+                    .orElse(new File(System.getProperty('user.home'), '.cpf/repository').absolutePath).get())
+        }
+        maven {
+            name = 'CpfStaging'
+            url = uri(providers.gradleProperty('cpfArtifactStagingRepository')
+                    .orElse(new File(rootDir, '../../../build/cpf-artifact-staging/repository').absolutePath).get())
+        }
+        maven {
+            name = 'CpfInternal'
+            url = uri(providers.gradleProperty('cpfArtifactRepositoryUrl')
+                    .orElse(providers.environmentVariable('CPF_ARTIFACT_REPOSITORY_URL'))
+                    .orElse(new File(buildDir, 'disabled-internal').absolutePath).get())
+        }
+    }
+}
+
+tasks.register('publishCpfPluginToLocal') {
+    dependsOn tasks.matching { it.name.startsWith('publish') && it.name.endsWith('ToCpfLocalRepository') }
+}
+tasks.register('publishCpfPluginToStaging') {
+    dependsOn tasks.matching { it.name.startsWith('publish') && it.name.endsWith('ToCpfStagingRepository') }
+}
+tasks.register('publishCpfPluginToInternal') {
+    doFirst {
+        if (!providers.gradleProperty('cpfArtifactRepositoryUrl').isPresent() &&
+                !providers.environmentVariable('CPF_ARTIFACT_REPOSITORY_URL').isPresent()) {
+            throw new GradleException('Internal repository URL is required.')
+        }
+    }
+    dependsOn tasks.matching { it.name.startsWith('publish') && it.name.endsWith('ToCpfInternalRepository') }
+}

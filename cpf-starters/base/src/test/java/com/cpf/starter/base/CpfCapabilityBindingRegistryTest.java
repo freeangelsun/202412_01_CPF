@@ -1,21 +1,37 @@
 package com.cpf.starter.base;
 
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import java.util.Map;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import org.junit.jupiter.api.Test;
 
 class CpfCapabilityBindingRegistryTest {
-    @Test void resolvesSingleDefault() {
+    @Test
+    void activeCapabilityRequiresExactlyOneDefaultAtStartup() {
         var registry = new CpfCapabilityBindingRegistry();
-        registry.register(new CpfCapabilityBinding("messaging", "primary", "kafka", true, Map.of()));
-        assertThat(registry.requireDefault("messaging").provider()).isEqualTo("kafka");
+        registry.register(new CpfCapabilityBinding(
+                "messaging", "kafka", "kafka", false, Map.of()));
+        assertThrows(IllegalStateException.class, registry::validateAll);
     }
 
-    @Test void rejectsAmbiguousDefaults() {
+    @Test
+    void exactlyOneDefaultPasses() {
         var registry = new CpfCapabilityBindingRegistry();
-        registry.register(new CpfCapabilityBinding("messaging", "kafka", "kafka", true, Map.of()));
-        assertThatThrownBy(() -> registry.register(new CpfCapabilityBinding("messaging", "rabbit", "rabbitmq", true, Map.of())))
-                .isInstanceOf(IllegalStateException.class).hasMessageContaining("Multiple default");
+        registry.register(new CpfCapabilityBinding(
+                "messaging", "kafka", "kafka", true, Map.of()));
+        registry.register(new CpfCapabilityBinding(
+                "messaging", "rabbit", "rabbitmq", false, Map.of()));
+        assertDoesNotThrow(registry::validateAll);
+    }
+
+    @Test
+    void duplicateDefaultsFailDuringRegistration() {
+        var registry = new CpfCapabilityBindingRegistry();
+        registry.register(new CpfCapabilityBinding(
+                "messaging", "kafka", "kafka", true, Map.of()));
+        assertThrows(IllegalStateException.class, () -> registry.register(
+                new CpfCapabilityBinding(
+                        "messaging", "rabbit", "rabbitmq", true, Map.of())));
     }
 }

@@ -1,12 +1,12 @@
 plugins { id 'java-library'; id 'maven-publish' }
 group = 'com.cpf.starter'
 dependencies {
+    api project(':cpf-core')
+    implementation 'org.springframework.boot:spring-boot-autoconfigure'
+    implementation 'org.springframework.boot:spring-boot-actuator'
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'org.assertj:assertj-core'
-    api project(':cpf-core')
-implementation 'org.springframework.boot:spring-boot-autoconfigure'
-implementation 'org.springframework.boot:spring-boot-actuator'
-annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 }
 tasks.named('test') { useJUnitPlatform() }
 publishing {
@@ -17,4 +17,3 @@ publishing {
         }
     }
 }
-

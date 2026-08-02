@@ -1,0 +1,220 @@
+{
+  "schemaVersion": "1.0",
+  "contractId": "CPF-GENERATED-DOMAIN-STANDARD-20260802-QA39",
+  "baselineSha": "2a86ff42799eddffaae87d38ae68632726a2c495",
+  "publicProfiles": [
+    "minimal-domain",
+    "web-api",
+    "secure-api",
+    "browser-bff",
+    "event-service",
+    "batch-service"
+  ],
+  "capabilityGroups": [
+    "data",
+    "messaging",
+    "integration",
+    "file",
+    "notification",
+    "security",
+    "platform-operations"
+  ],
+  "mandatoryFoundation": {
+    "rootProjectDependencies": [
+      ":cpf-core",
+      ":cpf-common"
+    ],
+    "publishedCoordinates": [
+      "com.cpf.core:cpf-core",
+      "com.cpf.common:cpf-common"
+    ],
+    "contracts": [
+      "standard-error",
+      "header-context",
+      "transaction-id",
+      "security-boundary",
+      "audit",
+      "masking",
+      "observability",
+      "config",
+      "dependency-version",
+      "architecture-gate"
+    ]
+  },
+  "defaultGeneration": {
+    "profile": "minimal-domain",
+    "capabilityGroups": [],
+    "providerBindings": {},
+    "online": false,
+    "database": false,
+    "batch": false,
+    "description": "선택 기능을 포함하지 않는 Core/Common 표준 업무 골격"
+  },
+  "forbiddenDirectDependencies": [
+    {
+      "ruleId": "DIRECT_KAFKA",
+      "patterns": [
+        "org.springframework.kafka:spring-kafka",
+        "spring-kafka"
+      ]
+    },
+    {
+      "ruleId": "DIRECT_RABBIT",
+      "patterns": [
+        "org.springframework.amqp:spring-rabbit",
+        "spring-rabbit"
+      ]
+    },
+    {
+      "ruleId": "DIRECT_JMS",
+      "patterns": [
+        "org.springframework:spring-jms",
+        "spring-jms"
+      ]
+    },
+    {
+      "ruleId": "DIRECT_JDBC",
+      "patterns": [
+        "org.springframework.boot:spring-boot-starter-jdbc",
+        "org.springframework:spring-jdbc"
+      ]
+    },
+    {
+      "ruleId": "DIRECT_MYBATIS",
+      "patterns": [
+        "org.mybatis.spring.boot:mybatis-spring-boot-starter"
+      ]
+    },
+    {
+      "ruleId": "DIRECT_VALKEY",
+      "patterns": [
+        "org.springframework.boot:spring-boot-starter-data-redis",
+        "io.lettuce:lettuce-core",
+        "redis.clients:jedis"
+      ]
+    },
+    {
+      "ruleId": "DIRECT_OTEL",
+      "patterns": [
+        "io.opentelemetry:opentelemetry-sdk"
+      ]
+    },
+    {
+      "ruleId": "DIRECT_SFTP",
+      "patterns": [
+        "org.apache.sshd:sshd-sftp"
+      ]
+    },
+    {
+      "ruleId": "DIRECT_RESILIENCE",
+      "patterns": [
+        "io.github.resilience4j"
+      ]
+    },
+    {
+      "ruleId": "DIRECT_FEATUREFLAG",
+      "patterns": [
+        "dev.openfeature"
+      ]
+    }
+  ],
+  "forbiddenBusinessImports": [
+    {
+      "ruleId": "IMPORT_KAFKA_TEMPLATE",
+      "pattern": "org.springframework.kafka.core.KafkaTemplate"
+    },
+    {
+      "ruleId": "IMPORT_RABBIT_TEMPLATE",
+      "pattern": "org.springframework.amqp.rabbit.core.RabbitTemplate"
+    },
+    {
+      "ruleId": "IMPORT_JMS_TEMPLATE",
+      "pattern": "org.springframework.jms.core.JmsTemplate"
+    },
+    {
+      "ruleId": "IMPORT_JDBC_TEMPLATE",
+      "pattern": "org.springframework.jdbc.core.JdbcTemplate"
+    },
+    {
+      "ruleId": "IMPORT_MYBATIS_TEMPLATE",
+      "pattern": "org.mybatis.spring.SqlSessionTemplate"
+    },
+    {
+      "ruleId": "IMPORT_OTEL_SDK",
+      "pattern": "io.opentelemetry.sdk.OpenTelemetrySdk"
+    },
+    {
+      "ruleId": "IMPORT_SFTP_CLIENT",
+      "pattern": "org.apache.sshd.sftp.client.SftpClient"
+    },
+    {
+      "ruleId": "IMPORT_REDIS_CLIENT",
+      "pattern": "org.springframework.data.redis"
+    },
+    {
+      "ruleId": "SECURITY_FILTER_BYPASS",
+      "pattern": "org.springframework.security.web.SecurityFilterChain"
+    }
+  ],
+  "generatedInfrastructureAllowedCpfApis": [
+    "com.cpf.core.api.database.CpfDataOperations",
+    "com.cpf.core.api.database.CpfJdbcOperations",
+    "com.cpf.core.api.database.CpfVendorSqlCatalogProvider",
+    "com.cpf.core.api.*"
+  ],
+  "manualExceptionContract": "manual-configuration-exception.schema.json",
+  "failClosed": true,
+  "approvedExternalExceptionPolicy": {
+    "registryPath": "config/cpf-approved-exceptions.csv",
+    "runtimeResource": "META-INF/cpf/cpf-approved-exceptions.csv",
+    "requiredFields": [
+      "exception_id",
+      "module",
+      "capability",
+      "artifact",
+      "version",
+      "owner",
+      "reason",
+      "standard_path_gap",
+      "environments",
+      "security_impact",
+      "license_review",
+      "supply_chain_review",
+      "operations_responsibility",
+      "approved_by",
+      "approved_at",
+      "expires_at",
+      "rollback",
+      "return_plan",
+      "rule_ids",
+      "config_files",
+      "evidence_path",
+      "status",
+      "config_hash"
+    ],
+    "domainOwned": true,
+    "platformSourceChangeRequired": false,
+    "configFilesUnder": "src/main/resources/",
+    "hashAlgorithm": "SHA-256",
+    "failClosedOn": [
+      "UNREGISTERED",
+      "UNAPPROVED",
+      "EXPIRED",
+      "VERSION_DRIFT",
+      "REGISTRY_HASH_DRIFT",
+      "CONFIG_HASH_DRIFT"
+    ],
+    "resolvedLockFields": [
+      "exceptionId",
+      "capability",
+      "artifact",
+      "version",
+      "owner",
+      "approvedBy",
+      "approvedAt",
+      "expiresAt",
+      "configHash",
+      "returnPlan"
+    ]
+  }
+}

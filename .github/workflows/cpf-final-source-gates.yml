@@ -26,6 +26,9 @@ jobs:
         with:
           distribution: temurin
           java-version: '25'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
       - uses: actions/setup-node@v4
         with:
           node-version: '22.18.0'
@@ -37,6 +40,8 @@ jobs:
       - name: Semantic, ownership and traceability gates
         shell: pwsh
         run: |
+          python ./cpf-tools/verification/qa39/verify-qa39-canonical-starter-closure.py
+          python ./cpf-tools/verification/qa39/verify-cpf-provider-conformance.py
           python ./cpf-tools/scripts/generate-cpf-project-inventory.py --root . --output-dir (Join-Path $env:RUNNER_TEMP 'cpf-project-inventory')
           python ./cpf-tools/scripts/verify-cpf-project-inventory.py --inventory-dir (Join-Path $env:RUNNER_TEMP 'cpf-project-inventory') --policy ./cpf-tools/governance/cpf-product-surface-policy.json --waivers ./cpf-tools/governance/cpf-project-inventory-waivers.csv
           python ./cpf-tools/scripts/verify-cpf-requirement-traceability.py --root . --expected-sha '${{ github.sha }}' --require-clean
@@ -145,9 +150,49 @@ jobs:
           $dirty = @(git status --porcelain=v1 --untracked-files=all)
           if ($dirty) { $dirty; throw 'DB validation changed Source or checksum files.' }
 
+  supply-chain:
+    runs-on: windows-latest
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: gradle
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Generate and validate current-artifact supply-chain evidence
+        shell: pwsh
+        run: |
+          ./gradlew.bat cyclonedxBom validateReleaseMetadata --no-daemon --stacktrace
+          python ./cpf-tools/scripts/verify-cpf-supply-chain.py --root .
+          $removed = @('cpf-starter-aop-service-access','cpf-starter-validation','cpf-starter-resilience','cpf-starter-featureflag','cpf-starter-security','cpf-starter-cache','cpf-starter-scheduler-quartz')
+          $sbom = Get-ChildItem -Recurse -File -Filter 'bom.json' | Select-Object -First 1
+          if (-not $sbom) { throw 'CycloneDX bom.json was not generated.' }
+          $content = Get-Content -LiteralPath $sbom.FullName -Raw
+          $leaked = $removed | Where-Object { $content.Contains($_) }
+          if ($leaked) { throw ('Removed CPF artifacts leaked into SBOM: ' + ($leaked -join ', ')) }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cpf-sbom-${{ github.sha }}
+          path: '**/build/reports/bom.*'
+          if-no-files-found: error
+      - name: Reject self-dirty supply-chain verification
+        shell: pwsh
+        run: |
+          $dirty = @(git status --porcelain=v1 --untracked-files=all)
+          $unexpected = $dirty | Where-Object { $_ -notmatch '^[?MADRCU ]{2} .*[\/]build[\/]' }
+          if ($unexpected) { $unexpected; throw 'Supply-chain verification changed tracked Source.' }
+
   final-required:
     if: always()
-    needs: [architecture-evidence, java-build-test, frontend, database-static]
+    needs: [architecture-evidence, java-build-test, frontend, database-static, supply-chain]
     runs-on: windows-latest
     steps:
       - name: Reject missing or failed required jobs

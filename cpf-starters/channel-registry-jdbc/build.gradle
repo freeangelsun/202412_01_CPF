@@ -1,6 +1,7 @@
 plugins { id 'java-library'; id 'maven-publish' }
 group = 'com.cpf.starter'
 dependencies {
+    implementation project(':cpf-starter-runtime-control-client')
     api project(':cpf-core')
 api project(':cpf-starter-persistence-jdbc')
 implementation 'org.springframework.boot:spring-boot-autoconfigure'

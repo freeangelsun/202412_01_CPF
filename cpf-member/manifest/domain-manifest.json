@@ -30,7 +30,11 @@
     "migrationUsername": "cpf_member_migration",
     "runtimeUsername": "cpf_member_app"
   },
-  "supportedDatabaseVendors": ["mariadb","oracle","postgresql"],
+  "supportedDatabaseVendors": [
+    "mariadb",
+    "oracle",
+    "postgresql"
+  ],
   "databaseTemplatePack": "cpf-tools/db/vendor/{vendor}/domain-template",
   "databaseTemplateSelector": {
     "vendor": "mariadb",
@@ -56,7 +60,7 @@
   "externalEnabled": false,
   "messagingEnabled": false,
   "fileEnabled": false,
-  "securityAuditEnabled": false,
+  "securityAuditEnabled": true,
   "uiEnabled": false,
   "bzaMenuEnabled": false,
   "productionProfileEnabled": false,
@@ -68,7 +72,7 @@
     "external": false,
     "messaging": false,
     "file": false,
-    "securityAudit": false,
+    "securityAudit": true,
     "ui": false,
     "bzaMenu": false,
     "productionProfile": false
@@ -133,23 +137,124 @@
     "model": "sample-item",
     "tableRole": "business-sample",
     "logicalTable": "mbrDB.mbr_sample_item",
-    "requiredColumns": ["sample_item_id","sample_key","item_name","status_code","version_no","idempotency_key","transaction_id","transaction_sequence","transaction_at","deleted_yn","created_by","created_at","updated_by","updated_at"],
+    "requiredColumns": [
+      "sample_item_id",
+      "sample_key",
+      "item_name",
+      "status_code",
+      "version_no",
+      "idempotency_key",
+      "transaction_id",
+      "transaction_sequence",
+      "transaction_at",
+      "deleted_yn",
+      "created_by",
+      "created_at",
+      "updated_by",
+      "updated_at"
+    ],
     "transactionIdWidth": 34,
-    "requiredKeys": ["primary-key","sample-key-unique"],
-    "requiredIndexes": ["idempotency-key-audit","status-deleted-id","transaction-id-sequence"],
-    "requiredChecks": ["status-active-inactive","deleted-yn"],
-    "operations": ["create","read","update","delete","search","offset-page","slice","cursor","validation","transaction-commit","transaction-rollback","optimistic-lock","duplicate","local-call","remote-call","standard-header","transaction-id","error-mapping","idempotency","audit","masking","framework-edu"]
+    "requiredKeys": [
+      "primary-key",
+      "sample-key-unique"
+    ],
+    "requiredIndexes": [
+      "idempotency-key-audit",
+      "status-deleted-id",
+      "transaction-id-sequence"
+    ],
+    "requiredChecks": [
+      "status-active-inactive",
+      "deleted-yn"
+    ],
+    "operations": [
+      "create",
+      "read",
+      "update",
+      "delete",
+      "search",
+      "offset-page",
+      "slice",
+      "cursor",
+      "validation",
+      "transaction-commit",
+      "transaction-rollback",
+      "optimistic-lock",
+      "duplicate",
+      "local-call",
+      "remote-call",
+      "standard-header",
+      "transaction-id",
+      "error-mapping",
+      "idempotency",
+      "audit",
+      "masking",
+      "framework-edu"
+    ]
   },
   "idempotencyLedgerContract": {
     "model": "sample-item-idempotency-ledger",
     "tableRole": "non-business-support-ledger",
     "logicalTable": "mbrDB.mbr_sample_item_idem",
-    "requiredColumns": ["idempotency_key","operation_code","request_hash","sample_item_id","result_version","deleted_yn","transaction_id","created_at"],
+    "requiredColumns": [
+      "idempotency_key",
+      "operation_code",
+      "request_hash",
+      "sample_item_id",
+      "result_version",
+      "deleted_yn",
+      "transaction_id",
+      "created_at"
+    ],
     "transactionIdWidth": 34,
-    "requiredKeys": ["primary-key","sample-item-foreign-key"],
-    "requiredIndexes": ["sample-item-created-at","transaction-id-created-at"],
-    "requiredChecks": ["operation-create-update-delete","deleted-yn"],
+    "requiredKeys": [
+      "primary-key",
+      "sample-item-foreign-key"
+    ],
+    "requiredIndexes": [
+      "sample-item-created-at",
+      "transaction-id-created-at"
+    ],
+    "requiredChecks": [
+      "operation-create-update-delete",
+      "deleted-yn"
+    ],
     "replayPolicy": "same-key-and-request-hash-replay-different-hash-conflict",
     "logicalDeleteReplayRequired": true
-  }
+  },
+  "capabilityProfile": "secure-api",
+  "publicCapabilityGroups": [
+    "data",
+    "messaging",
+    "integration",
+    "file",
+    "notification",
+    "security",
+    "platform-operations"
+  ],
+  "resolvedCapabilityGroups": [
+    "data",
+    "security"
+  ],
+  "capabilityProfileVersion": "1.0",
+  "resolvedStarters": [
+    "cpf-starter-profile-secure-api",
+    "cpf-starter-persistence-mybatis",
+    "cpf-starter-security-resource-server",
+    "cpf-starter-secret"
+  ],
+  "resolvedStarterVersions": {
+    "cpf-starter-profile-secure-api": "1.0.0-SNAPSHOT",
+    "cpf-starter-persistence-mybatis": "1.0.0-SNAPSHOT",
+    "cpf-starter-security-resource-server": "1.0.0-SNAPSHOT",
+    "cpf-starter-secret": "1.0.0-SNAPSHOT"
+  },
+  "providerBindings": {
+    "data": "mybatis",
+    "security-mode": "resource-server"
+  },
+  "standardInheritancePolicyVersion": "1.0",
+  "approvedExceptionIds": [],
+  "targetEnvironment": "",
+  "exceptionRegistrySha256": "8cf6b91162b6e11afd9b41a7b4be16a361fb5f711c24e9c34248851c73eb32a0"
 }

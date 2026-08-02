@@ -7,7 +7,6 @@ dependencies {
     implementation project(':cpf-core')
     implementation project(':cpf-common')
     implementation project(':cpf-starter-messaging-kafka')
-    implementation project(':cpf-starter-resilience')
     implementation project(':cpf-starter-observability')
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'

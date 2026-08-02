@@ -2,6 +2,7 @@ package com.cpf.starter.persistence.jdbc;
 
 import java.sql.Connection;
 import java.sql.Statement;
+import com.cpf.core.api.database.CpfJdbcOperations;
 import javax.sql.DataSource;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.SmartInitializingSingleton;
@@ -9,11 +10,27 @@ import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 @AutoConfiguration(afterName = "com.cpf.core.config.CpfDataSourceConfig")
 @EnableConfigurationProperties(CpfJdbcStarterProperties.class)
 public class CpfJdbcStarterAutoConfiguration {
+    @Bean
+    @ConditionalOnBean({DataSource.class, PlatformTransactionManager.class})
+    @ConditionalOnMissingBean(CpfJdbcOperations.class)
+    CpfJdbcOperations cpfJdbcOperations(
+            DataSource dataSource,
+            PlatformTransactionManager transactionManager) {
+        return new CpfSpringJdbcOperations(
+                new NamedParameterJdbcTemplate(dataSource),
+                new TransactionTemplate(transactionManager));
+    }
+
     @Bean
     SmartInitializingSingleton cpfJdbcReadinessVerifier(CpfJdbcStarterProperties properties, ObjectProvider<DataSource> dataSources) {
         return () -> {

@@ -8,7 +8,7 @@ file('../../../gradle/cpf-platform.properties').withInputStream { platform.load(
 
 group = 'com.cpf.gradle'
 version = platform.getProperty('platformVersion')
-description = 'CPF canonical Gradle convention plugin'
+description = 'CPF canonical Gradle convention and Generated Domain policy plugin'
 
 java {
     toolchain { languageVersion = JavaLanguageVersion.of(25) }
@@ -21,7 +21,7 @@ gradlePlugin {
             id = 'com.cpf.platform-conventions'
             implementationClass = 'com.cpf.gradle.CpfPlatformConventionPlugin'
             displayName = 'CPF Platform Conventions'
-            description = 'Applies the canonical CPF Java 25 product build contract.'
+            description = 'Applies Java 25, standard inheritance, direct OSS bypass and approved exception gates.'
         }
     }
 }
@@ -29,8 +29,10 @@ gradlePlugin {
 repositories { mavenCentral() }
 
 dependencies {
+    implementation localGroovy()
     testImplementation gradleTestKit()
     testImplementation 'org.junit.jupiter:junit-jupiter:5.13.4'
+    testImplementation 'org.assertj:assertj-core:3.27.4'
 }
 
 test {
@@ -42,7 +44,7 @@ publishing {
     publications.withType(MavenPublication).configureEach {
         pom {
             name = 'CPF Gradle Plugin'
-            description = 'Canonical CPF product convention plugin.'
+            description = 'Canonical CPF product convention and Generated Domain standard inheritance gate.'
         }
     }
     repositories {

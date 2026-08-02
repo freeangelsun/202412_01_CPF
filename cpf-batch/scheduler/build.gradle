@@ -6,8 +6,9 @@ dependencies {
     implementation project(':cpf-batch:execution-runtime')
     implementation project(':cpf-core')
     implementation project(':cpf-common')
-    implementation project(':cpf-starter-observability')
+    implementation project(':cpf-starter-profile-batch-service')
     implementation project(':cpf-starter-messaging-kafka')
+    implementation project(':cpf-starter-messaging-reliability-jdbc')
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'

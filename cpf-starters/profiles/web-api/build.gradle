@@ -1,0 +1,24 @@
+plugins { id 'java-library'; id 'maven-publish' }
+group = 'com.cpf.starter'
+
+dependencies {
+    api project(':cpf-starter-base')
+    api project(':cpf-starter-openapi-webmvc')
+    api 'org.springframework.boot:spring-boot-starter-webmvc'
+    api 'org.springframework.boot:spring-boot-starter-actuator'
+}
+
+tasks.named('test') { useJUnitPlatform() }
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            artifactId = 'cpf-starter-profile-web-api'
+            pom {
+                name = 'CPF web-api profile'
+                description = 'QA39 public use-case profile. Optional capability/provider leaves remain Generator-selected.'
+            }
+        }
+    }
+}

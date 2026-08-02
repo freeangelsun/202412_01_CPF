@@ -1,0 +1,1 @@
+exception_id,module,capability,artifact,version,owner,reason,standard_path_gap,environments,security_impact,license_review,supply_chain_review,operations_responsibility,approved_by,approved_at,expires_at,rollback,return_plan,rule_ids,config_files,evidence_path,status,config_hash

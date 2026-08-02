@@ -13,20 +13,14 @@ java {
 }
 
 dependencies {
-    implementation project(':cpf-starter-profile-browser-bff-session')
-    implementation project(':cpf-starter-profile-persistence-mybatis')
-    implementation project(':cpf-starter-profile-domain-web-api')
+    implementation project(':cpf-starter-profile-browser-bff')
+    implementation project(':cpf-starter-persistence-mybatis')
     implementation project(':cpf-starter-attachment')
     implementation project(':cpf-core')
     implementation project(':cpf-common')
-    implementation project(':cpf-starter-security')
-    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
     // BZA servlet filter/controller가 직접 사용하는 Spring Web은 외부 Tomcat과 별개로
     // 애플리케이션 WAR 및 test runtime에 반드시 포함되어야 합니다.
-    implementation 'org.springframework:spring-web'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
-    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
-    implementation 'org.springframework.boot:spring-boot-starter-actuator'
     runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
     runtimeOnly 'org.postgresql:postgresql'
     runtimeOnly 'com.oracle.database.jdbc:ojdbc11'

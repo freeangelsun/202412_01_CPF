@@ -1,0 +1,132 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "cpf://generator/manual-configuration-exception-row.schema.json",
+  "title": "CPF approved manual configuration exception CSV row",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "exception_id",
+    "module",
+    "capability",
+    "artifact",
+    "version",
+    "owner",
+    "reason",
+    "standard_path_gap",
+    "environments",
+    "security_impact",
+    "license_review",
+    "supply_chain_review",
+    "operations_responsibility",
+    "approved_by",
+    "approved_at",
+    "expires_at",
+    "rollback",
+    "return_plan",
+    "rule_ids",
+    "config_files",
+    "evidence_path",
+    "status",
+    "config_hash"
+  ],
+  "properties": {
+    "exception_id": {
+      "type": "string",
+      "pattern": "^CPF-EX-[A-Z0-9_-]{3,64}$"
+    },
+    "module": {
+      "type": "string",
+      "minLength": 2
+    },
+    "capability": {
+      "enum": [
+        "data",
+        "messaging",
+        "integration",
+        "file",
+        "notification",
+        "security",
+        "platform-operations"
+      ]
+    },
+    "artifact": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.-]+:[A-Za-z0-9_.-]+$"
+    },
+    "version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "owner": {
+      "type": "string",
+      "minLength": 1
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 1
+    },
+    "standard_path_gap": {
+      "type": "string",
+      "minLength": 1
+    },
+    "environments": {
+      "type": "string",
+      "minLength": 1
+    },
+    "security_impact": {
+      "type": "string",
+      "minLength": 1
+    },
+    "license_review": {
+      "type": "string",
+      "minLength": 1
+    },
+    "supply_chain_review": {
+      "type": "string",
+      "minLength": 1
+    },
+    "operations_responsibility": {
+      "type": "string",
+      "minLength": 1
+    },
+    "approved_by": {
+      "type": "string",
+      "minLength": 1
+    },
+    "approved_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "rollback": {
+      "type": "string",
+      "minLength": 1
+    },
+    "return_plan": {
+      "type": "string",
+      "minLength": 1
+    },
+    "rule_ids": {
+      "type": "string",
+      "minLength": 1
+    },
+    "config_files": {
+      "type": "string",
+      "pattern": "^src/main/resources/.+"
+    },
+    "evidence_path": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "const": "APPROVED"
+    },
+    "config_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    }
+  }
+}

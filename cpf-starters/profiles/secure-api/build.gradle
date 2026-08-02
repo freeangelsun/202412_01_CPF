@@ -1,0 +1,23 @@
+plugins { id 'java-library'; id 'maven-publish' }
+group = 'com.cpf.starter'
+
+dependencies {
+    api project(':cpf-starter-profile-web-api')
+    api project(':cpf-starter-security-resource-server')
+    api project(':cpf-starter-secret')
+}
+
+tasks.named('test') { useJUnitPlatform() }
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            artifactId = 'cpf-starter-profile-secure-api'
+            pom {
+                name = 'CPF secure-api profile'
+                description = 'QA39 public use-case profile. Optional capability/provider leaves remain Generator-selected.'
+            }
+        }
+    }
+}

@@ -1682,13 +1682,25 @@ tasks.register('checkRuntimeQueryContracts', Exec) {
             'cpf-tools/scripts/check-platform-runtime-query-packs.ps1'
 }
 
+tasks.register('checkQa39CanonicalStarterClosure', Exec) {
+    group = 'verification'
+    description = 'QA39 canonical Profile/Capability/Generator inheritance/direct OSS exception/delete closure를 검증합니다.'
+    commandLine 'python', file('cpf-tools/verification/qa39/verify-qa39-canonical-starter-closure.py').absolutePath
+}
+
+tasks.register('checkCpfProviderConformance', Exec) {
+    group = 'verification'
+    description = '고객 Broker/Notification Provider가 CPF public SPI만으로 compile/runtime 되는지 검증합니다.'
+    commandLine 'python', file('cpf-tools/verification/qa39/verify-cpf-provider-conformance.py').absolutePath
+}
+
 tasks.register('qualityGate') {
     group = 'verification'
     description = 'CPF verification or deployment task.'
     dependsOn subprojects.collect { "${it.path}:compileJava" }
     dependsOn subprojects.collect { "${it.path}:test" }
     dependsOn ':cpf-admin:frontendVerify', ':cpf-biz-admin:frontendVerify', 'checkModernFrontend'
-    dependsOn 'verifyCpfFinalSourceGates', 'verifyVersionConsistency', 'checkUtf8', 'checkMojibake', 'checkLegacyName', 'checkSqlStandard', 'checkSqlCanonical', 'checkJavaFormat', 'checkJava25Standard', 'checkDocumentLinks', 'checkTransactionIdStandard', 'checkSecuritySeedStandard', 'checkSampleStandard', 'checkCpfRequestProtection', 'checkFeatureEvidence', 'checkServiceCallBoundary', 'checkArchitectureOwnership', 'checkBaseHierarchy', 'checkFullLayerTaxonomy', 'exportArchitectureInventory', 'exportRequirementTraceability', 'checkDomainGenerator', 'checkDomainCapabilityMatrix', 'checkGeneratorGoldenPath', 'checkGeneratorArbitraryDomainParity', 'checkDomainRemoval', 'checkRepositoryHygiene', 'checkSpringEventUsage', 'checkProfileLoading', 'checkRuntimeConfigStandard', 'checkLogManagementStandard', 'checkOpenApiSourceCoverage', 'checkSampleCoverage', 'checkEvidencePathExistence', 'checkDeployEnv', 'checkDeployInventory', 'checkPackagedDependencies', 'remoteDeployDryRun', 'checkReportMatrixEvidenceConsistency', 'checkWorkContextSha', 'admUiSmoke', 'admLogPolicyUiStaticSmoke', 'bzaUiSmoke', 'checkContractCompatibility', 'checkR13ProductHardening', 'checkAdminContactModel', 'checkBzaSafeDefaults', 'checkCpfStackSupport', 'checkAdminDataSafety', 'checkOfficialDbVendorReadiness', 'checkRuntimeQueryContracts'
+    dependsOn 'verifyCpfFinalSourceGates', 'verifyVersionConsistency', 'checkUtf8', 'checkMojibake', 'checkLegacyName', 'checkSqlStandard', 'checkSqlCanonical', 'checkJavaFormat', 'checkJava25Standard', 'checkDocumentLinks', 'checkTransactionIdStandard', 'checkSecuritySeedStandard', 'checkSampleStandard', 'checkCpfRequestProtection', 'checkFeatureEvidence', 'checkServiceCallBoundary', 'checkArchitectureOwnership', 'checkBaseHierarchy', 'checkFullLayerTaxonomy', 'exportArchitectureInventory', 'exportRequirementTraceability', 'checkDomainGenerator', 'checkDomainCapabilityMatrix', 'checkGeneratorGoldenPath', 'checkGeneratorArbitraryDomainParity', 'checkDomainRemoval', 'checkRepositoryHygiene', 'checkSpringEventUsage', 'checkProfileLoading', 'checkRuntimeConfigStandard', 'checkLogManagementStandard', 'checkOpenApiSourceCoverage', 'checkSampleCoverage', 'checkEvidencePathExistence', 'checkDeployEnv', 'checkDeployInventory', 'checkPackagedDependencies', 'remoteDeployDryRun', 'checkReportMatrixEvidenceConsistency', 'checkWorkContextSha', 'admUiSmoke', 'admLogPolicyUiStaticSmoke', 'bzaUiSmoke', 'checkContractCompatibility', 'checkR13ProductHardening', 'checkAdminContactModel', 'checkBzaSafeDefaults', 'checkCpfStackSupport', 'checkAdminDataSafety', 'checkOfficialDbVendorReadiness', 'checkRuntimeQueryContracts', 'checkQa39CanonicalStarterClosure', 'checkCpfProviderConformance'
 }
 
 

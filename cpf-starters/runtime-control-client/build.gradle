@@ -3,22 +3,10 @@ group = 'com.cpf.starter'
 dependencies {
     api project(':cpf-common')
     api project(':cpf-core')
-api project(':cpf-starter-http-client')
-implementation project(':cpf-starter-persistence-jdbc')
-implementation project(':cpf-starter-messaging-reliability-jdbc')
-implementation project(':cpf-starter-integration-sftp')
-implementation 'org.springframework.boot:spring-boot-starter-web'
-implementation 'org.springframework.boot:spring-boot-starter-jdbc'
-implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 tasks.named('test') { useJUnitPlatform() }
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            from components.java
-            artifactId = 'cpf-starter-runtime-control-client'
-        }
-    }
-}
-
+publishing { publications { mavenJava(MavenPublication) { from components.java; artifactId = 'cpf-starter-runtime-control-client' } } }

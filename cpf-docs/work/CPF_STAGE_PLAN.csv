@@ -1,15 +1,9 @@
-﻿stage,name,scope
-00,Truth and Precedence Reset,exact SHA; QA>self precedence; conflicting request replacement
-01,Final Starter Decision,complete remove/internalize/keep catalog freeze
-02,Build and Compile Blockers,RabbitMQ; catalog/settings/BOM/classpath/SCC
-03,6 Profiles and 7 Groups,public surface; generator resolved lock; consumer selection UX
-04,Generated Domain Standards and Exceptions,minimal mandatory inheritance; selected capabilities only; domain declarative external exception; convention/runtime fail-closed gates
-05,Deletion Inventory,exact paths; Core/API/consumer/config/test/docs/evidence work items
-06,Convenience Public APIs,business-intent APIs; standard result/tracking; OSS type hiding
-07,Extension SPIs,customer provider SPI; conformance testkits
-08,Consumer Migration,ADM/BZA/Gateway/Batch/Reference/Member/generated domains
-09,Runtime Reliability,Messaging/Notification/Scheduler/Data/Integration/File/Security/Operations
-10,Final Exact-path Deletion,reference zero; cleanup one-line; empty folders/stale evidence
-11,Full Verification,Java25/frontend/3DB/runtime/fault/browser/publication/supply-chain
-12,Developer Report and Self Review,file/line/requirement/commands/results/deletions/evidence/risks
-13,Codex and Root Overlay,review index/manifests/hashes/handover/final package
+﻿stage_id,sequence,stage,scope,owner,entry_condition,completion_condition,development_status,verification_status,evidence
+STG-01,1,Canonical baseline and conflict closure,"QA priority, canonical document paths, protected boundaries",QA Governance,source/doc exact SHA identified,one active human-readable canonical and no protected changes,완료,완료,PASS canonical path/protected-path gates
+STG-02,2,Public surface and build graph,"6 Profiles, 7 Groups, Settings/BOM/Catalog, consumer isolation",Build Foundation,Starter decisions fixed,"canonical parity, no cycles/reverse dependencies/duplicate consumer leaves",완료,완료,PASS canonical starter closure gate
+STG-03,3,Generator standard inheritance,"minimal default, selected-only providers, Java 25, resolved lock, upgrade preservation",Generator,canonical profile/capability policy available,Generated Domain policy and lock parity enforced,완료,재확인 필요,PASS static generator gate; PowerShell/Gradle fresh generation pending
+STG-04,4,Domain-side approved exceptions,"Convention build gate, runtime verifier, expiry/version/hash fail-closed",Core Policy,generated-domain contract defined,unapproved bypass blocked and approved declaration reproducible,완료,재확인 필요,source/unit tests and canonical gate; Java 25 Gradle/runtime pending
+STG-05,5,"Messaging, Notification and SFTP closure","named binding, lease/retry/DLQ/UNKNOWN/reconcile, receipt, path/secret/health",Capability Owners,ownership/API boundaries fixed,actual consumers and failure/recovery paths connected,완료,미검증,source/tests/SQL complete; live external runtime pending
+STG-06,6,Runtime-control and customer SPI,"owner appliers, no God Starter, public SPI conformance",Platform Operations,capability ownership fixed,no implementation reverse imports and customer fixture passes,완료,완료,PASS dependency graph and provider conformance gates
+STG-07,7,Deletion and repository hygiene,"exact path work items, references, stale workflow/docs, empty directories",Repository Hygiene,replacement paths connected,LiteralPath-only delete command and residual-reference gate,완료,재확인 필요,PASS 135-path delete gate; execution NOT_EXECUTED
+STG-08,8,"Evidence, Matrix and package","False Complete gate, manifests, hashes, Root Overlay ZIP, Codex sequence",Development Lead,source changes stabilized,all overlay files hashed and package independently reviewable,완료,완료,PASS Matrix/format/provider/canonical/package checks

@@ -1,0 +1,38 @@
+{
+  "lockVersion": "1.0",
+  "profile": "secure-api",
+  "platformVersion": "1.0.0-SNAPSHOT",
+  "resolvedStarters": [
+    "cpf-starter-profile-secure-api",
+    "cpf-starter-persistence-mybatis",
+    "cpf-starter-security-resource-server",
+    "cpf-starter-secret"
+  ],
+  "resolvedStarterVersions": {
+    "cpf-starter-profile-secure-api": "1.0.0-SNAPSHOT",
+    "cpf-starter-persistence-mybatis": "1.0.0-SNAPSHOT",
+    "cpf-starter-security-resource-server": "1.0.0-SNAPSHOT",
+    "cpf-starter-secret": "1.0.0-SNAPSHOT"
+  },
+  "capabilityGroups": [
+    "data",
+    "security"
+  ],
+  "providerBindings": {
+    "data": "mybatis",
+    "security-mode": "resource-server"
+  },
+  "providerProjects": [
+    ":cpf-starter-persistence-mybatis",
+    ":cpf-starter-security-resource-server",
+    ":cpf-starter-secret"
+  ],
+  "providerCoordinates": [
+    "com.cpf.starter:cpf-starter-persistence-mybatis",
+    "com.cpf.starter:cpf-starter-security-resource-server",
+    "com.cpf.starter:cpf-starter-secret"
+  ],
+  "targetEnvironment": "",
+  "exceptionRegistrySha256": "8cf6b91162b6e11afd9b41a7b4be16a361fb5f711c24e9c34248851c73eb32a0",
+  "approvedExceptions": []
+}

@@ -6,6 +6,8 @@ import org.springframework.jdbc.core.ColumnMapRowMapper;
 
 import java.sql.PreparedStatement;
 import java.sql.Timestamp;
+import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -21,41 +23,101 @@ import java.util.Map;
  * 관리자 replay 요청을 DB 기준으로 검증할 수 있게 하는 최소 운영 저장소입니다.</p>
  */
 public class JdbcCpfBrokerReliabilityRepository
-        implements CpfBrokerOutboxPort, CpfBrokerInboxPort, CpfBrokerDlqPort, CpfBrokerReplayPort, CpfBrokerIdempotencyPort {
+        implements CpfBrokerOutboxPort, CpfBrokerUnknownResultPort, CpfBrokerInboxPort, CpfBrokerDlqPort, CpfBrokerReplayPort, CpfBrokerIdempotencyPort {
     private final JdbcTemplate jdbcTemplate;
+    private final Duration claimLease;
+    private final Clock clock;
 
     public JdbcCpfBrokerReliabilityRepository(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
+        this(jdbcTemplate, Duration.ofSeconds(30), Clock.systemUTC());
+    }
+
+    public JdbcCpfBrokerReliabilityRepository(JdbcTemplate jdbcTemplate, Duration claimLease) {
+        this(jdbcTemplate, claimLease, Clock.systemUTC());
+    }
+
+    public JdbcCpfBrokerReliabilityRepository(
+            JdbcTemplate jdbcTemplate, Duration claimLease, Clock clock) {
+        this.jdbcTemplate = java.util.Objects.requireNonNull(jdbcTemplate, "jdbcTemplate");
+        if (claimLease == null || claimLease.isZero() || claimLease.isNegative()) {
+            throw new IllegalArgumentException("claimLease must be positive");
+        }
+        this.claimLease = claimLease;
+        this.clock = java.util.Objects.requireNonNull(clock, "clock");
     }
 
     @Override
     public CpfBrokerResult saveOutbox(CpfBrokerEnvelope envelope) {
-        int updated = updateOutboxAttributes(
-                envelope.message().messageId(),
-                encodeMap(envelope.attributes()));
-        if (updated == 0) {
-            try {
-                insertOutbox(envelope);
-            } catch (DuplicateKeyException duplicate) {
-                // 동시 등록은 기존 row를 갱신하되, 다른 unique key 충돌은 성공으로 숨기지 않습니다.
-                if (updateOutboxAttributes(
-                        envelope.message().messageId(),
-                        encodeMap(envelope.attributes())) != 1) {
-                    throw duplicate;
-                }
-            }
+        java.util.Objects.requireNonNull(envelope, "envelope");
+        java.util.Objects.requireNonNull(envelope.message(), "envelope.message");
+        List<Map<String, Object>> existing = findOutboxIdentity(envelope.message().messageId());
+        if (!existing.isEmpty()) {
+            assertSameOutboxEnvelope(existing.getFirst(), envelope);
+            return CpfBrokerResult.accepted(
+                    envelope.message().messageId(), "CPF_OUTBOX", envelope.message().key());
         }
-        return CpfBrokerResult.accepted(envelope.message().messageId(), "CPF_OUTBOX", envelope.message().key());
+        try {
+            insertOutbox(envelope);
+        } catch (DuplicateKeyException duplicate) {
+            // 동일 messageId의 동시 재요청만 멱등 성공으로 인정합니다.
+            // idempotency_key 등 다른 unique key 충돌은 성공으로 숨기지 않습니다.
+            existing = findOutboxIdentity(envelope.message().messageId());
+            if (existing.isEmpty()) {
+                throw duplicate;
+            }
+            assertSameOutboxEnvelope(existing.getFirst(), envelope);
+        }
+        return CpfBrokerResult.accepted(
+                envelope.message().messageId(), "CPF_OUTBOX", envelope.message().key());
     }
 
-    private int updateOutboxAttributes(String messageId, String attributes) {
-        return jdbcTemplate.update("""
-                UPDATE cpf_broker_outbox
-                SET attribute_json = ?,
-                    updated_by = 'CPF_BROKER',
-                    updated_at = CURRENT_TIMESTAMP
+    private List<Map<String, Object>> findOutboxIdentity(String messageId) {
+        return jdbcTemplate.queryForList("""
+                SELECT message_id AS messageId,
+                       topic,
+                       message_key AS messageKey,
+                       transaction_id AS transactionId,
+                       segment_id AS segmentId,
+                       producer_module AS producerModule,
+                       consumer_module AS consumerModule,
+                       idempotency_key AS idempotencyKey,
+                       payload,
+                       content_type AS contentType,
+                       header_json AS headerJson,
+                       attribute_json AS attributeJson,
+                       occurred_at AS occurredAt
+                FROM cpf_broker_outbox
                 WHERE message_id = ?
-                """, attributes, messageId);
+                """, messageId);
+    }
+
+    private void assertSameOutboxEnvelope(
+            Map<String, Object> row, CpfBrokerEnvelope envelope) {
+        CpfBrokerEnvelope stored = mapEnvelope(row);
+        boolean same = java.util.Objects.equals(stored.transactionId(), envelope.transactionId())
+                && java.util.Objects.equals(stored.segmentId(), envelope.segmentId())
+                && java.util.Objects.equals(stored.producerModule(), envelope.producerModule())
+                && java.util.Objects.equals(stored.consumerModule(), envelope.consumerModule())
+                && java.util.Objects.equals(stored.idempotencyKey(), envelope.idempotencyKey())
+                && sameInstant(stored.occurredAt(), envelope.occurredAt())
+                && java.util.Objects.equals(stored.attributes(), envelope.attributes())
+                && java.util.Objects.equals(stored.message().topic(), envelope.message().topic())
+                && java.util.Objects.equals(stored.message().key(), envelope.message().key())
+                && java.util.Arrays.equals(stored.message().payload(), envelope.message().payload())
+                && java.util.Objects.equals(stored.message().contentType(), envelope.message().contentType())
+                && java.util.Objects.equals(stored.message().headers(), envelope.message().headers());
+        if (!same) {
+            throw new IllegalStateException(
+                    "Broker outbox messageId idempotency conflict: " + envelope.message().messageId());
+        }
+    }
+
+    private boolean sameInstant(Instant left, Instant right) {
+        if (left == null || right == null) {
+            return left == right;
+        }
+        return left.truncatedTo(ChronoUnit.MILLIS)
+                .equals(right.truncatedTo(ChronoUnit.MILLIS));
     }
 
     private void insertOutbox(CpfBrokerEnvelope envelope) {
@@ -83,7 +145,7 @@ public class JdbcCpfBrokerReliabilityRepository
 
     @Override
     public List<CpfBrokerEnvelope> claimPending(String workerId, int limit) {
-        Instant now = Instant.now();
+        Instant now = Instant.now(clock);
         jdbcTemplate.update("""
                 UPDATE cpf_broker_outbox
                 SET outbox_status = 'PENDING',
@@ -116,7 +178,7 @@ public class JdbcCpfBrokerReliabilityRepository
                 """, List.of(Timestamp.from(now)), limit);
         List<CpfBrokerEnvelope> claimed = new ArrayList<>(rows.size());
         for (Map<String, Object> row : rows) {
-            Instant claimedAt = Instant.now();
+            Instant claimedAt = Instant.now(clock);
             int updated = jdbcTemplate.update("""
                     UPDATE cpf_broker_outbox
                     SET outbox_status = 'CLAIMED',
@@ -131,7 +193,7 @@ public class JdbcCpfBrokerReliabilityRepository
                     """,
                     workerId,
                     Timestamp.from(claimedAt),
-                    Timestamp.from(claimedAt.plus(30, ChronoUnit.SECONDS)),
+                    Timestamp.from(claimedAt.plus(claimLease)),
                     string(row, "messageId"),
                     Timestamp.from(claimedAt));
             if (updated == 1) {
@@ -139,6 +201,105 @@ public class JdbcCpfBrokerReliabilityRepository
             }
         }
         return List.copyOf(claimed);
+    }
+
+    @Override
+    public void markUnknown(String messageId, CpfBrokerResult result, Instant nextReconcileAt) {
+        int updated = jdbcTemplate.update("""
+                UPDATE cpf_broker_outbox
+                SET outbox_status = 'UNKNOWN',
+                    next_attempt_at = ?,
+                    worker_id = NULL,
+                    claimed_at = NULL,
+                    lease_until = NULL,
+                    broker_name = ?,
+                    failure_message = ?,
+                    updated_by = 'CPF_BROKER_RECONCILE',
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE message_id = ? AND outbox_status = 'CLAIMED'
+                """, timestamp(nextReconcileAt), result.brokerName(), result.detail(), messageId);
+        if (updated != 1) throw new IllegalStateException("Broker UNKNOWN 상태 동시 변경: " + messageId);
+    }
+
+    @Override
+    public List<CpfBrokerEnvelope> claimUnknown(String workerId, int limit) {
+        if (workerId == null || workerId.isBlank()) {
+            throw new IllegalArgumentException("workerId is required");
+        }
+        Instant now = Instant.now(clock);
+        jdbcTemplate.update("""
+                UPDATE cpf_broker_outbox
+                SET outbox_status = 'UNKNOWN',
+                    worker_id = NULL,
+                    claimed_at = NULL,
+                    lease_until = NULL,
+                    updated_by = 'CPF_BROKER_RECOVERY',
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE outbox_status = 'CLAIMED_UNKNOWN'
+                  AND lease_until <= ?
+                """, timestamp(now));
+        List<Map<String, Object>> rows = queryForListLimited("""
+                SELECT message_id AS messageId,
+                       topic,
+                       message_key AS messageKey,
+                       transaction_id AS transactionId,
+                       segment_id AS segmentId,
+                       producer_module AS producerModule,
+                       consumer_module AS consumerModule,
+                       idempotency_key AS idempotencyKey,
+                       payload,
+                       content_type AS contentType,
+                       header_json AS headerJson,
+                       attribute_json AS attributeJson,
+                       occurred_at AS occurredAt
+                FROM cpf_broker_outbox
+                WHERE outbox_status = 'UNKNOWN'
+                  AND next_attempt_at IS NOT NULL
+                  AND next_attempt_at <= ?
+                ORDER BY outbox_id
+                """, List.of(timestamp(now)), limit);
+        List<CpfBrokerEnvelope> claimed = new ArrayList<>();
+        for (Map<String, Object> row : rows) {
+            Instant claimedAt = Instant.now(clock);
+            int updated = jdbcTemplate.update("""
+                    UPDATE cpf_broker_outbox
+                    SET outbox_status = 'CLAIMED_UNKNOWN',
+                        worker_id = ?,
+                        claimed_at = ?,
+                        lease_until = ?,
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE message_id = ?
+                      AND outbox_status = 'UNKNOWN'
+                      AND next_attempt_at IS NOT NULL
+                      AND next_attempt_at <= ?
+                    """, workerId, timestamp(claimedAt), timestamp(claimedAt.plus(claimLease)),
+                    string(row, "messageId"), timestamp(claimedAt));
+            if (updated == 1) {
+                claimed.add(mapEnvelope(row));
+            }
+        }
+        return List.copyOf(claimed);
+    }
+
+    @Override
+    public void releaseUnknown(String messageId, String detail, Instant nextReconcileAt) {
+        int updated = jdbcTemplate.update("""
+                UPDATE cpf_broker_outbox
+                SET outbox_status = 'UNKNOWN',
+                    next_attempt_at = ?,
+                    worker_id = NULL,
+                    claimed_at = NULL,
+                    lease_until = NULL,
+                    failure_message = ?,
+                    updated_by = 'CPF_BROKER_RECONCILE',
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE message_id = ?
+                  AND outbox_status = 'CLAIMED_UNKNOWN'
+                """, timestamp(nextReconcileAt), detail, messageId);
+        if (updated != 1) {
+            throw new IllegalStateException(
+                    "Broker UNKNOWN reconcile 상태 동시 변경: " + messageId);
+        }
     }
 
     @Override
@@ -161,7 +322,7 @@ public class JdbcCpfBrokerReliabilityRepository
         String nextStatus = published
                 ? "PUBLISHED"
                 : (nextAttempt >= maxAttempts ? "FAILED" : "PENDING");
-        Instant processedAt = result.processedAt() == null ? Instant.now() : result.processedAt();
+        Instant processedAt = result.processedAt() == null ? Instant.now(clock) : result.processedAt();
         Timestamp nextAttemptAt = !published && nextAttempt < maxAttempts
                 ? Timestamp.from(processedAt.plusSeconds(retryDelaySeconds(previousAttempt)))
                 : null;
@@ -171,6 +332,7 @@ public class JdbcCpfBrokerReliabilityRepository
                     outbox_status = ?,
                     next_attempt_at = ?,
                     worker_id = NULL,
+                    claimed_at = NULL,
                     lease_until = NULL,
                     broker_name = ?,
                     partition_key = ?,
@@ -243,7 +405,7 @@ public class JdbcCpfBrokerReliabilityRepository
 
     @Override
     public void markConsumed(String messageId, CpfBrokerResult result) {
-        Instant processedAt = result.processedAt() == null ? Instant.now() : result.processedAt();
+        Instant processedAt = result.processedAt() == null ? Instant.now(clock) : result.processedAt();
         jdbcTemplate.update("""
                 UPDATE cpf_broker_inbox
                 SET inbox_status = ?,
@@ -467,12 +629,14 @@ public class JdbcCpfBrokerReliabilityRepository
         if (values == null || values.isEmpty()) {
             return "";
         }
-        StringBuilder builder = new StringBuilder();
-        values.forEach((key, value) -> builder
-                .append(key == null ? "" : key.replace("\n", " "))
-                .append('=')
-                .append(value == null ? "" : value.replace("\n", " "))
-                .append('\n'));
+        StringBuilder builder = new StringBuilder("v2\n");
+        values.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey(java.util.Comparator.nullsFirst(String::compareTo)))
+                .forEach(entry -> builder
+                        .append(encodeToken(entry.getKey()))
+                        .append('=')
+                        .append(encodeToken(entry.getValue()))
+                        .append('\n'));
         return builder.toString();
     }
 
@@ -481,15 +645,31 @@ public class JdbcCpfBrokerReliabilityRepository
             return Map.of();
         }
         Map<String, String> values = new LinkedHashMap<>();
-        Arrays.stream(encoded.split("\\R"))
+        boolean version2 = encoded.startsWith("v2\n");
+        String body = version2 ? encoded.substring(3) : encoded;
+        Arrays.stream(body.split("\\R"))
                 .filter(line -> !line.isBlank())
                 .forEach(line -> {
                     int index = line.indexOf('=');
-                    if (index > 0) {
-                        values.put(line.substring(0, index), line.substring(index + 1));
+                    if (index >= 0) {
+                        String key = line.substring(0, index);
+                        String value = line.substring(index + 1);
+                        values.put(version2 ? decodeToken(key) : key,
+                                version2 ? decodeToken(value) : value);
                     }
                 });
-        return values;
+        return Map.copyOf(values);
+    }
+
+    private String encodeToken(String value) {
+        String normalized = value == null ? "" : value;
+        return java.util.Base64.getUrlEncoder().withoutPadding()
+                .encodeToString(normalized.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+    }
+
+    private String decodeToken(String value) {
+        return new String(java.util.Base64.getUrlDecoder().decode(value),
+                java.nio.charset.StandardCharsets.UTF_8);
     }
 
     private byte[] bytes(Object value) {

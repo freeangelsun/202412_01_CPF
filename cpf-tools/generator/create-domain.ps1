@@ -12,9 +12,9 @@ param(
     [ValidateRange(1024, 65535)]
     [int] $Port = 8080,
     [ValidateSet("Y", "N")]
-    [string] $Online = "Y",
+    [string] $Online = "N",
     [ValidateSet("Y", "N")]
-    [string] $Database = "Y",
+    [string] $Database = "N",
     [Alias("DbVendor")]
     [ValidateSet("mariadb", "postgresql", "oracle")]
     [string] $DatabaseVendor = "mariadb",
@@ -29,9 +29,12 @@ param(
     [ValidateSet("root-project", "published-artifact")]
     [string] $DependencyModel = "root-project",
     [string] $PlatformVersion = "1.0.0-SNAPSHOT",
-    [string] $CapabilityProfile = "MINIMAL_BOOT_DOMAIN",
+    [string] $CapabilityProfile = "minimal-domain",
     [string] $ProviderBindings = "",
     [string] $Capabilities = "",
+    [string] $ApprovedExceptionRegistry = "",
+    [string] $TargetEnvironment = "",
+    [string] $UpgradeSourceDomainPath = "",
     [ValidateSet("Y", "N")]
     [string] $Batch = "N",
     [ValidateSet("Y", "N")]
@@ -213,25 +216,87 @@ function New-StatusText {
 
 
 $capabilityProfileCatalogPath = Join-Path $Root "cpf-tools/generator/contracts/capability-profiles.json"
-if (-not (Test-Path -LiteralPath $capabilityProfileCatalogPath -PathType Leaf)) { throw "CPF Capability Profile 정본이 없습니다: $capabilityProfileCatalogPath" }
+if (-not (Test-Path -LiteralPath $capabilityProfileCatalogPath -PathType Leaf)) {
+    throw "CPF Capability Profile 정본이 없습니다: $capabilityProfileCatalogPath"
+}
 $capabilityProfileCatalog = Get-Content -LiteralPath $capabilityProfileCatalogPath -Raw -Encoding UTF8 | ConvertFrom-Json
-$resolvedCapabilityProfile = @($capabilityProfileCatalog.profiles | Where-Object { [string]$_.profileId -eq $CapabilityProfile })
-if ($resolvedCapabilityProfile.Count -ne 1) { throw "지원하지 않거나 중복된 CapabilityProfile입니다: $CapabilityProfile" }
+$starterCatalogPath = Join-Path $Root "cpf-tools/generator/contracts/cpf-starter-catalog.json"
+if (-not (Test-Path -LiteralPath $starterCatalogPath -PathType Leaf)) {
+    throw "CPF Starter Catalog 정본이 없습니다: $starterCatalogPath"
+}
+$starterCatalog = Get-Content -LiteralPath $starterCatalogPath -Raw -Encoding UTF8 | ConvertFrom-Json
+$requiredPublicProfiles = @("minimal-domain", "web-api", "secure-api", "browser-bff", "event-service", "batch-service")
+$requiredCapabilityGroups = @("data", "messaging", "integration", "file", "notification", "security", "platform-operations")
+$catalogPublicProfiles = @($starterCatalog.publicProfiles | ForEach-Object { [string]$_ })
+$catalogCapabilityGroups = @($starterCatalog.capabilityGroups | ForEach-Object { [string]$_.id })
+if (($catalogPublicProfiles -join ',') -ne ($requiredPublicProfiles -join ',')) {
+    throw "CPF 공개 Profile 정본이 QA39 6개 Profile과 일치하지 않습니다: $($catalogPublicProfiles -join ',')"
+}
+if (($catalogCapabilityGroups -join ',') -ne ($requiredCapabilityGroups -join ',')) {
+    throw "CPF Capability Group 정본이 QA39 7개 Group과 일치하지 않습니다: $($catalogCapabilityGroups -join ',')"
+}
+$profileSelector = $CapabilityProfile.Trim()
+$profileSelectorNormalized = $profileSelector.Replace('_', '-').ToLowerInvariant()
+$resolvedCapabilityProfile = @($capabilityProfileCatalog.profiles | Where-Object {
+    ([string]$_.profileId).Equals($profileSelector, [StringComparison]::OrdinalIgnoreCase) -or
+    ([string]$_.publicName).Equals($profileSelectorNormalized, [StringComparison]::OrdinalIgnoreCase)
+})
+if ($resolvedCapabilityProfile.Count -ne 1) {
+    throw "지원하지 않거나 중복된 CapabilityProfile입니다: $CapabilityProfile. 지원값=$($requiredPublicProfiles -join ',')"
+}
 $resolvedCapabilityProfile = $resolvedCapabilityProfile[0]
+$CapabilityProfile = [string]$resolvedCapabilityProfile.publicName
 $resolvedStarters = @($resolvedCapabilityProfile.resolvedStarters | ForEach-Object { [string]$_ })
-if ($resolvedStarters.Count -eq 0) { throw "CapabilityProfile에 resolvedStarters가 없습니다: $CapabilityProfile" }
+if ($resolvedStarters.Count -eq 0) {
+    throw "CapabilityProfile에 resolvedStarters가 없습니다: $CapabilityProfile"
+}
 $resolvedProviderBindings = [ordered]@{}
+$resolvedProviderProjects = [System.Collections.Generic.List[string]]::new()
+$resolvedProviderCoordinates = [System.Collections.Generic.List[string]]::new()
 if (-not [string]::IsNullOrWhiteSpace($ProviderBindings)) {
     foreach ($pair in ($ProviderBindings -split ',')) {
-        $parts = $pair.Split('=',2)
-        if ($parts.Count -ne 2 -or [string]::IsNullOrWhiteSpace($parts[0]) -or [string]::IsNullOrWhiteSpace($parts[1])) { throw "ProviderBindings 형식은 capability=provider[,..] 입니다: $pair" }
-        $capability = $parts[0].Trim().ToLowerInvariant(); $provider = $parts[1].Trim().ToLowerInvariant()
-        if ($resolvedProviderBindings.Contains($capability)) { throw "Provider Binding 중복: $capability" }
-        $allowed = @($resolvedCapabilityProfile.allowedProviderBindings.$capability | ForEach-Object { [string]$_ })
-        if ($allowed.Count -gt 0 -and $allowed -notcontains $provider) { throw "Profile에서 허용하지 않는 Provider Binding: $capability=$provider" }
+        $parts = $pair.Split('=', 2)
+        if ($parts.Count -ne 2 -or [string]::IsNullOrWhiteSpace($parts[0]) -or [string]::IsNullOrWhiteSpace($parts[1])) {
+            throw "ProviderBindings 형식은 capability=provider[,..] 입니다: $pair"
+        }
+        $capability = $parts[0].Trim().ToLowerInvariant()
+        $provider = $parts[1].Trim().ToLowerInvariant()
+        if ($resolvedProviderBindings.Contains($capability)) {
+            throw "Provider Binding 중복: $capability"
+        }
+        $allowedProperty = $resolvedCapabilityProfile.allowedProviderBindings.PSObject.Properties[$capability]
+        if ($null -eq $allowedProperty) {
+            throw "Profile에서 지원하지 않는 Provider Binding slot입니다: $capability"
+        }
+        $allowed = @($allowedProperty.Value | ForEach-Object { [string]$_ })
+        if ($allowed -notcontains $provider) {
+            throw "Profile에서 허용하지 않는 Provider Binding: $capability=$provider"
+        }
+        $slotProperty = $capabilityProfileCatalog.providerSlots.PSObject.Properties[$capability]
+        if ($null -eq $slotProperty) {
+            throw "Provider slot 정본이 없습니다: $capability"
+        }
+        $providerProperty = $slotProperty.Value.PSObject.Properties[$provider]
+        if ($null -eq $providerProperty) {
+            throw "Provider 정본이 없습니다: $capability=$provider"
+        }
+        $projectPath = [string]$providerProperty.Value.projectPath
+        $coordinate = [string]$providerProperty.Value.coordinate
+        if ([string]::IsNullOrWhiteSpace($projectPath) -or [string]::IsNullOrWhiteSpace($coordinate)) {
+            throw "Provider dependency 정본이 유효하지 않습니다: $capability=$provider"
+        }
         $resolvedProviderBindings[$capability] = $provider
+        $resolvedProviderProjects.Add($projectPath)
+        $resolvedProviderCoordinates.Add($coordinate)
+        $resolvedStarters += $coordinate.Substring($coordinate.LastIndexOf(':') + 1)
     }
 }
+$requiredProviderBindings = @($resolvedCapabilityProfile.requiredProviderBindings | ForEach-Object { [string]$_ })
+$missingProviderBindings = @($requiredProviderBindings | Where-Object { -not $resolvedProviderBindings.Contains($_) })
+if ($missingProviderBindings.Count -gt 0) {
+    throw "Profile에 필수 Provider Binding이 없습니다: $($missingProviderBindings -join ',')"
+}
+$resolvedStarters = @($resolvedStarters | Sort-Object -Unique)
 
 $StatusDone = New-StatusText @(0xC644, 0xB8CC)
 $StatusFailed = New-StatusText @(0xC2E4, 0xD328)
@@ -266,6 +331,68 @@ function Write-Utf8 {
     [System.IO.File]::WriteAllText($Path, $Content, $Utf8NoBom)
 }
 
+function Get-Sha256Hex {
+    param([byte[]] $Bytes)
+    $sha = [System.Security.Cryptography.SHA256]::Create()
+    try {
+        return ([BitConverter]::ToString($sha.ComputeHash($Bytes))).Replace('-', '').ToLowerInvariant()
+    } finally {
+        $sha.Dispose()
+    }
+}
+
+function Get-ApprovedExceptionConfigHash {
+    param(
+        [pscustomobject] $Row,
+        [string] $RegistryRoot
+    )
+    $hashFields = @(
+        'exception_id','module','capability','artifact','version','owner','reason',
+        'standard_path_gap','environments','security_impact','license_review',
+        'supply_chain_review','operations_responsibility','approved_by','approved_at',
+        'expires_at','rollback','return_plan','rule_ids','config_files','evidence_path','status'
+    )
+    $buffer = [IO.MemoryStream]::new()
+    try {
+        $canonical = @($hashFields | ForEach-Object {
+            ([string]$Row.$_).Trim().Replace("`r`n", "`n").Replace("`r", "`n")
+        }) -join [char]31
+        $metadata = $Utf8NoBom.GetBytes($canonical)
+        $buffer.Write($metadata, 0, $metadata.Length)
+        $buffer.WriteByte(0)
+        foreach ($relativeValue in @(([string]$Row.config_files) -split ';' | ForEach-Object { $_.Trim() } | Where-Object { $_ } | Sort-Object -Unique)) {
+            if ([IO.Path]::IsPathRooted($relativeValue) -or $relativeValue -match '(^|[\\/])\.\.([\\/]|$)') {
+                throw "승인 예외 Config 경로는 Registry 상대경로여야 합니다: $relativeValue"
+            }
+            $source = [IO.Path]::GetFullPath((Join-Path $RegistryRoot $relativeValue))
+            $registryFull = [IO.Path]::GetFullPath($RegistryRoot).TrimEnd('\\','/') + [IO.Path]::DirectorySeparatorChar
+            if (-not $source.StartsWith($registryFull, [StringComparison]::OrdinalIgnoreCase) -or
+                    -not (Test-Path -LiteralPath $source -PathType Leaf)) {
+                throw "승인 예외 Config가 Registry 범위 안에 존재하지 않습니다: $relativeValue"
+            }
+            $pathBytes = $Utf8NoBom.GetBytes($relativeValue.Replace('\\','/'))
+            $contentBytes = [IO.File]::ReadAllBytes($source)
+            $buffer.Write($pathBytes, 0, $pathBytes.Length)
+            $buffer.WriteByte(0)
+            $buffer.Write($contentBytes, 0, $contentBytes.Length)
+            $buffer.WriteByte(0)
+        }
+        return Get-Sha256Hex -Bytes $buffer.ToArray()
+    } finally {
+        $buffer.Dispose()
+    }
+}
+
+function ConvertTo-CsvCell {
+    param([string] $Value)
+    if ($null -eq $Value) { return '' }
+    $escaped = $Value.Replace('"', '""')
+    if ($escaped.Contains(',') -or $escaped.Contains('"') -or $escaped.Contains("`n") -or $escaped.Contains("`r")) {
+        return '"' + $escaped + '"'
+    }
+    return $escaped
+}
+
 function Test-TextExists {
     param(
         [string] $Path,
@@ -281,6 +408,112 @@ function Test-TextExists {
 $requestedDomainName = if ([string]::IsNullOrWhiteSpace($DomainName)) { $ModuleCode } else { $DomainName }
 $module = Normalize-DomainName $requestedDomainName
 $projectName = "cpf-$module"
+
+$approvedExceptionFields = @(
+    'exception_id','module','capability','artifact','version','owner','reason',
+    'standard_path_gap','environments','security_impact','license_review',
+    'supply_chain_review','operations_responsibility','approved_by','approved_at',
+    'expires_at','rollback','return_plan','rule_ids','config_files','evidence_path','status','config_hash'
+)
+$approvedExceptionRows = @()
+$approvedExceptionEvidenceFiles = [ordered]@{}
+$approvedExceptionConfigFiles = [ordered]@{}
+$approvedExceptionCsv = ($approvedExceptionFields -join ',') + "`n"
+if (-not [string]::IsNullOrWhiteSpace($ApprovedExceptionRegistry)) {
+    $approvedExceptionRegistryPath = if ([IO.Path]::IsPathRooted($ApprovedExceptionRegistry)) {
+        [IO.Path]::GetFullPath($ApprovedExceptionRegistry)
+    } else {
+        [IO.Path]::GetFullPath((Join-Path $Root $ApprovedExceptionRegistry))
+    }
+    if (-not (Test-Path -LiteralPath $approvedExceptionRegistryPath -PathType Leaf)) {
+        throw "승인 예외 Registry가 없습니다: $approvedExceptionRegistryPath"
+    }
+    $registryHeader = @((Get-Content -LiteralPath $approvedExceptionRegistryPath -Encoding UTF8 -TotalCount 1).TrimStart([char]0xFEFF).Split(','))
+    if (($registryHeader -join ',') -ne ($approvedExceptionFields -join ',')) {
+        throw "승인 예외 Registry Header가 CPF 정본과 일치하지 않습니다."
+    }
+    $registryRoot = Split-Path -Parent $approvedExceptionRegistryPath
+    $seenExceptionIds = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+    foreach ($row in @(Import-Csv -LiteralPath $approvedExceptionRegistryPath -Encoding UTF8)) {
+        foreach ($field in $approvedExceptionFields) {
+            if ([string]::IsNullOrWhiteSpace([string]$row.$field)) {
+                throw "승인 예외 필드가 비어 있습니다: field=$field, exception=$($row.exception_id)"
+            }
+        }
+        if (-not $seenExceptionIds.Add([string]$row.exception_id)) {
+            throw "승인 예외 ID가 중복되었습니다: $($row.exception_id)"
+        }
+        if ([string]$row.module -notin @($projectName, $module)) {
+            throw "승인 예외 module이 생성 Domain과 일치하지 않습니다: $($row.exception_id), module=$($row.module)"
+        }
+        if ([string]$row.capability -notin @('data','messaging','integration','file','notification','security','platform-operations')) {
+            throw "승인 예외 Capability가 유효하지 않습니다: $($row.exception_id), capability=$($row.capability)"
+        }
+        if ([string]$row.artifact -notmatch '^[A-Za-z0-9_.-]+:[A-Za-z0-9_.-]+$') {
+            throw "승인 예외 Artifact는 group:name 정확한 좌표여야 합니다: $($row.exception_id)"
+        }
+        if ([string]$row.status -cne 'APPROVED') {
+            throw "승인 예외 상태가 APPROVED가 아닙니다: $($row.exception_id)"
+        }
+        $approvedAt = [DateTimeOffset]::Parse([string]$row.approved_at)
+        $expiresAt = [DateTimeOffset]::Parse([string]$row.expires_at)
+        if ($approvedAt -gt [DateTimeOffset]::UtcNow -or $expiresAt -le [DateTimeOffset]::UtcNow) {
+            throw "승인 예외 승인시각 또는 만료일이 유효하지 않습니다: $($row.exception_id)"
+        }
+        $ruleIds = @(([string]$row.rule_ids) -split ';' | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+        $configFiles = @(([string]$row.config_files) -split ';' | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+        if ($ruleIds.Count -eq 0 -or $configFiles.Count -eq 0) {
+            throw "승인 예외 rule_ids/config_files가 비어 있습니다: $($row.exception_id)"
+        }
+        foreach ($configRelative in $configFiles) {
+            $normalizedConfigRelative = $configRelative.Replace('\\','/')
+            if (-not $normalizedConfigRelative.StartsWith('src/main/resources/', [StringComparison]::Ordinal) -or
+                    [IO.Path]::IsPathRooted($configRelative) -or $configRelative -match '(^|[\\/])\.\.([\\/]|$)') {
+                throw "승인 예외 Config는 이용 Domain의 src/main/resources 아래 상대경로여야 합니다: $configRelative"
+            }
+            $configSource = [IO.Path]::GetFullPath((Join-Path $registryRoot $configRelative))
+            $registryFull = [IO.Path]::GetFullPath($registryRoot).TrimEnd('\\','/') + [IO.Path]::DirectorySeparatorChar
+            if (-not $configSource.StartsWith($registryFull, [StringComparison]::OrdinalIgnoreCase) -or
+                    -not (Test-Path -LiteralPath $configSource -PathType Leaf)) {
+                throw "승인 예외 Config가 Registry 범위 안에 존재하지 않습니다: $configRelative"
+            }
+            $approvedExceptionConfigFiles[$configRelative.Replace('\\','/')] = $configSource
+        }
+        $calculatedHash = Get-ApprovedExceptionConfigHash -Row $row -RegistryRoot $registryRoot
+        if ($calculatedHash -cne ([string]$row.config_hash).ToLowerInvariant()) {
+            throw "승인 예외 Config Hash가 일치하지 않습니다: $($row.exception_id)"
+        }
+        $evidenceSource = [IO.Path]::GetFullPath((Join-Path $registryRoot ([string]$row.evidence_path)))
+        if (-not $evidenceSource.StartsWith([IO.Path]::GetFullPath($registryRoot), [StringComparison]::OrdinalIgnoreCase) -or
+                -not (Test-Path -LiteralPath $evidenceSource -PathType Leaf)) {
+            throw "승인 예외 Evidence가 Registry 범위 안에 존재하지 않습니다: $($row.exception_id)"
+        }
+        $approvedExceptionEvidenceFiles[([string]$row.evidence_path).Replace('\\','/')] = Get-Content -LiteralPath $evidenceSource -Raw -Encoding UTF8
+        $approvedExceptionRows += $row
+    }
+    $csvLines = [System.Collections.Generic.List[string]]::new()
+    [void]$csvLines.Add(($approvedExceptionFields -join ','))
+    foreach ($row in $approvedExceptionRows) {
+        [void]$csvLines.Add((@($approvedExceptionFields | ForEach-Object { ConvertTo-CsvCell ([string]$row.$_) }) -join ','))
+    }
+    $approvedExceptionCsv = ($csvLines -join "`n") + "`n"
+}
+$TargetEnvironment = $TargetEnvironment.Trim()
+if ($approvedExceptionRows.Count -gt 0) {
+    if ([string]::IsNullOrWhiteSpace($TargetEnvironment) -or
+            $TargetEnvironment -notmatch '^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$') {
+        throw "승인 예외가 있으면 TargetEnvironment를 명시해야 합니다."
+    }
+    foreach ($exception in $approvedExceptionRows) {
+        $allowedEnvironments = @(([string]$exception.environments) -split ';' |
+                ForEach-Object { $_.Trim() } | Where-Object { $_ })
+        if ($TargetEnvironment -notin $allowedEnvironments) {
+            throw "TargetEnvironment가 승인 예외 범위를 벗어났습니다: exception=$($exception.exception_id), target=$TargetEnvironment"
+        }
+    }
+} elseif (-not [string]::IsNullOrWhiteSpace($TargetEnvironment)) {
+    throw "TargetEnvironment는 승인 예외 Registry가 있을 때만 지정합니다."
+}
 $Dollar = '$'
 if ([string]::IsNullOrWhiteSpace($SystemCode)) {
     $SystemCode = $DomainIdCode
@@ -412,33 +645,148 @@ if ([string]::IsNullOrWhiteSpace($PlatformVersion) -or
 if ($ProvisionDatabase -and -not $Apply) {
     throw "DB 실제 생성은 Repository에 생성 결과를 반영하는 -Apply와 함께 사용해야 합니다."
 }
-if ($ProvisionDatabase -and -not $DatabaseEnabled) {
-    throw "ProvisionDatabase는 Database capability가 활성화된 Domain에서만 사용할 수 있습니다."
-}
+# ProvisionDatabase의 Data 활성 여부 검증은 Profile·Capability·legacy flag를 모두 해석한 뒤 수행합니다.
 
-# Golden Generated Domain 기본값은 최소 업무 골격입니다.
-# Online + Database + Local Call만 기본으로 두고 External/Batch/Messaging/File/UI/전용 Security Guard는
-# 명시 capability로 요청할 때만 생성합니다. 표준 Header/transactionId/공통 Security/Audit는
-# cpf-core/cpf-common의 공통 Filter/AOP를 사용하며 Domain마다 중복 Source를 만들지 않습니다.
-# Capabilities를 명시하면 선택형 기능은 목록에 포함된 항목만 생성합니다.
-# online과 local-call은 기본 골격이므로 기존 Online 입력과 DB/in-memory adapter 정책을 유지합니다.
+# QA39 공개 생성 입력은 6개 Profile과 7개 Capability Group뿐입니다.
+# Capabilities 미지정 시 Profile 필수 기능만 조립하며 Provider Leaf는 자동 선택하지 않습니다.
+$publicCapabilityGroups = @("data", "messaging", "integration", "file", "notification", "security", "platform-operations")
+$providerSlotToGroup = @{
+    'data' = 'data'; 'cache' = 'data'; 'messaging' = 'messaging';
+    'integration-transport' = 'integration'; 'integration-codec' = 'integration';
+    'file' = 'file'; 'notification' = 'notification'; 'observability' = 'platform-operations';
+    'security-mode' = 'security'
+}
+$requestedCapabilityGroups = @()
 if (-not [string]::IsNullOrWhiteSpace($Capabilities)) {
-    $requestedCapabilities = @($Capabilities -split '[,; ]+' |
+    $requestedCapabilityGroups = @($Capabilities -split '[,; ]+' |
             Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
             ForEach-Object { $_.Trim().ToLowerInvariant() } |
             Sort-Object -Unique)
-    $unknownCapabilities = @($requestedCapabilities | Where-Object { $_ -notin $supportedCapabilities })
-    if ($unknownCapabilities.Count -gt 0) {
-        throw "지원하지 않는 capability가 있습니다: $($unknownCapabilities -join ', ')"
+    $unknownCapabilityGroups = @($requestedCapabilityGroups | Where-Object { $_ -notin $publicCapabilityGroups })
+    if ($unknownCapabilityGroups.Count -gt 0) {
+        throw "지원하지 않는 공개 Capability Group입니다: $($unknownCapabilityGroups -join ', '). 지원값=$($publicCapabilityGroups -join ',')"
     }
-    $DatabaseEnabled = 'database' -in $requestedCapabilities
-    $BatchEnabled = 'batch' -in $requestedCapabilities
-    $CenterCutEnabled = 'center-cut' -in $requestedCapabilities
-    $ExternalEnabled = ('external' -in $requestedCapabilities) -or ('remote-call' -in $requestedCapabilities)
-    $MessagingEnabled = 'messaging' -in $requestedCapabilities
-    $FileEnabled = 'file' -in $requestedCapabilities
-    $UiEnabled = 'ui' -in $requestedCapabilities
-    $SecurityAuditEnabled = ('security' -in $requestedCapabilities) -or ('audit' -in $requestedCapabilities)
+}
+# 이전 Generator 입력은 호환성 경로일 뿐 별도 구현 경로가 아닙니다.
+# legacy flag도 동일한 공개 Capability 정본으로 변환하여 Provider·Lock·Gate 정책을 반드시 공유합니다.
+$legacyCapabilityGroups = @()
+if ($DatabaseEnabled) { $legacyCapabilityGroups += 'data' }
+if ($MessagingEnabled) { $legacyCapabilityGroups += 'messaging' }
+if ($ExternalEnabled) { $legacyCapabilityGroups += 'integration' }
+if ($FileEnabled) { $legacyCapabilityGroups += 'file' }
+if ($SecurityAuditEnabled) { $legacyCapabilityGroups += 'security' }
+$requestedCapabilityGroups = @($requestedCapabilityGroups + $legacyCapabilityGroups | Sort-Object -Unique)
+$mandatoryCapabilityGroups = @($resolvedCapabilityProfile.mandatoryCapabilityGroups | ForEach-Object { [string]$_ })
+$allowedCapabilityGroups = @($resolvedCapabilityProfile.allowedCapabilityGroups | ForEach-Object { [string]$_ })
+$disallowedCapabilityGroups = @($requestedCapabilityGroups | Where-Object { $_ -notin $allowedCapabilityGroups })
+if ($disallowedCapabilityGroups.Count -gt 0) {
+    throw "Profile에서 허용하지 않는 Capability Group입니다: $($disallowedCapabilityGroups -join ',')"
+}
+$resolvedCapabilityGroups = @($mandatoryCapabilityGroups + $requestedCapabilityGroups | Sort-Object -Unique)
+
+# Capability 간 선행 의존성은 동일 Canonical Catalog에서 계산합니다.
+# 예: Messaging/Notification/Platform Operations의 영속 원장은 Data Capability를 요구합니다.
+do {
+    $capabilityExpanded = $false
+    foreach ($group in @($resolvedCapabilityGroups)) {
+        $compositionProperty = $capabilityProfileCatalog.capabilityComposition.PSObject.Properties[$group]
+        if ($null -eq $compositionProperty) {
+            throw "Capability Composition 정본이 없습니다: $group"
+        }
+        foreach ($requiredCapability in @($compositionProperty.Value.requiresCapabilities | ForEach-Object { [string]$_ })) {
+            if ($requiredCapability -notin $resolvedCapabilityGroups) {
+                $resolvedCapabilityGroups = @($resolvedCapabilityGroups + $requiredCapability | Sort-Object -Unique)
+                $capabilityExpanded = $true
+            }
+        }
+    }
+} while ($capabilityExpanded)
+
+# Profile이 내장하는 상호 배타 Provider는 lock에 기록하되 사용자가 다시 선택하지 않게 기본 binding으로 해석합니다.
+foreach ($defaultBinding in @($resolvedCapabilityProfile.defaultProviderBindings.PSObject.Properties)) {
+    $slot = [string]$defaultBinding.Name
+    $provider = [string]$defaultBinding.Value
+    $requiredGroup = [string]$providerSlotToGroup[$slot]
+    if ($requiredGroup -notin $resolvedCapabilityGroups -or $resolvedProviderBindings.Contains($slot)) { continue }
+    $slotProperty = $capabilityProfileCatalog.providerSlots.PSObject.Properties[$slot]
+    $providerProperty = if ($null -eq $slotProperty) { $null } else { $slotProperty.Value.PSObject.Properties[$provider] }
+    if ($null -eq $providerProperty) {
+        throw "Profile 기본 Provider 정본이 없습니다: $CapabilityProfile/$slot=$provider"
+    }
+    $resolvedProviderBindings[$slot] = $provider
+    $projectPath = [string]$providerProperty.Value.projectPath
+    $coordinate = [string]$providerProperty.Value.coordinate
+    if (-not $resolvedProviderProjects.Contains($projectPath)) { $resolvedProviderProjects.Add($projectPath) }
+    if (-not $resolvedProviderCoordinates.Contains($coordinate)) { $resolvedProviderCoordinates.Add($coordinate) }
+    $resolvedStarters += $coordinate.Substring($coordinate.LastIndexOf(':') + 1)
+}
+
+# 선택된 Capability의 공통 Runtime만 조립합니다. 미선택 Capability의 Runtime/Provider는 절대 추가하지 않습니다.
+foreach ($group in @($resolvedCapabilityGroups)) {
+    $composition = $capabilityProfileCatalog.capabilityComposition.PSObject.Properties[$group].Value
+    foreach ($runtimeProject in @($composition.runtimeProjects | ForEach-Object { [string]$_ })) {
+        if (-not $resolvedProviderProjects.Contains($runtimeProject)) {
+            $resolvedProviderProjects.Add($runtimeProject)
+        }
+    }
+    foreach ($runtimeCoordinate in @($composition.runtimeCoordinates | ForEach-Object { [string]$_ })) {
+        if (-not $resolvedProviderCoordinates.Contains($runtimeCoordinate)) {
+            $resolvedProviderCoordinates.Add($runtimeCoordinate)
+        }
+        $resolvedStarters += $runtimeCoordinate.Substring($runtimeCoordinate.LastIndexOf(':') + 1)
+    }
+    foreach ($defaultBinding in @($composition.defaultProviderBindings.PSObject.Properties)) {
+        $slot = [string]$defaultBinding.Name
+        $provider = [string]$defaultBinding.Value
+        if ($resolvedProviderBindings.Contains($slot)) { continue }
+        $slotProperty = $capabilityProfileCatalog.providerSlots.PSObject.Properties[$slot]
+        $providerProperty = if ($null -eq $slotProperty) { $null } else { $slotProperty.Value.PSObject.Properties[$provider] }
+        if ($null -eq $providerProperty) {
+            throw "Capability 기본 Provider 정본이 없습니다: $group/$slot=$provider"
+        }
+        $projectPath = [string]$providerProperty.Value.projectPath
+        $coordinate = [string]$providerProperty.Value.coordinate
+        $resolvedProviderBindings[$slot] = $provider
+        if (-not $resolvedProviderProjects.Contains($projectPath)) { $resolvedProviderProjects.Add($projectPath) }
+        if (-not $resolvedProviderCoordinates.Contains($coordinate)) { $resolvedProviderCoordinates.Add($coordinate) }
+        $resolvedStarters += $coordinate.Substring($coordinate.LastIndexOf(':') + 1)
+    }
+    foreach ($requiredSlot in @($composition.requiredProviderSlots | ForEach-Object { [string]$_ })) {
+        if (-not $resolvedProviderBindings.Contains($requiredSlot)) {
+            throw "선택한 Capability에 필수 Provider Binding이 없습니다: capability=$group, slot=$requiredSlot"
+        }
+    }
+}
+
+$DatabaseEnabled = $DatabaseEnabled -or ('data' -in $resolvedCapabilityGroups)
+$BatchEnabled = $BatchEnabled -or $CapabilityProfile -eq 'batch-service'
+$ExternalEnabled = $ExternalEnabled -or ('integration' -in $resolvedCapabilityGroups)
+$MessagingEnabled = $MessagingEnabled -or ('messaging' -in $resolvedCapabilityGroups)
+$FileEnabled = $FileEnabled -or ('file' -in $resolvedCapabilityGroups)
+$SecurityAuditEnabled = $SecurityAuditEnabled -or ('security' -in $resolvedCapabilityGroups)
+$OnlineEnabled = $OnlineEnabled -or $CapabilityProfile -in @('web-api','secure-api','browser-bff')
+
+if ($ProvisionDatabase -and -not $DatabaseEnabled) {
+    throw "ProvisionDatabase는 Data Capability가 활성화된 Domain에서만 사용할 수 있습니다."
+}
+if ($OnlineEnabled -and $CapabilityProfile -notin @('web-api','secure-api','browser-bff')) {
+    throw "Online API 생성은 web-api, secure-api, browser-bff Profile 중 하나를 사용해야 합니다. profile=$CapabilityProfile"
+}
+if (($BatchEnabled -or $CenterCutEnabled) -and $CapabilityProfile -ne 'batch-service') {
+    throw "Batch/Center-Cut 생성은 batch-service Profile을 사용해야 합니다. profile=$CapabilityProfile"
+}
+if ($UiEnabled -and -not $OnlineEnabled) {
+    throw "UI 생성은 Online API Profile이 필요합니다."
+}
+
+$resolvedStarters = @($resolvedStarters | Sort-Object -Unique)
+
+# Provider 선택은 해당 Capability Group이 활성화된 경우에만 허용합니다.
+foreach ($slot in @($resolvedProviderBindings.Keys)) {
+    $requiredGroup = [string]$providerSlotToGroup[$slot]
+    if ([string]::IsNullOrWhiteSpace($requiredGroup) -or $requiredGroup -notin $resolvedCapabilityGroups) {
+        throw "활성화되지 않은 Capability Group의 Provider를 선택했습니다: $slot=$($resolvedProviderBindings[$slot])"
+    }
 }
 $DataSourceJndiName = "java:comp/env/jdbc/cpf${ModuleName}DataSource"
 $ModuleClassName = $ModuleName
@@ -459,15 +807,27 @@ if ([string]::IsNullOrWhiteSpace($OutputDir)) {
 }
 
 $targetModuleDir = Join-Path $Root $projectName
+$upgradeMode = -not [string]::IsNullOrWhiteSpace($UpgradeSourceDomainPath)
+$upgradeSourcePath = $null
+if ($upgradeMode) {
+    $upgradeSourcePath = if ([IO.Path]::IsPathRooted($UpgradeSourceDomainPath)) {
+        [IO.Path]::GetFullPath($UpgradeSourceDomainPath)
+    } else {
+        [IO.Path]::GetFullPath((Join-Path $Root $UpgradeSourceDomainPath))
+    }
+    if (-not (Test-Path -LiteralPath (Join-Path $upgradeSourcePath 'manifest/domain-manifest.json') -PathType Leaf)) {
+        throw "Upgrade source Generated Domain manifest가 없습니다: $upgradeSourcePath"
+    }
+}
 $settingsPath = Join-Path $Root "settings.gradle"
 $packagePath = $BasePackage.Replace('.', '/')
 $featurePackagePath = $FeaturePackage.Replace('.', '/')
 $conflicts = New-Object System.Collections.Generic.List[string]
 
-if (Test-Path -LiteralPath $targetModuleDir) {
+if (-not $upgradeMode -and (Test-Path -LiteralPath $targetModuleDir)) {
     $conflicts.Add("module directory already exists: $module")
 }
-if (Test-TextExists -Path $settingsPath -Text "include '$projectName'") {
+if (-not $upgradeMode -and (Test-TextExists -Path $settingsPath -Text "include '$projectName'")) {
     $conflicts.Add("settings.gradle에 같은 모듈이 이미 등록되어 있습니다: $projectName")
 }
 # Platform/Generated Domain table-prefix collision은 특정 Vendor SQL 경로를 직접 읽지 않는다.
@@ -486,7 +846,7 @@ if ($DatabaseEnabled -and (Test-Path -LiteralPath $databaseSchemaManifestPath -P
         $conflicts.Add("database-schema-manifest.json을 해석할 수 없습니다: $databaseSchemaManifestPath")
     }
 }
-if (Test-Path -LiteralPath (Join-Path $Root "$projectName/src/main/java/$packagePath")) {
+if (-not $upgradeMode -and (Test-Path -LiteralPath (Join-Path $Root "$projectName/src/main/java/$packagePath"))) {
     $conflicts.Add("base package already exists: $BasePackage")
 }
 
@@ -495,6 +855,9 @@ if (Test-Path -LiteralPath (Join-Path $Root "$projectName/src/main/java/$package
 # cpf-batch/src는 별도 정리 대상인 legacy aggregate source이므로 읽지 않고, 독립 하위 Module만 검사합니다.
 $platformSourceRoots = [System.Collections.Generic.List[string]]::new()
 foreach ($platformProject in @(Get-ChildItem -LiteralPath $Root -Directory -Filter 'cpf-*' -ErrorAction SilentlyContinue)) {
+    if ($upgradeMode -and [IO.Path]::GetFullPath($platformProject.FullName).Equals($upgradeSourcePath, [StringComparison]::OrdinalIgnoreCase)) {
+        continue
+    }
     $sourceCandidates = [System.Collections.Generic.List[string]]::new()
     [void]$sourceCandidates.Add((Join-Path $platformProject.FullName 'src'))
     foreach ($childProject in @(Get-ChildItem -LiteralPath $platformProject.FullName -Directory -ErrorAction SilentlyContinue)) {
@@ -535,7 +898,8 @@ if (-not $AllowReserved) {
 $manifestFiles = @(Get-ChildItem -LiteralPath $Root -Filter 'domain-manifest.json' -Recurse -File -ErrorAction SilentlyContinue |
         Where-Object {
             $_.FullName -notmatch '\\build\\|\\.git\\' -and
-                    -not (Test-IsProtectedRepositoryPath $_.FullName)
+                    -not (Test-IsProtectedRepositoryPath $_.FullName) -and
+                    (-not $upgradeMode -or -not [IO.Path]::GetFullPath($_.FullName).StartsWith($upgradeSourcePath, [StringComparison]::OrdinalIgnoreCase))
         })
 foreach ($manifestFile in $manifestFiles) {
     try {
@@ -607,6 +971,7 @@ $plan = [ordered]@{
     capabilityProfileVersion = [string]$resolvedCapabilityProfile.profileVersion
     resolvedStarters = @($resolvedStarters)
     providerBindings = $resolvedProviderBindings
+    approvedExternalExceptions = @($approvedExceptionRows | ForEach-Object { [string]$_.exception_id })
     templateContractVersion = [string]$centralTemplateContract.contractVersion
     batch = $BatchEnabled
     external = $ExternalEnabled
@@ -620,6 +985,7 @@ $plan = [ordered]@{
     outputDir = $projectName
     generatePatch = $false
     applyMode = [bool] $Apply
+    upgradeSourceDomainPath = $(if ($upgradeMode) { $upgradeSourcePath.Substring($Root.Length).TrimStart('\', '/') } else { $null })
     conflicts = @($conflicts)
     generatedFiles = @()
     patchFiles = @()
@@ -1091,17 +1457,14 @@ public class ${FeatureClassPrefix}Service extends ${ModuleClassName}BaseService 
 }
 "@
 
-$repository = @"
+$myBatisRepository = @"
 package $FeaturePackage.repository;
 
 import $FeaturePackage.dto.*;
 import com.cpf.core.api.page.CpfSlice;
-import org.mybatis.spring.SqlSessionTemplate;
-import org.springframework.beans.factory.annotation.Qualifier;
+import com.cpf.core.api.database.CpfDataOperations;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.support.TransactionTemplate;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.*;
@@ -1109,8 +1472,8 @@ import java.util.*;
 /** 중앙 Vendor Pack statement를 Typed DTO로 반환하는 DB-neutral 저장소입니다. */
 @Repository
 public class ${FeatureClassPrefix}Repository {
-    private final SqlSessionTemplate sql; private final TransactionTemplate tx;
-    public ${FeatureClassPrefix}Repository(@Qualifier("${module}SqlSessionTemplate") SqlSessionTemplate sql,@Qualifier("${module}TransactionManager") PlatformTransactionManager manager){this.sql=Objects.requireNonNull(sql);this.tx=new TransactionTemplate(Objects.requireNonNull(manager));}
+    private final CpfDataOperations sql;
+    public ${FeatureClassPrefix}Repository(CpfDataOperations sql){this.sql=Objects.requireNonNull(sql);}
     public ${FeatureClassPrefix}SearchResult search(${FeatureClassPrefix}SearchRequest request){List<${FeatureClassPrefix}SampleItem> items=sql.selectList(statement("search"),request);Long total=sql.selectOne(statement("count"),request);return new ${FeatureClassPrefix}SearchResult(items,request,total==null?0:total);}
     public Optional<${FeatureClassPrefix}SampleItem> findBySampleKey(String key){return Optional.ofNullable(sql.selectOne(statement("findBySampleKey"),key));}
     public ${FeatureClassPrefix}SampleItem create(${FeatureClassPrefix}SampleCommand c,String txId,String idem,long sequence,String actor){
@@ -1134,7 +1497,7 @@ public class ${FeatureClassPrefix}Repository {
         long deletedVersion=version+1;insertIdempotency(idem,"DELETE",hash,id,deletedVersion,true,txId);return new ${FeatureClassPrefix}DeleteResult(true,id,deletedVersion);
     }
     public CpfSlice<${FeatureClassPrefix}SampleItem> cursor(Long afterId,int size){int safe=Math.max(1,Math.min(size,200));List<${FeatureClassPrefix}SampleItem> rows=sql.selectList(statement("cursorSlice"),Map.of("cursor",afterId==null?0:afterId,"size",safe+1));boolean next=rows.size()>safe;return new CpfSlice<>(next?rows.subList(0,safe):rows,0,safe,next);}
-    public boolean verifyRollback(${FeatureClassPrefix}SampleCommand c,String txId,String idem,long sequence,String actor){boolean before=findBySampleKey(c.sampleKey()).isPresent();var prior=sql.selectOne(statement("findIdempotency"),idem);tx.executeWithoutResult(status->{var p=parameters(c,txId,idem,sequence,actor);sql.insert(statement("insert"),p);var item=findBySampleKey(c.sampleKey()).orElseThrow();insertIdempotency(idem,"CREATE",requestHash("CREATE",0,c.sampleKey(),c.itemName(),c.statusCode(),c.expectedVersion()),item.sampleItemId(),item.versionNo(),false,txId);status.setRollbackOnly();});return before==findBySampleKey(c.sampleKey()).isPresent()&&Objects.equals(prior,sql.selectOne(statement("findIdempotency"),idem));}
+    public boolean verifyRollback(${FeatureClassPrefix}SampleCommand c,String txId,String idem,long sequence,String actor){boolean before=findBySampleKey(c.sampleKey()).isPresent();var prior=sql.selectOne(statement("findIdempotency"),idem);sql.inRollbackOnlyTransaction(ignored->{var p=parameters(c,txId,idem,sequence,actor);sql.insert(statement("insert"),p);var item=findBySampleKey(c.sampleKey()).orElseThrow();insertIdempotency(idem,"CREATE",requestHash("CREATE",0,c.sampleKey(),c.itemName(),c.statusCode(),c.expectedVersion()),item.sampleItemId(),item.versionNo(),false,txId);});return before==findBySampleKey(c.sampleKey()).isPresent()&&Objects.equals(prior,sql.selectOne(statement("findIdempotency"),idem));}
     private ${FeatureClassPrefix}IdempotencyEntry idempotency(String key,String operation,String hash,long expectedItemId){${FeatureClassPrefix}IdempotencyEntry value=sql.selectOne(statement("findIdempotency"),key);if(value==null)return null;if(!value.operationCode().equals(operation)||!value.requestHash().equals(hash)||(expectedItemId>0&&value.sampleItemId()!=expectedItemId))throw new IllegalStateException("동일 idempotencyKey에 다른 요청을 사용할 수 없습니다.");return value;}
     private void insertIdempotency(String key,String operation,String hash,long itemId,long resultVersion,boolean deleted,String txId){var p=new HashMap<String,Object>();p.put("idempotencyKey",key);p.put("operationCode",operation);p.put("requestHash",hash);p.put("sampleItemId",itemId);p.put("resultVersion",resultVersion);p.put("deletedYn",deleted?"Y":"N");p.put("transactionId",txId);sql.insert(statement("insertIdempotency"),p);}
     private ${FeatureClassPrefix}SampleItem requiredItem(long id){${FeatureClassPrefix}SampleItem value=sql.selectOne(statement("findById"),id);if(value==null)throw new IllegalArgumentException("Sample Item을 찾을 수 없습니다: "+id);return value;}
@@ -1143,6 +1506,48 @@ public class ${FeatureClassPrefix}Repository {
     private String statement(String id){return "${FeaturePackage}.mapper.${FeatureClassPrefix}Mapper."+id;}
 }
 "@
+
+
+$jdbcRepository = @"
+package $FeaturePackage.repository;
+
+import $FeaturePackage.dto.*;
+import com.cpf.core.api.database.CpfJdbcOperations;
+import com.cpf.core.api.database.CpfVendorSqlCatalog;
+import com.cpf.core.api.database.CpfVendorSqlCatalogProvider;
+import com.cpf.core.api.page.CpfSlice;
+import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.stereotype.Repository;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.util.*;
+
+/** CPF JDBC API와 공식 3-Vendor SQL Catalog를 사용하는 Generated Domain 저장소입니다. */
+@Repository
+public class ${FeatureClassPrefix}Repository {
+    private final CpfJdbcOperations sql;
+    private final CpfVendorSqlCatalog catalog;
+    public ${FeatureClassPrefix}Repository(CpfJdbcOperations sql, CpfVendorSqlCatalogProvider catalogs) {
+        this.sql=Objects.requireNonNull(sql); this.catalog=Objects.requireNonNull(catalogs).forModule("$module");
+    }
+    public ${FeatureClassPrefix}SearchResult search(${FeatureClassPrefix}SearchRequest request){var n=request.normalized();var p=searchParameters(n);List<${FeatureClassPrefix}SampleItem> items=sql.queryList(catalog.required("sample-search"),p,${FeatureClassPrefix}SampleItem.class);Long total=sql.queryOne(catalog.required("sample-count"),p,Long.class);return new ${FeatureClassPrefix}SearchResult(items,n,total==null?0:total);}
+    public Optional<${FeatureClassPrefix}SampleItem> findBySampleKey(String key){return Optional.ofNullable(sql.queryOne(catalog.required("sample-find-by-key"),Map.of("value",key),${FeatureClassPrefix}SampleItem.class));}
+    public ${FeatureClassPrefix}SampleItem create(${FeatureClassPrefix}SampleCommand c,String txId,String idem,long sequence,String actor){String hash=requestHash("CREATE",0,c.sampleKey(),c.itemName(),c.statusCode(),c.expectedVersion());var replay=idempotency(idem,"CREATE",hash,0);if(replay!=null)return requiredItem(replay.sampleItemId());var p=parameters(c,txId,idem,sequence,actor);sql.update(catalog.required("sample-insert"),p);var item=findBySampleKey(c.sampleKey()).orElseThrow();insertIdempotency(idem,"CREATE",hash,item.sampleItemId(),item.versionNo(),false,txId);return item;}
+    public ${FeatureClassPrefix}SampleItem update(long id,${FeatureClassPrefix}SampleCommand c,String txId,String idem,long sequence,String actor){String hash=requestHash("UPDATE",id,c.sampleKey(),c.itemName(),c.statusCode(),c.expectedVersion());var replay=idempotency(idem,"UPDATE",hash,id);if(replay!=null)return requiredItem(id);var p=parameters(c,txId,idem,sequence,actor);p.put("sampleItemId",id);if(sql.update(catalog.required("sample-update-version"),p)!=1)throw new OptimisticLockingFailureException("Sample Item version 충돌");var item=requiredItem(id);insertIdempotency(idem,"UPDATE",hash,id,item.versionNo(),false,txId);return item;}
+    public ${FeatureClassPrefix}DeleteResult delete(long id,long version,String txId,String idem,long sequence,String actor){String hash=requestHash("DELETE",id,"","","",version);var replay=idempotency(idem,"DELETE",hash,id);if(replay!=null)return new ${FeatureClassPrefix}DeleteResult(true,id,replay.resultVersion());var p=new HashMap<String,Object>();p.put("sampleItemId",id);p.put("versionNo",version);p.put("idempotencyKey",idem);p.put("transactionId",txId);p.put("transactionSequence",sequence);p.put("updatedBy",actor);if(sql.update(catalog.required("sample-delete-version"),p)!=1)throw new OptimisticLockingFailureException("Sample Item version 충돌");long deletedVersion=version+1;insertIdempotency(idem,"DELETE",hash,id,deletedVersion,true,txId);return new ${FeatureClassPrefix}DeleteResult(true,id,deletedVersion);}
+    public CpfSlice<${FeatureClassPrefix}SampleItem> cursor(Long afterId,int size){int safe=Math.max(1,Math.min(size,200));List<${FeatureClassPrefix}SampleItem> rows=sql.queryList(catalog.required("sample-cursor"),Map.of("cursor",afterId==null?0:afterId,"size",safe+1),${FeatureClassPrefix}SampleItem.class);boolean next=rows.size()>safe;return new CpfSlice<>(next?rows.subList(0,safe):rows,0,safe,next);}
+    public boolean verifyRollback(${FeatureClassPrefix}SampleCommand c,String txId,String idem,long sequence,String actor){boolean before=findBySampleKey(c.sampleKey()).isPresent();var prior=sql.queryOne(catalog.required("sample-idempotency-find"),Map.of("value",idem),${FeatureClassPrefix}IdempotencyEntry.class);sql.inRollbackOnlyTransaction(ignored->{var p=parameters(c,txId,idem,sequence,actor);sql.update(catalog.required("sample-insert"),p);var item=findBySampleKey(c.sampleKey()).orElseThrow();insertIdempotency(idem,"CREATE",requestHash("CREATE",0,c.sampleKey(),c.itemName(),c.statusCode(),c.expectedVersion()),item.sampleItemId(),item.versionNo(),false,txId);});return before==findBySampleKey(c.sampleKey()).isPresent()&&Objects.equals(prior,sql.queryOne(catalog.required("sample-idempotency-find"),Map.of("value",idem),${FeatureClassPrefix}IdempotencyEntry.class));}
+    private ${FeatureClassPrefix}IdempotencyEntry idempotency(String key,String operation,String hash,long expectedItemId){${FeatureClassPrefix}IdempotencyEntry value=sql.queryOne(catalog.required("sample-idempotency-find"),Map.of("value",key),${FeatureClassPrefix}IdempotencyEntry.class);if(value==null)return null;if(!value.operationCode().equals(operation)||!value.requestHash().equals(hash)||(expectedItemId>0&&value.sampleItemId()!=expectedItemId))throw new IllegalStateException("동일 idempotencyKey에 다른 요청을 사용할 수 없습니다.");return value;}
+    private void insertIdempotency(String key,String operation,String hash,long itemId,long resultVersion,boolean deleted,String txId){var p=new HashMap<String,Object>();p.put("idempotencyKey",key);p.put("operationCode",operation);p.put("requestHash",hash);p.put("sampleItemId",itemId);p.put("resultVersion",resultVersion);p.put("deletedYn",deleted?"Y":"N");p.put("transactionId",txId);sql.update(catalog.required("sample-idempotency-insert"),p);}
+    private ${FeatureClassPrefix}SampleItem requiredItem(long id){${FeatureClassPrefix}SampleItem value=sql.queryOne(catalog.required("sample-find-by-id"),Map.of("value",id),${FeatureClassPrefix}SampleItem.class);if(value==null)throw new IllegalArgumentException("Sample Item을 찾을 수 없습니다: "+id);return value;}
+    private String requestHash(String operation,long id,String sampleKey,String itemName,String statusCode,long version){String canonical=operation+'|'+id+'|'+sampleKey+'|'+itemName+'|'+statusCode+'|'+version;try{return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(canonical.getBytes(StandardCharsets.UTF_8)));}catch(Exception ex){throw new IllegalStateException("멱등 요청 Hash 생성 실패",ex);}}
+    private Map<String,Object> searchParameters(${FeatureClassPrefix}SearchRequest n){var p=new HashMap<String,Object>();p.put("keyword",n.keyword());p.put("offset",n.offset());p.put("size",n.size());p.put("sortBy",n.sortBy());p.put("sortDirection",n.sortDirection());return p;}
+    private Map<String,Object> parameters(${FeatureClassPrefix}SampleCommand c,String txId,String idem,long sequence,String actor){var p=new HashMap<String,Object>();p.put("sampleKey",c.sampleKey());p.put("itemName",c.itemName());p.put("statusCode",c.statusCode());p.put("versionNo",c.expectedVersion());p.put("idempotencyKey",idem);p.put("transactionId",txId);p.put("transactionSequence",sequence);p.put("createdBy",actor);p.put("updatedBy",actor);return p;}
+}
+"@
+
+$dataProvider = if ($DatabaseEnabled) { [string]$resolvedProviderBindings['data'] } else { '' }
+$repository = if ($dataProvider -eq 'jdbc') { $jdbcRepository } else { $myBatisRepository }
 
 $searchResult = @"
 package $FeaturePackage.dto;
@@ -1180,42 +1585,6 @@ public record ${FeatureClassPrefix}IdempotencyEntry(
         String transactionId,
         Instant createdAt) {
     public boolean deleted(){ return "Y".equalsIgnoreCase(deletedYn); }
-}
-"@
-
-$myBatisConfig = @"
-package $BasePackage.config;
-
-import com.cpf.core.api.database.CpfSqlResources;
-import org.apache.ibatis.session.SqlSessionFactory;
-import org.mybatis.spring.SqlSessionFactoryBean;
-import org.mybatis.spring.SqlSessionTemplate;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
-
-import javax.sql.DataSource;
-
-/** ${ModuleName} mapper를 해당 주제영역 소유 DataSource와 명시적으로 연결합니다. */
-@Configuration(proxyBeanMethods = false)
-public class ${ModuleName}MyBatisConfig {
-
-    @Bean(name = "${module}SqlSessionFactory")
-    public SqlSessionFactory ${module}SqlSessionFactory(
-            @Qualifier("${module}DataSource") DataSource dataSource,
-            Environment environment) throws Exception {
-        SqlSessionFactoryBean factoryBean = new SqlSessionFactoryBean();
-        factoryBean.setDataSource(dataSource);
-        factoryBean.setMapperLocations(CpfSqlResources.mapperResources(environment, "$module"));
-        return factoryBean.getObject();
-    }
-
-    @Bean(name = "${module}SqlSessionTemplate")
-    public SqlSessionTemplate ${module}SqlSessionTemplate(
-            @Qualifier("${module}SqlSessionFactory") SqlSessionFactory sqlSessionFactory) {
-        return new SqlSessionTemplate(sqlSessionFactory);
-    }
 }
 "@
 
@@ -1390,23 +1759,14 @@ public class ${FeatureClassPrefix}SearchValidator {
 }
 "@
 
-$batchDependency = if ($BatchEnabled) {
-    "    implementation 'org.springframework.boot:spring-boot-starter-batch-jdbc'"
-} else {
-    ""
-}
+$batchDependency = ""
 
 $platformDependencies = if ($DependencyModel -eq "published-artifact") {
 @"
     implementation platform('com.cpf:cpf-platform-bom:$PlatformVersion')
-    implementation 'com.cpf.core:cpf-core:$PlatformVersion'
-    implementation 'com.cpf.common:cpf-common:$PlatformVersion'
 "@
 } else {
-@"
-    implementation project(':cpf-core')
-    implementation project(':cpf-common')
-"@
+    ""
 }
 
 
@@ -1417,6 +1777,23 @@ $profileDependency = if ($DependencyModel -eq "published-artifact") {
 } else {
     "    implementation project(':$profileProjectName')"
 }
+
+$embeddedProviderProjects = @($resolvedCapabilityProfile.embeddedRuntimeProjects | ForEach-Object { [string]$_ })
+$embeddedProviderCoordinates = @($resolvedCapabilityProfile.embeddedRuntimeCoordinates | ForEach-Object { [string]$_ })
+$providerDependencyProjects = @($resolvedProviderProjects | Where-Object { $_ -notin $embeddedProviderProjects })
+$providerDependencyCoordinates = @($resolvedProviderCoordinates | Where-Object { $_ -notin $embeddedProviderCoordinates })
+
+$providerDependencies = if ($DependencyModel -eq "published-artifact") {
+    @($providerDependencyCoordinates | ForEach-Object { "    implementation '$_`:$PlatformVersion'" }) -join "`n"
+} else {
+    @($providerDependencyProjects | ForEach-Object { "    implementation project('$_')" }) -join "`n"
+}
+
+# 이용 Domain 승인 예외는 Registry에 고정된 정확한 Artifact Version만 조립합니다.
+# Convention Plugin이 rule_id, Artifact, Version, Config Hash, 만료를 다시 검증합니다.
+$approvedExceptionDependencies = @($approvedExceptionRows | ForEach-Object {
+    "    implementation '$([string]$_.artifact):$([string]$_.version)' // $([string]$_.exception_id)"
+}) -join "`n"
 
 $batchContractDependency = if (($BatchEnabled -or $CenterCutEnabled) -and
         $DependencyModel -eq "published-artifact") {
@@ -1441,16 +1818,8 @@ $cpfConventionPlugin = if ($DependencyModel -eq "published-artifact") {
     "    id 'com.cpf.platform-conventions'"
 }
 
-$databaseDependencies = if ($DatabaseEnabled) {
-@"
-    implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:4.0.0'
-    implementation 'org.springframework.boot:spring-boot-starter-flyway'
-    runtimeOnly cpfJdbcDriverByVendor[cpfDbVendor]
-    runtimeOnly cpfFlywayDatabaseByVendor[cpfDbVendor]
-"@
-} else {
-    ""
-}
+$databaseDependencies = ""
+$webDependencies = ""
 
 $databaseVendorSelection = if ($DatabaseEnabled) {
 @"
@@ -1478,6 +1847,37 @@ $flywayDatabaseMapGradle
 } else {
     ""
 }
+
+
+$databaseProviderResourceAssembly = if ($dataProvider -eq 'jdbc') {
+@"
+    from(new File(cpfCentralDbPackRoot, "`${cpfDbVendor}/pack.json")) {
+        into '.'
+    }
+    from(new File(cpfSelectedDomainTemplate, 'runtime/repository')) {
+        include '**/*.template'
+        filter(org.apache.tools.ant.filters.ReplaceTokens, tokens: tokenValues)
+        rename { fileName ->
+            fileName.replace('.template', '').replace('__DOMAIN__', '$module')
+        }
+        into "runtime/$module/repository"
+        includeEmptyDirs = false
+    }
+"@
+} else {
+@"
+    from(new File(cpfSelectedDomainTemplate, 'runtime/mybatis')) {
+        include '**/*.template'
+        filter(org.apache.tools.ant.filters.ReplaceTokens, tokens: tokenValues)
+        rename { fileName ->
+            fileName.replace('.template', '').replace('__DOMAIN__', '$module').replace('__MAPPER__', '${FeatureClassPrefix}Mapper')
+        }
+        into "mybatis/vendor/`${cpfDbVendor}/mapper/$module/sampleitem"
+        includeEmptyDirs = false
+    }
+"@
+}
+$databaseProviderTemplateCheck = if ($dataProvider -eq 'jdbc') { 'runtime/repository' } else { 'runtime/mybatis' }
 
 $databaseResourceAssembly = if ($DatabaseEnabled) {
 @"
@@ -1521,37 +1921,15 @@ tasks.register('prepareCpfVendorResources', Sync) {
         into "db/vendor/`${cpfDbVendor}"
         includeEmptyDirs = false
     }
-    from(new File(cpfSelectedDomainTemplate, 'runtime/mybatis')) {
-        include '**/*.template'
-        filter(org.apache.tools.ant.filters.ReplaceTokens, tokens: tokenValues)
-        rename { fileName ->
-            fileName
-                    .replace('.template', '')
-                    .replace('__DOMAIN__', '$module')
-                    .replace('__MAPPER__', '${FeatureClassPrefix}Mapper')
-        }
-        into "mybatis/vendor/`${cpfDbVendor}/mapper/$module/sampleitem"
-        includeEmptyDirs = false
-    }
-    from(new File(cpfSelectedDomainTemplate, 'runtime/repository')) {
-        include '**/*.template'
-        filter(org.apache.tools.ant.filters.ReplaceTokens, tokens: tokenValues)
-        rename { fileName ->
-            fileName
-                    .replace('.template', '')
-                    .replace('__DOMAIN__', '$module')
-        }
-        into "sql/vendor/`${cpfDbVendor}/$module"
-        includeEmptyDirs = false
-    }
+$databaseProviderResourceAssembly
     doFirst {
         if (!cpfSelectedDomainTemplate.isDirectory()) {
             throw new GradleException(
                     "CPF central domain template is missing: `${cpfSelectedDomainTemplate}")
         }
-        if (!new File(cpfSelectedDomainTemplate, 'runtime/mybatis').isDirectory()) {
+        if (!new File(cpfSelectedDomainTemplate, '$databaseProviderTemplateCheck').isDirectory()) {
             throw new GradleException(
-                    "CPF central domain runtime MyBatis template is missing: `${cpfSelectedDomainTemplate}")
+                    "CPF central domain provider template is missing: `${cpfSelectedDomainTemplate}/$databaseProviderTemplateCheck")
         }
     }
 }
@@ -1622,11 +2000,29 @@ $batchTransactionBean
 }
 "@
 
-$packagedDependencyPrefixes = @("'cpf-core-'", "'cpf-common-'")
-if (($BatchEnabled -or $CenterCutEnabled)) {
-    $packagedDependencyPrefixes += "'cpf-batch-contract-'"
+$packagedArtifactIds = [System.Collections.Generic.List[string]]::new()
+foreach ($artifactId in @('cpf-core', 'cpf-common', 'cpf-starter-base')) {
+    if (-not $packagedArtifactIds.Contains($artifactId)) { $packagedArtifactIds.Add($artifactId) }
 }
-$packagedDependencyPrefixesGradle = $packagedDependencyPrefixes -join ", "
+$profileArtifactId = ([string]$profileArtifact -split ':')[-1]
+if (-not [string]::IsNullOrWhiteSpace($profileArtifactId) -and
+        -not $packagedArtifactIds.Contains($profileArtifactId)) {
+    $packagedArtifactIds.Add($profileArtifactId)
+}
+foreach ($coordinate in @($resolvedProviderCoordinates)) {
+    $artifactId = ([string]$coordinate -split ':')[-1]
+    if (-not [string]::IsNullOrWhiteSpace($artifactId) -and
+            -not $packagedArtifactIds.Contains($artifactId)) {
+        $packagedArtifactIds.Add($artifactId)
+    }
+}
+if (($BatchEnabled -or $CenterCutEnabled) -and
+        -not $packagedArtifactIds.Contains('cpf-batch-contract')) {
+    $packagedArtifactIds.Add('cpf-batch-contract')
+}
+$packagedDependencyPrefixesGradle = @($packagedArtifactIds | Sort-Object | ForEach-Object {
+    "'$($_)-'"
+}) -join ", "
 
 $buildGradle = @"
 plugins {
@@ -1641,7 +2037,7 @@ group = '$BasePackage'
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(rootProject.ext.cpfJavaVersion)
+        languageVersion = JavaLanguageVersion.of(25)
     }
 }
 
@@ -1650,16 +2046,12 @@ $databaseVendorSelection
 dependencies {
 $platformDependencies
 $profileDependency
+$providerDependencies
+$approvedExceptionDependencies
 $batchContractDependency
-    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
-    implementation 'org.springframework:spring-web'
-    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+$webDependencies
 $databaseDependencies
 $batchDependency
-    providedRuntime('org.springframework.boot:spring-boot-starter-tomcat') {
-        exclude group: 'org.springframework', module: 'spring-web'
-    }
-    testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
 }
 
 tasks.named('test') {
@@ -1683,7 +2075,7 @@ tasks.named('bootJar') {
 }
 
 tasks.named('bootWar') {
-    enabled = true
+    enabled = $($OnlineEnabled.ToString().ToLowerInvariant())
 }
 
 def cpfRequiredPackagedDependencyPrefixes = [$packagedDependencyPrefixesGradle]
@@ -1710,7 +2102,9 @@ tasks.register('verifyCpfPackagedDependencies') {
     dependsOn tasks.named('bootJar'), tasks.named('bootWar')
     doLast {
         cpfAssertPackagedDependencies(tasks.named('bootJar').get().archiveFile.get().asFile, 'BOOT-INF/lib')
-        cpfAssertPackagedDependencies(tasks.named('bootWar').get().archiveFile.get().asFile, 'WEB-INF/lib')
+        if (tasks.named('bootWar').get().enabled) {
+            cpfAssertPackagedDependencies(tasks.named('bootWar').get().archiveFile.get().asFile, 'WEB-INF/lib')
+        }
     }
 }
 
@@ -1719,7 +2113,8 @@ tasks.named('check') {
 }
 "@
 
-$applicationJava = @"
+$applicationJava = if ($OnlineEnabled) {
+@"
 package $BasePackage;
 
 import org.springframework.boot.SpringApplication;
@@ -1727,107 +2122,35 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 
-/**
- * $ModuleUpper 주제영역 실행 애플리케이션입니다.
- *
- * <p>모듈 부트스트랩만 소유하며 업무 기능은 feature package에 둡니다.</p>
- */
 @SpringBootApplication
 public class ${ModuleClassName}Application extends SpringBootServletInitializer {
-
     public static void main(String[] args) {
         SpringApplication.run(${ModuleClassName}Application.class, args);
     }
-
     @Override
     protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
         return application.sources(${ModuleClassName}Application.class);
     }
 }
 "@
+} else {
+@"
+package $BasePackage;
 
-$dataSourceConfig = @"
-package $BasePackage.config;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import com.cpf.core.api.database.CpfDataSources;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
-import org.springframework.transaction.PlatformTransactionManager;
-
-import javax.naming.NamingException;
-import javax.sql.DataSource;
-
-/**
- * embedded URL 연결과 external Tomcat JNDI 연결을 동일한 모듈에서 선택합니다.
- */
-@Configuration
-public class ${ModuleName}DataSourceConfig {
-
-    @Bean
-    public DataSource ${module}DataSource(Environment environment) throws NamingException {
-        return CpfDataSources.resolve(environment, "cpf.$module.datasource");
-    }
-
-    /**
-     * ${ModuleName} 저장소가 다른 주제영역 DB를 선택하지 않도록 전용 JDBC 접근 객체를 제공합니다.
-     */
-    @Bean(name = "${module}JdbcTemplate")
-    public JdbcTemplate ${module}JdbcTemplate(
-            @Qualifier("${module}DataSource") DataSource dataSource) {
-        return new JdbcTemplate(dataSource);
-    }
-
-    /**
-     * ${ModuleName} 서비스와 배치가 동일한 업무 트랜잭션 경계를 사용하도록 합니다.
-     */
-    @Bean(name = "${module}TransactionManager")
-    public PlatformTransactionManager ${module}TransactionManager(
-            @Qualifier("${module}DataSource") DataSource dataSource) {
-        return new DataSourceTransactionManager(dataSource);
+@SpringBootApplication
+public class ${ModuleClassName}Application {
+    public static void main(String[] args) {
+        SpringApplication.run(${ModuleClassName}Application.class, args);
     }
 }
 "@
-
-$dataSourceIsolationTest = @"
-package $BasePackage.config;
-
-import com.zaxxer.hikari.HikariDataSource;
-import org.junit.jupiter.api.Test;
-import org.springframework.mock.env.MockEnvironment;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
-/**
- * CPF Platform 공통 DataSource 환경변수가 존재해도 Generated Domain은 자기 namespace만 사용합니다.
- */
-class ${ModuleName}DataSourceIsolationTest {
-
-    @Test
-    void resolvesOnlyDomainSpecificDataSourceProperties() throws Exception {
-        MockEnvironment environment = new MockEnvironment()
-                .withProperty("cpf.db.vendor", "mariadb")
-                .withProperty("cpf.datasource.mode", "url")
-                .withProperty("cpf.datasource.url", "jdbc:mariadb://127.0.0.1:3306/cpfDB")
-                .withProperty("cpf.datasource.username", "cpf_core_app")
-                .withProperty("cpf.datasource.password", "core-secret")
-                .withProperty("cpf.$module.datasource.mode", "url")
-                .withProperty("cpf.$module.datasource.url", "jdbc:mariadb://127.0.0.1:3306/$SchemaName")
-                .withProperty("cpf.$module.datasource.username", "cpf_${module}_app")
-                .withProperty("cpf.$module.datasource.password", "domain-secret");
-
-        try (HikariDataSource dataSource = (HikariDataSource)
-                new ${ModuleName}DataSourceConfig().${module}DataSource(environment)) {
-            assertThat(dataSource.getJdbcUrl())
-                    .isEqualTo("jdbc:mariadb://127.0.0.1:3306/$SchemaName");
-            assertThat(dataSource.getUsername()).isEqualTo("cpf_${module}_app");
-        }
-    }
 }
-"@
+
+# Unselected capability policy: NO_DEPENDENCY_NO_BEAN_NO_CONFIG_NO_SQL
+# DataSource/MyBatis infrastructure is owned by CPF persistence Starters, never generated per domain.
 
 $databaseSpringYml = if ($DatabaseEnabled) {
 @"
@@ -1898,12 +2221,123 @@ $moduleDataSourceYml = if ($DatabaseEnabled) {
       password: ${Dollar}{$($ModuleUpper)_DATASOURCE_PASSWORD:}
 "@
 } else { "" }
+
+$selectedProviderRuntimeYml = {
+    $lines = [System.Collections.Generic.List[string]]::new()
+    if ($resolvedProviderBindings.Contains('messaging')) {
+        $provider = [string]$resolvedProviderBindings['messaging']
+        [void]$lines.Add('  messaging:')
+        switch ($provider) {
+            'kafka' {
+                [void]$lines.Add('    kafka:')
+                [void]$lines.Add('      binding-name: kafka')
+                [void]$lines.Add('      default-binding: true')
+                [void]$lines.Add('      require-idempotence: true')
+                [void]$lines.Add('      acknowledgement-timeout: ${CPF_KAFKA_ACK_TIMEOUT:10s}')
+                [void]$lines.Add('      maximum-payload-bytes: ${CPF_KAFKA_MAX_PAYLOAD_BYTES:1048576}')
+            }
+            'rabbitmq' {
+                [void]$lines.Add('    rabbitmq:')
+                [void]$lines.Add('      enabled: true')
+                [void]$lines.Add('      binding-name: rabbitmq')
+                [void]$lines.Add('      default-binding: true')
+                [void]$lines.Add('      exchange: ${CPF_RABBITMQ_EXCHANGE:' + $module + '.events}')
+                [void]$lines.Add('      queue: ${CPF_RABBITMQ_QUEUE:' + $module + '.events}')
+                [void]$lines.Add('      routing-key: ${CPF_RABBITMQ_ROUTING_KEY:' + $module + '.#}')
+                [void]$lines.Add('      exchange-type: ${CPF_RABBITMQ_EXCHANGE_TYPE:topic}')
+            }
+            'jms' {
+                [void]$lines.Add('    jms:')
+                [void]$lines.Add('      enabled: true')
+                [void]$lines.Add('      binding-name: jms')
+                [void]$lines.Add('      default-binding: true')
+                [void]$lines.Add('      destination: ${CPF_JMS_DESTINATION:' + $module + '.events}')
+            }
+            'ibm-mq' {
+                [void]$lines.Add('    ibm-mq:')
+                [void]$lines.Add('      enabled: true')
+                [void]$lines.Add('      binding-name: ibm-mq')
+                [void]$lines.Add('      default-binding: true')
+                [void]$lines.Add('      destination: ${CPF_IBM_MQ_DESTINATION:}')
+                [void]$lines.Add('      queue-manager: ${CPF_IBM_MQ_QUEUE_MANAGER:}')
+                [void]$lines.Add('      channel: ${CPF_IBM_MQ_CHANNEL:}')
+                [void]$lines.Add('      connection-name: ${CPF_IBM_MQ_CONNECTION_NAME:}')
+                [void]$lines.Add('      ccdt-url: ${CPF_IBM_MQ_CCDT_URL:}')
+                [void]$lines.Add('      tls-required: ${CPF_IBM_MQ_TLS_REQUIRED:true}')
+            }
+            default { throw "지원하지 않는 Messaging Provider입니다: $provider" }
+        }
+        [void]$lines.Add('    reliability:')
+        [void]$lines.Add('      enabled: true')
+        [void]$lines.Add('      schema-required: true')
+    }
+    if ($resolvedProviderBindings.Contains('file')) {
+        $provider = [string]$resolvedProviderBindings['file']
+        if ($provider -ne 'sftp') { throw "지원하지 않는 File Provider입니다: $provider" }
+        [void]$lines.Add('  integration:')
+        [void]$lines.Add('    sftp:')
+        [void]$lines.Add('      enabled: true')
+        [void]$lines.Add('      host: ${CPF_SFTP_HOST:}')
+        [void]$lines.Add('      port: ${CPF_SFTP_PORT:22}')
+        [void]$lines.Add('      username: ${CPF_SFTP_USERNAME:}')
+        [void]$lines.Add('      password-secret: ${CPF_SFTP_PASSWORD_SECRET:}')
+        [void]$lines.Add('      local-root: ${CPF_SFTP_LOCAL_ROOT:.}')
+        [void]$lines.Add('      remote-root: ${CPF_SFTP_REMOTE_ROOT:/}')
+        [void]$lines.Add('      ledger-required: true')
+    }
+    if ($resolvedProviderBindings.Contains('notification')) {
+        $provider = [string]$resolvedProviderBindings['notification']
+        [void]$lines.Add('  notification:')
+        [void]$lines.Add('    dispatch:')
+        [void]$lines.Add('      enabled: true')
+        switch ($provider) {
+            'email' {
+                [void]$lines.Add('    email:')
+                [void]$lines.Add('      enabled: true')
+                [void]$lines.Add('      from: ${CPF_NOTIFICATION_EMAIL_FROM:}')
+            }
+            'sms-spi' {
+                [void]$lines.Add('    sms:')
+                [void]$lines.Add('      enabled: true')
+                [void]$lines.Add('      provider: ${CPF_NOTIFICATION_SMS_PROVIDER:}')
+            }
+            default { throw "지원하지 않는 Notification Provider입니다: $provider" }
+        }
+    }
+    if ($lines.Count -eq 0) { return '' }
+    return ($lines -join "`n") + "`n"
+}.Invoke()
+
+$approvedExceptionRuntimeYml = if ($approvedExceptionRows.Count -gt 0) {
+    $lines = [System.Collections.Generic.List[string]]::new()
+    [void]$lines.Add('  generated-domain:')
+    [void]$lines.Add('    # 승인 예외가 있으면 배포 환경을 명시해야 하며 Registry의 environments 범위를 벗어나면 시작이 차단됩니다.')
+    [void]$lines.Add('    environment: ${CPF_TARGET_ENVIRONMENT:' + $TargetEnvironment + '}')
+    [void]$lines.Add('    approved-exceptions:')
+    foreach ($exception in $approvedExceptionRows) {
+        $exceptionId = [string]$exception.exception_id
+        $environmentKey = ($exceptionId.ToUpperInvariant() -replace '[^A-Z0-9]', '_')
+        [void]$lines.Add("      `"$exceptionId`":")
+        [void]$lines.Add("        artifact-version: `${CPF_APPROVED_EXCEPTION_${environmentKey}_ARTIFACT_VERSION:}")
+        [void]$lines.Add("        config-hash: `${CPF_APPROVED_EXCEPTION_${environmentKey}_CONFIG_HASH:}")
+    }
+    ($lines -join "`n") + "`n"
+} else { '' }
+
 $applicationModuleYml = @"
 # ${ModuleName} 주제영역 공통 설정입니다.
 cpf:
-  db:
+  domain:
+    persistence:
+      enabled: $($DatabaseEnabled.ToString().ToLowerInvariant())
+      required: $($DatabaseEnabled.ToString().ToLowerInvariant())
+      provider: $(if ($DatabaseEnabled) { $dataProvider } else { 'none' })
+      data-source-prefix: cpf.$module.datasource
+$selectedProviderRuntimeYml$approvedExceptionRuntimeYml  db:
     # Vendor 선택은 Java 업무 Source가 아니라 SQL/Mapper resource 경로만 변경합니다.
     vendor: ${Dollar}{$($ModuleUpper)_DATABASE_VENDOR:$DatabaseVendor}
+    # Local/CI는 Generator 산출 Pack을 사용하고, 배포 환경은 외부 Pack mount 경로를 명시적으로 Override합니다.
+    resource-root: '${Dollar}{$($ModuleUpper)_CPF_DB_RESOURCE_ROOT:${Dollar}{CPF_DB_RESOURCE_ROOT:${Dollar}{user.dir}/build/generated-resources/cpf-vendor}}'
   framework:
     module-id: ${Dollar}{$($ModuleUpper)_MODULE_ID:$ModuleUpper}
   ${module}:
@@ -2079,7 +2513,6 @@ package $FeaturePackage.messaging;
 import com.cpf.core.api.broker.CpfBrokerClient;
 import com.cpf.core.api.broker.CpfBrokerPublishRequest;
 import com.cpf.core.api.broker.CpfBrokerPublishResult;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
@@ -2091,7 +2524,6 @@ import java.util.Objects;
  * 업무 코드는 broker 종류와 Outbox 내부 저장소를 직접 참조하지 않습니다.
  */
 @Service
-@ConditionalOnBean(CpfBrokerClient.class)
 public class ${ModuleName}EventPublisher {
     private final CpfBrokerClient brokerClient;
     public ${ModuleName}EventPublisher(CpfBrokerClient brokerClient) {
@@ -2114,7 +2546,6 @@ $([string]::Concat('import ', $BasePackage, '.common.base.', $ModuleClassName, '
 import com.cpf.core.api.broker.CpfBrokerPublishResult;
 import com.cpf.core.api.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -2126,7 +2557,6 @@ import java.util.Map;
 /** ${ModuleName} 이벤트 outbox 적재 API입니다. */
 @RestController
 @RequestMapping("/api/v1/$module/events")
-@ConditionalOnBean(${ModuleName}EventPublisher.class)
 public class ${ModuleName}MessagingController extends ${ModuleClassName}BaseController {
     private final ${ModuleName}EventPublisher publisher;
     public ${ModuleName}MessagingController(${ModuleName}EventPublisher publisher) { this.publisher = publisher; }
@@ -2178,14 +2608,12 @@ import com.cpf.core.api.filetransfer.CpfFileEndpoint;
 import com.cpf.core.api.filetransfer.CpfFileRequest;
 import com.cpf.core.api.filetransfer.CpfFileResult;
 import com.cpf.core.api.filetransfer.CpfFileTransferClient;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Service;
 
 import java.util.Objects;
 
 /** ${ModuleName} 파일 송수신 요청을 CPF 공개 파일전송 경계에 위임합니다. */
 @Service
-@ConditionalOnBean(CpfFileTransferClient.class)
 public class ${ModuleName}FileTransferService {
     private final CpfFileTransferClient client;
     public ${ModuleName}FileTransferService(CpfFileTransferClient client) { this.client=Objects.requireNonNull(client,"client는 필수입니다."); }
@@ -2360,7 +2788,65 @@ $resolvedStartersJson = $resolvedStarters | ConvertTo-Json -Compress
 $resolvedStarterVersions = [ordered]@{}
 foreach ($resolvedStarter in $resolvedStarters) { $resolvedStarterVersions[$resolvedStarter] = $PlatformVersion }
 $resolvedStarterVersionsJson = $resolvedStarterVersions | ConvertTo-Json -Compress
+$resolvedCapabilityGroupsJson = @($resolvedCapabilityGroups) | ConvertTo-Json -Compress
 $resolvedProviderBindingsJson = $resolvedProviderBindings | ConvertTo-Json -Compress
+$resolvedProviderProjectsJson = @($resolvedProviderProjects) | ConvertTo-Json -Compress
+$resolvedProviderCoordinatesJson = @($resolvedProviderCoordinates) | ConvertTo-Json -Compress
+$approvedExceptionsForLock = @($approvedExceptionRows | ForEach-Object {
+    [ordered]@{
+        exceptionId = [string]$_.exception_id
+        capability = [string]$_.capability
+        artifact = [string]$_.artifact
+        version = [string]$_.version
+        owner = [string]$_.owner
+        approvedBy = [string]$_.approved_by
+        approvedAt = [string]$_.approved_at
+        expiresAt = [string]$_.expires_at
+        environments = @(([string]$_.environments) -split ';' | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+        ruleIds = @(([string]$_.rule_ids) -split ';' | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+        configFiles = @(([string]$_.config_files) -split ';' | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+        evidencePath = [string]$_.evidence_path
+        configHash = ([string]$_.config_hash).ToLowerInvariant()
+        rollback = [string]$_.rollback
+        returnPlan = [string]$_.return_plan
+        status = [string]$_.status
+    }
+})
+$approvedExceptionsJson = if ($approvedExceptionsForLock.Count -eq 0) { '[]' } else {
+    $approvedExceptionsForLock | ConvertTo-Json -Depth 10 -Compress
+}
+$approvedExceptionIds = @($approvedExceptionRows | ForEach-Object { [string]$_.exception_id })
+$approvedExceptionIdsCsv = $approvedExceptionIds -join ','
+$exceptionRegistrySha256 = Get-Sha256Hex -Bytes $Utf8NoBom.GetBytes($approvedExceptionCsv)
+$resolvedCapabilityGroupsCsv = @($resolvedCapabilityGroups) -join ','
+$requiredStandardsCsv = 'standard-error,header-context,transaction-id,security-boundary,audit,masking,observability,config,dependency-version,architecture-gate'
+$generatedDomainPolicyProperties = @"
+policyVersion=1.0
+module=$projectName
+profile=$CapabilityProfile
+platformVersion=$PlatformVersion
+capabilities=$resolvedCapabilityGroupsCsv
+requiredStandards=$requiredStandardsCsv
+approvedExceptionIds=$approvedExceptionIdsCsv
+exceptionRegistrySha256=$exceptionRegistrySha256
+failClosed=true
+"@
+$resolvedStarterLock = @"
+{
+  "lockVersion": "1.0",
+  "profile": "$CapabilityProfile",
+  "platformVersion": "$PlatformVersion",
+  "resolvedStarters": $resolvedStartersJson,
+  "resolvedStarterVersions": $resolvedStarterVersionsJson,
+  "capabilityGroups": $resolvedCapabilityGroupsJson,
+  "providerBindings": $resolvedProviderBindingsJson,
+  "providerProjects": $resolvedProviderProjectsJson,
+  "providerCoordinates": $resolvedProviderCoordinatesJson,
+  "targetEnvironment": "$TargetEnvironment",
+  "exceptionRegistrySha256": "$exceptionRegistrySha256",
+  "approvedExceptions": $approvedExceptionsJson
+}
+"@
 $domainManifest = @"
 {
   "metadataVersion": "1.0",
@@ -2415,10 +2901,16 @@ $domainManifest = @"
   "platformVersion": "$PlatformVersion",
 
   "capabilityProfile": "$CapabilityProfile",
+  "publicCapabilityGroups": ["data","messaging","integration","file","notification","security","platform-operations"],
+  "resolvedCapabilityGroups": $resolvedCapabilityGroupsJson,
   "capabilityProfileVersion": "$([string]$resolvedCapabilityProfile.profileVersion)",
   "resolvedStarters": $resolvedStartersJson,
   "resolvedStarterVersions": $resolvedStarterVersionsJson,
   "providerBindings": $resolvedProviderBindingsJson,
+  "standardInheritancePolicyVersion": "1.0",
+  "approvedExceptionIds": $(if ($approvedExceptionIds.Count -eq 0) { '[]' } else { $approvedExceptionIds | ConvertTo-Json -Compress }),
+  "targetEnvironment": "$TargetEnvironment",
+  "exceptionRegistrySha256": "$exceptionRegistrySha256",
   "templateContractVersion": "$($centralTemplateContract.contractVersion)",
   "dataSourceJndiName": "$DataSourceJndiName",
   "batchEnabled": $batchJson,
@@ -2784,10 +3276,20 @@ class ${ModuleName}CenterCutHandlerTest {
 }
 "@
 
+$generatedDomainGradleProperties = @"
+# Generator-managed CPF platform and approved-exception attestation.
+cpfPlatformVersion=$PlatformVersion
+$(if ($approvedExceptionRows.Count -gt 0) { "cpfTargetEnvironment=$TargetEnvironment" } else { "" })
+"@
+
 $files = [ordered]@{
     "build.gradle" = $buildGradle
     "README.md" = $readme
     "manifest/domain-manifest.json" = $domainManifest
+    "manifest/resolved-starter-lock.json" = $resolvedStarterLock
+    "config/cpf-approved-exceptions.csv" = $approvedExceptionCsv
+    "src/main/resources/META-INF/cpf/cpf-approved-exceptions.csv" = $approvedExceptionCsv
+    "src/main/resources/META-INF/cpf/generated-domain-policy.properties" = $generatedDomainPolicyProperties
     "deploy/database/database-profile.json" = $domainDatabaseProfile
     "manifest/ownership.json" = $ownershipManifest
     "manifest/standard-execution-catalog.json" = $executionCatalogManifest
@@ -2817,11 +3319,17 @@ $files = [ordered]@{
     "src/test/java/$featurePackagePath/service/${FeatureClassPrefix}ServiceTest.java" = $serviceTest
         "smoke/smoke-${module}.ps1" = $smokeScript
 }
+$files["gradle.properties"] = $generatedDomainGradleProperties
+foreach ($evidenceEntry in $approvedExceptionEvidenceFiles.GetEnumerator()) {
+    $files[$evidenceEntry.Key] = $evidenceEntry.Value
+}
+foreach ($configEntry in $approvedExceptionConfigFiles.GetEnumerator()) {
+    if ($files.Contains($configEntry.Key)) {
+        throw "승인 예외 Config가 Generator 표준 파일과 충돌합니다: $($configEntry.Key)"
+    }
+}
 
 if ($DatabaseEnabled) {
-    $files["src/main/java/$packagePath/config/${ModuleName}DataSourceConfig.java"] = $dataSourceConfig
-    $files["src/main/java/$packagePath/config/${ModuleName}MyBatisConfig.java"] = $myBatisConfig
-    $files["src/test/java/$packagePath/config/${ModuleName}DataSourceIsolationTest.java"] = $dataSourceIsolationTest
     $files["src/main/java/$featurePackagePath/adapter/local/Local${FeatureClassPrefix}Adapter.java"] = $localAdapter
     $files["src/main/java/$featurePackagePath/repository/${FeatureClassPrefix}Repository.java"] = $repository
 }
@@ -2883,6 +3391,15 @@ foreach ($entry in $files.GetEnumerator()) {
     Write-Utf8 -Path $path -Content $entry.Value
     $plan.generatedFiles += $path.Substring($Root.Length).TrimStart('\', '/')
 }
+foreach ($configEntry in $approvedExceptionConfigFiles.GetEnumerator()) {
+    $target = Join-Path $OutputDir $configEntry.Key
+    if (Test-Path -LiteralPath $target) {
+        throw "Generated approved exception Config already exists. path=$target"
+    }
+    New-Item -ItemType Directory -Force -Path (Split-Path -Parent $target) | Out-Null
+    Copy-Item -LiteralPath $configEntry.Value -Destination $target
+    $plan.generatedFiles += $target.Substring($Root.Length).TrimStart('\', '/')
+}
 
 if ($GeneratePatch) {
     Write-Warning "GeneratePatch는 1.0.0부터 중간 후보 파일을 생성하지 않습니다. SQL과 배포 설정은 승인된 별도 절차로 반영하세요."
@@ -2942,6 +3459,13 @@ $generatorOwnership = [ordered]@{
         ui = $UiEnabled
         bzaMenu = $BzaMenuEnabled
         productionProfile = $ProductionProfileEnabled
+        capabilityProfile = $CapabilityProfile
+        capabilityGroups = $resolvedCapabilityGroups
+        providerBindings = $resolvedProviderBindings
+        resolvedStarters = $resolvedStarters
+        approvedExceptionIds = $approvedExceptionIds
+        exceptionRegistrySha256 = $exceptionRegistrySha256
+        standardInheritancePolicyVersion = "1.0"
     }
     createdFiles = $ownedFiles
     modifiedGlobalFiles = @(

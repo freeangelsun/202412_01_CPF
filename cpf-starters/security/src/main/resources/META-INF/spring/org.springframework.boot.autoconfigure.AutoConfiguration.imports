@@ -1,1 +1,2 @@
 com.cpf.starter.security.CpfServerSessionSecurityAutoConfiguration
+com.cpf.starter.security.runtimecontrol.CpfSecurityRuntimeControlAutoConfiguration

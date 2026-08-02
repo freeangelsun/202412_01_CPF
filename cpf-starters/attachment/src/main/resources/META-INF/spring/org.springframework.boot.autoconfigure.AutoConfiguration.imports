@@ -1,1 +1,2 @@
 com.cpf.core.config.CpfAttachmentAutoConfiguration
+com.cpf.starter.attachment.runtimecontrol.CpfAttachmentRuntimeControlAutoConfiguration

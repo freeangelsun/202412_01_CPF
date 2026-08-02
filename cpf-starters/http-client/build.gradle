@@ -1,6 +1,8 @@
 plugins { id 'java-library'; id 'maven-publish' }
 group = 'com.cpf.starter'
 dependencies {
+    implementation project(':cpf-integration-fixedlength-core')
+    implementation project(':cpf-starter-runtime-control-client')
     api project(':cpf-core')
     api project(':cpf-starter-base')
     implementation project(':cpf-starter-persistence-jdbc')

@@ -1,4 +1,67 @@
-package com.cpf.starter.jms;import com.cpf.core.api.broker.*;import java.time.Instant;import org.springframework.jms.JmsException;import org.springframework.jms.core.JmsTemplate;
-public final class CpfJmsBrokerClient implements CpfBrokerClient {private final JmsTemplate template;private final CpfJmsProperties p;public CpfJmsBrokerClient(JmsTemplate t,CpfJmsProperties p){template=t;this.p=p;}
- public CpfBrokerPublishResult enqueue(CpfBrokerPublishRequest r){if(r.payload().length>p.getMaxPayloadBytes())throw new IllegalArgumentException("JMS payload exceeds limit");try{template.send(p.getDestination(),session->{var m=session.createBytesMessage();m.writeBytes(r.payload());m.setJMSCorrelationID(r.transactionId());m.setStringProperty("cpfMessageId",r.messageId());m.setStringProperty("cpfIdempotencyKey",r.idempotencyKey());for(var e:r.headers().entrySet())m.setStringProperty(safeName(e.getKey()),e.getValue());return m;});return new CpfBrokerPublishResult("PUBLISHED",r.messageId(),"JMS",p.getDestination(),Instant.now(),p.isSessionTransacted()?"session=transacted":"session=acknowledged");}catch(JmsException ex){throw new IllegalStateException("JMS publish result is UNKNOWN and must be reconciled",ex);}}
- private static String safeName(String n){String v=n.replaceAll("[^A-Za-z0-9_]","_");if(v.isBlank()||Character.isDigit(v.charAt(0)))v="cpf_"+v;return v;}}
+package com.cpf.starter.jms;
+
+import com.cpf.core.api.broker.CpfBrokerClient;
+import com.cpf.core.api.broker.CpfBrokerPublishRequest;
+import com.cpf.core.api.broker.CpfBrokerPublishResult;
+import java.time.Clock;
+import java.time.Instant;
+import org.springframework.jms.JmsException;
+import org.springframework.jms.core.JmsTemplate;
+
+/** Provider-neutral JMS Adapter. A transport exception is always treated as UNKNOWN. */
+public final class CpfJmsBrokerClient implements CpfBrokerClient {
+    private final JmsTemplate template;
+    private final CpfJmsProperties properties;
+    private final Clock clock;
+
+    public CpfJmsBrokerClient(JmsTemplate template, CpfJmsProperties properties) {
+        this(template, properties, Clock.systemUTC());
+    }
+
+    CpfJmsBrokerClient(
+            JmsTemplate template, CpfJmsProperties properties, Clock clock) {
+        this.template = java.util.Objects.requireNonNull(template, "template");
+        this.properties = java.util.Objects.requireNonNull(properties, "properties");
+        this.clock = java.util.Objects.requireNonNull(clock, "clock");
+    }
+
+    @Override
+    public CpfBrokerPublishResult enqueue(CpfBrokerPublishRequest request) {
+        if (request.payload().length > properties.getMaxPayloadBytes()) {
+            throw new IllegalArgumentException("JMS payload exceeds CPF maximum size");
+        }
+        try {
+            template.send(properties.getDestination(), session -> {
+                var message = session.createBytesMessage();
+                message.writeBytes(request.payload());
+                message.setJMSCorrelationID(request.transactionId());
+                message.setStringProperty("cpfMessageId", request.messageId());
+                message.setStringProperty("cpfIdempotencyKey", request.idempotencyKey());
+                for (var header : request.headers().entrySet()) {
+                    message.setStringProperty(safeName(header.getKey()), header.getValue());
+                }
+                return message;
+            });
+            return new CpfBrokerPublishResult(
+                    "PUBLISHED",
+                    request.messageId(),
+                    "JMS",
+                    properties.getDestination(),
+                    Instant.now(clock),
+                    properties.isSessionTransacted()
+                            ? "session=transacted"
+                            : "session=acknowledged");
+        } catch (JmsException failure) {
+            throw new IllegalStateException(
+                    "JMS publish result is UNKNOWN; reconcile before retrying", failure);
+        }
+    }
+
+    private static String safeName(String name) {
+        String value = name.replaceAll("[^A-Za-z0-9_]", "_");
+        if (value.isBlank() || Character.isDigit(value.charAt(0))) {
+            value = "cpf_" + value;
+        }
+        return value;
+    }
+}

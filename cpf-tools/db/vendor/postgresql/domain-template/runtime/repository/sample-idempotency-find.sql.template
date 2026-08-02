@@ -1,0 +1,10 @@
+SELECT idempotency_key AS idempotencyKey,
+       operation_code AS operationCode,
+       request_hash AS requestHash,
+       sample_item_id AS sampleItemId,
+       result_version AS resultVersion,
+       deleted_yn AS deletedYn,
+       transaction_id AS transactionId,
+       created_at AS createdAt
+FROM "@CPF_SCHEMA_NAME@".@CPF_TABLE_PREFIX@_sample_item_idem
+WHERE idempotency_key = :value

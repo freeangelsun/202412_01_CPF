@@ -62,13 +62,32 @@ public final class CpfCapabilityBindingRegistry {
     }
 
     public void validateAll() {
-        new ArrayList<>(bindings.entrySet()).forEach(entry -> validateDefaultCount(entry.getKey(), entry.getValue()));
+        new ArrayList<>(bindings.entrySet()).forEach(entry ->
+                validateRequiredDefault(entry.getKey(), entry.getValue()));
     }
 
-    private static void validateDefaultCount(String capability, Map<String, CpfCapabilityBinding> capabilityBindings) {
-        long defaultCount = capabilityBindings.values().stream().filter(CpfCapabilityBinding::defaultBinding).count();
+    private static void validateDefaultCount(
+            String capability, Map<String, CpfCapabilityBinding> capabilityBindings) {
+        long defaultCount = capabilityBindings.values().stream()
+                .filter(CpfCapabilityBinding::defaultBinding)
+                .count();
         if (defaultCount > 1) {
             throw new IllegalStateException("Multiple default CPF bindings: " + capability);
+        }
+    }
+
+    private static void validateRequiredDefault(
+            String capability, Map<String, CpfCapabilityBinding> capabilityBindings) {
+        if (capabilityBindings.isEmpty()) {
+            return;
+        }
+        long defaultCount = capabilityBindings.values().stream()
+                .filter(CpfCapabilityBinding::defaultBinding)
+                .count();
+        if (defaultCount != 1) {
+            throw new IllegalStateException(
+                    "CPF capability requires exactly one default binding at startup: "
+                            + capability + " (found=" + defaultCount + ")");
         }
     }
 }

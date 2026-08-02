@@ -7,7 +7,6 @@ dependencies {
     api project(':cpf-batch:contract')
     implementation project(':cpf-core')
     implementation project(':cpf-common')
-    implementation project(':cpf-starter-resilience')
     implementation project(':cpf-starter-observability')
 
     api 'org.springframework.boot:spring-boot-starter-batch-jdbc'

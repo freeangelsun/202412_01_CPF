@@ -1,8 +1,0 @@
-plugins { id 'java-library'; id 'maven-publish' }
-group = 'com.cpf.starter'
-dependencies {
-    api project(':cpf-core')
-    api 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j'
-    implementation 'org.springframework.boot:spring-boot-autoconfigure'
-}
-publishing { publications { mavenJava(MavenPublication) { from components.java; artifactId = 'cpf-starter-resilience' } } }

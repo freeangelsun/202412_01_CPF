@@ -4,9 +4,7 @@ plugins {
 }
 
 def loadCanonicalProperties = { File source, List<String> requiredKeys ->
-    if (!source.isFile()) {
-        throw new GradleException("CPF canonical properties file is missing: ${source}")
-    }
+    if (!source.isFile()) throw new GradleException("CPF canonical properties file is missing: ${source}")
     def values = new Properties()
     source.withInputStream { values.load(it) }
     requiredKeys.each { key ->
@@ -17,124 +15,54 @@ def loadCanonicalProperties = { File source, List<String> requiredKeys ->
     values
 }
 
-def platformProperties = loadCanonicalProperties(
-        file('../../../gradle/cpf-platform.properties'), ['platformVersion'])
+def platformProperties = loadCanonicalProperties(file('../../../gradle/cpf-platform.properties'), ['platformVersion'])
 def canonicalPlatformVersion = platformProperties.getProperty('platformVersion').trim()
 def requestedPlatformVersion = providers.gradleProperty('cpfPlatformVersion').orNull?.trim()
 if (requestedPlatformVersion != null && requestedPlatformVersion != canonicalPlatformVersion) {
-    throw new GradleException(
-            "cpfPlatformVersion override must match gradle/cpf-platform.properties: " +
-                    "requested=${requestedPlatformVersion}, canonical=${canonicalPlatformVersion}")
+    throw new GradleException("cpfPlatformVersion override must match canonical version: requested=${requestedPlatformVersion}, canonical=${canonicalPlatformVersion}")
 }
 
 group = 'com.cpf'
 version = canonicalPlatformVersion
-
-javaPlatform {
-    allowDependencies()
-}
-
+javaPlatform { allowDependencies() }
 repositories { mavenCentral() }
 
-def stackProperties = loadCanonicalProperties(
-        file('../../../gradle/cpf-stack.properties'), ['springBootVersion', 'springCloudVersion'])
-def springBootVersion = providers.gradleProperty('cpfSpringBootVersion')
-        .orElse(stackProperties.getProperty('springBootVersion').trim()).get().trim()
-def springCloudVersion = providers.gradleProperty('cpfSpringCloudVersion')
-        .orElse(stackProperties.getProperty('springCloudVersion').trim()).get().trim()
-if (springBootVersion.isEmpty() || springCloudVersion.isEmpty()) {
-    throw new GradleException('CPF Spring Boot and Spring Cloud BOM versions must not be blank.')
-}
+def stackProperties = loadCanonicalProperties(file('../../../gradle/cpf-stack.properties'), ['springBootVersion', 'springCloudVersion'])
+def springBootVersion = providers.gradleProperty('cpfSpringBootVersion').orElse(stackProperties.getProperty('springBootVersion').trim()).get().trim()
+def springCloudVersion = providers.gradleProperty('cpfSpringCloudVersion').orElse(stackProperties.getProperty('springCloudVersion').trim()).get().trim()
 
-def artifactCatalogFile = file('../../release/cpf-final-artifact-catalog.json')
-if (!artifactCatalogFile.isFile()) {
-    throw new GradleException("CPF final artifact catalog is missing: ${artifactCatalogFile}")
+def canonicalCatalogFile = file('../../generator/contracts/cpf-starter-catalog.json')
+if (!canonicalCatalogFile.isFile()) throw new GradleException("CPF canonical starter catalog is missing: ${canonicalCatalogFile}")
+def canonicalCatalog = new groovy.json.JsonSlurper().parse(canonicalCatalogFile)
+def catalogModules = canonicalCatalog.modules ?: []
+def publicProfiles = (canonicalCatalog.publicProfiles ?: [])*.toString()
+def capabilityGroups = (canonicalCatalog.capabilityGroups ?: []).collect { it.id?.toString() }
+if (publicProfiles.size() != 6 || capabilityGroups.size() != 7) {
+    throw new GradleException("CPF QA39 public surface mismatch: profiles=${publicProfiles}, groups=${capabilityGroups}")
 }
-def artifactCatalog = new groovy.json.JsonSlurper().parse(artifactCatalogFile)
-def starterArtifactIds = (artifactCatalog.artifacts ?: [])
-        .findAll { artifact -> artifact.kind?.toString() == 'starter' }
-        .collect { artifact ->
-            def ownerPath = artifact.ownerPath?.toString()?.replace('\\', '/')?.replaceAll('/+$', '')
-            if (!(ownerPath ==~ /^cpf-starters\/[^\/]+$/)) {
-                throw new GradleException("Starter artifact ownerPath is invalid: ${ownerPath}")
-            }
-            def expectedArtifactId = "cpf-starter-${ownerPath.substring(ownerPath.lastIndexOf('/') + 1)}"
-            if (artifact.artifactId?.toString() != expectedArtifactId) {
-                throw new GradleException(
-                        "Starter artifact identity mismatch: owner=${ownerPath}, artifact=${artifact.artifactId}")
-            }
-            expectedArtifactId
-        }
-        .sort()
-if (starterArtifactIds.isEmpty() || starterArtifactIds.size() != starterArtifactIds.toSet().size()) {
-    throw new GradleException("Starter artifact catalog is empty or duplicated: ${starterArtifactIds}")
+def coordinates = catalogModules.findAll { it.publicationRequired != false }.collect { module ->
+    def groupId = module.groupId?.toString()
+    def artifactId = module.artifactId?.toString()
+    if (!groupId || !artifactId) throw new GradleException("Invalid CPF catalog coordinates: ${module}")
+    "${groupId}:${artifactId}:${version}"
+}
+if (coordinates.isEmpty() || coordinates.size() != coordinates.toSet().size()) {
+    throw new GradleException("CPF canonical BOM coordinates are empty or duplicated: ${coordinates}")
+}
+def removedIds = (canonicalCatalog.removedArtifactIds ?: [])*.toString()
+if (coordinates.any { coordinate -> removedIds.any { removed -> coordinate.contains(":${removed}:") } }) {
+    throw new GradleException('Removed CPF artifact leaked into canonical BOM constraints.')
 }
 
 dependencies {
     api platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
     api platform("org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}")
     constraints {
-        api 'com.cpf.core:cpf-core:' + version
-        api 'com.cpf.common:cpf-common:' + version
-        api 'com.cpf.batch:cpf-batch-contract:' + version
-        api 'com.cpf.batch:cpf-batch-testkit:' + version
-        starterArtifactIds.each { starterArtifactId ->
-            api "com.cpf.starter:${starterArtifactId}:${version}"
-        }
-    }
-
-    constraints {
-        api 'com.cpf.starter:cpf-starter-base:${project.version}'
-        api 'com.cpf.starter:cpf-starter-persistence-jdbc:${project.version}'
-        api 'com.cpf.starter:cpf-starter-persistence-mybatis:${project.version}'
-        api 'com.cpf.starter:cpf-starter-aop-service-access:${project.version}'
-        api 'com.cpf.starter:cpf-starter-openapi-webmvc:${project.version}'
-        api 'com.cpf.starter:cpf-starter-security-resource-server:${project.version}'
-        api 'com.cpf.starter:cpf-starter-security-session-jdbc:${project.version}'
-        api 'com.cpf.starter:cpf-starter-security-service-identity:${project.version}'
-        api 'com.cpf.starter:cpf-starter-security:${project.version}'
-        api 'com.cpf.starter:cpf-starter-messaging-reliability-jdbc:${project.version}'
-        api 'com.cpf.starter:cpf-starter-channel-registry-jdbc:${project.version}'
-        api 'com.cpf.starter:cpf-starter-cache-caffeine:${project.version}'
-        api 'com.cpf.starter:cpf-starter-cache-valkey:${project.version}'
-        api 'com.cpf.starter:cpf-starter-cache:${project.version}'
-        api 'com.cpf.starter:cpf-starter-observability:${project.version}'
-        api 'com.cpf.starter:cpf-starter-observability-otlp:${project.version}'
-        api 'com.cpf.starter:cpf-starter-http-client:${project.version}'
-        api 'com.cpf.starter:cpf-starter-integration-fixedlength:${project.version}'
-        api 'com.cpf.starter:cpf-starter-integration-sftp:${project.version}'
-        api 'com.cpf.starter:cpf-starter-tabular-poi:${project.version}'
-        api 'com.cpf.starter:cpf-starter-file-archive:${project.version}'
-        api 'com.cpf.starter:cpf-starter-validation:${project.version}'
-        api 'com.cpf.starter:cpf-starter-attachment:${project.version}'
-        api 'com.cpf.starter:cpf-starter-runtime-control-client:${project.version}'
-        api 'com.cpf.starter:cpf-starter-messaging-kafka:${project.version}'
-        api 'com.cpf.starter:cpf-starter-messaging-rabbitmq:${project.version}'
-        api 'com.cpf.starter:cpf-starter-messaging-jms:${project.version}'
-        api 'com.cpf.starter:cpf-starter-messaging-ibm-mq:${project.version}'
-        api 'com.cpf.starter:cpf-starter-integration-tcp:${project.version}'
-        api 'com.cpf.starter:cpf-starter-integration-iso8583:${project.version}'
-        api 'com.cpf.starter:cpf-starter-notification:${project.version}'
-        api 'com.cpf.starter:cpf-starter-notification-email:${project.version}'
-        api 'com.cpf.starter:cpf-starter-scheduler-quartz:${project.version}'
-        api 'com.cpf.starter:cpf-starter-resilience:${project.version}'
-        api 'com.cpf.starter:cpf-starter-featureflag:${project.version}'
-        api 'com.cpf.starter:cpf-starter-secret:${project.version}'
-        api 'com.cpf.starter:cpf-starter-profile-minimal-boot-domain:${project.version}'
-        api 'com.cpf.starter:cpf-starter-profile-domain-web-api:${project.version}'
-        api 'com.cpf.starter:cpf-starter-profile-secure-resource-api:${project.version}'
-        api 'com.cpf.starter:cpf-starter-profile-browser-bff-session:${project.version}'
-        api 'com.cpf.starter:cpf-starter-profile-persistence-mybatis:${project.version}'
-        api 'com.cpf.starter:cpf-starter-profile-event-kafka:${project.version}'
-        api 'com.cpf.starter:cpf-starter-profile-event-rabbitmq:${project.version}'
-        api 'com.cpf.starter:cpf-starter-profile-event-jms-ibm-mq:${project.version}'
-        api 'com.cpf.starter:cpf-starter-profile-integration-tcp:${project.version}'
-        api 'com.cpf.starter:cpf-starter-profile-observable-resilient-service:${project.version}'
-        api 'com.cpf.starter:cpf-starter-profile-notification-service:${project.version}'
-        api 'com.cpf.starter:cpf-starter-profile-scheduled-service:${project.version}'
-        api 'com.cpf.starter:cpf-starter-profile-sftp-integration:${project.version}'
-        api 'com.cpf.integration:cpf-integration-fixedlength-core:${project.version}'
-        api 'com.cpf.notification:cpf-notification-sms-spi:${project.version}'
+        api "com.cpf.core:cpf-core:${version}"
+        api "com.cpf.common:cpf-common:${version}"
+        api "com.cpf.batch:cpf-batch-contract:${version}"
+        api "com.cpf.batch:cpf-batch-testkit:${version}"
+        coordinates.sort().each { coordinate -> api coordinate }
     }
 }
 
@@ -143,8 +71,6 @@ def cpfLocalRepository = providers.gradleProperty('cpfLocalArtifactRepository')
         .orElse(new File(System.getProperty('user.home'), '.cpf/repository').absolutePath)
 def cpfStagingRepository = providers.gradleProperty('cpfArtifactStagingRepository')
         .orElse(new File(rootDir, '../../../build/cpf-artifact-staging/repository').absolutePath)
-// cpfInternalRepositoryUrl은 기존 BOM 전용 호출자의 호환성을 유지하고,
-// 제품 Root와 Convention Plugin이 사용하는 공통 Repository 설정을 이어서 수용합니다.
 def cpfInternalRepository = providers.gradleProperty('cpfInternalRepositoryUrl')
         .orElse(providers.gradleProperty('cpfArtifactRepositoryUrl'))
         .orElse(providers.environmentVariable('CPF_ARTIFACT_REPOSITORY_URL'))
@@ -161,46 +87,29 @@ publishing {
             artifactId = 'cpf-platform-bom'
             pom {
                 name = 'CPF Platform BOM'
-                description = 'Core Platform Framework supported dependency alignment BOM.'
+                description = 'Core Platform Framework dependency alignment generated from the QA39 canonical starter catalog.'
             }
         }
     }
     repositories {
+        maven { name = 'CpfLocal'; url = uri(cpfLocalRepository.get()) }
+        maven { name = 'CpfStaging'; url = uri(cpfStagingRepository.get()) }
         maven {
-            name = 'CpfLocal'
-            url = uri(cpfLocalRepository.get())
-        }
-        maven {
-            name = 'CpfStaging'
-            url = uri(cpfStagingRepository.get())
-        }
-        maven {
-            name = 'CpfInternal'
-            url = uri(cpfInternalRepository.get())
+            name = 'CpfInternal'; url = uri(cpfInternalRepository.get())
             if (cpfInternalRepositoryUsername.isPresent()) {
-                credentials {
-                    username = cpfInternalRepositoryUsername.get()
-                    password = cpfInternalRepositoryPassword.orNull
-                }
+                credentials { username = cpfInternalRepositoryUsername.get(); password = cpfInternalRepositoryPassword.orNull }
             }
         }
     }
 }
 
-tasks.register('publishCpfBomToLocal') {
-    group = 'publishing'
-    description = 'Publishes the canonical CPF platform BOM to the shared CPF local repository.'
-    dependsOn tasks.named('publishCpfPlatformBomPublicationToCpfLocalRepository')
+tasks.register('verifyCanonicalCpfBom') {
+    group = 'verification'
+    description = 'Verifies six profiles, seven groups, unique coordinates and removed-artifact exclusion.'
+    doLast {
+        assert publicProfiles == ['minimal-domain', 'web-api', 'secure-api', 'browser-bff', 'event-service', 'batch-service']
+        assert capabilityGroups == ['data', 'messaging', 'integration', 'file', 'notification', 'security', 'platform-operations']
+        assert coordinates.size() == coordinates.toSet().size()
+    }
 }
-
-tasks.register('publishCpfBomToStaging') {
-    group = 'publishing'
-    description = 'Publishes the canonical CPF platform BOM to the isolated CPF staging repository.'
-    dependsOn tasks.named('publishCpfPlatformBomPublicationToCpfStagingRepository')
-}
-
-tasks.register('publishCpfBomToInternal') {
-    group = 'publishing'
-    description = 'Publishes the canonical CPF platform BOM to the configured internal repository.'
-    dependsOn tasks.named('publishCpfPlatformBomPublicationToCpfInternalRepository')
-}
+check.dependsOn tasks.named('verifyCanonicalCpfBom')

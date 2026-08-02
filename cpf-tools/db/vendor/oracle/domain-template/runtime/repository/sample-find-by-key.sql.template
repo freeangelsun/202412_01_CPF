@@ -1,0 +1,15 @@
+SELECT sample_item_id AS sampleItemId,
+       sample_key AS sampleKey,
+       item_name AS itemName,
+       status_code AS statusCode,
+       version_no AS versionNo,
+       idempotency_key AS idempotencyKey,
+       transaction_id AS transactionId,
+       transaction_sequence AS transactionSequence,
+       transaction_at AS transactionAt,
+       created_by AS createdBy,
+       created_at AS createdAt,
+       updated_by AS updatedBy,
+       updated_at AS updatedAt
+FROM @CPF_SCHEMA_NAME@.@CPF_TABLE_PREFIX@_sample_item
+WHERE sample_key = :value AND deleted_yn = 'N'

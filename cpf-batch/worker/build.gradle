@@ -1,17 +1,19 @@
 plugins { id 'org.springframework.boot'; id 'maven-publish' }
 group='com.cpf.batch'
 dependencies {
+    implementation project(':cpf-starter-messaging-reliability-jdbc')
     implementation project(':cpf-batch:contract')
     implementation project(':cpf-batch:runtime-common')
     implementation project(':cpf-batch:execution-runtime')
     implementation project(':cpf-core')
     implementation project(':cpf-common')
+    implementation project(':cpf-starter-profile-batch-service')
     implementation project(':cpf-starter-messaging-kafka')
-    implementation project(':cpf-starter-resilience')
-    implementation project(':cpf-starter-observability')
+    implementation project(':cpf-starter-notification')
     implementation project(':cpf-starter-secret')
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework:spring-context'
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
     implementation 'org.springframework.boot:spring-boot-starter-batch-jdbc'
     implementation 'org.springframework.batch:spring-batch-integration'

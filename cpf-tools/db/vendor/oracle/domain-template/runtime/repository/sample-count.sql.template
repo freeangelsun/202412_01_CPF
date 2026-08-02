@@ -1,0 +1,4 @@
+SELECT COUNT(*)
+FROM @CPF_SCHEMA_NAME@.@CPF_TABLE_PREFIX@_sample_item
+WHERE deleted_yn = 'N'
+  AND (:keyword IS NULL OR :keyword = '' OR sample_key LIKE ('%' || :keyword || '%') OR item_name LIKE ('%' || :keyword || '%'))

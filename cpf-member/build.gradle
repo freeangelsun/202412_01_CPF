@@ -10,7 +10,7 @@ group = 'com.cpf.member'
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(rootProject.ext.cpfJavaVersion)
+        languageVersion = JavaLanguageVersion.of(25)
     }
 }
 
@@ -40,15 +40,9 @@ def cpfFlywayDatabaseByVendor = [
 ]
 
 dependencies {
-    implementation project(':cpf-starter-profile-secure-resource-api')
-    implementation project(':cpf-starter-profile-persistence-mybatis')
-    implementation project(':cpf-core')
-    implementation project(':cpf-common')
+    implementation project(':cpf-starter-profile-secure-api')
+    implementation project(':cpf-starter-persistence-mybatis')
 
-    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
-    implementation 'org.springframework:spring-web'
-    implementation 'org.springframework.boot:spring-boot-starter-actuator'
-    implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:4.0.0'
     implementation 'org.springframework.boot:spring-boot-starter-flyway'
     runtimeOnly cpfJdbcDriverByVendor[cpfDbVendor]
     runtimeOnly cpfFlywayDatabaseByVendor[cpfDbVendor]
@@ -159,7 +153,15 @@ tasks.named('bootWar') {
     enabled = true
 }
 
-def cpfRequiredPackagedDependencyPrefixes = ['cpf-core-', 'cpf-common-']
+def cpfResolvedStarterLockFile = file('manifest/resolved-starter-lock.json')
+if (!cpfResolvedStarterLockFile.isFile()) {
+    throw new GradleException("CPF resolved Starter lock is missing: ${cpfResolvedStarterLockFile}")
+}
+def cpfResolvedStarterLock = new groovy.json.JsonSlurper().parse(cpfResolvedStarterLockFile)
+def cpfRequiredPackagedDependencyPrefixes = (
+        ['cpf-core', 'cpf-common', 'cpf-starter-base'] +
+        ((cpfResolvedStarterLock.resolvedStarters ?: []) as List)
+).collect { "${it}-" }.toSet().sort()
 
 def cpfAssertPackagedDependencies = { File archiveFile, String libraryRoot ->
     if (!archiveFile.isFile()) {

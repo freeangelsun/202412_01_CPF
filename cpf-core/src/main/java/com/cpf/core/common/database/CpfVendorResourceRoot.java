@@ -79,6 +79,25 @@ final class CpfVendorResourceRoot {
                         + "선택 Vendor=" + selectedVendor.id()));
     }
 
+    /** Validates an explicitly supplied Vendor Pack root without exposing Spring types. */
+    static Path required(Path configuredPath, CpfDatabaseVendor selectedVendor) {
+        if (configuredPath == null) {
+            throw new IllegalArgumentException("configuredPath is required");
+        }
+        try {
+            Path realRoot = configuredPath.toAbsolutePath().normalize().toRealPath();
+            if (!Files.isDirectory(realRoot, LinkOption.NOFOLLOW_LINKS)) {
+                throw new IllegalStateException(
+                        "선택한 DB Vendor resource root가 디렉터리가 아닙니다. root=" + configuredPath);
+            }
+            validateManifest(realRoot, selectedVendor);
+            return realRoot;
+        } catch (IOException ex) {
+            throw new IllegalStateException(
+                    "선택한 DB Vendor resource root를 확인할 수 없습니다. root=" + configuredPath, ex);
+        }
+    }
+
     private static void validateManifest(Path realRoot, CpfDatabaseVendor selectedVendor) {
         Path manifest = requiredFile(realRoot, Path.of("pack.json"), "Pack Manifest");
         try {

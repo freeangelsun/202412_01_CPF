@@ -1,0 +1,9 @@
+INSERT INTO @CPF_SCHEMA_NAME@.@CPF_TABLE_PREFIX@_sample_item (
+  sample_key, item_name, status_code, version_no, idempotency_key,
+  transaction_id, transaction_sequence, transaction_at, deleted_yn,
+  created_by, created_at, updated_by, updated_at
+) VALUES (
+  :sampleKey, :itemName, :statusCode, 0, :idempotencyKey,
+  :transactionId, :transactionSequence, CURRENT_TIMESTAMP, 'N',
+  :createdBy, CURRENT_TIMESTAMP, :updatedBy, CURRENT_TIMESTAMP
+)

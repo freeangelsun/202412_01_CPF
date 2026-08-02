@@ -54,6 +54,13 @@ public final class CpfVendorSqlCatalog implements com.cpf.core.api.database.CpfV
         return new CpfVendorSqlCatalog(vendor, moduleCode, externalRoot);
     }
 
+    /** Public-API factory bridge without exposing Spring Environment to consumers. */
+    public static CpfVendorSqlCatalog create(
+            CpfDatabaseVendor vendor, String moduleCode, Path configuredPackRoot) {
+        Path externalRoot = CpfVendorResourceRoot.required(configuredPackRoot, vendor);
+        return new CpfVendorSqlCatalog(vendor, moduleCode, externalRoot);
+    }
+
     /**
      * 지정 Statement SQL을 읽습니다. SQL은 UTF-8이며 빈 파일은 허용하지 않습니다.
      *

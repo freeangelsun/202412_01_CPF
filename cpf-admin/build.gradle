@@ -13,27 +13,22 @@ java {
 }
 
 dependencies {
-    implementation project(':cpf-starter-profile-browser-bff-session')
-    implementation project(':cpf-starter-profile-persistence-mybatis')
-    implementation project(':cpf-starter-profile-domain-web-api')
+    implementation project(':cpf-starter-profile-browser-bff')
+    implementation project(':cpf-starter-persistence-mybatis')
     implementation project(':cpf-starter-attachment')
     implementation project(':cpf-starter-tabular-poi')
     // ADM은 CPF 거래 로그와 CMN 공통 기능을 함께 사용합니다.
     implementation project(':cpf-core')
     implementation project(':cpf-common')
-    implementation project(':cpf-starter-security')
     // ADM은 BAT 내부 구현/DB가 아니라 버전된 Owner Contract에만 의존합니다.
     implementation project(':cpf-batch:contract')
 
     // ADM REST API와 정적 관리 화면을 제공합니다.
-    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
     // BAT/Gateway Owner Remote Port의 WebClient를 제공합니다.
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
     // AdmApiAuthFilter가 직접 사용하는 servlet filter API를 runtime에도 명시적으로 포함합니다.
-    implementation 'org.springframework:spring-web'
 
     // ADM 소유 DB와 CPF 플랫폼 read-model만 JdbcTemplate으로 조회합니다.
-    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
 
     // 공식 지원 Vendor(Oracle/PostgreSQL/MariaDB) Driver는 DataSource Owner가 명시적으로 소유합니다.
     runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'

@@ -1,0 +1,1 @@
+DROP INDEX idx_cpf_broker_outbox_reconcile ON cpf_broker_outbox;

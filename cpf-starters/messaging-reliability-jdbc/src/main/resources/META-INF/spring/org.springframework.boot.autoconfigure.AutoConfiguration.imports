@@ -1,1 +1,2 @@
 com.cpf.starter.messaging.reliability.CpfBrokerReliabilityAutoConfiguration
+com.cpf.starter.messaging.reliability.runtimecontrol.CpfMessagingRuntimeControlAutoConfiguration

@@ -1,7 +1,44 @@
 package com.cpf.starter.messaging.reliability;
-import com.cpf.core.api.broker.*;import java.time.Instant;import java.util.*;import org.junit.jupiter.api.Test;import static org.assertj.core.api.Assertions.*;
+
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import com.cpf.core.api.broker.CpfBrokerClient;
+import com.cpf.core.api.broker.CpfBrokerPublishRequest;
+import com.cpf.core.api.broker.CpfBrokerPublishResult;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+
 class CpfBrokerClientRouterTest {
- private static CpfBrokerClient client(String provider){return r->new CpfBrokerPublishResult("PUBLISHED",r.messageId(),provider,r.destination(),Instant.EPOCH,"ok");}
- @Test void routesDefaultAndNamedProvider(){var router=new CpfBrokerClientRouter(List.of(new CpfNamedBrokerClient("primary","KAFKA",true,client("KAFKA")),new CpfNamedBrokerClient("migration","RABBITMQ",false,client("RABBITMQ"))));var request=new CpfBrokerPublishRequest("m1","orders","k",new byte[]{1},Map.of(),"tx1","idem1");assertThat(router.enqueue(request).provider()).isEqualTo("KAFKA");assertThat(router.enqueue("migration",request).provider()).isEqualTo("RABBITMQ");}
- @Test void failsClosedOnAmbiguousDefaults(){assertThatThrownBy(()->new CpfBrokerClientRouter(List.of(new CpfNamedBrokerClient("a","KAFKA",false,client("KAFKA")),new CpfNamedBrokerClient("b","RABBITMQ",false,client("RABBITMQ"))))).isInstanceOf(IllegalStateException.class);}
+    private static final CpfBrokerClient CLIENT = new CpfBrokerClient() {
+        @Override
+        public CpfBrokerPublishResult enqueue(CpfBrokerPublishRequest request) {
+            return null;
+        }
+    };
+
+    @Test
+    void zeroProviderFailsClosed() {
+        assertThrows(IllegalStateException.class, () -> new CpfBrokerClientRouter(List.of()));
+    }
+
+    @Test
+    void zeroDefaultFailsClosedEvenForOneProvider() {
+        assertThrows(IllegalStateException.class, () -> new CpfBrokerClientRouter(List.of(
+                new CpfNamedBrokerClient("kafka", "kafka", false, CLIENT))));
+    }
+
+    @Test
+    void twoDefaultsFailClosed() {
+        assertThrows(IllegalStateException.class, () -> new CpfBrokerClientRouter(List.of(
+                new CpfNamedBrokerClient("kafka", "kafka", true, CLIENT),
+                new CpfNamedBrokerClient("rabbit", "rabbitmq", true, CLIENT))));
+    }
+
+    @Test
+    void exactlyOneDefaultPasses() {
+        assertDoesNotThrow(() -> new CpfBrokerClientRouter(List.of(
+                new CpfNamedBrokerClient("kafka", "kafka", true, CLIENT),
+                new CpfNamedBrokerClient("rabbit", "rabbitmq", false, CLIENT))));
+    }
 }

@@ -1,14 +1,10 @@
-# CPF 문서 정본 통합 후 exact-path 삭제 Manifest
-# 기준 SHA: 2a86ff42799eddffaae87d38ae68632726a2c495
-# 생성 시각: 2026-08-02 22:53:17 KST
-# 범위: R5 QA39 패키지에서 새 단일 정본·기계 정본으로 실제 병합/이름 변경된 파일만 포함
-# 선행 조건:
-# 1) 본 R6 Overlay를 Repository Root에 적용
-# 2) CPF_PACKAGE_MANIFEST.json Hash 검증
-# 3) Working Tree와 참조 영향 확인
-# 4) 사용자 검토 후 실행
-# 보호 경로 4곳은 포함하지 않는다.
-# QA37·QA38 및 기타 과거 폴더는 내용 전수 병합 전에는 이 명령으로 삭제하지 않는다.
+# CPF exact-path delete manifest
+# Baseline source SHA: 2a86ff42799eddffaae87d38ae68632726a2c495
+# QA canonical consolidation SHA: e18dcf95129499a08c50f7ae374f4a6e8f762309
+# Scope: canonicalized QA documents plus QA39 product files approved for complete removal/internalization.
+# This manifest contains FILE paths only. Directories are removed only when empty and explicitly listed in CPF_PRODUCT_DELETE_WORK_ITEMS.csv.
+# Actual deletion was NOT executed while producing the Overlay.
+# Protected owner paths are forbidden. Wildcards are forbidden.
 cpf-docs/quality/CPF_QA39_FINAL_REQUIREMENT_MATRIX.csv
 cpf-docs/quality/CPF_QA39_FINAL_SCENARIO_MATRIX.csv
 cpf-docs/quality/CPF_QA39_PUBLIC_STARTER_SURFACE_PROPOSAL.csv
@@ -44,3 +40,105 @@ cpf-docs/work/review/CPF_QA39_SOURCE_REVIEW_FINDINGS.csv
 cpf-docs/work/review/CPF_QA39_STARTER_ARCHITECTURE_AND_VALUE_REVIEW.md
 cpf-docs/work/state/CPF_CODEX_CONTINUITY_STATE.md
 cpf-docs/work/state/CPF_CODEX_DECISION_LOG.md
+cpf-starters/aop-service-access/build.gradle
+cpf-starters/aop-service-access/src/main/java/com/cpf/core/common/aop/ServiceAccessAspect.java
+cpf-starters/aop-service-access/src/main/java/com/cpf/core/config/CpfAopConfig.java
+cpf-starters/aop-service-access/src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports
+cpf-starters/aop-service-access/src/test/java/com/cpf/core/common/aop/CpfAspectPointcutMigrationTest.java
+cpf-starters/cache-aggregate/build.gradle
+cpf-starters/featureflag/build.gradle
+cpf-starters/featureflag/src/main/java/com/cpf/starter/featureflag/CpfFeatureFlagAutoConfiguration.java
+cpf-starters/featureflag/src/main/java/com/cpf/starter/featureflag/CpfFeatureFlagService.java
+cpf-starters/featureflag/src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports
+cpf-starters/integration-ftps/build.gradle
+cpf-starters/integration-ftps/src/main/java/com/cpf/starter/ftps/CpfFtpsAutoConfiguration.java
+cpf-starters/integration-ftps/src/main/java/com/cpf/starter/ftps/CpfFtpsClient.java
+cpf-starters/integration-ftps/src/main/java/com/cpf/starter/ftps/CpfFtpsProperties.java
+cpf-starters/integration-ftps/src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports
+cpf-starters/integration-grpc/build.gradle
+cpf-starters/integration-grpc/src/main/java/com/cpf/starter/grpc/CpfGrpcAutoConfiguration.java
+cpf-starters/integration-grpc/src/main/java/com/cpf/starter/grpc/CpfGrpcClient.java
+cpf-starters/integration-grpc/src/main/java/com/cpf/starter/grpc/CpfGrpcProperties.java
+cpf-starters/integration-grpc/src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports
+cpf-starters/integration-object-storage-s3/build.gradle
+cpf-starters/integration-object-storage-s3/src/main/java/com/cpf/starter/objectstorage/CpfObjectStorageAutoConfiguration.java
+cpf-starters/integration-object-storage-s3/src/main/java/com/cpf/starter/objectstorage/CpfObjectStorageClient.java
+cpf-starters/integration-object-storage-s3/src/main/java/com/cpf/starter/objectstorage/CpfObjectStorageProperties.java
+cpf-starters/integration-object-storage-s3/src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports
+cpf-starters/integration-realtime-webflux/build.gradle
+cpf-starters/integration-realtime-webflux/src/main/java/com/cpf/starter/realtime/CpfRealtimeAutoConfiguration.java
+cpf-starters/integration-realtime-webflux/src/main/java/com/cpf/starter/realtime/CpfRealtimeClient.java
+cpf-starters/integration-realtime-webflux/src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports
+cpf-starters/integration-smb/build.gradle
+cpf-starters/integration-smb/src/main/java/com/cpf/starter/smb/CpfSmbAutoConfiguration.java
+cpf-starters/integration-smb/src/main/java/com/cpf/starter/smb/CpfSmbClient.java
+cpf-starters/integration-smb/src/main/java/com/cpf/starter/smb/CpfSmbProperties.java
+cpf-starters/integration-smb/src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports
+cpf-starters/integration-soap/build.gradle
+cpf-starters/integration-soap/src/main/java/com/cpf/starter/soap/CpfSoapAutoConfiguration.java
+cpf-starters/integration-soap/src/main/java/com/cpf/starter/soap/CpfSoapClient.java
+cpf-starters/integration-soap/src/main/java/com/cpf/starter/soap/CpfSoapProperties.java
+cpf-starters/integration-soap/src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports
+cpf-starters/integration-webhook/build.gradle
+cpf-starters/integration-webhook/src/main/java/com/cpf/core/common/http/CpfWebhookCallbackClient.java
+cpf-starters/integration-webhook/src/main/java/com/cpf/core/common/http/CpfWebhookRuntimePolicy.java
+cpf-starters/integration-webhook/src/main/java/com/cpf/starter/webhook/CpfWebhookAutoConfiguration.java
+cpf-starters/integration-webhook/src/main/java/com/cpf/starter/webhook/CpfWebhookClient.java
+cpf-starters/integration-webhook/src/main/java/com/cpf/starter/webhook/CpfWebhookCompatibilityAutoConfiguration.java
+cpf-starters/integration-webhook/src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports
+cpf-starters/integration-webhook/src/main/resources/db/mariadb/migration/V1__cpf_webhook.sql
+cpf-starters/integration-webhook/src/main/resources/db/mariadb/rollback/R1__cpf_webhook.sql
+cpf-starters/integration-webhook/src/main/resources/db/oracle/migration/V1__cpf_webhook.sql
+cpf-starters/integration-webhook/src/main/resources/db/oracle/rollback/R1__cpf_webhook.sql
+cpf-starters/integration-webhook/src/main/resources/db/postgresql/migration/V1__cpf_webhook.sql
+cpf-starters/integration-webhook/src/main/resources/db/postgresql/rollback/R1__cpf_webhook.sql
+cpf-starters/profiles/browser-bff-session/build.gradle
+cpf-starters/profiles/domain-web-api/build.gradle
+cpf-starters/profiles/event-jms-ibm-mq/build.gradle
+cpf-starters/profiles/event-kafka/build.gradle
+cpf-starters/profiles/event-rabbitmq/build.gradle
+cpf-starters/profiles/integration-tcp/build.gradle
+cpf-starters/profiles/minimal-boot-domain/build.gradle
+cpf-starters/profiles/notification-service/build.gradle
+cpf-starters/profiles/observable-resilient-service/build.gradle
+cpf-starters/profiles/persistence-mybatis/build.gradle
+cpf-starters/profiles/scheduled-service/build.gradle
+cpf-starters/profiles/secure-resource-api/build.gradle
+cpf-starters/profiles/sftp-integration/build.gradle
+cpf-starters/resilience/build.gradle
+cpf-starters/resilience/src/main/java/com/cpf/starter/resilience/CpfResilienceAutoConfiguration.java
+cpf-starters/resilience/src/main/java/com/cpf/starter/resilience/CpfResilienceExecutor.java
+cpf-starters/resilience/src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports
+cpf-starters/scheduler-quartz/build.gradle
+cpf-starters/scheduler-quartz/src/main/java/com/cpf/starter/quartz/CpfQuartzAutoConfiguration.java
+cpf-starters/scheduler-quartz/src/main/java/com/cpf/starter/quartz/CpfQuartzProperties.java
+cpf-starters/scheduler-quartz/src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports
+cpf-starters/security-aggregate/build.gradle
+cpf-starters/validation/build.gradle
+cpf-starters/validation/src/main/java/com/cpf/starter/validation/CpfValidationAutoConfiguration.java
+cpf-starters/validation/src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports
+.github/workflows/cpf-qa37-source-closure.yml
+cpf-starters/runtime-control-client/src/main/java/com/cpf/core/common/runtimecontrol/applier/CpfApiClientRuntimeApplier.java
+cpf-starters/runtime-control-client/src/main/java/com/cpf/core/common/runtimecontrol/applier/CpfAttachmentPolicyRuntimeApplier.java
+cpf-starters/runtime-control-client/src/main/java/com/cpf/core/common/runtimecontrol/applier/CpfBrokerConsumerRuntimeApplier.java
+cpf-starters/runtime-control-client/src/main/java/com/cpf/core/common/runtimecontrol/applier/CpfBrokerRetryDlqRuntimeApplier.java
+cpf-starters/runtime-control-client/src/main/java/com/cpf/core/common/runtimecontrol/applier/CpfChannelPolicyRuntimeApplier.java
+cpf-starters/runtime-control-client/src/main/java/com/cpf/core/common/runtimecontrol/applier/CpfConnectionPoolRuntimeApplier.java
+cpf-starters/runtime-control-client/src/main/java/com/cpf/core/common/runtimecontrol/applier/CpfDbReadRoutingRuntimeApplier.java
+cpf-starters/runtime-control-client/src/main/java/com/cpf/core/common/runtimecontrol/applier/CpfDownloadPolicyRuntimeApplier.java
+cpf-starters/runtime-control-client/src/main/java/com/cpf/core/common/runtimecontrol/applier/CpfDynamicLogLevelRuntimeApplier.java
+cpf-starters/runtime-control-client/src/main/java/com/cpf/core/common/runtimecontrol/applier/CpfExternalInstitutionRuntimeApplier.java
+cpf-starters/runtime-control-client/src/main/java/com/cpf/core/common/runtimecontrol/applier/CpfFilePolicyRuntimeApplier.java
+cpf-starters/runtime-control-client/src/main/java/com/cpf/core/common/runtimecontrol/applier/CpfFixedLayoutRuntimeApplier.java
+cpf-starters/runtime-control-client/src/main/java/com/cpf/core/common/runtimecontrol/applier/CpfFixedLengthLayoutPayloadDecoder.java
+cpf-starters/runtime-control-client/src/main/java/com/cpf/core/common/runtimecontrol/applier/CpfMaskingPolicyRuntimeApplier.java
+cpf-starters/runtime-control-client/src/main/java/com/cpf/core/common/runtimecontrol/applier/CpfPasswordPolicyRuntimeApplier.java
+cpf-starters/runtime-control-client/src/main/java/com/cpf/core/common/runtimecontrol/applier/CpfSchemaRegistryRuntimeApplier.java
+cpf-starters/runtime-control-client/src/main/java/com/cpf/core/common/runtimecontrol/applier/CpfSecurityMaterialRuntimeApplier.java
+cpf-starters/runtime-control-client/src/main/java/com/cpf/core/common/runtimecontrol/applier/CpfServiceRegistryRuntimeVerifierApplier.java
+cpf-starters/runtime-control-client/src/main/java/com/cpf/core/common/runtimecontrol/applier/CpfSftpTransferRuntimeApplier.java
+cpf-starters/runtime-control-client/src/main/java/com/cpf/core/common/runtimecontrol/applier/CpfTraceSamplingRuntimeApplier.java
+cpf-starters/runtime-control-client/src/main/java/com/cpf/core/common/runtimecontrol/applier/CpfWebhookCallbackRuntimeApplier.java
+cpf-starters/runtime-control-client/src/test/java/com/cpf/core/common/runtimecontrol/applier/CpfExternalInstitutionRuntimeApplierTest.java
+cpf-member/src/main/java/com/cpf/member/config/MemberDataSourceConfig.java
+cpf-member/src/main/java/com/cpf/member/config/MemberMyBatisConfig.java

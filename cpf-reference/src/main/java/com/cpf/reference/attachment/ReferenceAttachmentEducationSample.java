@@ -1,11 +1,13 @@
 package com.cpf.reference.attachment;
 
-import com.cpf.core.api.attachment.CpfAttachmentContent;
+import com.cpf.core.api.attachment.CpfAttachmentStream;
 import com.cpf.core.api.attachment.CpfAttachmentStoragePort;
 import com.cpf.core.api.attachment.CpfStoredAttachment;
 import com.cpf.core.api.error.CpfValidationException;
 import org.springframework.stereotype.Component;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 /** CPF 첨부 저장 port를 업무 코드에서 사용하는 REF 교육 샘플입니다. */
@@ -26,11 +28,13 @@ public class ReferenceAttachmentEducationSample {
             throw new CpfValidationException("첨부파일 요청은 필수입니다.");
         }
         String text = required(request.text(), "text");
+        byte[] content = text.getBytes(StandardCharsets.UTF_8);
         return storagePort.store(
                 required(request.groupId(), "groupId"),
                 required(request.fileName(), "fileName"),
                 "text/plain; charset=UTF-8",
-                text.getBytes(StandardCharsets.UTF_8));
+                new ByteArrayInputStream(content),
+                content.length);
     }
 
     /** 저장 key를 다시 읽어 checksum과 본문 크기가 보존됐는지 확인합니다. */
@@ -38,13 +42,16 @@ public class ReferenceAttachmentEducationSample {
         if (request == null) {
             throw new CpfValidationException("첨부파일 검증 요청은 필수입니다.");
         }
-        CpfAttachmentContent content = storagePort.read(required(request.storageKey(), "storageKey"));
         String expected = required(request.expectedChecksumSha256(), "expectedChecksumSha256");
-        return new AttachmentVerification(
-                request.storageKey(),
-                content.bytes().length,
-                content.checksumSha256(),
-                content.checksumSha256().equalsIgnoreCase(expected));
+        try (CpfAttachmentStream content = storagePort.open(required(request.storageKey(), "storageKey"))) {
+            return new AttachmentVerification(
+                    request.storageKey(),
+                    content.size(),
+                    content.checksumSha256(),
+                    content.checksumSha256().equalsIgnoreCase(expected));
+        } catch (IOException e) {
+            throw new IllegalStateException("첨부파일 스트림 종료에 실패했습니다.", e);
+        }
     }
 
     private String required(String value, String field) {

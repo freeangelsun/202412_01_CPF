@@ -1,11 +1,13 @@
 package com.cpf.reference.edu.runtime.api;
 import com.cpf.reference.edu.runtime.application.*;
 import com.cpf.reference.edu.runtime.model.*;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import java.util.*;
 @RestController
-@RequestMapping("/api/reference/edu-capabilities")
+@RequestMapping({"/api/reference/edu-capabilities", "/reference/edu/capabilities"})
+@Tag(name = "REF Reference Capabilities", description = "REF 교육 기능 카탈로그와 실행·대사 API")
 public class EduCapabilityController {
     private final EduCapabilityRegistry registry; private final EduExecutionService service;
     public EduCapabilityController(EduCapabilityRegistry registry,EduExecutionService service){this.registry=registry;this.service=service;}

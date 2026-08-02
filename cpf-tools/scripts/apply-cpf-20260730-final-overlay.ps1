@@ -52,7 +52,7 @@ foreach ($relative in $stalePaths) {
 }
 
 $sync = Join-Path $RepoRoot 'cpf-tools/scripts/sync-database-artifacts.ps1'
-$syncArgs = @('-NoProfile','-ExecutionPolicy','Bypass','-File',$sync,'-Root',$RepoRoot)
+$syncArgs = @('-NoProfile','-File',$sync,'-Root',$RepoRoot)
 if ($ApplyGeneratedDomainDatabaseArtifacts) { $syncArgs += '-ApplyGeneratedDomains' }
 & pwsh @syncArgs
 if ($LASTEXITCODE -ne 0) { throw "Canonical DB Artifact 동기화가 실패했습니다. exit=$LASTEXITCODE" }
@@ -61,7 +61,7 @@ if ($LASTEXITCODE -ne 0) { throw "Canonical DB Artifact 동기화가 실패했�
 if ($LASTEXITCODE -ne 0) { throw 'git diff --check가 실패했습니다.' }
 
 $structureGate = Join-Path $RepoRoot 'cpf-tools/scripts/verify-cpf-20260730-overlay-structure.ps1'
-& pwsh -NoProfile -ExecutionPolicy Bypass -File $structureGate -Root $RepoRoot
+& pwsh -NoProfile -File $structureGate -Root $RepoRoot
 if ($LASTEXITCODE -ne 0) { throw "Overlay 구조 Gate가 실패했습니다. exit=$LASTEXITCODE" }
 
 if ($RunLowCostGates) {

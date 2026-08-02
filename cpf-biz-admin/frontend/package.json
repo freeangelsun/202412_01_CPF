@@ -9,7 +9,7 @@
   },
   "scripts": {
     "generate:api": "npm run validate:openapi:source && node scripts/generate-checked-client.mjs",
-    "verify:generated": "node scripts/verify-generated-client.mjs && node scripts/test-generated-client-contract.mjs",
+    "verify:generated": "node scripts/verify-generated-client.mjs && node scripts/test-generated-client-contract.mjs && node scripts/test-route-operation-contract.mjs",
     "build": "npm run generate:api && npm run verify:generated && npm run verify:consumer && npm run build:prod",
     "lint": "eslint src vite.config.ts playwright.config.ts",
     "typecheck": "vue-tsc --noEmit",

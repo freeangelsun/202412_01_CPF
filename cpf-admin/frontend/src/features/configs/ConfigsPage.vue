@@ -16,7 +16,7 @@
           <label>암호화 <select v-model="configForm.encryptedYn"><option>Y</option><option>N</option></select></label>
           <label>사유 <input v-model="configForm.reason" type="text"></label>
         </div>
-        <pre class="detail">{{ pretty(configResult) }}</pre>
+        <CpfStructuredData class="detail" :value="configResult" />
       </section>
 
   <section class="panel route-operation-panel"><h3>설정 상세·삭제</h3><div class="actions"><button type="button" @click="loadConfigDetail">상세 조회</button><button type="button" v-if="canWrite('CONFIG')" @click="deleteConfig">삭제</button></div></section>

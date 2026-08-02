@@ -31,7 +31,7 @@ class RuntimeLifecycleSecurityTest {
 
     @Test
     void healthProbeRejectsAuthorityOverridePath() {
-        HttpRuntimeHealthProbe probe = new HttpRuntimeHealthProbe(new RestClient.Builder(), "https", true);
+        HttpRuntimeHealthProbe probe = new HttpRuntimeHealthProbe(RestClient.builder(), "https", true);
         DeploymentCellManifest.Instance instance = new DeploymentCellManifest.Instance(
                 "i", "w", "host.internal", 8443, "p", "z", "pool", List.of(), "https://agent", "cfg");
 

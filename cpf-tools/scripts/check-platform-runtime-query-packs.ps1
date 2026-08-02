@@ -431,7 +431,7 @@ if (-not $Quiet) {
 }
 if ($failures.Count -gt 0) {
     throw (
-        "CPF/BZA Platform Runtime Query Pack validation failed " +
+        "CPF Platform Runtime Query Pack validation failed " +
         "($($failures.Count)): $($failures -join ' | ')"
     )
 }

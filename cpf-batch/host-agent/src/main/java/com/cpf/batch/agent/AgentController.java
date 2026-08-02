@@ -65,9 +65,11 @@ public class AgentController {
         this.runtime = runtime;
         this.logs = logs;
         this.ledger = ledger;
-        this.canonicalJson = objectMapper.copy()
-                .enable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
-                .enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS);
+        ObjectMapper canonicalMapper = objectMapper.copy();
+        canonicalMapper.setConfig(canonicalMapper.getSerializationConfig()
+                .with(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY));
+        canonicalMapper.enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS);
+        this.canonicalJson = canonicalMapper;
     }
 
     @Autowired

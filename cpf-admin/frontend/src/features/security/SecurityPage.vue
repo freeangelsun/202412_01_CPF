@@ -17,7 +17,7 @@
           <label>OTP Code <input v-model="securityForm.otpCode" type="text"></label>
           <label>사유 <input v-model="securityForm.reason" type="text"></label>
         </div>
-        <pre class="detail">{{ pretty(securityResult) }}</pre>
+        <CpfStructuredData class="detail" :value="securityResult" />
       </section>
 
   <section class="panel route-operation-panel"><h3>MFA 해제</h3><button type="button" v-if="canWrite('SECURITY')" @click="disableMfa">MFA 해제</button></section>

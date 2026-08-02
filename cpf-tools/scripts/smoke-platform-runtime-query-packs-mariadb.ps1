@@ -1,8 +1,8 @@
 param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..\..").Path,
     [string] $ProfilePath = "",
-    [ValidateSet("cpf", "bza")]
-    [string[]] $Module = @("cpf", "bza"),
+    [ValidateSet("cpf", "bza", "ref")]
+    [string[]] $Module = @("cpf", "bza", "ref"),
     [string] $EvidencePath = ""
 )
 
@@ -364,7 +364,7 @@ $json
 if ($failures.Count -gt 0 -or
         [int] $actualRepositoryCount -ne [int] $expectedRepositoryCount) {
     throw (
-        "MariaDB CPF/BZA Runtime Query Pack server-side prepare failed: " +
+        "MariaDB CPF Platform Runtime Query Pack server-side prepare failed: " +
         "failures=$($failures.Count) " +
         "repository=$actualRepositoryCount/$expectedRepositoryCount"
     )

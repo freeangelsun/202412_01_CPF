@@ -15,11 +15,15 @@ function Resolve-LazyImports([string]$appName,[string]$routeFile) {
 
 $admRoutePath=Join-Path $Root 'cpf-admin/frontend/src/app/routes.ts'
 $admRouteText=Get-Content $admRoutePath -Raw
-$admRouteIds = [regex]::Matches(
+$admRouteEntries = [regex]::Matches(
     $admRouteText,
-    '(?m)^\s*(?:"([^"]+)"|([A-Za-z][A-Za-z0-9-]*)):\s*\{\s*group:'
-) | ForEach-Object {
-    if ($_.Groups[1].Success) { $_.Groups[1].Value } else { $_.Groups[2].Value }
+    '(?m)^\s*"([^"]+)":\s*\{\s*routeId:\s*"([^"]+)"'
+)
+$admRouteIds = $admRouteEntries | ForEach-Object { $_.Groups[2].Value }
+foreach($entry in $admRouteEntries){
+    if($entry.Groups[1].Value -ne $entry.Groups[2].Value){
+        Fail "ADM registry key/routeId mismatch key=$($entry.Groups[1].Value) routeId=$($entry.Groups[2].Value)"
+    }
 }
 $admImports=Resolve-LazyImports 'ADM' 'cpf-admin/frontend/src/app/routes.ts'
 $admState=Get-Content (Join-Path $Root 'cpf-admin/frontend/src/state/createAdmState.ts') -Raw

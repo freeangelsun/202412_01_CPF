@@ -167,7 +167,9 @@ class CpfFileLogWriterTest {
         assertThat(firstDayLog).doesNotExist();
         assertThat(archived).exists();
         try (GZIPInputStream input = new GZIPInputStream(Files.newInputStream(archived))) {
-            assertThat(new String(input.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8))
+            byte[] archivedContent = input.readNBytes(1024 * 1024 + 1);
+            assertThat(archivedContent).hasSizeLessThanOrEqualTo(1024 * 1024);
+            assertThat(new String(archivedContent, java.nio.charset.StandardCharsets.UTF_8))
                     .contains("FIRST_DAY");
         }
 

@@ -1,7 +1,7 @@
 {
   "generatorVersion": "3.1",
-  "templateContractVersion": "1.1",
-  "generatedAt": "2026-07-29T21:29:29.388+09:00",
+  "templateContractVersion": "1.2",
+  "generatedAt": "2026-08-02T13:46:40.210+09:00",
   "moduleCode": "MBR",
   "systemCode": "MBR",
   "domainName": "member",
@@ -31,155 +31,151 @@
   "createdFiles": [
     {
       "path": "build.gradle",
-      "sha256": "620af987c0a2679680a1800ca1ef230b113da796c7a1e2e7f709e4004d9d152a"
+      "sha256": "39fb308d0be4aae75e2687a36461738b1d024531476b2a52c153face54d96c5b"
     },
     {
       "path": "README.md",
-      "sha256": "7d7ed7d5bdbc1ae9a86f1a3e02c5f7068875d68953a4de5ec264d96ec28dcbac"
+      "sha256": "ebb047fedca4be3dfee0bfadae0fd855a15ed1c5d05f64dae75560f8d409e1f6"
     },
     {
       "path": "manifest/domain-manifest.json",
-      "sha256": "3a7de75016c625791d15c4df9298d67356374fc12a212205054861c5e089aa92"
+      "sha256": "5ee8fff21a016b450a693b8384af0949e71f622bb0d3ab999b5af1502fd0f451"
     },
     {
       "path": "deploy/database/database-profile.json",
-      "sha256": "5b8e127334f4f0fa334fd7291db1d5cd27556257abdfe2c503fb45d88257fad5"
+      "sha256": "1c678ec151f6838e773582fe3887d017692bff823acd0dda09ff65319230a84b"
     },
     {
       "path": "manifest/ownership.json",
-      "sha256": "d151cc453dee82ae0820c2f6010fc8bdc105b0e15f8ef6dd1c3d2c5b535e7a31"
+      "sha256": "a1826cfd17845a50739cedd57e331112644fe686ce18a95c7ffb352c4214d12e"
     },
     {
       "path": "manifest/standard-execution-catalog.json",
-      "sha256": "c8a41dd1969318fa5955a5818b032b51016a70b395ef7af7e6e95a51f307baec"
+      "sha256": "63ddd2c06eeac8f884b65e39d089bb14a05e5d5834533facae8d962f06221e29"
     },
     {
       "path": "src/main/resources/application.yml",
-      "sha256": "d71ac691655eae1adf530886ba8ca9cb41e9accfefbdc988258f0358913d4731"
+      "sha256": "6f22766c0381acc0ba7ee3e13dc206e5b46c497b952d6d4025e619fbd51cc7cb"
     },
     {
       "path": "src/main/resources/application-runtime-agent.yml",
-      "sha256": "8efa1313b4e55cad67ea3bb9ce4f9dab3e6e5c925882f2e2104aa2c6c5ae5aa9"
+      "sha256": "c996ed93a9020829cb5ce4c080f6cbceac88b813b3d62d719f0fa3f224be6b0a"
     },
     {
       "path": "deploy/runtime/runtime-agent.json",
-      "sha256": "94f359f79ca1d81828faee4c64cf71c1cbb3b11ac382ccc357d96d463546e3ad"
+      "sha256": "5ce9dc9db48833998741b254cf150a2ff21f460954257c7cdc6401916f521d7f"
     },
     {
       "path": "src/main/resources/application-member.yml",
-      "sha256": "7ccf149a3e3173dbca7732e212d5e137564ecefbb33f86dd22ae6ce5113617b8"
+      "sha256": "c2978f1a286ebb9cf897cd93b3bd07f6c14f7c52f3363e68be7e6f315d23c5cd"
     },
     {
       "path": "src/main/java/com/cpf/member/MemberApplication.java",
-      "sha256": "02603af9c8912aa5e7173c314ff82a9d41e098cf1f307e7695b8e37ebfee41b6"
+      "sha256": "61c57eb025b47b3819d9cc80b6d5438917c14294565f8e517e09cabe0f8f9473"
     },
     {
       "path": "src/main/java/com/cpf/member/common/base/MemberBaseController.java",
-      "sha256": "b7622a1d385cb409be577efc90a96496d2752f55e7b923a09ad4bca98a8ad098"
+      "sha256": "7f749f16f2f21197584f40cd415a060c74e2c4e31877a3265b33facc5dff31fd"
     },
     {
       "path": "src/main/java/com/cpf/member/common/base/MemberBaseService.java",
-      "sha256": "25d268b4a9fa51529781a62103c7ef736426f7a437419648c268660c89575e32"
+      "sha256": "153b8434ed377baefb238262d88a832d5f84996efb3b84b0e2784446dd9bd123"
     },
     {
       "path": "src/main/java/com/cpf/member/common/contract/MemberApplicationFacade.java",
-      "sha256": "d5d9e52aebd8b84262760e36689cd6245ba1d847d379fcedd8b93bb0dea7d4b7"
+      "sha256": "0c7cdd083cafae375a56c294b7fb4f86706d3257df3f8d6f7e0633fc3f25a569"
     },
     {
       "path": "src/main/java/com/cpf/member/common/contract/MemberRepositoryPort.java",
-      "sha256": "5ee5b997feada01f6bf7bd972aa7f19b8e473c3c71a465e8ca5b28f91f74c707"
+      "sha256": "6567c0ccc14e08cb821c72a0d709043c2efc0c252ce442c63dd447b9df99c354"
     },
     {
       "path": "src/main/java/com/cpf/member/common/contract/MemberRequest.java",
-      "sha256": "735a589d636cbb15fd37ab752abab6630e89562b16a0260bfd534bcccc655368"
+      "sha256": "6c458bea51ff59079d6c20920761aab8f6c772a5a9e62d123c72f7402445e810"
     },
     {
       "path": "src/main/java/com/cpf/member/common/contract/MemberResponse.java",
-      "sha256": "e3b7c5701d4cefad01ff2c4ae2fafe05142eb77078262c66a971ddc60d1d633a"
+      "sha256": "e217de338f5fd7dd4f9a9c21be2bc1e98598bf760b830fd05f53447f44d875ae"
     },
     {
       "path": "src/main/java/com/cpf/member/sampleitem/facade/MemberFacade.java",
-      "sha256": "c27834d557b2313e3096406a30b2801afc3c8f08d1136976fd25ee34a351433f"
+      "sha256": "186ea34e899c529692b42b761a0c763ac8aa9c223bc5e31aab4e723f7bfa79ea"
     },
     {
       "path": "src/main/java/com/cpf/member/sampleitem/port/MemberQueryPort.java",
-      "sha256": "0909795c2bb6a3641246510b7a2f2f2f3e5e4312c5b36985ef5c1e73c259608f"
+      "sha256": "68b80740ef02891300ca513729d1fc40bf17f59008f95876d62377ae0e562b4b"
     },
     {
       "path": "src/main/java/com/cpf/member/sampleitem/port/MemberCommandPort.java",
-      "sha256": "edc5eb327c51ea6398b550ae5ca277dbaafd368f186e1cb81366ea9a3f62aa76"
+      "sha256": "1f9fa21d9439b15bafff1435f1ebbccce5adf06da44808db5a3c6aae6722897f"
     },
     {
       "path": "src/main/java/com/cpf/member/sampleitem/service/MemberService.java",
-      "sha256": "f86b4b53a68103a3f4deb7ce25102cb95aac961b5258f899c8a16242836be559"
+      "sha256": "81648ba530d5160d5e578ecd07182afbcea03282e06af6451a855b9a0be4a4ae"
     },
     {
       "path": "src/main/java/com/cpf/member/sampleitem/dto/MemberSearchRequest.java",
-      "sha256": "7f5f704ac47ff11776626289eba45ced314bd0a2cfe045ad39dcb02a194f3d32"
+      "sha256": "c70ad6df9e0700c972bf464c3f82fb23ac92db0282cf9fbc5cdd2f30beb02c2d"
     },
     {
       "path": "src/main/java/com/cpf/member/sampleitem/dto/MemberSampleCommand.java",
-      "sha256": "044c539c73241929db1a28bfcc0f0c6aca60335f9835be6d3c11e860076a81b7"
+      "sha256": "5ca624752eaea70e59e4ae5b97b61cdb7af7a094388d97af17bccbdd19e125f7"
     },
     {
       "path": "src/main/java/com/cpf/member/sampleitem/dto/MemberSampleItem.java",
-      "sha256": "6d3b1cc755696675651038824dca0587ea252ae8f2a41e625a83e2aed76268a0"
+      "sha256": "3db909aa1dd5838b5084a917238b108010c0598152479cd1093fe840dc3393be"
     },
     {
       "path": "src/main/java/com/cpf/member/sampleitem/dto/MemberSearchResult.java",
-      "sha256": "ea5bc131cb90935fe16ab74e379998bcc802c9e671eb9c498769f21edaa409d3"
+      "sha256": "40b8424a5edbea9924d7f1f89d11fb9b289d7d0c8b77a5595fe7f0102fe44eb7"
     },
     {
       "path": "src/main/java/com/cpf/member/sampleitem/dto/MemberDeleteCommand.java",
-      "sha256": "e1eaac7cde8f4781c181b7e5b3e22b5e18127f109abcf43e70b5fd5c4f44de6b"
+      "sha256": "2924f1c462fe15f8993c32b3ee16495eb1aba19a56b6b7279d945decf8459f30"
     },
     {
       "path": "src/main/java/com/cpf/member/sampleitem/dto/MemberDeleteResult.java",
-      "sha256": "3310c8a579b9a05a324c894e4e45d26fbe19e511b7489d5f820a1cf0f5add38f"
+      "sha256": "94fb3f5b809eceb0601a98585388c250e20f62ba04a817572bf314c40166a1a4"
     },
     {
       "path": "src/main/java/com/cpf/member/sampleitem/dto/MemberIdempotencyEntry.java",
-      "sha256": "97188359e05c2374b3ffba88b185597c680791f6db89737e2cf7f2199fe903ce"
+      "sha256": "8121c3a295bfc43fca5798216df9434cccb7ecbed78231a50b9d9682ab366e91"
     },
     {
       "path": "src/main/java/com/cpf/member/sampleitem/validation/MemberSearchValidator.java",
-      "sha256": "9b34ad498950c339fa4af47393e571eec40fc7da9431e3509643f9280ac0a561"
+      "sha256": "d1b98b38eb6a676b05cef8cf6dc97fd5e08c16e53aaee1c448be32ee708093a0"
     },
     {
       "path": "src/test/java/com/cpf/member/sampleitem/service/MemberServiceTest.java",
-      "sha256": "335885bb63792292f0fefe7de043382afc11ccfd34727a2ee245dcff0b5b623e"
+      "sha256": "51e9fb1be1c1625b92e1c35b6e847f3200971bfccac1d7c107751b668429a82d"
     },
     {
       "path": "smoke/smoke-member.ps1",
-      "sha256": "b3970db9763af61283281a61c0998db27d8117a544f9bc83d2c9308f4e03bb04"
+      "sha256": "ad592f52555329a2716fdf9acb5e1d44f71fa588557074bc868cb0998802b2be"
     },
     {
       "path": "src/main/java/com/cpf/member/config/MemberDataSourceConfig.java",
-      "sha256": "2d8a6d6e238d33c274247d9b5a7468f5a68af60158b340162dcc20b48d2bbce9"
+      "sha256": "049dfd72a309e29270a6a8268a56a421d46fa01d863918575028f5e7ab73cb25"
     },
     {
       "path": "src/main/java/com/cpf/member/config/MemberMyBatisConfig.java",
-      "sha256": "c8c0f6c9b3afbfcaafb7d8d01e4a6c706e8a635f8ba0fef3e9e6b56ca89bfcb9"
+      "sha256": "d31043f9fce8e067689b4c1bb2ca7ca63161b909daaecfaeb7b7e2da3e1d5cf6"
     },
     {
       "path": "src/test/java/com/cpf/member/config/MemberDataSourceIsolationTest.java",
-      "sha256": "44c0158ca46d0294243962611f23f19585e669a240f127fb9593a3a0ae1aa6e2"
+      "sha256": "04c62bf4925d03baf1dafb13addb2b2ca95d8a6253a068c1cd2ef6c8394ec653"
     },
     {
       "path": "src/main/java/com/cpf/member/sampleitem/adapter/local/LocalMemberAdapter.java",
-      "sha256": "317496f8e6471a861ceb53c0c1bff9cc54b64aa7b24dc342a7ca0d916d2cd423"
+      "sha256": "2a1d0aa627871cb77c7e396ce37530244d17818e20467a9d29cbe87a6e4e5a9d"
     },
     {
       "path": "src/main/java/com/cpf/member/sampleitem/repository/MemberRepository.java",
-      "sha256": "77378bc90d1c75a9137b59fedd9c55df34bf832b294bbf2fa0c1e2bd4014b3af"
+      "sha256": "681108f20f9f86b2beec4e68f41c70e44eba795818741a193773520efb5e7697"
     },
     {
       "path": "src/main/java/com/cpf/member/sampleitem/controller/MemberController.java",
-      "sha256": "2a3129600525c9dd2eea1a23c31cda3a7edd6906e1ed9cda7bb760aa239868f2"
-    },
-    {
-      "path": "create-domain-result.json",
-      "sha256": "1a97d8939b44793dd24e926b01dd703de38b8bf123a14afb64abf20fa486b8f2"
+      "sha256": "3d4ac130d1dee797d3eab4fa3ef20bdd5de00bfec81e4a9715296fa0e327dbdc"
     }
   ],
   "modifiedGlobalFiles": [

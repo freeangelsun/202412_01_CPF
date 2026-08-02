@@ -51,13 +51,25 @@ def main() -> int:
         details=[{"path":rel,"present":has_product_file(root/rel)} for rel in paths]
         rows.append({"requirementId":rid,"passed":all(x["present"] for x in details),"paths":details})
     # QA31 addition must be a real consumer and test, not only an SPI.
-    consumer_files=(
-      "cpf-batch/worker/src/main/java/com/cpf/batch/worker/BatchFileProcessHandlerRegistry.java",
-      "cpf-batch/worker/src/main/java/com/cpf/batch/worker/JobPackDispatcher.java",
-      "cpf-reference/src/main/java/com/cpf/reference/edu/batch/ReferenceCsvFileProcessHandler.java",
-      "cpf-reference/src/test/java/com/cpf/reference/edu/batch/ReferenceCsvFileProcessHandlerTest.java",
-    )
-    consumer={"requirementId":"QA31-EDU-025-FILE-PROCESS-CONSUMER","passed":all((root/x).is_file() for x in consumer_files),"paths":[{"path":x,"present":(root/x).is_file()} for x in consumer_files]}
+    consumer_specs={
+      "cpf-batch/worker/src/main/java/com/cpf/batch/worker/BatchFileProcessHandlerRegistry.java":
+        ("FileProcessHandler", "require", "Duplicate FILE_PROCESS handler"),
+      "cpf-batch/worker/src/main/java/com/cpf/batch/worker/SpringBatchWorkerStepHandler.java":
+        ("implements BatchStepHandler", "fileHandlers.require", "handler.process", "files.claimForProcess", "moveFromProcessing"),
+      "cpf-reference/src/main/java/com/cpf/reference/batch/file/csv/ReferenceCsvFileProcessHandler.java":
+        ("implements FileProcessHandler", "FileProcessResult.completed"),
+      "cpf-reference/src/test/java/com/cpf/reference/batch/file/csv/ReferenceCsvFileProcessHandlerTest.java":
+        ("ReferenceCsvFileProcessHandler", "process"),
+    }
+    consumer_paths=[]
+    for rel, markers in consumer_specs.items():
+        path=root/rel
+        text=path.read_text(encoding="utf-8",errors="replace") if path.is_file() else ""
+        missing=[marker for marker in markers if marker not in text]
+        consumer_paths.append({"path":rel,"present":path.is_file(),"missingMarkers":missing})
+    legacy=(root/"cpf-batch/worker/src/main/java/com/cpf/batch/worker/JobPackDispatcher.java")
+    consumer_paths.append({"path":legacy.relative_to(root).as_posix(),"present":legacy.is_file(),"expected":"absent"})
+    consumer={"requirementId":"QA31-EDU-025-FILE-PROCESS-CONSUMER","passed":all(x["present"] and not x["missingMarkers"] for x in consumer_paths[:-1]) and not legacy.exists(),"paths":consumer_paths}
     rows.append(consumer)
     passed=all(x["passed"] for x in rows)
     report={"schemaVersion":1,"gate":"CPF_REFERENCE_QA31_COVERAGE","sourceSha":args.source_sha,"command":"verify-cpf-reference-qa31-coverage.py","startedAt":started,"finishedAt":now(),"exitCode":0 if passed else 1,"expected":"all EDU source/test/consumer paths present","actual":f"passed={sum(1 for x in rows if x['passed'])}/{len(rows)}","environment":{"runtime":"python3"},"profile":"structural-coverage","relatedIds":[x["requirementId"] for x in rows],"status":"PASS" if passed else "FAIL","rows":rows,"sensitiveDataRemoved":True}

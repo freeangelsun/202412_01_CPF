@@ -21,7 +21,7 @@ function Invoke-CpfDatabaseArtifactStep {
     # 하위 script 내부에서 마지막으로 실행한 native command의 과거 exit code를
     # 부모 script의 성공/실패로 오판할 수 있다. 각 gate를 별도 pwsh process로
     # 실행하여 $LASTEXITCODE가 해당 gate process의 실제 종료 코드만 나타내게 한다.
-    & pwsh -NoProfile -ExecutionPolicy Bypass -File $scriptPath -Root $Root @ExtraArgs
+    & pwsh -NoProfile -File $scriptPath -Root $Root @ExtraArgs
     if ($LASTEXITCODE -ne 0) {
         throw "$FailureMessage exitCode=$LASTEXITCODE script=$ScriptName"
     }
@@ -36,6 +36,7 @@ Invoke-CpfDatabaseArtifactStep "check-spring-batch-sequence-contract.ps1" "Sprin
 Invoke-CpfDatabaseArtifactStep "sync-platform-runtime-query-packs.ps1" "Platform Runtime Query Pack synchronization failed."
 Invoke-CpfDatabaseArtifactStep "sync-bat-runtime-query-pack.ps1" "BAT Runtime Query Pack synchronization failed."
 Invoke-CpfDatabaseArtifactStep "check-query-contract-integrity.ps1" "Runtime Query Contract integrity failed."
+Invoke-CpfDatabaseArtifactStep "sync-platform-nullable-empty-string-repair.ps1" "Platform nullable empty-string repair synchronization failed."
 Invoke-CpfDatabaseArtifactStep "generate-migration-checksums.ps1" "DB migration checksum generation failed." @("-Apply")
 Invoke-CpfDatabaseArtifactStep "generate-database-schema-manifest.ps1" "DB schema manifest generation failed."
 Invoke-CpfDatabaseArtifactStep "check-database-schema-drift.ps1" "DB schema drift check failed."
@@ -45,7 +46,7 @@ Invoke-CpfDatabaseArtifactStep "check-database-profile-standard.ps1" "DB profile
 # Platform bundle만 최신화되는 것을 금지합니다. 기본은 drift 검출, 명시적 switch에서만 적용합니다.
 $generatedSync = Join-Path $PSScriptRoot "sync-generated-domain-artifacts.ps1"
 if (Test-Path -LiteralPath $generatedSync -PathType Leaf) {
-    $args = @("-NoProfile","-ExecutionPolicy","Bypass","-File",$generatedSync,"-Root",$Root,"-Scope","Database")
+    $args = @("-NoProfile","-File",$generatedSync,"-Root",$Root,"-Scope","Database")
     if ($ApplyGeneratedDomains) { $args += "-Apply" }
     & pwsh @args
     if ($LASTEXITCODE -ne 0) {

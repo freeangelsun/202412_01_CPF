@@ -1,15 +1,17 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from "vue";
 import CpfIcon from "../../components/CpfIcon.vue";
+import { bzaApprovalCancel, bzaApprovalWithdraw } from "../../generated/cpf-api";
 import { bzaApi } from "../auth/session";
 type Row=Record<string,any>;
-const rows=ref<Row[]>([]),result=ref<any>(null),error=ref(""),busy=ref(false),lifecycleOpen=ref(false),selected=ref<Row|null>(null),lifecycleAction=ref("WITHDRAW"),lifecycleReason=ref("");
+type LifecycleAction = "WITHDRAW" | "CANCEL";
+const rows=ref<Row[]>([]),result=ref<any>(null),error=ref(""),busy=ref(false),lifecycleOpen=ref(false),selected=ref<Row|null>(null),lifecycleAction=ref<LifecycleAction>("WITHDRAW"),lifecycleReason=ref("");
 const form=reactive({policyCode:"",policyVersion:"",businessDomain:"BZA",approvalType:"GENERAL",requesterEmployeeNo:"",title:"",approvalMode:"SEQUENTIAL",dueAt:"",payloadJson:"{}",attachmentGroupId:"",requestIdempotencyKey:"",reason:"업무 결재 상신"});
 const active=computed(()=>rows.value.filter(r=>r.approvalStatus==='IN_REVIEW').length),terminal=computed(()=>rows.value.filter(r=>['REJECTED','WITHDRAWN','CANCELED','EXPIRED'].includes(String(r.approvalStatus))).length);
 async function load(){try{rows.value=await bzaApi('/api/bza/approvals/submissions?limit=100')}catch(e){error.value=e instanceof Error?e.message:String(e)}}
 async function submit(resubmitFrom?:number){busy.value=true;error.value='';try{if(!form.requestIdempotencyKey)form.requestIdempotencyKey=crypto.randomUUID();const body={...form,policyVersion:form.policyVersion?Number(form.policyVersion):null,dueAt:form.dueAt||null,attachmentGroupId:form.attachmentGroupId||null};result.value=await bzaApi(resubmitFrom?`/api/bza/approvals/submissions/${resubmitFrom}/resubmit`:'/api/bza/approvals/submissions',{method:'POST',body:JSON.stringify(body)});form.requestIdempotencyKey='';await load()}catch(e){error.value=e instanceof Error?e.message:String(e)}finally{busy.value=false}}
-function openLifecycle(row:Row,action:string){selected.value=row;lifecycleAction.value=action;lifecycleReason.value='';lifecycleOpen.value=true}
-async function lifecycle(){if(!selected.value||!lifecycleReason.value.trim())return;try{await bzaApi(`/api/bza/approvals/submissions/${selected.value.approvalId}/${lifecycleAction.value.toLowerCase()}`,{method:'POST',body:JSON.stringify({idempotencyKey:crypto.randomUUID(),reason:lifecycleReason.value,comment:lifecycleReason.value})});lifecycleOpen.value=false;await load()}catch(e){error.value=e instanceof Error?e.message:String(e)}}
+function openLifecycle(row:Row,action:LifecycleAction){selected.value=row;lifecycleAction.value=action;lifecycleReason.value='';lifecycleOpen.value=true}
+async function lifecycle(){if(!selected.value||!lifecycleReason.value.trim())return;try{const options={path:{approvalId:String(selected.value.approvalId)},data:{idempotencyKey:crypto.randomUUID(),reason:lifecycleReason.value,comment:lifecycleReason.value}};if(lifecycleAction.value==='WITHDRAW')await bzaApprovalWithdraw(options);else await bzaApprovalCancel(options);lifecycleOpen.value=false;await load()}catch(e){error.value=e instanceof Error?e.message:String(e)}}
 async function prepareResubmit(row:Row){try{const d:any=await bzaApi(`/api/bza/approvals/submissions/${row.approvalId}`);form.policyCode=d.policyCode||'';form.policyVersion=String(d.policyVersion||'');form.businessDomain=d.businessDomain||'BZA';form.approvalType=d.approvalType||'GENERAL';form.requesterEmployeeNo=d.requesterEmployeeNo||'';form.title=`[재상신] ${d.title||''}`;form.approvalMode=d.approvalMode||'SEQUENTIAL';form.dueAt='';form.payloadJson=d.payloadJson||'{}';form.attachmentGroupId=d.attachmentGroupId||'';form.requestIdempotencyKey=crypto.randomUUID();form.reason='반려/철회/만료 후 재상신';result.value={resubmitFrom:row.approvalId};window.scrollTo({top:0,behavior:'smooth'});}catch(e){error.value=e instanceof Error?e.message:String(e)}}
 async function doResubmit(){const id=result.value?.resubmitFrom;if(!id)return;await submit(Number(id));result.value=null}
 onMounted(load);

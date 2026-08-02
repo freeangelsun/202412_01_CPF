@@ -3,6 +3,8 @@ package com.cpf.batch.control.job;
 import com.cpf.batch.api.BatchJobDefinition;
 import com.cpf.batch.api.BatchJobDefinitionControlPort;
 import com.cpf.batch.api.BatchParameterDefinition;
+import com.cpf.core.api.database.CpfVendorSqlCatalog;
+import com.cpf.core.api.database.CpfVendorSqlCatalogProvider;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.dao.DuplicateKeyException;
@@ -19,24 +21,38 @@ import java.util.*;
 /** Versioned Batch Job Definition의 BAT Owner 서비스입니다. */
 @Service
 public class BatchJobDefinitionService implements BatchJobDefinitionControlPort {
-    private final JdbcTemplate jdbc; private final ObjectMapper mapper;
-    public BatchJobDefinitionService(JdbcTemplate jdbc,ObjectMapper mapper){this.jdbc=jdbc;this.mapper=mapper;}
+    private final JdbcTemplate jdbc;
+    private final ObjectMapper mapper;
+    private final CpfVendorSqlCatalog sql;
+
+    public BatchJobDefinitionService(
+            JdbcTemplate jdbc,
+            ObjectMapper mapper,
+            CpfVendorSqlCatalogProvider sqlCatalogProvider) {
+        this.jdbc = Objects.requireNonNull(jdbc, "jdbc");
+        this.mapper = Objects.requireNonNull(mapper, "mapper");
+        this.sql = Objects.requireNonNull(sqlCatalogProvider, "sqlCatalogProvider").forModule("bat");
+    }
 
     @Transactional(readOnly=true)
     public List<Map<String,Object>> list(String jobId,String state,int limit){
-        StringBuilder sql=new StringBuilder("SELECT job_id,definition_version,job_name,executor_type,definition_state,owner_domain,trigger_type,trigger_expression,timezone_id,agent_pool,max_concurrency,restartable_yn,unknown_result_policy,checksum,row_version,effective_from,effective_until,updated_at FROM bat_job_definition_version WHERE 1=1");
-        List<Object> args=new ArrayList<>();if(text(jobId)){sql.append(" AND job_id LIKE ?");args.add("%"+jobId.trim()+"%");}if(text(state)){sql.append(" AND definition_state=?");args.add(state.trim().toUpperCase(Locale.ROOT));}sql.append(" ORDER BY job_id,definition_version DESC");
-        return jdbc.query(c->{var ps=c.prepareStatement(sql.toString());ps.setMaxRows(Math.max(1,Math.min(limit,1000)));for(int i=0;i<args.size();i++)ps.setObject(i+1,args.get(i));return ps;},(rs,n)->{Map<String,Object> r=new LinkedHashMap<>();var md=rs.getMetaData();for(int i=1;i<=md.getColumnCount();i++)r.put(md.getColumnLabel(i),rs.getObject(i));return r;});
+        boolean filterJob = text(jobId);
+        boolean filterState = text(state);
+        String statementKey = filterJob
+                ? (filterState ? "definition-list-by-job-and-state" : "definition-list-by-job")
+                : (filterState ? "definition-list-by-state" : "definition-list");
+        List<Object> args = new ArrayList<>();
+        if (filterJob) args.add("%" + jobId.trim() + "%");
+        if (filterState) args.add(state.trim().toUpperCase(Locale.ROOT));
+        String statement = sql.required(statementKey);
+        return jdbc.query(c->{var ps=c.prepareStatement(statement);ps.setMaxRows(Math.max(1,Math.min(limit,1000)));for(int i=0;i<args.size();i++)ps.setObject(i+1,args.get(i));return ps;},(rs,n)->{Map<String,Object> r=new LinkedHashMap<>();var md=rs.getMetaData();for(int i=1;i<=md.getColumnCount();i++)r.put(md.getColumnLabel(i),rs.getObject(i));return r;});
     }
 
     @Override
     @Transactional(readOnly = true)
     public DefinitionState state(String jobId, long definitionVersion) {
-        List<Map<String, Object>> rows = jdbc.queryForList("""
-                SELECT job_id,definition_version,definition_state,row_version,checksum,created_by
-                  FROM bat_job_definition_version
-                 WHERE job_id=? AND definition_version=?
-                """, required(jobId, "jobId"), definitionVersion);
+        List<Map<String, Object>> rows = jdbc.queryForList(
+                sql.required("definition-state-find"), required(jobId, "jobId"), definitionVersion);
         if (rows.isEmpty()) {
             throw new NoSuchElementException("Batch Job Definition not found: " + jobId + "@" + definitionVersion);
         }
@@ -62,11 +78,9 @@ public class BatchJobDefinitionService implements BatchJobDefinitionControlPort 
             throw new IllegalStateException("Approved payload hash does not match Batch Definition checksum");
         }
         if ("PUBLISHED".equals(current.state())) {
-            Integer delivered = jdbc.queryForObject("""
-                    SELECT COUNT(*) FROM bat_job_definition_audit
-                     WHERE job_id=? AND definition_version=? AND to_state='PUBLISHED'
-                       AND approval_request_id=?
-                    """, Integer.class, command.jobId(), command.definitionVersion(),
+            Integer delivered = jdbc.queryForObject(
+                    sql.required("definition-publish-audit-count"), Integer.class,
+                    command.jobId(), command.definitionVersion(),
                     Long.toString(command.approvalRequestId()));
             if (delivered == null || delivered == 0) {
                 throw new IllegalStateException("Definition is published by a different approval request");
@@ -117,21 +131,17 @@ public class BatchJobDefinitionService implements BatchJobDefinitionControlPort 
         ValidationResult validation=validate(d);if(!validation.valid())throw new IllegalArgumentException(String.join("; ",validation.errors()));
         validateDependencyGraph(d);
         if(d.state()== BatchJobDefinition.State.PUBLISHED||d.state()== BatchJobDefinition.State.RETIRED)throw new IllegalArgumentException("Published/Retired definition is immutable");
-        String json=json(d);List<Map<String,Object>> existing=jdbc.queryForList("SELECT definition_state,row_version,definition_json FROM bat_job_definition_version WHERE job_id=? AND definition_version=?",d.jobId(),d.definitionVersion());
+        String json=json(d);List<Map<String,Object>> existing=jdbc.queryForList(
+                sql.required("definition-draft-find"),d.jobId(),d.definitionVersion());
         long next;
         if(existing.isEmpty()){
             if(d.expectedRowVersion()!=0)throw new IllegalStateException("Definition version does not exist; expectedRowVersion must be 0");
-            try{jdbc.update("""
-                INSERT INTO bat_job_definition_version(job_id,definition_version,job_name,executor_type,definition_state,owner_domain,description,trigger_type,trigger_expression,timezone_id,misfire_policy,agent_pool,zone_id,max_concurrency,timeout_seconds,restartable_yn,max_attempts,initial_backoff_seconds,backoff_multiplier,max_backoff_seconds,skip_limit,unknown_result_policy,compensation_reference,alert_delay_seconds,sla_seconds,notify_failure_yn,notify_missed_yn,executor_reference,definition_json,checksum,effective_from,effective_until,row_version,created_by,created_at,updated_by,updated_at)
-                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,1,?,CURRENT_TIMESTAMP,?,CURRENT_TIMESTAMP)
-                """,values(d,json));}catch(DuplicateKeyException e){throw new IllegalStateException("Concurrent definition creation",e);}next=1;
+            try{jdbc.update(sql.required("definition-draft-insert"),values(d,json));}catch(DuplicateKeyException e){throw new IllegalStateException("Concurrent definition creation",e);}next=1;
         }else{
             String state=String.valueOf(existing.getFirst().get("definition_state"));long current=((Number)existing.getFirst().get("row_version")).longValue();
             if(Set.of("PUBLISHED","RETIRED").contains(state))throw new IllegalStateException("Published/Retired definition is immutable");
             if(current!=d.expectedRowVersion())throw new IllegalStateException("Definition optimistic lock conflict");
-            int updated=jdbc.update("""
-                UPDATE bat_job_definition_version SET job_name=?,executor_type=?,definition_state=?,owner_domain=?,description=?,trigger_type=?,trigger_expression=?,timezone_id=?,misfire_policy=?,agent_pool=?,zone_id=?,max_concurrency=?,timeout_seconds=?,restartable_yn=?,max_attempts=?,initial_backoff_seconds=?,backoff_multiplier=?,max_backoff_seconds=?,skip_limit=?,unknown_result_policy=?,compensation_reference=?,alert_delay_seconds=?,sla_seconds=?,notify_failure_yn=?,notify_missed_yn=?,executor_reference=?,definition_json=?,checksum=?,effective_from=?,effective_until=?,row_version=row_version+1,updated_by=?,updated_at=CURRENT_TIMESTAMP WHERE job_id=? AND definition_version=? AND row_version=?
-                """,updateValues(d,json));if(updated!=1)throw new IllegalStateException("Definition optimistic lock conflict");next=current+1;
+            int updated=jdbc.update(sql.required("definition-draft-update"),updateValues(d,json));if(updated!=1)throw new IllegalStateException("Definition optimistic lock conflict");next=current+1;
         }
         replaceChildren(d);
         audit(
@@ -172,13 +182,8 @@ public class BatchJobDefinitionService implements BatchJobDefinitionControlPort 
         String verifiedOperator = required(operatorId, "operatorId");
         AuditContext context = auditContext == null
                 ? new AuditContext(null, null, null, null) : auditContext;
-        List<Map<String,Object>> rows = jdbc.queryForList("""
-                SELECT definition_state,checksum,row_version,job_name,executor_type,description,restartable_yn,
-                       trigger_type,trigger_expression,timezone_id,misfire_policy,executor_reference,
-                       effective_from,effective_until,created_by,definition_json
-                  FROM bat_job_definition_version
-                 WHERE job_id=? AND definition_version=?
-                """, jobId, version);
+        List<Map<String,Object>> rows = jdbc.queryForList(
+                sql.required("definition-transition-find"), jobId, version);
         if (rows.isEmpty()) {
             throw new NoSuchElementException("Definition not found");
         }
@@ -215,7 +220,7 @@ public class BatchJobDefinitionService implements BatchJobDefinitionControlPort 
         String beforeJson = Objects.toString(
                 rowValue(definitionRow,"definition_json","DEFINITION_JSON"), null);
         String afterJson = definitionJsonWithState(beforeJson, target, rowVersion + 1);
-        int updated = jdbc.update("UPDATE bat_job_definition_version SET definition_state=?,definition_json=?,row_version=row_version+1,updated_by=?,updated_at=CURRENT_TIMESTAMP WHERE job_id=? AND definition_version=? AND row_version=?",
+        int updated = jdbc.update(sql.required("definition-transition-update"),
                 target, afterJson, verifiedOperator, jobId, version, rowVersion);
         if (updated != 1) {
             throw new IllegalStateException("Definition optimistic lock conflict");
@@ -242,32 +247,17 @@ public class BatchJobDefinitionService implements BatchJobDefinitionControlPort 
         String description=Objects.toString(rowValue(row,"description","DESCRIPTION"),"");
         String restartable=Objects.toString(rowValue(row,"restartable_yn","RESTARTABLE_YN"),"N");
         String executorReference=Objects.toString(rowValue(row,"executor_reference","EXECUTOR_REFERENCE"),"");
-        int updated=jdbc.update("""
-                UPDATE bat_job
-                   SET job_name=?,job_type=?,published_definition_version=?,published_definition_checksum=?,
-                       executor_reference=?,definition_published_at=CURRENT_TIMESTAMP,description=?,
-                       restartable_yn=?,use_yn='Y',updated_by=?,updated_at=CURRENT_TIMESTAMP
-                 WHERE job_id=?
-                """,jobName,executorType,definitionVersion,checksum,executorReference,description,restartable,
+        int updated=jdbc.update(sql.required("projection-job-update"),
+                jobName,executorType,definitionVersion,checksum,executorReference,description,restartable,
                 operatorId,jobId);
         if(updated==0){
             try{
-                jdbc.update("""
-                        INSERT INTO bat_job
-                        (job_id,job_name,job_type,published_definition_version,published_definition_checksum,
-                         executor_reference,definition_published_at,description,restartable_yn,use_yn,
-                         created_by,created_at,updated_by,updated_at)
-                        VALUES (?,?,?,?,?,?,CURRENT_TIMESTAMP,?,?,'Y',?,CURRENT_TIMESTAMP,?,CURRENT_TIMESTAMP)
-                        """,jobId,jobName,executorType,definitionVersion,checksum,executorReference,description,
+                jdbc.update(sql.required("projection-job-insert"),
+                        jobId,jobName,executorType,definitionVersion,checksum,executorReference,description,
                         restartable,operatorId,operatorId);
             }catch(DuplicateKeyException duplicate){
-                int retried=jdbc.update("""
-                        UPDATE bat_job
-                           SET job_name=?,job_type=?,published_definition_version=?,published_definition_checksum=?,
-                               executor_reference=?,definition_published_at=CURRENT_TIMESTAMP,description=?,
-                               restartable_yn=?,use_yn='Y',updated_by=?,updated_at=CURRENT_TIMESTAMP
-                         WHERE job_id=?
-                        """,jobName,executorType,definitionVersion,checksum,executorReference,description,
+                int retried=jdbc.update(sql.required("projection-job-update"),
+                        jobName,executorType,definitionVersion,checksum,executorReference,description,
                         restartable,operatorId,jobId);
                 if(retried!=1)throw new IllegalStateException("Published Job projection conflict: "+jobId,duplicate);
             }
@@ -279,41 +269,26 @@ public class BatchJobDefinitionService implements BatchJobDefinitionControlPort 
             String cron=required(Objects.toString(rowValue(row,"trigger_expression","TRIGGER_EXPRESSION"),""),"triggerExpression");
             if(cron.length()>100)throw new IllegalStateException("Published Cron exceeds bat_schedule limit: "+jobId);
             String timezone=Objects.toString(rowValue(row,"timezone_id","TIMEZONE_ID"),"Asia/Seoul");
-            int scheduleUpdated=jdbc.update("""
-                    UPDATE bat_schedule
-                       SET definition_version=?,definition_checksum=?,cron_expression=?,timezone=?,
-                           enabled_yn='Y',updated_by=?,updated_at=CURRENT_TIMESTAMP
-                     WHERE schedule_id=?
-                    """,definitionVersion,checksum,cron,timezone,operatorId,generatedScheduleId);
+            int scheduleUpdated=jdbc.update(sql.required("definition-project-schedule-update"),
+                    definitionVersion,checksum,cron,timezone,operatorId,generatedScheduleId);
             if(scheduleUpdated==0){
                 try{
-                    jdbc.update("""
-                            INSERT INTO bat_schedule
-                            (schedule_id,job_id,definition_version,definition_checksum,cron_expression,timezone,
-                             enabled_yn,created_by,created_at,updated_by,updated_at)
-                            VALUES (?,?,?,?,?,?,'Y',?,CURRENT_TIMESTAMP,?,CURRENT_TIMESTAMP)
-                            """,generatedScheduleId,jobId,definitionVersion,checksum,cron,timezone,operatorId,operatorId);
+                    jdbc.update(sql.required("definition-project-schedule-insert"),
+                            generatedScheduleId,jobId,definitionVersion,checksum,cron,timezone,operatorId,operatorId);
                 }catch(DuplicateKeyException duplicate){
                     throw new IllegalStateException("Published Schedule projection conflict: "+generatedScheduleId,duplicate);
                 }
             }
         }else{
-            jdbc.update("""
-                    UPDATE bat_schedule
-                       SET enabled_yn='N',updated_by=?,updated_at=CURRENT_TIMESTAMP
-                     WHERE schedule_id=?
-                    """,operatorId,generatedScheduleId);
+            jdbc.update(sql.required("definition-project-schedule-disable"),
+                    operatorId,generatedScheduleId);
         }
     }
 
     private void persistRuntimeProjection(
             String jobId, long definitionVersion, String checksum, Map<String, Object> row,
             String projectionJson, String operatorId) {
-        jdbc.update("""
-                UPDATE bat_job_runtime_projection
-                   SET projection_status='RETIRED',retired_at=CURRENT_TIMESTAMP,row_version=row_version+1
-                 WHERE job_id=? AND definition_version<>? AND projection_status='ACTIVE'
-                """, jobId, definitionVersion);
+        jdbc.update(sql.required("definition-projection-retire-other"), jobId, definitionVersion);
         String executorType = Objects.toString(rowValue(row,"executor_type","EXECUTOR_TYPE"), "");
         String executorReference = Objects.toString(
                 rowValue(row,"executor_reference","EXECUTOR_REFERENCE"), "");
@@ -323,24 +298,13 @@ public class BatchJobDefinitionService implements BatchJobDefinitionControlPort 
         String timezone = Objects.toString(rowValue(row,"timezone_id","TIMEZONE_ID"), "Asia/Seoul");
         Object effectiveFrom = rowValue(row,"effective_from","EFFECTIVE_FROM");
         Object effectiveUntil = rowValue(row,"effective_until","EFFECTIVE_UNTIL");
-        int updated = jdbc.update("""
-                UPDATE bat_job_runtime_projection
-                   SET definition_checksum=?,projection_status='ACTIVE',executor_type=?,executor_reference=?,
-                       trigger_type=?,trigger_expression=?,timezone_id=?,projection_json=?,projection_hash=?,
-                       effective_from=?,effective_until=?,published_by=?,published_at=CURRENT_TIMESTAMP,
-                       retired_at=NULL,row_version=row_version+1
-                 WHERE job_id=? AND definition_version=?
-                """, checksum, executorType, executorReference, triggerType, triggerExpression, timezone,
+        int updated = jdbc.update(sql.required("definition-projection-update"),
+                checksum, executorType, executorReference, triggerType, triggerExpression, timezone,
                 projectionJson, checksum, effectiveFrom, effectiveUntil, operatorId, jobId, definitionVersion);
         if (updated == 0) {
             try {
-                jdbc.update("""
-                        INSERT INTO bat_job_runtime_projection
-                        (job_id,definition_version,definition_checksum,projection_status,executor_type,
-                         executor_reference,trigger_type,trigger_expression,timezone_id,projection_json,
-                         projection_hash,effective_from,effective_until,published_by,published_at,row_version)
-                        VALUES (?,?,?,'ACTIVE',?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP,1)
-                        """, jobId, definitionVersion, checksum, executorType, executorReference,
+                jdbc.update(sql.required("definition-projection-insert"),
+                        jobId, definitionVersion, checksum, executorType, executorReference,
                         triggerType, triggerExpression, timezone, projectionJson, checksum,
                         effectiveFrom, effectiveUntil, operatorId);
             } catch (DuplicateKeyException concurrent) {
@@ -355,12 +319,8 @@ public class BatchJobDefinitionService implements BatchJobDefinitionControlPort 
     private void enqueueProjectionEvent(
             String jobId, long definitionVersion, String eventType, String payloadHash, String payload) {
         String outboxId = UUID.randomUUID().toString();
-        int inserted = jdbc.update("""
-                INSERT INTO bat_job_runtime_projection_outbox
-                (outbox_id,job_id,definition_version,event_type,payload_hash,event_payload,
-                 delivery_status,fencing_token,attempt_count,next_attempt_at,created_at)
-                VALUES (?,?,?,?,?,?,'PENDING',0,0,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)
-                """, outboxId, jobId, definitionVersion, eventType, payloadHash, payload);
+        int inserted = jdbc.update(sql.required("definition-projection-outbox-insert"),
+                outboxId, jobId, definitionVersion, eventType, payloadHash, payload);
         if (inserted != 1) {
             throw new IllegalStateException("Batch Runtime Projection Outbox insert failed");
         }
@@ -368,28 +328,18 @@ public class BatchJobDefinitionService implements BatchJobDefinitionControlPort 
 
     private void retireRuntimeProjection(
             String jobId, long definitionVersion, String checksum, String projectionJson, String operatorId) {
-        int projection = jdbc.update("""
-                UPDATE bat_job_runtime_projection
-                   SET projection_status='RETIRED',retired_at=CURRENT_TIMESTAMP,row_version=row_version+1
-                 WHERE job_id=? AND definition_version=? AND definition_checksum=?
-                   AND projection_status='ACTIVE'
-                """, jobId, definitionVersion, checksum);
+        int projection = jdbc.update(sql.required("definition-projection-retire"),
+                jobId, definitionVersion, checksum);
         if (projection != 1) {
             throw new IllegalStateException("Active Batch Runtime Projection not found for retire: "
                     + jobId + "@" + definitionVersion);
         }
         enqueueProjectionEvent(jobId, definitionVersion, "JOB_DEFINITION_RETIRED",
                 checksum, projectionJson);
-        jdbc.update("""
-                UPDATE bat_schedule
-                   SET enabled_yn='N',updated_by=?,updated_at=CURRENT_TIMESTAMP
-                 WHERE schedule_id=? AND definition_version=?
-                """,operatorId,generatedScheduleId(jobId),definitionVersion);
-        jdbc.update("""
-                UPDATE bat_job
-                   SET use_yn='N',updated_by=?,updated_at=CURRENT_TIMESTAMP
-                 WHERE job_id=? AND published_definition_version=?
-                """,operatorId,jobId,definitionVersion);
+        jdbc.update(sql.required("definition-retire-schedule"),
+                operatorId,generatedScheduleId(jobId),definitionVersion);
+        jdbc.update(sql.required("projection-job-disable-version"),
+                operatorId,jobId,definitionVersion);
     }
 
     private static String generatedScheduleId(String jobId){
@@ -408,13 +358,8 @@ public class BatchJobDefinitionService implements BatchJobDefinitionControlPort 
     }
 
     private void validateDependencyGraph(BatchJobDefinition candidate) {
-        List<Map<String,Object>> rows = jdbc.queryForList("""
-                SELECT d.job_id, d.related_job_id
-                FROM bat_job_dependency d
-                JOIN bat_job_definition_version v
-                  ON v.job_id=d.job_id AND v.definition_version=d.definition_version
-                WHERE v.definition_state IN ('DRAFT','VALIDATED','APPROVAL','PUBLISHED')
-                """);
+        List<Map<String,Object>> rows = jdbc.queryForList(
+                sql.required("definition-dependency-graph"));
         Map<String,Set<String>> graph = new HashMap<>();
         for (Map<String,Object> row : rows) {
             String from = Objects.toString(rowValue(row,"job_id","JOB_ID"),"");
@@ -498,12 +443,8 @@ public class BatchJobDefinitionService implements BatchJobDefinitionControlPort 
             String beforeJson,
             String afterJson) {
         AuditContext safe = context == null ? new AuditContext(null, null, null, null) : context;
-        int inserted = jdbc.update("""
-                INSERT INTO bat_job_definition_audit
-                (job_id,definition_version,action_code,from_state,to_state,reason,operator_id,
-                 requested_by,approval_request_id,transaction_id,trace_id,before_json,after_json,created_at)
-                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP)
-                """, jobId, definitionVersion, actionCode, fromState, toState, reason, operatorId,
+        int inserted = jdbc.update(sql.required("definition-audit-insert"),
+                jobId, definitionVersion, actionCode, fromState, toState, reason, operatorId,
                 safe.requestedBy(), safe.approvalRequestId(), safe.transactionId(), safe.traceId(),
                 beforeJson, afterJson);
         if (inserted != 1) {
@@ -527,8 +468,8 @@ public class BatchJobDefinitionService implements BatchJobDefinitionControlPort 
         }
     }
 
-    private void replaceChildren(BatchJobDefinition d){jdbc.update("DELETE FROM bat_job_parameter_definition WHERE job_id=? AND definition_version=?",d.jobId(),d.definitionVersion());int order=0;for(var p:d.parameters())jdbc.update("INSERT INTO bat_job_parameter_definition(job_id,definition_version,parameter_name,parameter_type,label_text,description_text,required_yn,sensitive_yn,default_value,allowed_values,validation_pattern,min_value,max_value,min_length,max_length,reference_type,alias_required_yn,runtime_override_allowed_yn,sort_order) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",d.jobId(),d.definitionVersion(),p.name(),p.type(),p.label(),p.description(),yn(p.required()),yn(p.sensitive()),p.defaultValue(),String.join(",",p.allowedValues()),p.pattern(),emptyDecimal(p.minValue()),emptyDecimal(p.maxValue()),p.minLength(),p.maxLength(),p.referenceType(),yn(!p.alias().isBlank()),yn(p.overrideAllowed()),order++);
-        jdbc.update("DELETE FROM bat_job_dependency WHERE job_id=? AND definition_version=?",d.jobId(),d.definitionVersion());order=0;for(var dep:d.dependencies())jdbc.update("INSERT INTO bat_job_dependency(job_id,definition_version,related_job_id,condition_code,timeout_seconds,required_yn,sort_order) VALUES (?,?,?,?,?,?,?)",d.jobId(),d.definitionVersion(),dep.relatedJobId(),dep.condition(),dep.timeoutSeconds(),yn(dep.required()),order++);}
+    private void replaceChildren(BatchJobDefinition d){jdbc.update(sql.required("definition-parameters-delete"),d.jobId(),d.definitionVersion());int order=0;for(var p:d.parameters())jdbc.update(sql.required("definition-parameter-insert"),d.jobId(),d.definitionVersion(),p.name(),p.type(),p.label(),p.description(),yn(p.required()),yn(p.sensitive()),p.defaultValue(),String.join(",",p.allowedValues()),p.pattern(),emptyDecimal(p.minValue()),emptyDecimal(p.maxValue()),p.minLength(),p.maxLength(),p.referenceType(),yn(!p.alias().isBlank()),yn(p.overrideAllowed()),order++);
+        jdbc.update(sql.required("definition-dependencies-delete"),d.jobId(),d.definitionVersion());order=0;for(var dep:d.dependencies())jdbc.update(sql.required("definition-dependency-insert"),d.jobId(),d.definitionVersion(),dep.relatedJobId(),dep.condition(),dep.timeoutSeconds(),yn(dep.required()),order++);}
     private Object[] values(BatchJobDefinition d,String json){return new Object[]{d.jobId(),d.definitionVersion(),d.jobName(),d.executorType().name(),d.state().name(),d.ownerDomain(),d.description(),d.trigger().type().name(),d.trigger().expression(),d.trigger().timezone(),d.trigger().misfirePolicy().name(),d.resourcePolicy().agentPool(),d.resourcePolicy().zone(),d.resourcePolicy().maxConcurrency(),d.resourcePolicy().timeoutSeconds(),yn(d.recoveryPolicy().restartable()),d.recoveryPolicy().maxAttempts(),d.recoveryPolicy().initialBackoffSeconds(),d.recoveryPolicy().multiplier(),d.recoveryPolicy().maxBackoffSeconds(),d.recoveryPolicy().skipLimit(),d.recoveryPolicy().unknownResultPolicy().name(),d.recoveryPolicy().compensationReference(),d.alertPolicy().delayThresholdSeconds(),d.alertPolicy().slaSeconds(),yn(d.alertPolicy().notifyOnFailure()),yn(d.alertPolicy().notifyOnMissed()),d.executorReference(),json,d.checksum(),d.effectiveFrom(),d.effectiveUntil(),d.requestedBy(),d.requestedBy()};}
     private Object[] updateValues(BatchJobDefinition d,String json){return new Object[]{
             d.jobName(),d.executorType().name(),d.state().name(),d.ownerDomain(),d.description(),

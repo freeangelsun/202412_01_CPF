@@ -46,6 +46,8 @@ describe("ADM canonical capability registry", () => {
 
   it("declares the dedicated batch execution consumer operations", () => {
     expect(admCapabilityRegistry["batch-executions"].expectedOperationIds).toEqual([
+      "admBatchWorkbenchExecutionDetail",
+      "admBatchWorkbenchExecutions",
       "admBatchFindExecutionPage",
       "admBatchFindExecutionDetail",
       "admBatchFindStepExecutions",

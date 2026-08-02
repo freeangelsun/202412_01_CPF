@@ -18,10 +18,12 @@ import java.net.InetAddress;
 public class WorkerRegistryReporter {
     private static final Logger log = LoggerFactory.getLogger(WorkerRegistryReporter.class);
 
-    private final WorkerRuntime runtime; private final JdbcTemplate jdbc; private final ObjectMapper mapper;
+    private final SpringBatchWorkerRuntimeState runtime;
+    private final JdbcTemplate jdbc;
+    private final ObjectMapper mapper;
     private final CpfVendorSqlCatalog sql;
     private final String serverInstanceId;
-    public WorkerRegistryReporter(WorkerRuntime runtime,JdbcTemplate jdbc,ObjectMapper mapper,
+    public WorkerRegistryReporter(SpringBatchWorkerRuntimeState runtime,JdbcTemplate jdbc,ObjectMapper mapper,
       @Value("${cpf.framework.was-id:${CPF_WAS_ID:batWK-local-01}}") String serverInstanceId,
       CpfVendorSqlCatalogProvider sqlCatalogProvider) {
         this.runtime=runtime;this.jdbc=jdbc;this.mapper=mapper;this.serverInstanceId=serverInstanceId;
@@ -45,9 +47,10 @@ public class WorkerRegistryReporter {
                     "Worker capabilities cannot be serialized; registry heartbeat is aborted",
                     failure);
         }
-        String state=runtime.draining()?"DRAINING":(runtime.currentExecutionId()==null?"IDLE":"RUNNING");
+        String state=runtime.draining()?"DRAINING":(runtime.currentJobExecutionId()==null?"IDLE":"RUNNING");
         jdbc.update(sql.required("worker-registry-upsert"),
-          runtime.workerId(),serverInstanceId,host,pid,runtime.workerVersion(),caps,runtime.maxConcurrency(),
-          runtime.draining()?"DRAINING":"RUNNING",state,runtime.currentExecutionId());
+          runtime.workerId(),serverInstanceId,host,pid,runtime.workerVersion(),caps,
+          runtime.configuredMaxConcurrency(),runtime.draining()?"DRAINING":"RUNNING",state,
+          runtime.currentJobExecutionId());
     }
 }

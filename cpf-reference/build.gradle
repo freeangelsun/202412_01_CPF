@@ -27,6 +27,21 @@ def gatewayEnabled = featureEnabled('gateway')
 def isolationVerification = providers.gradleProperty('cpf.reference.featureIsolationVerification').map { it.toBoolean() }.orElse(false).get()
 def featureVariant = [batchEnabled ? 'batch' : 'no-batch', operationsEnabled ? 'operations' : 'no-operations', backofficeEnabled ? 'backoffice' : 'no-backoffice', gatewayEnabled ? 'gateway' : 'no-gateway'].join('-')
 def referenceDbMigrations = ['V93__manual_edu_135_operation_ledger.sql'] + (batchEnabled ? ['V94__reference_batch_job_pack.sql'] : [])
+def referenceDbVendor = (findProperty('cpfDbVendor')
+        ?: System.getenv('REF_DATABASE_VENDOR')
+        ?: 'mariadb')
+        .toString()
+        .toLowerCase(Locale.ROOT)
+def referenceSupportedDbVendors = ['mariadb', 'oracle', 'postgresql'] as Set
+if (!referenceSupportedDbVendors.contains(referenceDbVendor)) {
+    throw new GradleException("Unsupported cpfDbVendor for cpf-reference: ${referenceDbVendor}")
+}
+def referenceDbResourceRoot = rootProject.file("cpf-tools/db/vendor/${referenceDbVendor}")
+def referenceJdbcDriverByVendor = [
+        'mariadb': 'org.mariadb.jdbc:mariadb-java-client',
+        'oracle': 'com.oracle.database.jdbc:ojdbc11',
+        'postgresql': 'org.postgresql:postgresql'
+]
 if (isolationVerification) {
     layout.buildDirectory = rootProject.layout.buildDirectory.dir("reference-feature-variants/${featureVariant}")
 }
@@ -66,8 +81,12 @@ dependencies {
     implementation project(':cpf-core')
     implementation project(':cpf-common')
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:3.0.3'
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:4.0.0'
 
     if (batchEnabled) {
         implementation project(':cpf-batch:contract')
@@ -75,12 +94,13 @@ dependencies {
     }
 
     testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+    testRuntimeOnly referenceJdbcDriverByVendor[referenceDbVendor]
 }
 
 tasks.named('test') {
     useJUnitPlatform()
-    systemProperty 'cpf.db.vendor', 'mariadb'
-    systemProperty 'cpf.db.resource-root', rootProject.file('cpf-tools/db/vendor/mariadb').absolutePath
+    systemProperty 'cpf.db.vendor', referenceDbVendor
+    systemProperty 'cpf.db.resource-root', referenceDbResourceRoot.absolutePath
     systemProperty 'cpf.reference.features.batch.enabled', batchEnabled
     systemProperty 'cpf.reference.features.operations.enabled', operationsEnabled
     systemProperty 'cpf.reference.features.backoffice.enabled', backofficeEnabled
@@ -115,9 +135,9 @@ tasks.register('verifyReferenceFeatureBoundaries') {
                 if (text.contains('CPF_REF_BAT_')) violations << "${source}: CPF_REF_BAT_"
             }
         }
-        if (!violations.isEmpty()) throw new GradleException('Reference optional boundary violations:
-' + violations.join('
-'))
+        if (!violations.isEmpty()) {
+            throw new GradleException('Reference optional boundary violations:\n' + violations.join('\n'))
+        }
     }
 }
 

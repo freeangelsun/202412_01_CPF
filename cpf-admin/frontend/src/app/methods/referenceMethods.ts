@@ -1,4 +1,4 @@
-export const referenceMethods: Record<string, any> = {
+export const referenceMethods = {
   setMessage(message) {
         this.uiMessage = message || "";
       },
@@ -266,4 +266,4 @@ export const referenceMethods: Record<string, any> = {
         this.responseCodeResult = await this.sendJson(`/adm/api/response-codes/${this.responseCodeForm.responseCode}?${params.toString()}`, "DELETE");
         this.setMessage("응답코드 삭제를 요청했습니다.");
       }
-};
+} satisfies Record<string, any>;

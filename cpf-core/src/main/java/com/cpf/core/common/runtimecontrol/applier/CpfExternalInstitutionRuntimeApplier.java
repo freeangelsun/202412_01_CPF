@@ -46,7 +46,7 @@ public final class CpfExternalInstitutionRuntimeApplier implements CpfRuntimeCha
                 LinkedHashMap<String, String> attributes = new LinkedHashMap<>();
                 JsonNode values = endpoint.get("attributes");
                 if (values != null && values.isObject()) {
-                    Iterator<Map.Entry<String, JsonNode>> fields = values.fields();
+                    Iterator<Map.Entry<String, JsonNode>> fields = values.properties().iterator();
                     fields.forEachRemaining(entry -> attributes.put(entry.getKey(), entry.getValue().asText()));
                 }
                 String baseUrl = validateBaseUrl(required(endpoint, "baseUrl"));

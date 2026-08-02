@@ -50,7 +50,7 @@
           <button type="button" v-if="canWrite('PERMISSION')" @click="createApiPermission">API 권한 등록</button>
           <button type="button" v-if="canWrite('PERMISSION')" @click="updateApiPermission">API 권한 수정</button>
         </div>
-        <pre class="detail">{{ pretty(permissionResult) }}</pre>
+        <CpfStructuredData class="detail" :value="permissionResult" />
       </section>
 </template>
 

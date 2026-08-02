@@ -17,13 +17,25 @@ if (-not [IO.Path]::IsPathRooted($ResultDir)) {
 }
 New-Item -ItemType Directory -Force -Path $ResultDir | Out-Null
 
+$starterRoot = Join-Path $Root 'cpf-starters'
+if (-not (Test-Path -LiteralPath $starterRoot -PathType Container)) {
+    throw "Canonical Starter root is missing: $starterRoot"
+}
+$starterModules = @(Get-ChildItem -LiteralPath $starterRoot -Directory |
+    Where-Object { Test-Path -LiteralPath (Join-Path $_.FullName 'build.gradle') -PathType Leaf } |
+    Sort-Object Name |
+    ForEach-Object { "cpf-starters/$($_.Name)" })
+if ($starterModules.Count -eq 0) {
+    throw "Canonical Starter root has no Gradle projects: $starterRoot"
+}
+
 $fixedModules = @(
     'cpf-core', 'cpf-gateway', 'cpf-common', 'cpf-admin', 'cpf-biz-admin',
     'cpf-reference',
     'cpf-batch/contract', 'cpf-batch/runtime-common', 'cpf-batch/control-server',
     'cpf-batch/scheduler', 'cpf-batch/worker', 'cpf-batch/center-cut-runner',
     'cpf-batch/host-agent'
-)
+) + $starterModules
 $items = [System.Collections.Generic.List[object]]::new()
 $failures = [System.Collections.Generic.List[object]]::new()
 
@@ -149,7 +161,7 @@ foreach ($module in $modules) {
     }
 
     Get-ChildItem -LiteralPath $sourceRoot -Recurse -File -Filter '*.java' | Where-Object {
-        $_.FullName -notmatch '\\build\\|\\generated\\'
+        $_.Name -ne 'package-info.java' -and $_.FullName -notmatch '\\build\\|\\generated\\'
     } | ForEach-Object {
         $file = $_
         $relative = Get-RelativePath $file.FullName

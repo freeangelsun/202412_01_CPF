@@ -251,8 +251,8 @@ def check_session_migration(root: Path, failures: list[str]) -> None:
 def check_safe_rollbacks(root: Path, failures: list[str]) -> None:
     paths = (
         root / "cpf-tools/db/vendor/mariadb/rollback/R82__spring_batch_primary_control_link.sql",
-        root / "cpf-tools/db/vendor/postgresql/migration/rollback/batDB/R82__spring_batch_primary_control_link.sql",
-        root / "cpf-tools/db/vendor/oracle/migration/rollback/batDB/R82__spring_batch_primary_control_link.sql",
+        root / "cpf-tools/db/vendor/postgresql/rollback/batDB/R82__spring_batch_primary_control_link.sql",
+        root / "cpf-tools/db/vendor/oracle/rollback/batDB/R82__spring_batch_primary_control_link.sql",
     )
     for path in paths:
         if not path.is_file():

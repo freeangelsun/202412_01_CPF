@@ -63,7 +63,7 @@ switch ($requirementId) {
                 'source\57_reference_edu_operation_ledger.sql',
                 'install\01_reference_edu_operation_ledger.sql',
                 'migration\flyway\refDB\V93__manual_edu_135_operation_ledger.sql',
-                'migration\rollback\refDB\U93__manual_edu_135_operation_ledger.sql',
+                'rollback\refDB\U93__manual_edu_135_operation_ledger.sql',
                 'runtime\ref\manual_edu_135_operation_queries.sql',
                 'verify\93_verify_manual_edu_135_operation_ledger.sql'
             )
@@ -72,7 +72,7 @@ switch ($requirementId) {
                     'source\58_reference_batch_job_pack.sql',
                     'install\02_reference_batch_job_pack.sql',
                     'migration\flyway\refDB\V94__reference_batch_job_pack.sql',
-                    'migration\rollback\refDB\U94__reference_batch_job_pack.sql',
+                    'rollback\refDB\U94__reference_batch_job_pack.sql',
                     'runtime\ref\reference_batch_job_queries.sql',
                     'verify\94_verify_reference_batch_job_pack.sql'
                 )

@@ -31,6 +31,7 @@ class BatchRuntimeExecutorRegistryCanonicalJsonTest {
         return new BatchRuntimeExecutorRegistry(
                 beans.getBeanProvider(CpfServiceCaller.class),
                 beans.getBeanProvider(CpfBrokerClient.class),
-                new ObjectMapper());
+                new ObjectMapper(),
+                new WorkerOperationalProperties());
     }
 }

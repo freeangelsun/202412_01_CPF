@@ -1,7 +1,7 @@
 package com.cpf.core.common.servicecall;
 
-import com.cpf.core.common.base.CpfRequest;
-import com.cpf.core.common.base.CpfResponse;
+import com.cpf.core.api.base.CpfRequest;
+import com.cpf.core.api.base.CpfResponse;
 import com.cpf.core.common.base.CpfServiceClient;
 
 /**

@@ -19,7 +19,7 @@ class CpfBatchRemoteCodecTest {
     private final CpfBatchRemoteCodec codec=new CpfBatchRemoteCodec(new ObjectMapper().findAndRegisterModules(),properties,Clock.fixed(now,ZoneOffset.UTC));
 
     @Test void samePayloadAndAttemptProduceStableIdentity() {
-        StepExecutionRequest payload=new StepExecutionRequest("step",10L,20L);
+        StepExecutionRequest payload=new StepExecutionRequest("step",20L);
         var message=MessageBuilder.withPayload(payload).setHeader(CpfBatchRemoteCodec.ATTEMPT,2).build();
         var first=codec.encode(message);var second=codec.encode(message);
         assertThat(first.messageId()).isEqualTo(second.messageId());
@@ -29,7 +29,7 @@ class CpfBatchRemoteCodecTest {
     }
 
     @Test void retryAttemptKeepsStableIdentityAndCorrelation() {
-        StepExecutionRequest payload=new StepExecutionRequest("step",10L,20L);
+        StepExecutionRequest payload=new StepExecutionRequest("step",20L);
         var first=codec.encode(MessageBuilder.withPayload(payload).setHeader(CpfBatchRemoteCodec.ATTEMPT,1).setHeader(CpfBatchRemoteCodec.CORRELATION_ID,"execution-10").build());
         var second=codec.encode(MessageBuilder.withPayload(payload).setHeader(CpfBatchRemoteCodec.ATTEMPT,2).setHeader(CpfBatchRemoteCodec.CORRELATION_ID,"execution-10").build());
         assertThat(first.messageId()).isEqualTo(second.messageId());
@@ -37,7 +37,7 @@ class CpfBatchRemoteCodecTest {
     }
 
     @Test void rejectsPayloadHashTamperingAndWrongEnvironment() {
-        CpfBatchRemoteEnvelope valid=codec.encode(MessageBuilder.withPayload(new StepExecutionRequest("step",10L,20L)).build());
+        CpfBatchRemoteEnvelope valid=codec.encode(MessageBuilder.withPayload(new StepExecutionRequest("step",20L)).build());
         CpfBatchRemoteEnvelope tampered=new CpfBatchRemoteEnvelope(valid.schemaVersion(),valid.messageId(),valid.correlationId(),valid.producerId(),valid.environment(),valid.tenantId(),valid.attempt(),valid.replyTopic(),valid.payloadType(),valid.payloadJson()+" ",valid.payloadSha256(),valid.headers(),valid.createdAt(),valid.expiresAt());
         assertThatThrownBy(()->codec.decode(tampered)).isInstanceOf(SecurityException.class).hasMessageContaining("HASH");
         CpfBatchRemoteEnvelope foreign=new CpfBatchRemoteEnvelope(valid.schemaVersion(),valid.messageId(),valid.correlationId(),valid.producerId(),"prod",valid.tenantId(),valid.attempt(),valid.replyTopic(),valid.payloadType(),valid.payloadJson(),valid.payloadSha256(),valid.headers(),valid.createdAt(),valid.expiresAt());
@@ -47,12 +47,12 @@ class CpfBatchRemoteCodecTest {
     }
 
     @Test void rejectsExpiredEnvelope() {
-        CpfBatchRemoteEnvelope valid=codec.encode(MessageBuilder.withPayload(new StepExecutionRequest("step",10L,20L)).build());
+        CpfBatchRemoteEnvelope valid=codec.encode(MessageBuilder.withPayload(new StepExecutionRequest("step",20L)).build());
         CpfBatchRemoteCodec future=new CpfBatchRemoteCodec(new ObjectMapper().findAndRegisterModules(),properties,Clock.fixed(now.plus(Duration.ofMinutes(10)),ZoneOffset.UTC));
         assertThatThrownBy(()->future.decode(valid)).isInstanceOf(SecurityException.class).hasMessageContaining("EXPIRED");
     }
     @Test void rejectsOversizedIdentifiersInvalidTopicsAndExcessiveAttempts() {
-        CpfBatchRemoteEnvelope valid=codec.encode(MessageBuilder.withPayload(new StepExecutionRequest("step",10L,20L)).build());
+        CpfBatchRemoteEnvelope valid=codec.encode(MessageBuilder.withPayload(new StepExecutionRequest("step",20L)).build());
         String oversized="x".repeat(129);
         assertThatThrownBy(()->codec.decode(new CpfBatchRemoteEnvelope(
                 valid.schemaVersion(),oversized,valid.correlationId(),valid.producerId(),valid.environment(),
@@ -67,7 +67,7 @@ class CpfBatchRemoteCodecTest {
     }
 
     @Test void rejectsLifetimeLongerThanConfiguredTtl() {
-        CpfBatchRemoteEnvelope valid=codec.encode(MessageBuilder.withPayload(new StepExecutionRequest("step",10L,20L)).build());
+        CpfBatchRemoteEnvelope valid=codec.encode(MessageBuilder.withPayload(new StepExecutionRequest("step",20L)).build());
         CpfBatchRemoteEnvelope excessive=new CpfBatchRemoteEnvelope(
                 valid.schemaVersion(),valid.messageId(),valid.correlationId(),valid.producerId(),valid.environment(),
                 valid.tenantId(),valid.attempt(),valid.replyTopic(),valid.payloadType(),valid.payloadJson(),

@@ -47,6 +47,6 @@ class CpfGatewayTargetSelectorTest {
         return new CpfGatewayTargetSelectionPort.SelectionRequest("group",policy,key,candidates,Map.of(),OffsetDateTime.now());
     }
     private static CpfGatewayTargetSelectionPort.TargetCandidate candidate(String id,int weight,int priority,CpfGatewayHealthStatus health,String circuit,boolean draining,boolean maintenance){
-        return new CpfGatewayTargetSelectionPort.TargetCandidate(id,"127.0.0.1",8080,weight,priority,health,circuit,true,draining,maintenance,0,1,100,OffsetDateTime.now());
+        return new CpfGatewayTargetSelectionPort.TargetCandidate(id,"127.0.0.1",8080,weight,priority,health,circuit,true,draining,maintenance,0,1,0,OffsetDateTime.now());
     }
 }

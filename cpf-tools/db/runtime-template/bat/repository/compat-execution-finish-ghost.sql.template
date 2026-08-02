@@ -1,4 +1,8 @@
 UPDATE bat_execution
 SET execution_status = ?,
-    end_time = @NOW3@
+    end_time = @NOW3@,
+    updated_by = ?,
+    updated_at = @NOW3@
 WHERE execution_id = ?
+  AND execution_status IN ('RUNNING', 'CLAIMED', 'CLAIMING')
+  AND last_heartbeat_at IS NOT NULL

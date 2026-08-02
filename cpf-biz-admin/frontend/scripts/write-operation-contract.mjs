@@ -26,8 +26,7 @@ if (duplicateIds.length) throw new Error(`Duplicate operationId: ${[...new Set(d
 const quote = value => JSON.stringify(value);
 const typeUnion = operations.map(value => quote(value.operationId)).join(" | ");
 const records = operations.map(value => `  { method: ${quote(value.method)}, template: ${quote(value.template)}, operationId: ${quote(value.operationId)} }`).join(",\n");
-const contract = `/* eslint-disable */
-// Generated from canonical Backend OpenAPI. Do not edit manually.
+const contract = `// Generated from canonical Backend OpenAPI. Do not edit manually.
 export type CpfOperationId = ${typeUnion};
 export interface CpfOperationDescriptor { method: string; template: string; operationId: CpfOperationId; }
 export const cpfOperationDescriptors: readonly CpfOperationDescriptor[] = [
@@ -53,7 +52,6 @@ export function resolveCpfOperation(method: string, rawUrl: string): CpfOperatio
 fs.writeFileSync(path.join(generatedDir, "cpf-operation-contract.ts"), contract, "utf8");
 
 const compatibility = [];
-compatibility.push("/* eslint-disable */");
 compatibility.push("// Generated compatibility adapter backed by the canonical full OpenAPI.");
 compatibility.push('import { cpfGeneratedRequest } from "../shared/cpfApi";');
 compatibility.push("export interface CpfGeneratedRequestOptions { data?: unknown; signal?: AbortSignal; headers?: HeadersInit; path?: Record<string, string | number>; query?: Record<string, unknown>; }");

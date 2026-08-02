@@ -94,9 +94,6 @@ if (-not (Test-Path -LiteralPath $redisSecretPath -PathType Leaf)) {
     Write-Utf8NoBom -Path $redisSecretPath -Content "$password`n"
 }
 
-[void][System.IO.File]::ReadAllBytes($envPath)
-[void][System.IO.File]::ReadAllBytes($redisSecretPath)
-
 $baseRuntimeFiles = @(
     "compose.yml",
     "compose.redis.yml",
@@ -281,7 +278,7 @@ Write-Utf8NoBom -Path (Join-Path $cpfRoot "image-lock-complete.json") -Content (
     $lock | ConvertTo-Json -Depth 8
 )
 
-& pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $cpfRoot "verify-complete-environment.ps1") -RequireStopped
+& pwsh -NoProfile -File (Join-Path $cpfRoot "verify-complete-environment.ps1") -RequireStopped
 if ($LASTEXITCODE -ne 0) { throw "전체 환경 상태 확인 실패(exit=$LASTEXITCODE)" }
 
 Write-Host ""

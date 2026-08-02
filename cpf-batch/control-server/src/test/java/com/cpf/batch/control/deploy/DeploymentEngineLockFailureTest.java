@@ -27,6 +27,7 @@ class DeploymentEngineLockFailureTest {
         when(manifest.cellId()).thenReturn("cell-a");
         when(manifest.artifact()).thenReturn(artifact);
         when(manifest.environment()).thenReturn("local");
+        when(manifest.deployment()).thenReturn(mock(DeploymentCellManifest.DeploymentPolicy.class));
         when(artifact.version()).thenReturn("1.0.0");
         DeploymentRequest request = new DeploymentRequest(
                 "deployment-a",

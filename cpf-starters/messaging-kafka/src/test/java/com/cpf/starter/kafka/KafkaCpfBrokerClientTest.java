@@ -10,6 +10,7 @@ import com.cpf.core.api.broker.CpfBrokerPublishRequest;
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -30,7 +31,7 @@ class KafkaCpfBrokerClientTest {
         when(metadata.partition()).thenReturn(2);
         when(metadata.offset()).thenReturn(9L);
         when(sendResult.getRecordMetadata()).thenReturn(metadata);
-        when(template.send(any())).thenReturn(CompletableFuture.completedFuture(sendResult));
+        when(template.send(any(ProducerRecord.class))).thenReturn(CompletableFuture.completedFuture(sendResult));
 
         var result = client(template, Duration.ofMillis(50)).enqueue(request());
 
@@ -42,7 +43,7 @@ class KafkaCpfBrokerClientTest {
     @Test
     void timeoutIsUnknownWithoutPollutingInterruptFlag() {
         KafkaTemplate<String, byte[]> template = template();
-        when(template.send(any())).thenReturn(new CompletableFuture<>());
+        when(template.send(any(ProducerRecord.class))).thenReturn(new CompletableFuture<>());
 
         assertThatThrownBy(() -> client(template, Duration.ofMillis(1)).enqueue(request()))
                 .isInstanceOf(IllegalStateException.class)
@@ -53,7 +54,7 @@ class KafkaCpfBrokerClientTest {
     @Test
     void interruptedWaitRestoresInterruptFlag() {
         KafkaTemplate<String, byte[]> template = template();
-        when(template.send(any())).thenReturn(new CompletableFuture<>());
+        when(template.send(any(ProducerRecord.class))).thenReturn(new CompletableFuture<>());
         Thread.currentThread().interrupt();
 
         assertThatThrownBy(() -> client(template, Duration.ofSeconds(1)).enqueue(request()))

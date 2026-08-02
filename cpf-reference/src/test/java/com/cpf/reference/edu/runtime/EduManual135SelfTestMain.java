@@ -138,6 +138,15 @@ public final class EduManual135SelfTestMain {
         System.out.printf("[CPF][QA37][EDU135][PASS] contract=%d validation=%d authorization=%d normal=%d duplicate=%d representativeFailure=%d exhaustiveFailure=%d recovery=%d persistence=%d concurrency=%d root=%s%n",
                 contract, validation, authorization, normal, duplicate, representativeFailure,
                 exhaustiveFailure, recovery, persistence, concurrency, root);
+        deleteRecursively(root);
+    }
+
+    private static void deleteRecursively(Path root) throws Exception {
+        try (var paths = Files.walk(root)) {
+            for (Path path : paths.sorted(Comparator.reverseOrder()).toList()) {
+                Files.deleteIfExists(path);
+            }
+        }
     }
 
     private static EduOperationRecord recover(EduExecutionService service, EduOperationRecord failed) {

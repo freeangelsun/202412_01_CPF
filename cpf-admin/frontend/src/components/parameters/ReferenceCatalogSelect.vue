@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {computed,onBeforeUnmount,ref,watch} from 'vue'
 import type {ParameterDefinition} from './parameterSchema'
+import {admInvokeOperation} from '../../shared/cpfApi'
 
 const props=defineProps<{definition:ParameterDefinition;modelValue:unknown;context:Record<string,unknown>;disabled?:boolean}>()
 const emit=defineEmits<{(e:'update:modelValue',value:string):void}>()
@@ -16,11 +17,9 @@ function merge(current:Item[],incoming:Item[]){
  const byId=new Map(current.map(item=>[item.id,item]));for(const item of incoming)byId.set(item.id,item);return [...byId.values()]
 }
 async function requestPage(requestOffset:number,q:string){
- const p=new URLSearchParams({referenceType:referenceType.value,q,offset:String(requestOffset),limit:String(pageSize)})
- if(parentId.value)p.set('parentId',parentId.value)
- const response=await fetch(`/adm/api/parameter-references?${p}`,{credentials:'same-origin',headers:{Accept:'application/json'}})
- if(!response.ok)throw new Error(`Reference Catalog 조회 실패(${response.status})`)
- return await response.json() as Page
+ return await admInvokeOperation<Page>('admParameterReferenceSearch',{query:{
+  referenceType:referenceType.value,q,offset:requestOffset,limit:pageSize,parentId:parentId.value||undefined
+ }})
 }
 async function load(reset=true){
  const current=++sequence;loading.value=true

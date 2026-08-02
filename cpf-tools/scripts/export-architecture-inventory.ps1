@@ -17,11 +17,23 @@ if (-not [IO.Path]::IsPathRooted($ResultDir)) {
 }
 New-Item -ItemType Directory -Force -Path $ResultDir | Out-Null
 
+$starterRoot = Join-Path $Root 'cpf-starters'
+if (-not (Test-Path -LiteralPath $starterRoot -PathType Container)) {
+    throw "Canonical Starter root is missing: $starterRoot"
+}
+$starterModules = @(Get-ChildItem -LiteralPath $starterRoot -Directory |
+    Where-Object { Test-Path -LiteralPath (Join-Path $_.FullName 'build.gradle') -PathType Leaf } |
+    Sort-Object Name |
+    ForEach-Object { "cpf-starters/$($_.Name)" })
+if ($starterModules.Count -eq 0) {
+    throw "Canonical Starter root has no Gradle projects: $starterRoot"
+}
+
 $modules = @(
     'cpf-core', 'cpf-common', 'cpf-member', 'cpf-admin', 'cpf-biz-admin',
-    'cpf-batch', 'cpf-account', 'cpf-reference', 'cpf-gateway',
-    'cpf-local-runtime', 'cpf-local-batch-runtime'
-)
+    'cpf-batch', 'cpf-reference', 'cpf-gateway',
+    'cpf-tools/runtime/cpf-local-runtime', 'cpf-tools/runtime/cpf-local-batch-runtime'
+) + $starterModules
 $trackedExtensions = @('.java', '.kt', '.groovy', '.xml', '.yml', '.yaml', '.properties', '.sql', '.json', '.js', '.css', '.html', '.md', '.ps1', '.gradle')
 $items = [System.Collections.Generic.List[object]]::new()
 $failures = [System.Collections.Generic.List[object]]::new()

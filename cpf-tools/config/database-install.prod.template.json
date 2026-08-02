@@ -38,7 +38,7 @@
         "username": "root",
         "userHost": "%",
         "password": {
-          "env": "CPF_CPF_DB_ADMIN_PASSWORD",
+          "env": "CPF_CORE_DB_ADMIN_PASSWORD",
           "fallbackEnv": "CPF_DB_ROOT_PASSWORD"
         }
       },
@@ -46,7 +46,7 @@
         "username": "cpf_migration",
         "userHost": "%",
         "password": {
-          "env": "CPF_CPF_DB_MIGRATION_PASSWORD",
+          "env": "CPF_CORE_DB_MIGRATION_PASSWORD",
           "fallbackEnv": "CPF_DB_MIGRATION_PASSWORD"
         }
       },
@@ -54,7 +54,7 @@
         "username": "cpf_app",
         "userHost": "%",
         "password": {
-          "env": "CPF_CPF_DB_RUNTIME_PASSWORD",
+          "env": "CPF_CORE_DB_RUNTIME_PASSWORD",
           "fallbackEnv": "CPF_DB_APP_PASSWORD"
         }
       },

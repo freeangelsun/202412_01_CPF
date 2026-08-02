@@ -125,7 +125,7 @@ public class LoggingAspect {
             requestBody = null;
         }
         String menuId = firstText(request != null ? request.getParameter("menuId") : null, businessTransactionId);
-        TransactionContext.putBusinessTransaction(businessTransactionId, businessTransactionName);
+        TransactionContext.putStandardExecution(businessTransactionId, businessTransactionName);
         CpfWorkflowMetadata workflowMetadata = resolveWorkflowMetadata(
                 joinPoint,
                 transactionId,

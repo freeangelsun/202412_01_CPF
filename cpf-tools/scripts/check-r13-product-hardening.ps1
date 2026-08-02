@@ -50,8 +50,8 @@ Require-Text "cpf-tools/scripts/check-data-safety-schema-contract.ps1" "Canonica
 Require-Text "cpf-tools/scripts/check-generator-arbitrary-domain-parity.ps1" "임의 Generated Domain"
 
 $pwsh = (Get-Process -Id $PID).Path
-& $pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "cpf-tools/scripts/check-contract-compatibility.ps1") -SelfTest
+& $pwsh -NoProfile -File (Join-Path $Root "cpf-tools/scripts/check-contract-compatibility.ps1") -SelfTest
 if ($LASTEXITCODE -ne 0) { throw "Contract compatibility self-test failed." }
-& $pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "cpf-tools/scripts/check-generator-golden-path.ps1") -Root $Root
+& $pwsh -NoProfile -File (Join-Path $Root "cpf-tools/scripts/check-generator-golden-path.ps1") -Root $Root
 if ($LASTEXITCODE -ne 0) { throw "Generator Golden Path gate failed." }
 Write-Host "CPF R13 product hardening static gate passed."

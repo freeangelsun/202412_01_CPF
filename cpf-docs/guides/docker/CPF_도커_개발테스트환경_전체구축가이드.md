@@ -25,7 +25,7 @@ ORT는 공식 안내상 Java 21 이상, 4 Core와 8GB JVM Memory를 권장한다
 Root Overlay ZIP을 Downloads에 저장한 후 Repository Root에 풀고 설치 Script를 실행한다.
 
 ```powershell
-$zip="$env:USERPROFILE\Downloads\CPF_20260801_도커개발테스트환경_전체구성_ROOT_OVERLAY.zip"; $root="C:\dev\projects\jck\202412_01_CPF"; Expand-Archive -LiteralPath $zip -DestinationPath $root -Force; pwsh -NoProfile -ExecutionPolicy Bypass -File "$root\cpf-tools\environment\docker-development-test\CPF_도커_개발테스트환경_전체설치.ps1" -RepoRoot $root
+$zip="$env:USERPROFILE\Downloads\CPF_20260801_도커개발테스트환경_전체구성_ROOT_OVERLAY.zip"; $root="C:\dev\projects\jck\202412_01_CPF"; Expand-Archive -LiteralPath $zip -DestinationPath $root -Force; pwsh -NoProfile -File "$root\cpf-tools\environment\docker-development-test\CPF_도커_개발테스트환경_전체설치.ps1" -RepoRoot $root
 ```
 
 현재 PC에 Secret 파일이 이미 있으면 비밀번호를 다시 입력하지 않는다.
@@ -94,7 +94,7 @@ C:\dev\Docker\Secrets
 ## 7. 설치 후 확인
 
 ```powershell
-pwsh -NoProfile -ExecutionPolicy Bypass -File "C:\dev\Docker\CPF\verify-complete-environment.ps1" -RequireStopped
+pwsh -NoProfile -File "C:\dev\Docker\CPF\verify-complete-environment.ps1" -RequireStopped
 ```
 
 ## 8. 공식 Source 기준 Version

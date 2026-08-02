@@ -1,0 +1,5 @@
+SELECT *
+FROM bat_lock
+WHERE job_id = ?
+  AND expire_at < @NOW3@
+FOR UPDATE

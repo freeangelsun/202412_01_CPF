@@ -3,6 +3,7 @@ package com.cpf.gateway.scg;
 import com.cpf.gateway.config.CpfGatewaySafetyProperties;
 import java.time.Duration;
 import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
@@ -30,7 +31,20 @@ public class CpfGatewayPinnedHttpClientConfiguration {
                 .setSocketTimeout(timeout(safety.getResponseTimeoutCap()))
                 .build();
         PoolingHttpClientConnectionManager manager = PoolingHttpClientConnectionManagerBuilder.create()
-                .setDnsResolver(CpfGatewayPinnedAddressContext::resolve)
+                .setDnsResolver(new DnsResolver() {
+                    @Override
+                    public java.net.InetAddress[] resolve(String host)
+                            throws java.net.UnknownHostException {
+                        return CpfGatewayPinnedAddressContext.resolve(host);
+                    }
+
+                    @Override
+                    public String resolveCanonicalHostname(String host)
+                            throws java.net.UnknownHostException {
+                        CpfGatewayPinnedAddressContext.resolve(host);
+                        return host;
+                    }
+                })
                 .setDefaultConnectionConfig(connectionConfig)
                 .setMaxConnTotal(200)
                 .setMaxConnPerRoute(50)

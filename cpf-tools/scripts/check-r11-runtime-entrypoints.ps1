@@ -14,17 +14,52 @@ function Require([string]$rel){if(!(Test-Path (Join-Path $Root $rel))){Fail "Mis
  'cpf-batch/scheduler/src/main/java/com/cpf/batch/scheduler/SchedulerCoordinator.java',
  'cpf-batch/scheduler/src/main/java/com/cpf/batch/scheduler/SchedulerDispatchService.java',
  'cpf-batch/worker/src/main/java/com/cpf/batch/worker/BatchWorkerApplication.java',
- 'cpf-batch/worker/src/main/java/com/cpf/batch/worker/WorkerRuntime.java',
- 'cpf-batch/worker/src/main/java/com/cpf/batch/worker/JobPackDispatcher.java',
+ 'cpf-batch/worker/src/main/java/com/cpf/batch/worker/SpringBatchWorkerRuntimeState.java',
+ 'cpf-batch/worker/src/main/java/com/cpf/batch/worker/SpringBatchWorkerStepHandler.java',
  'cpf-batch/center-cut-runner/src/main/java/com/cpf/batch/centercut/runner/CenterCutRunnerApplication.java',
- 'cpf-batch/center-cut-runner/src/main/java/com/cpf/batch/centercut/runner/CenterCutRuntime.java',
+ 'cpf-batch/center-cut-runner/src/main/java/com/cpf/batch/centercut/runner/SpringBatchCenterCutRuntimeState.java',
+ 'cpf-batch/center-cut-runner/src/main/java/com/cpf/batch/centercut/runner/SpringBatchCenterCutStepHandler.java',
  'cpf-batch/host-agent/src/main/java/com/cpf/batch/agent/BatchHostAgentApplication.java',
  'cpf-batch/runtime-common/src/main/java/com/cpf/batch/runtime/RuntimeCommonConfiguration.java',
  'cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmBatchController.java',
  'cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmCenterCutController.java',
  'cpf-gateway/src/main/java/com/cpf/gateway/CpfGatewayApplication.java',
- 'cpf-gateway/src/main/java/com/cpf/gateway/service/CpfGatewayProxyService.java'
+ 'cpf-gateway/src/main/java/com/cpf/gateway/scg/CpfScgPrimaryHandler.java',
+ 'cpf-gateway/src/main/java/com/cpf/gateway/scg/CpfScgPrimaryRouteConfiguration.java'
 ) | ForEach-Object { Require $_ }
+
+$primaryConsumers = @(
+    [ordered]@{
+        path = 'cpf-batch/worker/src/main/java/com/cpf/batch/worker/SpringBatchWorkerStepHandler.java'
+        markers = @('implements BatchStepHandler', 'files.claimForProcess', 'handler.process')
+    },
+    [ordered]@{
+        path = 'cpf-batch/center-cut-runner/src/main/java/com/cpf/batch/centercut/runner/SpringBatchCenterCutStepHandler.java'
+        markers = @('implements BatchStepHandler', 'claimForExecution', 'handler.handle', 'repository.complete')
+    }
+)
+foreach ($consumer in $primaryConsumers) {
+    $path = Join-Path $Root $consumer.path
+    if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { continue }
+    $text = [System.IO.File]::ReadAllText($path, [System.Text.Encoding]::UTF8)
+    foreach ($marker in $consumer.markers) {
+        if (-not $text.Contains($marker)) { Fail "Spring Batch Primary Consumer marker missing: $($consumer.path) :: $marker" }
+    }
+}
+
+foreach ($legacyPrimary in @(
+    'cpf-batch/worker/src/main/java/com/cpf/batch/worker/WorkerRuntime.java',
+    'cpf-batch/worker/src/main/java/com/cpf/batch/worker/JobPackDispatcher.java',
+    'cpf-batch/worker/src/main/java/com/cpf/batch/worker/internal/JdbcWorkerExecutionRepository.java',
+    'cpf-batch/center-cut-runner/src/main/java/com/cpf/batch/centercut/runner/CenterCutRuntime.java',
+    'cpf-batch/center-cut-runner/src/main/java/com/cpf/batch/centercut/runner/CenterCutDispatcher.java',
+    'cpf-gateway/src/main/java/com/cpf/gateway/controller/CpfGatewayController.java',
+    'cpf-gateway/src/main/java/com/cpf/gateway/controller/CpfGatewayPublicController.java',
+    'cpf-gateway/src/main/java/com/cpf/gateway/service/CpfGatewayProxyService.java',
+    'cpf-gateway/src/main/java/com/cpf/gateway/transport/JdkCpfGatewayHttpExchangeAdapter.java'
+)) {
+    if (Test-Path -LiteralPath (Join-Path $Root $legacyPrimary)) { Fail "Legacy Primary Engine remains: $legacyPrimary" }
+}
 
 
 $admLegacyBat = @(
@@ -66,15 +101,15 @@ if (Test-Path $runtimeConfiguration -PathType Leaf) {
     else { Pass 'BAT shared runtime scheduling enabled' }
 }
 
-$gateway=Join-Path $Root 'cpf-gateway/src/main/java/com/cpf/gateway/service/CpfGatewayProxyService.java'
+$gateway=Join-Path $Root 'cpf-gateway/src/main/java/com/cpf/gateway/scg/CpfScgPrimaryHandler.java'
 if(Test-Path $gateway){
  $txt=Get-Content $gateway -Raw
- foreach($pattern in @('CpfGatewayRouteSnapshot','authorization','hop','X-Cpf')){
-   if($txt -notmatch [regex]::Escape($pattern)){ Write-Host "[INFO] Gateway source does not contain literal '$pattern'; manual/static review may be required." -ForegroundColor Yellow }
+ foreach($pattern in @('HandlerFunctions.http','CpfGatewayRouteSnapshot','CpfGatewayAuthenticationPort','trustedHeaders','ledgerRecovery.recordAttempt')){
+   if($txt -notmatch [regex]::Escape($pattern)){Fail "SCG Gateway Primary marker missing: $pattern"}
  }
  # Gateway가 업무 Domain 내부 endpoint를 무차별 생성하는 구조인지 최소 Gate
  if($txt -match 'com\.cpf\.(member|account|reference)\.'){Fail 'Gateway directly depends on a business Domain implementation'}
- else {Pass 'Gateway has no obvious direct business-domain implementation dependency'}
+ else {Pass 'SCG Gateway Primary has no direct business-domain implementation dependency'}
 }
 
 if($failures.Count){throw "CPF R11 runtime-entrypoint gate failed ($($failures.Count))."}

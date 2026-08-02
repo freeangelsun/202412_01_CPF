@@ -57,7 +57,7 @@ function Invoke-Generator(
     [string] $Code,
     [int] $Port
 ) {
-    & pwsh -NoProfile -ExecutionPolicy Bypass -File $generator `
+    & pwsh -NoProfile -File $generator `
         -Root $sandboxRoot `
         -DomainName $Domain `
         -SystemCode $Code `
@@ -104,7 +104,7 @@ try {
     Invoke-Generator $ReferenceDomain $ReferenceSystemCode 18981
     Invoke-Generator $CandidateDomain $CandidateSystemCode 18982
 
-    & pwsh -NoProfile -ExecutionPolicy Bypass -File $parityGate `
+    & pwsh -NoProfile -File $parityGate `
         -Root $sandboxRoot `
         -ReferenceDomain $ReferenceDomain `
         -CandidateDomain $CandidateDomain | Out-Host

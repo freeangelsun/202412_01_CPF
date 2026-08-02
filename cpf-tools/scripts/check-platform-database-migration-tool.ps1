@@ -25,7 +25,7 @@ function Invoke-CpfFixtureRunner {
         [Parameter(Mandatory = $true)][int] $ExpectedExitCode
     )
 
-    $output = @(& pwsh -NoProfile -ExecutionPolicy Bypass -File $runner @Arguments 2>&1 |
+    $output = @(& pwsh -NoProfile -File $runner @Arguments 2>&1 |
             ForEach-Object { $_.ToString() })
     $exitCode = $LASTEXITCODE
     if ($exitCode -ne $ExpectedExitCode) {
@@ -50,6 +50,8 @@ foreach ($requiredToken in @(
         'databaseLifecycle -eq "platform-pack"',
         'supportedVendors',
         'checksums.sha256',
+        'Get-CpfMariaVersionedMigrationFiles',
+        '^U{0}__.+\.sql$',
         'mariadb-historical-migration-routing.json',
         'MariaDB migration에는 명시적 USE logicalDatabase routing이 필요합니다',
         'ConfirmApply',
@@ -83,6 +85,11 @@ try {
         $profile.modules.batch.databaseName = "batToolFixture"
         $profile.modules.batch.schemaName = "batToolSchema"
         $profile.modules.batch.clientPath = ""
+        $profile.modules.reference.vendor = $vendor
+        $profile.modules.reference.port = @{ mariadb = 3306; postgresql = 5432; oracle = 1521 }[$vendor]
+        $profile.modules.reference.databaseName = "refToolFixture"
+        $profile.modules.reference.schemaName = "refToolSchema"
+        $profile.modules.reference.clientPath = ""
 
         $profilePath = Join-Path $tempRoot "$vendor-profile.json"
         $resultPath = Join-Path $tempRoot "$vendor-result.json"
@@ -112,6 +119,37 @@ try {
         Assert-CpfGate ($result.plan.operations[0].migrationSha256 -match "^[0-9a-f]{64}$") "$vendor migration checksum을 검증한다."
         Assert-CpfGate ($result.plan.operations[0].rollbackSha256 -match "^[0-9a-f]{64}$") "$vendor rollback safety hash를 plan에 고정한다."
         Assert-CpfGate (-not $resultText.Contains("CPF_FIXTURE_SECRET")) "$vendor sanitized result에 secret이 없다."
+
+        foreach ($referenceVersion in @(93, 94)) {
+            $referenceResultPath = Join-Path $tempRoot "$vendor-v$referenceVersion-result.json"
+            [void](Invoke-CpfFixtureRunner @(
+                    "-Root", $Root,
+                    "-ProfilePath", $profilePath,
+                    "-Direction", "upgrade",
+                    "-MigrationVersion", "$referenceVersion",
+                    "-Modules", "reference",
+                    "-ResultPath", $referenceResultPath
+                ) 0)
+            $referenceResult = Get-Content -LiteralPath $referenceResultPath -Raw -Encoding UTF8 |
+                ConvertFrom-Json -Depth 50
+            Assert-CpfGate (@($referenceResult.plan.operations).Count -eq 1) "$vendor V$referenceVersion REF operation이 정확히 하나 계획된다."
+            Assert-CpfGate ($referenceResult.plan.operations[0].logicalDatabase -eq "refDB") "$vendor V$referenceVersion logical DB ownership이 refDB다."
+            Assert-CpfGate ($referenceResult.plan.operations[0].migrationPath -match "/migration/flyway/refDB/V${referenceVersion}__") "$vendor V$referenceVersion logical DB 하위 migration을 발견한다."
+            Assert-CpfGate ($referenceResult.plan.operations[0].rollbackPath -match "/rollback/refDB/U${referenceVersion}__") "$vendor U$referenceVersion top-level rollback pack을 발견한다."
+        }
+
+        $referenceRollbackPath = Join-Path $tempRoot "$vendor-u94-result.json"
+        [void](Invoke-CpfFixtureRunner @(
+                "-Root", $Root,
+                "-ProfilePath", $profilePath,
+                "-Direction", "rollback",
+                "-MigrationVersion", "94",
+                "-Modules", "reference",
+                "-ResultPath", $referenceRollbackPath
+            ) 0)
+        $referenceRollback = Get-Content -LiteralPath $referenceRollbackPath -Raw -Encoding UTF8 |
+            ConvertFrom-Json -Depth 50
+        Assert-CpfGate ($referenceRollback.plan.operations[0].selectedPath -match "/rollback/refDB/U94__") "$vendor rollback plan은 U94를 선택한다."
     }
 
     $missingSelectionPath = Join-Path $tempRoot "missing-selection.json"
@@ -213,11 +251,9 @@ try {
         ConvertFrom-Json -Depth 30
     Assert-CpfGate ($planMismatch.error -match "ExpectedPlanSha256") "Apply는 검토한 plan checksum 불일치 시 DB 연결 전에 실패한다."
 
-    foreach ($guide in @(
-            "cpf-docs/guides/CPF_DATABASE_TOOL_GUIDE.md",
-            "cpf-docs/guides/CPF_TOOL_REFERENCE.md",
-            "cpf-docs/releases/MIGRATION_GUIDE.md"
-        )) {
+    # Deleted duplicate tool guides are not recreated.  The release migration guide is the
+    # single product authority for destructive apply/rollback confirmation and backup policy.
+    foreach ($guide in @("cpf-docs/releases/MIGRATION_GUIDE.md")) {
         $guidePath = Join-Path $Root $guide
         Assert-CpfGate (Test-Path -LiteralPath $guidePath -PathType Leaf) "Migration 실행계약 Guide가 존재한다: $guide"
         $guideText = Get-Content -LiteralPath $guidePath -Raw -Encoding UTF8

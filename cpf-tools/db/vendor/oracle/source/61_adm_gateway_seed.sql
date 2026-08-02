@@ -1,157 +1,273 @@
--- CPF Gateway menu/button/API permission canonical seed
--- QA30 D047: route/menu/API/permission parity
+-- AUTO-GENERATED from cpf-tools/db/canonical/seed-model.json
+-- vendor=oracle; source=61_adm_gateway_seed.sql
+-- DO NOT EDIT generated seed directly.
 
-MERGE INTO adm_menu t USING (
- SELECT 'GATEWAY_DASHBOARD' menu_id,NULL,'Gateway 대시보드','/adm#gateway-dashboard','300','Y' FROM dual UNION ALL
- SELECT 'GATEWAY_SERVERS' menu_id,'GATEWAY_DASHBOARD','Gateway 연동 서버','/adm#gateway-servers','301','Y' FROM dual UNION ALL
- SELECT 'GATEWAY_GROUPS' menu_id,'GATEWAY_DASHBOARD','Gateway 서버 그룹','/adm#gateway-groups','302','Y' FROM dual UNION ALL
- SELECT 'GATEWAY_ROUTES' menu_id,'GATEWAY_DASHBOARD','Gateway 경로·라우팅','/adm#gateway-routes','303','Y' FROM dual UNION ALL
- SELECT 'GATEWAY_SECURITY' menu_id,'GATEWAY_DASHBOARD','Gateway 보안·제한','/adm#gateway-security','304','Y' FROM dual UNION ALL
- SELECT 'GATEWAY_HEALTH' menu_id,'GATEWAY_DASHBOARD','Gateway Health·연결시험','/adm#gateway-health','305','Y' FROM dual UNION ALL
- SELECT 'GATEWAY_TRANSACTIONS' menu_id,'GATEWAY_DASHBOARD','Gateway 거래 조회','/adm#gateway-transactions','306','Y' FROM dual UNION ALL
- SELECT 'GATEWAY_LOG_POLICY' menu_id,'GATEWAY_DASHBOARD','Gateway 로그 정책','/adm#gateway-log-policies','307','Y' FROM dual UNION ALL
- SELECT 'GATEWAY_APPLY_STATUS' menu_id,'GATEWAY_DASHBOARD','Gateway 적용 상태·이력','/adm#gateway-apply-status','308','Y' FROM dual
-) s ON (t.menu_id=s.menu_id)
-WHEN MATCHED THEN UPDATE SET t.parent_menu_id=s.parent_menu_id,t.menu_name=s.menu_name,t.menu_path=s.menu_path,t.sort_order=s.sort_order,t.use_yn=s.use_yn,t.updated_by='SYSTEM',t.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (menu_id,parent_menu_id,menu_name,menu_path,sort_order,use_yn,created_by,updated_by) VALUES (s.menu_id,s.parent_menu_id,s.menu_name,s.menu_path,s.sort_order,s.use_yn,'SYSTEM','SYSTEM');
-
-MERGE INTO adm_button t USING (
- SELECT 'GATEWAY_READ' button_id,'GATEWAY_DASHBOARD','READ','Gateway 운영 조회','GET','/adm/api/gateway-registry/**','10','Y' FROM dual UNION ALL
- SELECT 'GATEWAY_GROUP_WRITE' button_id,'GATEWAY_GROUPS','WRITE','Server Group 저장','POST','/adm/api/gateway-registry/server-groups','20','Y' FROM dual UNION ALL
- SELECT 'GATEWAY_GROUP_DELETE' button_id,'GATEWAY_GROUPS','DELETE','Server Group 폐기','DELETE','/adm/api/gateway-registry/server-groups/*','30','Y' FROM dual UNION ALL
- SELECT 'GATEWAY_ROUTE_WRITE' button_id,'GATEWAY_ROUTES','WRITE','Gateway Binding 저장','POST','/adm/api/gateway-registry/bindings','40','Y' FROM dual UNION ALL
- SELECT 'GATEWAY_ROUTE_STATE' button_id,'GATEWAY_ROUTES','CONTROL','Gateway Binding 상태 변경','POST','/adm/api/gateway-registry/bindings/*/state','50','Y' FROM dual UNION ALL
- SELECT 'GATEWAY_ROUTE_DELETE' button_id,'GATEWAY_ROUTES','DELETE','Gateway Binding 폐기','DELETE','/adm/api/gateway-registry/bindings/*','60','Y' FROM dual UNION ALL
- SELECT 'GATEWAY_CONNECTION_TEST' button_id,'GATEWAY_HEALTH','TEST','Gateway 연결시험 요청','POST','/adm/api/gateway-registry/bindings/*/connection-tests','70','Y' FROM dual UNION ALL
- SELECT 'GATEWAY_TEST_CONTROL' button_id,'GATEWAY_HEALTH','CONTROL','Gateway 연결시험 취소·재검증','POST','/adm/api/gateway-registry/connection-test-operations/*/**','80','Y' FROM dual
-) s ON (t.button_id=s.button_id)
-WHEN MATCHED THEN UPDATE SET t.menu_id=s.menu_id,t.action_code=s.action_code,t.button_name=s.button_name,t.http_method=s.http_method,t.api_pattern=s.api_pattern,t.sort_order=s.sort_order,t.use_yn=s.use_yn,t.updated_by='SYSTEM',t.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (button_id,menu_id,action_code,button_name,http_method,api_pattern,sort_order,use_yn,created_by,updated_by) VALUES (s.button_id,s.menu_id,s.action_code,s.button_name,s.http_method,s.api_pattern,s.sort_order,s.use_yn,'SYSTEM','SYSTEM');
-
-MERGE INTO adm_role_menu t USING (
- SELECT 'ADM_ADMIN' role_id,'GATEWAY_DASHBOARD','Y','Y','Y' FROM dual UNION ALL
- SELECT 'ADM_ADMIN' role_id,'GATEWAY_SERVERS','Y','Y','Y' FROM dual UNION ALL
- SELECT 'ADM_ADMIN' role_id,'GATEWAY_GROUPS','Y','Y','Y' FROM dual UNION ALL
- SELECT 'ADM_ADMIN' role_id,'GATEWAY_ROUTES','Y','Y','Y' FROM dual UNION ALL
- SELECT 'ADM_ADMIN' role_id,'GATEWAY_SECURITY','Y','Y','Y' FROM dual UNION ALL
- SELECT 'ADM_ADMIN' role_id,'GATEWAY_HEALTH','Y','Y','Y' FROM dual UNION ALL
- SELECT 'ADM_ADMIN' role_id,'GATEWAY_TRANSACTIONS','Y','Y','Y' FROM dual UNION ALL
- SELECT 'ADM_ADMIN' role_id,'GATEWAY_LOG_POLICY','Y','Y','Y' FROM dual UNION ALL
- SELECT 'ADM_ADMIN' role_id,'GATEWAY_APPLY_STATUS','Y','Y','Y' FROM dual UNION ALL
- SELECT 'ADM_DEV_OPERATOR' role_id,'GATEWAY_DASHBOARD','Y','Y','N' FROM dual UNION ALL
- SELECT 'ADM_DEV_OPERATOR' role_id,'GATEWAY_SERVERS','Y','Y','N' FROM dual UNION ALL
- SELECT 'ADM_DEV_OPERATOR' role_id,'GATEWAY_GROUPS','Y','Y','N' FROM dual UNION ALL
- SELECT 'ADM_DEV_OPERATOR' role_id,'GATEWAY_ROUTES','Y','Y','N' FROM dual UNION ALL
- SELECT 'ADM_DEV_OPERATOR' role_id,'GATEWAY_SECURITY','Y','Y','N' FROM dual UNION ALL
- SELECT 'ADM_DEV_OPERATOR' role_id,'GATEWAY_HEALTH','Y','Y','N' FROM dual UNION ALL
- SELECT 'ADM_DEV_OPERATOR' role_id,'GATEWAY_TRANSACTIONS','Y','Y','N' FROM dual UNION ALL
- SELECT 'ADM_DEV_OPERATOR' role_id,'GATEWAY_LOG_POLICY','Y','Y','N' FROM dual UNION ALL
- SELECT 'ADM_DEV_OPERATOR' role_id,'GATEWAY_APPLY_STATUS','Y','Y','N' FROM dual UNION ALL
- SELECT 'ADM_OPERATOR' role_id,'GATEWAY_DASHBOARD','Y','N','N' FROM dual UNION ALL
- SELECT 'ADM_OPERATOR' role_id,'GATEWAY_SERVERS','Y','N','N' FROM dual UNION ALL
- SELECT 'ADM_OPERATOR' role_id,'GATEWAY_GROUPS','Y','N','N' FROM dual UNION ALL
- SELECT 'ADM_OPERATOR' role_id,'GATEWAY_ROUTES','Y','N','N' FROM dual UNION ALL
- SELECT 'ADM_OPERATOR' role_id,'GATEWAY_SECURITY','Y','N','N' FROM dual UNION ALL
- SELECT 'ADM_OPERATOR' role_id,'GATEWAY_HEALTH','Y','N','N' FROM dual UNION ALL
- SELECT 'ADM_OPERATOR' role_id,'GATEWAY_TRANSACTIONS','Y','N','N' FROM dual UNION ALL
- SELECT 'ADM_OPERATOR' role_id,'GATEWAY_LOG_POLICY','Y','N','N' FROM dual UNION ALL
- SELECT 'ADM_OPERATOR' role_id,'GATEWAY_APPLY_STATUS','Y','N','N' FROM dual UNION ALL
- SELECT 'ADM_VIEWER' role_id,'GATEWAY_DASHBOARD','Y','N','N' FROM dual UNION ALL
- SELECT 'ADM_VIEWER' role_id,'GATEWAY_SERVERS','Y','N','N' FROM dual UNION ALL
- SELECT 'ADM_VIEWER' role_id,'GATEWAY_GROUPS','Y','N','N' FROM dual UNION ALL
- SELECT 'ADM_VIEWER' role_id,'GATEWAY_ROUTES','Y','N','N' FROM dual UNION ALL
- SELECT 'ADM_VIEWER' role_id,'GATEWAY_SECURITY','Y','N','N' FROM dual UNION ALL
- SELECT 'ADM_VIEWER' role_id,'GATEWAY_HEALTH','Y','N','N' FROM dual UNION ALL
- SELECT 'ADM_VIEWER' role_id,'GATEWAY_TRANSACTIONS','Y','N','N' FROM dual UNION ALL
- SELECT 'ADM_VIEWER' role_id,'GATEWAY_LOG_POLICY','Y','N','N' FROM dual UNION ALL
- SELECT 'ADM_VIEWER' role_id,'GATEWAY_APPLY_STATUS','Y','N','N' FROM dual
-) s ON (t.role_id=s.role_id AND t.menu_id=s.menu_id)
-WHEN MATCHED THEN UPDATE SET t.read_yn=s.read_yn,t.write_yn=s.write_yn,t.delete_yn=s.delete_yn,t.updated_by='SYSTEM',t.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (role_id,menu_id,read_yn,write_yn,delete_yn,created_by,updated_by) VALUES (s.role_id,s.menu_id,s.read_yn,s.write_yn,s.delete_yn,'SYSTEM','SYSTEM');
-
-MERGE INTO adm_api_permission t USING (
- SELECT 'API_GATEWAY_READ' api_permission_id,'GATEWAY','GET','/adm/api/gateway-registry/**','Gateway 운영 조회','READ','GATEWAY_DASHBOARD','GATEWAY_READ','Y' FROM dual UNION ALL
- SELECT 'API_GATEWAY_GROUP_WRITE' api_permission_id,'GATEWAY','POST','/adm/api/gateway-registry/server-groups','Server Group 저장','WRITE','GATEWAY_GROUPS','GATEWAY_GROUP_WRITE','Y' FROM dual UNION ALL
- SELECT 'API_GATEWAY_GROUP_DELETE' api_permission_id,'GATEWAY','DELETE','/adm/api/gateway-registry/server-groups/*','Server Group 폐기','DELETE','GATEWAY_GROUPS','GATEWAY_GROUP_DELETE','Y' FROM dual UNION ALL
- SELECT 'API_GATEWAY_ROUTE_WRITE' api_permission_id,'GATEWAY','POST','/adm/api/gateway-registry/bindings','Gateway Binding 저장','WRITE','GATEWAY_ROUTES','GATEWAY_ROUTE_WRITE','Y' FROM dual UNION ALL
- SELECT 'API_GATEWAY_ROUTE_STATE' api_permission_id,'GATEWAY','POST','/adm/api/gateway-registry/bindings/*/state','Gateway Binding 상태 변경','CONTROL','GATEWAY_ROUTES','GATEWAY_ROUTE_STATE','Y' FROM dual UNION ALL
- SELECT 'API_GATEWAY_ROUTE_DELETE' api_permission_id,'GATEWAY','DELETE','/adm/api/gateway-registry/bindings/*','Gateway Binding 폐기','DELETE','GATEWAY_ROUTES','GATEWAY_ROUTE_DELETE','Y' FROM dual UNION ALL
- SELECT 'API_GATEWAY_CONNECTION_TEST' api_permission_id,'GATEWAY','POST','/adm/api/gateway-registry/bindings/*/connection-tests','Gateway 연결시험 요청','TEST','GATEWAY_HEALTH','GATEWAY_CONNECTION_TEST','Y' FROM dual UNION ALL
- SELECT 'API_GATEWAY_TEST_CONTROL' api_permission_id,'GATEWAY','POST','/adm/api/gateway-registry/connection-test-operations/*/**','Gateway 연결시험 취소·재검증','CONTROL','GATEWAY_HEALTH','GATEWAY_TEST_CONTROL','Y' FROM dual
-) s ON (t.api_permission_id=s.api_permission_id)
-WHEN MATCHED THEN UPDATE SET t.api_group_code=s.api_group_code,t.http_method=s.http_method,t.api_path=s.api_path,t.api_name=s.api_name,t.permission_code=s.permission_code,t.menu_id=s.menu_id,t.button_id=s.button_id,t.use_yn=s.use_yn,t.updated_by='SYSTEM',t.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (api_permission_id,api_group_code,http_method,api_path,api_name,permission_code,menu_id,button_id,use_yn,created_by,updated_by) VALUES (s.api_permission_id,s.api_group_code,s.http_method,s.api_path,s.api_name,s.permission_code,s.menu_id,s.button_id,s.use_yn,'SYSTEM','SYSTEM');
-
-MERGE INTO adm_role_button t USING (
- SELECT 'ADM_ADMIN' role_id,'GATEWAY_READ','Y' FROM dual UNION ALL
- SELECT 'ADM_ADMIN' role_id,'GATEWAY_GROUP_WRITE','Y' FROM dual UNION ALL
- SELECT 'ADM_ADMIN' role_id,'GATEWAY_GROUP_DELETE','Y' FROM dual UNION ALL
- SELECT 'ADM_ADMIN' role_id,'GATEWAY_ROUTE_WRITE','Y' FROM dual UNION ALL
- SELECT 'ADM_ADMIN' role_id,'GATEWAY_ROUTE_STATE','Y' FROM dual UNION ALL
- SELECT 'ADM_ADMIN' role_id,'GATEWAY_ROUTE_DELETE','Y' FROM dual UNION ALL
- SELECT 'ADM_ADMIN' role_id,'GATEWAY_CONNECTION_TEST','Y' FROM dual UNION ALL
- SELECT 'ADM_ADMIN' role_id,'GATEWAY_TEST_CONTROL','Y' FROM dual UNION ALL
- SELECT 'ADM_DEV_OPERATOR' role_id,'GATEWAY_READ','Y' FROM dual UNION ALL
- SELECT 'ADM_DEV_OPERATOR' role_id,'GATEWAY_GROUP_WRITE','Y' FROM dual UNION ALL
- SELECT 'ADM_DEV_OPERATOR' role_id,'GATEWAY_GROUP_DELETE','N' FROM dual UNION ALL
- SELECT 'ADM_DEV_OPERATOR' role_id,'GATEWAY_ROUTE_WRITE','Y' FROM dual UNION ALL
- SELECT 'ADM_DEV_OPERATOR' role_id,'GATEWAY_ROUTE_STATE','Y' FROM dual UNION ALL
- SELECT 'ADM_DEV_OPERATOR' role_id,'GATEWAY_ROUTE_DELETE','N' FROM dual UNION ALL
- SELECT 'ADM_DEV_OPERATOR' role_id,'GATEWAY_CONNECTION_TEST','Y' FROM dual UNION ALL
- SELECT 'ADM_DEV_OPERATOR' role_id,'GATEWAY_TEST_CONTROL','Y' FROM dual UNION ALL
- SELECT 'ADM_OPERATOR' role_id,'GATEWAY_READ','Y' FROM dual UNION ALL
- SELECT 'ADM_OPERATOR' role_id,'GATEWAY_GROUP_WRITE','N' FROM dual UNION ALL
- SELECT 'ADM_OPERATOR' role_id,'GATEWAY_GROUP_DELETE','N' FROM dual UNION ALL
- SELECT 'ADM_OPERATOR' role_id,'GATEWAY_ROUTE_WRITE','N' FROM dual UNION ALL
- SELECT 'ADM_OPERATOR' role_id,'GATEWAY_ROUTE_STATE','N' FROM dual UNION ALL
- SELECT 'ADM_OPERATOR' role_id,'GATEWAY_ROUTE_DELETE','N' FROM dual UNION ALL
- SELECT 'ADM_OPERATOR' role_id,'GATEWAY_CONNECTION_TEST','Y' FROM dual UNION ALL
- SELECT 'ADM_OPERATOR' role_id,'GATEWAY_TEST_CONTROL','N' FROM dual UNION ALL
- SELECT 'ADM_VIEWER' role_id,'GATEWAY_READ','Y' FROM dual UNION ALL
- SELECT 'ADM_VIEWER' role_id,'GATEWAY_GROUP_WRITE','N' FROM dual UNION ALL
- SELECT 'ADM_VIEWER' role_id,'GATEWAY_GROUP_DELETE','N' FROM dual UNION ALL
- SELECT 'ADM_VIEWER' role_id,'GATEWAY_ROUTE_WRITE','N' FROM dual UNION ALL
- SELECT 'ADM_VIEWER' role_id,'GATEWAY_ROUTE_STATE','N' FROM dual UNION ALL
- SELECT 'ADM_VIEWER' role_id,'GATEWAY_ROUTE_DELETE','N' FROM dual UNION ALL
- SELECT 'ADM_VIEWER' role_id,'GATEWAY_CONNECTION_TEST','N' FROM dual UNION ALL
- SELECT 'ADM_VIEWER' role_id,'GATEWAY_TEST_CONTROL','N' FROM dual
-) s ON (t.role_id=s.role_id AND t.button_id=s.button_id)
-WHEN MATCHED THEN UPDATE SET t.allow_yn=s.allow_yn,t.updated_by='SYSTEM',t.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (role_id,button_id,allow_yn,created_by,updated_by) VALUES (s.role_id,s.button_id,s.allow_yn,'SYSTEM','SYSTEM');
-
-MERGE INTO adm_role_api_permission t USING (
- SELECT 'ADM_ADMIN' role_id,'API_GATEWAY_READ','Y' FROM dual UNION ALL
- SELECT 'ADM_ADMIN' role_id,'API_GATEWAY_GROUP_WRITE','Y' FROM dual UNION ALL
- SELECT 'ADM_ADMIN' role_id,'API_GATEWAY_GROUP_DELETE','Y' FROM dual UNION ALL
- SELECT 'ADM_ADMIN' role_id,'API_GATEWAY_ROUTE_WRITE','Y' FROM dual UNION ALL
- SELECT 'ADM_ADMIN' role_id,'API_GATEWAY_ROUTE_STATE','Y' FROM dual UNION ALL
- SELECT 'ADM_ADMIN' role_id,'API_GATEWAY_ROUTE_DELETE','Y' FROM dual UNION ALL
- SELECT 'ADM_ADMIN' role_id,'API_GATEWAY_CONNECTION_TEST','Y' FROM dual UNION ALL
- SELECT 'ADM_ADMIN' role_id,'API_GATEWAY_TEST_CONTROL','Y' FROM dual UNION ALL
- SELECT 'ADM_DEV_OPERATOR' role_id,'API_GATEWAY_READ','Y' FROM dual UNION ALL
- SELECT 'ADM_DEV_OPERATOR' role_id,'API_GATEWAY_GROUP_WRITE','Y' FROM dual UNION ALL
- SELECT 'ADM_DEV_OPERATOR' role_id,'API_GATEWAY_GROUP_DELETE','N' FROM dual UNION ALL
- SELECT 'ADM_DEV_OPERATOR' role_id,'API_GATEWAY_ROUTE_WRITE','Y' FROM dual UNION ALL
- SELECT 'ADM_DEV_OPERATOR' role_id,'API_GATEWAY_ROUTE_STATE','Y' FROM dual UNION ALL
- SELECT 'ADM_DEV_OPERATOR' role_id,'API_GATEWAY_ROUTE_DELETE','N' FROM dual UNION ALL
- SELECT 'ADM_DEV_OPERATOR' role_id,'API_GATEWAY_CONNECTION_TEST','Y' FROM dual UNION ALL
- SELECT 'ADM_DEV_OPERATOR' role_id,'API_GATEWAY_TEST_CONTROL','Y' FROM dual UNION ALL
- SELECT 'ADM_OPERATOR' role_id,'API_GATEWAY_READ','Y' FROM dual UNION ALL
- SELECT 'ADM_OPERATOR' role_id,'API_GATEWAY_GROUP_WRITE','N' FROM dual UNION ALL
- SELECT 'ADM_OPERATOR' role_id,'API_GATEWAY_GROUP_DELETE','N' FROM dual UNION ALL
- SELECT 'ADM_OPERATOR' role_id,'API_GATEWAY_ROUTE_WRITE','N' FROM dual UNION ALL
- SELECT 'ADM_OPERATOR' role_id,'API_GATEWAY_ROUTE_STATE','N' FROM dual UNION ALL
- SELECT 'ADM_OPERATOR' role_id,'API_GATEWAY_ROUTE_DELETE','N' FROM dual UNION ALL
- SELECT 'ADM_OPERATOR' role_id,'API_GATEWAY_CONNECTION_TEST','Y' FROM dual UNION ALL
- SELECT 'ADM_OPERATOR' role_id,'API_GATEWAY_TEST_CONTROL','N' FROM dual UNION ALL
- SELECT 'ADM_VIEWER' role_id,'API_GATEWAY_READ','Y' FROM dual UNION ALL
- SELECT 'ADM_VIEWER' role_id,'API_GATEWAY_GROUP_WRITE','N' FROM dual UNION ALL
- SELECT 'ADM_VIEWER' role_id,'API_GATEWAY_GROUP_DELETE','N' FROM dual UNION ALL
- SELECT 'ADM_VIEWER' role_id,'API_GATEWAY_ROUTE_WRITE','N' FROM dual UNION ALL
- SELECT 'ADM_VIEWER' role_id,'API_GATEWAY_ROUTE_STATE','N' FROM dual UNION ALL
- SELECT 'ADM_VIEWER' role_id,'API_GATEWAY_ROUTE_DELETE','N' FROM dual UNION ALL
- SELECT 'ADM_VIEWER' role_id,'API_GATEWAY_CONNECTION_TEST','N' FROM dual UNION ALL
- SELECT 'ADM_VIEWER' role_id,'API_GATEWAY_TEST_CONTROL','N' FROM dual
-) s ON (t.role_id=s.role_id AND t.api_permission_id=s.api_permission_id)
-WHEN MATCHED THEN UPDATE SET t.allow_yn=s.allow_yn,t.updated_by='SYSTEM',t.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (role_id,api_permission_id,allow_yn,created_by,updated_by) VALUES (s.role_id,s.api_permission_id,s.allow_yn,'SYSTEM','SYSTEM');
+-- CPF_LOGICAL_DATABASE=admDB
+MERGE INTO adm_menu tgt USING (
+SELECT 'GATEWAY_DASHBOARD' menu_id, NULL parent_menu_id, 'Gateway 대시보드' menu_name, '/adm#gateway-dashboard' menu_path, 300 sort_order, 'Y' use_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'GATEWAY_SERVERS' menu_id, 'GATEWAY_DASHBOARD' parent_menu_id, 'Gateway 연동 서버' menu_name, '/adm#gateway-servers' menu_path, 301 sort_order, 'Y' use_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'GATEWAY_GROUPS' menu_id, 'GATEWAY_DASHBOARD' parent_menu_id, 'Gateway 서버 그룹' menu_name, '/adm#gateway-groups' menu_path, 302 sort_order, 'Y' use_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'GATEWAY_ROUTES' menu_id, 'GATEWAY_DASHBOARD' parent_menu_id, 'Gateway 경로·라우팅' menu_name, '/adm#gateway-routes' menu_path, 303 sort_order, 'Y' use_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'GATEWAY_SECURITY' menu_id, 'GATEWAY_DASHBOARD' parent_menu_id, 'Gateway 보안·제한' menu_name, '/adm#gateway-security' menu_path, 304 sort_order, 'Y' use_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'GATEWAY_HEALTH' menu_id, 'GATEWAY_DASHBOARD' parent_menu_id, 'Gateway Health·연결시험' menu_name, '/adm#gateway-health' menu_path, 305 sort_order, 'Y' use_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'GATEWAY_TRANSACTIONS' menu_id, 'GATEWAY_DASHBOARD' parent_menu_id, 'Gateway 거래 조회' menu_name, '/adm#gateway-transactions' menu_path, 306 sort_order, 'Y' use_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'GATEWAY_LOG_POLICY' menu_id, 'GATEWAY_DASHBOARD' parent_menu_id, 'Gateway 로그 정책' menu_name, '/adm#gateway-log-policies' menu_path, 307 sort_order, 'Y' use_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'GATEWAY_APPLY_STATUS' menu_id, 'GATEWAY_DASHBOARD' parent_menu_id, 'Gateway 적용 상태·이력' menu_name, '/adm#gateway-apply-status' menu_path, 308 sort_order, 'Y' use_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+) src ON (tgt.menu_id = src.menu_id)
+WHEN MATCHED THEN UPDATE SET tgt.parent_menu_id = src.parent_menu_id, tgt.menu_name = src.menu_name, tgt.menu_path = src.menu_path, tgt.sort_order = src.sort_order, tgt.use_yn = src.use_yn, tgt.updated_by = src.updated_by, tgt.updated_at = src.updated_at
+WHEN NOT MATCHED THEN INSERT (menu_id, parent_menu_id, menu_name, menu_path, sort_order, use_yn, created_by, updated_by) VALUES (src.menu_id, src.parent_menu_id, src.menu_name, src.menu_path, src.sort_order, src.use_yn, src.created_by, src.updated_by);
+MERGE INTO adm_button tgt USING (
+SELECT 'GATEWAY_READ' button_id, 'GATEWAY_DASHBOARD' menu_id, 'READ' action_code, 'Gateway 운영 조회' button_name, 'GET' http_method, '/adm/api/gateway-registry/**' api_pattern, 10 sort_order, 'Y' use_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'GATEWAY_GROUP_WRITE' button_id, 'GATEWAY_GROUPS' menu_id, 'WRITE' action_code, 'Server Group 저장' button_name, 'POST' http_method, '/adm/api/gateway-registry/server-groups' api_pattern, 20 sort_order, 'Y' use_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'GATEWAY_GROUP_DELETE' button_id, 'GATEWAY_GROUPS' menu_id, 'DELETE' action_code, 'Server Group 폐기' button_name, 'DELETE' http_method, '/adm/api/gateway-registry/server-groups/*' api_pattern, 30 sort_order, 'Y' use_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'GATEWAY_ROUTE_WRITE' button_id, 'GATEWAY_ROUTES' menu_id, 'WRITE' action_code, 'Gateway Binding 저장' button_name, 'POST' http_method, '/adm/api/gateway-registry/bindings' api_pattern, 40 sort_order, 'Y' use_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'GATEWAY_ROUTE_STATE' button_id, 'GATEWAY_ROUTES' menu_id, 'CONTROL' action_code, 'Gateway Binding 상태 변경' button_name, 'POST' http_method, '/adm/api/gateway-registry/bindings/*/state' api_pattern, 50 sort_order, 'Y' use_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'GATEWAY_ROUTE_DELETE' button_id, 'GATEWAY_ROUTES' menu_id, 'DELETE' action_code, 'Gateway Binding 폐기' button_name, 'DELETE' http_method, '/adm/api/gateway-registry/bindings/*' api_pattern, 60 sort_order, 'Y' use_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'GATEWAY_CONNECTION_TEST' button_id, 'GATEWAY_HEALTH' menu_id, 'TEST' action_code, 'Gateway 연결시험 요청' button_name, 'POST' http_method, '/adm/api/gateway-registry/bindings/*/connection-tests' api_pattern, 70 sort_order, 'Y' use_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'GATEWAY_TEST_CONTROL' button_id, 'GATEWAY_HEALTH' menu_id, 'CONTROL' action_code, 'Gateway 연결시험 취소·재검증' button_name, 'POST' http_method, '/adm/api/gateway-registry/connection-test-operations/*/**' api_pattern, 80 sort_order, 'Y' use_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+) src ON (tgt.button_id = src.button_id)
+WHEN MATCHED THEN UPDATE SET tgt.menu_id = src.menu_id, tgt.action_code = src.action_code, tgt.button_name = src.button_name, tgt.http_method = src.http_method, tgt.api_pattern = src.api_pattern, tgt.sort_order = src.sort_order, tgt.use_yn = src.use_yn, tgt.updated_by = src.updated_by, tgt.updated_at = src.updated_at
+WHEN NOT MATCHED THEN INSERT (button_id, menu_id, action_code, button_name, http_method, api_pattern, sort_order, use_yn, created_by, updated_by) VALUES (src.button_id, src.menu_id, src.action_code, src.button_name, src.http_method, src.api_pattern, src.sort_order, src.use_yn, src.created_by, src.updated_by);
+MERGE INTO adm_role_menu tgt USING (
+SELECT 'ADM_ADMIN' role_id, 'GATEWAY_DASHBOARD' menu_id, 'Y' read_yn, 'Y' write_yn, 'Y' delete_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_ADMIN' role_id, 'GATEWAY_SERVERS' menu_id, 'Y' read_yn, 'Y' write_yn, 'Y' delete_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_ADMIN' role_id, 'GATEWAY_GROUPS' menu_id, 'Y' read_yn, 'Y' write_yn, 'Y' delete_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_ADMIN' role_id, 'GATEWAY_ROUTES' menu_id, 'Y' read_yn, 'Y' write_yn, 'Y' delete_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_ADMIN' role_id, 'GATEWAY_SECURITY' menu_id, 'Y' read_yn, 'Y' write_yn, 'Y' delete_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_ADMIN' role_id, 'GATEWAY_HEALTH' menu_id, 'Y' read_yn, 'Y' write_yn, 'Y' delete_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_ADMIN' role_id, 'GATEWAY_TRANSACTIONS' menu_id, 'Y' read_yn, 'Y' write_yn, 'Y' delete_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_ADMIN' role_id, 'GATEWAY_LOG_POLICY' menu_id, 'Y' read_yn, 'Y' write_yn, 'Y' delete_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_ADMIN' role_id, 'GATEWAY_APPLY_STATUS' menu_id, 'Y' read_yn, 'Y' write_yn, 'Y' delete_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_DEV_OPERATOR' role_id, 'GATEWAY_DASHBOARD' menu_id, 'Y' read_yn, 'Y' write_yn, 'N' delete_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_DEV_OPERATOR' role_id, 'GATEWAY_SERVERS' menu_id, 'Y' read_yn, 'Y' write_yn, 'N' delete_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_DEV_OPERATOR' role_id, 'GATEWAY_GROUPS' menu_id, 'Y' read_yn, 'Y' write_yn, 'N' delete_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_DEV_OPERATOR' role_id, 'GATEWAY_ROUTES' menu_id, 'Y' read_yn, 'Y' write_yn, 'N' delete_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_DEV_OPERATOR' role_id, 'GATEWAY_SECURITY' menu_id, 'Y' read_yn, 'Y' write_yn, 'N' delete_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_DEV_OPERATOR' role_id, 'GATEWAY_HEALTH' menu_id, 'Y' read_yn, 'Y' write_yn, 'N' delete_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_DEV_OPERATOR' role_id, 'GATEWAY_TRANSACTIONS' menu_id, 'Y' read_yn, 'Y' write_yn, 'N' delete_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_DEV_OPERATOR' role_id, 'GATEWAY_LOG_POLICY' menu_id, 'Y' read_yn, 'Y' write_yn, 'N' delete_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_DEV_OPERATOR' role_id, 'GATEWAY_APPLY_STATUS' menu_id, 'Y' read_yn, 'Y' write_yn, 'N' delete_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_OPERATOR' role_id, 'GATEWAY_DASHBOARD' menu_id, 'Y' read_yn, 'N' write_yn, 'N' delete_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_OPERATOR' role_id, 'GATEWAY_SERVERS' menu_id, 'Y' read_yn, 'N' write_yn, 'N' delete_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_OPERATOR' role_id, 'GATEWAY_GROUPS' menu_id, 'Y' read_yn, 'N' write_yn, 'N' delete_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_OPERATOR' role_id, 'GATEWAY_ROUTES' menu_id, 'Y' read_yn, 'N' write_yn, 'N' delete_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_OPERATOR' role_id, 'GATEWAY_SECURITY' menu_id, 'Y' read_yn, 'N' write_yn, 'N' delete_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_OPERATOR' role_id, 'GATEWAY_HEALTH' menu_id, 'Y' read_yn, 'N' write_yn, 'N' delete_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_OPERATOR' role_id, 'GATEWAY_TRANSACTIONS' menu_id, 'Y' read_yn, 'N' write_yn, 'N' delete_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_OPERATOR' role_id, 'GATEWAY_LOG_POLICY' menu_id, 'Y' read_yn, 'N' write_yn, 'N' delete_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_OPERATOR' role_id, 'GATEWAY_APPLY_STATUS' menu_id, 'Y' read_yn, 'N' write_yn, 'N' delete_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_VIEWER' role_id, 'GATEWAY_DASHBOARD' menu_id, 'Y' read_yn, 'N' write_yn, 'N' delete_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_VIEWER' role_id, 'GATEWAY_SERVERS' menu_id, 'Y' read_yn, 'N' write_yn, 'N' delete_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_VIEWER' role_id, 'GATEWAY_GROUPS' menu_id, 'Y' read_yn, 'N' write_yn, 'N' delete_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_VIEWER' role_id, 'GATEWAY_ROUTES' menu_id, 'Y' read_yn, 'N' write_yn, 'N' delete_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_VIEWER' role_id, 'GATEWAY_SECURITY' menu_id, 'Y' read_yn, 'N' write_yn, 'N' delete_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_VIEWER' role_id, 'GATEWAY_HEALTH' menu_id, 'Y' read_yn, 'N' write_yn, 'N' delete_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_VIEWER' role_id, 'GATEWAY_TRANSACTIONS' menu_id, 'Y' read_yn, 'N' write_yn, 'N' delete_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_VIEWER' role_id, 'GATEWAY_LOG_POLICY' menu_id, 'Y' read_yn, 'N' write_yn, 'N' delete_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_VIEWER' role_id, 'GATEWAY_APPLY_STATUS' menu_id, 'Y' read_yn, 'N' write_yn, 'N' delete_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+) src ON (tgt.role_id = src.role_id AND tgt.menu_id = src.menu_id)
+WHEN MATCHED THEN UPDATE SET tgt.read_yn = src.read_yn, tgt.write_yn = src.write_yn, tgt.delete_yn = src.delete_yn, tgt.updated_by = src.updated_by, tgt.updated_at = src.updated_at
+WHEN NOT MATCHED THEN INSERT (role_id, menu_id, read_yn, write_yn, delete_yn, created_by, updated_by) VALUES (src.role_id, src.menu_id, src.read_yn, src.write_yn, src.delete_yn, src.created_by, src.updated_by);
+MERGE INTO adm_api_permission tgt USING (
+SELECT 'API_GATEWAY_READ' api_permission_id, 'GATEWAY' api_group_code, 'GET' http_method, '/adm/api/gateway-registry/**' api_path, 'Gateway 운영 조회' api_name, 'READ' permission_code, 'GATEWAY_DASHBOARD' menu_id, 'GATEWAY_READ' button_id, 'Y' use_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'API_GATEWAY_GROUP_WRITE' api_permission_id, 'GATEWAY' api_group_code, 'POST' http_method, '/adm/api/gateway-registry/server-groups' api_path, 'Server Group 저장' api_name, 'WRITE' permission_code, 'GATEWAY_GROUPS' menu_id, 'GATEWAY_GROUP_WRITE' button_id, 'Y' use_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'API_GATEWAY_GROUP_DELETE' api_permission_id, 'GATEWAY' api_group_code, 'DELETE' http_method, '/adm/api/gateway-registry/server-groups/*' api_path, 'Server Group 폐기' api_name, 'DELETE' permission_code, 'GATEWAY_GROUPS' menu_id, 'GATEWAY_GROUP_DELETE' button_id, 'Y' use_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'API_GATEWAY_ROUTE_WRITE' api_permission_id, 'GATEWAY' api_group_code, 'POST' http_method, '/adm/api/gateway-registry/bindings' api_path, 'Gateway Binding 저장' api_name, 'WRITE' permission_code, 'GATEWAY_ROUTES' menu_id, 'GATEWAY_ROUTE_WRITE' button_id, 'Y' use_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'API_GATEWAY_ROUTE_STATE' api_permission_id, 'GATEWAY' api_group_code, 'POST' http_method, '/adm/api/gateway-registry/bindings/*/state' api_path, 'Gateway Binding 상태 변경' api_name, 'CONTROL' permission_code, 'GATEWAY_ROUTES' menu_id, 'GATEWAY_ROUTE_STATE' button_id, 'Y' use_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'API_GATEWAY_ROUTE_DELETE' api_permission_id, 'GATEWAY' api_group_code, 'DELETE' http_method, '/adm/api/gateway-registry/bindings/*' api_path, 'Gateway Binding 폐기' api_name, 'DELETE' permission_code, 'GATEWAY_ROUTES' menu_id, 'GATEWAY_ROUTE_DELETE' button_id, 'Y' use_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'API_GATEWAY_CONNECTION_TEST' api_permission_id, 'GATEWAY' api_group_code, 'POST' http_method, '/adm/api/gateway-registry/bindings/*/connection-tests' api_path, 'Gateway 연결시험 요청' api_name, 'TEST' permission_code, 'GATEWAY_HEALTH' menu_id, 'GATEWAY_CONNECTION_TEST' button_id, 'Y' use_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'API_GATEWAY_TEST_CONTROL' api_permission_id, 'GATEWAY' api_group_code, 'POST' http_method, '/adm/api/gateway-registry/connection-test-operations/*/**' api_path, 'Gateway 연결시험 취소·재검증' api_name, 'CONTROL' permission_code, 'GATEWAY_HEALTH' menu_id, 'GATEWAY_TEST_CONTROL' button_id, 'Y' use_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+) src ON (tgt.api_permission_id = src.api_permission_id)
+WHEN MATCHED THEN UPDATE SET tgt.api_group_code = src.api_group_code, tgt.http_method = src.http_method, tgt.api_path = src.api_path, tgt.api_name = src.api_name, tgt.permission_code = src.permission_code, tgt.menu_id = src.menu_id, tgt.button_id = src.button_id, tgt.use_yn = src.use_yn, tgt.updated_by = src.updated_by, tgt.updated_at = src.updated_at
+WHEN NOT MATCHED THEN INSERT (api_permission_id, api_group_code, http_method, api_path, api_name, permission_code, menu_id, button_id, use_yn, created_by, updated_by) VALUES (src.api_permission_id, src.api_group_code, src.http_method, src.api_path, src.api_name, src.permission_code, src.menu_id, src.button_id, src.use_yn, src.created_by, src.updated_by);
+MERGE INTO adm_role_button tgt USING (
+SELECT 'ADM_ADMIN' role_id, 'GATEWAY_READ' button_id, 'Y' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_ADMIN' role_id, 'GATEWAY_GROUP_WRITE' button_id, 'Y' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_ADMIN' role_id, 'GATEWAY_GROUP_DELETE' button_id, 'Y' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_ADMIN' role_id, 'GATEWAY_ROUTE_WRITE' button_id, 'Y' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_ADMIN' role_id, 'GATEWAY_ROUTE_STATE' button_id, 'Y' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_ADMIN' role_id, 'GATEWAY_ROUTE_DELETE' button_id, 'Y' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_ADMIN' role_id, 'GATEWAY_CONNECTION_TEST' button_id, 'Y' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_ADMIN' role_id, 'GATEWAY_TEST_CONTROL' button_id, 'Y' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_DEV_OPERATOR' role_id, 'GATEWAY_READ' button_id, 'Y' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_DEV_OPERATOR' role_id, 'GATEWAY_GROUP_WRITE' button_id, 'Y' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_DEV_OPERATOR' role_id, 'GATEWAY_GROUP_DELETE' button_id, 'N' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_DEV_OPERATOR' role_id, 'GATEWAY_ROUTE_WRITE' button_id, 'Y' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_DEV_OPERATOR' role_id, 'GATEWAY_ROUTE_STATE' button_id, 'Y' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_DEV_OPERATOR' role_id, 'GATEWAY_ROUTE_DELETE' button_id, 'N' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_DEV_OPERATOR' role_id, 'GATEWAY_CONNECTION_TEST' button_id, 'Y' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_DEV_OPERATOR' role_id, 'GATEWAY_TEST_CONTROL' button_id, 'Y' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_OPERATOR' role_id, 'GATEWAY_READ' button_id, 'Y' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_OPERATOR' role_id, 'GATEWAY_GROUP_WRITE' button_id, 'N' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_OPERATOR' role_id, 'GATEWAY_GROUP_DELETE' button_id, 'N' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_OPERATOR' role_id, 'GATEWAY_ROUTE_WRITE' button_id, 'N' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_OPERATOR' role_id, 'GATEWAY_ROUTE_STATE' button_id, 'N' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_OPERATOR' role_id, 'GATEWAY_ROUTE_DELETE' button_id, 'N' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_OPERATOR' role_id, 'GATEWAY_CONNECTION_TEST' button_id, 'Y' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_OPERATOR' role_id, 'GATEWAY_TEST_CONTROL' button_id, 'N' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_VIEWER' role_id, 'GATEWAY_READ' button_id, 'Y' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_VIEWER' role_id, 'GATEWAY_GROUP_WRITE' button_id, 'N' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_VIEWER' role_id, 'GATEWAY_GROUP_DELETE' button_id, 'N' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_VIEWER' role_id, 'GATEWAY_ROUTE_WRITE' button_id, 'N' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_VIEWER' role_id, 'GATEWAY_ROUTE_STATE' button_id, 'N' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_VIEWER' role_id, 'GATEWAY_ROUTE_DELETE' button_id, 'N' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_VIEWER' role_id, 'GATEWAY_CONNECTION_TEST' button_id, 'N' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_VIEWER' role_id, 'GATEWAY_TEST_CONTROL' button_id, 'N' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+) src ON (tgt.role_id = src.role_id AND tgt.button_id = src.button_id)
+WHEN MATCHED THEN UPDATE SET tgt.allow_yn = src.allow_yn, tgt.updated_by = src.updated_by, tgt.updated_at = src.updated_at
+WHEN NOT MATCHED THEN INSERT (role_id, button_id, allow_yn, created_by, updated_by) VALUES (src.role_id, src.button_id, src.allow_yn, src.created_by, src.updated_by);
+MERGE INTO adm_role_api_permission tgt USING (
+SELECT 'ADM_ADMIN' role_id, 'API_GATEWAY_READ' api_permission_id, 'Y' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_ADMIN' role_id, 'API_GATEWAY_GROUP_WRITE' api_permission_id, 'Y' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_ADMIN' role_id, 'API_GATEWAY_GROUP_DELETE' api_permission_id, 'Y' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_ADMIN' role_id, 'API_GATEWAY_ROUTE_WRITE' api_permission_id, 'Y' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_ADMIN' role_id, 'API_GATEWAY_ROUTE_STATE' api_permission_id, 'Y' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_ADMIN' role_id, 'API_GATEWAY_ROUTE_DELETE' api_permission_id, 'Y' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_ADMIN' role_id, 'API_GATEWAY_CONNECTION_TEST' api_permission_id, 'Y' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_ADMIN' role_id, 'API_GATEWAY_TEST_CONTROL' api_permission_id, 'Y' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_DEV_OPERATOR' role_id, 'API_GATEWAY_READ' api_permission_id, 'Y' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_DEV_OPERATOR' role_id, 'API_GATEWAY_GROUP_WRITE' api_permission_id, 'Y' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_DEV_OPERATOR' role_id, 'API_GATEWAY_GROUP_DELETE' api_permission_id, 'N' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_DEV_OPERATOR' role_id, 'API_GATEWAY_ROUTE_WRITE' api_permission_id, 'Y' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_DEV_OPERATOR' role_id, 'API_GATEWAY_ROUTE_STATE' api_permission_id, 'Y' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_DEV_OPERATOR' role_id, 'API_GATEWAY_ROUTE_DELETE' api_permission_id, 'N' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_DEV_OPERATOR' role_id, 'API_GATEWAY_CONNECTION_TEST' api_permission_id, 'Y' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_DEV_OPERATOR' role_id, 'API_GATEWAY_TEST_CONTROL' api_permission_id, 'Y' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_OPERATOR' role_id, 'API_GATEWAY_READ' api_permission_id, 'Y' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_OPERATOR' role_id, 'API_GATEWAY_GROUP_WRITE' api_permission_id, 'N' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_OPERATOR' role_id, 'API_GATEWAY_GROUP_DELETE' api_permission_id, 'N' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_OPERATOR' role_id, 'API_GATEWAY_ROUTE_WRITE' api_permission_id, 'N' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_OPERATOR' role_id, 'API_GATEWAY_ROUTE_STATE' api_permission_id, 'N' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_OPERATOR' role_id, 'API_GATEWAY_ROUTE_DELETE' api_permission_id, 'N' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_OPERATOR' role_id, 'API_GATEWAY_CONNECTION_TEST' api_permission_id, 'Y' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_OPERATOR' role_id, 'API_GATEWAY_TEST_CONTROL' api_permission_id, 'N' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_VIEWER' role_id, 'API_GATEWAY_READ' api_permission_id, 'Y' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_VIEWER' role_id, 'API_GATEWAY_GROUP_WRITE' api_permission_id, 'N' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_VIEWER' role_id, 'API_GATEWAY_GROUP_DELETE' api_permission_id, 'N' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_VIEWER' role_id, 'API_GATEWAY_ROUTE_WRITE' api_permission_id, 'N' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_VIEWER' role_id, 'API_GATEWAY_ROUTE_STATE' api_permission_id, 'N' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_VIEWER' role_id, 'API_GATEWAY_ROUTE_DELETE' api_permission_id, 'N' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_VIEWER' role_id, 'API_GATEWAY_CONNECTION_TEST' api_permission_id, 'N' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+UNION ALL
+SELECT 'ADM_VIEWER' role_id, 'API_GATEWAY_TEST_CONTROL' api_permission_id, 'N' allow_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual
+) src ON (tgt.role_id = src.role_id AND tgt.api_permission_id = src.api_permission_id)
+WHEN MATCHED THEN UPDATE SET tgt.allow_yn = src.allow_yn, tgt.updated_by = src.updated_by, tgt.updated_at = src.updated_at
+WHEN NOT MATCHED THEN INSERT (role_id, api_permission_id, allow_yn, created_by, updated_by) VALUES (src.role_id, src.api_permission_id, src.allow_yn, src.created_by, src.updated_by);

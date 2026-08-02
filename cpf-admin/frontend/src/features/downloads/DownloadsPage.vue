@@ -25,7 +25,7 @@
           <label>건수 <input v-model.number="downloadForm.limit" type="number"></label>
           <label>사유 <input v-model="downloadForm.reason" type="text"></label>
         </div>
-        <pre class="detail">{{ pretty(downloadResult) }}</pre>
+        <CpfStructuredData class="detail" :value="downloadResult" />
       </section>
 </template>
 

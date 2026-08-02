@@ -3,7 +3,7 @@
  * operation -> real consumer chain.  Every method uses the shared same-origin
  * BFF client; Browser supplied actor identity is intentionally prohibited.
  */
-export const routeClosureMethods: Record<string, any> = {
+export const routeClosureMethods = {
   async downloadLogExportArtifact() {
     const exportId = String(this.operationForm.exportId || this.downloadResult?.exportId || "").trim();
     if (!exportId) return this.setMessage("다운로드할 Log Export ID를 입력하세요.");
@@ -341,4 +341,4 @@ export const routeClosureMethods: Record<string, any> = {
     if (!operationId) return this.setMessage("조회할 Runtime Operation ID를 입력하세요.");
     this.approvalResult = { ...this.approvalResult, runtimeOperation: await this.getJson(`/adm/api/runtime-control/operations/${encodeURIComponent(operationId)}`) };
   }
-};
+} satisfies Record<string, any>;

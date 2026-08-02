@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 3,
+  "identityPolicy": "TRACKED_HASHES_RELEASE_SHA_IN_EVIDENCE",
+  "openApiPath": "openapi/cpf-openapi.json",
+  "openApiSha256": "ad09a6455dac0e2db8fbb38594b3503cdc4ae0bed5fe3222dc659f7599f0b0c5",
+  "openApiOperationCount": 307,
+  "openApiOperationIdsSha256": "65722c32a6af100812b2bbcab89ec0a6d31f16f5214b6c13e993ae7c8dd5a845",
+  "generator": {
+    "name": "orval",
+    "version": "8.23.0"
+  },
+  "generatorConfigPath": "orval.config.ts",
+  "generatorConfigSha256": "b66ce9fcab98fcc2b3bca2522e5a64d7fe39bc3d13a7c096949066772802a76c",
+  "packageLockPath": "package-lock.json",
+  "packageLockSha256": "144caaa9f083dfa4219b05fc46947cafea970864dd10fd463649e34c3b007a81",
+  "nodeRequirement": ">=22.18.0 <25",
+  "npmRequirement": "10.9.2",
+  "generatedFiles": [
+    {
+      "path": "src/generated/adm-route-operation-contract.ts",
+      "sha256": "970c6bf3062d73c6b27c6e40406547d9ce9a2529a87db0d0206b3e3fc0579749"
+    },
+    {
+      "path": "src/generated/cpf-api.ts",
+      "sha256": "6a38017edae87b8fb6d649e84cc8b1672f21845781d24fd6ce3185548fa1e655"
+    },
+    {
+      "path": "src/generated/cpf-operation-contract.ts",
+      "sha256": "7dee5c02adfb9e210c6f5632edfaeb2bdc249e55e04f21b1c7fe72c1751891cb"
+    },
+    {
+      "path": "src/generated/orval/cpf-api.ts",
+      "sha256": "0bf166d632cc8475ca0054a6bf3862a5f09ed1c2da4b06437a207d7e422a89d5"
+    },
+    {
+      "path": "src/generated/orval/model/cpfControllerSourceResponse.ts",
+      "sha256": "77956c390c6655b092865788c4d90873507612771ad49a23e2536dd8c95674f2"
+    },
+    {
+      "path": "src/generated/orval/model/index.ts",
+      "sha256": "9345df579393b8c962bf186aea559b24e7602fa47ffd3e81a35dcb4e7b05971b"
+    }
+  ],
+  "generatedFileSetSha256": "658d7252c0dce48e55279c5acff30563f786f95b89d03706e35acede96835317",
+  "sanitized": true
+}

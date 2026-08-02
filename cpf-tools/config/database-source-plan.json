@@ -3,7 +3,7 @@
   "policy": {
     "generatedBusinessDomainFixedModulesAllowed": false,
     "generatedDomainDiscovery": "manifest/domain-manifest.json",
-    "artifactSyncCommand": "pwsh -ExecutionPolicy Bypass -File cpf-tools/scripts/sync-database-artifacts.ps1",
+    "artifactSyncCommand": "pwsh -File cpf-tools/scripts/sync-database-artifacts.ps1",
     "platformVendorSourceRootPattern": "cpf-tools/db/vendor/{vendor}/source",
     "platformVendorLifecycleRootPattern": "cpf-tools/db/vendor/{vendor}",
     "noStandaloneVendorSourceTree": true

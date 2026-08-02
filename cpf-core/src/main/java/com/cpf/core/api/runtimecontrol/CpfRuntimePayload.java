@@ -134,7 +134,7 @@ public final class CpfRuntimePayload {
             throw new IllegalArgumentException("Runtime payload Object field가 아닙니다: " + fieldName);
         }
         Map<String, CpfRuntimePayload> result = new LinkedHashMap<>();
-        value.fields().forEachRemaining(entry -> {
+        value.properties().forEach(entry -> {
             if (!entry.getValue().isObject()) {
                 throw new IllegalArgumentException(
                         "Runtime payload child가 Object가 아닙니다: " + fieldName + "." + entry.getKey());
@@ -194,7 +194,7 @@ public final class CpfRuntimePayload {
             return array;
         }
         TreeMap<String, JsonNode> ordered = new TreeMap<>();
-        Iterator<Map.Entry<String, JsonNode>> fields = node.fields();
+        Iterator<Map.Entry<String, JsonNode>> fields = node.properties().iterator();
         fields.forEachRemaining(entry -> ordered.put(entry.getKey(), sort(entry.getValue())));
         ObjectNode object = JsonNodeFactory.instance.objectNode();
         ordered.forEach(object::set);

@@ -117,6 +117,47 @@ $platform = Read-Properties $platformProperties
 $version = [string]$platform['platformVersion']
 if ([string]::IsNullOrWhiteSpace($version)) { throw "platformVersion을 찾을 수 없습니다: $platformProperties" }
 
+$artifactCatalogPath = Join-Path $Root 'cpf-tools/release/cpf-final-artifact-catalog.json'
+if (-not (Test-Path -LiteralPath $artifactCatalogPath -PathType Leaf)) {
+    throw "CPF final artifact catalog is missing: $artifactCatalogPath"
+}
+$artifactCatalog = Get-Content -LiteralPath $artifactCatalogPath -Raw -Encoding UTF8 |
+    ConvertFrom-Json -Depth 30
+$starterCatalogRows = @($artifactCatalog.artifacts |
+    Where-Object { [string]$_.kind -eq 'starter' } |
+    Sort-Object { [string]$_.ownerPath })
+if ($starterCatalogRows.Count -eq 0) {
+    throw 'CPF final artifact catalog has no Starter artifacts.'
+}
+$starterCatalogOwnerPaths = [System.Collections.Generic.List[string]]::new()
+$starterCoordinates = @($starterCatalogRows | ForEach-Object {
+    $ownerPath = ([string]$_.ownerPath).Replace('\', '/').TrimEnd('/')
+    if ($ownerPath -notmatch '^cpf-starters/([^/]+)$') {
+        throw "Starter artifact ownerPath is invalid: $ownerPath"
+    }
+    $expectedArtifactId = "cpf-starter-$($Matches[1])"
+    if ([string]$_.artifactId -ne $expectedArtifactId) {
+        throw "Starter artifact identity mismatch: owner=$ownerPath artifact=$($_.artifactId)"
+    }
+    if (-not (Test-Path -LiteralPath (Join-Path $Root "$ownerPath/build.gradle") -PathType Leaf)) {
+        throw "Starter catalog owner has no Gradle project: $ownerPath"
+    }
+    $starterCatalogOwnerPaths.Add($ownerPath) | Out-Null
+    @{ group='com.cpf.starter'; artifact=$expectedArtifactId; packaging='jar' }
+})
+if (@($starterCatalogOwnerPaths | Sort-Object -Unique).Count -ne $starterCatalogOwnerPaths.Count) {
+    throw "Starter artifact catalog contains duplicate owner paths: $($starterCatalogOwnerPaths -join ', ')"
+}
+$physicalStarterOwnerPaths = @(Get-ChildItem -LiteralPath (Join-Path $Root 'cpf-starters') -Directory |
+    Where-Object { Test-Path -LiteralPath (Join-Path $_.FullName 'build.gradle') -PathType Leaf } |
+    Sort-Object Name |
+    ForEach-Object { "cpf-starters/$($_.Name)" })
+$starterPathDrift = @(Compare-Object -ReferenceObject @($starterCatalogOwnerPaths | Sort-Object) `
+    -DifferenceObject $physicalStarterOwnerPaths)
+if ($starterPathDrift.Count -gt 0) {
+    throw "Starter catalog/physical project mismatch: $($starterPathDrift | ConvertTo-Json -Compress)"
+}
+
 $coordinates = @(
     @{ group='com.cpf.core'; artifact='cpf-core'; packaging='jar' },
     @{ group='com.cpf.common'; artifact='cpf-common'; packaging='jar' },
@@ -127,7 +168,8 @@ $coordinates = @(
     @{ group='com.cpf.batch'; artifact='cpf-batch-scheduler'; packaging='jar' },
     @{ group='com.cpf.batch'; artifact='cpf-batch-worker'; packaging='jar' },
     @{ group='com.cpf.batch'; artifact='cpf-center-cut-runner'; packaging='jar' },
-    @{ group='com.cpf.batch'; artifact='cpf-batch-host-agent'; packaging='jar' },
+    @{ group='com.cpf.batch'; artifact='cpf-batch-host-agent'; packaging='jar' }
+) + $starterCoordinates + @(
     @{ group='com.cpf'; artifact='cpf-platform-bom'; packaging='pom' },
     @{ group='com.cpf.gradle'; artifact='cpf-gradle-plugin'; packaging='jar' }
 )
@@ -189,7 +231,10 @@ Add-VersionDirectoryFiles $markerBase $markerArtifact $version
 $bomPomPath = Join-Path $LocalRepository (("com/cpf/cpf-platform-bom/$version/cpf-platform-bom-$version.pom").Replace('/', [IO.Path]::DirectorySeparatorChar))
 [xml]$bomXml = Get-Content -LiteralPath $bomPomPath -Raw -Encoding UTF8
 $bomDependencies = @($bomXml.project.dependencyManagement.dependencies.dependency)
-foreach ($required in @('cpf-core','cpf-common','cpf-batch-contract','cpf-batch-testkit')) {
+$requiredBomArtifacts = @(
+    'cpf-core','cpf-common','cpf-batch-contract','cpf-batch-testkit'
+) + @($starterCatalogRows | ForEach-Object { [string]$_.artifactId } | Sort-Object)
+foreach ($required in $requiredBomArtifacts) {
     $matches = @($bomDependencies | Where-Object { [string]$_.artifactId -eq $required -and [string]$_.version -eq $version })
     if ($matches.Count -ne 1) { throw "CPF BOM exact-version constraint missing or duplicated: ${required}:$version" }
 }

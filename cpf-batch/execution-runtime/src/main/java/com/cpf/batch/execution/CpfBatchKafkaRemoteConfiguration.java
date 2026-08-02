@@ -1,5 +1,6 @@
 package com.cpf.batch.execution;
 
+import com.cpf.core.api.database.CpfVendorSqlCatalogProvider;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import javax.sql.DataSource;
 import org.apache.kafka.common.TopicPartition;
@@ -32,7 +33,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 @EnableKafka
 public class CpfBatchKafkaRemoteConfiguration {
     @Bean CpfBatchRemoteCodec cpfBatchRemoteCodec(ObjectMapper mapper,CpfBatchKafkaRemoteProperties p){return new CpfBatchRemoteCodec(mapper,p);}
-    @Bean CpfBatchRemoteMessageLedger cpfBatchRemoteMessageLedger(DataSource dataSource,CpfBatchKafkaRemoteProperties p){return new JdbcCpfBatchRemoteMessageLedger(new JdbcTemplate(dataSource),Math.max(30,p.messageTtl().toSeconds()));}
+    @Bean CpfBatchRemoteMessageLedger cpfBatchRemoteMessageLedger(DataSource dataSource,CpfBatchKafkaRemoteProperties p,CpfVendorSqlCatalogProvider sqlCatalogProvider){return new JdbcCpfBatchRemoteMessageLedger(new JdbcTemplate(dataSource),Math.max(30,p.messageTtl().toSeconds()),sqlCatalogProvider);}
     @Bean("cpfBatchRequestTopic") String cpfBatchRequestTopic(CpfBatchKafkaRemoteProperties p){return p.requestTopic();}
     @Bean("cpfBatchWorkerGroupId") String cpfBatchWorkerGroupId(CpfBatchKafkaRemoteProperties p){return p.consumerGroup();}
     @Bean("cpfBatchManagerReplyTopic") String cpfBatchManagerReplyTopic(CpfBatchKafkaRemoteProperties p){return p.managerReplyTopic();}

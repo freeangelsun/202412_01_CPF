@@ -15,7 +15,7 @@ foreach ($required in @(
     "create-domain-result.json",
     "implementation project(':cpf-common')",
     "published-artifact",
-    "implementation platform('com.cpf:cpf-bom:",
+    "implementation platform('com.cpf:cpf-platform-bom:",
     "implementation 'com.cpf.core:cpf-core:",
     "implementation 'com.cpf.common:cpf-common:",
     "implementation 'org.springframework:spring-web'",

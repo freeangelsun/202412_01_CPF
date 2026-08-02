@@ -56,7 +56,7 @@ class CpfFileLogRuntimeEvidenceTest {
         firstWriter.writeTransaction(record(secondGlobalId, transactionId, businessDate, "FAILURE"), Map.of(), null);
 
         TransactionContext.initialize(firstGlobalId, "runtime-probe-trace", null, firstGlobalId);
-        TransactionContext.putBusinessTransaction(transactionId, "파일 로그 런타임 검증");
+        TransactionContext.putStandardExecution(transactionId, "파일 로그 런타임 검증");
         firstWriter.writeIntegration(
                 "REF",
                 "BZA",

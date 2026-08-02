@@ -4,9 +4,9 @@ import com.cpf.batch.api.BatchExecutionControlPort;
 import com.cpf.batch.spi.BatchExecutionLedgerPort;
 import com.cpf.batch.spi.BatchFencingPort;
 import com.cpf.batch.spi.BatchStepHandler;
+import com.cpf.core.api.database.CpfVendorSqlCatalogProvider;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
-import org.springframework.batch.core.explore.JobExplorer;
 import org.springframework.batch.core.launch.JobOperator;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -66,15 +66,16 @@ public class CpfBatchExecutionAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean({BatchExecutionLedgerPort.class, BatchFencingPort.class})
-    JdbcBatchExecutionControlPlaneAdapter cpfBatchExecutionControlPlaneAdapter(JdbcTemplate jdbc) {
-        return new JdbcBatchExecutionControlPlaneAdapter(jdbc);
+    JdbcBatchExecutionControlPlaneAdapter cpfBatchExecutionControlPlaneAdapter(
+            JdbcTemplate jdbc, CpfVendorSqlCatalogProvider sqlCatalogProvider) {
+        return new JdbcBatchExecutionControlPlaneAdapter(jdbc, sqlCatalogProvider);
     }
 
     @Bean
     @ConditionalOnMissingBean(com.cpf.batch.spi.BatchApprovedLaunchRequestResolver.class)
     com.cpf.batch.spi.BatchApprovedLaunchRequestResolver cpfBatchApprovedLaunchRequestResolver(
-            JdbcTemplate jdbc, ObjectMapper mapper) {
-        return new JdbcBatchApprovedLaunchRequestResolver(jdbc, mapper);
+            JdbcTemplate jdbc, ObjectMapper mapper, CpfVendorSqlCatalogProvider sqlCatalogProvider) {
+        return new JdbcBatchApprovedLaunchRequestResolver(jdbc, mapper, sqlCatalogProvider);
     }
 
     @Bean
@@ -104,10 +105,9 @@ public class CpfBatchExecutionAutoConfiguration {
     BatchExecutionControlPort cpfSpringBatchExecutionControl(
             JobOperator operator,
             JobRepository repository,
-            JobExplorer explorer,
             CpfBatchJobFactory jobs,
             BatchExecutionLedgerPort ledger,
             BatchFencingPort fencing) {
-        return new CpfSpringBatchExecutionControl(operator, repository, explorer, jobs, ledger, fencing);
+        return new CpfSpringBatchExecutionControl(operator, repository, jobs, ledger, fencing);
     }
 }

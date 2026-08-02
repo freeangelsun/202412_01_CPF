@@ -134,8 +134,7 @@ foreach ($moduleDirectory in Get-ChildItem -LiteralPath $Root -Directory -Filter
         paths = @(
             "$($moduleDirectory.Name)/build.gradle",
             $relativeManifest,
-            "$($moduleDirectory.Name)/manifest/generator-ownership.json",
-            "$($moduleDirectory.Name)/create-domain-result.json"
+            "$($moduleDirectory.Name)/manifest/generator-ownership.json"
         )
     }) | Out-Null
 }

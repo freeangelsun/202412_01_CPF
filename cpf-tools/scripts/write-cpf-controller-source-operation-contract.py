@@ -15,6 +15,7 @@ REQUEST_MAPPING=re.compile(r'@RequestMapping\s*\((.*?)\)',re.S)
 OPERATION=re.compile(r'@Operation\s*\((.*?)\)',re.S)
 OP_ID=re.compile(r'operationId\s*=\s*"([^"]+)"')
 QUOTED=re.compile(r'"([^"]*)"')
+PATH_PARAMETER=re.compile(r'\{([^{}]+)\}')
 METHOD_DECL=re.compile(r'(?m)^\s*(?:(?:public|protected|private)\s+)?(?:static\s+)?(?:final\s+)?(?:<[^>]+>\s*)?[\w<>, ?\[\].]+\s+(\w+)\s*\(')
 
 class ContractError(RuntimeError): pass
@@ -61,8 +62,7 @@ def write(root:Path,module:str,output:Path,records:list[dict[str,str]],openapi_o
     output.mkdir(parents=True,exist_ok=True)
     ids=' | '.join(quote(r['operationId']) for r in records)
     rows=',\n'.join(f"  {{ method: {quote(r['method'])}, template: {quote(r['template'])}, operationId: {quote(r['operationId'])} }}" for r in records)
-    contract=f'''/* eslint-disable */
-// Generated from explicit Java controller annotations for pre-runtime compilation.
+    contract=f'''// Generated from explicit Java controller annotations for pre-runtime compilation.
 // Release verification requires replacement from canonical BACKEND_RUNTIME OpenAPI.
 export type CpfOperationId = {ids};
 export interface CpfOperationDescriptor {{ method: string; template: string; operationId: CpfOperationId; }}
@@ -83,21 +83,30 @@ export function resolveCpfOperation(method: string, rawUrl: string): CpfOperatio
 }}
 '''
     (output/'cpf-operation-contract.ts').write_text(contract,encoding='utf-8')
-    lines=['/* eslint-disable */','// Pre-runtime generated compatibility client. Runtime OpenAPI generation must replace this file.','import { cpfGeneratedRequest } from "../shared/cpfApi";','export interface CpfGeneratedRequestOptions { data?: unknown; signal?: AbortSignal; headers?: HeadersInit; path?: Record<string,string|number>; query?: Record<string,unknown>; }','function renderPath(template:string,values:Record<string,string|number>={}):string{return template.replace(/\\{([^}]+)\\}/g,(_,name)=>{const value=values[name];if(value===undefined||value===null||String(value).trim()==="")throw new Error(`Missing path parameter: ${name}`);return encodeURIComponent(String(value));});}']
+    lines=['// Pre-runtime generated compatibility client. Runtime OpenAPI generation must replace this file.','import { cpfGeneratedRequest } from "../shared/cpfApi";','export interface CpfGeneratedRequestOptions { data?: unknown; signal?: AbortSignal; headers?: HeadersInit; path?: Record<string,string|number>; query?: Record<string,unknown>; }','function renderPath(template:string,values:Record<string,string|number>={}):string{return template.replace(/\\{([^}]+)\\}/g,(_,name)=>{const value=values[name];if(value===undefined||value===null||String(value).trim()==="")throw new Error(`Missing path parameter: ${name}`);return encodeURIComponent(String(value));});}']
     for r in records:
         lines.append(f'export async function {r["operationId"]}<T=unknown>(options:CpfGeneratedRequestOptions={{}}):Promise<T>{{return cpfGeneratedRequest<T>({{url:renderPath({quote(r["template"])},options.path),method:{quote(r["method"])},data:options.data,params:options.query,signal:options.signal,headers:options.headers}});}}')
     (output/'cpf-api.ts').write_text('\n'.join(lines)+'\n',encoding='utf-8')
     orval_dir=output/'orval';orval_dir.mkdir(parents=True,exist_ok=True)
-    (orval_dir/'cpf-api.ts').write_text('/* eslint-disable */\n// CONTROLLER_SOURCE_PRE_RUNTIME adapter. @tanstack/vue-query is owned by shared cpfApi.\nexport * from "../cpf-api";\n',encoding='utf-8')
+    (orval_dir/'cpf-api.ts').write_text('// CONTROLLER_SOURCE_PRE_RUNTIME adapter. @tanstack/vue-query is owned by shared cpfApi.\nexport * from "../cpf-api";\n',encoding='utf-8')
     if openapi_output is not None:
         paths={}
         for record in records:
             method=record['method'].lower()
             status='200'
-            paths.setdefault(record['template'],{})[method]={
+            operation={
                 'operationId':record['operationId'],
                 'responses':{status:{'description':'Controller source contract response','content':{'application/json':{'schema':{'$ref':'#/components/schemas/CpfControllerSourceResponse'}}}}},
             }
+            parameters=list(dict.fromkeys(PATH_PARAMETER.findall(record['template'])))
+            if parameters:
+                operation['parameters']=[{
+                    'name':name,
+                    'in':'path',
+                    'required':True,
+                    'schema':{'type':'string'},
+                } for name in parameters]
+            paths.setdefault(record['template'],{})[method]=operation
         spec={
             'openapi':'3.1.0',
             'info':{'title':f'{MODULES[module][2]} controller source pre-runtime contract','version':'0.0.0-pre-runtime'},

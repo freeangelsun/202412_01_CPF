@@ -1,7 +1,10 @@
 package com.cpf.reference.filetransfer;
 
+import com.cpf.core.api.filetransfer.CpfFileEndpoint;
+import com.cpf.core.api.filetransfer.CpfFileRequest;
+import com.cpf.core.api.filetransfer.CpfFileResult;
 import com.cpf.core.common.filetransfer.CpfDuplicatePreventionPort;
-import com.cpf.core.common.filetransfer.CpfFileTransferEndpoint;
+import com.cpf.core.common.filetransfer.CpfFileTransferClientAdapter;
 import com.cpf.core.common.filetransfer.CpfFileTransferEngine;
 import com.cpf.core.common.filetransfer.CpfFileTransferHistoryPort;
 import com.cpf.core.common.filetransfer.CpfFileTransferRequest;
@@ -36,9 +39,10 @@ class ReferenceFileChecksumEducationSampleTest {
         Files.writeString(source, "REF EDU FILE");
         MemoryHistory history = new MemoryHistory();
         ReferenceFileChecksumEducationSample sample = sample(history);
+        String checksum = sample.sha256("REF EDU FILE");
 
-        CpfFileTransferResult result = sample.transfer(
-                new CpfFileTransferEndpoint(
+        CpfFileResult result = sample.transfer(
+                new CpfFileEndpoint(
                         "REF_LOCAL",
                         "LOCAL",
                         "localhost",
@@ -47,14 +51,14 @@ class ReferenceFileChecksumEducationSampleTest {
                         null,
                         Duration.ofSeconds(5),
                         Map.of("overwriteYn", "N")),
-                new CpfFileTransferRequest(
+                new CpfFileRequest(
                         "TX-REF-1",
                         "SEG-REF-1",
                         "REF_LOCAL",
                         "UPLOAD",
                         source.toString(),
                         "target.dat",
-                        null,
+                        checksum,
                         Files.size(source),
                         Map.of("businessKey", "REF-FILE-1")));
 
@@ -64,11 +68,12 @@ class ReferenceFileChecksumEducationSampleTest {
     }
 
     private ReferenceFileChecksumEducationSample sample(MemoryHistory history) {
-        return new ReferenceFileChecksumEducationSample(new CpfFileTransferEngine(
-                new LocalCpfFileTransferAdapter(),
-                history,
-                history,
-                null));
+        return new ReferenceFileChecksumEducationSample(
+                new CpfFileTransferClientAdapter(new CpfFileTransferEngine(
+                        new LocalCpfFileTransferAdapter(),
+                        history,
+                        history,
+                        null)));
     }
 
     private static final class MemoryHistory implements CpfFileTransferHistoryPort, CpfDuplicatePreventionPort {

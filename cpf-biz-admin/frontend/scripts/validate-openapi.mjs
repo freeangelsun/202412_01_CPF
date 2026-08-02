@@ -27,12 +27,29 @@ if (!publicPrefix) throw new Error(`지원하지 않는 제품 Module: ${module}
 const requiredErrors = ["401","403","404","409","429","500","503"];
 const methods = new Set(["get","post","put","patch","delete","head","options","trace"]);
 const ids = new Set(); let operations = 0; let publicOperations = 0;
+function resolveParameter(value) {
+  if (!value?.$ref) return value;
+  const prefix = "#/components/parameters/";
+  if (!value.$ref.startsWith(prefix)) return null;
+  return spec.components?.parameters?.[value.$ref.slice(prefix.length)] || null;
+}
 for (const [url, pathItem] of Object.entries(spec.paths || {})) {
   for (const [method, operation] of Object.entries(pathItem || {})) {
     if (!methods.has(method)) continue;
     operations++;
     if (!operation?.operationId || ids.has(operation.operationId)) throw new Error(`operationId 누락/중복: ${method.toUpperCase()} ${url}`);
     ids.add(operation.operationId);
+    const placeholders = new Set([...url.matchAll(/\{([^{}]+)\}/g)].map(match => match[1]));
+    const parameters = [...(pathItem.parameters || []), ...(operation.parameters || [])]
+      .map(resolveParameter).filter(Boolean);
+    for (const name of placeholders) {
+      if (!parameters.some(parameter => parameter.in === "path" && parameter.name === name && parameter.required === true)) {
+        throw new Error(`필수 Path Parameter 선언 누락: ${operation.operationId}:${name}`);
+      }
+    }
+    for (const parameter of parameters.filter(value => value.in === "path")) {
+      if (!placeholders.has(parameter.name)) throw new Error(`Template에 없는 Path Parameter: ${operation.operationId}:${parameter.name}`);
+    }
     const responses = operation.responses || {};
     const successCodes = Object.keys(responses).filter(code => /^2\d\d$/.test(code));
     if (!successCodes.length) throw new Error(`2xx 응답 누락: ${operation.operationId}`);

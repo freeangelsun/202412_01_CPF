@@ -1,6 +1,8 @@
 package com.cpf.reference.filetransfer;
 
+import com.cpf.core.api.filetransfer.CpfFileResult;
 import com.cpf.core.common.filetransfer.CpfFileTransferEngine;
+import com.cpf.core.common.filetransfer.CpfFileTransferClientAdapter;
 import com.cpf.core.common.filetransfer.CpfFileTransferRequest;
 import com.cpf.core.common.filetransfer.CpfFileTransferResult;
 import com.cpf.core.common.filetransfer.CpfDuplicatePreventionPort;
@@ -37,9 +39,10 @@ class ReferenceSftpTransferPlanEducationSampleTest {
                 history,
                 duplicate,
                 null);
-        ReferenceSftpTransferPlanEducationSample sample = new ReferenceSftpTransferPlanEducationSample(engine);
+        ReferenceSftpTransferPlanEducationSample sample =
+                new ReferenceSftpTransferPlanEducationSample(new CpfFileTransferClientAdapter(engine));
 
-        CpfFileTransferResult result = sample.upload("T-1", source.toString());
+        CpfFileResult result = sample.upload("T-1", source.toString());
 
         assertThat(result.status()).isEqualTo("SUCCESS");
         assertThat(remoteRoot.resolve("REF_BANK_A/SFTP/recv/result.dat")).exists();

@@ -169,6 +169,18 @@ function Save-PermissionSmokeResult {
     [IO.File]::WriteAllText($PermissionResultPath, ($PermissionResult | ConvertTo-Json -Depth 20), $Utf8NoBom)
 }
 
+function New-SmokePassword {
+    [byte[]] $randomBytes = New-Object byte[] 18
+    $generator = [Security.Cryptography.RandomNumberGenerator]::Create()
+    try {
+        $generator.GetBytes($randomBytes)
+    } finally {
+        $generator.Dispose()
+    }
+    $randomSuffix = [Convert]::ToBase64String($randomBytes).TrimEnd('=').Replace('+', 'A').Replace('/', 'b')
+    return "Cpf!aA1-$randomSuffix"
+}
+
 function Invoke-AdmPermissionWriteSmoke {
     param(
         [hashtable] $AdminHeaders,
@@ -188,7 +200,7 @@ function Invoke-AdmPermissionWriteSmoke {
     $reasonStamp = Get-Date -Format "yyyyMMddHHmmssfff"
     $reason = "ADM permission runtime smoke $reasonStamp"
     $viewerOperatorId = "smoke_viewer_runtime"
-    $viewerPassword = "SmokeRuntime!$reasonStamp"
+    $viewerPassword = New-SmokePassword
     $apiPermissionId = "API_PERMISSION_WRITE_PUT"
 
     try {

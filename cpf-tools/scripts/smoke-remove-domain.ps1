@@ -23,7 +23,7 @@ $resultPath = Join-Path $ResultDir "remove-domain-smoke.sanitized.json"
 
 function Invoke-Tool {
     param([string] $Script, [string[]] $Arguments)
-    $output = & powershell -NoProfile -ExecutionPolicy Bypass -File $Script @Arguments 2>&1
+    $output = & powershell -NoProfile -File $Script @Arguments 2>&1
     if ($LASTEXITCODE -ne 0) {
         throw "$Script 실행에 실패했습니다. exitCode=$LASTEXITCODE output=$($output -join ' ')"
     }

@@ -41,7 +41,7 @@ public final class CpfBatchTasklet implements Tasklet {
         String jobId = required(parameters, "jobId");
 
         Map<String, Object> jobParameters = new LinkedHashMap<>();
-        parameters.getParameters().forEach((name, parameter) -> jobParameters.put(name, parameter.getValue()));
+        parameters.forEach(parameter -> jobParameters.put(parameter.name(), parameter.value()));
         ExecutionContext executionContext = stepExecution.getExecutionContext();
         Map<String, Object> checkpoint = new LinkedHashMap<>(executionContext.toMap());
         BatchStepHandler handler = registry.required(definition.executorType(), definition.executorReference());

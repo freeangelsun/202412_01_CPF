@@ -32,7 +32,7 @@ $manifest = Join-Path $LocalRepository "_cpf/manifests/$version.json"
 if (-not (Test-Path -LiteralPath $manifest -PathType Leaf)) {
     throw "Verified CPF artifact manifest is missing. Run publishCpfVerifiedLocalPlatformArtifacts first: $manifest"
 }
-& pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root 'cpf-tools/scripts/verify-local-artifact-propagation.ps1') -Root $Root -LocalRepository $LocalRepository -RequireManifest | Out-Host
+& pwsh -NoProfile -File (Join-Path $Root 'cpf-tools/scripts/verify-local-artifact-propagation.ps1') -Root $Root -LocalRepository $LocalRepository -RequireManifest | Out-Host
 if ($LASTEXITCODE -ne 0) { throw "Local artifact verification failed: $LASTEXITCODE" }
 
 $bundleName = "cpf-offline-artifacts-$version"
@@ -73,7 +73,7 @@ if (-not $SkipDbVendorPacks) {
     foreach ($vendor in $supportedVendors) {
         $selectionRoot = Join-Path $OutputRoot (".db-pack-selection-{0}-{1}" -f $vendor, [Guid]::NewGuid().ToString('N'))
         try {
-            $selectionOutput = @(& pwsh -NoProfile -ExecutionPolicy Bypass -File $selector -Root $Root -Vendor ([string]$vendor) -ResultDir $selectionRoot -RequireExecutable -AssembleOverlay)
+            $selectionOutput = @(& pwsh -NoProfile -File $selector -Root $Root -Vendor ([string]$vendor) -ResultDir $selectionRoot -RequireExecutable -AssembleOverlay)
             if ($LASTEXITCODE -ne 0) { throw "DB Vendor Pack selection failed. vendor=$vendor exit=$LASTEXITCODE" }
             $resultPath = Join-Path $selectionRoot 'active-db-resources.sanitized.json'
             if (-not (Test-Path -LiteralPath $resultPath -PathType Leaf)) { throw "DB selection result is missing: $resultPath" }
@@ -137,7 +137,7 @@ $hashRows = Get-ChildItem -LiteralPath $bundleDir -Recurse -File | Sort-Object F
 
 $packGate = Join-Path $Root 'cpf-tools/scripts/check-offline-db-resource-pack.ps1'
 if (-not (Test-Path -LiteralPath $packGate -PathType Leaf)) { throw "Offline DB Resource Pack gate is missing: $packGate" }
-& pwsh -NoProfile -ExecutionPolicy Bypass -File $packGate -Root $Root -BundleRoot $bundleDir | Out-Host
+& pwsh -NoProfile -File $packGate -Root $Root -BundleRoot $bundleDir | Out-Host
 if ($LASTEXITCODE -ne 0) { throw "Offline DB Resource Pack verification failed: $LASTEXITCODE" }
 
 Compress-Archive -LiteralPath $bundleDir -DestinationPath $zipPath -CompressionLevel Optimal

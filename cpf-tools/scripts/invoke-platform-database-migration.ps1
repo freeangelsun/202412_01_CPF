@@ -129,6 +129,7 @@ function Get-CpfVersionedRollbackFile {
         Get-ChildItem -LiteralPath $Directory -File |
             Where-Object {
                 $_.Name -match ("^R{0}__.+\.sql$" -f $Version) -or
+                $_.Name -match ("^U{0}__.+\.sql$" -f $Version) -or
                 $_.Name -match ("^V{0}__.+_rollback\.sql$" -f $Version)
             }
     )
@@ -136,6 +137,50 @@ function Get-CpfVersionedRollbackFile {
         throw "Rollback V$Version 파일은 정확히 하나여야 합니다: directory=$(Get-CpfRelativePath $Directory) count=$($matches.Count)"
     }
     return $matches[0]
+}
+
+function Get-CpfMariaVersionedMigrationFiles {
+    param(
+        [Parameter(Mandatory = $true)][string] $Directory,
+        [Parameter(Mandatory = $true)][int] $Version
+    )
+
+    if (-not (Test-Path -LiteralPath $Directory -PathType Container)) {
+        throw "Migration directory가 없습니다: $(Get-CpfRelativePath $Directory)"
+    }
+
+    $matches = @(
+        Get-ChildItem -LiteralPath $Directory -Recurse -File -Filter "V${Version}__*.sql" |
+            Sort-Object FullName
+    )
+    if ($matches.Count -eq 0) {
+        throw "Migration V$Version 파일이 없습니다: directory=$(Get-CpfRelativePath $Directory)"
+    }
+
+    $duplicateDirectories = @(
+        $matches |
+            Group-Object DirectoryName |
+            Where-Object { $_.Count -ne 1 }
+    )
+    if ($duplicateDirectories.Count -gt 0) {
+        throw "Migration V$Version 파일은 logical DB directory별 정확히 하나여야 합니다: directories=$($duplicateDirectories.Name -join ',')"
+    }
+    return $matches
+}
+
+function Resolve-CpfMariaRollbackDirectory {
+    param(
+        [Parameter(Mandatory = $true)][string] $MigrationRoot,
+        [Parameter(Mandatory = $true)][string] $RollbackRoot,
+        [Parameter(Mandatory = $true)][string] $MigrationDirectory
+    )
+
+    $relativeDirectory = [IO.Path]::GetRelativePath($MigrationRoot, $MigrationDirectory)
+    if ($relativeDirectory -eq ".") { return $RollbackRoot }
+    if ($relativeDirectory.StartsWith("..", [StringComparison]::Ordinal)) {
+        throw "Migration directory가 lifecycle root 밖에 있습니다: $MigrationDirectory"
+    }
+    return Join-Path $RollbackRoot $relativeDirectory
 }
 
 function Resolve-CpfLifecyclePath {
@@ -297,6 +342,51 @@ function Get-CpfMariaSections {
             })
     }
     return @($groups)
+}
+
+function Get-CpfMariaDirectoryScopedSections {
+    param(
+        [Parameter(Mandatory = $true)][string] $Sql,
+        [Parameter(Mandatory = $true)][hashtable] $TargetByLogicalDatabase,
+        [Parameter(Mandatory = $true)][string] $DisplayPath,
+        [Parameter(Mandatory = $true)][string] $LogicalDatabase
+    )
+
+    $lookupKey = $LogicalDatabase.ToLowerInvariant()
+    if (-not $TargetByLogicalDatabase.ContainsKey($lookupKey)) {
+        return @()
+    }
+    if ($LogicalDatabase -notmatch '^[A-Za-z][A-Za-z0-9_$#]{0,62}$') {
+        throw "MariaDB logical DB directory 이름이 올바르지 않습니다: file=$DisplayPath logicalDatabase=$LogicalDatabase"
+    }
+
+    $useMatches = [regex]::Matches(
+        $Sql,
+        '(?im)^\s*USE\s+`?([A-Za-z][A-Za-z0-9_`$#]{0,62})`?\s*;\s*$')
+    $unexpectedUses = @(
+        $useMatches |
+            Where-Object { $_.Groups[1].Value -ine $LogicalDatabase } |
+            ForEach-Object { $_.Groups[1].Value }
+    )
+    if ($unexpectedUses.Count -gt 0) {
+        throw "MariaDB directory-scoped migration의 USE가 directory ownership과 다릅니다: file=$DisplayPath directory=$LogicalDatabase use=$($unexpectedUses -join ',')"
+    }
+
+    foreach ($otherKey in $TargetByLogicalDatabase.Keys) {
+        if ($otherKey -eq $lookupKey) { continue }
+        $otherLogical = [string]$TargetByLogicalDatabase[$otherKey].logicalDatabase
+        $otherPattern = '(?i)(?<![A-Za-z0-9_`$#])' + [regex]::Escape($otherLogical) + '(?![A-Za-z0-9_`$#])'
+        if ([regex]::IsMatch($Sql, $otherPattern)) {
+            throw "MariaDB directory-scoped migration의 cross-database 참조는 허용하지 않습니다: file=$DisplayPath current=$LogicalDatabase referenced=$otherLogical"
+        }
+    }
+
+    $target = $TargetByLogicalDatabase[$lookupKey]
+    return @([pscustomobject]@{
+            logicalDatabase = $LogicalDatabase
+            target = $target
+            sql = Convert-CpfLogicalIdentifier $Sql $LogicalDatabase $target.databaseName
+        })
 }
 
 function Get-CpfMariaRoutingEntry {
@@ -655,7 +745,10 @@ try {
         if (-not (Test-Path -LiteralPath $migrationDirectory -PathType Container)) {
             throw "Migration directory가 없습니다: $(Get-CpfRelativePath $migrationDirectory)"
         }
-        foreach ($file in Get-ChildItem -LiteralPath $migrationDirectory -File -Filter "V*.sql") {
+        # MariaDB historical migrations live at the pack root, while independently removable
+        # logical-DB packs (for example REF V93/V94) live below {logicalDatabase}.  Discovery is
+        # recursive, but checksum and rollback resolution remain directory-local and fail-closed.
+        foreach ($file in Get-ChildItem -LiteralPath $migrationDirectory -Recurse -File -Filter "V*.sql") {
             [void]$availableVersions.Add((Get-CpfMigrationVersion $file.Name))
         }
     } else {
@@ -698,56 +791,94 @@ try {
     if ($vendor -eq "mariadb") {
         $migrationDirectory = Resolve-CpfLifecyclePath $migrationPattern ""
         $rollbackDirectory = Resolve-CpfLifecyclePath $rollbackPattern ""
-        $checksumMap = Get-CpfMigrationChecksumMap $migrationDirectory
         foreach ($version in $selectedVersions) {
-            $migrationFile = Get-CpfVersionedMigrationFile $migrationDirectory $version $checksumMap
-            $rollbackFile = Get-CpfVersionedRollbackFile $rollbackDirectory $version
-            $migrationHash = Get-CpfFileSha256 $migrationFile.FullName
-            $rollbackHash = Get-CpfFileSha256 $rollbackFile.FullName
-            $migrationGroups = Get-CpfMariaSections `
-                (Get-Content -LiteralPath $migrationFile.FullName -Raw -Encoding UTF8) `
-                $targetByLogicalDatabase `
-                (Get-CpfRelativePath $migrationFile.FullName) `
-                (Get-CpfMariaRoutingEntry $mariaRoutingManifest $migrationFile.Name)
-            $rollbackGroups = Get-CpfMariaSections `
-                (Get-Content -LiteralPath $rollbackFile.FullName -Raw -Encoding UTF8) `
-                $targetByLogicalDatabase `
-                (Get-CpfRelativePath $rollbackFile.FullName) `
-                (Get-CpfMariaRoutingEntry $mariaRoutingManifest $rollbackFile.Name)
-            $migrationLogical = @($migrationGroups.logicalDatabase | ForEach-Object { $_.ToLowerInvariant() } | Sort-Object -Unique)
-            $rollbackLogical = @($rollbackGroups.logicalDatabase | ForEach-Object { $_.ToLowerInvariant() } | Sort-Object -Unique)
-            if (($migrationLogical -join ",") -ne ($rollbackLogical -join ",")) {
-                throw "Migration/Rollback logical DB ownership이 다릅니다: version=$version migration=$($migrationLogical -join ',') rollback=$($rollbackLogical -join ',')"
-            }
-            foreach ($moduleKey in $platformKeys) {
-                $target = $staticProfiles[$moduleKey]
-                $logicalKey = $target.logicalDatabase.ToLowerInvariant()
-                $migrationGroup = @($migrationGroups | Where-Object {
-                        $_.logicalDatabase.Equals($target.logicalDatabase, [StringComparison]::OrdinalIgnoreCase)
-                    })
-                if ($migrationGroup.Count -eq 0) { continue }
-                $rollbackGroup = @($rollbackGroups | Where-Object {
-                        $_.logicalDatabase.Equals($target.logicalDatabase, [StringComparison]::OrdinalIgnoreCase)
-                    })
-                if ($rollbackGroup.Count -ne 1) {
-                    throw "Rollback section ownership이 모호합니다: version=$version logicalDatabase=$logicalKey"
+            foreach ($migrationFile in @(Get-CpfMariaVersionedMigrationFiles $migrationDirectory $version)) {
+                $fileMigrationDirectory = $migrationFile.Directory.FullName
+                $relativeMigrationDirectory = [IO.Path]::GetRelativePath(
+                    $migrationDirectory,
+                    $fileMigrationDirectory)
+                $directoryScoped = $relativeMigrationDirectory -ne "."
+                $directoryLogicalDatabase = ""
+                if ($directoryScoped) {
+                    if ($relativeMigrationDirectory.Contains([IO.Path]::DirectorySeparatorChar) -or
+                            $relativeMigrationDirectory.Contains([IO.Path]::AltDirectorySeparatorChar)) {
+                        throw "MariaDB migration logical DB directory는 한 단계여야 합니다: directory=$relativeMigrationDirectory"
+                    }
+                    $directoryLogicalDatabase = $relativeMigrationDirectory
+                    if (-not $targetByLogicalDatabase.ContainsKey($directoryLogicalDatabase.ToLowerInvariant())) {
+                        continue
+                    }
                 }
-                $selectedFile = if ($Direction -eq "upgrade") { $migrationFile } else { $rollbackFile }
-                $selectedSql = if ($Direction -eq "upgrade") { $migrationGroup[0].sql } else { $rollbackGroup[0].sql }
-                $order++
-                $operations.Add([pscustomobject]@{
-                        order = $order
-                        version = $version
-                        target = $target
-                        migrationPath = Get-CpfRelativePath $migrationFile.FullName
-                        migrationSha256 = $migrationHash
-                        rollbackPath = Get-CpfRelativePath $rollbackFile.FullName
-                        rollbackSha256 = $rollbackHash
-                        selectedPath = Get-CpfRelativePath $selectedFile.FullName
-                        selectedSha256 = if ($Direction -eq "upgrade") { $migrationHash } else { $rollbackHash }
-                        renderedSha256 = Get-CpfSha256 $selectedSql
-                        sql = $selectedSql
-                    })
+                $checksumMap = Get-CpfMigrationChecksumMap $fileMigrationDirectory
+                # Reuse the strict one-file/checksum validator for the migration's own directory.
+                $migrationFile = Get-CpfVersionedMigrationFile $fileMigrationDirectory $version $checksumMap
+                $fileRollbackDirectory = Resolve-CpfMariaRollbackDirectory `
+                    $migrationDirectory `
+                    $rollbackDirectory `
+                    $fileMigrationDirectory
+                $rollbackFile = Get-CpfVersionedRollbackFile $fileRollbackDirectory $version
+                $migrationHash = Get-CpfFileSha256 $migrationFile.FullName
+                $rollbackHash = Get-CpfFileSha256 $rollbackFile.FullName
+                $migrationText = Get-Content -LiteralPath $migrationFile.FullName -Raw -Encoding UTF8
+                $rollbackText = Get-Content -LiteralPath $rollbackFile.FullName -Raw -Encoding UTF8
+                if ($directoryScoped) {
+                    $migrationGroups = Get-CpfMariaDirectoryScopedSections `
+                        $migrationText `
+                        $targetByLogicalDatabase `
+                        (Get-CpfRelativePath $migrationFile.FullName) `
+                        $directoryLogicalDatabase
+                    $rollbackGroups = Get-CpfMariaDirectoryScopedSections `
+                        $rollbackText `
+                        $targetByLogicalDatabase `
+                        (Get-CpfRelativePath $rollbackFile.FullName) `
+                        $directoryLogicalDatabase
+                } else {
+                    $migrationGroups = Get-CpfMariaSections `
+                        $migrationText `
+                        $targetByLogicalDatabase `
+                        (Get-CpfRelativePath $migrationFile.FullName) `
+                        (Get-CpfMariaRoutingEntry $mariaRoutingManifest $migrationFile.Name)
+                    $rollbackGroups = Get-CpfMariaSections `
+                        $rollbackText `
+                        $targetByLogicalDatabase `
+                        (Get-CpfRelativePath $rollbackFile.FullName) `
+                        (Get-CpfMariaRoutingEntry $mariaRoutingManifest $rollbackFile.Name)
+                }
+                $migrationLogical = @($migrationGroups.logicalDatabase | ForEach-Object { $_.ToLowerInvariant() } | Sort-Object -Unique)
+                $rollbackLogical = @($rollbackGroups.logicalDatabase | ForEach-Object { $_.ToLowerInvariant() } | Sort-Object -Unique)
+                if (($migrationLogical -join ",") -ne ($rollbackLogical -join ",")) {
+                    throw "Migration/Rollback logical DB ownership이 다릅니다: version=$version migration=$($migrationLogical -join ',') rollback=$($rollbackLogical -join ',')"
+                }
+                foreach ($moduleKey in $platformKeys) {
+                    $target = $staticProfiles[$moduleKey]
+                    $logicalKey = $target.logicalDatabase.ToLowerInvariant()
+                    $migrationGroup = @($migrationGroups | Where-Object {
+                            $_.logicalDatabase.Equals($target.logicalDatabase, [StringComparison]::OrdinalIgnoreCase)
+                        })
+                    if ($migrationGroup.Count -eq 0) { continue }
+                    $rollbackGroup = @($rollbackGroups | Where-Object {
+                            $_.logicalDatabase.Equals($target.logicalDatabase, [StringComparison]::OrdinalIgnoreCase)
+                        })
+                    if ($rollbackGroup.Count -ne 1) {
+                        throw "Rollback section ownership이 모호합니다: version=$version logicalDatabase=$logicalKey"
+                    }
+                    $selectedFile = if ($Direction -eq "upgrade") { $migrationFile } else { $rollbackFile }
+                    $selectedSql = if ($Direction -eq "upgrade") { $migrationGroup[0].sql } else { $rollbackGroup[0].sql }
+                    $order++
+                    $operations.Add([pscustomobject]@{
+                            order = $order
+                            version = $version
+                            target = $target
+                            migrationPath = Get-CpfRelativePath $migrationFile.FullName
+                            migrationSha256 = $migrationHash
+                            rollbackPath = Get-CpfRelativePath $rollbackFile.FullName
+                            rollbackSha256 = $rollbackHash
+                            selectedPath = Get-CpfRelativePath $selectedFile.FullName
+                            selectedSha256 = if ($Direction -eq "upgrade") { $migrationHash } else { $rollbackHash }
+                            renderedSha256 = Get-CpfSha256 $selectedSql
+                            sql = $selectedSql
+                        })
+                }
             }
         }
     } else {

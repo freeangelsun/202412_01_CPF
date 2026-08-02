@@ -15,16 +15,16 @@ cpf-tools/build/platform-bom    CPF Published Dependency BOM 격리 Build
 
 ```powershell
 # DB Canonical/Vendor Pack/Manifest 동기화
-pwsh -ExecutionPolicy Bypass -File .\cpf-tools\scripts\sync-database-artifacts.ps1
+pwsh -NoProfile -File .\cpf-tools\scripts\sync-database-artifacts.ps1
 
 # Platform DB 선택 설치
-pwsh -ExecutionPolicy Bypass -File .\cpf-tools\scripts\initialize-cpf-database.ps1 -All -RequireRun
+pwsh -NoProfile -File .\cpf-tools\scripts\initialize-cpf-database.ps1 -All -RequireRun
 
 # Generated Domain 생성
-pwsh -ExecutionPolicy Bypass -File .\cpf-tools\generator\create-domain.ps1 -DomainName payment -SystemCode PAY -Apply
+pwsh -NoProfile -File .\cpf-tools\generator\create-domain.ps1 -DomainName payment -SystemCode PAY -Apply
 
 # EXS도 동일 Generated Domain 정책
-pwsh -ExecutionPolicy Bypass -File .\cpf-tools\generator\create-domain.ps1 -DomainName external -SystemCode EXS -Apply
+pwsh -NoProfile -File .\cpf-tools\generator\create-domain.ps1 -DomainName external -SystemCode EXS -Apply
 ```
 
 DB/SQL/Metadata를 수정한 뒤 `sync-database-artifacts.ps1`을 생략해서는 안 됩니다.
@@ -33,19 +33,19 @@ DB/SQL/Metadata를 수정한 뒤 `sync-database-artifacts.ps1`을 생략해서�
 
 ```powershell
 # 1) 다른 PC/AI가 이어받기 전에 정본·요청·HEAD 확인
-pwsh -ExecutionPolicy Bypass -File .\cpf-tools\scripts\check-work-context.ps1
+pwsh -NoProfile -File .\cpf-tools\scripts\check-work-context.ps1
 
 # 2) DB Canonical + Vendor Pack + Schema Manifest + 기존 Generated Domain DB artifact parity
-pwsh -ExecutionPolicy Bypass -File .\cpf-tools\scripts\sync-database-artifacts.ps1
+pwsh -NoProfile -File .\cpf-tools\scripts\sync-database-artifacts.ps1
 
 # 3) Generator DB/MyBatis/SQL 변경을 기존 Generated Domain에 안전 적용
-pwsh -ExecutionPolicy Bypass -File .\cpf-tools\scripts\sync-generated-domain-artifacts.ps1 -Scope Database -Apply
+pwsh -NoProfile -File .\cpf-tools\scripts\sync-generated-domain-artifacts.ps1 -Scope Database -Apply
 
 # 4) 고정 Domain 목록 없이 서로 다른 임의 Metadata로 생성 구조 parity 검증
-pwsh -ExecutionPolicy Bypass -File .\cpf-tools\scripts\check-generator-arbitrary-domain-parity.ps1
+pwsh -NoProfile -File .\cpf-tools\scripts\check-generator-arbitrary-domain-parity.ps1
 
 # 5) 여러 개발 작업을 누적한 뒤 한 번의 전체 검증
-pwsh -ExecutionPolicy Bypass -File .\cpf-tools\scripts\verify-full-product.ps1 -WithDatabase -WithGeneratorLifecycle -WithBrowser -RequireAll -Profile local
+pwsh -NoProfile -File .\cpf-tools\scripts\verify-full-product.ps1 -WithDatabase -WithGeneratorLifecycle -WithBrowser -RequireAll -Profile local
 ```
 
 Generated Domain 동기화는 `generator-ownership.json`의 이전 SHA-256과 현재 파일을 비교합니다.

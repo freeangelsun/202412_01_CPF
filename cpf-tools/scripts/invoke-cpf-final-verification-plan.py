@@ -57,7 +57,7 @@ def executable_for(command: dict[str, Any], root: Path) -> tuple[list[str], Path
     if runner == "node":
         return ["node", str(root / path)], cwd
     if runner == "pwsh":
-        return ["pwsh", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(root / path)], cwd
+        return ["pwsh", "-NoProfile", "-File", str(root / path)], cwd
     if runner == "npm":
         return ["npm"], cwd
     if runner == "gradle":

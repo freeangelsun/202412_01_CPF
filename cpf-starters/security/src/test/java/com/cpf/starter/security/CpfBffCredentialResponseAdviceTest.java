@@ -80,9 +80,11 @@ class CpfBffCredentialResponseAdviceTest {
                         new Operator("BZA001", "관리자")),
                 request);
 
-        assertThat((Map<?, ?>) result)
-                .doesNotContainKeys("accessToken", "refreshToken", "sessionId")
-                .containsEntry("tokenType", "Bearer");
+        Map<?, ?> response = (Map<?, ?>) result;
+        assertThat(response.containsKey("accessToken")).isFalse();
+        assertThat(response.containsKey("refreshToken")).isFalse();
+        assertThat(response.containsKey("sessionId")).isFalse();
+        assertThat(response.get("tokenType")).isEqualTo("Bearer");
         String handle = (String) request.getSession(false)
                 .getAttribute(CpfBffSessionBridgeFilter.CREDENTIAL_HANDLE);
         assertThat(vault.find(handle)).get().extracting(CpfBffCredential::accessToken)
@@ -108,7 +110,10 @@ class CpfBffCredentialResponseAdviceTest {
                 "refreshToken", "refresh-2",
                 "sessionId", "leak"), request);
 
-        assertThat((Map<?, ?>) result).doesNotContainKeys("accessToken", "refreshToken", "sessionId");
+        Map<?, ?> response = (Map<?, ?>) result;
+        assertThat(response.containsKey("accessToken")).isFalse();
+        assertThat(response.containsKey("refreshToken")).isFalse();
+        assertThat(response.containsKey("sessionId")).isFalse();
         assertThat(request.getSession(false).getAttribute(CpfBffSessionBridgeFilter.CREDENTIAL_HANDLE))
                 .isEqualTo(handle);
         assertThat(vault.find(handle)).get().satisfies(credential -> {

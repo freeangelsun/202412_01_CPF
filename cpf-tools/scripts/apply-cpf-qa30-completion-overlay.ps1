@@ -72,7 +72,7 @@ Get-ChildItem -LiteralPath $OverlayRoot -Force | ForEach-Object {
     Copy-Item -LiteralPath $_.FullName -Destination $ProjectRoot -Recurse -Force
 }
 
-& pwsh -NoProfile -ExecutionPolicy Bypass -File `
+& pwsh -NoProfile -File `
     (Join-Path $ProjectRoot 'cpf-tools/scripts/cleanup-qa30-obsolete-gateway-model.ps1') `
     -Root $ProjectRoot
 if ($LASTEXITCODE -ne 0) { throw '구형 Gateway 모델 Cleanup 실패' }

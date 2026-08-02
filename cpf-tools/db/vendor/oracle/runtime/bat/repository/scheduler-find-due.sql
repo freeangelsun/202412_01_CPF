@@ -15,6 +15,8 @@ SELECT s.schedule_id,
     ON j.job_id = s.job_id
  WHERE s.enabled_yn = 'Y'
    AND j.use_yn = 'Y'
+   AND s.definition_version = j.published_definition_version
+   AND s.definition_checksum = j.published_definition_checksum
    AND (s.next_fire_at IS NULL OR s.next_fire_at <= CURRENT_TIMESTAMP)
  ORDER BY COALESCE(s.next_fire_at, CURRENT_TIMESTAMP), s.schedule_id
  FETCH FIRST 100 ROWS ONLY

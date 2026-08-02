@@ -25,11 +25,15 @@ function scalar(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
 }
 
+function hasControlCharacter(value: string): boolean {
+  return Array.from(value).some(character => character.charCodeAt(0) <= 0x1f);
+}
+
 function validate(key: CpfCausalContextKey, raw: unknown): string | undefined {
   const value = scalar(raw);
   if (!value) return undefined;
   if (key === "from" || key === "to") return TIME_PATTERN.test(value) ? value : undefined;
-  if (key === "filter") return value.length <= MAX_FILTER_LENGTH && !/[\u0000-\u001f]/.test(value) ? value : undefined;
+  if (key === "filter") return value.length <= MAX_FILTER_LENGTH && !hasControlCharacter(value) ? value : undefined;
   return ID_PATTERN.test(value) ? value : undefined;
 }
 

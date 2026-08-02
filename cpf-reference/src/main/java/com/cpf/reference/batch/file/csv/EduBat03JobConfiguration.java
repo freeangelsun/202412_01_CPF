@@ -1,8 +1,8 @@
 package com.cpf.reference.batch.file.csv;
 import com.cpf.reference.batch.runtime.EduBatchScenarioWorker;
 import com.cpf.reference.edu.runtime.model.*;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.Step;
+import org.springframework.batch.core.job.Job;
+import org.springframework.batch.core.step.Step;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.core.repository.JobRepository;
@@ -28,7 +28,7 @@ public class EduBat03JobConfiguration {
    String idempotencyKey=String.valueOf(p.getOrDefault("cpf.idempotencyKey", businessKey));
    int written=worker.execute("EDU-BAT-03",businessKey,String.valueOf(p.getOrDefault("cpf.dataScope","BATCH")),idempotencyKey,fencingToken,payload);
    contribution.incrementWriteCount(Math.max(1,written));
-   return org.springframework.batch.repeat.RepeatStatus.FINISHED;
+   return org.springframework.batch.infrastructure.repeat.RepeatStatus.FINISHED;
   }, transactionManager).build();
  }
  private static long longValue(Object value) { return value==null?0L:Long.parseLong(String.valueOf(value)); }

@@ -3,8 +3,8 @@ package com.cpf.reference.batch;
 import com.cpf.core.api.execution.CpfBatchJob;
 import com.cpf.reference.batch.config.ReferenceBatchEducationConfig;
 import org.junit.jupiter.api.Test;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.Step;
+import org.springframework.batch.core.job.Job;
+import org.springframework.batch.core.step.Step;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.transaction.PlatformTransactionManager;
 

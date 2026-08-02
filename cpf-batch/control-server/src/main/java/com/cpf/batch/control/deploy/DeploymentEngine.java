@@ -431,7 +431,8 @@ public final class DeploymentEngine {
                     "Cell is already locked", List.of(), startedAt);
         } catch (RuntimeException failure) {
             return finishSafely(request, CommandState.UNKNOWN_RESULT, "DEPLOYMENT_LOCK_STORE",
-                    "Deployment lock store is unavailable", List.of(), startedAt);
+                    "Deployment lock store is unavailable: " + failure.getClass().getSimpleName(),
+                    List.of(), startedAt);
         }
     }
 

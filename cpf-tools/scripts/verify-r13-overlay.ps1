@@ -17,10 +17,10 @@ function Invoke-Checked {
 }
 
 Invoke-Checked "R13 static hardening" {
-    & $pwsh -NoProfile -ExecutionPolicy Bypass -File ".\cpf-tools\scripts\check-r13-product-hardening.ps1" -Root $Root
+    & $pwsh -NoProfile -File ".\cpf-tools\scripts\check-r13-product-hardening.ps1" -Root $Root
 }
 Invoke-Checked "Migration checksum" {
-    & $pwsh -NoProfile -ExecutionPolicy Bypass -File ".\cpf-tools\scripts\check-migration-checksums.ps1"
+    & $pwsh -NoProfile -File ".\cpf-tools\scripts\check-migration-checksums.ps1"
 }
 
 if (-not $StaticOnly) {

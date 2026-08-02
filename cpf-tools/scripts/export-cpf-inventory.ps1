@@ -33,6 +33,7 @@ function Get-Owner {
         "CPF-ACCOUNT" = "ACC"
         "CPF-REFERENCE" = "REF"
         "CPF-EXTERNAL" = "EXS"
+        "CPF-STARTERS" = "CPF-STARTERS"
     }
     if ($officialCodes.ContainsKey($first)) {
         return $officialCodes[$first]
@@ -96,10 +97,21 @@ function New-Asset {
 }
 
 $assets = New-Object System.Collections.Generic.List[object]
+$starterRoot = Join-Path $Root 'cpf-starters'
+if (-not (Test-Path -LiteralPath $starterRoot -PathType Container)) {
+    throw "Canonical Starter root is missing: $starterRoot"
+}
+$starterModuleNames = @(Get-ChildItem -LiteralPath $starterRoot -Directory |
+    Where-Object { Test-Path -LiteralPath (Join-Path $_.FullName 'build.gradle') -PathType Leaf } |
+    Sort-Object Name |
+    ForEach-Object { "cpf-starters/$($_.Name)" })
+if ($starterModuleNames.Count -eq 0) {
+    throw "Canonical Starter root has no Gradle projects: $starterRoot"
+}
 $moduleNames = @(
     "cpf-core", "cpf-gateway", "cpf-common", "cpf-admin", "cpf-biz-admin",
     "cpf-batch", "cpf-member", "cpf-account", "cpf-reference", "cpf-external"
-)
+) + $starterModuleNames
 foreach ($moduleName in $moduleNames) {
     $modulePath = Join-Path $Root $moduleName
     if (Test-Path -LiteralPath $modulePath -PathType Container) {
@@ -167,7 +179,7 @@ foreach ($file in $sqlFiles) {
     $assets.Add((New-Asset $sqlType $relative $file.Name)) | Out-Null
 }
 
-$scripts = @(Get-ChildItem -LiteralPath (Join-Path $Root "scripts") -File -Filter "*.ps1")
+$scripts = @(Get-ChildItem -LiteralPath (Join-Path $Root "cpf-tools/scripts") -File -Filter "*.ps1")
 foreach ($file in $scripts) {
     $relative = Get-RelativePath $file.FullName
     $assets.Add((New-Asset "script" $relative $file.Name)) | Out-Null

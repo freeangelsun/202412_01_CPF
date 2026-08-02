@@ -12,6 +12,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.io.FilterInputStream;
+import java.io.InputStream;
 import java.nio.channels.FileChannel;
 import java.nio.file.*;
 import java.nio.file.attribute.PosixFilePermission;
@@ -42,6 +44,9 @@ public final class DurableCpfGatewayLedgerAdapter implements CpfGatewayLedgerPor
         this.jdbc = jdbc;
         this.mapper = mapper;
         this.pending = Path.of(spoolDirectory).toAbsolutePath().normalize().resolve("pending");
+        if (maxSpoolBytes < 1_024L) {
+            throw new IllegalArgumentException("Gateway ledger maxSpoolBytes must be at least 1024");
+        }
         this.maxSpoolBytes = maxSpoolBytes;
         initializeDirectory();
     }
@@ -62,11 +67,11 @@ public final class DurableCpfGatewayLedgerAdapter implements CpfGatewayLedgerPor
     }
 
     private void persist(Envelope envelope) {
-        assertCapacity();
         Path eventFile = pending.resolve(System.currentTimeMillis() + "-" + UUID.randomUUID() + ".json");
         Path temporary = eventFile.resolveSibling(eventFile.getFileName() + ".tmp");
         try {
             byte[] payload = mapper.writeValueAsBytes(envelope);
+            assertCapacity(payload.length);
             Files.write(temporary, payload, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
             try (FileChannel channel = FileChannel.open(temporary, StandardOpenOption.WRITE)) { channel.force(true); }
             Files.move(temporary, eventFile, StandardCopyOption.ATOMIC_MOVE);
@@ -80,7 +85,15 @@ public final class DurableCpfGatewayLedgerAdapter implements CpfGatewayLedgerPor
 
     private void replayOne(Path file) {
         try {
-            Envelope envelope = mapper.readValue(Files.readAllBytes(file), Envelope.class);
+            long size = Files.size(file);
+            if (size < 1L || size > maxSpoolBytes) {
+                throw new IOException("Gateway ledger spool event size is invalid: " + size);
+            }
+            Envelope envelope;
+            try (InputStream input = new BoundedInputStream(
+                    Files.newInputStream(file, StandardOpenOption.READ), maxSpoolBytes)) {
+                envelope = mapper.readValue(input, Envelope.class);
+            }
             apply(envelope);
             Files.deleteIfExists(file);
         } catch (DuplicateKeyException duplicate) {
@@ -151,12 +164,14 @@ public final class DurableCpfGatewayLedgerAdapter implements CpfGatewayLedgerPor
         if (changed != 1) throw new IllegalStateException("Gateway transaction start is missing: " + e.gatewayTransactionId());
     }
 
-    private void assertCapacity() {
+    private void assertCapacity(long incomingBytes) {
         try (var files = Files.list(pending)) {
             long used = files.filter(Files::isRegularFile).mapToLong(path -> {
                 try { return Files.size(path); } catch (IOException ex) { return 0L; }
             }).sum();
-            if (used >= maxSpoolBytes) throw new IllegalStateException("Gateway ledger spool capacity exceeded");
+            if (incomingBytes < 1L || incomingBytes > maxSpoolBytes - used) {
+                throw new IllegalStateException("Gateway ledger spool capacity exceeded");
+            }
         } catch (IOException ex) {
             throw new IllegalStateException("Gateway ledger spool capacity check failed", ex);
         }
@@ -174,4 +189,36 @@ public final class DurableCpfGatewayLedgerAdapter implements CpfGatewayLedgerPor
     }
 
     public record Envelope(String type, String id, Object payload) { }
+
+    /** File size 사전검사 뒤 교체 경쟁이 있어도 실제 Parser read 자체를 동일 상한으로 제한합니다. */
+    private static final class BoundedInputStream extends FilterInputStream {
+        private final long limit;
+        private long observed;
+
+        private BoundedInputStream(InputStream input, long limit) {
+            super(input);
+            this.limit = limit;
+        }
+
+        @Override
+        public int read() throws IOException {
+            int value = super.read();
+            if (value >= 0) requireBudget(1L);
+            return value;
+        }
+
+        @Override
+        public int read(byte[] bytes, int offset, int length) throws IOException {
+            int read = super.read(bytes, offset, length);
+            if (read > 0) requireBudget(read);
+            return read;
+        }
+
+        private void requireBudget(long increment) throws IOException {
+            observed += increment;
+            if (observed > limit) {
+                throw new IOException("Gateway ledger spool event exceeds configured limit");
+            }
+        }
+    }
 }

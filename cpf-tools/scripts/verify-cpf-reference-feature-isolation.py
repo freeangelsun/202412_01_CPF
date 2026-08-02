@@ -49,9 +49,15 @@ def main()->None:
         if re.search(r'/(?:case|bza|adm|gw|bat|dev|ops)\d+(?:/|$)',rel):fail('numeric/legacy package segment: '+str(p.relative_to(root)))
     # Batch is one top-level package with feature subpackages and 30 real Job/Step definitions.
     batch_root=main/'batch'
-    handlers=list(batch_root.rglob('*Handler.java'));jobs=list(batch_root.rglob('*JobConfiguration.java'))
+    handlers=list(batch_root.rglob('EduBat*Handler.java'));jobs=list(batch_root.rglob('*JobConfiguration.java'))
     if len(handlers)!=30 or len(jobs)!=30:fail(f'batch source count handlers={len(handlers)} jobs={len(jobs)}')
     if (main/'edu/batch').exists():fail('legacy edu/batch package remains')
+    file_process_handler=batch_root/'file/csv/ReferenceCsvFileProcessHandler.java'
+    support_handlers=set(batch_root.rglob('*Handler.java'))-set(handlers)
+    if support_handlers!={file_process_handler}:fail('batch support handler ownership drift: '+','.join(sorted(str(p.relative_to(root)) for p in support_handlers)))
+    file_process_text=file_process_handler.read_text(encoding='utf-8')
+    for token in ['package com.cpf.reference.batch.file.csv;','implements FileProcessHandler','REF_CSV_COUNT']:
+        if token not in file_process_text:fail('batch FILE_PROCESS support contract missing '+token)
     required_categories={'tasklet','chunk','file','partition','remote','centercut','scheduler','jobpack','recovery','reconcile','flow','faulttolerance','checkpoint','instance','backfill','incremental','concurrency','lifecycle','agent','dryrun','performance','calendar'}
     actual={p.relative_to(batch_root).parts[0] for p in handlers}
     missing=required_categories-actual
@@ -114,7 +120,7 @@ def main()->None:
     if local_sql:fail('module-local SQL forbidden: '+','.join(str(p.relative_to(root)) for p in local_sql[:5]))
     for vendor in ['oracle','postgresql','mariadb']:
         base=root/f'cpf-tools/db/vendor/{vendor}'
-        for rel in ['source/57_reference_edu_operation_ledger.sql','install/01_reference_edu_operation_ledger.sql','migration/flyway/refDB/V93__manual_edu_135_operation_ledger.sql','migration/rollback/refDB/U93__manual_edu_135_operation_ledger.sql','verify/93_verify_manual_edu_135_operation_ledger.sql','source/58_reference_batch_job_pack.sql','install/02_reference_batch_job_pack.sql','migration/flyway/refDB/V94__reference_batch_job_pack.sql','migration/rollback/refDB/U94__reference_batch_job_pack.sql','runtime/ref/reference_batch_job_queries.sql','verify/94_verify_reference_batch_job_pack.sql']:
+        for rel in ['source/57_reference_edu_operation_ledger.sql','install/01_reference_edu_operation_ledger.sql','migration/flyway/refDB/V93__manual_edu_135_operation_ledger.sql','rollback/refDB/U93__manual_edu_135_operation_ledger.sql','verify/93_verify_manual_edu_135_operation_ledger.sql','source/58_reference_batch_job_pack.sql','install/02_reference_batch_job_pack.sql','migration/flyway/refDB/V94__reference_batch_job_pack.sql','rollback/refDB/U94__reference_batch_job_pack.sql','runtime/ref/reference_batch_job_queries.sql','verify/94_verify_reference_batch_job_pack.sql']:
             if not (base/rel).is_file():fail(f'{vendor} refDB contract missing: {rel}')
     print('[CPF][REFERENCE-ISOLATION][PASS] core=60 batch=30 backoffice=14 operations=17 gateway=14 database=refDB generatedDomains=NONE bzaProduct=NONE')
 if __name__=='__main__':main()

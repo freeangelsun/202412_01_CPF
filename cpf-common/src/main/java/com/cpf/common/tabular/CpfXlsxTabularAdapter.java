@@ -115,7 +115,6 @@ public final class CpfXlsxTabularAdapter implements CpfTabularReader, CpfTabular
         } finally {
             if (workbook != null) {
                 try { workbook.close(); } catch (IOException ignored) { }
-                workbook.dispose();
             }
         }
     }

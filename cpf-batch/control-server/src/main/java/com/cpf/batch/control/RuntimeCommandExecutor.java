@@ -34,7 +34,13 @@ public class RuntimeCommandExecutor {
                 Map<String,Object> before=registry.snapshot(target);
                 DesiredState desired=desired(type);
                 if(desired!=null) registry.updateDesiredState(target,desired,command.expectedVersion());
-                AgentCommandResult result=lifecycle.operate(target,type,command.requestedBy(),command.reason());
+                AgentCommandResult result=lifecycle.operate(
+                        target,
+                        type,
+                        command.requestedBy(),
+                        command.approvedBy(),
+                        command.approvalRequestId(),
+                        command.reason());
                 commands.recordAttempt(command.commandId(),attempt,target,"AGENT_"+type,result.state(),result.message());
                 if(result.state()==CommandState.SUCCEEDED && "ROLLBACK".equals(type)) registry.updateDesiredState(target,DesiredState.RUNNING,0L);
                 summary.append(target).append('=').append(result.state()).append(';');

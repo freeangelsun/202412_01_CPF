@@ -66,7 +66,7 @@ FORBIDDEN_PATTERNS = [
     (re.compile(r"Class\.forName\s*\("), "unapproved dynamic class loading"),
     (re.compile(r"readAllBytes\s*\("), "unbounded byte-array read"),
     (re.compile(r"Runtime\.getRuntime\(\)\.exec"), "uncontrolled process execution"),
-    (re.compile(r"-ExecutionPolicy\s+Bypass", re.I), "PowerShell policy bypass"),
+    (re.compile(r"-ExecutionPolicy(?:\s+|[\"']?\s*,\s*[\"']?)Bypass\b", re.I), "PowerShell policy bypass"),
 ]
 ALLOW_PATTERN_PATHS = {
     "cpf-tools/scripts/verify-cpf-qa32-primary-engines.py",

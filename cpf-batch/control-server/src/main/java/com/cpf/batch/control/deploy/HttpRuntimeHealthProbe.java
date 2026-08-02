@@ -3,6 +3,7 @@ package com.cpf.batch.control.deploy;
 import com.cpf.batch.api.DeploymentCellManifest;
 import com.cpf.batch.spi.RuntimeHealthProbe;
 import java.net.URI;
+import java.net.http.HttpClient;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Objects;
@@ -36,8 +37,11 @@ public final class HttpRuntimeHealthProbe implements RuntimeHealthProbe {
         int timeout = Math.max(1, Math.min(timeoutSeconds, 120));
         try {
             URI endpoint = endpoint(instance, path);
-            JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory();
-            requestFactory.setConnectTimeout(Duration.ofSeconds(Math.min(timeout, 20)));
+            HttpClient httpClient = HttpClient.newBuilder()
+                    .connectTimeout(Duration.ofSeconds(Math.min(timeout, 20)))
+                    .followRedirects(HttpClient.Redirect.NEVER)
+                    .build();
+            JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(httpClient);
             requestFactory.setReadTimeout(Duration.ofSeconds(timeout));
             RestClient client = builder.clone().requestFactory(requestFactory).build();
             Map<?, ?> body = client.get().uri(endpoint).retrieve().body(Map.class);

@@ -87,16 +87,16 @@
         <div class="actions">
           <button type="button" v-for="tab in transactionGroupDetailTabs" :key="tab" @click="transactionGroupDetailTab = tab">{{ tab }}</button>
         </div>
-        <pre class="detail">{{ activeTransactionGroupPayload }}</pre>
+        <CpfStructuredData class="detail" :value="activeTransactionGroupPayload" />
       </section>
 </template>
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import { admConsoleMixin } from "../../app/admConsoleMixin";
+import { useAdmConsolePage } from "../../app/useAdmConsolePage";
 
 export default defineComponent({
   name: "TransactionGroupsPage",
-  mixins: [admConsoleMixin]
+  setup() { return useAdmConsolePage(); }
 });
 </script>

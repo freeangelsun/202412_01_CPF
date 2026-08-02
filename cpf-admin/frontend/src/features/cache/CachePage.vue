@@ -9,7 +9,7 @@
     <button v-if="canButton('CACHE_EVICT_NAMESPACE','CACHE')" type="button" @click="evictCacheNamespace">Namespace 제거</button>
     <button v-if="canButton('CACHE_RECONCILE','CACHE')" type="button" @click="reconcileCache">Durable 재조정</button>
   </div>
-  <pre class="detail">{{pretty(cacheResult)}}</pre>
+  <CpfStructuredData class="detail" :value="cacheResult" />
 </section>
 </template>
 <script lang="ts">

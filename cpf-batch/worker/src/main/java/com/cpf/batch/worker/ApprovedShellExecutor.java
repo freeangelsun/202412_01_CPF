@@ -28,6 +28,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Component
 public class ApprovedShellExecutor {
+    private static final int MAX_STDIN_JSON_BYTES = 1_048_576;
     private final WorkerOperationalProperties properties;
     private final ObjectMapper objectMapper;
     private volatile List<ScriptArtifactVerifier> artifactVerifiers = List.of(new Sha256ScriptArtifactVerifier());
@@ -71,6 +72,7 @@ public class ApprovedShellExecutor {
         }
 
         Path parameterFile = null;
+        byte[] stdinJson = null;
         Instant startedAt = Instant.now();
         try {
             List<String> command = buildCommand(executable, definition, safeParameters);
@@ -78,14 +80,16 @@ public class ApprovedShellExecutor {
             configureWorkingDirectory(builder, definition);
             configureEnvironment(builder, definition);
 
-            if (!"COMMAND_LINE".equalsIgnoreCase(definition.getParameterDeliveryMode())) {
+            if ("STDIN_JSON".equalsIgnoreCase(definition.getParameterDeliveryMode())) {
+                stdinJson = serializeParametersForStdin(safeParameters);
+            } else if (!"COMMAND_LINE".equalsIgnoreCase(definition.getParameterDeliveryMode())) {
                 parameterFile = writeParameterFile(safeParameters);
                 builder.environment().put("CPF_BATCH_PARAMETER_FILE", parameterFile.toString());
             }
 
             Process process = builder.start();
-            if ("STDIN_JSON".equalsIgnoreCase(definition.getParameterDeliveryMode())) {
-                writeParametersToStdin(process, safeParameters);
+            if (stdinJson != null) {
+                writeParametersToStdin(process, stdinJson);
             } else {
                 process.getOutputStream().close();
             }
@@ -130,6 +134,9 @@ public class ApprovedShellExecutor {
                     artifact.artifactHash(),
                     unknownResult);
         } finally {
+            if (stdinJson != null) {
+                Arrays.fill(stdinJson, (byte) 0);
+            }
             secureDelete(parameterFile);
         }
     }
@@ -208,9 +215,18 @@ public class ApprovedShellExecutor {
         return file;
     }
 
-    private void writeParametersToStdin(Process process, Map<String, Object> parameters) throws IOException {
+    private byte[] serializeParametersForStdin(Map<String, Object> parameters) throws IOException {
+        byte[] serialized = objectMapper.writeValueAsBytes(parameters);
+        if (serialized.length > MAX_STDIN_JSON_BYTES) {
+            Arrays.fill(serialized, (byte) 0);
+            throw new SecurityException("STDIN_JSON parameter payload exceeds the approved byte limit");
+        }
+        return serialized;
+    }
+
+    private static void writeParametersToStdin(Process process, byte[] serialized) throws IOException {
         try (OutputStream output = process.getOutputStream()) {
-            objectMapper.writeValue(output, parameters);
+            output.write(serialized);
             output.write('\n');
             output.flush();
         }

@@ -102,11 +102,11 @@ foreach ($ownershipFile in $ownershipFiles) {
         New-Item -ItemType Directory -Force -Path (Split-Path $tempVendor -Parent) | Out-Null
         Copy-Item -LiteralPath (Join-Path $Root "cpf-tools/db/vendor") -Destination $tempVendor -Recurse -Force
 
-        # 제품 루트에서 생성했을 때와 create-domain-result.json까지 byte-equivalent해야 하므로
-        # 격리 Root의 직접 하위에 동일 projectName으로 생성합니다.
+        # 제품 루트와 동일한 module-relative Source를 비교하되 Generator 실행 원장은
+        # 격리 Root의 build/reports에만 생성되어 제품 Module 비교 대상에서 제외됩니다.
         $tempOutput = Join-Path $tempRoot ([string]$ownership.projectName)
         $arguments = @(
-            "-NoProfile","-ExecutionPolicy","Bypass","-File",$generator,
+            "-NoProfile","-File",$generator,
             "-Root",$tempRoot,
             "-OutputDir",$tempOutput,
             "-DomainName",$domain.domainName,
@@ -162,7 +162,7 @@ foreach ($ownershipFile in $ownershipFiles) {
             if ($userModified -and -not $AllowModifiedGeneratorFiles) {
                 throw "Generator에서 제거된 파일에 사용자 변경이 있어 자동 삭제하지 않습니다. domain=$($domain.domainName) path=$oldPath"
             }
-            $drifts.Add([ordered]@{
+            $drifts.Add([pscustomobject][ordered]@{
                 domain = $domain.domainName
                 systemCode = $domain.systemCode
                 action = 'DELETE'
@@ -191,7 +191,7 @@ foreach ($ownershipFile in $ownershipFiles) {
                 throw "Generator-owned 경로 충돌/사용자 변경이 있어 자동 덮어쓰지 않습니다. domain=$($domain.domainName) path=$relative"
             }
 
-            $drifts.Add([ordered]@{
+            $drifts.Add([pscustomobject][ordered]@{
                 domain = $domain.domainName
                 systemCode = $domain.systemCode
                 action = $(if ($targetHash) { 'UPDATE' } else { 'CREATE' })

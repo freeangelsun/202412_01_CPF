@@ -149,6 +149,26 @@
       "requiredColumns": ["job_pack_id", "job_id"],
       "reason": "Job entries are a cascade-owned projection of their immutable job-pack manifest."
     },
+    "cpf_batch_approved_launch": {
+      "policyId": "semantic-lifecycle",
+      "requiredColumns": ["approved_by", "approved_at", "effective_from"],
+      "reason": "Approver, approval time and bounded effective period are the authoritative launch-approval lifecycle."
+    },
+    "cpf_batch_execution_control": {
+      "policyId": "semantic-lifecycle",
+      "requiredColumns": ["operator_id", "created_at", "updated_at"],
+      "reason": "The approved operator and control-state timestamps are the authoritative execution lifecycle."
+    },
+    "cpf_batch_execution_link": {
+      "policyId": "projection",
+      "requiredColumns": ["cpf_execution_id", "link_key", "updated_at"],
+      "reason": "Spring Batch metadata links are fencing-protected projections owned by the execution control ledger."
+    },
+    "cpf_batch_execution_epoch": {
+      "policyId": "lease",
+      "requiredColumns": ["job_id", "current_fencing_token", "updated_at"],
+      "reason": "The current fencing token and update time serialize execution ownership per job."
+    },
     "cpf_cache_invalidation_checkpoint": {
       "policyId": "semantic-lifecycle",
       "requiredColumns": ["consumer_id", "last_event_id", "updated_at"],

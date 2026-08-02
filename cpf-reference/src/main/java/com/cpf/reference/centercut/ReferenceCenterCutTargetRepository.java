@@ -4,6 +4,9 @@ import com.cpf.core.spi.centercut.CenterCutTargetProvider;
 import com.cpf.core.api.centercut.CpfCenterCutResult;
 import com.cpf.core.api.centercut.CpfCenterCutStatus;
 import com.cpf.core.api.centercut.CpfCenterCutTarget;
+import com.cpf.core.api.database.CpfVendorSqlCatalog;
+import com.cpf.core.api.database.CpfVendorSqlCatalogProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -26,41 +29,35 @@ import java.util.Map;
 @Repository("refCenterCutTargetProvider")
 public class ReferenceCenterCutTargetRepository implements CenterCutTargetProvider {
     private final JdbcTemplate jdbcTemplate;
+    private final Statements statements;
 
-    public ReferenceCenterCutTargetRepository(@Qualifier("refJdbcTemplate") JdbcTemplate jdbcTemplate) {
+    @Autowired
+    public ReferenceCenterCutTargetRepository(
+            @Qualifier("refJdbcTemplate") JdbcTemplate jdbcTemplate,
+            CpfVendorSqlCatalogProvider sqlCatalogProvider) {
+        this(jdbcTemplate, sqlCatalogProvider.forModule("ref"));
+    }
+
+    ReferenceCenterCutTargetRepository(
+            JdbcTemplate jdbcTemplate,
+            CpfVendorSqlCatalog sqlCatalog) {
         this.jdbcTemplate = jdbcTemplate;
+        this.statements = Statements.load(sqlCatalog);
     }
 
     @Override
     public List<CpfCenterCutTarget> findReadyTargets(String centerCutJobId, int limit) {
-        String sql = """
-                SELECT target_id, center_cut_job_id, business_key, business_date, target_payload,
-                       transaction_id, parent_segment_id, transaction_segment_id, retry_count, status_code
-                FROM ref_center_cut_sample_target
-                WHERE center_cut_job_id = ?
-                  AND status_code IN ('READY', 'RETRY_REQUESTED')
-                  AND use_yn = 'Y'
-                ORDER BY business_date ASC, target_id ASC
-                LIMIT ?
-                """;
-        return jdbcTemplate.query(sql, (rs, rowNum) -> mapTarget(rs), centerCutJobId, Math.max(1, limit));
+        return jdbcTemplate.query(
+                statements.findReadyTargets(),
+                (rs, rowNum) -> mapTarget(rs),
+                centerCutJobId,
+                Math.max(1, limit));
     }
 
     @Override
     public void markRunning(CpfCenterCutTarget target) {
-        int updated = jdbcTemplate.update("""
-                UPDATE ref_center_cut_sample_target
-                SET status_code = 'RUNNING',
-                    transaction_id = ?,
-                    parent_segment_id = ?,
-                    transaction_segment_id = ?,
-                    started_at = CURRENT_TIMESTAMP,
-                    updated_by = 'REF_CENTER_CUT',
-                    updated_at = CURRENT_TIMESTAMP
-                WHERE target_id = ?
-                  AND center_cut_job_id = ?
-                  AND status_code IN ('READY', 'RETRY_REQUESTED')
-                """,
+        int updated = jdbcTemplate.update(
+                statements.markRunning(),
                 target.transactionId(),
                 target.parentSegmentId(),
                 target.transactionSegmentId(),
@@ -79,19 +76,8 @@ public class ReferenceCenterCutTargetRepository implements CenterCutTargetProvid
                 ? result.transactionSegmentId()
                 : target.transactionSegmentId();
 
-        jdbcTemplate.update("""
-                UPDATE ref_center_cut_sample_target
-                SET status_code = ?,
-                    transaction_id = ?,
-                    parent_segment_id = ?,
-                    transaction_segment_id = ?,
-                    completed_at = CURRENT_TIMESTAMP,
-                    last_error_message = ?,
-                    updated_by = 'REF_CENTER_CUT',
-                    updated_at = CURRENT_TIMESTAMP
-                WHERE target_id = ?
-                  AND center_cut_job_id = ?
-                """,
+        jdbcTemplate.update(
+                statements.markResultTarget(),
                 statusCode,
                 target.transactionId(),
                 target.parentSegmentId(),
@@ -100,22 +86,8 @@ public class ReferenceCenterCutTargetRepository implements CenterCutTargetProvid
                 target.targetId(),
                 target.centerCutJobId());
 
-        jdbcTemplate.update("""
-                INSERT INTO ref_center_cut_sample_result (
-                    target_id, center_cut_job_id, business_key, result_status, result_payload,
-                    result_message, transaction_id, parent_segment_id, transaction_segment_id,
-                    created_by, updated_by
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'REF_CENTER_CUT', 'REF_CENTER_CUT')
-                ON DUPLICATE KEY UPDATE
-                    result_status = VALUES(result_status),
-                    result_payload = VALUES(result_payload),
-                    result_message = VALUES(result_message),
-                    transaction_id = VALUES(transaction_id),
-                    parent_segment_id = VALUES(parent_segment_id),
-                    transaction_segment_id = VALUES(transaction_segment_id),
-                    updated_by = VALUES(updated_by),
-                    updated_at = CURRENT_TIMESTAMP
-                """,
+        jdbcTemplate.update(
+                statements.upsertResult(),
                 target.targetId(),
                 target.centerCutJobId(),
                 target.businessKey(),
@@ -128,12 +100,8 @@ public class ReferenceCenterCutTargetRepository implements CenterCutTargetProvid
     }
 
     public Map<String, Long> countResultsByStatus(String centerCutJobId) {
-        return jdbcTemplate.query("""
-                        SELECT result_status, COUNT(*) AS result_count
-                        FROM ref_center_cut_sample_result
-                        WHERE center_cut_job_id = ?
-                        GROUP BY result_status
-                        """,
+        return jdbcTemplate.query(
+                statements.countResultsByStatus(),
                 rs -> {
                     Map<String, Long> counts = new java.util.LinkedHashMap<>();
                     while (rs.next()) {
@@ -145,28 +113,16 @@ public class ReferenceCenterCutTargetRepository implements CenterCutTargetProvid
     }
 
     public List<Map<String, Object>> findResultSnapshots(String centerCutJobId) {
-        return jdbcTemplate.queryForList("""
-                SELECT target_id, business_key, result_status, result_message,
-                       transaction_id, parent_segment_id, transaction_segment_id
-                FROM ref_center_cut_sample_result
-                WHERE center_cut_job_id = ?
-                ORDER BY target_id
-                """, centerCutJobId);
+        return jdbcTemplate.queryForList(statements.findResultSnapshots(), centerCutJobId);
     }
 
     public void resetSampleTargetsForSmoke() {
-        jdbcTemplate.update("DELETE FROM ref_center_cut_sample_result WHERE center_cut_job_id = ?", ReferenceCenterCutConstants.JOB_ID);
-        jdbcTemplate.update("""
-                UPDATE ref_center_cut_sample_target
-                SET status_code = 'READY',
-                    transaction_segment_id = NULL,
-                    started_at = NULL,
-                    completed_at = NULL,
-                    last_error_message = NULL,
-                    updated_by = 'REF_CENTER_CUT',
-                    updated_at = CURRENT_TIMESTAMP
-                WHERE center_cut_job_id = ?
-                """, ReferenceCenterCutConstants.JOB_ID);
+        jdbcTemplate.update(
+                statements.deleteSmokeResults(),
+                ReferenceCenterCutConstants.JOB_ID);
+        jdbcTemplate.update(
+                statements.resetSmokeTargets(),
+                ReferenceCenterCutConstants.JOB_ID);
     }
 
     private CpfCenterCutTarget mapTarget(ResultSet rs) throws SQLException {
@@ -186,5 +142,27 @@ public class ReferenceCenterCutTargetRepository implements CenterCutTargetProvid
 
     private boolean hasText(String value) {
         return value != null && !value.isBlank();
+    }
+
+    record Statements(
+            String findReadyTargets,
+            String markRunning,
+            String markResultTarget,
+            String upsertResult,
+            String countResultsByStatus,
+            String findResultSnapshots,
+            String deleteSmokeResults,
+            String resetSmokeTargets) {
+        static Statements load(CpfVendorSqlCatalog catalog) {
+            return new Statements(
+                    catalog.required("centercut-find-ready-targets"),
+                    catalog.required("centercut-mark-running"),
+                    catalog.required("centercut-mark-result-target"),
+                    catalog.required("centercut-upsert-result"),
+                    catalog.required("centercut-count-results-by-status"),
+                    catalog.required("centercut-find-result-snapshots"),
+                    catalog.required("centercut-delete-smoke-results"),
+                    catalog.required("centercut-reset-smoke-targets"));
+        }
     }
 }

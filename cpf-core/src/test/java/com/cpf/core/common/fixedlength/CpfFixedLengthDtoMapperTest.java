@@ -11,8 +11,9 @@ import java.nio.charset.Charset;
 import java.time.LocalDate;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-class CpfFixedLengthDtoMapperTest {
+public class CpfFixedLengthDtoMapperTest {
     private final DefaultCpfFixedLengthDtoMapper mapper = new DefaultCpfFixedLengthDtoMapper();
 
     @Test
@@ -53,7 +54,25 @@ class CpfFixedLengthDtoMapperTest {
         assertThat(restored).isEqualTo(source);
     }
 
-    private record EducationTelegram(
+    @Test
+    void mapsEncapsulatedBeanThroughPublicAccessorsWithoutForcedReflection() {
+        BeanTelegram source = new BeanTelegram();
+        source.setCode("A001");
+
+        CpfFixedLengthWriteResult written = mapper.writeFromDto(source);
+        BeanTelegram restored = mapper.parseToDto(written.message(), BeanTelegram.class);
+
+        assertThat(restored.getCode()).isEqualTo("A001");
+    }
+
+    @Test
+    void rejectsNonPublicDtoTypeInsteadOfElevatingReflectionAccess() {
+        assertThatThrownBy(() -> mapper.layoutFromDto(PrivateTelegram.class))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("public");
+    }
+
+    public record EducationTelegram(
             @CpfFixedLengthField(order = 1, length = 10, required = true)
             String memberNo,
             @CpfFixedLengthField(order = 2, length = 5, type = CpfFixedLengthFieldType.NUMBER, required = true)
@@ -71,10 +90,31 @@ class CpfFixedLengthDtoMapperTest {
             LocalDate baseDate) {
     }
 
-    private record EucKrTelegram(
+    public record EucKrTelegram(
             @CpfFixedLengthField(order = 1, length = 6, required = true)
             String name,
             @CpfFixedLengthField(order = 2, length = 4, required = true)
+            String code) {
+    }
+
+    public static final class BeanTelegram {
+        @CpfFixedLengthField(order = 1, length = 4, required = true)
+        private String code;
+
+        public BeanTelegram() {
+        }
+
+        public String getCode() {
+            return code;
+        }
+
+        public void setCode(String code) {
+            this.code = code;
+        }
+    }
+
+    private record PrivateTelegram(
+            @CpfFixedLengthField(order = 1, length = 4, required = true)
             String code) {
     }
 }

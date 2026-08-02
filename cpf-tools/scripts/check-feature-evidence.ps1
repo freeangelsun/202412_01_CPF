@@ -38,10 +38,22 @@ $settingsPath = Join-Path $Root "settings.gradle"
 $settings = if (Test-Path $settingsPath) {
     [System.IO.File]::ReadAllText($settingsPath, [System.Text.Encoding]::UTF8)
 } else { "" }
+$starterRoot = Join-Path $Root 'cpf-starters'
+if (-not (Test-Path -LiteralPath $starterRoot -PathType Container)) {
+    throw "Canonical Starter root is missing: $starterRoot"
+}
+$starterProjects = @(Get-ChildItem -LiteralPath $starterRoot -Directory |
+    Where-Object { Test-Path -LiteralPath (Join-Path $_.FullName 'build.gradle') -PathType Leaf } |
+    Sort-Object Name |
+    ForEach-Object { "cpf-starter-$($_.Name)" })
+if ($starterProjects.Count -eq 0) {
+    throw "Canonical Starter root has no Gradle projects: $starterRoot"
+}
+
 $modules = @(
     "cpf-core", "cpf-common", "cpf-admin", "cpf-biz-admin",
     "cpf-gateway", "cpf-reference"
-)
+) + $starterProjects
 $generatedDomainManifests = @(
     Get-ChildItem -LiteralPath $Root -Directory -Filter "cpf-*" |
         ForEach-Object {

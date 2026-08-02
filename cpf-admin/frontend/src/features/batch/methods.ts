@@ -1,4 +1,4 @@
-export const batchMethods: Record<string, any> = {
+export const batchMethods = {
   async loadStandardExecutions() {
         const params = this.buildParams(this.standardExecutionSearch);
         params.delete("selectedId");
@@ -273,4 +273,4 @@ export const batchMethods: Record<string, any> = {
         });
         this.setMessage("배치 스케줄러 1회 실행을 요청했습니다.");
       }
-};
+} satisfies Record<string, any>;

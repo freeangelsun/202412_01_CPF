@@ -18,6 +18,6 @@ public class CpfScgPrimaryRouteConfiguration {
                 .and(path("/actuator/**").negate())
                 .and(path("/internal/**").negate())
                 .and(path("/api/gateway/control/**").negate());
-        return RouterFunctions.route("cpf-scg-primary").route(business, handler).build();
+        return RouterFunctions.route(business, handler);
     }
 }

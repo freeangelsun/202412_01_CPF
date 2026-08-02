@@ -1,0 +1,8 @@
+﻿profile_id,status,purpose,resolved_leaf_starter_candidates,explicit_exclusions,selection_owner,verification
+MINIMAL_CONTRACT_CONSUMER,PROPOSED,Spring Boot 없는 계약·SPI Consumer,cpf-core direct dependency,모든 Starter와 Boot Runtime,Architecture/Generator,non-Boot fresh consumer compile/runtime classpath
+MINIMAL_BOOT_DOMAIN,PROPOSED,CPF Spring Boot 최소 Domain,cpf-starter-base,Web/Security/Persistence/Messaging/Cache/OpenAPI 자동 포함 금지,Generator/Base Starter,fresh generation + dependency/archive/startup footprint
+DOMAIN_WEB_API,PROPOSED,REST API와 문서 제공,cpf-starter-base|cpf-starter-webmvc|cpf-starter-openapi-webmvc,Security/Persistence 자동 포함 금지,Generator/Web,web/no-web variant
+DOMAIN_SECURE_RESOURCE_API,PROPOSED,Stateless 보호 API,cpf-starter-base|cpf-starter-webmvc|cpf-starter-security-resource-server|cpf-starter-observability,Domain Permission은 Owner 소유,Generator/Security,JWT negative + no-session variant
+DOMAIN_EVENT_KAFKA,PROPOSED,Kafka 기반 비동기 Domain,cpf-starter-base|cpf-starter-messaging-kafka|cpf-starter-observability,Outbox/JDBC 자동 포함 금지,Generator/Messaging,broker fault + duplicate/reconcile
+DOMAIN_CACHE_REDIS,PROPOSED,Redis Cache/Lock/Invalidation,cpf-starter-base|cpf-starter-cache-redis|cpf-starter-secret,고객 SecretProvider 구현 자동 포함 금지,Generator/Cache,redis/no-cache + secret outage
+BROWSER_SESSION_RUNTIME,PROPOSED,Browser Session과 JDBC Vault,cpf-starter-base|cpf-starter-security-session-jdbc|cpf-starter-observability,ADM/BZA Route/Permission 포함 금지,Security,session/csrf/rotation + route negative

@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { composeAdmFeatureActions } from "./admFeatureActionRegistry";
 import { useAdmSessionStore } from "./admSessionStore";
-import { getAdmAuthSession } from "../generated/cpf-api";
+import { admAuthMe } from "../generated/cpf-api";
 import { createAdmState } from "../state/createAdmState";
 import { accessMethods } from "../app/methods/accessMethods";
 import { batchMethods } from "../features/batch/methods";
@@ -15,9 +15,9 @@ import { routeClosureMethods } from "../app/methods/routeClosureMethods";
 const sessionActions = {
   async restoreServerSession(this: any) {
     try {
-      const data: any = await getAdmAuthSession<any>();
+      const data: any = await admAuthMe<any>();
       const session = useAdmSessionStore();
-      session.replace({ operator: data.operator || {}, menus: data.menus || [], buttonIds: data.buttonIds || [] });
+      session.replace({ operator: data.operator || (data.operatorId ? data : {}), menus: data.menus || [], buttonIds: data.buttonIds || [] });
       this.currentOperator = session.operator;
       this.authorizedMenus = session.menus;
       this.authorizedButtons = session.buttonIds;
@@ -52,9 +52,10 @@ const actions = composeAdmFeatureActions([
   { owner: "reference", actions: referenceMethods },
   { owner: "route-closure", actions: routeClosureMethods },
   { owner: "session", actions: sessionActions }
-]);
+ ] as const);
 
-export const admConsoleActionNames = Object.freeze(Object.keys(actions));
+export type AdmConsoleActions = typeof actions;
+export const admConsoleActionNames = Object.freeze(Object.keys(actions) as Array<keyof AdmConsoleActions>);
 
 export const useAdmConsoleStore = defineStore("adm-console", {
   state: () => ({ ...createAdmState(), sessionLoaded: false }),
@@ -66,7 +67,7 @@ export const useAdmConsoleStore = defineStore("adm-console", {
       const allowed = new Set(state.authorizedMenus.map((menu: any) => menu.menuId || menu.id));
       return state.menus.filter((menu: any) => allowed.has(menu.menuId));
     },
-    channelItems: state => Object.values(state.channelSnapshot?.channels || {}),
+    channelItems: (state): any[] => Object.values(state.channelSnapshot?.channels || {}) as any[],
     sortedLogs(state): any[] {
       const items = [...state.logs];
       const { key, direction } = state.logSort;
@@ -119,5 +120,5 @@ export const useAdmConsoleStore = defineStore("adm-console", {
       return this.pretty(tabMap[state.logDetailTab] || {});
     }
   },
-  actions: actions as any
+  actions: { ...actions }
 });

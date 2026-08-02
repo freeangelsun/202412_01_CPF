@@ -120,8 +120,8 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import { admApi } from "../../shared/cpfApi";
-import { admConsoleMixin } from "../../app/admConsoleMixin";
+import { admApi, admInvokeOperation } from "../../shared/cpfApi";
+import { useAdmConsolePage } from "../../app/useAdmConsolePage";
 import StructuredDetails from "../../components/StructuredDetails.vue";
 
 type Json = Record<string, any>;
@@ -129,7 +129,7 @@ type Json = Record<string, any>;
 export default defineComponent({
   name: "RuntimeControlPage",
   components: { StructuredDetails },
-  mixins: [admConsoleMixin],
+  setup() { return useAdmConsolePage(); },
   data() {
     return {
       busy: false,
@@ -192,7 +192,7 @@ export default defineComponent({
     async verifyAudit(){ await this.run(async()=>{if(!this.lookup.changeId)throw new Error("Change ID가 필요합니다.");this.auditVerification=await admApi(`/adm/api/runtime-control/changes/${encodeURIComponent(this.lookup.changeId)}/audit/verify`);}); },
     async cancelChange(){ await this.controlChange("cancel"); },
     async rollbackChange(){ await this.controlChange("rollback"); },
-    async controlChange(action:string){ await this.run(async()=>{if(!this.lookup.changeId)throw new Error("Change ID가 필요합니다.");if(!this.control.reason.trim())throw new Error("통제 사유가 필요합니다.");this.change=await admApi(`/adm/api/runtime-control/changes/${encodeURIComponent(this.lookup.changeId)}/${action}`,{method:"POST",body:JSON.stringify(this.control)});this.control.operationId=crypto.randomUUID();await this.loadOverview();}); },
+    async controlChange(action:"cancel"|"rollback"){ await this.run(async()=>{if(!this.lookup.changeId)throw new Error("Change ID가 필요합니다.");if(!this.control.reason.trim())throw new Error("통제 사유가 필요합니다.");const operationId=action==="cancel"?"admRuntimeControlCancelChange":"admRuntimeControlRollbackChange";this.change=await admInvokeOperation<Json>(operationId,{path:{changeId:this.lookup.changeId},body:this.control});this.control.operationId=crypto.randomUUID();await this.loadOverview();}); },
     async loadGroup(){ await this.run(async()=>{if(!this.groupForm.groupId)throw new Error("Group ID가 필요합니다.");this.group=await admApi(`/adm/api/runtime-control/groups/${encodeURIComponent(this.groupForm.groupId)}`);this.groupForm.groupName=this.group.groupName||"";this.groupForm.parentGroupId=this.group.parentGroupId||"";this.groupForm.environment=this.group.environment||"";this.groupForm.description=this.group.description||"";this.groupForm.expectedVersion=Number(this.group.rowVersion);this.groupForm.active=Boolean(this.group.active);}); },
     async saveGroup(){ await this.run(async()=>{const requestedBy=this.operatorId();if(!requestedBy)throw new Error("인증된 운영자 정보를 확인할 수 없습니다.");if(!this.groupForm.groupId||!this.groupForm.groupName||!this.groupForm.environment||!this.groupForm.reason)throw new Error("Group ID, 이름, 환경, 사유가 필요합니다.");this.group=await admApi("/adm/api/runtime-control/groups",{method:"POST",body:JSON.stringify({...this.groupForm,parentGroupId:this.groupForm.parentGroupId||null,requestedBy})});this.groupForm.expectedVersion=Number(this.group.rowVersion);this.groupForm.operationId=crypto.randomUUID();}); },
     async changeGroupMember(){ await this.run(async()=>{const requestedBy=this.operatorId();if(!requestedBy)throw new Error("인증된 운영자 정보를 확인할 수 없습니다.");if(!this.groupForm.groupId||!this.memberForm.instanceId||!this.memberForm.reason)throw new Error("Group ID, Instance ID, 사유가 필요합니다.");this.group=await admApi(`/adm/api/runtime-control/groups/${encodeURIComponent(this.groupForm.groupId)}/members`,{method:"POST",body:JSON.stringify({...this.memberForm,groupId:this.groupForm.groupId,requestedBy})});this.groupForm.expectedVersion=Number(this.group.rowVersion);this.memberForm.operationId=crypto.randomUUID();}); },

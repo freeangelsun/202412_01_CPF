@@ -29,7 +29,7 @@ foreach($rel in $required){ if(!(Test-Path (Join-Path $Root $rel))){ Add-Failure
 if($failures.Count -eq 0){ Pass 'Required public boundary contracts exist' }
 
 # Generated business modules must not consume cpf-core internal implementations.
-$platform = @('cpf-core','cpf-common','cpf-admin','cpf-biz-admin','cpf-batch','cpf-gateway','cpf-reference','cpf-tools','cpf-docs','deploy')
+$platform = @('cpf-core','cpf-common','cpf-admin','cpf-biz-admin','cpf-batch','cpf-gateway','cpf-reference','cpf-starters','cpf-tools','cpf-docs','deploy')
 $modules = Get-ChildItem $Root -Directory -Filter 'cpf-*' | Where-Object { $platform -notcontains $_.Name }
 foreach($module in $modules){
     $src = Join-Path $module.FullName 'src\main\java'
@@ -38,6 +38,35 @@ foreach($module in $modules){
     if($bad){
         Add-Failure ("$($module.Name) imports cpf-core internal classes:`n" + (($bad | ForEach-Object {"  $($_.Path):$($_.LineNumber) $($_.Line.Trim())"}) -join "`n"))
     } else { Pass "$($module.Name) generated-domain boundary" }
+}
+
+# Starter는 Generated Domain이 아니라 선택 Runtime 제품 Owner다. 각 하위 제품이
+# cpf-core 공개 API/SPI 대신 내부 구현을 직접 소비하면 독립 Artifact 경계가 깨진다.
+$starterRoot = Join-Path $Root 'cpf-starters'
+if(!(Test-Path -LiteralPath $starterRoot -PathType Container)){
+    Add-Failure "Canonical Starter root is missing: $starterRoot"
+} else {
+    $starterModules = @(Get-ChildItem -LiteralPath $starterRoot -Directory |
+        Where-Object { Test-Path -LiteralPath (Join-Path $_.FullName 'build.gradle') -PathType Leaf } |
+        Sort-Object Name)
+    if($starterModules.Count -eq 0){
+        Add-Failure "Canonical Starter root has no Gradle projects: $starterRoot"
+    }
+    foreach($starter in $starterModules){
+        $src = Join-Path $starter.FullName 'src\main\java'
+        if(!(Test-Path -LiteralPath $src -PathType Container)){
+            Add-Failure "Starter main source root is missing: cpf-starters/$($starter.Name)/src/main/java"
+            continue
+        }
+        $bad = Get-ChildItem -LiteralPath $src -Recurse -File -Filter '*.java' |
+            Select-String -Pattern '^\s*import\s+com\.cpf\.core\.common\.'
+        if($bad){
+            Add-Failure ("cpf-starters/$($starter.Name) imports cpf-core internal classes:`n" +
+                (($bad | ForEach-Object {"  $($_.Path):$($_.LineNumber) $($_.Line.Trim())"}) -join "`n"))
+        } else {
+            Pass "cpf-starters/$($starter.Name) public api/spi boundary"
+        }
+    }
 }
 
 # Reference EDU may demonstrate framework internals only in explicitly internal packages; public EDU controllers must not.

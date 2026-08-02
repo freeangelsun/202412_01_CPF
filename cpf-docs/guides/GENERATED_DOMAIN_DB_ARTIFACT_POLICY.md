@@ -7,7 +7,7 @@ EXS is a Generated Business Domain. CPF does not ship a fixed `cpf-external` mod
 When an external business domain is required:
 
 ```powershell
-pwsh -ExecutionPolicy Bypass -File .\cpf-tools\scripts\create-domain.ps1 `
+pwsh -NoProfile -File .\cpf-tools\scripts\create-domain.ps1 `
   -DomainName external -SystemCode EXS -Database Y -DatabaseVendor mariadb -Apply
 ```
 
@@ -20,7 +20,7 @@ The result must have exactly the same generated structure as PAY/INS/CRM created
 Whenever Schema / Column / Index / FK / Seed / Migration / Vendor SQL / MyBatis SQL metadata changes:
 
 ```powershell
-pwsh -ExecutionPolicy Bypass -File .\cpf-tools\scripts\sync-database-artifacts.ps1
+pwsh -NoProfile -File .\cpf-tools\scripts\sync-database-artifacts.ps1
 ```
 
 This regenerates installation bundles and `database-schema-manifest.json`, then runs drift/integrity gates.

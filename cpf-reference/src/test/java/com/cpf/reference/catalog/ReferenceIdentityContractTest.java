@@ -2,8 +2,10 @@ package com.cpf.reference.catalog;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.core.env.StandardEnvironment;
+import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,27 +27,22 @@ class ReferenceIdentityContractTest {
         scanner.setEnvironment(environment);
         scanner.addIncludeFilter(new AnnotationTypeFilter(RestController.class));
 
-        List<Class<?>> controllers = scanner.findCandidateComponents("com.cpf.reference").stream()
-                .<Class<?>>map(candidate -> loadClass(candidate.getBeanClassName()))
+        List<ControllerContract> controllers = scanner.findCandidateComponents("com.cpf.reference").stream()
+                .map(ReferenceIdentityContractTest::contract)
                 .toList();
 
         assertThat(controllers).hasSizeGreaterThanOrEqualTo(20);
-        for (Class<?> controller : controllers) {
-            RequestMapping mapping = controller.getAnnotation(RequestMapping.class);
-            assertThat(mapping)
-                    .as("%s 클래스의 주제영역 경로", controller.getName())
-                    .isNotNull();
-            List<String> paths = Arrays.asList(mapping.value());
-            assertThat(paths)
-                    .as("%s 클래스의 canonical 경로", controller.getName())
+        for (ControllerContract controller : controllers) {
+            assertThat(controller.paths())
+                    .as("%s 클래스의 canonical 경로", controller.className())
                     .anyMatch(path -> path.startsWith("/api/reference"));
-            assertThat(paths)
-                    .as("%s 클래스의 legacy 호환 경로", controller.getName())
+            assertThat(controller.paths())
+                    .as("%s 클래스의 legacy 호환 경로", controller.className())
                     .anyMatch(path -> path.startsWith("/reference/edu"));
-
-            Tag tag = controller.getAnnotation(Tag.class);
-            assertThat(tag).as("%s 클래스의 OpenAPI tag", controller.getName()).isNotNull();
-            assertThat(tag.name()).doesNotContain("REF-EDU");
+            assertThat(controller.tagName())
+                    .as("%s 클래스의 OpenAPI tag", controller.className())
+                    .isNotBlank()
+                    .doesNotContain("REF-EDU");
         }
     }
 
@@ -54,11 +51,21 @@ class ReferenceIdentityContractTest {
         assertThat(ReferenceIdentityContractTest.class.getPackageName()).doesNotContain(".edu.");
     }
 
-    private static Class<?> loadClass(String className) {
-        try {
-            return Class.forName(className);
-        } catch (ClassNotFoundException exception) {
-            throw new IllegalStateException("REF Controller를 불러오지 못했습니다: " + className, exception);
+    private static ControllerContract contract(org.springframework.beans.factory.config.BeanDefinition candidate) {
+        if (!(candidate instanceof AnnotatedBeanDefinition annotated)) {
+            throw new IllegalStateException("REF Controller metadata를 읽을 수 없습니다: " + candidate.getBeanClassName());
         }
+        AnnotationMetadata metadata = annotated.getMetadata();
+        var requestMapping = metadata.getAnnotations().get(RequestMapping.class);
+        var tag = metadata.getAnnotations().get(Tag.class);
+        if (!requestMapping.isPresent() || !tag.isPresent()) {
+            throw new IllegalStateException("REF Controller identity annotation이 없습니다: " + metadata.getClassName());
+        }
+        return new ControllerContract(
+                metadata.getClassName(),
+                Arrays.asList(requestMapping.getStringArray("value")),
+                tag.getString("name"));
     }
+
+    private record ControllerContract(String className, List<String> paths, String tagName) {}
 }

@@ -8,7 +8,7 @@
     <div class="cpf-toolbar">
       <input v-model.trim="serviceRegistrySearch.serviceId" placeholder="Service ID">
       <input v-model.trim="serviceRegistrySearch.endpointCode" placeholder="Endpoint">
-      <select v-model="serviceRegistrySearch.instanceStatus"><option value="">전체 상태</option><option v-for="s in instanceStatuses" :key="s">{{s}}</option></select>
+      <select v-model="serviceRegistrySearch.instanceStatus"><option value="">전체 상태</option><option v-for="s in capabilities.instanceStatuses" :key="s">{{s}}</option></select>
       <button class="primary" @click="loadServiceRegistry"><CpfIcon name="search"/> 조회</button>
     </div>
 

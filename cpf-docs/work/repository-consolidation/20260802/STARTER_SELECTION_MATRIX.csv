@@ -1,0 +1,22 @@
+﻿consumer_type,use_case,starter_or_candidate,selection_mode,starter_responsibility,owner_responsibility
+Generated Domain,REST API 제공,webmvc candidate,명시 선택,표준 Error/Header/Validation Servlet Adapter,도메인 업무 Controller/Service/SQL
+Generated Domain,MyBatis 사용,persistence-mybatis candidate,명시 선택,MyBatis Boot runtime/adapter,Schema/Migration/Mapper 업무 SQL
+Generated Domain,Kafka 이벤트 발행/소비,messaging-kafka,명시 선택,Broker adapter/auto config,업무 event schema와 transaction/outbox owner
+Generated Domain,RabbitMQ 필요,미결정,ADR 후 선택,AMQP adapter가 승인될 때만,승인 전 임의 dependency 추가 금지
+Generated Domain,Caffeine local cache,cache-caffeine candidate,명시 선택,provider/auto config,업무 cache key/TTL policy
+Generated Domain,Redis 분산 cache/lock,cache-redis candidate,명시 선택,connection/provider/invalidation,업무 consistency decision
+Generated Domain,Stateless JWT API,security-resource-server candidate,명시 선택,JWT validation/security chain,업무 permission rule
+ADM/BZA,Browser Session/JDBC vault,security-session-jdbc candidate,필요 시,session/csrf/cookie/vault,ADM/BZA route/permission/approval
+Gateway,외부 호출 보호,resilience,필요 시,circuit breaker/timeout,route ledger/trust boundary
+Gateway/Batch/Domain,관측 Export,observability,제품 정책에 따른 명시 선택,observation/otel exporter,업무 audit data
+Batch Worker,Kafka task channel,messaging-kafka,필요 시,broker integration,job/step/lease/fencing
+Any runtime,외부 Secret reference,secret,Provider 사용 시,registry/readiness/masking,고객 Provider implementation
+Any runtime,Feature Flag,featureflag,Provider+운영 모델 승인 시,OpenFeature integration,업무 flag lifecycle/approval
+Generated Domain,표준 REST API 묶음,DOMAIN_WEB_API profile,Generator Profile,webmvc+openapi Leaf로 명시 확장,Security/Persistence는 별도 선택
+Generated Domain,Stateless 보호 API 묶음,DOMAIN_SECURE_RESOURCE_API profile,Generator Profile,webmvc+resource-server+observability 후보,업무 Permission은 Domain Owner
+Generated Domain,Kafka 비동기 묶음,DOMAIN_EVENT_KAFKA profile,Generator Profile,messaging-kafka+observability 후보,Outbox/JDBC는 별도 선택
+External Consumer,하나의 Dependency로 승인된 웹 묶음,aggregate starter candidate,ADR 후 선택,Leaf Starter Dependency만 전이,고유 Bean/AutoConfiguration 금지
+Any Consumer,Starter Version 정렬,cpf-platform-bom,항상 권장,Version/Compatibility만 관리,Runtime Capability 활성화 아님
+Non-Boot Consumer,CPF 계약·SPI만 사용,cpf-core direct,Direct Library,Boot Runtime 없음,Starter Base 불필요
+Generated Domain,최소 Spring Boot Runtime,cpf-starter-base,Leaf/Base Starter,Core + 최소 Boot 조립,Web/DB/Messaging 자동 포함 금지
+Generated Domain,고객 업무 공통 사용,cpf-common,Optional Business Library,실제 업무 공통만,Base Starter가 전이하지 않음

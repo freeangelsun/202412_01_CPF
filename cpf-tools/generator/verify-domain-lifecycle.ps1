@@ -75,24 +75,41 @@ function Remove-NormalizedFields {
     }
     return $Value
 }
+function Get-ByteSha256([byte[]]$Bytes) {
+    $sha = [Security.Cryptography.SHA256]::Create()
+    try { return ([BitConverter]::ToString($sha.ComputeHash($Bytes))).Replace('-','').ToLowerInvariant() }
+    finally { $sha.Dispose() }
+}
+function Get-FileSha256([string]$Path) {
+    $stream = [IO.File]::OpenRead($Path)
+    $sha = [Security.Cryptography.SHA256]::Create()
+    try { return ([BitConverter]::ToString($sha.ComputeHash($stream))).Replace('-','').ToLowerInvariant() }
+    finally { $sha.Dispose(); $stream.Dispose() }
+}
 function Get-NormalizedSnapshot {
     param([string]$ModuleDir)
     $snapshot = [ordered]@{}
+    $maximumNormalizedJsonBytes = 16MB
     Get-ChildItem -LiteralPath $ModuleDir -Recurse -File | Where-Object {
         $_.FullName -notmatch '[\\/](build|\.gradle)[\\/]' -and
         $_.Extension -notin @('.log','.tmp')
     } | Sort-Object FullName | ForEach-Object {
-        $relative = Get-RelativePath $ModuleDir $_.FullName
-        $bytes = if ($_.Extension -eq '.json') {
+        $file = $_
+        $relative = Get-RelativePath $ModuleDir $file.FullName
+        $hash = if ($file.Extension -eq '.json') {
+            if ($file.Length -gt $maximumNormalizedJsonBytes) {
+                throw "Generator lifecycle JSON exceeds the bounded normalization limit. path=$($file.FullName) bytes=$($file.Length) limit=$maximumNormalizedJsonBytes"
+            }
             try {
-                $json = Get-Content -LiteralPath $_.FullName -Raw -Encoding UTF8 | ConvertFrom-Json
+                $json = Get-Content -LiteralPath $file.FullName -Raw -Encoding UTF8 | ConvertFrom-Json
                 $normalized = Remove-NormalizedFields $json | ConvertTo-Json -Depth 100 -Compress
-                [Text.Encoding]::UTF8.GetBytes($normalized)
-            } catch { [IO.File]::ReadAllBytes($_.FullName) }
-        } else { [IO.File]::ReadAllBytes($_.FullName) }
-        $sha = [Security.Cryptography.SHA256]::Create()
-        try { $hash = ([BitConverter]::ToString($sha.ComputeHash($bytes))).Replace('-','').ToLowerInvariant() }
-        finally { $sha.Dispose() }
+                Get-ByteSha256 ([Text.Encoding]::UTF8.GetBytes($normalized))
+            } catch {
+                Get-FileSha256 $file.FullName
+            }
+        } else {
+            Get-FileSha256 $file.FullName
+        }
         $snapshot[$relative] = $hash
     }
     return $snapshot
@@ -153,7 +170,7 @@ try {
     $moduleDir = Join-Path $cloneRoot "cpf-$DomainName"
     $createScript = Join-Path $cloneRoot "cpf-tools/scripts/create-domain.ps1"
     $createArgs = @(
-        '-NoProfile','-ExecutionPolicy','Bypass','-File',$createScript,
+        '-NoProfile','-File',$createScript,
         '-DomainName',$DomainName,'-SystemCode',$SystemCode,'-Root',$cloneRoot,
         '-DatabaseVendor',$DatabaseVendor,'-Online','Y','-Database','Y','-Batch','Y',
         '-CenterCut','Y','-External','Y','-Messaging','Y','-File','Y','-SecurityAudit','Y',
@@ -169,7 +186,7 @@ try {
 
     $started = Get-Date
     $dbScript = Join-Path $cloneRoot "cpf-tools/scripts/initialize-domain-database.ps1"
-    Invoke-NativeChecked "database bootstrap" "pwsh" @('-NoProfile','-ExecutionPolicy','Bypass','-File',$dbScript,'-DomainName',$DomainName,'-SystemCode',$SystemCode,'-Root',$cloneRoot,'-DatabaseVendor',$DatabaseVendor,'-Operation','bootstrap','-Apply') $cloneRoot
+    Invoke-NativeChecked "database bootstrap" "pwsh" @('-NoProfile','-File',$dbScript,'-DomainName',$DomainName,'-SystemCode',$SystemCode,'-Root',$cloneRoot,'-DatabaseVendor',$DatabaseVendor,'-Operation','bootstrap','-Apply') $cloneRoot
     Add-StageResult "database-bootstrap" $started 0 @("$DatabaseVendor provision/install/seed/verify completed", "generated DB profile used")
 
     $started = Get-Date
@@ -191,7 +208,7 @@ try {
         Start-Sleep -Seconds 2
         if ($runtimeProcess.HasExited) { throw "generated runtime exited before smoke; exit=$($runtimeProcess.ExitCode)" }
         try {
-            & pwsh -NoProfile -ExecutionPolicy Bypass -File $smoke
+            & pwsh -NoProfile -File $smoke
             if ($LASTEXITCODE -eq 0) { $smokePassed = $true; break }
         } catch { }
     }
@@ -216,7 +233,7 @@ try {
     [IO.File]::WriteAllText($changedPath, $originalChangedText + "`n// CPF USER CHANGE PROTECTION PROBE`n", $Utf8NoBom)
     $removeScript = Join-Path $cloneRoot 'cpf-tools/scripts/remove-domain.ps1'
     $probeDir = Join-Path $cloneRoot "build/reports/generator-lifecycle/$DatabaseVendor/change-probe"
-    & pwsh -NoProfile -ExecutionPolicy Bypass -File $removeScript -DomainName $DomainName -SystemCode $SystemCode -Root $cloneRoot -ResultDir $probeDir -DryRun
+    & pwsh -NoProfile -File $removeScript -DomainName $DomainName -SystemCode $SystemCode -Root $cloneRoot -ResultDir $probeDir -DryRun
     $probe = Get-Content -LiteralPath (Join-Path $probeDir 'remove-domain-result.json') -Raw -Encoding UTF8 | ConvertFrom-Json
     if ($probe.status -ne 'BLOCKED' -or @($probe.changedGeneratedFiles).Count -eq 0) { throw "changedGeneratedFiles removal protection failed" }
     [IO.File]::WriteAllText($changedPath, $originalChangedText, $Utf8NoBom)
@@ -224,7 +241,7 @@ try {
     $userFile = Join-Path $moduleDir 'src/main/java/UserOwnedExtension.java'
     [IO.File]::WriteAllText($userFile, '// user owned extension', $Utf8NoBom)
     $userProbeDir = Join-Path $cloneRoot "build/reports/generator-lifecycle/$DatabaseVendor/user-probe"
-    & pwsh -NoProfile -ExecutionPolicy Bypass -File $removeScript -DomainName $DomainName -SystemCode $SystemCode -Root $cloneRoot -ResultDir $userProbeDir -DryRun
+    & pwsh -NoProfile -File $removeScript -DomainName $DomainName -SystemCode $SystemCode -Root $cloneRoot -ResultDir $userProbeDir -DryRun
     $userProbe = Get-Content -LiteralPath (Join-Path $userProbeDir 'remove-domain-result.json') -Raw -Encoding UTF8 | ConvertFrom-Json
     if ($userProbe.status -ne 'BLOCKED' -or @($userProbe.userOwnedFiles).Count -eq 0) { throw "userOwnedFiles removal protection failed" }
     Remove-Item -LiteralPath $userFile -Force
@@ -232,7 +249,7 @@ try {
     $referenceFile = Join-Path $cloneRoot 'cpf-tools/contracts/generator-lifecycle-external-reference-probe.json'
     [IO.File]::WriteAllText($referenceFile, ('{"module":"' + $DomainName + '"}'), $Utf8NoBom)
     $referenceProbeDir = Join-Path $cloneRoot "build/reports/generator-lifecycle/$DatabaseVendor/reference-probe"
-    & pwsh -NoProfile -ExecutionPolicy Bypass -File $removeScript -DomainName $DomainName -SystemCode $SystemCode -Root $cloneRoot -ResultDir $referenceProbeDir -DryRun
+    & pwsh -NoProfile -File $removeScript -DomainName $DomainName -SystemCode $SystemCode -Root $cloneRoot -ResultDir $referenceProbeDir -DryRun
     $referenceProbe = Get-Content -LiteralPath (Join-Path $referenceProbeDir 'remove-domain-result.json') -Raw -Encoding UTF8 | ConvertFrom-Json
     if ($referenceProbe.status -ne 'BLOCKED' -or @($referenceProbe.externalReferences).Count -eq 0) { throw "externalReferences removal protection failed" }
     Remove-Item -LiteralPath $referenceFile -Force
@@ -240,7 +257,7 @@ try {
     Add-StageResult "user-change-protection" $started 0 @("changedGeneratedFiles blocks removal", "userOwnedFiles blocks removal", "externalReferences blocks removal", "database objects are never auto-dropped")
 
     $started = Get-Date
-    Invoke-NativeChecked "safe generated-domain removal" "pwsh" @('-NoProfile','-ExecutionPolicy','Bypass','-File',$removeScript,'-DomainName',$DomainName,'-SystemCode',$SystemCode,'-Root',$cloneRoot) $cloneRoot
+    Invoke-NativeChecked "safe generated-domain removal" "pwsh" @('-NoProfile','-File',$removeScript,'-DomainName',$DomainName,'-SystemCode',$SystemCode,'-Root',$cloneRoot) $cloneRoot
     if (Test-Path -LiteralPath $moduleDir) { throw "generated module remained after safe removal" }
     Add-StageResult "safe-remove" $started 0 @("ownership hashes matched", "generated module removed without database DROP")
 
@@ -257,7 +274,7 @@ try {
         if ($script:firstSnapshot[$key] -ne $script:regeneratedSnapshot[$key]) { throw "normalizedSha256 parity failed: $key" }
     }
     $parityVerified = $true
-    & pwsh -NoProfile -ExecutionPolicy Bypass -File $removeScript -DomainName $DomainName -SystemCode $SystemCode -Root $cloneRoot
+    & pwsh -NoProfile -File $removeScript -DomainName $DomainName -SystemCode $SystemCode -Root $cloneRoot
     if ($LASTEXITCODE -ne 0) { throw "post-parity cleanup failed(exit=$LASTEXITCODE)" }
     Remove-Item -LiteralPath (Join-Path $cloneRoot $MarkerName) -Force
     $afterLines = @(& git -C $cloneRoot status --porcelain=v1 --untracked-files=all)

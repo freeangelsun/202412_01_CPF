@@ -177,6 +177,15 @@ public final class CpfScgTargetResolver {
                     .toList();
             endpointPolicy.validateResolvedAddresses(
                     base.getHost(), addresses.stream().map(InetAddress::getHostAddress).toList());
+            boolean privateSeen = addresses.stream().map(InetAddress::getHostAddress)
+                    .map(CpfNetworkEndpointPolicy.Address::parse)
+                    .anyMatch(CpfNetworkEndpointPolicy.Address::privateAddress);
+            boolean publicSeen = addresses.stream().map(InetAddress::getHostAddress)
+                    .map(CpfNetworkEndpointPolicy.Address::parse)
+                    .anyMatch(address -> !address.privateAddress());
+            if (privateSeen && publicSeen) {
+                throw new SecurityException("Gateway DNS mixed private/public response denied");
+            }
             return addresses;
         } catch (java.net.UnknownHostException failure) {
             throw new SecurityException("Gateway upstream DNS resolution failed", failure);

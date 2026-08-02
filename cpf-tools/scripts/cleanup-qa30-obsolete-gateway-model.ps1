@@ -9,6 +9,7 @@ Set-StrictMode -Version Latest
 $obsolete = @(
     'cpf-core/src/main/java/com/cpf/core/common/gateway/CpfGatewayRoute.java',
     'cpf-core/src/main/java/com/cpf/core/common/gateway/CpfGatewayRouteCatalog.java',
+    'cpf-core/src/main/java/com/cpf/core/common/gateway/CpfGatewayAuthorizationPort.java',
     'cpf-core/src/test/java/com/cpf/core/common/gateway/CpfGatewayRouteCatalogTest.java'
 )
 
@@ -27,10 +28,12 @@ Get-ChildItem -LiteralPath $sourceRoot -Recurse -File | Where-Object {
 } | ForEach-Object {
     $text = Get-Content -LiteralPath $_.FullName -Raw -Encoding UTF8
     $isCommonGatewayPackage = $_.FullName.Replace('\\', '/') -match '/com/cpf/core/common/gateway/'
+    $usesPublicRoute = $text -match 'import\s+com\.cpf\.core\.api\.gateway\.CpfGatewayRoute\s*;'
     $legacyRouteReference = $text -match 'com\.cpf\.core\.common\.gateway\.CpfGatewayRoute\b' -or
-        ($isCommonGatewayPackage -and $text -match '\bCpfGatewayRoute\b')
+        ($isCommonGatewayPackage -and -not $usesPublicRoute -and $text -match '\bCpfGatewayRoute\b')
+    $legacyAuthorizationReference = $text -match 'com\.cpf\.core\.common\.gateway\.CpfGatewayAuthorizationPort\b'
     $legacyCatalogReference = $text -match '\bCpfGatewayRouteCatalog\b'
-    if ($legacyRouteReference -or $legacyCatalogReference) {
+    if ($legacyRouteReference -or $legacyAuthorizationReference -or $legacyCatalogReference) {
         $relative = [IO.Path]::GetRelativePath($Root, $_.FullName).Replace('\\', '/')
         $remainingReferences.Add($relative)
     }

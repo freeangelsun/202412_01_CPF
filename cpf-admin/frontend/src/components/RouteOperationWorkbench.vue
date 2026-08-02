@@ -42,7 +42,7 @@ async function execute(){
   <div class="form-grid"><label class="wide"><span>Query JSON</span><textarea v-model="queryText" rows="4" spellcheck="false"></textarea></label><label v-if="dangerous" class="wide"><span>Body JSON</span><textarea v-model="bodyText" rows="7" spellcheck="false"></textarea></label></div>
   <p v-if="dangerous" class="hint">위험 조치는 API 계약에 맞는 reason·expectedVersion·approvalId를 Query 또는 Body에 명시해야 하며 인증 사용자는 Browser에서 지정할 수 없습니다.</p>
   <p v-if="error" class="error-banner" role="alert">{{error}}</p>
-  <pre v-if="result!==null" class="detail">{{JSON.stringify(result,null,2)}}</pre>
+  <CpfStructuredData v-if="result!==null" class="detail" :value="result" />
   <div class="dialog-actions"><button type="button" class="primary" :disabled="loading||!selected" @click="execute">{{loading?'실행 중...':'실행'}}</button></div>
  </div>
 </section>

@@ -1,15 +1,22 @@
 package com.cpf.reference.centercut;
 
 import com.cpf.core.api.batch.CpfCenterCutOperationsExtension;
+import com.cpf.core.api.database.CpfVendorSqlCatalog;
+import com.cpf.core.api.database.CpfVendorSqlCatalogProvider;
+import com.cpf.core.api.security.CpfMasking;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * REF EDU 전용 Center-Cut 조회 확장.
@@ -21,10 +28,30 @@ import java.util.Map;
 public class RefCenterCutOperationsExtension implements CpfCenterCutOperationsExtension {
 
     private static final String JOB = "CPF_REF_CENTER_CUT_SAMPLE_JOB";
+    private static final Map<String, String> CANONICAL_RESPONSE_KEYS = List.of(
+                    "totalCount", "readyCount", "runningCount", "successCount", "failedCount",
+                    "skippedCount", "retryRequestedCount", "stopRequestedCount", "lastStartedAt",
+                    "lastCompletedAt", "lastCreatedAt", "targetId", "centerCutJobId", "businessKey",
+                    "businessDate", "statusCode", "retryCount", "transactionId", "parentSegmentId",
+                    "transactionSegmentId", "startedAt", "completedAt", "lastErrorMessage",
+                    "targetPayloadLength", "resultId", "resultStatus", "resultMessage",
+                    "resultPayloadLength", "createdAt", "updatedAt")
+            .stream()
+            .collect(Collectors.toUnmodifiableMap(
+                    key -> key.toLowerCase(Locale.ROOT), Function.identity()));
     private final JdbcTemplate jdbc;
+    private final Statements statements;
 
-    public RefCenterCutOperationsExtension(@Qualifier("refJdbcTemplate") JdbcTemplate jdbc) {
+    @Autowired
+    public RefCenterCutOperationsExtension(
+            @Qualifier("refJdbcTemplate") JdbcTemplate jdbc,
+            CpfVendorSqlCatalogProvider sqlCatalogProvider) {
+        this(jdbc, sqlCatalogProvider.forModule("ref"));
+    }
+
+    RefCenterCutOperationsExtension(JdbcTemplate jdbc, CpfVendorSqlCatalog sqlCatalog) {
         this.jdbc = jdbc;
+        this.statements = Statements.load(sqlCatalog);
     }
 
     @Override
@@ -37,29 +64,9 @@ public class RefCenterCutOperationsExtension implements CpfCenterCutOperationsEx
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("centerCutJobId", centerCutJobId);
         result.put("adapterType", "REF_SAMPLE");
-        result.putAll(one("""
-                SELECT COUNT(*) totalCount,
-                       SUM(CASE WHEN status_code='READY' THEN 1 ELSE 0 END) readyCount,
-                       SUM(CASE WHEN status_code='RUNNING' THEN 1 ELSE 0 END) runningCount,
-                       SUM(CASE WHEN status_code='SUCCESS' THEN 1 ELSE 0 END) successCount,
-                       SUM(CASE WHEN status_code='FAILED' THEN 1 ELSE 0 END) failedCount,
-                       SUM(CASE WHEN status_code='SKIPPED' THEN 1 ELSE 0 END) skippedCount,
-                       SUM(CASE WHEN status_code='RETRY_REQUESTED' THEN 1 ELSE 0 END) retryRequestedCount,
-                       SUM(CASE WHEN status_code='STOP_REQUESTED' THEN 1 ELSE 0 END) stopRequestedCount,
-                       MAX(started_at) lastStartedAt,
-                       MAX(completed_at) lastCompletedAt
-                  FROM ref_center_cut_sample_target
-                 WHERE center_cut_job_id=?
-                """, centerCutJobId));
+        result.putAll(one(statements.summarizeTargets(), centerCutJobId));
 
-        Map<String, Object> summary = one("""
-                SELECT COUNT(*) totalCount,
-                       SUM(CASE WHEN result_status='SUCCESS' THEN 1 ELSE 0 END) successCount,
-                       SUM(CASE WHEN result_status='FAILED' THEN 1 ELSE 0 END) failedCount,
-                       MAX(created_at) lastCreatedAt
-                  FROM ref_center_cut_sample_result
-                 WHERE center_cut_job_id=?
-                """, centerCutJobId);
+        Map<String, Object> summary = one(statements.summarizeResults(), centerCutJobId);
         summary.forEach((key, value) -> result.put(
                 "result" + Character.toUpperCase(key.charAt(0)) + key.substring(1), value));
         return result;
@@ -67,69 +74,30 @@ public class RefCenterCutOperationsExtension implements CpfCenterCutOperationsEx
 
     @Override
     public List<Map<String, Object>> findTargets(String centerCutJobId, String status, int limit) {
-        List<Object> args = new ArrayList<>();
-        args.add(centerCutJobId);
-        String statusClause = "";
-        if (status != null && !status.isBlank()) {
-            statusClause = " AND status_code=?";
-            args.add(status.trim());
-        }
-        args.add(limit);
-
-        String sql = """
-                SELECT target_id targetId,
-                       center_cut_job_id centerCutJobId,
-                       business_key businessKey,
-                       business_date businessDate,
-                       status_code statusCode,
-                       retry_count retryCount,
-                       transaction_id transactionId,
-                       parent_segment_id parentSegmentId,
-                       transaction_segment_id transactionSegmentId,
-                       started_at startedAt,
-                       completed_at completedAt,
-                       last_error_message lastErrorMessage,
-                       CASE WHEN target_payload IS NULL THEN NULL
-                            ELSE CONCAT('[MASKED target payload length=', CHAR_LENGTH(target_payload), ']') END targetPayloadMasked,
-                       CHAR_LENGTH(target_payload) targetPayloadLength,
-                       created_at createdAt,
-                       updated_at updatedAt
-                  FROM ref_center_cut_sample_target
-                 WHERE center_cut_job_id=?
-                """ + statusClause + " ORDER BY target_id LIMIT ?";
-        return query(sql, args.toArray());
+        String normalizedStatus = normalized(status);
+        return maskedRows(
+                statements.findTargets(),
+                "lastErrorMessage",
+                "targetPayloadLength",
+                "targetPayloadMasked",
+                centerCutJobId,
+                normalizedStatus,
+                normalizedStatus,
+                limit);
     }
 
     @Override
     public List<Map<String, Object>> findResults(String centerCutJobId, String status, int limit) {
-        List<Object> args = new ArrayList<>();
-        args.add(centerCutJobId);
-        String statusClause = "";
-        if (status != null && !status.isBlank()) {
-            statusClause = " AND result_status=?";
-            args.add(status.trim());
-        }
-        args.add(limit);
-
-        String sql = """
-                SELECT result_id resultId,
-                       center_cut_job_id centerCutJobId,
-                       target_id targetId,
-                       business_key businessKey,
-                       result_status resultStatus,
-                       result_message resultMessage,
-                       transaction_id transactionId,
-                       parent_segment_id parentSegmentId,
-                       transaction_segment_id transactionSegmentId,
-                       CASE WHEN result_payload IS NULL THEN NULL
-                            ELSE CONCAT('[MASKED result payload length=', CHAR_LENGTH(result_payload), ']') END resultPayloadMasked,
-                       CHAR_LENGTH(result_payload) resultPayloadLength,
-                       created_at createdAt,
-                       updated_at updatedAt
-                  FROM ref_center_cut_sample_result
-                 WHERE center_cut_job_id=?
-                """ + statusClause + " ORDER BY result_id DESC LIMIT ?";
-        return query(sql, args.toArray());
+        String normalizedStatus = normalized(status);
+        return maskedRows(
+                statements.findResults(),
+                "resultMessage",
+                "resultPayloadLength",
+                "resultPayloadMasked",
+                centerCutJobId,
+                normalizedStatus,
+                normalizedStatus,
+                limit);
     }
 
     @Override
@@ -140,29 +108,21 @@ public class RefCenterCutOperationsExtension implements CpfCenterCutOperationsEx
         } catch (RuntimeException ex) {
             return Map.of();
         }
-        return one("""
-                SELECT result_id resultId,
-                       center_cut_job_id centerCutJobId,
-                       target_id targetId,
-                       business_key businessKey,
-                       result_status resultStatus,
-                       result_message resultMessage,
-                       transaction_id transactionId,
-                       parent_segment_id parentSegmentId,
-                       transaction_segment_id transactionSegmentId,
-                       CASE WHEN result_payload IS NULL THEN NULL
-                            ELSE CONCAT('[MASKED result payload length=', CHAR_LENGTH(result_payload), ']') END resultPayloadMasked,
-                       CHAR_LENGTH(result_payload) resultPayloadLength,
-                       created_at createdAt,
-                       updated_at updatedAt
-                  FROM ref_center_cut_sample_result
-                 WHERE result_id=?
-                """, id);
+        Map<String, Object> result = one(statements.findResultDetail(), id);
+        return result.isEmpty()
+                ? Map.of()
+                : maskRow(
+                        result,
+                        "resultMessage",
+                        "resultPayloadLength",
+                        "resultPayloadMasked");
     }
 
     private List<Map<String, Object>> query(String sql, Object... args) {
         try {
-            return jdbc.queryForList(sql, args);
+            return jdbc.queryForList(sql, args).stream()
+                    .map(RefCenterCutOperationsExtension::canonicalRow)
+                    .toList();
         } catch (DataAccessException ex) {
             throw new IllegalStateException("REF Center-Cut query failed", ex);
         }
@@ -171,5 +131,73 @@ public class RefCenterCutOperationsExtension implements CpfCenterCutOperationsEx
     private Map<String, Object> one(String sql, Object... args) {
         List<Map<String, Object>> rows = query(sql, args);
         return rows.isEmpty() ? new LinkedHashMap<>() : new LinkedHashMap<>(rows.get(0));
+    }
+
+    private List<Map<String, Object>> maskedRows(
+            String sql,
+            String messageKey,
+            String lengthKey,
+            String maskedKey,
+            Object... args) {
+        return query(sql, args).stream()
+                .map(row -> maskRow(row, messageKey, lengthKey, maskedKey))
+                .toList();
+    }
+
+    private static Map<String, Object> maskRow(
+            Map<String, Object> source,
+            String messageKey,
+            String lengthKey,
+            String maskedKey) {
+        LinkedHashMap<String, Object> masked = new LinkedHashMap<>(source);
+        String actualMessageKey = keyIgnoreCase(masked, messageKey);
+        if (actualMessageKey != null) {
+            Object message = masked.get(actualMessageKey);
+            masked.put(
+                    actualMessageKey,
+                    message == null ? null : CpfMasking.mask(String.valueOf(message), 1000));
+        }
+        String actualLengthKey = keyIgnoreCase(masked, lengthKey);
+        if (actualLengthKey != null && masked.get(actualLengthKey) != null) {
+            masked.put(maskedKey, "[MASKED payload length=" + masked.get(actualLengthKey) + "]");
+        }
+        return Collections.unmodifiableMap(masked);
+    }
+
+    private static Map<String, Object> canonicalRow(Map<String, Object> source) {
+        LinkedHashMap<String, Object> canonical = new LinkedHashMap<>();
+        source.forEach((key, value) -> canonical.put(
+                CANONICAL_RESPONSE_KEYS.getOrDefault(key.toLowerCase(Locale.ROOT), key),
+                value));
+        return Collections.unmodifiableMap(canonical);
+    }
+
+    private static String keyIgnoreCase(Map<String, Object> values, String expected) {
+        return values.keySet().stream()
+                .filter(key -> key.equalsIgnoreCase(expected))
+                .findFirst()
+                .orElse(null);
+    }
+
+    private static String normalized(String value) {
+        return value == null || value.isBlank()
+                ? null
+                : value.trim().toUpperCase(Locale.ROOT);
+    }
+
+    record Statements(
+            String summarizeTargets,
+            String summarizeResults,
+            String findTargets,
+            String findResults,
+            String findResultDetail) {
+        static Statements load(CpfVendorSqlCatalog catalog) {
+            return new Statements(
+                    catalog.required("centercut-operations-summarize-targets"),
+                    catalog.required("centercut-operations-summarize-results"),
+                    catalog.required("centercut-operations-find-targets"),
+                    catalog.required("centercut-operations-find-results"),
+                    catalog.required("centercut-operations-find-result-detail"));
+        }
     }
 }

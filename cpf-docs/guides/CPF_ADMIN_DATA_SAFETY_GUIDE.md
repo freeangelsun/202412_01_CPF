@@ -177,7 +177,7 @@ Rollback:
 ## 11. 정적 Gate
 
 ```powershell
-pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\check-admin-data-safety.ps1
+pwsh -NoProfile -File .\cpf-tools\scripts\check-admin-data-safety.ps1
 ```
 
 선택 옵션:

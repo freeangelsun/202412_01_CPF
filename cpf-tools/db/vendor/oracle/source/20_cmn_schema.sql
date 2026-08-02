@@ -1,6 +1,5 @@
 -- AUTO-GENERATED from cpf-tools/db/canonical/platform-schema.json
 -- vendor=oracle
--- schemaVersion=37
 -- DO NOT EDIT generated DDL directly.
 
 -- CPF_LOGICAL_DATABASE=cmnDB
@@ -13,9 +12,9 @@ CREATE TABLE cmn_business_calendar_day (
     reason VARCHAR2(500 CHAR),
     version_no NUMBER(19) NOT NULL DEFAULT 1,
     created_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'SYSTEM',
-    created_at TIMESTAMP(3) NOT NULL DEFAULT SYSTIMESTAMP,
+    created_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     updated_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'SYSTEM',
-    updated_at TIMESTAMP(3) NOT NULL DEFAULT SYSTIMESTAMP,
+    updated_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     CONSTRAINT pk_cmn_business_calendar_day PRIMARY KEY (calendar_id, business_date),
     CONSTRAINT ck_cmn_business_calendar_day_yn CHECK (business_day_yn IN ('Y','N')),
     CONSTRAINT ck_cmn_business_calendar_version CHECK (version_no > 0)
@@ -49,9 +48,9 @@ CREATE TABLE cmn_sample_item (
     version_no NUMBER(19) NOT NULL DEFAULT 0,
     deleted_yn CHAR(1 CHAR) NOT NULL DEFAULT 'N',
     created_by VARCHAR2(100 CHAR) NOT NULL,
-    created_at TIMESTAMP(3) NOT NULL DEFAULT SYSTIMESTAMP,
+    created_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     updated_by VARCHAR2(100 CHAR) NOT NULL,
-    updated_at TIMESTAMP(3) NOT NULL DEFAULT SYSTIMESTAMP,
+    updated_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     CONSTRAINT pk_cmn_sample_item PRIMARY KEY (sample_item_id),
     CONSTRAINT uk_cmn_sample_item_key UNIQUE (sample_key),
     CONSTRAINT ck_cmn_sample_item_status CHECK (status_code IN ('ACTIVE', 'INACTIVE')),

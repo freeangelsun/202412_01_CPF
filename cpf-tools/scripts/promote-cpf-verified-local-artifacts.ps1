@@ -52,7 +52,7 @@ $verify = Join-Path $Root 'cpf-tools/scripts/verify-local-artifact-propagation.p
 if (-not (Test-Path -LiteralPath $verify -PathType Leaf)) { throw "Artifact verifier not found: $verify" }
 
 $stagingManifest = Join-Path $StagingRepository "_cpf/manifests/$version.json"
-& pwsh -NoProfile -ExecutionPolicy Bypass -File $verify -Root $Root -LocalRepository $StagingRepository -WriteManifest -ManifestPath $stagingManifest | Out-Host
+& pwsh -NoProfile -File $verify -Root $Root -LocalRepository $StagingRepository -WriteManifest -ManifestPath $stagingManifest | Out-Host
 if ($LASTEXITCODE -ne 0) { throw "Staging artifact verification failed: $LASTEXITCODE" }
 
 $stagingManifestObject = Get-Content -LiteralPath $stagingManifest -Raw -Encoding UTF8 | ConvertFrom-Json
@@ -128,7 +128,7 @@ try {
     if (-not (Test-Path -LiteralPath $manifestParent)) { New-Item -ItemType Directory -Force -Path $manifestParent | Out-Null }
     [IO.File]::WriteAllText($targetManifest, ($promotedManifest | ConvertTo-Json -Depth 30), [Text.UTF8Encoding]::new($false))
 
-    & pwsh -NoProfile -ExecutionPolicy Bypass -File $verify -Root $Root -LocalRepository $LocalRepository -RequireManifest | Out-Host
+    & pwsh -NoProfile -File $verify -Root $Root -LocalRepository $LocalRepository -RequireManifest | Out-Host
     if ($LASTEXITCODE -ne 0) { throw "Promoted repository verification failed: $LASTEXITCODE" }
     Write-Host "CPF local artifact promotion complete. version=$version repository=$LocalRepository"
 } catch {

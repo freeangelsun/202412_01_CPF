@@ -8,7 +8,7 @@ if(-not(Test-Path $PrivateKey)){throw 'Release private key file not found'}
 $repo=(Resolve-Path "$PSScriptRoot\..\..").Path
 $classes=Join-Path $repo 'build\release-signer-classes'
 New-Item -ItemType Directory -Force -Path $classes|Out-Null
-& javac --release 25 -d $classes (Join-Path $PSScriptRoot 'CpfReleaseSigner.java')
+& javac --release 25 -d $classes (Join-Path $PSScriptRoot 'src/main/java/com/cpf/tools/release/CpfReleaseSigner.java')
 if($LASTEXITCODE-ne0){throw 'Release signer compile failed'}
 $files=Get-ChildItem $ReleaseDir -File|Where-Object{$_.Extension -in '.json','.jar','.war' -and $_.Name -ne 'cpf-release-signatures.json'}|Sort-Object Name
 $rows=@()

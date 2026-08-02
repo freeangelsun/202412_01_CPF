@@ -1,0 +1,5 @@
+INSERT INTO bat_schedule (
+  schedule_id,job_id,definition_version,definition_checksum,cron_expression,timezone,
+  enabled_yn,created_by,created_at,updated_by,updated_at
+)
+VALUES (?,?,?,?,?,?,'Y',?,CURRENT_TIMESTAMP,?,CURRENT_TIMESTAMP)

@@ -1,0 +1,37 @@
+{
+  "schema": "cpf.codex-review-package",
+  "schemaVersion": 4,
+  "baselineSha": "1eda8e12fe123281748a4388938c62f11819da1e",
+  "generatedAtKst": "2026-08-02T14:13:03.403533+09:00",
+  "cleanupBehavior": {
+    "missingDeleteCandidate": "SKIP_MISSING_CONTINUE",
+    "existingModifiedDeleteCandidate": "FAIL_BEFORE_APPLY"
+  },
+  "files": [
+    {
+      "path": "cpf-docs/work/repository-consolidation/20260802/codex-review/CHANGE_MANIFEST.csv",
+      "sha256": "ae34a067abe9f4a80fd749e3eec07aa16f4b29fe99cee6ed8b6817f11d2c7c5d",
+      "size": 6646
+    },
+    {
+      "path": "cpf-docs/work/repository-consolidation/20260802/codex-review/OPEN_ISSUES.md",
+      "sha256": "b487c64a2921e660fb0bbe0012fa06162d7a499e6577337397e10c1530ae3714",
+      "size": 1206
+    },
+    {
+      "path": "cpf-docs/work/repository-consolidation/20260802/codex-review/REQUIREMENT_STATUS.csv",
+      "sha256": "bdde84e45a7ca8b42825a207ca4cbcff13070d79e09d3eccf971e0abe3129516",
+      "size": 8517
+    },
+    {
+      "path": "cpf-docs/work/repository-consolidation/20260802/codex-review/REVIEW_INDEX.md",
+      "sha256": "1c2f8d9702fc04525e7c2d6ca618ad12c4ab89897bcb50dd34dd10833c9f1687",
+      "size": 2028
+    },
+    {
+      "path": "cpf-docs/work/repository-consolidation/20260802/codex-review/TEST_AND_EVIDENCE.md",
+      "sha256": "4278e3cedca5c7b671ab521ceebbc6a8614f6b7c9b6cdb78f3e8aa9918e8e00f",
+      "size": 763
+    }
+  ]
+}

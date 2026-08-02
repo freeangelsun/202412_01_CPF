@@ -3,8 +3,32 @@ plugins {
     id 'maven-publish'
 }
 
-group = 'com.cpf.platform'
-version = providers.gradleProperty('cpfPlatformVersion').orElse('0.1.0-SNAPSHOT').get()
+def loadCanonicalProperties = { File source, List<String> requiredKeys ->
+    if (!source.isFile()) {
+        throw new GradleException("CPF canonical properties file is missing: ${source}")
+    }
+    def values = new Properties()
+    source.withInputStream { values.load(it) }
+    requiredKeys.each { key ->
+        if ((values.getProperty(key) ?: '').trim().isEmpty()) {
+            throw new GradleException("CPF canonical property is missing or blank: ${key} (${source})")
+        }
+    }
+    values
+}
+
+def platformProperties = loadCanonicalProperties(
+        file('../../../gradle/cpf-platform.properties'), ['platformVersion'])
+def canonicalPlatformVersion = platformProperties.getProperty('platformVersion').trim()
+def requestedPlatformVersion = providers.gradleProperty('cpfPlatformVersion').orNull?.trim()
+if (requestedPlatformVersion != null && requestedPlatformVersion != canonicalPlatformVersion) {
+    throw new GradleException(
+            "cpfPlatformVersion override must match gradle/cpf-platform.properties: " +
+                    "requested=${requestedPlatformVersion}, canonical=${canonicalPlatformVersion}")
+}
+
+group = 'com.cpf'
+version = canonicalPlatformVersion
 
 javaPlatform {
     allowDependencies()
@@ -12,22 +36,69 @@ javaPlatform {
 
 repositories { mavenCentral() }
 
-def stack = new Properties()
-def rootStack = file('../../../gradle/cpf-stack.properties')
-if (rootStack.exists()) rootStack.withInputStream { stack.load(it) }
+def stackProperties = loadCanonicalProperties(
+        file('../../../gradle/cpf-stack.properties'), ['springBootVersion', 'springCloudVersion'])
+def springBootVersion = providers.gradleProperty('cpfSpringBootVersion')
+        .orElse(stackProperties.getProperty('springBootVersion').trim()).get().trim()
+def springCloudVersion = providers.gradleProperty('cpfSpringCloudVersion')
+        .orElse(stackProperties.getProperty('springCloudVersion').trim()).get().trim()
+if (springBootVersion.isEmpty() || springCloudVersion.isEmpty()) {
+    throw new GradleException('CPF Spring Boot and Spring Cloud BOM versions must not be blank.')
+}
 
-def springBootVersion = providers.gradleProperty('cpfSpringBootVersion').orElse(stack.getProperty('springBootVersion', '4.0.0')).get()
-def springCloudVersion = providers.gradleProperty('cpfSpringCloudVersion').orElse(stack.getProperty('springCloudVersion', '2025.0.0')).get()
+def artifactCatalogFile = file('../../release/cpf-final-artifact-catalog.json')
+if (!artifactCatalogFile.isFile()) {
+    throw new GradleException("CPF final artifact catalog is missing: ${artifactCatalogFile}")
+}
+def artifactCatalog = new groovy.json.JsonSlurper().parse(artifactCatalogFile)
+def starterArtifactIds = (artifactCatalog.artifacts ?: [])
+        .findAll { artifact -> artifact.kind?.toString() == 'starter' }
+        .collect { artifact ->
+            def ownerPath = artifact.ownerPath?.toString()?.replace('\\', '/')?.replaceAll('/+$', '')
+            if (!(ownerPath ==~ /^cpf-starters\/[^\/]+$/)) {
+                throw new GradleException("Starter artifact ownerPath is invalid: ${ownerPath}")
+            }
+            def expectedArtifactId = "cpf-starter-${ownerPath.substring(ownerPath.lastIndexOf('/') + 1)}"
+            if (artifact.artifactId?.toString() != expectedArtifactId) {
+                throw new GradleException(
+                        "Starter artifact identity mismatch: owner=${ownerPath}, artifact=${artifact.artifactId}")
+            }
+            expectedArtifactId
+        }
+        .sort()
+if (starterArtifactIds.isEmpty() || starterArtifactIds.size() != starterArtifactIds.toSet().size()) {
+    throw new GradleException("Starter artifact catalog is empty or duplicated: ${starterArtifactIds}")
+}
 
 dependencies {
     api platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
     api platform("org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}")
     constraints {
-        api 'com.cpf.platform:cpf-core:' + version
-        api 'com.cpf.platform:cpf-common:' + version
-        api 'com.cpf.platform:cpf-batch-contract:' + version
+        api 'com.cpf.core:cpf-core:' + version
+        api 'com.cpf.common:cpf-common:' + version
+        api 'com.cpf.batch:cpf-batch-contract:' + version
+        api 'com.cpf.batch:cpf-batch-testkit:' + version
+        starterArtifactIds.each { starterArtifactId ->
+            api "com.cpf.starter:${starterArtifactId}:${version}"
+        }
     }
 }
+
+def cpfLocalRepository = providers.gradleProperty('cpfLocalArtifactRepository')
+        .orElse(providers.environmentVariable('CPF_LOCAL_ARTIFACT_REPOSITORY'))
+        .orElse(new File(System.getProperty('user.home'), '.cpf/repository').absolutePath)
+def cpfStagingRepository = providers.gradleProperty('cpfArtifactStagingRepository')
+        .orElse(new File(rootDir, '../../../build/cpf-artifact-staging/repository').absolutePath)
+// cpfInternalRepositoryUrl은 기존 BOM 전용 호출자의 호환성을 유지하고,
+// 제품 Root와 Convention Plugin이 사용하는 공통 Repository 설정을 이어서 수용합니다.
+def cpfInternalRepository = providers.gradleProperty('cpfInternalRepositoryUrl')
+        .orElse(providers.gradleProperty('cpfArtifactRepositoryUrl'))
+        .orElse(providers.environmentVariable('CPF_ARTIFACT_REPOSITORY_URL'))
+        .orElse(layout.buildDirectory.dir('repo').map { it.asFile.absolutePath })
+def cpfInternalRepositoryUsername = providers.gradleProperty('cpfInternalRepositoryUsername')
+        .orElse(providers.environmentVariable('CPF_ARTIFACT_REPOSITORY_USER'))
+def cpfInternalRepositoryPassword = providers.gradleProperty('cpfInternalRepositoryPassword')
+        .orElse(providers.environmentVariable('CPF_ARTIFACT_REPOSITORY_PASSWORD'))
 
 publishing {
     publications {
@@ -42,17 +113,40 @@ publishing {
     }
     repositories {
         maven {
-            name = 'cpfInternal'
-            url = uri(providers.gradleProperty('cpfInternalRepositoryUrl').orElse(layout.buildDirectory.dir('repo')))
-            credentials {
-                username = providers.gradleProperty('cpfInternalRepositoryUsername').orNull
-                password = providers.gradleProperty('cpfInternalRepositoryPassword').orNull
+            name = 'CpfLocal'
+            url = uri(cpfLocalRepository.get())
+        }
+        maven {
+            name = 'CpfStaging'
+            url = uri(cpfStagingRepository.get())
+        }
+        maven {
+            name = 'CpfInternal'
+            url = uri(cpfInternalRepository.get())
+            if (cpfInternalRepositoryUsername.isPresent()) {
+                credentials {
+                    username = cpfInternalRepositoryUsername.get()
+                    password = cpfInternalRepositoryPassword.orNull
+                }
             }
         }
     }
 }
 
+tasks.register('publishCpfBomToLocal') {
+    group = 'publishing'
+    description = 'Publishes the canonical CPF platform BOM to the shared CPF local repository.'
+    dependsOn tasks.named('publishCpfPlatformBomPublicationToCpfLocalRepository')
+}
+
+tasks.register('publishCpfBomToStaging') {
+    group = 'publishing'
+    description = 'Publishes the canonical CPF platform BOM to the isolated CPF staging repository.'
+    dependsOn tasks.named('publishCpfPlatformBomPublicationToCpfStagingRepository')
+}
+
 tasks.register('publishCpfBomToInternal') {
     group = 'publishing'
+    description = 'Publishes the canonical CPF platform BOM to the configured internal repository.'
     dependsOn tasks.named('publishCpfPlatformBomPublicationToCpfInternalRepository')
 }

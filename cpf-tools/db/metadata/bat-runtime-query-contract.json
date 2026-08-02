@@ -9,7 +9,8 @@
     "cpf-batch/worker/src/main/java",
     "cpf-batch/scheduler/src/main/java",
     "cpf-batch/center-cut-runner/src/main/java",
-    "cpf-batch/control-server/src/main/java"
+    "cpf-batch/control-server/src/main/java",
+    "cpf-batch/execution-runtime/src/main/java"
   ],
   "remainingScope": [],
   "status": "완료",
@@ -86,166 +87,205 @@
   },
   "statements": [
     {
-      "key": "worker-execution-load",
-      "consumer": "JdbcWorkerExecutionRepository.load",
+      "key": "execution-control-reserve",
+      "consumer": "JdbcBatchExecutionControlPlaneAdapter.reserve",
       "parameters": [
-        "executionId"
-      ]
-    },
-    {
-      "key": "worker-execution-mark-running",
-      "consumer": "JdbcWorkerExecutionRepository.markRunning",
-      "parameters": [
-        "workerId",
-        "springExecutionId",
-        "springInstanceId",
         "executionId",
-        "leaseWorkerId",
-        "leaseToken",
+        "jobId",
+        "definitionVersion",
+        "approvalId",
+        "operatorId",
+        "reason",
+        "idempotencyScope",
+        "idempotencyKey",
+        "requestHash",
+        "planChecksum",
         "fencingToken"
       ]
     },
     {
-      "key": "worker-execution-record-spring",
-      "consumer": "JdbcWorkerExecutionRepository.recordSpringExecution",
+      "key": "execution-control-transition",
+      "consumer": "JdbcBatchExecutionControlPlaneAdapter.transition",
       "parameters": [
-        "springExecutionId",
-        "springInstanceId",
+        "targetStatus",
+        "unknownReason",
+        "unknownDetail",
+        "lastErrorCode",
+        "lastErrorDetail",
+        "reconcileAfter",
+        "targetStatusForAttempt",
         "executionId",
-        "workerId",
-        "leaseToken",
+        "expectedStatus"
+      ]
+    },
+    {
+      "key": "execution-link-update",
+      "consumer": "JdbcBatchExecutionControlPlaneAdapter.bind",
+      "parameters": [
+        "jobInstanceId",
+        "jobExecutionId",
+        "stepExecutionId",
+        "springStatus",
+        "executionId",
+        "linkKey",
+        "jobId",
+        "definitionVersion",
         "fencingToken"
       ]
     },
     {
-      "key": "worker-execution-finish",
-      "consumer": "JdbcWorkerExecutionRepository.finish",
+      "key": "execution-link-insert",
+      "consumer": "JdbcBatchExecutionControlPlaneAdapter.bind",
       "parameters": [
-        "executionStatus",
-        "errorMessage",
         "executionId",
-        "workerId",
-        "leaseToken",
+        "linkKey",
+        "jobId",
+        "definitionVersion",
+        "jobInstanceId",
+        "jobExecutionId",
+        "stepExecutionId",
+        "springStatus",
         "fencingToken"
       ]
     },
     {
-      "key": "worker-lease-find-expired",
-      "consumer": "JdbcWorkerLeaseRepository.recoverExpired",
-      "parameters": []
-    },
-    {
-      "key": "worker-lease-expire",
-      "consumer": "JdbcWorkerLeaseRepository.recoverExpired",
+      "key": "execution-control-bind-job",
+      "consumer": "JdbcBatchExecutionControlPlaneAdapter.bind",
       "parameters": [
+        "jobInstanceId",
+        "jobExecutionId",
+        "controlStatus",
         "executionId",
-        "leaseToken",
+        "jobId",
+        "definitionVersion",
         "fencingToken"
       ]
     },
     {
-      "key": "worker-execution-requeue-expired-claim",
-      "consumer": "JdbcWorkerLeaseRepository.recoverExpired",
+      "key": "execution-control-find",
+      "consumer": "JdbcBatchExecutionControlPlaneAdapter.findReservation",
       "parameters": [
         "executionId"
       ]
     },
     {
-      "key": "worker-execution-mark-unknown",
-      "consumer": "JdbcWorkerLeaseRepository.recoverExpired",
+      "key": "execution-link-find-by-control",
+      "consumer": "JdbcBatchExecutionControlPlaneAdapter.findByCpfExecutionId",
       "parameters": [
         "executionId"
       ]
     },
     {
-      "key": "worker-execution-find-ready-candidates",
-      "consumer": "JdbcWorkerLeaseRepository.claim",
-      "parameters": []
-    },
-    {
-      "key": "worker-execution-mark-claiming",
-      "consumer": "JdbcWorkerLeaseRepository.tryClaim",
+      "key": "execution-control-assert-current",
+      "consumer": "JdbcBatchExecutionControlPlaneAdapter.assertCurrent",
       "parameters": [
-        "workerId",
-        "heartbeatAt",
-        "executionId"
-      ]
-    },
-    {
-      "key": "worker-lease-find-fencing",
-      "consumer": "JdbcWorkerLeaseRepository.tryClaim",
-      "parameters": [
-        "executionId"
-      ]
-    },
-    {
-      "key": "worker-lease-reclaim",
-      "consumer": "JdbcWorkerLeaseRepository.tryClaim",
-      "parameters": [
-        "workerId",
-        "leaseToken",
-        "claimedAt",
-        "leaseUntil",
-        "heartbeatAt",
+        "jobId",
         "fencingToken",
         "executionId"
       ]
     },
     {
-      "key": "worker-lease-insert",
-      "consumer": "JdbcWorkerLeaseRepository.tryClaim",
+      "key": "execution-epoch-advance",
+      "consumer": "JdbcBatchExecutionControlPlaneAdapter.claimLatestEpoch",
       "parameters": [
-        "executionId",
-        "workerId",
-        "leaseToken",
-        "claimedAt",
-        "leaseUntil",
-        "heartbeatAt"
-      ]
-    },
-    {
-      "key": "worker-execution-revert-claim",
-      "consumer": "JdbcWorkerLeaseRepository.tryClaim",
-      "parameters": [
-        "executionId"
-      ]
-    },
-    {
-      "key": "worker-execution-mark-claimed",
-      "consumer": "JdbcWorkerLeaseRepository.tryClaim",
-      "parameters": [
-        "workerId",
-        "heartbeatAt",
-        "executionId"
-      ]
-    },
-    {
-      "key": "worker-lease-renew",
-      "consumer": "JdbcWorkerLeaseRepository.renew",
-      "parameters": [
-        "leaseUntil",
-        "executionId",
-        "workerId",
-        "leaseToken",
+        "fencingToken",
+        "jobId",
         "fencingToken"
       ]
     },
     {
-      "key": "worker-lease-release",
-      "consumer": "JdbcWorkerLeaseRepository.complete",
+      "key": "execution-epoch-insert",
+      "consumer": "JdbcBatchExecutionControlPlaneAdapter.claimLatestEpoch",
       "parameters": [
-        "failureMessage",
-        "executionId",
-        "workerId",
-        "leaseToken",
+        "jobId",
         "fencingToken"
       ]
     },
     {
-      "key": "worker-execution-clear-worker",
-      "consumer": "JdbcWorkerLeaseRepository.complete",
+      "key": "execution-epoch-find",
+      "consumer": "JdbcBatchExecutionControlPlaneAdapter.claimLatestEpoch",
       "parameters": [
-        "executionId"
+        "jobId"
+      ]
+    },
+    {
+      "key": "execution-epoch-lock",
+      "consumer": "JdbcBatchExecutionControlPlaneAdapter.lockCurrentEpoch",
+      "parameters": [
+        "jobId"
+      ]
+    },
+    {
+      "key": "execution-control-find-idempotency",
+      "consumer": "JdbcBatchExecutionControlPlaneAdapter.findByScopeAndKey",
+      "parameters": [
+        "idempotencyScope",
+        "idempotencyKey"
+      ]
+    },
+    {
+      "key": "execution-approved-launch-find-trigger",
+      "consumer": "JdbcBatchApprovedLaunchRequestResolver.resolve(TriggerContext)",
+      "parameters": [
+        "jobId",
+        "definitionVersion",
+        "definitionChecksum"
+      ]
+    },
+    {
+      "key": "execution-approved-launch-find-manual",
+      "consumer": "JdbcBatchApprovedLaunchRequestResolver.resolve(ManualContext)",
+      "parameters": [
+        "approvalId"
+      ]
+    },
+    {
+      "key": "execution-remote-message-insert",
+      "consumer": "JdbcCpfBatchRemoteMessageLedger.claim",
+      "parameters": [
+        "direction",
+        "messageId",
+        "payloadHash",
+        "status",
+        "ownerId",
+        "leaseUntil",
+        "expiresAt",
+        "attemptNo",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    {
+      "key": "execution-remote-message-find",
+      "consumer": "JdbcCpfBatchRemoteMessageLedger.claim",
+      "parameters": [
+        "direction",
+        "messageId"
+      ]
+    },
+    {
+      "key": "execution-remote-message-reclaim",
+      "consumer": "JdbcCpfBatchRemoteMessageLedger.claim",
+      "parameters": [
+        "ownerId",
+        "leaseUntil",
+        "updatedAt",
+        "direction",
+        "messageId",
+        "version"
+      ]
+    },
+    {
+      "key": "execution-remote-message-transition",
+      "consumer": "JdbcCpfBatchRemoteMessageLedger.transition",
+      "parameters": [
+        "status",
+        "lastErrorCode",
+        "leaseUntil",
+        "updatedAt",
+        "direction",
+        "messageId",
+        "ownerId"
       ]
     },
     {
@@ -352,15 +392,6 @@
       "parameters": [
         "scheduleId",
         "scheduledFireAt"
-      ]
-    },
-    {
-      "key": "scheduler-execution-insert",
-      "consumer": "SchedulerDispatchService.createExecution",
-      "parameters": [
-        "jobId",
-        "scheduleId",
-        "businessDate"
       ]
     },
     {
@@ -973,6 +1004,13 @@
       ]
     },
     {
+      "key": "compat-lock-expired-for-job-for-update",
+      "consumer": "BatchOperationsCompatibilityService.actGhostExecution",
+      "parameters": [
+        "jobId"
+      ]
+    },
+    {
       "key": "compat-lock-delete-job-expired",
       "consumer": "BatchOperationsCompatibilityService.actGhostExecution",
       "parameters": [
@@ -984,6 +1022,7 @@
       "consumer": "BatchOperationsCompatibilityService.actGhostExecution",
       "parameters": [
         "executionStatus",
+        "updatedBy",
         "executionId"
       ]
     },
@@ -1599,6 +1638,240 @@
         "approvalRequestId",
         "reason",
         "deploymentId"
+      ]
+    },
+    {
+      "key": "projection-sync-outbox-find",
+      "consumer": "BatchProjectionScheduleSynchronizer.claim",
+      "parameters": []
+    },
+    {
+      "key": "projection-sync-outbox-claim",
+      "consumer": "BatchProjectionScheduleSynchronizer.claim",
+      "parameters": ["instanceId", "leaseUntil", "fencingToken", "outboxId"]
+    },
+    {
+      "key": "projection-sync-outbox-deliver",
+      "consumer": "BatchProjectionScheduleSynchronizer.apply",
+      "parameters": ["outboxId", "instanceId", "fencingToken"]
+    },
+    {
+      "key": "projection-sync-outbox-retry",
+      "consumer": "BatchProjectionScheduleSynchronizer.apply",
+      "parameters": ["nextAttemptAt", "errorCode", "outboxId", "instanceId", "fencingToken"]
+    },
+    {
+      "key": "projection-sync-schedule-count",
+      "consumer": "BatchProjectionScheduleSynchronizer.project",
+      "parameters": ["scheduleId"]
+    },
+    {
+      "key": "projection-sync-schedule-insert",
+      "consumer": "BatchProjectionScheduleSynchronizer.project",
+      "parameters": [
+        "scheduleId", "jobId", "definitionVersion", "definitionChecksum", "cronExpression",
+        "businessDayOnlyYn", "holidayPolicy", "timezone", "nextFireAt", "createdBy", "updatedBy"
+      ]
+    },
+    {
+      "key": "projection-sync-schedule-update",
+      "consumer": "BatchProjectionScheduleSynchronizer.project",
+      "parameters": [
+        "jobId", "definitionVersion", "definitionChecksum", "cronExpression", "businessDayOnlyYn",
+        "holidayPolicy", "timezone", "nextFireAt", "updatedBy", "scheduleId"
+      ]
+    },
+    {
+      "key": "projection-job-update",
+      "consumer": "BatchProjectionScheduleSynchronizer.projectJob;BatchJobDefinitionService.projectPublishedDefinition",
+      "parameters": [
+        "jobName", "jobType", "definitionVersion", "definitionChecksum", "executorReference",
+        "description", "restartableYn", "updatedBy", "jobId"
+      ]
+    },
+    {
+      "key": "projection-job-insert",
+      "consumer": "BatchProjectionScheduleSynchronizer.projectJob;BatchJobDefinitionService.projectPublishedDefinition",
+      "parameters": [
+        "jobId", "jobName", "jobType", "definitionVersion", "definitionChecksum", "executorReference",
+        "description", "restartableYn", "createdBy", "updatedBy"
+      ]
+    },
+    {
+      "key": "projection-sync-schedule-disable",
+      "consumer": "BatchProjectionScheduleSynchronizer.disableSchedule",
+      "parameters": ["updatedBy", "scheduleId", "definitionVersion"]
+    },
+    {
+      "key": "projection-job-disable-version",
+      "consumer": "BatchProjectionScheduleSynchronizer.disableSchedule;BatchJobDefinitionService.retireRuntimeProjection",
+      "parameters": ["updatedBy", "jobId", "definitionVersion"]
+    },
+    {
+      "key": "definition-list",
+      "consumer": "BatchJobDefinitionService.list",
+      "parameters": []
+    },
+    {
+      "key": "definition-list-by-job",
+      "consumer": "BatchJobDefinitionService.list",
+      "parameters": ["jobIdLike"]
+    },
+    {
+      "key": "definition-list-by-state",
+      "consumer": "BatchJobDefinitionService.list",
+      "parameters": ["definitionState"]
+    },
+    {
+      "key": "definition-list-by-job-and-state",
+      "consumer": "BatchJobDefinitionService.list",
+      "parameters": ["jobIdLike", "definitionState"]
+    },
+    {
+      "key": "definition-state-find",
+      "consumer": "BatchJobDefinitionService.state",
+      "parameters": ["jobId", "definitionVersion"]
+    },
+    {
+      "key": "definition-publish-audit-count",
+      "consumer": "BatchJobDefinitionService.publishApproved",
+      "parameters": ["jobId", "definitionVersion", "approvalRequestId"]
+    },
+    {
+      "key": "definition-draft-find",
+      "consumer": "BatchJobDefinitionService.saveDraft",
+      "parameters": ["jobId", "definitionVersion"]
+    },
+    {
+      "key": "definition-draft-insert",
+      "consumer": "BatchJobDefinitionService.saveDraft",
+      "parameters": [
+        "jobId", "definitionVersion", "jobName", "executorType", "definitionState", "ownerDomain",
+        "description", "triggerType", "triggerExpression", "timezoneId", "misfirePolicy", "agentPool",
+        "zoneId", "maxConcurrency", "timeoutSeconds", "restartableYn", "maxAttempts",
+        "initialBackoffSeconds", "backoffMultiplier", "maxBackoffSeconds", "skipLimit",
+        "unknownResultPolicy", "compensationReference", "alertDelaySeconds", "slaSeconds",
+        "notifyFailureYn", "notifyMissedYn", "executorReference", "definitionJson", "checksum",
+        "effectiveFrom", "effectiveUntil", "createdBy", "updatedBy"
+      ]
+    },
+    {
+      "key": "definition-draft-update",
+      "consumer": "BatchJobDefinitionService.saveDraft",
+      "parameters": [
+        "jobName", "executorType", "definitionState", "ownerDomain", "description", "triggerType",
+        "triggerExpression", "timezoneId", "misfirePolicy", "agentPool", "zoneId", "maxConcurrency",
+        "timeoutSeconds", "restartableYn", "maxAttempts", "initialBackoffSeconds", "backoffMultiplier",
+        "maxBackoffSeconds", "skipLimit", "unknownResultPolicy", "compensationReference",
+        "alertDelaySeconds", "slaSeconds", "notifyFailureYn", "notifyMissedYn", "executorReference",
+        "definitionJson", "checksum", "effectiveFrom", "effectiveUntil", "updatedBy", "jobId",
+        "definitionVersion", "rowVersion"
+      ]
+    },
+    {
+      "key": "definition-transition-find",
+      "consumer": "BatchJobDefinitionService.transition",
+      "parameters": ["jobId", "definitionVersion"]
+    },
+    {
+      "key": "definition-transition-update",
+      "consumer": "BatchJobDefinitionService.transition",
+      "parameters": ["definitionState", "definitionJson", "updatedBy", "jobId", "definitionVersion", "rowVersion"]
+    },
+    {
+      "key": "definition-project-schedule-update",
+      "consumer": "BatchJobDefinitionService.projectPublishedDefinition",
+      "parameters": ["definitionVersion", "definitionChecksum", "cronExpression", "timezone", "updatedBy", "scheduleId"]
+    },
+    {
+      "key": "definition-project-schedule-insert",
+      "consumer": "BatchJobDefinitionService.projectPublishedDefinition",
+      "parameters": [
+        "scheduleId", "jobId", "definitionVersion", "definitionChecksum", "cronExpression", "timezone",
+        "createdBy", "updatedBy"
+      ]
+    },
+    {
+      "key": "definition-project-schedule-disable",
+      "consumer": "BatchJobDefinitionService.projectPublishedDefinition",
+      "parameters": ["updatedBy", "scheduleId"]
+    },
+    {
+      "key": "definition-projection-retire-other",
+      "consumer": "BatchJobDefinitionService.persistRuntimeProjection",
+      "parameters": ["jobId", "definitionVersion"]
+    },
+    {
+      "key": "definition-projection-update",
+      "consumer": "BatchJobDefinitionService.persistRuntimeProjection",
+      "parameters": [
+        "definitionChecksum", "executorType", "executorReference", "triggerType", "triggerExpression",
+        "timezone", "projectionJson", "projectionHash", "effectiveFrom", "effectiveUntil", "publishedBy",
+        "jobId", "definitionVersion"
+      ]
+    },
+    {
+      "key": "definition-projection-insert",
+      "consumer": "BatchJobDefinitionService.persistRuntimeProjection",
+      "parameters": [
+        "jobId", "definitionVersion", "definitionChecksum", "executorType", "executorReference",
+        "triggerType", "triggerExpression", "timezone", "projectionJson", "projectionHash",
+        "effectiveFrom", "effectiveUntil", "publishedBy"
+      ]
+    },
+    {
+      "key": "definition-projection-outbox-insert",
+      "consumer": "BatchJobDefinitionService.enqueueProjectionEvent",
+      "parameters": ["outboxId", "jobId", "definitionVersion", "eventType", "payloadHash", "eventPayload"]
+    },
+    {
+      "key": "definition-projection-retire",
+      "consumer": "BatchJobDefinitionService.retireRuntimeProjection",
+      "parameters": ["jobId", "definitionVersion", "definitionChecksum"]
+    },
+    {
+      "key": "definition-retire-schedule",
+      "consumer": "BatchJobDefinitionService.retireRuntimeProjection",
+      "parameters": ["updatedBy", "scheduleId", "definitionVersion"]
+    },
+    {
+      "key": "definition-dependency-graph",
+      "consumer": "BatchJobDefinitionService.validateDependencyGraph",
+      "parameters": []
+    },
+    {
+      "key": "definition-audit-insert",
+      "consumer": "BatchJobDefinitionService.audit",
+      "parameters": [
+        "jobId", "definitionVersion", "actionCode", "fromState", "toState", "reason", "operatorId",
+        "requestedBy", "approvalRequestId", "transactionId", "traceId", "beforeJson", "afterJson"
+      ]
+    },
+    {
+      "key": "definition-parameters-delete",
+      "consumer": "BatchJobDefinitionService.replaceChildren",
+      "parameters": ["jobId", "definitionVersion"]
+    },
+    {
+      "key": "definition-parameter-insert",
+      "consumer": "BatchJobDefinitionService.replaceChildren",
+      "parameters": [
+        "jobId", "definitionVersion", "parameterName", "parameterType", "labelText", "descriptionText",
+        "requiredYn", "sensitiveYn", "defaultValue", "allowedValues", "validationPattern", "minValue",
+        "maxValue", "minLength", "maxLength", "referenceType", "aliasRequiredYn",
+        "runtimeOverrideAllowedYn", "sortOrder"
+      ]
+    },
+    {
+      "key": "definition-dependencies-delete",
+      "consumer": "BatchJobDefinitionService.replaceChildren",
+      "parameters": ["jobId", "definitionVersion"]
+    },
+    {
+      "key": "definition-dependency-insert",
+      "consumer": "BatchJobDefinitionService.replaceChildren",
+      "parameters": [
+        "jobId", "definitionVersion", "relatedJobId", "conditionCode", "timeoutSeconds", "requiredYn", "sortOrder"
       ]
     }
   ],

@@ -7,7 +7,7 @@ function Invoke-Required([string]$Name,[string]$Script,[string[]]$Arguments=@())
     $path=Join-Path $PSScriptRoot $Script
     if(-not(Test-Path -LiteralPath $path -PathType Leaf)){throw "required QA gate missing: $Script"}
     Write-Host "==> $Name"
-    & pwsh -NoProfile -ExecutionPolicy Bypass -File $path -Root $Root @Arguments
+    & pwsh -NoProfile -File $path -Root $Root @Arguments
     if($LASTEXITCODE -ne 0){throw "$Name failed (exit=$LASTEXITCODE)"}
 }
 function Require-Text([string]$Relative,[string[]]$Markers) {
@@ -103,6 +103,6 @@ foreach($vendorFile in @(
     Require-Text $vendorFile @('cpf_notification_delivery_attempt','attempt_status','lease_version')
 }
 
-& pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'export-full-qa-closure-matrices.ps1') -Root $Root
+& pwsh -NoProfile -File (Join-Path $PSScriptRoot 'export-full-qa-closure-matrices.ps1') -Root $Root
 if($LASTEXITCODE -ne 0){throw "full QA matrix export failed: $LASTEXITCODE"}
 Write-Host "[PASS] Integrated Architecture/UI/Hygiene QA gate. mergedLedger=$($rows.Count)"

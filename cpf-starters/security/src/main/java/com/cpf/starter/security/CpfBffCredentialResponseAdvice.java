@@ -227,7 +227,7 @@ public final class CpfBffCredentialResponseAdvice implements ResponseBodyAdvice<
             return false;
         }
         if (value.isObject()) {
-            Iterator<Map.Entry<String, JsonNode>> fields = value.fields();
+            Iterator<Map.Entry<String, JsonNode>> fields = value.properties().iterator();
             while (fields.hasNext()) {
                 Map.Entry<String, JsonNode> entry = fields.next();
                 if (CREDENTIAL_KEYS.contains(entry.getKey()) || containsCredential(entry.getValue())) {

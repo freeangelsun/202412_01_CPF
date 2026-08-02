@@ -311,7 +311,7 @@ if (Test-Path -LiteralPath $settingsPath) {
 }
 
 $schemaDriftScript = Join-Path $PSScriptRoot "check-database-schema-drift.ps1"
-& pwsh -NoProfile -ExecutionPolicy Bypass -File $schemaDriftScript -Root $Root
+& pwsh -NoProfile -File $schemaDriftScript -Root $Root
 if ($LASTEXITCODE -ne 0) {
     throw "DB schema artifact drift gate 실패 exitCode=$LASTEXITCODE"
 }

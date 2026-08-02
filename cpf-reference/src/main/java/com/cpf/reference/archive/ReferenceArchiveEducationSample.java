@@ -7,6 +7,7 @@ import com.cpf.core.api.archive.CpfArchiveResult;
 import com.cpf.core.api.archive.CpfArchiveService;
 import com.cpf.core.api.archive.CpfArchives;
 
+import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.List;
@@ -28,8 +29,13 @@ public class ReferenceArchiveEducationSample {
     public CpfArchiveResult createZip(Path baseDirectory) {
         CpfArchivePolicy policy = CpfArchivePolicy.local(baseDirectory);
         List<CpfArchiveEntry> entries = List.of(
-                new CpfArchiveEntry("result/success.csv", "id,status\n1,SUCCESS\n".getBytes(StandardCharsets.UTF_8)),
-                new CpfArchiveEntry("result/failure.csv", "id,status\n2,FAILED\n".getBytes(StandardCharsets.UTF_8)));
+                streamingEntry("result/success.csv", "id,status\n1,SUCCESS\n"),
+                streamingEntry("result/failure.csv", "id,status\n2,FAILED\n"));
         return archiveService.create(CpfArchiveRequest.zip(baseDirectory.resolve("result.zip"), entries, policy));
+    }
+
+    private CpfArchiveEntry streamingEntry(String name, String content) {
+        byte[] bytes = content.getBytes(StandardCharsets.UTF_8);
+        return CpfArchiveEntry.streaming(name, bytes.length, () -> new ByteArrayInputStream(bytes));
     }
 }

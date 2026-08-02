@@ -63,7 +63,7 @@ function Save-Result {
 try {
     $pwsh = (Get-Process -Id $PID).Path
     if ($RequireRun) {
-        & $pwsh -NoProfile -ExecutionPolicy Bypass `
+        & $pwsh -NoProfile `
             -File (Join-Path $PSScriptRoot "initialize-cpf-database.ps1") `
             -Root $Root `
             -ProfilePath $ProfilePath `
@@ -77,14 +77,14 @@ try {
         $result.status = "완료"
         $result.canonicalResult = "database-profile-install-result.sanitized.json"
     } else {
-        & $pwsh -NoProfile -ExecutionPolicy Bypass `
+        & $pwsh -NoProfile `
             -File (Join-Path $PSScriptRoot "check-database-profile-standard.ps1") `
             -Root $Root `
             -ProfilePath $ProfilePath
         if ($LASTEXITCODE -ne 0) {
             throw "DB Profile 정적 Gate가 실패했습니다."
         }
-        & $pwsh -NoProfile -ExecutionPolicy Bypass `
+        & $pwsh -NoProfile `
             -File (Join-Path $PSScriptRoot "check-official-db-vendor-readiness.ps1") `
             -Root $Root
         if ($LASTEXITCODE -ne 0) {

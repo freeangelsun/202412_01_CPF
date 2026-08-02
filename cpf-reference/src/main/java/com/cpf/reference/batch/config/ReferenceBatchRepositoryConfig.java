@@ -1,7 +1,7 @@
 package com.cpf.reference.batch.config;
 
 import com.cpf.core.api.database.CpfDatabaseVendor;
-import org.springframework.batch.core.configuration.support.DefaultBatchConfiguration;
+import org.springframework.batch.core.configuration.support.JdbcDefaultBatchConfiguration;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -19,7 +19,7 @@ import javax.sql.DataSource;
  */
 @Configuration
 @ConditionalOnProperty(prefix = "cpf.reference.edu.batch", name = "local-runtime-enabled", havingValue = "true", matchIfMissing = false)
-public class ReferenceBatchRepositoryConfig extends DefaultBatchConfiguration {
+public class ReferenceBatchRepositoryConfig extends JdbcDefaultBatchConfiguration {
     private final DataSource batDataSource;
     private final PlatformTransactionManager batTransactionManager;
     private final String databaseType;

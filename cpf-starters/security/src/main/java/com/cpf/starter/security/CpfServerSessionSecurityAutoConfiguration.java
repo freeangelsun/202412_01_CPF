@@ -8,6 +8,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.env.Environment;
@@ -33,6 +34,12 @@ import org.springframework.session.web.http.DefaultCookieSerializer;
 @ConditionalOnProperty(name = "cpf.security.session.enabled", havingValue = "true", matchIfMissing = true)
 @EnableConfigurationProperties(CpfServerSessionProperties.class)
 public class CpfServerSessionSecurityAutoConfiguration {
+    @Bean
+    @ConditionalOnMissingBean(ObjectMapper.class)
+    ObjectMapper cpfBffCredentialObjectMapper() {
+        return new ObjectMapper().findAndRegisterModules();
+    }
+
     @Bean
     @ConditionalOnMissingBean
     CookieSerializer cpfSessionCookieSerializer(CpfServerSessionProperties properties) {
@@ -84,6 +91,24 @@ public class CpfServerSessionSecurityAutoConfiguration {
         return new CpfTrustedOriginFilter(properties.allowedOrigins());
     }
 
+    @Bean
+    FilterRegistrationBean<CpfTrustedOriginFilter> cpfTrustedOriginFilterRegistration(
+            CpfTrustedOriginFilter filter) {
+        return securityChainOnly(filter);
+    }
+
+    @Bean
+    FilterRegistrationBean<CpfBffSessionBridgeFilter> cpfBffSessionBridgeFilterRegistration(
+            CpfBffSessionBridgeFilter filter) {
+        return securityChainOnly(filter);
+    }
+
+    @Bean
+    FilterRegistrationBean<CpfBffLogoutFilter> cpfBffLogoutFilterRegistration(
+            CpfBffLogoutFilter filter) {
+        return securityChainOnly(filter);
+    }
+
     @Bean(name = "cpfBffSecurityFilterChain")
     @Order(90)
     SecurityFilterChain cpfBffSecurityFilterChain(
@@ -121,7 +146,7 @@ public class CpfServerSessionSecurityAutoConfiguration {
                         .referrerPolicy(referrer -> referrer.policy(
                                 ReferrerPolicyHeaderWriter.ReferrerPolicy.NO_REFERRER))
                         .contentSecurityPolicy(csp -> csp.policyDirectives(properties.contentSecurityPolicy()))
-                        .permissionsPolicy(policy -> policy.policy(
+                        .permissionsPolicyHeader(policy -> policy.policy(
                                 "camera=(), microphone=(), geolocation=(), payment=()")))
                 .addFilterBefore(originFilter, CsrfFilter.class)
                 .addFilterAfter(new CpfCsrfCookieExposureFilter(), CsrfFilter.class)
@@ -148,6 +173,12 @@ public class CpfServerSessionSecurityAutoConfiguration {
     @Bean
     CpfBffSessionDestroyedListener cpfBffSessionDestroyedListener(CpfBffCredentialVault vault) {
         return new CpfBffSessionDestroyedListener(vault);
+    }
+
+    private static <T extends jakarta.servlet.Filter> FilterRegistrationBean<T> securityChainOnly(T filter) {
+        FilterRegistrationBean<T> registration = new FilterRegistrationBean<>(filter);
+        registration.setEnabled(false);
+        return registration;
     }
 
     @Bean

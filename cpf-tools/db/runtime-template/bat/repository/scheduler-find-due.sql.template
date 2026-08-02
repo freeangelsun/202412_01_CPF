@@ -7,12 +7,16 @@ SELECT s.schedule_id,
        s.available_start_time,
        s.available_end_time,
        s.timezone,
-       s.next_fire_at
+       s.next_fire_at,
+       s.definition_version,
+       s.definition_checksum
   FROM bat_schedule s
   JOIN bat_job j
     ON j.job_id = s.job_id
  WHERE s.enabled_yn = 'Y'
    AND j.use_yn = 'Y'
+   AND s.definition_version = j.published_definition_version
+   AND s.definition_checksum = j.published_definition_checksum
    AND (s.next_fire_at IS NULL OR s.next_fire_at <= @NOW@)
  ORDER BY COALESCE(s.next_fire_at, @NOW@), s.schedule_id
  @LIMIT_100@

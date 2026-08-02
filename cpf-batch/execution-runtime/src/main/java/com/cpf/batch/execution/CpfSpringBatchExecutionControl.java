@@ -14,10 +14,10 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.core.JobInstance;
-import org.springframework.batch.core.explore.JobExplorer;
 import org.springframework.batch.core.job.Job;
+import org.springframework.batch.core.job.JobExecution;
+import org.springframework.batch.core.job.JobExecutionException;
+import org.springframework.batch.core.job.JobInstance;
 import org.springframework.batch.core.job.parameters.JobParameters;
 import org.springframework.batch.core.job.parameters.JobParametersBuilder;
 import org.springframework.batch.core.launch.JobOperator;
@@ -27,7 +27,6 @@ import org.springframework.batch.core.repository.JobRepository;
 public final class CpfSpringBatchExecutionControl implements BatchExecutionControlPort {
     private final JobOperator operator;
     private final JobRepository repository;
-    private final JobExplorer explorer;
     private final CpfBatchJobFactory jobs;
     private final BatchExecutionLedgerPort ledger;
     private final BatchFencingPort fencing;
@@ -35,13 +34,11 @@ public final class CpfSpringBatchExecutionControl implements BatchExecutionContr
     public CpfSpringBatchExecutionControl(
             JobOperator operator,
             JobRepository repository,
-            JobExplorer explorer,
             CpfBatchJobFactory jobs,
             BatchExecutionLedgerPort ledger,
             BatchFencingPort fencing) {
         this.operator = operator;
         this.repository = repository;
-        this.explorer = explorer;
         this.jobs = jobs;
         this.ledger = ledger;
         this.fencing = fencing;
@@ -74,7 +71,7 @@ public final class CpfSpringBatchExecutionControl implements BatchExecutionContr
                     request.definition().definitionVersion(), request.fencingToken(), execution);
             ledger.bind(link);
             return link;
-        } catch (RuntimeException failure) {
+        } catch (JobExecutionException | RuntimeException failure) {
             ledger.recordUnknown(cpfExecutionId, "BATCH_START_RESPONSE_UNKNOWN", safe(failure));
             throw new CpfBatchUnknownResultException(
                     "BATCH_START_RESPONSE_UNKNOWN",
@@ -96,7 +93,7 @@ public final class CpfSpringBatchExecutionControl implements BatchExecutionContr
                 ledger.recordUnknown(cpfExecutionId, "BATCH_STOP_NOT_ACCEPTED", "JobOperator.stop returned false");
             }
             return accepted;
-        } catch (RuntimeException failure) {
+        } catch (JobExecutionException | RuntimeException failure) {
             ledger.recordUnknown(cpfExecutionId, "BATCH_STOP_RESPONSE_UNKNOWN", safe(failure));
             throw new CpfBatchUnknownResultException(
                     "BATCH_STOP_RESPONSE_UNKNOWN", "Stop outcome is unknown for " + cpfExecutionId);
@@ -116,7 +113,7 @@ public final class CpfSpringBatchExecutionControl implements BatchExecutionContr
                     requiredLong(previous, "definitionVersion"), fencingToken, restarted);
             ledger.bind(link);
             return link;
-        } catch (RuntimeException failure) {
+        } catch (JobExecutionException | RuntimeException failure) {
             ledger.recordUnknown(cpfExecutionId, "BATCH_RESTART_RESPONSE_UNKNOWN", safe(failure));
             throw new CpfBatchUnknownResultException(
                     "BATCH_RESTART_RESPONSE_UNKNOWN", "Restart outcome is unknown for " + cpfExecutionId);
@@ -128,7 +125,11 @@ public final class CpfSpringBatchExecutionControl implements BatchExecutionContr
         requireOperator(operatorId, reason);
         JobExecution execution = required(jobExecutionId);
         String cpfExecutionId = required(execution, "cpfExecutionId");
-        operator.abandon(execution);
+        try {
+            operator.abandon(execution);
+        } catch (JobExecutionException failure) {
+            throw new CpfBatchExecutionException("BATCH_ABANDON_REJECTED", safe(failure));
+        }
         ledger.transition(cpfExecutionId,
                 Set.of(BatchControlState.STOPPED, BatchControlState.FAILED, BatchControlState.UNKNOWN_RESULT),
                 BatchControlState.ABANDONED, "OPERATOR_ABANDON", reason, null);
@@ -150,8 +151,8 @@ public final class CpfSpringBatchExecutionControl implements BatchExecutionContr
 
         String jobName = CpfBatchJobFactory.jobName(
                 reservation.jobId(), reservation.definitionVersion(), reservation.planChecksum());
-        Optional<JobExecution> recovered = explorer.getJobInstances(jobName, 0, 100).stream()
-                .flatMap(instance -> explorer.getJobExecutions(instance).stream())
+        Optional<JobExecution> recovered = repository.getJobInstances(jobName, 0, 100).stream()
+                .flatMap(instance -> repository.getJobExecutions(instance).stream())
                 .filter(execution -> cpfExecutionId.equals(execution.getJobParameters().getString("cpfExecutionId")))
                 .max(Comparator.comparing(JobExecution::getId));
         if (recovered.isPresent()) {
@@ -177,7 +178,7 @@ public final class CpfSpringBatchExecutionControl implements BatchExecutionContr
         return link;
     }
 
-    private JobParameters parameters(BatchApprovedLaunchRequest request, String cpfExecutionId) {
+    static JobParameters parameters(BatchApprovedLaunchRequest request, String cpfExecutionId) {
         JobParametersBuilder builder = new JobParametersBuilder()
                 .addString("cpfExecutionId", cpfExecutionId, true)
                 .addString("jobId", request.definition().jobId(), true)
@@ -194,8 +195,10 @@ public final class CpfSpringBatchExecutionControl implements BatchExecutionContr
                 .addString("parameterDigest", BatchCanonicalDigest.sha256(request.parameters()), true)
                 .addString("jobName", request.definition().jobName(), false)
                 .addString("ownerDomain", request.definition().ownerDomain(), false)
+                .addString("executorType", request.definition().executorType().name(), false)
                 .addString("executorReference", request.definition().executorReference(), false)
-                .addLong("timeoutSeconds", request.definition().resourcePolicy().timeoutSeconds(), false);
+                .addLong("timeoutSeconds", request.definition().resourcePolicy().timeoutSeconds(), false)
+                .addLong("maxAttempts", (long) request.definition().recoveryPolicy().maxAttempts(), false);
         request.parameters().forEach((name, value) -> add(builder, "arg." + name, value));
         return builder.toJobParameters();
     }

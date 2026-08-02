@@ -8,11 +8,33 @@ function RequireFile([string]$p){if(-not(Test-Path (Join-Path $Root $p) -PathTyp
 function RequireContains([string]$p,[string]$pattern,[string]$message){RequireFile $p;$t=Get-Content(Join-Path $Root $p)-Raw;if($t -notmatch $pattern){Fail $message}}
 function RequireNotContains([string]$p,[string]$pattern,[string]$message){RequireFile $p;$t=Get-Content(Join-Path $Root $p)-Raw;if($t -match $pattern){Fail $message}}
 
+function Get-RepositorySourceFiles {
+    $relativePaths = @(& git -c core.quotepath=false -C $Root ls-files --cached --others --exclude-standard)
+    if ($LASTEXITCODE -ne 0) { Fail "Git source inventory 생성 실패(exit=$LASTEXITCODE)" }
+    return @($relativePaths |
+        Sort-Object -Unique |
+        ForEach-Object { Join-Path $Root $_ } |
+        Where-Object { Test-Path -LiteralPath $_ -PathType Leaf } |
+        ForEach-Object { Get-Item -LiteralPath $_ })
+}
+
 function Assert-RootGeneratedDomainTopology {
-    $fixedRoots = @(
-        'cpf-core','cpf-common','cpf-admin','cpf-biz-admin','cpf-batch',
-        'cpf-gateway','cpf-reference','cpf-tools','cpf-docs'
-    )
+    $surfacePolicyPath = Join-Path $Root 'cpf-tools/governance/cpf-product-surface-policy.json'
+    if (-not (Test-Path -LiteralPath $surfacePolicyPath -PathType Leaf)) {
+        throw "product surface policy missing: $surfacePolicyPath"
+    }
+    $surfacePolicy = Get-Content -LiteralPath $surfacePolicyPath -Raw -Encoding UTF8 |
+        ConvertFrom-Json -Depth 20
+    $fixedRoots = @($surfacePolicy.moduleOwners |
+        Where-Object {
+            [string]$_.prefix -match '^cpf-[^/]+/$' -and
+            [string]$_.owner -ne 'generated-domain'
+        } |
+        ForEach-Object { ([string]$_.prefix).TrimEnd('/') } |
+        Sort-Object -Unique)
+    if ($fixedRoots.Count -eq 0) {
+        throw 'product surface policy has no fixed CPF roots'
+    }
     $settings = Get-Content -LiteralPath (Join-Path $Root 'settings.gradle') -Raw -Encoding UTF8
     $identities = [System.Collections.Generic.List[object]]::new()
     $candidates = @(Get-ChildItem -LiteralPath $Root -Directory -Filter 'cpf-*' |
@@ -107,7 +129,8 @@ foreach($vendor in $supportedVendors){
     RequireFile "cpf-tools/db/vendor/$vendor/sample/cmn-calendar/rollback.sql"
 }
 
-$java=Get-ChildItem $Root -Recurse -File -Filter *.java|Where-Object{$_.FullName -notmatch '[\\/](build|node_modules)[\\/]'}
+$repositorySourceFiles = @(Get-RepositorySourceFiles)
+$java = @($repositorySourceFiles | Where-Object Extension -eq '.java')
 $legacy=@($java|Select-String -Pattern 'com\.cpf\.core\.common\.batch')
 if($legacy.Count){Fail "legacy Core Batch import $($legacy.Count)건"}
 
@@ -116,8 +139,8 @@ if($routes -notmatch 'businessCalendar' -or $routes -notmatch 'features/logs/Log
 RequireNotContains "cpf-admin/frontend/src/features/core/methods.ts" 'searchMembers\s*\(' "삭제된 ADM Member 초기조회 잔존"
 RequireNotContains "cpf-admin/frontend/src/features/core/methods.ts" 'saveBusinessDay\s*\(' "BAT 영업일 저장 frontend 잔존"
 
-$allText = Get-ChildItem $Root -Recurse -File -Include *.java,*.ts,*.vue |
-    Where-Object{$_.FullName -notmatch '[\\/](build|node_modules)[\\/]'} |
+$allText = $repositorySourceFiles |
+    Where-Object { $_.Extension -in @('.java','.ts','.vue') } |
     Select-String -Pattern '/adm/api/batch/calendar|bat_business_day_calendar' -ErrorAction SilentlyContinue
 if(@($allText).Count){Fail "BAT 영업일 legacy 참조 $(@($allText).Count)건"}
 
@@ -144,8 +167,18 @@ foreach($runtime in @('control-server','scheduler','worker','center-cut-runner',
 RequireContains "cpf-tools/scripts/sync-database-artifacts.ps1" 'generate-migration-checksums\.ps1' "DB artifact sync가 migration checksum 자동 생성 단계를 호출하지 않음"
 
 $finalTarget=Get-Content (Join-Path $Root "cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md") -Raw
-foreach($keyword in @("Generated Domain artifact parity","통합 검증 계획","가짜 구현","한글 JavaDoc","영업일")){
-  if($finalTarget -notmatch [regex]::Escape($keyword)){Fail "Final Target R10 정책 누락: $keyword"}
+$requiredFinalTargetPolicies = @(
+    @{ pattern = 'Runtime 검증은 통합 계획'; label = 'expensive runtime integrated verification plan' },
+    @{ pattern = '실제 Product Consumer 없는 Interface/Adapter/Starter'; label = 'no consumer-less placeholder product contract' },
+    @{ pattern = '한글 JavaDoc'; label = 'Korean JavaDoc' },
+    @{ pattern = '영업일'; label = 'business calendar' }
+)
+foreach($policy in $requiredFinalTargetPolicies){
+  if($finalTarget -notmatch [regex]::Escape([string]$policy.pattern)){Fail "Final Target R10 정책 누락: $($policy.label)"}
+}
+if($finalTarget -notmatch 'remove\s*→\s*regenerate\s*→\s*normalized parity' -or
+    $finalTarget -notmatch '이름 normalize 후 parity') {
+    Fail "Final Target R10 정책 누락: Generated Domain remove/regenerate normalized parity"
 }
 RequireContains "cpf-tools/generator/create-domain.ps1" 'CpfPageRequest' "Generator가 CPF PageRequest 표준을 사용하지 않음"
 RequireContains "cpf-tools/generator/create-domain.ps1" 'CpfSlice' "Generator가 CPF Slice 표준을 사용하지 않음"

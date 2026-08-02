@@ -53,9 +53,9 @@
             </tbody>
           </table>
         </div>
-        <pre class="detail">{{ pretty(remoteLogPreview) }}</pre>
-        <pre class="detail">{{ pretty(remoteLogBundleJob) }}</pre>
-        <pre class="detail">{{ pretty(remoteLogDiagnostics) }}</pre>
+        <CpfStructuredData class="detail" :value="remoteLogPreview" />
+        <CpfStructuredData class="detail" :value="remoteLogBundleJob" />
+        <CpfStructuredData class="detail" :value="remoteLogDiagnostics" />
       </section>
 </template>
 

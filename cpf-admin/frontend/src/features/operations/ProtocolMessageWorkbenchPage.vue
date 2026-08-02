@@ -43,14 +43,14 @@
       </form>
     </div>
     <div v-else class="table-wrap"><table><thead><tr><th>시각</th><th>구간</th><th>Protocol/Channel</th><th>External</th><th>Status</th><th>Duration</th></tr></thead><tbody><tr v-for="(row,index) in traceEvents" :key="index" @click="selected=row"><td>{{ text(row,'timestamp','createdAt','created_at') }}</td><td>{{ text(row,'eventType','segmentId','segment_id') }}</td><td>{{ text(row,'protocol','channelCode','channel_code','apiPath','api_path') }}</td><td>{{ text(row,'externalInstitutionCode','external_institution_code','externalTransactionId','external_transaction_id') }}</td><td>{{ text(row,'status','state') }}</td><td>{{ text(row,'durationMs','duration_ms') }}</td></tr></tbody></table></div>
-    <article v-if="selected && tab==='trace'" class="panel"><h2>마스킹 상세</h2><pre class="detail">{{ pretty(selected) }}</pre></article>
+    <article v-if="selected && tab==='trace'" class="panel"><h2>마스킹 상세</h2><CpfStructuredData class="detail" :value="selected" /></article>
   </section>
 </template>
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { createMessage, deleteMessage, findMessages, traceTransaction, updateMessage, type JsonMap, type MessageCommand } from './api'
-import { errorMessage, flattenTimeline, pretty, read, text } from './support'
+import { errorMessage, flattenTimeline, read, text } from './support'
 const route=useRoute()
 const messages=ref<JsonMap[]>([]),trace=ref<JsonMap|null>(null),transactionId=ref(String(route.query.transactionId??'')),limit=ref(100),tab=ref<'registry'|'trace'>('registry'),selected=ref<JsonMap|null>(null),loading=ref(false),error=ref(''),success=ref(''),pendingDelete=ref(false),deleteConfirmed=ref(false)
 const form=reactive<MessageCommand>({messageCode:'',locale:'ko-KR',messageFormatType:'FIXED',externalMessage:'',internalMessage:'',parameterCount:0,parameterSample:'',description:'',useYn:'Y',reason:''})

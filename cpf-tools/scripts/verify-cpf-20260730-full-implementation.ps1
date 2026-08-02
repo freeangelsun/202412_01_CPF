@@ -37,7 +37,7 @@ function Invoke-CpfStep {
     )
     Write-Host "==> $Name"
     if ($RecordEvidence) {
-        & $pwsh -NoProfile -ExecutionPolicy Bypass -File $evidenceRunner `
+        & $pwsh -NoProfile -File $evidenceRunner `
             -Name $Name -RequirementIds $RequirementIds -Executable $Executable `
             -ArgumentList $Arguments -SanitizedCommand $SanitizedCommand `
             -Profile $Profile -Root $RepoRoot
@@ -54,7 +54,7 @@ try {
 
     Invoke-CpfStep -Name 'CPF 20260730 overlay structure' `
         -RequirementIds @('WP00-R002','WP15-R001','WP16-R020') `
-        -Executable $pwsh -Arguments @('-NoProfile','-ExecutionPolicy','Bypass','-File','cpf-tools/scripts/verify-cpf-20260730-overlay-structure.ps1','-Root',$RepoRoot) `
+        -Executable $pwsh -Arguments @('-NoProfile','-File','cpf-tools/scripts/verify-cpf-20260730-overlay-structure.ps1','-Root',$RepoRoot) `
         -SanitizedCommand 'pwsh -File cpf-tools/scripts/verify-cpf-20260730-overlay-structure.ps1 -Root <repo>' `
         -Profile 'overlay-structure'
 
@@ -65,7 +65,7 @@ try {
         )) {
             if (-not (Test-Path -LiteralPath $script -PathType Leaf)) { throw "DB canonical script가 없습니다: $script" }
             Invoke-CpfStep -Name "DB canonical: $script" -RequirementIds @('WP15-R001','WP15-R002','WP15-R003') `
-                -Executable $pwsh -Arguments @('-NoProfile','-ExecutionPolicy','Bypass','-File',$script,'-Root',$RepoRoot) `
+                -Executable $pwsh -Arguments @('-NoProfile','-File',$script,'-Root',$RepoRoot) `
                 -SanitizedCommand "pwsh -File $script -Root <repo>" -Profile 'canonical-db'
         }
     }
@@ -92,7 +92,7 @@ try {
         -Executable $gradle -Arguments @('qualityGate','--no-daemon') `
         -SanitizedCommand './gradlew qualityGate --no-daemon'
 
-    $finalArgs = @('-NoProfile','-ExecutionPolicy','Bypass','-File','cpf-tools/scripts/verify-cpf-final-completion.ps1','-RepoRoot',$RepoRoot,'-ExpectedSourceSha',$head)
+    $finalArgs = @('-NoProfile','-File','cpf-tools/scripts/verify-cpf-final-completion.ps1','-RepoRoot',$RepoRoot,'-ExpectedSourceSha',$head)
     if ($SkipFrontend) { $finalArgs += '-SkipFrontend' }
     if ($SkipRuntime) { $finalArgs += '-SkipRuntime' }
     if ($RunDatabaseLifecycle) {

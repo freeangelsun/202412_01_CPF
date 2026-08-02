@@ -18,12 +18,13 @@ $contract = Get-Content -Raw -Encoding UTF8 -LiteralPath $contractPath | Convert
 $vendors = @("mariadb", "postgresql", "oracle")
 $keys = @($contract.statements | ForEach-Object { [string] $_.key } | Sort-Object)
 $failures = [System.Collections.Generic.List[string]]::new()
-$inlineSqlPattern = '(?is)(?:"""|")\s*(?:SELECT|INSERT|UPDATE|DELETE|MERGE)\b'
+$inlineSqlPattern = '(?is)(?:"""|")\s*(?:(?:SELECT|INSERT|UPDATE|MERGE)\b|DELETE\s+FROM\b)'
 $expectedMigrationScopes = @(
     "cpf-batch/worker/src/main/java",
     "cpf-batch/scheduler/src/main/java",
     "cpf-batch/center-cut-runner/src/main/java",
-    "cpf-batch/control-server/src/main/java"
+    "cpf-batch/control-server/src/main/java",
+    "cpf-batch/execution-runtime/src/main/java"
 )
 
 function ConvertTo-BatScopeArray {
@@ -45,7 +46,7 @@ function ConvertTo-BatScopeArray {
 $migrationScopes = @(ConvertTo-BatScopeArray -Value $contract.migrationScope)
 $remainingScopes = @(ConvertTo-BatScopeArray -Value $contract.remainingScope)
 if (($migrationScopes -join "`n") -cne ($expectedMigrationScopes -join "`n")) {
-    $failures.Add("BAT migrationScope must contain only the four owned main Java roots.")
+    $failures.Add("BAT migrationScope must contain only the five owned main Java roots.")
 }
 foreach ($scope in $remainingScopes) {
     if ($expectedMigrationScopes -cnotcontains $scope) {

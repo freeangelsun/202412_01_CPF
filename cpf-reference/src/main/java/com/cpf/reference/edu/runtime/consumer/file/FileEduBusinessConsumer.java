@@ -20,7 +20,7 @@ public final class FileEduBusinessConsumer implements EduBusinessConsumer {
             byte[] bytes=json.writeValueAsBytes(Map.of("requirementId",b.requirementId(),"businessKey",c.businessKey(),"dataScope",c.dataScope(),"fencingToken",fence,"payload",c.payload(),"writtenAt",Instant.now().toString()));
             Path tmp=Files.createTempFile(dir,safe+"-",".tmp");Files.write(tmp,bytes,StandardOpenOption.TRUNCATE_EXISTING);try{Files.move(tmp,target,StandardCopyOption.ATOMIC_MOVE,StandardCopyOption.REPLACE_EXISTING);}catch(AtomicMoveNotSupportedException e){Files.move(tmp,target,StandardCopyOption.REPLACE_EXISTING);}
             String hash=HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(bytes));
-            return EduBusinessConsumerResult.completed("FILE_COMMITTED",Map.of("path",root.relativize(target).toString().replace('\','/'),"sha256",hash,"size",bytes.length,"consumer",b.entryPoint()));
+            return EduBusinessConsumerResult.completed("FILE_COMMITTED",Map.of("path",root.relativize(target).toString().replace('\\','/'),"sha256",hash,"size",bytes.length,"consumer",b.entryPoint()));
         }catch(EduValidationException e){throw e;}catch(Exception e){throw new IllegalStateException("EDU file consumer failed: "+e.getMessage(),e);}
     }
 }

@@ -52,6 +52,7 @@ $mojibakeRegexPatterns = @(
     '[\u2464\u4E8C\u533B\u56A5\u5BC3\u5DDB\u63F6\u6E1D\u6FE1\u7344\u7652\u7B4C\u8B70\u8E30\uF9CF\uF9D0]'
 )
 $utf8Strict = [System.Text.UTF8Encoding]::new($false, $true)
+$maximumTextBytes = 64MB
 $failures = New-Object System.Collections.Generic.List[string]
 
 Get-ChildItem -LiteralPath $Root -Recurse -File | ForEach-Object {
@@ -73,11 +74,25 @@ Get-ChildItem -LiteralPath $Root -Recurse -File | ForEach-Object {
     }
 
     try {
-        $bytes = [System.IO.File]::ReadAllBytes($_.FullName)
-        $hasUtf8Bom = $bytes.Length -ge 3 `
-            -and $bytes[0] -eq 0xEF `
-            -and $bytes[1] -eq 0xBB `
-            -and $bytes[2] -eq 0xBF
+        if ($_.Length -gt $maximumTextBytes) {
+            $failures.Add("text file exceeds bounded UTF-8 scan limit: $($_.FullName) bytes=$($_.Length)")
+            return
+        }
+        $header = [byte[]]::new(3)
+        $stream = [System.IO.File]::OpenRead($_.FullName)
+        $headerLength = 0
+        try {
+            while ($headerLength -lt $header.Length) {
+                $read = $stream.Read($header, $headerLength, $header.Length - $headerLength)
+                if ($read -eq 0) { break }
+                $headerLength += $read
+            }
+        }
+        finally { $stream.Dispose() }
+        $hasUtf8Bom = $headerLength -eq 3 `
+            -and $header[0] -eq 0xEF `
+            -and $header[1] -eq 0xBB `
+            -and $header[2] -eq 0xBF
         # CPF PowerShell 스크립트는 pwsh 7 + UTF-8(no BOM)을 정본으로 사용합니다.
         # 한글 QA 원장을 Excel 등에서 직접 열 수 있도록 CSV의 UTF-8 BOM만 호환 입력으로 허용합니다.
         $extension = $_.Extension.ToLowerInvariant()
@@ -85,7 +100,7 @@ Get-ChildItem -LiteralPath $Root -Recurse -File | ForEach-Object {
             $failures.Add("utf-8 bom detected: $($_.FullName)")
             return
         }
-        $text = $utf8Strict.GetString($bytes)
+        $text = [System.IO.File]::ReadAllText($_.FullName, $utf8Strict)
         if ($CheckMojibake) {
             foreach ($pattern in $mojibakeLiteralChars) {
                 if ($text.Contains($pattern)) {

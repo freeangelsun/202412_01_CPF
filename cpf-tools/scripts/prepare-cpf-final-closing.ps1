@@ -20,11 +20,11 @@ try{
         'cpf-docs/work/current/CPF_REMAINING_REQUIREMENT_MATRIX_20260727.md'
     )){if(Test-Path $stale -PathType Leaf){Remove-Item $stale -Force;Write-Host "[REMOVED STALE CURRENT] $stale"}}
 
-    & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\build-all-install-sql.ps1 -Root $Root
+    & pwsh -NoProfile -File .\cpf-tools\scripts\build-all-install-sql.ps1 -Root $Root
     if($LASTEXITCODE -ne 0){throw 'build-all-install-sql failed'}
-    & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\sync-database-artifacts.ps1 -Root $Root
+    & pwsh -NoProfile -File .\cpf-tools\scripts\sync-database-artifacts.ps1 -Root $Root
     if($LASTEXITCODE -ne 0){throw 'sync-database-artifacts failed'}
-    & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\generate-migration-checksums.ps1 -Root $Root -Apply
+    & pwsh -NoProfile -File .\cpf-tools\scripts\generate-migration-checksums.ps1 -Root $Root -Apply
     if($LASTEXITCODE -ne 0){throw 'generate-migration-checksums failed'}
 
     foreach($gate in @(
@@ -36,7 +36,7 @@ try{
         'check-enterprise-qa-closing.ps1'
     )){
         Write-Host "==> $gate"
-        & pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path '.\cpf-tools\scripts' $gate) -Root $Root
+        & pwsh -NoProfile -File (Join-Path '.\cpf-tools\scripts' $gate) -Root $Root
         if($LASTEXITCODE -ne 0){throw "$gate failed"}
     }
     git diff --check

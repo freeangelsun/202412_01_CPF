@@ -4,8 +4,9 @@ import com.cpf.core.api.broker.CpfBrokerBridgeHandler;
 import com.cpf.core.api.broker.CpfBrokerBridgeMessage;
 import com.cpf.core.api.broker.CpfBrokerBridgePort;
 import com.cpf.core.api.broker.CpfBrokerBridgeResult;
-import com.cpf.core.common.logging.TransactionContext;
-import com.cpf.core.common.workflow.CpfWorkflowContext;
+import com.cpf.core.api.logging.CpfTransactionContext;
+import com.cpf.core.api.util.CpfHeaders;
+import com.cpf.core.api.workflow.CpfWorkflow;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.charset.StandardCharsets;
@@ -45,7 +46,7 @@ public final class KafkaCpfBrokerBridgeAdapter implements CpfBrokerBridgePort {
             Object payload,
             Map<String, String> additionalHeaders) {
         String topic = required(destination, "destination");
-        String resolvedKey = hasText(key) ? key : TransactionContext.getOrCreateTransactionId();
+        String resolvedKey = hasText(key) ? key : CpfTransactionContext.transactionId();
         Map<String, String> headers = propagationHeaders(additionalHeaders);
         CpfBrokerBridgeMessage message = new CpfBrokerBridgeMessage(
                 "KAFKA", topic, resolvedKey, payload, headers, Instant.now());
@@ -70,7 +71,7 @@ public final class KafkaCpfBrokerBridgeAdapter implements CpfBrokerBridgePort {
                     "KAFKA",
                     topic,
                     resolvedKey,
-                    headers.get(TransactionContext.HEADER_TRANSACTION_ID),
+                    headers.get(CpfHeaders.transactionId()),
                     "partition=" + result.getRecordMetadata().partition()
                             + ", offset=" + result.getRecordMetadata().offset());
         } catch (InterruptedException interrupted) {
@@ -100,8 +101,8 @@ public final class KafkaCpfBrokerBridgeAdapter implements CpfBrokerBridgePort {
 
     private Map<String, String> propagationHeaders(Map<String, String> additionalHeaders) {
         Map<String, String> headers = new LinkedHashMap<>();
-        headers.putAll(TransactionContext.propagationHeaders());
-        headers.putAll(CpfWorkflowContext.propagationHeaders());
+        headers.putAll(CpfTransactionContext.propagationHeaders());
+        headers.putAll(CpfWorkflow.propagationHeaders());
         if (additionalHeaders != null) {
             additionalHeaders.forEach((name, value) -> {
                 if (hasText(name) && value != null) headers.put(name, value);

@@ -1,0 +1,30 @@
+﻿capability,current_owner_or_location,classification,optionality,cross_runtime_reuse,starter_candidate,recommended_action,target_owner_or_artifact,priority
+Authentication/Authorization Contract,cpf-core + product owners,Core contract,필수,낮음,아니오,Core 계약 유지; 기술 Runtime만 Starter,cpf-core + security starters,P0
+Browser BFF Session/JDBC Credential Vault,cpf-starter-security,기술 Adapter,선택,높음,예,세분화 검토,cpf-starter-security-session-jdbc,P0
+JWT/OAuth2 Resource Server,분산/미확인,기술 Adapter,선택,높음,예,신규 후보 검토,cpf-starter-security-resource-server,P1
+ADM/BZA Route·Permission·Menu,cpf-admin / cpf-biz-admin,제품 정책,선택 제품,낮음,아니오,Owner 유지,cpf-admin / cpf-biz-admin,P0
+Kafka Broker Adapter,cpf-starter-messaging-kafka,기술 Adapter,선택,높음,예,기존 Starter 완성,cpf-starter-messaging-kafka,P0
+RabbitMQ/AMQP Adapter,미구현,기술 Adapter,미결정,높음,결정 필요,ADR 후 Kafka-only/공식 Starter/Customer Plugin,rabbitmq starter 또는 customer plugin,P1
+Transactional Outbox/Inbox JDBC Adapter,Core/Owner 구현 전수 필요,기술+데이터 Adapter,선택,높음,후보,공통 계약과 DB Adapter 분리 검토,messaging-outbox-jdbc starter 또는 owner,P0
+Caffeine Cache,cpf-starter-cache,기술 Provider,선택,높음,예,Provider 세분화 검토,cpf-starter-cache-caffeine,P0
+Redis Cache/Lock/Invalidation,cpf-common runtime + starter-cache,기술 Provider,선택,높음,예,Runtime을 Starter로 이관,cpf-starter-cache-redis,P0
+Business Cache Policy,cpf-common / domain,업무 정책,선택,중간,아니오,Owner 유지,cpf-common / domain,P0
+Observability SDK/OTLP Export,cpf-starter-observability,기술 Adapter,명시 선택/제품 정책,높음,예,기존 Starter 완성,cpf-starter-observability,P0
+Business Audit Ledger,owner modules + core contract,제품 데이터 책임,필수 적용,중간,부분 후보,계약은 Core; 공통 JDBC Adapter만 후보,owner + audit-jdbc 검토,P1
+Circuit Breaker/Remote Retry,cpf-starter-resilience,기술 Adapter,선택,높음,예,기존 Starter 완성,cpf-starter-resilience,P0
+HTTP Remote Client/Identity/Trace,cpf-core boundary + consumers,기술 Adapter,선택,높음,후보,공통 Remote Client Starter 검토,cpf-starter-http-client,P1
+Web MVC Standard Error/Header/Validation,cpf-core + product apps,기술 Runtime,선택,높음,후보,Core 계약과 Servlet Runtime 분리,cpf-starter-webmvc,P0
+OpenAPI/Swagger/Scalar Runtime,cpf-core,문서 기술 Runtime,선택,높음,후보,UI/runtime 선택 분리,cpf-starter-openapi-webmvc 또는 webmvc 통합,P0
+MyBatis Runtime,cpf-core/cpf-common/domain,데이터 기술 Runtime,선택,높음,후보,중복 전수 후 Starter/Owner 결정,cpf-starter-persistence-mybatis 검토,P0
+Flyway + Vendor Driver,Generated Domain/Tools,Domain data lifecycle,Domain별,중간,보통 아니오,Generator와 Domain Owner 유지,Generator/Domain + build convention,P0
+JDBC Idempotency Adapter,Core contract + owner implementations,기술+데이터 Adapter,선택,높음,후보,다수 Consumer면 Starter,cpf-starter-idempotency-jdbc 검토,P0
+Feature Flag/OpenFeature,cpf-starter-featureflag,기술 Adapter,선택,높음,예,Provider·Audit 완성 또는 제거,cpf-starter-featureflag,P1
+Secret Provider Registry,cpf-starter-secret,기술 Integration,선택,높음,예,기존 Starter 완성,cpf-starter-secret,P0
+Vault/KMS/Cloud Secret Provider,Customer adapters,환경별 Adapter,선택,높음,Plugin 우선,Provider별 공식 지원 범위 결정,cpf-secret-provider-* 또는 plugin,P1
+Spring Batch Job/Step Execution,cpf-batch,독립 제품 Runtime,선택 제품,낮음,아니오,Batch Owner 유지,cpf-batch,P0
+Scheduler/Lease/Fencing,cpf-batch:scheduler,Batch 전용 Runtime,선택 제품,낮음,아니오,Batch Owner 유지,cpf-batch,P0
+Gateway Route/Control Plane,cpf-gateway,독립 제품 Runtime,선택 제품,낮음,아니오,Gateway Owner 유지,cpf-gateway,P0
+File/SFTP/기관 전문 Adapter,Domain/Common/Customer plugin,외부 연계 Adapter,고객별,중간,Plugin 우선,반복 Consumer와 표준 계약 확인 후 Starter,Customer Plugin 또는 향후 starter,P2
+Excel/Document Processing,cpf-common,고객 업무 공통 Library,선택,낮음,아니오,Common 유지,cpf-common,P1
+Local Composite Runtime,cpf-tools/runtime,개발 도구 Runtime,개발 전용,낮음,아니오,Tools 유지,cpf-tools/runtime,P0
+Generator Capability Selection,cpf-tools/generator,생성 도구,필수,낮음,아니오,Starter 선택을 생성 결과에 연결,cpf-tools/generator,P0

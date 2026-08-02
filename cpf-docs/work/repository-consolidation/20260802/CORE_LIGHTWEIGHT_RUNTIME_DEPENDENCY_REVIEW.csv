@@ -1,0 +1,17 @@
+﻿owner,dependency_or_area,scope,capability,disposition,priority,required_review
+cpf-core,org.mybatis.spring.boot:mybatis-spring-boot-starter,implementation,Persistence Runtime,Starter/Owner 이관 후보,P0,Core Public 계약이 MyBatis Type을 노출하는지 확인 후 cpf-starter-persistence-mybatis 또는 실제 Owner로 이동
+cpf-core,spring-boot-starter-aspectj + aspectjrt/weaver,implementation,Cross-cutting Runtime,세분화 후보,P0,거래로그/접근정책/Controller metadata 중 Core 계약과 선택 Runtime을 분리
+cpf-core,spring-boot-starter-webflux / spring-boot-restclient,compileOnly,Remote HTTP Runtime,Starter 후보,P1,HTTP Client·identity·trace·timeout·resilience 조립을 cpf-starter-http-client로 검토
+cpf-core,spring-batch-core,compileOnly,Batch API compile boundary,재확인 필요,P0,Core API가 Spring Batch Type을 노출하면 계약 분리; BAT Owner 우선
+cpf-core,spring-boot-starter-validation,implementation,Validation Runtime,경량화 후보,P1,Jakarta Validation API와 Provider/Boot AutoConfiguration 분리
+cpf-core,servlet-api / spring-web / spring-webmvc,compileOnly,Web Runtime boundary,Starter 후보,P0,Core 표준 Header/Error 계약과 Servlet Adapter 분리
+cpf-core,opentelemetry-api/sdk/exporter-otlp,compileOnly,Observability Runtime boundary,Starter 이관 후보,P0,Core는 기술중립 Trace 계약 또는 OTel API 최소 경계만; SDK/Exporter는 Starter
+cpf-core,springdoc OpenAPI UI + Scalar,implementation,Documentation UI Runtime,Starter 이관 강력 후보,P0,비-Web/Worker Runtime에 UI Dependency를 강제하지 않도록 openapi/webmvc Starter로 이동
+cpf-common,mybatis-spring-boot-starter,implementation,Customer common persistence runtime,재확인 필요,P0,Common 고유 Mapper 필요 여부와 Domain/Starter 분리 검토
+cpf-common,Spring Cache/Caffeine/Redis,compileOnly,Cache Provider boundary,Starter 이관 진행 중,P0,AutoConfiguration·Provider 구현을 cache Starter에 완결하고 Common은 업무 Cache policy만 유지
+cpf-common,Spring Validation provider,implementation,Validation Runtime,재확인 필요,P1,업무 공통 DTO 계약과 Runtime Provider 분리
+cpf-member,WebMVC/Actuator/MyBatis/Flyway direct dependencies,implementation,Generated Domain Runtime,Generator 선택형 전환 대상,P0,Domain Manifest의 Starter selections로 필요한 조합만 생성
+cpf-reference,WebMVC/JDBC/Actuator direct dependencies,implementation,Reference Runtime,Reference 조합화 대상,P1,공식 Starter 소비 예제로 전환하되 Mega Runtime 방지
+cpf-core,artifact boundary,public contract,Independent Core JAR,유지·경량화,P0,Spring Boot 없는 Consumer와 모든 Starter가 공유하는 계약 Artifact로 검증
+cpf-starter-base,new candidate,minimal Boot runtime,Base Starter,ADR 후 구현 후보,P0,Core 전이와 최소 Boot 조립만 허용; Web/DB/Messaging/Cache/Security/Batch 금지
+cpf-common,module boundary,customer business common,Optional business common,선택 의존으로 재분류,P0,Base Starter·모든 Domain 강제 전이 금지; 기술 Runtime Starter 이관

@@ -112,7 +112,7 @@ function Test-StandaloneRepository([string] $RepositoryPath) {
     if (Test-Path -LiteralPath $moduleBuildPath -PathType Leaf) {
         $moduleBuild = Get-Content -LiteralPath $moduleBuildPath -Raw -Encoding UTF8
         foreach ($requiredText in @(
-                "implementation platform('com.cpf:cpf-bom:",
+                "implementation platform('com.cpf:cpf-platform-bom:",
                 "implementation 'com.cpf.core:cpf-core:",
                 "implementation 'com.cpf.common:cpf-common:",
                 "dependencyLocking",

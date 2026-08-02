@@ -3,12 +3,12 @@ package com.cpf.reference.batch.config;
 import com.cpf.core.api.execution.CpfBatchJob;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.Step;
+import org.springframework.batch.core.job.Job;
+import org.springframework.batch.core.step.Step;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
-import org.springframework.batch.item.support.ListItemReader;
+import org.springframework.batch.infrastructure.item.support.ListItemReader;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -46,7 +46,7 @@ public class ReferenceBatchEducationConfig {
                     // Tasklet은 파일 정리, 단건 집계, 외부 시스템 상태 확인처럼 한 번에 끝나는 작업에 적합합니다.
                     String requestUser = String.valueOf(chunkContext.getStepContext().getJobParameters().get("requestUser"));
                     log.info("CPF EDU Tasklet 배치 실행. requestUser={}", requestUser);
-                    return org.springframework.batch.repeat.RepeatStatus.FINISHED;
+                    return org.springframework.batch.infrastructure.repeat.RepeatStatus.FINISHED;
                 }, transactionManager)
                 .build();
     }
@@ -65,7 +65,8 @@ public class ReferenceBatchEducationConfig {
             @Qualifier("batTransactionManager") PlatformTransactionManager transactionManager) {
         List<Integer> educationItems = IntStream.rangeClosed(1, 25).boxed().toList();
         return new StepBuilder("CPF_EDU_CHUNK_STEP", jobRepository)
-                .<Integer, String>chunk(5, transactionManager)
+                .<Integer, String>chunk(5)
+                .transactionManager(transactionManager)
                 .reader(new ListItemReader<>(educationItems))
                 .processor(item -> {
                     // Processor는 원천 데이터를 업무 DTO나 적재 포맷으로 변환하는 계층입니다.
@@ -94,7 +95,7 @@ public class ReferenceBatchEducationConfig {
                 .tasklet((contribution, chunkContext) -> {
                     // 실제 업무에서는 실패 데이터를 별도 테이블에 적재하고, 재처리 가능 상태만 다시 수행합니다.
                     log.info("CPF EDU Retry 정책 샘플 배치 실행. jobParameters={}", chunkContext.getStepContext().getJobParameters());
-                    return org.springframework.batch.repeat.RepeatStatus.FINISHED;
+                    return org.springframework.batch.infrastructure.repeat.RepeatStatus.FINISHED;
                 }, transactionManager)
                 .build();
     }

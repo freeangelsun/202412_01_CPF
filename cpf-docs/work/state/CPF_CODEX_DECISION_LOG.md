@@ -331,6 +331,116 @@
   Column, Comment가 과거 Version에 역투영되어 Checksum과 Upgrade/Rollback 재현성이
   깨진다. Historical SQL 불변성과 현재 Canonical 정합성은 별도 Gate로 검증해야 한다.
 
+## DEC-042 REF Runtime Query와 DB Test Lifecycle 소유권
+
+- 상태: `완료`
+- 결정: `cpf-reference`의 Center-Cut/Repository SQL도 다른 Platform Owner와 동일하게
+  `CpfVendorSqlCatalogProvider.forModule("ref")`를 통해 중앙
+  `cpf-tools/db/runtime-template/ref`와 공식 3 Vendor Runtime Query Pack에서만
+  공급한다. Java Source에는 `LIMIT`, `ON DUPLICATE KEY`, Oracle/PostgreSQL 분기를
+  두지 않는다. REF DB Test는 module-local 또는 임의 Vendor `CREATE TABLE` fixture를
+  실행하지 않고 Canonical Schema/Seed Metadata에서 생성된 공식
+  `Provision → Install → Test Seed → Verify`가 끝난 격리 DB를 사용한다.
+- 이유: MariaDB 전용 SQL과 부분 DDL fixture가 Java/Product JAR 또는 Test Source에
+  남으면 Fresh Install을 우회하고 PostgreSQL/Oracle parity와 Canonical Index/Type이
+  즉시 갈라진다. REF도 고정 Platform Owner이므로 중앙 Catalog와 공식 Lifecycle의
+  동일한 fail-closed 경계를 적용해야 한다.
+
+## DEC-043 BAT Worker Primary Execution Engine
+
+- 상태: `완료`
+- 결정: BAT Job/Step/Checkpoint/Retry/Restart/JobRepository lifecycle의 유일한
+  Primary Engine은 Spring Batch다. `JobPackDispatcher`, `WorkerRuntime`,
+  `JdbcWorkerExecutionRepository` 기반의 병렬 Custom Engine은 복원하지 않는다.
+  CPF는 승인된 Definition Snapshot, Fencing/Epoch, Idempotency, Runtime
+  Admission/Drain/Capacity, Spring Execution Link와 Unknown Reconciliation만
+  소유한다. Kafka Remote Worker는 이 경계를 통해 Spring Batch Step 실행을
+  수신하며 `bat_worker` 또는 custom lease table을 Job lifecycle 정본으로 사용하지 않는다.
+- 이유: 삭제된 Dispatcher를 Legacy Gate 때문에 복원하면 Spring Batch와 별도
+  Job/Step 상태기가 동시에 실행되어 Retry/Restart/Fencing 결과가 서로 달라진다.
+  기존 WIP의 문제는 삭제 자체가 아니라 Consumer/Test/Gate/SQL 이관을 끝내지 않은
+  것이므로 새 Spring Batch 경로를 완성하고 Stale 요구를 제거해야 한다.
+
+## DEC-044 Generated Domain Minimal DB Topology
+
+- 상태: `완료`
+- 결정: 모든 임의 Generated Domain의 기본 DB는 업무명과 무관하게
+  `${tablePrefix}_sample_item` 한 개와 `${tablePrefix}_idempotency_ledger` 한 개,
+  정확히 두 Table로 생성한다. Generator/DB Tool은 Domain/SystemCode 고정 목록이나
+  Domain별 Operation Table 집합을 갖지 않으며, 존재하지 않는 Template을 완료 조건으로
+  요구하지 않는다. 고객 업무 Table은 생성 이후 고객 확장 Ownership이다.
+- 이유: CPF 생성형 Sample의 목적은 특정 회원·계좌 업무 모델이 아니라 동일한 거래
+  Processor 흐름을 검증하는 것이다. 추가 지원 Ledger를 기본 생성하면 Domain 간 구조가
+  갈라지고 삭제·재생성 비용과 3 Vendor 중복만 늘어난다.
+
+## DEC-045 BAT Control Plane SQL·Schema Ownership
+
+- 상태: `완료`
+- 결정: BAT Runtime Java는 `CpfVendorSqlCatalogProvider.forModule("bat")`의 중앙 Query
+  Key만 소비한다. Spring Batch가 Primary Engine이므로 삭제된 Custom Worker
+  Execution/Lease SQL은 복원하지 않는다. CPF가 소유하는 승인 Launch, Execution
+  Control, Spring Execution Link, Fencing Epoch는 Canonical lowercase 물리 Table로
+  Fresh Install에 포함하며 Historical MariaDB case 차이는 Append-only V95에서만 보정한다.
+- 이유: Java inline SQL과 Fresh Install 누락은 Vendor 중립 Artifact를 깨뜨리고,
+  Custom Worker 상태기계를 되살리면 Spring Batch와 Dual Primary가 된다. Canonical
+  Schema와 중앙 Query Pack을 함께 소유해야 Clean Install/Upgrade/Runtime이 일치한다.
+
+## DEC-046 Vendor Rollback Root와 Empty-string Nullability Repair
+
+- 상태: `완료`
+- 결정: 공식 Rollback Consumer Root는 모든 Vendor에서
+  `cpf-tools/db/vendor/<vendor>/rollback`이며 PostgreSQL/Oracle은 그 아래
+  `{logicalDatabase}`로 Owner를 구분한다. `migration/rollback` 복제 Root는 사용하지
+  않는다. Immutable V69/V74의 Empty-string NOT NULL과 현재 Canonical nullable 의미
+  차이는 Canonical Schema 46을 입력으로 하는 Generated V96으로 3 Vendor에 보정한다.
+  Oracle은 빈 문자열과 NULL을 구분할 수 없어 R96에서 가짜 Sentinel을 기록하지 않고
+  사전 Backup 복구를 요구하며 fail-closed한다.
+- 이유: Pack Metadata와 실행 Tool의 Rollback Root가 다르면 정상 Rollback 파일이 있어도
+  Runtime에서 발견되지 않는다. 또한 Historical 본문을 수정하면 Checksum 재현성이
+  깨지고, Oracle의 표현 불가능한 과거 상태를 강제 복원하면 실제 데이터가 변조된다.
+
+## DEC-047 CPF Starter 제품 Root와 Artifact 소유권
+
+- 상태: `완료`
+- 결정: `cpf-starters/`는 Generated Domain이나 임시 Root가 아니라 CPF가 배포하는
+  선택형 Boot AutoConfiguration 제품 Root다. Product Surface Policy, Gradle Settings,
+  Architecture/Inventory Gate, Platform BOM, Local/Staging/Internal Publication과
+  Artifact 전파 검증은 동일한 7개 Starter 제품 집합을 사용한다.
+- 이유: Starter를 Generated Domain으로 오인하거나 publication/BOM에서 빼면 Source
+  Gate와 실제 배포 Artifact가 서로 다른 false-green 상태가 된다. 정식 제품 Root와
+  공개 Artifact 집합을 한 계약으로 묶어야 고객 Runtime 조립이 재현 가능하다.
+
+## DEC-048 Gateway 단일 Primary
+
+- 상태: `완료`
+- 결정: Gateway의 유일한 Primary Ingress/Proxy Engine은 Spring Cloud Gateway MVC의
+  `CpfScgPrimaryHandler`와 `CpfScgPrimaryRouteConfiguration`이다. 제거한 legacy
+  Controller, ProxyService, JDK transport 계층은 복원하지 않으며 Audit/Ledger Recovery도
+  SCG completion 경계와 동일한 canonical time serialization을 사용한다.
+- 이유: 두 Proxy Engine을 함께 유지하면 Authorization, retry, body capture, ledger의
+  실행 순서와 장애 의미가 갈라진다. SCG 단일 경계가 Route/Filter/Recovery 계약의
+  일관성과 Primary Engine 검증 가능성을 보장한다.
+
+## DEC-049 Generated Domain 실행 결과 소유권
+
+- 상태: `완료`
+- 결정: Generator 실행 결과와 drift report는 생성된 제품 Module의 소유 파일이 아니다.
+  `build/reports/create-domain/<module>` 같은 중앙 ignored 작업 결과 경로에만 생성하고,
+  Generated Domain ownership/manifest에는 포함하지 않는다.
+- 이유: 실행별 결과 JSON을 제품 Root에 넣으면 재생성할 때 Source Diff와 Ownership
+  Drift가 생기며 Domain 삭제도 불완전해진다. 제품 산출물과 도구 실행 Evidence를
+  분리해야 Generator가 arbitrary Domain에 대해 멱등적으로 동작한다.
+
+## DEC-050 ADM/BZA 운영 데이터 표시 표준
+
+- 상태: `완료`
+- 결정: ADM/BZA는 운영 결과 객체를 raw JSON `<pre>`로 직접 노출하지 않는다. 공통
+  structured renderer가 nested record/list를 bounded depth/item으로 표시하고 민감 Field를
+  masking하며, 단순 인증 오류는 semantic alert text로 표시한다.
+- 이유: 무제한 raw serialization은 대형 Payload로 UI를 정지시키고 비밀·개인정보를
+  그대로 노출할 수 있다. 구조화·상한·마스킹을 공통화해야 운영 가독성과 보안 경계를
+  동시에 유지할 수 있다.
+
 
 ## 2026-07-25 — Vendor source ownership / EXS / Frontend packaging
 

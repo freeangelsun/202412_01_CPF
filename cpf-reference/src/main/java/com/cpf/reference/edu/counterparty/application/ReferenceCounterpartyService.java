@@ -20,7 +20,7 @@ public final class ReferenceCounterpartyService {
         var received=new ReferenceCounterpartyExchange(requestId,requirementId,idempotencyKey,requestHash,businessKey,family,scenario,"RECEIVED",0,Map.of(),1,traceId,now,now,null);
         if(!store.insert(received)){return replay(store.find(requirementId,idempotencyKey).orElseThrow(),requestHash);}
         int requested=status(request);boolean responseLoss=bool(request,"simulateResponseLoss");
-        String state=requested==200?"COMPLETED":requested==202||responseLoss?"UNKNOWN_RESULT":requested==409?"CONFLICT":requested==429?"RETRY_WAIT":"FAILED_RETRYABLE";
+        String state=responseLoss||requested==202?"UNKNOWN_RESULT":requested==200?"COMPLETED":requested==409?"CONFLICT":requested==429?"RETRY_WAIT":"FAILED_RETRYABLE";
         int responseStatus=responseLoss?202:requested;
         Map<String,Object> response=Map.of("counterpartyRequestId",requestId,"requirementId",requirementId,"businessKey",businessKey,"family",family,"scenario",scenario,"state",state,"traceId",traceId);
         var completed=new ReferenceCounterpartyExchange(requestId,requirementId,idempotencyKey,requestHash,businessKey,family,scenario,state,responseStatus,response,1,traceId,now,clock.instant(),terminal(state)?clock.instant():null);

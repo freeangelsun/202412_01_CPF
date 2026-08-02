@@ -90,7 +90,6 @@ function Invoke-CreateDomain {
 
     $arguments = @(
         "-NoProfile",
-        "-ExecutionPolicy", "Bypass",
         "-File", $runtimeScript,
         "-Root", $Root,
         "-DomainName", $DomainName,
@@ -383,11 +382,24 @@ subprojects {
     if (-not (Test-Path -LiteralPath $applicationClass -PathType Leaf)) {
         throw "generated domain application class is missing. path=$applicationClass"
     }
-    $classBytes = [System.IO.File]::ReadAllBytes($applicationClass)
-    if ($classBytes.Length -lt 8) {
+    $classHeader = [byte[]]::new(8)
+    $classStream = [System.IO.File]::OpenRead($applicationClass)
+    $classHeaderLength = 0
+    try {
+        while ($classHeaderLength -lt $classHeader.Length) {
+            $read = $classStream.Read(
+                    $classHeader,
+                    $classHeaderLength,
+                    $classHeader.Length - $classHeaderLength)
+            if ($read -eq 0) { break }
+            $classHeaderLength += $read
+        }
+    }
+    finally { $classStream.Dispose() }
+    if ($classHeaderLength -lt 8) {
         throw "generated domain application class is invalid. path=$applicationClass"
     }
-    $classMajor = ([int]$classBytes[6] * 256) + [int]$classBytes[7]
+    $classMajor = ([int]$classHeader[6] * 256) + [int]$classHeader[7]
     $expectedClassMajor = $cpfJavaVersion + 44
     if ($classMajor -ne $expectedClassMajor) {
         throw "generated domain class major must be $expectedClassMajor. actual=$classMajor"

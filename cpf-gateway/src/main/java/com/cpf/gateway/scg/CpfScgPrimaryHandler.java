@@ -3,6 +3,7 @@ package com.cpf.gateway.scg;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
 
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
+import org.springframework.cloud.gateway.server.mvc.filter.RetryFilterFunctions;
 
 import com.cpf.core.api.gateway.CpfGatewayAuditEvent;
 import com.cpf.core.api.gateway.CpfGatewayAuthenticationPort;
@@ -10,9 +11,16 @@ import com.cpf.core.api.gateway.CpfGatewayAuthorizationPort;
 import com.cpf.core.api.gateway.CpfGatewayLedgerPort;
 import com.cpf.core.api.gateway.CpfGatewayPrincipal;
 import com.cpf.core.api.gateway.CpfGatewayRoute;
+import com.cpf.core.api.header.CpfHeaderNames;
+import com.cpf.core.api.logging.policy.LogPolicyDecision;
+import com.cpf.core.channel.application.CpfChannelPolicyService;
+import com.cpf.core.channel.model.CpfChannelPolicyDecision;
+import com.cpf.gateway.config.CpfGatewaySafetyEnforcer;
 import com.cpf.gateway.config.CpfGatewaySafetyProperties;
+import com.cpf.gateway.logging.CpfGatewayCaptureService;
 import com.cpf.gateway.route.CpfGatewayPathRewriter;
 import com.cpf.gateway.route.CpfGatewayRouteSnapshot;
+import com.cpf.gateway.runtime.CpfGatewayRuntimePolicy;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.EOFException;
@@ -26,12 +34,18 @@ import java.net.URI;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.TimeoutException;
 import jakarta.servlet.ReadListener;
 import jakarta.servlet.ServletInputStream;
@@ -39,11 +53,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequestWrapper;
 import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.function.HandlerFunction;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
+import org.springframework.web.server.ResponseStatusException;
 
 /** SCG MVC Data Plane에 body replay, Header trust boundary, durable recovery를 적용합니다. */
 @Component
@@ -56,73 +73,84 @@ public final class CpfScgPrimaryHandler implements HandlerFunction<ServerRespons
     public static final String BODY_HASH_ATTR = "cpf.gateway.bodyHash";
     public static final String EXECUTION_ATTR = "cpf.gateway.executionId";
     public static final String ROUTE_ATTR = "cpf.gateway.routeId";
+    public static final String ROUTE_VERSION_ATTR = "cpf.gateway.routeVersion";
+    public static final String LOG_POLICY_ATTR = "cpf.gateway.logPolicy";
+    public static final String CORS_DECISION_ATTR = "cpf.gateway.corsDecision";
+
+    private static final String EXECUTE_PATH = "/cpf/execute";
+    private static final String LEGACY_PUBLIC_PREFIX = "/gateway/public";
+    private static final Set<String> EXTERNAL_CPF_HEADERS = Set.of(
+            CpfHeaderNames.STANDARD_EXECUTION_ID.toLowerCase(Locale.ROOT),
+            CpfHeaderNames.AUDIT_REASON.toLowerCase(Locale.ROOT),
+            CpfHeaderNames.IDEMPOTENCY_KEY.toLowerCase(Locale.ROOT));
+    private static final Set<String> STANDARD_CONTEXT_HEADERS = Set.of(
+            CpfHeaderNames.ORIGINAL_CHANNEL_CODE.toLowerCase(Locale.ROOT),
+            CpfHeaderNames.CHANNEL_CODE.toLowerCase(Locale.ROOT),
+            CpfHeaderNames.REQUEST_TYPE.toLowerCase(Locale.ROOT),
+            CpfHeaderNames.IDEMPOTENCY_KEY.toLowerCase(Locale.ROOT));
 
     private final CpfGatewayRouteSnapshot snapshot;
     private final CpfScgTargetResolver targets;
     private final CpfGatewayAuthenticationPort authentication;
     private final CpfGatewayAuthorizationPort authorization;
+    private final CpfChannelPolicyService channelPolicies;
+    private final CpfGatewayRuntimePolicy runtimePolicy;
     private final CpfGatewayAuditRecoverySpool auditRecovery;
     private final CpfGatewayLedgerRecoverySpool ledgerRecovery;
+    private final CpfGatewayCaptureService captureService;
     private final CircuitBreakerFactory<?, ?> circuitBreakers;
     private final CpfGatewaySafetyProperties safety;
+    private final CpfGatewaySafetyEnforcer safetyEnforcer;
 
     public CpfScgPrimaryHandler(
             CpfGatewayRouteSnapshot snapshot,
             CpfScgTargetResolver targets,
             CpfGatewayAuthenticationPort authentication,
             CpfGatewayAuthorizationPort authorization,
+            CpfChannelPolicyService channelPolicies,
+            CpfGatewayRuntimePolicy runtimePolicy,
             CpfGatewayAuditRecoverySpool auditRecovery,
             CpfGatewayLedgerRecoverySpool ledgerRecovery,
+            CpfGatewayCaptureService captureService,
             CircuitBreakerFactory<?, ?> circuitBreakers,
-            CpfGatewaySafetyProperties safety) {
+            CpfGatewaySafetyProperties safety,
+            CpfGatewaySafetyEnforcer safetyEnforcer) {
         this.snapshot = snapshot;
         this.targets = targets;
         this.authentication = authentication;
         this.authorization = authorization;
+        this.channelPolicies = channelPolicies;
+        this.runtimePolicy = runtimePolicy;
         this.auditRecovery = auditRecovery;
         this.ledgerRecovery = ledgerRecovery;
+        this.captureService = captureService;
         this.circuitBreakers = circuitBreakers;
         this.safety = safety;
+        this.safetyEnforcer = safetyEnforcer;
     }
 
     @Override
     public ServerResponse handle(ServerRequest request) throws Exception {
-        String environment = safety.getEnvironmentCode();
-        String host = request.headers().firstHeader(HttpHeaders.HOST);
-        String path = request.uri().getRawPath();
-        String version = request.headers().firstHeader("X-Api-Version");
-        CpfGatewayRoute route = snapshot.resolveRequest(
-                environment, host, path, request.methodName(), version);
-
-        Map<String, String> trusted = trustedHeaders(request);
-        CpfGatewayPrincipal principal = authentication.authenticate(route, trusted);
-        if (!principal.authenticated()) {
-            throw new SecurityException("Gateway authentication failed");
-        }
-        trusted.put("cpf.principalId", principal.principalId());
-        if (!authorization.isAllowed(route, Map.copyOf(trusted))) {
-            throw new SecurityException("Gateway authorization denied");
-        }
-        String reason = trusted.get("x-operation-reason");
-        if (route.auditReasonRequired() && (reason == null || reason.isBlank())) {
-            throw new IllegalArgumentException("위험 Gateway 호출 사유가 필요합니다.");
+        ResolvedRoute resolved = resolveRoute(request);
+        CpfGatewayRoute route = resolved.route();
+        safetyEnforcer.validateRoute(route);
+        long declaredLength = request.headers().contentLength().orElse(-1L);
+        safetyEnforcer.validateRequest(request.headers().asHttpHeaders(), declaredLength);
+        if (HttpMethod.OPTIONS.matches(request.method().name())) {
+            return preflight(request, route);
         }
 
-        BodyPlan body = bodyPlan(request, route, safety.getRequestBodyBytesCap());
-        int maxAttempts = body.replaySafe()
-                ? Math.min(route.maxRetryCount() + 1, safety.getRetryCountCap() + 1)
-                : 1;
+        LogPolicyDecision logPolicy = captureService.resolve(route.standardExecutionId());
         String tx = UUID.randomUUID().toString();
-        String transactionId = trustedTransactionId(trusted.get("x-transaction-id"));
-        String targetPath = CpfGatewayPathRewriter.rewrite(
-                route.pathPattern(), route.targetPath(), path);
+        String transactionId = trustedTransactionId(
+                request.headers().firstHeader("X-Transaction-Id"));
         OffsetDateTime started = OffsetDateTime.now();
-
+        long ledgerRequestBytes = Math.max(0L, declaredLength);
         ledgerRecovery.begin(new CpfGatewayLedgerPort.TransactionStart(
                 tx,
                 transactionId,
-                validatedTrace(trusted.get("traceparent")),
-                value(trusted.get("x-channel-id"), ""),
+                validatedTrace(request.headers().firstHeader("traceparent")),
+                value(request.headers().firstHeader(CpfHeaderNames.CHANNEL_CODE), ""),
                 sourceIp(request),
                 sourcePort(request),
                 safety.getInstanceId(),
@@ -132,100 +160,373 @@ public final class CpfScgPrimaryHandler implements HandlerFunction<ServerRespons
                 route.expectedVersion(),
                 route.routeKey(),
                 route.serverGroupId(),
-                request.methodName(),
-                path,
-                body.requestBytes(),
+                request.method().name(),
+                resolved.inboundPath(),
+                ledgerRequestBytes,
                 started));
 
         request.servletRequest().setAttribute(TX_ATTR, tx);
         request.servletRequest().setAttribute(START_ATTR, started);
-        request.servletRequest().setAttribute(PRINCIPAL_ATTR, principal.principalId());
-        request.servletRequest().setAttribute(REASON_ATTR, reason);
-        request.servletRequest().setAttribute(BODY_HASH_ATTR, body.bodyHash());
         request.servletRequest().setAttribute(EXECUTION_ATTR, route.standardExecutionId());
         request.servletRequest().setAttribute(ROUTE_ATTR, route.routeId());
-        auditRecovery.record(new CpfGatewayAuditEvent(
-                tx,
-                route.standardExecutionId(),
-                principal.principalId(),
-                reason,
-                "BEFORE",
-                "ACCEPTED",
-                null,
-                null,
-                java.time.Instant.now(),
-                Map.of(
-                        "routeId", route.routeId(),
-                        "bodySha256", body.bodyHash(),
-                        "bodyMode", body.buffered() ? "BUFFERED_REPLAY" : "STREAMING_SINGLE_ATTEMPT")));
+        request.servletRequest().setAttribute(ROUTE_VERSION_ATTR, route.routeVersion());
+        request.servletRequest().setAttribute(LOG_POLICY_ATTR, logPolicy);
 
-        var circuitBreaker = circuitBreakers.create("gateway-" + route.routeId());
-        Throwable lastFailure = null;
-        for (int attemptNo = 1; attemptNo <= maxAttempts; attemptNo++) {
-            OffsetDateTime attemptStarted = OffsetDateTime.now();
-            CpfScgTargetResolver.Target target = targets.resolve(
-                    route, targetPath, request.uri().getRawQuery());
-            request.servletRequest().setAttribute(TARGET_ATTR, target.instanceId());
-            URI uri = target.uri();
-            ServerRequest upstreamRequest = upstreamRequest(
-                    request, body, trusted, principal, transactionId, tx, route, target);
-            try {
-                ServerResponse response = circuitBreaker.run(() -> {
-                    try {
-                        return CpfGatewayPinnedAddressContext.call(
-                                target.uri().getHost(),
-                                target.pinnedAddress(),
-                                () -> http().handle(upstreamRequest));
-                    } catch (Exception failure) {
-                        throw new GatewayUpstreamException(failure);
-                    }
-                });
-                boolean retryableStatus = body.replaySafe()
-                        && retryableStatus(response.statusCode().value())
-                        && attemptNo < maxAttempts;
-                ledgerRecovery.recordAttempt(attempt(
+        try {
+            captureService.captureRequestMetadata(
+                    tx,
+                    request.uri().getRawQuery(),
+                    request.headers().asHttpHeaders(),
+                    logPolicy);
+
+            CpfGatewayPrincipal principal = Objects.requireNonNullElse(
+                    authentication.authenticate(route, credentialHeaders(request)),
+                    CpfGatewayPrincipal.anonymous());
+            if (route.requiredPermission() != null
+                    && !route.requiredPermission().isBlank()
+                    && !principal.authenticated()) {
+                throw new SecurityException("보호 Gateway route에는 검증된 Principal이 필요합니다.");
+            }
+
+            CpfChannelPolicyDecision channelDecision = channelPolicies.evaluate(
+                    route.standardExecutionId(),
+                    request.headers().firstHeader(CpfHeaderNames.ORIGINAL_CHANNEL_CODE),
+                    request.headers().firstHeader(CpfHeaderNames.CHANNEL_CODE),
+                    request.headers().firstHeader(CpfHeaderNames.REQUEST_TYPE),
+                    principal.authenticated(),
+                    requestSignatureVerified(principal));
+            if (!channelDecision.allowed()) {
+                throw new SecurityException(
+                        "Gateway 채널 정책에서 요청을 거부했습니다. reason=" + channelDecision.reason());
+            }
+
+            Map<String, String> trusted = trustedHeaders(request);
+            trusted.put("cpf.principal.id", principal.principalId());
+            trusted.put("cpf.principal.authorities", String.join(",", principal.authorities()));
+            principal.attributes().forEach((key, value) ->
+                    trusted.put("cpf.principal." + key, value));
+            if (!authorization.isAllowed(route, Map.copyOf(trusted))) {
+                throw new SecurityException(
+                        "Gateway route 실행 권한이 없습니다. permission=" + route.requiredPermission());
+            }
+            if (!runtimePolicy.tryAcquire(
+                    route.standardExecutionId(),
+                    principal.principalId(),
+                    request.headers().firstHeader(CpfHeaderNames.CHANNEL_CODE))) {
+                throw new ResponseStatusException(
+                        HttpStatus.TOO_MANY_REQUESTS, "Gateway rate limit 초과");
+            }
+
+            CpfGatewayRuntimePolicy.CorsDecision corsDecision = corsDecision(
+                    request, request.method().name());
+            if (!corsDecision.allowed()) {
+                throw new ResponseStatusException(
+                        HttpStatus.FORBIDDEN,
+                        "Gateway CORS 정책 거부: " + corsDecision.reason());
+            }
+            request.servletRequest().setAttribute(CORS_DECISION_ATTR, corsDecision);
+
+            String reason = firstText(
+                    request.headers().firstHeader(CpfHeaderNames.AUDIT_REASON),
+                    request.headers().firstHeader("X-Operation-Reason"));
+            if (route.auditReasonRequired() && reason == null) {
+                throw new IllegalArgumentException(
+                        "Gateway 위험 거래에는 " + CpfHeaderNames.AUDIT_REASON + "가 필요합니다.");
+            }
+
+            BodyPlan body = bodyPlan(request, route, safety.getRequestBodyBytesCap());
+            if (!"*".equals(route.httpMethod())
+                    && !route.httpMethod().equalsIgnoreCase(request.method().name())) {
+                throw new IllegalArgumentException(
+                        "Gateway route HTTP method 불일치. inbound=" + request.method().name()
+                                + ", route=" + route.httpMethod());
+            }
+            if (HttpMethod.GET.matches(request.method().name()) && body.requestBytes() > 0L) {
+                throw new IllegalArgumentException("Gateway GET 요청에는 body를 허용하지 않습니다.");
+            }
+            if (body.buffered()) {
+                captureService.captureRequestBody(
                         tx,
-                        attemptNo,
-                        target,
-                        uri,
-                        attemptStarted,
-                        retryableStatus ? "RETRYABLE_FAILURE" : "SUCCESS",
-                        Integer.toString(response.statusCode().value()),
-                        retryableStatus ? "UPSTREAM_RETRYABLE_STATUS" : null,
-                        null,
-                        false));
-                if (!retryableStatus) {
+                        body.bytes(),
+                        body.requestBytes(),
+                        body.bodyHash(),
+                        false,
+                        logPolicy);
+            }
+
+            String targetPath = CpfGatewayPathRewriter.rewrite(
+                    route.pathPattern(), route.targetPath(), resolved.inboundPath());
+            request.servletRequest().setAttribute(PRINCIPAL_ATTR, principal.principalId());
+            request.servletRequest().setAttribute(REASON_ATTR, reason);
+            request.servletRequest().setAttribute(BODY_HASH_ATTR, body.bodyHash());
+
+            CpfGatewayAuditEvent before = new CpfGatewayAuditEvent(
+                    tx,
+                    route.standardExecutionId(),
+                    principal.principalId(),
+                    reason,
+                    "BEFORE",
+                    "ACCEPTED",
+                    null,
+                    null,
+                    java.time.Instant.now(),
+                    Map.of(
+                            "routeId", route.routeId(),
+                            "bodySha256", body.bodyHash(),
+                            "bodyMode", body.buffered()
+                                    ? "BOUNDED_BUFFERED_REPLAY"
+                                    : "BOUNDED_STREAMING_SINGLE_ATTEMPT"));
+            if (route.auditReasonRequired()) {
+                auditRecovery.recordRequired(before);
+            } else {
+                auditRecovery.record(before);
+            }
+
+            int maxRetries = body.replaySafe()
+                    ? Math.min(route.maxRetryCount(), safety.getRetryCountCap())
+                    : 0;
+            int maxAttempts = maxRetries + 1;
+            AtomicInteger attempts = new AtomicInteger();
+            var circuitBreaker = circuitBreakers.create("gateway-" + route.routeId());
+
+            HandlerFunction<ServerResponse> upstream = ignored -> {
+                int attemptNo = attempts.incrementAndGet();
+                OffsetDateTime attemptStarted = OffsetDateTime.now();
+                CpfScgTargetResolver.Target target = targets.resolve(
+                        route, targetPath, request.uri().getRawQuery());
+                request.servletRequest().setAttribute(TARGET_ATTR, target.instanceId());
+                URI uri = target.uri();
+                ServerRequest upstreamRequest = upstreamRequest(
+                        request, body, trusted, principal, transactionId, tx, route, target,
+                        logPolicy);
+                try {
+                    ServerResponse response = circuitBreaker.run(() -> {
+                        try {
+                            return CpfGatewayPinnedAddressContext.call(
+                                    target.uri().getHost(),
+                                    target.pinnedAddress(),
+                                    () -> http().handle(upstreamRequest));
+                        } catch (Exception failure) {
+                            throw new GatewayUpstreamException(failure);
+                        }
+                    });
+                    boolean retryStatus = body.replaySafe()
+                            && retryableStatus(response.statusCode().value())
+                            && attemptNo < maxAttempts;
+                    boolean failedStatus = response.statusCode().is5xxServerError();
+                    ledgerRecovery.recordAttempt(attempt(
+                            tx,
+                            attemptNo,
+                            target,
+                            uri,
+                            attemptStarted,
+                            retryStatus ? "RETRYABLE_FAILURE" : failedStatus ? "FAILED" : "SUCCESS",
+                            Integer.toString(response.statusCode().value()),
+                            retryStatus ? "UPSTREAM_RETRYABLE_STATUS" : null,
+                            null,
+                            false));
                     return response;
-                }
-                pause(attemptNo);
-            } catch (Throwable raw) {
-                Throwable failure = unwrap(raw);
-                lastFailure = failure;
-                boolean retryable = body.replaySafe()
-                        && retryable(failure)
-                        && attemptNo < maxAttempts;
-                boolean unknown = unknownResult(failure);
-                ledgerRecovery.recordAttempt(attempt(
-                        tx,
-                        attemptNo,
-                        target,
-                        uri,
-                        attemptStarted,
-                        retryable ? "RETRYABLE_FAILURE" : "FAILED",
-                        "",
-                        "UPSTREAM_CALL_FAILED",
-                        safe(failure.getMessage()),
-                        unknown));
-                if (!retryable) {
-                    if (failure instanceof Exception exception) {
-                        throw exception;
+                } catch (Throwable raw) {
+                    Throwable failure = unwrap(raw);
+                    boolean retryFailure = body.replaySafe()
+                            && retryable(failure)
+                            && attemptNo < maxAttempts;
+                    ledgerRecovery.recordAttempt(attempt(
+                            tx,
+                            attemptNo,
+                            target,
+                            uri,
+                            attemptStarted,
+                            retryFailure ? "RETRYABLE_FAILURE" : "FAILED",
+                            "",
+                            "UPSTREAM_CALL_FAILED",
+                            safe(failure.getMessage()),
+                            unknownResult(failure)));
+                    if (retryFailure) {
+                        throw new GatewayRetryableException(failure);
                     }
+                    if (failure instanceof Exception exception) throw exception;
                     throw new IllegalStateException(failure);
                 }
-                pause(attemptNo);
+            };
+
+            if (maxRetries > 0) {
+                RetryFilterFunctions.RetryConfig retry = new RetryFilterFunctions.RetryConfig()
+                        .setRetries(maxRetries)
+                        .setMethods(Set.of(request.method()))
+                        .setCacheBody(false)
+                        .setExceptions(Set.of(
+                                GatewayRetryableException.class,
+                                IOException.class,
+                                TimeoutException.class,
+                                RetryFilterFunctions.RetryException.class));
+                upstream = RetryFilterFunctions.retry(retry).apply(upstream);
             }
+            return upstream.handle(request);
+        } catch (Exception failure) {
+            try {
+                captureService.captureError(tx, failure, logPolicy);
+            } catch (RuntimeException captureFailure) {
+                failure.addSuppressed(captureFailure);
+            }
+            throw failure;
         }
-        throw new IllegalStateException("Gateway retry attempts exhausted", lastFailure);
+    }
+
+    private ResolvedRoute resolveRoute(ServerRequest request) {
+        String path = request.uri().getRawPath();
+        String executionHeader = request.headers().firstHeader(CpfHeaderNames.STANDARD_EXECUTION_ID);
+        if (EXECUTE_PATH.equals(path)) {
+            String executionId = requireExecutionId(executionHeader);
+            CpfGatewayRoute route = snapshot.resolve(executionId);
+            return new ResolvedRoute(route, staticInboundPath(route));
+        }
+        if (path.startsWith(EXECUTE_PATH + "/")) {
+            String executionId = requireExecutionId(path.substring((EXECUTE_PATH + "/").length()));
+            if (executionHeader != null && !executionHeader.equals(executionId)) {
+                throw new IllegalArgumentException("URI와 header의 표준 실행 ID가 일치하지 않습니다.");
+            }
+            CpfGatewayRoute route = snapshot.resolve(executionId);
+            return new ResolvedRoute(route, staticInboundPath(route));
+        }
+
+        String inboundPath = path.startsWith(LEGACY_PUBLIC_PREFIX + "/")
+                ? path.substring(LEGACY_PUBLIC_PREFIX.length())
+                : path;
+        String routeMethod = HttpMethod.OPTIONS.matches(request.method().name())
+                ? firstText(
+                        request.headers().firstHeader(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD),
+                        request.method().name())
+                : request.method().name();
+        String version = firstText(
+                request.headers().firstHeader("X-Api-Version"),
+                request.headers().firstHeader("X-Cpf-Api-Version"));
+        CpfGatewayRoute route = snapshot.resolveRequest(
+                safety.getEnvironmentCode(),
+                request.headers().firstHeader(HttpHeaders.HOST),
+                inboundPath,
+                routeMethod,
+                version);
+        if (executionHeader != null && !executionHeader.equals(route.standardExecutionId())) {
+            throw new SecurityException("외부 경로와 표준 실행 ID header가 일치하지 않습니다.");
+        }
+        return new ResolvedRoute(route, inboundPath);
+    }
+
+    private ServerResponse preflight(ServerRequest request, CpfGatewayRoute route) {
+        String requestedMethod = firstText(
+                request.headers().firstHeader(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD),
+                route.httpMethod());
+        CpfGatewayRuntimePolicy.CorsDecision decision = corsDecision(request, requestedMethod);
+        if (!decision.allowed()) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN, "Gateway CORS 정책 거부: " + decision.reason());
+        }
+        return ServerResponse.noContent().headers(headers -> {
+            applyCorsHeaders(headers, decision);
+            HttpMethod allowed = HttpMethod.valueOf(requestedMethod.toUpperCase(Locale.ROOT));
+            headers.setAccessControlAllowMethods(List.of(allowed, HttpMethod.OPTIONS));
+            List<String> requestedHeaders = accessControlRequestHeaders(request);
+            if (!requestedHeaders.isEmpty()) {
+                headers.setAccessControlAllowHeaders(requestedHeaders);
+            }
+        }).build();
+    }
+
+    private CpfGatewayRuntimePolicy.CorsDecision corsDecision(
+            ServerRequest request, String method) {
+        return runtimePolicy.evaluateCors(
+                request.headers().firstHeader(HttpHeaders.ORIGIN),
+                method,
+                accessControlRequestHeaders(request));
+    }
+
+    private static List<String> accessControlRequestHeaders(ServerRequest request) {
+        List<String> values = request.headers().header(HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS);
+        if (values.isEmpty()) return List.of();
+        return values.stream()
+                .flatMap(value -> java.util.Arrays.stream(value.split(",")))
+                .map(String::trim)
+                .filter(value -> !value.isEmpty())
+                .distinct()
+                .toList();
+    }
+
+    private static void applyCorsHeaders(
+            HttpHeaders headers, CpfGatewayRuntimePolicy.CorsDecision decision) {
+        if (decision == null || decision.allowOrigin().isBlank()) return;
+        headers.setAccessControlAllowOrigin(decision.allowOrigin());
+        headers.setAccessControlAllowCredentials(decision.allowCredentials());
+        headers.setAccessControlMaxAge(decision.maxAgeSeconds());
+        if (!decision.exposedHeaders().isEmpty()) {
+            headers.setAccessControlExposeHeaders(List.copyOf(decision.exposedHeaders()));
+        }
+        headers.add(HttpHeaders.VARY, HttpHeaders.ORIGIN);
+    }
+
+    private Map<String, String> credentialHeaders(ServerRequest request) {
+        Map<String, String> credentials = new LinkedHashMap<>();
+        copyCredential(request, credentials, CpfHeaderNames.AUTHORIZATION);
+        copyCredential(request, credentials, CpfHeaderNames.API_KEY);
+        copyCredential(request, credentials, CpfHeaderNames.REQUEST_SIGNATURE);
+        credentials.put("cpf.client.ip", sourceIp(request));
+        String serial = certificateSerial(request.servletRequest());
+        if (!serial.isBlank()) credentials.put("cpf.client.cert.serial", serial);
+        return Map.copyOf(credentials);
+    }
+
+    private static void copyCredential(
+            ServerRequest request, Map<String, String> target, String name) {
+        List<String> values = request.headers().header(name);
+        if (values.isEmpty()) return;
+        if (values.size() != 1) {
+            throw new SecurityException("Gateway duplicate credential header denied: " + name);
+        }
+        String value = values.getFirst();
+        if (value.length() > 8_192 || containsControl(value)) {
+            throw new SecurityException("Gateway credential header denied: " + name);
+        }
+        target.put(name, value);
+    }
+
+    private static boolean requestSignatureVerified(CpfGatewayPrincipal principal) {
+        return Boolean.parseBoolean(principal.attributes().get("requestSignatureVerified"));
+    }
+
+    private static String certificateSerial(HttpServletRequest request) {
+        Object value = request.getAttribute("jakarta.servlet.request.X509Certificate");
+        if (value instanceof X509Certificate[] certificates
+                && certificates.length > 0
+                && certificates[0] != null) {
+            return certificates[0].getSerialNumber().toString(16).toUpperCase(Locale.ROOT);
+        }
+        return "";
+    }
+
+    private static String requireExecutionId(String value) {
+        if (value == null || !value.matches("O[A-Z0-9]{9}")) {
+            throw new IllegalArgumentException("10자리 O 유형 표준 실행 ID가 필요합니다.");
+        }
+        return value;
+    }
+
+    private static String staticInboundPath(CpfGatewayRoute route) {
+        String pattern = route.pathPattern();
+        if (pattern.indexOf('*') >= 0 || pattern.indexOf('{') >= 0) {
+            throw new IllegalArgumentException(
+                    "실행 ID 진입점의 동적 Route에는 실제 외부 Path가 필요합니다. routeId="
+                            + route.routeId());
+        }
+        return pattern.startsWith("/") ? pattern : "/" + pattern;
+    }
+
+    private static String firstText(String first, String second) {
+        if (first != null && !first.isBlank()) return first.trim();
+        return second == null || second.isBlank() ? null : second.trim();
+    }
+
+    private static boolean containsControl(String value) {
+        return value.indexOf('\r') >= 0 || value.indexOf('\n') >= 0;
     }
 
 
@@ -237,13 +538,24 @@ public final class CpfScgPrimaryHandler implements HandlerFunction<ServerRespons
             String transactionId,
             String gatewayTransactionId,
             CpfGatewayRoute route,
-            CpfScgTargetResolver.Target target) {
+            CpfScgTargetResolver.Target target,
+            LogPolicyDecision logPolicy) {
         ServerRequest bodyRequest;
         if (body.buffered()) {
             bodyRequest = ServerRequest.from(original).body(body.bytes()).build();
         } else {
             HttpServletRequest bounded = new BoundedBodyRequest(
-                    original.servletRequest(), safety.getRequestBodyBytesCap());
+                    original.servletRequest(),
+                    safety.getRequestBodyBytesCap(),
+                    original.headers().contentLength().orElse(-1L),
+                    captureService.requestCaptureLimit(logPolicy),
+                    capture -> captureService.captureRequestBody(
+                            gatewayTransactionId,
+                            capture.preview(),
+                            capture.observedBytes(),
+                            capture.sha256(),
+                            capture.truncated(),
+                            logPolicy));
             bodyRequest = ServerRequest.create(bounded, original.messageConverters());
         }
 
@@ -251,7 +563,10 @@ public final class CpfScgPrimaryHandler implements HandlerFunction<ServerRespons
                 .headers(headers -> {
                     headers.clear();
                     trusted.forEach((name, value) -> {
-                        if (value != null && !value.isBlank()) {
+                        if (value != null
+                                && !value.isBlank()
+                                && !name.startsWith("cpf.principal.")
+                                && runtimePolicy.allowRequestHeader(name)) {
                             headers.set(name, value);
                         }
                     });
@@ -259,11 +574,14 @@ public final class CpfScgPrimaryHandler implements HandlerFunction<ServerRespons
                     headers.set(HttpHeaders.HOST, target.authorityHeader());
                     headers.remove(HttpHeaders.COOKIE);
                     headers.remove(HttpHeaders.CONTENT_LENGTH);
+                    headers.set(CpfHeaderNames.STANDARD_EXECUTION_ID, route.standardExecutionId());
                     headers.set("X-Cpf-Principal-Id", principal.principalId());
                     headers.set("X-Cpf-Transaction-Id", transactionId);
                     headers.set("X-Cpf-Gateway-Transaction-Id", gatewayTransactionId);
-                    headers.set("X-Cpf-Gateway-Route-Id", route.routeId());
-                    headers.set("X-Cpf-Gateway-Instance-Id", safety.getInstanceId());
+                    headers.set(CpfHeaderNames.GATEWAY_ROUTE_ID, route.routeId());
+                    headers.set(CpfHeaderNames.GATEWAY_ROUTE_VERSION, route.routeVersion());
+                    headers.set(CpfHeaderNames.GATEWAY_INSTANCE_ID, safety.getInstanceId());
+                    headers.set(CpfHeaderNames.INGRESS_TYPE, "CPF_GATEWAY");
                 })
                 .cookies(cookies -> cookies.clear())
                 .attribute(MvcUtils.GATEWAY_REQUEST_URL_ATTR, target.uri())
@@ -274,30 +592,24 @@ public final class CpfScgPrimaryHandler implements HandlerFunction<ServerRespons
         Map<String, String> values = new LinkedHashMap<>();
         int count = 0;
         int bytes = 0;
-        for (var entry : request.headers().asHttpHeaders().entrySet()) {
+        for (var entry : request.headers().asHttpHeaders().headerSet()) {
             String lower = entry.getKey().toLowerCase(Locale.ROOT);
-            if (lower.startsWith("x-cpf-") || lower.startsWith("x-forwarded-")) {
+            if (lower.startsWith("x-forwarded-")
+                    || (lower.startsWith("x-cpf-") && !EXTERNAL_CPF_HEADERS.contains(lower))) {
                 throw new SecurityException("Untrusted internal/proxy header: " + entry.getKey());
             }
             if (entry.getValue().isEmpty()) {
                 continue;
             }
-            if (HttpHeaders.AUTHORIZATION.equalsIgnoreCase(entry.getKey())) {
-                String credential = entry.getValue().getFirst();
-                if (credential.length() > 8192
-                        || credential.indexOf('\r') >= 0
-                        || credential.indexOf('\n') >= 0) {
-                    throw new SecurityException("Gateway authorization header denied");
-                }
-                count++;
-                bytes += lower.length() + credential.length();
-                if (count > safety.getHeaderCountCap() || bytes > safety.getHeaderBytesCap()) {
-                    throw new IllegalArgumentException("Gateway trusted header budget exceeded");
-                }
-                values.put("authorization", credential);
+            if (HttpHeaders.AUTHORIZATION.equalsIgnoreCase(entry.getKey())
+                    || CpfHeaderNames.API_KEY.equalsIgnoreCase(entry.getKey())
+                    || CpfHeaderNames.REQUEST_SIGNATURE.equalsIgnoreCase(entry.getKey())
+                    || CpfHeaderNames.STANDARD_EXECUTION_ID.equalsIgnoreCase(entry.getKey())
+                    || CpfHeaderNames.AUDIT_REASON.equalsIgnoreCase(entry.getKey())) {
                 continue;
             }
-            if (!safety.getTrustedContextHeaders().contains(lower)) {
+            if (!safety.getTrustedContextHeaders().contains(lower)
+                    && !STANDARD_CONTEXT_HEADERS.contains(lower)) {
                 continue;
             }
             String headerValue = entry.getValue().getFirst();
@@ -321,14 +633,16 @@ public final class CpfScgPrimaryHandler implements HandlerFunction<ServerRespons
             ServerRequest request,
             CpfGatewayRoute route,
             long cap) throws IOException {
-        String method = request.methodName();
+        String method = request.method().name();
         long declared = request.headers().contentLength().orElse(-1);
         MediaType type = request.headers().contentType().orElse(MediaType.APPLICATION_OCTET_STREAM);
         boolean bodyless = "GET".equals(method) || "HEAD".equals(method) || "OPTIONS".equals(method);
         boolean streamLike = MediaType.MULTIPART_FORM_DATA.isCompatibleWith(type)
                 || MediaType.APPLICATION_OCTET_STREAM.isCompatibleWith(type)
                 || MediaType.TEXT_EVENT_STREAM.isCompatibleWith(type);
-        String idempotencyKey = request.headers().firstHeader("Idempotency-Key");
+        String idempotencyKey = firstText(
+                request.headers().firstHeader(CpfHeaderNames.IDEMPOTENCY_KEY),
+                request.headers().firstHeader("Idempotency-Key"));
         boolean replaySafe = bodyless || (route.idempotent()
                 && idempotencyKey != null
                 && idempotencyKey.matches("[A-Za-z0-9._:-]{8,128}")
@@ -402,7 +716,7 @@ public final class CpfScgPrimaryHandler implements HandlerFunction<ServerRespons
     }
 
     private static boolean retryableStatus(int status) {
-        return status == 502 || status == 503 || status == 504;
+        return status >= 500;
     }
 
     private static boolean retryable(Throwable failure) {
@@ -424,20 +738,12 @@ public final class CpfScgPrimaryHandler implements HandlerFunction<ServerRespons
     private static Throwable unwrap(Throwable failure) {
         Throwable value = failure;
         while ((value instanceof GatewayUpstreamException
+                        || value instanceof GatewayRetryableException
                         || value instanceof java.util.concurrent.CompletionException)
                 && value.getCause() != null) {
             value = value.getCause();
         }
         return value;
-    }
-
-    private static void pause(int attemptNo) {
-        try {
-            Thread.sleep(Math.min(500L, 50L * attemptNo));
-        } catch (InterruptedException interrupted) {
-            Thread.currentThread().interrupt();
-            throw new IllegalStateException("Gateway retry interrupted", interrupted);
-        }
     }
 
     private static String trustedTransactionId(String value) {
@@ -485,15 +791,26 @@ public final class CpfScgPrimaryHandler implements HandlerFunction<ServerRespons
 
     private static final class BoundedBodyRequest extends HttpServletRequestWrapper {
         private final long cap;
+        private final long declaredLength;
+        private final int captureLimit;
+        private final BodyCaptureCompletion completion;
         private ServletInputStream input;
         private BufferedReader reader;
 
-        private BoundedBodyRequest(HttpServletRequest request, long cap) {
+        private BoundedBodyRequest(
+                HttpServletRequest request,
+                long cap,
+                long declaredLength,
+                int captureLimit,
+                BodyCaptureCompletion completion) {
             super(request);
             if (cap < 0) {
                 throw new IllegalArgumentException("Gateway request body cap must not be negative");
             }
             this.cap = cap;
+            this.declaredLength = declaredLength;
+            this.captureLimit = Math.max(0, captureLimit);
+            this.completion = Objects.requireNonNull(completion, "completion");
         }
 
         @Override
@@ -502,7 +819,8 @@ public final class CpfScgPrimaryHandler implements HandlerFunction<ServerRespons
                 throw new IllegalStateException("getReader already called");
             }
             if (input == null) {
-                input = new BoundedServletInputStream(super.getInputStream(), cap);
+                input = new BoundedServletInputStream(
+                        super.getInputStream(), cap, declaredLength, captureLimit, completion);
             }
             return input;
         }
@@ -515,7 +833,8 @@ public final class CpfScgPrimaryHandler implements HandlerFunction<ServerRespons
             if (reader == null) {
                 String encoding = getCharacterEncoding();
                 Charset charset = encoding == null ? StandardCharsets.UTF_8 : Charset.forName(encoding);
-                input = new BoundedServletInputStream(super.getInputStream(), cap);
+                input = new BoundedServletInputStream(
+                        super.getInputStream(), cap, declaredLength, captureLimit, completion);
                 reader = new BufferedReader(new InputStreamReader(input, charset));
             }
             return reader;
@@ -525,18 +844,40 @@ public final class CpfScgPrimaryHandler implements HandlerFunction<ServerRespons
     private static final class BoundedServletInputStream extends ServletInputStream {
         private final ServletInputStream delegate;
         private final long cap;
+        private final long declaredLength;
+        private final int captureLimit;
+        private final BodyCaptureCompletion completion;
+        private final ByteArrayOutputStream preview;
+        private final MessageDigest digest;
         private long readBytes;
+        private boolean completed;
 
-        private BoundedServletInputStream(ServletInputStream delegate, long cap) {
+        private BoundedServletInputStream(
+                ServletInputStream delegate,
+                long cap,
+                long declaredLength,
+                int captureLimit,
+                BodyCaptureCompletion completion) {
             this.delegate = delegate;
             this.cap = cap;
+            this.declaredLength = declaredLength;
+            this.captureLimit = Math.max(0, captureLimit);
+            this.completion = completion;
+            this.preview = new ByteArrayOutputStream(Math.min(this.captureLimit, 65_536));
+            try {
+                this.digest = MessageDigest.getInstance("SHA-256");
+            } catch (Exception impossible) {
+                throw new IllegalStateException("SHA-256 unavailable", impossible);
+            }
         }
 
         @Override
         public int read() throws IOException {
             int value = delegate.read();
             if (value >= 0) {
-                requireBudget(1);
+                accept(new byte[] {(byte) value}, 0, 1);
+            } else {
+                finish(false);
             }
             return value;
         }
@@ -545,22 +886,48 @@ public final class CpfScgPrimaryHandler implements HandlerFunction<ServerRespons
         public int read(byte[] bytes, int offset, int length) throws IOException {
             int read = delegate.read(bytes, offset, length);
             if (read > 0) {
-                requireBudget(read);
+                accept(bytes, offset, read);
+            } else if (read < 0) {
+                finish(false);
             }
             return read;
         }
 
-        private void requireBudget(int increment) throws IOException {
+        private void accept(byte[] bytes, int offset, int increment) throws IOException {
             readBytes += increment;
             if (readBytes > cap) {
+                finish(true);
                 throw new IOException("Gateway streaming request body exceeds configured cap");
             }
+            digest.update(bytes, offset, increment);
+            int remaining = captureLimit - preview.size();
+            if (remaining > 0) {
+                preview.write(bytes, offset, Math.min(remaining, increment));
+            }
+        }
+
+        private void finish(boolean failedOrIncomplete) {
+            if (completed) return;
+            completed = true;
+            boolean incomplete = failedOrIncomplete
+                    || (declaredLength >= 0L && readBytes < declaredLength);
+            completion.accept(new BodyCapture(
+                    preview.toByteArray(),
+                    readBytes,
+                    java.util.HexFormat.of().formatHex(digest.digest()),
+                    incomplete || readBytes > preview.size()));
         }
 
         @Override public boolean isFinished() { return delegate.isFinished(); }
         @Override public boolean isReady() { return delegate.isReady(); }
         @Override public void setReadListener(ReadListener listener) { delegate.setReadListener(listener); }
-        @Override public void close() throws IOException { delegate.close(); }
+        @Override public void close() throws IOException {
+            try {
+                delegate.close();
+            } finally {
+                finish(false);
+            }
+        }
     }
 
     private record BodyPlan(byte[] bytes, long requestBytes, String bodyHash, boolean replaySafe) {
@@ -569,9 +936,25 @@ public final class CpfScgPrimaryHandler implements HandlerFunction<ServerRespons
         }
     }
 
+    private record ResolvedRoute(CpfGatewayRoute route, String inboundPath) {}
+
+    private record BodyCapture(
+            byte[] preview, long observedBytes, String sha256, boolean truncated) {}
+
+    @FunctionalInterface
+    private interface BodyCaptureCompletion {
+        void accept(BodyCapture capture);
+    }
+
     private static final class GatewayUpstreamException extends RuntimeException {
         GatewayUpstreamException(Throwable cause) {
             super(cause);
+        }
+    }
+
+    private static final class GatewayRetryableException extends IOException {
+        GatewayRetryableException(Throwable cause) {
+            super("Retryable SCG upstream failure", cause);
         }
     }
 }

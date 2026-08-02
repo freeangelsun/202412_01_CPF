@@ -9,6 +9,7 @@ import com.cpf.core.api.database.CpfVendorSqlCatalogProvider;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.HexFormat;
@@ -39,9 +40,12 @@ public class DeploymentExecutionRepository {
     DeploymentExecutionRepository(JdbcTemplate jdbc, CpfVendorSqlCatalog sql, ObjectMapper objectMapper) {
         this.jdbc = jdbc;
         this.sql = sql;
-        this.canonicalJson = objectMapper.copy()
-                .enable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
-                .enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS);
+        ObjectMapper canonicalMapper = objectMapper.copy();
+        canonicalMapper.registerModule(new JavaTimeModule());
+        canonicalMapper.setConfig(canonicalMapper.getSerializationConfig()
+                .with(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY));
+        canonicalMapper.enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS);
+        this.canonicalJson = canonicalMapper;
     }
 
     @Transactional

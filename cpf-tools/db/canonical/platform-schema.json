@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 45,
+  "schemaVersion": 46,
   "canonicalPolicy": {
     "officialVendors": [
       "mariadb",
@@ -41,7 +41,7 @@
     "gatewayIngressTargetPathPolicy": "Ingress path_pattern and target_path are separate; wildcard suffix is validated and rewritten before dispatch.",
     "batchExecutionAttemptDetailPolicy": "Shell/external attempt detail including exit/stdout/stderr/truncation/duration/artifactHash/unknown is durable and transactionally finalized."
   },
-  "tableCount": 189,
+  "tableCount": 192,
   "tables": [
     {
       "name": "BATCH_JOB_EXECUTION",
@@ -19766,6 +19766,557 @@
       "comment": "CMN DB 연결·CRUD·검색·Paging·낙관적 잠금 검증용 단일 샘플",
       "module": "cmn",
       "logicalDatabase": "cmnDB"
+    },
+    {
+      "name": "cpf_batch_approved_launch",
+      "columns": [
+        {
+          "name": "approval_id",
+          "type": "VARCHAR(120)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "승인된 Launch Request 식별자"
+        },
+        {
+          "name": "job_id",
+          "type": "VARCHAR(80)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "승인 대상 Batch Job ID"
+        },
+        {
+          "name": "definition_version",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "승인 대상 불변 정의 Version"
+        },
+        {
+          "name": "definition_checksum",
+          "type": "CHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "승인 대상 정의 SHA-256"
+        },
+        {
+          "name": "approval_status",
+          "type": "VARCHAR(20)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "승인 Lifecycle 상태"
+        },
+        {
+          "name": "launch_request_json",
+          "type": "LONGTEXT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "서명·검증된 불변 Launch Request JSON"
+        },
+        {
+          "name": "effective_from",
+          "type": "DATETIME(6)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "승인 효력 시작 시각"
+        },
+        {
+          "name": "effective_until",
+          "type": "DATETIME(6)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "승인 효력 종료 시각"
+        },
+        {
+          "name": "approved_by",
+          "type": "VARCHAR(120)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "승인자 식별자"
+        },
+        {
+          "name": "approved_at",
+          "type": "DATETIME(6)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "승인 시각"
+        },
+        {
+          "name": "row_version",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "0",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "승인 상태 낙관적 잠금 Version"
+        }
+      ],
+      "primaryKey": [
+        "approval_id"
+      ],
+      "uniqueKeys": [
+        {
+          "name": "uk_cpf_bat_approved_def",
+          "columns": [
+            "job_id",
+            "definition_version",
+            "definition_checksum"
+          ]
+        }
+      ],
+      "indexes": [],
+      "foreignKeys": [],
+      "checks": [
+        {
+          "name": "ck_cpf_bat_approval_status",
+          "expression": "approval_status IN ('APPROVED', 'REVOKED', 'EXPIRED')"
+        },
+        {
+          "name": "ck_cpf_bat_approval_version",
+          "expression": "row_version >= 0"
+        }
+      ],
+      "comment": "사전 승인된 불변 Spring Batch Launch Request",
+      "module": "bat",
+      "logicalDatabase": "batDB"
+    },
+    {
+      "name": "cpf_batch_execution_control",
+      "columns": [
+        {
+          "name": "cpf_execution_id",
+          "type": "VARCHAR(80)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "CPF Batch 실행 식별자"
+        },
+        {
+          "name": "job_id",
+          "type": "VARCHAR(80)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Batch Job ID"
+        },
+        {
+          "name": "definition_version",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "실행에 고정된 정의 Version"
+        },
+        {
+          "name": "approval_id",
+          "type": "VARCHAR(120)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "실행 승인 식별자"
+        },
+        {
+          "name": "operator_id",
+          "type": "VARCHAR(120)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "실행 요청 운영자"
+        },
+        {
+          "name": "reason",
+          "type": "VARCHAR(500)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "승인된 실행 사유"
+        },
+        {
+          "name": "idempotency_key",
+          "type": "VARCHAR(200)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Scope 내부 실행 멱등 Key"
+        },
+        {
+          "name": "fencing_token",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Control Plane Fencing Token"
+        },
+        {
+          "name": "job_instance_id",
+          "type": "BIGINT",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Spring Batch JobInstance ID"
+        },
+        {
+          "name": "job_execution_id",
+          "type": "BIGINT",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Spring Batch JobExecution ID"
+        },
+        {
+          "name": "control_status",
+          "type": "VARCHAR(40)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "CPF 실행 Control 상태"
+        },
+        {
+          "name": "unknown_reason",
+          "type": "VARCHAR(100)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "UNKNOWN_RESULT 판정 사유 Code"
+        },
+        {
+          "name": "unknown_detail",
+          "type": "VARCHAR(4000)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Masking된 UNKNOWN_RESULT 상세"
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME(6)",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP(6)",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "실행 예약 생성 시각"
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME(6)",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP(6)",
+          "autoIncrement": false,
+          "onUpdate": "CURRENT_TIMESTAMP(6)",
+          "comment": "마지막 Control 상태 변경 시각"
+        },
+        {
+          "name": "idempotency_scope",
+          "type": "VARCHAR(400)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "실행 멱등성 격리 Scope"
+        },
+        {
+          "name": "request_hash",
+          "type": "CHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Canonical Launch Request SHA-256"
+        },
+        {
+          "name": "plan_checksum",
+          "type": "CHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "검증된 실행 Plan SHA-256"
+        },
+        {
+          "name": "control_version",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "1",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Control 상태 CAS Version"
+        },
+        {
+          "name": "reconcile_attempts",
+          "type": "INT",
+          "nullable": false,
+          "default": "0",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "UNKNOWN_RESULT 대사 시도 횟수"
+        },
+        {
+          "name": "reconcile_after",
+          "type": "DATETIME(6)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "다음 대사 가능 시각"
+        },
+        {
+          "name": "last_error_code",
+          "type": "VARCHAR(100)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "마지막 표준 오류 Code"
+        },
+        {
+          "name": "last_error_detail",
+          "type": "VARCHAR(4000)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Masking된 마지막 오류 상세"
+        }
+      ],
+      "primaryKey": [
+        "cpf_execution_id"
+      ],
+      "uniqueKeys": [
+        {
+          "name": "uk_cpf_bat_exec_idem_scope",
+          "columns": [
+            "idempotency_scope",
+            "idempotency_key"
+          ]
+        }
+      ],
+      "indexes": [
+        {
+          "name": "ix_cpf_bat_exec_job",
+          "columns": [
+            "job_id",
+            "definition_version",
+            "created_at"
+          ]
+        },
+        {
+          "name": "ix_cpf_bat_exec_sb",
+          "columns": [
+            "job_execution_id"
+          ]
+        },
+        {
+          "name": "ix_cpf_bat_exec_reconcile",
+          "columns": [
+            "control_status",
+            "reconcile_after",
+            "updated_at"
+          ]
+        }
+      ],
+      "foreignKeys": [],
+      "checks": [
+        {
+          "name": "ck_cpf_bat_fencing_pos",
+          "expression": "fencing_token > 0"
+        },
+        {
+          "name": "ck_cpf_bat_request_hash",
+          "expression": "request_hash REGEXP '^[0-9a-f]{64}$'"
+        },
+        {
+          "name": "ck_cpf_bat_plan_hash",
+          "expression": "plan_checksum REGEXP '^[0-9a-f]{64}$'"
+        },
+        {
+          "name": "ck_cpf_bat_control_version",
+          "expression": "control_version > 0"
+        },
+        {
+          "name": "ck_cpf_bat_reconcile_attempt",
+          "expression": "reconcile_attempts >= 0"
+        },
+        {
+          "name": "ck_cpf_bat_control_status",
+          "expression": "control_status IN ('RESERVED', 'STARTING', 'STARTED', 'STOPPING', 'STOPPED', 'COMPLETED', 'FAILED', 'UNKNOWN_RESULT', 'ABANDONED', 'REJECTED')"
+        }
+      ],
+      "comment": "CPF 승인·멱등·Fencing 기반 Spring Batch 실행 Control Ledger",
+      "module": "bat",
+      "logicalDatabase": "batDB"
+    },
+    {
+      "name": "cpf_batch_execution_link",
+      "columns": [
+        {
+          "name": "cpf_execution_id",
+          "type": "VARCHAR(80)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "CPF Batch 실행 식별자"
+        },
+        {
+          "name": "link_key",
+          "type": "VARCHAR(80)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Job/Step 실행 Link 식별 Key"
+        },
+        {
+          "name": "job_id",
+          "type": "VARCHAR(80)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Batch Job ID"
+        },
+        {
+          "name": "definition_version",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "실행에 고정된 정의 Version"
+        },
+        {
+          "name": "spring_job_instance_id",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Spring Batch JobInstance ID"
+        },
+        {
+          "name": "spring_job_execution_id",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Spring Batch JobExecution ID"
+        },
+        {
+          "name": "spring_step_execution_id",
+          "type": "BIGINT",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Spring Batch StepExecution ID"
+        },
+        {
+          "name": "spring_status",
+          "type": "VARCHAR(40)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Spring Batch 실행 상태"
+        },
+        {
+          "name": "fencing_token",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Link 생성 시 검증된 Fencing Token"
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME(6)",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP(6)",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Link 생성 시각"
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME(6)",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP(6)",
+          "autoIncrement": false,
+          "onUpdate": "CURRENT_TIMESTAMP(6)",
+          "comment": "Link 마지막 동기화 시각"
+        }
+      ],
+      "primaryKey": [
+        "cpf_execution_id",
+        "link_key"
+      ],
+      "uniqueKeys": [],
+      "indexes": [
+        {
+          "name": "ix_cpf_bat_link_sb",
+          "columns": [
+            "spring_job_execution_id",
+            "spring_step_execution_id"
+          ]
+        }
+      ],
+      "foreignKeys": [
+        {
+          "name": "fk_cpf_bat_exec_link",
+          "columns": [
+            "cpf_execution_id"
+          ],
+          "refTable": "cpf_batch_execution_control",
+          "refColumns": [
+            "cpf_execution_id"
+          ],
+          "onDelete": "CASCADE",
+          "onUpdate": null
+        }
+      ],
+      "checks": [
+        {
+          "name": "ck_cpf_bat_link_fencing",
+          "expression": "fencing_token > 0"
+        }
+      ],
+      "comment": "CPF 실행과 Spring Batch Job/Step Metadata 연결 Projection",
+      "module": "bat",
+      "logicalDatabase": "batDB"
     },
     {
       "name": "cpf_batch_execution_epoch",

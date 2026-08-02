@@ -18,6 +18,28 @@ import static com.cpf.core.api.logging.policy.LogCaptureMode.CaptureArea;
 /** 로그 정책 평가 결과를 짧은 TTL로 보관하는 로컬 캐시입니다. */
 public class LogPolicyCache {
     private static final int DEFAULT_TTL_SECONDS = 30;
+    private static final String DEFAULT_PROPERTY_PREFIX = "cpf.log-policy.default.";
+    private static final List<String> DEFAULT_PROPERTY_SUFFIXES = List.of(
+            "file-log-level",
+            "db-log-enabled",
+            "query-capture-mode",
+            "request-header-capture-mode",
+            "response-header-capture-mode",
+            "request-body-capture-mode",
+            "request-body-save",
+            "response-body-capture-mode",
+            "response-body-save",
+            "error-stack-capture-mode",
+            "error-stack-save",
+            "query-allowlist",
+            "header-allowlist",
+            "field-allowlist",
+            "max-query-bytes",
+            "max-header-bytes",
+            "max-request-body-bytes",
+            "max-response-body-bytes",
+            "max-stack-bytes",
+            "masking-policy-key");
     private final LogPolicyRepository repository;
     private final Environment environment;
     private final Duration ttl;
@@ -90,8 +112,9 @@ public class LogPolicyCache {
 
     private LogPolicyDecision applicationDefault(LogPolicyTargetType type, String targetId) {
         LogPolicyDecision d = LogPolicyDecision.cpfDefault(type, targetId);
+        if (!hasApplicationDefault()) return d;
         String level = LogPolicyDecision.normalizeLevel(
-                environment.getProperty("cpf.log-policy.default.file-log-level"), d.fileLogLevel());
+                environment.getProperty(DEFAULT_PROPERTY_PREFIX + "file-log-level"), d.fileLogLevel());
         return new LogPolicyDecision(
                 LogPolicyDecision.CURRENT_SCHEMA_VERSION, type.code(), LogPolicyDecision.normalizeTargetId(targetId), level,
                 booleanProperty("cpf.log-policy.default.db-log-enabled", d.dbLogEnabled()), level,
@@ -111,6 +134,12 @@ public class LogPolicyCache {
                 intProperty("cpf.log-policy.default.max-stack-bytes", d.maxStackBytes()),
                 firstText(environment.getProperty("cpf.log-policy.default.masking-policy-key"), d.maskingPolicyKey(), "DEFAULT"),
                 null, "APPLICATION_DEFAULT", null, null);
+    }
+
+    private boolean hasApplicationDefault() {
+        return DEFAULT_PROPERTY_SUFFIXES.stream()
+                .map(DEFAULT_PROPERTY_PREFIX::concat)
+                .anyMatch(key -> hasText(environment.getProperty(key)));
     }
 
     private LogCaptureMode propertyMode(String suffix, LogCaptureMode fallback, CaptureArea area) {

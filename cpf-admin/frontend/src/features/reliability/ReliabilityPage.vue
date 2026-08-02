@@ -35,16 +35,16 @@
           </label>
           <label>감사 사유 <input v-model="reliabilityAction.reason" type="text"></label>
         </div>
-        <pre class="detail">{{ pretty(reliabilityResult) }}</pre>
+        <CpfStructuredData class="detail" :value="reliabilityResult" />
       </section>
 </template>
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import { admConsoleMixin } from "../../app/admConsoleMixin";
+import { useAdmConsolePage } from "../../app/useAdmConsolePage";
 
 export default defineComponent({
   name: "ReliabilityPage",
-  mixins: [admConsoleMixin]
+  setup() { return useAdmConsolePage(); }
 });
 </script>

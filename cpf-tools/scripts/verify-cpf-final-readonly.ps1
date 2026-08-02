@@ -18,7 +18,7 @@ function Invoke-Required([string]$Name,[string]$RelativePath,[string[]]$Argument
     $extension = [IO.Path]::GetExtension($path).ToLowerInvariant()
     Write-Host "[CPF][RUN] $Name :: $RelativePath $($Arguments -join ' ')"
     switch ($extension) {
-        '.ps1' { & pwsh -NoProfile -ExecutionPolicy Bypass -File $path @Arguments }
+        '.ps1' { & pwsh -NoProfile -File $path @Arguments }
         '.py'  { & python $path @Arguments }
         '.mjs' { & node $path @Arguments }
         '.js'  { & node $path @Arguments }

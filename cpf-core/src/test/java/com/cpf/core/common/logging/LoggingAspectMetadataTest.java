@@ -1,10 +1,10 @@
 package com.cpf.core.common.logging;
 
-import com.cpf.core.common.exception.DefaultCpfMessageResolver;
+import com.cpf.core.api.error.DefaultCpfMessageResolver;
+import com.cpf.core.api.error.CpfMessageResolver;
+import com.cpf.core.api.error.CpfResolvedResponse;
+import com.cpf.core.api.error.CpfResponseCodeResolver;
 import com.cpf.core.common.exception.CpfBusinessException;
-import com.cpf.core.common.exception.CpfMessageResolver;
-import com.cpf.core.common.exception.CpfResolvedResponse;
-import com.cpf.core.common.exception.CpfResponseCodeResolver;
 import com.cpf.core.common.logging.policy.LogPolicyResolver;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.ObjectProvider;

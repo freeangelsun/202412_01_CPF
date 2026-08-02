@@ -8,6 +8,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.cpf.core.api.database.CpfVendorSqlCatalog;
 import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.time.Clock;
@@ -23,6 +24,7 @@ class JdbcCpfBatchRemoteMessageLedgerTest {
     @SuppressWarnings({"rawtypes", "unchecked"})
     void activeLeaseBlocksDuplicateDeliveryEvenForSameOwner() throws Exception {
         JdbcTemplate jdbc = mock(JdbcTemplate.class);
+        CpfVendorSqlCatalog sql = catalog();
         Instant now = Instant.parse("2026-07-31T00:00:00Z");
         when(jdbc.update(anyString(), any(Object[].class)))
                 .thenThrow(new DuplicateKeyException("duplicate"));
@@ -38,7 +40,7 @@ class JdbcCpfBatchRemoteMessageLedgerTest {
                 .thenAnswer(invocation -> ((ResultSetExtractor) invocation.getArgument(1)).extractData(rs));
 
         JdbcCpfBatchRemoteMessageLedger ledger = new JdbcCpfBatchRemoteMessageLedger(
-                jdbc, Clock.fixed(now, ZoneOffset.UTC), 60);
+                jdbc, Clock.fixed(now, ZoneOffset.UTC), 60, sql);
 
         assertThat(ledger.claim(
                 "REQUEST", "message-1", "hash", now.plusSeconds(300), "instance-a"))
@@ -49,6 +51,7 @@ class JdbcCpfBatchRemoteMessageLedgerTest {
     @SuppressWarnings({"rawtypes", "unchecked"})
     void rejectsReplayAfterOriginalMessageTtlExpired() throws Exception {
         JdbcTemplate jdbc = mock(JdbcTemplate.class);
+        CpfVendorSqlCatalog sql = catalog();
         Instant now = Instant.parse("2026-07-31T00:00:00Z");
         when(jdbc.update(anyString(), any(Object[].class)))
                 .thenThrow(new DuplicateKeyException("duplicate"));
@@ -64,12 +67,21 @@ class JdbcCpfBatchRemoteMessageLedgerTest {
                 .thenAnswer(invocation -> ((ResultSetExtractor) invocation.getArgument(1)).extractData(rs));
 
         JdbcCpfBatchRemoteMessageLedger ledger = new JdbcCpfBatchRemoteMessageLedger(
-                jdbc, Clock.fixed(now, ZoneOffset.UTC), 60);
+                jdbc, Clock.fixed(now, ZoneOffset.UTC), 60, sql);
 
         assertThatThrownBy(() -> ledger.claim(
                 "REQUEST", "message-1", "hash", now.plusSeconds(300), "instance-a"))
                 .isInstanceOf(SecurityException.class)
                 .hasMessageContaining("BATCH_REMOTE_MESSAGE_REPLAY_EXPIRED");
+    }
+
+    private static CpfVendorSqlCatalog catalog() {
+        CpfVendorSqlCatalog catalog = mock(CpfVendorSqlCatalog.class);
+        when(catalog.required("execution-remote-message-insert")).thenReturn("REMOTE_INSERT");
+        when(catalog.required("execution-remote-message-find")).thenReturn("REMOTE_FIND");
+        when(catalog.required("execution-remote-message-reclaim")).thenReturn("REMOTE_RECLAIM");
+        when(catalog.required("execution-remote-message-transition")).thenReturn("REMOTE_TRANSITION");
+        return catalog;
     }
 
 }

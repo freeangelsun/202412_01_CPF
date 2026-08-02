@@ -27,7 +27,7 @@ $failure = $null
 $exitCode = 1
 
 try {
-    & pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'verify-cpf-final-completion.ps1') `
+    & pwsh -NoProfile -File (Join-Path $PSScriptRoot 'verify-cpf-final-completion.ps1') `
         -RepoRoot $RepoRoot -RunDatabaseLifecycle -DatabaseProfilePath $DatabaseProfilePath `
         -RunGitHubGovernance:$RunGitHubGovernance *>&1 | Tee-Object -FilePath $logPath
     $exitCode = $LASTEXITCODE
@@ -75,7 +75,7 @@ try {
     } | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $resultPath -Encoding UTF8
 }
 
-& pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'check-final-evidence-contract.ps1') `
+& pwsh -NoProfile -File (Join-Path $PSScriptRoot 'check-final-evidence-contract.ps1') `
     -Root $RepoRoot -EvidenceDir $evidenceDir -RequireAll
 if ($LASTEXITCODE -ne 0) { throw "final evidence contract failed: $LASTEXITCODE" }
 Write-Host "[PASS] CPF final closure evidence: $resultPath"

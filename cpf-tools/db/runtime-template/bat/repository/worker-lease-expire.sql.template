@@ -1,8 +1,0 @@
-UPDATE bat_execution_lease
-   SET lease_status = 'EXPIRED',
-       released_at = @NOW3@
- WHERE execution_id = ?
-   AND lease_token = ?
-   AND fencing_token = ?
-   AND lease_until < @NOW3@
-   AND lease_status IN ('CLAIMED', 'RUNNING')

@@ -1,0 +1,48 @@
+﻿path,purpose,review_order,impact
+cpf-docs/governance/CPF_DOCUMENT_CANONICAL_INDEX.md,governance canonical/policy,1,Architecture/QA/Tooling
+cpf-docs/governance/CPF_DOCUMENT_CONTROL_POLICY.md,governance canonical/policy,2,Architecture/QA/Tooling
+cpf-docs/governance/CPF_GENERATED_DOMAIN_LIFECYCLE_POLICY.md,governance canonical/policy,3,Architecture/QA/Tooling
+cpf-docs/governance/CPF_REPOSITORY_SURFACE_INDEX.md,governance canonical/policy,4,Architecture/QA/Tooling
+cpf-docs/governance/CPF_STARTER_ARCHITECTURE_AND_LIFECYCLE_POLICY.md,governance canonical/policy,5,Architecture/QA/Tooling
+cpf-docs/governance/CPF_VERIFICATION_GATE_LIFECYCLE_POLICY.md,governance canonical/policy,6,Architecture/QA/Tooling
+cpf-docs/governance/history/CPF_DOMAIN_LIFECYCLE_HISTORY.csv,governance canonical/policy,7,Architecture/QA/Tooling
+cpf-docs/governance/history/CPF_QA_DOCUMENT_HISTORY_LEDGER.csv,governance canonical/policy,8,Architecture/QA/Tooling
+cpf-docs/governance/history/CPF_STARTER_ARCHITECTURE_DECISION_LEDGER.csv,governance canonical/policy,9,Architecture/QA/Tooling
+cpf-docs/work/repository-consolidation/20260802/ACCOUNT_LIFECYCLE_INVESTIGATION.md,repository/core/starter consolidation,10,Architecture/QA/Tooling
+cpf-docs/work/repository-consolidation/20260802/APPLY_AND_CLEANUP.md,repository/core/starter consolidation,11,Architecture/QA/Tooling
+cpf-docs/work/repository-consolidation/20260802/CORE_AND_BASE_STARTER_FINAL_ARCHITECTURE_DECISION.md,repository/core/starter consolidation,12,Architecture/QA/Tooling
+cpf-docs/work/repository-consolidation/20260802/CORE_LIGHTWEIGHT_RUNTIME_DEPENDENCY_REVIEW.csv,repository/core/starter consolidation,13,Architecture/QA/Tooling
+cpf-docs/work/repository-consolidation/20260802/CPF_FINAL_TARGET_REQUIREMENTS_STARTER_AMENDMENT_PROPOSAL.md,repository/core/starter consolidation,14,Architecture/QA/Tooling
+cpf-docs/work/repository-consolidation/20260802/DATE_STAMPED_PATH_REVIEW.csv,repository/core/starter consolidation,15,Architecture/QA/Tooling
+cpf-docs/work/repository-consolidation/20260802/DEFERRED_CLEANUP_CANDIDATES.csv,repository/core/starter consolidation,16,Architecture/QA/Tooling
+cpf-docs/work/repository-consolidation/20260802/DELETE_COMMAND.txt,repository/core/starter consolidation,17,Architecture/QA/Tooling
+cpf-docs/work/repository-consolidation/20260802/DELETE_MANIFEST.txt,repository/core/starter consolidation,18,Architecture/QA/Tooling
+cpf-docs/work/repository-consolidation/20260802/DELETE_REVIEW.csv,repository/core/starter consolidation,19,Architecture/QA/Tooling
+cpf-docs/work/repository-consolidation/20260802/DOCUMENT_UPDATE_STATUS_AND_REMAINING_APPLY.md,repository/core/starter consolidation,20,Architecture/QA/Tooling
+cpf-docs/work/repository-consolidation/20260802/FINAL_INDEPENDENT_REVIEW.md,independent final review including idempotent cleanup,21,Architecture/QA/Tooling
+cpf-docs/work/repository-consolidation/20260802/FINAL_ONE_LINE_APPLY_COMMIT_PUSH_GUIDE.md,missing-safe final application guide,22,Architecture/QA/Tooling
+cpf-docs/work/repository-consolidation/20260802/FRAMEWORK_STARTER_CANDIDATE_ASSESSMENT.csv,repository/core/starter consolidation,23,Architecture/QA/Tooling
+cpf-docs/work/repository-consolidation/20260802/GATE_INVENTORY_AND_DISPOSITION.csv,repository/core/starter consolidation,24,Architecture/QA/Tooling
+cpf-docs/work/repository-consolidation/20260802/GUIDE_AND_DELIVERABLES_STARTER_UPDATE_REQUEST.md,repository/core/starter consolidation,25,Architecture/QA/Tooling
+cpf-docs/work/repository-consolidation/20260802/NEXT_QA_CORE_LIGHTWEIGHT_STARTER_MODULARIZATION_REQUEST.md,repository/core/starter consolidation,26,Architecture/QA/Tooling
+cpf-docs/work/repository-consolidation/20260802/NEXT_QA_CORE_LIGHTWEIGHT_STARTER_REQUIREMENTS.csv,repository/core/starter consolidation,27,Architecture/QA/Tooling
+cpf-docs/work/repository-consolidation/20260802/POST_REVIEW.md,repository/core/starter consolidation,28,Architecture/QA/Tooling
+cpf-docs/work/repository-consolidation/20260802/PRE_REVIEW.md,repository/core/starter consolidation,29,Architecture/QA/Tooling
+cpf-docs/work/repository-consolidation/20260802/PROTECTED_PATHS.txt,repository/core/starter consolidation,30,Architecture/QA/Tooling
+cpf-docs/work/repository-consolidation/20260802/README.md,repository/core/starter consolidation,31,Architecture/QA/Tooling
+cpf-docs/work/repository-consolidation/20260802/ROOT_DIRECTORY_REVIEW.csv,repository/core/starter consolidation,32,Architecture/QA/Tooling
+cpf-docs/work/repository-consolidation/20260802/SELF_DEVELOPMENT_REQUIREMENTS.csv,repository/core/starter consolidation,33,Architecture/QA/Tooling
+cpf-docs/work/repository-consolidation/20260802/STARTERS_ARCHITECTURE_REVIEW.md,repository/core/starter consolidation,34,Architecture/QA/Tooling
+cpf-docs/work/repository-consolidation/20260802/STARTER_CURRENT_STATE_AND_GAPS.csv,repository/core/starter consolidation,35,Architecture/QA/Tooling
+cpf-docs/work/repository-consolidation/20260802/STARTER_DOCUMENT_AND_DELIVERABLE_UPDATE_MATRIX.csv,repository/core/starter consolidation,36,Architecture/QA/Tooling
+cpf-docs/work/repository-consolidation/20260802/STARTER_MIGRATION_DECISION_RULES.md,repository/core/starter consolidation,37,Architecture/QA/Tooling
+cpf-docs/work/repository-consolidation/20260802/STARTER_PROFILE_AND_BUNDLE_DESIGN.md,repository/core/starter consolidation,38,Architecture/QA/Tooling
+cpf-docs/work/repository-consolidation/20260802/STARTER_PROFILE_CATALOG_DRAFT.csv,repository/core/starter consolidation,39,Architecture/QA/Tooling
+cpf-docs/work/repository-consolidation/20260802/STARTER_SELECTION_MATRIX.csv,repository/core/starter consolidation,40,Architecture/QA/Tooling
+cpf-docs/work/repository-consolidation/20260802/STARTER_USAGE_AND_SELECTION_GUIDE_DRAFT.md,repository/core/starter consolidation,41,Architecture/QA/Tooling
+cpf-docs/work/repository-consolidation/20260802/TEST_AND_EVIDENCE.md,repository/core/starter consolidation,42,Architecture/QA/Tooling
+cpf-docs/work/repository-consolidation/20260802/codex-review/OPEN_ISSUES.md,Codex review package,43,Architecture/QA/Tooling
+cpf-docs/work/repository-consolidation/20260802/codex-review/REQUIREMENT_STATUS.csv,Codex review package,44,Architecture/QA/Tooling
+cpf-docs/work/repository-consolidation/20260802/codex-review/REVIEW_INDEX.md,Codex review package,45,Architecture/QA/Tooling
+cpf-docs/work/repository-consolidation/20260802/codex-review/TEST_AND_EVIDENCE.md,Codex review package,46,Architecture/QA/Tooling
+cpf-tools/scripts/apply-cpf-repository-starter-final-overlay-and-push.ps1,missing-safe final overlay/delete/commit/push script,47,Architecture/QA/Tooling

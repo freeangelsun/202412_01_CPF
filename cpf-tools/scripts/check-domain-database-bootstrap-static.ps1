@@ -93,7 +93,7 @@ try {
     $generator = Join-Path $Root "cpf-tools/generator/create-domain.ps1"
     $initializer = Join-Path $scriptTarget "initialize-domain-database.ps1"
     foreach ($case in $cases) {
-        & pwsh -NoProfile -ExecutionPolicy Bypass -File $generator `
+        & pwsh -NoProfile -File $generator `
             -Root $sandboxRoot `
             -DomainName $case.domain `
             -SystemCode $case.code `
@@ -106,7 +106,7 @@ try {
         }
 
         $resultDir = Join-Path $sandbox "result-$($case.vendor)"
-        & pwsh -NoProfile -ExecutionPolicy Bypass -File $initializer `
+        & pwsh -NoProfile -File $initializer `
             -Root $sandboxRoot `
             -DomainName $case.domain `
             -SystemCode $case.code `
@@ -153,7 +153,7 @@ try {
             $previousEnvironment[$entry.Key] = [Environment]::GetEnvironmentVariable($entry.Key)
             [Environment]::SetEnvironmentVariable($entry.Key, $entry.Value)
         }
-        & pwsh -NoProfile -ExecutionPolicy Bypass -File $batchInitializer `
+        & pwsh -NoProfile -File $batchInitializer `
             -Root $sandboxRoot `
             -All | Out-Null
         if ($LASTEXITCODE -ne 0) {

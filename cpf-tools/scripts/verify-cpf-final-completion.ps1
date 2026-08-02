@@ -66,10 +66,22 @@ function Assert-CpfRemovedPath {
 }
 
 function Assert-CpfGeneratedDomainTopology {
-    $fixedRoots = @(
-        'cpf-core','cpf-common','cpf-admin','cpf-biz-admin','cpf-batch',
-        'cpf-gateway','cpf-reference','cpf-tools','cpf-docs'
-    )
+    $surfacePolicyPath = Join-Path $RepoRoot 'cpf-tools/governance/cpf-product-surface-policy.json'
+    if (-not (Test-Path -LiteralPath $surfacePolicyPath -PathType Leaf)) {
+        throw "Product surface policy is missing: $surfacePolicyPath"
+    }
+    $surfacePolicy = Get-Content -LiteralPath $surfacePolicyPath -Raw -Encoding UTF8 |
+        ConvertFrom-Json -Depth 20
+    $fixedRoots = @($surfacePolicy.moduleOwners |
+        Where-Object {
+            [string]$_.prefix -match '^cpf-[^/]+/$' -and
+            [string]$_.owner -ne 'generated-domain'
+        } |
+        ForEach-Object { ([string]$_.prefix).TrimEnd('/') } |
+        Sort-Object -Unique)
+    if ($fixedRoots.Count -eq 0) {
+        throw 'Product surface policy has no fixed CPF roots.'
+    }
     $settings = Get-Content -LiteralPath (Join-Path $RepoRoot 'settings.gradle') -Raw -Encoding UTF8
     $identities = [System.Collections.Generic.List[object]]::new()
     $candidates = @(Get-ChildItem -LiteralPath $RepoRoot -Directory -Filter 'cpf-*' |
@@ -149,7 +161,7 @@ try {
     Assert-CpfGeneratedDomainTopology
 
     Invoke-CpfGate 'QA31 request/result/source integrity gate' {
-        & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\verify-cpf-qa31-development-result.ps1 `
+        & pwsh -NoProfile -File .\cpf-tools\scripts\verify-cpf-qa31-development-result.ps1 `
             -Root $RepoRoot -BaseSha '9594c8d5d9b1127a4e2694d0ec2f4add9475fc7e' `
             -RequireExactHeadEvidence:$RequireFullCompletion `
             -RequireIntegratedClosure:$RequireFullCompletion
@@ -161,11 +173,11 @@ try {
             --report .\build\reports\cpf\qa30-static-gate.json
     }
     Invoke-CpfGate 'Canonical DB lifecycle contract' {
-        & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\check-canonical-db-lifecycle-contract.ps1 -Root $RepoRoot
+        & pwsh -NoProfile -File .\cpf-tools\scripts\check-canonical-db-lifecycle-contract.ps1 -Root $RepoRoot
     }
 
     Invoke-CpfGate 'Work/Handover/Evidence exact-SHA' {
-        & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\check-work-context-sha.ps1 -ExpectedSha $ExpectedSourceSha -RequireCurrentEvidence
+        & pwsh -NoProfile -File .\cpf-tools\scripts\check-work-context-sha.ps1 -ExpectedSha $ExpectedSourceSha -RequireCurrentEvidence
     }
 
     if (Test-Path -LiteralPath 'cpf-batch/src') {
@@ -176,14 +188,14 @@ try {
     }
 
     Invoke-CpfGate 'Enterprise QA closing static gate' {
-        & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\check-enterprise-qa-closing.ps1 -Root $RepoRoot
+        & pwsh -NoProfile -File .\cpf-tools\scripts\check-enterprise-qa-closing.ps1 -Root $RepoRoot
     }
     Invoke-CpfGate 'Public API/SPI boundary' {
-        & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\check-r11-public-boundary.ps1
+        & pwsh -NoProfile -File .\cpf-tools\scripts\check-r11-public-boundary.ps1
     }
 
     Invoke-CpfGate 'Legacy BAT migration' {
-        & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\check-legacy-batch-migration.ps1
+        & pwsh -NoProfile -File .\cpf-tools\scripts\check-legacy-batch-migration.ps1
     }
     Invoke-CpfGate 'Final source architecture gates' {
         & $gradle verifyCpfFinalSourceGates --no-daemon
@@ -204,19 +216,19 @@ try {
         & $gradle qualityGate --no-daemon
     }
     Invoke-CpfGate 'Requirement/Matrix/Evidence semantic gate' {
-        & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\check-report-matrix-evidence-consistency.ps1 -Root $RepoRoot -ExpectedSha $ExpectedSourceSha
+        & pwsh -NoProfile -File .\cpf-tools\scripts\check-report-matrix-evidence-consistency.ps1 -Root $RepoRoot -ExpectedSha $ExpectedSourceSha
     }
     Invoke-CpfGate 'Full Java tests and assemble' {
         & $gradle clean test assemble --no-daemon
     }
     Invoke-CpfGate 'Generated Domain federation static gate' {
-        & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\generator\verify-domain-federation.ps1
+        & pwsh -NoProfile -File .\cpf-tools\generator\verify-domain-federation.ps1
     }
     Invoke-CpfGate 'Generated Domain golden path' {
-        & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\check-generator-golden-path.ps1
+        & pwsh -NoProfile -File .\cpf-tools\scripts\check-generator-golden-path.ps1
     }
     Invoke-CpfGate 'Generated arbitrary-domain parity' {
-        & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\check-generator-arbitrary-domain-parity.ps1
+        & pwsh -NoProfile -File .\cpf-tools\scripts\check-generator-arbitrary-domain-parity.ps1
     }
     Invoke-CpfGate 'SQL canonical/static synchronization' {
         & $gradle checkSqlCanonical --no-daemon
@@ -230,22 +242,22 @@ try {
             & $gradle :cpf-biz-admin:frontendVerify --no-daemon
         }
         Invoke-CpfGate 'ADM browser/UI smoke' {
-            & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\smoke-adm-ui.ps1
+            & pwsh -NoProfile -File .\cpf-tools\scripts\smoke-adm-ui.ps1
         }
         Invoke-CpfGate 'BZA browser/UI smoke' {
-            & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\smoke-bza-ui.ps1
+            & pwsh -NoProfile -File .\cpf-tools\scripts\smoke-bza-ui.ps1
         }
     }
 
     if ($RunDatabaseLifecycle) {
         Invoke-CpfGate 'Official DB vendor readiness before lifecycle' {
-            & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\check-official-db-vendor-readiness.ps1
+            & pwsh -NoProfile -File .\cpf-tools\scripts\check-official-db-vendor-readiness.ps1
         }
         Invoke-CpfGate 'Platform runtime query packs before lifecycle' {
-            & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\check-platform-runtime-query-packs.ps1
+            & pwsh -NoProfile -File .\cpf-tools\scripts\check-platform-runtime-query-packs.ps1
         }
         Invoke-CpfGate 'BAT runtime query packs before lifecycle' {
-            & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\check-bat-runtime-query-pack.ps1
+            & pwsh -NoProfile -File .\cpf-tools\scripts\check-bat-runtime-query-pack.ps1
         }
 
         if ($DatabaseProfilePath.Count -eq 0) {
@@ -270,22 +282,22 @@ try {
             }
 
             Invoke-CpfGate "DB lifecycle [$profileVendor]: $resolvedProfilePath" {
-                & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\initialize-cpf-database.ps1 `
+                & pwsh -NoProfile -File .\cpf-tools\scripts\initialize-cpf-database.ps1 `
                     -ProfilePath $resolvedProfilePath -All -RequireRun
             }
 
             if ($profileVendor -eq 'mariadb') {
                 Invoke-CpfGate "MariaDB platform runtime query smoke: $resolvedProfilePath" {
-                    & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\smoke-platform-runtime-query-packs-mariadb.ps1 `
+                    & pwsh -NoProfile -File .\cpf-tools\scripts\smoke-platform-runtime-query-packs-mariadb.ps1 `
                         -ProfilePath $resolvedProfilePath
                 }
                 Invoke-CpfGate "MariaDB BAT runtime query smoke: $resolvedProfilePath" {
-                    & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\smoke-bat-runtime-query-pack-mariadb.ps1 `
+                    & pwsh -NoProfile -File .\cpf-tools\scripts\smoke-bat-runtime-query-pack-mariadb.ps1 `
                         -ProfilePath $resolvedProfilePath
                 }
             } else {
                 Invoke-CpfGate "Runtime query compile-smoke [$profileVendor]: $resolvedProfilePath" {
-                    & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\smoke-platform-runtime-query-packs-official-db.ps1 `
+                    & pwsh -NoProfile -File .\cpf-tools\scripts\smoke-platform-runtime-query-packs-official-db.ps1 `
                         -Vendor $profileVendor -ProfilePath $resolvedProfilePath
                 }
             }
@@ -294,13 +306,13 @@ try {
 
     if (-not $SkipRuntime) {
         Invoke-CpfGate 'Gateway + BAT runtime smoke' {
-            & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\smoke-gateway-bat-runtime.ps1
+            & pwsh -NoProfile -File .\cpf-tools\scripts\smoke-gateway-bat-runtime.ps1
         }
         Invoke-CpfGate 'Service Call failover runtime smoke' {
-            & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\smoke-service-call-engine-failover-runtime.ps1
+            & pwsh -NoProfile -File .\cpf-tools\scripts\smoke-service-call-engine-failover-runtime.ps1
         }
         Invoke-CpfGate 'BAT local distributed topology' {
-            & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\start-bat-local-distributed.ps1
+            & pwsh -NoProfile -File .\cpf-tools\scripts\start-bat-local-distributed.ps1
         }
         try {
             $registryPath = '.\build\bat-local-runtime\process-registry.json'
@@ -314,16 +326,16 @@ try {
                 }
             }
         } finally {
-            & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\stop-bat-local-distributed.ps1
+            & pwsh -NoProfile -File .\cpf-tools\scripts\stop-bat-local-distributed.ps1
         }
         Invoke-CpfGate 'BAT two-worker lease/drain/crash scenario' {
-            & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\smoke-bat-two-worker-runtime.ps1
+            & pwsh -NoProfile -File .\cpf-tools\scripts\smoke-bat-two-worker-runtime.ps1
         }
     }
 
     if ($RunGitHubGovernance) {
         Invoke-CpfGate 'GitHub branch/source governance' {
-            & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\verify-github-governance.ps1
+            & pwsh -NoProfile -File .\cpf-tools\scripts\verify-github-governance.ps1
         }
     }
 

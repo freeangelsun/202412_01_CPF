@@ -1,10 +1,10 @@
 package com.cpf.core.common.web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.cpf.core.api.error.CpfResponseCodeResolver;
+import com.cpf.core.api.error.DefaultCpfResponseCodeResolver;
 import com.cpf.core.common.execution.CpfOnlineTransaction;
 import com.cpf.core.common.execution.CpfSharedApi;
-import com.cpf.core.common.exception.CpfResponseCodeResolver;
-import com.cpf.core.common.exception.DefaultCpfResponseCodeResolver;
 import com.cpf.core.common.header.CpfHeaderNames;
 import com.cpf.core.common.logging.CpfTransaction;
 import org.junit.jupiter.api.Test;

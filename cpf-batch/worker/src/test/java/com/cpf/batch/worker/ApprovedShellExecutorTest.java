@@ -21,11 +21,16 @@ class ApprovedShellExecutorTest {
         WorkerOperationalProperties.ShellDefinition definition = new WorkerOperationalProperties.ShellDefinition();
         definition.setScriptId("JAVA_VERSION");
         definition.setExecutable(java.toString());
-        definition.setFixedArguments(List.of("-version"));
+        definition.setFixedArguments(List.of(
+                "-cp",
+                Path.of(StdinConsumer.class.getProtectionDomain()
+                                .getCodeSource().getLocation().toURI()).toString(),
+                StdinConsumer.class.getName()));
         definition.setAllowedParameters(List.of("credential"));
         definition.setSensitiveParameters(List.of("credential"));
-        definition.setParameterDeliveryMode("PARAMETER_FILE");
+        definition.setParameterDeliveryMode("STDIN_JSON");
         definition.setSha256(sha256(java));
+        definition.setVerificationMode("HASH_ONLY");
         definition.setTimeoutSeconds(10);
         properties.setScripts(Map.of("java-version", definition));
 
@@ -36,6 +41,32 @@ class ApprovedShellExecutorTest {
         assertEquals("SUCCESS", result.status());
         assertFalse(result.output().contains("vault:batch/prod"));
         assertEquals(64, result.artifactHash().length());
+    }
+
+    @Test
+    void rejectsOversizedStdinJsonBeforeStartingTheApprovedProcess() throws Exception {
+        Path java = javaExecutable();
+        WorkerOperationalProperties properties = new WorkerOperationalProperties();
+        WorkerOperationalProperties.ShellDefinition definition = new WorkerOperationalProperties.ShellDefinition();
+        definition.setScriptId("STDIN_LIMIT");
+        definition.setExecutable(java.toString());
+        definition.setFixedArguments(List.of(
+                "-cp",
+                Path.of(StdinConsumer.class.getProtectionDomain()
+                                .getCodeSource().getLocation().toURI()).toString(),
+                StdinConsumer.class.getName()));
+        definition.setAllowedParameters(List.of("credential"));
+        definition.setSensitiveParameters(List.of("credential"));
+        definition.setParameterDeliveryMode("STDIN_JSON");
+        definition.setSha256(sha256(java));
+        definition.setVerificationMode("HASH_ONLY");
+        properties.setScripts(Map.of("stdin-limit", definition));
+
+        SecurityException failure = assertThrows(SecurityException.class,
+                () -> new ApprovedShellExecutor(properties)
+                        .execute("stdin-limit", Map.of("credential", "x".repeat(1_048_577))));
+
+        assertTrue(failure.getMessage().contains("byte limit"));
     }
 
 
@@ -96,5 +127,15 @@ class ApprovedShellExecutorTest {
             }
         }
         return HexFormat.of().formatHex(digest.digest());
+    }
+
+    /** Child process fixture that consumes the product STDIN_JSON delivery without echoing it. */
+    public static final class StdinConsumer {
+        public static void main(String[] args) throws Exception {
+            byte[] buffer = new byte[1024];
+            while (System.in.read(buffer) >= 0) {
+                // Consume the complete JSON document; sensitive data must never be echoed.
+            }
+        }
     }
 }

@@ -44,9 +44,18 @@ function collectSource(entry, visited = new Set()) {
   const imports = [...text.matchAll(/(?:import|export)\s+(?:[\s\S]*?\s+from\s+)?["']([^"']+)["']/g)].map(value => value[1]);
   for (const request of imports) {
     const child = resolveLocalImport(absolute, request);
-    if (child && child.startsWith(path.join(root, "src"))) combined += collectSource(child, visited);
+    if (child && child.startsWith(path.join(root, "src")) && !isTransportBoundary(child)) combined += collectSource(child, visited);
   }
   return combined;
+}
+function isTransportBoundary(file) {
+  const relative = path.relative(root, file).replaceAll("\\", "/");
+  return relative.startsWith("src/generated/")
+    || [
+      "src/shared/cpfApi.ts",
+      "src/shared/orval-mutator.ts",
+      "src/shared/queryClient.ts"
+    ].includes(relative);
 }
 function normalizedCandidate(raw) {
   return raw.replace(/\$\{[^}]+\}/g, "{dynamic}").replace(/[?#].*$/, "");
@@ -100,7 +109,7 @@ for (const route of routes) {
 if (failures.length) throw new Error(failures.join("\n"));
 fs.mkdirSync(generatedDir, { recursive: true });
 const rows = Object.entries(contracts).map(([routeId, operationIds]) => `  ${JSON.stringify(routeId)}: ${JSON.stringify(operationIds)}`).join(",\n");
-const output = `/* eslint-disable */\n// Generated from ADM capability registry, component consumers and canonical runtime OpenAPI.\nexport const admRouteOperationContract = {\n${rows}\n} as const;\nexport type AdmRouteOperationContract = typeof admRouteOperationContract;\n`;
+const output = `// Generated from ADM capability registry, component consumers and canonical runtime OpenAPI.\nexport const admRouteOperationContract = {\n${rows}\n} as const;\nexport type AdmRouteOperationContract = typeof admRouteOperationContract;\n`;
 fs.writeFileSync(path.join(generatedDir, "adm-route-operation-contract.ts"), output, "utf8");
 const covered = Object.values(contracts).filter(values => values.length > 0).length;
 console.log(`[CPF][FRONTEND][PASS] route operation contract routes=${routes.length} operationRoutes=${covered}`);

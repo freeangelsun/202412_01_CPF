@@ -45,6 +45,7 @@ if (operationIds.length !== marker.openApiOperationCount || sha256(operationIds.
 const requiredGenerated = [
   "src/generated/cpf-api.ts",
   "src/generated/cpf-operation-contract.ts",
+  "src/generated/bza-route-operation-contract.ts",
   "src/generated/orval/cpf-api.ts"
 ];
 for (const relative of requiredGenerated) {

@@ -141,9 +141,11 @@ if ($null -eq $runtimeAgentContract -or
     throw "Generated Domain Runtime Agent 중앙 계약이 유효하지 않습니다."
 }
 if ($null -eq $physicalTableContract -or
-        [int]$physicalTableContract.totalTables -ne 8 -or
+        [int]$physicalTableContract.totalTables -ne 2 -or
         [int]$physicalTableContract.businessTableCount -ne 1 -or
-        [int]$physicalTableContract.supportLedgerCount -ne 7 -or
+        [int]$physicalTableContract.supportLedgerCount -ne 1 -or
+        [int]$physicalTableContract.totalTables -ne
+                ([int]$physicalTableContract.businessTableCount + [int]$physicalTableContract.supportLedgerCount) -or
         [bool]$physicalTableContract.additionalTablesAllowed -or
         [string]::IsNullOrWhiteSpace($minimalDomainModel) -or
         $minimalTableRole -ne "business-sample" -or
@@ -2733,15 +2735,6 @@ class ${ModuleName}CenterCutHandlerTest {
 }
 "@
 
-$operationTemplateRoot = Join-Path $Root "cpf-tools/generator/templates/operation"
-function Render-OperationTemplate {
-    param([Parameter(Mandatory = $true)][string]$Name)
-    $path = Join-Path $operationTemplateRoot $Name
-    if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { throw "Operation Golden Template missing: $path" }
-    $text = [System.IO.File]::ReadAllText($path, [System.Text.Encoding]::UTF8)
-    return $text.Replace('{{package}}', $FeaturePackage).Replace('{{Domain}}', $FeatureClassPrefix).Replace('{{tablePrefix}}', $TablePrefix)
-}
-
 $files = [ordered]@{
     "build.gradle" = $buildGradle
     "README.md" = $readme
@@ -2777,12 +2770,6 @@ $files = [ordered]@{
 }
 
 if ($DatabaseEnabled) {
-    $files["src/main/java/$featurePackagePath/operation/${FeatureClassPrefix}Operation.java"] = Render-OperationTemplate "DomainOperation.java.template"
-    $files["src/main/java/$featurePackagePath/operation/${FeatureClassPrefix}BusinessRecord.java"] = Render-OperationTemplate "DomainBusinessRecord.java.template"
-    $files["src/main/java/$featurePackagePath/operation/${FeatureClassPrefix}OperationPort.java"] = Render-OperationTemplate "DomainOperationPort.java.template"
-    $files["src/main/java/$featurePackagePath/operation/Jdbc${FeatureClassPrefix}OperationRepository.java"] = Render-OperationTemplate "JdbcDomainOperationRepository.java.template"
-    $files["src/main/java/$featurePackagePath/operation/${FeatureClassPrefix}OperationService.java"] = Render-OperationTemplate "DomainOperationService.java.template"
-    $files["src/test/java/$featurePackagePath/operation/${FeatureClassPrefix}OperationRecoveryTest.java"] = Render-OperationTemplate "DomainOperationRecoveryTest.java.template"
     $files["src/main/java/$packagePath/config/${ModuleName}DataSourceConfig.java"] = $dataSourceConfig
     $files["src/main/java/$packagePath/config/${ModuleName}MyBatisConfig.java"] = $myBatisConfig
     $files["src/test/java/$packagePath/config/${ModuleName}DataSourceIsolationTest.java"] = $dataSourceIsolationTest
@@ -2933,7 +2920,7 @@ if ($ProvisionDatabase) {
 
     # DB 접속/계정/Vendor는 생성된 Git-tracked Domain Profile을 단일 정본으로 사용합니다.
     # Secret은 Profile의 env/fallback Secret 정책으로 initialize-domain-database.ps1가 해석합니다.
-    & pwsh -NoProfile -ExecutionPolicy Bypass -File $dbInitializer `
+    & pwsh -NoProfile -File $dbInitializer `
         -DomainName $module `
         -SystemCode $SystemCode `
         -Root $Root `
@@ -2949,24 +2936,8 @@ if ($ProvisionDatabase) {
     $plan.databaseProfile = "$projectName/deploy/database/database-profile.json"
 }
 
-$resultPath = if ($Apply) {
-    Join-Path $Root "build/reports/create-domain/$module/create-domain-result.json"
-} else {
-    Join-Path $OutputDir "create-domain-result.json"
-}
-$resultInsideGeneratedModule = [IO.Path]::GetFullPath($resultPath).StartsWith(
-        [IO.Path]::GetFullPath($OutputDir).TrimEnd('\', '/') + [IO.Path]::DirectorySeparatorChar,
-        [StringComparison]::OrdinalIgnoreCase)
-if ($resultInsideGeneratedModule) {
-    $plan.generatedFiles += [IO.Path]::GetFullPath($resultPath).Substring($Root.Length).TrimStart('\', '/')
-}
+# Generator 실행 원장은 Apply/DryRun 여부와 무관하게 제품 Module 밖의
+# 중앙 build report에만 둡니다. 생성된 Domain은 언제나 깨끗한 제품 Source입니다.
+$resultPath = Join-Path $Root "build/reports/create-domain/$module/create-domain-result.json"
 Write-Utf8 -Path $resultPath -Content ($plan | ConvertTo-Json -Depth 20)
-if ($resultInsideGeneratedModule) {
-    $generatorOwnership.createdFiles += [ordered]@{
-        path = [IO.Path]::GetFullPath($resultPath).Substring(
-                [IO.Path]::GetFullPath($OutputDir).Length).TrimStart('\', '/').Replace('\', '/')
-        sha256 = (Get-FileHash -LiteralPath $resultPath -Algorithm SHA256).Hash.ToLowerInvariant()
-    }
-    Write-Utf8 -Path $ownershipPath -Content ($generatorOwnership | ConvertTo-Json -Depth 20)
-}
 $plan | ConvertTo-Json -Depth 20

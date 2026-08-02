@@ -71,7 +71,7 @@ reset dry-run
 - duplicate/orphan
 - product seed count/version
 - service user grants
-- legacy PFW/XYZ/잘못된 prefix
+- legacy system code/placeholder/잘못된 prefix
 - cmnDB table count
 
 ## 10. DB 접근 불가

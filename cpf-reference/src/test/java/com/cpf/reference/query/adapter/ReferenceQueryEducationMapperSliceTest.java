@@ -6,17 +6,14 @@ import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.junit.jupiter.api.Test;
 import org.mybatis.spring.SqlSessionFactoryBean;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
-import org.springframework.jdbc.datasource.init.ScriptUtils;
 
 import javax.sql.DataSource;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.sql.Connection;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -26,7 +23,7 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
  * REF 조회/CRUD EDU MyBatis XML을 실제 DB fixture로 검증하는 선택 실행 테스트입니다.
  *
  * <p>기본 Gradle test는 개발자 PC의 MariaDB를 임의로 건드리지 않도록 DB 구간을 skip합니다.
- * 안전한 테스트 스키마를 준비한 뒤 환경변수를 지정하면 Mapper XML과 SQL fixture를 실제로 실행합니다.</p>
+ * 공식 Provision/Install/Test Seed가 끝난 격리 DB와 환경변수를 지정하면 Mapper XML을 실제로 실행합니다.</p>
  */
 class ReferenceQueryEducationMapperSliceTest {
     private static final String ENABLED_ENV = "CPF_REF_EDU_MAPPER_SLICE_TEST";
@@ -57,16 +54,17 @@ class ReferenceQueryEducationMapperSliceTest {
     }
 
     @Test
-    void fixtureSqlIsScopedToEduMapperTestData() throws Exception {
-        Resource fixtureSql = new ClassPathResource("sql/ref_edu_query_fixture.sql");
-        String sql = fixtureSql.getContentAsString(StandardCharsets.UTF_8);
+    void officialVendorTestSeedOwnsEduMapperDataWithoutSchemaDdl() throws Exception {
+        Path seedPath = vendorResourceRoot().resolve("seed").resolve("00_test_seed.sql");
+        String sql = Files.readString(seedPath, StandardCharsets.UTF_8);
 
-        assertThat(fixtureSql.exists()).isTrue();
+        assertThat(seedPath).isRegularFile();
         assertThat(sql)
-                .contains("CREATE TABLE IF NOT EXISTS ref_sample_item")
                 .contains("DELETE FROM ref_sample_item WHERE sample_item_id BETWEEN 90001 AND 90008")
                 .contains("DELETE FROM ref_sample_item WHERE sample_item_id BETWEEN 91000 AND 91999")
-                .contains("ON DUPLICATE KEY UPDATE")
+                .contains("REF-MAPPER-90001")
+                .contains("REF-MAPPER-90008")
+                .doesNotContain("CREATE TABLE")
                 .doesNotContain("DROP TABLE")
                 .doesNotContain("TRUNCATE TABLE")
                 .doesNotContain("DELETE FROM ref_sample_item;")
@@ -79,7 +77,6 @@ class ReferenceQueryEducationMapperSliceTest {
                 "안전한 테스트 DB가 명시된 경우에만 실제 Mapper slice를 실행합니다.");
 
         DataSource dataSource = testDataSource();
-        loadFixture(dataSource);
 
         SqlSessionFactory sqlSessionFactory = sqlSessionFactory(dataSource);
         try (SqlSession session = sqlSessionFactory.openSession(true)) {
@@ -135,12 +132,7 @@ class ReferenceQueryEducationMapperSliceTest {
     }
 
     private static Resource vendorMapperResource() throws Exception {
-        String resourceRoot = System.getProperty("cpf.db.resource-root");
-        if (resourceRoot == null || resourceRoot.isBlank()) {
-            throw new IllegalStateException("중앙 Vendor Pack 경로가 필요합니다. property=cpf.db.resource-root");
-        }
-
-        Path mapperRoot = Path.of(resourceRoot, "runtime", "ref", "mybatis");
+        Path mapperRoot = vendorResourceRoot().resolve("runtime").resolve("ref").resolve("mybatis");
         if (!Files.isDirectory(mapperRoot)) {
             throw new IllegalStateException("REF 중앙 MyBatis 디렉터리가 없습니다. path=" + mapperRoot);
         }
@@ -166,17 +158,11 @@ class ReferenceQueryEducationMapperSliceTest {
         String password = requiredEnv(DB_PASSWORD_ENV);
         String driver = System.getenv(DB_DRIVER_ENV);
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
-        dataSource.setDriverClassName(driver == null || driver.isBlank() ? "org.mariadb.jdbc.Driver" : driver);
+        dataSource.setDriverClassName(driver == null || driver.isBlank() ? selectedDriverClassName() : driver);
         dataSource.setUrl(url);
         dataSource.setUsername(user);
         dataSource.setPassword(password);
         return dataSource;
-    }
-
-    private static void loadFixture(DataSource dataSource) throws Exception {
-        try (Connection connection = dataSource.getConnection()) {
-            ScriptUtils.executeSqlScript(connection, new ClassPathResource("sql/ref_edu_query_fixture.sql"));
-        }
     }
 
     private static SqlSessionFactory sqlSessionFactory(DataSource dataSource) throws Exception {
@@ -223,5 +209,27 @@ class ReferenceQueryEducationMapperSliceTest {
         }
         throw new IllegalStateException("Mapper slice 테스트 DB 사용자 환경변수가 필요합니다. name="
                 + primaryName + " 또는 " + fallbackName);
+    }
+
+    private static Path vendorResourceRoot() {
+        String resourceRoot = System.getProperty("cpf.db.resource-root");
+        if (resourceRoot == null || resourceRoot.isBlank()) {
+            throw new IllegalStateException("중앙 Vendor Pack 경로가 필요합니다. property=cpf.db.resource-root");
+        }
+        Path root = Path.of(resourceRoot).toAbsolutePath().normalize();
+        if (!Files.isDirectory(root)) {
+            throw new IllegalStateException("중앙 Vendor Pack 경로가 없습니다. path=" + root);
+        }
+        return root;
+    }
+
+    private static String selectedDriverClassName() {
+        return switch (System.getProperty("cpf.db.vendor", "mariadb").toLowerCase(java.util.Locale.ROOT)) {
+            case "postgresql" -> "org.postgresql.Driver";
+            case "oracle" -> "oracle.jdbc.OracleDriver";
+            case "mariadb" -> "org.mariadb.jdbc.Driver";
+            default -> throw new IllegalStateException(
+                    "지원하지 않는 테스트 DB Vendor입니다. vendor=" + System.getProperty("cpf.db.vendor"));
+        };
     }
 }

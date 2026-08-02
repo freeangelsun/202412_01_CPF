@@ -44,7 +44,8 @@ public class CpfGatewaySafetyProperties {
     private Set<String> allowedTargetCidrs = new LinkedHashSet<>();
     private Set<String> trustedContextHeaders = new LinkedHashSet<>(Set.of(
             "accept", "content-type", "idempotency-key", "traceparent", "tracestate",
-            "x-api-version", "x-channel-id", "x-client-id", "x-operation-reason", "x-transaction-id"));
+            "x-api-version", "x-channel-id", "x-client-id", "x-operation-reason", "x-transaction-id",
+            "x-original-channel-code", "x-channel-code", "x-request-type", "x-cpf-idempotency-key"));
 
     public void validate() {
         positive(routeRefresh,"routeRefresh"); positive(policyRefresh,"policyRefresh");

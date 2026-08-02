@@ -65,7 +65,7 @@ if ($Version -ne 73 -or $Description -cne "spring_batch_6_sequence_contract") {
 }
 
 $syncScript = Join-Path $Root "cpf-tools/scripts/sync-platform-non-table-objects.ps1"
-& pwsh -NoProfile -ExecutionPolicy Bypass -File $syncScript -Root $Root -Check
+& pwsh -NoProfile -File $syncScript -Root $Root -Check
 if ($LASTEXITCODE -ne 0) {
     Add-Failure "Canonical non-table object generated artifacts drifted."
 }

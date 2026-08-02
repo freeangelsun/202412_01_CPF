@@ -31,7 +31,7 @@ Java Source, Test, Build Script는 `deploy`에 두지 않는다.
 최종 Overlay를 프로젝트 Root에 푼 직후 다음 명령을 한 번 실행한다.
 
 ```powershell
-pwsh -ExecutionPolicy Bypass -File .\cpf-tools\scripts\relocate-local-runtime-modules.ps1 -ProjectRoot .
+pwsh -NoProfile -File .\cpf-tools\scripts\relocate-local-runtime-modules.ps1 -ProjectRoot .
 ```
 
 Script는 새 경로에 Overlay 변경 파일이 이미 있으면 이를 보존하고, 기존 Root Module에서 빠진 파일만 병합한 뒤 Root의 두 폴더를 제거한다.
@@ -39,7 +39,7 @@ Script는 새 경로에 Overlay 변경 파일이 이미 있으면 이를 보존�
 ## 검증
 
 ```powershell
-pwsh -ExecutionPolicy Bypass -File .\cpf-tools\scripts\check-local-runtime-topology.ps1 -Root .
+pwsh -NoProfile -File .\cpf-tools\scripts\check-local-runtime-topology.ps1 -Root .
 .\gradlew.bat :cpf-local-runtime:test :cpf-local-batch-runtime:test --no-daemon --no-build-cache
 ```
 

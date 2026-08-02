@@ -18,7 +18,7 @@
           <button type="button" v-if="canWrite('PASSWORD') || canWrite('OPERATOR')" @click="revokeSession">세션 강제 종료</button>
           <button type="button" v-if="canWrite('PASSWORD') || canWrite('OPERATOR')" @click="cleanupExpiredSessions">만료 세션 정리</button>
         </div>
-        <pre class="detail">{{ pretty(passwordResult) }}</pre>
+        <CpfStructuredData class="detail" :value="passwordResult" />
       </section>
 
   <section class="panel route-operation-panel"><h3>비밀번호 검증·변경</h3><div class="actions"><button type="button" @click="validateOperatorPassword">정책 검증</button><button type="button" v-if="canWrite('PASSWORD') || canWrite('OPERATOR')" @click="changeOperatorPassword">비밀번호 변경</button></div></section>

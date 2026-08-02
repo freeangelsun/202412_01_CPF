@@ -17,7 +17,6 @@ dependencies {
     implementation 'org.springframework.integration:spring-integration-kafka'
     testImplementation project(':cpf-batch:testkit')
     testImplementation 'org.springframework.batch:spring-batch-test'
-    testImplementation 'org.testcontainers:kafka'
 }
 tasks.named('bootJar') { archiveFileName = "cpf-center-cut-runner-${project.version}.jar" }
 tasks.named('test') { useJUnitPlatform() }

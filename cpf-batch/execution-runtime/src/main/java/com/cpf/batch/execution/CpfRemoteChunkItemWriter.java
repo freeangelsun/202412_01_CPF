@@ -41,8 +41,7 @@ public final class CpfRemoteChunkItemWriter implements ItemWriter<Map<String, Ob
             BatchStepHandler handler = handlers.required(
                     definition.executorType(), definition.executorReference());
             Map<String, Object> jobParameters = new LinkedHashMap<>();
-            parameters.getParameters().forEach(
-                    (name, value) -> jobParameters.put(name, value.getValue()));
+            parameters.forEach(parameter -> jobParameters.put(parameter.name(), parameter.value()));
             BatchStepHandler.BatchStepResult result = handler.execute(
                     new BatchStepHandler.BatchStepCommand(
                             cpfExecutionId,

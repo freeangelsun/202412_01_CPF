@@ -41,7 +41,7 @@ function Save-Result {
 
 try {
     if ($RunBatRuntime) {
-        powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "cpf-tools/scripts/smoke-bat-runtime.ps1")
+        powershell -NoProfile -File (Join-Path $Root "cpf-tools/scripts/smoke-bat-runtime.ps1")
         $result.batRuntime.status = $StatusDone
     } elseif (Test-Path -LiteralPath (Join-Path $ResultDir "bat-runtime-smoke-result.json")) {
         $result.batRuntime.status = $StatusDone

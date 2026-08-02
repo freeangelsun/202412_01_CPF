@@ -46,7 +46,7 @@ def main():
  ownership=root/'cpf-tools/generator/contracts/reference-edu-schema-ownership-contract.json'
  if not ownership.is_file():fail('REF schema ownership contract missing')
  for vendor in ['oracle','postgresql','mariadb']:
-  for rel in [f'cpf-tools/db/vendor/{vendor}/migration/flyway/refDB/V93__manual_edu_135_operation_ledger.sql',f'cpf-tools/db/vendor/{vendor}/migration/rollback/refDB/U93__manual_edu_135_operation_ledger.sql',f'cpf-tools/db/vendor/{vendor}/source/57_reference_edu_operation_ledger.sql',f'cpf-tools/db/vendor/{vendor}/install/01_reference_edu_operation_ledger.sql',f'cpf-tools/db/vendor/{vendor}/runtime/ref/manual_edu_135_operation_queries.sql',f'cpf-tools/db/vendor/{vendor}/verify/93_verify_manual_edu_135_operation_ledger.sql']:
+  for rel in [f'cpf-tools/db/vendor/{vendor}/migration/flyway/refDB/V93__manual_edu_135_operation_ledger.sql',f'cpf-tools/db/vendor/{vendor}/rollback/refDB/U93__manual_edu_135_operation_ledger.sql',f'cpf-tools/db/vendor/{vendor}/source/57_reference_edu_operation_ledger.sql',f'cpf-tools/db/vendor/{vendor}/install/01_reference_edu_operation_ledger.sql',f'cpf-tools/db/vendor/{vendor}/runtime/ref/manual_edu_135_operation_queries.sql',f'cpf-tools/db/vendor/{vendor}/verify/93_verify_manual_edu_135_operation_ledger.sql']:
    if not (root/rel).exists():fail('vendor pack missing '+rel)
   sql=(root/f'cpf-tools/db/vendor/{vendor}/migration/flyway/refDB/V93__manual_edu_135_operation_ledger.sql').read_text(encoding='utf-8').upper()
   for token in ['CPF_EDU_OPERATION','CPF_EDU_OPERATION_TARGET','CPF_EDU_OPERATION_AUDIT','CPF_EDU_OUTBOX','CPF_EDU_LEASE','CPF_EDU_BUSINESS_RECORD','CPF_EDU_COUNTERPARTY_REQUEST','IDEMPOTENCY_KEY','FENCING_TOKEN']:
@@ -56,7 +56,10 @@ def main():
  if a.compile: compile_and_run(root)
  print(f'[CPF][QA37][EDU135][PASS] manualEdu=135 distribution={counts} bindings=135 compile={a.compile}')
 def compile_and_run(root:Path):
- work=Path(tempfile.mkdtemp(prefix='cpf-qa37-javac-src-'));out=work/'out';out.mkdir()
+ with tempfile.TemporaryDirectory(prefix='cpf-qa37-javac-src-') as work_name:
+  compile_and_run_in(root,Path(work_name))
+def compile_and_run_in(root:Path,work:Path):
+ out=work/'out';out.mkdir()
  stubs={
  'org/junit/jupiter/api/Test.java':'package org.junit.jupiter.api; import java.lang.annotation.*; @Retention(RetentionPolicy.RUNTIME) @Target(ElementType.METHOD) public @interface Test {}',
  'org/junit/jupiter/api/io/TempDir.java':'package org.junit.jupiter.api.io; import java.lang.annotation.*; @Retention(RetentionPolicy.RUNTIME) @Target({ElementType.FIELD,ElementType.PARAMETER}) public @interface TempDir {}',
@@ -67,14 +70,29 @@ def compile_and_run(root:Path):
  stubfiles=[]
  for rel,text in stubs.items():
   p=work/rel;p.parent.mkdir(parents=True,exist_ok=True);p.write_text(text,encoding='utf-8');stubfiles.append(str(p))
- source=[];main=root/'cpf-reference/src/main/java'
- exclusions=['/runtime/api/','/runtime/configuration/','JdbcEduOperationRepository.java','/consumer/jdbc/','/consumer/http/','/consumer/file/','/consumer/process/','/counterparty/api/','/counterparty/persistence/Jdbc','/counterparty/ReferenceCounterpartyConfiguration.java','JobConfiguration.java','ReferenceBatchRuntimeConfiguration.java','SpringBatchEduBusinessConsumer.java','EduBatchScenarioWorker.java','ReferenceGatewayRuntimeConfiguration.java','ReferenceGatewayBusinessConsumer.java']
- for p in main.rglob('*.java'):
-  s=p.as_posix()
-  if any(x in s for x in exclusions):continue
-  source.append(str(p))
- tests=[str(p) for p in (root/'cpf-reference/src/test/java').rglob('*.java')]
- cmd=['javac','-encoding','UTF-8','-d',str(out),*source,*tests,*stubfiles]
+ main=root/'cpf-reference/src/main/java'
+ runtime=main/'com/cpf/reference/edu/runtime'
+ catalog=json.loads((root/'cpf-reference/src/main/resources/edu/manual-135-catalog.json').read_text(encoding='utf-8'))
+ source_paths={root/item['sourcePath'] for item in catalog['features']}
+ source_paths.update((runtime/'application').glob('*.java'))
+ source_paths.update((runtime/'model').glob('*.java'))
+ source_paths.update((runtime/'consumer').glob('*.java'))
+ source_paths.update({runtime/'persistence/EduOperationRepository.java',runtime/'persistence/FileEduOperationRepository.java'})
+ source_paths.update({
+  main/'com/cpf/reference/optional/operations/config/ReferenceOperationsCapabilityContributor.java',
+  main/'com/cpf/reference/optional/backoffice/config/ReferenceBackofficeCapabilityContributor.java',
+  main/'com/cpf/reference/optional/gateway/config/ReferenceGatewayCapabilityContributor.java',
+  main/'com/cpf/reference/batch/config/ReferenceBatchCapabilityContributor.java'})
+ source=[str(path) for path in sorted(source_paths)]
+ test_paths={root/test for item in catalog['features'] for test in item['tests']}
+ test_paths.update((root/'cpf-reference/src/test/java/com/cpf/reference/edu/runtime').glob('*.java'))
+ tests=[str(path) for path in sorted(test_paths)]
+ # Windows has a short process command-line limit.  javac's documented
+ # argument-file contract keeps the exact source set portable and auditable.
+ javac_args=['-encoding','UTF-8','-d',str(out),*source,*tests,*stubfiles]
+ argfile=work/'javac.args'
+ argfile.write_text('\n'.join('"'+value.replace('\\','/').replace('"','\\"')+'"' for value in javac_args)+'\n',encoding='utf-8')
+ cmd=['javac','@'+str(argfile)]
  r=subprocess.run(cmd,capture_output=True,text=True,timeout=180)
  if r.returncode:print(r.stdout);print(r.stderr,file=sys.stderr);fail('javac failed')
  r=subprocess.run(['java','-cp',str(out),'com.cpf.reference.edu.runtime.EduManual135SelfTestMain'],capture_output=True,text=True,timeout=180)

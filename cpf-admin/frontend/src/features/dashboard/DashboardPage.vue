@@ -1,8 +1,8 @@
 <script lang="ts">
 import { defineComponent } from "vue";
-import { admConsoleMixin } from "../../app/admConsoleMixin";
+import { useAdmConsolePage } from "../../app/useAdmConsolePage";
 import CpfIcon from "../../components/CpfIcon.vue";
-export default defineComponent({name:"AdmDashboardPage",components:{CpfIcon},mixins:[admConsoleMixin],computed:{
+export default defineComponent({setup(){return useAdmConsolePage()},name:"AdmDashboardPage",components:{CpfIcon},computed:{
  instances(){return this.serviceRegistryResult?.instances||[]}, health(){return this.serviceRegistryResult?.health||[]}, unknown(){return this.reliabilityResult?.unknownResults||[]}, dlq(){return this.reliabilityResult?.dlq||[]},
  upCount(){return this.instances.filter((x:any)=>["UP","ACTIVE","READY"].includes(String(x.instanceStatus||x.status||"").toUpperCase())).length},
  unhealthy(){return this.health.filter((x:any)=>!["UP","HEALTHY","OK"].includes(String(x.healthStatus||x.status||"").toUpperCase())).length},

@@ -18,13 +18,6 @@ export function numberValue(row: AnyRow | null | undefined, ...keys: string[]): 
   const value = Number(read(row, ...keys))
   return Number.isFinite(value) ? value : 0
 }
-export function safe(value: unknown, key = ''): unknown {
-  if (/password|passwd|secret|token|authorization|cookie|credential|private.?key/i.test(key)) return '***'
-  if (Array.isArray(value)) return value.map(item => safe(item))
-  if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value as AnyRow).map(([childKey, child]) => [childKey, safe(child, childKey)]))
-  return value
-}
-export function pretty(value: unknown): string { return JSON.stringify(safe(value), null, 2) }
 export function apiMessage(error: unknown, fallback: string): string {
   if (!(error instanceof CpfApiError)) return error instanceof Error ? error.message : fallback
   const messages: Record<number, string> = {

@@ -38,8 +38,8 @@
       "mybatis": "해당 없음 (Repository SQL contract)"
     },
     "ref": {
-      "ownerArtifact": "cpf-reference EDU",
-      "repository": "해당 없음 (MyBatis owner contract)",
+      "ownerArtifact": "cpf-reference",
+      "repository": "완료",
       "mybatis": "완료"
     }
   },
@@ -78,7 +78,7 @@
     "officialVendor": true
   },
   "migrationLocationPattern": "cpf-tools/db/vendor/postgresql/migration/flyway/{logicalDatabase}",
-  "rollbackLocationPattern": "cpf-tools/db/vendor/postgresql/migration/rollback/{logicalDatabase}",
+  "rollbackLocationPattern": "cpf-tools/db/vendor/postgresql/rollback/{logicalDatabase}",
   "completionPolicy": "Source/SQL/API/Test/Gate 구현은 완료이며 실제 DB Runtime 결과는 runtimeVerification으로만 관리한다.",
   "operationLedger": {
     "ownerArtifact": "cpf-reference",
@@ -86,7 +86,7 @@
     "canonicalSource": "source/57_reference_edu_operation_ledger.sql",
     "freshInstall": "install/01_reference_edu_operation_ledger.sql",
     "migration": "migration/flyway/refDB/V93__manual_edu_135_operation_ledger.sql",
-    "rollback": "migration/rollback/refDB/U93__manual_edu_135_operation_ledger.sql",
+    "rollback": "rollback/refDB/U93__manual_edu_135_operation_ledger.sql",
     "runtimeQueries": "runtime/ref/manual_edu_135_operation_queries.sql",
     "verify": "verify/93_verify_manual_edu_135_operation_ledger.sql",
     "checksumManifest": "migration/flyway/refDB/checksums.sha256",
@@ -111,7 +111,7 @@
     "canonicalSource": "source/58_reference_batch_job_pack.sql",
     "freshInstall": "install/02_reference_batch_job_pack.sql",
     "migration": "migration/flyway/refDB/V94__reference_batch_job_pack.sql",
-    "rollback": "migration/rollback/refDB/U94__reference_batch_job_pack.sql",
+    "rollback": "rollback/refDB/U94__reference_batch_job_pack.sql",
     "runtimeQueries": "runtime/ref/reference_batch_job_queries.sql",
     "verify": "verify/94_verify_reference_batch_job_pack.sql",
     "checksumManifest": "migration/flyway/refDB/checksums.sha256",

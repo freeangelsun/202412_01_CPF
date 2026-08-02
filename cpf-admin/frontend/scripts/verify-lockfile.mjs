@@ -1,5 +1,4 @@
 import fs from "node:fs";
-import path from "node:path";
 import crypto from "node:crypto";
 
 const readJson = (file) => JSON.parse(fs.readFileSync(file, "utf8"));
@@ -34,6 +33,28 @@ for (const [key, entry] of Object.entries(lock.packages || {})) {
   else if (forbiddenProtocols.test(resolved)) failures.push(`${key}: non-canonical resolved URL ${resolved}`);
   else if (!resolved.startsWith("https://registry.npmjs.org/")) failures.push(`${key}: registry must be registry.npmjs.org`);
   if (!entry.integrity || !/^sha(256|384|512)-/.test(String(entry.integrity))) failures.push(`${key}: missing/invalid integrity`);
+}
+
+function resolvesFrom(packageKey, dependencyName) {
+  let owner = packageKey;
+  while (owner) {
+    const nested = `${owner}/node_modules/${dependencyName}`;
+    if (lock.packages[nested]) return true;
+    const marker = owner.lastIndexOf("/node_modules/");
+    owner = marker >= 0 ? owner.substring(0, marker) : "";
+  }
+  return Boolean(lock.packages[`node_modules/${dependencyName}`]);
+}
+
+for (const [key, entry] of Object.entries(lock.packages || {})) {
+  if (!key) continue;
+  for (const section of ["dependencies", "optionalDependencies"]) {
+    for (const dependencyName of Object.keys(entry[section] || {})) {
+      if (!resolvesFrom(key, dependencyName)) {
+        failures.push(`${key}: unresolved ${section} entry ${dependencyName}`);
+      }
+    }
+  }
 }
 
 const canonical = JSON.stringify(lock);

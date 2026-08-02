@@ -1,0 +1,9 @@
+UPDATE bat_schedule
+SET definition_version = ?,
+    definition_checksum = ?,
+    cron_expression = ?,
+    timezone = ?,
+    enabled_yn = 'Y',
+    updated_by = ?,
+    updated_at = @NOW@
+WHERE schedule_id = ?

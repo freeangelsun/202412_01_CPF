@@ -1,0 +1,17 @@
+﻿document_or_deliverable,required_update,acceptance,refresh_trigger
+Root README,"제품 지도에 Lightweight Core와 Starter Container, 선택 배포 구조 설명",현재 Source/BOM/Generator와 일치,다음 QA 후
+최상위 목표 정본,공식 Module 표에 cpf-starters Container와 의존 방향 추가,Requirement ID/continuity 유지,다음 QA Source와 같은 Commit
+Framework 안내,"Starter 정의, 독립 JAR, Product JAR/WAR 포함 방식",Starter가 별도 서버가 아님을 명시,다음 QA 후
+개발자 매뉴얼,"기능별 Starter 선택, Gradle, Config, Provider, Local/Remote",최소 Domain과 조합 예제,다음 QA 후
+Batch 개발 매뉴얼,Kafka/Observability/Secret/Resilience Starter와 Batch Owner 경계,Job/Step/Lease를 Starter로 오인하지 않음,Batch 변경과 동시
+ADM 운영자 매뉴얼,Security Session/CSRF/Vault 설정과 ADM 권한 Owner 경계,운영 조회·세션 폐기·감사,Security 변경과 동시
+플랫폼 운영 매뉴얼,Starter health/readiness/metric/secret/feature flag 운영,위험 조치·승인·감사,Starter GA 시
+설치·업그레이드·Rollback,Starter Artifact/BOM/호환 범위/DB pack/rollback,미선택 Starter 설치 금지,Publication 변경과 동시
+Generator Guide,Capability 선택 옵션·Manifest·충돌 검증,최소/대표 조합과 사용자 영역 보호,Generator 변경과 동시
+Reference/EDU,Starter 조합별 실제 소비·실패·복구 예제,Mega reference 방지,Starter GA 시
+Deliverable Product Map,Core/Common/Product/Starter/Tool Artifact 구분,Artifact 명·버전·Owner,Release마다
+BOM/SBOM/Release Manifest,모든 GA Starter와 전이 Dependency 포함,exact SHA와 hash,Release마다
+OpenAPI/JavaDoc,Starter Public Properties/API와 Product API 구분,Internal 노출 0,API 변경과 동시
+Starter Profile Catalog,공식 Profile·Version·Resolved Leaf·충돌 규칙,Generator/POM/BOM/Guide와 일치,Profile 변경마다
+Core·Base Starter Architecture Guide,Core 독립 계약과 Base Starter 최소 조립·Consumer 구분,POM/Classpath/Generator Profile과 일치,Core/Base 변경과 동시
+Common Ownership Guide,업무 공통과 기술 Runtime 분리·선택 의존,실제 Consumer·Starter 이관과 일치,Common 변경과 동시

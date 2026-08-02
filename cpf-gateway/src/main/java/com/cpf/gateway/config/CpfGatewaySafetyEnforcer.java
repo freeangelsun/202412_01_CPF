@@ -66,7 +66,7 @@ public final class CpfGatewaySafetyEnforcer {
             throw new IllegalArgumentException("Gateway header 개수 안전 상한을 초과했습니다.");
         }
         long bytes = 0;
-        for (var entry : headers.entrySet()) {
+        for (var entry : headers.headerSet()) {
             bytes += entry.getKey().getBytes(StandardCharsets.UTF_8).length;
             for (String value : entry.getValue()) {
                 bytes += value == null ? 0 : value.getBytes(StandardCharsets.UTF_8).length;

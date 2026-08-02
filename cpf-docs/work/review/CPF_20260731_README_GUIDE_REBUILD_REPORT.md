@@ -36,7 +36,7 @@
 한 줄 적용:
 
 ```powershell
-pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scriptspply-cpf-guide-cleanup.ps1 -Root .
+pwsh -NoProfile -File .\cpf-tools\scripts\apply-cpf-guide-cleanup.ps1 -Root .
 ```
 
 Script는 와일드카드를 사용하지 않고 Manifest에 있는 정확한 상대경로만 삭제한 뒤 새 정본·이미지·구형 링크·금지 문구를 검증한다.
@@ -44,7 +44,7 @@ Script는 와일드카드를 사용하지 않고 Manifest에 있는 정확한 �
 ## 4. 검증
 
 ```powershell
-pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scriptserify-cpf-guide-system.ps1 -Root . -RequireLegacyRemoved
+pwsh -NoProfile -File .\cpf-tools\scripts\verify-cpf-guide-system.ps1 -Root . -RequireLegacyRemoved
 pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\check-document-links.ps1
 git diff --check
 git status --short

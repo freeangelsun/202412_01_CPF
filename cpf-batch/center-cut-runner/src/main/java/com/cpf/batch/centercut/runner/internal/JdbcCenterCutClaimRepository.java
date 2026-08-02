@@ -48,11 +48,16 @@ public class JdbcCenterCutClaimRepository {
     }
 
     @Transactional
-    public Optional<Claim> claim(String runner,String pool,Duration duration) {
+    public Optional<Claim> claimForExecution(
+            String requiredExecutionId,String runner,String pool,Duration duration) {
+        if(requiredExecutionId==null||requiredExecutionId.isBlank()) {
+            throw new IllegalArgumentException("Center-Cut execution ID is required");
+        }
         List<Map<String,Object>> candidates =
                 jdbc.queryForList(sql.required("centercut-claim-find-candidates"));
         for(Map<String,Object> row:candidates){
             String executionId=Objects.toString(row.get("center_cut_execution_id"),"");
+            if(!requiredExecutionId.equals(executionId))continue;
             if(!executionId.isBlank()){
                 int tps=((Number)row.getOrDefault("tps_limit",0)).intValue();
                 int concurrency=((Number)row.getOrDefault("concurrency_limit",1)).intValue();
@@ -107,7 +112,7 @@ public class JdbcCenterCutClaimRepository {
                 status,SensitiveTextSanitizer.sanitize(message),c.itemId());
         jdbc.update(sql.required("centercut-result-insert"),
                 status,result,SensitiveTextSanitizer.sanitize(message),c.itemId());
-        if(c.executionId()!=null&&!c.executionId().isBlank()){
+        if(c.executionId()!=null&&!c.executionId().isBlank()&&!"RETRY".equals(status)){
             jdbc.update(sql.required("centercut-execution-update-counters"),
                     status,status,status,c.executionId());
             Integer remaining=jdbc.queryForObject(

@@ -34,7 +34,7 @@
         </tbody>
       </table>
     </div>
-    <pre v-else class="detail">{{ pretty(operatorResult) }}</pre>
+    <CpfStructuredData v-else class="detail" :value="operatorResult" />
 
     <dialog :open="operatorRawOpen" class="modal">
       <form class="modal-card" @submit.prevent="viewOperatorRaw">
@@ -61,7 +61,7 @@
     </dialog>
   </section>
 
-  <section class="panel route-operation-panel"><h3>역할·세션·연락처 운영</h3><div class="filters"><label>대상 운영자 ID <input v-model="operationForm.operatorId"></label><label>Role IDs <input v-model="operationForm.roleIds" placeholder="ADM_VIEWER,ADM_OPERATOR"></label><label>사유 <input v-model="operationForm.reason"></label></div><div class="actions"><button type="button" @click="loadOperatorRoles">역할 조회</button><button type="button" @click="loadOperatorSessions">세션 조회</button><button type="button" @click="unlockManagedOperator">잠금 해제</button><button type="button" @click="updateOperatorContact">연락처 수정</button><button type="button" @click="updateOperatorRoles">역할 수정</button></div><pre class="detail">{{ pretty(operationResult) }}</pre></section>
+  <section class="panel route-operation-panel"><h3>역할·세션·연락처 운영</h3><div class="filters"><label>대상 운영자 ID <input v-model="operationForm.operatorId"></label><label>Role IDs <input v-model="operationForm.roleIds" placeholder="ADM_VIEWER,ADM_OPERATOR"></label><label>사유 <input v-model="operationForm.reason"></label></div><div class="actions"><button type="button" @click="loadOperatorRoles">역할 조회</button><button type="button" @click="loadOperatorSessions">세션 조회</button><button type="button" @click="unlockManagedOperator">잠금 해제</button><button type="button" @click="updateOperatorContact">연락처 수정</button><button type="button" @click="updateOperatorRoles">역할 수정</button></div><CpfStructuredData class="detail" :value="operationResult" /></section>
 </template>
 
 <script lang="ts">

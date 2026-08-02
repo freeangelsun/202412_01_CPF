@@ -17,6 +17,7 @@ ext.cpfJavaVersion = (findProperty('cpfJavaVersion') ?: System.getenv('CPF_JAVA_
 ext.cpfSpringBootVersion = cpfStackProperties.getProperty('springBootVersion')
 ext.cpfSpringDependencyManagementVersion = cpfStackProperties.getProperty('springDependencyManagementVersion')
 ext.cpfSpringCloudVersion = cpfStackProperties.getProperty('springCloudVersion')
+ext.cpfDbSchedulerVersion = cpfStackProperties.getProperty('dbSchedulerVersion')
 ext.cpfStackState = cpfStackProperties.getProperty('stackState', 'UNKNOWN').toUpperCase(Locale.ROOT)
 ext.cpfTargetSpringBootVersion = cpfStackProperties.getProperty('springBootTargetVersion')
 
@@ -26,17 +27,15 @@ if (ext.cpfPlatformVersion == null || ext.cpfPlatformVersion.isBlank()) {
 
 // QA32: Source identity는 추정하거나 빈 값으로 대체하지 않습니다.
 def cpfReadGitValue = { List<String> arguments ->
-    def stdout = new ByteArrayOutputStream()
-    def stderr = new ByteArrayOutputStream()
-    def result = exec {
+    def execution = providers.exec {
         commandLine(['git'] + arguments)
-        standardOutput = stdout
-        errorOutput = stderr
         ignoreExitValue = true
     }
-    def value = stdout.toString('UTF-8').trim()
+    def result = execution.result.get()
+    def value = execution.standardOutput.asText.get().trim()
+    def error = execution.standardError.asText.get().trim()
     if (result.exitValue != 0 || value.isBlank()) {
-        throw new GradleException("CPF source identity resolution failed: git ${arguments.join(' ')}; ${stderr.toString('UTF-8').trim()}")
+        throw new GradleException("CPF source identity resolution failed: git ${arguments.join(' ')}; ${error}")
     }
     value
 }
@@ -1170,38 +1169,38 @@ String cpfSha256(File file) {
 tasks.register('checkUtf8', Exec) {
     group = 'verification'
     description = 'CPF verification or deployment task.'
-    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'cpf-tools/scripts/check-utf8.ps1'
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-File', 'cpf-tools/scripts/check-utf8.ps1'
 }
 
 tasks.register('checkMojibake', Exec) {
     group = 'verification'
     description = 'CPF verification or deployment task.'
-    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'cpf-tools/scripts/check-utf8.ps1', '-CheckMojibake'
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-File', 'cpf-tools/scripts/check-utf8.ps1', '-CheckMojibake'
 }
 
 tasks.register('checkLegacyName', Exec) {
     group = 'verification'
     description = 'CPF verification or deployment task.'
-    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'cpf-tools/scripts/check-legacy-name.ps1'
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-File', 'cpf-tools/scripts/check-legacy-name.ps1'
 }
 
 tasks.register('checkLegacyBatchMigration', Exec) {
     group = 'verification'
     description = 'Legacy cpf-batch/src 146-file removal, standalone owner mapping, REF EDU boundary를 검증합니다.'
-    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-File',
             'cpf-tools/scripts/check-legacy-batch-migration.ps1', '-ResultDir', cpfResultDir().path
 }
 
 tasks.register('checkSqlStandard', Exec) {
     group = 'verification'
     description = 'CPF verification or deployment task.'
-    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'cpf-tools/scripts/check-sql-standard.ps1'
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-File', 'cpf-tools/scripts/check-sql-standard.ps1'
 }
 
 tasks.register('checkJavaFormat', Exec) {
     group = 'verification'
     description = 'CPF verification or deployment task.'
-    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'cpf-tools/scripts/check-java-format.ps1'
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-File', 'cpf-tools/scripts/check-java-format.ps1'
 }
 
 tasks.register('checkJava25Standard', Exec) {
@@ -1212,39 +1211,39 @@ tasks.register('checkJava25Standard', Exec) {
             cpfLocalServiceDescriptors.collect { "${it.projectPath}:bootJar" } +
                     [':cpf-local-runtime:bootJar', ':cpf-local-batch-runtime:bootJar']
     ).unique()
-    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-File',
             'cpf-tools/scripts/check-java25-standard.ps1', '-ResultDir', cpfResultDir().path, '-RequireClasses', '-RequireBootJars'
 }
 
 tasks.register('checkDocxStandard', Exec) {
     group = 'verification'
     description = 'Checks the nine canonical DOCX package integrity; freshness is a separate final-publication gate.'
-    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-File',
             'cpf-tools/scripts/check-docx-standard.ps1', '-ResultDir', cpfResultDir().path
 }
 
 tasks.register('checkTransactionIdStandard', Exec) {
     group = 'verification'
     description = 'CPF verification or deployment task.'
-    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'cpf-tools/scripts/check-transaction-id-standard.ps1'
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-File', 'cpf-tools/scripts/check-transaction-id-standard.ps1'
 }
 
 tasks.register('checkSecuritySeedStandard', Exec) {
     group = 'verification'
     description = 'CPF verification or deployment task.'
-    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'cpf-tools/scripts/check-security-seed-standard.ps1'
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-File', 'cpf-tools/scripts/check-security-seed-standard.ps1'
 }
 
 tasks.register('checkSampleStandard', Exec) {
     group = 'verification'
     description = 'CPF verification or deployment task.'
-    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'cpf-tools/scripts/check-sample-standard.ps1'
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-File', 'cpf-tools/scripts/check-sample-standard.ps1'
 }
 
 tasks.register('checkCpfRequestProtection', Exec) {
     group = 'verification'
     description = 'The repository-controlled final validation request must match its durable baseline.'
-    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-File',
             'cpf-tools/scripts/check-cpf-request-protection.ps1', '-ResultDir', cpfResultDir().path
 }
 
@@ -1252,28 +1251,28 @@ tasks.register('checkFeatureEvidence', Exec) {
     group = 'verification'
     description = 'CPF verification or deployment task.'
     dependsOn 'exportCapabilityInventory'
-    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-File',
             'cpf-tools/scripts/check-feature-evidence.ps1', '-ResultDir', cpfResultDir().path
 }
 
 tasks.register('exportCapabilityInventory', Exec) {
     group = 'verification'
     description = '현재 Generated Domain manifest와 중앙 Golden/Vendor Template 계약을 검증합니다.'
-    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-File',
             'cpf-tools/scripts/export-generated-domain-capability-inventory.ps1', '-ResultDir', cpfResultDir().path
 }
 
 tasks.register('exportArchitectureInventory', Exec) {
     group = 'verification'
     description = '전체 모듈의 source, test, resource, SQL, script 소유권 인벤토리를 생성하고 누락을 검사합니다.'
-    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-File',
             'cpf-tools/scripts/export-architecture-inventory.ps1', '-ResultDir', cpfResultDir().path
 }
 
 tasks.register('exportCpfInventory', Exec) {
     group = 'verification'
     description = '현재 저장소의 source, test, SQL, API, 설정과 문서 inventory를 생성합니다.'
-    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-File',
             'cpf-tools/scripts/export-cpf-inventory.ps1', '-ResultDir', cpfResultDir().path
 }
 
@@ -1281,69 +1280,69 @@ tasks.register('exportRequirementTraceability', Exec) {
     group = 'verification'
     description = '최신 Canonical Requirement Catalog와 Review 상태의 양방향 추적성을 검증합니다.'
     dependsOn 'exportCpfInventory', 'exportArchitectureInventory'
-    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-File',
             'cpf-tools/scripts/export-requirement-traceability.ps1', '-ResultDir', cpfResultDir().path
 }
 
 tasks.register('checkFullLayerTaxonomy', Exec) {
     group = 'verification'
     description = '전체 Java 타입의 계층 역할과 확장 방식을 분류하고 미분류 타입을 차단합니다.'
-    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-File',
             'cpf-tools/scripts/check-full-layer-taxonomy.ps1', '-ResultDir', cpfResultDir().path
 }
 
 tasks.register('checkServiceCallBoundary', Exec) {
     group = 'verification'
     description = 'CPF service call engine boundary rules must prevent direct URL, controller, and cross-domain repository access.'
-    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'cpf-tools/scripts/check-service-call-boundary.ps1'
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-File', 'cpf-tools/scripts/check-service-call-boundary.ps1'
 }
 
 tasks.register('checkArchitectureOwnership', Exec) {
     group = 'verification'
     description = 'CPF/CMN/business ownership rules and capability placement must stay aligned.'
-    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-File',
             'cpf-tools/scripts/check-architecture-ownership.ps1', '-ResultDir', cpfResultDir().path
 }
 
 tasks.register('checkSpringEventUsage', Exec) {
     group = 'verification'
     description = 'Spring Event usage must remain limited to hook, telemetry, cache, and audit support.'
-    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-File',
             'cpf-tools/scripts/check-spring-event-usage.ps1', '-ResultDir', cpfResultDir().path
 }
 
 tasks.register('checkProfileLoading', Exec) {
     group = 'verification'
     description = 'CPF verification or deployment task.'
-    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-File',
             'cpf-tools/scripts/check-profile-loading.ps1', '-ResultDir', cpfResultDir().path
 }
 
 tasks.register('checkRuntimeConfigStandard', Exec) {
     group = 'verification'
     description = 'CPF verification or deployment task.'
-    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-File',
             'cpf-tools/scripts/check-runtime-config-standard.ps1', '-ResultDir', cpfResultDir().path
 }
 
 tasks.register('checkLogManagementStandard', Exec) {
     group = 'verification'
     description = '런타임 로그 비추적, 공통 로그 경로, 정제 증적 규격을 검사합니다.'
-    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-File',
             'cpf-tools/scripts/check-log-management-standard.ps1', '-ResultDir', cpfResultDir().path
 }
 
 tasks.register('checkOpenApiSourceCoverage', Exec) {
     group = 'verification'
     description = '전체 Controller의 OpenAPI operationId 자동 보장과 명시 ID 중복을 검사합니다.'
-    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-File',
             'cpf-tools/scripts/check-openapi-source-coverage.ps1', '-ResultDir', cpfResultDir().path
 }
 
 tasks.register('buildSampleCoverageMatrix', Exec) {
     group = 'verification'
     description = 'REF/BAT EDU Source와 Test에서 build/generated sample coverage matrix를 재생성합니다.'
-    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-File',
             'cpf-tools/scripts/build-sample-coverage-matrix.ps1'
 }
 
@@ -1351,7 +1350,7 @@ tasks.register('checkSampleCoverage', Exec) {
     group = 'verification'
     description = 'Generated EDU sample coverage matrix와 Source/Test 소유권을 검증합니다.'
     dependsOn 'buildSampleCoverageMatrix'
-    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-File',
             'cpf-tools/scripts/check-sample-coverage.ps1', '-ResultDir', cpfResultDir().path
 }
 
@@ -1359,7 +1358,7 @@ tasks.register('checkEvidencePathExistence', Exec) {
     group = 'verification'
     description = 'CPF reports and matrices must not point to missing evidence files.'
     mustRunAfter 'checkRuntimeConfigStandard', 'checkSampleCoverage', 'remoteDeployDryRun'
-    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-File',
             'cpf-tools/scripts/check-evidence-path-existence.ps1', '-ResultDir', cpfResultDir().path
 }
 
@@ -1467,7 +1466,7 @@ tasks.register('remoteDeploy', Exec) {
         }
         if (requestedBy.get() == approvedBy.get()) throw new GradleException('Requester and approver must be different.')
     }
-    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-File',
             'cpf-tools/scripts/invoke-bat-deployment.ps1',
             '-PlanId', planId.get(), '-ApprovalRequestId', approvalId.get(), '-CommandRequestId', commandId.get(),
             '-RequestedBy', requestedBy.get(), '-ApprovedBy', approvedBy.get(), '-Reason', reason.get(),
@@ -1489,7 +1488,7 @@ tasks.register('rollbackDeploy', Exec) {
         }
         if (requestedBy.get() == approvedBy.get()) throw new GradleException('Requester and approver must be different.')
     }
-    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-File',
             'cpf-tools/scripts/invoke-bat-deployment.ps1',
             '-PlanId', planId.get(), '-ApprovalRequestId', approvalId.get(), '-CommandRequestId', commandId.get(),
             '-RequestedBy', requestedBy.get(), '-ApprovedBy', approvedBy.get(), '-Reason', reason.get(), '-Rollback',
@@ -1501,7 +1500,7 @@ tasks.register('checkWorkContextSha', Exec) {
     group = 'verification'
     description = 'Current/Handover/Evidence의 exact-SHA 주장이 현재 HEAD와 일치하는지 검증합니다.'
     workingDir rootDir
-    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-File',
             file('cpf-tools/scripts/check-work-context-sha.ps1').absolutePath
 }
 
@@ -1509,40 +1508,40 @@ tasks.register('checkReportMatrixEvidenceConsistency', Exec) {
     group = 'verification'
     description = 'CPF stabilization report, feature matrix, and evidence index must agree.'
     mustRunAfter 'checkEvidencePathExistence'
-    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-File',
             'cpf-tools/scripts/check-report-matrix-evidence-consistency.ps1', '-ResultDir', cpfResultDir().path
 }
 
 tasks.register('openApiSmoke', Exec) {
     group = 'verification'
     description = 'CPF verification or deployment task.'
-    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'cpf-tools/scripts/smoke-openapi.ps1'
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-File', 'cpf-tools/scripts/smoke-openapi.ps1'
 }
 
 tasks.register('admUiSmoke', Exec) {
     group = 'verification'
     description = 'CPF verification or deployment task.'
-    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'cpf-tools/scripts/smoke-adm-ui.ps1'
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-File', 'cpf-tools/scripts/smoke-adm-ui.ps1'
 }
 
 tasks.register('checkBaseHierarchy', Exec) {
     group = 'verification'
     description = 'Controller와 Service의 CPF·주제영역 Base 3단 확장 계층을 검사합니다.'
-    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-File',
             'cpf-tools/scripts/check-base-hierarchy.ps1', '-ResultDir', cpfResultDir().path
 }
 
 tasks.register('checkDomainGenerator', Exec) {
     group = 'verification'
     description = '신규 업무 모듈 생성 결과의 feature-first 구조와 Java 25 산출물을 검증합니다.'
-    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-File',
             'cpf-tools/scripts/smoke-create-domain.ps1', '-ResultDir', cpfResultDir().path
 }
 
 tasks.register('checkDomainCapabilityMatrix', Exec) {
     group = 'verification'
     description = '신규 업무 모듈 생성기의 DB, Batch, External, UI capability 조합과 미선택 산출물 0건을 검증합니다.'
-    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-File',
             'cpf-tools/scripts/smoke-domain-capability-matrix.ps1', '-ResultDir', cpfResultDir().path
 }
 
@@ -1550,7 +1549,7 @@ tasks.register('checkSqlCanonical', Exec) {
     group = 'verification'
     description = 'SQL 정본 위치, Flyway 버전, 생성기 DB 벤더 지원을 검사합니다.'
     workingDir rootDir
-    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-File',
             file('cpf-tools/scripts/check-sql-canonical.ps1').absolutePath,
             '-Root', rootDir.absolutePath,
             '-ResultDir', cpfResultDir().path
@@ -1559,14 +1558,14 @@ tasks.register('checkSqlCanonical', Exec) {
 tasks.register('checkGeneratorGoldenPath', Exec) {
     group = 'verification'
     description = 'Generated Domain Golden Template의 metadata, public dependency, 3 Vendor 계약을 검증합니다.'
-    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-File',
             'cpf-tools/scripts/check-generator-golden-path.ps1', '-Root', rootDir.absolutePath
 }
 
 tasks.register('checkGeneratorArbitraryDomainParity', Exec) {
     group = 'verification'
     description = '서로 다른 임의 DomainName/SystemCode가 같은 Golden Template 구조로 생성되는지 검증합니다.'
-    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-File',
             'cpf-tools/scripts/check-generator-arbitrary-domain-parity.ps1', '-Root', rootDir.absolutePath
 }
 
@@ -1574,7 +1573,7 @@ tasks.register('batTwoWorkerRuntimeSmoke', Exec) {
     group = 'verification'
     description = '서로 다른 BAT worker 프로세스 2개의 claim, drain, crash, lease takeover를 MariaDB에서 검증합니다.'
     dependsOn ':cpf-batch:control-server:bootJar', ':cpf-batch:worker:bootJar'
-    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-File',
             'cpf-tools/scripts/smoke-bat-two-worker-runtime.ps1', '-ResultDir', cpfResultDir().path
 }
 
@@ -1582,104 +1581,104 @@ tasks.register('checkModernFrontend', Exec) {
     group = 'verification'
     description = 'ADM/BZA Vue SFC, TypeScript, lockfile, legacy 제거와 JAR/WAR 포함을 검증합니다.'
     dependsOn ':cpf-admin:frontendVerify', ':cpf-biz-admin:frontendVerify', ':cpf-admin:bootJar', ':cpf-admin:bootWar', ':cpf-biz-admin:bootJar', ':cpf-biz-admin:bootWar'
-    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-File',
             'cpf-tools/scripts/check-modern-frontend.ps1', '-ResultDir', cpfResultDir().path
 }
 
 tasks.register('checkDomainRemoval', Exec) {
     group = 'verification'
     description = '생성 모듈 제거의 dry-run, 사용자 변경 차단, 실제 정리를 검증합니다.'
-    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-File',
             'cpf-tools/scripts/smoke-remove-domain.ps1', '-ResultDir', cpfResultDir().path
 }
 
 tasks.register('checkRepositoryHygiene', Exec) {
     group = 'verification'
     description = '추적 중인 생성 중간물, runtime 산출물, 후보·최종 중복과 백업 파일을 차단합니다.'
-    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-File',
             'cpf-tools/scripts/check-repository-hygiene.ps1', '-ResultDir', cpfResultDir().path
 }
 
 tasks.register('checkDocumentLinks', Exec) {
     group = 'verification'
     description = 'README와 HTML/Markdown 문서의 내부 파일 링크를 검증합니다.'
-    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-File',
             'cpf-tools/scripts/check-document-links.ps1', '-ResultDir', cpfResultDir().path
 }
 
 tasks.register('admLogPolicyUiStaticSmoke', Exec) {
     group = 'verification'
     description = 'ADM 로그 정책 화면과 운영 API 연결을 정적으로 검증합니다.'
-    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-File',
             'cpf-tools/scripts/smoke-adm-log-policy-ui-static.ps1', '-ResultDir', cpfResultDir().path
 }
 
 tasks.register('bzaUiSmoke', Exec) {
     group = 'verification'
     description = 'BZA 메뉴, 권한, 인증 저장소와 API 연결을 정적으로 검증합니다.'
-    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-File',
             'cpf-tools/scripts/smoke-bza-ui.ps1', '-ResultDir', cpfResultDir().path
 }
 
 tasks.register('admRuntimeSmoke', Exec) {
     group = 'verification'
     description = 'CPF verification or deployment task.'
-    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'cpf-tools/scripts/smoke-adm-runtime.ps1'
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-File', 'cpf-tools/scripts/smoke-adm-runtime.ps1'
 }
 
 tasks.register('checkContractCompatibility', Exec) {
     group = 'verification'
     description = 'REST/Event/전문/File/Batch 공통 Contract Compatibility engine self-test를 실행합니다.'
-    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-File',
             'cpf-tools/scripts/check-contract-compatibility.ps1', '-SelfTest'
 }
 
 tasks.register('checkR13ProductHardening', Exec) {
     group = 'verification'
     description = 'R13 보안/동시성/Cache/Generator/Contract 정적 Gate를 실행합니다.'
-    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-File',
             'cpf-tools/scripts/check-r13-product-hardening.ps1'
 }
 
 tasks.register('checkAdminContactModel', Exec) {
     group = 'verification'
     description = 'ADM/BZA 연락처(휴대폰)와 내부 전화번호 Source/API/UI/DB 정합성을 검증합니다.'
-    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-File',
             'cpf-tools/scripts/check-admin-contact-model.ps1'
 }
 
 tasks.register('checkBzaSafeDefaults', Exec) {
     group = 'verification'
     description = 'BZA 직원 safe default가 EMPLOYED 정본과 일치하는지 검증합니다.'
-    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-File',
             'cpf-tools/scripts/check-bza-safe-defaults.ps1'
 }
 
 tasks.register('checkCpfStackSupport', Exec) {
     group = 'verification'
     description = 'CPF Java/Gradle/Spring Boot 단일 Stack 정본과 현재 지원상태를 검증합니다.'
-    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-File',
             'cpf-tools/scripts/check-cpf-stack-support.ps1'
 }
 
 tasks.register('checkAdminDataSafety', Exec) {
     group = 'verification'
     description = 'ADM/BZA transaction/fail-closed/PII/status/query ownership/V61 정합성을 검증합니다.'
-    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-File',
             'cpf-tools/scripts/check-admin-data-safety.ps1'
 }
 
 tasks.register('checkOfficialDbVendorReadiness', Exec) {
     group = 'verification'
     description = 'Oracle/PostgreSQL/MariaDB 3종 공식 Vendor lifecycle, migration, SQL portability를 검증합니다.'
-    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-File',
             'cpf-tools/scripts/check-official-db-vendor-readiness.ps1'
 }
 
 tasks.register('checkRuntimeQueryContracts', Exec) {
     group = 'verification'
     description = 'Runtime Query Source-SQL 양방향 ownership과 3 Vendor parameter/result parity를 검증합니다.'
-    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-File',
             'cpf-tools/scripts/check-platform-runtime-query-packs.ps1'
 }
 
@@ -1724,10 +1723,23 @@ tasks.register('verifyBatStandaloneArchitecture') {
           'cpf-batch/worker','cpf-batch/center-cut-runner','cpf-batch/host-agent','cpf-batch/testkit'
         ].each { path -> if (!file(path).isDirectory()) throw new GradleException("Missing BAT standalone unit: ${path}") }
 
-        def fixedCpfRoots = [
-                'cpf-core', 'cpf-common', 'cpf-admin', 'cpf-biz-admin',
-                'cpf-batch', 'cpf-gateway', 'cpf-reference', 'cpf-tools', 'cpf-docs'
-        ] as Set
+        def surfacePolicyFile = file('cpf-tools/governance/cpf-product-surface-policy.json')
+        if (!surfacePolicyFile.isFile()) {
+            throw new GradleException("Product surface policy is missing: ${surfacePolicyFile}")
+        }
+        def surfacePolicy = new groovy.json.JsonSlurper().parse(surfacePolicyFile)
+        def fixedCpfRoots = (surfacePolicy.moduleOwners ?: [])
+                .findAll { owner ->
+                    def prefix = owner.prefix?.toString()
+                    prefix != null &&
+                            prefix ==~ /^cpf-[^\/]+\/$/ &&
+                            owner.owner?.toString() != 'generated-domain'
+                }
+                .collect { owner -> owner.prefix.toString()[0..-2] }
+                .toSet()
+        if (fixedCpfRoots.isEmpty()) {
+            throw new GradleException('Product surface policy has no fixed CPF roots.')
+        }
         def generatedDomains = (rootProject.projectDir.listFiles() ?: [] as File[])
                 .findAll { candidate ->
                     candidate.isDirectory() &&
@@ -1803,12 +1815,10 @@ tasks.register('verifyCpfFinalSourceGates') {
 
 tasks.register('prepareCpfArtifactStaging') {
     group = 'publishing'
-    description = 'Removes only CPF root-module artifact groups from the isolated publication staging repository.'
+    description = 'Removes the complete CPF group and promotion metadata from the isolated publication staging repository.'
     doLast {
         [
-                'com/cpf/core',
-                'com/cpf/common',
-                'com/cpf/batch',
+                'com/cpf',
                 '_cpf'
         ].each { relative -> delete file("${rootProject.ext.cpfArtifactStagingRepository}/${relative}") }
     }
@@ -1822,6 +1832,47 @@ subprojects { candidate ->
     }
 }
 
+def cpfFinalArtifactCatalogFile = file('cpf-tools/release/cpf-final-artifact-catalog.json')
+if (!cpfFinalArtifactCatalogFile.isFile()) {
+    throw new GradleException("CPF final artifact catalog is missing: ${cpfFinalArtifactCatalogFile}")
+}
+def cpfFinalArtifactCatalog = new groovy.json.JsonSlurper().parse(cpfFinalArtifactCatalogFile)
+def cpfStarterCatalogRows = (cpfFinalArtifactCatalog.artifacts ?: [])
+        .findAll { artifact -> artifact.kind?.toString() == 'starter' }
+        .sort { artifact -> artifact.ownerPath?.toString() }
+if (cpfStarterCatalogRows.isEmpty()) {
+    throw new GradleException('CPF final artifact catalog has no Starter artifacts.')
+}
+def cpfStarterCatalogOwnerPaths = cpfStarterCatalogRows.collect { artifact ->
+    artifact.ownerPath?.toString()?.replace('\\', '/')?.replaceAll('/+$', '')
+}
+def cpfPhysicalStarterOwnerPaths = (file('cpf-starters').listFiles() ?: [] as File[])
+        .findAll { candidate -> candidate.isDirectory() && new File(candidate, 'build.gradle').isFile() }
+        .collect { candidate -> "cpf-starters/${candidate.name}" }
+        .sort()
+if (cpfStarterCatalogOwnerPaths.size() != cpfStarterCatalogOwnerPaths.toSet().size() ||
+        cpfStarterCatalogOwnerPaths.sort() != cpfPhysicalStarterOwnerPaths) {
+    throw new GradleException(
+            "Starter catalog/physical project mismatch: catalog=${cpfStarterCatalogOwnerPaths.sort()}, " +
+                    "physical=${cpfPhysicalStarterOwnerPaths}")
+}
+def cpfStarterPublicationProjects = cpfStarterCatalogRows.collect { artifact ->
+    def ownerPath = artifact.ownerPath.toString().replace('\\', '/').replaceAll('/+$', '')
+    def expectedArtifactId = "cpf-starter-${ownerPath.substring(ownerPath.lastIndexOf('/') + 1)}"
+    if (artifact.artifactId?.toString() != expectedArtifactId) {
+        throw new GradleException(
+                "Starter catalog artifact identity mismatch: owner=${ownerPath}, artifact=${artifact.artifactId}")
+    }
+    def ownerDirectory = file(ownerPath).canonicalFile
+    def candidate = subprojects.find { project -> project.projectDir.canonicalFile == ownerDirectory }
+    if (candidate == null || candidate.name != expectedArtifactId) {
+        throw new GradleException(
+                "Starter catalog project is not mapped in settings.gradle: owner=${ownerPath}, " +
+                        "artifact=${expectedArtifactId}")
+    }
+    candidate
+}.sort { candidate -> candidate.path }
+
 tasks.register('publishCpfLocalPlatformArtifacts') {
     group = 'publishing'
     description = 'Low-level local Maven publish. 일반 사용자는 publishCpfVerifiedLocalPlatformArtifacts를 사용합니다.'
@@ -1830,6 +1881,9 @@ tasks.register('publishCpfLocalPlatformArtifacts') {
             ':cpf-batch:publishStandaloneArtifactsToCpfLocal',
             gradle.includedBuild('cpf-platform-bom').task(':publishCpfBomToLocal'),
             gradle.includedBuild('cpf-gradle-plugin').task(':publishCpfPluginToLocal')
+    dependsOn cpfStarterPublicationProjects.collect { candidate ->
+        "${candidate.path}:publishAllPublicationsToCpfLocalRepository"
+    }
     doLast {
         logger.lifecycle("CPF local artifact synchronization complete: ${rootProject.ext.cpfLocalArtifactRepository}")
     }
@@ -1843,6 +1897,9 @@ tasks.register('publishCpfStagingPlatformArtifacts') {
             ':cpf-batch:publishStandaloneArtifactsToCpfStaging',
             gradle.includedBuild('cpf-platform-bom').task(':publishCpfBomToStaging'),
             gradle.includedBuild('cpf-gradle-plugin').task(':publishCpfPluginToStaging')
+    dependsOn cpfStarterPublicationProjects.collect { candidate ->
+        "${candidate.path}:publishAllPublicationsToCpfStagingRepository"
+    }
 }
 
 tasks.register('promoteCpfVerifiedLocalArtifacts', Exec) {
@@ -1853,7 +1910,7 @@ tasks.register('promoteCpfVerifiedLocalArtifacts', Exec) {
         if (rootProject.ext.cpfArtifactMode != 'LOCAL_DEV') {
             throw new GradleException('Local artifact promotion is allowed only in CPF_ARTIFACT_MODE=LOCAL_DEV.')
         }
-        commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+        commandLine cpfPowerShellExecutable(), '-NoProfile', '-File',
                 'cpf-tools/scripts/promote-cpf-verified-local-artifacts.ps1',
                 '-StagingRepository', rootProject.ext.cpfArtifactStagingRepository,
                 '-LocalRepository', rootProject.ext.cpfLocalArtifactRepository
@@ -1870,7 +1927,7 @@ tasks.register('verifyCpfLocalArtifactPropagation', Exec) {
     group = 'verification'
     description = 'Publishes and verifies the shared local CPF Maven repository used by independent/generated Domains.'
     dependsOn tasks.named('publishCpfVerifiedLocalPlatformArtifacts')
-    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-File',
             'cpf-tools/scripts/verify-local-artifact-propagation.ps1',
             '-LocalRepository', rootProject.ext.cpfLocalArtifactRepository,
             '-RequireManifest'
@@ -1881,7 +1938,7 @@ tasks.register('buildCpfOfflineArtifactBundle', Exec) {
     description = 'Builds a versioned offline CPF Maven bundle with manifest/checksums for registry-less server environments.'
     dependsOn tasks.named('publishCpfVerifiedLocalPlatformArtifacts')
     doFirst {
-        commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+        commandLine cpfPowerShellExecutable(), '-NoProfile', '-File',
                 'cpf-tools/scripts/build-cpf-offline-artifact-bundle.ps1',
                 '-LocalRepository', rootProject.ext.cpfLocalArtifactRepository
     }
@@ -1900,6 +1957,9 @@ tasks.register('publishCpfPlatformArtifacts') {
             ':cpf-batch:publishStandaloneArtifactsToCpfInternal',
             gradle.includedBuild('cpf-platform-bom').task(':publishCpfBomToInternal'),
             gradle.includedBuild('cpf-gradle-plugin').task(':publishCpfPluginToInternal')
+    dependsOn cpfStarterPublicationProjects.collect { candidate ->
+        "${candidate.path}:publishAllPublicationsToCpfInternalRepository"
+    }
 }
 
 // LOCAL_DEV에서 명시적으로 -PcpfAutoLocalArtifactSync=true를 사용한 경우에만 build 성공 후
@@ -1941,7 +2001,7 @@ tasks.register('commercialReleaseGate', Exec) {
         }
         if (!publicKey.isPresent()) throw new GradleException('releasePublicKey/CPF_RELEASE_PUBLIC_KEY is required.')
         if (!vulnerabilityReport.isPresent()) throw new GradleException('vulnerabilityReport/CPF_VULNERABILITY_REPORT is required.')
-        commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+        commandLine cpfPowerShellExecutable(), '-NoProfile', '-File',
                 'cpf-tools/release/check-commercial-release.ps1', '-ReleaseDir', releaseDir.get().asFile.absolutePath,
                 '-PublicKey', publicKey.get(), '-VulnerabilityReport', vulnerabilityReport.get()
     }
@@ -1994,7 +2054,15 @@ tasks.register('qa34SourceClosure') {
                 ['python', 'cpf-tools/scripts/verify-cpf-qa34-runtime-contracts.py', '--root', '.']
         ]
         commands.each { command ->
-            def result = exec { commandLine command; ignoreExitValue = true }
+            def execution = providers.exec {
+                commandLine command
+                ignoreExitValue = true
+            }
+            def result = execution.result.get()
+            def standardOutput = execution.standardOutput.asText.get().trim()
+            def standardError = execution.standardError.asText.get().trim()
+            if (!standardOutput.isEmpty()) logger.lifecycle(standardOutput)
+            if (!standardError.isEmpty()) logger.error(standardError)
             if (result.exitValue != 0) {
                 throw new GradleException("QA34 source gate failed: ${command.join(' ')} (exit=${result.exitValue})")
             }

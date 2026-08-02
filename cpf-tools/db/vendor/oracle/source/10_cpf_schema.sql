@@ -1,6 +1,5 @@
 -- AUTO-GENERATED from cpf-tools/db/canonical/platform-schema.json
 -- vendor=oracle
--- schemaVersion=37
 -- DO NOT EDIT generated DDL directly.
 
 -- CPF_LOGICAL_DATABASE=cpfDB
@@ -48,7 +47,7 @@ CREATE TABLE cpf_broker_inbox (
     idempotency_key VARCHAR2(160 CHAR),
     inbox_status VARCHAR2(30 CHAR) NOT NULL DEFAULT 'RECEIVED',
     result_detail VARCHAR2(1000 CHAR),
-    received_at TIMESTAMP(3) NOT NULL DEFAULT SYSTIMESTAMP,
+    received_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     consumed_at TIMESTAMP(3),
     created_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -97,7 +96,7 @@ CREATE TABLE cpf_broker_outbox (
     broker_name VARCHAR2(80 CHAR),
     partition_key VARCHAR2(200 CHAR),
     failure_message VARCHAR2(1000 CHAR),
-    occurred_at TIMESTAMP(3) NOT NULL DEFAULT SYSTIMESTAMP,
+    occurred_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     claimed_at TIMESTAMP(3),
     published_at TIMESTAMP(3),
     created_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
@@ -148,7 +147,7 @@ CREATE OR REPLACE TRIGGER trg_touch_cpf_broker_outbox BEFORE UPDATE ON cpf_broke
 CREATE TABLE cpf_cache_invalidation_checkpoint (
     consumer_id VARCHAR2(120 CHAR) NOT NULL,
     last_event_id NUMBER(19) NOT NULL DEFAULT 0,
-    updated_at TIMESTAMP(6) NOT NULL DEFAULT SYSTIMESTAMP,
+    updated_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     CONSTRAINT pk_cpf_cache_invalidation_checkpoint PRIMARY KEY (consumer_id)
 );
 COMMENT ON TABLE cpf_cache_invalidation_checkpoint IS 'Cache 무효화 Consumer Checkpoint';
@@ -167,7 +166,7 @@ CREATE TABLE cpf_cache_invalidation_event (
     event_version NUMBER(19) NOT NULL DEFAULT 0,
     reason VARCHAR2(500 CHAR) NOT NULL,
     requested_by VARCHAR2(100 CHAR) NOT NULL,
-    created_at TIMESTAMP(6) NOT NULL DEFAULT SYSTIMESTAMP,
+    created_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     CONSTRAINT pk_cpf_cache_invalidation_event PRIMARY KEY (event_id),
     CONSTRAINT uk_cpf_cache_inv_event_key UNIQUE (event_key)
 );
@@ -212,7 +211,7 @@ CREATE TABLE cpf_cache_refresh_event (
     event_key VARCHAR2(200 CHAR),
     source_was_id VARCHAR2(50 CHAR),
     published_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'SYSTEM',
-    published_at TIMESTAMP(3) NOT NULL DEFAULT SYSTIMESTAMP,
+    published_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     created_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
@@ -242,7 +241,7 @@ CREATE TABLE cpf_channel_policy_version (
     target_key VARCHAR2(100 CHAR) NOT NULL,
     change_reason VARCHAR2(500 CHAR) NOT NULL,
     applied_by VARCHAR2(100 CHAR) NOT NULL,
-    applied_at TIMESTAMP(3) NOT NULL DEFAULT SYSTIMESTAMP,
+    applied_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     created_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
@@ -305,57 +304,6 @@ COMMENT ON COLUMN cpf_channel_registry.created_at IS '등록일시';
 COMMENT ON COLUMN cpf_channel_registry.updated_by IS '수정자';
 COMMENT ON COLUMN cpf_channel_registry.updated_at IS '수정일시';
 CREATE OR REPLACE TRIGGER trg_touch_cpf_channel_registry BEFORE UPDATE ON cpf_channel_registry FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
-/
-
-CREATE TABLE cpf_channel_execution_policy (
-    policy_key VARCHAR2(100 CHAR) NOT NULL,
-    standard_execution_id VARCHAR2(10 CHAR) NOT NULL,
-    original_channel_code VARCHAR2(30 CHAR) NOT NULL,
-    caller_channel_code VARCHAR2(30 CHAR) NOT NULL,
-    request_type VARCHAR2(30 CHAR) NOT NULL DEFAULT '*',
-    allowed_yn CHAR(1 CHAR) NOT NULL DEFAULT 'N',
-    authentication_required_yn CHAR(1 CHAR) NOT NULL DEFAULT 'Y',
-    signature_required_yn CHAR(1 CHAR) NOT NULL DEFAULT 'N',
-    max_tps NUMBER(10) NOT NULL DEFAULT 0,
-    effective_from TIMESTAMP(3),
-    effective_to TIMESTAMP(3),
-    active_yn CHAR(1 CHAR) NOT NULL DEFAULT 'Y',
-    policy_version NUMBER(19) NOT NULL DEFAULT 0,
-    created_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT pk_cpf_channel_execution_policy PRIMARY KEY (policy_key),
-    CONSTRAINT ck_cpf_channel_execution_policy_execution CHECK (standard_execution_id = '*' OR standard_execution_id REGEXP '^[OSB][A-Z]{3}[A-Z0-9]{2}[0-9]{4}$'),
-    CONSTRAINT ck_cpf_channel_execution_policy_allowed CHECK (allowed_yn IN ('Y', 'N')),
-    CONSTRAINT ck_cpf_channel_execution_policy_auth CHECK (authentication_required_yn IN ('Y', 'N')),
-    CONSTRAINT ck_cpf_channel_execution_policy_signature CHECK (signature_required_yn IN ('Y', 'N')),
-    CONSTRAINT ck_cpf_channel_execution_policy_active CHECK (active_yn IN ('Y', 'N')),
-    CONSTRAINT ck_cpf_channel_execution_policy_period CHECK (effective_from IS NULL OR effective_to IS NULL OR effective_from <= effective_to),
-    CONSTRAINT fk_cpf_channel_execution_policy_original FOREIGN KEY (original_channel_code) REFERENCES cpf_channel_registry (channel_code),
-    CONSTRAINT fk_cpf_channel_execution_policy_caller FOREIGN KEY (caller_channel_code) REFERENCES cpf_channel_registry (channel_code)
-);
-CREATE INDEX ix_cpf_channel_execution_policy_lookup ON cpf_channel_execution_policy (standard_execution_id, original_channel_code, caller_channel_code, request_type, active_yn);
-CREATE INDEX ix_cpf_channel_execution_policy_effective ON cpf_channel_execution_policy (active_yn, effective_from, effective_to);
-COMMENT ON TABLE cpf_channel_execution_policy IS 'CPF 표준 실행별 최초·호출 채널 정책';
-COMMENT ON COLUMN cpf_channel_execution_policy.policy_key IS '채널 실행 정책 불변 키';
-COMMENT ON COLUMN cpf_channel_execution_policy.standard_execution_id IS '10자리 표준 실행 ID 또는 전체 실행 *';
-COMMENT ON COLUMN cpf_channel_execution_policy.original_channel_code IS '최초 채널 코드 또는 ANY';
-COMMENT ON COLUMN cpf_channel_execution_policy.caller_channel_code IS '현재 호출 채널 코드 또는 ANY';
-COMMENT ON COLUMN cpf_channel_execution_policy.request_type IS '요청 유형 또는 전체 유형 *';
-COMMENT ON COLUMN cpf_channel_execution_policy.allowed_yn IS '실행 허용 여부';
-COMMENT ON COLUMN cpf_channel_execution_policy.authentication_required_yn IS '정책별 인증 필수 여부';
-COMMENT ON COLUMN cpf_channel_execution_policy.signature_required_yn IS '정책별 요청 서명 필수 여부';
-COMMENT ON COLUMN cpf_channel_execution_policy.max_tps IS '0이면 제한하지 않는 최대 초당 요청 수';
-COMMENT ON COLUMN cpf_channel_execution_policy.effective_from IS '정책 적용 시작일시';
-COMMENT ON COLUMN cpf_channel_execution_policy.effective_to IS '정책 적용 종료일시';
-COMMENT ON COLUMN cpf_channel_execution_policy.active_yn IS '정책 사용 여부';
-COMMENT ON COLUMN cpf_channel_execution_policy.policy_version IS '마지막 적용 정책 버전';
-COMMENT ON COLUMN cpf_channel_execution_policy.created_by IS '등록자';
-COMMENT ON COLUMN cpf_channel_execution_policy.created_at IS '등록일시';
-COMMENT ON COLUMN cpf_channel_execution_policy.updated_by IS '수정자';
-COMMENT ON COLUMN cpf_channel_execution_policy.updated_at IS '수정일시';
-CREATE OR REPLACE TRIGGER trg_touch_cpf_channel_execution_policy BEFORE UPDATE ON cpf_channel_execution_policy FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
 /
 
 CREATE TABLE cpf_code (
@@ -497,6 +445,52 @@ COMMENT ON COLUMN cpf_file_transfer_history.updated_by IS '수정자';
 COMMENT ON COLUMN cpf_file_transfer_history.updated_at IS '수정일시';
 CREATE OR REPLACE TRIGGER trg_touch_cpf_file_transfer_history BEFORE UPDATE ON cpf_file_transfer_history FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
 /
+
+CREATE TABLE cpf_gateway_control_nonce (
+    audience VARCHAR2(160 CHAR) NOT NULL,
+    key_id VARCHAR2(80 CHAR) NOT NULL,
+    caller_id VARCHAR2(80 CHAR) NOT NULL,
+    nonce VARCHAR2(160 CHAR) NOT NULL,
+    claimed_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    expires_at TIMESTAMP(3) NOT NULL,
+    CONSTRAINT pk_cpf_gateway_control_nonce PRIMARY KEY (audience, key_id, caller_id, nonce)
+);
+CREATE INDEX ix_cpf_gateway_control_nonce_expiry ON cpf_gateway_control_nonce (expires_at);
+COMMENT ON TABLE cpf_gateway_control_nonce IS 'Gateway Control API 다중 Instance Replay 방지 원장';
+COMMENT ON COLUMN cpf_gateway_control_nonce.audience IS '대상 Gateway Instance/Audience';
+COMMENT ON COLUMN cpf_gateway_control_nonce.key_id IS '서명 Key ID';
+COMMENT ON COLUMN cpf_gateway_control_nonce.caller_id IS '호출 Service ID';
+COMMENT ON COLUMN cpf_gateway_control_nonce.nonce IS '일회성 요청 Nonce';
+COMMENT ON COLUMN cpf_gateway_control_nonce.claimed_at IS 'Claim 시각';
+COMMENT ON COLUMN cpf_gateway_control_nonce.expires_at IS 'Replay 차단 만료 시각';
+
+CREATE TABLE cpf_gateway_control_security_audit (
+    event_id VARCHAR2(64 CHAR) NOT NULL,
+    occurred_at TIMESTAMP(3) NOT NULL,
+    audience VARCHAR2(160 CHAR),
+    key_id VARCHAR2(80 CHAR),
+    caller_service VARCHAR2(80 CHAR),
+    operator_id VARCHAR2(100 CHAR),
+    http_method VARCHAR2(16 CHAR),
+    request_target VARCHAR2(1000 CHAR),
+    remote_address VARCHAR2(128 CHAR),
+    result_code VARCHAR2(80 CHAR) NOT NULL,
+    safe_message VARCHAR2(1000 CHAR),
+    CONSTRAINT pk_cpf_gateway_control_security_audit PRIMARY KEY (event_id)
+);
+CREATE INDEX ix_cpf_gw_ctl_sec_audit_time ON cpf_gateway_control_security_audit (occurred_at);
+COMMENT ON TABLE cpf_gateway_control_security_audit IS 'Gateway Control 보안 실패 불변 감사 원장';
+COMMENT ON COLUMN cpf_gateway_control_security_audit.event_id IS '보안 감사 Event ID';
+COMMENT ON COLUMN cpf_gateway_control_security_audit.occurred_at IS '발생 시각';
+COMMENT ON COLUMN cpf_gateway_control_security_audit.audience IS '대상 Audience';
+COMMENT ON COLUMN cpf_gateway_control_security_audit.key_id IS '서명 Key ID';
+COMMENT ON COLUMN cpf_gateway_control_security_audit.caller_service IS '호출 Service';
+COMMENT ON COLUMN cpf_gateway_control_security_audit.operator_id IS '인증 운영자';
+COMMENT ON COLUMN cpf_gateway_control_security_audit.http_method IS 'HTTP Method';
+COMMENT ON COLUMN cpf_gateway_control_security_audit.request_target IS '요청 Target';
+COMMENT ON COLUMN cpf_gateway_control_security_audit.remote_address IS '원격 주소';
+COMMENT ON COLUMN cpf_gateway_control_security_audit.result_code IS '거부 결과 코드';
+COMMENT ON COLUMN cpf_gateway_control_security_audit.safe_message IS '민감정보 제거 메시지';
 
 CREATE TABLE cpf_gateway_operation_idempotency (
     operation_id VARCHAR2(100 CHAR) NOT NULL,
@@ -643,6 +637,14 @@ COMMENT ON COLUMN cpf_log_policy.response_header_capture_mode IS '응답 Header 
 COMMENT ON COLUMN cpf_log_policy.request_body_capture_mode IS '요청 Body Capture Mode';
 COMMENT ON COLUMN cpf_log_policy.response_body_capture_mode IS '응답 Body Capture Mode';
 COMMENT ON COLUMN cpf_log_policy.error_stack_capture_mode IS '오류 Stack Capture Mode';
+COMMENT ON COLUMN cpf_log_policy.query_allowlist IS 'Query 허용 목록';
+COMMENT ON COLUMN cpf_log_policy.header_allowlist IS 'Header 허용 목록';
+COMMENT ON COLUMN cpf_log_policy.field_allowlist IS 'JSONPath/XPath/Fixed Field 허용 목록';
+COMMENT ON COLUMN cpf_log_policy.max_query_bytes IS 'Query 최대 Byte';
+COMMENT ON COLUMN cpf_log_policy.max_header_bytes IS 'Header 최대 Byte';
+COMMENT ON COLUMN cpf_log_policy.max_request_body_bytes IS '요청 Body 최대 Byte';
+COMMENT ON COLUMN cpf_log_policy.max_response_body_bytes IS '응답 Body 최대 Byte';
+COMMENT ON COLUMN cpf_log_policy.max_stack_bytes IS '오류 Stack 최대 Byte';
 COMMENT ON COLUMN cpf_log_policy.policy_checksum IS '정책 SHA-256 Checksum';
 COMMENT ON COLUMN cpf_log_policy.request_body_log_yn IS '요청 본문 로그 여부';
 COMMENT ON COLUMN cpf_log_policy.response_body_log_yn IS '응답 본문 로그 여부';
@@ -658,127 +660,6 @@ COMMENT ON COLUMN cpf_log_policy.created_at IS '등록일시';
 COMMENT ON COLUMN cpf_log_policy.updated_by IS '수정자';
 COMMENT ON COLUMN cpf_log_policy.updated_at IS '수정일시';
 CREATE OR REPLACE TRIGGER trg_touch_cpf_log_policy BEFORE UPDATE ON cpf_log_policy FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
-/
-
-CREATE TABLE cpf_log_policy_override (
-    override_id NUMBER(19) GENERATED BY DEFAULT ON NULL AS IDENTITY NOT NULL,
-    policy_id NUMBER(19),
-    target_type VARCHAR2(30 CHAR) NOT NULL,
-    target_id VARCHAR2(150 CHAR) NOT NULL,
-    override_reason VARCHAR2(500 CHAR) NOT NULL,
-    log_level VARCHAR2(20 CHAR),
-    db_log_enabled_yn CHAR(1 CHAR),
-    file_log_enabled_yn CHAR(1 CHAR),
-    policy_schema_version NUMBER(10),
-    query_capture_mode VARCHAR2(30 CHAR),
-    request_header_capture_mode VARCHAR2(30 CHAR),
-    response_header_capture_mode VARCHAR2(30 CHAR),
-    request_body_capture_mode VARCHAR2(30 CHAR),
-    response_body_capture_mode VARCHAR2(30 CHAR),
-    error_stack_capture_mode VARCHAR2(30 CHAR),
-    query_allowlist VARCHAR2(2000 CHAR),
-    header_allowlist VARCHAR2(2000 CHAR),
-    field_allowlist VARCHAR2(2000 CHAR),
-    max_query_bytes NUMBER(10),
-    max_header_bytes NUMBER(10),
-    max_request_body_bytes NUMBER(10),
-    max_response_body_bytes NUMBER(10),
-    max_stack_bytes NUMBER(10),
-    policy_checksum VARCHAR2(64 CHAR),
-    request_body_log_yn CHAR(1 CHAR),
-    response_body_log_yn CHAR(1 CHAR),
-    error_stack_log_yn CHAR(1 CHAR),
-    masking_policy_key VARCHAR2(120 CHAR),
-    effective_start_at TIMESTAMP(3) NOT NULL,
-    effective_end_at TIMESTAMP(3) NOT NULL,
-    requested_by VARCHAR2(100 CHAR) NOT NULL,
-    approved_by VARCHAR2(100 CHAR),
-    active_yn CHAR(1 CHAR) NOT NULL DEFAULT 'Y',
-    created_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT pk_cpf_log_policy_override PRIMARY KEY (override_id),
-    CONSTRAINT fk_cpf_log_policy_override_policy FOREIGN KEY (policy_id) REFERENCES cpf_log_policy (policy_id) ON DELETE SET NULL
-);
-CREATE INDEX ix_cpf_log_policy_override_target ON cpf_log_policy_override (target_type, target_id, active_yn);
-CREATE INDEX ix_cpf_log_policy_override_period ON cpf_log_policy_override (effective_start_at, effective_end_at, active_yn);
-CREATE INDEX ix_cpf_log_policy_override_policy ON cpf_log_policy_override (policy_id, active_yn);
-COMMENT ON TABLE cpf_log_policy_override IS 'CPF 로그 정책 임시 override';
-COMMENT ON COLUMN cpf_log_policy_override.override_id IS '로그 정책 override 순번';
-COMMENT ON COLUMN cpf_log_policy_override.policy_id IS '기본 로그 정책 순번';
-COMMENT ON COLUMN cpf_log_policy_override.target_type IS 'override 대상 유형';
-COMMENT ON COLUMN cpf_log_policy_override.target_id IS 'override 대상 ID';
-COMMENT ON COLUMN cpf_log_policy_override.override_reason IS 'override 사유';
-COMMENT ON COLUMN cpf_log_policy_override.log_level IS '임시 로그 레벨';
-COMMENT ON COLUMN cpf_log_policy_override.db_log_enabled_yn IS 'DB 로그 임시 적재 여부';
-COMMENT ON COLUMN cpf_log_policy_override.file_log_enabled_yn IS '파일 로그 임시 출력 여부';
-COMMENT ON COLUMN cpf_log_policy_override.policy_schema_version IS 'override Schema Version';
-COMMENT ON COLUMN cpf_log_policy_override.query_capture_mode IS 'Query Capture Mode';
-COMMENT ON COLUMN cpf_log_policy_override.request_header_capture_mode IS '요청 Header Capture Mode';
-COMMENT ON COLUMN cpf_log_policy_override.response_header_capture_mode IS '응답 Header Capture Mode';
-COMMENT ON COLUMN cpf_log_policy_override.request_body_capture_mode IS '요청 Body Capture Mode';
-COMMENT ON COLUMN cpf_log_policy_override.response_body_capture_mode IS '응답 Body Capture Mode';
-COMMENT ON COLUMN cpf_log_policy_override.error_stack_capture_mode IS '오류 Stack Capture Mode';
-COMMENT ON COLUMN cpf_log_policy_override.policy_checksum IS 'override SHA-256 Checksum';
-COMMENT ON COLUMN cpf_log_policy_override.request_body_log_yn IS '요청 본문 임시 로그 여부';
-COMMENT ON COLUMN cpf_log_policy_override.response_body_log_yn IS '응답 본문 임시 로그 여부';
-COMMENT ON COLUMN cpf_log_policy_override.error_stack_log_yn IS '오류 stack 임시 로그 여부';
-COMMENT ON COLUMN cpf_log_policy_override.masking_policy_key IS '임시 마스킹 정책 키';
-COMMENT ON COLUMN cpf_log_policy_override.effective_start_at IS '적용 시작일시';
-COMMENT ON COLUMN cpf_log_policy_override.effective_end_at IS '적용 종료일시';
-COMMENT ON COLUMN cpf_log_policy_override.requested_by IS '요청자';
-COMMENT ON COLUMN cpf_log_policy_override.approved_by IS '승인자';
-COMMENT ON COLUMN cpf_log_policy_override.active_yn IS '활성 여부';
-COMMENT ON COLUMN cpf_log_policy_override.created_by IS '등록자';
-COMMENT ON COLUMN cpf_log_policy_override.created_at IS '등록일시';
-COMMENT ON COLUMN cpf_log_policy_override.updated_by IS '수정자';
-COMMENT ON COLUMN cpf_log_policy_override.updated_at IS '수정일시';
-CREATE OR REPLACE TRIGGER trg_touch_cpf_log_policy_override BEFORE UPDATE ON cpf_log_policy_override FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
-/
-
-CREATE TABLE cpf_log_policy_audit (
-    audit_id NUMBER(19) GENERATED BY DEFAULT ON NULL AS IDENTITY NOT NULL,
-    policy_id NUMBER(19),
-    override_id NUMBER(19),
-    action_type VARCHAR2(30 CHAR) NOT NULL,
-    target_type VARCHAR2(30 CHAR) NOT NULL,
-    target_id VARCHAR2(150 CHAR) NOT NULL,
-    reason VARCHAR2(500 CHAR) NOT NULL,
-    before_data MEDIUMTEXT,
-    after_data MEDIUMTEXT,
-    diff_data MEDIUMTEXT,
-    operator_id VARCHAR2(100 CHAR) NOT NULL,
-    client_ip VARCHAR2(100 CHAR),
-    created_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT pk_cpf_log_policy_audit PRIMARY KEY (audit_id),
-    CONSTRAINT fk_cpf_log_policy_audit_policy FOREIGN KEY (policy_id) REFERENCES cpf_log_policy (policy_id) ON DELETE SET NULL,
-    CONSTRAINT fk_cpf_log_policy_audit_override FOREIGN KEY (override_id) REFERENCES cpf_log_policy_override (override_id) ON DELETE SET NULL
-);
-CREATE INDEX ix_cpf_log_policy_audit_target ON cpf_log_policy_audit (target_type, target_id, created_at);
-CREATE INDEX ix_cpf_log_policy_audit_operator ON cpf_log_policy_audit (operator_id, created_at);
-CREATE INDEX ix_cpf_log_policy_audit_policy ON cpf_log_policy_audit (policy_id, created_at);
-COMMENT ON TABLE cpf_log_policy_audit IS 'CPF 로그 정책 감사 로그';
-COMMENT ON COLUMN cpf_log_policy_audit.audit_id IS '로그 정책 감사 순번';
-COMMENT ON COLUMN cpf_log_policy_audit.policy_id IS '로그 정책 순번';
-COMMENT ON COLUMN cpf_log_policy_audit.override_id IS '로그 정책 override 순번';
-COMMENT ON COLUMN cpf_log_policy_audit.action_type IS '감사 행위 유형';
-COMMENT ON COLUMN cpf_log_policy_audit.target_type IS '대상 유형';
-COMMENT ON COLUMN cpf_log_policy_audit.target_id IS '대상 ID';
-COMMENT ON COLUMN cpf_log_policy_audit.reason IS '감사 사유';
-COMMENT ON COLUMN cpf_log_policy_audit.before_data IS '변경 전 데이터';
-COMMENT ON COLUMN cpf_log_policy_audit.after_data IS '변경 후 데이터';
-COMMENT ON COLUMN cpf_log_policy_audit.diff_data IS '변경 차이';
-COMMENT ON COLUMN cpf_log_policy_audit.operator_id IS '운영자 ID';
-COMMENT ON COLUMN cpf_log_policy_audit.client_ip IS '클라이언트 IP';
-COMMENT ON COLUMN cpf_log_policy_audit.created_by IS '등록자';
-COMMENT ON COLUMN cpf_log_policy_audit.created_at IS '등록일시';
-COMMENT ON COLUMN cpf_log_policy_audit.updated_by IS '수정자';
-COMMENT ON COLUMN cpf_log_policy_audit.updated_at IS '수정일시';
-CREATE OR REPLACE TRIGGER trg_touch_cpf_log_policy_audit BEFORE UPDATE ON cpf_log_policy_audit FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
 /
 
 CREATE TABLE cpf_message (
@@ -852,243 +733,6 @@ COMMENT ON COLUMN cpf_notification_rule.updated_at IS '수정일시';
 CREATE OR REPLACE TRIGGER trg_touch_cpf_notification_rule BEFORE UPDATE ON cpf_notification_rule FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
 /
 
-CREATE TABLE cpf_notification_delivery_log (
-    delivery_id NUMBER(19) GENERATED BY DEFAULT ON NULL AS IDENTITY NOT NULL,
-    rule_id NUMBER(19),
-    event_type VARCHAR2(80 CHAR) NOT NULL,
-    target_type VARCHAR2(80 CHAR),
-    target_id VARCHAR2(120 CHAR),
-    receiver VARCHAR2(200 CHAR),
-    delivery_status VARCHAR2(30 CHAR) NOT NULL DEFAULT 'READY',
-    delivery_message VARCHAR2(2000 CHAR),
-    requested_at TIMESTAMP(3) NOT NULL DEFAULT SYSTIMESTAMP,
-    delivered_at TIMESTAMP(3),
-    created_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    operation_id VARCHAR2(100 CHAR) NOT NULL,
-    request_hash VARCHAR2(64 CHAR) NOT NULL,
-    payload_body VARCHAR2(2000 CHAR) NOT NULL,
-    attempt_count NUMBER(10) NOT NULL DEFAULT 0,
-    max_attempts NUMBER(10) NOT NULL DEFAULT 3,
-    next_attempt_at TIMESTAMP(3),
-    lease_owner VARCHAR2(100 CHAR),
-    lease_until TIMESTAMP(3),
-    version NUMBER(19) NOT NULL DEFAULT 0,
-    last_error_code VARCHAR2(80 CHAR),
-    CONSTRAINT pk_cpf_notification_delivery_log PRIMARY KEY (delivery_id),
-    CONSTRAINT uk_cpf_notification_delivery_operation UNIQUE (operation_id),
-    CONSTRAINT fk_cpf_notification_delivery_rule FOREIGN KEY (rule_id) REFERENCES cpf_notification_rule (rule_id) ON DELETE SET NULL
-);
-CREATE INDEX ix_cpf_notification_delivery_target ON cpf_notification_delivery_log (target_type, target_id, requested_at);
-CREATE INDEX ix_cpf_notification_delivery_status ON cpf_notification_delivery_log (delivery_status, requested_at);
-CREATE INDEX ix_cpf_notification_delivery_due ON cpf_notification_delivery_log (delivery_status, next_attempt_at, lease_until);
-COMMENT ON TABLE cpf_notification_delivery_log IS 'CPF 운영 알림 발송 로그';
-COMMENT ON COLUMN cpf_notification_delivery_log.delivery_id IS '알림 발송 로그 순번';
-COMMENT ON COLUMN cpf_notification_delivery_log.rule_id IS '알림 규칙 순번';
-COMMENT ON COLUMN cpf_notification_delivery_log.event_type IS '알림 이벤트 유형';
-COMMENT ON COLUMN cpf_notification_delivery_log.target_type IS '알림 대상 유형';
-COMMENT ON COLUMN cpf_notification_delivery_log.target_id IS '알림 대상 ID';
-COMMENT ON COLUMN cpf_notification_delivery_log.receiver IS '수신자';
-COMMENT ON COLUMN cpf_notification_delivery_log.delivery_status IS '발송 상태';
-COMMENT ON COLUMN cpf_notification_delivery_log.delivery_message IS '발송 메시지';
-COMMENT ON COLUMN cpf_notification_delivery_log.requested_at IS '발송 요청 일시';
-COMMENT ON COLUMN cpf_notification_delivery_log.delivered_at IS '발송 완료 일시';
-COMMENT ON COLUMN cpf_notification_delivery_log.created_by IS '등록자';
-COMMENT ON COLUMN cpf_notification_delivery_log.created_at IS '등록일시';
-COMMENT ON COLUMN cpf_notification_delivery_log.updated_by IS '수정자';
-COMMENT ON COLUMN cpf_notification_delivery_log.updated_at IS '수정일시';
-COMMENT ON COLUMN cpf_notification_delivery_log.operation_id IS '멱등 발송 작업 ID';
-COMMENT ON COLUMN cpf_notification_delivery_log.request_hash IS '발송 요청 SHA-256';
-COMMENT ON COLUMN cpf_notification_delivery_log.payload_body IS 'Provider 전달 Payload(ADM 응답 비노출)';
-COMMENT ON COLUMN cpf_notification_delivery_log.attempt_count IS '발송 시도 횟수';
-COMMENT ON COLUMN cpf_notification_delivery_log.max_attempts IS '최대 발송 시도 횟수';
-COMMENT ON COLUMN cpf_notification_delivery_log.next_attempt_at IS '다음 재시도 시각';
-COMMENT ON COLUMN cpf_notification_delivery_log.lease_owner IS '발송 Lease 소유 인스턴스';
-COMMENT ON COLUMN cpf_notification_delivery_log.lease_until IS '발송 Lease 만료 시각';
-COMMENT ON COLUMN cpf_notification_delivery_log.version IS 'CAS 버전';
-COMMENT ON COLUMN cpf_notification_delivery_log.last_error_code IS '마지막 Provider 오류 코드';
-CREATE OR REPLACE TRIGGER trg_touch_cpf_notification_delivery_log BEFORE UPDATE ON cpf_notification_delivery_log FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
-/
-
-CREATE TABLE cpf_notification_delivery_attempt (
-    delivery_id NUMBER(19) NOT NULL,
-    attempt_no NUMBER(10) NOT NULL,
-    operation_id VARCHAR2(100 CHAR) NOT NULL,
-    worker_id VARCHAR2(100 CHAR) NOT NULL,
-    attempt_status VARCHAR2(30 CHAR) NOT NULL,
-    provider_status VARCHAR2(80 CHAR),
-    provider_message VARCHAR2(2000 CHAR),
-    started_at TIMESTAMP(3) NOT NULL,
-    completed_at TIMESTAMP(3),
-    lease_version NUMBER(19) NOT NULL,
-    created_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT pk_cpf_notification_delivery_attempt PRIMARY KEY (delivery_id, attempt_no),
-    CONSTRAINT fk_cpf_notification_attempt_delivery FOREIGN KEY (delivery_id) REFERENCES cpf_notification_delivery_log (delivery_id) ON DELETE CASCADE
-);
-CREATE INDEX ix_cpf_notification_attempt_operation ON cpf_notification_delivery_attempt (operation_id, attempt_no);
-CREATE INDEX ix_cpf_notification_attempt_status ON cpf_notification_delivery_attempt (attempt_status, started_at);
-COMMENT ON TABLE cpf_notification_delivery_attempt IS 'Durable Notification Provider 호출 Attempt 불변 이력';
-COMMENT ON COLUMN cpf_notification_delivery_attempt.delivery_id IS '알림 발송 ID';
-COMMENT ON COLUMN cpf_notification_delivery_attempt.attempt_no IS 'Provider 호출 시도 순번';
-COMMENT ON COLUMN cpf_notification_delivery_attempt.operation_id IS '멱등 작업 ID';
-COMMENT ON COLUMN cpf_notification_delivery_attempt.worker_id IS '호출 소유 Worker';
-COMMENT ON COLUMN cpf_notification_delivery_attempt.attempt_status IS 'Attempt 처리 상태';
-COMMENT ON COLUMN cpf_notification_delivery_attempt.provider_status IS 'Provider 결과 코드';
-COMMENT ON COLUMN cpf_notification_delivery_attempt.provider_message IS '민감정보 제거 Provider 결과';
-COMMENT ON COLUMN cpf_notification_delivery_attempt.started_at IS 'Provider 호출 시작 일시';
-COMMENT ON COLUMN cpf_notification_delivery_attempt.completed_at IS 'Provider 결과 확정 일시';
-COMMENT ON COLUMN cpf_notification_delivery_attempt.lease_version IS 'Claim 시점 CAS Version';
-COMMENT ON COLUMN cpf_notification_delivery_attempt.created_by IS '기록 주체';
-COMMENT ON COLUMN cpf_notification_delivery_attempt.created_at IS '기록 일시';
-
-
-
-CREATE TABLE cpf_incident_policy (
-    policy_id NUMBER(19) GENERATED BY DEFAULT ON NULL AS IDENTITY NOT NULL,
-    policy_code VARCHAR2(100 CHAR) NOT NULL,
-    event_type VARCHAR2(80 CHAR) NOT NULL,
-    event_sub_type VARCHAR2(80 CHAR),
-    severity VARCHAR2(20 CHAR) NOT NULL,
-    threshold_count NUMBER(10) NOT NULL,
-    window_seconds NUMBER(10) NOT NULL,
-    escalation_minutes NUMBER(10) NOT NULL,
-    receiver_group VARCHAR2(100 CHAR) NOT NULL,
-    use_yn CHAR(1 CHAR) NOT NULL DEFAULT 'Y',
-    version NUMBER(19) NOT NULL DEFAULT 0,
-    created_by VARCHAR2(100 CHAR) NOT NULL,
-    created_at TIMESTAMP(3) NOT NULL DEFAULT SYSTIMESTAMP,
-    updated_by VARCHAR2(100 CHAR) NOT NULL,
-    updated_at TIMESTAMP(3) NOT NULL DEFAULT SYSTIMESTAMP,
-    CONSTRAINT pk_cpf_incident_policy PRIMARY KEY (policy_id),
-    CONSTRAINT uk_cpf_incident_policy_code UNIQUE (policy_code),
-    CONSTRAINT ck_cpf_incident_policy_use CHECK (use_yn IN ('Y','N')),
-    CONSTRAINT ck_cpf_incident_policy_threshold CHECK (threshold_count > 0),
-    CONSTRAINT ck_cpf_incident_policy_window CHECK (window_seconds > 0),
-    CONSTRAINT ck_cpf_incident_policy_escalation CHECK (escalation_minutes > 0)
-);
-CREATE INDEX ix_cpf_incident_policy_event ON cpf_incident_policy (event_type, event_sub_type, use_yn);
-CREATE OR REPLACE TRIGGER trg_touch_cpf_incident_policy BEFORE UPDATE ON cpf_incident_policy FOR EACH ROW BEGIN :NEW.updated_at := SYSTIMESTAMP; END;
-/
-
-CREATE TABLE cpf_maintenance_window (
-    maintenance_id NUMBER(19) GENERATED BY DEFAULT ON NULL AS IDENTITY NOT NULL,
-    maintenance_code VARCHAR2(100 CHAR) NOT NULL,
-    target_type VARCHAR2(80 CHAR) NOT NULL,
-    target_id VARCHAR2(160 CHAR) NOT NULL,
-    starts_at TIMESTAMP(3) NOT NULL,
-    ends_at TIMESTAMP(3) NOT NULL,
-    use_yn CHAR(1 CHAR) NOT NULL DEFAULT 'Y',
-    version NUMBER(19) NOT NULL DEFAULT 0,
-    created_by VARCHAR2(100 CHAR) NOT NULL,
-    created_at TIMESTAMP(3) NOT NULL DEFAULT SYSTIMESTAMP,
-    updated_by VARCHAR2(100 CHAR) NOT NULL,
-    updated_at TIMESTAMP(3) NOT NULL DEFAULT SYSTIMESTAMP,
-    CONSTRAINT pk_cpf_maintenance_window PRIMARY KEY (maintenance_id),
-    CONSTRAINT uk_cpf_maintenance_code UNIQUE (maintenance_code),
-    CONSTRAINT ck_cpf_maintenance_use CHECK (use_yn IN ('Y','N')),
-    CONSTRAINT ck_cpf_maintenance_period CHECK (ends_at > starts_at)
-);
-CREATE INDEX ix_cpf_maintenance_active ON cpf_maintenance_window (use_yn, starts_at, ends_at);
-CREATE INDEX ix_cpf_maintenance_target ON cpf_maintenance_window (target_type, target_id, starts_at);
-CREATE OR REPLACE TRIGGER trg_touch_cpf_maintenance_window BEFORE UPDATE ON cpf_maintenance_window FOR EACH ROW BEGIN :NEW.updated_at := SYSTIMESTAMP; END;
-/
-
-CREATE TABLE cpf_incident (
-    incident_id NUMBER(19) GENERATED BY DEFAULT ON NULL AS IDENTITY NOT NULL,
-    policy_id NUMBER(19) NOT NULL,
-    policy_code VARCHAR2(100 CHAR) NOT NULL,
-    severity VARCHAR2(20 CHAR) NOT NULL,
-    status VARCHAR2(30 CHAR) NOT NULL,
-    title VARCHAR2(300 CHAR) NOT NULL,
-    summary VARCHAR2(2000 CHAR),
-    source_type VARCHAR2(80 CHAR) NOT NULL,
-    source_id VARCHAR2(160 CHAR) NOT NULL,
-    correlation_id VARCHAR2(100 CHAR),
-    transaction_id VARCHAR2(100 CHAR),
-    occurrence_count NUMBER(10) NOT NULL DEFAULT 1,
-    escalation_level NUMBER(10) NOT NULL DEFAULT 0,
-    first_occurred_at TIMESTAMP(3) NOT NULL,
-    last_occurred_at TIMESTAMP(3) NOT NULL,
-    acknowledged_at TIMESTAMP(3),
-    resolved_at TIMESTAMP(3),
-    owner_id VARCHAR2(100 CHAR),
-    active_key VARCHAR2(400 CHAR),
-    version NUMBER(19) NOT NULL DEFAULT 0,
-    created_by VARCHAR2(100 CHAR) NOT NULL,
-    created_at TIMESTAMP(3) NOT NULL DEFAULT SYSTIMESTAMP,
-    updated_by VARCHAR2(100 CHAR) NOT NULL,
-    updated_at TIMESTAMP(3) NOT NULL DEFAULT SYSTIMESTAMP,
-    CONSTRAINT pk_cpf_incident PRIMARY KEY (incident_id),
-    CONSTRAINT uk_cpf_incident_active UNIQUE (active_key),
-    CONSTRAINT fk_cpf_incident_policy FOREIGN KEY (policy_id) REFERENCES cpf_incident_policy (policy_id),
-    CONSTRAINT ck_cpf_incident_status CHECK (status IN ('OPEN','ACKNOWLEDGED','RESOLVED')),
-    CONSTRAINT ck_cpf_incident_occurrence CHECK (occurrence_count > 0),
-    CONSTRAINT ck_cpf_incident_escalation CHECK (escalation_level >= 0)
-);
-CREATE INDEX ix_cpf_incident_status ON cpf_incident (status, last_occurred_at, incident_id);
-CREATE INDEX ix_cpf_incident_source ON cpf_incident (source_type, source_id, status);
-CREATE INDEX ix_cpf_incident_trace ON cpf_incident (correlation_id, transaction_id);
-CREATE OR REPLACE TRIGGER trg_touch_cpf_incident BEFORE UPDATE ON cpf_incident FOR EACH ROW BEGIN :NEW.updated_at := SYSTIMESTAMP; END;
-/
-
-CREATE TABLE cpf_incident_signal (
-    signal_id NUMBER(19) GENERATED BY DEFAULT ON NULL AS IDENTITY NOT NULL,
-    policy_id NUMBER(19) NOT NULL,
-    source_type VARCHAR2(80 CHAR) NOT NULL,
-    source_id VARCHAR2(160 CHAR) NOT NULL,
-    correlation_id VARCHAR2(100 CHAR),
-    transaction_id VARCHAR2(100 CHAR),
-    title VARCHAR2(300 CHAR) NOT NULL,
-    summary VARCHAR2(2000 CHAR),
-    occurred_at TIMESTAMP(3) NOT NULL,
-    suppressed_yn CHAR(1 CHAR) NOT NULL DEFAULT 'N',
-    idempotency_key VARCHAR2(160 CHAR) NOT NULL,
-    created_by VARCHAR2(100 CHAR) NOT NULL,
-    created_at TIMESTAMP(3) NOT NULL DEFAULT SYSTIMESTAMP,
-    CONSTRAINT pk_cpf_incident_signal PRIMARY KEY (signal_id),
-    CONSTRAINT uk_cpf_incident_signal_idem UNIQUE (idempotency_key),
-    CONSTRAINT fk_cpf_incident_signal_policy FOREIGN KEY (policy_id) REFERENCES cpf_incident_policy (policy_id),
-    CONSTRAINT ck_cpf_incident_signal_suppressed CHECK (suppressed_yn IN ('Y','N'))
-);
-CREATE INDEX ix_cpf_incident_signal_window ON cpf_incident_signal (policy_id, source_type, source_id, occurred_at);
-CREATE INDEX ix_cpf_incident_signal_trace ON cpf_incident_signal (correlation_id, transaction_id);
-
-CREATE TABLE cpf_incident_timeline (
-    timeline_id NUMBER(19) GENERATED BY DEFAULT ON NULL AS IDENTITY NOT NULL,
-    incident_id NUMBER(19) NOT NULL,
-    action_type VARCHAR2(40 CHAR) NOT NULL,
-    before_status VARCHAR2(30 CHAR),
-    after_status VARCHAR2(30 CHAR) NOT NULL,
-    reason VARCHAR2(1000 CHAR),
-    approval_request_id VARCHAR2(160 CHAR),
-    actor_id VARCHAR2(100 CHAR) NOT NULL,
-    created_at TIMESTAMP(3) NOT NULL DEFAULT SYSTIMESTAMP,
-    CONSTRAINT pk_cpf_incident_timeline PRIMARY KEY (timeline_id),
-    CONSTRAINT fk_cpf_incident_timeline_inc FOREIGN KEY (incident_id) REFERENCES cpf_incident (incident_id) ON DELETE CASCADE
-);
-CREATE INDEX ix_cpf_incident_timeline_inc ON cpf_incident_timeline (incident_id, timeline_id);
-
-CREATE TABLE cpf_incident_command (
-    command_id NUMBER(19) GENERATED BY DEFAULT ON NULL AS IDENTITY NOT NULL,
-    command_type VARCHAR2(80 CHAR) NOT NULL,
-    idempotency_key VARCHAR2(160 CHAR) NOT NULL,
-    request_hash VARCHAR2(64 CHAR) NOT NULL,
-    status VARCHAR2(30 CHAR) NOT NULL,
-    result_ref VARCHAR2(200 CHAR),
-    created_by VARCHAR2(100 CHAR) NOT NULL,
-    created_at TIMESTAMP(3) NOT NULL DEFAULT SYSTIMESTAMP,
-    updated_at TIMESTAMP(3) NOT NULL DEFAULT SYSTIMESTAMP,
-    CONSTRAINT pk_cpf_incident_command PRIMARY KEY (command_id),
-    CONSTRAINT uk_cpf_incident_command_idem UNIQUE (idempotency_key),
-    CONSTRAINT ck_cpf_incident_command_status CHECK (status IN ('RUNNING','DONE'))
-);
-CREATE INDEX ix_cpf_incident_command_status ON cpf_incident_command (status, updated_at);
-CREATE OR REPLACE TRIGGER trg_touch_cpf_incident_command BEFORE UPDATE ON cpf_incident_command FOR EACH ROW BEGIN :NEW.updated_at := SYSTIMESTAMP; END;
-/
-
 CREATE TABLE cpf_response_code (
     response_code VARCHAR2(20 CHAR) NOT NULL,
     message_code VARCHAR2(20 CHAR) NOT NULL,
@@ -1123,92 +767,6 @@ COMMENT ON COLUMN cpf_response_code.updated_by IS '수정자';
 COMMENT ON COLUMN cpf_response_code.updated_at IS '수정일시';
 CREATE OR REPLACE TRIGGER trg_touch_cpf_response_code BEFORE UPDATE ON cpf_response_code FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
 /
-
-CREATE TABLE cpf_runtime_change (
-    change_id VARCHAR2(80 CHAR) NOT NULL,
-    operation_id VARCHAR2(100 CHAR) NOT NULL,
-    change_type VARCHAR2(80 CHAR) NOT NULL,
-    payload_schema_version NUMBER(10) NOT NULL DEFAULT 1,
-    request_hash VARCHAR2(64 CHAR) NOT NULL,
-    payload_hash VARCHAR2(64 CHAR) NOT NULL,
-    payload_json CLOB NOT NULL,
-    rollback_payload_json CLOB,
-    target_snapshot_json CLOB NOT NULL,
-    desired_version NUMBER(19) NOT NULL,
-    rollout_mode VARCHAR2(30 CHAR) NOT NULL DEFAULT 'ALL_AT_ONCE',
-    wave_size NUMBER(10) NOT NULL DEFAULT 100,
-    quorum_percent NUMBER(10) NOT NULL DEFAULT 100,
-    change_state VARCHAR2(30 CHAR) NOT NULL DEFAULT 'APPLYING',
-    scheduled_at TIMESTAMP(3),
-    expires_at TIMESTAMP(3),
-    reason VARCHAR2(1000 CHAR) NOT NULL,
-    approval_id VARCHAR2(100 CHAR),
-    break_glass_id VARCHAR2(100 CHAR),
-    requested_by VARCHAR2(100 CHAR) NOT NULL,
-    created_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT pk_cpf_runtime_change PRIMARY KEY (change_id),
-    CONSTRAINT ux_cpf_runtime_change_operation UNIQUE (operation_id),
-    CONSTRAINT ck_cpf_runtime_change_state CHECK (change_state IN ('SCHEDULED','APPLYING','PARTIAL','SUCCESS','FAILED','CANCELLED','EXPIRED','ROLLBACK_PENDING','ROLLED_BACK','SUPERSEDED','UNKNOWN_RESULT','RECOVERED')),
-    CONSTRAINT fk_cpf_runtime_change_operation FOREIGN KEY (operation_id) REFERENCES cpf_control_operation (operation_id)
-);
-CREATE INDEX ix_cpf_runtime_change_state ON cpf_runtime_change (change_state, scheduled_at, expires_at);
-COMMENT ON TABLE cpf_runtime_change IS 'Runtime 변경 immutable target snapshot/desired state';
-COMMENT ON COLUMN cpf_runtime_change.change_id IS 'Runtime change identifier';
-COMMENT ON COLUMN cpf_runtime_change.operation_id IS 'Idempotent operation identifier';
-COMMENT ON COLUMN cpf_runtime_change.change_type IS 'Runtime change type';
-COMMENT ON COLUMN cpf_runtime_change.payload_schema_version IS 'Payload schema version';
-COMMENT ON COLUMN cpf_runtime_change.request_hash IS 'Request fingerprint checksum';
-COMMENT ON COLUMN cpf_runtime_change.payload_hash IS '실제 payload canonical hash';
-COMMENT ON COLUMN cpf_runtime_change.payload_json IS 'Change payload JSON';
-COMMENT ON COLUMN cpf_runtime_change.rollback_payload_json IS 'Rollback payload JSON';
-COMMENT ON COLUMN cpf_runtime_change.target_snapshot_json IS 'Change target snapshot JSON';
-COMMENT ON COLUMN cpf_runtime_change.desired_version IS 'Desired state version';
-COMMENT ON COLUMN cpf_runtime_change.rollout_mode IS 'Rollout mode';
-COMMENT ON COLUMN cpf_runtime_change.wave_size IS 'Rollout wave size';
-COMMENT ON COLUMN cpf_runtime_change.quorum_percent IS 'Required rollout quorum percent';
-COMMENT ON COLUMN cpf_runtime_change.change_state IS 'Runtime change lifecycle state';
-COMMENT ON COLUMN cpf_runtime_change.scheduled_at IS 'Scheduled execution time';
-COMMENT ON COLUMN cpf_runtime_change.expires_at IS 'Expiry time';
-COMMENT ON COLUMN cpf_runtime_change.reason IS 'Mandatory operation reason';
-COMMENT ON COLUMN cpf_runtime_change.approval_id IS 'Approval request identifier';
-COMMENT ON COLUMN cpf_runtime_change.break_glass_id IS 'Break-glass authorization identifier';
-COMMENT ON COLUMN cpf_runtime_change.requested_by IS 'Requester identifier';
-COMMENT ON COLUMN cpf_runtime_change.created_by IS 'Creator identifier';
-COMMENT ON COLUMN cpf_runtime_change.created_at IS 'Creation time';
-COMMENT ON COLUMN cpf_runtime_change.updated_by IS 'Last updater identifier';
-COMMENT ON COLUMN cpf_runtime_change.updated_at IS 'Last update time';
-CREATE OR REPLACE TRIGGER trg_touch_cpf_runtime_change BEFORE UPDATE ON cpf_runtime_change FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
-/
-
-CREATE TABLE cpf_runtime_change_audit (
-    audit_id NUMBER(19) GENERATED BY DEFAULT ON NULL AS IDENTITY NOT NULL,
-    change_id VARCHAR2(80 CHAR) NOT NULL,
-    event_type VARCHAR2(60 CHAR) NOT NULL,
-    actor_id VARCHAR2(100 CHAR) NOT NULL,
-    reason VARCHAR2(500 CHAR),
-    evidence_hash VARCHAR2(64 CHAR),
-    previous_hash VARCHAR2(64 CHAR) NOT NULL,
-    chain_hash VARCHAR2(64 CHAR) NOT NULL,
-    created_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT pk_cpf_runtime_change_audit PRIMARY KEY (audit_id),
-    CONSTRAINT fk_cpf_runtime_audit_change FOREIGN KEY (change_id) REFERENCES cpf_runtime_change (change_id) ON DELETE CASCADE
-);
-CREATE INDEX ix_cpf_runtime_change_audit_change ON cpf_runtime_change_audit (change_id, audit_id);
-COMMENT ON TABLE cpf_runtime_change_audit IS 'Runtime Control immutable hash-chain audit';
-COMMENT ON COLUMN cpf_runtime_change_audit.audit_id IS 'Audit event identifier';
-COMMENT ON COLUMN cpf_runtime_change_audit.change_id IS 'Runtime change identifier';
-COMMENT ON COLUMN cpf_runtime_change_audit.event_type IS 'Audit event type';
-COMMENT ON COLUMN cpf_runtime_change_audit.actor_id IS 'Actor identifier';
-COMMENT ON COLUMN cpf_runtime_change_audit.reason IS 'Mandatory operation reason';
-COMMENT ON COLUMN cpf_runtime_change_audit.evidence_hash IS 'Evidence checksum';
-COMMENT ON COLUMN cpf_runtime_change_audit.previous_hash IS 'Previous audit chain checksum';
-COMMENT ON COLUMN cpf_runtime_change_audit.chain_hash IS 'Audit chain checksum';
-COMMENT ON COLUMN cpf_runtime_change_audit.created_by IS 'Creator identifier';
-COMMENT ON COLUMN cpf_runtime_change_audit.created_at IS 'Creation time';
 
 CREATE TABLE cpf_runtime_controller_lease (
     lease_key VARCHAR2(60 CHAR) NOT NULL,
@@ -1282,7 +840,7 @@ CREATE TABLE cpf_runtime_policy_event (
     requested_by VARCHAR2(100 CHAR) NOT NULL,
     occurred_at TIMESTAMP(3) NOT NULL,
     event_status VARCHAR2(30 CHAR) NOT NULL DEFAULT 'PENDING',
-    created_at TIMESTAMP(3) NOT NULL DEFAULT SYSTIMESTAMP,
+    created_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     CONSTRAINT pk_cpf_runtime_policy_event PRIMARY KEY (event_id),
     CONSTRAINT ck_cpf_runtime_policy_event_status CHECK (event_status IN ('PENDING', 'RETIRED'))
 );
@@ -1302,40 +860,6 @@ COMMENT ON COLUMN cpf_runtime_policy_event.requested_by IS '요청 운영자';
 COMMENT ON COLUMN cpf_runtime_policy_event.occurred_at IS '정책 변경 시각';
 COMMENT ON COLUMN cpf_runtime_policy_event.event_status IS '이벤트 상태';
 COMMENT ON COLUMN cpf_runtime_policy_event.created_at IS '등록일시';
-
-CREATE TABLE cpf_runtime_policy_delivery (
-    event_id VARCHAR2(64 CHAR) NOT NULL,
-    consumer_id VARCHAR2(100 CHAR) NOT NULL,
-    delivery_status VARCHAR2(30 CHAR) NOT NULL DEFAULT 'PENDING',
-    attempt_count NUMBER(10) NOT NULL DEFAULT 0,
-    fencing_token NUMBER(19) NOT NULL DEFAULT 0,
-    leased_until TIMESTAMP(3),
-    error_code VARCHAR2(100 CHAR),
-    error_message VARCHAR2(1000 CHAR),
-    acknowledged_at TIMESTAMP(3),
-    created_at TIMESTAMP(3) NOT NULL DEFAULT SYSTIMESTAMP,
-    updated_at TIMESTAMP(3) NOT NULL DEFAULT SYSTIMESTAMP,
-    CONSTRAINT pk_cpf_runtime_policy_delivery PRIMARY KEY (event_id, consumer_id),
-    CONSTRAINT ck_cpf_runtime_policy_delivery_status CHECK (delivery_status IN ('PENDING', 'CLAIMED', 'APPLIED', 'FAILED', 'IGNORED')),
-    CONSTRAINT ck_cpf_runtime_policy_delivery_attempt CHECK (attempt_count >= 0),
-    CONSTRAINT ck_cpf_runtime_policy_delivery_fencing CHECK (fencing_token >= 0),
-    CONSTRAINT fk_cpf_runtime_policy_delivery_event FOREIGN KEY (event_id) REFERENCES cpf_runtime_policy_event (event_id) ON DELETE CASCADE
-);
-CREATE INDEX ix_cpf_runtime_policy_delivery_status ON cpf_runtime_policy_delivery (consumer_id, delivery_status, leased_until, updated_at);
-COMMENT ON TABLE cpf_runtime_policy_delivery IS 'Runtime Policy Consumer Delivery ACK';
-COMMENT ON COLUMN cpf_runtime_policy_delivery.event_id IS '정책 이벤트 ID';
-COMMENT ON COLUMN cpf_runtime_policy_delivery.consumer_id IS 'Runtime Instance ID';
-COMMENT ON COLUMN cpf_runtime_policy_delivery.delivery_status IS '전달 상태';
-COMMENT ON COLUMN cpf_runtime_policy_delivery.attempt_count IS '전달 시도 횟수';
-COMMENT ON COLUMN cpf_runtime_policy_delivery.fencing_token IS 'Claim Fencing Token';
-COMMENT ON COLUMN cpf_runtime_policy_delivery.leased_until IS 'Claim 만료시각';
-COMMENT ON COLUMN cpf_runtime_policy_delivery.error_code IS '적용 오류 코드';
-COMMENT ON COLUMN cpf_runtime_policy_delivery.error_message IS '민감정보 제거 오류 메시지';
-COMMENT ON COLUMN cpf_runtime_policy_delivery.acknowledged_at IS 'ACK 시각';
-COMMENT ON COLUMN cpf_runtime_policy_delivery.created_at IS '등록일시';
-COMMENT ON COLUMN cpf_runtime_policy_delivery.updated_at IS '수정일시';
-CREATE OR REPLACE TRIGGER trg_touch_cpf_runtime_policy_delivery BEFORE UPDATE ON cpf_runtime_policy_delivery FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
-/
 
 CREATE TABLE cpf_runtime_rate_bucket (
     bucket_key VARCHAR2(180 CHAR) NOT NULL,
@@ -1389,9 +913,9 @@ CREATE TABLE cpf_saga_execution (
     saga_status VARCHAR2(40 CHAR) NOT NULL,
     version NUMBER(10) NOT NULL DEFAULT 0,
     error_message VARCHAR2(2000 CHAR),
-    started_at TIMESTAMP(3) NOT NULL DEFAULT SYSTIMESTAMP,
+    started_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     completed_at TIMESTAMP(3),
-    updated_at TIMESTAMP(3) NOT NULL DEFAULT SYSTIMESTAMP,
+    updated_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     CONSTRAINT pk_cpf_saga_execution PRIMARY KEY (saga_id)
 );
 CREATE INDEX idx_cpf_saga_status ON cpf_saga_execution (saga_status, updated_at);
@@ -1408,58 +932,6 @@ COMMENT ON COLUMN cpf_saga_execution.started_at IS 'Start time';
 COMMENT ON COLUMN cpf_saga_execution.completed_at IS 'Completion time';
 COMMENT ON COLUMN cpf_saga_execution.updated_at IS 'Last update time';
 
-CREATE TABLE cpf_saga_manual_action (
-    action_id VARCHAR2(36 CHAR) NOT NULL,
-    saga_id VARCHAR2(100 CHAR) NOT NULL,
-    action_type VARCHAR2(40 CHAR) NOT NULL,
-    operator_id VARCHAR2(100 CHAR) NOT NULL,
-    reason VARCHAR2(1000 CHAR) NOT NULL,
-    before_status VARCHAR2(40 CHAR),
-    after_status VARCHAR2(40 CHAR),
-    created_at TIMESTAMP(3) NOT NULL DEFAULT SYSTIMESTAMP,
-    CONSTRAINT pk_cpf_saga_manual_action PRIMARY KEY (action_id),
-    CONSTRAINT fk_cpf_saga_manual_action FOREIGN KEY (saga_id) REFERENCES cpf_saga_execution (saga_id)
-);
-CREATE INDEX idx_cpf_saga_manual ON cpf_saga_manual_action (saga_id, created_at);
-COMMENT ON TABLE cpf_saga_manual_action IS 'Saga 수동 복구 조치';
-COMMENT ON COLUMN cpf_saga_manual_action.action_id IS 'Action identifier';
-COMMENT ON COLUMN cpf_saga_manual_action.saga_id IS 'Saga identifier';
-COMMENT ON COLUMN cpf_saga_manual_action.action_type IS 'Action type';
-COMMENT ON COLUMN cpf_saga_manual_action.operator_id IS 'Operator identifier';
-COMMENT ON COLUMN cpf_saga_manual_action.reason IS 'Reason';
-COMMENT ON COLUMN cpf_saga_manual_action.before_status IS 'Before status';
-COMMENT ON COLUMN cpf_saga_manual_action.after_status IS 'After status';
-COMMENT ON COLUMN cpf_saga_manual_action.created_at IS 'Creation time';
-
-CREATE TABLE cpf_saga_step_execution (
-    saga_id VARCHAR2(100 CHAR) NOT NULL,
-    step_no NUMBER(10) NOT NULL,
-    step_id VARCHAR2(100 CHAR) NOT NULL,
-    step_status VARCHAR2(40 CHAR) NOT NULL,
-    result_code VARCHAR2(100 CHAR),
-    result_snapshot CLOB,
-    error_message VARCHAR2(2000 CHAR),
-    execute_attempts NUMBER(10) NOT NULL DEFAULT 0,
-    compensation_attempts NUMBER(10) NOT NULL DEFAULT 0,
-    created_at TIMESTAMP(3) NOT NULL DEFAULT SYSTIMESTAMP,
-    updated_at TIMESTAMP(3) NOT NULL DEFAULT SYSTIMESTAMP,
-    CONSTRAINT pk_cpf_saga_step_execution PRIMARY KEY (saga_id, step_no),
-    CONSTRAINT fk_cpf_saga_step_execution FOREIGN KEY (saga_id) REFERENCES cpf_saga_execution (saga_id)
-);
-CREATE INDEX idx_cpf_saga_step_status ON cpf_saga_step_execution (step_status, updated_at);
-COMMENT ON TABLE cpf_saga_step_execution IS 'Saga 단계 실행 원장';
-COMMENT ON COLUMN cpf_saga_step_execution.saga_id IS 'Saga identifier';
-COMMENT ON COLUMN cpf_saga_step_execution.step_no IS 'Step number';
-COMMENT ON COLUMN cpf_saga_step_execution.step_id IS 'Step identifier';
-COMMENT ON COLUMN cpf_saga_step_execution.step_status IS 'Step status';
-COMMENT ON COLUMN cpf_saga_step_execution.result_code IS 'Result code';
-COMMENT ON COLUMN cpf_saga_step_execution.result_snapshot IS 'Result snapshot';
-COMMENT ON COLUMN cpf_saga_step_execution.error_message IS 'Error message';
-COMMENT ON COLUMN cpf_saga_step_execution.execute_attempts IS 'Execute attempts';
-COMMENT ON COLUMN cpf_saga_step_execution.compensation_attempts IS 'Compensation attempts';
-COMMENT ON COLUMN cpf_saga_step_execution.created_at IS 'Creation time';
-COMMENT ON COLUMN cpf_saga_step_execution.updated_at IS 'Last update time';
-
 CREATE TABLE cpf_schema_installation (
     schema_name VARCHAR2(64 CHAR) NOT NULL,
     system_code VARCHAR2(20 CHAR) NOT NULL,
@@ -1467,11 +939,11 @@ CREATE TABLE cpf_schema_installation (
     product_version VARCHAR2(50 CHAR) NOT NULL,
     baseline_key VARCHAR2(100 CHAR) NOT NULL,
     install_state VARCHAR2(30 CHAR) NOT NULL,
-    installed_at TIMESTAMP(3) NOT NULL DEFAULT SYSTIMESTAMP,
+    installed_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     created_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF_INSTALLER',
-    created_at TIMESTAMP(3) NOT NULL DEFAULT SYSTIMESTAMP,
+    created_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     updated_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF_INSTALLER',
-    updated_at TIMESTAMP(3) NOT NULL DEFAULT SYSTIMESTAMP,
+    updated_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     CONSTRAINT pk_cpf_schema_installation PRIMARY KEY (schema_name),
     CONSTRAINT ck_cpf_schema_installation_vendor CHECK (database_vendor IN ('MARIADB', 'POSTGRESQL', 'ORACLE')),
     CONSTRAINT ck_cpf_schema_installation_state CHECK (install_state IN ('PRODUCT_SEEDED'))
@@ -1594,6 +1066,836 @@ COMMENT ON COLUMN cpf_service.row_version IS '낙관적 잠금 row version';
 CREATE OR REPLACE TRIGGER trg_touch_cpf_service BEFORE UPDATE ON cpf_service FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
 /
 
+CREATE TABLE cpf_standard_execution (
+    standard_execution_id CHAR(10 CHAR) NOT NULL,
+    execution_name VARCHAR2(150 CHAR) NOT NULL,
+    execution_type VARCHAR2(20 CHAR) NOT NULL,
+    owner_domain VARCHAR2(20 CHAR) NOT NULL,
+    source_module VARCHAR2(20 CHAR) NOT NULL,
+    source_class VARCHAR2(255 CHAR) NOT NULL,
+    source_method VARCHAR2(150 CHAR) NOT NULL,
+    http_method VARCHAR2(10 CHAR),
+    endpoint VARCHAR2(500 CHAR),
+    operation_id VARCHAR2(150 CHAR),
+    description VARCHAR2(1000 CHAR),
+    required_permission VARCHAR2(150 CHAR),
+    audit_reason_required_yn CHAR(1 CHAR) NOT NULL DEFAULT 'N',
+    visibility VARCHAR2(20 CHAR) NOT NULL DEFAULT 'INTERNAL',
+    direct_allowed_yn CHAR(1 CHAR) NOT NULL DEFAULT 'Y',
+    gateway_allowed_yn CHAR(1 CHAR) NOT NULL DEFAULT 'N',
+    source_version VARCHAR2(100 CHAR) NOT NULL,
+    registration_status VARCHAR2(30 CHAR) NOT NULL DEFAULT 'REGISTERED',
+    first_registered_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    last_discovered_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    created_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT pk_cpf_standard_execution PRIMARY KEY (standard_execution_id),
+    CONSTRAINT ck_cpf_standard_execution_id CHECK (REGEXP_LIKE(standard_execution_id, '^[OSB][A-Z]{3}[A-Z0-9]{2}[0-9]{4}$') AND SUBSTR(standard_execution_id, -4) <> '0000'),
+    CONSTRAINT ck_cpf_standard_execution_type CHECK (execution_type IN ('ONLINE', 'SHARED', 'BATCH'))
+);
+CREATE INDEX ix_cpf_standard_execution_type ON cpf_standard_execution (execution_type, registration_status);
+CREATE INDEX ix_cpf_standard_execution_owner ON cpf_standard_execution (owner_domain, source_module);
+CREATE INDEX ix_cpf_standard_execution_source ON cpf_standard_execution (source_class, source_method);
+COMMENT ON TABLE cpf_standard_execution IS 'CPF O·S·B 표준 실행 카탈로그';
+COMMENT ON COLUMN cpf_standard_execution.standard_execution_id IS 'CPF O·S·B 10자리 표준 실행 ID';
+COMMENT ON COLUMN cpf_standard_execution.execution_name IS '표준 실행명';
+COMMENT ON COLUMN cpf_standard_execution.execution_type IS '실행 유형 ONLINE, SHARED 또는 BATCH';
+COMMENT ON COLUMN cpf_standard_execution.owner_domain IS '실행 소유 주제영역';
+COMMENT ON COLUMN cpf_standard_execution.source_module IS '발견 소스 모듈';
+COMMENT ON COLUMN cpf_standard_execution.source_class IS '선언 클래스명';
+COMMENT ON COLUMN cpf_standard_execution.source_method IS '선언 메서드명';
+COMMENT ON COLUMN cpf_standard_execution.http_method IS 'HTTP 진입 method';
+COMMENT ON COLUMN cpf_standard_execution.endpoint IS '연결 API 또는 배치 endpoint';
+COMMENT ON COLUMN cpf_standard_execution.operation_id IS '연결 OpenAPI operation ID';
+COMMENT ON COLUMN cpf_standard_execution.description IS '실행 기능 설명';
+COMMENT ON COLUMN cpf_standard_execution.required_permission IS '필수 실행 권한 코드';
+COMMENT ON COLUMN cpf_standard_execution.audit_reason_required_yn IS '감사 사유 필수 여부';
+COMMENT ON COLUMN cpf_standard_execution.visibility IS 'PUBLIC 또는 INTERNAL 노출 범위';
+COMMENT ON COLUMN cpf_standard_execution.direct_allowed_yn IS '업무 URL 직접 호출 허용 여부';
+COMMENT ON COLUMN cpf_standard_execution.gateway_allowed_yn IS '공개 CPF Gateway 호출 허용 여부';
+COMMENT ON COLUMN cpf_standard_execution.source_version IS '소스 버전 또는 빌드 식별자';
+COMMENT ON COLUMN cpf_standard_execution.registration_status IS '등록 상태';
+COMMENT ON COLUMN cpf_standard_execution.first_registered_at IS '최초 등록일시';
+COMMENT ON COLUMN cpf_standard_execution.last_discovered_at IS '최근 발견일시';
+COMMENT ON COLUMN cpf_standard_execution.created_by IS '등록자';
+COMMENT ON COLUMN cpf_standard_execution.created_at IS '등록일시';
+COMMENT ON COLUMN cpf_standard_execution.updated_by IS '수정자';
+COMMENT ON COLUMN cpf_standard_execution.updated_at IS '수정일시';
+CREATE OR REPLACE TRIGGER trg_touch_cpf_standard_execution BEFORE UPDATE ON cpf_standard_execution FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
+/
+
+CREATE TABLE cpf_standard_execution_alias (
+    legacy_execution_id VARCHAR2(32 CHAR) NOT NULL,
+    standard_execution_id CHAR(10 CHAR) NOT NULL,
+    migration_reason VARCHAR2(300 CHAR) NOT NULL,
+    retired_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    created_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT pk_cpf_standard_execution_alias PRIMARY KEY (legacy_execution_id),
+    CONSTRAINT uk_cpf_standard_execution_alias_current UNIQUE (standard_execution_id, legacy_execution_id),
+    CONSTRAINT ck_cpf_standard_execution_alias_current CHECK (REGEXP_LIKE(standard_execution_id, '^[OSB][A-Z]{3}[A-Z0-9]{2}[0-9]{4}$'))
+);
+COMMENT ON TABLE cpf_standard_execution_alias IS 'CPF 구형 실행 ID 조회 호환 이력';
+COMMENT ON COLUMN cpf_standard_execution_alias.legacy_execution_id IS '조회 호환용 구형 실행 ID';
+COMMENT ON COLUMN cpf_standard_execution_alias.standard_execution_id IS '현재 10자리 표준 실행 ID';
+COMMENT ON COLUMN cpf_standard_execution_alias.migration_reason IS 'ID 전환 사유';
+COMMENT ON COLUMN cpf_standard_execution_alias.retired_at IS '구형 ID 사용 종료일시';
+COMMENT ON COLUMN cpf_standard_execution_alias.created_by IS '등록자';
+COMMENT ON COLUMN cpf_standard_execution_alias.created_at IS '등록일시';
+COMMENT ON COLUMN cpf_standard_execution_alias.updated_by IS '수정자';
+COMMENT ON COLUMN cpf_standard_execution_alias.updated_at IS '수정일시';
+CREATE OR REPLACE TRIGGER trg_touch_cpf_standard_execution_alias BEFORE UPDATE ON cpf_standard_execution_alias FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
+/
+
+CREATE TABLE cpf_transaction_log (
+    LOG_DATE DATE NOT NULL,
+    LOG_IDX NUMBER(19) GENERATED BY DEFAULT ON NULL AS IDENTITY NOT NULL,
+    RECOVERY_EVENT_ID VARCHAR2(64 CHAR),
+    transaction_id CHAR(34 CHAR),
+    TRACE_ID VARCHAR2(100 CHAR),
+    SPAN_ID VARCHAR2(100 CHAR),
+    PARENT_SPAN_ID VARCHAR2(100 CHAR),
+    SEQUENCE_NO NUMBER(10) DEFAULT 1,
+    MODULE_ID VARCHAR2(20 CHAR) DEFAULT 'N/A',
+    MENU_ID VARCHAR2(50 CHAR),
+    BUSINESS_TRANSACTION_ID VARCHAR2(20 CHAR),
+    BUSINESS_TRANSACTION_NAME VARCHAR2(150 CHAR),
+    LOG_TYPE VARCHAR2(20 CHAR) DEFAULT 'N/A',
+    API_VERSION VARCHAR2(20 CHAR),
+    CLIENT_APP_ID VARCHAR2(80 CHAR),
+    CLIENT_VERSION VARCHAR2(50 CHAR),
+    CALLER_SERVICE VARCHAR2(120 CHAR),
+    CALLER_INSTANCE_ID VARCHAR2(120 CHAR),
+    CORRELATION_ID VARCHAR2(120 CHAR),
+    IDEMPOTENCY_KEY VARCHAR2(120 CHAR),
+    LOCALE VARCHAR2(20 CHAR),
+    TIMEZONE VARCHAR2(50 CHAR),
+    REQUEST_TYPE VARCHAR2(20 CHAR),
+    ORIGINAL_CHANNEL_CODE VARCHAR2(20 CHAR),
+    CHANNEL_CODE VARCHAR2(20 CHAR),
+    MEMBER_NO VARCHAR2(50 CHAR),
+    CUSTOMER_NO VARCHAR2(50 CHAR),
+    SCREEN_ID VARCHAR2(50 CHAR),
+    DEVICE_ID VARCHAR2(100 CHAR),
+    CLIENT_REQUEST_TIME VARCHAR2(30 CHAR),
+    WAS_ID VARCHAR2(50 CHAR),
+    SERVER_INSTANCE_ID VARCHAR2(160 CHAR),
+    HOST_NAME VARCHAR2(120 CHAR),
+    PROCESS_ID VARCHAR2(80 CHAR),
+    THREAD_NAME VARCHAR2(160 CHAR),
+    RESERVED_FIELD_1 VARCHAR2(255 CHAR),
+    RESERVED_FIELD_2 VARCHAR2(255 CHAR),
+    RESERVED_FIELD_3 VARCHAR2(255 CHAR),
+    RESERVED_FIELD_4 VARCHAR2(255 CHAR),
+    RESERVED_FIELD_5 VARCHAR2(255 CHAR),
+    HTTP_METHOD VARCHAR2(10 CHAR),
+    URI VARCHAR2(500 CHAR) DEFAULT 'N/A',
+    CONTROLLER VARCHAR2(255 CHAR),
+    EXECUTION_PACKAGE VARCHAR2(255 CHAR),
+    EXECUTION_CLASS VARCHAR2(255 CHAR),
+    EXECUTION_METHOD VARCHAR2(100 CHAR),
+    EXECUTION_SIGNATURE VARCHAR2(1000 CHAR),
+    WORKFLOW_ID VARCHAR2(50 CHAR),
+    WORKFLOW_NAME VARCHAR2(100 CHAR),
+    WORKFLOW_INSTANCE_ID VARCHAR2(100 CHAR),
+    WORKFLOW_STEP_ID VARCHAR2(50 CHAR),
+    WORKFLOW_STEP_NAME VARCHAR2(100 CHAR),
+    WORKFLOW_STATUS VARCHAR2(30 CHAR),
+    WORKFLOW_FAILURE_POLICY VARCHAR2(30 CHAR),
+    COMPENSATION_YN CHAR(1 CHAR) NOT NULL DEFAULT 'N',
+    COMPENSATION_TRANSACTION_ID VARCHAR2(20 CHAR),
+    COMPENSATION_TARGET_TRANSACTION_ID VARCHAR2(20 CHAR),
+    COMPENSATION_STATUS VARCHAR2(30 CHAR),
+    PARAMETERS MEDIUMTEXT,
+    REQUEST_BODY MEDIUMTEXT,
+    RESPONSE MEDIUMTEXT,
+    HTTP_STATUS NUMBER(10),
+    RESPONSE_CODE VARCHAR2(20 CHAR),
+    MESSAGE_CODE VARCHAR2(20 CHAR),
+    MESSAGE_CONTENT VARCHAR2(1000 CHAR),
+    ERROR_MESSAGE MEDIUMTEXT,
+    ERROR_CODE VARCHAR2(100 CHAR),
+    EXTERNAL_MESSAGE VARCHAR2(1000 CHAR),
+    INTERNAL_MESSAGE MEDIUMTEXT,
+    EXEC_USER VARCHAR2(100 CHAR) NOT NULL DEFAULT 'N/A',
+    CLIENT_IP VARCHAR2(100 CHAR),
+    USER_AGENT VARCHAR2(500 CHAR),
+    START_TIME TIMESTAMP(3),
+    END_TIME TIMESTAMP(3),
+    DURATION_MS NUMBER(19),
+    created_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT pk_cpf_transaction_log PRIMARY KEY (LOG_IDX),
+    CONSTRAINT uk_cpf_transaction_log_recovery_event UNIQUE (RECOVERY_EVENT_ID)
+);
+CREATE INDEX ix_cpf_transaction_log_date ON cpf_transaction_log (LOG_DATE);
+CREATE INDEX ix_cpf_transaction_log_transaction_time ON cpf_transaction_log (TRANSACTION_ID, START_TIME, LOG_IDX);
+CREATE INDEX ix_cpf_transaction_log_trace_id ON cpf_transaction_log (TRACE_ID);
+CREATE INDEX ix_cpf_transaction_log_business_time ON cpf_transaction_log (BUSINESS_TRANSACTION_ID, START_TIME);
+CREATE INDEX ix_cpf_transaction_log_client_app ON cpf_transaction_log (CLIENT_APP_ID, START_TIME);
+CREATE INDEX ix_cpf_transaction_log_correlation ON cpf_transaction_log (CORRELATION_ID, START_TIME);
+CREATE INDEX ix_cpf_transaction_log_idempotency ON cpf_transaction_log (IDEMPOTENCY_KEY);
+CREATE INDEX ix_cpf_transaction_log_member_time ON cpf_transaction_log (MEMBER_NO, START_TIME);
+CREATE INDEX ix_cpf_transaction_log_customer_time ON cpf_transaction_log (CUSTOMER_NO, START_TIME);
+CREATE INDEX ix_cpf_transaction_log_channel_time ON cpf_transaction_log (CHANNEL_CODE, START_TIME);
+CREATE INDEX ix_cpf_transaction_log_module_time ON cpf_transaction_log (MODULE_ID, START_TIME);
+CREATE INDEX ix_cpf_transaction_log_server_time ON cpf_transaction_log (SERVER_INSTANCE_ID, START_TIME);
+CREATE INDEX ix_cpf_transaction_log_was_time ON cpf_transaction_log (WAS_ID, START_TIME);
+CREATE INDEX ix_cpf_transaction_log_module_instance_time ON cpf_transaction_log (MODULE_ID, SERVER_INSTANCE_ID, START_TIME);
+CREATE INDEX ix_cpf_transaction_log_status_time ON cpf_transaction_log (LOG_TYPE, RESPONSE_CODE, START_TIME);
+CREATE INDEX ix_cpf_transaction_log_http_status_time ON cpf_transaction_log (HTTP_STATUS, START_TIME);
+COMMENT ON TABLE cpf_transaction_log IS 'CPF 거래 요약 로그';
+COMMENT ON COLUMN cpf_transaction_log.LOG_DATE IS '로그 기준일';
+COMMENT ON COLUMN cpf_transaction_log.LOG_IDX IS '거래 로그 순번';
+COMMENT ON COLUMN cpf_transaction_log.RECOVERY_EVENT_ID IS 'DB 로그 복구 이벤트 중복 방지 ID';
+COMMENT ON COLUMN cpf_transaction_log.transaction_id IS '전역 거래 ID';
+COMMENT ON COLUMN cpf_transaction_log.TRACE_ID IS '분산 추적 ID';
+COMMENT ON COLUMN cpf_transaction_log.SPAN_ID IS '현재 span ID';
+COMMENT ON COLUMN cpf_transaction_log.PARENT_SPAN_ID IS '상위 span ID';
+COMMENT ON COLUMN cpf_transaction_log.SEQUENCE_NO IS '거래 내부 로그 순번';
+COMMENT ON COLUMN cpf_transaction_log.MODULE_ID IS '모듈 ID';
+COMMENT ON COLUMN cpf_transaction_log.MENU_ID IS '메뉴 또는 화면 ID';
+COMMENT ON COLUMN cpf_transaction_log.BUSINESS_TRANSACTION_ID IS '업무 거래 ID';
+COMMENT ON COLUMN cpf_transaction_log.BUSINESS_TRANSACTION_NAME IS '업무 거래명';
+COMMENT ON COLUMN cpf_transaction_log.LOG_TYPE IS '로그 유형';
+COMMENT ON COLUMN cpf_transaction_log.API_VERSION IS '호출 API 버전';
+COMMENT ON COLUMN cpf_transaction_log.CLIENT_APP_ID IS '클라이언트 앱 또는 제휴 시스템 ID';
+COMMENT ON COLUMN cpf_transaction_log.CLIENT_VERSION IS '클라이언트 앱 또는 SDK 버전';
+COMMENT ON COLUMN cpf_transaction_log.CALLER_SERVICE IS '호출 서비스명';
+COMMENT ON COLUMN cpf_transaction_log.CALLER_INSTANCE_ID IS '호출 인스턴스 ID';
+COMMENT ON COLUMN cpf_transaction_log.CORRELATION_ID IS '내부 연계 상관관계 ID';
+COMMENT ON COLUMN cpf_transaction_log.IDEMPOTENCY_KEY IS '중복 처리 방지 멱등키';
+COMMENT ON COLUMN cpf_transaction_log.LOCALE IS '클라이언트 locale';
+COMMENT ON COLUMN cpf_transaction_log.TIMEZONE IS '클라이언트 시간대';
+COMMENT ON COLUMN cpf_transaction_log.REQUEST_TYPE IS '요청 유형';
+COMMENT ON COLUMN cpf_transaction_log.ORIGINAL_CHANNEL_CODE IS '최초 유입 채널 코드';
+COMMENT ON COLUMN cpf_transaction_log.CHANNEL_CODE IS '현재 처리 채널 코드';
+COMMENT ON COLUMN cpf_transaction_log.MEMBER_NO IS '회원 번호';
+COMMENT ON COLUMN cpf_transaction_log.CUSTOMER_NO IS '고객 번호';
+COMMENT ON COLUMN cpf_transaction_log.SCREEN_ID IS '화면 ID';
+COMMENT ON COLUMN cpf_transaction_log.DEVICE_ID IS '디바이스 ID';
+COMMENT ON COLUMN cpf_transaction_log.CLIENT_REQUEST_TIME IS '클라이언트 요청 생성 시각';
+COMMENT ON COLUMN cpf_transaction_log.WAS_ID IS '처리 WAS ID';
+COMMENT ON COLUMN cpf_transaction_log.SERVER_INSTANCE_ID IS '처리 서버 인스턴스 ID';
+COMMENT ON COLUMN cpf_transaction_log.HOST_NAME IS '처리 서버 호스트명';
+COMMENT ON COLUMN cpf_transaction_log.PROCESS_ID IS '처리 서버 프로세스 ID';
+COMMENT ON COLUMN cpf_transaction_log.THREAD_NAME IS '처리 스레드명';
+COMMENT ON COLUMN cpf_transaction_log.RESERVED_FIELD_1 IS '업무 확장 예약 필드 1';
+COMMENT ON COLUMN cpf_transaction_log.RESERVED_FIELD_2 IS '업무 확장 예약 필드 2';
+COMMENT ON COLUMN cpf_transaction_log.RESERVED_FIELD_3 IS '업무 확장 예약 필드 3';
+COMMENT ON COLUMN cpf_transaction_log.RESERVED_FIELD_4 IS '업무 확장 예약 필드 4';
+COMMENT ON COLUMN cpf_transaction_log.RESERVED_FIELD_5 IS '업무 확장 예약 필드 5';
+COMMENT ON COLUMN cpf_transaction_log.HTTP_METHOD IS 'HTTP 메서드';
+COMMENT ON COLUMN cpf_transaction_log.URI IS '요청 URI';
+COMMENT ON COLUMN cpf_transaction_log.CONTROLLER IS 'Controller 요약';
+COMMENT ON COLUMN cpf_transaction_log.EXECUTION_PACKAGE IS '실행 패키지명';
+COMMENT ON COLUMN cpf_transaction_log.EXECUTION_CLASS IS '실행 클래스명';
+COMMENT ON COLUMN cpf_transaction_log.EXECUTION_METHOD IS '실행 메서드명';
+COMMENT ON COLUMN cpf_transaction_log.EXECUTION_SIGNATURE IS '실행 시그니처';
+COMMENT ON COLUMN cpf_transaction_log.WORKFLOW_ID IS '워크플로우 ID';
+COMMENT ON COLUMN cpf_transaction_log.WORKFLOW_NAME IS '워크플로우명';
+COMMENT ON COLUMN cpf_transaction_log.WORKFLOW_INSTANCE_ID IS '워크플로우 인스턴스 ID';
+COMMENT ON COLUMN cpf_transaction_log.WORKFLOW_STEP_ID IS '워크플로우 단계 ID';
+COMMENT ON COLUMN cpf_transaction_log.WORKFLOW_STEP_NAME IS '워크플로우 단계명';
+COMMENT ON COLUMN cpf_transaction_log.WORKFLOW_STATUS IS '워크플로우 상태';
+COMMENT ON COLUMN cpf_transaction_log.WORKFLOW_FAILURE_POLICY IS '워크플로우 실패 정책';
+COMMENT ON COLUMN cpf_transaction_log.COMPENSATION_YN IS '보상 거래 여부';
+COMMENT ON COLUMN cpf_transaction_log.COMPENSATION_TRANSACTION_ID IS '보상 거래 ID';
+COMMENT ON COLUMN cpf_transaction_log.COMPENSATION_TARGET_TRANSACTION_ID IS '보상 대상 거래 ID';
+COMMENT ON COLUMN cpf_transaction_log.COMPENSATION_STATUS IS '보상 처리 상태';
+COMMENT ON COLUMN cpf_transaction_log.PARAMETERS IS '마스킹된 요청 파라미터';
+COMMENT ON COLUMN cpf_transaction_log.REQUEST_BODY IS '마스킹된 요청 본문';
+COMMENT ON COLUMN cpf_transaction_log.RESPONSE IS '마스킹된 응답 본문';
+COMMENT ON COLUMN cpf_transaction_log.HTTP_STATUS IS 'HTTP 상태 코드';
+COMMENT ON COLUMN cpf_transaction_log.RESPONSE_CODE IS 'CPF 응답 코드';
+COMMENT ON COLUMN cpf_transaction_log.MESSAGE_CODE IS '메시지 코드';
+COMMENT ON COLUMN cpf_transaction_log.MESSAGE_CONTENT IS '외부 호출 메시지';
+COMMENT ON COLUMN cpf_transaction_log.ERROR_MESSAGE IS '마스킹된 오류 메시지';
+COMMENT ON COLUMN cpf_transaction_log.ERROR_CODE IS '내부 오류 코드';
+COMMENT ON COLUMN cpf_transaction_log.EXTERNAL_MESSAGE IS '외부 표시 메시지';
+COMMENT ON COLUMN cpf_transaction_log.INTERNAL_MESSAGE IS '내부 진단 메시지';
+COMMENT ON COLUMN cpf_transaction_log.EXEC_USER IS '실행 사용자';
+COMMENT ON COLUMN cpf_transaction_log.CLIENT_IP IS '클라이언트 IP';
+COMMENT ON COLUMN cpf_transaction_log.USER_AGENT IS 'User-Agent';
+COMMENT ON COLUMN cpf_transaction_log.START_TIME IS '처리 시작 시각';
+COMMENT ON COLUMN cpf_transaction_log.END_TIME IS '처리 종료 시각';
+COMMENT ON COLUMN cpf_transaction_log.DURATION_MS IS '처리 시간 밀리초';
+COMMENT ON COLUMN cpf_transaction_log.created_by IS '등록자';
+COMMENT ON COLUMN cpf_transaction_log.created_at IS '등록일시';
+COMMENT ON COLUMN cpf_transaction_log.updated_by IS '수정자';
+COMMENT ON COLUMN cpf_transaction_log.updated_at IS '수정일시';
+CREATE OR REPLACE TRIGGER trg_touch_cpf_transaction_log BEFORE UPDATE ON cpf_transaction_log FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
+/
+
+CREATE TABLE cpf_transaction_meta (
+    transaction_id VARCHAR2(20 CHAR) NOT NULL,
+    transaction_name VARCHAR2(150 CHAR) NOT NULL,
+    module_code VARCHAR2(20 CHAR) NOT NULL,
+    domain_code VARCHAR2(50 CHAR),
+    http_method VARCHAR2(20 CHAR) NOT NULL DEFAULT 'ANY',
+    api_path VARCHAR2(500 CHAR) NOT NULL,
+    controller_class VARCHAR2(255 CHAR) NOT NULL,
+    handler_method VARCHAR2(150 CHAR) NOT NULL,
+    swagger_operation_id VARCHAR2(150 CHAR),
+    log_policy_key VARCHAR2(120 CHAR),
+    sensitive_yn CHAR(1 CHAR) NOT NULL DEFAULT 'N',
+    masking_policy_key VARCHAR2(120 CHAR),
+    active_yn CHAR(1 CHAR) NOT NULL DEFAULT 'Y',
+    first_detected_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    last_detected_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    last_scanned_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    created_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT pk_cpf_transaction_meta PRIMARY KEY (transaction_id)
+);
+CREATE INDEX ix_cpf_transaction_meta_module ON cpf_transaction_meta (module_code, domain_code, active_yn);
+CREATE INDEX ix_cpf_transaction_meta_path ON cpf_transaction_meta (http_method, api_path);
+CREATE INDEX ix_cpf_transaction_meta_policy ON cpf_transaction_meta (log_policy_key, active_yn);
+CREATE INDEX ix_cpf_transaction_meta_scan ON cpf_transaction_meta (active_yn, last_scanned_at);
+COMMENT ON TABLE cpf_transaction_meta IS 'CPF 온라인 거래 메타';
+COMMENT ON COLUMN cpf_transaction_meta.transaction_id IS '업무 거래 정의 ID(실행 transactionId와 별개)';
+COMMENT ON COLUMN cpf_transaction_meta.transaction_name IS '업무 거래명';
+COMMENT ON COLUMN cpf_transaction_meta.module_code IS '모듈 코드';
+COMMENT ON COLUMN cpf_transaction_meta.domain_code IS '업무 영역 코드';
+COMMENT ON COLUMN cpf_transaction_meta.http_method IS 'HTTP 메서드';
+COMMENT ON COLUMN cpf_transaction_meta.api_path IS 'API 경로';
+COMMENT ON COLUMN cpf_transaction_meta.controller_class IS 'Controller 클래스명';
+COMMENT ON COLUMN cpf_transaction_meta.handler_method IS 'Handler 메서드명';
+COMMENT ON COLUMN cpf_transaction_meta.swagger_operation_id IS 'Swagger operation 식별자';
+COMMENT ON COLUMN cpf_transaction_meta.log_policy_key IS '연결 로그 정책 키';
+COMMENT ON COLUMN cpf_transaction_meta.sensitive_yn IS '민감 거래 여부';
+COMMENT ON COLUMN cpf_transaction_meta.masking_policy_key IS '마스킹 정책 키';
+COMMENT ON COLUMN cpf_transaction_meta.active_yn IS '활성 여부';
+COMMENT ON COLUMN cpf_transaction_meta.first_detected_at IS '최초 감지일시';
+COMMENT ON COLUMN cpf_transaction_meta.last_detected_at IS '최근 감지일시';
+COMMENT ON COLUMN cpf_transaction_meta.last_scanned_at IS '최근 스캔일시';
+COMMENT ON COLUMN cpf_transaction_meta.created_by IS '등록자';
+COMMENT ON COLUMN cpf_transaction_meta.created_at IS '등록일시';
+COMMENT ON COLUMN cpf_transaction_meta.updated_by IS '수정자';
+COMMENT ON COLUMN cpf_transaction_meta.updated_at IS '수정일시';
+CREATE OR REPLACE TRIGGER trg_touch_cpf_transaction_meta BEFORE UPDATE ON cpf_transaction_meta FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
+/
+
+CREATE TABLE cpf_transaction_segment (
+    segment_id NUMBER(19) GENERATED BY DEFAULT ON NULL AS IDENTITY NOT NULL,
+    transaction_segment_id VARCHAR2(120 CHAR) NOT NULL,
+    transaction_id CHAR(34 CHAR) NOT NULL,
+    parent_segment_id VARCHAR2(120 CHAR),
+    transaction_role VARCHAR2(40 CHAR) NOT NULL,
+    module_code VARCHAR2(20 CHAR) NOT NULL,
+    source_module_code VARCHAR2(20 CHAR),
+    target_module_code VARCHAR2(20 CHAR),
+    direction VARCHAR2(20 CHAR) NOT NULL,
+    call_depth NUMBER(10) NOT NULL DEFAULT 0,
+    sequence_no NUMBER(10) NOT NULL DEFAULT 1,
+    api_path VARCHAR2(500 CHAR),
+    transaction_name VARCHAR2(200 CHAR),
+    started_at TIMESTAMP(6) NOT NULL,
+    ended_at TIMESTAMP(6),
+    duration_ms NUMBER(19),
+    status VARCHAR2(30 CHAR) NOT NULL DEFAULT 'RUNNING',
+    failure_yn CHAR(1 CHAR) NOT NULL DEFAULT 'N',
+    failure_code VARCHAR2(100 CHAR),
+    failure_message_masked VARCHAR2(1000 CHAR),
+    request_header_snapshot_masked MEDIUMTEXT,
+    response_header_snapshot_masked MEDIUMTEXT,
+    extension_header_snapshot_masked MEDIUMTEXT,
+    customer_no_masked VARCHAR2(80 CHAR),
+    member_no_masked VARCHAR2(80 CHAR),
+    user_id_masked VARCHAR2(80 CHAR),
+    operator_id_masked VARCHAR2(80 CHAR),
+    channel_code VARCHAR2(30 CHAR),
+    original_channel_code VARCHAR2(30 CHAR),
+    client_app_id VARCHAR2(100 CHAR),
+    caller_service VARCHAR2(100 CHAR),
+    external_institution_code VARCHAR2(50 CHAR),
+    external_transaction_id VARCHAR2(120 CHAR),
+    selected_instance_id VARCHAR2(100 CHAR),
+    attempt_no NUMBER(10),
+    retry_yn CHAR(1 CHAR),
+    failover_yn CHAR(1 CHAR),
+    circuit_state VARCHAR2(20 CHAR),
+    downstream_http_status NUMBER(10),
+    result_state VARCHAR2(30 CHAR),
+    unknown_result_id VARCHAR2(100 CHAR),
+    created_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
+    created_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    updated_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
+    updated_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    CONSTRAINT pk_cpf_transaction_segment PRIMARY KEY (segment_id),
+    CONSTRAINT uk_cpf_transaction_segment_id UNIQUE (transaction_segment_id)
+);
+CREATE INDEX ix_cpf_transaction_segment_transaction ON cpf_transaction_segment (transaction_id, started_at, segment_id);
+CREATE INDEX ix_cpf_transaction_segment_parent ON cpf_transaction_segment (parent_segment_id);
+CREATE INDEX ix_cpf_transaction_segment_module ON cpf_transaction_segment (module_code, started_at);
+CREATE INDEX ix_cpf_transaction_segment_role ON cpf_transaction_segment (transaction_role, direction);
+CREATE INDEX ix_cpf_transaction_segment_status ON cpf_transaction_segment (failure_yn, status, started_at);
+CREATE INDEX ix_cpf_transaction_segment_duration ON cpf_transaction_segment (duration_ms);
+CREATE INDEX ix_cpf_transaction_segment_customer ON cpf_transaction_segment (customer_no_masked, started_at);
+CREATE INDEX ix_cpf_transaction_segment_member ON cpf_transaction_segment (member_no_masked, started_at);
+CREATE INDEX ix_cpf_transaction_segment_user ON cpf_transaction_segment (user_id_masked, started_at);
+CREATE INDEX ix_cpf_transaction_segment_operator ON cpf_transaction_segment (operator_id_masked, started_at);
+CREATE INDEX ix_cpf_transaction_segment_client ON cpf_transaction_segment (client_app_id, caller_service, started_at);
+CREATE INDEX ix_cpf_transaction_segment_external ON cpf_transaction_segment (external_institution_code, external_transaction_id);
+CREATE INDEX ix_cpf_transaction_segment_instance ON cpf_transaction_segment (selected_instance_id, started_at);
+CREATE INDEX ix_cpf_transaction_segment_attempt ON cpf_transaction_segment (transaction_id, attempt_no);
+CREATE INDEX ix_cpf_transaction_segment_unknown ON cpf_transaction_segment (unknown_result_id);
+COMMENT ON TABLE cpf_transaction_segment IS 'CPF 복합 거래 구간 로그';
+COMMENT ON COLUMN cpf_transaction_segment.segment_id IS '거래 구간 내부 순번';
+COMMENT ON COLUMN cpf_transaction_segment.transaction_segment_id IS '거래 구간 ID';
+COMMENT ON COLUMN cpf_transaction_segment.transaction_id IS 'CPF transactionId';
+COMMENT ON COLUMN cpf_transaction_segment.parent_segment_id IS '상위 거래 구간 ID';
+COMMENT ON COLUMN cpf_transaction_segment.transaction_role IS '구간 역할';
+COMMENT ON COLUMN cpf_transaction_segment.module_code IS '현재 처리 모듈 코드';
+COMMENT ON COLUMN cpf_transaction_segment.source_module_code IS '호출 출발 모듈 코드';
+COMMENT ON COLUMN cpf_transaction_segment.target_module_code IS '호출 대상 모듈 코드';
+COMMENT ON COLUMN cpf_transaction_segment.direction IS '구간 처리 방향';
+COMMENT ON COLUMN cpf_transaction_segment.call_depth IS '호출 깊이';
+COMMENT ON COLUMN cpf_transaction_segment.sequence_no IS '거래 내 구간 순번';
+COMMENT ON COLUMN cpf_transaction_segment.api_path IS '처리 API 경로';
+COMMENT ON COLUMN cpf_transaction_segment.transaction_name IS '거래 구간명';
+COMMENT ON COLUMN cpf_transaction_segment.started_at IS '구간 시작 일시';
+COMMENT ON COLUMN cpf_transaction_segment.ended_at IS '구간 종료 일시';
+COMMENT ON COLUMN cpf_transaction_segment.duration_ms IS '구간 수행시간 밀리초';
+COMMENT ON COLUMN cpf_transaction_segment.status IS '구간 처리 상태';
+COMMENT ON COLUMN cpf_transaction_segment.failure_yn IS '실패 여부';
+COMMENT ON COLUMN cpf_transaction_segment.failure_code IS '실패 코드';
+COMMENT ON COLUMN cpf_transaction_segment.failure_message_masked IS '마스킹된 실패 메시지';
+COMMENT ON COLUMN cpf_transaction_segment.request_header_snapshot_masked IS '마스킹된 요청 헤더 snapshot';
+COMMENT ON COLUMN cpf_transaction_segment.response_header_snapshot_masked IS '마스킹된 응답 헤더 snapshot';
+COMMENT ON COLUMN cpf_transaction_segment.extension_header_snapshot_masked IS '마스킹된 확장 헤더 snapshot';
+COMMENT ON COLUMN cpf_transaction_segment.customer_no_masked IS '마스킹된 고객번호';
+COMMENT ON COLUMN cpf_transaction_segment.member_no_masked IS '마스킹된 회원번호';
+COMMENT ON COLUMN cpf_transaction_segment.user_id_masked IS '마스킹된 사용자 ID';
+COMMENT ON COLUMN cpf_transaction_segment.operator_id_masked IS '마스킹된 운영자 ID';
+COMMENT ON COLUMN cpf_transaction_segment.channel_code IS '현재 채널 코드';
+COMMENT ON COLUMN cpf_transaction_segment.original_channel_code IS '최초 유입 채널 코드';
+COMMENT ON COLUMN cpf_transaction_segment.client_app_id IS '클라이언트 애플리케이션 ID';
+COMMENT ON COLUMN cpf_transaction_segment.caller_service IS '호출 서비스 ID';
+COMMENT ON COLUMN cpf_transaction_segment.external_institution_code IS '외부기관 코드';
+COMMENT ON COLUMN cpf_transaction_segment.external_transaction_id IS '외부기관 거래 ID';
+COMMENT ON COLUMN cpf_transaction_segment.selected_instance_id IS '선택된 하위 서비스 인스턴스 ID';
+COMMENT ON COLUMN cpf_transaction_segment.attempt_no IS '서비스 호출 시도 순번';
+COMMENT ON COLUMN cpf_transaction_segment.retry_yn IS '재시도 여부';
+COMMENT ON COLUMN cpf_transaction_segment.failover_yn IS '다른 인스턴스로 전환한 여부';
+COMMENT ON COLUMN cpf_transaction_segment.circuit_state IS '호출 시점 circuit 상태';
+COMMENT ON COLUMN cpf_transaction_segment.downstream_http_status IS '하위 서비스 HTTP 상태';
+COMMENT ON COLUMN cpf_transaction_segment.result_state IS '호출 결과 상태';
+COMMENT ON COLUMN cpf_transaction_segment.unknown_result_id IS '결과 미확정 관리 ID';
+COMMENT ON COLUMN cpf_transaction_segment.created_by IS '등록자';
+COMMENT ON COLUMN cpf_transaction_segment.created_at IS '등록일시';
+COMMENT ON COLUMN cpf_transaction_segment.updated_by IS '수정자';
+COMMENT ON COLUMN cpf_transaction_segment.updated_at IS '수정일시';
+CREATE OR REPLACE TRIGGER trg_touch_cpf_transaction_segment BEFORE UPDATE ON cpf_transaction_segment FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
+/
+
+CREATE TABLE cpf_unknown_result (
+    unknown_seq NUMBER(19) GENERATED BY DEFAULT ON NULL AS IDENTITY NOT NULL,
+    unknown_id VARCHAR2(120 CHAR) NOT NULL,
+    unknown_type VARCHAR2(40 CHAR) NOT NULL,
+    unknown_status VARCHAR2(40 CHAR) NOT NULL DEFAULT 'CHECK_PENDING',
+    transaction_id CHAR(34 CHAR),
+    segment_id VARCHAR2(120 CHAR),
+    external_key VARCHAR2(200 CHAR),
+    failure_code VARCHAR2(100 CHAR),
+    failure_message VARCHAR2(1000 CHAR),
+    next_action VARCHAR2(100 CHAR),
+    detected_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    resolved_at TIMESTAMP(3),
+    resolved_by VARCHAR2(100 CHAR),
+    audit_reason VARCHAR2(500 CHAR),
+    created_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    attempt_count NUMBER(10) NOT NULL DEFAULT 0,
+    next_check_at TIMESTAMP(3),
+    lease_owner VARCHAR2(120 CHAR),
+    lease_until TIMESTAMP(3),
+    row_version NUMBER(19) NOT NULL DEFAULT 0,
+    CONSTRAINT pk_cpf_unknown_result PRIMARY KEY (unknown_seq),
+    CONSTRAINT uk_cpf_unknown_result_id UNIQUE (unknown_id)
+);
+CREATE INDEX ix_cpf_unknown_result_status ON cpf_unknown_result (unknown_type, unknown_status, detected_at);
+CREATE INDEX ix_cpf_unknown_result_tx ON cpf_unknown_result (transaction_id, segment_id);
+CREATE INDEX ix_cpf_unknown_result_external ON cpf_unknown_result (external_key);
+CREATE INDEX ix_cpf_unknown_result_claim ON cpf_unknown_result (unknown_status, next_check_at, lease_until, detected_at);
+COMMENT ON TABLE cpf_unknown_result IS 'CPF Unknown result 및 reconciliation 이력';
+COMMENT ON COLUMN cpf_unknown_result.unknown_seq IS 'Unknown result 내부 순번';
+COMMENT ON COLUMN cpf_unknown_result.unknown_id IS 'Unknown result ID';
+COMMENT ON COLUMN cpf_unknown_result.unknown_type IS 'Unknown result 유형';
+COMMENT ON COLUMN cpf_unknown_result.unknown_status IS 'Unknown result 상태';
+COMMENT ON COLUMN cpf_unknown_result.transaction_id IS '전역 거래 ID';
+COMMENT ON COLUMN cpf_unknown_result.segment_id IS '거래 구간 ID';
+COMMENT ON COLUMN cpf_unknown_result.external_key IS '외부 시스템 또는 메시지 키';
+COMMENT ON COLUMN cpf_unknown_result.failure_code IS '실패 코드';
+COMMENT ON COLUMN cpf_unknown_result.failure_message IS '실패 메시지';
+COMMENT ON COLUMN cpf_unknown_result.next_action IS '다음 조치';
+COMMENT ON COLUMN cpf_unknown_result.detected_at IS '감지 일시';
+COMMENT ON COLUMN cpf_unknown_result.resolved_at IS '해결 일시';
+COMMENT ON COLUMN cpf_unknown_result.resolved_by IS '해결 운영자';
+COMMENT ON COLUMN cpf_unknown_result.audit_reason IS '수동 처리 감사 사유';
+COMMENT ON COLUMN cpf_unknown_result.created_by IS '등록자';
+COMMENT ON COLUMN cpf_unknown_result.created_at IS '등록일시';
+COMMENT ON COLUMN cpf_unknown_result.updated_by IS '수정자';
+COMMENT ON COLUMN cpf_unknown_result.updated_at IS '수정일시';
+COMMENT ON COLUMN cpf_unknown_result.attempt_count IS '자동 결과확인 시도 횟수';
+COMMENT ON COLUMN cpf_unknown_result.next_check_at IS '다음 자동 확인 예정 일시';
+COMMENT ON COLUMN cpf_unknown_result.lease_owner IS 'Reconciliation claim 소유자';
+COMMENT ON COLUMN cpf_unknown_result.lease_until IS 'Reconciliation claim 만료 일시';
+COMMENT ON COLUMN cpf_unknown_result.row_version IS 'Optimistic lock version';
+CREATE OR REPLACE TRIGGER trg_touch_cpf_unknown_result BEFORE UPDATE ON cpf_unknown_result FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
+/
+
+CREATE TABLE cpf_channel_execution_policy (
+    policy_key VARCHAR2(100 CHAR) NOT NULL,
+    standard_execution_id VARCHAR2(10 CHAR) NOT NULL,
+    original_channel_code VARCHAR2(30 CHAR) NOT NULL,
+    caller_channel_code VARCHAR2(30 CHAR) NOT NULL,
+    request_type VARCHAR2(30 CHAR) NOT NULL DEFAULT '*',
+    allowed_yn CHAR(1 CHAR) NOT NULL DEFAULT 'N',
+    authentication_required_yn CHAR(1 CHAR) NOT NULL DEFAULT 'Y',
+    signature_required_yn CHAR(1 CHAR) NOT NULL DEFAULT 'N',
+    max_tps NUMBER(10) NOT NULL DEFAULT 0,
+    effective_from TIMESTAMP(3),
+    effective_to TIMESTAMP(3),
+    active_yn CHAR(1 CHAR) NOT NULL DEFAULT 'Y',
+    policy_version NUMBER(19) NOT NULL DEFAULT 0,
+    created_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT pk_cpf_channel_execution_policy PRIMARY KEY (policy_key),
+    CONSTRAINT ck_cpf_channel_execution_policy_execution CHECK (standard_execution_id = '*' OR REGEXP_LIKE(standard_execution_id, '^[OSB][A-Z]{3}[A-Z0-9]{2}[0-9]{4}$')),
+    CONSTRAINT ck_cpf_channel_execution_policy_allowed CHECK (allowed_yn IN ('Y', 'N')),
+    CONSTRAINT ck_cpf_channel_execution_policy_auth CHECK (authentication_required_yn IN ('Y', 'N')),
+    CONSTRAINT ck_cpf_channel_execution_policy_signature CHECK (signature_required_yn IN ('Y', 'N')),
+    CONSTRAINT ck_cpf_channel_execution_policy_active CHECK (active_yn IN ('Y', 'N')),
+    CONSTRAINT ck_cpf_channel_execution_policy_period CHECK (effective_from IS NULL OR effective_to IS NULL OR effective_from <= effective_to),
+    CONSTRAINT fk_cpf_channel_execution_policy_original FOREIGN KEY (original_channel_code) REFERENCES cpf_channel_registry (channel_code),
+    CONSTRAINT fk_cpf_channel_execution_policy_caller FOREIGN KEY (caller_channel_code) REFERENCES cpf_channel_registry (channel_code)
+);
+CREATE INDEX ix_cpf_channel_execution_policy_lookup ON cpf_channel_execution_policy (standard_execution_id, original_channel_code, caller_channel_code, request_type, active_yn);
+CREATE INDEX ix_cpf_channel_execution_policy_effective ON cpf_channel_execution_policy (active_yn, effective_from, effective_to);
+COMMENT ON TABLE cpf_channel_execution_policy IS 'CPF 표준 실행별 최초·호출 채널 정책';
+COMMENT ON COLUMN cpf_channel_execution_policy.policy_key IS '채널 실행 정책 불변 키';
+COMMENT ON COLUMN cpf_channel_execution_policy.standard_execution_id IS '10자리 표준 실행 ID 또는 전체 실행 *';
+COMMENT ON COLUMN cpf_channel_execution_policy.original_channel_code IS '최초 채널 코드 또는 ANY';
+COMMENT ON COLUMN cpf_channel_execution_policy.caller_channel_code IS '현재 호출 채널 코드 또는 ANY';
+COMMENT ON COLUMN cpf_channel_execution_policy.request_type IS '요청 유형 또는 전체 유형 *';
+COMMENT ON COLUMN cpf_channel_execution_policy.allowed_yn IS '실행 허용 여부';
+COMMENT ON COLUMN cpf_channel_execution_policy.authentication_required_yn IS '정책별 인증 필수 여부';
+COMMENT ON COLUMN cpf_channel_execution_policy.signature_required_yn IS '정책별 요청 서명 필수 여부';
+COMMENT ON COLUMN cpf_channel_execution_policy.max_tps IS '0이면 제한하지 않는 최대 초당 요청 수';
+COMMENT ON COLUMN cpf_channel_execution_policy.effective_from IS '정책 적용 시작일시';
+COMMENT ON COLUMN cpf_channel_execution_policy.effective_to IS '정책 적용 종료일시';
+COMMENT ON COLUMN cpf_channel_execution_policy.active_yn IS '정책 사용 여부';
+COMMENT ON COLUMN cpf_channel_execution_policy.policy_version IS '마지막 적용 정책 버전';
+COMMENT ON COLUMN cpf_channel_execution_policy.created_by IS '등록자';
+COMMENT ON COLUMN cpf_channel_execution_policy.created_at IS '등록일시';
+COMMENT ON COLUMN cpf_channel_execution_policy.updated_by IS '수정자';
+COMMENT ON COLUMN cpf_channel_execution_policy.updated_at IS '수정일시';
+CREATE OR REPLACE TRIGGER trg_touch_cpf_channel_execution_policy BEFORE UPDATE ON cpf_channel_execution_policy FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
+/
+
+CREATE TABLE cpf_log_policy_override (
+    override_id NUMBER(19) GENERATED BY DEFAULT ON NULL AS IDENTITY NOT NULL,
+    policy_id NUMBER(19),
+    target_type VARCHAR2(30 CHAR) NOT NULL,
+    target_id VARCHAR2(150 CHAR) NOT NULL,
+    override_reason VARCHAR2(500 CHAR) NOT NULL,
+    log_level VARCHAR2(20 CHAR),
+    db_log_enabled_yn CHAR(1 CHAR),
+    file_log_enabled_yn CHAR(1 CHAR),
+    policy_schema_version NUMBER(10),
+    query_capture_mode VARCHAR2(30 CHAR),
+    request_header_capture_mode VARCHAR2(30 CHAR),
+    response_header_capture_mode VARCHAR2(30 CHAR),
+    request_body_capture_mode VARCHAR2(30 CHAR),
+    response_body_capture_mode VARCHAR2(30 CHAR),
+    error_stack_capture_mode VARCHAR2(30 CHAR),
+    query_allowlist VARCHAR2(2000 CHAR),
+    header_allowlist VARCHAR2(2000 CHAR),
+    field_allowlist VARCHAR2(2000 CHAR),
+    max_query_bytes NUMBER(10),
+    max_header_bytes NUMBER(10),
+    max_request_body_bytes NUMBER(10),
+    max_response_body_bytes NUMBER(10),
+    max_stack_bytes NUMBER(10),
+    policy_checksum VARCHAR2(64 CHAR),
+    request_body_log_yn CHAR(1 CHAR),
+    response_body_log_yn CHAR(1 CHAR),
+    error_stack_log_yn CHAR(1 CHAR),
+    masking_policy_key VARCHAR2(120 CHAR),
+    effective_start_at TIMESTAMP(3) NOT NULL,
+    effective_end_at TIMESTAMP(3) NOT NULL,
+    requested_by VARCHAR2(100 CHAR) NOT NULL,
+    approved_by VARCHAR2(100 CHAR),
+    active_yn CHAR(1 CHAR) NOT NULL DEFAULT 'Y',
+    created_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT pk_cpf_log_policy_override PRIMARY KEY (override_id),
+    CONSTRAINT fk_cpf_log_policy_override_policy FOREIGN KEY (policy_id) REFERENCES cpf_log_policy (policy_id) ON DELETE SET NULL
+);
+CREATE INDEX ix_cpf_log_policy_override_target ON cpf_log_policy_override (target_type, target_id, active_yn);
+CREATE INDEX ix_cpf_log_policy_override_period ON cpf_log_policy_override (effective_start_at, effective_end_at, active_yn);
+CREATE INDEX ix_cpf_log_policy_override_policy ON cpf_log_policy_override (policy_id, active_yn);
+COMMENT ON TABLE cpf_log_policy_override IS 'CPF 로그 정책 임시 override';
+COMMENT ON COLUMN cpf_log_policy_override.override_id IS '로그 정책 override 순번';
+COMMENT ON COLUMN cpf_log_policy_override.policy_id IS '기본 로그 정책 순번';
+COMMENT ON COLUMN cpf_log_policy_override.target_type IS 'override 대상 유형';
+COMMENT ON COLUMN cpf_log_policy_override.target_id IS 'override 대상 ID';
+COMMENT ON COLUMN cpf_log_policy_override.override_reason IS 'override 사유';
+COMMENT ON COLUMN cpf_log_policy_override.log_level IS '임시 로그 레벨';
+COMMENT ON COLUMN cpf_log_policy_override.db_log_enabled_yn IS 'DB 로그 임시 적재 여부';
+COMMENT ON COLUMN cpf_log_policy_override.file_log_enabled_yn IS '파일 로그 임시 출력 여부';
+COMMENT ON COLUMN cpf_log_policy_override.policy_schema_version IS '로그 정책 Schema Version';
+COMMENT ON COLUMN cpf_log_policy_override.query_capture_mode IS 'Query Capture Mode';
+COMMENT ON COLUMN cpf_log_policy_override.request_header_capture_mode IS '요청 Header Capture Mode';
+COMMENT ON COLUMN cpf_log_policy_override.response_header_capture_mode IS '응답 Header Capture Mode';
+COMMENT ON COLUMN cpf_log_policy_override.request_body_capture_mode IS '요청 Body Capture Mode';
+COMMENT ON COLUMN cpf_log_policy_override.response_body_capture_mode IS '응답 Body Capture Mode';
+COMMENT ON COLUMN cpf_log_policy_override.error_stack_capture_mode IS '오류 Stack Capture Mode';
+COMMENT ON COLUMN cpf_log_policy_override.query_allowlist IS 'Query 허용 목록';
+COMMENT ON COLUMN cpf_log_policy_override.header_allowlist IS 'Header 허용 목록';
+COMMENT ON COLUMN cpf_log_policy_override.field_allowlist IS 'JSONPath/XPath/Fixed Field 허용 목록';
+COMMENT ON COLUMN cpf_log_policy_override.max_query_bytes IS 'Query 최대 Byte';
+COMMENT ON COLUMN cpf_log_policy_override.max_header_bytes IS 'Header 최대 Byte';
+COMMENT ON COLUMN cpf_log_policy_override.max_request_body_bytes IS '요청 Body 최대 Byte';
+COMMENT ON COLUMN cpf_log_policy_override.max_response_body_bytes IS '응답 Body 최대 Byte';
+COMMENT ON COLUMN cpf_log_policy_override.max_stack_bytes IS '오류 Stack 최대 Byte';
+COMMENT ON COLUMN cpf_log_policy_override.policy_checksum IS '정책 SHA-256 Checksum';
+COMMENT ON COLUMN cpf_log_policy_override.request_body_log_yn IS '요청 본문 임시 로그 여부';
+COMMENT ON COLUMN cpf_log_policy_override.response_body_log_yn IS '응답 본문 임시 로그 여부';
+COMMENT ON COLUMN cpf_log_policy_override.error_stack_log_yn IS '오류 stack 임시 로그 여부';
+COMMENT ON COLUMN cpf_log_policy_override.masking_policy_key IS '임시 마스킹 정책 키';
+COMMENT ON COLUMN cpf_log_policy_override.effective_start_at IS '적용 시작일시';
+COMMENT ON COLUMN cpf_log_policy_override.effective_end_at IS '적용 종료일시';
+COMMENT ON COLUMN cpf_log_policy_override.requested_by IS '요청자';
+COMMENT ON COLUMN cpf_log_policy_override.approved_by IS '승인자';
+COMMENT ON COLUMN cpf_log_policy_override.active_yn IS '활성 여부';
+COMMENT ON COLUMN cpf_log_policy_override.created_by IS '등록자';
+COMMENT ON COLUMN cpf_log_policy_override.created_at IS '등록일시';
+COMMENT ON COLUMN cpf_log_policy_override.updated_by IS '수정자';
+COMMENT ON COLUMN cpf_log_policy_override.updated_at IS '수정일시';
+CREATE OR REPLACE TRIGGER trg_touch_cpf_log_policy_override BEFORE UPDATE ON cpf_log_policy_override FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
+/
+
+CREATE TABLE cpf_notification_delivery_log (
+    delivery_id NUMBER(19) GENERATED BY DEFAULT ON NULL AS IDENTITY NOT NULL,
+    rule_id NUMBER(19),
+    event_type VARCHAR2(80 CHAR) NOT NULL,
+    target_type VARCHAR2(80 CHAR),
+    target_id VARCHAR2(120 CHAR),
+    receiver VARCHAR2(200 CHAR),
+    delivery_status VARCHAR2(30 CHAR) NOT NULL DEFAULT 'READY',
+    delivery_message VARCHAR2(2000 CHAR),
+    requested_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    delivered_at TIMESTAMP(3),
+    created_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    operation_id VARCHAR2(100 CHAR) NOT NULL,
+    request_hash VARCHAR2(64 CHAR) NOT NULL,
+    payload_body VARCHAR2(2000 CHAR) NOT NULL,
+    attempt_count NUMBER(10) NOT NULL DEFAULT 0,
+    max_attempts NUMBER(10) NOT NULL DEFAULT 3,
+    next_attempt_at TIMESTAMP(3),
+    lease_owner VARCHAR2(100 CHAR),
+    lease_until TIMESTAMP(3),
+    version NUMBER(19) NOT NULL DEFAULT 0,
+    last_error_code VARCHAR2(80 CHAR),
+    CONSTRAINT pk_cpf_notification_delivery_log PRIMARY KEY (delivery_id),
+    CONSTRAINT uk_cpf_notification_delivery_operation UNIQUE (operation_id),
+    CONSTRAINT fk_cpf_notification_delivery_rule FOREIGN KEY (rule_id) REFERENCES cpf_notification_rule (rule_id) ON DELETE SET NULL
+);
+CREATE INDEX ix_cpf_notification_delivery_target ON cpf_notification_delivery_log (target_type, target_id, requested_at);
+CREATE INDEX ix_cpf_notification_delivery_status ON cpf_notification_delivery_log (delivery_status, requested_at);
+CREATE INDEX ix_cpf_notification_delivery_due ON cpf_notification_delivery_log (delivery_status, next_attempt_at, lease_until);
+COMMENT ON TABLE cpf_notification_delivery_log IS 'CPF 운영 알림 발송 로그';
+COMMENT ON COLUMN cpf_notification_delivery_log.delivery_id IS '알림 발송 로그 순번';
+COMMENT ON COLUMN cpf_notification_delivery_log.rule_id IS '알림 규칙 순번';
+COMMENT ON COLUMN cpf_notification_delivery_log.event_type IS '알림 이벤트 유형';
+COMMENT ON COLUMN cpf_notification_delivery_log.target_type IS '알림 대상 유형';
+COMMENT ON COLUMN cpf_notification_delivery_log.target_id IS '알림 대상 ID';
+COMMENT ON COLUMN cpf_notification_delivery_log.receiver IS '수신자';
+COMMENT ON COLUMN cpf_notification_delivery_log.delivery_status IS '발송 상태';
+COMMENT ON COLUMN cpf_notification_delivery_log.delivery_message IS '발송 메시지';
+COMMENT ON COLUMN cpf_notification_delivery_log.requested_at IS '발송 요청 일시';
+COMMENT ON COLUMN cpf_notification_delivery_log.delivered_at IS '발송 완료 일시';
+COMMENT ON COLUMN cpf_notification_delivery_log.created_by IS '등록자';
+COMMENT ON COLUMN cpf_notification_delivery_log.created_at IS '등록일시';
+COMMENT ON COLUMN cpf_notification_delivery_log.updated_by IS '수정자';
+COMMENT ON COLUMN cpf_notification_delivery_log.updated_at IS '수정일시';
+COMMENT ON COLUMN cpf_notification_delivery_log.operation_id IS '멱등 발송 작업 ID';
+COMMENT ON COLUMN cpf_notification_delivery_log.request_hash IS '발송 요청 SHA-256';
+COMMENT ON COLUMN cpf_notification_delivery_log.payload_body IS 'Provider 전달 Payload(ADM 응답 비노출)';
+COMMENT ON COLUMN cpf_notification_delivery_log.attempt_count IS '발송 시도 횟수';
+COMMENT ON COLUMN cpf_notification_delivery_log.max_attempts IS '최대 발송 시도 횟수';
+COMMENT ON COLUMN cpf_notification_delivery_log.next_attempt_at IS '다음 재시도 시각';
+COMMENT ON COLUMN cpf_notification_delivery_log.lease_owner IS '발송 Lease 소유 인스턴스';
+COMMENT ON COLUMN cpf_notification_delivery_log.lease_until IS '발송 Lease 만료 시각';
+COMMENT ON COLUMN cpf_notification_delivery_log.version IS 'CAS 버전';
+COMMENT ON COLUMN cpf_notification_delivery_log.last_error_code IS '마지막 Provider 오류 코드';
+CREATE OR REPLACE TRIGGER trg_touch_cpf_notification_delivery_log BEFORE UPDATE ON cpf_notification_delivery_log FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
+/
+
+CREATE TABLE cpf_runtime_change (
+    change_id VARCHAR2(80 CHAR) NOT NULL,
+    operation_id VARCHAR2(100 CHAR) NOT NULL,
+    change_type VARCHAR2(80 CHAR) NOT NULL,
+    payload_schema_version NUMBER(10) NOT NULL DEFAULT 1,
+    request_hash VARCHAR2(64 CHAR) NOT NULL,
+    payload_hash VARCHAR2(64 CHAR) NOT NULL,
+    payload_json CLOB NOT NULL,
+    rollback_payload_json CLOB,
+    target_snapshot_json CLOB NOT NULL,
+    desired_version NUMBER(19) NOT NULL,
+    rollout_mode VARCHAR2(30 CHAR) NOT NULL DEFAULT 'ALL_AT_ONCE',
+    wave_size NUMBER(10) NOT NULL DEFAULT 100,
+    quorum_percent NUMBER(10) NOT NULL DEFAULT 100,
+    change_state VARCHAR2(30 CHAR) NOT NULL DEFAULT 'APPLYING',
+    scheduled_at TIMESTAMP(3),
+    expires_at TIMESTAMP(3),
+    reason VARCHAR2(1000 CHAR) NOT NULL,
+    approval_id VARCHAR2(100 CHAR),
+    break_glass_id VARCHAR2(100 CHAR),
+    requested_by VARCHAR2(100 CHAR) NOT NULL,
+    created_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT pk_cpf_runtime_change PRIMARY KEY (change_id),
+    CONSTRAINT ux_cpf_runtime_change_operation UNIQUE (operation_id),
+    CONSTRAINT ck_cpf_runtime_change_state CHECK (change_state IN ('SCHEDULED','APPLYING','PARTIAL','SUCCESS','FAILED','CANCELLED','EXPIRED','ROLLBACK_PENDING','ROLLED_BACK','SUPERSEDED','UNKNOWN_RESULT','RECOVERED')),
+    CONSTRAINT fk_cpf_runtime_change_operation FOREIGN KEY (operation_id) REFERENCES cpf_control_operation (operation_id)
+);
+CREATE INDEX ix_cpf_runtime_change_state ON cpf_runtime_change (change_state, scheduled_at, expires_at);
+COMMENT ON TABLE cpf_runtime_change IS 'Runtime 변경 immutable target snapshot/desired state';
+COMMENT ON COLUMN cpf_runtime_change.change_id IS 'Runtime change identifier';
+COMMENT ON COLUMN cpf_runtime_change.operation_id IS 'Idempotent operation identifier';
+COMMENT ON COLUMN cpf_runtime_change.change_type IS 'Runtime change type';
+COMMENT ON COLUMN cpf_runtime_change.payload_schema_version IS 'Payload schema version';
+COMMENT ON COLUMN cpf_runtime_change.request_hash IS 'Request fingerprint checksum';
+COMMENT ON COLUMN cpf_runtime_change.payload_hash IS '실제 payload canonical hash';
+COMMENT ON COLUMN cpf_runtime_change.payload_json IS 'Change payload JSON';
+COMMENT ON COLUMN cpf_runtime_change.rollback_payload_json IS 'Rollback payload JSON';
+COMMENT ON COLUMN cpf_runtime_change.target_snapshot_json IS 'Change target snapshot JSON';
+COMMENT ON COLUMN cpf_runtime_change.desired_version IS 'Desired state version';
+COMMENT ON COLUMN cpf_runtime_change.rollout_mode IS 'Rollout mode';
+COMMENT ON COLUMN cpf_runtime_change.wave_size IS 'Rollout wave size';
+COMMENT ON COLUMN cpf_runtime_change.quorum_percent IS 'Required rollout quorum percent';
+COMMENT ON COLUMN cpf_runtime_change.change_state IS 'Runtime change lifecycle state';
+COMMENT ON COLUMN cpf_runtime_change.scheduled_at IS 'Scheduled execution time';
+COMMENT ON COLUMN cpf_runtime_change.expires_at IS 'Expiry time';
+COMMENT ON COLUMN cpf_runtime_change.reason IS 'Mandatory operation reason';
+COMMENT ON COLUMN cpf_runtime_change.approval_id IS 'Approval request identifier';
+COMMENT ON COLUMN cpf_runtime_change.break_glass_id IS 'Break-glass authorization identifier';
+COMMENT ON COLUMN cpf_runtime_change.requested_by IS 'Requester identifier';
+COMMENT ON COLUMN cpf_runtime_change.created_by IS 'Creator identifier';
+COMMENT ON COLUMN cpf_runtime_change.created_at IS 'Creation time';
+COMMENT ON COLUMN cpf_runtime_change.updated_by IS 'Last updater identifier';
+COMMENT ON COLUMN cpf_runtime_change.updated_at IS 'Last update time';
+CREATE OR REPLACE TRIGGER trg_touch_cpf_runtime_change BEFORE UPDATE ON cpf_runtime_change FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
+/
+
+CREATE TABLE cpf_runtime_policy_delivery (
+    event_id VARCHAR2(64 CHAR) NOT NULL,
+    consumer_id VARCHAR2(100 CHAR) NOT NULL,
+    delivery_status VARCHAR2(30 CHAR) NOT NULL DEFAULT 'PENDING',
+    attempt_count NUMBER(10) NOT NULL DEFAULT 0,
+    fencing_token NUMBER(19) NOT NULL DEFAULT 0,
+    leased_until TIMESTAMP(3),
+    error_code VARCHAR2(100 CHAR),
+    error_message VARCHAR2(1000 CHAR),
+    acknowledged_at TIMESTAMP(3),
+    created_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    updated_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    CONSTRAINT pk_cpf_runtime_policy_delivery PRIMARY KEY (event_id, consumer_id),
+    CONSTRAINT ck_cpf_runtime_policy_delivery_status CHECK (delivery_status IN ('PENDING', 'CLAIMED', 'APPLIED', 'FAILED', 'IGNORED')),
+    CONSTRAINT ck_cpf_runtime_policy_delivery_attempt CHECK (attempt_count >= 0),
+    CONSTRAINT ck_cpf_runtime_policy_delivery_fencing CHECK (fencing_token >= 0),
+    CONSTRAINT fk_cpf_runtime_policy_delivery_event FOREIGN KEY (event_id) REFERENCES cpf_runtime_policy_event (event_id) ON DELETE CASCADE
+);
+CREATE INDEX ix_cpf_runtime_policy_delivery_status ON cpf_runtime_policy_delivery (consumer_id, delivery_status, leased_until, updated_at);
+COMMENT ON TABLE cpf_runtime_policy_delivery IS 'Runtime Policy Consumer Delivery ACK';
+COMMENT ON COLUMN cpf_runtime_policy_delivery.event_id IS '정책 이벤트 ID';
+COMMENT ON COLUMN cpf_runtime_policy_delivery.consumer_id IS 'Runtime Instance ID';
+COMMENT ON COLUMN cpf_runtime_policy_delivery.delivery_status IS '전달 상태';
+COMMENT ON COLUMN cpf_runtime_policy_delivery.attempt_count IS '전달 시도 횟수';
+COMMENT ON COLUMN cpf_runtime_policy_delivery.fencing_token IS 'Claim Fencing Token';
+COMMENT ON COLUMN cpf_runtime_policy_delivery.leased_until IS 'Claim 만료시각';
+COMMENT ON COLUMN cpf_runtime_policy_delivery.error_code IS '적용 오류 코드';
+COMMENT ON COLUMN cpf_runtime_policy_delivery.error_message IS '민감정보 제거 오류 메시지';
+COMMENT ON COLUMN cpf_runtime_policy_delivery.acknowledged_at IS 'ACK 시각';
+COMMENT ON COLUMN cpf_runtime_policy_delivery.created_at IS '등록일시';
+COMMENT ON COLUMN cpf_runtime_policy_delivery.updated_at IS '수정일시';
+CREATE OR REPLACE TRIGGER trg_touch_cpf_runtime_policy_delivery BEFORE UPDATE ON cpf_runtime_policy_delivery FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
+/
+
+CREATE TABLE cpf_saga_manual_action (
+    action_id VARCHAR2(36 CHAR) NOT NULL,
+    saga_id VARCHAR2(100 CHAR) NOT NULL,
+    action_type VARCHAR2(40 CHAR) NOT NULL,
+    operator_id VARCHAR2(100 CHAR) NOT NULL,
+    reason VARCHAR2(1000 CHAR) NOT NULL,
+    before_status VARCHAR2(40 CHAR),
+    after_status VARCHAR2(40 CHAR),
+    created_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    CONSTRAINT pk_cpf_saga_manual_action PRIMARY KEY (action_id),
+    CONSTRAINT fk_cpf_saga_manual_action FOREIGN KEY (saga_id) REFERENCES cpf_saga_execution (saga_id)
+);
+CREATE INDEX idx_cpf_saga_manual ON cpf_saga_manual_action (saga_id, created_at);
+COMMENT ON TABLE cpf_saga_manual_action IS 'Saga 수동 복구 조치';
+COMMENT ON COLUMN cpf_saga_manual_action.action_id IS 'Action identifier';
+COMMENT ON COLUMN cpf_saga_manual_action.saga_id IS 'Saga identifier';
+COMMENT ON COLUMN cpf_saga_manual_action.action_type IS 'Action type';
+COMMENT ON COLUMN cpf_saga_manual_action.operator_id IS 'Operator identifier';
+COMMENT ON COLUMN cpf_saga_manual_action.reason IS 'Reason';
+COMMENT ON COLUMN cpf_saga_manual_action.before_status IS 'Before status';
+COMMENT ON COLUMN cpf_saga_manual_action.after_status IS 'After status';
+COMMENT ON COLUMN cpf_saga_manual_action.created_at IS 'Creation time';
+
+CREATE TABLE cpf_saga_step_execution (
+    saga_id VARCHAR2(100 CHAR) NOT NULL,
+    step_no NUMBER(10) NOT NULL,
+    step_id VARCHAR2(100 CHAR) NOT NULL,
+    step_status VARCHAR2(40 CHAR) NOT NULL,
+    result_code VARCHAR2(100 CHAR),
+    result_snapshot CLOB,
+    error_message VARCHAR2(2000 CHAR),
+    execute_attempts NUMBER(10) NOT NULL DEFAULT 0,
+    compensation_attempts NUMBER(10) NOT NULL DEFAULT 0,
+    created_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    updated_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    CONSTRAINT pk_cpf_saga_step_execution PRIMARY KEY (saga_id, step_no),
+    CONSTRAINT fk_cpf_saga_step_execution FOREIGN KEY (saga_id) REFERENCES cpf_saga_execution (saga_id)
+);
+CREATE INDEX idx_cpf_saga_step_status ON cpf_saga_step_execution (step_status, updated_at);
+COMMENT ON TABLE cpf_saga_step_execution IS 'Saga 단계 실행 원장';
+COMMENT ON COLUMN cpf_saga_step_execution.saga_id IS 'Saga identifier';
+COMMENT ON COLUMN cpf_saga_step_execution.step_no IS 'Step number';
+COMMENT ON COLUMN cpf_saga_step_execution.step_id IS 'Step identifier';
+COMMENT ON COLUMN cpf_saga_step_execution.step_status IS 'Step status';
+COMMENT ON COLUMN cpf_saga_step_execution.result_code IS 'Result code';
+COMMENT ON COLUMN cpf_saga_step_execution.result_snapshot IS 'Result snapshot';
+COMMENT ON COLUMN cpf_saga_step_execution.error_message IS 'Error message';
+COMMENT ON COLUMN cpf_saga_step_execution.execute_attempts IS 'Execute attempts';
+COMMENT ON COLUMN cpf_saga_step_execution.compensation_attempts IS 'Compensation attempts';
+COMMENT ON COLUMN cpf_saga_step_execution.created_at IS 'Creation time';
+COMMENT ON COLUMN cpf_saga_step_execution.updated_at IS 'Last update time';
+
 CREATE TABLE cpf_service_endpoint (
     endpoint_code VARCHAR2(80 CHAR) NOT NULL,
     service_id VARCHAR2(40 CHAR) NOT NULL,
@@ -1630,6 +1932,31 @@ COMMENT ON COLUMN cpf_service_endpoint.updated_by IS '수정자';
 COMMENT ON COLUMN cpf_service_endpoint.updated_at IS '수정일시';
 COMMENT ON COLUMN cpf_service_endpoint.row_version IS '낙관적 잠금 row version';
 CREATE OR REPLACE TRIGGER trg_touch_cpf_service_endpoint BEFORE UPDATE ON cpf_service_endpoint FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
+/
+
+CREATE TABLE cpf_transaction_log_detail (
+    DETAIL_ID NUMBER(19) GENERATED BY DEFAULT ON NULL AS IDENTITY NOT NULL,
+    LOG_IDX NUMBER(19) NOT NULL,
+    DETAIL_KEY VARCHAR2(100 CHAR) NOT NULL DEFAULT 'N/A',
+    DETAIL_VALUE MEDIUMTEXT NOT NULL,
+    created_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT pk_cpf_transaction_log_detail PRIMARY KEY (DETAIL_ID),
+    CONSTRAINT fk_cpf_transaction_log_detail_log FOREIGN KEY (LOG_IDX) REFERENCES cpf_transaction_log (LOG_IDX) ON DELETE CASCADE
+);
+CREATE INDEX ix_cpf_transaction_log_detail_log_key ON cpf_transaction_log_detail (LOG_IDX, DETAIL_KEY);
+COMMENT ON TABLE cpf_transaction_log_detail IS 'CPF 거래 상세 로그';
+COMMENT ON COLUMN cpf_transaction_log_detail.DETAIL_ID IS '거래 상세 로그 순번';
+COMMENT ON COLUMN cpf_transaction_log_detail.LOG_IDX IS '거래 로그 순번';
+COMMENT ON COLUMN cpf_transaction_log_detail.DETAIL_KEY IS '상세 항목 키';
+COMMENT ON COLUMN cpf_transaction_log_detail.DETAIL_VALUE IS '상세 항목 값';
+COMMENT ON COLUMN cpf_transaction_log_detail.created_by IS '등록자';
+COMMENT ON COLUMN cpf_transaction_log_detail.created_at IS '등록일시';
+COMMENT ON COLUMN cpf_transaction_log_detail.updated_by IS '수정자';
+COMMENT ON COLUMN cpf_transaction_log_detail.updated_at IS '수정일시';
+CREATE OR REPLACE TRIGGER trg_touch_cpf_transaction_log_detail BEFORE UPDATE ON cpf_transaction_log_detail FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
 /
 
 CREATE TABLE cpf_gateway_server_group (
@@ -1677,310 +2004,108 @@ COMMENT ON COLUMN cpf_gateway_server_group.row_version IS '낙관적 잠금 버�
 CREATE OR REPLACE TRIGGER trg_touch_cpf_gateway_server_group BEFORE UPDATE ON cpf_gateway_server_group FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
 /
 
-CREATE TABLE cpf_gateway_binding (
-    binding_id VARCHAR2(100 CHAR) NOT NULL,
-    route_id VARCHAR2(100 CHAR) NOT NULL,
-    environment_code VARCHAR2(50 CHAR) NOT NULL,
-    host_pattern VARCHAR2(300 CHAR) NOT NULL,
-    path_pattern VARCHAR2(500 CHAR) NOT NULL,
-    http_method VARCHAR2(20 CHAR) NOT NULL DEFAULT '*',
-    api_version VARCHAR2(50 CHAR) NOT NULL,
-    ingress_protocol VARCHAR2(30 CHAR) NOT NULL,
-    target_protocol VARCHAR2(30 CHAR) NOT NULL,
-    service_id VARCHAR2(100 CHAR) NOT NULL,
-    server_group_id VARCHAR2(100 CHAR) NOT NULL,
-    route_version VARCHAR2(100 CHAR) NOT NULL,
-    tls_policy_id VARCHAR2(100 CHAR),
-    authentication_policy_id VARCHAR2(100 CHAR),
-    authorization_policy_id VARCHAR2(100 CHAR),
-    header_policy_id VARCHAR2(100 CHAR),
-    rate_limit_policy_id VARCHAR2(100 CHAR),
-    health_policy_id VARCHAR2(100 CHAR),
-    connect_timeout_ms NUMBER(10) NOT NULL,
-    response_timeout_ms NUMBER(10) NOT NULL,
-    overall_timeout_ms NUMBER(10) NOT NULL,
-    max_retry_count NUMBER(10) NOT NULL DEFAULT 0,
-    idempotent_yn CHAR(1 CHAR) NOT NULL DEFAULT 'N',
-    failover_group_id VARCHAR2(100 CHAR),
-    gateway_allowed_yn CHAR(1 CHAR) NOT NULL DEFAULT 'N',
-    direct_allowed_yn CHAR(1 CHAR) NOT NULL DEFAULT 'N',
-    binding_status VARCHAR2(30 CHAR) NOT NULL DEFAULT 'DRAFT',
-    approval_id VARCHAR2(100 CHAR),
-    effective_from TIMESTAMP,
-    effective_to TIMESTAMP,
+CREATE TABLE cpf_log_policy_audit (
+    audit_id NUMBER(19) GENERATED BY DEFAULT ON NULL AS IDENTITY NOT NULL,
+    policy_id NUMBER(19),
+    override_id NUMBER(19),
+    action_type VARCHAR2(30 CHAR) NOT NULL,
+    target_type VARCHAR2(30 CHAR) NOT NULL,
+    target_id VARCHAR2(150 CHAR) NOT NULL,
+    reason VARCHAR2(500 CHAR) NOT NULL,
+    before_data MEDIUMTEXT,
+    after_data MEDIUMTEXT,
+    diff_data MEDIUMTEXT,
+    operator_id VARCHAR2(100 CHAR) NOT NULL,
+    client_ip VARCHAR2(100 CHAR),
     created_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    row_version NUMBER(19) NOT NULL DEFAULT 1,
-    binding_checksum VARCHAR2(64 CHAR),
-    retired_by VARCHAR2(100 CHAR),
-    retired_at TIMESTAMP,
-    CONSTRAINT pk_cpf_gateway_binding PRIMARY KEY (binding_id),
-    CONSTRAINT uk_cpf_gwy_binding_key UNIQUE (environment_code, host_pattern, path_pattern, http_method, api_version, route_version),
-    CONSTRAINT ck_cpf_gwy_binding_gateway CHECK (gateway_allowed_yn IN ('Y','N')),
-    CONSTRAINT ck_cpf_gwy_binding_direct CHECK (direct_allowed_yn IN ('Y','N')),
-    CONSTRAINT ck_cpf_gwy_binding_idempotent CHECK (idempotent_yn IN ('Y','N')),
-    CONSTRAINT fk_cpf_gwy_binding_service FOREIGN KEY (service_id) REFERENCES cpf_service (service_id),
-    CONSTRAINT fk_cpf_gwy_binding_group FOREIGN KEY (server_group_id) REFERENCES cpf_gateway_server_group (server_group_id)
+    CONSTRAINT pk_cpf_log_policy_audit PRIMARY KEY (audit_id),
+    CONSTRAINT fk_cpf_log_policy_audit_policy FOREIGN KEY (policy_id) REFERENCES cpf_log_policy (policy_id) ON DELETE SET NULL,
+    CONSTRAINT fk_cpf_log_policy_audit_override FOREIGN KEY (override_id) REFERENCES cpf_log_policy_override (override_id) ON DELETE SET NULL
 );
-CREATE INDEX ix_cpf_gwy_binding_route ON cpf_gateway_binding (environment_code, route_id, binding_status);
-COMMENT ON TABLE cpf_gateway_binding IS 'Gateway Versioned Binding';
-COMMENT ON COLUMN cpf_gateway_binding.binding_id IS 'Binding ID';
-COMMENT ON COLUMN cpf_gateway_binding.route_id IS 'Route ID';
-COMMENT ON COLUMN cpf_gateway_binding.environment_code IS '환경 코드';
-COMMENT ON COLUMN cpf_gateway_binding.host_pattern IS 'Host Pattern';
-COMMENT ON COLUMN cpf_gateway_binding.path_pattern IS 'Path Pattern';
-COMMENT ON COLUMN cpf_gateway_binding.http_method IS 'HTTP Method';
-COMMENT ON COLUMN cpf_gateway_binding.api_version IS 'API Version';
-COMMENT ON COLUMN cpf_gateway_binding.ingress_protocol IS 'Ingress Protocol';
-COMMENT ON COLUMN cpf_gateway_binding.target_protocol IS 'Target Protocol';
-COMMENT ON COLUMN cpf_gateway_binding.service_id IS '서비스 ID';
-COMMENT ON COLUMN cpf_gateway_binding.server_group_id IS '서버 그룹 ID';
-COMMENT ON COLUMN cpf_gateway_binding.route_version IS 'Route Version';
-COMMENT ON COLUMN cpf_gateway_binding.tls_policy_id IS 'TLS 정책';
-COMMENT ON COLUMN cpf_gateway_binding.authentication_policy_id IS '인증 정책';
-COMMENT ON COLUMN cpf_gateway_binding.authorization_policy_id IS '권한 정책';
-COMMENT ON COLUMN cpf_gateway_binding.header_policy_id IS 'Header 정책';
-COMMENT ON COLUMN cpf_gateway_binding.rate_limit_policy_id IS 'Rate Limit 정책';
-COMMENT ON COLUMN cpf_gateway_binding.health_policy_id IS 'Health 정책';
-COMMENT ON COLUMN cpf_gateway_binding.connect_timeout_ms IS 'Connect Timeout';
-COMMENT ON COLUMN cpf_gateway_binding.response_timeout_ms IS 'Response Timeout';
-COMMENT ON COLUMN cpf_gateway_binding.overall_timeout_ms IS 'Overall Timeout';
-COMMENT ON COLUMN cpf_gateway_binding.max_retry_count IS '최대 재시도';
-COMMENT ON COLUMN cpf_gateway_binding.idempotent_yn IS '멱등 여부';
-COMMENT ON COLUMN cpf_gateway_binding.failover_group_id IS 'Failover 그룹';
-COMMENT ON COLUMN cpf_gateway_binding.gateway_allowed_yn IS 'Gateway 공개 허용';
-COMMENT ON COLUMN cpf_gateway_binding.direct_allowed_yn IS '직접 호출 허용';
-COMMENT ON COLUMN cpf_gateway_binding.binding_status IS 'Binding 상태';
-COMMENT ON COLUMN cpf_gateway_binding.approval_id IS '승인 ID';
-COMMENT ON COLUMN cpf_gateway_binding.effective_from IS '시행 시작';
-COMMENT ON COLUMN cpf_gateway_binding.effective_to IS '시행 종료';
-COMMENT ON COLUMN cpf_gateway_binding.created_by IS '등록자';
-COMMENT ON COLUMN cpf_gateway_binding.created_at IS '등록일시';
-COMMENT ON COLUMN cpf_gateway_binding.updated_by IS '수정자';
-COMMENT ON COLUMN cpf_gateway_binding.updated_at IS '수정일시';
-COMMENT ON COLUMN cpf_gateway_binding.row_version IS '낙관적 잠금 버전';
-COMMENT ON COLUMN cpf_gateway_binding.binding_checksum IS '승인/적용 대상 Snapshot SHA-256';
-COMMENT ON COLUMN cpf_gateway_binding.retired_by IS 'Retire 운영자';
-COMMENT ON COLUMN cpf_gateway_binding.retired_at IS 'Retire 시각';
-CREATE OR REPLACE TRIGGER trg_touch_cpf_gateway_binding BEFORE UPDATE ON cpf_gateway_binding FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
+CREATE INDEX ix_cpf_log_policy_audit_target ON cpf_log_policy_audit (target_type, target_id, created_at);
+CREATE INDEX ix_cpf_log_policy_audit_operator ON cpf_log_policy_audit (operator_id, created_at);
+CREATE INDEX ix_cpf_log_policy_audit_policy ON cpf_log_policy_audit (policy_id, created_at);
+COMMENT ON TABLE cpf_log_policy_audit IS 'CPF 로그 정책 감사 로그';
+COMMENT ON COLUMN cpf_log_policy_audit.audit_id IS '로그 정책 감사 순번';
+COMMENT ON COLUMN cpf_log_policy_audit.policy_id IS '로그 정책 순번';
+COMMENT ON COLUMN cpf_log_policy_audit.override_id IS '로그 정책 override 순번';
+COMMENT ON COLUMN cpf_log_policy_audit.action_type IS '감사 행위 유형';
+COMMENT ON COLUMN cpf_log_policy_audit.target_type IS '대상 유형';
+COMMENT ON COLUMN cpf_log_policy_audit.target_id IS '대상 ID';
+COMMENT ON COLUMN cpf_log_policy_audit.reason IS '감사 사유';
+COMMENT ON COLUMN cpf_log_policy_audit.before_data IS '변경 전 데이터';
+COMMENT ON COLUMN cpf_log_policy_audit.after_data IS '변경 후 데이터';
+COMMENT ON COLUMN cpf_log_policy_audit.diff_data IS '변경 차이';
+COMMENT ON COLUMN cpf_log_policy_audit.operator_id IS '운영자 ID';
+COMMENT ON COLUMN cpf_log_policy_audit.client_ip IS '클라이언트 IP';
+COMMENT ON COLUMN cpf_log_policy_audit.created_by IS '등록자';
+COMMENT ON COLUMN cpf_log_policy_audit.created_at IS '등록일시';
+COMMENT ON COLUMN cpf_log_policy_audit.updated_by IS '수정자';
+COMMENT ON COLUMN cpf_log_policy_audit.updated_at IS '수정일시';
+CREATE OR REPLACE TRIGGER trg_touch_cpf_log_policy_audit BEFORE UPDATE ON cpf_log_policy_audit FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
 /
 
-CREATE TABLE cpf_gateway_apply_status (
-    binding_id VARCHAR2(100 CHAR) NOT NULL,
-    gateway_instance_id VARCHAR2(100 CHAR) NOT NULL,
-    expected_version VARCHAR2(100 CHAR) NOT NULL,
-    applied_version VARCHAR2(100 CHAR),
-    apply_status VARCHAR2(30 CHAR) NOT NULL,
-    error_code VARCHAR2(100 CHAR),
-    error_message VARCHAR2(1000 CHAR),
-    acknowledged_at TIMESTAMP,
-    last_seen_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT pk_cpf_gateway_apply_status PRIMARY KEY (binding_id, gateway_instance_id),
-    CONSTRAINT fk_cpf_gwy_apply_binding FOREIGN KEY (binding_id) REFERENCES cpf_gateway_binding (binding_id)
-);
-CREATE INDEX ix_cpf_gwy_apply_status ON cpf_gateway_apply_status (apply_status, last_seen_at);
-COMMENT ON TABLE cpf_gateway_apply_status IS 'Gateway Instance별 적용 ACK/Drift';
-COMMENT ON COLUMN cpf_gateway_apply_status.binding_id IS 'Binding ID';
-COMMENT ON COLUMN cpf_gateway_apply_status.gateway_instance_id IS 'Gateway Instance ID';
-COMMENT ON COLUMN cpf_gateway_apply_status.expected_version IS '기대 Version';
-COMMENT ON COLUMN cpf_gateway_apply_status.applied_version IS '적용 Version';
-COMMENT ON COLUMN cpf_gateway_apply_status.apply_status IS '적용 상태';
-COMMENT ON COLUMN cpf_gateway_apply_status.error_code IS '오류 코드';
-COMMENT ON COLUMN cpf_gateway_apply_status.error_message IS '오류 메시지';
-COMMENT ON COLUMN cpf_gateway_apply_status.acknowledged_at IS 'ACK 시각';
-COMMENT ON COLUMN cpf_gateway_apply_status.last_seen_at IS '마지막 상태 시각';
-
-CREATE TABLE cpf_gateway_connection_test (
-    test_id VARCHAR2(100 CHAR) NOT NULL,
-    binding_id VARCHAR2(100 CHAR) NOT NULL,
-    gateway_instance_id VARCHAR2(100 CHAR),
-    instance_id VARCHAR2(100 CHAR),
-    test_type VARCHAR2(50 CHAR) NOT NULL,
-    test_status VARCHAR2(30 CHAR) NOT NULL,
-    failure_stage VARCHAR2(50 CHAR),
-    duration_ms NUMBER(19) NOT NULL DEFAULT 0,
-    trace_id VARCHAR2(100 CHAR),
-    operation_id VARCHAR2(100 CHAR),
-    tested_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    tested_by VARCHAR2(100 CHAR) NOT NULL,
-    CONSTRAINT pk_cpf_gateway_connection_test PRIMARY KEY (test_id),
-    CONSTRAINT fk_cpf_gwy_test_binding FOREIGN KEY (binding_id) REFERENCES cpf_gateway_binding (binding_id)
-);
-CREATE INDEX ix_cpf_gwy_test_binding ON cpf_gateway_connection_test (binding_id, tested_at);
-COMMENT ON TABLE cpf_gateway_connection_test IS 'Gateway 직접/E2E 연결시험 결과';
-COMMENT ON COLUMN cpf_gateway_connection_test.test_id IS '시험 ID';
-COMMENT ON COLUMN cpf_gateway_connection_test.binding_id IS 'Binding ID';
-COMMENT ON COLUMN cpf_gateway_connection_test.gateway_instance_id IS 'Gateway Instance ID';
-COMMENT ON COLUMN cpf_gateway_connection_test.instance_id IS 'Target Instance ID';
-COMMENT ON COLUMN cpf_gateway_connection_test.test_type IS '시험 유형';
-COMMENT ON COLUMN cpf_gateway_connection_test.test_status IS '시험 상태';
-COMMENT ON COLUMN cpf_gateway_connection_test.failure_stage IS '실패 단계';
-COMMENT ON COLUMN cpf_gateway_connection_test.duration_ms IS '소요시간';
-COMMENT ON COLUMN cpf_gateway_connection_test.trace_id IS 'Trace ID';
-COMMENT ON COLUMN cpf_gateway_connection_test.operation_id IS 'Operation ID';
-COMMENT ON COLUMN cpf_gateway_connection_test.tested_at IS '시험 시각';
-COMMENT ON COLUMN cpf_gateway_connection_test.tested_by IS '시험자';
-
-CREATE TABLE cpf_gateway_connection_test_operation (
-    operation_id VARCHAR2(100 CHAR) NOT NULL,
-    binding_id VARCHAR2(100 CHAR) NOT NULL,
-    test_type VARCHAR2(50 CHAR) NOT NULL,
-    operation_status VARCHAR2(30 CHAR) NOT NULL DEFAULT 'REQUESTED',
-    requested_by VARCHAR2(100 CHAR) NOT NULL,
-    request_reason VARCHAR2(1000 CHAR) NOT NULL,
-    request_payload_hash VARCHAR2(64 CHAR) NOT NULL,
-    expires_at TIMESTAMP NOT NULL,
-    cancel_requested_yn CHAR(1 CHAR) NOT NULL DEFAULT 'N',
-    result_summary VARCHAR2(2000 CHAR),
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    started_at TIMESTAMP,
-    completed_at TIMESTAMP,
-    row_version NUMBER(19) NOT NULL DEFAULT 1,
-    CONSTRAINT pk_cpf_gateway_connection_test_operation PRIMARY KEY (operation_id),
-    CONSTRAINT ck_cpf_gwy_test_cancel CHECK (cancel_requested_yn IN ('Y','N')),
-    CONSTRAINT fk_cpf_gwy_test_op_binding FOREIGN KEY (binding_id) REFERENCES cpf_gateway_binding (binding_id)
-);
-CREATE INDEX ix_cpf_gwy_test_op_binding ON cpf_gateway_connection_test_operation (binding_id, created_at);
-CREATE INDEX ix_cpf_gwy_test_op_status ON cpf_gateway_connection_test_operation (operation_status, expires_at);
-COMMENT ON TABLE cpf_gateway_connection_test_operation IS 'Gateway 비동기 연결시험 Operation';
-COMMENT ON COLUMN cpf_gateway_connection_test_operation.operation_id IS '연결시험 Operation ID';
-COMMENT ON COLUMN cpf_gateway_connection_test_operation.binding_id IS 'Binding ID';
-COMMENT ON COLUMN cpf_gateway_connection_test_operation.test_type IS 'DIRECT/E2E/LB_DISTRIBUTION';
-COMMENT ON COLUMN cpf_gateway_connection_test_operation.operation_status IS 'Operation 상태';
-COMMENT ON COLUMN cpf_gateway_connection_test_operation.requested_by IS '요청자';
-COMMENT ON COLUMN cpf_gateway_connection_test_operation.request_reason IS '요청 사유';
-COMMENT ON COLUMN cpf_gateway_connection_test_operation.request_payload_hash IS '요청 Payload Hash';
-COMMENT ON COLUMN cpf_gateway_connection_test_operation.expires_at IS 'Operation 만료';
-COMMENT ON COLUMN cpf_gateway_connection_test_operation.cancel_requested_yn IS '취소 요청';
-COMMENT ON COLUMN cpf_gateway_connection_test_operation.result_summary IS '결과 요약';
-COMMENT ON COLUMN cpf_gateway_connection_test_operation.created_at IS '생성 시각';
-COMMENT ON COLUMN cpf_gateway_connection_test_operation.started_at IS '시작 시각';
-COMMENT ON COLUMN cpf_gateway_connection_test_operation.completed_at IS '완료 시각';
-COMMENT ON COLUMN cpf_gateway_connection_test_operation.row_version IS '낙관적 버전';
-
-CREATE TABLE cpf_gateway_transaction (
-    gateway_transaction_id VARCHAR2(100 CHAR) NOT NULL,
-    transaction_id VARCHAR2(100 CHAR) NOT NULL,
-    trace_id VARCHAR2(100 CHAR) NOT NULL,
-    channel_id VARCHAR2(100 CHAR),
-    source_ip VARCHAR2(100 CHAR),
-    source_port NUMBER(10),
-    gateway_instance_id VARCHAR2(100 CHAR) NOT NULL,
-    binding_id VARCHAR2(100 CHAR) NOT NULL,
-    route_id VARCHAR2(100 CHAR) NOT NULL,
-    route_version VARCHAR2(100 CHAR) NOT NULL,
-    server_group_id VARCHAR2(100 CHAR) NOT NULL,
-    final_instance_id VARCHAR2(100 CHAR),
-    result_status VARCHAR2(30 CHAR) NOT NULL,
-    protocol_status VARCHAR2(30 CHAR),
-    business_code VARCHAR2(100 CHAR),
-    failure_stage VARCHAR2(50 CHAR),
-    unknown_yn CHAR(1 CHAR) NOT NULL DEFAULT 'N',
-    total_duration_ms NUMBER(19) NOT NULL DEFAULT 0,
-    request_size NUMBER(19) NOT NULL DEFAULT 0,
-    response_size NUMBER(19) NOT NULL DEFAULT 0,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    binding_version NUMBER(19) NOT NULL DEFAULT 0,
-    config_checksum VARCHAR2(64 CHAR),
-    request_method VARCHAR2(20 CHAR),
-    request_path VARCHAR2(1000 CHAR),
-    completed_at TIMESTAMP,
-    CONSTRAINT pk_cpf_gateway_transaction PRIMARY KEY (gateway_transaction_id),
-    CONSTRAINT ck_cpf_gwy_tx_unknown CHECK (unknown_yn IN ('Y','N')),
-    CONSTRAINT fk_cpf_gwy_tx_binding FOREIGN KEY (binding_id) REFERENCES cpf_gateway_binding (binding_id)
-);
-CREATE INDEX ix_cpf_gwy_tx_trace ON cpf_gateway_transaction (transaction_id, trace_id, created_at);
-CREATE INDEX ix_cpf_gwy_tx_route ON cpf_gateway_transaction (route_id, result_status, created_at);
-COMMENT ON TABLE cpf_gateway_transaction IS 'Gateway IN/GATEWAY/OUT/RESULT 거래 원장';
-COMMENT ON COLUMN cpf_gateway_transaction.gateway_transaction_id IS 'Gateway 거래 ID';
-COMMENT ON COLUMN cpf_gateway_transaction.transaction_id IS 'CPF 거래 ID';
-COMMENT ON COLUMN cpf_gateway_transaction.trace_id IS 'Trace ID';
-COMMENT ON COLUMN cpf_gateway_transaction.channel_id IS 'Channel ID';
-COMMENT ON COLUMN cpf_gateway_transaction.source_ip IS 'Source IP';
-COMMENT ON COLUMN cpf_gateway_transaction.source_port IS 'Source Port';
-COMMENT ON COLUMN cpf_gateway_transaction.gateway_instance_id IS 'Gateway Instance';
-COMMENT ON COLUMN cpf_gateway_transaction.binding_id IS 'Binding ID';
-COMMENT ON COLUMN cpf_gateway_transaction.route_id IS 'Route ID';
-COMMENT ON COLUMN cpf_gateway_transaction.route_version IS 'Route Version';
-COMMENT ON COLUMN cpf_gateway_transaction.server_group_id IS 'Server Group';
-COMMENT ON COLUMN cpf_gateway_transaction.final_instance_id IS '최종 Instance';
-COMMENT ON COLUMN cpf_gateway_transaction.result_status IS '최종 상태';
-COMMENT ON COLUMN cpf_gateway_transaction.protocol_status IS 'Protocol 상태';
-COMMENT ON COLUMN cpf_gateway_transaction.business_code IS '업무 코드';
-COMMENT ON COLUMN cpf_gateway_transaction.failure_stage IS '실패 단계';
-COMMENT ON COLUMN cpf_gateway_transaction.unknown_yn IS '결과 불명 여부';
-COMMENT ON COLUMN cpf_gateway_transaction.total_duration_ms IS '전체 소요시간';
-COMMENT ON COLUMN cpf_gateway_transaction.request_size IS '요청 크기';
-COMMENT ON COLUMN cpf_gateway_transaction.response_size IS '응답 크기';
-COMMENT ON COLUMN cpf_gateway_transaction.created_at IS '생성 시각';
-COMMENT ON COLUMN cpf_gateway_transaction.binding_version IS 'Binding Row Version Snapshot';
-COMMENT ON COLUMN cpf_gateway_transaction.config_checksum IS 'Gateway Config Checksum Snapshot';
-COMMENT ON COLUMN cpf_gateway_transaction.request_method IS '요청 Method';
-COMMENT ON COLUMN cpf_gateway_transaction.request_path IS '요청 Path';
-COMMENT ON COLUMN cpf_gateway_transaction.completed_at IS '완료 시각';
-
-CREATE TABLE cpf_gateway_transaction_capture_segment (
-    gateway_transaction_id VARCHAR2(100 CHAR) NOT NULL,
-    segment_type VARCHAR2(40 CHAR) NOT NULL,
-    policy_schema_version NUMBER(10) NOT NULL DEFAULT 2,
-    policy_checksum VARCHAR2(64 CHAR) NOT NULL,
-    captured_value CLOB NOT NULL,
-    truncated_yn CHAR(1 CHAR) NOT NULL DEFAULT 'N',
-    metadata_only_yn CHAR(1 CHAR) NOT NULL DEFAULT 'N',
-    observed_bytes NUMBER(19) NOT NULL DEFAULT 0,
-    captured_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT pk_cpf_gateway_transaction_capture_segment PRIMARY KEY (gateway_transaction_id, segment_type),
-    CONSTRAINT fk_cpf_gwy_capture_tx FOREIGN KEY (gateway_transaction_id) REFERENCES cpf_gateway_transaction (gateway_transaction_id),
-    CONSTRAINT ck_cpf_gwy_capture_truncated CHECK (truncated_yn IN ('Y','N')),
-    CONSTRAINT ck_cpf_gwy_capture_metadata CHECK (metadata_only_yn IN ('Y','N'))
-);
-CREATE INDEX ix_cpf_gwy_capture_time ON cpf_gateway_transaction_capture_segment (captured_at, segment_type);
-COMMENT ON TABLE cpf_gateway_transaction_capture_segment IS 'Gateway 정책 기반 Capture Segment 원장';
-
-CREATE TABLE cpf_gateway_attempt (
-    attempt_id VARCHAR2(100 CHAR) NOT NULL,
-    gateway_transaction_id VARCHAR2(100 CHAR) NOT NULL,
+CREATE TABLE cpf_notification_delivery_attempt (
+    delivery_id NUMBER(19) NOT NULL,
     attempt_no NUMBER(10) NOT NULL,
-    instance_id VARCHAR2(100 CHAR) NOT NULL,
-    target_host VARCHAR2(300 CHAR),
-    target_port NUMBER(10),
-    target_protocol VARCHAR2(30 CHAR) NOT NULL,
-    connect_duration_ms NUMBER(19) NOT NULL DEFAULT 0,
-    response_duration_ms NUMBER(19) NOT NULL DEFAULT 0,
+    operation_id VARCHAR2(100 CHAR) NOT NULL,
+    worker_id VARCHAR2(100 CHAR) NOT NULL,
     attempt_status VARCHAR2(30 CHAR) NOT NULL,
-    protocol_status VARCHAR2(30 CHAR),
-    failure_code VARCHAR2(100 CHAR),
-    failure_message VARCHAR2(1000 CHAR),
-    started_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    finished_at TIMESTAMP,
-    gateway_instance_id VARCHAR2(100 CHAR),
-    selection_reason VARCHAR2(100 CHAR),
-    unknown_yn CHAR(1 CHAR) NOT NULL DEFAULT 'N',
-    CONSTRAINT pk_cpf_gateway_attempt PRIMARY KEY (attempt_id),
-    CONSTRAINT uk_cpf_gwy_attempt_no UNIQUE (gateway_transaction_id, attempt_no),
-    CONSTRAINT fk_cpf_gwy_attempt_tx FOREIGN KEY (gateway_transaction_id) REFERENCES cpf_gateway_transaction (gateway_transaction_id)
+    provider_status VARCHAR2(80 CHAR),
+    provider_message VARCHAR2(2000 CHAR),
+    started_at TIMESTAMP(3) NOT NULL,
+    completed_at TIMESTAMP(3),
+    lease_version NUMBER(19) NOT NULL,
+    created_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT pk_cpf_notification_delivery_attempt PRIMARY KEY (delivery_id, attempt_no),
+    CONSTRAINT fk_cpf_notification_attempt_delivery FOREIGN KEY (delivery_id) REFERENCES cpf_notification_delivery_log (delivery_id) ON DELETE CASCADE
 );
-COMMENT ON TABLE cpf_gateway_attempt IS 'Gateway Retry/Failover Attempt 원장';
-COMMENT ON COLUMN cpf_gateway_attempt.attempt_id IS 'Attempt ID';
-COMMENT ON COLUMN cpf_gateway_attempt.gateway_transaction_id IS 'Gateway 거래 ID';
-COMMENT ON COLUMN cpf_gateway_attempt.attempt_no IS 'Attempt 순번';
-COMMENT ON COLUMN cpf_gateway_attempt.instance_id IS 'Target Instance';
-COMMENT ON COLUMN cpf_gateway_attempt.target_host IS 'Target Host';
-COMMENT ON COLUMN cpf_gateway_attempt.target_port IS 'Target Port';
-COMMENT ON COLUMN cpf_gateway_attempt.target_protocol IS 'Target Protocol';
-COMMENT ON COLUMN cpf_gateway_attempt.connect_duration_ms IS 'Connect 시간';
-COMMENT ON COLUMN cpf_gateway_attempt.response_duration_ms IS 'Response 시간';
-COMMENT ON COLUMN cpf_gateway_attempt.attempt_status IS 'Attempt 상태';
-COMMENT ON COLUMN cpf_gateway_attempt.protocol_status IS 'Protocol 상태';
-COMMENT ON COLUMN cpf_gateway_attempt.failure_code IS '실패 코드';
-COMMENT ON COLUMN cpf_gateway_attempt.failure_message IS '실패 메시지';
-COMMENT ON COLUMN cpf_gateway_attempt.started_at IS '시작 시각';
-COMMENT ON COLUMN cpf_gateway_attempt.finished_at IS '종료 시각';
-COMMENT ON COLUMN cpf_gateway_attempt.gateway_instance_id IS 'Gateway Instance';
-COMMENT ON COLUMN cpf_gateway_attempt.selection_reason IS 'Target 선택 사유';
-COMMENT ON COLUMN cpf_gateway_attempt.unknown_yn IS 'Attempt 결과 불명 여부';
+CREATE INDEX ix_cpf_notification_attempt_operation ON cpf_notification_delivery_attempt (operation_id, attempt_no);
+CREATE INDEX ix_cpf_notification_attempt_status ON cpf_notification_delivery_attempt (attempt_status, started_at);
+COMMENT ON TABLE cpf_notification_delivery_attempt IS 'Durable Notification Provider 호출 Attempt 불변 이력';
+COMMENT ON COLUMN cpf_notification_delivery_attempt.delivery_id IS '알림 발송 ID';
+COMMENT ON COLUMN cpf_notification_delivery_attempt.attempt_no IS 'Provider 호출 시도 순번';
+COMMENT ON COLUMN cpf_notification_delivery_attempt.operation_id IS '멱등 작업 ID';
+COMMENT ON COLUMN cpf_notification_delivery_attempt.worker_id IS '호출 소유 Worker';
+COMMENT ON COLUMN cpf_notification_delivery_attempt.attempt_status IS 'Attempt 처리 상태';
+COMMENT ON COLUMN cpf_notification_delivery_attempt.provider_status IS 'Provider 결과 코드';
+COMMENT ON COLUMN cpf_notification_delivery_attempt.provider_message IS '민감정보 제거 Provider 결과';
+COMMENT ON COLUMN cpf_notification_delivery_attempt.started_at IS 'Provider 호출 시작 일시';
+COMMENT ON COLUMN cpf_notification_delivery_attempt.completed_at IS 'Provider 결과 확정 일시';
+COMMENT ON COLUMN cpf_notification_delivery_attempt.lease_version IS 'Claim 시점 CAS Version';
+COMMENT ON COLUMN cpf_notification_delivery_attempt.created_by IS '기록 주체';
+COMMENT ON COLUMN cpf_notification_delivery_attempt.created_at IS '기록 일시';
+
+CREATE TABLE cpf_runtime_change_audit (
+    audit_id NUMBER(19) GENERATED BY DEFAULT ON NULL AS IDENTITY NOT NULL,
+    change_id VARCHAR2(80 CHAR) NOT NULL,
+    event_type VARCHAR2(60 CHAR) NOT NULL,
+    actor_id VARCHAR2(100 CHAR) NOT NULL,
+    reason VARCHAR2(500 CHAR),
+    evidence_hash VARCHAR2(64 CHAR),
+    previous_hash VARCHAR2(64 CHAR) NOT NULL,
+    chain_hash VARCHAR2(64 CHAR) NOT NULL,
+    created_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT pk_cpf_runtime_change_audit PRIMARY KEY (audit_id),
+    CONSTRAINT fk_cpf_runtime_audit_change FOREIGN KEY (change_id) REFERENCES cpf_runtime_change (change_id) ON DELETE CASCADE
+);
+CREATE INDEX ix_cpf_runtime_change_audit_change ON cpf_runtime_change_audit (change_id, audit_id);
+COMMENT ON TABLE cpf_runtime_change_audit IS 'Runtime Control immutable hash-chain audit';
+COMMENT ON COLUMN cpf_runtime_change_audit.audit_id IS 'Audit event identifier';
+COMMENT ON COLUMN cpf_runtime_change_audit.change_id IS 'Runtime change identifier';
+COMMENT ON COLUMN cpf_runtime_change_audit.event_type IS 'Audit event type';
+COMMENT ON COLUMN cpf_runtime_change_audit.actor_id IS 'Actor identifier';
+COMMENT ON COLUMN cpf_runtime_change_audit.reason IS 'Mandatory operation reason';
+COMMENT ON COLUMN cpf_runtime_change_audit.evidence_hash IS 'Evidence checksum';
+COMMENT ON COLUMN cpf_runtime_change_audit.previous_hash IS 'Previous audit chain checksum';
+COMMENT ON COLUMN cpf_runtime_change_audit.chain_hash IS 'Audit chain checksum';
+COMMENT ON COLUMN cpf_runtime_change_audit.created_by IS 'Creator identifier';
+COMMENT ON COLUMN cpf_runtime_change_audit.created_at IS 'Creation time';
 
 CREATE TABLE cpf_service_instance (
     instance_id VARCHAR2(120 CHAR) NOT NULL,
@@ -2042,6 +2167,135 @@ COMMENT ON COLUMN cpf_service_instance.drain_yn IS '신규 요청 Drain 여부';
 COMMENT ON COLUMN cpf_service_instance.drain_deadline_at IS 'Drain 완료 목표 시각';
 COMMENT ON COLUMN cpf_service_instance.row_version IS 'Optimistic lock 버전';
 CREATE OR REPLACE TRIGGER trg_touch_cpf_service_instance BEFORE UPDATE ON cpf_service_instance FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
+/
+
+CREATE TABLE cpf_service_routing_policy (
+    policy_id NUMBER(19) GENERATED BY DEFAULT ON NULL AS IDENTITY NOT NULL,
+    service_id VARCHAR2(40 CHAR) NOT NULL,
+    endpoint_code VARCHAR2(80 CHAR) NOT NULL,
+    routing_mode VARCHAR2(30 CHAR) NOT NULL DEFAULT 'PRIMARY',
+    load_balance_type VARCHAR2(30 CHAR) NOT NULL DEFAULT 'WEIGHT',
+    failover_enabled_yn CHAR(1 CHAR) NOT NULL DEFAULT 'Y',
+    health_check_required_yn CHAR(1 CHAR) NOT NULL DEFAULT 'Y',
+    active_yn CHAR(1 CHAR) NOT NULL DEFAULT 'Y',
+    priority NUMBER(10) NOT NULL DEFAULT 100,
+    created_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT pk_cpf_service_routing_policy PRIMARY KEY (policy_id),
+    CONSTRAINT uk_cpf_service_routing_policy UNIQUE (service_id, endpoint_code, priority),
+    CONSTRAINT fk_cpf_service_routing_service FOREIGN KEY (service_id) REFERENCES cpf_service (service_id),
+    CONSTRAINT fk_cpf_service_routing_endpoint FOREIGN KEY (endpoint_code) REFERENCES cpf_service_endpoint (endpoint_code)
+);
+CREATE INDEX ix_cpf_service_routing_active ON cpf_service_routing_policy (service_id, endpoint_code, active_yn, priority);
+COMMENT ON TABLE cpf_service_routing_policy IS 'CPF 서비스 라우팅 정책';
+COMMENT ON COLUMN cpf_service_routing_policy.policy_id IS '라우팅 정책 ID';
+COMMENT ON COLUMN cpf_service_routing_policy.service_id IS '서비스 ID';
+COMMENT ON COLUMN cpf_service_routing_policy.endpoint_code IS 'Endpoint 코드';
+COMMENT ON COLUMN cpf_service_routing_policy.routing_mode IS '라우팅 모드';
+COMMENT ON COLUMN cpf_service_routing_policy.load_balance_type IS '부하 분산 유형';
+COMMENT ON COLUMN cpf_service_routing_policy.failover_enabled_yn IS 'Failover 사용 여부';
+COMMENT ON COLUMN cpf_service_routing_policy.health_check_required_yn IS 'Health check 필수 여부';
+COMMENT ON COLUMN cpf_service_routing_policy.active_yn IS '활성 여부';
+COMMENT ON COLUMN cpf_service_routing_policy.priority IS '우선순위';
+COMMENT ON COLUMN cpf_service_routing_policy.created_by IS '등록자';
+COMMENT ON COLUMN cpf_service_routing_policy.created_at IS '등록일시';
+COMMENT ON COLUMN cpf_service_routing_policy.updated_by IS '수정자';
+COMMENT ON COLUMN cpf_service_routing_policy.updated_at IS '수정일시';
+CREATE OR REPLACE TRIGGER trg_touch_cpf_service_routing_policy BEFORE UPDATE ON cpf_service_routing_policy FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
+/
+
+CREATE TABLE cpf_gateway_binding (
+    binding_id VARCHAR2(100 CHAR) NOT NULL,
+    route_id VARCHAR2(100 CHAR) NOT NULL,
+    environment_code VARCHAR2(50 CHAR) NOT NULL,
+    host_pattern VARCHAR2(300 CHAR) NOT NULL,
+    path_pattern VARCHAR2(500 CHAR) NOT NULL,
+    target_path VARCHAR2(500 CHAR) NOT NULL,
+    http_method VARCHAR2(20 CHAR) NOT NULL DEFAULT '*',
+    api_version VARCHAR2(50 CHAR) NOT NULL,
+    ingress_protocol VARCHAR2(30 CHAR) NOT NULL,
+    target_protocol VARCHAR2(30 CHAR) NOT NULL,
+    service_id VARCHAR2(100 CHAR) NOT NULL,
+    server_group_id VARCHAR2(100 CHAR) NOT NULL,
+    route_version VARCHAR2(100 CHAR) NOT NULL,
+    tls_policy_id VARCHAR2(100 CHAR),
+    authentication_policy_id VARCHAR2(100 CHAR),
+    authorization_policy_id VARCHAR2(100 CHAR),
+    header_policy_id VARCHAR2(100 CHAR),
+    rate_limit_policy_id VARCHAR2(100 CHAR),
+    health_policy_id VARCHAR2(100 CHAR),
+    connect_timeout_ms NUMBER(10) NOT NULL,
+    response_timeout_ms NUMBER(10) NOT NULL,
+    overall_timeout_ms NUMBER(10) NOT NULL,
+    max_retry_count NUMBER(10) NOT NULL DEFAULT 0,
+    idempotent_yn CHAR(1 CHAR) NOT NULL DEFAULT 'N',
+    failover_group_id VARCHAR2(100 CHAR),
+    gateway_allowed_yn CHAR(1 CHAR) NOT NULL DEFAULT 'N',
+    direct_allowed_yn CHAR(1 CHAR) NOT NULL DEFAULT 'N',
+    binding_status VARCHAR2(30 CHAR) NOT NULL DEFAULT 'DRAFT',
+    approval_id VARCHAR2(100 CHAR),
+    effective_from TIMESTAMP,
+    effective_to TIMESTAMP,
+    created_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    row_version NUMBER(19) NOT NULL DEFAULT 1,
+    binding_checksum VARCHAR2(64 CHAR),
+    retired_by VARCHAR2(100 CHAR),
+    retired_at TIMESTAMP,
+    CONSTRAINT pk_cpf_gateway_binding PRIMARY KEY (binding_id),
+    CONSTRAINT uk_cpf_gwy_binding_key UNIQUE (environment_code, host_pattern, path_pattern, http_method, api_version, route_version),
+    CONSTRAINT ck_cpf_gwy_binding_gateway CHECK (gateway_allowed_yn IN ('Y','N')),
+    CONSTRAINT ck_cpf_gwy_binding_direct CHECK (direct_allowed_yn IN ('Y','N')),
+    CONSTRAINT ck_cpf_gwy_binding_idempotent CHECK (idempotent_yn IN ('Y','N')),
+    CONSTRAINT fk_cpf_gwy_binding_service FOREIGN KEY (service_id) REFERENCES cpf_service (service_id),
+    CONSTRAINT fk_cpf_gwy_binding_group FOREIGN KEY (server_group_id) REFERENCES cpf_gateway_server_group (server_group_id)
+);
+CREATE INDEX ix_cpf_gwy_binding_route ON cpf_gateway_binding (environment_code, route_id, binding_status);
+COMMENT ON TABLE cpf_gateway_binding IS 'Gateway Versioned Binding';
+COMMENT ON COLUMN cpf_gateway_binding.binding_id IS 'Binding ID';
+COMMENT ON COLUMN cpf_gateway_binding.route_id IS 'Route ID';
+COMMENT ON COLUMN cpf_gateway_binding.environment_code IS '환경 코드';
+COMMENT ON COLUMN cpf_gateway_binding.host_pattern IS 'Host Pattern';
+COMMENT ON COLUMN cpf_gateway_binding.path_pattern IS 'Path Pattern';
+COMMENT ON COLUMN cpf_gateway_binding.target_path IS 'Ingress Path Pattern과 분리된 실제 Target Request Path Template';
+COMMENT ON COLUMN cpf_gateway_binding.http_method IS 'HTTP Method';
+COMMENT ON COLUMN cpf_gateway_binding.api_version IS 'API Version';
+COMMENT ON COLUMN cpf_gateway_binding.ingress_protocol IS 'Ingress Protocol';
+COMMENT ON COLUMN cpf_gateway_binding.target_protocol IS 'Target Protocol';
+COMMENT ON COLUMN cpf_gateway_binding.service_id IS '서비스 ID';
+COMMENT ON COLUMN cpf_gateway_binding.server_group_id IS '서버 그룹 ID';
+COMMENT ON COLUMN cpf_gateway_binding.route_version IS 'Route Version';
+COMMENT ON COLUMN cpf_gateway_binding.tls_policy_id IS 'TLS 정책';
+COMMENT ON COLUMN cpf_gateway_binding.authentication_policy_id IS '인증 정책';
+COMMENT ON COLUMN cpf_gateway_binding.authorization_policy_id IS '권한 정책';
+COMMENT ON COLUMN cpf_gateway_binding.header_policy_id IS 'Header 정책';
+COMMENT ON COLUMN cpf_gateway_binding.rate_limit_policy_id IS 'Rate Limit 정책';
+COMMENT ON COLUMN cpf_gateway_binding.health_policy_id IS 'Health 정책';
+COMMENT ON COLUMN cpf_gateway_binding.connect_timeout_ms IS 'Connect Timeout';
+COMMENT ON COLUMN cpf_gateway_binding.response_timeout_ms IS 'Response Timeout';
+COMMENT ON COLUMN cpf_gateway_binding.overall_timeout_ms IS 'Overall Timeout';
+COMMENT ON COLUMN cpf_gateway_binding.max_retry_count IS '최대 재시도';
+COMMENT ON COLUMN cpf_gateway_binding.idempotent_yn IS '멱등 여부';
+COMMENT ON COLUMN cpf_gateway_binding.failover_group_id IS 'Failover 그룹';
+COMMENT ON COLUMN cpf_gateway_binding.gateway_allowed_yn IS 'Gateway 공개 허용';
+COMMENT ON COLUMN cpf_gateway_binding.direct_allowed_yn IS '직접 호출 허용';
+COMMENT ON COLUMN cpf_gateway_binding.binding_status IS 'Binding 상태';
+COMMENT ON COLUMN cpf_gateway_binding.approval_id IS '승인 ID';
+COMMENT ON COLUMN cpf_gateway_binding.effective_from IS '시행 시작';
+COMMENT ON COLUMN cpf_gateway_binding.effective_to IS '시행 종료';
+COMMENT ON COLUMN cpf_gateway_binding.created_by IS '등록자';
+COMMENT ON COLUMN cpf_gateway_binding.created_at IS '등록일시';
+COMMENT ON COLUMN cpf_gateway_binding.updated_by IS '수정자';
+COMMENT ON COLUMN cpf_gateway_binding.updated_at IS '수정일시';
+COMMENT ON COLUMN cpf_gateway_binding.row_version IS '낙관적 잠금 버전';
+COMMENT ON COLUMN cpf_gateway_binding.binding_checksum IS '승인/적용 대상 Snapshot SHA-256';
+COMMENT ON COLUMN cpf_gateway_binding.retired_by IS 'Retire 운영자';
+COMMENT ON COLUMN cpf_gateway_binding.retired_at IS 'Retire 시각';
+CREATE OR REPLACE TRIGGER trg_touch_cpf_gateway_binding BEFORE UPDATE ON cpf_gateway_binding FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
 /
 
 CREATE TABLE cpf_gateway_health_history (
@@ -2141,7 +2395,7 @@ CREATE TABLE cpf_runtime_delivery (
     desired_version NUMBER(19) NOT NULL,
     delivery_state VARCHAR2(30 CHAR) NOT NULL DEFAULT 'PENDING',
     attempt_no NUMBER(10) NOT NULL DEFAULT 0,
-    next_attempt_at TIMESTAMP(3) NOT NULL DEFAULT SYSTIMESTAMP,
+    next_attempt_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     fencing_token NUMBER(19),
     claimed_at TIMESTAMP(3),
     acknowledged_at TIMESTAMP(3),
@@ -2402,7 +2656,7 @@ CREATE TABLE cpf_service_health_status (
     http_status NUMBER(10),
     response_time_ms NUMBER(19),
     failure_message VARCHAR2(1000 CHAR),
-    checked_at TIMESTAMP(3) NOT NULL DEFAULT SYSTIMESTAMP,
+    checked_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     created_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
@@ -2431,553 +2685,226 @@ COMMENT ON COLUMN cpf_service_health_status.updated_at IS '수정일시';
 CREATE OR REPLACE TRIGGER trg_touch_cpf_service_health_status BEFORE UPDATE ON cpf_service_health_status FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
 /
 
-CREATE TABLE cpf_service_routing_policy (
-    policy_id NUMBER(19) GENERATED BY DEFAULT ON NULL AS IDENTITY NOT NULL,
-    service_id VARCHAR2(40 CHAR) NOT NULL,
-    endpoint_code VARCHAR2(80 CHAR) NOT NULL,
-    routing_mode VARCHAR2(30 CHAR) NOT NULL DEFAULT 'PRIMARY',
-    load_balance_type VARCHAR2(30 CHAR) NOT NULL DEFAULT 'WEIGHT',
-    failover_enabled_yn CHAR(1 CHAR) NOT NULL DEFAULT 'Y',
-    health_check_required_yn CHAR(1 CHAR) NOT NULL DEFAULT 'Y',
-    active_yn CHAR(1 CHAR) NOT NULL DEFAULT 'Y',
-    priority NUMBER(10) NOT NULL DEFAULT 100,
-    created_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
+CREATE TABLE cpf_gateway_apply_status (
+    binding_id VARCHAR2(100 CHAR) NOT NULL,
+    gateway_instance_id VARCHAR2(100 CHAR) NOT NULL,
+    expected_version VARCHAR2(100 CHAR) NOT NULL,
+    applied_version VARCHAR2(100 CHAR),
+    apply_status VARCHAR2(30 CHAR) NOT NULL,
+    error_code VARCHAR2(100 CHAR),
+    error_message VARCHAR2(1000 CHAR),
+    acknowledged_at TIMESTAMP,
+    last_seen_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT pk_cpf_gateway_apply_status PRIMARY KEY (binding_id, gateway_instance_id),
+    CONSTRAINT fk_cpf_gwy_apply_binding FOREIGN KEY (binding_id) REFERENCES cpf_gateway_binding (binding_id)
+);
+CREATE INDEX ix_cpf_gwy_apply_status ON cpf_gateway_apply_status (apply_status, last_seen_at);
+COMMENT ON TABLE cpf_gateway_apply_status IS 'Gateway Instance별 적용 ACK/Drift';
+COMMENT ON COLUMN cpf_gateway_apply_status.binding_id IS 'Binding ID';
+COMMENT ON COLUMN cpf_gateway_apply_status.gateway_instance_id IS 'Gateway Instance ID';
+COMMENT ON COLUMN cpf_gateway_apply_status.expected_version IS '기대 Version';
+COMMENT ON COLUMN cpf_gateway_apply_status.applied_version IS '적용 Version';
+COMMENT ON COLUMN cpf_gateway_apply_status.apply_status IS '적용 상태';
+COMMENT ON COLUMN cpf_gateway_apply_status.error_code IS '오류 코드';
+COMMENT ON COLUMN cpf_gateway_apply_status.error_message IS '오류 메시지';
+COMMENT ON COLUMN cpf_gateway_apply_status.acknowledged_at IS 'ACK 시각';
+COMMENT ON COLUMN cpf_gateway_apply_status.last_seen_at IS '마지막 상태 시각';
+
+CREATE TABLE cpf_gateway_connection_test (
+    test_id VARCHAR2(100 CHAR) NOT NULL,
+    binding_id VARCHAR2(100 CHAR) NOT NULL,
+    gateway_instance_id VARCHAR2(100 CHAR),
+    instance_id VARCHAR2(100 CHAR),
+    test_type VARCHAR2(50 CHAR) NOT NULL,
+    test_status VARCHAR2(30 CHAR) NOT NULL,
+    failure_stage VARCHAR2(50 CHAR),
+    duration_ms NUMBER(19) NOT NULL DEFAULT 0,
+    trace_id VARCHAR2(100 CHAR),
+    operation_id VARCHAR2(100 CHAR),
+    tested_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    tested_by VARCHAR2(100 CHAR) NOT NULL,
+    CONSTRAINT pk_cpf_gateway_connection_test PRIMARY KEY (test_id),
+    CONSTRAINT fk_cpf_gwy_test_binding FOREIGN KEY (binding_id) REFERENCES cpf_gateway_binding (binding_id)
+);
+CREATE INDEX ix_cpf_gwy_test_binding ON cpf_gateway_connection_test (binding_id, tested_at);
+COMMENT ON TABLE cpf_gateway_connection_test IS 'Gateway 직접/E2E 연결시험 결과';
+COMMENT ON COLUMN cpf_gateway_connection_test.test_id IS '시험 ID';
+COMMENT ON COLUMN cpf_gateway_connection_test.binding_id IS 'Binding ID';
+COMMENT ON COLUMN cpf_gateway_connection_test.gateway_instance_id IS 'Gateway Instance ID';
+COMMENT ON COLUMN cpf_gateway_connection_test.instance_id IS 'Target Instance ID';
+COMMENT ON COLUMN cpf_gateway_connection_test.test_type IS '시험 유형';
+COMMENT ON COLUMN cpf_gateway_connection_test.test_status IS '시험 상태';
+COMMENT ON COLUMN cpf_gateway_connection_test.failure_stage IS '실패 단계';
+COMMENT ON COLUMN cpf_gateway_connection_test.duration_ms IS '소요시간';
+COMMENT ON COLUMN cpf_gateway_connection_test.trace_id IS 'Trace ID';
+COMMENT ON COLUMN cpf_gateway_connection_test.operation_id IS 'Operation ID';
+COMMENT ON COLUMN cpf_gateway_connection_test.tested_at IS '시험 시각';
+COMMENT ON COLUMN cpf_gateway_connection_test.tested_by IS '시험자';
+
+CREATE TABLE cpf_gateway_connection_test_operation (
+    operation_id VARCHAR2(100 CHAR) NOT NULL,
+    binding_id VARCHAR2(100 CHAR) NOT NULL,
+    test_type VARCHAR2(50 CHAR) NOT NULL,
+    operation_status VARCHAR2(30 CHAR) NOT NULL DEFAULT 'REQUESTED',
+    requested_by VARCHAR2(100 CHAR) NOT NULL,
+    request_reason VARCHAR2(1000 CHAR) NOT NULL,
+    request_payload_hash VARCHAR2(64 CHAR) NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    cancel_requested_yn CHAR(1 CHAR) NOT NULL DEFAULT 'N',
+    result_summary VARCHAR2(2000 CHAR),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT pk_cpf_service_routing_policy PRIMARY KEY (policy_id),
-    CONSTRAINT uk_cpf_service_routing_policy UNIQUE (service_id, endpoint_code, priority),
-    CONSTRAINT fk_cpf_service_routing_service FOREIGN KEY (service_id) REFERENCES cpf_service (service_id),
-    CONSTRAINT fk_cpf_service_routing_endpoint FOREIGN KEY (endpoint_code) REFERENCES cpf_service_endpoint (endpoint_code)
+    started_at TIMESTAMP,
+    completed_at TIMESTAMP,
+    row_version NUMBER(19) NOT NULL DEFAULT 1,
+    CONSTRAINT pk_cpf_gateway_connection_test_operation PRIMARY KEY (operation_id),
+    CONSTRAINT ck_cpf_gwy_test_cancel CHECK (cancel_requested_yn IN ('Y','N')),
+    CONSTRAINT fk_cpf_gwy_test_op_binding FOREIGN KEY (binding_id) REFERENCES cpf_gateway_binding (binding_id)
 );
-CREATE INDEX ix_cpf_service_routing_active ON cpf_service_routing_policy (service_id, endpoint_code, active_yn, priority);
-COMMENT ON TABLE cpf_service_routing_policy IS 'CPF 서비스 라우팅 정책';
-COMMENT ON COLUMN cpf_service_routing_policy.policy_id IS '라우팅 정책 ID';
-COMMENT ON COLUMN cpf_service_routing_policy.service_id IS '서비스 ID';
-COMMENT ON COLUMN cpf_service_routing_policy.endpoint_code IS 'Endpoint 코드';
-COMMENT ON COLUMN cpf_service_routing_policy.routing_mode IS '라우팅 모드';
-COMMENT ON COLUMN cpf_service_routing_policy.load_balance_type IS '부하 분산 유형';
-COMMENT ON COLUMN cpf_service_routing_policy.failover_enabled_yn IS 'Failover 사용 여부';
-COMMENT ON COLUMN cpf_service_routing_policy.health_check_required_yn IS 'Health check 필수 여부';
-COMMENT ON COLUMN cpf_service_routing_policy.active_yn IS '활성 여부';
-COMMENT ON COLUMN cpf_service_routing_policy.priority IS '우선순위';
-COMMENT ON COLUMN cpf_service_routing_policy.created_by IS '등록자';
-COMMENT ON COLUMN cpf_service_routing_policy.created_at IS '등록일시';
-COMMENT ON COLUMN cpf_service_routing_policy.updated_by IS '수정자';
-COMMENT ON COLUMN cpf_service_routing_policy.updated_at IS '수정일시';
-CREATE OR REPLACE TRIGGER trg_touch_cpf_service_routing_policy BEFORE UPDATE ON cpf_service_routing_policy FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
-/
+CREATE INDEX ix_cpf_gwy_test_op_binding ON cpf_gateway_connection_test_operation (binding_id, created_at);
+CREATE INDEX ix_cpf_gwy_test_op_status ON cpf_gateway_connection_test_operation (operation_status, expires_at);
+COMMENT ON TABLE cpf_gateway_connection_test_operation IS 'Gateway 비동기 연결시험 Operation';
+COMMENT ON COLUMN cpf_gateway_connection_test_operation.operation_id IS '연결시험 Operation ID';
+COMMENT ON COLUMN cpf_gateway_connection_test_operation.binding_id IS 'Binding ID';
+COMMENT ON COLUMN cpf_gateway_connection_test_operation.test_type IS 'DIRECT/E2E/LB_DISTRIBUTION';
+COMMENT ON COLUMN cpf_gateway_connection_test_operation.operation_status IS 'Operation 상태';
+COMMENT ON COLUMN cpf_gateway_connection_test_operation.requested_by IS '요청자';
+COMMENT ON COLUMN cpf_gateway_connection_test_operation.request_reason IS '요청 사유';
+COMMENT ON COLUMN cpf_gateway_connection_test_operation.request_payload_hash IS '요청 Payload Hash';
+COMMENT ON COLUMN cpf_gateway_connection_test_operation.expires_at IS 'Operation 만료';
+COMMENT ON COLUMN cpf_gateway_connection_test_operation.cancel_requested_yn IS '취소 요청';
+COMMENT ON COLUMN cpf_gateway_connection_test_operation.result_summary IS '결과 요약';
+COMMENT ON COLUMN cpf_gateway_connection_test_operation.created_at IS '생성 시각';
+COMMENT ON COLUMN cpf_gateway_connection_test_operation.started_at IS '시작 시각';
+COMMENT ON COLUMN cpf_gateway_connection_test_operation.completed_at IS '완료 시각';
+COMMENT ON COLUMN cpf_gateway_connection_test_operation.row_version IS '낙관적 버전';
 
-CREATE TABLE cpf_standard_execution (
-    standard_execution_id CHAR(10 CHAR) NOT NULL,
-    execution_name VARCHAR2(150 CHAR) NOT NULL,
-    execution_type VARCHAR2(20 CHAR) NOT NULL,
-    owner_domain VARCHAR2(20 CHAR) NOT NULL,
-    source_module VARCHAR2(20 CHAR) NOT NULL,
-    source_class VARCHAR2(255 CHAR) NOT NULL,
-    source_method VARCHAR2(150 CHAR) NOT NULL,
-    http_method VARCHAR2(10 CHAR),
-    endpoint VARCHAR2(500 CHAR),
-    operation_id VARCHAR2(150 CHAR),
-    description VARCHAR2(1000 CHAR),
-    required_permission VARCHAR2(150 CHAR),
-    audit_reason_required_yn CHAR(1 CHAR) NOT NULL DEFAULT 'N',
-    visibility VARCHAR2(20 CHAR) NOT NULL DEFAULT 'INTERNAL',
-    direct_allowed_yn CHAR(1 CHAR) NOT NULL DEFAULT 'Y',
-    gateway_allowed_yn CHAR(1 CHAR) NOT NULL DEFAULT 'N',
-    source_version VARCHAR2(100 CHAR) NOT NULL,
-    registration_status VARCHAR2(30 CHAR) NOT NULL DEFAULT 'REGISTERED',
-    first_registered_at TIMESTAMP(3) NOT NULL DEFAULT SYSTIMESTAMP,
-    last_discovered_at TIMESTAMP(3) NOT NULL DEFAULT SYSTIMESTAMP,
-    created_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
+CREATE TABLE cpf_gateway_transaction (
+    gateway_transaction_id VARCHAR2(100 CHAR) NOT NULL,
+    transaction_id VARCHAR2(100 CHAR) NOT NULL,
+    trace_id VARCHAR2(100 CHAR) NOT NULL,
+    channel_id VARCHAR2(100 CHAR),
+    source_ip VARCHAR2(100 CHAR),
+    source_port NUMBER(10),
+    gateway_instance_id VARCHAR2(100 CHAR) NOT NULL,
+    binding_id VARCHAR2(100 CHAR) NOT NULL,
+    route_id VARCHAR2(100 CHAR) NOT NULL,
+    route_version VARCHAR2(100 CHAR) NOT NULL,
+    server_group_id VARCHAR2(100 CHAR) NOT NULL,
+    final_instance_id VARCHAR2(100 CHAR),
+    result_status VARCHAR2(30 CHAR) NOT NULL,
+    protocol_status VARCHAR2(30 CHAR),
+    business_code VARCHAR2(100 CHAR),
+    failure_stage VARCHAR2(50 CHAR),
+    unknown_yn CHAR(1 CHAR) NOT NULL DEFAULT 'N',
+    total_duration_ms NUMBER(19) NOT NULL DEFAULT 0,
+    request_size NUMBER(19) NOT NULL DEFAULT 0,
+    response_size NUMBER(19) NOT NULL DEFAULT 0,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT pk_cpf_standard_execution PRIMARY KEY (standard_execution_id),
-    CONSTRAINT ck_cpf_standard_execution_id CHECK (standard_execution_id REGEXP '^[OSB][A-Z]{3}[A-Z0-9]{2}[0-9]{4}$' AND RIGHT(standard_execution_id, 4) <> '0000'),
-    CONSTRAINT ck_cpf_standard_execution_type CHECK (execution_type IN ('ONLINE', 'SHARED', 'BATCH'))
+    binding_version NUMBER(19) NOT NULL DEFAULT 0,
+    config_checksum VARCHAR2(64 CHAR),
+    request_method VARCHAR2(20 CHAR),
+    request_path VARCHAR2(1000 CHAR),
+    completed_at TIMESTAMP,
+    CONSTRAINT pk_cpf_gateway_transaction PRIMARY KEY (gateway_transaction_id),
+    CONSTRAINT ck_cpf_gwy_tx_unknown CHECK (unknown_yn IN ('Y','N')),
+    CONSTRAINT fk_cpf_gwy_tx_binding FOREIGN KEY (binding_id) REFERENCES cpf_gateway_binding (binding_id)
 );
-CREATE INDEX ix_cpf_standard_execution_type ON cpf_standard_execution (execution_type, registration_status);
-CREATE INDEX ix_cpf_standard_execution_owner ON cpf_standard_execution (owner_domain, source_module);
-CREATE INDEX ix_cpf_standard_execution_source ON cpf_standard_execution (source_class, source_method);
-COMMENT ON TABLE cpf_standard_execution IS 'CPF O·S·B 표준 실행 카탈로그';
-COMMENT ON COLUMN cpf_standard_execution.standard_execution_id IS 'CPF O·S·B 10자리 표준 실행 ID';
-COMMENT ON COLUMN cpf_standard_execution.execution_name IS '표준 실행명';
-COMMENT ON COLUMN cpf_standard_execution.execution_type IS '실행 유형 ONLINE, SHARED 또는 BATCH';
-COMMENT ON COLUMN cpf_standard_execution.owner_domain IS '실행 소유 주제영역';
-COMMENT ON COLUMN cpf_standard_execution.source_module IS '발견 소스 모듈';
-COMMENT ON COLUMN cpf_standard_execution.source_class IS '선언 클래스명';
-COMMENT ON COLUMN cpf_standard_execution.source_method IS '선언 메서드명';
-COMMENT ON COLUMN cpf_standard_execution.http_method IS 'HTTP 진입 method';
-COMMENT ON COLUMN cpf_standard_execution.endpoint IS '연결 API 또는 배치 endpoint';
-COMMENT ON COLUMN cpf_standard_execution.operation_id IS '연결 OpenAPI operation ID';
-COMMENT ON COLUMN cpf_standard_execution.description IS '실행 기능 설명';
-COMMENT ON COLUMN cpf_standard_execution.required_permission IS '필수 실행 권한 코드';
-COMMENT ON COLUMN cpf_standard_execution.audit_reason_required_yn IS '감사 사유 필수 여부';
-COMMENT ON COLUMN cpf_standard_execution.visibility IS 'PUBLIC 또는 INTERNAL 노출 범위';
-COMMENT ON COLUMN cpf_standard_execution.direct_allowed_yn IS '업무 URL 직접 호출 허용 여부';
-COMMENT ON COLUMN cpf_standard_execution.gateway_allowed_yn IS '공개 CPF Gateway 호출 허용 여부';
-COMMENT ON COLUMN cpf_standard_execution.source_version IS '소스 버전 또는 빌드 식별자';
-COMMENT ON COLUMN cpf_standard_execution.registration_status IS '등록 상태';
-COMMENT ON COLUMN cpf_standard_execution.first_registered_at IS '최초 등록일시';
-COMMENT ON COLUMN cpf_standard_execution.last_discovered_at IS '최근 발견일시';
-COMMENT ON COLUMN cpf_standard_execution.created_by IS '등록자';
-COMMENT ON COLUMN cpf_standard_execution.created_at IS '등록일시';
-COMMENT ON COLUMN cpf_standard_execution.updated_by IS '수정자';
-COMMENT ON COLUMN cpf_standard_execution.updated_at IS '수정일시';
-CREATE OR REPLACE TRIGGER trg_touch_cpf_standard_execution BEFORE UPDATE ON cpf_standard_execution FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
-/
+CREATE INDEX ix_cpf_gwy_tx_trace ON cpf_gateway_transaction (transaction_id, trace_id, created_at);
+CREATE INDEX ix_cpf_gwy_tx_route ON cpf_gateway_transaction (route_id, result_status, created_at);
+COMMENT ON TABLE cpf_gateway_transaction IS 'Gateway IN/GATEWAY/OUT/RESULT 거래 원장';
+COMMENT ON COLUMN cpf_gateway_transaction.gateway_transaction_id IS 'Gateway 거래 ID';
+COMMENT ON COLUMN cpf_gateway_transaction.transaction_id IS 'CPF 거래 ID';
+COMMENT ON COLUMN cpf_gateway_transaction.trace_id IS 'Trace ID';
+COMMENT ON COLUMN cpf_gateway_transaction.channel_id IS 'Channel ID';
+COMMENT ON COLUMN cpf_gateway_transaction.source_ip IS 'Source IP';
+COMMENT ON COLUMN cpf_gateway_transaction.source_port IS 'Source Port';
+COMMENT ON COLUMN cpf_gateway_transaction.gateway_instance_id IS 'Gateway Instance';
+COMMENT ON COLUMN cpf_gateway_transaction.binding_id IS 'Binding ID';
+COMMENT ON COLUMN cpf_gateway_transaction.route_id IS 'Route ID';
+COMMENT ON COLUMN cpf_gateway_transaction.route_version IS 'Route Version';
+COMMENT ON COLUMN cpf_gateway_transaction.server_group_id IS 'Server Group';
+COMMENT ON COLUMN cpf_gateway_transaction.final_instance_id IS '최종 Instance';
+COMMENT ON COLUMN cpf_gateway_transaction.result_status IS '최종 상태';
+COMMENT ON COLUMN cpf_gateway_transaction.protocol_status IS 'Protocol 상태';
+COMMENT ON COLUMN cpf_gateway_transaction.business_code IS '업무 코드';
+COMMENT ON COLUMN cpf_gateway_transaction.failure_stage IS '실패 단계';
+COMMENT ON COLUMN cpf_gateway_transaction.unknown_yn IS '결과 불명 여부';
+COMMENT ON COLUMN cpf_gateway_transaction.total_duration_ms IS '전체 소요시간';
+COMMENT ON COLUMN cpf_gateway_transaction.request_size IS '요청 크기';
+COMMENT ON COLUMN cpf_gateway_transaction.response_size IS '응답 크기';
+COMMENT ON COLUMN cpf_gateway_transaction.created_at IS '생성 시각';
+COMMENT ON COLUMN cpf_gateway_transaction.binding_version IS 'Binding Row Version Snapshot';
+COMMENT ON COLUMN cpf_gateway_transaction.config_checksum IS 'Gateway Config Checksum Snapshot';
+COMMENT ON COLUMN cpf_gateway_transaction.request_method IS '요청 Method';
+COMMENT ON COLUMN cpf_gateway_transaction.request_path IS '요청 Path';
+COMMENT ON COLUMN cpf_gateway_transaction.completed_at IS '완료 시각';
 
-CREATE TABLE cpf_standard_execution_alias (
-    legacy_execution_id VARCHAR2(32 CHAR) NOT NULL,
-    standard_execution_id CHAR(10 CHAR) NOT NULL,
-    migration_reason VARCHAR2(300 CHAR) NOT NULL,
-    retired_at TIMESTAMP(3) NOT NULL DEFAULT SYSTIMESTAMP,
-    created_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT pk_cpf_standard_execution_alias PRIMARY KEY (legacy_execution_id),
-    CONSTRAINT uk_cpf_standard_execution_alias_current UNIQUE (standard_execution_id, legacy_execution_id),
-    CONSTRAINT ck_cpf_standard_execution_alias_current CHECK (standard_execution_id REGEXP '^[OSB][A-Z]{3}[A-Z0-9]{2}[0-9]{4}$')
-);
-COMMENT ON TABLE cpf_standard_execution_alias IS 'CPF 구형 실행 ID 조회 호환 이력';
-COMMENT ON COLUMN cpf_standard_execution_alias.legacy_execution_id IS '조회 호환용 구형 실행 ID';
-COMMENT ON COLUMN cpf_standard_execution_alias.standard_execution_id IS '현재 10자리 표준 실행 ID';
-COMMENT ON COLUMN cpf_standard_execution_alias.migration_reason IS 'ID 전환 사유';
-COMMENT ON COLUMN cpf_standard_execution_alias.retired_at IS '구형 ID 사용 종료일시';
-COMMENT ON COLUMN cpf_standard_execution_alias.created_by IS '등록자';
-COMMENT ON COLUMN cpf_standard_execution_alias.created_at IS '등록일시';
-COMMENT ON COLUMN cpf_standard_execution_alias.updated_by IS '수정자';
-COMMENT ON COLUMN cpf_standard_execution_alias.updated_at IS '수정일시';
-CREATE OR REPLACE TRIGGER trg_touch_cpf_standard_execution_alias BEFORE UPDATE ON cpf_standard_execution_alias FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
-/
-
-CREATE TABLE cpf_transaction_log (
-    LOG_DATE DATE NOT NULL,
-    LOG_IDX NUMBER(19) GENERATED BY DEFAULT ON NULL AS IDENTITY NOT NULL,
-    RECOVERY_EVENT_ID VARCHAR2(64 CHAR),
-    transaction_id CHAR(34 CHAR),
-    TRACE_ID VARCHAR2(100 CHAR),
-    SPAN_ID VARCHAR2(100 CHAR),
-    PARENT_SPAN_ID VARCHAR2(100 CHAR),
-    SEQUENCE_NO NUMBER(10) DEFAULT 1,
-    MODULE_ID VARCHAR2(20 CHAR) DEFAULT 'N/A',
-    MENU_ID VARCHAR2(50 CHAR),
-    BUSINESS_TRANSACTION_ID VARCHAR2(20 CHAR),
-    BUSINESS_TRANSACTION_NAME VARCHAR2(150 CHAR),
-    LOG_TYPE VARCHAR2(20 CHAR) DEFAULT 'N/A',
-    API_VERSION VARCHAR2(20 CHAR),
-    CLIENT_APP_ID VARCHAR2(80 CHAR),
-    CLIENT_VERSION VARCHAR2(50 CHAR),
-    CALLER_SERVICE VARCHAR2(120 CHAR),
-    CALLER_INSTANCE_ID VARCHAR2(120 CHAR),
-    CORRELATION_ID VARCHAR2(120 CHAR),
-    IDEMPOTENCY_KEY VARCHAR2(120 CHAR),
-    LOCALE VARCHAR2(20 CHAR),
-    TIMEZONE VARCHAR2(50 CHAR),
-    REQUEST_TYPE VARCHAR2(20 CHAR),
-    ORIGINAL_CHANNEL_CODE VARCHAR2(20 CHAR),
-    CHANNEL_CODE VARCHAR2(20 CHAR),
-    MEMBER_NO VARCHAR2(50 CHAR),
-    CUSTOMER_NO VARCHAR2(50 CHAR),
-    SCREEN_ID VARCHAR2(50 CHAR),
-    DEVICE_ID VARCHAR2(100 CHAR),
-    CLIENT_REQUEST_TIME VARCHAR2(30 CHAR),
-    WAS_ID VARCHAR2(50 CHAR),
-    SERVER_INSTANCE_ID VARCHAR2(160 CHAR),
-    HOST_NAME VARCHAR2(120 CHAR),
-    PROCESS_ID VARCHAR2(80 CHAR),
-    THREAD_NAME VARCHAR2(160 CHAR),
-    RESERVED_FIELD_1 VARCHAR2(255 CHAR),
-    RESERVED_FIELD_2 VARCHAR2(255 CHAR),
-    RESERVED_FIELD_3 VARCHAR2(255 CHAR),
-    RESERVED_FIELD_4 VARCHAR2(255 CHAR),
-    RESERVED_FIELD_5 VARCHAR2(255 CHAR),
-    HTTP_METHOD VARCHAR2(10 CHAR),
-    URI VARCHAR2(500 CHAR) DEFAULT 'N/A',
-    CONTROLLER VARCHAR2(255 CHAR),
-    EXECUTION_PACKAGE VARCHAR2(255 CHAR),
-    EXECUTION_CLASS VARCHAR2(255 CHAR),
-    EXECUTION_METHOD VARCHAR2(100 CHAR),
-    EXECUTION_SIGNATURE VARCHAR2(1000 CHAR),
-    WORKFLOW_ID VARCHAR2(50 CHAR),
-    WORKFLOW_NAME VARCHAR2(100 CHAR),
-    WORKFLOW_INSTANCE_ID VARCHAR2(100 CHAR),
-    WORKFLOW_STEP_ID VARCHAR2(50 CHAR),
-    WORKFLOW_STEP_NAME VARCHAR2(100 CHAR),
-    WORKFLOW_STATUS VARCHAR2(30 CHAR),
-    WORKFLOW_FAILURE_POLICY VARCHAR2(30 CHAR),
-    COMPENSATION_YN CHAR(1 CHAR) NOT NULL DEFAULT 'N',
-    COMPENSATION_TRANSACTION_ID VARCHAR2(20 CHAR),
-    COMPENSATION_TARGET_TRANSACTION_ID VARCHAR2(20 CHAR),
-    COMPENSATION_STATUS VARCHAR2(30 CHAR),
-    PARAMETERS MEDIUMTEXT,
-    REQUEST_BODY MEDIUMTEXT,
-    RESPONSE MEDIUMTEXT,
-    HTTP_STATUS NUMBER(10),
-    RESPONSE_CODE VARCHAR2(20 CHAR),
-    MESSAGE_CODE VARCHAR2(20 CHAR),
-    MESSAGE_CONTENT VARCHAR2(1000 CHAR),
-    ERROR_MESSAGE MEDIUMTEXT,
-    ERROR_CODE VARCHAR2(100 CHAR),
-    EXTERNAL_MESSAGE VARCHAR2(1000 CHAR),
-    INTERNAL_MESSAGE MEDIUMTEXT,
-    EXEC_USER VARCHAR2(100 CHAR) NOT NULL DEFAULT 'N/A',
-    CLIENT_IP VARCHAR2(100 CHAR),
-    USER_AGENT VARCHAR2(500 CHAR),
-    START_TIME TIMESTAMP(3),
-    END_TIME TIMESTAMP(3),
-    DURATION_MS NUMBER(19),
-    created_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT pk_cpf_transaction_log PRIMARY KEY (LOG_IDX),
-    CONSTRAINT uk_cpf_transaction_log_recovery_event UNIQUE (RECOVERY_EVENT_ID)
-);
-CREATE INDEX ix_cpf_transaction_log_date ON cpf_transaction_log (LOG_DATE);
-CREATE INDEX ix_cpf_transaction_log_transaction_time ON cpf_transaction_log (TRANSACTION_ID, START_TIME, LOG_IDX);
-CREATE INDEX ix_cpf_transaction_log_trace_id ON cpf_transaction_log (TRACE_ID);
-CREATE INDEX ix_cpf_transaction_log_business_time ON cpf_transaction_log (BUSINESS_TRANSACTION_ID, START_TIME);
-CREATE INDEX ix_cpf_transaction_log_client_app ON cpf_transaction_log (CLIENT_APP_ID, START_TIME);
-CREATE INDEX ix_cpf_transaction_log_correlation ON cpf_transaction_log (CORRELATION_ID, START_TIME);
-CREATE INDEX ix_cpf_transaction_log_idempotency ON cpf_transaction_log (IDEMPOTENCY_KEY);
-CREATE INDEX ix_cpf_transaction_log_member_time ON cpf_transaction_log (MEMBER_NO, START_TIME);
-CREATE INDEX ix_cpf_transaction_log_customer_time ON cpf_transaction_log (CUSTOMER_NO, START_TIME);
-CREATE INDEX ix_cpf_transaction_log_channel_time ON cpf_transaction_log (CHANNEL_CODE, START_TIME);
-CREATE INDEX ix_cpf_transaction_log_module_time ON cpf_transaction_log (MODULE_ID, START_TIME);
-CREATE INDEX ix_cpf_transaction_log_server_time ON cpf_transaction_log (SERVER_INSTANCE_ID, START_TIME);
-CREATE INDEX ix_cpf_transaction_log_was_time ON cpf_transaction_log (WAS_ID, START_TIME);
-CREATE INDEX ix_cpf_transaction_log_module_instance_time ON cpf_transaction_log (MODULE_ID, SERVER_INSTANCE_ID, START_TIME);
-CREATE INDEX ix_cpf_transaction_log_status_time ON cpf_transaction_log (LOG_TYPE, RESPONSE_CODE, START_TIME);
-CREATE INDEX ix_cpf_transaction_log_http_status_time ON cpf_transaction_log (HTTP_STATUS, START_TIME);
-COMMENT ON TABLE cpf_transaction_log IS 'CPF 거래 요약 로그';
-COMMENT ON COLUMN cpf_transaction_log.LOG_DATE IS '로그 기준일';
-COMMENT ON COLUMN cpf_transaction_log.LOG_IDX IS '거래 로그 순번';
-COMMENT ON COLUMN cpf_transaction_log.RECOVERY_EVENT_ID IS 'DB 로그 복구 이벤트 중복 방지 ID';
-COMMENT ON COLUMN cpf_transaction_log.transaction_id IS '전역 거래 ID';
-COMMENT ON COLUMN cpf_transaction_log.TRACE_ID IS '분산 추적 ID';
-COMMENT ON COLUMN cpf_transaction_log.SPAN_ID IS '현재 span ID';
-COMMENT ON COLUMN cpf_transaction_log.PARENT_SPAN_ID IS '상위 span ID';
-COMMENT ON COLUMN cpf_transaction_log.SEQUENCE_NO IS '거래 내부 로그 순번';
-COMMENT ON COLUMN cpf_transaction_log.MODULE_ID IS '모듈 ID';
-COMMENT ON COLUMN cpf_transaction_log.MENU_ID IS '메뉴 또는 화면 ID';
-COMMENT ON COLUMN cpf_transaction_log.BUSINESS_TRANSACTION_ID IS '업무 거래 ID';
-COMMENT ON COLUMN cpf_transaction_log.BUSINESS_TRANSACTION_NAME IS '업무 거래명';
-COMMENT ON COLUMN cpf_transaction_log.LOG_TYPE IS '로그 유형';
-COMMENT ON COLUMN cpf_transaction_log.API_VERSION IS '호출 API 버전';
-COMMENT ON COLUMN cpf_transaction_log.CLIENT_APP_ID IS '클라이언트 앱 또는 제휴 시스템 ID';
-COMMENT ON COLUMN cpf_transaction_log.CLIENT_VERSION IS '클라이언트 앱 또는 SDK 버전';
-COMMENT ON COLUMN cpf_transaction_log.CALLER_SERVICE IS '호출 서비스명';
-COMMENT ON COLUMN cpf_transaction_log.CALLER_INSTANCE_ID IS '호출 인스턴스 ID';
-COMMENT ON COLUMN cpf_transaction_log.CORRELATION_ID IS '내부 연계 상관관계 ID';
-COMMENT ON COLUMN cpf_transaction_log.IDEMPOTENCY_KEY IS '중복 처리 방지 멱등키';
-COMMENT ON COLUMN cpf_transaction_log.LOCALE IS '클라이언트 locale';
-COMMENT ON COLUMN cpf_transaction_log.TIMEZONE IS '클라이언트 시간대';
-COMMENT ON COLUMN cpf_transaction_log.REQUEST_TYPE IS '요청 유형';
-COMMENT ON COLUMN cpf_transaction_log.ORIGINAL_CHANNEL_CODE IS '최초 유입 채널 코드';
-COMMENT ON COLUMN cpf_transaction_log.CHANNEL_CODE IS '현재 처리 채널 코드';
-COMMENT ON COLUMN cpf_transaction_log.MEMBER_NO IS '회원 번호';
-COMMENT ON COLUMN cpf_transaction_log.CUSTOMER_NO IS '고객 번호';
-COMMENT ON COLUMN cpf_transaction_log.SCREEN_ID IS '화면 ID';
-COMMENT ON COLUMN cpf_transaction_log.DEVICE_ID IS '디바이스 ID';
-COMMENT ON COLUMN cpf_transaction_log.CLIENT_REQUEST_TIME IS '클라이언트 요청 생성 시각';
-COMMENT ON COLUMN cpf_transaction_log.WAS_ID IS '처리 WAS ID';
-COMMENT ON COLUMN cpf_transaction_log.SERVER_INSTANCE_ID IS '처리 서버 인스턴스 ID';
-COMMENT ON COLUMN cpf_transaction_log.HOST_NAME IS '처리 서버 호스트명';
-COMMENT ON COLUMN cpf_transaction_log.PROCESS_ID IS '처리 서버 프로세스 ID';
-COMMENT ON COLUMN cpf_transaction_log.THREAD_NAME IS '처리 스레드명';
-COMMENT ON COLUMN cpf_transaction_log.RESERVED_FIELD_1 IS '업무 확장 예약 필드 1';
-COMMENT ON COLUMN cpf_transaction_log.RESERVED_FIELD_2 IS '업무 확장 예약 필드 2';
-COMMENT ON COLUMN cpf_transaction_log.RESERVED_FIELD_3 IS '업무 확장 예약 필드 3';
-COMMENT ON COLUMN cpf_transaction_log.RESERVED_FIELD_4 IS '업무 확장 예약 필드 4';
-COMMENT ON COLUMN cpf_transaction_log.RESERVED_FIELD_5 IS '업무 확장 예약 필드 5';
-COMMENT ON COLUMN cpf_transaction_log.HTTP_METHOD IS 'HTTP 메서드';
-COMMENT ON COLUMN cpf_transaction_log.URI IS '요청 URI';
-COMMENT ON COLUMN cpf_transaction_log.CONTROLLER IS 'Controller 요약';
-COMMENT ON COLUMN cpf_transaction_log.EXECUTION_PACKAGE IS '실행 패키지명';
-COMMENT ON COLUMN cpf_transaction_log.EXECUTION_CLASS IS '실행 클래스명';
-COMMENT ON COLUMN cpf_transaction_log.EXECUTION_METHOD IS '실행 메서드명';
-COMMENT ON COLUMN cpf_transaction_log.EXECUTION_SIGNATURE IS '실행 시그니처';
-COMMENT ON COLUMN cpf_transaction_log.WORKFLOW_ID IS '워크플로우 ID';
-COMMENT ON COLUMN cpf_transaction_log.WORKFLOW_NAME IS '워크플로우명';
-COMMENT ON COLUMN cpf_transaction_log.WORKFLOW_INSTANCE_ID IS '워크플로우 인스턴스 ID';
-COMMENT ON COLUMN cpf_transaction_log.WORKFLOW_STEP_ID IS '워크플로우 단계 ID';
-COMMENT ON COLUMN cpf_transaction_log.WORKFLOW_STEP_NAME IS '워크플로우 단계명';
-COMMENT ON COLUMN cpf_transaction_log.WORKFLOW_STATUS IS '워크플로우 상태';
-COMMENT ON COLUMN cpf_transaction_log.WORKFLOW_FAILURE_POLICY IS '워크플로우 실패 정책';
-COMMENT ON COLUMN cpf_transaction_log.COMPENSATION_YN IS '보상 거래 여부';
-COMMENT ON COLUMN cpf_transaction_log.COMPENSATION_TRANSACTION_ID IS '보상 거래 ID';
-COMMENT ON COLUMN cpf_transaction_log.COMPENSATION_TARGET_TRANSACTION_ID IS '보상 대상 거래 ID';
-COMMENT ON COLUMN cpf_transaction_log.COMPENSATION_STATUS IS '보상 처리 상태';
-COMMENT ON COLUMN cpf_transaction_log.PARAMETERS IS '마스킹된 요청 파라미터';
-COMMENT ON COLUMN cpf_transaction_log.REQUEST_BODY IS '마스킹된 요청 본문';
-COMMENT ON COLUMN cpf_transaction_log.RESPONSE IS '마스킹된 응답 본문';
-COMMENT ON COLUMN cpf_transaction_log.HTTP_STATUS IS 'HTTP 상태 코드';
-COMMENT ON COLUMN cpf_transaction_log.RESPONSE_CODE IS 'CPF 응답 코드';
-COMMENT ON COLUMN cpf_transaction_log.MESSAGE_CODE IS '메시지 코드';
-COMMENT ON COLUMN cpf_transaction_log.MESSAGE_CONTENT IS '외부 호출 메시지';
-COMMENT ON COLUMN cpf_transaction_log.ERROR_MESSAGE IS '마스킹된 오류 메시지';
-COMMENT ON COLUMN cpf_transaction_log.ERROR_CODE IS '내부 오류 코드';
-COMMENT ON COLUMN cpf_transaction_log.EXTERNAL_MESSAGE IS '외부 표시 메시지';
-COMMENT ON COLUMN cpf_transaction_log.INTERNAL_MESSAGE IS '내부 진단 메시지';
-COMMENT ON COLUMN cpf_transaction_log.EXEC_USER IS '실행 사용자';
-COMMENT ON COLUMN cpf_transaction_log.CLIENT_IP IS '클라이언트 IP';
-COMMENT ON COLUMN cpf_transaction_log.USER_AGENT IS 'User-Agent';
-COMMENT ON COLUMN cpf_transaction_log.START_TIME IS '처리 시작 시각';
-COMMENT ON COLUMN cpf_transaction_log.END_TIME IS '처리 종료 시각';
-COMMENT ON COLUMN cpf_transaction_log.DURATION_MS IS '처리 시간 밀리초';
-COMMENT ON COLUMN cpf_transaction_log.created_by IS '등록자';
-COMMENT ON COLUMN cpf_transaction_log.created_at IS '등록일시';
-COMMENT ON COLUMN cpf_transaction_log.updated_by IS '수정자';
-COMMENT ON COLUMN cpf_transaction_log.updated_at IS '수정일시';
-CREATE OR REPLACE TRIGGER trg_touch_cpf_transaction_log BEFORE UPDATE ON cpf_transaction_log FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
-/
-
-CREATE TABLE cpf_transaction_log_detail (
-    DETAIL_ID NUMBER(19) GENERATED BY DEFAULT ON NULL AS IDENTITY NOT NULL,
-    LOG_IDX NUMBER(19) NOT NULL,
-    DETAIL_KEY VARCHAR2(100 CHAR) NOT NULL DEFAULT 'N/A',
-    DETAIL_VALUE MEDIUMTEXT NOT NULL,
-    created_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT pk_cpf_transaction_log_detail PRIMARY KEY (DETAIL_ID),
-    CONSTRAINT fk_cpf_transaction_log_detail_log FOREIGN KEY (LOG_IDX) REFERENCES cpf_transaction_log (LOG_IDX) ON DELETE CASCADE
-);
-CREATE INDEX ix_cpf_transaction_log_detail_log_key ON cpf_transaction_log_detail (LOG_IDX, DETAIL_KEY);
-COMMENT ON TABLE cpf_transaction_log_detail IS 'CPF 거래 상세 로그';
-COMMENT ON COLUMN cpf_transaction_log_detail.DETAIL_ID IS '거래 상세 로그 순번';
-COMMENT ON COLUMN cpf_transaction_log_detail.LOG_IDX IS '거래 로그 순번';
-COMMENT ON COLUMN cpf_transaction_log_detail.DETAIL_KEY IS '상세 항목 키';
-COMMENT ON COLUMN cpf_transaction_log_detail.DETAIL_VALUE IS '상세 항목 값';
-COMMENT ON COLUMN cpf_transaction_log_detail.created_by IS '등록자';
-COMMENT ON COLUMN cpf_transaction_log_detail.created_at IS '등록일시';
-COMMENT ON COLUMN cpf_transaction_log_detail.updated_by IS '수정자';
-COMMENT ON COLUMN cpf_transaction_log_detail.updated_at IS '수정일시';
-CREATE OR REPLACE TRIGGER trg_touch_cpf_transaction_log_detail BEFORE UPDATE ON cpf_transaction_log_detail FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
-/
-
-CREATE TABLE cpf_transaction_meta (
-    transaction_id VARCHAR2(20 CHAR) NOT NULL,
-    transaction_name VARCHAR2(150 CHAR) NOT NULL,
-    module_code VARCHAR2(20 CHAR) NOT NULL,
-    domain_code VARCHAR2(50 CHAR),
-    http_method VARCHAR2(20 CHAR) NOT NULL DEFAULT 'ANY',
-    api_path VARCHAR2(500 CHAR) NOT NULL,
-    controller_class VARCHAR2(255 CHAR) NOT NULL,
-    handler_method VARCHAR2(150 CHAR) NOT NULL,
-    swagger_operation_id VARCHAR2(150 CHAR),
-    log_policy_key VARCHAR2(120 CHAR),
-    sensitive_yn CHAR(1 CHAR) NOT NULL DEFAULT 'N',
-    masking_policy_key VARCHAR2(120 CHAR),
-    active_yn CHAR(1 CHAR) NOT NULL DEFAULT 'Y',
-    first_detected_at TIMESTAMP(3) NOT NULL DEFAULT SYSTIMESTAMP,
-    last_detected_at TIMESTAMP(3) NOT NULL DEFAULT SYSTIMESTAMP,
-    last_scanned_at TIMESTAMP(3) NOT NULL DEFAULT SYSTIMESTAMP,
-    created_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT pk_cpf_transaction_meta PRIMARY KEY (transaction_id)
-);
-CREATE INDEX ix_cpf_transaction_meta_module ON cpf_transaction_meta (module_code, domain_code, active_yn);
-CREATE INDEX ix_cpf_transaction_meta_path ON cpf_transaction_meta (http_method, api_path);
-CREATE INDEX ix_cpf_transaction_meta_policy ON cpf_transaction_meta (log_policy_key, active_yn);
-CREATE INDEX ix_cpf_transaction_meta_scan ON cpf_transaction_meta (active_yn, last_scanned_at);
-COMMENT ON TABLE cpf_transaction_meta IS 'CPF 온라인 거래 메타';
-COMMENT ON COLUMN cpf_transaction_meta.transaction_id IS '업무 거래 정의 ID(실행 transactionId와 별개)';
-COMMENT ON COLUMN cpf_transaction_meta.transaction_name IS '업무 거래명';
-COMMENT ON COLUMN cpf_transaction_meta.module_code IS '모듈 코드';
-COMMENT ON COLUMN cpf_transaction_meta.domain_code IS '업무 영역 코드';
-COMMENT ON COLUMN cpf_transaction_meta.http_method IS 'HTTP 메서드';
-COMMENT ON COLUMN cpf_transaction_meta.api_path IS 'API 경로';
-COMMENT ON COLUMN cpf_transaction_meta.controller_class IS 'Controller 클래스명';
-COMMENT ON COLUMN cpf_transaction_meta.handler_method IS 'Handler 메서드명';
-COMMENT ON COLUMN cpf_transaction_meta.swagger_operation_id IS 'Swagger operation 식별자';
-COMMENT ON COLUMN cpf_transaction_meta.log_policy_key IS '연결 로그 정책 키';
-COMMENT ON COLUMN cpf_transaction_meta.sensitive_yn IS '민감 거래 여부';
-COMMENT ON COLUMN cpf_transaction_meta.masking_policy_key IS '마스킹 정책 키';
-COMMENT ON COLUMN cpf_transaction_meta.active_yn IS '활성 여부';
-COMMENT ON COLUMN cpf_transaction_meta.first_detected_at IS '최초 감지일시';
-COMMENT ON COLUMN cpf_transaction_meta.last_detected_at IS '최근 감지일시';
-COMMENT ON COLUMN cpf_transaction_meta.last_scanned_at IS '최근 스캔일시';
-COMMENT ON COLUMN cpf_transaction_meta.created_by IS '등록자';
-COMMENT ON COLUMN cpf_transaction_meta.created_at IS '등록일시';
-COMMENT ON COLUMN cpf_transaction_meta.updated_by IS '수정자';
-COMMENT ON COLUMN cpf_transaction_meta.updated_at IS '수정일시';
-CREATE OR REPLACE TRIGGER trg_touch_cpf_transaction_meta BEFORE UPDATE ON cpf_transaction_meta FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
-/
-
-CREATE TABLE cpf_transaction_segment (
-    segment_id NUMBER(19) GENERATED BY DEFAULT ON NULL AS IDENTITY NOT NULL,
-    transaction_segment_id VARCHAR2(120 CHAR) NOT NULL,
-    transaction_id CHAR(34 CHAR) NOT NULL,
-    parent_segment_id VARCHAR2(120 CHAR),
-    transaction_role VARCHAR2(40 CHAR) NOT NULL,
-    module_code VARCHAR2(20 CHAR) NOT NULL,
-    source_module_code VARCHAR2(20 CHAR),
-    target_module_code VARCHAR2(20 CHAR),
-    direction VARCHAR2(20 CHAR) NOT NULL,
-    call_depth NUMBER(10) NOT NULL DEFAULT 0,
-    sequence_no NUMBER(10) NOT NULL DEFAULT 1,
-    api_path VARCHAR2(500 CHAR),
-    transaction_name VARCHAR2(200 CHAR),
-    started_at TIMESTAMP(6) NOT NULL,
-    ended_at TIMESTAMP(6),
-    duration_ms NUMBER(19),
-    status VARCHAR2(30 CHAR) NOT NULL DEFAULT 'RUNNING',
-    failure_yn CHAR(1 CHAR) NOT NULL DEFAULT 'N',
-    failure_code VARCHAR2(100 CHAR),
-    failure_message_masked VARCHAR2(1000 CHAR),
-    request_header_snapshot_masked MEDIUMTEXT,
-    response_header_snapshot_masked MEDIUMTEXT,
-    extension_header_snapshot_masked MEDIUMTEXT,
-    customer_no_masked VARCHAR2(80 CHAR),
-    member_no_masked VARCHAR2(80 CHAR),
-    user_id_masked VARCHAR2(80 CHAR),
-    operator_id_masked VARCHAR2(80 CHAR),
-    channel_code VARCHAR2(30 CHAR),
-    original_channel_code VARCHAR2(30 CHAR),
-    client_app_id VARCHAR2(100 CHAR),
-    caller_service VARCHAR2(100 CHAR),
-    external_institution_code VARCHAR2(50 CHAR),
-    external_transaction_id VARCHAR2(120 CHAR),
-    selected_instance_id VARCHAR2(100 CHAR),
-    attempt_no NUMBER(10),
-    retry_yn CHAR(1 CHAR),
-    failover_yn CHAR(1 CHAR),
-    circuit_state VARCHAR2(20 CHAR),
-    downstream_http_status NUMBER(10),
-    result_state VARCHAR2(30 CHAR),
-    unknown_result_id VARCHAR2(100 CHAR),
-    created_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
-    created_at TIMESTAMP(6) NOT NULL DEFAULT SYSTIMESTAMP,
-    updated_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
-    updated_at TIMESTAMP(6) NOT NULL DEFAULT SYSTIMESTAMP,
-    CONSTRAINT pk_cpf_transaction_segment PRIMARY KEY (segment_id),
-    CONSTRAINT uk_cpf_transaction_segment_id UNIQUE (transaction_segment_id)
-);
-CREATE INDEX ix_cpf_transaction_segment_transaction ON cpf_transaction_segment (transaction_id, started_at, segment_id);
-CREATE INDEX ix_cpf_transaction_segment_parent ON cpf_transaction_segment (parent_segment_id);
-CREATE INDEX ix_cpf_transaction_segment_module ON cpf_transaction_segment (module_code, started_at);
-CREATE INDEX ix_cpf_transaction_segment_role ON cpf_transaction_segment (transaction_role, direction);
-CREATE INDEX ix_cpf_transaction_segment_status ON cpf_transaction_segment (failure_yn, status, started_at);
-CREATE INDEX ix_cpf_transaction_segment_duration ON cpf_transaction_segment (duration_ms);
-CREATE INDEX ix_cpf_transaction_segment_customer ON cpf_transaction_segment (customer_no_masked, started_at);
-CREATE INDEX ix_cpf_transaction_segment_member ON cpf_transaction_segment (member_no_masked, started_at);
-CREATE INDEX ix_cpf_transaction_segment_user ON cpf_transaction_segment (user_id_masked, started_at);
-CREATE INDEX ix_cpf_transaction_segment_operator ON cpf_transaction_segment (operator_id_masked, started_at);
-CREATE INDEX ix_cpf_transaction_segment_client ON cpf_transaction_segment (client_app_id, caller_service, started_at);
-CREATE INDEX ix_cpf_transaction_segment_external ON cpf_transaction_segment (external_institution_code, external_transaction_id);
-CREATE INDEX ix_cpf_transaction_segment_instance ON cpf_transaction_segment (selected_instance_id, started_at);
-CREATE INDEX ix_cpf_transaction_segment_attempt ON cpf_transaction_segment (transaction_id, attempt_no);
-CREATE INDEX ix_cpf_transaction_segment_unknown ON cpf_transaction_segment (unknown_result_id);
-COMMENT ON TABLE cpf_transaction_segment IS 'CPF 복합 거래 구간 로그';
-COMMENT ON COLUMN cpf_transaction_segment.segment_id IS '거래 구간 내부 순번';
-COMMENT ON COLUMN cpf_transaction_segment.transaction_segment_id IS '거래 구간 ID';
-COMMENT ON COLUMN cpf_transaction_segment.transaction_id IS 'CPF transactionId';
-COMMENT ON COLUMN cpf_transaction_segment.parent_segment_id IS '상위 거래 구간 ID';
-COMMENT ON COLUMN cpf_transaction_segment.transaction_role IS '구간 역할';
-COMMENT ON COLUMN cpf_transaction_segment.module_code IS '현재 처리 모듈 코드';
-COMMENT ON COLUMN cpf_transaction_segment.source_module_code IS '호출 출발 모듈 코드';
-COMMENT ON COLUMN cpf_transaction_segment.target_module_code IS '호출 대상 모듈 코드';
-COMMENT ON COLUMN cpf_transaction_segment.direction IS '구간 처리 방향';
-COMMENT ON COLUMN cpf_transaction_segment.call_depth IS '호출 깊이';
-COMMENT ON COLUMN cpf_transaction_segment.sequence_no IS '거래 내 구간 순번';
-COMMENT ON COLUMN cpf_transaction_segment.api_path IS '처리 API 경로';
-COMMENT ON COLUMN cpf_transaction_segment.transaction_name IS '거래 구간명';
-COMMENT ON COLUMN cpf_transaction_segment.started_at IS '구간 시작 일시';
-COMMENT ON COLUMN cpf_transaction_segment.ended_at IS '구간 종료 일시';
-COMMENT ON COLUMN cpf_transaction_segment.duration_ms IS '구간 수행시간 밀리초';
-COMMENT ON COLUMN cpf_transaction_segment.status IS '구간 처리 상태';
-COMMENT ON COLUMN cpf_transaction_segment.failure_yn IS '실패 여부';
-COMMENT ON COLUMN cpf_transaction_segment.failure_code IS '실패 코드';
-COMMENT ON COLUMN cpf_transaction_segment.failure_message_masked IS '마스킹된 실패 메시지';
-COMMENT ON COLUMN cpf_transaction_segment.request_header_snapshot_masked IS '마스킹된 요청 헤더 snapshot';
-COMMENT ON COLUMN cpf_transaction_segment.response_header_snapshot_masked IS '마스킹된 응답 헤더 snapshot';
-COMMENT ON COLUMN cpf_transaction_segment.extension_header_snapshot_masked IS '마스킹된 확장 헤더 snapshot';
-COMMENT ON COLUMN cpf_transaction_segment.customer_no_masked IS '마스킹된 고객번호';
-COMMENT ON COLUMN cpf_transaction_segment.member_no_masked IS '마스킹된 회원번호';
-COMMENT ON COLUMN cpf_transaction_segment.user_id_masked IS '마스킹된 사용자 ID';
-COMMENT ON COLUMN cpf_transaction_segment.operator_id_masked IS '마스킹된 운영자 ID';
-COMMENT ON COLUMN cpf_transaction_segment.channel_code IS '현재 채널 코드';
-COMMENT ON COLUMN cpf_transaction_segment.original_channel_code IS '최초 유입 채널 코드';
-COMMENT ON COLUMN cpf_transaction_segment.client_app_id IS '클라이언트 애플리케이션 ID';
-COMMENT ON COLUMN cpf_transaction_segment.caller_service IS '호출 서비스 ID';
-COMMENT ON COLUMN cpf_transaction_segment.external_institution_code IS '외부기관 코드';
-COMMENT ON COLUMN cpf_transaction_segment.external_transaction_id IS '외부기관 거래 ID';
-COMMENT ON COLUMN cpf_transaction_segment.selected_instance_id IS '선택된 하위 서비스 인스턴스 ID';
-COMMENT ON COLUMN cpf_transaction_segment.attempt_no IS '서비스 호출 시도 순번';
-COMMENT ON COLUMN cpf_transaction_segment.retry_yn IS '재시도 여부';
-COMMENT ON COLUMN cpf_transaction_segment.failover_yn IS '다른 인스턴스로 전환한 여부';
-COMMENT ON COLUMN cpf_transaction_segment.circuit_state IS '호출 시점 circuit 상태';
-COMMENT ON COLUMN cpf_transaction_segment.downstream_http_status IS '하위 서비스 HTTP 상태';
-COMMENT ON COLUMN cpf_transaction_segment.result_state IS '호출 결과 상태';
-COMMENT ON COLUMN cpf_transaction_segment.unknown_result_id IS '결과 미확정 관리 ID';
-COMMENT ON COLUMN cpf_transaction_segment.created_by IS '등록자';
-COMMENT ON COLUMN cpf_transaction_segment.created_at IS '등록일시';
-COMMENT ON COLUMN cpf_transaction_segment.updated_by IS '수정자';
-COMMENT ON COLUMN cpf_transaction_segment.updated_at IS '수정일시';
-CREATE OR REPLACE TRIGGER trg_touch_cpf_transaction_segment BEFORE UPDATE ON cpf_transaction_segment FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
-/
-
-CREATE TABLE cpf_unknown_result (
-    unknown_seq NUMBER(19) GENERATED BY DEFAULT ON NULL AS IDENTITY NOT NULL,
-    unknown_id VARCHAR2(120 CHAR) NOT NULL,
-    unknown_type VARCHAR2(40 CHAR) NOT NULL,
-    unknown_status VARCHAR2(40 CHAR) NOT NULL DEFAULT 'CHECK_PENDING',
-    transaction_id CHAR(34 CHAR),
-    segment_id VARCHAR2(120 CHAR),
-    external_key VARCHAR2(200 CHAR),
+CREATE TABLE cpf_gateway_attempt (
+    attempt_id VARCHAR2(100 CHAR) NOT NULL,
+    gateway_transaction_id VARCHAR2(100 CHAR) NOT NULL,
+    attempt_no NUMBER(10) NOT NULL,
+    instance_id VARCHAR2(100 CHAR) NOT NULL,
+    target_host VARCHAR2(300 CHAR),
+    target_port NUMBER(10),
+    target_protocol VARCHAR2(30 CHAR) NOT NULL,
+    connect_duration_ms NUMBER(19) NOT NULL DEFAULT 0,
+    response_duration_ms NUMBER(19) NOT NULL DEFAULT 0,
+    attempt_status VARCHAR2(30 CHAR) NOT NULL,
+    protocol_status VARCHAR2(30 CHAR),
     failure_code VARCHAR2(100 CHAR),
     failure_message VARCHAR2(1000 CHAR),
-    next_action VARCHAR2(100 CHAR),
-    detected_at TIMESTAMP(3) NOT NULL DEFAULT SYSTIMESTAMP,
-    resolved_at TIMESTAMP(3),
-    resolved_by VARCHAR2(100 CHAR),
-    audit_reason VARCHAR2(500 CHAR),
-    created_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'CPF',
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    attempt_count NUMBER(10) NOT NULL DEFAULT 0,
-    next_check_at TIMESTAMP(3),
-    lease_owner VARCHAR2(120 CHAR),
-    lease_until TIMESTAMP(3),
-    row_version NUMBER(19) NOT NULL DEFAULT 0,
-    CONSTRAINT pk_cpf_unknown_result PRIMARY KEY (unknown_seq),
-    CONSTRAINT uk_cpf_unknown_result_id UNIQUE (unknown_id)
+    started_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    finished_at TIMESTAMP,
+    gateway_instance_id VARCHAR2(100 CHAR),
+    selection_reason VARCHAR2(100 CHAR),
+    unknown_yn CHAR(1 CHAR) NOT NULL DEFAULT 'N',
+    CONSTRAINT pk_cpf_gateway_attempt PRIMARY KEY (attempt_id),
+    CONSTRAINT uk_cpf_gwy_attempt_no UNIQUE (gateway_transaction_id, attempt_no),
+    CONSTRAINT fk_cpf_gwy_attempt_tx FOREIGN KEY (gateway_transaction_id) REFERENCES cpf_gateway_transaction (gateway_transaction_id)
 );
-CREATE INDEX ix_cpf_unknown_result_status ON cpf_unknown_result (unknown_type, unknown_status, detected_at);
-CREATE INDEX ix_cpf_unknown_result_tx ON cpf_unknown_result (transaction_id, segment_id);
-CREATE INDEX ix_cpf_unknown_result_external ON cpf_unknown_result (external_key);
-CREATE INDEX ix_cpf_unknown_result_claim ON cpf_unknown_result (unknown_status, next_check_at, lease_until, detected_at);
-COMMENT ON TABLE cpf_unknown_result IS 'CPF Unknown result 및 reconciliation 이력';
-COMMENT ON COLUMN cpf_unknown_result.unknown_seq IS 'Unknown result 내부 순번';
-COMMENT ON COLUMN cpf_unknown_result.unknown_id IS 'Unknown result ID';
-COMMENT ON COLUMN cpf_unknown_result.unknown_type IS 'Unknown result 유형';
-COMMENT ON COLUMN cpf_unknown_result.unknown_status IS 'Unknown result 상태';
-COMMENT ON COLUMN cpf_unknown_result.transaction_id IS '전역 거래 ID';
-COMMENT ON COLUMN cpf_unknown_result.segment_id IS '거래 구간 ID';
-COMMENT ON COLUMN cpf_unknown_result.external_key IS '외부 시스템 또는 메시지 키';
-COMMENT ON COLUMN cpf_unknown_result.failure_code IS '실패 코드';
-COMMENT ON COLUMN cpf_unknown_result.failure_message IS '실패 메시지';
-COMMENT ON COLUMN cpf_unknown_result.next_action IS '다음 조치';
-COMMENT ON COLUMN cpf_unknown_result.detected_at IS '감지 일시';
-COMMENT ON COLUMN cpf_unknown_result.resolved_at IS '해결 일시';
-COMMENT ON COLUMN cpf_unknown_result.resolved_by IS '해결 운영자';
-COMMENT ON COLUMN cpf_unknown_result.audit_reason IS '수동 처리 감사 사유';
-COMMENT ON COLUMN cpf_unknown_result.created_by IS '등록자';
-COMMENT ON COLUMN cpf_unknown_result.created_at IS '등록일시';
-COMMENT ON COLUMN cpf_unknown_result.updated_by IS '수정자';
-COMMENT ON COLUMN cpf_unknown_result.updated_at IS '수정일시';
-COMMENT ON COLUMN cpf_unknown_result.attempt_count IS '자동 결과확인 시도 횟수';
-COMMENT ON COLUMN cpf_unknown_result.next_check_at IS '다음 자동 확인 예정 일시';
-COMMENT ON COLUMN cpf_unknown_result.lease_owner IS 'Reconciliation claim 소유자';
-COMMENT ON COLUMN cpf_unknown_result.lease_until IS 'Reconciliation claim 만료 일시';
-COMMENT ON COLUMN cpf_unknown_result.row_version IS 'Optimistic lock version';
-CREATE OR REPLACE TRIGGER trg_touch_cpf_unknown_result BEFORE UPDATE ON cpf_unknown_result FOR EACH ROW BEGIN :NEW.updated_at := CURRENT_TIMESTAMP; END;
-/
+COMMENT ON TABLE cpf_gateway_attempt IS 'Gateway Retry/Failover Attempt 원장';
+COMMENT ON COLUMN cpf_gateway_attempt.attempt_id IS 'Attempt ID';
+COMMENT ON COLUMN cpf_gateway_attempt.gateway_transaction_id IS 'Gateway 거래 ID';
+COMMENT ON COLUMN cpf_gateway_attempt.attempt_no IS 'Attempt 순번';
+COMMENT ON COLUMN cpf_gateway_attempt.instance_id IS 'Target Instance';
+COMMENT ON COLUMN cpf_gateway_attempt.target_host IS 'Target Host';
+COMMENT ON COLUMN cpf_gateway_attempt.target_port IS 'Target Port';
+COMMENT ON COLUMN cpf_gateway_attempt.target_protocol IS 'Target Protocol';
+COMMENT ON COLUMN cpf_gateway_attempt.connect_duration_ms IS 'Connect 시간';
+COMMENT ON COLUMN cpf_gateway_attempt.response_duration_ms IS 'Response 시간';
+COMMENT ON COLUMN cpf_gateway_attempt.attempt_status IS 'Attempt 상태';
+COMMENT ON COLUMN cpf_gateway_attempt.protocol_status IS 'Protocol 상태';
+COMMENT ON COLUMN cpf_gateway_attempt.failure_code IS '실패 코드';
+COMMENT ON COLUMN cpf_gateway_attempt.failure_message IS '실패 메시지';
+COMMENT ON COLUMN cpf_gateway_attempt.started_at IS '시작 시각';
+COMMENT ON COLUMN cpf_gateway_attempt.finished_at IS '종료 시각';
+COMMENT ON COLUMN cpf_gateway_attempt.gateway_instance_id IS 'Gateway Instance';
+COMMENT ON COLUMN cpf_gateway_attempt.selection_reason IS 'Target 선택 사유';
+COMMENT ON COLUMN cpf_gateway_attempt.unknown_yn IS 'Attempt 결과 불명 여부';
+
+CREATE TABLE cpf_gateway_transaction_capture_segment (
+    gateway_transaction_id VARCHAR2(100 CHAR) NOT NULL,
+    segment_type VARCHAR2(40 CHAR) NOT NULL,
+    policy_schema_version NUMBER(10) NOT NULL DEFAULT 2,
+    policy_checksum VARCHAR2(64 CHAR) NOT NULL,
+    captured_value CLOB NOT NULL,
+    truncated_yn CHAR(1 CHAR) NOT NULL DEFAULT 'N',
+    metadata_only_yn CHAR(1 CHAR) NOT NULL DEFAULT 'N',
+    observed_bytes NUMBER(19) NOT NULL DEFAULT 0,
+    captured_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT pk_cpf_gateway_transaction_capture_segment PRIMARY KEY (gateway_transaction_id, segment_type),
+    CONSTRAINT ck_cpf_gwy_capture_truncated CHECK (truncated_yn IN ('Y','N')),
+    CONSTRAINT ck_cpf_gwy_capture_metadata CHECK (metadata_only_yn IN ('Y','N')),
+    CONSTRAINT fk_cpf_gwy_capture_tx FOREIGN KEY (gateway_transaction_id) REFERENCES cpf_gateway_transaction (gateway_transaction_id)
+);
+CREATE INDEX ix_cpf_gwy_capture_time ON cpf_gateway_transaction_capture_segment (captured_at, segment_type);
+COMMENT ON TABLE cpf_gateway_transaction_capture_segment IS 'Gateway 정책 기반 Capture Segment 원장';
+COMMENT ON COLUMN cpf_gateway_transaction_capture_segment.gateway_transaction_id IS 'Gateway 거래 ID';
+COMMENT ON COLUMN cpf_gateway_transaction_capture_segment.segment_type IS 'QUERY/REQUEST_HEADERS/REQUEST_BODY/RESPONSE_HEADERS/RESPONSE_BODY/ERROR_STACK';
+COMMENT ON COLUMN cpf_gateway_transaction_capture_segment.policy_schema_version IS '로그 정책 Schema Version';
+COMMENT ON COLUMN cpf_gateway_transaction_capture_segment.policy_checksum IS '적용 정책 Checksum';
+COMMENT ON COLUMN cpf_gateway_transaction_capture_segment.captured_value IS '마스킹/보호된 Capture 값';
+COMMENT ON COLUMN cpf_gateway_transaction_capture_segment.truncated_yn IS '상한 초과 절단 여부';
+COMMENT ON COLUMN cpf_gateway_transaction_capture_segment.metadata_only_yn IS 'Metadata only 여부';
+COMMENT ON COLUMN cpf_gateway_transaction_capture_segment.observed_bytes IS '원본 관측 Byte';
+COMMENT ON COLUMN cpf_gateway_transaction_capture_segment.captured_at IS 'Capture 시각';

@@ -1,9 +1,9 @@
 package com.cpf.reference.edu.runtime.application;
-import java.lang.reflect.Constructor;
 import java.util.*;
 /**
- * Registers mandatory core and classpath-present removable feature families.
- * Core has no source dependency on Batch, Operations, Backoffice or Gateway packages.
+ * Registers the contributors explicitly supplied by Spring or a typed test fixture.
+ * Core has no source dependency on Batch, Operations, Backoffice or Gateway packages;
+ * optional feature discovery is owned by component scanning and build-time source selection.
  */
 public final class EduCapabilityRegistry {
     private static final Map<String,Integer> EXPECTED_COUNTS=Map.of(
@@ -12,15 +12,9 @@ public final class EduCapabilityRegistry {
             "reference-backoffice",14,
             "reference-gateway",14,
             "reference-batch",30);
-    private static final List<String> OPTIONAL_CONTRIBUTORS=List.of(
-            "com.cpf.reference.optional.operations.config.ReferenceOperationsCapabilityContributor",
-            "com.cpf.reference.optional.backoffice.config.ReferenceBackofficeCapabilityContributor",
-            "com.cpf.reference.optional.gateway.config.ReferenceGatewayCapabilityContributor",
-            "com.cpf.reference.batch.config.ReferenceBatchCapabilityContributor");
     private final Map<String,AbstractEduCapabilityHandler> handlers;
     private final Set<String> featureIds;
 
-    public EduCapabilityRegistry(){this(defaultContributors());}
     public EduCapabilityRegistry(Collection<? extends EduCapabilityContributor> contributors){
         Objects.requireNonNull(contributors,"contributors");
         Map<String,AbstractEduCapabilityHandler> map=new LinkedHashMap<>();
@@ -46,15 +40,5 @@ public final class EduCapabilityRegistry {
     public Collection<AbstractEduCapabilityHandler> all(){return handlers.values();}
     public Set<String> featureIds(){return featureIds;}
     public boolean featureEnabled(String featureId){return featureIds.contains(featureId);}
-    private static List<EduCapabilityContributor> defaultContributors(){
-        List<EduCapabilityContributor> values=new ArrayList<>();values.add(new CoreEduCapabilityContributor());
-        for(String name:OPTIONAL_CONTRIBUTORS)optional(name).ifPresent(values::add);
-        return List.copyOf(values);
-    }
-    private static Optional<EduCapabilityContributor> optional(String name){
-        try{Class<?> type=Class.forName(name);if(!EduCapabilityContributor.class.isAssignableFrom(type))throw new IllegalStateException("Invalid EDU contributor: "+name);Constructor<?> ctor=type.getDeclaredConstructor();ctor.setAccessible(true);return Optional.of((EduCapabilityContributor)ctor.newInstance());}
-        catch(ClassNotFoundException absent){return Optional.empty();}
-        catch(ReflectiveOperationException e){throw new IllegalStateException("Cannot load EDU contributor: "+name,e);}
-    }
     private static String require(String value,String name){if(value==null||value.isBlank())throw new IllegalArgumentException(name+" is required");return value.trim();}
 }

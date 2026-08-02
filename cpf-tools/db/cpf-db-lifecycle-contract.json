@@ -26,7 +26,8 @@
     "cpf-tools/scripts/check-migration-checksums.ps1",
     "cpf-tools/scripts/check-sql-standard.ps1",
     "cpf-tools/scripts/check-sql-canonical.ps1",
-    "cpf-tools/scripts/check-platform-runtime-query-packs.ps1"
+    "cpf-tools/scripts/check-platform-runtime-query-packs.ps1",
+    "cpf-tools/scripts/check-reference-database-lifecycle.ps1"
   ],
   "vendorContracts": {
     "mariadb": {

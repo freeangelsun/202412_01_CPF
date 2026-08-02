@@ -120,6 +120,10 @@ public final class DefaultCpfFixedLengthDtoMapper implements CpfFixedLengthDtoMa
 
     private DtoMetadata inspect(Class<?> dtoType) {
         requireDtoType(dtoType);
+        if (!Modifier.isPublic(dtoType.getModifiers())) {
+            throw new IllegalArgumentException(
+                    "고정길이 DTO 타입은 public이어야 합니다. type=" + dtoType.getName());
+        }
         List<FieldBinding> bindings = dtoType.isRecord()
                 ? inspectRecord(dtoType)
                 : inspectClass(dtoType);
@@ -159,12 +163,17 @@ public final class DefaultCpfFixedLengthDtoMapper implements CpfFixedLengthDtoMa
                                 + dtoType.getName() + ", component=" + component.getName());
             }
             Method accessor = component.getAccessor();
-            accessor.setAccessible(true);
+            if (!Modifier.isPublic(accessor.getModifiers())) {
+                throw new IllegalArgumentException(
+                        "record component accessor는 public이어야 합니다. type="
+                                + dtoType.getName() + ", component=" + component.getName());
+            }
             bindings.add(toBinding(
                     component.getName(),
                     component.getType(),
                     annotation,
                     accessor,
+                    null,
                     backingField));
         }
         return bindings;
@@ -178,8 +187,21 @@ public final class DefaultCpfFixedLengthDtoMapper implements CpfFixedLengthDtoMa
             }
             CpfFixedLengthField annotation = field.getAnnotation(CpfFixedLengthField.class);
             if (annotation != null) {
-                field.setAccessible(true);
-                bindings.add(toBinding(field.getName(), field.getType(), annotation, null, field));
+                boolean publicField = Modifier.isPublic(field.getModifiers());
+                Method accessor = publicField ? null : findAccessor(dtoType, field);
+                Method mutator = publicField ? null : findMutator(dtoType, field);
+                if (!publicField && (accessor == null || mutator == null)) {
+                    throw new IllegalArgumentException(
+                            "private 고정길이 DTO 필드는 public getter/setter가 필요합니다. type="
+                                    + dtoType.getName() + ", field=" + field.getName());
+                }
+                bindings.add(toBinding(
+                        field.getName(),
+                        field.getType(),
+                        annotation,
+                        accessor,
+                        mutator,
+                        publicField ? field : null));
             }
         }
         return bindings;
@@ -190,6 +212,7 @@ public final class DefaultCpfFixedLengthDtoMapper implements CpfFixedLengthDtoMa
             Class<?> javaType,
             CpfFixedLengthField annotation,
             Method accessor,
+            Method mutator,
             Field field) {
         if (annotation.order() < 1) {
             throw new IllegalArgumentException(
@@ -208,6 +231,7 @@ public final class DefaultCpfFixedLengthDtoMapper implements CpfFixedLengthDtoMa
                 annotation.length(),
                 annotation,
                 accessor,
+                mutator,
                 field);
     }
 
@@ -250,22 +274,25 @@ public final class DefaultCpfFixedLengthDtoMapper implements CpfFixedLengthDtoMa
                             values.get(binding.wireName()),
                             component.getType());
                 }
-                Constructor<T> constructor = dtoType.getDeclaredConstructor(parameterTypes);
-                constructor.setAccessible(true);
+                Constructor<T> constructor = dtoType.getConstructor(parameterTypes);
                 return constructor.newInstance(arguments);
             }
 
-            Constructor<T> constructor = dtoType.getDeclaredConstructor();
-            constructor.setAccessible(true);
+            Constructor<T> constructor = dtoType.getConstructor();
             T instance = constructor.newInstance();
             for (FieldBinding binding : dtoMetadata.bindings()) {
+                Object converted = convertToTarget(
+                        values.get(binding.wireName()),
+                        binding.javaType());
+                if (binding.mutator() != null) {
+                    binding.mutator().invoke(instance, converted);
+                    continue;
+                }
                 if (Modifier.isFinal(binding.field().getModifiers())) {
                     throw new IllegalArgumentException(
                             "일반 DTO의 고정길이 대상 필드는 final일 수 없습니다. field=" + binding.javaName());
                 }
-                binding.field().set(
-                        instance,
-                        convertToTarget(values.get(binding.wireName()), binding.javaType()));
+                binding.field().set(instance, converted);
             }
             return instance;
         } catch (ReflectiveOperationException | IllegalArgumentException exception) {
@@ -373,12 +400,42 @@ public final class DefaultCpfFixedLengthDtoMapper implements CpfFixedLengthDtoMa
 
     private Field findField(Class<?> dtoType, String name) {
         try {
-            Field field = dtoType.getDeclaredField(name);
-            field.setAccessible(true);
-            return field;
+            return dtoType.getDeclaredField(name);
         } catch (NoSuchFieldException exception) {
             return null;
         }
+    }
+
+    private Method findAccessor(Class<?> dtoType, Field field) {
+        String suffix = propertySuffix(field.getName());
+        List<String> candidates = field.getType() == boolean.class || field.getType() == Boolean.class
+                ? List.of("is" + suffix, "get" + suffix)
+                : List.of("get" + suffix);
+        for (String candidate : candidates) {
+            try {
+                Method method = dtoType.getMethod(candidate);
+                if (method.getParameterCount() == 0
+                        && method.getReturnType() == field.getType()) {
+                    return method;
+                }
+            } catch (NoSuchMethodException ignored) {
+                // 다음 JavaBean accessor 후보를 확인합니다.
+            }
+        }
+        return null;
+    }
+
+    private Method findMutator(Class<?> dtoType, Field field) {
+        try {
+            Method method = dtoType.getMethod("set" + propertySuffix(field.getName()), field.getType());
+            return method.getReturnType() == void.class ? method : null;
+        } catch (NoSuchMethodException exception) {
+            return null;
+        }
+    }
+
+    private String propertySuffix(String fieldName) {
+        return Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
     }
 
     private void requireDtoType(Class<?> dtoType) {
@@ -395,6 +452,7 @@ public final class DefaultCpfFixedLengthDtoMapper implements CpfFixedLengthDtoMa
             int length,
             CpfFixedLengthField annotation,
             Method accessor,
+            Method mutator,
             Field field) {
     }
 

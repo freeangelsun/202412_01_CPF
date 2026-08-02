@@ -21,7 +21,7 @@ $platform = Join-Path $Root "cpf-tools/scripts/initialize-cpf-database.ps1"
 $generated = Join-Path $Root "cpf-tools/scripts/initialize-generated-domain-databases.ps1"
 
 if ($Scope -in @("platform", "all")) {
-    $args = @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $platform, "-Root", $Root, "-SeedMode", $SeedMode)
+    $args = @("-NoProfile", "-File", $platform, "-Root", $Root, "-SeedMode", $SeedMode)
     if ($All -or ($Scope -eq "all" -and $DomainName.Count -eq 0 -and $SystemCode.Count -eq 0 -and $ModuleName.Count -eq 0)) {
         $args += "-All"
     } else {
@@ -38,7 +38,7 @@ if ($Scope -in @("platform", "all")) {
 
 if ($Scope -in @("generated", "all")) {
     $args = @(
-        "-NoProfile", "-ExecutionPolicy", "Bypass",
+        "-NoProfile",
         "-File", $generated,
         "-Root", $Root,
         "-Operation", $GeneratedOperation

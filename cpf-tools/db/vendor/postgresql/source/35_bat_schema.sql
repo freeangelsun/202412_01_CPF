@@ -1,132 +1,8 @@
 -- AUTO-GENERATED from cpf-tools/db/canonical/platform-schema.json
 -- vendor=postgresql
--- schemaVersion=37
 -- DO NOT EDIT generated DDL directly.
 
 -- CPF_LOGICAL_DATABASE=batDB
-CREATE TABLE BATCH_JOB_INSTANCE (
-    JOB_INSTANCE_ID BIGINT NOT NULL,
-    VERSION BIGINT,
-    JOB_NAME VARCHAR(100) NOT NULL,
-    JOB_KEY VARCHAR(32) NOT NULL,
-    CONSTRAINT pk_BATCH_JOB_INSTANCE PRIMARY KEY (JOB_INSTANCE_ID),
-    CONSTRAINT JOB_INST_UN UNIQUE (JOB_NAME, JOB_KEY)
-);
-COMMENT ON TABLE BATCH_JOB_INSTANCE IS 'Spring Batch 표준 JobInstance 저장소';
-COMMENT ON COLUMN BATCH_JOB_INSTANCE.JOB_INSTANCE_ID IS 'Spring Batch JobInstance 순번';
-COMMENT ON COLUMN BATCH_JOB_INSTANCE.VERSION IS '낙관적 잠금 버전';
-COMMENT ON COLUMN BATCH_JOB_INSTANCE.JOB_NAME IS 'Spring Batch Job 이름';
-COMMENT ON COLUMN BATCH_JOB_INSTANCE.JOB_KEY IS 'Job 파라미터 식별 키';
-
-CREATE TABLE BATCH_JOB_EXECUTION (
-    JOB_EXECUTION_ID BIGINT NOT NULL,
-    VERSION BIGINT,
-    JOB_INSTANCE_ID BIGINT NOT NULL,
-    CREATE_TIME TIMESTAMP(6) NOT NULL,
-    START_TIME TIMESTAMP(6) DEFAULT NULL,
-    END_TIME TIMESTAMP(6) DEFAULT NULL,
-    STATUS VARCHAR(10),
-    EXIT_CODE VARCHAR(2500),
-    EXIT_MESSAGE VARCHAR(2500),
-    LAST_UPDATED TIMESTAMP(6),
-    CONSTRAINT pk_BATCH_JOB_EXECUTION PRIMARY KEY (JOB_EXECUTION_ID),
-    CONSTRAINT JOB_INST_EXEC_FK FOREIGN KEY (JOB_INSTANCE_ID) REFERENCES BATCH_JOB_INSTANCE (JOB_INSTANCE_ID)
-);
-COMMENT ON TABLE BATCH_JOB_EXECUTION IS 'Spring Batch 표준 JobExecution 저장소';
-COMMENT ON COLUMN BATCH_JOB_EXECUTION.JOB_EXECUTION_ID IS 'Spring Batch JobExecution 순번';
-COMMENT ON COLUMN BATCH_JOB_EXECUTION.VERSION IS '낙관적 잠금 버전';
-COMMENT ON COLUMN BATCH_JOB_EXECUTION.JOB_INSTANCE_ID IS 'Spring Batch JobInstance 순번';
-COMMENT ON COLUMN BATCH_JOB_EXECUTION.CREATE_TIME IS '실행 생성 일시';
-COMMENT ON COLUMN BATCH_JOB_EXECUTION.START_TIME IS '실행 시작 일시';
-COMMENT ON COLUMN BATCH_JOB_EXECUTION.END_TIME IS '실행 종료 일시';
-COMMENT ON COLUMN BATCH_JOB_EXECUTION.STATUS IS '실행 상태';
-COMMENT ON COLUMN BATCH_JOB_EXECUTION.EXIT_CODE IS '종료 코드';
-COMMENT ON COLUMN BATCH_JOB_EXECUTION.EXIT_MESSAGE IS '종료 메시지';
-COMMENT ON COLUMN BATCH_JOB_EXECUTION.LAST_UPDATED IS '마지막 수정 일시';
-
-CREATE TABLE BATCH_JOB_EXECUTION_CONTEXT (
-    JOB_EXECUTION_ID BIGINT NOT NULL,
-    SHORT_CONTEXT VARCHAR(2500) NOT NULL,
-    SERIALIZED_CONTEXT TEXT,
-    CONSTRAINT pk_BATCH_JOB_EXECUTION_CONTEXT PRIMARY KEY (JOB_EXECUTION_ID),
-    CONSTRAINT JOB_EXEC_CTX_FK FOREIGN KEY (JOB_EXECUTION_ID) REFERENCES BATCH_JOB_EXECUTION (JOB_EXECUTION_ID)
-);
-COMMENT ON TABLE BATCH_JOB_EXECUTION_CONTEXT IS 'Spring Batch 표준 Job 컨텍스트 저장소';
-COMMENT ON COLUMN BATCH_JOB_EXECUTION_CONTEXT.JOB_EXECUTION_ID IS 'Spring Batch JobExecution 순번';
-COMMENT ON COLUMN BATCH_JOB_EXECUTION_CONTEXT.SHORT_CONTEXT IS '짧은 실행 컨텍스트';
-COMMENT ON COLUMN BATCH_JOB_EXECUTION_CONTEXT.SERIALIZED_CONTEXT IS '직렬화 실행 컨텍스트';
-
-CREATE TABLE BATCH_JOB_EXECUTION_PARAMS (
-    JOB_EXECUTION_ID BIGINT NOT NULL,
-    PARAMETER_NAME VARCHAR(100) NOT NULL,
-    PARAMETER_TYPE VARCHAR(100) NOT NULL,
-    PARAMETER_VALUE VARCHAR(2500),
-    IDENTIFYING CHAR(1) NOT NULL,
-    CONSTRAINT JOB_EXEC_PARAMS_FK FOREIGN KEY (JOB_EXECUTION_ID) REFERENCES BATCH_JOB_EXECUTION (JOB_EXECUTION_ID)
-);
-COMMENT ON TABLE BATCH_JOB_EXECUTION_PARAMS IS 'Spring Batch 표준 Job 파라미터 저장소';
-COMMENT ON COLUMN BATCH_JOB_EXECUTION_PARAMS.JOB_EXECUTION_ID IS 'Spring Batch JobExecution 순번';
-COMMENT ON COLUMN BATCH_JOB_EXECUTION_PARAMS.PARAMETER_NAME IS '파라미터 이름';
-COMMENT ON COLUMN BATCH_JOB_EXECUTION_PARAMS.PARAMETER_TYPE IS '파라미터 Java 유형';
-COMMENT ON COLUMN BATCH_JOB_EXECUTION_PARAMS.PARAMETER_VALUE IS '파라미터 값';
-COMMENT ON COLUMN BATCH_JOB_EXECUTION_PARAMS.IDENTIFYING IS 'JobInstance 식별 파라미터 여부';
-
-CREATE TABLE BATCH_STEP_EXECUTION (
-    STEP_EXECUTION_ID BIGINT NOT NULL,
-    VERSION BIGINT NOT NULL,
-    STEP_NAME VARCHAR(100) NOT NULL,
-    JOB_EXECUTION_ID BIGINT NOT NULL,
-    CREATE_TIME TIMESTAMP(6) NOT NULL,
-    START_TIME TIMESTAMP(6) DEFAULT NULL,
-    END_TIME TIMESTAMP(6) DEFAULT NULL,
-    STATUS VARCHAR(10),
-    COMMIT_COUNT BIGINT,
-    READ_COUNT BIGINT,
-    FILTER_COUNT BIGINT,
-    WRITE_COUNT BIGINT,
-    READ_SKIP_COUNT BIGINT,
-    WRITE_SKIP_COUNT BIGINT,
-    PROCESS_SKIP_COUNT BIGINT,
-    ROLLBACK_COUNT BIGINT,
-    EXIT_CODE VARCHAR(2500),
-    EXIT_MESSAGE VARCHAR(2500),
-    LAST_UPDATED TIMESTAMP(6),
-    CONSTRAINT pk_BATCH_STEP_EXECUTION PRIMARY KEY (STEP_EXECUTION_ID),
-    CONSTRAINT JOB_EXEC_STEP_FK FOREIGN KEY (JOB_EXECUTION_ID) REFERENCES BATCH_JOB_EXECUTION (JOB_EXECUTION_ID)
-);
-COMMENT ON TABLE BATCH_STEP_EXECUTION IS 'Spring Batch 표준 StepExecution 저장소';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION.STEP_EXECUTION_ID IS 'Spring Batch StepExecution 순번';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION.VERSION IS '낙관적 잠금 버전';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION.STEP_NAME IS 'Step 이름';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION.JOB_EXECUTION_ID IS 'Spring Batch JobExecution 순번';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION.CREATE_TIME IS 'Step 생성 일시';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION.START_TIME IS 'Step 시작 일시';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION.END_TIME IS 'Step 종료 일시';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION.STATUS IS 'Step 상태';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION.COMMIT_COUNT IS '커밋 횟수';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION.READ_COUNT IS '읽은 건수';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION.FILTER_COUNT IS '필터 건수';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION.WRITE_COUNT IS '쓴 건수';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION.READ_SKIP_COUNT IS '읽기 skip 건수';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION.WRITE_SKIP_COUNT IS '쓰기 skip 건수';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION.PROCESS_SKIP_COUNT IS '처리 skip 건수';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION.ROLLBACK_COUNT IS 'rollback 건수';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION.EXIT_CODE IS '종료 코드';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION.EXIT_MESSAGE IS '종료 메시지';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION.LAST_UPDATED IS '마지막 수정 일시';
-
-CREATE TABLE BATCH_STEP_EXECUTION_CONTEXT (
-    STEP_EXECUTION_ID BIGINT NOT NULL,
-    SHORT_CONTEXT VARCHAR(2500) NOT NULL,
-    SERIALIZED_CONTEXT TEXT,
-    CONSTRAINT pk_BATCH_STEP_EXECUTION_CONTEXT PRIMARY KEY (STEP_EXECUTION_ID),
-    CONSTRAINT STEP_EXEC_CTX_FK FOREIGN KEY (STEP_EXECUTION_ID) REFERENCES BATCH_STEP_EXECUTION (STEP_EXECUTION_ID)
-);
-COMMENT ON TABLE BATCH_STEP_EXECUTION_CONTEXT IS 'Spring Batch 표준 Step 컨텍스트 저장소';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION_CONTEXT.STEP_EXECUTION_ID IS 'Spring Batch StepExecution 순번';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION_CONTEXT.SHORT_CONTEXT IS '짧은 실행 컨텍스트';
-COMMENT ON COLUMN BATCH_STEP_EXECUTION_CONTEXT.SERIALIZED_CONTEXT IS '직렬화 실행 컨텍스트';
-
 CREATE TABLE bat_deployment_cell (
     cell_id VARCHAR(120),
     environment_id VARCHAR(80) NOT NULL,
@@ -156,95 +32,6 @@ COMMENT ON COLUMN bat_deployment_cell.updated_at IS 'Last desired-state update t
 CREATE OR REPLACE FUNCTION cpf_touch_bat_deployment_cell() RETURNS trigger AS $$ BEGIN NEW.updated_at = CURRENT_TIMESTAMP; RETURN NEW; END; $$ LANGUAGE plpgsql;
 DROP TRIGGER IF EXISTS trg_cpf_touch_bat_deployment_cell ON bat_deployment_cell;
 CREATE TRIGGER trg_cpf_touch_bat_deployment_cell BEFORE UPDATE ON bat_deployment_cell FOR EACH ROW EXECUTE FUNCTION cpf_touch_bat_deployment_cell();
-
-CREATE TABLE bat_deployment_execution (
-    deployment_id VARCHAR(80) NOT NULL,
-    cell_id VARCHAR(120) NOT NULL,
-    idempotency_key VARCHAR(160) NOT NULL,
-    from_version VARCHAR(80),
-    to_version VARCHAR(80) NOT NULL,
-    strategy_code VARCHAR(32) NOT NULL,
-    execution_state VARCHAR(40) NOT NULL,
-    failure_stage VARCHAR(80),
-    result_message VARCHAR(4000),
-    requested_by VARCHAR(120) NOT NULL,
-    approved_by VARCHAR(120) NOT NULL,
-    reason_text VARCHAR(1000) NOT NULL,
-    started_at TIMESTAMP(6),
-    finished_at TIMESTAMP(6),
-    created_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT pk_bat_deployment_execution PRIMARY KEY (deployment_id),
-    CONSTRAINT uk_bat_deployment_execution_idempotency UNIQUE (idempotency_key),
-    CONSTRAINT fk_bat_deployment_execution_cell FOREIGN KEY (cell_id) REFERENCES bat_deployment_cell (cell_id)
-);
-CREATE INDEX ix_bat_deployment_execution_cell_state ON bat_deployment_execution (cell_id, execution_state);
-COMMENT ON TABLE bat_deployment_execution IS 'BAT approved deployment execution';
-COMMENT ON COLUMN bat_deployment_execution.deployment_id IS 'Deployment execution identifier';
-COMMENT ON COLUMN bat_deployment_execution.cell_id IS 'Target deployment cell identifier';
-COMMENT ON COLUMN bat_deployment_execution.idempotency_key IS 'Deployment idempotency key';
-COMMENT ON COLUMN bat_deployment_execution.from_version IS 'Previous artifact version';
-COMMENT ON COLUMN bat_deployment_execution.to_version IS 'Target artifact version';
-COMMENT ON COLUMN bat_deployment_execution.strategy_code IS 'ROLLING/CANARY/BLUE_GREEN strategy';
-COMMENT ON COLUMN bat_deployment_execution.execution_state IS 'Deployment execution state';
-COMMENT ON COLUMN bat_deployment_execution.failure_stage IS 'Failed deployment stage';
-COMMENT ON COLUMN bat_deployment_execution.result_message IS 'Deployment result detail';
-COMMENT ON COLUMN bat_deployment_execution.requested_by IS 'Deployment requester';
-COMMENT ON COLUMN bat_deployment_execution.approved_by IS 'Deployment approver';
-COMMENT ON COLUMN bat_deployment_execution.reason_text IS 'Mandatory deployment reason';
-COMMENT ON COLUMN bat_deployment_execution.started_at IS 'Deployment start time';
-COMMENT ON COLUMN bat_deployment_execution.finished_at IS 'Deployment finish time';
-COMMENT ON COLUMN bat_deployment_execution.created_at IS 'Deployment record time';
-
-CREATE TABLE bat_deployment_instance (
-    cell_id VARCHAR(120) NOT NULL,
-    instance_id VARCHAR(160) NOT NULL,
-    host_alias VARCHAR(160) NOT NULL,
-    port_no INTEGER NOT NULL,
-    profile_name VARCHAR(80) NOT NULL,
-    zone_id VARCHAR(80),
-    pool_id VARCHAR(80),
-    agent_base_url VARCHAR(500) NOT NULL,
-    config_ref VARCHAR(1000),
-    desired_state VARCHAR(32) NOT NULL,
-    CONSTRAINT pk_bat_deployment_instance PRIMARY KEY (cell_id, instance_id),
-    CONSTRAINT uk_bat_deployment_instance_id UNIQUE (instance_id),
-    CONSTRAINT fk_bat_deployment_instance_cell FOREIGN KEY (cell_id) REFERENCES bat_deployment_cell (cell_id) ON DELETE CASCADE
-);
-COMMENT ON TABLE bat_deployment_instance IS 'BAT deployment cell instance projection';
-COMMENT ON COLUMN bat_deployment_instance.cell_id IS 'Deployment cell identifier';
-COMMENT ON COLUMN bat_deployment_instance.instance_id IS 'Runtime instance identifier';
-COMMENT ON COLUMN bat_deployment_instance.host_alias IS 'Target host alias';
-COMMENT ON COLUMN bat_deployment_instance.port_no IS 'Runtime service port';
-COMMENT ON COLUMN bat_deployment_instance.profile_name IS 'Runtime profile name';
-COMMENT ON COLUMN bat_deployment_instance.zone_id IS 'Availability zone identifier';
-COMMENT ON COLUMN bat_deployment_instance.pool_id IS 'Runtime pool identifier';
-COMMENT ON COLUMN bat_deployment_instance.agent_base_url IS 'Approved host-agent base URL';
-COMMENT ON COLUMN bat_deployment_instance.config_ref IS 'External configuration reference';
-COMMENT ON COLUMN bat_deployment_instance.desired_state IS 'Desired instance state';
-
-CREATE TABLE bat_deployment_instance_result (
-    deployment_result_id BIGINT GENERATED BY DEFAULT AS IDENTITY NOT NULL,
-    deployment_id VARCHAR(80) NOT NULL,
-    sequence_no INTEGER NOT NULL,
-    instance_id VARCHAR(160) NOT NULL,
-    stage_code VARCHAR(80) NOT NULL,
-    result_state VARCHAR(40) NOT NULL,
-    result_message VARCHAR(4000),
-    recorded_at TIMESTAMP(6) NOT NULL,
-    CONSTRAINT pk_bat_deployment_instance_result PRIMARY KEY (deployment_result_id),
-    CONSTRAINT uk_bat_deployment_instance_result UNIQUE (deployment_id, sequence_no),
-    CONSTRAINT fk_bat_deployment_instance_result_execution FOREIGN KEY (deployment_id) REFERENCES bat_deployment_execution (deployment_id) ON DELETE CASCADE
-);
-CREATE INDEX ix_bat_deployment_instance_result_instance ON bat_deployment_instance_result (instance_id, recorded_at);
-COMMENT ON TABLE bat_deployment_instance_result IS 'BAT per-instance deployment result';
-COMMENT ON COLUMN bat_deployment_instance_result.deployment_result_id IS 'Instance result identifier';
-COMMENT ON COLUMN bat_deployment_instance_result.deployment_id IS 'Deployment execution identifier';
-COMMENT ON COLUMN bat_deployment_instance_result.sequence_no IS 'Ordered result sequence';
-COMMENT ON COLUMN bat_deployment_instance_result.instance_id IS 'Target runtime instance identifier';
-COMMENT ON COLUMN bat_deployment_instance_result.stage_code IS 'Deployment stage code';
-COMMENT ON COLUMN bat_deployment_instance_result.result_state IS 'Instance stage result state';
-COMMENT ON COLUMN bat_deployment_instance_result.result_message IS 'Instance stage result detail';
-COMMENT ON COLUMN bat_deployment_instance_result.recorded_at IS 'Result record time';
 
 CREATE TABLE bat_deployment_lock (
     cell_id VARCHAR(120),
@@ -318,306 +105,6 @@ CREATE OR REPLACE FUNCTION cpf_touch_bat_instance() RETURNS trigger AS $$ BEGIN 
 DROP TRIGGER IF EXISTS trg_cpf_touch_bat_instance ON bat_instance;
 CREATE TRIGGER trg_cpf_touch_bat_instance BEFORE UPDATE ON bat_instance FOR EACH ROW EXECUTE FUNCTION cpf_touch_bat_instance();
 
-CREATE TABLE bat_job (
-    job_id VARCHAR(100) NOT NULL,
-    job_name VARCHAR(150) NOT NULL,
-    job_type VARCHAR(30) NOT NULL DEFAULT 'TASKLET',
-    description VARCHAR(500),
-    restartable_yn CHAR(1) NOT NULL DEFAULT 'Y',
-    use_yn CHAR(1) NOT NULL DEFAULT 'Y',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'BAT',
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT',
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    published_definition_version BIGINT,
-    published_definition_checksum VARCHAR(128),
-    executor_reference VARCHAR(300),
-    definition_published_at TIMESTAMP(3),
-    CONSTRAINT pk_bat_job PRIMARY KEY (job_id)
-);
-CREATE INDEX ix_bat_job_use ON bat_job (use_yn, job_type);
-COMMENT ON TABLE bat_job IS 'BAT 배치 Job 기준';
-COMMENT ON COLUMN bat_job.job_id IS '배치 Job ID';
-COMMENT ON COLUMN bat_job.job_name IS '배치 Job 이름';
-COMMENT ON COLUMN bat_job.job_type IS '배치 Job 유형';
-COMMENT ON COLUMN bat_job.description IS '배치 설명';
-COMMENT ON COLUMN bat_job.restartable_yn IS '재시작 가능 여부';
-COMMENT ON COLUMN bat_job.use_yn IS '사용 여부';
-COMMENT ON COLUMN bat_job.created_by IS '등록자';
-COMMENT ON COLUMN bat_job.created_at IS '등록일시';
-COMMENT ON COLUMN bat_job.updated_by IS '수정자';
-COMMENT ON COLUMN bat_job.updated_at IS '수정일시';
-CREATE OR REPLACE FUNCTION cpf_touch_bat_job() RETURNS trigger AS $$ BEGIN NEW.updated_at = CURRENT_TIMESTAMP; RETURN NEW; END; $$ LANGUAGE plpgsql;
-DROP TRIGGER IF EXISTS trg_cpf_touch_bat_job ON bat_job;
-CREATE TRIGGER trg_cpf_touch_bat_job BEFORE UPDATE ON bat_job FOR EACH ROW EXECUTE FUNCTION cpf_touch_bat_job();
-
-CREATE TABLE bat_center_cut_job (
-    center_cut_job_id VARCHAR(100) NOT NULL,
-    batch_job_id VARCHAR(100),
-    center_cut_job_name VARCHAR(150) NOT NULL,
-    provider_key VARCHAR(100) NOT NULL,
-    handler_key VARCHAR(100) NOT NULL,
-    chunk_size INTEGER NOT NULL DEFAULT 100,
-    retry_limit INTEGER NOT NULL DEFAULT 3,
-    use_yn CHAR(1) NOT NULL DEFAULT 'Y',
-    description VARCHAR(500),
-    created_by VARCHAR(100) NOT NULL DEFAULT 'BAT',
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT',
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT pk_bat_center_cut_job PRIMARY KEY (center_cut_job_id),
-    CONSTRAINT fk_bat_center_cut_job_batch FOREIGN KEY (batch_job_id) REFERENCES bat_job (job_id) ON DELETE SET NULL
-);
-CREATE INDEX ix_bat_center_cut_job_batch ON bat_center_cut_job (batch_job_id, use_yn);
-COMMENT ON TABLE bat_center_cut_job IS 'BAT 센터컷 Job 정의';
-COMMENT ON COLUMN bat_center_cut_job.center_cut_job_id IS '센터컷 Job ID';
-COMMENT ON COLUMN bat_center_cut_job.batch_job_id IS '연결된 BAT 배치 Job ID';
-COMMENT ON COLUMN bat_center_cut_job.center_cut_job_name IS '센터컷 Job 명';
-COMMENT ON COLUMN bat_center_cut_job.provider_key IS '대상 조회 Provider 식별자';
-COMMENT ON COLUMN bat_center_cut_job.handler_key IS '처리 Handler 식별자';
-COMMENT ON COLUMN bat_center_cut_job.chunk_size IS '한 번에 조회할 대상 건수';
-COMMENT ON COLUMN bat_center_cut_job.retry_limit IS '최대 재처리 횟수';
-COMMENT ON COLUMN bat_center_cut_job.use_yn IS '사용 여부';
-COMMENT ON COLUMN bat_center_cut_job.description IS '센터컷 Job 설명';
-COMMENT ON COLUMN bat_center_cut_job.created_by IS '등록자';
-COMMENT ON COLUMN bat_center_cut_job.created_at IS '등록일시';
-COMMENT ON COLUMN bat_center_cut_job.updated_by IS '수정자';
-COMMENT ON COLUMN bat_center_cut_job.updated_at IS '수정일시';
-CREATE OR REPLACE FUNCTION cpf_touch_bat_center_cut_job() RETURNS trigger AS $$ BEGIN NEW.updated_at = CURRENT_TIMESTAMP; RETURN NEW; END; $$ LANGUAGE plpgsql;
-DROP TRIGGER IF EXISTS trg_cpf_touch_bat_center_cut_job ON bat_center_cut_job;
-CREATE TRIGGER trg_cpf_touch_bat_center_cut_job BEFORE UPDATE ON bat_center_cut_job FOR EACH ROW EXECUTE FUNCTION cpf_touch_bat_center_cut_job();
-
-CREATE TABLE bat_center_cut_execution (
-    center_cut_execution_id VARCHAR(80) NOT NULL,
-    center_cut_job_id VARCHAR(100) NOT NULL,
-    idempotency_key VARCHAR(160) NOT NULL,
-    execution_state VARCHAR(30) NOT NULL,
-    parameter_ciphertext TEXT NOT NULL,
-    parameter_hash VARCHAR(64) NOT NULL,
-    parameter_schema_version VARCHAR(80) NOT NULL,
-    target_cursor VARCHAR(1000),
-    target_complete_yn CHAR(1) NOT NULL DEFAULT 'N',
-    target_count BIGINT NOT NULL DEFAULT 0,
-    tps_limit INTEGER NOT NULL DEFAULT 0,
-    concurrency_limit INTEGER NOT NULL DEFAULT 1,
-    processed_count BIGINT NOT NULL DEFAULT 0,
-    success_count BIGINT NOT NULL DEFAULT 0,
-    failure_count BIGINT NOT NULL DEFAULT 0,
-    unknown_count BIGINT NOT NULL DEFAULT 0,
-    transaction_id CHAR(34),
-    parent_segment_id VARCHAR(120),
-    requested_by VARCHAR(120) NOT NULL,
-    reason_text VARCHAR(1000) NOT NULL,
-    last_error_message VARCHAR(1000),
-    created_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    completed_at TIMESTAMP(6),
-    CONSTRAINT pk_bat_center_cut_execution PRIMARY KEY (center_cut_execution_id),
-    CONSTRAINT uk_bat_center_cut_execution_idempotency UNIQUE (idempotency_key),
-    CONSTRAINT fk_bat_center_cut_execution_job FOREIGN KEY (center_cut_job_id) REFERENCES bat_center_cut_job (center_cut_job_id)
-);
-CREATE INDEX ix_bat_center_cut_execution_job_state ON bat_center_cut_execution (center_cut_job_id, execution_state, created_at);
-COMMENT ON TABLE bat_center_cut_execution IS 'BAT center-cut immutable execution policy';
-COMMENT ON COLUMN bat_center_cut_execution.center_cut_execution_id IS 'Center-cut execution identifier';
-COMMENT ON COLUMN bat_center_cut_execution.center_cut_job_id IS 'Center-cut job definition identifier';
-COMMENT ON COLUMN bat_center_cut_execution.idempotency_key IS 'Execution idempotency key';
-COMMENT ON COLUMN bat_center_cut_execution.execution_state IS 'Center-cut execution state';
-COMMENT ON COLUMN bat_center_cut_execution.parameter_ciphertext IS 'Encrypted immutable parameter snapshot';
-COMMENT ON COLUMN bat_center_cut_execution.parameter_hash IS 'Parameter snapshot SHA-256';
-COMMENT ON COLUMN bat_center_cut_execution.parameter_schema_version IS 'Parameter schema version';
-COMMENT ON COLUMN bat_center_cut_execution.target_cursor IS 'Last generated target cursor';
-COMMENT ON COLUMN bat_center_cut_execution.target_complete_yn IS 'Target generation completion flag';
-COMMENT ON COLUMN bat_center_cut_execution.target_count IS 'Generated target count';
-COMMENT ON COLUMN bat_center_cut_execution.tps_limit IS 'Global transactions-per-second limit';
-COMMENT ON COLUMN bat_center_cut_execution.concurrency_limit IS 'Global runner concurrency limit';
-COMMENT ON COLUMN bat_center_cut_execution.processed_count IS 'Processed item count';
-COMMENT ON COLUMN bat_center_cut_execution.success_count IS 'Successful item count';
-COMMENT ON COLUMN bat_center_cut_execution.failure_count IS 'Failed item count';
-COMMENT ON COLUMN bat_center_cut_execution.unknown_count IS 'Unknown-result item count';
-COMMENT ON COLUMN bat_center_cut_execution.transaction_id IS 'CPF transactionId';
-COMMENT ON COLUMN bat_center_cut_execution.parent_segment_id IS 'Parent trace segment identifier';
-COMMENT ON COLUMN bat_center_cut_execution.requested_by IS 'Execution requester';
-COMMENT ON COLUMN bat_center_cut_execution.reason_text IS 'Mandatory execution reason';
-COMMENT ON COLUMN bat_center_cut_execution.last_error_message IS 'Last execution error detail';
-COMMENT ON COLUMN bat_center_cut_execution.created_at IS 'Execution request time';
-COMMENT ON COLUMN bat_center_cut_execution.updated_at IS 'Last execution state update time';
-COMMENT ON COLUMN bat_center_cut_execution.completed_at IS 'Execution completion time';
-CREATE OR REPLACE FUNCTION cpf_touch_bat_center_cut_execution() RETURNS trigger AS $$ BEGIN NEW.updated_at = CURRENT_TIMESTAMP; RETURN NEW; END; $$ LANGUAGE plpgsql;
-DROP TRIGGER IF EXISTS trg_cpf_touch_bat_center_cut_execution ON bat_center_cut_execution;
-CREATE TRIGGER trg_cpf_touch_bat_center_cut_execution BEFORE UPDATE ON bat_center_cut_execution FOR EACH ROW EXECUTE FUNCTION cpf_touch_bat_center_cut_execution();
-
-CREATE TABLE bat_center_cut_item (
-    center_cut_item_id BIGINT GENERATED BY DEFAULT AS IDENTITY NOT NULL,
-    center_cut_job_id VARCHAR(100) NOT NULL,
-    center_cut_execution_id VARCHAR(80),
-    business_key VARCHAR(200) NOT NULL,
-    business_date DATE,
-    item_status VARCHAR(30) NOT NULL DEFAULT 'READY',
-    transaction_id CHAR(34),
-    transaction_segment_id VARCHAR(120),
-    parent_segment_id VARCHAR(120),
-    item_payload TEXT,
-    retry_count INTEGER NOT NULL DEFAULT 0,
-    last_error_message VARCHAR(1000),
-    started_at TIMESTAMP(3),
-    completed_at TIMESTAMP(3),
-    created_by VARCHAR(100) NOT NULL DEFAULT 'BAT',
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT',
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT pk_bat_center_cut_item PRIMARY KEY (center_cut_item_id),
-    CONSTRAINT uk_bat_center_cut_item_execution_business UNIQUE (center_cut_execution_id, business_key),
-    CONSTRAINT fk_bat_center_cut_item_job FOREIGN KEY (center_cut_job_id) REFERENCES bat_center_cut_job (center_cut_job_id) ON DELETE CASCADE,
-    CONSTRAINT fk_bat_center_cut_item_execution FOREIGN KEY (center_cut_execution_id) REFERENCES bat_center_cut_execution (center_cut_execution_id) ON DELETE CASCADE
-);
-CREATE INDEX ix_bat_center_cut_item_status ON bat_center_cut_item (center_cut_job_id, item_status, business_date);
-CREATE INDEX ix_bat_center_cut_item_transaction ON bat_center_cut_item (transaction_id, transaction_segment_id);
-CREATE INDEX ix_bat_center_cut_item_parent_segment ON bat_center_cut_item (parent_segment_id);
-CREATE INDEX ix_bat_center_cut_item_execution_status ON bat_center_cut_item (center_cut_execution_id, item_status, center_cut_item_id);
-COMMENT ON TABLE bat_center_cut_item IS 'BAT 센터컷 처리 대상';
-COMMENT ON COLUMN bat_center_cut_item.center_cut_item_id IS '센터컷 대상 순번';
-COMMENT ON COLUMN bat_center_cut_item.center_cut_job_id IS '센터컷 Job ID';
-COMMENT ON COLUMN bat_center_cut_item.center_cut_execution_id IS 'Center-cut execution identifier';
-COMMENT ON COLUMN bat_center_cut_item.business_key IS '업무 멱등 키';
-COMMENT ON COLUMN bat_center_cut_item.business_date IS '업무 기준일';
-COMMENT ON COLUMN bat_center_cut_item.item_status IS '대상 상태';
-COMMENT ON COLUMN bat_center_cut_item.transaction_id IS '센터컷 실행 전체가 승계하는 CPF transactionId';
-COMMENT ON COLUMN bat_center_cut_item.transaction_segment_id IS '현재 센터컷 Item 실행 구간 ID';
-COMMENT ON COLUMN bat_center_cut_item.parent_segment_id IS '부모 센터컷/Worker 실행 구간 ID';
-COMMENT ON COLUMN bat_center_cut_item.item_payload IS '처리 입력 payload';
-COMMENT ON COLUMN bat_center_cut_item.retry_count IS '재처리 횟수';
-COMMENT ON COLUMN bat_center_cut_item.last_error_message IS '마지막 오류 메시지';
-COMMENT ON COLUMN bat_center_cut_item.started_at IS '처리 시작 일시';
-COMMENT ON COLUMN bat_center_cut_item.completed_at IS '처리 완료 일시';
-COMMENT ON COLUMN bat_center_cut_item.created_by IS '등록자';
-COMMENT ON COLUMN bat_center_cut_item.created_at IS '등록일시';
-COMMENT ON COLUMN bat_center_cut_item.updated_by IS '수정자';
-COMMENT ON COLUMN bat_center_cut_item.updated_at IS '수정일시';
-CREATE OR REPLACE FUNCTION cpf_touch_bat_center_cut_item() RETURNS trigger AS $$ BEGIN NEW.updated_at = CURRENT_TIMESTAMP; RETURN NEW; END; $$ LANGUAGE plpgsql;
-DROP TRIGGER IF EXISTS trg_cpf_touch_bat_center_cut_item ON bat_center_cut_item;
-CREATE TRIGGER trg_cpf_touch_bat_center_cut_item BEFORE UPDATE ON bat_center_cut_item FOR EACH ROW EXECUTE FUNCTION cpf_touch_bat_center_cut_item();
-
-CREATE TABLE bat_center_cut_claim (
-    center_cut_item_id BIGINT,
-    runner_id VARCHAR(160) NOT NULL,
-    pool_id VARCHAR(80),
-    claim_token VARCHAR(80) NOT NULL,
-    claim_status VARCHAR(30) NOT NULL,
-    fencing_token BIGINT NOT NULL,
-    lease_until TIMESTAMP(6) NOT NULL,
-    last_heartbeat_at TIMESTAMP(6) NOT NULL,
-    attempt_no INTEGER NOT NULL DEFAULT 1,
-    takeover_count INTEGER NOT NULL DEFAULT 0,
-    released_at TIMESTAMP(6),
-    updated_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT pk_bat_center_cut_claim PRIMARY KEY (center_cut_item_id),
-    CONSTRAINT claim_token UNIQUE (claim_token),
-    CONSTRAINT fk_bat_center_cut_claim_item FOREIGN KEY (center_cut_item_id) REFERENCES bat_center_cut_item (center_cut_item_id) ON DELETE CASCADE
-);
-COMMENT ON TABLE bat_center_cut_claim IS 'BAT center-cut item lease claim';
-COMMENT ON COLUMN bat_center_cut_claim.center_cut_item_id IS 'Claimed center-cut item identifier';
-COMMENT ON COLUMN bat_center_cut_claim.runner_id IS 'Owning runner identifier';
-COMMENT ON COLUMN bat_center_cut_claim.pool_id IS 'Owning runner pool identifier';
-COMMENT ON COLUMN bat_center_cut_claim.claim_token IS 'Unique claim token';
-COMMENT ON COLUMN bat_center_cut_claim.claim_status IS 'Claim lifecycle status';
-COMMENT ON COLUMN bat_center_cut_claim.fencing_token IS 'Monotonic claim fencing token';
-COMMENT ON COLUMN bat_center_cut_claim.lease_until IS 'Claim lease expiry time';
-COMMENT ON COLUMN bat_center_cut_claim.last_heartbeat_at IS 'Claim heartbeat time';
-COMMENT ON COLUMN bat_center_cut_claim.attempt_no IS 'Claim attempt number';
-COMMENT ON COLUMN bat_center_cut_claim.takeover_count IS 'Claim takeover count';
-COMMENT ON COLUMN bat_center_cut_claim.released_at IS 'Claim release time';
-COMMENT ON COLUMN bat_center_cut_claim.updated_at IS 'Last claim update time';
-CREATE OR REPLACE FUNCTION cpf_touch_bat_center_cut_claim() RETURNS trigger AS $$ BEGIN NEW.updated_at = CURRENT_TIMESTAMP; RETURN NEW; END; $$ LANGUAGE plpgsql;
-DROP TRIGGER IF EXISTS trg_cpf_touch_bat_center_cut_claim ON bat_center_cut_claim;
-CREATE TRIGGER trg_cpf_touch_bat_center_cut_claim BEFORE UPDATE ON bat_center_cut_claim FOR EACH ROW EXECUTE FUNCTION cpf_touch_bat_center_cut_claim();
-
-CREATE TABLE bat_center_cut_parameter (
-    parameter_id BIGINT GENERATED BY DEFAULT AS IDENTITY NOT NULL,
-    center_cut_job_id VARCHAR(100) NOT NULL,
-    parameter_key VARCHAR(100) NOT NULL,
-    parameter_value VARCHAR(1000),
-    encrypted_yn CHAR(1) NOT NULL DEFAULT 'N',
-    use_yn CHAR(1) NOT NULL DEFAULT 'Y',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'BAT',
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT',
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT pk_bat_center_cut_parameter PRIMARY KEY (parameter_id),
-    CONSTRAINT uk_bat_center_cut_parameter UNIQUE (center_cut_job_id, parameter_key),
-    CONSTRAINT fk_bat_center_cut_parameter_job FOREIGN KEY (center_cut_job_id) REFERENCES bat_center_cut_job (center_cut_job_id) ON DELETE CASCADE
-);
-COMMENT ON TABLE bat_center_cut_parameter IS 'BAT 센터컷 파라미터';
-COMMENT ON COLUMN bat_center_cut_parameter.parameter_id IS '센터컷 파라미터 순번';
-COMMENT ON COLUMN bat_center_cut_parameter.center_cut_job_id IS '센터컷 Job ID';
-COMMENT ON COLUMN bat_center_cut_parameter.parameter_key IS '파라미터 키';
-COMMENT ON COLUMN bat_center_cut_parameter.parameter_value IS '파라미터 값';
-COMMENT ON COLUMN bat_center_cut_parameter.encrypted_yn IS '암호화 여부';
-COMMENT ON COLUMN bat_center_cut_parameter.use_yn IS '사용 여부';
-COMMENT ON COLUMN bat_center_cut_parameter.created_by IS '등록자';
-COMMENT ON COLUMN bat_center_cut_parameter.created_at IS '등록일시';
-COMMENT ON COLUMN bat_center_cut_parameter.updated_by IS '수정자';
-COMMENT ON COLUMN bat_center_cut_parameter.updated_at IS '수정일시';
-CREATE OR REPLACE FUNCTION cpf_touch_bat_center_cut_parameter() RETURNS trigger AS $$ BEGIN NEW.updated_at = CURRENT_TIMESTAMP; RETURN NEW; END; $$ LANGUAGE plpgsql;
-DROP TRIGGER IF EXISTS trg_cpf_touch_bat_center_cut_parameter ON bat_center_cut_parameter;
-CREATE TRIGGER trg_cpf_touch_bat_center_cut_parameter BEFORE UPDATE ON bat_center_cut_parameter FOR EACH ROW EXECUTE FUNCTION cpf_touch_bat_center_cut_parameter();
-
-CREATE TABLE bat_center_cut_rate_window (
-    center_cut_execution_id VARCHAR(80) NOT NULL,
-    window_second BIGINT NOT NULL,
-    admitted_count INTEGER NOT NULL DEFAULT 0,
-    updated_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT pk_bat_center_cut_rate_window PRIMARY KEY (center_cut_execution_id, window_second),
-    CONSTRAINT fk_bat_center_cut_rate_execution FOREIGN KEY (center_cut_execution_id) REFERENCES bat_center_cut_execution (center_cut_execution_id) ON DELETE CASCADE
-);
-COMMENT ON TABLE bat_center_cut_rate_window IS 'BAT center-cut global rate window';
-COMMENT ON COLUMN bat_center_cut_rate_window.center_cut_execution_id IS 'Center-cut execution identifier';
-COMMENT ON COLUMN bat_center_cut_rate_window.window_second IS 'UTC epoch-second rate window';
-COMMENT ON COLUMN bat_center_cut_rate_window.admitted_count IS 'Items admitted in this window';
-COMMENT ON COLUMN bat_center_cut_rate_window.updated_at IS 'Last bucket update time';
-CREATE OR REPLACE FUNCTION cpf_touch_bat_center_cut_rate_window() RETURNS trigger AS $$ BEGIN NEW.updated_at = CURRENT_TIMESTAMP; RETURN NEW; END; $$ LANGUAGE plpgsql;
-DROP TRIGGER IF EXISTS trg_cpf_touch_bat_center_cut_rate_window ON bat_center_cut_rate_window;
-CREATE TRIGGER trg_cpf_touch_bat_center_cut_rate_window BEFORE UPDATE ON bat_center_cut_rate_window FOR EACH ROW EXECUTE FUNCTION cpf_touch_bat_center_cut_rate_window();
-
-CREATE TABLE bat_center_cut_result (
-    center_cut_result_id BIGINT GENERATED BY DEFAULT AS IDENTITY NOT NULL,
-    center_cut_item_id BIGINT NOT NULL,
-    center_cut_job_id VARCHAR(100) NOT NULL,
-    result_status VARCHAR(30) NOT NULL,
-    result_payload TEXT,
-    result_message VARCHAR(1000),
-    transaction_id CHAR(34),
-    transaction_segment_id VARCHAR(120),
-    parent_segment_id VARCHAR(120),
-    created_by VARCHAR(100) NOT NULL DEFAULT 'BAT',
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT',
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT pk_bat_center_cut_result PRIMARY KEY (center_cut_result_id),
-    CONSTRAINT fk_bat_center_cut_result_item FOREIGN KEY (center_cut_item_id) REFERENCES bat_center_cut_item (center_cut_item_id) ON DELETE CASCADE,
-    CONSTRAINT fk_bat_center_cut_result_job FOREIGN KEY (center_cut_job_id) REFERENCES bat_center_cut_job (center_cut_job_id) ON DELETE CASCADE
-);
-CREATE INDEX ix_bat_center_cut_result_item ON bat_center_cut_result (center_cut_item_id, result_status);
-CREATE INDEX ix_bat_center_cut_result_transaction ON bat_center_cut_result (transaction_id, transaction_segment_id);
-CREATE INDEX ix_bat_center_cut_result_parent_segment ON bat_center_cut_result (parent_segment_id);
-CREATE INDEX ix_bat_center_cut_result_job ON bat_center_cut_result (center_cut_job_id, created_at);
-COMMENT ON TABLE bat_center_cut_result IS 'BAT 센터컷 처리 결과';
-COMMENT ON COLUMN bat_center_cut_result.center_cut_result_id IS '센터컷 결과 순번';
-COMMENT ON COLUMN bat_center_cut_result.center_cut_item_id IS '센터컷 대상 순번';
-COMMENT ON COLUMN bat_center_cut_result.center_cut_job_id IS '센터컷 Job ID';
-COMMENT ON COLUMN bat_center_cut_result.result_status IS '처리 결과 상태';
-COMMENT ON COLUMN bat_center_cut_result.result_payload IS '처리 결과 payload';
-COMMENT ON COLUMN bat_center_cut_result.result_message IS '처리 결과 메시지';
-COMMENT ON COLUMN bat_center_cut_result.transaction_id IS '센터컷 실행 전체가 승계하는 CPF transactionId';
-COMMENT ON COLUMN bat_center_cut_result.transaction_segment_id IS '결과를 생성한 거래 구간 ID';
-COMMENT ON COLUMN bat_center_cut_result.parent_segment_id IS '부모 센터컷/Worker 실행 구간 ID';
-COMMENT ON COLUMN bat_center_cut_result.created_by IS '등록자';
-COMMENT ON COLUMN bat_center_cut_result.created_at IS '등록일시';
-COMMENT ON COLUMN bat_center_cut_result.updated_by IS '수정자';
-COMMENT ON COLUMN bat_center_cut_result.updated_at IS '수정일시';
-CREATE OR REPLACE FUNCTION cpf_touch_bat_center_cut_result() RETURNS trigger AS $$ BEGIN NEW.updated_at = CURRENT_TIMESTAMP; RETURN NEW; END; $$ LANGUAGE plpgsql;
-DROP TRIGGER IF EXISTS trg_cpf_touch_bat_center_cut_result ON bat_center_cut_result;
-CREATE TRIGGER trg_cpf_touch_bat_center_cut_result BEFORE UPDATE ON bat_center_cut_result FOR EACH ROW EXECUTE FUNCTION cpf_touch_bat_center_cut_result();
-
 CREATE TABLE bat_job_definition_audit (
     audit_id BIGINT GENERATED BY DEFAULT AS IDENTITY NOT NULL,
     job_id VARCHAR(100) NOT NULL,
@@ -632,11 +119,12 @@ CREATE TABLE bat_job_definition_audit (
     approval_request_id VARCHAR(120),
     transaction_id CHAR(34),
     trace_id VARCHAR(64),
-    before_json TEXT,
-    after_json TEXT,
+    before_json MEDIUMTEXT,
+    after_json MEDIUMTEXT,
     CONSTRAINT pk_bat_job_definition_audit PRIMARY KEY (audit_id)
 );
 CREATE INDEX idx_bat_job_def_audit ON bat_job_definition_audit (job_id, definition_version, created_at);
+CREATE INDEX ix_bat_job_definition_audit_approval ON bat_job_definition_audit (approval_request_id, created_at);
 COMMENT ON TABLE bat_job_definition_audit IS 'BAT Job Definition 승인·상태 감사';
 COMMENT ON COLUMN bat_job_definition_audit.audit_id IS '감사 ID';
 COMMENT ON COLUMN bat_job_definition_audit.job_id IS 'Job ID';
@@ -647,6 +135,12 @@ COMMENT ON COLUMN bat_job_definition_audit.to_state IS '다음 상태';
 COMMENT ON COLUMN bat_job_definition_audit.reason IS '사유';
 COMMENT ON COLUMN bat_job_definition_audit.operator_id IS '운영자';
 COMMENT ON COLUMN bat_job_definition_audit.created_at IS '발생시각';
+COMMENT ON COLUMN bat_job_definition_audit.requested_by IS '승인 대상 변경 요청자';
+COMMENT ON COLUMN bat_job_definition_audit.approval_request_id IS '검증된 승인 요청 식별자';
+COMMENT ON COLUMN bat_job_definition_audit.transaction_id IS '운영 명령 Transaction ID';
+COMMENT ON COLUMN bat_job_definition_audit.trace_id IS '분산 추적 Trace ID';
+COMMENT ON COLUMN bat_job_definition_audit.before_json IS '마스킹된 변경 전 Definition';
+COMMENT ON COLUMN bat_job_definition_audit.after_json IS '마스킹된 변경 후 Definition';
 
 CREATE TABLE bat_job_definition_version (
     job_id VARCHAR(100) NOT NULL,
@@ -730,27 +224,6 @@ COMMENT ON COLUMN bat_job_definition_version.created_at IS '등록일시';
 COMMENT ON COLUMN bat_job_definition_version.updated_by IS '수정자';
 COMMENT ON COLUMN bat_job_definition_version.updated_at IS '수정일시';
 
-CREATE TABLE bat_job_dependency (
-    job_id VARCHAR(100) NOT NULL,
-    definition_version BIGINT NOT NULL,
-    related_job_id VARCHAR(80) NOT NULL,
-    condition_code VARCHAR(40) NOT NULL,
-    timeout_seconds BIGINT NOT NULL DEFAULT 0,
-    required_yn CHAR(1) NOT NULL DEFAULT 'Y',
-    sort_order INTEGER NOT NULL DEFAULT 0,
-    CONSTRAINT pk_bat_job_dependency PRIMARY KEY (job_id, definition_version, related_job_id),
-    CONSTRAINT ck_bat_job_dep_self CHECK (job_id <> related_job_id),
-    CONSTRAINT fk_bat_job_dep_def FOREIGN KEY (job_id, definition_version) REFERENCES bat_job_definition_version (job_id, definition_version) ON DELETE CASCADE
-);
-COMMENT ON TABLE bat_job_dependency IS 'BAT Versioned Job Dependency';
-COMMENT ON COLUMN bat_job_dependency.job_id IS 'Job ID';
-COMMENT ON COLUMN bat_job_dependency.definition_version IS 'Definition Version';
-COMMENT ON COLUMN bat_job_dependency.related_job_id IS '선행 Job';
-COMMENT ON COLUMN bat_job_dependency.condition_code IS '의존 조건';
-COMMENT ON COLUMN bat_job_dependency.timeout_seconds IS '대기 Timeout';
-COMMENT ON COLUMN bat_job_dependency.required_yn IS '필수 여부';
-COMMENT ON COLUMN bat_job_dependency.sort_order IS '정렬';
-
 CREATE TABLE bat_job_pack (
     job_pack_id VARCHAR(120) NOT NULL,
     owner_domain VARCHAR(20) NOT NULL,
@@ -774,183 +247,6 @@ COMMENT ON COLUMN bat_job_pack.signature_present_yn IS 'Artifact signature prese
 COMMENT ON COLUMN bat_job_pack.platform_range IS 'Compatible CPF platform range';
 COMMENT ON COLUMN bat_job_pack.manifest_json IS 'Validated job-pack manifest';
 COMMENT ON COLUMN bat_job_pack.last_registered_at IS 'Last catalog registration time';
-
-CREATE TABLE bat_job_pack_job (
-    job_pack_id VARCHAR(120) NOT NULL,
-    job_id VARCHAR(100) NOT NULL,
-    restartable_yn CHAR(1) NOT NULL,
-    center_cut_provider_key VARCHAR(100),
-    center_cut_handler_key VARCHAR(100),
-    CONSTRAINT pk_bat_job_pack_job PRIMARY KEY (job_pack_id, job_id),
-    CONSTRAINT fk_bat_job_pack_job_pack FOREIGN KEY (job_pack_id) REFERENCES bat_job_pack (job_pack_id) ON DELETE CASCADE
-);
-COMMENT ON TABLE bat_job_pack_job IS 'BAT job-pack job projection';
-COMMENT ON COLUMN bat_job_pack_job.job_pack_id IS 'Owning job-pack identifier';
-COMMENT ON COLUMN bat_job_pack_job.job_id IS 'Published job identifier';
-COMMENT ON COLUMN bat_job_pack_job.restartable_yn IS 'Job restartability flag';
-COMMENT ON COLUMN bat_job_pack_job.center_cut_provider_key IS 'Center-cut target provider key';
-COMMENT ON COLUMN bat_job_pack_job.center_cut_handler_key IS 'Center-cut item handler key';
-
-CREATE TABLE bat_job_parameter_definition (
-    job_id VARCHAR(100) NOT NULL,
-    definition_version BIGINT NOT NULL,
-    parameter_name VARCHAR(100) NOT NULL,
-    parameter_type VARCHAR(40) NOT NULL,
-    label_text VARCHAR(200),
-    description_text VARCHAR(1000),
-    required_yn CHAR(1) NOT NULL DEFAULT 'N',
-    sensitive_yn CHAR(1) NOT NULL DEFAULT 'N',
-    default_value VARCHAR(1000),
-    allowed_values TEXT,
-    validation_pattern VARCHAR(1000),
-    min_value DECIMAL(38,10),
-    max_value DECIMAL(38,10),
-    min_length INTEGER,
-    max_length INTEGER,
-    reference_type VARCHAR(80),
-    alias_required_yn CHAR(1) NOT NULL DEFAULT 'N',
-    runtime_override_allowed_yn CHAR(1) NOT NULL DEFAULT 'N',
-    sort_order INTEGER NOT NULL DEFAULT 0,
-    CONSTRAINT pk_bat_job_parameter_definition PRIMARY KEY (job_id, definition_version, parameter_name),
-    CONSTRAINT fk_bat_job_param_def FOREIGN KEY (job_id, definition_version) REFERENCES bat_job_definition_version (job_id, definition_version) ON DELETE CASCADE
-);
-COMMENT ON TABLE bat_job_parameter_definition IS 'BAT Typed Parameter Schema';
-COMMENT ON COLUMN bat_job_parameter_definition.job_id IS 'Job ID';
-COMMENT ON COLUMN bat_job_parameter_definition.definition_version IS 'Definition Version';
-COMMENT ON COLUMN bat_job_parameter_definition.parameter_name IS 'Parameter 이름';
-COMMENT ON COLUMN bat_job_parameter_definition.parameter_type IS 'Parameter 유형';
-COMMENT ON COLUMN bat_job_parameter_definition.label_text IS 'UI Label';
-COMMENT ON COLUMN bat_job_parameter_definition.description_text IS '설명';
-COMMENT ON COLUMN bat_job_parameter_definition.required_yn IS '필수 여부';
-COMMENT ON COLUMN bat_job_parameter_definition.sensitive_yn IS '민감정보 여부';
-COMMENT ON COLUMN bat_job_parameter_definition.default_value IS '기본값';
-COMMENT ON COLUMN bat_job_parameter_definition.allowed_values IS '허용값';
-COMMENT ON COLUMN bat_job_parameter_definition.validation_pattern IS '검증 Pattern';
-COMMENT ON COLUMN bat_job_parameter_definition.min_value IS '최솟값';
-COMMENT ON COLUMN bat_job_parameter_definition.max_value IS '최댓값';
-COMMENT ON COLUMN bat_job_parameter_definition.min_length IS '최소 길이';
-COMMENT ON COLUMN bat_job_parameter_definition.max_length IS '최대 길이';
-COMMENT ON COLUMN bat_job_parameter_definition.reference_type IS '참조 유형';
-COMMENT ON COLUMN bat_job_parameter_definition.alias_required_yn IS 'Alias 강제';
-COMMENT ON COLUMN bat_job_parameter_definition.runtime_override_allowed_yn IS '실행 Override';
-COMMENT ON COLUMN bat_job_parameter_definition.sort_order IS '정렬';
-
-CREATE TABLE bat_job_relation (
-    relation_id BIGINT GENERATED BY DEFAULT AS IDENTITY NOT NULL,
-    job_id VARCHAR(100) NOT NULL,
-    related_job_id VARCHAR(100) NOT NULL,
-    relation_type VARCHAR(30) NOT NULL,
-    trigger_condition VARCHAR(50) NOT NULL DEFAULT 'COMPLETED',
-    required_status VARCHAR(30) NOT NULL DEFAULT 'COMPLETED',
-    sort_order INTEGER NOT NULL DEFAULT 0,
-    use_yn CHAR(1) NOT NULL DEFAULT 'Y',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'BAT',
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT',
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT pk_bat_job_relation PRIMARY KEY (relation_id),
-    CONSTRAINT uk_bat_job_relation UNIQUE (job_id, related_job_id, relation_type),
-    CONSTRAINT fk_bat_job_relation_job FOREIGN KEY (job_id) REFERENCES bat_job (job_id) ON DELETE CASCADE,
-    CONSTRAINT fk_bat_job_relation_related FOREIGN KEY (related_job_id) REFERENCES bat_job (job_id) ON DELETE CASCADE
-);
-CREATE INDEX ix_bat_job_relation_job ON bat_job_relation (job_id, relation_type, use_yn);
-CREATE INDEX ix_bat_job_relation_related ON bat_job_relation (related_job_id, relation_type);
-COMMENT ON TABLE bat_job_relation IS 'BAT 배치 선행/후행/트리거 관계';
-COMMENT ON COLUMN bat_job_relation.relation_id IS '배치 관계 순번';
-COMMENT ON COLUMN bat_job_relation.job_id IS '기준 배치 Job ID';
-COMMENT ON COLUMN bat_job_relation.related_job_id IS '연관 배치 Job ID';
-COMMENT ON COLUMN bat_job_relation.relation_type IS '관계 유형';
-COMMENT ON COLUMN bat_job_relation.trigger_condition IS '트리거 조건';
-COMMENT ON COLUMN bat_job_relation.required_status IS '필수 선행 상태';
-COMMENT ON COLUMN bat_job_relation.sort_order IS '관계 표시 순서';
-COMMENT ON COLUMN bat_job_relation.use_yn IS '사용 여부';
-COMMENT ON COLUMN bat_job_relation.created_by IS '등록자';
-COMMENT ON COLUMN bat_job_relation.created_at IS '등록일시';
-COMMENT ON COLUMN bat_job_relation.updated_by IS '수정자';
-COMMENT ON COLUMN bat_job_relation.updated_at IS '수정일시';
-CREATE OR REPLACE FUNCTION cpf_touch_bat_job_relation() RETURNS trigger AS $$ BEGIN NEW.updated_at = CURRENT_TIMESTAMP; RETURN NEW; END; $$ LANGUAGE plpgsql;
-DROP TRIGGER IF EXISTS trg_cpf_touch_bat_job_relation ON bat_job_relation;
-CREATE TRIGGER trg_cpf_touch_bat_job_relation BEFORE UPDATE ON bat_job_relation FOR EACH ROW EXECUTE FUNCTION cpf_touch_bat_job_relation();
-
-CREATE TABLE bat_job_runtime_projection (
-    job_id VARCHAR(100) NOT NULL,
-    definition_version BIGINT NOT NULL,
-    definition_checksum VARCHAR(64) NOT NULL,
-    projection_status VARCHAR(30) NOT NULL DEFAULT 'ACTIVE',
-    executor_type VARCHAR(40) NOT NULL,
-    executor_reference VARCHAR(300) NOT NULL,
-    trigger_type VARCHAR(30) NOT NULL,
-    trigger_expression VARCHAR(500),
-    timezone_id VARCHAR(100) NOT NULL,
-    projection_json TEXT NOT NULL,
-    projection_hash VARCHAR(64) NOT NULL,
-    effective_from TIMESTAMP,
-    effective_until TIMESTAMP,
-    published_by VARCHAR(100) NOT NULL,
-    published_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    retired_at TIMESTAMP,
-    row_version BIGINT NOT NULL DEFAULT 1,
-    CONSTRAINT pk_bat_job_runtime_projection PRIMARY KEY (job_id, definition_version),
-    CONSTRAINT fk_bat_job_projection_definition FOREIGN KEY (job_id, definition_version) REFERENCES bat_job_definition_version (job_id, definition_version)
-);
-CREATE INDEX ix_bat_job_projection_status ON bat_job_runtime_projection (projection_status, effective_from, effective_until);
-CREATE UNIQUE INDEX ix_bat_job_projection_hash ON bat_job_runtime_projection (projection_hash);
-COMMENT ON TABLE bat_job_runtime_projection IS 'Published Batch Definition Runtime 정본';
-COMMENT ON COLUMN bat_job_runtime_projection.job_id IS 'Job ID';
-COMMENT ON COLUMN bat_job_runtime_projection.definition_version IS 'Published Definition Version';
-COMMENT ON COLUMN bat_job_runtime_projection.definition_checksum IS 'Definition Checksum';
-COMMENT ON COLUMN bat_job_runtime_projection.projection_status IS 'Projection 상태';
-COMMENT ON COLUMN bat_job_runtime_projection.executor_type IS 'Executor 유형';
-COMMENT ON COLUMN bat_job_runtime_projection.executor_reference IS 'Executor Reference';
-COMMENT ON COLUMN bat_job_runtime_projection.trigger_type IS 'Trigger 유형';
-COMMENT ON COLUMN bat_job_runtime_projection.trigger_expression IS 'Trigger 표현식';
-COMMENT ON COLUMN bat_job_runtime_projection.timezone_id IS 'Timezone';
-COMMENT ON COLUMN bat_job_runtime_projection.projection_json IS '불변 Runtime Projection JSON';
-COMMENT ON COLUMN bat_job_runtime_projection.projection_hash IS 'Projection SHA-256';
-COMMENT ON COLUMN bat_job_runtime_projection.effective_from IS '유효 시작';
-COMMENT ON COLUMN bat_job_runtime_projection.effective_until IS '유효 종료';
-COMMENT ON COLUMN bat_job_runtime_projection.published_by IS 'Publish 운영자';
-COMMENT ON COLUMN bat_job_runtime_projection.published_at IS 'Publish 시각';
-COMMENT ON COLUMN bat_job_runtime_projection.retired_at IS 'Retire 시각';
-COMMENT ON COLUMN bat_job_runtime_projection.row_version IS '낙관적 버전';
-
-CREATE TABLE bat_job_runtime_projection_outbox (
-    outbox_id VARCHAR(100) NOT NULL,
-    job_id VARCHAR(100) NOT NULL,
-    definition_version BIGINT NOT NULL,
-    event_type VARCHAR(40) NOT NULL,
-    payload_hash VARCHAR(64) NOT NULL,
-    event_payload TEXT NOT NULL,
-    delivery_status VARCHAR(30) NOT NULL DEFAULT 'PENDING',
-    lease_owner VARCHAR(100),
-    lease_until TIMESTAMP,
-    fencing_token BIGINT NOT NULL DEFAULT 0,
-    attempt_count INTEGER NOT NULL DEFAULT 0,
-    next_attempt_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    last_error_code VARCHAR(100),
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    delivered_at TIMESTAMP,
-    CONSTRAINT pk_bat_job_runtime_projection_outbox PRIMARY KEY (outbox_id),
-    CONSTRAINT fk_bat_projection_outbox_definition FOREIGN KEY (job_id, definition_version) REFERENCES bat_job_definition_version (job_id, definition_version)
-);
-CREATE INDEX ix_bat_projection_outbox_claim ON bat_job_runtime_projection_outbox (delivery_status, next_attempt_at, lease_until);
-CREATE INDEX ix_bat_projection_outbox_job ON bat_job_runtime_projection_outbox (job_id, definition_version, created_at);
-COMMENT ON TABLE bat_job_runtime_projection_outbox IS 'Batch Runtime Projection Durable Outbox';
-COMMENT ON COLUMN bat_job_runtime_projection_outbox.outbox_id IS 'Outbox ID';
-COMMENT ON COLUMN bat_job_runtime_projection_outbox.job_id IS 'Job ID';
-COMMENT ON COLUMN bat_job_runtime_projection_outbox.definition_version IS 'Definition Version';
-COMMENT ON COLUMN bat_job_runtime_projection_outbox.event_type IS 'PUBLISH/RETIRE';
-COMMENT ON COLUMN bat_job_runtime_projection_outbox.payload_hash IS 'Payload Hash';
-COMMENT ON COLUMN bat_job_runtime_projection_outbox.event_payload IS 'Event Payload';
-COMMENT ON COLUMN bat_job_runtime_projection_outbox.delivery_status IS 'Delivery 상태';
-COMMENT ON COLUMN bat_job_runtime_projection_outbox.lease_owner IS 'Lease Owner';
-COMMENT ON COLUMN bat_job_runtime_projection_outbox.lease_until IS 'Lease 만료';
-COMMENT ON COLUMN bat_job_runtime_projection_outbox.fencing_token IS 'Fencing Token';
-COMMENT ON COLUMN bat_job_runtime_projection_outbox.attempt_count IS '시도 횟수';
-COMMENT ON COLUMN bat_job_runtime_projection_outbox.next_attempt_at IS '다음 시도';
-COMMENT ON COLUMN bat_job_runtime_projection_outbox.last_error_code IS '마지막 오류 코드';
-COMMENT ON COLUMN bat_job_runtime_projection_outbox.created_at IS '생성 시각';
-COMMENT ON COLUMN bat_job_runtime_projection_outbox.delivered_at IS '전달 시각';
 
 CREATE TABLE bat_lock (
     lock_key VARCHAR(200) NOT NULL,
@@ -1005,7 +301,7 @@ CREATE TABLE bat_on_demand_request (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT pk_bat_on_demand_request PRIMARY KEY (execution_request_id),
     CONSTRAINT uk_bat_on_demand_idempotency UNIQUE (standard_batch_id, idempotency_key),
-    CONSTRAINT ck_bat_on_demand_id CHECK (standard_batch_id REGEXP '^B[A-Z]{3}[A-Z0-9]{2}[0-9]{4}$' AND RIGHT(standard_batch_id, 4) <> '0000'),
+    CONSTRAINT ck_bat_on_demand_id CHECK (standard_batch_id ~ '^B[A-Z]{3}[A-Z0-9]{2}[0-9]{4}$' AND RIGHT(standard_batch_id, 4) <> '0000'),
     CONSTRAINT ck_bat_on_demand_status CHECK (request_status IN ('REQUESTED', 'RUNNING', 'COMPLETED', 'FAILED', 'RESTARTED', 'RESTART_FAILED', 'RESTART_NOT_AVAILABLE', 'STOPPING', 'STOPPED', 'SKIPPED_LOCKED'))
 );
 CREATE INDEX ix_bat_on_demand_status ON bat_on_demand_request (request_status, requested_at);
@@ -1115,6 +411,39 @@ COMMENT ON COLUMN bat_operation_log_archive.archived_at IS '보관 일시';
 COMMENT ON COLUMN bat_operation_log_archive.archived_by IS '보관 수행자';
 COMMENT ON COLUMN bat_operation_log_archive.archive_reason IS '보관 사유';
 
+CREATE TABLE bat_remote_message_ledger (
+    direction_cd VARCHAR(20) NOT NULL,
+    message_id VARCHAR(64) NOT NULL,
+    payload_sha256 VARCHAR(64) NOT NULL,
+    status_cd VARCHAR(20) NOT NULL,
+    owner_id VARCHAR(150) NOT NULL,
+    lease_until TIMESTAMP(6) NOT NULL,
+    expires_at TIMESTAMP(6) NOT NULL,
+    attempt_no INTEGER NOT NULL DEFAULT 1,
+    last_error_cd VARCHAR(100) DEFAULT NULL,
+    created_at TIMESTAMP(6) NOT NULL,
+    updated_at TIMESTAMP(6) NOT NULL,
+    version_no BIGINT NOT NULL DEFAULT 1,
+    CONSTRAINT pk_bat_remote_message_ledger PRIMARY KEY (direction_cd, message_id),
+    CONSTRAINT ck_bat_remote_msg_attempt CHECK (attempt_no > 0),
+    CONSTRAINT ck_bat_remote_msg_version CHECK (version_no > 0)
+);
+CREATE INDEX idx_bat_remote_msg_status ON bat_remote_message_ledger (status_cd, lease_until);
+CREATE INDEX idx_bat_remote_msg_expiry ON bat_remote_message_ledger (expires_at);
+COMMENT ON TABLE bat_remote_message_ledger IS 'Kafka Remote Batch at-least-once Idempotency/Fencing Ledger';
+COMMENT ON COLUMN bat_remote_message_ledger.direction_cd IS 'REQUEST 또는 REPLY';
+COMMENT ON COLUMN bat_remote_message_ledger.message_id IS '안정 Remote Message 식별자';
+COMMENT ON COLUMN bat_remote_message_ledger.payload_sha256 IS 'Payload SHA-256';
+COMMENT ON COLUMN bat_remote_message_ledger.status_cd IS 'PROCESSING COMPLETE FAILED';
+COMMENT ON COLUMN bat_remote_message_ledger.owner_id IS '현재 처리 인스턴스';
+COMMENT ON COLUMN bat_remote_message_ledger.lease_until IS '처리 Lease 만료 일시';
+COMMENT ON COLUMN bat_remote_message_ledger.expires_at IS 'Message TTL 만료 일시';
+COMMENT ON COLUMN bat_remote_message_ledger.attempt_no IS '처리 시도 횟수';
+COMMENT ON COLUMN bat_remote_message_ledger.last_error_cd IS '마지막 Sanitized 오류 코드';
+COMMENT ON COLUMN bat_remote_message_ledger.created_at IS '최초 수신 일시';
+COMMENT ON COLUMN bat_remote_message_ledger.updated_at IS '최종 상태 변경 일시';
+COMMENT ON COLUMN bat_remote_message_ledger.version_no IS 'Fencing/낙관적 잠금 버전';
+
 CREATE TABLE bat_runtime_command (
     command_id VARCHAR(80),
     idempotency_key VARCHAR(160) NOT NULL,
@@ -1172,32 +501,6 @@ CREATE OR REPLACE FUNCTION cpf_touch_bat_runtime_command() RETURNS trigger AS $$
 DROP TRIGGER IF EXISTS trg_cpf_touch_bat_runtime_command ON bat_runtime_command;
 CREATE TRIGGER trg_cpf_touch_bat_runtime_command BEFORE UPDATE ON bat_runtime_command FOR EACH ROW EXECUTE FUNCTION cpf_touch_bat_runtime_command();
 
-CREATE TABLE bat_runtime_command_attempt (
-    attempt_id BIGINT GENERATED BY DEFAULT AS IDENTITY NOT NULL,
-    command_id VARCHAR(80) NOT NULL,
-    attempt_no INTEGER NOT NULL,
-    instance_id VARCHAR(160),
-    stage_code VARCHAR(80) NOT NULL,
-    attempt_state VARCHAR(40) NOT NULL,
-    result_message VARCHAR(4000),
-    started_at TIMESTAMP(6) NOT NULL,
-    finished_at TIMESTAMP(6),
-    CONSTRAINT pk_bat_runtime_command_attempt PRIMARY KEY (attempt_id),
-    CONSTRAINT uk_bat_runtime_command_attempt UNIQUE (command_id, attempt_no, instance_id, stage_code),
-    CONSTRAINT fk_bat_runtime_command_attempt_command FOREIGN KEY (command_id) REFERENCES bat_runtime_command (command_id) ON DELETE CASCADE
-);
-CREATE INDEX ix_bat_runtime_command_attempt_instance ON bat_runtime_command_attempt (instance_id, started_at);
-COMMENT ON TABLE bat_runtime_command_attempt IS 'BAT runtime command execution attempt';
-COMMENT ON COLUMN bat_runtime_command_attempt.attempt_id IS 'Command attempt identifier';
-COMMENT ON COLUMN bat_runtime_command_attempt.command_id IS 'Runtime command identifier';
-COMMENT ON COLUMN bat_runtime_command_attempt.attempt_no IS 'Command attempt number';
-COMMENT ON COLUMN bat_runtime_command_attempt.instance_id IS 'Target runtime instance identifier';
-COMMENT ON COLUMN bat_runtime_command_attempt.stage_code IS 'Attempt execution stage';
-COMMENT ON COLUMN bat_runtime_command_attempt.attempt_state IS 'Attempt result state';
-COMMENT ON COLUMN bat_runtime_command_attempt.result_message IS 'Attempt result detail';
-COMMENT ON COLUMN bat_runtime_command_attempt.started_at IS 'Attempt start time';
-COMMENT ON COLUMN bat_runtime_command_attempt.finished_at IS 'Attempt finish time';
-
 CREATE TABLE bat_runtime_instance (
     instance_id VARCHAR(160),
     runtime_role VARCHAR(40) NOT NULL,
@@ -1249,109 +552,6 @@ COMMENT ON COLUMN bat_runtime_instance.updated_at IS 'Last state update time';
 CREATE OR REPLACE FUNCTION cpf_touch_bat_runtime_instance() RETURNS trigger AS $$ BEGIN NEW.updated_at = CURRENT_TIMESTAMP; RETURN NEW; END; $$ LANGUAGE plpgsql;
 DROP TRIGGER IF EXISTS trg_cpf_touch_bat_runtime_instance ON bat_runtime_instance;
 CREATE TRIGGER trg_cpf_touch_bat_runtime_instance BEFORE UPDATE ON bat_runtime_instance FOR EACH ROW EXECUTE FUNCTION cpf_touch_bat_runtime_instance();
-
-CREATE TABLE bat_runtime_capability (
-    instance_id VARCHAR(160) NOT NULL,
-    capability_code VARCHAR(80) NOT NULL,
-    CONSTRAINT pk_bat_runtime_capability PRIMARY KEY (instance_id, capability_code),
-    CONSTRAINT fk_bat_runtime_capability_instance FOREIGN KEY (instance_id) REFERENCES bat_runtime_instance (instance_id) ON DELETE CASCADE
-);
-COMMENT ON TABLE bat_runtime_capability IS 'BAT runtime capability projection';
-COMMENT ON COLUMN bat_runtime_capability.instance_id IS 'Runtime instance identifier';
-COMMENT ON COLUMN bat_runtime_capability.capability_code IS 'Advertised capability code';
-
-CREATE TABLE bat_runtime_heartbeat (
-    heartbeat_id BIGINT GENERATED BY DEFAULT AS IDENTITY NOT NULL,
-    instance_id VARCHAR(160) NOT NULL,
-    heartbeat_at TIMESTAMP(6) NOT NULL,
-    ready_yn CHAR(1) NOT NULL,
-    available_capacity INTEGER NOT NULL DEFAULT 0,
-    queue_depth BIGINT NOT NULL DEFAULT 0,
-    draining_yn CHAR(1) NOT NULL DEFAULT 'N',
-    current_execution_count INTEGER NOT NULL DEFAULT 0,
-    active_lease_count INTEGER NOT NULL DEFAULT 0,
-    last_error_code VARCHAR(80),
-    deployment_version VARCHAR(80),
-    CONSTRAINT pk_bat_runtime_heartbeat PRIMARY KEY (heartbeat_id),
-    CONSTRAINT fk_bat_runtime_heartbeat_instance FOREIGN KEY (instance_id) REFERENCES bat_runtime_instance (instance_id) ON DELETE CASCADE
-);
-CREATE INDEX ix_bat_runtime_heartbeat_instance ON bat_runtime_heartbeat (instance_id, heartbeat_at);
-COMMENT ON TABLE bat_runtime_heartbeat IS 'BAT runtime heartbeat event';
-COMMENT ON COLUMN bat_runtime_heartbeat.heartbeat_id IS 'Heartbeat event identifier';
-COMMENT ON COLUMN bat_runtime_heartbeat.instance_id IS 'Runtime instance identifier';
-COMMENT ON COLUMN bat_runtime_heartbeat.heartbeat_at IS 'Heartbeat observation time';
-COMMENT ON COLUMN bat_runtime_heartbeat.ready_yn IS 'Readiness flag';
-COMMENT ON COLUMN bat_runtime_heartbeat.available_capacity IS 'Available execution capacity';
-COMMENT ON COLUMN bat_runtime_heartbeat.queue_depth IS 'Observed queue depth';
-COMMENT ON COLUMN bat_runtime_heartbeat.draining_yn IS 'Drain mode flag';
-COMMENT ON COLUMN bat_runtime_heartbeat.current_execution_count IS 'Current execution count';
-COMMENT ON COLUMN bat_runtime_heartbeat.active_lease_count IS 'Active lease count';
-COMMENT ON COLUMN bat_runtime_heartbeat.last_error_code IS 'Last runtime error code';
-COMMENT ON COLUMN bat_runtime_heartbeat.deployment_version IS 'Observed deployment version';
-
-CREATE TABLE bat_schedule (
-    schedule_id VARCHAR(100) NOT NULL,
-    job_id VARCHAR(100) NOT NULL,
-    cron_expression VARCHAR(100) NOT NULL,
-    calendar_id VARCHAR(50) NOT NULL DEFAULT 'DEFAULT',
-    business_day_only_yn CHAR(1) NOT NULL DEFAULT 'N',
-    holiday_policy VARCHAR(30) NOT NULL DEFAULT 'SKIP',
-    available_start_time TIME,
-    available_end_time TIME,
-    run_date_pattern VARCHAR(80),
-    timezone VARCHAR(50) NOT NULL DEFAULT 'Asia/Seoul',
-    enabled_yn CHAR(1) NOT NULL DEFAULT 'Y',
-    last_fire_at TIMESTAMP,
-    next_fire_at TIMESTAMP,
-    created_by VARCHAR(100) NOT NULL DEFAULT 'BAT',
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT',
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    definition_version BIGINT,
-    definition_checksum VARCHAR(128),
-    CONSTRAINT pk_bat_schedule PRIMARY KEY (schedule_id),
-    CONSTRAINT fk_bat_schedule_job FOREIGN KEY (job_id) REFERENCES bat_job (job_id) ON DELETE CASCADE
-);
-CREATE INDEX ix_bat_schedule_job ON bat_schedule (job_id, enabled_yn);
-COMMENT ON TABLE bat_schedule IS 'BAT 배치 스케줄';
-COMMENT ON COLUMN bat_schedule.schedule_id IS '배치 스케줄 ID';
-COMMENT ON COLUMN bat_schedule.job_id IS '배치 Job ID';
-COMMENT ON COLUMN bat_schedule.cron_expression IS 'Cron 표현식';
-COMMENT ON COLUMN bat_schedule.calendar_id IS '적용 영업일 캘린더 ID';
-COMMENT ON COLUMN bat_schedule.business_day_only_yn IS '영업일에만 수행 여부';
-COMMENT ON COLUMN bat_schedule.holiday_policy IS '휴일 처리 정책';
-COMMENT ON COLUMN bat_schedule.available_start_time IS '수행 가능 시작 시각';
-COMMENT ON COLUMN bat_schedule.available_end_time IS '수행 가능 종료 시각';
-COMMENT ON COLUMN bat_schedule.run_date_pattern IS '수행 일자 패턴';
-COMMENT ON COLUMN bat_schedule.timezone IS '스케줄 기준 시간대';
-COMMENT ON COLUMN bat_schedule.enabled_yn IS '스케줄 활성 여부';
-COMMENT ON COLUMN bat_schedule.last_fire_at IS '마지막 실행 예정 일시';
-COMMENT ON COLUMN bat_schedule.next_fire_at IS '다음 실행 예정 일시';
-COMMENT ON COLUMN bat_schedule.created_by IS '등록자';
-COMMENT ON COLUMN bat_schedule.created_at IS '등록일시';
-COMMENT ON COLUMN bat_schedule.updated_by IS '수정자';
-COMMENT ON COLUMN bat_schedule.updated_at IS '수정일시';
-CREATE OR REPLACE FUNCTION cpf_touch_bat_schedule() RETURNS trigger AS $$ BEGIN NEW.updated_at = CURRENT_TIMESTAMP; RETURN NEW; END; $$ LANGUAGE plpgsql;
-DROP TRIGGER IF EXISTS trg_cpf_touch_bat_schedule ON bat_schedule;
-CREATE TRIGGER trg_cpf_touch_bat_schedule BEFORE UPDATE ON bat_schedule FOR EACH ROW EXECUTE FUNCTION cpf_touch_bat_schedule();
-
-CREATE TABLE bat_schedule_trigger (
-    schedule_id VARCHAR(100) NOT NULL,
-    scheduled_fire_at TIMESTAMP(6) NOT NULL,
-    fencing_token BIGINT NOT NULL,
-    execution_id BIGINT,
-    trigger_status VARCHAR(30) NOT NULL,
-    created_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT pk_bat_schedule_trigger PRIMARY KEY (schedule_id, scheduled_fire_at),
-    CONSTRAINT fk_bat_schedule_trigger_schedule FOREIGN KEY (schedule_id) REFERENCES bat_schedule (schedule_id) ON DELETE CASCADE
-);
-COMMENT ON TABLE bat_schedule_trigger IS 'BAT scheduled trigger evidence';
-COMMENT ON COLUMN bat_schedule_trigger.schedule_id IS 'Schedule identifier';
-COMMENT ON COLUMN bat_schedule_trigger.scheduled_fire_at IS 'Planned fire time';
-COMMENT ON COLUMN bat_schedule_trigger.fencing_token IS 'Scheduler fencing token';
-COMMENT ON COLUMN bat_schedule_trigger.execution_id IS 'Created execution identifier';
-COMMENT ON COLUMN bat_schedule_trigger.trigger_status IS 'Trigger result status';
-COMMENT ON COLUMN bat_schedule_trigger.created_at IS 'Trigger record time';
 
 CREATE TABLE bat_scheduler_lease (
     scheduler_key VARCHAR(100),
@@ -1449,6 +649,602 @@ CREATE OR REPLACE FUNCTION cpf_touch_bat_worker() RETURNS trigger AS $$ BEGIN NE
 DROP TRIGGER IF EXISTS trg_cpf_touch_bat_worker ON bat_worker;
 CREATE TRIGGER trg_cpf_touch_bat_worker BEFORE UPDATE ON bat_worker FOR EACH ROW EXECUTE FUNCTION cpf_touch_bat_worker();
 
+CREATE TABLE BATCH_JOB_INSTANCE (
+    JOB_INSTANCE_ID BIGINT NOT NULL,
+    VERSION BIGINT,
+    JOB_NAME VARCHAR(100) NOT NULL,
+    JOB_KEY VARCHAR(32) NOT NULL,
+    CONSTRAINT pk_BATCH_JOB_INSTANCE PRIMARY KEY (JOB_INSTANCE_ID),
+    CONSTRAINT JOB_INST_UN UNIQUE (JOB_NAME, JOB_KEY)
+);
+COMMENT ON TABLE BATCH_JOB_INSTANCE IS 'Spring Batch 표준 JobInstance 저장소';
+COMMENT ON COLUMN BATCH_JOB_INSTANCE.JOB_INSTANCE_ID IS 'Spring Batch JobInstance 순번';
+COMMENT ON COLUMN BATCH_JOB_INSTANCE.VERSION IS '낙관적 잠금 버전';
+COMMENT ON COLUMN BATCH_JOB_INSTANCE.JOB_NAME IS 'Spring Batch Job 이름';
+COMMENT ON COLUMN BATCH_JOB_INSTANCE.JOB_KEY IS 'Job 파라미터 식별 키';
+
+CREATE TABLE cpf_batch_approved_launch (
+    approval_id VARCHAR(120) NOT NULL,
+    job_id VARCHAR(80) NOT NULL,
+    definition_version BIGINT NOT NULL,
+    definition_checksum CHAR(64) NOT NULL,
+    approval_status VARCHAR(20) NOT NULL,
+    launch_request_json TEXT NOT NULL,
+    effective_from TIMESTAMP(6) NOT NULL,
+    effective_until TIMESTAMP(6),
+    approved_by VARCHAR(120) NOT NULL,
+    approved_at TIMESTAMP(6) NOT NULL,
+    row_version BIGINT NOT NULL DEFAULT 0,
+    CONSTRAINT pk_cpf_batch_approved_launch PRIMARY KEY (approval_id),
+    CONSTRAINT uk_cpf_bat_approved_def UNIQUE (job_id, definition_version, definition_checksum),
+    CONSTRAINT ck_cpf_bat_approval_status CHECK (approval_status IN ('APPROVED', 'REVOKED', 'EXPIRED')),
+    CONSTRAINT ck_cpf_bat_approval_version CHECK (row_version >= 0)
+);
+COMMENT ON TABLE cpf_batch_approved_launch IS '사전 승인된 불변 Spring Batch Launch Request';
+COMMENT ON COLUMN cpf_batch_approved_launch.approval_id IS '승인된 Launch Request 식별자';
+COMMENT ON COLUMN cpf_batch_approved_launch.job_id IS '승인 대상 Batch Job ID';
+COMMENT ON COLUMN cpf_batch_approved_launch.definition_version IS '승인 대상 불변 정의 Version';
+COMMENT ON COLUMN cpf_batch_approved_launch.definition_checksum IS '승인 대상 정의 SHA-256';
+COMMENT ON COLUMN cpf_batch_approved_launch.approval_status IS '승인 Lifecycle 상태';
+COMMENT ON COLUMN cpf_batch_approved_launch.launch_request_json IS '서명·검증된 불변 Launch Request JSON';
+COMMENT ON COLUMN cpf_batch_approved_launch.effective_from IS '승인 효력 시작 시각';
+COMMENT ON COLUMN cpf_batch_approved_launch.effective_until IS '승인 효력 종료 시각';
+COMMENT ON COLUMN cpf_batch_approved_launch.approved_by IS '승인자 식별자';
+COMMENT ON COLUMN cpf_batch_approved_launch.approved_at IS '승인 시각';
+COMMENT ON COLUMN cpf_batch_approved_launch.row_version IS '승인 상태 낙관적 잠금 Version';
+
+CREATE TABLE cpf_batch_execution_control (
+    cpf_execution_id VARCHAR(80) NOT NULL,
+    job_id VARCHAR(80) NOT NULL,
+    definition_version BIGINT NOT NULL,
+    approval_id VARCHAR(120) NOT NULL,
+    operator_id VARCHAR(120) NOT NULL,
+    reason VARCHAR(500) NOT NULL,
+    idempotency_key VARCHAR(200) NOT NULL,
+    fencing_token BIGINT NOT NULL,
+    job_instance_id BIGINT,
+    job_execution_id BIGINT,
+    control_status VARCHAR(40) NOT NULL,
+    unknown_reason VARCHAR(100),
+    unknown_detail VARCHAR(4000),
+    created_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    idempotency_scope VARCHAR(400) NOT NULL,
+    request_hash CHAR(64) NOT NULL,
+    plan_checksum CHAR(64) NOT NULL,
+    control_version BIGINT NOT NULL DEFAULT 1,
+    reconcile_attempts INTEGER NOT NULL DEFAULT 0,
+    reconcile_after TIMESTAMP(6),
+    last_error_code VARCHAR(100),
+    last_error_detail VARCHAR(4000),
+    CONSTRAINT pk_cpf_batch_execution_control PRIMARY KEY (cpf_execution_id),
+    CONSTRAINT uk_cpf_bat_exec_idem_scope UNIQUE (idempotency_scope, idempotency_key),
+    CONSTRAINT ck_cpf_bat_fencing_pos CHECK (fencing_token > 0),
+    CONSTRAINT ck_cpf_bat_request_hash CHECK (request_hash ~ '^[0-9a-f]{64}$'),
+    CONSTRAINT ck_cpf_bat_plan_hash CHECK (plan_checksum ~ '^[0-9a-f]{64}$'),
+    CONSTRAINT ck_cpf_bat_control_version CHECK (control_version > 0),
+    CONSTRAINT ck_cpf_bat_reconcile_attempt CHECK (reconcile_attempts >= 0),
+    CONSTRAINT ck_cpf_bat_control_status CHECK (control_status IN ('RESERVED', 'STARTING', 'STARTED', 'STOPPING', 'STOPPED', 'COMPLETED', 'FAILED', 'UNKNOWN_RESULT', 'ABANDONED', 'REJECTED'))
+);
+CREATE INDEX ix_cpf_bat_exec_job ON cpf_batch_execution_control (job_id, definition_version, created_at);
+CREATE INDEX ix_cpf_bat_exec_sb ON cpf_batch_execution_control (job_execution_id);
+CREATE INDEX ix_cpf_bat_exec_reconcile ON cpf_batch_execution_control (control_status, reconcile_after, updated_at);
+COMMENT ON TABLE cpf_batch_execution_control IS 'CPF 승인·멱등·Fencing 기반 Spring Batch 실행 Control Ledger';
+COMMENT ON COLUMN cpf_batch_execution_control.cpf_execution_id IS 'CPF Batch 실행 식별자';
+COMMENT ON COLUMN cpf_batch_execution_control.job_id IS 'Batch Job ID';
+COMMENT ON COLUMN cpf_batch_execution_control.definition_version IS '실행에 고정된 정의 Version';
+COMMENT ON COLUMN cpf_batch_execution_control.approval_id IS '실행 승인 식별자';
+COMMENT ON COLUMN cpf_batch_execution_control.operator_id IS '실행 요청 운영자';
+COMMENT ON COLUMN cpf_batch_execution_control.reason IS '승인된 실행 사유';
+COMMENT ON COLUMN cpf_batch_execution_control.idempotency_key IS 'Scope 내부 실행 멱등 Key';
+COMMENT ON COLUMN cpf_batch_execution_control.fencing_token IS 'Control Plane Fencing Token';
+COMMENT ON COLUMN cpf_batch_execution_control.job_instance_id IS 'Spring Batch JobInstance ID';
+COMMENT ON COLUMN cpf_batch_execution_control.job_execution_id IS 'Spring Batch JobExecution ID';
+COMMENT ON COLUMN cpf_batch_execution_control.control_status IS 'CPF 실행 Control 상태';
+COMMENT ON COLUMN cpf_batch_execution_control.unknown_reason IS 'UNKNOWN_RESULT 판정 사유 Code';
+COMMENT ON COLUMN cpf_batch_execution_control.unknown_detail IS 'Masking된 UNKNOWN_RESULT 상세';
+COMMENT ON COLUMN cpf_batch_execution_control.created_at IS '실행 예약 생성 시각';
+COMMENT ON COLUMN cpf_batch_execution_control.updated_at IS '마지막 Control 상태 변경 시각';
+COMMENT ON COLUMN cpf_batch_execution_control.idempotency_scope IS '실행 멱등성 격리 Scope';
+COMMENT ON COLUMN cpf_batch_execution_control.request_hash IS 'Canonical Launch Request SHA-256';
+COMMENT ON COLUMN cpf_batch_execution_control.plan_checksum IS '검증된 실행 Plan SHA-256';
+COMMENT ON COLUMN cpf_batch_execution_control.control_version IS 'Control 상태 CAS Version';
+COMMENT ON COLUMN cpf_batch_execution_control.reconcile_attempts IS 'UNKNOWN_RESULT 대사 시도 횟수';
+COMMENT ON COLUMN cpf_batch_execution_control.reconcile_after IS '다음 대사 가능 시각';
+COMMENT ON COLUMN cpf_batch_execution_control.last_error_code IS '마지막 표준 오류 Code';
+COMMENT ON COLUMN cpf_batch_execution_control.last_error_detail IS 'Masking된 마지막 오류 상세';
+CREATE OR REPLACE FUNCTION cpf_touch_cpf_batch_execution_control() RETURNS trigger AS $$ BEGIN NEW.updated_at = CURRENT_TIMESTAMP; RETURN NEW; END; $$ LANGUAGE plpgsql;
+DROP TRIGGER IF EXISTS trg_cpf_touch_cpf_batch_execution_control ON cpf_batch_execution_control;
+CREATE TRIGGER trg_cpf_touch_cpf_batch_execution_control BEFORE UPDATE ON cpf_batch_execution_control FOR EACH ROW EXECUTE FUNCTION cpf_touch_cpf_batch_execution_control();
+
+CREATE TABLE cpf_batch_execution_epoch (
+    job_id VARCHAR(80) NOT NULL,
+    current_fencing_token BIGINT NOT NULL,
+    epoch_version BIGINT NOT NULL DEFAULT 1,
+    updated_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT pk_cpf_batch_execution_epoch PRIMARY KEY (job_id),
+    CONSTRAINT ck_cpf_batch_execution_epoch_token CHECK (current_fencing_token > 0),
+    CONSTRAINT ck_cpf_batch_execution_epoch_version CHECK (epoch_version > 0)
+);
+CREATE INDEX ix_cpf_batch_execution_epoch_updated ON cpf_batch_execution_epoch (updated_at);
+COMMENT ON TABLE cpf_batch_execution_epoch IS 'Batch Job별 최신 Fencing Epoch Ledger';
+COMMENT ON COLUMN cpf_batch_execution_epoch.job_id IS 'Batch Job ID별 최신 Fencing Epoch 식별자';
+COMMENT ON COLUMN cpf_batch_execution_epoch.current_fencing_token IS '현재 유효한 최신 Fencing Token';
+COMMENT ON COLUMN cpf_batch_execution_epoch.epoch_version IS 'Epoch 낙관적 잠금 버전';
+COMMENT ON COLUMN cpf_batch_execution_epoch.updated_at IS '최신 Epoch 변경 시각';
+CREATE OR REPLACE FUNCTION cpf_touch_cpf_batch_execution_epoch() RETURNS trigger AS $$ BEGIN NEW.updated_at = CURRENT_TIMESTAMP; RETURN NEW; END; $$ LANGUAGE plpgsql;
+DROP TRIGGER IF EXISTS trg_cpf_touch_cpf_batch_execution_epoch ON cpf_batch_execution_epoch;
+CREATE TRIGGER trg_cpf_touch_cpf_batch_execution_epoch BEFORE UPDATE ON cpf_batch_execution_epoch FOR EACH ROW EXECUTE FUNCTION cpf_touch_cpf_batch_execution_epoch();
+
+CREATE TABLE bat_deployment_execution (
+    deployment_id VARCHAR(80) NOT NULL,
+    cell_id VARCHAR(120) NOT NULL,
+    idempotency_key VARCHAR(160) NOT NULL,
+    from_version VARCHAR(80),
+    to_version VARCHAR(80) NOT NULL,
+    strategy_code VARCHAR(32) NOT NULL,
+    execution_state VARCHAR(40) NOT NULL,
+    failure_stage VARCHAR(80),
+    result_message VARCHAR(4000),
+    requested_by VARCHAR(120) NOT NULL,
+    approved_by VARCHAR(120) NOT NULL,
+    reason_text VARCHAR(1000) NOT NULL,
+    started_at TIMESTAMP(6),
+    finished_at TIMESTAMP(6),
+    created_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    idempotency_scope VARCHAR(120) NOT NULL,
+    request_hash CHAR(64) NOT NULL,
+    expected_version BIGINT,
+    approval_request_id VARCHAR(120),
+    reconcile_requested_by VARCHAR(120),
+    reconcile_approved_by VARCHAR(120),
+    reconcile_approval_request_id VARCHAR(120),
+    reconcile_reason VARCHAR(1000),
+    reconciled_at TIMESTAMP(6),
+    CONSTRAINT pk_bat_deployment_execution PRIMARY KEY (deployment_id),
+    CONSTRAINT uk_bat_deploy_exec_scope_idem UNIQUE (idempotency_scope, idempotency_key),
+    CONSTRAINT ck_bat_deploy_exec_request_hash CHECK (request_hash ~ '^[0-9a-f]{64}$'),
+    CONSTRAINT fk_bat_deployment_execution_cell FOREIGN KEY (cell_id) REFERENCES bat_deployment_cell (cell_id)
+);
+CREATE INDEX ix_bat_deployment_execution_cell_state ON bat_deployment_execution (cell_id, execution_state);
+CREATE INDEX ix_bat_deploy_exec_request_hash ON bat_deployment_execution (request_hash);
+CREATE INDEX ix_bat_deploy_exec_reconciled ON bat_deployment_execution (execution_state, reconciled_at);
+COMMENT ON TABLE bat_deployment_execution IS 'BAT approved deployment execution';
+COMMENT ON COLUMN bat_deployment_execution.deployment_id IS 'Deployment execution identifier';
+COMMENT ON COLUMN bat_deployment_execution.cell_id IS 'Target deployment cell identifier';
+COMMENT ON COLUMN bat_deployment_execution.idempotency_key IS 'Deployment idempotency key';
+COMMENT ON COLUMN bat_deployment_execution.from_version IS 'Previous artifact version';
+COMMENT ON COLUMN bat_deployment_execution.to_version IS 'Target artifact version';
+COMMENT ON COLUMN bat_deployment_execution.strategy_code IS 'ROLLING/CANARY/BLUE_GREEN strategy';
+COMMENT ON COLUMN bat_deployment_execution.execution_state IS 'Deployment execution state';
+COMMENT ON COLUMN bat_deployment_execution.failure_stage IS 'Failed deployment stage';
+COMMENT ON COLUMN bat_deployment_execution.result_message IS 'Deployment result detail';
+COMMENT ON COLUMN bat_deployment_execution.requested_by IS 'Deployment requester';
+COMMENT ON COLUMN bat_deployment_execution.approved_by IS 'Deployment approver';
+COMMENT ON COLUMN bat_deployment_execution.reason_text IS 'Mandatory deployment reason';
+COMMENT ON COLUMN bat_deployment_execution.started_at IS 'Deployment start time';
+COMMENT ON COLUMN bat_deployment_execution.finished_at IS 'Deployment finish time';
+COMMENT ON COLUMN bat_deployment_execution.created_at IS 'Deployment record time';
+COMMENT ON COLUMN bat_deployment_execution.idempotency_scope IS 'Cell-scoped deployment idempotency scope';
+COMMENT ON COLUMN bat_deployment_execution.request_hash IS 'Canonical approved deployment request SHA-256';
+COMMENT ON COLUMN bat_deployment_execution.expected_version IS 'Expected deployment plan version';
+COMMENT ON COLUMN bat_deployment_execution.approval_request_id IS 'Approval request identifier';
+COMMENT ON COLUMN bat_deployment_execution.reconcile_requested_by IS 'Reconciliation requester';
+COMMENT ON COLUMN bat_deployment_execution.reconcile_approved_by IS 'Reconciliation approver';
+COMMENT ON COLUMN bat_deployment_execution.reconcile_approval_request_id IS 'Reconciliation approval request identifier';
+COMMENT ON COLUMN bat_deployment_execution.reconcile_reason IS 'Mandatory reconciliation reason';
+COMMENT ON COLUMN bat_deployment_execution.reconciled_at IS 'Reconciliation completion time';
+
+CREATE TABLE bat_deployment_instance (
+    cell_id VARCHAR(120) NOT NULL,
+    instance_id VARCHAR(160) NOT NULL,
+    host_alias VARCHAR(160) NOT NULL,
+    port_no INTEGER NOT NULL,
+    profile_name VARCHAR(80) NOT NULL,
+    zone_id VARCHAR(80),
+    pool_id VARCHAR(80),
+    agent_base_url VARCHAR(500) NOT NULL,
+    config_ref VARCHAR(1000),
+    desired_state VARCHAR(32) NOT NULL,
+    CONSTRAINT pk_bat_deployment_instance PRIMARY KEY (cell_id, instance_id),
+    CONSTRAINT uk_bat_deployment_instance_id UNIQUE (instance_id),
+    CONSTRAINT fk_bat_deployment_instance_cell FOREIGN KEY (cell_id) REFERENCES bat_deployment_cell (cell_id) ON DELETE CASCADE
+);
+COMMENT ON TABLE bat_deployment_instance IS 'BAT deployment cell instance projection';
+COMMENT ON COLUMN bat_deployment_instance.cell_id IS 'Deployment cell identifier';
+COMMENT ON COLUMN bat_deployment_instance.instance_id IS 'Runtime instance identifier';
+COMMENT ON COLUMN bat_deployment_instance.host_alias IS 'Target host alias';
+COMMENT ON COLUMN bat_deployment_instance.port_no IS 'Runtime service port';
+COMMENT ON COLUMN bat_deployment_instance.profile_name IS 'Runtime profile name';
+COMMENT ON COLUMN bat_deployment_instance.zone_id IS 'Availability zone identifier';
+COMMENT ON COLUMN bat_deployment_instance.pool_id IS 'Runtime pool identifier';
+COMMENT ON COLUMN bat_deployment_instance.agent_base_url IS 'Approved host-agent base URL';
+COMMENT ON COLUMN bat_deployment_instance.config_ref IS 'External configuration reference';
+COMMENT ON COLUMN bat_deployment_instance.desired_state IS 'Desired instance state';
+
+CREATE TABLE bat_job (
+    job_id VARCHAR(100) NOT NULL,
+    job_name VARCHAR(150) NOT NULL,
+    job_type VARCHAR(30) NOT NULL DEFAULT 'TASKLET',
+    description VARCHAR(500),
+    restartable_yn CHAR(1) NOT NULL DEFAULT 'Y',
+    use_yn CHAR(1) NOT NULL DEFAULT 'Y',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'BAT',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT',
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    published_definition_version BIGINT,
+    published_definition_checksum VARCHAR(128),
+    executor_reference VARCHAR(300),
+    definition_published_at TIMESTAMP(3),
+    CONSTRAINT pk_bat_job PRIMARY KEY (job_id),
+    CONSTRAINT fk_bat_job_published_definition FOREIGN KEY (job_id, published_definition_version) REFERENCES bat_job_definition_version (job_id, definition_version)
+);
+CREATE INDEX ix_bat_job_use ON bat_job (use_yn, job_type);
+COMMENT ON TABLE bat_job IS 'BAT 배치 Job 기준';
+COMMENT ON COLUMN bat_job.job_id IS '배치 Job ID';
+COMMENT ON COLUMN bat_job.job_name IS '배치 Job 이름';
+COMMENT ON COLUMN bat_job.job_type IS '배치 Job 유형';
+COMMENT ON COLUMN bat_job.description IS '배치 설명';
+COMMENT ON COLUMN bat_job.restartable_yn IS '재시작 가능 여부';
+COMMENT ON COLUMN bat_job.use_yn IS '사용 여부';
+COMMENT ON COLUMN bat_job.created_by IS '등록자';
+COMMENT ON COLUMN bat_job.created_at IS '등록일시';
+COMMENT ON COLUMN bat_job.updated_by IS '수정자';
+COMMENT ON COLUMN bat_job.updated_at IS '수정일시';
+COMMENT ON COLUMN bat_job.published_definition_version IS '현재 Runtime에 고정 반영된 Job Definition Version';
+COMMENT ON COLUMN bat_job.published_definition_checksum IS 'Published Definition 무결성 Checksum';
+COMMENT ON COLUMN bat_job.executor_reference IS '검증된 Executor Catalog Reference';
+COMMENT ON COLUMN bat_job.definition_published_at IS 'Published Definition Runtime 반영 시각';
+CREATE OR REPLACE FUNCTION cpf_touch_bat_job() RETURNS trigger AS $$ BEGIN NEW.updated_at = CURRENT_TIMESTAMP; RETURN NEW; END; $$ LANGUAGE plpgsql;
+DROP TRIGGER IF EXISTS trg_cpf_touch_bat_job ON bat_job;
+CREATE TRIGGER trg_cpf_touch_bat_job BEFORE UPDATE ON bat_job FOR EACH ROW EXECUTE FUNCTION cpf_touch_bat_job();
+
+CREATE TABLE bat_job_dependency (
+    job_id VARCHAR(100) NOT NULL,
+    definition_version BIGINT NOT NULL,
+    related_job_id VARCHAR(80) NOT NULL,
+    condition_code VARCHAR(40) NOT NULL,
+    timeout_seconds BIGINT NOT NULL DEFAULT 0,
+    required_yn CHAR(1) NOT NULL DEFAULT 'Y',
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    CONSTRAINT pk_bat_job_dependency PRIMARY KEY (job_id, definition_version, related_job_id),
+    CONSTRAINT ck_bat_job_dep_self CHECK (job_id <> related_job_id),
+    CONSTRAINT fk_bat_job_dep_def FOREIGN KEY (job_id, definition_version) REFERENCES bat_job_definition_version (job_id, definition_version) ON DELETE CASCADE
+);
+COMMENT ON TABLE bat_job_dependency IS 'BAT Versioned Job Dependency';
+COMMENT ON COLUMN bat_job_dependency.job_id IS 'Job ID';
+COMMENT ON COLUMN bat_job_dependency.definition_version IS 'Definition Version';
+COMMENT ON COLUMN bat_job_dependency.related_job_id IS '선행 Job';
+COMMENT ON COLUMN bat_job_dependency.condition_code IS '의존 조건';
+COMMENT ON COLUMN bat_job_dependency.timeout_seconds IS '대기 Timeout';
+COMMENT ON COLUMN bat_job_dependency.required_yn IS '필수 여부';
+COMMENT ON COLUMN bat_job_dependency.sort_order IS '정렬';
+
+CREATE TABLE bat_job_pack_job (
+    job_pack_id VARCHAR(120) NOT NULL,
+    job_id VARCHAR(100) NOT NULL,
+    restartable_yn CHAR(1) NOT NULL,
+    center_cut_provider_key VARCHAR(100),
+    center_cut_handler_key VARCHAR(100),
+    CONSTRAINT pk_bat_job_pack_job PRIMARY KEY (job_pack_id, job_id),
+    CONSTRAINT fk_bat_job_pack_job_pack FOREIGN KEY (job_pack_id) REFERENCES bat_job_pack (job_pack_id) ON DELETE CASCADE
+);
+COMMENT ON TABLE bat_job_pack_job IS 'BAT job-pack job projection';
+COMMENT ON COLUMN bat_job_pack_job.job_pack_id IS 'Owning job-pack identifier';
+COMMENT ON COLUMN bat_job_pack_job.job_id IS 'Published job identifier';
+COMMENT ON COLUMN bat_job_pack_job.restartable_yn IS 'Job restartability flag';
+COMMENT ON COLUMN bat_job_pack_job.center_cut_provider_key IS 'Center-cut target provider key';
+COMMENT ON COLUMN bat_job_pack_job.center_cut_handler_key IS 'Center-cut item handler key';
+
+CREATE TABLE bat_job_parameter_definition (
+    job_id VARCHAR(100) NOT NULL,
+    definition_version BIGINT NOT NULL,
+    parameter_name VARCHAR(100) NOT NULL,
+    parameter_type VARCHAR(40) NOT NULL,
+    label_text VARCHAR(200),
+    description_text VARCHAR(1000),
+    required_yn CHAR(1) NOT NULL DEFAULT 'N',
+    sensitive_yn CHAR(1) NOT NULL DEFAULT 'N',
+    default_value VARCHAR(1000),
+    allowed_values TEXT,
+    validation_pattern VARCHAR(1000),
+    min_value DECIMAL(38,10),
+    max_value DECIMAL(38,10),
+    min_length INTEGER,
+    max_length INTEGER,
+    reference_type VARCHAR(80),
+    alias_required_yn CHAR(1) NOT NULL DEFAULT 'N',
+    runtime_override_allowed_yn CHAR(1) NOT NULL DEFAULT 'N',
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    CONSTRAINT pk_bat_job_parameter_definition PRIMARY KEY (job_id, definition_version, parameter_name),
+    CONSTRAINT fk_bat_job_param_def FOREIGN KEY (job_id, definition_version) REFERENCES bat_job_definition_version (job_id, definition_version) ON DELETE CASCADE
+);
+COMMENT ON TABLE bat_job_parameter_definition IS 'BAT Typed Parameter Schema';
+COMMENT ON COLUMN bat_job_parameter_definition.job_id IS 'Job ID';
+COMMENT ON COLUMN bat_job_parameter_definition.definition_version IS 'Definition Version';
+COMMENT ON COLUMN bat_job_parameter_definition.parameter_name IS 'Parameter 이름';
+COMMENT ON COLUMN bat_job_parameter_definition.parameter_type IS 'Parameter 유형';
+COMMENT ON COLUMN bat_job_parameter_definition.label_text IS 'UI Label';
+COMMENT ON COLUMN bat_job_parameter_definition.description_text IS '설명';
+COMMENT ON COLUMN bat_job_parameter_definition.required_yn IS '필수 여부';
+COMMENT ON COLUMN bat_job_parameter_definition.sensitive_yn IS '민감정보 여부';
+COMMENT ON COLUMN bat_job_parameter_definition.default_value IS '기본값';
+COMMENT ON COLUMN bat_job_parameter_definition.allowed_values IS '허용값';
+COMMENT ON COLUMN bat_job_parameter_definition.validation_pattern IS '검증 Pattern';
+COMMENT ON COLUMN bat_job_parameter_definition.min_value IS '최솟값';
+COMMENT ON COLUMN bat_job_parameter_definition.max_value IS '최댓값';
+COMMENT ON COLUMN bat_job_parameter_definition.min_length IS '최소 길이';
+COMMENT ON COLUMN bat_job_parameter_definition.max_length IS '최대 길이';
+COMMENT ON COLUMN bat_job_parameter_definition.reference_type IS '참조 유형';
+COMMENT ON COLUMN bat_job_parameter_definition.alias_required_yn IS 'Alias 강제';
+COMMENT ON COLUMN bat_job_parameter_definition.runtime_override_allowed_yn IS '실행 Override';
+COMMENT ON COLUMN bat_job_parameter_definition.sort_order IS '정렬';
+
+CREATE TABLE bat_job_runtime_projection (
+    job_id VARCHAR(100) NOT NULL,
+    definition_version BIGINT NOT NULL,
+    definition_checksum VARCHAR(64) NOT NULL,
+    projection_status VARCHAR(30) NOT NULL DEFAULT 'ACTIVE',
+    executor_type VARCHAR(40) NOT NULL,
+    executor_reference VARCHAR(300) NOT NULL,
+    trigger_type VARCHAR(30) NOT NULL,
+    trigger_expression VARCHAR(500),
+    timezone_id VARCHAR(100) NOT NULL,
+    projection_json TEXT NOT NULL,
+    projection_hash VARCHAR(64) NOT NULL,
+    effective_from TIMESTAMP,
+    effective_until TIMESTAMP,
+    published_by VARCHAR(100) NOT NULL,
+    published_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    retired_at TIMESTAMP,
+    row_version BIGINT NOT NULL DEFAULT 1,
+    CONSTRAINT pk_bat_job_runtime_projection PRIMARY KEY (job_id, definition_version),
+    CONSTRAINT fk_bat_job_projection_definition FOREIGN KEY (job_id, definition_version) REFERENCES bat_job_definition_version (job_id, definition_version)
+);
+CREATE INDEX ix_bat_job_projection_status ON bat_job_runtime_projection (projection_status, effective_from, effective_until);
+CREATE UNIQUE INDEX ix_bat_job_projection_hash ON bat_job_runtime_projection (projection_hash);
+COMMENT ON TABLE bat_job_runtime_projection IS 'Published Batch Definition Runtime 정본';
+COMMENT ON COLUMN bat_job_runtime_projection.job_id IS 'Job ID';
+COMMENT ON COLUMN bat_job_runtime_projection.definition_version IS 'Published Definition Version';
+COMMENT ON COLUMN bat_job_runtime_projection.definition_checksum IS 'Definition Checksum';
+COMMENT ON COLUMN bat_job_runtime_projection.projection_status IS 'Projection 상태';
+COMMENT ON COLUMN bat_job_runtime_projection.executor_type IS 'Executor 유형';
+COMMENT ON COLUMN bat_job_runtime_projection.executor_reference IS 'Executor Reference';
+COMMENT ON COLUMN bat_job_runtime_projection.trigger_type IS 'Trigger 유형';
+COMMENT ON COLUMN bat_job_runtime_projection.trigger_expression IS 'Trigger 표현식';
+COMMENT ON COLUMN bat_job_runtime_projection.timezone_id IS 'Timezone';
+COMMENT ON COLUMN bat_job_runtime_projection.projection_json IS '불변 Runtime Projection JSON';
+COMMENT ON COLUMN bat_job_runtime_projection.projection_hash IS 'Projection SHA-256';
+COMMENT ON COLUMN bat_job_runtime_projection.effective_from IS '유효 시작';
+COMMENT ON COLUMN bat_job_runtime_projection.effective_until IS '유효 종료';
+COMMENT ON COLUMN bat_job_runtime_projection.published_by IS 'Publish 운영자';
+COMMENT ON COLUMN bat_job_runtime_projection.published_at IS 'Publish 시각';
+COMMENT ON COLUMN bat_job_runtime_projection.retired_at IS 'Retire 시각';
+COMMENT ON COLUMN bat_job_runtime_projection.row_version IS '낙관적 버전';
+
+CREATE TABLE bat_job_runtime_projection_outbox (
+    outbox_id VARCHAR(100) NOT NULL,
+    job_id VARCHAR(100) NOT NULL,
+    definition_version BIGINT NOT NULL,
+    event_type VARCHAR(40) NOT NULL,
+    payload_hash VARCHAR(64) NOT NULL,
+    event_payload TEXT NOT NULL,
+    delivery_status VARCHAR(30) NOT NULL DEFAULT 'PENDING',
+    lease_owner VARCHAR(100),
+    lease_until TIMESTAMP,
+    fencing_token BIGINT NOT NULL DEFAULT 0,
+    attempt_count INTEGER NOT NULL DEFAULT 0,
+    next_attempt_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_error_code VARCHAR(100),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    delivered_at TIMESTAMP,
+    CONSTRAINT pk_bat_job_runtime_projection_outbox PRIMARY KEY (outbox_id),
+    CONSTRAINT fk_bat_projection_outbox_definition FOREIGN KEY (job_id, definition_version) REFERENCES bat_job_definition_version (job_id, definition_version)
+);
+CREATE INDEX ix_bat_projection_outbox_claim ON bat_job_runtime_projection_outbox (delivery_status, next_attempt_at, lease_until);
+CREATE INDEX ix_bat_projection_outbox_job ON bat_job_runtime_projection_outbox (job_id, definition_version, created_at);
+COMMENT ON TABLE bat_job_runtime_projection_outbox IS 'Batch Runtime Projection Durable Outbox';
+COMMENT ON COLUMN bat_job_runtime_projection_outbox.outbox_id IS 'Outbox ID';
+COMMENT ON COLUMN bat_job_runtime_projection_outbox.job_id IS 'Job ID';
+COMMENT ON COLUMN bat_job_runtime_projection_outbox.definition_version IS 'Definition Version';
+COMMENT ON COLUMN bat_job_runtime_projection_outbox.event_type IS 'PUBLISH/RETIRE';
+COMMENT ON COLUMN bat_job_runtime_projection_outbox.payload_hash IS 'Payload Hash';
+COMMENT ON COLUMN bat_job_runtime_projection_outbox.event_payload IS 'Event Payload';
+COMMENT ON COLUMN bat_job_runtime_projection_outbox.delivery_status IS 'Delivery 상태';
+COMMENT ON COLUMN bat_job_runtime_projection_outbox.lease_owner IS 'Lease Owner';
+COMMENT ON COLUMN bat_job_runtime_projection_outbox.lease_until IS 'Lease 만료';
+COMMENT ON COLUMN bat_job_runtime_projection_outbox.fencing_token IS 'Fencing Token';
+COMMENT ON COLUMN bat_job_runtime_projection_outbox.attempt_count IS '시도 횟수';
+COMMENT ON COLUMN bat_job_runtime_projection_outbox.next_attempt_at IS '다음 시도';
+COMMENT ON COLUMN bat_job_runtime_projection_outbox.last_error_code IS '마지막 오류 코드';
+COMMENT ON COLUMN bat_job_runtime_projection_outbox.created_at IS '생성 시각';
+COMMENT ON COLUMN bat_job_runtime_projection_outbox.delivered_at IS '전달 시각';
+
+CREATE TABLE bat_runtime_capability (
+    instance_id VARCHAR(160) NOT NULL,
+    capability_code VARCHAR(80) NOT NULL,
+    CONSTRAINT pk_bat_runtime_capability PRIMARY KEY (instance_id, capability_code),
+    CONSTRAINT fk_bat_runtime_capability_instance FOREIGN KEY (instance_id) REFERENCES bat_runtime_instance (instance_id) ON DELETE CASCADE
+);
+COMMENT ON TABLE bat_runtime_capability IS 'BAT runtime capability projection';
+COMMENT ON COLUMN bat_runtime_capability.instance_id IS 'Runtime instance identifier';
+COMMENT ON COLUMN bat_runtime_capability.capability_code IS 'Advertised capability code';
+
+CREATE TABLE bat_runtime_command_attempt (
+    attempt_id BIGINT GENERATED BY DEFAULT AS IDENTITY NOT NULL,
+    command_id VARCHAR(80) NOT NULL,
+    attempt_no INTEGER NOT NULL,
+    instance_id VARCHAR(160),
+    stage_code VARCHAR(80) NOT NULL,
+    attempt_state VARCHAR(40) NOT NULL,
+    result_message VARCHAR(4000),
+    started_at TIMESTAMP(6) NOT NULL,
+    finished_at TIMESTAMP(6),
+    CONSTRAINT pk_bat_runtime_command_attempt PRIMARY KEY (attempt_id),
+    CONSTRAINT uk_bat_runtime_command_attempt UNIQUE (command_id, attempt_no, instance_id, stage_code),
+    CONSTRAINT fk_bat_runtime_command_attempt_command FOREIGN KEY (command_id) REFERENCES bat_runtime_command (command_id) ON DELETE CASCADE
+);
+CREATE INDEX ix_bat_runtime_command_attempt_instance ON bat_runtime_command_attempt (instance_id, started_at);
+COMMENT ON TABLE bat_runtime_command_attempt IS 'BAT runtime command execution attempt';
+COMMENT ON COLUMN bat_runtime_command_attempt.attempt_id IS 'Command attempt identifier';
+COMMENT ON COLUMN bat_runtime_command_attempt.command_id IS 'Runtime command identifier';
+COMMENT ON COLUMN bat_runtime_command_attempt.attempt_no IS 'Command attempt number';
+COMMENT ON COLUMN bat_runtime_command_attempt.instance_id IS 'Target runtime instance identifier';
+COMMENT ON COLUMN bat_runtime_command_attempt.stage_code IS 'Attempt execution stage';
+COMMENT ON COLUMN bat_runtime_command_attempt.attempt_state IS 'Attempt result state';
+COMMENT ON COLUMN bat_runtime_command_attempt.result_message IS 'Attempt result detail';
+COMMENT ON COLUMN bat_runtime_command_attempt.started_at IS 'Attempt start time';
+COMMENT ON COLUMN bat_runtime_command_attempt.finished_at IS 'Attempt finish time';
+
+CREATE TABLE bat_runtime_heartbeat (
+    heartbeat_id BIGINT GENERATED BY DEFAULT AS IDENTITY NOT NULL,
+    instance_id VARCHAR(160) NOT NULL,
+    heartbeat_at TIMESTAMP(6) NOT NULL,
+    ready_yn CHAR(1) NOT NULL,
+    available_capacity INTEGER NOT NULL DEFAULT 0,
+    queue_depth BIGINT NOT NULL DEFAULT 0,
+    draining_yn CHAR(1) NOT NULL DEFAULT 'N',
+    current_execution_count INTEGER NOT NULL DEFAULT 0,
+    active_lease_count INTEGER NOT NULL DEFAULT 0,
+    last_error_code VARCHAR(80),
+    deployment_version VARCHAR(80),
+    CONSTRAINT pk_bat_runtime_heartbeat PRIMARY KEY (heartbeat_id),
+    CONSTRAINT fk_bat_runtime_heartbeat_instance FOREIGN KEY (instance_id) REFERENCES bat_runtime_instance (instance_id) ON DELETE CASCADE
+);
+CREATE INDEX ix_bat_runtime_heartbeat_instance ON bat_runtime_heartbeat (instance_id, heartbeat_at);
+COMMENT ON TABLE bat_runtime_heartbeat IS 'BAT runtime heartbeat event';
+COMMENT ON COLUMN bat_runtime_heartbeat.heartbeat_id IS 'Heartbeat event identifier';
+COMMENT ON COLUMN bat_runtime_heartbeat.instance_id IS 'Runtime instance identifier';
+COMMENT ON COLUMN bat_runtime_heartbeat.heartbeat_at IS 'Heartbeat observation time';
+COMMENT ON COLUMN bat_runtime_heartbeat.ready_yn IS 'Readiness flag';
+COMMENT ON COLUMN bat_runtime_heartbeat.available_capacity IS 'Available execution capacity';
+COMMENT ON COLUMN bat_runtime_heartbeat.queue_depth IS 'Observed queue depth';
+COMMENT ON COLUMN bat_runtime_heartbeat.draining_yn IS 'Drain mode flag';
+COMMENT ON COLUMN bat_runtime_heartbeat.current_execution_count IS 'Current execution count';
+COMMENT ON COLUMN bat_runtime_heartbeat.active_lease_count IS 'Active lease count';
+COMMENT ON COLUMN bat_runtime_heartbeat.last_error_code IS 'Last runtime error code';
+COMMENT ON COLUMN bat_runtime_heartbeat.deployment_version IS 'Observed deployment version';
+
+CREATE TABLE BATCH_JOB_EXECUTION (
+    JOB_EXECUTION_ID BIGINT NOT NULL,
+    VERSION BIGINT,
+    JOB_INSTANCE_ID BIGINT NOT NULL,
+    CREATE_TIME TIMESTAMP(6) NOT NULL,
+    START_TIME TIMESTAMP(6) DEFAULT NULL,
+    END_TIME TIMESTAMP(6) DEFAULT NULL,
+    STATUS VARCHAR(10),
+    EXIT_CODE VARCHAR(2500),
+    EXIT_MESSAGE VARCHAR(2500),
+    LAST_UPDATED TIMESTAMP(6),
+    CONSTRAINT pk_BATCH_JOB_EXECUTION PRIMARY KEY (JOB_EXECUTION_ID),
+    CONSTRAINT JOB_INST_EXEC_FK FOREIGN KEY (JOB_INSTANCE_ID) REFERENCES BATCH_JOB_INSTANCE (JOB_INSTANCE_ID)
+);
+COMMENT ON TABLE BATCH_JOB_EXECUTION IS 'Spring Batch 표준 JobExecution 저장소';
+COMMENT ON COLUMN BATCH_JOB_EXECUTION.JOB_EXECUTION_ID IS 'Spring Batch JobExecution 순번';
+COMMENT ON COLUMN BATCH_JOB_EXECUTION.VERSION IS '낙관적 잠금 버전';
+COMMENT ON COLUMN BATCH_JOB_EXECUTION.JOB_INSTANCE_ID IS 'Spring Batch JobInstance 순번';
+COMMENT ON COLUMN BATCH_JOB_EXECUTION.CREATE_TIME IS '실행 생성 일시';
+COMMENT ON COLUMN BATCH_JOB_EXECUTION.START_TIME IS '실행 시작 일시';
+COMMENT ON COLUMN BATCH_JOB_EXECUTION.END_TIME IS '실행 종료 일시';
+COMMENT ON COLUMN BATCH_JOB_EXECUTION.STATUS IS '실행 상태';
+COMMENT ON COLUMN BATCH_JOB_EXECUTION.EXIT_CODE IS '종료 코드';
+COMMENT ON COLUMN BATCH_JOB_EXECUTION.EXIT_MESSAGE IS '종료 메시지';
+COMMENT ON COLUMN BATCH_JOB_EXECUTION.LAST_UPDATED IS '마지막 수정 일시';
+
+CREATE TABLE cpf_batch_execution_link (
+    cpf_execution_id VARCHAR(80) NOT NULL,
+    link_key VARCHAR(80) NOT NULL,
+    job_id VARCHAR(80) NOT NULL,
+    definition_version BIGINT NOT NULL,
+    spring_job_instance_id BIGINT NOT NULL,
+    spring_job_execution_id BIGINT NOT NULL,
+    spring_step_execution_id BIGINT,
+    spring_status VARCHAR(40) NOT NULL,
+    fencing_token BIGINT NOT NULL,
+    created_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT pk_cpf_batch_execution_link PRIMARY KEY (cpf_execution_id, link_key),
+    CONSTRAINT ck_cpf_bat_link_fencing CHECK (fencing_token > 0),
+    CONSTRAINT fk_cpf_bat_exec_link FOREIGN KEY (cpf_execution_id) REFERENCES cpf_batch_execution_control (cpf_execution_id) ON DELETE CASCADE
+);
+CREATE INDEX ix_cpf_bat_link_sb ON cpf_batch_execution_link (spring_job_execution_id, spring_step_execution_id);
+COMMENT ON TABLE cpf_batch_execution_link IS 'CPF 실행과 Spring Batch Job/Step Metadata 연결 Projection';
+COMMENT ON COLUMN cpf_batch_execution_link.cpf_execution_id IS 'CPF Batch 실행 식별자';
+COMMENT ON COLUMN cpf_batch_execution_link.link_key IS 'Job/Step 실행 Link 식별 Key';
+COMMENT ON COLUMN cpf_batch_execution_link.job_id IS 'Batch Job ID';
+COMMENT ON COLUMN cpf_batch_execution_link.definition_version IS '실행에 고정된 정의 Version';
+COMMENT ON COLUMN cpf_batch_execution_link.spring_job_instance_id IS 'Spring Batch JobInstance ID';
+COMMENT ON COLUMN cpf_batch_execution_link.spring_job_execution_id IS 'Spring Batch JobExecution ID';
+COMMENT ON COLUMN cpf_batch_execution_link.spring_step_execution_id IS 'Spring Batch StepExecution ID';
+COMMENT ON COLUMN cpf_batch_execution_link.spring_status IS 'Spring Batch 실행 상태';
+COMMENT ON COLUMN cpf_batch_execution_link.fencing_token IS 'Link 생성 시 검증된 Fencing Token';
+COMMENT ON COLUMN cpf_batch_execution_link.created_at IS 'Link 생성 시각';
+COMMENT ON COLUMN cpf_batch_execution_link.updated_at IS 'Link 마지막 동기화 시각';
+CREATE OR REPLACE FUNCTION cpf_touch_cpf_batch_execution_link() RETURNS trigger AS $$ BEGIN NEW.updated_at = CURRENT_TIMESTAMP; RETURN NEW; END; $$ LANGUAGE plpgsql;
+DROP TRIGGER IF EXISTS trg_cpf_touch_cpf_batch_execution_link ON cpf_batch_execution_link;
+CREATE TRIGGER trg_cpf_touch_cpf_batch_execution_link BEFORE UPDATE ON cpf_batch_execution_link FOR EACH ROW EXECUTE FUNCTION cpf_touch_cpf_batch_execution_link();
+
+CREATE TABLE bat_center_cut_job (
+    center_cut_job_id VARCHAR(100) NOT NULL,
+    batch_job_id VARCHAR(100),
+    center_cut_job_name VARCHAR(150) NOT NULL,
+    provider_key VARCHAR(100) NOT NULL,
+    handler_key VARCHAR(100) NOT NULL,
+    chunk_size INTEGER NOT NULL DEFAULT 100,
+    retry_limit INTEGER NOT NULL DEFAULT 3,
+    use_yn CHAR(1) NOT NULL DEFAULT 'Y',
+    description VARCHAR(500),
+    created_by VARCHAR(100) NOT NULL DEFAULT 'BAT',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT',
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT pk_bat_center_cut_job PRIMARY KEY (center_cut_job_id),
+    CONSTRAINT fk_bat_center_cut_job_batch FOREIGN KEY (batch_job_id) REFERENCES bat_job (job_id) ON DELETE SET NULL
+);
+CREATE INDEX ix_bat_center_cut_job_batch ON bat_center_cut_job (batch_job_id, use_yn);
+COMMENT ON TABLE bat_center_cut_job IS 'BAT 센터컷 Job 정의';
+COMMENT ON COLUMN bat_center_cut_job.center_cut_job_id IS '센터컷 Job ID';
+COMMENT ON COLUMN bat_center_cut_job.batch_job_id IS '연결된 BAT 배치 Job ID';
+COMMENT ON COLUMN bat_center_cut_job.center_cut_job_name IS '센터컷 Job 명';
+COMMENT ON COLUMN bat_center_cut_job.provider_key IS '대상 조회 Provider 식별자';
+COMMENT ON COLUMN bat_center_cut_job.handler_key IS '처리 Handler 식별자';
+COMMENT ON COLUMN bat_center_cut_job.chunk_size IS '한 번에 조회할 대상 건수';
+COMMENT ON COLUMN bat_center_cut_job.retry_limit IS '최대 재처리 횟수';
+COMMENT ON COLUMN bat_center_cut_job.use_yn IS '사용 여부';
+COMMENT ON COLUMN bat_center_cut_job.description IS '센터컷 Job 설명';
+COMMENT ON COLUMN bat_center_cut_job.created_by IS '등록자';
+COMMENT ON COLUMN bat_center_cut_job.created_at IS '등록일시';
+COMMENT ON COLUMN bat_center_cut_job.updated_by IS '수정자';
+COMMENT ON COLUMN bat_center_cut_job.updated_at IS '수정일시';
+CREATE OR REPLACE FUNCTION cpf_touch_bat_center_cut_job() RETURNS trigger AS $$ BEGIN NEW.updated_at = CURRENT_TIMESTAMP; RETURN NEW; END; $$ LANGUAGE plpgsql;
+DROP TRIGGER IF EXISTS trg_cpf_touch_bat_center_cut_job ON bat_center_cut_job;
+CREATE TRIGGER trg_cpf_touch_bat_center_cut_job BEFORE UPDATE ON bat_center_cut_job FOR EACH ROW EXECUTE FUNCTION cpf_touch_bat_center_cut_job();
+
+CREATE TABLE bat_deployment_instance_result (
+    deployment_result_id BIGINT GENERATED BY DEFAULT AS IDENTITY NOT NULL,
+    deployment_id VARCHAR(80) NOT NULL,
+    sequence_no INTEGER NOT NULL,
+    instance_id VARCHAR(160) NOT NULL,
+    stage_code VARCHAR(80) NOT NULL,
+    result_state VARCHAR(40) NOT NULL,
+    result_message VARCHAR(4000),
+    recorded_at TIMESTAMP(6) NOT NULL,
+    CONSTRAINT pk_bat_deployment_instance_result PRIMARY KEY (deployment_result_id),
+    CONSTRAINT uk_bat_deployment_instance_result UNIQUE (deployment_id, sequence_no),
+    CONSTRAINT fk_bat_deployment_instance_result_execution FOREIGN KEY (deployment_id) REFERENCES bat_deployment_execution (deployment_id) ON DELETE CASCADE
+);
+CREATE INDEX ix_bat_deployment_instance_result_instance ON bat_deployment_instance_result (instance_id, recorded_at);
+COMMENT ON TABLE bat_deployment_instance_result IS 'BAT per-instance deployment result';
+COMMENT ON COLUMN bat_deployment_instance_result.deployment_result_id IS 'Instance result identifier';
+COMMENT ON COLUMN bat_deployment_instance_result.deployment_id IS 'Deployment execution identifier';
+COMMENT ON COLUMN bat_deployment_instance_result.sequence_no IS 'Ordered result sequence';
+COMMENT ON COLUMN bat_deployment_instance_result.instance_id IS 'Target runtime instance identifier';
+COMMENT ON COLUMN bat_deployment_instance_result.stage_code IS 'Deployment stage code';
+COMMENT ON COLUMN bat_deployment_instance_result.result_state IS 'Instance stage result state';
+COMMENT ON COLUMN bat_deployment_instance_result.result_message IS 'Instance stage result detail';
+COMMENT ON COLUMN bat_deployment_instance_result.recorded_at IS 'Result record time';
+
 CREATE TABLE bat_execution (
     execution_id BIGINT GENERATED BY DEFAULT AS IDENTITY NOT NULL,
     job_id VARCHAR(100) NOT NULL,
@@ -1499,7 +1295,8 @@ CREATE TABLE bat_execution (
     CONSTRAINT pk_bat_execution PRIMARY KEY (execution_id),
     CONSTRAINT fk_bat_execution_job FOREIGN KEY (job_id) REFERENCES bat_job (job_id),
     CONSTRAINT fk_bat_execution_instance FOREIGN KEY (batch_instance_id) REFERENCES bat_instance (instance_id) ON DELETE SET NULL,
-    CONSTRAINT fk_bat_execution_worker FOREIGN KEY (worker_id) REFERENCES bat_worker (worker_id) ON DELETE SET NULL
+    CONSTRAINT fk_bat_execution_worker FOREIGN KEY (worker_id) REFERENCES bat_worker (worker_id) ON DELETE SET NULL,
+    CONSTRAINT fk_bat_execution_definition FOREIGN KEY (job_id, definition_version) REFERENCES bat_job_definition_version (job_id, definition_version)
 );
 CREATE INDEX ix_bat_execution_job_time ON bat_execution (job_id, start_time);
 CREATE INDEX ix_bat_execution_status ON bat_execution (execution_status, start_time);
@@ -1556,9 +1353,307 @@ COMMENT ON COLUMN bat_execution.created_by IS '등록자';
 COMMENT ON COLUMN bat_execution.created_at IS '등록일시';
 COMMENT ON COLUMN bat_execution.updated_by IS '수정자';
 COMMENT ON COLUMN bat_execution.updated_at IS '수정일시';
+COMMENT ON COLUMN bat_execution.definition_version IS 'Execution 생성 시 고정된 Job Definition Version';
+COMMENT ON COLUMN bat_execution.definition_checksum IS 'Execution 생성 시 고정된 Definition Checksum';
 CREATE OR REPLACE FUNCTION cpf_touch_bat_execution() RETURNS trigger AS $$ BEGIN NEW.updated_at = CURRENT_TIMESTAMP; RETURN NEW; END; $$ LANGUAGE plpgsql;
 DROP TRIGGER IF EXISTS trg_cpf_touch_bat_execution ON bat_execution;
 CREATE TRIGGER trg_cpf_touch_bat_execution BEFORE UPDATE ON bat_execution FOR EACH ROW EXECUTE FUNCTION cpf_touch_bat_execution();
+
+CREATE TABLE bat_job_relation (
+    relation_id BIGINT GENERATED BY DEFAULT AS IDENTITY NOT NULL,
+    job_id VARCHAR(100) NOT NULL,
+    related_job_id VARCHAR(100) NOT NULL,
+    relation_type VARCHAR(30) NOT NULL,
+    trigger_condition VARCHAR(50) NOT NULL DEFAULT 'COMPLETED',
+    required_status VARCHAR(30) NOT NULL DEFAULT 'COMPLETED',
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    use_yn CHAR(1) NOT NULL DEFAULT 'Y',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'BAT',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT',
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT pk_bat_job_relation PRIMARY KEY (relation_id),
+    CONSTRAINT uk_bat_job_relation UNIQUE (job_id, related_job_id, relation_type),
+    CONSTRAINT fk_bat_job_relation_job FOREIGN KEY (job_id) REFERENCES bat_job (job_id) ON DELETE CASCADE,
+    CONSTRAINT fk_bat_job_relation_related FOREIGN KEY (related_job_id) REFERENCES bat_job (job_id) ON DELETE CASCADE
+);
+CREATE INDEX ix_bat_job_relation_job ON bat_job_relation (job_id, relation_type, use_yn);
+CREATE INDEX ix_bat_job_relation_related ON bat_job_relation (related_job_id, relation_type);
+COMMENT ON TABLE bat_job_relation IS 'BAT 배치 선행/후행/트리거 관계';
+COMMENT ON COLUMN bat_job_relation.relation_id IS '배치 관계 순번';
+COMMENT ON COLUMN bat_job_relation.job_id IS '기준 배치 Job ID';
+COMMENT ON COLUMN bat_job_relation.related_job_id IS '연관 배치 Job ID';
+COMMENT ON COLUMN bat_job_relation.relation_type IS '관계 유형';
+COMMENT ON COLUMN bat_job_relation.trigger_condition IS '트리거 조건';
+COMMENT ON COLUMN bat_job_relation.required_status IS '필수 선행 상태';
+COMMENT ON COLUMN bat_job_relation.sort_order IS '관계 표시 순서';
+COMMENT ON COLUMN bat_job_relation.use_yn IS '사용 여부';
+COMMENT ON COLUMN bat_job_relation.created_by IS '등록자';
+COMMENT ON COLUMN bat_job_relation.created_at IS '등록일시';
+COMMENT ON COLUMN bat_job_relation.updated_by IS '수정자';
+COMMENT ON COLUMN bat_job_relation.updated_at IS '수정일시';
+CREATE OR REPLACE FUNCTION cpf_touch_bat_job_relation() RETURNS trigger AS $$ BEGIN NEW.updated_at = CURRENT_TIMESTAMP; RETURN NEW; END; $$ LANGUAGE plpgsql;
+DROP TRIGGER IF EXISTS trg_cpf_touch_bat_job_relation ON bat_job_relation;
+CREATE TRIGGER trg_cpf_touch_bat_job_relation BEFORE UPDATE ON bat_job_relation FOR EACH ROW EXECUTE FUNCTION cpf_touch_bat_job_relation();
+
+CREATE TABLE bat_schedule (
+    schedule_id VARCHAR(100) NOT NULL,
+    job_id VARCHAR(100) NOT NULL,
+    cron_expression VARCHAR(100) NOT NULL,
+    calendar_id VARCHAR(50) NOT NULL DEFAULT 'DEFAULT',
+    business_day_only_yn CHAR(1) NOT NULL DEFAULT 'N',
+    holiday_policy VARCHAR(30) NOT NULL DEFAULT 'SKIP',
+    available_start_time TIME,
+    available_end_time TIME,
+    run_date_pattern VARCHAR(80),
+    timezone VARCHAR(50) NOT NULL DEFAULT 'Asia/Seoul',
+    enabled_yn CHAR(1) NOT NULL DEFAULT 'Y',
+    last_fire_at TIMESTAMP,
+    next_fire_at TIMESTAMP,
+    created_by VARCHAR(100) NOT NULL DEFAULT 'BAT',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT',
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    definition_version BIGINT,
+    definition_checksum VARCHAR(128),
+    CONSTRAINT pk_bat_schedule PRIMARY KEY (schedule_id),
+    CONSTRAINT fk_bat_schedule_job FOREIGN KEY (job_id) REFERENCES bat_job (job_id) ON DELETE CASCADE,
+    CONSTRAINT fk_bat_schedule_definition FOREIGN KEY (job_id, definition_version) REFERENCES bat_job_definition_version (job_id, definition_version)
+);
+CREATE INDEX ix_bat_schedule_job ON bat_schedule (job_id, enabled_yn);
+COMMENT ON TABLE bat_schedule IS 'BAT 배치 스케줄';
+COMMENT ON COLUMN bat_schedule.schedule_id IS '배치 스케줄 ID';
+COMMENT ON COLUMN bat_schedule.job_id IS '배치 Job ID';
+COMMENT ON COLUMN bat_schedule.cron_expression IS 'Cron 표현식';
+COMMENT ON COLUMN bat_schedule.calendar_id IS '적용 영업일 캘린더 ID';
+COMMENT ON COLUMN bat_schedule.business_day_only_yn IS '영업일에만 수행 여부';
+COMMENT ON COLUMN bat_schedule.holiday_policy IS '휴일 처리 정책';
+COMMENT ON COLUMN bat_schedule.available_start_time IS '수행 가능 시작 시각';
+COMMENT ON COLUMN bat_schedule.available_end_time IS '수행 가능 종료 시각';
+COMMENT ON COLUMN bat_schedule.run_date_pattern IS '수행 일자 패턴';
+COMMENT ON COLUMN bat_schedule.timezone IS '스케줄 기준 시간대';
+COMMENT ON COLUMN bat_schedule.enabled_yn IS '스케줄 활성 여부';
+COMMENT ON COLUMN bat_schedule.last_fire_at IS '마지막 실행 예정 일시';
+COMMENT ON COLUMN bat_schedule.next_fire_at IS '다음 실행 예정 일시';
+COMMENT ON COLUMN bat_schedule.created_by IS '등록자';
+COMMENT ON COLUMN bat_schedule.created_at IS '등록일시';
+COMMENT ON COLUMN bat_schedule.updated_by IS '수정자';
+COMMENT ON COLUMN bat_schedule.updated_at IS '수정일시';
+COMMENT ON COLUMN bat_schedule.definition_version IS 'Schedule이 실행해야 하는 고정 Job Definition Version';
+COMMENT ON COLUMN bat_schedule.definition_checksum IS 'Schedule 생성 시 고정된 Definition Checksum';
+CREATE OR REPLACE FUNCTION cpf_touch_bat_schedule() RETURNS trigger AS $$ BEGIN NEW.updated_at = CURRENT_TIMESTAMP; RETURN NEW; END; $$ LANGUAGE plpgsql;
+DROP TRIGGER IF EXISTS trg_cpf_touch_bat_schedule ON bat_schedule;
+CREATE TRIGGER trg_cpf_touch_bat_schedule BEFORE UPDATE ON bat_schedule FOR EACH ROW EXECUTE FUNCTION cpf_touch_bat_schedule();
+
+CREATE TABLE BATCH_JOB_EXECUTION_CONTEXT (
+    JOB_EXECUTION_ID BIGINT NOT NULL,
+    SHORT_CONTEXT VARCHAR(2500) NOT NULL,
+    SERIALIZED_CONTEXT TEXT,
+    CONSTRAINT pk_BATCH_JOB_EXECUTION_CONTEXT PRIMARY KEY (JOB_EXECUTION_ID),
+    CONSTRAINT JOB_EXEC_CTX_FK FOREIGN KEY (JOB_EXECUTION_ID) REFERENCES BATCH_JOB_EXECUTION (JOB_EXECUTION_ID)
+);
+COMMENT ON TABLE BATCH_JOB_EXECUTION_CONTEXT IS 'Spring Batch 표준 Job 컨텍스트 저장소';
+COMMENT ON COLUMN BATCH_JOB_EXECUTION_CONTEXT.JOB_EXECUTION_ID IS 'Spring Batch JobExecution 순번';
+COMMENT ON COLUMN BATCH_JOB_EXECUTION_CONTEXT.SHORT_CONTEXT IS '짧은 실행 컨텍스트';
+COMMENT ON COLUMN BATCH_JOB_EXECUTION_CONTEXT.SERIALIZED_CONTEXT IS '직렬화 실행 컨텍스트';
+
+CREATE TABLE BATCH_JOB_EXECUTION_PARAMS (
+    JOB_EXECUTION_ID BIGINT NOT NULL,
+    PARAMETER_NAME VARCHAR(100) NOT NULL,
+    PARAMETER_TYPE VARCHAR(100) NOT NULL,
+    PARAMETER_VALUE VARCHAR(2500),
+    IDENTIFYING CHAR(1) NOT NULL,
+    CONSTRAINT JOB_EXEC_PARAMS_FK FOREIGN KEY (JOB_EXECUTION_ID) REFERENCES BATCH_JOB_EXECUTION (JOB_EXECUTION_ID)
+);
+COMMENT ON TABLE BATCH_JOB_EXECUTION_PARAMS IS 'Spring Batch 표준 Job 파라미터 저장소';
+COMMENT ON COLUMN BATCH_JOB_EXECUTION_PARAMS.JOB_EXECUTION_ID IS 'Spring Batch JobExecution 순번';
+COMMENT ON COLUMN BATCH_JOB_EXECUTION_PARAMS.PARAMETER_NAME IS '파라미터 이름';
+COMMENT ON COLUMN BATCH_JOB_EXECUTION_PARAMS.PARAMETER_TYPE IS '파라미터 Java 유형';
+COMMENT ON COLUMN BATCH_JOB_EXECUTION_PARAMS.PARAMETER_VALUE IS '파라미터 값';
+COMMENT ON COLUMN BATCH_JOB_EXECUTION_PARAMS.IDENTIFYING IS 'JobInstance 식별 파라미터 여부';
+
+CREATE TABLE BATCH_STEP_EXECUTION (
+    STEP_EXECUTION_ID BIGINT NOT NULL,
+    VERSION BIGINT NOT NULL,
+    STEP_NAME VARCHAR(100) NOT NULL,
+    JOB_EXECUTION_ID BIGINT NOT NULL,
+    CREATE_TIME TIMESTAMP(6) NOT NULL,
+    START_TIME TIMESTAMP(6) DEFAULT NULL,
+    END_TIME TIMESTAMP(6) DEFAULT NULL,
+    STATUS VARCHAR(10),
+    COMMIT_COUNT BIGINT,
+    READ_COUNT BIGINT,
+    FILTER_COUNT BIGINT,
+    WRITE_COUNT BIGINT,
+    READ_SKIP_COUNT BIGINT,
+    WRITE_SKIP_COUNT BIGINT,
+    PROCESS_SKIP_COUNT BIGINT,
+    ROLLBACK_COUNT BIGINT,
+    EXIT_CODE VARCHAR(2500),
+    EXIT_MESSAGE VARCHAR(2500),
+    LAST_UPDATED TIMESTAMP(6),
+    CONSTRAINT pk_BATCH_STEP_EXECUTION PRIMARY KEY (STEP_EXECUTION_ID),
+    CONSTRAINT JOB_EXEC_STEP_FK FOREIGN KEY (JOB_EXECUTION_ID) REFERENCES BATCH_JOB_EXECUTION (JOB_EXECUTION_ID)
+);
+COMMENT ON TABLE BATCH_STEP_EXECUTION IS 'Spring Batch 표준 StepExecution 저장소';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION.STEP_EXECUTION_ID IS 'Spring Batch StepExecution 순번';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION.VERSION IS '낙관적 잠금 버전';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION.STEP_NAME IS 'Step 이름';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION.JOB_EXECUTION_ID IS 'Spring Batch JobExecution 순번';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION.CREATE_TIME IS 'Step 생성 일시';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION.START_TIME IS 'Step 시작 일시';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION.END_TIME IS 'Step 종료 일시';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION.STATUS IS 'Step 상태';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION.COMMIT_COUNT IS '커밋 횟수';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION.READ_COUNT IS '읽은 건수';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION.FILTER_COUNT IS '필터 건수';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION.WRITE_COUNT IS '쓴 건수';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION.READ_SKIP_COUNT IS '읽기 skip 건수';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION.WRITE_SKIP_COUNT IS '쓰기 skip 건수';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION.PROCESS_SKIP_COUNT IS '처리 skip 건수';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION.ROLLBACK_COUNT IS 'rollback 건수';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION.EXIT_CODE IS '종료 코드';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION.EXIT_MESSAGE IS '종료 메시지';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION.LAST_UPDATED IS '마지막 수정 일시';
+
+CREATE TABLE bat_center_cut_execution (
+    center_cut_execution_id VARCHAR(80) NOT NULL,
+    center_cut_job_id VARCHAR(100) NOT NULL,
+    idempotency_key VARCHAR(160) NOT NULL,
+    execution_state VARCHAR(30) NOT NULL,
+    parameter_ciphertext TEXT NOT NULL,
+    parameter_hash VARCHAR(64) NOT NULL,
+    parameter_schema_version VARCHAR(80) NOT NULL,
+    target_cursor VARCHAR(1000),
+    target_complete_yn CHAR(1) NOT NULL DEFAULT 'N',
+    target_count BIGINT NOT NULL DEFAULT 0,
+    tps_limit INTEGER NOT NULL DEFAULT 0,
+    concurrency_limit INTEGER NOT NULL DEFAULT 1,
+    processed_count BIGINT NOT NULL DEFAULT 0,
+    success_count BIGINT NOT NULL DEFAULT 0,
+    failure_count BIGINT NOT NULL DEFAULT 0,
+    unknown_count BIGINT NOT NULL DEFAULT 0,
+    transaction_id CHAR(34),
+    parent_segment_id VARCHAR(120),
+    requested_by VARCHAR(120) NOT NULL,
+    reason_text VARCHAR(1000) NOT NULL,
+    last_error_message VARCHAR(1000),
+    created_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    completed_at TIMESTAMP(6),
+    CONSTRAINT pk_bat_center_cut_execution PRIMARY KEY (center_cut_execution_id),
+    CONSTRAINT uk_bat_center_cut_execution_idempotency UNIQUE (idempotency_key),
+    CONSTRAINT fk_bat_center_cut_execution_job FOREIGN KEY (center_cut_job_id) REFERENCES bat_center_cut_job (center_cut_job_id)
+);
+CREATE INDEX ix_bat_center_cut_execution_job_state ON bat_center_cut_execution (center_cut_job_id, execution_state, created_at);
+COMMENT ON TABLE bat_center_cut_execution IS 'BAT center-cut immutable execution policy';
+COMMENT ON COLUMN bat_center_cut_execution.center_cut_execution_id IS 'Center-cut execution identifier';
+COMMENT ON COLUMN bat_center_cut_execution.center_cut_job_id IS 'Center-cut job definition identifier';
+COMMENT ON COLUMN bat_center_cut_execution.idempotency_key IS 'Execution idempotency key';
+COMMENT ON COLUMN bat_center_cut_execution.execution_state IS 'Center-cut execution state';
+COMMENT ON COLUMN bat_center_cut_execution.parameter_ciphertext IS 'Encrypted immutable parameter snapshot';
+COMMENT ON COLUMN bat_center_cut_execution.parameter_hash IS 'Parameter snapshot SHA-256';
+COMMENT ON COLUMN bat_center_cut_execution.parameter_schema_version IS 'Parameter schema version';
+COMMENT ON COLUMN bat_center_cut_execution.target_cursor IS 'Last generated target cursor';
+COMMENT ON COLUMN bat_center_cut_execution.target_complete_yn IS 'Target generation completion flag';
+COMMENT ON COLUMN bat_center_cut_execution.target_count IS 'Generated target count';
+COMMENT ON COLUMN bat_center_cut_execution.tps_limit IS 'Global transactions-per-second limit';
+COMMENT ON COLUMN bat_center_cut_execution.concurrency_limit IS 'Global runner concurrency limit';
+COMMENT ON COLUMN bat_center_cut_execution.processed_count IS 'Processed item count';
+COMMENT ON COLUMN bat_center_cut_execution.success_count IS 'Successful item count';
+COMMENT ON COLUMN bat_center_cut_execution.failure_count IS 'Failed item count';
+COMMENT ON COLUMN bat_center_cut_execution.unknown_count IS 'Unknown-result item count';
+COMMENT ON COLUMN bat_center_cut_execution.transaction_id IS 'CPF transactionId';
+COMMENT ON COLUMN bat_center_cut_execution.parent_segment_id IS 'Parent trace segment identifier';
+COMMENT ON COLUMN bat_center_cut_execution.requested_by IS 'Execution requester';
+COMMENT ON COLUMN bat_center_cut_execution.reason_text IS 'Mandatory execution reason';
+COMMENT ON COLUMN bat_center_cut_execution.last_error_message IS 'Last execution error detail';
+COMMENT ON COLUMN bat_center_cut_execution.created_at IS 'Execution request time';
+COMMENT ON COLUMN bat_center_cut_execution.updated_at IS 'Last execution state update time';
+COMMENT ON COLUMN bat_center_cut_execution.completed_at IS 'Execution completion time';
+CREATE OR REPLACE FUNCTION cpf_touch_bat_center_cut_execution() RETURNS trigger AS $$ BEGIN NEW.updated_at = CURRENT_TIMESTAMP; RETURN NEW; END; $$ LANGUAGE plpgsql;
+DROP TRIGGER IF EXISTS trg_cpf_touch_bat_center_cut_execution ON bat_center_cut_execution;
+CREATE TRIGGER trg_cpf_touch_bat_center_cut_execution BEFORE UPDATE ON bat_center_cut_execution FOR EACH ROW EXECUTE FUNCTION cpf_touch_bat_center_cut_execution();
+
+CREATE TABLE bat_center_cut_parameter (
+    parameter_id BIGINT GENERATED BY DEFAULT AS IDENTITY NOT NULL,
+    center_cut_job_id VARCHAR(100) NOT NULL,
+    parameter_key VARCHAR(100) NOT NULL,
+    parameter_value VARCHAR(1000),
+    encrypted_yn CHAR(1) NOT NULL DEFAULT 'N',
+    use_yn CHAR(1) NOT NULL DEFAULT 'Y',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'BAT',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT',
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT pk_bat_center_cut_parameter PRIMARY KEY (parameter_id),
+    CONSTRAINT uk_bat_center_cut_parameter UNIQUE (center_cut_job_id, parameter_key),
+    CONSTRAINT fk_bat_center_cut_parameter_job FOREIGN KEY (center_cut_job_id) REFERENCES bat_center_cut_job (center_cut_job_id) ON DELETE CASCADE
+);
+COMMENT ON TABLE bat_center_cut_parameter IS 'BAT 센터컷 파라미터';
+COMMENT ON COLUMN bat_center_cut_parameter.parameter_id IS '센터컷 파라미터 순번';
+COMMENT ON COLUMN bat_center_cut_parameter.center_cut_job_id IS '센터컷 Job ID';
+COMMENT ON COLUMN bat_center_cut_parameter.parameter_key IS '파라미터 키';
+COMMENT ON COLUMN bat_center_cut_parameter.parameter_value IS '파라미터 값';
+COMMENT ON COLUMN bat_center_cut_parameter.encrypted_yn IS '암호화 여부';
+COMMENT ON COLUMN bat_center_cut_parameter.use_yn IS '사용 여부';
+COMMENT ON COLUMN bat_center_cut_parameter.created_by IS '등록자';
+COMMENT ON COLUMN bat_center_cut_parameter.created_at IS '등록일시';
+COMMENT ON COLUMN bat_center_cut_parameter.updated_by IS '수정자';
+COMMENT ON COLUMN bat_center_cut_parameter.updated_at IS '수정일시';
+CREATE OR REPLACE FUNCTION cpf_touch_bat_center_cut_parameter() RETURNS trigger AS $$ BEGIN NEW.updated_at = CURRENT_TIMESTAMP; RETURN NEW; END; $$ LANGUAGE plpgsql;
+DROP TRIGGER IF EXISTS trg_cpf_touch_bat_center_cut_parameter ON bat_center_cut_parameter;
+CREATE TRIGGER trg_cpf_touch_bat_center_cut_parameter BEFORE UPDATE ON bat_center_cut_parameter FOR EACH ROW EXECUTE FUNCTION cpf_touch_bat_center_cut_parameter();
+
+CREATE TABLE bat_execution_attempt (
+    attempt_id BIGINT GENERATED BY DEFAULT AS IDENTITY NOT NULL,
+    execution_id BIGINT NOT NULL,
+    attempt_no INTEGER NOT NULL,
+    definition_version BIGINT NOT NULL,
+    definition_checksum VARCHAR(128) NOT NULL,
+    worker_id VARCHAR(160) NOT NULL,
+    fencing_token BIGINT NOT NULL,
+    attempt_status VARCHAR(40) NOT NULL DEFAULT 'RUNNING',
+    result_message MEDIUMTEXT,
+    executor_type VARCHAR(40),
+    exit_code INTEGER,
+    stdout_text MEDIUMTEXT,
+    stderr_text MEDIUMTEXT,
+    output_truncated_yn CHAR(1) NOT NULL DEFAULT 'N',
+    duration_ms BIGINT,
+    artifact_hash VARCHAR(128),
+    unknown_result_yn CHAR(1) NOT NULL DEFAULT 'N',
+    started_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    finished_at TIMESTAMP(3),
+    CONSTRAINT pk_bat_execution_attempt PRIMARY KEY (attempt_id),
+    CONSTRAINT uk_bat_execution_attempt UNIQUE (execution_id, attempt_no),
+    CONSTRAINT ck_bat_execution_attempt_status CHECK (attempt_status IN ('RUNNING','COMPLETED','FAILED','TIMEOUT','RETRYABLE_FAILURE','UNKNOWN_RESULT')),
+    CONSTRAINT ck_bat_execution_attempt_truncated CHECK (output_truncated_yn IN ('Y','N')),
+    CONSTRAINT ck_bat_execution_attempt_unknown CHECK (unknown_result_yn IN ('Y','N')),
+    CONSTRAINT fk_bat_execution_attempt_execution FOREIGN KEY (execution_id) REFERENCES bat_execution (execution_id) ON DELETE CASCADE
+);
+CREATE INDEX ix_bat_execution_attempt_status ON bat_execution_attempt (attempt_status, started_at);
+CREATE INDEX ix_bat_execution_attempt_worker ON bat_execution_attempt (worker_id, started_at);
+COMMENT ON TABLE bat_execution_attempt IS 'BAT 실행별 재시도 및 결과 불명 원장';
+COMMENT ON COLUMN bat_execution_attempt.attempt_id IS '배치 실행 시도 식별자';
+COMMENT ON COLUMN bat_execution_attempt.execution_id IS '배치 실행 식별자';
+COMMENT ON COLUMN bat_execution_attempt.attempt_no IS '1부터 시작하는 실행 시도 번호';
+COMMENT ON COLUMN bat_execution_attempt.definition_version IS '시도에 고정된 Definition Version';
+COMMENT ON COLUMN bat_execution_attempt.definition_checksum IS '시도에 고정된 Definition Checksum';
+COMMENT ON COLUMN bat_execution_attempt.worker_id IS '시도를 소유한 Worker';
+COMMENT ON COLUMN bat_execution_attempt.fencing_token IS '시도 소유권 Fencing Token';
+COMMENT ON COLUMN bat_execution_attempt.attempt_status IS 'RUNNING/COMPLETED/FAILED/TIMEOUT/RETRYABLE_FAILURE/UNKNOWN_RESULT';
+COMMENT ON COLUMN bat_execution_attempt.result_message IS '마스킹된 시도 결과 메시지';
+COMMENT ON COLUMN bat_execution_attempt.executor_type IS '실제 실행 Adapter 유형';
+COMMENT ON COLUMN bat_execution_attempt.exit_code IS 'Shell/Process 종료 코드';
+COMMENT ON COLUMN bat_execution_attempt.stdout_text IS '마스킹된 표준 출력';
+COMMENT ON COLUMN bat_execution_attempt.stderr_text IS '마스킹된 표준 오류';
+COMMENT ON COLUMN bat_execution_attempt.output_truncated_yn IS '출력 길이 제한 적용 여부';
+COMMENT ON COLUMN bat_execution_attempt.duration_ms IS '실행 소요 시간(ms)';
+COMMENT ON COLUMN bat_execution_attempt.artifact_hash IS '승인 Script/File Artifact SHA-256';
+COMMENT ON COLUMN bat_execution_attempt.unknown_result_yn IS '결과 불명 여부';
+COMMENT ON COLUMN bat_execution_attempt.started_at IS '시도 시작 일시';
+COMMENT ON COLUMN bat_execution_attempt.finished_at IS '시도 종료 일시';
 
 CREATE TABLE bat_execution_lease (
     lease_id BIGINT GENERATED BY DEFAULT AS IDENTITY NOT NULL,
@@ -1747,6 +1842,54 @@ CREATE OR REPLACE FUNCTION cpf_touch_bat_ghost_event() RETURNS trigger AS $$ BEG
 DROP TRIGGER IF EXISTS trg_cpf_touch_bat_ghost_event ON bat_ghost_event;
 CREATE TRIGGER trg_cpf_touch_bat_ghost_event BEFORE UPDATE ON bat_ghost_event FOR EACH ROW EXECUTE FUNCTION cpf_touch_bat_ghost_event();
 
+CREATE TABLE bat_schedule_trigger (
+    schedule_id VARCHAR(100) NOT NULL,
+    scheduled_fire_at TIMESTAMP(6) NOT NULL,
+    fencing_token BIGINT NOT NULL,
+    execution_id BIGINT,
+    trigger_status VARCHAR(30) NOT NULL,
+    created_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    job_id VARCHAR(100) NOT NULL,
+    definition_version BIGINT NOT NULL,
+    definition_checksum VARCHAR(128) NOT NULL,
+    business_date DATE NOT NULL,
+    fire_zone VARCHAR(50) NOT NULL,
+    idempotency_key VARCHAR(200) NOT NULL,
+    dispatch_owner VARCHAR(160),
+    dispatch_token BIGINT,
+    dispatch_lease_until TIMESTAMP(6),
+    attempt_count INTEGER NOT NULL DEFAULT 0,
+    last_error_code VARCHAR(100),
+    last_error_at TIMESTAMP(6),
+    dispatched_at TIMESTAMP(6),
+    updated_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT pk_bat_schedule_trigger PRIMARY KEY (schedule_id, scheduled_fire_at),
+    CONSTRAINT uq_bat_schedule_trigger_idem UNIQUE (idempotency_key),
+    CONSTRAINT fk_bat_schedule_trigger_schedule FOREIGN KEY (schedule_id) REFERENCES bat_schedule (schedule_id) ON DELETE CASCADE
+);
+CREATE INDEX ix_bat_schedule_trigger_dispatch ON bat_schedule_trigger (trigger_status, dispatch_lease_until, scheduled_fire_at);
+COMMENT ON TABLE bat_schedule_trigger IS 'BAT scheduled trigger evidence';
+COMMENT ON COLUMN bat_schedule_trigger.schedule_id IS 'Schedule identifier';
+COMMENT ON COLUMN bat_schedule_trigger.scheduled_fire_at IS 'Planned fire time';
+COMMENT ON COLUMN bat_schedule_trigger.fencing_token IS 'Scheduler fencing token';
+COMMENT ON COLUMN bat_schedule_trigger.execution_id IS 'Created execution identifier';
+COMMENT ON COLUMN bat_schedule_trigger.trigger_status IS 'Trigger result status';
+COMMENT ON COLUMN bat_schedule_trigger.created_at IS 'Trigger record time';
+COMMENT ON COLUMN bat_schedule_trigger.job_id IS '실행 Job ID';
+COMMENT ON COLUMN bat_schedule_trigger.definition_version IS '고정 Job definition version';
+COMMENT ON COLUMN bat_schedule_trigger.definition_checksum IS '고정 Job definition checksum';
+COMMENT ON COLUMN bat_schedule_trigger.business_date IS '실행 영업일';
+COMMENT ON COLUMN bat_schedule_trigger.fire_zone IS '예정시각 timezone';
+COMMENT ON COLUMN bat_schedule_trigger.idempotency_key IS '재시작에도 고정되는 실행 멱등키';
+COMMENT ON COLUMN bat_schedule_trigger.dispatch_owner IS '현재 dispatch lease owner';
+COMMENT ON COLUMN bat_schedule_trigger.dispatch_token IS 'dispatch fencing token';
+COMMENT ON COLUMN bat_schedule_trigger.dispatch_lease_until IS 'dispatch lease 만료시각';
+COMMENT ON COLUMN bat_schedule_trigger.attempt_count IS 'dispatch 시도 횟수';
+COMMENT ON COLUMN bat_schedule_trigger.last_error_code IS '최근 오류 코드';
+COMMENT ON COLUMN bat_schedule_trigger.last_error_at IS '최근 오류 시각';
+COMMENT ON COLUMN bat_schedule_trigger.dispatched_at IS '실제 dispatch 완료 시각';
+COMMENT ON COLUMN bat_schedule_trigger.updated_at IS '최근 상태 변경 시각';
+
 CREATE TABLE bat_step_execution (
     step_execution_id BIGINT GENERATED BY DEFAULT AS IDENTITY NOT NULL,
     execution_id BIGINT NOT NULL,
@@ -1815,26 +1958,166 @@ CREATE OR REPLACE FUNCTION cpf_touch_bat_step_execution() RETURNS trigger AS $$ 
 DROP TRIGGER IF EXISTS trg_cpf_touch_bat_step_execution ON bat_step_execution;
 CREATE TRIGGER trg_cpf_touch_bat_step_execution BEFORE UPDATE ON bat_step_execution FOR EACH ROW EXECUTE FUNCTION cpf_touch_bat_step_execution();
 
-CREATE TABLE bat_execution_attempt (
-    attempt_id BIGINT GENERATED BY DEFAULT AS IDENTITY NOT NULL,
-    execution_id BIGINT NOT NULL,
-    attempt_no INTEGER NOT NULL,
-    definition_version BIGINT NOT NULL,
-    definition_checksum VARCHAR(128) NOT NULL,
-    worker_id VARCHAR(160) NOT NULL,
-    fencing_token BIGINT NOT NULL,
-    attempt_status VARCHAR(40) NOT NULL DEFAULT 'RUNNING',
-    result_message TEXT,
-    started_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    finished_at TIMESTAMP(3),
-    CONSTRAINT pk_bat_execution_attempt PRIMARY KEY (attempt_id),
-    CONSTRAINT uk_bat_execution_attempt UNIQUE (execution_id, attempt_no),
-    CONSTRAINT ck_bat_execution_attempt_status CHECK (attempt_status IN ('RUNNING','COMPLETED','FAILED','TIMEOUT','RETRYABLE_FAILURE','UNKNOWN_RESULT')),
-    CONSTRAINT fk_bat_execution_attempt_execution FOREIGN KEY (execution_id) REFERENCES bat_execution (execution_id) ON DELETE CASCADE
+CREATE TABLE BATCH_STEP_EXECUTION_CONTEXT (
+    STEP_EXECUTION_ID BIGINT NOT NULL,
+    SHORT_CONTEXT VARCHAR(2500) NOT NULL,
+    SERIALIZED_CONTEXT TEXT,
+    CONSTRAINT pk_BATCH_STEP_EXECUTION_CONTEXT PRIMARY KEY (STEP_EXECUTION_ID),
+    CONSTRAINT STEP_EXEC_CTX_FK FOREIGN KEY (STEP_EXECUTION_ID) REFERENCES BATCH_STEP_EXECUTION (STEP_EXECUTION_ID)
 );
-CREATE INDEX ix_bat_execution_attempt_status ON bat_execution_attempt (attempt_status, started_at);
-CREATE INDEX ix_bat_execution_attempt_worker ON bat_execution_attempt (worker_id, started_at);
-COMMENT ON TABLE bat_execution_attempt IS 'BAT 실행별 재시도 및 결과 불명 원장';
+COMMENT ON TABLE BATCH_STEP_EXECUTION_CONTEXT IS 'Spring Batch 표준 Step 컨텍스트 저장소';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION_CONTEXT.STEP_EXECUTION_ID IS 'Spring Batch StepExecution 순번';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION_CONTEXT.SHORT_CONTEXT IS '짧은 실행 컨텍스트';
+COMMENT ON COLUMN BATCH_STEP_EXECUTION_CONTEXT.SERIALIZED_CONTEXT IS '직렬화 실행 컨텍스트';
 
-ALTER TABLE bat_job ADD CONSTRAINT fk_bat_job_published_definition FOREIGN KEY (job_id, published_definition_version) REFERENCES bat_job_definition_version (job_id, definition_version);
-CREATE INDEX ix_bat_job_definition_audit_approval ON bat_job_definition_audit (approval_request_id, created_at);
+CREATE TABLE bat_center_cut_item (
+    center_cut_item_id BIGINT GENERATED BY DEFAULT AS IDENTITY NOT NULL,
+    center_cut_job_id VARCHAR(100) NOT NULL,
+    center_cut_execution_id VARCHAR(80),
+    business_key VARCHAR(200) NOT NULL,
+    business_date DATE,
+    item_status VARCHAR(30) NOT NULL DEFAULT 'READY',
+    transaction_id CHAR(34),
+    transaction_segment_id VARCHAR(120),
+    parent_segment_id VARCHAR(120),
+    item_payload TEXT,
+    retry_count INTEGER NOT NULL DEFAULT 0,
+    last_error_message VARCHAR(1000),
+    started_at TIMESTAMP(3),
+    completed_at TIMESTAMP(3),
+    created_by VARCHAR(100) NOT NULL DEFAULT 'BAT',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT',
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT pk_bat_center_cut_item PRIMARY KEY (center_cut_item_id),
+    CONSTRAINT uk_bat_center_cut_item_execution_business UNIQUE (center_cut_execution_id, business_key),
+    CONSTRAINT fk_bat_center_cut_item_job FOREIGN KEY (center_cut_job_id) REFERENCES bat_center_cut_job (center_cut_job_id) ON DELETE CASCADE,
+    CONSTRAINT fk_bat_center_cut_item_execution FOREIGN KEY (center_cut_execution_id) REFERENCES bat_center_cut_execution (center_cut_execution_id) ON DELETE CASCADE
+);
+CREATE INDEX ix_bat_center_cut_item_status ON bat_center_cut_item (center_cut_job_id, item_status, business_date);
+CREATE INDEX ix_bat_center_cut_item_transaction ON bat_center_cut_item (transaction_id, transaction_segment_id);
+CREATE INDEX ix_bat_center_cut_item_parent_segment ON bat_center_cut_item (parent_segment_id);
+CREATE INDEX ix_bat_center_cut_item_execution_status ON bat_center_cut_item (center_cut_execution_id, item_status, center_cut_item_id);
+COMMENT ON TABLE bat_center_cut_item IS 'BAT 센터컷 처리 대상';
+COMMENT ON COLUMN bat_center_cut_item.center_cut_item_id IS '센터컷 대상 순번';
+COMMENT ON COLUMN bat_center_cut_item.center_cut_job_id IS '센터컷 Job ID';
+COMMENT ON COLUMN bat_center_cut_item.center_cut_execution_id IS 'Center-cut execution identifier';
+COMMENT ON COLUMN bat_center_cut_item.business_key IS '업무 멱등 키';
+COMMENT ON COLUMN bat_center_cut_item.business_date IS '업무 기준일';
+COMMENT ON COLUMN bat_center_cut_item.item_status IS '대상 상태';
+COMMENT ON COLUMN bat_center_cut_item.transaction_id IS '센터컷 실행 전체가 승계하는 CPF transactionId';
+COMMENT ON COLUMN bat_center_cut_item.transaction_segment_id IS '현재 센터컷 Item 실행 구간 ID';
+COMMENT ON COLUMN bat_center_cut_item.parent_segment_id IS '부모 센터컷/Worker 실행 구간 ID';
+COMMENT ON COLUMN bat_center_cut_item.item_payload IS '처리 입력 payload';
+COMMENT ON COLUMN bat_center_cut_item.retry_count IS '재처리 횟수';
+COMMENT ON COLUMN bat_center_cut_item.last_error_message IS '마지막 오류 메시지';
+COMMENT ON COLUMN bat_center_cut_item.started_at IS '처리 시작 일시';
+COMMENT ON COLUMN bat_center_cut_item.completed_at IS '처리 완료 일시';
+COMMENT ON COLUMN bat_center_cut_item.created_by IS '등록자';
+COMMENT ON COLUMN bat_center_cut_item.created_at IS '등록일시';
+COMMENT ON COLUMN bat_center_cut_item.updated_by IS '수정자';
+COMMENT ON COLUMN bat_center_cut_item.updated_at IS '수정일시';
+CREATE OR REPLACE FUNCTION cpf_touch_bat_center_cut_item() RETURNS trigger AS $$ BEGIN NEW.updated_at = CURRENT_TIMESTAMP; RETURN NEW; END; $$ LANGUAGE plpgsql;
+DROP TRIGGER IF EXISTS trg_cpf_touch_bat_center_cut_item ON bat_center_cut_item;
+CREATE TRIGGER trg_cpf_touch_bat_center_cut_item BEFORE UPDATE ON bat_center_cut_item FOR EACH ROW EXECUTE FUNCTION cpf_touch_bat_center_cut_item();
+
+CREATE TABLE bat_center_cut_rate_window (
+    center_cut_execution_id VARCHAR(80) NOT NULL,
+    window_second BIGINT NOT NULL,
+    admitted_count INTEGER NOT NULL DEFAULT 0,
+    updated_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT pk_bat_center_cut_rate_window PRIMARY KEY (center_cut_execution_id, window_second),
+    CONSTRAINT fk_bat_center_cut_rate_execution FOREIGN KEY (center_cut_execution_id) REFERENCES bat_center_cut_execution (center_cut_execution_id) ON DELETE CASCADE
+);
+COMMENT ON TABLE bat_center_cut_rate_window IS 'BAT center-cut global rate window';
+COMMENT ON COLUMN bat_center_cut_rate_window.center_cut_execution_id IS 'Center-cut execution identifier';
+COMMENT ON COLUMN bat_center_cut_rate_window.window_second IS 'UTC epoch-second rate window';
+COMMENT ON COLUMN bat_center_cut_rate_window.admitted_count IS 'Items admitted in this window';
+COMMENT ON COLUMN bat_center_cut_rate_window.updated_at IS 'Last bucket update time';
+CREATE OR REPLACE FUNCTION cpf_touch_bat_center_cut_rate_window() RETURNS trigger AS $$ BEGIN NEW.updated_at = CURRENT_TIMESTAMP; RETURN NEW; END; $$ LANGUAGE plpgsql;
+DROP TRIGGER IF EXISTS trg_cpf_touch_bat_center_cut_rate_window ON bat_center_cut_rate_window;
+CREATE TRIGGER trg_cpf_touch_bat_center_cut_rate_window BEFORE UPDATE ON bat_center_cut_rate_window FOR EACH ROW EXECUTE FUNCTION cpf_touch_bat_center_cut_rate_window();
+
+CREATE TABLE bat_center_cut_claim (
+    center_cut_item_id BIGINT,
+    runner_id VARCHAR(160) NOT NULL,
+    pool_id VARCHAR(80),
+    claim_token VARCHAR(80) NOT NULL,
+    claim_status VARCHAR(30) NOT NULL,
+    fencing_token BIGINT NOT NULL,
+    lease_until TIMESTAMP(6) NOT NULL,
+    last_heartbeat_at TIMESTAMP(6) NOT NULL,
+    attempt_no INTEGER NOT NULL DEFAULT 1,
+    takeover_count INTEGER NOT NULL DEFAULT 0,
+    released_at TIMESTAMP(6),
+    updated_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT pk_bat_center_cut_claim PRIMARY KEY (center_cut_item_id),
+    CONSTRAINT claim_token UNIQUE (claim_token),
+    CONSTRAINT fk_bat_center_cut_claim_item FOREIGN KEY (center_cut_item_id) REFERENCES bat_center_cut_item (center_cut_item_id) ON DELETE CASCADE
+);
+COMMENT ON TABLE bat_center_cut_claim IS 'BAT center-cut item lease claim';
+COMMENT ON COLUMN bat_center_cut_claim.center_cut_item_id IS 'Claimed center-cut item identifier';
+COMMENT ON COLUMN bat_center_cut_claim.runner_id IS 'Owning runner identifier';
+COMMENT ON COLUMN bat_center_cut_claim.pool_id IS 'Owning runner pool identifier';
+COMMENT ON COLUMN bat_center_cut_claim.claim_token IS 'Unique claim token';
+COMMENT ON COLUMN bat_center_cut_claim.claim_status IS 'Claim lifecycle status';
+COMMENT ON COLUMN bat_center_cut_claim.fencing_token IS 'Monotonic claim fencing token';
+COMMENT ON COLUMN bat_center_cut_claim.lease_until IS 'Claim lease expiry time';
+COMMENT ON COLUMN bat_center_cut_claim.last_heartbeat_at IS 'Claim heartbeat time';
+COMMENT ON COLUMN bat_center_cut_claim.attempt_no IS 'Claim attempt number';
+COMMENT ON COLUMN bat_center_cut_claim.takeover_count IS 'Claim takeover count';
+COMMENT ON COLUMN bat_center_cut_claim.released_at IS 'Claim release time';
+COMMENT ON COLUMN bat_center_cut_claim.updated_at IS 'Last claim update time';
+CREATE OR REPLACE FUNCTION cpf_touch_bat_center_cut_claim() RETURNS trigger AS $$ BEGIN NEW.updated_at = CURRENT_TIMESTAMP; RETURN NEW; END; $$ LANGUAGE plpgsql;
+DROP TRIGGER IF EXISTS trg_cpf_touch_bat_center_cut_claim ON bat_center_cut_claim;
+CREATE TRIGGER trg_cpf_touch_bat_center_cut_claim BEFORE UPDATE ON bat_center_cut_claim FOR EACH ROW EXECUTE FUNCTION cpf_touch_bat_center_cut_claim();
+
+CREATE TABLE bat_center_cut_result (
+    center_cut_result_id BIGINT GENERATED BY DEFAULT AS IDENTITY NOT NULL,
+    center_cut_item_id BIGINT NOT NULL,
+    center_cut_job_id VARCHAR(100) NOT NULL,
+    result_status VARCHAR(30) NOT NULL,
+    result_payload TEXT,
+    result_message VARCHAR(1000),
+    transaction_id CHAR(34),
+    transaction_segment_id VARCHAR(120),
+    parent_segment_id VARCHAR(120),
+    created_by VARCHAR(100) NOT NULL DEFAULT 'BAT',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT',
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT pk_bat_center_cut_result PRIMARY KEY (center_cut_result_id),
+    CONSTRAINT fk_bat_center_cut_result_item FOREIGN KEY (center_cut_item_id) REFERENCES bat_center_cut_item (center_cut_item_id) ON DELETE CASCADE,
+    CONSTRAINT fk_bat_center_cut_result_job FOREIGN KEY (center_cut_job_id) REFERENCES bat_center_cut_job (center_cut_job_id) ON DELETE CASCADE
+);
+CREATE INDEX ix_bat_center_cut_result_item ON bat_center_cut_result (center_cut_item_id, result_status);
+CREATE INDEX ix_bat_center_cut_result_transaction ON bat_center_cut_result (transaction_id, transaction_segment_id);
+CREATE INDEX ix_bat_center_cut_result_parent_segment ON bat_center_cut_result (parent_segment_id);
+CREATE INDEX ix_bat_center_cut_result_job ON bat_center_cut_result (center_cut_job_id, created_at);
+COMMENT ON TABLE bat_center_cut_result IS 'BAT 센터컷 처리 결과';
+COMMENT ON COLUMN bat_center_cut_result.center_cut_result_id IS '센터컷 결과 순번';
+COMMENT ON COLUMN bat_center_cut_result.center_cut_item_id IS '센터컷 대상 순번';
+COMMENT ON COLUMN bat_center_cut_result.center_cut_job_id IS '센터컷 Job ID';
+COMMENT ON COLUMN bat_center_cut_result.result_status IS '처리 결과 상태';
+COMMENT ON COLUMN bat_center_cut_result.result_payload IS '처리 결과 payload';
+COMMENT ON COLUMN bat_center_cut_result.result_message IS '처리 결과 메시지';
+COMMENT ON COLUMN bat_center_cut_result.transaction_id IS '센터컷 실행 전체가 승계하는 CPF transactionId';
+COMMENT ON COLUMN bat_center_cut_result.transaction_segment_id IS '결과를 생성한 거래 구간 ID';
+COMMENT ON COLUMN bat_center_cut_result.parent_segment_id IS '부모 센터컷/Worker 실행 구간 ID';
+COMMENT ON COLUMN bat_center_cut_result.created_by IS '등록자';
+COMMENT ON COLUMN bat_center_cut_result.created_at IS '등록일시';
+COMMENT ON COLUMN bat_center_cut_result.updated_by IS '수정자';
+COMMENT ON COLUMN bat_center_cut_result.updated_at IS '수정일시';
+CREATE OR REPLACE FUNCTION cpf_touch_bat_center_cut_result() RETURNS trigger AS $$ BEGIN NEW.updated_at = CURRENT_TIMESTAMP; RETURN NEW; END; $$ LANGUAGE plpgsql;
+DROP TRIGGER IF EXISTS trg_cpf_touch_bat_center_cut_result ON bat_center_cut_result;
+CREATE TRIGGER trg_cpf_touch_bat_center_cut_result BEFORE UPDATE ON bat_center_cut_result FOR EACH ROW EXECUTE FUNCTION cpf_touch_bat_center_cut_result();
+
+-- CPF_CANONICAL_OBJECTS_BEGIN spring-batch-6-sequences
+-- Generated from cpf-tools/db/canonical/platform-non-table-objects.json.
+-- Spring Batch 6.0.4 JobRepository sequence contract; do not edit vendor SQL directly.
+CREATE SEQUENCE BATCH_JOB_INSTANCE_SEQ START WITH 1 MINVALUE 1 MAXVALUE 9223372036854775807 INCREMENT BY 1 NO CYCLE;
+
+CREATE SEQUENCE BATCH_JOB_EXECUTION_SEQ START WITH 1 MINVALUE 1 MAXVALUE 9223372036854775807 INCREMENT BY 1 NO CYCLE;
+
+CREATE SEQUENCE BATCH_STEP_EXECUTION_SEQ START WITH 1 MINVALUE 1 MAXVALUE 9223372036854775807 INCREMENT BY 1 NO CYCLE;
+-- CPF_CANONICAL_OBJECTS_END spring-batch-6-sequences

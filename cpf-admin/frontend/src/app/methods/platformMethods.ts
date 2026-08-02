@@ -1,4 +1,4 @@
-export const platformMethods: Record<string, any> = {
+export const platformMethods = {
   async loadChannelPolicy() {
         this.channelSnapshot = await this.getJson("/adm/api/channels") || { version: 0, channels: {}, policies: [] };
       },
@@ -107,4 +107,4 @@ export const platformMethods: Record<string, any> = {
         };
         this.setMessage("Reliability 운영 데이터를 조회했습니다.");
       }
-};
+} satisfies Record<string, any>;

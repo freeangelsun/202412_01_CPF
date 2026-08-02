@@ -159,7 +159,6 @@ foreach ($item in $selected) {
     Write-Host "[$($item.domainName)] operation=$Operation"
     $args = @(
         "-NoProfile",
-        "-ExecutionPolicy", "Bypass",
         "-File", $initializer,
         "-DomainName", $item.domainName,
         "-SystemCode", $item.systemCode,

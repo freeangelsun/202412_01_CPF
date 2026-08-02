@@ -28,6 +28,27 @@ WHEN MATCHED THEN UPDATE SET tgt.sample_key = src.sample_key, tgt.item_name = sr
 WHEN NOT MATCHED THEN INSERT (sample_item_id, sample_key, item_name, category_code, status_code, searchable_text, owner_reference, sort_order, version_no, created_by, updated_by) VALUES (src.sample_item_id, src.sample_key, src.item_name, src.category_code, src.status_code, src.searchable_text, src.owner_reference, src.sort_order, src.version_no, src.created_by, src.updated_by);
 
 -- CPF_LOGICAL_DATABASE=refDB
+DELETE FROM ref_sample_item WHERE sample_item_id BETWEEN 90001 AND 90008;
+DELETE FROM ref_sample_item WHERE sample_item_id BETWEEN 91000 AND 91999;
+MERGE INTO ref_sample_item tgt USING (
+SELECT 90001 sample_item_id, 'REF-MAPPER-90001' sample_key, '단건 조회 샘플' item_name, 'SINGLE' category_code, 'ACTIVE' status_code, 'single' searchable_text, 'REF-90001' owner_reference, 90001 sort_order, 0 version_no, 'N' deleted_yn, 'MAPPER_TEST' created_by, '2026-06-01 09:00:00.000' created_at, 'MAPPER_TEST' updated_by, '2026-06-01 09:00:00.000' updated_at FROM dual
+UNION ALL
+SELECT 90002 sample_item_id, 'REF-MAPPER-90002' sample_key, '목록 조회 샘플' item_name, 'LIST' category_code, 'ACTIVE' status_code, 'list' searchable_text, 'REF-90002' owner_reference, 90002 sort_order, 0 version_no, 'N' deleted_yn, 'MAPPER_TEST' created_by, '2026-06-02 09:00:00.000' created_at, 'MAPPER_TEST' updated_by, '2026-06-02 09:00:00.000' updated_at FROM dual
+UNION ALL
+SELECT 90003 sample_item_id, 'REF-MAPPER-90003' sample_key, '검색 조회 샘플' item_name, 'SEARCH' category_code, 'ACTIVE' status_code, 'search' searchable_text, 'REF-90003' owner_reference, 90003 sort_order, 0 version_no, 'N' deleted_yn, 'MAPPER_TEST' created_by, '2026-06-03 09:00:00.000' created_at, 'MAPPER_TEST' updated_by, '2026-06-03 09:00:00.000' updated_at FROM dual
+UNION ALL
+SELECT 90004 sample_item_id, 'REF-MAPPER-90004' sample_key, '정렬 조회 샘플' item_name, 'SORT' category_code, 'ACTIVE' status_code, 'sort' searchable_text, 'REF-90004' owner_reference, 90004 sort_order, 0 version_no, 'N' deleted_yn, 'MAPPER_TEST' created_by, '2026-06-04 09:00:00.000' created_at, 'MAPPER_TEST' updated_by, '2026-06-04 09:00:00.000' updated_at FROM dual
+UNION ALL
+SELECT 90005 sample_item_id, 'REF-MAPPER-90005' sample_key, '페이지 조회 샘플' item_name, 'PAGE' category_code, 'ACTIVE' status_code, 'page' searchable_text, 'REF-90005' owner_reference, 90005 sort_order, 0 version_no, 'N' deleted_yn, 'MAPPER_TEST' created_by, '2026-06-05 09:00:00.000' created_at, 'MAPPER_TEST' updated_by, '2026-06-05 09:00:00.000' updated_at FROM dual
+UNION ALL
+SELECT 90006 sample_item_id, 'REF-MAPPER-90006' sample_key, '비활성 조회 샘플' item_name, 'LIST' category_code, 'INACTIVE' status_code, 'inactive' searchable_text, 'REF-90006' owner_reference, 90006 sort_order, 0 version_no, 'N' deleted_yn, 'MAPPER_TEST' created_by, '2026-06-06 09:00:00.000' created_at, 'MAPPER_TEST' updated_by, '2026-06-06 09:00:00.000' updated_at FROM dual
+UNION ALL
+SELECT 90007 sample_item_id, 'REF-MAPPER-90007' sample_key, 'Validation 조회 샘플' item_name, 'VALIDATION' category_code, 'INACTIVE' status_code, 'validation' searchable_text, 'REF-90007' owner_reference, 90007 sort_order, 0 version_no, 'N' deleted_yn, 'MAPPER_TEST' created_by, '2026-06-07 09:00:00.000' created_at, 'MAPPER_TEST' updated_by, '2026-06-07 09:00:00.000' updated_at FROM dual
+UNION ALL
+SELECT 90008 sample_item_id, 'REF-MAPPER-90008' sample_key, 'Keyset 조회 샘플' item_name, 'KEYSET' category_code, 'ACTIVE' status_code, 'keyset' searchable_text, 'REF-90008' owner_reference, 90008 sort_order, 0 version_no, 'N' deleted_yn, 'MAPPER_TEST' created_by, '2026-06-08 09:00:00.000' created_at, 'MAPPER_TEST' updated_by, '2026-06-08 09:00:00.000' updated_at FROM dual
+) src ON (tgt.sample_item_id = src.sample_item_id)
+WHEN MATCHED THEN UPDATE SET tgt.sample_key = src.sample_key, tgt.item_name = src.item_name, tgt.category_code = src.category_code, tgt.status_code = src.status_code, tgt.searchable_text = src.searchable_text, tgt.owner_reference = src.owner_reference, tgt.sort_order = src.sort_order, tgt.updated_by = src.updated_by, tgt.updated_at = src.updated_at
+WHEN NOT MATCHED THEN INSERT (sample_item_id, sample_key, item_name, category_code, status_code, searchable_text, owner_reference, sort_order, version_no, deleted_yn, created_by, created_at, updated_by, updated_at) VALUES (src.sample_item_id, src.sample_key, src.item_name, src.category_code, src.status_code, src.searchable_text, src.owner_reference, src.sort_order, src.version_no, src.deleted_yn, src.created_by, src.created_at, src.updated_by, src.updated_at);
 DELETE FROM ref_center_cut_sample_result WHERE center_cut_job_id = 'CPF_REF_CENTER_CUT_SAMPLE_JOB';
 MERGE INTO ref_center_cut_sample_target tgt USING (
 SELECT 'REF-CENTER-CUT-001' target_id, 'CPF_REF_CENTER_CUT_SAMPLE_JOB' center_cut_job_id, 'REF-ORDER-20260702-001' business_key, '2026-07-02' business_date, '{"amount":1000,"forceFail":false}' target_payload, 'READY' status_code, 0 retry_count, '20260702110000000REFlocal010000001' transaction_id, 'SEG-REF-CENTER-ROOT' parent_segment_id, NULL transaction_segment_id, NULL started_at, NULL completed_at, NULL last_error_message, 'Y' use_yn, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual

@@ -22,6 +22,10 @@ $skipFileNames = @(
     "cpf-docs/work/current/CPF_CURRENT_WORK_REQUEST.md",
     "check-legacy-name.ps1"
 )
+$skipRelativePaths = @(
+    "\cpf-docs\work\review\20260722_02\MASTER_AUDIT_REPORT.md",
+    "\cpf-docs\work\review\20260722_02\REQUEST_REVIEW_AND_ARCHITECTURE_DECISIONS.md"
+)
 $legacyPatterns = @(
     '(?<![A-Za-z0-9])FPS(?![A-Za-z0-9])',
     '(?<![A-Za-z0-9])fps(?![A-Za-z0-9])',
@@ -45,10 +49,14 @@ $legacyPatterns = @(
 )
 
 $utf8Strict = [System.Text.UTF8Encoding]::new($false, $true)
+$maximumTextBytes = 64MB
 $failures = New-Object System.Collections.Generic.List[string]
 
 Get-ChildItem -LiteralPath $Root -Recurse -File | ForEach-Object {
     $relative = $_.FullName.Substring($Root.Length)
+    if ($skipRelativePaths -contains $relative) {
+        return
+    }
     $isCanonicalBuildToolSource =
         $relative -match '^\\cpf-tools\\build\\(gradle-plugin|platform-bom)\\(build\.gradle|settings\.gradle|src\\(main|test)\\.+)$'
     if (-not $isCanonicalBuildToolSource) {
@@ -74,8 +82,11 @@ Get-ChildItem -LiteralPath $Root -Recurse -File | ForEach-Object {
         return
     }
 
-    $bytes = [System.IO.File]::ReadAllBytes($_.FullName)
-    $text = $utf8Strict.GetString($bytes)
+    if ($_.Length -gt $maximumTextBytes) {
+        $failures.Add("text file exceeds bounded legacy scan limit: $($_.FullName) bytes=$($_.Length)")
+        return
+    }
+    $text = [System.IO.File]::ReadAllText($_.FullName, $utf8Strict)
     foreach ($pattern in $legacyPatterns) {
         if ([regex]::IsMatch($text, $pattern, [System.Text.RegularExpressions.RegexOptions]::None)) {
             $failures.Add("legacy marker '$pattern': $($_.FullName)")

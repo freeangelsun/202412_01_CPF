@@ -1,7 +1,7 @@
 package com.cpf.reference.config;
 
 import com.cpf.core.api.database.CpfDataSources;
-import org.springframework.boot.autoconfigure.batch.BatchDataSource;
+import org.springframework.boot.batch.jdbc.autoconfigure.BatchDataSource;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;

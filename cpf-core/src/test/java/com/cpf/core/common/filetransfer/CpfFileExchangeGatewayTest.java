@@ -1,5 +1,6 @@
 package com.cpf.core.common.filetransfer;
 
+import com.cpf.core.api.filetransfer.CpfFileResult;
 import com.cpf.core.api.filetransfer.CpfRemoteCommandPlan;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -33,7 +34,7 @@ class CpfFileExchangeGatewayTest {
     void 원격전송과_명령은_credential_adapter가_없으면_안전한_계획으로_남는다() {
         CpfFileExchangeGateway gateway = gateway();
 
-        CpfFileTransferResult transfer = gateway.transfer(
+        CpfFileResult transfer = gateway.transfer(
                 "SFTP",
                 "UPLOAD",
                 "localhost",

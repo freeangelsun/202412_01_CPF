@@ -3,4 +3,4 @@ INSERT INTO bat_deployment_execution(
     to_version, strategy_code, execution_state, expected_version, approval_request_id,
     requested_by, approved_by, reason_text, started_at, created_at
 )
-VALUES (?, ?, ?, ?, ?, ?, ?, 'EXECUTING', ?, ?, ?, ?, ?, SYSTIMESTAMP, SYSTIMESTAMP)
+VALUES (?, ?, ?, ?, ?, ?, ?, 'EXECUTING', ?, ?, ?, ?, ?, CURRENT_TIMESTAMP(6), CURRENT_TIMESTAMP(6))

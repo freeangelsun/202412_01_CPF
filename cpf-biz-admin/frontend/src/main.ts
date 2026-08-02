@@ -6,6 +6,7 @@ import "element-plus/dist/index.css";
 import App from "./App.vue";
 import { bzaRouter } from "./app/router";
 import { cpfQueryClient } from "./shared/queryClient";
+import CpfStructuredData from "./components/CpfStructuredData.vue";
 import "./styles/bza.css";
 import "./styles/cpf-design.css";
-createApp(App).use(createPinia()).use(bzaRouter).use(VueQueryPlugin, { queryClient: cpfQueryClient }).use(ElementPlus).mount("#app");
+createApp(App).component("CpfStructuredData", CpfStructuredData).use(createPinia()).use(bzaRouter).use(VueQueryPlugin, { queryClient: cpfQueryClient }).use(ElementPlus).mount("#app");

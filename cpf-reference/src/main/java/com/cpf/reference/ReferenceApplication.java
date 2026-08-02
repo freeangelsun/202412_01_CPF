@@ -2,7 +2,7 @@ package com.cpf.reference;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration;
+import org.springframework.boot.batch.autoconfigure.BatchAutoConfiguration;
 
 /**
  * REF 교육 샘플 애플리케이션입니다.

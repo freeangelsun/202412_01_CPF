@@ -1,6 +1,5 @@
 package com.cpf.core.common.transaction;
 
-import com.cpf.core.api.database.CpfDatabaseVendor;
 import com.cpf.core.api.data.CpfDataRow;
 import com.cpf.core.common.database.CpfVendorSqlCatalog;
 import org.springframework.beans.factory.ObjectProvider;
@@ -137,13 +136,8 @@ public class CpfTransactionMetaRepository {
         long totalElements = total == null ? 0L : Math.max(0L, total);
         long offset = (long) safePage * safeSize;
         List<Object> arguments = new ArrayList<>(List.of(filterArguments));
-        if (sql.vendor() == CpfDatabaseVendor.ORACLE) {
-            arguments.add(offset);
-            arguments.add(safeSize);
-        } else {
-            arguments.add(safeSize);
-            arguments.add(offset);
-        }
+        arguments.add(offset);
+        arguments.add(safeSize);
         List<CpfDataRow> items = offset >= totalElements
                 ? List.of()
                 : CpfDataRow.copyRows(jdbc().queryForList(

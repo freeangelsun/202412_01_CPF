@@ -10,16 +10,10 @@ import com.cpf.gateway.runtime.CpfApiClientSecurityRuntimeApplier;
 import com.cpf.gateway.runtime.CpfGatewayRouteRuntimeApplier;
 import com.cpf.gateway.runtime.CpfGatewayRuntimeApplier;
 import com.cpf.gateway.runtime.CpfGatewayRuntimePolicy;
-import com.cpf.gateway.transport.CpfGatewayHttpExchangePort;
-import com.cpf.gateway.transport.CpfGatewayTransferPolicy;
-import com.cpf.gateway.transport.JdkCpfGatewayHttpExchangeAdapter;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
-
-import java.nio.file.Path;
 
 /** CPF Gateway runtime의 data plane Bean을 구성합니다. */
 @Configuration
@@ -112,33 +106,4 @@ public class CpfGatewayConfiguration {
         };
     }
 
-    @Bean
-    @ConditionalOnMissingBean
-    public CpfGatewayTransferPolicy cpfGatewayTransferPolicy(
-            CpfGatewaySafetyProperties safety,
-            @Value("${cpf.gateway.transfer.max-request-bytes:1073741824}") long maxRequestBytes,
-            @Value("${cpf.gateway.transfer.memory-threshold-bytes:1048576}") int memoryThresholdBytes,
-            @Value("${cpf.gateway.transfer.io-buffer-bytes:65536}") int ioBufferBytes,
-            @Value("${cpf.gateway.transfer.connect-timeout-millis:3000}") long connectTimeoutMillis,
-            @Value("${cpf.gateway.transfer.request-timeout-millis:30000}") long requestTimeoutMillis,
-            @Value("${cpf.gateway.transfer.temp-directory:${java.io.tmpdir}/cpf-gateway}") String tempDirectory) {
-        safety.validate();
-        long effectiveRequestBytes = Math.min(maxRequestBytes, safety.getRequestBodyBytesCap());
-        int effectiveMemoryThreshold = (int) Math.min(memoryThresholdBytes, effectiveRequestBytes);
-        long effectiveConnectTimeout = Math.min(connectTimeoutMillis, safety.getConnectTimeoutCap().toMillis());
-        long effectiveRequestTimeout = Math.min(requestTimeoutMillis, safety.getOverallTimeoutCap().toMillis());
-        return new CpfGatewayTransferPolicy(
-                effectiveRequestBytes,
-                effectiveMemoryThreshold,
-                ioBufferBytes,
-                effectiveConnectTimeout,
-                Math.max(effectiveConnectTimeout, effectiveRequestTimeout),
-                Path.of(tempDirectory));
-    }
-
-    @Bean
-    @ConditionalOnMissingBean
-    public CpfGatewayHttpExchangePort cpfGatewayHttpExchangePort(CpfGatewayTransferPolicy policy) {
-        return new JdkCpfGatewayHttpExchangeAdapter();
-    }
 }

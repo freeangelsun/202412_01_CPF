@@ -15,32 +15,8 @@ class LogPolicyCacheTest {
     @Test
     void activeOverrideHasHighestPriority() {
         StubRepository repository = new StubRepository();
-        repository.policy = new LogPolicyRow(
-                10L,
-                null,
-                "ONLINE_TRANSACTION",
-                "*",
-                "INFO",
-                "Y",
-                "Y",
-                "N",
-                "N",
-                "Y",
-                "DEFAULT",
-                "DB_POLICY");
-        repository.override = new LogPolicyRow(
-                10L,
-                20L,
-                "ONLINE_TRANSACTION",
-                "ADM01TRN0010",
-                "DEBUG",
-                "N",
-                "Y",
-                "Y",
-                "Y",
-                "N",
-                "DEBUG_MASK",
-                "ADM_OVERRIDE");
+        repository.policy = row(10L, null, "*", "INFO", "Y", "Y", "N", "N", "Y", "DEFAULT", "DB_POLICY");
+        repository.override = row(10L, 20L, "ADM01TRN0010", "DEBUG", "N", "Y", "Y", "Y", "N", "DEBUG_MASK", "ADM_OVERRIDE");
 
         LogPolicyDecision decision = new LogPolicyCache(repository, new MockEnvironment())
                 .resolve(LogPolicyTargetType.ONLINE_TRANSACTION, "ADM01TRN0010");
@@ -124,35 +100,55 @@ class LogPolicyCacheTest {
     }
 
     private LogPolicyRow onlinePolicy() {
-        return new LogPolicyRow(
-                10L,
-                null,
-                "ONLINE_TRANSACTION",
-                "*",
-                "INFO",
-                "Y",
-                "Y",
-                "N",
-                "N",
-                "Y",
-                "DEFAULT",
-                "DB_POLICY");
+        return row(10L, null, "*", "INFO", "Y", "Y", "N", "N", "Y", "DEFAULT", "DB_POLICY");
     }
 
     private LogPolicyRow onlineOverride() {
+        return row(10L, 30L, "ADM03LGP0014", "DEBUG", "N", "Y", "Y", "Y", "N", "DEBUG_MASK", "ADM_OVERRIDE");
+    }
+
+    private static LogPolicyRow row(
+            Long policyId,
+            Long overrideId,
+            String targetId,
+            String logLevel,
+            String dbLogEnabledYn,
+            String fileLogEnabledYn,
+            String requestBodySaveYn,
+            String responseBodySaveYn,
+            String errorStackSaveYn,
+            String maskingPolicyKey,
+            String source) {
         return new LogPolicyRow(
-                10L,
-                30L,
+                policyId,
+                overrideId,
+                2,
                 "ONLINE_TRANSACTION",
-                "ADM03LGP0014",
-                "DEBUG",
-                "N",
-                "Y",
-                "Y",
-                "Y",
-                "N",
-                "DEBUG_MASK",
-                "ADM_OVERRIDE");
+                targetId,
+                logLevel,
+                dbLogEnabledYn,
+                fileLogEnabledYn,
+                "NONE",
+                "ALLOWLIST",
+                "ALLOWLIST",
+                captureMode(requestBodySaveYn, "MASKED_BODY"),
+                captureMode(responseBodySaveYn, "MASKED_BODY"),
+                captureMode(errorStackSaveYn, "FULL_MASKED"),
+                null,
+                "content-type,x-cpf-transaction-id",
+                null,
+                4096,
+                8192,
+                65536,
+                65536,
+                32768,
+                maskingPolicyKey,
+                null,
+                source);
+    }
+
+    private static String captureMode(String enabledYn, String enabledMode) {
+        return "Y".equalsIgnoreCase(enabledYn) ? enabledMode : "NONE";
     }
 
     private static class StubRepository implements LogPolicyRepository {

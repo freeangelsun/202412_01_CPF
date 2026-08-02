@@ -2,11 +2,7 @@ package com.cpf.core.common.broker;
 
 import com.cpf.core.api.broker.CpfBrokerBridgeMessage;
 import com.cpf.core.api.broker.CpfBrokerBridgeResult;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.mock.env.MockEnvironment;
 
 import java.util.List;
@@ -14,8 +10,6 @@ import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-
 class CpfBrokerBridgeAdapterTest {
 
     @Test
@@ -23,11 +17,7 @@ class CpfBrokerBridgeAdapterTest {
         MockEnvironment environment = new MockEnvironment()
                 .withProperty("cpf.broker.type", "IN_MEMORY")
                 .withProperty("cpf.broker.enabled", "true");
-        CpfBrokerBridgeAdapter adapter = new CpfBrokerBridgeAdapter(
-                environment,
-                new ObjectMapper(),
-                provider(),
-                provider());
+        CpfBrokerBridgeAdapter adapter = new CpfBrokerBridgeAdapter(environment);
         List<CpfBrokerBridgeMessage> consumed = new CopyOnWriteArrayList<>();
         adapter.subscribe("cpf.edu", consumed::add);
 
@@ -49,20 +39,11 @@ class CpfBrokerBridgeAdapterTest {
         MockEnvironment environment = new MockEnvironment()
                 .withProperty("cpf.broker.type", "IN_MEMORY")
                 .withProperty("cpf.broker.enabled", "false");
-        CpfBrokerBridgeAdapter adapter = new CpfBrokerBridgeAdapter(
-                environment,
-                new ObjectMapper(),
-                provider(),
-                provider());
+        CpfBrokerBridgeAdapter adapter = new CpfBrokerBridgeAdapter(environment);
 
         CpfBrokerBridgeResult result = adapter.publish("cpf.edu", "KEY-2", Map.of(), Map.of());
 
         assertThat(result.success()).isFalse();
         assertThat(adapter.findRecent(null, 10)).isEmpty();
-    }
-
-    @SuppressWarnings("unchecked")
-    private <T> ObjectProvider<T> provider() {
-        return mock(ObjectProvider.class);
     }
 }

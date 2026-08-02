@@ -1,4 +1,4 @@
-export const observabilityMethods: Record<string, any> = {
+export const observabilityMethods = {
   sortLogs(key) {
         this.logSort = this.logSort.key === key
           ? { key, direction: this.logSort.direction === "asc" ? "desc" : "asc" }
@@ -387,4 +387,4 @@ export const observabilityMethods: Record<string, any> = {
         });
         this.logPolicyDistributionResult = await this.getJson(`/adm/api/log-policies/distribution?${params.toString()}`);
       }
-};
+} satisfies Record<string, any>;

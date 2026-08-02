@@ -3,8 +3,11 @@ package com.cpf.gateway.scg;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.cpf.core.api.security.network.CpfNetworkEndpointPolicy;
 import java.net.InetAddress;
 import java.net.URI;
+import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 class CpfScgTargetResolverTest {
@@ -33,24 +36,28 @@ class CpfScgTargetResolverTest {
     @Test
     void rejectsMixedPrivatePublicAndMetadataResponses() throws Exception {
         URI base = URI.create("https://service.internal/base");
+        CpfNetworkEndpointPolicy allowPrivateAndPublic = new CpfNetworkEndpointPolicy(
+                List.of(), Set.of(443), true, true, true, true);
         assertThatThrownBy(() -> CpfScgTargetResolver.validateResolvedAddresses(
-                base, true, ignored -> new InetAddress[] {
+                base, allowPrivateAndPublic, ignored -> new InetAddress[] {
                     InetAddress.getByName("10.0.0.10"),
-                    InetAddress.getByName("203.0.113.10")
+                    InetAddress.getByName("8.8.8.8")
                 })).isInstanceOf(SecurityException.class)
                 .hasMessageContaining("mixed private/public");
         assertThatThrownBy(() -> CpfScgTargetResolver.validateResolvedAddresses(
-                base, true, ignored -> new InetAddress[] {
+                base, allowPrivateAndPublic, ignored -> new InetAddress[] {
                     InetAddress.getByName("169.254.169.254")
                 })).isInstanceOf(SecurityException.class)
-                .hasMessageContaining("address denied");
+                .hasMessageContaining("network policy denied");
     }
 
     @Test
     void dnsChangeCannotAlterActivePinnedConnectionIdentity() throws Exception {
         URI base = URI.create("https://service.internal/base");
+        CpfNetworkEndpointPolicy privateOnly = new CpfNetworkEndpointPolicy(
+                List.of(), Set.of(443), true, false, true, true);
         var approved = CpfScgTargetResolver.validateResolvedAddresses(
-                base, false, ignored -> new InetAddress[] {InetAddress.getByName("10.0.0.7")});
+                base, privateOnly, ignored -> new InetAddress[] {InetAddress.getByName("10.0.0.7")});
         URI canonical = CpfScgTargetResolver.resolveCanonical(base, "/orders", null);
         String actual = CpfGatewayPinnedAddressContext.call(
                 canonical.getHost(), approved.getFirst(),

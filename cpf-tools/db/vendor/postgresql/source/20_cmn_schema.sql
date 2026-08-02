@@ -1,6 +1,5 @@
 -- AUTO-GENERATED from cpf-tools/db/canonical/platform-schema.json
 -- vendor=postgresql
--- schemaVersion=37
 -- DO NOT EDIT generated DDL directly.
 
 -- CPF_LOGICAL_DATABASE=cmnDB

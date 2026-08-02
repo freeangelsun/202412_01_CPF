@@ -1,7 +1,15 @@
 export type AdmActionMap = Record<string, (...args: any[]) => unknown>;
 export interface AdmFeatureActionGroup { owner: string; actions: AdmActionMap; }
 
-export function composeAdmFeatureActions(groups: readonly AdmFeatureActionGroup[]): AdmActionMap {
+type UnionToIntersection<Value> = (Value extends unknown ? (candidate: Value) => void : never) extends
+  ((candidate: infer Intersection) => void) ? Intersection : never;
+
+export type ComposedAdmFeatureActions<Groups extends readonly AdmFeatureActionGroup[]> =
+  UnionToIntersection<Groups[number]["actions"]>;
+
+export function composeAdmFeatureActions<const Groups extends readonly AdmFeatureActionGroup[]>(
+  groups: Groups
+): Readonly<ComposedAdmFeatureActions<Groups>> {
   const composed: AdmActionMap = {};
   const owners = new Map<string, string>();
   for (const group of groups) {
@@ -17,5 +25,5 @@ export function composeAdmFeatureActions(groups: readonly AdmFeatureActionGroup[
       composed[name] = action;
     }
   }
-  return Object.freeze(composed);
+  return Object.freeze(composed) as Readonly<ComposedAdmFeatureActions<Groups>>;
 }

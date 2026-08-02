@@ -16,16 +16,16 @@
           <label>내부 메시지 <input v-model="messageForm.internalMessage" type="text"></label>
           <label>사유 <input v-model="messageForm.reason" type="text"></label>
         </div>
-        <pre class="detail">{{ pretty(messageResult) }}</pre>
+        <CpfStructuredData class="detail" :value="messageResult" />
       </section>
 </template>
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import { admConsoleMixin } from "../../app/admConsoleMixin";
+import { useAdmConsolePage } from "../../app/useAdmConsolePage";
 
 export default defineComponent({
   name: "MessagesPage",
-  mixins: [admConsoleMixin]
+  setup() { return useAdmConsolePage(); }
 });
 </script>

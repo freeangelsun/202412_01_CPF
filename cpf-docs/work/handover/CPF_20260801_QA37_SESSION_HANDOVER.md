@@ -24,7 +24,7 @@
 
 ## Codex 진입점
 
-1. `python .\cpf-tools\scriptserify-cpf-qa37-source-closure.py --root .`
+1. `python .\cpf-tools\scripts\verify-cpf-qa37-source-closure.py --root .`
 2. `cpf-docs/work/codex/qa37/CPF_CODEX_QA37_FINAL_INDEPENDENT_VERIFICATION_REQUEST.md`
 3. Java25 Lifecycle 한 번
 4. Optional Pack Removal Matrix 한 번

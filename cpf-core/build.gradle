@@ -57,6 +57,8 @@ dependencies {
 	testImplementation 'org.assertj:assertj-core:3.26.3'
 	testImplementation 'org.mockito:mockito-core:5.14.2'
 	testImplementation 'org.springframework:spring-test'
+	// Core keeps WebFlux optional for consumers, while service-call tests exercise its HTTP error contract.
+	testImplementation 'org.springframework.boot:spring-boot-starter-webflux'
 	testImplementation 'jakarta.servlet:jakarta.servlet-api:6.1.0'
 	testImplementation 'org.springframework.batch:spring-batch-core'
 	// Candidate Vendor URL/driver contract test only. This does not mark PostgreSQL Runtime as verified.

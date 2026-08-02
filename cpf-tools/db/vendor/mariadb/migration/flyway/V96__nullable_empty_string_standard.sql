@@ -1,0 +1,47 @@
+-- GENERATED FILE. DO NOT EDIT VENDOR SQL DIRECTLY.
+-- Source: cpf-tools/db/metadata/platform-nullable-empty-string-repair.json + canonical schemaVersion 46.
+-- Repair: CPF-MIGRATION-096-NULLABLE-EMPTY-STRING; historical migrations remain immutable.
+
+ALTER TABLE cpf_cache_invalidation_event
+    MODIFY COLUMN cache_key VARCHAR(512) NULL DEFAULT NULL;
+
+ALTER TABLE cpf_gateway_apply_status
+    MODIFY COLUMN applied_version VARCHAR(100) NULL DEFAULT NULL,
+    MODIFY COLUMN error_code VARCHAR(100) NULL DEFAULT NULL,
+    MODIFY COLUMN error_message VARCHAR(1000) NULL DEFAULT NULL;
+
+ALTER TABLE cpf_gateway_attempt
+    MODIFY COLUMN target_host VARCHAR(300) NULL DEFAULT NULL,
+    MODIFY COLUMN protocol_status VARCHAR(30) NULL DEFAULT NULL,
+    MODIFY COLUMN failure_code VARCHAR(100) NULL DEFAULT NULL,
+    MODIFY COLUMN failure_message VARCHAR(1000) NULL DEFAULT NULL;
+
+ALTER TABLE cpf_gateway_binding
+    MODIFY COLUMN tls_policy_id VARCHAR(100) NULL DEFAULT NULL,
+    MODIFY COLUMN authentication_policy_id VARCHAR(100) NULL DEFAULT NULL,
+    MODIFY COLUMN authorization_policy_id VARCHAR(100) NULL DEFAULT NULL,
+    MODIFY COLUMN header_policy_id VARCHAR(100) NULL DEFAULT NULL,
+    MODIFY COLUMN rate_limit_policy_id VARCHAR(100) NULL DEFAULT NULL,
+    MODIFY COLUMN health_policy_id VARCHAR(100) NULL DEFAULT NULL,
+    MODIFY COLUMN failover_group_id VARCHAR(100) NULL DEFAULT NULL,
+    MODIFY COLUMN approval_id VARCHAR(100) NULL DEFAULT NULL;
+
+ALTER TABLE cpf_gateway_connection_test
+    MODIFY COLUMN gateway_instance_id VARCHAR(100) NULL DEFAULT NULL,
+    MODIFY COLUMN instance_id VARCHAR(100) NULL DEFAULT NULL,
+    MODIFY COLUMN failure_stage VARCHAR(50) NULL DEFAULT NULL,
+    MODIFY COLUMN trace_id VARCHAR(100) NULL DEFAULT NULL,
+    MODIFY COLUMN operation_id VARCHAR(100) NULL DEFAULT NULL;
+
+ALTER TABLE cpf_gateway_server_group
+    MODIFY COLUMN hash_key_source VARCHAR(200) NULL DEFAULT NULL,
+    MODIFY COLUMN health_policy_id VARCHAR(100) NULL DEFAULT NULL,
+    MODIFY COLUMN failover_group_id VARCHAR(100) NULL DEFAULT NULL;
+
+ALTER TABLE cpf_gateway_transaction
+    MODIFY COLUMN channel_id VARCHAR(100) NULL DEFAULT NULL,
+    MODIFY COLUMN source_ip VARCHAR(100) NULL DEFAULT NULL,
+    MODIFY COLUMN final_instance_id VARCHAR(100) NULL DEFAULT NULL,
+    MODIFY COLUMN protocol_status VARCHAR(30) NULL DEFAULT NULL,
+    MODIFY COLUMN business_code VARCHAR(100) NULL DEFAULT NULL,
+    MODIFY COLUMN failure_stage VARCHAR(50) NULL DEFAULT NULL;

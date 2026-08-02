@@ -1,0 +1,9 @@
+INSERT INTO bat_job_definition_version (
+  job_id,definition_version,job_name,executor_type,definition_state,owner_domain,description,
+  trigger_type,trigger_expression,timezone_id,misfire_policy,agent_pool,zone_id,max_concurrency,
+  timeout_seconds,restartable_yn,max_attempts,initial_backoff_seconds,backoff_multiplier,
+  max_backoff_seconds,skip_limit,unknown_result_policy,compensation_reference,alert_delay_seconds,
+  sla_seconds,notify_failure_yn,notify_missed_yn,executor_reference,definition_json,checksum,
+  effective_from,effective_until,row_version,created_by,created_at,updated_by,updated_at
+)
+VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,1,?,CURRENT_TIMESTAMP,?,CURRENT_TIMESTAMP)

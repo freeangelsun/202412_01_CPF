@@ -30,7 +30,7 @@
             </tbody>
           </table>
         </div>
-        <pre class="detail">{{ pretty(standardExecutionDetail) }}</pre>
+        <CpfStructuredData class="detail" :value="standardExecutionDetail" />
       </section>
 </template>
 

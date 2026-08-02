@@ -271,7 +271,7 @@ function Update-VerificationDocument {
         }
 
         $body.Add((New-WmlParagraph -Text "검증 명령" -Style "Heading1")) | Out-Null
-        $body.Add((New-WmlParagraph -Text "powershell -NoProfile -ExecutionPolicy Bypass -File cpf-tools/scripts/check-docx-standard.ps1" -Style "Code")) | Out-Null
+        $body.Add((New-WmlParagraph -Text "powershell -NoProfile -File cpf-tools/scripts/check-docx-standard.ps1" -Style "Code")) | Out-Null
         $body.Add((New-WmlParagraph -Text "관련 정본" -Style "Heading1")) | Out-Null
         $body.Add((New-WmlParagraph -Text "README.md, cpf-docs/work/state/CPF_STABILIZATION_REPORT.md, cpf-docs/evidence/CPF_EVIDENCE_INDEX.md")) | Out-Null
 
@@ -288,8 +288,18 @@ function Update-VerificationDocument {
         $archive.Dispose()
     }
 
-    $bytes = [System.IO.File]::ReadAllBytes($outputPath)
-    if ($bytes.Length -lt 4 -or $bytes[0] -ne 0x50 -or $bytes[1] -ne 0x4B) {
+    $header = [byte[]]::new(4)
+    $stream = [System.IO.File]::OpenRead($outputPath)
+    $headerLength = 0
+    try {
+        while ($headerLength -lt $header.Length) {
+            $read = $stream.Read($header, $headerLength, $header.Length - $headerLength)
+            if ($read -eq 0) { break }
+            $headerLength += $read
+        }
+    }
+    finally { $stream.Dispose() }
+    if ($headerLength -lt 4 -or $header[0] -ne 0x50 -or $header[1] -ne 0x4B) {
         throw "생성 결과가 DOCX ZIP 패키지가 아닙니다. path=$outputPath"
     }
     Copy-Item -LiteralPath $outputPath -Destination $TargetPath -Force

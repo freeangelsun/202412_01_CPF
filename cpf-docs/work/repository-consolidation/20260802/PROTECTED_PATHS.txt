@@ -1,0 +1,27 @@
+# Codex와 다른 작업 Stream 보호 경계
+README.md
+cpf-docs/guides/**
+cpf-docs/deliverables/**
+cpf-docs/assets/**
+cpf-docs/work/codex/qa37/**
+cpf-docs/work/current/*QA37*
+cpf-docs/work/review/*QA37*
+cpf-docs/work/handover/*QA37*
+cpf-docs/work/continuity/*QA37*
+cpf-docs/work/manifest/*QA37*
+cpf-docs/quality/*QA37*
+cpf-docs/evidence/**
+cpf-core/**
+cpf-common/**
+cpf-admin/**
+cpf-biz-admin/**
+cpf-batch/**
+cpf-gateway/**
+cpf-reference/**
+cpf-member/**
+cpf-starters/**
+cpf-tools/**
+.github/**
+build.gradle
+settings.gradle
+cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md

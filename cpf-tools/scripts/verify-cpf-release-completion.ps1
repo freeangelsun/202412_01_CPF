@@ -36,7 +36,7 @@ try{
     $logPath=Join-Path $evidenceDir $logName
     $exit=0
     try{
-        & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\verify-cpf-final-completion.ps1 `
+        & pwsh -NoProfile -File .\cpf-tools\scripts\verify-cpf-final-completion.ps1 `
             -RepoRoot $RepoRoot -RunDatabaseLifecycle -DatabaseProfilePath $DatabaseProfilePath `
             -RunGitHubGovernance:$RunGitHubGovernance *>&1 | Tee-Object -FilePath $logPath
         $exit=$LASTEXITCODE
@@ -64,7 +64,7 @@ try{
     $json=Join-Path $evidenceDir "release-completion-$($sha.Substring(0,12)).evidence.json"
     $record|ConvertTo-Json -Depth 20|Set-Content -Encoding UTF8 $json
     if($exit -ne 0){throw "CPF release completion verification failed. evidence=$json"}
-    & pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\check-final-evidence-contract.ps1 -Root $RepoRoot -RequireAll
+    & pwsh -NoProfile -File .\cpf-tools\scripts\check-final-evidence-contract.ps1 -Root $RepoRoot -RequireAll
     if($LASTEXITCODE -ne 0){throw 'final evidence contract failed'}
     Write-Host "[PASS] CPF release completion exactSha=$sha"
 }finally{Pop-Location}

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contract": "CPF_BZA_CENTRAL_RUNTIME_QUERY_PACK",
+  "contract": "CPF_PLATFORM_CENTRAL_RUNTIME_QUERY_PACK",
   "vendors": [
     "mariadb",
     "postgresql",
@@ -16,7 +16,9 @@
     "PAGE_NAMED": "Ordered Spring named-parameter limit and offset page window",
     "WITH_RECURSIVE": "Vendor recursive common-table-expression introducer",
     "COALESCE_CREATED_BY": "MyBatis createdBy fallback expression",
-    "COALESCE_UPDATED_BY": "MyBatis updatedBy fallback expression"
+    "COALESCE_UPDATED_BY": "MyBatis updatedBy fallback expression",
+    "CHAR_LENGTH": "Vendor character-length function",
+    "PAGE_POSITIONAL": "Ordered JDBC positional offset and limit page window"
   },
   "forbiddenRuntimeIdentifiers": [
     "transaction_global_id",
@@ -169,9 +171,15 @@
           "parameterCount": 5
         },
         {
-          "key": "transaction-meta-find-all",
+          "key": "transaction-meta-count",
           "consumer": "CpfTransactionMetaRepository",
           "usage": "ACTIVE",
+          "parameterCount": 6
+        },
+        {
+          "key": "transaction-meta-find-all",
+          "consumer": "CpfTransactionMetaRepository",
+          "usage": "STAGED",
           "parameterCount": 7
         },
         {
@@ -179,6 +187,12 @@
           "consumer": "CpfTransactionMetaRepository",
           "usage": "ACTIVE",
           "parameterCount": 1
+        },
+        {
+          "key": "transaction-meta-find-page",
+          "consumer": "CpfTransactionMetaRepository",
+          "usage": "ACTIVE",
+          "parameterCount": 8
         },
         {
           "key": "transaction-meta-inactivate",
@@ -2146,6 +2160,124 @@
             "searchName",
             "sharedYn"
           ]
+        },
+        {
+          "key": "operation-repository-count-menu-permissions-01",
+          "consumer": "BzaOperationRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "menuCode"
+          ]
+        },
+        {
+          "key": "operation-repository-delete-menu-01",
+          "consumer": "BzaOperationRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "expectedVersion",
+            "menuCode"
+          ]
+        },
+        {
+          "key": "operation-repository-find-menu-hierarchy-01",
+          "consumer": "BzaOperationRepository",
+          "usage": "ACTIVE",
+          "parameters": []
+        }
+      ],
+      "managedMyBatis": [],
+      "verificationStatus": "미검증"
+    },
+    {
+      "module": "ref",
+      "ownerArtifact": "cpf-reference",
+      "profileModuleKey": "reference",
+      "parameterStyle": "JDBC_POSITIONAL",
+      "templateRoot": "cpf-tools/db/runtime-template/ref",
+      "generatedPackPath": "runtime/ref/repository",
+      "sourceScopes": [
+        "cpf-reference/src/main/java/com/cpf/reference/centercut"
+      ],
+      "status": "완료",
+      "inlineSqlPolicy": "PORTABLE_ONLY",
+      "statements": [
+        {
+          "key": "centercut-count-results-by-status",
+          "consumer": "ReferenceCenterCutTargetRepository",
+          "usage": "ACTIVE",
+          "parameterCount": 1
+        },
+        {
+          "key": "centercut-delete-smoke-results",
+          "consumer": "ReferenceCenterCutTargetRepository",
+          "usage": "ACTIVE",
+          "parameterCount": 1
+        },
+        {
+          "key": "centercut-find-ready-targets",
+          "consumer": "ReferenceCenterCutTargetRepository",
+          "usage": "ACTIVE",
+          "parameterCount": 2
+        },
+        {
+          "key": "centercut-find-result-snapshots",
+          "consumer": "ReferenceCenterCutTargetRepository",
+          "usage": "ACTIVE",
+          "parameterCount": 1
+        },
+        {
+          "key": "centercut-mark-result-target",
+          "consumer": "ReferenceCenterCutTargetRepository",
+          "usage": "ACTIVE",
+          "parameterCount": 7
+        },
+        {
+          "key": "centercut-mark-running",
+          "consumer": "ReferenceCenterCutTargetRepository",
+          "usage": "ACTIVE",
+          "parameterCount": 5
+        },
+        {
+          "key": "centercut-operations-find-result-detail",
+          "consumer": "RefCenterCutOperationsExtension",
+          "usage": "ACTIVE",
+          "parameterCount": 1
+        },
+        {
+          "key": "centercut-operations-find-results",
+          "consumer": "RefCenterCutOperationsExtension",
+          "usage": "ACTIVE",
+          "parameterCount": 4
+        },
+        {
+          "key": "centercut-operations-find-targets",
+          "consumer": "RefCenterCutOperationsExtension",
+          "usage": "ACTIVE",
+          "parameterCount": 4
+        },
+        {
+          "key": "centercut-operations-summarize-results",
+          "consumer": "RefCenterCutOperationsExtension",
+          "usage": "ACTIVE",
+          "parameterCount": 1
+        },
+        {
+          "key": "centercut-operations-summarize-targets",
+          "consumer": "RefCenterCutOperationsExtension",
+          "usage": "ACTIVE",
+          "parameterCount": 1
+        },
+        {
+          "key": "centercut-reset-smoke-targets",
+          "consumer": "ReferenceCenterCutTargetRepository",
+          "usage": "ACTIVE",
+          "parameterCount": 1
+        },
+        {
+          "key": "centercut-upsert-result",
+          "consumer": "ReferenceCenterCutTargetRepository",
+          "usage": "ACTIVE",
+          "parameterCount": 9
         }
       ],
       "managedMyBatis": [],

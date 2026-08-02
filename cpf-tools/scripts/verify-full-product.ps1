@@ -42,7 +42,7 @@ function Native([string]$Name,[string]$File,[string[]]$Args,[string]$Working=$Ro
 function Pwsh([string]$Name,[string]$Relative,[string[]]$Args=@()){
     $path=Join-Path $Root $Relative
     if(-not(Test-Path $path)){Result $Name 'FAIL' "missing $Relative";return $false}
-    return Native $Name 'pwsh' (@('-NoProfile','-ExecutionPolicy','Bypass','-File',$path)+$Args)
+    return Native $Name 'pwsh' (@('-NoProfile','-File',$path)+$Args)
 }
 function OptionalGate([string]$Name,[string]$Relative){
     if(Test-Path(Join-Path $Root $Relative)){
@@ -162,8 +162,8 @@ try{
         $status=if($exit-eq0){'완료'}elseif($exit-eq2 -or $exit-eq3){'미검증'}else{'실패'}
         $reason=if($skipped-gt0){"$skipped verification group(s) skipped."}else{''}
         $command=if([string]::IsNullOrWhiteSpace($MyInvocation.Line)){'verify-full-product.ps1'}else{$MyInvocation.Line.Trim()}
-        $reproduce="pwsh -ExecutionPolicy Bypass -File .\cpf-tools\scripts\verify-full-product.ps1 -Root `"$Root`" -WithDatabase -WithGeneratorLifecycle -WithBrowser -RequireAll -Profile `"$Profile`""
-        & pwsh -NoProfile -ExecutionPolicy Bypass -File $writer `
+        $reproduce="pwsh -File .\cpf-tools\scripts\verify-full-product.ps1 -Root `"$Root`" -WithDatabase -WithGeneratorLifecycle -WithBrowser -RequireAll -Profile `"$Profile`""
+        & pwsh -NoProfile -File $writer `
             -EvidenceId "FULL-PRODUCT-$stamp" -Status $status -Command $command `
             -OutputPath $EvidenceOutput -ExitCode $exit -SourceLog $raw -Profile $Profile `
             -Reason $reason -ReproduceCommand $reproduce -Skipped $skipped -Failures $failed -Root $Root

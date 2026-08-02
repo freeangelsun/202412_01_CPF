@@ -1,0 +1,6 @@
+﻿decision_id,date,baseline_sha,subject,decision,status,follow_up
+CPF-STARTER-ADR-001,2026-08-02,1eda8e12fe123281748a4388938c62f11819da1e,cpf-starters root,FIXED_PRODUCT_CONTAINER로 정식 관리,승인,Root/Final Gate/BOM/Guide 반영
+CPF-STARTER-ADR-002,2026-08-02,1eda8e12fe123281748a4388938c62f11819da1e,Core architecture,Lightweight Core + Explicit Opt-in Starter,승인,다음 QA에서 Source/Dependency 이관
+CPF-STARTER-ADR-003,2026-08-02,1eda8e12fe123281748a4388938c62f11819da1e,Current seven starters,일괄 삭제 금지; 개별 Consumer/Closure 판정,승인,유지·세분화·이관·제거 전수 검토
+CPF-STARTER-ADR-004,2026-08-02,1eda8e12fe123281748a4388938c62f11819da1e,RabbitMQ,지원 방식 미결정; Kafka Primary 유지,재확인 필요,Kafka-only/RabbitMQ Starter/Customer Plugin ADR
+CPF-STARTER-ADR-005,2026-08-02,1eda8e12fe123281748a4388938c62f11819da1e,Generated Domain consumption,필요한 Starter만 명시적으로 선택,승인,Generator·Manifest·variant tests 구현

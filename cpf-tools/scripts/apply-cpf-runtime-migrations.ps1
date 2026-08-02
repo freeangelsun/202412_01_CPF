@@ -85,7 +85,6 @@ public class ApplyCpfCoreSql {
             password = "";
         }
 
-        Class.forName("org.mariadb.jdbc.Driver");
         try (Connection connection = DriverManager.getConnection(jdbcUrl, username, password)) {
             connection.setAutoCommit(false);
             Counts before = readCounts(connection);

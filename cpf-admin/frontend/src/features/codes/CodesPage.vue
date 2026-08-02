@@ -16,7 +16,7 @@
           <label>설명 <input v-model="codeForm.description" type="text"></label>
           <label>사유 <input v-model="codeForm.reason" type="text"></label>
         </div>
-        <pre class="detail">{{ pretty(codeResult) }}</pre>
+        <CpfStructuredData class="detail" :value="codeResult" />
       </section>
 
   <section class="panel route-operation-panel"><h3>코드 상세·비활성</h3><div class="actions"><button type="button" @click="loadCodeDetail">상세 조회</button><button type="button" v-if="canWrite('CODE')" @click="deleteCodeById">비활성</button></div></section>

@@ -11,11 +11,23 @@ $OutputEncoding = $CpfUtf8ConsoleEncoding
 
 $ErrorActionPreference = "Stop"
 
+$starterRoot = Join-Path $Root 'cpf-starters'
+if (-not (Test-Path -LiteralPath $starterRoot -PathType Container)) {
+    throw "Canonical Starter root is missing: $starterRoot"
+}
+$starterModules = @(Get-ChildItem -LiteralPath $starterRoot -Directory |
+    Where-Object { Test-Path -LiteralPath (Join-Path $_.FullName 'build.gradle') -PathType Leaf } |
+    Sort-Object Name |
+    ForEach-Object { "cpf-starters/$($_.Name)" })
+if ($starterModules.Count -eq 0) {
+    throw "Canonical Starter root has no Gradle projects: $starterRoot"
+}
+
 $fixedModules = @(
     "cpf-core", "cpf-common", "cpf-reference", "cpf-biz-admin",
     "cpf-batch", "cpf-admin", "cpf-gateway",
     "cpf-local-runtime", "cpf-local-batch-runtime"
-)
+) + $starterModules
 $fixedBusinessModules = @("cpf-reference", "cpf-biz-admin")
 $fixedModulePackages = [ordered]@{
     "cpf-reference" = "com.cpf.reference"
@@ -367,7 +379,7 @@ $requiredCapabilityFiles = @(
     "cpf-core/src/main/java/com/cpf/core/common/filetransfer/CpfFileTransferEndpoint.java",
     "cpf-core/src/main/java/com/cpf/core/common/filetransfer/CpfFileTransferHistoryPort.java",
     "cpf-core/src/main/java/com/cpf/core/common/filetransfer/CpfFileTransferHealthPort.java",
-    "cpf-core/src/main/java/com/cpf/core/common/filetransfer/CpfFileTransferProtocol.java",
+    "cpf-core/src/main/java/com/cpf/core/api/filetransfer/CpfFileTransferProtocol.java",
     "cpf-core/src/main/java/com/cpf/core/common/filetransfer/CpfFileTransferPolicy.java",
     "cpf-core/src/main/java/com/cpf/core/common/filetransfer/CpfFileChecksumPolicy.java",
     "cpf-core/src/main/java/com/cpf/core/common/filetransfer/CpfDuplicatePreventionPort.java",

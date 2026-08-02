@@ -13,6 +13,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.springframework.mock.env.MockEnvironment;
 
 import java.net.URI;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -83,8 +84,12 @@ class RoutingCpfRemoteLogArtifactAdapterTest {
             assertThat(bundle.path()).exists();
             try (ZipFile zip = new ZipFile(bundle.path().toFile(), StandardCharsets.UTF_8)) {
                 assertThat(zip.getEntry("checksum-manifest.txt")).isNotNull();
-                String manifest = new String(
-                        zip.getInputStream(zip.getEntry("checksum-manifest.txt")).readAllBytes(), StandardCharsets.UTF_8);
+                byte[] manifestBytes;
+                try (InputStream input = zip.getInputStream(zip.getEntry("checksum-manifest.txt"))) {
+                    manifestBytes = input.readNBytes(64 * 1024 + 1);
+                }
+                assertThat(manifestBytes).hasSizeLessThanOrEqualTo(64 * 1024);
+                String manifest = new String(manifestBytes, StandardCharsets.UTF_8);
                 assertThat(manifest).contains("SHA-256=", "ARTIFACT=");
                 assertThat(zip.stream().filter(entry -> !entry.isDirectory()).count()).isEqualTo(2);
             }

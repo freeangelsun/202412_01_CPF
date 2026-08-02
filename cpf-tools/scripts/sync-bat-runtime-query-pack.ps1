@@ -27,6 +27,7 @@ $vendorTokens = @{
         "@LIMIT_PARAM@" = "LIMIT ?"
         "@NOW6_MINUS_30_SECONDS@" = "DATE_SUB(CURRENT_TIMESTAMP(6), INTERVAL 30 SECOND)"
         "@NOW3_MINUS_SECONDS_PARAM@" = "DATE_SUB(CURRENT_TIMESTAMP(3), INTERVAL ? SECOND)"
+        "@NOW6_PLUS_60_SECONDS@" = "DATE_ADD(CURRENT_TIMESTAMP(6), INTERVAL 60 SECOND)"
     }
     postgresql = @{
         "@NOW@" = "CURRENT_TIMESTAMP"
@@ -38,6 +39,7 @@ $vendorTokens = @{
         "@LIMIT_PARAM@" = "LIMIT ?"
         "@NOW6_MINUS_30_SECONDS@" = "CURRENT_TIMESTAMP(6) - INTERVAL '30 seconds'"
         "@NOW3_MINUS_SECONDS_PARAM@" = "CURRENT_TIMESTAMP(3) - (? * INTERVAL '1 second')"
+        "@NOW6_PLUS_60_SECONDS@" = "CURRENT_TIMESTAMP(6) + INTERVAL '60 seconds'"
     }
     oracle = @{
         "@NOW@" = "CURRENT_TIMESTAMP"
@@ -49,6 +51,7 @@ $vendorTokens = @{
         "@LIMIT_PARAM@" = "FETCH FIRST ? ROWS ONLY"
         "@NOW6_MINUS_30_SECONDS@" = "CURRENT_TIMESTAMP(6) - INTERVAL '30' SECOND"
         "@NOW3_MINUS_SECONDS_PARAM@" = "CURRENT_TIMESTAMP(3) - NUMTODSINTERVAL(?, 'SECOND')"
+        "@NOW6_PLUS_60_SECONDS@" = "CURRENT_TIMESTAMP(6) + INTERVAL '60' SECOND"
     }
 }
 
@@ -142,6 +145,7 @@ foreach ($overrideProperty in $contract.vendorOverrides.PSObject.Properties) {
 }
 
 $written = 0
+$pruned = 0
 foreach ($vendor in $vendors) {
     $targetRoot = Join-Path $Root "cpf-tools\db\vendor\$vendor\runtime\bat\repository"
     if (-not $Check) {
@@ -171,7 +175,15 @@ foreach ($vendor in $vendors) {
         )
         $unexpected = @($actualKeys | Where-Object { $_ -notin $keys })
         if ($unexpected.Count -gt 0) {
-            throw "Unregistered BAT Runtime Query SQL exists: vendor=$vendor keys=$($unexpected -join ',')"
+            if ($Check) {
+                throw "Unregistered BAT Runtime Query SQL exists: vendor=$vendor keys=$($unexpected -join ',')"
+            }
+            foreach ($key in $unexpected) {
+                Assert-SafeStatementKey $key
+                $stalePath = Join-Path $targetRoot "$key.sql"
+                Remove-Item -LiteralPath $stalePath -Force
+                $pruned++
+            }
         }
     }
 }
@@ -182,4 +194,5 @@ foreach ($vendor in $vendors) {
     statements = $statements.Count
     vendors = $vendors.Count
     renderedFiles = if ($Check) { $statements.Count * $vendors.Count } else { $written }
+    prunedFiles = if ($Check) { 0 } else { $pruned }
 } | ConvertTo-Json

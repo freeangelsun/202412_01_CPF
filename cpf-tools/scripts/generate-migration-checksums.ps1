@@ -1,5 +1,6 @@
 param(
     [string]$Root = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path,
+    [string[]]$PackDirectory = @(),
     [switch]$Apply
 )
 $ErrorActionPreference = 'Stop'
@@ -30,6 +31,31 @@ function Rebuild-Pack([string]$Dir) {
     $manifest = Join-Path $Dir 'checksums.sha256'
     [IO.File]::WriteAllLines($manifest, $lines, [Text.UTF8Encoding]::new($false))
     Write-Host "[UPDATED] $manifest"
+}
+
+if ($PackDirectory.Count -gt 0) {
+    $approvedRoots = @(
+        'cpf-tools/db/vendor/mariadb/source/migration/flyway',
+        'cpf-tools/db/vendor/mariadb/migration/flyway',
+        'cpf-tools/db/vendor/postgresql/migration/flyway',
+        'cpf-tools/db/vendor/oracle/migration/flyway'
+    ) | ForEach-Object { [IO.Path]::GetFullPath((Join-Path $Root $_)) }
+    foreach ($requestedDirectory in $PackDirectory) {
+        $directory = if ([IO.Path]::IsPathRooted($requestedDirectory)) {
+            [IO.Path]::GetFullPath($requestedDirectory)
+        } else {
+            [IO.Path]::GetFullPath((Join-Path $Root $requestedDirectory))
+        }
+        $insideApprovedRoot = @($approvedRoots | Where-Object {
+                $directory.Equals($_, [StringComparison]::OrdinalIgnoreCase) -or
+                $directory.StartsWith($_ + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase)
+            }).Count -gt 0
+        if (-not $insideApprovedRoot) {
+            throw "PackDirectory는 중앙 migration root 내부여야 합니다: $requestedDirectory"
+        }
+        Rebuild-Pack $directory
+    }
+    return
 }
 
 # MariaDB는 historical migration chain을 canonical source/runtime 양쪽에서 관리한다.

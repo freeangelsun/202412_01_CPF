@@ -24,9 +24,11 @@ $vendorTokens = @{
         "@LIMIT_POSITIONAL@" = "LIMIT ?"
         "@LIMIT_NAMED@" = "LIMIT :limit"
         "@PAGE_NAMED@" = "LIMIT :limit OFFSET :offset"
+        "@PAGE_POSITIONAL@" = "LIMIT ?, ?"
         "@WITH_RECURSIVE@" = "WITH RECURSIVE"
         "@COALESCE_CREATED_BY@" = "IFNULL(#{createdBy}, 'CPF')"
         "@COALESCE_UPDATED_BY@" = "IFNULL(#{updatedBy}, 'CPF')"
+        "@CHAR_LENGTH@" = "CHAR_LENGTH"
     }
     postgresql = @{
         "@NOW@" = "CURRENT_TIMESTAMP"
@@ -35,9 +37,11 @@ $vendorTokens = @{
         "@LIMIT_POSITIONAL@" = "LIMIT ?"
         "@LIMIT_NAMED@" = "LIMIT :limit"
         "@PAGE_NAMED@" = "LIMIT :limit OFFSET :offset"
+        "@PAGE_POSITIONAL@" = "OFFSET ? ROWS FETCH NEXT ? ROWS ONLY"
         "@WITH_RECURSIVE@" = "WITH RECURSIVE"
         "@COALESCE_CREATED_BY@" = "COALESCE(#{createdBy}, 'CPF')"
         "@COALESCE_UPDATED_BY@" = "COALESCE(#{updatedBy}, 'CPF')"
+        "@CHAR_LENGTH@" = "CHAR_LENGTH"
     }
     oracle = @{
         "@NOW@" = "CURRENT_TIMESTAMP"
@@ -46,9 +50,11 @@ $vendorTokens = @{
         "@LIMIT_POSITIONAL@" = "OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY"
         "@LIMIT_NAMED@" = "OFFSET 0 ROWS FETCH NEXT :limit ROWS ONLY"
         "@PAGE_NAMED@" = "OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY"
+        "@PAGE_POSITIONAL@" = "OFFSET ? ROWS FETCH NEXT ? ROWS ONLY"
         "@WITH_RECURSIVE@" = "WITH"
         "@COALESCE_CREATED_BY@" = "COALESCE(#{createdBy}, 'CPF')"
         "@COALESCE_UPDATED_BY@" = "COALESCE(#{updatedBy}, 'CPF')"
+        "@CHAR_LENGTH@" = "LENGTH"
     }
 }
 
@@ -146,8 +152,8 @@ function Assert-StatementParameters {
 }
 
 if ([int] $contract.schemaVersion -ne 1 -or
-        [string] $contract.contract -cne "CPF_BZA_CENTRAL_RUNTIME_QUERY_PACK") {
-    throw "Invalid CPF/BZA Platform Runtime Query contract header."
+        [string] $contract.contract -cne "CPF_PLATFORM_CENTRAL_RUNTIME_QUERY_PACK") {
+    throw "Invalid CPF Platform Runtime Query contract header."
 }
 $contractVendors = @($contract.vendors | ForEach-Object { [string] $_ })
 if (($contractVendors -join "`n") -cne ($expectedVendors -join "`n")) {
@@ -155,10 +161,11 @@ if (($contractVendors -join "`n") -cne ($expectedVendors -join "`n")) {
 }
 
 $modules = @($contract.modules)
-if ($modules.Count -ne 2 -or
+if ($modules.Count -ne 3 -or
         "bza" -notin @($modules.module) -or
-        "cpf" -notin @($modules.module)) {
-    throw "Platform Runtime Query contract must contain exactly CPF and BZA modules."
+        "cpf" -notin @($modules.module) -or
+        "ref" -notin @($modules.module)) {
+    throw "Platform Runtime Query contract must contain exactly CPF, BZA, and REF modules."
 }
 
 $written = 0

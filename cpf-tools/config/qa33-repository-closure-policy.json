@@ -85,6 +85,19 @@
         ".java",
         ".kt"
       ]
+    },
+    {
+      "id": "POWERSHELL_POLICY_BYPASS",
+      "regex": "-ExecutionPolicy(?:\\s+|[\"']?\\s*,\\s*[\"']?)Bypass\\b",
+      "extensions": [
+        ".gradle",
+        ".kts",
+        ".groovy",
+        ".ps1",
+        ".py",
+        ".yml",
+        ".yaml"
+      ]
     }
   ],
   "patternAllowlist": {
@@ -95,6 +108,8 @@
     ],
     "DYNAMIC_GRADLE_VERSION": [],
     "LEGACY_HASH_ROUTER": [
+      "cpf-admin/frontend/scripts/verify-primary-frontend.mjs",
+      "cpf-biz-admin/frontend/scripts/verify-primary-frontend.mjs",
       "cpf-tools/scripts/verify-cpf-qa32-primary-engines.py",
       "cpf-tools/scripts/verify-cpf-qa32-generator.py",
       "cpf-tools/scripts/verify-cpf-qa33-repository-closure.py"
@@ -106,6 +121,10 @@
     ],
     "CUSTOM_MIGRATION_EXECUTOR": [
       "cpf-tools/scripts/verify-cpf-qa33-repository-closure.py"
+    ],
+    "POWERSHELL_POLICY_BYPASS": [
+      "cpf-tools/scripts/verify-cpf-qa32-primary-engines.py",
+      "cpf-tools/scripts/verify-cpf-qa32-repository-security.py"
     ]
   },
   "fullRepositoryRequirements": {

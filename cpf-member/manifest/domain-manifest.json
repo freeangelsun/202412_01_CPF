@@ -49,7 +49,7 @@
   "generatedResourceRoot": "build/generated-resources/cpf-vendor",
   "dependencyModel": "root-project",
   "platformVersion": "1.0.0-SNAPSHOT",
-  "templateContractVersion": "1.1",
+  "templateContractVersion": "1.2",
   "dataSourceJndiName": "java:comp/env/jdbc/cpfMemberDataSource",
   "batchEnabled": false,
   "centerCutEnabled": false,
@@ -94,6 +94,37 @@
       "CPF_RUNTIME_CONTROL_AGENT_TOKEN"
     ],
     "failClosed": true
+  },
+  "serviceRegistration": {
+    "candidate": true,
+    "serviceId": "MBR",
+    "ownerModule": "cpf-member",
+    "environmentBinding": "runtime-profile",
+    "directAllowedByDefault": true,
+    "gatewayAllowedByDefault": false,
+    "endpoints": [
+      {
+        "enabled": true,
+        "endpointCode": "MBR_ONLINE",
+        "protocol": "HTTP",
+        "basePath": "/api/member",
+        "healthMethod": "HTTP",
+        "healthPath": "/actuator/health/readiness",
+        "contractVersion": "1.0"
+      }
+    ]
+  },
+  "parameterSchemas": {
+    "contract": "com.cpf.core.api.parameter.CpfParameterSchema",
+    "schemaVersion": "1.0",
+    "runtimeOverrideDefault": false,
+    "secretReferenceOnly": true
+  },
+  "gatewayBindingDefaults": {
+    "externalExposure": "DENY",
+    "approvalRequired": true,
+    "connectionTestRequired": true,
+    "healthValidationRequired": true
   },
   "serviceId": "MBR",
   "onlineStandardId": "OMBRQY0001",

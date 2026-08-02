@@ -203,7 +203,7 @@ allprojects {
     $buildFile = Join-Path $stagingModule "build.gradle"
     $buildText = Get-Content -LiteralPath $buildFile -Raw -Encoding UTF8
     $publishedDependencies = @"
-implementation platform('com.cpf:cpf-bom:$PlatformVersion')
+implementation platform('com.cpf:cpf-platform-bom:$PlatformVersion')
     implementation 'com.cpf.core:cpf-core:$PlatformVersion'
 "@
     $buildText = [regex]::Replace(
@@ -283,7 +283,7 @@ $ErrorActionPreference = "Stop"
 $repositoryRoot = (Resolve-Path "$PSScriptRoot\..").Path
 $target = Join-Path $PSScriptRoot "tools/initialize-domain-database.ps1"
 $templateRoot = Join-Path $PSScriptRoot "vendor"
-& pwsh -NoProfile -ExecutionPolicy Bypass -File $target `
+& pwsh -NoProfile -File $target `
     -Root $repositoryRoot `
     -TemplateRoot $templateRoot `
     @DatabaseArgs

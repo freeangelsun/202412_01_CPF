@@ -96,9 +96,10 @@ class DeploymentEngineStateMachineTest {
         DeploymentCellLock lock = mock(DeploymentCellLock.class);
         CompatibilityService compatibility = mock(CompatibilityService.class);
         JdbcTemplate jdbc = mock(JdbcTemplate.class);
-        CpfVendorSqlCatalog sql = key -> key;
+        CpfVendorSqlCatalog sql = mock(CpfVendorSqlCatalog.class);
 
         when(repository.begin(any())).thenReturn(Optional.empty());
+        when(sql.required(anyString())).thenAnswer(invocation -> invocation.getArgument(0));
         doNothing().when(repository).instance(anyString(), anyInt(), any());
         doNothing().when(repository).finish(anyString(), any(), any(), any());
         when(lock.acquire("c", "d")).thenReturn(DeploymentCellLock.Acquisition.ACQUIRED);
@@ -113,7 +114,9 @@ class DeploymentEngineStateMachineTest {
 
     private static DeploymentRequest request() {
         ArtifactManifest artifact = new ArtifactManifest(
-                "g:a", "1", "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef", "sig");
+                "g:a", "1", "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+                "sig", "sbom", "provenance", "git-sha", "25", "7.0", "1.0",
+                "1.0", "compatible", List.of(), Instant.parse("2026-08-01T00:00:00Z"));
         DeploymentCellManifest.DeploymentPolicy policy = new DeploymentCellManifest.DeploymentPolicy(
                 DeploymentStrategy.ROLLING, 0, 1, "/health", 10, 10, "0", false);
         DeploymentCellManifest manifest = new DeploymentCellManifest(

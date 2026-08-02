@@ -52,7 +52,7 @@ plugins { id 'java-library' }
 java { toolchain { languageVersion = JavaLanguageVersion.of(25) } }
 def cpfPlatformVersion = providers.gradleProperty('cpfPlatformVersion').orElse('$PlatformVersion').get()
 dependencies {
-    implementation platform("com.cpf:cpf-bom:${Dollar}{cpfPlatformVersion}")
+    implementation platform("com.cpf:cpf-platform-bom:${Dollar}{cpfPlatformVersion}")
     implementation "com.cpf.core:cpf-core:${Dollar}{cpfPlatformVersion}"
     implementation "com.cpf.batch:cpf-batch-contract:${Dollar}{cpfPlatformVersion}"
     implementation project(':cpf-$domain')

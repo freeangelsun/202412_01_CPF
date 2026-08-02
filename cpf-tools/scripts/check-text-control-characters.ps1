@@ -7,13 +7,24 @@ $bad = [System.Collections.Generic.List[string]]::new()
 foreach ($file in Get-ChildItem -LiteralPath $Root -Recurse -File -Force) {
     if ($file.FullName -match '[\\/](build|node_modules|\.git|logs|tmp)[\\/]') { continue }
     if ($extensions -notcontains $file.Extension.ToLowerInvariant()) { continue }
-    $bytes = [IO.File]::ReadAllBytes($file.FullName)
-    for ($index = 0; $index -lt $bytes.Length; $index++) {
-        $value = [int]$bytes[$index]
-        if ($value -lt 32 -and $value -notin @(9,10,13)) {
-            $bad.Add("$($file.FullName): byte=$value offset=$index")
-            break
+    $stream = [IO.File]::OpenRead($file.FullName)
+    $buffer = [byte[]]::new(8192)
+    $offset = 0L
+    $found = $false
+    try {
+        while (-not $found -and ($read = $stream.Read($buffer, 0, $buffer.Length)) -gt 0) {
+            for ($index = 0; $index -lt $read; $index++) {
+                $value = [int]$buffer[$index]
+                if ($value -lt 32 -and $value -notin @(9,10,13)) {
+                    $bad.Add("$($file.FullName): byte=$value offset=$($offset + $index)")
+                    $found = $true
+                    break
+                }
+            }
+            $offset += $read
         }
+    } finally {
+        $stream.Dispose()
     }
 }
 if ($bad.Count -gt 0) { throw "text control character detected:`n$($bad -join [Environment]::NewLine)" }

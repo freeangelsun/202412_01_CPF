@@ -6,6 +6,7 @@ import com.cpf.batch.runtime.SensitiveTextSanitizer;
 import com.cpf.core.api.database.CpfVendorSqlCatalog;
 import com.cpf.core.api.database.CpfVendorSqlCatalogProvider;
 import java.net.URI;
+import java.net.http.HttpClient;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.Duration;
@@ -75,12 +76,6 @@ public final class RuntimeLifecycleService {
         }
     }
 
-    /** @deprecated 승인 원장과 결합되지 않은 운영 명령은 허용하지 않습니다. */
-    @Deprecated(forRemoval = true)
-    public AgentCommandResult operate(String instanceId, String operation, String requestedBy, String reason) {
-        throw new SecurityException("VERIFIED_APPROVAL_CONTEXT_REQUIRED");
-    }
-
     private AgentCommandResult reconcile(
             RestClient client, String commandId, String service, String operation, RuntimeException transportFailure) {
         try {
@@ -95,8 +90,11 @@ public final class RuntimeLifecycleService {
     }
 
     private RestClient client(URI agentUri) {
-        JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory();
-        requestFactory.setConnectTimeout(Duration.ofSeconds(10));
+        HttpClient httpClient = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(10))
+                .followRedirects(HttpClient.Redirect.NEVER)
+                .build();
+        JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(httpClient);
         requestFactory.setReadTimeout(Duration.ofSeconds(30));
         return builder.clone().requestFactory(requestFactory).baseUrl(agentUri.toString()).build();
     }

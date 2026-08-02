@@ -1,5 +1,7 @@
 package com.cpf.batch.execution;
 
+import com.cpf.core.api.database.CpfVendorSqlCatalog;
+import com.cpf.core.api.database.CpfVendorSqlCatalogProvider;
 import java.sql.Timestamp;
 import java.time.Clock;
 import java.time.Instant;
@@ -13,15 +15,19 @@ public final class JdbcCpfBatchRemoteMessageLedger implements CpfBatchRemoteMess
     private final JdbcTemplate jdbc;
     private final Clock clock;
     private final long leaseSeconds;
+    private final CpfVendorSqlCatalog sql;
 
-    public JdbcCpfBatchRemoteMessageLedger(JdbcTemplate jdbc, long leaseSeconds) {
-        this(jdbc, Clock.systemUTC(), leaseSeconds);
+    public JdbcCpfBatchRemoteMessageLedger(
+            JdbcTemplate jdbc, long leaseSeconds, CpfVendorSqlCatalogProvider sqlCatalogProvider) {
+        this(jdbc, Clock.systemUTC(), leaseSeconds, sqlCatalogProvider.forModule("bat"));
     }
 
-    JdbcCpfBatchRemoteMessageLedger(JdbcTemplate jdbc, Clock clock, long leaseSeconds) {
+    JdbcCpfBatchRemoteMessageLedger(
+            JdbcTemplate jdbc, Clock clock, long leaseSeconds, CpfVendorSqlCatalog sql) {
         this.jdbc = jdbc;
         this.clock = clock;
         this.leaseSeconds = Math.max(10, leaseSeconds);
+        this.sql = sql;
     }
 
     @Override
@@ -36,12 +42,7 @@ public final class JdbcCpfBatchRemoteMessageLedger implements CpfBatchRemoteMess
             throw new SecurityException("BATCH_REMOTE_MESSAGE_EXPIRED");
         }
         try {
-            jdbc.update("""
-                    INSERT INTO BAT_REMOTE_MESSAGE_LEDGER
-                    (DIRECTION_CD, MESSAGE_ID, PAYLOAD_SHA256, STATUS_CD, OWNER_ID,
-                     LEASE_UNTIL, EXPIRES_AT, ATTEMPT_NO, CREATED_AT, UPDATED_AT, VERSION_NO)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
-                    """,
+            jdbc.update(sql.required("execution-remote-message-insert"),
                     direction,
                     messageId,
                     payloadHash,
@@ -54,11 +55,7 @@ public final class JdbcCpfBatchRemoteMessageLedger implements CpfBatchRemoteMess
                     Timestamp.from(now));
             return Claim.CLAIMED;
         } catch (DuplicateKeyException duplicate) {
-            State state = jdbc.query("""
-                    SELECT PAYLOAD_SHA256, STATUS_CD, OWNER_ID, LEASE_UNTIL, EXPIRES_AT, VERSION_NO
-                      FROM BAT_REMOTE_MESSAGE_LEDGER
-                     WHERE DIRECTION_CD = ? AND MESSAGE_ID = ?
-                    """, rs -> {
+            State state = jdbc.query(sql.required("execution-remote-message-find"), rs -> {
                         if (!rs.next()) {
                             throw new IllegalStateException("BATCH_REMOTE_LEDGER_DUPLICATE_LOST");
                         }
@@ -84,12 +81,7 @@ public final class JdbcCpfBatchRemoteMessageLedger implements CpfBatchRemoteMess
             if (state.leaseUntil().isAfter(now)) {
                 return Claim.IN_PROGRESS;
             }
-            int updated = jdbc.update("""
-                    UPDATE BAT_REMOTE_MESSAGE_LEDGER
-                       SET STATUS_CD = 'PROCESSING', OWNER_ID = ?, LEASE_UNTIL = ?,
-                           ATTEMPT_NO = ATTEMPT_NO + 1, UPDATED_AT = ?, VERSION_NO = VERSION_NO + 1
-                     WHERE DIRECTION_CD = ? AND MESSAGE_ID = ? AND VERSION_NO = ?
-                    """,
+            int updated = jdbc.update(sql.required("execution-remote-message-reclaim"),
                     ownerId,
                     Timestamp.from(now.plusSeconds(leaseSeconds)),
                     Timestamp.from(now),
@@ -117,13 +109,7 @@ public final class JdbcCpfBatchRemoteMessageLedger implements CpfBatchRemoteMess
             String status,
             String error) {
         Instant now = clock.instant();
-        int updated = jdbc.update("""
-                UPDATE BAT_REMOTE_MESSAGE_LEDGER
-                   SET STATUS_CD = ?, LAST_ERROR_CD = ?, LEASE_UNTIL = ?,
-                       UPDATED_AT = ?, VERSION_NO = VERSION_NO + 1
-                 WHERE DIRECTION_CD = ? AND MESSAGE_ID = ?
-                   AND OWNER_ID = ? AND STATUS_CD = 'PROCESSING'
-                """,
+        int updated = jdbc.update(sql.required("execution-remote-message-transition"),
                 status,
                 error,
                 Timestamp.from(now),

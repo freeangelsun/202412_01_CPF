@@ -361,7 +361,7 @@ try {
                 Select-String -Pattern 'project\s*\(\s*[''"]:cpf-(?:core|common|batch)(?::|[''"])')
         Add-Check "NO_ROOT_PROJECT_DEPENDENCY" ($rootProjectHits.Count -eq 0) "count=$($rootProjectHits.Count)"
         Add-Check "PUBLISHED_PLATFORM_DEPENDENCIES" (
-            $buildText.Contains("com.cpf:cpf-bom:") -and
+            $buildText.Contains("com.cpf:cpf-platform-bom:") -and
             $buildText.Contains("com.cpf.core:cpf-core:") -and
             $buildText.Contains("com.cpf.common:cpf-common:")
         ) "published CPF BOM/core/common"

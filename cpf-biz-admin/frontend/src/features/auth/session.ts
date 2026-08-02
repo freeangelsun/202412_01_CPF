@@ -1,11 +1,13 @@
 import { computed, reactive } from "vue";
 import { canonicalBzaMenuCode } from "../../shared/bzaPermissionManifest";
 import { bzaApi } from "../../shared/cpfApi";
+import { configureCpfBffSessionRecovery } from "../../shared/orval-mutator";
 import {
-  getBzaAuthMe,
-  postBzaAuthLogin,
-  postBzaAuthLogout,
-  postBzaPasswordChange
+  bzaAuthChangePassword,
+  bzaAuthLogin,
+  bzaAuthLogout,
+  bzaAuthMe,
+  bzaAuthRefresh
 } from "../../generated/cpf-api";
 
 export interface BzaOperator {
@@ -16,8 +18,34 @@ interface SessionState { operator: BzaOperator | null; loaded: boolean; busy: bo
 export const bzaSession = reactive<SessionState>({ operator: null, loaded: false, busy: false, message: "" });
 export const authenticated = computed(() => Boolean(bzaSession.loaded && bzaSession.operator?.loginId));
 let pendingLoginOperationId: string | null = null;
+let sessionEpoch = 0;
 
-export function clearBzaSession(): void { bzaSession.operator = null; bzaSession.loaded = false; bzaSession.message = ""; }
+export function clearBzaSession(): void {
+  sessionEpoch += 1;
+  bzaSession.operator = null;
+  bzaSession.loaded = false;
+  bzaSession.message = "";
+}
+
+async function refreshBzaSession(expectedEpoch: number): Promise<void> {
+  const result = await bzaAuthRefresh<{ operator?: BzaOperator }>();
+  if (sessionEpoch !== expectedEpoch) {
+    throw new Error("이미 종료된 BZA 세션의 refresh 응답입니다.");
+  }
+  if (!result.operator?.loginId) {
+    throw new Error("BFF refresh 후 서버 세션 주체를 확인할 수 없습니다.");
+  }
+  bzaSession.operator = result.operator;
+  bzaSession.loaded = true;
+}
+
+configureCpfBffSessionRecovery({
+  epoch: () => sessionEpoch,
+  refresh: refreshBzaSession,
+  clear: expectedEpoch => {
+    if (sessionEpoch === expectedEpoch) clearBzaSession();
+  }
+});
 
 export { bzaApi };
 
@@ -25,18 +53,18 @@ export async function loginBza(loginId: string, password: string): Promise<void>
   clearBzaSession(); bzaSession.busy = true;
   const operationId = pendingLoginOperationId || crypto.randomUUID(); pendingLoginOperationId = operationId;
   try {
-    const result = await postBzaAuthLogin<{ operator?: BzaOperator }>({ data: { loginId, password, operationId } });
+    const result = await bzaAuthLogin<{ operator?: BzaOperator }>({ data: { loginId, password, operationId } });
     if (!result.operator?.loginId) throw new Error("서버 세션이 생성되지 않았습니다.");
     pendingLoginOperationId = null; bzaSession.operator = result.operator; bzaSession.loaded = true;
   } catch (error) {
     const status = (error as any)?.status; if (status && status >= 400 && status < 500) pendingLoginOperationId = null; throw error;
   } finally { bzaSession.busy = false; }
 }
-export async function loadBzaOperator(): Promise<void> { bzaSession.operator = await getBzaAuthMe<BzaOperator>(); bzaSession.loaded = true; }
+export async function loadBzaOperator(): Promise<void> { bzaSession.operator = await bzaAuthMe<BzaOperator>(); bzaSession.loaded = true; }
 export async function restoreBzaSession(): Promise<void> { try { await loadBzaOperator(); } catch { clearBzaSession(); } }
-export async function logoutBza(): Promise<void> { try { await postBzaAuthLogout(); } finally { clearBzaSession(); } }
+export async function logoutBza(): Promise<void> { try { await bzaAuthLogout(); } finally { clearBzaSession(); } }
 export async function changeBzaPassword(currentPassword: string, newPassword: string, newPasswordConfirm: string): Promise<void> {
-  await postBzaPasswordChange({ data: { currentPassword, newPassword, newPasswordConfirm } });
+  await bzaAuthChangePassword({ data: { currentPassword, newPassword, newPasswordConfirm } });
   clearBzaSession();
 }
 function normalizeBzaMenuCode(value: string): string { return canonicalBzaMenuCode(value); }

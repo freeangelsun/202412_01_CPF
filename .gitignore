@@ -6,9 +6,11 @@ HELP.md
 # 실제 Gradle 산출물 경로만 명시적으로 제외합니다.
 /build/
 /cpf-admin/build/
+/cpf-admin/frontend/build/
 /cpf-batch/build/
 /cpf-batch/*/build/
 /cpf-biz-admin/build/
+/cpf-biz-admin/frontend/build/
 /cpf-common/build/
 /cpf-core/build/
 /cpf-gateway/build/
@@ -74,6 +76,13 @@ logs/
 **/node_modules/
 **/coverage/
 **/.vite/
+
+### Python verification cache ###
+**/__pycache__/
+*.py[cod]
+**/.pytest_cache/
+**/.mypy_cache/
+**/.ruff_cache/
 
 # 공식 Evidence 디렉터리는 정제된 검증 결과와 현재 요청 기준 해시만 허용합니다.
 !cpf-docs/evidence/

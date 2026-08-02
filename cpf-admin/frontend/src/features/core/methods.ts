@@ -1,8 +1,8 @@
 import { admMutation, admQuery, admRawResponse, createAdmHeaders } from "../../shared/cpfApi";
-import { getAdmAuthMe } from "../../generated/cpf-api";
+import { admAuthMe } from "../../generated/cpf-api";
 import { useAdmInitializationStore } from "../../stores/admInitializationStore";
 
-export const coreMethods: Record<string, any> = {
+export const coreMethods = {
   apiHeaders(extraHeaders: HeadersInit = {}) { return createAdmHeaders(extraHeaders); },
   async getJson(url: string) { return admQuery(url); },
   async sendJson(url: string, method: "POST" | "PUT" | "PATCH" | "DELETE" = "POST", body?: unknown) { return admMutation(url, method, body); },
@@ -105,7 +105,7 @@ export const coreMethods: Record<string, any> = {
   async loadMe() {
         this.permissionsLoaded = false;
         try {
-          const data = await getAdmAuthMe<any>() || {};
+          const data = await admAuthMe<any>() || {};
           this.currentOperator = data.operatorId ? data : {};
           this.authorizedMenus = Array.isArray(data.menus) ? data.menus : [];
           this.authorizedButtons = Array.isArray(data.buttonIds) ? data.buttonIds : [];
@@ -119,17 +119,6 @@ export const coreMethods: Record<string, any> = {
           this.permissionsLoaded = false;
           throw error;
         }
-      },
-  clearSession(message) {
-        this.sessionLoaded = false;
-        this.currentOperator = {};
-        this.authorizedMenus = [];
-        this.authorizedButtons = [];
-        this.buttonsLoaded = false;
-        this.permissionsLoaded = false;
-        // Browser에는 지울 access token이 존재하지 않는다. 서버 세션 종료 후 화면의 민감 상태만 폐기한다.
-        if (typeof this.resetSensitiveState === "function") this.resetSensitiveState();
-        this.authMessage = message || "";
       },
   buildParams(values) {
         const params = new URLSearchParams();
@@ -219,4 +208,4 @@ export const coreMethods: Record<string, any> = {
           message: result.reason?.message || "API wrapper call failed."
         };
       }
-};
+} satisfies Record<string, any>;

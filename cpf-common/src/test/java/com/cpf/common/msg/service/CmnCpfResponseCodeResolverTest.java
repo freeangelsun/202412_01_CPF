@@ -1,6 +1,6 @@
 package com.cpf.common.msg.service;
 
-import com.cpf.core.common.exception.CpfResolvedResponse;
+import com.cpf.core.api.error.CpfResolvedResponse;
 import org.junit.jupiter.api.Test;
 
 import java.util.Locale;
@@ -42,4 +42,3 @@ class CmnCpfResponseCodeResolverTest {
         assertThat(resolved.errorMessage()).isEqualTo("invalid accountId");
     }
 }
-

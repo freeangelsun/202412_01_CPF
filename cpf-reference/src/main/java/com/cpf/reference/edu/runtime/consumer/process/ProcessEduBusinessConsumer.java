@@ -1,23 +1,44 @@
 package com.cpf.reference.edu.runtime.consumer.process;
 
+import com.cpf.reference.edu.runtime.application.EduPayloadHasher;
 import com.cpf.reference.edu.runtime.application.EduValidationException;
 import com.cpf.reference.edu.runtime.consumer.*;
 import com.cpf.reference.edu.runtime.model.EduExecutionCommand;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /** Allowlisted repository script consumer. It never invokes a shell or concatenates user input. */
 public final class ProcessEduBusinessConsumer implements EduBusinessConsumer {
+    static final int DEFAULT_MAX_OUTPUT_BYTES = 64 * 1024;
+    private static final int MAX_CONFIGURED_OUTPUT_BYTES = 1024 * 1024;
+    private static final int OUTPUT_DRAIN_TIMEOUT_SECONDS = 5;
+
     private final Path repositoryRoot;
     private final ObjectMapper json;
+    private final int maxOutputBytes;
 
     public ProcessEduBusinessConsumer(Path repositoryRoot, ObjectMapper json) {
+        this(repositoryRoot, json, DEFAULT_MAX_OUTPUT_BYTES);
+    }
+
+    ProcessEduBusinessConsumer(Path repositoryRoot, ObjectMapper json, int maxOutputBytes) {
         this.repositoryRoot = Objects.requireNonNull(repositoryRoot).toAbsolutePath().normalize();
         this.json = Objects.requireNonNull(json);
+        if (maxOutputBytes < 1 || maxOutputBytes > MAX_CONFIGURED_OUTPUT_BYTES) {
+            throw new IllegalArgumentException(
+                    "maxOutputBytes must be between 1 and " + MAX_CONFIGURED_OUTPUT_BYTES);
+        }
+        this.maxOutputBytes = maxOutputBytes;
     }
 
     @Override
@@ -31,6 +52,7 @@ public final class ProcessEduBusinessConsumer implements EduBusinessConsumer {
                                             long fencingToken) {
         Path payloadFile = null;
         Process process = null;
+        Thread outputReader = null;
         try {
             Path script = repositoryRoot.resolve(binding.entryPoint()).normalize();
             if (!script.startsWith(repositoryRoot) || !Files.isRegularFile(script)) {
@@ -55,21 +77,30 @@ public final class ProcessEduBusinessConsumer implements EduBusinessConsumer {
             builder.environment().putAll(environment);
             process = builder.start();
 
-            boolean completed = process.waitFor(binding.timeoutSeconds(), TimeUnit.SECONDS);
-            if (!completed) {
-                process.destroyForcibly();
-                process.waitFor(5, TimeUnit.SECONDS);
-                throw new IllegalStateException("script timeout after " + binding.timeoutSeconds() + "s");
-            }
+            Process startedProcess = process;
+            CompletableFuture<String> outputFuture = new CompletableFuture<>();
+            outputReader = Thread.ofVirtual().name("cpf-edu-process-output").start(() -> {
+                try {
+                    outputFuture.complete(readBounded(startedProcess.getInputStream(), maxOutputBytes));
+                } catch (Exception failure) {
+                    outputFuture.completeExceptionally(failure);
+                }
+            });
+            outputFuture.whenComplete((ignored, failure) -> {
+                if (failure != null && startedProcess.isAlive()) {
+                    startedProcess.destroyForcibly();
+                }
+            });
 
-            String output = new String(process.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+            String output = awaitProcessAndOutput(
+                    startedProcess, outputFuture, binding.timeoutSeconds());
             if (process.exitValue() != 0) {
                 throw new IllegalStateException("script exit=" + process.exitValue() + " output=" + sanitize(output));
             }
             return EduBusinessConsumerResult.completed("PROCESS_OK", Map.of(
                     "script", binding.entryPoint(),
                     "exitCode", process.exitValue(),
-                    "outputDigest", Integer.toHexString(output.hashCode())));
+                    "outputDigest", EduPayloadHasher.sha256(output)));
         } catch (EduValidationException e) {
             throw e;
         } catch (InterruptedException e) {
@@ -81,6 +112,9 @@ public final class ProcessEduBusinessConsumer implements EduBusinessConsumer {
             if (process != null && process.isAlive()) {
                 process.destroyForcibly();
             }
+            if (outputReader != null && outputReader.isAlive()) {
+                outputReader.interrupt();
+            }
             if (payloadFile != null) {
                 try {
                     Files.deleteIfExists(payloadFile);
@@ -89,6 +123,79 @@ public final class ProcessEduBusinessConsumer implements EduBusinessConsumer {
                     // Cleanup failure is intentionally not allowed to hide the business outcome.
                 }
             }
+        }
+    }
+
+    private String awaitProcessAndOutput(Process process,
+                                         CompletableFuture<String> outputFuture,
+                                         int timeoutSeconds) throws Exception {
+        long timeoutNanos = TimeUnit.SECONDS.toNanos(timeoutSeconds);
+        long deadline = System.nanoTime() + timeoutNanos;
+        try {
+            CompletableFuture.anyOf(process.onExit(), outputFuture)
+                    .get(timeoutNanos, TimeUnit.NANOSECONDS);
+        } catch (ExecutionException failure) {
+            destroyAndAwait(process);
+            throw outputFailure(failure.getCause());
+        } catch (TimeoutException failure) {
+            destroyAndAwait(process);
+            throw new IllegalStateException("script timeout after " + timeoutSeconds + "s", failure);
+        }
+
+        if (outputFuture.isCompletedExceptionally()) {
+            return awaitOutput(outputFuture);
+        }
+
+        long remaining = deadline - System.nanoTime();
+        if (process.isAlive()
+                && (remaining <= 0 || !process.waitFor(remaining, TimeUnit.NANOSECONDS))) {
+            destroyAndAwait(process);
+            throw new IllegalStateException("script timeout after " + timeoutSeconds + "s");
+        }
+        return awaitOutput(outputFuture);
+    }
+
+    private static String awaitOutput(CompletableFuture<String> outputFuture) throws Exception {
+        try {
+            return outputFuture.get(OUTPUT_DRAIN_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        } catch (ExecutionException failure) {
+            throw outputFailure(failure.getCause());
+        } catch (TimeoutException failure) {
+            throw new IllegalStateException("script output drain timeout", failure);
+        }
+    }
+
+    private static Exception outputFailure(Throwable failure) {
+        if (failure instanceof Exception exception) {
+            return exception;
+        }
+        return new IllegalStateException("script output reader failed", failure);
+    }
+
+    private static void destroyAndAwait(Process process) throws InterruptedException {
+        if (process.isAlive()) {
+            process.destroyForcibly();
+            process.waitFor(OUTPUT_DRAIN_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        }
+    }
+
+    private static String readBounded(InputStream input, int maxOutputBytes) throws IOException {
+        try (InputStream source = input;
+             ByteArrayOutputStream output = new ByteArrayOutputStream(Math.min(maxOutputBytes, 8192))) {
+            byte[] buffer = new byte[8192];
+            int total = 0;
+            int read;
+            while ((read = source.read(buffer)) != -1) {
+                if (read == 0) {
+                    continue;
+                }
+                if (total > maxOutputBytes - read) {
+                    throw new IOException("process output exceeds " + maxOutputBytes + " bytes");
+                }
+                output.write(buffer, 0, read);
+                total += read;
+            }
+            return output.toString(StandardCharsets.UTF_8);
         }
     }
 

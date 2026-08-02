@@ -16,6 +16,15 @@ def text(path: Path) -> str:
     return path.read_text(encoding="utf-8-sig")
 
 
+def verify_generator_bom_contract(generator_materials: dict[str, str]) -> None:
+    """Require every generated Gradle path to consume only the canonical CPF BOM."""
+    for name, material in generator_materials.items():
+        if CANONICAL_BOM not in material:
+            raise SystemExit(f"{name} does not emit canonical BOM coordinate: {CANONICAL_BOM}")
+        if LEGACY_BOM in material:
+            raise SystemExit(f"{name} still emits legacy BOM coordinate: {LEGACY_BOM}")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", default=".")
@@ -27,6 +36,8 @@ def main() -> int:
     bom_build = text(root / "cpf-tools/build/platform-bom/build.gradle")
     member = text(root / "cpf-member/build.gradle")
     generator = text(root / "cpf-tools/generator/create-domain.ps1")
+    exporter = text(root / "cpf-tools/generator/export-domain-repository.ps1")
+    jobpack = text(root / "cpf-tools/generator/create-domain-jobpack.ps1")
     verifier = text(root / "cpf-tools/scripts/verify-local-artifact-propagation.ps1")
 
     if "pluginManagement" not in settings or "includeBuild('cpf-tools/build/gradle-plugin')" not in settings:
@@ -42,8 +53,11 @@ def main() -> int:
             raise SystemExit(f"{name} does not consume canonical plugin")
         if LEGACY_PLUGIN in material:
             raise SystemExit(f"{name} still consumes legacy plugin")
-    if CANONICAL_BOM not in generator or LEGACY_BOM in generator:
-        raise SystemExit("generator BOM coordinate is not canonical")
+    verify_generator_bom_contract({
+        "create-domain generator": generator,
+        "domain repository exporter": exporter,
+        "domain jobpack generator": jobpack,
+    })
     for required in [CANONICAL_PLUGIN, "com.cpf.gradle", "cpf-platform-bom"]:
         if required not in verifier:
             raise SystemExit(f"artifact verifier missing canonical token: {required}")

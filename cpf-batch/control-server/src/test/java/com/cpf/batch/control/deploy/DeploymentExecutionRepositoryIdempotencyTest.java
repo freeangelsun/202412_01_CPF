@@ -53,13 +53,16 @@ class DeploymentExecutionRepositoryIdempotencyTest {
     }
 
     private static DeploymentExecutionRepository repository(JdbcTemplate jdbc) {
-        CpfVendorSqlCatalog sql = key -> key;
+        CpfVendorSqlCatalog sql = mock(CpfVendorSqlCatalog.class);
+        when(sql.required(anyString())).thenAnswer(invocation -> invocation.getArgument(0));
         return new DeploymentExecutionRepository(jdbc, sql, new ObjectMapper());
     }
 
     private static DeploymentRequest request(String version, String approvalId) {
         ArtifactManifest artifact = new ArtifactManifest(
-                "g:a", version, "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef", "sig");
+                "g:a", version, "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+                "sig", "sbom", "provenance", "git-sha", "25", "7.0", "1.0",
+                "1.0", "compatible", List.of(), Instant.parse("2026-08-01T00:00:00Z"));
         DeploymentCellManifest.DeploymentPolicy policy = new DeploymentCellManifest.DeploymentPolicy(
                 DeploymentStrategy.ROLLING, 0, 1, "/health", 10, 10, "0", false);
         DeploymentCellManifest manifest = new DeploymentCellManifest(

@@ -8,7 +8,7 @@
 
 -- CPF_LOGICAL_DATABASE=cpfDB
 SELECT 'cpfDB.table_count' AS check_name,
-       CASE WHEN COUNT(*) = 53 THEN 1 ELSE 0 END AS passed
+       CASE WHEN COUNT(*) = 69 THEN 1 ELSE 0 END AS passed
 FROM information_schema.tables
 WHERE table_schema = current_schema() AND table_type = 'BASE TABLE';
 
@@ -28,13 +28,13 @@ WHERE table_schema = current_schema() AND table_type = 'BASE TABLE';
 
 -- CPF_LOGICAL_DATABASE=admDB
 SELECT 'admDB.table_count' AS check_name,
-       CASE WHEN COUNT(*) = 31 THEN 1 ELSE 0 END AS passed
+       CASE WHEN COUNT(*) = 33 THEN 1 ELSE 0 END AS passed
 FROM information_schema.tables
 WHERE table_schema = current_schema() AND table_type = 'BASE TABLE';
 
 -- CPF_LOGICAL_DATABASE=bzaDB
 SELECT 'bzaDB.table_count' AS check_name,
-       CASE WHEN COUNT(*) = 28 THEN 1 ELSE 0 END AS passed
+       CASE WHEN COUNT(*) = 29 THEN 1 ELSE 0 END AS passed
 FROM information_schema.tables
 WHERE table_schema = current_schema() AND table_type = 'BASE TABLE';
 
@@ -47,7 +47,7 @@ SELECT 'bzaDB.product_seed' AS check_name,
 
 -- CPF_LOGICAL_DATABASE=batDB
 SELECT 'batDB.table_count' AS check_name,
-       CASE WHEN COUNT(*) = 43 THEN 1 ELSE 0 END AS passed
+       CASE WHEN COUNT(*) = 56 THEN 1 ELSE 0 END AS passed
 FROM information_schema.tables
 WHERE table_schema = current_schema() AND table_type = 'BASE TABLE';
 

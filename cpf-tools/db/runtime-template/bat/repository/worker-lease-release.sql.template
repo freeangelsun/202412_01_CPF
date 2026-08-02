@@ -1,9 +1,0 @@
-UPDATE bat_execution_lease
-   SET lease_status = 'RELEASED',
-       released_at = @NOW3@,
-       failure_message = ?
- WHERE execution_id = ?
-   AND worker_id = ?
-   AND lease_token = ?
-   AND fencing_token = ?
-   AND lease_status IN ('CLAIMED', 'RUNNING')

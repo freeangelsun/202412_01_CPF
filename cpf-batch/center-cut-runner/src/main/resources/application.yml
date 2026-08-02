@@ -32,3 +32,7 @@ cpf:
       role: CENTER_CUT_RUNNER
       instance-id: ${CPF_INSTANCE_ID:cpf-center-cut-runner-local-01}
       heartbeat-ms: ${CPF_RUNTIME_HEARTBEAT_MS:5000}
+  center-cut:
+    max-concurrency: ${CPF_CENTER_CUT_MAX_CONCURRENCY:1}
+    lease-seconds: ${CPF_CENTER_CUT_LEASE_SECONDS:30}
+    heartbeat-ms: ${CPF_CENTER_CUT_HEARTBEAT_MS:5000}

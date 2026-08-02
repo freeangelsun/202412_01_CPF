@@ -1,6 +1,7 @@
 package com.cpf.reference.batch;
 
 import com.cpf.core.api.batch.CpfBatchOperationsPort;
+import com.cpf.core.api.data.CpfDataRow;
 import com.cpf.reference.batch.controller.ReferenceBatchEducationController;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.ObjectProvider;
@@ -25,7 +26,7 @@ class ReferenceBatchEducationControllerTest {
         ObjectProvider<CpfBatchOperationsPort> provider = mock(ObjectProvider.class);
         when(provider.getIfAvailable()).thenReturn(operations);
         when(operations.requestRun("CPF_EDU_TASKLET_JOB", "{}", "edu-user", "Tasklet Job 교육 실행"))
-                .thenReturn(Map.of("status", "ACCEPTED"));
+                .thenReturn(CpfDataRow.of("status", "ACCEPTED"));
         var controller = controller(provider);
 
         assertThat(controller.runTasklet("edu-user").getBody())

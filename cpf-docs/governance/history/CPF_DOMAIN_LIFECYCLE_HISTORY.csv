@@ -1,0 +1,6 @@
+﻿domain,event_at_kst,commit,event,status,reason_evidence,next_action
+account,2026-07-22 15:23:02,7251bd996a99ec61d9ea83559578ead0047d5f47,acc → cpf-account 전체 Rename,완료,Commit message: WIP checkpoint CPF module and database standardization,이력 보존
+account,2026-07-30 02:47:18,c599b2abc2e4980ce82a41493052ed7529e7d625,cpf-account 전체 삭제,재확인 필요,같은 Commit에서 당시 cpf-member도 삭제; 명시적 Account 제외 사유 없음,필요 시 Generator로만 재생성; 수동 복원 금지
+member,2026-07-30 02:47:18,c599b2abc2e4980ce82a41493052ed7529e7d625,당시 cpf-member 삭제,완료,Generated Domain reset와 연관된 것으로 추정되나 Commit message는 일반적,직후 재생성 이력과 연결
+member,2026-07-30 02:49:24,4732d17259e39da93e781fd14cd545b3c897fa87,cpf-member Golden Reference 재생성,완료,현재 manifest에 GENERATED_DOMAIN·MBR·Generator contract 존재,Golden Reference 유지
+starter-pack,2026-07-31 10:37:42,1536a0d59004ebade7dcb29383cbe2e758547f8e,cpf-starters Root와 7개 Starter 추가,재확인 필요,settings.gradle 등록과 ADM/BZA security Consumer 존재; Root Inventory 정책 동기화 누락,Architecture 승인 후 유지 또는 이관

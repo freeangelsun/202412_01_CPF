@@ -4,13 +4,15 @@ import com.cpf.core.api.centercut.CpfCenterCutResult;
 import com.cpf.core.api.centercut.CpfCenterCutStatus;
 import com.cpf.core.api.centercut.CpfCenterCutTarget;
 import org.junit.jupiter.api.Test;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
-import org.springframework.jdbc.datasource.init.ScriptUtils;
+import org.springframework.mock.env.MockEnvironment;
 
 import javax.sql.DataSource;
-import java.sql.Connection;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Locale;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
@@ -19,7 +21,8 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
  * REF 업무 DB 기반 center-cut adapter 검증입니다.
  *
  * <p>기본 Gradle test에서는 로컬 DB를 건드리지 않도록 DB slice를 skip합니다.
- * {@code scripts/smoke-center-cut-adapter.ps1}는 안전한 검증 DB 정보를 환경변수로 주입해 이 테스트를 실행합니다.</p>
+ * {@code scripts/smoke-center-cut-adapter.ps1}는 공식 Provision/Install/Test Seed가 끝난
+ * 격리 검증 DB 정보를 환경변수로 주입해 이 테스트를 실행합니다.</p>
  */
 class ReferenceCenterCutAdapterTest {
     private static final String ENABLED_ENV = "CPF_REF_CENTER_CUT_DB_TEST";
@@ -56,9 +59,9 @@ class ReferenceCenterCutAdapterTest {
                 "안전한 테스트 DB가 명시된 경우에만 REF center-cut DB adapter smoke를 실행합니다.");
 
         DataSource dataSource = testDataSource();
-        loadFixture(dataSource);
         JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-        ReferenceCenterCutTargetRepository repository = new ReferenceCenterCutTargetRepository(jdbcTemplate);
+        ReferenceCenterCutTargetRepository repository =
+                new ReferenceCenterCutTargetRepository(jdbcTemplate, vendorCatalog());
         ReferenceCenterCutHandler handler = new ReferenceCenterCutHandler();
         repository.resetSampleTargetsForSmoke();
         var targets = repository.findReadyTargets(ReferenceCenterCutConstants.JOB_ID, 10);
@@ -100,17 +103,11 @@ class ReferenceCenterCutAdapterTest {
 
     private static DataSource testDataSource() {
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
-        dataSource.setDriverClassName(envOrDefault(DB_DRIVER_ENV, "org.mariadb.jdbc.Driver"));
+        dataSource.setDriverClassName(envOrDefault(DB_DRIVER_ENV, selectedDriverClassName()));
         dataSource.setUrl(requiredEnv(DB_URL_ENV));
         dataSource.setUsername(requiredEnv(DB_USERNAME_ENV));
         dataSource.setPassword(requiredEnv(DB_PASSWORD_ENV));
         return dataSource;
-    }
-
-    private static void loadFixture(DataSource dataSource) throws Exception {
-        try (Connection connection = dataSource.getConnection()) {
-            ScriptUtils.executeSqlScript(connection, new ClassPathResource("sql/ref_center_cut_fixture.sql"));
-        }
     }
 
     private static String envOrDefault(String name, String defaultValue) {
@@ -124,5 +121,62 @@ class ReferenceCenterCutAdapterTest {
             throw new IllegalStateException("REF center-cut DB 테스트 환경변수가 필요합니다. name=" + name);
         }
         return value;
+    }
+
+    private static com.cpf.core.api.database.CpfVendorSqlCatalog vendorCatalog() {
+        String vendor = vendorId();
+        String configuredRoot = System.getProperty("cpf.db.resource-root");
+        Path resourceRoot = configuredRoot == null || configuredRoot.isBlank()
+                ? findRepositoryVendorRoot(vendor)
+                : Path.of(configuredRoot).toAbsolutePath().normalize();
+        MockEnvironment environment = new MockEnvironment()
+                .withProperty("cpf.db.vendor", vendor)
+                .withProperty("cpf.db.resource-root", resourceRoot.toString());
+        return com.cpf.core.common.database.CpfVendorSqlCatalog.create(environment, "ref");
+    }
+
+    private static String vendorId() {
+        String explicit = System.getenv("CPF_REF_CENTER_CUT_DB_VENDOR");
+        if (explicit != null && !explicit.isBlank()) {
+            return explicit.trim().toLowerCase(Locale.ROOT);
+        }
+        String configured = System.getProperty("cpf.db.vendor");
+        if (configured != null && !configured.isBlank()) {
+            return configured.trim().toLowerCase(Locale.ROOT);
+        }
+        String driver = System.getenv(DB_DRIVER_ENV);
+        if (driver == null || driver.isBlank()) {
+            return "mariadb";
+        }
+        driver = driver.toLowerCase(Locale.ROOT);
+        if (driver.contains("postgresql")) {
+            return "postgresql";
+        }
+        if (driver.contains("oracle")) {
+            return "oracle";
+        }
+        return "mariadb";
+    }
+
+    private static String selectedDriverClassName() {
+        return switch (vendorId()) {
+            case "postgresql" -> "org.postgresql.Driver";
+            case "oracle" -> "oracle.jdbc.OracleDriver";
+            case "mariadb" -> "org.mariadb.jdbc.Driver";
+            default -> throw new IllegalStateException("지원하지 않는 REF 테스트 DB Vendor입니다. vendor=" + vendorId());
+        };
+    }
+
+    private static Path findRepositoryVendorRoot(String vendor) {
+        try (Stream<Path> candidates = Stream.of(
+                Path.of("cpf-tools", "db", "vendor", vendor),
+                Path.of("..", "cpf-tools", "db", "vendor", vendor))) {
+            return candidates
+                    .map(path -> path.toAbsolutePath().normalize())
+                    .filter(Files::isDirectory)
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalStateException(
+                            "중앙 Vendor Pack 경로를 찾을 수 없습니다. vendor=" + vendor));
+        }
     }
 }

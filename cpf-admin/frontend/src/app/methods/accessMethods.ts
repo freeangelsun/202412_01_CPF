@@ -1,5 +1,5 @@
 
-export const accessMethods: Record<string, any> = {
+export const accessMethods = {
   permission(menuId) {
         const found = this.authorizedMenus.find(menu => (menu.menuId || menu.id) === menuId);
         return found || { readAllowed: false, writeAllowed: false, deleteAllowed: false };
@@ -260,4 +260,4 @@ export const accessMethods: Record<string, any> = {
         });
         this.setMessage("MFA 검증을 요청했습니다.");
       }
-};
+} satisfies Record<string, any>;

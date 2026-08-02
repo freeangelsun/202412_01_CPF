@@ -19,7 +19,7 @@ if ([string]::IsNullOrWhiteSpace($ExpectedSourceSha)) {
 }
 if ($ExpectedSourceSha -notmatch '^[0-9a-fA-F]{40}$') { throw "정확한 40자리 SHA가 필요합니다: $ExpectedSourceSha" }
 
-& pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $RepoRoot 'cpf-tools/scripts/verify-cpf-final-completion.ps1') `
+& pwsh -NoProfile -File (Join-Path $RepoRoot 'cpf-tools/scripts/verify-cpf-final-completion.ps1') `
     -RepoRoot $RepoRoot `
     -RunDatabaseLifecycle `
     -DatabaseProfilePath @($MariaDbProfilePath,$PostgreSqlProfilePath,$OracleProfilePath) `

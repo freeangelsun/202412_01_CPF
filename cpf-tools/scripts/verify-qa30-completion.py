@@ -6,13 +6,12 @@ ownership hygiene, and frontend relative imports using only the Python standard
 library. It deliberately fails closed and never updates checksums or artifacts.
 """
 from __future__ import annotations
-import argparse, hashlib, json, re, sys
+import argparse, hashlib, json, re, subprocess, sys
 from collections import defaultdict, deque
 from pathlib import Path
 
 VENDORS=("mariadb","postgresql","oracle")
 FILE_BY_DB={"cpfDB":"10_cpf_schema.sql","cmnDB":"20_cmn_schema.sql","admDB":"30_adm_schema.sql","batDB":"35_bat_schema.sql","bzaDB":"40_business_modules_schema.sql","refDB":"40_business_modules_schema.sql"}
-RUNTIME_SQL=("scheduler-execution-insert.sql","scheduler-find-due.sql","worker-attempt-finish.sql","worker-attempt-insert.sql","worker-execution-find-ready-candidates.sql","worker-execution-load.sql","worker-execution-requeue-retryable.sql")
 REQUIRED_TABLE_COLUMNS={
  "bat_job":{"published_definition_version","published_definition_checksum","executor_reference","definition_published_at"},
  "bat_schedule":{"definition_version","definition_checksum"},
@@ -67,6 +66,21 @@ def resolve_import(base:Path,spec:str):
  candidates=[raw,raw.with_suffix('.ts'),raw.with_suffix('.tsx'),raw.with_suffix('.js'),raw.with_suffix('.vue'),raw/'index.ts',raw/'index.js']
  return next((x for x in candidates if x.exists()),None)
 
+def repository_files(root:Path,scope:Path):
+ """Return tracked and non-ignored source files without build/IDE/VCS outputs."""
+ try:
+  completed=subprocess.run(
+   ('git','-C',str(root),'ls-files','-z','--cached','--others','--exclude-standard'),
+   check=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+  files=[]
+  for raw in completed.stdout.split(b'\0'):
+   if not raw: continue
+   candidate=(root/raw.decode('utf-8')).resolve()
+   if candidate.is_relative_to(scope) and candidate.is_file(): files.append(candidate)
+  return files
+ except (OSError,subprocess.CalledProcessError,UnicodeDecodeError):
+  return [p for p in scope.rglob('*') if p.is_file() and '.git' not in p.relative_to(scope).parts]
+
 def main():
  ap=argparse.ArgumentParser(); ap.add_argument('--root',type=Path,default=Path(__file__).resolve().parents[2]); ap.add_argument('--scope',type=Path); ap.add_argument('--file-list',type=Path); ap.add_argument('--report',type=Path); ap.add_argument('--basis-sha',default='')
  args=ap.parse_args(); root=args.root.resolve(); scope=(args.scope or root).resolve(); errors=[]; notes=[]
@@ -87,8 +101,9 @@ def main():
      errors.append(f"file list path escapes root: {raw}"); continue
     if not candidate.exists(): errors.append(f"file list entry missing: {rel}"); continue
     if candidate.is_file(): selected_files.append(candidate)
+ source_files=repository_files(root,scope)
  def selected(suffixes=None):
-  files=selected_files if selected_files is not None else [p for p in scope.rglob('*') if p.is_file()]
+  files=selected_files if selected_files is not None else source_files
   return [p for p in files if suffixes is None or p.suffix.lower() in suffixes]
  def fail(msg): errors.append(msg)
  def need(path):
@@ -96,12 +111,18 @@ def main():
   return path
  # JSON/canonical
  canonical=root/'cpf-tools/db/canonical/platform-schema.json'; need(canonical)
- json_files=[root/'cpf-tools/db/canonical/platform-schema.json',root/'cpf-tools/db/canonical/platform-non-table-objects.json',root/'cpf-tools/db/canonical/seed-model.json',root/'cpf-tools/config/database-install.default.json']
+ lifecycle_contract_path=root/'cpf-tools/db/cpf-db-lifecycle-contract.json'
+ nullable_repair_path=root/'cpf-tools/db/metadata/platform-nullable-empty-string-repair.json'
+ json_files=[root/'cpf-tools/db/canonical/platform-schema.json',root/'cpf-tools/db/canonical/platform-non-table-objects.json',root/'cpf-tools/db/canonical/seed-model.json',root/'cpf-tools/config/database-install.default.json',lifecycle_contract_path,nullable_repair_path]
  for p in json_files:
   need(p)
   if p.exists():
    try: json.loads(p.read_text(encoding='utf-8'))
    except Exception as e: fail(f"invalid JSON {p}: {e}")
+ lifecycle_contract={}
+ if lifecycle_contract_path.exists():
+  try: lifecycle_contract=json.loads(lifecycle_contract_path.read_text(encoding='utf-8'))
+  except Exception: pass
  # Official vendor pack status and lifecycle discovery contract.
  for vendor in VENDORS:
   pack=root/f'cpf-tools/db/vendor/{vendor}/pack.json'; need(pack)
@@ -117,8 +138,10 @@ def main():
    raw=json.dumps(data,ensure_ascii=False)
    if '부분 구현' in raw or '미구현' in raw or '재확인 필요' in raw:
     fail(f"stale partial/missing status remains in official vendor pack: {vendor}")
-   expected_migration=(f'cpf-tools/db/vendor/{vendor}/migration/flyway' if vendor=='mariadb' else f'cpf-tools/db/vendor/{vendor}/migration/flyway/{{logicalDatabase}}')
-   expected_rollback=(f'cpf-tools/db/vendor/{vendor}/rollback' if vendor=='mariadb' else f'cpf-tools/db/vendor/{vendor}/migration/rollback/{{logicalDatabase}}')
+   vendor_contract=lifecycle_contract.get('vendorContracts',{}).get(vendor,{})
+   expected_migration=vendor_contract.get('migrationRoot')
+   expected_rollback=vendor_contract.get('rollbackRoot')
+   if not expected_migration or not expected_rollback: fail(f"lifecycle vendor contract missing: {vendor}")
    if data.get('migrationLocationPattern')!=expected_migration: fail(f"migration location pattern drift {vendor}: {data.get('migrationLocationPattern')}")
    if data.get('rollbackLocationPattern')!=expected_rollback: fail(f"rollback location pattern drift {vendor}: {data.get('rollbackLocationPattern')}")
  if canonical.exists():
@@ -199,12 +222,40 @@ def main():
     if missing: fail(f"source columns missing {vendor}.{tn}: {sorted(missing)}")
    if len(all_blocks)!=len(d['tables']): fail(f"source table count drift {vendor}: source={len(all_blocks)} canonical={len(d['tables'])}")
    notes.append(f"{vendor} source tables={len(all_blocks)}")
- # Oracle unsafe patterns
+ # Oracle unsafe patterns. Historical migrations are immutable, but every
+ # approved exception must be closed by the canonical V96 repair contract.
  oracle_dir=root/'cpf-tools/db/vendor/oracle'
  if oracle_dir.exists():
+  nullable_repair={}
+  if nullable_repair_path.exists():
+   try: nullable_repair=json.loads(nullable_repair_path.read_text(encoding='utf-8'))
+   except Exception as e: fail(f"invalid nullable repair contract: {e}")
+  repair_version=nullable_repair.get('version')
+  repair_description=nullable_repair.get('description')
+  repair_database=nullable_repair.get('logicalDatabase')
+  approved_history=set(nullable_repair.get('historicalMigrations',[]))
+  approved_history_root=root/f'cpf-tools/db/vendor/oracle/migration/flyway/{repair_database}'
   bad=re.compile(r"DEFAULT\s+''[^\n]*NOT\s+NULL|DEFAULT\s+''\s+NOT\s+NULL",re.I)
   for p in oracle_dir.rglob('*.sql'):
-   if bad.search(p.read_text(encoding='utf-8')): fail(f"Oracle empty-string NOT NULL default: {p.relative_to(root)}")
+   if not bad.search(p.read_text(encoding='utf-8')): continue
+   if p.parent==approved_history_root and p.name in approved_history: continue
+   fail(f"Oracle empty-string NOT NULL default: {p.relative_to(root)}")
+  if not isinstance(repair_version,int) or not repair_description or not repair_database:
+   fail('nullable empty-string repair identity is incomplete')
+  else:
+   for vendor in VENDORS:
+    migration=(root/f'cpf-tools/db/vendor/{vendor}/migration/flyway/V{repair_version}__{repair_description}.sql'
+               if vendor=='mariadb' else root/f'cpf-tools/db/vendor/{vendor}/migration/flyway/{repair_database}/V{repair_version}__{repair_description}.sql')
+    rollback=(root/f'cpf-tools/db/vendor/{vendor}/rollback/R{repair_version}__{repair_description}.sql'
+              if vendor=='mariadb' else root/f'cpf-tools/db/vendor/{vendor}/rollback/{repair_database}/R{repair_version}__{repair_description}.sql')
+    need(migration); need(rollback)
+    if migration.exists():
+     migrated=migration.read_text(encoding='utf-8').lower()
+     for item in nullable_repair.get('columns',[]):
+      if item.get('table','').lower() not in migrated or item.get('column','').lower() not in migrated:
+       fail(f"nullable repair migration anchor missing {vendor}: {item}")
+    if vendor=='oracle' and rollback.exists() and 'raise_application_error(-20096' not in rollback.read_text(encoding='utf-8').lower():
+     fail('Oracle nullable repair rollback must fail closed for unrepresentable empty-string semantics')
  # migration/rollback pairs
  expected={77:{'cpfDB','cmnDB','batDB'},78:{'batDB'},79:{'batDB'},80:{'admDB'}}
  for vendor in VENDORS:
@@ -217,7 +268,7 @@ def main():
     else:
      name={77:'qa30_runtime_completion',78:'batch_execution_attempt_ledger',79:'batch_definition_fail_closed_audit',80:'adm_gateway_navigation_permissions'}[version]
      mp=root/f'cpf-tools/db/vendor/{vendor}/migration/flyway/{db}/V{version}__{name}.sql'
-     rp=root/f'cpf-tools/db/vendor/{vendor}/migration/rollback/{db}/R{version}__{name}.sql'
+     rp=root/f'cpf-tools/db/vendor/{vendor}/rollback/{db}/R{version}__{name}.sql'
     need(mp);need(rp)
     if mp.exists() and rp.exists():
      mt=mp.read_text(encoding='utf-8').upper(); rt=rp.read_text(encoding='utf-8').upper()
@@ -281,18 +332,25 @@ def main():
   for endpoint in ('/server-groups','/bindings','/connection-test-operations/{operationId}'):
    if endpoint not in text: fail(f"Gateway ADM API missing: {endpoint}")
 
- # Overlay/repository hygiene and obsolete model cleanup contract.
+ # Overlay/repository hygiene and obsolete model cleanup contract. Inspect only
+ # Git-tracked and non-ignored source candidates, never .git/build/IDE caches.
  cleanup=root/'cpf-tools/scripts/cleanup-qa30-obsolete-gateway-model.ps1'; need(cleanup)
  forbidden_artifact_names={'__pycache__','.pytest_cache','.mypy_cache','.gradle','node_modules'}
  forbidden_suffixes={'.pyc','.pyo','.class','.log','.tmp','.bak','.orig','.rej','.zip'}
- for p in scope.rglob('*'):
+ reported_artifact_dirs=set()
+ for p in selected():
   rel=p.relative_to(scope)
-  if any(part in forbidden_artifact_names for part in rel.parts): fail(f"development artifact directory in scope: {rel}")
-  if p.is_file():
-   evidence_log = p.suffix.lower()=='.log' and str(rel).replace('\\','/').startswith('cpf-docs/evidence/')
-   if p.suffix.lower() in forbidden_suffixes and not evidence_log: fail(f"development artifact file in scope: {rel}")
-   data=p.read_bytes()
-   if any(b<32 and b not in (9,10,13) for b in data): fail(f"unexpected control character in text artifact: {rel}")
+  artifact_parts=tuple(part for part in rel.parts if part in forbidden_artifact_names)
+  if artifact_parts:
+   marker=str(Path(*rel.parts[:rel.parts.index(artifact_parts[0])+1]))
+   if marker not in reported_artifact_dirs:
+    fail(f"development artifact directory in scope: {marker}")
+    reported_artifact_dirs.add(marker)
+  evidence_log = p.suffix.lower()=='.log' and str(rel).replace('\\','/').startswith('cpf-docs/evidence/')
+  if p.suffix.lower() in forbidden_suffixes and not evidence_log: fail(f"development artifact file in scope: {rel}")
+  try: text=p.read_text(encoding='utf-8')
+  except (UnicodeDecodeError,OSError): continue
+  if any(ord(c)<32 and c not in ('\t','\n','\r') for c in text): fail(f"unexpected control character in text artifact: {rel}")
  final_gate=root/'cpf-tools/scripts/verify-cpf-final-completion.ps1'; need(final_gate)
  if final_gate.exists():
   gate_text=final_gate.read_text(encoding='utf-8')
@@ -305,24 +363,46 @@ def main():
    text=p.read_text(encoding='utf-8')
    if "$ErrorActionPreference" not in text or "'Stop'" not in text and '"Stop"' not in text: fail(f"PowerShell gate is not fail-closed: {name}")
    if name.startswith('check-') and re.search(r'(?i)Set-Content|WriteAllText|Out-File',text): fail(f"check gate mutates artifacts: {name}")
- # runtime SQL parity + semantic anchors
- base=root/'cpf-tools/db/vendor/mariadb/runtime/bat/repository'
- for fn in RUNTIME_SQL:
+ # BAT runtime SQL is derived from its canonical contract; deleted engine resources
+ # must not survive merely because a historical filename remains hard-coded here.
+ bat_contract_path=root/'cpf-tools/db/metadata/bat-runtime-query-contract.json';need(bat_contract_path)
+ bat_runtime_files=[]
+ if bat_contract_path.exists():
+  try:
+   bat_contract=json.loads(bat_contract_path.read_text(encoding='utf-8'))
+   if bat_contract.get('module')!='bat' or bat_contract.get('ownerArtifact')!='cpf-batch':
+    fail('invalid BAT runtime query contract ownership')
+   bat_keys=[statement.get('key','') for statement in bat_contract.get('statements',[])]
+   if not bat_keys or any(not re.fullmatch(r'[a-z][a-z0-9-]{1,63}',key) for key in bat_keys):
+    fail('invalid BAT runtime query contract statement key')
+   elif len(set(bat_keys))!=len(bat_keys):
+    fail('duplicate BAT runtime query contract statement key')
+   else:
+    bat_runtime_files=[f'{key}.sql' for key in bat_keys]
+  except Exception as e:
+   fail(f'invalid BAT runtime query contract JSON: {e}')
+ expected_runtime_files=set(bat_runtime_files)
+ for vendor in VENDORS:
+  repository=root/f'cpf-tools/db/vendor/{vendor}/runtime/bat/repository'
+  need(repository)
+  if repository.exists():
+   actual={path.name for path in repository.glob('*.sql') if path.is_file()}
+   if actual!=expected_runtime_files:
+    fail(f'BAT runtime SQL contract parity mismatch {vendor}: missing={sorted(expected_runtime_files-actual)} unexpected={sorted(actual-expected_runtime_files)}')
+  critical_anchors={
+   'scheduler-find-due.sql':('DEFINITION_VERSION','DEFINITION_CHECKSUM','BAT_SCHEDULE'),
+   'execution-control-reserve.sql':('CPF_BATCH_EXECUTION_CONTROL','REQUEST_HASH','FENCING_TOKEN'),
+   'execution-control-assert-current.sql':('CPF_BATCH_EXECUTION_EPOCH','CURRENT_FENCING_TOKEN','CONTROL_STATUS'),
+   'execution-approved-launch-find-trigger.sql':('CPF_BATCH_APPROVED_LAUNCH','DEFINITION_CHECKSUM','APPROVED')}
+ for fn in bat_runtime_files:
   texts={}
   for vendor in VENDORS:
    p=root/f'cpf-tools/db/vendor/{vendor}/runtime/bat/repository/{fn}';need(p)
    if p.exists(): texts[vendor]=re.sub(r'\s+',' ',p.read_text(encoding='utf-8').strip()).upper()
   if len(texts)==3:
-   anchors={
-    'scheduler-execution-insert.sql':('DEFINITION_VERSION','DEFINITION_CHECKSUM','SCHEDULER'),
-    'scheduler-find-due.sql':('DEFINITION_VERSION','DEFINITION_CHECKSUM','BAT_SCHEDULE'),
-    'worker-attempt-insert.sql':('BAT_EXECUTION_ATTEMPT','FENCING_TOKEN','RUNNING'),
-    'worker-attempt-finish.sql':('ATTEMPT_STATUS','FENCING_TOKEN','RUNNING'),
-    'worker-execution-load.sql':('BAT_JOB_RUNTIME_PROJECTION','PROJECTION_HASH','DEFINITION_JSON'),
-    'worker-execution-find-ready-candidates.sql':('DEFINITION_VERSION','DEFINITION_CHECKSUM','READY'),
-    'worker-execution-requeue-retryable.sql':('BAT_EXECUTION_LEASE','FENCING_TOKEN','READY')}
+   anchors=critical_anchors.get(fn,())
    for vendor,text in texts.items():
-    for anchor in anchors[fn]:
+    for anchor in anchors:
      if anchor not in text: fail(f"runtime SQL anchor missing {vendor}/{fn}: {anchor}")
  # Java path/package and forbidden placeholders in scope
  for p in selected({'.java'}):
@@ -334,15 +414,18 @@ def main():
   if re.search(r'\b(TODO|FIXME|TBD|NOT_IMPLEMENTED|NotImplemented)\b',text,re.I): fail(f"unfinished marker in {p}")
  # Critical runtime consumer/source anchors: contracts must have real consumers, not interface-only surfaces.
  required_source_anchors={
-  'cpf-gateway/src/main/java/com/cpf/gateway/service/CpfGatewayProxyService.java':('ledger.begin','recordAttempt','captureRequest','UNKNOWN_RESULT'),
+  'cpf-gateway/src/main/java/com/cpf/gateway/scg/CpfScgPrimaryHandler.java':('ledgerRecovery.begin','ledgerRecovery.recordAttempt','captureService.captureRequest','unknownResult'),
+  'cpf-gateway/src/main/java/com/cpf/gateway/scg/CpfGatewayLedgerCompletionFilter.java':('recovery.complete','captureService.captureResponse','UNKNOWN_RESULT','AFTER'),
   'cpf-gateway/src/main/java/com/cpf/gateway/runtime/CpfGatewayHealthWorker.java':('@Scheduled','claimHealthProbes','reportHealth'),
   'cpf-gateway/src/main/java/com/cpf/gateway/runtime/CpfGatewayConnectionTestWorker.java':('@Scheduled','claimConnectionTests','completeConnectionTest'),
   'cpf-gateway/src/main/java/com/cpf/gateway/registry/JdbcCpfGatewayRegistryAdapter.java':('RETIRED','fencing_token','cpf_gateway_connection_test_operation'),
   'cpf-batch/control-server/src/main/java/com/cpf/batch/control/job/BatchJobDefinitionController.java':('approved-publish','actorResolver.approved'),
-  'cpf-batch/control-server/src/main/java/com/cpf/batch/control/job/BatchJobDefinitionService.java':('bat_job_runtime_projection_outbox','enqueueProjectionEvent','publishApproved'),
-  'cpf-batch/scheduler/src/main/java/com/cpf/batch/scheduler/BatchProjectionScheduleSynchronizer.java':('@Scheduled','fencing_token','published_definition_version'),
-  'cpf-batch/worker/src/main/java/com/cpf/batch/worker/BatchRuntimeProjectionRepository.java':('projection_hash','definition_checksum','readValue'),
-  'cpf-batch/worker/src/main/java/com/cpf/batch/worker/JobPackDispatcher.java':('RETRYABLE_FAILURE','TIMEOUT','UNKNOWN_RESULT'),
+   'cpf-batch/control-server/src/main/java/com/cpf/batch/control/job/BatchJobDefinitionService.java':('definition-projection-outbox-insert','enqueueProjectionEvent','publishApproved'),
+   'cpf-batch/scheduler/src/main/java/com/cpf/batch/scheduler/BatchProjectionScheduleSynchronizer.java':('@Scheduled','projection-sync-outbox-claim','projection-job-update'),
+   'cpf-batch/execution-runtime/src/main/java/com/cpf/batch/execution/JdbcBatchExecutionControlPlaneAdapter.java':('execution-control-reserve','execution-control-assert-current','execution-epoch-lock'),
+   'cpf-batch/execution-runtime/src/main/java/com/cpf/batch/execution/JdbcBatchApprovedLaunchRequestResolver.java':('execution-approved-launch-find-trigger','execution-approved-launch-find-manual','CpfVendorSqlCatalogProvider'),
+  'cpf-batch/execution-runtime/src/main/java/com/cpf/batch/execution/CpfSpringBatchExecutionControl.java':('executorType','maxAttempts','"arg." + name'),
+  'cpf-batch/worker/src/main/java/com/cpf/batch/worker/SpringBatchWorkerStepHandler.java':('BatchApprovedExecutorSnapshot','assertStepBinding','businessParameters'),
   'cpf-batch/worker/src/main/java/com/cpf/batch/worker/ApprovedFileExecutor.java':('CpfFileTransferClient','CpfCredentialReference','checksum'),
   'cpf-admin/src/main/java/com/cpf/admin/opr/gateway/AdmGatewayOperationsStreamController.java':('SseEmitter','Last-Event-ID','operationsEvents'),
   'cpf-core/src/main/java/com/cpf/core/api/logging/policy/CpfLogCaptureGuard.java':('(bytes[end]&0xC0)==0x80','ENCRYPTED_BODY','FORBIDDEN_HEADERS')
@@ -355,7 +438,9 @@ def main():
     if anchor not in text: fail(f"runtime consumer anchor missing {rel}: {anchor}")
  for p in selected({'.java'}):
   text=p.read_text(encoding='utf-8')
-  if 'com.cpf.core.common.gateway.CpfGatewayRoute' in text or 'CpfGatewayRouteCatalog' in text:
+  if (re.search(r'com\.cpf\.core\.common\.gateway\.CpfGatewayRoute\b',text)
+      or re.search(r'\bCpfGatewayRouteCatalog\b',text)
+      or re.search(r'com\.cpf\.core\.common\.gateway\.CpfGatewayAuthorizationPort\b',text)):
    fail(f"legacy Gateway route model consumer remains: {p}")
  # Frontend SFC + direct relative imports for files in scope
  for p in selected({'.vue','.ts'}):
@@ -367,14 +452,19 @@ def main():
   for spec in re.findall(r'(?:from\s*|import\s*)["\'](\.[^"\']+)["\']',text):
    mapped=p.parent
    if resolve_import(mapped,spec) is None: fail(f"frontend relative import missing: {p.relative_to(root) if p.is_relative_to(root) else p} -> {spec}")
- # lightweight secret patterns in scope (allow placeholders)
- secret_patterns=[re.compile(r'(?i)(password|secret|api[_-]?key|token)\s*[:=]\s*["\'][A-Za-z0-9+/=_-]{20,}["\']'),re.compile(r'AKIA[0-9A-Z]{16}')]
+ # Lightweight supplemental scan. The QA37 source-closure scanner owns the
+ # full policy; well-known identifier/test sentinels are not credentials.
+ credential_pattern=re.compile(r'(?i)(password|secret|api[_-]?key|token)\s*[:=]\s*["\'](?P<value>[A-Za-z0-9+/=_-]{20,})["\']')
+ placeholder_pattern=re.compile(r'(?i)^(?:CPF_[A-Z0-9_]+|X-[A-Z0-9-]+|(?:raw|hash)-[a-z0-9-]+-value)$')
+ aws_access_key_pattern=re.compile(r'AKIA[0-9A-Z]{16}')
  for p in selected():
   if p.suffix.lower() in {'.zip','.png','.jpg','.jpeg','.class'}: continue
   try:text=p.read_text(encoding='utf-8')
   except Exception:continue
-  for pat in secret_patterns:
-   if pat.search(text): fail(f"possible secret in {p.relative_to(scope)}")
+  match=credential_pattern.search(text)
+  if match and not placeholder_pattern.fullmatch(match.group('value')):
+   fail(f"possible secret in {p.relative_to(scope)}")
+  if aws_access_key_pattern.search(text): fail(f"possible secret in {p.relative_to(scope)}")
  # result
  result={"status":"PASS" if not errors else "FAIL","basisSha":args.basis_sha.lower() if args.basis_sha else None,"root":str(root),"scope":str(scope),"fileList":str(args.file_list) if args.file_list else None,"errorCount":len(errors),"errors":errors,"notes":notes}
  report=json.dumps(result,ensure_ascii=False,indent=2)+"\n"

@@ -19,7 +19,7 @@
           <label>HTTP <input v-model.number="responseCodeForm.httpStatus" type="number"></label>
           <label>사유 <input v-model="responseCodeReason" type="text"></label>
         </div>
-        <pre class="detail">{{ pretty(responseCodeResult) }}</pre>
+        <CpfStructuredData class="detail" :value="responseCodeResult" />
       </section>
 
   <section class="panel route-operation-panel"><h3>응답코드 상세</h3><button type="button" @click="loadResponseCodeDetail">상세 조회</button></section>

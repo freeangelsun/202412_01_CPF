@@ -1,0 +1,9 @@
+﻿phase,period,candidate_file_count,document_status,replacement,history_summary
+QA31,2026-07-30,9,이력 보존·Current 제거 후보,QA37 Primary로 승계,Batch review/development/remediation/package 문서를 한 줄 이력으로 압축; 기능 완료 의미 아님
+QA32,2026-07-30~31,8,이력 보존·Current 제거 후보,QA37 Primary로 승계,OSS Primary steering·remediation·package 문서를 한 줄 이력으로 압축; 기능 완료 의미 아님
+QA33,2026-07-31,5,이력 보존·Current 제거 후보,QA37 Primary로 승계,개발·검증·완료·post-push 문서를 한 줄 이력으로 압축; 기능 완료 의미 아님
+QA34,2026-07-31,3,이력 보존·Current 제거 후보,QA37 Primary로 승계,독립 검수·수정·완료 문서를 한 줄 이력으로 압축; 기능 완료 의미 아님
+QA35,2026-08-01,4,이력 보존·Current 제거 후보,QA37 Primary로 승계,Benchmark·제품 Closure·검수 요청을 한 줄 이력으로 압축; 기능 완료 의미 아님
+QA36,2026-08-01,2,이력 보존·Current 제거 후보,QA37 Primary로 승계,Project-wide QA 지시·요청을 한 줄 이력으로 압축; 기능 완료 의미 아님
+Pre-QA37/Generic,2026-07-28~2026-08-01,19,이력 보존·Current 제거 후보,QA37 Primary + 활성 Codex Package,과거 Codex 요청·Self Development·통합 계획·중간 보고를 압축; 상세는 Git History에서 조회
+QA37 Active,2026-08-01~,0,보호·정리 제외,활성 작업,Codex 로컬 검수 진행 중이므로 QA37 current/review/handover/manifest/evidence는 수정·삭제하지 않음

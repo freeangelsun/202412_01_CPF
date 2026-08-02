@@ -28,10 +28,17 @@ def normalized_ddl(sql:str)->str:
     s=s.upper().replace('VARCHAR2','VARCHAR').replace('NUMBER(19)','BIGINT').replace('NUMBER(10)','INTEGER').replace('TIMESTAMP(6)','TIMESTAMP').replace('CLOB','TEXT')
     return re.sub(r'\s+',' ',s).strip()
 def check_digest(manifest:Path,files:list[Path])->None:
-    text=manifest.read_text(encoding='utf-8')
+    entries={}
+    for line_number,raw_line in enumerate(manifest.read_text(encoding='utf-8').splitlines(),1):
+        line=raw_line.strip()
+        if not line or line.startswith('#'):continue
+        match=re.fullmatch(r'([0-9a-fA-F]{64})\s+\*?([^\s]+)',line)
+        if not match:fail(f'checksum manifest format: {manifest}:{line_number}')
+        if match.group(2) in entries:fail(f'checksum manifest duplicate: {manifest}:{match.group(2)}')
+        entries[match.group(2)]=match.group(1).lower()
     for p in files:
         digest=hashlib.sha256(p.read_bytes()).hexdigest()
-        if f'{digest}  {p.name}' not in text:fail(f'checksum drift: {p}')
+        if entries.get(p.name)!=digest:fail(f'checksum drift: {p}')
 def check_pack(base:Path,vendor:str)->None:
     pack=json.loads((base/'pack.json').read_text(encoding='utf-8'))
     core=pack.get('operationLedger',{})
@@ -52,11 +59,11 @@ def main():
         base=root/f'cpf-tools/db/vendor/{v}'
         core={
           'source':base/'source/57_reference_edu_operation_ledger.sql','install':base/'install/01_reference_edu_operation_ledger.sql',
-          'migration':base/'migration/flyway/refDB/V93__manual_edu_135_operation_ledger.sql','rollback':base/'migration/rollback/refDB/U93__manual_edu_135_operation_ledger.sql',
+          'migration':base/'migration/flyway/refDB/V93__manual_edu_135_operation_ledger.sql','rollback':base/'rollback/refDB/U93__manual_edu_135_operation_ledger.sql',
           'runtime':base/'runtime/ref/manual_edu_135_operation_queries.sql','verify':base/'verify/93_verify_manual_edu_135_operation_ledger.sql'}
         batch={
           'source':base/'source/58_reference_batch_job_pack.sql','install':base/'install/02_reference_batch_job_pack.sql',
-          'migration':base/'migration/flyway/refDB/V94__reference_batch_job_pack.sql','rollback':base/'migration/rollback/refDB/U94__reference_batch_job_pack.sql',
+          'migration':base/'migration/flyway/refDB/V94__reference_batch_job_pack.sql','rollback':base/'rollback/refDB/U94__reference_batch_job_pack.sql',
           'runtime':base/'runtime/ref/reference_batch_job_queries.sql','verify':base/'verify/94_verify_reference_batch_job_pack.sql'}
         checksum=base/'migration/flyway/refDB/checksums.sha256'
         for group in (core,batch):

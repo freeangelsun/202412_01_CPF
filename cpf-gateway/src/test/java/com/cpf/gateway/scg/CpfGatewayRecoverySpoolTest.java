@@ -27,7 +27,7 @@ class CpfGatewayRecoverySpoolTest {
         doThrow(new IllegalStateException("authorization=secret"))
                 .doNothing()
                 .when(ledger).complete(completion);
-        CpfGatewayRecoverySpool spool = new CpfGatewayRecoverySpool(
+        CpfGatewayLedgerRecoverySpool spool = new CpfGatewayLedgerRecoverySpool(
                 ledger, new ObjectMapper().findAndRegisterModules(), properties());
 
         spool.complete(completion);

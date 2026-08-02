@@ -2,6 +2,8 @@ package com.cpf.batch.execution;
 
 import com.cpf.batch.api.BatchApprovedLaunchRequest;
 import com.cpf.batch.spi.BatchApprovedLaunchRequestResolver;
+import com.cpf.core.api.database.CpfVendorSqlCatalog;
+import com.cpf.core.api.database.CpfVendorSqlCatalogProvider;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.LinkedHashMap;
@@ -12,22 +14,23 @@ import org.springframework.jdbc.core.JdbcTemplate;
 public final class JdbcBatchApprovedLaunchRequestResolver implements BatchApprovedLaunchRequestResolver {
     private final JdbcTemplate jdbc;
     private final ObjectMapper mapper;
+    private final CpfVendorSqlCatalog sql;
 
-    public JdbcBatchApprovedLaunchRequestResolver(JdbcTemplate jdbc, ObjectMapper mapper) {
+    public JdbcBatchApprovedLaunchRequestResolver(
+            JdbcTemplate jdbc, ObjectMapper mapper, CpfVendorSqlCatalogProvider sqlCatalogProvider) {
         this.jdbc = jdbc;
         this.mapper = mapper;
+        this.sql = sqlCatalogProvider.forModule("bat");
     }
 
     @Override
     public BatchApprovedLaunchRequest resolve(TriggerContext context) {
-        String json = jdbc.queryForObject("""
-                select launch_request_json
-                  from CPF_BATCH_APPROVED_LAUNCH
-                 where job_id = ? and definition_version = ? and definition_checksum = ?
-                   and approval_status = 'APPROVED'
-                   and effective_from <= CURRENT_TIMESTAMP
-                   and (effective_until is null or effective_until > CURRENT_TIMESTAMP)
-                """, String.class, context.jobId(), context.definitionVersion(), context.definitionChecksum());
+        String json = jdbc.queryForObject(
+                sql.required("execution-approved-launch-find-trigger"),
+                String.class,
+                context.jobId(),
+                context.definitionVersion(),
+                context.definitionChecksum());
         if (json == null || json.isBlank()) throw new IllegalStateException("BATCH_APPROVED_LAUNCH_NOT_FOUND");
         try {
             BatchApprovedLaunchRequest approved = mapper.readValue(json, BatchApprovedLaunchRequest.class);
@@ -45,13 +48,8 @@ public final class JdbcBatchApprovedLaunchRequestResolver implements BatchApprov
 
     @Override
     public BatchApprovedLaunchRequest resolve(ManualContext context) {
-        String json = jdbc.queryForObject("""
-                select launch_request_json
-                  from CPF_BATCH_APPROVED_LAUNCH
-                 where approval_id = ? and approval_status = 'APPROVED'
-                   and effective_from <= CURRENT_TIMESTAMP
-                   and (effective_until is null or effective_until > CURRENT_TIMESTAMP)
-                """, String.class, context.approvalId());
+        String json = jdbc.queryForObject(
+                sql.required("execution-approved-launch-find-manual"), String.class, context.approvalId());
         if (json == null || json.isBlank()) throw new IllegalStateException("BATCH_APPROVAL_NOT_ACTIVE");
         try {
             BatchApprovedLaunchRequest approved = mapper.readValue(json, BatchApprovedLaunchRequest.class);

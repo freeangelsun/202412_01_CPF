@@ -62,7 +62,8 @@ Require-File 'cpf-admin\src\main\java\com\cpf\admin\opr\service\AdmDownloadServi
 Require-Dir 'cpf-admin\frontend\src\features\remote-logs'|Out-Null
 Require-Dir 'cpf-admin\frontend\src\features\downloads'|Out-Null
 Require-Markers 'cpf-batch\host-agent\src\main\java\com\cpf\batch\agent\AgentController.java' @(
- '@GetMapping("/services/{id}/logs")','FileSystemResource','COLLECT_LOGS')
+ '@GetMapping("/services/{id}/logs")','StreamingResponseBody','Files.newInputStream',
+ 'LinkOption.NOFOLLOW_LINKS','logs.delete(archive)','COLLECT_LOGS')
 
 # 14 Notification Outbox/Worker/Provider
 foreach($rel in @(

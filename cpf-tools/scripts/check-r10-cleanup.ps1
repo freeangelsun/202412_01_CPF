@@ -25,10 +25,15 @@ foreach($relative in @(
     if(Test-Path(Join-Path $Root $relative)){$errors.Add("obsolete artifact: $relative")}
 }
 
-$fixedCpfRoots=@(
-    'cpf-core','cpf-common','cpf-admin','cpf-biz-admin','cpf-batch',
-    'cpf-gateway','cpf-reference','cpf-tools','cpf-docs'
-)
+$surfacePolicyPath=Join-Path $Root 'cpf-tools/governance/cpf-product-surface-policy.json'
+if(-not(Test-Path -LiteralPath $surfacePolicyPath -PathType Leaf)){
+    throw "product surface policy missing: $surfacePolicyPath"
+}
+$surfacePolicy=Get-Content -LiteralPath $surfacePolicyPath -Raw -Encoding UTF8 | ConvertFrom-Json -Depth 20
+$fixedCpfRoots=@($surfacePolicy.moduleOwners |
+    Where-Object { [string]$_.prefix -match '^cpf-[^/]+/$' -and [string]$_.owner -ne 'generated-domain' } |
+    ForEach-Object { ([string]$_.prefix).TrimEnd('/') } |
+    Sort-Object -Unique)
 $settings=Get-Content -LiteralPath (Join-Path $Root 'settings.gradle') -Raw -Encoding UTF8
 $generatedIdentities=[System.Collections.Generic.List[object]]::new()
 $generatedCandidates=@(Get-ChildItem -LiteralPath $Root -Directory -Filter 'cpf-*' |

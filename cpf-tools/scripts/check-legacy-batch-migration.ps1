@@ -50,9 +50,11 @@ $requiredFiles = @(
     "cpf-batch/scheduler/src/main/java/com/cpf/batch/scheduler/BatchSchedulerApplication.java",
     "cpf-batch/scheduler/src/main/java/com/cpf/batch/scheduler/SchedulerCoordinator.java",
     "cpf-batch/worker/src/main/java/com/cpf/batch/worker/BatchWorkerApplication.java",
-    "cpf-batch/worker/src/main/java/com/cpf/batch/worker/WorkerRuntime.java",
+    "cpf-batch/worker/src/main/java/com/cpf/batch/worker/SpringBatchWorkerRuntimeState.java",
+    "cpf-batch/worker/src/main/java/com/cpf/batch/worker/SpringBatchWorkerStepHandler.java",
     "cpf-batch/center-cut-runner/src/main/java/com/cpf/batch/centercut/runner/CenterCutRunnerApplication.java",
-    "cpf-batch/center-cut-runner/src/main/java/com/cpf/batch/centercut/runner/CenterCutRuntime.java",
+    "cpf-batch/center-cut-runner/src/main/java/com/cpf/batch/centercut/runner/SpringBatchCenterCutRuntimeState.java",
+    "cpf-batch/center-cut-runner/src/main/java/com/cpf/batch/centercut/runner/SpringBatchCenterCutStepHandler.java",
     "cpf-batch/host-agent/src/main/java/com/cpf/batch/agent/BatchHostAgentApplication.java",
     "cpf-batch/testkit/src/main/java/com/cpf/batch/testkit/RuntimeRegistrationFixture.java",
     "cpf-core/src/main/java/com/cpf/core/api/batch/CpfBatchOperationsPort.java",
@@ -67,9 +69,10 @@ $requiredFiles = @(
     "cpf-reference/src/main/java/com/cpf/reference/centercut/ReferenceCenterCutTargetRepository.java",
     "cpf-batch/runtime-common/src/test/java/com/cpf/batch/runtime/RuntimeIdentityFactoryTest.java",
     "cpf-batch/scheduler/src/test/java/com/cpf/batch/scheduler/SchedulerCoordinatorFencingTest.java",
-    "cpf-batch/worker/src/test/java/com/cpf/batch/worker/WorkerRuntimeLeaseLossTest.java",
-    "cpf-batch/worker/src/test/java/com/cpf/batch/worker/JobPackDispatcherFencingTest.java",
-    "cpf-batch/center-cut-runner/src/test/java/com/cpf/batch/centercut/runner/CenterCutRuntimeLeaseLossTest.java",
+    "cpf-batch/worker/src/test/java/com/cpf/batch/worker/SpringBatchWorkerRuntimeStateTest.java",
+    "cpf-batch/worker/src/test/java/com/cpf/batch/worker/SpringBatchWorkerStepHandlerTest.java",
+    "cpf-batch/center-cut-runner/src/test/java/com/cpf/batch/centercut/runner/SpringBatchCenterCutRuntimeStateTest.java",
+    "cpf-batch/center-cut-runner/src/test/java/com/cpf/batch/centercut/runner/SpringBatchCenterCutStepHandlerTest.java",
     "cpf-reference/src/test/java/com/cpf/reference/batch/ReferenceBatchRepositoryConfigTest.java",
     "cpf-reference/src/test/java/com/cpf/reference/batch/ReferenceBatchEducationConfigTest.java",
     "cpf-reference/src/test/java/com/cpf/reference/batch/ReferenceBatchEducationControllerTest.java",
@@ -79,6 +82,18 @@ $requiredFiles = @(
     "cpf-docs/development/CPF_LEGACY_BATCH_MIGRATION_MAP.md"
 )
 $requiredFiles | ForEach-Object { Require-File $_ }
+
+foreach ($legacyPrimary in @(
+        "cpf-batch/worker/src/main/java/com/cpf/batch/worker/WorkerRuntime.java",
+        "cpf-batch/worker/src/main/java/com/cpf/batch/worker/JobPackDispatcher.java",
+        "cpf-batch/worker/src/main/java/com/cpf/batch/worker/internal/JdbcWorkerExecutionRepository.java",
+        "cpf-batch/center-cut-runner/src/main/java/com/cpf/batch/centercut/runner/CenterCutRuntime.java",
+        "cpf-batch/center-cut-runner/src/main/java/com/cpf/batch/centercut/runner/CenterCutDispatcher.java"
+    )) {
+    if (Test-Path -LiteralPath (Join-Path $Root $legacyPrimary)) {
+        Add-Failure "Legacy Batch Primary Engine 잔존: $legacyPrimary"
+    }
+}
 
 $expectedBatchProjects = @(
     ":cpf-batch:contract",

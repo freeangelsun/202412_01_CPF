@@ -37,7 +37,7 @@ foreach ($path in $requiredResults) {
     }
 }
 $verifyScript = Join-Path $ProjectRoot "cpf-tools/scripts/verify-cpf-qa31-development-result.ps1"
-& pwsh -NoProfile -ExecutionPolicy Bypass -File $verifyScript -Root $ProjectRoot -BaseSha $BaseSha -Mode full
+& pwsh -NoProfile -File $verifyScript -Root $ProjectRoot -BaseSha $BaseSha -Mode full
 if ($LASTEXITCODE -ne 0) { throw "QA31 development gate failed before packaging." }
 
 $changed += $requiredResults

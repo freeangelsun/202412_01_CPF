@@ -12,7 +12,7 @@
           <label>사유 <input v-model="logLevelForm.reason" type="text"></label>
           <button type="button" v-if="canWrite('DYNAMIC_LOG')" @click="registerLogLevelRule">등록</button>
         </div>
-        <pre class="detail">{{ pretty(logLevelResult) }}</pre>
+        <CpfStructuredData class="detail" :value="logLevelResult" />
       </section>
 
       <section class="panel route-operation-panel">

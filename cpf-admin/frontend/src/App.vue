@@ -8,7 +8,7 @@
         <label>비밀번호 <input v-model="loginForm.password" type="password" autocomplete="current-password"></label>
         <button class="primary" type="submit">로그인</button>
         <p class="hint">최초 운영자는 승인된 bootstrap 환경변수로 생성하며 초기 비밀번호는 저장소와 화면에 제공하지 않습니다.</p>
-        <pre class="detail" v-if="authMessage">{{ authMessage }}</pre>
+        <p v-if="authMessage" class="detail" role="alert">{{ authMessage }}</p>
       </form>
     </section>
     <aside class="adm-login-visual" aria-hidden="true"><div class="grid"></div><div><span>CPF · ADM</span><strong>Observe.<br>Control.<br>Recover.</strong><p>감사 가능한 운영, 안전한 제어, 빠른 복구</p></div></aside>
@@ -24,7 +24,7 @@
         <label>새 비밀번호 확인 <input v-model="forcedPasswordForm.newPasswordConfirm" type="password" autocomplete="new-password"></label>
         <label>변경 사유 <input v-model="forcedPasswordForm.reason" type="text"></label>
         <div class="inline-actions"><button class="primary" type="submit">변경 후 다시 로그인</button><button class="ghost" type="button" @click="logout">로그아웃</button></div>
-        <pre class="detail" v-if="authMessage">{{ authMessage }}</pre>
+        <p v-if="authMessage" class="detail" role="alert">{{ authMessage }}</p>
       </form>
     </section>
   </main>
@@ -80,11 +80,10 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import { RouterView } from "vue-router";
-import { storeToRefs } from "pinia";
 import CpfIcon from "./components/CpfIcon.vue";
 import AdmCommercialPageBoundary from "./components/page-contract/AdmCommercialPageBoundary.vue";
 import RouteOperationWorkbench from "./components/RouteOperationWorkbench.vue";
-import { admConsoleActionNames, useAdmConsoleStore } from "./stores/admConsoleStore";
+import { useAdmConsolePage } from "./app/useAdmConsolePage";
 import { admGroupLabels, featureGroupForMenu, findCapabilityByRouteName, iconForMenu, type AdmFeatureGroup } from "./app/routes";
 import { admRouter } from "./app/router";
 
@@ -92,10 +91,7 @@ export default defineComponent({
   name: "AdmApp",
   components: { CpfIcon, RouterView, AdmCommercialPageBoundary, RouteOperationWorkbench },
   setup() {
-    const store = useAdmConsoleStore();
-    const refs = storeToRefs(store);
-    const actions = Object.fromEntries(admConsoleActionNames.map(name => [name, (...args: unknown[]) => (store as any)[name](...args)]));
-    return { ...refs, ...actions, admRouter };
+    return { ...useAdmConsolePage(), admRouter };
   },
   data() { return { sidebarOpen: false, menuSearch: "", favoriteMenus: [] as string[], recentMenus: [] as string[], unregisterRouteHook: null as null | (() => void) }; },
   computed: {

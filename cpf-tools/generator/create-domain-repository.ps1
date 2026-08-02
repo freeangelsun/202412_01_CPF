@@ -102,7 +102,7 @@ function Invoke-CheckedPowerShell {
         [Parameter(Mandatory = $true)] [string] $Script,
         [Parameter(Mandatory = $true)] [object[]] $Arguments
     )
-    & pwsh -NoProfile -ExecutionPolicy Bypass -File $Script @Arguments
+    & pwsh -NoProfile -File $Script @Arguments
     if ($LASTEXITCODE -ne 0) {
         throw "CPF script failed. script=$Script exitCode=$LASTEXITCODE"
     }
@@ -131,7 +131,7 @@ function Invoke-CpfLocalArtifactPublish {
 
     # 이미 현재 HEAD와 정확히 일치하는 PROMOTED manifest가 있으면 고비용 aggregate build를 반복하지 않습니다.
     $verifier = Join-Path $repositoryRoot 'cpf-tools/scripts/verify-local-artifact-propagation.ps1'
-    & pwsh -NoProfile -ExecutionPolicy Bypass -File $verifier -Root $repositoryRoot -LocalRepository $localRepository -RequireManifest *> $null
+    & pwsh -NoProfile -File $verifier -Root $repositoryRoot -LocalRepository $localRepository -RequireManifest *> $null
     if ($LASTEXITCODE -eq 0) {
         Write-Host "CPF local artifacts already match current source; verified publication is reused: $localRepository"
         return

@@ -67,6 +67,16 @@ public class CpfGatewayRouteSnapshot {
         return current.get();
     }
 
+    /** 검증·승인된 Candidate만 요청 thread가 보는 Atomic Snapshot으로 승격합니다. */
+    public Snapshot activate(Snapshot candidate) {
+        if (candidate == null || candidate.routes() == null) {
+            throw new IllegalArgumentException("Gateway candidate snapshot is required");
+        }
+        Snapshot activated = new Snapshot(Map.copyOf(candidate.routes()), Instant.now());
+        current.set(activated);
+        return activated;
+    }
+
     public CpfGatewayRoute resolve(String executionId) {
         return provider.resolve(current.get().routes(), executionId);
     }

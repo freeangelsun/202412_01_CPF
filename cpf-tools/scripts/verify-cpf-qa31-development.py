@@ -62,27 +62,38 @@ REQUIRED_SOURCE = {
         "CpfGatewayControlNoncePort", "CpfGatewayControlSecurityAuditPort", "CONTENT_SHA256", "sha256(body)", "audience"),
     "cpf-gateway/src/main/java/com/cpf/gateway/route/CpfGatewayPathRewriter.java": (
         "rewrite", "ingressPattern", "targetTemplate", "requestPath"),
-    "cpf-gateway/src/main/java/com/cpf/gateway/controller/CpfGatewayPublicController.java": (
-        "getRequestURI", "proxy"),
+    "cpf-gateway/src/main/java/com/cpf/gateway/scg/CpfScgPrimaryHandler.java": (
+        "HandlerFunctions.http", "request.uri().getRawPath()", "snapshot.resolveRequest",
+        "ledgerRecovery.begin", "ledgerRecovery.recordAttempt", "RetryFilterFunctions.retry",
+        "captureService.captureRequestMetadata", "requestSignatureVerified(principal)"),
     "cpf-gateway/src/main/java/com/cpf/gateway/runtime/CpfGatewayProbeExecutor.java": (
         "NETWORK", "TCP", "TLS", "APPLICATION", "GATEWAY_E2E", "HttpURLConnection"),
-    "cpf-gateway/src/main/java/com/cpf/gateway/service/CpfGatewayProxyService.java": (
-        "recordAttempt", "resolveInboundPath", "targetPath", "overallTimeoutMs", "maxRetryCount"),
+    "cpf-gateway/src/main/java/com/cpf/gateway/scg/CpfGatewayLedgerCompletionFilter.java": (
+        "recovery.complete", "captureService.captureResponseBody", "UNKNOWN_RESULT", "AFTER"),
     "cpf-batch/worker/src/main/java/com/cpf/batch/worker/BatchRuntimeExecutorRegistry.java": (
         "ObjectMapper", "writeValueAsString", "readTree", "Payload is not valid JSON"),
-    "cpf-batch/worker/src/main/java/com/cpf/batch/worker/JobPackDispatcher.java": (
-        "FileProcessHandler", "handler.process", "claimForProcess", "AttemptDetail"),
+    "cpf-batch/worker/src/main/java/com/cpf/batch/worker/BatchFileProcessHandlerRegistry.java": (
+        "FileProcessHandler", "require", "Duplicate FILE_PROCESS handler"),
+    "cpf-batch/worker/src/main/java/com/cpf/batch/worker/SpringBatchWorkerStepHandler.java": (
+        "implements BatchStepHandler", "handler.process", "claimForProcess", "moveFromProcessing"),
     "cpf-batch/worker/src/main/java/com/cpf/batch/worker/JcaScriptArtifactVerifier.java": (
         "Signature", "CertificateFactory", "PKIX"),
     "cpf-admin/src/main/java/com/cpf/admin/opr/parameter/AdmParameterReferenceCatalogAdapter.java": (
         "secretReferences", "pathAliases", "fileReferences", "valueExposed"),
-    "cpf-reference/src/main/java/com/cpf/reference/edu/batch/ReferenceCsvFileProcessHandler.java": (
+    "cpf-reference/src/main/java/com/cpf/reference/batch/file/csv/ReferenceCsvFileProcessHandler.java": (
         "FileProcessHandler", "REF_CSV_COUNT", "FileProcessResult.completed"),
 }
 FORBIDDEN_LEGACY = (
     "cpf-core/src/main/java/com/cpf/core/common/gateway/CpfGatewayRoute.java",
     "cpf-core/src/main/java/com/cpf/core/common/gateway/CpfGatewayRouteCatalog.java",
     "cpf-core/src/test/java/com/cpf/core/common/gateway/CpfGatewayRouteCatalogTest.java",
+    "cpf-gateway/src/main/java/com/cpf/gateway/controller/CpfGatewayController.java",
+    "cpf-gateway/src/main/java/com/cpf/gateway/controller/CpfGatewayPublicController.java",
+    "cpf-gateway/src/main/java/com/cpf/gateway/service/CpfGatewayProxyService.java",
+    "cpf-gateway/src/main/java/com/cpf/gateway/transport/JdkCpfGatewayHttpExchangeAdapter.java",
+    "cpf-batch/worker/src/main/java/com/cpf/batch/worker/WorkerRuntime.java",
+    "cpf-batch/worker/src/main/java/com/cpf/batch/worker/JobPackDispatcher.java",
+    "cpf-batch/worker/src/main/java/com/cpf/batch/worker/internal/JdbcWorkerExecutionRepository.java",
 )
 
 
@@ -105,6 +116,17 @@ def sha256_file(path: Path) -> str:
     return h.hexdigest()
 
 
+def sha256_canonical_lf_text(path: Path) -> str:
+    """Hash repository text in its .gitattributes eol=lf representation.
+
+    Git may materialize the immutable QA input files as CRLF on Windows even
+    though their repository bytes and recorded integrity hashes use LF.  BOM
+    bytes are intentionally preserved; only line endings are canonicalized.
+    """
+    data = path.read_bytes().replace(b"\r\n", b"\n").replace(b"\r", b"\n")
+    return hashlib.sha256(data).hexdigest()
+
+
 def read_csv(path: Path) -> list[dict[str, str]]:
     with path.open("r", encoding="utf-8-sig", newline="") as stream:
         return list(csv.DictReader(stream))
@@ -117,7 +139,8 @@ def is_excluded(path: str) -> bool:
 
 def git_lines(root: Path, *args: str) -> list[str]:
     result = subprocess.run(
-        ["git", "-C", str(root), *args], text=True, capture_output=True, check=False)
+        ["git", "-C", str(root), *args], text=True, encoding="utf-8",
+        errors="replace", capture_output=True, check=False)
     if result.returncode != 0:
         raise RuntimeError(result.stderr.strip() or result.stdout.strip() or f"git {' '.join(args)} failed")
     return [line.strip() for line in result.stdout.splitlines() if line.strip()]
@@ -163,7 +186,7 @@ def validate_request_integrity(root: Path, checks: list[Check]) -> None:
         elif not expected or not re.fullmatch(r"[0-9a-f]{64}", expected):
             add(checks, f"request:{relative}", False, "manifest hash missing/invalid")
         else:
-            actual = sha256_file(path)
+            actual = sha256_canonical_lf_text(path)
             add(checks, f"request:{relative}", actual == expected,
                 f"expected={expected} actual={actual}")
 
@@ -311,11 +334,12 @@ def validate_source(root: Path, checks: list[Check]) -> None:
             "cpf-gateway/src/main/java/com/cpf/gateway/route/CpfGatewayRouteSnapshot.java",
             (r"ACK|acknowledged", r"current\.set|마지막 정상본")),
         "gateway-real-ingress-path": (
-            "cpf-gateway/src/main/java/com/cpf/gateway/controller/CpfGatewayPublicController.java",
-            (r"request\.getRequestURI\(\)",)),
+            "cpf-gateway/src/main/java/com/cpf/gateway/scg/CpfScgPrimaryHandler.java",
+            (r"request\.uri\(\)\.getRawPath\(\)", r"snapshot\.resolveRequest\(")),
         "batch-file-process-consumer": (
-            "cpf-batch/worker/src/main/java/com/cpf/batch/worker/JobPackDispatcher.java",
-            (r"fileProcessHandlers\.require", r"handler\.process", r"finally\s*\{[\s\S]*fileExecutor\.release")),
+            "cpf-batch/worker/src/main/java/com/cpf/batch/worker/SpringBatchWorkerStepHandler.java",
+            (r"implements\s+BatchStepHandler", r"fileHandlers\.require", r"handler\.process",
+             r"files\.claimForProcess", r"moveFromProcessing")),
         "batch-canonical-json-consumer": (
             "cpf-batch/worker/src/main/java/com/cpf/batch/worker/BatchRuntimeExecutorRegistry.java",
             (r"readTree\(", r"writeValueAsString\(")),
@@ -355,12 +379,12 @@ def validate_db(root: Path, checks: list[Check]) -> None:
         "cpf-tools/db/vendor/postgresql/migration/flyway/cpfDB/V81__qa31_gateway_target_nonce.sql",
         "cpf-tools/db/vendor/postgresql/migration/flyway/batDB/V81__qa31_batch_attempt_detail.sql",
         "cpf-tools/db/vendor/postgresql/migration/flyway/admDB/V81__qa31_durable_log_export.sql",
-        "cpf-tools/db/vendor/oracle/migration/rollback/cpfDB/R81__qa31_gateway_target_nonce.sql",
-        "cpf-tools/db/vendor/oracle/migration/rollback/batDB/R81__qa31_batch_attempt_detail.sql",
-        "cpf-tools/db/vendor/oracle/migration/rollback/admDB/R81__qa31_durable_log_export.sql",
-        "cpf-tools/db/vendor/postgresql/migration/rollback/cpfDB/R81__qa31_gateway_target_nonce.sql",
-        "cpf-tools/db/vendor/postgresql/migration/rollback/batDB/R81__qa31_batch_attempt_detail.sql",
-        "cpf-tools/db/vendor/postgresql/migration/rollback/admDB/R81__qa31_durable_log_export.sql",
+        "cpf-tools/db/vendor/oracle/rollback/cpfDB/R81__qa31_gateway_target_nonce.sql",
+        "cpf-tools/db/vendor/oracle/rollback/batDB/R81__qa31_batch_attempt_detail.sql",
+        "cpf-tools/db/vendor/oracle/rollback/admDB/R81__qa31_durable_log_export.sql",
+        "cpf-tools/db/vendor/postgresql/rollback/cpfDB/R81__qa31_gateway_target_nonce.sql",
+        "cpf-tools/db/vendor/postgresql/rollback/batDB/R81__qa31_batch_attempt_detail.sql",
+        "cpf-tools/db/vendor/postgresql/rollback/admDB/R81__qa31_durable_log_export.sql",
     )
     for relative in required:
         require_file(root, relative, checks)
@@ -429,7 +453,10 @@ def validate_exclusions(root: Path, base_sha: str, checks: list[Check]) -> None:
         add(checks, "readme-guide-exclusion", True, "git metadata unavailable; package filter still checked")
         return
     try:
-        changed = set(git_lines(root, "diff", "--name-only", base_sha))
+        # This is an evergreen gate. Historical changes committed after the
+        # original QA31 base are valid product evolution; the exclusion applies
+        # to the current overlay only, including staged and untracked files.
+        changed = set(git_lines(root, "diff", "--name-only", "HEAD"))
         changed.update(git_lines(root, "diff", "--name-only", "--cached"))
         changed.update(git_lines(root, "ls-files", "--others", "--exclude-standard"))
         excluded = sorted(path for path in changed if is_excluded(path))

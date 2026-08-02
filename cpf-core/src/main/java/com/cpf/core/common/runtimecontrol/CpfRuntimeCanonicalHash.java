@@ -90,7 +90,7 @@ public final class CpfRuntimeCanonicalHash {
             return out.append(']').toString();
         }
         java.util.TreeMap<String, JsonNode> fields = new java.util.TreeMap<>();
-        node.fields().forEachRemaining(entry -> fields.put(entry.getKey(), entry.getValue()));
+        node.properties().forEach(entry -> fields.put(entry.getKey(), entry.getValue()));
         StringBuilder out = new StringBuilder("{");
         boolean first = true;
         for (var entry : fields.entrySet()) {

@@ -34,6 +34,7 @@ cpf:
       heartbeat-ms: ${CPF_RUNTIME_HEARTBEAT_MS:5000}
     # 승인 Script/Path Alias는 고객 설치 환경에서 명시적으로 설정합니다. 빈 Catalog는 fail-closed입니다.
     worker:
+      max-concurrency: ${CPF_BAT_WORKER_MAX_CONCURRENCY:1}
       operations:
         scripts: {}
         path-aliases: {}

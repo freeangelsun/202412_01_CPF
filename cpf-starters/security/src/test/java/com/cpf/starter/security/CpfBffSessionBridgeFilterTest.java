@@ -19,6 +19,7 @@ class CpfBffSessionBridgeFilterTest {
                 Instant.now().plusSeconds(60), Instant.now().plusSeconds(120), 1));
         MockHttpServletRequest request = new MockHttpServletRequest("GET", "/adm/api/operators/me");
         request.getSession(true).setAttribute(CpfBffSessionBridgeFilter.CREDENTIAL_HANDLE, "h1");
+        request.getSession(false).setAttribute(CpfBffSessionBridgeFilter.PRINCIPAL_ID, "ADM001");
         AtomicBoolean called = new AtomicBoolean();
 
         new CpfBffSessionBridgeFilter(vault).doFilter(
@@ -41,6 +42,7 @@ class CpfBffSessionBridgeFilterTest {
                 Instant.now().minusSeconds(1), Instant.now().plusSeconds(120), 1));
         MockHttpServletRequest request = new MockHttpServletRequest("POST", "/api/bza/auth/refresh");
         request.getSession(true).setAttribute(CpfBffSessionBridgeFilter.CREDENTIAL_HANDLE, "h1");
+        request.getSession(false).setAttribute(CpfBffSessionBridgeFilter.PRINCIPAL_ID, "BZA001");
         AtomicBoolean called = new AtomicBoolean();
 
         new CpfBffSessionBridgeFilter(vault).doFilter(
@@ -83,6 +85,7 @@ class CpfBffSessionBridgeFilterTest {
         };
         MockHttpServletRequest request = new MockHttpServletRequest("GET", "/adm/api/operators/me");
         request.getSession(true).setAttribute(CpfBffSessionBridgeFilter.CREDENTIAL_HANDLE, "h1");
+        request.getSession(false).setAttribute(CpfBffSessionBridgeFilter.PRINCIPAL_ID, "ADM001");
         MockHttpServletResponse response = new MockHttpServletResponse();
 
         new CpfBffSessionBridgeFilter(vault)
@@ -110,6 +113,7 @@ class CpfBffSessionBridgeFilterTest {
         };
         MockHttpServletRequest request = new MockHttpServletRequest("POST", "/api/bza/auth/refresh");
         request.getSession(true).setAttribute(CpfBffSessionBridgeFilter.CREDENTIAL_HANDLE, "h1");
+        request.getSession(false).setAttribute(CpfBffSessionBridgeFilter.PRINCIPAL_ID, "BZA001");
         MockHttpServletResponse response = new MockHttpServletResponse();
 
         new CpfBffSessionBridgeFilter(vault)

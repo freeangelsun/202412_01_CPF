@@ -60,7 +60,7 @@ function Invoke-Generator([hashtable] $Case, [string] $OutputDir) {
     $tablePrefix = if ([string]::IsNullOrWhiteSpace([string]$Case.prefix)) { [string]$Case.domain } else { [string]$Case.prefix }
     $schemaName = if ([string]::IsNullOrWhiteSpace([string]$Case.schema)) { "${tablePrefix}DB" } else { [string]$Case.schema }
     $arguments = @(
-        '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $runtimeGeneratorPath,
+        '-NoProfile', '-File', $runtimeGeneratorPath,
         '-Root', $Root, '-OutputDir', $OutputDir,
         '-DomainName', $Case.domain, '-SystemCode', $Case.code, '-ModuleName', $Case.name,
         '-PackageName', $packageName, '-SchemaName', $schemaName, '-TablePrefix', $tablePrefix,
@@ -80,7 +80,7 @@ function Invoke-Generator([hashtable] $Case, [string] $OutputDir) {
 
 function Invoke-PwshScript([string] $ScriptPath, [string[]] $Arguments) {
     $pwshCommand = Get-Command pwsh -ErrorAction Stop
-    $output = & $pwshCommand.Source -NoProfile -ExecutionPolicy Bypass -File $ScriptPath @Arguments 2>&1
+    $output = & $pwshCommand.Source -NoProfile -File $ScriptPath @Arguments 2>&1
     if ($LASTEXITCODE -ne 0) {
         throw "스크립트 실행에 실패했습니다. script=$ScriptPath output=$($output -join ' ')"
     }

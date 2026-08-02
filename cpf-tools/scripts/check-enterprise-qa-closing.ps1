@@ -47,11 +47,11 @@ foreach($rel in @(
  'cpf-core\src\main\java\com\cpf\core\api\runtimecontrol\CpfRuntimeVersionConflictException.java',
  'cpf-core\src\main\java\com\cpf\core\api\runtimecontrol\CpfRuntimeCapabilityCatalog.java')){Require-File $rel|Out-Null}
 
-& pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'check-runtime-control-public-boundary.ps1') -Root $Root
+& pwsh -NoProfile -File (Join-Path $PSScriptRoot 'check-runtime-control-public-boundary.ps1') -Root $Root
 if($LASTEXITCODE -ne 0){throw "runtime control public boundary gate failed: $LASTEXITCODE"}
 
 # ADM Runtime Control 14 Capability는 Catalog뿐 아니라 실제 Consumer와 ADM surface가 있어야 한다.
-& pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'check-runtime-capability-consumers.ps1') -Root $Root
+& pwsh -NoProfile -File (Join-Path $PSScriptRoot 'check-runtime-capability-consumers.ps1') -Root $Root
 if($LASTEXITCODE -ne 0){throw "runtime capability consumer gate failed: $LASTEXITCODE"}
 
 # Notification trust boundary and official DB portability.
@@ -63,7 +63,7 @@ Require-Text 'cpf-admin\src\main\java\com\cpf\admin\opr\service\AdmNotificationS
  'GeneratedKeyHolder','new String[] {"rule_id"}','setMaxRows','notificationOutboxService.enqueueTest','findDeliveryAttempts') @(
  'com.cpf.core.common.','ON DUPLICATE KEY','LAST_INSERT_ID','LIMIT ?','CURRENT_TIMESTAMP(3)')
 
-& pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'check-notification-portable-sql.ps1') -Root $Root
+& pwsh -NoProfile -File (Join-Path $PSScriptRoot 'check-notification-portable-sql.ps1') -Root $Root
 if($LASTEXITCODE -ne 0){throw "notification portable SQL and durable recovery gate failed: $LASTEXITCODE"}
 
 # Local Web single-JVM and separate local Batch process.
@@ -74,16 +74,28 @@ foreach($rel in @(
  'cpf-tools\runtime\cpf-local-batch-runtime\src\main\java\com\cpf\local\batch\CpfLocalBatchRuntimeApplication.java',
  'cpf-tools\scripts\start-cpf-local.ps1','cpf-tools\scripts\stop-cpf-local.ps1')){Require-File $rel|Out-Null}
 
-& pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'check-local-runtime-topology.ps1') -Root $Root
+& pwsh -NoProfile -File (Join-Path $PSScriptRoot 'check-local-runtime-topology.ps1') -Root $Root
 if($LASTEXITCODE -ne 0){throw "local runtime topology gate failed: $LASTEXITCODE"}
 
-# Gateway trust boundary.
-Require-Text 'cpf-gateway\src\main\java\com\cpf\gateway\controller\CpfGatewayController.java' @(
- 'com.cpf.core.api.header.CpfHeaderNames','URI와 header의 표준 실행 ID가 일치하지 않습니다.') @(
- 'com.cpf.core.common.header','validateHeader')
-Require-Text 'cpf-gateway\src\main\java\com\cpf\gateway\service\CpfGatewayProxyService.java' @(
- 'CpfGatewayAuthenticationPort','requestSignatureVerified','PASSTHROUGH','NEVER_FORWARD','targetUri','validateEndpointPath') @(
+# Gateway trust boundary. SCG MVC HandlerFunctions.http가 유일한 업무 Data Plane Primary입니다.
+Require-Text 'cpf-gateway\src\main\java\com\cpf\gateway\scg\CpfScgPrimaryHandler.java' @(
+ 'HandlerFunctions.http','CpfGatewayAuthenticationPort','requestSignatureVerified(principal)',
+ 'credentialHeaders(request)','trustedHeaders(request)','URI와 header의 표준 실행 ID가 일치하지 않습니다.',
+ 'auditRecovery.recordRequired','RetryFilterFunctions.retry','ledgerRecovery.recordAttempt',
+ 'CpfGatewayPathRewriter.rewrite','captureService.captureRequestMetadata') @(
  'hasAuthentication','com.cpf.core.common.')
+Require-Text 'cpf-gateway\src\test\java\com\cpf\gateway\scg\CpfScgPrimaryHandlerPolicyTest.java' @(
+ 'callerSignatureHeaderAloneDoesNotSatisfyVerifiedSignaturePolicy',
+ 'spoofedInternalCpfHeaderIsRejectedBeforeScgExchange',
+ 'executionPathAndHeaderMismatchIsRejectedBeforeSnapshotLookup',
+ 'rawCredentialsNeverEnterTrustedDownstreamContext')
+foreach($legacyGatewayPrimary in @(
+ 'cpf-gateway\src\main\java\com\cpf\gateway\controller\CpfGatewayController.java',
+ 'cpf-gateway\src\main\java\com\cpf\gateway\controller\CpfGatewayPublicController.java',
+ 'cpf-gateway\src\main\java\com\cpf\gateway\service\CpfGatewayProxyService.java',
+ 'cpf-gateway\src\main\java\com\cpf\gateway\transport\JdkCpfGatewayHttpExchangeAdapter.java')){
+    if(Test-Path -LiteralPath (Join-Path $Root $legacyGatewayPrimary)){throw "legacy Gateway Primary remains: $legacyGatewayPrimary"}
+}
 Require-Text 'cpf-gateway\src\main\java\com\cpf\gateway\route\CpfGatewayRouteSnapshot.java' @('cpf.gateway.allow-empty-routes')
 
 # Registry routing/control.
@@ -116,23 +128,23 @@ Require-Text 'cpf-tools\db\metadata\platform-runtime-query-contract.json' @(
 Require-File 'cpf-biz-admin\src\test\java\com\cpf\bizadmin\auth\service\BzaLoginTransactionServiceTest.java' | Out-Null
 
 # Text artifacts must not contain hidden control characters.
-& pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'check-text-control-characters.ps1') -Root $Root
+& pwsh -NoProfile -File (Join-Path $PSScriptRoot 'check-text-control-characters.ps1') -Root $Root
 if($LASTEXITCODE -ne 0){throw "text control character gate failed: $LASTEXITCODE"}
 
 
 
 # 기존 2,118건과 신규 QA 병합 원장의 Architecture·Generated Domain·UI·Hygiene를 검증합니다.
-& pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'check-integrated-architecture-ui-hygiene.ps1') -Root $Root
+& pwsh -NoProfile -File (Join-Path $PSScriptRoot 'check-integrated-architecture-ui-hygiene.ps1') -Root $Root
 if($LASTEXITCODE -ne 0){throw "integrated architecture/UI/hygiene gate failed: $LASTEXITCODE"}
 
 # Migration history must be complete and tamper-evident.
-& pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'check-migration-checksums.ps1') -Root $Root
+& pwsh -NoProfile -File (Join-Path $PSScriptRoot 'check-migration-checksums.ps1') -Root $Root
 if($LASTEXITCODE -ne 0){throw "migration checksum gate failed: $LASTEXITCODE"}
 
 # Spring Batch framework-owned non-table objects are canonical artifacts, not
 # ad-hoc schema additions.  Keep the official 6.x names in every vendor pack
 # and reject stale BATCH_JOB_SEQ fresh-install regressions.
-& pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'check-spring-batch-sequence-contract.ps1') -Root $Root
+& pwsh -NoProfile -File (Join-Path $PSScriptRoot 'check-spring-batch-sequence-contract.ps1') -Root $Root
 if($LASTEXITCODE -ne 0){throw "Spring Batch sequence contract gate failed: $LASTEXITCODE"}
 
 Write-Host '[PASS] CPF enterprise QA closing static gate'

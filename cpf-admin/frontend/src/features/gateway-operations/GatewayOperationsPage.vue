@@ -41,7 +41,7 @@
 
     <section v-if="activeTab==='dashboard'" class="cpf-card">
       <div class="cpf-card-head"><div><h2>Gateway 운영 대시보드</h2><p>환경·Route·Server Group·Apply ACK·Connection Test를 동일 Context에서 요약합니다.</p></div></div>
-      <div class="cpf-grid-2"><div><h3>현재 필터</h3><pre>{{ filters }}</pre></div><div><h3>운영 경고</h3><pre>{{ operations.warnings || [] }}</pre></div></div>
+      <div class="cpf-grid-2"><div><h3>현재 필터</h3><CpfStructuredData :value="filters" /></div><div><h3>운영 경고</h3><CpfStructuredData :value="operations.warnings || []" /></div></div>
     </section>
 
     <section v-if="activeTab==='servers'" class="cpf-card">
@@ -54,7 +54,7 @@
 
     <section v-if="activeTab==='health'" class="cpf-card">
       <div class="cpf-card-head"><div><h2>Gateway Health · 연결시험</h2><p>Binding별 Apply ACK, Drift와 최근 연결시험 결과를 분리해 표시합니다.</p></div></div>
-      <div class="cpf-grid-2"><div><h3>Apply 상태</h3><pre>{{ applyStatuses }}</pre></div><div><h3>연결시험</h3><pre>{{ tests }}</pre></div></div>
+      <div class="cpf-grid-2"><div><h3>Apply 상태</h3><CpfStructuredData :value="applyStatuses" /></div><div><h3>연결시험</h3><CpfStructuredData :value="tests" /></div></div>
       <div v-if="connectionTestOperation" class="operation-panel">
         <strong>Operation {{ connectionTestOperation.operationId }}</strong>
         <span class="cpf-status" :class="statusClass(connectionTestOperation.status)">{{ connectionTestOperation.status }}</span>
@@ -68,12 +68,12 @@
     <section v-if="activeTab==='transactions'" class="cpf-card">
       <div class="cpf-card-head"><div><h2>Gateway 거래 조회</h2><p>Transaction ID·Correlation ID를 유지한 최근 Gateway 실행을 표시합니다.</p></div></div>
       <div class="cpf-toolbar"><input v-model.trim="transactionId" placeholder="Transaction ID"><button class="primary" :disabled="!transactionId" @click="traceGatewayTransaction">거래 추적</button></div>
-      <pre>{{ transactionTrace || operations.recentTransactions || operations.transactions || [] }}</pre>
+      <CpfStructuredData :value="transactionTrace || operations.recentTransactions || operations.transactions || []" />
     </section>
 
     <section v-if="activeTab==='log-policies'" class="cpf-card">
       <div class="cpf-card-head"><div><h2>Gateway 로그 정책</h2><p>Masking·Sampling·Retention·Payload 기록 정책의 Runtime 적용 상태를 표시합니다.</p></div><button class="ghost" @click="loadLogPolicies">정책 새로고침</button></div>
-      <div class="cpf-grid-2"><div><h3>정책</h3><pre>{{ logPolicies }}</pre></div><div><h3>배포 상태</h3><pre>{{ logPolicyDistribution }}</pre></div></div>
+      <div class="cpf-grid-2"><div><h3>정책</h3><CpfStructuredData :value="logPolicies" /></div><div><h3>배포 상태</h3><CpfStructuredData :value="logPolicyDistribution" /></div></div>
     </section>
 
     <section v-if="activeTab==='groups'" class="cpf-card">
@@ -213,9 +213,19 @@ export default defineComponent({
   methods:{
     selectTab(tabId:string){if(!this.tabs.some((tab:AnyRow)=>tab.id===tabId))return;this.activeTab=tabId;void this.$router.replace({query:{...this.$route.query,view:tabId}})},
     async initializeOperations(){await this.loadCapability();await this.loadAll();this.connectOperationsStream();this.startAutoRefresh()},
-    async loadCapability(){try{const c=await admQuery("/adm/api/gateway-registry/capability");this.capability=c||{};const catalog=c?.catalog||{};this.protocols=Array.isArray(catalog.protocols)?catalog.protocols:[];this.loadBalances=Array.isArray(catalog.loadBalancePolicies)?catalog.loadBalancePolicies:[];this.connectionTestTypes=Array.isArray(catalog.connectionTestTypes)?catalog.connectionTestTypes:[];if(this.connectionTestTypes.length&&!this.connectionTestTypes.includes(this.testType))this.testType=this.connectionTestTypes[0]}catch(e:any){this.capability={installed:false,available:false,status:"UNAVAILABLE",reason:e?.message||"Gateway Capability 조회 실패"};this.errorMessage=this.capability.reason}},
+    async loadCapability(){try{const c=await admQuery<AnyRow>("/adm/api/gateway-registry/capability");this.capability=c||{};const catalog=c?.catalog||{};this.protocols=Array.isArray(catalog.protocols)?catalog.protocols:[];this.loadBalances=Array.isArray(catalog.loadBalancePolicies)?catalog.loadBalancePolicies:[];this.connectionTestTypes=Array.isArray(catalog.connectionTestTypes)?catalog.connectionTestTypes:[];if(this.connectionTestTypes.length&&!this.connectionTestTypes.includes(this.testType))this.testType=this.connectionTestTypes[0]}catch(e:any){this.capability={installed:false,available:false,status:"UNAVAILABLE",reason:e?.message||"Gateway Capability 조회 실패"};this.errorMessage=this.capability.reason}},
     async loadOperations(){try{this.operations=await admQuery("/adm/api/gateway-registry/operations/snapshot")||{};this.lastEventId=this.operations.lastEventId||this.lastEventId}catch(e:any){this.errorMessage=e?.message||"Gateway 운영 KPI 조회 실패"}},
-    connectOperationsStream(){this.disconnectOperationsStream();if(!this.autoRefreshEnabled)return;void this.loadOperationEvents()},
+    connectOperationsStream(){
+      this.disconnectOperationsStream();
+      if(!this.autoRefreshEnabled)return;
+      const endpoint=`/adm/api/gateway-registry/operations/stream?afterEventId=${encodeURIComponent(this.lastEventId||"")}`;
+      const source=new EventSource(endpoint,{withCredentials:true});
+      const onEvent=(event:MessageEvent)=>{if(event.lastEventId)this.lastEventId=event.lastEventId;this.scheduleEventReload()};
+      for(const eventType of ["SERVER_GROUP_CHANGED","BINDING_CHANGED","BINDING_STATE_CHANGED","SERVER_GROUP_RETIRED","BINDING_RETIRED","APPLY_ACK","CONNECTION_TEST_RESULT","CONNECTION_TEST_REQUESTED","CONNECTION_TEST_CANCELLED","CONNECTION_TEST_COMPLETED","HEALTH_PROBE_RECORDED","gateway-heartbeat"]){source.addEventListener(eventType,onEvent as EventListener)}
+      source.onopen=()=>{this.streamConnected=true};
+      source.onerror=()=>{this.streamConnected=false;void this.loadOperationEvents()};
+      this.eventSource=source;
+    },
     async loadOperationEvents(){try{const events=await admQuery<AnyRow[]>("/adm/api/gateway-registry/operations/events",{afterEventId:this.lastEventId||undefined,limit:100});if(events.length){this.lastEventId=String(events.at(-1)?.eventId||this.lastEventId);this.scheduleEventReload()}}catch(e:any){this.errorMessage=e?.message||"Gateway 운영 Event 조회 실패"}},
     disconnectOperationsStream(){if(this.eventSource){this.eventSource.close();this.eventSource=null}this.streamConnected=false},
     scheduleEventReload(){if(this.eventReloadTimer)clearTimeout(this.eventReloadTimer);this.eventReloadTimer=setTimeout(()=>{this.loadOperations();if(!this.groupForm&&!this.bindingForm)this.loadAll()},300)},
@@ -225,7 +235,7 @@ export default defineComponent({
     toggleAutoRefresh(){this.autoRefreshEnabled=!this.autoRefreshEnabled;if(this.autoRefreshEnabled){this.startAutoRefresh();this.connectOperationsStream()}else{this.stopAutoRefresh();this.disconnectOperationsStream()}},
     async loadBindingDetails(id:string){this.selectedBindingId=id;const [a,t]=await Promise.all([admQuery(`/adm/api/gateway-registry/bindings/${encodeURIComponent(id)}/apply-status?limit=200`),admQuery(`/adm/api/gateway-registry/bindings/${encodeURIComponent(id)}/connection-tests?limit=200`)]);this.applyStatuses=a||[];this.tests=t||[]},
     startGroup(){this.groupForm={serverGroupId:"",groupName:"",environmentCode:"DEV",serviceId:"",endpointCode:"",targetProtocol:"HTTP",loadBalancePolicy:"ROUND_ROBIN",hashKeySource:"",healthPolicyId:"",failoverGroupId:"",directAllowed:false,version:0,reason:"Gateway 서버 그룹 등록"};this.groupMembers=[];this.originalGroupMembers=[];this.addMember();this.activeTab="groups"},
-    async selectGroup(r:AnyRow){this.groupForm={...r,reason:"Gateway 서버 그룹 변경"};const members=await admQuery(`/adm/api/gateway-registry/server-groups/${encodeURIComponent(r.serverGroupId)}/members`);this.groupMembers=(members||[]).map((m:AnyRow)=>({...m,canaryPercent:Number(m.canaryPercent||0),enabled:Boolean(m.enabled)}));this.originalGroupMembers=this.groupMembers.map((m:AnyRow)=>({...m}))},
+    async selectGroup(r:AnyRow){this.groupForm={...r,reason:"Gateway 서버 그룹 변경"};const members=await admQuery<AnyRow[]>(`/adm/api/gateway-registry/server-groups/${encodeURIComponent(r.serverGroupId)}/members`);this.groupMembers=(members||[]).map((m:AnyRow)=>({...m,canaryPercent:Number(m.canaryPercent||0),enabled:Boolean(m.enabled)}));this.originalGroupMembers=this.groupMembers.map((m:AnyRow)=>({...m}))},
     addMember(){this.groupMembers.push({instanceId:"",weight:100,priority:this.groupMembers.length,canaryPercent:0,enabled:true,effectiveStatus:"UNKNOWN",fencingToken:0})},
     retireMember(index:number){this.groupMembers.splice(index,1)},
     async saveGroup(){try{const f=this.groupForm!;const ids=this.groupMembers.map((m:AnyRow)=>String(m.instanceId||"").trim());if(ids.some((id:string)=>!id)||new Set(ids).size!==ids.length)throw new Error("Member Instance ID는 필수이며 중복될 수 없습니다.");const members=this.groupMembers.map((m:AnyRow)=>({instanceId:String(m.instanceId).trim(),weight:Number(m.weight),priority:Number(m.priority),canaryPercent:Number(m.canaryPercent||0),enabled:Boolean(m.enabled)}));await admMutation("/adm/api/gateway-registry/server-groups","POST",{operationId:crypto.randomUUID(),serverGroupId:f.serverGroupId,groupName:f.groupName,environmentCode:f.environmentCode,serviceId:f.serviceId,endpointCode:f.endpointCode,targetProtocol:f.targetProtocol,loadBalancePolicy:f.loadBalancePolicy,hashKeySource:f.hashKeySource,healthPolicyId:f.healthPolicyId,failoverGroupId:f.failoverGroupId,directAllowed:f.directAllowed,members,expectedVersion:f.version||0,reason:f.reason});this.groupForm=null;this.groupMembers=[];this.originalGroupMembers=[];await this.loadAll()}catch(e:any){this.errorMessage=e?.message||"Server Group 저장 실패"}},

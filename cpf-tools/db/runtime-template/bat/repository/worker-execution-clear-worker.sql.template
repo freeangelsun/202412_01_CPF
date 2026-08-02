@@ -1,4 +1,0 @@
-UPDATE bat_execution
-   SET worker_id = NULL,
-       updated_at = @NOW@
- WHERE execution_id = ?

@@ -9,7 +9,7 @@ if (-not (Test-Path -LiteralPath $tracked -PathType Leaf)) {
 $temp = Join-Path ([System.IO.Path]::GetTempPath()) ("cpf-db-schema-" + [Guid]::NewGuid().ToString("N") + ".json")
 try {
     $generator = Join-Path $PSScriptRoot "generate-database-schema-manifest.ps1"
-    & pwsh -NoProfile -ExecutionPolicy Bypass -File $generator -Root $Root -OutputPath $temp
+    & pwsh -NoProfile -File $generator -Root $Root -OutputPath $temp
     if ($LASTEXITCODE -ne 0) { throw "DB schema manifest 생성 실패 exitCode=$LASTEXITCODE" }
 
     $expected = Get-Content -LiteralPath $tracked -Raw -Encoding UTF8 | ConvertFrom-Json -Depth 50 | ConvertTo-Json -Depth 50 -Compress

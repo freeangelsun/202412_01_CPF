@@ -194,3 +194,14 @@ QA Matrix는 다음 Column 또는 동등한 구조를 가져야 한다.
 5. 이름만 바꾼 동일 Gap을 신규 Requirement로 중복 등록하지 않는다.
 6. Owner 이동은 Source·Consumer·SQL·Test·Guide·Evidence를 함께 이관한다.
 7. 사용자 승인 없는 Canonical Requirement 삭제·Count 감소를 금지한다.
+
+<!-- CPF_QA38_CONTINUITY_START -->
+## QA38 Recovery·Currentization
+- Canonical 169 유지
+- RabbitMQ/AMQP·JMS 승인 없는 제외 무효
+- IBM MQ/JMS 분리
+- TPC Alias→EXS-TCP
+- Core→Starter 30개와 Final Matrix로 승계
+- 날짜별 문서는 History 흡수 후 exact 삭제
+- 사용자 승인 없는 Requirement 제거 금지
+<!-- CPF_QA38_CONTINUITY_END -->

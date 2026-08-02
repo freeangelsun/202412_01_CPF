@@ -1,0 +1,45 @@
+{
+  "schema": "cpf.codex-review-package",
+  "schemaVersion": 3,
+  "baselineSha": "2e93d92393c52b887482731b683db3c3822027b1",
+  "generatedAtKst": "2026-08-02T17:26:55.205166+09:00",
+  "requirementCount": 156,
+  "scenarioCount": 52,
+  "files": [
+    {
+      "path": "cpf-docs/work/codex/qa38/CODEX_START_HERE.md",
+      "sha256": "45f385a53766615bb63538308db93c83e61d9b9cf95f613ce07142b068fb6a2d",
+      "size": 815
+    },
+    {
+      "path": "cpf-docs/work/codex/qa38/CPF_CODEX_QA38_VERIFICATION_REMEDIATION_REQUEST.md",
+      "sha256": "bb926f65d70a6912ee15aee0176004487aa117117728857733ee030ad35c985d",
+      "size": 546
+    },
+    {
+      "path": "cpf-docs/work/codex/qa38/OPEN_ISSUES.md",
+      "sha256": "7a4dedf448fc0870402f8f613b5c2ab1c566bed201bef134777f4ba17e1ccefa",
+      "size": 284
+    },
+    {
+      "path": "cpf-docs/work/codex/qa38/REQUIREMENT_STATUS.csv",
+      "sha256": "82bd1c68dabdaaad352fff908d7d73978f07a6f335fea0b595d23678507ab723",
+      "size": 46731
+    },
+    {
+      "path": "cpf-docs/work/codex/qa38/REVIEW_INDEX.md",
+      "sha256": "19be5713c5421494f147905e1ff002f421f1d8c71112b279eae02ed5c5e5b36c",
+      "size": 327
+    },
+    {
+      "path": "cpf-docs/work/codex/qa38/STAGE_PLAN.csv",
+      "sha256": "191f17748e308be23761a57955881b9e1101823d3fa122e85c6d11fa6bd89190",
+      "size": 1075
+    },
+    {
+      "path": "cpf-docs/work/codex/qa38/TEST_AND_EVIDENCE.md",
+      "sha256": "206f55331948a1534b3f6caf7e9abe06be8d709d8e1f750671f0c584d7978a22",
+      "size": 385
+    }
+  ]
+}

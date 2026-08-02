@@ -33,3 +33,15 @@ QA 번호·날짜가 붙은 작업 문서는 제품 정본이 아니다. 활성 
 - `../work/review/20260802_05/` — 이번 작업의 사전·사후 리뷰와 Source 기반 판정
 
 `../work/repository-consolidation/20260802/`는 이번 정본 갱신의 입력 History다. 활성 작업이 끝나면 결론을 Governance/State에 흡수하고 날짜별 중복 문서는 Delete Review 대상으로 전환한다.
+
+<!-- CPF_QA38_CURRENTIZATION_START -->
+## QA38 현행 개발·검수 정본
+- Current: `cpf-docs/work/current/CPF_CURRENT_WORK_REQUEST.md`
+- Detailed Request: `cpf-docs/work/current/CPF_QA38_FINAL_DEVELOPMENT_REQUIREMENTS.md`
+- Requirement Matrix: `cpf-docs/quality/CPF_QA38_FINAL_REQUIREMENT_MATRIX.csv`
+- Scenario Matrix: `cpf-docs/quality/CPF_QA38_FINAL_SCENARIO_MATRIX.csv`
+- Starter Review: `cpf-docs/work/review/CPF_QA38_STARTER_INDEPENDENT_REVIEW.md`
+- Codex Entry: `cpf-docs/work/codex/qa38/CODEX_START_HERE.md`
+- History: `cpf-docs/work/history/CPF_QA37_TO_QA38_CONSOLIDATED_HISTORY.md`
+과거 날짜별 문서는 활성 정본이 아니다.
+<!-- CPF_QA38_CURRENTIZATION_END -->

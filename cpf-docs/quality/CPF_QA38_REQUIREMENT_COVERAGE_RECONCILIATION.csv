@@ -1,0 +1,29 @@
+﻿user_requirement_id,user_request,disposition,final_mapping,implementation_note
+USR-001,Codex 크레딧 부족으로 Docker·Runtime 후순위 가능하나 최종 검증에서 제외 금지,강화,QA38-VERIFY-*|QA38-CURRENT-009,Stage 09~15와 exact-SHA 승계 조건
+USR-002,Codex 작업 문서와 남은 개발·미검증 요구 재정리,포함,전체 Final Matrix,최종 요청서가 자체 완결
+USR-003,여러 AI Push와 최신 Git 결과를 최종 기준으로 반영,포함,QA38-GOV-001|QA38-SRC-010,Baseline/Commit impact
+USR-004,DB 검수는 Vendor별 Empty 상태,포함,QA38-DB-001|004|005|006,CPF Object count 0
+USR-005,DB 수정은 Canonical Metadata·Generator Query부터,포함,QA38-DB-002|003,Vendor SQL 직접 수정 금지
+USR-006,Codex 검수 이력 지속 갱신,포함,QA38-CURRENT-009,Continuity/History/Defect ledger
+USR-007,가비지·빈 폴더를 그때그때 정리,추가 강화,QA38-CURRENT-004|010,Exact delete와 allowlisted empty-dir cleanup
+USR-008,MQ·JMS·TCP 등 과거 지원요건 복구,포함,QA38-MSG-*|QA38-TCP-*,Provider별 계약과 Runtime
+USR-009,RabbitMQ·AMQP 사용자 승인 없는 제외 무효,교정,QA38-MSG-004,공식 P0 Provider
+USR-010,JMS 사용자 승인 없는 제외 무효,교정,QA38-MSG-005,공식 P0 Provider
+USR-011,IBM MQ를 JMS와 분리,포함,QA38-MSG-006,IBM MQ 고유 Queue Manager/Channel/TLS/Reason
+USR-012,TPC 원문 보존 및 TCP 연결,포함,QA38-TCP-*,"Alias는 Continuity, 제품 ID는 EXS-TCP"
+USR-013,사용자 추가 요구를 최상위 정본에 합류,확인,Canonical 169 + Final Matrix,EVENT-MQ/JMS/IBM-MQ/AMQP/EXS-TCP/DB-FRESH/ARCH-STARTER
+USR-014,과거 불필요 문서는 현행화 후 삭제,추가 강화,QA38-CURRENT-002|003|004|008|010,단일 Current와 exact Delete
+USR-015,cpf-starters 정식 개발 구조,포함,QA38-STARTER-*|QA38-GROUP-*,공식 Root/Leaf/Profile/Aggregate/BOM
+USR-016,cpf-core 최대한 경량화,포함,QA38-STARTER-ST-001~030,선택 Runtime 이관
+USR-017,Domain이 필요한 Starter만 선택,포함,QA38-GROUP-*|QA38-CONSUMER-*,Minimal/Profile/optional removal
+USR-018,대표 Starter 하나로 의존 Starter 자동 등록,포함,QA38-GROUP-003~006,Profile/Aggregate/resolved lock
+USR-019,세부 Starter가 많아도 그룹 등록,포함,QA38-GROUP-*,"Mega Starter 금지, 승인 Bundle만"
+USR-020,Core뿐 아니라 다른 Domain/제품 영향까지 검토,포함,QA38-CONSUMER-*,ADM/BZA/Gateway/Batch/Reference/Generated Domain
+USR-021,QA가 요청서만 옮기지 말고 최종 품질 선제 판단,포함,QA38-GOV-*|QA38-SRC-*,Architecture/Consumer/Failure/Operations
+USR-022,Starter 편입 기능 별도 리뷰,포함,Starter Independent Review + Matrix,Core/Common 이관·기존 7개·신규 Capability
+USR-023,다른 GPT 보호 경로 수정·삭제 금지,추가 강화,QA38-CURRENT-007,4 Prefix hard guard
+USR-024,다중 GPT 동시 수정 고려,추가 강화,QA38-CURRENT-005|006,Archive then replace/delete
+USR-025,최종 QA 요청서에 모두 상세 포함,추가 강화,QA38-CURRENT-001,전체 Requirement appendix 포함
+USR-026,개발 GPT 문서에 있다고 최종 QA에서 생략 금지,추가 강화,QA38-CURRENT-001|003,최종본 자체 완결
+USR-027,정리 적용 전에 사용자 DB·Docker Asset 보호,포함,QA38-DB-001|013 + 보호 경로,사용자 DB Reset/Drop·Docker prune 금지
+USR-028,최종 결과물 Root Overlay ZIP·Hash·한 줄 명령,포함,Package/Script,ZIP/Hash/Manifest

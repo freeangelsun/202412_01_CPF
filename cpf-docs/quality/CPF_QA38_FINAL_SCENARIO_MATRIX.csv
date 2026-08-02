@@ -1,0 +1,53 @@
+﻿scenario_id,priority,codex_stage,area,scenario,expected_result,environment
+QA38-SCN-001,P0,00_BASELINE,Multi-GPT,보호 경로가 Overlay에 포함됨,적용 전 전체 중단,static
+QA38-SCN-002,P0,00_BASELINE,Multi-GPT,공동 관리 파일이 로컬 수정됨,내용을 Consolidated History에 SHA와 함께 보존 후 최종본 적용,local fixture
+QA38-SCN-003,P0,00_BASELINE,Delete,삭제 후보가 baseline 이후 remote에서 변경됨,삭제 전 전체 중단,git fixture
+QA38-SCN-004,P0,01_CANONICAL,Currentization,과거 Current 요청이 활성 시작점에서 참조됨,참조 검사 실패,static
+QA38-SCN-005,P0,01_CANONICAL,Requirement,RabbitMQ/JMS/TCP 요구가 최종 Matrix에서 누락됨,Coverage Gate 실패,static
+QA38-SCN-006,P0,01_CANONICAL,Requirement,사용자 승인 없는 removed/superseded,Continuity Gate 실패,static
+QA38-SCN-007,P0,03_CORE_STARTER,Core,Core-only non-Boot consumer,선택 Boot/Provider Runtime 전이 0,fresh fixture
+QA38-SCN-008,P0,03_CORE_STARTER,Base,Base-only Boot Domain,Web/DB/Broker/Cache/Security UI Bean 0,runtime
+QA38-SCN-009,P0,03_CORE_STARTER,Persistence,MyBatis Starter 제거 variant,비 Persistence Consumer 정상,compile/runtime
+QA38-SCN-010,P0,03_CORE_STARTER,Security,"Generic Security Starter에 /adm,/bza hardcode",Architecture Gate 실패,negative
+QA38-SCN-011,P0,03_CORE_STARTER,Cache,Caffeine-only Profile,Valkey/Redis JAR·Bean 0,artifact/runtime
+QA38-SCN-012,P0,03_CORE_STARTER,Cache,Valkey-only Profile,Caffeine Provider Bean 0,artifact/runtime
+QA38-SCN-013,P0,03_CORE_STARTER,Observability,OTLP 미선택,"Observation 정상, Exporter 없음",runtime
+QA38-SCN-014,P0,03_CORE_STARTER,Group,DOMAIN_EVENT_RABBITMQ 하나만 등록,승인 Leaf 목록·Version Lock과 Build 일치,generator
+QA38-SCN-015,P0,03_CORE_STARTER,Group,Kafka+Rabbit named binding,"둘 다 사용 가능, Default 최대 하나",runtime
+QA38-SCN-016,P0,03_CORE_STARTER,Group,Kafka+Rabbit 이름 없는 Default 두 개,Startup fail-closed,negative
+QA38-SCN-017,P0,03_CORE_STARTER,Legacy,새 Starter와 기존 Core Bean 동시 존재,Dual Primary Gate 실패,negative
+QA38-SCN-018,P0,04_MESSAGING_TCP,Kafka,Consumer rebalance 중 처리,Offset/Idempotency/Fencing 일치,actual Kafka
+QA38-SCN-019,P0,04_MESSAGING_TCP,RabbitMQ,Confirm timeout after broker accept,UNKNOWN_RESULT와 Reconcile,actual RabbitMQ
+QA38-SCN-020,P0,04_MESSAGING_TCP,RabbitMQ,Mandatory publish unroutable,Return 실패·Audit,actual RabbitMQ
+QA38-SCN-021,P0,04_MESSAGING_TCP,RabbitMQ,Poison message NACK/Requeue loop,Bounded retry 후 DLQ,actual RabbitMQ
+QA38-SCN-022,P0,04_MESSAGING_TCP,JMS,CLIENT_ACK 후 Consumer crash,Redelivery + Inbox Dedup,actual JMS
+QA38-SCN-023,P0,04_MESSAGING_TCP,JMS,Durable subscriber reconnect,계약 범위 내 유실 0,actual JMS
+QA38-SCN-024,P0,04_MESSAGING_TCP,IBM MQ,Queue Manager outage/reconnect,Reason mapping·in-doubt·duplicate reconcile,compatible runtime
+QA38-SCN-025,P0,04_MESSAGING_TCP,Multi Broker,Kafka→Rabbit Bridge 응답 유실,Loop 없음·Correlation/Unknown 보존,fault
+QA38-SCN-026,P0,04_MESSAGING_TCP,TCP,Fragmented length header,정상 재조립,simulator
+QA38-SCN-027,P0,04_MESSAGING_TCP,TCP,Oversize/Malformed frame,제한된 거부와 연결 정책,simulator
+QA38-SCN-028,P0,04_MESSAGING_TCP,TCP,Out-of-order response,정확한 Correlation,simulator
+QA38-SCN-029,P0,04_MESSAGING_TCP,TCP,Write 후 disconnect,UNKNOWN_RESULT와 대사,fault proxy
+QA38-SCN-030,P0,04_MESSAGING_TCP,TCP,Half-open heartbeat loss,Stale 연결 제거·재연결,fault proxy
+QA38-SCN-031,P0,04_MESSAGING_TCP,SFTP,Partial upload 중 연결 손실,Resume 또는 cleanup·checksum,actual/fixture
+QA38-SCN-032,P0,04_MESSAGING_TCP,Notification,SMTP accept 후 결과 불명,Delivery unknown·reconcile,embedded/provider
+QA38-SCN-033,P0,04_MESSAGING_TCP,SMS,Timeout 후 중복 callback,Idempotent result,simulator
+QA38-SCN-034,P0,05_DB_TOOLING,DB,Vendor SQL만 직접 수정,Generator Drift Gate 실패,static
+QA38-SCN-035,P0,05_DB_TOOLING,DB,기존 DB에 CPF Object 존재,Fresh Stage 시작 차단,actual DB
+QA38-SCN-036,P0,06_DB_MARIADB,MariaDB,Fresh→Install→Seed→Runtime→Upgrade→Rollback→Reapply,Schema/History parity,actual MariaDB
+QA38-SCN-037,P0,07_DB_POSTGRESQL,PostgreSQL,Fresh→Install→Seed→Runtime→Upgrade→Rollback→Reapply,Schema/History parity,actual PostgreSQL
+QA38-SCN-038,P0,08_DB_ORACLE,Oracle,Fresh→Install→Seed→Runtime→Upgrade→Forward Recovery,Schema/History parity,actual Oracle
+QA38-SCN-039,P0,05_DB_TOOLING,DB,Different-hash migration,Fail-closed,actual DB
+QA38-SCN-040,P0,05_DB_TOOLING,DB,Optional Pack off/on,"미선택 SQL/Bean 0, 선택 시 정상",actual DB
+QA38-SCN-041,P0,05_DB_TOOLING,DB,Migration process kill,일관된 restart/recovery,fault
+QA38-SCN-042,P0,09_JAVA_FULL,Build,Java25 Fresh test/assemble/publication,Exit 0·Artifact Hash,fresh cache
+QA38-SCN-043,P0,10_FRONTEND,ADM/BZA,npm ci→generate→lint→type→unit→build,Lockfile 기반 Exit 0,clean workspace
+QA38-SCN-044,P0,11_RUNTIME,Consumer,Reference가 Rabbit/JMS/TCP/SFTP Starter 사용,실제 Public Consumer Evidence,runtime
+QA38-SCN-045,P0,12_FAULT_OTEL,Multi-instance,Provider failover/process kill,중복 Side Effect 0·Recovery,fault
+QA38-SCN-046,P0,12_FAULT_OTEL,OTel,Collector outage,업무 안정성·bounded buffering·PII 보호,fault
+QA38-SCN-047,P0,13_BROWSER,Browser,Chromium/Firefox/WebKit,Route/session/error/a11y/responsive PASS,3 engines
+QA38-SCN-048,P0,14_SUPPLY_CHAIN,Supply,미승인 Transitive License/CVE/Secret,Release Gate 차단,artifact scan
+QA38-SCN-049,P0,15_TRUTH,Currentization,Delete 후보 수정 내용 존재,History Snapshot 후 exact delete,local fixture
+QA38-SCN-050,P0,15_TRUTH,Currentization,삭제 후 old path active reference,Post-apply Gate 실패,static
+QA38-SCN-051,P0,15_TRUTH,Currentization,같은 패키지 재실행,중복 Section/Requirement 없이 idempotent,PowerShell
+QA38-SCN-052,P0,15_TRUTH,Evidence,과거 SHA PASS를 현재 PASS로 사용,Truth Gate 실패,static

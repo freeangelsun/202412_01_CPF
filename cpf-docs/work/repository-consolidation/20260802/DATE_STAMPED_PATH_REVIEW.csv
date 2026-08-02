@@ -1,9 +1,0 @@
-﻿path_pattern,area,current_judgement,reason,action
-cpf-docs/work/current/CPF_20*,Current docs,1차 삭제 후보,활성 QA37로 승계된 과거 Prompt/Report 누적,승인 후 50개 삭제
-cpf-docs/work/review/CPF_20*,Review docs,보존/2차 검토,당시 사실·감사 이력일 수 있음,History Ledger와 Evidence 연결 후 개별 검토
-cpf-docs/work/handover/CPF_20*,Handover docs,보존/2차 검토,세션 연속성 이력이나 Stale SHA 위험,최신 통합 Handover 존재 확인 후 축약
-cpf-docs/work/manifest/CPF_20*,Manifest,대체로 보존,Overlay와 Hash의 감사 근거,대상 Package 삭제 정책과 함께 검토
-cpf-docs/quality/CPF_20*,Quality Matrix,통합 필요,Requirement/Result 역할 중복 가능,ID 보존 통합 Matrix 설계 후 축약
-cpf-docs/evidence/20*,Evidence,보존,exact-SHA 실행 근거,Retention 정책으로만 관리
-cpf-tools/verification/20*,Verification code,현재 활성 가능,Final CI 직접 호출 사례 확인,안정 경로 이관 전 삭제 금지
-cpf-tools/scripts/*qa3*,QA-numbered gates,이관 필요,Final Script 직접 호출 또는 과거 패키지 의존 가능,Consumer Graph 후 stable gate로 통합

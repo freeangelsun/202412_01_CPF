@@ -1,0 +1,11 @@
+﻿path,merge_mode,rule
+cpf-docs/work/current/CPF_CURRENT_WORK_REQUEST.md,SHARED_MANAGED_REPLACE,기존 Snapshot 후 최종 Current
+cpf-docs/work/codex/qa38/CODEX_START_HERE.md,SHARED_MANAGED_REPLACE,기존 Snapshot 후 최종 시작점
+cpf-docs/work/codex/qa38/CPF_CODEX_QA38_VERIFICATION_REMEDIATION_REQUEST.md,SHARED_MANAGED_REPLACE,기존 Snapshot 후 최종 실행 요청
+cpf-docs/work/codex/qa38/STAGE_PLAN.csv,SHARED_MANAGED_REPLACE,기존 Snapshot 후 최종 Stage
+cpf-docs/work/state/CPF_CODEX_CONTINUITY_STATE.md,SHARED_MANAGED_REPLACE,기존 Snapshot 후 최종 Continuity
+cpf-docs/work/state/CPF_CODEX_DECISION_LOG.md,SHARED_MANAGED_REPLACE,기존 Snapshot 후 최종 Decision
+cpf-docs/governance/CPF_DOCUMENT_CANONICAL_INDEX.md,MARKER_MERGE,QA38 Current Section
+cpf-docs/governance/CPF_CANONICAL_PATH_AND_ROLE_MAP.md,MARKER_MERGE,QA38 Stable Path Section
+cpf-docs/governance/CPF_REQUIREMENT_CONTINUITY_LEDGER.md,MARKER_MERGE,QA38 Recovery Section
+cpf-docs/work/history/CPF_QA37_TO_QA38_CONSOLIDATED_HISTORY.md,SHARED_MANAGED_REPLACE,기존 History를 SHA·원문 Snapshot으로 History 자체에 보존 후 최종 통합 History로 교체

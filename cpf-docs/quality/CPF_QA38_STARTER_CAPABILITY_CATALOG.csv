@@ -1,0 +1,35 @@
+﻿artifact,capability,origin,priority,final_scope
+cpf-starter-base,Base Boot Runtime,신규,P0,Core+최소 Boot 조립만; Web/DB/Broker/Cache/Security UI/Batch 전이 금지
+cpf-starter-persistence-jdbc,JDBC/DataSource,Core 이관,P0,Datasource 조립·health·transaction boundary
+cpf-starter-persistence-mybatis,MyBatis,Core/Common 이관,P0,Mapper·Query Catalog·3 Vendor Runtime
+cpf-starter-aop-service-access,Service Access AOP,Core 이관,P0,Audit/trace 계약과 AspectJ Runtime
+cpf-starter-openapi-webmvc,OpenAPI WebMVC,Core 이관,P0,Springdoc·Scalar 선택 Runtime
+cpf-starter-security-resource-server,Resource Server,Security 분리,P0,JWT/OIDC stateless API
+cpf-starter-security-session-jdbc,BFF Session JDBC,Security 분리,P0,ADM/BZA Route 정책은 Product Owner 유지
+cpf-starter-security-service-identity,Service Identity,Core 분리,P0,mTLS/OIDC/rotation
+cpf-starter-messaging-reliability-jdbc,Outbox/Inbox/DLQ/Replay,Core 이관,P0,3 Vendor reliability ledger
+cpf-starter-messaging-kafka,Kafka,기존 보완,P0,Publish/Consume/Rebalance/DLT/Operations
+cpf-starter-messaging-rabbitmq,RabbitMQ/AMQP,누락 복구,P0,Exchange/Queue/Binding/Confirm/ACK/NACK/DLX/Quorum
+cpf-starter-messaging-jms,Jakarta JMS,누락 복구,P0,Queue/Topic/Durable/Selector/Transaction/Redelivery
+cpf-starter-messaging-ibm-mq,IBM MQ,누락 복구,P0,JMS 기반 Queue Manager/Channel/TLS/CCDT/Reason Code
+cpf-starter-channel-registry-jdbc,Channel Registry JDBC,Core 이관,P0,Registry SPI의 JDBC Provider
+cpf-starter-cache-caffeine,Local Cache,Common 이관,P0,Caffeine-only profile
+cpf-starter-cache-valkey,Distributed Cache,Common 이관,P0,Valkey/Redis-compatible provider; Caffeine 강제 금지
+cpf-starter-observability,Observation,기존 보완,P0,Trace/Metric/Log 공통 조립
+cpf-starter-observability-otlp,OTLP Exporter,Core/기존 분리,P0,Collector 장애 격리
+cpf-starter-resilience,Resilience,기존 보완,P0,Timeout/Retry/CB/Bulkhead/Rate/Unknown Result
+cpf-starter-http-client,Typed HTTP Client,Core 이관,P0,Identity/trace/deadline/resilience
+cpf-integration-fixedlength-core,Fixed-length Pure Java,Core 분리,P0,Spring 없는 Codec
+cpf-starter-integration-fixedlength,Fixed-length Boot,Core 분리,P0,Layout/encoding/error properties
+cpf-starter-integration-tcp,Persistent TCP,누락 복구,P0,Connection/Framing/Heartbeat/Reconnect/TLS/Unknown Result
+cpf-starter-integration-iso8583,ISO8583,누락 복구,P1,Bitmap/Field/MAC/PIN Extension
+cpf-starter-integration-sftp,SFTP,Planned-only 보완,P0,실제 transfer/resume/checksum/reconcile
+cpf-starter-notification,Notification Worker,누락 보완,P0,Outbox/Worker/Retry/DLQ/Preference/Audit
+cpf-starter-notification-email,Email,누락 보완,P0,SMTP/provider/template/attachment/bounce
+cpf-notification-sms-spi,SMS SPI,누락 보완,P0,Provider plugin/rate/receipt/unknown result
+cpf-starter-tabular-poi,Tabular/XLSX,Common 이관,P1,Streaming/limit/formula policy
+cpf-starter-file-archive,Archive,Core 이관,P1,Zip-slip/bomb/path/resource limits
+cpf-starter-validation,Validation Runtime,Core/Common 이관,P0,API와 Provider 분리
+cpf-starter-featureflag,Feature Flag,기존 보완,P1,Provider lifecycle/audit/secure override
+cpf-starter-secret,Secret,기존 보완,P0,Provider catalog/rotation/revocation/health
+cpf-starter-scheduler-quartz,Quartz,선택 신규,P1,db-scheduler 기본을 대체하지 않는 고급 선택 Adapter

@@ -1,17 +1,17 @@
-stage_order,stage_id,scope,prerequisite,completion_rule
-00,BASELINE,Git/head/tree/commit range/required docs/Docker read-only snapshot,always,No expensive work if source baseline invalid
-01,CANONICAL,Final Target/Ledger/Current/State/Matrix integrity and recovered requirements,00,169 IDs and trace links
-02,STATIC,diff/hygiene/secret/ownership/dependency/public boundary/generator/source closure,01,one integrated low-cost pass
-03,CORE_STARTER,"Core split, leaf starters, consumers, profiles, aggregate, BOM/publication",02,actual source remediation and variant tests
-04,MESSAGING_TCP,Kafka/JMS/IBM MQ/RabbitMQ/TCP vertical slices,03,actual provider/fault tests
-05,DB_TOOLING,canonical/generator/lifecycle tooling static/dry-run,03,no manual SQL; all vendor paths
-06,DB_MARIADB,zero-object fresh lifecycle,05,actual MariaDB
-07,DB_POSTGRESQL,zero-object fresh lifecycle,06,actual PostgreSQL
-08,DB_ORACLE,zero-object fresh lifecycle,07,actual Oracle
-09,JAVA_FULL,Java25 fresh build/test/publication,03-08,single upper lifecycle
-10,FRONTEND,ADM/BZA npm ci/lint/type/unit/build,09,single clean verify
-11,RUNTIME,Kafka/Redis/Batch/Scheduler/Gateway/multi-instance/process kill,09,actual Docker services
-12,FAULT_OTEL,Toxiproxy and OpenTelemetry outage/masking,11,fault/recovery evidence
-13,BROWSER,Chromium/Firefox/WebKit,10-12,route/session/errors/a11y/responsive
-14,SUPPLY_CHAIN,Trivy/secret/SBOM/ORT/license/artifact hashes,09-13,final artifacts only
-15,TRUTH,Matrix/Evidence/continuity/current/delete review/exact SHA,all,zero source defects and mandatory unverified
+﻿stage_id,priority,scope,status
+00_BASELINE,P0,Git·Toolchain·Working Tree·Protected/Multi-GPT,미검증
+01_CANONICAL,P0,Canonical·Final Requirement·Currentization,미검증
+02_STATIC,P0,Dependency·Import·AutoConfig·SQL·Test·Artifact Graph,미검증
+03_CORE_STARTER,P0,Core/Common 이관·기존 7개·Profile/Consumer,미검증
+04_MESSAGING_TCP,P0,Kafka·RabbitMQ·JMS·IBM MQ·TCP·File·Notification,미검증
+05_DB_TOOLING,P0,Generator-first·Empty Preflight·Drift/Pack,미검증
+06_DB_MARIADB,P0,MariaDB Full Lifecycle,미검증
+07_DB_POSTGRESQL,P0,PostgreSQL Full Lifecycle,미검증
+08_DB_ORACLE,P0,Oracle Full Lifecycle,미검증
+09_JAVA_FULL,P0,Java25 Clean Test/Assemble/Publication,미검증
+10_FRONTEND,P0,ADM/BZA Clean Verify,미검증
+11_RUNTIME,P0,Actual Provider Runtime,미검증
+12_FAULT_OTEL,P0,Multi-instance·Fault·Unknown·OTel,미검증
+13_BROWSER,P0,Chromium·Firefox·WebKit,미검증
+14_SUPPLY_CHAIN,P0,BOM·SBOM·License·CVE·Secret,미검증
+15_TRUTH,P0,Matrix·Evidence·Currentization·Handover·Hygiene,미검증

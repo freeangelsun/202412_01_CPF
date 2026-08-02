@@ -1,0 +1,4 @@
+cpf-docs/deliverables/
+cpf-docs/guides/
+cpf-docs/environment/docker/
+cpf-tools/environment/docker-development-test/

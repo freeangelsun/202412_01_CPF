@@ -105,3 +105,17 @@ cpf-tools/environment/docker-development-test/**
 이 작업과 다음 Codex 작업은 해당 경로를 참조할 수 있지만 수정·추가·삭제·이동·이름 변경·자동 포맷·일괄 치환·Stage하지 않는다.
 변경 필요성이 발견되면 실제 파일을 건드리지 않고 담당 GPT용 영향도와 작업요건만 기록한다.
 Overlay·Delete Manifest·Cleanup 대상에도 포함하지 않는다.
+
+<!-- CPF_QA38_STABLE_PATHS_START -->
+## QA38 Stable Paths
+| 역할 | 경로 |
+|---|---|
+| Current | `cpf-docs/work/current/CPF_CURRENT_WORK_REQUEST.md` |
+| Detailed | `cpf-docs/work/current/CPF_QA38_FINAL_DEVELOPMENT_REQUIREMENTS.md` |
+| Requirement | `cpf-docs/quality/CPF_QA38_FINAL_REQUIREMENT_MATRIX.csv` |
+| Scenario | `cpf-docs/quality/CPF_QA38_FINAL_SCENARIO_MATRIX.csv` |
+| Starter Review | `cpf-docs/work/review/CPF_QA38_STARTER_INDEPENDENT_REVIEW.md` |
+| Codex | `cpf-docs/work/codex/qa38/CODEX_START_HERE.md` |
+| History | `cpf-docs/work/history/CPF_QA37_TO_QA38_CONSOLIDATED_HISTORY.md` |
+| Handover | `cpf-docs/work/handover/CPF_QA38_HANDOVER.md` |
+<!-- CPF_QA38_STABLE_PATHS_END -->

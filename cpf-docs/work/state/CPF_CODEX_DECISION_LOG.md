@@ -449,3 +449,41 @@
 - 지원하지 않는 Platform Vendor는 MariaDB 복사본/fallback 없이 fail-closed한다.
 - ADM/BZA frontend는 self-contained static artifact이며 외부 CDN/remote CSS/font/icon에 Runtime 의존하지 않는다. App Shell, feature package, route registry, state/API boundary, code splitting을 표준으로 한다.
 - 환경별 Docker Compose는 Repository Root가 아니라 `deploy/`가 소유한다.
+
+## 2026-08-02 — POST-QA37 canonical decisions
+
+### DEC-STARTER-ROOT
+
+- `cpf-starters/` is a permanent official product root.
+- Purpose: keep `cpf-core` topology-independent and lightweight.
+- Optional technical runtime belongs in Leaf Starters or real owner modules.
+- Generated/Business Domains select only required capabilities.
+
+### DEC-STARTER-GROUP
+
+- A representative Starter may bring dependent Starters through Gradle transitive dependencies.
+- Default product mechanism is a versioned Generator Capability Profile that expands to explicit Leaf Starters and stores `resolvedStarters`.
+- Aggregate Starter is permitted only for stable, surveyed combinations and owns no Bean/AutoConfiguration.
+- Mega Starter is prohibited.
+
+### DEC-MESSAGING-PROVIDERS
+
+- Kafka remains an official provider.
+- JMS, IBM MQ, RabbitMQ/AMQP and persistent TCP requirements are restored to the canonical catalog.
+- Generic broker contracts stay in Core; runtime/provider implementations belong in Starters.
+- JMS and IBM MQ are separate layers.
+- User input `TPC` is retained as a search alias and provisionally maps to `EXS-TCP` until clarified.
+
+### DEC-DB-FRESH-GENERATOR-FIRST
+
+- Every Codex DB verification starts with a dedicated CPF QA Database/Schema containing zero CPF objects.
+- Existing user DBs are protected and never reset.
+- Canonical Metadata/Generator is changed before Vendor SQL.
+- No manual SQL may bypass a missing official lifecycle path.
+- Each official Vendor runs Fresh Install, metadata/seed, upgrade, rollback, reapply, drift, runtime query and cleanup.
+
+### DEC-CODEX-EVIDENCE
+
+- QA37 focused PASS records remain historical inputs.
+- Multiple pushes invalidate exact-SHA completion claims.
+- Current completion requires latest HEAD, clean tree, command/environment/artifact hashes and all mandatory stages.

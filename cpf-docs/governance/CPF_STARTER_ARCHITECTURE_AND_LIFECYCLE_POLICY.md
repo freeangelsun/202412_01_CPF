@@ -1,7 +1,7 @@
 # CPF Starter Architecture·Lifecycle 정책
 
 - 기준 Repository: `freeangelsun/202412_01_CPF`
-- 분석 기준 Branch/SHA: `master` / `1eda8e12fe123281748a4388938c62f11819da1e`
+- 분석 기준 Branch/SHA: `master` / `38089a96e3f4c7c2ba05cda549785b47f67cd462`
 - 적용 Root: `cpf-starters`
 - Root 분류: `FIXED_PRODUCT_CONTAINER`
 - Architecture 방향: **Lightweight Core + Explicit Opt-in Starter**
@@ -344,3 +344,102 @@ Starter 세분화 개발은 향후 계속될 수 있다. 다음이 변경되면 
 - Next QA Requirement·Evidence
 
 날짜별 설명 문서를 계속 추가하지 않고 이 정책과 역할별 정본을 갱신한다.
+
+## 14. 2026-08-02 Target Starter Architecture
+
+### 14.1 현재 추적된 7개 Leaf Starter
+
+- `cpf-starter-security`
+- `cpf-starter-messaging-kafka`
+- `cpf-starter-cache`
+- `cpf-starter-observability`
+- `cpf-starter-resilience`
+- `cpf-starter-featureflag`
+- `cpf-starter-secret`
+
+위 7개는 정식 제품 Artifact지만 세분화·Core 이관·실제 Consumer·Runtime Evidence가 모두 끝났다는 의미는 아니다.
+
+### 14.2 P0 분리·신규 대상
+
+| Target Artifact | 주요 Source/Capability | 원칙 |
+|---|---|---|
+| `cpf-starter-base` | 최소 Boot bridge, CPF contract import | Web/DB/Broker/Cache/Security UI/Batch를 포함하지 않음 |
+| `cpf-starter-aop-service-access` | `CpfAopConfig`, `ServiceAccessAspect` | AspectJ가 Core에 강제 전이되지 않음 |
+| `cpf-starter-persistence-jdbc` | DataSource/JdbcTemplate, JDBC readiness | Vendor driver는 Consumer/Runtime Profile에서 선택 |
+| `cpf-starter-persistence-mybatis` | `CpfMyBatisConfig`, mapper resource | JDBC Starter 위에 명시적으로 선택 |
+| `cpf-starter-webmvc` | Header/Error/Validation/Servlet bridge | non-Web Runtime에 Servlet 강제 금지 |
+| `cpf-starter-openapi-webmvc` | Springdoc/Scalar/OpenAPI UI | API 계약과 UI Runtime을 분리 |
+| `cpf-starter-http-client` | RestClient/WebClient, identity/trace/deadline | Resilience 정책과 중복 Primary 금지 |
+| `cpf-starter-messaging-reliability-jdbc` | Broker worker, Outbox/Inbox/DLQ/JDBC ledger | Core에는 Envelope·Port·Result 계약만 유지 |
+| `cpf-starter-messaging-jms` | Jakarta JMS 공통 Adapter | Provider-neutral |
+| `cpf-starter-messaging-ibm-mq` | IBM MQ Provider | JMS Starter에 의존 |
+| `cpf-starter-messaging-rabbitmq` | RabbitMQ/AMQP Provider | Kafka/JMS와 동시 Provider 충돌 정책 필요 |
+| `cpf-starter-integration-tcp` | persistent TCP, framing, heartbeat, reconnect | 기관별 Layout/Mapping은 Domain Adapter가 소유 |
+| `cpf-starter-channel-registry-jdbc` | `JdbcCpfChannelRegistryAdapter` | Channel 계약은 Core 유지 |
+| `cpf-starter-attachment` | Attachment AutoConfiguration·storage adapter | 업무 Attachment 정책은 Owner 유지 |
+| `cpf-starter-archive` | ZIP/TAR/GZIP Runtime 조립 | 순수 bounded archive 계약은 Core 유지 가능 |
+| `cpf-starter-idempotency-jdbc` | JDBC idempotency ledger | 다수 Consumer 확인 후 공통 Adapter화 |
+| `cpf-starter-security-session-jdbc` | BFF Session/JDBC Credential Vault | 기존 Security Starter 분리 |
+| `cpf-starter-security-resource-server` | OAuth2/JWT/mTLS resource server | Session DB를 강제하지 않음 |
+| `cpf-starter-runtime-control-client` | Runtime Control client/projection bridge | Control Server 자체는 Admin/Batch/Gateway Owner 유지 |
+
+### 14.3 Core에 남길 항목
+
+- 표준 Identifier, Header, Context, Error, Validation
+- Public API/SPI와 순수 DTO/Enum/immutable model
+- topology-independent Local/Remote 계약
+- Provider-neutral Message Envelope·Port
+- 순수 Java fixed-length/file/archive algorithm 중 외부 Runtime을 강제하지 않는 부분
+- 보안·감사·마스킹의 계약과 taxonomy
+- Starter/Owner Module이 구현할 확장 SPI
+
+### 14.4 Domain Capability Profile
+
+Generator는 Profile을 다음처럼 해석하고 결과를 Domain Manifest에 고정한다.
+
+```text
+profileId
+profileVersion
+resolvedStarters[]
+resolvedStarterVersions{}
+providerSelections{}
+configTemplates[]
+testFixtures[]
+```
+
+초기 Profile 후보:
+
+- `MINIMAL_CONTRACT_CONSUMER`
+- `MINIMAL_BOOT_DOMAIN`
+- `DOMAIN_WEB_API`
+- `SECURE_RESOURCE_API`
+- `BROWSER_BFF_SESSION`
+- `PERSISTENCE_MYBATIS`
+- `EVENT_KAFKA`
+- `EVENT_JMS_IBM_MQ`
+- `EVENT_RABBITMQ`
+- `INTEGRATION_TCP`
+- `OBSERVABLE_RESILIENT_SERVICE`
+
+### 14.5 Aggregate Starter
+
+대표 Starter 하나가 다른 Starter를 자동 포함하는 방식은 가능하다. 승인된 Aggregate Artifact는 POM 전이 Dependency만 소유하고 Bean·AutoConfiguration·업무 정책을 추가하지 않는다.
+
+예:
+
+```text
+cpf-starter-bundle-event-kafka
+  → messaging-reliability-jdbc
+  → messaging-kafka
+  → observability
+  → resilience
+
+cpf-starter-bundle-event-jms-ibm-mq
+  → messaging-reliability-jdbc
+  → messaging-jms
+  → messaging-ibm-mq
+  → observability
+  → resilience
+```
+
+Generator Profile을 기본 방식으로 사용하고 Aggregate Starter는 외부 Consumer가 단일 Dependency를 요구하는 안정 조합에만 제공한다.

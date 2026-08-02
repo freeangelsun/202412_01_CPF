@@ -1,8 +1,8 @@
 # CPF Requirement Continuity Ledger
 
-> Canonical path: `cpf-docs/governance/CPF_REQUIREMENT_CONTINUITY_LEDGER.md`  
-> Synchronized with Final Target revision: `2026-07-31`  
-> Synchronization review baseline: `c1f273f1ea4fafac6fd5d23bd837adfc38a04497`  
+> Canonical path: `cpf-docs/governance/CPF_REQUIREMENT_CONTINUITY_LEDGER.md`
+> Synchronized with Final Target revision: `2026-08-02`
+> Synchronization review baseline: `38089a96e3f4c7c2ba05cda549785b47f67cd462`
 > Final Target reviewed blob: `262077e913db1d83731c0f3b643565859af431c1`
 
 ## 1. 목적
@@ -26,10 +26,12 @@
 
 | 구분 | 수량 | 완료율 집계 |
 |---|---:|---|
-| Canonical Product Requirement | **162개** | 포함 |
+| Canonical Product Requirement | **169개** | 포함 |
 | Legacy Alias | **8개** | 제외 |
 | QA33 Remediation Requirement | **138개** | 별도 작업 원장, 제품 Requirement 수에 미포함 |
 | QA33 Mandatory Scenario | **414개** | 별도 검증 원장, 제품 Requirement 수에 미포함 |
+
+2026-08-02 신규 정본화 이후 Canonical Product Requirement는 **169개**다.
 
 QA33의 `QA33-REQ-*`, `QA33-DF-*`, `QA33-SC-*`는 특정 Source 결함 수정과 검증을 위한 **작업 패키지 ID**다. 이 ID를 162개 Canonical Product Requirement에 추가하거나 완료율에 합산하지 않는다.
 
@@ -44,6 +46,7 @@ QA33의 `QA33-REQ-*`, `QA33-DF-*`, `QA33-SC-*`는 특정 Source 결함 수정과
 | Requirement 연속성 보정 | 160 | 의미가 남은 34개 복구, 8개 Alias 분리 |
 | 전수검수 신규 정본화 | **162** | `ADM-APPROVAL`, `BZA-ORG` 신규 추가 |
 | 2026-07-31 상세 현행화 | **162** | ID 증감 없이 Owner·최소 목표·완료 증명 상세화 |
+| 2026-08-02 누락 요구 복구 | **169** | Starter Architecture, Fresh DB, MQ/JMS/IBM MQ/RabbitMQ/TCP 7개 신규 정본화 |
 
 2026-07-31 현행화는 Requirement 추가·삭제가 아니다. 기존 162개 각각에 상세 Owner, 최소 제품 목표와 필수 완료 증명을 부여한 정본 강화다.
 
@@ -87,11 +90,38 @@ QA33의 `QA33-REQ-*`, `QA33-DF-*`, `QA33-SC-*`는 특정 Source 결함 수정과
 | `ADM-APPROVAL` | 플랫폼 위험조치 승인 Runtime의 Owner Command 실행, 결과 불명, Break-glass와 Immutable Audit를 독립 추적해야 함 |
 | `BZA-ORG` | 조직·직원·직급·직책·유효기간 Assignment와 업무결재 Snapshot을 독립 제품 기능으로 추적해야 함 |
 
+
+## 6.1 2026-08-02 사용자 요구 복구
+
+| ID | 생성 근거 | 기존 Requirement와의 관계 |
+|---|---|---|
+| `ARCH-STARTER` | `cpf-starters` 정식 Root 채택, Core 경량화, Leaf/Profile/Aggregate/BOM 계층을 독립 완료 축으로 추적 | `ARCH-BOUNDARY`, `PROD-PACKAGE`, `DEVEX-CODEGEN` 상세화만으로는 Provider 충돌·Profile Lock·Core Footprint 상태를 독립 추적할 수 없어 신규 |
+| `DB-FRESH` | Codex/QA 전 DB를 초기 상태에서 Generator-first로 설치·Upgrade·Rollback·Reapply해야 한다는 사용자 영구 원칙 | `DB-INSTALL`, `DB-MIGRATION`, `DB-MULTI-VENDOR`를 실제 초기화 절차로 묶는 독립 검증 Requirement |
+| `EVENT-MQ` | Kafka 외 Queue Messaging 공통 의미와 운영 계약 복구 | 기존 Kafka 중심 `EVENT-BROKER`와 Provider 계약 사이의 공통 Queue Capability |
+| `EVENT-JMS` | JMS 공통 Runtime 요구 복구 | Provider-neutral Jakarta JMS 계약 |
+| `EVENT-IBM-MQ` | IBM MQ Provider 지원 요구 복구 | `EVENT-JMS` 위의 Provider별 연결·보안·복구 |
+| `EVENT-AMQP` | RabbitMQ/AMQP 지원 요구 복구 | Kafka/JMS와 다른 confirm/ack/DLX 의미를 독립 추적 |
+| `EXS-TCP` | 영속 TCP 전문통신 요구 복구 | `EXS-FIXED`, `EXS-UNKNOWN`, `EXS-RECON`을 실제 Connection Runtime과 연결 |
+
+### 사용자 입력 검색 Alias
+
+다음 표기는 Requirement Count에 포함하지 않지만 검색과 대화 연속성을 위해 유지한다.
+
+| 사용자 입력 | Canonical 추적 |
+|---|---|
+| `MQ` | `EVENT-MQ` |
+| `JMS` | `EVENT-JMS` |
+| `IBM MQ` | `EVENT-IBM-MQ` |
+| `RabbitMQ` | `EVENT-AMQP` |
+| `TPC` | 후속 확인 전 `EXS-TCP`에 연결하며 원문 표기를 보존 |
+| `TCP` | `EXS-TCP` |
+
+
 ## 7. Requirement 변경 절차
 
 ### 7.1 신규
 
-1. 기존 162개와 의미·Owner·완료 증명을 비교한다.
+1. 기존 169개와 의미·Owner·완료 증명을 비교한다.
 2. 기존 ID의 상세화로 해결되면 신규 ID를 만들지 않는다.
 3. 독립 Owner·Consumer·상태기계·완료 증명이 필요하면 `REQ-GAP` 기록을 생성한다.
 4. Final Target에 ID와 상세 Catalog를 먼저 추가한다.
@@ -148,7 +178,7 @@ QA Matrix는 다음 Column 또는 동등한 구조를 가져야 한다.
 
 ## 9. 완료율 계산 규칙
 
-- 분모는 Canonical 162개다.
+- 분모는 Canonical 169개다.
 - Legacy Alias, QA Defect, QA Scenario, OSS Migration Decision ID를 분모에 합산하지 않는다.
 - Requirement 하나가 여러 QA 행에 연결돼도 한 번만 집계한다.
 - `완료`는 Final Target 공통 완료 축과 해당 Requirement의 필수 완료 증명을 모두 만족할 때만 가능하다.

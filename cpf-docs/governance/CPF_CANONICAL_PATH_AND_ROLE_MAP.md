@@ -77,3 +77,31 @@ git status
 ```
 
 옛 Root 경로가 없다는 이유로 파일을 새로 만들거나 복구하지 않는다.
+
+## 2026-08-02 추가 정본 경로
+
+| 역할 | 정본 위치 | 규칙 |
+|---|---|---|
+| Starter Architecture | `cpf-docs/governance/CPF_STARTER_ARCHITECTURE_AND_LIFECYCLE_POLICY.md` | Leaf/Profile/Aggregate/BOM과 Core 이동 경계 |
+| Active integrated development | `cpf-docs/work/current/CPF_20260802_05_POST_QA37_INTEGRATED_DEVELOPMENT_REQUEST.md` | QA37 이후 단일 통합 Backlog |
+| Next Codex entry | `cpf-docs/work/codex/qa38/CODEX_START_HERE.md` | 과거 PASS 재사용 조건과 Stage 재개 |
+| Codex current state | `cpf-docs/work/state/CPF_CODEX_CONTINUITY_STATE.md` | Push 후 최신 SHA와 미검증 상태 |
+| DB Fresh lifecycle | `cpf-tools/db/cpf-db-lifecycle-contract.json` + Canonical/Generator | Vendor별 초기 Object 0에서 시작 |
+| Starter Profile catalog target | `cpf-tools/generator/`의 versioned capability catalog | `resolvedStarters`를 Domain Manifest에 고정 |
+
+DB Source 수정 순서는 `Canonical Schema/Metadata/Runtime Contract → Generator → Vendor Source → Lifecycle Pack → Consumer/Test`다.
+
+## 타 GPT 전담 보호 경로
+
+다음 경로는 Read Only다.
+
+```text
+cpf-docs/deliverables/**
+cpf-docs/guides/**
+cpf-docs/environment/docker/**
+cpf-tools/environment/docker-development-test/**
+```
+
+이 작업과 다음 Codex 작업은 해당 경로를 참조할 수 있지만 수정·추가·삭제·이동·이름 변경·자동 포맷·일괄 치환·Stage하지 않는다.
+변경 필요성이 발견되면 실제 파일을 건드리지 않고 담당 GPT용 영향도와 작업요건만 기록한다.
+Overlay·Delete Manifest·Cleanup 대상에도 포함하지 않는다.

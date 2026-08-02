@@ -1,0 +1,17 @@
+stage_order,stage_id,scope,prerequisite,completion_rule
+00,BASELINE,Git/head/tree/commit range/required docs/Docker read-only snapshot,always,No expensive work if source baseline invalid
+01,CANONICAL,Final Target/Ledger/Current/State/Matrix integrity and recovered requirements,00,169 IDs and trace links
+02,STATIC,diff/hygiene/secret/ownership/dependency/public boundary/generator/source closure,01,one integrated low-cost pass
+03,CORE_STARTER,"Core split, leaf starters, consumers, profiles, aggregate, BOM/publication",02,actual source remediation and variant tests
+04,MESSAGING_TCP,Kafka/JMS/IBM MQ/RabbitMQ/TCP vertical slices,03,actual provider/fault tests
+05,DB_TOOLING,canonical/generator/lifecycle tooling static/dry-run,03,no manual SQL; all vendor paths
+06,DB_MARIADB,zero-object fresh lifecycle,05,actual MariaDB
+07,DB_POSTGRESQL,zero-object fresh lifecycle,06,actual PostgreSQL
+08,DB_ORACLE,zero-object fresh lifecycle,07,actual Oracle
+09,JAVA_FULL,Java25 fresh build/test/publication,03-08,single upper lifecycle
+10,FRONTEND,ADM/BZA npm ci/lint/type/unit/build,09,single clean verify
+11,RUNTIME,Kafka/Redis/Batch/Scheduler/Gateway/multi-instance/process kill,09,actual Docker services
+12,FAULT_OTEL,Toxiproxy and OpenTelemetry outage/masking,11,fault/recovery evidence
+13,BROWSER,Chromium/Firefox/WebKit,10-12,route/session/errors/a11y/responsive
+14,SUPPLY_CHAIN,Trivy/secret/SBOM/ORT/license/artifact hashes,09-13,final artifacts only
+15,TRUTH,Matrix/Evidence/continuity/current/delete review/exact SHA,all,zero source defects and mandatory unverified

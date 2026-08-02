@@ -1,9 +1,9 @@
 # CPF 최종 목표 요구사항 정본
 
-> Canonical path: `cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md`  
-> Revision date: `2026-07-31`  
-> Previous reviewed blob SHA: `f5650f502fc11d87afb92f775588c710a02373d4`  
-> Canonical Requirement Count: **162개**  
+> Canonical path: `cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md`
+> Revision date: `2026-08-02`
+> Previous reviewed blob SHA: `f5650f502fc11d87afb92f775588c710a02373d4`
+> Canonical Requirement Count: **169개**
 > Legacy Alias: **8개** — 완료율 중복 집계 금지
 
 ## 1. 문서 목적과 정본성
@@ -141,6 +141,30 @@ com.cpf.<owner>.internal
 - Public API에 선택 OSS 구현 type을 직접 노출하지 않는다.
 - Public API/SPI와 중요 복구·동시성·보안 로직에는 한글 JavaDoc/주석을 제공한다.
 
+
+### 5.3 Lightweight Core·Starter·Capability Profile
+
+`cpf-starters/`는 CPF의 정식 Root 제품 영역이다. `cpf-core`는 Spring Boot 선택 Runtime을 직접 조립하는 범용 실행 모듈이 아니라, topology-independent Public API/SPI·표준 식별자·오류·문맥·순수 Java 계약을 제공하는 초경량 Artifact여야 한다.
+
+선택 기술은 다음 계층으로 제공한다.
+
+1. **Leaf Starter**: 하나의 기술 Capability와 AutoConfiguration을 소유한다.
+2. **Generator Capability Profile**: 사용 사례를 승인된 Leaf Starter 목록으로 해석하고 Domain Manifest에 `resolvedStarters`와 버전을 고정한다.
+3. **Aggregate Starter**: 안정성이 입증된 조합에 한해 전이 Dependency만 제공하며 고유 Bean·AutoConfiguration을 소유하지 않는다.
+4. **Platform BOM**: 버전만 정렬하며 Capability 선택을 대신하지 않는다.
+
+대표 Starter 하나가 의존 Starter를 자동 포함하는 것은 Gradle 전이 Dependency로 가능하다. 다만 기존 Domain의 묵시적 변경을 막기 위해 Generator Profile이 해석된 Leaf 목록과 Profile Version을 Manifest에 고정하는 방식을 우선한다.
+
+다음을 금지한다.
+
+- `all`, `full`, `everything` 형태의 Mega Starter
+- Starter 선택만으로 업무·Admin·Batch·Gateway 고유 정책이 유입되는 구조
+- 상호 배타 Provider의 무승인 동시 활성화
+- 선택하지 않은 Starter의 JAR·Bean·SQL·Config·Secret 요구
+- Core와 Starter에 동일 Primary AutoConfiguration·Adapter가 동시에 남는 구조
+- Consumer 없는 Starter를 GA 완료로 처리하는 행위
+
+
 ## 6. 모든 Requirement에 적용되는 공통 완료 축
 
 각 Requirement는 적용 가능한 항목을 모두 충족해야 한다. `N/A`는 이유와 검수 승인이 있어야 한다.
@@ -220,6 +244,37 @@ cpfDB, cmnDB, admDB, bzaDB, batDB, refDB
 - 업무/관리 SQL은 Java literal이 아닌 Owner Query ID와 Vendor Resource로 관리한다.
 - DB 변경은 Generator domain-template, Generated Domain, checksum, install/upgrade/rollback까지 한 작업 단위로 검토한다.
 
+
+### 9.1 Generator-first Fresh Database Lifecycle
+
+모든 DB 변경은 다음 순서로 수행한다.
+
+```text
+Requirement/Data Model
+→ Canonical Schema·Metadata·Runtime Query Contract
+→ Generator·Golden Template
+→ Oracle/PostgreSQL/MariaDB Vendor Source
+→ Install·Migration·Rollback·Runtime Pack
+→ Java Consumer·Test
+→ Fresh Runtime Evidence
+```
+
+Vendor SQL이나 Historical Migration을 먼저 수동 수정해 정본을 역전시키면 안 된다.
+
+Codex·QA의 DB 검증은 기존 사용자 DB를 재사용하지 않고, 각 Vendor별 전용 QA Database/Schema가 CPF Object 0건인 초기 상태임을 확인한 뒤 시작한다. 공식 Reset/Provision 경로가 없으면 수동 SQL로 우회하지 말고 그 경로를 Source Defect로 구현한다.
+
+각 Vendor는 단독으로 다음 Lifecycle을 통과해야 한다.
+
+- Fresh Provision·Install·Mandatory Metadata/Seed
+- Generator로 만든 임의 Domain Bootstrap
+- Upgrade·Runtime Query·Schema Drift
+- Rollback·Reapply·Idempotent Reapply
+- Different-hash Conflict·Partial Failure·Restart
+- Optional Pack On/Off
+- Cleanup 후 CPF Object 0건 또는 승인된 보존 상태
+- exact-SHA Evidence
+
+
 ## 10. File·Attachment·Archive·전문
 
 - create/extract/upload/download/transfer 전 경로를 bounded streaming으로 처리한다.
@@ -251,6 +306,26 @@ Kafka/Event:
 - retry topic, DLT, poison isolation, replay approval와 audit를 제공한다.
 - 다중 Manager/Worker에서 reply/correlation이 인스턴스 로컬 queue에 의존하지 않게 한다.
 - rebalance, broker outage, duplicate, late reply, process kill과 response loss를 검증한다.
+
+
+### 11.1 Messaging Provider·JMS·MQ·TCP 지원
+
+CPF Event 계약은 특정 Broker Client에 종속되지 않는 Envelope·Idempotency·Ordering·Retry·DLQ·Unknown-result 계약을 `cpf-core` Public API/SPI로 제공한다. 실제 Provider Runtime은 Starter가 소유한다.
+
+공식 구현 대상은 다음과 같다.
+
+- Kafka: `cpf-starter-messaging-kafka`
+- JMS 3.x 공통 Runtime: `cpf-starter-messaging-jms`
+- IBM MQ Provider: `cpf-starter-messaging-ibm-mq` — JMS Starter를 기반으로 TLS, Queue Manager, Channel, CCDT/Endpoint, Connection Recovery와 운영 상태를 제공한다.
+- RabbitMQ/AMQP Provider: `cpf-starter-messaging-rabbitmq`
+- 영속 연결형 TCP 전문: `cpf-starter-integration-tcp`
+
+`JMS`는 API/Runtime 추상화이고 `IBM MQ`는 Provider이므로 하나로 뭉개지 않는다. RabbitMQ는 AMQP Provider로 별도 Lifecycle을 가진다. 각 Provider는 같은 CPF Envelope와 오류 분류를 사용하되 ACK·Transaction·Ordering·Redelivery 의미 차이를 숨기지 않는다.
+
+TCP Starter는 연결 수명주기, framing, encoding, heartbeat, reconnect, backoff, half-open 탐지, bounded queue, backpressure, request-response correlation, 전송 후 응답 유실, duplicate/reconciliation, TLS와 credential rotation을 제공해야 한다.
+
+사용자 입력에서 확인된 `TPC` 표기는 별도 요구를 버리지 않기 위한 검색 Alias로 보존하고, 후속 확인 전까지 `EXS-TCP`에 연결한다.
+
 
 ## 12. Batch·Scheduler·Center-Cut·Agent
 
@@ -523,6 +598,8 @@ Evidence 최소 필드:
 | `CORE-FILE` | cpf-core / repository architecture | Path Alias, bounded streaming, checksum, atomic publish, symlink/path traversal 방지, cleanup, cancellation을 포함한 File/Attachment/Archive 기술 계약을 제공한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
 | `CORE-MESSAGE` | cpf-core / repository architecture | versioned broker envelope, correlation, idempotency key, schema, TTL, producer/environment binding, size limit와 serialization allowlist를 제공한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
 
+| `ARCH-STARTER` | product architecture + cpf-tools generator/build | `cpf-core`를 Spring Boot 없는 초경량 계약 Artifact로 유지하고 Leaf Starter·Capability Profile·Aggregate Starter·BOM의 역할, Provider 충돌, Consumer와 Footprint를 정본화한다. | non-Boot Core consumer, Starter removal compile, Profile resolution lock, Aggregate POM, BOM/publication, actual Consumer, startup/classpath/fault Evidence |
+
 ### 22.37 Common/Data
 
 | Requirement | Owner | 최소 제품 목표 | 필수 완료 증명 |
@@ -535,6 +612,7 @@ Evidence 최소 필드:
 | `CMN-TEMPLATE` | cpf-common | 알림·문서 Template의 version, variable schema, escaping, preview, channel extension, approval과 audit를 제공한다. | Owner/Consumer 추적, MariaDB·PostgreSQL·Oracle SQL 또는 DB-less 근거, install·upgrade·rollback·runtime Evidence |
 | `DB-OWNERSHIP` | cpf-tools DB + owning module | 모든 schema/table/view/index/FK/trigger/seed/query에 단일 Owner와 실제 Consumer를 부여하고 Admin/타 Domain의 직접 갱신을 금지한다. | Owner/Consumer 추적, MariaDB·PostgreSQL·Oracle SQL 또는 DB-less 근거, install·upgrade·rollback·runtime Evidence |
 | `DB-INSTALL` | cpf-tools DB + owning module | Schema/User provision, 최소권한, product table/index/constraint, mandatory seed, verify/smoke를 Vendor-native 정본으로 재현 가능하게 제공한다. | Owner/Consumer 추적, MariaDB·PostgreSQL·Oracle SQL 또는 DB-less 근거, install·upgrade·rollback·runtime Evidence |
+| `DB-FRESH` | cpf-tools DB + owning module | Oracle·PostgreSQL·MariaDB 검증을 CPF Object 0건의 전용 초기 Database/Schema에서 시작하고 Canonical/Generator-first Fresh Install→Upgrade→Rollback→Reapply→Cleanup을 자동화한다. | Vendor별 pre-object-count 0, generated metadata/seed, runtime query, drift, rollback/reapply, different-hash, optional pack, post-cleanup exact-SHA Evidence |
 | `DB-MIGRATION` | cpf-tools DB + owning module | 불변 version migration, expand-migrate-contract, checksum, drift fail-closed, restart, data transform와 신규설치 최종상태 parity를 제공한다. | Owner/Consumer 추적, MariaDB·PostgreSQL·Oracle SQL 또는 DB-less 근거, install·upgrade·rollback·runtime Evidence |
 | `DB-ROLLBACK` | cpf-tools DB + owning module | rollback/forward recovery 가능성 분류, 데이터 보존·backup checkpoint·승인·재적용·부분 실패 복구를 Vendor별로 제공한다. | Owner/Consumer 추적, MariaDB·PostgreSQL·Oracle SQL 또는 DB-less 근거, install·upgrade·rollback·runtime Evidence |
 | `DB-BACKUP` | cpf-tools DB + owning module | schema/data/config/key metadata의 backup, encryption, retention, restore validation, PITR와 DR 연계 절차를 제공한다. | Owner/Consumer 추적, MariaDB·PostgreSQL·Oracle SQL 또는 DB-less 근거, install·upgrade·rollback·runtime Evidence |
@@ -561,9 +639,14 @@ Evidence 최소 필드:
 | `EXS-FILE` | generated domain / customer adapter | SFTP/파일명/ack-nack/checksum/claim/transfer/reconciliation/retention을 고객 Adapter가 안전하게 소유한다. | 실제 Gateway/Kafka/외부 Mock·다중 인스턴스, timeout·duplicate·disconnect·unknown·recovery Evidence |
 | `EXS-UNKNOWN` | generated domain / customer adapter | 외부 요청의 전송 전 실패·전송 후 응답 유실·상대 처리 불명 상태를 분류하고 자동 성공·무조건 재시도를 금지한다. | 실제 Gateway/Kafka/외부 Mock·다중 인스턴스, timeout·duplicate·disconnect·unknown·recovery Evidence |
 | `EXS-RECON` | generated domain / customer adapter | 상대 조회·callback·file ack·수동 확인을 통한 reconciliation, compensation, reprocess, SLA와 운영 UI를 제공한다. | 실제 Gateway/Kafka/외부 Mock·다중 인스턴스, timeout·duplicate·disconnect·unknown·recovery Evidence |
-| `EVENT-CORE` | cpf-core contract + owning business adapter | Kafka Primary의 topic naming, versioned envelope, key/partition/order, producer/consumer contract와 in-memory test adapter를 제공한다. | 실제 Gateway/Kafka/외부 Mock·다중 인스턴스, timeout·duplicate·disconnect·unknown·recovery Evidence |
+| `EVENT-CORE` | cpf-core contract + owning business adapter | Provider-neutral destination naming, versioned envelope, key/order, producer/consumer contract와 in-memory test adapter를 제공하며 Provider별 의미 차이를 명시한다. | 실제 Gateway/Kafka/외부 Mock·다중 인스턴스, timeout·duplicate·disconnect·unknown·recovery Evidence |
 | `EVENT-OUTBOX` | cpf-core contract + owning business adapter | 업무 transaction과 event publish 사이 outbox, claim, stable message ID, retry, ordering, cleanup과 duplicate prevention을 제공한다. | 실제 Gateway/Kafka/외부 Mock·다중 인스턴스, timeout·duplicate·disconnect·unknown·recovery Evidence |
-| `EVENT-BROKER` | cpf-core contract + owning business adapter | Kafka ACK/transaction/consumer group/rebalance/backpressure/schema/TTL/security/observability와 multi-instance correlation을 제공한다. | 실제 Gateway/Kafka/외부 Mock·다중 인스턴스, timeout·duplicate·disconnect·unknown·recovery Evidence |
+| `EVENT-BROKER` | cpf-core contract + Starter Provider owner | Kafka/JMS/IBM MQ/AMQP의 ACK·transaction·redelivery·consumer concurrency·backpressure·schema·TTL·security·observability와 multi-instance correlation을 공통 계약으로 제공한다. | 실제 Gateway/Kafka/외부 Mock·다중 인스턴스, timeout·duplicate·disconnect·unknown·recovery Evidence |
+| `EVENT-MQ` | cpf-core contract + Starter Provider owner | Queue 기반 Messaging의 destination, durable delivery, correlation, idempotency, expiry, priority, transaction, redelivery, DLQ와 운영 조회를 Provider-neutral 계약으로 제공한다. | Kafka/JMS/IBM MQ/RabbitMQ provider contract parity, actual broker, duplicate/ordering/outage/recovery/multi-instance Evidence |
+| `EVENT-JMS` | cpf-starter-messaging-jms | Jakarta JMS 3.x ConnectionFactory, producer/consumer, transaction/session, selector, durable subscription, redelivery, exception listener와 readiness를 CPF Event 계약에 연결한다. | embedded/mock만이 아닌 실제 JMS provider matrix, transaction/redelivery/connection-loss/recovery Evidence |
+| `EVENT-IBM-MQ` | cpf-starter-messaging-ibm-mq | JMS 공통 Starter 위에 IBM MQ Queue Manager·Channel·TLS·CCDT/endpoint·connection recovery·reason-code mapping·운영 상태를 제공한다. | IBM MQ compatible runtime, TLS/credential rotation, queue manager outage, reconnect, in-doubt/duplicate/reconcile Evidence |
+| `EVENT-AMQP` | cpf-starter-messaging-rabbitmq | RabbitMQ/AMQP exchange·queue·binding·publisher confirm·consumer ack/nack·redelivery·DLX·quorum/connection recovery를 CPF Event 계약에 연결한다. | actual RabbitMQ runtime, confirm/ack/nack/DLX, duplicate/order/outage/recovery Evidence |
+| `EXS-TCP` | cpf-starter-integration-tcp + generated/customer adapter | 영속 TCP 연결의 framing·encoding·heartbeat·reconnect·backpressure·correlation·TLS·half-open·전송 후 결과 불명과 기관별 전문 Adapter 연결을 제공한다. | loopback/mock 및 실제 fault proxy, disconnect/half-open/timeout/response-loss/duplicate/reconcile/multi-instance Evidence |
 | `EVENT-DLQ` | cpf-core contract + owning business adapter | retry topic, DLT, poison isolation, replay approval, payload masking, idempotent reprocess와 운영 추적을 제공한다. | 실제 Gateway/Kafka/외부 Mock·다중 인스턴스, timeout·duplicate·disconnect·unknown·recovery Evidence |
 | `SAGA-CORE` | cpf-core contract + owning business adapter | 장기 업무 흐름의 step, state, version, timeout, idempotency, event/call correlation과 durable orchestration/choreography 계약을 제공한다. | 실제 Gateway/Kafka/외부 Mock·다중 인스턴스, timeout·duplicate·disconnect·unknown·recovery Evidence |
 | `SAGA-COMP` | cpf-core contract + owning business adapter | 각 step의 compensation eligibility, reverse order, idempotency, partial compensation와 unknown-result 분리를 제공한다. | 실제 Gateway/Kafka/외부 Mock·다중 인스턴스, timeout·duplicate·disconnect·unknown·recovery Evidence |
@@ -659,7 +742,7 @@ Evidence 최소 필드:
 | `TEST-CONTRACT` | repository-wide test ownership | Public API/SPI, Local/Remote, OpenAPI, message schema, DB query, generated client와 published artifact compatibility를 검증한다. | exact SHA·명령·환경·exit code·report hash가 있는 직접 실행 Evidence |
 | `TEST-RUNTIME` | repository-wide test ownership | 실제 Java25/WAS/DB/Process 환경에서 startup, endpoint, transaction, shutdown, recovery와 resource leak를 검증한다. | exact SHA·명령·환경·exit code·report hash가 있는 직접 실행 Evidence |
 | `TEST-BROWSER` | repository-wide test ownership | ADM/BZA의 Chromium/Firefox/WebKit, route/deep link/session/permission/error/a11y/keyboard/responsive를 검증한다. | exact SHA·명령·환경·exit code·report hash가 있는 직접 실행 Evidence |
-| `TEST-BROKER` | repository-wide test ownership | 실제 Kafka에서 ACK, transaction, duplicate, ordering, rebalance, retry/DLT, broker outage, consumer crash를 검증한다. | exact SHA·명령·환경·exit code·report hash가 있는 직접 실행 Evidence |
+| `TEST-BROKER` | repository-wide test ownership | 실제 Kafka·JMS/IBM MQ·RabbitMQ 지원 Matrix에서 ACK, transaction, duplicate, ordering, redelivery/rebalance, retry/DLQ, broker outage와 consumer crash를 검증한다. | exact SHA·명령·환경·exit code·report hash가 있는 직접 실행 Evidence |
 | `TEST-FAULT` | repository-wide test ownership | DB/network/broker/disk/process/time/response loss를 side-effect 전후에 주입해 idempotency·unknown·recovery·compensation을 검증한다. | exact SHA·명령·환경·exit code·report hash가 있는 직접 실행 Evidence |
 | `TEST-EVIDENCE` | repository-wide test ownership | 모든 검증의 exact SHA, command, environment, time, exit code, report/artifact hash, sanitized 여부를 schema로 검증한다. | exact SHA·명령·환경·exit code·report hash가 있는 직접 실행 Evidence |
 | `REL-BUILD` | cpf-tools release/deploy | fresh clone과 clean cache에서 Java25/Gradle build, LOCAL_DEV/REMOTE/OFFLINE resolution, lock/POM/BOM/source/javadoc/reproducible artifact를 제공한다. | fresh clean build, signed final artifact, install/upgrade/rollback, mixed-version와 final-artifact SBOM Evidence |

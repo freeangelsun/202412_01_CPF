@@ -1,0 +1,14 @@
+scenario_id,canonical_requirement_id,scenario,acceptance,status
+POST37-SC-001,ARCH-STARTER,Core-only non-Boot consumer,Core has no optional Spring/MyBatis/OpenAPI/OTel/Kafka runtime,미검증
+POST37-SC-002,ARCH-STARTER,Minimal Boot Domain,base starter starts without web/db/broker/security,미검증
+POST37-SC-003,ARCH-STARTER,Profile resolution,resolvedStarters and version lock match build,미검증
+POST37-SC-004,EVENT-JMS,JMS transaction/redelivery,actual provider commit/rollback/redelivery,미검증
+POST37-SC-005,EVENT-IBM-MQ,IBM MQ outage/reconnect,in-doubt and duplicate reconciliation,미검증
+POST37-SC-006,EVENT-AMQP,RabbitMQ confirm/ack/DLX,publisher confirm and poison handling,미검증
+POST37-SC-007,EXS-TCP,TCP response loss,unknown-result without blind retry,미검증
+POST37-SC-008,DB-FRESH,MariaDB fresh lifecycle,zero objects through cleanup,미검증
+POST37-SC-009,DB-FRESH,PostgreSQL fresh lifecycle,zero objects through cleanup,미검증
+POST37-SC-010,DB-FRESH,Oracle fresh lifecycle,zero objects through cleanup,미검증
+POST37-SC-011,TEST-RUNTIME,multi-instance/process kill,fencing/restart/reconcile,미검증
+POST37-SC-012,TEST-BROWSER,3 browser engines,routes/session/errors/a11y/responsive,미검증
+POST37-SC-013,TEST-EVIDENCE,exact SHA final seal,head/tree/command/environment/artifact hashes,미검증

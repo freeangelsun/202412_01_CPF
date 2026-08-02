@@ -1,5 +1,40 @@
 # CPF Codex Continuity State
 
+## Current authoritative snapshot — 2026-08-02 post-push reconciliation
+
+- Repository: `freeangelsun/202412_01_CPF`
+- Branch: `master`
+- confirmed `origin/master`: `38089a96e3f4c7c2ba05cda549785b47f67cd462`
+- local Working Tree: `재확인 필요` — this review used remote Git state, not the user's local filesystem
+- active package: `POST-QA37 integrated remediation / next Codex QA38`
+- Source status: `부분 구현`
+- exact-SHA final verification: `미검증`
+- Oracle/PostgreSQL/MariaDB actual Fresh Lifecycle: `미검증`
+- Kafka/JMS/IBM MQ/RabbitMQ/TCP runtime: Kafka focused source tests exist; full provider/runtime matrix `미구현 또는 미검증`
+- Browser 3-engine, Toxiproxy, OTel, multi-instance, supply-chain at latest SHA: `미검증`
+- `cpf-starters/`: official fixed product root
+- permanent DB rule: Canonical/Generator first; each vendor starts from a dedicated CPF QA DB/Schema with CPF Object count 0
+- permanent Git rule: no Codex commit/push without explicit user approval
+
+### Supersession notice
+
+The historical QA37 body below records valuable focused PASS and defect history at `1eda8e12...` and a dirty WIP. Multiple user pushes and later documentation/consolidation commits produced `38089a96e3f4c7c2ba05cda549785b47f67cd462`. Therefore those results are inputs for impact analysis, not current exact-SHA completion evidence.
+
+### Next exact work
+
+1. Verify local `HEAD == origin/master`, clean/dirty state and all commits since `1eda8e12...`.
+2. Merge the external QA37 defect/execution ledgers into the repository verification history without claiming missing logs as PASS.
+3. Finish P0 Core-to-Starter source migration and real Consumer conversion.
+4. Implement MQ/JMS/IBM MQ/RabbitMQ/TCP provider requirements.
+5. Complete Generator Profile/Aggregate/BOM/Domain lock.
+6. Fix official Fresh DB lifecycle orchestration before starting any DB.
+7. Run one vendor at a time from object count 0, then Java/Frontend/Runtime/Fault/Browser/Supply-chain.
+8. Update Matrix/Evidence and final exact-SHA state.
+
+---
+
+## Historical QA37 state retained for traceability
+
 - Repository: `freeangelsun/202412_01_CPF`
 - Branch: `master`
 - 기준 HEAD / `origin/master`: `1eda8e12fe123281748a4388938c62f11819da1e`

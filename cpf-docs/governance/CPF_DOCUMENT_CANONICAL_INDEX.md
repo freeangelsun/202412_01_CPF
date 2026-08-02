@@ -27,5 +27,9 @@ QA 번호·날짜가 붙은 작업 문서는 제품 정본이 아니다. 활성 
 
 ## 현재 작업 보조 문서
 
-- `../work/repository-consolidation/20260802/STARTER_PROFILE_AND_BUNDLE_DESIGN.md` — 다음 QA의 Profile·Bundle 설계 입력
-- `../work/repository-consolidation/20260802/DOCUMENT_UPDATE_STATUS_AND_REMAINING_APPLY.md` — 정본·Guide 실제 반영 상태
+- `../work/current/CPF_CURRENT_WORK_REQUEST.md` — 유일한 현재 진입점
+- `../work/current/CPF_20260802_05_POST_QA37_INTEGRATED_DEVELOPMENT_REQUEST.md` — 통합 개발 요청
+- `../work/codex/qa38/CODEX_START_HERE.md` — 다음 Codex 검수·보완 시작점
+- `../work/review/20260802_05/` — 이번 작업의 사전·사후 리뷰와 Source 기반 판정
+
+`../work/repository-consolidation/20260802/`는 이번 정본 갱신의 입력 History다. 활성 작업이 끝나면 결론을 Governance/State에 흡수하고 날짜별 중복 문서는 Delete Review 대상으로 전환한다.

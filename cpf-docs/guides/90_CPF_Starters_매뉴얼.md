@@ -7,7 +7,7 @@
 
 - Repository: `freeangelsun/202412_01_CPF`
 - Branch: `master`
-- 기준 Commit: `dafe5c0e5260ea8149234e8ab2e75347e75338c1` (`20260802_07`)
+- 기준 Commit: `3b600702502e53877e30cbac594987b371e2186b` (`20260802_08`)
 - 활성 개발 요구: `cpf-docs/work/current/CPF_QA38_FINAL_DEVELOPMENT_REQUIREMENTS.md`
 - 실제 Source·SQL·API·Config·Frontend·Script·Test가 설명보다 우선한다.
 - 실행하지 않은 Build·DB·Runtime·Browser·다중 인스턴스·장애 시험은 `미검증`이다.
@@ -303,8 +303,9 @@ Source에 없는 Property 이름을 매뉴얼 예제로 만들지 않는다.
 ## 10. 의존성·제거 시험
 
 ```powershell
-.\gradlew.bat :<consumer-project>:dependencies --configuration runtimeClasspath
-.\gradlew.bat :<consumer-project>:dependencyInsight --dependency <artifact>
+$repo='C:\dev\projects\jck\202412_01_CPF'
+& (Join-Path $repo 'gradlew.bat') :<consumer-project>:dependencies --configuration runtimeClasspath
+& (Join-Path $repo 'gradlew.bat') :<consumer-project>:dependencyInsight --dependency <artifact>
 ```
 
 검증:
@@ -389,3 +390,93 @@ LOCAL_DEV·REMOTE·OFFLINE 모드에서 같은 Version 계약이 유지되는지
 - [ ] 정상·오류·부분 실패·Process Kill·대사를 시험했다.
 - [ ] JAR·POM·BOM·Sources·JavaDoc·SBOM을 확인했다.
 - [ ] Upgrade·Rollback과 운영 인계를 기록했다.
+
+## 16. Starter 설치·적용 절차
+
+### 16.1 같은 Root Build에서 적용
+
+1. `settings.gradle`에 실제 논리 프로젝트가 등록돼 있는지 확인한다.
+2. Consumer의 `build.gradle`에 필요한 Starter만 선언한다.
+3. `dependencies`와 `dependencyInsight`로 전이 의존성을 확인한다.
+4. 필수 Property·Secret·Provider를 준비한다.
+5. AutoConfiguration Report와 Bean 수를 확인한다.
+6. 실제 Provider Contract Test를 실행한다.
+7. Starter 제거 후 미선택 기술이 Classpath·Bean·Property·SQL에 남지 않는지 확인한다.
+
+```powershell
+$repo='C:\dev\projects\jck\202412_01_CPF'
+& (Join-Path $repo 'gradlew.bat') projects
+& (Join-Path $repo 'gradlew.bat') :<consumer-project>:dependencies --configuration runtimeClasspath
+& (Join-Path $repo 'gradlew.bat') :<consumer-project>:dependencyInsight --dependency <artifact>
+```
+
+### 16.2 게시 Artifact로 적용
+
+1. Platform BOM Version을 고정한다.
+2. 승인된 Repository와 Credential Reference를 설정한다.
+3. POM·Checksum·SBOM을 확인한다.
+4. Consumer의 Lock·Resolved Dependency를 기록한다.
+5. Offline Repository에서도 같은 Artifact가 해석되는지 확인한다.
+
+### 16.3 적용 실패
+
+| 실패 | 원인 후보 | 확인 |
+|---|---|---|
+| Project Not Found | `settings.gradle` 미등록·논리명 오류 | `gradlew projects` |
+| Artifact Not Found | 게시 누락·Repository Mode 오류 | Artifact Mode·URL·Version |
+| Bean 없음 | Condition·Property·Provider 누락 | AutoConfiguration Report |
+| Bean 중복 | 복수 Provider·Primary 충돌 | Bean Definition·Named Binding |
+| Runtime Class 없음 | POM Scope·전이 의존성 누락 | `runtimeClasspath` |
+| 운영 기동 실패 | Secret·DB·Broker·TLS 누락 | Readiness·Failure Class |
+
+## 17. Starter별 Consumer 검증 규칙
+
+Starter가 존재해도 실제 Consumer가 없으면 제품 기능으로 완료 처리하지 않는다.
+
+```text
+Starter Project
+→ Public AutoConfiguration·Properties
+→ Provider Adapter
+→ Consumer build.gradle
+→ Consumer Config
+→ 정상·오류·Fault Test
+→ Health·Metric·Trace·Audit
+→ 제거 시험
+```
+
+Consumer 검증표에는 Module, 사용 기능, Binding Name, Provider, Property Prefix, Test 경로, 운영 확인 방법을 기록한다.
+
+## 18. Generator와 Starter 선택 연결
+
+Generator가 업무 영역을 만들 때 선택한 Capability와 실제 `build.gradle` 의존성이 일치해야 한다. 생성 계획에는 요청 Capability, 해석된 Starter, Version, 제외된 Provider, 필요한 Property·Secret을 기록하고, 생성 후에는 `runtimeClasspath`와 Resolved Dependency Lock으로 결과를 확인한다.
+
+기준 Commit의 생성 도구가 Capability Profile이나 Aggregate Starter를 실제로 펼치지 못하면 다음과 같이 처리한다.
+
+1. Generator Dry Run 결과에 자동 선택된 것으로 기록하지 않는다.
+2. 현재 등록된 Leaf Starter를 업무 개발자가 명시적으로 선택한다.
+3. 선택 이유와 Consumer를 개발 인계표에 기록한다.
+4. 자동 해석 기능은 `미구현`으로 남기고 별도 개발 요청으로 전달한다.
+
+## 19. Starter EDU — 선택·적용·제거
+
+1. 기능 요구에서 필요한 Capability를 하나 선택한다.
+2. 기준 Commit에 실제 Starter가 있는지 확인한다.
+3. Consumer에 Starter를 추가한다.
+4. 필수 Property·Secret을 누락시켜 Fail-closed를 확인한다.
+5. 정상 Provider를 연결하고 Contract Test를 실행한다.
+6. Provider를 중단해 Timeout·Retry·Metric을 확인한다.
+7. Starter를 제거하고 Classpath·Bean·Config·SQL이 함께 제거되는지 확인한다.
+8. POM·BOM·SBOM·Checksum과 운영 인계표를 작성한다.
+
+## 20. 개발 검토 요청 조건
+
+- Starter 이름은 있으나 Gradle 프로젝트·게시 좌표가 없다.
+- AutoConfiguration이 무조건 활성화된다.
+- 복수 Provider가 동시에 Primary로 등록된다.
+- Property가 문서와 Source에서 다르다.
+- Provider SDK가 Core·Common 또는 업무 Domain에 직접 노출된다.
+- 실제 Consumer·Fault Test·Operations가 없다.
+- Starter 제거 후 관련 기술 의존성·Bean·SQL이 남는다.
+- Capability Profile이 실제 Leaf 목록·Version Lock을 생성하지 않는다.
+
+발견 시 Starter·Consumer·Dependency Graph·Property·Bean Report·실행 결과를 `산출물목록.md`의 개발 검토 항목으로 전달한다.

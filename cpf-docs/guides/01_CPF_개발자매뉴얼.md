@@ -2,7 +2,7 @@
 
 > **주 독자**: 온라인 업무 개발자, 메시지·파일·외부연계 개발자, 기술 리더
 > **완료 결과**: 업무 기능의 API·상태·DB·권한·연계·시험·운영 인계를 하나의 추적 가능한 단위로 완성한다.
-> **Source 기준**: `freeangelsun/202412_01_CPF`, `master`, `dafe5c0e5260ea8149234e8ab2e75347e75338c1`
+> **Source 기준**: `freeangelsun/202412_01_CPF`, `master`, `3b600702502e53877e30cbac594987b371e2186b`
 
 ## 1. 이 매뉴얼의 범위
 
@@ -23,17 +23,19 @@
 - Unit·Contract·Integration·Fault Test
 - ADM 연결과 운영 인계
 
-별도 제품과 도구의 절차는 [03 ADM 매뉴얼](03_ADM매뉴얼.md), [05 플랫폼 운영 매뉴얼](05_플랫폼운영매뉴얼.md), [90 CPF Starters 매뉴얼](90_CPF_Starters_매뉴얼.md), [91 CPF Tools 매뉴얼](91_CPF_Tools_매뉴얼.md), [92 CPF Gateway 매뉴얼](92_CPF_Gateway_매뉴얼.md), [95 CPF BZA 매뉴얼](95_CPF_BZA_매뉴얼.md)을 사용한다.
+별도 제품과 도구의 절차는 [03 CPF ADM 매뉴얼](03_CPF_ADM매뉴얼.md), [05 CPF 플랫폼 운영 매뉴얼](05_CPF_플랫폼운영매뉴얼.md), [90 CPF Starters 매뉴얼](90_CPF_Starters_매뉴얼.md), [91 CPF Tools 매뉴얼](91_CPF_Tools_매뉴얼.md), [92 CPF Gateway 매뉴얼](92_CPF_Gateway_매뉴얼.md), [95 CPF BZA 매뉴얼](95_CPF_BZA_매뉴얼.md)을 사용한다.
 
 ## 2. 시작 전 점검
 
 ```powershell
-git remote -v
-git branch --show-current
-git fetch origin master
-git rev-parse HEAD
-git rev-parse origin/master
-git status --short
+$repo='C:\dev\projects\jck\202412_01_CPF'
+if(-not(Test-Path -LiteralPath $repo -PathType Container)){throw "Repository가 없습니다: $repo"}
+git -C $repo remote -v
+git -C $repo branch --show-current
+git -C $repo fetch origin master
+git -C $repo rev-parse HEAD
+git -C $repo rev-parse origin/master
+git -C $repo status --short
 java -version
 pwsh --version
 ```
@@ -84,7 +86,8 @@ Persistence·Messaging·File·Remote Adapter
 ### 4.1 Dry Run
 
 ```powershell
-pwsh -File .\cpf-tools\generator\create-domain.ps1 `
+$repo='C:\dev\projects\jck\202412_01_CPF'
+pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repo 'cpf-tools\generator\create-domain.ps1') `
   -DomainName payment `
   -SystemCode PAY `
   -DatabaseVendor postgresql `
@@ -118,9 +121,10 @@ pwsh -File .\cpf-tools\generator\create-domain.ps1 `
 ### 4.3 생성 후 필수 확인
 
 ```powershell
-.\gradlew.bat projects
-.\gradlew.bat :cpf-payment:compileJava
-.\gradlew.bat :cpf-payment:test
+$repo='C:\dev\projects\jck\202412_01_CPF'
+& (Join-Path $repo 'gradlew.bat') projects
+& (Join-Path $repo 'gradlew.bat') :cpf-payment:compileJava
+& (Join-Path $repo 'gradlew.bat') :cpf-payment:test
 ```
 
 - 생성된 `build.gradle`에 실제 필요한 의존성이 있는지 확인한다.
@@ -345,15 +349,19 @@ Local과 Remote 구현은 다음 의미가 같아야 한다.
 
 ## 12. 파일·SFTP·외부 REST·전문
 
-### 12.1 파일 공통
+### 12.1 파일·Attachment 공통
 
 - 허용 확장자·크기·MIME
 - 저장 위치와 Ownership
+- Attachment ID와 업무 원장의 참조 관계
+- 업로드 주체·다운로드 권한·Data Scope·Masking
 - Checksum
 - 암호화·가림·Virus Policy
 - Partial Upload
 - 중복 파일
-- 보존·삭제·Audit
+- 보존·삭제·법적 보류·Audit
+
+Attachment는 업무 원장의 상태를 대신하지 않는다. 파일 저장은 성공했지만 업무 등록이 실패한 경우 고아 파일을 식별하고, 업무 등록은 성공했지만 파일 전송 결과가 불명확한 경우 Attachment Ledger와 저장소 Checksum을 대사한다.
 
 ### 12.2 SFTP
 
@@ -513,6 +521,65 @@ Repository에 실제 EDU가 없으면 가상의 성공 결과를 쓰지 않고 `
 - 따라서 개별 EDU는 Source·Consumer·Test·Runtime을 확인한 단위로 판정하고, 전체 EDU를 일괄 `완료`로 표시하지 않는다.
 - 전수 확인 요구는 `산출물목록.md`의 `EDU-001` 개발 검토 항목으로 전달한다.
 
+### 18.2 온라인·연계 EDU 45개 전수표
+
+아래 표는 교육 식별자를 빠뜨리지 않기 위한 전수 목록이다. **표에 존재한다는 사실만으로 실행 성공을 뜻하지 않는다.** 실행 전 `GET /api/reference/edu-capabilities`에서 해당 ID, `requiredFields`, `requiredRole`, `failurePoints`, `sourcePath`, `tests`를 확인하고, 실행 결과와 DB·Target·Outbox·Audit를 대사한다.
+
+| 교육 ID | 확인할 기능 | 활성 조건 | Source 판정 | Runtime 판정 |
+|---|---|---|---|---|
+| `EDU-DEV-01` | 생성 도구 기반 신규 업무 영역 생성 | 기본 기능 또는 기능 정의의 `configurationKey` | 카탈로그·Handler 전수 대조 재확인 필요 | 미검증 |
+| `EDU-DEV-02` | 권한·범위가 적용된 목록·상세 조회 | 기본 기능 또는 기능 정의의 `configurationKey` | 카탈로그·Handler 전수 대조 재확인 필요 | 미검증 |
+| `EDU-DEV-03` | 등록·수정·상태 변경과 Audit | 기본 기능 또는 기능 정의의 `configurationKey` | 카탈로그·Handler 전수 대조 재확인 필요 | 미검증 |
+| `EDU-DEV-04` | 동시 수정과 Expected Version 충돌 | 기본 기능 또는 기능 정의의 `configurationKey` | 카탈로그·Handler 전수 대조 재확인 필요 | 미검증 |
+| `EDU-DEV-05` | 지급 등록 멱등성·응답 유실·결과 대사 | 기본 기능 또는 기능 정의의 `configurationKey` | Handler·JDBC Command Consumer Binding 정적 확인 | 미검증 |
+| `EDU-DEV-06` | Same-JVM·Remote 호출 동등성 | 기본 기능 또는 기능 정의의 `configurationKey` | 카탈로그·Handler 전수 대조 재확인 필요 | 미검증 |
+| `EDU-DEV-07` | 메시지 Outbox·Inbox·중복 소비·재처리 | 기본 기능 또는 기능 정의의 `configurationKey` | 카탈로그·Handler 전수 대조 재확인 필요 | 미검증 |
+| `EDU-DEV-08` | 파일 Upload·검사·Attachment·Download | 기본 기능 또는 기능 정의의 `configurationKey` | 카탈로그·Handler 전수 대조 재확인 필요 | 미검증 |
+| `EDU-DEV-09` | 외부 REST 조회와 UNKNOWN_RESULT | 기본 기능 또는 기능 정의의 `configurationKey` | 카탈로그·Handler 전수 대조 재확인 필요 | 미검증 |
+| `EDU-DEV-10` | 고정길이 전문 기관 이체 | 기본 기능 또는 기능 정의의 `configurationKey` | 카탈로그·Handler 전수 대조 재확인 필요 | 미검증 |
+| `EDU-DEV-11` | Permission·Data Scope·Masking·Audit | 기본 기능 또는 기능 정의의 `configurationKey` | 카탈로그·Handler 전수 대조 재확인 필요 | 미검증 |
+| `EDU-DEV-12` | Cache·Feature Flag·Secret Rotation | 기본 기능 또는 기능 정의의 `configurationKey` | 카탈로그·Handler 전수 대조 재확인 필요 | 미검증 |
+| `EDU-DEV-13` | Notification·비동기 Export·Download Audit | 기본 기능 또는 기능 정의의 `configurationKey` | 카탈로그·Handler 전수 대조 재확인 필요 | 미검증 |
+| `EDU-DEV-14` | Oracle·PostgreSQL·MariaDB DB Migration 의미 일치 | 기본 기능 또는 기능 정의의 `configurationKey` | 카탈로그·Handler 전수 대조 재확인 필요 | 미검증 |
+| `EDU-DEV-15` | 업무 장애 주입·정상화·운영 인계 | 기본 기능 또는 기능 정의의 `configurationKey` | 카탈로그·Handler 전수 대조 재확인 필요 | 미검증 |
+| `EDU-DEV-16` | 대용량 목록 검색·정렬·Cursor Pagination | 기본 기능 또는 기능 정의의 `configurationKey` | 카탈로그·Handler 전수 대조 재확인 필요 | 미검증 |
+| `EDU-DEV-17` | 대량 등록 Preview·부분 오류·재업로드 | 기본 기능 또는 기능 정의의 `configurationKey` | 카탈로그·Handler 전수 대조 재확인 필요 | 미검증 |
+| `EDU-DEV-18` | 논리 삭제·복원·Retention 만료 | 기본 기능 또는 기능 정의의 `configurationKey` | 카탈로그·Handler 전수 대조 재확인 필요 | 미검증 |
+| `EDU-DEV-19` | 기준일·유효기간이 있는 기준정보 | 기본 기능 또는 기능 정의의 `configurationKey` | 카탈로그·Handler 전수 대조 재확인 필요 | 미검증 |
+| `EDU-DEV-20` | 다단계 업무 State Machine과 취소·재개 | 기본 기능 또는 기능 정의의 `configurationKey` | 카탈로그·Handler 전수 대조 재확인 필요 | 미검증 |
+| `EDU-DEV-21` | Transactional Outbox 게시 지연·재시작 | 기본 기능 또는 기능 정의의 `configurationKey` | 카탈로그·Handler 전수 대조 재확인 필요 | 미검증 |
+| `EDU-DEV-22` | 서비스 간 Saga Compensation·수동 확정 | 기본 기능 또는 기능 정의의 `configurationKey` | 카탈로그·Handler 전수 대조 재확인 필요 | 미검증 |
+| `EDU-DEV-23` | 공통 Validation·Error Contract·OpenAPI 일치 | 기본 기능 또는 기능 정의의 `configurationKey` | 카탈로그·Handler 전수 대조 재확인 필요 | 미검증 |
+| `EDU-DEV-24` | 장시간 비동기 Operation 조회·취소 | 기본 기능 또는 기능 정의의 `configurationKey` | 카탈로그·Handler 전수 대조 재확인 필요 | 미검증 |
+| `EDU-DEV-25` | Webhook 서명·재전송·Replay 방지 | 기본 기능 또는 기능 정의의 `configurationKey` | 카탈로그·Handler 전수 대조 재확인 필요 | 미검증 |
+| `EDU-DEV-26` | SFTP 수신·송신·완료 파일 원자 처리 | 기본 기능 또는 기능 정의의 `configurationKey` | 카탈로그·Handler 전수 대조 재확인 필요 | 미검증 |
+| `EDU-DEV-27` | SOAP·XML 외부기관 연계와 장애 처리 | 기본 기능 또는 기능 정의의 `configurationKey` | 카탈로그·Handler 전수 대조 재확인 필요 | 미검증 |
+| `EDU-DEV-28` | 대용량 Multipart Upload·중단 재개 | 기본 기능 또는 기능 정의의 `configurationKey` | 카탈로그·Handler 전수 대조 재확인 필요 | 미검증 |
+| `EDU-DEV-29` | 악성코드 검사·격리·승인 해제 | 기본 기능 또는 기능 정의의 `configurationKey` | 카탈로그·Handler 전수 대조 재확인 필요 | 미검증 |
+| `EDU-DEV-30` | Object Storage 보존·Version·Legal Hold | 기본 기능 또는 기능 정의의 `configurationKey` | 카탈로그·Handler 전수 대조 재확인 필요 | 미검증 |
+| `EDU-DEV-31` | 다중 채널 Notification 선호·Retry·대체 채널 | 기본 기능 또는 기능 정의의 `configurationKey` | 카탈로그·Handler 전수 대조 재확인 필요 | 미검증 |
+| `EDU-DEV-32` | 개인정보 암호화·Tokenization·Key Rotation | 기본 기능 또는 기능 정의의 `configurationKey` | 카탈로그·Handler 전수 대조 재확인 필요 | 미검증 |
+| `EDU-DEV-33` | 인증 Token 만료·갱신·폐기·Session 강제 종료 | 기본 기능 또는 기능 정의의 `configurationKey` | 카탈로그·Handler 전수 대조 재확인 필요 | 미검증 |
+| `EDU-DEV-34` | API Rate Limit·호출 주체별 Quota·초과 처리 | 기본 기능 또는 기능 정의의 `configurationKey` | 카탈로그·Handler 전수 대조 재확인 필요 | 미검증 |
+| `EDU-DEV-35` | Feature Flag Canary·Kill Switch·사용자 Segment | 기본 기능 또는 기능 정의의 `configurationKey` | 카탈로그·Handler 전수 대조 재확인 필요 | 미검증 |
+| `EDU-DEV-36` | Cache Stampede·Negative Cache·원본 정합성 | 기본 기능 또는 기능 정의의 `configurationKey` | 카탈로그·Handler 전수 대조 재확인 필요 | 미검증 |
+| `EDU-DEV-37` | 온라인 Distributed Lease·Fencing·소유권 상실 | 기본 기능 또는 기능 정의의 `configurationKey` | 카탈로그·Handler 전수 대조 재확인 필요 | 미검증 |
+| `EDU-DEV-38` | Multi-tenant 격리·설정·Data Scope | 기본 기능 또는 기능 정의의 `configurationKey` | 카탈로그·Handler 전수 대조 재확인 필요 | 미검증 |
+| `EDU-DEV-39` | 업무일자·Timezone·Holiday Calendar | 기본 기능 또는 기능 정의의 `configurationKey` | 카탈로그·Handler 전수 대조 재확인 필요 | 미검증 |
+| `EDU-DEV-40` | 금액·통화·Rounding·환율 Version | 기본 기능 또는 기능 정의의 `configurationKey` | 카탈로그·Handler 전수 대조 재확인 필요 | 미검증 |
+| `EDU-DEV-41` | Audit Evidence Export·무결성 Hash·검증 | 기본 기능 또는 기능 정의의 `configurationKey` | 카탈로그·Handler 전수 대조 재확인 필요 | 미검증 |
+| `EDU-DEV-42` | Log·Metric·Trace Correlation과 Sampling | 기본 기능 또는 기능 정의의 `configurationKey` | 카탈로그·Handler 전수 대조 재확인 필요 | 미검증 |
+| `EDU-DEV-43` | API Version 전환·하위 호환·폐기 | 기본 기능 또는 기능 정의의 `configurationKey` | 카탈로그·Handler 전수 대조 재확인 필요 | 미검증 |
+| `EDU-DEV-44` | Event Schema 진화·Compatibility·DLQ | 기본 기능 또는 기능 정의의 `configurationKey` | 카탈로그·Handler 전수 대조 재확인 필요 | 미검증 |
+| `EDU-DEV-45` | 조회 Model·Search Index Eventual Consistency | 기본 기능 또는 기능 정의의 `configurationKey` | 카탈로그·Handler 전수 대조 재확인 필요 | 미검증 |
+
+판정 규칙:
+
+1. `Source 판정`이 **재확인 필요**이면 Handler·Resource Contract·Consumer·Test를 같은 Commit에서 대조한다.
+2. `Runtime 판정`은 실제 실행 명령, 종료 코드, DB·외부 기반, Browser/ADM 결과가 없으면 `미검증`으로 유지한다.
+3. 실행 API가 2xx여도 업무 원장·Target·Outbox·Audit가 같은 `operationId`를 가리키지 않으면 실패로 판정한다.
+4. `UNKNOWN_RESULT`와 `PARTIAL_SUCCESS`는 신규 요청을 만들지 않고 기존 Operation에서 Reconciliation한다.
+
 ## 19. 완료 점검표
 
 - [ ] 기능 Owner와 Consumer가 명확하다.
@@ -526,3 +593,87 @@ Repository에 실제 EDU가 없으면 가상의 성공 결과를 쓰지 않고 `
 - [ ] ADM에서 Query·Command·Audit을 확인했다.
 - [ ] 운영 인계와 Rollback 기준을 전달했다.
 - [ ] 실행하지 않은 항목은 미검증으로 표시했다.
+
+## 20. 배포 인계 절차
+
+개발 완료 표시는 Source 작성 시점이 아니라 운영 인계가 검수된 시점에 판단한다.
+
+### 20.1 인계 묶음
+
+| 항목 | 필수 내용 |
+|---|---|
+| Source 기준 | Repository·Branch·exact Commit |
+| Artifact | 이름·Version·SHA-256·SBOM |
+| API | OpenAPI·오류·권한·Timeout·Idempotency |
+| DB | Vendor별 Migration·Verify·Rollback/Recovery |
+| Config | Key·환경변수·Default·필수·Secret·재기동 |
+| Messaging | Binding·Destination·Schema·Retry·DLQ·대사 |
+| File·외부 연계 | Endpoint·Checksum·Timeout·Receipt·보존 |
+| 관측 | Log·Metric·Trace·Audit와 상관 식별자 |
+| 운영 조치 | 조회·재시도·재처리·Reconcile·Rollback |
+| 검증 | 실행 명령·환경·Exit Code·Sanitized Evidence |
+| 제한 | 미구현·미검증·재확인 필요 |
+
+### 20.2 배포 전 확인 명령
+
+```powershell
+$repo='C:\dev\projects\jck\202412_01_CPF'
+git -C $repo rev-parse HEAD
+git -C $repo status --short
+& (Join-Path $repo 'gradlew.bat') clean test assemble qualityGate --no-daemon
+```
+
+실행하지 않은 명령을 성공으로 기록하지 않는다. 실패하면 최초 실패 Task·관련 Source·재현 조건을 기록한다.
+
+## 21. 오류·부분 실패·정상화 결정표
+
+| 상황 | 금지 | 우선 행동 | 종료 판정 |
+|---|---|---|---|
+| Version 충돌 | 최신 Row 덮어쓰기 | 현재 상태 재조회·의도 병합 | Expected Version 일치 |
+| DB Commit 후 응답 유실 | 신규 업무 생성 | Idempotency·업무 원장·Operation 조회 | 실제 결과 확정 |
+| 외부 전송 후 Timeout | 무조건 재전송 | Attempt·Receipt·상대 조회 | 중복 없음·결과 확정 |
+| 일부 대상 성공 | 전체 재실행 | 성공 대상 유지·실패 대상만 처리 | Target별 결과 대사 |
+| Broker Consumer 실패 | Message 삭제 | Retry·DLQ·Inbox·업무 원장 확인 | Backlog·DLQ·업무 대사 |
+| File 일부 처리 | 원본 덮어쓰기 | Checksum·Checkpoint·행별 결과 확인 | 건수·금액·Hash 대사 |
+| Config 부분 적용 | 신규 변경 겹침 | Target Version·Checksum 수집 | Drift 0 |
+
+## 22. EDU 전수 검증 규칙
+
+EDU ID가 문서나 Catalog에 존재하는 것만으로 개발 상태를 `완료`로 표시하지 않는다. 각 EDU는 다음 일곱 근거를 연결한다.
+
+```text
+Definition·Resource Contract
+→ Handler·Owner Package
+→ 실제 Consumer Binding
+→ Config·Migration
+→ 정상·오류·Fault Test
+→ Runtime Operation·Target·Audit
+→ ADM·Log·Metric·Trace Evidence
+```
+
+### 22.1 실행 점검 예
+
+```powershell
+$repo='C:\dev\projects\jck\202412_01_CPF'
+pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repo 'cpf-tools\scripts\start-cpf-local.ps1') -Mode integration
+# EDU API 호출은 실제 Port·Role·필수 입력을 Capability 조회 결과에서 가져온다.
+pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repo 'cpf-tools\scripts\status-cpf-local.ps1')
+```
+
+EDU 종료 후 업무 원장·Operation·Target·Outbox·Audit의 식별자와 건수·금액·Hash를 대사한다.
+
+## 23. 개발 검토 요청으로 전환할 조건
+
+다음 중 하나라도 해당하면 문서에 임의 대안을 만들지 않고 개발 검토 요청으로 전달한다.
+
+- Public API·SPI가 있으나 실제 Consumer가 없다.
+- Sample·Marker만 있고 업무 효과가 없다.
+- Property가 있으나 Consumer가 읽지 않는다.
+- DB Migration은 있으나 Verify·Rollback/Recovery가 없다.
+- Frontend Button은 있으나 Backend Permission이 없다.
+- Timeout 후 결과 조회·Reconcile 경로가 없다.
+- Provider Container는 있으나 Starter·Adapter·Test가 없다.
+- EDU ID는 있으나 Handler·Consumer·Assertion이 없다.
+- Generator가 파일을 만들지만 Build·DB·OpenAPI 검증을 연결하지 않는다.
+
+요청에는 Requirement ID, Owner, 실제 경로, Expected, Actual, 재현 명령, 영향 범위와 필요한 시험을 포함한다.

@@ -2,93 +2,115 @@
 
 상위 메뉴: [Docker 문서](README.md)
 
+> **주 독자**: Docker 환경 운영자, CPF 개발자, 통합시험·장애시험 검수자
+> **완료 결과**: 현재 사용 가능한 Runtime과 미편입 Provider를 구분하고, 필요한 서비스만 선택해 검증 범위와 보호 대상을 결정한다.
+> **Source 기준**: `freeangelsun/202412_01_CPF`, `master`, `3b600702502e53877e30cbac594987b371e2186b`
+
 ## 1. 목적
 
-CPF의 Source·SQL·Generator·Frontend·Batch·Messaging·Cache·외부연계·보안·관측을 동일한 로컬 Container 환경에서 재현한다. Container 상태가 아니라 실제 연결·오류·부분 실패·복구를 실행하는 것이 목적이다.
+이 환경은 CPF의 Source·SQL·Generator·Frontend·Batch·Messaging·Cache·File·외부 연계·Security·Observability를 로컬 Container에서 재현한다. Container 기동이 아니라 실제 Product Consumer의 정상·오류·부분 실패·응답 유실·재시작·대사를 검증하는 것이 목적이다.
 
-## 2. 기준과 현재 범위
+## 2. 기준
 
-- 기준 Commit: `dafe5c0e5260ea8149234e8ab2e75347e75338c1`
-- DB: MariaDB, PostgreSQL, Oracle
-- Cache: Redis
-- 현재 공식 Messaging Source: Kafka Starter
-- 확장 Fixture: WireMock, SFTP, Vault, Keycloak
-- Fault/Observability: Toxiproxy, OpenTelemetry Collector
-- Tooling: Java·Node·Playwright·PowerShell·DB Client·Trivy·ORT
+- Repository: `freeangelsun/202412_01_CPF`
+- Branch: `master`
+- 기준 Commit: `3b600702502e53877e30cbac594987b371e2186b`
+- Docker Source: `cpf-tools/environment/docker-development-test/`
+- 실행본: `C:\dev\Docker\CPF`
+- Secret: `C:\dev\Docker\Secrets`
 
-## 3. QA38 Messaging 증분 범위
+## 3. Service 지도
 
-> **1차 문서 상태**: 아래 RabbitMQ·JMS·IBM MQ 항목은 QA38 개발과 연계할 설치·시험 목표다. 기준 Commit에는 해당 Product Starter가 등록돼 있지 않으며, 이 문서 1차 ZIP에는 Docker Source Script를 포함하지 않는다. 실행 전 `cpf-tools/environment/docker-development-test/`에 명시된 Script·Compose·Fixture가 적용됐는지 확인한다.
+| Service | Compose Source | Container | Host Port | 검증 목적 | 현재 판정 |
+|---|---|---|---:|---|---|
+| MariaDB | `compose.yml` | `cpf-mariadb` | 3306 | Fresh·Upgrade·Recovery·Restore | Source 존재, 최신 실행 미검증 |
+| PostgreSQL | `compose.yml` | `cpf-postgresql` | 5432 | Fresh·Upgrade·Recovery·Restore | Source 존재, 최신 실행 미검증 |
+| Oracle | `compose.yml` | `cpf-oracle` | 1521 | Fresh·Upgrade·Recovery·Restore | Source 존재, 최신 실행 미검증 |
+| Redis | `compose.redis.yml` | `cpf-redis` | 6379 | Cache·Lock·Invalidation | Source 존재, 최신 실행 미검증 |
+| Kafka | `compose.kafka.yml` | `cpf-kafka` | 9092 | Publish·Consume·Retry·DLT | Source 존재, 최신 실행 미검증 |
+| WireMock | `compose.integration.yml` | `cpf-wiremock` | 18080 | REST 오류·지연·Schema Fault | Source 존재 |
+| SFTP | `compose.integration.yml` | `cpf-sftp` | 2222 | Put·Get·Checksum·Atomic Rename | Source 존재 |
+| Vault | `compose.integration.yml` | `cpf-vault` | 8200 | Secret 조회·만료·Rotation | Source 존재 |
+| Keycloak | `compose.integration.yml` | `cpf-keycloak` | 18081 | OIDC·OAuth2·JWT·Session | Source 존재 |
+| Toxiproxy | `compose.tooling.yml` | `cpf-toxiproxy` | Source 기준 | Latency·Reset·Timeout | Source 존재 |
+| OTel Collector | `compose.tooling.yml` | `cpf-otel-collector` | 4317·4318·8888 | Trace·Metric·Backpressure | Source 존재 |
 
-| Runtime | 환경 목표 | Product 상태와의 관계 |
+Port는 Compose `config` 결과와 Host 충돌을 확인해 확정한다.
+
+## 4. 아직 설치 완료로 표시하지 않는 범위
+
+| Runtime | 현재 이유 | 편입 조건 |
 |---|---|---|
-| RabbitMQ | Source 적용 후 선택 Container 추가 | `cpf-starter-messaging-rabbitmq` 구현·검증용 |
-| Apache ActiveMQ Artemis | Source 적용 후 Jakarta JMS Contract Fixture | JMS Product Provider가 구현돼야 사용 가능 |
-| IBM MQ Advanced for Developers | Source 적용·License 승인 후 선택 | Proprietary Driver/License를 Framework 기본 Artifact에 포함하지 않음 |
+| RabbitMQ | 정식 Starter·Consumer 미등록 | Product Starter·Adapter·Consumer·Test 후 Compose 편입 |
+| Jakarta JMS/Artemis | JMS Provider Product 경로 미등록 | Provider Contract·Consumer·Operations 후 편입 |
+| IBM MQ | Starter·Driver·License·Consumer 미등록 | 별도 Extension·License 승인·Fault Test 후 선택 편입 |
+| TCP·ISO8583 Simulator | 정식 Runtime·Consumer 재확인 필요 | Codec·Connection·Correlation·Reconcile 구현 후 편입 |
+| Email·SMS Provider | Notification Starter·Receipt 경로 재확인 필요 | 실제 Provider·Receipt·중복 방지 후 편입 |
+| Object Storage·Malware Scan | File Product Consumer 재확인 필요 | Storage·Scanner·Retention·Fault Test 후 편입 |
 
-Kafka Default가 RabbitMQ·JMS·IBM MQ 제외를 의미하지 않는다. 다만 Container만 추가하고 Product 기능을 완료로 표시하지 않는다.
-
-## 4. 설치 경로
+## 5. 경로·Secret 원칙
 
 ```text
-Repository : cpf-tools/environment/docker-development-test/
+Repository : C:\dev\projects\jck\202412_01_CPF
 Runtime    : C:\dev\Docker\CPF
 Secret     : C:\dev\Docker\Secrets
 Output     : C:\dev\Docker\CPF\output
 ```
 
-## 5. Service 지도
+현재 Compose가 참조하는 Secret 파일 예:
 
-| Service | Container | Host Port | 기본 상태 | 용도 |
-|---|---|---:|---|---|
-| MariaDB | `cpf-mariadb` | 3306 | Created/Stopped | Vendor Lifecycle |
-| PostgreSQL | `cpf-postgresql` | 5432 | Created/Stopped | Vendor Lifecycle |
-| Oracle | `cpf-oracle` | 1521 | Created/Stopped | Vendor Lifecycle |
-| Redis | `cpf-redis` | 6379 | Created/Stopped | Cache/Lock/Invalidation |
-| Kafka | `cpf-kafka` | Source 기준 | Created/Stopped | Kafka Contract |
-| RabbitMQ | `cpf-rabbitmq` | 5672/15672 | Source 적용 전 미구현 | AMQP Contract |
-| Artemis | `cpf-artemis` | 61616/8161 | Source 적용 전 미구현 | Jakarta JMS Contract |
-| IBM MQ | `cpf-ibmmq` | 1414/9443 | Source 적용 전 미구현 | IBM MQ Extension |
-| WireMock | `cpf-wiremock` | 18080 | Created/Stopped | REST 오류·지연 Fixture |
-| SFTP | `cpf-sftp` | 2222 | Created/Stopped | File Transfer |
-| Vault | `cpf-vault` | 8200 | Created/Stopped | Secret Provider |
-| Keycloak | `cpf-keycloak` | 18081 | Created/Stopped | OIDC/OAuth2/JWT |
-| Toxiproxy | `cpf-toxiproxy` | Source 기준 | Created/Stopped | 지연·단절·Reset |
-| OTel Collector | `cpf-otel-collector` | Source 기준 | Created/Stopped | Trace·Metric 수집 |
+```text
+redis-password.txt
+sftp-password.txt
+vault-token.txt
+keycloak-admin-password.txt
+keycloak-test-password.txt
+keycloak-service-client-secret.txt
+```
 
-Port는 다른 환경과 충돌할 수 있으므로 Compose `config` 결과를 기준으로 확인한다.
+Secret 존재 여부만 확인하고 값은 출력하지 않는다.
 
-## 6. 계정·Secret
+## 6. 환경 선택 기준
 
-문서에는 ID와 파일 경로만 기록한다.
+| 시험 | 필요한 Runtime |
+|---|---|
+| DB Vendor Lifecycle | 대상 DB 하나, 필요 시 3개 순차 실행 |
+| Cache·Lock | Redis |
+| Kafka Messaging | Kafka + 대상 Consumer |
+| REST Fault | WireMock 또는 Toxiproxy |
+| SFTP | SFTP + File Consumer |
+| Secret | Vault + Secret Starter Consumer |
+| 인증·Session | Keycloak + Security Consumer |
+| Observability | OTel Collector + Instrumented Consumer |
+| Network Fault | Toxiproxy + 대상 Runtime |
 
-| Runtime | ID | Secret 파일 |
-|---|---|---|
-| RabbitMQ | `cpf` | `rabbitmq-password.txt` |
-| Artemis | `cpf` | `artemis-password.txt` |
-| IBM MQ Admin | Image 정책 | `ibmmq-admin-password.txt` |
-| IBM MQ App | `app` | `ibmmq-app-password.txt` |
-| SFTP | `cpf-sftp` | `sftp-password.txt` |
-| Keycloak Admin | `cpf-admin` | `keycloak-admin-password.txt` |
-| Keycloak Test | `cpf-reviewer` | `keycloak-test-password.txt` |
-| Vault | Token ID 비공개 | `vault-token.txt` |
+모든 Service를 동시에 기동하는 것을 기본값으로 삼지 않는다.
 
-## 7. 운영 원칙
+## 7. 검증 단계
 
-1. 필요한 Service만 시작한다.
-2. 작업 종료 시 시작한 Service만 중지한다.
-3. 기존 Volume·Image·Secret을 삭제하지 않는다.
-4. 데이터 초기화는 대상·영향·Backup을 확인한 뒤 별도 승인한다.
-5. Container Exit 143은 Stop 과정의 SIGTERM인지 실패인지 Log와 종료 절차로 판정한다.
-6. Runtime Source와 `C:\dev\Docker\CPF` 실행본 Hash를 비교한다.
+```text
+Compose config
+→ Image·Digest
+→ Container Created/Stopped
+→ 선택 Service Start
+→ Health·Readiness
+→ Product Client Contract
+→ Fault Injection
+→ Retry·Reconcile·Rollback
+→ Evidence
+→ 선택 Service Stop
+→ Running CPF Container 0
+```
 
 ## 8. 완료 판정
 
-- Compose config 성공
-- Container 이름·Port 충돌 없음
+- Compose config Exit Code 0
+- Container 이름·Port·Network 충돌 없음
 - Restart Policy `no`
-- Health/Readiness 또는 실제 연결 성공
-- Publish/Consume, Put/Get, Token, Secret, Fault 시나리오 성공
-- StopAfter 후 Running Container 0
-- Secret Pattern Scan 0
-- 실행 Log의 Exit Code와 Hash 기록
+- Secret 원문 출력 없음
+- 실제 Product Consumer의 연결·인증·업무 효과 확인
+- 정상·오류·Timeout·Process Kill·부분 실패 실행
+- Operation·DB·Broker·Audit 대사
+- 작업 종료 후 Running CPF Container 0
+- Volume·사용자 데이터 보존
+- 실행하지 않은 Provider는 `미검증`

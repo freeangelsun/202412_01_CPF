@@ -7,7 +7,7 @@
 
 - Repository: `freeangelsun/202412_01_CPF`
 - Branch: `master`
-- 기준 Commit: `dafe5c0e5260ea8149234e8ab2e75347e75338c1` (`20260802_07`)
+- 기준 Commit: `3b600702502e53877e30cbac594987b371e2186b` (`20260802_08`)
 - 활성 개발 요구: `cpf-docs/work/current/CPF_QA38_FINAL_DEVELOPMENT_REQUIREMENTS.md`
 - 실제 Source·SQL·API·Config·Frontend·Script·Test가 설명보다 우선한다.
 - 실행하지 않은 Build·DB·Runtime·Browser·다중 인스턴스·장애 시험은 `미검증`이다.
@@ -33,7 +33,7 @@ cpf-tools/environment/    개발·시험 환경
 
 ## 2. 처음 사용하는 사람의 기본 순서
 
-1. Repository Root에서 현재 Branch·Commit·변경 상태를 확인한다.
+1. Repository 절대경로를 지정하고 현재 Branch·Commit·변경 상태를 확인한다.
 2. 수행 목적을 생성·빌드·DB·실행·검증·환경 중 하나로 분류한다.
 3. 해당 Script의 `param`·Help·예제와 변경 대상을 읽는다.
 4. Dry Run 또는 조회 명령을 먼저 실행한다.
@@ -46,19 +46,21 @@ cpf-tools/environment/    개발·시험 환경
 
 ## 3. 공통 사전 점검
 
-Repository Root에서 실행한다.
+어느 폴더에서 실행해도 되도록 Repository 절대경로를 사용한다.
 
 ```powershell
-git remote -v
-git branch --show-current
-git rev-parse HEAD
-git rev-parse origin/master
-git status --short
-git diff --name-status
-git diff --stat
-git ls-files --others --exclude-standard
+$repo='C:\dev\\projects\\jck\\202412_01_CPF'
+if(-not(Test-Path -LiteralPath $repo -PathType Container)){throw "Repository가 없습니다: $repo"}
+git -C $repo remote -v
+git -C $repo branch --show-current
+git -C $repo rev-parse HEAD
+git -C $repo rev-parse origin/master
+git -C $repo status --short
+git -C $repo diff --name-status
+git -C $repo diff --stat
+git -C $repo ls-files --others --exclude-standard
 java -version
-.\gradlew.bat --version
+& (Join-Path $repo 'gradlew.bat') --version
 pwsh --version
 ```
 
@@ -73,10 +75,10 @@ pwsh --version
 
 | 하려는 일 | 시작 위치 | 먼저 확인할 문서 |
 |---|---|---|
-| 신규 업무 영역 생성 | `cpf-tools/generator/` | 01 개발자 매뉴얼 |
+| 신규 업무 영역 생성 | `cpf-tools/generator/` | 01 CPF 개발자 매뉴얼 |
 | Starter 선택·검증 | Build·Generator·Consumer | 90 CPF Starters 매뉴얼 |
 | Build Plugin·BOM 사용 | `cpf-tools/build/` | 이 문서의 Build 장 |
-| DB 신규 설치·Migration | `cpf-tools/db/`, `cpf-tools/scripts/` | 05 플랫폼 운영 매뉴얼 |
+| DB 신규 설치·Migration | `cpf-tools/db/`, `cpf-tools/scripts/` | 05 CPF 플랫폼 운영 매뉴얼 |
 | Local Web·Batch 실행 | `cpf-tools/runtime/`, `cpf-tools/scripts/` | 이 문서의 Local Runtime 장 |
 | 품질 Gate·정합성 검사 | `cpf-tools/verification/` | 기술 표준서 |
 | Docker 개발·시험 환경 | `cpf-tools/environment/docker-development-test/` | `cpf-docs/environment/docker/` |
@@ -92,7 +94,8 @@ cpf-tools/generator/create-domain.ps1
 ### 5.1 Dry Run
 
 ```powershell
-pwsh -File .\cpf-tools\generator\create-domain.ps1 `
+$repo='C:\dev\\projects\\jck\\202412_01_CPF'
+pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repo 'cpf-tools\generator\create-domain.ps1') `
   -DomainName payment `
   -SystemCode PAY `
   -DatabaseVendor postgresql `
@@ -127,8 +130,9 @@ Dry Run이 실제 파일을 변경하면 결함으로 분류한다.
 ### 5.3 생성 후 확인
 
 ```powershell
-.\gradlew.bat projects
-.\gradlew.bat :cpf-payment:clean :cpf-payment:test :cpf-payment:assemble
+$repo='C:\dev\\projects\\jck\\202412_01_CPF'
+& (Join-Path $repo 'gradlew.bat') projects
+& (Join-Path $repo 'gradlew.bat') :cpf-payment:clean :cpf-payment:test :cpf-payment:assemble
 ```
 
 실제 Project 이름은 생성 결과를 따른다.
@@ -187,8 +191,9 @@ Secret을 Command Line이나 Log에 출력하지 않는다.
 ### 6.2 Build 실행
 
 ```powershell
-.\gradlew.bat projects
-.\gradlew.bat clean test assemble
+$repo='C:\dev\\projects\\jck\\202412_01_CPF'
+& (Join-Path $repo 'gradlew.bat') projects
+& (Join-Path $repo 'gradlew.bat') clean test assemble
 ```
 
 긴 전체 Build 전에 대상 Project의 Compile·Test를 먼저 실행한다. 성공한 낮은 비용 Gate를 같은 Commit에서 이유 없이 반복하지 않는다.
@@ -211,9 +216,10 @@ Secret을 Command Line이나 Log에 출력하지 않는다.
 대표 Script:
 
 ```powershell
-pwsh -File .\cpf-tools\scripts\start-cpf-local.ps1
-pwsh -File .\cpf-tools\scripts\status-cpf-local.ps1
-pwsh -File .\cpf-tools\scripts\stop-cpf-local.ps1
+$repo='C:\dev\\projects\\jck\\202412_01_CPF'
+pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repo 'cpf-tools\scripts\start-cpf-local.ps1')
+pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repo 'cpf-tools\scripts\status-cpf-local.ps1')
+pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repo 'cpf-tools\scripts\stop-cpf-local.ps1')
 ```
 
 ### 7.1 기동 전
@@ -241,7 +247,7 @@ pwsh -File .\cpf-tools\scripts\stop-cpf-local.ps1
 
 ## 8. DB 도구
 
-DB 절차는 [05 플랫폼 운영 매뉴얼](05_플랫폼운영매뉴얼.md)과 [데이터베이스 표준서](../deliverables/데이터베이스표준서.md)를 함께 사용한다.
+DB 절차는 [05 CPF 플랫폼 운영 매뉴얼](05_CPF_플랫폼운영매뉴얼.md)과 [데이터베이스 표준서](../deliverables/데이터베이스표준서.md)를 함께 사용한다.
 
 기본 원칙:
 
@@ -375,11 +381,12 @@ EDU는 도구·제품 기능을 처음 배우는 실행 예제다. 문서 목록
 ## 14. 작업 종료 점검
 
 ```powershell
-git status --short
-git diff --name-status
-git diff --stat
-git diff --check
-git ls-files --others --exclude-standard
+$repo='C:\dev\\projects\\jck\\202412_01_CPF'
+git -C $repo status --short
+git -C $repo diff --name-status
+git -C $repo diff --stat
+git -C $repo diff --check
+git -C $repo ls-files --others --exclude-standard
 ```
 
 추가 확인:
@@ -402,3 +409,67 @@ git ls-files --others --exclude-standard
 - [ ] Build·DB·Runtime·문서가 일치한다.
 - [ ] 미실행 Runtime은 `미검증`으로 기록했다.
 - [ ] 정리·Rollback이 정확한 대상으로 제한된다.
+
+## 16. Tool 사용성 검수 기준
+
+처음 사용하는 사람이 Source를 읽지 않고도 다음을 확인할 수 있어야 한다.
+
+| 항목 | 필수 내용 |
+|---|---|
+| 목적 | 어떤 결과를 만드는 도구인지 |
+| 대상 역할 | 개발자·DBA·운영자·검수자 |
+| 실행 위치 | 어느 폴더에서도 가능한 절대경로 예 |
+| 선행 조건 | Java·PowerShell·Docker·DB·권한 |
+| Parameter | 이름·Type·Default·필수·허용값 |
+| Dry Run | 변경 없는 사전 검토 방법 |
+| 변경 범위 | 생성·수정·삭제 예정 파일·DB Object |
+| 정상 결과 | Exit Code·파일·Build·DB·Health |
+| 오류 | 최초 실패 단계·로그·실패 분류 |
+| 재실행 | 멱등성·충돌·중단 이후 행동 |
+| Rollback | 정확한 파일·Manifest·DB Recovery |
+| 보호 대상 | 다른 작업자의 변경·전체 미추적 파일 |
+
+Help와 실제 Parameter가 다르면 문서 문제가 아니라 Tool 결함으로도 검토한다.
+
+## 17. 도구별 안전한 실행 Wrapper
+
+명령을 현재 폴더에 의존시키지 않는다.
+
+```powershell
+$repo='C:\dev\projects\jck\202412_01_CPF'
+$tool=Join-Path $repo 'cpf-tools\generator\create-domain.ps1'
+if(-not(Test-Path -LiteralPath $tool -PathType Leaf)){throw "도구가 없습니다: $tool"}
+Get-Help $tool -Full
+```
+
+실행 전에는 `$repo`, Script 존재, Git 상태를 확인하고, 실행 후에는 Exit Code를 실행 직후 저장한다.
+
+```powershell
+pwsh -NoProfile -ExecutionPolicy Bypass -File $tool -DomainName payment -SystemCode PAY -DatabaseVendor postgresql -DryRun
+$exit=$LASTEXITCODE
+if($exit -ne 0){throw "도구 실행 실패: exit=$exit"}
+```
+
+## 18. Tool Inventory와 Owner 작업 요청
+
+각 Tool은 다음 원장으로 관리해야 한다.
+
+```text
+Tool ID / Script Path / Owner
+Purpose / Consumer / Parameter
+Dry Run / Manifest / Idempotency
+Exit Code / Log / Evidence
+Rollback / Protected Paths
+Test / Last Verified Commit
+```
+
+다음은 개발 검토 요청이다.
+
+| ID | 조건 | 판정 |
+|---|---|---|
+| `TOOLS-HELP-001` | Script Parameter와 Help·문서 불일치 | 재확인 필요 |
+| `TOOLS-MANIFEST-001` | 생성·수정 경로 Manifest 없음 | 재확인 필요 |
+| `TOOLS-IDEMP-001` | 같은 입력 재실행 시 중복 생성 | 실패 시 개발 요청 |
+| `TOOLS-ROLLBACK-001` | 정확한 Rollback·Recovery 없음 | 부분 구현 |
+| `TOOLS-PATH-001` | 현재 폴더에 의존하는 명령 | 문서·Script 보완 필요 |
+| `TOOLS-DELETE-001` | 광역 삭제·전체 미추적 정리 | 실행 금지·개발 요청 |

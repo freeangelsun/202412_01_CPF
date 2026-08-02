@@ -2,7 +2,7 @@
 
 > **주 독자**: 도입 검토자, 업무 기획자, 아키텍트, 개발·운영 책임자
 > **완료 결과**: CPF로 만들 업무를 분류하고 제품 구성, 배포 형태, 역할별 매뉴얼과 운영 책임을 결정한다.
-> **Source 기준**: `freeangelsun/202412_01_CPF`, `master`, `dafe5c0e5260ea8149234e8ab2e75347e75338c1`
+> **Source 기준**: `freeangelsun/202412_01_CPF`, `master`, `3b600702502e53877e30cbac594987b371e2186b`
 
 ![역할별 문서 지도](png/cpf-guide-map.png)
 
@@ -34,16 +34,16 @@ README와 상위 안내에서는 특정 제품 브랜드보다 기능을 우선�
 
 | 업무 결과 | CPF에서 선택할 기능 | 주 담당 문서 |
 |---|---|---|
-| 요청 시점에 조회·등록·변경 | 온라인 API, 응용 계층, 업무 규칙, 영속 계층 | [01 개발자 매뉴얼](01_개발자매뉴얼.md) |
-| 여러 시스템에 상태 변경을 전달 | 비동기 메시지, Outbox·Inbox, 멱등성, 재처리 | [01 개발자 매뉴얼](01_개발자매뉴얼.md) |
-| 파일 송수신과 내용 검증 | 파일·첨부·SFTP·Checksum·대사 | [01 개발자 매뉴얼](01_개발자매뉴얼.md) |
-| 정기·대량·분할 처리 | Spring Batch, Scheduler, Worker, Center-Cut | [02 배치 개발 매뉴얼](02_배치개발매뉴얼.md) |
-| 운영자가 상태를 보고 조치 | ADM 조회·조치·승인·감사 | [03 ADM 매뉴얼](03_ADM매뉴얼.md) |
+| 요청 시점에 조회·등록·변경 | 온라인 API, 응용 계층, 업무 규칙, 영속 계층 | [01 CPF 개발자 매뉴얼](01_CPF_개발자매뉴얼.md) |
+| 여러 시스템에 상태 변경을 전달 | 비동기 메시지, Outbox·Inbox, 멱등성, 재처리 | [01 CPF 개발자 매뉴얼](01_CPF_개발자매뉴얼.md) |
+| 파일 송수신과 내용 검증 | 파일·첨부·SFTP·Checksum·대사 | [01 CPF 개발자 매뉴얼](01_CPF_개발자매뉴얼.md) |
+| 정기·대량·분할 처리 | Spring Batch, Scheduler, Worker, Center-Cut | [02 CPF 배치 개발 매뉴얼](02_CPF_배치개발매뉴얼.md) |
+| 운영자가 상태를 보고 조치 | ADM 조회·조치·승인·감사 | [03 CPF ADM 매뉴얼](03_CPF_ADM매뉴얼.md) |
 | 실행 기능 선택·의존성 검증 | CPF Starters | [90 CPF Starters 매뉴얼](90_CPF_Starters_매뉴얼.md) |
 | 생성·빌드·DB·실행·검증 도구 | CPF Tools | [91 CPF Tools 매뉴얼](91_CPF_Tools_매뉴얼.md) |
 | 공통 API 진입점 | Gateway 인증·라우팅·제한·게시 | [92 CPF Gateway 매뉴얼](92_CPF_Gateway_매뉴얼.md) |
 | 조직·사용자·권한·결재 공유 | BZA | [95 CPF BZA 매뉴얼](95_CPF_BZA_매뉴얼.md) |
-| 설치·DB·배포·관측·백업 | 플랫폼 운영 | [05 플랫폼 운영 매뉴얼](05_플랫폼운영매뉴얼.md) |
+| 설치·DB·배포·관측·백업 | 플랫폼 운영 | [05 CPF 플랫폼 운영 매뉴얼](05_CPF_플랫폼운영매뉴얼.md) |
 
 ## 4. CPF와 업무 시스템의 책임 경계
 
@@ -193,11 +193,102 @@ QA38은 Base, Persistence, Security 세분화, Messaging Provider, TCP·SFTP, No
 
 ## 12. 다음 문서
 
-- 업무 기능 개발: [01 개발자 매뉴얼](01_개발자매뉴얼.md)
-- 배치 개발·운영: [02 배치 개발 매뉴얼](02_배치개발매뉴얼.md)
-- ADM 연동·이용: [03 ADM 매뉴얼](03_ADM매뉴얼.md)
-- 플랫폼 설치·운영: [05 플랫폼 운영 매뉴얼](05_플랫폼운영매뉴얼.md)
+- 업무 기능 개발: [01 CPF 개발자 매뉴얼](01_CPF_개발자매뉴얼.md)
+- 배치 개발·운영: [02 CPF 배치 개발 매뉴얼](02_CPF_배치개발매뉴얼.md)
+- ADM 연동·이용: [03 CPF ADM 매뉴얼](03_CPF_ADM매뉴얼.md)
+- 플랫폼 설치·운영: [05 CPF 플랫폼 운영 매뉴얼](05_CPF_플랫폼운영매뉴얼.md)
 - CPF Starters: [90 CPF Starters 매뉴얼](90_CPF_Starters_매뉴얼.md)
 - CPF Tools: [91 CPF Tools 매뉴얼](91_CPF_Tools_매뉴얼.md)
 - CPF Gateway: [92 CPF Gateway 매뉴얼](92_CPF_Gateway_매뉴얼.md)
 - CPF BZA: [95 CPF BZA 매뉴얼](95_CPF_BZA_매뉴얼.md)
+
+## 13. 제품 범위와 비범위
+
+| CPF 제품 범위 | 업무 시스템이 결정할 범위 |
+|---|---|
+| 공개 API·SPI·오류·식별자 계약 | 업무 엔터티·상태·금액·건수 규칙 |
+| 동일 JVM·원격 호출의 계약 동등성 | 서비스 분리·배포 단위·SLA |
+| 멱등성·Version·Attempt·대사 구조 | 중복의 업무 의미·보상 정책 |
+| 정기·대량 처리 실행 계약 | Job Parameter·Chunk·Partition·합계 기준 |
+| 권한·Data Scope·Masking·Audit 계약 | 어떤 업무 조치를 누구에게 허용할지 |
+| ADM·BZA·Gateway 선택 제품 | 제품 사용 여부와 조직별 정책 |
+| DB Vendor Pack·Migration·검증 도구 | 계정·용량·보존·Backup 정책 |
+| Generator·Build·검증 도구 | 생성된 업무 Source의 최종 소유권 |
+
+CPF는 다음을 대신 결정하지 않는다.
+
+- 조직 고유의 업무 정책과 법규 해석
+- 업무 데이터의 정합성·보존·폐기 기준
+- 외부기관의 실제 처리 결과
+- 운영 조직의 승인·권한 분리
+- 성능·RPO·RTO·보안 목표의 조직별 수치
+- Source에 없는 API·Property·화면·상태
+
+## 14. Architecture와 의존 방향
+
+```text
+Channel·Scheduler·External System
+                ↓
+API·Message·Batch Entry Point
+                ↓
+Application Use Case
+                ↓
+Business Domain + CPF Public API·SPI
+                ↓
+Persistence·Message·File·Remote Adapter
+                ↓
+DB·Broker·File Store·External Provider
+```
+
+의존 방향 원칙:
+
+1. 업무 Domain은 Controller·DB Driver·Broker SDK를 직접 알지 않는다.
+2. Application은 업무 Use Case와 Transaction 경계를 소유한다.
+3. Adapter는 CPF Public SPI 또는 Owner Port를 구현한다.
+4. ADM·BZA·Gateway는 업무 Owner의 Public 계약을 사용한다.
+5. 동일 JVM 최적화가 Public 계약을 우회하지 않는다.
+6. Provider 교체가 업무 상태와 오류 의미를 바꾸지 않는다.
+
+## 15. Module Ownership 지도
+
+| Module·제품군 | 소유 범위 | 실제 Consumer 예 | 비고 |
+|---|---|---|---|
+| `cpf-core` | 기술 중립 계약·식별자·오류·보안·감사 | 업무 Domain·Starter·제품 모듈 | QA38 경량화 진행 중 |
+| `cpf-common` | 업무 공통 Code·Calendar·Message·Template | 업무 Domain | 기술 Runtime 이관 필요 |
+| `cpf-starters/*` | 선택 Runtime·Provider 자동 설정 | ADM·BZA·Gateway·Batch·업무 Runtime | 7개 공개 Starter 등록 |
+| `cpf-reference` | EDU·Reference Consumer | 개발자·검수자 | 기능 Variant와 DB Vendor 선택 |
+| `cpf-member` | Generator Golden Reference Domain | Generator 검증 | 직접 의존성 재검토 필요 |
+| `cpf-batch/*` | Batch 계약·실행·제어·Scheduler·Worker | Batch Job·ADM | Spring Batch Primary Engine |
+| `cpf-admin` | ADM Backend·Frontend | 운영 사용자·Owner Service | 업무 원장 비소유 |
+| `cpf-biz-admin` | BZA 조직·권한·결재 | 업무 Service·사용자 | 선택 제품 |
+| `cpf-gateway` | Route·정책·게시·Attempt | 외부·내부 API | 선택 제품 |
+| `cpf-tools/*` | Build·Generator·DB·Runtime·검증 | 개발·운영·검수 | 도구군 |
+
+Owner가 불분명한 상태에서 공통 모듈에 기능을 추가하지 않는다. 실제 Consumer가 없는 추상화는 개발 검토 대상으로 남긴다.
+
+## 16. DB Lifecycle·Generator·문서 지도 연결
+
+### DB Lifecycle
+
+모든 DB 사용 기능은 MariaDB·PostgreSQL·Oracle 중 지원 Vendor를 명시하고 다음을 확인한다.
+
+```text
+Fresh Install → Verify → Runtime Query → Upgrade
+→ Rollback/Forward Recovery → Reapply → Drift → Backup/Restore
+```
+
+### Generator
+
+Generator는 업무 영역 생성의 시작점이지 완료 판정 도구가 아니다. Dry Run, 충돌 검사, 생성 Manifest, Build, DB, OpenAPI, Test, 운영 인계를 함께 확인한다.
+
+### 문서 지도
+
+- 제품 선택·책임 경계: 본 문서
+- 업무 Source·API·DB·연계: 01
+- 정기·대량 처리: 02
+- ADM 업무 연동과 권한별 이용: 03
+- 설치·DB·배포·관측·DR: 05
+- Starter 선택·설정·의존성: 90
+- Generator·Build·DB·검증 도구: 91
+- Gateway Route·보안·게시: 92
+- BZA 조직·권한·결재: 95

@@ -1,0 +1,13 @@
+# CPF 공식 매뉴얼 파일명 통일 — exact delete list
+# 기준 Repository: freeangelsun/202412_01_CPF
+# 기준 Branch: master
+# 기준 Commit: 3b600702502e53877e30cbac594987b371e2186b
+#
+# 새 CPF 접두사 파일을 적용하고 README·상호 링크·이미지를 확인한 뒤 아래 기존 파일만 삭제한다.
+cpf-docs/guides/00_프레임워크안내.md
+cpf-docs/guides/01_개발자매뉴얼.md
+cpf-docs/guides/02_배치개발매뉴얼.md
+cpf-docs/guides/03_ADM매뉴얼.md
+cpf-docs/guides/05_플랫폼운영매뉴얼.md
+#
+# 위 목록 밖의 파일, 다른 작업자의 변경, 미추적 파일 전체, 상위 디렉터리는 삭제하지 않는다.

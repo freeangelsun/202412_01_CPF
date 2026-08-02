@@ -11,7 +11,7 @@
 
 동일 JVM · 분리 WAS · 모듈형 단일 애플리케이션 · 마이크로서비스 · 다중 인스턴스 · 정기·대량 처리 · 비동기 메시지 처리 · 운영 통제
 
-[프레임워크 안내](cpf-docs/guides/00_프레임워크안내.md) · [개발자 매뉴얼](cpf-docs/guides/01_개발자매뉴얼.md) · [배치 개발](cpf-docs/guides/02_배치개발매뉴얼.md) · [ADM 매뉴얼](cpf-docs/guides/03_ADM매뉴얼.md) · [CPF Starters](cpf-docs/guides/90_CPF_Starters_매뉴얼.md) · [CPF Tools](cpf-docs/guides/91_CPF_Tools_매뉴얼.md)
+[프레임워크 안내](cpf-docs/guides/00_CPF_프레임워크안내.md) · [개발자 매뉴얼](cpf-docs/guides/01_CPF_개발자매뉴얼.md) · [배치 개발](cpf-docs/guides/02_CPF_배치개발매뉴얼.md) · [ADM 매뉴얼](cpf-docs/guides/03_CPF_ADM매뉴얼.md) · [CPF Starters](cpf-docs/guides/90_CPF_Starters_매뉴얼.md) · [CPF Tools](cpf-docs/guides/91_CPF_Tools_매뉴얼.md)
 
 </div>
 
@@ -33,7 +33,7 @@ CPF는 업무 서비스를 같은 설계·개발·운영 기준으로 구축하�
 - ADM에서 업무 서비스의 상태·로그·배치·설정·장애를 조회하고 권한에 따라 조치할 수 있습니다.
 - 조직·사용자·권한·결재가 필요하면 BZA를, 공통 API 진입점이 필요하면 Gateway를 선택할 수 있습니다.
 
-[제품 범위와 책임 경계 자세히 보기 →](cpf-docs/guides/00_프레임워크안내.md)
+[제품 범위와 책임 경계 자세히 보기 →](cpf-docs/guides/00_CPF_프레임워크안내.md)
 
 ---
 
@@ -75,7 +75,7 @@ Starter는 독립 서버가 아니라 실행 제품에 포함되는 선택형 �
 
 다중 인스턴스 실행에서는 임대 잠금, 소유권, 펜싱 토큰과 버전을 사용해 이전 실행자가 현재 상태를 덮어쓰지 않도록 설계합니다. 실제 적용 여부는 사용 모듈의 Source·DB·시험 결과로 확인합니다.
 
-[같은 애플리케이션·분리 서비스 연동과 거래 처리 →](cpf-docs/guides/01_개발자매뉴얼.md)
+[같은 애플리케이션·분리 서비스 연동과 거래 처리 →](cpf-docs/guides/01_CPF_개발자매뉴얼.md)
 
 ---
 
@@ -98,7 +98,7 @@ CPF 배치를 사용하면 일회성 작업, 대량 분할 처리, 파일 처리
 
 배치 개발자와 운영 담당자는 작업 정의·버전·승인·실행 위치·배포 파일·작업자 보안·중복 실행 차단·결과 대사와 ADM 확인 절차를 함께 적용합니다.
 
-[배치 작업부터 Center-Cut·Worker 정상화까지 따라 하기 →](cpf-docs/guides/02_배치개발매뉴얼.md)
+[배치 작업부터 Center-Cut·Worker 정상화까지 따라 하기 →](cpf-docs/guides/02_CPF_배치개발매뉴얼.md)
 
 ---
 
@@ -113,8 +113,8 @@ ADM은 업무 서비스·인스턴스·거래·로그·추적·배치·설정·�
 
 플랫폼 운영자는 프로필·설정값·비밀정보, DB, 배포 파일, 프로세스, 배포, 관측, 백업·복원과 재해 대응을 관리합니다. ADM 화면 조작과 실행환경 운영은 책임과 권한이 다르므로 절차를 구분합니다.
 
-- [업무 연동부터 권한별 조회·조치·승인까지 →](cpf-docs/guides/03_ADM매뉴얼.md)
-- [설정·DB·배포·기동·정상화 담당자 →](cpf-docs/guides/05_플랫폼운영매뉴얼.md)
+- [업무 연동부터 권한별 조회·조치·승인까지 →](cpf-docs/guides/03_CPF_ADM매뉴얼.md)
+- [설정·DB·배포·기동·정상화 담당자 →](cpf-docs/guides/05_CPF_플랫폼운영매뉴얼.md)
 
 ---
 
@@ -126,7 +126,8 @@ ADM은 업무 서비스·인스턴스·거래·로그·추적·배치·설정·�
 </picture>
 
 ```powershell
-pwsh -File .\cpf-tools\generator\create-domain.ps1 `
+$repo='C:\dev\projects\jck\202412_01_CPF'
+pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repo 'cpf-tools\generator\create-domain.ps1') `
   -DomainName payment `
   -SystemCode PAY `
   -DatabaseVendor postgresql `
@@ -135,7 +136,7 @@ pwsh -File .\cpf-tools\generator\create-domain.ps1 `
 
 계획 단계에서 모듈, 패키지, 시스템 코드, 포트, 경로와 DB 충돌을 검사합니다. 기준 Commit의 생성기는 기능 선택값을 받지만 QA38의 Versioned Capability Profile·`resolvedStarters`·Version Lock은 아직 구현 여부를 다시 확인해야 합니다. 생성 결과에는 실제 Build 의존성, 설정, DB Vendor Pack, 시험과 배포 산출물이 일치해야 합니다.
 
-[생성 도구를 포함한 전체 개발 절차 →](cpf-docs/guides/01_개발자매뉴얼.md)
+[생성 도구를 포함한 전체 개발 절차 →](cpf-docs/guides/01_CPF_개발자매뉴얼.md)
 
 ---
 
@@ -145,23 +146,23 @@ pwsh -File .\cpf-tools\generator\create-domain.ps1 `
 
 | 문서 | 주 독자와 완료 결과 |
 |---|---|
-| [00 프레임워크 안내](cpf-docs/guides/00_프레임워크안내.md) | 도입 검토자·아키텍트가 기능 범위와 제품 구성을 결정 |
-| [01 개발자 매뉴얼](cpf-docs/guides/01_개발자매뉴얼.md) | 업무 개발자가 온라인·메시지·파일·외부연계 기능을 개발하고 운영 인계 |
-| [02 배치 개발 매뉴얼](cpf-docs/guides/02_배치개발매뉴얼.md) | 배치 개발자·운영 담당자가 정기·대량 처리를 개발·실행·재시작·대사 |
-| [03 ADM 매뉴얼](cpf-docs/guides/03_ADM매뉴얼.md) | 업무 개발자와 권한별 사용자가 ADM 연동·조회·조치·승인·감사를 수행 |
-| [05 플랫폼 운영 매뉴얼](cpf-docs/guides/05_플랫폼운영매뉴얼.md) | 인프라·DBA·배포·관측 담당자가 설치·설정·배포·백업·정상화 |
+| [00 CPF 프레임워크 안내](cpf-docs/guides/00_CPF_프레임워크안내.md) | 도입 검토자·아키텍트가 기능 범위와 제품 구성을 결정 |
+| [01 CPF 개발자 매뉴얼](cpf-docs/guides/01_CPF_개발자매뉴얼.md) | 업무 개발자가 온라인·메시지·파일·외부연계 기능을 개발하고 운영 인계 |
+| [02 CPF 배치 개발 매뉴얼](cpf-docs/guides/02_CPF_배치개발매뉴얼.md) | 배치 개발자·운영 담당자가 정기·대량 처리를 개발·실행·재시작·대사 |
+| [03 CPF ADM 매뉴얼](cpf-docs/guides/03_CPF_ADM매뉴얼.md) | 업무 개발자와 권한별 사용자가 ADM 연동·조회·조치·승인·감사를 수행 |
+| [05 CPF 플랫폼 운영 매뉴얼](cpf-docs/guides/05_CPF_플랫폼운영매뉴얼.md) | 인프라·DBA·배포·관측 담당자가 설치·설정·배포·백업·정상화 |
 | [90 CPF Starters 매뉴얼](cpf-docs/guides/90_CPF_Starters_매뉴얼.md) | 개발자·아키텍트가 필요한 실행 기능만 선택하고 의존성·설정·시험을 검증 |
 | [91 CPF Tools 매뉴얼](cpf-docs/guides/91_CPF_Tools_매뉴얼.md) | 처음 사용하는 개발자·운영자가 생성·빌드·DB·실행·검증 도구를 사용 |
 | [92 CPF Gateway 매뉴얼](cpf-docs/guides/92_CPF_Gateway_매뉴얼.md) | API 개발자·보안·운영 담당자가 API 등록·검증·게시·적용 상태를 관리 |
 | [95 CPF BZA 매뉴얼](cpf-docs/guides/95_CPF_BZA_매뉴얼.md) | 조직·권한·결재 담당자가 BZA를 업무 시스템에 적용하고 운영 |
 
-[역할별 시작 순서 →](cpf-docs/guides/00_프레임워크안내.md#8-역할별-문서-지도)
+[역할별 시작 순서 →](cpf-docs/guides/00_CPF_프레임워크안내.md#8-역할별-문서-지도)
 
 ---
 
 ## 처음 접하는 사용자의 문서 사용법
 
-1. [00 프레임워크 안내](cpf-docs/guides/00_프레임워크안내.md)에서 만들려는 업무 결과와 필요한 제품을 선택합니다.
+1. [00 CPF 프레임워크 안내](cpf-docs/guides/00_CPF_프레임워크안내.md)에서 만들려는 업무 결과와 필요한 제품을 선택합니다.
 2. 역할별 매뉴얼의 시작 점검표로 선행 조건과 책임자를 정합니다.
 3. 기능별 절차를 정상 흐름뿐 아니라 중복·동시성·시간초과·응답 유실·부분 실패까지 실행합니다.
 4. 예제의 업무 이름·상태·권한·대사 기준을 실제 업무 규칙으로 교체합니다.
@@ -192,8 +193,9 @@ README에는 전체 API·설정·상태·검증 원장을 복사하지 않습니
 ### 저장소와 환경
 
 ```powershell
-git rev-parse HEAD
-git status --short
+$repo='C:\dev\projects\jck\202412_01_CPF'
+git -C $repo rev-parse HEAD
+git -C $repo status --short
 java -version
 pwsh --version
 ```
@@ -201,28 +203,32 @@ pwsh --version
 ### 전체 빌드
 
 ```powershell
-.\gradlew.bat clean build
+$repo='C:\dev\projects\jck\202412_01_CPF'
+& (Join-Path $repo 'gradlew.bat') clean build
 ```
 
 ```bash
-./gradlew clean build
+repo=/path/to/202412_01_CPF
+"$repo/gradlew" clean build
 ```
 
 ### 데이터베이스
 
 ```powershell
-pwsh -File .\cpf-tools\scripts\initialize-cpf-database.ps1 -All -RequireRun
+$repo='C:\dev\projects\jck\202412_01_CPF'
+pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repo 'cpf-tools\scripts\initialize-cpf-database.ps1') -All -RequireRun
 ```
 
 ### 로컬 실행
 
 ```powershell
-pwsh -File .\cpf-tools\scripts\start-cpf-local.ps1
-pwsh -File .\cpf-tools\scripts\status-cpf-local.ps1
-pwsh -File .\cpf-tools\scripts\stop-cpf-local.ps1
+$repo='C:\dev\projects\jck\202412_01_CPF'
+pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repo 'cpf-tools\scripts\start-cpf-local.ps1')
+pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repo 'cpf-tools\scripts\status-cpf-local.ps1')
+pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repo 'cpf-tools\scripts\stop-cpf-local.ps1')
 ```
 
-지원 환경, 매개변수, 정상 결과와 되돌리기 절차는 [플랫폼 운영 매뉴얼](cpf-docs/guides/05_플랫폼운영매뉴얼.md)에 정리되어 있습니다.
+지원 환경, 매개변수, 정상 결과와 되돌리기 절차는 [플랫폼 운영 매뉴얼](cpf-docs/guides/05_CPF_플랫폼운영매뉴얼.md)에 정리되어 있습니다.
 
 </details>
 

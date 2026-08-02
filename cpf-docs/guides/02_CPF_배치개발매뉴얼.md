@@ -2,7 +2,7 @@
 
 > **주 독자**: 배치 개발자, 배치 운영자, 플랫폼 운영 담당자
 > **완료 결과**: Job·Step·Worker·Scheduler·Center-Cut을 개발하고 승인·실행·중지·재시작·재처리·대사한다.
-> **Source 기준**: `freeangelsun/202412_01_CPF`, `master`, `dafe5c0e5260ea8149234e8ab2e75347e75338c1`
+> **Source 기준**: `freeangelsun/202412_01_CPF`, `master`, `3b600702502e53877e30cbac594987b371e2186b`
 
 ## 1. 제품 경계
 
@@ -41,12 +41,13 @@ ADM은 Batch 내부 DB를 직접 수정하지 않고 `cpf-batch:contract`와 Own
 ## 3. 시작 전 점검
 
 ```powershell
-git rev-parse HEAD
-.\gradlew.bat :cpf-batch:contract:test
-.\gradlew.bat :cpf-batch:execution-runtime:test
-.\gradlew.bat :cpf-batch:control-server:test
-.\gradlew.bat :cpf-batch:scheduler:test
-.\gradlew.bat :cpf-batch:worker:test
+$repo='C:\dev\projects\jck\202412_01_CPF'
+git -C $repo rev-parse HEAD
+& (Join-Path $repo 'gradlew.bat') :cpf-batch:contract:test
+& (Join-Path $repo 'gradlew.bat') :cpf-batch:execution-runtime:test
+& (Join-Path $repo 'gradlew.bat') :cpf-batch:control-server:test
+& (Join-Path $repo 'gradlew.bat') :cpf-batch:scheduler:test
+& (Join-Path $repo 'gradlew.bat') :cpf-batch:worker:test
 ```
 
 실행하지 않은 모듈은 `미검증`으로 남긴다. 기준 Commit에서 Spring Batch Worker·Center-Cut Runtime Source가 확인됐지만 다중 인스턴스·Process Kill·DB 3 Vendor Runtime은 다시 실행해야 한다.
@@ -400,7 +401,7 @@ ADM은 Batch를 새로 구현하는 화면이 아니다. 다음을 조회·조�
 - 대사
 - Approval·Audit
 
-자세한 권한별 절차는 [03 ADM 매뉴얼](03_ADM매뉴얼.md)을 사용한다.
+자세한 권한별 절차는 [03 CPF ADM 매뉴얼](03_CPF_ADM매뉴얼.md)을 사용한다.
 
 ## 19. Test Matrix
 
@@ -430,3 +431,97 @@ ADM은 Batch를 새로 구현하는 화면이 아니다. 다음을 조회·조�
 - Log·Metric·Trace·Audit가 같은 식별자로 연결된다.
 - 재시작·재처리·보상 내역이 기록됐다.
 - 실행하지 않은 Runtime은 미검증으로 남겼다.
+
+## 21. 배치 EDU 실행 절차
+
+### EDU-BAT-01 — Chunk 재시작
+
+1. Job·Step·Chunk Size·Commit Interval을 확인한다.
+2. 중복되지 않는 JobParameter를 준비한다.
+3. 전체 건수·금액·Checksum Preview를 기록한다.
+4. 중간 Chunk에서 Process Kill을 주입한다.
+5. Spring Batch Metadata와 업무 Checkpoint를 비교한다.
+6. 같은 Job Instance를 Restart한다.
+7. 이미 Commit된 Item이 중복 처리되지 않는지 확인한다.
+8. 최종 Read·Write·Skip·Rollback·업무 합계를 대사한다.
+
+### EDU-BAT-02 — Partition Worker 소유권 상실
+
+1. Partition Key와 예상 건수를 준비한다.
+2. Worker 2개 이상에서 Claim·Lease를 확인한다.
+3. 한 Worker의 Heartbeat를 중단한다.
+4. Lease 만료와 새 Fencing Token 발급을 확인한다.
+5. 이전 Worker의 늦은 Write가 거부되는지 확인한다.
+6. 실패 Partition만 재처리하고 전체 합계를 대사한다.
+
+### EDU-BAT-03 — Scheduler Misfire와 승인
+
+1. Schedule·Timezone·Calendar·Misfire 정책을 등록한다.
+2. Scheduler 중단으로 Misfire를 재현한다.
+3. 바로 실행·건너뛰기·한 번만 보정 중 선택 정책을 확인한다.
+4. 위험 Job은 승인 ID·Version·만료를 확인한다.
+5. 중복 Job Instance가 생성되지 않는지 확인한다.
+
+### 21.4 배치 EDU 30개 전수표
+
+실행 전 `cpf.reference.features.batch.enabled=true`와 실제 `CpfBatchOperationsPort` Local/Remote 연결을 확인한다. 정책 조회 API의 성공을 Job 실행 성공으로 대체하지 않는다.
+
+| 교육 ID | 확인할 기능 | 활성 조건 | Source 판정 | Runtime 판정 |
+|---|---|---|---|---|
+| `EDU-BAT-01` | 업무일 마감 Tasklet | `cpf.reference.features.batch.enabled` | 교육 Catalog·Handler·Consumer·Test 전수 대조 재확인 필요 | 미검증 |
+| `EDU-BAT-02` | 대량 등급 계산 Chunk | `cpf.reference.features.batch.enabled` | 교육 Catalog·Handler·Consumer·Test 전수 대조 재확인 필요 | 미검증 |
+| `EDU-BAT-03` | CSV 입출력 Batch | `cpf.reference.features.batch.enabled` | 교육 Catalog·Handler·Consumer·Test 전수 대조 재확인 필요 | 미검증 |
+| `EDU-BAT-04` | 범위 Partition 처리 | `cpf.reference.features.batch.enabled` | 교육 Catalog·Handler·Consumer·Test 전수 대조 재확인 필요 | 미검증 |
+| `EDU-BAT-05` | 관리 노드·Worker·Lease·Fencing | `cpf.reference.features.batch.enabled` | 교육 Catalog·Handler·Consumer·Test 전수 대조 재확인 필요 | 미검증 |
+| `EDU-BAT-06` | Center-Cut Preview·Approval·Execution | `cpf.reference.features.batch.enabled` | 교육 Catalog·Handler·Consumer·Test 전수 대조 재확인 필요 | 미검증 |
+| `EDU-BAT-07` | 영업일 Scheduler | `cpf.reference.features.batch.enabled` | 교육 Catalog·Handler·Consumer·Test 전수 대조 재확인 필요 | 미검증 |
+| `EDU-BAT-08` | Job Pack Version·Artifact 배포 | `cpf.reference.features.batch.enabled` | 교육 Catalog·Handler·Consumer·Test 전수 대조 재확인 필요 | 미검증 |
+| `EDU-BAT-09` | Stop·Restart·실패 건 Reprocess | `cpf.reference.features.batch.enabled` | 교육 Catalog·Handler·Consumer·Test 전수 대조 재확인 필요 | 미검증 |
+| `EDU-BAT-10` | 실행 요청 응답 유실·Reconciliation | `cpf.reference.features.batch.enabled` | 교육 Catalog·Handler·Consumer·Test 전수 대조 재확인 필요 | 미검증 |
+| `EDU-BAT-11` | 조건 분기·다단계 Job Flow | `cpf.reference.features.batch.enabled` | 교육 Catalog·Handler·Consumer·Test 전수 대조 재확인 필요 | 미검증 |
+| `EDU-BAT-12` | Retry·Skip·금지 예외 분류 | `cpf.reference.features.batch.enabled` | 교육 Catalog·Handler·Consumer·Test 전수 대조 재확인 필요 | 미검증 |
+| `EDU-BAT-13` | Writer Commit 장애와 Checkpoint Restart | `cpf.reference.features.batch.enabled` | 교육 Catalog·Handler·Consumer·Test 전수 대조 재확인 필요 | 미검증 |
+| `EDU-BAT-14` | JobParameter 식별·중복 실행·새 Instance | `cpf.reference.features.batch.enabled` | 교육 Catalog·Handler·Consumer·Test 전수 대조 재확인 필요 | 미검증 |
+| `EDU-BAT-15` | Late-arriving Data·Backfill·재산출 | `cpf.reference.features.batch.enabled` | 교육 Catalog·Handler·Consumer·Test 전수 대조 재확인 필요 | 미검증 |
+| `EDU-BAT-16` | Watermark 기반 증분 수집·Restart | `cpf.reference.features.batch.enabled` | 교육 Catalog·Handler·Consumer·Test 전수 대조 재확인 필요 | 미검증 |
+| `EDU-BAT-17` | 암호화·압축·Checksum 파일 산출 | `cpf.reference.features.batch.enabled` | 교육 Catalog·Handler·Consumer·Test 전수 대조 재확인 필요 | 미검증 |
+| `EDU-BAT-18` | 수신 파일 Header·Detail·Trailer 대사 | `cpf.reference.features.batch.enabled` | 교육 Catalog·Handler·Consumer·Test 전수 대조 재확인 필요 | 미검증 |
+| `EDU-BAT-19` | 다중 Input 병합·다중 Output 분기 | `cpf.reference.features.batch.enabled` | 교육 Catalog·Handler·Consumer·Test 전수 대조 재확인 필요 | 미검증 |
+| `EDU-BAT-20` | Scheduler Misfire·Catch-up·Skip | `cpf.reference.features.batch.enabled` | 교육 Catalog·Handler·Consumer·Test 전수 대조 재확인 필요 | 미검증 |
+| `EDU-BAT-21` | 중복 실행 차단·동시 실행 허용 범위 | `cpf.reference.features.batch.enabled` | 교육 Catalog·Handler·Consumer·Test 전수 대조 재확인 필요 | 미검증 |
+| `EDU-BAT-22` | Holiday Calendar·영업일 순번 JobParameter | `cpf.reference.features.batch.enabled` | 교육 Catalog·Handler·Consumer·Test 전수 대조 재확인 필요 | 미검증 |
+| `EDU-BAT-23` | Stop·Abandon·Restart 의미 분리 | `cpf.reference.features.batch.enabled` | 교육 Catalog·Handler·Consumer·Test 전수 대조 재확인 필요 | 미검증 |
+| `EDU-BAT-24` | Remote Worker 유실·재할당·중복 결과 차단 | `cpf.reference.features.batch.enabled` | 교육 Catalog·Handler·Consumer·Test 전수 대조 재확인 필요 | 미검증 |
+| `EDU-BAT-25` | Partition Skew 감지·재분할 | `cpf.reference.features.batch.enabled` | 교육 Catalog·Handler·Consumer·Test 전수 대조 재확인 필요 | 미검증 |
+| `EDU-BAT-26` | Center-Cut 결과 대사·차이 보정·재실행 | `cpf.reference.features.batch.enabled` | 교육 Catalog·Handler·Consumer·Test 전수 대조 재확인 필요 | 미검증 |
+| `EDU-BAT-27` | Job Pack Checksum·Compatibility·Rollback | `cpf.reference.features.batch.enabled` | 교육 Catalog·Handler·Consumer·Test 전수 대조 재확인 필요 | 미검증 |
+| `EDU-BAT-28` | Host Agent 연결 끊김·Command ACK 유실 | `cpf.reference.features.batch.enabled` | 교육 Catalog·Handler·Consumer·Test 전수 대조 재확인 필요 | 미검증 |
+| `EDU-BAT-29` | Dry Run·Count Preview·Sample 확인 | `cpf.reference.features.batch.enabled` | 교육 Catalog·Handler·Consumer·Test 전수 대조 재확인 필요 | 미검증 |
+| `EDU-BAT-30` | 대용량 처리 Capacity·Backpressure | `cpf.reference.features.batch.enabled` | 교육 Catalog·Handler·Consumer·Test 전수 대조 재확인 필요 | 미검증 |
+
+각 항목은 Job/Step/Execution Metadata, Checkpoint, 대상 건수·금액, Audit와 ADM 화면을 함께 확인한다. Worker·Agent·Scheduler·Center-Cut 항목은 단일 JVM 성공으로 완료 처리하지 않고 다중 Process·응답 유실·Lease 상실을 포함해 시험한다.
+
+## 22. Batch 장애 Runbook
+
+| 장애 | 최초 확인 | 정상화 | 종료 판정 |
+|---|---|---|---|
+| Job 중복 실행 | JobParameter·Instance·Lease | 신규 실행 중지·Owner 판정 | 실행 Owner 1개 |
+| Step 장기 정체 | Read/Process/Write 지표·DB Lock | 원인 제거·Stop/Restart | 진행률 증가·합계 일치 |
+| Worker 이탈 | Heartbeat·Lease·Fencing | 재할당·과거 Write 차단 | Partition Owner 일치 |
+| Commit 후 응답 유실 | Metadata·업무 원장·Attempt | Reconcile | 실제 결과 확정 |
+| 일부 Partition 실패 | Target별 결과 | 실패 대상만 재처리 | 성공 대상 중복 없음 |
+| Misfire 폭주 | Schedule·Last Fire·Policy | 신규 Trigger 차단·정책 적용 | 예정 실행 수 일치 |
+| Artifact 불일치 | Job Pack Hash·Worker Version | Traffic/Claim 차단·재배포 | Version·Checksum 일치 |
+
+## 23. 배치 개발 검토 요청 조건
+
+- Spring Batch Metadata와 업무 원장의 대사 기준이 없다.
+- Restart가 새 Job Instance를 생성한다.
+- Worker가 Lease 상실 후에도 Write할 수 있다.
+- Stop·Restart·Abandon Permission과 Audit가 없다.
+- Scheduler Misfire 정책이 Source에 고정되지 않았다.
+- Center-Cut의 대상 선정·Partition·Commit·합계 기준이 없다.
+- Dry Run이 실제 Write를 수행하거나 Preview 건수가 재현되지 않는다.
+- Artifact·Job Pack Version이 Worker에 검증되지 않는다.
+
+발견 시 Job ID·Version·Parameter·Execution ID·Step·Partition·Worker·기준 Commit·재현 명령을 개발 조직에 전달한다.

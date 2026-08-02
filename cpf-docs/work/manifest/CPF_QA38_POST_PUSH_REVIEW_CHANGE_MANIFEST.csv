@@ -1,0 +1,21 @@
+﻿path,action,owner,reason
+cpf-docs/evidence/20260802/qa38-post-push/CPF_QA38_POST_PUSH_STATIC_REVIEW_EVIDENCE.md,ADD_OR_REPLACE,QA39 review package,QA38 post-push source review and next self-development requirements
+cpf-docs/work/codex/qa39/CPF_CODEX_QA39_FINAL_INDEPENDENT_VALIDATION_REQUEST.md,ADD_OR_REPLACE,QA39 review package,QA38 post-push source review and next self-development requirements
+cpf-docs/work/current/CPF_QA38_POST_PUSH_REVIEW_PACKAGE_INDEX.md,ADD_OR_REPLACE,QA39 review package,QA38 post-push source review and next self-development requirements
+cpf-docs/work/current/CPF_QA39_INTEGRATED_DEVELOPMENT_REQUEST.md,ADD_OR_REPLACE,QA39 review package,QA38 post-push source review and next self-development requirements
+cpf-docs/work/current/CPF_QA39_SELF_DEVELOPMENT_REQUIREMENTS.csv,ADD_OR_REPLACE,QA39 review package,QA38 post-push source review and next self-development requirements
+cpf-docs/work/current/CPF_QA39_SELF_DEVELOPMENT_REQUIREMENTS.md,ADD_OR_REPLACE,QA39 review package,QA38 post-push source review and next self-development requirements
+cpf-docs/work/handover/CPF_QA38_TO_QA39_HANDOVER.md,ADD_OR_REPLACE,QA39 review package,QA38 post-push source review and next self-development requirements
+cpf-docs/work/manifest/CPF_QA38_POST_PUSH_REVIEW_CHANGE_MANIFEST.csv,ADD_OR_REPLACE,QA39 review package,package integrity manifest
+cpf-docs/work/manifest/CPF_QA38_POST_PUSH_REVIEW_CLEANUP_ONE_LINE.ps1.txt,ADD_OR_REPLACE,QA39 review package,QA38 post-push source review and next self-development requirements
+cpf-docs/work/manifest/CPF_QA38_POST_PUSH_REVIEW_DELETE_MANIFEST.txt,ADD_OR_REPLACE,QA39 review package,QA38 post-push source review and next self-development requirements
+cpf-docs/work/manifest/CPF_QA38_POST_PUSH_REVIEW_EMPTY_DIRECTORY_MANIFEST.txt,ADD_OR_REPLACE,QA39 review package,QA38 post-push source review and next self-development requirements
+cpf-docs/work/manifest/CPF_QA38_POST_PUSH_REVIEW_FILES.sha256,ADD_OR_REPLACE,QA39 review package,package integrity manifest
+cpf-docs/work/manifest/CPF_QA38_POST_PUSH_REVIEW_PACKAGE_MANIFEST.json,ADD_OR_REPLACE,QA39 review package,QA38 post-push source review and next self-development requirements
+cpf-docs/work/review/CPF_QA38_POST_PUSH_DEFECT_REGISTER.csv,ADD_OR_REPLACE,QA39 review package,QA38 post-push source review and next self-development requirements
+cpf-docs/work/review/CPF_QA38_POST_PUSH_REQUIREMENT_RECALIBRATION.csv,ADD_OR_REPLACE,QA39 review package,QA38 post-push source review and next self-development requirements
+cpf-docs/work/review/CPF_QA38_POST_PUSH_REVIEW_COMPLETE_REPORT.md,ADD_OR_REPLACE,QA39 review package,QA38 post-push source review and next self-development requirements
+cpf-docs/work/review/CPF_QA38_POST_PUSH_SOURCE_AUDIT_MATRIX.csv,ADD_OR_REPLACE,QA39 review package,QA38 post-push source review and next self-development requirements
+cpf-docs/work/review/CPF_QA38_POST_PUSH_SOURCE_BY_SOURCE_REVIEW.md,ADD_OR_REPLACE,QA39 review package,QA38 post-push source review and next self-development requirements
+cpf-docs/work/state/CPF_QA39_CONTINUITY_STATE.md,ADD_OR_REPLACE,QA39 review package,QA38 post-push source review and next self-development requirements
+cpf-tools/verification/qa39/verify-qa39-post-push-closure.py,ADD_OR_REPLACE,QA39 review package,QA38 post-push source review and next self-development requirements

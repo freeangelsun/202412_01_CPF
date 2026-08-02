@@ -1,0 +1,19 @@
+{
+  "request": {
+    "method": "POST",
+    "urlPath": "/qa39/sms/messages"
+  },
+  "response": {
+    "status": 202,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "providerMessageId": "{{randomValue type='UUID'}}",
+      "status": "ACCEPTED"
+    },
+    "transformers": [
+      "response-template"
+    ]
+  }
+}

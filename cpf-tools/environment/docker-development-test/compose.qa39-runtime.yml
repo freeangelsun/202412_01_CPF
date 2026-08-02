@@ -1,0 +1,145 @@
+services:
+  rabbitmq:
+    image: ${RABBITMQ_IMAGE}
+    container_name: cpf-rabbitmq
+    hostname: cpf-rabbitmq
+    restart: "no"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${CPF_RABBITMQ_USER}
+      RABBITMQ_DEFAULT_VHOST: ${CPF_RABBITMQ_VHOST}
+    entrypoint: ["/bin/bash", "-ec"]
+    command:
+      - >-
+        export RABBITMQ_DEFAULT_PASS="$$(cat /run/secrets/rabbitmq_password)";
+        exec docker-entrypoint.sh rabbitmq-server
+    ports:
+      - "127.0.0.1:5672:5672"
+      - "127.0.0.1:15672:15672"
+    secrets:
+      - rabbitmq_password
+    volumes:
+      - cpf-rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD-SHELL", "/bin/bash -ec 'exec 3<>/dev/tcp/127.0.0.1/5672'"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+
+  artemis:
+    image: ${ARTEMIS_IMAGE}
+    container_name: cpf-artemis
+    hostname: cpf-artemis
+    restart: "no"
+    environment:
+      ARTEMIS_USER: ${CPF_ARTEMIS_USER}
+      ANONYMOUS_LOGIN: "false"
+      EXTRA_ARGS: "--http-host 0.0.0.0 --relax-jolokia"
+    entrypoint: ["/bin/bash", "-ec"]
+    command:
+      - >-
+        export ARTEMIS_PASSWORD="$$(cat /run/secrets/artemis_password)";
+        exec /docker-run.sh run
+    ports:
+      - "127.0.0.1:61616:61616"
+      - "127.0.0.1:18161:8161"
+    secrets:
+      - artemis_password
+    volumes:
+      - cpf-artemis-data:/var/lib/artemis-instance
+    healthcheck:
+      test: ["CMD-SHELL", "/bin/bash -ec 'exec 3<>/dev/tcp/127.0.0.1/61616'"]
+      interval: 10s
+      timeout: 5s
+      retries: 40
+      start_period: 30s
+
+  ibm-mq:
+    image: ${IBM_MQ_IMAGE}
+    profiles: ["ibm-mq"]
+    container_name: cpf-ibm-mq
+    hostname: cpf-ibm-mq
+    restart: "no"
+    environment:
+      LICENSE: accept
+      MQ_QMGR_NAME: ${CPF_IBM_MQ_QMGR}
+      MQ_DEV: "true"
+      MQ_CONNAUTH_USE_HTP: "true"
+    ports:
+      - "127.0.0.1:1414:1414"
+      - "127.0.0.1:19443:9443"
+    secrets:
+      - source: ibm_mq_admin_password
+        target: mqAdminPassword
+      - source: ibm_mq_app_password
+        target: mqAppPassword
+    volumes:
+      - cpf-ibm-mq-data:/mnt/mqm
+    healthcheck:
+      test: ["CMD-SHELL", "dspmq | grep -q 'STATUS(Running)'"]
+      interval: 15s
+      timeout: 10s
+      retries: 60
+      start_period: 90s
+
+  tcp-simulator:
+    image: ${PYTHON_FIXTURE_IMAGE}
+    container_name: cpf-tcp-simulator
+    hostname: cpf-tcp-simulator
+    restart: "no"
+    working_dir: /app
+    command: ["python", "/app/qa39-tcp-simulator.py", "--serve"]
+    ports:
+      - "127.0.0.1:19010:9010"
+      - "127.0.0.1:19011:9011"
+      - "127.0.0.1:19012:9012"
+      - "127.0.0.1:19013:9013"
+    volumes:
+      - ./fixtures/tcp/qa39-tcp-simulator.py:/app/qa39-tcp-simulator.py:ro
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; s=socket.create_connection(('127.0.0.1',9010),2); s.close()"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 5s
+
+  mailpit:
+    image: ${MAILPIT_IMAGE}
+    container_name: cpf-mailpit
+    hostname: cpf-mailpit
+    restart: "no"
+    environment:
+      MP_MAX_MESSAGES: "500"
+      MP_MAX_AGE: "24h"
+      MP_SMTP_AUTH_ACCEPT_ANY: "0"
+      MP_ALLOW_INTERNAL_HTTP_REQUESTS: "false"
+    ports:
+      - "127.0.0.1:11025:1025"
+      - "127.0.0.1:18025:8025"
+    volumes:
+      - cpf-mailpit-data:/data
+    healthcheck:
+      test: ["CMD", "/mailpit", "--version"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+secrets:
+  rabbitmq_password:
+    file: C:/dev/Docker/Secrets/rabbitmq-password.txt
+  artemis_password:
+    file: C:/dev/Docker/Secrets/artemis-password.txt
+  ibm_mq_admin_password:
+    file: C:/dev/Docker/Secrets/mqAdminPassword
+  ibm_mq_app_password:
+    file: C:/dev/Docker/Secrets/mqAppPassword
+
+volumes:
+  cpf-rabbitmq-data:
+    name: cpf-rabbitmq-data
+  cpf-artemis-data:
+    name: cpf-artemis-data
+  cpf-ibm-mq-data:
+    name: cpf-ibm-mq-data
+  cpf-mailpit-data:
+    name: cpf-mailpit-data

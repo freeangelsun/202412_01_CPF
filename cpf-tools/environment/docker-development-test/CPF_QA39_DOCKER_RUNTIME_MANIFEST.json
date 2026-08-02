@@ -1,0 +1,26 @@
+{
+  "schemaVersion": "3.0",
+  "repository": "freeangelsun/202412_01_CPF",
+  "branch": "master",
+  "baselineCommit": "2a86ff42799eddffaae87d38ae68632726a2c495",
+  "scope": "Runtime readiness and health correction after user Docker execution evidence",
+  "sourceEvidence": {
+    "rabbitmq": "broker startup complete; prior health result did not match runtime listener",
+    "artemis": "broker active on 61616 and console active on 8161",
+    "ibmMq": "queue manager and mqweb started",
+    "tcpSimulator": "four listeners started",
+    "wireMock": "server started but health probe used wrong /health path",
+    "otelCollector": "failed because service.telemetry.metrics.address is invalid for collector 0.157.0"
+  },
+  "changes": [
+    "OpenTelemetry internal metrics migrated to readers/pull/prometheus host+port schema",
+    "WireMock health endpoint changed to /__admin/health",
+    "RabbitMQ health check changed to listener probe",
+    "Mailpit health command changed to --version",
+    "TCP Docker health reduced to listener probe while full four-protocol self-test remains in verification",
+    "start script now prints per-service progress and uses active readiness probes",
+    "validation still stops all QA39 containers in finally",
+    "all managed containers remain restart=no"
+  ],
+  "passwordPolicy": "All local Docker account secrets are supplied outside the repository; user-approved local value is not embedded in this package."
+}

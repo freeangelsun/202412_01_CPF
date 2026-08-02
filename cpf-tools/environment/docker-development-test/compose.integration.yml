@@ -8,6 +8,13 @@ services:
       - "127.0.0.1:18080:8080"
     volumes:
       - ./fixtures/wiremock:/home/wiremock:ro
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8080/__admin/health >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 15s
+
   sftp:
     image: ${SFTP_FIXTURE_IMAGE}
     container_name: cpf-sftp

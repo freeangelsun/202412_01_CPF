@@ -52,5 +52,53 @@
     "listen": "0.0.0.0:18091",
     "upstream": "cpf-keycloak:8080",
     "enabled": true
+  },
+  {
+    "name": "cpf_rabbitmq",
+    "listen": "0.0.0.0:15673",
+    "upstream": "cpf-rabbitmq:5672",
+    "enabled": true
+  },
+  {
+    "name": "cpf_artemis",
+    "listen": "0.0.0.0:16161",
+    "upstream": "cpf-artemis:61616",
+    "enabled": true
+  },
+  {
+    "name": "cpf_ibm_mq",
+    "listen": "0.0.0.0:11414",
+    "upstream": "cpf-ibm-mq:1414",
+    "enabled": true
+  },
+  {
+    "name": "cpf_tcp_length",
+    "listen": "0.0.0.0:19020",
+    "upstream": "cpf-tcp-simulator:9010",
+    "enabled": true
+  },
+  {
+    "name": "cpf_tcp_crlf",
+    "listen": "0.0.0.0:19021",
+    "upstream": "cpf-tcp-simulator:9011",
+    "enabled": true
+  },
+  {
+    "name": "cpf_tcp_stxetx",
+    "listen": "0.0.0.0:19022",
+    "upstream": "cpf-tcp-simulator:9012",
+    "enabled": true
+  },
+  {
+    "name": "cpf_tcp_fixed",
+    "listen": "0.0.0.0:19023",
+    "upstream": "cpf-tcp-simulator:9013",
+    "enabled": true
+  },
+  {
+    "name": "cpf_mailpit_smtp",
+    "listen": "0.0.0.0:11026",
+    "upstream": "cpf-mailpit:1025",
+    "enabled": true
   }
 ]

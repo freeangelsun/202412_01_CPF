@@ -1,0 +1,46 @@
+# CPF 문서 정본 통합 후 exact-path 삭제 Manifest
+# 기준 SHA: 2a86ff42799eddffaae87d38ae68632726a2c495
+# 생성 시각: 2026-08-02 22:53:17 KST
+# 범위: R5 QA39 패키지에서 새 단일 정본·기계 정본으로 실제 병합/이름 변경된 파일만 포함
+# 선행 조건:
+# 1) 본 R6 Overlay를 Repository Root에 적용
+# 2) CPF_PACKAGE_MANIFEST.json Hash 검증
+# 3) Working Tree와 참조 영향 확인
+# 4) 사용자 검토 후 실행
+# 보호 경로 4곳은 포함하지 않는다.
+# QA37·QA38 및 기타 과거 폴더는 내용 전수 병합 전에는 이 명령으로 삭제하지 않는다.
+cpf-docs/quality/CPF_QA39_FINAL_REQUIREMENT_MATRIX.csv
+cpf-docs/quality/CPF_QA39_FINAL_SCENARIO_MATRIX.csv
+cpf-docs/quality/CPF_QA39_PUBLIC_STARTER_SURFACE_PROPOSAL.csv
+cpf-docs/quality/CPF_QA39_STARTER_VALUE_CATALOG.csv
+cpf-docs/work/codex/qa39/CHANGE_MANIFEST.csv
+cpf-docs/work/codex/qa39/CODEX_START_HERE.md
+cpf-docs/work/codex/qa39/CPF_CODEX_QA39_FINAL_INDEPENDENT_VALIDATION_REQUEST.md
+cpf-docs/work/codex/qa39/OPEN_ISSUES.md
+cpf-docs/work/codex/qa39/PACKAGE_MANIFEST.json
+cpf-docs/work/codex/qa39/REQUIREMENT_STATUS.csv
+cpf-docs/work/codex/qa39/REVIEW_INDEX.md
+cpf-docs/work/codex/qa39/STAGE_PLAN.csv
+cpf-docs/work/codex/qa39/TEST_AND_EVIDENCE.md
+cpf-docs/work/current/CPF_CURRENT_WORK_REQUEST.md
+cpf-docs/work/current/CPF_QA39_FINAL_DEVELOPMENT_REQUIREMENTS.md
+cpf-docs/work/current/CPF_QA39_PROTECTED_OWNER_ACTIONS.md
+cpf-docs/work/current/CPF_QA39_SELF_DEVELOPED_REQUIREMENTS.csv
+cpf-docs/work/handover/CPF_QA39_HANDOVER.md
+cpf-docs/work/manifest/CPF_QA39_CHANGE_MANIFEST.csv
+cpf-docs/work/manifest/CPF_QA39_CLEANUP_ONE_LINE.ps1.txt
+cpf-docs/work/manifest/CPF_QA39_DELETE_MANIFEST.txt
+cpf-docs/work/manifest/CPF_QA39_DELETE_WORK_ITEMS.csv
+cpf-docs/work/manifest/CPF_QA39_FILES.sha256
+cpf-docs/work/manifest/CPF_QA39_FINAL_DELETE_PATHS.txt
+cpf-docs/work/manifest/CPF_QA39_PACKAGE_MANIFEST.json
+cpf-docs/work/manifest/CPF_QA39_PRODUCT_DELETE_ONE_LINE.ps1.txt
+cpf-docs/work/manifest/CPF_QA39_REPOSITORY_CLEANUP_PATHS.txt
+cpf-docs/work/review/CPF_QA39_DEVELOPER_REPORT_AND_SELF_REVIEW_TEMPLATE.md
+cpf-docs/work/review/CPF_QA39_DEVELOPER_SELF_REVIEW_REQUIREMENTS.md
+cpf-docs/work/review/CPF_QA39_POST_DEVELOPMENT_INDEPENDENT_REVIEW.md
+cpf-docs/work/review/CPF_QA39_PRE_DEVELOPMENT_REVIEW.md
+cpf-docs/work/review/CPF_QA39_SOURCE_REVIEW_FINDINGS.csv
+cpf-docs/work/review/CPF_QA39_STARTER_ARCHITECTURE_AND_VALUE_REVIEW.md
+cpf-docs/work/state/CPF_CODEX_CONTINUITY_STATE.md
+cpf-docs/work/state/CPF_CODEX_DECISION_LOG.md

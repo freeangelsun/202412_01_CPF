@@ -1,0 +1,15 @@
+﻿stage,name,scope
+00,Truth and Precedence Reset,exact SHA; QA>self precedence; conflicting request replacement
+01,Final Starter Decision,complete remove/internalize/keep catalog freeze
+02,Build and Compile Blockers,RabbitMQ; catalog/settings/BOM/classpath/SCC
+03,6 Profiles and 7 Groups,public surface; generator resolved lock; consumer selection UX
+04,Generated Domain Standards and Exceptions,minimal mandatory inheritance; selected capabilities only; domain declarative external exception; convention/runtime fail-closed gates
+05,Deletion Inventory,exact paths; Core/API/consumer/config/test/docs/evidence work items
+06,Convenience Public APIs,business-intent APIs; standard result/tracking; OSS type hiding
+07,Extension SPIs,customer provider SPI; conformance testkits
+08,Consumer Migration,ADM/BZA/Gateway/Batch/Reference/Member/generated domains
+09,Runtime Reliability,Messaging/Notification/Scheduler/Data/Integration/File/Security/Operations
+10,Final Exact-path Deletion,reference zero; cleanup one-line; empty folders/stale evidence
+11,Full Verification,Java25/frontend/3DB/runtime/fault/browser/publication/supply-chain
+12,Developer Report and Self Review,file/line/requirement/commands/results/deletions/evidence/risks
+13,Codex and Root Overlay,review index/manifests/hashes/handover/final package

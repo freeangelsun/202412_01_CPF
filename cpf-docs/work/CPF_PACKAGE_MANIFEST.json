@@ -1,0 +1,92 @@
+{
+  "package": "CPF_QA39_COMPACT_CANONICAL_ROOT_OVERLAY_20260802_R6",
+  "baseline_branch": "master",
+  "baseline_sha": "2a86ff42799eddffaae87d38ae68632726a2c495",
+  "generated_at": "2026-08-02 22:53:17 KST",
+  "development_status": "부분 구현",
+  "verification_status": "실패",
+  "protected_paths": [
+    "cpf-docs/deliverables/**",
+    "cpf-docs/guides/**",
+    "cpf-docs/environment/docker/**",
+    "cpf-tools/environment/docker-development-test/**"
+  ],
+  "repository_root_direct_files": 0,
+  "file_count_excluding_manifest": 12,
+  "delete_path_count": 35,
+  "cleanup_scope": "R5 QA39 files fully merged/renamed only",
+  "files": [
+    {
+      "path": "cpf-docs/governance/CPF_DOCUMENT_CONTROL_POLICY.md",
+      "size": 3009,
+      "sha256": "866b67abe07df6b88c65377342b05180dba39cb4655e6b69117a4d2256fff5bc",
+      "role": "governance"
+    },
+    {
+      "path": "cpf-docs/work/CPF_CHANGE_MANIFEST.csv",
+      "size": 11706,
+      "sha256": "1b11d475fdad3e366e6fb38da54e2d93a24ee4adba8eeb2dac896745e6b30399",
+      "role": "machine_canonical"
+    },
+    {
+      "path": "cpf-docs/work/CPF_CURRENT_WORK_REQUEST.md",
+      "size": 44087,
+      "sha256": "80dfe66098da222d6f4858bd73313d772856b9799b951a238a5cd0001e48f2ab",
+      "role": "human_canonical"
+    },
+    {
+      "path": "cpf-docs/work/CPF_DELETE_MANIFEST.txt",
+      "size": 2539,
+      "sha256": "78c825d73628d7353e23fd92e4e66d69ed7056e522355d9e53734964c3b073f5",
+      "role": "delete_control"
+    },
+    {
+      "path": "cpf-docs/work/CPF_DELETE_ONE_LINE.ps1.txt",
+      "size": 596,
+      "sha256": "19bd8214421094de0d6bc464c0697f507df79a19de14f994b4b080474c304dce",
+      "role": "delete_control"
+    },
+    {
+      "path": "cpf-docs/work/CPF_PRODUCT_DELETE_WORK_ITEMS.csv",
+      "size": 9870,
+      "sha256": "a7c7353e51783b65eca6c88643180f05f2812313102d564802c3d2ac32e635e3",
+      "role": "delete_control"
+    },
+    {
+      "path": "cpf-docs/work/CPF_PUBLIC_SURFACE_CATALOG.csv",
+      "size": 2789,
+      "sha256": "76e19d1063a3103ca0ebea2df25d6561ba8b8a2328bcac797926f3bad17288cc",
+      "role": "machine_canonical"
+    },
+    {
+      "path": "cpf-docs/work/CPF_REQUIREMENT_MATRIX.csv",
+      "size": 26141,
+      "sha256": "b41d994cb3aaff56dff02bc38d5ff4e1b3a38f6af6e8899915f242c1e2bd16c4",
+      "role": "machine_canonical"
+    },
+    {
+      "path": "cpf-docs/work/CPF_SCENARIO_MATRIX.csv",
+      "size": 6349,
+      "sha256": "031cf12abef22ee0ea1b08e929bc314df67249a1bfff8d2342f9e9e4cb26c7bd",
+      "role": "machine_canonical"
+    },
+    {
+      "path": "cpf-docs/work/CPF_SOURCE_FINDINGS.csv",
+      "size": 7511,
+      "sha256": "b4eed02b4347d4de04298dd44fe34d1ce190cb802628d4326dc7858efd395947",
+      "role": "machine_canonical"
+    },
+    {
+      "path": "cpf-docs/work/CPF_STAGE_PLAN.csv",
+      "size": 1311,
+      "sha256": "3c9f20bb04be75995f7eb08e549293a32a0c5365867a6e447fc2a0092f58572e",
+      "role": "machine_canonical"
+    },
+    {
+      "path": "cpf-docs/work/CPF_STARTER_VALUE_CATALOG.csv",
+      "size": 14381,
+      "sha256": "de05411d555ed804753913e5058fd6901784e48730557870fb91fbf68952cda8",
+      "role": "machine_canonical"
+    }
+  ]
+}

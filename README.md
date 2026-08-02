@@ -7,7 +7,7 @@
 
 <br>
 
-**설계, 개발, 실행, 운영과 변화 대응을 하나의 제품 기준으로 연결합니다.**
+**설계, 개발, 실행, 운영과 변화 대응을 하나의 기준 Source으로 연결합니다.**
 
 동일 JVM · 분리 WAS · 모듈형 단일 애플리케이션 · 마이크로서비스 · 다중 인스턴스 · 정기·대량 처리 · 비동기 메시지 처리 · 운영 통제
 
@@ -60,7 +60,7 @@ CPF는 업무 서비스를 같은 설계·개발·운영 기준으로 구축하�
 - `cpf-biz-admin` — 조직·직원·사용자·권한·결재 기능을 공통으로 사용할 때 선택
 - `cpf-gateway` — 여러 업무 API의 인증·라우팅·제한·게시 상태를 공통으로 관리할 때 선택
 
-Starter는 독립 서버가 아니라 실행 제품에 포함되는 선택형 라이브러리입니다. 기준 Commit에서 `settings.gradle`에 등록된 공개 Starter는 보안, 메시징, 캐시, 관측, 복원력, 기능 전환, 비밀정보의 7개 프로젝트입니다. 현재 Core·Common의 선택 Runtime 분리와 Capability Profile·Aggregate Starter는 QA38 목표에 포함돼 있으나 기준 Commit에서는 부분 구현 또는 미구현 상태이므로, 현재 사용 가능한 의존성과 목표 구조를 구분해 판단해야 합니다.
+Starter는 독립 서버가 아니라 실행 제품에 포함되는 선택형 라이브러리입니다. 최신 `settings.gradle`에는 38개 Leaf·Aggregate 실행 모듈과 13개 Versioned Capability Profile이 등록돼 있습니다. Generator는 선택한 Profile을 `resolvedStarters`, Profile Version, Provider Binding과 Starter Version Lock으로 Domain Manifest에 고정합니다. 업무 서비스는 필요한 Profile 또는 Leaf만 선택하며, 선택하지 않은 Provider의 JAR·Bean·SQL·Secret 요구가 유입되지 않아야 합니다.
 
 ---
 
@@ -73,7 +73,7 @@ Starter는 독립 서버가 아니라 실행 제품에 포함되는 선택형 �
 
 같은 애플리케이션에서는 내부 호출 방식이, 분리된 서비스에서는 원격 호출 방식이 같은 업무 계약을 실행합니다. 호출자는 배포 위치에 결합되지 않으며 표준 식별자, 인증·권한 문맥, 오류 분류, 시간 예산, 멱등성과 추적의 의미가 유지되어야 합니다.
 
-다중 인스턴스 실행에서는 임대 잠금, 소유권, 펜싱 토큰과 버전을 사용해 이전 실행자가 현재 상태를 덮어쓰지 않도록 설계합니다. 실제 적용 여부는 사용 모듈의 Source·DB·시험 결과로 확인합니다.
+다중 인스턴스 실행에서는 임대 잠금, 소유권, 펜싱 토큰과 버전을 사용해 이전 실행자가 운영 상태를 덮어쓰지 않도록 설계합니다. 실제 적용 여부는 사용 모듈의 Source·DB·시험 결과로 확인합니다.
 
 [같은 애플리케이션·분리 서비스 연동과 거래 처리 →](cpf-docs/guides/01_CPF_개발자매뉴얼.md)
 
@@ -126,15 +126,10 @@ ADM은 업무 서비스·인스턴스·거래·로그·추적·배치·설정·�
 </picture>
 
 ```powershell
-$repo='C:\dev\projects\jck\202412_01_CPF'
-pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repo 'cpf-tools\generator\create-domain.ps1') `
-  -DomainName payment `
-  -SystemCode PAY `
-  -DatabaseVendor postgresql `
-  -DryRun
+$repo='C:\dev\projects\jck\202412_01_CPF'; pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repo 'cpf-tools\generator\create-domain.ps1') -DomainName payment -SystemCode PAY -DatabaseVendor postgresql -DryRun
 ```
 
-계획 단계에서 모듈, 패키지, 시스템 코드, 포트, 경로와 DB 충돌을 검사합니다. 기준 Commit의 생성기는 기능 선택값을 받지만 QA38의 Versioned Capability Profile·`resolvedStarters`·Version Lock은 아직 구현 여부를 다시 확인해야 합니다. 생성 결과에는 실제 Build 의존성, 설정, DB Vendor Pack, 시험과 배포 산출물이 일치해야 합니다.
+계획 단계에서 모듈, 패키지, 시스템 코드, 포트, 경로, DB 식별자와 Capability 충돌을 검사합니다. 적용 단계에서는 `CapabilityProfile`, `ProviderBindings`, 해석된 `resolvedStarters`, Profile Version, Starter Version Lock, DB Vendor Pack, Test와 배포 Manifest를 함께 생성합니다. 생성 후 Build·Migration·OpenAPI·Test·운영 인계가 같은 Manifest와 일치하는지 확인합니다.
 
 [생성 도구를 포함한 전체 개발 절차 →](cpf-docs/guides/01_CPF_개발자매뉴얼.md)
 
@@ -168,7 +163,7 @@ pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repo 'cpf-tools\genera
 4. 예제의 업무 이름·상태·권한·대사 기준을 실제 업무 규칙으로 교체합니다.
 5. 개발자는 운영 인계표를 전달하고 운영 담당자는 ADM·로그·지표·추적·감사에서 같은 식별자를 확인합니다.
 
-각 매뉴얼은 기능 선택, 단계별 수행, 정상 결과, 오류 대응, 재시작·재처리·대사, 권한·감사와 미검증 범위를 함께 설명합니다.
+각 매뉴얼은 기능 선택, 결정값, 파일·화면·명령, 정상 결과, 오류 대응, 재시작·재처리·대사, 권한·감사와 운영 인계를 함께 설명합니다.
 
 ---
 
@@ -183,7 +178,7 @@ pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repo 'cpf-tools\genera
 - [데이터베이스 표준서](cpf-docs/deliverables/데이터베이스표준서.md)
 - [최상위 제품 요구사항](cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md)
 
-README에는 전체 API·설정·상태·검증 원장을 복사하지 않습니다. 상세 값과 현재 구현 상태는 Source와 해당 산출물에서 확인합니다.
+README에는 전체 API·설정·상태·검증 원장을 복사하지 않습니다. 상세 값과 실제 식별자·계약은 Source와 해당 산출물에서 확인합니다.
 
 ---
 
@@ -193,18 +188,13 @@ README에는 전체 API·설정·상태·검증 원장을 복사하지 않습니
 ### 저장소와 환경
 
 ```powershell
-$repo='C:\dev\projects\jck\202412_01_CPF'
-git -C $repo rev-parse HEAD
-git -C $repo status --short
-java -version
-pwsh --version
+$repo='C:\dev\projects\jck\202412_01_CPF'; git -C $repo rev-parse HEAD; git -C $repo status --short; java -version; pwsh --version
 ```
 
 ### 전체 빌드
 
 ```powershell
-$repo='C:\dev\projects\jck\202412_01_CPF'
-& (Join-Path $repo 'gradlew.bat') clean build
+$repo='C:\dev\projects\jck\202412_01_CPF'; & (Join-Path $repo 'gradlew.bat') clean build
 ```
 
 ```bash
@@ -215,17 +205,13 @@ repo=/path/to/202412_01_CPF
 ### 데이터베이스
 
 ```powershell
-$repo='C:\dev\projects\jck\202412_01_CPF'
-pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repo 'cpf-tools\scripts\initialize-cpf-database.ps1') -All -RequireRun
+$repo='C:\dev\projects\jck\202412_01_CPF'; pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repo 'cpf-tools\scripts\initialize-cpf-database.ps1') -All -RequireRun
 ```
 
 ### 로컬 실행
 
 ```powershell
-$repo='C:\dev\projects\jck\202412_01_CPF'
-pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repo 'cpf-tools\scripts\start-cpf-local.ps1')
-pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repo 'cpf-tools\scripts\status-cpf-local.ps1')
-pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repo 'cpf-tools\scripts\stop-cpf-local.ps1')
+$repo='C:\dev\projects\jck\202412_01_CPF'; pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repo 'cpf-tools\scripts\start-cpf-local.ps1'); pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repo 'cpf-tools\scripts\status-cpf-local.ps1'); pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repo 'cpf-tools\scripts\stop-cpf-local.ps1')
 ```
 
 지원 환경, 매개변수, 정상 결과와 되돌리기 절차는 [플랫폼 운영 매뉴얼](cpf-docs/guides/05_CPF_플랫폼운영매뉴얼.md)에 정리되어 있습니다.
@@ -244,4 +230,4 @@ pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repo 'cpf-tools\script
 6. 실행 기능 선택은 CPF Starters, 생성·빌드·DB·검증 도구는 CPF Tools 매뉴얼을 사용합니다.
 7. 조직·권한·결재가 필요하면 CPF BZA, 공통 API 진입점이 필요하면 CPF Gateway 매뉴얼을 사용합니다.
 
-각 문서는 현재 구현, 목표 구조, 검증 결과와 미검증 범위를 구분합니다.
+각 문서는 제품 계약과 실제 식별자를 연결하며, 실행 검증 결과는 별도 검증 기록에서 관리합니다.

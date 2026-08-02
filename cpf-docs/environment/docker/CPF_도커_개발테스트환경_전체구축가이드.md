@@ -1,219 +1,120 @@
 # CPF Docker 개발·시험 환경 전체 구축 가이드
 
-상위 메뉴: [Docker 문서](README.md)
+> **주 독자**: 신규 개발 PC·QA 환경을 준비하는 운영자
+> **완료 결과**: 현재 Source의 Base·Toolchain·확장 서비스를 Created/Stopped 상태로 설치하고 무결성을 확인한다.
+> **기준 Repository**: `freeangelsun/202412_01_CPF` / `master` / `54bcc10887a83b933685bff462c0b0d7df824923` (`20260802_10`)
 
-> **주 독자**: 새 개발 PC 또는 새 검증 PC를 준비하는 Docker 환경 운영자
-> **완료 결과**: Repository Source를 기준으로 Docker 실행본을 준비하고, 필요한 Image·Container·Secret·Fixture를 생성한 뒤 Running CPF Container 0과 보존 상태를 확인한다.
-> **Source 기준**: `freeangelsun/202412_01_CPF`, `master`, `3b600702502e53877e30cbac594987b371e2186b`
+<!-- CPF-TOC:START -->
+## 전체 목차
 
-## 1. 기준 경로
+- [1. 사전 조건](#1-사전-조건)
+- [2. 설치 한 줄 명령](#2-설치-한-줄-명령)
+- [3. Script 수행 단계](#3-script-수행-단계)
+- [4. 정상 결과](#4-정상-결과)
+- [5. 실패와 다음 행동](#5-실패와-다음-행동)
+- [6. 설치 검증 한 줄](#6-설치-검증-한-줄)
+- [7. Rollback](#7-rollback)
+- [8. 설치 후 Directory 지도](#8-설치-후-directory-지도)
+- [9. Image Lock 검수](#9-image-lock-검수)
+- [10. 신규 Provider 증분 설치 설계](#10-신규-provider-증분-설치-설계)
 
-```powershell
-$repo='C:\dev\projects\jck\202412_01_CPF'
-$dockerRoot='C:\dev\Docker'
-$runtime=Join-Path $dockerRoot 'CPF'
-$secretRoot=Join-Path $dockerRoot 'Secrets'
-```
+<!-- CPF-TOC:END -->
 
-명령은 어느 폴더에서 실행해도 되도록 위 변수를 사용한다.
+## 1. 사전 조건
 
-## 2. 사전 확인
+- Windows PowerShell/PowerShell 7
+- Docker Desktop Linux Container, linux/amd64
+- Repository `C:\dev\projects\jck412_01_CPF`
+- Docker Root `C:\dev\Docker`
+- 기존 CPF Container 정지
+- Image Pull Network와 충분한 Disk/Memory
 
-```powershell
-if(-not(Test-Path -LiteralPath $repo -PathType Container)){throw "Repository가 없습니다: $repo"}
-docker version
-docker compose version
-git -C $repo remote get-url origin
-git -C $repo branch --show-current
-git -C $repo rev-parse HEAD
-git -C $repo rev-parse origin/master
-git -C $repo status --short
-```
-
-중단 조건:
-
-- Branch·Commit이 검증 기준과 다름
-- Docker Engine 또는 Linux Container Backend 사용 불가
-- 기존 CPF Container가 다른 작업으로 실행 중
-- Port·Runtime Root·Secret Root가 다른 작업과 충돌
-- 설치 Script가 전체 Image·Volume·사용자 DB 삭제를 요구
-
-금지:
-
-```text
-docker system prune
-docker volume prune
-Docker Factory Reset
-git clean -fd
-git reset --hard
-```
-
-## 3. Source 존재 확인
+## 2. 설치 한 줄 명령
 
 ```powershell
-$source=Join-Path $repo 'cpf-tools\environment\docker-development-test'
-$required=@('compose.yml','compose.redis.yml','compose.kafka.yml','compose.integration.yml','compose.tooling.yml')
-$missing=@($required|Where-Object{-not(Test-Path -LiteralPath (Join-Path $source $_) -PathType Leaf)})
-if($missing.Count){throw "필수 Docker Source가 없습니다: $($missing -join ', ')"}
+$repo='C:\dev\projects\jck412_01_CPF'; $dockerRoot='C:\dev\Docker'; if(-not(Test-Path -LiteralPath $repo -PathType Container)){throw "Repository가 없습니다: $repo"}; pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repo 'cpf-tools\environment\docker-development-test\CPF_도커_개발테스트환경_전체설치.ps1') -DockerRoot $dockerRoot -RepoRoot $repo; if($LASTEXITCODE -ne 0){throw 'CPF Docker 전체 설치 실패'}
 ```
 
-설치 Script 이름은 실제 Source에서 확인한다.
+관리자 비밀번호를 인자로 남기지 않으면 Secure Prompt로 입력하며 Repository 밖 Environment/Secret 파일에 저장한다.
+
+## 3. Script 수행 단계
+
+1. Docker Version·Linux Backend·amd64를 검증한다.
+2. `C:\dev\Docker\CPF`, `Secrets`를 만든다.
+3. Runtime Env·Redis Secret을 원문 출력 없이 준비한다.
+4. Compose·Tooling·Fixture 파일을 Source에서 복사한다.
+5. DB·Redis·Kafka·Java/Node/Playwright Image를 준비한다.
+6. Toxiproxy·OTel·Trivy·ORT Image 후보를 순서대로 준비한다.
+7. Full Toolchain Image를 Build하고 Java/Node/Pwsh/Python/Git/DB Client/Docker/SSH를 확인한다.
+8. Compose Config를 검증하고 Base/Tool Container를 `create`한다.
+9. Image ID·Digest를 `image-lock-complete.json`에 기록한다.
+10. 확장 설치 Script로 WireMock·SFTP·Vault·Keycloak을 추가한다.
+11. `verify-complete-environment.ps1 -RequireStopped`를 실행한다.
+
+## 4. 정상 결과
+
+| 항목 | 정상 판정 |
+|---|---|
+| Directory | CPF·Secrets·Output·Cache 소유 경로 존재 |
+| Secret | Repository 밖, 빈 값 없음, Console 원문 없음 |
+| Image | 필수 Image inspect 가능, Lock에 ID/Digest 기록 |
+| Compose | config --quiet 통과 |
+| Container | 11개 Base/확장 Container Created/Stopped, Running 0 |
+| Toolchain | Java25·Node22·Pwsh7.6.4·Playwright1.62·Python/Git/DB Client/Docker/SSH |
+| Data | 업무 Schema·Seed·Kafka Topic 생성 안 됨 |
+
+## 5. 실패와 다음 행동
+
+| 실패 | 확인 | 다음 행동 |
+|---|---|---|
+| Docker 미실행/Windows Backend | docker version/info | Linux Backend로 전환 후 재실행 |
+| Architecture 불일치 | docker info Architecture | amd64 환경 사용 |
+| Image Pull | Registry/DNS/Proxy/Disk | 원인 수정, 같은 Script 재실행 |
+| Container 실행 중 | docker ps --format | 해당 CPF Service를 정상 중지 |
+| Secret 누락 | Secrets 정확한 파일 | 빈 값/권한 수정, 원문 공유 금지 |
+| Compose 오류 | docker compose config | Env/Image/File 경로 수정 |
+| Toolchain Build | Dockerfile/Build Log | 첫 실패 Package/Image 수정 |
+| Extension 실패 | Base 파일·tool-images.env | Base 검증 후 증분 재실행 |
+| Verify 실패 | 누락 Image/Container/State | 실패 항목만 보완 |
+
+## 6. 설치 검증 한 줄
 
 ```powershell
-Get-ChildItem -LiteralPath $source -File -Filter '*.ps1' | Select-Object Name,FullName
+$dockerRoot='C:\dev\Docker'; pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $dockerRoot 'CPF; erify-complete-environment.ps1') -RequireStopped; if($LASTEXITCODE -ne 0){throw 'Docker 환경 검증 실패'}
 ```
 
-문서에 적힌 Script가 없으면 임의로 유사 Script를 실행하지 않는다.
+## 7. Rollback
 
-## 4. Compose 정적 검증
+설치 실패 시 다른 Docker 프로젝트나 공용 Image/Volume을 삭제하지 않는다. 이번 CPF Compose Project의 Created Container와 이번 작업이 만든 정확한 `C:\dev\Docker\CPF` 파일 중 Backup이 있는 파일만 복원한다. Secret은 사용 여부와 Backup을 확인한 뒤 폐기한다.
 
-Repository Source에서 직접 검증하는 예:
+## 8. 설치 후 Directory 지도
 
-```powershell
-$source=Join-Path $repo 'cpf-tools\environment\docker-development-test'
-$envFile=Join-Path $secretRoot 'cpf-runtime.env'
-if(-not(Test-Path -LiteralPath $envFile -PathType Leaf)){throw "환경변수 파일이 없습니다: $envFile"}
-docker compose --env-file $envFile `
-  -f (Join-Path $source 'compose.yml') `
-  -f (Join-Path $source 'compose.redis.yml') `
-  -f (Join-Path $source 'compose.kafka.yml') `
-  -f (Join-Path $source 'compose.integration.yml') `
-  -f (Join-Path $source 'compose.tooling.yml') config --quiet
-```
+| 경로 | 내용 | 보호/정리 |
+|---|---|---|
+| C:\dev\Docker\CPF | Compose·Tool Script·Image Lock | Source Script로 갱신, 임의 파일 금지 |
+| C:\dev\Docker\Secrets | Runtime Env·Password/Token 파일 | Repository 밖·ACL·원문 출력 금지 |
+| C:\dev\Docker\CPF\fixtures | WireMock/Keycloak Fixture | Manifest 기반 |
+| C:\dev\Docker\CPF\output | OTel/Trivy/ORT/Integration 결과 | 시나리오·보존 후 정확히 정리 |
+| C:\dev\Docker\CPF\cache | Tool Cache | 소유 Tool만 정리 |
 
-정상 결과:
+## 9. Image Lock 검수
 
-- Exit Code 0
-- 환경변수 누락 없음
-- Secret 파일 경로 존재
-- Port·Container Name 중복 없음
-- `restart: "no"`
-- Host 공개 Port가 `127.0.0.1`로 제한됨
+- Image Reference·Required 여부·Image ID·Repo Tags·Repo Digests를 확인한다.
+- `latest` Fallback을 사용했으면 실제 Digest와 승인 사유를 기록한다.
+- Toolchain Image의 Java/Node/Pwsh/Playwright/DB Client Version을 Manifest에 기록한다.
+- Image 교체 후 Compose Config·Created Container·Smoke/Fault Test를 다시 수행한다.
 
-## 5. 설치 Script 실행
+## 10. 신규 Provider 증분 설치 설계
 
-실제 Source에 전체 설치 Script가 존재할 때만 실행한다.
+RabbitMQ·Artemis·TCP Simulator·Notification Fixture를 추가할 때 다음을 같은 변경에 제공한다.
 
-```powershell
-$installer=Join-Path $source 'CPF_도커_개발테스트환경_전체설치.ps1'
-if(-not(Test-Path -LiteralPath $installer -PathType Leaf)){throw "설치 Script가 없습니다: $installer"}
-Get-Help $installer -Full
-pwsh -NoProfile -ExecutionPolicy Bypass -File $installer -DockerRoot $dockerRoot -RepoRoot $repo
-$exit=$LASTEXITCODE
-if($exit -ne 0){throw "전체 설치 실패: exit=$exit"}
-```
-
-Script가 없는 경우 Compose 파일을 임의 복사·수정하지 않고 `DOCKER-TOOLS-001` 개발 요청으로 전달한다.
-
-## 6. 설치 Script의 필수 행동
-
-전체 설치 Script는 다음을 만족해야 한다.
-
-1. Repository Source와 Runtime Root를 구분한다.
-2. Secret을 Repository 밖에 생성하거나 기존 Secret을 보존한다.
-3. 기존 Container·Volume·Image를 임의 삭제하지 않는다.
-4. 필요한 Image를 Pull하고 Digest를 기록한다.
-5. Container는 Created 또는 Stopped 상태로 준비한다.
-6. Restart Policy를 `no`로 유지한다.
-7. 실행 종료 시 Running CPF Container 0을 확인한다.
-8. 같은 입력 재실행 시 Secret·Volume·사용자 데이터를 덮어쓰지 않는다.
-9. Runtime Source Hash와 Repository Source Hash를 비교할 수 있게 한다.
-
-## 7. 확장 Fixture 설치
-
-WireMock·SFTP·Vault·Keycloak 등의 증분 설치 Script가 실제로 존재할 때 실행한다.
-
-```powershell
-$installer=Join-Path $source 'CPF_도커_확장연동환경_증분설치.ps1'
-if(Test-Path -LiteralPath $installer -PathType Leaf){
-  Get-Help $installer -Full
-  pwsh -NoProfile -ExecutionPolicy Bypass -File $installer -DockerRoot $dockerRoot -RepoRoot $repo
-  if($LASTEXITCODE -ne 0){throw "확장 설치 실패: exit=$LASTEXITCODE"}
-}else{
-  Write-Warning "확장 설치 Script가 없어 Compose Source와 기존 Runtime을 수동 비교해야 합니다."
-}
-```
-
-## 8. 설치 후 상태 확인
-
-```powershell
-$envFile=Join-Path $secretRoot 'cpf-runtime.env'
-docker compose --env-file $envFile `
-  -f (Join-Path $runtime 'compose.yml') `
-  -f (Join-Path $runtime 'compose.redis.yml') `
-  -f (Join-Path $runtime 'compose.kafka.yml') `
-  -f (Join-Path $runtime 'compose.integration.yml') `
-  -f (Join-Path $runtime 'compose.tooling.yml') ps -a
-```
-
-필수 판정:
-
-```text
-필수 Image 존재
-Container Created 또는 Exited(0)·Stopped
-Restart Policy no
-Running CPF Container 0
-Secret 원문 미출력
-Volume 보존
-```
-
-## 9. Runtime Source Hash 비교
-
-```powershell
-$names=@('compose.yml','compose.redis.yml','compose.kafka.yml','compose.integration.yml','compose.tooling.yml')
-foreach($n in $names){
-  $src=Join-Path $source $n
-  $run=Join-Path $runtime $n
-  [pscustomobject]@{
-    File=$n
-    SourceExists=Test-Path -LiteralPath $src -PathType Leaf
-    RuntimeExists=Test-Path -LiteralPath $run -PathType Leaf
-    SourceHash=if(Test-Path -LiteralPath $src){(Get-FileHash -LiteralPath $src -Algorithm SHA256).Hash}else{$null}
-    RuntimeHash=if(Test-Path -LiteralPath $run){(Get-FileHash -LiteralPath $run -Algorithm SHA256).Hash}else{$null}
-  }
-}
-```
-
-Hash 차이는 무조건 Runtime 파일을 덮어쓰지 않고 변경 내용을 검토한다.
-
-## 10. 신규 모듈 증분 편입 표준
-
-신규 Module·Starter·Provider가 개발된 뒤 다음 순서로 편입한다.
-
-1. Product Source·Build·실제 Consumer를 확인한다.
-2. Image·Version·Digest·License를 결정한다.
-3. Compose Service·Network·Port·Volume·Secret을 정의한다.
-4. Named Binding과 Product Config를 연결한다.
-5. 초기화 Fixture와 Test Data를 만든다.
-6. Health·Readiness와 실제 Contract Test를 실행한다.
-7. Timeout·Network Loss·Process Kill·부분 실패를 주입한다.
-8. Retry·Reprocess·Reconcile·Rollback을 실행한다.
-9. ADM·Log·Metric·Trace·Audit를 확인한다.
-10. 작업 종료 후 시작한 Container만 중지하고 데이터를 보존한다.
-
-## 11. 검증 기록
-
-```text
-Git Commit
-Docker·Compose Version
-Repository Source Hash
-Runtime Source Hash
-Image Tag·Digest
-Compose Config Hash
-Secret File 존재 여부
-Container Restart Policy
-Fixture Command·Exit Code
-Sanitized Log Hash
-Running Container Count
-미검증 Provider
-```
-
-## 12. Rollback
-
-설치 실패 시:
-
-- 이번 실행에서 새로 만든 Container만 정확한 이름으로 제거한다.
-- 기존 Volume·Image·Secret은 보존한다.
-- Runtime Source는 설치 전 Backup 또는 Hash가 확인된 파일만 되돌린다.
-- 사용자 DB와 다른 작업자의 Container를 건드리지 않는다.
-- 광역 `down -v`를 기본 Rollback으로 사용하지 않는다.
+1. 고정 Image 후보와 Digest Lock
+2. Compose Service·Network·Loopback Port·Healthcheck·restart:no
+3. Repository 밖 Secret과 최소 권한
+4. 초기 Exchange/Queue/Destination/Certificate/Fixture Script
+5. 정상·오류·Response Loss·Process Kill Fixture
+6. Toxiproxy 연결
+7. 실제 Starter Consumer Smoke
+8. verify-complete-environment 확장
+9. 정확한 Stop/Reset/Cleanup
+10. Docker 문서와 Platform 운영 매뉴얼 현행화

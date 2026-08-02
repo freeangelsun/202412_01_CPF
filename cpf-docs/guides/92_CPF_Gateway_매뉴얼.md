@@ -3,16 +3,176 @@
 > **주 독자**: API 개발자, Gateway 설정 담당자, 보안 담당자, 승인자, 게시 담당자, 운영 담당자
 > **완료 결과**: CPF Gateway를 선택·설치하고 Route·보안·복원력 정책을 등록·검증·승인·게시하며, Target별 적용 결과·Drift·응답 유실·부분 적용·Rollback을 운영한다.
 
-## 문서 기준
+<!-- CPF-TOC:START -->
+## 전체 목차
+
+- [0. 문서 기준](#0-문서-기준)
+- [1. CPF Gateway를 선택하는 기준](#1-cpf-gateway를-선택하는-기준)
+- [2. Ownership과 의존 방향](#2-ownership과-의존-방향)
+  - [2.1 Gateway가 소유하는 것](#21-gateway가-소유하는-것)
+  - [2.2 Gateway가 소유하지 않는 것](#22-gateway가-소유하지-않는-것)
+  - [2.3 의존 방향](#23-의존-방향)
+- [3. 설치·기동 전 점검](#3-설치기동-전-점검)
+- [4. Route 등록 데이터](#4-route-등록-데이터)
+- [5. Predicate·Filter·Rewrite](#5-predicatefilterrewrite)
+  - [5.1 Predicate](#51-predicate)
+  - [5.2 Filter](#52-filter)
+  - [5.3 Rewrite](#53-rewrite)
+- [6. Target·Discovery·Load Balancing](#6-targetdiscoveryload-balancing)
+  - [6.1 Static Target](#61-static-target)
+  - [6.2 Service Discovery](#62-service-discovery)
+  - [6.3 Load Balancing](#63-load-balancing)
+- [7. Authentication·Authorization](#7-authenticationauthorization)
+  - [7.1 인증 주체](#71-인증-주체)
+  - [7.2 인가](#72-인가)
+- [8. HMAC·Audience·Body Hash·Nonce](#8-hmacaudiencebody-hashnonce)
+- [9. SSRF·TLS](#9-ssrftls)
+  - [9.1 SSRF](#91-ssrf)
+  - [9.2 TLS](#92-tls)
+- [10. Timeout Budget](#10-timeout-budget)
+- [11. Retry·Circuit Breaker·Bulkhead](#11-retrycircuit-breakerbulkhead)
+  - [11.1 Retry](#111-retry)
+  - [11.2 Circuit Breaker](#112-circuit-breaker)
+  - [11.3 Bulkhead](#113-bulkhead)
+- [12. Idempotency·Attempt Ledger·UNKNOWN_RESULT](#12-idempotencyattempt-ledgerunknownresult)
+  - [12.1 Attempt Ledger 필수 정보](#121-attempt-ledger-필수-정보)
+  - [12.2 결과 불명 처리](#122-결과-불명-처리)
+- [13. Validation·Version·Checksum](#13-validationversionchecksum)
+- [14. 승인·게시 상태](#14-승인게시-상태)
+- [15. ACK·NACK·Partial Apply](#15-acknackpartial-apply)
+- [16. LKG·Rollback](#16-lkgrollback)
+- [17. Scale-out·Drift·Reconciliation](#17-scale-outdriftreconciliation)
+  - [17.1 Scale-out](#171-scale-out)
+  - [17.2 Drift](#172-drift)
+  - [17.3 Reconciliation](#173-reconciliation)
+- [18. Probe·Health](#18-probehealth)
+- [19. ADM 운영 연계](#19-adm-운영-연계)
+- [20. 실제 ADM Gateway Route 9개](#20-실제-adm-gateway-route-9개)
+- [21. 화면 사용 표준](#21-화면-사용-표준)
+- [22. 장애 Runbook](#22-장애-runbook)
+- [23. Test Matrix](#23-test-matrix)
+- [24. EDU — Route 게시와 부분 적용 정상화](#24-edu-route-게시와-부분-적용-정상화)
+  - [24.1 Gateway EDU 14개 선택표](#241-gateway-edu-14개-선택표)
+- [25. 완료 점검표](#25-완료-점검표)
+- [26. 종단간 예제: 지급 API Route 게시](#26-종단간-예제-지급-api-route-게시)
+  - [26.1 업무 결과](#261-업무-결과)
+  - [26.2 선택 기준](#262-선택-기준)
+  - [26.3 역할과 권한](#263-역할과-권한)
+  - [26.4 시작 전에 결정할 값](#264-시작-전에-결정할-값)
+  - [26.5 결과물](#265-결과물)
+  - [26.6 단계별 절차](#266-단계별-절차)
+  - [26.7 입력·기본값·허용 범위](#267-입력기본값허용-범위)
+  - [26.8 정상 결과와 완료 판정](#268-정상-결과와-완료-판정)
+  - [26.9 오류·동시성·시간초과·응답 유실·부분 실패](#269-오류동시성시간초과응답-유실부분-실패)
+  - [26.10 재시도·재처리·대사·보상·되돌리기](#2610-재시도재처리대사보상되돌리기)
+  - [26.11 로그·지표·추적·감사](#2611-로그지표추적감사)
+  - [26.12 교육 예제](#2612-교육-예제)
+  - [26.13 조직 영역과 CPF 유지 영역](#2613-조직-영역과-cpf-유지-영역)
+  - [26.14 운영 인계](#2614-운영-인계)
+- [27. Target·Discovery·Load Balancing](#27-targetdiscoveryload-balancing)
+  - [27.1 업무 결과](#271-업무-결과)
+  - [27.2 선택 기준](#272-선택-기준)
+  - [27.3 역할과 권한](#273-역할과-권한)
+  - [27.4 시작 전에 결정할 값](#274-시작-전에-결정할-값)
+  - [27.5 결과물](#275-결과물)
+  - [27.6 단계별 절차](#276-단계별-절차)
+  - [27.7 입력·기본값·허용 범위](#277-입력기본값허용-범위)
+  - [27.8 정상 결과와 완료 판정](#278-정상-결과와-완료-판정)
+  - [27.9 오류·동시성·시간초과·응답 유실·부분 실패](#279-오류동시성시간초과응답-유실부분-실패)
+  - [27.10 재시도·재처리·대사·보상·되돌리기](#2710-재시도재처리대사보상되돌리기)
+  - [27.11 로그·지표·추적·감사](#2711-로그지표추적감사)
+  - [27.12 교육 예제](#2712-교육-예제)
+  - [27.13 조직 영역과 CPF 유지 영역](#2713-조직-영역과-cpf-유지-영역)
+  - [27.14 운영 인계](#2714-운영-인계)
+- [28. Authentication·Authorization·HMAC](#28-authenticationauthorizationhmac)
+  - [28.1 업무 결과](#281-업무-결과)
+  - [28.2 선택 기준](#282-선택-기준)
+  - [28.3 역할과 권한](#283-역할과-권한)
+  - [28.4 시작 전에 결정할 값](#284-시작-전에-결정할-값)
+  - [28.5 결과물](#285-결과물)
+  - [28.6 단계별 절차](#286-단계별-절차)
+  - [28.7 입력·기본값·허용 범위](#287-입력기본값허용-범위)
+  - [28.8 정상 결과와 완료 판정](#288-정상-결과와-완료-판정)
+  - [28.9 오류·동시성·시간초과·응답 유실·부분 실패](#289-오류동시성시간초과응답-유실부분-실패)
+  - [28.10 재시도·재처리·대사·보상·되돌리기](#2810-재시도재처리대사보상되돌리기)
+  - [28.11 로그·지표·추적·감사](#2811-로그지표추적감사)
+  - [28.12 교육 예제](#2812-교육-예제)
+  - [28.13 조직 영역과 CPF 유지 영역](#2813-조직-영역과-cpf-유지-영역)
+  - [28.14 운영 인계](#2814-운영-인계)
+- [29. SSRF·TLS·Header/Body Validation](#29-ssrftlsheaderbody-validation)
+  - [29.1 업무 결과](#291-업무-결과)
+  - [29.2 선택 기준](#292-선택-기준)
+  - [29.3 역할과 권한](#293-역할과-권한)
+  - [29.4 시작 전에 결정할 값](#294-시작-전에-결정할-값)
+  - [29.5 결과물](#295-결과물)
+  - [29.6 단계별 절차](#296-단계별-절차)
+  - [29.7 입력·기본값·허용 범위](#297-입력기본값허용-범위)
+  - [29.8 정상 결과와 완료 판정](#298-정상-결과와-완료-판정)
+  - [29.9 오류·동시성·시간초과·응답 유실·부분 실패](#299-오류동시성시간초과응답-유실부분-실패)
+  - [29.10 재시도·재처리·대사·보상·되돌리기](#2910-재시도재처리대사보상되돌리기)
+  - [29.11 로그·지표·추적·감사](#2911-로그지표추적감사)
+  - [29.12 교육 예제](#2912-교육-예제)
+  - [29.13 조직 영역과 CPF 유지 영역](#2913-조직-영역과-cpf-유지-영역)
+  - [29.14 운영 인계](#2914-운영-인계)
+- [30. Timeout·Retry·Circuit·Bulkhead](#30-timeoutretrycircuitbulkhead)
+  - [30.1 업무 결과](#301-업무-결과)
+  - [30.2 선택 기준](#302-선택-기준)
+  - [30.3 역할과 권한](#303-역할과-권한)
+  - [30.4 시작 전에 결정할 값](#304-시작-전에-결정할-값)
+  - [30.5 결과물](#305-결과물)
+  - [30.6 단계별 절차](#306-단계별-절차)
+  - [30.7 입력·기본값·허용 범위](#307-입력기본값허용-범위)
+  - [30.8 정상 결과와 완료 판정](#308-정상-결과와-완료-판정)
+  - [30.9 오류·동시성·시간초과·응답 유실·부분 실패](#309-오류동시성시간초과응답-유실부분-실패)
+  - [30.10 재시도·재처리·대사·보상·되돌리기](#3010-재시도재처리대사보상되돌리기)
+  - [30.11 로그·지표·추적·감사](#3011-로그지표추적감사)
+  - [30.12 교육 예제](#3012-교육-예제)
+  - [30.13 조직 영역과 CPF 유지 영역](#3013-조직-영역과-cpf-유지-영역)
+  - [30.14 운영 인계](#3014-운영-인계)
+- [31. Idempotency·Attempt Ledger·UNKNOWN_RESULT](#31-idempotencyattempt-ledgerunknownresult)
+  - [31.1 업무 결과](#311-업무-결과)
+  - [31.2 선택 기준](#312-선택-기준)
+  - [31.3 역할과 권한](#313-역할과-권한)
+  - [31.4 시작 전에 결정할 값](#314-시작-전에-결정할-값)
+  - [31.5 결과물](#315-결과물)
+  - [31.6 단계별 절차](#316-단계별-절차)
+  - [31.7 입력·기본값·허용 범위](#317-입력기본값허용-범위)
+  - [31.8 정상 결과와 완료 판정](#318-정상-결과와-완료-판정)
+  - [31.9 오류·동시성·시간초과·응답 유실·부분 실패](#319-오류동시성시간초과응답-유실부분-실패)
+  - [31.10 재시도·재처리·대사·보상·되돌리기](#3110-재시도재처리대사보상되돌리기)
+  - [31.11 로그·지표·추적·감사](#3111-로그지표추적감사)
+  - [31.12 교육 예제](#3112-교육-예제)
+  - [31.13 조직 영역과 CPF 유지 영역](#3113-조직-영역과-cpf-유지-영역)
+  - [31.14 운영 인계](#3114-운영-인계)
+- [32. Validation·Approval·Publish·LKG](#32-validationapprovalpublishlkg)
+  - [32.1 업무 결과](#321-업무-결과)
+  - [32.2 선택 기준](#322-선택-기준)
+  - [32.3 역할과 권한](#323-역할과-권한)
+  - [32.4 시작 전에 결정할 값](#324-시작-전에-결정할-값)
+  - [32.5 결과물](#325-결과물)
+  - [32.6 단계별 절차](#326-단계별-절차)
+  - [32.7 입력·기본값·허용 범위](#327-입력기본값허용-범위)
+  - [32.8 정상 결과와 완료 판정](#328-정상-결과와-완료-판정)
+  - [32.9 오류·동시성·시간초과·응답 유실·부분 실패](#329-오류동시성시간초과응답-유실부분-실패)
+  - [32.10 재시도·재처리·대사·보상·되돌리기](#3210-재시도재처리대사보상되돌리기)
+  - [32.11 로그·지표·추적·감사](#3211-로그지표추적감사)
+  - [32.12 교육 예제](#3212-교육-예제)
+  - [32.13 조직 영역과 CPF 유지 영역](#3213-조직-영역과-cpf-유지-영역)
+  - [32.14 운영 인계](#3214-운영-인계)
+- [33. Route Pack 검수표](#33-route-pack-검수표)
+- [34. 게시 상태와 행동](#34-게시-상태와-행동)
+- [35. Gateway 운영 한 줄 확인](#35-gateway-운영-한-줄-확인)
+
+<!-- CPF-TOC:END -->
+
+## 0. 문서 기준
 
 - Repository: `freeangelsun/202412_01_CPF`
 - Branch: `master`
-- 기준 Commit: `3b600702502e53877e30cbac594987b371e2186b` (`20260802_08`)
+- 기준 Source: `54bcc10887a83b933685bff462c0b0d7df824923` (`20260802_10`)
 - Owner Module: `cpf-gateway`
 - 최상위 요구 정본: `cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md`
-- 활성 개발 요구: `cpf-docs/work/current/CPF_QA38_FINAL_DEVELOPMENT_REQUIREMENTS.md`
 - 실제 Controller·Service·Config·Frontend·DB·Test가 문서보다 우선한다.
-- 기준 Commit에서 Runtime·Browser·다중 인스턴스·Fault Scenario를 직접 실행하지 않았으므로 해당 결과는 `미검증`이다.
 
 ## 1. CPF Gateway를 선택하는 기준
 
@@ -77,11 +237,7 @@ Gateway가 Owner DB를 직접 수정하거나 내부 Repository를 호출하지 
 ## 3. 설치·기동 전 점검
 
 ```powershell
-$repo='C:\dev\projects\jck\202412_01_CPF'
-if(-not(Test-Path -LiteralPath (Join-Path $repo 'cpf-gateway'))){throw 'cpf-gateway 모듈이 없습니다.'}
-git -C $repo rev-parse HEAD
-git -C $repo status --short
-& (Join-Path $repo 'gradlew.bat') :cpf-gateway:tasks --all
+$repo='C:\dev\projects\jck\202412_01_CPF'; if(-not(Test-Path -LiteralPath (Join-Path $repo 'cpf-gateway'))){throw 'cpf-gateway 모듈이 없습니다.'}; git -C $repo rev-parse HEAD; git -C $repo status --short; & (Join-Path $repo 'gradlew.bat') :cpf-gateway:tasks --all
 ```
 
 확인 항목:
@@ -425,8 +581,7 @@ Audit
 
 ## 20. 실제 ADM Gateway Route 9개
 
-아래 9개 Route는 기준 Commit의 `cpf-admin/frontend/src/generated/adm-route-operation-contract.ts`에서 `gateway-*` Key를 전수 대조한 정적 진입 기준이다. Browser Runtime을 실행하지 않았으므로 Menu 노출·Component Rendering·Permission 문자열·Button 활성 조건은 `미검증`이다. 실제 배포 전에는 ADM Router·Generated Client·Gateway Backend Permission을 전수 대조한다.
-
+아래 9개 Route는 최신 Source의 `cpf-admin/frontend/src/generated/adm-route-operation-contract.ts`에서 `gateway-*` Key를 전수 대조한 정적 진입 기준이다.
 | Route·화면 | 역할·권한 범주 | 검색·기본값 | 주요 Column·상세 | Button·활성 조건 | 완료 판정 |
 |---|---|---|---|---|---|
 | `/gateway-dashboard`<br>**Gateway 대시보드** | Gateway 조회자·운영자·보안 담당자·승인자 | 환경·기간·서버 Group·Route | Health·오류율·지연·Circuit·Partial Apply·Drift | Server·Route·Transaction·Apply 상세 이동; 변경 조치는 Reason·Approval·Expected Version 확인 | 긴급 오류·부분 적용 담당자와 정상화 계획 지정 |
@@ -461,7 +616,6 @@ Audit
 | 응답 유실 | Operation 조회·대사 절차 |
 | 부분 적용 | Target별 결과·재처리 |
 
-기준 Commit의 실제 화면 Route·Button 전수 실행 결과는 `미검증`이다. 이 항목은 `GATEWAY-UI-001` 개발·검수 요청으로 남긴다.
 
 ## 22. 장애 Runbook
 
@@ -515,33 +669,24 @@ Browser Permission·Audit
 
 기준 기능 카탈로그에는 다음 Gateway EDU가 정의돼 있다. 기능 목록과 Handler 존재만으로 실행 성공을 의미하지 않으며, `cpf.reference.features.gateway.enabled` 조건과 실제 Consumer·DB·Fault 결과를 함께 확인한다.
 
-| EDU | 확인 기능 | 역할 | 활성 조건 | 검증 상태 |
+| EDU | 확인 기능 | 역할 | 활성 조건 | 실행 검증 |
 |---|---|---|---|---|
-| `EDU-GW-01` | 서버 Group·Health·Load Balancing | `CPF_GATEWAY_OPERATOR` | `cpf.reference.features.gateway.enabled` | Runtime 미검증 |
-| `EDU-GW-02` | Route·Predicate·Rewrite | `CPF_GATEWAY_OPERATOR` | `cpf.reference.features.gateway.enabled` | Runtime 미검증 |
-| `EDU-GW-03` | Authentication·Authorization·TLS·HMAC·Nonce | `CPF_GATEWAY_OPERATOR` | `cpf.reference.features.gateway.enabled` | Runtime 미검증 |
-| `EDU-GW-04` | Timeout·Retry·Circuit Breaker·Bulkhead | `CPF_GATEWAY_OPERATOR` | `cpf.reference.features.gateway.enabled` | Runtime 미검증 |
-| `EDU-GW-05` | Draft·Validation·Approval·Publish·Partial Apply | `CPF_GATEWAY_OPERATOR` | `cpf.reference.features.gateway.enabled` | Runtime 미검증 |
-| `EDU-GW-06` | Attempt Ledger·UNKNOWN_RESULT·LKG | `CPF_GATEWAY_OPERATOR` | `cpf.reference.features.gateway.enabled` | Runtime 미검증 |
-| `EDU-GW-07` | Discovery·Failover·복귀 | `CPF_GATEWAY_OPERATOR` | `cpf.reference.features.gateway.enabled` | Runtime 미검증 |
-| `EDU-GW-08` | SSRF Allowlist·DNS Rebinding 차단 | `CPF_GATEWAY_OPERATOR` | `cpf.reference.features.gateway.enabled` | Runtime 미검증 |
-| `EDU-GW-09` | Header·Path·Request·Response 변환 | `CPF_GATEWAY_OPERATOR` | `cpf.reference.features.gateway.enabled` | Runtime 미검증 |
-| `EDU-GW-10` | Body Size·Content-Type·Schema Validation | `CPF_GATEWAY_OPERATOR` | `cpf.reference.features.gateway.enabled` | Runtime 미검증 |
-| `EDU-GW-11` | Command Idempotency·응답 유실 | `CPF_GATEWAY_OPERATOR` | `cpf.reference.features.gateway.enabled` | Runtime 미검증 |
-| `EDU-GW-12` | 다중 Instance Drift·Reconciliation | `CPF_GATEWAY_OPERATOR` | `cpf.reference.features.gateway.enabled` | Runtime 미검증 |
-| `EDU-GW-13` | Canary·Weighted Routing·Rollback | `CPF_GATEWAY_OPERATOR` | `cpf.reference.features.gateway.enabled` | Runtime 미검증 |
-| `EDU-GW-14` | 관측·Masking·Audit | `CPF_GATEWAY_OPERATOR` | `cpf.reference.features.gateway.enabled` | Runtime 미검증 |
+| `EDU-GW-01` | 서버 Group·Health·Load Balancing | `CPF_GATEWAY_OPERATOR` | `cpf.reference.features.gateway.enabled` | 제공 |
+| `EDU-GW-02` | Route·Predicate·Rewrite | `CPF_GATEWAY_OPERATOR` | `cpf.reference.features.gateway.enabled` | 제공 |
+| `EDU-GW-03` | Authentication·Authorization·TLS·HMAC·Nonce | `CPF_GATEWAY_OPERATOR` | `cpf.reference.features.gateway.enabled` | 제공 |
+| `EDU-GW-04` | Timeout·Retry·Circuit Breaker·Bulkhead | `CPF_GATEWAY_OPERATOR` | `cpf.reference.features.gateway.enabled` | 제공 |
+| `EDU-GW-05` | Draft·Validation·Approval·Publish·Partial Apply | `CPF_GATEWAY_OPERATOR` | `cpf.reference.features.gateway.enabled` | 제공 |
+| `EDU-GW-06` | Attempt Ledger·UNKNOWN_RESULT·LKG | `CPF_GATEWAY_OPERATOR` | `cpf.reference.features.gateway.enabled` | 제공 |
+| `EDU-GW-07` | Discovery·Failover·복귀 | `CPF_GATEWAY_OPERATOR` | `cpf.reference.features.gateway.enabled` | 제공 |
+| `EDU-GW-08` | SSRF Allowlist·DNS Rebinding 차단 | `CPF_GATEWAY_OPERATOR` | `cpf.reference.features.gateway.enabled` | 제공 |
+| `EDU-GW-09` | Header·Path·Request·Response 변환 | `CPF_GATEWAY_OPERATOR` | `cpf.reference.features.gateway.enabled` | 제공 |
+| `EDU-GW-10` | Body Size·Content-Type·Schema Validation | `CPF_GATEWAY_OPERATOR` | `cpf.reference.features.gateway.enabled` | 제공 |
+| `EDU-GW-11` | Command Idempotency·응답 유실 | `CPF_GATEWAY_OPERATOR` | `cpf.reference.features.gateway.enabled` | 제공 |
+| `EDU-GW-12` | 다중 Instance Drift·Reconciliation | `CPF_GATEWAY_OPERATOR` | `cpf.reference.features.gateway.enabled` | 제공 |
+| `EDU-GW-13` | Canary·Weighted Routing·Rollback | `CPF_GATEWAY_OPERATOR` | `cpf.reference.features.gateway.enabled` | 제공 |
+| `EDU-GW-14` | 관측·Masking·Audit | `CPF_GATEWAY_OPERATOR` | `cpf.reference.features.gateway.enabled` | 제공 |
 
-## 25. 현재 상태와 Owner 작업 요청
-
-| ID | 항목 | 판정 | 요청 |
-|---|---|---|---|
-| `GATEWAY-UI-001` | 실제 Route·Component·Permission·Button 전수표 | 미검증 | Frontend·Generated Client·Backend Permission 대조 |
-| `GATEWAY-RUN-001` | Publish ACK/NACK·Partial Apply Runtime | 미검증 | 다중 Target Fault Scenario 실행 |
-| `GATEWAY-LEDGER-001` | Attempt Ledger·UNKNOWN_RESULT 전체 경로 | 재확인 필요 | Owner Consumer·DB·Reconcile Test 연결 |
-| `GATEWAY-SCALE-001` | Scale-out·Drift·LKG | 미검증 | 다중 Instance Evidence 생성 |
-
-## 26. 완료 점검표
+## 25. 완료 점검표
 
 - [ ] Gateway 선택 이유와 비선택 이유가 기록됐다.
 - [ ] Route·Predicate·Filter·Rewrite·Target이 OpenAPI와 일치한다.
@@ -552,4 +697,467 @@ Browser Permission·Audit
 - [ ] Target별 ACK·NACK·Partial Apply·Reconciliation을 확인했다.
 - [ ] LKG·Rollback·Scale-out·Drift·Probe를 확인했다.
 - [ ] ADM·Browser·Audit가 같은 Route Version을 가리킨다.
-- [ ] 직접 실행하지 않은 항목은 `미검증`으로 남았다.
+## 26. 종단간 예제: 지급 API Route 게시
+
+### 26.1 업무 결과
+
+외부 지급 API를 Target Group에 연결하고 인증·HMAC·SSRF·Timeout·Retry·Circuit·Idempotency 정책을 검증한 뒤 승인·Canary·전체 게시하고 부분 적용을 LKG로 정상화한다.
+
+### 26.2 선택 기준
+
+여러 업무 API의 공통 Trust Boundary·Route·보안·Resilience·게시 통제가 필요할 때 사용한다. 단일 내부 서비스 직접 호출에는 불필요한 Gateway 경유를 추가하지 않는다.
+
+### 26.3 역할과 권한
+
+API 개발자, 보안 담당자, Gateway 운영자, 승인자, 플랫폼 운영자 Permission을 분리한다.
+
+### 26.4 시작 전에 결정할 값
+
+Route ID/Version, Host/Path/Method, Predicate, Rewrite, Target Group, Health, TLS, Auth/Audience, HMAC/Nonce, Body Limit, Timeout, Retry, Circuit, Rate/Bulkhead, Idempotency, Log/Masking, Canary, LKG를 정한다.
+
+### 26.5 결과물
+
+Route Pack, Target/Binding, Security Policy, Resilience Policy, Validation Report, Approval, Publish Operation, Instance ACK/NACK, Attempt Ledger, Runbook.
+
+### 26.6 단계별 절차
+
+1. Target Endpoint와 TLS·Health를 등록한다.
+2. Server Group과 Weight·Discovery 조건을 설정한다.
+3. Route Host/Path/Method와 Predicate·Rewrite를 초안으로 만든다.
+4. 인증 발급자·Audience·Permission·HMAC·Nonce·Body Hash를 설정한다.
+5. SSRF Allowlist와 DNS/IP 재검증을 적용한다.
+6. 연결·읽기·전체 Timeout과 Retry 금지 조건을 정한다.
+7. Circuit Breaker·Bulkhead·Rate Limit을 경로별로 설정한다.
+8. Route Pack Version·Checksum을 생성하고 정적·연결·보안·충돌 Test를 실행한다.
+9. 변경 Diff·영향·Canary·LKG로 승인을 받는다.
+10. Canary Instance/Traffic에 게시하고 오류·지연·업무 대사를 관찰한다.
+11. 전체 Instance에 게시하고 ACK/NACK·Version·Checksum을 대사한다.
+12. 일부 실패는 성공 Instance를 유지하고 실패·미확정만 재적용하거나 LKG로 복원한다.
+
+### 26.7 입력·기본값·허용 범위
+
+| 항목 | 예 | 규칙 |
+|---|---|---|
+| Route ID | `payment-v1` | 환경 내 고유·변경 추적 |
+| Path | `/payments/**` | 충돌·우선순위 검증 |
+| Method | GET/POST | Retry 정책과 연결 |
+| Target Group | `payment-blue` | Health·TLS·Weight |
+| Timeout | connect/read/total | 전체 예산 이하 |
+| Retry | GET 일시 오류 1회 | Command는 결과 조회 전 금지 |
+| Version/Checksum | Pack 값 | 승인·Instance 일치 |
+
+### 26.8 정상 결과와 완료 판정
+
+요청이 의도한 Target에 전달되고 Auth·Permission·HMAC·SSRF·Schema 오류가 대상 호출 전에 구분된다. 모든 활성 Instance가 승인 Version·Checksum을 사용하며 Canary/전체 업무 지표가 기준 안에 있다.
+
+### 26.9 오류·동시성·시간초과·응답 유실·부분 실패
+
+DNS/TLS/Health, 인증 실패, HMAC/Nonce, Target Timeout, 대상 처리 후 응답 유실, Circuit Open, Queue Full, 일부 Instance NACK, Config Drift를 구분한다.
+
+### 26.10 재시도·재처리·대사·보상·되돌리기
+
+Query는 정책 범위에서 Retry한다. Command는 Attempt Ledger와 후단 Idempotency 결과를 조회한다. 부분 적용은 실패 Instance만 재적용하고 위험 증가 시 승인된 LKG로 Rollback한다.
+
+### 26.11 로그·지표·추적·감사
+
+Route/Pack/Instance/Target/Attempt/Transaction/Trace, Auth 실패, Timeout 단계, Retry, Circuit/Bulkhead, Version/Checksum, Approval, Audit를 기록한다.
+
+### 26.12 교육 예제
+
+`EDU-GW-01~14` 중 Route·Security·Resilience·Publish·Unknown Result·Drift 시나리오를 순서대로 실행한다.
+
+### 26.13 조직 영역과 CPF 유지 영역
+
+업무 API와 후단 상태는 업무 Domain 영역이다. Gateway Route·Trust·Attempt·Publish·LKG 계약은 CPF가 유지한다.
+
+### 26.14 운영 인계
+
+Route Pack, Target, Security, Timeout/Retry, Idempotency, Publish/LKG, ADM 화면, Alert, 연락망을 인계한다.
+
+
+## 27. Target·Discovery·Load Balancing
+
+### 27.1 업무 결과
+
+정적/동적 Target을 Health·Weight·Zone·TLS 기준으로 선택한다.
+
+### 27.2 선택 기준
+
+Gateway가 해당 책임을 공통으로 제공해야 할 때 적용하고 업무 상태·내부 호출은 후단 Owner에 둔다.
+
+### 27.3 역할과 권한
+
+Gateway 개발자·운영자·보안·승인자 Permission을 분리한다.
+
+### 27.4 시작 전에 결정할 값
+
+Target ID, Endpoint, Discovery Metadata, Weight, Zone, Health, Drain을 정한다.
+
+### 27.5 결과물
+
+Target·Discovery·Load Balancing 설정·검증·Test·ADM 운영 절차.
+
+### 27.6 단계별 절차
+
+Target을 등록하고 Probe를 통과한 Instance만 Group에 포함한다. Weight 합과 Zone 정책을 검증하고 Drain 후 제거한다.
+
+### 27.7 입력·기본값·허용 범위
+
+실제 Route/Policy Schema의 Field·Type·Default·범위를 사용한다.
+
+### 27.8 정상 결과와 완료 판정
+
+비정상 Target이 선택되지 않고 요청 분포가 정책과 일치한다.
+
+### 27.9 오류·동시성·시간초과·응답 유실·부분 실패
+
+Validation·권한·Timeout·응답 유실·부분 적용·Drift를 독립 상태로 판정한다.
+
+### 27.10 재시도·재처리·대사·보상·되돌리기
+
+모든 Target 장애 시 명확한 오류를 반환하고 무한 Retry하지 않는다. 복귀는 안정화 시간 후 단계적으로 수행한다.
+
+### 27.11 로그·지표·추적·감사
+
+Route ID, Version/Checksum, Instance, Target, Attempt, Actor, Approval, Trace, Audit를 기록한다.
+
+### 27.12 교육 예제
+
+`EDU-GW-01·07`를 실행한다.
+
+### 27.13 조직 영역과 CPF 유지 영역
+
+후단 업무 계약은 업무 Domain, Gateway 정책과 시도 원장은 CPF가 유지한다.
+
+### 27.14 운영 인계
+
+설정·Test·Alert·대사·LKG·Rollback을 인계한다.
+
+
+## 28. Authentication·Authorization·HMAC
+
+### 28.1 업무 결과
+
+외부 주체·Service Identity·Audience·Permission·서명·Nonce·Body Hash를 검증한다.
+
+### 28.2 선택 기준
+
+Gateway가 해당 책임을 공통으로 제공해야 할 때 적용하고 업무 상태·내부 호출은 후단 Owner에 둔다.
+
+### 28.3 역할과 권한
+
+Gateway 개발자·운영자·보안·승인자 Permission을 분리한다.
+
+### 28.4 시작 전에 결정할 값
+
+Issuer, Audience, Credential, Permission, HMAC Algorithm, Clock Skew, Nonce TTL을 정한다.
+
+### 28.5 결과물
+
+Authentication·Authorization·HMAC 설정·검증·Test·ADM 운영 절차.
+
+### 28.6 단계별 절차
+
+TLS 후 Token/Certificate를 검증하고 Permission·Data Scope를 생성한다. HMAC Canonical String과 Body Hash·Timestamp·Nonce를 검증한다.
+
+### 28.7 입력·기본값·허용 범위
+
+실제 Route/Policy Schema의 Field·Type·Default·범위를 사용한다.
+
+### 28.8 정상 결과와 완료 판정
+
+변조·재전송·잘못된 Audience·권한 없는 요청이 Target 호출 전에 거부된다.
+
+### 28.9 오류·동시성·시간초과·응답 유실·부분 실패
+
+Validation·권한·Timeout·응답 유실·부분 적용·Drift를 독립 상태로 판정한다.
+
+### 28.10 재시도·재처리·대사·보상·되돌리기
+
+인증 실패는 Retry하지 않는다. Key Rotation은 이전/신규 공존 후 이전 Version을 폐기한다.
+
+### 28.11 로그·지표·추적·감사
+
+Route ID, Version/Checksum, Instance, Target, Attempt, Actor, Approval, Trace, Audit를 기록한다.
+
+### 28.12 교육 예제
+
+`EDU-GW-03`를 실행한다.
+
+### 28.13 조직 영역과 CPF 유지 영역
+
+후단 업무 계약은 업무 Domain, Gateway 정책과 시도 원장은 CPF가 유지한다.
+
+### 28.14 운영 인계
+
+설정·Test·Alert·대사·LKG·Rollback을 인계한다.
+
+
+## 29. SSRF·TLS·Header/Body Validation
+
+### 29.1 업무 결과
+
+Target 주소·DNS·IP·TLS와 요청 Header·Body Size·Content-Type·Schema를 Trust Boundary에서 검증한다.
+
+### 29.2 선택 기준
+
+Gateway가 해당 책임을 공통으로 제공해야 할 때 적용하고 업무 상태·내부 호출은 후단 Owner에 둔다.
+
+### 29.3 역할과 권한
+
+Gateway 개발자·운영자·보안·승인자 Permission을 분리한다.
+
+### 29.4 시작 전에 결정할 값
+
+Allowlist, 금지 IP, DNS 재검증, CA/mTLS, Header Policy, Body Limit, Schema를 정한다.
+
+### 29.5 결과물
+
+SSRF·TLS·Header/Body Validation 설정·검증·Test·ADM 운영 절차.
+
+### 29.6 단계별 절차
+
+URL Parse→Host Allowlist→DNS Resolve→IP 범위→연결 직전 재검증 순서로 SSRF를 차단한다. Header를 정리하고 Body를 제한·검증한다.
+
+### 29.7 입력·기본값·허용 범위
+
+실제 Route/Policy Schema의 Field·Type·Default·범위를 사용한다.
+
+### 29.8 정상 결과와 완료 판정
+
+내부/Metadata 주소와 변조된 Certificate·과대 Body·잘못된 Schema가 차단된다.
+
+### 29.9 오류·동시성·시간초과·응답 유실·부분 실패
+
+Validation·권한·Timeout·응답 유실·부분 적용·Drift를 독립 상태로 판정한다.
+
+### 29.10 재시도·재처리·대사·보상·되돌리기
+
+DNS Rebinding 의심은 Route 게시를 차단한다. Certificate 만료는 Rotation 후 연결 Test를 수행한다.
+
+### 29.11 로그·지표·추적·감사
+
+Route ID, Version/Checksum, Instance, Target, Attempt, Actor, Approval, Trace, Audit를 기록한다.
+
+### 29.12 교육 예제
+
+`EDU-GW-08·09·10`를 실행한다.
+
+### 29.13 조직 영역과 CPF 유지 영역
+
+후단 업무 계약은 업무 Domain, Gateway 정책과 시도 원장은 CPF가 유지한다.
+
+### 29.14 운영 인계
+
+설정·Test·Alert·대사·LKG·Rollback을 인계한다.
+
+
+## 30. Timeout·Retry·Circuit·Bulkhead
+
+### 30.1 업무 결과
+
+경로별 시간 예산과 장애 격리를 적용하되 비멱등 Command를 중복 전송하지 않는다.
+
+### 30.2 선택 기준
+
+Gateway가 해당 책임을 공통으로 제공해야 할 때 적용하고 업무 상태·내부 호출은 후단 Owner에 둔다.
+
+### 30.3 역할과 권한
+
+Gateway 개발자·운영자·보안·승인자 Permission을 분리한다.
+
+### 30.4 시작 전에 결정할 값
+
+Connect/Read/Total Timeout, Retryable Error, Attempts, Backoff, Circuit, Half-open, Bulkhead를 정한다.
+
+### 30.5 결과물
+
+Timeout·Retry·Circuit·Bulkhead 설정·검증·Test·ADM 운영 절차.
+
+### 30.6 단계별 절차
+
+전체 예산을 단계별로 배분하고 Query/Command를 구분한다. Fault Test로 Timeout·Circuit·Queue 포화를 확인한다.
+
+### 30.7 입력·기본값·허용 범위
+
+실제 Route/Policy Schema의 Field·Type·Default·범위를 사용한다.
+
+### 30.8 정상 결과와 완료 판정
+
+전체 예산 초과와 재시도 폭주가 없고 한 Target 장애가 다른 Route 자원을 고갈시키지 않는다.
+
+### 30.9 오류·동시성·시간초과·응답 유실·부분 실패
+
+Validation·권한·Timeout·응답 유실·부분 적용·Drift를 독립 상태로 판정한다.
+
+### 30.10 재시도·재처리·대사·보상·되돌리기
+
+대상 처리 가능성이 있는 Timeout은 UNKNOWN_RESULT로 전환한다. Circuit 복귀 전 Probe·안정화 시간을 확인한다.
+
+### 30.11 로그·지표·추적·감사
+
+Route ID, Version/Checksum, Instance, Target, Attempt, Actor, Approval, Trace, Audit를 기록한다.
+
+### 30.12 교육 예제
+
+`EDU-GW-04`를 실행한다.
+
+### 30.13 조직 영역과 CPF 유지 영역
+
+후단 업무 계약은 업무 Domain, Gateway 정책과 시도 원장은 CPF가 유지한다.
+
+### 30.14 운영 인계
+
+설정·Test·Alert·대사·LKG·Rollback을 인계한다.
+
+
+## 31. Idempotency·Attempt Ledger·UNKNOWN_RESULT
+
+### 31.1 업무 결과
+
+Gateway 시도와 후단 업무 결과를 연결해 응답 유실 후 실제 처리 여부를 판정한다.
+
+### 31.2 선택 기준
+
+Gateway가 해당 책임을 공통으로 제공해야 할 때 적용하고 업무 상태·내부 호출은 후단 Owner에 둔다.
+
+### 31.3 역할과 권한
+
+Gateway 개발자·운영자·보안·승인자 Permission을 분리한다.
+
+### 31.4 시작 전에 결정할 값
+
+Idempotency Header, Request Hash, Attempt 상태, 후단 결과 조회, Retention을 정한다.
+
+### 31.5 결과물
+
+Idempotency·Attempt Ledger·UNKNOWN_RESULT 설정·검증·Test·ADM 운영 절차.
+
+### 31.6 단계별 절차
+
+요청 전 Attempt를 만들고 전달 시각·Target·Hash를 기록한다. 응답/Timeout 후 후단 Operation과 대사한다.
+
+### 31.7 입력·기본값·허용 범위
+
+실제 Route/Policy Schema의 Field·Type·Default·범위를 사용한다.
+
+### 31.8 정상 결과와 완료 판정
+
+같은 의도의 재호출이 후단 부수 효과를 중복 생성하지 않고 Attempt와 업무 결과가 일치한다.
+
+### 31.9 오류·동시성·시간초과·응답 유실·부분 실패
+
+Validation·권한·Timeout·응답 유실·부분 적용·Drift를 독립 상태로 판정한다.
+
+### 31.10 재시도·재처리·대사·보상·되돌리기
+
+응답 유실은 임의 성공/실패로 확정하지 않는다. 후단 조회 불가 시 수동 Reconcile 대상으로 유지한다.
+
+### 31.11 로그·지표·추적·감사
+
+Route ID, Version/Checksum, Instance, Target, Attempt, Actor, Approval, Trace, Audit를 기록한다.
+
+### 31.12 교육 예제
+
+`EDU-GW-06·11`를 실행한다.
+
+### 31.13 조직 영역과 CPF 유지 영역
+
+후단 업무 계약은 업무 Domain, Gateway 정책과 시도 원장은 CPF가 유지한다.
+
+### 31.14 운영 인계
+
+설정·Test·Alert·대사·LKG·Rollback을 인계한다.
+
+
+## 32. Validation·Approval·Publish·LKG
+
+### 32.1 업무 결과
+
+Route Pack을 정적·연결·보안 검증하고 승인 후 Version·Checksum으로 게시·복원한다.
+
+### 32.2 선택 기준
+
+Gateway가 해당 책임을 공통으로 제공해야 할 때 적용하고 업무 상태·내부 호출은 후단 Owner에 둔다.
+
+### 32.3 역할과 권한
+
+Gateway 개발자·운영자·보안·승인자 Permission을 분리한다.
+
+### 32.4 시작 전에 결정할 값
+
+Validation Gate, Approval Policy, Target Instance, Canary, ACK/NACK, LKG 보존을 정한다.
+
+### 32.5 결과물
+
+Validation·Approval·Publish·LKG 설정·검증·Test·ADM 운영 절차.
+
+### 32.6 단계별 절차
+
+초안 Diff→Validation→Approval→Publish→ACK/NACK→Probe→업무 확인 순서로 수행한다.
+
+### 32.7 입력·기본값·허용 범위
+
+실제 Route/Policy Schema의 Field·Type·Default·범위를 사용한다.
+
+### 32.8 정상 결과와 완료 판정
+
+승인 Pack과 Instance 적용본이 일치하고 Drift가 0이다.
+
+### 32.9 오류·동시성·시간초과·응답 유실·부분 실패
+
+Validation·권한·Timeout·응답 유실·부분 적용·Drift를 독립 상태로 판정한다.
+
+### 32.10 재시도·재처리·대사·보상·되돌리기
+
+부분 적용은 성공 Instance를 반복하지 않는다. NACK/미확정만 재적용하거나 LKG로 복원한다.
+
+### 32.11 로그·지표·추적·감사
+
+Route ID, Version/Checksum, Instance, Target, Attempt, Actor, Approval, Trace, Audit를 기록한다.
+
+### 32.12 교육 예제
+
+`EDU-GW-05·12·13`를 실행한다.
+
+### 32.13 조직 영역과 CPF 유지 영역
+
+후단 업무 계약은 업무 Domain, Gateway 정책과 시도 원장은 CPF가 유지한다.
+
+### 32.14 운영 인계
+
+설정·Test·Alert·대사·LKG·Rollback을 인계한다.
+
+
+## 33. Route Pack 검수표
+
+| 영역 | 검수 내용 | 차단 조건 |
+|---|---|---|
+| Route | Host·Path·Method·Priority·충돌 | 중복·Shadow·순환 |
+| Target | Endpoint·TLS·Health·Weight | 전 Target 비정상 |
+| Security | Issuer·Audience·Permission·HMAC·Nonce | 검증 누락·Secret 노출 |
+| SSRF | Allowlist·DNS·IP·Redirect | 내부/Metadata 접근 가능 |
+| Validation | Header·Body·Schema·Size | 과대/잘못된 Payload 통과 |
+| Resilience | Timeout·Retry·Circuit·Bulkhead | 비멱등 자동 Retry |
+| Idempotency | Key·Hash·Attempt·후단 조회 | 결과 미확정 판정 불가 |
+| Observability | Log·Metric·Trace·Masking | PII/Token 원문 노출 |
+| Publish | Version·Checksum·Approval·LKG | 승인본 불일치 |
+
+## 34. 게시 상태와 행동
+
+| 상태 | 의미 | 허용 행동 |
+|---|---|---|
+| DRAFT | 편집 중 | 검증·폐기 |
+| VALIDATED | 모든 Gate 통과 | 승인 요청 |
+| APPROVED | 대상·Version 고정 | 유효시간 안에 게시 |
+| PUBLISHING | 적용 중 | 상태 조회·취소 가능 범위 확인 |
+| PARTIAL_APPLY | 일부 성공 | 실패/미확정 Reconcile·LKG |
+| APPLIED | 전 대상 일치 | 업무 관찰·LKG 지정 |
+| REJECTED/NACK | 검증/Instance 거부 | 원인 수정 후 새 Version |
+| ROLLED_BACK | LKG 복원 | Drift·업무 확인 |
+
+## 35. Gateway 운영 한 줄 확인
+
+```powershell
+$repo='C:\dev\projects\jck\202412_01_CPF'; & (Join-Path $repo 'gradlew.bat') :cpf-gateway:test; if($LASTEXITCODE -ne 0){throw 'Gateway Test 실패'}
+```

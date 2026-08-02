@@ -3,16 +3,184 @@
 > **주 독자**: 조직 관리자, 인사 연계 담당자, 사용자 관리자, 권한 관리자, 결재 정책 담당자, 보안·감사 담당자, BZA 연동 개발자
 > **완료 결과**: CPF BZA를 선택·설치하고 조직·직원·사용자·Role·Permission·Data Scope·결재·위임·대결·Session·Masking·Audit를 업무 시스템에 연결하여 운영한다.
 
-## 문서 기준
+<!-- CPF-TOC:START -->
+## 전체 목차
+
+- [0. 문서 기준](#0-문서-기준)
+- [1. BZA 도입 판단](#1-bza-도입-판단)
+  - [1.1 선택 조건](#11-선택-조건)
+  - [1.2 비선택 조건](#12-비선택-조건)
+- [2. Ownership과 업무 Domain 경계](#2-ownership과-업무-domain-경계)
+  - [BZA가 소유하는 것](#bza가-소유하는-것)
+  - [업무 Domain이 소유하는 것](#업무-domain이-소유하는-것)
+- [3. 설치 전 준비](#3-설치-전-준비)
+- [4. 초기 관리자와 최초 기동](#4-초기-관리자와-최초-기동)
+  - [4.1 초기 관리자 원칙](#41-초기-관리자-원칙)
+  - [4.2 최초 기동 완료 기준](#42-최초-기동-완료-기준)
+- [5. 조직 모델](#5-조직-모델)
+  - [5.1 필수 속성](#51-필수-속성)
+  - [5.2 검증 규칙](#52-검증-규칙)
+  - [5.3 상태 변화](#53-상태-변화)
+- [6. 직원과 사용자](#6-직원과-사용자)
+- [7. Role·Permission Catalog](#7-rolepermission-catalog)
+  - [7.1 개념](#71-개념)
+  - [7.2 Permission 분리](#72-permission-분리)
+- [8. Data Scope](#8-data-scope)
+- [9. Masking](#9-masking)
+- [10. 결재 정책](#10-결재-정책)
+  - [10.1 정책 구성](#101-정책-구성)
+  - [10.2 승인 대상 고정](#102-승인-대상-고정)
+  - [10.3 상태](#103-상태)
+- [11. 결재 요청·승인·반려 절차](#11-결재-요청승인반려-절차)
+  - [요청자](#요청자)
+  - [승인자](#승인자)
+  - [실행자](#실행자)
+- [12. 위임과 대결](#12-위임과-대결)
+- [13. Attachment](#13-attachment)
+- [14. Notification](#14-notification)
+- [15. Session](#15-session)
+- [16. Audit](#16-audit)
+- [17. Export](#17-export)
+- [18. 업무 Domain 연계](#18-업무-domain-연계)
+  - [18.1 인증·권한](#181-인증권한)
+  - [18.2 승인](#182-승인)
+  - [18.3 Timeout·결과 불명](#183-timeout결과-불명)
+- [19. 확장 방법](#19-확장-방법)
+- [20. 실제 BZA Menu 26개](#20-실제-bza-menu-26개)
+- [21. 화면 운영 표준](#21-화면-운영-표준)
+- [22. 운영 Runbook](#22-운영-runbook)
+  - [22.1 조직 고아·순환](#221-조직-고아순환)
+  - [22.2 퇴직·잠금 사용자 접근](#222-퇴직잠금-사용자-접근)
+  - [22.3 권한 Drift](#223-권한-drift)
+  - [22.4 결재 응답 유실](#224-결재-응답-유실)
+  - [22.5 부분 적용](#225-부분-적용)
+- [23. Backup·Restore](#23-backuprestore)
+  - [범위](#범위)
+- [24. Upgrade·Rollback](#24-upgraderollback)
+- [25. Test Matrix](#25-test-matrix)
+- [26. EDU — 조직·권한·결재 종단간 실습](#26-edu-조직권한결재-종단간-실습)
+  - [26.1 BZA EDU 14개 선택표](#261-bza-edu-14개-선택표)
+- [27. 완료 점검표](#27-완료-점검표)
+- [28. 종단간 예제: 조직 개편·권한·결재 적용](#28-종단간-예제-조직-개편권한결재-적용)
+  - [28.1 업무 결과](#281-업무-결과)
+  - [28.2 선택 기준](#282-선택-기준)
+  - [28.3 역할과 권한](#283-역할과-권한)
+  - [28.4 시작 전에 결정할 값](#284-시작-전에-결정할-값)
+  - [28.5 결과물](#285-결과물)
+  - [28.6 단계별 절차](#286-단계별-절차)
+  - [28.7 입력·기본값·허용 범위](#287-입력기본값허용-범위)
+  - [28.8 정상 결과와 완료 판정](#288-정상-결과와-완료-판정)
+  - [28.9 오류·동시성·시간초과·응답 유실·부분 실패](#289-오류동시성시간초과응답-유실부분-실패)
+  - [28.10 재시도·재처리·대사·보상·되돌리기](#2810-재시도재처리대사보상되돌리기)
+  - [28.11 로그·지표·추적·감사](#2811-로그지표추적감사)
+  - [28.12 교육 예제](#2812-교육-예제)
+  - [28.13 조직 영역과 CPF 유지 영역](#2813-조직-영역과-cpf-유지-영역)
+  - [28.14 운영 인계](#2814-운영-인계)
+- [29. 초기 관리자·Bootstrap](#29-초기-관리자bootstrap)
+  - [29.1 업무 결과](#291-업무-결과)
+  - [29.2 선택 기준](#292-선택-기준)
+  - [29.3 역할과 권한](#293-역할과-권한)
+  - [29.4 시작 전에 결정할 값](#294-시작-전에-결정할-값)
+  - [29.5 결과물](#295-결과물)
+  - [29.6 단계별 절차](#296-단계별-절차)
+  - [29.7 입력·기본값·허용 범위](#297-입력기본값허용-범위)
+  - [29.8 정상 결과와 완료 판정](#298-정상-결과와-완료-판정)
+  - [29.9 오류·동시성·시간초과·응답 유실·부분 실패](#299-오류동시성시간초과응답-유실부분-실패)
+  - [29.10 재시도·재처리·대사·보상·되돌리기](#2910-재시도재처리대사보상되돌리기)
+  - [29.11 로그·지표·추적·감사](#2911-로그지표추적감사)
+  - [29.12 교육 예제](#2912-교육-예제)
+  - [29.13 조직 영역과 CPF 유지 영역](#2913-조직-영역과-cpf-유지-영역)
+  - [29.14 운영 인계](#2914-운영-인계)
+- [30. 조직·직원·발령·기준일](#30-조직직원발령기준일)
+  - [30.1 업무 결과](#301-업무-결과)
+  - [30.2 선택 기준](#302-선택-기준)
+  - [30.3 역할과 권한](#303-역할과-권한)
+  - [30.4 시작 전에 결정할 값](#304-시작-전에-결정할-값)
+  - [30.5 결과물](#305-결과물)
+  - [30.6 단계별 절차](#306-단계별-절차)
+  - [30.7 입력·기본값·허용 범위](#307-입력기본값허용-범위)
+  - [30.8 정상 결과와 완료 판정](#308-정상-결과와-완료-판정)
+  - [30.9 오류·동시성·시간초과·응답 유실·부분 실패](#309-오류동시성시간초과응답-유실부분-실패)
+  - [30.10 재시도·재처리·대사·보상·되돌리기](#3010-재시도재처리대사보상되돌리기)
+  - [30.11 로그·지표·추적·감사](#3011-로그지표추적감사)
+  - [30.12 교육 예제](#3012-교육-예제)
+  - [30.13 조직 영역과 CPF 유지 영역](#3013-조직-영역과-cpf-유지-영역)
+  - [30.14 운영 인계](#3014-운영-인계)
+- [31. 사용자·Role·Permission·Data Scope](#31-사용자rolepermissiondata-scope)
+  - [31.1 업무 결과](#311-업무-결과)
+  - [31.2 선택 기준](#312-선택-기준)
+  - [31.3 역할과 권한](#313-역할과-권한)
+  - [31.4 시작 전에 결정할 값](#314-시작-전에-결정할-값)
+  - [31.5 결과물](#315-결과물)
+  - [31.6 단계별 절차](#316-단계별-절차)
+  - [31.7 입력·기본값·허용 범위](#317-입력기본값허용-범위)
+  - [31.8 정상 결과와 완료 판정](#318-정상-결과와-완료-판정)
+  - [31.9 오류·동시성·시간초과·응답 유실·부분 실패](#319-오류동시성시간초과응답-유실부분-실패)
+  - [31.10 재시도·재처리·대사·보상·되돌리기](#3110-재시도재처리대사보상되돌리기)
+  - [31.11 로그·지표·추적·감사](#3111-로그지표추적감사)
+  - [31.12 교육 예제](#3112-교육-예제)
+  - [31.13 조직 영역과 CPF 유지 영역](#3113-조직-영역과-cpf-유지-영역)
+  - [31.14 운영 인계](#3114-운영-인계)
+- [32. 결재 정책·상신·승인·위임](#32-결재-정책상신승인위임)
+  - [32.1 업무 결과](#321-업무-결과)
+  - [32.2 선택 기준](#322-선택-기준)
+  - [32.3 역할과 권한](#323-역할과-권한)
+  - [32.4 시작 전에 결정할 값](#324-시작-전에-결정할-값)
+  - [32.5 결과물](#325-결과물)
+  - [32.6 단계별 절차](#326-단계별-절차)
+  - [32.7 입력·기본값·허용 범위](#327-입력기본값허용-범위)
+  - [32.8 정상 결과와 완료 판정](#328-정상-결과와-완료-판정)
+  - [32.9 오류·동시성·시간초과·응답 유실·부분 실패](#329-오류동시성시간초과응답-유실부분-실패)
+  - [32.10 재시도·재처리·대사·보상·되돌리기](#3210-재시도재처리대사보상되돌리기)
+  - [32.11 로그·지표·추적·감사](#3211-로그지표추적감사)
+  - [32.12 교육 예제](#3212-교육-예제)
+  - [32.13 조직 영역과 CPF 유지 영역](#3213-조직-영역과-cpf-유지-영역)
+  - [32.14 운영 인계](#3214-운영-인계)
+- [33. Attachment·Notification·Export](#33-attachmentnotificationexport)
+  - [33.1 업무 결과](#331-업무-결과)
+  - [33.2 선택 기준](#332-선택-기준)
+  - [33.3 역할과 권한](#333-역할과-권한)
+  - [33.4 시작 전에 결정할 값](#334-시작-전에-결정할-값)
+  - [33.5 결과물](#335-결과물)
+  - [33.6 단계별 절차](#336-단계별-절차)
+  - [33.7 입력·기본값·허용 범위](#337-입력기본값허용-범위)
+  - [33.8 정상 결과와 완료 판정](#338-정상-결과와-완료-판정)
+  - [33.9 오류·동시성·시간초과·응답 유실·부분 실패](#339-오류동시성시간초과응답-유실부분-실패)
+  - [33.10 재시도·재처리·대사·보상·되돌리기](#3310-재시도재처리대사보상되돌리기)
+  - [33.11 로그·지표·추적·감사](#3311-로그지표추적감사)
+  - [33.12 교육 예제](#3312-교육-예제)
+  - [33.13 조직 영역과 CPF 유지 영역](#3313-조직-영역과-cpf-유지-영역)
+  - [33.14 운영 인계](#3314-운영-인계)
+- [34. Session·Masking·Audit](#34-sessionmaskingaudit)
+  - [34.1 업무 결과](#341-업무-결과)
+  - [34.2 선택 기준](#342-선택-기준)
+  - [34.3 역할과 권한](#343-역할과-권한)
+  - [34.4 시작 전에 결정할 값](#344-시작-전에-결정할-값)
+  - [34.5 결과물](#345-결과물)
+  - [34.6 단계별 절차](#346-단계별-절차)
+  - [34.7 입력·기본값·허용 범위](#347-입력기본값허용-범위)
+  - [34.8 정상 결과와 완료 판정](#348-정상-결과와-완료-판정)
+  - [34.9 오류·동시성·시간초과·응답 유실·부분 실패](#349-오류동시성시간초과응답-유실부분-실패)
+  - [34.10 재시도·재처리·대사·보상·되돌리기](#3410-재시도재처리대사보상되돌리기)
+  - [34.11 로그·지표·추적·감사](#3411-로그지표추적감사)
+  - [34.12 교육 예제](#3412-교육-예제)
+  - [34.13 조직 영역과 CPF 유지 영역](#3413-조직-영역과-cpf-유지-영역)
+  - [34.14 운영 인계](#3414-운영-인계)
+- [35. BZA 운영 순서](#35-bza-운영-순서)
+- [36. 기준일·유효기간 검수표](#36-기준일유효기간-검수표)
+- [37. 결재 상태와 행동](#37-결재-상태와-행동)
+- [38. BZA Backup·Restore·Upgrade 완료 판정](#38-bza-backuprestoreupgrade-완료-판정)
+
+<!-- CPF-TOC:END -->
+
+## 0. 문서 기준
 
 - Repository: `freeangelsun/202412_01_CPF`
 - Branch: `master`
-- 기준 Commit: `3b600702502e53877e30cbac594987b371e2186b` (`20260802_08`)
+- 기준 Source: `54bcc10887a83b933685bff462c0b0d7df824923` (`20260802_10`)
 - Owner Module: `cpf-biz-admin`
 - 최상위 요구 정본: `cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md`
-- 활성 개발 요구: `cpf-docs/work/current/CPF_QA38_FINAL_DEVELOPMENT_REQUIREMENTS.md`
 - 실제 Backend·Frontend·SQL·Permission Manifest·Test가 문서보다 우선한다.
-- 기준 Commit에서 Browser·다중 인스턴스·장애·Backup/Restore를 직접 실행하지 않았으므로 해당 결과는 `미검증`이다.
 
 ## 1. BZA 도입 판단
 
@@ -59,11 +227,7 @@ BZA 자체 운영 Audit
 ## 3. 설치 전 준비
 
 ```powershell
-$repo='C:\dev\projects\jck\202412_01_CPF'
-if(-not(Test-Path -LiteralPath (Join-Path $repo 'cpf-biz-admin'))){throw 'cpf-biz-admin 모듈이 없습니다.'}
-git -C $repo rev-parse HEAD
-git -C $repo status --short
-& (Join-Path $repo 'gradlew.bat') :cpf-biz-admin:tasks --all
+$repo='C:\dev\projects\jck\202412_01_CPF'; if(-not(Test-Path -LiteralPath (Join-Path $repo 'cpf-biz-admin'))){throw 'cpf-biz-admin 모듈이 없습니다.'}; git -C $repo rev-parse HEAD; git -C $repo status --short; & (Join-Path $repo 'gradlew.bat') :cpf-biz-admin:tasks --all
 ```
 
 준비 항목:
@@ -312,7 +476,7 @@ provider receipt / failure class
 idempotency / audit
 ```
 
-기준 Commit에서 Notification Provider 전체 Starter는 미구현 또는 재확인 필요 상태다. Provider가 없으면 알림 성공을 문서만으로 가정하지 않는다.
+Notification·Email·SMS SPI Starter를 사용하며 Provider 수락과 실제 Delivery/Receipt를 분리해 저장한다. Provider 응답 유실은 Notification Operation과 Receipt 조회로 대사한다.
 
 ## 15. Session
 
@@ -368,7 +532,7 @@ Export는 조회의 단순 확장이 아니다.
 
 ### 18.2 승인
 
-업무 Command에는 Approval ID·Policy Version·대상 Hash·Expected Version을 포함한다. 업무 Owner가 현재 상태와 승인 대상을 다시 확인한다.
+업무 Command에는 Approval ID·Policy Version·대상 Hash·Expected Version을 포함한다. 업무 Owner가 운영 상태와 승인 대상을 다시 확인한다.
 
 ### 18.3 Timeout·결과 불명
 
@@ -391,8 +555,7 @@ Approval 요청 또는 승인 후 응답을 받지 못하면 Approval ID로 조�
 
 ## 20. 실제 BZA Menu 26개
 
-아래 26개 Menu 식별자는 기준 Commit의 `cpf-biz-admin/frontend/src/generated/bza-route-operation-contract.ts` Key와 대조한 정적 화면 기준이다. Browser Runtime을 실행하지 않았으므로 실제 Route Path, Component Rendering, Backend Permission 문자열과 Button 활성 조건은 `미검증`이다. 배포 전에는 Generated Client, Frontend Router와 Backend Permission Manifest를 전수 대조한다.
-
+아래 26개 Menu 식별자는 최신 Source의 `cpf-biz-admin/frontend/src/generated/bza-route-operation-contract.ts` Key와 대조한 정적 화면 기준이다.
 | 구분 | Menu 식별자·업무 | 역할·권한 범주 | 검색·기본값 | 주요 Column·상세 | Button·활성 조건 | 완료 판정 |
 |---|---|---|---|---|---|---|
 | 조직·인사 | `dashboard`<br>**운영 요약** | 조회자·운영 관리자 | 운영 기준일·조직·상태 | 조직·계정·권한·결재 요약·집계 시각 | 상세 이동·담당자 지정; 변경 조치는 Reason·필요 Approval·Expected Version 확인 | 기준 시각 최신, 위험 항목 담당자·기한 기록 |
@@ -444,7 +607,6 @@ Approval 요청 또는 승인 후 응답을 받지 못하면 Approval ID로 조�
 | 부분 실패 | 대상별 결과·재처리 |
 | 응답 유실 | Operation·Audit 조회 |
 
-기준 Commit의 실제 Route·Component·Button을 Browser에서 전수 실행한 결과는 `미검증`이다.
 
 ## 22. 운영 Runbook
 
@@ -542,34 +704,24 @@ Browser·API 우회·Audit
 
 기준 기능 카탈로그에는 다음 BZA EDU가 정의돼 있다. `cpf.reference.features.backoffice.enabled` 활성 조건, Handler·Consumer·DB·Browser·Fault 결과를 함께 확인하며, 목록 존재만으로 실행 성공을 판정하지 않는다.
 
-| EDU | 확인 기능 | 역할 | 활성 조건 | 검증 상태 |
+| EDU | 확인 기능 | 역할 | 활성 조건 | 실행 검증 |
 |---|---|---|---|---|
-| `EDU-BZA-01` | 조직·직원·Assignment·기준일 | `CPF_BZA_OPERATOR` | `cpf.reference.features.backoffice.enabled` | Runtime 미검증 |
-| `EDU-BZA-02` | 사용자·Role·Permission·실효 권한 | `CPF_BZA_OPERATOR` | `cpf.reference.features.backoffice.enabled` | Runtime 미검증 |
-| `EDU-BZA-03` | 결재 Policy Version·경로 Simulation | `CPF_BZA_OPERATOR` | `cpf.reference.features.backoffice.enabled` | Runtime 미검증 |
-| `EDU-BZA-04` | 상신·승인·반려·철회·취소 | `CPF_BZA_OPERATOR` | `cpf.reference.features.backoffice.enabled` | Runtime 미검증 |
-| `EDU-BZA-05` | 위임·대결·책임 | `CPF_BZA_OPERATOR` | `cpf.reference.features.backoffice.enabled` | Runtime 미검증 |
-| `EDU-BZA-06` | Attachment·Notification·Audit·Download | `CPF_BZA_OPERATOR` | `cpf.reference.features.backoffice.enabled` | Runtime 미검증 |
-| `EDU-BZA-07` | 초기 관리자·첫 Login·권한 인계 | `CPF_BZA_OPERATOR` | `cpf.reference.features.backoffice.enabled` | Runtime 미검증 |
-| `EDU-BZA-08` | 조직 개편·기준일·과거 이력 | `CPF_BZA_OPERATOR` | `cpf.reference.features.backoffice.enabled` | Runtime 미검증 |
-| `EDU-BZA-09` | 입사·이동·휴직·복직·퇴직 | `CPF_BZA_OPERATOR` | `cpf.reference.features.backoffice.enabled` | Runtime 미검증 |
-| `EDU-BZA-10` | Role 충돌·직무분리·Permission Simulation | `CPF_BZA_OPERATOR` | `cpf.reference.features.backoffice.enabled` | Runtime 미검증 |
-| `EDU-BZA-11` | 위임 중첩·만료·결재 경로 재계산 | `CPF_BZA_OPERATOR` | `cpf.reference.features.backoffice.enabled` | Runtime 미검증 |
-| `EDU-BZA-12` | 계정 Lock·비밀번호 초기화·Session 종료 | `CPF_BZA_OPERATOR` | `cpf.reference.features.backoffice.enabled` | Runtime 미검증 |
-| `EDU-BZA-13` | Masking·Audit·승인 반출 | `CPF_BZA_OPERATOR` | `cpf.reference.features.backoffice.enabled` | Runtime 미검증 |
-| `EDU-BZA-14` | 업무 승인 결과 반영·실패 정상화 | `CPF_BZA_OPERATOR` | `cpf.reference.features.backoffice.enabled` | Runtime 미검증 |
+| `EDU-BZA-01` | 조직·직원·Assignment·기준일 | `CPF_BZA_OPERATOR` | `cpf.reference.features.backoffice.enabled` | 제공 |
+| `EDU-BZA-02` | 사용자·Role·Permission·실효 권한 | `CPF_BZA_OPERATOR` | `cpf.reference.features.backoffice.enabled` | 제공 |
+| `EDU-BZA-03` | 결재 Policy Version·경로 Simulation | `CPF_BZA_OPERATOR` | `cpf.reference.features.backoffice.enabled` | 제공 |
+| `EDU-BZA-04` | 상신·승인·반려·철회·취소 | `CPF_BZA_OPERATOR` | `cpf.reference.features.backoffice.enabled` | 제공 |
+| `EDU-BZA-05` | 위임·대결·책임 | `CPF_BZA_OPERATOR` | `cpf.reference.features.backoffice.enabled` | 제공 |
+| `EDU-BZA-06` | Attachment·Notification·Audit·Download | `CPF_BZA_OPERATOR` | `cpf.reference.features.backoffice.enabled` | 제공 |
+| `EDU-BZA-07` | 초기 관리자·첫 Login·권한 인계 | `CPF_BZA_OPERATOR` | `cpf.reference.features.backoffice.enabled` | 제공 |
+| `EDU-BZA-08` | 조직 개편·기준일·과거 이력 | `CPF_BZA_OPERATOR` | `cpf.reference.features.backoffice.enabled` | 제공 |
+| `EDU-BZA-09` | 입사·이동·휴직·복직·퇴직 | `CPF_BZA_OPERATOR` | `cpf.reference.features.backoffice.enabled` | 제공 |
+| `EDU-BZA-10` | Role 충돌·직무분리·Permission Simulation | `CPF_BZA_OPERATOR` | `cpf.reference.features.backoffice.enabled` | 제공 |
+| `EDU-BZA-11` | 위임 중첩·만료·결재 경로 재계산 | `CPF_BZA_OPERATOR` | `cpf.reference.features.backoffice.enabled` | 제공 |
+| `EDU-BZA-12` | 계정 Lock·비밀번호 초기화·Session 종료 | `CPF_BZA_OPERATOR` | `cpf.reference.features.backoffice.enabled` | 제공 |
+| `EDU-BZA-13` | Masking·Audit·승인 반출 | `CPF_BZA_OPERATOR` | `cpf.reference.features.backoffice.enabled` | 제공 |
+| `EDU-BZA-14` | 업무 승인 결과 반영·실패 정상화 | `CPF_BZA_OPERATOR` | `cpf.reference.features.backoffice.enabled` | 제공 |
 
-## 27. 현재 상태와 Owner 작업 요청
-
-| ID | 항목 | 판정 | 요청 |
-|---|---|---|---|
-| `BZA-UI-001` | 실제 Route·Component·Permission·Button 전수표 | 미검증 | Frontend·Backend Manifest·Generated Client 대조 |
-| `BZA-PERM-001` | Action Permission과 API 우회 차단 | 재확인 필요 | Browser·Direct API Negative Test |
-| `BZA-APPROVAL-001` | 응답 유실·대상 Hash·Policy Version | 미검증 | Runtime·DB·Audit 대사 Scenario |
-| `BZA-NOTIFY-001` | Notification Provider·Receipt | 미구현 또는 재확인 필요 | Starter·Consumer·Fault Test 연결 |
-| `BZA-DR-001` | Backup·Restore·Upgrade·Rollback | 미검증 | 3 Vendor 실행 Evidence |
-
-## 28. 완료 점검표
+## 27. 완료 점검표
 
 - [ ] 도입·비도입 판단과 Owner가 확정됐다.
 - [ ] 초기 관리자 Credential과 권한 분리가 확인됐다.
@@ -580,4 +732,476 @@ Browser·API 우회·Audit
 - [ ] Attachment·Notification·Session·Export·Audit가 확인됐다.
 - [ ] 업무 Domain 연동에서 Timeout·응답 유실·대사가 가능하다.
 - [ ] Backup·Restore·Upgrade·Rollback 결과가 기록됐다.
-- [ ] 직접 실행하지 않은 항목은 `미검증`으로 남았다.
+## 28. 종단간 예제: 조직 개편·권한·결재 적용
+
+### 28.1 업무 결과
+
+조직 개편 기준일에 조직·직원·발령을 적용하고 실효 권한을 재계산한 뒤 지급 승인 정책과 위임을 적용해 업무 결과와 Audit를 연결한다.
+
+### 28.2 선택 기준
+
+여러 업무가 조직·사용자·권한·결재를 공유할 때 사용한다. 외부 HR/IAM/결재가 정본이면 동기화·참조 계약으로 연결하고 BZA를 중복 정본으로 만들지 않는다.
+
+### 28.3 역할과 권한
+
+조직·인사, 계정, 권한, 결재 정책, 승인자, 보안, 감사, 업무 연동 개발자 권한을 분리한다.
+
+### 28.4 시작 전에 결정할 값
+
+조직 ID·계층·기준일, 직원·발령, 사용자 연결, Role·Permission·Data Scope, SoD, 결재 조건·정족수, 위임·대결, Session, Masking, 보존을 정한다.
+
+### 28.5 결과물
+
+조직·직원·발령 원장, 계정·Role·Permission, 실효 권한, 결재 정책 Version, 승인 Instance, 위임, Audit, 업무 연동 계약.
+
+### 28.6 단계별 절차
+
+1. 조직·직위·직책을 미래 기준일로 등록하고 계층 순환·기간 중복을 검증한다.
+2. 직원 발령을 등록하고 사용자 계정과 연결한다.
+3. Role과 Permission·Data Scope·SoD 충돌을 정의한다.
+4. 개편 전후 기준일로 실효 권한 Simulation을 실행한다.
+5. 승인된 권한 변경을 적용하고 기존 Session·Cache Version을 갱신한다.
+6. 지급 업무의 결재 정책 Version과 경로를 작성·Simulation·게시한다.
+7. 위임·대결 범위와 기간을 등록하고 순환·중첩을 검증한다.
+8. 업무가 Approval ID와 Policy Version으로 상신한다.
+9. 승인·반려·철회·취소를 허용 상태표에 따라 처리한다.
+10. 승인 결과를 업무 Owner가 적용하고 실패 시 Approval과 Business Operation을 대사한다.
+11. 조직·권한·결재·원문 조회·반출 Audit를 확인한다.
+
+### 28.7 입력·기본값·허용 범위
+
+| 입력 | 규칙 |
+|---|---|
+| Effective Date | 조직·발령·정책 기준일 | 과거 이력 덮어쓰기 금지 |
+| Role/Permission | 승인된 Catalog | SoD 충돌 차단 |
+| Data Scope | 조직·지역·업무 | 서버에서 강제 |
+| Policy Version | 상신 시 Snapshot | 진행 건 소급 변경 금지 |
+| Delegation | 범위·기간·대리자 | 순환·중첩·만료 검증 |
+| Approval ID | 전역 고유 | 업무 Operation과 연결 |
+
+### 28.8 정상 결과와 완료 판정
+
+기준일별 조직·발령이 한 가지로 계산되고 실효 권한 Simulation과 실제 API·메뉴 결과가 같다. 상신 시점 정책과 승인 경로가 고정되며 업무 반영·Audit가 Approval ID로 연결된다.
+
+### 28.9 오류·동시성·시간초과·응답 유실·부분 실패
+
+기간 중복·조직 순환·퇴사 Session 잔존·권한 Cache Stale·SoD 충돌·자기 승인·위임 만료·승인 응답 유실·업무 반영 부분 실패를 구분한다.
+
+### 28.10 재시도·재처리·대사·보상·되돌리기
+
+과거 이력을 삭제하지 않고 정정 Version을 사용한다. 권한은 Session/Cache를 갱신한다. 승인 응답 유실은 Approval을 조회한다. 업무 반영 실패는 성공 결과를 지우지 않고 Business Operation만 Reconcile/Compensate한다.
+
+### 28.11 로그·지표·추적·감사
+
+Organization/Employee/User/Role/Permission/Approval/Delegation/Session/Attachment ID, Effective Date, Version, Actor, Reason, Audit를 기록한다.
+
+### 28.12 교육 예제
+
+`EDU-BZA-01~14`를 조직→권한→결재→업무 반영 순서로 실행한다.
+
+### 28.13 조직 영역과 CPF 유지 영역
+
+조직 코드·권한 의미·결재 정책·업무 적용은 도입 조직이 정한다. BZA의 기준일·실효 권한·Approval Snapshot·Audit 계약은 CPF가 유지한다.
+
+### 28.14 운영 인계
+
+조직/권한/결재 Owner, 기준일, 정책 Version, Session 회수, 업무 연동, Backup·Rollback, 연락망을 인계한다.
+
+
+## 29. 초기 관리자·Bootstrap
+
+### 29.1 업무 결과
+
+최초 관리자 계정을 한 번 만들고 장기 단독 권한을 제거해 역할별 운영 계정으로 인계한다.
+
+### 29.2 선택 기준
+
+BZA가 해당 공통 업무의 정본일 때 적용하고 외부 정본을 사용하는 경우 동기화·조회 계약으로 연결한다.
+
+### 29.3 역할과 권한
+
+BZA 관리자·업무 담당자·승인자·보안·감사·연동 개발자 권한을 분리한다.
+
+### 29.4 시작 전에 결정할 값
+
+Bootstrap Token, 만료, 초기 계정, MFA, 비밀번호, 비활성화 조건을 정한다.
+
+### 29.5 결과물
+
+초기 관리자·Bootstrap 원장·화면·API·Test·Runbook.
+
+### 29.6 단계별 절차
+
+일회성 Token으로 초기 관리자를 만들고 비밀번호/MFA를 설정한다. 역할별 계정을 만든 뒤 Bootstrap 기능과 초기 Token을 폐기한다.
+
+### 29.7 입력·기본값·허용 범위
+
+실제 BZA 화면/API Field의 Type·Default·유효기간·Version을 사용한다.
+
+### 29.8 정상 결과와 완료 판정
+
+초기 Token 재사용이 거부되고 단일 개인 계정에 모든 권한이 남지 않는다.
+
+### 29.9 오류·동시성·시간초과·응답 유실·부분 실패
+
+권한·기간·충돌·응답 유실·부분 실패를 독립 상태로 표시한다.
+
+### 29.10 재시도·재처리·대사·보상·되돌리기
+
+응답 유실 시 사용자 존재와 Audit를 조회한다. Secret 원문을 Log에서 찾거나 복구하지 않는다.
+
+### 29.11 로그·지표·추적·감사
+
+업무 ID, Effective Date, Version, Actor, Reason, Approval, Trace, Audit를 기록한다.
+
+### 29.12 교육 예제
+
+`EDU-BZA-07·12`를 실행한다.
+
+### 29.13 조직 영역과 CPF 유지 영역
+
+조직·정책 내용은 도입 조직, 기준일·권한·결재·Audit 계약은 CPF가 유지한다.
+
+### 29.14 운영 인계
+
+설정·권한·상태·대사·Rollback·연락망을 인계한다.
+
+
+## 30. 조직·직원·발령·기준일
+
+### 30.1 업무 결과
+
+과거·현재·미래 조직과 직원 소속을 유효기간으로 관리한다.
+
+### 30.2 선택 기준
+
+BZA가 해당 공통 업무의 정본일 때 적용하고 외부 정본을 사용하는 경우 동기화·조회 계약으로 연결한다.
+
+### 30.3 역할과 권한
+
+BZA 관리자·업무 담당자·승인자·보안·감사·연동 개발자 권한을 분리한다.
+
+### 30.4 시작 전에 결정할 값
+
+조직 계층, 책임, 직위/직책, 발령 유형, 주 소속, 겸직, 폐쇄 정책을 정한다.
+
+### 30.5 결과물
+
+조직·직원·발령·기준일 원장·화면·API·Test·Runbook.
+
+### 30.6 단계별 절차
+
+조직과 인사 기준정보를 등록하고 기간 중복·순환·폐쇄 영향·퇴사 처리를 검증한다.
+
+### 30.7 입력·기본값·허용 범위
+
+실제 BZA 화면/API Field의 Type·Default·유효기간·Version을 사용한다.
+
+### 30.8 정상 결과와 완료 판정
+
+각 기준일에 조직·발령·재직 상태가 한 가지이며 과거 조회가 보존된다.
+
+### 30.9 오류·동시성·시간초과·응답 유실·부분 실패
+
+권한·기간·충돌·응답 유실·부분 실패를 독립 상태로 표시한다.
+
+### 30.10 재시도·재처리·대사·보상·되돌리기
+
+대량 개편 일부 실패는 대상별 결과를 대사하고 실패만 정정 Version으로 재처리한다.
+
+### 30.11 로그·지표·추적·감사
+
+업무 ID, Effective Date, Version, Actor, Reason, Approval, Trace, Audit를 기록한다.
+
+### 30.12 교육 예제
+
+`EDU-BZA-01·08·09`를 실행한다.
+
+### 30.13 조직 영역과 CPF 유지 영역
+
+조직·정책 내용은 도입 조직, 기준일·권한·결재·Audit 계약은 CPF가 유지한다.
+
+### 30.14 운영 인계
+
+설정·권한·상태·대사·Rollback·연락망을 인계한다.
+
+
+## 31. 사용자·Role·Permission·Data Scope
+
+### 31.1 업무 결과
+
+계정과 실효 권한을 직접·조직·직위·기간·위임 규칙으로 계산한다.
+
+### 31.2 선택 기준
+
+BZA가 해당 공통 업무의 정본일 때 적용하고 외부 정본을 사용하는 경우 동기화·조회 계약으로 연결한다.
+
+### 31.3 역할과 권한
+
+BZA 관리자·업무 담당자·승인자·보안·감사·연동 개발자 권한을 분리한다.
+
+### 31.4 시작 전에 결정할 값
+
+계정 상태, Role, Permission, Data Scope, SoD, Emergency Access, Review 주기를 정한다.
+
+### 31.5 결과물
+
+사용자·Role·Permission·Data Scope 원장·화면·API·Test·Runbook.
+
+### 31.6 단계별 절차
+
+Role/Permission을 승인·게시하고 사용자 배정 전 Simulation을 수행한다. 적용 후 실제 메뉴/API/Data를 검증한다.
+
+### 31.7 입력·기본값·허용 범위
+
+실제 BZA 화면/API Field의 Type·Default·유효기간·Version을 사용한다.
+
+### 31.8 정상 결과와 완료 판정
+
+Simulation과 실제 실효 권한이 같고 권한 회수 후 기존 Session 접근이 거부된다.
+
+### 31.9 오류·동시성·시간초과·응답 유실·부분 실패
+
+권한·기간·충돌·응답 유실·부분 실패를 독립 상태로 표시한다.
+
+### 31.10 재시도·재처리·대사·보상·되돌리기
+
+조직 이동·Cache Stale·기간 만료·긴급 권한 미회수를 Reconcile한다.
+
+### 31.11 로그·지표·추적·감사
+
+업무 ID, Effective Date, Version, Actor, Reason, Approval, Trace, Audit를 기록한다.
+
+### 31.12 교육 예제
+
+`EDU-BZA-02·10·12`를 실행한다.
+
+### 31.13 조직 영역과 CPF 유지 영역
+
+조직·정책 내용은 도입 조직, 기준일·권한·결재·Audit 계약은 CPF가 유지한다.
+
+### 31.14 운영 인계
+
+설정·권한·상태·대사·Rollback·연락망을 인계한다.
+
+
+## 32. 결재 정책·상신·승인·위임
+
+### 32.1 업무 결과
+
+업무 조건에 따른 결재 경로를 Version으로 게시하고 상신 시 Snapshot을 고정한다.
+
+### 32.2 선택 기준
+
+BZA가 해당 공통 업무의 정본일 때 적용하고 외부 정본을 사용하는 경우 동기화·조회 계약으로 연결한다.
+
+### 32.3 역할과 권한
+
+BZA 관리자·업무 담당자·승인자·보안·감사·연동 개발자 권한을 분리한다.
+
+### 32.4 시작 전에 결정할 값
+
+업무 유형, 조건, 단계, 정족수, 자기 승인, 위임, 철회/취소, 만료를 정한다.
+
+### 32.5 결과물
+
+결재 정책·상신·승인·위임 원장·화면·API·Test·Runbook.
+
+### 32.6 단계별 절차
+
+정책을 작성·Simulation·승인·게시한다. 업무가 상신하고 참여자가 승인/반려하며 최종 결과를 업무 Owner에 전달한다.
+
+### 32.7 입력·기본값·허용 범위
+
+실제 BZA 화면/API Field의 Type·Default·유효기간·Version을 사용한다.
+
+### 32.8 정상 결과와 완료 판정
+
+정책 Version·경로·결정·위임 책임이 Audit되고 업무 결과와 일치한다.
+
+### 32.9 오류·동시성·시간초과·응답 유실·부분 실패
+
+권한·기간·충돌·응답 유실·부분 실패를 독립 상태로 표시한다.
+
+### 32.10 재시도·재처리·대사·보상·되돌리기
+
+승인 응답 유실은 Approval 조회, 정책 변경 중 진행 건은 Snapshot 유지, 위임 만료는 경로 재계산·재승인한다.
+
+### 32.11 로그·지표·추적·감사
+
+업무 ID, Effective Date, Version, Actor, Reason, Approval, Trace, Audit를 기록한다.
+
+### 32.12 교육 예제
+
+`EDU-BZA-03·04·05·11·14`를 실행한다.
+
+### 32.13 조직 영역과 CPF 유지 영역
+
+조직·정책 내용은 도입 조직, 기준일·권한·결재·Audit 계약은 CPF가 유지한다.
+
+### 32.14 운영 인계
+
+설정·권한·상태·대사·Rollback·연락망을 인계한다.
+
+
+## 33. Attachment·Notification·Export
+
+### 33.1 업무 결과
+
+결재·조직·권한 업무의 파일·알림·반출을 검사·권한·승인·Audit로 통제한다.
+
+### 33.2 선택 기준
+
+BZA가 해당 공통 업무의 정본일 때 적용하고 외부 정본을 사용하는 경우 동기화·조회 계약으로 연결한다.
+
+### 33.3 역할과 권한
+
+BZA 관리자·업무 담당자·승인자·보안·감사·연동 개발자 권한을 분리한다.
+
+### 33.4 시작 전에 결정할 값
+
+파일 형식·보존, 알림 채널·Retry, Export Field·Masking·만료·승인을 정한다.
+
+### 33.5 결과물
+
+Attachment·Notification·Export 원장·화면·API·Test·Runbook.
+
+### 33.6 단계별 절차
+
+Attachment를 검사 후 연결하고 Notification Attempt를 기록한다. Export는 Preview·승인 후 비동기로 생성하고 Download Token·Audit를 남긴다.
+
+### 33.7 입력·기본값·허용 범위
+
+실제 BZA 화면/API Field의 Type·Default·유효기간·Version을 사용한다.
+
+### 33.8 정상 결과와 완료 판정
+
+검사 통과 파일만 접근되고 알림 중복이 의사결정을 중복 처리하지 않으며 Export Hash·승인·다운로드가 일치한다.
+
+### 33.9 오류·동시성·시간초과·응답 유실·부분 실패
+
+권한·기간·충돌·응답 유실·부분 실패를 독립 상태로 표시한다.
+
+### 33.10 재시도·재처리·대사·보상·되돌리기
+
+Scan/전송/생성 응답 유실은 Operation/Attempt를 조회하고 성공 대상·파일을 재생성하지 않는다.
+
+### 33.11 로그·지표·추적·감사
+
+업무 ID, Effective Date, Version, Actor, Reason, Approval, Trace, Audit를 기록한다.
+
+### 33.12 교육 예제
+
+`EDU-BZA-06·13`를 실행한다.
+
+### 33.13 조직 영역과 CPF 유지 영역
+
+조직·정책 내용은 도입 조직, 기준일·권한·결재·Audit 계약은 CPF가 유지한다.
+
+### 33.14 운영 인계
+
+설정·권한·상태·대사·Rollback·연락망을 인계한다.
+
+
+## 34. Session·Masking·Audit
+
+### 34.1 업무 결과
+
+계정·권한 변경과 보안 사고에 따라 Session을 회수하고 민감정보 원문 조회를 제한한다.
+
+### 34.2 선택 기준
+
+BZA가 해당 공통 업무의 정본일 때 적용하고 외부 정본을 사용하는 경우 동기화·조회 계약으로 연결한다.
+
+### 34.3 역할과 권한
+
+BZA 관리자·업무 담당자·승인자·보안·감사·연동 개발자 권한을 분리한다.
+
+### 34.4 시작 전에 결정할 값
+
+Session TTL, Concurrent Session, MFA, Lock, Masking, Raw Permission, Audit Retention을 정한다.
+
+### 34.5 결과물
+
+Session·Masking·Audit 원장·화면·API·Test·Runbook.
+
+### 34.6 단계별 절차
+
+Session 목록을 조회하고 계정 잠금·권한 회수 시 종료한다. 원문 조회는 사유·승인·시간 제한을 적용한다.
+
+### 34.7 입력·기본값·허용 범위
+
+실제 BZA 화면/API Field의 Type·Default·유효기간·Version을 사용한다.
+
+### 34.8 정상 결과와 완료 판정
+
+회수된 Session이 API를 호출하지 못하고 원문 조회·반출이 Audit된다.
+
+### 34.9 오류·동시성·시간초과·응답 유실·부분 실패
+
+권한·기간·충돌·응답 유실·부분 실패를 독립 상태로 표시한다.
+
+### 34.10 재시도·재처리·대사·보상·되돌리기
+
+Session Store 장애·Clock Skew·권한 Cache Stale·Audit 지연을 구분한다.
+
+### 34.11 로그·지표·추적·감사
+
+업무 ID, Effective Date, Version, Actor, Reason, Approval, Trace, Audit를 기록한다.
+
+### 34.12 교육 예제
+
+`EDU-BZA-12·13`를 실행한다.
+
+### 34.13 조직 영역과 CPF 유지 영역
+
+조직·정책 내용은 도입 조직, 기준일·권한·결재·Audit 계약은 CPF가 유지한다.
+
+### 34.14 운영 인계
+
+설정·권한·상태·대사·Rollback·연락망을 인계한다.
+
+
+## 35. BZA 운영 순서
+
+1. Bootstrap과 운영 계정 분리
+2. 조직·직위·직책 등록
+3. 직원·발령·사용자 연결
+4. Role·Permission·Data Scope Catalog 승인
+5. 실효 권한 Simulation과 적용
+6. 결재 정책 Simulation·승인·게시
+7. 위임·대결 등록
+8. 업무 상신·승인·반영
+9. Attachment·Notification·Export 운영
+10. Session·Masking·Audit·정기 권한 검토
+
+## 36. 기준일·유효기간 검수표
+
+| 대상 | 시작 | 종료 | 겹침 | 과거 보존 | 변경 방식 |
+|---|---|---|---|---|---|
+| 조직 | 필수 | 선택 | 같은 ID 금지 | 예 | 정정 Version |
+| 발령 | 필수 | 선택 | 정책에 따른 단일 주 소속 | 예 | 취소/정정 |
+| Role 배정 | 필수 | 선택 | SoD 검증 | 예 | 회수/새 배정 |
+| 정책 Version | 필수 | 선택 | 같은 업무 활성 Version 통제 | 예 | 새 Version 게시 |
+| 위임 | 필수 | 필수 | 순환·중첩 금지 | 예 | 조기 종료 |
+
+## 37. 결재 상태와 행동
+
+| 상태 | 요청자 | 승인자 | 운영자 |
+|---|---|---|---|
+| DRAFT | 수정·삭제 | 없음 | 조회 |
+| SUBMITTED | 철회 가능 조건 | 승인/반려/보류 | 경로·기한 확인 |
+| APPROVED | 결과 조회 | 결정 조회 | 업무 반영 대사 |
+| REJECTED | 수정 후 재상신 | 결정 조회 | 사유·Audit 확인 |
+| WITHDRAWN | 새 상신 | 없음 | 후속 작업 중단 확인 |
+| CANCELLED | 정책에 따른 취소 | 승인 필요 가능 | 업무 보상 대사 |
+| EXPIRED | 재상신 | 결정 불가 | 경로·위임·기한 원인 확인 |
+
+## 38. BZA Backup·Restore·Upgrade 완료 판정
+
+- 조직·발령·권한·정책·진행 결재·Session·Audit의 복원 시점이 일치한다.
+- 복원 후 기준일 조직과 실효 권한 Simulation을 실행한다.
+- 진행 결재의 Policy Snapshot과 참여자·위임을 확인한다.
+- Attachment Metadata와 파일 SHA-256을 대사한다.
+- 이전·신규 Version 공존 중 상신·승인·Session 호환을 확인한다.
+- Application Rollback과 DB Forward Fix 가능 범위를 분리한다.

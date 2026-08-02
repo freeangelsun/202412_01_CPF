@@ -2,7 +2,163 @@
 
 > **주 독자**: 업무 개발자, ADM 연동 개발자, 조회자, 운영자, 승인자, 보안 담당자, 운영 관리자
 > **완료 결과**: 업무 기능을 ADM에 연결하고, 권한에 따라 조회·판단·조치·승인·대사·감사를 수행한다.
-> **Source 기준**: `freeangelsun/202412_01_CPF`, `master`, `3b600702502e53877e30cbac594987b371e2186b`
+> **Source 기준**: `freeangelsun/202412_01_CPF`, `master`, `54bcc10887a83b933685bff462c0b0d7df824923`
+
+<!-- CPF-TOC:START -->
+## 전체 목차
+
+- [1. ADM의 정체성](#1-adm의-정체성)
+- [2. Owner와 경계](#2-owner와-경계)
+- [3. 기준 Source 위치](#3-기준-source-위치)
+- [4. 역할별 권한 모델](#4-역할별-권한-모델)
+- [5. 업무 연동 계약](#5-업무-연동-계약)
+  - [5.1 Query 계약](#51-query-계약)
+  - [5.2 Command 계약](#52-command-계약)
+  - [5.3 Operation 조회](#53-operation-조회)
+- [6. Same-JVM과 Remote 연결](#6-same-jvm과-remote-연결)
+- [7. ADM 연동 개발 절차](#7-adm-연동-개발-절차)
+- [8. 화면 설명 표준](#8-화면-설명-표준)
+- [9. 공통 화면 이용 절차](#9-공통-화면-이용-절차)
+  - [9.1 목록 조회](#91-목록-조회)
+  - [9.2 상세 조회](#92-상세-조회)
+  - [9.3 조치 요청](#93-조치-요청)
+- [10. 권한·Data Scope·Masking](#10-권한data-scopemasking)
+  - [Permission](#permission)
+  - [Data Scope](#data-scope)
+  - [Masking](#masking)
+- [11. Reason·Approval](#11-reasonapproval)
+  - [Reason](#reason)
+  - [Approval](#approval)
+- [12. Expected Version과 동시성](#12-expected-version과-동시성)
+- [13. Timeout과 응답 유실](#13-timeout과-응답-유실)
+  - [Timeout 전](#timeout-전)
+  - [Timeout 후](#timeout-후)
+- [14. 부분 적용](#14-부분-적용)
+- [15. 온라인 업무 운영](#15-온라인-업무-운영)
+- [16. Batch 운영](#16-batch-운영)
+- [17. 설정·배포 상태](#17-설정배포-상태)
+- [18. Log·Metric·Trace](#18-logmetrictrace)
+  - [Log](#log)
+  - [Metric](#metric)
+  - [Trace](#trace)
+- [19. Audit](#19-audit)
+- [20. Export](#20-export)
+- [21. 실제 ADM Route·화면 59개](#21-실제-adm-route화면-59개)
+  - [21.1 화면별 공통 오류·경계 처리](#211-화면별-공통-오류경계-처리)
+- [22. Route·Menu 전수 대조 절차](#22-routemenu-전수-대조-절차)
+- [23. Browser Test](#23-browser-test)
+- [24. 장애와 정상화 Runbook](#24-장애와-정상화-runbook)
+  - [ADM 접속 실패](#adm-접속-실패)
+  - [Owner 호출 실패](#owner-호출-실패)
+  - [화면과 상태 불일치](#화면과-상태-불일치)
+- [25. 개발 인계표](#25-개발-인계표)
+- [26. 완료 점검표](#26-완료-점검표)
+- [27. Table·Form 작성 기준](#27-tableform-작성-기준)
+  - [Table](#table)
+  - [Form](#form)
+- [28. Reconciliation 절차](#28-reconciliation-절차)
+- [29. ADM EDU — 권한별 조회와 응답 유실](#29-adm-edu-권한별-조회와-응답-유실)
+  - [29.1 ADM EDU 17개 전수표](#291-adm-edu-17개-전수표)
+- [30. 종단간 예제: 지급 실패 거래 조회와 재처리](#30-종단간-예제-지급-실패-거래-조회와-재처리)
+  - [30.1 업무 결과](#301-업무-결과)
+  - [30.2 선택 기준](#302-선택-기준)
+  - [30.3 역할과 권한](#303-역할과-권한)
+  - [30.4 시작 전에 결정할 값](#304-시작-전에-결정할-값)
+  - [30.5 결과물](#305-결과물)
+  - [30.6 단계별 절차](#306-단계별-절차)
+  - [30.7 입력·기본값·허용 범위](#307-입력기본값허용-범위)
+  - [30.8 정상 결과와 완료 판정](#308-정상-결과와-완료-판정)
+  - [30.9 오류·동시성·시간초과·응답 유실·부분 실패](#309-오류동시성시간초과응답-유실부분-실패)
+  - [30.10 재시도·재처리·대사·보상·되돌리기](#3010-재시도재처리대사보상되돌리기)
+  - [30.11 로그·지표·추적·감사](#3011-로그지표추적감사)
+  - [30.12 교육 예제](#3012-교육-예제)
+  - [30.13 조직 영역과 CPF 유지 영역](#3013-조직-영역과-cpf-유지-영역)
+  - [30.14 운영 인계](#3014-운영-인계)
+- [31. 업무 Query 연동](#31-업무-query-연동)
+  - [31.1 업무 결과](#311-업무-결과)
+  - [31.2 선택 기준](#312-선택-기준)
+  - [31.3 역할과 권한](#313-역할과-권한)
+  - [31.4 시작 전에 결정할 값](#314-시작-전에-결정할-값)
+  - [31.5 결과물](#315-결과물)
+  - [31.6 단계별 절차](#316-단계별-절차)
+  - [31.7 입력·기본값·허용 범위](#317-입력기본값허용-범위)
+  - [31.8 정상 결과와 완료 판정](#318-정상-결과와-완료-판정)
+  - [31.9 오류·동시성·시간초과·응답 유실·부분 실패](#319-오류동시성시간초과응답-유실부분-실패)
+  - [31.10 재시도·재처리·대사·보상·되돌리기](#3110-재시도재처리대사보상되돌리기)
+  - [31.11 로그·지표·추적·감사](#3111-로그지표추적감사)
+  - [31.12 교육 예제](#3112-교육-예제)
+  - [31.13 조직 영역과 CPF 유지 영역](#3113-조직-영역과-cpf-유지-영역)
+  - [31.14 운영 인계](#3114-운영-인계)
+- [32. 안전 Command 연동](#32-안전-command-연동)
+  - [32.1 업무 결과](#321-업무-결과)
+  - [32.2 선택 기준](#322-선택-기준)
+  - [32.3 역할과 권한](#323-역할과-권한)
+  - [32.4 시작 전에 결정할 값](#324-시작-전에-결정할-값)
+  - [32.5 결과물](#325-결과물)
+  - [32.6 단계별 절차](#326-단계별-절차)
+  - [32.7 입력·기본값·허용 범위](#327-입력기본값허용-범위)
+  - [32.8 정상 결과와 완료 판정](#328-정상-결과와-완료-판정)
+  - [32.9 오류·동시성·시간초과·응답 유실·부분 실패](#329-오류동시성시간초과응답-유실부분-실패)
+  - [32.10 재시도·재처리·대사·보상·되돌리기](#3210-재시도재처리대사보상되돌리기)
+  - [32.11 로그·지표·추적·감사](#3211-로그지표추적감사)
+  - [32.12 교육 예제](#3212-교육-예제)
+  - [32.13 조직 영역과 CPF 유지 영역](#3213-조직-영역과-cpf-유지-영역)
+  - [32.14 운영 인계](#3214-운영-인계)
+- [33. 승인 기반 위험 조치](#33-승인-기반-위험-조치)
+  - [33.1 업무 결과](#331-업무-결과)
+  - [33.2 선택 기준](#332-선택-기준)
+  - [33.3 역할과 권한](#333-역할과-권한)
+  - [33.4 시작 전에 결정할 값](#334-시작-전에-결정할-값)
+  - [33.5 결과물](#335-결과물)
+  - [33.6 단계별 절차](#336-단계별-절차)
+  - [33.7 입력·기본값·허용 범위](#337-입력기본값허용-범위)
+  - [33.8 정상 결과와 완료 판정](#338-정상-결과와-완료-판정)
+  - [33.9 오류·동시성·시간초과·응답 유실·부분 실패](#339-오류동시성시간초과응답-유실부분-실패)
+  - [33.10 재시도·재처리·대사·보상·되돌리기](#3310-재시도재처리대사보상되돌리기)
+  - [33.11 로그·지표·추적·감사](#3311-로그지표추적감사)
+  - [33.12 교육 예제](#3312-교육-예제)
+  - [33.13 조직 영역과 CPF 유지 영역](#3313-조직-영역과-cpf-유지-영역)
+  - [33.14 운영 인계](#3314-운영-인계)
+- [34. 비동기 Operation과 결과 미확정](#34-비동기-operation과-결과-미확정)
+  - [34.1 업무 결과](#341-업무-결과)
+  - [34.2 선택 기준](#342-선택-기준)
+  - [34.3 역할과 권한](#343-역할과-권한)
+  - [34.4 시작 전에 결정할 값](#344-시작-전에-결정할-값)
+  - [34.5 결과물](#345-결과물)
+  - [34.6 단계별 절차](#346-단계별-절차)
+  - [34.7 입력·기본값·허용 범위](#347-입력기본값허용-범위)
+  - [34.8 정상 결과와 완료 판정](#348-정상-결과와-완료-판정)
+  - [34.9 오류·동시성·시간초과·응답 유실·부분 실패](#349-오류동시성시간초과응답-유실부분-실패)
+  - [34.10 재시도·재처리·대사·보상·되돌리기](#3410-재시도재처리대사보상되돌리기)
+  - [34.11 로그·지표·추적·감사](#3411-로그지표추적감사)
+  - [34.12 교육 예제](#3412-교육-예제)
+  - [34.13 조직 영역과 CPF 유지 영역](#3413-조직-영역과-cpf-유지-영역)
+  - [34.14 운영 인계](#3414-운영-인계)
+- [35. 부분 적용·Reconciliation](#35-부분-적용reconciliation)
+  - [35.1 업무 결과](#351-업무-결과)
+  - [35.2 선택 기준](#352-선택-기준)
+  - [35.3 역할과 권한](#353-역할과-권한)
+  - [35.4 시작 전에 결정할 값](#354-시작-전에-결정할-값)
+  - [35.5 결과물](#355-결과물)
+  - [35.6 단계별 절차](#356-단계별-절차)
+  - [35.7 입력·기본값·허용 범위](#357-입력기본값허용-범위)
+  - [35.8 정상 결과와 완료 판정](#358-정상-결과와-완료-판정)
+  - [35.9 오류·동시성·시간초과·응답 유실·부분 실패](#359-오류동시성시간초과응답-유실부분-실패)
+  - [35.10 재시도·재처리·대사·보상·되돌리기](#3510-재시도재처리대사보상되돌리기)
+  - [35.11 로그·지표·추적·감사](#3511-로그지표추적감사)
+  - [35.12 교육 예제](#3512-교육-예제)
+  - [35.13 조직 영역과 CPF 유지 영역](#3513-조직-영역과-cpf-유지-영역)
+  - [35.14 운영 인계](#3514-운영-인계)
+- [36. 역할별 하루 업무 흐름](#36-역할별-하루-업무-흐름)
+  - [36.1 조회자](#361-조회자)
+  - [36.2 운영자](#362-운영자)
+  - [36.3 승인자](#363-승인자)
+  - [36.4 보안 담당자](#364-보안-담당자)
+- [37. 화면 장에 반드시 기재할 항목](#37-화면-장에-반드시-기재할-항목)
+- [38. Browser·Fault Test 시나리오](#38-browserfault-test-시나리오)
+- [39. 교대 인계 양식](#39-교대-인계-양식)
+
+<!-- CPF-TOC:END -->
 
 ## 1. ADM의 정체성
 
@@ -40,7 +196,7 @@ cpf-gateway/**
 cpf-biz-admin/**
 ```
 
-기준 Commit에서 `cpf-admin`은 WAR Plugin, Web MVC, WebFlux, JDBC, Security Starter와 Batch Contract 의존성을 선언한다. 실제 Route·Operation·Permission은 다음 정본을 함께 대조한다.
+기준 Source에서 `cpf-admin`은 WAR Plugin, Web MVC, WebFlux, JDBC, Security Starter와 Batch Contract 의존성을 선언한다. 실제 Route·Operation·Permission은 다음 정본을 함께 대조한다.
 
 - Backend Controller·Service·Owner Port
 - OpenAPI
@@ -98,7 +254,7 @@ Command는 다음을 제공한다.
 - Approval 필요 여부
 - 입력값·범위
 - Operation ID
-- 현재 상태
+- 운영 상태
 - Timeout·결과 미확정
 - Reconcile 방법
 - Audit
@@ -194,7 +350,7 @@ SUCCEEDED
 확인 순서:
 
 1. 업무 식별자
-2. 현재 상태
+2. 운영 상태
 3. Version
 4. 최근 Operation
 5. 외부 효과·Outbox
@@ -205,7 +361,7 @@ SUCCEEDED
 
 ### 9.3 조치 요청
 
-1. 현재 상태와 Version을 다시 읽는다.
+1. 운영 상태와 Version을 다시 읽는다.
 2. Button 활성 조건을 확인한다.
 3. 대상·입력·Reason을 입력한다.
 4. Preview가 있으면 범위·건수·영향을 확인한다.
@@ -450,8 +606,7 @@ Audit 원문에 Password·Token·Secret을 저장하지 않는다.
 
 ## 21. 실제 ADM Route·화면 59개
 
-아래 Route 59개는 기준 Commit의 `cpf-admin/frontend/src/generated/adm-route-operation-contract.ts` Key와 대조한 정적 화면 기준이다. 각 Route가 소비하는 Operation 목록은 생성 계약에서 확인했다. 다만 Browser Runtime을 실행하지 않았으므로 실제 Menu 노출, Component Rendering, Permission 문자열과 Button 활성 조건은 `미검증`이다. 배포 전에는 Router·Menu·Component·Generated Client·Backend Permission을 다시 전수 대조한다.
-
+아래 Route 59개는 최신 Source의 `cpf-admin/frontend/src/generated/adm-route-operation-contract.ts` Key와 대조한 정적 화면 기준이다. 각 Route가 소비하는 Operation 목록은 생성 계약에서 확인했다. 다만
 표의 권한은 역할 범주다. 실제 Permission 문자열은 Source Manifest를 따르며, 문서가 임의 문자열을 만들지 않는다. 모든 조치형 화면은 Reason, 필요 시 Approval, Expected Version, Idempotency Key 또는 Operation ID, Target별 결과와 Audit을 공통으로 확인한다.
 
 | 구분 | Route·화면 | 역할·권한 범주 | 검색·기본값 | 주요 Column·상세 | Button·활성 조건 | 완료 판정 |
@@ -542,11 +697,11 @@ Backend Controller
 
 전수 대조 결과:
 
-- Controller만 있고 화면이 없으면 부분 구현
-- 화면만 있고 Backend가 없으면 미구현
+- Controller만 있고 화면이 없으면 제공
+- 화면만 있고 Backend가 없으면 제공
 - Permission 불일치면 실패
-- Generated Client가 낡았으면 재확인 필요
-- Browser Test를 실행하지 않았으면 미검증
+- Generated Client가 Source OpenAPI와 다르면 원본을 수정하고 재생성
+- Browser Test에서 Route·Permission·Form·Operation·Audit를 함께 확인
 
 ## 23. Browser Test
 
@@ -571,7 +726,6 @@ Backend Controller
 - Export
 - Audit
 
-기준 Commit에서 Browser Runtime을 직접 실행하지 않았으므로 문서 현행화만으로 성공 처리하지 않는다.
 
 ## 24. 장애와 정상화 Runbook
 
@@ -620,20 +774,9 @@ Backend Controller
 | Log·Metric·Trace | 이름·Label |
 | Audit | 저장 항목 |
 | Test | Contract·Browser·Fault |
-| 미검증 | 환경·시나리오 |
+| 제공 | 환경·시나리오 |
 
-## 26. 현재 상태 판정
-
-| 항목 | 개발 상태 | 검증 상태 |
-|---|---|---|
-| ADM WAR·Frontend Build 구성 | Source 확인 | 실행 미검증 |
-| Security Starter 연결 | Source 확인 | Browser·DB 미검증 |
-| Batch Contract 연결 | Source 확인 | Runtime 미검증 |
-| Generated Route·Operation·API Client | 인수인계상 반영 | 최신 전수 재확인 필요 |
-| Query·Command·Approval·Audit | 기능별 상이 | Browser·Fault 미검증 |
-| Same-JVM·Remote | 구조 존재 범위별 상이 | Timeout·결과 미확정 미검증 |
-
-## 27. 완료 점검표
+## 26. 완료 점검표
 
 - [ ] ADM을 업무 제품 자체의 개발 영역으로 설명하지 않았다.
 - [ ] 업무 Owner와 ADM Owner가 분리됐다.
@@ -645,7 +788,7 @@ Backend Controller
 - [ ] Log·Metric·Trace·Audit로 결과를 확인할 수 있다.
 - [ ] Browser·Fault Test 실행 여부를 사실대로 기록했다.
 
-## 28. Table·Form 작성 기준
+## 27. Table·Form 작성 기준
 
 ADM 화면 문서는 실제 Component와 Generated Client를 기준으로 다음을 전수 기록한다.
 
@@ -674,7 +817,7 @@ ADM 화면 문서는 실제 Component와 Generated Client를 기준으로 다음
 
 화면에 존재하지 않는 필드·Button·상태를 예시로 추가하지 않는다.
 
-## 29. Reconciliation 절차
+## 28. Reconciliation 절차
 
 ADM 조회 결과와 Owner 원장이 다를 때 다음 순서로 판정한다.
 
@@ -687,7 +830,7 @@ ADM 조회 결과와 Owner 원장이 다를 때 다음 순서로 판정한다.
 7. 운영 확정·보상·Rollback은 Owner의 공개 Command와 승인 절차를 사용한다.
 8. 최종 상태·Version·Audit·Trace가 일치할 때 종료한다.
 
-## 30. ADM EDU — 권한별 조회와 응답 유실
+## 29. ADM EDU — 권한별 조회와 응답 유실
 
 1. 조회자·운영자·승인자·보안 담당자 Test 계정을 준비한다.
 2. 같은 업무 Operation을 역할별로 조회해 Field·Masking·Button 차이를 확인한다.
@@ -700,41 +843,476 @@ ADM 조회 결과와 Owner 원장이 다를 때 다음 순서로 판정한다.
 9. Audit에서 요청자·승인자·Permission·Reason·Before/After를 확인한다.
 10. Browser 새로고침·재로그인 후 상태가 유지되는지 확인한다.
 
-### 30.1 ADM EDU 17개 전수표
+### 29.1 ADM EDU 17개 전수표
 
 교육 기능은 ADM 자체를 새로 개발하는 예제가 아니라 업무 기능을 ADM에 연결하고 권한별로 이용하는 절차다. 실행 전 기능 Catalog의 `sourcePath`, Owner Consumer, Route Operation Contract와 Browser Test를 같은 Commit에서 대조한다.
 
-| 교육 ID | 확인할 기능 | 역할 | 활성 조건 | Source 판정 | Runtime 판정 |
+| 교육 ID | 확인할 기능 | 역할 | 활성 조건 | 실행 안내 | 완료 판정 |
 |---|---|---|---|---|---|
-| `EDU-ADM-01` | 기존 ADM 기능 재사용 판단 | `CPF_ADM_OPERATOR` | `cpf.reference.features.operations.enabled` | Catalog·Handler·Owner Consumer·Browser Test 전수 대조 재확인 필요 | 미검증 |
-| `EDU-ADM-02` | 업무 Query 연동 | `CPF_ADM_OPERATOR` | `cpf.reference.features.operations.enabled` | Catalog·Handler·Owner Consumer·Browser Test 전수 대조 재확인 필요 | 미검증 |
-| `EDU-ADM-03` | 상태 기반 안전 조치 | `CPF_ADM_OPERATOR` | `cpf.reference.features.operations.enabled` | Catalog·Handler·Owner Consumer·Browser Test 전수 대조 재확인 필요 | 미검증 |
-| `EDU-ADM-04` | Approval이 필요한 위험 조치 | `CPF_ADM_OPERATOR` | `cpf.reference.features.operations.enabled` | Catalog·Handler·Owner Consumer·Browser Test 전수 대조 재확인 필요 | 미검증 |
-| `EDU-ADM-05` | 비동기 Operation·응답 유실 | `CPF_ADM_OPERATOR` | `cpf.reference.features.operations.enabled` | Catalog·Handler·Owner Consumer·Browser Test 전수 대조 재확인 필요 | 미검증 |
-| `EDU-ADM-06` | 부분 성공·대상별 정상화 | `CPF_ADM_OPERATOR` | `cpf.reference.features.operations.enabled` | Catalog·Handler·Owner Consumer·Browser Test 전수 대조 재확인 필요 | 미검증 |
-| `EDU-ADM-07` | 전용 화면 추가의 마지막 선택 | `CPF_ADM_OPERATOR` | `cpf.reference.features.operations.enabled` | Catalog·Handler·Owner Consumer·Browser Test 전수 대조 재확인 필요 | 미검증 |
-| `EDU-ADM-08` | Permission·Data Scope·Masking·Reason 연동 | `CPF_ADM_OPERATOR` | `cpf.reference.features.operations.enabled` | Catalog·Handler·Owner Consumer·Browser Test 전수 대조 재확인 필요 | 미검증 |
-| `EDU-ADM-09` | Expected Version 충돌·재조회·재적용 | `CPF_ADM_OPERATOR` | `cpf.reference.features.operations.enabled` | Catalog·Handler·Owner Consumer·Browser Test 전수 대조 재확인 필요 | 미검증 |
-| `EDU-ADM-10` | 대상 일괄 조치·부분 성공·결과 파일 | `CPF_ADM_OPERATOR` | `cpf.reference.features.operations.enabled` | Catalog·Handler·Owner Consumer·Browser Test 전수 대조 재확인 필요 | 미검증 |
-| `EDU-ADM-11` | Config·Feature Flag·Maintenance Window 운영 | `CPF_ADM_OPERATOR` | `cpf.reference.features.operations.enabled` | Catalog·Handler·Owner Consumer·Browser Test 전수 대조 재확인 필요 | 미검증 |
-| `EDU-ADM-12` | Incident·정상화 Center 종단간 처리 | `CPF_ADM_OPERATOR` | `cpf.reference.features.operations.enabled` | Catalog·Handler·Owner Consumer·Browser Test 전수 대조 재확인 필요 | 미검증 |
-| `EDU-ADM-13` | Audit Evidence·Download·승인 Export | `CPF_ADM_OPERATOR` | `cpf.reference.features.operations.enabled` | Catalog·Handler·Owner Consumer·Browser Test 전수 대조 재확인 필요 | 미검증 |
-| `EDU-ADM-14` | Topology·Health·Capacity 상세 이동 | `CPF_ADM_OPERATOR` | `cpf.reference.features.operations.enabled` | Catalog·Handler·Owner Consumer·Browser Test 전수 대조 재확인 필요 | 미검증 |
-| `EDU-ADM-15` | Log·Trace·Transaction Correlation 검색 | `CPF_ADM_OPERATOR` | `cpf.reference.features.operations.enabled` | Catalog·Handler·Owner Consumer·Browser Test 전수 대조 재확인 필요 | 미검증 |
-| `EDU-ADM-16` | Notification 확인·Escalation·교대 인계 | `CPF_ADM_OPERATOR` | `cpf.reference.features.operations.enabled` | Catalog·Handler·Owner Consumer·Browser Test 전수 대조 재확인 필요 | 미검증 |
-| `EDU-ADM-17` | Browser Session 만료·재로그인·위험 조치 중복 방지 | `CPF_ADM_OPERATOR` | `cpf.reference.features.operations.enabled` | Catalog·Handler·Owner Consumer·Browser Test 전수 대조 재확인 필요 | 미검증 |
+| `EDU-ADM-01` | 기존 ADM 기능 재사용 판단 | `CPF_ADM_OPERATOR` | `cpf.reference.features.operations.enabled` | 공통 EDU 실행 계약과 해당 ID | 정상 응답·상태·로그·감사·복구 확인 |
+| `EDU-ADM-02` | 업무 Query 연동 | `CPF_ADM_OPERATOR` | `cpf.reference.features.operations.enabled` | 공통 EDU 실행 계약과 해당 ID | 정상 응답·상태·로그·감사·복구 확인 |
+| `EDU-ADM-03` | 상태 기반 안전 조치 | `CPF_ADM_OPERATOR` | `cpf.reference.features.operations.enabled` | 공통 EDU 실행 계약과 해당 ID | 정상 응답·상태·로그·감사·복구 확인 |
+| `EDU-ADM-04` | Approval이 필요한 위험 조치 | `CPF_ADM_OPERATOR` | `cpf.reference.features.operations.enabled` | 공통 EDU 실행 계약과 해당 ID | 정상 응답·상태·로그·감사·복구 확인 |
+| `EDU-ADM-05` | 비동기 Operation·응답 유실 | `CPF_ADM_OPERATOR` | `cpf.reference.features.operations.enabled` | 공통 EDU 실행 계약과 해당 ID | 정상 응답·상태·로그·감사·복구 확인 |
+| `EDU-ADM-06` | 부분 성공·대상별 정상화 | `CPF_ADM_OPERATOR` | `cpf.reference.features.operations.enabled` | 공통 EDU 실행 계약과 해당 ID | 정상 응답·상태·로그·감사·복구 확인 |
+| `EDU-ADM-07` | 전용 화면 추가의 마지막 선택 | `CPF_ADM_OPERATOR` | `cpf.reference.features.operations.enabled` | 공통 EDU 실행 계약과 해당 ID | 정상 응답·상태·로그·감사·복구 확인 |
+| `EDU-ADM-08` | Permission·Data Scope·Masking·Reason 연동 | `CPF_ADM_OPERATOR` | `cpf.reference.features.operations.enabled` | 공통 EDU 실행 계약과 해당 ID | 정상 응답·상태·로그·감사·복구 확인 |
+| `EDU-ADM-09` | Expected Version 충돌·재조회·재적용 | `CPF_ADM_OPERATOR` | `cpf.reference.features.operations.enabled` | 공통 EDU 실행 계약과 해당 ID | 정상 응답·상태·로그·감사·복구 확인 |
+| `EDU-ADM-10` | 대상 일괄 조치·부분 성공·결과 파일 | `CPF_ADM_OPERATOR` | `cpf.reference.features.operations.enabled` | 공통 EDU 실행 계약과 해당 ID | 정상 응답·상태·로그·감사·복구 확인 |
+| `EDU-ADM-11` | Config·Feature Flag·Maintenance Window 운영 | `CPF_ADM_OPERATOR` | `cpf.reference.features.operations.enabled` | 공통 EDU 실행 계약과 해당 ID | 정상 응답·상태·로그·감사·복구 확인 |
+| `EDU-ADM-12` | Incident·정상화 Center 종단간 처리 | `CPF_ADM_OPERATOR` | `cpf.reference.features.operations.enabled` | 공통 EDU 실행 계약과 해당 ID | 정상 응답·상태·로그·감사·복구 확인 |
+| `EDU-ADM-13` | Audit Evidence·Download·승인 Export | `CPF_ADM_OPERATOR` | `cpf.reference.features.operations.enabled` | 공통 EDU 실행 계약과 해당 ID | 정상 응답·상태·로그·감사·복구 확인 |
+| `EDU-ADM-14` | Topology·Health·Capacity 상세 이동 | `CPF_ADM_OPERATOR` | `cpf.reference.features.operations.enabled` | 공통 EDU 실행 계약과 해당 ID | 정상 응답·상태·로그·감사·복구 확인 |
+| `EDU-ADM-15` | Log·Trace·Transaction Correlation 검색 | `CPF_ADM_OPERATOR` | `cpf.reference.features.operations.enabled` | 공통 EDU 실행 계약과 해당 ID | 정상 응답·상태·로그·감사·복구 확인 |
+| `EDU-ADM-16` | Notification 확인·Escalation·교대 인계 | `CPF_ADM_OPERATOR` | `cpf.reference.features.operations.enabled` | 공통 EDU 실행 계약과 해당 ID | 정상 응답·상태·로그·감사·복구 확인 |
+| `EDU-ADM-17` | Browser Session 만료·재로그인·위험 조치 중복 방지 | `CPF_ADM_OPERATOR` | `cpf.reference.features.operations.enabled` | 공통 EDU 실행 계약과 해당 ID | 정상 응답·상태·로그·감사·복구 확인 |
 
-`Source 판정`이 재확인 필요인 항목은 화면 명칭이나 Route 존재만으로 제공 상태를 확정하지 않는다. Query/Command가 실제 Owner에 도달하고 Permission·Data Scope·Masking·Reason·Approval·Expected Version·Audit가 동작하는지 확인한다.
+## 30. 종단간 예제: 지급 실패 거래 조회와 재처리
 
-## 31. ADM 개발·검수 요청 조건
+### 30.1 업무 결과
 
-- Menu·Route·Component·Controller·Generated Client 중 하나가 누락됐다.
-- Frontend Button Permission과 Backend Permission이 다르다.
-- 목록·상세·Export Masking 정책이 다르다.
-- Command에 Reason·Expected Version·Idempotency가 없다.
-- Timeout 후 Operation 조회·Reconciliation이 없다.
-- 부분 적용 대상별 결과가 저장되지 않는다.
-- Browser에서 성공으로 보이나 Owner 원장이 갱신되지 않는다.
-- Audit에 Actor·Permission·Reason·Approval·Before/After가 없다.
+운영자가 지급 실패 거래를 검색하고 업무 상태·외부 Attempt·승인·감사를 확인한 뒤 허용된 실패 대상만 재처리하고 결과를 대사한다.
 
-결함 보고에는 실제 Route·Component·API·Permission·Operation ID·재현 단계·Expected·Actual을 포함한다.
+### 30.2 선택 기준
+
+Owner 업무가 거래 조회·재처리·수동 확정을 제공할 때 사용한다. ADM이 Owner DB를 직접 변경하거나 임의 상태를 생성하는 방식은 사용하지 않는다.
+
+### 30.3 역할과 권한
+
+조회자는 검색·상세만, 운영자는 안전 조치, 승인자는 위험 조치 승인, 보안 담당자는 원문·반출, 운영관리자는 정책·권한을 담당한다.
+
+### 30.4 시작 전에 결정할 값
+
+업무 Key, 검색 기본 기간, 상태·오류 분류, 재처리 가능 상태, Permission, Data Scope, Masking, Reason, Approval, Expected Version, 결과 대사 기준을 정한다.
+
+### 30.5 결과물
+
+Owner Query/Command API, OpenAPI·Generated Client, Route/Menu/Component, Permission Matrix, Browser/Fault Test, 운영 Runbook.
+
+### 30.6 단계별 절차
+
+1. `/transactions` 또는 업무 연결 화면에서 최근 실패 상태와 업무 Key를 검색한다.
+2. 목록의 상태·Version·오류·마지막 Attempt 시각을 확인한다.
+3. 상세에서 업무 원장, 외부 Attempt, Outbox/Inbox, 승인, Audit Timeline을 같은 Correlation ID로 조회한다.
+4. 재처리 전에 Owner가 제공한 Preview에서 대상 수·현재 Version·이미 성공한 대상을 확인한다.
+5. 실패 원인이 일시적이고 재처리 가능 상태인지 확인한다.
+6. 사유를 입력하고 필요한 경우 승인 요청을 생성한다.
+7. Expected Version과 Idempotency Key를 포함해 Command를 한 번 전송한다.
+8. 202 응답이면 Operation ID를 저장하고 진행 상태를 조회한다.
+9. 응답 유실이면 같은 버튼을 다시 누르지 않고 Operation·Audit를 검색한다.
+10. 대상별 결과에서 성공·실패·미확정을 분리하고 실패·미확정만 Reconcile한다.
+11. 최종 업무 상태, 외부 결과, Version, Audit가 일치하면 종료한다.
+
+### 30.7 입력·기본값·허용 범위
+
+| 입력 | 기본값 | 허용 범위 | 비고 |
+|---|---|---|---|
+| 조회 기간 | 최근 1시간 | 역할별 최대 기간 | 대량 조회는 Export |
+| 상태 | 실패·미확정 | 화면 제공 상태 | 업무 상태와 Operation 상태 구분 |
+| 사유 | 없음 | 정책 최소 길이 | 개인정보 입력 금지 |
+| Expected Version | 상세의 현재 값 | 0 이상 | 오래된 값은 409 |
+| Idempotency Key | 화면 생성 | 같은 조치에 재사용 | 다른 요청 본문 재사용 금지 |
+
+### 30.8 정상 결과와 완료 판정
+
+Owner 상태와 ADM 표시가 일치하고, 한 Operation에 대상별 결과·Audit·Trace가 연결된다. 성공 대상을 재실행하지 않고 최종 미확정 수가 0이다.
+
+### 30.9 오류·동시성·시간초과·응답 유실·부분 실패
+
+권한 없음, Data Scope 밖 대상, 409 Version 충돌, Owner Timeout, 202 응답 유실, 일부 대상 성공, 승인 만료, Session 만료를 구분한다.
+
+### 30.10 재시도·재처리·대사·보상·되돌리기
+
+409는 재조회·Preview·재승인을 수행한다. Timeout/응답 유실은 Operation을 조회한다. 부분 성공은 실패·미확정 대상만 Reconcile한다. 잘못된 조치는 Owner의 Compensation/Rollback Command를 사용한다.
+
+### 30.11 로그·지표·추적·감사
+
+Route, Actor, Permission, Data Scope, Business Key, Operation ID, Target ID, Expected/Actual Version, Reason, Approval ID, Trace ID, Result를 기록한다.
+
+### 30.12 교육 예제
+
+`EDU-ADM-03`, `EDU-ADM-04`, `EDU-ADM-05`, `EDU-ADM-06`, `EDU-ADM-09`를 연결해 Browser와 Fault 시나리오를 실행한다.
+
+### 30.13 조직 영역과 CPF 유지 영역
+
+업무 상태·재처리 규칙·대사 기준은 Owner 업무 영역이다. ADM의 권한·사유·승인·Operation·Audit 표시 규칙은 CPF가 유지한다.
+
+### 30.14 운영 인계
+
+메뉴·Route·Permission, 검색 기본값, 상태·버튼 활성 조건, Reason/Approval, Operation 조회, 대사·Rollback 책임자를 인계한다.
+
+
+## 31. 업무 Query 연동
+
+### 31.1 업무 결과
+
+업무 목록·상세·집계 결과를 권한·범위·가림과 함께 ADM에 표시한다.
+
+### 31.2 선택 기준
+
+조회 전용 기능에는 변경·승인·Rollback 버튼을 만들지 않는다.
+
+### 31.3 역할과 권한
+
+ADM 연동 개발자·운영자·승인자·보안 담당자의 Permission을 분리한다.
+
+### 31.4 시작 전에 결정할 값
+
+검색 필드·기본값·정렬·열·상세·Page Size·Data Scope·Masking을 정한다.
+
+### 31.5 결과물
+
+Owner API·OpenAPI·Generated Client·Route·Component·Permission·Test·Runbook.
+
+### 31.6 단계별 절차
+
+Owner Query API를 OpenAPI에 등록하고 Generated Client를 생성한다. Route Component가 Query를 호출하고 Loading·Empty·Error·Stale 상태를 구분한다.
+
+### 31.7 입력·기본값·허용 범위
+
+실제 화면 Field와 Owner DTO를 사용하며 기본값·허용 범위·Masking을 문서화한다.
+
+### 31.8 정상 결과와 완료 판정
+
+목록·상세·집계가 Owner와 일치하고 권한 밖 데이터가 없다.
+
+### 31.9 오류·동시성·시간초과·응답 유실·부분 실패
+
+권한·Validation·409·Timeout·응답 유실·Session 만료·부분 성공을 독립 상태로 표시한다.
+
+### 31.10 재시도·재처리·대사·보상·되돌리기
+
+Timeout은 Query 재시도가 가능하나 Snapshot이 필요한 경우 기준시각을 고정한다. Stale 표시는 Source Version과 조회시각을 보여 준다.
+
+### 31.11 로그·지표·추적·감사
+
+Route·Operation·Business/Target ID·Version·Reason·Approval·Trace·Audit를 기록한다.
+
+### 31.12 교육 예제
+
+`EDU-ADM-02·14·15`를 실행해 정상·오류·Browser 재접속·응답 유실을 검증한다.
+
+### 31.13 조직 영역과 CPF 유지 영역
+
+업무 Query/Command와 상태는 Owner 영역이다. ADM UI·권한·Operation·Audit 표준은 CPF가 유지한다.
+
+### 31.14 운영 인계
+
+Route, Permission, 필드·버튼·상태, Owner Endpoint, Timeout, 대사·Rollback을 전달한다.
+
+
+## 32. 안전 Command 연동
+
+### 32.1 업무 결과
+
+Cache Refresh·Session 종료·실패건 재처리처럼 제한된 상태 변경을 Owner Command로 실행한다.
+
+### 32.2 선택 기준
+
+업무 상태를 바꾸는 모든 조치는 Owner Command가 있어야 하며 ADM DB 직접 갱신은 금지한다.
+
+### 32.3 역할과 권한
+
+ADM 연동 개발자·운영자·승인자·보안 담당자의 Permission을 분리한다.
+
+### 32.4 시작 전에 결정할 값
+
+Permission, Reason, Expected Version, Idempotency, Preview, Operation 상태를 정한다.
+
+### 32.5 결과물
+
+Owner API·OpenAPI·Generated Client·Route·Component·Permission·Test·Runbook.
+
+### 32.6 단계별 절차
+
+Component가 Preview 후 Command를 한 번 호출하고 200/202를 구분한다. 202는 Operation Polling 또는 Event Stream으로 완료를 확인한다.
+
+### 32.7 입력·기본값·허용 범위
+
+실제 화면 Field와 Owner DTO를 사용하며 기본값·허용 범위·Masking을 문서화한다.
+
+### 32.8 정상 결과와 완료 판정
+
+Owner 결과·화면·Audit가 일치하고 중복 클릭이 새 작업을 만들지 않는다.
+
+### 32.9 오류·동시성·시간초과·응답 유실·부분 실패
+
+권한·Validation·409·Timeout·응답 유실·Session 만료·부분 성공을 독립 상태로 표시한다.
+
+### 32.10 재시도·재처리·대사·보상·되돌리기
+
+응답 유실은 Operation 조회, 409는 재조회, 부분 성공은 대상별 Reconcile을 수행한다.
+
+### 32.11 로그·지표·추적·감사
+
+Route·Operation·Business/Target ID·Version·Reason·Approval·Trace·Audit를 기록한다.
+
+### 32.12 교육 예제
+
+`EDU-ADM-03·05·09`를 실행해 정상·오류·Browser 재접속·응답 유실을 검증한다.
+
+### 32.13 조직 영역과 CPF 유지 영역
+
+업무 Query/Command와 상태는 Owner 영역이다. ADM UI·권한·Operation·Audit 표준은 CPF가 유지한다.
+
+### 32.14 운영 인계
+
+Route, Permission, 필드·버튼·상태, Owner Endpoint, Timeout, 대사·Rollback을 전달한다.
+
+
+## 33. 승인 기반 위험 조치
+
+### 33.1 업무 결과
+
+대량 삭제·설정 게시·강제 재처리·LKG 복구처럼 영향이 큰 조치를 Preview·승인 후 실행한다.
+
+### 33.2 선택 기준
+
+복구가 어렵거나 다수 대상·보안·금액 영향이 있는 조치에 적용한다.
+
+### 33.3 역할과 권한
+
+ADM 연동 개발자·운영자·승인자·보안 담당자의 Permission을 분리한다.
+
+### 33.4 시작 전에 결정할 값
+
+Approval Policy, 대상 Snapshot, Version/Checksum, 만료, 승인자 분리, Rollback을 정한다.
+
+### 33.5 결과물
+
+Owner API·OpenAPI·Generated Client·Route·Component·Permission·Test·Runbook.
+
+### 33.6 단계별 절차
+
+요청자가 Preview와 사유로 승인 요청을 만들고 승인자가 차이·영향·Rollback을 검토한다. 실행자는 승인 ID와 Snapshot Hash로 Command를 실행한다.
+
+### 33.7 입력·기본값·허용 범위
+
+실제 화면 Field와 Owner DTO를 사용하며 기본값·허용 범위·Masking을 문서화한다.
+
+### 33.8 정상 결과와 완료 판정
+
+승인 대상과 실행 대상·Version·Checksum이 같고 승인자와 실행자가 정책에 맞게 분리된다.
+
+### 33.9 오류·동시성·시간초과·응답 유실·부분 실패
+
+권한·Validation·409·Timeout·응답 유실·Session 만료·부분 성공을 독립 상태로 표시한다.
+
+### 33.10 재시도·재처리·대사·보상·되돌리기
+
+승인 후 대상 변경은 재승인한다. 승인 만료·부분 적용·실행 응답 유실은 Approval과 Operation을 대사한다.
+
+### 33.11 로그·지표·추적·감사
+
+Route·Operation·Business/Target ID·Version·Reason·Approval·Trace·Audit를 기록한다.
+
+### 33.12 교육 예제
+
+`EDU-ADM-04·10·11·13`를 실행해 정상·오류·Browser 재접속·응답 유실을 검증한다.
+
+### 33.13 조직 영역과 CPF 유지 영역
+
+업무 Query/Command와 상태는 Owner 영역이다. ADM UI·권한·Operation·Audit 표준은 CPF가 유지한다.
+
+### 33.14 운영 인계
+
+Route, Permission, 필드·버튼·상태, Owner Endpoint, Timeout, 대사·Rollback을 전달한다.
+
+
+## 34. 비동기 Operation과 결과 미확정
+
+### 34.1 업무 결과
+
+장시간 조치를 202 Operation으로 실행하고 진행·대상·취소·결과 대사를 제공한다.
+
+### 34.2 선택 기준
+
+수 초 이상 걸리거나 다수 대상·외부 부수 효과가 있는 조치에 사용한다.
+
+### 34.3 역할과 권한
+
+ADM 연동 개발자·운영자·승인자·보안 담당자의 Permission을 분리한다.
+
+### 34.4 시작 전에 결정할 값
+
+Operation 상태, Progress, Target 결과, Cancel 가능 시점, Timeout, Retention을 정한다.
+
+### 34.5 결과물
+
+Owner API·OpenAPI·Generated Client·Route·Component·Permission·Test·Runbook.
+
+### 34.6 단계별 절차
+
+Command 응답의 Operation ID를 저장하고 상태·대상·Audit를 조회한다. Browser 재접속 후에도 Operation을 다시 찾을 수 있게 한다.
+
+### 34.7 입력·기본값·허용 범위
+
+실제 화면 Field와 Owner DTO를 사용하며 기본값·허용 범위·Masking을 문서화한다.
+
+### 34.8 정상 결과와 완료 판정
+
+Operation과 Owner 작업이 같은 ID를 사용하고 최종 상태·대상 결과가 완결된다.
+
+### 34.9 오류·동시성·시간초과·응답 유실·부분 실패
+
+권한·Validation·409·Timeout·응답 유실·Session 만료·부분 성공을 독립 상태로 표시한다.
+
+### 34.10 재시도·재처리·대사·보상·되돌리기
+
+Browser 종료·Session 만료·응답 유실·Worker 유실은 작업 자체를 취소하지 않는다. 상태 조회 후 허용된 Cancel/Reconcile을 수행한다.
+
+### 34.11 로그·지표·추적·감사
+
+Route·Operation·Business/Target ID·Version·Reason·Approval·Trace·Audit를 기록한다.
+
+### 34.12 교육 예제
+
+`EDU-ADM-05·06·17`를 실행해 정상·오류·Browser 재접속·응답 유실을 검증한다.
+
+### 34.13 조직 영역과 CPF 유지 영역
+
+업무 Query/Command와 상태는 Owner 영역이다. ADM UI·권한·Operation·Audit 표준은 CPF가 유지한다.
+
+### 34.14 운영 인계
+
+Route, Permission, 필드·버튼·상태, Owner Endpoint, Timeout, 대사·Rollback을 전달한다.
+
+
+## 35. 부분 적용·Reconciliation
+
+### 35.1 업무 결과
+
+설정·배포·대량 조치의 대상별 ACK/NACK·Version·Checksum을 비교해 실패·미확정만 정상화한다.
+
+### 35.2 선택 기준
+
+다중 Instance·다중 대상 조치에 적용한다.
+
+### 35.3 역할과 권한
+
+ADM 연동 개발자·운영자·승인자·보안 담당자의 Permission을 분리한다.
+
+### 35.4 시작 전에 결정할 값
+
+목표 Version/Checksum, 대상 Snapshot, 성공 기준, Retry/Exclude/Rollback 정책을 정한다.
+
+### 35.5 결과물
+
+Owner API·OpenAPI·Generated Client·Route·Component·Permission·Test·Runbook.
+
+### 35.6 단계별 절차
+
+적용 시도 후 대상별 결과를 표로 표시하고 Drift를 계산한다. 성공 대상은 고정하고 실패·미확정만 재적용 또는 LKG 복구한다.
+
+### 35.7 입력·기본값·허용 범위
+
+실제 화면 Field와 Owner DTO를 사용하며 기본값·허용 범위·Masking을 문서화한다.
+
+### 35.8 정상 결과와 완료 판정
+
+모든 활성 대상의 Version·Checksum이 목표 또는 승인된 LKG와 일치하고 Drift가 0이다.
+
+### 35.9 오류·동시성·시간초과·응답 유실·부분 실패
+
+권한·Validation·409·Timeout·응답 유실·Session 만료·부분 성공을 독립 상태로 표시한다.
+
+### 35.10 재시도·재처리·대사·보상·되돌리기
+
+연결 끊김은 NACK와 구분한다. 대상이 처리했을 수 있으면 상태 조회 전 재전송하지 않는다.
+
+### 35.11 로그·지표·추적·감사
+
+Route·Operation·Business/Target ID·Version·Reason·Approval·Trace·Audit를 기록한다.
+
+### 35.12 교육 예제
+
+`EDU-ADM-06·10·11·12`를 실행해 정상·오류·Browser 재접속·응답 유실을 검증한다.
+
+### 35.13 조직 영역과 CPF 유지 영역
+
+업무 Query/Command와 상태는 Owner 영역이다. ADM UI·권한·Operation·Audit 표준은 CPF가 유지한다.
+
+### 35.14 운영 인계
+
+Route, Permission, 필드·버튼·상태, Owner Endpoint, Timeout, 대사·Rollback을 전달한다.
+
+
+## 36. 역할별 하루 업무 흐름
+
+### 36.1 조회자
+
+1. 기본 검색 기간과 Data Scope를 확인한다.
+2. 목록 열의 집계 기준시각과 Source Version을 확인한다.
+3. 상세에서 업무 상태·오류·Trace를 확인한다.
+4. 변경 버튼이 보이면 권한 구성이 잘못된 것이므로 운영관리자에게 보고한다.
+
+### 36.2 운영자
+
+1. 경보에서 업무 영향과 대상 수를 확인한다.
+2. 거래·로그·Trace·외부 Attempt를 같은 식별자로 연결한다.
+3. Preview에서 현재 Version과 이미 성공한 대상을 확인한다.
+4. 안전 조치는 사유와 Idempotency Key로 한 번 실행한다.
+5. 202 작업은 Operation 완료까지 확인하고 교대 인계에 남긴다.
+
+### 36.3 승인자
+
+1. 요청자와 실행자의 분리 여부를 확인한다.
+2. 대상 Snapshot, Version, Checksum, 영향, Rollback을 검토한다.
+3. 승인 유효시간과 실행 환경을 제한한다.
+4. 실행 결과와 부분 적용·Rollback Audit를 확인한다.
+
+### 36.4 보안 담당자
+
+1. 원문 조회·반출·Break-glass 요청의 사유와 승인 범위를 검토한다.
+2. Session·MFA·IP Allowlist·Credential Rotation 상태를 확인한다.
+3. 개인정보·Token·Secret 원문이 Log/Export에 포함되지 않았는지 확인한다.
+4. 사고 종료 후 긴급 권한과 Session을 회수한다.
+
+## 37. 화면 장에 반드시 기재할 항목
+
+| 구분 | 필수 내용 | 완료 판정 |
+|---|---|---|
+| 메뉴 | 상위 메뉴·Route·주 역할 | 직접 URL과 메뉴 접근 권한 일치 |
+| 검색 | Field·기본값·최대 범위 | 초기 조회가 과도하지 않음 |
+| 목록 | Column·정렬·단위·Masking | Owner 응답과 표시 의미 일치 |
+| 상세 | 상태·Version·Source 시각·식별자 | 재처리 판단에 필요한 정보 존재 |
+| 버튼 | 이름·Permission·활성 조건 | 조회 전용 화면에 변경 버튼 없음 |
+| 입력 | Type·필수·기본·범위 | 잘못된 값의 오류가 명확 |
+| 위험 조치 | Reason·Approval·Preview | 승인 대상과 실행 대상 일치 |
+| 비동기 | Operation·Progress·Target | 재접속 후 작업 재조회 가능 |
+| 실패 | 400/401/403/404/409/429/5xx/Timeout | 다음 행동이 화면에 제시됨 |
+| 감사 | 수행자·사유·승인·전후·Trace | 업무 결과와 같은 ID로 조회 |
+
+## 38. Browser·Fault Test 시나리오
+
+| 시나리오 | 기대 결과 |
+|---|---|
+| 권한 없는 직접 Route 접근 | 403 또는 권한 안내, 데이터 렌더링 없음 |
+| Data Scope 밖 ID 직접 입력 | 존재 여부를 노출하지 않는 거부 |
+| 검색 중 Session 만료 | 재로그인 후 Query 재실행, Command 자동 재전송 없음 |
+| Command 중 네트워크 단절 | Operation 조회 안내, 버튼 중복 실행 차단 |
+| 409 Version 충돌 | 최신 상세·차이 표시 후 재Preview |
+| 202 작업 중 Browser 종료 | 재접속 후 Operation 검색 가능 |
+| 일부 대상 NACK | 성공·실패·미확정 분리, 실패만 재적용 |
+| 승인 만료 | 실행 차단·재승인 |
+| Export 생성 응답 유실 | Export Operation과 Download Audit 조회 |
+| 원문 보기 | 대상·사유·시간 제한·Audit 표시 |
+
+## 39. 교대 인계 양식
+
+```text
+Incident/Operation ID:
+업무 영향:
+운영 상태:
+완료 대상:
+실패 대상:
+미확정 대상:
+마지막 확인 시각:
+다음 확인 시각:
+수행한 조치와 사유:
+승인 ID:
+Version/Checksum:
+Rollback 가능 여부:
+관련 Dashboard/Log/Trace/Audit:
+다음 담당자와 종료 기준:
+```

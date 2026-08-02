@@ -1,116 +1,71 @@
 # CPF Docker 개발·시험 환경 안내
 
-상위 메뉴: [Docker 문서](README.md)
+> **주 독자**: 개발·QA·DBA·플랫폼 운영자
+> **완료 결과**: CPF 전체 Module을 정상·오류·부분 실패·재시작·대사까지 시험할 환경 범위를 결정한다.
+> **기준 Repository**: `freeangelsun/202412_01_CPF` / `master` / `54bcc10887a83b933685bff462c0b0d7df824923` (`20260802_10`)
 
-> **주 독자**: Docker 환경 운영자, CPF 개발자, 통합시험·장애시험 검수자
-> **완료 결과**: 현재 사용 가능한 Runtime과 미편입 Provider를 구분하고, 필요한 서비스만 선택해 검증 범위와 보호 대상을 결정한다.
-> **Source 기준**: `freeangelsun/202412_01_CPF`, `master`, `3b600702502e53877e30cbac594987b371e2186b`
+<!-- CPF-TOC:START -->
+## 전체 목차
 
-## 1. 목적
+- [1. 환경 목표](#1-환경-목표)
+- [2. 현재 Source가 설치하는 서비스](#2-현재-source가-설치하는-서비스)
+- [3. 신규 Starter 검증에 추가할 서비스](#3-신규-starter-검증에-추가할-서비스)
+- [4. Resource·Port·보호 범위](#4-resourceport보호-범위)
+- [5. 검증 Matrix](#5-검증-matrix)
 
-이 환경은 CPF의 Source·SQL·Generator·Frontend·Batch·Messaging·Cache·File·외부 연계·Security·Observability를 로컬 Container에서 재현한다. Container 기동이 아니라 실제 Product Consumer의 정상·오류·부분 실패·응답 유실·재시작·대사를 검증하는 것이 목적이다.
+<!-- CPF-TOC:END -->
 
-## 2. 기준
+## 1. 환경 목표
 
-- Repository: `freeangelsun/202412_01_CPF`
-- Branch: `master`
-- 기준 Commit: `3b600702502e53877e30cbac594987b371e2186b`
-- Docker Source: `cpf-tools/environment/docker-development-test/`
-- 실행본: `C:\dev\Docker\CPF`
-- Secret: `C:\dev\Docker\Secrets`
+이 환경은 단순 DB 묶음이 아니라 CPF Core/Common, 38개 Starter, 13개 Profile, ADM/BZA/Gateway/Batch/Generated Domain을 설치·기동·연동·장애 주입·정상화하는 시험 기반이다.
 
-## 3. Service 지도
+## 2. 현재 Source가 설치하는 서비스
 
-| Service | Compose Source | Container | Host Port | 검증 목적 | 현재 판정 |
-|---|---|---|---:|---|---|
-| MariaDB | `compose.yml` | `cpf-mariadb` | 3306 | Fresh·Upgrade·Recovery·Restore | Source 존재, 최신 실행 미검증 |
-| PostgreSQL | `compose.yml` | `cpf-postgresql` | 5432 | Fresh·Upgrade·Recovery·Restore | Source 존재, 최신 실행 미검증 |
-| Oracle | `compose.yml` | `cpf-oracle` | 1521 | Fresh·Upgrade·Recovery·Restore | Source 존재, 최신 실행 미검증 |
-| Redis | `compose.redis.yml` | `cpf-redis` | 6379 | Cache·Lock·Invalidation | Source 존재, 최신 실행 미검증 |
-| Kafka | `compose.kafka.yml` | `cpf-kafka` | 9092 | Publish·Consume·Retry·DLT | Source 존재, 최신 실행 미검증 |
-| WireMock | `compose.integration.yml` | `cpf-wiremock` | 18080 | REST 오류·지연·Schema Fault | Source 존재 |
-| SFTP | `compose.integration.yml` | `cpf-sftp` | 2222 | Put·Get·Checksum·Atomic Rename | Source 존재 |
-| Vault | `compose.integration.yml` | `cpf-vault` | 8200 | Secret 조회·만료·Rotation | Source 존재 |
-| Keycloak | `compose.integration.yml` | `cpf-keycloak` | 18081 | OIDC·OAuth2·JWT·Session | Source 존재 |
-| Toxiproxy | `compose.tooling.yml` | `cpf-toxiproxy` | Source 기준 | Latency·Reset·Timeout | Source 존재 |
-| OTel Collector | `compose.tooling.yml` | `cpf-otel-collector` | 4317·4318·8888 | Trace·Metric·Backpressure | Source 존재 |
+| 서비스 | Image/Container | 기본 Port | 시험 목적 | 설치 상태 |
+|---|---|---|---|---|
+| MariaDB | mariadb:12.3.2 / cpf-mariadb | 3306 | Fresh/Upgrade/Rollback/Restore | 전체 설치 |
+| PostgreSQL | postgres:18.4-trixie / cpf-postgresql | 5432 | 동일 | 전체 설치 |
+| Oracle | Oracle Free 26ai / cpf-oracle | 1521 | 동일 | 전체 설치 |
+| Redis | redis:8.8.1 / cpf-redis | 6379 | Cache·Lock·Session·Invalidation | 전체 설치 |
+| Kafka | apache/kafka:4.3.1 / cpf-kafka | 9092 | Event·Outbox·Inbox·DLQ | 전체 설치 |
+| WireMock | wiremock 3.13.2 / cpf-wiremock | Source Compose | REST·Webhook·Timeout | 확장 설치 |
+| SFTP | CPF Fixture / cpf-sftp | 22 mapped | Transfer·Resume·Checksum | 확장 설치 |
+| Vault | hashicorp/vault 1.21.x / cpf-vault | 8200 | Secret·Rotation | 확장 설치 |
+| Keycloak | keycloak 26.6.1 / cpf-keycloak | 8080 mapped | OIDC·Session·Service Identity | 확장 설치 |
+| Toxiproxy | 2.12.0 / cpf-toxiproxy | 8474 | Network Fault | 전체 설치 |
+| OTel Collector | 0.157.0 / cpf-otel-collector | 4317/4318 등 | Trace·Metric Export | 전체 설치 |
 
-Port는 Compose `config` 결과와 Host 충돌을 확인해 확정한다.
+## 3. 신규 Starter 검증에 추가할 서비스
 
-## 4. 아직 설치 완료로 표시하지 않는 범위
+| Capability | 권장 Open Fixture | 필수 시험 | 주의 |
+|---|---|---|---|
+| RabbitMQ | RabbitMQ Management | Confirm·Return·Quorum·ACK/NACK·DLQ·Network Fault | 실제 Consumer와 Reliability Ledger 연결 |
+| Jakarta JMS | Apache ActiveMQ Artemis | Queue/Topic·Transaction·Ack·Redelivery·Durable·DLQ | JMS 계약 시험 |
+| IBM MQ | 외부 승인 IBM MQ 또는 제공된 개발 Image/Endpoint | CCDT/Channel·TLS·Reason Code·In-doubt·Reconcile | License·Driver·Credential을 Bundle에 포함하지 않음 |
+| TCP/ISO8583 | CPF TCP Simulator | Frame4종·DLE·Secondary Bitmap·MAC·Half-open·Orphan | TLS/mTLS와 기관 조회 |
+| Notification Email | Mailpit/MailHog 계열 Fixture | Accept·Bounce/Failure·Receipt·Duplicate·Quiet Hours | 실제 Provider Adapter 계약 |
+| SMS | Mock Provider/Webhook Receipt | Idempotency·Receipt·Timeout·Duplicate | SMS SPI Provider별 |
+| Object Storage | S3-compatible Fixture | Multipart·Checksum·Version·Retention·Network Fault | 업무 Consumer 연결 후 |
+| Malware Scan | 승인 Scanner Fixture | Safe/Quarantine/Reject·Timeout | 실제 Attachment 상태 연결 |
 
-| Runtime | 현재 이유 | 편입 조건 |
-|---|---|---|
-| RabbitMQ | 정식 Starter·Consumer 미등록 | Product Starter·Adapter·Consumer·Test 후 Compose 편입 |
-| Jakarta JMS/Artemis | JMS Provider Product 경로 미등록 | Provider Contract·Consumer·Operations 후 편입 |
-| IBM MQ | Starter·Driver·License·Consumer 미등록 | 별도 Extension·License 승인·Fault Test 후 선택 편입 |
-| TCP·ISO8583 Simulator | 정식 Runtime·Consumer 재확인 필요 | Codec·Connection·Correlation·Reconcile 구현 후 편입 |
-| Email·SMS Provider | Notification Starter·Receipt 경로 재확인 필요 | 실제 Provider·Receipt·중복 방지 후 편입 |
-| Object Storage·Malware Scan | File Product Consumer 재확인 필요 | Storage·Scanner·Retention·Fault Test 후 편입 |
+## 4. Resource·Port·보호 범위
 
-## 5. 경로·Secret 원칙
+- Docker Desktop Linux/amd64
+- Java 25·Node 22·PowerShell 7.6.4·Playwright 1.62.0 Toolchain
+- DB 3개와 Oracle Memory/Disk 여유
+- 모든 Port는 Loopback Binding을 우선한다.
+- Secret·Image Lock·Output은 `C:\dev\Docker` 아래 정확한 소유 경로에 둔다.
+- Repository Source, 다른 Docker 프로젝트, 전체 Cache/Volume을 정리하지 않는다.
 
-```text
-Repository : C:\dev\projects\jck\202412_01_CPF
-Runtime    : C:\dev\Docker\CPF
-Secret     : C:\dev\Docker\Secrets
-Output     : C:\dev\Docker\CPF\output
-```
+## 5. 검증 Matrix
 
-현재 Compose가 참조하는 Secret 파일 예:
-
-```text
-redis-password.txt
-sftp-password.txt
-vault-token.txt
-keycloak-admin-password.txt
-keycloak-test-password.txt
-keycloak-service-client-secret.txt
-```
-
-Secret 존재 여부만 확인하고 값은 출력하지 않는다.
-
-## 6. 환경 선택 기준
-
-| 시험 | 필요한 Runtime |
-|---|---|
-| DB Vendor Lifecycle | 대상 DB 하나, 필요 시 3개 순차 실행 |
-| Cache·Lock | Redis |
-| Kafka Messaging | Kafka + 대상 Consumer |
-| REST Fault | WireMock 또는 Toxiproxy |
-| SFTP | SFTP + File Consumer |
-| Secret | Vault + Secret Starter Consumer |
-| 인증·Session | Keycloak + Security Consumer |
-| Observability | OTel Collector + Instrumented Consumer |
-| Network Fault | Toxiproxy + 대상 Runtime |
-
-모든 Service를 동시에 기동하는 것을 기본값으로 삼지 않는다.
-
-## 7. 검증 단계
-
-```text
-Compose config
-→ Image·Digest
-→ Container Created/Stopped
-→ 선택 Service Start
-→ Health·Readiness
-→ Product Client Contract
-→ Fault Injection
-→ Retry·Reconcile·Rollback
-→ Evidence
-→ 선택 Service Stop
-→ Running CPF Container 0
-```
-
-## 8. 완료 판정
-
-- Compose config Exit Code 0
-- Container 이름·Port·Network 충돌 없음
-- Restart Policy `no`
-- Secret 원문 출력 없음
-- 실제 Product Consumer의 연결·인증·업무 효과 확인
-- 정상·오류·Timeout·Process Kill·부분 실패 실행
-- Operation·DB·Broker·Audit 대사
-- 작업 종료 후 Running CPF Container 0
-- Volume·사용자 데이터 보존
-- 실행하지 않은 Provider는 `미검증`
+| 계층 | 정상 | 오류·경계 | 복구 |
+|---|---|---|---|
+| DB | Fresh/Upgrade/Query | Lock·권한·Disk·부분 Migration | Rollback/Forward Fix/Restore |
+| Broker | Publish/Consume | ACK Loss·Rebalance·DLQ·Queue Full | Replay·Reconcile |
+| HTTP/Webhook | 200/Receipt | Timeout·5xx·Malformed·Response Loss | Attempt 조회·Retry |
+| TCP | Frame/Correlation | Fragment·Merge·Oversize·Half-open | Reconnect·Unknown Result |
+| SFTP | Upload/Download | Partial·Checksum·Disconnect | Resume·Atomic Rename |
+| Security | Login/Token/HMAC | Expiry·Nonce·Audience·Rotation | 재인증·Key Rotation |
+| Observability | Log/Metric/Trace | Collector Down·Backpressure | Buffer/Drop Metric·Recovery |
+| Product | ADM/BZA/Gateway/Batch | Permission·Partial·Process Kill | Operation·LKG·Restart·Reconcile |

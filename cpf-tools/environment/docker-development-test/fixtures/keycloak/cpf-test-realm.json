@@ -1,0 +1,33 @@
+{
+  "realm": "cpf-test",
+  "enabled": true,
+  "displayName": "CPF Local Integration Realm",
+  "registrationAllowed": false,
+  "resetPasswordAllowed": true,
+  "rememberMe": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "bruteForceProtected": true,
+  "roles": {
+    "realm": [
+      {"name": "CPF_USER"},
+      {"name": "CPF_OPERATOR"},
+      {"name": "CPF_APPROVER"}
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "cpf-admin-local",
+      "name": "CPF Local Browser Client",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "redirectUris": [
+        "http://127.0.0.1:*/*",
+        "http://localhost:*/*"
+      ],
+      "webOrigins": ["+"]
+    }
+  ]
+}

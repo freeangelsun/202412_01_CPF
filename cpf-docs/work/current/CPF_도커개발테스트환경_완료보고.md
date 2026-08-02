@@ -1,75 +1,59 @@
-# CPF 도커 개발·테스트 환경 전체 구성 완료 보고
+# CPF 도커 개발·테스트 환경 확장 보완 완료 보고
 
-- 기준 SHA: `23babb9140b90e501d6ac715e7b77f55b66198a5`
-- 신규 파일만 포함
-- 기존 파일 수정: 0
-- 삭제: 0
-- Secret 원문: 0
-- 특정 자동화 제품명: 0
+- 기준 SHA: `1eda8e12fe123281748a4388938c62f11819da1e`
+- 작업 성격: Docker 환경 Source·Script·Fixture·Guide 보완
+- Git Commit·Push: 수행하지 않음
+- Secret 원문: 포함하지 않음
+- 기존 Docker 자산 삭제: 없음
 
-## 제공
+## 주요 변경
 
-- 한 줄 전체 설치
-- Runtime Tool Source
-- 사용자·자동화 도구 공통 문서
-- Manifest
-- 파일별 SHA-256
-- 삭제 대상 없음
+- WireMock, SFTP, Vault, Keycloak 확장 Compose 추가
+- 기존 PC 전용 증분 설치 Script 추가
+- 새 PC 전체 설치 Script에 확장 설치 연결
+- SFTP 제한 계정 Image와 실제 업로드·다운로드 확인 절차 추가
+- Keycloak Realm·Test User·Service Client 초기화 절차 추가
+- Vault KV 연결 확인 추가
+- Toxiproxy 외부연계 Proxy 4개 추가
+- 통합 Runner에 OpenSSH Client·`sshpass` 추가
+- `cpf-env.ps1`을 선택 Group만 시작·중지하도록 보정
+- Docker 사용자 문서와 Architecture 명세 전면 갱신
+- Kafka가 공식 MQ이며 비정본 Broker를 설치하지 않는 근거 명시
+- 전체 Runtime 재판정과 External WAS Source Packaging Gap 구분
 
-## 로컬에서 수행하지 못한 항목
+## 정적 확인 결과
 
-- 사용자 Windows PC의 실제 Docker Pull
-- 통합 Runner 실제 Build
-- Oracle Instant Client 실제 다운로드
-- Tooling Container 실제 Create
-- CPF 전체 Runtime 실행
+- Compose YAML Parse: 완료
+- Fixture JSON Parse: 완료
+- Toxiproxy JSON Parse: 완료
+- Keycloak Realm JSON Parse: 완료
+- SFTP Entrypoint `bash -n`: 완료
+- Secret 원문 Pattern Scan: 완료
+- 절대경로는 사용자 실행 경로만 사용, Repository ZIP은 Root 상대경로
+- 광역 Docker 삭제 명령: 문서상 금지 예시 외 실행 Script에 없음
 
-실행 결과는 설치 Script가 사용자 PC에서 확인한다.
+## Runtime 상태
 
-## 사용자 장비 실행 결과
-
-- 통합 Toolchain Image Build: 완료
-- Trivy Version 실행: 완료
-- OSS Review Toolkit Version 실행: 완료
-- OpenTelemetry Collector Version 실행: 완료
-- Tooling Container 생성: 완료
-- 필수 Image: 13/13
-- Legacy Runner Image 보존: 3/3
-- Container: 7/7 Created/Stopped
-- Running: 0
-- Volume: 5/5
-- CPF 업무 Schema·Data·Seed: 생성하지 않음
-
-실행 중 확인된 Oracle 경로, ZIP 덮어쓰기, Docker Pull 출력 반환값 결함을 V3에 반영했다.
-
-
-## 연동 및 사용 가이드 보강
-
-`cpf-docs/guides/docker/CPF_도커_연동및사용가이드.md`에 다음 설명을 추가했다.
-
-- Host 실행 기반별 역할
-- DB·Redis·Kafka·Toxiproxy·OpenTelemetry Collector 용도
-- 통합 Toolchain에 포함된 프로그램별 용도
-- Trivy와 OSS Review Toolkit 용도
-- CPF 공식 Module·Starter와 Docker 구성요소 관계
-- 작업 유형별 필요한 Service와 불필요한 Service
-- Output·Cache·Image Lock 위치
-
-## 파일명 정책 정리
-
-장기 유지 문서의 파일명과 경로에서 날짜 접두사를 제거했다.
-
-- 날짜와 실행 시각은 문서 본문과 실행 결과에만 기록
-- 문서 개정 시 동일한 정본 파일을 갱신
-- 날짜별 중복 문서 생성 방지
-- Evidence도 장기 유지 경로로 통일
-
-## Docker 가이드 메뉴 구조
-
-Docker 사용자 가이드를 다음 정본 디렉터리로 통합했다.
+기존 Base 환경은 사용자 장비에서 다음 상태가 확인된 이력이 있다.
 
 ```text
-cpf-docs/guides/docker/
+Required Images: 13/13
+Prepared Containers: 7/7
+Running Containers: 0
+Prepared Volumes: 5/5
 ```
 
-`README.md`를 메뉴로 두고 안내, 전체 구축, 연동 및 사용, 문제 해결 및 초기화 문서를 같은 디렉터리에 배치했다. 기존 `cpf-docs/guides/` 바로 아래의 Docker 가이드 파일은 삭제 대상 Manifest에 기록했다.
+Overlay 적용 후 증분 설치의 목표 상태는 필수 Image 18개, Container 11개 Created/Stopped, Volume 7개, Secret File 7개다.
+
+이번에 추가한 WireMock·SFTP·Vault·Keycloak의 실제 Pull·Build·Create·연결은 현재 실행 환경에서 수행하지 못했다. 사용자 장비에서 증분 설치와 Fixture 초기화 Script를 실행한 결과가 있어야 Runtime 완료로 판정한다.
+
+## 완료 상태
+
+| 영역 | 상태 |
+|---|---|
+| Source·Compose·Script | 완료 |
+| Guide·Architecture·Matrix | 완료 |
+| 정적 Syntax·Format Gate | 완료 |
+| 기존 Base Runtime | 완료 이력 |
+| 신규 확장 Runtime | 미검증 |
+| CPF Application 통합 Runtime | 미검증 |

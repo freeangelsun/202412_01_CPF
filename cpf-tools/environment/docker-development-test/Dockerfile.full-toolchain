@@ -32,6 +32,8 @@ RUN apt-get update \
        procps \
        iputils-ping \
        netcat-openbsd \
+       openssh-client \
+       sshpass \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=java_runtime /opt/java/openjdk /opt/java/openjdk
@@ -91,6 +93,8 @@ RUN java -version \
     && docker --version \
     && docker compose version \
     && jq --version \
-    && openssl version
+    && openssl version \
+    && ssh -V \
+    && sshpass -V
 
 CMD ["pwsh", "-NoLogo", "-NoProfile"]

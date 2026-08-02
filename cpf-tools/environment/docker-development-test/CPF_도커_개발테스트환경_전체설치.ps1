@@ -14,6 +14,19 @@ function Write-Utf8NoBom {
     [System.IO.File]::WriteAllText($Path, $Content, [System.Text.UTF8Encoding]::new($false))
 }
 
+function Read-RequiredPassword {
+    param([Parameter(Mandatory)][string]$Prompt)
+    $secure = Read-Host -Prompt $Prompt -AsSecureString
+    $pointer = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secure)
+    try {
+        $plain = [System.Runtime.InteropServices.Marshal]::PtrToStringBSTR($pointer)
+        if ([string]::IsNullOrWhiteSpace($plain)) { throw "비밀번호를 비워 둘 수 없습니다." }
+        return $plain
+    } finally {
+        [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($pointer)
+    }
+}
+
 function Invoke-Docker {
     param([Parameter(Mandatory)][string[]]$Arguments)
     & docker @Arguments
@@ -75,7 +88,7 @@ New-Item -ItemType Directory -Force -Path $cpfRoot, $secretRoot | Out-Null
 
 if (-not (Test-Path -LiteralPath $envPath -PathType Leaf)) {
     if ([string]::IsNullOrWhiteSpace($AdminPassword)) {
-        throw "Secret 파일이 없습니다. 다른 PC 최초 구성에서는 -AdminPassword를 지정하세요: $envPath"
+        $AdminPassword = Read-RequiredPassword -Prompt "CPF 로컬 관리자 공통 비밀번호"
     }
     if ($AdminPassword.Contains("`r") -or $AdminPassword.Contains("`n")) {
         throw "관리자 비밀번호에 줄바꿈을 사용할 수 없습니다."
@@ -93,6 +106,9 @@ if (-not (Test-Path -LiteralPath $redisSecretPath -PathType Leaf)) {
     }
     Write-Utf8NoBom -Path $redisSecretPath -Content "$password`n"
 }
+
+[void][System.IO.File]::ReadAllBytes($envPath)
+[void][System.IO.File]::ReadAllBytes($redisSecretPath)
 
 $baseRuntimeFiles = @(
     "compose.yml",
@@ -122,7 +138,13 @@ $ownedFiles = @(
     "run-trivy.ps1",
     "run-ort.ps1",
     "run-full-toolchain.ps1",
-    "verify-complete-environment.ps1"
+    "verify-complete-environment.ps1",
+    "verify-clean-prepared.ps1",
+    "CPF_도커_확장연동환경_증분설치.ps1",
+    "compose.integration.yml",
+    "Dockerfile.sftp-fixture",
+    "sftp-entrypoint.sh",
+    "initialize-integration-fixtures.ps1"
 )
 foreach ($name in $ownedFiles) {
     $source = Join-Path $sourceRoot $name
@@ -172,7 +194,7 @@ $ortImage = Pull-FirstAvailable -Name "OSS Review Toolkit" -Candidates @(
     "ghcr.io/oss-review-toolkit/ort:latest"
 )
 
-$fullRunnerImage = "cpf-full-development-test-runner:java25-node22-pwsh7.6.4-playwright1.62.0"
+$fullRunnerImage = "cpf-full-development-test-runner:java25-node22-pwsh7.6.4-playwright1.62.0-integration1"
 Invoke-Docker @(
     "build",
     "--pull=false",
@@ -204,7 +226,9 @@ $toolCheck = @(
     "docker --version",
     "docker compose version",
     "jq --version",
-    "openssl version"
+    "openssl version",
+    "ssh -V",
+    "sshpass -V"
 ) -join "; "
 Invoke-Docker @("run", "--rm", $fullRunnerImage, "bash", "-lc", $toolCheck)
 Invoke-Docker @("run", "--rm", $trivyImage, "--version")
@@ -278,15 +302,27 @@ Write-Utf8NoBom -Path (Join-Path $cpfRoot "image-lock-complete.json") -Content (
     $lock | ConvertTo-Json -Depth 8
 )
 
-& pwsh -NoProfile -File (Join-Path $cpfRoot "verify-complete-environment.ps1") -RequireStopped
+$integrationInstaller = Join-Path $sourceRoot "CPF_도커_확장연동환경_증분설치.ps1"
+if (-not (Test-Path -LiteralPath $integrationInstaller -PathType Leaf)) { throw "확장 연동 설치 Script가 없습니다: $integrationInstaller" }
+$integrationArgs = @(
+    "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $integrationInstaller,
+    "-DockerRoot", $DockerRoot, "-RepoRoot", $RepoRoot
+)
+# 관리자 비밀번호는 이미 Repository 밖 환경파일에 저장되어 있으므로 자식 Process 인자로 전달하지 않는다.
+& pwsh @integrationArgs
+if ($LASTEXITCODE -ne 0) { throw "확장 연동 환경 설치 실패(exit=$LASTEXITCODE)" }
+
+& pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $cpfRoot "verify-complete-environment.ps1") -RequireStopped
 if ($LASTEXITCODE -ne 0) { throw "전체 환경 상태 확인 실패(exit=$LASTEXITCODE)" }
 
 Write-Host ""
 Write-Host "CPF Docker 개발·테스트 환경 전체 구성 완료" -ForegroundColor Green
-Write-Host "추가 Tool: Toxiproxy, OpenTelemetry Collector, Trivy, OSS Review Toolkit"
-Write-Host "통합 Toolchain: Java 25, Node 22, PowerShell 7.6.4, Playwright 1.62.0, Python 3, Git, MariaDB Client, psql, SQL*Plus, Docker CLI"
-Write-Host "필수 Image: 13개, 기존 Legacy Runner Image는 있으면 보존"
-Write-Host "Container: 7개 Created/Stopped"
+Write-Host "Base: Oracle, PostgreSQL, MariaDB, Redis, Kafka"
+Write-Host "확장 연동: WireMock, SFTP, Vault, Keycloak"
+Write-Host "Tool: Toxiproxy, OpenTelemetry Collector, Trivy, OSS Review Toolkit"
+Write-Host "통합 Toolchain: Java 25, Node 22, PowerShell 7.6.4, Playwright 1.62.0, Python 3, Git, DB Client, Docker CLI, OpenSSH Client"
+Write-Host "필수 Image: 18개, 기존 Runner Image는 있으면 보존"
+Write-Host "Container: 11개 Created/Stopped"
 Write-Host "Running: 0"
-Write-Host "CPF 업무 Schema·Data·Seed: 생성하지 않음"
+Write-Host "CPF 업무 Schema·Data·Seed·Kafka Topic: 생성하지 않음"
 Write-Host "Runtime Root: $cpfRoot"

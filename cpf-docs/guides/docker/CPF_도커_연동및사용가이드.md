@@ -2,191 +2,229 @@
 
 상위 메뉴: [CPF Docker 가이드](README.md)
 
-> 대상: CPF 개발자, QA 담당자, 운영 지원자, 자동화 도구  
-> 목적: 설치된 Docker 개발·테스트 환경의 구성요소와 용도를 이해하고 필요한 항목만 선택해 사용한다.
+## 1. 사용 원칙
 
-## 1. 이 환경을 구성하는 프로그램과 역할
+이 환경은 필요한 Service만 선택 기동한다. 동일 SHA에서 저비용 Source Gate와 Build를 먼저 완료한 뒤 DB·Kafka·Redis·외부연계·장애·복구 Runtime을 한 번씩 실행하는 것을 기본 순서로 한다.
 
-CPF Docker 환경은 단순히 Database Container만 실행하는 구성이 아니다. 개발, DB 설치, Batch, Messaging, Cache, 장애 상황, Telemetry, Frontend, Browser, Supply-chain 작업을 동일한 환경에서 수행할 수 있도록 Service와 Toolchain을 함께 제공한다.
+Container 상태 확인이나 Image Version 출력만으로 기능 검수를 완료 처리하지 않는다. 실제 CPF Source·SQL·Migration·Client·Consumer를 연결해야 한다.
 
-모든 프로그램을 항상 실행할 필요는 없다. 수행할 작업에 필요한 Service만 시작하고, 명령형 Tool은 작업할 때만 일회성 Container로 실행한다.
+## 2. Service와 역할
 
-### 1.1 Host 실행 기반
-
-| 프로그램 | 역할 | 필요한 이유 |
+| Service | Container | 역할 |
 |---|---|---|
-| Windows 10/11 | 개발 PC 운영체제 | CPF Repository, IDE, PowerShell, Docker Desktop을 실행한다. |
-| WSL 2 | Linux Container Backend | Windows에서 Linux Container를 안정적으로 실행하는 기반이다. |
-| Docker Desktop | Container 실행·Image·Volume·Network 관리 | DB, Redis, Kafka, Toxiproxy, OpenTelemetry Collector와 Tool Image를 실행한다. |
-| Docker Engine | 실제 Container Runtime | Image를 Container로 만들고 Network·Volume·Port를 관리한다. |
-| Docker Compose | 여러 Service의 구성과 수명주기 관리 | CPF DB 3종, Redis, Kafka, Toxiproxy, Telemetry Service를 일관된 이름과 Port로 실행한다. |
-| PowerShell 7 | 설치·상태·기동·중지·초기화 Script 실행 | Windows에서 한 줄 명령으로 환경을 관리하고 CPF의 기존 PowerShell Tool을 실행한다. |
-| Git | Source 기준과 변경 상태 확인 | 기준 Commit, Working Tree, Diff, 변경 파일을 확인하고 실행 결과의 기준점을 남긴다. |
+| MariaDB | `cpf-mariadb` | 공식 DB Vendor Runtime |
+| PostgreSQL | `cpf-postgresql` | 공식 DB Vendor Runtime |
+| Oracle | `cpf-oracle` | 공식 DB Vendor Runtime |
+| Redis | `cpf-redis` | Distributed Cache·Lock·Counter Fixture |
+| Kafka | `cpf-kafka` | 공식 MQ/Broker, Event·Batch Remote Transport |
+| WireMock | `cpf-wiremock` | 외부 REST 성공·오류·지연·Reset Fixture |
+| SFTP | `cpf-sftp` | 파일 송수신·ACK/NACK·재처리 Fixture |
+| Vault | `cpf-vault` | Secret Provider Dev Fixture |
+| Keycloak | `cpf-keycloak` | OIDC/OAuth2/JWT Identity Fixture |
+| Toxiproxy | `cpf-toxiproxy` | DB·Broker·외부연계 장애 주입 |
+| OTel Collector | `cpf-otel-collector` | OTLP Trace·Metric·Log 수집 |
 
-### 1.2 Docker Service 프로그램
+Kafka가 CPF의 MQ다. RabbitMQ·ActiveMQ·IBM MQ는 기본 대상이 아니다.
 
-| 프로그램 | Container | 주요 용도 | 평상시 실행 여부 |
-|---|---|---|---|
-| MariaDB | `cpf-mariadb` | 공식 지원 DB 중 MariaDB용 Schema·SQL·Migration·Runtime Query 테스트 | MariaDB 작업 때만 |
-| PostgreSQL | `cpf-postgresql` | 공식 지원 DB 중 PostgreSQL용 Schema·SQL·Migration·Runtime Query 테스트 | PostgreSQL 작업 때만 |
-| Oracle AI Database Free | `cpf-oracle` | 공식 지원 DB 중 Oracle용 User·Schema·Grant·SQL·Migration 테스트 | Oracle 작업 때만 |
-| Redis | `cpf-redis` | Cache, TTL, 분산 상태, Lock, 재시작 후 Persistence 관련 테스트 | Redis 연계 작업 때만 |
-| Apache Kafka | `cpf-kafka` | Messaging, Event, Batch Worker, Consumer Group, Retry·Recovery 테스트 | Kafka·Batch 작업 때만 |
-| Toxiproxy | `cpf-toxiproxy` | DB·Redis·Kafka 연결에 지연, Timeout, 연결 차단, Reset을 주입 | 장애 상황 테스트 때만 |
-| OpenTelemetry Collector | `cpf-otel-collector` | CPF가 전송하는 Trace·Metric·Log를 OTLP로 수신하고 파일·Console로 확인 | Telemetry 작업 때만 |
+### 연결 위치 기준
 
-### 1.3 통합 Toolchain Runner
+| Service | Windows Host에서 연결 | CPF Docker Network에서 연결 |
+|---|---|---|
+| MariaDB | `127.0.0.1:3306` | `cpf-mariadb:3306` |
+| PostgreSQL | `127.0.0.1:5432` | `cpf-postgresql:5432` |
+| Oracle | `127.0.0.1:1521` | `cpf-oracle:1521` |
+| Redis | `127.0.0.1:6379` | `cpf-redis:6379` |
+| Kafka | `127.0.0.1:9092` | `cpf-kafka:19092` |
+| WireMock | `127.0.0.1:18080` | `cpf-wiremock:8080` |
+| SFTP | `127.0.0.1:2222` | `cpf-sftp:22` |
+| Vault | `127.0.0.1:8200` | `cpf-vault:8200` |
+| Keycloak | `127.0.0.1:18081` | `cpf-keycloak:8080` |
+| Toxiproxy | `127.0.0.1:<proxy-port>` | `cpf-toxiproxy:<proxy-port>` |
+| OTel Collector | `127.0.0.1:4317/4318` | `cpf-otel-collector:4317/4318` |
 
-통합 Runner Image:
+Host에서 실행하는 CPF Process와 통합 Runner Container의 주소를 혼용하지 않는다. Kafka는 Listener가 다르므로 Host는 9092, Docker Network는 19092를 사용한다.
 
-```text
-cpf-full-development-test-runner:java25-node22-pwsh7.6.4-playwright1.62.0
+## 3. Toolchain
+
+| Tool | 용도 |
+|---|---|
+| Java 25 | Gradle Build·Test·Runtime |
+| Node.js 22·npm | ADM/BZA lint·typecheck·unit·build |
+| Playwright | Chromium·Firefox·WebKit E2E |
+| PowerShell 7.6.4 | Repository 관리·DB·환경 Script |
+| Python 3 | Gate·정합성·Evidence Script |
+| MariaDB Client·psql·SQL*Plus | 공식 DB 3종 Lifecycle |
+| OpenSSH Client·sshpass | SFTP Fixture 실제 송수신 |
+| Docker CLI·Compose | Service 선택 기동 |
+| Trivy | 취약점·Secret·Misconfiguration·SBOM |
+| OSS Review Toolkit | OSS Dependency·License 정책 |
+| curl·jq·openssl | API·JSON·TLS·서명 확인 |
+
+통합 Runner:
+
+```powershell
+pwsh -NoProfile -File "C:\dev\Docker\CPF\run-full-toolchain.ps1" -RepoRoot "C:\dev\projects\jck\202412_01_CPF"
 ```
 
-| 포함 프로그램 | 용도 | 주로 사용하는 영역 |
-|---|---|---|
-| Java 25 | Gradle Build, Unit Test, Integration Test, Runtime 실행 | 모든 Backend Module |
-| Gradle Wrapper | Repository에 선언된 정확한 Gradle Version과 Task 실행 | 전체 Java Build·Publication |
-| Node.js 22·npm | ADM/BZA Frontend 의존성 설치, lint, typecheck, unit test, build | `cpf-admin`, `cpf-biz-admin` Frontend |
-| Playwright 1.62.0 | Chromium·Firefox·WebKit Browser 자동화 | ADM/BZA 화면과 Backend 연동 |
-| Python 3 | Repository의 Python Gate·분석·변환 Script 실행 | `cpf-tools`, CI 성격의 Source Gate |
-| Git | 기준 SHA·Diff·Working Tree 확인 | 전체 Repository |
-| MariaDB Client | MariaDB SQL File 실행과 접속 확인 | MariaDB DB Lifecycle |
-| PostgreSQL `psql` | PostgreSQL SQL File 실행과 접속 확인 | PostgreSQL DB Lifecycle |
-| Oracle SQL*Plus | Oracle Provision·Install·Seed·Upgrade·Rollback SQL 실행 | Oracle DB Lifecycle |
-| Docker CLI·Compose | Runner 내부에서 Host Docker Engine 제어 | Container 기반 통합 작업 |
-| `curl` | HTTP API·Health Endpoint·Artifact 다운로드 | Gateway, ADM/BZA, Runtime |
-| `jq` | JSON 응답과 JSON Evidence 처리 | API·Script·Evidence |
-| `openssl` | 인증서, TLS, Hash, 서명 관련 확인 | Security·Gateway·Supply-chain |
-| `zip`·`unzip` | Artifact·Overlay·결과 묶음 처리 | 배포·인수인계·Evidence |
-
-### 1.4 명령형 품질·공급망 Tool
-
-다음 도구는 상시 실행 Container가 아니다. 필요한 작업 시 `docker run --rm` 방식으로 실행하고 종료한다.
-
-| 프로그램 | Image | 주요 용도 | 결과 경로 |
-|---|---|---|---|
-| Trivy | `aquasec/trivy:0.70.0` | Source·Dependency·Container 관련 취약점, 설정 오류, Secret, CycloneDX SBOM 확인 | `C:\dev\Docker\CPF\output\trivy` |
-| OSS Review Toolkit | `ghcr.io/oss-review-toolkit/ort:87.3.0` | Open Source Dependency 분석, License 정책, 승인 목록과의 정합성 확인 | `C:\dev\Docker\CPF\output\ort` |
-
-## 2. CPF Module과 Docker 구성요소의 관계
-
-아래 표는 대표적인 연계를 설명한다. 실제 Service 사용 여부는 각 Module의 활성 Profile과 실제 Consumer 연결을 기준으로 판단한다.
-
-| CPF Module 또는 영역 | 기본 역할 | 주로 사용하는 Docker 구성 | 사용하는 이유 |
-|---|---|---|---|
-| `cpf-core` | Topology-independent 핵심 계약과 기술 기반 | Java Toolchain | 순수 계약·Unit Test는 외부 Service 없이 수행할 수 있다. Adapter나 통합 경로를 테스트할 때 관련 Starter의 Service를 사용한다. |
-| `cpf-common` | 고객 업무 공통 기능 | 공식 DB 1종, 필요 시 Redis·Kafka | 공통 Code·Message·업무 데이터, Cache, Event 연계를 테스트한다. |
-| `cpf-admin` | 플랫폼 운영·관리 Backend와 ADM | 공식 DB 1종, OpenTelemetry, Node, Playwright | 운영 데이터, 관리 API, 상태 정보, ADM Frontend와 Browser 연동을 테스트한다. |
-| `cpf-biz-admin` | 고객 업무 관리자 Backend와 BZA | 공식 DB 1종, Node, Playwright | 조직·사용자·권한·결재·Audit 등 BZA 업무와 화면 연동을 테스트한다. |
-| `cpf-batch` | Batch·Worker·Scheduler·Center-Cut Runtime | 공식 DB 1종, Kafka, 필요 시 Redis, Toxiproxy | Job Repository, Worker Event, Scheduler, Retry, 재시작, 부분 실패와 Recovery를 테스트한다. |
-| `cpf-gateway` | 내부 API Routing과 진입 경계 | OpenTelemetry, Toxiproxy, 필요 시 Redis | Route, Timeout, Resilience, 추적 정보와 외부 의존 장애 상황을 테스트한다. |
-| `cpf-reference` | 기준정보 Domain | 공식 DB 1종 | 기준정보 Schema, CRUD, Install·Upgrade·Rollback과 Runtime Query를 테스트한다. |
-| `cpf-member` 및 생성 Domain | Generator 기반 업무 Domain | 공식 DB 1종, 선택적으로 Kafka·Redis | Golden Template에서 생성된 Domain의 SQL·CRUD·Messaging·Cache 정합성을 테스트한다. |
-| `cpf-starters/cache` | Cache 연동 Starter | Redis | Cache Hit/Miss, TTL, Serialization, 장애 시 Fallback 정책을 테스트한다. |
-| `cpf-starters/messaging-kafka` | Kafka Messaging Starter | Kafka, Toxiproxy | Produce·Consume, Consumer Group, Retry, Duplicate, Unknown Result를 테스트한다. |
-| `cpf-starters/observability` | Trace·Metric·Log 연동 Starter | OpenTelemetry Collector | OTLP Export와 Transaction 식별·추적 정보를 확인한다. |
-| `cpf-starters/resilience` | Timeout·Retry·Circuit Breaker 기반 | Toxiproxy와 대상 Service | 실제 지연·차단·Reset 조건에서 정책이 동작하는지 테스트한다. |
-| `cpf-tools` | Generator, DB Lifecycle, Gate, Packaging | Python, Git, DB Client, Docker CLI, `jq`, 압축 도구 | Source·SQL·Generator·Artifact 관련 Script를 실행한다. |
-| Supply-chain 영역 | SBOM·취약점·License 정책 | Trivy, OSS Review Toolkit | 배포 전 Open Source와 Artifact 위험을 확인한다. |
-
-## 3. 작업별로 무엇을 켜야 하는가
-
-| 수행할 작업 | 필요한 Service·Tool | 실행하지 않아도 되는 항목 |
-|---|---|---|
-| Java Unit Test | 통합 Runner 또는 Host Java 25 | DB·Redis·Kafka·Tooling Service |
-| MariaDB SQL·Migration | MariaDB + MariaDB Client | PostgreSQL·Oracle |
-| PostgreSQL SQL·Migration | PostgreSQL + `psql` | MariaDB·Oracle |
-| Oracle SQL·Migration | Oracle + SQL*Plus | MariaDB·PostgreSQL |
-| Redis Cache | Redis | DB·Kafka는 해당 기능이 요구하지 않으면 불필요 |
-| Kafka Messaging | Kafka | Redis·DB는 Consumer 구현에 따라 선택 |
-| Batch 통합 테스트 | 대상 DB + Kafka, 필요 시 Redis | 사용하지 않는 나머지 DB |
-| 장애·재시도·복구 | 대상 Service + Toxiproxy | OpenTelemetry는 추적 정보가 필요할 때만 |
-| Trace·Metric·Log 확인 | 대상 Application + OpenTelemetry Collector | Toxiproxy는 장애 조건이 없으면 불필요 |
-| ADM/BZA Frontend Build | Node.js·npm | DB는 Backend 연동이 없는 정적 Build에서는 불필요 |
-| Browser End-to-End | Node.js, Playwright, Backend, 해당 DB·Infra | 사용하지 않는 DB Vendor |
-| Source 취약점·SBOM | Trivy | Base Service 전체 |
-| OSS Dependency·License | OSS Review Toolkit | Base Service 전체 |
-| API·JSON·TLS 확인 | `curl`, `jq`, `openssl` | 작업과 무관한 Service |
-
-## 4. 기본 Service 상태와 실행
-
-상태 확인:
+## 4. 기본 상태
 
 ```powershell
 pwsh -NoProfile -File "C:\dev\Docker\CPF\cpf-env.ps1" -Action status
 ```
 
-DB·Kafka·Redis 실행은 `cpf-env.ps1`을 사용한다.
-
-### 4.1 MariaDB + Kafka
+전체 환경 정지 상태 확인:
 
 ```powershell
-pwsh -NoProfile -File "C:\dev\Docker\CPF\cpf-env.ps1" -Action up -Target batch-mariadb
+pwsh -NoProfile -File "C:\dev\Docker\CPF\verify-complete-environment.ps1" -RequireStopped
 ```
 
-### 4.2 PostgreSQL + Kafka
+## 5. 작업별 선택 기동
+
+### MariaDB
 
 ```powershell
-pwsh -NoProfile -File "C:\dev\Docker\CPF\cpf-env.ps1" -Action up -Target batch-postgresql
+pwsh -NoProfile -File "C:\dev\Docker\CPF\cpf-env.ps1" -Action up -Target mariadb
 ```
 
-### 4.3 Oracle + Kafka
+### PostgreSQL
 
 ```powershell
-pwsh -NoProfile -File "C:\dev\Docker\CPF\cpf-env.ps1" -Action up -Target batch-oracle
+pwsh -NoProfile -File "C:\dev\Docker\CPF\cpf-env.ps1" -Action up -Target postgresql
 ```
 
-### 4.4 Redis + Kafka
+### Oracle
+
+```powershell
+pwsh -NoProfile -File "C:\dev\Docker\CPF\cpf-env.ps1" -Action up -Target oracle
+```
+
+### Redis + Kafka
 
 ```powershell
 pwsh -NoProfile -File "C:\dev\Docker\CPF\cpf-env.ps1" -Action up -Target infra
 ```
 
-### 4.5 전체 Base Service
+### Batch + MariaDB + Kafka
 
 ```powershell
-pwsh -NoProfile -File "C:\dev\Docker\CPF\cpf-env.ps1" -Action up -Target all
+pwsh -NoProfile -File "C:\dev\Docker\CPF\cpf-env.ps1" -Action up -Target batch-mariadb
 ```
 
-> 공식 DB 3종을 항상 동시에 실행할 필요는 없다. Vendor별 SQL·Migration 작업은 대상 DB 한 종류만 선택하는 것을 기본으로 한다.
+PostgreSQL과 Oracle은 각각 `batch-postgresql`, `batch-oracle`을 사용한다.
 
-## 5. 장애 조건과 Telemetry Tool
+### 외부연계 Fixture
 
-상태:
+```powershell
+pwsh -NoProfile -File "C:\dev\Docker\CPF\cpf-env.ps1" -Action up -Target external
+```
+
+### Vendor별 전체 통합
+
+```powershell
+pwsh -NoProfile -File "C:\dev\Docker\CPF\cpf-env.ps1" -Action up -Target integration-mariadb
+```
+
+PostgreSQL과 Oracle은 각각 `integration-postgresql`, `integration-oracle`을 사용한다.
+
+### 시작한 Group만 중지
+
+```powershell
+pwsh -NoProfile -File "C:\dev\Docker\CPF\cpf-env.ps1" -Action stop -Target integration-mariadb
+```
+
+## 6. Module별 대표 연계
+
+| CPF 영역 | 필요한 Runtime | 확인할 내용 |
+|---|---|---|
+| `cpf-core` | 기본 Java, 적용 시 Fixture | Public API/SPI와 Adapter 계약. 선택 Runtime 강제 금지 |
+| `cpf-common` | 공식 DB, Redis 선택 | 업무 공통 데이터, Cache Aside, Lock·Invalidation |
+| `cpf-admin` | 공식 DB, Keycloak, OTel, Playwright | 운영자 인증·Session·권한·운영 API·ADM E2E |
+| `cpf-biz-admin` | 공식 DB, Keycloak, Playwright | 조직·사용자·결재·Audit·BZA E2E |
+| `cpf-gateway` | WireMock, Keycloak, Redis 선택, Toxiproxy, OTel | Route·Trust·SSRF·Timeout·Retry·Unknown Result |
+| `cpf-batch` | 공식 DB, Kafka, SFTP 선택, Toxiproxy | Spring Batch Repository·Remote Worker·Restart·Reconcile |
+| 생성 Domain | 공식 DB, Kafka·Redis·WireMock·SFTP 선택 | Generator 결과, CRUD, Event, 외부 REST/File Adapter |
+| Cache Starter | Redis 또는 Caffeine | Hit/Miss·TTL·Serialization·Multi-instance·Fallback |
+| Kafka Starter | Kafka | ACK·Transaction·Duplicate·Ordering·Rebalance·DLT |
+| Observability Starter | OTel Collector | 식별자·Masking·Trace·Metric·Log |
+| Security Starter | Keycloak·공식 DB | OIDC/OAuth2/JWT·JDBC Session·Fail-closed |
+| Secret Starter | Vault·File·Env | Provider 선택·Rotation·Revocation·원문 비노출 |
+| Resilience Starter | WireMock·Toxiproxy | 단계별 Timeout·Retry·Circuit Breaker |
+
+## 7. DB 검수
+
+각 Vendor는 다음을 실제로 실행한다.
+
+```text
+Fresh Install
+Seed
+Runtime Query
+Upgrade
+Rollback
+Reapply
+Schema Drift
+Unsupported Vendor Fail-closed
+```
+
+공식 DB 3종을 동시에 켜 둘 필요는 없다. 한 Vendor를 완료한 뒤 중지하고 다음 Vendor를 실행한다. Keycloak 내부 개발 저장소는 CPF DB Evidence로 계산하지 않는다.
+
+## 8. Kafka 검수
+
+Kafka는 다음 시나리오를 실제 Topic·Producer·Consumer로 확인한다.
+
+```text
+ACK와 Transaction
+Stable Message ID
+Partition·Ordering
+Consumer Group·Rebalance
+Duplicate·Idempotent Consumer
+Retry Topic·DLT
+Broker Outage
+Consumer Process Kill
+Response Loss·Unknown Result·Reconcile
+```
+
+Docker 설치 단계에서는 Topic을 만들지 않는다. Topic 이름과 생성 정책은 Repository Source가 소유한다.
+
+## 9. Redis 검수
+
+```text
+Cache Hit·Miss
+TTL·Eviction
+Serialization·Payload Limit
+Distributed Lock·Lease·Fencing
+Multi-instance Invalidation
+Redis Down·Timeout·Recovery
+Product Profile Fail-closed
+```
+
+## 10. 외부연계 검수
+
+WireMock·SFTP·Vault·Keycloak 사용법과 계정 식별자는 [확장 연동 서비스 사용 가이드](CPF_도커_확장연동서비스_사용가이드.md)를 따른다.
+
+기본 Fixture 초기화:
+
+```powershell
+pwsh -NoProfile -File "C:\dev\Docker\CPF\initialize-integration-fixtures.ps1" -StopAfter
+```
+
+## 11. 장애 조건
+
+Tool 상태:
 
 ```powershell
 pwsh -NoProfile -File "C:\dev\Docker\CPF\cpf-tooling.ps1" -Action status
 ```
 
-Toxiproxy와 OpenTelemetry Collector:
-
-```powershell
-pwsh -NoProfile -File "C:\dev\Docker\CPF\cpf-tooling.ps1" -Action up -Target tools
-```
-
-MariaDB·Kafka·Toxiproxy:
+DB·Kafka 장애:
 
 ```powershell
 pwsh -NoProfile -File "C:\dev\Docker\CPF\cpf-tooling.ps1" -Action up -Target fault-mariadb
 ```
 
-PostgreSQL·Kafka·Toxiproxy:
+외부연계 장애:
 
 ```powershell
-pwsh -NoProfile -File "C:\dev\Docker\CPF\cpf-tooling.ps1" -Action up -Target fault-postgresql
-```
-
-Oracle·Kafka·Toxiproxy:
-
-```powershell
-pwsh -NoProfile -File "C:\dev\Docker\CPF\cpf-tooling.ps1" -Action up -Target fault-oracle
-```
-
-Redis·Kafka·Toxiproxy:
-
-```powershell
-pwsh -NoProfile -File "C:\dev\Docker\CPF\cpf-tooling.ps1" -Action up -Target fault-infra
+pwsh -NoProfile -File "C:\dev\Docker\CPF\cpf-tooling.ps1" -Action up -Target fault-external
 ```
 
 장애 조건 제거:
@@ -195,43 +233,15 @@ pwsh -NoProfile -File "C:\dev\Docker\CPF\cpf-tooling.ps1" -Action up -Target fau
 pwsh -NoProfile -File "C:\dev\Docker\CPF\cpf-tooling.ps1" -Action reset-faults
 ```
 
-## 6. Toxiproxy 연결 Port
+Proxy Port는 구성 명세와 확장 연동 가이드를 따른다.
 
-| 대상 | 직접 Port | Proxy Port |
-|---|---:|---:|
-| MariaDB | 3306 | 13306 |
-| PostgreSQL | 5432 | 15432 |
-| Oracle | 1521 | 11521 |
-| Redis | 6379 | 16379 |
-| Kafka | 9092 | 19093 |
+## 12. OpenTelemetry
 
-Toxiproxy 관리 API:
-
-```text
-http://127.0.0.1:8474
-```
-
-직접 Port는 정상 연결 테스트에 사용하고 Proxy Port는 지연·차단·Reset 같은 장애 조건 테스트에 사용한다.
-
-## 7. OpenTelemetry Collector
-
-OTLP gRPC:
-
-```text
-http://127.0.0.1:4317
-```
-
-OTLP HTTP:
-
-```text
-http://127.0.0.1:4318
-```
-
-Collector 자체 Metric:
-
-```text
-http://127.0.0.1:8888/metrics
-```
+| 항목 | Endpoint |
+|---|---|
+| OTLP gRPC | `http://127.0.0.1:4317` |
+| OTLP HTTP | `http://127.0.0.1:4318` |
+| Collector Metric | `http://127.0.0.1:8888/metrics` |
 
 수집 결과:
 
@@ -239,128 +249,57 @@ http://127.0.0.1:8888/metrics
 C:\dev\Docker\CPF\output\otel
 ```
 
-OpenTelemetry Collector는 CPF Application의 기능을 대신하지 않는다. `cpf-starters/observability` 또는 Application 설정에서 OTLP Endpoint를 Collector로 지정했을 때 전송되는 Trace·Metric·Log를 받는 역할이다.
+Transaction·Segment·Attempt·Job·Execution·Item·Agent 식별자가 연결되는지 확인하고 Secret·Token·PII 원문이 없는지 점검한다.
 
-## 8. 통합 Toolchain Runner
+## 13. Frontend·Browser
 
-실행:
-
-```powershell
-pwsh -NoProfile -File "C:\dev\Docker\CPF\run-full-toolchain.ps1" -RepoRoot "C:\dev\projects\jck\202412_01_CPF"
-```
-
-Runner 안에서는 Repository가 `/workspace/cpf`에 연결되고 Docker Socket을 통해 필요한 Service를 제어할 수 있다.
-
-대표 사용:
+정적 Build만 수행할 때 DB는 불필요하다. Backend E2E는 대상 DB와 인증·외부 Fixture를 함께 시작한다.
 
 ```text
-Gradle Build·Test
-Frontend npm ci·lint·typecheck·test·build
-Playwright 3 Browser
-DB Lifecycle Script
-Python Gate
-API·JSON·TLS 확인
-Artifact 압축과 Hash
+npm ci
+lint
+typecheck
+unit test
+production build
+Chromium
+Firefox
+WebKit
 ```
 
-## 9. Trivy
+401·403·404·409·429·500·503, Session expiry, deep link, keyboard와 responsive 동작을 확인한다.
 
-실행:
+## 14. Supply Chain
+
+Trivy:
 
 ```powershell
 pwsh -NoProfile -File "C:\dev\Docker\CPF\run-trivy.ps1" -RepoRoot "C:\dev\projects\jck\202412_01_CPF"
 ```
 
-수행 항목:
-
-```text
-취약점 확인
-설정 오류 확인
-Secret Pattern 확인
-CycloneDX SBOM 생성
-```
-
-결과:
-
-```text
-C:\dev\Docker\CPF\output\trivy
-```
-
-Trivy 결과에는 경로와 Dependency 정보가 포함될 수 있으므로 외부 제공 전 민감정보와 불필요한 로컬 경로를 제거한다.
-
-## 10. OSS Review Toolkit
-
-도구 요구사항 확인:
+ORT:
 
 ```powershell
-pwsh -NoProfile -File "C:\dev\Docker\CPF\run-ort.ps1" -Action requirements
+pwsh -NoProfile -File "C:\dev\Docker\CPF\run-ort.ps1" -RepoRoot "C:\dev\projects\jck\202412_01_CPF"
 ```
 
-Dependency 분석:
+결과는 `C:\dev\Docker\CPF\output` 아래에 두고 Repository에 그대로 추가하지 않는다. 필요한 Evidence만 Sanitizing 후 정본 경로에 기록한다.
 
-```powershell
-pwsh -NoProfile -File "C:\dev\Docker\CPF\run-ort.ps1" -Action analyze -RepoRoot "C:\dev\projects\jck\202412_01_CPF"
-```
-
-ORT는 다음 Repository 정책과 함께 사용한다.
+## 15. Evidence 최소 항목
 
 ```text
-cpf-tools/supply-chain/approved-primary-oss.csv
-cpf-tools/supply-chain/license-policy.yml
-cpf-tools/supply-chain/ort/evaluator.rules.kts
+기준 Commit SHA
+실행 명령
+Profile·환경
+Tool·Runtime Version
+시작·종료 시각
+Exit Code
+Container·Image Digest
+Requirement·Scenario
+실제 결과
+생성 Artifact와 SHA-256
+Working Tree 상태
+Secret·PII 제거 여부
+최종 Service 상태
 ```
 
-분석은 Repository를 임시 작업경로로 복사해 실행하므로 원본 Working Tree를 오염시키지 않는다.
-
-## 11. CPF DB Source 연동
-
-관련 정본:
-
-```text
-cpf-tools/config/database-install.default.json
-cpf-tools/db/vendor-pack-manifest.json
-cpf-tools/db/vendor/
-cpf-tools/scripts/initialize-cpf-database.ps1
-cpf-tools/scripts/invoke-official-db-vendor-sql.ps1
-cpf-tools/scripts/initialize-generated-domain-databases.ps1
-```
-
-공식 지원 DB:
-
-```text
-Oracle
-PostgreSQL
-MariaDB
-```
-
-Docker Compose는 DB Engine과 관리자 접속 기반만 제공한다. CPF 업무 Database·Schema·Migration User·Runtime User·Table·Index·Seed는 Repository DB Source가 생성해야 한다.
-
-## 12. 로그와 결과 경로
-
-| 항목 | 확인 위치 |
-|---|---|
-| Base Service Log | `cpf-env.ps1 -Action logs` 또는 `docker logs` |
-| Tooling Service Log | `cpf-tooling.ps1 -Action logs -Target tools` |
-| OpenTelemetry 결과 | `C:\dev\Docker\CPF\output\otel` |
-| Trivy 결과 | `C:\dev\Docker\CPF\output\trivy` |
-| ORT 결과 | `C:\dev\Docker\CPF\output\ort` |
-| Trivy Cache | `C:\dev\Docker\CPF\cache\trivy` |
-| 실제 Image Lock | `C:\dev\Docker\CPF\image-lock-complete.json` |
-
-Output과 Cache는 Source가 아니므로 Repository에 자동 Commit하지 않는다.
-
-## 13. 작업 종료
-
-Tool Service 중지:
-
-```powershell
-pwsh -NoProfile -File "C:\dev\Docker\CPF\cpf-tooling.ps1" -Action stop -Target tools
-```
-
-Base Service 중지:
-
-```powershell
-pwsh -NoProfile -File "C:\dev\Docker\CPF\cpf-env.ps1" -Action stop
-```
-
-단순 중지는 DB·Redis·Kafka Volume 데이터를 유지한다. 새로운 초기 상태가 필요한 경우에만 `CPF_도커_문제해결및초기화가이드.md`의 데이터 초기화 절차를 사용한다.
+Runtime을 실행하지 못한 항목은 `미검증`, `실패`, `환경 차단`, `재확인 필요` 중 하나로 기록한다.

@@ -103,25 +103,29 @@ BZA를 선택하는 경우:
 
 ## BZA와 `cpf-starters`의 책임 경계
 
-BZA의 조직·직원·사용자·역할·권한·데이터 범위·결재 상태는 `cpf-biz-admin`이 소유한다. 스타터는 기술 연결만 제공한다.
+BZA의 조직·직원·사용자·역할·Permission·Data Scope·결재 상태는 `cpf-biz-admin`이 소유한다. 최신 `cpf-biz-admin/build.gradle`에서 직접 소비가 확인된 공개 스타터는 `cpf-starter-security`다.
 
-표준 BZA는 `operations-web` 또는 `operations-event` 묶음을 우선 사용하고, 비표준 구성만 공개 스타터를 개별 등록한다. 스타터 내부 세부 프로젝트에는 직접 의존하지 않는다.
-
-| BZA 사용 범위 | 권장 묶음 | 포함 공개 스타터 |
+| 구분 | 현재 적용 | 책임 |
 |---|---|---|
-| 로그인·세션 중심의 소규모 BZA | `secure-web` | `security` |
-| 조직·메뉴·권한·코드 반복 조회 | `operations-web` | `security`, `cache` |
-| 결재 결과·알림·업무 이벤트 비동기 연계 | `operations-event` | `security`, `cache`, `messaging-kafka` |
+| BZA 본체 | `project(':cpf-starter-security')` | 서버 세션·BFF·쿠키·CSRF·허용 출처·세션 준비 상태 |
+| 조직·권한 읽기 캐시 | BZA 본체 직접 의존으로 확인되지 않음 | 도입하려면 `cpf-starter-cache`를 명시 추가하고 기준일·권한 변경 무효화 시험 수행 |
+| 결재·알림 Kafka 연계 | BZA 본체 직접 의존으로 확인되지 않음 | 고객 연동 모듈이 `cpf-starter-messaging-kafka`를 선택하고 발행·수신 원장과 대사 수행 |
 
-묶음 별칭이 루트 카탈로그에 없는 Commit에서는 같은 공개 스타터를 개별 등록한다. BOM은 버전만 맞추므로 묶음 또는 개별 스타터 선언을 대신하지 않는다.
+현재 기능 묶음 별칭은 루트 빌드에 등록돼 있지 않으므로 정책 문서의 후보 이름을 실제 Gradle 의존성으로 사용하지 않는다. BOM은 버전을 정렬할 뿐 보안·캐시·Kafka 기능을 활성화하지 않는다.
 
-| 스타터 | BZA 적용 | 운영 확인 |
-|---|---|---|
-| `:cpf-starters:security` | BFF 세션, 보안 필터, 세션 준비 상태 | 로그인·로그아웃·세션 만료·동시 세션·허용 출처·세션 저장소 |
-| `:cpf-starters:cache` | 조직·메뉴·권한과 같은 읽기 기준정보의 제한적 캐시 | 기준일·권한 변경 커밋과 연결된 시점에 무효화되고 BZA 정본과 일치 |
-| `:cpf-starters:messaging-kafka` | 조직·권한·결재 변경 통지 또는 고객 업무 연계 이벤트 | 발행·수신 원장, 중복 처리, 격리 큐, 작업 ID·감사 연결 |
+보안 스타터 장애가 발생해도 조직·권한·결재 상태를 임의로 성공 또는 실패로 바꾸지 않는다. 세션 저장소·암호화 키·쿠키·CSRF·허용 출처를 확인하고 필요하면 영향 세션만 폐기한다. 별도 캐시나 Kafka 연동을 추가한 경우에는 정본 재조회와 작업 ID 대사를 각각 수행한다.
 
-스타터 장애가 발생해도 BZA 업무 상태를 임의로 성공 처리하지 않는다. 세션 장애는 재로그인 또는 세션 폐기로, 캐시 장애는 정본 조회로, Kafka 장애는 아웃박스·인박스 대사로 복구한다.
+### 최신 BZA 화면 계약
+
+BZA Frontend는 다음 생성 계약을 기준으로 동작한다.
+
+- `cpf-biz-admin/frontend/src/generated/bza-route-operation-contract.ts`
+- `cpf-biz-admin/frontend/src/generated/cpf-api.ts`
+- `cpf-biz-admin/frontend/src/generated/orval/cpf-api.ts`
+- `cpf-biz-admin/frontend/src/generated/cpf-operation-contract.ts`
+- `cpf-biz-admin/frontend/src/components/CpfStructuredData.vue`
+
+경로·조치·OpenAPI 원본을 바꿀 때 생성 파일을 수기로 수정하지 않는다. 생성 Script를 다시 실행하고 로그인·세션, 상신·승인, 알림, 권한 차단 시험을 함께 수행한다.
 
 ## 설치·초기 관리자 초기 구성
 

@@ -6,6 +6,7 @@ param(
         "fault-postgresql",
         "fault-oracle",
         "fault-infra",
+        "fault-external",
         "observability",
         "tools",
         "all"
@@ -20,6 +21,7 @@ $files = @(
     "compose.yml",
     "compose.redis.yml",
     "compose.kafka.yml",
+    "compose.integration.yml",
     "compose.tooling.yml",
     "tool-images.env"
 )
@@ -28,9 +30,7 @@ foreach ($name in $files) {
         throw "필수 파일이 없습니다: $name"
     }
 }
-if (-not (Test-Path -LiteralPath $SecretFile -PathType Leaf)) {
-    throw "Secret 파일이 없습니다: $SecretFile"
-}
+if (-not (Test-Path -LiteralPath $SecretFile -PathType Leaf)) { throw "Secret 파일이 없습니다: $SecretFile" }
 
 $compose = @(
     "compose",
@@ -39,6 +39,7 @@ $compose = @(
     "-f", (Join-Path $root "compose.yml"),
     "-f", (Join-Path $root "compose.redis.yml"),
     "-f", (Join-Path $root "compose.kafka.yml"),
+    "-f", (Join-Path $root "compose.integration.yml"),
     "-f", (Join-Path $root "compose.tooling.yml")
 )
 
@@ -47,34 +48,27 @@ $groups = @{
     "fault-postgresql" = @("postgresql", "kafka", "toxiproxy")
     "fault-oracle" = @("oracle", "kafka", "toxiproxy")
     "fault-infra" = @("redis", "kafka", "toxiproxy")
+    "fault-external" = @("wiremock", "sftp", "vault", "keycloak", "toxiproxy")
     "observability" = @("otel-collector")
     "tools" = @("toxiproxy", "otel-collector")
-    "all" = @("mariadb", "postgresql", "oracle", "redis", "kafka", "toxiproxy", "otel-collector")
+    "all" = @(
+        "mariadb", "postgresql", "oracle", "redis", "kafka",
+        "wiremock", "sftp", "vault", "keycloak",
+        "toxiproxy", "otel-collector"
+    )
 }
 
 function Invoke-Compose {
     param([string[]]$Arguments)
     & docker @compose @Arguments
-    if ($LASTEXITCODE -ne 0) {
-        throw "docker compose 실패(exit=$LASTEXITCODE)"
-    }
+    if ($LASTEXITCODE -ne 0) { throw "docker compose 실패(exit=$LASTEXITCODE)" }
 }
 
 switch ($Action) {
-    "status" {
-        Invoke-Compose @("ps", "-a")
-    }
-    "up" {
-        Invoke-Compose (@("up", "-d") + $groups[$Target])
-        Invoke-Compose @("ps", "-a")
-    }
-    "stop" {
-        Invoke-Compose (@("stop") + $groups[$Target])
-        Invoke-Compose @("ps", "-a")
-    }
-    "logs" {
-        Invoke-Compose (@("logs", "--tail", "300") + $groups[$Target])
-    }
+    "status" { Invoke-Compose @("ps", "-a") }
+    "up" { Invoke-Compose (@("up", "-d") + $groups[$Target]); Invoke-Compose @("ps", "-a") }
+    "stop" { Invoke-Compose (@("stop") + $groups[$Target]); Invoke-Compose @("ps", "-a") }
+    "logs" { Invoke-Compose (@("logs", "--tail", "300") + $groups[$Target]) }
     "reset-faults" {
         Invoke-RestMethod -Method Post -Uri "http://127.0.0.1:8474/reset" | Out-Null
         Write-Host "Toxiproxy 장애 조건 초기화 완료" -ForegroundColor Green

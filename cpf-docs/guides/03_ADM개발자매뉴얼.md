@@ -103,26 +103,33 @@ PARTIAL_SUCCESS → 대상 목록에서 실패 대상만 재처리
 
 ## ADM 연동에서의 스타터 선택
 
-ADM 제품 자체의 메뉴·경로·운영 계약은 `cpf-admin`이 소유한다. `cpf-starters`는 ADM과 고객 업무 서비스의 기술 연결을 보조하지만, 메뉴 권한·승인·감사 정책을 대신 소유하지 않는다.
+ADM 본체의 최신 빌드는 `cpf-core`, `cpf-common`, `cpf-starter-security`, 배치 공개 계약을 직접 소비한다. 캐시·Kafka·관측 스타터를 ADM 본체가 직접 소비한다고 가정하지 않는다. 고객 업무 연동 모듈은 자체 요구에 따라 필요한 공개 스타터를 개별 선택한다.
 
-| 요구 | 선택 프로젝트 | 적용 위치 | 완료 확인 |
-|---|---|---|---|
-| ADM 웹 세션과 BFF 보안 경계 | `:cpf-starters:security` | ADM 서버 또는 고객 전용 운영 웹의 보안 구성 | 로그인·로그아웃·세션 만료·동시 세션·허용 출처 시험 |
-| 반복되는 기준정보·메뉴 메타데이터 조회 최적화 | `:cpf-starters:cache` | 읽기 연결부 | 권한·메뉴 변경 커밋과 연결된 시점에 무효화되고 서버 정본과 일치 |
-| 운영 명령 결과의 비동기 통지 | `:cpf-starters:messaging-kafka` | 고객 업무 서비스의 이벤트 연결부 | 작업 ID·추적 ID·감사와 발행·수신 원장이 연결 |
+| 연동 요구 | 선택 경계 | 주의 |
+|---|---|---|
+| ADM 브라우저·BFF 세션 | ADM 본체의 `cpf-starter-security` | 역할·Permission·Data Scope는 ADM과 Owner가 계속 소유 |
+| 고객 업무의 Kafka 비동기 명령 | 고객 업무 모듈의 `cpf-starter-messaging-kafka` | ADM 요청 성공과 업무 처리 성공을 분리하고 작업 ID로 대사 |
+| 고객 업무 기준정보 캐시 | 해당 고객 업무 모듈의 `cpf-starter-cache` | ADM 표시값을 업무 정본으로 확정하지 않음 |
+| 고객 업무 관측 내보내기 | 해당 실행 모듈의 `cpf-starter-observability` | ADM은 결과를 조회하며 수집기 장애를 업무 실패로 단정하지 않음 |
+| 원격 조치 회복성 | 해당 Owner 또는 연결 모듈의 `cpf-starter-resilience` | 기대 버전·멱등 키·전체 시간 예산과 함께 적용 |
 
-ADM 화면은 스타터 구현 클래스를 직접 호출하지 않는다. 생성 클라이언트는 ADM 또는 고객 업무의 공개 API를 호출하고, 서버 응용 계층이 CPF 공개 API·확장 규약을 통해 스타터가 제공하는 구현 연결부를 사용한다.
+현재 루트에 기능 묶음 별칭은 구현돼 있지 않다. ADM 연동 모듈은 `project(':cpf-starter-...')` 또는 게시 좌표를 개별 선언한다. BOM만으로는 기능이 활성화되지 않는다.
 
-### ADM 연동 모듈의 개별·묶음 등록
+### 생성 계약과 화면 Source 정본
 
-| ADM 연동 범위 | 권장 등록 | 펼쳐지는 공개 스타터 | 추가 판단 |
-|---|---|---|---|
-| 로그인·세션만 필요한 소규모 운영 웹 | `secure-web` | `security` | 기준정보 캐시와 비동기 통지가 실제로 필요한지 별도 판단 |
-| 메뉴·코드·기준정보 조회가 많은 운영 웹 | `operations-web` | `security`, `cache` | 권한·업무 상태는 캐시 정본으로 판정하지 않음 |
-| 위험 명령 결과를 Kafka로 통지 | `operations-event` | `security`, `cache`, `messaging-kafka` | 작업 ID·승인·감사·발행 원장 연결 |
-| 화면 없이 비동기 운영 연동만 제공 | `event-driven` 또는 개별 등록 | `messaging-kafka` | 브라우저 세션 의존성 제외 |
+ADM 화면은 수기 `fetch`와 임의 JSON 표시에 의존하지 않고 생성된 계약을 기준으로 연결한다.
 
-루트 카탈로그에 묶음 별칭이 없는 Commit에서는 같은 공개 스타터를 개별 등록한다. 플랫폼 BOM은 버전을 정렬하지만 스타터를 포함하지 않으므로 BOM만 선언하고 연동이 활성화됐다고 판단하지 않는다. 향후 스타터가 자동 설정·제공자·시험 지원 프로젝트로 세분화돼도 ADM 연동 모듈은 내부 세부 프로젝트가 아니라 공개 스타터 또는 묶음 별칭까지만 의존한다.
+| 목적 | 현재 Source |
+|---|---|
+| ADM 경로·조치 계약 | `cpf-admin/frontend/src/generated/adm-route-operation-contract.ts` |
+| CPF API 형식 | `cpf-admin/frontend/src/generated/cpf-api.ts` |
+| Orval 생성 클라이언트 | `cpf-admin/frontend/src/generated/orval/cpf-api.ts` |
+| 공통 조치 계약 | `cpf-admin/frontend/src/generated/cpf-operation-contract.ts` |
+| 구조화 결과 표시 | `cpf-admin/frontend/src/components/CpfStructuredData.vue` |
+| OpenAPI 검증 | `cpf-admin/frontend/scripts/validate-openapi.mjs` |
+| 경로 계약 생성 | `cpf-admin/frontend/scripts/write-route-operation-contract.mjs` |
+
+연동 개발자는 OpenAPI 원본, 생성 클라이언트, 경로·조치 계약과 화면 사용이 한 변경에서 일치하는지 확인한다. 생성 파일을 직접 고치지 않고 원본 계약과 생성 Script를 수정한 뒤 다시 생성한다.
 
 ## 연동 방식을 선택하는 순서
 

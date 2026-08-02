@@ -28,5 +28,29 @@
     "listen": "0.0.0.0:19093",
     "upstream": "cpf-kafka:19092",
     "enabled": true
+  },
+  {
+    "name": "cpf_wiremock",
+    "listen": "0.0.0.0:18090",
+    "upstream": "cpf-wiremock:8080",
+    "enabled": true
+  },
+  {
+    "name": "cpf_sftp",
+    "listen": "0.0.0.0:12222",
+    "upstream": "cpf-sftp:22",
+    "enabled": true
+  },
+  {
+    "name": "cpf_vault",
+    "listen": "0.0.0.0:18200",
+    "upstream": "cpf-vault:8200",
+    "enabled": true
+  },
+  {
+    "name": "cpf_keycloak",
+    "listen": "0.0.0.0:18091",
+    "upstream": "cpf-keycloak:8080",
+    "enabled": true
   }
 ]

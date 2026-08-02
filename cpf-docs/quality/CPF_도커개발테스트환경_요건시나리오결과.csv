@@ -1,7 +1,19 @@
 RequirementId,ScenarioId,Requirement,Scenario,Artifact,Result,Evidence
-DOCKER-ALL-001,SCN-001,다른 PC 전체 구성,Overlay 적용 후 한 줄 설치,cpf-tools/environment/docker-development-test/CPF_도커_개발테스트환경_전체설치.ps1,완료,정적 점검
-DOCKER-ALL-002,SCN-002,통합 Toolchain,Java·Node·PowerShell·Playwright·Python·Git·DB Client,cpf-tools/environment/docker-development-test/Dockerfile.full-toolchain,완료,Dockerfile 점검
-DOCKER-ALL-003,SCN-003,장애 조건,Toxiproxy 5개 Proxy,cpf-tools/environment/docker-development-test/toxiproxy.json,완료,JSON 점검
-DOCKER-ALL-004,SCN-004,Telemetry,OTLP gRPC·HTTP 수집,cpf-tools/environment/docker-development-test/otel-collector-config.yml,완료,YAML 점검
-DOCKER-ALL-005,SCN-005,Supply Chain,Trivy와 ORT 실행 Script,cpf-tools/environment/docker-development-test/run-trivy.ps1,완료,정적 점검
-DOCKER-ALL-006,SCN-006,장기 유지 문서,구축·연동·문제해결·구성명세,cpf-docs/guides/docker/CPF_도커_개발테스트환경_안내.md,완료,문서 점검
+DOCKER-ENV-001,SCN-001,기존 Base 환경 보호,증분 설치가 기존 DB·Redis·Kafka·Image·Volume·Secret을 삭제하지 않는다,cpf-tools/environment/docker-development-test/CPF_도커_확장연동환경_증분설치.ps1,완료,정적 Source 점검
+DOCKER-ENV-002,SCN-002,공식 MQ 정책,Kafka를 공식 Broker로 문서화하고 비정본 Broker를 제외한다,cpf-docs/guides/docker/README.md,완료,정본 대조
+DOCKER-ENV-003,SCN-003,외부 REST Fixture,WireMock 성공·503·지연·Reset Mapping을 제공한다,cpf-tools/environment/docker-development-test/fixtures/wiremock/mappings,완료,JSON Parse
+DOCKER-ENV-004,SCN-004,SFTP Fixture,제한 계정과 inbound·outbound·ack·error·archive 경로를 제공한다,cpf-tools/environment/docker-development-test/Dockerfile.sftp-fixture,완료,Shell Syntax 점검
+DOCKER-ENV-005,SCN-005,Vault Fixture,Repository 밖 Token으로 Dev Secret Provider를 준비한다,cpf-tools/environment/docker-development-test/compose.integration.yml,완료,YAML Parse
+DOCKER-ENV-006,SCN-006,Identity Fixture,Keycloak Realm·Browser Client·Test User·Service Client 초기화 절차를 제공한다,cpf-tools/environment/docker-development-test/initialize-integration-fixtures.ps1,완료,정적 Source 점검
+DOCKER-ENV-007,SCN-007,외부연계 장애 조건,WireMock·SFTP·Vault·Keycloak Proxy를 제공한다,cpf-tools/environment/docker-development-test/toxiproxy.json,완료,JSON Parse
+DOCKER-ENV-008,SCN-008,선택 기동,cpf-env가 선택 Group만 시작·중지한다,cpf-tools/environment/docker-development-test/cpf-env.ps1,완료,정적 Source 점검
+DOCKER-ENV-009,SCN-009,계정·Secret 관리,계정 식별자와 Secret 파일 위치만 문서화하고 원문을 제외한다,cpf-docs/guides/docker/CPF_도커_확장연동서비스_사용가이드.md,완료,Secret Pattern Scan
+DOCKER-ENV-010,SCN-010,전체 환경 상태,18 Image·11 Container·7 Volume·7 Secret·restart no를 확인한다,cpf-tools/environment/docker-development-test/verify-complete-environment.ps1,완료,정적 Source 점검
+DOCKER-ENV-011,SCN-011,통합 Toolchain,SFTP 실제 연결용 OpenSSH Client와 sshpass를 제공한다,cpf-tools/environment/docker-development-test/Dockerfile.full-toolchain,완료,Dockerfile 점검
+DOCKER-ENV-012,SCN-012,WireMock Runtime,Health·오류·지연·Reset Endpoint를 실제 호출한다,C:\dev\Docker\CPF\output\integration\integration-fixture-result.json,미검증,사용자 장비 실행 필요
+DOCKER-ENV-013,SCN-013,SFTP Runtime,실제 업로드·다운로드·Content 비교를 수행한다,C:\dev\Docker\CPF\output\integration\integration-fixture-result.json,미검증,사용자 장비 실행 필요
+DOCKER-ENV-014,SCN-014,Vault Runtime,KV 쓰기·읽기와 Secret 비노출을 확인한다,C:\dev\Docker\CPF\output\integration\integration-fixture-result.json,미검증,사용자 장비 실행 필요
+DOCKER-ENV-015,SCN-015,Keycloak Runtime,Realm·User·Role·Client·OIDC Discovery·로컬 Token Flow를 확인한다,C:\dev\Docker\CPF\output\integration\integration-fixture-result.json,미검증,사용자 장비 실행 필요
+DOCKER-ENV-016,SCN-016,CPF 통합 Runtime,실제 Application·SQL·Kafka·Redis·외부연계·장애·복구를 실행한다,cpf-docs/evidence/<실행일자>/docker-runtime,미검증,독립 Runtime 실행 필요
+DOCKER-ENV-017,SCN-017,Runtime 전수 재판정,정본·Source·Consumer·실행 시나리오를 대조해 추가·제외 근거를 문서화한다,cpf-docs/guides/docker/CPF_도커_개발테스트환경_안내.md,완료,정본·Source 대조
+DOCKER-ENV-018,SCN-018,External WAS 경계,WAR Packaging이 없는 상태에서 빈 Tomcat 기동을 완료로 판정하지 않는다,cpf-docs/work/current/CPF_도커개발테스트환경_자체요건.md,재확인 필요,Source Packaging 구현 후 환경 추가

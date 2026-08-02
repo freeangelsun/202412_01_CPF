@@ -1,0 +1,3 @@
+CREATE TABLE cpf_sftp_transfer (
+ transfer_no BIGINT NOT NULL AUTO_INCREMENT, transfer_id VARCHAR(64) NOT NULL, operation_code VARCHAR(32) NOT NULL, source_path VARCHAR(1000), target_path VARCHAR(1000), transfer_status VARCHAR(32) NOT NULL, byte_count BIGINT DEFAULT 0 NOT NULL, checksum_value VARCHAR(128), transaction_id VARCHAR(64), detail VARCHAR(2000), started_at TIMESTAMP NOT NULL, completed_at TIMESTAMP, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL, CONSTRAINT pk_cpf_sftp_transfer PRIMARY KEY(transfer_no), CONSTRAINT uk_cpf_sftp_transfer_id UNIQUE(transfer_id));
+CREATE INDEX ix_cpf_sftp_transfer_status ON cpf_sftp_transfer(transfer_status,started_at);

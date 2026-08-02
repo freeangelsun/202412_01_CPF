@@ -1,0 +1,2 @@
+package com.cpf.starter.fixedlength;import java.util.concurrent.ConcurrentHashMap;import com.cpf.integration.fixedlength.*;import org.springframework.boot.autoconfigure.AutoConfiguration;import org.springframework.context.annotation.Bean;
+@AutoConfiguration public class CpfFixedLengthAutoConfiguration {@Bean ConcurrentHashMap<String,CpfFixedLengthCodec> cpfFixedLengthCodecRegistry(){return new ConcurrentHashMap<>();}}

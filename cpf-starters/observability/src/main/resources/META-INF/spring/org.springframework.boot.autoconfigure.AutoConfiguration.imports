@@ -1,1 +1,2 @@
-com.cpf.starter.observability.CpfObservabilityAutoConfiguration
+com.cpf.core.config.CpfLogPolicyAutoConfiguration
+com.cpf.core.config.CpfLogRecoveryAutoConfiguration

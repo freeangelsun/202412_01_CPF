@@ -1,0 +1,2 @@
+com.cpf.core.config.CpfRuntimeControlAutoConfiguration
+com.cpf.common.config.CmnRuntimeControlAutoConfiguration

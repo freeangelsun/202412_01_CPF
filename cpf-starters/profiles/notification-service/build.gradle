@@ -1,0 +1,11 @@
+plugins { id 'java-library'; id 'maven-publish' }
+group = 'com.cpf.starter'
+dependencies {
+    api project(':cpf-starter-notification')
+    api project(':cpf-starter-notification-email')
+    api project(':cpf-notification-sms-spi')
+    api project(':cpf-starter-observability')
+    api project(':cpf-starter-resilience')
+}
+tasks.named('test') { useJUnitPlatform() }
+publishing { publications { mavenJava(MavenPublication) { from components.java; artifactId = 'cpf-starter-profile-notification-service' } } }

@@ -1,0 +1,2 @@
+com.cpf.starter.webhook.CpfWebhookAutoConfiguration
+com.cpf.starter.webhook.CpfWebhookCompatibilityAutoConfiguration

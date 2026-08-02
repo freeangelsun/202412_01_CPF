@@ -13,6 +13,10 @@ java {
 }
 
 dependencies {
+    implementation project(':cpf-starter-profile-browser-bff-session')
+    implementation project(':cpf-starter-profile-persistence-mybatis')
+    implementation project(':cpf-starter-profile-domain-web-api')
+    implementation project(':cpf-starter-attachment')
     implementation project(':cpf-core')
     implementation project(':cpf-common')
     implementation project(':cpf-starter-security')

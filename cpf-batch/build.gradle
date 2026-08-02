@@ -65,3 +65,11 @@ tasks.register('publishStandaloneArtifactsToCpfInternal') {
       ':cpf-batch:host-agent:publishAllPublicationsToCpfInternalRepository'
     )
 }
+
+// QA38 official starter consumers for Batch-owned runtimes.
+subprojects {
+    dependencies {
+        implementation project(':cpf-starter-profile-event-kafka')
+        implementation project(':cpf-starter-profile-scheduled-service')
+    }
+}

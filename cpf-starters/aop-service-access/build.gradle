@@ -1,0 +1,18 @@
+plugins { id 'java-library'; id 'maven-publish' }
+group = 'com.cpf.starter'
+dependencies {
+    api project(':cpf-core')
+api 'org.springframework.boot:spring-boot-starter-aspectj'
+implementation 'org.aspectj:aspectjrt:1.9.20'
+implementation 'org.aspectj:aspectjweaver:1.9.20'
+}
+tasks.named('test') { useJUnitPlatform() }
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            artifactId = 'cpf-starter-aop-service-access'
+        }
+    }
+}
+

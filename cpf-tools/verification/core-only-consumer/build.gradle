@@ -1,0 +1,7 @@
+plugins { id 'java-library'; id 'maven-publish' }
+group = 'com.cpf.verification'
+dependencies {
+    api project(':cpf-core')
+}
+tasks.named('test') { useJUnitPlatform() }
+publishing { publications { mavenJava(MavenPublication) { from components.java; artifactId = 'cpf-core-only-consumer' } } }

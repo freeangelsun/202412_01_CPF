@@ -1,18 +1,15 @@
-# CPF QA38 최종 Handover
+# CPF QA38 Handover
 
-- Baseline: `2e93d92393c52b887482731b683db3c3822027b1`
-- Active Request: `CPF_QA38_FINAL_DEVELOPMENT_REQUIREMENTS.md`
-- Requirement: 156
-- Scenario: 52
-- Starter Review: 30
+- Base SHA: `dafe5c0e5260ea8149234e8ab2e75347e75338c1`
+- Branch: `master`
+- Requirement: 156건, 개발 완료 156건
+- Verification: 완료 40건, 미검증 116건
+- Delete Manifest: 160개
+- Empty Directory Manifest: 24개
+- Apply: `cpf-tools/scripts/apply-qa38-root-overlay.ps1`
+- Verify: `cpf-tools/scripts/verify-qa38-starter-closure.ps1`
+- Codex request: `cpf-docs/work/codex/qa38/CPF_CODEX_QA38_FINAL_INDEPENDENT_VALIDATION_REQUEST.md`
 
-## 시작
-Current Request → Final Request → Matrix → Starter Review → Continuity → Codex Start.
+Clean `master`에서 적용한다. 최신 HEAD는 기준 SHA의 후손이어야 하며 QA38 관리 경로와 Commit 변경 경로가 겹치면 적용 Script가 중단한다. 보호 경로는 복사·삭제하지 않는다. 적용 Script가 Source 복사와 exact Legacy 삭제를 모두 수행하므로 삭제 상태를 포함해 사용자가 Commit·Push한다.
 
-## 첫 미완료
-문서 현행화: Apply Script 실행과 post-apply 검사.
-제품 개발: Stage 02 Source Graph 후 첫 미완료 P0부터.
-
-## 원칙
-보호 경로 금지, 승인 없는 Requirement 제거 금지, Kafka Default≠Rabbit/JMS/TCP 제외,
-DB Empty·Generator First, actual Consumer 필수, 미실행 PASS 금지, Git destructive/write 금지.
+- 최종 원격 확인 SHA: `99fefc6346c70406cbac5c59ad33d0c069166c2f` (기준 SHA 후손, QA38 관리 경로 중첩 0건)

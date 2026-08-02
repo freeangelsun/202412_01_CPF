@@ -78,6 +78,10 @@ sourceSets {
 }
 
 dependencies {
+    implementation project(':cpf-starter-profile-secure-resource-api')
+    implementation project(':cpf-starter-profile-persistence-mybatis')
+    implementation project(':cpf-starter-profile-event-kafka')
+    implementation project(':cpf-starter-profile-sftp-integration')
     implementation project(':cpf-core')
     implementation project(':cpf-common')
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'

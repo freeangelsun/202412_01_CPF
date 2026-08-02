@@ -1,0 +1,20 @@
+plugins { id 'java-library'; id 'maven-publish' }
+group = 'com.cpf.starter'
+dependencies {
+    api project(':cpf-starter-observability')
+api platform('io.opentelemetry:opentelemetry-bom:1.64.0')
+api 'io.opentelemetry:opentelemetry-sdk'
+api 'io.opentelemetry:opentelemetry-exporter-otlp'
+implementation 'org.springframework.boot:spring-boot-autoconfigure'
+annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+}
+tasks.named('test') { useJUnitPlatform() }
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            artifactId = 'cpf-starter-observability-otlp'
+        }
+    }
+}
+

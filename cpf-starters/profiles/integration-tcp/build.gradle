@@ -1,0 +1,12 @@
+plugins { id 'java-library'; id 'maven-publish' }
+group = 'com.cpf.starter'
+dependencies {
+    api project(':cpf-starter-integration-tcp')
+    api project(':cpf-integration-fixedlength-core')
+    api project(':cpf-starter-integration-fixedlength')
+    api project(':cpf-starter-integration-iso8583')
+    api project(':cpf-starter-observability')
+    api project(':cpf-starter-resilience')
+}
+tasks.named('test') { useJUnitPlatform() }
+publishing { publications { mavenJava(MavenPublication) { from components.java; artifactId = 'cpf-starter-profile-integration-tcp' } } }

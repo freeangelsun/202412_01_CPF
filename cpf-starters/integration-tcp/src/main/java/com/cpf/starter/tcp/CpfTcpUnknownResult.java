@@ -1,0 +1,1 @@
+package com.cpf.starter.tcp;import java.time.Instant;public record CpfTcpUnknownResult(String correlationId,Instant writtenAt,byte[] request,String detail){public CpfTcpUnknownResult{request=request.clone();}public byte[] request(){return request.clone();}}

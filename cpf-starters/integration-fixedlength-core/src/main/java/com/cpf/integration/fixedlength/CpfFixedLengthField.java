@@ -1,0 +1,1 @@
+package com.cpf.integration.fixedlength;public record CpfFixedLengthField(String name,int offset,int length,Alignment alignment,char pad,boolean required){public CpfFixedLengthField{if(name==null||name.isBlank()||offset<0||length<1)throw new IllegalArgumentException("invalid fixed-length field");}public enum Alignment{LEFT,RIGHT}}

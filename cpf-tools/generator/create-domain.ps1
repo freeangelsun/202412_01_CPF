@@ -29,6 +29,8 @@ param(
     [ValidateSet("root-project", "published-artifact")]
     [string] $DependencyModel = "root-project",
     [string] $PlatformVersion = "1.0.0-SNAPSHOT",
+    [string] $CapabilityProfile = "MINIMAL_BOOT_DOMAIN",
+    [string] $ProviderBindings = "",
     [string] $Capabilities = "",
     [ValidateSet("Y", "N")]
     [string] $Batch = "N",
@@ -207,6 +209,28 @@ function Test-IsProtectedRepositoryPath {
 function New-StatusText {
     param([int[]] $CodePoints)
     return -join ($CodePoints | ForEach-Object { [char] $_ })
+}
+
+
+$capabilityProfileCatalogPath = Join-Path $Root "cpf-tools/generator/contracts/capability-profiles.json"
+if (-not (Test-Path -LiteralPath $capabilityProfileCatalogPath -PathType Leaf)) { throw "CPF Capability Profile 정본이 없습니다: $capabilityProfileCatalogPath" }
+$capabilityProfileCatalog = Get-Content -LiteralPath $capabilityProfileCatalogPath -Raw -Encoding UTF8 | ConvertFrom-Json
+$resolvedCapabilityProfile = @($capabilityProfileCatalog.profiles | Where-Object { [string]$_.profileId -eq $CapabilityProfile })
+if ($resolvedCapabilityProfile.Count -ne 1) { throw "지원하지 않거나 중복된 CapabilityProfile입니다: $CapabilityProfile" }
+$resolvedCapabilityProfile = $resolvedCapabilityProfile[0]
+$resolvedStarters = @($resolvedCapabilityProfile.resolvedStarters | ForEach-Object { [string]$_ })
+if ($resolvedStarters.Count -eq 0) { throw "CapabilityProfile에 resolvedStarters가 없습니다: $CapabilityProfile" }
+$resolvedProviderBindings = [ordered]@{}
+if (-not [string]::IsNullOrWhiteSpace($ProviderBindings)) {
+    foreach ($pair in ($ProviderBindings -split ',')) {
+        $parts = $pair.Split('=',2)
+        if ($parts.Count -ne 2 -or [string]::IsNullOrWhiteSpace($parts[0]) -or [string]::IsNullOrWhiteSpace($parts[1])) { throw "ProviderBindings 형식은 capability=provider[,..] 입니다: $pair" }
+        $capability = $parts[0].Trim().ToLowerInvariant(); $provider = $parts[1].Trim().ToLowerInvariant()
+        if ($resolvedProviderBindings.Contains($capability)) { throw "Provider Binding 중복: $capability" }
+        $allowed = @($resolvedCapabilityProfile.allowedProviderBindings.$capability | ForEach-Object { [string]$_ })
+        if ($allowed.Count -gt 0 -and $allowed -notcontains $provider) { throw "Profile에서 허용하지 않는 Provider Binding: $capability=$provider" }
+        $resolvedProviderBindings[$capability] = $provider
+    }
 }
 
 $StatusDone = New-StatusText @(0xC644, 0xB8CC)
@@ -579,6 +603,10 @@ $plan = [ordered]@{
     databaseVendor = $DatabaseVendor
     dependencyModel = $DependencyModel
     platformVersion = $PlatformVersion
+    capabilityProfile = $CapabilityProfile
+    capabilityProfileVersion = [string]$resolvedCapabilityProfile.profileVersion
+    resolvedStarters = @($resolvedStarters)
+    providerBindings = $resolvedProviderBindings
     templateContractVersion = [string]$centralTemplateContract.contractVersion
     batch = $BatchEnabled
     external = $ExternalEnabled
@@ -1381,6 +1409,15 @@ $platformDependencies = if ($DependencyModel -eq "published-artifact") {
 "@
 }
 
+
+$profileProjectName = [string]$resolvedCapabilityProfile.aggregateProject
+$profileArtifact = [string]$resolvedCapabilityProfile.aggregateArtifact
+$profileDependency = if ($DependencyModel -eq "published-artifact") {
+    "    implementation '$profileArtifact`:$PlatformVersion'"
+} else {
+    "    implementation project(':$profileProjectName')"
+}
+
 $batchContractDependency = if (($BatchEnabled -or $CenterCutEnabled) -and
         $DependencyModel -eq "published-artifact") {
     "    implementation 'com.cpf.batch:cpf-batch-contract:$PlatformVersion'"
@@ -1612,6 +1649,7 @@ $databaseVendorSelection
 
 dependencies {
 $platformDependencies
+$profileDependency
 $batchContractDependency
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
     implementation 'org.springframework:spring-web'
@@ -2318,6 +2356,11 @@ $DatabaseBootstrapScript = if ($DependencyModel -eq "published-artifact") {
 } else {
     "cpf-tools/scripts/initialize-domain-database.ps1"
 }
+$resolvedStartersJson = $resolvedStarters | ConvertTo-Json -Compress
+$resolvedStarterVersions = [ordered]@{}
+foreach ($resolvedStarter in $resolvedStarters) { $resolvedStarterVersions[$resolvedStarter] = $PlatformVersion }
+$resolvedStarterVersionsJson = $resolvedStarterVersions | ConvertTo-Json -Compress
+$resolvedProviderBindingsJson = $resolvedProviderBindings | ConvertTo-Json -Compress
 $domainManifest = @"
 {
   "metadataVersion": "1.0",
@@ -2370,6 +2413,12 @@ $domainManifest = @"
   "generatedResourceRoot": "build/generated-resources/cpf-vendor",
   "dependencyModel": "$DependencyModel",
   "platformVersion": "$PlatformVersion",
+
+  "capabilityProfile": "$CapabilityProfile",
+  "capabilityProfileVersion": "$([string]$resolvedCapabilityProfile.profileVersion)",
+  "resolvedStarters": $resolvedStartersJson,
+  "resolvedStarterVersions": $resolvedStarterVersionsJson,
+  "providerBindings": $resolvedProviderBindingsJson,
   "templateContractVersion": "$($centralTemplateContract.contractVersion)",
   "dataSourceJndiName": "$DataSourceJndiName",
   "batchEnabled": $batchJson,

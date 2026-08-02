@@ -19,13 +19,7 @@ dependencyManagement {
 }
 
 dependencies {
-	// 프레임워크 DB 로그 적재와 MyBatis 매퍼 구성을 제공합니다.
-	implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:4.0.0'
 
-	// 거래 로깅, 서비스 접근 정책, 컨트롤러 메타데이터 검증에 사용합니다.
-	implementation 'org.springframework.boot:spring-boot-starter-aspectj'
-	implementation 'org.aspectj:aspectjrt:1.9.20'
-	implementation 'org.aspectj:aspectjweaver:1.9.20'
 
 	// 주제영역 간 HTTP 호출과 거래 헤더 전파에 사용합니다.
 	compileOnly 'org.springframework.boot:spring-boot-starter-webflux'
@@ -37,7 +31,7 @@ dependencies {
 	compileOnly 'org.springframework.batch:spring-batch-core'
 
 	// 프레임워크 필터, 인터셉터, 검증 기능에 필요한 표준 의존성입니다.
-	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	compileOnly 'jakarta.validation:jakarta.validation-api'
 	compileOnly 'jakarta.servlet:jakarta.servlet-api:6.1.0'
 	compileOnly 'org.springframework:spring-web'
 	compileOnly 'org.springframework:spring-webmvc'
@@ -45,20 +39,13 @@ dependencies {
 	// OTel API는 compile boundary로만 사용하며 SDK/Exporter Runtime은 observability Starter가 소유합니다.
 	compileOnly platform('io.opentelemetry:opentelemetry-bom:1.64.0')
 	compileOnly 'io.opentelemetry:opentelemetry-api'
-	compileOnly 'io.opentelemetry:opentelemetry-sdk'
-	compileOnly 'io.opentelemetry:opentelemetry-exporter-otlp'
-	implementation 'org.apache.commons:commons-compress:1.28.0'
 
-	// OpenAPI 3 문서, Swagger UI, Scalar API Reference를 제공합니다.
-	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3'
-	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-scalar:3.0.3'
 
 	testImplementation 'org.junit.jupiter:junit-jupiter:5.11.4'
 	testImplementation 'org.assertj:assertj-core:3.26.3'
 	testImplementation 'org.mockito:mockito-core:5.14.2'
 	testImplementation 'org.springframework:spring-test'
 	// Core keeps WebFlux optional for consumers, while service-call tests exercise its HTTP error contract.
-	testImplementation 'org.springframework.boot:spring-boot-starter-webflux'
 	testImplementation 'jakarta.servlet:jakarta.servlet-api:6.1.0'
 	testImplementation 'org.springframework.batch:spring-batch-core'
 	// Candidate Vendor URL/driver contract test only. This does not mark PostgreSQL Runtime as verified.

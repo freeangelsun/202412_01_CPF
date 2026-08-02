@@ -1,0 +1,8 @@
+plugins { id 'java-library'; id 'maven-publish' }
+group = 'com.cpf.starter'
+dependencies {
+    api project(':cpf-starter-persistence-jdbc')
+    api project(':cpf-starter-persistence-mybatis')
+}
+tasks.named('test') { useJUnitPlatform() }
+publishing { publications { mavenJava(MavenPublication) { from components.java; artifactId = 'cpf-starter-profile-persistence-mybatis' } } }

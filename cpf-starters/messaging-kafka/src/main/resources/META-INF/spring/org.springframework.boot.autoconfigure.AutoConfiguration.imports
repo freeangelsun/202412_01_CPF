@@ -1,1 +1,2 @@
 com.cpf.starter.kafka.CpfKafkaAutoConfiguration
+com.cpf.starter.kafka.CpfKafkaBindingAutoConfiguration

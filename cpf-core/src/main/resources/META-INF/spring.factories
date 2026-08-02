@@ -1,1 +1,1 @@
-org.springframework.boot.EnvironmentPostProcessor=com.cpf.core.config.CpfLogEnvironmentPostProcessor
+# Runtime EnvironmentPostProcessor moved to cpf-starter-observability.

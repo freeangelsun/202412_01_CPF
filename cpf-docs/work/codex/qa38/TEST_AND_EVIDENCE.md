@@ -1,15 +1,19 @@
 # QA38 Test and Evidence
 
-패키지 검증:
-- Requirement/Scenario ID
-- 허용 상태
-- 보호 경로 0
-- Overlay/Delete overlap 0
-- Final Request에 모든 Requirement ID 포함
-- ZIP CRC/내부 SHA/Script Guard
+## Executed PASS
 
-미실행:
-PowerShell, Java/Frontend, 3DB, Kafka/Rabbit/JMS/IBM MQ/TCP/SFTP/Notification,
-Multi-instance/Fault/OTel, Browser, Supply-chain.
+- Structure/Profile/Artifact/AutoConfiguration Gate
+- Java duplicate member Gate
+- Oracle/PostgreSQL/MariaDB SQL semantic parity Gate
+- Pure Runtime Harness: 33 checks
+- Messaging/Service Identity Harness
+- Java Main Source parser syntax check
 
-미실행은 미검증이다.
+Evidence: `cpf-docs/evidence/20260802/qa38/QA38_LOCAL_VERIFICATION_EVIDENCE.md`
+
+## Not Executed
+
+- Java 25 Fresh Gradle Build/Test/Publication
+- Actual MariaDB/PostgreSQL/Oracle lifecycle
+- Actual Kafka/RabbitMQ/JMS/IBM MQ/SFTP runtime and fault recovery
+- ADM/BZA frontend, Playwright, supply-chain

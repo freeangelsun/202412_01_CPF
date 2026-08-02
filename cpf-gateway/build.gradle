@@ -6,6 +6,8 @@ plugins {
 
 group = 'com.cpf.gateway'
 dependencies {
+    implementation project(':cpf-starter-profile-secure-resource-api')
+    implementation project(':cpf-starter-profile-observable-resilient-service')
     implementation project(':cpf-core')
     implementation 'org.springframework.cloud:spring-cloud-starter-gateway-server-webmvc'
     implementation 'org.apache.httpcomponents.client5:httpclient5'

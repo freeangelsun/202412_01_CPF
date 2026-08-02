@@ -1,0 +1,9 @@
+plugins { id 'java-library'; id 'maven-publish' }
+group = 'com.cpf.starter'
+dependencies {
+    api project(':cpf-starter-security')
+    api project(':cpf-starter-persistence-jdbc')
+    api project(':cpf-starter-observability')
+}
+tasks.named('test') { useJUnitPlatform() }
+publishing { publications { mavenJava(MavenPublication) { from components.java; artifactId = 'cpf-starter-profile-browser-bff-session' } } }

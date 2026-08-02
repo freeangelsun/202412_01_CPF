@@ -88,41 +88,64 @@ pluginManagement {
 
 rootProject.name = 'cpf-core-platform-framework'
 
-include 'cpf-core', 'cpf-common'
-include 'cpf-starter-security'
-include 'cpf-starter-messaging-kafka'
-include 'cpf-starter-cache'
-include 'cpf-starter-observability'
-include 'cpf-starter-resilience'
-include 'cpf-starter-featureflag'
-include 'cpf-starter-secret'
-include 'cpf-admin', 'cpf-biz-admin', 'cpf-gateway', 'cpf-reference'
-include 'cpf-local-runtime', 'cpf-local-batch-runtime'
-
-// cpf-member는 Generator가 관리하는 Golden Reference Instance입니다.
-// 다른 root-project Generated Domain과 동일하게 생성/제거 도구가 이 include를 관리합니다.
-include 'cpf-member'
-include ':cpf-batch:contract'
-include ':cpf-batch:runtime-common'
-include ':cpf-batch:execution-runtime'
-include ':cpf-batch:control-server'
-include ':cpf-batch:scheduler'
-include ':cpf-batch:worker'
-include ':cpf-batch:center-cut-runner'
-include ':cpf-batch:host-agent'
-include ':cpf-batch:testkit'
-// 추가 업무 모듈은 create-domain 생성기로 만든 뒤 명시적으로 등록합니다.
-// include 'cpf-card', 'cpf-loan', 'cpf-payment'
+include 'cpf-core', 'cpf-common', 'cpf-starter-base', 'cpf-starter-persistence-jdbc', 'cpf-starter-persistence-mybatis', 'cpf-starter-aop-service-access', 'cpf-starter-openapi-webmvc', 'cpf-starter-security-resource-server', 'cpf-starter-security-session-jdbc', 'cpf-starter-security-service-identity', 'cpf-starter-security', 'cpf-starter-messaging-reliability-jdbc', 'cpf-starter-channel-registry-jdbc', 'cpf-starter-cache-caffeine', 'cpf-starter-cache-valkey', 'cpf-starter-cache', 'cpf-starter-observability', 'cpf-starter-observability-otlp', 'cpf-starter-http-client', 'cpf-integration-fixedlength-core', 'cpf-starter-integration-fixedlength', 'cpf-starter-integration-sftp', 'cpf-starter-tabular-poi', 'cpf-starter-file-archive', 'cpf-starter-validation', 'cpf-starter-attachment', 'cpf-starter-runtime-control-client', 'cpf-starter-messaging-kafka', 'cpf-starter-messaging-rabbitmq', 'cpf-starter-messaging-jms', 'cpf-starter-messaging-ibm-mq', 'cpf-starter-integration-tcp', 'cpf-starter-integration-iso8583', 'cpf-starter-notification', 'cpf-starter-notification-email', 'cpf-notification-sms-spi', 'cpf-starter-scheduler-quartz', 'cpf-starter-resilience', 'cpf-starter-featureflag', 'cpf-starter-secret', 'cpf-starter-profile-minimal-boot-domain', 'cpf-starter-profile-domain-web-api', 'cpf-starter-profile-secure-resource-api', 'cpf-starter-profile-browser-bff-session', 'cpf-starter-profile-persistence-mybatis', 'cpf-starter-profile-event-kafka', 'cpf-starter-profile-event-rabbitmq', 'cpf-starter-profile-event-jms-ibm-mq', 'cpf-starter-profile-integration-tcp', 'cpf-starter-profile-observable-resilient-service', 'cpf-starter-profile-notification-service', 'cpf-starter-profile-scheduled-service', 'cpf-starter-profile-sftp-integration', 'cpf-admin', 'cpf-biz-admin', 'cpf-gateway', 'cpf-reference', 'cpf-member', 'cpf-local-runtime', 'cpf-local-batch-runtime'
+include 'cpf-core-only-consumer'
+project(':cpf-core-only-consumer').projectDir = file('cpf-tools/verification/core-only-consumer')
+include ':cpf-batch:contract', ':cpf-batch:runtime-common', ':cpf-batch:execution-runtime', ':cpf-batch:control-server', ':cpf-batch:scheduler', ':cpf-batch:worker', ':cpf-batch:center-cut-runner', ':cpf-batch:host-agent', ':cpf-batch:testkit'
 
 project(':cpf-core').projectDir = file('cpf-core')
 project(':cpf-common').projectDir = file('cpf-common')
-project(':cpf-starter-security').projectDir = file('cpf-starters/security')
-project(':cpf-starter-messaging-kafka').projectDir = file('cpf-starters/messaging-kafka')
-project(':cpf-starter-cache').projectDir = file('cpf-starters/cache')
+project(':cpf-starter-base').projectDir = file('cpf-starters/base')
+project(':cpf-starter-persistence-jdbc').projectDir = file('cpf-starters/persistence-jdbc')
+project(':cpf-starter-persistence-mybatis').projectDir = file('cpf-starters/persistence-mybatis')
+project(':cpf-starter-aop-service-access').projectDir = file('cpf-starters/aop-service-access')
+project(':cpf-starter-openapi-webmvc').projectDir = file('cpf-starters/openapi-webmvc')
+project(':cpf-starter-security-resource-server').projectDir = file('cpf-starters/security-resource-server')
+project(':cpf-starter-security-session-jdbc').projectDir = file('cpf-starters/security')
+project(':cpf-starter-security-service-identity').projectDir = file('cpf-starters/security-service-identity')
+project(':cpf-starter-security').projectDir = file('cpf-starters/security-aggregate')
+project(':cpf-starter-messaging-reliability-jdbc').projectDir = file('cpf-starters/messaging-reliability-jdbc')
+project(':cpf-starter-channel-registry-jdbc').projectDir = file('cpf-starters/channel-registry-jdbc')
+project(':cpf-starter-cache-caffeine').projectDir = file('cpf-starters/cache')
+project(':cpf-starter-cache-valkey').projectDir = file('cpf-starters/cache-valkey')
+project(':cpf-starter-cache').projectDir = file('cpf-starters/cache-aggregate')
 project(':cpf-starter-observability').projectDir = file('cpf-starters/observability')
+project(':cpf-starter-observability-otlp').projectDir = file('cpf-starters/observability-otlp')
+project(':cpf-starter-http-client').projectDir = file('cpf-starters/http-client')
+project(':cpf-integration-fixedlength-core').projectDir = file('cpf-starters/integration-fixedlength-core')
+project(':cpf-starter-integration-fixedlength').projectDir = file('cpf-starters/integration-fixedlength')
+project(':cpf-starter-integration-sftp').projectDir = file('cpf-starters/integration-sftp')
+project(':cpf-starter-tabular-poi').projectDir = file('cpf-starters/tabular-poi')
+project(':cpf-starter-file-archive').projectDir = file('cpf-starters/file-archive')
+project(':cpf-starter-validation').projectDir = file('cpf-starters/validation')
+project(':cpf-starter-attachment').projectDir = file('cpf-starters/attachment')
+project(':cpf-starter-runtime-control-client').projectDir = file('cpf-starters/runtime-control-client')
+project(':cpf-starter-messaging-kafka').projectDir = file('cpf-starters/messaging-kafka')
+project(':cpf-starter-messaging-rabbitmq').projectDir = file('cpf-starters/messaging-rabbitmq')
+project(':cpf-starter-messaging-jms').projectDir = file('cpf-starters/messaging-jms')
+project(':cpf-starter-messaging-ibm-mq').projectDir = file('cpf-starters/messaging-ibm-mq')
+project(':cpf-starter-integration-tcp').projectDir = file('cpf-starters/integration-tcp')
+project(':cpf-starter-integration-iso8583').projectDir = file('cpf-starters/integration-iso8583')
+project(':cpf-starter-notification').projectDir = file('cpf-starters/notification')
+project(':cpf-starter-notification-email').projectDir = file('cpf-starters/notification-email')
+project(':cpf-notification-sms-spi').projectDir = file('cpf-starters/notification-sms-spi')
+project(':cpf-starter-scheduler-quartz').projectDir = file('cpf-starters/scheduler-quartz')
 project(':cpf-starter-resilience').projectDir = file('cpf-starters/resilience')
 project(':cpf-starter-featureflag').projectDir = file('cpf-starters/featureflag')
 project(':cpf-starter-secret').projectDir = file('cpf-starters/secret')
+project(':cpf-starter-profile-minimal-boot-domain').projectDir = file('cpf-starters/profiles/minimal-boot-domain')
+project(':cpf-starter-profile-domain-web-api').projectDir = file('cpf-starters/profiles/domain-web-api')
+project(':cpf-starter-profile-secure-resource-api').projectDir = file('cpf-starters/profiles/secure-resource-api')
+project(':cpf-starter-profile-browser-bff-session').projectDir = file('cpf-starters/profiles/browser-bff-session')
+project(':cpf-starter-profile-persistence-mybatis').projectDir = file('cpf-starters/profiles/persistence-mybatis')
+project(':cpf-starter-profile-event-kafka').projectDir = file('cpf-starters/profiles/event-kafka')
+project(':cpf-starter-profile-event-rabbitmq').projectDir = file('cpf-starters/profiles/event-rabbitmq')
+project(':cpf-starter-profile-event-jms-ibm-mq').projectDir = file('cpf-starters/profiles/event-jms-ibm-mq')
+project(':cpf-starter-profile-integration-tcp').projectDir = file('cpf-starters/profiles/integration-tcp')
+project(':cpf-starter-profile-observable-resilient-service').projectDir = file('cpf-starters/profiles/observable-resilient-service')
+project(':cpf-starter-profile-notification-service').projectDir = file('cpf-starters/profiles/notification-service')
+project(':cpf-starter-profile-scheduled-service').projectDir = file('cpf-starters/profiles/scheduled-service')
+project(':cpf-starter-profile-sftp-integration').projectDir = file('cpf-starters/profiles/sftp-integration')
 project(':cpf-member').projectDir = file('cpf-member')
 project(':cpf-reference').projectDir = file('cpf-reference')
 project(':cpf-admin').projectDir = file('cpf-admin')
@@ -130,6 +153,7 @@ project(':cpf-biz-admin').projectDir = file('cpf-biz-admin')
 project(':cpf-gateway').projectDir = file('cpf-gateway')
 project(':cpf-local-runtime').projectDir = file('cpf-tools/runtime/cpf-local-runtime')
 project(':cpf-local-batch-runtime').projectDir = file('cpf-tools/runtime/cpf-local-batch-runtime')
+
 // CPF BOM과 convention 정책은 cpf-tools 소유의 추적 가능한 isolated build 정본으로 관리합니다.
 // Root Build는 아래 Included Build의 check/publication task를 직접 소비합니다.
 includeBuild('cpf-tools/build/platform-bom') {

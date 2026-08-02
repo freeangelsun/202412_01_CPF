@@ -13,6 +13,11 @@ java {
 }
 
 dependencies {
+    implementation project(':cpf-starter-profile-browser-bff-session')
+    implementation project(':cpf-starter-profile-persistence-mybatis')
+    implementation project(':cpf-starter-profile-domain-web-api')
+    implementation project(':cpf-starter-attachment')
+    implementation project(':cpf-starter-tabular-poi')
     // ADM은 CPF 거래 로그와 CMN 공통 기능을 함께 사용합니다.
     implementation project(':cpf-core')
     implementation project(':cpf-common')

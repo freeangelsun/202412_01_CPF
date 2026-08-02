@@ -40,6 +40,8 @@ def cpfFlywayDatabaseByVendor = [
 ]
 
 dependencies {
+    implementation project(':cpf-starter-profile-secure-resource-api')
+    implementation project(':cpf-starter-profile-persistence-mybatis')
     implementation project(':cpf-core')
     implementation project(':cpf-common')
 

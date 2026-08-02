@@ -1,189 +1,57 @@
 {
-  "schema": "cpf.root-overlay-package",
-  "schemaVersion": 4,
-  "packageName": "CPF_20260802_QA38_FINAL_CURRENTIZED_REQUIREMENTS_STARTER_CLEANUP_ROOT_OVERLAY_V2",
+  "packageId": "CPF_QA38_FINAL_DEVELOPMENT_ROOT_OVERLAY",
+  "framework": "Core Platform Framework",
   "repository": "freeangelsun/202412_01_CPF",
   "branch": "master",
-  "baselineSha": "2e93d92393c52b887482731b683db3c3822027b1",
-  "generatedAtKst": "2026-08-02T17:32:50.606475+09:00",
+  "baseSha": "dafe5c0e5260ea8149234e8ab2e75347e75338c1",
+  "generatedAt": "2026-08-02T11:20:00Z",
+  "overlayFileCount": 451,
+  "deleteFileCount": 160,
+  "emptyDirectoryCandidateCount": 24,
   "requirementCount": 156,
   "scenarioCount": 52,
-  "selfDevelopedRequirementCount": 156,
-  "coreToStarterReviewCount": 30,
-  "starterCapabilityCount": 34,
-  "userRequirementCoverageCount": 28,
-  "deleteCandidateCount": 109,
-  "protectedPrefixes": [
-    "cpf-docs/deliverables/",
-    "cpf-docs/guides/",
-    "cpf-docs/environment/docker/",
-    "cpf-tools/environment/docker-development-test/"
-  ],
-  "developmentStatus": "부분 구현",
-  "verificationStatus": "미검증",
-  "applyBehavior": {
-    "managedSharedFiles": "backup+history+replace",
-    "governance": "marker merge",
-    "delete": "exact+baseline guard+local snapshot",
-    "protected": "fail before changes",
-    "commitPush": "never",
-    "consolidatedHistory": "SHARED_MANAGED_REPLACE; backup + SHA/raw snapshot into final history + replace"
+  "developmentStatus": {
+    "완료": 156
   },
-  "files": [
-    {
-      "path": "cpf-docs/quality/CPF_QA38_CORE_TO_STARTER_FINAL_REVIEW.csv",
-      "sha256": "48ad956543ca98305e95b386deefaef66dc6cba22dd51863f1a5763b58a7b21b",
-      "size": 5531
-    },
-    {
-      "path": "cpf-docs/quality/CPF_QA38_FINAL_REQUIREMENT_MATRIX.csv",
-      "sha256": "ce5e2241cdbb9e8fa7e5b950e436ae02ce5076b35bd69aaeeb7f4cb962491057",
-      "size": 82093
-    },
-    {
-      "path": "cpf-docs/quality/CPF_QA38_FINAL_SCENARIO_MATRIX.csv",
-      "sha256": "a9861481290794c8f0942c2a7dbfbee16baccf822f10d4bcc564d558e782604c",
-      "size": 6060
-    },
-    {
-      "path": "cpf-docs/quality/CPF_QA38_REQUIREMENT_COVERAGE_RECONCILIATION.csv",
-      "sha256": "aabc4b7969e096f87bf36c4e99ed80a87c6c15cdbe859a1b752607a4bbb1a241",
-      "size": 3472
-    },
-    {
-      "path": "cpf-docs/quality/CPF_QA38_STARTER_CAPABILITY_CATALOG.csv",
-      "sha256": "ba818f0447d1431f76d109547f2863f9e6197e00b384bf21ee94725ffdd5b2f1",
-      "size": 3445
-    },
-    {
-      "path": "cpf-docs/work/codex/qa38/CODEX_START_HERE.md",
-      "sha256": "45f385a53766615bb63538308db93c83e61d9b9cf95f613ce07142b068fb6a2d",
-      "size": 815
-    },
-    {
-      "path": "cpf-docs/work/codex/qa38/CPF_CODEX_QA38_VERIFICATION_REMEDIATION_REQUEST.md",
-      "sha256": "bb926f65d70a6912ee15aee0176004487aa117117728857733ee030ad35c985d",
-      "size": 546
-    },
-    {
-      "path": "cpf-docs/work/codex/qa38/OPEN_ISSUES.md",
-      "sha256": "7a4dedf448fc0870402f8f613b5c2ab1c566bed201bef134777f4ba17e1ccefa",
-      "size": 284
-    },
-    {
-      "path": "cpf-docs/work/codex/qa38/PACKAGE_MANIFEST.json",
-      "sha256": "adb18c7bb17474856b526a06235005c7f927d12a7ea60a9ddd4b9a2ba70b46f6",
-      "size": 1512
-    },
-    {
-      "path": "cpf-docs/work/codex/qa38/REQUIREMENT_STATUS.csv",
-      "sha256": "82bd1c68dabdaaad352fff908d7d73978f07a6f335fea0b595d23678507ab723",
-      "size": 46731
-    },
-    {
-      "path": "cpf-docs/work/codex/qa38/REVIEW_INDEX.md",
-      "sha256": "19be5713c5421494f147905e1ff002f421f1d8c71112b279eae02ed5c5e5b36c",
-      "size": 327
-    },
-    {
-      "path": "cpf-docs/work/codex/qa38/STAGE_PLAN.csv",
-      "sha256": "191f17748e308be23761a57955881b9e1101823d3fa122e85c6d11fa6bd89190",
-      "size": 1075
-    },
-    {
-      "path": "cpf-docs/work/codex/qa38/TEST_AND_EVIDENCE.md",
-      "sha256": "206f55331948a1534b3f6caf7e9abe06be8d709d8e1f750671f0c584d7978a22",
-      "size": 385
-    },
-    {
-      "path": "cpf-docs/work/current/CPF_CURRENT_WORK_REQUEST.md",
-      "sha256": "012af8405158bc54f298025799f60632a5b58fea491322e3ecb3a9dc4241506d",
-      "size": 1168
-    },
-    {
-      "path": "cpf-docs/work/current/CPF_QA38_FINAL_DEVELOPMENT_REQUIREMENTS.md",
-      "sha256": "d81a7016ae3cd333e798a9f8f5642bbb41742e4a7cc7275f32f0b138480e88bf",
-      "size": 67957
-    },
-    {
-      "path": "cpf-docs/work/current/CPF_QA38_PROTECTED_OWNER_ACTIONS.md",
-      "sha256": "99b4502d070767e2f7c524368d5f1d0e62547e778bb41e9556fcce1c234aa594",
-      "size": 434
-    },
-    {
-      "path": "cpf-docs/work/current/CPF_QA38_SELF_DEVELOPED_REQUIREMENTS.csv",
-      "sha256": "ce5e2241cdbb9e8fa7e5b950e436ae02ce5076b35bd69aaeeb7f4cb962491057",
-      "size": 82093
-    },
-    {
-      "path": "cpf-docs/work/handover/CPF_QA38_HANDOVER.md",
-      "sha256": "ce959f8bf79a38e31cf11301adc3f0a5afa85a4c6a6b8001f690a75739b9c0a4",
-      "size": 668
-    },
-    {
-      "path": "cpf-docs/work/history/CPF_QA37_TO_QA38_CONSOLIDATED_HISTORY.md",
-      "sha256": "f58fa5f289b597bc9423477f5c0393104ec8469699a903dfab5135db7881dbfb",
-      "size": 724
-    },
-    {
-      "path": "cpf-docs/work/manifest/CPF_QA38_CHANGE_MANIFEST.csv",
-      "sha256": "82a0e94b1cdb2d24f304401de27dc69e01a9f6ae9784cc8e3aaab83febcfc0e5",
-      "size": 4387
-    },
-    {
-      "path": "cpf-docs/work/manifest/CPF_QA38_DELETE_MANIFEST.csv",
-      "sha256": "414d497b474e344d0561b8a1a598aa3c7b0944532d82b43b4bf521a419813602",
-      "size": 17064
-    },
-    {
-      "path": "cpf-docs/work/manifest/CPF_QA38_DELETE_REVIEW.csv",
-      "sha256": "9bcf9ff7a580c928616d99f43f06e976159fd8673dfa544fd98906ae8a599cc4",
-      "size": 26566
-    },
-    {
-      "path": "cpf-docs/work/manifest/CPF_QA38_PROTECTED_PATHS.txt",
-      "sha256": "1477d8497752c11896d1faf0ee5184dee24ec9f0ba1a26a013f7d379e0d7e953",
-      "size": 116
-    },
-    {
-      "path": "cpf-docs/work/manifest/CPF_QA38_SHARED_PATH_POLICY.csv",
-      "sha256": "6faec9c5bf836dac0a28a8e5567c74f08414db91bf8bb98f2920c008553a83e5",
-      "size": 1163
-    },
-    {
-      "path": "cpf-docs/work/review/CPF_QA38_POST_PACKAGE_REVIEW.md",
-      "sha256": "7797b493385bddcc67ed7f4e21fb9129b8939c43782036fff7236ad7978bde17",
-      "size": 655
-    },
-    {
-      "path": "cpf-docs/work/review/CPF_QA38_PRE_DEVELOPMENT_REVIEW.md",
-      "sha256": "937d498e917cb1a538af27f3c3a33a9b2e81e3453e8f1d4c4ad7f7b0229cdf39",
-      "size": 630
-    },
-    {
-      "path": "cpf-docs/work/review/CPF_QA38_STARTER_INDEPENDENT_REVIEW.md",
-      "sha256": "886edbbd37250738fe619bed68f3a54d6a306598d7b914a774b0e151ff92b49b",
-      "size": 11369
-    },
-    {
-      "path": "cpf-docs/work/state/CPF_CODEX_CONTINUITY_STATE.md",
-      "sha256": "4e8095b540a6356da143f9b6e0afb2e21d276e2ced957037a3f411513c9f2c08",
-      "size": 638
-    },
-    {
-      "path": "cpf-docs/work/state/CPF_CODEX_DECISION_LOG.md",
-      "sha256": "7dbc911511d872a29691b94f2417a7400d00574e247a5677df6bc73e2cd45561",
-      "size": 497
-    },
-    {
-      "path": "cpf-tools/scripts/apply-cpf-qa38-final-currentization.ps1",
-      "sha256": "79f82d4f2c2d54e937ae12562d1843a2977240a1dadf4c8eb27c976d02bedaf3",
-      "size": 13601
-    }
+  "verificationStatus": {
+    "완료": 40,
+    "미검증": 116
+  },
+  "executedVerification": [
+    "QA38 structure/profile/artifact gate",
+    "Java duplicate member gate",
+    "3-vendor SQL semantic parity",
+    "JDK21 pure runtime harness 33 checks",
+    "Messaging/service identity harness",
+    "Java parser syntax scan"
   ],
-  "correction": {
-    "version": "V2",
-    "reason": "Consolidated History was omitted from managed shared paths",
-    "priorRun": "Stopped at preflight before apply/delete"
-  }
+  "notExecutedVerification": [
+    "Java25 full Gradle build/test/publication",
+    "actual Oracle/PostgreSQL/MariaDB lifecycle",
+    "actual Kafka/RabbitMQ/JMS/IBM MQ/SFTP runtime",
+    "ADM/BZA frontend and Playwright",
+    "fault/OTel/multi-instance",
+    "SBOM/vulnerability/license/publication"
+  ],
+  "protectedPaths": [
+    "cpf-docs/deliverables",
+    "cpf-docs/guides",
+    "cpf-docs/environment/docker",
+    "cpf-tools/environment/docker-development-test"
+  ],
+  "hashManifest": "cpf-docs/work/manifest/CPF_QA38_FILES.sha256",
+  "hashManifestExcludesSelf": true,
+  "deleteManifest": "cpf-docs/work/manifest/CPF_QA38_DELETE_MANIFEST.txt",
+  "emptyDirectoryManifest": "cpf-docs/work/manifest/CPF_QA38_EMPTY_DIRECTORY_MANIFEST.txt",
+  "applyScript": "cpf-tools/scripts/apply-qa38-root-overlay.ps1",
+  "verifyScript": "cpf-tools/scripts/verify-qa38-starter-closure.ps1",
+  "codexRequest": "cpf-docs/work/codex/qa38/CPF_CODEX_QA38_FINAL_INDEPENDENT_VALIDATION_REQUEST.md",
+  "latestObservedOriginMaster": "99fefc6346c70406cbac5c59ad33d0c069166c2f",
+  "postBaseManagedPathOverlapCount": 0,
+  "postBaseCommitsReviewed": [
+    "3b600702502e53877e30cbac594987b371e2186b",
+    "99fefc6346c70406cbac5c59ad33d0c069166c2f"
+  ],
+  "packageRevision": "R3",
+  "applyScriptFix": "Flatten Git path query results; preserve non-overlapping dirty working tree; suppress line-ending warnings only during path query"
 }

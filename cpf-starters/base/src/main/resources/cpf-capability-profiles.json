@@ -1,0 +1,366 @@
+{
+  "schemaVersion": "1.0",
+  "profileVersion": "2026.08.02",
+  "profiles": [
+    {
+      "profileId": "MINIMAL_BOOT_DOMAIN",
+      "profileVersion": "2026.08.02",
+      "aggregateProject": "cpf-starter-profile-minimal-boot-domain",
+      "aggregateArtifact": "com.cpf.starter:cpf-starter-profile-minimal-boot-domain",
+      "resolvedStarters": [
+        "cpf-starter-base"
+      ],
+      "allowedProviderBindings": {
+        "messaging": [
+          "kafka",
+          "rabbitmq",
+          "jms",
+          "ibm-mq"
+        ],
+        "cache": [
+          "caffeine",
+          "valkey"
+        ],
+        "notification": [
+          "email",
+          "sms"
+        ]
+      }
+    },
+    {
+      "profileId": "DOMAIN_WEB_API",
+      "profileVersion": "2026.08.02",
+      "aggregateProject": "cpf-starter-profile-domain-web-api",
+      "aggregateArtifact": "com.cpf.starter:cpf-starter-profile-domain-web-api",
+      "resolvedStarters": [
+        "cpf-starter-base",
+        "cpf-starter-validation",
+        "cpf-starter-openapi-webmvc",
+        "cpf-starter-http-client"
+      ],
+      "allowedProviderBindings": {
+        "messaging": [
+          "kafka",
+          "rabbitmq",
+          "jms",
+          "ibm-mq"
+        ],
+        "cache": [
+          "caffeine",
+          "valkey"
+        ],
+        "notification": [
+          "email",
+          "sms"
+        ]
+      }
+    },
+    {
+      "profileId": "SECURE_RESOURCE_API",
+      "profileVersion": "2026.08.02",
+      "aggregateProject": "cpf-starter-profile-secure-resource-api",
+      "aggregateArtifact": "com.cpf.starter:cpf-starter-profile-secure-resource-api",
+      "resolvedStarters": [
+        "cpf-starter-profile-domain-web-api",
+        "cpf-starter-security-resource-server",
+        "cpf-starter-security-service-identity",
+        "cpf-starter-observability"
+      ],
+      "allowedProviderBindings": {
+        "messaging": [
+          "kafka",
+          "rabbitmq",
+          "jms",
+          "ibm-mq"
+        ],
+        "cache": [
+          "caffeine",
+          "valkey"
+        ],
+        "notification": [
+          "email",
+          "sms"
+        ]
+      }
+    },
+    {
+      "profileId": "BROWSER_BFF_SESSION",
+      "profileVersion": "2026.08.02",
+      "aggregateProject": "cpf-starter-profile-browser-bff-session",
+      "aggregateArtifact": "com.cpf.starter:cpf-starter-profile-browser-bff-session",
+      "resolvedStarters": [
+        "cpf-starter-security",
+        "cpf-starter-persistence-jdbc",
+        "cpf-starter-observability"
+      ],
+      "allowedProviderBindings": {
+        "messaging": [
+          "kafka",
+          "rabbitmq",
+          "jms",
+          "ibm-mq"
+        ],
+        "cache": [
+          "caffeine",
+          "valkey"
+        ],
+        "notification": [
+          "email",
+          "sms"
+        ]
+      }
+    },
+    {
+      "profileId": "PERSISTENCE_MYBATIS",
+      "profileVersion": "2026.08.02",
+      "aggregateProject": "cpf-starter-profile-persistence-mybatis",
+      "aggregateArtifact": "com.cpf.starter:cpf-starter-profile-persistence-mybatis",
+      "resolvedStarters": [
+        "cpf-starter-persistence-jdbc",
+        "cpf-starter-persistence-mybatis"
+      ],
+      "allowedProviderBindings": {
+        "messaging": [
+          "kafka",
+          "rabbitmq",
+          "jms",
+          "ibm-mq"
+        ],
+        "cache": [
+          "caffeine",
+          "valkey"
+        ],
+        "notification": [
+          "email",
+          "sms"
+        ]
+      }
+    },
+    {
+      "profileId": "EVENT_KAFKA",
+      "profileVersion": "2026.08.02",
+      "aggregateProject": "cpf-starter-profile-event-kafka",
+      "aggregateArtifact": "com.cpf.starter:cpf-starter-profile-event-kafka",
+      "resolvedStarters": [
+        "cpf-starter-messaging-reliability-jdbc",
+        "cpf-starter-messaging-kafka",
+        "cpf-starter-observability",
+        "cpf-starter-resilience"
+      ],
+      "allowedProviderBindings": {
+        "messaging": [
+          "kafka",
+          "rabbitmq",
+          "jms",
+          "ibm-mq"
+        ],
+        "cache": [
+          "caffeine",
+          "valkey"
+        ],
+        "notification": [
+          "email",
+          "sms"
+        ]
+      }
+    },
+    {
+      "profileId": "EVENT_RABBITMQ",
+      "profileVersion": "2026.08.02",
+      "aggregateProject": "cpf-starter-profile-event-rabbitmq",
+      "aggregateArtifact": "com.cpf.starter:cpf-starter-profile-event-rabbitmq",
+      "resolvedStarters": [
+        "cpf-starter-messaging-reliability-jdbc",
+        "cpf-starter-messaging-rabbitmq",
+        "cpf-starter-observability",
+        "cpf-starter-resilience"
+      ],
+      "allowedProviderBindings": {
+        "messaging": [
+          "kafka",
+          "rabbitmq",
+          "jms",
+          "ibm-mq"
+        ],
+        "cache": [
+          "caffeine",
+          "valkey"
+        ],
+        "notification": [
+          "email",
+          "sms"
+        ]
+      }
+    },
+    {
+      "profileId": "EVENT_JMS_IBM_MQ",
+      "profileVersion": "2026.08.02",
+      "aggregateProject": "cpf-starter-profile-event-jms-ibm-mq",
+      "aggregateArtifact": "com.cpf.starter:cpf-starter-profile-event-jms-ibm-mq",
+      "resolvedStarters": [
+        "cpf-starter-messaging-reliability-jdbc",
+        "cpf-starter-messaging-jms",
+        "cpf-starter-messaging-ibm-mq",
+        "cpf-starter-observability",
+        "cpf-starter-resilience"
+      ],
+      "allowedProviderBindings": {
+        "messaging": [
+          "kafka",
+          "rabbitmq",
+          "jms",
+          "ibm-mq"
+        ],
+        "cache": [
+          "caffeine",
+          "valkey"
+        ],
+        "notification": [
+          "email",
+          "sms"
+        ]
+      }
+    },
+    {
+      "profileId": "INTEGRATION_TCP",
+      "profileVersion": "2026.08.02",
+      "aggregateProject": "cpf-starter-profile-integration-tcp",
+      "aggregateArtifact": "com.cpf.starter:cpf-starter-profile-integration-tcp",
+      "resolvedStarters": [
+        "cpf-starter-integration-tcp",
+        "cpf-integration-fixedlength-core",
+        "cpf-starter-integration-fixedlength",
+        "cpf-starter-integration-iso8583",
+        "cpf-starter-observability",
+        "cpf-starter-resilience"
+      ],
+      "allowedProviderBindings": {
+        "messaging": [
+          "kafka",
+          "rabbitmq",
+          "jms",
+          "ibm-mq"
+        ],
+        "cache": [
+          "caffeine",
+          "valkey"
+        ],
+        "notification": [
+          "email",
+          "sms"
+        ]
+      }
+    },
+    {
+      "profileId": "OBSERVABLE_RESILIENT_SERVICE",
+      "profileVersion": "2026.08.02",
+      "aggregateProject": "cpf-starter-profile-observable-resilient-service",
+      "aggregateArtifact": "com.cpf.starter:cpf-starter-profile-observable-resilient-service",
+      "resolvedStarters": [
+        "cpf-starter-observability",
+        "cpf-starter-observability-otlp",
+        "cpf-starter-resilience"
+      ],
+      "allowedProviderBindings": {
+        "messaging": [
+          "kafka",
+          "rabbitmq",
+          "jms",
+          "ibm-mq"
+        ],
+        "cache": [
+          "caffeine",
+          "valkey"
+        ],
+        "notification": [
+          "email",
+          "sms"
+        ]
+      }
+    },
+    {
+      "profileId": "NOTIFICATION_SERVICE",
+      "profileVersion": "2026.08.02",
+      "aggregateProject": "cpf-starter-profile-notification-service",
+      "aggregateArtifact": "com.cpf.starter:cpf-starter-profile-notification-service",
+      "resolvedStarters": [
+        "cpf-starter-notification",
+        "cpf-starter-notification-email",
+        "cpf-notification-sms-spi",
+        "cpf-starter-observability",
+        "cpf-starter-resilience"
+      ],
+      "allowedProviderBindings": {
+        "messaging": [
+          "kafka",
+          "rabbitmq",
+          "jms",
+          "ibm-mq"
+        ],
+        "cache": [
+          "caffeine",
+          "valkey"
+        ],
+        "notification": [
+          "email",
+          "sms"
+        ]
+      }
+    },
+    {
+      "profileId": "SCHEDULED_SERVICE",
+      "profileVersion": "2026.08.02",
+      "aggregateProject": "cpf-starter-profile-scheduled-service",
+      "aggregateArtifact": "com.cpf.starter:cpf-starter-profile-scheduled-service",
+      "resolvedStarters": [
+        "cpf-starter-scheduler-quartz",
+        "cpf-starter-observability",
+        "cpf-starter-resilience"
+      ],
+      "allowedProviderBindings": {
+        "messaging": [
+          "kafka",
+          "rabbitmq",
+          "jms",
+          "ibm-mq"
+        ],
+        "cache": [
+          "caffeine",
+          "valkey"
+        ],
+        "notification": [
+          "email",
+          "sms"
+        ]
+      }
+    },
+    {
+      "profileId": "SFTP_INTEGRATION",
+      "profileVersion": "2026.08.02",
+      "aggregateProject": "cpf-starter-profile-sftp-integration",
+      "aggregateArtifact": "com.cpf.starter:cpf-starter-profile-sftp-integration",
+      "resolvedStarters": [
+        "cpf-starter-integration-sftp",
+        "cpf-starter-file-archive",
+        "cpf-starter-observability",
+        "cpf-starter-resilience"
+      ],
+      "allowedProviderBindings": {
+        "messaging": [
+          "kafka",
+          "rabbitmq",
+          "jms",
+          "ibm-mq"
+        ],
+        "cache": [
+          "caffeine",
+          "valkey"
+        ],
+        "notification": [
+          "email",
+          "sms"
+        ]
+      }
+    }
+  ]
+}

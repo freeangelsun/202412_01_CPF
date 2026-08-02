@@ -18,6 +18,8 @@
 
 Developer Report는 QA 승인 근거 자체가 아니라 반복 탐색을 줄이는 검수 인덱스다. 보고와 Source/Evidence가 다르면 Source/Evidence를 기준으로 실패 처리한다.
 
-## Independent validation result
+## 정본 및 정리 확인
 
-Source를 직접 확인하고 Developer Report를 그대로 승인하지 않는다.
+1. Repository Root에 QA 산출물이 추가되지 않았는지 확인한다.
+2. Current Request·자체요건·Handover·Continuity의 중복 정본이 남지 않았는지 확인한다.
+3. QA 문서 정리와 제품 Source 삭제가 서로 다른 Manifest로 관리되는지 확인한다.

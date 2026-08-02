@@ -1,16 +1,26 @@
-# CPF Codex Decision Log
+# CPF Codex Decision Log — QA39 Final
 
-## QA38 Architecture Decisions
+1. 교체 비용과 기존 코드량은 Starter 가치 판정 근거가 아니다.
+2. OSS 직접 사용 대비 편의성·확장성·표준화·운영성·독립성이 없으면 완전 제거한다.
+3. QA 최종 개발요건이 자체 개발요건보다 우선하며 충돌 시 QA 요건을 적용한다.
+4. 완전 제거: AOP Service Access, Validation, Resilience, Feature Flag, 미등록 FTPS/gRPC/S3/Realtime/SMB/SOAP/Webhook.
+5. 관련 가치 없는 Core Wrapper/API도 함께 제거하고 core로 옮겨 숨기지 않는다.
+6. 공개 선택면은 6 Profile+7 Capability Group이다.
+7. 유지 Group은 Data, Messaging, Integration, File, Notification, Security, Platform Operations다.
+8. OpenAPI는 web-api, Scheduler는 batch-service에 흡수한다.
+9. Provider/Codec/Exporter는 내부 Leaf로 유지하며 Generator binding/resolved lock으로 선택한다.
+10. 유지 Capability는 간단한 CPF Public API와 고객사 확장 SPI를 제공하고 OSS 타입을 업무 코드에 노출하지 않는다.
+11. Security/Cache Aggregate와 Provider/기술별 Profile은 대체 후 삭제한다.
+12. 삭제는 exact path Delete Work Items와 reference-zero 검증, 한 줄 명령으로 수행한다.
+13. 개발 GPT는 Developer Implementation Report와 독립 Self Review를 남겨 QA 반복 탐색을 줄인다.
+14. 보고서는 완료 증거가 아니라 독립 QA의 검수 진입점이며 실제 Evidence와 다르면 완료가 아니다.
+15. Commit/Push/Branch/Tag/PR/Release는 사용자 승인 없이 수행하지 않는다.
 
-1. `cpf-core`는 topology-independent API/SPI/Model과 최소 순수 Java 계약만 소유한다.
-2. 선택 Runtime은 `cpf-starters` Leaf Starter가 소유한다.
-3. Aggregate/Profile은 전이 Dependency와 Version Lock만 제공하며 자체 업무 Bean을 소유하지 않는다.
-4. 공식 DB Vendor는 Oracle, PostgreSQL, MariaDB만 사용한다.
-5. Multi-provider Messaging은 Named Binding 필수, Default 최대 1개, 모호성 fail-closed다.
-6. TCP write 후 response loss는 실패 재시도가 아니라 `UNKNOWN_RESULT`와 reconcile로 처리한다.
-7. SFTP Provider 부재는 성공 계획 반환이 아니라 startup/runtime fail-closed다.
-8. Legacy 삭제는 exact path Manifest로만 수행하고 보호 경로는 제외한다.
-9. 개발 완료와 Runtime 검증 완료를 별도 상태로 관리한다.
-10. Commit·Push는 사용자만 수행한다.
+Reviewed SHA: `9a9634eb1f28071d47c205cc35227b6d013a4536`
 
-Base SHA: `dafe5c0e5260ea8149234e8ab2e75347e75338c1`
+## QA39-R4 정리 결정
+
+- QA 산출물의 Repository Root 배치를 금지한다.
+- `CPF_QA39_SELF_DEVELOPED_REQUIREMENTS.csv`를 활성 자체요건 정본으로 사용한다.
+- 이전 루트 README 및 중복·충돌 정본은 즉시 정리 Manifest에 기록한다.
+- 제품 Source 제거 명령과 QA 문서 정리 명령을 분리한다.

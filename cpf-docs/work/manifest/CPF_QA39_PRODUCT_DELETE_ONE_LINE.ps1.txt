@@ -1,0 +1,2 @@
+# 대체 구현·Consumer 이관·잔여참조 0건 검증을 마친 뒤에만 실행
+$m='cpf-docs/work/manifest/CPF_QA39_FINAL_DELETE_PATHS.txt'; Get-Content -LiteralPath $m | Where-Object { $_.Trim() -and -not $_.Trim().StartsWith('#') } | ForEach-Object { $p=$_.Trim(); if (Test-Path -LiteralPath $p) { Remove-Item -LiteralPath $p -Recurse -Force } }

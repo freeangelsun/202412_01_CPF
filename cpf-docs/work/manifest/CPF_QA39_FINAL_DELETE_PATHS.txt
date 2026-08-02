@@ -1,0 +1,25 @@
+# QA39 final exact delete paths
+# 실행 전 신규 대체 구조와 Consumer 이관 및 reference-zero 검증 필수
+cpf-starters/aop-service-access
+cpf-starters/validation
+cpf-starters/resilience
+cpf-starters/featureflag
+cpf-starters/integration-ftps
+cpf-starters/integration-grpc
+cpf-starters/integration-object-storage-s3
+cpf-starters/integration-realtime-webflux
+cpf-starters/integration-smb
+cpf-starters/integration-soap
+cpf-starters/integration-webhook
+cpf-starters/security-aggregate
+cpf-starters/cache-aggregate
+cpf-starters/profiles/persistence-mybatis
+cpf-starters/profiles/event-kafka
+cpf-starters/profiles/event-rabbitmq
+cpf-starters/profiles/event-jms-ibm-mq
+cpf-starters/profiles/integration-tcp
+cpf-starters/profiles/observable-resilient-service
+cpf-starters/profiles/notification-service
+cpf-starters/profiles/scheduled-service
+cpf-starters/profiles/sftp-integration
+cpf-starters/scheduler-quartz

@@ -1,0 +1,10 @@
+# QA39 즉시 정리 대상 — 이전 QA 패키지의 루트 파일 및 중복·충돌 정본
+# Repository Root에서 경로 존재 여부를 확인한 뒤 아래 exact path만 삭제한다.
+CPF_QA39_OVERLAY_README.md
+cpf-docs/work/current/CPF_QA38_POST_PUSH_REVIEW_PACKAGE_INDEX.md
+cpf-docs/work/current/CPF_QA39_INTEGRATED_DEVELOPMENT_REQUEST.md
+cpf-docs/work/current/CPF_QA39_SELF_DEVELOPMENT_REQUIREMENTS.md
+cpf-docs/work/current/CPF_QA39_SELF_DEVELOPMENT_REQUIREMENTS.csv
+cpf-docs/work/handover/CPF_QA38_TO_QA39_HANDOVER.md
+cpf-docs/work/state/CPF_QA39_CONTINUITY_STATE.md
+cpf-docs/work/manifest/CPF_QA39_DELETE_CANDIDATES.csv

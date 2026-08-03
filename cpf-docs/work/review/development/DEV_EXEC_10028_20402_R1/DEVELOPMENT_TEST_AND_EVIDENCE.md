@@ -1,6 +1,6 @@
 # DEVELOPMENT TEST AND EVIDENCE
 
-## PASS
+## 개발GPT 제출 PASS
 
 | Gate | 결과 | Evidence |
 |---|---:|---|
@@ -10,19 +10,28 @@
 | Generator idempotency 3 Vendor lifecycle | 3/3 PASS | `GENERATOR_IDEMPOTENCY_TEMPLATE.log` |
 | Batch execution control synthetic Java compile | 24 source PASS | `BATCH_CONTROL_JAVA_COMPILE.log` |
 | ADM Route TypeScript fixture compile | PASS | `FRONTEND_ROUTES_TSC.log` |
-| Overlay whitespace/control validation | PASS | `OVERLAY_SOURCE_DIFF_VALIDATION.json` |
 | Requirement role-column boundary | 44 rows, illegal change 0 | `DEVELOPMENT_TARGETED_VALIDATION.json` |
 
-Evidence root: `cpf-docs/work/evidence/20260803/DEV_EXEC_10028_20402_R1/`
+Development Evidence root: `cpf-docs/work/evidence/20260803/DEV_EXEC_10028_20402_R1/`
 
-## 미실행·미검증
+## QA 검수 결과 머지 — 기존 1~10,027
 
-| 검증 | 상태 | 필요한 환경 | 성공 기준 |
-|---|---|---|---|
-| Java 25 전체 Gradle Build/Test/Publication | NOT_EXECUTED | fresh clone, JDK 25, Gradle dependency access | exit 0, failed test 0 |
-| Spring Batch 실제 JUnit·Metadata DB·Process Kill·multi-worker | NOT_EXECUTED | Batch Runtime, 공식 DB, 다중 Process | UNKNOWN 복구·중복 0·fencing 일치 |
-| ADM Vite Build·Browser E2E·권한별 Route | NOT_EXECUTED | Node package install, backend, Chromium | Build/E2E exit 0, 권한 우회 0 |
-| Oracle/PostgreSQL/MariaDB lifecycle Runtime | NOT_EXECUTED | 3 DB와 권한/Secret | install/upgrade/rollback/drift 모두 PASS |
-| fresh clone Overlay 적용 재현 | NOT_EXECUTED | 사용자 Repository | manifest hash 일치, diff check 0 |
+- QA 결과: `미통과`
+- Finding: `25건`
+- QA 기준 SHA: `2903de14eb9cd6cfcccf8e4d2a3489ee2e4193ca`
+- QA 원본: `cpf-docs/work/qa/qa-dev-r1-20260803-r2/`
 
-미실행 항목은 PASS로 기록하지 않았다.
+QA가 확인한 PASS/FAIL 여부는 개발GPT의 Targeted PASS와 별개다. 최신 master에서 Finding별 재검수 명령, 기대 결과, 실패 기준과 Evidence를 적용한다.
+
+## 다음 개발GPT 검증 대상
+
+- 논리 실행순서 `20,001~40,000`
+- Requirement별 Source와 실제 Consumer·호출 경로
+- Test·Gate·Evidence의 exact SHA 정합성
+- QA Finding 25건의 최신 master 재검수
+- 요건 미충족 또는 결함 확인 항목의 수정 개발과 재검증
+- 기존 기능 회귀
+- Java 21에서 가능한 Compile·Unit·Contract·Harness
+- 환경이 필요한 Java 25·3 DB·다중 인스턴스 검증의 정확한 이관
+
+미실행 항목은 PASS로 기록하지 않는다.

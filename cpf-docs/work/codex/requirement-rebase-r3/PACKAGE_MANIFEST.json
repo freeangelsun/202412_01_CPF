@@ -1,0 +1,16 @@
+{
+  "packageId": "CPF_CODEX_REQUIREMENT_REBASE_R3",
+  "baselineSha": "4aea798c913787e86341809e2cef2b9495cbf7ba",
+  "requirementCount": 30558,
+  "scenarioCount": 40763,
+  "validationPassed": true,
+  "reviewOrder": [
+    "REVIEW_INDEX.md",
+    "CHANGE_MANIFEST.csv",
+    "REQUIREMENT_STATUS.csv",
+    "TEST_AND_EVIDENCE.md",
+    "OPEN_ISSUES.md",
+    "QA_REWORK_REQUEST.md",
+    "PACKAGE_MANIFEST.json"
+  ]
+}

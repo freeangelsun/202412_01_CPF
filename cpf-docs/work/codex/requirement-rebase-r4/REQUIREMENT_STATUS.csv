@@ -1,0 +1,5 @@
+item,status,evidence
+Requirement logical count,완료,30558
+Scenario logical count,완료,40763
+All files under 50MB,완료,44999932
+Runtime verification,미완료,제품 Runtime 검증은 본 패키지 범위 아님

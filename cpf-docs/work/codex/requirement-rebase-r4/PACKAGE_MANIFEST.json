@@ -1,0 +1,36 @@
+{
+  "packageId": "CPF_REQUIREMENT_REBASE_CODEX_R4_SPLIT",
+  "generatedAt": "2026-08-03T13:07:18+09:00",
+  "files": [
+    {
+      "path": "cpf-docs/work/codex/requirement-rebase-r4/CHANGE_MANIFEST.csv",
+      "size": 610,
+      "sha256": "ae2c2e3770ed90097d6091c923fb03e4113fa582fd66e11bffb29a96f805b12f"
+    },
+    {
+      "path": "cpf-docs/work/codex/requirement-rebase-r4/OPEN_ISSUES.md",
+      "size": 220,
+      "sha256": "08e481b166294fccf4869e7c55909a10f6e4670a5d6b37698405d7fcd175e611"
+    },
+    {
+      "path": "cpf-docs/work/codex/requirement-rebase-r4/QA_REWORK_REQUEST.md",
+      "size": 180,
+      "sha256": "4f489af228ea9c356277e10e5b8a0d71e9d69a94244212656b75fae4fa7b0805"
+    },
+    {
+      "path": "cpf-docs/work/codex/requirement-rebase-r4/REQUIREMENT_STATUS.csv",
+      "size": 217,
+      "sha256": "ba5d64a0302cb549db9b7fd017f491cfda64da6eea19be0389874b87449577f3"
+    },
+    {
+      "path": "cpf-docs/work/codex/requirement-rebase-r4/REVIEW_INDEX.md",
+      "size": 275,
+      "sha256": "297ceef4c74bfcf4c83337b0369f471b350b3a02b9bb8f8edd0394724f878290"
+    },
+    {
+      "path": "cpf-docs/work/codex/requirement-rebase-r4/TEST_AND_EVIDENCE.md",
+      "size": 267,
+      "sha256": "4ce43dd5334a6468ec0c2d3163d461a01c59d11dba4aea68a684df1296a6e291"
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "packageId": "CPF_REQUIREMENT_REBASE_CODEX_R5_8MB",
+  "generatedAt": "2026-08-03T13:30:52+09:00",
+  "files": [
+    {
+      "path": "cpf-docs/work/codex/requirement-rebase-r5/CHANGE_MANIFEST.csv",
+      "size": 644,
+      "sha256": "cd4b5d2b5b05d17be46ea6dda40b23cb5fc259f2e5e6676ff1685b5516936b12"
+    },
+    {
+      "path": "cpf-docs/work/codex/requirement-rebase-r5/OPEN_ISSUES.md",
+      "size": 173,
+      "sha256": "9ec50a61d7fe8a7823b910aeea5eb9fc4a3c2bbcd0bced3c5b2fe0dfb45fe496"
+    },
+    {
+      "path": "cpf-docs/work/codex/requirement-rebase-r5/QA_REWORK_REQUEST.md",
+      "size": 152,
+      "sha256": "549bab84988faa16bb80787427b511c599d551e37f9b08e02fac85a4256223cd"
+    },
+    {
+      "path": "cpf-docs/work/codex/requirement-rebase-r5/REQUIREMENT_STATUS.csv",
+      "size": 349,
+      "sha256": "c0b5a2e98bbf4194f04029552a372deeb2c08c34814d5578cd682e2f33f3447e"
+    },
+    {
+      "path": "cpf-docs/work/codex/requirement-rebase-r5/REVIEW_INDEX.md",
+      "size": 182,
+      "sha256": "aeb5302a7030a849878436c1f5bd914c1ed6d577d5a1a5020e1a86c28f9737a1"
+    },
+    {
+      "path": "cpf-docs/work/codex/requirement-rebase-r5/TEST_AND_EVIDENCE.md",
+      "size": 251,
+      "sha256": "e4d01275c98f8cbfcf0e3e711fd2bee3e5eedec706771e2694803b47d5ac8aa5"
+    }
+  ]
+}

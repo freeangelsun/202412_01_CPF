@@ -1,0 +1,12 @@
+# Codex R3 검수 순서
+
+1. `CPF_REQUIREMENT_VALIDATION_RESULT.json`
+2. `CPF_PHASE_GATE_REGISTER.csv`
+3. `CPF_EXECUTION_SEQUENCE.csv`
+4. `CPF_COVERAGE_CLOSURE_MATRIX.csv`
+5. `CPF_REQUIREMENT_SOURCE_COVERAGE.csv`
+6. `CPF_REQUIREMENT_MASTER.csv`
+7. `CPF_SCENARIO_MASTER.csv`
+8. 최신 Repository Inventory와 양방향 Trace
+9. Phase별 구현·실행 Evidence
+10. 미통과 시 `QA_REWORK_REQUEST.md`에 같은 Requirement ID로 구체적 재요청

@@ -1,0 +1,377 @@
+{
+  "packageId": "CPF_FULL_REQUIREMENT_REBASE_20260803_R5_SPLIT_8MB_R1",
+  "repository": "https://github.com/freeangelsun/202412_01_CPF",
+  "branch": "master",
+  "baselineSha": "e134c1f275c306c0e9ab4a044d9140ac4b3ca620",
+  "generatedAt": "2026-08-03T13:30:52+09:00",
+  "requirementCount": 30558,
+  "scenarioCount": 40763,
+  "executionSequenceCount": 30558,
+  "requirementPartCount": 19,
+  "scenarioPartCount": 7,
+  "executionSequencePartCount": 2,
+  "partLimitBytes": 8000000,
+  "maxIndividualFileBytes": 7999978,
+  "maxIndividualFilePath": "cpf-docs/work/current/CPF_SCENARIO_MASTER.parts/CPF_SCENARIO_MASTER_PART_005_CPF-SC-024986__CPF-SC-030164.csv",
+  "allFilesUnder10MB": true,
+  "mainIndexPathsPreserved": true,
+  "validationPassed": true,
+  "files": [
+    {
+      "path": "cpf-docs/work/codex/requirement-rebase-r3/CHANGE_MANIFEST.csv",
+      "sha256": "5b010931d8314af2e00b445ac34aad29d3713c5cc2dc942cbe43f22f44d4b2d5",
+      "size": 961
+    },
+    {
+      "path": "cpf-docs/work/codex/requirement-rebase-r3/OPEN_ISSUES.md",
+      "sha256": "91714bf02743ae42b9503093510f0baddeef9899ead8b2c0691ea6ee2eb6160f",
+      "size": 464
+    },
+    {
+      "path": "cpf-docs/work/codex/requirement-rebase-r3/PACKAGE_MANIFEST.json",
+      "sha256": "5850fb74f065f6737fd470430b8046cab6533d8e9b3e767864a2a3ea95a2ba6a",
+      "size": 406
+    },
+    {
+      "path": "cpf-docs/work/codex/requirement-rebase-r3/QA_REWORK_REQUEST.md",
+      "sha256": "5b5b9d007532b8bead5f3aa4466c67525d97a0218ace837f709d8c85cb2334b1",
+      "size": 311
+    },
+    {
+      "path": "cpf-docs/work/codex/requirement-rebase-r3/R4_SUPERSEDED_NOTICE.md",
+      "sha256": "04151641a9c741233276c2efd1d7fd83de1e751264ab16a0680f6a17a2224ce2",
+      "size": 182
+    },
+    {
+      "path": "cpf-docs/work/codex/requirement-rebase-r3/REQUIREMENT_STATUS.csv",
+      "sha256": "201e5397b4628c32066a309a135c03e4fb18735eed1566ee0b94e5eb579e381c",
+      "size": 2415
+    },
+    {
+      "path": "cpf-docs/work/codex/requirement-rebase-r3/REVIEW_INDEX.md",
+      "sha256": "d88ae1071f12ffcba2b1819b8d8ba5580d3670063cb64dc09e4264488139845d",
+      "size": 449
+    },
+    {
+      "path": "cpf-docs/work/codex/requirement-rebase-r3/TEST_AND_EVIDENCE.md",
+      "sha256": "116e0bbbb44a34e8b031ff29dadc62f8a3c76551f9c246c46e42747c3cd4f13e",
+      "size": 561
+    },
+    {
+      "path": "cpf-docs/work/codex/requirement-rebase-r4/CHANGE_MANIFEST.csv",
+      "sha256": "ae2c2e3770ed90097d6091c923fb03e4113fa582fd66e11bffb29a96f805b12f",
+      "size": 610
+    },
+    {
+      "path": "cpf-docs/work/codex/requirement-rebase-r4/OPEN_ISSUES.md",
+      "sha256": "08e481b166294fccf4869e7c55909a10f6e4670a5d6b37698405d7fcd175e611",
+      "size": 220
+    },
+    {
+      "path": "cpf-docs/work/codex/requirement-rebase-r4/PACKAGE_MANIFEST.json",
+      "sha256": "01f07cefb8359b1dd93d07645b0a576516cfbc9c92d767a89de0f0a8a0d47e9e",
+      "size": 1281
+    },
+    {
+      "path": "cpf-docs/work/codex/requirement-rebase-r4/QA_REWORK_REQUEST.md",
+      "sha256": "4f489af228ea9c356277e10e5b8a0d71e9d69a94244212656b75fae4fa7b0805",
+      "size": 180
+    },
+    {
+      "path": "cpf-docs/work/codex/requirement-rebase-r4/R5_SUPERSEDED_NOTICE.md",
+      "sha256": "5d7bd91aa9e67c137801a235432154d3101116426a9a3d08f578c361f0d24761",
+      "size": 124
+    },
+    {
+      "path": "cpf-docs/work/codex/requirement-rebase-r4/REQUIREMENT_STATUS.csv",
+      "sha256": "ba5d64a0302cb549db9b7fd017f491cfda64da6eea19be0389874b87449577f3",
+      "size": 217
+    },
+    {
+      "path": "cpf-docs/work/codex/requirement-rebase-r4/REVIEW_INDEX.md",
+      "sha256": "297ceef4c74bfcf4c83337b0369f471b350b3a02b9bb8f8edd0394724f878290",
+      "size": 275
+    },
+    {
+      "path": "cpf-docs/work/codex/requirement-rebase-r4/TEST_AND_EVIDENCE.md",
+      "sha256": "4ce43dd5334a6468ec0c2d3163d461a01c59d11dba4aea68a684df1296a6e291",
+      "size": 267
+    },
+    {
+      "path": "cpf-docs/work/codex/requirement-rebase-r5/CHANGE_MANIFEST.csv",
+      "sha256": "cd4b5d2b5b05d17be46ea6dda40b23cb5fc259f2e5e6676ff1685b5516936b12",
+      "size": 644
+    },
+    {
+      "path": "cpf-docs/work/codex/requirement-rebase-r5/OPEN_ISSUES.md",
+      "sha256": "9ec50a61d7fe8a7823b910aeea5eb9fc4a3c2bbcd0bced3c5b2fe0dfb45fe496",
+      "size": 173
+    },
+    {
+      "path": "cpf-docs/work/codex/requirement-rebase-r5/PACKAGE_MANIFEST.json",
+      "sha256": "add6100151668b776d99359b40fa7200eacbcb22510987a252be0325867e0ad0",
+      "size": 1279
+    },
+    {
+      "path": "cpf-docs/work/codex/requirement-rebase-r5/QA_REWORK_REQUEST.md",
+      "sha256": "549bab84988faa16bb80787427b511c599d551e37f9b08e02fac85a4256223cd",
+      "size": 152
+    },
+    {
+      "path": "cpf-docs/work/codex/requirement-rebase-r5/REQUIREMENT_STATUS.csv",
+      "sha256": "c0b5a2e98bbf4194f04029552a372deeb2c08c34814d5578cd682e2f33f3447e",
+      "size": 349
+    },
+    {
+      "path": "cpf-docs/work/codex/requirement-rebase-r5/REVIEW_INDEX.md",
+      "sha256": "aeb5302a7030a849878436c1f5bd914c1ed6d577d5a1a5020e1a86c28f9737a1",
+      "size": 182
+    },
+    {
+      "path": "cpf-docs/work/codex/requirement-rebase-r5/TEST_AND_EVIDENCE.md",
+      "sha256": "e4d01275c98f8cbfcf0e3e711fd2bee3e5eedec706771e2694803b47d5ac8aa5",
+      "size": 251
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_COVERAGE_CLOSURE_MATRIX.csv",
+      "sha256": "ba3c9c79e8ab01ca562aa9c050ecf1ab938f740c60b89690a6ab20e3489dc0a6",
+      "size": 9337
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_CURRENT_WORK_REQUEST.md",
+      "sha256": "33b906eb511be0f5c8f0067b97ef28fcb2e7e65e19516df9701fa5027ae5a001",
+      "size": 2788
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_EXECUTION_DEPENDENCY_DAG.md",
+      "sha256": "c4e4bc3da60a5346c5876c57cb6e50a26c655515e10a86190cbe24d1478cc4a8",
+      "size": 6945
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_EXECUTION_SEQUENCE.csv",
+      "sha256": "06df5eadb15b9c51fab0ea501a2ccb8bd1ba2c2ad3b8ba88128539744741ced1",
+      "size": 1644
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_EXECUTION_SEQUENCE.parts/CPF_EXECUTION_SEQUENCE_PART_001_00-00010066__07-00015128.csv",
+      "sha256": "183a1aaede12b00ea63384fccaacad7dc768319a248c8a86ef34119004b4f2c6",
+      "size": 7999833
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_EXECUTION_SEQUENCE.parts/CPF_EXECUTION_SEQUENCE_PART_002_07-00015129__15-99999999.csv",
+      "sha256": "535af284205222d5ccd932dd29eed3989f99bd88a2ea89dceacc98d16cef3f4e",
+      "size": 7113330
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_PHASE_GATE_REGISTER.csv",
+      "sha256": "c21d57c77440510d33b4b5b60d1a6fc69753ef1aa99dd933e611b66e32319285",
+      "size": 6488
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_REQUIREMENT_CONTINUITY.csv",
+      "sha256": "9583ae726c5647704d7b992c47a458b59655849ba93308de9f36de8be9b3794b",
+      "size": 101602
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_REQUIREMENT_CONTROL_REGISTER.xlsx",
+      "sha256": "2ecc3fcb5523dde6134a1ffbed81fbefcc1b485067f36b0ea445d602590e842f",
+      "size": 383458
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_REQUIREMENT_DECOMPOSITION_STANDARD.md",
+      "sha256": "25eb06a122c0f74a0d106a05652248ae517bf5db52b5f912b94a6a1682f59f8d",
+      "size": 2081
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_REQUIREMENT_MASTER.csv",
+      "sha256": "0a39b634b8d2a86c3be54ebfb56dd878483f5f1c494228c610122227cff0ff41",
+      "size": 13823
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_REQUIREMENT_MASTER.parts/CPF_REQUIREMENT_MASTER_PART_001_CPF-FR-000001__CPF-FR-001616.csv",
+      "sha256": "582ae6d2170c13ecbd92302d912258cf0a2335163807b13b87f1a5317ee9c2fd",
+      "size": 7996930
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_REQUIREMENT_MASTER.parts/CPF_REQUIREMENT_MASTER_PART_002_CPF-FR-001617__CPF-FR-003236.csv",
+      "sha256": "e8af9921e7daf12ccda5dae2e5c40bf63bb0e4322de3aebef385ec8a2936b331",
+      "size": 7996625
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_REQUIREMENT_MASTER.parts/CPF_REQUIREMENT_MASTER_PART_003_CPF-FR-003237__CPF-FR-004847.csv",
+      "sha256": "fed26cb69dc76d0be88161daa8902c604f4a496a733d71510f8465312529d279",
+      "size": 7996574
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_REQUIREMENT_MASTER.parts/CPF_REQUIREMENT_MASTER_PART_004_CPF-FR-004848__CPF-FR-006465.csv",
+      "sha256": "b2e9ca32b19d6e2f500ce638da1914745a9d951ac48a179dee5c488fe257ff2b",
+      "size": 7998871
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_REQUIREMENT_MASTER.parts/CPF_REQUIREMENT_MASTER_PART_005_CPF-FR-006466__CPF-FR-008079.csv",
+      "sha256": "cbf54c51b5907b982da20e883fc147d6c38ffbcb29341c1e6be50f662645d6a6",
+      "size": 7997792
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_REQUIREMENT_MASTER.parts/CPF_REQUIREMENT_MASTER_PART_006_CPF-FR-008080__CPF-FR-009696.csv",
+      "sha256": "645ba4cc25ebe887ac7ef75f75b5a42c620df6f550032e7bdb37c8c5adff3017",
+      "size": 7999912
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_REQUIREMENT_MASTER.parts/CPF_REQUIREMENT_MASTER_PART_007_CPF-FR-009697__CPF-FR-011306.csv",
+      "sha256": "439d3240a1254dfd30e90ad80a7569af3f7f552dc5459c5a1a4f286bc1b1394a",
+      "size": 7998600
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_REQUIREMENT_MASTER.parts/CPF_REQUIREMENT_MASTER_PART_008_CPF-FR-011307__CPF-FR-013018.csv",
+      "sha256": "c66d1d0c23bb076519ba37e9a2eb9326895ae1638ba264cb0039ee4d1958f43a",
+      "size": 7999324
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_REQUIREMENT_MASTER.parts/CPF_REQUIREMENT_MASTER_PART_009_CPF-FR-013019__CPF-FR-014809.csv",
+      "sha256": "759d7fcc61f6f7124253a75c9ef119197aa2ec3f36a795d96c9ff2dc1e835f57",
+      "size": 7999180
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_REQUIREMENT_MASTER.parts/CPF_REQUIREMENT_MASTER_PART_010_CPF-FR-014810__CPF-FR-016605.csv",
+      "sha256": "909473967071fb1c81d30f46bb9cc5bc1b413cd95b2dec9476b8108bd76eb3c2",
+      "size": 7997033
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_REQUIREMENT_MASTER.parts/CPF_REQUIREMENT_MASTER_PART_011_CPF-FR-016606__CPF-FR-018347.csv",
+      "sha256": "6ac518d6cd74ce4b6de2f8c368685a44a9679cd3d34646fdc965481470ad9f16",
+      "size": 7998085
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_REQUIREMENT_MASTER.parts/CPF_REQUIREMENT_MASTER_PART_012_CPF-FR-018348__CPF-FR-020080.csv",
+      "sha256": "f20b7145c00f5c8bb1e45383dc2c6565a3bc6fb49ab11cf79f3ebdf8a34be73f",
+      "size": 7997488
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_REQUIREMENT_MASTER.parts/CPF_REQUIREMENT_MASTER_PART_013_CPF-FR-020081__CPF-FR-021936.csv",
+      "sha256": "e71c30daca191355311546bc2b6b8c63f160ec9ab167cbf5334ceb33e0198303",
+      "size": 7997899
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_REQUIREMENT_MASTER.parts/CPF_REQUIREMENT_MASTER_PART_014_CPF-FR-021937__CPF-FR-023551.csv",
+      "sha256": "9e45a9db9b2ccfe3f50c404ec0f9aa9501b424f3262f6379cb8457049a79ac18",
+      "size": 7998821
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_REQUIREMENT_MASTER.parts/CPF_REQUIREMENT_MASTER_PART_015_CPF-FR-023552__CPF-FR-025019.csv",
+      "sha256": "4d8a6dfc471b0b164ffa8abf64fa86b939af16cf9a1ffb2f63fbec26a84e0a7e",
+      "size": 7997813
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_REQUIREMENT_MASTER.parts/CPF_REQUIREMENT_MASTER_PART_016_CPF-FR-025020__CPF-FR-026493.csv",
+      "sha256": "2030f09ba68dc133210ca83be92bf4422630d53bc43a5780aa26821720bbb3c0",
+      "size": 7996407
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_REQUIREMENT_MASTER.parts/CPF_REQUIREMENT_MASTER_PART_017_CPF-FR-026494__CPF-FR-027972.csv",
+      "sha256": "bf295db6c8e69ed9979f30a8d4fd9c73529dfee6cb6e21fd201124887a6be56a",
+      "size": 7996748
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_REQUIREMENT_MASTER.parts/CPF_REQUIREMENT_MASTER_PART_018_CPF-FR-027973__CPF-FR-029453.csv",
+      "sha256": "b93c4fda50af08d0c58b5b72cb0e070fa7df6f82bb3959e40277c76a31054c34",
+      "size": 7996461
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_REQUIREMENT_MASTER.parts/CPF_REQUIREMENT_MASTER_PART_019_CPF-FR-029454__CPF-FR-030542.csv",
+      "sha256": "ad5a4328dfdebaac4d2bbd6435e1f9d1340842c90b6283ba1c535fe0ea74a011",
+      "size": 5873340
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_REQUIREMENT_SOURCE_COVERAGE.csv",
+      "sha256": "03cd83f48a0700fd4f0b869ccd9044b22a70e8497d468494028c8fc0a47546d6",
+      "size": 6196
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_SCENARIO_MASTER.csv",
+      "sha256": "c9e1745e3f0d319f366e9bd01b51045c1ed2acdcd8e1acd4b4a34d4553186e7a",
+      "size": 5170
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_SCENARIO_MASTER.parts/CPF_SCENARIO_MASTER_PART_001_CPF-SC-000001__CPF-SC-009526.csv",
+      "sha256": "9e489c0c5354d7a4407576345c69327b44edf8f59592a3b79e1098a73f304bc8",
+      "size": 7999458
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_SCENARIO_MASTER.parts/CPF_SCENARIO_MASTER_PART_002_CPF-SC-009527__CPF-SC-015274.csv",
+      "sha256": "7daae53d18fde48c37ac439ead1ca53ac22b7cc866646520810c500e0ddaeea3",
+      "size": 7998520
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_SCENARIO_MASTER.parts/CPF_SCENARIO_MASTER_PART_003_CPF-SC-015275__CPF-SC-020085.csv",
+      "sha256": "9ea59acaa3a76a9e7cb1a5d14faadbc9bd19ee2b58bba7770a5dc2dbf433489e",
+      "size": 7998621
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_SCENARIO_MASTER.parts/CPF_SCENARIO_MASTER_PART_004_CPF-SC-020086__CPF-SC-024985.csv",
+      "sha256": "d9bea22b766f6e19fc17e033baeb4c719abfcfd51ef283da0c02ca8738dae3a3",
+      "size": 7998844
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_SCENARIO_MASTER.parts/CPF_SCENARIO_MASTER_PART_005_CPF-SC-024986__CPF-SC-030164.csv",
+      "sha256": "0658e8f82df99f3b9dc75d2fa568792b0a6b83bbb4225bbdf119dd81093f139a",
+      "size": 7999978
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_SCENARIO_MASTER.parts/CPF_SCENARIO_MASTER_PART_006_CPF-SC-030165__CPF-SC-035766.csv",
+      "sha256": "29f43a733d79b2ecf213c0f452af61b7e28c12e21d9d4cad2bdcfdd1c9d7f460",
+      "size": 7999575
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_SCENARIO_MASTER.parts/CPF_SCENARIO_MASTER_PART_007_CPF-SC-035767__CPF-SC-040763.csv",
+      "sha256": "44cbd273d567fa0ff9685ff70934d95c0b88bd01bd423181c0475260c4a8ecb8",
+      "size": 7145248
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_SPLIT_MASTER_DATASET_GUIDE.md",
+      "sha256": "13a4984c28196a28a0f1c335ea311b62da013259cdf20e3174d68f3ec2edaac1",
+      "size": 2129
+    },
+    {
+      "path": "cpf-docs/work/manifest/CPF_CLEANUP_STATUS.txt",
+      "sha256": "6f8804eaea22cfdd04aefd77a1ab55a86b46b48ee104f95170f1a7d00ab5a51f",
+      "size": 99
+    },
+    {
+      "path": "cpf-docs/work/manifest/CPF_DELETE_MANIFEST.txt",
+      "sha256": "ff696cd992f464e57d338dab5cc743cca7d051433d50b440ea92a418c2378baa",
+      "size": 856
+    },
+    {
+      "path": "cpf-docs/work/manifest/CPF_FILES.sha256",
+      "sha256": "a2df5effbda9c905b92c8d732e0adea41628484a063c8a1c965e7d73283b0fcb",
+      "size": 10029
+    },
+    {
+      "path": "cpf-docs/work/manifest/CPF_REQUIREMENT_VALIDATION_RESULT.json",
+      "sha256": "d8a1f2090bf75c04af2f7dc593bba9f207a62c2220f5063345c4b8951c0fbd1d",
+      "size": 13747
+    },
+    {
+      "path": "cpf-docs/work/review/CPF_REQUIREMENT_REBASE_POST_REVIEW.md",
+      "sha256": "90f82ed64351ee361d3c23816bc5868d7a9eee6e3cc4409f89e650f580eb862e",
+      "size": 1267
+    },
+    {
+      "path": "cpf-docs/work/review/CPF_REQUIREMENT_REBASE_PRE_REVIEW.md",
+      "sha256": "62c2149ae997272c28707021762a4560a7a7a51dc59ed65bcbd43bd33d3a3061",
+      "size": 1465
+    }
+  ],
+  "included": "8MB 분할 Requirement·Scenario·Execution Sequence, 메인 인덱스, Phase Gate, Closure, Workbook, Reviews, Codex, Manifest",
+  "excluded": "제품 Source 변경, Git 쓰기, 실제 Runtime·DB·Browser·Fault Evidence",
+  "cleanup": "이전 R4 Part 6개 exact path 삭제; 메인 CSV와 R5 Part는 유지",
+  "deleteManifest": [
+    "cpf-docs/work/current/CPF_REQUIREMENT_MASTER.parts/CPF_REQUIREMENT_MASTER_PART_001_CPF-FR-000001__CPF-FR-009092.csv",
+    "cpf-docs/work/current/CPF_REQUIREMENT_MASTER.parts/CPF_REQUIREMENT_MASTER_PART_002_CPF-FR-009093__CPF-FR-018786.csv",
+    "cpf-docs/work/current/CPF_REQUIREMENT_MASTER.parts/CPF_REQUIREMENT_MASTER_PART_003_CPF-FR-018787__CPF-FR-027797.csv",
+    "cpf-docs/work/current/CPF_REQUIREMENT_MASTER.parts/CPF_REQUIREMENT_MASTER_PART_004_CPF-FR-027798__CPF-FR-030542.csv",
+    "cpf-docs/work/current/CPF_SCENARIO_MASTER.parts/CPF_SCENARIO_MASTER_PART_001_CPF-SC-000001__CPF-SC-033658.csv",
+    "cpf-docs/work/current/CPF_SCENARIO_MASTER.parts/CPF_SCENARIO_MASTER_PART_002_CPF-SC-033659__CPF-SC-040763.csv"
+  ]
+}

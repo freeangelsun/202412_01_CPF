@@ -1,0 +1,9 @@
+item,status,evidence
+Requirement logical count,완료,30558
+Scenario logical count,완료,40763
+Execution Sequence logical count,완료,30558
+Requirement Part count,완료,19
+Scenario Part count,완료,7
+Execution Sequence Part count,완료,2
+All files under 10MB,완료,7999978
+Runtime verification,미완료,제품 Runtime 검증은 별도 범위

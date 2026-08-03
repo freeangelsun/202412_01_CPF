@@ -1,0 +1,105 @@
+name: cpf-qa39-final-required
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches: [master]
+permissions:
+  contents: read
+jobs:
+  architecture-evidence:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - shell: pwsh
+        run: ./cpf-tools/verification/qa39/invoke-qa39-low-cost-gates.ps1 -Root .
+  java25-build-test-publication:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '25', cache: gradle }
+      - run: ./gradlew clean test assemble qualityGate publishCpfStagingPlatformArtifacts --no-daemon --max-workers=1 --stacktrace
+  frontend-three-browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '22', cache: npm, cache-dependency-path: "**/package-lock.json" }
+      - run: cd cpf-admin/frontend && npm ci && npm run lint && npm run typecheck && npm test -- --run && npm run build && npx playwright install --with-deps chromium firefox webkit && npm run test:e2e -- --project=chromium --project=firefox --project=webkit
+      - run: cd cpf-biz-admin/frontend && npm ci && npm run lint && npm run typecheck && npm test -- --run && npm run build && npx playwright install --with-deps chromium firefox webkit && npm run test:e2e -- --project=chromium --project=firefox --project=webkit
+  db-live-lifecycle:
+    runs-on: [self-hosted, cpf-db-three-vendor]
+    steps:
+      - uses: actions/checkout@v4
+      - shell: pwsh
+        env:
+          CPF_MARIADB_PROFILE: ${{ vars.CPF_MARIADB_PROFILE }}
+          CPF_POSTGRESQL_PROFILE: ${{ vars.CPF_POSTGRESQL_PROFILE }}
+          CPF_ORACLE_PROFILE: ${{ vars.CPF_ORACLE_PROFILE }}
+          CPF_MARIADB_UPGRADE_PROFILE: ${{ vars.CPF_MARIADB_UPGRADE_PROFILE }}
+          CPF_POSTGRESQL_UPGRADE_PROFILE: ${{ vars.CPF_POSTGRESQL_UPGRADE_PROFILE }}
+          CPF_ORACLE_UPGRADE_PROFILE: ${{ vars.CPF_ORACLE_UPGRADE_PROFILE }}
+          CPF_BACKUP_MANIFEST: ${{ vars.CPF_BACKUP_MANIFEST }}
+        run: |
+          ./cpf-tools/scripts/invoke-cpf-qa34-db-runtime-matrix.ps1 -Root . `
+            -MariaDbProfile $env:CPF_MARIADB_PROFILE -PostgreSqlProfile $env:CPF_POSTGRESQL_PROFILE -OracleProfile $env:CPF_ORACLE_PROFILE `
+            -MariaDbUpgradeProfile $env:CPF_MARIADB_UPGRADE_PROFILE -PostgreSqlUpgradeProfile $env:CPF_POSTGRESQL_UPGRADE_PROFILE -OracleUpgradeProfile $env:CPF_ORACLE_UPGRADE_PROFILE `
+            -BackupManifestPath @($env:CPF_BACKUP_MANIFEST) -AllowDestructiveRollback -EvidenceRoot ./build/qa39-db-evidence
+  runtime-fault:
+    runs-on: [self-hosted, cpf-runtime-fault]
+    steps:
+      - uses: actions/checkout@v4
+      - shell: pwsh
+        env:
+          CPF_MARIADB_PROFILE: ${{ vars.CPF_MARIADB_PROFILE }}
+          CPF_POSTGRESQL_PROFILE: ${{ vars.CPF_POSTGRESQL_PROFILE }}
+          CPF_ORACLE_PROFILE: ${{ vars.CPF_ORACLE_PROFILE }}
+          CPF_MARIADB_UPGRADE_PROFILE: ${{ vars.CPF_MARIADB_UPGRADE_PROFILE }}
+          CPF_POSTGRESQL_UPGRADE_PROFILE: ${{ vars.CPF_POSTGRESQL_UPGRADE_PROFILE }}
+          CPF_ORACLE_UPGRADE_PROFILE: ${{ vars.CPF_ORACLE_UPGRADE_PROFILE }}
+          CPF_BACKUP_MANIFEST: ${{ vars.CPF_BACKUP_MANIFEST }}
+          CPF_APPROVED_REGISTRY: ${{ vars.CPF_APPROVED_REGISTRY }}
+          CPF_ADM_BASE_URL: ${{ vars.CPF_ADM_BASE_URL }}
+          CPF_BZA_BASE_URL: ${{ vars.CPF_BZA_BASE_URL }}
+          CPF_ADM_AUTH_STATE: ${{ vars.CPF_ADM_AUTH_STATE }}
+          CPF_BZA_AUTH_STATE: ${{ vars.CPF_BZA_AUTH_STATE }}
+          CPF_ADM_PRIVILEGED_ENDPOINTS: ${{ vars.CPF_ADM_PRIVILEGED_ENDPOINTS }}
+          CPF_BZA_PRIVILEGED_ENDPOINTS: ${{ vars.CPF_BZA_PRIVILEGED_ENDPOINTS }}
+          CPF_ADM_ROUTE_MATRIX: ${{ vars.CPF_ADM_ROUTE_MATRIX }}
+          CPF_BZA_ROUTE_MATRIX: ${{ vars.CPF_BZA_ROUTE_MATRIX }}
+          CPF_ADM_FAILURE_MATRIX: ${{ vars.CPF_ADM_FAILURE_MATRIX }}
+          CPF_BZA_FAILURE_MATRIX: ${{ vars.CPF_BZA_FAILURE_MATRIX }}
+          CPF_ADM_SECURITY_FIXTURE: ${{ vars.CPF_ADM_SECURITY_FIXTURE }}
+          CPF_BZA_SECURITY_FIXTURE: ${{ vars.CPF_BZA_SECURITY_FIXTURE }}
+        run: |
+          ./cpf-tools/verification/qa39/invoke-qa39-final-validation.ps1 -Root . `
+            -MariaDbProfile $env:CPF_MARIADB_PROFILE -PostgreSqlProfile $env:CPF_POSTGRESQL_PROFILE -OracleProfile $env:CPF_ORACLE_PROFILE `
+            -MariaDbUpgradeProfile $env:CPF_MARIADB_UPGRADE_PROFILE -PostgreSqlUpgradeProfile $env:CPF_POSTGRESQL_UPGRADE_PROFILE -OracleUpgradeProfile $env:CPF_ORACLE_UPGRADE_PROFILE `
+            -BackupManifestPath @($env:CPF_BACKUP_MANIFEST) -ApprovedRegistry $env:CPF_APPROVED_REGISTRY `
+            -AdmBaseUrl $env:CPF_ADM_BASE_URL -BzaBaseUrl $env:CPF_BZA_BASE_URL -AdmAuthState $env:CPF_ADM_AUTH_STATE -BzaAuthState $env:CPF_BZA_AUTH_STATE `
+            -AdmPrivilegedEndpoints $env:CPF_ADM_PRIVILEGED_ENDPOINTS -BzaPrivilegedEndpoints $env:CPF_BZA_PRIVILEGED_ENDPOINTS `
+            -AdmRouteMatrix $env:CPF_ADM_ROUTE_MATRIX -BzaRouteMatrix $env:CPF_BZA_ROUTE_MATRIX -AdmFailureMatrix $env:CPF_ADM_FAILURE_MATRIX -BzaFailureMatrix $env:CPF_BZA_FAILURE_MATRIX `
+            -AdmSecurityFixture $env:CPF_ADM_SECURITY_FIXTURE -BzaSecurityFixture $env:CPF_BZA_SECURITY_FIXTURE -AllowDestructiveDbLifecycle
+  supply-chain:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '25' }
+      - shell: pwsh
+        run: ./cpf-tools/scripts/generate-cpf-supply-chain-evidence.ps1 -Root . -OutputDir ./build/qa39-supply-chain -ArtifactPaths @()
+  final-required:
+    if: always()
+    needs: [architecture-evidence, java25-build-test-publication, frontend-three-browser, db-live-lifecycle, runtime-fault, supply-chain]
+    runs-on: ubuntu-latest
+    steps:
+      - name: require every QA39 job
+        shell: bash
+        run: |
+          test '${{ needs.architecture-evidence.result }}' = success
+          test '${{ needs.java25-build-test-publication.result }}' = success
+          test '${{ needs.frontend-three-browser.result }}' = success
+          test '${{ needs.db-live-lifecycle.result }}' = success
+          test '${{ needs.runtime-fault.result }}' = success
+          test '${{ needs.supply-chain.result }}' = success

@@ -77,11 +77,11 @@ export async function admBatchFindExecutionTargets<T = unknown>(options: CpfGene
 export async function admBatchFindExecutions<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/batch/executions", options.path), method: "GET", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
 }
-export async function admBatchFindExecutionDetail<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
-  return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/batch/executions/{executionId}", options.path), method: "GET", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
-}
 export async function admBatchFindExecutionPage<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/batch/executions/page", options.path), method: "GET", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
+}
+export async function admBatchFindExecutionDetail<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
+  return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/batch/executions/{executionId}", options.path), method: "GET", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
 }
 export async function admBatchFindGhostCandidates<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/batch/ghost-candidates", options.path), method: "GET", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
@@ -248,17 +248,17 @@ export async function getAdmLiveness<T = unknown>(options: CpfGeneratedRequestOp
 export async function admIncidentFindIncidents<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/incidents", options.path), method: "GET", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
 }
-export async function admIncidentFindIncident<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
-  return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/incidents/{incidentId}", options.path), method: "GET", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
-}
-export async function admIncidentFindTimeline<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
-  return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/incidents/{incidentId}/timeline", options.path), method: "GET", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
-}
 export async function admIncidentFindMaintenance<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/incidents/maintenance-windows", options.path), method: "GET", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
 }
 export async function admIncidentFindPolicies<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/incidents/policies", options.path), method: "GET", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
+}
+export async function admIncidentFindIncident<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
+  return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/incidents/{incidentId}", options.path), method: "GET", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
+}
+export async function admIncidentFindTimeline<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
+  return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/incidents/{incidentId}/timeline", options.path), method: "GET", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
 }
 export async function admLogExportDownload<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/log-exports/{exportId}/artifact", options.path), method: "GET", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
@@ -269,9 +269,6 @@ export async function admDynamicLogLevelFindRules<T = unknown>(options: CpfGener
 export async function admLogPolicyFindPolicies<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/log-policies", options.path), method: "GET", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
 }
-export async function admLogPolicyFindPolicy<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
-  return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/log-policies/{policyId}", options.path), method: "GET", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
-}
 export async function admLogPolicyDistributionStatus<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/log-policies/distribution", options.path), method: "GET", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
 }
@@ -280,6 +277,9 @@ export async function admLogPolicyFindTraceBoostHistory<T = unknown>(options: Cp
 }
 export async function admLogPolicyFindTraceBoostRuntimeState<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/log-policies/runtime-state", options.path), method: "GET", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
+}
+export async function admLogPolicyFindPolicy<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
+  return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/log-policies/{policyId}", options.path), method: "GET", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
 }
 export async function admLogPolicyAuditFindPolicyAudits<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/log-policy-audits", options.path), method: "GET", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
@@ -302,11 +302,11 @@ export async function admMessageFindMessage<T = unknown>(options: CpfGeneratedRe
 export async function admNotificationFindDeliveryLogs<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/notifications/delivery-logs", options.path), method: "GET", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
 }
-export async function admNotificationFindDeliveryAttempts<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
-  return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/notifications/delivery-logs/{deliveryId}/attempts", options.path), method: "GET", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
-}
 export async function admNotificationFindDlq<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/notifications/delivery-logs/dlq", options.path), method: "GET", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
+}
+export async function admNotificationFindDeliveryAttempts<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
+  return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/notifications/delivery-logs/{deliveryId}/attempts", options.path), method: "GET", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
 }
 export async function admNotificationFindRules<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/notifications/rules", options.path), method: "GET", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
@@ -380,6 +380,18 @@ export async function admPermissionFindRoles<T = unknown>(options: CpfGeneratedR
 export async function admPermissionFindRole<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/permissions/roles/{roleId}", options.path), method: "GET", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
 }
+export async function admFeatureFlagSearch<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
+  return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/platform/feature-flags", options.path), method: "GET", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
+}
+export async function admFeatureFlagFind<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
+  return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/platform/feature-flags/{flagKey}", options.path), method: "GET", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
+}
+export async function admResiliencePolicySearch<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
+  return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/platform/resilience-policies", options.path), method: "GET", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
+}
+export async function admResiliencePolicyFind<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
+  return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/platform/resilience-policies/{operationId}", options.path), method: "GET", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
+}
 export async function findAdmBatchJobInstanceLogs<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/reliability/batch-job-logs", options.path), method: "GET", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
 }
@@ -410,12 +422,6 @@ export async function findAdmUnknownResults<T = unknown>(options: CpfGeneratedRe
 export async function admRemoteLogSearch<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/remote-logs", options.path), method: "GET", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
 }
-export async function admRemoteLogDownload<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
-  return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/remote-logs/{artifactId}/download", options.path), method: "GET", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
-}
-export async function admRemoteLogPreview<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
-  return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/remote-logs/{artifactId}/preview", options.path), method: "GET", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
-}
 export async function admRemoteLogBundleJobFind<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/remote-logs/bundle-jobs/{jobId}", options.path), method: "GET", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
 }
@@ -424,6 +430,12 @@ export async function admRemoteLogBundleJobDownload<T = unknown>(options: CpfGen
 }
 export async function admRemoteLogDiagnostics<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/remote-logs/diagnostics", options.path), method: "GET", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
+}
+export async function admRemoteLogDownload<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
+  return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/remote-logs/{artifactId}/download", options.path), method: "GET", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
+}
+export async function admRemoteLogPreview<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
+  return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/remote-logs/{artifactId}/preview", options.path), method: "GET", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
 }
 export async function admResponseCodeFindAll<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/response-codes", options.path), method: "GET", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
@@ -518,11 +530,11 @@ export async function admTransactionGroupFindTimeline<T = unknown>(options: CpfG
 export async function admTransactionMetaFindTransactions<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/transactions", options.path), method: "GET", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
 }
-export async function admTransactionMetaFindTransaction<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
-  return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/transactions/{transactionId}", options.path), method: "GET", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
-}
 export async function admTransactionMetaFindPage<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/transactions/page", options.path), method: "GET", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
+}
+export async function admTransactionMetaFindTransaction<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
+  return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/transactions/{transactionId}", options.path), method: "GET", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
 }
 export async function getAdmSystemVersion<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/v1/system/version", options.path), method: "GET", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
@@ -557,14 +569,14 @@ export async function admBatchRuntimeCommand<T = unknown>(options: CpfGeneratedR
 export async function admBatchRuntimeCreateDeploymentPlan<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/batch-runtime/deployment-plans", options.path), method: "POST", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
 }
-export async function admBatchJobDefinitionTransition<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
-  return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/batch-runtime/job-definitions/{jobId}/versions/{version}/transition", options.path), method: "POST", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
-}
 export async function admBatchJobDefinitionSave<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/batch-runtime/job-definitions/drafts", options.path), method: "POST", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
 }
 export async function admBatchJobDefinitionValidate<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/batch-runtime/job-definitions/validate", options.path), method: "POST", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
+}
+export async function admBatchJobDefinitionTransition<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
+  return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/batch-runtime/job-definitions/{jobId}/versions/{version}/transition", options.path), method: "POST", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
 }
 export async function admBatchRetryExecution<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/batch/executions/{executionId}/retry", options.path), method: "POST", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
@@ -629,6 +641,9 @@ export async function admConfigCreateConfig<T = unknown>(options: CpfGeneratedRe
 export async function admDownloadDownloadCsv<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/downloads/csv", options.path), method: "POST", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
 }
+export async function admFileJobUpload<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
+  return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/file-jobs/uploads", options.path), method: "POST", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
+}
 export async function admFileJobApply<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/file-jobs/{jobId}/apply", options.path), method: "POST", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
 }
@@ -643,9 +658,6 @@ export async function admFileJobRetry<T = unknown>(options: CpfGeneratedRequestO
 }
 export async function admFileJobRollback<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/file-jobs/{jobId}/rollback", options.path), method: "POST", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
-}
-export async function admFileJobUpload<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
-  return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/file-jobs/uploads", options.path), method: "POST", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
 }
 export async function admGatewaySaveBinding<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/gateway-registry/bindings", options.path), method: "POST", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
@@ -668,6 +680,15 @@ export async function admGatewaySaveServerGroup<T = unknown>(options: CpfGenerat
 export async function admIncidentCreateIncident<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/incidents", options.path), method: "POST", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
 }
+export async function admIncidentCreateMaintenance<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
+  return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/incidents/maintenance-windows", options.path), method: "POST", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
+}
+export async function admIncidentCreatePolicy<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
+  return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/incidents/policies", options.path), method: "POST", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
+}
+export async function admIncidentIngestSignal<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
+  return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/incidents/signals", options.path), method: "POST", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
+}
 export async function admIncidentAcknowledge<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/incidents/{incidentId}/acknowledge", options.path), method: "POST", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
 }
@@ -683,23 +704,11 @@ export async function admIncidentResolve<T = unknown>(options: CpfGeneratedReque
 export async function admIncidentTransitionIncident<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/incidents/{incidentId}/status", options.path), method: "POST", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
 }
-export async function admIncidentCreateMaintenance<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
-  return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/incidents/maintenance-windows", options.path), method: "POST", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
-}
-export async function admIncidentCreatePolicy<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
-  return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/incidents/policies", options.path), method: "POST", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
-}
-export async function admIncidentIngestSignal<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
-  return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/incidents/signals", options.path), method: "POST", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
-}
 export async function admLogExportCreate<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/log-exports", options.path), method: "POST", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
 }
 export async function admLogPolicyCreatePolicy<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/log-policies", options.path), method: "POST", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
-}
-export async function admLogPolicyDisablePolicy<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
-  return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/log-policies/{policyId}/disable", options.path), method: "POST", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
 }
 export async function admLogPolicyClearCache<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/log-policies/cache/clear", options.path), method: "POST", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
@@ -712,6 +721,9 @@ export async function admLogPolicyCreateOverride<T = unknown>(options: CpfGenera
 }
 export async function admLogPolicyCreateTraceBoost<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/log-policies/trace-boost", options.path), method: "POST", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
+}
+export async function admLogPolicyDisablePolicy<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
+  return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/log-policies/{policyId}/disable", options.path), method: "POST", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
 }
 export async function admMaintenanceExecuteAction<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/maintenance/actions", options.path), method: "POST", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
@@ -734,6 +746,12 @@ export async function admNotificationSendTest<T = unknown>(options: CpfGenerated
 export async function admOperatorCreateOperator<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/operators", options.path), method: "POST", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
 }
+export async function admOperatorCleanupExpiredSessions<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
+  return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/operators/sessions/cleanup-expired", options.path), method: "POST", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
+}
+export async function admOperatorRevokeSession<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
+  return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/operators/sessions/{sessionId}/revoke", options.path), method: "POST", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
+}
 export async function admOperatorRawContact<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/operators/{operatorId}/contacts/raw", options.path), method: "POST", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
 }
@@ -746,12 +764,6 @@ export async function admOperatorResetPassword<T = unknown>(options: CpfGenerate
 export async function admOperatorUnlockOperator<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/operators/{operatorId}/unlock", options.path), method: "POST", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
 }
-export async function admOperatorRevokeSession<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
-  return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/operators/sessions/{sessionId}/revoke", options.path), method: "POST", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
-}
-export async function admOperatorCleanupExpiredSessions<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
-  return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/operators/sessions/cleanup-expired", options.path), method: "POST", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
-}
 export async function admPermissionCreateApiPermission<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/permissions/api-permissions", options.path), method: "POST", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
 }
@@ -763,6 +775,30 @@ export async function admPermissionCreateMenu<T = unknown>(options: CpfGenerated
 }
 export async function admPermissionCreateRole<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/permissions/roles", options.path), method: "POST", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
+}
+export async function admFeatureFlagEvaluate<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
+  return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/platform/feature-flags/evaluate", options.path), method: "POST", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
+}
+export async function admFeatureFlagRequestOverride<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
+  return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/platform/feature-flags/override-requests", options.path), method: "POST", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
+}
+export async function admFeatureFlagApproveOverride<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
+  return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/platform/feature-flags/override-requests/{requestId}/approve", options.path), method: "POST", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
+}
+export async function admFeatureFlagRevokeOverride<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
+  return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/platform/feature-flags/override-requests/{requestId}/revoke", options.path), method: "POST", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
+}
+export async function admFeatureFlagSetKillSwitch<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
+  return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/platform/feature-flags/{flagKey}/kill-switch", options.path), method: "POST", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
+}
+export async function admResiliencePolicyRequest<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
+  return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/platform/resilience-policies/requests", options.path), method: "POST", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
+}
+export async function admResiliencePolicyApprove<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
+  return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/platform/resilience-policies/requests/{requestId}/approve", options.path), method: "POST", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
+}
+export async function admResiliencePolicyReject<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
+  return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/platform/resilience-policies/requests/{requestId}/reject", options.path), method: "POST", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
 }
 export async function requestAdmBrokerDlqReplay<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/reliability/broker/dlq/{messageId}/replay", options.path), method: "POST", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
@@ -836,20 +872,20 @@ export async function admServiceRegistrySaveService<T = unknown>(options: CpfGen
 export async function admServiceRegistryChangeInstanceState<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/service-registry/services/{serviceId}/endpoints/{endpointCode}/instances/{instanceId}/state", options.path), method: "POST", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
 }
-export async function admTransactionMetaInactivate<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
-  return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/transactions/{transactionId}/inactive", options.path), method: "POST", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
-}
 export async function admTransactionMetaScan<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/transactions/scan", options.path), method: "POST", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
+}
+export async function admTransactionMetaInactivate<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
+  return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/transactions/{transactionId}/inactive", options.path), method: "POST", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
 }
 export async function admCalendarSaveDay<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/business-calendars/{calendarId}/days/{businessDate}", options.path), method: "PUT", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
 }
-export async function admChannelSave<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
-  return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/channels/{channelCode}", options.path), method: "PUT", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
-}
 export async function admChannelSaveExecutionPolicy<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/channels/policies/{policyKey}", options.path), method: "PUT", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
+}
+export async function admChannelSave<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
+  return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/channels/{channelCode}", options.path), method: "PUT", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
 }
 export async function admCodeUpdateCode<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/codes/{codeId}", options.path), method: "PUT", data: options.data, params: options.query, signal: options.signal, headers: options.headers });

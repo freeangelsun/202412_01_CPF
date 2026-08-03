@@ -225,5 +225,5 @@ cpf-tools/verification/qa39/verify-qa39-canonical-starter-closure.py,ADD,other,Q
 settings.gradle,MODIFY,build,QA39-002;QA39-005;QA39-014;QA39-016;QA39-018;QA39-029;QA39-034,Build Foundation,Generated Domains and CPF product modules,QA39 integrated closure and regression gate,NO,NO
 cpf-batch/center-cut-runner/build.gradle,,,,cpf-batch,,QA39 deprecated Starter/Profile reference removal and canonical profile inheritance alignment,,
 cpf-batch/execution-runtime/build.gradle,,,,cpf-batch,,QA39 deprecated Starter/Profile reference removal and canonical profile inheritance alignment,,
-cpf-starters/base/src/main/resources/cpf-capability-profiles.json,,,,cpf-starter-base,,QA39 deprecated Starter/Profile reference removal and canonical profile inheritance alignment,,
+cpf-starters/base/src/main/resources/cpf-capability-profiles.json,,,,cpf-starter-foundation-base,,QA39 deprecated Starter/Profile reference removal and canonical profile inheritance alignment,,
 cpf-tools/scripts/apply-qa39-final.ps1,ADD,verification,CPF-QA39-REQ-041;CPF-QA39-REQ-042,cpf-tools,developer;Codex;CI,Single-command exact delete and QA39 low-cost gate execution,N,N

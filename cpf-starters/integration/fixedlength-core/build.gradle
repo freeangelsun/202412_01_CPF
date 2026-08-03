@@ -1,0 +1,15 @@
+plugins { id 'java-library'; id 'maven-publish' }
+group = 'com.cpf.integration'
+dependencies {
+
+}
+tasks.named('test') { useJUnitPlatform() }
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            artifactId = 'cpf-starter-integration-fixedlength-core'
+        }
+    }
+}
+

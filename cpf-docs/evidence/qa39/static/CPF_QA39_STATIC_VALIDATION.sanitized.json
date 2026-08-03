@@ -1,0 +1,108 @@
+{
+  "schema_version": 1,
+  "evidence_id": "CPF-QA39-STATIC-VALIDATION",
+  "source_sha": "4aea798c913787e86341809e2cef2b9495cbf7ba",
+  "worktree_state": "ROOT_OVERLAY_PRE_APPLY",
+  "result": "PASS",
+  "exit_code": 0,
+  "started_at": "2026-08-03T00:08:28.757589+00:00",
+  "finished_at": "2026-08-03T00:08:28.757589+00:00",
+  "tool_versions": {
+    "java": "OpenJDK 21 source launcher and synthetic compile",
+    "node": "22.16.0",
+    "typescript": "5.8.x"
+  },
+  "commands": [
+    {
+      "name": "synthetic-apply-reapply",
+      "result": "PASS",
+      "exit_code": 0,
+      "detail": "operations first=56 second=0; root=9; profiles=6; internal=32; build.gradle=38"
+    },
+    {
+      "name": "r2-extracted-state-to-r3-java-only-apply",
+      "result": "PASS",
+      "exit_code": 0,
+      "detail": "R2 Python launcher failure state reproduced; R3 first apply=64 (56 structure + 8 obsolete Python files), second apply=0"
+    },
+    {
+      "name": "javac-core-runtime",
+      "result": "PASS",
+      "exit_code": 0,
+      "detail": "--release 21 -Xlint:all -Werror; product=60; spring-jdbc-adapter=78; controller=39; unit-test-source=14; batch-kafka=25"
+    },
+    {
+      "name": "typescript-strict",
+      "result": "PASS",
+      "exit_code": 0,
+      "detail": "generated client/operation/route contracts"
+    },
+    {
+      "name": "git-diff-check",
+      "result": "PASS",
+      "exit_code": 0
+    },
+    {
+      "name": "json-csv-java-only-gates",
+      "result": "PASS",
+      "exit_code": 0,
+      "detail": "Qa39Tool.java built-in JSON/CSV parser; no Python runtime required"
+    },
+    {
+      "name": "secret-hygiene",
+      "result": "PASS",
+      "exit_code": 0
+    },
+    {
+      "name": "db-static-parity",
+      "result": "PASS",
+      "exit_code": 0,
+      "detail": "vendors=3 tables=8"
+    },
+    {
+      "name": "openapi-generated-route",
+      "result": "PASS",
+      "exit_code": 0,
+      "detail": "operations=319 new=12 duplicate=0"
+    },
+    {
+      "name": "provider-conformance-fixture",
+      "result": "PASS",
+      "exit_code": 0,
+      "detail": "customer Broker/Notification provider javac -Xlint:all -Werror and runtime PASS"
+    },
+    {
+      "name": "full-validation-python-dependency-elimination",
+      "result": "PASS",
+      "exit_code": 0,
+      "detail": "Java25 build, frontend browser contract, DB token parity, runtime source closure, batch control plane, and supply-chain license entry paths invoke Qa39Tool.java; direct Python invocation=0"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "cpf-tools/generator/contracts/cpf-starter-catalog.json",
+      "sha256": "396bdd7176023762a3ec830aa46d313723fd930b13fd996ed5d83c6f99720c43",
+      "bytes": 37644
+    },
+    {
+      "path": "cpf-tools/release/cpf-final-artifact-catalog.json",
+      "sha256": "f70f9b473d5379fa2dd8afd917a9d4e9f4094172f3d5f3f016be8110bfb23ed4",
+      "bytes": 40495
+    },
+    {
+      "path": "cpf-admin/frontend/openapi/cpf-openapi.json",
+      "sha256": "72dfbea60e1c528d86b967de3dd675ccd52df3af99fa1ac5750b7f27fa07e0ea",
+      "bytes": 191875
+    },
+    {
+      "path": "cpf-tools/db/canonical/platform-schema.json",
+      "sha256": "ac9d69c59b9820ac9e7e05770565aae7298a345fb7a03023bbc655952ac96085",
+      "bytes": 940811
+    }
+  ],
+  "sanitized": true,
+  "limitations": [
+    "Java25/Gradle dependency resolution not available",
+    "Docker/3 DB/External Runtime/Playwright unavailable in artifact-build environment"
+  ]
+}

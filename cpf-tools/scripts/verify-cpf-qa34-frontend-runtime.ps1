@@ -209,7 +209,7 @@ try {
     }
 
     try {
-        & python (Join-Path $rootPath 'cpf-tools/scripts/verify-cpf-qa34-browser-contract.py') --root $rootPath
+        & java (Join-Path $rootPath 'cpf-tools/scripts/Qa39Tool.java') 'browser-contract' '--root' $rootPath
         if ($LASTEXITCODE -ne 0) { throw 'Browser contract gate failed' }
     } catch {
         $failures.Add("browser-contract:$(Sanitize $_.Exception.Message)")

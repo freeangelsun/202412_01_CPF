@@ -17,7 +17,7 @@ Generated Domain과 실행 Product는 필요한 Capability만 명시적으로 �
 
 ```text
 Generated Domain / Product Runtime
-  ├─ 일반 Boot Runtime은 cpf-starter-base 선택 가능
+  ├─ 일반 Boot Runtime은 cpf-starter-foundation-base 선택 가능
   └─ 필요한 Leaf Starter만 명시적 선택
        ├─ cpf-core Public API/SPI
        ├─ 승인된 Public Contract
@@ -66,13 +66,13 @@ cpf-core      ─X─> 선택 Starter 또는 선택 OSS Runtime
 `cpf-core`는 Starter가 아니라 모든 기술 Adapter가 공유하는 독립 초경량 계약 Artifact다.
 Spring Boot를 사용하지 않는 Consumer와 고객 SPI 구현도 Core만 소비할 수 있어야 한다.
 
-`cpf-starter-base`는 다음 QA에서 확정할 Spring Boot 최소 조립 Starter 후보다.
+`cpf-starter-foundation-base`는 다음 QA에서 확정할 Spring Boot 최소 조립 Starter 후보다.
 일반 Boot Domain의 편의 진입점으로 사용할 수 있지만 Core를 대체하지 않는다.
 
 ```text
 비 Spring/계약 Consumer → cpf-core
 
-Spring Boot Domain → cpf-starter-base → cpf-core
+Spring Boot Domain → cpf-starter-foundation-base → cpf-core
                   → 필요한 Leaf Starter만 추가
 ```
 
@@ -111,10 +111,10 @@ Base가 `cpf-common`을 강제 전이해서도 안 된다.
 | `cpf-starter-security` | Spring Security·Spring Session JDBC 기반 Browser/BFF Session | 유지하되 범용 기술과 ADM/BZA 경로 정책 분리 필요 |
 | `cpf-starter-messaging-kafka` | `CpfBrokerClient`·Bridge의 Kafka Adapter | 유지, Producer/Consumer·ACK/DLQ·결과불명 Closure 보완 |
 | `cpf-starter-cache` | Caffeine 선택 Provider와 Common Cache Runtime 활성화 | 유지 후보, `cpf-common` Runtime AutoConfiguration 이관 필요 |
-| `cpf-starter-observability` | Micrometer Observation·OTel 연결 | 유지, Exporter·Trace·Masking·Backpressure Closure 보완 |
+| `cpf-starter-platform-operations-observability` | Micrometer Observation·OTel 연결 | 유지, Exporter·Trace·Masking·Backpressure Closure 보완 |
 | `cpf-starter-resilience` | CircuitBreaker 기반 실행 Adapter | 유지, 정책·timeout budget·retry 의미 보완 |
 | `cpf-starter-featureflag` | OpenFeature Client 연결 | 실제 Provider·Consumer·Audit 확보 전 부분 구현 |
-| `cpf-starter-secret` | 승인된 `CpfSecretProvider` Registry | Provider·Rotation·Readiness·Consumer 검증 전 부분 구현 |
+| `cpf-starter-security-secret` | 승인된 `CpfSecretProvider` Registry | Provider·Rotation·Readiness·Consumer 검증 전 부분 구현 |
 
 이 목록은 현재 기준선이며 최종 Starter Catalog가 아니다. 다음 Core 경량화·Starter 세분화 QA가 전체 Framework 기능을 다시 분류하여 분리·통합·이관·제거를 결정한다.
 
@@ -180,7 +180,7 @@ CPF는 다음 네 계층을 구분한다.
 
 ```text
 cpf-starter-webmvc
-cpf-starter-openapi-webmvc
+cpf-starter-profile-web-api
 cpf-starter-security-resource-server
 cpf-starter-messaging-kafka
 cpf-starter-cache-redis
@@ -197,7 +197,7 @@ Profile 자체가 Runtime 구현을 소유하지 않으며, 생성 결과에는 
 profile = DOMAIN_WEB_API
 resolvedStarters =
   cpf-starter-webmvc
-  cpf-starter-openapi-webmvc
+  cpf-starter-profile-web-api
 ```
 
 권장 원칙:
@@ -287,13 +287,13 @@ cpf-starter-security-session-jdbc
 cpf-starter-security-resource-server
 
 cpf-starter-cache
-cpf-starter-cache-caffeine
+cpf-starter-data-cache-caffeine
 cpf-starter-cache-redis
 
 cpf-starter-webmvc
-cpf-starter-openapi-webmvc
-cpf-starter-http-client
-cpf-starter-persistence-mybatis
+cpf-starter-profile-web-api
+cpf-starter-integration-http-client
+cpf-starter-data-persistence-mybatis
 ```
 
 위 이름은 확정 Artifact가 아니라 다음 QA 검토 후보이다.
@@ -352,10 +352,10 @@ Starter 세분화 개발은 향후 계속될 수 있다. 다음이 변경되면 
 - `cpf-starter-security`
 - `cpf-starter-messaging-kafka`
 - `cpf-starter-cache`
-- `cpf-starter-observability`
+- `cpf-starter-platform-operations-observability`
 - `cpf-starter-resilience`
 - `cpf-starter-featureflag`
-- `cpf-starter-secret`
+- `cpf-starter-security-secret`
 
 위 7개는 정식 제품 Artifact지만 세분화·Core 이관·실제 Consumer·Runtime Evidence가 모두 끝났다는 의미는 아니다.
 
@@ -363,25 +363,25 @@ Starter 세분화 개발은 향후 계속될 수 있다. 다음이 변경되면 
 
 | Target Artifact | 주요 Source/Capability | 원칙 |
 |---|---|---|
-| `cpf-starter-base` | 최소 Boot bridge, CPF contract import | Web/DB/Broker/Cache/Security UI/Batch를 포함하지 않음 |
+| `cpf-starter-foundation-base` | 최소 Boot bridge, CPF contract import | Web/DB/Broker/Cache/Security UI/Batch를 포함하지 않음 |
 | `cpf-starter-aop-service-access` | `CpfAopConfig`, `ServiceAccessAspect` | AspectJ가 Core에 강제 전이되지 않음 |
-| `cpf-starter-persistence-jdbc` | DataSource/JdbcTemplate, JDBC readiness | Vendor driver는 Consumer/Runtime Profile에서 선택 |
-| `cpf-starter-persistence-mybatis` | `CpfMyBatisConfig`, mapper resource | JDBC Starter 위에 명시적으로 선택 |
+| `cpf-starter-data-persistence-jdbc` | DataSource/JdbcTemplate, JDBC readiness | Vendor driver는 Consumer/Runtime Profile에서 선택 |
+| `cpf-starter-data-persistence-mybatis` | `CpfMyBatisConfig`, mapper resource | JDBC Starter 위에 명시적으로 선택 |
 | `cpf-starter-webmvc` | Header/Error/Validation/Servlet bridge | non-Web Runtime에 Servlet 강제 금지 |
-| `cpf-starter-openapi-webmvc` | Springdoc/Scalar/OpenAPI UI | API 계약과 UI Runtime을 분리 |
-| `cpf-starter-http-client` | RestClient/WebClient, identity/trace/deadline | Resilience 정책과 중복 Primary 금지 |
+| `cpf-starter-profile-web-api` | Springdoc/Scalar/OpenAPI UI | API 계약과 UI Runtime을 분리 |
+| `cpf-starter-integration-http-client` | RestClient/WebClient, identity/trace/deadline | Resilience 정책과 중복 Primary 금지 |
 | `cpf-starter-messaging-reliability-jdbc` | Broker worker, Outbox/Inbox/DLQ/JDBC ledger | Core에는 Envelope·Port·Result 계약만 유지 |
 | `cpf-starter-messaging-jms` | Jakarta JMS 공통 Adapter | Provider-neutral |
 | `cpf-starter-messaging-ibm-mq` | IBM MQ Provider | JMS Starter에 의존 |
 | `cpf-starter-messaging-rabbitmq` | RabbitMQ/AMQP Provider | Kafka/JMS와 동시 Provider 충돌 정책 필요 |
 | `cpf-starter-integration-tcp` | persistent TCP, framing, heartbeat, reconnect | 기관별 Layout/Mapping은 Domain Adapter가 소유 |
-| `cpf-starter-channel-registry-jdbc` | `JdbcCpfChannelRegistryAdapter` | Channel 계약은 Core 유지 |
-| `cpf-starter-attachment` | Attachment AutoConfiguration·storage adapter | 업무 Attachment 정책은 Owner 유지 |
+| `cpf-starter-platform-operations-channel-registry-jdbc` | `JdbcCpfChannelRegistryAdapter` | Channel 계약은 Core 유지 |
+| `cpf-starter-file-attachment` | Attachment AutoConfiguration·storage adapter | 업무 Attachment 정책은 Owner 유지 |
 | `cpf-starter-archive` | ZIP/TAR/GZIP Runtime 조립 | 순수 bounded archive 계약은 Core 유지 가능 |
 | `cpf-starter-idempotency-jdbc` | JDBC idempotency ledger | 다수 Consumer 확인 후 공통 Adapter화 |
 | `cpf-starter-security-session-jdbc` | BFF Session/JDBC Credential Vault | 기존 Security Starter 분리 |
 | `cpf-starter-security-resource-server` | OAuth2/JWT/mTLS resource server | Session DB를 강제하지 않음 |
-| `cpf-starter-runtime-control-client` | Runtime Control client/projection bridge | Control Server 자체는 Admin/Batch/Gateway Owner 유지 |
+| `cpf-starter-platform-operations-runtime-control-client` | Runtime Control client/projection bridge | Control Server 자체는 Admin/Batch/Gateway Owner 유지 |
 
 ### 14.3 Core에 남길 항목
 

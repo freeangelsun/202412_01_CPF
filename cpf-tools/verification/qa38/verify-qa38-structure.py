@@ -60,23 +60,23 @@ for source, ref in project_refs:
 
 # Required QA38 project mappings and physical dirs.
 required_projects = {
-    'cpf-starter-base': 'cpf-starters/base',
-    'cpf-starter-persistence-jdbc': 'cpf-starters/persistence-jdbc',
-    'cpf-starter-persistence-mybatis': 'cpf-starters/persistence-mybatis',
+    'cpf-starter-foundation-base': 'cpf-starters/foundation/base',
+    'cpf-starter-data-persistence-jdbc': 'cpf-starters/data/persistence-jdbc',
+    'cpf-starter-data-persistence-mybatis': 'cpf-starters/data/persistence-mybatis',
     'cpf-starter-aop-service-access': 'cpf-starters/aop-service-access',
-    'cpf-starter-openapi-webmvc': 'cpf-starters/openapi-webmvc',
-    'cpf-starter-security-resource-server': 'cpf-starters/security-resource-server',
-    'cpf-starter-security-service-identity': 'cpf-starters/security-service-identity',
-    'cpf-starter-messaging-reliability-jdbc': 'cpf-starters/messaging-reliability-jdbc',
-    'cpf-starter-messaging-rabbitmq': 'cpf-starters/messaging-rabbitmq',
-    'cpf-starter-messaging-jms': 'cpf-starters/messaging-jms',
-    'cpf-starter-messaging-ibm-mq': 'cpf-starters/messaging-ibm-mq',
-    'cpf-starter-integration-tcp': 'cpf-starters/integration-tcp',
-    'cpf-starter-integration-iso8583': 'cpf-starters/integration-iso8583',
-    'cpf-starter-integration-sftp': 'cpf-starters/integration-sftp',
-    'cpf-starter-notification': 'cpf-starters/notification',
-    'cpf-starter-notification-email': 'cpf-starters/notification-email',
-    'cpf-notification-sms-spi': 'cpf-starters/notification-sms-spi',
+    'cpf-starter-profile-web-api': 'cpf-starters/openapi-webmvc',
+    'cpf-starter-security-resource-server': 'cpf-starters/security/resource-server',
+    'cpf-starter-security-service-identity': 'cpf-starters/security/service-identity',
+    'cpf-starter-messaging-reliability-jdbc': 'cpf-starters/messaging/reliability-jdbc',
+    'cpf-starter-messaging-rabbitmq': 'cpf-starters/messaging/rabbitmq',
+    'cpf-starter-messaging-jms': 'cpf-starters/messaging/jms',
+    'cpf-starter-messaging-ibm-mq': 'cpf-starters/messaging/ibm-mq',
+    'cpf-starter-integration-tcp': 'cpf-starters/integration/tcp',
+    'cpf-starter-integration-iso8583': 'cpf-starters/integration/iso8583',
+    'cpf-starter-file-sftp': 'cpf-starters/file/sftp',
+    'cpf-starter-notification-dispatch': 'cpf-starters/notification/dispatch',
+    'cpf-starter-notification-email': 'cpf-starters/notification/email',
+    'cpf-starter-notification-sms-spi': 'cpf-starters/notification/sms-spi',
     'cpf-starter-scheduler-quartz': 'cpf-starters/scheduler-quartz',
 }
 for project, path in required_projects.items():
@@ -197,8 +197,8 @@ for profile in profiles:
         errors.append(f'empty capability profile: {pid!r}')
     for artifact in resolved:
         if artifact not in artifact_ids and artifact not in {
-            'cpf-starter-resilience', 'cpf-starter-featureflag', 'cpf-starter-secret',
-            'cpf-starter-observability', 'cpf-starter-messaging-kafka',
+            'cpf-starter-resilience', 'cpf-starter-featureflag', 'cpf-starter-security-secret',
+            'cpf-starter-platform-operations-observability', 'cpf-starter-messaging-kafka',
         }:
             errors.append(f'profile references unpublished artifact: {pid} -> {artifact}')
 
@@ -207,7 +207,7 @@ catalog = json.loads((R / 'cpf-tools/release/cpf-final-artifact-catalog.json').r
 qa38_entries = catalog.get('qa38StarterArtifacts', [])
 qa38_by_project = {entry.get('projectPath', '').lstrip(':'): entry for entry in qa38_entries}
 for project, path in mappings.items():
-    if project.startswith('cpf-starter-') or project in {'cpf-integration-fixedlength-core', 'cpf-notification-sms-spi'}:
+    if project.startswith('cpf-starter-') or project in {'cpf-starter-integration-fixedlength-core', 'cpf-starter-notification-sms-spi'}:
         entry = qa38_by_project.get(project)
         if not entry:
             # Existing baseline artifacts may live in the original artifacts array.

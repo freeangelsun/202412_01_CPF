@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 46,
+  "schemaVersion": 47,
   "canonicalPolicy": {
     "officialVendors": [
       "mariadb",
@@ -39,9 +39,10 @@
       "rule": "all FK participating job_id columns use the same canonical width"
     },
     "gatewayIngressTargetPathPolicy": "Ingress path_pattern and target_path are separate; wildcard suffix is validated and rewritten before dispatch.",
-    "batchExecutionAttemptDetailPolicy": "Shell/external attempt detail including exit/stdout/stderr/truncation/duration/artifactHash/unknown is durable and transactionally finalized."
+    "batchExecutionAttemptDetailPolicy": "Shell/external attempt detail including exit/stdout/stderr/truncation/duration/artifactHash/unknown is durable and transactionally finalized.",
+    "qa39RuntimeControlPlane": "RESILIENCE_AND_FEATURE_FLAG_FAIL_CLOSED_APPROVAL_AUDIT"
   },
-  "tableCount": 192,
+  "tableCount": 200,
   "tables": [
     {
       "name": "BATCH_JOB_EXECUTION",
@@ -20178,6 +20179,74 @@
       "logicalDatabase": "batDB"
     },
     {
+      "name": "cpf_batch_execution_epoch",
+      "columns": [
+        {
+          "name": "job_id",
+          "type": "VARCHAR(80)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Batch Job ID별 최신 Fencing Epoch 식별자"
+        },
+        {
+          "name": "current_fencing_token",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "현재 유효한 최신 Fencing Token"
+        },
+        {
+          "name": "epoch_version",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "1",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Epoch 낙관적 잠금 버전"
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME(6)",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP(6)",
+          "autoIncrement": false,
+          "onUpdate": "CURRENT_TIMESTAMP(6)",
+          "comment": "최신 Epoch 변경 시각"
+        }
+      ],
+      "primaryKey": [
+        "job_id"
+      ],
+      "uniqueKeys": [],
+      "indexes": [
+        {
+          "name": "ix_cpf_batch_execution_epoch_updated",
+          "columns": [
+            "updated_at"
+          ],
+          "unique": false
+        }
+      ],
+      "foreignKeys": [],
+      "checks": [
+        {
+          "name": "ck_cpf_batch_execution_epoch_token",
+          "expression": "current_fencing_token > 0"
+        },
+        {
+          "name": "ck_cpf_batch_execution_epoch_version",
+          "expression": "epoch_version > 0"
+        }
+      ],
+      "comment": "Batch Job별 최신 Fencing Epoch Ledger",
+      "module": "bat",
+      "logicalDatabase": "batDB"
+    },
+    {
       "name": "cpf_batch_execution_link",
       "columns": [
         {
@@ -20315,74 +20384,6 @@
         }
       ],
       "comment": "CPF 실행과 Spring Batch Job/Step Metadata 연결 Projection",
-      "module": "bat",
-      "logicalDatabase": "batDB"
-    },
-    {
-      "name": "cpf_batch_execution_epoch",
-      "columns": [
-        {
-          "name": "job_id",
-          "type": "VARCHAR(80)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "Batch Job ID별 최신 Fencing Epoch 식별자"
-        },
-        {
-          "name": "current_fencing_token",
-          "type": "BIGINT",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "현재 유효한 최신 Fencing Token"
-        },
-        {
-          "name": "epoch_version",
-          "type": "BIGINT",
-          "nullable": false,
-          "default": "1",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "Epoch 낙관적 잠금 버전"
-        },
-        {
-          "name": "updated_at",
-          "type": "DATETIME(6)",
-          "nullable": false,
-          "default": "CURRENT_TIMESTAMP(6)",
-          "autoIncrement": false,
-          "onUpdate": "CURRENT_TIMESTAMP(6)",
-          "comment": "최신 Epoch 변경 시각"
-        }
-      ],
-      "primaryKey": [
-        "job_id"
-      ],
-      "uniqueKeys": [],
-      "indexes": [
-        {
-          "name": "ix_cpf_batch_execution_epoch_updated",
-          "columns": [
-            "updated_at"
-          ],
-          "unique": false
-        }
-      ],
-      "foreignKeys": [],
-      "checks": [
-        {
-          "name": "ck_cpf_batch_execution_epoch_token",
-          "expression": "current_fencing_token > 0"
-        },
-        {
-          "name": "ck_cpf_batch_execution_epoch_version",
-          "expression": "epoch_version > 0"
-        }
-      ],
-      "comment": "Batch Job별 최신 Fencing Epoch Ledger",
       "module": "bat",
       "logicalDatabase": "batDB"
     },
@@ -22432,6 +22433,486 @@
         }
       ],
       "comment": "운영 명령 operationId fingerprint 및 결과 복구 ledger",
+      "module": "cpf",
+      "logicalDatabase": "cpfDB"
+    },
+    {
+      "name": "cpf_feature_flag_audit",
+      "columns": [
+        {
+          "name": "audit_id",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "audit_id"
+        },
+        {
+          "name": "event_type",
+          "type": "VARCHAR(80)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "event_type"
+        },
+        {
+          "name": "flag_key",
+          "type": "VARCHAR(200)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "flag_key"
+        },
+        {
+          "name": "actor_id",
+          "type": "VARCHAR(100)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "actor_id"
+        },
+        {
+          "name": "reason_code",
+          "type": "VARCHAR(500)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "reason_code"
+        },
+        {
+          "name": "sanitized_attributes",
+          "type": "VARCHAR(2000)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "sanitized_attributes"
+        },
+        {
+          "name": "occurred_at",
+          "type": "DATETIME(3)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "occurred_at"
+        }
+      ],
+      "primaryKey": [
+        "audit_id"
+      ],
+      "uniqueKeys": [],
+      "indexes": [
+        {
+          "name": "ix_cpf_ffaudit_key_time",
+          "columns": [
+            "flag_key",
+            "occurred_at"
+          ]
+        }
+      ],
+      "foreignKeys": [],
+      "checks": [],
+      "comment": "Feature Flag 감사",
+      "module": "cpf",
+      "logicalDatabase": "cpfDB"
+    },
+    {
+      "name": "cpf_feature_flag_kill_switch",
+      "columns": [
+        {
+          "name": "flag_key",
+          "type": "VARCHAR(200)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "flag_key"
+        },
+        {
+          "name": "enabled_flag",
+          "type": "CHAR(1)",
+          "nullable": false,
+          "default": "'N'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "enabled_flag"
+        },
+        {
+          "name": "revision",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "revision"
+        },
+        {
+          "name": "updated_by",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "updated_by"
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME(3)",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP(3)",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "updated_at"
+        }
+      ],
+      "primaryKey": [
+        "flag_key"
+      ],
+      "uniqueKeys": [],
+      "indexes": [],
+      "foreignKeys": [],
+      "checks": [
+        {
+          "name": "ck_cpf_ffkill_enabled",
+          "expression": "enabled_flag IN ('Y','N')"
+        }
+      ],
+      "comment": "Feature Flag Kill Switch",
+      "module": "cpf",
+      "logicalDatabase": "cpfDB"
+    },
+    {
+      "name": "cpf_feature_flag_override",
+      "columns": [
+        {
+          "name": "override_id",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "override_id"
+        },
+        {
+          "name": "flag_key",
+          "type": "VARCHAR(200)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "flag_key"
+        },
+        {
+          "name": "value_type",
+          "type": "VARCHAR(20)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "value_type"
+        },
+        {
+          "name": "value_text",
+          "type": "VARCHAR(2000)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "value_text"
+        },
+        {
+          "name": "expires_at",
+          "type": "DATETIME(3)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "expires_at"
+        },
+        {
+          "name": "override_status",
+          "type": "VARCHAR(20)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "override_status"
+        },
+        {
+          "name": "revision",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "revision"
+        },
+        {
+          "name": "active_flag_key",
+          "type": "VARCHAR(200)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "active_flag_key"
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME(3)",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP(3)",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "등록 일시"
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME(3)",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP(3)",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "updated_at"
+        }
+      ],
+      "primaryKey": [
+        "override_id"
+      ],
+      "uniqueKeys": [
+        {
+          "name": "uk_cpf_ffovr_active",
+          "columns": [
+            "active_flag_key"
+          ]
+        }
+      ],
+      "indexes": [
+        {
+          "name": "ix_cpf_ffovr_key",
+          "columns": [
+            "flag_key",
+            "override_status",
+            "expires_at"
+          ]
+        }
+      ],
+      "foreignKeys": [],
+      "checks": [
+        {
+          "name": "ck_cpf_ffovr_status",
+          "expression": "override_status IN ('ACTIVE','SUPERSEDED','REVOKED','EXPIRED')"
+        }
+      ],
+      "comment": "Feature Flag 활성 Override",
+      "module": "cpf",
+      "logicalDatabase": "cpfDB"
+    },
+    {
+      "name": "cpf_feature_flag_override_request",
+      "columns": [
+        {
+          "name": "request_id",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "request_id"
+        },
+        {
+          "name": "flag_key",
+          "type": "VARCHAR(200)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "flag_key"
+        },
+        {
+          "name": "value_type",
+          "type": "VARCHAR(20)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "value_type"
+        },
+        {
+          "name": "value_text",
+          "type": "VARCHAR(2000)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "value_text"
+        },
+        {
+          "name": "expires_at",
+          "type": "DATETIME(3)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "expires_at"
+        },
+        {
+          "name": "requester_id",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "requester_id"
+        },
+        {
+          "name": "request_reason",
+          "type": "VARCHAR(500)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "request_reason"
+        },
+        {
+          "name": "request_status",
+          "type": "VARCHAR(20)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "request_status"
+        },
+        {
+          "name": "approver_id",
+          "type": "VARCHAR(100)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "approver_id"
+        },
+        {
+          "name": "approval_reason",
+          "type": "VARCHAR(500)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "approval_reason"
+        },
+        {
+          "name": "active_flag_key",
+          "type": "VARCHAR(200)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "active_flag_key"
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME(3)",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP(3)",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "등록 일시"
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME(3)",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP(3)",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "updated_at"
+        }
+      ],
+      "primaryKey": [
+        "request_id"
+      ],
+      "uniqueKeys": [
+        {
+          "name": "uk_cpf_ffreq_pending",
+          "columns": [
+            "active_flag_key"
+          ]
+        }
+      ],
+      "indexes": [
+        {
+          "name": "ix_cpf_ffreq_status",
+          "columns": [
+            "request_status",
+            "created_at"
+          ]
+        }
+      ],
+      "foreignKeys": [],
+      "checks": [
+        {
+          "name": "ck_cpf_ffreq_status",
+          "expression": "request_status IN ('PENDING','APPROVED','REJECTED')"
+        }
+      ],
+      "comment": "Feature Flag Override 승인 요청",
+      "module": "cpf",
+      "logicalDatabase": "cpfDB"
+    },
+    {
+      "name": "cpf_feature_flag_revision",
+      "columns": [
+        {
+          "name": "singleton_id",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "singleton_id"
+        },
+        {
+          "name": "revision",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "revision"
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME(3)",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP(3)",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "updated_at"
+        }
+      ],
+      "primaryKey": [
+        "singleton_id"
+      ],
+      "uniqueKeys": [],
+      "indexes": [],
+      "foreignKeys": [],
+      "checks": [
+        {
+          "name": "ck_cpf_ffrev_single",
+          "expression": "singleton_id = 1"
+        },
+        {
+          "name": "ck_cpf_ffrev_value",
+          "expression": "revision >= 0"
+        }
+      ],
+      "comment": "Feature Flag 다중 인스턴스 Revision",
       "module": "cpf",
       "logicalDatabase": "cpfDB"
     },
@@ -27000,6 +27481,434 @@
       "foreignKeys": [],
       "checks": [],
       "comment": "CPF 운영 알림 규칙",
+      "module": "cpf",
+      "logicalDatabase": "cpfDB"
+    },
+    {
+      "name": "cpf_resilience_audit",
+      "columns": [
+        {
+          "name": "audit_id",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "audit_id"
+        },
+        {
+          "name": "event_type",
+          "type": "VARCHAR(80)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "event_type"
+        },
+        {
+          "name": "operation_id",
+          "type": "VARCHAR(200)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "operation_id"
+        },
+        {
+          "name": "actor_id",
+          "type": "VARCHAR(100)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "actor_id"
+        },
+        {
+          "name": "reason_code",
+          "type": "VARCHAR(256)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "reason_code"
+        },
+        {
+          "name": "sanitized_attributes",
+          "type": "VARCHAR(2000)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "sanitized_attributes"
+        },
+        {
+          "name": "occurred_at",
+          "type": "DATETIME(3)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "occurred_at"
+        }
+      ],
+      "primaryKey": [
+        "audit_id"
+      ],
+      "uniqueKeys": [],
+      "indexes": [
+        {
+          "name": "ix_cpf_raud_op_time",
+          "columns": [
+            "operation_id",
+            "occurred_at"
+          ]
+        }
+      ],
+      "foreignKeys": [],
+      "checks": [],
+      "comment": "Resilience 감사",
+      "module": "cpf",
+      "logicalDatabase": "cpfDB"
+    },
+    {
+      "name": "cpf_resilience_policy",
+      "columns": [
+        {
+          "name": "policy_id",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "policy_id"
+        },
+        {
+          "name": "operation_id",
+          "type": "VARCHAR(200)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "operation_id"
+        },
+        {
+          "name": "revision",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "revision"
+        },
+        {
+          "name": "timeout_ms",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "timeout_ms"
+        },
+        {
+          "name": "max_attempts",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "max_attempts"
+        },
+        {
+          "name": "retry_backoff_ms",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "retry_backoff_ms"
+        },
+        {
+          "name": "circuit_failure_threshold",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "circuit_failure_threshold"
+        },
+        {
+          "name": "circuit_open_ms",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "circuit_open_ms"
+        },
+        {
+          "name": "bulkhead_max_concurrent",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "bulkhead_max_concurrent"
+        },
+        {
+          "name": "rate_limit_permits",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "rate_limit_permits"
+        },
+        {
+          "name": "rate_limit_window_ms",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "rate_limit_window_ms"
+        },
+        {
+          "name": "idempotent_flag",
+          "type": "CHAR(1)",
+          "nullable": false,
+          "default": "'N'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "idempotent_flag"
+        },
+        {
+          "name": "reconcile_flag",
+          "type": "CHAR(1)",
+          "nullable": false,
+          "default": "'N'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "reconcile_flag"
+        },
+        {
+          "name": "policy_status",
+          "type": "VARCHAR(20)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "policy_status"
+        },
+        {
+          "name": "active_operation_key",
+          "type": "VARCHAR(200)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "active_operation_key"
+        },
+        {
+          "name": "updated_by",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "updated_by"
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME(3)",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP(3)",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "updated_at"
+        }
+      ],
+      "primaryKey": [
+        "policy_id"
+      ],
+      "uniqueKeys": [
+        {
+          "name": "uk_cpf_rpol_active",
+          "columns": [
+            "active_operation_key"
+          ]
+        },
+        {
+          "name": "uk_cpf_rpol_rev",
+          "columns": [
+            "operation_id",
+            "revision"
+          ]
+        }
+      ],
+      "indexes": [
+        {
+          "name": "ix_cpf_rpol_status",
+          "columns": [
+            "policy_status",
+            "operation_id"
+          ]
+        }
+      ],
+      "foreignKeys": [],
+      "checks": [
+        {
+          "name": "ck_cpf_rpol_idem",
+          "expression": "idempotent_flag IN ('Y','N')"
+        },
+        {
+          "name": "ck_cpf_rpol_recon",
+          "expression": "reconcile_flag IN ('Y','N')"
+        }
+      ],
+      "comment": "Resilience 활성 정책",
+      "module": "cpf",
+      "logicalDatabase": "cpfDB"
+    },
+    {
+      "name": "cpf_resilience_policy_request",
+      "columns": [
+        {
+          "name": "request_id",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "request_id"
+        },
+        {
+          "name": "operation_id",
+          "type": "VARCHAR(200)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "operation_id"
+        },
+        {
+          "name": "requested_revision",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "requested_revision"
+        },
+        {
+          "name": "policy_payload",
+          "type": "VARCHAR(2000)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "policy_payload"
+        },
+        {
+          "name": "requester_id",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "requester_id"
+        },
+        {
+          "name": "request_reason",
+          "type": "VARCHAR(500)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "request_reason"
+        },
+        {
+          "name": "request_status",
+          "type": "VARCHAR(20)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "request_status"
+        },
+        {
+          "name": "approver_id",
+          "type": "VARCHAR(100)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "approver_id"
+        },
+        {
+          "name": "approval_reason",
+          "type": "VARCHAR(500)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "approval_reason"
+        },
+        {
+          "name": "active_operation_key",
+          "type": "VARCHAR(200)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "active_operation_key"
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME(3)",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP(3)",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "등록 일시"
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME(3)",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP(3)",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "updated_at"
+        }
+      ],
+      "primaryKey": [
+        "request_id"
+      ],
+      "uniqueKeys": [
+        {
+          "name": "uk_cpf_rpreq_pending",
+          "columns": [
+            "active_operation_key"
+          ]
+        }
+      ],
+      "indexes": [
+        {
+          "name": "ix_cpf_rpreq_status",
+          "columns": [
+            "request_status",
+            "created_at"
+          ]
+        }
+      ],
+      "foreignKeys": [],
+      "checks": [
+        {
+          "name": "ck_cpf_rpreq_status",
+          "expression": "request_status IN ('PENDING','APPROVED','REJECTED')"
+        }
+      ],
+      "comment": "Resilience 정책 승인 요청",
       "module": "cpf",
       "logicalDatabase": "cpfDB"
     },

@@ -2001,7 +2001,7 @@ $batchTransactionBean
 "@
 
 $packagedArtifactIds = [System.Collections.Generic.List[string]]::new()
-foreach ($artifactId in @('cpf-core', 'cpf-common', 'cpf-starter-base')) {
+foreach ($artifactId in @('cpf-core', 'cpf-common', 'cpf-starter-foundation-base')) {
     if (-not $packagedArtifactIds.Contains($artifactId)) { $packagedArtifactIds.Add($artifactId) }
 }
 $profileArtifactId = ([string]$profileArtifact -split ':')[-1]

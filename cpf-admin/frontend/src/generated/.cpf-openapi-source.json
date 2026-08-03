@@ -2,9 +2,9 @@
   "schemaVersion": 3,
   "identityPolicy": "TRACKED_HASHES_RELEASE_SHA_IN_EVIDENCE",
   "openApiPath": "openapi/cpf-openapi.json",
-  "openApiSha256": "ad09a6455dac0e2db8fbb38594b3503cdc4ae0bed5fe3222dc659f7599f0b0c5",
-  "openApiOperationCount": 307,
-  "openApiOperationIdsSha256": "65722c32a6af100812b2bbcab89ec0a6d31f16f5214b6c13e993ae7c8dd5a845",
+  "openApiSha256": "72dfbea60e1c528d86b967de3dd675ccd52df3af99fa1ac5750b7f27fa07e0ea",
+  "openApiOperationCount": 319,
+  "openApiOperationIdsSha256": "609e6628c279479a9eddfb8e99b0553c0c898f0e46c12f60491d572586f5cdb4",
   "generator": {
     "name": "orval",
     "version": "8.23.0"
@@ -18,29 +18,17 @@
   "generatedFiles": [
     {
       "path": "src/generated/adm-route-operation-contract.ts",
-      "sha256": "970c6bf3062d73c6b27c6e40406547d9ce9a2529a87db0d0206b3e3fc0579749"
+      "sha256": "1649aaf9b500cd6753882d74b6897be2e5ac76b2a5ff8f666d3d97ff2bfb4cdb"
     },
     {
       "path": "src/generated/cpf-api.ts",
-      "sha256": "6a38017edae87b8fb6d649e84cc8b1672f21845781d24fd6ce3185548fa1e655"
+      "sha256": "aabadee9976178c1ac784c075a14499d56ac41b066c267a650f89eead7b4735e"
     },
     {
       "path": "src/generated/cpf-operation-contract.ts",
-      "sha256": "7dee5c02adfb9e210c6f5632edfaeb2bdc249e55e04f21b1c7fe72c1751891cb"
-    },
-    {
-      "path": "src/generated/orval/cpf-api.ts",
-      "sha256": "0bf166d632cc8475ca0054a6bf3862a5f09ed1c2da4b06437a207d7e422a89d5"
-    },
-    {
-      "path": "src/generated/orval/model/cpfControllerSourceResponse.ts",
-      "sha256": "77956c390c6655b092865788c4d90873507612771ad49a23e2536dd8c95674f2"
-    },
-    {
-      "path": "src/generated/orval/model/index.ts",
-      "sha256": "9345df579393b8c962bf186aea559b24e7602fa47ffd3e81a35dcb4e7b05971b"
+      "sha256": "26e6a584912fa77bb8edd42ad66fda42c3271689975bc3b4cbaa4dc8cffd1338"
     }
   ],
-  "generatedFileSetSha256": "658d7252c0dce48e55279c5acff30563f786f95b89d03706e35acede96835317",
+  "generatedFileSetSha256": "e99a5e1d909eedb810eb9e54ea10d9baa3c840e1c37eff35ed1adfe13a72371c",
   "sanitized": true
 }

@@ -5,7 +5,7 @@ import com.cpf.core.api.database.CpfVendorSqlCatalogProvider;
 import com.cpf.core.api.filetransfer.CpfFileTransferClient;
 import com.cpf.core.api.gateway.CpfGatewayRouteProvider;
 import com.cpf.core.api.servicecall.CpfServiceCaller;
-import com.cpf.core.common.broker.CpfBrokerClientAdapter;
+import com.cpf.core.internal.broker.CpfBrokerClientAdapter;
 import com.cpf.core.common.broker.CpfBrokerOutboxPort;
 import com.cpf.core.common.filetransfer.CpfFileTransferClientAdapter;
 import com.cpf.core.common.filetransfer.CpfFileTransferEngine;

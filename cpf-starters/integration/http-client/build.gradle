@@ -1,0 +1,18 @@
+plugins { id 'java-library'; id 'maven-publish' }
+group='com.cpf.starter'
+dependencies {
+ api project(':cpf-core')
+ implementation project(':cpf-starter-foundation-base')
+ implementation project(':cpf-starter-platform-operations-runtime-control-client')
+ implementation project(':cpf-starter-data-persistence-jdbc')
+ implementation project(':cpf-starter-integration-resilience')
+ implementation project(':cpf-starter-integration-fixedlength-core')
+ api 'org.springframework.boot:spring-boot-starter-web'
+ api 'org.springframework.boot:spring-boot-starter-webflux'
+ implementation 'org.springframework.boot:spring-boot-restclient'
+ implementation 'org.springframework.boot:spring-boot-autoconfigure'
+ annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+ testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+tasks.named('test'){useJUnitPlatform()}
+publishing { publications { mavenJava(MavenPublication){from components.java;artifactId='cpf-starter-integration-http-client'} } }

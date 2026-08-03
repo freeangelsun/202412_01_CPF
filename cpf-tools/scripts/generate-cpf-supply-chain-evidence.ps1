@@ -22,7 +22,7 @@ function TreeHash([string]$Path){
  $base=(Resolve-Path $Path).Path;$lines=@(Get-ChildItem -LiteralPath $base -Recurse -File|Sort-Object FullName|ForEach-Object{"$(FileHash $_.FullName)  $([IO.Path]::GetRelativePath($base,$_.FullName).Replace('\','/'))"})
  if($lines.Count-eq0){throw"empty artifact: $Path"};$tmp=[IO.Path]::GetTempFileName();try{[IO.File]::WriteAllLines($tmp,$lines,[Text.UTF8Encoding]::new($false));FileHash $tmp}finally{Remove-Item -Force $tmp -ErrorAction SilentlyContinue}
 }
-$gradle=Join-Path $rootPath 'gradlew.bat';$ort=Tool'ort';$syft=Tool'syft';$grype=Tool'grype';$python=Tool'python'
+$gradle=Join-Path $rootPath 'gradlew.bat';$ort=Tool'ort';$syft=Tool'syft';$grype=Tool'grype';$java=Tool'java'
 try{
  Run'CycloneDX'$gradle @('cyclonedxBom','--no-daemon','--stacktrace')
  if($ArtifactPaths.Count-eq0){
@@ -40,7 +40,7 @@ try{
   $index++;$safe=(([IO.Path]::GetFileName($artifact))-replace'[^A-Za-z0-9._-]','_');if(-not$safe){$safe="artifact-$index"}
   $sbom=Join-Path $stage "$index-$safe.syft.cdx.json";$vuln=Join-Path $stage "$index-$safe.grype.json"
   Run"Syft $safe"$syft @($artifact,'-o',"cyclonedx-json=$sbom");Run"Grype $safe"$grype @("sbom:$sbom",'-o','json','--file',$vuln,'--fail-on','high')
-  Run"License $safe"$python @((Join-Path $rootPath 'cpf-tools/scripts/verify-cpf-supply-chain.py'),'--root',$rootPath,'--sbom',$sbom,'--release')
+  Run"License $safe"$java @((Join-Path $rootPath 'cpf-tools/scripts/Qa39Tool.java'),'supply-chain','--root',$rootPath,'--sbom',$sbom)
   $records+=[ordered]@{sourceSha=$sourceSha;artifactPath=[IO.Path]::GetRelativePath($rootPath,$artifact).Replace('\','/');artifactSha256=TreeHash $artifact;sbomPath=[IO.Path]::GetFileName($sbom);sbomSha256=FileHash $sbom;vulnerabilityReportPath=[IO.Path]::GetFileName($vuln);vulnerabilityReportSha256=FileHash $vuln}
  }
  if((& git -C $rootPath rev-parse HEAD).Trim()-ne$sourceSha){throw'SHA changed during supply-chain scan'}

@@ -41,7 +41,7 @@ catalog_path = R / "cpf-tools/release/cpf-final-artifact-catalog.json"
 catalog = json.loads(text(catalog_path))
 catalog_owners = {str(x.get("ownerPath")) for x in catalog.get("qa38StarterArtifacts", [])}
 for d in build_dirs:
-    if d not in catalog_owners and d not in {"cpf-starters/security"}:
+    if d not in catalog_owners and d not in {"cpf-starters/security/session-jdbc"}:
         errors.append("ARTIFACT_CATALOG_MISSING " + d)
 
 platform_text = text(R / "gradle/cpf-platform.properties")

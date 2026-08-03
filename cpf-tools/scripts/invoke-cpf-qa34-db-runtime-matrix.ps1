@@ -21,7 +21,7 @@ function Migration([string]$vendor,[string]$profile,[string]$direction,[int]$ver
  if(-not(Test-Path $dry)){return};$plan=(Get-Content $dry -Raw|ConvertFrom-Json -Depth 50).planSha256;if($plan-notmatch'^[0-9a-f]{64}$'){$failures.Add("${vendor}/${base}: dry-run plan SHA missing");return}
  Step $vendor "$direction-v$version-apply" {& (Join-Path $rootPath 'cpf-tools/scripts/invoke-platform-database-migration.ps1') -Root $rootPath -ProfilePath $profile -Direction $direction -MigrationVersion $version -ResultPath $apply -Apply -ConfirmApply -ConfirmApplicationsStopped -ConfirmRollbackReady -ExpectedPlanSha256 $plan -BackupManifestPath $backups}
 }
-Step 'all' 'static-token-parity' {&python (Join-Path $rootPath 'cpf-tools/scripts/verify-cpf-db-vendor-static-token-parity.py') --root $rootPath --json-report (Join-Path $out 'static-token-parity.json')}
+Step 'all' 'static-token-parity' {& java (Join-Path $rootPath 'cpf-tools/scripts/Qa39Tool.java') 'db-static-token-parity' '--root' $rootPath '--json-report' (Join-Path $out 'static-token-parity.json')}
 foreach($vendor in $profiles.Keys){$profile=$profiles[$vendor];$upgrade=$upgrades[$vendor]
  Step $vendor 'clean-install' {& (Join-Path $rootPath 'cpf-tools/scripts/initialize-cpf-database.ps1') -Root $rootPath -ProfilePath $profile -All -SeedMode product -RequireRun -ResultDir (Join-Path $out "$vendor-install")}
  foreach($v in $versions){Migration $vendor $upgrade 'upgrade' $v}

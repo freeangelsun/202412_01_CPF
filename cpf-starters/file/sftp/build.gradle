@@ -1,0 +1,23 @@
+plugins { id 'java-library'; id 'maven-publish' }
+group = 'com.cpf.starter'
+dependencies {
+    api project(':cpf-starter-security-secret')
+    implementation project(':cpf-starter-platform-operations-runtime-control-client')
+    api project(':cpf-core')
+api project(':cpf-starter-foundation-base')
+implementation project(':cpf-starter-data-persistence-jdbc')
+api 'org.apache.sshd:sshd-sftp:2.14.0'
+implementation 'org.springframework.boot:spring-boot-starter-actuator'
+annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+tasks.named('test') { useJUnitPlatform() }
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            artifactId = 'cpf-starter-file-sftp'
+        }
+    }
+}
+

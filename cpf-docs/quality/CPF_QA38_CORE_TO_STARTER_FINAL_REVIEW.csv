@@ -1,31 +1,31 @@
 ﻿candidate_id,current_owner,current_element,disposition,target_artifact,remaining_contract,actual_consumers,db_generator_impact,priority,development_status,verification_status
-ST-001,cpf-core,CpfDataSourceConfig,MOVE,cpf-starter-persistence-jdbc,DB-neutral datasource contract,ADM/BZA/REF/Generated,Canonical DB/3 Vendor,P0,부분 구현,미검증
-ST-002,cpf-core,CpfMyBatisConfig+dependency/resources,MOVE,cpf-starter-persistence-mybatis,Persistence-neutral SPI,REF/Generated/Product DB,Mapper/Runtime Query/3 Vendor,P0,부분 구현,미검증
+ST-001,cpf-core,CpfDataSourceConfig,MOVE,cpf-starter-data-persistence-jdbc,DB-neutral datasource contract,ADM/BZA/REF/Generated,Canonical DB/3 Vendor,P0,부분 구현,미검증
+ST-002,cpf-core,CpfMyBatisConfig+dependency/resources,MOVE,cpf-starter-data-persistence-mybatis,Persistence-neutral SPI,REF/Generated/Product DB,Mapper/Runtime Query/3 Vendor,P0,부분 구현,미검증
 ST-003,cpf-core,CpfAopConfig+ServiceAccessAspect+AspectJ,MOVE,cpf-starter-aop-service-access,Service access/audit contract,Service/ADM/BZA,Audit metadata,P0,부분 구현,미검증
-ST-004,cpf-core,CpfOpenApiAutoConfiguration+Springdoc+Scalar,MOVE,cpf-starter-openapi-webmvc,OpenAPI metadata contract,ADM/BZA/REF/Domain,없음,P0,부분 구현,미검증
+ST-004,cpf-core,CpfOpenApiAutoConfiguration+Springdoc+Scalar,MOVE,cpf-starter-profile-web-api,OpenAPI metadata contract,ADM/BZA/REF/Domain,없음,P0,부분 구현,미검증
 ST-005,cpf-core,CpfSecurityAutoConfiguration,SPLIT_MOVE,cpf-starter-security-resource-server,Security principal/permission contract,API Domain/Gateway,Security metadata,P0,부분 구현,미검증
-ST-006,cpf-starters/security,BFF/JDBC Security Runtime,SPLIT_MOVE,cpf-starter-security-session-jdbc,Generic session contract,ADM/BZA,Session Schema 3 Vendor,P0,부분 구현,미검증
+ST-006,cpf-starters/security/session-jdbc,BFF/JDBC Security Runtime,SPLIT_MOVE,cpf-starter-security-session-jdbc,Generic session contract,ADM/BZA,Session Schema 3 Vendor,P0,부분 구현,미검증
 ST-007,cpf-core,Broker Worker/Bridge/JDBC Reliability Repository,MOVE,cpf-starter-messaging-reliability-jdbc,Provider-neutral message contract,Kafka/Rabbit/JMS/Batch,Outbox/Inbox/DLQ/Replay 3 Vendor,P0,부분 구현,미검증
-ST-008,cpf-core,JdbcCpfChannelRegistryAdapter,MOVE,cpf-starter-channel-registry-jdbc,Channel registry SPI,Runtime/Gateway/Agent,Registry schema 3 Vendor,P0,부분 구현,미검증
-ST-009,cpf-core,Logging+OTel SDK/Exporter Runtime,SPLIT_MOVE,cpf-starter-observability + cpf-starter-observability-otlp,Trace/metric/log contract,모든 Runtime,Log DB 선택,P0,부분 구현,미검증
-ST-010,cpf-core,Remote HTTP Runtime,MOVE,cpf-starter-http-client,Typed remote client contract,ADM/Gateway/Batch/Domain,없음,P0,부분 구현,미검증
+ST-008,cpf-core,JdbcCpfChannelRegistryAdapter,MOVE,cpf-starter-platform-operations-channel-registry-jdbc,Channel registry SPI,Runtime/Gateway/Agent,Registry schema 3 Vendor,P0,부분 구현,미검증
+ST-009,cpf-core,Logging+OTel SDK/Exporter Runtime,SPLIT_MOVE,cpf-starter-platform-operations-observability + cpf-starter-platform-operations-otlp,Trace/metric/log contract,모든 Runtime,Log DB 선택,P0,부분 구현,미검증
+ST-010,cpf-core,Remote HTTP Runtime,MOVE,cpf-starter-integration-http-client,Typed remote client contract,ADM/Gateway/Batch/Domain,없음,P0,부분 구현,미검증
 ST-011,cpf-core/common,Validation Runtime Provider,MOVE,cpf-starter-validation,Validation API/values,ADM/BZA/Domain,없음,P1,부분 구현,미검증
-ST-012,cpf-core,Fixed-length Spring Component,SPLIT,cpf-integration-fixedlength-core + cpf-starter-integration-fixedlength,Pure codec contract,TCP/REF/EDU,Layout metadata,P0,부분 구현,미검증
-ST-013,cpf-core,FileExchange/SFTP Planned Runtime,MOVE_IMPLEMENT,cpf-starter-integration-sftp,File transfer SPI,Batch/Institution/REF,Transfer Ledger,P0,부분 구현,미검증
+ST-012,cpf-core,Fixed-length Spring Component,SPLIT,cpf-starter-integration-fixedlength-core + cpf-starter-integration-fixedlength,Pure codec contract,TCP/REF/EDU,Layout metadata,P0,부분 구현,미검증
+ST-013,cpf-core,FileExchange/SFTP Planned Runtime,MOVE_IMPLEMENT,cpf-starter-file-sftp,File transfer SPI,Batch/Institution/REF,Transfer Ledger,P0,부분 구현,미검증
 ST-014,cpf-core,Commons Compress/Archive Runtime,MOVE,cpf-starter-file-archive,Archive/file contract,File/Attachment,없음,P1,부분 구현,미검증
-ST-015,cpf-common,Redis/Valkey Connection·Template·Listener,MOVE,cpf-starter-cache-valkey,Business cache abstraction,Common/ADM/BZA/Domain,Cache metadata optional,P0,부분 구현,미검증
-ST-016,cpf-common,Caffeine Runtime,MOVE,cpf-starter-cache-caffeine,Business cache abstraction,Common/Domain,없음,P0,부분 구현,미검증
-ST-017,cpf-common,POI/XLSX Runtime,MOVE,cpf-starter-tabular-poi,Tabular contract,ADM/BZA/Domain,없음,P1,부분 구현,미검증
+ST-015,cpf-common,Redis/Valkey Connection·Template·Listener,MOVE,cpf-starter-data-cache-valkey,Business cache abstraction,Common/ADM/BZA/Domain,Cache metadata optional,P0,부분 구현,미검증
+ST-016,cpf-common,Caffeine Runtime,MOVE,cpf-starter-data-cache-caffeine,Business cache abstraction,Common/Domain,없음,P0,부분 구현,미검증
+ST-017,cpf-common,POI/XLSX Runtime,MOVE,cpf-starter-file-tabular-poi,Tabular contract,ADM/BZA/Domain,없음,P1,부분 구현,미검증
 ST-018,cpf-core,Service Identity Runtime,MOVE,cpf-starter-security-service-identity,Identity/mTLS/OIDC contract,Gateway/Batch/Agent,Identity metadata,P0,부분 구현,미검증
 ST-019,cpf-core,Registry/Health technical client,MOVE,cpf-starter-runtime-registry-client,Registry/health contract,Gateway/Runtime/Agent,Registry metadata,P0,부분 구현,미검증
-ST-020,cpf-starters/secret,Secret Provider Runtime,EXPAND,cpf-starter-secret + provider plugins,Secret registry contract,모든 Secret Consumer,Secret reference metadata,P0,부분 구현,미검증
+ST-020,cpf-starters/security/secret,Secret Provider Runtime,EXPAND,cpf-starter-security-secret + provider plugins,Secret registry contract,모든 Secret Consumer,Secret reference metadata,P0,부분 구현,미검증
 ST-021,cpf-starters/featureflag,OpenFeature Runtime,EXPAND,cpf-starter-featureflag + provider plugins,Feature flag contract,ADM/BZA/Domain,Flag/Audit metadata,P1,부분 구현,미검증
 ST-022,cpf-starters/resilience,CircuitBreaker-only Runtime,EXPAND,cpf-starter-resilience,Deadline/retry/unknown-result contract,Gateway/Batch/Domain,없음,P0,부분 구현,미검증
-ST-023,cpf-starters/messaging-kafka,Kafka Producer/Consumer Runtime,EXPAND_MIGRATE,cpf-starter-messaging-kafka,Provider-neutral message port,Batch/Domain/REF,Reliability Ledger,P0,부분 구현,미검증
+ST-023,cpf-starters/messaging/kafka,Kafka Producer/Consumer Runtime,EXPAND_MIGRATE,cpf-starter-messaging-kafka,Provider-neutral message port,Batch/Domain/REF,Reliability Ledger,P0,부분 구현,미검증
 ST-024,누락,RabbitMQ/AMQP,NEW,cpf-starter-messaging-rabbitmq,Provider-neutral MQ+AMQP extension,Domain/Batch/Bridge/REF,Reliability Ledger,P0,미구현,미검증
 ST-025,누락,Jakarta JMS,NEW,cpf-starter-messaging-jms,Provider-neutral MQ+JMS extension,Domain/Batch/REF,Reliability Ledger,P0,미구현,미검증
 ST-026,누락,IBM MQ Provider,NEW_PLUGIN,cpf-starter-messaging-ibm-mq,JMS+IBM MQ extension SPI,Institution Domain,Reliability Ledger,P0,미구현,미검증
 ST-027,누락,TCP Transport Runtime,NEW,cpf-starter-integration-tcp,TCP transport contract,Institution/Batch/REF,Request/Reconcile Ledger optional,P0,미구현,미검증
-ST-028,누락/부분,Notification Email/SMS Worker,NEW_SPLIT,cpf-starter-notification + email + sms-spi,Notification contract,ADM/BZA/Domain,Outbox/Delivery/Result,P0,미구현,미검증
+ST-028,누락/부분,Notification Email/SMS Worker,NEW_SPLIT,cpf-starter-notification-dispatch + email + sms-spi,Notification contract,ADM/BZA/Domain,Outbox/Delivery/Result,P0,미구현,미검증
 ST-029,선택 기능,Quartz Scheduler,NEW_OPTIONAL,cpf-starter-scheduler-quartz,Scheduler SPI,고급 Batch Consumer,Scheduler schema 3 Vendor,P1,미구현,미검증
 ST-030,cpf-core/common,Public API/SPI·Identifiers·Context·Error·Masking·업무 Common,KEEP,cpf-core / cpf-common,Topology-independent contract and business common,모든 Consumer,공통 Metadata만,P0,부분 구현,미검증

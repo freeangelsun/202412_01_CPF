@@ -41,7 +41,7 @@ def cpfFlywayDatabaseByVendor = [
 
 dependencies {
     implementation project(':cpf-starter-profile-secure-api')
-    implementation project(':cpf-starter-persistence-mybatis')
+    implementation project(':cpf-starter-data-persistence-mybatis')
 
     implementation 'org.springframework.boot:spring-boot-starter-flyway'
     runtimeOnly cpfJdbcDriverByVendor[cpfDbVendor]
@@ -159,7 +159,7 @@ if (!cpfResolvedStarterLockFile.isFile()) {
 }
 def cpfResolvedStarterLock = new groovy.json.JsonSlurper().parse(cpfResolvedStarterLockFile)
 def cpfRequiredPackagedDependencyPrefixes = (
-        ['cpf-core', 'cpf-common', 'cpf-starter-base'] +
+        ['cpf-core', 'cpf-common', 'cpf-starter-foundation-base'] +
         ((cpfResolvedStarterLock.resolvedStarters ?: []) as List)
 ).collect { "${it}-" }.toSet().sort()
 

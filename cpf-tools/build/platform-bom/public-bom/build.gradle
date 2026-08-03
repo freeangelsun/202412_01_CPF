@@ -1,0 +1,39 @@
+plugins { id 'java-platform'; id 'maven-publish' }
+
+def loadProps = { File f, List keys ->
+    if (!f.isFile()) throw new GradleException("Missing canonical properties: ${f}")
+    def p=new Properties(); f.withInputStream { p.load(it) }
+    keys.each { if (!(p.getProperty(it) ?: '').trim()) throw new GradleException("Missing property ${it}: ${f}") }
+    p
+}
+def platformProps=loadProps(file('../../../../gradle/cpf-platform.properties'),['platformVersion'])
+def stack=loadProps(file('../../../../gradle/cpf-stack.properties'),['springBootVersion','springCloudVersion'])
+def catalogFile=file('../../../generator/contracts/cpf-starter-catalog.json')
+def catalog=new groovy.json.JsonSlurper().parse(catalogFile)
+def versionValue=platformProps.getProperty('platformVersion').trim()
+group='com.cpf'; version=versionValue
+javaPlatform { allowDependencies() }
+repositories { mavenCentral() }
+def publicModules=(catalog.modules ?: []).findAll { it.visibility?.toString()=='public' }
+if (publicModules.size()!=6) throw new GradleException("Public BOM requires exactly 6 profiles: ${publicModules*.artifactId}")
+def internalLeak=publicModules.findAll { it.kind?.toString()!='starter-profile' || it.internalRole?.toString()!='public-profile' }
+if (!internalLeak.isEmpty()) throw new GradleException("Internal Starter leaked into public BOM: ${internalLeak}")
+dependencies {
+    api platform("org.springframework.boot:spring-boot-dependencies:${stack.getProperty('springBootVersion').trim()}")
+    api platform("org.springframework.cloud:spring-cloud-dependencies:${stack.getProperty('springCloudVersion').trim()}")
+    constraints {
+        api "com.cpf.core:cpf-core:${versionValue}"
+        api "com.cpf.common:cpf-common:${versionValue}"
+        api "com.cpf.batch:cpf-batch-contract:${versionValue}"
+        publicModules.sort { it.artifactId }.each { m -> api "${m.groupId}:${m.artifactId}:${versionValue}" }
+    }
+}
+def localRepo=providers.gradleProperty('cpfLocalArtifactRepository').orElse(providers.environmentVariable('CPF_LOCAL_ARTIFACT_REPOSITORY')).orElse(new File(System.getProperty('user.home'),'.cpf/repository').absolutePath)
+def stagingRepo=providers.gradleProperty('cpfArtifactStagingRepository').orElse(new File(rootDir,'../../../../build/cpf-artifact-staging/repository').absolutePath)
+def internalRepo=providers.gradleProperty('cpfInternalRepositoryUrl').orElse(providers.gradleProperty('cpfArtifactRepositoryUrl')).orElse(providers.environmentVariable('CPF_ARTIFACT_REPOSITORY_URL')).orElse(layout.buildDirectory.dir('repo').map { it.asFile.absolutePath })
+publishing {
+ publications { cpfPlatformBom(MavenPublication) { from components.javaPlatform; artifactId='cpf-platform-bom'; pom { name='CPF Public Platform BOM'; description='Public CPF contracts and six use-case profiles only.' } } }
+ repositories { maven { name='CpfLocal'; url=uri(localRepo.get()) }; maven { name='CpfStaging'; url=uri(stagingRepo.get()) }; maven { name='CpfInternal'; url=uri(internalRepo.get()) } }
+}
+tasks.register('verifyPublicBom') { doLast { assert publicModules.size()==6; assert internalLeak.isEmpty() } }
+check.dependsOn tasks.named('verifyPublicBom')

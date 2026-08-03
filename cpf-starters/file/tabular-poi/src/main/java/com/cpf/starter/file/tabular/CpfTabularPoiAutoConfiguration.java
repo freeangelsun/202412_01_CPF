@@ -1,0 +1,1 @@
+package com.cpf.starter.file.tabular;import org.springframework.boot.autoconfigure.AutoConfiguration;import org.springframework.context.annotation.Bean;@AutoConfiguration public class CpfTabularPoiAutoConfiguration {@Bean CpfXlsxService cpfXlsxService(){return new CpfXlsxService(100000,500);}}

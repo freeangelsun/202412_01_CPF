@@ -470,7 +470,7 @@ def validate_resolution_semantics(profiles: dict[str, Any]) -> None:
     groups, bindings, runtimes = resolve_capabilities(profiles, "minimal-domain", {"file"}, {})
     if groups != {"file"} or bindings != {"file": "sftp"}:
         fail("file capability default resolution drift")
-    forbidden_file_leaks = {"cpf-starter-attachment", "cpf-starter-file-archive", "cpf-starter-tabular-poi"}
+    forbidden_file_leaks = {"cpf-starter-file-attachment", "cpf-starter-file-archive", "cpf-starter-file-tabular-poi"}
     if any(any(leak in coordinate for leak in forbidden_file_leaks) for coordinate in runtimes):
         fail("file transfer selection pulled unselected attachment/archive/tabular runtime")
 
@@ -479,7 +479,7 @@ def validate_resolution_semantics(profiles: dict[str, Any]) -> None:
         fail("notification capability prerequisite drift")
     if bindings.get("data") != "mybatis" or bindings.get("notification") != "email":
         fail("notification capability Provider default drift")
-    if "com.cpf.starter:cpf-starter-notification" not in runtimes:
+    if "com.cpf.starter:cpf-starter-notification-dispatch" not in runtimes:
         fail("notification capability runtime is missing")
 
     try:
@@ -493,7 +493,7 @@ def validate_resolution_semantics(profiles: dict[str, Any]) -> None:
     groups, bindings, runtimes = resolve_capabilities(profiles, "secure-api", set(), {})
     if groups != {"security"} or bindings.get("security-mode") != "resource-server":
         fail("secure-api security mode resolution drift")
-    if "com.cpf.starter:cpf-starter-secret" not in runtimes:
+    if "com.cpf.starter:cpf-starter-security-secret" not in runtimes:
         fail("secure-api security capability omits secret runtime")
 
     groups, bindings, runtimes = resolve_capabilities(profiles, "browser-bff", set(), {})
@@ -580,7 +580,7 @@ def validate_generator_and_enforcement() -> None:
             fail(f"Generated Domain build gate token missing: {token}")
     base_auto = (ROOT / "cpf-starters/base/src/main/java/com/cpf/starter/base/CpfBaseAutoConfiguration.java").read_text(encoding="utf-8")
     if "generatedDomainPolicyRuntimeVerifier.verify()" not in base_auto:
-        fail("cpf-starter-base startup does not invoke Generated Domain Runtime Gate")
+        fail("cpf-starter-foundation-base startup does not invoke Generated Domain Runtime Gate")
 
 
 
@@ -634,15 +634,15 @@ def validate_dependency_graph_and_ownership(catalog: dict[str, Any]) -> None:
     for project in sorted(graph):
         visit(project)
 
-    runtime_project = ":cpf-starter-runtime-control-client"
+    runtime_project = ":cpf-starter-platform-operations-runtime-control-client"
     prohibited_runtime_targets = {
-        ":cpf-starter-http-client",
-        ":cpf-starter-integration-sftp",
+        ":cpf-starter-integration-http-client",
+        ":cpf-starter-file-sftp",
         ":cpf-starter-messaging-reliability-jdbc",
-        ":cpf-starter-observability",
-        ":cpf-starter-persistence-jdbc",
+        ":cpf-starter-platform-operations-observability",
+        ":cpf-starter-data-persistence-jdbc",
         ":cpf-starter-integration-webhook",
-        ":cpf-starter-attachment",
+        ":cpf-starter-file-attachment",
     }
     leaked_targets = sorted(graph.get(runtime_project, set()) & prohibited_runtime_targets)
     if leaked_targets:

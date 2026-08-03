@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "evidence_id": "CPF-QA39-SYNTHETIC-APPLY",
+  "source_sha": "4aea798c913787e86341809e2cef2b9495cbf7ba",
+  "worktree_state": "SYNTHETIC_BASE_EQUIVALENT",
+  "result": "PASS",
+  "exit_code": 0,
+  "started_at": "2026-08-03T00:08:28.757589+00:00",
+  "finished_at": "2026-08-03T00:08:28.757589+00:00",
+  "first_apply_operations": 64,
+  "second_apply_operations": 0,
+  "physical_root_count": 9,
+  "profile_count": 6,
+  "internal_starter_count": 32,
+  "starter_build_count": 38,
+  "legacy_path_count": 0,
+  "sanitized": true,
+  "scenario": "BASE_SHA + R2 overlay extracted with Python apply not executed + R3 overlay replacement",
+  "launcher": "Java source-file mode; Python not required",
+  "clean_baseline_first_apply_operations": 56,
+  "r2_obsolete_python_files_removed": 8
+}

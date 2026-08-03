@@ -2,13 +2,13 @@
 ROOT,Repository Root,build.gradle/settings.gradle/gradle/**,Architecture/Build/Version/Global gates,모든 Module,부분 구현,미검증,Java25 fresh cache·CI·publication·full aggregate
 cpf-core,cpf-core,com.cpf.core,Public API/SPI·Core engine,전체 Module,부분 구현,미검증,Public/Internal inventory·consumer·Local/Remote/fault
 cpf-common,cpf-common,com.cpf.common,고객 공통 Code/Message/Calendar/Template,Generated/Business/Batch/BZA,부분 구현,미검증,3DB·cache invalidation·owner/consumer
-starter-security,cpf-starters/security,com.cpf.*,선택 Security runtime,Applications,부분 구현,미검증,secure defaults·actual consumer·negative corpus
-starter-kafka,cpf-starters/messaging-kafka,com.cpf.*,Kafka adapter/auto-configuration,Event/Batch/Domain,부분 구현,미검증,actual Kafka·rebalance·DLT·process kill
-starter-cache,cpf-starters/cache,com.cpf.*,Caffeine/distributed cache adapter,Common/Applications,부분 구현,미검증,provider parity·invalidation·multi-instance
-starter-observability,cpf-starters/observability,com.cpf.*,Micrometer/OTel runtime,전체 Runtime,부분 구현,미검증,actual exporter·cardinality·masking
+starter-security,cpf-starters/security/session-jdbc,com.cpf.*,선택 Security runtime,Applications,부분 구현,미검증,secure defaults·actual consumer·negative corpus
+starter-kafka,cpf-starters/messaging/kafka,com.cpf.*,Kafka adapter/auto-configuration,Event/Batch/Domain,부분 구현,미검증,actual Kafka·rebalance·DLT·process kill
+starter-cache,cpf-starters/data/cache-caffeine,com.cpf.*,Caffeine/distributed cache adapter,Common/Applications,부분 구현,미검증,provider parity·invalidation·multi-instance
+starter-observability,cpf-starters/platform-operations/observability,com.cpf.*,Micrometer/OTel runtime,전체 Runtime,부분 구현,미검증,actual exporter·cardinality·masking
 starter-resilience,cpf-starters/resilience,com.cpf.*,CircuitBreaker/Resilience4j runtime,Call/Gateway/External,부분 구현,미검증,operation policy·timeout budget·storm
 starter-featureflag,cpf-starters/featureflag,com.cpf.*,OpenFeature provider,Applications/ADM,부분 구현,미검증,evaluation/audit/override/EDU
-starter-secret,cpf-starters/secret,com.cpf.*,Secret provider runtime,Applications,부분 구현,미검증,rotation/revocation/zeroization/leak scan
+starter-secret,cpf-starters/security/secret,com.cpf.*,Secret provider runtime,Applications,부분 구현,미검증,rotation/revocation/zeroization/leak scan
 cpf-admin,cpf-admin,com.cpf.admin + frontend,Platform Control Plane,운영자,실패,미검증,OpenAPI/generated contradiction·59 route/87 capability·3 browser
 cpf-biz-admin,cpf-biz-admin,com.cpf.bizadmin + frontend,Optional Business Admin,업무 관리자,부분 구현,미검증,BZA contract/OpenAPI/generated/org/approval
 cpf-gateway,cpf-gateway,com.cpf.gateway,Optional Gateway runtime,External clients/services,부분 구현,미검증,streaming/disconnect/retry/rebinding/multi-instance

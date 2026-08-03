@@ -4,8 +4,8 @@ Spring Cloud Gateway Server Web MVC,2025.1.2,Apache-2.0,https://github.com/sprin
 Spring Session JDBC,4.0.x,Apache-2.0,https://github.com/spring-projects/spring-session,ADOPT_NOW,ADM/BZA
 Apache Kafka Client,Spring Boot 4.1 BOM,Apache-2.0,https://github.com/apache/kafka,ADOPT_NOW,cpf-starter-messaging-kafka
 Resilience4j,Spring Cloud BOM,Apache-2.0,https://github.com/resilience4j/resilience4j,ADOPT_NOW,cpf-starter-resilience
-Micrometer Observation,Spring Boot 4.1 BOM,Apache-2.0,https://github.com/micrometer-metrics/micrometer,ADOPT_NOW,cpf-starter-observability
-OpenTelemetry,Spring Boot 4.1 BOM,Apache-2.0,https://github.com/open-telemetry/opentelemetry-java,ADOPT_NOW,cpf-starter-observability
+Micrometer Observation,Spring Boot 4.1 BOM,Apache-2.0,https://github.com/micrometer-metrics/micrometer,ADOPT_NOW,cpf-starter-platform-operations-observability
+OpenTelemetry,Spring Boot 4.1 BOM,Apache-2.0,https://github.com/open-telemetry/opentelemetry-java,ADOPT_NOW,cpf-starter-platform-operations-observability
 Caffeine,Spring Boot 4.1 BOM,Apache-2.0,https://github.com/ben-manes/caffeine,ADOPT_NOW,cpf-starter-cache
 OpenFeature Java SDK,1.17.0,Apache-2.0,https://github.com/open-feature/java-sdk,ADOPT_NOW,cpf-starter-featureflag
 db-scheduler,16.7.0,Apache-2.0,https://github.com/kagkarlsson/db-scheduler,ADOPT_NOW,cpf-batch-scheduler

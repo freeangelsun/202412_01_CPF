@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "evidence_id": "CPF-QA39-ENVIRONMENT-BLOCKERS",
+  "source_sha": "4aea798c913787e86341809e2cef2b9495cbf7ba",
+  "result": "BLOCKED",
+  "exit_code": 2,
+  "checked_at": "2026-08-03T00:08:28.757589+00:00",
+  "environment": {
+    "java": "21 (required 25)",
+    "gradle": "not installed; wrapper dependencies cannot be downloaded",
+    "docker": "not installed",
+    "database_clients": "not installed",
+    "playwright": "not installed",
+    "python": "not required by QA39 R3 apply/low-cost/build-contract/provider gates"
+  },
+  "blocked_validations": [
+    "Java25 fresh-cache full build/test/publication",
+    "ADM/BZA npm ci/lint/typecheck/unit/production build and 3-browser Playwright",
+    "Oracle/PostgreSQL/MariaDB live lifecycle",
+    "Kafka/RabbitMQ/JMS/IBM MQ/TCP/SFTP/SMTP/OTLP fault matrix",
+    "Generator all-combination boot runtime",
+    "SBOM/license/vulnerability/publication/hash",
+    "exact-SHA GitHub Required Check results"
+  ],
+  "sanitized": true,
+  "completion_eligible": false,
+  "environment_scope": "artifact-build sandbox only; company laptop must be checked by test-qa39-company-laptop-environment.ps1"
+}

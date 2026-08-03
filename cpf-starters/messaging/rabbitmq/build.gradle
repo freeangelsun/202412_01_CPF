@@ -1,0 +1,20 @@
+plugins { id 'java-library'; id 'maven-publish' }
+group = 'com.cpf.starter'
+dependencies {
+    api project(':cpf-core')
+api project(':cpf-starter-foundation-base')
+implementation project(':cpf-starter-messaging-reliability-jdbc')
+api 'org.springframework.boot:spring-boot-starter-amqp'
+implementation 'org.springframework.boot:spring-boot-starter-actuator'
+annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+}
+tasks.named('test') { useJUnitPlatform() }
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            artifactId = 'cpf-starter-messaging-rabbitmq'
+        }
+    }
+}
+

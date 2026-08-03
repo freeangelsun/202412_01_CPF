@@ -239,15 +239,15 @@
   "capabilityProfileVersion": "1.0",
   "resolvedStarters": [
     "cpf-starter-profile-secure-api",
-    "cpf-starter-persistence-mybatis",
+    "cpf-starter-data-persistence-mybatis",
     "cpf-starter-security-resource-server",
-    "cpf-starter-secret"
+    "cpf-starter-security-secret"
   ],
   "resolvedStarterVersions": {
     "cpf-starter-profile-secure-api": "1.0.0-SNAPSHOT",
-    "cpf-starter-persistence-mybatis": "1.0.0-SNAPSHOT",
+    "cpf-starter-data-persistence-mybatis": "1.0.0-SNAPSHOT",
     "cpf-starter-security-resource-server": "1.0.0-SNAPSHOT",
-    "cpf-starter-secret": "1.0.0-SNAPSHOT"
+    "cpf-starter-security-secret": "1.0.0-SNAPSHOT"
   },
   "providerBindings": {
     "data": "mybatis",

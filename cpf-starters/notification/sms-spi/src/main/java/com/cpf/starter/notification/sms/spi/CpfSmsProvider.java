@@ -1,0 +1,1 @@
+package com.cpf.starter.notification.sms.spi;public interface CpfSmsProvider {String providerName();SubmitResult submit(String recipient,String text,String idempotencyKey);record SubmitResult(String status,String providerMessageId,String detail){}}

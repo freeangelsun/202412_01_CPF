@@ -1,0 +1,2 @@
+package com.cpf.starter.integration.fixedlength;import java.nio.ByteOrder;import org.junit.jupiter.api.Test;import static org.assertj.core.api.Assertions.*;
+class CpfBinaryFieldCodecTest {@Test void supportsBcdHexEndianAndUnsigned(){var c=new CpfBinaryFieldCodec();assertThat(c.packedBcd(c.packedBcd("12345"),5)).isEqualTo("12345");assertThat(c.unsigned(c.unsigned(65535,2,ByteOrder.LITTLE_ENDIAN),ByteOrder.LITTLE_ENDIAN)).isEqualTo(65535);assertThat(c.hex(c.hex("0A10"))).isEqualTo("0A10");}}

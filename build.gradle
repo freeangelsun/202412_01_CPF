@@ -18,6 +18,7 @@ ext.cpfSpringBootVersion = cpfStackProperties.getProperty('springBootVersion')
 ext.cpfSpringDependencyManagementVersion = cpfStackProperties.getProperty('springDependencyManagementVersion')
 ext.cpfSpringCloudVersion = cpfStackProperties.getProperty('springCloudVersion')
 ext.cpfDbSchedulerVersion = cpfStackProperties.getProperty('dbSchedulerVersion')
+ext.cpfOpenFeatureVersion = cpfStackProperties.getProperty('openFeatureVersion')
 ext.cpfStackState = cpfStackProperties.getProperty('stackState', 'UNKNOWN').toUpperCase(Locale.ROOT)
 ext.cpfTargetSpringBootVersion = cpfStackProperties.getProperty('springBootTargetVersion')
 
@@ -1685,13 +1686,13 @@ tasks.register('checkRuntimeQueryContracts', Exec) {
 tasks.register('checkQa39CanonicalStarterClosure', Exec) {
     group = 'verification'
     description = 'QA39 canonical Profile/Capability/Generator inheritance/direct OSS exception/delete closure를 검증합니다.'
-    commandLine 'python', file('cpf-tools/verification/qa39/verify-qa39-canonical-starter-closure.py').absolutePath
+    commandLine 'java', file('cpf-tools/scripts/Qa39Tool.java').absolutePath, 'canonical-closure', '--root', rootProject.projectDir.absolutePath
 }
 
 tasks.register('checkCpfProviderConformance', Exec) {
     group = 'verification'
     description = '고객 Broker/Notification Provider가 CPF public SPI만으로 compile/runtime 되는지 검증합니다.'
-    commandLine 'python', file('cpf-tools/verification/qa39/verify-cpf-provider-conformance.py').absolutePath
+    commandLine 'java', file('cpf-tools/scripts/Qa39Tool.java').absolutePath, 'provider-conformance', '--root', rootProject.projectDir.absolutePath
 }
 
 tasks.register('qualityGate') {
@@ -1849,31 +1850,44 @@ if (!cpfFinalArtifactCatalogFile.isFile()) {
     throw new GradleException("CPF final artifact catalog is missing: ${cpfFinalArtifactCatalogFile}")
 }
 def cpfFinalArtifactCatalog = new groovy.json.JsonSlurper().parse(cpfFinalArtifactCatalogFile)
+def cpfStarterKinds = ['starter-profile', 'internal-starter'] as Set
+// QA39: 중복을 Map/Dictionary로 숨기기 전에 원본 행에서 먼저 검출한다.
 def cpfStarterCatalogRows = (cpfFinalArtifactCatalog.artifacts ?: [])
-        .findAll { artifact -> artifact.kind?.toString() == 'starter' }
-        .sort { artifact -> artifact.ownerPath?.toString() }
+        .findAll { artifact -> cpfStarterKinds.contains(artifact.kind?.toString()) }
 if (cpfStarterCatalogRows.isEmpty()) {
     throw new GradleException('CPF final artifact catalog has no Starter artifacts.')
 }
+['artifactId', 'ownerPath'].each { identityField ->
+    def duplicates = cpfStarterCatalogRows.groupBy { artifact ->
+        artifact[identityField]?.toString()?.replace('\\', '/')?.replaceAll('/+$', '')
+    }.findAll { identity, rows -> identity && rows.size() > 1 }
+    if (!duplicates.isEmpty()) {
+        throw new GradleException(
+                "Duplicate Starter ${identityField} in final artifact catalog: ${duplicates.keySet().sort().join(', ')}")
+    }
+}
+cpfStarterCatalogRows = cpfStarterCatalogRows.sort { artifact -> artifact.ownerPath?.toString() }
 def cpfStarterCatalogOwnerPaths = cpfStarterCatalogRows.collect { artifact ->
     artifact.ownerPath?.toString()?.replace('\\', '/')?.replaceAll('/+$', '')
 }
-def cpfPhysicalStarterOwnerPaths = (file('cpf-starters').listFiles() ?: [] as File[])
-        .findAll { candidate -> candidate.isDirectory() && new File(candidate, 'build.gradle').isFile() }
-        .collect { candidate -> "cpf-starters/${candidate.name}" }
-        .sort()
-if (cpfStarterCatalogOwnerPaths.size() != cpfStarterCatalogOwnerPaths.toSet().size() ||
-        cpfStarterCatalogOwnerPaths.sort() != cpfPhysicalStarterOwnerPaths) {
+// QA39: profiles/groups/foundation 등 중첩 경로 전체를 재귀 스캔한다.
+def cpfPhysicalStarterOwnerPaths = fileTree('cpf-starters') {
+    include '**/build.gradle'
+    exclude 'build/**', '**/build/**'
+}.files.collect { buildFile ->
+    rootProject.projectDir.toPath().relativize(buildFile.parentFile.toPath())
+            .toString().replace('\\', '/')
+}.sort()
+if (cpfStarterCatalogOwnerPaths != cpfPhysicalStarterOwnerPaths) {
     throw new GradleException(
-            "Starter catalog/physical project mismatch: catalog=${cpfStarterCatalogOwnerPaths.sort()}, " +
+            "Starter catalog/physical project mismatch: catalog=${cpfStarterCatalogOwnerPaths}, " +
                     "physical=${cpfPhysicalStarterOwnerPaths}")
 }
 def cpfStarterPublicationProjects = cpfStarterCatalogRows.collect { artifact ->
     def ownerPath = artifact.ownerPath.toString().replace('\\', '/').replaceAll('/+$', '')
-    def expectedArtifactId = "cpf-starter-${ownerPath.substring(ownerPath.lastIndexOf('/') + 1)}"
-    if (artifact.artifactId?.toString() != expectedArtifactId) {
-        throw new GradleException(
-                "Starter catalog artifact identity mismatch: owner=${ownerPath}, artifact=${artifact.artifactId}")
+    def expectedArtifactId = artifact.artifactId?.toString()
+    if (!expectedArtifactId) {
+        throw new GradleException("Starter catalog artifactId is missing: owner=${ownerPath}")
     }
     def ownerDirectory = file(ownerPath).canonicalFile
     def candidate = subprojects.find { project -> project.projectDir.canonicalFile == ownerDirectory }
@@ -2113,4 +2127,50 @@ tasks.register('qa37JavaLifecycle') {
     dependsOn 'qa37SourceClosure', 'publishCpfStagingPlatformArtifacts'
     dependsOn gradle.includedBuild('cpf-gradle-plugin').task(':check'),
             gradle.includedBuild('cpf-platform-bom').task(':check')
+}
+
+
+// QA39 final closure: canonical naming, physical ownership, API/SPI/Internal and evidence truth gates.
+tasks.register('checkQa39FinalCanonical', Exec) {
+    group = 'verification'
+    description = 'QA39 38-module physical/catalog/BOM/generator/naming closure.'
+    commandLine 'java', file('cpf-tools/scripts/Qa39Tool.java').absolutePath, 'verify', '--root', rootProject.projectDir.absolutePath
+}
+
+tasks.register('checkQa39NamingSteering', Exec) {
+    group = 'verification'
+    description = 'CPF group/function/provider/API/SPI/Internal naming steering.'
+    commandLine 'java', file('cpf-tools/scripts/Qa39Tool.java').absolutePath, 'naming', '--root', rootProject.projectDir.absolutePath
+}
+
+tasks.register('checkQa39EvidenceTruth', Exec) {
+    group = 'verification'
+    description = 'Rejects false PASS, stale SHA, missing report/hash and static-as-runtime evidence.'
+    commandLine 'java', file('cpf-tools/scripts/Qa39Tool.java').absolutePath, 'evidence', '--root', rootProject.projectDir.absolutePath
+}
+
+tasks.named('qualityGate') {
+    dependsOn 'checkQa39FinalCanonical', 'checkQa39NamingSteering', 'checkQa39EvidenceTruth'
+}
+
+tasks.register('checkQa39DbParity', Exec) {
+    group = 'verification'
+    description = 'Verifies Oracle/PostgreSQL/MariaDB QA39 install, migration, rollback, verify and checksum parity.'
+    commandLine 'java', file('cpf-tools/scripts/Qa39Tool.java').absolutePath, 'db', '--root', rootProject.projectDir.absolutePath
+}
+
+tasks.register('checkQa39OpenApiFrontend', Exec) {
+    group = 'verification'
+    description = 'Verifies backend canonical OpenAPI, generated client, route contract and real ADM consumers.'
+    commandLine 'java', file('cpf-tools/scripts/Qa39Tool.java').absolutePath, 'openapi', '--root', rootProject.projectDir.absolutePath
+}
+
+tasks.register('checkQa39SourceBoundaries', Exec) {
+    group = 'verification'
+    description = 'Verifies provider-neutral Batch, resilience consumers and legacy artifact removal.'
+    commandLine 'java', file('cpf-tools/scripts/Qa39Tool.java').absolutePath, 'boundaries', '--root', rootProject.projectDir.absolutePath
+}
+
+tasks.named('qualityGate') {
+    dependsOn 'checkQa39DbParity', 'checkQa39OpenApiFrontend', 'checkQa39SourceBoundaries'
 }

@@ -1,115 +1,15 @@
-plugins {
-    id 'java-platform'
-    id 'maven-publish'
-}
+plugins { id 'base' }
 
-def loadCanonicalProperties = { File source, List<String> requiredKeys ->
-    if (!source.isFile()) throw new GradleException("CPF canonical properties file is missing: ${source}")
-    def values = new Properties()
-    source.withInputStream { values.load(it) }
-    requiredKeys.each { key ->
-        if ((values.getProperty(key) ?: '').trim().isEmpty()) {
-            throw new GradleException("CPF canonical property is missing or blank: ${key} (${source})")
-        }
-    }
-    values
+tasks.register('publishCpfBomToLocal') {
+    group = 'publishing'
+    dependsOn ':public-bom:publishAllPublicationsToCpfLocalRepository', ':internal-bom:publishAllPublicationsToCpfLocalRepository'
 }
-
-def platformProperties = loadCanonicalProperties(file('../../../gradle/cpf-platform.properties'), ['platformVersion'])
-def canonicalPlatformVersion = platformProperties.getProperty('platformVersion').trim()
-def requestedPlatformVersion = providers.gradleProperty('cpfPlatformVersion').orNull?.trim()
-if (requestedPlatformVersion != null && requestedPlatformVersion != canonicalPlatformVersion) {
-    throw new GradleException("cpfPlatformVersion override must match canonical version: requested=${requestedPlatformVersion}, canonical=${canonicalPlatformVersion}")
+tasks.register('publishCpfBomToStaging') {
+    group = 'publishing'
+    dependsOn ':public-bom:publishAllPublicationsToCpfStagingRepository', ':internal-bom:publishAllPublicationsToCpfStagingRepository'
 }
-
-group = 'com.cpf'
-version = canonicalPlatformVersion
-javaPlatform { allowDependencies() }
-repositories { mavenCentral() }
-
-def stackProperties = loadCanonicalProperties(file('../../../gradle/cpf-stack.properties'), ['springBootVersion', 'springCloudVersion'])
-def springBootVersion = providers.gradleProperty('cpfSpringBootVersion').orElse(stackProperties.getProperty('springBootVersion').trim()).get().trim()
-def springCloudVersion = providers.gradleProperty('cpfSpringCloudVersion').orElse(stackProperties.getProperty('springCloudVersion').trim()).get().trim()
-
-def canonicalCatalogFile = file('../../generator/contracts/cpf-starter-catalog.json')
-if (!canonicalCatalogFile.isFile()) throw new GradleException("CPF canonical starter catalog is missing: ${canonicalCatalogFile}")
-def canonicalCatalog = new groovy.json.JsonSlurper().parse(canonicalCatalogFile)
-def catalogModules = canonicalCatalog.modules ?: []
-def publicProfiles = (canonicalCatalog.publicProfiles ?: [])*.toString()
-def capabilityGroups = (canonicalCatalog.capabilityGroups ?: []).collect { it.id?.toString() }
-if (publicProfiles.size() != 6 || capabilityGroups.size() != 7) {
-    throw new GradleException("CPF QA39 public surface mismatch: profiles=${publicProfiles}, groups=${capabilityGroups}")
+tasks.register('publishCpfBomToInternal') {
+    group = 'publishing'
+    dependsOn ':public-bom:publishAllPublicationsToCpfInternalRepository', ':internal-bom:publishAllPublicationsToCpfInternalRepository'
 }
-def coordinates = catalogModules.findAll { it.publicationRequired != false }.collect { module ->
-    def groupId = module.groupId?.toString()
-    def artifactId = module.artifactId?.toString()
-    if (!groupId || !artifactId) throw new GradleException("Invalid CPF catalog coordinates: ${module}")
-    "${groupId}:${artifactId}:${version}"
-}
-if (coordinates.isEmpty() || coordinates.size() != coordinates.toSet().size()) {
-    throw new GradleException("CPF canonical BOM coordinates are empty or duplicated: ${coordinates}")
-}
-def removedIds = (canonicalCatalog.removedArtifactIds ?: [])*.toString()
-if (coordinates.any { coordinate -> removedIds.any { removed -> coordinate.contains(":${removed}:") } }) {
-    throw new GradleException('Removed CPF artifact leaked into canonical BOM constraints.')
-}
-
-dependencies {
-    api platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
-    api platform("org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}")
-    constraints {
-        api "com.cpf.core:cpf-core:${version}"
-        api "com.cpf.common:cpf-common:${version}"
-        api "com.cpf.batch:cpf-batch-contract:${version}"
-        api "com.cpf.batch:cpf-batch-testkit:${version}"
-        coordinates.sort().each { coordinate -> api coordinate }
-    }
-}
-
-def cpfLocalRepository = providers.gradleProperty('cpfLocalArtifactRepository')
-        .orElse(providers.environmentVariable('CPF_LOCAL_ARTIFACT_REPOSITORY'))
-        .orElse(new File(System.getProperty('user.home'), '.cpf/repository').absolutePath)
-def cpfStagingRepository = providers.gradleProperty('cpfArtifactStagingRepository')
-        .orElse(new File(rootDir, '../../../build/cpf-artifact-staging/repository').absolutePath)
-def cpfInternalRepository = providers.gradleProperty('cpfInternalRepositoryUrl')
-        .orElse(providers.gradleProperty('cpfArtifactRepositoryUrl'))
-        .orElse(providers.environmentVariable('CPF_ARTIFACT_REPOSITORY_URL'))
-        .orElse(layout.buildDirectory.dir('repo').map { it.asFile.absolutePath })
-def cpfInternalRepositoryUsername = providers.gradleProperty('cpfInternalRepositoryUsername')
-        .orElse(providers.environmentVariable('CPF_ARTIFACT_REPOSITORY_USER'))
-def cpfInternalRepositoryPassword = providers.gradleProperty('cpfInternalRepositoryPassword')
-        .orElse(providers.environmentVariable('CPF_ARTIFACT_REPOSITORY_PASSWORD'))
-
-publishing {
-    publications {
-        cpfPlatformBom(MavenPublication) {
-            from components.javaPlatform
-            artifactId = 'cpf-platform-bom'
-            pom {
-                name = 'CPF Platform BOM'
-                description = 'Core Platform Framework dependency alignment generated from the QA39 canonical starter catalog.'
-            }
-        }
-    }
-    repositories {
-        maven { name = 'CpfLocal'; url = uri(cpfLocalRepository.get()) }
-        maven { name = 'CpfStaging'; url = uri(cpfStagingRepository.get()) }
-        maven {
-            name = 'CpfInternal'; url = uri(cpfInternalRepository.get())
-            if (cpfInternalRepositoryUsername.isPresent()) {
-                credentials { username = cpfInternalRepositoryUsername.get(); password = cpfInternalRepositoryPassword.orNull }
-            }
-        }
-    }
-}
-
-tasks.register('verifyCanonicalCpfBom') {
-    group = 'verification'
-    description = 'Verifies six profiles, seven groups, unique coordinates and removed-artifact exclusion.'
-    doLast {
-        assert publicProfiles == ['minimal-domain', 'web-api', 'secure-api', 'browser-bff', 'event-service', 'batch-service']
-        assert capabilityGroups == ['data', 'messaging', 'integration', 'file', 'notification', 'security', 'platform-operations']
-        assert coordinates.size() == coordinates.toSet().size()
-    }
-}
-check.dependsOn tasks.named('verifyCanonicalCpfBom')
+check.dependsOn ':public-bom:check', ':internal-bom:check'

@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "evidence_id": "QA39-R9-NAMING-GATE-REPAIR",
+  "base_sha": "4aea798c913787e86341809e2cef2b9495cbf7ba",
+  "result": "PASS",
+  "checks": [
+    {
+      "name": "java_tool_compile_release17_xlint_werror",
+      "result": "PASS"
+    },
+    {
+      "name": "unchanged_head_legacy_capability_not_false_positive",
+      "result": "PASS",
+      "baseline_paths": [
+        "cpf-core/src/main/java/com/cpf/core/common/broker/CpfBrokerConsumer.java",
+        "cpf-core/src/main/java/com/cpf/core/common/broker/CpfBrokerEnvelope.java"
+      ]
+    },
+    {
+      "name": "new_outside_boundary_capabilities_collected_together",
+      "result": "PASS",
+      "detected_issue_count": 2,
+      "fixture_paths": [
+        "cpf-core/src/main/java/com/cpf/core/common/notification/CpfNewNotification.java",
+        "cpf-core/src/main/java/com/cpf/core/common/broker/CpfNewBroker.java"
+      ]
+    },
+    {
+      "name": "r8_company_gradle_settings_configuration",
+      "result": "PASS",
+      "source": "user-provided QA39-R8-COMPANY-RESUME"
+    },
+    {
+      "name": "r8_company_canonical_layout_summary",
+      "result": "PASS",
+      "source": "user-provided QA39-R8-COMPANY-RESUME"
+    },
+    {
+      "name": "r9_full_canonical_low_cost_fixture",
+      "result": "PASS",
+      "gate_count": 7
+    },
+    {
+      "name": "r9_resume_orchestrator_stub_gradle_fixture",
+      "result": "PASS",
+      "step_count": 6
+    }
+  ],
+  "full_runtime_validation": "NOT_EXECUTED",
+  "sanitized": true
+}

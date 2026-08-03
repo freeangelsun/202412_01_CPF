@@ -42,7 +42,8 @@ try {
     Invoke-Step 'projects' @('projects','--no-daemon','--stacktrace')
     Invoke-Step 'aggregate-quality-build' @('aggregateQualityBuild','--no-daemon','--max-workers=1','--stacktrace')
     Invoke-Step 'publish-staging-artifacts' @('publishCpfStagingPlatformArtifacts','--no-daemon','--max-workers=1','--stacktrace')
-    & python (Join-Path $rootPath 'cpf-tools/scripts/verify-cpf-qa34-build-contract.py') --root $rootPath
+    $qa39Tool = Join-Path $rootPath 'cpf-tools/scripts/Qa39Tool.java'
+    & java $qa39Tool 'build-contract' '--root' $rootPath
     if($LASTEXITCODE-ne0){throw 'Canonical build contract gate failed'}
     & (Join-Path $rootPath 'cpf-tools/scripts/verify-local-artifact-propagation.ps1') -Root $rootPath -LocalRepository $stagingRepo
     if($LASTEXITCODE-ne0){throw 'Staging artifact propagation gate failed'}

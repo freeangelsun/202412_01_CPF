@@ -156,7 +156,7 @@
    - 필수 조치: Convention plugin 정본을 복원하거나 표준 plugin 공급 경로로 이관한다.
 8. **QA33-DF-012 / Build** — Gateway가 존재하지 않는 :cpf-starters:resilience/:observability를 참조한다.
    - Source: `cpf-gateway/build.gradle;settings.gradle`
-   - 필수 조치: 공식 :cpf-starter-resilience/:cpf-starter-observability Project path로 수정한다.
+   - 필수 조치: 공식 :cpf-starter-resilience/:cpf-starter-platform-operations-observability Project path로 수정한다.
 9. **QA33-DF-013 / Build** — ADM이 존재하지 않는 :cpf-starters:security를 참조한다.
    - Source: `cpf-admin/build.gradle;settings.gradle`
    - 필수 조치: 공식 :cpf-starter-security 경로를 사용한다.

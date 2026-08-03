@@ -79,10 +79,10 @@ sourceSets {
 
 dependencies {
     implementation project(':cpf-starter-profile-secure-api')
-    implementation project(':cpf-starter-persistence-mybatis')
+    implementation project(':cpf-starter-data-persistence-mybatis')
     implementation project(':cpf-starter-messaging-kafka')
     implementation project(':cpf-starter-messaging-reliability-jdbc')
-    implementation project(':cpf-starter-integration-sftp')
+    implementation project(':cpf-starter-file-sftp')
     implementation project(':cpf-core')
     implementation project(':cpf-common')
     implementation 'org.springframework.boot:spring-boot-starter-webflux'

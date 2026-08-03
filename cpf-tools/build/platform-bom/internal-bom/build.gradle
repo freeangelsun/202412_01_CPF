@@ -1,0 +1,32 @@
+plugins { id 'java-platform'; id 'maven-publish' }
+
+def loadProps = { File f, List keys ->
+    if (!f.isFile()) throw new GradleException("Missing canonical properties: ${f}")
+    def p=new Properties(); f.withInputStream { p.load(it) }
+    keys.each { if (!(p.getProperty(it) ?: '').trim()) throw new GradleException("Missing property ${it}: ${f}") }
+    p
+}
+def platformProps=loadProps(file('../../../../gradle/cpf-platform.properties'),['platformVersion'])
+def catalogFile=file('../../../generator/contracts/cpf-starter-catalog.json')
+def catalog=new groovy.json.JsonSlurper().parse(catalogFile)
+def versionValue=platformProps.getProperty('platformVersion').trim()
+group='com.cpf.internal'; version=versionValue
+javaPlatform { allowDependencies() }
+repositories { mavenCentral() }
+def internalModules=(catalog.modules ?: []).findAll { it.visibility?.toString()=='internal' }
+if (internalModules.size()!=32) throw new GradleException("Internal BOM requires exactly 32 leaves: ${internalModules.size()}")
+def publicLeak=internalModules.findAll { it.kind?.toString()!='internal-starter' }
+if (!publicLeak.isEmpty()) throw new GradleException("Public profile leaked into internal BOM: ${publicLeak}")
+dependencies {
+    api platform("com.cpf:cpf-platform-bom:${versionValue}")
+    constraints { internalModules.sort { it.artifactId }.each { m -> api "${m.groupId}:${m.artifactId}:${versionValue}" } }
+}
+def localRepo=providers.gradleProperty('cpfLocalArtifactRepository').orElse(providers.environmentVariable('CPF_LOCAL_ARTIFACT_REPOSITORY')).orElse(new File(System.getProperty('user.home'),'.cpf/repository').absolutePath)
+def stagingRepo=providers.gradleProperty('cpfArtifactStagingRepository').orElse(new File(rootDir,'../../../../build/cpf-artifact-staging/repository').absolutePath)
+def internalRepo=providers.gradleProperty('cpfInternalRepositoryUrl').orElse(providers.gradleProperty('cpfArtifactRepositoryUrl')).orElse(providers.environmentVariable('CPF_ARTIFACT_REPOSITORY_URL')).orElse(layout.buildDirectory.dir('repo').map { it.asFile.absolutePath })
+publishing {
+ publications { cpfInternalPlatformBom(MavenPublication) { from components.javaPlatform; artifactId='cpf-internal-platform-bom'; pom { name='CPF Internal Platform BOM'; description='Internal provider/runtime alignment; never a public selection surface.' } } }
+ repositories { maven { name='CpfLocal'; url=uri(localRepo.get()) }; maven { name='CpfStaging'; url=uri(stagingRepo.get()) }; maven { name='CpfInternal'; url=uri(internalRepo.get()) } }
+}
+tasks.register('verifyInternalBom') { doLast { assert internalModules.size()==32; assert publicLeak.isEmpty() } }
+check.dependsOn tasks.named('verifyInternalBom')

@@ -12,12 +12,12 @@ $protected=@('cpf-docs/deliverables','cpf-docs/guides','cpf-docs/environment/doc
 # QA38 Change/Delete Manifest가 보호 경로를 포함하지 않는지는 적용 스크립트와 구조 Gate에서 별도로 검증한다.
 
 $requiredModules=@(
-'cpf-starters/base','cpf-starters/persistence-jdbc','cpf-starters/persistence-mybatis','cpf-starters/aop-service-access',
-'cpf-starters/openapi-webmvc','cpf-starters/security-resource-server','cpf-starters/security','cpf-starters/security-service-identity',
-'cpf-starters/messaging-reliability-jdbc','cpf-starters/messaging-kafka','cpf-starters/messaging-rabbitmq','cpf-starters/messaging-jms',
-'cpf-starters/messaging-ibm-mq','cpf-starters/integration-tcp','cpf-starters/integration-fixedlength-core',
-'cpf-starters/integration-iso8583','cpf-starters/integration-sftp','cpf-starters/notification','cpf-starters/notification-email',
-'cpf-starters/notification-sms-spi','cpf-tools/generator/contracts/capability-profiles.json','cpf-tools/verification/core-only-consumer'
+'cpf-starters/foundation/base','cpf-starters/data/persistence-jdbc','cpf-starters/data/persistence-mybatis','cpf-starters/aop-service-access',
+'cpf-starters/openapi-webmvc','cpf-starters/security/resource-server','cpf-starters/security/session-jdbc','cpf-starters/security/service-identity',
+'cpf-starters/messaging/reliability-jdbc','cpf-starters/messaging/kafka','cpf-starters/messaging/rabbitmq','cpf-starters/messaging/jms',
+'cpf-starters/messaging/ibm-mq','cpf-starters/integration/tcp','cpf-starters/integration/fixedlength-core',
+'cpf-starters/integration/iso8583','cpf-starters/file/sftp','cpf-starters/notification/dispatch','cpf-starters/notification/email',
+'cpf-starters/notification/sms-spi','cpf-tools/generator/contracts/capability-profiles.json','cpf-tools/verification/core-only-consumer'
 )
 foreach($path in $requiredModules){if(-not(Test-Path -LiteralPath $path)){throw "QA38 필수 구현이 없습니다: $path"}}
 

@@ -3,48 +3,41 @@ package com.cpf.batch.worker;
 import com.cpf.batch.api.ActualState;
 import com.cpf.batch.runtime.BatchRuntimePolicy;
 import com.cpf.batch.runtime.RuntimeStateProvider;
+import com.cpf.core.api.broker.CpfBrokerConsumerControl;
+import com.cpf.core.api.broker.CpfBrokerConsumerControlPort;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
-import org.springframework.kafka.listener.MessageListenerContainer;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-/**
- * Runtime state and admission control for the Spring Batch/Kafka worker.
- *
- * <p>The worker never polls {@code bat_execution} or owns a parallel CPF lease lifecycle. Drain
- * and resume are applied to the Kafka listener container, while in-flight work is observed at the
- * Spring Batch {@link SpringBatchWorkerStepHandler} boundary.</p>
- */
+/** Provider-neutral runtime state and admission control for the Spring Batch worker. */
 @Component
 public final class SpringBatchWorkerRuntimeState implements RuntimeStateProvider {
-    static final String LISTENER_UNAVAILABLE = "BAT_WORKER_KAFKA_LISTENER_NOT_AVAILABLE";
-    static final String LISTENER_STOPPED = "BAT_WORKER_KAFKA_LISTENER_STOPPED";
-    static final String LISTENER_CONTROL_FAILED = "BAT_WORKER_KAFKA_LISTENER_CONTROL_FAILED";
+    static final String CONTROL_PORT_UNAVAILABLE = "BAT_WORKER_BROKER_CONTROL_PORT_NOT_AVAILABLE";
+    static final String CONTROL_APPLY_FAILED = "BAT_WORKER_BROKER_CONTROL_APPLY_FAILED";
 
-    private final KafkaListenerEndpointRegistry listenerRegistry;
-    private final String workerGroupId;
+    private final List<CpfBrokerConsumerControlPort> controlPorts;
     private final BatchRuntimePolicy runtimePolicy;
     private final WorkerExecutionTracker executions;
     private final String workerId;
     private final String workerVersion;
     private final List<String> capabilities;
     private final int configuredMaxConcurrency;
+    private final int configuredPrefetch;
     private final AtomicBoolean manualDrain = new AtomicBoolean();
-    private final AtomicReference<String> listenerError = new AtomicReference<>();
+    private final AtomicReference<String> controlError = new AtomicReference<>();
+    private final AtomicLong leaseEpoch = new AtomicLong();
+    private final AtomicLong observedFencingToken = new AtomicLong(-1L);
 
     public SpringBatchWorkerRuntimeState(
-            KafkaListenerEndpointRegistry listenerRegistry,
-            @Qualifier("cpfBatchWorkerGroupId") String workerGroupId,
+            List<CpfBrokerConsumerControlPort> controlPorts,
             BatchRuntimePolicy runtimePolicy,
             WorkerExecutionTracker executions,
             @Value("${cpf.batch.worker.worker-id:${CPF_BAT_WORKER_ID:${CPF_INSTANCE_ID:worker-local-01}}}")
@@ -54,9 +47,10 @@ public final class SpringBatchWorkerRuntimeState implements RuntimeStateProvider
             @Value("${cpf.batch.worker.capabilities:${CPF_BAT_WORKER_CAPABILITIES:GENERAL}}")
             String capabilityText,
             @Value("${cpf.batch.worker.max-concurrency:${CPF_BAT_WORKER_MAX_CONCURRENCY:1}}")
-            int maxConcurrency) {
-        this.listenerRegistry = listenerRegistry;
-        this.workerGroupId = requireText(workerGroupId, "workerGroupId");
+            int maxConcurrency,
+            @Value("${cpf.batch.worker.broker-prefetch:${CPF_BAT_WORKER_BROKER_PREFETCH:1}}")
+            int prefetch) {
+        this.controlPorts = List.copyOf(controlPorts);
         this.runtimePolicy = runtimePolicy;
         this.executions = executions;
         this.workerId = requireText(workerId, "workerId");
@@ -65,34 +59,33 @@ public final class SpringBatchWorkerRuntimeState implements RuntimeStateProvider
         if (maxConcurrency < 1 || maxConcurrency > BatchRuntimePolicy.MAX_CONCURRENCY) {
             throw new IllegalArgumentException("Worker max concurrency is out of range");
         }
+        if (prefetch < 1 || prefetch > 100_000) {
+            throw new IllegalArgumentException("Worker broker prefetch is out of range");
+        }
         this.configuredMaxConcurrency = maxConcurrency;
+        this.configuredPrefetch = prefetch;
         this.executions.updateCapacity(effectiveConcurrency());
     }
 
     @Scheduled(fixedDelayString = "${cpf.batch.worker.runtime-reconcile-ms:500}")
     public synchronized void reconcile() {
         executions.updateCapacity(effectiveConcurrency());
-        List<MessageListenerContainer> containers = workerContainers();
-        if (containers.isEmpty()) {
-            listenerError.set(LISTENER_UNAVAILABLE);
+        refreshLeaseEpoch();
+        if (controlPorts.isEmpty()) {
+            controlError.set(CONTROL_PORT_UNAVAILABLE);
             return;
         }
+        CpfBrokerConsumerControl control = new CpfBrokerConsumerControl(
+                manualDrain.get() || !runtimePolicy.current().workerEnabled(),
+                effectiveConcurrency(),
+                configuredPrefetch);
         try {
-            boolean pause = manualDrain.get() || !runtimePolicy.current().workerEnabled();
-            for (MessageListenerContainer container : containers) {
-                if (pause) {
-                    if (!container.isPauseRequested()) {
-                        container.pause();
-                    }
-                } else if (container.isPauseRequested() || container.isContainerPaused()) {
-                    container.resume();
-                }
+            for (CpfBrokerConsumerControlPort port : controlPorts) {
+                port.apply(control);
             }
-            listenerError.set(containers.stream().allMatch(this::running)
-                    ? null
-                    : LISTENER_STOPPED);
+            controlError.set(null);
         } catch (RuntimeException failure) {
-            listenerError.set(LISTENER_CONTROL_FAILED + "_" + failure.getClass().getSimpleName()
+            controlError.set(CONTROL_APPLY_FAILED + "_" + failure.getClass().getSimpleName()
                     .toUpperCase(Locale.ROOT));
         }
     }
@@ -127,6 +120,11 @@ public final class SpringBatchWorkerRuntimeState implements RuntimeStateProvider
         return configuredMaxConcurrency;
     }
 
+    public long leaseEpoch() {
+        refreshLeaseEpoch();
+        return leaseEpoch.get();
+    }
+
     public Long currentJobExecutionId() {
         return executions.snapshot().currentJobExecutionId();
     }
@@ -134,7 +132,7 @@ public final class SpringBatchWorkerRuntimeState implements RuntimeStateProvider
     @Override
     public ActualState actualState() {
         WorkerExecutionTracker.Snapshot snapshot = executions.snapshot();
-        if (listenerError.get() != null) {
+        if (controlError.get() != null) {
             return ActualState.DEGRADED;
         }
         if (draining()) {
@@ -148,11 +146,7 @@ public final class SpringBatchWorkerRuntimeState implements RuntimeStateProvider
 
     @Override
     public boolean ready() {
-        if (draining() || listenerError.get() != null) {
-            return false;
-        }
-        List<MessageListenerContainer> containers = workerContainers();
-        return !containers.isEmpty() && containers.stream().allMatch(this::accepting);
+        return !draining() && !controlPorts.isEmpty() && controlError.get() == null;
     }
 
     @Override
@@ -162,7 +156,8 @@ public final class SpringBatchWorkerRuntimeState implements RuntimeStateProvider
 
     @Override
     public List<String> activeLeases() {
-        return List.of();
+        long token = fencingToken();
+        return token > 0 ? List.of("lease-epoch=" + leaseEpoch() + ";fencing-token=" + token) : List.of();
     }
 
     @Override
@@ -186,23 +181,14 @@ public final class SpringBatchWorkerRuntimeState implements RuntimeStateProvider
 
     @Override
     public Map<String, String> dependencyHealth() {
-        List<MessageListenerContainer> containers = workerContainers();
-        String status;
-        if (containers.isEmpty()) {
-            status = "NOT_AVAILABLE";
-        } else if (containers.stream().anyMatch(container -> !running(container))) {
-            status = "DOWN";
-        } else if (draining() || containers.stream().anyMatch(MessageListenerContainer::isPauseRequested)) {
-            status = "PAUSED";
-        } else {
-            status = "UP";
-        }
-        return Map.of("springBatchKafkaWorker", status);
+        return Map.of("brokerConsumerControl", controlPorts.isEmpty()
+                ? "NOT_AVAILABLE"
+                : controlError.get() == null ? "UP" : "DOWN");
     }
 
     @Override
     public String lastErrorCode() {
-        return listenerError.get();
+        return controlError.get();
     }
 
     @Override
@@ -213,35 +199,27 @@ public final class SpringBatchWorkerRuntimeState implements RuntimeStateProvider
         values.put("worker.effectiveConcurrency", effectiveConcurrency());
         values.put("worker.activeInvocations", snapshot.activeInvocations());
         values.put("worker.pendingInvocations", snapshot.pendingInvocations());
-        values.put("worker.kafkaListenerContainers", workerContainers().size());
+        values.put("worker.brokerControlPorts", controlPorts.size());
+        values.put("worker.leaseEpoch", leaseEpoch());
+        values.put("worker.fencingToken", fencingToken());
         return Map.copyOf(values);
     }
 
     @Override
     public long fencingToken() {
-        return executions.snapshot().fencingToken();
+        return Math.max(0L, executions.snapshot().fencingToken());
+    }
+
+    private void refreshLeaseEpoch() {
+        long token = fencingToken();
+        long previous = observedFencingToken.getAndSet(token);
+        if (previous >= 0 && previous != token) {
+            leaseEpoch.incrementAndGet();
+        }
     }
 
     private int effectiveConcurrency() {
         return Math.min(configuredMaxConcurrency, runtimePolicy.current().workerConcurrencyLimit());
-    }
-
-    private List<MessageListenerContainer> workerContainers() {
-        Collection<MessageListenerContainer> containers = listenerRegistry.getAllListenerContainers();
-        if (containers == null || containers.isEmpty()) {
-            return List.of();
-        }
-        return containers.stream()
-                .filter(container -> workerGroupId.equals(container.getGroupId()))
-                .toList();
-    }
-
-    private boolean accepting(MessageListenerContainer container) {
-        return running(container) && !container.isPauseRequested() && !container.isContainerPaused();
-    }
-
-    private boolean running(MessageListenerContainer container) {
-        return container.isRunning() && container.isInExpectedState();
     }
 
     private static List<String> capabilities(String text) {

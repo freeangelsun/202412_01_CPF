@@ -91,7 +91,7 @@
       },
       "sms-spi": {
         "projectPath": ":cpf-starter-notification-sms-spi",
-        "coordinate": "com.cpf.notification:cpf-starter-notification-sms-spi"
+        "coordinate": "com.cpf.starter:cpf-starter-notification-sms-spi"
       }
     },
     "observability": {
@@ -631,8 +631,12 @@
     },
     "integration": {
       "requiresCapabilities": [],
-      "runtimeProjects": [],
-      "runtimeCoordinates": [],
+      "runtimeProjects": [
+        ":cpf-starter-integration-resilience"
+      ],
+      "runtimeCoordinates": [
+        "com.cpf.starter:cpf-starter-integration-resilience"
+      ],
       "defaultProviderBindings": {
         "integration-transport": "http"
       },
@@ -688,12 +692,14 @@
       "runtimeProjects": [
         ":cpf-starter-platform-operations-observability",
         ":cpf-starter-platform-operations-runtime-control-client",
-        ":cpf-starter-platform-operations-channel-registry-jdbc"
+        ":cpf-starter-platform-operations-channel-registry-jdbc",
+        ":cpf-starter-platform-operations-feature-flag-openfeature"
       ],
       "runtimeCoordinates": [
         "com.cpf.starter:cpf-starter-platform-operations-observability",
         "com.cpf.starter:cpf-starter-platform-operations-runtime-control-client",
-        "com.cpf.starter:cpf-starter-platform-operations-channel-registry-jdbc"
+        "com.cpf.starter:cpf-starter-platform-operations-channel-registry-jdbc",
+        "com.cpf.starter:cpf-starter-platform-operations-feature-flag-openfeature"
       ],
       "defaultProviderBindings": {},
       "requiredProviderSlots": []

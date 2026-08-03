@@ -1,34 +1,105 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
 import importlib.util
 import tempfile
 import unittest
 from pathlib import Path
 
-SCRIPT = Path(__file__).parents[1] / "verify-cpf-db-less-fail-closed.py"
-spec = importlib.util.spec_from_file_location("db_less", SCRIPT)
-mod = importlib.util.module_from_spec(spec); spec.loader.exec_module(mod)
+MODULE_PATH = Path(__file__).resolve().parents[1] / "verify-cpf-db-less-fail-closed.py"
+spec = importlib.util.spec_from_file_location("db_less_gate", MODULE_PATH)
+module = importlib.util.module_from_spec(spec)
+assert spec and spec.loader
+spec.loader.exec_module(module)
 
-ADM = '''class X { private static final java.util.Set<String> MEMORY_ALLOWED_PROFILES = java.util.Set.of("edu", "test"); X(E e){e.getProperty("cpf.adm.persistence.mode", "DATABASE");}}'''
-DS = '''@ConditionalOnExpression("'${cpf.common.runtime-mode:product}'.toLowerCase() == 'product'") class X {}'''
-MB = '''@ConditionalOnExpression("'${cpf.common.runtime-mode:product}'.toLowerCase() == 'product'") class X { X(@Qualifier("cmnDataSource") DataSource cmnDataSource){} }'''
-SAMPLE = '''@Profile({"edu", "test"}) @ConditionalOnProperty(prefix = "cpf.cmn.sample-db", name = "enabled", havingValue = "true") class X { Object cmnSampleDataSource; }'''
 
-class GateTest(unittest.TestCase):
-    def root(self, adm=ADM, ds=DS, mb=MB, sample=SAMPLE):
-        td=tempfile.TemporaryDirectory(); root=Path(td.name); self.addCleanup(td.cleanup)
-        files={
-          "cpf-admin/src/main/java/com/cpf/admin/config/AdmPersistencePolicy.java":adm,
-          "cpf-common/src/main/java/com/cpf/common/config/CmnDataSourceConfig.java":ds,
-          "cpf-common/src/main/java/com/cpf/common/config/CmnMyBatisConfig.java":mb,
-          "cpf-common/src/main/java/com/cpf/common/config/CmnSampleDataSourceConfig.java":sample,
-        }
-        for rel,text in files.items(): p=root/rel;p.parent.mkdir(parents=True,exist_ok=True);p.write_text(text, encoding="utf-8")
-        return root
-    def test_pass(self): self.assertEqual("PASS", mod.verify(self.root())["status"])
-    def test_rejects_demo_memory(self):
-        with self.assertRaises(SystemExit): mod.verify(self.root(adm=ADM.replace('"edu", "test"','"test", "demo"')))
-    def test_rejects_unprofiled_sample(self):
-        with self.assertRaises(SystemExit): mod.verify(self.root(sample=SAMPLE.replace('@Profile({"edu", "test"}) ','')))
-    def test_rejects_mybatis_without_product_condition(self):
-        with self.assertRaises(SystemExit): mod.verify(self.root(mb=MB.replace('@ConditionalOnExpression("\'${cpf.common.runtime-mode:product}\'.toLowerCase() == \'product\'") ','')))
+ADM = '''
+private static final java.util.Set<String> MEMORY_ALLOWED_PROFILES = java.util.Set.of("edu", "test");
+var mode = environment.getProperty("cpf.adm.persistence.mode", "DATABASE");
+if (mode == Mode.MEMORY) { throw new CpfValidationException("denied"); }
+'''
+DATA_SOURCE = '''
+@ConditionalOnExpression("'${cpf.common.runtime-mode:product}'.toLowerCase() == 'product'")
+@Bean(name = "cmnDataSource")
+DataSource cmnDataSource(Environment environment) {
+ return CpfDataSources.resolve(environment, "spring.datasource.cmn");
+}
+'''
+MYBATIS = '''
+@ConditionalOnExpression("'${cpf.common.runtime-mode:product}'.toLowerCase() == 'product'")
+CmnMyBatisConfig(@Qualifier("cmnDataSource") DataSource cmnDataSource) {}
+'''
+SAMPLE = '''
+@Profile({"edu", "test"})
+@ConditionalOnProperty(prefix = "cpf.cmn.sample-db", name = "enabled", havingValue = "true")
+@Bean(name = "cmnSampleDataSource")
+DataSource sample(Environment environment) {
+ return CpfDataSources.resolve(environment, "spring.datasource.cmn-sample");
+}
+'''
 
-if __name__ == '__main__': unittest.main()
+
+class DbLessFailClosedTest(unittest.TestCase):
+    def setUp(self) -> None:
+        self.temp = tempfile.TemporaryDirectory()
+        self.root = Path(self.temp.name)
+        self.write(module.ADM_POLICY, ADM)
+        self.write(module.CMN_DATASOURCE, DATA_SOURCE)
+        self.write(module.CMN_MYBATIS, MYBATIS)
+        self.write(module.CMN_SAMPLE_DATASOURCE, SAMPLE)
+
+    def tearDown(self) -> None:
+        self.temp.cleanup()
+
+    def write(self, relative: str, text: str) -> None:
+        path = self.root / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text, encoding="utf-8")
+
+    def assert_gate_error(self, fragment: str) -> None:
+        with self.assertRaises(module.GateError) as caught:
+            module.validate(self.root)
+        self.assertIn(fragment, str(caught.exception))
+
+    def test_valid_starter_owned_persistence_passes(self) -> None:
+        result = module.validate(self.root)
+        self.assertEqual("PASS", result["status"])
+        self.assertEqual(["edu", "test"], result["admMemoryProfiles"])
+        self.assertEqual(module.JDBC_OWNER, result["jdbcOwner"])
+
+    def test_missing_starter_owned_source_fails(self) -> None:
+        (self.root / module.CMN_DATASOURCE).unlink()
+        self.assert_gate_error("missing source")
+
+    def test_stale_cpf_common_runtime_config_fails(self) -> None:
+        self.write(
+            "cpf-common/src/main/java/com/cpf/common/config/CmnDataSourceConfig.java",
+            DATA_SOURCE,
+        )
+        self.assert_gate_error("must be starter-owned")
+
+    def test_product_mode_condition_removal_fails(self) -> None:
+        self.write(module.CMN_MYBATIS, MYBATIS.replace(module.PRODUCT_CONDITION, "true"))
+        self.assert_gate_error("MyBatis must share")
+
+    def test_product_like_memory_profile_fails(self) -> None:
+        self.write(module.ADM_POLICY, ADM.replace('"edu", "test"', '"edu", "test", "local"'))
+        self.assert_gate_error("profiles must be exactly")
+
+    def test_sample_shadowing_canonical_datasource_fails(self) -> None:
+        self.write(module.CMN_SAMPLE_DATASOURCE, SAMPLE + '\n@Bean(name = "cmnDataSource") Object shadow() {}\n')
+        self.assert_gate_error("must not shadow")
+
+    def test_sample_requires_explicit_enablement(self) -> None:
+        self.write(
+            module.CMN_SAMPLE_DATASOURCE,
+            SAMPLE.replace(
+                '@ConditionalOnProperty(prefix = "cpf.cmn.sample-db", name = "enabled", havingValue = "true")',
+                "",
+            ),
+        )
+        self.assert_gate_error("explicit enabled=true")
+
+
+if __name__ == "__main__":
+    unittest.main()

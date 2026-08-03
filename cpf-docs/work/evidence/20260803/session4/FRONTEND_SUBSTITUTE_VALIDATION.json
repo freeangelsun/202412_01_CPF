@@ -1,0 +1,150 @@
+{
+  "status": "PASS",
+  "repositoryRoot": "/mnt/data/CPF_P00_P05_SESSION4_DEVELOPMENT_CHECKPOINT_ROOT_OVERLAY_20260803_R2",
+  "nodeVersion": {
+    "command": [
+      "/opt/nvm/versions/node/v22.16.0/bin/node",
+      "--version"
+    ],
+    "exitCode": 0,
+    "stdout": "v22.16.0\n",
+    "stderr": ""
+  },
+  "typescriptVersion": {
+    "command": [
+      "/opt/nvm/versions/node/v22.16.0/bin/tsc",
+      "--version"
+    ],
+    "exitCode": 0,
+    "stdout": "Version 5.8.3\n",
+    "stderr": ""
+  },
+  "playwrightPythonVersion": "1.57.0",
+  "validatedFrontends": [
+    {
+      "label": "ADM",
+      "source": "/mnt/data/CPF_P00_P05_SESSION4_DEVELOPMENT_CHECKPOINT_ROOT_OVERLAY_20260803_R2/cpf-admin/frontend/src/shared/cpfApi.ts",
+      "typeCheck": {
+        "command": [
+          "/opt/nvm/versions/node/v22.16.0/bin/tsc",
+          "--project",
+          "/tmp/cpf-adm-frontend-d2mzk_j8/node/tsconfig.json",
+          "--noEmit"
+        ],
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nodeCompile": {
+        "command": [
+          "/opt/nvm/versions/node/v22.16.0/bin/tsc",
+          "--project",
+          "/tmp/cpf-adm-frontend-d2mzk_j8/node/tsconfig.json"
+        ],
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nodeSyntaxCheck": {
+        "command": [
+          "/opt/nvm/versions/node/v22.16.0/bin/node",
+          "--check",
+          "/tmp/cpf-adm-frontend-d2mzk_j8/node/dist/harness.js"
+        ],
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nodeRuntime": {
+        "command": [
+          "/opt/nvm/versions/node/v22.16.0/bin/node",
+          "/tmp/cpf-adm-frontend-d2mzk_j8/node/dist/harness.js"
+        ],
+        "exitCode": 0,
+        "stdout": "FRONTEND_NODE_RUNTIME_PASS aliases=5 paths=3 allowed=1\n",
+        "stderr": ""
+      },
+      "browserCompile": {
+        "command": [
+          "/opt/nvm/versions/node/v22.16.0/bin/tsc",
+          "--project",
+          "/tmp/cpf-adm-frontend-d2mzk_j8/browser/tsconfig.json"
+        ],
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "chromiumRuntime": {
+        "status": "PASS",
+        "aliases": 5,
+        "rejectedPathsPerAlias": 3,
+        "allowedMutations": 1
+      }
+    },
+    {
+      "label": "BZA",
+      "source": "/mnt/data/CPF_P00_P05_SESSION4_DEVELOPMENT_CHECKPOINT_ROOT_OVERLAY_20260803_R2/cpf-biz-admin/frontend/src/shared/cpfApi.ts",
+      "typeCheck": {
+        "command": [
+          "/opt/nvm/versions/node/v22.16.0/bin/tsc",
+          "--project",
+          "/tmp/cpf-bza-frontend-6xo7p6ko/node/tsconfig.json",
+          "--noEmit"
+        ],
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nodeCompile": {
+        "command": [
+          "/opt/nvm/versions/node/v22.16.0/bin/tsc",
+          "--project",
+          "/tmp/cpf-bza-frontend-6xo7p6ko/node/tsconfig.json"
+        ],
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nodeSyntaxCheck": {
+        "command": [
+          "/opt/nvm/versions/node/v22.16.0/bin/node",
+          "--check",
+          "/tmp/cpf-bza-frontend-6xo7p6ko/node/dist/harness.js"
+        ],
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nodeRuntime": {
+        "command": [
+          "/opt/nvm/versions/node/v22.16.0/bin/node",
+          "/tmp/cpf-bza-frontend-6xo7p6ko/node/dist/harness.js"
+        ],
+        "exitCode": 0,
+        "stdout": "FRONTEND_NODE_RUNTIME_PASS aliases=5 paths=3 allowed=1\n",
+        "stderr": ""
+      },
+      "browserCompile": {
+        "command": [
+          "/opt/nvm/versions/node/v22.16.0/bin/tsc",
+          "--project",
+          "/tmp/cpf-bza-frontend-6xo7p6ko/browser/tsconfig.json"
+        ],
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "chromiumRuntime": {
+        "status": "PASS",
+        "aliases": 5,
+        "rejectedPathsPerAlias": 3,
+        "allowedMutations": 1
+      }
+    }
+  ],
+  "scope": "ADM/BZA shared cpfApi actor trust boundary; strict type check, Node unit-style runtime, Chromium browser runtime",
+  "repositoryBuildOutputsCreated": false,
+  "verifiedAgainstSha": "d2adc89f344fa1f93a2f9291f6576ce69be05239",
+  "baselineRebaseEvidence": "cpf-docs/work/evidence/20260803/session4/BASELINE_REBASE_AND_OVERLAP.json",
+  "fixtureProvenance": "R2 real changed ADM/BZA shared client source plus isolated temporary runtime stubs"
+}

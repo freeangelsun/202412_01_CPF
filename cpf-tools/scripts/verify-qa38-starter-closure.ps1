@@ -7,6 +7,14 @@ $ErrorActionPreference='Stop'
 $ProjectRoot=(Resolve-Path $ProjectRoot).Path
 Set-Location $ProjectRoot
 
+# 최신 Starter 정본은 단일 Canonical Catalog다. 기존 QA38 구조·SQL·중복·Runtime
+# 검사를 제거하지 않고, 그보다 먼저 Catalog/Settings/Profile/Public BOM 파생 정합성을
+# fail-closed로 검증한다.
+& pwsh -NoProfile -File '.\cpf-tools\scripts\verify-cpf-starter-catalog-truth.ps1' `
+    -Root $ProjectRoot `
+    -JsonOutput '.\build\reports\cpf\starter-catalog-truth.json'
+if($LASTEXITCODE-ne 0){throw 'Canonical starter catalog truth gate failed'}
+
 $protected=@('cpf-docs/deliverables','cpf-docs/guides','cpf-docs/environment/docker','cpf-tools/environment/docker-development-test')
 # 보호 경로의 기존 Working Tree 변경은 다른 작업자의 산출물일 수 있으므로 실패 조건으로 사용하지 않는다.
 # QA38 Change/Delete Manifest가 보호 경로를 포함하지 않는지는 적용 스크립트와 구조 Gate에서 별도로 검증한다.

@@ -12,18 +12,31 @@ $OutputEncoding = $CpfUtf8ConsoleEncoding
 $ErrorActionPreference = "Stop"
 
 $Root = (Resolve-Path -LiteralPath $Root).Path
+$manifestGate = Join-Path $Root 'cpf-tools/scripts/verify-cpf-db-vendor-manifest.ps1'
+if (-not (Test-Path -LiteralPath $manifestGate -PathType Leaf)) {
+    throw "DB vendor manifest gate is missing: $manifestGate"
+}
+& pwsh -NoProfile -File $manifestGate -Root $Root
+if ($LASTEXITCODE -ne 0) {
+    throw "DB vendor manifest gate failed (exit=$LASTEXITCODE)"
+}
 $failures = [System.Collections.Generic.List[string]]::new()
 $checkedPairs = 0
 
 function Get-RepositoryPath {
     param([string] $RelativePath)
 
-    if ([System.IO.Path]::IsPathRooted($RelativePath)) {
+    if ([string]::IsNullOrWhiteSpace($RelativePath) -or [System.IO.Path]::IsPathRooted($RelativePath)) {
         throw "Repository 상대경로만 허용됩니다: $RelativePath"
     }
-    return [System.IO.Path]::GetFullPath(
+    $resolved = [System.IO.Path]::GetFullPath(
         (Join-Path $Root ($RelativePath -replace "/", [System.IO.Path]::DirectorySeparatorChar))
     )
+    $rootPrefix = $Root.TrimEnd([System.IO.Path]::DirectorySeparatorChar) + [System.IO.Path]::DirectorySeparatorChar
+    if (-not $resolved.StartsWith($rootPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
+        throw "Repository 경계를 벗어난 경로입니다: relative=$RelativePath resolved=$resolved"
+    }
+    return $resolved
 }
 
 function Test-ExactFile {
@@ -58,7 +71,7 @@ function Get-RelativeFileMap {
 
     $map = @{}
     if (-not (Test-Path -LiteralPath $Directory -PathType Container)) {
-        return $map
+        throw "필수 Directory가 없습니다: $Directory"
     }
     foreach ($file in Get-ChildItem -LiteralPath $Directory -Recurse -File) {
         if ($Extensions.Count -gt 0 -and $file.Extension -notin $Extensions) { continue }
@@ -107,8 +120,14 @@ $requiredVerifyColumns = @($domainTemplateContract.verifyContract.requiredColumn
 if ($requiredVerifyColumns.Count -eq 0) {
     throw "Generated Domain Template verifyContract.requiredColumns가 비어 있습니다."
 }
+$officialVendors = @('mariadb', 'postgresql', 'oracle')
+$manifestVendors = @($manifest.supportedVendors | ForEach-Object { ([string]$_).Trim().ToLowerInvariant() })
+$vendorDrift = @(Compare-Object ($officialVendors | Sort-Object) ($manifestVendors | Sort-Object))
+if ($vendorDrift.Count -gt 0 -or @($manifestVendors | Sort-Object -Unique).Count -ne $officialVendors.Count) {
+    throw "공식 DB Vendor 집합은 MariaDB/PostgreSQL/Oracle exactly-three여야 합니다: actual=$($manifestVendors -join ',')"
+}
 $vendors = if ([string]::IsNullOrWhiteSpace($Vendor)) {
-    @($manifest.supportedVendors)
+    $officialVendors
 } else {
     @($Vendor.ToLowerInvariant())
 }
@@ -120,6 +139,10 @@ foreach ($currentVendor in $vendors) {
         continue
     }
     $vendorRoot = Get-RepositoryPath ([string] $vendorEntry.vendorRoot)
+    if (-not (Test-Path -LiteralPath $vendorRoot -PathType Container)) {
+        $failures.Add("Vendor Root 누락: vendor=$currentVendor root=$vendorRoot")
+        continue
+    }
     $packPath = Get-RepositoryPath ([string] $vendorEntry.pack)
     if (-not (Test-Path -LiteralPath $packPath -PathType Leaf)) {
         $failures.Add("pack.json 누락: $currentVendor")
@@ -152,6 +175,10 @@ foreach ($currentVendor in $vendors) {
     }
 
     $centralRuntimeRoot = Get-RepositoryPath ([string] $vendorEntry.runtimeRoot)
+    if (-not (Test-Path -LiteralPath $centralRuntimeRoot -PathType Container)) {
+        $failures.Add("중앙 Runtime Root 누락: vendor=$currentVendor root=$centralRuntimeRoot")
+        continue
+    }
     $expectedCentralFiles = @{}
     $legacyResourceFiles = @(
         Get-ChildItem -LiteralPath $Root -Directory |
@@ -245,6 +272,10 @@ foreach ($currentVendor in $vendors) {
         "rollback/R1__remove___DOMAIN___domain.sql.template"
     )
     $domainTemplateRoot = Get-RepositoryPath ([string] $vendorEntry.domainTemplateRoot)
+    if (-not (Test-Path -LiteralPath $domainTemplateRoot -PathType Container)) {
+        $failures.Add("생성형 Domain 중앙 Template Root 누락: vendor=$currentVendor root=$domainTemplateRoot")
+        continue
+    }
     foreach ($relative in $requiredTemplateFiles) {
         if (-not (Test-Path -LiteralPath (Join-Path $domainTemplateRoot ($relative -replace "/", "\")) -PathType Leaf)) {
             $failures.Add("생성형 Domain 중앙 Template 누락: vendor=$currentVendor path=$relative")

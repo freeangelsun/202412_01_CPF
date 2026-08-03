@@ -1,0 +1,19 @@
+{
+  "status": "PASS",
+  "admMemoryProfiles": [
+    "edu",
+    "test"
+  ],
+  "cmnProductDataSourceConditional": true,
+  "cmnMyBatisConditional": true,
+  "cmnSampleProfiles": [
+    "edu",
+    "test"
+  ],
+  "jdbcOwner": "cpf-starters/data/persistence-jdbc/src/main/java/com/cpf/common/config",
+  "myBatisOwner": "cpf-starters/data/persistence-mybatis/src/main/java/com/cpf/common/config",
+  "errors": [],
+  "verifiedAgainstSha": "d2adc89f344fa1f93a2f9291f6576ce69be05239",
+  "baselineRebaseEvidence": "cpf-docs/work/evidence/20260803/session4/BASELINE_REBASE_AND_OVERLAP.json",
+  "fixtureProvenance": "GitHub exact-SHA targeted source fixture plus R2 gate"
+}

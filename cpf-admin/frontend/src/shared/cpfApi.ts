@@ -9,7 +9,7 @@ export class CpfApiError extends Error {
     super(message); this.name = "CpfApiError";
   }
 }
-const CLIENT_ACTOR_FIELDS = new Set(["requestUser", "requestedBy", "actorId", "operatorIdOverride"]);
+const CLIENT_ACTOR_FIELDS = new Set(["requestUser", "requestedBy", "actorId", "operatorId", "operatorIdOverride"]);
 function csrfToken(): string {
   const entry = document.cookie.split(";").map(value => value.trim()).find(value => value.startsWith("XSRF-TOKEN="));
   return entry ? decodeURIComponent(entry.substring("XSRF-TOKEN=".length)) : "";
@@ -31,12 +31,18 @@ function assertNoClientActor(value: unknown, path = "$", visited = new WeakSet<o
     assertNoClientActor(child, `${path}.${key}`, visited);
   }
 }
+function assertNoClientActorQuery(target: URL): void {
+  for (const key of target.searchParams.keys()) {
+    if (CLIENT_ACTOR_FIELDS.has(key)) throw new Error(`Browser actor query field is forbidden: ${key}`);
+  }
+}
 function convert(error: unknown): never {
   if (error instanceof CpfOrvalError) throw new CpfApiError(error.status, error.message, error.payload);
   throw error;
 }
 export async function admQuery<T = unknown>(url: string, params?: Record<string, unknown>): Promise<T> {
   const target = new URL(url, window.location.origin);
+  assertNoClientActorQuery(target);
   Object.entries(params || {}).forEach(([key, value]) => {
     if (CLIENT_ACTOR_FIELDS.has(key)) throw new Error(`Browser actor query field is forbidden: ${key}`);
     if (value !== undefined && value !== null && String(value).trim() !== "") target.searchParams.set(key, String(value));
@@ -53,6 +59,7 @@ export async function admQuery<T = unknown>(url: string, params?: Record<string,
 export async function admMutation<T = unknown>(url: string, method: "POST" | "PUT" | "PATCH" | "DELETE", body?: unknown): Promise<T> {
   assertNoClientActor(body);
   const target = new URL(url, window.location.origin);
+  assertNoClientActorQuery(target);
   const relative = target.pathname + target.search;
   const operation = resolveCpfOperation(method, relative);
   const observer = new MutationObserver<T, unknown, unknown, unknown>(cpfQueryClient, {
@@ -75,6 +82,7 @@ export async function admRawResponse(
 ): Promise<Response> {
   assertNoClientActor(body);
   const target = new URL(url, window.location.origin);
+  assertNoClientActorQuery(target);
   if (target.origin !== window.location.origin) throw new Error("ADM download target must be same-origin");
   const operation = resolveCpfOperation(method, target.pathname + target.search);
   const headers = createAdmHeaders({ ...Object.fromEntries(new Headers(extraHeaders).entries()), "X-CPF-Operation-Id": operation.operationId });
@@ -92,9 +100,12 @@ export interface CpfGeneratedRequestConfig {
 export async function cpfGeneratedRequest<T = unknown>(config: CpfGeneratedRequestConfig): Promise<T> {
   const method = config.method.trim().toUpperCase();
   const target = new URL(config.url, window.location.origin);
+  assertNoClientActorQuery(target);
   Object.entries(config.params || {}).forEach(([key, value]) => {
+    if (CLIENT_ACTOR_FIELDS.has(key)) throw new Error(`Browser actor query field is forbidden: ${key}`);
     if (value !== undefined && value !== null) target.searchParams.set(key, String(value));
   });
+  assertNoClientActorQuery(target);
   const relative = target.pathname + target.search;
   if (method === "GET") return admQuery<T>(relative);
   if (!["POST", "PUT", "PATCH", "DELETE"].includes(method)) throw new Error(`Unsupported generated ADM method: ${method}`);
@@ -126,10 +137,12 @@ export async function admInvokeOperation<T = unknown>(operationId: CpfOperationI
   const descriptor=cpfOperationDescriptors.find(value=>value.operationId===operationId);
   if(!descriptor)throw new Error(`ADM operation is not registered: ${operationId}`);
   const target=new URL(renderOperationPath(descriptor.template,options.path),window.location.origin);
+  assertNoClientActorQuery(target);
   Object.entries(options.query||{}).forEach(([key,value])=>{
     if(CLIENT_ACTOR_FIELDS.has(key))throw new Error(`Browser actor query field is forbidden: ${key}`);
     if(value!==undefined&&value!==null&&String(value).trim()!=="")target.searchParams.set(key,String(value));
   });
+  assertNoClientActorQuery(target);
   const relative=target.pathname+target.search;
   if(descriptor.method==="GET")return admQuery<T>(relative);
   return admMutation<T>(relative,descriptor.method as "POST"|"PUT"|"PATCH"|"DELETE",options.body);

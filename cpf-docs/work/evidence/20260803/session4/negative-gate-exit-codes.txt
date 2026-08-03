@@ -1,0 +1,2 @@
+release_exit_code=1
+expected_nonzero=true

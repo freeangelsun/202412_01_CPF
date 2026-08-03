@@ -1,0 +1,15 @@
+{
+  "status": "PASS",
+  "frontendSourceCount": 2,
+  "controllerSourceCount": 1,
+  "actorFields": [
+    "requestedBy",
+    "requestUser",
+    "actorId",
+    "operatorId",
+    "operatorIdOverride"
+  ],
+  "verifiedAgainstSha": "d2adc89f344fa1f93a2f9291f6576ce69be05239",
+  "baselineRebaseEvidence": "cpf-docs/work/evidence/20260803/session4/BASELINE_REBASE_AND_OVERLAP.json",
+  "fixtureProvenance": "GitHub exact-SHA controller fixture plus R2 changed ADM/BZA/Batch source"
+}

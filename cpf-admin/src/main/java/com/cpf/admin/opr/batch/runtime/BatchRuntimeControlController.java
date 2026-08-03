@@ -21,6 +21,8 @@ public class BatchRuntimeControlController extends AdmBaseController {
     private static final Set<String> ALLOWED_VIEWS = Set.of(
             "overview", "instances", "scheduler", "worker-pools", "center-cut", "agents",
             "job-packs", "executions", "deployments", "recovery", "leases", "alerts", "audit");
+    private static final Set<String> CLIENT_ACTOR_FIELDS = Set.of(
+            "requestedBy", "requestUser", "actorId", "operatorId", "operatorIdOverride");
 
     private final BatchRuntimeControlClient client;
 
@@ -191,12 +193,41 @@ public class BatchRuntimeControlController extends AdmBaseController {
         if (operatorId == null || operatorId.isBlank()) {
             throw new IllegalArgumentException("authenticated operator is required");
         }
-        Map<String, Object> command = new java.util.LinkedHashMap<>(request);
-        command.remove("requestedBy");
-        command.remove("requestUser");
-        command.remove("actorId");
+        if (request == null) {
+            throw new IllegalArgumentException("request is required");
+        }
+        Map<String, Object> command = sanitizeCommandMap(request);
         command.put("requestedBy", operatorId);
         return java.util.Collections.unmodifiableMap(command);
+    }
+
+    /**
+     * Browser가 보낸 Actor alias는 깊이에 관계없이 제거하고 BAT Owner에는 인증 Session의
+     * {@code requestedBy} 하나만 전달합니다. JSON 요청은 순환 참조를 만들 수 없으므로 재귀 복사하며,
+     * 반환된 중첩 Collection도 불변으로 고정해 후속 Client가 Actor 값을 다시 주입하지 못하게 합니다.
+     */
+    private static Map<String, Object> sanitizeCommandMap(Map<?, ?> source) {
+        Map<String, Object> sanitized = new java.util.LinkedHashMap<>();
+        for (Map.Entry<?, ?> entry : source.entrySet()) {
+            if (!(entry.getKey() instanceof String key) || key.isBlank()) {
+                throw new IllegalArgumentException("batch command field name must be a non-blank string");
+            }
+            if (CLIENT_ACTOR_FIELDS.contains(key)) {
+                continue;
+            }
+            sanitized.put(key, sanitizeCommandValue(entry.getValue()));
+        }
+        return sanitized;
+    }
+
+    private static Object sanitizeCommandValue(Object value) {
+        if (value instanceof Map<?, ?> nested) {
+            return java.util.Collections.unmodifiableMap(sanitizeCommandMap(nested));
+        }
+        if (value instanceof List<?> list) {
+            return list.stream().map(BatchRuntimeControlController::sanitizeCommandValue).toList();
+        }
+        return value;
     }
 
     private static void requireExpectedVersion(Map<String, Object> request) {

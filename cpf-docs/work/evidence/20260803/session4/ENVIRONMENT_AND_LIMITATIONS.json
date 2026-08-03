@@ -1,0 +1,49 @@
+{
+  "verifiedAgainstSha": "d2adc89f344fa1f93a2f9291f6576ce69be05239",
+  "verificationTimeKst": "2026-08-03T16:25:34+09:00",
+  "status": "PARTIAL_ENVIRONMENT_AVAILABLE",
+  "available": {
+    "java": "OpenJDK 21.0.10",
+    "javac": "21.0.10",
+    "node": "22.16.0",
+    "npm": "10.9.2",
+    "typescript": "5.8.3",
+    "pythonPlaywright": "1.57.0",
+    "chromium": "/usr/bin/chromium",
+    "python": "available",
+    "githubConnector": "available for exact-SHA targeted reads"
+  },
+  "unavailable": {
+    "java25Runtime": "not installed in development GPT runtime",
+    "gradleExecutableAndDependencyCache": "Gradle command/cache unavailable; repository wrapper cannot resolve dependencies without full repository/network",
+    "pwsh7": "not installed",
+    "dockerRuntime": "not installed",
+    "vendorDatabaseServers": "MariaDB/PostgreSQL/Oracle servers and credentials unavailable",
+    "fullRepositoryWorkingTree": "not mounted; GitHub connector exact-SHA targeted files only",
+    "externalRegistryRepository": "credentials/network unavailable",
+    "signingKeysCertificatesSecrets": "not provided",
+    "multiInstanceWasNetwork": "not provided"
+  },
+  "performed": [
+    "Java 21 real source compile with --release 21 and -Xlint:all",
+    "Java 21 execution of two real unit-test methods",
+    "Java 21 independent runtime harness and class major 65 verification",
+    "ADM/BZA strict TypeScript noEmit",
+    "ADM/BZA Node syntax and runtime contract",
+    "ADM/BZA Chromium runtime contract",
+    "Python static/contract/regression tests",
+    "P00/P01 full split master validation",
+    "P03 targeted exact-SHA source contract gates",
+    "P04/P05 canonical metadata and physical-path contract gates"
+  ],
+  "transferredOnly": [
+    "Java 25 toolchain/bytecode/publication",
+    "full Gradle build/test/publication/SBOM",
+    "actual MariaDB/PostgreSQL/Oracle lifecycle runtime",
+    "full ADM/BZA dependency install/build/lint/unit/E2E matrix",
+    "full repository P02/P03 source scans",
+    "Docker/external registry/signing/multi-instance runtime"
+  ],
+  "repositoryArtifactsCreatedByValidation": false,
+  "handoffList": "cpf-docs/work/development/p00-p05-session4/ENVIRONMENT_VALIDATION_HANDOFF.csv"
+}

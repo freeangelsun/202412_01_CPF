@@ -145,6 +145,11 @@ function Assert-CpfGeneratedDomainTopology {
 
 Push-Location $RepoRoot
 try {
+    Invoke-CpfGate 'P00 split logical master integrity and execution scope' {
+        & pwsh -NoProfile -File .\cpf-tools\scripts\verify-cpf-split-master-dataset.ps1 `
+            -Root $RepoRoot -ScopeLimit 10027 `
+            -JsonOutput .\build\reports\cpf\split-master-validation.json
+    }
     foreach ($obsolete in @(
         'cpf-tools/db/source',
         'cpf-tools/db/vendor/mysql',
@@ -159,6 +164,54 @@ try {
         Assert-CpfRemovedPath $obsolete
     }
     Assert-CpfGeneratedDomainTopology
+
+    Invoke-CpfGate 'P02 Core/Admin/BAT owner boundaries' {
+        & pwsh -NoProfile -File .\cpf-tools\scripts\verify-cpf-owner-boundaries.ps1 `
+            -Root $RepoRoot `
+            -JsonOutput .\build\reports\cpf\owner-boundaries.json
+    }
+
+    Invoke-CpfGate 'P03 DB-less and product persistence fail-closed' {
+        & pwsh -NoProfile -File .\cpf-tools\scripts\verify-cpf-db-less-fail-closed.ps1 `
+            -Root $RepoRoot `
+            -JsonOutput .\build\reports\cpf\db-less-fail-closed.json
+    }
+
+    Invoke-CpfGate 'P03 transaction identity and execution ID truth' {
+        & pwsh -NoProfile -File .\cpf-tools\scripts\check-transaction-id-standard.ps1 `
+            -Root $RepoRoot `
+            -JsonOutput .\build\reports\cpf\transaction-id-standard.json
+    }
+
+    Invoke-CpfGate 'P03 shared outbound network policy consumers' {
+        & pwsh -NoProfile -File .\cpf-tools\scripts\verify-cpf-network-policy-consumers.ps1 `
+            -ProjectRoot $RepoRoot `
+            -JsonOutput .\build\reports\cpf\network-policy-consumers.json
+    }
+
+    Invoke-CpfGate 'P03 durable audit reservation and recovery' {
+        & pwsh -NoProfile -File .\cpf-tools\scripts\verify-cpf-audit-fail-closed.ps1 `
+            -ProjectRoot $RepoRoot `
+            -JsonOutput .\build\reports\cpf\audit-fail-closed.json
+    }
+
+    Invoke-CpfGate 'P03 server-owned operator trust boundary' {
+        & pwsh -NoProfile -File .\cpf-tools\scripts\verify-cpf-operator-trust-boundary.ps1 `
+            -ProjectRoot $RepoRoot `
+            -JsonOutput .\build\reports\cpf\operator-trust-boundary.json
+    }
+
+    Invoke-CpfGate 'P05 canonical starter catalog and derivative truth' {
+        & pwsh -NoProfile -File .\cpf-tools\scripts\verify-cpf-starter-catalog-truth.ps1 `
+            -Root $RepoRoot `
+            -JsonOutput .\build\reports\cpf\starter-catalog-truth.json
+    }
+
+    Invoke-CpfGate 'P04 official DB vendor manifest truth' {
+        & pwsh -NoProfile -File .\cpf-tools\scripts\verify-cpf-db-vendor-manifest.ps1 `
+            -Root $RepoRoot `
+            -JsonOutput .\build\reports\cpf\db-vendor-manifest.json
+    }
 
     Invoke-CpfGate 'QA31 request/result/source integrity gate' {
         & pwsh -NoProfile -File .\cpf-tools\scripts\verify-cpf-qa31-development-result.ps1 `

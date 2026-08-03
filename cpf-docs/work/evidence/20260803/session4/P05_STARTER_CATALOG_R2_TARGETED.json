@@ -1,0 +1,14 @@
+{
+  "status": "PASS",
+  "catalog_id": "CPF-QA39-CANONICAL-STARTER-CATALOG",
+  "catalog_baseline_sha": "4aea798c913787e86341809e2cef2b9495cbf7ba",
+  "module_count": 38,
+  "public_profile_count": 6,
+  "internal_module_count": 32,
+  "capability_group_count": 7,
+  "provider_slot_count": 9,
+  "metadata_only": false,
+  "verifiedAgainstSha": "d2adc89f344fa1f93a2f9291f6576ce69be05239",
+  "baselineRebaseEvidence": "cpf-docs/work/evidence/20260803/session4/BASELINE_REBASE_AND_OVERLAP.json",
+  "fixtureProvenance": "canonical catalog/settings/BOM plus exact-SHA API-confirmed 38 physical modules and R2 profiles"
+}

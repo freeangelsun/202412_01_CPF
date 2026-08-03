@@ -1,0 +1,175 @@
+{
+  "batch_id": "DEV_EXEC_10028_20402_R1",
+  "baseline_sha": "2903de14eb9cd6cfcccf8e4d2a3489ee2e4193ca",
+  "status": "TARGETED_PASS_FULL_SCOPE_INCOMPLETE",
+  "actual_scope": {
+    "logical_start": 10028,
+    "logical_end": 20402,
+    "execution_start": "05-00011713",
+    "execution_end": "09-00017482",
+    "requirements": 10375,
+    "scenarios": 15121,
+    "work_packages": 194
+  },
+  "targeted_requirement_rows": 44,
+  "gates": [
+    {
+      "name": "dataset-master-join",
+      "status": "PASS",
+      "requirements": 10375,
+      "scenarios": 15121,
+      "missing": 0
+    },
+    {
+      "name": "targeted-python-unit",
+      "status": "PASS",
+      "tests": 7
+    },
+    {
+      "name": "generator-java-template-compile",
+      "status": "PASS",
+      "profiles": [
+        "mybatis",
+        "jdbc"
+      ],
+      "sources": 62,
+      "java_release": 21
+    },
+    {
+      "name": "generator-idempotency-lifecycle",
+      "status": "PASS",
+      "vendors": [
+        "oracle",
+        "postgresql",
+        "mariadb"
+      ]
+    },
+    {
+      "name": "batch-control-synthetic-compile",
+      "status": "PASS",
+      "sources": 24,
+      "java_release": 21
+    },
+    {
+      "name": "adm-route-typescript-compile",
+      "status": "PASS"
+    },
+    {
+      "name": "overlay-hygiene-secret",
+      "status": "PASS",
+      "secret_candidates": 0
+    },
+    {
+      "name": "requirement-role-boundary",
+      "status": "PASS",
+      "changed_rows": 44,
+      "illegal_columns": 0
+    },
+    {
+      "name": "full-gradle-java25",
+      "status": "NOT_EXECUTED"
+    },
+    {
+      "name": "official-db-runtime",
+      "status": "NOT_EXECUTED"
+    },
+    {
+      "name": "browser-e2e",
+      "status": "NOT_EXECUTED"
+    },
+    {
+      "name": "multi-instance-process-kill",
+      "status": "NOT_EXECUTED"
+    }
+  ],
+  "development_gpt_status": "미완료",
+  "commit_sha": "NOT_CREATED",
+  "remote_push_sha": "NOT_PUSHED",
+  "evidence_files": [
+    {
+      "path": "cpf-docs/work/evidence/20260803/DEV_EXEC_10028_20402_R1/BASELINE_REMOTE.txt",
+      "size_bytes": 157,
+      "sha256": "4c85a6155fe4b6f00ae3bc6f3a0d5bb0874eb77db052d80f7c1d4c3a3931618b"
+    },
+    {
+      "path": "cpf-docs/work/evidence/20260803/DEV_EXEC_10028_20402_R1/BATCH_CONTROL_JAVA_COMPILE.exitcode",
+      "size_bytes": 82,
+      "sha256": "78ace038d463b7e7ee63ef69017ea527db3f32596c0597212ccb503429c63cba"
+    },
+    {
+      "path": "cpf-docs/work/evidence/20260803/DEV_EXEC_10028_20402_R1/BATCH_CONTROL_JAVA_COMPILE.log",
+      "size_bytes": 54,
+      "sha256": "33c4d97ff67e2fec9daaf669034f00e85584e68083e8331f0f1dc78fa01dd6ee"
+    },
+    {
+      "path": "cpf-docs/work/evidence/20260803/DEV_EXEC_10028_20402_R1/DATASET_VALIDATION.json",
+      "size_bytes": 17018,
+      "sha256": "d063a36739c26c26ce52a4a352b4157580ac169f8b4f7f656d2c7668c5d3d846"
+    },
+    {
+      "path": "cpf-docs/work/evidence/20260803/DEV_EXEC_10028_20402_R1/FRONTEND_ROUTES_TSC.exitcode",
+      "size_bytes": 60,
+      "sha256": "dbcbd1689e401479bdda070e0807f0a2155d40a48332233d492218173785cb42"
+    },
+    {
+      "path": "cpf-docs/work/evidence/20260803/DEV_EXEC_10028_20402_R1/FRONTEND_ROUTES_TSC.log",
+      "size_bytes": 60,
+      "sha256": "dbcbd1689e401479bdda070e0807f0a2155d40a48332233d492218173785cb42"
+    },
+    {
+      "path": "cpf-docs/work/evidence/20260803/DEV_EXEC_10028_20402_R1/GENERATOR_IDEMPOTENCY_TEMPLATE.exitcode",
+      "size_bytes": 101,
+      "sha256": "5389e0972f355e1d744b1de3e61a440198e7da889b98565154a3f4790b91a3d3"
+    },
+    {
+      "path": "cpf-docs/work/evidence/20260803/DEV_EXEC_10028_20402_R1/GENERATOR_IDEMPOTENCY_TEMPLATE.log",
+      "size_bytes": 252,
+      "sha256": "93978113ceb793f97f1e04ca30da6ac823eab90172ac3d01585030ae7b68f278"
+    },
+    {
+      "path": "cpf-docs/work/evidence/20260803/DEV_EXEC_10028_20402_R1/GENERATOR_JAVA_TEMPLATE_COMPILE.exitcode",
+      "size_bytes": 104,
+      "sha256": "b926cbd999d31bb7502a0e6cb78ed02d1a9070d66084e5e7aa4a6632259b3450"
+    },
+    {
+      "path": "cpf-docs/work/evidence/20260803/DEV_EXEC_10028_20402_R1/GENERATOR_JAVA_TEMPLATE_COMPILE.log",
+      "size_bytes": 217,
+      "sha256": "3bd77012f92b6be4de7840635eed925c00f04f40415a65f8dfebf42d9fb9cc42"
+    },
+    {
+      "path": "cpf-docs/work/evidence/20260803/DEV_EXEC_10028_20402_R1/OVERLAY_HYGIENE_SECRET_VALIDATION.json",
+      "size_bytes": 161,
+      "sha256": "9b606501de7588cfe76ae837ee06408afafa08b7d599737e226654d425b4c92e"
+    },
+    {
+      "path": "cpf-docs/work/evidence/20260803/DEV_EXEC_10028_20402_R1/OVERLAY_SOURCE_DIFF_VALIDATION.json",
+      "size_bytes": 2551,
+      "sha256": "e44cbb0bd5bd9a1fd8e890ae4d2dc176f8134697217e65b7cd5bec6a4adb35e7"
+    },
+    {
+      "path": "cpf-docs/work/evidence/20260803/DEV_EXEC_10028_20402_R1/REQUIREMENT_ROLE_BOUNDARY_VALIDATION.json",
+      "size_bytes": 25953,
+      "sha256": "6a88d079f88dd61c723790bf77640a97748c580b5c112d3f1b1bc0d608da3c23"
+    },
+    {
+      "path": "cpf-docs/work/evidence/20260803/DEV_EXEC_10028_20402_R1/SCOPE_SUMMARY.json",
+      "size_bytes": 2827,
+      "sha256": "f2c46d86f1155021e69f3262098bd36b038eb36889c2b7bb53086b9076616744"
+    },
+    {
+      "path": "cpf-docs/work/evidence/20260803/DEV_EXEC_10028_20402_R1/TARGETED_CHANGES.diff",
+      "size_bytes": 29413,
+      "sha256": "9c4fe4e67a3f32059b6b1c08d211073ee567811fcad37a3e58692814596ba549"
+    },
+    {
+      "path": "cpf-docs/work/evidence/20260803/DEV_EXEC_10028_20402_R1/TARGETED_PYTHON_UNIT_TESTS.exitcode",
+      "size_bytes": 60,
+      "sha256": "88872922286cb741be90702c961a01630a26551fa7e25735350c77e0931f8348"
+    },
+    {
+      "path": "cpf-docs/work/evidence/20260803/DEV_EXEC_10028_20402_R1/TARGETED_PYTHON_UNIT_TESTS.log",
+      "size_bytes": 489,
+      "sha256": "c2d94a9d1be9b2d3321dc5ed8f103daf7b04c88974ec81021f27528b1ff6d11c"
+    }
+  ]
+}

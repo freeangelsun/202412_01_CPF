@@ -32,6 +32,11 @@ describe("ADM canonical capability registry", () => {
     }
   });
 
+  it("maps route names to backend menu identifiers", () => {
+    expect(menuIdFromRouteName("transactions")).toBe("TRANSACTION_META");
+    expect(menuIdFromRouteName("gateway-dashboard")).toBe("GATEWAY_DASHBOARD");
+  });
+
   it("never silently replaces an unknown route with Dashboard", () => {
     expect(featureGroupForMenu("missing-route")).toBeUndefined();
     expect(componentForMenu("missing-route")).toBeUndefined();

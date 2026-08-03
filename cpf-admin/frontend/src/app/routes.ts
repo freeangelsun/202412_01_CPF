@@ -132,5 +132,5 @@ export const admRouterRecords: RouteRecordRaw[] = Object.values(admCapabilityReg
 }));
 
 export function menuIdFromRouteName(name: unknown): string | undefined {
-  return findCapabilityByRouteName(name)?.routeId;
+  return findCapabilityByRouteName(name)?.menuId;
 }

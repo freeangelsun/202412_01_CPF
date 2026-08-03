@@ -1,0 +1,11 @@
+﻿requirement_id,phase,title,qa_review_state,qa_result,unverified_reason,next_action
+CPF-SELF-DEV-S4-001,P00,분할 원장 byte/hash 정합성,미통과 근거 확정,미통과,Gate exact SHA/Execution continuity/현행 상태 Schema 결함; 28 Part byte 검증은 Codex checkout 필요,Gate 재개발 후 exact-SHA 28 Part 전수 실행
+CPF-SELF-DEV-S4-002,P01,Traceability와 공개 함수 계약,미통과 근거 확정,미통과,head=UNAVAILABLE·Result Matrix 0행 PASS·Scope Coverage 미강제·회귀 로그 누락,"Traceability main fail-closed 재개발 후 10,027 Coverage 실행"
+CPF-SELF-DEV-S4-003,P02,Owner Boundary Gate,미통과 근거 확정,미통과,Build/Package/Public/SPI/Internal/순환/Consumer 전체 검사가 아니며 Batch testkit도 누락,Owner Gate 재개발 후 전체 Repository graph/scan
+CPF-SELF-DEV-S4-004,P03,DB-less·Persistence Ownership,미통과 근거 확정,미통과,Gate/Test가 문자열 Fixture만 검사하고 Spring Context·Resolver·실제 Consumer·DB 실패 경로를 실행하지 않음,Profile/Bean/Consumer/DB 실패 Test 재개발 후 exact-SHA 재검증
+CPF-SELF-DEV-S4-005,P03,Transaction ID·Execution ID,미통과 근거 확정,미통과,Evidence executionAnnotationCount=0 PASS; 미부착 Controller는 Interceptor가 Header 검증을 건너뜀,업무 Endpoint Annotation Coverage Gate와 Legacy 식별자 전수 Scan 재개발
+CPF-SELF-DEV-S4-006,P03,Operator Trust Boundary,미통과 근거 확정,미통과,Targeted Stub Evidence만 존재하며 BZA API 호환성·Raw/Form 우회·전체 인증 Actor 호출경로가 미검증,실제 ADM/BZA 전체 Consumer와 Auth→Owner→Audit E2E 재개발·검증
+CPF-SELF-DEV-S4-007,P03,Network Policy·Audit,미통과 근거 확정,미통과,HTTP Client Registry가 DNS Resolve/validateResolvedAddresses/Pin 없이 Hostname URL을 반환해 Rebinding 방어 미적용,HTTP Transport DNS Pinning 재개발 및 Audit 3DB·다중 인스턴스 Runtime 검증
+CPF-SELF-DEV-S4-008,P04,3개 DB Vendor Lifecycle,미통과 근거 확정,미통과,PostgreSQL/Oracle Fresh Install SQL에 LONGBLOB·MEDIUMTEXT가 포함되며 Gate는 경로 존재만 검사,Vendor Type Mapping 수정·Lifecycle Pack 재생성·3DB Install/Migration/Rollback 검증
+CPF-SELF-DEV-S4-009,P05,Starter Catalog·Publication,미통과 근거 확정,미통과,Catalog PackageBase와 실제 Persistence Config Package가 불일치하고 stale baseline/publication 검증도 미강제,Catalog/Source/Build/Publication 정합화 후 6 Profile Fresh Consumer 검증
+CPF-SCOPE-000001,P00-P05,"execution_order 1~10,027 전체",미통과,미통과,Requirement별 Source·Consumer·Test·Runtime Evidence 전체가 완료되지 않음,후속 개발 범위와 병행하되 기존 범위 결함을 같은 ID로 재개발

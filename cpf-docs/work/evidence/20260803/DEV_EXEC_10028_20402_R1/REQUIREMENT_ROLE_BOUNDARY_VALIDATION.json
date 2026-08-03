@@ -1,0 +1,739 @@
+{
+  "status": "PASS",
+  "allowed_columns": [
+    "개발GPT_evidence",
+    "개발GPT_미완료사유",
+    "개발GPT_상태",
+    "개발GPT_수행내용",
+    "개발GPT_수행여부",
+    "개발GPT_실행및검증",
+    "개발GPT_자체검사내용",
+    "개발GPT_자체검수evidence",
+    "개발GPT_자체검수결과",
+    "개발GPT_자체검수미완료사유",
+    "개발GPT_자체검수상태",
+    "개발GPT_자체검수여부",
+    "개발GPT_필요환경및권한"
+  ],
+  "files": [
+    {
+      "file": "CPF_REQUIREMENT_MASTER_PART_010_CPF-FR-014810__CPF-FR-016605.csv",
+      "changed_rows": 23,
+      "changed": [
+        {
+          "requirement_id": "CPF-FR-014998",
+          "columns": [
+            "개발GPT_수행여부",
+            "개발GPT_수행내용",
+            "개발GPT_미완료사유",
+            "개발GPT_실행및검증",
+            "개발GPT_필요환경및권한",
+            "개발GPT_evidence",
+            "개발GPT_자체검수여부",
+            "개발GPT_자체검사내용",
+            "개발GPT_자체검수결과",
+            "개발GPT_자체검수미완료사유",
+            "개발GPT_자체검수evidence"
+          ]
+        },
+        {
+          "requirement_id": "CPF-FR-014999",
+          "columns": [
+            "개발GPT_수행여부",
+            "개발GPT_수행내용",
+            "개발GPT_미완료사유",
+            "개발GPT_실행및검증",
+            "개발GPT_필요환경및권한",
+            "개발GPT_evidence",
+            "개발GPT_자체검수여부",
+            "개발GPT_자체검사내용",
+            "개발GPT_자체검수결과",
+            "개발GPT_자체검수미완료사유",
+            "개발GPT_자체검수evidence"
+          ]
+        },
+        {
+          "requirement_id": "CPF-FR-015003",
+          "columns": [
+            "개발GPT_수행여부",
+            "개발GPT_수행내용",
+            "개발GPT_미완료사유",
+            "개발GPT_실행및검증",
+            "개발GPT_필요환경및권한",
+            "개발GPT_evidence",
+            "개발GPT_자체검수여부",
+            "개발GPT_자체검사내용",
+            "개발GPT_자체검수결과",
+            "개발GPT_자체검수미완료사유",
+            "개발GPT_자체검수evidence"
+          ]
+        },
+        {
+          "requirement_id": "CPF-FR-015174",
+          "columns": [
+            "개발GPT_수행여부",
+            "개발GPT_수행내용",
+            "개발GPT_미완료사유",
+            "개발GPT_실행및검증",
+            "개발GPT_필요환경및권한",
+            "개발GPT_evidence",
+            "개발GPT_자체검수여부",
+            "개발GPT_자체검사내용",
+            "개발GPT_자체검수결과",
+            "개발GPT_자체검수미완료사유",
+            "개발GPT_자체검수evidence"
+          ]
+        },
+        {
+          "requirement_id": "CPF-FR-015175",
+          "columns": [
+            "개발GPT_수행여부",
+            "개발GPT_수행내용",
+            "개발GPT_미완료사유",
+            "개발GPT_실행및검증",
+            "개발GPT_필요환경및권한",
+            "개발GPT_evidence",
+            "개발GPT_자체검수여부",
+            "개발GPT_자체검사내용",
+            "개발GPT_자체검수결과",
+            "개발GPT_자체검수미완료사유",
+            "개발GPT_자체검수evidence"
+          ]
+        },
+        {
+          "requirement_id": "CPF-FR-015179",
+          "columns": [
+            "개발GPT_수행여부",
+            "개발GPT_수행내용",
+            "개발GPT_미완료사유",
+            "개발GPT_실행및검증",
+            "개발GPT_필요환경및권한",
+            "개발GPT_evidence",
+            "개발GPT_자체검수여부",
+            "개발GPT_자체검사내용",
+            "개발GPT_자체검수결과",
+            "개발GPT_자체검수미완료사유",
+            "개발GPT_자체검수evidence"
+          ]
+        },
+        {
+          "requirement_id": "CPF-FR-015190",
+          "columns": [
+            "개발GPT_수행여부",
+            "개발GPT_수행내용",
+            "개발GPT_미완료사유",
+            "개발GPT_실행및검증",
+            "개발GPT_필요환경및권한",
+            "개발GPT_evidence",
+            "개발GPT_자체검수여부",
+            "개발GPT_자체검사내용",
+            "개발GPT_자체검수결과",
+            "개발GPT_자체검수미완료사유",
+            "개발GPT_자체검수evidence"
+          ]
+        },
+        {
+          "requirement_id": "CPF-FR-015195",
+          "columns": [
+            "개발GPT_수행여부",
+            "개발GPT_수행내용",
+            "개발GPT_미완료사유",
+            "개발GPT_실행및검증",
+            "개발GPT_필요환경및권한",
+            "개발GPT_evidence",
+            "개발GPT_자체검수여부",
+            "개발GPT_자체검사내용",
+            "개발GPT_자체검수결과",
+            "개발GPT_자체검수미완료사유",
+            "개발GPT_자체검수evidence"
+          ]
+        },
+        {
+          "requirement_id": "CPF-FR-016374",
+          "columns": [
+            "개발GPT_수행여부",
+            "개발GPT_수행내용",
+            "개발GPT_미완료사유",
+            "개발GPT_실행및검증",
+            "개발GPT_필요환경및권한",
+            "개발GPT_evidence",
+            "개발GPT_자체검수여부",
+            "개발GPT_자체검사내용",
+            "개발GPT_자체검수결과",
+            "개발GPT_자체검수미완료사유",
+            "개발GPT_자체검수evidence"
+          ]
+        },
+        {
+          "requirement_id": "CPF-FR-016379",
+          "columns": [
+            "개발GPT_수행여부",
+            "개발GPT_수행내용",
+            "개발GPT_미완료사유",
+            "개발GPT_실행및검증",
+            "개발GPT_필요환경및권한",
+            "개발GPT_evidence",
+            "개발GPT_자체검수여부",
+            "개발GPT_자체검사내용",
+            "개발GPT_자체검수결과",
+            "개발GPT_자체검수미완료사유",
+            "개발GPT_자체검수evidence"
+          ]
+        },
+        {
+          "requirement_id": "CPF-FR-016380",
+          "columns": [
+            "개발GPT_수행여부",
+            "개발GPT_수행내용",
+            "개발GPT_미완료사유",
+            "개발GPT_실행및검증",
+            "개발GPT_필요환경및권한",
+            "개발GPT_evidence",
+            "개발GPT_자체검수여부",
+            "개발GPT_자체검사내용",
+            "개발GPT_자체검수결과",
+            "개발GPT_자체검수미완료사유",
+            "개발GPT_자체검수evidence"
+          ]
+        },
+        {
+          "requirement_id": "CPF-FR-016387",
+          "columns": [
+            "개발GPT_수행여부",
+            "개발GPT_수행내용",
+            "개발GPT_미완료사유",
+            "개발GPT_실행및검증",
+            "개발GPT_필요환경및권한",
+            "개발GPT_evidence",
+            "개발GPT_자체검수여부",
+            "개발GPT_자체검사내용",
+            "개발GPT_자체검수결과",
+            "개발GPT_자체검수미완료사유",
+            "개발GPT_자체검수evidence"
+          ]
+        },
+        {
+          "requirement_id": "CPF-FR-016388",
+          "columns": [
+            "개발GPT_수행여부",
+            "개발GPT_수행내용",
+            "개발GPT_미완료사유",
+            "개발GPT_실행및검증",
+            "개발GPT_필요환경및권한",
+            "개발GPT_evidence",
+            "개발GPT_자체검수여부",
+            "개발GPT_자체검사내용",
+            "개발GPT_자체검수결과",
+            "개발GPT_자체검수미완료사유",
+            "개발GPT_자체검수evidence"
+          ]
+        },
+        {
+          "requirement_id": "CPF-FR-016390",
+          "columns": [
+            "개발GPT_수행여부",
+            "개발GPT_수행내용",
+            "개발GPT_미완료사유",
+            "개발GPT_실행및검증",
+            "개발GPT_필요환경및권한",
+            "개발GPT_evidence",
+            "개발GPT_자체검수여부",
+            "개발GPT_자체검사내용",
+            "개발GPT_자체검수결과",
+            "개발GPT_자체검수미완료사유",
+            "개발GPT_자체검수evidence"
+          ]
+        },
+        {
+          "requirement_id": "CPF-FR-016395",
+          "columns": [
+            "개발GPT_수행여부",
+            "개발GPT_수행내용",
+            "개발GPT_미완료사유",
+            "개발GPT_실행및검증",
+            "개발GPT_필요환경및권한",
+            "개발GPT_evidence",
+            "개발GPT_자체검수여부",
+            "개발GPT_자체검사내용",
+            "개발GPT_자체검수결과",
+            "개발GPT_자체검수미완료사유",
+            "개발GPT_자체검수evidence"
+          ]
+        },
+        {
+          "requirement_id": "CPF-FR-016396",
+          "columns": [
+            "개발GPT_수행여부",
+            "개발GPT_수행내용",
+            "개발GPT_미완료사유",
+            "개발GPT_실행및검증",
+            "개발GPT_필요환경및권한",
+            "개발GPT_evidence",
+            "개발GPT_자체검수여부",
+            "개발GPT_자체검사내용",
+            "개발GPT_자체검수결과",
+            "개발GPT_자체검수미완료사유",
+            "개발GPT_자체검수evidence"
+          ]
+        },
+        {
+          "requirement_id": "CPF-FR-016411",
+          "columns": [
+            "개발GPT_수행여부",
+            "개발GPT_수행내용",
+            "개발GPT_미완료사유",
+            "개발GPT_실행및검증",
+            "개발GPT_필요환경및권한",
+            "개발GPT_evidence",
+            "개발GPT_자체검수여부",
+            "개발GPT_자체검사내용",
+            "개발GPT_자체검수결과",
+            "개발GPT_자체검수미완료사유",
+            "개발GPT_자체검수evidence"
+          ]
+        },
+        {
+          "requirement_id": "CPF-FR-016412",
+          "columns": [
+            "개발GPT_수행여부",
+            "개발GPT_수행내용",
+            "개발GPT_미완료사유",
+            "개발GPT_실행및검증",
+            "개발GPT_필요환경및권한",
+            "개발GPT_evidence",
+            "개발GPT_자체검수여부",
+            "개발GPT_자체검사내용",
+            "개발GPT_자체검수결과",
+            "개발GPT_자체검수미완료사유",
+            "개발GPT_자체검수evidence"
+          ]
+        },
+        {
+          "requirement_id": "CPF-FR-016446",
+          "columns": [
+            "개발GPT_수행여부",
+            "개발GPT_수행내용",
+            "개발GPT_미완료사유",
+            "개발GPT_실행및검증",
+            "개발GPT_필요환경및권한",
+            "개발GPT_evidence",
+            "개발GPT_자체검수여부",
+            "개발GPT_자체검사내용",
+            "개발GPT_자체검수결과",
+            "개발GPT_자체검수미완료사유",
+            "개발GPT_자체검수evidence"
+          ]
+        },
+        {
+          "requirement_id": "CPF-FR-016451",
+          "columns": [
+            "개발GPT_수행여부",
+            "개발GPT_수행내용",
+            "개발GPT_미완료사유",
+            "개발GPT_실행및검증",
+            "개발GPT_필요환경및권한",
+            "개발GPT_evidence",
+            "개발GPT_자체검수여부",
+            "개발GPT_자체검사내용",
+            "개발GPT_자체검수결과",
+            "개발GPT_자체검수미완료사유",
+            "개발GPT_자체검수evidence"
+          ]
+        },
+        {
+          "requirement_id": "CPF-FR-016452",
+          "columns": [
+            "개발GPT_수행여부",
+            "개발GPT_수행내용",
+            "개발GPT_미완료사유",
+            "개발GPT_실행및검증",
+            "개발GPT_필요환경및권한",
+            "개발GPT_evidence",
+            "개발GPT_자체검수여부",
+            "개발GPT_자체검사내용",
+            "개발GPT_자체검수결과",
+            "개발GPT_자체검수미완료사유",
+            "개발GPT_자체검수evidence"
+          ]
+        },
+        {
+          "requirement_id": "CPF-FR-016491",
+          "columns": [
+            "개발GPT_수행여부",
+            "개발GPT_수행내용",
+            "개발GPT_미완료사유",
+            "개발GPT_실행및검증",
+            "개발GPT_필요환경및권한",
+            "개발GPT_evidence",
+            "개발GPT_자체검수여부",
+            "개발GPT_자체검사내용",
+            "개발GPT_자체검수결과",
+            "개발GPT_자체검수미완료사유",
+            "개발GPT_자체검수evidence"
+          ]
+        },
+        {
+          "requirement_id": "CPF-FR-016492",
+          "columns": [
+            "개발GPT_수행여부",
+            "개발GPT_수행내용",
+            "개발GPT_미완료사유",
+            "개발GPT_실행및검증",
+            "개발GPT_필요환경및권한",
+            "개발GPT_evidence",
+            "개발GPT_자체검수여부",
+            "개발GPT_자체검사내용",
+            "개발GPT_자체검수결과",
+            "개발GPT_자체검수미완료사유",
+            "개발GPT_자체검수evidence"
+          ]
+        }
+      ],
+      "illegal": []
+    },
+    {
+      "file": "CPF_REQUIREMENT_MASTER_PART_011_CPF-FR-016606__CPF-FR-018347.csv",
+      "changed_rows": 21,
+      "changed": [
+        {
+          "requirement_id": "CPF-FR-017052",
+          "columns": [
+            "개발GPT_수행여부",
+            "개발GPT_수행내용",
+            "개발GPT_미완료사유",
+            "개발GPT_실행및검증",
+            "개발GPT_필요환경및권한",
+            "개발GPT_evidence",
+            "개발GPT_자체검수여부",
+            "개발GPT_자체검사내용",
+            "개발GPT_자체검수결과",
+            "개발GPT_자체검수미완료사유",
+            "개발GPT_자체검수evidence"
+          ]
+        },
+        {
+          "requirement_id": "CPF-FR-017071",
+          "columns": [
+            "개발GPT_수행여부",
+            "개발GPT_수행내용",
+            "개발GPT_미완료사유",
+            "개발GPT_실행및검증",
+            "개발GPT_필요환경및권한",
+            "개발GPT_evidence",
+            "개발GPT_자체검수여부",
+            "개발GPT_자체검사내용",
+            "개발GPT_자체검수결과",
+            "개발GPT_자체검수미완료사유",
+            "개발GPT_자체검수evidence"
+          ]
+        },
+        {
+          "requirement_id": "CPF-FR-017090",
+          "columns": [
+            "개발GPT_수행여부",
+            "개발GPT_수행내용",
+            "개발GPT_미완료사유",
+            "개발GPT_실행및검증",
+            "개발GPT_필요환경및권한",
+            "개발GPT_evidence",
+            "개발GPT_자체검수여부",
+            "개발GPT_자체검사내용",
+            "개발GPT_자체검수결과",
+            "개발GPT_자체검수미완료사유",
+            "개발GPT_자체검수evidence"
+          ]
+        },
+        {
+          "requirement_id": "CPF-FR-017109",
+          "columns": [
+            "개발GPT_수행여부",
+            "개발GPT_수행내용",
+            "개발GPT_미완료사유",
+            "개발GPT_실행및검증",
+            "개발GPT_필요환경및권한",
+            "개발GPT_evidence",
+            "개발GPT_자체검수여부",
+            "개발GPT_자체검사내용",
+            "개발GPT_자체검수결과",
+            "개발GPT_자체검수미완료사유",
+            "개발GPT_자체검수evidence"
+          ]
+        },
+        {
+          "requirement_id": "CPF-FR-017130",
+          "columns": [
+            "개발GPT_수행여부",
+            "개발GPT_수행내용",
+            "개발GPT_미완료사유",
+            "개발GPT_실행및검증",
+            "개발GPT_필요환경및권한",
+            "개발GPT_evidence",
+            "개발GPT_자체검수여부",
+            "개발GPT_자체검사내용",
+            "개발GPT_자체검수결과",
+            "개발GPT_자체검수미완료사유",
+            "개발GPT_자체검수evidence"
+          ]
+        },
+        {
+          "requirement_id": "CPF-FR-017149",
+          "columns": [
+            "개발GPT_수행여부",
+            "개발GPT_수행내용",
+            "개발GPT_미완료사유",
+            "개발GPT_실행및검증",
+            "개발GPT_필요환경및권한",
+            "개발GPT_evidence",
+            "개발GPT_자체검수여부",
+            "개발GPT_자체검사내용",
+            "개발GPT_자체검수결과",
+            "개발GPT_자체검수미완료사유",
+            "개발GPT_자체검수evidence"
+          ]
+        },
+        {
+          "requirement_id": "CPF-FR-017170",
+          "columns": [
+            "개발GPT_수행여부",
+            "개발GPT_수행내용",
+            "개발GPT_미완료사유",
+            "개발GPT_실행및검증",
+            "개발GPT_필요환경및권한",
+            "개발GPT_evidence",
+            "개발GPT_자체검수여부",
+            "개발GPT_자체검사내용",
+            "개발GPT_자체검수결과",
+            "개발GPT_자체검수미완료사유",
+            "개발GPT_자체검수evidence"
+          ]
+        },
+        {
+          "requirement_id": "CPF-FR-017191",
+          "columns": [
+            "개발GPT_수행여부",
+            "개발GPT_수행내용",
+            "개발GPT_미완료사유",
+            "개발GPT_실행및검증",
+            "개발GPT_필요환경및권한",
+            "개발GPT_evidence",
+            "개발GPT_자체검수여부",
+            "개발GPT_자체검사내용",
+            "개발GPT_자체검수결과",
+            "개발GPT_자체검수미완료사유",
+            "개발GPT_자체검수evidence"
+          ]
+        },
+        {
+          "requirement_id": "CPF-FR-017210",
+          "columns": [
+            "개발GPT_수행여부",
+            "개발GPT_수행내용",
+            "개발GPT_미완료사유",
+            "개발GPT_실행및검증",
+            "개발GPT_필요환경및권한",
+            "개발GPT_evidence",
+            "개발GPT_자체검수여부",
+            "개발GPT_자체검사내용",
+            "개발GPT_자체검수결과",
+            "개발GPT_자체검수미완료사유",
+            "개발GPT_자체검수evidence"
+          ]
+        },
+        {
+          "requirement_id": "CPF-FR-017229",
+          "columns": [
+            "개발GPT_수행여부",
+            "개발GPT_수행내용",
+            "개발GPT_미완료사유",
+            "개발GPT_실행및검증",
+            "개발GPT_필요환경및권한",
+            "개발GPT_evidence",
+            "개발GPT_자체검수여부",
+            "개발GPT_자체검사내용",
+            "개발GPT_자체검수결과",
+            "개발GPT_자체검수미완료사유",
+            "개발GPT_자체검수evidence"
+          ]
+        },
+        {
+          "requirement_id": "CPF-FR-017248",
+          "columns": [
+            "개발GPT_수행여부",
+            "개발GPT_수행내용",
+            "개발GPT_미완료사유",
+            "개발GPT_실행및검증",
+            "개발GPT_필요환경및권한",
+            "개발GPT_evidence",
+            "개발GPT_자체검수여부",
+            "개발GPT_자체검사내용",
+            "개발GPT_자체검수결과",
+            "개발GPT_자체검수미완료사유",
+            "개발GPT_자체검수evidence"
+          ]
+        },
+        {
+          "requirement_id": "CPF-FR-017269",
+          "columns": [
+            "개발GPT_수행여부",
+            "개발GPT_수행내용",
+            "개발GPT_미완료사유",
+            "개발GPT_실행및검증",
+            "개발GPT_필요환경및권한",
+            "개발GPT_evidence",
+            "개발GPT_자체검수여부",
+            "개발GPT_자체검사내용",
+            "개발GPT_자체검수결과",
+            "개발GPT_자체검수미완료사유",
+            "개발GPT_자체검수evidence"
+          ]
+        },
+        {
+          "requirement_id": "CPF-FR-017290",
+          "columns": [
+            "개발GPT_수행여부",
+            "개발GPT_수행내용",
+            "개발GPT_미완료사유",
+            "개발GPT_실행및검증",
+            "개발GPT_필요환경및권한",
+            "개발GPT_evidence",
+            "개발GPT_자체검수여부",
+            "개발GPT_자체검사내용",
+            "개발GPT_자체검수결과",
+            "개발GPT_자체검수미완료사유",
+            "개발GPT_자체검수evidence"
+          ]
+        },
+        {
+          "requirement_id": "CPF-FR-017313",
+          "columns": [
+            "개발GPT_수행여부",
+            "개발GPT_수행내용",
+            "개발GPT_미완료사유",
+            "개발GPT_실행및검증",
+            "개발GPT_필요환경및권한",
+            "개발GPT_evidence",
+            "개발GPT_자체검수여부",
+            "개발GPT_자체검사내용",
+            "개발GPT_자체검수결과",
+            "개발GPT_자체검수미완료사유",
+            "개발GPT_자체검수evidence"
+          ]
+        },
+        {
+          "requirement_id": "CPF-FR-017336",
+          "columns": [
+            "개발GPT_수행여부",
+            "개발GPT_수행내용",
+            "개발GPT_미완료사유",
+            "개발GPT_실행및검증",
+            "개발GPT_필요환경및권한",
+            "개발GPT_evidence",
+            "개발GPT_자체검수여부",
+            "개발GPT_자체검사내용",
+            "개발GPT_자체검수결과",
+            "개발GPT_자체검수미완료사유",
+            "개발GPT_자체검수evidence"
+          ]
+        },
+        {
+          "requirement_id": "CPF-FR-017359",
+          "columns": [
+            "개발GPT_수행여부",
+            "개발GPT_수행내용",
+            "개발GPT_미완료사유",
+            "개발GPT_실행및검증",
+            "개발GPT_필요환경및권한",
+            "개발GPT_evidence",
+            "개발GPT_자체검수여부",
+            "개발GPT_자체검사내용",
+            "개발GPT_자체검수결과",
+            "개발GPT_자체검수미완료사유",
+            "개발GPT_자체검수evidence"
+          ]
+        },
+        {
+          "requirement_id": "CPF-FR-017378",
+          "columns": [
+            "개발GPT_수행여부",
+            "개발GPT_수행내용",
+            "개발GPT_미완료사유",
+            "개발GPT_실행및검증",
+            "개발GPT_필요환경및권한",
+            "개발GPT_evidence",
+            "개발GPT_자체검수여부",
+            "개발GPT_자체검사내용",
+            "개발GPT_자체검수결과",
+            "개발GPT_자체검수미완료사유",
+            "개발GPT_자체검수evidence"
+          ]
+        },
+        {
+          "requirement_id": "CPF-FR-017401",
+          "columns": [
+            "개발GPT_수행여부",
+            "개발GPT_수행내용",
+            "개발GPT_미완료사유",
+            "개발GPT_실행및검증",
+            "개발GPT_필요환경및권한",
+            "개발GPT_evidence",
+            "개발GPT_자체검수여부",
+            "개발GPT_자체검사내용",
+            "개발GPT_자체검수결과",
+            "개발GPT_자체검수미완료사유",
+            "개발GPT_자체검수evidence"
+          ]
+        },
+        {
+          "requirement_id": "CPF-FR-017420",
+          "columns": [
+            "개발GPT_수행여부",
+            "개발GPT_수행내용",
+            "개발GPT_미완료사유",
+            "개발GPT_실행및검증",
+            "개발GPT_필요환경및권한",
+            "개발GPT_evidence",
+            "개발GPT_자체검수여부",
+            "개발GPT_자체검사내용",
+            "개발GPT_자체검수결과",
+            "개발GPT_자체검수미완료사유",
+            "개발GPT_자체검수evidence"
+          ]
+        },
+        {
+          "requirement_id": "CPF-FR-017441",
+          "columns": [
+            "개발GPT_수행여부",
+            "개발GPT_수행내용",
+            "개발GPT_미완료사유",
+            "개발GPT_실행및검증",
+            "개발GPT_필요환경및권한",
+            "개발GPT_evidence",
+            "개발GPT_자체검수여부",
+            "개발GPT_자체검사내용",
+            "개발GPT_자체검수결과",
+            "개발GPT_자체검수미완료사유",
+            "개발GPT_자체검수evidence"
+          ]
+        },
+        {
+          "requirement_id": "CPF-FR-017462",
+          "columns": [
+            "개발GPT_수행여부",
+            "개발GPT_수행내용",
+            "개발GPT_미완료사유",
+            "개발GPT_실행및검증",
+            "개발GPT_필요환경및권한",
+            "개발GPT_evidence",
+            "개발GPT_자체검수여부",
+            "개발GPT_자체검사내용",
+            "개발GPT_자체검수결과",
+            "개발GPT_자체검수미완료사유",
+            "개발GPT_자체검수evidence"
+          ]
+        }
+      ],
+      "illegal": []
+    }
+  ],
+  "total_changed_rows": 44
+}

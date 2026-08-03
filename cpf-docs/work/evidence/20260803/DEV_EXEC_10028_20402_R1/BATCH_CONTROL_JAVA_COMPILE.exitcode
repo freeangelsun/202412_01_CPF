@@ -1,0 +1,2 @@
+command=javac --release 21 batch control synthetic dependency fixture
+exit_code=0

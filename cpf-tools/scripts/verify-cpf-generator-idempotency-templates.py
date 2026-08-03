@@ -8,7 +8,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 root = Path(sys.argv[1] if len(sys.argv) > 1 else '.').resolve()
-generator = (root / 'cpf-tools/scripts/create-domain.ps1').read_text(encoding='utf-8')
+generator = (root / 'cpf-tools/generator/create-domain.ps1').read_text(encoding='utf-8')
 errors: list[str] = []
 
 required_generator_tokens = (

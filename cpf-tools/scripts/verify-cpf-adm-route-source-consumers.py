@@ -22,6 +22,14 @@ ROUTE_LINE = re.compile(
     r'^\s*"(?P<id>[^"]+)":\s*\{.*?expectedOperationIds:\s*\[(?P<ops>.*?)\],\s*component:\s*defineAsyncComponent\(\(\)\s*=>\s*import\("(?P<component>[^"]+)"\)\)',
     re.M,
 )
+ROUTE_REGISTRY_ENTRY = re.compile(
+    r'^\s*"(?P<id>[^"]+)":\s*\{\s*routeId:\s*"(?P<route_id>[^"]+)".*?menuId:\s*"(?P<menu_id>[^"]+)"',
+    re.M,
+)
+MENU_LOOKUP = re.compile(
+    r'function\s+menuIdFromRouteName\([^)]*\)[^{]*\{(?P<body>.*?)\}',
+    re.S,
+)
 DESCRIPTOR = re.compile(
     r'\{\s*method:\s*"(?P<method>[A-Z]+)",\s*template:\s*"(?P<template>[^"]+)",\s*operationId:\s*"(?P<operation>[^"]+)"\s*\}'
 )
@@ -83,8 +91,32 @@ def read_routes(path: Path) -> dict[str, tuple[str, set[str]]]:
             raise ContractError(f"duplicate route id: {route_id}")
         operations = set(re.findall(r'"([^"]+)"', match.group("ops")))
         rows[route_id] = (match.group("component"), operations)
-    if len(rows) != 59:
-        raise ContractError(f"ADM route registry cardinality must be 59: {len(rows)}")
+    declared: dict[str, tuple[str, str]] = {}
+    for match in ROUTE_REGISTRY_ENTRY.finditer(text):
+        key = match.group("id")
+        route_id = match.group("route_id")
+        menu_id = match.group("menu_id")
+        if key in declared:
+            raise ContractError(f"duplicate route registry key: {key}")
+        if key != route_id:
+            raise ContractError(f"route registry key/id mismatch: {key} != {route_id}")
+        if not menu_id.strip():
+            raise ContractError(f"route menu id is blank: {key}")
+        declared[key] = (route_id, menu_id)
+    if not declared:
+        raise ContractError("ADM route registry is empty")
+    missing = sorted(set(declared) - set(rows))
+    unexpected = sorted(set(rows) - set(declared))
+    if missing or unexpected:
+        raise ContractError(
+            f"ADM route parser/registry mismatch missing={missing} unexpected={unexpected}"
+        )
+    menu_lookup = MENU_LOOKUP.search(text)
+    if not menu_lookup:
+        raise ContractError("menuIdFromRouteName contract is missing")
+    body = menu_lookup.group("body")
+    if ".menuId" not in body or ".routeId" in body:
+        raise ContractError("menuIdFromRouteName must project the backend menuId")
     return rows
 
 

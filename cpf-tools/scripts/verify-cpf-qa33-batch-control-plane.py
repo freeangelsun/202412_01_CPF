@@ -81,6 +81,7 @@ def main() -> int:
                 f"approved-launch {name} SQL is not fail-closed", failures)
 
     for marker in ("BATCH_START_RESPONSE_UNKNOWN", "reconcile(cpfExecutionId)", "JobRepository",
+                   "RECONCILE_PAGE_SIZE", "while (true)", "start += instances.size()",
                    "getJobInstances", "getJobExecutions"):
         require(marker in control, f"missing unknown-result reconciliation marker: {marker}", failures)
     require("JobExplorer" not in control,

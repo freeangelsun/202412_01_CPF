@@ -10,6 +10,7 @@ import com.cpf.batch.spi.BatchExecutionLedgerPort;
 import com.cpf.batch.spi.BatchFencingPort;
 import java.time.Instant;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -25,6 +26,7 @@ import org.springframework.batch.core.repository.JobRepository;
 
 /** CPF Batch Control Plane을 Spring Batch JobOperator 생명주기에 연결하는 상태기계입니다. */
 public final class CpfSpringBatchExecutionControl implements BatchExecutionControlPort {
+    private static final int RECONCILE_PAGE_SIZE = 100;
     private final JobOperator operator;
     private final JobRepository repository;
     private final CpfBatchJobFactory jobs;
@@ -151,10 +153,7 @@ public final class CpfSpringBatchExecutionControl implements BatchExecutionContr
 
         String jobName = CpfBatchJobFactory.jobName(
                 reservation.jobId(), reservation.definitionVersion(), reservation.planChecksum());
-        Optional<JobExecution> recovered = repository.getJobInstances(jobName, 0, 100).stream()
-                .flatMap(instance -> repository.getJobExecutions(instance).stream())
-                .filter(execution -> cpfExecutionId.equals(execution.getJobParameters().getString("cpfExecutionId")))
-                .max(Comparator.comparing(JobExecution::getId));
+        Optional<JobExecution> recovered = findExecution(jobName, cpfExecutionId);
         if (recovered.isPresent()) {
             BatchExecutionLink observed = link(cpfExecutionId, reservation.jobId(), reservation.definitionVersion(),
                     reservation.fencingToken(), recovered.get());
@@ -166,6 +165,23 @@ public final class CpfSpringBatchExecutionControl implements BatchExecutionContr
                 "No Spring Batch metadata matched the CPF reservation");
         throw new CpfBatchUnknownResultException(
                 "BATCH_RECONCILE_NOT_FOUND", "No Spring Batch execution found for " + cpfExecutionId);
+    }
+
+
+    private Optional<JobExecution> findExecution(String jobName, String cpfExecutionId) {
+        int start = 0;
+        while (true) {
+            List<JobInstance> instances = repository.getJobInstances(jobName, start, RECONCILE_PAGE_SIZE);
+            Optional<JobExecution> recovered = instances.stream()
+                    .flatMap(instance -> repository.getJobExecutions(instance).stream())
+                    .filter(execution -> cpfExecutionId.equals(
+                            execution.getJobParameters().getString("cpfExecutionId")))
+                    .max(Comparator.comparing(JobExecution::getId));
+            if (recovered.isPresent() || instances.size() < RECONCILE_PAGE_SIZE) {
+                return recovered;
+            }
+            start += instances.size();
+        }
     }
 
     public BatchExecutionLink recover(long jobExecutionId, String operatorId, String reason) {

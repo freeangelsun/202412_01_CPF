@@ -1,0 +1,26 @@
+﻿qa_finding_id,qa_requirement_id,severity,target_role,qa_source_path,future_development_action,qa_original_mutation_allowed,merge_status
+QA-DEV-S4-001,CPF-SELF-DEV-S4-001..009,HIGH,Codex,cpf-docs/work/qa/qa-dev-r1-20260803-r2/QA_DEV_R1_FINDINGS.csv,다음 개발 Batch 신규 Requirement 행으로 머지,아니오,대기
+QA-DEV-S4-002,CPF-XFER-S4-JAVA25,HIGH,Codex,cpf-docs/work/qa/qa-dev-r1-20260803-r2/QA_DEV_R1_FINDINGS.csv,다음 개발 Batch 신규 Requirement 행으로 머지,아니오,대기
+QA-DEV-S4-003,CPF-SELF-DEV-S4-002,CRITICAL,개발GPT/Codex,cpf-docs/work/qa/qa-dev-r1-20260803-r2/QA_DEV_R1_FINDINGS.csv,다음 개발 Batch 신규 Requirement 행으로 머지,아니오,대기
+QA-DEV-S4-004,CPF-SELF-DEV-S4-003,HIGH,개발GPT,cpf-docs/work/qa/qa-dev-r1-20260803-r2/QA_DEV_R1_FINDINGS.csv,다음 개발 Batch 신규 Requirement 행으로 머지,아니오,대기
+QA-DEV-S4-005,CPF-SELF-DEV-S4-005,HIGH,개발GPT,cpf-docs/work/qa/qa-dev-r1-20260803-r2/QA_DEV_R1_FINDINGS.csv,다음 개발 Batch 신규 Requirement 행으로 머지,아니오,대기
+QA-DEV-S4-006,CPF-SELF-DEV-S4-006,CRITICAL,개발GPT,cpf-docs/work/qa/qa-dev-r1-20260803-r2/QA_DEV_R1_FINDINGS.csv,다음 개발 Batch 신규 Requirement 행으로 머지,아니오,대기
+QA-DEV-S4-007,CPF-SELF-DEV-S4-006,MEDIUM,개발GPT,cpf-docs/work/qa/qa-dev-r1-20260803-r2/QA_DEV_R1_FINDINGS.csv,다음 개발 Batch 신규 Requirement 행으로 머지,아니오,대기
+QA-DEV-S4-008,CPF-SELF-DEV-S4-006,HIGH,개발GPT,cpf-docs/work/qa/qa-dev-r1-20260803-r2/QA_DEV_R1_FINDINGS.csv,다음 개발 Batch 신규 Requirement 행으로 머지,아니오,대기
+QA-DEV-S4-009,CPF-SELF-DEV-S4-006,HIGH,개발GPT,cpf-docs/work/qa/qa-dev-r1-20260803-r2/QA_DEV_R1_FINDINGS.csv,다음 개발 Batch 신규 Requirement 행으로 머지,아니오,대기
+QA-DEV-S4-010,CPF-SELF-DEV-S4-001..009,CRITICAL,개발GPT,cpf-docs/work/qa/qa-dev-r1-20260803-r2/QA_DEV_R1_FINDINGS.csv,다음 개발 Batch 신규 Requirement 행으로 머지,아니오,대기
+QA-DEV-S4-011,CPF-SELF-DEV-S4-001..009,HIGH,개발GPT/Codex,cpf-docs/work/qa/qa-dev-r1-20260803-r2/QA_DEV_R1_FINDINGS.csv,다음 개발 Batch 신규 Requirement 행으로 머지,아니오,대기
+QA-DEV-S4-012,CPF-SELF-DEV-S4-001,CRITICAL,개발GPT,cpf-docs/work/qa/qa-dev-r1-20260803-r2/QA_DEV_R1_FINDINGS.csv,다음 개발 Batch 신규 Requirement 행으로 머지,아니오,대기
+QA-DEV-S4-013,CPF-SELF-DEV-S4-001,HIGH,개발GPT,cpf-docs/work/qa/qa-dev-r1-20260803-r2/QA_DEV_R1_FINDINGS.csv,다음 개발 Batch 신규 Requirement 행으로 머지,아니오,대기
+QA-DEV-S4-014,CPF-SELF-DEV-S4-002,CRITICAL,Codex,cpf-docs/work/qa/qa-dev-r1-20260803-r2/QA_DEV_R1_FINDINGS.csv,다음 개발 Batch 신규 Requirement 행으로 머지,아니오,대기
+QA-DEV-S4-015,CPF-SELF-DEV-S4-002,HIGH,개발GPT,cpf-docs/work/qa/qa-dev-r1-20260803-r2/QA_DEV_R1_FINDINGS.csv,다음 개발 Batch 신규 Requirement 행으로 머지,아니오,대기
+QA-DEV-S4-016,CPF-SELF-DEV-S4-003,HIGH,개발GPT,cpf-docs/work/qa/qa-dev-r1-20260803-r2/QA_DEV_R1_FINDINGS.csv,다음 개발 Batch 신규 Requirement 행으로 머지,아니오,대기
+QA-DEV-S4-017,CPF-SELF-DEV-S4-004,HIGH,개발GPT,cpf-docs/work/qa/qa-dev-r1-20260803-r2/QA_DEV_R1_FINDINGS.csv,다음 개발 Batch 신규 Requirement 행으로 머지,아니오,대기
+QA-DEV-S4-018,CPF-SELF-DEV-S4-005,CRITICAL,개발GPT,cpf-docs/work/qa/qa-dev-r1-20260803-r2/QA_DEV_R1_FINDINGS.csv,다음 개발 Batch 신규 Requirement 행으로 머지,아니오,대기
+QA-DEV-S4-019,CPF-SELF-DEV-S4-006,HIGH,개발GPT/Codex,cpf-docs/work/qa/qa-dev-r1-20260803-r2/QA_DEV_R1_FINDINGS.csv,다음 개발 Batch 신규 Requirement 행으로 머지,아니오,대기
+QA-DEV-S4-020,CPF-SELF-DEV-S4-007,CRITICAL,개발GPT,cpf-docs/work/qa/qa-dev-r1-20260803-r2/QA_DEV_R1_FINDINGS.csv,다음 개발 Batch 신규 Requirement 행으로 머지,아니오,대기
+QA-DEV-S4-021,CPF-SELF-DEV-S4-007,MEDIUM,Codex/외부환경,cpf-docs/work/qa/qa-dev-r1-20260803-r2/QA_DEV_R1_FINDINGS.csv,다음 개발 Batch 신규 Requirement 행으로 머지,아니오,대기
+QA-DEV-S4-022,CPF-SELF-DEV-S4-008,CRITICAL,개발GPT,cpf-docs/work/qa/qa-dev-r1-20260803-r2/QA_DEV_R1_FINDINGS.csv,다음 개발 Batch 신규 Requirement 행으로 머지,아니오,대기
+QA-DEV-S4-023,CPF-SELF-DEV-S4-008,HIGH,개발GPT,cpf-docs/work/qa/qa-dev-r1-20260803-r2/QA_DEV_R1_FINDINGS.csv,다음 개발 Batch 신규 Requirement 행으로 머지,아니오,대기
+QA-DEV-S4-024,CPF-SELF-DEV-S4-009,HIGH,개발GPT,cpf-docs/work/qa/qa-dev-r1-20260803-r2/QA_DEV_R1_FINDINGS.csv,다음 개발 Batch 신규 Requirement 행으로 머지,아니오,대기
+QA-DEV-S4-025,CPF-SELF-DEV-S4-009,HIGH,개발GPT/Codex,cpf-docs/work/qa/qa-dev-r1-20260803-r2/QA_DEV_R1_FINDINGS.csv,다음 개발 Batch 신규 Requirement 행으로 머지,아니오,대기

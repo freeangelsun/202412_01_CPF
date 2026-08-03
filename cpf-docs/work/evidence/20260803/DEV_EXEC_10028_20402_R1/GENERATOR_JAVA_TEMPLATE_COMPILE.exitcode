@@ -1,0 +1,2 @@
+command=verify-cpf-generator-java-template-compile.py exact-SHA canonical generator fixture
+exit_code=0

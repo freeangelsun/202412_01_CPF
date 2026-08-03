@@ -1,0 +1,2 @@
+command=verify-cpf-generator-idempotency-templates.py synthetic exact-SHA source fixture
+exit_code=0

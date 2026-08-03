@@ -250,6 +250,10 @@ try {
     Invoke-CpfGate 'Legacy BAT migration' {
         & pwsh -NoProfile -File .\cpf-tools\scripts\check-legacy-batch-migration.ps1
     }
+    Invoke-CpfGate 'Spring Batch Control Plane fencing and reconciliation' {
+        & python .\cpf-tools\scripts\verify-cpf-qa33-batch-control-plane.py --root $RepoRoot `
+            --json-report .\build\reports\cpf\qa33-batch-control-plane.json
+    }
     Invoke-CpfGate 'Final source architecture gates' {
         & $gradle verifyCpfFinalSourceGates --no-daemon
     }
@@ -283,11 +287,20 @@ try {
     Invoke-CpfGate 'Generated arbitrary-domain parity' {
         & pwsh -NoProfile -File .\cpf-tools\scripts\check-generator-arbitrary-domain-parity.ps1
     }
+    Invoke-CpfGate 'Canonical generator Java template compile' {
+        & python .\cpf-tools\scripts\verify-cpf-generator-java-template-compile.py $RepoRoot
+    }
+    Invoke-CpfGate 'Generated Domain idempotency and three-DB lifecycle templates' {
+        & python .\cpf-tools\scripts\verify-cpf-generator-idempotency-templates.py $RepoRoot
+    }
     Invoke-CpfGate 'SQL canonical/static synchronization' {
         & $gradle checkSqlCanonical --no-daemon
     }
 
     if (-not $SkipFrontend) {
+        Invoke-CpfGate 'ADM route source consumer and generated operation closure' {
+            & python .\cpf-tools\scripts\verify-cpf-adm-route-source-consumers.py --root $RepoRoot
+        }
         Invoke-CpfGate 'ADM frontend' {
             & $gradle :cpf-admin:frontendVerify --no-daemon
         }

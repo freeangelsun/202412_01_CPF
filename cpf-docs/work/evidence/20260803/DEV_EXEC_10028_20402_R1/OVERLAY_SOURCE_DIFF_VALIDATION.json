@@ -1,0 +1,68 @@
+{
+  "files": [
+    {
+      "path": "cpf-admin/frontend/src/app/routes.ts",
+      "baseline": "routes.ts",
+      "additions": 1,
+      "deletions": 1,
+      "sha256": "26f6ad3756c48c80c02cf69eb7fb3358fb894281a452bd156d364b2de5a1f072"
+    },
+    {
+      "path": "cpf-admin/frontend/src/app/routes.test.ts",
+      "baseline": "routes.test.ts",
+      "additions": 5,
+      "deletions": 0,
+      "sha256": "9e0a8cc80956cc9ebfdb33b194d2fbaefa48d6b9b2748e4e260a8712de6affb1"
+    },
+    {
+      "path": "cpf-batch/execution-runtime/src/main/java/com/cpf/batch/execution/CpfSpringBatchExecutionControl.java",
+      "baseline": "CpfSpringBatchExecutionControl.java",
+      "additions": 20,
+      "deletions": 4,
+      "sha256": "6add497e98dde4db3be3803e1fcdf1a98ec41664ae6841ae3374110432bbab87"
+    },
+    {
+      "path": "cpf-batch/execution-runtime/src/test/java/com/cpf/batch/execution/CpfSpringBatchExecutionControlParametersTest.java",
+      "baseline": "CpfSpringBatchExecutionControlParametersTest.java",
+      "additions": 50,
+      "deletions": 0,
+      "sha256": "a21fe6a2e9bb7d84f714b97dcbb7a4ecdfe95ff6e0e94287212767a2a4f4b903"
+    },
+    {
+      "path": "cpf-tools/scripts/verify-cpf-adm-route-source-consumers.py",
+      "baseline": "verify-cpf-adm-route-source-consumers.py",
+      "additions": 34,
+      "deletions": 2,
+      "sha256": "b33ca466129e04ac82a9f9cc70f1daf852e9a6f757f10672c87ceb85e4541e19"
+    },
+    {
+      "path": "cpf-tools/scripts/verify-cpf-final-completion.ps1",
+      "baseline": "verify-cpf-final-completion.ps1",
+      "additions": 13,
+      "deletions": 0,
+      "sha256": "69fb84a2590f87c1392c0be9e264d28688a7b19e6065e8e01febdf83a5413d9f"
+    },
+    {
+      "path": "cpf-tools/scripts/verify-cpf-generator-java-template-compile.py",
+      "baseline": "verify-cpf-generator-java-template-compile.py",
+      "additions": 137,
+      "deletions": 56,
+      "sha256": "71564986ed9be98733fe20a770ba1385581d3ee918e55717c9ec6aa589e26896"
+    },
+    {
+      "path": "cpf-tools/scripts/verify-cpf-generator-idempotency-templates.py",
+      "baseline": "verify-cpf-generator-idempotency-templates.py",
+      "additions": 1,
+      "deletions": 1,
+      "sha256": "bead1a254f207980f2d6c7e7ca9917aba259d8687f0d815c92079ceab685ea47"
+    },
+    {
+      "path": "cpf-tools/scripts/verify-cpf-qa33-batch-control-plane.py",
+      "baseline": "verify-cpf-qa33-batch-control-plane.py",
+      "additions": 1,
+      "deletions": 0,
+      "sha256": "3b8b5a8cf9a205f0bada5825ad132d4934f2ece3ad24e10a8ad3dc7778d96c16"
+    }
+  ],
+  "errors": []
+}

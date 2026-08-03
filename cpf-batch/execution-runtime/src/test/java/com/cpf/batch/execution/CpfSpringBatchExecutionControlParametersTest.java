@@ -22,6 +22,7 @@ import com.cpf.batch.spi.BatchFencingPort;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -94,6 +95,55 @@ class CpfSpringBatchExecutionControlParametersTest {
         assertEquals("COMPLETED", link.status());
         verify(repository).getJobInstances(jobName, 0, 100);
         verify(repository).getJobExecutions(instance);
+        verify(ledger).bind(link);
+    }
+
+
+    @Test
+    void reconcilesBeyondTheFirstHundredJobInstances() {
+        JobOperator operator = mock(JobOperator.class);
+        JobRepository repository = mock(JobRepository.class);
+        CpfBatchJobFactory jobs = mock(CpfBatchJobFactory.class);
+        BatchExecutionLedgerPort ledger = mock(BatchExecutionLedgerPort.class);
+        BatchFencingPort fencing = mock(BatchFencingPort.class);
+        String cpfExecutionId = "CPF-EXECUTION-PAGED";
+        String checksum = "c".repeat(64);
+        Instant now = Instant.parse("2026-08-03T00:00:00Z");
+        BatchExecutionReservation reservation = new BatchExecutionReservation(
+                cpfExecutionId, "BAT.PAGED", 9L, "APR-PAGED", "BAT.PAGED", "IDEM-PAGED",
+                "e".repeat(64), checksum, 13L, BatchControlState.UNKNOWN_RESULT,
+                null, null, 0, null, now);
+        JobInstance unrelatedInstance = mock(JobInstance.class);
+        JobExecution unrelatedExecution = mock(JobExecution.class);
+        JobInstance targetInstance = mock(JobInstance.class);
+        JobExecution targetExecution = mock(JobExecution.class);
+        when(ledger.findReservation(cpfExecutionId)).thenReturn(Optional.of(reservation));
+        when(ledger.findByCpfExecutionId(cpfExecutionId)).thenReturn(List.of());
+        String jobName = CpfBatchJobFactory.jobName("BAT.PAGED", 9L, checksum);
+        when(repository.getJobInstances(jobName, 0, 100))
+                .thenReturn(Collections.nCopies(100, unrelatedInstance));
+        when(repository.getJobExecutions(unrelatedInstance)).thenReturn(List.of(unrelatedExecution));
+        when(unrelatedExecution.getJobParameters()).thenReturn(new JobParametersBuilder()
+                .addString("cpfExecutionId", "CPF-EXECUTION-OTHER")
+                .toJobParameters());
+        when(repository.getJobInstances(jobName, 100, 100)).thenReturn(List.of(targetInstance));
+        when(repository.getJobExecutions(targetInstance)).thenReturn(List.of(targetExecution));
+        when(targetExecution.getJobParameters()).thenReturn(new JobParametersBuilder()
+                .addString("cpfExecutionId", cpfExecutionId)
+                .toJobParameters());
+        when(targetExecution.getId()).thenReturn(901L);
+        when(targetExecution.getJobInstance()).thenReturn(targetInstance);
+        when(targetExecution.getStatus()).thenReturn(BatchStatus.COMPLETED);
+        when(targetInstance.getInstanceId()).thenReturn(801L);
+        CpfSpringBatchExecutionControl control = new CpfSpringBatchExecutionControl(
+                operator, repository, jobs, ledger, fencing);
+
+        BatchExecutionLink link = control.reconcile(cpfExecutionId);
+
+        assertEquals(901L, link.jobExecutionId());
+        assertEquals(801L, link.jobInstanceId());
+        verify(repository).getJobInstances(jobName, 0, 100);
+        verify(repository).getJobInstances(jobName, 100, 100);
         verify(ledger).bind(link);
     }
 

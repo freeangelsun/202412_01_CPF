@@ -1,0 +1,195 @@
+﻿work_package_id,phase_id,requirement_count,priority_distribution,owner_modules,capabilities,public_contract_or_db_risk,required_review,status
+P05-INTEGRATION-LATEST-RESILIENCE-CAPABILITY,P05,52,"{""P1"": 52}",cpf-core contract + integration starter,LATEST-RESILIENCE-CAPABILITY,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P05-RELIABILITY-IDEMPOTENCY,P05,84,"{""P0"": 84}",cpf-core,Idempotency,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P05-RELIABILITY-LOCKING,P05,72,"{""P0"": 72}",cpf-core,Locking,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P05-RELIABILITY-RESILIENCE,P05,108,"{""P1"": 108}",cpf-core contract + integration starter,Resilience,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P05-OBSERVABILITY-LOGGING,P05,90,"{""P0"": 90}",cpf-core,Logging,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P05-OBSERVABILITY-TRACING,P05,78,"{""P0"": 78}",cpf-core,Tracing,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P05-FILE-FILE-CONTRACT,P05,120,"{""P1"": 120}",cpf-core contract + file starter,File Contract,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P05-INTEGRATION-FIXED-LENGTH,P05,90,"{""P1"": 90}",cpf-core contract + integration starter,Fixed-Length,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P05-MESSAGING-EVENT-CONTRACT,P05,120,"{""P0"": 120}",cpf-core contract + provider starter,Event Contract,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P05-MESSAGING-PROVIDER-KAFKA,P05,96,"{""P0"": 96}",cpf-core contract + provider starter,Kafka,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P05-MESSAGING-PROVIDER-RABBITMQ-AMQP,P05,96,"{""P0"": 96}",cpf-core contract + provider starter,RabbitMQ AMQP,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P05-MESSAGING-PROVIDER-JAKARTA-JMS,P05,96,"{""P0"": 96}",cpf-core contract + provider starter,Jakarta JMS,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P05-MESSAGING-PROVIDER-IBM-MQ,P05,96,"{""P0"": 96}",cpf-core contract + provider starter,IBM MQ,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P05-MESSAGING-OUTBOX-INBOX-DLQ,P05,108,"{""P0"": 108}",cpf-core contract + provider starter,Outbox/Inbox/DLQ,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P05-STARTER-MINIMAL-DOMAIN,P05,12,"{""P0"": 12}",cpf-starters/profile-minimal-domain,minimal-domain,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P05-STARTER-WEB-API,P05,12,"{""P0"": 12}",cpf-starters/profile-web-api,web-api,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P05-STARTER-SECURE-API,P05,12,"{""P0"": 12}",cpf-starters/profile-secure-api,secure-api,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P05-STARTER-BROWSER-BFF,P05,12,"{""P0"": 12}",cpf-starters/profile-browser-bff,browser-bff,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P05-STARTER-EVENT-SERVICE,P05,12,"{""P0"": 12}",cpf-starters/profile-event-service,event-service,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P05-STARTER-BATCH-SERVICE,P05,12,"{""P0"": 12}",cpf-starters/profile-batch-service,batch-service,HIGH,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P05-STARTER-STANDARD-FOUNDATION,P05,12,"{""P0"": 12}",cpf-starters/base,standard foundation,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P05-STARTER-JDBC,P05,12,"{""P0"": 12}",cpf-starters/persistence-jdbc,JDBC,HIGH,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P05-STARTER-MYBATIS,P05,12,"{""P0"": 12}",cpf-starters/persistence-mybatis,MyBatis,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P05-STARTER-OPENAPI-WEB-MVC,P05,12,"{""P0"": 12}",cpf-starters/openapi-webmvc,OpenAPI Web MVC,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P05-STARTER-RESOURCE-SERVER,P05,12,"{""P0"": 12}",cpf-starters/security-resource-server,Resource Server,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P05-STARTER-BROWSER-JDBC-SESSION,P05,12,"{""P0"": 12}",cpf-starters/security-session-jdbc,Browser JDBC Session,HIGH,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P05-STARTER-SERVICE-IDENTITY,P05,12,"{""P0"": 12}",cpf-starters/security-service-identity,Service Identity,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P05-STARTER-OUTBOX-INBOX-DLQ,P05,12,"{""P0"": 12}",cpf-starters/messaging-reliability-jdbc,Outbox/Inbox/DLQ,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P05-STARTER-CHANNEL-REGISTRY,P05,12,"{""P0"": 12}",cpf-starters/channel-registry-jdbc,Channel Registry,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P05-STARTER-CAFFEINE,P05,12,"{""P0"": 12}",cpf-starters/cache-caffeine,Caffeine,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P05-STARTER-VALKEY,P05,12,"{""P0"": 12}",cpf-starters/cache-valkey,Valkey,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P05-STARTER-MICROMETER-OTEL-CONTRACT,P05,12,"{""P0"": 12}",cpf-starters/observability,Micrometer/OTel Contract,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P05-STARTER-OTLP-EXPORTER,P05,12,"{""P0"": 12}",cpf-starters/observability-otlp,OTLP Exporter,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P05-STARTER-HTTP-SERVICE-CALL,P05,12,"{""P0"": 12}",cpf-starters/http-client,HTTP Service Call,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P05-STARTER-FIXED-LENGTH-CORE,P05,12,"{""P0"": 12}",cpf-starters/integration-fixedlength-core,Fixed-Length Core,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P05-STARTER-FIXED-LENGTH-STARTER,P05,12,"{""P0"": 12}",cpf-starters/integration-fixedlength,Fixed-Length Starter,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P05-STARTER-SFTP,P05,12,"{""P0"": 12}",cpf-starters/integration-sftp,SFTP,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P05-STARTER-TABULAR-POI,P05,12,"{""P0"": 12}",cpf-starters/tabular-poi,Tabular POI,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P05-STARTER-ARCHIVE,P05,12,"{""P0"": 12}",cpf-starters/file-archive,Archive,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P05-STARTER-ATTACHMENT,P05,12,"{""P0"": 12}",cpf-starters/attachment,Attachment,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P05-STARTER-RUNTIME-CONTROL-CLIENT,P05,12,"{""P0"": 12}",cpf-starters/runtime-control-client,Runtime Control Client,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P05-STARTER-KAFKA,P05,12,"{""P0"": 12}",cpf-starters/messaging-kafka,Kafka,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P05-STARTER-RABBITMQ,P05,12,"{""P0"": 12}",cpf-starters/messaging-rabbitmq,RabbitMQ,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P05-STARTER-JAKARTA-JMS,P05,12,"{""P0"": 12}",cpf-starters/messaging-jms,Jakarta JMS,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P05-STARTER-IBM-MQ,P05,12,"{""P0"": 12}",cpf-starters/messaging-ibm-mq,IBM MQ,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P05-STARTER-TCP,P05,12,"{""P0"": 12}",cpf-starters/integration-tcp,TCP,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P05-STARTER-ISO8583,P05,12,"{""P0"": 12}",cpf-starters/integration-iso8583,ISO8583,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P05-STARTER-NOTIFICATION,P05,12,"{""P0"": 12}",cpf-starters/notification,Notification,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P05-STARTER-EMAIL,P05,12,"{""P0"": 12}",cpf-starters/notification-email,Email,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P05-STARTER-SMS-PROVIDER-SPI,P05,12,"{""P0"": 12}",cpf-starters/notification-sms-spi,SMS Provider SPI,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P05-STARTER-SECRET-PROVIDER,P05,12,"{""P0"": 12}",cpf-starters/secret,Secret Provider,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P05-INTEGRATION_RELIABILITY,P05,760,"{""P0"": 456, ""P1"": 304}",cpf-core contract + provider owners,INTEGRATION_RELIABILITY,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P05-GATE,P05,1,"{""P0"": 1}",requirement governance + phase owners,P05,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P06-DEVEX-DEVEX-QUICK,P06,61,"{""P1"": 61}",cpf-tools + public artifacts,DEVEX-QUICK,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P06-DEVEX-DEVEX-CODEGEN,P06,61,"{""P1"": 61}",cpf-tools + public artifacts,DEVEX-CODEGEN,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P06-DEVEX-DEVEX-COMMENT,P06,61,"{""P1"": 61}",cpf-tools + public artifacts,DEVEX-COMMENT,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P06-GENERATOR-ONBOARD-DOMAIN,P06,61,"{""P0"": 61}",cpf-tools/generator,ONBOARD-DOMAIN,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P06-REFERENCE-SAMPLE-ACC,P06,61,"{""P2"": 61}",cpf-reference + cpf-member,SAMPLE-ACC,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P06-REFERENCE-SAMPLE-MBR,P06,61,"{""P2"": 61}",cpf-reference + cpf-member,SAMPLE-MBR,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P06-REFERENCE-SAMPLE-REF,P06,61,"{""P2"": 61}",cpf-reference + cpf-member,SAMPLE-REF,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P06-REFERENCE-SAMPLE-BIZADM,P06,61,"{""P2"": 61}",cpf-reference + cpf-member,SAMPLE-BIZADM,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P06-REFERENCE-SAMPLE-EDU,P06,61,"{""P2"": 61}",cpf-reference + cpf-member,SAMPLE-EDU,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P06-GENERATOR-LATEST-GENERATOR-MATRIX,P06,61,"{""P0"": 61}",cpf-tools/generator,LATEST-GENERATOR-MATRIX,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P06-GENERATOR-DOMAIN-LIFECYCLE,P06,224,"{""P0"": 224}",cpf-tools/generator,Domain Lifecycle,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,Targeted canonical-source/compile/3DB Gate 보정; 전체 Runtime 미검증
+P06-GATE,P06,1,"{""P0"": 1}",requirement governance + phase owners,P06,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-GATEWAY-GWY-ENTRY,P07,52,"{""P0"": 52}",cpf-gateway,GWY-ENTRY,HIGH,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-GATEWAY-GWY-ROUTING,P07,52,"{""P0"": 52}",cpf-gateway,GWY-ROUTING,HIGH,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-GATEWAY-GWY-TRUST,P07,52,"{""P0"": 52}",cpf-gateway,GWY-TRUST,HIGH,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-GATEWAY-GWY-RESILIENCE,P07,52,"{""P0"": 52}",cpf-gateway,GWY-RESILIENCE,HIGH,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-GATEWAY-API-LIMIT,P07,52,"{""P0"": 52}",cpf-gateway,API-LIMIT,HIGH,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-EXTERNAL-EXS-INST,P07,52,"{""P1"": 52}",generated/customer adapter,EXS-INST,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-EXTERNAL-EXS-REST,P07,52,"{""P1"": 52}",generated/customer adapter,EXS-REST,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-EXTERNAL-EXS-FIXED,P07,52,"{""P1"": 52}",generated/customer adapter,EXS-FIXED,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-EXTERNAL-EXS-SEC,P07,52,"{""P1"": 52}",generated/customer adapter,EXS-SEC,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-EXTERNAL-EXS-FILE,P07,52,"{""P1"": 52}",generated/customer adapter,EXS-FILE,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-EXTERNAL-EXS-UNKNOWN,P07,52,"{""P1"": 52}",generated/customer adapter,EXS-UNKNOWN,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-EXTERNAL-EXS-RECON,P07,52,"{""P1"": 52}",generated/customer adapter,EXS-RECON,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-BATCH-BAT-CORE,P07,52,"{""P0"": 52}",cpf-batch,BAT-CORE,HIGH,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-BATCH-BAT-JOB,P07,52,"{""P0"": 52}",cpf-batch,BAT-JOB,HIGH,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-BATCH-BAT-ITEM,P07,52,"{""P0"": 52}",cpf-batch,BAT-ITEM,HIGH,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-BATCH-BAT-EXECUTOR,P07,52,"{""P0"": 52}",cpf-batch,BAT-EXECUTOR,HIGH,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-BATCH-BAT-AGENT,P07,52,"{""P0"": 52}",cpf-batch,BAT-AGENT,HIGH,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-BATCH-BAT-CALL-SYNC,P07,52,"{""P0"": 52}",cpf-batch,BAT-CALL-SYNC,HIGH,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-BATCH-BAT-CALL-ASYNC,P07,52,"{""P0"": 52}",cpf-batch,BAT-CALL-ASYNC,HIGH,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-BATCH-BAT-SHARED,P07,52,"{""P0"": 52}",cpf-batch,BAT-SHARED,HIGH,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-BATCH-CENTER-CORE,P07,52,"{""P0"": 52}",cpf-batch,CENTER-CORE,HIGH,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-BATCH-CENTER-RUNNER,P07,52,"{""P0"": 52}",cpf-batch,CENTER-RUNNER,HIGH,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-BATCH-CENTER-PARAM,P07,52,"{""P0"": 52}",cpf-batch,CENTER-PARAM,HIGH,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-BATCH-CENTER-CLAIM,P07,52,"{""P0"": 52}",cpf-batch,CENTER-CLAIM,HIGH,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-BATCH-CENTER-RATE,P07,52,"{""P0"": 52}",cpf-batch,CENTER-RATE,HIGH,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-BATCH-CENTER-REPROCESS,P07,52,"{""P0"": 52}",cpf-batch,CENTER-REPROCESS,HIGH,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-BATCH-CENTER-UNKNOWN,P07,52,"{""P0"": 52}",cpf-batch,CENTER-UNKNOWN,HIGH,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-BATCH-CENTER-OPS,P07,52,"{""P0"": 52}",cpf-batch,CENTER-OPS,HIGH,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-OPS-OPS-METRIC,P07,52,"{""P1"": 52}",cpf-admin control plane + runtime owner,OPS-METRIC,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-OPS-OPS-SLO,P07,52,"{""P1"": 52}",cpf-admin control plane + runtime owner,OPS-SLO,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-OPS-OPS-ALERT,P07,52,"{""P1"": 52}",cpf-admin control plane + runtime owner,OPS-ALERT,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-OPS-OPS-INCIDENT,P07,52,"{""P1"": 52}",cpf-admin control plane + runtime owner,OPS-INCIDENT,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-OPS-OPS-RUNBOOK,P07,52,"{""P1"": 52}",cpf-admin control plane + runtime owner,OPS-RUNBOOK,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-OPS-OPS-SELF,P07,52,"{""P1"": 52}",cpf-admin control plane + runtime owner,OPS-SELF,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-OPS-OPS-TOPOLOGY,P07,52,"{""P1"": 52}",cpf-admin control plane + runtime owner,OPS-TOPOLOGY,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-OPS-OPS-MAINT,P07,52,"{""P1"": 52}",cpf-admin control plane + runtime owner,OPS-MAINT,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-OPS-OPS-CONFIG,P07,52,"{""P1"": 52}",cpf-admin control plane + runtime owner,OPS-CONFIG,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-OPS-OPS-DRIFT,P07,52,"{""P1"": 52}",cpf-admin control plane + runtime owner,OPS-DRIFT,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-OPS-OPS-CAPACITY,P07,52,"{""P1"": 52}",cpf-admin control plane + runtime owner,OPS-CAPACITY,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-OPS-OPS-DR,P07,52,"{""P1"": 52}",cpf-admin control plane + runtime owner,OPS-DR,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-BATCH-LATEST-BATCH-PROVIDER-NEUTRAL,P07,52,"{""P0"": 52}",cpf-batch,LATEST-BATCH-PROVIDER-NEUTRAL,HIGH,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-OPS-LATEST-FEATURE-FLAG,P07,52,"{""P1"": 52}",cpf-admin control plane + runtime owner,LATEST-FEATURE-FLAG,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-GATEWAY-GATEWAY,P07,222,"{""P0"": 222}",cpf-gateway,Gateway,HIGH,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-EXTERNAL-REST-TCP-FILE,P07,150,"{""P1"": 150}",generated/customer adapter,REST/TCP/File,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-BATCH-SPRING-BATCH,P07,168,"{""P0"": 168}",cpf-batch,Spring Batch,HIGH,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,Targeted reconcile Pagination 보정; 실제 Spring Batch Runtime 미검증
+P07-BATCH-SCHEDULER-AGENT-WORKER,P07,150,"{""P0"": 150}",cpf-batch,Scheduler/Agent/Worker,HIGH,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-BATCH-CENTER-CUT,P07,144,"{""P0"": 144}",cpf-batch,Center-Cut,HIGH,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-OPS-CONTROL-PLANE,P07,186,"{""P0"": 186}",cpf-admin control plane + runtime owner,Control Plane,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-RUNTIME-CONTROL-LOG-LEVEL,P07,9,"{""P1"": 4, ""P0"": 5}",cpf-admin control plane + runtime owner,Log Level,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-RUNTIME-CONTROL-LOG-POLICY,P07,9,"{""P1"": 4, ""P0"": 5}",cpf-admin control plane + runtime owner,Log Policy,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-RUNTIME-CONTROL-MESSAGE-CATALOG,P07,9,"{""P1"": 4, ""P0"": 5}",cpf-admin control plane + runtime owner,Message Catalog,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-RUNTIME-CONTROL-RESPONSE-CODE,P07,9,"{""P1"": 4, ""P0"": 5}",cpf-admin control plane + runtime owner,Response Code,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-RUNTIME-CONTROL-BUSINESS-CALENDAR,P07,9,"{""P1"": 4, ""P0"": 5}",cpf-admin control plane + runtime owner,Business Calendar,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-RUNTIME-CONTROL-PERMISSION-MANIFEST,P07,9,"{""P1"": 4, ""P0"": 5}",cpf-admin control plane + runtime owner,Permission Manifest,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-RUNTIME-CONTROL-FEATURE-FLAG,P07,9,"{""P1"": 4, ""P0"": 5}",cpf-admin control plane + runtime owner,Feature Flag,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-RUNTIME-CONTROL-TENANT-CAPABILITY,P07,9,"{""P1"": 4, ""P0"": 5}",cpf-admin control plane + runtime owner,Tenant Capability,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-RUNTIME-CONTROL-GATEWAY-ROUTE,P07,9,"{""P1"": 4, ""P0"": 5}",cpf-admin control plane + runtime owner,Gateway Route,HIGH,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-RUNTIME-CONTROL-ROUTING-WEIGHT,P07,9,"{""P1"": 4, ""P0"": 5}",cpf-admin control plane + runtime owner,Routing Weight,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-RUNTIME-CONTROL-BATCH-SCHEDULE,P07,9,"{""P1"": 4, ""P0"": 5}",cpf-admin control plane + runtime owner,Batch Schedule,HIGH,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-RUNTIME-CONTROL-WORKER-CONCURRENCY,P07,9,"{""P1"": 4, ""P0"": 5}",cpf-admin control plane + runtime owner,Worker Concurrency,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-RUNTIME-CONTROL-RATE-LIMIT,P07,9,"{""P1"": 4, ""P0"": 5}",cpf-admin control plane + runtime owner,Rate Limit,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-RUNTIME-CONTROL-MASKING-RULE,P07,9,"{""P1"": 4, ""P0"": 5}",cpf-admin control plane + runtime owner,Masking Rule,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-RUNTIME-CONTROL-SECRET-REFERENCE,P07,9,"{""P1"": 4, ""P0"": 5}",cpf-admin control plane + runtime owner,Secret Reference,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-RUNTIME-CONTROL-BROKER-CONSUMER,P07,9,"{""P1"": 4, ""P0"": 5}",cpf-admin control plane + runtime owner,Broker Consumer,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-RUNTIME-CONTROL-BROKER-RETRY-DLQ,P07,9,"{""P1"": 4, ""P0"": 5}",cpf-admin control plane + runtime owner,Broker Retry/DLQ,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-RUNTIME-CONTROL-SCHEMA-COMPATIBILITY,P07,9,"{""P1"": 4, ""P0"": 5}",cpf-admin control plane + runtime owner,Schema Compatibility,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-RUNTIME-CONTROL-CACHE-POLICY,P07,9,"{""P1"": 4, ""P0"": 5}",cpf-admin control plane + runtime owner,Cache Policy,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-RUNTIME-CONTROL-CONNECTION-POOL,P07,9,"{""P1"": 4, ""P0"": 5}",cpf-admin control plane + runtime owner,Connection Pool,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-RUNTIME-CONTROL-SLO-THRESHOLD,P07,9,"{""P1"": 4, ""P0"": 5}",cpf-admin control plane + runtime owner,SLO Threshold,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-RUNTIME-CONTROL-ALERT-THRESHOLD,P07,9,"{""P1"": 4, ""P0"": 5}",cpf-admin control plane + runtime owner,Alert Threshold,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-RUNTIME-CONTROL-TRACE-SAMPLING,P07,9,"{""P1"": 4, ""P0"": 5}",cpf-admin control plane + runtime owner,Trace Sampling,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-RUNTIME-CONTROL-DOWNLOAD-POLICY,P07,9,"{""P1"": 4, ""P0"": 5}",cpf-admin control plane + runtime owner,Download Policy,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-RUNTIME-CONTROL-API-CLIENT-POLICY,P07,9,"{""P1"": 4, ""P0"": 5}",cpf-admin control plane + runtime owner,API Client Policy,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-RUNTIME-CONTROL-MAINTENANCE-POLICY,P07,9,"{""P1"": 4, ""P0"": 5}",cpf-admin control plane + runtime owner,Maintenance Policy,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-RUNTIME-CONTROL-HEALTH-THRESHOLD,P07,9,"{""P1"": 4, ""P0"": 5}",cpf-admin control plane + runtime owner,Health Threshold,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-RUNTIME-CONTROL-CERTIFICATE-ACTIVATION,P07,9,"{""P1"": 4, ""P0"": 5}",cpf-admin control plane + runtime owner,Certificate Activation,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-RUNTIME-CONTROL-NOTIFICATION-RULE,P07,9,"{""P1"": 4, ""P0"": 5}",cpf-admin control plane + runtime owner,Notification Rule,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-RUNTIME-CONTROL-EXTERNAL-ENDPOINT,P07,9,"{""P1"": 4, ""P0"": 5}",cpf-admin control plane + runtime owner,External Endpoint,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-RUNTIME-CONTROL-CIRCUIT-BREAKER-POLICY,P07,9,"{""P1"": 4, ""P0"": 5}",cpf-admin control plane + runtime owner,Circuit Breaker Policy,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-RUNTIME-CONTROL-TIMEOUT-BUDGET,P07,9,"{""P1"": 4, ""P0"": 5}",cpf-admin control plane + runtime owner,Timeout Budget,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-RUNTIME-CONTROL-RETRY-POLICY,P07,9,"{""P1"": 4, ""P0"": 5}",cpf-admin control plane + runtime owner,Retry Policy,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-RUNTIME-CONTROL-BULKHEAD,P07,9,"{""P1"": 4, ""P0"": 5}",cpf-admin control plane + runtime owner,Bulkhead,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-RUNTIME-CONTROL-FILE-TRANSFER-POLICY,P07,9,"{""P1"": 4, ""P0"": 5}",cpf-admin control plane + runtime owner,File Transfer Policy,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-RUNTIME-CONTROL-SESSION-POLICY,P07,9,"{""P1"": 4, ""P0"": 5}",cpf-admin control plane + runtime owner,Session Policy,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-RUNTIME-CONTROL-PASSWORD-POLICY,P07,9,"{""P1"": 4, ""P0"": 5}",cpf-admin control plane + runtime owner,Password Policy,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-RUNTIME-CONTROL-MFA-POLICY,P07,9,"{""P1"": 4, ""P0"": 5}",cpf-admin control plane + runtime owner,MFA Policy,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-RUNTIME-CONTROL-IP-ALLOWLIST,P07,9,"{""P1"": 4, ""P0"": 5}",cpf-admin control plane + runtime owner,IP Allowlist,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-RUNTIME-CONTROL-AUDIT-DELIVERY,P07,9,"{""P1"": 4, ""P0"": 5}",cpf-admin control plane + runtime owner,Audit Delivery,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-RUNTIME-CONTROL-RETENTION-POLICY,P07,9,"{""P1"": 4, ""P0"": 5}",cpf-admin control plane + runtime owner,Retention Policy,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-RUNTIME-CONTROL-DATA-PURGE-POLICY,P07,9,"{""P1"": 4, ""P0"": 5}",cpf-admin control plane + runtime owner,Data Purge Policy,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-RUNTIME-CONTROL-BACKUP-POLICY,P07,9,"{""P1"": 4, ""P0"": 5}",cpf-admin control plane + runtime owner,Backup Policy,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-RUNTIME-CONTROL-DR-POLICY,P07,9,"{""P1"": 4, ""P0"": 5}",cpf-admin control plane + runtime owner,DR Policy,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-RUNTIME-CONTROL-CANARY-POLICY,P07,9,"{""P1"": 4, ""P0"": 5}",cpf-admin control plane + runtime owner,Canary Policy,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-RUNTIME-CONTROL-DEPLOYMENT-POLICY,P07,9,"{""P1"": 4, ""P0"": 5}",cpf-admin control plane + runtime owner,Deployment Policy,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-RUNTIME-CONTROL-SERVICE-REGISTRY-METADATA,P07,9,"{""P1"": 4, ""P0"": 5}",cpf-admin control plane + runtime owner,Service Registry Metadata,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-RUNTIME-CONTROL-RUNTIME-GROUP,P07,9,"{""P1"": 4, ""P0"": 5}",cpf-admin control plane + runtime owner,Runtime Group,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-RUNTIME-CONTROL-TARGET-SELECTOR,P07,9,"{""P1"": 4, ""P0"": 5}",cpf-admin control plane + runtime owner,Target Selector,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-RUNTIME-CONTROL-CHANNEL-POLICY,P07,9,"{""P1"": 4, ""P0"": 5}",cpf-admin control plane + runtime owner,Channel Policy,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-RUNTIME-CONTROL-IDEMPOTENCY-POLICY,P07,9,"{""P1"": 4, ""P0"": 5}",cpf-admin control plane + runtime owner,Idempotency Policy,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-RUNTIME-CONTROL-RECONCILIATION-POLICY,P07,9,"{""P1"": 4, ""P0"": 5}",cpf-admin control plane + runtime owner,Reconciliation Policy,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-RUNTIME-CONTROL-APPROVAL-POLICY,P07,9,"{""P1"": 4, ""P0"": 5}",cpf-admin control plane + runtime owner,Approval Policy,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-RUNTIME-CONTROL-BREAK-GLASS-POLICY,P07,9,"{""P1"": 4, ""P0"": 5}",cpf-admin control plane + runtime owner,Break-glass Policy,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-RUNTIME_PRODUCTS,P07,690,"{""P0"": 414, ""P1"": 276}",cpf-gateway/cpf-batch/provider runtime,RUNTIME_PRODUCTS,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P07-GATE,P07,1,"{""P0"": 1}",requirement governance + phase owners,P07,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P08-ADM-ADM-AUTH,P08,61,"{""P0"": 61}",cpf-admin,ADM-AUTH,HIGH,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P08-ADM-ADM-RBAC,P08,61,"{""P0"": 61}",cpf-admin,ADM-RBAC,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P08-ADM-ADM-AUDIT,P08,61,"{""P0"": 61}",cpf-admin,ADM-AUDIT,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P08-ADM-ADM-TX,P08,61,"{""P0"": 61}",cpf-admin,ADM-TX,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P08-ADM-ADM-TIMELINE,P08,61,"{""P0"": 61}",cpf-admin,ADM-TIMELINE,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P08-ADM-ADM-SERVICE,P08,61,"{""P0"": 61}",cpf-admin,ADM-SERVICE,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P08-ADM-ADM-LOG,P08,61,"{""P0"": 61}",cpf-admin,ADM-LOG,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P08-ADM-ADM-BATCH,P08,61,"{""P0"": 61}",cpf-admin,ADM-BATCH,HIGH,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P08-ADM-ADM-CENTER,P08,61,"{""P0"": 61}",cpf-admin,ADM-CENTER,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P08-ADM-ADM-AGENT,P08,61,"{""P0"": 61}",cpf-admin,ADM-AGENT,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P08-ADM-ADM-EXS,P08,61,"{""P0"": 61}",cpf-admin,ADM-EXS,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P08-ADM-ADM-RECOVERY,P08,61,"{""P0"": 61}",cpf-admin,ADM-RECOVERY,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P08-ADM-ADM-INCIDENT,P08,61,"{""P0"": 61}",cpf-admin,ADM-INCIDENT,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P08-ADM-ADM-UX,P08,61,"{""P0"": 61}",cpf-admin,ADM-UX,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P08-ADM-ADM-APPROVAL,P08,61,"{""P0"": 61}",cpf-admin,ADM-APPROVAL,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P08-BZA-BZA-BUSINESS,P08,61,"{""P1"": 61}",cpf-biz-admin,BZA-BUSINESS,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P08-BZA-BZA-ORG,P08,61,"{""P1"": 61}",cpf-biz-admin,BZA-ORG,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P08-BZA-BZA-APPROVAL,P08,61,"{""P1"": 61}",cpf-biz-admin,BZA-APPROVAL,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P08-BZA-BZA-SEQUENCE-SAMPLE,P08,61,"{""P1"": 61}",cpf-biz-admin,BZA-SEQUENCE-SAMPLE,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P08-ADM-LATEST-RISK-OPERATIONS,P08,61,"{""P0"": 61}",cpf-admin,LATEST-RISK-OPERATIONS,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P08-ADM-LATEST-ADM-UI-ATOMIC,P08,61,"{""P0"": 61}",cpf-admin,LATEST-ADM-UI-ATOMIC,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P08-ADMIN_PRODUCT,P08,840,"{""P0"": 504, ""P1"": 336}",cpf-admin/cpf-biz-admin + owner APIs,ADMIN_PRODUCT,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P08-GATE,P08,1,"{""P0"": 1}",requirement governance + phase owners,P08,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P09-ADM-UI-HOME,P09,95,"{""P1"": 60, ""P0"": 35}",cpf-admin,HOME,MEDIUM,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,사전 검토 필요
+P09-ADM-UI-ONLINE,P09,431,"{""P1"": 169, ""P0"": 262}",cpf-admin,ONLINE,HIGH,Source·Consumer·Failure·Recovery·Security·DB·Frontend·Test·Evidence,Targeted Route/Menu 투영 보정; Browser·권한 Runtime 미검증

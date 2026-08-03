@@ -1,5 +1,7 @@
 package com.cpf.admin.opr.controller;
 
+import com.cpf.core.api.batch.CpfBatchRiskCommand;
+
 import com.cpf.admin.opr.dto.AdmBatchGhostActionRequest;
 import com.cpf.admin.opr.dto.AdmBatchJobRegisterRequest;
 import com.cpf.admin.opr.dto.AdmBatchLockReleaseRequest;
@@ -191,9 +193,12 @@ public class AdmBatchController extends com.cpf.admin.common.base.AdmBaseControl
             @RequestBody AdmBatchLockReleaseRequest request,
             HttpServletRequest servletRequest) {
         String reason = auditLogService.requireReason(request.reason());
-        requireRiskMetadata(request.approvalRequestId(), request.idempotencyKey());
-        Map<String, Object> result = batchOperationService.releaseLock(
-                request.lockKey(), requireOperator(servletRequest), reason);
+        String operator = requireOperator(servletRequest);
+        CpfBatchRiskCommand command = riskCommand(
+                "releaseLock", "bat_lock", request.lockKey(), "BATCH_LOCK_RELEASE",
+                operator, reason, request.approvalRequestId(), request.idempotencyKey(),
+                requireExpectedVersion(request.expectedVersion(), "batch lock release"), "");
+        Map<String, Object> result = batchOperationService.releaseLock(request.lockKey(), command);
         recordAudit(servletRequest, requireOperator(servletRequest), "BATCH_LOCK_RELEASE", "bat_lock",
                 request.lockKey(), reason, String.valueOf(result.get("before")), String.valueOf(result));
         return ResponseEntity.ok(result);
@@ -215,9 +220,13 @@ public class AdmBatchController extends com.cpf.admin.common.base.AdmBaseControl
             @RequestBody AdmBatchGhostActionRequest request,
             HttpServletRequest servletRequest) {
         String reason = auditLogService.requireReason(request.reason());
-        requireRiskMetadata(request.approvalRequestId(), request.idempotencyKey());
-        Map<String, Object> result = batchOperationService.actGhostExecution(
-                executionId, request.actionType(), requireOperator(servletRequest), reason);
+        String operator = requireOperator(servletRequest);
+        String action = requireText(request.actionType(), "actionType").toUpperCase(java.util.Locale.ROOT);
+        CpfBatchRiskCommand command = riskCommand(
+                "actGhostExecution", "bat_execution", String.valueOf(executionId), "BATCH_GHOST_" + action,
+                operator, reason, request.approvalRequestId(), request.idempotencyKey(),
+                requireExpectedVersion(request.expectedVersion(), "batch ghost action"), action);
+        Map<String, Object> result = batchOperationService.actGhostExecution(executionId, action, command);
         recordAudit(servletRequest, requireOperator(servletRequest), "BATCH_GHOST_" + result.get("action"), "bat_execution",
                 String.valueOf(executionId), reason, null, String.valueOf(result));
         return ResponseEntity.ok(result);
@@ -240,8 +249,11 @@ public class AdmBatchController extends com.cpf.admin.common.base.AdmBaseControl
             @RequestBody AdmBatchOperationRequest request,
             HttpServletRequest servletRequest) {
         String reason = auditLogService.requireReason(request.reason());
-        requireRiskMetadata(request.approvalRequestId(), request.idempotencyKey());
-        List<Map<String, Object>> result = batchOperationService.runSchedulerOnce(requireOperator(servletRequest));
+        String operator = requireOperator(servletRequest);
+        CpfBatchRiskCommand command = riskCommand(
+                "runSchedulerOnce", "bat_schedule", "DUE_SCHEDULES", "BATCH_SCHEDULER_RUN_ONCE",
+                operator, reason, request.approvalRequestId(), request.idempotencyKey(), null, "");
+        List<Map<String, Object>> result = batchOperationService.runSchedulerOnce(command);
         recordAudit(servletRequest, requireOperator(servletRequest), "BATCH_SCHEDULER_RUN_ONCE", "bat_schedule",
                 "DUE_SCHEDULES", reason, null, String.valueOf(result));
         return ResponseEntity.ok(result);
@@ -256,9 +268,12 @@ public class AdmBatchController extends com.cpf.admin.common.base.AdmBaseControl
             @RequestBody AdmBatchOperationRequest request,
             HttpServletRequest servletRequest) {
         String reason = auditLogService.requireReason(request.reason());
-        requireRiskMetadata(request.approvalRequestId(), request.idempotencyKey());
-        Map<String, Object> execution = batchOperationService.requestRun(
-                jobId, request.jobParameters(), requireOperator(servletRequest), reason);
+        String operator = requireOperator(servletRequest);
+        CpfBatchRiskCommand command = riskCommand(
+                "requestRun", "bat_job", jobId, "BATCH_RUN",
+                operator, reason, request.approvalRequestId(), request.idempotencyKey(), null,
+                request.jobParameters());
+        Map<String, Object> execution = batchOperationService.requestRun(jobId, request.jobParameters(), command);
         recordAudit(servletRequest, requireOperator(servletRequest), "BATCH_RUN", "bat_execution",
                 jobId, reason, null, String.valueOf(execution));
         return ResponseEntity.ok(execution);
@@ -272,9 +287,12 @@ public class AdmBatchController extends com.cpf.admin.common.base.AdmBaseControl
             @RequestBody AdmBatchOperationRequest request,
             HttpServletRequest servletRequest) {
         String reason = auditLogService.requireReason(request.reason());
-        requireRiskMetadata(request.approvalRequestId(), request.idempotencyKey());
-        Map<String, Object> execution = batchOperationService.requestRetry(
-                executionId, requireOperator(servletRequest), reason);
+        String operator = requireOperator(servletRequest);
+        CpfBatchRiskCommand command = riskCommand(
+                "requestRetry", "bat_execution", String.valueOf(executionId), "BATCH_RETRY",
+                operator, reason, request.approvalRequestId(), request.idempotencyKey(),
+                requireExpectedVersion(request.expectedVersion(), "batch retry"), "");
+        Map<String, Object> execution = batchOperationService.requestRetry(executionId, command);
         recordAudit(servletRequest, requireOperator(servletRequest), "BATCH_RETRY", "bat_execution",
                 String.valueOf(executionId), reason, null, String.valueOf(execution));
         return ResponseEntity.ok(execution);
@@ -288,9 +306,12 @@ public class AdmBatchController extends com.cpf.admin.common.base.AdmBaseControl
             @RequestBody AdmBatchOperationRequest request,
             HttpServletRequest servletRequest) {
         String reason = auditLogService.requireReason(request.reason());
-        requireRiskMetadata(request.approvalRequestId(), request.idempotencyKey());
-        Map<String, Object> execution = batchOperationService.requestStop(
-                executionId, requireOperator(servletRequest), reason);
+        String operator = requireOperator(servletRequest);
+        CpfBatchRiskCommand command = riskCommand(
+                "requestStop", "bat_execution", String.valueOf(executionId), "BATCH_STOP",
+                operator, reason, request.approvalRequestId(), request.idempotencyKey(),
+                requireExpectedVersion(request.expectedVersion(), "batch stop"), "");
+        Map<String, Object> execution = batchOperationService.requestStop(executionId, command);
         recordAudit(servletRequest, requireOperator(servletRequest), "BATCH_STOP", "bat_execution",
                 String.valueOf(executionId), reason, null, String.valueOf(execution));
         return ResponseEntity.ok(execution);
@@ -304,9 +325,12 @@ public class AdmBatchController extends com.cpf.admin.common.base.AdmBaseControl
             @RequestBody AdmBatchOperationRequest request,
             HttpServletRequest servletRequest) {
         String reason = auditLogService.requireReason(request.reason());
-        requireRiskMetadata(request.approvalRequestId(), request.idempotencyKey());
-        Map<String, Object> schedule = batchOperationService.updateScheduleEnabled(
-                scheduleId, true, requireOperator(servletRequest), reason);
+        String operator = requireOperator(servletRequest);
+        CpfBatchRiskCommand command = riskCommand(
+                "updateScheduleEnabled", "bat_schedule", scheduleId, "BATCH_SCHEDULE_ENABLE",
+                operator, reason, request.approvalRequestId(), request.idempotencyKey(),
+                requireExpectedVersion(request.expectedVersion(), "batch schedule enable"), "enabled=true");
+        Map<String, Object> schedule = batchOperationService.updateScheduleEnabled(scheduleId, true, command);
         recordAudit(servletRequest, requireOperator(servletRequest), "BATCH_SCHEDULE_ENABLE", "bat_schedule",
                 scheduleId, reason, null, String.valueOf(schedule));
         return ResponseEntity.ok(schedule);
@@ -320,22 +344,41 @@ public class AdmBatchController extends com.cpf.admin.common.base.AdmBaseControl
             @RequestBody AdmBatchOperationRequest request,
             HttpServletRequest servletRequest) {
         String reason = auditLogService.requireReason(request.reason());
-        requireRiskMetadata(request.approvalRequestId(), request.idempotencyKey());
-        Map<String, Object> schedule = batchOperationService.updateScheduleEnabled(
-                scheduleId, false, requireOperator(servletRequest), reason);
+        String operator = requireOperator(servletRequest);
+        CpfBatchRiskCommand command = riskCommand(
+                "updateScheduleEnabled", "bat_schedule", scheduleId, "BATCH_SCHEDULE_DISABLE",
+                operator, reason, request.approvalRequestId(), request.idempotencyKey(),
+                requireExpectedVersion(request.expectedVersion(), "batch schedule disable"), "enabled=false");
+        Map<String, Object> schedule = batchOperationService.updateScheduleEnabled(scheduleId, false, command);
         recordAudit(servletRequest, requireOperator(servletRequest), "BATCH_SCHEDULE_DISABLE", "bat_schedule",
                 scheduleId, reason, null, String.valueOf(schedule));
         return ResponseEntity.ok(schedule);
     }
 
 
-    private static void requireRiskMetadata(String approvalRequestId, String idempotencyKey) {
-        if (approvalRequestId == null || approvalRequestId.isBlank()) {
-            throw new IllegalArgumentException("approvalRequestId is required for batch risk operation");
-        }
-        if (idempotencyKey == null || idempotencyKey.isBlank()) {
-            throw new IllegalArgumentException("idempotencyKey is required for batch risk operation");
-        }
+    private static long requireExpectedVersion(Long expectedVersion, String operation) {
+        return com.cpf.core.api.batch.CpfBatchOptimisticVersion.require(expectedVersion, operation);
+    }
+
+    private static CpfBatchRiskCommand riskCommand(
+            String operation,
+            String targetType,
+            String targetId,
+            String actionType,
+            String operator,
+            String reason,
+            String approvalRequestId,
+            String idempotencyKey,
+            Long expectedVersion,
+            String payload) {
+        return new CpfBatchRiskCommand(
+                operation, targetType, targetId, actionType, operator, reason,
+                approvalRequestId, idempotencyKey, expectedVersion, payload);
+    }
+
+    private static String requireText(String value, String field) {
+        if (value == null || value.isBlank()) throw new IllegalArgumentException(field + " is required");
+        return value.trim();
     }
 
     private void recordAudit(

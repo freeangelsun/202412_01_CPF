@@ -25,7 +25,7 @@ public class AdmApprovalController extends com.cpf.admin.common.base.AdmBaseCont
         return ResponseEntity.ok(service.findPolicies(actionType));
     }
 
-    @GetMapping("/policies/{policyCode}/{version}")
+    @GetMapping("/policies/{policyCode}/versions/{version}")
     @CpfOnlineTransaction(id="OADMAP0102",name="AdmApprovalPolicyDetail")
     @Operation(operationId="admApprovalPolicyDetail",summary="승인 정책/단계 상세")
     public ResponseEntity<Map<String,Object>> policy(@PathVariable String policyCode,@PathVariable int version){

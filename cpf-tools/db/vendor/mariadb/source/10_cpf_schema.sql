@@ -1624,7 +1624,7 @@ CREATE TABLE IF NOT EXISTS cpf_gateway_transaction_capture_segment (
     segment_type VARCHAR(40) NOT NULL COMMENT 'QUERY/REQUEST_HEADERS/REQUEST_BODY/RESPONSE_HEADERS/RESPONSE_BODY/ERROR_STACK',
     policy_schema_version INT NOT NULL DEFAULT 2 COMMENT '로그 정책 Schema Version',
     policy_checksum VARCHAR(64) NOT NULL COMMENT '적용 정책 Checksum',
-    captured_value CLOB NOT NULL COMMENT '마스킹/보호된 Capture 값',
+    captured_value MEDIUMTEXT NOT NULL COMMENT '마스킹/보호된 Capture 값',
     truncated_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '상한 초과 절단 여부',
     metadata_only_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT 'Metadata only 여부',
     observed_bytes BIGINT NOT NULL DEFAULT 0 COMMENT '원본 관측 Byte',

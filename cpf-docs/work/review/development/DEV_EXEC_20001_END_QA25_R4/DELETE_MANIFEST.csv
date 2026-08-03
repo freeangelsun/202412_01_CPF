@@ -1,0 +1,4 @@
+﻿path,action,reason,protected_path,executed
+cpf-starters/data/persistence-jdbc/src/main/java/com/cpf/starter/persistence/jdbc/runtimecontrol/CpfConnectionPoolRuntimeApplier.java,DELETE_AFTER_OVERLAY,relocated to canonical package com.cpf.starter.data.persistence.jdbc.runtimecontrol,N,N
+cpf-starters/data/persistence-jdbc/src/main/java/com/cpf/starter/persistence/jdbc/runtimecontrol/CpfDbReadRoutingRuntimeApplier.java,DELETE_AFTER_OVERLAY,relocated to canonical package com.cpf.starter.data.persistence.jdbc.runtimecontrol,N,N
+cpf-starters/data/persistence-jdbc/src/main/java/com/cpf/starter/persistence/jdbc/runtimecontrol/CpfPersistenceRuntimeControlAutoConfiguration.java,DELETE_AFTER_OVERLAY,relocated to canonical package com.cpf.starter.data.persistence.jdbc.runtimecontrol,N,N

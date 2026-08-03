@@ -1,7 +1,3 @@
--- CPF generated lifecycle bundle; vendor=oracle
--- Source plan: cpf-tools/config/database-source-plan.json
-
--- ===== BEGIN 00_verify.sql =====
 -- AUTO-GENERATED from cpf-tools/db/canonical/platform-schema.json
 -- vendor=oracle; each logical section executes in its profile-selected schema.
 -- DO NOT EDIT generated verify SQL directly.
@@ -66,5 +62,3 @@ SELECT 'bat_spring_batch_6_sequence_contract' AS check_name,
        THEN 1 ELSE 0 END AS passed
 FROM dual;
 -- CPF_CANONICAL_OBJECTS_END spring-batch-6-sequences
-
--- ===== END 00_verify.sql =====

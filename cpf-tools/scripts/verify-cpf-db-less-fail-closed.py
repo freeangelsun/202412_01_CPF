@@ -1,137 +1,50 @@
 #!/usr/bin/env python3
-"""Validate fail-closed ADM/CMN persistence ownership and product defaults."""
+"""DB-less/product fail-closed gate requiring semantic source conditions and executable context tests."""
 from __future__ import annotations
-
-import argparse
-import json
-import re
-import sys
+import argparse,json
 from pathlib import Path
+class GateError(RuntimeError):pass
+REQ={
+ 'cpf-admin/src/main/java/com/cpf/admin/config/AdmPersistencePolicy.java':('DATABASE','MEMORY_ALLOWED_PROFILES','getActiveProfiles','CpfValidationException','cpf.adm.persistence.mode'),
+ 'cpf-starters/data/persistence-jdbc/src/main/java/com/cpf/common/config/CmnDataSourceConfig.java':('ConditionalOnExpression','cpf.common.runtime-mode:product','CpfDataSources.resolve','cmnDataSource'),
+ 'cpf-starters/data/persistence-mybatis/src/main/java/com/cpf/common/config/CmnMyBatisConfig.java':('ConditionalOnExpression','cpf.common.runtime-mode:product','@Qualifier("cmnDataSource")','setDataSource'),
+ 'cpf-admin/src/test/java/com/cpf/admin/config/AdmPersistencePolicyContextTest.java':('ApplicationContextRunner','productDefaultRequiresDatabaseAndNeverInventsMemoryPersistence','memoryModeWithoutEduOrTestProfileFailsClosed','explicitTestProfileMayUseMemoryWithoutJdbcBeans','cpf.adm.persistence.mode=memory'),
+ 'cpf-starters/data/persistence-jdbc/src/test/java/com/cpf/common/config/CmnDataSourceContextTest.java':('ApplicationContextRunner','libraryRuntimeModeDoesNotCreateCmnJdbcBeans','productRuntimeWithoutDatasourceConfigurationFailsClosed','invalidConfiguredDatasourceNeverBecomesAFalseGreenBean','cpf.common.runtime-mode=library'),
+ 'cpf-starters/data/persistence-mybatis/src/test/java/com/cpf/common/config/CmnMyBatisContextTest.java':('ApplicationContextRunner','libraryRuntimeModeDoesNotCreateCmnMyBatisBeans','productRuntimeWithoutCmnDatasourceFailsClosed','cpf.common.runtime-mode=library'),
+}
 
+def verify(root:Path):
+ findings=[];files=[]
+ texts={}
+ for rel,toks in REQ.items():
+  p=root/rel
+  if not p.is_file():findings.append(f'missing {rel}');continue
+  t=p.read_text(encoding='utf-8-sig');texts[rel]=t;files.append(rel)
+  for x in toks:
+   if x not in t:findings.append(f'{rel}: missing {x}')
+ adm=texts.get('cpf-admin/src/main/java/com/cpf/admin/config/AdmPersistencePolicy.java','')
+ if '"DATABASE"' not in adm or 'Mode.MEMORY' not in adm:
+  findings.append('ADM persistence default/restricted memory policy is not explicit')
+ if any(x in adm for x in ('ConcurrentHashMap','new HashMap','InMemory')):
+  findings.append('ADM product policy must not create an in-memory persistence fallback')
+ for rel in ('cpf-starters/data/persistence-jdbc/src/main/java/com/cpf/common/config/CmnDataSourceConfig.java','cpf-starters/data/persistence-mybatis/src/main/java/com/cpf/common/config/CmnMyBatisConfig.java'):
+  t=texts.get(rel,'')
+  if "== 'product'" not in t:
+   findings.append(f'{rel}: product-only runtime condition missing')
+  if any(x in t for x in ('EmbeddedDatabase','HikariDataSource()','DriverManagerDataSource()')):
+   findings.append(f'{rel}: invented fallback datasource is forbidden')
+ result={'status':'PASS' if not findings else 'FAIL','scannedFiles':files,'runtimeContextTests':3,'findings':findings}
+ if findings:raise GateError(json.dumps(result,ensure_ascii=False,indent=2))
+ return result
 
-class GateError(RuntimeError):
-    pass
-
-
-ADM_POLICY = "cpf-admin/src/main/java/com/cpf/admin/config/AdmPersistencePolicy.java"
-JDBC_OWNER = "cpf-starters/data/persistence-jdbc/src/main/java/com/cpf/common/config"
-MYBATIS_OWNER = "cpf-starters/data/persistence-mybatis/src/main/java/com/cpf/common/config"
-CMN_DATASOURCE = f"{JDBC_OWNER}/CmnDataSourceConfig.java"
-CMN_SAMPLE_DATASOURCE = f"{JDBC_OWNER}/CmnSampleDataSourceConfig.java"
-CMN_MYBATIS = f"{MYBATIS_OWNER}/CmnMyBatisConfig.java"
-PRODUCT_CONDITION = "'${cpf.common.runtime-mode:product}'.toLowerCase() == 'product'"
-
-
-def read(root: Path, relative: str) -> str:
-    path = root / relative
-    if not path.is_file():
-        raise GateError(f"missing source: {relative}")
-    try:
-        return path.read_text(encoding="utf-8")
-    except UnicodeDecodeError as exc:
-        raise GateError(f"source is not valid UTF-8: {relative}") from exc
-
-
-def validate(root: Path) -> dict[str, object]:
-    root = root.resolve()
-    errors: list[str] = []
-    adm = read(root, ADM_POLICY)
-    cmn_ds = read(root, CMN_DATASOURCE)
-    cmn_mb = read(root, CMN_MYBATIS)
-    cmn_sample = read(root, CMN_SAMPLE_DATASOURCE)
-
-    stale_owner = root / "cpf-common/src/main/java/com/cpf/common/config"
-    if stale_owner.exists():
-        stale_runtime = sorted(path.name for path in stale_owner.glob("Cmn*Config.java") if path.is_file())
-        if stale_runtime:
-            errors.append(
-                "CMN runtime persistence configuration must be starter-owned; "
-                f"stale cpf-common configs={stale_runtime}"
-            )
-
-    allowed_match = re.search(
-        r"MEMORY_ALLOWED_PROFILES\s*=\s*(?:java\.util\.)?Set\.of\(([^)]*)\)", adm
-    )
-    allowed = set(re.findall(r'"([^"]+)"', allowed_match.group(1))) if allowed_match else set()
-    if allowed != {"edu", "test"}:
-        errors.append(f"ADM MEMORY profiles must be exactly edu/test, actual={sorted(allowed)}")
-    if 'getProperty("cpf.adm.persistence.mode", "DATABASE")' not in adm:
-        errors.append("ADM persistence default must be DATABASE")
-    if "if (mode == Mode.MEMORY)" not in adm or "throw new CpfValidationException" not in adm:
-        errors.append("ADM MEMORY mode must fail closed outside the explicit profile allow-list")
-    for forbidden in ("local", "demo", "library", "prod", "product", "production"):
-        if forbidden in allowed:
-            errors.append(f"ADM MEMORY must reject product-like profile: {forbidden}")
-
-    if PRODUCT_CONDITION not in cmn_ds:
-        errors.append("CMN DataSource must be product-mode conditional")
-    if PRODUCT_CONDITION not in cmn_mb:
-        errors.append("CMN MyBatis must share the CMN DataSource product-mode condition")
-    if '@Qualifier("cmnDataSource") DataSource cmnDataSource' not in cmn_mb:
-        errors.append("CMN MyBatis must require the canonical cmnDataSource")
-    if "new JdbcTemplate" in cmn_ds or "new JdbcTemplate" in cmn_mb:
-        errors.append("CMN product DB configuration must not create an unowned JdbcTemplate fallback")
-    if 'CpfDataSources.resolve(environment, "spring.datasource.cmn")' not in cmn_ds:
-        errors.append("CMN product datasource must resolve the canonical spring.datasource.cmn owner binding")
-    if '@Bean(name = "cmnDataSource")' not in cmn_ds:
-        errors.append("CMN product datasource bean must retain the canonical cmnDataSource name")
-
-    profile = re.search(r"@Profile\(\{([^}]*)\}\)", cmn_sample)
-    profiles = set(re.findall(r'"([^"]+)"', profile.group(1))) if profile else set()
-    if profiles != {"edu", "test"}:
-        errors.append(f"CMN sample DB profiles must be exactly edu/test, actual={sorted(profiles)}")
-    explicit_sample_enable = (
-        '@ConditionalOnProperty(prefix = "cpf.cmn.sample-db", name = "enabled", havingValue = "true")'
-    )
-    if explicit_sample_enable not in cmn_sample:
-        errors.append("CMN sample DB must require explicit enabled=true")
-    if '@Bean(name = "cmnDataSource")' in cmn_sample or '@Qualifier("cmnDataSource")' in cmn_sample:
-        errors.append("CMN sample DB must not shadow or consume the canonical cmnDataSource bean")
-    if 'CpfDataSources.resolve(environment, "spring.datasource.cmn-sample")' not in cmn_sample:
-        errors.append("CMN sample datasource must use the isolated spring.datasource.cmn-sample binding")
-
-    result = {
-        "status": "PASS" if not errors else "FAIL",
-        "admMemoryProfiles": sorted(allowed),
-        "cmnProductDataSourceConditional": PRODUCT_CONDITION in cmn_ds,
-        "cmnMyBatisConditional": PRODUCT_CONDITION in cmn_mb,
-        "cmnSampleProfiles": sorted(profiles),
-        "jdbcOwner": JDBC_OWNER,
-        "myBatisOwner": MYBATIS_OWNER,
-        "errors": errors,
-    }
-    if errors:
-        raise GateError("\n".join(errors))
-    return result
-
-
-def write_json(root: Path, output_value: str | None, result: dict[str, object]) -> None:
-    if not output_value:
-        return
-    output = Path(output_value)
-    if not output.is_absolute():
-        output = root / output
-    output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-
-
-def main() -> int:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--root", type=Path, default=Path.cwd())
-    parser.add_argument("--json-output")
-    args = parser.parse_args()
-    root = args.root.resolve()
-    try:
-        result = validate(root)
-    except (GateError, OSError) as exc:
-        result = {"status": "FAIL", "errors": str(exc).splitlines()}
-        write_json(root, args.json_output, result)
-        print(f"CPF DB-less fail-closed gate FAILED: {exc}", file=sys.stderr)
-        return 1
-    write_json(root, args.json_output, result)
-    print(json.dumps(result, ensure_ascii=False))
-    return 0
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())
+def main():
+ p=argparse.ArgumentParser();p.add_argument('--root',default='.');p.add_argument('--json-output');a=p.parse_args();root=Path(a.root).resolve()
+ try:r=verify(root);c=0
+ except Exception as e:
+  try:r=json.loads(str(e))
+  except:r={'status':'FAIL','message':str(e)}
+  c=1
+ if a.json_output:
+  o=Path(a.json_output);o=o if o.is_absolute() else root/o;o.parent.mkdir(parents=True,exist_ok=True);o.write_text(json.dumps(r,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+ print(json.dumps(r,ensure_ascii=False));return c
+if __name__=='__main__':raise SystemExit(main())

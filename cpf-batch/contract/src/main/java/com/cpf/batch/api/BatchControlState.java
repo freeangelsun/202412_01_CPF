@@ -10,6 +10,7 @@ public enum BatchControlState {
     COMPLETED,
     FAILED,
     UNKNOWN_RESULT,
+    ABANDONING,
     ABANDONED,
     REJECTED;
 

@@ -1,0 +1,46 @@
+{
+  "sourceHead": "cb305fc5363263c9607e990ba640233c28668f01",
+  "scope": {
+    "logicalStart": 20001,
+    "logicalEnd": 30558,
+    "requirements": 10558,
+    "workPackages": 291
+  },
+  "requirements": {
+    "structuralValidationSuccess": 10558,
+    "acceptanceValidationSuccess": 0,
+    "acceptanceValidationFailure": 0,
+    "acceptanceUnverified": 10558,
+    "externalEnvironmentRequired": 10558
+  },
+  "findings": {
+    "total": 25,
+    "complete": 16,
+    "incomplete": 9
+  },
+  "localExecution": {
+    "pythonGateTests": 30,
+    "pythonAuditTests": 1,
+    "frontendChecksAtLeast": 30,
+    "javaControllerAssertions": 61,
+    "javaNetworkAssertions": 15,
+    "javaPersistenceAssertions": 9,
+    "javaTransactionAssertions": 11,
+    "auditStressRuns": 3,
+    "auditRecordsPerRun": 220,
+    "dbTablesPerVendor": 200,
+    "dbColumnsPerVendor": 2914,
+    "dbIndexesPerVendor": 337,
+    "dbForeignKeysPerVendor": 147
+  },
+  "environment": {
+    "java": "21.0.10",
+    "node": "22.16.0",
+    "python": "3.13.5",
+    "java25": false,
+    "gradleInstalled": false,
+    "powershellInstalled": false,
+    "realDbServers": false,
+    "gitCheckout": false
+  }
+}

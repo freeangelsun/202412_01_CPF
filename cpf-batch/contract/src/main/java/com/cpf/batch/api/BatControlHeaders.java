@@ -7,7 +7,9 @@ package com.cpf.batch.api;
  * 대신 검증하는 데 사용합니다.</p>
  */
 public final class BatControlHeaders {
+    @Deprecated(forRemoval = false)
     public static final String APPROVAL_REQUEST_ID = "X-Cpf-Ext-Approval-Request-Id";
+    @Deprecated(forRemoval = false)
     public static final String APPROVAL_REQUESTER_ID = "X-Cpf-Ext-Approval-Requester-Id";
 
     private BatControlHeaders() {

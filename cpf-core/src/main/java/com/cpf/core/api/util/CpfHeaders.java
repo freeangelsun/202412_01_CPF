@@ -22,6 +22,8 @@ public final class CpfHeaders {
     public static String parentSegmentId() { return CpfHeaderNames.PARENT_TRANSACTION_SEGMENT_ID; }
     public static String standardExecutionId() { return CpfHeaderNames.STANDARD_EXECUTION_ID; }
     public static String idempotencyKey() { return CpfHeaderNames.IDEMPOTENCY_KEY; }
+    public static String approvalRequestId() { return CpfHeaderNames.APPROVAL_REQUEST_ID; }
+    public static String approvalRequesterId() { return CpfHeaderNames.APPROVAL_REQUESTER_ID; }
     public static String traceId() { return CpfHeaderNames.TRACE_ID; }
     public static String spanId() { return CpfHeaderNames.SPAN_ID; }
     public static String channelCode() { return CpfHeaderNames.CHANNEL_CODE; }
@@ -38,7 +40,7 @@ public final class CpfHeaders {
      */
     public static List<String> standardNames() {
         return List.of(
-                transactionId(), standardExecutionId(), segmentId(), parentSegmentId(), idempotencyKey(),
+                transactionId(), standardExecutionId(), segmentId(), parentSegmentId(), idempotencyKey(), approvalRequestId(), approvalRequesterId(),
                 traceId(), spanId(), originalChannelCode(), channelCode(), userId(), operatorId(), tenantId(),
                 callerService(), callerInstanceId());
     }

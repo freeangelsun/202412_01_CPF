@@ -25,12 +25,14 @@ export const coreMethods = {
         return this.permission(menuId).writeAllowed === true;
       },
   canButton(buttonId, menuId = "") {
-        if (this.buttonsLoaded) return this.authorizedButtons.includes(buttonId);
-        // local/test MEMORY에서는 Button projection이 없을 수 있으므로 메뉴 권한을 사용하되 서버 Filter가 최종 차단한다.
-        return menuId ? this.canWrite(menuId) : false;
+        // Button projection is a security boundary. Missing or not-yet-loaded
+        // projection must never inherit broad menu WRITE permission.
+        if (!this.buttonsLoaded) return false;
+        return this.authorizedButtons.includes(buttonId);
       },
   canDelete(menuId) {
-        return this.permission(menuId).deleteAllowed !== false;
+        // Absence is not permission. Only an explicit server projection grants DELETE.
+        return this.permission(menuId).deleteAllowed === true;
       },
   requireReason(reason) {
         if (!reason || !String(reason).trim()) {

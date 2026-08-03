@@ -18,6 +18,8 @@ public final class CpfHeaderNames {
     public static final String CORRELATION_ID = "X-Correlation-Id";
     public static final String IDEMPOTENCY_KEY = "X-Idempotency-Key";
     public static final String IDEMPOTENCY_KEY_ALIAS = "Idempotency-Key";
+    public static final String APPROVAL_REQUEST_ID = "X-Cpf-Approval-Request-Id";
+    public static final String APPROVAL_REQUESTER_ID = "X-Cpf-Approval-Requester-Id";
 
     public static final String TRACE_ID = "X-Trace-Id";
     public static final String SPAN_ID = "X-Span-Id";

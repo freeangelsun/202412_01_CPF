@@ -9,7 +9,8 @@ export class CpfApiError extends Error {
     super(message); this.name = "CpfApiError";
   }
 }
-const CLIENT_ACTOR_FIELDS = new Set(["requestUser", "requestedBy", "actorId", "operatorId", "operatorIdOverride"]);
+const CLIENT_ACTOR_FIELDS = new Set(["requestuser", "requestedby", "actorid", "operatorid", "operatoridoverride"]);
+const SURFACE = "ADM";
 function csrfToken(): string {
   const entry = document.cookie.split(";").map(value => value.trim()).find(value => value.startsWith("XSRF-TOKEN="));
   return entry ? decodeURIComponent(entry.substring("XSRF-TOKEN=".length)) : "";
@@ -17,23 +18,82 @@ function csrfToken(): string {
 export function createAdmHeaders(extraHeaders: HeadersInit = {}): Headers {
   const headers = new Headers(defaultHeaders);
   new Headers(extraHeaders).forEach((value, key) => headers.set(key, value));
+  headers.set("X-Caller-Service", "adm-ui");
+  headers.set("X-Original-Channel-Code", "ADM");
   if (!isValidTransactionId(headers.get("X-Transaction-Id"))) headers.set("X-Transaction-Id", createTransactionId());
   const csrf = csrfToken(); if (csrf && !headers.has("X-XSRF-TOKEN")) headers.set("X-XSRF-TOKEN", csrf);
   if (headers.has("Authorization")) throw new Error("ADM BFF는 Browser Bearer Token을 허용하지 않습니다.");
   return headers;
 }
-function assertNoClientActor(value: unknown, path = "$", visited = new WeakSet<object>()): void {
-  if (value === null || value === undefined || typeof value !== "object") return;
-  if (visited.has(value as object)) return; visited.add(value as object);
+function actorKey(value: string): boolean { return CLIENT_ACTOR_FIELDS.has(value.trim().toLowerCase()); }
+function allowTopLevelOperatorIdentity(target: URL): boolean {
+  return target.pathname === "/adm/api/auth/login"
+    || target.pathname === "/adm/api/operators"
+    || target.pathname.startsWith("/adm/api/operators/");
+}
+function assertSameOrigin(target: URL): void {
+  if (target.origin !== window.location.origin) throw new Error(`${SURFACE} BFF target must be same-origin`);
+}
+function assertNoClientActor(value: unknown, path = "$", visited = new WeakSet<object>(), allowOperatorIdentity = false): void {
+  if (value === null || value === undefined) return;
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (!trimmed) return;
+    const jsonLike = trimmed.startsWith("{") || trimmed.startsWith("[");
+    if (path !== "$" && !jsonLike) return;
+    try {
+      const parsed = JSON.parse(trimmed) as unknown;
+      if (parsed === null || typeof parsed !== "object") {
+        if (path === "$") throw new Error(`${SURFACE} raw string body is forbidden; send a typed JSON object`);
+        return;
+      }
+      assertNoClientActor(parsed, path, visited, allowOperatorIdentity);
+    } catch (error) {
+      if (error instanceof SyntaxError) {
+        const kind = path === "$" ? "raw string body" : `malformed JSON payload at ${path}`;
+        throw new Error(`${SURFACE} ${kind} is forbidden; send a typed JSON object`);
+      }
+      throw error;
+    }
+    return;
+  }
+  if (typeof URLSearchParams !== "undefined" && value instanceof URLSearchParams) {
+    for (const [key, child] of value.entries()) {
+      const topLevelOperatorIdentity = allowOperatorIdentity && path === "$" && key.trim().toLowerCase() === "operatorid";
+      if (actorKey(key) && !topLevelOperatorIdentity) throw new Error(`Browser actor field is forbidden: ${path}.${key}`);
+      const trimmed = child.trim();
+      if (trimmed.startsWith("{") || trimmed.startsWith("[")) assertNoClientActor(trimmed, `${path}.${key}`, visited);
+    }
+    return;
+  }
+  if (typeof FormData !== "undefined" && value instanceof FormData) {
+    for (const [key, child] of value.entries()) {
+      const topLevelOperatorIdentity = allowOperatorIdentity && path === "$" && key.trim().toLowerCase() === "operatorid";
+      if (actorKey(key) && !topLevelOperatorIdentity) throw new Error(`Browser actor field is forbidden: ${path}.${key}`);
+      if (typeof child === "string") {
+        const trimmed = child.trim();
+        if (trimmed.startsWith("{") || trimmed.startsWith("[")) assertNoClientActor(trimmed, `${path}.${key}`, visited);
+      }
+    }
+    return;
+  }
+  if (typeof Blob !== "undefined" && value instanceof Blob) {
+    throw new Error(`${SURFACE} Blob body is forbidden for privileged BFF mutations`);
+  }
+  if (typeof value !== "object") return;
+  if (visited.has(value as object)) return;
+  visited.add(value as object);
   if (Array.isArray(value)) { value.forEach((item, index) => assertNoClientActor(item, `${path}[${index}]`, visited)); return; }
   for (const [key, child] of Object.entries(value as Record<string, unknown>)) {
-    if (CLIENT_ACTOR_FIELDS.has(key)) throw new Error(`Browser actor field is forbidden: ${path}.${key}`);
-    assertNoClientActor(child, `${path}.${key}`, visited);
+    const topLevelOperatorIdentity = allowOperatorIdentity && path === "$" && key.trim().toLowerCase() === "operatorid";
+    if (actorKey(key) && !topLevelOperatorIdentity) throw new Error(`Browser actor field is forbidden: ${path}.${key}`);
+    assertNoClientActor(child, `${path}.${key}`, visited, false);
   }
 }
 function assertNoClientActorQuery(target: URL): void {
+  assertSameOrigin(target);
   for (const key of target.searchParams.keys()) {
-    if (CLIENT_ACTOR_FIELDS.has(key)) throw new Error(`Browser actor query field is forbidden: ${key}`);
+    if (actorKey(key)) throw new Error(`Browser actor query field is forbidden: ${key}`);
   }
 }
 function convert(error: unknown): never {
@@ -44,7 +104,7 @@ export async function admQuery<T = unknown>(url: string, params?: Record<string,
   const target = new URL(url, window.location.origin);
   assertNoClientActorQuery(target);
   Object.entries(params || {}).forEach(([key, value]) => {
-    if (CLIENT_ACTOR_FIELDS.has(key)) throw new Error(`Browser actor query field is forbidden: ${key}`);
+    if (actorKey(key)) throw new Error(`Browser actor query field is forbidden: ${key}`);
     if (value !== undefined && value !== null && String(value).trim() !== "") target.searchParams.set(key, String(value));
   });
   const relative = target.pathname + target.search;
@@ -57,8 +117,8 @@ export async function admQuery<T = unknown>(url: string, params?: Record<string,
   } catch (error) { return convert(error); }
 }
 export async function admMutation<T = unknown>(url: string, method: "POST" | "PUT" | "PATCH" | "DELETE", body?: unknown): Promise<T> {
-  assertNoClientActor(body);
   const target = new URL(url, window.location.origin);
+  assertNoClientActor(body, "$", new WeakSet<object>(), allowTopLevelOperatorIdentity(target));
   assertNoClientActorQuery(target);
   const relative = target.pathname + target.search;
   const operation = resolveCpfOperation(method, relative);
@@ -80,10 +140,10 @@ export async function admRawResponse(
   body?: unknown,
   extraHeaders: HeadersInit = {}
 ): Promise<Response> {
-  assertNoClientActor(body);
   const target = new URL(url, window.location.origin);
+  assertNoClientActor(body, "$", new WeakSet<object>(), allowTopLevelOperatorIdentity(target));
   assertNoClientActorQuery(target);
-  if (target.origin !== window.location.origin) throw new Error("ADM download target must be same-origin");
+  assertSameOrigin(target);
   const operation = resolveCpfOperation(method, target.pathname + target.search);
   const headers = createAdmHeaders({ ...Object.fromEntries(new Headers(extraHeaders).entries()), "X-CPF-Operation-Id": operation.operationId });
   let requestBody: BodyInit | undefined;
@@ -102,7 +162,7 @@ export async function cpfGeneratedRequest<T = unknown>(config: CpfGeneratedReque
   const target = new URL(config.url, window.location.origin);
   assertNoClientActorQuery(target);
   Object.entries(config.params || {}).forEach(([key, value]) => {
-    if (CLIENT_ACTOR_FIELDS.has(key)) throw new Error(`Browser actor query field is forbidden: ${key}`);
+    if (actorKey(key)) throw new Error(`Browser actor query field is forbidden: ${key}`);
     if (value !== undefined && value !== null) target.searchParams.set(key, String(value));
   });
   assertNoClientActorQuery(target);
@@ -139,7 +199,7 @@ export async function admInvokeOperation<T = unknown>(operationId: CpfOperationI
   const target=new URL(renderOperationPath(descriptor.template,options.path),window.location.origin);
   assertNoClientActorQuery(target);
   Object.entries(options.query||{}).forEach(([key,value])=>{
-    if(CLIENT_ACTOR_FIELDS.has(key))throw new Error(`Browser actor query field is forbidden: ${key}`);
+    if(actorKey(key))throw new Error(`Browser actor query field is forbidden: ${key}`);
     if(value!==undefined&&value!==null&&String(value).trim()!=="")target.searchParams.set(key,String(value));
   });
   assertNoClientActorQuery(target);

@@ -1,0 +1,1 @@
+package com.cpf.core.common.logging; import java.lang.annotation.*; @Retention(RetentionPolicy.RUNTIME) @Target({ElementType.TYPE,ElementType.METHOD}) public @interface CpfTransaction {String id();String name();}

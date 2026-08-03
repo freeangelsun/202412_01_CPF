@@ -46,7 +46,7 @@
       </aside>
     </div>
 
-    <DangerousActionDialog :open="Boolean(pendingAction)" :title="pendingActionConfig.title" :description="pendingActionConfig.description" :target="pendingTarget" :risk="pendingActionConfig.risk" :approval-required="pendingActionConfig.approvalRequired" :expected-version="selectedVersion" :submitting="actionSubmitting" :confirm-label="pendingActionConfig.confirmLabel" @cancel="pendingAction=null" @confirm="executeAction" />
+    <DangerousActionDialog :open="Boolean(pendingAction)" :title="pendingActionConfig.title" :description="pendingActionConfig.description" :target="pendingTarget" :risk="pendingActionConfig.risk" :approval-required="pendingActionConfig.approvalRequired" :expected-version="selectedVersion" :expected-version-required="pendingActionConfig.expectedVersionRequired" :submitting="actionSubmitting" :confirm-label="pendingActionConfig.confirmLabel" @cancel="pendingAction=null" @confirm="executeAction" />
   </section>
 </template>
 
@@ -66,7 +66,7 @@ import {
 type Mode="overview"|"topology"|"instances"|"scheduler"|"workerPools"|"centerCut"|"agents"|"jobs"|"executions"|"deployment"|"recovery"|"leases"|"alerts"|"audit";
 type Row=Record<string,unknown>;
 interface Column{key:string;label:string;keys:string[];status?:boolean;mask?:boolean}
-interface ActionConfig{id:string;label:string;title:string;description:string;risk:"HIGH"|"CRITICAL";approvalRequired:boolean;confirmLabel:string}
+interface ActionConfig{id:string;label:string;title:string;description:string;risk:"HIGH"|"CRITICAL";approvalRequired:boolean;expectedVersionRequired:boolean;confirmLabel:string}
 const props=defineProps<{mode:Mode}>();
 const mode=computed(()=>props.mode);
 const loading=ref(false), detailLoading=ref(false), actionSubmitting=ref(false);
@@ -104,18 +104,35 @@ const detailOperations=computed(()=>Array.isArray(detail.value.operations)?detai
 const detailPayload=computed(()=>detailTab.value==="Parameter / Context"?(detail.value.execution||detail.value):detail.value);
 const detailEntries=computed(()=>Object.entries((detail.value.execution as Row)||detail.value).filter(([k])=>!/(password|secret|token|authorization|credential)/i.test(k)).slice(0,40).map(([key,val])=>({key,value:formatObject(val)})));
 const selectedIdentity=computed(()=>selected.value?String(value(selected.value,["executionId","execution_id","unknownId","unknown_id","centerCutJobId","center_cut_job_id","jobId","job_id","instanceId","instance_id","scheduleId","schedule_id","lockKey","lock_key","messageId","message_id"])||"-"):"");
-const selectedVersion=computed(()=>{const v=selected.value?value(selected.value,["version","expectedVersion","rowVersion"]):undefined;const n=Number(v);return Number.isFinite(n)?n:undefined;});
+const selectedVersion=computed(()=>{
+ const detailSource=detail.value&&Object.keys(detail.value).length?detail.value:undefined;
+ const candidates=[
+  detailSource?.execution as Row|undefined,
+  detailSource?.schedule as Row|undefined,
+  detailSource?.lock as Row|undefined,
+  detailSource?.ghostCandidate as Row|undefined,
+  detailSource,
+  selected.value,
+ ];
+ for(const source of candidates){
+  if(!source)continue;
+  const raw=value(source,["rowVersion","row_version","version","expectedVersion"]);
+  const parsed=Number(raw);
+  if(Number.isSafeInteger(parsed)&&parsed>=0)return parsed;
+ }
+ return undefined;
+});
 const actionConfigs:Record<string,ActionConfig>={
- retry:{id:"retry",label:"재실행",title:"실행을 재시도하시겠습니까?",description:"기존 Parameter로 새 실행을 생성하며 중복 요청은 멱등 키로 차단합니다.",risk:"HIGH",approvalRequired:true,confirmLabel:"재실행 요청"},
- stop:{id:"stop",label:"중지",title:"실행 중지를 요청하시겠습니까?",description:"응답 손실 시 결과불명 상태가 될 수 있으므로 Recovery Center에서 결과를 확인해야 합니다.",risk:"CRITICAL",approvalRequired:true,confirmLabel:"중지 요청"},
- run:{id:"run",label:"수동 실행",title:"Job을 수동 실행하시겠습니까?",description:"운영 Parameter와 승인 범위를 확인한 뒤 새 실행을 요청합니다.",risk:"CRITICAL",approvalRequired:true,confirmLabel:"실행 요청"},
- "schedule-enable":{id:"schedule-enable",label:"활성화",title:"Schedule을 활성화하시겠습니까?",description:"Next-fire와 중복 실행 영향을 확인하세요.",risk:"HIGH",approvalRequired:true,confirmLabel:"활성화"},
- "schedule-disable":{id:"schedule-disable",label:"비활성화",title:"Schedule을 비활성화하시겠습니까?",description:"예약된 실행과 운영 SLA 영향을 확인하세요.",risk:"HIGH",approvalRequired:true,confirmLabel:"비활성화"},
- "scheduler-run":{id:"scheduler-run",label:"Scheduler 1회 실행",title:"Scheduler 판정을 즉시 실행하시겠습니까?",description:"현재 시점의 due schedule을 평가합니다.",risk:"CRITICAL",approvalRequired:true,confirmLabel:"1회 실행"},
- "release-lock":{id:"release-lock",label:"Lock 해제",title:"Lock을 강제로 해제하시겠습니까?",description:"실제 실행이 살아 있으면 중복 실행이 발생할 수 있습니다.",risk:"CRITICAL",approvalRequired:true,confirmLabel:"강제 해제"},
- "ghost-fail":{id:"ghost-fail",label:"실패 확정",title:"Ghost 실행을 실패로 확정하시겠습니까?",description:"Lease·Fencing·Worker 상태를 확인한 후 수동 판정을 기록합니다.",risk:"CRITICAL",approvalRequired:true,confirmLabel:"실패 확정"},
- "ghost-abandon":{id:"ghost-abandon",label:"폐기 확정",title:"Ghost 실행을 폐기 상태로 확정하시겠습니까?",description:"재조회된 Heartbeat와 실행 상태가 여전히 Ghost 조건일 때만 ABANDONED로 전이합니다.",risk:"CRITICAL",approvalRequired:true,confirmLabel:"폐기 확정"},
- "unknown-resolve":{id:"unknown-resolve",label:"실패 확정",title:"결과불명 건을 실패로 확정하시겠습니까?",description:"외부계·Broker·Worker 원장을 대사한 뒤 승인된 판정을 감사 로그와 함께 기록합니다.",risk:"CRITICAL",approvalRequired:true,confirmLabel:"결과 확정"}
+ retry:{id:"retry",label:"재실행",title:"실행을 재시도하시겠습니까?",description:"기존 Parameter로 새 실행을 생성하며 중복 요청은 멱등 키로 차단합니다.",risk:"HIGH",approvalRequired:true,expectedVersionRequired:true,confirmLabel:"재실행 요청"},
+ stop:{id:"stop",label:"중지",title:"실행 중지를 요청하시겠습니까?",description:"응답 손실 시 결과불명 상태가 될 수 있으므로 Recovery Center에서 결과를 확인해야 합니다.",risk:"CRITICAL",approvalRequired:true,expectedVersionRequired:true,confirmLabel:"중지 요청"},
+ run:{id:"run",label:"수동 실행",title:"Job을 수동 실행하시겠습니까?",description:"운영 Parameter와 승인 범위를 확인한 뒤 새 실행을 요청합니다.",risk:"CRITICAL",approvalRequired:true,expectedVersionRequired:false,confirmLabel:"실행 요청"},
+ "schedule-enable":{id:"schedule-enable",label:"활성화",title:"Schedule을 활성화하시겠습니까?",description:"Next-fire와 중복 실행 영향을 확인하세요.",risk:"HIGH",approvalRequired:true,expectedVersionRequired:true,confirmLabel:"활성화"},
+ "schedule-disable":{id:"schedule-disable",label:"비활성화",title:"Schedule을 비활성화하시겠습니까?",description:"예약된 실행과 운영 SLA 영향을 확인하세요.",risk:"HIGH",approvalRequired:true,expectedVersionRequired:true,confirmLabel:"비활성화"},
+ "scheduler-run":{id:"scheduler-run",label:"Scheduler 1회 실행",title:"Scheduler 판정을 즉시 실행하시겠습니까?",description:"현재 시점의 due schedule을 평가합니다.",risk:"CRITICAL",approvalRequired:true,expectedVersionRequired:false,confirmLabel:"1회 실행"},
+ "release-lock":{id:"release-lock",label:"Lock 해제",title:"Lock을 강제로 해제하시겠습니까?",description:"실제 실행이 살아 있으면 중복 실행이 발생할 수 있습니다.",risk:"CRITICAL",approvalRequired:true,expectedVersionRequired:true,confirmLabel:"강제 해제"},
+ "ghost-fail":{id:"ghost-fail",label:"실패 확정",title:"Ghost 실행을 실패로 확정하시겠습니까?",description:"Lease·Fencing·Worker 상태를 확인한 후 수동 판정을 기록합니다.",risk:"CRITICAL",approvalRequired:true,expectedVersionRequired:true,confirmLabel:"실패 확정"},
+ "ghost-abandon":{id:"ghost-abandon",label:"폐기 확정",title:"Ghost 실행을 폐기 상태로 확정하시겠습니까?",description:"재조회된 Heartbeat와 실행 상태가 여전히 Ghost 조건일 때만 ABANDONED로 전이합니다.",risk:"CRITICAL",approvalRequired:true,expectedVersionRequired:true,confirmLabel:"폐기 확정"},
+ "unknown-resolve":{id:"unknown-resolve",label:"실패 확정",title:"결과불명 건을 실패로 확정하시겠습니까?",description:"외부계·Broker·Worker 원장을 대사한 뒤 승인된 판정을 감사 로그와 함께 기록합니다.",risk:"CRITICAL",approvalRequired:true,expectedVersionRequired:false,confirmLabel:"결과 확정"}
 };
 const availableActions=computed<ActionConfig[]>(()=>{
  if(mode.value==="executions")return [actionConfigs.retry,actionConfigs.stop];
@@ -125,7 +142,7 @@ const availableActions=computed<ActionConfig[]>(()=>{
  if(mode.value==="leases")return [actionConfigs["release-lock"]];
  return [];
 });
-const pendingActionConfig=computed(()=>pendingAction.value?actionConfigs[pendingAction.value]:{title:"",description:"",risk:"HIGH" as const,approvalRequired:false,confirmLabel:"실행",id:"",label:""});
+const pendingActionConfig=computed(()=>pendingAction.value?actionConfigs[pendingAction.value]:{title:"",description:"",risk:"HIGH" as const,approvalRequired:false,expectedVersionRequired:false,confirmLabel:"실행",id:"",label:""});
 const pendingTarget=computed(()=>selected.value?{대상:selectedIdentity.value,상태:String(value(selected.value,["status","executionStatus","enabled"])||"-")}:{대상:"Scheduler"});
 
 onMounted(load);watch(mode,()=>{page.value=0;selected.value=null;detail.value={};void load();});

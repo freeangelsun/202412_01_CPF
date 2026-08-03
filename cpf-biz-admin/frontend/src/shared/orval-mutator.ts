@@ -33,6 +33,67 @@ export function configureCpfBffSessionRecovery(recovery: CpfBffSessionRecovery):
   refreshFlights.clear();
 }
 
+const CLIENT_ACTOR_FIELDS = new Set(["requestuser", "requestedby", "actorid", "operatorid", "operatoridoverride"]);
+function actorKey(value: string): boolean { return CLIENT_ACTOR_FIELDS.has(value.trim().toLowerCase()); }
+function allowTopLevelOperatorIdentity(_target: URL): boolean {
+  // BZA는 운영자 자격증명 발급·관리 Owner가 아니다. Browser가 전달한 operatorId는 모든 경로에서 차단한다.
+  return false;
+}
+function assertNoClientActor(
+  value: unknown,
+  path = "$",
+  visited = new WeakSet<object>(),
+  allowOperatorIdentity = false
+): void {
+  if (value === null || value === undefined) return;
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (!trimmed.startsWith("{") && !trimmed.startsWith("[")) return;
+    try { assertNoClientActor(JSON.parse(trimmed) as unknown, path, visited, allowOperatorIdentity); }
+    catch (error) {
+      if (error instanceof SyntaxError) throw new Error(`Malformed JSON actor payload is forbidden at ${path}`);
+      throw error;
+    }
+    return;
+  }
+  if (typeof URLSearchParams !== "undefined" && value instanceof URLSearchParams) {
+    for (const [key, child] of value.entries()) {
+      if (actorKey(key)) throw new Error(`Browser actor field is forbidden: ${path}.${key}`);
+      assertNoClientActor(child, `${path}.${key}`, visited, false);
+    }
+    return;
+  }
+  if (typeof FormData !== "undefined" && value instanceof FormData) {
+    for (const [key, child] of value.entries()) {
+      if (actorKey(key)) throw new Error(`Browser actor field is forbidden: ${path}.${key}`);
+      if (typeof child === "string") assertNoClientActor(child, `${path}.${key}`, visited, false);
+    }
+    return;
+  }
+  if (typeof Blob !== "undefined" && value instanceof Blob) return;
+  if (value instanceof ArrayBuffer || ArrayBuffer.isView(value) || typeof value !== "object") return;
+  if (visited.has(value as object)) return;
+  visited.add(value as object);
+  if (Array.isArray(value)) {
+    value.forEach((item, index) => assertNoClientActor(item, `${path}[${index}]`, visited, false));
+    return;
+  }
+  for (const [key, child] of Object.entries(value as Record<string, unknown>)) {
+    const topLevelOperatorIdentity = allowOperatorIdentity && path === "$" && key.trim().toLowerCase() === "operatorid";
+    if (actorKey(key) && !topLevelOperatorIdentity) throw new Error(`Browser actor field is forbidden: ${path}.${key}`);
+    assertNoClientActor(child, `${path}.${key}`, visited, false);
+  }
+}
+function assertNoClientActorQuery(target: URL, params: Record<string, unknown> = {}): void {
+  for (const key of target.searchParams.keys()) {
+    if (actorKey(key)) throw new Error(`Browser actor query field is forbidden: ${key}`);
+  }
+  for (const [key, value] of Object.entries(params)) {
+    if (actorKey(key)) throw new Error(`Browser actor query field is forbidden: ${key}`);
+    assertNoClientActor(value, `$.query.${key}`);
+  }
+}
+
 function csrfToken(): string {
   const entry = document.cookie
     .split(";")
@@ -106,11 +167,11 @@ export async function cpfOrvalRequest<T>(
   const config = normalizeRequest(configOrUrl, requestOptions);
   const url = new URL(config.url, window.location.origin);
   if (url.origin !== window.location.origin) throw new Error("CPF BFF request must be same-origin");
+  assertNoClientActor(config.data, "$", new WeakSet<object>(), allowTopLevelOperatorIdentity(url));
+  assertNoClientActorQuery(url, config.params || {});
   Object.entries(config.params || {}).forEach(([key, value]) => {
     if (value !== undefined && value !== null) url.searchParams.set(key, String(value));
   });
-  url.searchParams.delete("requestUser");
-  url.searchParams.delete("actorId");
 
   const headers = new Headers(config.headers);
   const csrf = csrfToken();

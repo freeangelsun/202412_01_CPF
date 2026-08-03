@@ -116,8 +116,8 @@ CREATE TABLE bat_job_definition_audit (
     approval_request_id VARCHAR2(120 CHAR),
     transaction_id CHAR(34 CHAR),
     trace_id VARCHAR2(64 CHAR),
-    before_json MEDIUMTEXT,
-    after_json MEDIUMTEXT,
+    before_json CLOB,
+    after_json CLOB,
     CONSTRAINT pk_bat_job_definition_audit PRIMARY KEY (audit_id)
 );
 CREATE INDEX idx_bat_job_def_audit ON bat_job_definition_audit (job_id, definition_version, created_at);
@@ -256,6 +256,7 @@ CREATE TABLE bat_lock (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'BAT',
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    row_version NUMBER(19) NOT NULL DEFAULT 0,
     CONSTRAINT pk_bat_lock PRIMARY KEY (lock_key)
 );
 CREATE INDEX ix_bat_lock_job ON bat_lock (job_id, job_parameters_hash);
@@ -714,7 +715,7 @@ CREATE TABLE cpf_batch_execution_control (
     CONSTRAINT ck_cpf_bat_plan_hash CHECK (REGEXP_LIKE(plan_checksum, '^[0-9a-f]{64}$')),
     CONSTRAINT ck_cpf_bat_control_version CHECK (control_version > 0),
     CONSTRAINT ck_cpf_bat_reconcile_attempt CHECK (reconcile_attempts >= 0),
-    CONSTRAINT ck_cpf_bat_control_status CHECK (control_status IN ('RESERVED', 'STARTING', 'STARTED', 'STOPPING', 'STOPPED', 'COMPLETED', 'FAILED', 'UNKNOWN_RESULT', 'ABANDONED', 'REJECTED'))
+    CONSTRAINT ck_cpf_bat_control_status CHECK (control_status IN ('RESERVED', 'STARTING', 'STARTED', 'STOPPING', 'STOPPED', 'COMPLETED', 'FAILED', 'UNKNOWN_RESULT', 'ABANDONING', 'ABANDONED', 'REJECTED'))
 );
 CREATE INDEX ix_cpf_bat_exec_job ON cpf_batch_execution_control (job_id, definition_version, created_at);
 CREATE INDEX ix_cpf_bat_exec_sb ON cpf_batch_execution_control (job_execution_id);
@@ -1269,12 +1270,13 @@ CREATE TABLE bat_execution (
     max_elapsed_ms NUMBER(19) NOT NULL DEFAULT 0,
     last_heartbeat_at TIMESTAMP(3),
     current_step_name VARCHAR2(150 CHAR),
-    error_message MEDIUMTEXT,
+    error_message CLOB,
     requested_by VARCHAR2(100 CHAR),
     created_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'BAT',
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'BAT',
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    row_version NUMBER(19) NOT NULL DEFAULT 0,
     definition_version NUMBER(19),
     definition_checksum VARCHAR2(128 CHAR),
     CONSTRAINT pk_bat_execution PRIMARY KEY (execution_id),
@@ -1397,6 +1399,7 @@ CREATE TABLE bat_schedule (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'BAT',
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    row_version NUMBER(19) NOT NULL DEFAULT 0,
     definition_version NUMBER(19),
     definition_checksum VARCHAR2(128 CHAR),
     CONSTRAINT pk_bat_schedule PRIMARY KEY (schedule_id),
@@ -1594,11 +1597,11 @@ CREATE TABLE bat_execution_attempt (
     worker_id VARCHAR2(160 CHAR) NOT NULL,
     fencing_token NUMBER(19) NOT NULL,
     attempt_status VARCHAR2(40 CHAR) NOT NULL DEFAULT 'RUNNING',
-    result_message MEDIUMTEXT,
+    result_message CLOB,
     executor_type VARCHAR2(40 CHAR),
     exit_code NUMBER(10),
-    stdout_text MEDIUMTEXT,
-    stderr_text MEDIUMTEXT,
+    stdout_text CLOB,
+    stderr_text CLOB,
     output_truncated_yn CHAR(1 CHAR) NOT NULL DEFAULT 'N',
     duration_ms NUMBER(19),
     artifact_hash VARCHAR2(128 CHAR),
@@ -1888,8 +1891,8 @@ CREATE TABLE bat_step_execution (
     avg_elapsed_ms NUMBER(19) NOT NULL DEFAULT 0,
     max_elapsed_ms NUMBER(19) NOT NULL DEFAULT 0,
     last_heartbeat_at TIMESTAMP(3),
-    error_message MEDIUMTEXT,
-    step_log MEDIUMTEXT,
+    error_message CLOB,
+    step_log CLOB,
     created_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'BAT',
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_by VARCHAR2(100 CHAR) NOT NULL DEFAULT 'BAT',
@@ -2092,3 +2095,20 @@ CREATE SEQUENCE BATCH_JOB_EXECUTION_SEQ START WITH 0 MINVALUE 0 MAXVALUE 9223372
 
 CREATE SEQUENCE BATCH_STEP_EXECUTION_SEQ START WITH 0 MINVALUE 0 MAXVALUE 9223372036854775807 INCREMENT BY 1 ORDER NOCYCLE;
 -- CPF_CANONICAL_OBJECTS_END spring-batch-6-sequences
+
+-- R4 BAT dangerous-operation approval/idempotency ledger
+CREATE TABLE bat_operation_request (
+    idempotency_key VARCHAR2(120 CHAR) NOT NULL, request_hash CHAR(64 CHAR) NOT NULL,
+    operation_type VARCHAR2(80 CHAR) NOT NULL, target_type VARCHAR2(80 CHAR) NOT NULL, target_id VARCHAR2(200 CHAR) NOT NULL,
+    action_type VARCHAR2(100 CHAR) NOT NULL, approval_request_id VARCHAR2(120 CHAR) NOT NULL, requested_by VARCHAR2(50 CHAR) NOT NULL,
+    expected_version NUMBER(19), request_state VARCHAR2(30 CHAR) DEFAULT 'RESERVED' NOT NULL, result_payload CLOB,
+    failure_code VARCHAR2(80 CHAR), failure_message VARCHAR2(1000 CHAR), completed_at TIMESTAMP(3),
+    created_by VARCHAR2(50 CHAR) DEFAULT 'BAT' NOT NULL, created_at TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_by VARCHAR2(50 CHAR) DEFAULT 'BAT' NOT NULL, updated_at TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT pk_bat_operation_request PRIMARY KEY (idempotency_key),
+    CONSTRAINT ck_bat_operation_request_state CHECK (request_state IN ('RESERVED','COMPLETED','FAILED','UNKNOWN')),
+    CONSTRAINT ck_bat_operation_request_hash CHECK (LENGTH(request_hash)=64)
+);
+CREATE INDEX ix_bat_operation_request_target ON bat_operation_request(target_type,target_id,created_at);
+CREATE INDEX ix_bat_operation_request_state ON bat_operation_request(request_state,updated_at);
+

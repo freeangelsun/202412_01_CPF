@@ -1,0 +1,1 @@
+package com.cpf.core.common.header; public final class CpfExtensionHeaderPolicy {public static boolean isExtensionHeader(String n){return n!=null&&n.toLowerCase().startsWith("x-cpf-ext-");} public static boolean isAllowedExtensionHeader(String n){String x=n.toLowerCase();return !(x.contains("token")||x.contains("secret")||x.contains("authorization")||x.contains("api-key"));}}

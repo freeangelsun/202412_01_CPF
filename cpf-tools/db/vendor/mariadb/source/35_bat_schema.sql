@@ -147,6 +147,7 @@ CREATE TABLE IF NOT EXISTS bat_lock (
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
     updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    row_version BIGINT NOT NULL DEFAULT 0 COMMENT '운영 위험조치 낙관적 잠금 Version',
     CONSTRAINT pk_bat_lock PRIMARY KEY (lock_key),
     INDEX ix_bat_lock_job (job_id, job_parameters_hash),
     INDEX ix_bat_lock_expire (expire_at)
@@ -411,7 +412,7 @@ CREATE TABLE IF NOT EXISTS cpf_batch_execution_control (
     CONSTRAINT ck_cpf_bat_plan_hash CHECK (plan_checksum REGEXP '^[0-9a-f]{64}$'),
     CONSTRAINT ck_cpf_bat_control_version CHECK (control_version > 0),
     CONSTRAINT ck_cpf_bat_reconcile_attempt CHECK (reconcile_attempts >= 0),
-    CONSTRAINT ck_cpf_bat_control_status CHECK (control_status IN ('RESERVED', 'STARTING', 'STARTED', 'STOPPING', 'STOPPED', 'COMPLETED', 'FAILED', 'UNKNOWN_RESULT', 'ABANDONED', 'REJECTED')),
+    CONSTRAINT ck_cpf_bat_control_status CHECK (control_status IN ('RESERVED', 'STARTING', 'STARTED', 'STOPPING', 'STOPPED', 'COMPLETED', 'FAILED', 'UNKNOWN_RESULT', 'ABANDONING', 'ABANDONED', 'REJECTED')),
     INDEX ix_cpf_bat_exec_job (job_id, definition_version, created_at),
     INDEX ix_cpf_bat_exec_sb (job_execution_id),
     INDEX ix_cpf_bat_exec_reconcile (control_status, reconcile_after, updated_at)
@@ -743,6 +744,7 @@ CREATE TABLE IF NOT EXISTS bat_execution (
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
     updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    row_version BIGINT NOT NULL DEFAULT 0 COMMENT '운영 위험조치 낙관적 잠금 Version',
     definition_version BIGINT NULL COMMENT 'Execution 생성 시 고정된 Job Definition Version',
     definition_checksum VARCHAR(128) NULL COMMENT 'Execution 생성 시 고정된 Definition Checksum',
     CONSTRAINT pk_bat_execution PRIMARY KEY (execution_id),
@@ -801,6 +803,7 @@ CREATE TABLE IF NOT EXISTS bat_schedule (
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
     updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    row_version BIGINT NOT NULL DEFAULT 0 COMMENT '운영 위험조치 낙관적 잠금 Version',
     definition_version BIGINT NULL COMMENT 'Schedule이 실행해야 하는 고정 Job Definition Version',
     definition_checksum VARCHAR(128) NULL COMMENT 'Schedule 생성 시 고정된 Definition Checksum',
     CONSTRAINT pk_bat_schedule PRIMARY KEY (schedule_id),
@@ -1199,3 +1202,31 @@ CREATE SEQUENCE IF NOT EXISTS BATCH_STEP_EXECUTION_SEQ
     START WITH 1 MINVALUE 1 MAXVALUE 9223372036854775806
     INCREMENT BY 1 NOCACHE NOCYCLE ENGINE=InnoDB;
 -- CPF_CANONICAL_OBJECTS_END spring-batch-6-sequences
+
+-- R4 BAT dangerous-operation approval/idempotency ledger
+CREATE TABLE bat_operation_request (
+    idempotency_key VARCHAR(120) NOT NULL,
+    request_hash CHAR(64) NOT NULL,
+    operation_type VARCHAR(80) NOT NULL,
+    target_type VARCHAR(80) NOT NULL,
+    target_id VARCHAR(200) NOT NULL,
+    action_type VARCHAR(100) NOT NULL,
+    approval_request_id VARCHAR(120) NOT NULL,
+    requested_by VARCHAR(50) NOT NULL,
+    expected_version BIGINT NULL,
+    request_state VARCHAR(30) NOT NULL DEFAULT 'RESERVED',
+    result_payload LONGTEXT NULL,
+    failure_code VARCHAR(80) NULL,
+    failure_message VARCHAR(1000) NULL,
+    completed_at DATETIME(3) NULL,
+    created_by VARCHAR(50) NOT NULL DEFAULT 'BAT',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    updated_by VARCHAR(50) NOT NULL DEFAULT 'BAT',
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+    CONSTRAINT pk_bat_operation_request PRIMARY KEY (idempotency_key),
+    CONSTRAINT ck_bat_operation_request_state CHECK (request_state IN ('RESERVED','COMPLETED','FAILED','UNKNOWN')),
+    CONSTRAINT ck_bat_operation_request_hash CHECK (CHAR_LENGTH(request_hash)=64)
+);
+CREATE INDEX ix_bat_operation_request_target ON bat_operation_request(target_type,target_id,created_at);
+CREATE INDEX ix_bat_operation_request_state ON bat_operation_request(request_state,updated_at);
+

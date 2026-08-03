@@ -48,6 +48,12 @@ public class CpfWebClientConfig {
     public CpfApiClientRuntimePolicy cpfApiClientRuntimePolicy() { return new CpfApiClientRuntimePolicy(); }
 
     @Bean
+    @ConditionalOnMissingBean
+    public CpfPinnedHttpConnectorFactory cpfPinnedHttpConnectorFactory(CpfHttpClientProperties properties) {
+        return new CpfPinnedHttpConnectorFactory(properties);
+    }
+
+    @Bean
     public CpfServiceEndpointRegistry cpfServiceEndpointRegistry(CpfServiceEndpointProperties properties) {
         return new CpfServiceEndpointRegistry(properties);
     }
@@ -57,6 +63,7 @@ public class CpfWebClientConfig {
             CpfHttpClientProperties httpClientProperties,
             CpfServiceEndpointRegistry endpointRegistry,
             CpfApiClientRuntimePolicy runtimePolicy,
+            CpfPinnedHttpConnectorFactory pinnedConnectorFactory,
             ObjectProvider<CpfFileLogWriter> fileLogWriterProvider,
             ObjectProvider<CpfServiceCallEngine> serviceCallEngineProvider,
             Environment environment) {
@@ -76,7 +83,8 @@ public class CpfWebClientConfig {
                 .filter(transactionHeaderPropagationFilter(CpfLocalServiceIdentity.from(environment)))
                 .filter(integrationFileLogFilter(fileLogWriterProvider));
 
-        return new CpfWebClient(builder, endpointRegistry, serviceCallEngineProvider, runtimePolicy);
+        return new CpfWebClient(
+                builder, endpointRegistry, serviceCallEngineProvider, runtimePolicy, pinnedConnectorFactory);
     }
 
     @Bean

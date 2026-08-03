@@ -32,6 +32,7 @@ public final class CpfSpringBatchExecutionControl implements BatchExecutionContr
     private final CpfBatchJobFactory jobs;
     private final BatchExecutionLedgerPort ledger;
     private final BatchFencingPort fencing;
+    private final CpfBatchAbandonCoordinator abandonCoordinator;
 
     public CpfSpringBatchExecutionControl(
             JobOperator operator,
@@ -44,6 +45,7 @@ public final class CpfSpringBatchExecutionControl implements BatchExecutionContr
         this.jobs = jobs;
         this.ledger = ledger;
         this.fencing = fencing;
+        this.abandonCoordinator = new CpfBatchAbandonCoordinator(ledger);
     }
 
     @Override
@@ -127,14 +129,7 @@ public final class CpfSpringBatchExecutionControl implements BatchExecutionContr
         requireOperator(operatorId, reason);
         JobExecution execution = required(jobExecutionId);
         String cpfExecutionId = required(execution, "cpfExecutionId");
-        try {
-            operator.abandon(execution);
-        } catch (JobExecutionException failure) {
-            throw new CpfBatchExecutionException("BATCH_ABANDON_REJECTED", safe(failure));
-        }
-        ledger.transition(cpfExecutionId,
-                Set.of(BatchControlState.STOPPED, BatchControlState.FAILED, BatchControlState.UNKNOWN_RESULT),
-                BatchControlState.ABANDONED, "OPERATOR_ABANDON", reason, null);
+        abandonCoordinator.abandon(cpfExecutionId, reason, () -> operator.abandon(execution));
     }
 
     @Override

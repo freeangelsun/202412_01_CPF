@@ -154,8 +154,8 @@ export async function disableBatchSchedule(scheduleId: string, body: Record<stri
     method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
   })
 }
-export async function setBatchScheduleEnabled(scheduleId: string, enabled: boolean, reason: string): Promise<Record<string, unknown>> {
-  const body = { reason: reason.trim() }
+export async function setBatchScheduleEnabled(scheduleId: string, enabled: boolean, reason: string, expectedVersion: number, approvalRequestId: string, idempotencyKey: string): Promise<Record<string, unknown>> {
+  const body = commandBody({ reason, approvalId: approvalRequestId, expectedVersion, idempotencyKey }, true)
   return enabled ? enableBatchSchedule(scheduleId, body) : disableBatchSchedule(scheduleId, body)
 }
 export async function runBatchSchedulerOnce(reason: string): Promise<Array<Record<string, unknown>>> {
@@ -180,18 +180,14 @@ export async function fetchBatchLocks(jobId = ''): Promise<Array<Record<string, 
   const params = new URLSearchParams(); if (jobId) params.set('jobId', jobId)
   return request(`/adm/api/batch/locks?${params}`, { credentials: 'same-origin' })
 }
-export async function releaseBatchLock(lockKey: string, reason: string): Promise<Record<string, unknown>> {
-  return request('/adm/api/batch/locks/release', {
-    method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ lockKey, reason: reason.trim() }),
-  })
+export async function releaseBatchLock(lockKey: string, reason: string, expectedVersion: number, approvalRequestId: string, idempotencyKey: string): Promise<Record<string, unknown>> {
+  return releaseLock({ lockKey, reason, approvalId: approvalRequestId, expectedVersion, idempotencyKey })
 }
 export async function fetchBatchGhostCandidates(heartbeatTimeoutSeconds = 120): Promise<Array<Record<string, unknown>>> {
   return request(`/adm/api/batch/ghost-candidates?heartbeatTimeoutSeconds=${Math.max(10, heartbeatTimeoutSeconds)}`, { credentials: 'same-origin' })
 }
-export async function actBatchGhostExecution(executionId: number, actionType: string, reason: string): Promise<Record<string, unknown>> {
-  return request(`/adm/api/batch/ghost-candidates/${executionId}/actions`, {
-    method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ actionType, reason: reason.trim() }),
-  })
+export async function actBatchGhostExecution(executionId: number, actionType: string, reason: string, expectedVersion: number, approvalRequestId: string, idempotencyKey: string): Promise<Record<string, unknown>> {
+  return actGhostExecution(String(executionId), { actionType, reason, approvalId: approvalRequestId, expectedVersion, idempotencyKey })
 }
 export async function submitBatchRuntimeCommand(command: BatchRuntimeCommandRequest): Promise<Record<string, unknown>> {
   return request('/adm/api/batch-runtime/commands', {
@@ -290,12 +286,15 @@ function requiredId(value: string, label: string): string {
   if (!normalized || normalized === '-') throw new Error(`${label}가 필요합니다.`)
   return normalized
 }
-function commandBody(command: DangerousBatchCommand): Record<string, unknown> {
+function commandBody(command: DangerousBatchCommand, expectedVersionRequired = false): Record<string, unknown> {
   const reason = command.reason.trim()
   const approvalRequestId = command.approvalId.trim()
   if (reason.length < 5) throw new Error('감사 가능한 사유를 5자 이상 입력하세요.')
   if (!approvalRequestId) throw new Error('승인 ID가 필요합니다.')
   if (!command.idempotencyKey.trim()) throw new Error('멱등 키가 필요합니다.')
+  if (expectedVersionRequired && (!Number.isSafeInteger(command.expectedVersion) || Number(command.expectedVersion) < 0)) {
+    throw new Error('최신 Expected Version이 없어 위험 조치를 실행할 수 없습니다. 다시 조회하세요.')
+  }
   return {
     reason,
     approvalRequestId,
@@ -349,12 +348,12 @@ export async function simulateSchedule(scheduleId: string, baseDate: string, day
 }
 export async function retryExecution(executionId: string, command: DangerousBatchCommand): Promise<Record<string, unknown>> {
   return request(`/adm/api/batch/executions/${encodeURIComponent(requiredId(executionId, 'executionId'))}/retry`, {
-    method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(commandBody(command)),
+    method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(commandBody(command, true)),
   })
 }
 export async function stopExecution(executionId: string, command: DangerousBatchCommand): Promise<Record<string, unknown>> {
   return request(`/adm/api/batch/executions/${encodeURIComponent(requiredId(executionId, 'executionId'))}/stop`, {
-    method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(commandBody(command)),
+    method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(commandBody(command, true)),
   })
 }
 export async function runJob(jobId: string, command: DangerousBatchCommand): Promise<Record<string, unknown>> {
@@ -363,7 +362,7 @@ export async function runJob(jobId: string, command: DangerousBatchCommand): Pro
   })
 }
 export async function setScheduleEnabled(scheduleId: string, enabled: boolean, command: DangerousBatchCommand): Promise<Record<string, unknown>> {
-  const body = commandBody(command)
+  const body = commandBody(command, true)
   return enabled ? enableBatchSchedule(scheduleId, body) : disableBatchSchedule(scheduleId, body)
 }
 export async function runSchedulerOnce(command: DangerousBatchCommand): Promise<Array<Record<string, unknown>>> {
@@ -373,14 +372,14 @@ export async function runSchedulerOnce(command: DangerousBatchCommand): Promise<
 }
 export async function releaseLock(command: DangerousBatchCommand & { lockKey: string }): Promise<Record<string, unknown>> {
   return request('/adm/api/batch/locks/release', {
-    method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...commandBody(command), lockKey: requiredId(command.lockKey, 'lockKey') }),
+    method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...commandBody(command, true), lockKey: requiredId(command.lockKey, 'lockKey') }),
   })
 }
 export async function actGhostExecution(executionId: string, command: DangerousBatchCommand & { actionType: string }): Promise<Record<string, unknown>> {
   const actionType = command.actionType.trim().toUpperCase()
   if (!['FAIL', 'ABANDON', 'RELEASE_LOCK'].includes(actionType)) throw new Error(`지원하지 않는 Ghost 조치입니다: ${actionType}`)
   return request(`/adm/api/batch/ghost-candidates/${encodeURIComponent(requiredId(executionId, 'executionId'))}/actions`, {
-    method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...commandBody(command), actionType }),
+    method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...commandBody(command, true), actionType }),
   })
 }
 

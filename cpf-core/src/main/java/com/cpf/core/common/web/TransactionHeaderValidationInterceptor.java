@@ -99,7 +99,11 @@ public class TransactionHeaderValidationInterceptor implements HandlerIntercepto
 
             OnlineExecutionMetadata transaction = resolveTransactionAnnotation(handlerMethod);
             if (transaction == null) {
-                // 운영 조회, health, callback처럼 업무 거래로 선언하지 않은 API에는 거래 헤더를 강제하지 않습니다.
+                if (isInfrastructureEndpoint(request.getRequestURI())) {
+                    return true;
+                }
+                // Annotation 누락이 업무 API의 거래 헤더 우회 경로가 되지 않도록 fail-closed 합니다.
+                validateRequiredHeaders(request);
                 return true;
             }
             validateRequiredHeaders(request);
@@ -111,6 +115,19 @@ public class TransactionHeaderValidationInterceptor implements HandlerIntercepto
             return false;
         }
         return true;
+    }
+
+
+    private boolean isInfrastructureEndpoint(String requestUri) {
+        if (requestUri == null) {
+            return false;
+        }
+        return requestUri.equals("/error")
+                || requestUri.equals("/favicon.ico")
+                || requestUri.startsWith("/actuator/")
+                || requestUri.equals("/actuator")
+                || requestUri.startsWith("/v3/api-docs")
+                || requestUri.startsWith("/swagger-ui");
     }
 
     /**

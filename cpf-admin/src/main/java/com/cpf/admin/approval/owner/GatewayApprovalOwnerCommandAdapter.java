@@ -18,6 +18,15 @@ public final class GatewayApprovalOwnerCommandAdapter implements AdmApprovalOwne
     }
 
     @Override
+    public boolean supports(String ownerModule, String ownerCommand) {
+        if (!normalize(ownerModule).contains("gateway")) return false;
+        return java.util.Set.of(
+                "GATEWAY_BINDING_APPROVE", "GATEWAY_BINDING_ACTIVATE",
+                "GATEWAY_BINDING_BLOCK", "GATEWAY_BINDING_RETIRE")
+                .contains(Objects.toString(ownerCommand, "").toUpperCase(Locale.ROOT));
+    }
+
+    @Override
     public AdmApprovedOperationResult execute(AdmApprovedOperationCommand command) {
         if (!normalize(command.ownerModule()).contains("gateway")) {
             return failed("GATEWAY_OWNER_MISMATCH", "Gateway Owner Module이 아닙니다.");

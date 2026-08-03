@@ -1,0 +1,34 @@
+package com.cpf.admin.opr.controller;
+
+import com.cpf.admin.opr.context.AdmAuthenticatedOperatorContext;
+import com.cpf.admin.opr.service.AdmApprovalEngineService;
+import com.cpf.core.api.execution.CpfOnlineTransaction;
+import io.swagger.v3.oas.annotations.Operation;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
+
+/** ADM Approval Engine REST Consumer. */
+@RestController
+@RequestMapping("/adm/api/approvals")
+public class AdmApprovalController {
+    private final AdmApprovalEngineService approvals; private final AdmAuthenticatedOperatorContext operators;
+    public AdmApprovalController(AdmApprovalEngineService approvals,AdmAuthenticatedOperatorContext operators){this.approvals=approvals;this.operators=operators;}
+
+    @GetMapping("/policies") @CpfOnlineTransaction(id="OADMAP0001",name="ADMApprovalPolicyList") @Operation(operationId="admApprovalPolicies",summary="승인 정책 목록")
+    public ResponseEntity<List<Map<String,Object>>> policies(@RequestParam(required=false)String actionType){return ResponseEntity.ok(approvals.policies(actionType));}
+    @GetMapping("/policies/{policyCode}/versions/{version}") @CpfOnlineTransaction(id="OADMAP0002",name="ADMApprovalPolicyDetail") @Operation(operationId="admApprovalPolicyDetail",summary="승인 정책 상세")
+    public ResponseEntity<Map<String,Object>> policy(@PathVariable String policyCode,@PathVariable int version){return ResponseEntity.ok(approvals.policy(policyCode,version));}
+    @PostMapping("/policies") @CpfOnlineTransaction(id="OADMAP0003",name="ADMApprovalPolicySave") @Operation(operationId="admApprovalPolicySave",summary="승인 정책 Version 저장")
+    public ResponseEntity<Map<String,Object>> save(@RequestBody AdmApprovalEngineService.PolicyCommand body){return ResponseEntity.ok(approvals.savePolicy(body,operators.currentOperatorId()));}
+    @PostMapping("/requests") @CpfOnlineTransaction(id="OADMAP0004",name="ADMApprovalRequest") @Operation(operationId="admApprovalRequest",summary="승인 요청 생성")
+    public ResponseEntity<Map<String,Object>> request(@RequestBody AdmApprovalEngineService.RequestCommand body){return ResponseEntity.ok(approvals.createRequest(body,operators.currentOperatorId()));}
+    @GetMapping("/requests/{id}") @CpfOnlineTransaction(id="OADMAP0005",name="ADMApprovalRequestDetail") @Operation(operationId="admApprovalRequestDetail",summary="승인 요청 상세")
+    public ResponseEntity<Map<String,Object>> request(@PathVariable long id){return ResponseEntity.ok(approvals.request(id));}
+    @PostMapping("/requests/{id}/decisions") @CpfOnlineTransaction(id="OADMAP0006",name="ADMApprovalDecision") @Operation(operationId="admApprovalDecision",summary="승인/반려 결정")
+    public ResponseEntity<Map<String,Object>> decide(@PathVariable long id,@RequestBody AdmApprovalEngineService.DecisionCommand body){return ResponseEntity.ok(approvals.decide(id,body,operators.currentOperatorId()));}
+    @PostMapping("/requests/{id}/execute") @CpfOnlineTransaction(id="OADMAP0007",name="ADMApprovalExecute") @Operation(operationId="admApprovalExecute",summary="승인 Owner Command 실행")
+    public ResponseEntity<?> execute(@PathVariable long id){return ResponseEntity.ok(approvals.execute(id,operators.currentOperatorId()));}
+}

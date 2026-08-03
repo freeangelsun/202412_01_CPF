@@ -1,0 +1,1 @@
+package jakarta.servlet.http; import java.util.Enumeration; public interface HttpServletRequest {String getHeader(String n);Enumeration<String> getHeaderNames();String getRequestURI();String getRemoteAddr();Object getAttribute(String n);}

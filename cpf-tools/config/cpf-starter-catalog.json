@@ -1,0 +1,1133 @@
+{
+  "schemaVersion": "2.0.0",
+  "catalogId": "CPF-QA39-CANONICAL-STARTER-CATALOG",
+  "baselineSha": "RUNTIME_GIT_HEAD",
+  "publicProfiles": [
+    "minimal-domain",
+    "web-api",
+    "secure-api",
+    "browser-bff",
+    "event-service",
+    "batch-service"
+  ],
+  "capabilityGroups": [
+    {
+      "id": "data",
+      "path": "cpf-starters/data",
+      "selectionSurface": "profile-or-binding"
+    },
+    {
+      "id": "messaging",
+      "path": "cpf-starters/messaging",
+      "selectionSurface": "profile-or-binding"
+    },
+    {
+      "id": "integration",
+      "path": "cpf-starters/integration",
+      "selectionSurface": "profile-or-binding"
+    },
+    {
+      "id": "file",
+      "path": "cpf-starters/file",
+      "selectionSurface": "profile-or-binding"
+    },
+    {
+      "id": "notification",
+      "path": "cpf-starters/notification",
+      "selectionSurface": "profile-or-binding"
+    },
+    {
+      "id": "security",
+      "path": "cpf-starters/security",
+      "selectionSurface": "profile-or-binding"
+    },
+    {
+      "id": "platform-operations",
+      "path": "cpf-starters/platform-operations",
+      "selectionSurface": "profile-or-binding"
+    }
+  ],
+  "modules": [
+    {
+      "projectPath": ":cpf-starter-profile-minimal-domain",
+      "ownerPath": "cpf-starters/profiles/minimal-domain",
+      "groupId": "com.cpf.starter",
+      "artifactId": "cpf-starter-profile-minimal-domain",
+      "kind": "starter-profile",
+      "visibility": "public",
+      "publicationRequired": true,
+      "role": "profile",
+      "ownerGroup": "profiles",
+      "internalRole": "public-profile",
+      "packageBase": "com.cpf.starter.profile.minimaldomain",
+      "configPrefix": "cpf.profile.minimal-domain",
+      "legacyArtifactIds": []
+    },
+    {
+      "projectPath": ":cpf-starter-profile-web-api",
+      "ownerPath": "cpf-starters/profiles/web-api",
+      "groupId": "com.cpf.starter",
+      "artifactId": "cpf-starter-profile-web-api",
+      "kind": "starter-profile",
+      "visibility": "public",
+      "publicationRequired": true,
+      "role": "profile",
+      "ownerGroup": "profiles",
+      "internalRole": "public-profile",
+      "packageBase": "com.cpf.starter.profile.webapi",
+      "configPrefix": "cpf.profile.web-api",
+      "legacyArtifactIds": []
+    },
+    {
+      "projectPath": ":cpf-starter-profile-secure-api",
+      "ownerPath": "cpf-starters/profiles/secure-api",
+      "groupId": "com.cpf.starter",
+      "artifactId": "cpf-starter-profile-secure-api",
+      "kind": "starter-profile",
+      "visibility": "public",
+      "publicationRequired": true,
+      "role": "profile",
+      "ownerGroup": "profiles",
+      "internalRole": "public-profile",
+      "packageBase": "com.cpf.starter.profile.secureapi",
+      "configPrefix": "cpf.profile.secure-api",
+      "legacyArtifactIds": []
+    },
+    {
+      "projectPath": ":cpf-starter-profile-browser-bff",
+      "ownerPath": "cpf-starters/profiles/browser-bff",
+      "groupId": "com.cpf.starter",
+      "artifactId": "cpf-starter-profile-browser-bff",
+      "kind": "starter-profile",
+      "visibility": "public",
+      "publicationRequired": true,
+      "role": "profile",
+      "ownerGroup": "profiles",
+      "internalRole": "public-profile",
+      "packageBase": "com.cpf.starter.profile.browserbff",
+      "configPrefix": "cpf.profile.browser-bff",
+      "legacyArtifactIds": []
+    },
+    {
+      "projectPath": ":cpf-starter-profile-event-service",
+      "ownerPath": "cpf-starters/profiles/event-service",
+      "groupId": "com.cpf.starter",
+      "artifactId": "cpf-starter-profile-event-service",
+      "kind": "starter-profile",
+      "visibility": "public",
+      "publicationRequired": true,
+      "role": "profile",
+      "ownerGroup": "profiles",
+      "internalRole": "public-profile",
+      "packageBase": "com.cpf.starter.profile.eventservice",
+      "configPrefix": "cpf.profile.event-service",
+      "legacyArtifactIds": []
+    },
+    {
+      "projectPath": ":cpf-starter-profile-batch-service",
+      "ownerPath": "cpf-starters/profiles/batch-service",
+      "groupId": "com.cpf.starter",
+      "artifactId": "cpf-starter-profile-batch-service",
+      "kind": "starter-profile",
+      "visibility": "public",
+      "publicationRequired": true,
+      "role": "profile",
+      "ownerGroup": "profiles",
+      "internalRole": "public-profile",
+      "packageBase": "com.cpf.starter.profile.batchservice",
+      "configPrefix": "cpf.profile.batch-service",
+      "legacyArtifactIds": []
+    },
+    {
+      "projectPath": ":cpf-starter-foundation-base",
+      "ownerPath": "cpf-starters/foundation/base",
+      "groupId": "com.cpf.starter",
+      "artifactId": "cpf-starter-foundation-base",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "publicationRequired": true,
+      "role": "foundation",
+      "ownerGroup": "foundation",
+      "internalRole": "foundation",
+      "packageBase": "com.cpf.starter.foundation.base",
+      "configPrefix": "cpf.foundation.base",
+      "legacyArtifactIds": [
+        "cpf-starter-base"
+      ]
+    },
+    {
+      "projectPath": ":cpf-starter-data-persistence-jdbc",
+      "ownerPath": "cpf-starters/data/persistence-jdbc",
+      "groupId": "com.cpf.starter",
+      "artifactId": "cpf-starter-data-persistence-jdbc",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "publicationRequired": true,
+      "role": "provider",
+      "ownerGroup": "data",
+      "internalRole": "provider",
+      "packageBase": "com.cpf.starter.data.persistence.jdbc",
+      "configPrefix": "cpf.data.persistence.jdbc",
+      "legacyArtifactIds": [
+        "cpf-starter-persistence-jdbc"
+      ]
+    },
+    {
+      "projectPath": ":cpf-starter-data-persistence-mybatis",
+      "ownerPath": "cpf-starters/data/persistence-mybatis",
+      "groupId": "com.cpf.starter",
+      "artifactId": "cpf-starter-data-persistence-mybatis",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "publicationRequired": true,
+      "role": "provider",
+      "ownerGroup": "data",
+      "internalRole": "provider",
+      "packageBase": "com.cpf.starter.data.persistence.mybatis",
+      "configPrefix": "cpf.data.persistence.mybatis",
+      "legacyArtifactIds": [
+        "cpf-starter-persistence-mybatis"
+      ]
+    },
+    {
+      "projectPath": ":cpf-starter-data-cache-caffeine",
+      "ownerPath": "cpf-starters/data/cache-caffeine",
+      "groupId": "com.cpf.starter",
+      "artifactId": "cpf-starter-data-cache-caffeine",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "publicationRequired": true,
+      "role": "provider",
+      "ownerGroup": "data",
+      "internalRole": "provider",
+      "packageBase": "com.cpf.starter.data.cache.caffeine",
+      "configPrefix": "cpf.data.cache.caffeine",
+      "legacyArtifactIds": [
+        "cpf-starter-cache-caffeine"
+      ]
+    },
+    {
+      "projectPath": ":cpf-starter-data-cache-valkey",
+      "ownerPath": "cpf-starters/data/cache-valkey",
+      "groupId": "com.cpf.starter",
+      "artifactId": "cpf-starter-data-cache-valkey",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "publicationRequired": true,
+      "role": "provider",
+      "ownerGroup": "data",
+      "internalRole": "provider",
+      "packageBase": "com.cpf.starter.data.cache.valkey",
+      "configPrefix": "cpf.data.cache.valkey",
+      "legacyArtifactIds": [
+        "cpf-starter-cache-valkey"
+      ]
+    },
+    {
+      "projectPath": ":cpf-starter-messaging-reliability-jdbc",
+      "ownerPath": "cpf-starters/messaging/reliability-jdbc",
+      "groupId": "com.cpf.starter",
+      "artifactId": "cpf-starter-messaging-reliability-jdbc",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "publicationRequired": true,
+      "role": "capability-runtime",
+      "ownerGroup": "messaging",
+      "internalRole": "capability-runtime",
+      "packageBase": "com.cpf.starter.messaging.reliability.jdbc",
+      "configPrefix": "cpf.messaging.reliability.jdbc",
+      "legacyArtifactIds": []
+    },
+    {
+      "projectPath": ":cpf-starter-messaging-kafka",
+      "ownerPath": "cpf-starters/messaging/kafka",
+      "groupId": "com.cpf.starter",
+      "artifactId": "cpf-starter-messaging-kafka",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "publicationRequired": true,
+      "role": "provider",
+      "ownerGroup": "messaging",
+      "internalRole": "provider",
+      "packageBase": "com.cpf.starter.messaging.kafka",
+      "configPrefix": "cpf.messaging.kafka",
+      "legacyArtifactIds": []
+    },
+    {
+      "projectPath": ":cpf-starter-messaging-rabbitmq",
+      "ownerPath": "cpf-starters/messaging/rabbitmq",
+      "groupId": "com.cpf.starter",
+      "artifactId": "cpf-starter-messaging-rabbitmq",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "publicationRequired": true,
+      "role": "provider",
+      "ownerGroup": "messaging",
+      "internalRole": "provider",
+      "packageBase": "com.cpf.starter.messaging.rabbitmq",
+      "configPrefix": "cpf.messaging.rabbitmq",
+      "legacyArtifactIds": []
+    },
+    {
+      "projectPath": ":cpf-starter-messaging-jms",
+      "ownerPath": "cpf-starters/messaging/jms",
+      "groupId": "com.cpf.starter",
+      "artifactId": "cpf-starter-messaging-jms",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "publicationRequired": true,
+      "role": "provider",
+      "ownerGroup": "messaging",
+      "internalRole": "provider",
+      "packageBase": "com.cpf.starter.messaging.jms",
+      "configPrefix": "cpf.messaging.jms",
+      "legacyArtifactIds": []
+    },
+    {
+      "projectPath": ":cpf-starter-messaging-ibm-mq",
+      "ownerPath": "cpf-starters/messaging/ibm-mq",
+      "groupId": "com.cpf.starter",
+      "artifactId": "cpf-starter-messaging-ibm-mq",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "publicationRequired": true,
+      "role": "provider",
+      "ownerGroup": "messaging",
+      "internalRole": "provider",
+      "packageBase": "com.cpf.starter.messaging.ibmmq",
+      "configPrefix": "cpf.messaging.ibm-mq",
+      "legacyArtifactIds": []
+    },
+    {
+      "projectPath": ":cpf-starter-integration-http-client",
+      "ownerPath": "cpf-starters/integration/http-client",
+      "groupId": "com.cpf.starter",
+      "artifactId": "cpf-starter-integration-http-client",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "publicationRequired": true,
+      "role": "capability-runtime",
+      "ownerGroup": "integration",
+      "internalRole": "capability-runtime",
+      "packageBase": "com.cpf.starter.integration.http.client",
+      "configPrefix": "cpf.integration.http",
+      "legacyArtifactIds": [
+        "cpf-starter-http-client"
+      ]
+    },
+    {
+      "projectPath": ":cpf-starter-integration-resilience",
+      "ownerPath": "cpf-starters/integration/resilience",
+      "groupId": "com.cpf.starter",
+      "artifactId": "cpf-starter-integration-resilience",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "publicationRequired": true,
+      "role": "capability-runtime",
+      "ownerGroup": "integration",
+      "internalRole": "capability-runtime",
+      "packageBase": "com.cpf.starter.integration.resilience",
+      "configPrefix": "cpf.integration.resilience",
+      "legacyArtifactIds": []
+    },
+    {
+      "projectPath": ":cpf-starter-integration-tcp",
+      "ownerPath": "cpf-starters/integration/tcp",
+      "groupId": "com.cpf.starter",
+      "artifactId": "cpf-starter-integration-tcp",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "publicationRequired": true,
+      "role": "provider",
+      "ownerGroup": "integration",
+      "internalRole": "provider",
+      "packageBase": "com.cpf.starter.integration.tcp",
+      "configPrefix": "cpf.integration.tcp",
+      "legacyArtifactIds": []
+    },
+    {
+      "projectPath": ":cpf-starter-integration-fixedlength-core",
+      "ownerPath": "cpf-starters/integration/fixedlength-core",
+      "groupId": "com.cpf.starter",
+      "artifactId": "cpf-starter-integration-fixedlength-core",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "publicationRequired": true,
+      "role": "internal-codec",
+      "ownerGroup": "integration",
+      "internalRole": "internal-codec",
+      "packageBase": "com.cpf.starter.integration.fixedlength.core",
+      "configPrefix": "cpf.integration.fixedlength.core",
+      "legacyArtifactIds": [
+        "cpf-integration-fixedlength-core"
+      ]
+    },
+    {
+      "projectPath": ":cpf-starter-integration-fixedlength",
+      "ownerPath": "cpf-starters/integration/fixedlength",
+      "groupId": "com.cpf.starter",
+      "artifactId": "cpf-starter-integration-fixedlength",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "publicationRequired": true,
+      "role": "internal-codec",
+      "ownerGroup": "integration",
+      "internalRole": "internal-codec",
+      "packageBase": "com.cpf.starter.integration.fixedlength",
+      "configPrefix": "cpf.integration.fixedlength",
+      "legacyArtifactIds": []
+    },
+    {
+      "projectPath": ":cpf-starter-integration-iso8583",
+      "ownerPath": "cpf-starters/integration/iso8583",
+      "groupId": "com.cpf.starter",
+      "artifactId": "cpf-starter-integration-iso8583",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "publicationRequired": true,
+      "role": "internal-protocol",
+      "ownerGroup": "integration",
+      "internalRole": "internal-protocol",
+      "packageBase": "com.cpf.starter.integration.iso8583",
+      "configPrefix": "cpf.integration.iso8583",
+      "legacyArtifactIds": []
+    },
+    {
+      "projectPath": ":cpf-starter-file-attachment",
+      "ownerPath": "cpf-starters/file/attachment",
+      "groupId": "com.cpf.starter",
+      "artifactId": "cpf-starter-file-attachment",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "publicationRequired": true,
+      "role": "capability-runtime",
+      "ownerGroup": "file",
+      "internalRole": "capability-runtime",
+      "packageBase": "com.cpf.starter.file.attachment",
+      "configPrefix": "cpf.file.attachment",
+      "legacyArtifactIds": [
+        "cpf-starter-attachment"
+      ]
+    },
+    {
+      "projectPath": ":cpf-starter-file-archive",
+      "ownerPath": "cpf-starters/file/archive",
+      "groupId": "com.cpf.starter",
+      "artifactId": "cpf-starter-file-archive",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "publicationRequired": true,
+      "role": "internal-file-provider",
+      "ownerGroup": "file",
+      "internalRole": "internal-file-provider",
+      "packageBase": "com.cpf.starter.file.archive",
+      "configPrefix": "cpf.file.archive",
+      "legacyArtifactIds": []
+    },
+    {
+      "projectPath": ":cpf-starter-file-tabular-poi",
+      "ownerPath": "cpf-starters/file/tabular-poi",
+      "groupId": "com.cpf.starter",
+      "artifactId": "cpf-starter-file-tabular-poi",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "publicationRequired": true,
+      "role": "internal-file-provider",
+      "ownerGroup": "file",
+      "internalRole": "internal-file-provider",
+      "packageBase": "com.cpf.starter.file.tabular.poi",
+      "configPrefix": "cpf.file.tabular.poi",
+      "legacyArtifactIds": [
+        "cpf-starter-tabular-poi"
+      ]
+    },
+    {
+      "projectPath": ":cpf-starter-file-sftp",
+      "ownerPath": "cpf-starters/file/sftp",
+      "groupId": "com.cpf.starter",
+      "artifactId": "cpf-starter-file-sftp",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "publicationRequired": true,
+      "role": "provider",
+      "ownerGroup": "file",
+      "internalRole": "provider",
+      "packageBase": "com.cpf.starter.file.sftp",
+      "configPrefix": "cpf.file.sftp",
+      "legacyArtifactIds": [
+        "cpf-starter-integration-sftp"
+      ]
+    },
+    {
+      "projectPath": ":cpf-starter-notification-dispatch",
+      "ownerPath": "cpf-starters/notification/dispatch",
+      "groupId": "com.cpf.starter",
+      "artifactId": "cpf-starter-notification-dispatch",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "publicationRequired": true,
+      "role": "capability-runtime",
+      "ownerGroup": "notification",
+      "internalRole": "capability-runtime",
+      "packageBase": "com.cpf.starter.notification.dispatch",
+      "configPrefix": "cpf.notification.dispatch",
+      "legacyArtifactIds": [
+        "cpf-starter-notification"
+      ]
+    },
+    {
+      "projectPath": ":cpf-starter-notification-email",
+      "ownerPath": "cpf-starters/notification/email",
+      "groupId": "com.cpf.starter",
+      "artifactId": "cpf-starter-notification-email",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "publicationRequired": true,
+      "role": "provider",
+      "ownerGroup": "notification",
+      "internalRole": "provider",
+      "packageBase": "com.cpf.starter.notification.email",
+      "configPrefix": "cpf.notification.email",
+      "legacyArtifactIds": []
+    },
+    {
+      "projectPath": ":cpf-starter-notification-sms-spi",
+      "ownerPath": "cpf-starters/notification/sms-spi",
+      "groupId": "com.cpf.starter",
+      "artifactId": "cpf-starter-notification-sms-spi",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "publicationRequired": true,
+      "role": "extension-spi",
+      "ownerGroup": "notification",
+      "internalRole": "extension-spi",
+      "packageBase": "com.cpf.starter.notification.sms.spi",
+      "configPrefix": "cpf.notification.sms",
+      "legacyArtifactIds": [
+        "cpf-notification-sms-spi"
+      ]
+    },
+    {
+      "projectPath": ":cpf-starter-security-resource-server",
+      "ownerPath": "cpf-starters/security/resource-server",
+      "groupId": "com.cpf.starter",
+      "artifactId": "cpf-starter-security-resource-server",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "publicationRequired": true,
+      "role": "provider",
+      "ownerGroup": "security",
+      "internalRole": "provider",
+      "packageBase": "com.cpf.starter.security.resource.server",
+      "configPrefix": "cpf.security.resource-server",
+      "legacyArtifactIds": []
+    },
+    {
+      "projectPath": ":cpf-starter-security-session-jdbc",
+      "ownerPath": "cpf-starters/security/session-jdbc",
+      "groupId": "com.cpf.starter",
+      "artifactId": "cpf-starter-security-session-jdbc",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "publicationRequired": true,
+      "role": "provider",
+      "ownerGroup": "security",
+      "internalRole": "provider",
+      "packageBase": "com.cpf.starter.security.session.jdbc",
+      "configPrefix": "cpf.security.session.jdbc",
+      "legacyArtifactIds": []
+    },
+    {
+      "projectPath": ":cpf-starter-security-service-identity",
+      "ownerPath": "cpf-starters/security/service-identity",
+      "groupId": "com.cpf.starter",
+      "artifactId": "cpf-starter-security-service-identity",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "publicationRequired": true,
+      "role": "provider",
+      "ownerGroup": "security",
+      "internalRole": "provider",
+      "packageBase": "com.cpf.starter.security.service.identity",
+      "configPrefix": "cpf.security.service-identity",
+      "legacyArtifactIds": []
+    },
+    {
+      "projectPath": ":cpf-starter-security-secret",
+      "ownerPath": "cpf-starters/security/secret",
+      "groupId": "com.cpf.starter",
+      "artifactId": "cpf-starter-security-secret",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "publicationRequired": true,
+      "role": "capability-runtime",
+      "ownerGroup": "security",
+      "internalRole": "capability-runtime",
+      "packageBase": "com.cpf.starter.security.secret",
+      "configPrefix": "cpf.security.secret",
+      "legacyArtifactIds": [
+        "cpf-starter-secret"
+      ]
+    },
+    {
+      "projectPath": ":cpf-starter-platform-operations-observability",
+      "ownerPath": "cpf-starters/platform-operations/observability",
+      "groupId": "com.cpf.starter",
+      "artifactId": "cpf-starter-platform-operations-observability",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "publicationRequired": true,
+      "role": "capability-runtime",
+      "ownerGroup": "platform-operations",
+      "internalRole": "capability-runtime",
+      "packageBase": "com.cpf.starter.platform.operations.observability",
+      "configPrefix": "cpf.platform-operations.observability",
+      "legacyArtifactIds": [
+        "cpf-starter-observability"
+      ]
+    },
+    {
+      "projectPath": ":cpf-starter-platform-operations-otlp",
+      "ownerPath": "cpf-starters/platform-operations/otlp",
+      "groupId": "com.cpf.starter",
+      "artifactId": "cpf-starter-platform-operations-otlp",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "publicationRequired": true,
+      "role": "internal-exporter",
+      "ownerGroup": "platform-operations",
+      "internalRole": "internal-exporter",
+      "packageBase": "com.cpf.starter.platform.operations.otlp",
+      "configPrefix": "cpf.platform-operations.otlp",
+      "legacyArtifactIds": [
+        "cpf-starter-observability-otlp"
+      ]
+    },
+    {
+      "projectPath": ":cpf-starter-platform-operations-runtime-control-client",
+      "ownerPath": "cpf-starters/platform-operations/runtime-control-client",
+      "groupId": "com.cpf.starter",
+      "artifactId": "cpf-starter-platform-operations-runtime-control-client",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "publicationRequired": true,
+      "role": "capability-runtime",
+      "ownerGroup": "platform-operations",
+      "internalRole": "capability-runtime",
+      "packageBase": "com.cpf.starter.platform.operations.runtime.control.client",
+      "configPrefix": "cpf.platform-operations.runtime-control",
+      "legacyArtifactIds": [
+        "cpf-starter-runtime-control-client"
+      ]
+    },
+    {
+      "projectPath": ":cpf-starter-platform-operations-channel-registry-jdbc",
+      "ownerPath": "cpf-starters/platform-operations/channel-registry-jdbc",
+      "groupId": "com.cpf.starter",
+      "artifactId": "cpf-starter-platform-operations-channel-registry-jdbc",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "publicationRequired": true,
+      "role": "provider",
+      "ownerGroup": "platform-operations",
+      "internalRole": "provider",
+      "packageBase": "com.cpf.starter.platform.operations.channel.registry.jdbc",
+      "configPrefix": "cpf.platform-operations.channel-registry.jdbc",
+      "legacyArtifactIds": [
+        "cpf-starter-channel-registry-jdbc"
+      ]
+    },
+    {
+      "projectPath": ":cpf-starter-platform-operations-feature-flag-openfeature",
+      "ownerPath": "cpf-starters/platform-operations/feature-flag-openfeature",
+      "groupId": "com.cpf.starter",
+      "artifactId": "cpf-starter-platform-operations-feature-flag-openfeature",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "publicationRequired": true,
+      "role": "capability-runtime",
+      "ownerGroup": "platform-operations",
+      "internalRole": "capability-runtime",
+      "packageBase": "com.cpf.starter.platform.operations.feature.flag.openfeature",
+      "configPrefix": "cpf.platform-operations.feature-flag",
+      "legacyArtifactIds": []
+    }
+  ],
+  "providerSlots": {
+    "messaging": {
+      "kafka": {
+        "projectPath": ":cpf-starter-messaging-kafka",
+        "coordinate": "com.cpf.starter:cpf-starter-messaging-kafka"
+      },
+      "rabbitmq": {
+        "projectPath": ":cpf-starter-messaging-rabbitmq",
+        "coordinate": "com.cpf.starter:cpf-starter-messaging-rabbitmq"
+      },
+      "jms": {
+        "projectPath": ":cpf-starter-messaging-jms",
+        "coordinate": "com.cpf.starter:cpf-starter-messaging-jms"
+      },
+      "ibm-mq": {
+        "projectPath": ":cpf-starter-messaging-ibm-mq",
+        "coordinate": "com.cpf.starter:cpf-starter-messaging-ibm-mq"
+      }
+    },
+    "data": {
+      "jdbc": {
+        "projectPath": ":cpf-starter-data-persistence-jdbc",
+        "coordinate": "com.cpf.starter:cpf-starter-data-persistence-jdbc"
+      },
+      "mybatis": {
+        "projectPath": ":cpf-starter-data-persistence-mybatis",
+        "coordinate": "com.cpf.starter:cpf-starter-data-persistence-mybatis"
+      }
+    },
+    "cache": {
+      "caffeine": {
+        "projectPath": ":cpf-starter-data-cache-caffeine",
+        "coordinate": "com.cpf.starter:cpf-starter-data-cache-caffeine"
+      },
+      "valkey": {
+        "projectPath": ":cpf-starter-data-cache-valkey",
+        "coordinate": "com.cpf.starter:cpf-starter-data-cache-valkey"
+      }
+    },
+    "integration-transport": {
+      "http": {
+        "projectPath": ":cpf-starter-integration-http-client",
+        "coordinate": "com.cpf.starter:cpf-starter-integration-http-client"
+      },
+      "tcp": {
+        "projectPath": ":cpf-starter-integration-tcp",
+        "coordinate": "com.cpf.starter:cpf-starter-integration-tcp"
+      }
+    },
+    "integration-codec": {
+      "fixed-length": {
+        "projectPath": ":cpf-starter-integration-fixedlength",
+        "coordinate": "com.cpf.starter:cpf-starter-integration-fixedlength"
+      },
+      "iso8583": {
+        "projectPath": ":cpf-starter-integration-iso8583",
+        "coordinate": "com.cpf.starter:cpf-starter-integration-iso8583"
+      }
+    },
+    "file": {
+      "sftp": {
+        "projectPath": ":cpf-starter-file-sftp",
+        "coordinate": "com.cpf.starter:cpf-starter-file-sftp"
+      }
+    },
+    "notification": {
+      "email": {
+        "projectPath": ":cpf-starter-notification-email",
+        "coordinate": "com.cpf.starter:cpf-starter-notification-email"
+      },
+      "sms-spi": {
+        "projectPath": ":cpf-starter-notification-sms-spi",
+        "coordinate": "com.cpf.starter:cpf-starter-notification-sms-spi"
+      }
+    },
+    "observability": {
+      "otlp": {
+        "projectPath": ":cpf-starter-platform-operations-otlp",
+        "coordinate": "com.cpf.starter:cpf-starter-platform-operations-otlp"
+      }
+    },
+    "security-mode": {
+      "resource-server": {
+        "projectPath": ":cpf-starter-security-resource-server",
+        "coordinate": "com.cpf.starter:cpf-starter-security-resource-server"
+      },
+      "browser-session": {
+        "projectPath": ":cpf-starter-security-session-jdbc",
+        "coordinate": "com.cpf.starter:cpf-starter-security-session-jdbc"
+      },
+      "service-identity": {
+        "projectPath": ":cpf-starter-security-service-identity",
+        "coordinate": "com.cpf.starter:cpf-starter-security-service-identity"
+      }
+    }
+  },
+  "removedArtifactIds": [
+    "cpf-integration-fixedlength-core",
+    "cpf-notification-sms-spi",
+    "cpf-starter-aop-service-access",
+    "cpf-starter-attachment",
+    "cpf-starter-base",
+    "cpf-starter-cache",
+    "cpf-starter-cache-caffeine",
+    "cpf-starter-cache-valkey",
+    "cpf-starter-channel-registry-jdbc",
+    "cpf-starter-featureflag",
+    "cpf-starter-http-client",
+    "cpf-starter-integration-sftp",
+    "cpf-starter-notification",
+    "cpf-starter-observability",
+    "cpf-starter-observability-otlp",
+    "cpf-starter-openapi-webmvc",
+    "cpf-starter-persistence-jdbc",
+    "cpf-starter-persistence-mybatis",
+    "cpf-starter-profile-browser-bff-session",
+    "cpf-starter-profile-domain-web-api",
+    "cpf-starter-profile-event-jms-ibm-mq",
+    "cpf-starter-profile-event-kafka",
+    "cpf-starter-profile-event-rabbitmq",
+    "cpf-starter-profile-integration-tcp",
+    "cpf-starter-profile-minimal-boot-domain",
+    "cpf-starter-profile-notification-service",
+    "cpf-starter-profile-observable-resilient-service",
+    "cpf-starter-profile-persistence-mybatis",
+    "cpf-starter-profile-scheduled-service",
+    "cpf-starter-profile-secure-resource-api",
+    "cpf-starter-profile-sftp-integration",
+    "cpf-starter-resilience",
+    "cpf-starter-runtime-control-client",
+    "cpf-starter-scheduler-quartz",
+    "cpf-starter-secret",
+    "cpf-starter-security",
+    "cpf-starter-tabular-poi",
+    "cpf-starter-validation"
+  ],
+  "standardInheritancePolicy": {
+    "policyVersion": "1.0",
+    "mandatoryStandards": [
+      "standard-error",
+      "header-context",
+      "transaction-id",
+      "security-boundary",
+      "audit",
+      "masking",
+      "observability",
+      "config",
+      "dependency-version",
+      "architecture-gate"
+    ],
+    "defaultProfile": "minimal-domain",
+    "optionalCapabilities": [
+      "data",
+      "messaging",
+      "integration",
+      "file",
+      "notification",
+      "security",
+      "platform-operations"
+    ],
+    "unselectedCapabilityPolicy": "NO_DEPENDENCY_NO_BEAN_NO_CONFIG_NO_SQL",
+    "enforcement": [
+      "generator",
+      "convention-plugin",
+      "runtime-auto-configuration",
+      "architecture-test",
+      "resolved-lock"
+    ],
+    "failClosed": true
+  },
+  "approvedExternalExceptionPolicy": {
+    "schemaVersion": "2.0",
+    "registryPath": "config/cpf-approved-exceptions.csv",
+    "runtimeResource": "META-INF/cpf/cpf-approved-exceptions.csv",
+    "requiredFields": [
+      "exception_id",
+      "module",
+      "capability",
+      "artifact",
+      "version",
+      "owner",
+      "reason",
+      "standard_path_gap",
+      "environments",
+      "security_impact",
+      "license_review",
+      "supply_chain_review",
+      "operations_responsibility",
+      "approved_by",
+      "approved_at",
+      "expires_at",
+      "rollback",
+      "return_plan",
+      "rule_ids",
+      "config_files",
+      "evidence_path",
+      "status",
+      "config_hash"
+    ],
+    "approvedStatus": "APPROVED",
+    "hashAlgorithm": "SHA-256-METADATA-AND-CONFIG-CONTENT",
+    "versionDriftPolicy": "FAIL_CLOSED",
+    "expiredPolicy": "FAIL_CLOSED",
+    "unregisteredPolicy": "FAIL_CLOSED",
+    "returnToStandardPathRequired": true,
+    "registryFormat": "CSV",
+    "configFilePolicy": "GENERATED_DOMAIN_SRC_MAIN_RESOURCES_ONLY",
+    "buildValidation": "METADATA_AND_CONFIG_BYTES_SHA256",
+    "runtimeValidation": "PACKAGED_REGISTRY_AND_CONFIG_BYTES_SHA256"
+  },
+  "capabilityComposition": {
+    "data": {
+      "requiresCapabilities": [],
+      "runtimeProjects": [],
+      "runtimeCoordinates": [],
+      "defaultProviderBindings": {
+        "data": "mybatis"
+      },
+      "requiredProviderSlots": [
+        "data"
+      ]
+    },
+    "messaging": {
+      "requiresCapabilities": [
+        "data"
+      ],
+      "runtimeProjects": [
+        ":cpf-starter-messaging-reliability-jdbc"
+      ],
+      "runtimeCoordinates": [
+        "com.cpf.starter:cpf-starter-messaging-reliability-jdbc"
+      ],
+      "defaultProviderBindings": {},
+      "requiredProviderSlots": [
+        "messaging"
+      ]
+    },
+    "integration": {
+      "requiresCapabilities": [],
+      "runtimeProjects": [
+        ":cpf-starter-integration-resilience"
+      ],
+      "runtimeCoordinates": [
+        "com.cpf.starter:cpf-starter-integration-resilience"
+      ],
+      "defaultProviderBindings": {
+        "integration-transport": "http"
+      },
+      "requiredProviderSlots": [
+        "integration-transport"
+      ]
+    },
+    "file": {
+      "requiresCapabilities": [],
+      "runtimeProjects": [],
+      "runtimeCoordinates": [],
+      "defaultProviderBindings": {
+        "file": "sftp"
+      },
+      "requiredProviderSlots": [
+        "file"
+      ]
+    },
+    "notification": {
+      "requiresCapabilities": [
+        "data"
+      ],
+      "runtimeProjects": [
+        ":cpf-starter-notification-dispatch"
+      ],
+      "runtimeCoordinates": [
+        "com.cpf.starter:cpf-starter-notification-dispatch"
+      ],
+      "defaultProviderBindings": {
+        "notification": "email"
+      },
+      "requiredProviderSlots": [
+        "notification"
+      ]
+    },
+    "security": {
+      "requiresCapabilities": [],
+      "runtimeProjects": [
+        ":cpf-starter-security-secret"
+      ],
+      "runtimeCoordinates": [
+        "com.cpf.starter:cpf-starter-security-secret"
+      ],
+      "defaultProviderBindings": {},
+      "requiredProviderSlots": [
+        "security-mode"
+      ]
+    },
+    "platform-operations": {
+      "requiresCapabilities": [
+        "data"
+      ],
+      "runtimeProjects": [
+        ":cpf-starter-platform-operations-observability",
+        ":cpf-starter-platform-operations-runtime-control-client",
+        ":cpf-starter-platform-operations-channel-registry-jdbc",
+        ":cpf-starter-platform-operations-feature-flag-openfeature"
+      ],
+      "runtimeCoordinates": [
+        "com.cpf.starter:cpf-starter-platform-operations-observability",
+        "com.cpf.starter:cpf-starter-platform-operations-runtime-control-client",
+        "com.cpf.starter:cpf-starter-platform-operations-channel-registry-jdbc",
+        "com.cpf.starter:cpf-starter-platform-operations-feature-flag-openfeature"
+      ],
+      "defaultProviderBindings": {},
+      "requiredProviderSlots": []
+    }
+  },
+  "removedRepositoryRoots": [
+    "cpf-starters/aop-service-access",
+    "cpf-starters/cache-aggregate",
+    "cpf-starters/featureflag",
+    "cpf-starters/integration-ftps",
+    "cpf-starters/integration-grpc",
+    "cpf-starters/integration-object-storage-s3",
+    "cpf-starters/integration-realtime-webflux",
+    "cpf-starters/integration-smb",
+    "cpf-starters/integration-soap",
+    "cpf-starters/integration-webhook",
+    "cpf-starters/profiles/browser-bff-session",
+    "cpf-starters/profiles/domain-web-api",
+    "cpf-starters/profiles/event-jms-ibm-mq",
+    "cpf-starters/profiles/event-kafka",
+    "cpf-starters/profiles/event-rabbitmq",
+    "cpf-starters/profiles/integration-tcp",
+    "cpf-starters/profiles/minimal-boot-domain",
+    "cpf-starters/profiles/notification-service",
+    "cpf-starters/profiles/observable-resilient-service",
+    "cpf-starters/profiles/persistence-mybatis",
+    "cpf-starters/profiles/scheduled-service",
+    "cpf-starters/profiles/secure-resource-api",
+    "cpf-starters/profiles/sftp-integration",
+    "cpf-starters/resilience",
+    "cpf-starters/scheduler-quartz",
+    "cpf-starters/security-aggregate",
+    "cpf-starters/validation"
+  ],
+  "starterAdmissionPolicy": {
+    "policyVersion": "1.0",
+    "failClosed": true,
+    "valueCatalog": "cpf-docs/work/CPF_STARTER_VALUE_CATALOG.csv",
+    "requiredFields": [
+      "current_value",
+      "public_api_spi",
+      "actual_consumer",
+      "qa39_action",
+      "target_public_surface",
+      "evidence"
+    ],
+    "requiredBeforeRegistration": [
+      "value-contract",
+      "convenience-api",
+      "extension-spi-or-explicit-not-applicable",
+      "actual-consumer",
+      "removal-alternative-comparison",
+      "footprint-classification",
+      "runtime-evidence-plan"
+    ]
+  },
+  "namingPolicy": {
+    "projectArtifactPrefix": "cpf-starter-",
+    "javaPackagePrefix": "com.cpf.",
+    "javaClassPrefix": "Cpf",
+    "configPrefix": "cpf.",
+    "order": "CPF -> capability group -> function/provider/role",
+    "publicApiPackage": "com.cpf.core.api.<capability>",
+    "extensionSpiPackage": "com.cpf.core.spi.<capability>",
+    "internalPackage": "com.cpf.starter.<group>.<function-or-provider>.internal",
+    "forbiddenAmbiguousTokens": [
+      "common",
+      "core",
+      "base",
+      "service",
+      "manager",
+      "helper",
+      "util",
+      "impl"
+    ],
+    "exception": "foundation/base and profile paths are explicit framework roles; class names remain function-specific"
+  },
+  "targetPhysicalLayout": {
+    "rootDirectories": [
+      "foundation",
+      "data",
+      "messaging",
+      "integration",
+      "file",
+      "notification",
+      "security",
+      "platform-operations",
+      "profiles"
+    ],
+    "capabilityGroupCount": 7,
+    "profileCount": 6,
+    "moduleCount": 38
+  },
+  "profileMode": "ACTUAL_PROFILE_ARTIFACT",
+  "profileDefinitions": {
+    "minimal-domain": {
+      "runtimeProjects": [
+        ":cpf-starter-foundation-base"
+      ],
+      "requiredCapabilities": [],
+      "providerSlots": []
+    },
+    "web-api": {
+      "runtimeProjects": [
+        ":cpf-starter-foundation-base"
+      ],
+      "requiredCapabilities": [],
+      "providerSlots": [],
+      "internalizedFeatures": [
+        "openapi-webmvc"
+      ]
+    },
+    "secure-api": {
+      "runtimeProjects": [
+        ":cpf-starter-profile-web-api",
+        ":cpf-starter-security-secret"
+      ],
+      "requiredCapabilities": [
+        "security"
+      ],
+      "providerSlots": [
+        "security-mode"
+      ]
+    },
+    "browser-bff": {
+      "runtimeProjects": [
+        ":cpf-starter-profile-web-api",
+        ":cpf-starter-security-secret"
+      ],
+      "requiredCapabilities": [
+        "security"
+      ],
+      "providerSlots": [
+        "security-mode"
+      ]
+    },
+    "event-service": {
+      "runtimeProjects": [
+        ":cpf-starter-foundation-base",
+        ":cpf-starter-messaging-reliability-jdbc"
+      ],
+      "requiredCapabilities": [
+        "data",
+        "messaging"
+      ],
+      "providerSlots": [
+        "data",
+        "messaging"
+      ]
+    },
+    "batch-service": {
+      "runtimeProjects": [
+        ":cpf-starter-foundation-base",
+        ":cpf-starter-messaging-reliability-jdbc",
+        ":cpf-starter-platform-operations-runtime-control-client"
+      ],
+      "requiredCapabilities": [
+        "data",
+        "messaging",
+        "platform-operations"
+      ],
+      "providerSlots": [
+        "data",
+        "messaging"
+      ]
+    }
+  },
+  "baselinePolicy": "GIT_HEAD_RUNTIME",
+  "catalogRevision": "2026-08-03-r1"
+}

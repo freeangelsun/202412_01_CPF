@@ -2,6 +2,7 @@ package com.cpf.admin.opr.batch;
 
 import com.cpf.admin.opr.context.AdmAuthenticatedOperatorContext;
 import com.cpf.core.api.batch.CpfBatchOperationsPort;
+import com.cpf.core.api.batch.CpfBatchRiskCommand;
 import com.cpf.core.api.data.CpfDataRow;
 import com.cpf.core.api.batch.CpfBatchOwnerUnknownResultException;
 import com.cpf.core.api.servicecall.CpfServiceCaller;
@@ -42,13 +43,44 @@ public class RemoteCpfBatchOperationsAdapter implements CpfBatchOperationsPort {
     }
 
     private Object invoke(String operation, Map<String,Object> payload, String operatorId) {
+        return invoke(operation, payload, operatorId, null);
+    }
+
+    private Object invokeRisk(String operation, Map<String,Object> payload, CpfBatchRiskCommand command) {
+        java.util.LinkedHashMap<String,Object> body = new java.util.LinkedHashMap<>();
+        if (payload != null) body.putAll(payload);
+        body.put("operation", command.operation());
+        body.put("targetType", command.targetType());
+        body.put("targetId", command.targetId());
+        body.put("actionType", command.actionType());
+        body.put("requestUser", command.requestUser());
+        body.put("reason", command.reason());
+        body.put("approvalRequestId", command.approvalRequestId());
+        body.put("idempotencyKey", command.idempotencyKey());
+        body.put("expectedVersion", command.expectedVersion());
+        body.put("payload", command.payload());
+        body.put("requestHash", command.fingerprint());
+        return invoke(operation, body, command.requestUser(), command);
+    }
+
+    private Object invoke(
+            String operation,
+            Map<String,Object> payload,
+            String operatorId,
+            CpfBatchRiskCommand riskCommand) {
         String verifiedOperator = requireOperator(operatorId);
         String path = "/bat/internal/operations/" + operation;
-        CpfServiceRequest request = CpfServiceRequest.builder(SERVICE_ID)
+        CpfServiceRequest.Builder requestBuilder = CpfServiceRequest.builder(SERVICE_ID)
                 .endpointCode(ENDPOINT_CODE).httpMethod("POST").requestPath(path)
                 .header(CpfHeaders.callerService(), CALLER_SERVICE)
                 .header(CpfHeaders.callerInstanceId(), callerInstanceId)
-                .header(CpfHeaders.operatorId(), verifiedOperator)
+                .header(CpfHeaders.operatorId(), verifiedOperator);
+        if (riskCommand != null) {
+            requestBuilder.header(CpfHeaders.idempotencyKey(), riskCommand.idempotencyKey())
+                    .header(CpfHeaders.approvalRequestId(), riskCommand.approvalRequestId())
+                    .header(CpfHeaders.approvalRequesterId(), riskCommand.requestUser());
+        }
+        CpfServiceRequest request = requestBuilder
                 .attribute("ownerDomain", "BAT").attribute("callerDomain", "ADM").build();
         CpfServiceResult<Object> result = caller.invoke(request, target -> webClient.post()
                 .uri(join(target.baseUrl(), path))
@@ -56,6 +88,11 @@ public class RemoteCpfBatchOperationsAdapter implements CpfBatchOperationsPort {
                     headers.set(CpfHeaders.callerService(), CALLER_SERVICE);
                     headers.set(CpfHeaders.callerInstanceId(), callerInstanceId);
                     headers.set(CpfHeaders.operatorId(), verifiedOperator);
+                    if (riskCommand != null) {
+                        headers.set(CpfHeaders.idempotencyKey(), riskCommand.idempotencyKey());
+                        headers.set(CpfHeaders.approvalRequestId(), riskCommand.approvalRequestId());
+                        headers.set(CpfHeaders.approvalRequesterId(), riskCommand.requestUser());
+                    }
                 })
                 .bodyValue(payload == null ? Map.of() : payload)
                 .retrieve().bodyToMono(Object.class).block());
@@ -142,17 +179,35 @@ public class RemoteCpfBatchOperationsAdapter implements CpfBatchOperationsPort {
     public List<CpfDataRow> findRelations(String jobId){return list(invokeRead("findRelations",p("jobId",jobId)));}
     public List<CpfDataRow> findExecutionTargets(String jobId,String status,int limit){return list(invokeRead("findExecutionTargets",p("jobId",jobId,"dispatchStatus",status,"limit",limit)));}
     public List<CpfDataRow> findLocks(String jobId){return list(invokeRead("findLocks",p("jobId",jobId)));}
-    public CpfDataRow releaseLock(String key,String user,String reason){return map(invoke("releaseLock",p("lockKey",key,"requestUser",user,"reason",reason),user));}
+    public CpfDataRow releaseLock(String key,String user,String reason){throw expectedVersionRequired("releaseLock");}
+    public CpfDataRow releaseLock(String key,String user,String reason,long expectedVersion){throw riskMetadataRequired("releaseLock");}
+    public CpfDataRow releaseLock(String key,CpfBatchRiskCommand command){return map(invokeRisk("releaseLock",p("lockKey",key),command));}
     public List<CpfDataRow> findGhostCandidates(int timeout){return list(invokeRead("findGhostCandidates",p("heartbeatTimeoutSeconds",timeout)));}
-    public CpfDataRow actGhostExecution(long id,String action,String user,String reason){return map(invoke("actGhostExecution",p("executionId",id,"actionType",action,"requestUser",user,"reason",reason),user));}
+    public CpfDataRow actGhostExecution(long id,String action,String user,String reason){throw expectedVersionRequired("actGhostExecution");}
+    public CpfDataRow actGhostExecution(long id,String action,String user,String reason,long expectedVersion){throw riskMetadataRequired("actGhostExecution");}
+    public CpfDataRow actGhostExecution(long id,String action,CpfBatchRiskCommand command){return map(invokeRisk("actGhostExecution",p("executionId",id,"actionType",action),command));}
     public List<CpfDataRow> findOperationLogs(String jobId,Long executionId,int limit){return list(invokeRead("findOperationLogs",p("jobId",jobId,"executionId",executionId,"limit",limit)));}
     public List<CpfDataRow> simulateSchedule(String id,String base,int days){return list(invokeRead("simulateSchedule",p("scheduleId",id,"baseDate",base,"days",days)));}
     public CpfDataRow registerJob(String id,String name,String type,String desc,String user){return map(invoke("registerJob",p("jobId",id,"jobName",name,"jobType",type,"description",desc,"requestUser",user),user));}
-    public CpfDataRow requestRun(String jobId,String params,String user,String reason){return map(invoke("requestRun",p("jobId",jobId,"jobParameters",params,"requestUser",user,"reason",reason),user));}
+    public CpfDataRow requestRun(String jobId,String params,String user,String reason){throw riskMetadataRequired("requestRun");}
     public CpfDataRow requestScheduledRun(String schedule,String job,String params,String user,String reason){return map(invoke("requestScheduledRun",p("scheduleId",schedule,"jobId",job,
             "jobParameters",params,"requestUser",user,"reason",reason),user));}
-    public CpfDataRow requestRetry(long id,String user,String reason){return map(invoke("requestRetry",p("executionId",id,"requestUser",user,"reason",reason),user));}
-    public CpfDataRow requestStop(long id,String user,String reason){return map(invoke("requestStop",p("executionId",id,"requestUser",user,"reason",reason),user));}
-    public CpfDataRow updateScheduleEnabled(String id,boolean enabled,String user,String reason){return map(invoke("updateScheduleEnabled",p("scheduleId",id,"enabled",enabled,"requestUser",user,"reason",reason),user));}
-    public List<CpfDataRow> runSchedulerOnce(String user){return list(invoke("runSchedulerOnce",p("requestUser",user),user));}
+    public CpfDataRow requestRetry(long id,String user,String reason){throw expectedVersionRequired("requestRetry");}
+    public CpfDataRow requestRetry(long id,String user,String reason,long expectedVersion){throw riskMetadataRequired("requestRetry");}
+    public CpfDataRow requestRetry(long id,CpfBatchRiskCommand command){return map(invokeRisk("requestRetry",p("executionId",id),command));}
+    public CpfDataRow requestStop(long id,String user,String reason){throw expectedVersionRequired("requestStop");}
+    public CpfDataRow requestStop(long id,String user,String reason,long expectedVersion){throw riskMetadataRequired("requestStop");}
+    public CpfDataRow requestStop(long id,CpfBatchRiskCommand command){return map(invokeRisk("requestStop",p("executionId",id),command));}
+    public CpfDataRow updateScheduleEnabled(String id,boolean enabled,String user,String reason){throw expectedVersionRequired("updateScheduleEnabled");}
+    public CpfDataRow updateScheduleEnabled(String id,boolean enabled,String user,String reason,long expectedVersion){throw riskMetadataRequired("updateScheduleEnabled");}
+    public CpfDataRow updateScheduleEnabled(String id,boolean enabled,CpfBatchRiskCommand command){return map(invokeRisk("updateScheduleEnabled",p("scheduleId",id,"enabled",enabled),command));}
+    public List<CpfDataRow> runSchedulerOnce(String user){throw riskMetadataRequired("runSchedulerOnce");}
+    public List<CpfDataRow> runSchedulerOnce(CpfBatchRiskCommand command){return list(invokeRisk("runSchedulerOnce",Map.of(),command));}
+    public CpfDataRow requestRun(String jobId,String params,CpfBatchRiskCommand command){return map(invokeRisk("requestRun",p("jobId",jobId,"jobParameters",params),command));}
+    private static IllegalArgumentException expectedVersionRequired(String operation){
+        return new IllegalArgumentException("expectedVersion is required for BAT operation: "+operation);
+    }
+    private static IllegalArgumentException riskMetadataRequired(String operation){
+        return new IllegalArgumentException("approval/idempotency risk command is required for BAT operation: "+operation);
+    }
 }

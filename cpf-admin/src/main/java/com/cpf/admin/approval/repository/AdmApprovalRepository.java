@@ -8,6 +8,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.PreparedStatement;
 import java.sql.Statement;
@@ -148,16 +149,28 @@ public class AdmApprovalRepository implements AdmApprovalDirectoryPort {
         };
         LinkedHashMap<String,AdmApprovalDirectoryEntry> unique=new LinkedHashMap<>();
         for(Map<String,Object> r:jdbc.queryForList(sql,code,ts,ts)){
-            String id=Objects.toString(r.get("operatorId"),"");
+            String id=Objects.toString(value(r,"operatorId"),"");
             if(!id.isBlank()) unique.putIfAbsent(id,new AdmApprovalDirectoryEntry(id,
-                    nullable(r.get("organizationCode")),nullable(r.get("positionCode")),nullable(r.get("jobTitleCode"))));
+                    nullable(value(r,"organizationCode")),nullable(value(r,"positionCode")),nullable(value(r,"jobTitleCode"))));
         }
         return List.copyOf(unique.values());
     }
 
     public Optional<Long> findRequestIdByKey(String requestKey){
-        return jdbc.queryForList("SELECT APPROVAL_REQUEST_ID id FROM adm_approval_request WHERE REQUEST_KEY=?",requestKey)
-                .stream().map(r->((Number)r.get("id")).longValue()).findFirst();
+        return findRequestByKey(requestKey).map(row -> ((Number)value(row,"approvalRequestId")).longValue());
+    }
+
+    public Optional<Map<String,Object>> findRequestByKey(String requestKey){
+        return jdbc.queryForList("""
+            SELECT APPROVAL_REQUEST_ID approvalRequestId,REQUEST_KEY requestKey,POLICY_CODE policyCode,
+                   POLICY_VERSION policyVersion,ACTION_TYPE actionType,OWNER_MODULE ownerModule,
+                   OWNER_COMMAND ownerCommand,TARGET_TYPE targetType,TARGET_ID targetId,REQUESTED_BY requestedBy,
+                   REQUEST_REASON requestReason,COMMAND_PAYLOAD_HASH payloadHash,
+                   COMMAND_PAYLOAD_SNAPSHOT payloadSnapshot,APPROVAL_STATUS approvalStatus,
+                   CURRENT_STEP_NO currentStepNo,EXPIRE_AT expireAt,TRANSACTION_ID transactionId,
+                   VERSION_NO versionNo
+              FROM adm_approval_request WHERE REQUEST_KEY=?
+            """,requestKey).stream().findFirst();
     }
 
     public long insertRequest(Map<String,Object> v){
@@ -202,6 +215,7 @@ public class AdmApprovalRepository implements AdmApprovalDirectoryPort {
                    POLICY_VERSION policyVersion,ACTION_TYPE actionType,OWNER_MODULE ownerModule,
                    OWNER_COMMAND ownerCommand,TARGET_TYPE targetType,TARGET_ID targetId,REQUESTED_BY requestedBy,
                    REQUEST_REASON requestReason,COMMAND_PAYLOAD_HASH payloadHash,
+                   COMMAND_PAYLOAD_SNAPSHOT payloadSnapshot,
                    APPROVAL_STATUS approvalStatus,CURRENT_STEP_NO currentStepNo,EXPIRE_AT expireAt,
                    TRANSACTION_ID transactionId,VERSION_NO versionNo
               FROM adm_approval_request WHERE APPROVAL_REQUEST_ID=?
@@ -229,9 +243,16 @@ public class AdmApprovalRepository implements AdmApprovalDirectoryPort {
             """,id,stepNo,operatorId).stream().findFirst();
     }
 
+    public Optional<Map<String,Object>> findDecisionByKey(String key){
+        return jdbc.queryForList("""
+            SELECT APPROVAL_REQUEST_ID approvalRequestId,APPROVAL_PARTICIPANT_ID participantId,
+                   OPERATOR_ID operatorId,DECISION_STATUS decisionStatus,DECISION_REASON decisionReason
+              FROM adm_approval_participant WHERE IDEMPOTENCY_KEY=?
+            """,key).stream().findFirst();
+    }
+
     public boolean decisionKeyExists(String key){
-        Long n=jdbc.queryForObject("SELECT COUNT(*) FROM adm_approval_participant WHERE IDEMPOTENCY_KEY=?",Long.class,key);
-        return n!=null&&n>0;
+        return findDecisionByKey(key).isPresent();
     }
 
     public int decideParticipant(long participantId,String status,String key,String reason,String operatorId){
@@ -267,27 +288,77 @@ public class AdmApprovalRepository implements AdmApprovalDirectoryPort {
             """,id).stream().findFirst();
     }
 
-    public void startExecution(long id,String commandRequestId,String operatorId){
-        int n=jdbc.update("""
-            UPDATE adm_approval_execution SET EXECUTION_STATUS='RUNNING',STARTED_AT=CURRENT_TIMESTAMP(3),
-                   COMPLETED_AT=NULL,RECOVERY_REQUIRED_YN='N',updated_by=?
-             WHERE APPROVAL_REQUEST_ID=?
-            """,operatorId,id);
-        if(n==0) jdbc.update("""
+    @Transactional(transactionManager = "admTransactionManager")
+    public boolean reserveExecution(long id,long expectedVersion,String commandRequestId,String operatorId){
+        int requestChanged=jdbc.update("""
+            UPDATE adm_approval_request SET APPROVAL_STATUS='EXECUTING',VERSION_NO=VERSION_NO+1,updated_by=?
+             WHERE APPROVAL_REQUEST_ID=? AND APPROVAL_STATUS='APPROVED' AND VERSION_NO=?
+            """,operatorId,id,expectedVersion);
+        if(requestChanged!=1)return false;
+        jdbc.update("""
             INSERT INTO adm_approval_execution (
               APPROVAL_REQUEST_ID,COMMAND_REQUEST_ID,EXECUTION_STATUS,STARTED_AT,RECOVERY_REQUIRED_YN,created_by,updated_by
-            ) VALUES (?,?,'RUNNING',CURRENT_TIMESTAMP(3),'N',?,?)
+            ) VALUES (?,?,'RUNNING',CURRENT_TIMESTAMP,'N',?,?)
             """,id,commandRequestId,operatorId,operatorId);
+        return true;
+    }
+
+    /** @deprecated use reserveExecution for atomic APPROVED -> EXECUTING reservation. */
+    @Deprecated
+    public void startExecution(long id,String commandRequestId,String operatorId){
+        Map<String,Object> request=findRequest(id).orElseThrow();
+        if(!reserveExecution(id,((Number)value(request,"versionNo")).longValue(),commandRequestId,operatorId))
+            throw new IllegalStateException("approval execution reservation failed");
     }
 
     public void finishExecution(long id,String status,String code,String message,boolean recovery,String operatorId){
-        jdbc.update("""
+        int changed=jdbc.update("""
             UPDATE adm_approval_execution SET EXECUTION_STATUS=?,OWNER_RESULT_CODE=?,OWNER_RESULT_MESSAGE=?,
-                   COMPLETED_AT=CURRENT_TIMESTAMP(3),RECOVERY_REQUIRED_YN=?,updated_by=?
-             WHERE APPROVAL_REQUEST_ID=?
+                   COMPLETED_AT=CURRENT_TIMESTAMP,RECOVERY_REQUIRED_YN=?,updated_by=?
+             WHERE APPROVAL_REQUEST_ID=? AND EXECUTION_STATUS='RUNNING'
             """,status,code,message,recovery?"Y":"N",operatorId,id);
+        if(changed!=1)throw new IllegalStateException("approval execution finalization failed");
     }
 
+    @Transactional(transactionManager = "admTransactionManager")
+    public void finishExecutionAndRequest(long id,long expectedRequestVersion,String executionStatus,
+            String requestStatus,String code,String message,boolean recovery,String operatorId,
+            String reason,String eventData,String transactionId){
+        finishExecution(id,executionStatus,code,message,recovery,operatorId);
+        int requestChanged=jdbc.update("""
+            UPDATE adm_approval_request SET APPROVAL_STATUS=?,VERSION_NO=VERSION_NO+1,updated_by=?
+             WHERE APPROVAL_REQUEST_ID=? AND APPROVAL_STATUS='EXECUTING' AND VERSION_NO=?
+            """,requestStatus,operatorId,id,expectedRequestVersion);
+        if(requestChanged!=1)throw new IllegalStateException("approval request finalization failed");
+        history(id,"RESULT",operatorId,"EXECUTING",requestStatus,reason,eventData,transactionId);
+    }
+
+    @Transactional(transactionManager = "admTransactionManager")
+    public void markExecutionUnknown(long id,String code,String message,String operatorId){
+        jdbc.update("""
+            UPDATE adm_approval_execution SET EXECUTION_STATUS='UNKNOWN',OWNER_RESULT_CODE=?,
+                   OWNER_RESULT_MESSAGE=?,COMPLETED_AT=CURRENT_TIMESTAMP,RECOVERY_REQUIRED_YN='Y',updated_by=?
+             WHERE APPROVAL_REQUEST_ID=? AND EXECUTION_STATUS='RUNNING'
+            """,code,message,operatorId,id);
+        jdbc.update("""
+            UPDATE adm_approval_request SET APPROVAL_STATUS='UNKNOWN',VERSION_NO=VERSION_NO+1,updated_by=?
+             WHERE APPROVAL_REQUEST_ID=? AND APPROVAL_STATUS='EXECUTING'
+            """,operatorId,id);
+    }
+
+    public int updateCommandSnapshot(long id,long version,String payloadHash,String payloadSnapshot,String operatorId){
+        return jdbc.update("""
+            UPDATE adm_approval_request SET COMMAND_PAYLOAD_HASH=?,COMMAND_PAYLOAD_SNAPSHOT=?,
+                   VERSION_NO=VERSION_NO+1,updated_by=?
+             WHERE APPROVAL_REQUEST_ID=? AND APPROVAL_STATUS='PENDING' AND VERSION_NO=?
+            """,payloadHash,payloadSnapshot,operatorId,id,version);
+    }
+
+    private static Object value(Map<String,Object> row,String key){
+        Object v=row.get(key);if(v!=null)return v;v=row.get(key.toUpperCase(Locale.ROOT));if(v!=null)return v;
+        String snake=key.replaceAll("([a-z])([A-Z])","$1_$2").toLowerCase(Locale.ROOT);
+        v=row.get(snake);return v!=null?v:row.get(snake.toUpperCase(Locale.ROOT));
+    }
     private static String emptyToNull(String v){return v==null||v.isBlank()?null:v.trim();}
     private static String nullable(Object v){return v==null?null:String.valueOf(v);}
 }

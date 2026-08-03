@@ -1,0 +1,1 @@
+package com.cpf.core.api.execution; public record CpfStandardExecutionId(CpfExecutionType type){public static boolean isValid(String s){return s!=null&&s.matches("[OS]-[0-9]{8}");}public static CpfStandardExecutionId parse(String s){return new CpfStandardExecutionId(s.startsWith("S-")?CpfExecutionType.SHARED:CpfExecutionType.ONLINE);}}

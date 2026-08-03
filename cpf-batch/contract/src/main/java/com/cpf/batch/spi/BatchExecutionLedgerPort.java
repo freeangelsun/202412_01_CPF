@@ -31,7 +31,7 @@ public interface BatchExecutionLedgerPort {
     default void recordUnknown(String cpfExecutionId, String reasonCode, String detail) {
         transition(cpfExecutionId,
                 Set.of(BatchControlState.RESERVED, BatchControlState.STARTING, BatchControlState.STARTED,
-                        BatchControlState.STOPPING, BatchControlState.UNKNOWN_RESULT),
+                        BatchControlState.STOPPING, BatchControlState.ABANDONING, BatchControlState.UNKNOWN_RESULT),
                 BatchControlState.UNKNOWN_RESULT, reasonCode, detail, Instant.now());
     }
 

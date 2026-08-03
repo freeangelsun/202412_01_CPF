@@ -1,0 +1,1 @@
+package org.springframework.jdbc.datasource; import javax.sql.DataSource; import org.springframework.transaction.PlatformTransactionManager; public class DataSourceTransactionManager implements PlatformTransactionManager {public final DataSource ds;public DataSourceTransactionManager(DataSource d){ds=d;}}

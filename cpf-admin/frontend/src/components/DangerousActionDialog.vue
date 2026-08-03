@@ -14,11 +14,11 @@
 </template>
 <script setup lang="ts">
 import { computed, reactive, watch } from "vue";
-const props = withDefaults(defineProps<{ open:boolean; title:string; description:string; target?:Record<string,string|number>; risk?:"HIGH"|"CRITICAL"; approvalRequired?:boolean; expectedVersion?:number; submitting?:boolean; confirmLabel?:string }>(), { target:()=>({}), risk:"HIGH", approvalRequired:false, submitting:false, confirmLabel:"실행" });
+const props = withDefaults(defineProps<{ open:boolean; title:string; description:string; target?:Record<string,string|number>; risk?:"HIGH"|"CRITICAL"; approvalRequired?:boolean; expectedVersion?:number; expectedVersionRequired?:boolean; submitting?:boolean; confirmLabel?:string }>(), { target:()=>({}), risk:"HIGH", approvalRequired:false, expectedVersionRequired:false, submitting:false, confirmLabel:"실행" });
 const emit=defineEmits<{ cancel:[]; confirm:[payload:{reason:string;approvalId:string;expectedVersion?:number;idempotencyKey:string}] }>();
 const dialogId=`cpf-danger-${Math.random().toString(36).slice(2)}`;
 const form=reactive({reason:"",approvalId:"",confirmed:false});
-const validationMessage=computed(()=>form.reason.length<5?"사유를 5자 이상 입력하세요.":props.approvalRequired&&!form.approvalId?"승인 ID가 필요합니다.":!form.confirmed?"확인 항목에 동의해야 합니다.":"");
+const validationMessage=computed(()=>form.reason.length<5?"사유를 5자 이상 입력하세요.":props.approvalRequired&&!form.approvalId?"승인 ID가 필요합니다.":props.expectedVersionRequired&&(props.expectedVersion===undefined||!Number.isSafeInteger(props.expectedVersion)||props.expectedVersion<0)?"최신 Expected Version이 없습니다. 다시 조회하세요.":!form.confirmed?"확인 항목에 동의해야 합니다.":"");
 const riskLabel=computed(()=>props.risk==="CRITICAL"?"중대 위험 조치":"위험 조치");
 watch(()=>props.open,(open)=>{if(open){form.reason="";form.approvalId="";form.confirmed=false;}});
 function cancel(){if(!props.submitting)emit("cancel");}

@@ -15,6 +15,13 @@ public final class BatchJobDefinitionApprovalOwnerCommandAdapter implements AdmA
     public BatchJobDefinitionApprovalOwnerCommandAdapter(BatchJobDefinitionControlPort port){this.port=port;}
 
     @Override
+    public boolean supports(String ownerModule, String ownerCommand) {
+        String owner = normalize(ownerModule);
+        return (owner.contains("batch") || owner.equals("bat"))
+                && "BAT_JOB_PUBLISH".equalsIgnoreCase(ownerCommand);
+    }
+
+    @Override
     public AdmApprovedOperationResult execute(AdmApprovedOperationCommand command) {
         String owner=normalize(command.ownerModule());
         if(!owner.contains("batch")&&!owner.equals("bat"))return failed("BAT_OWNER_MISMATCH","BAT Owner Module이 아닙니다.");

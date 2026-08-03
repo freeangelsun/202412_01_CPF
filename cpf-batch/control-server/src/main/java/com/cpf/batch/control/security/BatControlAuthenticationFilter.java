@@ -123,8 +123,12 @@ public final class BatControlAuthenticationFilter extends OncePerRequestFilter {
                 callerService,
                 callerInstance,
                 certificateSubject,
-                normalized(request.getHeader(BatControlHeaders.APPROVAL_REQUEST_ID)),
-                normalized(request.getHeader(BatControlHeaders.APPROVAL_REQUESTER_ID)));
+                firstNonBlank(
+                        request.getHeader(CpfHeaders.approvalRequestId()),
+                        request.getHeader(BatControlHeaders.APPROVAL_REQUEST_ID)),
+                firstNonBlank(
+                        request.getHeader(CpfHeaders.approvalRequesterId()),
+                        request.getHeader(BatControlHeaders.APPROVAL_REQUESTER_ID)));
 
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("BAT_AUTHENTICATED"));
@@ -145,6 +149,11 @@ public final class BatControlAuthenticationFilter extends OncePerRequestFilter {
         } finally {
             SecurityContextHolder.clearContext();
         }
+    }
+
+    private static String firstNonBlank(String canonical, String legacyAlias) {
+        String value = normalized(canonical);
+        return value != null ? value : normalized(legacyAlias);
     }
 
     private boolean isProduct() {

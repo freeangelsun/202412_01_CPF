@@ -3,9 +3,12 @@ package com.cpf.batch.control.compat;
 import com.cpf.batch.runtime.SensitiveTextSanitizer;
 import com.cpf.common.calendar.CmnBusinessCalendar;
 import com.cpf.core.api.batch.CpfBatchOperationsPort;
+import com.cpf.core.api.batch.CpfBatchRiskCommand;
+import com.cpf.core.api.batch.CpfBatchOptimisticVersion;
 import com.cpf.core.api.data.CpfDataRow;
 import com.cpf.core.api.database.CpfVendorSqlCatalog;
 import com.cpf.core.api.database.CpfVendorSqlCatalogProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -34,16 +37,28 @@ public class BatchOperationsCompatibilityService implements CpfBatchOperationsPo
     private final CmnBusinessCalendar calendar;
     private final TransactionTemplate tx;
     private final CpfVendorSqlCatalog sql;
+    private final CpfBatchRiskCommandCoordinator riskCommands;
 
     public BatchOperationsCompatibilityService(
             JdbcTemplate jdbc,
             CmnBusinessCalendar calendar,
             PlatformTransactionManager transactionManager,
             CpfVendorSqlCatalogProvider sqlCatalogProvider) {
+        this(jdbc, calendar, transactionManager, sqlCatalogProvider, null);
+    }
+
+    @Autowired
+    public BatchOperationsCompatibilityService(
+            JdbcTemplate jdbc,
+            CmnBusinessCalendar calendar,
+            PlatformTransactionManager transactionManager,
+            CpfVendorSqlCatalogProvider sqlCatalogProvider,
+            CpfBatchRiskCommandCoordinator riskCommands) {
         this.jdbc = jdbc;
         this.calendar = calendar;
         this.tx = new TransactionTemplate(transactionManager);
         this.sql = sqlCatalogProvider.forModule("bat");
+        this.riskCommands = riskCommands;
     }
 
     @Override
@@ -155,18 +170,39 @@ public class BatchOperationsCompatibilityService implements CpfBatchOperationsPo
 
     @Override
     public CpfDataRow releaseLock(String lockKey, String user, String reason) {
+        throw expectedVersionRequired("releaseLock");
+    }
+
+    @Override
+    public CpfDataRow releaseLock(
+            String lockKey, String user, String reason, long expectedVersion) {
+        throw riskMetadataRequired("releaseLock");
+    }
+
+    @Override
+    public CpfDataRow releaseLock(String lockKey, CpfBatchRiskCommand command) {
+        command.assertOperation("releaseLock", "bat_lock", lockKey);
+        return riskCoordinator().executeRow(command, () -> releaseLockInternal(
+                lockKey, command.requestUser(), command.reason(), command.requiredExpectedVersion()));
+    }
+
+    private CpfDataRow releaseLockInternal(
+            String lockKey, String user, String reason, long expectedVersion) {
         requireText(lockKey, "lockKey");
         requireText(user, "requestUser");
         requireText(reason, "reason");
         return tx.execute(status -> {
             Map<String, Object> before = exactOne("compat-lock-for-update", lockKey);
             requireExpiredLock(before, lockKey);
-            int changed = jdbc.update(sql.required("compat-lock-delete-expired"), lockKey);
+            CpfBatchOptimisticVersion.assertMatches(before, expectedVersion, "lock:" + lockKey);
+            int changed = jdbc.update(
+                    sql.required("compat-lock-delete-expired"), lockKey, expectedVersion);
             requireSingleMutation(changed, "expired lock release", lockKey);
             Map<String, Object> after = Map.of(
                     "lockKey", lockKey,
                     "jobId", Objects.toString(before.get("job_id"), ""),
                     "ownerId", Objects.toString(before.get("owner_id"), ""),
+                    "expectedVersion", expectedVersion,
                     "released", true);
             audit(
                     Objects.toString(before.get("job_id"), "SYSTEM"),
@@ -188,10 +224,34 @@ public class BatchOperationsCompatibilityService implements CpfBatchOperationsPo
 
     @Override
     public CpfDataRow actGhostExecution(
+            long executionId, String action, String user, String reason) {
+        throw expectedVersionRequired("actGhostExecution");
+    }
+
+    @Override
+    public CpfDataRow actGhostExecution(
             long executionId,
             String action,
             String user,
-            String reason) {
+            String reason,
+            long expectedVersion) {
+        throw riskMetadataRequired("actGhostExecution");
+    }
+
+    @Override
+    public CpfDataRow actGhostExecution(
+            long executionId, String action, CpfBatchRiskCommand command) {
+        command.assertOperation("actGhostExecution", "bat_execution", String.valueOf(executionId));
+        return riskCoordinator().executeRow(command, () -> actGhostExecutionInternal(
+                executionId, action, command.requestUser(), command.reason(), command.requiredExpectedVersion()));
+    }
+
+    private CpfDataRow actGhostExecutionInternal(
+            long executionId,
+            String action,
+            String user,
+            String reason,
+            long expectedVersion) {
         requireText(action, "actionType");
         requireText(user, "requestUser");
         requireText(reason, "reason");
@@ -202,6 +262,8 @@ public class BatchOperationsCompatibilityService implements CpfBatchOperationsPo
         return tx.execute(status -> {
             Map<String, Object> before = exactOne("compat-execution-lock", executionId);
             requireGhostCandidate(before, executionId);
+            CpfBatchOptimisticVersion.assertMatches(
+                    before, expectedVersion, "execution:" + executionId);
             String jobId = Objects.toString(before.get("job_id"), "");
             Map<String, Object> after = new LinkedHashMap<>();
             after.put("executionId", executionId);
@@ -209,20 +271,26 @@ public class BatchOperationsCompatibilityService implements CpfBatchOperationsPo
             after.put("action", normalized);
             if ("RELEASE_LOCK".equals(normalized)) {
                 Map<String, Object> lock = exactOne("compat-lock-expired-for-job-for-update", jobId);
-                requireExpiredLock(lock, Objects.toString(lock.get("lock_key"), jobId));
-                int changed = jdbc.update(sql.required("compat-lock-delete-job-expired"), jobId);
-                requireSingleMutation(changed, "ghost lock release", jobId);
-                after.put("releasedLockKey", Objects.toString(lock.get("lock_key"), ""));
+                String lockKey = Objects.toString(lock.get("lock_key"), jobId);
+                requireExpiredLock(lock, lockKey);
+                long lockVersion = CpfBatchOptimisticVersion.read(lock, "lock:" + lockKey);
+                int changed = jdbc.update(
+                        sql.required("compat-lock-delete-expired"), lockKey, lockVersion);
+                requireSingleMutation(changed, "ghost lock release", lockKey);
+                after.put("releasedLockKey", lockKey);
                 after.put("executionStatus", Objects.toString(before.get("execution_status"), ""));
+                after.put("rowVersion", expectedVersion);
             } else {
                 String targetStatus = "FAIL".equals(normalized) ? "FAILED" : "ABANDONED";
                 int changed = jdbc.update(
                         sql.required("compat-execution-finish-ghost"),
                         targetStatus,
                         user,
-                        executionId);
+                        executionId,
+                        expectedVersion);
                 requireSingleMutation(changed, "ghost execution transition", String.valueOf(executionId));
                 after.put("executionStatus", targetStatus);
+                after.put("rowVersion", Math.addExact(expectedVersion, 1));
             }
             after.put("result", "COMPLETED");
             audit(
@@ -293,7 +361,15 @@ public class BatchOperationsCompatibilityService implements CpfBatchOperationsPo
             String parameters,
             String user,
             String reason) {
-        return createExecution(null, jobId, parameters, user, reason);
+        throw riskMetadataRequired("requestRun");
+    }
+
+    @Override
+    public CpfDataRow requestRun(
+            String jobId, String parameters, CpfBatchRiskCommand command) {
+        command.assertOperation("requestRun", "bat_job", jobId);
+        return riskCoordinator().executeRow(command, () ->
+                createExecution(null, jobId, parameters, command.requestUser(), command.reason()));
     }
 
     @Override
@@ -309,30 +385,91 @@ public class BatchOperationsCompatibilityService implements CpfBatchOperationsPo
 
     @Override
     public CpfDataRow requestRetry(long executionId, String user, String reason) {
-        Map<String, Object> previous = one("compat-execution-detail", executionId);
-        return createExecution(
-                Objects.toString(previous.get("schedule_id"), null),
-                Objects.toString(previous.get("job_id"), ""),
-                Objects.toString(previous.get("job_parameters"), "{}"),
-                user,
-                reason);
+        throw expectedVersionRequired("requestRetry");
+    }
+
+    @Override
+    public CpfDataRow requestRetry(
+            long executionId, String user, String reason, long expectedVersion) {
+        throw riskMetadataRequired("requestRetry");
+    }
+
+    @Override
+    public CpfDataRow requestRetry(long executionId, CpfBatchRiskCommand command) {
+        command.assertOperation("requestRetry", "bat_execution", String.valueOf(executionId));
+        return riskCoordinator().executeRow(command, () -> requestRetryInternal(
+                executionId, command.requestUser(), command.reason(), command.requiredExpectedVersion()));
+    }
+
+    private CpfDataRow requestRetryInternal(
+            long executionId, String user, String reason, long expectedVersion) {
+        requireText(user, "requestUser");
+        requireText(reason, "reason");
+        return tx.execute(status -> {
+            Map<String, Object> previous = exactOne("compat-execution-lock", executionId);
+            CpfBatchOptimisticVersion.assertMatches(
+                    previous, expectedVersion, "execution:" + executionId);
+            CpfDataRow created = createExecution(
+                    Objects.toString(previous.get("schedule_id"), null),
+                    Objects.toString(previous.get("job_id"), ""),
+                    Objects.toString(previous.get("job_parameters"), "{}"),
+                    user,
+                    reason);
+            created.put("retriedFromExecutionId", executionId);
+            created.put("sourceExpectedVersion", expectedVersion);
+            return created;
+        });
     }
 
     @Override
     public CpfDataRow requestStop(long executionId, String user, String reason) {
+        throw expectedVersionRequired("requestStop");
+    }
+
+    @Override
+    public CpfDataRow requestStop(
+            long executionId, String user, String reason, long expectedVersion) {
+        throw riskMetadataRequired("requestStop");
+    }
+
+    @Override
+    public CpfDataRow requestStop(long executionId, CpfBatchRiskCommand command) {
+        command.assertOperation("requestStop", "bat_execution", String.valueOf(executionId));
+        return riskCoordinator().executeRow(command, () -> requestStopInternal(
+                executionId, command.requestUser(), command.reason(), command.requiredExpectedVersion()));
+    }
+
+    private CpfDataRow requestStopInternal(
+            long executionId, String user, String reason, long expectedVersion) {
         requireText(user, "requestUser");
         requireText(reason, "reason");
-        Map<String, Object> before = one("compat-execution-detail", executionId);
-        int changed = jdbc.update(sql.required("compat-execution-stop"), executionId);
-        audit(
-                Objects.toString(before.get("job_id"), ""),
-                executionId,
-                "STOP_REQUEST",
-                user,
-                reason,
-                before,
-                Map.of("updated", changed));
-        return CpfDataRow.of("executionId", executionId, "stopRequested", changed == 1);
+        return tx.execute(status -> {
+            Map<String, Object> before = exactOne("compat-execution-lock", executionId);
+            CpfBatchOptimisticVersion.assertMatches(
+                    before, expectedVersion, "execution:" + executionId);
+            int changed = jdbc.update(
+                    sql.required("compat-execution-stop"),
+                    user,
+                    executionId,
+                    expectedVersion);
+            requireSingleMutation(changed, "execution stop request", String.valueOf(executionId));
+            Map<String, Object> after = one("compat-execution-detail", executionId);
+            audit(
+                    Objects.toString(before.get("job_id"), ""),
+                    executionId,
+                    "STOP_REQUEST",
+                    user,
+                    reason,
+                    before,
+                    after);
+            return CpfDataRow.copyOf(after);
+        });
+    }
+
+    @Override
+    public CpfDataRow updateScheduleEnabled(
+            String scheduleId, boolean enabled, String user, String reason) {
+        throw expectedVersionRequired("updateScheduleEnabled");
     }
 
     @Override
@@ -340,33 +477,64 @@ public class BatchOperationsCompatibilityService implements CpfBatchOperationsPo
             String scheduleId,
             boolean enabled,
             String user,
-            String reason) {
+            String reason,
+            long expectedVersion) {
+        throw riskMetadataRequired("updateScheduleEnabled");
+    }
+
+    @Override
+    public CpfDataRow updateScheduleEnabled(
+            String scheduleId, boolean enabled, CpfBatchRiskCommand command) {
+        command.assertOperation("updateScheduleEnabled", "bat_schedule", scheduleId);
+        return riskCoordinator().executeRow(command, () -> updateScheduleEnabledInternal(
+                scheduleId, enabled, command.requestUser(), command.reason(), command.requiredExpectedVersion()));
+    }
+
+    private CpfDataRow updateScheduleEnabledInternal(
+            String scheduleId,
+            boolean enabled,
+            String user,
+            String reason,
+            long expectedVersion) {
+        requireText(scheduleId, "scheduleId");
         requireText(user, "requestUser");
         requireText(reason, "reason");
-        Map<String, Object> before = one("compat-schedule-detail", scheduleId);
-        int changed = jdbc.update(
-                sql.required("compat-schedule-update-enabled"),
-                enabled ? "Y" : "N",
-                user,
-                scheduleId);
-        audit(
-                Objects.toString(before.get("job_id"), ""),
-                null,
-                "SCHEDULE_ENABLE",
-                user,
-                reason,
-                before,
-                Map.of("enabled", enabled));
-        return CpfDataRow.of(
-                "scheduleId", scheduleId,
-                "updated", changed == 1,
-                "enabled", enabled);
+        return tx.execute(status -> {
+            Map<String, Object> before = exactOne("compat-schedule-lock", scheduleId);
+            CpfBatchOptimisticVersion.assertMatches(
+                    before, expectedVersion, "schedule:" + scheduleId);
+            int changed = jdbc.update(
+                    sql.required("compat-schedule-update-enabled"),
+                    enabled ? "Y" : "N",
+                    user,
+                    scheduleId,
+                    expectedVersion);
+            requireSingleMutation(changed, "schedule enable update", scheduleId);
+            Map<String, Object> after = one("compat-schedule-detail", scheduleId);
+            audit(
+                    Objects.toString(before.get("job_id"), ""),
+                    null,
+                    enabled ? "SCHEDULE_ENABLE" : "SCHEDULE_DISABLE",
+                    user,
+                    reason,
+                    before,
+                    after);
+            return CpfDataRow.copyOf(after);
+        });
     }
 
     @Override
     public List<CpfDataRow> runSchedulerOnce(String user) {
-        requireText(user, "requestUser");
-        return rows(jdbc.queryForList(sql.required("compat-scheduler-due")));
+        throw riskMetadataRequired("runSchedulerOnce");
+    }
+
+    @Override
+    public List<CpfDataRow> runSchedulerOnce(CpfBatchRiskCommand command) {
+        command.assertOperation("runSchedulerOnce", "bat_schedule", "DUE_SCHEDULES");
+        return riskCoordinator().executeRows(command, () -> {
+            requireText(command.requestUser(), "requestUser");
+            return rows(jdbc.queryForList(sql.required("compat-scheduler-due")));
+        });
     }
 
     private CpfDataRow createExecution(
@@ -462,6 +630,10 @@ public class BatchOperationsCompatibilityService implements CpfBatchOperationsPo
         return rows.getFirst();
     }
 
+    private static IllegalArgumentException expectedVersionRequired(String operation) {
+        return new IllegalArgumentException("expectedVersion is required for BAT operation: " + operation);
+    }
+
     private static void requireSingleMutation(int changed, String operation, String target) {
         if (changed != 1) {
             throw new IllegalStateException(
@@ -552,4 +724,16 @@ public class BatchOperationsCompatibilityService implements CpfBatchOperationsPo
     private static String defaultText(String value, String defaultValue) {
         return hasText(value) ? value.trim() : defaultValue;
     }
+    private CpfBatchRiskCommandCoordinator riskCoordinator() {
+        if (riskCommands == null) {
+            throw new IllegalStateException("BAT risk command coordinator is required for dangerous operations");
+        }
+        return riskCommands;
+    }
+
+    private static IllegalArgumentException riskMetadataRequired(String operation) {
+        return new IllegalArgumentException(
+                "approval/idempotency risk command is required for BAT operation: " + operation);
+    }
+
 }

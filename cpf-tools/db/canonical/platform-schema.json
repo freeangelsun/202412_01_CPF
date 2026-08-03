@@ -42,7 +42,7 @@
     "batchExecutionAttemptDetailPolicy": "Shell/external attempt detail including exit/stdout/stderr/truncation/duration/artifactHash/unknown is durable and transactionally finalized.",
     "qa39RuntimeControlPlane": "RESILIENCE_AND_FEATURE_FLAG_FAIL_CLOSED_APPROVAL_AUDIT"
   },
-  "tableCount": 200,
+  "tableCount": 201,
   "tables": [
     {
       "name": "BATCH_JOB_EXECUTION",
@@ -8324,6 +8324,15 @@
           "comment": "수정일시"
         },
         {
+          "name": "row_version",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "0",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "운영 위험조치 낙관적 잠금 Version"
+        },
+        {
           "name": "definition_version",
           "type": "BIGINT",
           "nullable": true,
@@ -11530,6 +11539,15 @@
           "autoIncrement": false,
           "onUpdate": "CURRENT_TIMESTAMP",
           "comment": "수정일시"
+        },
+        {
+          "name": "row_version",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "0",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "운영 위험조치 낙관적 잠금 Version"
         }
       ],
       "primaryKey": [
@@ -11941,6 +11959,208 @@
       "foreignKeys": [],
       "checks": [],
       "comment": "BAT 배치 운영 작업 로그",
+      "module": "bat",
+      "logicalDatabase": "batDB"
+    },
+    {
+      "name": "bat_operation_request",
+      "columns": [
+        {
+          "name": "idempotency_key",
+          "type": "VARCHAR(120)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "BAT 위험조치 멱등 키"
+        },
+        {
+          "name": "request_hash",
+          "type": "CHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Canonical 위험조치 SHA-256"
+        },
+        {
+          "name": "operation_type",
+          "type": "VARCHAR(80)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "BAT Owner operation"
+        },
+        {
+          "name": "target_type",
+          "type": "VARCHAR(80)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "위험조치 대상 유형"
+        },
+        {
+          "name": "target_id",
+          "type": "VARCHAR(200)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "위험조치 대상 ID"
+        },
+        {
+          "name": "action_type",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "감사 Action 유형"
+        },
+        {
+          "name": "approval_request_id",
+          "type": "VARCHAR(120)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "ADM 승인 요청 식별자"
+        },
+        {
+          "name": "requested_by",
+          "type": "VARCHAR(50)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "검증된 실행 운영자"
+        },
+        {
+          "name": "expected_version",
+          "type": "BIGINT",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "대상 낙관적 잠금 Version"
+        },
+        {
+          "name": "request_state",
+          "type": "VARCHAR(30)",
+          "nullable": false,
+          "default": "'RESERVED'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "RESERVED/COMPLETED/FAILED/UNKNOWN"
+        },
+        {
+          "name": "result_payload",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "멱등 Replay용 마스킹 결과"
+        },
+        {
+          "name": "failure_code",
+          "type": "VARCHAR(80)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "실패/결과불명 코드"
+        },
+        {
+          "name": "failure_message",
+          "type": "VARCHAR(1000)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "마스킹된 실패/결과불명 메시지"
+        },
+        {
+          "name": "completed_at",
+          "type": "DATETIME(3)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "최종 상태 확정 일시"
+        },
+        {
+          "name": "created_by",
+          "type": "VARCHAR(50)",
+          "nullable": false,
+          "default": "'BAT'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "등록자"
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME(3)",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP(3)",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "등록일시"
+        },
+        {
+          "name": "updated_by",
+          "type": "VARCHAR(50)",
+          "nullable": false,
+          "default": "'BAT'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "수정자"
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME(3)",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP(3)",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "수정일시"
+        }
+      ],
+      "primaryKey": [
+        "idempotency_key"
+      ],
+      "uniqueKeys": [],
+      "indexes": [
+        {
+          "name": "ix_bat_operation_request_target",
+          "columns": [
+            "target_type",
+            "target_id",
+            "created_at"
+          ]
+        },
+        {
+          "name": "ix_bat_operation_request_state",
+          "columns": [
+            "request_state",
+            "updated_at"
+          ]
+        }
+      ],
+      "foreignKeys": [],
+      "checks": [
+        {
+          "name": "ck_bat_operation_request_state",
+          "expression": "request_state IN ('RESERVED','COMPLETED','FAILED','UNKNOWN')"
+        },
+        {
+          "name": "ck_bat_operation_request_hash",
+          "expression": "CHAR_LENGTH(request_hash) = 64"
+        }
+      ],
+      "comment": "BAT 위험조치 승인·멱등·UNKNOWN 복구 Ledger",
       "module": "bat",
       "logicalDatabase": "batDB"
     },
@@ -13195,6 +13415,15 @@
           "autoIncrement": false,
           "onUpdate": "CURRENT_TIMESTAMP",
           "comment": "수정일시"
+        },
+        {
+          "name": "row_version",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "0",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "운영 위험조치 낙관적 잠금 Version"
         },
         {
           "name": "definition_version",
@@ -20171,7 +20400,7 @@
         },
         {
           "name": "ck_cpf_bat_control_status",
-          "expression": "control_status IN ('RESERVED', 'STARTING', 'STARTED', 'STOPPING', 'STOPPED', 'COMPLETED', 'FAILED', 'UNKNOWN_RESULT', 'ABANDONED', 'REJECTED')"
+          "expression": "control_status IN ('RESERVED', 'STARTING', 'STARTED', 'STOPPING', 'STOPPED', 'COMPLETED', 'FAILED', 'UNKNOWN_RESULT', 'ABANDONING', 'ABANDONED', 'REJECTED')"
         }
       ],
       "comment": "CPF 승인·멱등·Fencing 기반 Spring Batch 실행 Control Ledger",

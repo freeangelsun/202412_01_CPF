@@ -297,15 +297,15 @@ W (Join-Path $Root 'cpf-tools/db/vendor/postgresql/source/00_verify.sql') ($post
 W (Join-Path $Root 'cpf-tools/db/vendor/oracle/source/00_verify.sql') ($oracleVerify -join "`n")
 function Type-For([string]$v,[string]$t){
  $u=$t.ToUpperInvariant()
- if($v -eq 'mariadb'){return $u}
+ if($v -eq 'mariadb'){$u=$u -replace '^CLOB$','MEDIUMTEXT' -replace '^BYTEA$','LONGBLOB';return $u}
  if($v -eq 'postgresql'){
-  $u=$u -replace '^DATETIME','TIMESTAMP' -replace '^TINYINT','SMALLINT' -replace '^INT$','INTEGER' -replace '^LONGTEXT$','TEXT' -replace '^BLOB$','BYTEA'
+  $u=$u -replace '^DATETIME','TIMESTAMP' -replace '^TINYINT','SMALLINT' -replace '^INT$','INTEGER' -replace '^LONGTEXT$','TEXT' -replace '^MEDIUMTEXT$','TEXT' -replace '^LONGBLOB$','BYTEA' -replace '^BLOB$','BYTEA' -replace '^CLOB$','TEXT'
   return $u
  }
  if($u -match '^VARCHAR\((\d+)\)$'){return "VARCHAR2($($Matches[1]) CHAR)"}
  if($u -match '^CHAR\((\d+)\)$'){return "CHAR($($Matches[1]) CHAR)"}
  if($u -match '^BIGINT$'){return 'NUMBER(19)'}; if($u -match '^INT$'){return 'NUMBER(10)'}; if($u -match '^TINYINT$'){return 'NUMBER(3)'}
- if($u -match '^DATETIME(\(\d+\))?$'){return 'TIMESTAMP'+$Matches[1]}; if($u -eq 'LONGTEXT' -or $u -eq 'TEXT'){return 'CLOB'}
+ if($u -match '^DATETIME(\(\d+\))?$'){return 'TIMESTAMP'+$Matches[1]}; if($u -eq 'LONGBLOB' -or $u -eq 'BLOB'){return 'BLOB'}; if($u -eq 'MEDIUMTEXT' -or $u -eq 'LONGTEXT' -or $u -eq 'TEXT'){return 'CLOB'}
  return $u
 }
 function Default-For([string]$v,$d){ if($null -eq $d){return $null};$x=[string]$d;if($v -eq 'postgresql'){$x=[regex]::Replace($x,'(?i)CURRENT_TIMESTAMP\(\d+\)','CURRENT_TIMESTAMP')};return $x }

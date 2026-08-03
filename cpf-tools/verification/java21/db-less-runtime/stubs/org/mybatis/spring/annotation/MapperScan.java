@@ -1,0 +1,1 @@
+package org.mybatis.spring.annotation; import java.lang.annotation.*; @Retention(RetentionPolicy.RUNTIME) @Target(ElementType.TYPE) public @interface MapperScan {String[] basePackages();Class<?> annotationClass();String sqlSessionFactoryRef();}

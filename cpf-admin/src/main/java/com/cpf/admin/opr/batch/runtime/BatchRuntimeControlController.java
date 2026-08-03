@@ -121,6 +121,7 @@ public class BatchRuntimeControlController extends AdmBaseController {
             return ResponseEntity.status(201).body(client.saveJobDefinition(withServerActor(request, operatorId)));
         }
         catch (BatchControlClientException failure) { return error(failure); }
+        catch (IllegalArgumentException failure) { return validation("BAT_JOB_DEFINITION_INVALID", failure); }
     }
 
     @PostMapping("/job-definitions/{jobId}/versions/{version}/transition")
@@ -137,6 +138,7 @@ public class BatchRuntimeControlController extends AdmBaseController {
             return ResponseEntity.ok(client.transitionJobDefinition(jobId, version, withServerActor(request, operatorId)));
         }
         catch (BatchControlClientException failure) { return error(failure); }
+        catch (IllegalArgumentException failure) { return validation("BAT_JOB_TRANSITION_INVALID", failure); }
     }
 
     @PostMapping("/commands")
@@ -160,7 +162,7 @@ public class BatchRuntimeControlController extends AdmBaseController {
         } catch (BatchControlClientException failure) {
             return error(failure);
         } catch (IllegalArgumentException failure) {
-            return ResponseEntity.badRequest().body(Map.of("state", "FAILED", "errorCode", "BAT_COMMAND_INVALID", "message", failure.getMessage()));
+            return validation("BAT_COMMAND_INVALID", failure);
         }
     }
 
@@ -182,9 +184,14 @@ public class BatchRuntimeControlController extends AdmBaseController {
             requireCommandField(request, "approvalRequestId");
             requireExpectedVersion(request);
             return ResponseEntity.status(201).body(client.createPlan(withServerActor(request, operatorId)));
+        } catch (BatchControlClientException failure) {
+            return error(failure);
+        } catch (IllegalArgumentException failure) {
+            return validation("BAT_DEPLOYMENT_PLAN_INVALID", failure);
         } catch (RuntimeException failure) {
             return ResponseEntity.status(503).body(Map.of(
-                    "state", "UNKNOWN_RESULT", "errorCode", "BAT_CONTROL_UNREACHABLE"));
+                    "state", "UNKNOWN_RESULT", "errorCode", "BAT_CONTROL_UNREACHABLE",
+                    "message", "BAT Control Server 호출 결과를 확정할 수 없습니다."));
         }
     }
 
@@ -250,6 +257,12 @@ public class BatchRuntimeControlController extends AdmBaseController {
         if (value == null || String.valueOf(value).isBlank()) {
             throw new IllegalArgumentException(field + " is required");
         }
+    }
+    private ResponseEntity<Map<String,Object>> validation(String errorCode, IllegalArgumentException failure) {
+        return ResponseEntity.badRequest().body(Map.of(
+                "state", "FAILED",
+                "errorCode", errorCode,
+                "message", failure.getMessage() == null ? "Invalid batch control request" : failure.getMessage()));
     }
     private ResponseEntity<Map<String,Object>> error(BatchControlClientException failure){return ResponseEntity.status(status(failure)).body(errorBody(failure));}
     private int status(BatchControlClientException failure){return switch(failure.category()){case VALIDATION->400;case PERMISSION->403;case NOT_FOUND->404;case CONFLICT->409;case

@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {"target":"ES2022","module":"CommonJS","moduleResolution":"Node","strict":true,"esModuleInterop":true,"skipLibCheck":true,"outDir":"build"},
+  "include": [
+    "../../../cpf-admin/frontend/src/features/maintenance/maintenanceWorkflow.ts",
+    "../../../cpf-admin/frontend/src/features/break-glass/breakGlassWorkflow.ts",
+    "../../../cpf-biz-admin/frontend/src/features/attachments/attachmentWorkflow.ts",
+    "../../../cpf-biz-admin/frontend/src/features/sessions/sessionWorkflow.ts",
+    "../../../cpf-biz-admin/frontend/src/components/dangerousOperationWorkflow.ts"
+  ]
+}

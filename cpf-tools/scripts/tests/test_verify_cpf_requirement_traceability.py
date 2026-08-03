@@ -1,100 +1,14 @@
-from __future__ import annotations
-
-import csv
-import importlib.util
-import tempfile
-import unittest
+import csv,importlib.util,subprocess,tempfile,unittest
 from pathlib import Path
-
-SCRIPT = Path(__file__).resolve().parents[1] / "verify-cpf-requirement-traceability.py"
-spec = importlib.util.spec_from_file_location("traceability", SCRIPT)
-module = importlib.util.module_from_spec(spec)
-assert spec and spec.loader
-spec.loader.exec_module(module)
-
-
-class TraceabilityNegativeTest(unittest.TestCase):
-    def write_csv(self, path: Path, rows: list[dict[str, str]]) -> None:
-        with path.open("w", encoding="utf-8", newline="") as handle:
-            writer = csv.DictWriter(handle, fieldnames=list(rows[0]))
-            writer.writeheader()
-            writer.writerows(rows)
-
-    def test_verification_cannot_complete_before_development(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            path = Path(directory) / "bad.csv"
-            self.write_csv(path, [{"development_status": "부분 구현", "verification_status": "완료"}])
-            _, rows = module.read_csv(path)
-            with self.assertRaises(module.GateError):
-                module.check_statuses(path, rows)
-
-    def test_duplicate_requirement_is_rejected(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            path = Path(directory) / "duplicate.csv"
-            self.write_csv(path, [{"requirement_id": "A"}, {"requirement_id": "A"}])
-            _, rows = module.read_csv(path)
-            with self.assertRaises(module.GateError):
-                module.unique_ids(path, rows, "requirement_id")
-
-
-    def result_row(self, **overrides: str) -> dict[str, str]:
-        row = {
-            "requirement_id": "CPF-SELF-DEV-001",
-            "source_type": "SELF",
-            "development_status": "완료",
-            "verification_status": "미검증",
-            "source_paths": "src/source.txt",
-            "consumer_paths": "src/consumer.txt",
-            "test_paths": "tests/test.txt",
-            "evidence_paths": "",
-            "source_sha": "",
-            "result_sha": "",
-        }
-        row.update(overrides)
-        return row
-
-    def test_completed_row_rejects_missing_file(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            (root / "src").mkdir()
-            (root / "tests").mkdir()
-            (root / "src/source.txt").write_text("source", encoding="utf-8")
-            (root / "src/consumer.txt").write_text("consumer", encoding="utf-8")
-            path = root / "result.csv"
-            self.write_csv(path, [self.result_row()])
-            with self.assertRaises(module.GateError):
-                module.check_result_matrix(root, path, {"CPF-SELF-DEV-001"}, False, None)
-
-    def test_completed_row_rejects_parent_traversal(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            path = root / "result.csv"
-            self.write_csv(path, [self.result_row(source_paths="../outside.txt")])
-            with self.assertRaises(module.GateError):
-                module.check_result_matrix(root, path, {"CPF-SELF-DEV-001"}, False, None)
-
-    def test_completed_row_accepts_existing_relative_paths(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            for relative in ("src/source.txt", "src/consumer.txt", "tests/test.txt"):
-                target = root / relative
-                target.parent.mkdir(parents=True, exist_ok=True)
-                target.write_text(relative, encoding="utf-8")
-            path = root / "result.csv"
-            self.write_csv(path, [self.result_row()])
-            completed, verified = module.check_result_matrix(
-                root, path, {"CPF-SELF-DEV-001"}, False, None
-            )
-            self.assertEqual((completed, verified), (1, 0))
-
-    def test_invalid_status_is_rejected(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            path = Path(directory) / "status.csv"
-            self.write_csv(path, [{"development_status": "PASS", "verification_status": "미검증"}])
-            _, rows = module.read_csv(path)
-            with self.assertRaises(module.GateError):
-                module.check_statuses(path, rows)
-
-
-if __name__ == "__main__":
-    unittest.main()
+SCRIPT=Path(__file__).resolve().parents[1]/'verify-cpf-requirement-traceability.py'
+def load():s=importlib.util.spec_from_file_location('g',SCRIPT);m=importlib.util.module_from_spec(s);s.loader.exec_module(m);return m
+class T(unittest.TestCase):
+ def root(self,bad=False):
+  td=tempfile.TemporaryDirectory();r=Path(td.name);subprocess.run(['git','init','-q',r]);subprocess.run(['git','-C',r,'config','user.email','a@b.c']);subprocess.run(['git','-C',r,'config','user.name','t']);(r/'x').write_text('x');subprocess.run(['git','-C',r,'add','.']);subprocess.run(['git','-C',r,'commit','-qm','x']);head=subprocess.check_output(['git','-C',r,'rev-parse','HEAD'],text=True).strip()
+  f=r/'status.csv';cols=list(load().MANDATORY)+['exact_sha','QA_상태'];row={c:'' for c in cols};row.update(requirement_id='CPF-FR-1',development_status='재확인 필요',verification_status='미검증',개발GPT_수행여부='Y',개발GPT_상태='완료',개발GPT_수행내용='fixed',개발GPT_실행및검증='python gate.py --root .',개발GPT_evidence='e.json',exact_sha=('0'*40 if bad else head))
+  with f.open('w',encoding='utf-8',newline='') as h:w=csv.DictWriter(h,fieldnames=cols);w.writeheader();w.writerow(row)
+  return td,r,f
+ def test_pass(self):td,r,f=self.root();self.addCleanup(td.cleanup);self.assertEqual('PASS',load().verify(r,f)['status'])
+ def test_stale_sha_fails(self):td,r,f=self.root(True);self.addCleanup(td.cleanup);self.assertRaises(Exception,load().verify,r,f)
+ def test_missing_matrix_fails(self):td,r,f=self.root();self.addCleanup(td.cleanup);self.assertRaises(Exception,load().verify,r,r/'none.csv')
+if __name__=='__main__':unittest.main()

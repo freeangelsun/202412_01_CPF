@@ -1,0 +1,1 @@
+package org.springframework.beans.factory.annotation; import java.lang.annotation.*; @Retention(RetentionPolicy.RUNTIME) @Target({ElementType.PARAMETER,ElementType.FIELD,ElementType.METHOD}) public @interface Qualifier {String value();}

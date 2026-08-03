@@ -33,23 +33,35 @@ public class CpfWebClient implements CpfHttpClient {
     private final CpfServiceEndpointRegistry endpointRegistry;
     private final ObjectProvider<CpfServiceCallEngine> serviceCallEngineProvider;
     private final CpfApiClientRuntimePolicy runtimePolicy;
+    private final CpfPinnedHttpConnectorFactory pinnedConnectorFactory;
 
     public CpfWebClient(WebClient.Builder webClientBuilder, CpfServiceEndpointRegistry endpointRegistry) {
-        this(webClientBuilder, endpointRegistry, null, new CpfApiClientRuntimePolicy());
+        this(webClientBuilder, endpointRegistry, null, new CpfApiClientRuntimePolicy(),
+                CpfPinnedHttpConnectorFactory.secureDefault());
     }
 
     public CpfWebClient(WebClient.Builder webClientBuilder, CpfServiceEndpointRegistry endpointRegistry,
                         ObjectProvider<CpfServiceCallEngine> serviceCallEngineProvider) {
-        this(webClientBuilder, endpointRegistry, serviceCallEngineProvider, new CpfApiClientRuntimePolicy());
+        this(webClientBuilder, endpointRegistry, serviceCallEngineProvider, new CpfApiClientRuntimePolicy(),
+                CpfPinnedHttpConnectorFactory.secureDefault());
     }
 
     public CpfWebClient(WebClient.Builder webClientBuilder, CpfServiceEndpointRegistry endpointRegistry,
                         ObjectProvider<CpfServiceCallEngine> serviceCallEngineProvider,
                         CpfApiClientRuntimePolicy runtimePolicy) {
-        this.webClientBuilder = webClientBuilder;
-        this.endpointRegistry = endpointRegistry;
+        this(webClientBuilder, endpointRegistry, serviceCallEngineProvider, runtimePolicy,
+                CpfPinnedHttpConnectorFactory.secureDefault());
+    }
+
+    public CpfWebClient(WebClient.Builder webClientBuilder, CpfServiceEndpointRegistry endpointRegistry,
+                        ObjectProvider<CpfServiceCallEngine> serviceCallEngineProvider,
+                        CpfApiClientRuntimePolicy runtimePolicy,
+                        CpfPinnedHttpConnectorFactory pinnedConnectorFactory) {
+        this.webClientBuilder = java.util.Objects.requireNonNull(webClientBuilder, "webClientBuilder");
+        this.endpointRegistry = java.util.Objects.requireNonNull(endpointRegistry, "endpointRegistry");
         this.serviceCallEngineProvider = serviceCallEngineProvider;
         this.runtimePolicy = runtimePolicy == null ? new CpfApiClientRuntimePolicy() : runtimePolicy;
+        this.pinnedConnectorFactory = java.util.Objects.requireNonNull(pinnedConnectorFactory, "pinnedConnectorFactory");
     }
 
     /**
@@ -58,10 +70,8 @@ public class CpfWebClient implements CpfHttpClient {
      * <p>신규 업무 코드는 call history, circuit, retry 관제를 위해 {@link #get} 또는 {@link #post}를 사용해야 합니다.</p>
      */
     public WebClient service(String serviceId) {
-        return webClientBuilder.clone()
-                .baseUrl(endpointRegistry.baseUrl(serviceId))
-                .defaultHeader(CpfHeaderNames.TARGET_SERVICE, serviceId)
-                .build();
+        CpfServiceEndpointRegistry.ResolvedEndpoint endpoint = endpointRegistry.resolvedEndpoint(serviceId);
+        return webClient(endpoint, serviceId);
     }
 
     /**
@@ -306,9 +316,17 @@ public class CpfWebClient implements CpfHttpClient {
     }
 
     private WebClient webClient(ServiceCallResolvedTarget target) {
+        CpfServiceEndpointRegistry.ResolvedEndpoint endpoint = endpointRegistry.resolvedEndpoint(
+                target.serviceId(), target.baseUrl(), target.endpoint());
+        return webClient(endpoint, target.serviceId());
+    }
+
+    private WebClient webClient(CpfServiceEndpointRegistry.ResolvedEndpoint endpoint, String serviceId) {
         return webClientBuilder.clone()
-                .baseUrl(trimTrailingSlash(target.baseUrl()))
-                .defaultHeader(CpfHeaderNames.TARGET_SERVICE, target.serviceId())
+                .clientConnector(pinnedConnectorFactory.connector(endpoint))
+                .baseUrl(trimTrailingSlash(endpoint.baseUrl()))
+                .defaultHeader(CpfHeaderNames.TARGET_SERVICE, serviceId)
+                .defaultHeader("Host", endpoint.authority())
                 .build();
     }
 

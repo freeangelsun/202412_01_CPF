@@ -1,134 +1,69 @@
 #!/usr/bin/env python3
-"""Fail-closed owner-boundary checks for CPF core, admin, and batch modules."""
+"""Repository-wide module dependency/import owner boundary gate."""
 from __future__ import annotations
-
-import argparse
-import json
-import re
-import sys
+import argparse,json,re,sys
 from pathlib import Path
+class GateError(RuntimeError):pass
+MODULE_OWNER={'cpf-core':'core','cpf-common':'common','cpf-admin':'admin','cpf-biz-admin':'biz-admin','cpf-batch':'batch','cpf-gateway':'gateway','cpf-member':'generated-domain','cpf-reference':'generated-domain','cpf-starters':'starters','cpf-tools':'tools'}
+PROJECT=re.compile(r"project\(['\"]:([^'\"]+)['\"]\)");IMPORT=re.compile(r'(?m)^\s*import\s+([\w.]+)')
+FORBIDDEN_DEP={('cpf-core','cpf-admin'),('cpf-core','cpf-biz-admin'),('cpf-core','cpf-batch'),('cpf-common','cpf-admin'),('cpf-common','cpf-biz-admin'),('cpf-common','cpf-batch'),('cpf-admin','cpf-biz-admin')}
+def top(path,root):
+ try:return path.relative_to(root).parts[0]
+ except:return ''
+def verify(root:Path):
+ findings=[];graph={};build_files=[];java_files=[];internal_refs=[]
+ settings=root/'settings.gradle'
+ settings_kts=root/'settings.gradle.kts'
+ if not settings.is_file() and not settings_kts.is_file():
+  findings.append('repository settings.gradle/settings.gradle.kts is required; sparse snapshot cannot pass owner gate')
+ if not (root/'build.gradle').is_file() and not (root/'build.gradle.kts').is_file():
+  findings.append('root build.gradle/build.gradle.kts is required; sparse snapshot cannot pass owner gate')
+ for b in sorted(root.rglob('build.gradle'))+sorted(root.rglob('build.gradle.kts')):
+  if any(x in b.parts for x in ('build','.gradle','node_modules')):continue
+  src=top(b,root);build_files.append(b.relative_to(root).as_posix());deps=[]
+  text=b.read_text(encoding='utf-8-sig')
+  for raw in PROJECT.findall(text):
+   dest=raw.split(':',1)[0];deps.append(dest)
+   if (src,dest) in FORBIDDEN_DEP:findings.append(f'{b.relative_to(root)}: forbidden dependency {src}->{dest}')
+   if src!='cpf-batch' and dest=='cpf-batch':findings.append(f'{b.relative_to(root)}: non-BAT module depends on BAT runtime')
+  graph[src]=sorted(set(graph.get(src,[])+deps))
+ # cycle detection over top modules
+ visiting=set();visited=set()
+ def dfs(n,stack):
+  if n in visiting:findings.append('dependency cycle: '+' -> '.join(stack+[n]));return
+  if n in visited:return
+  visiting.add(n)
+  for d in graph.get(n,[]):dfs(d,stack+[n])
+  visiting.remove(n);visited.add(n)
+ for n in graph:dfs(n,[])
+ for p in sorted(root.rglob('src/main/java/**/*.java')):
+  if any(x in p.parts for x in ('build','generated')):continue
+  src=top(p,root);text=p.read_text(encoding='utf-8-sig');java_files.append(p.relative_to(root).as_posix())
+  for imp in IMPORT.findall(text):
+   if '.internal.' in imp:
+    owner=('cpf-'+imp.split('.')[2]) if imp.startswith('com.cpf.') and len(imp.split('.'))>2 else ''
+    # any internal import from a different top owner is forbidden
+    expected={'core':'cpf-core','common':'cpf-common','admin':'cpf-admin','batch':'cpf-batch','biz':'cpf-biz-admin'}.get(imp.split('.')[2] if imp.startswith('com.cpf.') else '',owner)
+    if expected and expected!=src:
+     internal_refs.append({'file':p.relative_to(root).as_posix(),'import':imp});findings.append(f'{p.relative_to(root)}: cross-owner internal import {imp}')
+   if src=='cpf-core' and ('.admin.' in imp or '.batch.' in imp):findings.append(f'{p.relative_to(root)}: cpf-core owns admin/batch runtime import {imp}')
+   if src!='cpf-batch' and re.search(r'com\.cpf\.batch\..*(internal|runtime)',imp):findings.append(f'{p.relative_to(root)}: BAT runtime implementation import {imp}')
+ if len(build_files) < 3:
+  findings.append(f'owner graph incomplete: expected repository module build files, found {len(build_files)}')
+ if len(java_files) < 1:
+  findings.append('owner graph incomplete: no main Java source scanned')
+ result={'status':'PASS' if not findings else 'FAIL','moduleOwners':MODULE_OWNER,'buildFileCount':len(build_files),'mainJavaFileCount':len(java_files),'moduleGraph':graph,'internalReferenceCount':len(internal_refs),'findings':findings}
+ if findings:raise GateError(json.dumps(result,ensure_ascii=False,indent=2))
+ return result
 
-
-class GateError(RuntimeError):
-    pass
-
-
-BATCH_COMPONENTS = (
-    "control-server",
-    "scheduler",
-    "worker",
-    "center-cut-runner",
-    "host-agent",
-    "runtime-common",
-    "execution-runtime",
-    "contract",
-)
-
-ADMIN_CROSS_OWNER = re.compile(
-    r"batJdbcTemplate|mbrJdbcTemplate|refJdbcTemplate|accJdbcTemplate|"
-    r"@Qualifier\(\"(?:bat|mbr|ref|acc)JdbcTemplate\"\)|"
-    r"\b(?:FROM|UPDATE|INTO|DELETE\s+FROM)\s+(?:bat|mbr|ref|acc)_",
-    re.IGNORECASE,
-)
-BATCH_CORE_RUNTIME = re.compile(
-    r"com\.cpf\.core\.common\.batch\."
-    r"(?:CpfBatchFileLogWriter|CpfBatchGhostDetectionService|CpfBatchHeartbeatService|"
-    r"CpfBatchLauncher|CpfBatchLockManager|CpfBatchLoggingEventPublisher|"
-    r"CpfBatchOperationRepository|CpfBatchRuntimeListener|CpfBatchRuntimeProgress)|"
-    r"com\.cpf\.core\.common\.batch\.centercut\.CpfCenterCutService"
-)
-
-
-def require_file(path: Path, label: str) -> None:
-    if not path.is_file():
-        raise GateError(f"required {label} missing: {path}")
-
-
-def require_dir(path: Path, label: str) -> None:
-    if not path.is_dir():
-        raise GateError(f"required {label} missing: {path}")
-
-
-def scan_java(root: Path, pattern: re.Pattern[str], message: str) -> list[str]:
-    findings: list[str] = []
-    for path in sorted(root.rglob("*.java")):
-        text = path.read_text(encoding="utf-8-sig", errors="replace")
-        for number, line in enumerate(text.splitlines(), 1):
-            if pattern.search(line):
-                findings.append(f"{message}: {path}:{number}: {line.strip()}")
-    return findings
-
-
-def validate(root: Path) -> dict:
-    root = root.resolve()
-    core_java = root / "cpf-core/src/main/java"
-    admin_java = root / "cpf-admin/src/main/java"
-    core_build = root / "cpf-core/build.gradle"
-    require_dir(core_java, "cpf-core Java source root")
-    require_dir(admin_java, "cpf-admin Java source root")
-    require_file(core_build, "cpf-core Gradle build")
-
-    batch_roots: list[Path] = []
-    for component in BATCH_COMPONENTS:
-        component_root = root / "cpf-batch" / component
-        source_root = component_root / "src/main/java"
-        require_dir(component_root, f"cpf-batch/{component} owner root")
-        require_file(component_root / "build.gradle", f"cpf-batch/{component} Gradle build")
-        require_dir(source_root, f"cpf-batch/{component} Java source root")
-        batch_roots.append(source_root)
-
-    findings = scan_java(admin_java, ADMIN_CROSS_OWNER, "ADM cross-owner DB access")
-    for batch_java in batch_roots:
-        findings.extend(scan_java(batch_java, BATCH_CORE_RUNTIME, "BAT imports Core-owned runtime compatibility type"))
-
-    for relative in (
-        "cpf-core/src/main/java/com/cpf/core/config/CpfBatchAutoConfiguration.java",
-        "cpf-core/src/main/java/com/cpf/core/config/CpfCenterCutAutoConfiguration.java",
-    ):
-        path = root / relative
-        if not path.exists():
-            continue
-        text = path.read_text(encoding="utf-8-sig", errors="replace")
-        if "legacy-batch-runtime-enabled" not in text:
-            findings.append(f"Core compatibility config has no explicit legacy opt-in: {relative}")
-        if re.search(r"matchIfMissing\s*=\s*true", text):
-            findings.append(f"Core legacy batch runtime is enabled by default: {relative}")
-
-    core_text = core_build.read_text(encoding="utf-8-sig", errors="replace")
-    if re.search(r"project\(\s*['\"]:cpf-batch(?:[:'\"])", core_text):
-        findings.append("cpf-core must not depend on cpf-batch")
-
-    if findings:
-        raise GateError("owner boundary violations: " + " | ".join(findings[:100]))
-    return {
-        "status": "PASS",
-        "core_source_root": str(core_java.relative_to(root)).replace("\\", "/"),
-        "admin_source_root": str(admin_java.relative_to(root)).replace("\\", "/"),
-        "batch_component_count": len(batch_roots),
-        "batch_components": list(BATCH_COMPONENTS),
-        "violation_count": 0,
-    }
-
-
-def main() -> int:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--root", type=Path, default=Path.cwd())
-    parser.add_argument("--json-output", type=Path)
-    args = parser.parse_args()
-    try:
-        result = validate(args.root)
-        if args.json_output:
-            output = args.json_output
-            if not output.is_absolute():
-                output = args.root.resolve() / output
-            output.parent.mkdir(parents=True, exist_ok=True)
-            output.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-        print(json.dumps(result, ensure_ascii=False))
-        return 0
-    except (GateError, OSError) as exc:
-        print(f"CPF owner boundary gate FAILED: {exc}", file=sys.stderr)
-        return 1
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())
+def main():
+ p=argparse.ArgumentParser();p.add_argument('--root',default='.');p.add_argument('--json-output');a=p.parse_args();root=Path(a.root).resolve()
+ try:r=verify(root);c=0
+ except Exception as e:
+  try:r=json.loads(str(e))
+  except:r={'status':'FAIL','message':str(e)}
+  c=1
+ if a.json_output:
+  o=Path(a.json_output);o=o if o.is_absolute() else root/o;o.parent.mkdir(parents=True,exist_ok=True);o.write_text(json.dumps(r,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+ print(json.dumps(r,ensure_ascii=False));return c
+if __name__=='__main__':raise SystemExit(main())

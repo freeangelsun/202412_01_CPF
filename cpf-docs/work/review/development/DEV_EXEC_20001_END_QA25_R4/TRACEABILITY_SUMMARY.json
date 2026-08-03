@@ -1,0 +1,27 @@
+{
+  "requirements": 10558,
+  "workPackages": 291,
+  "linkedScenarios": 14014,
+  "sourceResolvedRequirements": 10558,
+  "implementationEvidenceRequirements": 6972,
+  "traceabilityOnlyRequirements": 3586,
+  "developerComplete": 0,
+  "partial": 6972,
+  "unverified": 3586,
+  "baselineSha": "cb305fc5363263c9607e990ba640233c28668f01",
+  "profileCounts": {
+    "frontend_structure": 4448,
+    "db_vendor": 268,
+    "network": 45,
+    "runtime_command": 472,
+    "batch_abandon": 25,
+    "frontend_workflow": 84,
+    "transaction": 27,
+    "starter_structure": 119,
+    "db_less": 13,
+    "batch_structure": 307,
+    "security_structure": 906,
+    "audit": 43,
+    "quality_test_structure": 1228
+  }
+}

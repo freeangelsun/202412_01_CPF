@@ -1,0 +1,1 @@
+package org.springframework.boot.autoconfigure.condition; import java.lang.annotation.*; @Retention(RetentionPolicy.RUNTIME) @Target({ElementType.TYPE,ElementType.METHOD}) public @interface ConditionalOnExpression {String value();}

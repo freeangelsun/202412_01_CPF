@@ -1,5 +1,8 @@
 -- Fail closed: the BAT dangerous-operation ledger is audit/idempotency evidence.
 -- Export/reconcile all rows before rolling V100 back.
+-- A failed non-empty rollback leaves the helper procedure behind in the MariaDB client.
+-- Remove residue first so the approved retry after export/reconcile is deterministic.
+DROP PROCEDURE IF EXISTS cpf_assert_empty_bat_operation_request_r100;
 DELIMITER //
 CREATE PROCEDURE cpf_assert_empty_bat_operation_request_r100()
 BEGIN

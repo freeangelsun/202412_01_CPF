@@ -1,12 +1,5 @@
 #!/usr/bin/env python3
-"""Fail-closed V100 BAT operation-request ledger lifecycle gate.
-
-The general vendor semantic gate proves dialect/schema parity but historically did
-not prove that the BAT risk-command ledger migration was wired into every
-lifecycle mode.  This focused gate verifies canonical/source/install presence,
-V100/R100/verify closure for all official vendors, and the executable ordering in
-``run-db-vendor-lifecycle.ps1``.
-"""
+"""Fail-closed V100 BAT operation-request ledger lifecycle gate."""
 from __future__ import annotations
 
 import argparse
@@ -16,6 +9,7 @@ from pathlib import Path
 
 VENDORS = ("mariadb", "postgresql", "oracle")
 TABLE = "bat_operation_request"
+MARIADB_R100_HELPER = "cpf_assert_empty_bat_operation_request_r100"
 
 
 class LedgerLifecycleError(RuntimeError):
@@ -47,13 +41,35 @@ def body(text: str, case_name: str) -> str:
     return match.group(1)
 
 
-def require_order(text: str, tokens: list[str], label: str) -> None:
+def require_order(text: str, tokens: list[str] | tuple[str, ...], label: str) -> None:
     cursor = 0
     for token in tokens:
         position = text.find(token, cursor)
         if position < 0:
             raise LedgerLifecycleError(f"{label}: missing/out-of-order token {token}")
         cursor = position + len(token)
+
+
+def require_mariadb_retry_safe_guard(guard: str) -> None:
+    helper = re.escape(MARIADB_R100_HELPER)
+    create = re.search(rf"(?is)\bCREATE\s+PROCEDURE\s+`?{helper}`?\b", guard)
+    if not create:
+        raise LedgerLifecycleError("mariadb/R100: named fail-closed helper procedure missing")
+    cleanup = re.search(
+        rf"(?is)\bDROP\s+PROCEDURE\s+IF\s+EXISTS\s+`?{helper}`?\s*;",
+        guard[: create.start()],
+    )
+    if not cleanup:
+        raise LedgerLifecycleError(
+            "mariadb/R100: retry-safe pre-cleanup missing before helper CREATE PROCEDURE"
+        )
+    call = re.search(rf"(?is)\bCALL\s+`?{helper}`?\s*\(\s*\)", guard)
+    final_cleanup = re.search(
+        rf"(?is)\bDROP\s+PROCEDURE\s+`?{helper}`?\b",
+        guard[create.end() :],
+    )
+    if not call or not final_cleanup:
+        raise LedgerLifecycleError("mariadb/R100: helper CALL/final cleanup missing")
 
 
 def verify(root: Path) -> dict[str, object]:
@@ -92,6 +108,8 @@ def verify(root: Path) -> dict[str, object]:
         }[vendor]
         if required_guard not in normalize(guard):
             raise LedgerLifecycleError(f"{vendor}/R100: fail-closed marker missing {required_guard}")
+        if vendor == "mariadb":
+            require_mariadb_retry_safe_guard(guard)
         if TABLE.upper() not in normalize(verification) or not re.search(r"(?is)\bSELECT\b", verification):
             raise LedgerLifecycleError(f"{vendor}/verify V100: executable table verification missing")
         vendor_results[vendor] = {
@@ -126,7 +144,7 @@ def verify(root: Path) -> dict[str, object]:
         "table": TABLE,
         "vendors": vendor_results,
         "lifecycleScript": lifecycle_path.relative_to(root).as_posix(),
-        "meaning": "Static/Semantic lifecycle closure; real vendor execution remains a separate required gate",
+        "meaning": "Static/Semantic lifecycle closure including MariaDB failed-rollback retry safety; real vendor execution remains required",
     }
 
 

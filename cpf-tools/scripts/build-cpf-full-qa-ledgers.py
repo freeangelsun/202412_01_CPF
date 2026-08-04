@@ -1,30 +1,33 @@
 #!/usr/bin/env python3
-"""Build or refresh the single Current CPF QA ledgers from canonical split masters.
+"""Build Current CPF QA ledgers from canonical split masters.
 
-This tool is deliberately a ledger *builder*, not a QA completion shortcut.  It
-creates one row for every logical Requirement and Scenario, refreshes immutable
-traceability metadata from the canonical masters, preserves existing role/QA
-state by ID, and leaves new rows explicitly unreviewed.  The separate
-``verify-cpf-full-qa-completion.py`` gate rejects campaign completion until every
-row has an exact-HEAD, evidence-backed QA result.
+The builder validates the source identity before reading or writing any ledger.
+It is a coverage/metadata builder only; it never marks a Requirement or Scenario
+as reviewed or passed.
 """
 from __future__ import annotations
 
 import argparse
 import csv
 import hashlib
+import json
 import os
 import re
+import subprocess
 import tempfile
 from collections import defaultdict
 from pathlib import Path
 from typing import Iterable
 
 SHA_RE = re.compile(r"^[0-9a-f]{40}$")
+SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 INDEX_REQUIRED = {
     "part_sequence", "part_path", "part_record_count", "first_record_id",
     "last_record_id", "size_bytes", "sha256", "logical_record_count",
 }
+SOURCE_SHA_COLUMNS = ("baseline_sha", "exact_sha", "head_sha", "commit_sha", "source_sha")
+SOURCE_PATH_COLUMNS = ("path", "relative_path", "file_path", "source_path")
+SOURCE_HASH_COLUMNS = ("sha256", "file_sha256", "source_sha256")
 
 REQUIREMENT_FIELDS = [
     "requirement_id", "requirement", "priority", "owner_module", "owner_package",
@@ -48,7 +51,6 @@ REQUIREMENT_FIELDS = [
     "verification_status", "baseline_sha", "evidence_path", "evidence_sha256",
     "open_issue", "next_action", "state_revision", "updated_at", "updated_by",
 ]
-
 SCENARIO_FIELDS = [
     "scenario_id", "linked_requirement_id", "work_package_id", "execution_order",
     "scenario_type", "title", "preconditions", "steps", "expected_result",
@@ -58,7 +60,6 @@ SCENARIO_FIELDS = [
     "QA_검수evidence", "baseline_sha", "evidence_path", "evidence_sha256",
     "open_issue", "next_action", "state_revision", "updated_at", "updated_by",
 ]
-
 REQ_METADATA_FIELDS = {
     "requirement_id", "requirement", "priority", "owner_module", "owner_package",
     "source_basis", "change_target", "actual_consumer", "acceptance_criteria",
@@ -94,6 +95,128 @@ def sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def run_git(root: Path, *args: str) -> str:
+    result = subprocess.run(
+        ["git", "-C", str(root), *args], text=True, capture_output=True, check=False
+    )
+    if result.returncode != 0:
+        raise LedgerError(f"git {' '.join(args)} failed: {result.stderr.strip() or result.stdout.strip()}")
+    return result.stdout.strip()
+
+
+def first_present(fields: Iterable[str], candidates: Iterable[str]) -> str | None:
+    available = set(fields)
+    return next((candidate for candidate in candidates if candidate in available), None)
+
+
+def verify_manifest_entries(root: Path, manifest_path: Path, rows: list[dict[str, str]], fields: list[str]) -> int:
+    path_column = first_present(fields, SOURCE_PATH_COLUMNS)
+    hash_column = first_present(fields, SOURCE_HASH_COLUMNS)
+    if not path_column or not hash_column:
+        raise LedgerError("source manifest must include a path column and a SHA-256 column")
+    verified = 0
+    root_resolved = root.resolve()
+    manifest_resolved = manifest_path.resolve()
+    for line, row in enumerate(rows, 2):
+        relative = row.get(path_column, "").strip()
+        expected = row.get(hash_column, "").strip().lower()
+        if not relative or not expected:
+            continue
+        if not SHA256_RE.fullmatch(expected):
+            raise LedgerError(f"source manifest line {line}: invalid SHA-256")
+        candidate = (root / relative).resolve()
+        if candidate == manifest_resolved:
+            continue
+        if root_resolved != candidate and root_resolved not in candidate.parents:
+            raise LedgerError(f"source manifest line {line}: unsafe path {relative}")
+        if not candidate.is_file():
+            raise LedgerError(f"source manifest line {line}: missing file {relative}")
+        actual = sha256(candidate)
+        if actual != expected:
+            raise LedgerError(f"source manifest line {line}: hash mismatch {relative}")
+        verified += 1
+    if verified == 0:
+        raise LedgerError("source manifest did not verify any source file")
+    return verified
+
+
+def verify_source_identity(
+    root: Path,
+    expected_sha: str,
+    source_manifest: str | None,
+    source_manifest_sha256: str | None,
+    identity_mode: str = "auto",
+) -> dict[str, object]:
+    if not SHA_RE.fullmatch(expected_sha):
+        raise LedgerError("expected SHA must be exactly 40 lowercase hex")
+    if identity_mode not in {"auto", "git-clean", "source-manifest"}:
+        raise LedgerError(f"unsupported identity mode: {identity_mode}")
+
+    git_dir = root / ".git"
+    if identity_mode == "auto":
+        identity_mode = "source-manifest" if source_manifest or source_manifest_sha256 else "git-clean"
+
+    if identity_mode == "git-clean":
+        if not git_dir.exists():
+            raise LedgerError("git-clean identity requires a .git directory")
+        actual = run_git(root, "rev-parse", "HEAD")
+        if actual != expected_sha:
+            raise LedgerError(f"HEAD mismatch expected={expected_sha} actual={actual}")
+        dirty = run_git(root, "status", "--porcelain=v1", "--untracked-files=all")
+        if dirty:
+            sample = " | ".join(dirty.splitlines()[:10])
+            raise LedgerError(f"dirty Working Tree is not accepted: {sample}")
+        return {"mode": "git-clean", "actualHead": actual, "workingTree": "clean"}
+
+    if not source_manifest or not source_manifest_sha256:
+        raise LedgerError(
+            "source-manifest identity requires --source-manifest and --source-manifest-sha256"
+        )
+    if not SHA256_RE.fullmatch(source_manifest_sha256.lower()):
+        raise LedgerError("source manifest SHA-256 must be exactly 64 lowercase hex")
+    manifest_path = Path(source_manifest)
+    manifest_path = manifest_path if manifest_path.is_absolute() else root / manifest_path
+    if not manifest_path.is_file():
+        raise LedgerError(f"missing source manifest: {manifest_path}")
+    actual_manifest_hash = sha256(manifest_path)
+    if actual_manifest_hash != source_manifest_sha256.lower():
+        raise LedgerError(
+            f"source manifest hash mismatch expected={source_manifest_sha256.lower()} actual={actual_manifest_hash}"
+        )
+    fields, rows = read_csv(manifest_path)
+    sha_column = first_present(fields, SOURCE_SHA_COLUMNS)
+    if not sha_column:
+        raise LedgerError(
+            "source manifest must carry one of baseline_sha/exact_sha/head_sha/commit_sha/source_sha"
+        )
+    declared = {row.get(sha_column, "").strip().lower() for row in rows if row.get(sha_column, "").strip()}
+    if not declared:
+        raise LedgerError(f"source manifest has no declared {sha_column}")
+    if declared != {expected_sha}:
+        raise LedgerError(f"source manifest baseline mismatch declared={sorted(declared)} expected={expected_sha}")
+    verified_files = verify_manifest_entries(root, manifest_path, rows, fields)
+    result: dict[str, object] = {
+        "mode": "source-manifest",
+        "manifest": manifest_path.relative_to(root).as_posix()
+        if root.resolve() in manifest_path.resolve().parents else str(manifest_path),
+        "manifestSha256": actual_manifest_hash,
+        "verifiedFiles": verified_files,
+    }
+    if git_dir.exists():
+        actual = run_git(root, "rev-parse", "HEAD")
+        if actual != expected_sha:
+            raise LedgerError(f"overlay base HEAD mismatch expected={expected_sha} actual={actual}")
+        dirty = run_git(root, "status", "--porcelain=v1", "--untracked-files=all")
+        result.update({
+            "baseHead": actual,
+            "workingTree": "dirty-overlay" if dirty else "clean",
+            "workingTreeEntryCount": len(dirty.splitlines()) if dirty else 0,
+        })
+    else:
+        result.update({"baseHead": expected_sha, "workingTree": "archive"})
+    return result
+
+
 def load_split_master(root: Path, stem: str, id_field: str) -> list[dict[str, str]]:
     index_path = root / "cpf-docs/work/current" / f"{stem}.csv"
     fields, index = read_csv(index_path)
@@ -111,10 +234,11 @@ def load_split_master(root: Path, stem: str, id_field: str) -> list[dict[str, st
 
     result: list[dict[str, str]] = []
     seen: set[str] = set()
+    root_resolved = root.resolve()
     for item in index:
         relative = item["part_path"]
         part = (root / relative).resolve()
-        if root.resolve() not in part.parents or not part.is_file():
+        if root_resolved not in part.parents or not part.is_file():
             raise LedgerError(f"{index_path}: unsafe/missing part {relative}")
         part_fields, rows = read_csv(part)
         if id_field not in part_fields:
@@ -200,9 +324,13 @@ def next_revision(previous: dict[str, str], changed: bool) -> str:
 
 def build(args: argparse.Namespace) -> dict[str, object]:
     root = Path(args.root).resolve()
-    if not SHA_RE.fullmatch(args.expected_sha):
-        raise LedgerError("expected SHA must be exactly 40 lowercase hex")
-
+    source_identity = verify_source_identity(
+        root,
+        args.expected_sha,
+        getattr(args, "source_manifest", None),
+        getattr(args, "source_manifest_sha256", None),
+        getattr(args, "identity_mode", "auto"),
+    )
     requirements = load_split_master(root, "CPF_REQUIREMENT_MASTER", "requirement_id")
     scenarios = load_split_master(root, "CPF_SCENARIO_MASTER", "scenario_id")
     executions = load_split_master(root, "CPF_EXECUTION_SEQUENCE", "execution_order")
@@ -216,11 +344,11 @@ def build(args: argparse.Namespace) -> dict[str, object]:
 
     scenarios_by_requirement: dict[str, list[str]] = defaultdict(list)
     for scenario in scenarios:
-        scenario_id = scenario["scenario_id"]
-        requirement_id = scenario.get("linked_requirement_id", "")
-        if requirement_id not in requirement_by_id:
-            raise LedgerError(f"{scenario_id}: unknown linked requirement {requirement_id}")
-        scenarios_by_requirement[requirement_id].append(scenario_id)
+        sid = scenario["scenario_id"]
+        rid = scenario.get("linked_requirement_id", "")
+        if rid not in requirement_by_id:
+            raise LedgerError(f"{sid}: unknown linked requirement {rid}")
+        scenarios_by_requirement[rid].append(sid)
     without_scenario = [rid for rid in requirement_by_id if not scenarios_by_requirement[rid]]
     if without_scenario:
         raise LedgerError(f"requirements without scenario: {without_scenario[:5]}")
@@ -262,25 +390,16 @@ def build(args: argparse.Namespace) -> dict[str, object]:
         })
         if not previous:
             current.update({
-                "개발GPT_수행여부": "미완료",
-                "개발GPT_상태": "미완료",
-                "개발GPT_자체검수여부": "미완료",
-                "개발GPT_자체검수상태": "미완료",
-                "Codex_검수보완여부": "미완료",
-                "Codex_검수보완상태": "미완료",
-                "QA_검수여부": "아니오",
-                "QA_재개발요청여부": "아니오",
-                "QA_직접보완여부": "아니오",
-                "QA_직접보완상태": "미완료",
-                "개발GPT_교차검토상태": "미완료",
-                "Codex_교차검토상태": "미완료",
-                "독립QA_재검수상태": "미완료",
-                "development_status": "미구현",
-                "verification_status": "미검증",
-                "open_issue": "QA 개별 검수 미착수",
+                "개발GPT_수행여부": "미완료", "개발GPT_상태": "미완료",
+                "개발GPT_자체검수여부": "미완료", "개발GPT_자체검수상태": "미완료",
+                "Codex_검수보완여부": "미완료", "Codex_검수보완상태": "미완료",
+                "QA_검수여부": "아니오", "QA_재개발요청여부": "아니오",
+                "QA_직접보완여부": "아니오", "QA_직접보완상태": "미완료",
+                "개발GPT_교차검토상태": "미완료", "Codex_교차검토상태": "미완료",
+                "독립QA_재검수상태": "미완료", "development_status": "미구현",
+                "verification_status": "미검증", "open_issue": "QA 개별 검수 미착수",
                 "next_action": "logical execution order에 따라 Requirement 개별 QA 검수",
-                "updated_at": args.generated_at,
-                "updated_by": args.updated_by,
+                "updated_at": args.generated_at, "updated_by": args.updated_by,
             })
         changed = bool(previous) and changed_metadata(previous, current, REQ_METADATA_FIELDS)
         current["state_revision"] = next_revision(previous, changed)
@@ -303,29 +422,20 @@ def build(args: argparse.Namespace) -> dict[str, object]:
         if master_wp and master_wp != execution_wp:
             raise LedgerError(f"{sid}: scenario/execution work package mismatch {master_wp}/{execution_wp}")
         current.update({
-            "scenario_id": sid,
-            "linked_requirement_id": rid,
-            "work_package_id": execution_wp,
-            "execution_order": execution["execution_order"],
-            "scenario_type": value(master, "scenario_type"),
-            "title": value(master, "title"),
-            "preconditions": value(master, "preconditions"),
-            "steps": value(master, "steps"),
+            "scenario_id": sid, "linked_requirement_id": rid,
+            "work_package_id": execution_wp, "execution_order": execution["execution_order"],
+            "scenario_type": value(master, "scenario_type"), "title": value(master, "title"),
+            "preconditions": value(master, "preconditions"), "steps": value(master, "steps"),
             "expected_result": value(master, "expected_result"),
             "failure_criteria": value(master, "failure_criteria"),
-            "environment": value(master, "environment"),
-            "topology": value(master, "topology"),
-            "required_evidence": value(master, "required_evidence"),
-            "baseline_sha": args.expected_sha,
+            "environment": value(master, "environment"), "topology": value(master, "topology"),
+            "required_evidence": value(master, "required_evidence"), "baseline_sha": args.expected_sha,
         })
         if not previous:
             current.update({
-                "QA_검수여부": "아니오",
-                "open_issue": "QA Scenario 개별 검수 미착수",
+                "QA_검수여부": "아니오", "open_issue": "QA Scenario 개별 검수 미착수",
                 "next_action": "연결 Requirement와 함께 Scenario 개별 QA 검수",
-                "state_revision": "0",
-                "updated_at": args.generated_at,
-                "updated_by": args.updated_by,
+                "state_revision": "0", "updated_at": args.generated_at, "updated_by": args.updated_by,
             })
         changed = bool(previous) and changed_metadata(previous, current, SC_METADATA_FIELDS)
         current["state_revision"] = next_revision(previous, changed)
@@ -338,17 +448,16 @@ def build(args: argparse.Namespace) -> dict[str, object]:
     atomic_write(requirement_output, REQUIREMENT_FIELDS, requirement_rows)
     atomic_write(scenario_output, SCENARIO_FIELDS, scenario_rows)
     return {
-        "status": "PASS",
-        "verifiedAgainstSha": args.expected_sha,
-        "requirements": len(requirement_rows),
-        "scenarios": len(scenario_rows),
+        "status": "PASS", "verifiedAgainstSha": args.expected_sha,
+        "sourceIdentity": source_identity,
+        "requirements": len(requirement_rows), "scenarios": len(scenario_rows),
         "requirementMetadataChanges": requirement_changes,
         "scenarioMetadataChanges": scenario_changes,
         "preservedRequirementRows": len(old_requirements),
         "preservedScenarioRows": len(old_scenarios),
         "requirementOutput": requirement_output.relative_to(root).as_posix(),
         "scenarioOutput": scenario_output.relative_to(root).as_posix(),
-        "meaning": "Ledger coverage/metadata build only; QA completion requires verify-cpf-full-qa-completion.py",
+        "meaning": "Ledger coverage/metadata build only; individual QA completion is separate",
     }
 
 
@@ -356,6 +465,9 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", default=".")
     parser.add_argument("--expected-sha", required=True)
+    parser.add_argument("--identity-mode", choices=("auto", "git-clean", "source-manifest"), default="auto")
+    parser.add_argument("--source-manifest")
+    parser.add_argument("--source-manifest-sha256")
     parser.add_argument("--generated-at", required=True)
     parser.add_argument("--updated-by", default="QA GPT")
     parser.add_argument("--requirement-output", default="cpf-docs/work/current/REQUIREMENT_STATUS.csv")
@@ -368,7 +480,6 @@ def main() -> int:
     except Exception as exc:
         result = {"status": "FAIL", "message": str(exc)}
         code = 1
-    import json
     text = json.dumps(result, ensure_ascii=False, indent=2)
     if args.json_output:
         output = Path(args.json_output)

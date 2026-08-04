@@ -1,0 +1,21 @@
+{
+  "status": "VERIFIED_INDEX_METADATA",
+  "repository": "freeangelsun/202412_01_CPF",
+  "branch": "master",
+  "baselineSha": "ff8c596042583eba665a5475b1c3e43d2ef39ba6",
+  "requirements": 30558,
+  "requirementParts": 19,
+  "scenarios": 40763,
+  "scenarioParts": 7,
+  "executionRows": 30558,
+  "executionParts": 2,
+  "logicalTotal": 71321,
+  "qaBManagerRange": {
+    "logicalStart": 9651,
+    "logicalEnd": 19612,
+    "requirementCount": 9962,
+    "firstRequirementId": "CPF-FR-009651",
+    "lastRequirementId": "CPF-FR-019612"
+  },
+  "qualification": "Counts/index metadata verified at exact SHA; complete Part bytes and linked Scenario rows were not materialized in this runtime."
+}

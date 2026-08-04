@@ -1,0 +1,258 @@
+{
+  "packageType": "CPF Root Overlay — QA Parallel B Completion R2",
+  "repository": "freeangelsun/202412_01_CPF",
+  "branch": "master",
+  "baselineSha": "ff8c596042583eba665a5475b1c3e43d2ef39ba6",
+  "generatedAt": "2026-08-04T13:06:08+09:00",
+  "productQaPass": false,
+  "logicalScope": {
+    "requirements": 30558,
+    "scenarios": 40763,
+    "total": 71321,
+    "qaBManagerRequirementCount": 9962,
+    "qaBReviewedRequirementCount": 0
+  },
+  "focusedRegression": "23/23 PASS",
+  "sourceManifestFiles": 12,
+  "sourceManifestSha256": "cac36a215b3d6b2281da827be180271705157e35ccdfad78a1fa851697db21ef",
+  "packageLocalDefects": 5,
+  "packageLocalScenarios": 10,
+  "gitWriteActionsPerformed": false,
+  "repositoryDeletionPerformed": false,
+  "cleanupTarget": "정리 대상 없음",
+  "excluded": [
+    ".pytest_cache",
+    "__pycache__",
+    "cpf-docs/**/QA_PARALLEL_B_FF8C596_FINAL/**",
+    "stale partition_coverage PASS evidence"
+  ],
+  "fileCountExcludingManifestAndChecksum": 45,
+  "files": [
+    {
+      "path": "cpf-batch/control-server/src/main/java/com/cpf/batch/control/compat/CpfBatchRiskCommandCoordinator.java",
+      "bytes": 7848,
+      "sha256": "385ff434f566b5f5a6d2b2932e51b8de4df6a47199e3f30eeb7c083f1dd70b2d"
+    },
+    {
+      "path": "cpf-docs/evidence/qa/QA_PARALLEL_B_FF8C596_COMPLETION/environment.log",
+      "bytes": 789,
+      "sha256": "cf6e5d06ab02f0d827d2f93d41ddd4baf8c791987e189037c5c7c89680a0c430"
+    },
+    {
+      "path": "cpf-docs/evidence/qa/QA_PARALLEL_B_FF8C596_COMPLETION/full_ledger_build_unavailable.json",
+      "bytes": 1178,
+      "sha256": "9d35d01d54901d72d30fb2091c7ae1f51b2ab2f986009923f9d2212fc56e84fa"
+    },
+    {
+      "path": "cpf-docs/evidence/qa/QA_PARALLEL_B_FF8C596_COMPLETION/full_ledger_build_unavailable.log",
+      "bytes": 1020,
+      "sha256": "0d0f55609b672d523b6d00bdfa41d1feaf1ce1807a3a147ca3e546926d6691db"
+    },
+    {
+      "path": "cpf-docs/evidence/qa/QA_PARALLEL_B_FF8C596_COMPLETION/full_ledger_validation_fail_closed.json",
+      "bytes": 1050,
+      "sha256": "d10bf841d378161e3de4b2de8360d026319cc3c9c809b8db05bb557d0be7d603"
+    },
+    {
+      "path": "cpf-docs/evidence/qa/QA_PARALLEL_B_FF8C596_COMPLETION/full_ledger_validation_fail_closed.log",
+      "bytes": 958,
+      "sha256": "3a879ea8d1f71f627caaee0f9fb59d0205f551d8ca211f0d435213f78559dd0e"
+    },
+    {
+      "path": "cpf-docs/evidence/qa/QA_PARALLEL_B_FF8C596_COMPLETION/full_regression.log",
+      "bytes": 99,
+      "sha256": "03f67237f46c05a6722962ac0d2784c6915b3f327efaf7e12e450989d9d2efe8"
+    },
+    {
+      "path": "cpf-docs/evidence/qa/QA_PARALLEL_B_FF8C596_COMPLETION/package_local_ledger_validation.json",
+      "bytes": 203,
+      "sha256": "17c15520621b8c5a60185fea800c0d4d9ff7444f211b777b675307741b1137cc"
+    },
+    {
+      "path": "cpf-docs/evidence/qa/QA_PARALLEL_B_FF8C596_COMPLETION/package_local_ledger_validation.log",
+      "bytes": 203,
+      "sha256": "17c15520621b8c5a60185fea800c0d4d9ff7444f211b777b675307741b1137cc"
+    },
+    {
+      "path": "cpf-docs/evidence/qa/QA_PARALLEL_B_FF8C596_COMPLETION/partition_validation_fail_closed.json",
+      "bytes": 1172,
+      "sha256": "637124129c5d9e4519be57a40f1b95c79159335eea0d3e33ebb822c1d8d569a8"
+    },
+    {
+      "path": "cpf-docs/evidence/qa/QA_PARALLEL_B_FF8C596_COMPLETION/partition_validation_fail_closed.log",
+      "bytes": 1068,
+      "sha256": "1c59ea63e95915554b857f91470c3b854449af669753e44e445858d5aebbc8f8"
+    },
+    {
+      "path": "cpf-docs/evidence/qa/QA_PARALLEL_B_FF8C596_COMPLETION/python_compileall.log",
+      "bytes": 11,
+      "sha256": "16e3edbe92d848d09637b5ec0801d01a735a0deb44c99bc4c374f0865de6acd8"
+    },
+    {
+      "path": "cpf-docs/evidence/qa/QA_PARALLEL_B_FF8C596_COMPLETION/query_count.json",
+      "bytes": 389,
+      "sha256": "696c240892b7796706d5076e7366dd18d7cc5d7dcd726a906eaf0b66357c6bc1"
+    },
+    {
+      "path": "cpf-docs/evidence/qa/QA_PARALLEL_B_FF8C596_COMPLETION/query_count.log",
+      "bytes": 389,
+      "sha256": "696c240892b7796706d5076e7366dd18d7cc5d7dcd726a906eaf0b66357c6bc1"
+    },
+    {
+      "path": "cpf-docs/evidence/qa/QA_PARALLEL_B_FF8C596_COMPLETION/query_validator.json",
+      "bytes": 73,
+      "sha256": "6f33d0b14ec4336c43ca256c75c3fc1b25578aa2e8d9edf6fbc9414eaa3cad9b"
+    },
+    {
+      "path": "cpf-docs/evidence/qa/QA_PARALLEL_B_FF8C596_COMPLETION/query_validator.log",
+      "bytes": 84,
+      "sha256": "f5a20a2379fc4cdd21ecded15d3a405aee542adb8e142eefa9ed832e0ef5046f"
+    },
+    {
+      "path": "cpf-docs/evidence/qa/QA_PARALLEL_B_FF8C596_COMPLETION/source_manifest_validation.json",
+      "bytes": 211,
+      "sha256": "14924ae1169a19c4242cd2a76f3036fc33d5ac91f7e61c0399d7b291fbf48268"
+    },
+    {
+      "path": "cpf-docs/evidence/qa/QA_PARALLEL_B_FF8C596_COMPLETION/source_manifest_validation.log",
+      "bytes": 211,
+      "sha256": "14924ae1169a19c4242cd2a76f3036fc33d5ac91f7e61c0399d7b291fbf48268"
+    },
+    {
+      "path": "cpf-docs/work/review/qa/QA_PARALLEL_B_FF8C596_COMPLETION/BOOTSTRAP_AND_VALIDATE.md",
+      "bytes": 879,
+      "sha256": "931baa598038f22acc1bd9c77dea2421fd4e0c20846dbb0865d70b1ab2a7aacf"
+    },
+    {
+      "path": "cpf-docs/work/review/qa/QA_PARALLEL_B_FF8C596_COMPLETION/CANONICAL_COUNTS.json",
+      "bytes": 684,
+      "sha256": "c0b1388d9555e55c0279a3b651dbe1b77779fc1317e7a6b734b4dd938c0a4306"
+    },
+    {
+      "path": "cpf-docs/work/review/qa/QA_PARALLEL_B_FF8C596_COMPLETION/CHANGE_MANIFEST.csv",
+      "bytes": 8672,
+      "sha256": "15b2a74731c8a54fc1b0f1f6bb5f588856c56e8b9de49e9764b8d27b46f196a4"
+    },
+    {
+      "path": "cpf-docs/work/review/qa/QA_PARALLEL_B_FF8C596_COMPLETION/CLEANUP_ONE_LINE.txt",
+      "bytes": 21,
+      "sha256": "bec0806d89ce7f2fb09de6c0241163f13ea5707b37277211f93235c29a29668a"
+    },
+    {
+      "path": "cpf-docs/work/review/qa/QA_PARALLEL_B_FF8C596_COMPLETION/CROSS_PARTITION_PATCH_REQUEST.csv",
+      "bytes": 711,
+      "sha256": "66a691488eaf1314e9666c8e15c820c52daa56a4f6c32c7f0b9ff02a566a1c08"
+    },
+    {
+      "path": "cpf-docs/work/review/qa/QA_PARALLEL_B_FF8C596_COMPLETION/DELETE_MANIFEST.csv",
+      "bytes": 117,
+      "sha256": "6473e56434457696e8a5f54332a3a70fbfa2f1fb06682fced1f78cb260d533a4"
+    },
+    {
+      "path": "cpf-docs/work/review/qa/QA_PARALLEL_B_FF8C596_COMPLETION/OPEN_ISSUES.md",
+      "bytes": 794,
+      "sha256": "cea3658e313d999fc34545570261eb168ebbd37de8aa18970fbeefdcd7482f35"
+    },
+    {
+      "path": "cpf-docs/work/review/qa/QA_PARALLEL_B_FF8C596_COMPLETION/QA_B_QUERY_LEDGER.csv",
+      "bytes": 1215115,
+      "sha256": "32bfdc2745fa2b45db68a607bd2d825b888aee15784de8aeda62152a7d21c3de"
+    },
+    {
+      "path": "cpf-docs/work/review/qa/QA_PARALLEL_B_FF8C596_COMPLETION/QA_B_REQUIREMENT_ASSIGNMENT.csv",
+      "bytes": 2261122,
+      "sha256": "341f986322437afc974292478aad5d2a2e45b5005071ea00fc40fd1a39c5e0e6"
+    },
+    {
+      "path": "cpf-docs/work/review/qa/QA_PARALLEL_B_FF8C596_COMPLETION/QA_PARTITION_PLAN.csv",
+      "bytes": 932,
+      "sha256": "b0081a51867f83057267c4f7eb91d8002a12dd46fc245e65cf0436e9d94f347e"
+    },
+    {
+      "path": "cpf-docs/work/review/qa/QA_PARALLEL_B_FF8C596_COMPLETION/QA_REWORK_REQUEST.md",
+      "bytes": 2704,
+      "sha256": "85aba20865fce4874a5d878d4659c6b4eb3fe9c700405d4aaca9af1a83f49214"
+    },
+    {
+      "path": "cpf-docs/work/review/qa/QA_PARALLEL_B_FF8C596_COMPLETION/REQUIREMENT_STATUS.csv",
+      "bytes": 10855,
+      "sha256": "864fd3f8f288cbde4729790a8dfe8338b7b9579ad37f34808dfd689f594f6cdc"
+    },
+    {
+      "path": "cpf-docs/work/review/qa/QA_PARALLEL_B_FF8C596_COMPLETION/REVIEW_INDEX.md",
+      "bytes": 2050,
+      "sha256": "44c796fee6d859f20d0fd781f3c1b592deb6694ad2021788dc077eaf44e88b50"
+    },
+    {
+      "path": "cpf-docs/work/review/qa/QA_PARALLEL_B_FF8C596_COMPLETION/SCENARIO_STATUS.csv",
+      "bytes": 10390,
+      "sha256": "ea97aae9e0bb0ca757d159d0467d329f7077bdb598774da137ecc8ea5c455d5a"
+    },
+    {
+      "path": "cpf-docs/work/review/qa/QA_PARALLEL_B_FF8C596_COMPLETION/SOURCE_MANIFEST.csv",
+      "bytes": 2420,
+      "sha256": "cac36a215b3d6b2281da827be180271705157e35ccdfad78a1fa851697db21ef"
+    },
+    {
+      "path": "cpf-docs/work/review/qa/QA_PARALLEL_B_FF8C596_COMPLETION/TEST_AND_EVIDENCE.md",
+      "bytes": 1426,
+      "sha256": "65407e33a358cdbb9dcfed304cd65810fef6cd7dfb159224f71c3c7db3c11327"
+    },
+    {
+      "path": "cpf-tools/db/vendor/mariadb/rollback/R100__bat_operation_request_ledger.sql",
+      "bytes": 847,
+      "sha256": "701a6dcbbce901fd3b3345dd9b1c873f00a968925e7f1bc9af8420e469945e18"
+    },
+    {
+      "path": "cpf-tools/scripts/build-cpf-full-qa-ledgers.py",
+      "bytes": 24123,
+      "sha256": "9227eae9d6057b8c2aab349e188d03bbdafdb395148934bcc9067455790607bc"
+    },
+    {
+      "path": "cpf-tools/scripts/tests/test_batch_risk_command_action_unknown.py",
+      "bytes": 7967,
+      "sha256": "da387f3932146dc96ef03cbd38c763b1d187e98623837d84702a9cbbddc5a276"
+    },
+    {
+      "path": "cpf-tools/scripts/tests/test_build_cpf_full_qa_ledgers_identity.py",
+      "bytes": 8589,
+      "sha256": "de877c9b4c7442424da3840323f9708e8039c03384787bd80a268243862ecc26"
+    },
+    {
+      "path": "cpf-tools/scripts/tests/test_mariadb_r100_retry_safety_source.py",
+      "bytes": 992,
+      "sha256": "670a8caa1ea88cc5e19c838644c8e40bbe646266b93b38a0b757a19662c01d59"
+    },
+    {
+      "path": "cpf-tools/scripts/tests/test_qa_partition_validators.py",
+      "bytes": 6016,
+      "sha256": "30bb02bd52d5bf01b0d59b3127b2d52143a77b3401e707f42bb6688b3de732cb"
+    },
+    {
+      "path": "cpf-tools/scripts/tests/test_verify_cpf_bat_operation_ledger_lifecycle.py",
+      "bytes": 5670,
+      "sha256": "50436e3a244bd7362cecc28725827a3971107362d1fbc0b13f7b61bff9c6274a"
+    },
+    {
+      "path": "cpf-tools/scripts/validate-cpf-full-qa-ledgers.py",
+      "bytes": 3153,
+      "sha256": "6a91e3f54252909fda070b9dc836b249db1dd9146ec887ba57393e41c4752e39"
+    },
+    {
+      "path": "cpf-tools/scripts/validate-qa-partition-coverage.py",
+      "bytes": 8345,
+      "sha256": "f18de0c1d07d4a5fcce67ec6eae191ff230d221e09a69314ed8c2e6eb452a1e1"
+    },
+    {
+      "path": "cpf-tools/scripts/validate-qa-query-count.py",
+      "bytes": 1420,
+      "sha256": "bf26e387d69497c7597d7ecee10360f607e8995785d210a8c0af8a0c716179c2"
+    },
+    {
+      "path": "cpf-tools/scripts/verify-cpf-bat-operation-ledger-lifecycle.py",
+      "bytes": 7544,
+      "sha256": "bfa945e9de5078854fe8d366fb1dbecdaca51f8b75502340752943a59473740f"
+    }
+  ],
+  "openStatus": "Partial technical correction package; product QA and QA-B individual full review remain incomplete."
+}

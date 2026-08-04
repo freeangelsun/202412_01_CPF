@@ -21,6 +21,7 @@ import java.util.function.Supplier;
 public final class CpfBatchRiskCommandCoordinator {
     private static final String RESULT_SERIALIZATION_FAILED = "RESULT_SERIALIZATION_FAILED";
     private static final String LEDGER_FINALIZATION_FAILED = "LEDGER_FINALIZATION_FAILED";
+    private static final String LEDGER_FAILURE_CLASSIFICATION_FAILED = "LEDGER_FAILURE_CLASSIFICATION_FAILED";
 
     private final JdbcBatchRiskCommandLedger ledger;
     private final ObjectMapper objectMapper;
@@ -57,9 +58,51 @@ public final class CpfBatchRiskCommandCoordinator {
         try {
             return action.get();
         } catch (RuntimeException failure) {
-            classifyActionFailure(command, failure);
-            throw failure;
+            throw classifyActionFailure(command, failure);
         }
+    }
+
+    private RuntimeException classifyActionFailure(
+            CpfBatchRiskCommand command, RuntimeException failure) {
+        if (failure instanceof CpfBatchOwnerUnknownResultException
+                || failure instanceof DataAccessResourceFailureException
+                || failure instanceof QueryTimeoutException
+                || failure instanceof RecoverableDataAccessException
+                || failure instanceof TransientDataAccessException) {
+            return actionUnknown(command, failure);
+        }
+        try {
+            ledger.fail(command, failure.getClass().getSimpleName(), failure.getMessage());
+            return failure;
+        } catch (RuntimeException ledgerFailure) {
+            CpfBatchOwnerUnknownResultException unknown = new CpfBatchOwnerUnknownResultException(
+                    LEDGER_FAILURE_CLASSIFICATION_FAILED,
+                    "BAT risk command failure could not be durably classified; reconciliation required: "
+                            + failure.getClass().getSimpleName());
+            unknown.initCause(failure);
+            unknown.addSuppressed(ledgerFailure);
+            return unknown;
+        }
+    }
+
+    private CpfBatchOwnerUnknownResultException actionUnknown(
+            CpfBatchRiskCommand command, RuntimeException failure) {
+        final CpfBatchOwnerUnknownResultException unknown;
+        if (failure instanceof CpfBatchOwnerUnknownResultException existing) {
+            unknown = existing;
+        } else {
+            unknown = new CpfBatchOwnerUnknownResultException(
+                    failure.getClass().getSimpleName(),
+                    "BAT risk command owner action outcome is unknown; reconciliation required: "
+                            + failure.getClass().getSimpleName());
+            unknown.initCause(failure);
+        }
+        try {
+            ledger.unknown(command, unknown.failureCode(), unknown.getMessage());
+        } catch (RuntimeException ledgerFailure) {
+            unknown.addSuppressed(ledgerFailure);
+        }
+        return unknown;
     }
 
     private void finalizeAfterSideEffect(CpfBatchRiskCommand command, Object result) {
@@ -85,18 +128,6 @@ public final class CpfBatchRiskCommandCoordinator {
             case IN_PROGRESS, UNKNOWN -> throw new CpfBatchOwnerUnknownResultException(
                     decision.code(), decision.message());
             case REPLAY -> throw new IllegalStateException("replay decision must be handled before execution");
-        }
-    }
-
-    private void classifyActionFailure(CpfBatchRiskCommand command, RuntimeException failure) {
-        if (failure instanceof CpfBatchOwnerUnknownResultException
-                || failure instanceof DataAccessResourceFailureException
-                || failure instanceof QueryTimeoutException
-                || failure instanceof RecoverableDataAccessException
-                || failure instanceof TransientDataAccessException) {
-            ledger.unknown(command, failure.getClass().getSimpleName(), failure.getMessage());
-        } else {
-            ledger.fail(command, failure.getClass().getSimpleName(), failure.getMessage());
         }
     }
 

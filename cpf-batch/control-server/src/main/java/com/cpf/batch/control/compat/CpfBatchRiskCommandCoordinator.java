@@ -19,6 +19,9 @@ import java.util.function.Supplier;
 /** 위험조치의 reserve -> execute -> finalize/replay/UNKNOWN 상태기계입니다. */
 @Component
 public final class CpfBatchRiskCommandCoordinator {
+    private static final String RESULT_SERIALIZATION_FAILED = "RESULT_SERIALIZATION_FAILED";
+    private static final String LEDGER_FINALIZATION_FAILED = "LEDGER_FINALIZATION_FAILED";
+
     private final JdbcBatchRiskCommandLedger ledger;
     private final ObjectMapper objectMapper;
 
@@ -34,14 +37,9 @@ public final class CpfBatchRiskCommandCoordinator {
             return readRow(decision.resultPayload());
         }
         assertExecutable(decision);
-        try {
-            CpfDataRow result = action.get();
-            ledger.complete(command, write(result));
-            return result;
-        } catch (RuntimeException failure) {
-            classify(command, failure);
-            throw failure;
-        }
+        CpfDataRow result = executeAction(command, action);
+        finalizeAfterSideEffect(command, result);
+        return result;
     }
 
     public List<CpfDataRow> executeRows(CpfBatchRiskCommand command, Supplier<List<CpfDataRow>> action) {
@@ -50,13 +48,31 @@ public final class CpfBatchRiskCommandCoordinator {
             return readRows(decision.resultPayload());
         }
         assertExecutable(decision);
+        List<CpfDataRow> result = executeAction(command, () -> List.copyOf(action.get()));
+        finalizeAfterSideEffect(command, result);
+        return result;
+    }
+
+    private <T> T executeAction(CpfBatchRiskCommand command, Supplier<T> action) {
         try {
-            List<CpfDataRow> result = List.copyOf(action.get());
-            ledger.complete(command, write(result));
-            return result;
+            return action.get();
         } catch (RuntimeException failure) {
-            classify(command, failure);
+            classifyActionFailure(command, failure);
             throw failure;
+        }
+    }
+
+    private void finalizeAfterSideEffect(CpfBatchRiskCommand command, Object result) {
+        final String payload;
+        try {
+            payload = write(result);
+        } catch (RuntimeException failure) {
+            throw postActionUnknown(command, RESULT_SERIALIZATION_FAILED, failure);
+        }
+        try {
+            ledger.complete(command, payload);
+        } catch (RuntimeException failure) {
+            throw postActionUnknown(command, LEDGER_FINALIZATION_FAILED, failure);
         }
     }
 
@@ -72,7 +88,7 @@ public final class CpfBatchRiskCommandCoordinator {
         }
     }
 
-    private void classify(CpfBatchRiskCommand command, RuntimeException failure) {
+    private void classifyActionFailure(CpfBatchRiskCommand command, RuntimeException failure) {
         if (failure instanceof CpfBatchOwnerUnknownResultException
                 || failure instanceof DataAccessResourceFailureException
                 || failure instanceof QueryTimeoutException
@@ -82,6 +98,21 @@ public final class CpfBatchRiskCommandCoordinator {
         } else {
             ledger.fail(command, failure.getClass().getSimpleName(), failure.getMessage());
         }
+    }
+
+    private CpfBatchOwnerUnknownResultException postActionUnknown(
+            CpfBatchRiskCommand command, String code, RuntimeException failure) {
+        String message = "BAT risk command side effect may have completed; reconciliation required: "
+                + failure.getClass().getSimpleName();
+        CpfBatchOwnerUnknownResultException unknown =
+                new CpfBatchOwnerUnknownResultException(code, message);
+        unknown.initCause(failure);
+        try {
+            ledger.unknown(command, code, message);
+        } catch (RuntimeException ledgerFailure) {
+            unknown.addSuppressed(ledgerFailure);
+        }
+        return unknown;
     }
 
     private String write(Object value) {

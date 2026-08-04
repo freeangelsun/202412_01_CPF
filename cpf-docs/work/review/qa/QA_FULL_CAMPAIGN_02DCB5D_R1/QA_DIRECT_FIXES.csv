@@ -1,0 +1,18 @@
+﻿finding_id,path,change_type,qa_status,developer_cross_review,codex_cross_review,independent_qa_retest
+QA-FULL-007,cpf-batch/control-server/src/main/java/com/cpf/batch/control/compat/CpfBatchRiskCommandCoordinator.java,MODIFY,QA 직접보완 완료: post-side-effect finalization failures preserved as UNKNOWN,대기,대기,대기
+QA-FULL-008,cpf-tools/scripts/run-db-vendor-lifecycle.ps1,MODIFY,QA 직접보완 완료: V100/R100/verify100 wired into all modes,대기,대기,대기
+QA-FULL-009,cpf-tools/db/vendor/mariadb/rollback/R100__bat_operation_request_ledger.sql,MODIFY,QA 직접보완 완료: non-empty rollback fail-closed,대기,대기,대기
+QA-FULL-009,cpf-tools/db/vendor/postgresql/rollback/R100__bat_operation_request_ledger.sql,MODIFY,QA 직접보완 완료: non-empty rollback fail-closed,대기,대기,대기
+QA-FULL-009,cpf-tools/db/vendor/oracle/rollback/R100__bat_operation_request_ledger.sql,MODIFY,QA 직접보완 완료: non-empty rollback fail-closed,대기,대기,대기
+QA-FULL-014,cpf-tools/scripts/run-cpf-r4-substitute-validation.py,MODIFY,QA 직접보완 완료: baseline required and source HEAD verified,대기,대기,대기
+QA-FULL-015,cpf-tools/scripts/verify-cpf-owner-boundaries.py,MODIFY,QA 직접보완 완료: reverse/internal owner boundary coverage,대기,대기,대기
+QA-CAMPAIGN-GATE,cpf-tools/scripts/build-cpf-full-qa-ledgers.py,ADD,전체 QA fail-closed 도구 추가,대기,대기,대기
+QA-CAMPAIGN-GATE,cpf-tools/scripts/verify-cpf-full-qa-completion.py,ADD,전체 QA fail-closed 도구 추가,대기,대기,대기
+QA-CAMPAIGN-GATE,cpf-tools/scripts/run-cpf-full-qa-validation.ps1,ADD,전체 QA fail-closed 도구 추가,대기,대기,대기
+QA-CAMPAIGN-GATE,cpf-tools/scripts/verify-cpf-bat-operation-ledger-lifecycle.py,ADD,전체 QA fail-closed 도구 추가,대기,대기,대기
+QA-CAMPAIGN-GATE,cpf-tools/scripts/verify-cpf-spring-request-mapping-uniqueness.py,ADD,전체 QA fail-closed 도구 추가,대기,대기,대기
+QA-CAMPAIGN-GATE,cpf-tools/scripts/verify-cpf-runtime-snapshot-versioning.py,ADD,전체 QA fail-closed 도구 추가,대기,대기,대기
+QA-CAMPAIGN-GATE,cpf-tools/scripts/verify-cpf-internal-service-identity-binding.py,ADD,전체 QA fail-closed 도구 추가,대기,대기,대기
+QA-CAMPAIGN-GATE,cpf-tools/scripts/verify-cpf-batch-approval-trust-boundary.py,ADD,전체 QA fail-closed 도구 추가,대기,대기,대기
+QA-CAMPAIGN-GATE,cpf-tools/scripts/verify-cpf-batch-runtime-command-versioning.py,ADD,전체 QA fail-closed 도구 추가,대기,대기,대기
+QA-CAMPAIGN-GATE,cpf-tools/scripts/verify-cpf-approval-state-machine.py,ADD,전체 QA fail-closed 도구 추가,대기,대기,대기

@@ -1,0 +1,4 @@
+﻿validation_id,environment,command,success_expected,failure_criteria,required_evidence,owner
+ENV-FULL-001,Java25 clean checkout,pwsh -NoProfile -File .\cpf-tools\scripts\run-cpf-full-qa-validation.ps1 -ExpectedHead <NEW_EXACT_SHA> -Root .,모든 Step와 FULL_QA_PRODUCT_PASS_71321 PASS,어느 Step든 non-zero 또는 stale/dirty SHA,"전체 transcript, Gradle reports, Browser reports, DB logs, JSON gates",Codex/QA 실행환경
+ENV-DB-001,Oracle/PostgreSQL/MariaDB,run-db-vendor-lifecycle.ps1 각 Vendor×FreshInstall/Upgrade/RollbackReapply,"9/9 PASS, R100 non-empty guard 확인",SQL 오류/drift/data-loss guard 미작동,"DB version/object counts, 원본 SQL client logs",DBA/Codex
+ENV-BROWSER-001,ADM/BZA Browser+BFF,npm --prefix <surface> run test:e2e,2 surfaces E2E PASS,render/keyboard/responsive/permission/API failure,Playwright report/screenshots/traces,Codex/QA

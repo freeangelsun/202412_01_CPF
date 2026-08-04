@@ -38,13 +38,13 @@ function Run-Sql([string]$File){
 }
 function P([string]$Relative){Join-Path $vendorRoot $Relative}
 $install=P 'install/00_empty_install.sql';$verify=P 'verify/00_verify.sql'
-$v98=P 'migration/flyway/batDB/V98__bat_operation_expected_version.sql';$v99=P 'migration/flyway/batDB/V99__bat_abandon_two_phase_state.sql'
-$r98=P 'rollback/R98__bat_operation_expected_version.sql';$r99=P 'rollback/R99__bat_abandon_two_phase_state.sql'
-$verify98=P 'verify/V98__bat_operation_expected_version.sql';$verify99=P 'verify/V99__bat_abandon_two_phase_state.sql'
+$v98=P 'migration/flyway/batDB/V98__bat_operation_expected_version.sql';$v99=P 'migration/flyway/batDB/V99__bat_abandon_two_phase_state.sql';$v100=P 'migration/V100__bat_operation_request_ledger.sql'
+$r98=P 'rollback/R98__bat_operation_expected_version.sql';$r99=P 'rollback/R99__bat_abandon_two_phase_state.sql';$r100=P 'rollback/R100__bat_operation_request_ledger.sql'
+$verify98=P 'verify/V98__bat_operation_expected_version.sql';$verify99=P 'verify/V99__bat_abandon_two_phase_state.sql';$verify100=P 'verify/V100__bat_operation_request_ledger.sql'
 switch($Mode){
- 'FreshInstall' {Run-Sql $install;Run-Sql $verify;Run-Sql $verify98;Run-Sql $verify99}
- 'Upgrade' {Run-Sql $v98;Run-Sql $v99;Run-Sql $verify98;Run-Sql $verify99;Run-Sql $verify}
- 'RollbackReapply' {Run-Sql $r99;Run-Sql $r98;Run-Sql $v98;Run-Sql $v99;Run-Sql $verify98;Run-Sql $verify99;Run-Sql $verify}
+ 'FreshInstall' {Run-Sql $install;Run-Sql $verify;Run-Sql $verify98;Run-Sql $verify99;Run-Sql $verify100}
+ 'Upgrade' {Run-Sql $v98;Run-Sql $v99;Run-Sql $v100;Run-Sql $verify98;Run-Sql $verify99;Run-Sql $verify100;Run-Sql $verify}
+ 'RollbackReapply' {Run-Sql $r100;Run-Sql $r99;Run-Sql $r98;Run-Sql $v98;Run-Sql $v99;Run-Sql $v100;Run-Sql $verify98;Run-Sql $verify99;Run-Sql $verify100;Run-Sql $verify}
 }
 $result=[ordered]@{status='PASS';vendor=$Vendor;mode=$Mode;log=$log;completedAt=(Get-Date).ToString('o')}
 $result|ConvertTo-Json|Tee-Object -FilePath $log -Append

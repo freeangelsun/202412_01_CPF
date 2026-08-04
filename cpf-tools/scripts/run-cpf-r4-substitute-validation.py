@@ -1,24 +1,26 @@
 #!/usr/bin/env python3
 """Run every validation executable in the current Java21/Node/Python environment.
 
-This wrapper deliberately excludes exact Git checkout, Java25 Gradle, real DB servers,
-and browser E2E. Those are executed by the separate exact-head handoff script.
+This wrapper deliberately excludes Java25 Gradle, real DB servers, and browser
+E2E. Those are executed by the separate exact-head handoff script.  The source
+snapshot SHA is nevertheless mandatory and must match the supplied baseline so
+that substitute Evidence cannot be generated against an implicit stale commit.
 """
 from __future__ import annotations
 
 import argparse
 import csv
 import json
-import os
+import re
 import shutil
 import subprocess
 import sys
 import tempfile
 from pathlib import Path
 
-BASELINE_SHA = "cb305fc5363263c9607e990ba640233c28668f01"
 REVIEW_RELATIVE = Path("cpf-docs/work/review/development/DEV_EXEC_20001_END_QA25_R4")
 EVIDENCE_RELATIVE = Path("cpf-docs/evidence/development/DEV_EXEC_20001_END_QA25_R4")
+SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 
 
 def run(command: list[str], cwd: Path, log: Path, environment: dict[str, str] | None = None) -> tuple[int, str]:
@@ -27,6 +29,28 @@ def run(command: list[str], cwd: Path, log: Path, environment: dict[str, str] | 
     text = process.stdout + process.stderr
     log.write_text(text, encoding="utf-8")
     return process.returncode, text
+
+
+def git_head(source_root: Path) -> str:
+    process = subprocess.run(
+        ["git", "-C", str(source_root), "rev-parse", "HEAD"],
+        text=True,
+        capture_output=True,
+    )
+    if process.returncode != 0:
+        raise ValueError("source HEAD를 확인할 수 없습니다: " + process.stderr.strip())
+    return process.stdout.strip()
+
+
+def resolve_source_head(source_root: Path, expected: str, supplied: str | None) -> str:
+    if not SHA_RE.fullmatch(expected):
+        raise ValueError("baseline SHA는 40자리 소문자 hex여야 합니다.")
+    actual = supplied or git_head(source_root)
+    if not SHA_RE.fullmatch(actual):
+        raise ValueError("source HEAD는 40자리 소문자 hex여야 합니다.")
+    if actual != expected:
+        raise ValueError(f"source HEAD mismatch expected={expected} actual={actual}")
+    return actual
 
 
 def write_summary(path: Path, rows: list[dict[str, str]]) -> None:
@@ -49,13 +73,21 @@ def main() -> int:
     parser.add_argument("--source-root", required=True)
     parser.add_argument("--artifact-root", required=True)
     parser.add_argument("--datasets-root", required=True)
-    parser.add_argument("--baseline-sha", default=BASELINE_SHA)
+    parser.add_argument("--baseline-sha", required=True)
+    parser.add_argument(
+        "--source-head",
+        help="exact fetched snapshot처럼 .git이 없는 경우 검증할 실제 source SHA",
+    )
     parser.add_argument("--work-root")
     parser.add_argument("--phase", choices=("all", "runtime", "traceability"), default="all")
     args = parser.parse_args()
     source_root = Path(args.source_root).resolve()
     artifact_root = Path(args.artifact_root).resolve()
     datasets_root = Path(args.datasets_root).resolve()
+    try:
+        source_head = resolve_source_head(source_root, args.baseline_sha, args.source_head)
+    except ValueError as failure:
+        parser.error(str(failure))
     review = artifact_root / REVIEW_RELATIVE
     evidence = artifact_root / EVIDENCE_RELATIVE
     review.mkdir(parents=True, exist_ok=True)
@@ -129,7 +161,7 @@ def main() -> int:
         task(
             "JAVA21_AUDIT_MULTI_PROCESS",
             "java21-multi-process",
-            [python, str(source_root / "cpf-tools/verification/java21/audit-runtime/run-audit-runtime-harness.py"), "--work-dir", str(audit_work), "--source-head", args.baseline_sha],
+            [python, str(source_root / "cpf-tools/verification/java21/audit-runtime/run-audit-runtime-harness.py"), "--work-dir", str(audit_work), "--source-head", source_head],
             "R4_JAVA21_AUDIT_FINAL.log",
         )
         task(
@@ -185,7 +217,7 @@ def main() -> int:
                 "--output", str(review / "WORK_PACKAGE_SOURCE_REVIEW.csv"),
                 "--summary-output", str(review / "WORK_PACKAGE_SOURCE_REVIEW_SUMMARY.json"),
                 "--start-row", "20001", "--expected-requirements", "10558", "--expected-work-packages", "291",
-                "--baseline-sha", args.baseline_sha,
+                "--baseline-sha", source_head,
             ],
             "R4_WORK_PACKAGE_SOURCE_REVIEW_FINAL.log",
         )
@@ -200,11 +232,10 @@ def main() -> int:
                 "--work-package-review", str(review / "WORK_PACKAGE_SOURCE_REVIEW.csv"),
                 "--output-dir", str(review),
                 "--start-row", "20001", "--expected-count", "10558", "--expected-work-packages", "291",
-                "--baseline-sha", args.baseline_sha,
+                "--baseline-sha", source_head,
             ],
             "R4_REQUIREMENT_TRACEABILITY_FINAL.log",
         )
-        # The runtime summary exists before this gate; the gate validates it through Requirement evidence paths.
         task(
             "REQUIREMENT_TRACEABILITY_CLOSURE",
             "traceability-gate",
@@ -215,7 +246,7 @@ def main() -> int:
                 "--work-package-status", str(review / "WORK_PACKAGE_STATUS.csv"),
                 "--source-review", str(review / "WORK_PACKAGE_SOURCE_REVIEW.csv"),
                 "--expected-requirements", "10558", "--expected-work-packages", "291",
-                "--expected-sha", args.baseline_sha,
+                "--expected-sha", source_head,
                 "--json-output", str(evidence / "R4_REQUIREMENT_TRACEABILITY_CLOSURE_FINAL.json"),
             ],
             "R4_REQUIREMENT_TRACEABILITY_CLOSURE_FINAL.log",
@@ -227,6 +258,7 @@ def main() -> int:
         "status": "PASS" if not failed else "FAIL",
         "meaning": "Current-environment substitute validation only; exact Git/Java25/real DB/browser validation is separate",
         "baselineSha": args.baseline_sha,
+        "sourceHead": source_head,
         "phase": args.phase,
         "completeTaskSet": len(rows) == 22,
         "testCount": len(rows),

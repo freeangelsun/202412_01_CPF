@@ -1,0 +1,82 @@
+{
+  "properties": [
+    {
+      "name": "cpf.runtime.control.agent.apply-timeout-millis",
+      "type": "java.lang.Long",
+      "defaultValue": 30000,
+      "description": "한 Runtime change apply 호출에 허용되는 최대 시간입니다. Delivery expiresAt이 더 이르면 expiresAt을 우선합니다."
+    },
+    {
+      "name": "cpf.runtime.control.agent.apply-max-attempts",
+      "type": "java.lang.Integer",
+      "defaultValue": 3,
+      "description": "명시적 side-effect-free transient failure에 허용되는 총 apply 시도 횟수입니다."
+    },
+    {
+      "name": "cpf.runtime.control.agent.apply-initial-backoff-millis",
+      "type": "java.lang.Long",
+      "defaultValue": 200,
+      "description": "Runtime apply transient retry의 최초 backoff입니다."
+    },
+    {
+      "name": "cpf.runtime.control.agent.apply-max-backoff-millis",
+      "type": "java.lang.Long",
+      "defaultValue": 2000,
+      "description": "Runtime apply transient retry의 최대 backoff입니다."
+    },
+    {
+      "name": "cpf.runtime.control.agent.apply-jitter-percent",
+      "type": "java.lang.Integer",
+      "defaultValue": 20,
+      "description": "Runtime apply retry backoff에 적용할 양방향 jitter 비율입니다."
+    },
+    {
+      "name": "cpf.runtime.control.agent.apply-max-concurrency",
+      "type": "java.lang.Integer",
+      "defaultValue": 1,
+      "description": "프로세스별 동시 Runtime apply 실행 상한입니다. 대기열 없이 초과 요청을 거부합니다."
+    },
+    {
+      "name": "cpf.runtime.control.agent.apply-circuit-failure-threshold",
+      "type": "java.lang.Integer",
+      "defaultValue": 3,
+      "description": "changeType별 circuit을 여는 연속 transient 또는 UNKNOWN 실패 횟수입니다."
+    },
+    {
+      "name": "cpf.runtime.control.agent.apply-circuit-open-millis",
+      "type": "java.lang.Long",
+      "defaultValue": 30000,
+      "description": "Runtime apply circuit open 유지 시간입니다. 이후 단일 half-open probe를 허용합니다."
+    },
+    {
+      "name": "cpf.runtime.control.controller.auto-rollback-allowlist",
+      "type": "java.lang.String",
+      "defaultValue": "",
+      "description": "자동 Rollback을 허용할 원본 changeType 또는 prefix의 comma-separated allowlist입니다. 빈 값은 자동 Rollback을 비활성화합니다."
+    },
+    {
+      "name": "cpf.runtime.control.controller.auto-rollback-max-attempts",
+      "type": "java.lang.Integer",
+      "defaultValue": 3,
+      "description": "Change별 append-only audit로 집계하는 자동 Rollback 최대 시도 횟수입니다."
+    },
+    {
+      "name": "cpf.runtime.control.controller.auto-rollback-max-per-run",
+      "type": "java.lang.Integer",
+      "defaultValue": 1,
+      "description": "Controller reconcile 1회에 dispatch할 자동 Rollback 최대 개수입니다."
+    },
+    {
+      "name": "cpf.runtime.control.controller.auto-rollback-circuit-failure-threshold",
+      "type": "java.lang.Integer",
+      "defaultValue": 3,
+      "description": "동일 changeType의 공유 audit failure가 이 횟수에 도달하면 자동 Rollback circuit을 엽니다."
+    },
+    {
+      "name": "cpf.runtime.control.controller.auto-rollback-circuit-open-millis",
+      "type": "java.lang.Long",
+      "defaultValue": 30000,
+      "description": "공유 audit failure circuit이 최근 실패를 집계하는 open window입니다."
+    }
+  ]
+}

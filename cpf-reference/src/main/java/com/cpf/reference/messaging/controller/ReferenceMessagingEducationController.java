@@ -5,7 +5,10 @@ import com.cpf.core.api.util.CpfIds;
 import com.cpf.core.api.broker.CpfBrokerBridgeMessage;
 import com.cpf.core.api.broker.CpfBrokerBridgePort;
 import com.cpf.core.api.broker.CpfBrokerBridgeResult;
+import com.cpf.core.api.broker.CpfBrokerClient;
+import com.cpf.core.api.broker.CpfBrokerPublishResult;
 import com.cpf.core.api.execution.CpfOnlineTransaction;
+import com.cpf.reference.messaging.ReferenceBrokerPublishEducationSample;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
@@ -32,10 +35,14 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @Tag(name = "REF Reference 05. Messaging", description = "Kafka, RabbitMQ, 인메모리 메시지 어댑터 교육 샘플")
 public class ReferenceMessagingEducationController extends com.cpf.reference.common.base.ReferenceBaseController {
     private final CpfBrokerBridgePort brokerBridgePort;
+    private final ReferenceBrokerPublishEducationSample brokerPublishSample;
     private final List<CpfBrokerBridgeMessage> consumedMessages = new CopyOnWriteArrayList<>();
 
-    public ReferenceMessagingEducationController(CpfBrokerBridgePort brokerBridgePort) {
+    public ReferenceMessagingEducationController(
+            CpfBrokerBridgePort brokerBridgePort,
+            CpfBrokerClient brokerClient) {
         this.brokerBridgePort = brokerBridgePort;
+        this.brokerPublishSample = new ReferenceBrokerPublishEducationSample(brokerClient);
         this.brokerBridgePort.subscribe("com.cpf.reference.event", consumedMessages::add);
     }
 
@@ -60,6 +67,18 @@ public class ReferenceMessagingEducationController extends com.cpf.reference.com
         response.put("recentMessages", brokerBridgePort.findRecent(destination, 10));
         response.put("consumedMessages", consumedMessages);
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/messaging/enqueue")
+    @CpfOnlineTransaction(id = "OREFAA0052", name = "REFMessageEnqueue")
+    @Operation(
+            operationId = "refMessagingEducationEnqueueMessage",
+            summary = "신뢰성 메시지 Enqueue 샘플",
+            description = "CpfBrokerClient를 통해 실제 Outbox/Broker Provider 경로를 호출하고 PUBLISHED·FAILED·UNKNOWN 결과를 그대로 반환합니다.")
+    public ResponseEntity<CpfBrokerPublishResult> enqueueMessage(
+            @RequestParam String transactionId,
+            @RequestParam String idempotencyKey) {
+        return ResponseEntity.ok(brokerPublishSample.publish(transactionId, idempotencyKey));
     }
 
     @GetMapping("/messaging/recent")

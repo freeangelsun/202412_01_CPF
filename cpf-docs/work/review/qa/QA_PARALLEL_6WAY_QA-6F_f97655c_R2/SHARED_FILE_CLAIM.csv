@@ -1,0 +1,13 @@
+﻿path,claim_type,owner,note
+cpf-tools/config/database-source-plan.json,QA_DIRECT_FIX,QA-6F,User approval required before Git write; delivered as Root Overlay only.
+cpf-tools/db/canonical/seed-model.json,QA_DIRECT_FIX,QA-6F,User approval required before Git write; delivered as Root Overlay only.
+cpf-tools/db/vendor/mariadb/seed/00_product_seed.sql,QA_DIRECT_FIX,QA-6F,User approval required before Git write; delivered as Root Overlay only.
+cpf-tools/db/vendor/mariadb/source/00_product_seed.sql,QA_DIRECT_FIX,QA-6F,User approval required before Git write; delivered as Root Overlay only.
+cpf-tools/db/vendor/oracle/seed/00_product_seed.sql,QA_DIRECT_FIX,QA-6F,User approval required before Git write; delivered as Root Overlay only.
+cpf-tools/db/vendor/oracle/source/00_product_seed.sql,QA_DIRECT_FIX,QA-6F,User approval required before Git write; delivered as Root Overlay only.
+cpf-tools/db/vendor/postgresql/seed/00_product_seed.sql,QA_DIRECT_FIX,QA-6F,User approval required before Git write; delivered as Root Overlay only.
+cpf-tools/db/vendor/postgresql/source/00_product_seed.sql,QA_DIRECT_FIX,QA-6F,User approval required before Git write; delivered as Root Overlay only.
+cpf-tools/scripts/invoke-official-db-vendor-sql.ps1,QA_DIRECT_FIX,QA-6F,User approval required before Git write; delivered as Root Overlay only.
+cpf-tools/scripts/tests/test_oracle_sqlplus_secret_transport.py,QA_DIRECT_FIX,QA-6F,User approval required before Git write; delivered as Root Overlay only.
+cpf-tools/scripts/tests/test_seed_bundle_plan_closure.py,QA_DIRECT_FIX,QA-6F,User approval required before Git write; delivered as Root Overlay only.
+cpf-tools/scripts/tests/test_seed_bundle_runtime_contract.py,QA_DIRECT_FIX,QA-6F,User approval required before Git write; delivered as Root Overlay only.

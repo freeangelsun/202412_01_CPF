@@ -30,6 +30,7 @@ import type {
 } from 'vue';
 
 import type {
+  AdmReliabilityActionRequest,
   CpfControllerSourceResponse
 } from './model';
 
@@ -13483,8 +13484,8 @@ export const admMessageDeleteMessage = async (messageId: string, options?: Param
 
 
 export const getAdmMessageDeleteMessageMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof admMessageDeleteMessage>>, TError,{messageId: string}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest>}
-): UseMutationOptions<Awaited<ReturnType<typeof admMessageDeleteMessage>>, TError,{messageId: string}, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof admMessageDeleteMessage>>, TError,{messageId: string; data: AdmReliabilityActionRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest>}
+): UseMutationOptions<Awaited<ReturnType<typeof admMessageDeleteMessage>>, TError,{messageId: string; data: AdmReliabilityActionRequest}, TContext> => {
 
 const mutationKey = ['admMessageDeleteMessage'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
@@ -13518,7 +13519,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
  , queryClient?: QueryClient): UseMutationReturnType<
         Awaited<ReturnType<typeof admMessageDeleteMessage>>,
         TError,
-        {messageId: string},
+        {messageId: string; data: AdmReliabilityActionRequest},
         TContext
       > => {
       return useMutation(getAdmMessageDeleteMessageMutationOptions(options), queryClient);
@@ -18659,14 +18660,16 @@ export const getRequestAdmBrokerDlqReplayUrl = (messageId: string,) => {
   return `/adm/api/reliability/broker/dlq/${messageId}/replay`
 }
 
-export const requestAdmBrokerDlqReplay = async (messageId: string, options?: Parameters<typeof cpfOrvalRequest>[1]): Promise<requestAdmBrokerDlqReplayResponse> => {
+export const requestAdmBrokerDlqReplay = async (messageId: string,
+    admReliabilityActionRequest: AdmReliabilityActionRequest,
+    options?: Parameters<typeof cpfOrvalRequest>[1]): Promise<requestAdmBrokerDlqReplayResponse> => {
 
   return cpfOrvalRequest<requestAdmBrokerDlqReplayResponse>(getRequestAdmBrokerDlqReplayUrl(messageId),
   {
     ...options,
-    method: 'POST'
-
-
+    method: 'POST',
+    headers: {'Content-Type': 'application/json', ...options?.headers},
+    data: admReliabilityActionRequest
   }
 );}
 
@@ -18688,10 +18691,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof requestAdmBrokerDlqReplay>>, {messageId: string}> = (props) => {
-          const {messageId} = props ?? {};
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof requestAdmBrokerDlqReplay>>, {messageId: string; data: AdmReliabilityActionRequest}> = (props) => {
+          const {messageId, data} = props ?? {};
 
-          return  requestAdmBrokerDlqReplay(messageId,requestOptions)
+          return  requestAdmBrokerDlqReplay(messageId,data,requestOptions)
         }
 
 

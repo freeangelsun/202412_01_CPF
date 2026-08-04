@@ -29,6 +29,7 @@ public class CpfTcpProperties {
     private String trustStorePassword;
     private int maxPending = 10_000;
     private int maxOrphans = 1_000;
+    private int maxUnknownResults = 10_000;
     private Duration reconnectInitial = Duration.ofMillis(200);
     private Duration reconnectMax = Duration.ofSeconds(30);
     private double reconnectJitter = 0.2;
@@ -73,6 +74,8 @@ public class CpfTcpProperties {
     public void setMaxPending(int value) { maxPending = value; }
     public int getMaxOrphans() { return maxOrphans; }
     public void setMaxOrphans(int value) { maxOrphans = value; }
+    public int getMaxUnknownResults() { return maxUnknownResults; }
+    public void setMaxUnknownResults(int value) { maxUnknownResults = value; }
     public Duration getReconnectInitial() { return reconnectInitial; }
     public void setReconnectInitial(Duration value) { reconnectInitial = value; }
     public Duration getReconnectMax() { return reconnectMax; }
@@ -94,8 +97,20 @@ public class CpfTcpProperties {
         if (tls && (keyStore == null || trustStore == null || keyStorePassword == null || trustStorePassword == null)) {
             throw new IllegalStateException("TLS requires key-store/trust-store and secret references");
         }
-        if (maxPending < 1 || maxOrphans < 1) throw new IllegalStateException("invalid correlation limits");
+        if (maxPending < 1 || maxOrphans < 1 || maxUnknownResults < 1) {
+            throw new IllegalStateException("invalid TCP tracking limits");
+        }
+        validateTimeout(connectTimeout, "connect-timeout");
+        validateTimeout(responseTimeout, "response-timeout");
+        validateTimeout(idleTimeout, "idle-timeout");
         new CpfTcpReconnectPolicy(reconnectInitial, reconnectMax, reconnectJitter);
         resolvedCharset();
+    }
+
+    private static void validateTimeout(Duration timeout, String name) {
+        if (timeout == null || timeout.isZero() || timeout.isNegative()
+                || timeout.toMillis() > Integer.MAX_VALUE) {
+            throw new IllegalStateException(name + " must be between 1ms and " + Integer.MAX_VALUE + "ms");
+        }
     }
 }

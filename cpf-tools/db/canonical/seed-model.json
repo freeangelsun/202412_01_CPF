@@ -35,7 +35,7 @@
     },
     "source": "cpf-tools/db/canonical/seed-model.json"
   },
-  "statementCount": 153,
+  "statementCount": 156,
   "statements": [
     {
       "sourceFile": "50_framework_seed_data.sql",

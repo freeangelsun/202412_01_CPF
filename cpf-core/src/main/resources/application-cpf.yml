@@ -129,8 +129,12 @@ cpf:
       # 일반 파일명은 cpf-{moduleCode}-{logType}-{instanceId}.{date}.log 규칙을 사용합니다.
       # 온라인 거래 파일은 transactions/{businessDate}/{transactionId}_{businessDate}.log 규칙을 사용합니다.
       base-path: ${CPF_LOG_ROOT:}
+      directory-permissions: ${CPF_LOG_DIRECTORY_PERMISSIONS:rwxr-x---}
+      file-permissions: ${CPF_LOG_FILE_PERMISSIONS:rw-r-----}
+      allow-world-access: ${CPF_LOG_ALLOW_WORLD_ACCESS:false}
       timezone: ${CPF_LOG_TIMEZONE:Asia/Seoul}
       max-history-days: ${CPF_LOG_MAX_HISTORY_DAYS:30}
+      retention-check-interval-ms: ${CPF_LOG_RETENTION_CHECK_INTERVAL_MS:60000}
       total-size-cap: ${CPF_LOG_TOTAL_SIZE_CAP:2GB}
       archive-compress-enabled: ${CPF_LOG_ARCHIVE_COMPRESS_ENABLED:true}
       initialization-fail-fast: ${CPF_LOG_INIT_FAIL_FAST:false}

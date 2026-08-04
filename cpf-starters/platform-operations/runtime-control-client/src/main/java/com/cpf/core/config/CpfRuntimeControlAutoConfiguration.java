@@ -9,6 +9,7 @@ import com.cpf.core.common.reconciliation.CpfReconciliationProbePort;
 import com.cpf.core.common.reconciliation.CpfReconciliationRuntimePolicy;
 import com.cpf.core.common.reconciliation.CpfReconciliationWorkPort;
 import com.cpf.core.common.reconciliation.CpfReconciliationWorker;
+import com.cpf.core.common.runtimecontrol.CpfRuntimeApplyGuard;
 import com.cpf.core.common.runtimecontrol.CpfRuntimeControlAgent;
 import com.cpf.core.common.runtimecontrol.CpfRuntimeControlPlaneRepository;
 import com.cpf.core.common.runtimecontrol.CpfRuntimeControlPlaneService;
@@ -21,8 +22,11 @@ import java.nio.file.Path;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -67,13 +71,25 @@ public class CpfRuntimeControlAutoConfiguration {
             @Value("${cpf.runtime.control.controller-id:${cpf.runtime.instance-id:${cpf.framework.was-id:CPF-CONTROLLER}}}")
                     String controllerId,
             @Value("${cpf.runtime.control.controller.lease-seconds:30}") int leaseSeconds,
-            @Value("${cpf.runtime.control.controller.ack-timeout-seconds:60}") int ackTimeoutSeconds) {
+            @Value("${cpf.runtime.control.controller.ack-timeout-seconds:60}") int ackTimeoutSeconds,
+            @Value("${cpf.runtime.control.controller.auto-rollback-allowlist:}") String autoRollbackAllowlist,
+            @Value("${cpf.runtime.control.controller.auto-rollback-max-attempts:3}") int autoRollbackMaxAttempts,
+            @Value("${cpf.runtime.control.controller.auto-rollback-max-per-run:1}") int autoRollbackMaxPerRun,
+            @Value("${cpf.runtime.control.controller.auto-rollback-circuit-failure-threshold:3}")
+                    int autoRollbackCircuitFailureThreshold,
+            @Value("${cpf.runtime.control.controller.auto-rollback-circuit-open-millis:30000}")
+                    long autoRollbackCircuitOpenMillis) {
         return new CpfRuntimeControlReconciler(
                 repository,
                 controlPlane,
                 controllerId,
                 leaseSeconds,
-                ackTimeoutSeconds);
+                ackTimeoutSeconds,
+                csvSet(autoRollbackAllowlist),
+                autoRollbackMaxAttempts,
+                autoRollbackMaxPerRun,
+                autoRollbackCircuitFailureThreshold,
+                autoRollbackCircuitOpenMillis);
     }
 
     @Bean
@@ -162,7 +178,17 @@ public class CpfRuntimeControlAutoConfiguration {
                     String registrationSource,
             @Value("${cpf.runtime.schema-version:unknown}") String schemaVersion,
             @Value("${cpf.runtime.config-hash:unknown}") String configHash,
-            @Value("${cpf.runtime.control.agent.lease-seconds:60}") int leaseSeconds) {
+            @Value("${cpf.runtime.control.agent.lease-seconds:60}") int leaseSeconds,
+            @Value("${cpf.runtime.control.agent.apply-timeout-millis:30000}") long applyTimeoutMillis,
+            @Value("${cpf.runtime.control.agent.apply-max-attempts:3}") int applyMaxAttempts,
+            @Value("${cpf.runtime.control.agent.apply-initial-backoff-millis:200}") long applyInitialBackoffMillis,
+            @Value("${cpf.runtime.control.agent.apply-max-backoff-millis:2000}") long applyMaxBackoffMillis,
+            @Value("${cpf.runtime.control.agent.apply-jitter-percent:20}") int applyJitterPercent,
+            @Value("${cpf.runtime.control.agent.apply-max-concurrency:1}") int applyMaxConcurrency,
+            @Value("${cpf.runtime.control.agent.apply-circuit-failure-threshold:3}")
+                    int applyCircuitFailureThreshold,
+            @Value("${cpf.runtime.control.agent.apply-circuit-open-millis:30000}")
+                    long applyCircuitOpenMillis) {
         requireText(
                 instanceId,
                 "Runtime Agent enabled=true이면 instance-id/service-id/endpoint-code/base-url이 모두 필요합니다.");
@@ -197,7 +223,21 @@ public class CpfRuntimeControlAutoConfiguration {
                 Map.of(),
                 Instant.now(clock),
                 leaseSeconds);
-        return new CpfRuntimeControlAgent(controlPlane, registration, orderedAppliers, inbox);
+        CpfRuntimeApplyGuard.Policy applyPolicy = new CpfRuntimeApplyGuard.Policy(
+                applyTimeoutMillis,
+                applyMaxAttempts,
+                applyInitialBackoffMillis,
+                applyMaxBackoffMillis,
+                applyJitterPercent,
+                applyMaxConcurrency,
+                applyCircuitFailureThreshold,
+                applyCircuitOpenMillis);
+        return new CpfRuntimeControlAgent(
+                controlPlane,
+                registration,
+                orderedAppliers,
+                inbox,
+                new CpfRuntimeApplyGuard(applyPolicy));
     }
 
     private static Map<String, String> capabilityManifest(
@@ -247,4 +287,17 @@ public class CpfRuntimeControlAutoConfiguration {
             name = "enabled",
             havingValue = "true")
     static class AgentSchedulingConfiguration {}
+
+    private static Set<String> csvSet(String value) {
+        if (value == null || value.isBlank()) {
+            return Set.of();
+        }
+        LinkedHashSet<String> result = new LinkedHashSet<>();
+        for (String entry : value.split(",")) {
+            if (entry != null && !entry.isBlank()) {
+                result.add(entry.trim().toUpperCase(Locale.ROOT));
+            }
+        }
+        return Set.copyOf(result);
+    }
 }

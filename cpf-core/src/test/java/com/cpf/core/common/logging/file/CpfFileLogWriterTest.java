@@ -6,16 +6,20 @@ import org.springframework.mock.env.MockEnvironment;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.PosixFileAttributeView;
+import java.nio.file.attribute.PosixFilePermission;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Set;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 class CpfFileLogWriterTest {
 
@@ -179,6 +183,85 @@ class CpfFileLogWriterTest {
         assertThat(Files.readString(firstDayLog))
                 .contains("FIRST_DAY")
                 .contains("LATE_FIRST_DAY");
+    }
+
+
+    @Test
+    void totalSizeCapIsRecheckedForLaterWritesOnTheSameDay() throws Exception {
+        MockEnvironment environment = new MockEnvironment()
+                .withProperty("cpf.logging.file.base-path", tempDir.toString())
+                .withProperty("cpf.logging.file.timezone", "Asia/Seoul")
+                .withProperty("cpf.logging.file.archive-compress-enabled", "false")
+                .withProperty("cpf.logging.file.retention-check-interval-ms", "0")
+                .withProperty("cpf.logging.file.total-size-cap", "700B")
+                .withProperty("cpf.framework.module-id", "REF");
+        CpfFileLogWriter writer = new CpfFileLogWriter(
+                environment,
+                Clock.fixed(Instant.parse("2026-07-13T10:00:00Z"), ZoneId.of("Asia/Seoul")));
+
+        writer.writeEvent("REF", "application", Map.of("eventType", "FIRST", "payload", "A".repeat(420)));
+        Path firstLog = singleLogFile(instanceRoot("ref").resolve("application"), "*.2026-07-13.log");
+        writer.writeEvent("REF", "audit", Map.of("eventType", "SECOND", "payload", "B".repeat(420)));
+
+        long totalBytes;
+        try (var stream = Files.walk(tempDir)) {
+            totalBytes = stream.filter(Files::isRegularFile)
+                    .filter(path -> path.getFileName().toString().matches(".*\\.log(?:\\.gz)?$"))
+                    .mapToLong(path -> {
+                        try {
+                            return Files.size(path);
+                        } catch (java.io.IOException ex) {
+                            throw new java.io.UncheckedIOException(ex);
+                        }
+                    })
+                    .sum();
+        }
+        assertThat(totalBytes).isLessThanOrEqualTo(700L);
+        assertThat(firstLog).doesNotExist();
+    }
+
+
+    @Test
+    void createsLogDirectoriesAndFilesWithSecurePosixPermissions() throws Exception {
+        assumeTrue(Files.getFileAttributeView(tempDir, PosixFileAttributeView.class) != null);
+        MockEnvironment environment = new MockEnvironment()
+                .withProperty("cpf.logging.file.base-path", tempDir.toString())
+                .withProperty("cpf.framework.module-id", "REF")
+                .withProperty("cpf.framework.instance-id", "ref-local-01");
+        CpfFileLogWriter writer = new CpfFileLogWriter(environment);
+
+        writer.writeEvent("REF", "application", Map.of("eventType", "PERMISSION_CHECK"));
+
+        Path logFile = singleLogFile(instanceRoot("ref").resolve("application"), "*.log");
+        Set<PosixFilePermission> rootPermissions = Files.getPosixFilePermissions(writer.logRoot());
+        Set<PosixFilePermission> directoryPermissions = Files.getPosixFilePermissions(logFile.getParent());
+        Set<PosixFilePermission> filePermissions = Files.getPosixFilePermissions(logFile);
+
+        assertThat(rootPermissions).containsExactlyInAnyOrder(
+                PosixFilePermission.OWNER_READ,
+                PosixFilePermission.OWNER_WRITE,
+                PosixFilePermission.OWNER_EXECUTE,
+                PosixFilePermission.GROUP_READ,
+                PosixFilePermission.GROUP_EXECUTE);
+        assertThat(directoryPermissions).isEqualTo(rootPermissions);
+        assertThat(filePermissions).containsExactlyInAnyOrder(
+                PosixFilePermission.OWNER_READ,
+                PosixFilePermission.OWNER_WRITE,
+                PosixFilePermission.GROUP_READ);
+    }
+
+    @Test
+    void rejectsWorldReadableLogPermissionsByDefault() throws Exception {
+        assumeTrue(Files.getFileAttributeView(tempDir, PosixFileAttributeView.class) != null);
+        MockEnvironment environment = new MockEnvironment()
+                .withProperty("cpf.logging.file.base-path", tempDir.toString())
+                .withProperty("cpf.logging.file.file-permissions", "rw-r--r--")
+                .withProperty("cpf.logging.file.initialization-fail-fast", "true")
+                .withProperty("cpf.framework.module-id", "ADM");
+
+        assertThatIllegalStateException()
+                .isThrownBy(() -> new CpfFileLogWriter(environment))
+                .withMessageContaining("로그 root 초기화");
     }
 
     @Test

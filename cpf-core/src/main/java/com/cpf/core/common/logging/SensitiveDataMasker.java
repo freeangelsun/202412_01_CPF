@@ -56,23 +56,24 @@ public final class SensitiveDataMasker {
         }
 
         String masked = value;
+        if (policy.maskBearerToken()) {
+            masked = policy.bearerPattern().matcher(masked).replaceAll("$1***");
+        }
         for (Pattern pattern : policy.jsonPatterns()) {
             masked = pattern.matcher(masked).replaceAll("$1***$2");
         }
         for (Pattern pattern : policy.keyValuePatterns()) {
             masked = pattern.matcher(masked).replaceAll("$1***");
         }
-        if (policy.maskBearerToken()) {
-            masked = policy.bearerPattern().matcher(masked).replaceAll("$1***");
-        }
         return truncate(masked, normalizeMaxLength(maxLength));
     }
 
     public static String truncate(String value, int maxLength) {
-        if (value == null || value.length() <= maxLength) {
+        int normalizedMaxLength = normalizeMaxLength(maxLength);
+        if (value == null || value.length() <= normalizedMaxLength) {
             return value;
         }
-        return value.substring(0, maxLength) + "...(truncated)";
+        return value.substring(0, normalizedMaxLength) + "...(truncated)";
     }
 
     private static int normalizeMaxLength(int value) {

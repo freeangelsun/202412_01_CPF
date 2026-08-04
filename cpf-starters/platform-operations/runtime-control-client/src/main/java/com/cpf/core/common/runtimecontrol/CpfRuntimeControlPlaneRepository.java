@@ -7,6 +7,7 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.PreparedStatement;
 import java.sql.Timestamp;
@@ -657,6 +658,7 @@ public class CpfRuntimeControlPlaneRepository {
         return 0L;
     }
 
+    @Transactional(transactionManager = "cpfTransactionManager")
     public void reconcileController(String holderId, long fencingToken, int ackTimeoutSeconds) {
         assertControllerFence(holderId, fencingToken);
         reconcileTemporalChanges();
@@ -719,9 +721,42 @@ public class CpfRuntimeControlPlaneRepository {
 
     List<Map<String,Object>> autoRollbackCandidates() {
         return jdbc.queryForList(
-                "SELECT change_id,change_state FROM cpf_runtime_change " +
+                "SELECT change_id,change_state,change_type,approval_id,break_glass_id " +
+                        "FROM cpf_runtime_change " +
                         "WHERE change_state IN ('FAILED','EXPIRED') " +
-                        "AND rollback_payload_json IS NOT NULL");
+                        "AND rollback_payload_json IS NOT NULL ORDER BY created_at,change_id");
+    }
+
+    int autoRollbackEventCount(String changeId, String eventType) {
+        Integer value = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM cpf_runtime_change_audit " +
+                        "WHERE change_id=? AND event_type=?",
+                Integer.class,
+                changeId,
+                eventType);
+        return value == null ? 0 : value;
+    }
+
+    int recentAutoRollbackFailureCount(String changeType, Instant since) {
+        Integer value = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM cpf_runtime_change_audit audit " +
+                        "JOIN cpf_runtime_change change_row ON change_row.change_id=audit.change_id " +
+                        "WHERE change_row.change_type=? AND audit.event_type='AUTO_ROLLBACK_FAILED' " +
+                        "AND audit.created_at>=?",
+                Integer.class,
+                changeType,
+                ts(since));
+        return value == null ? 0 : value;
+    }
+
+    @Transactional(transactionManager = "cpfTransactionManager")
+    public void appendAutoRollbackAudit(
+            String changeId,
+            String eventType,
+            String actor,
+            String reason,
+            String evidenceHash) {
+        appendAudit(changeId, eventType, actor, reason, evidenceHash);
     }
 
     private void assertControllerFence(String holderId, long fencingToken) {

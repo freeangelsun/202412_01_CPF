@@ -23,6 +23,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.when;
 
 class JdbcCpfBrokerReliabilityRepositoryTest {
@@ -95,6 +96,8 @@ class JdbcCpfBrokerReliabilityRepositoryTest {
     @Test
     void replayMarksDlqAsRequested() {
         JdbcTemplate jdbcTemplate = mock(JdbcTemplate.class);
+        when(jdbcTemplate.queryForObject(anyString(), eq(Integer.class), eq("msg-004")))
+                .thenReturn(1);
         when(jdbcTemplate.update(anyString(), eq("msg-004"))).thenReturn(1);
         JdbcCpfBrokerReliabilityRepository repository = new JdbcCpfBrokerReliabilityRepository(jdbcTemplate);
 
@@ -104,6 +107,32 @@ class JdbcCpfBrokerReliabilityRepositoryTest {
         verify(jdbcTemplate, org.mockito.Mockito.times(3)).update(anyString(), eq("msg-004"));
     }
 
+
+    @Test
+    void replayRejectsMissingOutboxBeforeAnyMutation() {
+        JdbcTemplate jdbcTemplate = mock(JdbcTemplate.class);
+        when(jdbcTemplate.queryForObject(anyString(), eq(Integer.class), eq("msg-missing")))
+                .thenReturn(0);
+        JdbcCpfBrokerReliabilityRepository repository = new JdbcCpfBrokerReliabilityRepository(jdbcTemplate);
+
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> repository.replay("msg-missing"))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("outbox");
+
+        verify(jdbcTemplate, never()).update(anyString(), eq("msg-missing"));
+    }
+
+    @Test
+    void replayMethodsDeclareTransactionBoundary() throws Exception {
+        assertThat(JdbcCpfBrokerReliabilityRepository.class
+                .getMethod("replay", String.class)
+                .isAnnotationPresent(org.springframework.transaction.annotation.Transactional.class))
+                .isTrue();
+        assertThat(JdbcCpfBrokerReliabilityRepository.class
+                .getMethod("replayRange", String.class, Instant.class, Instant.class, int.class)
+                .isAnnotationPresent(org.springframework.transaction.annotation.Transactional.class))
+                .isTrue();
+    }
     private Map<String, Object> claimedOutboxRow() {
         Map<String, Object> row = new LinkedHashMap<>();
         row.put("messageId", "msg-002");

@@ -89,13 +89,14 @@ public class CpfRuntimeControlPlaneService implements CpfRuntimeControlPlane {
         Map<String,Object> row=repository.findChange("change_id",changeId).orElseThrow();
         String rollbackJson=row.get("rollback_payload_json")==null?null:String.valueOf(row.get("rollback_payload_json"));
         if(rollbackJson==null||rollbackJson.isBlank()) throw new IllegalStateException("Rollback snapshot이 없는 Change입니다. changeId="+changeId);
-        repository.markRollbackPending(changeId,require(operatorId,"operatorId"),require(reason,"reason"));
         List<String> targets=repository.acknowledgedTargets(changeId);
         if(targets.isEmpty()) throw new IllegalStateException("실제로 ACKED된 대상이 없어 Rollback할 내용이 없습니다. changeId="+changeId);
+        repository.markRollbackPending(changeId,require(operatorId,"operatorId"),require(reason,"reason"));
         CpfRuntimeChangeCommand rollback=new CpfRuntimeChangeCommand(operationId,"ROLLBACK:"+original.changeType(),
                 original.changeType()==null?1:((Number)row.getOrDefault("payload_schema_version",1)).intValue(),
                 new com.cpf.core.api.runtimecontrol.CpfRuntimeTargetSelector(null,null,null,targets,List.of(),Map.of(),null,null,true,true,false),
-                CpfRuntimePayload.parse(rollbackJson),null,"ALL_AT_ONCE",1,100,null,null,reason,null,null,operatorId);
+                CpfRuntimePayload.parse(rollbackJson),null,"ALL_AT_ONCE",1,100,null,null,reason,
+                nullableString(row.get("approval_id")),nullableString(row.get("break_glass_id")),operatorId);
         return createChange(rollback);
     }
 

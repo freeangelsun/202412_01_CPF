@@ -71,24 +71,57 @@ function Invoke-Psql($t,[string]$Sql) {
         }
     } finally { $env:PGPASSWORD=$old; Remove-Item $tmp -Force -ErrorAction SilentlyContinue }
 }
-function Invoke-SqlPlus($t,[string]$Sql) {
+function Protect-CpfSecretText([string]$Text,[string[]]$Secrets) {
+    if($null -eq $Text){return ''}
+    $safe=$Text
+    foreach($secret in @($Secrets)){
+        if(-not [string]::IsNullOrWhiteSpace($secret)){$safe=$safe.Replace($secret,'****')}
+    }
+    return $safe
+}
+function Invoke-SqlPlusText($t,[string]$Username,[string]$Password,[string]$Sql,[switch]$Verify) {
     $client=if([string]::IsNullOrWhiteSpace($t.clientPath)){'sqlplus'}else{$t.clientPath}
-    $tmp=[IO.Path]::GetTempFileName()+'.sql'; try {
-        $schema=""; if(-not [string]::IsNullOrWhiteSpace($t.schemaName)){ $schema="ALTER SESSION SET CURRENT_SCHEMA = $($t.schemaName);`n" }
-        $outputContract=if($Mode -eq 'verify'){
-            "SET HEADING OFF`nSET FEEDBACK OFF`nSET PAGESIZE 0`nSET TRIMSPOOL ON`nSET COLSEP |`n"
-        }else{''}
-        [IO.File]::WriteAllText($tmp,"WHENEVER SQLERROR EXIT SQL.SQLCODE`n"+$outputContract+$schema+$Sql+"`nEXIT`n",[Text.UTF8Encoding]::new($false))
-        $connect=$t.migrationUsername+'/"'+$t.migrationPassword.Replace('"','""')+'"@//'+$t.host+':'+$t.port+'/'+$t.databaseName
-        if($Mode -eq 'verify'){
-            $verifyOutput=@(& $client -L -S $connect "@$tmp" 2>&1)
-            if($LASTEXITCODE -ne 0){throw "sqlplus failed module=$($t.moduleKey) exit=$LASTEXITCODE"}
-            Assert-VerifyOutput $verifyOutput $t.moduleKey
-        }else{
-            & $client -L -S $connect "@$tmp"
-            if($LASTEXITCODE -ne 0){throw "sqlplus failed module=$($t.moduleKey) exit=$LASTEXITCODE"}
-        }
-    } finally { Remove-Item $tmp -Force -ErrorAction SilentlyContinue }
+    $passwordLiteral=$Password.Replace('"','""')
+    $connect='CONNECT '+$Username+'/"'+$passwordLiteral+'"@//'+$t.host+':'+$t.port+'/'+$t.databaseName
+    $script="WHENEVER SQLERROR EXIT SQL.SQLCODE`n"+$connect+"`n"+$Sql+"`nEXIT`n"
+
+    $psi=[Diagnostics.ProcessStartInfo]::new()
+    $psi.FileName=$client
+    $psi.UseShellExecute=$false
+    $psi.RedirectStandardInput=$true
+    $psi.RedirectStandardOutput=$true
+    $psi.RedirectStandardError=$true
+    $psi.CreateNoWindow=$true
+    $psi.StandardInputEncoding=[Text.Encoding]::UTF8
+    $psi.StandardOutputEncoding=[Text.Encoding]::UTF8
+    $psi.StandardErrorEncoding=[Text.Encoding]::UTF8
+    foreach($argument in @('-L','-S','/nolog')){[void]$psi.ArgumentList.Add($argument)}
+
+    $process=[Diagnostics.Process]::new()
+    $process.StartInfo=$psi
+    [void]$process.Start()
+    $stdoutTask=$process.StandardOutput.ReadToEndAsync()
+    $stderrTask=$process.StandardError.ReadToEndAsync()
+    try{$process.StandardInput.Write($script)}finally{$process.StandardInput.Close()}
+    $process.WaitForExit()
+    $stdout=$stdoutTask.GetAwaiter().GetResult()
+    $stderr=$stderrTask.GetAwaiter().GetResult()
+    if($process.ExitCode -ne 0){
+        $safe=Protect-CpfSecretText (($stderr+"`n"+$stdout).Trim()) @($Password)
+        throw "sqlplus failed module=$($t.moduleKey) exit=$($process.ExitCode) error=$safe"
+    }
+    if($Verify){
+        Assert-VerifyOutput @($stdout -split '\r?\n') $t.moduleKey
+    } elseif(-not [string]::IsNullOrWhiteSpace($stdout)) {
+        Write-Host (Protect-CpfSecretText $stdout @($Password))
+    }
+}
+function Invoke-SqlPlus($t,[string]$Sql) {
+    $schema=""; if(-not [string]::IsNullOrWhiteSpace($t.schemaName)){ $schema="ALTER SESSION SET CURRENT_SCHEMA = $($t.schemaName);`n" }
+    $outputContract=if($Mode -eq 'verify'){
+        "SET HEADING OFF`nSET FEEDBACK OFF`nSET PAGESIZE 0`nSET TRIMSPOOL ON`nSET COLSEP |`n"
+    }else{''}
+    Invoke-SqlPlusText $t $t.migrationUsername $t.migrationPassword ($outputContract+$schema+$Sql) -Verify:($Mode -eq 'verify')
 }
 $targets=@($profile.modules.PSObject.Properties | ForEach-Object { ConvertTo-CpfModuleProfile $profile $_.Name } | Where-Object { $_.enabled -and $_.vendor -eq $Vendor })
 if($Modules.Count -gt 0){$targets=@($targets | Where-Object {$_.moduleKey -in $Modules})}
@@ -121,13 +154,10 @@ GRANT USAGE ON SCHEMA "$schema" TO "$run";
     } finally {$env:PGPASSWORD=$old;Remove-Item $tmp -Force -ErrorAction SilentlyContinue}
 }
 function Provision-Oracle($t) {
-    $client=if([string]::IsNullOrWhiteSpace($t.clientPath)){'sqlplus'}else{$t.clientPath};$tmp=[IO.Path]::GetTempFileName()+'.sql'
-    try {
-        $mig=$t.migrationUsername.ToUpperInvariant();$run=$t.runtimeUsername.ToUpperInvariant()
-        $mp=$t.migrationPassword.Replace('"','""').Replace("'","''")
-        $rp=$t.runtimePassword.Replace('"','""').Replace("'","''")
-        $script=@"
-WHENEVER SQLERROR EXIT SQL.SQLCODE
+    $mig=$t.migrationUsername.ToUpperInvariant();$run=$t.runtimeUsername.ToUpperInvariant()
+    $mp=$t.migrationPassword.Replace('"','""').Replace("'","''")
+    $rp=$t.runtimePassword.Replace('"','""').Replace("'","''")
+    $script=@"
 DECLARE
     c NUMBER;
 BEGIN
@@ -149,11 +179,8 @@ BEGIN
 END;
 /
 GRANT CREATE SESSION TO $run;
-EXIT
 "@
-        [IO.File]::WriteAllText($tmp,$script,[Text.UTF8Encoding]::new($false));$connect=$t.adminUsername+'/"'+$t.adminPassword.Replace('"','""')+'"@//'+$t.host+':'+$t.port+'/'+$t.databaseName
-        & $client -L -S $connect "@$tmp";if($LASTEXITCODE -ne 0){throw "Oracle provision failed module=$($t.moduleKey) exit=$LASTEXITCODE"}
-    } finally {Remove-Item $tmp -Force -ErrorAction SilentlyContinue}
+    Invoke-SqlPlusText $t $t.adminUsername $t.adminPassword $script
 }
 function Grant-Runtime($t) {
     if($Vendor -eq 'postgresql'){

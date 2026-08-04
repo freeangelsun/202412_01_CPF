@@ -25,6 +25,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.PosixFileAttributeView;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -62,7 +65,7 @@ public class CpfFileLogWriter {
     private final CpfLogPathPolicy pathPolicy;
     private final ObjectMapper objectMapper;
     private final Map<Path, Object> fileLocks = new ConcurrentHashMap<>();
-    private final Set<String> retentionChecked = ConcurrentHashMap.newKeySet();
+    private final Map<String, Long> nextRetentionCheckEpochMillis = new ConcurrentHashMap<>();
 
     @Autowired
     public CpfFileLogWriter(Environment environment) {
@@ -255,8 +258,9 @@ public class CpfFileLogWriter {
         }
         try {
             Path root = logRoot();
-            Files.createDirectories(root);
+            createDirectoriesWithSecurePermissions(root);
             Path probe = Files.createTempFile(root, ".cpf-log-write-probe-", ".tmp");
+            applyFilePermissions(probe);
             Files.deleteIfExists(probe);
             if (!Files.isDirectory(root) || !Files.isWritable(root)) {
                 throw new IOException("로그 디렉터리에 쓸 수 없습니다: " + root);
@@ -332,7 +336,7 @@ public class CpfFileLogWriter {
 
     private void appendToPath(Path logPath, Map<String, Object> event) {
         try {
-            Files.createDirectories(logPath.getParent());
+            createDirectoriesWithSecurePermissions(logPath.getParent());
             Object lock = fileLocks.computeIfAbsent(logPath, ignored -> new Object());
             synchronized (lock) {
                 restoreCompressedLog(logPath);
@@ -342,6 +346,7 @@ public class CpfFileLogWriter {
                         StandardCharsets.UTF_8,
                         StandardOpenOption.CREATE,
                         StandardOpenOption.APPEND);
+                applyFilePermissions(logPath);
                 applyRetentionOnce(logPath);
             }
         } catch (IOException ex) {
@@ -354,13 +359,64 @@ public class CpfFileLogWriter {
         return pathPolicy.generalLogPath(moduleCode, normalizeLogType(logType), currentLogDate());
     }
 
-    private void applyRetentionOnce(Path activeLogPath) throws IOException {
-        int maxHistoryDays = Math.max(1,
-                environment.getProperty("cpf.logging.file.max-history-days", Integer.class, 30));
-        String key = pathPolicy.instanceRoot() + "|" + currentLogDate();
-        if (!retentionChecked.add(key) || !Files.isDirectory(logRoot())) {
+    private void createDirectoriesWithSecurePermissions(Path directory) throws IOException {
+        Files.createDirectories(directory);
+        Path root = logRoot().toAbsolutePath().normalize();
+        Path target = directory.toAbsolutePath().normalize();
+        if (!target.startsWith(root)) {
+            throw new IOException("로그 디렉터리가 CPF_LOG_ROOT를 벗어났습니다: " + target);
+        }
+        applyDirectoryPermissions(root);
+        Path current = root;
+        for (Path part : root.relativize(target)) {
+            current = current.resolve(part);
+            applyDirectoryPermissions(current);
+        }
+    }
+
+    private void applyDirectoryPermissions(Path directory) throws IOException {
+        applyPosixPermissions(
+                directory,
+                environment.getProperty("cpf.logging.file.directory-permissions", "rwxr-x---"),
+                true);
+    }
+
+    private void applyFilePermissions(Path file) throws IOException {
+        applyPosixPermissions(
+                file,
+                environment.getProperty("cpf.logging.file.file-permissions", "rw-r-----"),
+                false);
+    }
+
+    private void applyPosixPermissions(Path path, String configured, boolean directory) throws IOException {
+        PosixFileAttributeView view = Files.getFileAttributeView(path, PosixFileAttributeView.class);
+        if (view == null) {
             return;
         }
+        final Set<PosixFilePermission> permissions;
+        try {
+            permissions = PosixFilePermissions.fromString(configured);
+        } catch (IllegalArgumentException ex) {
+            throw new IOException("잘못된 로그 " + (directory ? "디렉터리" : "파일")
+                    + " 권한 설정입니다: " + configured, ex);
+        }
+        boolean worldAccess = permissions.contains(PosixFilePermission.OTHERS_READ)
+                || permissions.contains(PosixFilePermission.OTHERS_WRITE)
+                || permissions.contains(PosixFilePermission.OTHERS_EXECUTE);
+        boolean allowWorldAccess = environment.getProperty(
+                "cpf.logging.file.allow-world-access", Boolean.class, false);
+        if (worldAccess && !allowWorldAccess) {
+            throw new IOException("로그 권한에 others 접근을 허용할 수 없습니다: " + configured);
+        }
+        view.setPermissions(permissions);
+    }
+
+    private void applyRetentionOnce(Path activeLogPath) throws IOException {
+        if (!Files.isDirectory(logRoot()) || !shouldRunRetention()) {
+            return;
+        }
+        int maxHistoryDays = Math.max(1,
+                environment.getProperty("cpf.logging.file.max-history-days", Integer.class, 30));
         Instant cutoff = currentLogDate()
                 .minusDays(maxHistoryDays)
                 .atStartOfDay(logZoneId)
@@ -384,6 +440,19 @@ public class CpfFileLogWriter {
             }
         }
         applyTotalSizeCap(activeLogPath);
+    }
+
+    private synchronized boolean shouldRunRetention() {
+        long intervalMs = Math.max(0L,
+                environment.getProperty("cpf.logging.file.retention-check-interval-ms", Long.class, 60_000L));
+        String key = pathPolicy.instanceRoot() + "|" + currentLogDate();
+        long now = clock.millis();
+        Long nextCheck = nextRetentionCheckEpochMillis.get(key);
+        if (nextCheck != null && now < nextCheck) {
+            return false;
+        }
+        nextRetentionCheckEpochMillis.put(key, now + intervalMs);
+        return true;
     }
 
     private boolean archiveCompressionEnabled() {
@@ -506,6 +575,7 @@ public class CpfFileLogWriter {
                 }
             }
             Files.move(restorePath, logPath, StandardCopyOption.REPLACE_EXISTING);
+            applyFilePermissions(logPath);
             Files.deleteIfExists(gzipPath);
         } finally {
             Files.deleteIfExists(restorePath);
@@ -525,6 +595,7 @@ public class CpfFileLogWriter {
                 input.transferTo(output);
             }
             Files.move(temporaryPath, gzipPath, StandardCopyOption.REPLACE_EXISTING);
+            applyFilePermissions(gzipPath);
             Files.deleteIfExists(logPath);
         } finally {
             Files.deleteIfExists(temporaryPath);

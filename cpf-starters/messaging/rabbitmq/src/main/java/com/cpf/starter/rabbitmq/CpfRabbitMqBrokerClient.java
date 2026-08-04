@@ -5,6 +5,9 @@ import com.cpf.core.api.broker.CpfBrokerPublishRequest;
 import com.cpf.core.api.broker.CpfBrokerPublishResult;
 import java.time.Clock;
 import java.time.Instant;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -13,8 +16,16 @@ import org.springframework.amqp.core.MessageBuilder;
 import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
-/** RabbitMQ confirms are mapped to explicit PUBLISHED, FAILED, or UNKNOWN outcomes. */
+/**
+ * RabbitMQ confirms are mapped to explicit PUBLISHED, FAILED, or UNKNOWN outcomes.
+ *
+ * <p>CPF transaction and idempotency headers are reserved and validated before publish. The
+ * request content type is preserved instead of being replaced with a generic octet-stream value.</p>
+ */
 public final class CpfRabbitMqBrokerClient implements CpfBrokerClient {
+    private static final Set<String> RESERVED_HEADERS = Set.of(
+            "cpf-transaction-id", "cpf-idempotency-key");
+
     private final RabbitTemplate template;
     private final CpfRabbitMqProperties properties;
     private final Clock clock;
@@ -36,12 +47,13 @@ public final class CpfRabbitMqBrokerClient implements CpfBrokerClient {
         if (request.payload().length > properties.getMaxPayloadBytes()) {
             throw new IllegalArgumentException("RabbitMQ payload exceeds CPF maximum size");
         }
+        Map<String, String> userHeaders = validateUserHeaders(request.headers());
         MessageBuilder builder = MessageBuilder.withBody(request.payload())
                 .setMessageId(request.messageId())
-                .setContentType("application/octet-stream")
+                .setContentType(request.contentType())
                 .setHeader("cpf-transaction-id", request.transactionId())
                 .setHeader("cpf-idempotency-key", request.idempotencyKey());
-        request.headers().forEach(builder::setHeader);
+        userHeaders.forEach(builder::setHeader);
         Message message = builder.build();
         CorrelationData correlation = new CorrelationData(request.messageId());
         try {
@@ -70,6 +82,16 @@ public final class CpfRabbitMqBrokerClient implements CpfBrokerClient {
         } catch (RuntimeException failure) {
             throw unknown("RabbitMQ publish result is unknown", failure);
         }
+    }
+
+    private static Map<String, String> validateUserHeaders(Map<String, String> headers) {
+        for (String name : headers.keySet()) {
+            if (RESERVED_HEADERS.contains(name.toLowerCase(Locale.ROOT))) {
+                throw new IllegalArgumentException(
+                        "RabbitMQ header conflicts with reserved CPF header: " + name);
+            }
+        }
+        return headers;
     }
 
     private CpfBrokerPublishResult result(

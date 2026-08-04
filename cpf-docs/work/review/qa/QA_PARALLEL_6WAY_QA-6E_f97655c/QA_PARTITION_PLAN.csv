@@ -1,0 +1,2 @@
+﻿session,logical_start,logical_end,actual_first_requirement_id,actual_last_requirement_id,requirement_count,scenario_count,work_package_count,qa_pass_count,qa_fail_count,environment_difference_unverified_count,unreviewed_count,baseline_sha,qa_partition_status,product_status,integration_status
+QA-6E,20373,25465,CPF-FR-017453,CPF-FR-009240,5093,7282,122,1060,2524,1509,0,f97655c1299936a1101bc3ec10239265ec3b502e,개별검수 완료,재개발·환경검증 필요,사용자 적용·Push 및 Codex 교차검토 대기

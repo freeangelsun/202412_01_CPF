@@ -5,11 +5,25 @@ import com.cpf.core.api.broker.CpfBrokerPublishRequest;
 import com.cpf.core.api.broker.CpfBrokerPublishResult;
 import java.time.Clock;
 import java.time.Instant;
+import java.util.LinkedHashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 import org.springframework.jms.JmsException;
 import org.springframework.jms.core.JmsTemplate;
 
-/** Provider-neutral JMS Adapter. A transport exception is always treated as UNKNOWN. */
+/**
+ * Provider-neutral JMS Adapter. A transport exception is always treated as UNKNOWN.
+ *
+ * <p>CPF tracking metadata is written through reserved JMS properties. User headers are normalized
+ * and validated before the provider call so they cannot overwrite message identity, idempotency, or
+ * content-type metadata. Different input names that normalize to the same JMS property are rejected
+ * before any broker side effect.</p>
+ */
 public final class CpfJmsBrokerClient implements CpfBrokerClient {
+    private static final Set<String> RESERVED_PROPERTY_NAMES = Set.of(
+            "cpfmessageid", "cpfidempotencykey", "cpfcontenttype");
+
     private final JmsTemplate template;
     private final CpfJmsProperties properties;
     private final Clock clock;
@@ -30,6 +44,7 @@ public final class CpfJmsBrokerClient implements CpfBrokerClient {
         if (request.payload().length > properties.getMaxPayloadBytes()) {
             throw new IllegalArgumentException("JMS payload exceeds CPF maximum size");
         }
+        Map<String, String> userProperties = normalizeUserProperties(request.headers());
         try {
             template.send(properties.getDestination(), session -> {
                 var message = session.createBytesMessage();
@@ -37,8 +52,9 @@ public final class CpfJmsBrokerClient implements CpfBrokerClient {
                 message.setJMSCorrelationID(request.transactionId());
                 message.setStringProperty("cpfMessageId", request.messageId());
                 message.setStringProperty("cpfIdempotencyKey", request.idempotencyKey());
-                for (var header : request.headers().entrySet()) {
-                    message.setStringProperty(safeName(header.getKey()), header.getValue());
+                message.setStringProperty("cpfContentType", request.contentType());
+                for (var header : userProperties.entrySet()) {
+                    message.setStringProperty(header.getKey(), header.getValue());
                 }
                 return message;
             });
@@ -55,6 +71,22 @@ public final class CpfJmsBrokerClient implements CpfBrokerClient {
             throw new IllegalStateException(
                     "JMS publish result is UNKNOWN; reconcile before retrying", failure);
         }
+    }
+
+    private static Map<String, String> normalizeUserProperties(Map<String, String> headers) {
+        Map<String, String> normalized = new LinkedHashMap<>();
+        for (var header : headers.entrySet()) {
+            String propertyName = safeName(header.getKey());
+            if (RESERVED_PROPERTY_NAMES.contains(propertyName.toLowerCase(Locale.ROOT))) {
+                throw new IllegalArgumentException(
+                        "JMS header conflicts with reserved CPF property: " + header.getKey());
+            }
+            if (normalized.putIfAbsent(propertyName, header.getValue()) != null) {
+                throw new IllegalArgumentException(
+                        "JMS headers normalize to the same property: " + propertyName);
+            }
+        }
+        return Map.copyOf(normalized);
     }
 
     private static String safeName(String name) {

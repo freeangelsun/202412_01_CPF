@@ -21,6 +21,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 /** 각 Runtime 프로세스에서 동작하는 durable Control Plane Agent입니다. */
@@ -36,6 +37,7 @@ public class CpfRuntimeControlAgent {
     private final CpfRuntimeInstanceRegistration registration;
     private final Map<String, CpfRuntimeChangeApplier> appliers;
     private final CpfRuntimeInstanceInboxStore inbox;
+    private final CpfRuntimeApplyGuard applyGuard;
     private volatile CpfRuntimeInstanceLease lease;
     private volatile String actualHash;
     private volatile long actualVersion;
@@ -44,9 +46,19 @@ public class CpfRuntimeControlAgent {
                                   CpfRuntimeInstanceRegistration registration,
                                   List<CpfRuntimeChangeApplier> appliers,
                                   CpfRuntimeInstanceInboxStore inbox) {
-        this.controlPlane = controlPlane;
-        this.registration = registration;
-        this.inbox = inbox;
+        this(controlPlane, registration, appliers, inbox, CpfRuntimeApplyGuard.defaults());
+    }
+
+    public CpfRuntimeControlAgent(CpfRuntimeAgentPort controlPlane,
+                                  CpfRuntimeInstanceRegistration registration,
+                                  List<CpfRuntimeChangeApplier> appliers,
+                                  CpfRuntimeInstanceInboxStore inbox,
+                                  CpfRuntimeApplyGuard applyGuard) {
+        this.controlPlane = Objects.requireNonNull(controlPlane, "controlPlane");
+        this.registration = Objects.requireNonNull(registration, "registration");
+        this.inbox = Objects.requireNonNull(inbox, "inbox");
+        this.applyGuard = Objects.requireNonNull(applyGuard, "applyGuard");
+        Objects.requireNonNull(appliers, "appliers");
         LinkedHashMap<String, CpfRuntimeChangeApplier> map = new LinkedHashMap<>();
         for (CpfRuntimeChangeApplier applier : appliers) {
             String type = normalize(applier.changeType());
@@ -84,12 +96,15 @@ public class CpfRuntimeControlAgent {
     @PreDestroy
     public synchronized void stop() {
         CpfRuntimeInstanceLease current = lease;
-        if (current == null) return;
         try {
-            controlPlane.deregister(registration.instanceId(), current.fencingToken(), "APPLICATION_SHUTDOWN");
+            if (current != null) {
+                controlPlane.deregister(registration.instanceId(), current.fencingToken(), "APPLICATION_SHUTDOWN");
+            }
         } catch (RuntimeException ex) {
             log.warn("Runtime Agent graceful deregistration 실패. lease 만료로 복구됩니다. instanceId={}",
                     registration.instanceId(), ex);
+        } finally {
+            applyGuard.close();
         }
     }
 
@@ -121,6 +136,9 @@ public class CpfRuntimeControlAgent {
         String baseType = normalize(delivery.changeType());
         CpfRuntimeChangeApplier applier = appliers.get(baseType);
         CpfRuntimeApplyResult result;
+        var existingJournal = inbox.find(delivery.deliveryId());
+        boolean preservePreparedOnFailure = existingJournal.isPresent()
+                && existingJournal.get().state() == CpfRuntimeInstanceInboxStore.State.PREPARED;
 
         if (applier == null) {
             result = CpfRuntimeApplyResult.failure("APPLIER_NOT_FOUND", "지원하지 않는 runtime changeType: " + baseType);
@@ -130,22 +148,25 @@ public class CpfRuntimeControlAgent {
         } else if (!CpfRuntimeCanonicalHash.sha256(delivery.payload()).equals(delivery.payloadHash())) {
             result = CpfRuntimeApplyResult.failure("PAYLOAD_HASH_MISMATCH", "Runtime payload hash 검증 실패");
         } else {
-            var journal = inbox.find(delivery.deliveryId());
-            if (journal.isPresent() && journal.get().state() == CpfRuntimeInstanceInboxStore.State.APPLIED) {
-                result = CpfRuntimeApplyResult.success(journal.get().actualHash());
-            } else if (journal.isPresent() && !applier.supportsIdempotentReplay()) {
+            boolean preparedBeforeAttempt = preservePreparedOnFailure;
+            if (existingJournal.isPresent()
+                    && existingJournal.get().state() == CpfRuntimeInstanceInboxStore.State.APPLIED) {
+                result = CpfRuntimeApplyResult.success(existingJournal.get().actualHash());
+            } else if (preparedBeforeAttempt && !applier.supportsIdempotentReplay()) {
                 result = CpfRuntimeApplyResult.unknown("PREPARED_RESULT_UNKNOWN",
                         "이전 적용이 PREPARED 이후 중단되어 side effect 결과를 확인해야 합니다.");
             } else {
-                inbox.prepare(delivery);
                 try {
-                    result = applier.apply(delivery);
-                    if (result == null) {
-                        result = CpfRuntimeApplyResult.failure("NULL_APPLY_RESULT",
-                                "Runtime applier가 결과를 반환하지 않았습니다.");
-                    }
+                    Runnable clearCurrentAttempt = preparedBeforeAttempt
+                            ? () -> { }
+                            : () -> inbox.clearPrepared(delivery.deliveryId());
+                    result = applyGuard.execute(
+                            applier,
+                            delivery,
+                            () -> inbox.prepare(delivery),
+                            clearCurrentAttempt);
                 } catch (RuntimeException ex) {
-                    // 예외는 side effect 발생 여부를 알 수 없으므로 자동 재시도 가능한 일반 failure로 축소하지 않습니다.
+                    // Guard 자체 실패도 side effect 발생 여부를 확정할 수 없으므로 UNKNOWN으로 보존합니다.
                     result = CpfRuntimeApplyResult.unknown(ex.getClass().getSimpleName(), safe(ex.getMessage()));
                 }
             }
@@ -173,7 +194,10 @@ public class CpfRuntimeControlAgent {
             ackState = CpfRuntimeAckState.UNKNOWN_RESULT.name();
         } else {
             // failure()는 side effect 미발생을 보장하는 계약입니다.
-            inbox.clearPrepared(delivery.deliveryId());
+            // 과거 UNKNOWN의 PREPARED journal 보존 여부는 apply 경로에서 계산합니다.
+            if (!preservePreparedOnFailure) {
+                inbox.clearPrepared(delivery.deliveryId());
+            }
             ackState = CpfRuntimeAckState.FAILED.name();
         }
 

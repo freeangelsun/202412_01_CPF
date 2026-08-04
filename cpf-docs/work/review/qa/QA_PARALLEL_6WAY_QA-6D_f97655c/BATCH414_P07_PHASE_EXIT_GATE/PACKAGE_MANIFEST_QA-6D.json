@@ -1,0 +1,99 @@
+{
+  "package": "QA-6D",
+  "package_state": "Checkpoint",
+  "batch_id": "BATCH414_P07_PHASE_EXIT_GATE",
+  "baseline_sha": "f97655c1299936a1101bc3ec10239265ec3b502e",
+  "generated_at": "2026-08-05T00:55:00+09:00",
+  "files": [
+    {
+      "path": "cpf-docs/evidence/qa/QA_PARALLEL_6WAY_QA-6D_f97655c/BATCH414_P07_PHASE_EXIT_GATE/P07_GATE_BLOCKER_SUMMARY.csv",
+      "size": 408,
+      "sha256": "21866c6f7d9c5d58b7e7798c925ac73b0225b7c3941a6ce8c442ad9ff8e8e378"
+    },
+    {
+      "path": "cpf-docs/evidence/qa/QA_PARALLEL_6WAY_QA-6D_f97655c/BATCH414_P07_PHASE_EXIT_GATE/P07_GATE_INPUT_SUMMARY.json",
+      "size": 1449,
+      "sha256": "43714e36d4110e97f5fb5a88743d956b325b2e31c1033e8f9b073c09b33062d2"
+    },
+    {
+      "path": "cpf-docs/evidence/qa/QA_PARALLEL_6WAY_QA-6D_f97655c/BATCH414_P07_PHASE_EXIT_GATE/P07_PACKAGE_HASH_INDEX.csv",
+      "size": 3922,
+      "sha256": "bd888f1f58fccd5b2ca59f1c5bebf4fc9b98a6e9dcf1341f77b80ad425da28f2"
+    },
+    {
+      "path": "cpf-docs/evidence/qa/QA_PARALLEL_6WAY_QA-6D_f97655c/BATCH414_P07_PHASE_EXIT_GATE/P07_RUNTIME_NONPASS_REQUIREMENT_IDS.csv",
+      "size": 9979,
+      "sha256": "417b90d6651bb9f597ed2a55c3349ffeec33026facc87407d02bc6d51c7aaed9"
+    },
+    {
+      "path": "cpf-docs/evidence/qa/QA_PARALLEL_6WAY_QA-6D_f97655c/BATCH414_P07_PHASE_EXIT_GATE/P07_RUNTIME_NONPASS_SCENARIO_IDS.csv",
+      "size": 16216,
+      "sha256": "e11e5b5a4af33b71a5797a571907c29ada39dbdc6e69a50f24c375f4361438c7"
+    },
+    {
+      "path": "cpf-docs/evidence/qa/QA_PARALLEL_6WAY_QA-6D_f97655c/BATCH414_P07_PHASE_EXIT_GATE/progress.json",
+      "size": 943,
+      "sha256": "657fa43a3ceb3c81f8cf2dec1a36b296e779a05712e4ffa04fe4bb3bc398627d"
+    },
+    {
+      "path": "cpf-docs/work/review/qa/QA_PARALLEL_6WAY_QA-6D_f97655c/BATCH414_P07_PHASE_EXIT_GATE/CHANGE_MANIFEST_QA-6D.csv",
+      "size": 24,
+      "sha256": "74227426131489d28528e53dda2b27b21d86e6c48ecba8a14e55eb189ca7999e"
+    },
+    {
+      "path": "cpf-docs/work/review/qa/QA_PARALLEL_6WAY_QA-6D_f97655c/BATCH414_P07_PHASE_EXIT_GATE/CROSS_PARTITION_PATCH_REQUEST_QA-6D.csv",
+      "size": 48,
+      "sha256": "f0e5067bd901524232173f722307f50ec6f44c33443dc076a5d9fb21529e16e0"
+    },
+    {
+      "path": "cpf-docs/work/review/qa/QA_PARALLEL_6WAY_QA-6D_f97655c/BATCH414_P07_PHASE_EXIT_GATE/DELETE_MANIFEST_QA-6D.csv",
+      "size": 12,
+      "sha256": "d1551e208269aee28abe97af78fd4f27ecfb6e656e98e06384506702de26a627"
+    },
+    {
+      "path": "cpf-docs/work/review/qa/QA_PARALLEL_6WAY_QA-6D_f97655c/BATCH414_P07_PHASE_EXIT_GATE/NEXT_SESSION_HANDOVER_QA-6D.md",
+      "size": 150,
+      "sha256": "801554386692926234727149b2370d81ffb782a213d614d32e7ca8575d5433cc"
+    },
+    {
+      "path": "cpf-docs/work/review/qa/QA_PARALLEL_6WAY_QA-6D_f97655c/BATCH414_P07_PHASE_EXIT_GATE/QA_FINDING_MATRIX_QA-6D.csv",
+      "size": 25207,
+      "sha256": "29f68400c52f2905c5a5d6aa96214f797fab2b7a78acda872d5e58ca8b752ecc"
+    },
+    {
+      "path": "cpf-docs/work/review/qa/QA_PARALLEL_6WAY_QA-6D_f97655c/BATCH414_P07_PHASE_EXIT_GATE/QA_PATCH_MANIFEST_QA-6D.csv",
+      "size": 24,
+      "sha256": "74227426131489d28528e53dda2b27b21d86e6c48ecba8a14e55eb189ca7999e"
+    },
+    {
+      "path": "cpf-docs/work/review/qa/QA_PARALLEL_6WAY_QA-6D_f97655c/BATCH414_P07_PHASE_EXIT_GATE/QA_REWORK_REQUEST_QA-6D.md",
+      "size": 166,
+      "sha256": "e0d4f624715b1fb2a0b6b0879ac336d0f6d293acba0dd8a8382a0f43599a6d78"
+    },
+    {
+      "path": "cpf-docs/work/review/qa/QA_PARALLEL_6WAY_QA-6D_f97655c/BATCH414_P07_PHASE_EXIT_GATE/REQUIREMENT_STATUS_PATCH_QA-6D.csv",
+      "size": 2548,
+      "sha256": "5546bc0f6f155e3a4a59057f1aa6f09c5b88343b856f9e094859b5e630ef423e"
+    },
+    {
+      "path": "cpf-docs/work/review/qa/QA_PARALLEL_6WAY_QA-6D_f97655c/BATCH414_P07_PHASE_EXIT_GATE/REVIEW_INDEX.md",
+      "size": 519,
+      "sha256": "c3e3fe300c66131b9838b451ab426279a1dc29e1edc8ab3f05cdb454a643746c"
+    },
+    {
+      "path": "cpf-docs/work/review/qa/QA_PARALLEL_6WAY_QA-6D_f97655c/BATCH414_P07_PHASE_EXIT_GATE/SCENARIO_STATUS_PATCH_QA-6D.csv",
+      "size": 2266,
+      "sha256": "0f403f65aa50a58a3c53c36678115f968dead481ab2d794d228d505ab4ce599b"
+    },
+    {
+      "path": "cpf-docs/work/review/qa/QA_PARALLEL_6WAY_QA-6D_f97655c/BATCH414_P07_PHASE_EXIT_GATE/SHARED_FILE_CLAIM_QA-6D.csv",
+      "size": 29,
+      "sha256": "4c48c83faa80aa5f52026f4326f5a68d56bf8fb14bd2d86aad208f376d426403"
+    },
+    {
+      "path": "cpf-docs/work/review/qa/QA_PARALLEL_6WAY_QA-6D_f97655c/BATCH414_P07_PHASE_EXIT_GATE/TEST_AND_EVIDENCE_QA-6D.md",
+      "size": 346,
+      "sha256": "1e02a6ba9df2484dd0491b41daf8204b94ff4fd1905772074f0fd2313e92a814"
+    }
+  ]
+}

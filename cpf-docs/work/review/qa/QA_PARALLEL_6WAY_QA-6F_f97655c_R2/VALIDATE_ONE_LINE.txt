@@ -1,0 +1,1 @@
+python -m unittest -v cpf-tools/scripts/tests/test_seed_bundle_plan_closure.py cpf-tools/scripts/tests/test_seed_bundle_runtime_contract.py cpf-tools/scripts/tests/test_oracle_sqlplus_secret_transport.py; git diff --check

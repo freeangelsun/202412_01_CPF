@@ -3,6 +3,7 @@ package com.cpf.core.common.broker;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ColumnMapRowMapper;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.PreparedStatement;
 import java.sql.Timestamp;
@@ -459,7 +460,20 @@ public class JdbcCpfBrokerReliabilityRepository
     }
 
     @Override
+    @Transactional
     public CpfBrokerResult replay(String messageId) {
+        if (messageId == null || messageId.isBlank()) {
+            throw new IllegalArgumentException("messageId is required");
+        }
+        String normalizedMessageId = messageId.trim();
+        Integer outboxCount = jdbcTemplate.queryForObject("""
+                SELECT COUNT(*)
+                FROM cpf_broker_outbox
+                WHERE message_id = ?
+                """, Integer.class, normalizedMessageId);
+        if (outboxCount == null || outboxCount != 1) {
+            throw new IllegalStateException("DLQ 원본 outbox가 없어 실제 재처리를 시작할 수 없습니다.");
+        }
         int requested = jdbcTemplate.update("""
                 UPDATE cpf_broker_dlq
                 SET replay_status = 'REQUESTED',
@@ -469,11 +483,13 @@ public class JdbcCpfBrokerReliabilityRepository
                     updated_at = CURRENT_TIMESTAMP
                 WHERE message_id = ?
                   AND replay_status IN ('WAITING', 'FAILED')
-                """, messageId);
+                """, normalizedMessageId);
         if (requested != 1) {
-            return CpfBrokerResult.failed(messageId, "CPF_REPLAY", "재처리 가능한 DLQ가 없습니다.");
+            return CpfBrokerResult.failed(
+                    normalizedMessageId, "CPF_REPLAY", "재처리 가능한 DLQ가 없습니다.");
         }
-        jdbcTemplate.update("DELETE FROM cpf_broker_inbox WHERE message_id = ?", messageId);
+        jdbcTemplate.update(
+                "DELETE FROM cpf_broker_inbox WHERE message_id = ?", normalizedMessageId);
         int requeued = jdbcTemplate.update("""
                 UPDATE cpf_broker_outbox
                 SET outbox_status = 'PENDING',
@@ -487,14 +503,15 @@ public class JdbcCpfBrokerReliabilityRepository
                     updated_by = 'CPF_REPLAY',
                     updated_at = CURRENT_TIMESTAMP
                 WHERE message_id = ?
-                """, messageId);
+                """, normalizedMessageId);
         if (requeued != 1) {
             throw new IllegalStateException("DLQ 원본 outbox가 없어 실제 재처리를 시작할 수 없습니다.");
         }
-        return CpfBrokerResult.accepted(messageId, "CPF_REPLAY", messageId);
+        return CpfBrokerResult.accepted(normalizedMessageId, "CPF_REPLAY", normalizedMessageId);
     }
 
     @Override
+    @Transactional
     public List<CpfBrokerResult> replayRange(String topic, Instant from, Instant to, int limit) {
         List<Map<String, Object>> rows = queryForListLimited("""
                 SELECT message_id AS messageId,

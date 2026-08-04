@@ -58,6 +58,44 @@ export const referenceMethods = {
           if (current) await this.selectNotificationDelivery(current);
         }
       },
+  async loadNotificationRuleDetail() {
+        const ruleId = Number(this.notificationForm.ruleId);
+        if (!Number.isInteger(ruleId) || ruleId < 1) {
+          this.setMessage("상세 조회할 알림 Rule을 선택하세요.");
+          return;
+        }
+        const rule = await this.getJson(`/adm/api/notifications/rules/${ruleId}`);
+        this.selectNotificationRule(rule);
+        this.notificationResult = { ...this.notificationResult, ruleDetail: rule };
+        this.setMessage("알림 규칙 상세를 조회했습니다.");
+      },
+  createNotificationRule() {
+        Object.assign(this.notificationForm, {
+          ruleId: null,
+          eventType: "",
+          eventSubType: "",
+          channelCode: "ADM",
+          templateCode: "",
+          severity: "WARN",
+          receiverGroup: "ADM_OPERATOR",
+          useYn: "Y",
+          targetType: "ADM_TEST",
+          targetId: "TEST",
+          receiver: "ADM_OPERATOR",
+          message: "ADM notification test message.",
+          reason: "알림 규칙 등록",
+        });
+        this.notificationResult = { ...this.notificationResult, ruleDetail: null };
+        this.setMessage("새 알림 규칙 정보를 입력한 뒤 규칙 저장을 실행하세요.");
+      },
+  async updateNotificationRule() {
+        const ruleId = Number(this.notificationForm.ruleId);
+        if (!Number.isInteger(ruleId) || ruleId < 1) {
+          this.setMessage("수정할 알림 Rule을 선택하세요.");
+          return;
+        }
+        await this.saveNotificationRule();
+      },
   selectNotificationRule(rule) {
         this.notificationForm.ruleId = rule.ruleId || rule.rule_id;
         this.notificationForm.eventType = rule.eventType || rule.event_type || "";

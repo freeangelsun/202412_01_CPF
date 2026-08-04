@@ -1,0 +1,235 @@
+{
+  "package": "CPF_QA-6F_f97655c_R2_REQUIREMENT_BY_REQUIREMENT_QA_ROOT_OVERLAY",
+  "baseline_sha": "f97655c1299936a1101bc3ec10239265ec3b502e",
+  "root_relative_overlay": true,
+  "file_count": 45,
+  "git_writes_performed": false,
+  "protected_paths_deleted": [],
+  "delete_manifest_entries": 0,
+  "requirement_count": 5093,
+  "scenario_count": 5093,
+  "feature_work_package_unit_count": 509,
+  "unique_feature_name_count": 508,
+  "qa_result_counts": {
+    "미통과": 61,
+    "미검증": 5032
+  },
+  "seed_regression": "12/12 PASS, exit code 0",
+  "files": [
+    {
+      "path": "cpf-docs/evidence/qa/QA_PARALLEL_6WAY_QA-6F_f97655c_R2/CPF_FINAL_TARGET_REQUIREMENTS.snapshot.md",
+      "sha256": "ce6df0e6ec0b8964acd74e24a12e5e3adcdcc511815f4ad8bc35a744d261c441",
+      "size_bytes": 85945
+    },
+    {
+      "path": "cpf-docs/evidence/qa/QA_PARALLEL_6WAY_QA-6F_f97655c_R2/CPF_REQUIREMENT_MASTER.index.snapshot.csv",
+      "sha256": "beb25bd8fff3e7a3e0f433e5989038015a382acd9f105ba792bd9521926cf638",
+      "size_bytes": 13803
+    },
+    {
+      "path": "cpf-docs/evidence/qa/QA_PARALLEL_6WAY_QA-6F_f97655c_R2/FEATURE_QA_MATRIX.csv",
+      "sha256": "462dfa28630c0ed1240ef8d680dd2b1f192da28a4b2f66480019df48322d35b7",
+      "size_bytes": 499258
+    },
+    {
+      "path": "cpf-docs/evidence/qa/QA_PARALLEL_6WAY_QA-6F_f97655c_R2/LEDGER_PREFLIGHT.json",
+      "sha256": "3262b70ad87467bec3fee778f158926f2c8b3850df640c806ff0444fd193b602",
+      "size_bytes": 1656
+    },
+    {
+      "path": "cpf-docs/evidence/qa/QA_PARALLEL_6WAY_QA-6F_f97655c_R2/REQUIREMENT_AXIS_EVIDENCE.csv",
+      "sha256": "792583a8eae7575d59b7a12bcb5d46e6c6c6cf97011dfc54ea1e20053ef1119b",
+      "size_bytes": 8195907
+    },
+    {
+      "path": "cpf-docs/evidence/qa/QA_PARALLEL_6WAY_QA-6F_f97655c_R2/REQUIREMENT_REVIEW_INTEGRITY.json",
+      "sha256": "7f699ba9ac0dae2d45f255ba94bd5b4b92b70dfd67b4bad812580f03eb90183c",
+      "size_bytes": 3073
+    },
+    {
+      "path": "cpf-docs/evidence/qa/QA_PARALLEL_6WAY_QA-6F_f97655c_R2/SOURCE_TRACE_SUPPLEMENT.csv",
+      "sha256": "4ad51214b28b58e9f701bcaa5258bddf10777c352db181014a5153eff39870f6",
+      "size_bytes": 2431
+    },
+    {
+      "path": "cpf-docs/evidence/qa/QA_PARALLEL_6WAY_QA-6F_f97655c_R2/batch001_seed/after_seed_bundle_fix.log",
+      "sha256": "613b7af2782da1404485e8e0514d691c8b300322ec54268c72b99451e1a87154",
+      "size_bytes": 856
+    },
+    {
+      "path": "cpf-docs/evidence/qa/QA_PARALLEL_6WAY_QA-6F_f97655c_R2/batch001_seed/before_oracle_secret_fix.log",
+      "sha256": "e596bf328c59cee5897798b8637e2c2428ecc0e0d87ce943d9e878c8848d2e4a",
+      "size_bytes": 46193
+    },
+    {
+      "path": "cpf-docs/evidence/qa/QA_PARALLEL_6WAY_QA-6F_f97655c_R2/batch001_seed/before_seed_bundle_fix.log",
+      "sha256": "9c076f3159ddc69c054e928ed1e321f36f7f738a48b3253d23a85c1e33fdeff4",
+      "size_bytes": 140296
+    },
+    {
+      "path": "cpf-docs/evidence/qa/QA_PARALLEL_6WAY_QA-6F_f97655c_R2/batch001_seed/final_regression_12_tests.log",
+      "sha256": "48eaf230aa57b1a58358626330fa08e54829618c2b3028c464991774c22cc916",
+      "size_bytes": 2529
+    },
+    {
+      "path": "cpf-docs/evidence/qa/QA_PARALLEL_6WAY_QA-6F_f97655c_R2/batch001_seed/seed_version_contract_tests.log",
+      "sha256": "40e13c5aa4324e1ae16e99b7e555b3aaea5ac6922569e92e1ad63c99b24425f4",
+      "size_bytes": 662
+    },
+    {
+      "path": "cpf-docs/work/review/qa/QA_PARALLEL_6WAY_QA-6F_f97655c_R2/APPLY_ONE_LINE.txt",
+      "sha256": "2d69bd3f27515f08f3b6c79d4de33a848fa53e5ab39f9b6134581a618dd31a54",
+      "size_bytes": 343
+    },
+    {
+      "path": "cpf-docs/work/review/qa/QA_PARALLEL_6WAY_QA-6F_f97655c_R2/BOOTSTRAP_AND_VALIDATE.md",
+      "sha256": "c6aeea87f16b12632b679d468b2da3442ee86791b2a6ab45e8a21ac3ef76a598",
+      "size_bytes": 1153
+    },
+    {
+      "path": "cpf-docs/work/review/qa/QA_PARALLEL_6WAY_QA-6F_f97655c_R2/CANONICAL_COUNTS.json",
+      "sha256": "f1a93a4027b7c2ce7b9b68c51dfe40d5d343bd07367408d35bb9961c0ab9339e",
+      "size_bytes": 385
+    },
+    {
+      "path": "cpf-docs/work/review/qa/QA_PARALLEL_6WAY_QA-6F_f97655c_R2/CHANGE_MANIFEST.csv",
+      "sha256": "6931a86a65b702175e55c117a13541c1447c98b38e902109fb6804b53fb07ca8",
+      "size_bytes": 7348
+    },
+    {
+      "path": "cpf-docs/work/review/qa/QA_PARALLEL_6WAY_QA-6F_f97655c_R2/CLEANUP_ONE_LINE.txt",
+      "sha256": "99f22be164c5aba2ce83e547c52791a43efa838d519a3d42708a9446b70c07f1",
+      "size_bytes": 104
+    },
+    {
+      "path": "cpf-docs/work/review/qa/QA_PARALLEL_6WAY_QA-6F_f97655c_R2/CODEX_REVIEW_REQUEST.md",
+      "sha256": "be925cacaecbafafe2e7ce3e866471a99a8d0590e7db28a093be7bb4cbe59de5",
+      "size_bytes": 786
+    },
+    {
+      "path": "cpf-docs/work/review/qa/QA_PARALLEL_6WAY_QA-6F_f97655c_R2/CROSS_PARTITION_PATCH_REQUEST.csv",
+      "sha256": "4ead575353302c4b657aec8d6fca8ca7b569520e4f26da7132dca4aac75f4827",
+      "size_bytes": 49
+    },
+    {
+      "path": "cpf-docs/work/review/qa/QA_PARALLEL_6WAY_QA-6F_f97655c_R2/DELETE_MANIFEST.csv",
+      "sha256": "ca04e3a7e15f7940335ab6c70afef893c408cc4b07836c77647cb68c22e85a03",
+      "size_bytes": 33
+    },
+    {
+      "path": "cpf-docs/work/review/qa/QA_PARALLEL_6WAY_QA-6F_f97655c_R2/GIT_STATUS_ONE_LINE.txt",
+      "sha256": "665b56a9be1ab8bc6935b32a3b12877d6f401e9d99190a1abd1a194cc70cf59c",
+      "size_bytes": 52
+    },
+    {
+      "path": "cpf-docs/work/review/qa/QA_PARALLEL_6WAY_QA-6F_f97655c_R2/NEXT_SESSION_HANDOVER.md",
+      "sha256": "24465188a3d16ad4afa01c2c9f7d899e60bd5e2089b8c4982b9f6ec8930825f7",
+      "size_bytes": 571
+    },
+    {
+      "path": "cpf-docs/work/review/qa/QA_PARALLEL_6WAY_QA-6F_f97655c_R2/OPEN_ISSUES.md",
+      "sha256": "e067efa212aed921a288d404fb8059ccc88128eb0291803f1d0d6e80554f1a90",
+      "size_bytes": 1108
+    },
+    {
+      "path": "cpf-docs/work/review/qa/QA_PARALLEL_6WAY_QA-6F_f97655c_R2/QA_DIRECT_FIXES.csv",
+      "sha256": "3ec65085740f64725ea973f88821fe1d738c913b613e261cf25f94d08d244fd0",
+      "size_bytes": 1459
+    },
+    {
+      "path": "cpf-docs/work/review/qa/QA_PARALLEL_6WAY_QA-6F_f97655c_R2/QA_REWORK_REQUEST.md",
+      "sha256": "f8cd6cb3a079e3c340326a123ccb0613ab8f29988b00ebb4a89d59c4ba10439b",
+      "size_bytes": 81902
+    },
+    {
+      "path": "cpf-docs/work/review/qa/QA_PARALLEL_6WAY_QA-6F_f97655c_R2/REQUIREMENT_STATUS.csv",
+      "sha256": "a099c19471a15cdb2f40db8d95fcbfc77af01341760cc4babf3ef6aafa8e6415",
+      "size_bytes": 35526217
+    },
+    {
+      "path": "cpf-docs/work/review/qa/QA_PARALLEL_6WAY_QA-6F_f97655c_R2/REVIEW_INDEX.md",
+      "sha256": "2cad7de51a143502c1892dcfc0fc1903eb2515cf7ffa332ad1506528b72fdc63",
+      "size_bytes": 3582
+    },
+    {
+      "path": "cpf-docs/work/review/qa/QA_PARALLEL_6WAY_QA-6F_f97655c_R2/SCENARIO_STATUS.csv",
+      "sha256": "04d53b07df59f88079fc1a4f5852e311d1e08c8a0bc5aa250bb79b3bad5a8f19",
+      "size_bytes": 13363152
+    },
+    {
+      "path": "cpf-docs/work/review/qa/QA_PARALLEL_6WAY_QA-6F_f97655c_R2/SHARED_FILE_CLAIM.csv",
+      "sha256": "28588935c15925d40cb927b3431d16d217249d841b55d2b995c0409d54657922",
+      "size_bytes": 1803
+    },
+    {
+      "path": "cpf-docs/work/review/qa/QA_PARALLEL_6WAY_QA-6F_f97655c_R2/TEST_AND_EVIDENCE.md",
+      "sha256": "1d7a53534187f3def22fb22741c1d0c066e86190c377dfcc1764883ee25ff9c1",
+      "size_bytes": 2457
+    },
+    {
+      "path": "cpf-docs/work/review/qa/QA_PARALLEL_6WAY_QA-6F_f97655c_R2/VALIDATE_ONE_LINE.txt",
+      "sha256": "1d7978a202df424a866e5a6db529c92c02cd84afce6ec72d2b10d6350fcb8662",
+      "size_bytes": 222
+    },
+    {
+      "path": "cpf-tools/config/database-source-plan.json",
+      "sha256": "4ef7a4e0db5ac0f4b9cd5a38b4cf54e5cd838eabcaba185db304bf5d88f029de",
+      "size_bytes": 3393
+    },
+    {
+      "path": "cpf-tools/db/canonical/seed-model.json",
+      "sha256": "44053ca0c9433aee7062521992809afb54985ed80000f1c8dea07914e51aa5b2",
+      "size_bytes": 299481
+    },
+    {
+      "path": "cpf-tools/db/vendor/mariadb/seed/00_product_seed.sql",
+      "sha256": "d3b8ef65722f3e15d0c93b19df17a0fd40e57cdefce6f93c2d51005db04916f8",
+      "size_bytes": 137602
+    },
+    {
+      "path": "cpf-tools/db/vendor/mariadb/source/00_product_seed.sql",
+      "sha256": "d3b8ef65722f3e15d0c93b19df17a0fd40e57cdefce6f93c2d51005db04916f8",
+      "size_bytes": 137602
+    },
+    {
+      "path": "cpf-tools/db/vendor/oracle/seed/00_product_seed.sql",
+      "sha256": "49dc4a9b23cec7f0522a991f7ec55119a3480b9d8cab7a588c296920b306296c",
+      "size_bytes": 250223
+    },
+    {
+      "path": "cpf-tools/db/vendor/oracle/source/00_product_seed.sql",
+      "sha256": "49dc4a9b23cec7f0522a991f7ec55119a3480b9d8cab7a588c296920b306296c",
+      "size_bytes": 250223
+    },
+    {
+      "path": "cpf-tools/db/vendor/postgresql/seed/00_product_seed.sql",
+      "sha256": "ea0e49cb4d00d6b392dad603035d95c844e1b651d5bef18cb31da1b7a3991d6a",
+      "size_bytes": 138609
+    },
+    {
+      "path": "cpf-tools/db/vendor/postgresql/source/00_product_seed.sql",
+      "sha256": "ea0e49cb4d00d6b392dad603035d95c844e1b651d5bef18cb31da1b7a3991d6a",
+      "size_bytes": 138609
+    },
+    {
+      "path": "cpf-tools/scripts/invoke-official-db-vendor-sql.ps1",
+      "sha256": "cf30486b44a3d2934464ee887b3463e204265df2ca84c5438c26452415eb413a",
+      "size_bytes": 10869
+    },
+    {
+      "path": "cpf-tools/scripts/tests/test_oracle_sqlplus_secret_transport.py",
+      "sha256": "524c77948d0fd6b5f25bc472eb284b61370adc8c21df7dcef3524529cc674bf2",
+      "size_bytes": 1752
+    },
+    {
+      "path": "cpf-tools/scripts/tests/test_seed_bundle_plan_closure.py",
+      "sha256": "a51411a34815dbc28c063d1878769226f5a163aeab3e3f040f4114e711f51209",
+      "size_bytes": 1976
+    },
+    {
+      "path": "cpf-tools/scripts/tests/test_seed_bundle_runtime_contract.py",
+      "sha256": "3b3d1af1a7e9f2a92c011fe3768abd7894b50cc2cf06e9e11665cb54883ed048",
+      "size_bytes": 4618
+    }
+  ]
+}

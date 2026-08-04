@@ -4,6 +4,26 @@
       "CpfControllerSourceResponse": {
         "additionalProperties": true,
         "type": "object"
+      },
+      "AdmReliabilityActionRequest": {
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "properties": {
+          "targetStatus": {
+            "type": "string",
+            "nullable": true
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          },
+          "requestUser": {
+            "type": "string",
+            "nullable": true
+          }
+        }
       }
     }
   },
@@ -5639,6 +5659,16 @@
               }
             },
             "description": "Controller source contract response"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdmReliabilityActionRequest"
+              }
+            }
           }
         }
       }

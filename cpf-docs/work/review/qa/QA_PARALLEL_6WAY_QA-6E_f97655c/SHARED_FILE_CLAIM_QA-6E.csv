@@ -1,0 +1,2 @@
+﻿path,requirement_ids,reason,actual_consumer,impact,baseline_blob_sha,patched_sha256,implementation_owner
+cpf-admin/frontend/src/app/methods/referenceMethods.ts,CPF-FR-018338;CPF-FR-018350,ADM 공통 Store method의 Notification action 누락,cpf-admin/frontend/src/features/notifications/NotificationsPage.vue,알림 상세·신규·수정 버튼만 보완,779d7010683eee426ae59683609a888804ff4843,b688930da58e0f3eedbd47445af952b658611bde333dc057bc8d30551133a4c8,QA-6E 직접보완 부분 완료 후보

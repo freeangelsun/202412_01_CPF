@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/** Reconciliation 조회 주기·임계치·lease 정책을 실제 Runtime snapshot에 적용합니다. */
+/** Reconciliation 조회 주기·임계치·lease·attempt·circuit 정책을 Runtime snapshot에 적용합니다. */
 public final class CpfReconciliationRuntimeApplier implements CpfRuntimeChangeApplier {
     private final CpfReconciliationRuntimePolicy policy;
 
@@ -46,31 +46,42 @@ public final class CpfReconciliationRuntimeApplier implements CpfRuntimeChangeAp
                     (int) number(payload.get("batchSize"), 100L),
                     (int) number(payload.get("leaseSeconds"), 60L),
                     bool(payload, "manualResolutionRequired", true),
-                    strings(payload.get("unknownTypes")));
+                    strings(payload.get("unknownTypes")),
+                    (int) number(payload.get("maxAttempts"), 8L),
+                    (int) number(payload.get("circuitFailureThreshold"), 3L),
+                    number(payload.get("circuitOpenMillis"), 30_000L));
             return CpfRuntimeApplyResult.success(delivery.payloadHash());
         } catch (RuntimeException ex) {
             return CpfRuntimeApplyResult.failure(
                     "RECONCILIATION_INVALID",
-                    "Reconciliation query interval/threshold/manual resolution 정책 오류");
+                    "Reconciliation allowlist/query/attempt/circuit/manual resolution 정책 오류");
         }
     }
 
     private boolean bool(Map<String, Object> source, String key, boolean fallback) {
         Object value = source.get(key);
-        if (value instanceof Boolean bool) return bool;
+        if (value instanceof Boolean bool) {
+            return bool;
+        }
         return value == null ? fallback : Boolean.parseBoolean(String.valueOf(value));
     }
 
     private long number(Object value, long fallback) {
-        if (value instanceof Number number) return number.longValue();
+        if (value instanceof Number number) {
+            return number.longValue();
+        }
         return value == null ? fallback : Long.parseLong(String.valueOf(value));
     }
 
     private Set<String> strings(Object value) {
-        if (!(value instanceof List<?> list)) return Set.of();
+        if (!(value instanceof List<?> list)) {
+            return Set.of();
+        }
         LinkedHashSet<String> result = new LinkedHashSet<>();
         for (Object entry : list) {
-            if (entry != null) result.add(String.valueOf(entry));
+            if (entry != null) {
+                result.add(String.valueOf(entry));
+            }
         }
         return Set.copyOf(result);
     }

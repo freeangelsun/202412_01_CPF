@@ -1,0 +1,199 @@
+{
+  "package_type": "WINDOWS_COMPATIBLE_CHECKPOINT_ROOT_OVERLAY",
+  "baseline_sha": "fc207ac5560da59f352ee0c5f83199177f2987b4",
+  "original_archive_sha256": "55fb555e0d12ff0300b7d1a1a0d6a4d418066db346460e9b0797900df3578cf3",
+  "original_campaign": "CPF-V9-INITIAL-FULL-REVIEW-20260805-2101",
+  "packaged_campaign": "S01-20260805",
+  "file_count_before_manifest": 35,
+  "bundles": [
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/EVIDENCE_BUNDLE.zip",
+      "source_file_count": 204
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/integration_requests/IR-S06-SECURITY-STARTERS/PROPOSED_OVERLAY.zip",
+      "source_file_count": 12
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/integration_requests/IR-S06-SECURITY-STARTERS/DIFFS.zip",
+      "source_file_count": 12
+    }
+  ],
+  "files": [
+    {
+      "path": "cpf-core/src/main/java/com/cpf/core/api/locking/CpfLockManager.java",
+      "size": 10939,
+      "sha256": "d2bfedaf2424f5a264872a6c0e7a6bbcfb70c3135073c23bce179aa974394d51"
+    },
+    {
+      "path": "cpf-core/src/main/java/com/cpf/core/api/logging/CpfAsyncLogWriterOperations.java",
+      "size": 2575,
+      "sha256": "71a1e166644c90c4907d701c03b050a68afbc41f4c4de18967624d62ff8e6b17"
+    },
+    {
+      "path": "cpf-core/src/test/java/com/cpf/core/api/locking/CpfLockManagerDefaultTokenValidationHarness.java",
+      "size": 3858,
+      "sha256": "7d73f2f278ada007161967f272b5783b6a313571547a846eed03eb457b67b20c"
+    },
+    {
+      "path": "cpf-core/src/test/java/com/cpf/core/api/logging/CpfAsyncLogWriterOperationsHarness.java",
+      "size": 2765,
+      "sha256": "97b0629d3e734df0e15253396e075e0efea86d75fe768ecdc8bde50b0b053dfa"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/APPLY_AND_VERIFY_COMMANDS.md",
+      "size": 970,
+      "sha256": "ff34f5d7e3878a7d744082cb308ce9af1e4caf11119ae55c4daa183de61ccb73"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/CHECKPOINT_REASON.md",
+      "size": 949,
+      "sha256": "ddac4b263c2b82ac6ae9d591ca663277ec0bc745dc329425a03ad0fa15850e8f"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/EVIDENCE_BUNDLE.zip",
+      "size": 128159,
+      "sha256": "be1df34c8c0e7dc385067d8e762cbf2523a1230488ed25e7156b26c690d431fb"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/HANDOVER.md",
+      "size": 1413,
+      "sha256": "fd52b52630871b3b484d53f19ff4ac7751bfee47ca760b686ceeba2c1efccd69"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/REQUEST.md",
+      "size": 4432,
+      "sha256": "b78078ca1c0f488058d63f9138c18db1d9e5eb192834311feb0e626beea465c7"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/SESSION_ARTIFACT_MANIFEST.csv",
+      "size": 63563,
+      "sha256": "a9b386610b85ed9e02c78b80aea333f2a035fd8fb0317d451544d55f8cc4585f"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/SESSION_CLEANUP_COMMAND.ps1",
+      "size": 317,
+      "sha256": "945f74c7f2edadb839a029ee8b587f70a5d825d772ba10f7d57acc5303e1f429"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/WINDOWS_COMPATIBILITY_NOTE.md",
+      "size": 666,
+      "sha256": "0bc72e744a97e83b042f4d4afe38b5cb2d4e8710ea1ae9ed9857673197abc2bb"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/integration_requests/IR-S02-RUNTIME/REQUEST.md",
+      "size": 992,
+      "sha256": "1226d8083c5094364f0616c1f8279be916695bdef0bb77c69991e9a92fec954a"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/integration_requests/IR-S02-RUNTIME/impacted_ids.csv",
+      "size": 2666,
+      "sha256": "a49a27e12e3a83ee6bb5067598287b04c2af835e52fb535e624a1bc8db507814"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/integration_requests/IR-S04-DB/REQUEST.md",
+      "size": 1208,
+      "sha256": "db790b66699cfc021594ef85c85a72273d5b0218b17703c070661fb505702e56"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/integration_requests/IR-S04-DB/impacted_ids.csv",
+      "size": 4910,
+      "sha256": "6e2ec938a46b8c1fe18028eeb29c6ebab6286813375f50934871df9d6df96c33"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/integration_requests/IR-S05-ADM-BZA/REQUEST.md",
+      "size": 1038,
+      "sha256": "c817aaea7324c00d9eacd6683f0653311aa72336131d60c7dd6957ab268bc913"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/integration_requests/IR-S05-ADM-BZA/impacted_ids.csv",
+      "size": 21564,
+      "sha256": "7040e18dfa08c3beb2ca470c44642d1e04576f2223a756fb26b2476de7b4d80d"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/integration_requests/IR-S06-BUILD-GENERATOR/REQUEST.md",
+      "size": 1300,
+      "sha256": "0319b13e014418d3871f79421e1239745a96e39f715545c5a785f009740f1d40"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/integration_requests/IR-S06-BUILD-GENERATOR/impacted_ids.csv",
+      "size": 2006,
+      "sha256": "d4b2806d2f2f67663a4c169ae5c151174f9d26fe8ada9d9acd40e419fbc66e32"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/integration_requests/IR-S06-SECURITY-STARTERS/DIFFS.zip",
+      "size": 18144,
+      "sha256": "7abd7122af0df45d43227a39d8e413b07b0cfa237dcba7822e624ad942719598"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/integration_requests/IR-S06-SECURITY-STARTERS/PROPOSED_OVERLAY.zip",
+      "size": 15965,
+      "sha256": "646b74cf27376f7281ca8a2a32a39176a0d1eabb983449cd6f422b39e0e44f62"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/integration_requests/IR-S06-SECURITY-STARTERS/REQUEST.md",
+      "size": 1682,
+      "sha256": "e218cd4c016dc05afc76361035e10764b3e37e22f29340d9cc87b952ca887b70"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/integration_requests/IR-S06-SECURITY-STARTERS/impacted_ids.csv",
+      "size": 6604,
+      "sha256": "92ae167c229ba5a276d6d68212290493f9c242b6fcc47f6bdf7f5f00d5e470e7"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/results/CHANGE_MANIFEST.csv",
+      "size": 67206,
+      "sha256": "d64699515813bc36b84a8b1669af4d887e33d0a843fca2e7c035775ca5144827"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/results/CHECKPOINT_VALIDATION.json",
+      "size": 2414,
+      "sha256": "2bc2311a6421d3a1a3d64d687f2e8e18c9944990cff868016648ddc043313ac3"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/results/DEVELOPMENT_GATE_RESULT.csv",
+      "size": 4831,
+      "sha256": "552d440a48bcd976ca73342c90b56b195395823e5708448fe7a0d860f5a5f085"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/results/DEVELOPMENT_REQUIREMENT_RESULT.csv",
+      "size": 3999240,
+      "sha256": "ca593efacbf42f7dcec8830a4192331543a9a788f60cb610c518608cfbee4107"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/results/DEVELOPMENT_SCENARIO_RESULT.csv",
+      "size": 6973254,
+      "sha256": "633e80ba5a1f5fa7bc04b170668af5de61076985ffbb5b0c7b172003767eed6a"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/results/DEVELOPMENT_SESSION_RESULT.csv",
+      "size": 1431,
+      "sha256": "05b8c3e9514e812cf7ea3c9dd94a941e43edbb176c6b1310301f8de463889829"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/results/DEVELOPMENT_WORK_ITEM_RESULT.csv",
+      "size": 45282,
+      "sha256": "19522f3f2eaba0e0a684b23288cf67113c64860af43a0bc9690720d3be435ca7"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/results/INTEGRATION_REQUEST_STATUS.csv",
+      "size": 2447,
+      "sha256": "242e3df904e2543bacf1328eeaa31ac459460c14516add1a776b2b93e5b58011"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/results/OPEN_ISSUES.md",
+      "size": 758,
+      "sha256": "406209377334349d240dd3378c22df643b51c62d03db8ad2e05a59a4d6eafd65"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/results/PACKAGE_MANIFEST.json",
+      "size": 80218,
+      "sha256": "e07cc4476591c05f710a959e1770b97d6c1ec588de73a429874ca68d3e843816"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/results/TEST_AND_EVIDENCE.md",
+      "size": 4891,
+      "sha256": "bf1155f2627d10c7b6f019e01737c4efe09327ce60ce7ff4277df74bd68a1fd7"
+    }
+  ]
+}

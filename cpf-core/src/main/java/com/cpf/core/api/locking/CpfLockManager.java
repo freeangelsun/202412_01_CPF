@@ -16,9 +16,31 @@ public interface CpfLockManager {
     ReleaseResult release(LockToken token, String reason);
     boolean validateFence(String key, long fencingToken);
 
-    /** Validates the complete optimistic token, not only the fencing epoch. */
+    /**
+     * Validates the complete optimistic token, not only the fencing epoch.
+     *
+     * <p>The default implementation fails closed when the provider cannot read the current
+     * snapshot. Custom providers may override this method to use an atomic store-side compare,
+     * but must preserve the same owner, request, epoch, version and lease semantics.</p>
+     */
     default boolean validateToken(LockToken token) {
-        return token != null && validateFence(token.key(), token.fencingToken());
+        if (token == null || !validateFence(token.key(), token.fencingToken())) {
+            return false;
+        }
+        try {
+            return find(token.key())
+                    .filter(snapshot -> snapshot.state() == State.ACTIVE)
+                    .filter(snapshot -> snapshot.key().equals(token.key()))
+                    .filter(snapshot -> token.ownerId().equals(snapshot.ownerId()))
+                    .filter(snapshot -> token.requestId().equals(snapshot.requestId()))
+                    .filter(snapshot -> snapshot.fencingToken() == token.fencingToken())
+                    .filter(snapshot -> snapshot.ownerEpoch() == token.ownerEpoch())
+                    .filter(snapshot -> snapshot.version() == token.version())
+                    .filter(snapshot -> snapshot.leaseUntil().equals(token.leaseUntil()))
+                    .isPresent();
+        } catch (RuntimeException storageFailure) {
+            return false;
+        }
     }
 
     Optional<LockSnapshot> find(String key);

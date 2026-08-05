@@ -1,0 +1,1301 @@
+{
+  "package_type": "CHECKPOINT_ROOT_OVERLAY",
+  "status": "CHECKPOINT_NOT_FINAL_DUE_TO_INTEGRATION_PENDING",
+  "request_id": "DEVGPT-V9-S01",
+  "campaign_id": "S01-20260805",
+  "revision": "REV-001",
+  "baseline_sha": "fc207ac5560da59f352ee0c5f83199177f2987b4",
+  "manifested_file_count": 257,
+  "actual_file_count_including_manifests": 259,
+  "excluded_self_referential_files": [
+    "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/SESSION_ARTIFACT_MANIFEST.csv",
+    "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/results/PACKAGE_MANIFEST.json"
+  ],
+  "files": [
+    {
+      "path": "cpf-core/src/main/java/com/cpf/core/api/locking/CpfLockManager.java",
+      "size": 10939,
+      "sha256": "d2bfedaf2424f5a264872a6c0e7a6bbcfb70c3135073c23bce179aa974394d51"
+    },
+    {
+      "path": "cpf-core/src/main/java/com/cpf/core/api/logging/CpfAsyncLogWriterOperations.java",
+      "size": 2575,
+      "sha256": "71a1e166644c90c4907d701c03b050a68afbc41f4c4de18967624d62ff8e6b17"
+    },
+    {
+      "path": "cpf-core/src/test/java/com/cpf/core/api/locking/CpfLockManagerDefaultTokenValidationHarness.java",
+      "size": 3858,
+      "sha256": "7d73f2f278ada007161967f272b5783b6a313571547a846eed03eb457b67b20c"
+    },
+    {
+      "path": "cpf-core/src/test/java/com/cpf/core/api/logging/CpfAsyncLogWriterOperationsHarness.java",
+      "size": 2765,
+      "sha256": "97b0629d3e734df0e15253396e075e0efea86d75fe768ecdc8bde50b0b053dfa"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/APPLY_AND_VERIFY_COMMANDS.md",
+      "size": 998,
+      "sha256": "2b580f2d2f9333e6cf5ea28d3ced9d3ff88a7841f58de918a9ada213afc77f51"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/CHECKPOINT_REASON.md",
+      "size": 949,
+      "sha256": "ddac4b263c2b82ac6ae9d591ca663277ec0bc745dc329425a03ad0fa15850e8f"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/HANDOVER.md",
+      "size": 1413,
+      "sha256": "fd52b52630871b3b484d53f19ff4ac7751bfee47ca760b686ceeba2c1efccd69"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/REQUEST.md",
+      "size": 4460,
+      "sha256": "5dfe40970539a08e7cbf4de7933c62e2d8f2a7fb26dd2e77dcb51a23f8c16b0f"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/SESSION_CLEANUP_COMMAND.ps1",
+      "size": 345,
+      "sha256": "57ca2e2770ec1e4c9e31d14a41869778ee4e50dd35918a2273d519244865fb30"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/async-log-snapshot/compile.exit-code",
+      "size": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/async-log-snapshot/compile.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/async-log-snapshot/run.exit-code",
+      "size": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/async-log-snapshot/run.log",
+      "size": 35,
+      "sha256": "c2b9c8b4d21bfa37be183d9d9d453520b8637d530892d8b03278e66afc986c2c"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/audit-file-sink/compile.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/audit-file-sink/result.txt",
+      "size": 26,
+      "sha256": "ef6a14adde69b3b62e8580ff027c626dd8ec12cb7874dad20e187f2787c7c94b"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/audit-file-sink/run.log",
+      "size": 47,
+      "sha256": "6e251333e679bfb1cb90352b2e5975e0b12d348b32c33c82bef9d8e96b213f97"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/audit-file-sink/sources.txt",
+      "size": 1111,
+      "sha256": "87d190c1725b1c6304ee99c778a194f15c0beb1cbbeb572823bb5021fb0ff569"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/audit-file-sink/src/com/cpf/core/api/error/CpfValidationException.java",
+      "size": 161,
+      "sha256": "8dfeec123f2e7a0f6f95c04e346efecdb4826067e2d4862a1cd123e17c7da6a3"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/audit-file-sink/src/com/cpf/core/api/logging/policy/CpfLogPolicyVersionAuditEvent.java",
+      "size": 1785,
+      "sha256": "eb92c34b5c92fb6b4c311acfe941c5ee39b2a44cde1165fa2cb9ba50f8f63a1c"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/audit-file-sink/src/com/cpf/core/api/logging/policy/CpfLogPolicyVersionSnapshot.java",
+      "size": 1922,
+      "sha256": "05edfd1077de1d5c2e44208cd07d1c13f009dbb85aaffa3512aed8570d4a18b0"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/audit-file-sink/src/com/cpf/core/api/logging/policy/LogCaptureMode.java",
+      "size": 2204,
+      "sha256": "4827b8cab0175b9aebe446fe4d69bfb219fa51b4dc291e91bb89e1aec8fdc76e"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/audit-file-sink/src/com/cpf/core/api/logging/policy/LogPolicyDecision.java",
+      "size": 9739,
+      "sha256": "f80e67193cdd1497a99fe6972bd13bd1cbd76556b17d1f6de92870506defb600"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/audit-file-sink/src/com/cpf/core/api/logging/policy/LogPolicyTargetType.java",
+      "size": 1616,
+      "sha256": "ad1e980274089ee366f63026c81c506cf9aadc3e30bc4f410ea0869ba0d1638e"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/audit-file-sink/src/com/cpf/core/api/security/CpfSensitiveData.java",
+      "size": 16410,
+      "sha256": "3b3e4f8f06026416690b35c2c27a0545ec574933286d91f55cff951db78035e2"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/audit-file-sink/src/com/cpf/core/common/logging/audit/CpfFileLogPolicyVersionAuditSink.java",
+      "size": 2682,
+      "sha256": "53eeeef193a653b102b0f494c28a5cf04b1cca54cf114ea4b014fa210b2bb27e"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/audit-file-sink/src/com/cpf/core/common/logging/audit/CpfFileLogPolicyVersionAuditSinkHarness.java",
+      "size": 4810,
+      "sha256": "4d1f88ce41c67c56355309b6815d900b511e4dd0e60758900407b5df54f95661"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/audit-file-sink/src/com/cpf/core/common/logging/file/CpfFileLogWriter.java",
+      "size": 343,
+      "sha256": "b5c562495ccefeefbcaf744b8cf80c190529cc9d173c87ab87969c0832926024"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/audit-file-sink/src/com/cpf/core/spi/logging/CpfLogPolicyVersionAuditSink.java",
+      "size": 309,
+      "sha256": "92aa0620fd2165dccc37fa61b0b90edfaa7d9e4744f8e3eddee241b62d0e8384"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/authz-permission-consumer/compile.exit-code",
+      "size": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/authz-permission-consumer/compile.log",
+      "size": 2950,
+      "sha256": "aa795cd24f04d7ac3aaf1ba41e08475fdd896bd87c4882c055b356cb095949c4"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/authz-permission-consumer/run.exit-code",
+      "size": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/authz-permission-consumer/run.log",
+      "size": 35,
+      "sha256": "c1e1d2e9367bd45dc61e3d0e254f2f588ec7f66d4ecd3b0d655b2ad012b228ad"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/authz-permission-consumer/sources.txt",
+      "size": 1295,
+      "sha256": "dd6ee9ebb6e7bd36841dcfa8b5f738fe456841ad4735ed5df10c78d71a7e21c9"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/authz-permission-consumer/src/com/cpf/bizadmin/auth/permission/BzaPermissionManifest.java",
+      "size": 4821,
+      "sha256": "6f175cc8b8bb89dcff1a9988a67a50363905a146dd3e9ba080c46e90590fa724"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/authz-permission-consumer/src/com/cpf/bizadmin/auth/permission/BzaPermissionManifestRuntimeHarness.java",
+      "size": 3255,
+      "sha256": "d8e43ed0e2eab682ae039fa44d6f8266bee2cd378ca36d0b1cced8f70ea4762f"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/authz-permission-consumer/src/com/fasterxml/jackson/databind/ObjectMapper.java",
+      "size": 194,
+      "sha256": "e98fa0078fa5f23af75884c408845a86b13e3bad4a29db775a83b02add2a467d"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/authz-permission-consumer/src/org/springframework/core/io/ClassPathResource.java",
+      "size": 219,
+      "sha256": "ed33ce56a98bd636696df8e2cba1f8bb6642f2087c13474d5f256128fa48ea11"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/authz-permission-consumer/src/org/springframework/stereotype/Component.java",
+      "size": 164,
+      "sha256": "7288cd22aa5ea9ae0df16f6fc6c482ec438d1d4590d2870da8d6ea48c279c783"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/checkpoint-direct-owner/async_compile.exit-code",
+      "size": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/checkpoint-direct-owner/async_compile.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/checkpoint-direct-owner/async_run.exit-code",
+      "size": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/checkpoint-direct-owner/async_run.log",
+      "size": 35,
+      "sha256": "c2b9c8b4d21bfa37be183d9d9d453520b8637d530892d8b03278e66afc986c2c"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/checkpoint-direct-owner/diffs/CpfAsyncLogWriterOperations.diff",
+      "size": 2538,
+      "sha256": "7c2c6750c31efaff569f68c694ce51da951f135f53cbdd8b3369c08e41fee7c9"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/checkpoint-direct-owner/diffs/CpfAsyncLogWriterOperationsHarness.diff",
+      "size": 3053,
+      "sha256": "76ab923791dcd35ab0402009d91c263d98eec09d5d08e8d976a4f9e313ff2df7"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/checkpoint-direct-owner/diffs/CpfLockManager.diff",
+      "size": 1990,
+      "sha256": "fa0aafc8cc0165bbfd68dc8b350e1524ff7848b57f8fbcea8f541b817768557e"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/checkpoint-direct-owner/diffs/CpfLockManagerDefaultTokenValidationHarness.diff",
+      "size": 4179,
+      "sha256": "937a5c33ebdc1a16f26d4ebf0bf84381158629c13226321e226e0082aa950e2e"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/checkpoint-direct-owner/hygiene.exit-code",
+      "size": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/checkpoint-direct-owner/hygiene.log",
+      "size": 13,
+      "sha256": "0d3e9108ae234412511853c6d6c8fa6b5748e50790b1f8e2177729c869bf6140"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/checkpoint-direct-owner/lock_compile.exit-code",
+      "size": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/checkpoint-direct-owner/lock_compile.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/checkpoint-direct-owner/lock_run.exit-code",
+      "size": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/checkpoint-direct-owner/lock_run.log",
+      "size": 39,
+      "sha256": "a0760aedd82f037c8f368b38e67d8efab99c875b50e1cbe1d016a2767b55300b"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/checkpoint-secret-scan.json",
+      "size": 349,
+      "sha256": "45ef5470dff6c3c24c7be2f90ddac5bcda22b8d4984e01b24037d3553e5e5f68"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/core-safety-java21-substitute/compile.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/core-safety-java21-substitute/result.txt",
+      "size": 26,
+      "sha256": "ef6a14adde69b3b62e8580ff027c626dd8ec12cb7874dad20e187f2787c7c94b"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/core-safety-java21-substitute/run.log",
+      "size": 29,
+      "sha256": "56099e9b5de4d261207a0cdc9749e5cdb88be5fa4c0893ebbef4f836126e1e3a"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/core-safety-java21-substitute/sources.txt",
+      "size": 3205,
+      "sha256": "dd27c49ba0540693643f7c38f60688f1b3691074ee3b10458b15272ac4da0636"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/core-safety-java21-substitute/stubs/com/cpf/core/api/error/CpfValidationException.java",
+      "size": 160,
+      "sha256": "e670ddbc94b6599c37d4b8acbdc6ae24eadc10ef46931949462fbc24660b5bda"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/environment/git-clone-attempt.log",
+      "size": 285,
+      "sha256": "41fdaa255a920ddc88e54cecaf1a7cee6613998159091f913c466f64af83dea4"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/environment/origin-master-recheck.txt",
+      "size": 245,
+      "sha256": "1d9795a2fca2f4d89e545fcff14dedf7864f04df70e79442ec8b6951a9fd7849"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/file-log-async-runtime/compile.exit-code",
+      "size": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/file-log-async-runtime/compile.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/file-log-async-runtime/run.exit-code",
+      "size": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/file-log-async-runtime/run.log",
+      "size": 39,
+      "sha256": "c5581aa1b4f85e9e374aa1341bba358379cf798a5fe145cbd2471dabecdf04e0"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/file-log-async-runtime/sources.txt",
+      "size": 3049,
+      "sha256": "96a1c187a506e6d9b6c5644f222b92b1db89952a74d7cd25ebed9a475eefed5f"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/file-log-async-runtime/src/com/cpf/core/api/logging/CpfAsyncFileLogWriterOperations.java",
+      "size": 1961,
+      "sha256": "072d682e8e21ef9e55f5c8bfbd74e41767f558326d3a89327282294fd220ab82"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/file-log-async-runtime/src/com/cpf/core/api/logging/policy/LogCaptureMode.java",
+      "size": 2204,
+      "sha256": "4827b8cab0175b9aebe446fe4d69bfb219fa51b4dc291e91bb89e1aec8fdc76e"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/file-log-async-runtime/src/com/cpf/core/api/logging/policy/LogPolicyDecision.java",
+      "size": 9739,
+      "sha256": "f80e67193cdd1497a99fe6972bd13bd1cbd76556b17d1f6de92870506defb600"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/file-log-async-runtime/src/com/cpf/core/api/logging/policy/LogPolicyTargetType.java",
+      "size": 1616,
+      "sha256": "ad1e980274089ee366f63026c81c506cf9aadc3e30bc4f410ea0869ba0d1638e"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/file-log-async-runtime/src/com/cpf/core/common/logging/TransactionLogRecord.java",
+      "size": 3088,
+      "sha256": "24e354ce215183a87197b62fc5be1e8ec9d1bd4df5a92454b458ecf1c2de3276"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/file-log-async-runtime/src/com/cpf/core/common/logging/file/CpfAsyncFileLogWriter.java",
+      "size": 13794,
+      "sha256": "39e4cb3e93f9ddde13842dbca93b243a17debfa769299d0f7d7b425aa0b4b90c"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/file-log-async-runtime/src/com/cpf/core/common/logging/file/CpfAsyncFileLogWriterHarness.java",
+      "size": 8460,
+      "sha256": "23f1c4af8fd2bd56ca5faea5a906d6159e397455009e9775343c4cc0219fef0e"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/file-log-async-runtime/src/com/cpf/core/common/logging/file/CpfFileLogWriter.java",
+      "size": 1273,
+      "sha256": "ba23597c2c373cc11baaaadbd411992541b8efce8f41d7c8c37c8968149a3f26"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/file-log-async-runtime/src/jakarta/annotation/PreDestroy.java",
+      "size": 155,
+      "sha256": "66c32d29fdd9a6b05553050e0055696be5b335933c17e3d88b97baaa3c3e36e9"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/file-log-async-runtime/src/org/springframework/beans/factory/annotation/Autowired.java",
+      "size": 224,
+      "sha256": "e5a56aa42c482a43dd3928c20cc47f018bcc69aac0da44a602e6eb22c2f92d00"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/file-log-async-runtime/src/org/springframework/core/env/Environment.java",
+      "size": 272,
+      "sha256": "2a3470ad78d8c667ca36dbab93a6ff675916d8e0765b257c03fbce916a8321ba"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/file-log-async-runtime/src/org/springframework/stereotype/Component.java",
+      "size": 164,
+      "sha256": "7288cd22aa5ea9ae0df16f6fc6c482ec438d1d4590d2870da8d6ea48c279c783"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/idempotency-safety/compile.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/idempotency-safety/main-sources.txt",
+      "size": 991,
+      "sha256": "df659d902cb8f8df8c765bc7c411ee2df14963175c9f431a77231a9d6791b204"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/idempotency-safety/result.txt",
+      "size": 26,
+      "sha256": "ef6a14adde69b3b62e8580ff027c626dd8ec12cb7874dad20e187f2787c7c94b"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/idempotency-safety/run.log",
+      "size": 36,
+      "sha256": "59102d512beb88f9ac713c2d68588c2f13cfc60d3c9a18990d993d3acfdacac4"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/idempotency-safety/sources.txt",
+      "size": 1105,
+      "sha256": "c29c0fa720065a46d1a647eef2e0852dfe6ee0b6b189c660fc202603a37db055"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/idempotency-safety/test-sources.txt",
+      "size": 114,
+      "sha256": "d968874b35fe91596f7b1fde5c6929c044f656beb9326db3d97acba5782391ba"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/lock-token-before/compile.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/lock-token-before/result.txt",
+      "size": 63,
+      "sha256": "cb4fdbd09f8259bb00f9eccf73a578c75709c5675c6a7e0e4b2c835db13f27bb"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/lock-token-before/run.log",
+      "size": 353,
+      "sha256": "1ab79af65b1ba1a70b4149310fcebd5d88a77862ceac99c11374f29dbcde8d1a"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/lock-token-default/compile.exit-code",
+      "size": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/lock-token-default/compile.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/lock-token-default/run.exit-code",
+      "size": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/lock-token-default/run.log",
+      "size": 39,
+      "sha256": "a0760aedd82f037c8f368b38e67d8efab99c875b50e1cbe1d016a2767b55300b"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/log-recovery-backoff-substitute/compile.exit-code",
+      "size": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/log-recovery-backoff-substitute/compile.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/log-recovery-backoff-substitute/run.exit-code",
+      "size": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/log-recovery-backoff-substitute/run.log",
+      "size": 38,
+      "sha256": "56483a7ab573b84d93b2fefce8a91401130253f7320cd5261743d75377d1fd84"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/log-recovery-backoff-substitute/source-snippet.txt",
+      "size": 613,
+      "sha256": "870227e81bdef1dbc79cadf01d427ce5706e7bcf95eac9ddef88ca7021792e6a"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/log-recovery-backoff-substitute/sources.txt",
+      "size": 574,
+      "sha256": "7178b694ae54e21784bed8c14aa7d6a008373e08c82271c65a9180f1509607bc"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/log-recovery-backoff-substitute/src/com/cpf/core/common/logging/fallback/TransactionLogRecoveryWorker.java",
+      "size": 711,
+      "sha256": "58d3f480f7c1b2d99f86680b6867961c6e96106b6790c8074206036ae89768d3"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/log-recovery-backoff-substitute/src/com/cpf/core/common/logging/fallback/TransactionLogRecoveryWorkerBackoffHarness.java",
+      "size": 828,
+      "sha256": "bf6819c63a8e74748e4c54581d4b38d36bd8b156bd86e47b8c82c78327ca814d"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/resource-server-clock-skew/all-existing-java.txt",
+      "size": 5390,
+      "sha256": "3cabd0221025ebe9ddfa0ad9ffb3111a055dbd35d510b197fa16b2dc5c473a4d"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/resource-server-clock-skew/compile.exit-code",
+      "size": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/resource-server-clock-skew/compile.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/resource-server-clock-skew/run.exit-code",
+      "size": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/resource-server-clock-skew/run.log",
+      "size": 39,
+      "sha256": "036cc87a6bfb28635f6ebadd3a4c496b0f0438b8dff73620552927d1288b28ae"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/resource-server-clock-skew/source/com/cpf/starter/security/resource/CpfAudienceValidator.java",
+      "size": 874,
+      "sha256": "af71d1f25a6ee664e34980f05559e689726d69f15e6c8c2395f2198881d8c414"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/resource-server-clock-skew/source/com/cpf/starter/security/resource/CpfResourceServerAutoConfiguration.java",
+      "size": 3882,
+      "sha256": "157e8b7b9cc2d194b654590f73cf28474193397ff22e15a7ab5d7dde947f4981"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/resource-server-clock-skew/source/com/cpf/starter/security/resource/CpfResourceServerConfigurationHarness.java",
+      "size": 2475,
+      "sha256": "73efc7ed6e3ddc3fba6945a9b712edbecdd497665227b3c29f762f39c9cfd6bb"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/resource-server-clock-skew/source/com/cpf/starter/security/resource/CpfResourceServerProperties.java",
+      "size": 2821,
+      "sha256": "2f53d3c55a9576d6226d58112ae606891c3d56e6d5bcc5a146790d1eb57c7be6"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/resource-server-clock-skew/sources.txt",
+      "size": 6496,
+      "sha256": "dd1888c9ecbd87e9e64a236a6d04d1231e29fc50c915b28090ebbbcfc2164bff"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/resource-server-clock-skew/stub-sources.txt",
+      "size": 5390,
+      "sha256": "3cabd0221025ebe9ddfa0ad9ffb3111a055dbd35d510b197fa16b2dc5c473a4d"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/resource-server-clock-skew/stubs/org/springframework/boot/actuate/health/Health.java",
+      "size": 371,
+      "sha256": "88294de1bdc70de0ac6281b93cedde805be421bfd1f06198db0a210ceae4a878"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/resource-server-clock-skew/stubs/org/springframework/boot/actuate/health/HealthIndicator.java",
+      "size": 124,
+      "sha256": "db94c0aa4752577552efe07135aac1b56da8ca20cfb4f525c4692009f981d158"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/resource-server-clock-skew/stubs/org/springframework/boot/autoconfigure/AutoConfiguration.java",
+      "size": 180,
+      "sha256": "a68084bc2a7241974f155e0bfbd92c62ddcf1c0709ad1bf8da13e01fa564b856"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/resource-server-clock-skew/stubs/org/springframework/boot/autoconfigure/condition/ConditionalOnProperty.java",
+      "size": 273,
+      "sha256": "f698741beb44932bfc694f3bb6d4821aff6adf92d95ae6179d2d810c220a4545"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/resource-server-clock-skew/stubs/org/springframework/boot/context/properties/ConfigurationProperties.java",
+      "size": 208,
+      "sha256": "9c2c13b995b33c144c493e30e0bbff26672f3190afdb8b71c12aba2e1f1d5df4"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/resource-server-clock-skew/stubs/org/springframework/boot/context/properties/EnableConfigurationProperties.java",
+      "size": 218,
+      "sha256": "4cfe4d4eca6361a4856940f3e4804854f38e03d3d505501d3965c5bf0f217d82"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/resource-server-clock-skew/stubs/org/springframework/context/annotation/Bean.java",
+      "size": 199,
+      "sha256": "3f0ce19ed2a286129746e956c988b7e6e7d2ae41a8f94338c1368bfbecb52cee"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/resource-server-clock-skew/stubs/org/springframework/security/config/Customizer.java",
+      "size": 186,
+      "sha256": "310cb1df977beedf17ff26bcfbe18b9ca98ee26b54b02ed47b122184d19ea548"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/resource-server-clock-skew/stubs/org/springframework/security/config/annotation/web/builders/HttpSecurity.java",
+      "size": 968,
+      "sha256": "6769e9eeeb59ebe6c41ae66adacb244dce4ef86c1366e9db5a8bff66ee4afb56"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/resource-server-clock-skew/stubs/org/springframework/security/oauth2/core/DelegatingOAuth2TokenValidator.java",
+      "size": 549,
+      "sha256": "9545aeb7957b1b961c5f29cf8aa95d1059ddc868a6091152428fd094669bc172"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/resource-server-clock-skew/stubs/org/springframework/security/oauth2/core/OAuth2Error.java",
+      "size": 127,
+      "sha256": "19ba369244d07b465fd00d4deae5176e11616f894aa3b284e040df800f6a3f17"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/resource-server-clock-skew/stubs/org/springframework/security/oauth2/core/OAuth2TokenValidator.java",
+      "size": 138,
+      "sha256": "a96ed704d31ad04076b0ecb475ec32d0e974d17dfefc3a48d7793e1b099922cd"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/resource-server-clock-skew/stubs/org/springframework/security/oauth2/core/OAuth2TokenValidatorResult.java",
+      "size": 441,
+      "sha256": "98400799c01c27e6a3c20420e0721dd0a1a39d6731256f51f892406731e04381"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/resource-server-clock-skew/stubs/org/springframework/security/oauth2/jwt/Jwt.java",
+      "size": 219,
+      "sha256": "b320fef8d095bd00a7453fdf5d68c17fd126ea9432ba38aab4893d90c33f765a"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/resource-server-clock-skew/stubs/org/springframework/security/oauth2/jwt/JwtDecoder.java",
+      "size": 80,
+      "sha256": "76b540caf4fbe096631cb6f17cbac2dffc94645c3d1c973357ac9883ba3b1eb4"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/resource-server-clock-skew/stubs/org/springframework/security/oauth2/jwt/JwtDecoders.java",
+      "size": 170,
+      "sha256": "638ae738b74c5a99651bde268a830294d9a6ca85205035688378e44115b6ffab"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/resource-server-clock-skew/stubs/org/springframework/security/oauth2/jwt/JwtIssuerValidator.java",
+      "size": 304,
+      "sha256": "d371a19d150e7d3f72b37893df8df6fa9df73550f250b4614ffd125e2ff2c19b"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/resource-server-clock-skew/stubs/org/springframework/security/oauth2/jwt/JwtTimestampValidator.java",
+      "size": 413,
+      "sha256": "50b79f59ef87f2889f758893724bf71f6261b5c6cc4528230bf1a497d94ff590"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/resource-server-clock-skew/stubs/org/springframework/security/oauth2/jwt/NimbusJwtDecoder.java",
+      "size": 517,
+      "sha256": "7aa5f09f504565f29bf5bf374129c1e8f11edecc9aa9d699050cb125c0d9e6b0"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/resource-server-clock-skew/stubs/org/springframework/security/web/SecurityFilterChain.java",
+      "size": 82,
+      "sha256": "b8929274848390a619758b4bd7dd0a7e0933d79be40d5505e760d47f3e880955"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/secret-registry/compile.exit-code",
+      "size": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/secret-registry/compile.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/secret-registry/run.exit-code",
+      "size": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/secret-registry/run.log",
+      "size": 34,
+      "sha256": "90e99bf2ef534eed2684b36416704ce70d8f2796edb5ca424e6f8604939a7e7a"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/security-contract/compile.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/security-contract/result.txt",
+      "size": 26,
+      "sha256": "ef6a14adde69b3b62e8580ff027c626dd8ec12cb7874dad20e187f2787c7c94b"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/security-contract/run.log",
+      "size": 35,
+      "sha256": "36645256a552b90fde3f3535b209904327785281c51f50418c4a75fc6b528f2e"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/security-contract/sources.txt",
+      "size": 1333,
+      "sha256": "5da329d9244de044971598e60dbcfc0ae7d34d2aa7f63054ad24237575ac869c"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/security-contract/src/com/cpf/core/api/security/secret/CpfRotatableSecretProvider.java",
+      "size": 271,
+      "sha256": "285bd3894300a3ff97678fbfa4dc7e422766c80d5e10a7be67724d39269bc0c2"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/security-contract/src/com/cpf/core/api/security/secret/CpfSecretMetadata.java",
+      "size": 489,
+      "sha256": "021acf3b2533a35c76ff99c07c532a11ccd1f56aabb2e7d3296ca6d5368c9d08"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/security-contract/src/com/cpf/core/api/security/secret/CpfSecretProvider.java",
+      "size": 321,
+      "sha256": "9870a2bc62bb7c2892dbbff4d157f081f143be669f6e82cac8ff467587e070b7"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/security-contract/src/com/cpf/core/api/security/secret/CpfSecretReference.java",
+      "size": 590,
+      "sha256": "bbf082188490ef07362e96a9a4d8f86e6a6d9c2d27896dba98a26f0b96b5b25b"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/security-contract/src/com/cpf/core/api/security/secret/CpfSecretValue.java",
+      "size": 954,
+      "sha256": "880a509760e520c1f70be6896cd7525889b7dec7fa9c8b5813f8f7c3a4502d52"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/security-contract/src/com/cpf/starter/security/CpfServerSessionProperties.java",
+      "size": 4330,
+      "sha256": "8c5b71729b503302c73b43a5c92dbc6059ef647028a082985d1e1442b9a2a8ad"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/security-contract/src/com/cpf/starter/security/identity/CpfSecurityContractHarness.java",
+      "size": 5367,
+      "sha256": "de5509f8454a8959d9b06b8361bcf751f9a8889594b0287a90a5f2e718cf7917"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/security-contract/src/com/cpf/starter/security/identity/CpfServiceIdentityProperties.java",
+      "size": 1860,
+      "sha256": "2f9d1cd50690fde6bfc75f22327a294272e381b3ad1a47bfd5325e23ca7b55c9"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/security-contract/src/com/cpf/starter/security/identity/CpfServiceIdentityTokenService.java",
+      "size": 3477,
+      "sha256": "1112662023ad2ae892f8be855220ff8ad9ad1e1e9ecd005a39a9a868dc66f8b9"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/security-contract/src/com/cpf/starter/security/secret/CpfSecretProviderRegistry.java",
+      "size": 1425,
+      "sha256": "7aea598f187aa6ed06f61e9d073a5307209943a78544aab93d98527edc9672e2"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/security-contract/src/org/springframework/boot/context/properties/ConfigurationProperties.java",
+      "size": 247,
+      "sha256": "9d318895ee8f93054b307b3baeed7fae93e3f7777f290e45d7046698d4d5b681"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/security-contract/src/org/springframework/boot/context/properties/bind/ConstructorBinding.java",
+      "size": 218,
+      "sha256": "b3dbcfc1808ad8c440a60041975bb419ddf21aa104188c4c5721a452a05468c5"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/security-policy-access-java21/compile.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/security-policy-access-java21/result.txt",
+      "size": 26,
+      "sha256": "ef6a14adde69b3b62e8580ff027c626dd8ec12cb7874dad20e187f2787c7c94b"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/security-policy-access-java21/run.log",
+      "size": 461,
+      "sha256": "0a7353a22eb3b38a1a7cc2ce1c1f24247f367ab9f3b33fbadefa854f62933b55"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/security-policy-access-java21/sources.txt",
+      "size": 2969,
+      "sha256": "3c85c712440d7471f438900eeff250dbbe3a3d680b85f3969e680f12e80c0607"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/security-policy-access-java21/stubs/com/cpf/core/api/error/CpfValidationException.java",
+      "size": 262,
+      "sha256": "5042c01d3d432b797876607dd504fdb0ae62f0efe67dcf7ba7fa1553560e2c8e"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/security-replay-gap-before/compile.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/security-replay-gap-before/result.txt",
+      "size": 68,
+      "sha256": "54909642ff3fe521a419a08050c92b06f82ef4ddf03c0794552e6a4dbb52637c"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/security-replay-gap-before/run.log",
+      "size": 105,
+      "sha256": "cb7b4350c520ea44cb2f847627fd973fe41022ed31aa4324888bc3013354df3e"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/security-replay-gap-before/sources.txt",
+      "size": 485,
+      "sha256": "77d9d937acc69f5d90f4cbeebfcd305fbc991b8b32f03839c1356c9834be84ca"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/security-replay-gap-before/src/com/cpf/starter/security/identity/CpfServiceIdentityProperties.java",
+      "size": 1860,
+      "sha256": "2f9d1cd50690fde6bfc75f22327a294272e381b3ad1a47bfd5325e23ca7b55c9"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/security-replay-gap-before/src/com/cpf/starter/security/identity/CpfServiceIdentityReplayGapHarness.java",
+      "size": 743,
+      "sha256": "6967df314ece37bd0a9f730af6d6e8aa2554e9992fb925da9160c8055706d879"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/security-replay-gap-before/src/com/cpf/starter/security/identity/CpfServiceIdentityTokenService.java",
+      "size": 3477,
+      "sha256": "1112662023ad2ae892f8be855220ff8ad9ad1e1e9ecd005a39a9a868dc66f8b9"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/security-replay-gap-before/src/org/springframework/boot/context/properties/ConfigurationProperties.java",
+      "size": 247,
+      "sha256": "284eb9e6d394b5773b35d73ebf7274433d6a1901378bac2f2a17d785426bd16b"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/service-identity-replay/compile.exit-code",
+      "size": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/service-identity-replay/compile.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/service-identity-replay/run.exit-code",
+      "size": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/service-identity-replay/run.log",
+      "size": 33,
+      "sha256": "0b8aa9abe8c3882fdb21be5cf65b4bcc82c420e2d5bc648d04b0aa9f8332c9e0"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/service-identity-replay/stubs/org/springframework/boot/context/properties/ConfigurationProperties.java",
+      "size": 208,
+      "sha256": "6ba875646c840d4aa86d188b6c56fb629b7866817b39ef3e4de39c22f9357c0c"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/source-consumer-gate/full_assignment_equivalent_run.exit-code",
+      "size": 2,
+      "sha256": "53c234e5e8472b6ac51c1ae1cab3fe06fad053beb8ebfd8977b010655bfdd3c3"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/source-consumer-gate/full_assignment_equivalent_run.log",
+      "size": 76,
+      "sha256": "9dde416607aeec5da1a93329bae3e78cda8d12355ff0d501f73dfbba8b1243a9"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/source-consumer-gate/full_assignment_run.exit-code",
+      "size": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/source-consumer-gate/full_assignment_run.log",
+      "size": 3371,
+      "sha256": "da35c25ac4233dc5935dac5a6f52e2f4984202b4b7807f464c11af288fddd9d5"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/source-consumer-gate/source_consumer_gate.exit-code",
+      "size": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/source-consumer-gate/source_consumer_gate.json",
+      "size": 7654,
+      "sha256": "d968322449bc909b77da98a67c975d9aff04f5597e69bbd040ab6b7cee0bda56"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/source-consumer-gate/source_consumer_gate.py",
+      "size": 4851,
+      "sha256": "49ca5b4fa9c7b5a33e004fff6a23b142686217d1e7dbbb0e979728ee227e1a86"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/source-consumer-gate/source_consumer_gate_recheck.exit-code",
+      "size": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/source-consumer-gate/source_consumer_gate_recheck.log",
+      "size": 7654,
+      "sha256": "d968322449bc909b77da98a67c975d9aff04f5597e69bbd040ab6b7cee0bda56"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/source-harnesses/CpfCoreSafetyHarness.java",
+      "size": 33997,
+      "sha256": "153db945454d6d6e9bb08ca6b3d748f00b8c1db81afad8d48e558d93a10b1b8f"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/source-harnesses/CpfIdempotencySafetyHarness.java",
+      "size": 5922,
+      "sha256": "974d9f5a483172fee32a7229169358bda067518b4486c4104d2c4a98223edced"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/source-harnesses/CpfStateReconciliationHarness.java",
+      "size": 6888,
+      "sha256": "55145023a90140ed8cd63fe27b3fb176f4d71e9fe9b628c5bf7b5e2105fcf705"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/state-reconciliation-java21/compile.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/state-reconciliation-java21/result.txt",
+      "size": 26,
+      "sha256": "ef6a14adde69b3b62e8580ff027c626dd8ec12cb7874dad20e187f2787c7c94b"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/state-reconciliation-java21/run.log",
+      "size": 38,
+      "sha256": "ede78952075455ff1735027bfc619087b851847f32c9215f9597348cbfad2508"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/state-reconciliation-java21/sources.txt",
+      "size": 1798,
+      "sha256": "79eaec713df9fe8f8c1ad1e4fa205336a4bf635167c0a1fc1695dae65af4b9bf"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/state-reconciliation-java21/stubs/com/cpf/core/api/error/CpfValidationException.java",
+      "size": 262,
+      "sha256": "5042c01d3d432b797876607dd504fdb0ae62f0efe67dcf7ba7fa1553560e2c8e"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/trace-context-sampling/compile.exit-code",
+      "size": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/trace-context-sampling/compile.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/trace-context-sampling/run.exit-code",
+      "size": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/trace-context-sampling/run.log",
+      "size": 63,
+      "sha256": "ce6628e970a67c0ca0dc3c6c7b35605239f0946937c76bf3d1481d9b09edd22f"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/trace-context-sampling/source/CpfTraceContextHarness.java",
+      "size": 3578,
+      "sha256": "d01ccbc5f2dcc9a3e9deeeb21d637764cf41bb96139aa86fe0d46af9b78070b1"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/trace-context-sampling/source/CpfTraceSamplingPolicyHarness.java",
+      "size": 1388,
+      "sha256": "9ca468c60d5cf577fcae06b96aa4f187205139a58596883e3c38bbbf2fee7500"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/trace-context-sampling/stubs/com/cpf/core/api/error/CpfValidationException.java",
+      "size": 148,
+      "sha256": "3619da201fb4561311ed9bd2ace14417a27bb3326071b3ebcfd989c6e7f63e6e"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/trace-context-sampling/stubs/com/cpf/core/common/logging/TransactionLogRecord.java",
+      "size": 2039,
+      "sha256": "8a46bfae3ac877cfc6bfb4a81465e9ffc097bb59bc9187c5eb44aaffa872b6e4"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/trace-contract/compile.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/trace-contract/result.txt",
+      "size": 26,
+      "sha256": "ef6a14adde69b3b62e8580ff027c626dd8ec12cb7874dad20e187f2787c7c94b"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/trace-contract/run.log",
+      "size": 31,
+      "sha256": "81af86d8d7f956b7076097aff1f6ba0caaadad13c7b4ce28506ede2e1e65e7ae"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/trace-contract/sources.txt",
+      "size": 592,
+      "sha256": "3642d5cc4dbfe2697bf63804822da545686e3761af7a3a2feb0fff14ca121926"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/trace-contract/src/com/cpf/core/api/error/CpfValidationException.java",
+      "size": 158,
+      "sha256": "e66abc56867465be8b86b00dec147dd95fbcf4c72bbbfe9551e3e214f98ef242"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/trace-contract/src/com/cpf/core/api/observability/CpfTraceContext.java",
+      "size": 8823,
+      "sha256": "91e06c4873deed02244867b3856e5b96a97403aa9f5a79d4b152b00668f7a5d6"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/trace-contract/src/com/cpf/core/api/security/CpfSensitiveData.java",
+      "size": 16410,
+      "sha256": "3b3e4f8f06026416690b35c2c27a0545ec574933286d91f55cff951db78035e2"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/trace-contract/src/com/cpf/core/common/logging/CpfTraceContextHarness.java",
+      "size": 3578,
+      "sha256": "d01ccbc5f2dcc9a3e9deeeb21d637764cf41bb96139aa86fe0d46af9b78070b1"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/trace-contract/src/com/cpf/core/common/logging/CpfTransactionTraceEnricher.java",
+      "size": 3888,
+      "sha256": "a559ec52600e4248ab72f3d884be658f2cd7fe8902038b513e9d3b65b074deea"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/trace-contract/src/com/cpf/core/common/logging/TransactionLogRecord.java",
+      "size": 2039,
+      "sha256": "5665b87520e5d5be224287a742f29a77b347ba326b4a3c5eb22522600e4b5dc1"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/transaction-log-async-consumer/compile.exit-code",
+      "size": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/transaction-log-async-consumer/compile.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/transaction-log-async-consumer/run.exit-code",
+      "size": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/transaction-log-async-consumer/run.log",
+      "size": 46,
+      "sha256": "72853cae17d6e3c013b8a6031e4c62c3f9069f3a160d12a66b8d085715105bbe"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/transaction-log-async-consumer/sources.txt",
+      "size": 3492,
+      "sha256": "9afb06c029041965904927346cf85dbc1743c1be92dde4633077fc0911472d6c"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/transaction-log-db-safety/compile.exit-code",
+      "size": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/transaction-log-db-safety/compile.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/transaction-log-db-safety/run.exit-code",
+      "size": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/transaction-log-db-safety/run.log",
+      "size": 48,
+      "sha256": "9f54ea93ef2ad83f46d67bb655135927f389ce41659fa990bcc3ecdda994d3f3"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/transaction-log-db-safety/source/TransactionLogServiceSafetyHarness.java",
+      "size": 4886,
+      "sha256": "2fb2edeab23b320d7c294fe770f22493c93d3081d392d71e17e6a92c2f0ce458"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/evidence/transaction-log-db-safety/stub-sources.txt",
+      "size": 652,
+      "sha256": "51b763bbf0c6229e9375ca53bc1c1e71687d1d84ff2e5b3052b80122455b3597"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/integration_requests/IR-S02-RUNTIME/REQUEST.md",
+      "size": 992,
+      "sha256": "1226d8083c5094364f0616c1f8279be916695bdef0bb77c69991e9a92fec954a"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/integration_requests/IR-S02-RUNTIME/impacted_ids.csv",
+      "size": 2666,
+      "sha256": "a49a27e12e3a83ee6bb5067598287b04c2af835e52fb535e624a1bc8db507814"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/integration_requests/IR-S04-DB/REQUEST.md",
+      "size": 1208,
+      "sha256": "db790b66699cfc021594ef85c85a72273d5b0218b17703c070661fb505702e56"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/integration_requests/IR-S04-DB/impacted_ids.csv",
+      "size": 4910,
+      "sha256": "6e2ec938a46b8c1fe18028eeb29c6ebab6286813375f50934871df9d6df96c33"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/integration_requests/IR-S05-ADM-BZA/REQUEST.md",
+      "size": 1038,
+      "sha256": "c817aaea7324c00d9eacd6683f0653311aa72336131d60c7dd6957ab268bc913"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/integration_requests/IR-S05-ADM-BZA/impacted_ids.csv",
+      "size": 21564,
+      "sha256": "7040e18dfa08c3beb2ca470c44642d1e04576f2223a756fb26b2476de7b4d80d"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/integration_requests/IR-S06-BUILD-GENERATOR/REQUEST.md",
+      "size": 1300,
+      "sha256": "0319b13e014418d3871f79421e1239745a96e39f715545c5a785f009740f1d40"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/integration_requests/IR-S06-BUILD-GENERATOR/impacted_ids.csv",
+      "size": 2006,
+      "sha256": "d4b2806d2f2f67663a4c169ae5c151174f9d26fe8ada9d9acd40e419fbc66e32"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/integration_requests/IR-S06-SECURITY-STARTERS/REQUEST.md",
+      "size": 1682,
+      "sha256": "e218cd4c016dc05afc76361035e10764b3e37e22f29340d9cc87b952ca887b70"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/integration_requests/IR-S06-SECURITY-STARTERS/diffs/CpfResourceServerAutoConfiguration.diff",
+      "size": 4901,
+      "sha256": "296a61b51aac6160f293f24950f9c4825d9aae0a28d9d842699bb4e80e6eb9fc"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/integration_requests/IR-S06-SECURITY-STARTERS/diffs/CpfResourceServerConfigurationHarness.diff",
+      "size": 3003,
+      "sha256": "3b0b8d6ddc0b6eab9038672167115d195fca74f1f681088b7bb6a41055a3300d"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/integration_requests/IR-S06-SECURITY-STARTERS/diffs/CpfResourceServerProperties.diff",
+      "size": 3726,
+      "sha256": "bed1c42e1e205198564a1640350b9e81de75184abb33f0e3efd931deef198308"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/integration_requests/IR-S06-SECURITY-STARTERS/diffs/CpfSecretProviderRegistry.diff",
+      "size": 4191,
+      "sha256": "6221a5e2892dcba6ff095bb55953a96d73e3e514cbdbb61699a77f8d42f928ab"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/integration_requests/IR-S06-SECURITY-STARTERS/diffs/CpfSecretProviderRegistryHarness.diff",
+      "size": 2924,
+      "sha256": "fd68a32f81f552cb02a3dbb9c6802768b0e0da4889bdbccafedd9f090472429b"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/integration_requests/IR-S06-SECURITY-STARTERS/diffs/CpfServiceIdentityAutoConfiguration.diff",
+      "size": 3719,
+      "sha256": "c224bddace3dd94e8a106866f5a7d4050dd232c8f0e6b28ece2305cbc451a86a"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/integration_requests/IR-S06-SECURITY-STARTERS/diffs/CpfServiceIdentityProperties.diff",
+      "size": 5639,
+      "sha256": "c47ee26214b2b88102ce11b9359c758e38c2fe8ee6c991416dc6874f9a87a6aa"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/integration_requests/IR-S06-SECURITY-STARTERS/diffs/CpfServiceIdentityReplayGuard.diff",
+      "size": 1728,
+      "sha256": "1418cde2b779dbf72adb1ec4a2946db8f496f46fa9f78daba95b8fb0c0350528"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/integration_requests/IR-S06-SECURITY-STARTERS/diffs/CpfServiceIdentityReplayHarness.diff",
+      "size": 7216,
+      "sha256": "f3f16924c646c61eadf9627c5fbb2a24df901504a93a3a4d9bb5813472eea67b"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/integration_requests/IR-S06-SECURITY-STARTERS/diffs/CpfServiceIdentityTokenService.diff",
+      "size": 10336,
+      "sha256": "fa1a17466ee09dceedc63a0fa170e662b58ebeb7dc32aae5c96acf45408943b5"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/integration_requests/IR-S06-SECURITY-STARTERS/diffs/CpfServiceIdentityTokenServiceTest.diff",
+      "size": 3558,
+      "sha256": "be63c9e353a023b2ee41d7f5872357c607b269a65cfad7950fb28b552f9856d8"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/integration_requests/IR-S06-SECURITY-STARTERS/diffs/InMemoryCpfServiceIdentityReplayGuard.diff",
+      "size": 3299,
+      "sha256": "48eb3fa2953c3c91d536b5d8758ea0a2f6991037d684a93bf0604eeef771d25a"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/integration_requests/IR-S06-SECURITY-STARTERS/impacted_ids.csv",
+      "size": 6604,
+      "sha256": "92ae167c229ba5a276d6d68212290493f9c242b6fcc47f6bdf7f5f00d5e470e7"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/integration_requests/IR-S06-SECURITY-STARTERS/proposed_overlay/cpf-starters/security/resource-server/src/main/java/com/cpf/starter/security/resource/CpfResourceServerAutoConfiguration.java",
+      "size": 3882,
+      "sha256": "157e8b7b9cc2d194b654590f73cf28474193397ff22e15a7ab5d7dde947f4981"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/integration_requests/IR-S06-SECURITY-STARTERS/proposed_overlay/cpf-starters/security/resource-server/src/main/java/com/cpf/starter/security/resource/CpfResourceServerProperties.java",
+      "size": 2821,
+      "sha256": "2f53d3c55a9576d6226d58112ae606891c3d56e6d5bcc5a146790d1eb57c7be6"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/integration_requests/IR-S06-SECURITY-STARTERS/proposed_overlay/cpf-starters/security/resource-server/src/test/java/com/cpf/starter/security/resource/CpfResourceServerConfigurationHarness.java",
+      "size": 2475,
+      "sha256": "73efc7ed6e3ddc3fba6945a9b712edbecdd497665227b3c29f762f39c9cfd6bb"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/integration_requests/IR-S06-SECURITY-STARTERS/proposed_overlay/cpf-starters/security/secret/src/main/java/com/cpf/starter/security/secret/CpfSecretProviderRegistry.java",
+      "size": 2746,
+      "sha256": "cffad57f6fec0c64c2e3e2955da441758795df276e58220f109d86bb88bac119"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/integration_requests/IR-S06-SECURITY-STARTERS/proposed_overlay/cpf-starters/security/secret/src/test/java/com/cpf/starter/security/secret/CpfSecretProviderRegistryHarness.java",
+      "size": 2416,
+      "sha256": "fabded5aebd3ab252dd6547d293cc8febfd4dae52f82ed7cf33cb48fb133ef4e"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/integration_requests/IR-S06-SECURITY-STARTERS/proposed_overlay/cpf-starters/security/service-identity/src/main/java/com/cpf/starter/security/identity/CpfServiceIdentityAutoConfiguration.java",
+      "size": 2748,
+      "sha256": "e2821b8032fb23845b5bd2851fb7187b3808ff984a9c5a05ddffb11b650a5ba8"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/integration_requests/IR-S06-SECURITY-STARTERS/proposed_overlay/cpf-starters/security/service-identity/src/main/java/com/cpf/starter/security/identity/CpfServiceIdentityProperties.java",
+      "size": 4484,
+      "sha256": "6104e13b36836cd6664ce255719a9457bdf7e1beabaf318c0b3e12eb46a9edcf"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/integration_requests/IR-S06-SECURITY-STARTERS/proposed_overlay/cpf-starters/security/service-identity/src/main/java/com/cpf/starter/security/identity/CpfServiceIdentityReplayGuard.java",
+      "size": 1225,
+      "sha256": "b5f6209f412a60b8039f059951a3c18a484b9690fd11108a3d7afca782be418a"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/integration_requests/IR-S06-SECURITY-STARTERS/proposed_overlay/cpf-starters/security/service-identity/src/main/java/com/cpf/starter/security/identity/CpfServiceIdentityTokenService.java",
+      "size": 6629,
+      "sha256": "bc7f6e5278be7f0b48e23f93192495a7c010fa291adb48c8c9024ea12936baa8"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/integration_requests/IR-S06-SECURITY-STARTERS/proposed_overlay/cpf-starters/security/service-identity/src/main/java/com/cpf/starter/security/identity/InMemoryCpfServiceIdentityReplayGuard.java",
+      "size": 2744,
+      "sha256": "aaef49e524a32b35d74b9122a2330a631d077ae1393edc2bbb787c67a631e71d"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/integration_requests/IR-S06-SECURITY-STARTERS/proposed_overlay/cpf-starters/security/service-identity/src/test/java/com/cpf/starter/security/identity/CpfServiceIdentityReplayHarness.java",
+      "size": 6593,
+      "sha256": "fa39cef5456fe32929b8728fca423cf9124d5dbb397ed594420eb118e955277c"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/integration_requests/IR-S06-SECURITY-STARTERS/proposed_overlay/cpf-starters/security/service-identity/src/test/java/com/cpf/starter/security/identity/CpfServiceIdentityTokenServiceTest.java",
+      "size": 1923,
+      "sha256": "3474ad2b4a1342c11635f070f7310d910667e5fe5292fbc4774984930a742b26"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/results/CHANGE_MANIFEST.csv",
+      "size": 74577,
+      "sha256": "015e1c76112e6760b3454683e9ae436c2faa59a78baf43e373d52ee56ee2724d"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/results/CHECKPOINT_VALIDATION.json",
+      "size": 2414,
+      "sha256": "2bc2311a6421d3a1a3d64d687f2e8e18c9944990cff868016648ddc043313ac3"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/results/DEVELOPMENT_GATE_RESULT.csv",
+      "size": 4831,
+      "sha256": "552d440a48bcd976ca73342c90b56b195395823e5708448fe7a0d860f5a5f085"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/results/DEVELOPMENT_REQUIREMENT_RESULT.csv",
+      "size": 3999240,
+      "sha256": "ca593efacbf42f7dcec8830a4192331543a9a788f60cb610c518608cfbee4107"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/results/DEVELOPMENT_SCENARIO_RESULT.csv",
+      "size": 6973254,
+      "sha256": "633e80ba5a1f5fa7bc04b170668af5de61076985ffbb5b0c7b172003767eed6a"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/results/DEVELOPMENT_SESSION_RESULT.csv",
+      "size": 1461,
+      "sha256": "841e44c7f26e28b6bb616b99c70f8d20570d5a9264e794ad37cb467d2307c88f"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/results/DEVELOPMENT_WORK_ITEM_RESULT.csv",
+      "size": 45282,
+      "sha256": "19522f3f2eaba0e0a684b23288cf67113c64860af43a0bc9690720d3be435ca7"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/results/INTEGRATION_REQUEST_STATUS.csv",
+      "size": 2447,
+      "sha256": "242e3df904e2543bacf1328eeaa31ac459460c14516add1a776b2b93e5b58011"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/results/OPEN_ISSUES.md",
+      "size": 758,
+      "sha256": "406209377334349d240dd3378c22df643b51c62d03db8ad2e05a59a4d6eafd65"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S01-20260805/REV-001/sessions/DEVGPT-V9-S01/results/TEST_AND_EVIDENCE.md",
+      "size": 4891,
+      "sha256": "bf1155f2627d10c7b6f019e01737c4efe09327ce60ce7ff4277df74bd68a1fd7"
+    }
+  ]
+}

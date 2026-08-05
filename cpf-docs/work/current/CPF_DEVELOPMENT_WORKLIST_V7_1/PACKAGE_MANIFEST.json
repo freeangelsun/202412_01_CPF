@@ -1,0 +1,330 @@
+{
+  "package": "CPF_DEVELOPMENT_WORKLIST_V7_1_AI_OPTIMIZED",
+  "extract_at": "repository root",
+  "target_path": "cpf-docs/work/current/CPF_DEVELOPMENT_WORKLIST_V7_1/",
+  "baseline_candidate_sha": "2b259ea45f3ad1a93bfefd5e7d3bc35f3406bf06",
+  "canonical_requirement_count": 169,
+  "execution_work_package_count": 775,
+  "work_item_index_rows": 775,
+  "split_ledger_rows": 775,
+  "split_ledger_columns": 21,
+  "detailed_card_count": 775,
+  "max_file_bytes": 276171,
+  "max_file_path": "cpf-docs/work/current/CPF_DEVELOPMENT_WORKLIST_V7_1/WORK_ITEM_INDEX.csv",
+  "files_over_400kb": 0,
+  "files_over_10mb": 0,
+  "files": [
+    {
+      "path": "cpf-docs/work/current/CPF_DEVELOPMENT_WORKLIST_V7_1/00_APPLICATION_POLICY.md",
+      "bytes": 2671,
+      "lines": 66,
+      "sha256": "6e54b53a20d2a86ba3a6434e48e65e8cfab471a213e4ff453325085758f88d28"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVELOPMENT_WORKLIST_V7_1/01_COMMON_ENGINEERING_GATES.md",
+      "bytes": 12498,
+      "lines": 487,
+      "sha256": "382ef604cdbeb322697044ac7a7cba4029077b387df4fc3ec0a39fd4c5736f01"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVELOPMENT_WORKLIST_V7_1/02_STANDARDS_TECHNOLOGY_CROSSWALK.md",
+      "bytes": 8142,
+      "lines": 191,
+      "sha256": "895f44a3a681d2486a50b7d1baacba580c110df3a957f8855cfba085522a376b"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVELOPMENT_WORKLIST_V7_1/03_BASELINE_STABILIZATION.md",
+      "bytes": 31326,
+      "lines": 862,
+      "sha256": "094f1f83289c8ca4983cf5db4744834d322549aa9a349b433cfa48742ff938bc"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVELOPMENT_WORKLIST_V7_1/04_REQUIREMENT_GAP_PROMOTION_REVIEW.md",
+      "bytes": 22588,
+      "lines": 513,
+      "sha256": "11228c45bbc0781d1edd641db2cf7fa3c51f9858abe49d1e240aed61e3b5c9c5"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVELOPMENT_WORKLIST_V7_1/100_RELEASE_PRODUCT_GOVERNANCE.md",
+      "bytes": 192486,
+      "lines": 3528,
+      "sha256": "24f2819621304674fd3bb3a580221f5f8f3736c35c533bfb293183c1d86c3a79"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVELOPMENT_WORKLIST_V7_1/10_ARCHITECTURE_MODULE_BOUNDARY.md",
+      "bytes": 147282,
+      "lines": 2557,
+      "sha256": "90a7b6c700e211c82b3b59f56b7e6a2d5ed672b779fff7a7693b2d4a977b71f9"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVELOPMENT_WORKLIST_V7_1/11_CORE_CALL_CONTEXT_STATE_RESILIENCE.md",
+      "bytes": 1167,
+      "lines": 16,
+      "sha256": "337f89f9da7f76a24d9a32a1f9f0db2af56e48061ff66932322537aa1b89d75f"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVELOPMENT_WORKLIST_V7_1/11_CORE_CALL_CONTEXT_STATE_RESILIENCE_PART_01.md",
+      "bytes": 206493,
+      "lines": 3653,
+      "sha256": "250077fe210292b064421204ba0ce5457c8eb06d69727637410e4181e5c8e8a5"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVELOPMENT_WORKLIST_V7_1/11_CORE_CALL_CONTEXT_STATE_RESILIENCE_PART_02.md",
+      "bytes": 86928,
+      "lines": 1553,
+      "sha256": "65b71b830f7d9b90d784fc22c9ddf6ec43c7cbc1f9ce3337fee35ec33a366d7a"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVELOPMENT_WORKLIST_V7_1/12_CORE_OBSERVABILITY_FILE_MESSAGE.md",
+      "bytes": 179237,
+      "lines": 3113,
+      "sha256": "b47da0c4456c2a06f5c7d0ce3aed45af7ba37fe496b6335130d7a22bfad0f114"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVELOPMENT_WORKLIST_V7_1/20_COMMON_DATA_DB.md",
+      "bytes": 1169,
+      "lines": 16,
+      "sha256": "bd008aea0edfd00998a9f9887cb8d1c1ea85b184431163ebe7fd80f51ea7327a"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVELOPMENT_WORKLIST_V7_1/20_COMMON_DATA_DB_PART_01.md",
+      "bytes": 207689,
+      "lines": 3723,
+      "sha256": "8e9ab0b8dbbf692e22daa12262256e8ceeccac7436fb5c713bea7298ccdd54ca"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVELOPMENT_WORKLIST_V7_1/20_COMMON_DATA_DB_PART_02.md",
+      "bytes": 156390,
+      "lines": 2813,
+      "sha256": "204a513f60f49b0e13e51fc05bf4e9a1c586ae357a0d671f47a27263edb8005b"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVELOPMENT_WORKLIST_V7_1/30_GATEWAY_EXTERNAL_INTEGRATION.md",
+      "bytes": 238722,
+      "lines": 4217,
+      "sha256": "4b2ad8b890573f1b6add22d262021363beb8cbe80a81f84e29357dfd8f10bb2d"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVELOPMENT_WORKLIST_V7_1/31_EVENT_MESSAGING_SAGA.md",
+      "bytes": 195199,
+      "lines": 3389,
+      "sha256": "2a4ea4ca26b71e713d86e5fec29a9ce8deef129a788e4d590df0c9f73ca789c0"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVELOPMENT_WORKLIST_V7_1/40_BATCH_AGENT_WORKER.md",
+      "bytes": 145315,
+      "lines": 2561,
+      "sha256": "102b6fba32cdf559a1b82c149a5d6125bd5cecf1585e72b2062f4681a18bbca0"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVELOPMENT_WORKLIST_V7_1/41_CENTER_CUT.md",
+      "bytes": 134281,
+      "lines": 2423,
+      "sha256": "9c613b1d795860e5ae41dda597134b84f2d5e5ac1f9368445392d59f23637070"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVELOPMENT_WORKLIST_V7_1/50_ADMIN_PLATFORM.md",
+      "bytes": 1109,
+      "lines": 16,
+      "sha256": "4f54385d7d64243210e0e2000114be9fcb98c47098497cda0de3d36c6fa94083"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVELOPMENT_WORKLIST_V7_1/50_ADMIN_PLATFORM_PART_01.md",
+      "bytes": 207052,
+      "lines": 3653,
+      "sha256": "eda2ed5ddcf19787433ea7c30514d3e2ee0cef64d2fc8a6aa54a2e3c01c66f19"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVELOPMENT_WORKLIST_V7_1/50_ADMIN_PLATFORM_PART_02.md",
+      "bytes": 100070,
+      "lines": 1763,
+      "sha256": "8c4589310dfe969d22d9fb2d2106b4645f5fbba1c8013370cc3ad4e298eb04c3"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVELOPMENT_WORKLIST_V7_1/51_BIZ_ADMIN.md",
+      "bytes": 68932,
+      "lines": 1242,
+      "sha256": "a250254d6e2a52e895d1e08babcb9c89f33d61103167c786c725a72886f266c5"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVELOPMENT_WORKLIST_V7_1/60_SECURITY_PRIVACY_CRYPTO.md",
+      "bytes": 181831,
+      "lines": 3182,
+      "sha256": "f6b1b37acf173e65bef10fc661a522e6583507aaab7be6f9e0cdd136ff82f996"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVELOPMENT_WORKLIST_V7_1/70_OPERATIONS_SRE_RUNTIME_CONTROL.md",
+      "bytes": 1097,
+      "lines": 16,
+      "sha256": "9578be9bad94c2d38217728a62fc16b9cd8c312203fffec576e02a50c1fe629d"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVELOPMENT_WORKLIST_V7_1/70_OPERATIONS_SRE_RUNTIME_CONTROL_PART_01.md",
+      "bytes": 206828,
+      "lines": 3653,
+      "sha256": "653f241b1d9555167722062da3ec29f8bc25d2e881185e0f194e67f600040061"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVELOPMENT_WORKLIST_V7_1/70_OPERATIONS_SRE_RUNTIME_CONTROL_PART_02.md",
+      "bytes": 67552,
+      "lines": 1203,
+      "sha256": "2357252ee54e78e6d4bd97b1835cb2f8d4edccda82ff1008e8bfb74ccf845085"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVELOPMENT_WORKLIST_V7_1/80_DEVEX_GENERATOR_SAMPLE.md",
+      "bytes": 120629,
+      "lines": 2245,
+      "sha256": "b58e75e16c0ba43a80aa01f2e5b798596830afa2e1c35bcb56491bcaf0a76d3d"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVELOPMENT_WORKLIST_V7_1/90_API_QUALITY_TESTING.md",
+      "bytes": 177663,
+      "lines": 3329,
+      "sha256": "1d5a0cb3088f32d336d4c1f51b0d7c928e6acc44ca9063d8525fb08e66a39ddb"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVELOPMENT_WORKLIST_V7_1/99_EXPERT_REVIEW.md",
+      "bytes": 6852,
+      "lines": 141,
+      "sha256": "f1894b1fe378c88a9541a54c82bd94ea1c5bed2109e67d50707fe1d3f94bcb28"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVELOPMENT_WORKLIST_V7_1/CANONICAL_COVERAGE_MAP.csv",
+      "bytes": 94241,
+      "lines": 170,
+      "sha256": "859e7fed074dcbab723b81b3bad006ae898d2b93169e915b0313ec6b4d221eea"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVELOPMENT_WORKLIST_V7_1/GATE_APPLICABILITY_MATRIX.csv",
+      "bytes": 199175,
+      "lines": 776,
+      "sha256": "eaacdbb32b98c8fef7f8c57b78cd48ad6acafc1e0a044e8cb107c284a523688b"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVELOPMENT_WORKLIST_V7_1/STANDARD_CROSSWALK.csv",
+      "bytes": 5631,
+      "lines": 18,
+      "sha256": "0f9a19147d8907ea5c61dc682ad7beafb5ddb04dfc8791d087e3a000448eb9d2"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVELOPMENT_WORKLIST_V7_1/WORK_ITEM_INDEX.csv",
+      "bytes": 276171,
+      "lines": 776,
+      "sha256": "655ae1538229b175b7008937f94566253fe38b917cb36778a15ddbe6acfc921c"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVELOPMENT_WORKLIST_V7_1/ledgers/100_RELEASE_PRODUCT_GOVERNANCE_WORK_ITEMS.csv",
+      "bytes": 65019,
+      "lines": 53,
+      "sha256": "9190d54065b56e2e7b32ca22c659d410f64b65b848ca2b58f8e9bfdcb16cc13d"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVELOPMENT_WORKLIST_V7_1/ledgers/10_ARCHITECTURE_MODULE_BOUNDARY_WORK_ITEMS.csv",
+      "bytes": 54914,
+      "lines": 38,
+      "sha256": "4154faa4ef95b384472e1c7bf2c43999570947d5cbea7c0c90eea642cbec55ad"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVELOPMENT_WORKLIST_V7_1/ledgers/11_CORE_CALL_CONTEXT_STATE_RESILIENCE_PART_01_WORK_ITEMS.csv",
+      "bytes": 77684,
+      "lines": 53,
+      "sha256": "070f09a024449bb53b8082e616ae83fc6c6eaa4f941233a26af7caf8af24ad2d"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVELOPMENT_WORKLIST_V7_1/ledgers/11_CORE_CALL_CONTEXT_STATE_RESILIENCE_PART_02_WORK_ITEMS.csv",
+      "bytes": 32248,
+      "lines": 23,
+      "sha256": "96fc56c77483590363b1df04506a8589287df3d45c89419bb4399a5777bcd90b"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVELOPMENT_WORKLIST_V7_1/ledgers/12_CORE_OBSERVABILITY_FILE_MESSAGE_WORK_ITEMS.csv",
+      "bytes": 66853,
+      "lines": 46,
+      "sha256": "69fc9a543d81506c531b1385b61e229eb29e3a325e7ca6a26f5b0757a77b4574"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVELOPMENT_WORKLIST_V7_1/ledgers/20_COMMON_DATA_DB_PART_01_WORK_ITEMS.csv",
+      "bytes": 76014,
+      "lines": 54,
+      "sha256": "809676407dcec9e39324be1ea50b9f03687ad892f3cc3dcd1c812f60377849dc"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVELOPMENT_WORKLIST_V7_1/ledgers/20_COMMON_DATA_DB_PART_02_WORK_ITEMS.csv",
+      "bytes": 57143,
+      "lines": 41,
+      "sha256": "d44be49965a0590ed9e9820254b8428c53db2fb46244e77332f91db0a8ec75e0"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVELOPMENT_WORKLIST_V7_1/ledgers/30_GATEWAY_EXTERNAL_INTEGRATION_WORK_ITEMS.csv",
+      "bytes": 88811,
+      "lines": 62,
+      "sha256": "d4b2b87d7f1294e6a66d4a3bb327ca0f5c3c94b27216b82a62cba33971c416f7"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVELOPMENT_WORKLIST_V7_1/ledgers/31_EVENT_MESSAGING_SAGA_WORK_ITEMS.csv",
+      "bytes": 73500,
+      "lines": 50,
+      "sha256": "46ee0c920fd2622ecc4b6d91f28285d9d7bca3059cf78e5f20f8305a2e426c62"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVELOPMENT_WORKLIST_V7_1/ledgers/40_BATCH_AGENT_WORKER_WORK_ITEMS.csv",
+      "bytes": 53302,
+      "lines": 38,
+      "sha256": "289415ca2247dafb28d3fd772052ad02a41897c5cc391e8d588f744d93adea9f"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVELOPMENT_WORKLIST_V7_1/ledgers/41_CENTER_CUT_WORK_ITEMS.csv",
+      "bytes": 49058,
+      "lines": 36,
+      "sha256": "3a1dd26fe8d81f9031e904593541623bde6a83af77c0e91672417e7e7e444c7f"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVELOPMENT_WORKLIST_V7_1/ledgers/50_ADMIN_PLATFORM_PART_01_WORK_ITEMS.csv",
+      "bytes": 79125,
+      "lines": 53,
+      "sha256": "64a01fb0ba2e4d4edcdcb0a59c2ce34cc3d66188d32b43a5d4d906b891c65823"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVELOPMENT_WORKLIST_V7_1/ledgers/50_ADMIN_PLATFORM_PART_02_WORK_ITEMS.csv",
+      "bytes": 38217,
+      "lines": 26,
+      "sha256": "24a068dff1fd40fdab917110581920e7f0b79bc4d118ec86df51caaebe2ed2cd"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVELOPMENT_WORKLIST_V7_1/ledgers/51_BIZ_ADMIN_WORK_ITEMS.csv",
+      "bytes": 25198,
+      "lines": 19,
+      "sha256": "f4eec41926c388ea6181752c177d1f74f6cf3193681f7dafeb83bc40b134ffaa"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVELOPMENT_WORKLIST_V7_1/ledgers/60_SECURITY_PRIVACY_CRYPTO_WORK_ITEMS.csv",
+      "bytes": 68054,
+      "lines": 47,
+      "sha256": "003256bd95f56fcaf1afa0aded3e9c6b39b10cd2cd7d60caf7a0e95f57779f2e"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVELOPMENT_WORKLIST_V7_1/ledgers/70_OPERATIONS_SRE_RUNTIME_CONTROL_PART_01_WORK_ITEMS.csv",
+      "bytes": 79430,
+      "lines": 53,
+      "sha256": "78bdbc3e12cdad9d2ec1aa1fe6e383a708392aa9a885dc496445c878e55f92d4"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVELOPMENT_WORKLIST_V7_1/ledgers/70_OPERATIONS_SRE_RUNTIME_CONTROL_PART_02_WORK_ITEMS.csv",
+      "bytes": 25869,
+      "lines": 18,
+      "sha256": "cc0418927ef21e69e2b23b4c24a935352528cde592d2a456c1bd8a89fe951221"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVELOPMENT_WORKLIST_V7_1/ledgers/80_DEVEX_GENERATOR_SAMPLE_WORK_ITEMS.csv",
+      "bytes": 42163,
+      "lines": 34,
+      "sha256": "cf9d030c7874297c689884a59206dc5efabcd16fcd06cf1b0a414a277a790e0c"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVELOPMENT_WORKLIST_V7_1/ledgers/90_API_QUALITY_TESTING_WORK_ITEMS.csv",
+      "bytes": 59685,
+      "lines": 50,
+      "sha256": "0ada6595537fd2d7381a5d3c13e0b6b6683d076ca4ffc4e4aded9fe2c39da016"
+    }
+  ]
+}

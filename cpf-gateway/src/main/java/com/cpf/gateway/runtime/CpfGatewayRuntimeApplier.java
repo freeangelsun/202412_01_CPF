@@ -19,17 +19,9 @@ public final class CpfGatewayRuntimeApplier implements CpfRuntimeChangeApplier {
         this.policy = policy;
     }
 
-    public String changeType() {
-        return type;
-    }
-
-    public boolean supportsIdempotentReplay() {
-        return true;
-    }
-
-    public boolean snapshotCapable() {
-        return true;
-    }
+    public String changeType() { return type; }
+    public boolean supportsIdempotentReplay() { return true; }
+    public boolean snapshotCapable() { return true; }
 
     public CpfRuntimeApplyResult apply(CpfRuntimeDelivery delivery) {
         try {
@@ -48,12 +40,14 @@ public final class CpfGatewayRuntimeApplier implements CpfRuntimeChangeApplier {
                         set(payload, "exposedHeaders"),
                         payload.booleanValue("allowCredentials", false),
                         payload.longValue("maxAgeSeconds", 3_600));
-                case "RATE_LIMIT" -> {
-                    Map<String, CpfGatewayRuntimePolicy.Limit> routes = new LinkedHashMap<>();
-                    payload.objectMap("routes").forEach(
-                            (routeId, routePayload) -> routes.put(routeId, limit(routePayload)));
-                    policy.replaceRates(delivery.desiredVersion(), limit(payload), routes);
-                }
+                case "RATE_LIMIT" -> policy.replaceRates(
+                        delivery.desiredVersion(),
+                        limit(payload),
+                        limits(payload, "routes"),
+                        limits(payload, "clients"),
+                        limits(payload, "channels"),
+                        limits(payload, "tenants"),
+                        payload.booleanValue("failClosedOnCounterFailure", true));
                 default -> throw new IllegalArgumentException("unsupported");
             }
             return CpfRuntimeApplyResult.success(delivery.payloadHash());
@@ -64,10 +58,35 @@ public final class CpfGatewayRuntimeApplier implements CpfRuntimeChangeApplier {
         }
     }
 
+    private Map<String, CpfGatewayRuntimePolicy.Limit> limits(
+            CpfRuntimePayload payload, String fieldName) {
+        Map<String, CpfGatewayRuntimePolicy.Limit> values = new LinkedHashMap<>();
+        payload.objectMap(fieldName).forEach((id, item) -> {
+            if (id == null || id.isBlank()) {
+                throw new IllegalArgumentException(fieldName + " key is required");
+            }
+            if (values.putIfAbsent(id.trim(), limit(item)) != null) {
+                throw new IllegalArgumentException("duplicate " + fieldName + " key: " + id);
+            }
+        });
+        return Map.copyOf(values);
+    }
+
     private CpfGatewayRuntimePolicy.Limit limit(CpfRuntimePayload payload) {
         return new CpfGatewayRuntimePolicy.Limit(
-                (int) payload.longValue("permits", 0),
-                payload.longValue("windowMillis", 60_000));
+                boundedInt(payload.longValue("permits", 0), "permits"),
+                payload.longValue("windowMillis", 60_000),
+                boundedInt(payload.longValue("burst", 0), "burst"),
+                boundedInt(payload.longValue("abuseThreshold", 0), "abuseThreshold"),
+                payload.longValue("blockMillis", 0));
+    }
+
+    private static int boundedInt(long value, String fieldName) {
+        try {
+            return Math.toIntExact(value);
+        } catch (ArithmeticException overflow) {
+            throw new IllegalArgumentException(fieldName + " is outside integer range", overflow);
+        }
     }
 
     private Set<String> set(CpfRuntimePayload payload, String fieldName) {

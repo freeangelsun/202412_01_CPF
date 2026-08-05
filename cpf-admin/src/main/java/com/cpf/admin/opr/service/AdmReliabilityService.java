@@ -1,9 +1,14 @@
 package com.cpf.admin.opr.service;
 
+import com.cpf.admin.approval.service.AdmApprovalService;
+import com.cpf.admin.opr.reliability.AdmBrokerDlqReplayApprovalSnapshot;
+
 import com.cpf.core.api.reliability.CpfReliabilityOperationsPort;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
@@ -12,8 +17,14 @@ import java.util.Map;
  */
 @Service
 public class AdmReliabilityService extends com.cpf.admin.common.base.AdmBaseService {
+    private static final Duration DLQ_REPLAY_APPROVAL_TTL = Duration.ofMinutes(15);
+    private static final String DLQ_REPLAY_ACTION = "BROKER_DLQ_REPLAY";
+    private static final String DLQ_REPLAY_OWNER = "cpf-starters-messaging-reliability-jdbc";
+    private static final String DLQ_REPLAY_TARGET = "CPF_BROKER_DLQ";
+
     private final CpfReliabilityOperationsPort operationsPort;
     private AdmSessionService sessionService;
+    private AdmApprovalService approvalService;
 
     public AdmReliabilityService(CpfReliabilityOperationsPort operationsPort) {
         this.operationsPort = operationsPort;
@@ -26,6 +37,12 @@ public class AdmReliabilityService extends com.cpf.admin.common.base.AdmBaseServ
     @Autowired(required = false)
     void setSessionService(AdmSessionService sessionService) {
         this.sessionService = sessionService;
+    }
+
+    /** DLQ 위험조치는 Approval Engine이 연결된 경우에만 요청할 수 있습니다. */
+    @Autowired(required = false)
+    void setApprovalService(AdmApprovalService approvalService) {
+        this.approvalService = approvalService;
     }
 
     public List<Map<String, Object>> findIdempotency(String scope, String status, String key, int limit) {
@@ -60,8 +77,39 @@ public class AdmReliabilityService extends com.cpf.admin.common.base.AdmBaseServ
         return operationsPort.findUnknownResults(type, status, transactionId, limit);
     }
 
+    /**
+     * 직접 replay를 실행하지 않고 현재 DLQ 상태를 불변 Snapshot으로 고정해 승인 요청을 생성합니다.
+     */
+    public Map<String, Object> requestDlqReplayApproval(String messageId, String operatorId, String reason) {
+        if (approvalService == null) {
+            throw new IllegalStateException("ADM Approval Service가 연결되지 않아 DLQ 재처리를 요청할 수 없습니다.");
+        }
+        Map<String, Object> dlq = findDlqMessage(messageId);
+        AdmBrokerDlqReplayApprovalSnapshot.Snapshot snapshot = AdmBrokerDlqReplayApprovalSnapshot.from(dlq);
+        String replayStatus = value(dlq, "replay_status");
+        if (!java.util.Set.of("WAITING", "FAILED").contains(replayStatus.toUpperCase(java.util.Locale.ROOT))) {
+            throw new IllegalArgumentException("현재 상태에서는 DLQ 재처리 승인을 요청할 수 없습니다.");
+        }
+        String requestKey = DLQ_REPLAY_ACTION + ':' + messageId.trim() + ':'
+                + snapshot.replayCount() + ':' + snapshot.updatedAt().toEpochMilli();
+        return approvalService.requestApproval(new AdmApprovalService.CreateRequest(
+                requestKey,
+                null,
+                null,
+                DLQ_REPLAY_ACTION,
+                DLQ_REPLAY_OWNER,
+                DLQ_REPLAY_ACTION,
+                DLQ_REPLAY_TARGET,
+                messageId.trim(),
+                snapshot.json(),
+                Instant.now().plus(DLQ_REPLAY_APPROVAL_TTL),
+                reason), operatorId);
+    }
+
+    /** 과거 직접 실행 경로는 승인 우회를 막기 위해 fail-closed합니다. */
+    @Deprecated(forRemoval = false)
     public ChangeResult requestDlqReplay(String messageId, String operatorId, String reason) {
-        return map(operationsPort.requestDlqReplay(messageId, operatorId, reason));
+        throw new IllegalStateException("DLQ 재처리는 승인 요청 후 Owner Command로만 실행할 수 있습니다.");
     }
 
     public ChangeResult resolveUnknown(String unknownId, String targetStatus, String operatorId, String reason) {
@@ -77,6 +125,28 @@ public class AdmReliabilityService extends com.cpf.admin.common.base.AdmBaseServ
             return map(operationsPort.resolveUnknown(unknownId, "RESOLVED", operatorId, reason));
         }
         return map(operationsPort.resolveUnknown(unknownId, targetStatus, operatorId, reason));
+    }
+
+    private Map<String, Object> findDlqMessage(String messageId) {
+        if (messageId == null || messageId.isBlank()) {
+            throw new IllegalArgumentException("messageId가 필요합니다.");
+        }
+        String normalized = messageId.trim();
+        return operationsPort.findDlq(null, null, null, 1_000).stream()
+                .filter(row -> normalized.equals(value(row, "message_id")))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("DLQ를 찾을 수 없습니다. messageId=" + normalized));
+    }
+
+    private static String value(Map<String, ?> row, String key) {
+        String normalized = key.replace("_", "").toLowerCase(java.util.Locale.ROOT);
+        for (Map.Entry<String, ?> entry : row.entrySet()) {
+            String candidate = entry.getKey().replace("_", "").toLowerCase(java.util.Locale.ROOT);
+            if (candidate.equals(normalized)) {
+                return entry.getValue() == null ? "" : String.valueOf(entry.getValue()).trim();
+            }
+        }
+        return "";
     }
 
     private ChangeResult map(CpfReliabilityOperationsPort.ChangeResult result) {

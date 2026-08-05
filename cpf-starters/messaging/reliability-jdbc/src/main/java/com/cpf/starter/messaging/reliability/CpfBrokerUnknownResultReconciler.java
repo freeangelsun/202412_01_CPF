@@ -1,6 +1,7 @@
 package com.cpf.starter.messaging.reliability;
 
 import com.cpf.core.common.broker.CpfBrokerEnvelope;
+import com.cpf.core.common.broker.CpfBrokerFailureSanitizer;
 import com.cpf.core.common.broker.CpfBrokerOutboxPort;
 import com.cpf.core.common.broker.CpfBrokerPublishResultProbe;
 import com.cpf.core.common.broker.CpfBrokerResult;
@@ -10,7 +11,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 
-/** Reconciles UNKNOWN broker results before any duplicate publication is allowed. */
+/** Reconciles UNKNOWN broker results without permitting blind duplicate publication. */
 public final class CpfBrokerUnknownResultReconciler {
     private final CpfBrokerUnknownResultPort unknownPort;
     private final CpfBrokerOutboxPort outboxPort;
@@ -18,94 +19,53 @@ public final class CpfBrokerUnknownResultReconciler {
     private final Clock clock;
     private final Duration retryDelay;
 
-    public CpfBrokerUnknownResultReconciler(
-            CpfBrokerUnknownResultPort unknownPort,
-            List<CpfBrokerPublishResultProbe> probes,
-            Clock clock,
-            Duration retryDelay) {
-        this.unknownPort = Objects.requireNonNull(unknownPort, "unknownPort");
-        if (!(unknownPort instanceof CpfBrokerOutboxPort outbox)) {
-            throw new IllegalArgumentException(
-                    "UNKNOWN result port must also implement CpfBrokerOutboxPort");
-        }
-        outboxPort = outbox;
-        this.probes = probes == null ? List.of() : List.copyOf(probes);
-        this.clock = Objects.requireNonNull(clock, "clock");
-        if (retryDelay == null || retryDelay.isZero() || retryDelay.isNegative()) {
-            throw new IllegalArgumentException("retryDelay must be positive");
-        }
-        this.retryDelay = retryDelay;
+    public CpfBrokerUnknownResultReconciler(CpfBrokerUnknownResultPort unknownPort,
+            List<CpfBrokerPublishResultProbe> probes, Clock clock, Duration retryDelay) {
+        this.unknownPort=Objects.requireNonNull(unknownPort,"unknownPort");
+        if(!(unknownPort instanceof CpfBrokerOutboxPort outbox)) throw new IllegalArgumentException("UNKNOWN port must also implement outbox");
+        this.outboxPort=outbox; this.probes=probes==null?List.of():List.copyOf(probes);
+        this.clock=Objects.requireNonNull(clock,"clock");
+        if(retryDelay==null||retryDelay.isZero()||retryDelay.isNegative())throw new IllegalArgumentException("retryDelay must be positive");
+        this.retryDelay=retryDelay;
     }
 
-    public Result runOnce(String workerId, int limit) {
-        List<CpfBrokerEnvelope> claimed = unknownPort.claimUnknown(workerId, limit);
-        int resolvedSuccess = 0;
-        int resolvedFailure = 0;
-        int pending = 0;
-        for (CpfBrokerEnvelope envelope : claimed) {
-            CpfBrokerResult result = probe(envelope);
-            if (result != null && !isUnknown(result)) {
-                // markPublished applies the durable retry/DLQ state machine for both success and failure.
-                outboxPort.markPublished(envelope.message().messageId(), result);
-                if (isPublished(result)) {
-                    resolvedSuccess++;
-                } else {
-                    resolvedFailure++;
-                }
-                continue;
-            }
-            String detail = result == null
-                    ? "No Provider reconciliation evidence"
-                    : "Provider result remains UNKNOWN: " + safe(result.detail());
-            unknownPort.releaseUnknown(
-                    envelope.message().messageId(), detail, clock.instant().plus(retryDelay));
-            pending++;
-        }
-        return new Result(claimed.size(), resolvedSuccess, resolvedFailure, pending);
-    }
-
-    private CpfBrokerResult probe(CpfBrokerEnvelope envelope) {
-        CpfBrokerResult lastUnknown = null;
-        for (CpfBrokerPublishResultProbe probe : probes) {
-            try {
-                CpfBrokerResult result = probe.probe(envelope);
-                if (result != null) {
-                    lastUnknown = result;
-                    if (!isUnknown(result)) {
-                        return result;
-                    }
-                }
-            } catch (RuntimeException exception) {
-                lastUnknown = new CpfBrokerResult(
-                        "UNKNOWN", envelope.message().messageId(), "PROBE",
-                        null, clock.instant(), safe(exception.getMessage()));
+    public Result runOnce(String workerId,int limit){
+        String owner=requireWorker(workerId);
+        List<CpfBrokerEnvelope> claimed=unknownPort.claimUnknown(owner,limit);
+        int ok=0,failed=0,pending=0;
+        for(CpfBrokerEnvelope envelope:claimed){
+            CpfBrokerResult result=probe(envelope);
+            if(result!=null && !isUnknown(result)){
+                outboxPort.markPublished(owner,envelope.message().messageId(),result);
+                if(isPublished(result))ok++;else failed++;
+            }else{
+                String detail=result==null?"No provider reconciliation evidence":"Provider result remains UNKNOWN: "+safe(result.detail());
+                unknownPort.releaseUnknown(owner,envelope.message().messageId(),detail,clock.instant().plus(retryDelay));
+                pending++;
             }
         }
-        return lastUnknown;
+        return new Result(claimed.size(),ok,failed,pending);
     }
 
-    private static boolean isUnknown(CpfBrokerResult result) {
-        return "UNKNOWN".equalsIgnoreCase(result.status())
-                || "RESULT_UNKNOWN".equalsIgnoreCase(result.status());
-    }
-
-    private static boolean isPublished(CpfBrokerResult result) {
-        return "PUBLISHED".equalsIgnoreCase(result.status())
-                || "SUCCESS".equalsIgnoreCase(result.status())
-                || "ACCEPTED".equalsIgnoreCase(result.status());
-    }
-
-    private static String safe(String value) {
-        if (value == null || value.isBlank()) {
-            return "UNKNOWN";
+    private CpfBrokerResult probe(CpfBrokerEnvelope envelope){
+        CpfBrokerResult last=null;
+        for(CpfBrokerPublishResultProbe probe:probes){
+            try{
+                CpfBrokerResult r=probe.probe(envelope);
+                if(r==null)continue;
+                if(r.messageId()!=null&&!envelope.message().messageId().equals(r.messageId())){
+                    last=unknown(envelope,"Provider probe correlation mismatch");
+                    continue;
+                }
+                last=r;if(!isUnknown(r))return r;
+            }catch(RuntimeException ex){last=unknown(envelope,safe(ex.getMessage()));}
         }
-        return value.substring(0, Math.min(value.length(), 1000));
+        return last;
     }
-
-    public record Result(
-            int claimed,
-            int resolvedSuccess,
-            int resolvedFailure,
-            int pending) {
-    }
+    private CpfBrokerResult unknown(CpfBrokerEnvelope e,String d){return new CpfBrokerResult("UNKNOWN",e.message().messageId(),"PROBE",null,clock.instant(),safe(d));}
+    private static boolean isUnknown(CpfBrokerResult r){return "UNKNOWN".equalsIgnoreCase(r.status())||"RESULT_UNKNOWN".equalsIgnoreCase(r.status());}
+    private static boolean isPublished(CpfBrokerResult r){return "PUBLISHED".equalsIgnoreCase(r.status())||"SUCCESS".equalsIgnoreCase(r.status())||"ACCEPTED".equalsIgnoreCase(r.status());}
+    private static String safe(String v){return CpfBrokerFailureSanitizer.sanitize(v==null||v.isBlank()?"UNKNOWN":v);}
+    private static String requireWorker(String v){if(v==null||v.isBlank())throw new IllegalArgumentException("workerId is required");return v.trim();}
+    public record Result(int claimed,int resolvedSuccess,int resolvedFailure,int pending){}
 }

@@ -24,7 +24,7 @@ import java.util.Map;
  * 관리자 replay 요청을 DB 기준으로 검증할 수 있게 하는 최소 운영 저장소입니다.</p>
  */
 public class JdbcCpfBrokerReliabilityRepository
-        implements CpfBrokerOutboxPort, CpfBrokerUnknownResultPort, CpfBrokerInboxPort, CpfBrokerDlqPort, CpfBrokerReplayPort, CpfBrokerIdempotencyPort {
+        implements CpfBrokerOutboxPort, CpfBrokerUnknownResultPort, CpfBrokerInboxPort, CpfBrokerDlqPort, CpfBrokerFailureTransitionPort, CpfBrokerReplayPort, CpfBrokerIdempotencyPort {
     private final JdbcTemplate jdbcTemplate;
     private final Duration claimLease;
     private final Clock clock;
@@ -48,6 +48,7 @@ public class JdbcCpfBrokerReliabilityRepository
     }
 
     @Override
+    @Transactional(transactionManager = "cpfTransactionManager")
     public CpfBrokerResult saveOutbox(CpfBrokerEnvelope envelope) {
         java.util.Objects.requireNonNull(envelope, "envelope");
         java.util.Objects.requireNonNull(envelope.message(), "envelope.message");
@@ -145,11 +146,15 @@ public class JdbcCpfBrokerReliabilityRepository
     }
 
     @Override
+    @Transactional(transactionManager = "cpfTransactionManager")
     public List<CpfBrokerEnvelope> claimPending(String workerId, int limit) {
+        requireWorker(workerId);
         Instant now = Instant.now(clock);
         jdbcTemplate.update("""
                 UPDATE cpf_broker_outbox
-                SET outbox_status = 'PENDING',
+                SET outbox_status = 'UNKNOWN',
+                    next_attempt_at = ?,
+                    failure_message = 'Claim lease expired before durable provider outcome was recorded',
                     worker_id = NULL,
                     claimed_at = NULL,
                     lease_until = NULL,
@@ -157,7 +162,7 @@ public class JdbcCpfBrokerReliabilityRepository
                     updated_at = CURRENT_TIMESTAMP
                 WHERE outbox_status = 'CLAIMED'
                   AND lease_until <= ?
-                """, Timestamp.from(now));
+                """, Timestamp.from(now), Timestamp.from(now));
         List<Map<String, Object>> rows = queryForListLimited("""
                 SELECT message_id AS messageId,
                        topic,
@@ -205,235 +210,203 @@ public class JdbcCpfBrokerReliabilityRepository
     }
 
     @Override
+    @Deprecated(forRemoval = false)
     public void markUnknown(String messageId, CpfBrokerResult result, Instant nextReconcileAt) {
-        int updated = jdbcTemplate.update("""
-                UPDATE cpf_broker_outbox
-                SET outbox_status = 'UNKNOWN',
-                    next_attempt_at = ?,
-                    worker_id = NULL,
-                    claimed_at = NULL,
-                    lease_until = NULL,
-                    broker_name = ?,
-                    failure_message = ?,
-                    updated_by = 'CPF_BROKER_RECONCILE',
-                    updated_at = CURRENT_TIMESTAMP
-                WHERE message_id = ? AND outbox_status = 'CLAIMED'
-                """, timestamp(nextReconcileAt), result.brokerName(), result.detail(), messageId);
-        if (updated != 1) throw new IllegalStateException("Broker UNKNOWN 상태 동시 변경: " + messageId);
+        throw new SecurityException("Broker UNKNOWN transition requires a fenced worker claim");
     }
 
     @Override
+    @Transactional(transactionManager = "cpfTransactionManager")
+    public void markUnknown(String workerId, String messageId, CpfBrokerResult result, Instant nextReconcileAt) {
+        requireWorker(workerId);
+        int updated = jdbcTemplate.update("""
+                UPDATE cpf_broker_outbox
+                SET outbox_status = 'UNKNOWN', next_attempt_at = ?, worker_id = NULL,
+                    claimed_at = NULL, lease_until = NULL, broker_name = ?, failure_message = ?,
+                    updated_by = 'CPF_BROKER_RECONCILE', updated_at = CURRENT_TIMESTAMP
+                WHERE message_id = ? AND outbox_status = 'CLAIMED' AND worker_id = ?
+                """, timestamp(nextReconcileAt), result.brokerName(),
+                CpfBrokerFailureSanitizer.sanitizeNullable(result.detail()), messageId, workerId);
+        if (updated != 1) throw new IllegalStateException("Broker UNKNOWN claim fencing conflict: " + messageId);
+    }
+
+    @Override
+    @Transactional(transactionManager = "cpfTransactionManager")
     public List<CpfBrokerEnvelope> claimUnknown(String workerId, int limit) {
-        if (workerId == null || workerId.isBlank()) {
-            throw new IllegalArgumentException("workerId is required");
-        }
+        requireWorker(workerId);
         Instant now = Instant.now(clock);
         jdbcTemplate.update("""
-                UPDATE cpf_broker_outbox
-                SET outbox_status = 'UNKNOWN',
-                    worker_id = NULL,
-                    claimed_at = NULL,
-                    lease_until = NULL,
-                    updated_by = 'CPF_BROKER_RECOVERY',
+                UPDATE cpf_broker_outbox SET outbox_status = 'UNKNOWN', worker_id = NULL,
+                    claimed_at = NULL, lease_until = NULL, updated_by = 'CPF_BROKER_RECOVERY',
                     updated_at = CURRENT_TIMESTAMP
-                WHERE outbox_status = 'CLAIMED_UNKNOWN'
-                  AND lease_until <= ?
+                WHERE outbox_status = 'CLAIMED_UNKNOWN' AND lease_until <= ?
                 """, timestamp(now));
         List<Map<String, Object>> rows = queryForListLimited("""
-                SELECT message_id AS messageId,
-                       topic,
-                       message_key AS messageKey,
-                       transaction_id AS transactionId,
-                       segment_id AS segmentId,
-                       producer_module AS producerModule,
-                       consumer_module AS consumerModule,
-                       idempotency_key AS idempotencyKey,
-                       payload,
-                       content_type AS contentType,
-                       header_json AS headerJson,
-                       attribute_json AS attributeJson,
-                       occurred_at AS occurredAt
+                SELECT message_id AS messageId, topic, message_key AS messageKey,
+                       transaction_id AS transactionId, segment_id AS segmentId,
+                       producer_module AS producerModule, consumer_module AS consumerModule,
+                       idempotency_key AS idempotencyKey, payload, content_type AS contentType,
+                       header_json AS headerJson, attribute_json AS attributeJson, occurred_at AS occurredAt
                 FROM cpf_broker_outbox
-                WHERE outbox_status = 'UNKNOWN'
-                  AND next_attempt_at IS NOT NULL
-                  AND next_attempt_at <= ?
+                WHERE outbox_status = 'UNKNOWN' AND next_attempt_at IS NOT NULL AND next_attempt_at <= ?
                 ORDER BY outbox_id
                 """, List.of(timestamp(now)), limit);
         List<CpfBrokerEnvelope> claimed = new ArrayList<>();
         for (Map<String, Object> row : rows) {
             Instant claimedAt = Instant.now(clock);
             int updated = jdbcTemplate.update("""
-                    UPDATE cpf_broker_outbox
-                    SET outbox_status = 'CLAIMED_UNKNOWN',
-                        worker_id = ?,
-                        claimed_at = ?,
-                        lease_until = ?,
-                        updated_at = CURRENT_TIMESTAMP
-                    WHERE message_id = ?
-                      AND outbox_status = 'UNKNOWN'
-                      AND next_attempt_at IS NOT NULL
-                      AND next_attempt_at <= ?
+                    UPDATE cpf_broker_outbox SET outbox_status = 'CLAIMED_UNKNOWN', worker_id = ?,
+                        claimed_at = ?, lease_until = ?, updated_at = CURRENT_TIMESTAMP
+                    WHERE message_id = ? AND outbox_status = 'UNKNOWN'
+                      AND next_attempt_at IS NOT NULL AND next_attempt_at <= ?
                     """, workerId, timestamp(claimedAt), timestamp(claimedAt.plus(claimLease)),
                     string(row, "messageId"), timestamp(claimedAt));
-            if (updated == 1) {
-                claimed.add(mapEnvelope(row));
-            }
+            if (updated == 1) claimed.add(mapEnvelope(row));
         }
         return List.copyOf(claimed);
     }
 
     @Override
+    @Deprecated(forRemoval = false)
     public void releaseUnknown(String messageId, String detail, Instant nextReconcileAt) {
-        int updated = jdbcTemplate.update("""
-                UPDATE cpf_broker_outbox
-                SET outbox_status = 'UNKNOWN',
-                    next_attempt_at = ?,
-                    worker_id = NULL,
-                    claimed_at = NULL,
-                    lease_until = NULL,
-                    failure_message = ?,
-                    updated_by = 'CPF_BROKER_RECONCILE',
-                    updated_at = CURRENT_TIMESTAMP
-                WHERE message_id = ?
-                  AND outbox_status = 'CLAIMED_UNKNOWN'
-                """, timestamp(nextReconcileAt), detail, messageId);
-        if (updated != 1) {
-            throw new IllegalStateException(
-                    "Broker UNKNOWN reconcile 상태 동시 변경: " + messageId);
-        }
+        throw new SecurityException("Broker UNKNOWN release requires a fenced worker claim");
     }
 
     @Override
+    @Transactional(transactionManager = "cpfTransactionManager")
+    public void releaseUnknown(String workerId, String messageId, String detail, Instant nextReconcileAt) {
+        requireWorker(workerId);
+        int updated = jdbcTemplate.update("""
+                UPDATE cpf_broker_outbox SET outbox_status = 'UNKNOWN', next_attempt_at = ?,
+                    worker_id = NULL, claimed_at = NULL, lease_until = NULL, failure_message = ?,
+                    updated_by = 'CPF_BROKER_RECONCILE', updated_at = CURRENT_TIMESTAMP
+                WHERE message_id = ? AND outbox_status = 'CLAIMED_UNKNOWN' AND worker_id = ?
+                """, timestamp(nextReconcileAt), CpfBrokerFailureSanitizer.sanitize(detail), messageId, workerId);
+        if (updated != 1) throw new IllegalStateException("Broker UNKNOWN reconcile fencing conflict: " + messageId);
+    }
+
+    @Override
+    @Deprecated(forRemoval = false)
     public void markPublished(String messageId, CpfBrokerResult result) {
+        throw new SecurityException("Broker publish completion requires a fenced worker claim");
+    }
+
+    @Override
+    @Transactional(transactionManager = "cpfTransactionManager")
+    public void markPublished(String workerId, String messageId, CpfBrokerResult result) {
+        requireWorker(workerId);
+        java.util.Objects.requireNonNull(result, "result");
         boolean published = "PUBLISHED".equalsIgnoreCase(result.status())
-                || "SUCCESS".equalsIgnoreCase(result.status())
-                || "ACCEPTED".equalsIgnoreCase(result.status());
+                || "SUCCESS".equalsIgnoreCase(result.status()) || "ACCEPTED".equalsIgnoreCase(result.status());
         List<Map<String, Object>> attempts = jdbcTemplate.queryForList("""
-                SELECT attempt_count AS attemptCount,
-                       max_attempts AS maxAttempts
-                FROM cpf_broker_outbox
-                WHERE message_id = ?
-                """, messageId);
-        if (attempts.isEmpty()) {
-            return;
-        }
+                SELECT attempt_count AS attemptCount, max_attempts AS maxAttempts
+                FROM cpf_broker_outbox WHERE message_id = ? AND worker_id = ?
+                  AND outbox_status IN ('CLAIMED', 'CLAIMED_UNKNOWN')
+                """, messageId, workerId);
+        if (attempts.size() != 1) throw new IllegalStateException("Broker publish claim fencing conflict: " + messageId);
         int previousAttempt = intValue(attempts.getFirst().get("attemptCount"));
         int maxAttempts = Math.max(1, intValue(attempts.getFirst().get("maxAttempts")));
         int nextAttempt = previousAttempt + 1;
-        String nextStatus = published
-                ? "PUBLISHED"
-                : (nextAttempt >= maxAttempts ? "FAILED" : "PENDING");
+        String nextStatus = published ? "PUBLISHED" : (nextAttempt >= maxAttempts ? "FAILED" : "PENDING");
         Instant processedAt = result.processedAt() == null ? Instant.now(clock) : result.processedAt();
         Timestamp nextAttemptAt = !published && nextAttempt < maxAttempts
-                ? Timestamp.from(processedAt.plusSeconds(retryDelaySeconds(previousAttempt)))
-                : null;
+                ? timestamp(processedAt.plusSeconds(retryDelaySeconds(previousAttempt))) : null;
         int updated = jdbcTemplate.update("""
-                UPDATE cpf_broker_outbox
-                SET attempt_count = ?,
-                    outbox_status = ?,
-                    next_attempt_at = ?,
-                    worker_id = NULL,
-                    claimed_at = NULL,
-                    lease_until = NULL,
-                    broker_name = ?,
-                    partition_key = ?,
-                    published_at = ?,
-                    failure_message = ?,
-                    updated_by = 'CPF_BROKER',
-                    updated_at = ?
-                WHERE message_id = ?
-                  AND attempt_count = ?
-                """,
-                nextAttempt,
-                nextStatus,
-                nextAttemptAt,
-                result.brokerName(),
-                result.partitionKey(),
-                published ? Timestamp.from(processedAt) : null,
-                result.detail(),
-                Timestamp.from(processedAt),
-                messageId,
-                previousAttempt);
-        if (updated != 1) {
-            throw new IllegalStateException("Broker outbox publish 상태가 동시 변경되어 갱신할 수 없습니다: " + messageId);
-        }
+                UPDATE cpf_broker_outbox SET attempt_count = ?, outbox_status = ?, next_attempt_at = ?,
+                    worker_id = NULL, claimed_at = NULL, lease_until = NULL, broker_name = ?,
+                    partition_key = ?, published_at = ?, failure_message = ?, updated_by = 'CPF_BROKER', updated_at = ?
+                WHERE message_id = ? AND attempt_count = ? AND worker_id = ?
+                  AND outbox_status IN ('CLAIMED', 'CLAIMED_UNKNOWN')
+                """, nextAttempt, nextStatus, nextAttemptAt, result.brokerName(), result.partitionKey(),
+                published ? timestamp(processedAt) : null,
+                CpfBrokerFailureSanitizer.sanitizeNullable(result.detail()), timestamp(processedAt),
+                messageId, previousAttempt, workerId);
+        if (updated != 1) throw new IllegalStateException("Broker publish claim fencing conflict: " + messageId);
         if (published) {
             jdbcTemplate.update("""
-                    UPDATE cpf_broker_dlq
-                    SET replay_status = 'COMPLETED',
-                        replay_completed_at = ?,
-                        updated_by = 'CPF_BROKER',
-                        updated_at = CURRENT_TIMESTAMP
+                    UPDATE cpf_broker_dlq SET replay_status = 'COMPLETED', replay_completed_at = ?,
+                        updated_by = 'CPF_BROKER', updated_at = CURRENT_TIMESTAMP
                     WHERE message_id = ? AND replay_status = 'REQUESTED'
-                    """, Timestamp.from(processedAt), messageId);
-            return;
-        }
-        List<Map<String, Object>> failedOutbox = jdbcTemplate.queryForList("""
-                SELECT message_id AS messageId,
-                       topic,
-                       transaction_id AS transactionId,
-                       segment_id AS segmentId,
-                       failure_message AS failureReason
-                FROM cpf_broker_outbox
-                WHERE message_id = ? AND outbox_status = 'FAILED'
-                """, messageId);
-        if (!failedOutbox.isEmpty()) {
-            Map<String, Object> row = failedOutbox.getFirst();
-            upsertDlq(
-                    string(row, "messageId"),
-                    string(row, "topic"),
-                    string(row, "transactionId"),
-                    string(row, "segmentId"),
-                    string(row, "failureReason"),
-                    "FAILED",
-                    processedAt);
+                    """, timestamp(processedAt), messageId);
+        } else if ("FAILED".equals(nextStatus)) {
+            List<Map<String, Object>> failed = jdbcTemplate.queryForList("""
+                    SELECT message_id AS messageId, topic, transaction_id AS transactionId,
+                           segment_id AS segmentId, failure_message AS failureReason
+                    FROM cpf_broker_outbox WHERE message_id = ? AND outbox_status = 'FAILED'
+                    """, messageId);
+            if (!failed.isEmpty()) {
+                Map<String, Object> row = failed.getFirst();
+                upsertDlq(string(row, "messageId"), string(row, "topic"), string(row, "transactionId"),
+                        string(row, "segmentId"), string(row, "failureReason"), "FAILED", processedAt);
+            }
         }
     }
 
     @Override
+    @Transactional(transactionManager = "cpfTransactionManager")
     public boolean markReceived(String messageId, String idempotencyKey) {
+        java.util.Objects.requireNonNull(messageId, "messageId");
         try {
             jdbcTemplate.update("""
-                    INSERT INTO cpf_broker_inbox (
-                        message_id, idempotency_key, inbox_status, received_at, created_by, updated_by
-                    ) VALUES (?, ?, 'RECEIVED', CURRENT_TIMESTAMP, 'CPF_BROKER', 'CPF_BROKER')
+                    INSERT INTO cpf_broker_inbox (message_id, idempotency_key, inbox_status, received_at, created_by, updated_by)
+                    VALUES (?, ?, 'RECEIVED', CURRENT_TIMESTAMP, 'CPF_BROKER', 'CPF_BROKER')
                     """, messageId, idempotencyKey);
             return true;
         } catch (DuplicateKeyException ex) {
-            return false;
+            Instant staleBefore = Instant.now(clock).minus(claimLease);
+            int reclaimed = jdbcTemplate.update("""
+                    UPDATE cpf_broker_inbox SET received_at = CURRENT_TIMESTAMP, result_detail = NULL,
+                        updated_by = 'CPF_BROKER_RECOVERY', updated_at = CURRENT_TIMESTAMP
+                    WHERE message_id = ? AND inbox_status = 'RECEIVED' AND updated_at <= ?
+                    """, messageId, timestamp(staleBefore));
+            return reclaimed == 1;
         }
     }
 
     @Override
+    @Transactional(transactionManager = "cpfTransactionManager")
     public void markConsumed(String messageId, CpfBrokerResult result) {
         Instant processedAt = result.processedAt() == null ? Instant.now(clock) : result.processedAt();
-        jdbcTemplate.update("""
-                UPDATE cpf_broker_inbox
-                SET inbox_status = ?,
-                    consumed_at = ?,
-                    result_detail = ?,
-                    updated_by = 'CPF_BROKER',
-                    updated_at = ?
-                WHERE message_id = ?
-                """,
-                result.status(),
-                Timestamp.from(processedAt),
-                result.detail(),
-                Timestamp.from(processedAt),
-                messageId);
+        int updated = jdbcTemplate.update("""
+                UPDATE cpf_broker_inbox SET inbox_status = ?, consumed_at = ?, result_detail = ?,
+                    updated_by = 'CPF_BROKER', updated_at = ?
+                WHERE message_id = ? AND inbox_status = 'RECEIVED'
+                """, result.status(), timestamp(processedAt), CpfBrokerFailureSanitizer.sanitizeNullable(result.detail()),
+                timestamp(processedAt), messageId);
+        if (updated != 1) throw new IllegalStateException("Broker inbox finalization conflict: " + messageId);
     }
 
     @Override
+    @Transactional(transactionManager = "cpfTransactionManager")
+    public void markConsumerUnknown(String messageId, String detail) {
+        int updated = jdbcTemplate.update("""
+                UPDATE cpf_broker_inbox SET inbox_status = 'UNKNOWN', result_detail = ?,
+                    updated_by = 'CPF_BROKER_RECOVERY', updated_at = CURRENT_TIMESTAMP
+                WHERE message_id = ? AND inbox_status = 'RECEIVED'
+                """, CpfBrokerFailureSanitizer.sanitize(detail), messageId);
+        if (updated != 1) throw new IllegalStateException("Broker inbox UNKNOWN transition conflict: " + messageId);
+    }
+
+    @Override
+    @Transactional(transactionManager = "cpfTransactionManager")
     public CpfBrokerResult sendToDlq(CpfBrokerEnvelope envelope, String reason) {
-        upsertDlq(
-                envelope.message().messageId(),
-                envelope.message().topic(),
-                envelope.transactionId(),
-                envelope.segmentId(),
-                reason,
-                "WAITING",
-                null);
-        return CpfBrokerResult.failed(envelope.message().messageId(), "CPF_DLQ", reason);
+        String safe = CpfBrokerFailureSanitizer.sanitize(reason);
+        upsertDlq(envelope.message().messageId(), envelope.message().topic(), envelope.transactionId(),
+                envelope.segmentId(), safe, "WAITING", null);
+        return CpfBrokerResult.failed(envelope.message().messageId(), "CPF_DLQ", safe);
+    }
+
+    @Override
+    @Transactional(transactionManager = "cpfTransactionManager")
+    public CpfBrokerResult moveToDlq(CpfBrokerEnvelope envelope, String reason) {
+        CpfBrokerResult result = sendToDlq(envelope, reason);
+        int updated = jdbcTemplate.update("""
+                UPDATE cpf_broker_inbox SET inbox_status = 'DLQ', consumed_at = CURRENT_TIMESTAMP,
+                    result_detail = ?, updated_by = 'CPF_BROKER', updated_at = CURRENT_TIMESTAMP
+                WHERE message_id = ? AND inbox_status = 'RECEIVED'
+                """, result.detail(), envelope.message().messageId());
+        if (updated != 1) throw new IllegalStateException("Broker inbox DLQ transition conflict: " + envelope.message().messageId());
+        return result;
     }
 
     @Override
@@ -459,81 +432,31 @@ public class JdbcCpfBrokerReliabilityRepository
                 """, Arrays.asList(topic, topic), limit).stream().map(this::mapEnvelope).toList();
     }
 
+    /**
+     * Low-level replay used to be a mutation escape hatch. Runtime replay is now owned by the
+     * approved reliability command and this SPI remains fail-closed for binary compatibility.
+     */
     @Override
-    @Transactional
+    @Deprecated(forRemoval = false)
+    @Transactional(transactionManager = "cpfTransactionManager")
     public CpfBrokerResult replay(String messageId) {
         if (messageId == null || messageId.isBlank()) {
             throw new IllegalArgumentException("messageId is required");
         }
-        String normalizedMessageId = messageId.trim();
-        Integer outboxCount = jdbcTemplate.queryForObject("""
-                SELECT COUNT(*)
-                FROM cpf_broker_outbox
-                WHERE message_id = ?
-                """, Integer.class, normalizedMessageId);
-        if (outboxCount == null || outboxCount != 1) {
-            throw new IllegalStateException("DLQ 원본 outbox가 없어 실제 재처리를 시작할 수 없습니다.");
-        }
-        int requested = jdbcTemplate.update("""
-                UPDATE cpf_broker_dlq
-                SET replay_status = 'REQUESTED',
-                    replay_requested_at = CURRENT_TIMESTAMP,
-                    replay_count = replay_count + 1,
-                    updated_by = 'CPF_BROKER',
-                    updated_at = CURRENT_TIMESTAMP
-                WHERE message_id = ?
-                  AND replay_status IN ('WAITING', 'FAILED')
-                """, normalizedMessageId);
-        if (requested != 1) {
-            return CpfBrokerResult.failed(
-                    normalizedMessageId, "CPF_REPLAY", "재처리 가능한 DLQ가 없습니다.");
-        }
-        jdbcTemplate.update(
-                "DELETE FROM cpf_broker_inbox WHERE message_id = ?", normalizedMessageId);
-        int requeued = jdbcTemplate.update("""
-                UPDATE cpf_broker_outbox
-                SET outbox_status = 'PENDING',
-                    worker_id = NULL,
-                    attempt_count = 0,
-                    next_attempt_at = NULL,
-                    lease_until = NULL,
-                    claimed_at = NULL,
-                    published_at = NULL,
-                    failure_message = NULL,
-                    updated_by = 'CPF_REPLAY',
-                    updated_at = CURRENT_TIMESTAMP
-                WHERE message_id = ?
-                """, normalizedMessageId);
-        if (requeued != 1) {
-            throw new IllegalStateException("DLQ 원본 outbox가 없어 실제 재처리를 시작할 수 없습니다.");
-        }
-        return CpfBrokerResult.accepted(normalizedMessageId, "CPF_REPLAY", normalizedMessageId);
+        throw new SecurityException("DLQ replay requires an approved owner command");
     }
 
     @Override
-    @Transactional
+    @Deprecated(forRemoval = false)
+    @Transactional(transactionManager = "cpfTransactionManager")
     public List<CpfBrokerResult> replayRange(String topic, Instant from, Instant to, int limit) {
-        List<Map<String, Object>> rows = queryForListLimited("""
-                SELECT message_id AS messageId,
-                       topic,
-                       replay_status AS replayStatus,
-                       replay_requested_at AS replayRequestedAt,
-                       failure_reason AS failureReason
-                FROM cpf_broker_dlq
-                WHERE (? IS NULL OR topic = ?)
-                  AND (? IS NULL OR created_at >= ?)
-                  AND (? IS NULL OR created_at <= ?)
-                ORDER BY dlq_id DESC
-                """,
-                Arrays.asList(
-                        topic,
-                        topic,
-                        timestamp(from),
-                        timestamp(from),
-                        timestamp(to),
-                        timestamp(to)),
-                limit);
-        return rows.stream().map(row -> replay(string(row, "messageId"))).toList();
+        if (from != null && to != null && from.isAfter(to)) {
+            throw new IllegalArgumentException("from must not be after to");
+        }
+        if (limit < 1 || limit > 5_000) {
+            throw new IllegalArgumentException("limit must be between 1 and 5000");
+        }
+        throw new SecurityException("DLQ range replay requires per-target approved snapshots");
     }
 
     @Override
@@ -568,6 +491,11 @@ public class JdbcCpfBrokerReliabilityRepository
                 instant(row, "occurredAt"),
                 message,
                 decodeMap(string(row, "attributeJson")));
+    }
+
+    private String requireWorker(String workerId) {
+        if (workerId == null || workerId.isBlank()) throw new IllegalArgumentException("workerId is required");
+        return workerId.trim();
     }
 
     private int safeLimit(int limit) {

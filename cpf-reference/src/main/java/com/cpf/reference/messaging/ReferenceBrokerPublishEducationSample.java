@@ -16,9 +16,9 @@ import java.util.Objects;
  *
  * <p>{@link #publishPlan(String, String)}은 발행 전 envelope를 확인하는 용도이고,
  * {@link #publish(String, String)}은 provider-neutral {@link CpfBrokerClient}를 호출해
- * 실제 Outbox/Broker Provider 경로로 요청을 전달합니다. Provider가 결과를 확정하지
- * 못하면 {@code UNKNOWN} 상태를 그대로 반환하며 호출자가 조회·대사 흐름을 이어갈 수
- * 있도록 결과를 임의로 성공 처리하지 않습니다.</p>
+ * 업무 트랜잭션 안에서 Outbox에 요청을 저장하고 {@code ACCEPTED}를 반환합니다.
+ * 실제 Provider I/O와 PUBLISHED·FAILED·UNKNOWN 판정은 Outbox Worker가 수행하므로
+ * Controller 요청 스레드가 Provider 장애와 결합되지 않습니다.</p>
  */
 public class ReferenceBrokerPublishEducationSample {
 

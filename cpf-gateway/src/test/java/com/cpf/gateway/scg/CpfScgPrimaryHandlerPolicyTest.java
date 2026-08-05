@@ -105,6 +105,71 @@ class CpfScgPrimaryHandlerPolicyTest {
                 CpfHeaderNames.CHANNEL_CODE.toLowerCase(), "WEB");
     }
 
+
+
+    @Test
+    void stableIdempotencyKeyProducesOpaqueStableRateLimitRequestId() {
+        String first = ReflectionTestUtils.invokeMethod(
+                CpfScgPrimaryHandler.class,
+                "rateLimitRequestId",
+                Map.of(CpfHeaderNames.IDEMPOTENCY_KEY.toLowerCase(), "ORDER-20260805-0001"),
+                "route-A",
+                "tx-1");
+        String second = ReflectionTestUtils.invokeMethod(
+                CpfScgPrimaryHandler.class,
+                "rateLimitRequestId",
+                Map.of(CpfHeaderNames.IDEMPOTENCY_KEY.toLowerCase(), "ORDER-20260805-0001"),
+                "route-A",
+                "tx-2");
+
+        assertThat(first).isEqualTo(second).matches("[0-9a-f]{64}");
+        assertThat(first).doesNotContain("ORDER-20260805-0001");
+    }
+
+    @Test
+    void missingOrInvalidIdempotencyKeyUsesTransactionFallback() {
+        assertThat((String) ReflectionTestUtils.invokeMethod(
+                CpfScgPrimaryHandler.class,
+                "rateLimitRequestId",
+                Map.of(),
+                "route-A",
+                "tx-fallback")).isEqualTo("tx-fallback");
+        assertThat((String) ReflectionTestUtils.invokeMethod(
+                CpfScgPrimaryHandler.class,
+                "rateLimitRequestId",
+                Map.of(CpfHeaderNames.IDEMPOTENCY_KEY.toLowerCase(), "short"),
+                "route-A",
+                "tx-fallback")).isEqualTo("tx-fallback");
+    }
+
+    @Test
+    void duplicateTrustedContextHeaderIsRejected() {
+        Fixture fixture = fixture(new PolicyPort(true, false));
+        MockHttpServletRequest servlet = new MockHttpServletRequest("POST", "/cpf/execute/OACCAC0001");
+        servlet.setRemoteAddr("127.0.0.1");
+        servlet.setContent(new byte[0]);
+        servlet.addHeader(CpfHeaderNames.ORIGINAL_CHANNEL_CODE, "WEB");
+        servlet.addHeader(CpfHeaderNames.CHANNEL_CODE, "WEB");
+        servlet.addHeader(CpfHeaderNames.CHANNEL_CODE, "MOBILE");
+        servlet.addHeader(CpfHeaderNames.REQUEST_TYPE, "INQUIRY");
+        ServerRequest request = ServerRequest.create(
+                servlet, List.of(new ByteArrayHttpMessageConverter()));
+
+        assertThatThrownBy(() -> ReflectionTestUtils.invokeMethod(
+                fixture.handler(), "trustedHeaders", request))
+                .hasRootCauseInstanceOf(SecurityException.class)
+                .hasRootCauseMessage("Gateway trusted header must have exactly one value: "
+                        + CpfHeaderNames.CHANNEL_CODE);
+    }
+
+    @Test
+    void forwardedHeaderSpoofIsRejectedBeforeDownstreamRegeneration() {
+        Fixture fixture = fixture(new PolicyPort(true, false));
+        assertThatThrownBy(() -> fixture.handler().handle(request(Map.of(
+                "X-Forwarded-For", "10.0.0.1"))))
+                .isInstanceOf(SecurityException.class)
+                .hasMessageContaining("Untrusted internal/proxy header");
+    }
     private Fixture fixture(CpfChannelRegistryPort registryPort) {
         CpfGatewayRouteSnapshot snapshot = mock(CpfGatewayRouteSnapshot.class);
         when(snapshot.resolve("OACCAC0001")).thenReturn(route());

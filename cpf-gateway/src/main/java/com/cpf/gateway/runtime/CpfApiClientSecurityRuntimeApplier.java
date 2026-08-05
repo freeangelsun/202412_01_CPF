@@ -39,24 +39,35 @@ public final class CpfApiClientSecurityRuntimeApplier implements CpfRuntimeChang
             for (CpfRuntimePayload item : payload.objectList("clients")) {
                 String clientId = required(item, "clientId");
                 String expiresAt = item.text("expiresAt", null);
-                Instant expiry = expiresAt == null ? null : Instant.parse(expiresAt);
-                clients.put(clientId, new CpfApiClientSecurityPolicy.Client(
+                Instant expiry = expiresAt == null || expiresAt.isBlank() ? null : Instant.parse(expiresAt);
+                CpfApiClientSecurityPolicy.Client client = new CpfApiClientSecurityPolicy.Client(
                         clientId,
                         required(item, "keyHash"),
                         item.booleanValue("active", true),
                         set(item, "allowedIpCidrs"),
                         set(item, "certificateSerials"),
                         expiry,
-                        (int) item.longValue("quotaPermits", 0),
-                        item.longValue("quotaWindowMillis", 60_000),
-                        set(item, "authorities")));
+                        exactInt(item.longValue("quotaPermits", 0L), "quotaPermits"),
+                        item.longValue("quotaWindowMillis", 60_000L),
+                        set(item, "authorities"));
+                if (clients.putIfAbsent(clientId, client) != null) {
+                    throw new IllegalArgumentException("API client ID 중복: " + clientId);
+                }
             }
             policy.replace(delivery.desiredVersion(), clients);
             return CpfRuntimeApplyResult.success(delivery.payloadHash());
-        } catch (RuntimeException ex) {
+        } catch (RuntimeException invalidPolicy) {
             return CpfRuntimeApplyResult.failure(
                     "API_CLIENT_INVALID",
-                    "API client key/quota/IP/cert/expiry 정책 오류");
+                    "API client key/IP/cert/expiry/version 정책 오류");
+        }
+    }
+
+    private static int exactInt(long value, String fieldName) {
+        try {
+            return Math.toIntExact(value);
+        } catch (ArithmeticException overflow) {
+            throw new IllegalArgumentException(fieldName + " integer 범위 오류", overflow);
         }
     }
 

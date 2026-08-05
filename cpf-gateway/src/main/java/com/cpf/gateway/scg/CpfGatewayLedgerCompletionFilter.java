@@ -44,6 +44,10 @@ public final class CpfGatewayLedgerCompletionFilter extends OncePerRequestFilter
             "connection", "keep-alive", "proxy-authenticate", "proxy-authorization",
             "te", "trailer", "transfer-encoding", "upgrade");
     private static final Set<String> NEVER_RELAY = Set.of("set-cookie", "server");
+    private static final Set<String> RATE_LIMIT_RESPONSE_HEADERS = Set.of(
+            "retry-after", "x-ratelimit-remaining", "x-ratelimit-reset",
+            "x-cpf-ratelimit-policy", "x-cpf-ratelimit-scope",
+            "x-cpf-ratelimit-degraded", "x-cpf-ratelimit-reason");
 
     private final CpfGatewayLedgerRecoverySpool recovery;
     private final CpfGatewayAuditRecoverySpool auditRecovery;
@@ -290,9 +294,14 @@ public final class CpfGatewayLedgerCompletionFilter extends OncePerRequestFilter
         private boolean allowHeader(String name) {
             if (name == null || request.getAttribute(CpfScgPrimaryHandler.TX_ATTR) == null) return true;
             String lower = name.toLowerCase(Locale.ROOT);
-            return !HOP_BY_HOP.contains(lower)
-                    && !NEVER_RELAY.contains(lower)
-                    && runtimePolicy.allowResponseHeader(lower);
+            if (HOP_BY_HOP.contains(lower) || NEVER_RELAY.contains(lower)) return false;
+            Object rateLimit = request.getAttribute(CpfScgPrimaryHandler.RATE_LIMIT_DECISION_ATTR);
+            if (rateLimit instanceof com.cpf.core.api.gateway.CpfGatewayRateLimitPort.Decision decision
+                    && !decision.allowed()
+                    && RATE_LIMIT_RESPONSE_HEADERS.contains(lower)) {
+                return true;
+            }
+            return runtimePolicy.allowResponseHeader(lower);
         }
 
         private void prepareHeaders() {

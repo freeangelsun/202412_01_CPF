@@ -1,8 +1,10 @@
 package com.cpf.starter.rabbitmq;
 
+import com.cpf.core.api.broker.CpfBrokerBridgePort;
 import com.cpf.starter.base.CpfCapabilityBinding;
 import com.cpf.starter.base.CpfCapabilityBindingRegistry;
 import com.cpf.starter.messaging.reliability.CpfNamedBrokerClient;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
 import org.springframework.amqp.core.AcknowledgeMode;
 import org.springframework.amqp.core.Binding;
@@ -17,6 +19,7 @@ import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFacto
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -65,6 +68,16 @@ public class CpfRabbitMqAutoConfiguration {
     CpfRabbitMqBrokerClient cpfRabbitMqBrokerClient(
             RabbitTemplate template, CpfRabbitMqProperties properties) {
         return new CpfRabbitMqBrokerClient(template, properties);
+    }
+
+    @Bean(destroyMethod = "close")
+    @ConditionalOnMissingBean(CpfBrokerBridgePort.class)
+    RabbitCpfBrokerBridgeAdapter cpfRabbitMqBrokerBridgeAdapter(
+            RabbitTemplate template,
+            SimpleRabbitListenerContainerFactory listenerFactory,
+            CpfRabbitMqProperties properties,
+            ObjectMapper mapper) {
+        return new RabbitCpfBrokerBridgeAdapter(template, listenerFactory, properties, mapper);
     }
 
     @Bean

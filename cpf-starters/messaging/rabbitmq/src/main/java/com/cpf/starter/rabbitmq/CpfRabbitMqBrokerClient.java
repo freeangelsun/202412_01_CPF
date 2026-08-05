@@ -3,8 +3,10 @@ package com.cpf.starter.rabbitmq;
 import com.cpf.core.api.broker.CpfBrokerClient;
 import com.cpf.core.api.broker.CpfBrokerPublishRequest;
 import com.cpf.core.api.broker.CpfBrokerPublishResult;
+import com.cpf.core.common.broker.CpfBrokerFailureSanitizer;
 import java.time.Clock;
 import java.time.Instant;
+import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -44,6 +46,8 @@ public final class CpfRabbitMqBrokerClient implements CpfBrokerClient {
 
     @Override
     public CpfBrokerPublishResult enqueue(CpfBrokerPublishRequest request) {
+        requireTracking(request.transactionId(), "transactionId");
+        requireTracking(request.idempotencyKey(), "idempotencyKey");
         if (request.payload().length > properties.getMaxPayloadBytes()) {
             throw new IllegalArgumentException("RabbitMQ payload exceeds CPF maximum size");
         }
@@ -84,14 +88,41 @@ public final class CpfRabbitMqBrokerClient implements CpfBrokerClient {
         }
     }
 
-    private static Map<String, String> validateUserHeaders(Map<String, String> headers) {
-        for (String name : headers.keySet()) {
-            if (RESERVED_HEADERS.contains(name.toLowerCase(Locale.ROOT))) {
+    static Map<String, String> validateUserHeaders(Map<String, String> headers) {
+        if (headers == null) {
+            throw new IllegalArgumentException("RabbitMQ headers must not be null");
+        }
+        Map<String, String> snapshot = new LinkedHashMap<>();
+        java.util.Set<String> normalizedNames = new java.util.HashSet<>();
+        for (var header : headers.entrySet()) {
+            String name = header.getKey();
+            String value = header.getValue();
+            if (name == null || name.isBlank()) {
+                throw new IllegalArgumentException("RabbitMQ header name must not be blank");
+            }
+            if (value == null) {
+                throw new IllegalArgumentException("RabbitMQ header value must not be null: " + name);
+            }
+            String normalizedName = name.trim();
+            String collisionKey = normalizedName.toLowerCase(Locale.ROOT);
+            if (RESERVED_HEADERS.contains(collisionKey)) {
                 throw new IllegalArgumentException(
                         "RabbitMQ header conflicts with reserved CPF header: " + name);
             }
+            if (!normalizedNames.add(collisionKey)) {
+                throw new IllegalArgumentException(
+                        "RabbitMQ headers normalize to the same name: " + normalizedName);
+            }
+            snapshot.put(normalizedName, value);
         }
-        return headers;
+        return Map.copyOf(snapshot);
+    }
+
+    private static String requireTracking(String value, String name) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException(name + " is required before provider publish");
+        }
+        return value.trim();
     }
 
     private CpfBrokerPublishResult result(
@@ -111,6 +142,6 @@ public final class CpfRabbitMqBrokerClient implements CpfBrokerClient {
     }
 
     private static String safe(String detail) {
-        return detail == null || detail.isBlank() ? "unspecified" : detail;
+        return CpfBrokerFailureSanitizer.sanitize(detail == null || detail.isBlank() ? "unspecified" : detail);
     }
 }

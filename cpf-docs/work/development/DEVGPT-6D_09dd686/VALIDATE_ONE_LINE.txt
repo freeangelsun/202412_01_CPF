@@ -1,0 +1,1 @@
+$sha=(git rev-parse HEAD).Trim(); if($sha -ne "09dd686c5ae0826594b9c5e1f871d95d95d3ce1c"){throw "Baseline mismatch: $sha"}; git diff --check; git -c core.quotepath=false status --short --branch

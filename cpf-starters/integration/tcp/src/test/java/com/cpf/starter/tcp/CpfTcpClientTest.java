@@ -113,6 +113,30 @@ class CpfTcpClientTest {
         }
     }
 
+    @Test
+    void connectTimeoutBeforeWriteIsDefinitiveFailureNotUnknown() {
+        CpfTcpUnknownResultStore unknown = new CpfTcpUnknownResultStore(10);
+
+        RuntimeException failure = CpfTcpClient.classifyTransportFailure(
+                false, "connect-timeout", new byte[] {1}, new SocketTimeoutException("connect timed out"), unknown);
+
+        assertTrue(failure instanceof IllegalStateException);
+        assertFalse(failure instanceof CpfTcpClient.UnknownResultException);
+        assertTrue(failure.getMessage().contains("before write"));
+        assertTrue(unknown.snapshot().isEmpty());
+    }
+
+    @Test
+    void responseTimeoutAfterWriteIsRecordedAsUnknown() {
+        CpfTcpUnknownResultStore unknown = new CpfTcpUnknownResultStore(10);
+
+        RuntimeException failure = CpfTcpClient.classifyTransportFailure(
+                true, "response-timeout", new byte[] {2}, new SocketTimeoutException("read timed out"), unknown);
+
+        assertTrue(failure instanceof CpfTcpClient.UnknownResultException);
+        assertTrue(unknown.find("response-timeout").isPresent());
+    }
+
     private static CpfTcpProperties properties(int port, int poolSize) {
         CpfTcpProperties properties = new CpfTcpProperties();
         properties.setEnabled(true);

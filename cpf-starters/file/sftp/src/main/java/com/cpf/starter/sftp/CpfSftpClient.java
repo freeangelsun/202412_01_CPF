@@ -49,6 +49,7 @@ public final class CpfSftpClient implements AutoCloseable {
         Objects.requireNonNull(verifier, "verifier");
         properties.validate();
         paths = new CpfSftpPathPolicy(properties.getLocalRoot(), properties.getRemoteRoot());
+        ledger.recoverExpiredStarted(Instant.now().minus(properties.getStartedRecoveryAge()));
         sshClient = SshClient.setUpDefaultClient();
         sshClient.setServerKeyVerifier(verifier);
         sshClient.start();
@@ -56,6 +57,7 @@ public final class CpfSftpClient implements AutoCloseable {
 
     public Result upload(
             Path localPath, String remotePath, String transactionId, boolean resume) {
+        requireTransactionId(transactionId);
         Path local = paths.existingLocalFile(localPath);
         String remote = paths.remote(remotePath);
         String transferId = UUID.randomUUID().toString();
@@ -67,7 +69,7 @@ public final class CpfSftpClient implements AutoCloseable {
         try (Context context = open()) {
             long total = Files.size(local);
             requireWithinLimit(total);
-            long offset = resume ? remoteSize(context.sftp(), remote) : 0;
+            long offset = resume ? remoteSizeForResume(context.sftp(), remote) : 0;
             if (offset > total) {
                 throw new IllegalStateException(
                         "SFTP remote partial file is larger than the local source");
@@ -121,6 +123,7 @@ public final class CpfSftpClient implements AutoCloseable {
 
     public Result download(
             String remotePath, Path localPath, String transactionId, boolean resume) {
+        requireTransactionId(transactionId);
         String remote = paths.remote(remotePath);
         Path target = paths.localTarget(localPath);
         String transferId = UUID.randomUUID().toString();
@@ -131,6 +134,7 @@ public final class CpfSftpClient implements AutoCloseable {
         Path workFile = resume
                 ? target
                 : target.resolveSibling(target.getFileName() + ".cpf-part-" + transferId);
+        boolean payloadCommitted = false;
         try (Context context = open()) {
             long remoteBytes = context.sftp().stat(remote).getSize();
             requireWithinLimit(remoteBytes);
@@ -167,6 +171,7 @@ public final class CpfSftpClient implements AutoCloseable {
             if (!resume) {
                 moveAtomically(workFile, target);
             }
+            payloadCommitted = true;
             String checksum = sha256(target);
             Result result = new Result(transferId, downloadedBytes, checksum, "COMPLETED");
             ledger.completed(record(
@@ -181,15 +186,19 @@ public final class CpfSftpClient implements AutoCloseable {
                     startedAt, Instant.now()));
             throw failure("download result unknown; reconcile transfer ledger before retry", exception);
         } catch (Exception exception) {
-            long partialBytes = safeSize(workFile);
-            if (!resume) {
+            long partialBytes = safeSize(payloadCommitted ? target : workFile);
+            if (!resume && !payloadCommitted) {
                 deleteQuietly(workFile);
             }
+            String status = payloadCommitted ? "UNKNOWN" : "FAILED";
             ledger.completed(record(
-                    transferId, "DOWNLOAD", remote, target.toString(), "FAILED",
+                    transferId, "DOWNLOAD", remote, target.toString(), status,
                     partialBytes, null, transactionId, safe(exception),
                     startedAt, Instant.now()));
-            throw failure("download", exception);
+            String operation = payloadCommitted
+                    ? "download completed locally but durable ledger result is unknown"
+                    : "download";
+            throw failure(operation, exception);
         }
     }
 
@@ -231,8 +240,10 @@ public final class CpfSftpClient implements AutoCloseable {
     }
 
     public void verifyConnection() {
-        try (Context ignored = open()) {
-            // Authentication and subsystem creation are the health contract.
+        try (Context context = open()) {
+            if (context.session() == null || context.sftp() == null) {
+                throw new IOException("SFTP health context is incomplete");
+            }
         } catch (Exception exception) {
             throw failure("health", exception);
         }
@@ -283,12 +294,30 @@ public final class CpfSftpClient implements AutoCloseable {
         }
     }
 
-    private static long remoteSize(SftpClient client, String remotePath) {
+    private static long remoteSizeForResume(SftpClient client, String remotePath) throws IOException {
         try {
             return client.stat(remotePath).getSize();
         } catch (IOException exception) {
-            return 0;
+            if (isNoSuchRemoteFile(exception)) {
+                return 0;
+            }
+            throw exception;
         }
+    }
+
+    static boolean isNoSuchRemoteFile(Throwable failure) {
+        for (Throwable current = failure; current != null; current = current.getCause()) {
+            if (!current.getClass().getName().equals("org.apache.sshd.sftp.common.SftpException")) {
+                continue;
+            }
+            try {
+                Object status = current.getClass().getMethod("getStatus").invoke(current);
+                return status instanceof Number && ((Number) status).intValue() == 2;
+            } catch (ReflectiveOperationException ignored) {
+                return false;
+            }
+        }
+        return false;
     }
 
     private static String sha256(Path path) throws Exception {
@@ -341,7 +370,16 @@ public final class CpfSftpClient implements AutoCloseable {
         String value = message == null || message.isBlank()
                 ? exception.getClass().getSimpleName()
                 : message;
+        value = value
+                .replaceAll("(?i)(password|passwd|pwd|secret|token|api[-_]?key|authorization)\\s*[:=]\\s*[^\\s,;]+", "$1=***")
+                .replaceAll("(?i)bearer\\s+[A-Za-z0-9._~+/=-]+", "Bearer ***");
         return value.substring(0, Math.min(1_000, value.length()));
+    }
+
+    private static void requireTransactionId(String transactionId) {
+        if (transactionId == null || transactionId.isBlank()) {
+            throw new IllegalArgumentException("SFTP transactionId is required");
+        }
     }
 
     private static CpfSftpTransferRecord record(
@@ -373,9 +411,9 @@ public final class CpfSftpClient implements AutoCloseable {
         }
     }
 
-    private record Context(ClientSession session, SftpClient sftp) implements AutoCloseable {
+    private record Context(ClientSession session, SftpClient sftp) implements java.io.Closeable {
         @Override
-        public void close() throws Exception {
+        public void close() throws IOException {
             try {
                 sftp.close();
             } finally {
@@ -385,6 +423,7 @@ public final class CpfSftpClient implements AutoCloseable {
     }
 
     private static final class ResultUnknownException extends IOException {
+        private static final long serialVersionUID = 1L;
         private ResultUnknownException(String message) {
             super(message);
         }

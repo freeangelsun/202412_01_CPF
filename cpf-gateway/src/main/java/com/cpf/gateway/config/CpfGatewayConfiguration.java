@@ -3,6 +3,8 @@ package com.cpf.gateway.config;
 import com.cpf.core.api.gateway.CpfGatewayAuditPort;
 import com.cpf.core.api.gateway.CpfGatewayAuthenticationPort;
 import com.cpf.core.api.gateway.CpfGatewayAuthorizationPort;
+import com.cpf.core.api.gateway.CpfGatewayEntryPolicyPort;
+import com.cpf.core.api.gateway.CpfGatewayRateLimitCounterPort;
 import com.cpf.core.api.runtimecontrol.CpfRuntimeChangeApplier;
 import com.cpf.gateway.route.CpfGatewayRouteSnapshot;
 import com.cpf.gateway.runtime.CpfApiClientSecurityPolicy;
@@ -10,15 +12,34 @@ import com.cpf.gateway.runtime.CpfApiClientSecurityRuntimeApplier;
 import com.cpf.gateway.runtime.CpfGatewayRouteRuntimeApplier;
 import com.cpf.gateway.runtime.CpfGatewayRuntimeApplier;
 import com.cpf.gateway.runtime.CpfGatewayRuntimePolicy;
+import com.cpf.gateway.runtime.CpfGatewayEntryRuntimeApplier;
+import com.cpf.gateway.runtime.DefaultCpfGatewayEntryPolicy;
+import com.cpf.gateway.runtime.InMemoryCpfGatewayRateLimitCounterAdapter;
+import com.cpf.gateway.runtime.JdbcCpfGatewayRateLimitCounterAdapter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.transaction.PlatformTransactionManager;
 
 /** CPF Gateway runtime의 data plane Bean을 구성합니다. */
 @Configuration
 @EnableScheduling
 public class CpfGatewayConfiguration {
+
+    @Bean
+    @ConditionalOnMissingBean
+    public CpfGatewayEntryPolicyPort cpfGatewayEntryPolicyPort(CpfGatewaySafetyProperties safety) {
+        return new DefaultCpfGatewayEntryPolicy(safety);
+    }
+
+    @Bean(name = "cpfGatewayEntryRuntimeApplier")
+    @ConditionalOnMissingBean(name = "cpfGatewayEntryRuntimeApplier")
+    public CpfRuntimeChangeApplier cpfGatewayEntryRuntimeApplier(CpfGatewayEntryPolicyPort policy) {
+        return new CpfGatewayEntryRuntimeApplier(policy);
+    }
 
     @Bean
     @ConditionalOnMissingBean
@@ -34,8 +55,31 @@ public class CpfGatewayConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public CpfGatewayRuntimePolicy cpfGatewayRuntimePolicy() {
-        return new CpfGatewayRuntimePolicy();
+    public CpfGatewayRateLimitCounterPort cpfGatewayRateLimitCounterPort(
+            CpfGatewaySafetyProperties safety,
+            ObjectProvider<JdbcTemplate> jdbcTemplates,
+            ObjectProvider<PlatformTransactionManager> transactionManagers) {
+        if ("JDBC".equalsIgnoreCase(safety.getRateLimitCounterMode())) {
+            JdbcTemplate jdbc = jdbcTemplates.getIfAvailable();
+            PlatformTransactionManager transactionManager = transactionManagers.getIfAvailable();
+            if (jdbc == null || transactionManager == null) {
+                throw new IllegalStateException(
+                        "JDBC rate-limit counter requires JdbcTemplate and PlatformTransactionManager");
+            }
+            return new JdbcCpfGatewayRateLimitCounterAdapter(jdbc, transactionManager);
+        }
+        return new InMemoryCpfGatewayRateLimitCounterAdapter(
+                safety.getRateLimitCounterEntriesCap());
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public CpfGatewayRuntimePolicy cpfGatewayRuntimePolicy(
+            CpfGatewayRateLimitCounterPort counters,
+            CpfGatewaySafetyProperties safety) {
+        return new CpfGatewayRuntimePolicy(
+                counters,
+                safety.isRateLimitFailClosedOnCounterFailure());
     }
 
     @Bean(name = "cpfGatewayRouteRuntimeApplier")

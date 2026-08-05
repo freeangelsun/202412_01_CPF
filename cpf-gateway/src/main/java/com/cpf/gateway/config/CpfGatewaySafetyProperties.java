@@ -6,8 +6,6 @@ import org.springframework.stereotype.Component;
 import java.time.Duration;
 import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.List;
-import java.util.ArrayList;
 
 /**
  * 설치자가 허용하는 Gateway 안전 상한입니다.
@@ -42,6 +40,16 @@ public class CpfGatewaySafetyProperties {
     private boolean requireTlsTargets = true;
     private Set<Integer> allowedTargetPorts = new LinkedHashSet<>(Set.of(443, 8443, 9443));
     private Set<String> allowedTargetCidrs = new LinkedHashSet<>();
+    private int rateLimitCounterEntriesCap = 100_000;
+    private String rateLimitCounterMode = "LOCAL";
+    private boolean rateLimitFailClosedOnCounterFailure = true;
+    private boolean requireDistributedRateLimitCounter;
+    private int dataPlanePort;
+    private boolean requireTlsIngress;
+    private Set<String> allowedIngressProtocols = new LinkedHashSet<>(Set.of("HTTP/1.1", "HTTP/2.0"));
+    private boolean maintenanceMode;
+    private Duration maintenanceRetryAfter = Duration.ofSeconds(60);
+    private Duration maintenanceRetryAfterCap = Duration.ofMinutes(15);
     private Set<String> trustedContextHeaders = new LinkedHashSet<>(Set.of(
             "accept", "content-type", "idempotency-key", "traceparent", "tracestate",
             "x-api-version", "x-channel-id", "x-client-id", "x-operation-reason", "x-transaction-id",
@@ -64,6 +72,35 @@ public class CpfGatewaySafetyProperties {
                 IllegalStateException("Gateway allowedTargetPorts is invalid");
         if (allowedTargetCidrs == null) allowedTargetCidrs = new LinkedHashSet<>();
         if (trustedContextHeaders == null || trustedContextHeaders.isEmpty()) throw new IllegalStateException("trustedContextHeaders must not be empty");
+        if (dataPlanePort < 0 || dataPlanePort > 65_535) throw new IllegalStateException("dataPlanePort out of range");
+        positive(maintenanceRetryAfter, "maintenanceRetryAfter");
+        positive(maintenanceRetryAfterCap, "maintenanceRetryAfterCap");
+        if (maintenanceRetryAfter.compareTo(maintenanceRetryAfterCap) > 0) throw new IllegalStateException("maintenanceRetryAfter exceeds cap");
+        if (allowedIngressProtocols == null || allowedIngressProtocols.isEmpty()) throw new IllegalStateException("allowedIngressProtocols must not be empty");
+        LinkedHashSet<String> normalizedProtocols = new LinkedHashSet<>();
+        for (String protocol : allowedIngressProtocols) {
+            if (protocol == null || protocol.isBlank()) throw new IllegalStateException("allowedIngressProtocols contains blank value");
+            String normalized = protocol.trim().toUpperCase(java.util.Locale.ROOT);
+            if ("HTTP/2".equals(normalized)) normalized = "HTTP/2.0";
+            if (!"HTTP/1.1".equals(normalized) && !"HTTP/2.0".equals(normalized)) {
+                throw new IllegalStateException("Unsupported ingress protocol: " + protocol);
+            }
+            normalizedProtocols.add(normalized);
+        }
+        allowedIngressProtocols = normalizedProtocols;
+        if (rateLimitCounterEntriesCap < 100 || rateLimitCounterEntriesCap > 5_000_000) throw new IllegalStateException("rateLimitCounterEntriesCap out of range");
+        String counterMode = rateLimitCounterMode == null ? "" : rateLimitCounterMode.trim().toUpperCase(java.util.Locale.ROOT);
+        if (!"LOCAL".equals(counterMode) && !"JDBC".equals(counterMode)) throw new IllegalStateException("Unsupported rateLimitCounterMode");
+        rateLimitCounterMode = counterMode;
+        String normalizedEnvironment = environmentCode.trim().toLowerCase(java.util.Locale.ROOT);
+        if (("prod".equals(normalizedEnvironment) || "production".equals(normalizedEnvironment))
+                && (!requireDistributedRateLimitCounter || !"JDBC".equals(rateLimitCounterMode))) {
+            throw new IllegalStateException("Production Gateway requires distributed rate-limit counter");
+        }
+        if (("prod".equals(normalizedEnvironment) || "production".equals(normalizedEnvironment))
+                && (dataPlanePort < 1 || !requireTlsIngress)) {
+            throw new IllegalStateException("Production Gateway requires explicit TLS Data Plane listener");
+        }
     }
 
     private static void positive(Duration value,String name){if(value==null||value.isZero()||value.isNegative())throw new IllegalStateException(name+" must be positive");}
@@ -92,6 +129,17 @@ public class CpfGatewaySafetyProperties {
     public boolean isRequireTlsTargets(){return requireTlsTargets;} public void setRequireTlsTargets(boolean v){requireTlsTargets=v;}
     public Set<Integer> getAllowedTargetPorts(){return Set.copyOf(allowedTargetPorts);} public void setAllowedTargetPorts(Set<Integer> v){allowedTargetPorts=v==null?new LinkedHashSet<>():new LinkedHashSet<>(v);}
     public Set<String> getAllowedTargetCidrs(){return Set.copyOf(allowedTargetCidrs);} public void setAllowedTargetCidrs(Set<String> v){allowedTargetCidrs=v==null?new LinkedHashSet<>():new LinkedHashSet<>(v);}
+    public int getRateLimitCounterEntriesCap(){return rateLimitCounterEntriesCap;} public void setRateLimitCounterEntriesCap(int v){rateLimitCounterEntriesCap=v;}
+    public String getRateLimitCounterMode(){return rateLimitCounterMode;} public void setRateLimitCounterMode(String v){rateLimitCounterMode=v;}
+    public boolean isRateLimitFailClosedOnCounterFailure(){return rateLimitFailClosedOnCounterFailure;} public void setRateLimitFailClosedOnCounterFailure(boolean v){rateLimitFailClosedOnCounterFailure=v;}
+    public boolean isRequireDistributedRateLimitCounter(){return requireDistributedRateLimitCounter;} public void setRequireDistributedRateLimitCounter(boolean v){requireDistributedRateLimitCounter=v;}
+    public int getDataPlanePort(){return dataPlanePort;} public void setDataPlanePort(int v){dataPlanePort=v;}
+    public boolean isRequireTlsIngress(){return requireTlsIngress;} public void setRequireTlsIngress(boolean v){requireTlsIngress=v;}
+    public Set<String> getAllowedIngressProtocols(){return Set.copyOf(allowedIngressProtocols);}
+    public void setAllowedIngressProtocols(Set<String> values){allowedIngressProtocols=values==null?new LinkedHashSet<>():new LinkedHashSet<>(values);}
+    public boolean isMaintenanceMode(){return maintenanceMode;} public void setMaintenanceMode(boolean v){maintenanceMode=v;}
+    public Duration getMaintenanceRetryAfter(){return maintenanceRetryAfter;} public void setMaintenanceRetryAfter(Duration v){maintenanceRetryAfter=v;}
+    public Duration getMaintenanceRetryAfterCap(){return maintenanceRetryAfterCap;} public void setMaintenanceRetryAfterCap(Duration v){maintenanceRetryAfterCap=v;}
     public Set<String> getTrustedContextHeaders(){return Set.copyOf(trustedContextHeaders);}
     public void setTrustedContextHeaders(Set<String> values){trustedContextHeaders=new LinkedHashSet<>();
             if(values!=null)values.stream().filter(v->v!=null&&!v.isBlank()).map(v->v.toLowerCase(java.util.Locale.ROOT)).forEach(trustedContextHeaders::add);}

@@ -60,10 +60,8 @@ public final class CpfTcpClient implements AutoCloseable {
             return response;
         } catch (SocketTimeoutException | EOFException exception) {
             destroy(socket);
-            if (written) {
-                recordUnknown(normalizedCorrelationId, requestPayload, exception);
-            }
-            throw new UnknownResultException(normalizedCorrelationId, exception);
+            throw classifyTransportFailure(
+                    written, normalizedCorrelationId, requestPayload, exception, unknownResults);
         } catch (IOException exception) {
             destroy(socket);
             if (written) {
@@ -74,6 +72,23 @@ public final class CpfTcpClient implements AutoCloseable {
         } finally {
             capacity.release();
         }
+    }
+
+    static RuntimeException classifyTransportFailure(
+            boolean written,
+            String correlationId,
+            byte[] payload,
+            Exception exception,
+            CpfTcpUnknownResultStore unknownResults) {
+        if (!written) {
+            return new IllegalStateException("TCP request failed before write", exception);
+        }
+        unknownResults.record(new CpfTcpUnknownResult(
+                correlationId,
+                Instant.now(),
+                payload,
+                exception.getClass().getSimpleName()));
+        return new UnknownResultException(correlationId, exception);
     }
 
     private void acquireCapacity() {

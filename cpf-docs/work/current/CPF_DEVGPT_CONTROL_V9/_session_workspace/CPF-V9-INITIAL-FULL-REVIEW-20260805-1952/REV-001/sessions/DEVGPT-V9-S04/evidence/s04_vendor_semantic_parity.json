@@ -1,0 +1,28 @@
+{
+  "status": "PASS",
+  "canonicalTables": 203,
+  "objectCounts": {
+    "mariadb": {
+      "tables": 203,
+      "columns": 2960,
+      "indexes": 341,
+      "uniqueKeys": 80,
+      "foreignKeys": 148
+    },
+    "postgresql": {
+      "tables": 203,
+      "columns": 2960,
+      "indexes": 341,
+      "uniqueKeys": 80,
+      "foreignKeys": 148
+    },
+    "oracle": {
+      "tables": 203,
+      "columns": 2960,
+      "indexes": 341,
+      "uniqueKeys": 80,
+      "foreignKeys": 148
+    }
+  },
+  "findings": []
+}

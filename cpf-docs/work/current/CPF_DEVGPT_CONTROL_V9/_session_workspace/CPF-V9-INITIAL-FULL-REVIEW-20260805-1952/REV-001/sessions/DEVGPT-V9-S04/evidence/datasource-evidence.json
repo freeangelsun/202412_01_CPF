@@ -1,0 +1,59 @@
+{
+  "vendor": "mariadb",
+  "sourceSha": "fc207ac5560da59f352ee0c5f83199177f2987b4",
+  "operationId": "DS-OP-001",
+  "reason": "verify production routing policy",
+  "operator": "operator-a",
+  "approvedBy": "approver-b",
+  "sanitized": true,
+  "status": "PASS",
+  "startedAt": "2026-08-05T10:00:00Z",
+  "endedAt": "2026-08-05T10:01:00Z",
+  "routing": {
+    "writeTarget": "PRIMARY",
+    "readTarget": "PRIMARY",
+    "readOnly": false,
+    "consistency": "STRONG",
+    "lagKnown": true,
+    "replicaLagMs": 0,
+    "freshnessEvidence": "primary route; replica lag 0ms",
+    "decisionAuditId": "ROUTE-001"
+  },
+  "multiDataSource": {
+    "owner": "cpf-common",
+    "crossOwnerWrite": false,
+    "resourceCount": 1,
+    "writeOperation": true
+  },
+  "connectionPool": {
+    "maxPoolSize": 10,
+    "instanceCount": 2,
+    "databaseConnectionBudget": 100,
+    "reservedConnections": 10,
+    "connectionTimeoutMs": 3000,
+    "validationTimeoutMs": 1000,
+    "maxLifetimeMs": 60000
+  },
+  "transaction": {
+    "isolation": "READ_COMMITTED",
+    "commitOutcome": "COMMITTED",
+    "retried": false,
+    "deadlockDetected": false
+  },
+  "timeouts": {
+    "queryTimeoutMs": 10000,
+    "lockTimeoutMs": 1000
+  },
+  "slowQuery": {
+    "durationMs": 10,
+    "alertState": "NORMAL",
+    "bindValuesSanitized": true
+  },
+  "capacityForecast": {
+    "observationDays": 7,
+    "forecastHorizonDays": 90,
+    "headroomPercent": 30,
+    "growthRatePerDay": 0,
+    "state": "HEALTHY"
+  }
+}

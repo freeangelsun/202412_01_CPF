@@ -33,7 +33,8 @@
     "cpf-tools/scripts/verify-cpf-db-schema-governance.py",
     "cpf-tools/scripts/verify-cpf-db-performance-evidence.py",
     "cpf-tools/scripts/verify-cpf-data-observability-evidence.py",
-    "cpf-tools/scripts/verify-cpf-datasource-runtime-evidence.py"
+    "cpf-tools/scripts/verify-cpf-datasource-runtime-evidence.py",
+    "cpf-tools/db/verify_migration_lifecycle.py"
   ],
   "vendorContracts": {
     "mariadb": {
@@ -72,5 +73,21 @@
   "testDataPolicy": "cpf-tools/db/cpf-test-data-policy.json",
   "performanceContract": "cpf-tools/db/cpf-db-performance-policy.json",
   "dataObservabilityContract": "cpf-tools/db/cpf-data-observability-policy.json",
-  "dataSourceRuntimeContract": "cpf-tools/db/cpf-datasource-runtime-policy.json"
+  "dataSourceRuntimeContract": "cpf-tools/db/cpf-datasource-runtime-policy.json",
+  "migrationLifecyclePolicy": "cpf-tools/db/migration-lifecycle-policy.json",
+  "migrationDiscoveryPolicy": {
+    "mode": "ALL_CHECKSUM_MANIFEST_MIGRATIONS",
+    "hardCodedVersionAllowlistForbidden": true,
+    "recursiveLogicalDatabasePacks": true,
+    "rollbackOrForwardRecoveryRequired": true,
+    "unknownResultFailClosed": true,
+    "reapplyChecksumLocked": true
+  },
+  "runtimeExecutorRequirements": {
+    "migrationSelection": "ALL_DISCOVERED_FROM_CHECKSUM_MANIFEST",
+    "partialFailureCheckpoint": true,
+    "unknownResultReconcileBeforeRetry": true,
+    "reverseRollbackThenForwardReapply": true,
+    "backupManifestRequiredForDestructiveTransition": true
+  }
 }

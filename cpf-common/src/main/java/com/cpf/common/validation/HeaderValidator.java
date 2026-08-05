@@ -14,13 +14,13 @@ public class HeaderValidator {
         if (header == null) {
             throw new IllegalArgumentException("Header는 필수 값입니다.");
         }
-        if (header.getTransactionId() == null || header.getTransactionId().isEmpty()) {
+        if (header.getTransactionId() == null || header.getTransactionId().isBlank()) {
             throw new IllegalArgumentException("Transaction ID는 필수 값입니다.");
         }
-        if (header.getInitialChannelCode() == null || header.getInitialChannelCode().isEmpty()) {
+        if (header.getInitialChannelCode() == null || header.getInitialChannelCode().isBlank()) {
             throw new IllegalArgumentException("Initial Channel Code는 필수 값입니다.");
         }
-        if (header.getChannelCode() == null || header.getChannelCode().isEmpty()) {
+        if (header.getChannelCode() == null || header.getChannelCode().isBlank()) {
             throw new IllegalArgumentException("Channel Code는 필수 값입니다.");
         }
         if (header.getTimestamp() == null) {

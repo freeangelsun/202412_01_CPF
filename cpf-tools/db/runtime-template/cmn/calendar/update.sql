@@ -1,0 +1,1 @@
+UPDATE cmn_business_calendar_day SET business_day_yn=?,day_type=?,institution_code=?,reason=?,version_no=version_no+1,updated_by=?,updated_at=CURRENT_TIMESTAMP WHERE calendar_id=? AND business_date=? AND version_no=?

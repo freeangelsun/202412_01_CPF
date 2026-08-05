@@ -1,0 +1,1 @@
+UPDATE cmn_sample_item SET item_name=?,category_code=?,status_code=?,searchable_text=?,owner_reference=?,sort_order=?,version_no=version_no+1,updated_by=?,updated_at=CURRENT_TIMESTAMP WHERE sample_item_id=? AND version_no=? AND deleted_yn='N'

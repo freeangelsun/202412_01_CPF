@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "officialVendors": [
+    "mariadb",
+    "postgresql",
+    "oracle"
+  ],
+  "checkedPowerShellFiles": 17,
+  "lifecycleStages": [
+    "baseline-install",
+    "sequential-upgrade",
+    "runtime-query",
+    "schema-drift",
+    "reverse-rollback",
+    "forward-reapply",
+    "performance-regression",
+    "backup-restore",
+    "point-in-time-recovery"
+  ],
+  "failureCount": 0,
+  "status": "PASS",
+  "runtimeClaim": "STATIC_SUBSTITUTE_ONLY",
+  "failures": []
+}

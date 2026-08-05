@@ -1,10 +1,14 @@
 package com.cpf.common.template;
 
 import com.cpf.common.common.base.CmnBaseService;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.stereotype.Service;
 
 import java.util.Map;
 import java.util.Objects;
 
+@Service
+@ConditionalOnBean(CmnTemplateProvider.class)
 /** Versioned template provider와 renderer를 결합하는 고객 업무공통 서비스입니다. */
 public final class CmnTemplateService extends CmnBaseService {
     private final CmnTemplateProvider provider;

@@ -81,3 +81,69 @@ if ($failures.Count -gt 0) {
     throw "Official DB vendor readiness failed: $($failures.Count) issue(s)."
 }
 Write-Host "Official DB vendor readiness passed. official=$($official -join ',') selectable=$(@($manifest.supportedVendors) -join ',')"
+
+# V9 S04: execute the fail-closed migration lifecycle verifier through the
+# existing Gradle-owned DB readiness consumer. The verifier discovers every
+# checksum-managed logical database pack; no migration version allowlist is
+# accepted here.
+$pythonCommand = Get-Command python -ErrorAction SilentlyContinue
+if ($null -eq $pythonCommand) {
+    $pythonCommand = Get-Command python3 -ErrorAction SilentlyContinue
+}
+if ($null -eq $pythonCommand) {
+    throw 'Python 3 executable is required for CPF DB migration lifecycle verification.'
+}
+$sourceSha = (& git -C $Root rev-parse HEAD 2>&1 | Select-Object -First 1).ToString().Trim().ToLowerInvariant()
+if ($LASTEXITCODE -ne 0 -or $sourceSha -notmatch '^[0-9a-f]{40}$') {
+    throw "Exact Git source SHA is unavailable for DB lifecycle evidence: $sourceSha"
+}
+$reportDirectory = Join-Path $Root 'build/reports/cpf-db'
+New-Item -ItemType Directory -Force -Path $reportDirectory | Out-Null
+$reportPath = Join-Path $reportDirectory 'migration-lifecycle.json'
+& $pythonCommand.Source (Join-Path $Root 'cpf-tools/db/verify_migration_lifecycle.py') `
+    --root $Root `
+    --source-sha $sourceSha `
+    --report $reportPath
+if ($LASTEXITCODE -ne 0) {
+    throw "CPF DB migration lifecycle verification failed with exit code $LASTEXITCODE. report=$reportPath"
+}
+Write-Host "CPF DB migration lifecycle verification passed. report=$reportPath sourceSha=$sourceSha"
+
+# Execute the existing CPF DB static contracts from the same Gradle consumer so
+# DB-INSTALL/OWNERSHIP/MULTI-VENDOR/SQL/PERF/MULTI/LINEAGE/RETENTION cannot pass
+# merely because their JSON or SQL files exist.
+function Invoke-CpfPythonDbGate {
+    param(
+        [Parameter(Mandatory)][string]$ScriptRelativePath,
+        [Parameter(Mandatory)][string[]]$Arguments
+    )
+    $scriptPath = Join-Path $Root $ScriptRelativePath
+    if (-not (Test-Path -LiteralPath $scriptPath -PathType Leaf)) {
+        throw "CPF DB Python gate is missing: $ScriptRelativePath"
+    }
+    & $pythonCommand.Source $scriptPath @Arguments
+    if ($LASTEXITCODE -ne 0) {
+        throw "CPF DB Python gate failed: script=$ScriptRelativePath exit=$LASTEXITCODE"
+    }
+}
+
+Invoke-CpfPythonDbGate 'cpf-tools/scripts/verify-cpf-db-vendor-manifest.py' @(
+    '--root', $Root,
+    '--json-output', (Join-Path $reportDirectory 'vendor-manifest.json')
+)
+Invoke-CpfPythonDbGate 'cpf-tools/scripts/verify-cpf-db-lifecycle-contract.py' @(
+    '--root', $Root
+)
+Invoke-CpfPythonDbGate 'cpf-tools/scripts/verify-cpf-db-development-contract.py' @(
+    '--root', $Root,
+    '--json-output', (Join-Path $reportDirectory 'development-contract.json')
+)
+Invoke-CpfPythonDbGate 'cpf-tools/scripts/verify-cpf-db-schema-governance.py' @(
+    '--root', $Root,
+    '--json-output', (Join-Path $reportDirectory 'schema-governance.json')
+)
+Invoke-CpfPythonDbGate 'cpf-tools/scripts/verify-cpf-db-vendor-semantic-parity.py' @(
+    '--root', $Root,
+    '--json-output', (Join-Path $reportDirectory 'vendor-semantic-parity.json')
+)
+Write-Host "CPF DB composite static verification passed. reportDirectory=$reportDirectory"

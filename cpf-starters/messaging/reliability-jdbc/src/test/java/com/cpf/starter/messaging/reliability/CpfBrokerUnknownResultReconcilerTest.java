@@ -52,6 +52,17 @@ class CpfBrokerUnknownResultReconcilerTest {
         assertThat(port.marked).isFalse();
     }
 
+
+    @Test
+    void legacyUnfencedPortIsRejectedAtConstruction() {
+        var port = new LegacyPort();
+        org.assertj.core.api.Assertions.assertThatThrownBy(() ->
+                new CpfBrokerUnknownResultReconciler(
+                        port, List.of(), Clock.fixed(NOW, ZoneOffset.UTC), Duration.ofSeconds(30)))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("fenced");
+    }
+
     private static final class Port
             implements CpfBrokerOutboxPort, CpfBrokerUnknownResultPort {
         private boolean marked;
@@ -67,14 +78,37 @@ class CpfBrokerUnknownResultReconcilerTest {
             return List.of();
         }
 
+
         @Override
         public void markPublished(String messageId, CpfBrokerResult result) {
+            throw new AssertionError("unfenced publish mutation used");
+        }
+
+        @Override
+        public boolean supportsFencedPublishMutation() {
+            return true;
+        }
+
+        @Override
+        public boolean supportsFencedUnknownMutation() {
+            return true;
+        }
+
+        @Override
+        public void markPublished(String workerId, String messageId, CpfBrokerResult result) {
             marked = true;
         }
+
 
         @Override
         public void markUnknown(
                 String messageId, CpfBrokerResult result, Instant nextReconcileAt) {
+            throw new AssertionError("unfenced UNKNOWN mutation used");
+        }
+
+        @Override
+        public void markUnknown(String workerId, String messageId,
+                CpfBrokerResult result, Instant nextReconcileAt) {
         }
 
         @Override
@@ -85,6 +119,12 @@ class CpfBrokerUnknownResultReconcilerTest {
         @Override
         public void releaseUnknown(
                 String messageId, String detail, Instant nextReconcileAt) {
+            throw new AssertionError("unfenced UNKNOWN release used");
+        }
+
+        @Override
+        public void releaseUnknown(String workerId, String messageId,
+                String detail, Instant nextReconcileAt) {
             released = true;
         }
 
@@ -97,4 +137,15 @@ class CpfBrokerUnknownResultReconcilerTest {
                     Map.of());
         }
     }
+
+    private static final class LegacyPort
+            implements CpfBrokerOutboxPort, CpfBrokerUnknownResultPort {
+        @Override public CpfBrokerResult saveOutbox(CpfBrokerEnvelope envelope) { return null; }
+        @Override public List<CpfBrokerEnvelope> claimPending(String workerId, int limit) { return List.of(); }
+        @Override public void markPublished(String messageId, CpfBrokerResult result) { }
+        @Override public void markUnknown(String messageId, CpfBrokerResult result, Instant nextReconcileAt) { }
+        @Override public List<CpfBrokerEnvelope> claimUnknown(String workerId, int limit) { return List.of(); }
+        @Override public void releaseUnknown(String messageId, String detail, Instant nextReconcileAt) { }
+    }
+
 }

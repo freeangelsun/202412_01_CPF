@@ -22,8 +22,8 @@ public class CpfBrokerPublisherWorker {
     public CpfBrokerPublisherWorker(CpfBrokerOutboxPort outboxPort,
             CpfBrokerUnknownResultPort unknownPort, CpfBrokerPublisher publisher,
             Clock clock, Duration unknownReconcileDelay) {
-        this.outboxPort = Objects.requireNonNull(outboxPort, "outboxPort");
-        this.unknownPort = unknownPort;
+        this.outboxPort = requireFencedOutbox(outboxPort);
+        this.unknownPort = requireFencedUnknown(unknownPort);
         this.publisher = Objects.requireNonNull(publisher, "publisher");
         this.clock = Objects.requireNonNull(clock, "clock");
         this.unknownReconcileDelay = requirePositive(unknownReconcileDelay, "unknownReconcileDelay");
@@ -79,6 +79,23 @@ public class CpfBrokerPublisherWorker {
     private boolean isUnknown(CpfBrokerResult r){return "UNKNOWN".equalsIgnoreCase(r.status())||"RESULT_UNKNOWN".equalsIgnoreCase(r.status());}
     private boolean isPublished(CpfBrokerResult r){return "PUBLISHED".equalsIgnoreCase(r.status())||"SUCCESS".equalsIgnoreCase(r.status())||"ACCEPTED".equalsIgnoreCase(r.status());}
     private String safeMessage(RuntimeException ex) { String m=ex.getMessage(); return CpfBrokerFailureSanitizer.sanitize(m==null||m.isBlank()?ex.getClass().getSimpleName():m); }
+    private static CpfBrokerOutboxPort requireFencedOutbox(CpfBrokerOutboxPort value) {
+        CpfBrokerOutboxPort port = Objects.requireNonNull(value, "outboxPort");
+        if (!port.supportsFencedPublishMutation()) {
+            throw new IllegalArgumentException(
+                    "Broker outbox adapter must enforce fenced publish mutation");
+        }
+        return port;
+    }
+    private static CpfBrokerUnknownResultPort requireFencedUnknown(
+            CpfBrokerUnknownResultPort value) {
+        if (value == null) return null;
+        if (!value.supportsFencedUnknownMutation()) {
+            throw new IllegalArgumentException(
+                    "Broker UNKNOWN adapter must enforce fenced UNKNOWN mutation");
+        }
+        return value;
+    }
     private static Duration requirePositive(Duration v,String n){if(v==null||v.isZero()||v.isNegative())throw new IllegalArgumentException(n+" must be positive");return v;}
     private static String requireWorker(String v){if(v==null||v.isBlank())throw new IllegalArgumentException("workerId is required");return v.trim();}
 

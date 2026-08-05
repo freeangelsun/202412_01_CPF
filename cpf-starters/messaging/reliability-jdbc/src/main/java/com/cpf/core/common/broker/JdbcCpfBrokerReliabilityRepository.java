@@ -10,7 +10,6 @@ import java.sql.Timestamp;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -24,7 +23,9 @@ import java.util.Map;
  * 관리자 replay 요청을 DB 기준으로 검증할 수 있게 하는 최소 운영 저장소입니다.</p>
  */
 public class JdbcCpfBrokerReliabilityRepository
-        implements CpfBrokerOutboxPort, CpfBrokerUnknownResultPort, CpfBrokerInboxPort, CpfBrokerDlqPort, CpfBrokerFailureTransitionPort, CpfBrokerReplayPort, CpfBrokerIdempotencyPort {
+        implements CpfBrokerOutboxPort, CpfBrokerUnknownResultPort,
+        CpfBrokerInboxPort, CpfBrokerDlqPort, CpfBrokerFailureTransitionPort,
+        CpfBrokerReplayPort, CpfBrokerIdempotencyPort {
     private final JdbcTemplate jdbcTemplate;
     private final Duration claimLease;
     private final Clock clock;
@@ -46,6 +47,7 @@ public class JdbcCpfBrokerReliabilityRepository
         this.claimLease = claimLease;
         this.clock = java.util.Objects.requireNonNull(clock, "clock");
     }
+
 
     @Override
     @Transactional(transactionManager = "cpfTransactionManager")
@@ -96,30 +98,10 @@ public class JdbcCpfBrokerReliabilityRepository
     private void assertSameOutboxEnvelope(
             Map<String, Object> row, CpfBrokerEnvelope envelope) {
         CpfBrokerEnvelope stored = mapEnvelope(row);
-        boolean same = java.util.Objects.equals(stored.transactionId(), envelope.transactionId())
-                && java.util.Objects.equals(stored.segmentId(), envelope.segmentId())
-                && java.util.Objects.equals(stored.producerModule(), envelope.producerModule())
-                && java.util.Objects.equals(stored.consumerModule(), envelope.consumerModule())
-                && java.util.Objects.equals(stored.idempotencyKey(), envelope.idempotencyKey())
-                && sameInstant(stored.occurredAt(), envelope.occurredAt())
-                && java.util.Objects.equals(stored.attributes(), envelope.attributes())
-                && java.util.Objects.equals(stored.message().topic(), envelope.message().topic())
-                && java.util.Objects.equals(stored.message().key(), envelope.message().key())
-                && java.util.Arrays.equals(stored.message().payload(), envelope.message().payload())
-                && java.util.Objects.equals(stored.message().contentType(), envelope.message().contentType())
-                && java.util.Objects.equals(stored.message().headers(), envelope.message().headers());
-        if (!same) {
+        if (!CpfBrokerOutboxIdentity.same(stored, envelope)) {
             throw new IllegalStateException(
                     "Broker outbox messageId idempotency conflict: " + envelope.message().messageId());
         }
-    }
-
-    private boolean sameInstant(Instant left, Instant right) {
-        if (left == null || right == null) {
-            return left == right;
-        }
-        return left.truncatedTo(ChronoUnit.MILLIS)
-                .equals(right.truncatedTo(ChronoUnit.MILLIS));
     }
 
     private void insertOutbox(CpfBrokerEnvelope envelope) {

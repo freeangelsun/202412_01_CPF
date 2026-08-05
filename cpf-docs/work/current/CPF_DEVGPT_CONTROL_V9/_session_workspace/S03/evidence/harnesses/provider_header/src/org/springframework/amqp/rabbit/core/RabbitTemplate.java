@@ -1,0 +1,1 @@
+package org.springframework.amqp.rabbit.core; public abstract class RabbitTemplate { public abstract void send(String e,String r,org.springframework.amqp.core.Message m,org.springframework.amqp.rabbit.connection.CorrelationData c); }

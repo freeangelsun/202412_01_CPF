@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
+import org.apache.kafka.common.errors.SerializationException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -53,6 +54,29 @@ class KafkaCpfBrokerClientTest {
         KafkaTemplate<String,byte[]> template=template();
         CpfBrokerPublishRequest invalid=new CpfBrokerPublishRequest("m","t","k",new byte[0],"x",null,"s","p","c","i",Map.of(),Map.of());
         assertThatThrownBy(()->client(template,Duration.ofSeconds(1)).enqueue(invalid)).isInstanceOf(IllegalArgumentException.class).hasMessageContaining("transactionId");
+    }
+
+    @Test void synchronousProviderFailureAfterInvocationIsUnknown(){
+        KafkaTemplate<String,byte[]> template=template();
+        when(template.send(any(ProducerRecord.class)))
+                .thenThrow(new IllegalStateException("producer state unavailable"));
+
+        assertThatThrownBy(()->client(template,Duration.ofSeconds(1)).enqueue(request(Map.of())))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("UNKNOWN")
+                .hasMessageContaining("reconciled");
+    }
+
+    @Test void serializationFailureIsDefiniteBeforeWrite(){
+        KafkaTemplate<String,byte[]> template=template();
+        when(template.send(any(ProducerRecord.class)))
+                .thenThrow(new SerializationException("serializer rejected payload"));
+
+        assertThatThrownBy(()->client(template,Duration.ofSeconds(1)).enqueue(request(Map.of())))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("before provider write")
+                .hasMessageContaining("FAILED")
+                .hasMessageNotContaining("UNKNOWN");
     }
 
     @Test void timeoutIsUnknownWithoutPollutingInterruptFlag(){KafkaTemplate<String,byte[]> t=template();when(t.send(any(ProducerRecord.class))).thenReturn(new CompletableFuture<>());assertThatThrownBy(()->client(t,Duration.ofMillis(1)).enqueue(request(Map.of()))).isInstanceOf(IllegalStateException.class).hasMessageContaining("UNKNOWN");assertThat(Thread.currentThread().isInterrupted()).isFalse();}

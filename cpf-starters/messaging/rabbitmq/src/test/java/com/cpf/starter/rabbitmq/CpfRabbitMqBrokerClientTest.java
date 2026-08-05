@@ -77,11 +77,24 @@ class CpfRabbitMqBrokerClientTest {
     void headerValidationRejectsTrimmedCaseInsensitiveCollision() {
         Map<String, String> headers = new java.util.LinkedHashMap<>();
         headers.put("X-Source", "one");
-        headers.put(" x-source ", "two");
+        headers.put("x-source", "two");
 
         assertThatIllegalArgumentException()
                 .isThrownBy(() -> CpfRabbitMqBrokerClient.validateUserHeaders(headers))
                 .withMessageContaining("same name");
+    }
+
+
+    @Test
+    void headerValidationRejectsSurroundingWhitespaceAndAllCpfReservedNames() {
+        assertThatIllegalArgumentException()
+                .isThrownBy(() -> CpfRabbitMqBrokerClient.validateUserHeaders(
+                        Map.of(" x-source", "value")))
+                .withMessageContaining("surrounding whitespace");
+        assertThatIllegalArgumentException()
+                .isThrownBy(() -> CpfRabbitMqBrokerClient.validateUserHeaders(
+                        Map.of("CPF-MESSAGE-ID", "attack")))
+                .withMessageContaining("reserved CPF header");
     }
 
     @Test

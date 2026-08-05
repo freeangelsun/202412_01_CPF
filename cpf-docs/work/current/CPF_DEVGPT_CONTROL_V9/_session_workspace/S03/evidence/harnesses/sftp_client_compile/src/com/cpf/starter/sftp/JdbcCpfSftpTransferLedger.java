@@ -1,0 +1,1 @@
+package com.cpf.starter.sftp; import java.time.Instant; public class JdbcCpfSftpTransferLedger { public void started(CpfSftpTransferRecord r){} public void completed(CpfSftpTransferRecord r){} public int recoverExpiredStarted(Instant i){return 0;} }

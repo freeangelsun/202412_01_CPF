@@ -161,4 +161,46 @@ class CpfTcpClientTest {
         output.write(payload);
         output.flush();
     }
+    @Test
+    void partialWriteFailureIsUnknownBecauseExternalSideEffectMayHaveStarted() {
+        CpfTcpUnknownResultStore store = new CpfTcpUnknownResultStore(10);
+        byte[] payload = "PAYLOAD".getBytes(java.nio.charset.StandardCharsets.UTF_8);
+
+        RuntimeException failure = CpfTcpClient.classifyTransportFailure(
+                true, "corr-partial", payload, new IOException("partial write"), store);
+
+        assertThat(failure).isInstanceOf(CpfTcpClient.UnknownResultException.class);
+        assertThat(store.find("corr-partial")).isPresent();
+    }
+
+    @Test
+    void deterministicFrameValidationHappensBeforeCapacityAndProviderIo() {
+        CpfTcpProperties properties = properties();
+        properties.setFrame(CpfTcpProperties.Frame.FIXED);
+        properties.setFixedLength(8);
+        CpfTcpUnknownResultStore store = new CpfTcpUnknownResultStore(10);
+        CpfTcpClient client = new CpfTcpClient(properties, store, null);
+
+        assertThatThrownBy(() -> client.request("corr-invalid", new byte[] {1, 2, 3}))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("before write");
+        assertThat(store.find("corr-invalid")).isEmpty();
+    }
+
+    @Test
+    void fixedClockIsUsedForUnknownResultEvidence() {
+        CpfTcpUnknownResultStore unknown = new CpfTcpUnknownResultStore(10);
+        java.time.Clock clock = java.time.Clock.fixed(
+                java.time.Instant.parse("2026-08-05T12:00:00Z"), java.time.ZoneOffset.UTC);
+
+        RuntimeException failure = CpfTcpClient.classifyTransportFailure(
+                true, "clocked-timeout", new byte[] {3},
+                new SocketTimeoutException("read timed out"), unknown, clock);
+
+        assertInstanceOf(CpfTcpClient.UnknownResultException.class, failure);
+        assertEquals(
+                java.time.Instant.parse("2026-08-05T12:00:00Z"),
+                unknown.find("clocked-timeout").orElseThrow().writtenAt());
+    }
+
 }

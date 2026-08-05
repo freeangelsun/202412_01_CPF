@@ -1,0 +1,1 @@
+package com.cpf.starter.jms; public class CpfJmsProperties { private String d="Q"; private int m=1024; private boolean t; public String getDestination(){return d;} public int getMaxPayloadBytes(){return m;} public boolean isSessionTransacted(){return t;} }

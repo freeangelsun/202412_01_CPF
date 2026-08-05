@@ -1,0 +1,49 @@
+{
+  "baseline_sha": "af12a0c8851a2e8d20e9e42964d8dacc0266af03",
+  "development_request_id": "CPF-V9-INITIAL-FULL-REVIEW-20260805-2020-REV-007-DEVGPT-V9-S06",
+  "checkpoint_not_final": true,
+  "assigned_entity_count": 221,
+  "judged_entity_count": 221,
+  "assigned_requirement_count": 8158,
+  "judged_unique_requirement_count": 8158,
+  "assigned_scenario_count": 9799,
+  "judged_unique_scenario_count": 9799,
+  "assigned_gate_count": 21,
+  "judged_unique_gate_count": 21,
+  "development_self_review_unreviewed_ids": 0,
+  "missing_ids": 0,
+  "duplicate_primary_ids": 0,
+  "unowned_ids": 0,
+  "evidence_missing_judgements": 0,
+  "consumer_unconfirmed": 0,
+  "actionable_p0_p1_unaddressed": 0,
+  "qa_unreviewed_rows": 18178,
+  "final_completion": false,
+  "work_verification_counts": {
+    "미검증": 112,
+    "실패": 10,
+    "완료": 99
+  },
+  "requirement_verification_counts": {
+    "미검증": 3265,
+    "실패": 12,
+    "완료": 4881
+  },
+  "scenario_verification_counts": {
+    "미검증": 3538,
+    "실패": 12,
+    "완료": 6249
+  },
+  "gate_verification_counts": {
+    "미검증": 7,
+    "실패": 4,
+    "완료": 10
+  },
+  "integration_status_counts": {
+    "BLOCKED_EXTERNAL_ENVIRONMENT": 1,
+    "IMPLEMENTED_IN_S06_OVERLAY": 1,
+    "PENDING_INTEGRATION_OWNER_IMPLEMENTATION": 9,
+    "PENDING_USER_DELETE_APPROVAL": 1
+  },
+  "equations_pass": true
+}

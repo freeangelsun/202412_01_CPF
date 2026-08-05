@@ -1,0 +1,9 @@
+{
+  "entities": 170,
+  "inventory": 312,
+  "unresolved": 0,
+  "with_missing": 0,
+  "with_main": 88,
+  "with_test": 25,
+  "with_sql": 99
+}

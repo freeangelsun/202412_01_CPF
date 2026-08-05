@@ -1,0 +1,59 @@
+{
+  "status": "FAIL",
+  "public_api_paths": [
+    "cpf-core/src/main/java/com/cpf/core/api/cache/CpfCachePort.java",
+    "cpf-core/src/main/java/com/cpf/core/api/cache/CpfCacheKey.java",
+    "cpf-core/src/main/java/com/cpf/core/api/cache/CpfCacheValue.java",
+    "cpf-core/src/main/java/com/cpf/core/api/cache/CpfCacheMetricsSnapshot.java",
+    "cpf-core/src/main/java/com/cpf/core/api/cache/CpfCacheHealth.java",
+    "cpf-core/src/main/java/com/cpf/core/api/cache/CpfDistributedLockPort.java"
+  ],
+  "caffeine_adapter": "cpf-starters/data/cache-caffeine/src/main/java/com/cpf/starter/data/cache/caffeine/CaffeineCpfCachePort.java",
+  "valkey_compatibility": "cpf-starters/data/cache-valkey/src/main/java/com/cpf/starter/data/cache/valkey/CpfRedisCompatibilityAutoConfiguration.java",
+  "valkey_native": "cpf-starters/data/cache-valkey/src/main/java/com/cpf/starter/data/cache/valkey/CpfValkeyCache.java",
+  "adm_consumer": "cpf-admin/src/main/java/com/cpf/admin/opr/service/AdmCacheOperationService.java",
+  "tests": [
+    "cpf-starters/data/cache-caffeine/src/test/java/com/cpf/common/cache/CpfLocalCacheProviderTest.java",
+    "cpf-starters/data/cache-valkey/src/test/java/com/cpf/common/cache/CpfCacheInvalidationCoordinatorTest.java"
+  ],
+  "missing_paths": [],
+  "imported_common_cache_classes": [
+    "CpfCacheAsideService",
+    "CpfCacheInvalidationCoordinator",
+    "CpfJdbcCacheInvalidationStore",
+    "CpfRedisCacheProvider",
+    "CpfRedisConnectionFactoryBuilder",
+    "CpfRedisProperties"
+  ],
+  "missing_imported_classes": [
+    "cpf-common/src/main/java/com/cpf/common/cache/CpfCacheAsideService.java",
+    "cpf-common/src/main/java/com/cpf/common/cache/CpfCacheInvalidationCoordinator.java",
+    "cpf-common/src/main/java/com/cpf/common/cache/CpfJdbcCacheInvalidationStore.java",
+    "cpf-common/src/main/java/com/cpf/common/cache/CpfRedisCacheProvider.java",
+    "cpf-common/src/main/java/com/cpf/common/cache/CpfRedisConnectionFactoryBuilder.java",
+    "cpf-common/src/main/java/com/cpf/common/cache/CpfRedisProperties.java"
+  ],
+  "native_valkey_implements_cpf_cache_port": false,
+  "compatibility_provider_declared": true,
+  "assertions": {
+    "caffeine_ttl_payload_expiry_metrics_health": true,
+    "valkey_port_lock_secret_durable_invalidation": false,
+    "adm_key_namespace_reconcile_consumer": true,
+    "positive_and_recovery_tests_present": true
+  },
+  "findings": [
+    {
+      "severity": "P0",
+      "id": "CACHE-VALKEY-MISSING-IMPLEMENTATION-CLASSES",
+      "message": "Valkey compatibility auto-configuration imports product classes absent from the repository.",
+      "paths": [
+        "cpf-common/src/main/java/com/cpf/common/cache/CpfCacheAsideService.java",
+        "cpf-common/src/main/java/com/cpf/common/cache/CpfCacheInvalidationCoordinator.java",
+        "cpf-common/src/main/java/com/cpf/common/cache/CpfJdbcCacheInvalidationStore.java",
+        "cpf-common/src/main/java/com/cpf/common/cache/CpfRedisCacheProvider.java",
+        "cpf-common/src/main/java/com/cpf/common/cache/CpfRedisConnectionFactoryBuilder.java",
+        "cpf-common/src/main/java/com/cpf/common/cache/CpfRedisProperties.java"
+      ]
+    }
+  ]
+}

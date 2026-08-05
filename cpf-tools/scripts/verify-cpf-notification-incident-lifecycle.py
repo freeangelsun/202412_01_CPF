@@ -147,12 +147,15 @@ def verify(root: Path) -> None:
         require(contracts, token, rels["incident_contracts"], errors)
 
     methods = texts["notification_methods"]
+    # The ADM frontend must use the generated OpenAPI client rather than a raw URL.
     for token in (
-        '"/adm/api/notifications/delivery-logs/dlq?limit=100"',
+        'admNotificationFindDlq({ limit: 100 })',
         '["DLQ", "FAILED", "UNKNOWN_RESULT", "CANCELLED"]',
         '["READY", "RETRY", "UNKNOWN_RESULT", "DLQ"]',
     ):
         require(methods, token, rels["notification_methods"], errors)
+    if '"/adm/api/notifications/delivery-logs/dlq' in methods or "'/adm/api/notifications/delivery-logs/dlq" in methods:
+        errors.append(f"{rels['notification_methods']}: raw DLQ URL bypasses generated OpenAPI client")
 
     page = texts["notification_page"]
     for token in ('@click="loadNotificationDlq"', "delivery.deliveryStatus === 'DLQ'", "Provider Attempt 이력"):

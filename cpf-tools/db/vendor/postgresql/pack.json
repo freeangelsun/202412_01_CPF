@@ -126,5 +126,23 @@
       "referenceBatchPack"
     ],
     "generatedDomainAllowed": false
+  },
+  "cacheInvalidationPack": {
+    "ownerArtifact": "cpf-starter-data-cache-valkey",
+    "logicalDatabase": "cpfDB",
+    "canonicalSource": "source/16_cache_invalidation_ledger.sql",
+    "freshInstall": "install/05_cache_invalidation_ledger.sql",
+    "migration": "migration/V101__cache_invalidation_ledger.sql",
+    "rollback": "rollback/R101__cache_invalidation_ledger.sql",
+    "runtimeQueries": "runtime/cache/cache_invalidation_queries.sql",
+    "verify": "verify/101_verify_cache_invalidation_ledger.sql",
+    "tables": [
+      "CPF_CACHE_INVALIDATION_EVENT",
+      "CPF_CACHE_INVALIDATION_CHECKPOINT"
+    ],
+    "consumer": "com.cpf.common.cache.CpfCacheInvalidationCoordinator",
+    "provider": "com.cpf.starter.data.cache.valkey.JdbcCpfCacheInvalidationStore",
+    "recovery": "durable-first + per-instance checkpoint + reconcile",
+    "officialVendor": true
   }
 }

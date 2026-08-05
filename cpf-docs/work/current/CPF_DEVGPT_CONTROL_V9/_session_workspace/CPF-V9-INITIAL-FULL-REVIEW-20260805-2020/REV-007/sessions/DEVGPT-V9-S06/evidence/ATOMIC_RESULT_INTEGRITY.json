@@ -1,0 +1,30 @@
+{
+  "baseline_sha": "af12a0c8851a2e8d20e9e42964d8dacc0266af03",
+  "development_request_id": "CPF-V9-INITIAL-FULL-REVIEW-20260805-2020-REV-007-DEVGPT-V9-S06",
+  "assigned_work_items": 221,
+  "judged_work_items": 221,
+  "assigned_requirements": 8158,
+  "judged_requirements": 8158,
+  "assigned_scenarios": 9799,
+  "judged_scenarios": 9799,
+  "assigned_gates": 21,
+  "judged_gates": 21,
+  "unreviewed_ids": 0,
+  "missing_ids": 0,
+  "duplicate_primary_ids": 0,
+  "unowned_ids": 0,
+  "evidence_missing_judgements": 0,
+  "consumer_unconfirmed": 0,
+  "actionable_p0_p1_unresolved": 0,
+  "integration_pending_count": 11,
+  "s06_regression_files": 29,
+  "s06_regression_tests": 135,
+  "s06_regression_failures": 0,
+  "final_completion": false,
+  "status": "CHECKPOINT_BLOCKED_BY_INTEGRATION_OWNER_ENVIRONMENT_AND_DELETE_APPROVAL",
+  "regression": {
+    "files": 29,
+    "tests": 135,
+    "failures": 0
+  }
+}

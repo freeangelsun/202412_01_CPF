@@ -1,0 +1,49 @@
+{
+  "schema_version": "1.0",
+  "model_id": "TM-CPF-DEVEX-QUALITY",
+  "version": "1.0.0",
+  "title": "CPF DevEx, quality gate and evidence pipeline",
+  "owner": "DEVGPT-V9-S06",
+  "reviewers": ["security-integration-owner", "release-integration-owner"],
+  "scope_paths": [
+    "cpf-tools/scripts/**",
+    "cpf-tools/performance/**",
+    "cpf-tools/security/**",
+    "gradle/**"
+  ],
+  "review_triggers": [
+    "new external input or archive format",
+    "new command execution capability",
+    "credential or evidence handling change",
+    "trust boundary or release publication change"
+  ],
+  "assets": [
+    {"id": "ASSET-SOURCE", "name": "CPF product source and generated artifacts", "classification": "internal"},
+    {"id": "ASSET-EVIDENCE", "name": "QA evidence and support diagnostics", "classification": "confidential"},
+    {"id": "ASSET-RELEASE", "name": "release metadata, SBOM and provenance", "classification": "internal"}
+  ],
+  "trust_boundaries": [
+    {"id": "TB-OPERATOR-TOOL", "name": "operator supplied manifest/profile to CPF tooling"},
+    {"id": "TB-TOOL-REPOSITORY", "name": "CPF tooling reading or writing repository-relative artifacts"},
+    {"id": "TB-TOOL-RUNTIME", "name": "CPF test tooling invoking target runtime or child process"}
+  ],
+  "data_flows": [
+    {"id": "DF-MANIFEST", "source": "operator", "destination": "CPF tool", "assets": ["ASSET-EVIDENCE"], "crosses_boundary": "TB-OPERATOR-TOOL"},
+    {"id": "DF-SOURCE", "source": "CPF tool", "destination": "repository", "assets": ["ASSET-SOURCE", "ASSET-RELEASE"], "crosses_boundary": "TB-TOOL-REPOSITORY"},
+    {"id": "DF-RUNTIME", "source": "CPF tool", "destination": "target runtime", "assets": ["ASSET-EVIDENCE"], "crosses_boundary": "TB-TOOL-RUNTIME"}
+  ],
+  "mitigations": [
+    {"id": "MIT-PATH", "control": "repository-relative path normalization and traversal rejection", "evidence_paths": ["cpf-tools/scripts/generate-cpf-support-bundle.py", "cpf-tools/scripts/verify-cpf-threat-models.py"]},
+    {"id": "MIT-MASK", "control": "allowlisted collection, secret masking and residual-secret fail-closed scan", "evidence_paths": ["cpf-tools/scripts/generate-cpf-support-bundle.py", "cpf-tools/scripts/tests/test_generate_cpf_support_bundle.py"]},
+    {"id": "MIT-PROCESS", "control": "argument-array child process execution without shell and explicit timeout", "evidence_paths": ["cpf-tools/scripts/run-cpf-performance-contract.py", "cpf-tools/scripts/tests/test_run_cpf_performance_contract.py"]},
+    {"id": "MIT-EVIDENCE", "control": "machine-readable result, hash and non-zero exit on contract violation", "evidence_paths": ["cpf-tools/scripts/verify-cpf-development-evidence-integrity.py", "cpf-tools/scripts/verify-cpf-evidence-semantics.py"]}
+  ],
+  "threats": [
+    {"id": "TH-PATH-TRAVERSAL", "category": "tampering", "abuse_case": "crafted manifest reads files outside the approved collection root", "affected_assets": ["ASSET-SOURCE", "ASSET-EVIDENCE"], "mitigations": ["MIT-PATH"], "status": "mitigated", "residual_risk": {"severity": "low", "reason": "canonical resolve and root containment checks"}},
+    {"id": "TH-SECRET-LEAK", "category": "information-disclosure", "abuse_case": "diagnostic bundle includes credentials, tokens or private keys", "affected_assets": ["ASSET-EVIDENCE"], "mitigations": ["MIT-MASK"], "status": "mitigated", "residual_risk": {"severity": "medium", "reason": "text masking plus fail-closed residual scan; binary collection rejected"}},
+    {"id": "TH-COMMAND-INJECTION", "category": "elevation-of-privilege", "abuse_case": "performance profile injects shell metacharacters or unbounded process execution", "affected_assets": ["ASSET-SOURCE", "ASSET-EVIDENCE"], "mitigations": ["MIT-PROCESS"], "status": "mitigated", "residual_risk": {"severity": "medium", "reason": "no shell, explicit argument array, timeout and target-owned profile review"}},
+    {"id": "TH-FALSE-GREEN", "category": "repudiation", "abuse_case": "missing or malformed evidence is interpreted as a successful gate", "affected_assets": ["ASSET-EVIDENCE", "ASSET-RELEASE"], "mitigations": ["MIT-EVIDENCE"], "status": "mitigated", "residual_risk": {"severity": "low", "reason": "fail-closed exit codes and machine-readable evidence validation"}}
+  ],
+  "reviewed_at": "2026-08-05T00:00:00Z",
+  "expires_at": "2027-08-05T00:00:00Z"
+}

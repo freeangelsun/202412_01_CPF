@@ -1,0 +1,21 @@
+{
+  "status": "FAIL",
+  "baseline_sha": "af12a0c8851a2e8d20e9e42964d8dacc0266af03",
+  "duplicate_count": 7,
+  "duplicate_operation_ids": [
+    "admApprovalDecision",
+    "admApprovalExecute",
+    "admApprovalPolicies",
+    "admApprovalPolicyDetail",
+    "admApprovalPolicySave",
+    "admApprovalRequest",
+    "admApprovalRequestDetail"
+  ],
+  "controller_paths": [
+    "cpf-admin/src/main/java/com/cpf/admin/approval/controller/AdmApprovalController.java",
+    "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmApprovalController.java"
+  ],
+  "evidence": "evidence/OPENAPI_ADMIN_DUPLICATE.log",
+  "owner": "DEVGPT-V9-S05",
+  "disposition": "PENDING_INTEGRATION_OWNER_IMPLEMENTATION"
+}

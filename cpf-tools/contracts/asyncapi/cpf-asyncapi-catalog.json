@@ -1,0 +1,33 @@
+{
+  "schema_version": "1.0",
+  "source_commit_sha": "fc207ac5560da59f352ee0c5f83199177f2987b4",
+  "supported_asyncapi_versions": ["3.1.0"],
+  "source_inventory": [
+    {"path": "cpf-core/src/main/java/com/cpf/core/api/broker/CpfBrokerPublishRequest.java", "type": "blob", "sha": "a62d811d2e6378d66168166ec848a21ab1c15b2b"},
+    {"path": "cpf-core/src/main/java/com/cpf/core/internal/broker/CpfBrokerClientAdapter.java", "type": "blob", "sha": "033b0b9bfc82887a8cbcb2156f254f13be7c30df"},
+    {"path": "cpf-starters/messaging/kafka", "type": "tree", "sha": "33b2ce450989ff6c710d81313b7df94d3e92cf98"},
+    {"path": "cpf-starters/messaging/jms", "type": "tree", "sha": "01542e761bf5cd67f6fbbd77332f352c623f3ccd"},
+    {"path": "cpf-starters/messaging/rabbitmq", "type": "tree", "sha": "8c531abfb77f7d0d62c372865fa036c3cc7d9bf7"},
+    {"path": "cpf-starters/messaging/ibm-mq", "type": "tree", "sha": "dca6ae86340058357037adf68576c6adaffb427c"},
+    {"path": "cpf-starters/messaging/reliability-jdbc", "type": "tree", "sha": "d4b4bc28ca25c7e5bda167898e27526f4702e960"}
+  ],
+  "documents": [
+    {
+      "path": "cpf-tools/contracts/asyncapi/cpf-broker.asyncapi.json",
+      "owner": "event-contract-and-provider-starter-integration",
+      "compatibility": "BACKWARD",
+      "source_contracts": [
+        "cpf-core/src/main/java/com/cpf/core/api/broker/CpfBrokerPublishRequest.java"
+      ],
+      "consumers": [
+        "cpf-core/src/main/java/com/cpf/core/internal/broker/CpfBrokerClientAdapter.java",
+        "cpf-starters/messaging/kafka",
+        "cpf-starters/messaging/jms",
+        "cpf-starters/messaging/rabbitmq",
+        "cpf-starters/messaging/ibm-mq",
+        "cpf-starters/messaging/reliability-jdbc"
+      ],
+      "previous_schema_version": null
+    }
+  ]
+}

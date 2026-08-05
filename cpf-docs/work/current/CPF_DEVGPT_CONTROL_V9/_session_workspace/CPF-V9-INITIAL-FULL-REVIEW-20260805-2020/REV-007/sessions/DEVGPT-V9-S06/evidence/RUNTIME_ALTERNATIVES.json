@@ -1,0 +1,212 @@
+{
+  "authoritativeRuntimeClaim": false,
+  "baselineSha": "af12a0c8851a2e8d20e9e42964d8dacc0266af03",
+  "checks": {
+    "brokerCacheFeatureNotification": {
+      "brokerAckRetryDlq": "PASS",
+      "cacheTtlInvalidation": "PASS",
+      "durationMs": 0.091,
+      "featureFlagVersionAndSafeDefault": "PASS",
+      "notificationRetryAndDedupe": "PASS",
+      "status": "PASS"
+    },
+    "idempotencyUnknownReconcileFencing": {
+      "audit": [
+        "SUBMITTED",
+        "DUPLICATE_SUBMIT",
+        "LEASE:1",
+        "EFFECT_APPLIED",
+        "ACK_LOST",
+        "RECONCILED_SUCCESS",
+        "LEASE:2",
+        "LEASE:3",
+        "ACKED"
+      ],
+      "duplicateSubmit": "PASS",
+      "durationMs": 0.088,
+      "leaseFencing": "PASS",
+      "responseLossUnknown": "PASS",
+      "restartReconcile": "PASS",
+      "sideEffectCount": 1,
+      "status": "PASS"
+    },
+    "multiProcessKillRecovery": {
+      "contenders": 2,
+      "duplicateEffectSuppressed": true,
+      "durationMs": 3557.464,
+      "effectCount": 1,
+      "exclusiveWinner": "worker-A",
+      "leaseAfterRestart": 2,
+      "loserExitCode": 17,
+      "recoveredState": "SUCCEEDED",
+      "status": "PASS",
+      "terminatedExitCode": -15
+    },
+    "partialIoAndTruncation": {
+      "bytes": 8200,
+      "chunks": 359,
+      "durationMs": 5.003,
+      "status": "PASS",
+      "truncatedState": "UNKNOWN"
+    },
+    "performanceSoakAndTime": {
+      "clockSkewToleranceSeconds": 30,
+      "dstUtcDeltaSeconds": 3600,
+      "durationMs": 407.96,
+      "elapsedSeconds": 0.395531,
+      "operations": 40000,
+      "p95Milliseconds": 0.004494,
+      "peakBytes": 1371692,
+      "seoulUtcOffsetSeconds": 32400,
+      "status": "PASS"
+    },
+    "productSourceContracts": {
+      "batchReliability": {
+        "missing": [],
+        "present": 3,
+        "required": 3,
+        "status": "PASS"
+      },
+      "brokerAndProviders": {
+        "missing": [],
+        "present": 3,
+        "required": 3,
+        "status": "PASS"
+      },
+      "cacheAndFlags": {
+        "missing": [],
+        "present": 5,
+        "required": 5,
+        "status": "PASS"
+      },
+      "durationMs": 0.645,
+      "maskingAndSupport": {
+        "missing": [],
+        "present": 2,
+        "required": 2,
+        "status": "PASS"
+      },
+      "partialIo": {
+        "missing": [],
+        "present": 1,
+        "required": 1,
+        "status": "PASS"
+      },
+      "performance": {
+        "missing": [],
+        "present": 2,
+        "required": 2,
+        "status": "PASS"
+      },
+      "status": "PASS",
+      "supplyChain": {
+        "missing": [],
+        "present": 3,
+        "required": 3,
+        "status": "PASS"
+      },
+      "telemetry": {
+        "missing": [],
+        "present": 2,
+        "required": 2,
+        "status": "PASS"
+      }
+    },
+    "sensitiveDataMaskingCorpus": {
+      "cases": 9,
+      "durationMs": 4.845,
+      "maskedValues": 10,
+      "sanitizedDigests": [
+        "1fe4f3bbc21a25818f3d2fb26dea78a4c8b2a2e774e5dd9befb3d48736d7808a",
+        "e6ba07ae917d0bb6f8269186471656c73c33ec9fb7823187b173e33a87a2d26c",
+        "31c1f782f230bd4c94845ec7c7912a63be90c34c58410e5ac41586b44abdc1ee",
+        "d809c2690bda852eb24ba21703d8537675ad3cc606ec450930df9eedae4de207",
+        "c135b44e0f95b31a281528e9da3ab6957be1682afaf94a0fd45d328040aaa407",
+        "e790746f99704240b5b3f0a3bee3e96d9ffc016402b85f32137046f9e3b7144a",
+        "772145961ed2809f5dd4174c2f4d37ba156dc4b2d0c1d7566ff6322518df0ea8",
+        "8180f37a8b6f38965feeef8cff1ac59f8c7b5b1ace4b0a202907200c51cf8253",
+        "7c66afdf94ffa92e47c263a1291be8633324e0498982527cefc9642f2cc8ada3"
+      ],
+      "status": "PASS"
+    },
+    "telemetryAndConfigCompatibility": {
+      "configAdditiveCompatibility": "PASS",
+      "configBreakingChangeRejected": [
+        "type changed: endpoint",
+        "removed property: timeoutMs",
+        "new required properties: mode"
+      ],
+      "durationMs": 0.054,
+      "metricSemanticAttributes": [
+        "outcome",
+        "service.name"
+      ],
+      "spanCount": 3,
+      "status": "PASS",
+      "traceCorrelation": "eafe895eb8119e6e5d06463590b2ef81"
+    },
+    "vulnerabilityDependencySupplierCbomProvenance": {
+      "cbom": {
+        "bomFormat": "CycloneDX",
+        "components": [
+          {
+            "cryptoProperties": {
+              "algorithmProperties": {
+                "parameterSetIdentifier": "GCM-256",
+                "primitive": "AES"
+              }
+            },
+            "name": "TLS",
+            "type": "cryptographic-asset"
+          },
+          {
+            "cryptoProperties": {
+              "algorithmProperties": {
+                "parameterSetIdentifier": "P-256",
+                "primitive": "ECDSA"
+              }
+            },
+            "name": "Signature",
+            "type": "cryptographic-asset"
+          }
+        ],
+        "specVersion": "1.6"
+      },
+      "cbomSha256": "4c204f402e46acb26fc384aaa1f214a99457c58d98843047be774e1d6ede2ce1",
+      "dependencyLicensePolicy": "PASS",
+      "durationMs": 0.198,
+      "kevResponseSla": "PASS",
+      "provenance": {
+        "_type": "https://in-toto.io/Statement/v1",
+        "predicate": {
+          "buildDefinition": {
+            "buildType": "cpf-gradle"
+          },
+          "runDetails": {
+            "builder": {
+              "id": "cpf-release"
+            }
+          }
+        },
+        "predicateType": "https://slsa.dev/provenance/v1",
+        "subject": [
+          {
+            "digest": {
+              "sha256": "659da9b7b6ad40571495543985d5332e631c927a2ed72becface557bfff98f32"
+            },
+            "name": "cpf-artifact"
+          }
+        ]
+      },
+      "provenanceSubjectSha256": "659da9b7b6ad40571495543985d5332e631c927a2ed72becface557bfff98f32",
+      "status": "PASS",
+      "supplierDueDiligence": "PASS",
+      "waiverExpiryAndApproval": "PASS"
+    }
+  },
+  "failures": [],
+  "profileId": "CPF-S06-RUNTIME-ALTERNATIVE-V1",
+  "schemaVersion": 1,
+  "status": "PASS",
+  "verificationType": "DETERMINISTIC_ALTERNATIVE_RUNTIME"
+}

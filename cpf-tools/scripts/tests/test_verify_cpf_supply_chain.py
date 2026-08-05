@@ -33,6 +33,22 @@ class SupplyChainVerifierTest(unittest.TestCase):
         root=self.fixture(); evidence=root.parent/f'outside-evidence-{root.name}'; evidence.mkdir(exist_ok=True)
         cp=self.execute(root,'--evidence-dir',str(evidence))
         self.assertEqual(0,cp.returncode,cp.stdout+cp.stderr)
+
+    def test_schema_v2_and_verification_only_project_are_supported(self):
+        root=self.fixture()
+        settings=root/'settings.gradle'
+        settings.write_text(settings.read_text(encoding='utf-8') + "include 'cpf-core-only-consumer'\nproject(':cpf-core-only-consumer').projectDir = file('cpf-tools/verification/core-only-consumer')\n", encoding='utf-8')
+        catalog_path=root/'cpf-tools/release/cpf-final-artifact-catalog.json'
+        data=json.loads(catalog_path.read_text(encoding='utf-8'))
+        data['schemaVersion']='2.0.0'
+        catalog_path.write_text(json.dumps(data), encoding='utf-8')
+        cp=self.execute(root)
+        self.assertEqual(0,cp.returncode,cp.stdout+cp.stderr)
+        result=json.loads(cp.stdout)
+        self.assertEqual(3,result['includedProjectCount'])
+        self.assertEqual(2,result['releaseProjectCount'])
+        self.assertEqual(1,result['excludedVerificationProjectCount'])
+
     def test_missing_included_project_rejected(self):
         root=self.fixture(); data=json.loads((root/'cpf-tools/release/cpf-final-artifact-catalog.json').read_text(encoding="utf-8"));data['artifacts']=[x for x in data['artifacts'] if x['ownerPath']!='cpf-core'];(root/'cpf-tools/release/cpf-final-artifact-catalog.json').write_text(json.dumps(data), encoding="utf-8")
         cp=self.execute(root);self.assertNotEqual(0,cp.returncode);self.assertIn('missing from artifact catalog',cp.stdout)

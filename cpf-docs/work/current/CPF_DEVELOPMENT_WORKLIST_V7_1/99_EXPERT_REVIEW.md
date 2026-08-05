@@ -99,7 +99,7 @@ Canonical 수가 유지된 것은 최적화를 하지 않아서가 아니라 Req
 
 ## 6. AI 개발 할당 방식
 
-- `WORK_ITEM_LEDGER.csv`를 기준으로 P0→P1→P2와 dependency 순서로 배정한다.
+- `WORK_ITEM_INDEX.csv`를 기준으로 P0→P1→P2와 dependency 순서로 배정하고, 각 행의 `markdown_file`과 `ledger_part`만 읽고 갱신한다.
 - 같은 State Owner와 호출 경로를 공유하는 Work Package는 한 Slice로 묶을 수 있다.
 - 묶음 개발 후에도 각 Work Item, CPF-FR, CPF-SC와 Gate 판정은 개별로 남긴다.
 - 한 세션에 과도한 범위를 넣지 않고 3~15개 Work Package를 기본 Slice로 사용한다.
@@ -125,12 +125,12 @@ cpf-docs/
 - ZIP 내부 모든 파일이 위 Repository 상대경로 아래 위치
 - 파일 수: 26개
 - 파일당 10MB 초과: 0개
-- 최대 파일: `WORK_ITEM_LEDGER.csv` (1,104,419B)
+- 최대 파일: `WORK_ITEM_INDEX.csv` (276,171B)
 
 
 ## 9. AI 처리 크기 최적화 V7.1
 
-V7의 1.1MB 단일 `WORK_ITEM_LEDGER.csv`는 Git에는 문제가 없지만 AI가 매번 전체를 읽기에는 비효율적이었다. V7.1에서는 데이터를 줄이지 않고 다음처럼 변경했다.
+V7에는 1.1MB 단일 `WORK_ITEM_LEDGER.csv`가 있었지만 V7.1에서 제거했다. 현재 V7.1은 데이터를 줄이지 않고 다음처럼 변경된 상태다.
 
 - 넓은 Work Item Ledger 775행을 Domain/Part별 `ledgers/*.csv`로 무손실 분할
 - `WORK_ITEM_INDEX.csv`를 추가해 Work Item→상세 Markdown→Ledger Part를 즉시 탐색
@@ -139,3 +139,32 @@ V7의 1.1MB 단일 `WORK_ITEM_LEDGER.csv`는 Git에는 문제가 없지만 AI가
 - Canonical 169개, Work Package 775개, 모든 필수 결과·제안·Gate·Scenario·상태 컬럼 유지
 
 AI는 한 번에 3~15개 Work Item만 선택해 해당 Part를 읽는다. Git 사용자는 영역 Index와 `WORK_ITEM_INDEX.csv`로 빠르게 이동한다.
+
+
+## 10. 04-05 Push 검증
+
+- 확인 Commit: `f3814ccfb80a39be80772521826b671d692955e7` (`04-05`)
+- 이전 Commit: `2b259ea45f3ad1a93bfefd5e7d3bc35f3406bf06` (`04-04`)
+- Compare 상태: `ahead`, ahead 1, behind 0
+- 추가 파일: 53개
+- 배치 경로: `cpf-docs/work/current/CPF_DEVELOPMENT_WORKLIST_V7_1/`
+- Canonical: 169
+- Work Package/Index/Split Ledger/Detailed Card: 각각 775
+- 최대 파일: 276,171B
+- GitHub Combined Status: 연결 Status 없음
+- GitHub Workflow Run: 확인된 Run 없음
+
+따라서 Push와 경로는 확인됐지만 Build·Runtime·QA 검증은 아직 수행되지 않은 상태다.
+
+## 11. Push 후 문서 정합성 보정
+
+V7.1에서 제거된 `WORK_ITEM_LEDGER.csv`를 참조하던 `01_COMMON_ENGINEERING_GATES.md`와 본 문서의 잔여 표현을 다음으로 정정했다.
+
+```text
+WORK_ITEM_INDEX.csv
++ 각 행의 markdown_file
++ 각 행의 ledger_part
++ GATE_APPLICABILITY_MATRIX.csv
+```
+
+이 보정은 Work Item 775개, Canonical 169개 또는 Ledger 컬럼을 변경하지 않는다.

@@ -1,6 +1,6 @@
 # CPF 공통 Engineering Gate
 
-모든 Work Package는 `WORK_ITEM_LEDGER.csv`의 `applicable_gates`에 지정된 Gate를 판정한다. 적용되지 않는 Gate는 실제 호출 경로와 변경 영향에 근거한 `N/A`가 필요하다.
+모든 Work Package는 `WORK_ITEM_INDEX.csv`에서 대상 Work Item을 찾고, 해당 `ledger_part`의 `ledgers/*_WORK_ITEMS.csv` 및 `GATE_APPLICABILITY_MATRIX.csv`에 지정된 Gate를 판정한다. 적용되지 않는 Gate는 실제 호출 경로와 변경 영향에 근거한 `N/A`가 필요하다.
 
 ## GATE-01-OWNERSHIP — Module·Package·State Ownership
 

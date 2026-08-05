@@ -1,0 +1,1 @@
+package org.apache.sshd.client.session; import java.io.*; import java.time.Duration; public class ClientSession implements Closeable { public void addPasswordIdentity(String s){} public AuthFuture auth(){return new AuthFuture();} public void close(){} public static class AuthFuture { public AuthFuture verify(Duration d){return this;} } }

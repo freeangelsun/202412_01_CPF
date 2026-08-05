@@ -1,0 +1,1 @@
+package org.springframework.amqp.core; public class Message { private final byte[] body; private final MessageProperties p; public Message(byte[] b,MessageProperties p){this.body=b;this.p=p;} public MessageProperties getMessageProperties(){return p;} }

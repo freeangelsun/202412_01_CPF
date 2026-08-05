@@ -1,0 +1,3 @@
+java -cp /mnt/data/cpf_s03_work/final_harness_run/provider_header/classes com.cpf.starter.jms.S03JmsHeaderHarness
+java -cp /mnt/data/cpf_s03_work/final_harness_run/provider_header/classes com.cpf.starter.ibmmq.S03IbmHeaderHarness
+java -cp /mnt/data/cpf_s03_work/final_harness_run/provider_header/classes com.cpf.starter.rabbitmq.S03RabbitHeaderHarness

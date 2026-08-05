@@ -67,7 +67,7 @@ class CpfIbmMqBrokerClientTest {
 
         assertThatIllegalArgumentException()
                 .isThrownBy(() -> client.enqueue(request(Map.of("cpfIdempotencyKey", "ATTACK"))))
-                .withMessageContaining("reserved CPF property");
+                .withMessageContaining("reserved CPF/JMS property");
         verifyNoInteractions(template);
     }
 
@@ -78,6 +78,25 @@ class CpfIbmMqBrokerClientTest {
         assertThatIllegalArgumentException()
                 .isThrownBy(() -> client.enqueue(request(Map.of("x-cpf", "A", "x_cpf", "B"))))
                 .withMessageContaining("normalize to the same property");
+        verifyNoInteractions(template);
+    }
+
+
+    @Test
+    void enqueueRejectsJmsReservedNameWhitespaceAndCaseInsensitiveProjectionBeforeProviderCall() {
+        var client = new CpfIbmMqBrokerClient(template, properties);
+        assertThatIllegalArgumentException()
+                .isThrownBy(() -> client.enqueue(request(Map.of("JMSCorrelationID", "ATTACK"))))
+                .withMessageContaining("reserved CPF/JMS property");
+        assertThatIllegalArgumentException()
+                .isThrownBy(() -> client.enqueue(request(Map.of(" x-source", "value"))))
+                .withMessageContaining("surrounding whitespace");
+        java.util.Map<String, String> collision = new java.util.LinkedHashMap<>();
+        collision.put("X-Cpf", "A");
+        collision.put("x_cpf", "B");
+        assertThatIllegalArgumentException()
+                .isThrownBy(() -> client.enqueue(request(collision)))
+                .withMessageContaining("same property");
         verifyNoInteractions(template);
     }
 
@@ -102,8 +121,8 @@ class CpfIbmMqBrokerClientTest {
         nullValue.put("x-source", null);
         var client = new CpfIbmMqBrokerClient(template, properties);
 
-        assertThatIllegalArgumentException().isThrownBy(() -> client.enqueue(request(blankName));
-        assertThatIllegalArgumentException().isThrownBy(() -> client.enqueue(request(nullValue));
+        assertThatIllegalArgumentException().isThrownBy(() -> client.enqueue(request(blankName)));
+        assertThatIllegalArgumentException().isThrownBy(() -> client.enqueue(request(nullValue)));
         verifyNoInteractions(template);
     }
 

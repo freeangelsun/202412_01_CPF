@@ -28,25 +28,25 @@ public class CpfReliableBrokerClient implements CpfBrokerClient {
     @Override
     @Transactional(transactionManager = "cpfTransactionManager")
     public CpfBrokerPublishResult enqueue(CpfBrokerPublishRequest request) {
-        Objects.requireNonNull(request, "request");
-        requireTracking(request.transactionId(), "transactionId");
-        requireTracking(request.idempotencyKey(), "idempotencyKey");
+        CpfBrokerPublishRequest validated = CpfBrokerHeaderPolicy.validatedRequest(request);
+        requireTracking(validated.transactionId(), "transactionId");
+        requireTracking(validated.idempotencyKey(), "idempotencyKey");
         Instant occurredAt = clock.instant();
         CpfBrokerMessage message = new CpfBrokerMessage(
-                request.messageId(), request.topic(), request.key(), request.payload(),
-                request.contentType(), request.headers());
+                validated.messageId(), validated.topic(), validated.key(), validated.payload(),
+                validated.contentType(), validated.headers());
         CpfBrokerEnvelope envelope = new CpfBrokerEnvelope(
-                request.transactionId(), request.segmentId(), request.producerModule(),
-                request.consumerModule(), request.idempotencyKey(), occurredAt,
-                message, request.attributes());
+                validated.transactionId(), validated.segmentId(), validated.producerModule(),
+                validated.consumerModule(), validated.idempotencyKey(), occurredAt,
+                message, validated.attributes());
         CpfBrokerResult result = Objects.requireNonNull(
                 outbox.saveOutbox(envelope), "outbox result");
         String status = isAccepted(result.status()) ? "ACCEPTED" : result.status();
         return new CpfBrokerPublishResult(
                 status,
-                request.messageId(),
+                validated.messageId(),
                 result.brokerName() == null ? "CPF_OUTBOX" : result.brokerName(),
-                result.partitionKey() == null ? request.key() : result.partitionKey(),
+                result.partitionKey() == null ? validated.key() : result.partitionKey(),
                 result.processedAt() == null ? occurredAt : result.processedAt(),
                 result.detail());
     }

@@ -1,0 +1,1 @@
+package org.springframework.kafka.support; import org.apache.kafka.clients.producer.RecordMetadata; public class SendResult<K,V>{private final RecordMetadata m;public SendResult(RecordMetadata m){this.m=m;}public RecordMetadata getRecordMetadata(){return m;}}

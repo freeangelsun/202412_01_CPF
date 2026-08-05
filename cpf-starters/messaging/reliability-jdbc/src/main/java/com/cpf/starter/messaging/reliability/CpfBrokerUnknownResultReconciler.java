@@ -21,8 +21,12 @@ public final class CpfBrokerUnknownResultReconciler {
 
     public CpfBrokerUnknownResultReconciler(CpfBrokerUnknownResultPort unknownPort,
             List<CpfBrokerPublishResultProbe> probes, Clock clock, Duration retryDelay) {
-        this.unknownPort=Objects.requireNonNull(unknownPort,"unknownPort");
-        if(!(unknownPort instanceof CpfBrokerOutboxPort outbox)) throw new IllegalArgumentException("UNKNOWN port must also implement outbox");
+        this.unknownPort=requireFencedUnknown(unknownPort);
+        if (!(unknownPort instanceof CpfBrokerOutboxPort outbox)
+                || !outbox.supportsFencedPublishMutation()) {
+            throw new IllegalArgumentException(
+                    "UNKNOWN port must also enforce fenced outbox mutation");
+        }
         this.outboxPort=outbox; this.probes=probes==null?List.of():List.copyOf(probes);
         this.clock=Objects.requireNonNull(clock,"clock");
         if(retryDelay==null||retryDelay.isZero()||retryDelay.isNegative())throw new IllegalArgumentException("retryDelay must be positive");
@@ -66,6 +70,15 @@ public final class CpfBrokerUnknownResultReconciler {
     private static boolean isUnknown(CpfBrokerResult r){return "UNKNOWN".equalsIgnoreCase(r.status())||"RESULT_UNKNOWN".equalsIgnoreCase(r.status());}
     private static boolean isPublished(CpfBrokerResult r){return "PUBLISHED".equalsIgnoreCase(r.status())||"SUCCESS".equalsIgnoreCase(r.status())||"ACCEPTED".equalsIgnoreCase(r.status());}
     private static String safe(String v){return CpfBrokerFailureSanitizer.sanitize(v==null||v.isBlank()?"UNKNOWN":v);}
+    private static CpfBrokerUnknownResultPort requireFencedUnknown(
+            CpfBrokerUnknownResultPort value) {
+        CpfBrokerUnknownResultPort port=Objects.requireNonNull(value,"unknownPort");
+        if (!port.supportsFencedUnknownMutation()) {
+            throw new IllegalArgumentException(
+                    "UNKNOWN adapter must enforce fenced UNKNOWN mutation");
+        }
+        return port;
+    }
     private static String requireWorker(String v){if(v==null||v.isBlank())throw new IllegalArgumentException("workerId is required");return v.trim();}
     public record Result(int claimed,int resolvedSuccess,int resolvedFailure,int pending){}
 }

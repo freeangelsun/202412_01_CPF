@@ -1,6 +1,7 @@
 package com.cpf.starter.messaging.reliability;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.cpf.core.api.broker.CpfBrokerPublishRequest;
 import com.cpf.core.common.broker.CpfBrokerEnvelope;
@@ -43,6 +44,34 @@ class CpfReliableBrokerClientTest {
         Method method = CpfReliableBrokerClient.class.getMethod(
                 "enqueue", CpfBrokerPublishRequest.class);
         assertThat(method.isAnnotationPresent(Transactional.class)).isTrue();
+    }
+
+    @Test
+    void rejectsReservedOrCollidingHeadersBeforeOutboxWrite() {
+        RecordingOutbox outbox = new RecordingOutbox();
+        CpfReliableBrokerClient client = new CpfReliableBrokerClient(
+                outbox, Clock.fixed(NOW, ZoneOffset.UTC));
+        CpfBrokerPublishRequest reserved = new CpfBrokerPublishRequest(
+                "msg-1", "topic-1", "key-1", new byte[0], "application/octet-stream",
+                "tx-1", "seg-1", "producer", "consumer", "idem-1",
+                Map.of("CPF.Message-Id", "override"), Map.of());
+
+        assertThatThrownBy(() -> client.enqueue(reserved))
+                .isInstanceOf(SecurityException.class);
+        assertThat(outbox.saved).isNull();
+
+        Map<String, String> colliding = new java.util.LinkedHashMap<>();
+        colliding.put("trace-parent", "a");
+        colliding.put("trace.parent", "b");
+        CpfBrokerPublishRequest duplicate = new CpfBrokerPublishRequest(
+                "msg-2", "topic-1", "key-1", new byte[0], "application/octet-stream",
+                "tx-2", "seg-1", "producer", "consumer", "idem-2",
+                colliding, Map.of());
+
+        assertThatThrownBy(() -> client.enqueue(duplicate))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("normalize to the same provider name");
+        assertThat(outbox.saved).isNull();
     }
 
     private static CpfBrokerPublishRequest request() {

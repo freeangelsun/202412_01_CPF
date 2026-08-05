@@ -69,6 +69,39 @@ class CpfProviderBrokerPublisherTest {
         assertThat(result.detail()).contains("***");
     }
 
+
+    @Test
+    void providerExceptionAfterInvocationBecomesSanitizedUnknown() {
+        CpfBrokerClient provider = request -> {
+            throw new IllegalStateException("Authorization=Bearer abc.def password=hunter2");
+        };
+        CpfProviderBrokerPublisher publisher = new CpfProviderBrokerPublisher(
+                new CpfBrokerClientRouter(List.of(
+                        new CpfNamedBrokerClient("default", "kafka", true, provider))),
+                Clock.fixed(NOW, ZoneOffset.UTC));
+
+        var result = publisher.publish(envelope());
+
+        assertThat(result.status()).isEqualTo("UNKNOWN");
+        assertThat(result.detail()).contains("no definitive result", "***")
+                .doesNotContain("abc.def", "hunter2");
+    }
+
+    @Test
+    void unsupportedProviderStatusFailsClosedAsUnknown() {
+        CpfBrokerClient provider = request -> new CpfBrokerPublishResult(
+                "QUEUED_SOMEWHERE", request.messageId(), "custom", null, NOW, null);
+        CpfProviderBrokerPublisher publisher = new CpfProviderBrokerPublisher(
+                new CpfBrokerClientRouter(List.of(
+                        new CpfNamedBrokerClient("default", "custom", true, provider))),
+                Clock.fixed(NOW, ZoneOffset.UTC));
+
+        var result = publisher.publish(envelope());
+
+        assertThat(result.status()).isEqualTo("UNKNOWN");
+        assertThat(result.detail()).contains("unsupported status");
+    }
+
     private static CpfBrokerEnvelope envelope() {
         return new CpfBrokerEnvelope(
                 "tx-1", "seg-1", "producer", "consumer", "idem-1", NOW,

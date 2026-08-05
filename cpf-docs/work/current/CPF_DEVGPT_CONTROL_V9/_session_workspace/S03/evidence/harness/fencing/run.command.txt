@@ -1,0 +1,1 @@
+java -cp /mnt/data/cpf_s03_work/final_harness_run/fencing/classes com.cpf.starter.messaging.reliability.S03FencingHarness

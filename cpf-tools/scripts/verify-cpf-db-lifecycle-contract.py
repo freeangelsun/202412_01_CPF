@@ -5,7 +5,7 @@ import argparse,json,sys
 from pathlib import Path
 class DbContractError(RuntimeError):pass
 OFFICIAL=('mariadb','postgresql','oracle')
-STAGES=['baseline-install','sequential-upgrade','runtime-query','schema-drift','reverse-rollback','forward-reapply','backup-restore']
+STAGES=['baseline-install','sequential-upgrade','runtime-query','schema-drift','reverse-rollback','forward-reapply','performance-regression','backup-restore','point-in-time-recovery']
 LIFECYCLE_KEYS=['provision','emptyInstall','productSeed','testSeed','verify','migration','rollback']
 
 def read(path:Path)->dict:
@@ -24,6 +24,13 @@ def validate(root:Path,check_paths:bool=True)->tuple[int,int]:
  if any(token in json.dumps(contract).lower() for token in forbidden):raise DbContractError('unsupported vendor leaked into lifecycle contract')
  for script in contract.get('requiredStaticGates',[]):
   if check_paths and not (root/script).is_file():raise DbContractError(f'required static DB gate missing: {script}')
+ for contract_key in ('backupContract','pitrContract','dataRetentionContract','testDataPolicy','performanceContract'):
+  contract_path=contract.get(contract_key)
+  if not contract_path:raise DbContractError(f'{contract_key} missing')
+  if check_paths and not (root/contract_path).is_file():raise DbContractError(f'{contract_key} path missing: {contract_path}')
+  if check_paths:
+   linked=read(root/contract_path)
+   if tuple(linked.get('officialVendors') or ())!=OFFICIAL:raise DbContractError(f'{contract_key} officialVendors drift')
  if check_paths and not (root/contract['runtimeExecutor']).is_file():raise DbContractError(f"runtime executor missing: {contract['runtimeExecutor']}")
  for vendor in OFFICIAL:
   entry=manifest['vendors'].get(vendor);vendor_contract=contract['vendorContracts'].get(vendor)

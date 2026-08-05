@@ -15,7 +15,10 @@ param(
     [switch] $ConfirmApplicationsStopped,
     [switch] $ConfirmRollbackReady,
     [string] $ExpectedPlanSha256 = "",
-    [string[]] $BackupManifestPath = @()
+    [string[]] $BackupManifestPath = @(),
+    [string] $Operator = "",
+    [string] $Reason = "",
+    [string] $ApprovalReference = ""
 )
 
 if ($PSVersionTable.PSVersion.Major -lt 7) {
@@ -34,6 +37,7 @@ $Modules = @(
 )
 
 . (Join-Path $PSScriptRoot "database-profile-common.ps1")
+. (Join-Path $PSScriptRoot "cpf-backup-lifecycle-common.ps1")
 
 function Get-CpfRelativePath {
     param([Parameter(Mandatory = $true)][string] $Path)
@@ -475,7 +479,9 @@ function Test-CpfBackupCoverage {
         if (-not (Test-Path -LiteralPath $absoluteManifest -PathType Leaf)) {
             throw "Backup manifest가 없습니다: $requestedPath"
         }
-        $manifest = Get-Content -LiteralPath $absoluteManifest -Raw -Encoding UTF8 | ConvertFrom-Json -Depth 20
+        [void](Assert-CpfManifestHash $absoluteManifest)
+        $manifest = Get-Content -LiteralPath $absoluteManifest -Raw -Encoding UTF8 | ConvertFrom-Json -Depth 30
+        Assert-CpfBackupManifest $manifest
         if (([string]$manifest.vendor).ToLowerInvariant() -ne $Vendor) {
             throw "Backup manifest vendor가 plan과 다릅니다: $requestedPath"
         }
@@ -483,10 +489,10 @@ function Test-CpfBackupCoverage {
         if ([string]::IsNullOrWhiteSpace($database)) {
             throw "Backup manifest database가 비어 있습니다: $requestedPath"
         }
-        $backupFileName = [string]$manifest.backupFile
-        $expectedHash = ([string]$manifest.sha256).ToLowerInvariant()
+        $backupFileName = [string]$manifest.artifactFile
+        $expectedHash = ([string]$manifest.artifactSha256).ToLowerInvariant()
         if ([string]::IsNullOrWhiteSpace($backupFileName) -or $expectedHash -notmatch "^[0-9a-f]{64}$") {
-            throw "Backup manifest file/hash 계약이 올바르지 않습니다: $requestedPath"
+            throw "Encrypted backup manifest file/hash 계약이 올바르지 않습니다: $requestedPath"
         }
         $backupPath = if ([IO.Path]::IsPathRooted($backupFileName)) {
             [IO.Path]::GetFullPath($backupFileName)
@@ -512,12 +518,17 @@ function Test-CpfBackupCoverage {
 function Protect-CpfOutput {
     param([string] $Text, [string[]] $Secrets)
     $safe = if ($null -eq $Text) { "" } else { $Text }
-    foreach ($secret in $Secrets) {
-        if (-not [string]::IsNullOrWhiteSpace($secret)) {
-            $safe = $safe.Replace($secret, "****")
-        }
-    }
+    $orderedSecrets = @($Secrets | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Sort-Object { $_.Length } -Descending -Unique)
+    foreach ($secret in $orderedSecrets) { $safe = $safe.Replace($secret, "****") }
     return $safe
+}
+
+function Assert-CpfProcessScalar {
+    param([Parameter(Mandatory = $true)][string] $Value,[Parameter(Mandatory = $true)][string] $DisplayName)
+    if ([string]::IsNullOrWhiteSpace($Value) -or $Value -match '[\x00-\x1F\x7F]') {
+        throw "$DisplayName 값이 비어 있거나 제어문자를 포함합니다."
+    }
+    return $Value
 }
 
 function Invoke-CpfSqlProcess {
@@ -526,6 +537,11 @@ function Invoke-CpfSqlProcess {
         [Parameter(Mandatory = $true)] $Target,
         [Parameter(Mandatory = $true)][string] $Sql
     )
+
+    [void](Assert-CpfProcessScalar ([string]$Target.host) "Target.host")
+    [void](Assert-CpfProcessScalar ([string]$Target.databaseName) "Target.databaseName")
+    [void](Assert-CpfProcessScalar ([string]$Target.migrationUsername) "Target.migrationUsername")
+    [void](Assert-CpfProcessScalar ([string]$Target.migrationPassword) "Target.migrationPassword")
 
     $client = if (-not [string]::IsNullOrWhiteSpace([string]$Target.clientPath)) {
         [string]$Target.clientPath
@@ -586,7 +602,7 @@ function Invoke-CpfSqlProcess {
         $escapedPassword = ([string]$Target.migrationPassword).Replace('"', '""')
         $connect = 'CONNECT ' + $Target.migrationUsername + '/"' + $escapedPassword +
             '"@//' + $Target.host + ':' + $Target.port + '/' + $Target.databaseName
-        $inputSql = "WHENEVER SQLERROR EXIT SQL.SQLCODE`n$connect`nALTER SESSION SET CURRENT_SCHEMA = $schema;`n$Sql`nEXIT`n"
+        $inputSql = "SET ECHO OFF`nSET VERIFY OFF`nSET DEFINE OFF`nWHENEVER SQLERROR EXIT SQL.SQLCODE`n$connect`nALTER SESSION SET CURRENT_SCHEMA = $schema;`n$Sql`nEXIT`n"
     }
 
     $process = [Diagnostics.Process]::new()
@@ -603,8 +619,10 @@ function Invoke-CpfSqlProcess {
         $stdout = $stdoutTask.GetAwaiter().GetResult()
         $stderr = $stderrTask.GetAwaiter().GetResult()
         if ($process.ExitCode -ne 0) {
+            $migrationPassword = [string]$Target.migrationPassword
             $safeError = Protect-CpfOutput (($stderr + "`n" + $stdout).Trim()) @(
-                [string]$Target.migrationPassword
+                $migrationPassword,
+                $migrationPassword.Replace('"', '""')
             )
             throw "DB migration 실행 실패: vendor=$Vendor module=$($Target.moduleKey) exit=$($process.ExitCode) output=$safeError"
         }
@@ -624,6 +642,12 @@ $result = [ordered]@{
     planSha256 = ""
     operations = @()
     error = ""
+    reconcileRequired = $false
+    failureOperation = $null
+    operator = ""
+    reason = ""
+    approvalReference = ""
+    sanitized = $true
 }
 
 try {
@@ -934,7 +958,10 @@ try {
                 version = $_.version
                 moduleKey = $_.target.moduleKey
                 physicalDatabase = $_.target.databaseName
-                status = "미검증"
+                status = "NOT_EXECUTED"
+                startedAt = $null
+                finishedAt = $null
+                failureCode = ""
             }
         })
 
@@ -948,6 +975,12 @@ try {
         if (-not $ConfirmRollbackReady) {
             throw "Apply에는 -ConfirmRollbackReady가 필요합니다."
         }
+        $Operator = Assert-CpfBackupScalar $Operator "Operator"
+        $Reason = Assert-CpfBackupScalar $Reason "Reason"
+        $ApprovalReference = Assert-CpfBackupScalar $ApprovalReference "ApprovalReference"
+        $result.operator = $Operator
+        $result.reason = $Reason
+        $result.approvalReference = $ApprovalReference
         if ($ExpectedPlanSha256 -notmatch "^[0-9a-fA-F]{64}$" -or
             $ExpectedPlanSha256.ToLowerInvariant() -ne $planSha256) {
             throw "Dry-run에서 검토한 -ExpectedPlanSha256와 현재 plan이 일치해야 합니다. current=$planSha256"
@@ -962,8 +995,28 @@ try {
         for ($index = 0; $index -lt $operations.Count; $index++) {
             $operation = $operations[$index]
             $target = $runtimeProfiles[$operation.target.moduleKey]
-            Invoke-CpfSqlProcess $vendor $target $operation.sql
-            $result.operations[$index].status = "완료"
+            $result.operations[$index].status = "APPLYING"
+            $result.operations[$index].startedAt = (Get-Date).ToUniversalTime().ToString("o")
+            try {
+                Invoke-CpfSqlProcess $vendor $target $operation.sql
+                $result.operations[$index].status = "COMPLETED"
+            } catch {
+                # DDL/driver/network failures can leave the physical database partially applied.
+                # Never infer rollback from a non-zero client exit; require explicit reconcile.
+                $result.operations[$index].status = "UNKNOWN"
+                $result.operations[$index].failureCode = $_.Exception.GetType().Name
+                $result.reconcileRequired = $true
+                $result.failureOperation = [ordered]@{
+                    order = $operation.order
+                    version = $operation.version
+                    moduleKey = $operation.target.moduleKey
+                    physicalDatabase = $operation.target.databaseName
+                    status = "UNKNOWN"
+                }
+                throw
+            } finally {
+                $result.operations[$index].finishedAt = (Get-Date).ToUniversalTime().ToString("o")
+            }
         }
         $result.status = "완료"
     } else {

@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "officialVendors": ["mariadb", "postgresql", "oracle"],
+  "executionControls": {
+    "planFirst": true,
+    "expectedPlanSha256Required": true,
+    "operatorRequired": true,
+    "reasonRequired": true,
+    "approvalReferenceRequired": true,
+    "archiveBeforePurge": true,
+    "unknownOnPartialFailure": true,
+    "legalHoldOverridesRetention": true,
+    "sanitizedEvidenceOnly": true
+  },
+  "policies": [
+    {
+      "policyId": "BAT_OPERATION_LOG_RETENTION_V1",
+      "logicalDatabase": "batDB",
+      "sourceTable": "bat_operation_log",
+      "archiveTable": "bat_operation_log_archive",
+      "primaryKeyColumn": "operation_id",
+      "timestampColumn": "created_at",
+      "retentionDays": 90,
+      "maxRowsPerRun": 10000,
+      "archiveMode": "COPY_THEN_DELETE",
+      "holdKeyType": "STRING"
+    }
+  ],
+  "legalHoldManifest": {
+    "schemaVersion": 1,
+    "requiredFields": ["schemaVersion", "policyId", "holdKeys", "operator", "reason", "approvalReference", "createdAt"],
+    "holdKeysMustBeUnique": true,
+    "emptyManifestAllowed": true
+  }
+}

@@ -16,7 +16,9 @@
     "schema-drift",
     "reverse-rollback",
     "forward-reapply",
-    "backup-restore"
+    "performance-regression",
+    "backup-restore",
+    "point-in-time-recovery"
   ],
   "runtimeExecutor": "cpf-tools/scripts/invoke-cpf-qa34-db-runtime-matrix.ps1",
   "environmentManifestVariable": "CPF_DB_RUNTIME_MANIFEST",
@@ -27,7 +29,11 @@
     "cpf-tools/scripts/check-sql-standard.ps1",
     "cpf-tools/scripts/check-sql-canonical.ps1",
     "cpf-tools/scripts/check-platform-runtime-query-packs.ps1",
-    "cpf-tools/scripts/check-reference-database-lifecycle.ps1"
+    "cpf-tools/scripts/check-reference-database-lifecycle.ps1",
+    "cpf-tools/scripts/verify-cpf-db-schema-governance.py",
+    "cpf-tools/scripts/verify-cpf-db-performance-evidence.py",
+    "cpf-tools/scripts/verify-cpf-data-observability-evidence.py",
+    "cpf-tools/scripts/verify-cpf-datasource-runtime-evidence.py"
   ],
   "vendorContracts": {
     "mariadb": {
@@ -59,5 +65,12 @@
     "schemaHashBefore",
     "schemaHashAfter",
     "sanitized"
-  ]
+  ],
+  "pitrContract": "cpf-tools/db/cpf-pitr-lifecycle-contract.json",
+  "backupContract": "cpf-tools/db/cpf-backup-lifecycle-contract.json",
+  "dataRetentionContract": "cpf-tools/db/cpf-data-retention-policy.json",
+  "testDataPolicy": "cpf-tools/db/cpf-test-data-policy.json",
+  "performanceContract": "cpf-tools/db/cpf-db-performance-policy.json",
+  "dataObservabilityContract": "cpf-tools/db/cpf-data-observability-policy.json",
+  "dataSourceRuntimeContract": "cpf-tools/db/cpf-datasource-runtime-policy.json"
 }

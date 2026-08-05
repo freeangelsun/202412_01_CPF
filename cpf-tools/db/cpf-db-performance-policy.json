@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "officialVendors": [
+    "mariadb",
+    "postgresql",
+    "oracle"
+  ],
+  "statusModel": {
+    "development": "완료",
+    "runtimeVerification": "미검증"
+  },
+  "representativeDataScales": {
+    "small": 1000,
+    "medium": 100000,
+    "large": 1000000
+  },
+  "queryClasses": {
+    "pointLookup": {
+      "maxLatencyMs": 50,
+      "maxExaminedRows": 10,
+      "requireIndexedAccess": true
+    },
+    "pagedSearch": {
+      "maxLatencyMs": 300,
+      "maxExaminedRows": 10000,
+      "requireStableSort": true
+    },
+    "batchClaim": {
+      "maxLatencyMs": 200,
+      "maxExaminedRows": 1000,
+      "requireLockEvidence": true
+    },
+    "retentionPreview": {
+      "maxLatencyMs": 1000,
+      "maxExaminedRows": 100000,
+      "requireBoundedBatch": true
+    }
+  },
+  "statisticsPolicy": {
+    "requiredAfterFreshInstall": true,
+    "requiredAfterLargeMigration": true,
+    "requiredAfterRepresentativeDataLoad": true,
+    "evidenceFields": [
+      "statisticsCommand",
+      "statisticsCompletedAt",
+      "statisticsExitCode"
+    ]
+  },
+  "slowQueryPolicy": {
+    "thresholdMs": 1000,
+    "capturePlan": true,
+    "sanitizeBindValues": true,
+    "rawSqlWithSecretsProhibited": true
+  },
+  "partitionPolicy": {
+    "reviewRequiredAtRows": 10000000,
+    "retentionAlignedBoundaryRequired": true,
+    "rollbackPlanRequired": true
+  },
+  "foreignKeyIndexPolicy": {
+    "mode": "REPRESENTATIVE_PLAN_REQUIRED",
+    "candidateGenerator": "cpf-tools/scripts/verify-cpf-db-schema-governance.py",
+    "automaticDdlWithoutPlanProhibited": true
+  },
+  "requiredEvidenceFields": [
+    "sourceSha",
+    "resultSha",
+    "vendor",
+    "databaseVersion",
+    "dataScale",
+    "startedAt",
+    "endedAt",
+    "sanitized",
+    "statistics",
+    "queryResults"
+  ],
+  "resultStates": [
+    "PASS",
+    "FAIL",
+    "UNKNOWN"
+  ],
+  "failClosed": true
+}

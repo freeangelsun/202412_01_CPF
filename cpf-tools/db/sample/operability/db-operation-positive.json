@@ -1,0 +1,22 @@
+{
+  "operationId": "db-op-20260805-001",
+  "capabilityId": "DB-MIGRATION",
+  "vendor": "postgresql",
+  "environment": "integration",
+  "topology": "multi-instance",
+  "operator": "db-operator-a",
+  "reason": "Validate upgrade and reconciliation behavior",
+  "approvalReference": "APR-20260805-001",
+  "approvedBy": "db-approver-b",
+  "startedAt": "2026-08-05T03:00:00Z",
+  "finishedAt": "2026-08-05T03:00:03Z",
+  "resultStatus": "SUCCEEDED",
+  "reconcileRequired": false,
+  "sourceSha": "09dd686c5ae0826594b9c5e1f871d95d95d3ce1c",
+  "evidenceSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "metrics": {"durationMs": 3000, "affectedRows": 12, "errorCount": 0, "retryCount": 0},
+  "trace": {"traceId": "0123456789abcdef0123456789abcdef", "spanId": "0123456789abcdef"},
+  "health": {"before": "UP", "after": "UP"},
+  "alerts": [],
+  "runbookRef": "cpf-docs/runbooks/DB-MIGRATION.md"
+}

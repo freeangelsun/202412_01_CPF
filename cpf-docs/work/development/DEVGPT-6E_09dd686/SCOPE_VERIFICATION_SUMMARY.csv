@@ -1,0 +1,7 @@
+category,expected,actual,unique,missing,duplicate,unassigned
+Work Item,60,60,60,0,0,0
+Canonical Requirement,12,12,12,0,0,0
+CPF-FR,1044,1044,1044,0,0,0
+CPF-SC,1449,1449,1449,0,0,0
+Engineering Gate,16,16,16,0,0,0
+Excluded cpf-common Work Item,33,33,33,0,0,0

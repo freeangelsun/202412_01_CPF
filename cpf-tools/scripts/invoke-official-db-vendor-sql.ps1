@@ -74,16 +74,25 @@ function Invoke-Psql($t,[string]$Sql) {
 function Protect-CpfSecretText([string]$Text,[string[]]$Secrets) {
     if($null -eq $Text){return ''}
     $safe=$Text
-    foreach($secret in @($Secrets)){
-        if(-not [string]::IsNullOrWhiteSpace($secret)){$safe=$safe.Replace($secret,'****')}
-    }
+    $orderedSecrets=@($Secrets | Where-Object {-not [string]::IsNullOrWhiteSpace([string]$_)} | Sort-Object Length -Descending -Unique)
+    foreach($secret in $orderedSecrets){$safe=$safe.Replace([string]$secret,'****')}
     return $safe
 }
-function Invoke-SqlPlusText($t,[string]$Username,[string]$Password,[string]$Sql,[switch]$Verify) {
+function Assert-CpfSqlPlusScalar([string]$Name,[string]$Value) {
+    if([string]::IsNullOrWhiteSpace($Value)){throw "$Name is required for sqlplus"}
+    if($Value -match '[\x00-\x1F\x7F]'){throw "$Name contains control characters"}
+}
+function Invoke-SqlPlusText($t,[string]$Username,[string]$Password,[string]$Sql,[string[]]$SensitiveValues=@(),[switch]$Verify) {
+    Assert-CpfSqlPlusScalar 'Username' $Username
+    Assert-CpfSqlPlusScalar 'Password' $Password
+    Assert-CpfSqlPlusScalar 'Host' ([string]$t.host)
+    Assert-CpfSqlPlusScalar 'Port' ([string]$t.port)
+    Assert-CpfSqlPlusScalar 'DatabaseName' ([string]$t.databaseName)
     $client=if([string]::IsNullOrWhiteSpace($t.clientPath)){'sqlplus'}else{$t.clientPath}
     $passwordLiteral=$Password.Replace('"','""')
+    $allSecrets=@($Password,$passwordLiteral)+@($SensitiveValues)
     $connect='CONNECT '+$Username+'/"'+$passwordLiteral+'"@//'+$t.host+':'+$t.port+'/'+$t.databaseName
-    $script="WHENEVER SQLERROR EXIT SQL.SQLCODE`n"+$connect+"`n"+$Sql+"`nEXIT`n"
+    $script="SET ECHO OFF`nSET VERIFY OFF`nSET DEFINE OFF`nWHENEVER SQLERROR EXIT SQL.SQLCODE`n"+$connect+"`n"+$Sql+"`nEXIT`n"
 
     $psi=[Diagnostics.ProcessStartInfo]::new()
     $psi.FileName=$client
@@ -107,13 +116,13 @@ function Invoke-SqlPlusText($t,[string]$Username,[string]$Password,[string]$Sql,
     $stdout=$stdoutTask.GetAwaiter().GetResult()
     $stderr=$stderrTask.GetAwaiter().GetResult()
     if($process.ExitCode -ne 0){
-        $safe=Protect-CpfSecretText (($stderr+"`n"+$stdout).Trim()) @($Password)
+        $safe=Protect-CpfSecretText (($stderr+"`n"+$stdout).Trim()) $allSecrets
         throw "sqlplus failed module=$($t.moduleKey) exit=$($process.ExitCode) error=$safe"
     }
     if($Verify){
         Assert-VerifyOutput @($stdout -split '\r?\n') $t.moduleKey
     } elseif(-not [string]::IsNullOrWhiteSpace($stdout)) {
-        Write-Host (Protect-CpfSecretText $stdout @($Password))
+        Write-Host (Protect-CpfSecretText $stdout $allSecrets)
     }
 }
 function Invoke-SqlPlus($t,[string]$Sql) {
@@ -180,7 +189,7 @@ END;
 /
 GRANT CREATE SESSION TO $run;
 "@
-    Invoke-SqlPlusText $t $t.adminUsername $t.adminPassword $script
+    Invoke-SqlPlusText $t $t.adminUsername $t.adminPassword $script -SensitiveValues @($t.migrationPassword,$t.runtimePassword,$mp,$rp)
 }
 function Grant-Runtime($t) {
     if($Vendor -eq 'postgresql'){

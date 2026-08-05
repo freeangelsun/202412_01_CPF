@@ -1,0 +1,675 @@
+{
+  "schemaVersion": 3,
+  "packageType": "ROOT_OVERLAY",
+  "sessionId": "DEVGPT-6E",
+  "baselineSha": "09dd686c5ae0826594b9c5e1f871d95d95d3ce1c",
+  "branch": "master",
+  "managementSource": "CPF_DEVELOPMENT_MANAGEMENT_V8",
+  "createdAtKst": "2026-08-05T13:49:00+09:00",
+  "runtimeClaim": "STATIC_SUBSTITUTE_ONLY",
+  "counts": {
+    "files": 129,
+    "productFiles": 63,
+    "workItems": 60,
+    "canonicalRequirements": 12,
+    "cpfFr": 1044,
+    "cpfSc": 1449,
+    "engineeringGates": 16,
+    "testsPassed": 126,
+    "executedGateFailures": 0,
+    "deleteTargets": 0
+  },
+  "forbiddenPathPrefixes": [
+    "cpf-docs/deliverables/",
+    "cpf-docs/guides/",
+    "cpf-docs/environment/docker/",
+    "cpf-tools/environment/docker-development-test/"
+  ],
+  "files": [
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6E_09dd686/EXTERNAL_RUNTIME_GAP.md",
+      "size": 631,
+      "sha256": "5c4d8d1681ee62f0e7a757e8a61d63ba37945cfe8e8deb91cd73be6f99b76f2a"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6E_09dd686/VENDOR_VALIDATION_SCOPE.md",
+      "size": 348,
+      "sha256": "52f580a015dd593ff006743caa02c1c5ce9583733275c917b606339a4723ec40"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6E_09dd686/all-db-development-tests-09dd686.log",
+      "size": 20966,
+      "sha256": "defe4f061e85270d89cdd0360954b73e0335a7afd2f25fe64dc40ca96bf27b42"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6E_09dd686/cpf-db-operations.openapi.regenerated.json",
+      "size": 6947,
+      "sha256": "b00a60159926b067fcb0a8a328561fc8e07e0f5e9c8c06271067fe2cdab41c24"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6E_09dd686/db-development-static-contract-09dd686.json",
+      "size": 481,
+      "sha256": "0fb145f3ec9b97fc4880277f459432dfd9cdf0a6c0baff16227a80799eba7ff6"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6E_09dd686/db-development-static-contract-09dd686.log",
+      "size": 651,
+      "sha256": "e397953f5191b5f7de6ce37d5770326253a895983ab83c7c0196aec5f4297b5b"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6E_09dd686/db-lifecycle-contract-09dd686.log",
+      "size": 224,
+      "sha256": "a22985446de683c8b5e2f5d51b1cc4ebc86ff6ce92d7c150df7a01c21d04c135"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6E_09dd686/db-schema-governance-09dd686.json",
+      "size": 8506,
+      "sha256": "b427c8686182ee56e13bf1285b6d00e074244543ed3891c4b805da460b731618"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6E_09dd686/db-schema-governance-09dd686.log",
+      "size": 849,
+      "sha256": "c9984afcd74a7a35df7a4af5d8590d1fd625213012d42566bb7e90016aef9f54"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6E_09dd686/environment-and-target-runtime-attempt-09dd686.log",
+      "size": 415,
+      "sha256": "bafc9309440fbc495c22c1dbedc6403f6b792029c1f56657e4b36bdab488ab76"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6E_09dd686/gate-exit-code-summary-09dd686.json",
+      "size": 648,
+      "sha256": "ebf8ff68f0a8af1a4ad3a3fb9d1c3d733f9ad81f53a917eafe0032e1d31b5dcf"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6E_09dd686/json-csv-parse-09dd686.log",
+      "size": 47,
+      "sha256": "2f9cc9aed4732ddecd76719be1dbb416cd85fbfb7d47dbc74c27d2a06df423ab"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6E_09dd686/latest-master-continuity-09dd686.json",
+      "size": 829,
+      "sha256": "1254bf1d5510571dcc5fd0041793657477ad86e413deecca9a4a4df4c14aa8b2"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6E_09dd686/openapi-regeneration-09dd686.log",
+      "size": 12,
+      "sha256": "1ca4a13146b2891c0e462123ac0cb848f92e6221f18b870a1b78c232d1956c35"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6E_09dd686/openapi-reproducibility-09dd686.log",
+      "size": 20,
+      "sha256": "0893a68ac15f296b8b00fc533d30649f84651673ac9d0f738c51c6712d0c20bd"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6E_09dd686/python-compileall-09dd686.log",
+      "size": 12,
+      "sha256": "1ca4a13146b2891c0e462123ac0cb848f92e6221f18b870a1b78c232d1956c35"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6E_09dd686/scope-verification-09dd686.json",
+      "size": 1418,
+      "sha256": "f961a0d62e7e3b6f9516a9d483eea7fe7bd3ce7cc30c39e532e7cb694764e556"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6E_09dd686/source-hygiene-secret-scan-09dd686.log",
+      "size": 41,
+      "sha256": "95edd05857345d676435d3daf2c3e884ba279ae94f9781e73b13ff4be2dce2dc"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6E_09dd686/target-runtime-attempt-09dd686.json",
+      "size": 526,
+      "sha256": "af29b3246ad2ffa700a197cc626fc1b2bfee0322ab991049254a5f03f29d9d07"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6E_09dd686/v8-scope-source-reconciliation-09dd686.json",
+      "size": 1784,
+      "sha256": "57439e62784fdd2c0b07715576ae14a7265913835e4419c55b531c9db39f45c7"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6E_09dd686/vendor-manifest-09dd686.json",
+      "size": 173,
+      "sha256": "ffe0af2e926c53fe85b01b2061d242e117df5f75e61a1e706c6b6d4b0cc550b5"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6E_09dd686/vendor-manifest-09dd686.log",
+      "size": 385,
+      "sha256": "592333957fc3d7d8d73d9101d724ab2bdb5f7ade1fcbd713e8a65e66beffef0b"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6E_09dd686/vendor-seed-dialect-09dd686.json",
+      "size": 159,
+      "sha256": "d24ad7c25a161ff07956a5048409e7db4a126e884783eacd3faaed301447804f"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6E_09dd686/vendor-seed-dialect-09dd686.log",
+      "size": 369,
+      "sha256": "00d6d3938cd8bd77cdfc4f6a2144e305a60e2f2fb6526d261fda412495b17f3e"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6E_09dd686/vendor-semantic-parity-09dd686.json",
+      "size": 15346,
+      "sha256": "185f173eef5d0899cbd0c666111e5fc50c82958e0ce7170a181631f708137f72"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6E_09dd686/vendor-semantic-parity-09dd686.log",
+      "size": 12208,
+      "sha256": "873ff1c3becbf35682ab1d5a318ae452b20419c816aa3146020b4006653819d0"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6E_09dd686/vendor-static-token-parity-09dd686.json",
+      "size": 3868,
+      "sha256": "4656b3ef7a2e55566145017f56a18989ca062c3b787c09e302b14a4d1ffeb7eb"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6E_09dd686/vendor-static-token-parity-09dd686.log",
+      "size": 4130,
+      "sha256": "d77c677f10a7d29660a220af89266af14892b3e61701ed77833294929bdd2199"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6E_09dd686/APPLY_AND_VALIDATE.md",
+      "size": 1067,
+      "sha256": "58fcfa57be7009d30524746cdbd32a09ede037c444e5dba9467b37c2355c1a3f"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6E_09dd686/APPLY_ONE_LINE.txt",
+      "size": 508,
+      "sha256": "6aaab9b05b2bf5076b144f9ac3262858f979702df00a147793af627fa20f4b89"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6E_09dd686/CANONICAL_REQUIREMENT_SCOPE.csv",
+      "size": 4371,
+      "sha256": "517ae55ce157c70b2261479a4391d7730650b856570d33c07daf9450e5bab07b"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6E_09dd686/CHANGE_MANIFEST.csv",
+      "size": 13612,
+      "sha256": "45050e5020f8890f7cb1d2e6112009cda69711083a66482e6bec25961544be13"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6E_09dd686/CODEX_REVIEW_REQUEST.md",
+      "size": 401,
+      "sha256": "04c4285ae18c8070196a0d0e308db8d6e049a4eb6a1b3bdb2ddd3c0e9bf02d04"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6E_09dd686/CPF_FR_SCOPE.csv",
+      "size": 1238928,
+      "sha256": "7bc113a35d5da9416e3169d0b9c3e456dbf8ae17d181b55efc21ac4d5db2c4f2"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6E_09dd686/CPF_SC_SCOPE.csv",
+      "size": 1745125,
+      "sha256": "a8ec29ce2dfe4a9e38b4d2d16beb910a5dd51e91ef8e8e9c809dde1d947be767"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6E_09dd686/CROSS_SESSION_CHANGE_REQUEST.csv",
+      "size": 52047,
+      "sha256": "597bc53a3bc35445665a37c8958bd1d1ec6770b7d8728d8fd767bac9b9dc9383"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6E_09dd686/CROSS_SESSION_IMPACT.csv",
+      "size": 1128,
+      "sha256": "e20b638fefd2366dc0c7b5a62e930cc8074fb5248fe30e0e37661076128040c6"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6E_09dd686/DELETE_MANIFEST.csv",
+      "size": 15,
+      "sha256": "01e95bd6319cee7705d1e2e67b29d28d4768063903e3b06a884a9f47545c7a8a"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6E_09dd686/DEVELOPMENT_EXECUTION_PLAN.csv",
+      "size": 1155,
+      "sha256": "7187afbc439ba06d21b67932dcef3f1f6e7e78b0a3309cf6680ed680d947778f"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6E_09dd686/ENGINEERING_GATE_SCOPE.csv",
+      "size": 18354,
+      "sha256": "4011fead151ea282a9b9779d5d5138862eea88386c87b57654b07cc6fdc80360"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6E_09dd686/FUNCTION_POINT_REQUIREMENT_MAP.csv",
+      "size": 78244,
+      "sha256": "bba0b3c432e7aef721410c145f27c17e9e6c43098037d9590ec98cc046223606"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6E_09dd686/FUNCTION_POINT_SCENARIO_MAP.csv",
+      "size": 128923,
+      "sha256": "e07aab9b85f4b81591ec2fc8f2a74522070f8a385185e0dda46196bc8a732d85"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6E_09dd686/FUNCTION_POINT_STATUS.csv",
+      "size": 42854,
+      "sha256": "7cd3bc82b42259adbcf67f76d2c1c0288086a61a2aafce9652e3629d490332d0"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6E_09dd686/GIT_STATUS_ONE_LINE.txt",
+      "size": 101,
+      "sha256": "bebe27320a59547043708b515cc1a91a7e7c1b23ffcd1292de0763750837c75a"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6E_09dd686/ID_COVERAGE_VALIDATION.json",
+      "size": 1418,
+      "sha256": "f961a0d62e7e3b6f9516a9d483eea7fe7bd3ce7cc30c39e532e7cb694764e556"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6E_09dd686/NEXT_SESSION_HANDOVER.md",
+      "size": 712,
+      "sha256": "dc6dd4d612856370f5bde31440a59e44a870905bec841f453e182fded7500a87"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6E_09dd686/OPEN_ISSUES.md",
+      "size": 939,
+      "sha256": "6346c96b7ee3fdb01236f13ccf968fdb5f7952009412421182f85fc68d808812"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6E_09dd686/QA_PATCH_REVIEW.csv",
+      "size": 1557,
+      "sha256": "30488a8b1a15969dbfa716d671ab2219533690478ecee308c1a88970ad84f16f"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6E_09dd686/QA_REWORK_REQUEST.md",
+      "size": 698,
+      "sha256": "61949bc8f8e4d3028391c042fff638e1429c1e517dae09c6d636fbf4b6a42b67"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6E_09dd686/QA_REWORK_RESPONSE.md",
+      "size": 698,
+      "sha256": "61949bc8f8e4d3028391c042fff638e1429c1e517dae09c6d636fbf4b6a42b67"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6E_09dd686/REQUIREMENT_DEVELOPMENT_REVIEW.csv",
+      "size": 3995134,
+      "sha256": "e76de91fbfc74ab77586e79d58eb582eee281dd7c79aae8c79a9fe9f1cd113c1"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6E_09dd686/REQUIREMENT_STATUS.csv",
+      "size": 730716,
+      "sha256": "c49518eb672309a58570fce29fe9af23b87220490bc15e61b9b3b6325e3895b7"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6E_09dd686/REVIEW_INDEX.md",
+      "size": 1365,
+      "sha256": "67018b16ac3b34648cf4d502c949a76bd9a097df09ce023ec729f01f2b874842"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6E_09dd686/SCENARIO_STATUS.csv",
+      "size": 5523357,
+      "sha256": "302cab159b749615a28ec683e67e6d05b4ede5b75e06a71690b55a17f2d74a6f"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6E_09dd686/SCOPE_EXCLUSION_OWNER_REVIEW.csv",
+      "size": 15474,
+      "sha256": "6415f909b185fe131356c8a4e7bc0fc2487b2dbb2696fb664969272ab50714ea"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6E_09dd686/SCOPE_VERIFICATION_SUMMARY.csv",
+      "size": 256,
+      "sha256": "b248673c5bed48bbfa8adf60c08ed50650e311fb95db7c55883840e1597bbd98"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6E_09dd686/SESSION_HANDOVER.md",
+      "size": 712,
+      "sha256": "dc6dd4d612856370f5bde31440a59e44a870905bec841f453e182fded7500a87"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6E_09dd686/SESSION_REQUIREMENT_SCOPE.csv",
+      "size": 23494,
+      "sha256": "8a819fda979f996601b092d663bb98d47920afda601ab23141a1985aa1bb854e"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6E_09dd686/SESSION_SCOPE.md",
+      "size": 1094,
+      "sha256": "817a102470bc10b392eedad13e52b77a8221f076bc3399b2b2acab2e653347d1"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6E_09dd686/TEST_AND_EVIDENCE.md",
+      "size": 2625,
+      "sha256": "cba7a352989623217bd712fdb5c7cd97abbc7cf591e6084fb91e8c4269b978a3"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6E_09dd686/VALIDATE_ONE_LINE.txt",
+      "size": 382,
+      "sha256": "750de8464be3e7c2f2353a22909f8cd14734a8b3756d662acc8b20b7d9b413a9"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6E_09dd686/WORK_ITEM_DEVELOPMENT_REVIEW.csv",
+      "size": 205403,
+      "sha256": "fc9b6a4804e04c7c6adfd510d8560da2884ea5b6be37e8af2d183025a9e423bd"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6E_09dd686/WORK_ITEM_REQUIREMENT_MAP.csv",
+      "size": 108255,
+      "sha256": "6448395e67622e870ad20dee99ba02eb76bed53643e5438dc5c29d95f7539498"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6E_09dd686/WORK_ITEM_SCENARIO_MAP.csv",
+      "size": 114415,
+      "sha256": "f398dc0bb2911e20ed70babb4bfc6797312212817214eb109456b4ad18176cd4"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6E_09dd686/WORK_ITEM_SCOPE.csv",
+      "size": 34977,
+      "sha256": "95916b176aa28c5a91a35522b732d8a027a3d20c550cbdb47322b4b268f8dbcf"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6E_09dd686/verify-overlay-package.py",
+      "size": 2916,
+      "sha256": "201d102f33e3ae1dbc85907e6f15303d6812af3fdaf0391dca303d1d3fda3a1b"
+    },
+    {
+      "path": "cpf-tools/db/DB_OPERATIONS_GUIDE.md",
+      "size": 1607,
+      "sha256": "2a85537a9f22ca2cf0c2314b944757fd634899d814709cf162ca642c54233010"
+    },
+    {
+      "path": "cpf-tools/db/cpf-backup-lifecycle-contract.json",
+      "size": 2746,
+      "sha256": "bc829d7e00fbfe481a3970bb2609fc2c49c161c55f754a8915fbf4a380696b74"
+    },
+    {
+      "path": "cpf-tools/db/cpf-data-observability-policy.json",
+      "size": 2227,
+      "sha256": "cff88b59feaebf5c083f60098e9a9684aba60c4f807dc39bd1f709b3332bd992"
+    },
+    {
+      "path": "cpf-tools/db/cpf-data-retention-policy.json",
+      "size": 1080,
+      "sha256": "84caf3c09a6341ffc44f72f21ff5a00966663b72fc2c98467d20d92df2a04ca3"
+    },
+    {
+      "path": "cpf-tools/db/cpf-datasource-runtime-policy.json",
+      "size": 2829,
+      "sha256": "0adaa8b20cf5d92ad6102fdd25f29aa8cc770efc397c4358dedcbd5c13c7be5e"
+    },
+    {
+      "path": "cpf-tools/db/cpf-db-lifecycle-contract.json",
+      "size": 2675,
+      "sha256": "c97c5b30560a91bc0d0ae2a46045f75f33060c4ea0ed63949fb82dba5ecb8091"
+    },
+    {
+      "path": "cpf-tools/db/cpf-db-operability-contract.json",
+      "size": 3923,
+      "sha256": "dbda1b8b39a592e1917d5c7f4fdadea0be322b2a18749955660ca5efa5dc5991"
+    },
+    {
+      "path": "cpf-tools/db/cpf-db-performance-policy.json",
+      "size": 1866,
+      "sha256": "def9615b19c8ebbc043f0a40a79a02b4de850ca5a91905532db7606a689f85c4"
+    },
+    {
+      "path": "cpf-tools/db/cpf-pitr-lifecycle-contract.json",
+      "size": 1295,
+      "sha256": "b2d0b2858cd53ea9650ea6e062b7f6c42e7f53f4db86632f1f80604360f87718"
+    },
+    {
+      "path": "cpf-tools/db/cpf-test-data-policy.json",
+      "size": 1480,
+      "sha256": "2f07893ac287430a0a8e63bd1f508f09cd2a323a2ee1a6e323ba85b93ed58d46"
+    },
+    {
+      "path": "cpf-tools/db/generated/cpf-db-operations.openapi.json",
+      "size": 6947,
+      "sha256": "b00a60159926b067fcb0a8a328561fc8e07e0f5e9c8c06271067fe2cdab41c24"
+    },
+    {
+      "path": "cpf-tools/db/sample/operability/db-operation-negative-unknown-without-reconcile.json",
+      "size": 930,
+      "sha256": "89f5fec552e15551b222c02cfbc9b77d36ca94fe53fc1ccab2aadbbd7dab3f73"
+    },
+    {
+      "path": "cpf-tools/db/sample/operability/db-operation-positive.json",
+      "size": 913,
+      "sha256": "62972fc8186c3ffe1e5091ba8336874a00ff7ba9d9d677e0488fa2f1af8a75d7"
+    },
+    {
+      "path": "cpf-tools/scripts/backup-cpf-database.ps1",
+      "size": 8625,
+      "sha256": "94453a87dd426e5d73be8dec69971e7ab32d10b84370498b63a39b84404e7e9e"
+    },
+    {
+      "path": "cpf-tools/scripts/cpf-backup-crypto.py",
+      "size": 10378,
+      "sha256": "719b48be87b514495ff59a616819a93b72fbe76ef592f2fdd428e5dcb2fb8ee8"
+    },
+    {
+      "path": "cpf-tools/scripts/cpf-backup-lifecycle-common.ps1",
+      "size": 7059,
+      "sha256": "82795775c9f14c2dc596a641576cf93387ddcb06ff1c1d775eec1ab39b8c2a12"
+    },
+    {
+      "path": "cpf-tools/scripts/generate-cpf-data-retention-sql.py",
+      "size": 9216,
+      "sha256": "2f2026323d3759bbcaf8c6f67df1d8b58ba1c4b3e5125ede58dbd971b80b446c"
+    },
+    {
+      "path": "cpf-tools/scripts/generate-cpf-db-operations-openapi.py",
+      "size": 4666,
+      "sha256": "17b48e997be253d86e5e13ebc39e4c285c9d56f6cf5a3f8a7f9e4948d61161e2"
+    },
+    {
+      "path": "cpf-tools/scripts/generate-cpf-test-data-pack.py",
+      "size": 7268,
+      "sha256": "c5f80d60def7bfefc8b19a851967800dfc326169929261a5a268839f548d814d"
+    },
+    {
+      "path": "cpf-tools/scripts/invoke-cpf-backup-retention.ps1",
+      "size": 11145,
+      "sha256": "a7eae20a4f25648f9cca717c27a56fc102c4610e3f261eba4244adf2030b3baf"
+    },
+    {
+      "path": "cpf-tools/scripts/invoke-cpf-data-observability-gate.ps1",
+      "size": 1994,
+      "sha256": "07b373e93009ba67b7f07d2d27fd6963a861a8b3b24145903c1919cb19e5833e"
+    },
+    {
+      "path": "cpf-tools/scripts/invoke-cpf-data-retention.ps1",
+      "size": 6060,
+      "sha256": "d82cf1d869cae4040d1ae95764c6451c37f0efe625d31f456ce0801c166f385d"
+    },
+    {
+      "path": "cpf-tools/scripts/invoke-cpf-datasource-runtime-gate.ps1",
+      "size": 1994,
+      "sha256": "37dd01e95c338a2ed0034858491cc8a01f877f75dad4ede72e9e879044158314"
+    },
+    {
+      "path": "cpf-tools/scripts/invoke-cpf-db-operability-gate.ps1",
+      "size": 2864,
+      "sha256": "2aeecef742b999e0c745f656ad3f475a7e83692dd605f114faaa54b71d26a069"
+    },
+    {
+      "path": "cpf-tools/scripts/invoke-cpf-db-performance-gate.ps1",
+      "size": 1931,
+      "sha256": "bdde39fecdde1ca614e3e0ec855799d76ad768c7a676c4294b4ed46546633fdf"
+    },
+    {
+      "path": "cpf-tools/scripts/invoke-cpf-pitr-restore.ps1",
+      "size": 14858,
+      "sha256": "8b7d42e2c456272f9d8cdc24d3defea47ada383da2f02869658bfd6693c4b794"
+    },
+    {
+      "path": "cpf-tools/scripts/invoke-official-db-vendor-sql.ps1",
+      "size": 11671,
+      "sha256": "a7b91ea25f5fcd8d1fcf2d0730ffd1bdd2c5b75b8ba6ee3f79b13870943b5df4"
+    },
+    {
+      "path": "cpf-tools/scripts/invoke-platform-database-migration.ps1",
+      "size": 49651,
+      "sha256": "87dd50c4e6acbb67ba6a3fbe553d468a45104e1686bc03ce61d0ca6b36e4b894"
+    },
+    {
+      "path": "cpf-tools/scripts/normalize-cpf-db-operation-evidence.py",
+      "size": 9078,
+      "sha256": "01245b5099fc9a552a18629c8faf1b0d801db0ab0f3613f7d1637f616bd822de"
+    },
+    {
+      "path": "cpf-tools/scripts/prepare-cpf-test-data.ps1",
+      "size": 6335,
+      "sha256": "f0c61bcbaf3b32c1fe00ba15986d91a60cebf2531ce7b9812c28e378cba81014"
+    },
+    {
+      "path": "cpf-tools/scripts/replicate-cpf-backup-artifact.ps1",
+      "size": 4494,
+      "sha256": "9724d4929a91f50761af0c6eff7b25f303475146a21bfbced6535fccb40768f2"
+    },
+    {
+      "path": "cpf-tools/scripts/restore-cpf-database.ps1",
+      "size": 7047,
+      "sha256": "274c57974a325e35c328c2c463b2ea232e9a490e88964a8635242ca17bbd8e75"
+    },
+    {
+      "path": "cpf-tools/scripts/set-cpf-backup-legal-hold.ps1",
+      "size": 2028,
+      "sha256": "7881e87f8fae29e462460e03265236d800b2a8ea3228fca9494dfcf958acc04d"
+    },
+    {
+      "path": "cpf-tools/scripts/simulate-cpf-migration-lifecycle.py",
+      "size": 2588,
+      "sha256": "d2a4cdb4f5db0144dd1b4aa0082df0a44fb596b1f1200c2e7691345274dd2903"
+    },
+    {
+      "path": "cpf-tools/scripts/tests/test_backup_lifecycle_contract.py",
+      "size": 4589,
+      "sha256": "c21e937d6633404dc2721da33ccb4a79481533cbfc177dd381b168b3e70f0314"
+    },
+    {
+      "path": "cpf-tools/scripts/tests/test_backup_operational_safety.py",
+      "size": 2536,
+      "sha256": "6cba87a120430d7faf6e088df0d12495de88a04c3dc325bfafb2558a5399b252"
+    },
+    {
+      "path": "cpf-tools/scripts/tests/test_backup_replica_contract.py",
+      "size": 2324,
+      "sha256": "4abeb7da190dfa3332d1ac7fa8eff160c4db8dc0f9e019fa7828cc114863fb24"
+    },
+    {
+      "path": "cpf-tools/scripts/tests/test_cpf_backup_crypto.py",
+      "size": 4965,
+      "sha256": "831dd1074948ea9252d4e34cc78b0fdaf0784e2b47b49dde1b763e156a69010f"
+    },
+    {
+      "path": "cpf-tools/scripts/tests/test_data_observability_contract.py",
+      "size": 2638,
+      "sha256": "163671b9fb2390a04255e41b8976f81408668d17e1983be898c88fbfe9185cde"
+    },
+    {
+      "path": "cpf-tools/scripts/tests/test_data_retention_contract.py",
+      "size": 3426,
+      "sha256": "2b4e45ca413e003832aaaab1d6a2d7bfbf19e87a446bf2e9493be665ad4b86c9"
+    },
+    {
+      "path": "cpf-tools/scripts/tests/test_datasource_runtime_contract.py",
+      "size": 4014,
+      "sha256": "7fe9fbc940af78af9b9ce7e82d320d4108f924685743938a65a8bb689cd550b2"
+    },
+    {
+      "path": "cpf-tools/scripts/tests/test_db_development_static_contract.py",
+      "size": 1468,
+      "sha256": "6e45a776ea599676b757be9037d16ff6bec7cf83d739d37d4a9d515bc8f36a0b"
+    },
+    {
+      "path": "cpf-tools/scripts/tests/test_db_operability_contract.py",
+      "size": 6229,
+      "sha256": "7fe16c2e69222ba034c5ad63f6b91e930d83b123a87138fc058aeead1f9cb0d1"
+    },
+    {
+      "path": "cpf-tools/scripts/tests/test_db_performance_contract.py",
+      "size": 4597,
+      "sha256": "c44d0067c0818ea4d98cb051d138d88cd6eff47ceec620a40bc420780459d12e"
+    },
+    {
+      "path": "cpf-tools/scripts/tests/test_db_schema_governance.py",
+      "size": 2720,
+      "sha256": "4285f51f24538b719048b1bdab2972fca9c7ef4b7d38e58eca0ce3366c929b48"
+    },
+    {
+      "path": "cpf-tools/scripts/tests/test_dr_restore_vendor_contract.py",
+      "size": 1384,
+      "sha256": "03482ccb33f39d9ee99eb3b39c687f8699ee15ebe664121f32852c53abd23520"
+    },
+    {
+      "path": "cpf-tools/scripts/tests/test_migration_lifecycle_simulator.py",
+      "size": 1626,
+      "sha256": "5a8f7923086494902fb50f03c9c2bd9191cf69722c62a6ac7c5783215545ee64"
+    },
+    {
+      "path": "cpf-tools/scripts/tests/test_migration_lifecycle_state_model.py",
+      "size": 3099,
+      "sha256": "7d142226998e0e27e01a8f147e9663ad3b63aeebe1f98224e5f0c1a56b737077"
+    },
+    {
+      "path": "cpf-tools/scripts/tests/test_oracle_sqlplus_secret_transport.py",
+      "size": 2984,
+      "sha256": "ec88a1d9359bdf219b259a902b49365195750b47e736a7377372010ec91582d5"
+    },
+    {
+      "path": "cpf-tools/scripts/tests/test_pitr_lifecycle_contract.py",
+      "size": 2113,
+      "sha256": "8b42d2681d70da9123fd5d39a8773e1ddb17a84ae157042c01499fbf450c7614"
+    },
+    {
+      "path": "cpf-tools/scripts/tests/test_platform_migration_safety_contract.py",
+      "size": 2430,
+      "sha256": "2a7c1c1da6ccf7c359b489e2d6e8e8395dabbea7cd99b34331ef763fa2c0cee3"
+    },
+    {
+      "path": "cpf-tools/scripts/tests/test_seed_bundle_semantic_closure.py",
+      "size": 4470,
+      "sha256": "bfe8b0b2bf510c9b9d866d1f3db1de41b830a3eee80f132044e58b01b89d516b"
+    },
+    {
+      "path": "cpf-tools/scripts/tests/test_seed_dialect_lint.py",
+      "size": 1500,
+      "sha256": "30a3646a926fcbda6873053075edd8b5e908c3b33d2f0a2338b3c7123c917f7a"
+    },
+    {
+      "path": "cpf-tools/scripts/tests/test_test_data_policy.py",
+      "size": 2587,
+      "sha256": "932e15beaa88cf9022b8faef75a291bf908e0dfdba4e45f1c2b8ebec92f7df66"
+    },
+    {
+      "path": "cpf-tools/scripts/tests/test_vendor_lifecycle_orchestrator.py",
+      "size": 1641,
+      "sha256": "b0d91927d869b7d7911b00a83db989d736a58f47c9bef8a097a31346d5118422"
+    },
+    {
+      "path": "cpf-tools/scripts/verify-cpf-data-observability-evidence.py",
+      "size": 8098,
+      "sha256": "d1b723764c9c5beea134513bd2d9581ec3bbe61ff22864a382c4990cf2cc73ba"
+    },
+    {
+      "path": "cpf-tools/scripts/verify-cpf-datasource-runtime-evidence.py",
+      "size": 8008,
+      "sha256": "0fea7671e7e0a150ecea87f0e5f9646e779c53724952f9d7ad5533d7c6e33ed1"
+    },
+    {
+      "path": "cpf-tools/scripts/verify-cpf-db-development-contract.py",
+      "size": 13059,
+      "sha256": "2d1b8acd5d5f61c033e644a22067ce637fb34509dc6a007ac24a4da032fabb2b"
+    },
+    {
+      "path": "cpf-tools/scripts/verify-cpf-db-lifecycle-contract.py",
+      "size": 4772,
+      "sha256": "d18ca2278ecb4633171892aea3edd040b630881f35319809afa5ddcd553bc5f8"
+    },
+    {
+      "path": "cpf-tools/scripts/verify-cpf-db-performance-evidence.py",
+      "size": 7491,
+      "sha256": "0f1f1c28873abf0b3ab52951c1b8bda342fce4fbaf144a09b347145f9bd088c9"
+    },
+    {
+      "path": "cpf-tools/scripts/verify-cpf-db-schema-governance.py",
+      "size": 10841,
+      "sha256": "25b90876534d4ca147e474ff4ddf99aca59fe26e34940e67bf5f96d4026f645f"
+    },
+    {
+      "path": "cpf-tools/scripts/verify-cpf-seed-dialect.py",
+      "size": 3507,
+      "sha256": "bef11737146893a050d4e8eeb6b81336bb592e3b080be01c36ecd62abec7b39f"
+    },
+    {
+      "path": "cpf-tools/scripts/verify-dr-restore.ps1",
+      "size": 5851,
+      "sha256": "8868972837dab5602ca57e138027a01493c424ccfca7157155668bb573af7025"
+    }
+  ]
+}

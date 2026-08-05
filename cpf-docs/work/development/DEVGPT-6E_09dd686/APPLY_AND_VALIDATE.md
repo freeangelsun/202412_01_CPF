@@ -1,0 +1,11 @@
+# Apply and Validate
+
+Preconditions: HEAD `09dd686c5ae0826594b9c5e1f871d95d95d3ce1c` and clean Working Tree. No delete target is included.
+
+```powershell
+$repo='C:\dev\projects\jck\202412_01_CPF';$z=Get-ChildItem "$env:USERPROFILE\Downloads" -File -Filter 'CPF_DEVGPT-6E_09dd686_ROOT_OVERLAY.zip'|Sort-Object LastWriteTime -Descending|Select-Object -First 1;if(-not $z){throw 'Overlay ZIP not found'};Set-Location $repo;if((git rev-parse HEAD).Trim() -ne '09dd686c5ae0826594b9c5e1f871d95d95d3ce1c'){throw 'Baseline SHA mismatch'};if(git status --porcelain){throw 'Working Tree is not clean'};Expand-Archive -LiteralPath $z.FullName -DestinationPath $repo -Force
+```
+
+```powershell
+$repo='C:\dev\projects\jck\202412_01_CPF';Set-Location $repo;py -3 cpf-tools/scripts/verify-cpf-db-development-contract.py --root .;if($LASTEXITCODE -ne 0){throw 'DB contract gate failed'};py -3 -m unittest discover -s cpf-tools/scripts/tests -p 'test_*.py' -v;if($LASTEXITCODE -ne 0){throw 'DB tests failed'};git diff --check;if($LASTEXITCODE -ne 0){throw 'git diff check failed'}
+```

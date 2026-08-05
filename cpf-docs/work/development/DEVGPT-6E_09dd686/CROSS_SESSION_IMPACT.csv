@@ -1,0 +1,5 @@
+request_id,target_owner,requirement_id,request,reason,status
+DEVGPT-6E-X001,Owning Java/MyBatis modules,DB-SQL,"Aggregate framework-wide Query ID, Java literal SQL and MyBatis consumer evidence.","6E owns cpf-tools DB scripts, not all Java consumers.",OPEN - does not block 6E tooling slice
+DEVGPT-6E-X002,Security/product owner sessions,SEC-PRIVACY,"Aggregate consent, legal basis, raw access and export UI/API evidence.",6E completes DB tooling masking/retention/secret slice only.,OPEN - does not block 6E tooling slice
+DEVGPT-6E-X003,Runtime verification environment/Codex,DB-FRESH;DB-BACKUP;DB-PERF;DB-MULTI-VENDOR,"Execute exact-SHA three-vendor lifecycle, native backup/PITR and representative-scale performance.",PowerShell and official DB runtimes are absent.,OPEN - external runtime delta
+DEVGPT-6E-X004,Application datasource and data pipeline owners,DB-MULTI;DATA-LINEAGE,Connect runtime evidence producers to actual datasource routing and lineage/reconciliation pipelines.,"6E supplies canonical policy, verifier and reviewed gate; application producers are owned elsewhere.",OPEN - does not block 6E tooling slice

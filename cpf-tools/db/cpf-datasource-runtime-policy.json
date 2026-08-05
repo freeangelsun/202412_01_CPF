@@ -1,0 +1,110 @@
+{
+  "schemaVersion": 1,
+  "owner": "cpf-tools/db",
+  "officialVendors": [
+    "mariadb",
+    "postgresql",
+    "oracle"
+  ],
+  "resultStates": [
+    "PASS",
+    "FAIL",
+    "UNKNOWN"
+  ],
+  "executionControls": {
+    "sourceShaRequired": true,
+    "operationIdRequired": true,
+    "reasonRequired": true,
+    "independentApprovalRequired": true,
+    "sanitizedEvidenceOnly": true,
+    "unknownOnPartialFailure": true,
+    "blindRetryProhibited": true
+  },
+  "readReplicaRouting": {
+    "writeTarget": "PRIMARY",
+    "readOnlyRequiredForReplica": true,
+    "allowedConsistency": [
+      "STRONG",
+      "EVENTUAL",
+      "BOUNDED_STALENESS"
+    ],
+    "strongConsistencyTarget": "PRIMARY",
+    "fallbackTarget": "PRIMARY",
+    "routeDecisionAuditRequired": true
+  },
+  "replicaLag": {
+    "maxLagMs": 5000,
+    "unknownLagAction": "PRIMARY",
+    "exceededLagAction": "PRIMARY",
+    "negativeLagProhibited": true,
+    "freshnessEvidenceRequired": true
+  },
+  "multiDataSource": {
+    "explicitOwnerRequired": true,
+    "crossOwnerWriteProhibited": true,
+    "defaultTransactionScope": "SINGLE_DATASOURCE",
+    "distributedTransactionDefault": "DISABLED",
+    "compensationRequiredForMultiResourceWrite": true
+  },
+  "connectionPool": {
+    "minimumSize": 1,
+    "maximumSize": 200,
+    "maximumPoolPerInstance": 100,
+    "connectionTimeoutMsMax": 30000,
+    "validationTimeoutMsMax": 5000,
+    "maxLifetimeMsMin": 30000,
+    "capacityFormula": "instances*maxPool<=databaseConnectionBudget-reservedConnections"
+  },
+  "transactionIsolation": {
+    "default": "READ_COMMITTED",
+    "allowed": [
+      "READ_COMMITTED",
+      "REPEATABLE_READ",
+      "SERIALIZABLE"
+    ],
+    "readUncommittedProhibited": true,
+    "serializableReasonRequired": true
+  },
+  "deadlockHandling": {
+    "retryable": true,
+    "maxAttempts": 3,
+    "idempotencyKeyRequired": true,
+    "backoff": "EXPONENTIAL_JITTER",
+    "unknownCommitBlindRetryProhibited": true
+  },
+  "timeouts": {
+    "lockTimeoutMsMax": 5000,
+    "queryTimeoutMsMax": 30000,
+    "zeroOrUnlimitedProhibited": true,
+    "timeoutState": "UNKNOWN_IF_SIDE_EFFECT_POSSIBLE"
+  },
+  "slowQueryAlert": {
+    "thresholdMs": 1000,
+    "planHashRequired": true,
+    "bindValuesSanitized": true,
+    "alertStateRequired": true,
+    "allowedAlertStates": [
+      "NORMAL",
+      "WARN",
+      "CRITICAL",
+      "UNKNOWN"
+    ]
+  },
+  "capacityForecast": {
+    "minimumObservationDays": 7,
+    "forecastHorizonDays": 90,
+    "headroomPercentMin": 20,
+    "growthRateRequired": true,
+    "exhaustionDateRequiredWhenGrowthPositive": true,
+    "allowedStates": [
+      "HEALTHY",
+      "WATCH",
+      "ACTION_REQUIRED",
+      "UNKNOWN"
+    ]
+  },
+  "consumers": [
+    "cpf-tools/scripts/invoke-cpf-datasource-runtime-gate.ps1",
+    "cpf-tools/scripts/verify-cpf-datasource-runtime-evidence.py"
+  ]
+}

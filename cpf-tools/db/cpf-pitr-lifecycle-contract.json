@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "officialVendors": [
+    "mariadb",
+    "postgresql",
+    "oracle"
+  ],
+  "manifestRequiredFields": [
+    "schemaVersion",
+    "vendor",
+    "database",
+    "recoveryWindowStart",
+    "recoveryWindowEnd",
+    "artifacts"
+  ],
+  "artifactRequiredFields": [
+    "kind",
+    "sequence",
+    "path",
+    "sha256"
+  ],
+  "executionControls": {
+    "planFirst": true,
+    "expectedPlanSha256Required": true,
+    "applicationsStoppedConfirmationRequired": true,
+    "isolatedTargetConfirmationRequired": true,
+    "operatorRequired": true,
+    "reasonRequired": true,
+    "approvalReferenceRequired": true,
+    "unknownOnPartialFailure": true,
+    "reconcileRequiredOnFailure": true
+  },
+  "vendorModes": {
+    "mariadb": {
+      "baseRestore": "encrypted-logical-backup",
+      "incrementalReplay": "mariadb-binlog",
+      "requiredArtifactKinds": [
+        "binlog"
+      ]
+    },
+    "postgresql": {
+      "baseRestore": "physical-base-tar",
+      "incrementalReplay": "wal-archive",
+      "requiredArtifactKinds": [
+        "base",
+        "wal"
+      ]
+    },
+    "oracle": {
+      "baseRestore": "rman",
+      "incrementalReplay": "archivelog",
+      "requiredArtifactKinds": [
+        "rman-piece"
+      ],
+      "credentialMode": "external-password-store"
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "management_version": "V8",
+  "baseline_candidate_sha": "faedf43a7baffdad456bf40f8e46d622db9cfc76",
+  "generated_at": "2026-08-05T13:02:00+09:00",
+  "canonical_requirement_count": 169,
+  "detailed_requirement_count": 30558,
+  "scenario_count": 40763,
+  "work_package_count": 775,
+  "baseline_stabilization_count": 28,
+  "requirement_gap_item_count": 24,
+  "development_managed_item_count": 827,
+  "state_counts": {
+    "작업 대상": 825,
+    "소유권 검토": 1,
+    "해당 없음 스킵": 1
+  },
+  "full_assignment_bootstrap_status": "NOT_EXECUTED_IN_ARTIFACT_BUILD_ENVIRONMENT",
+  "completion_rule": "개발GPT_작업대상상태가 완료 스킵 또는 해당 없음 스킵이고 QA reopen/impact invalidation이 없을 때만 다음 개발 요청에서 제외",
+  "qa_model": "QA는 최신 통합 Git에서 매회 신규 전수 Universe를 구성하되 변경·영향·재개방 Scope를 우선 검수하고 최종/Release QA는 전수 실행"
+}

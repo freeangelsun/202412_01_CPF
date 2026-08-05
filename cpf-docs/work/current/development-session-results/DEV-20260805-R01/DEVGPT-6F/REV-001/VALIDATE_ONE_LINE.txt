@@ -1,1 +1,0 @@
-git diff --check; python .\cpf-tools\scripts\build-devgpt6f-v8-scope.py --root . --baseline-sha 09dd686c5ae0826594b9c5e1f871d95d95d3ce1c --output-dir cpf-docs/work/current/development-session-results/DEV-20260805-R01/DEVGPT-6F/REV-001/scope; python -m pytest -q .\cpf-tools\scripts\tests\test_devgpt6f_v8_scope_builder.py .\cpf-tools\scripts\tests\test_devgpt6f_review_ledgers.py

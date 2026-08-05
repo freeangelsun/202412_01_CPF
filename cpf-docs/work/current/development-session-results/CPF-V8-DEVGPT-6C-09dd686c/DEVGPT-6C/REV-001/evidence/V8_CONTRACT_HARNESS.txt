@@ -1,8 +1,0 @@
-PASS ACK attempt=3 legacy-first-only stale-rejected
-PASS ApplyGuard retryCalls=2 cleanup=APPLY_SAFE_FAILURE_CLEANUP_UNKNOWN closed=APPLY_GUARD_CLOSED
-PASS Inbox identity-conflict prepared/applied recovery clear-safety
-PASS ChangeCommand explicit bounds and defaults
-PASS Delivery identity/version/fence/schema/attempt boundaries
-PASS ApplyResult terminal-state invariants
-PASS Selector/registration/actual-state identity normalization
-PASS DEV6C_JDK21_CONTRACT_HARNESS

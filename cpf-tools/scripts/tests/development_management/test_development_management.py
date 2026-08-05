@@ -6,6 +6,7 @@ from pathlib import Path
 SCRIPT_DIR=Path(__file__).resolve().parents[2]/"development-management"
 sys.path.insert(0,str(SCRIPT_DIR))
 from development_management_lib import choose_primary, read_split_index, topo_sort
+from generate_development_requests import prepare_immutable_output, session_result_root, cleanup_command_for
 
 class ManagementTests(unittest.TestCase):
     def test_choose_primary_explicit(self):
@@ -24,6 +25,26 @@ class ManagementTests(unittest.TestCase):
     def test_topological_sort(self):
         order,cycles=topo_sort(["A","B","C"],[("A","B"),("B","C")])
         self.assertEqual(["A","B","C"],order); self.assertEqual([],cycles)
+
+    def test_immutable_campaign_output(self):
+        with tempfile.TemporaryDirectory() as td:
+            out=Path(td)/"campaign"/"REV-001"
+            prepare_immutable_output(out)
+            (out/"existing.txt").write_text("preserve",encoding="utf-8")
+            with self.assertRaises(RuntimeError):
+                prepare_immutable_output(out)
+
+    def test_session_output_is_versioned_and_cleanup_is_exact(self):
+        path=session_result_root("DEV-20260805-R01","DEV-CPF_CORE-001",2)
+        self.assertEqual(
+            "cpf-docs/work/current/development-session-results/DEV-20260805-R01/DEV-CPF_CORE-001/REV-002",
+            path
+        )
+        command=cleanup_command_for(path)
+        self.assertIn('Test-Path -LiteralPath',command)
+        self.assertIn(path,command)
+        self.assertNotIn("git clean",command)
+
     def test_split_dataset_validation(self):
         with tempfile.TemporaryDirectory() as td:
             root=Path(td); part=root/"part.csv"

@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "baseline_sha": "be03808e0bed7aa02c2978c5aa73b315359bbead",
+  "baseline_message": "04_07",
+  "generated_at": "2026-08-05T13:26:00+09:00",
+  "status": "PASS",
+  "checks": {
+    "repository_root_new_entries_in_overlay": 0,
+    "stale_root_readme_reference": 0,
+    "handover_present": true,
+    "immutable_campaign_output": true,
+    "versioned_session_output": true,
+    "session_artifact_manifest_template": true,
+    "session_cleanup_command_required": true,
+    "product_files_excluded_from_automatic_cleanup": true,
+    "unit_tests": "6/6 PASS"
+  },
+  "limitations": [
+    "30,558 Requirement and 40,763 Scenario full bootstrap remains not executed.",
+    "GitHub Actions and combined status were absent for 04_07.",
+    "This correction does not claim product runtime or QA pass."
+  ]
+}

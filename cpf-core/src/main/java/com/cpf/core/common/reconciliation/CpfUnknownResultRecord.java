@@ -1,10 +1,11 @@
 package com.cpf.core.common.reconciliation;
 
+import java.time.Clock;
 import java.time.Instant;
+import java.util.Locale;
+import java.util.Objects;
 
-/**
- * 외부 호출, broker, 파일 전송, 배치에서 결과를 확정하지 못한 경우의 공통 기록입니다.
- */
+/** Common durable record for an outbound, broker, file or batch result that cannot yet be finalized. */
 public record CpfUnknownResultRecord(
         String unknownId,
         String unknownType,
@@ -19,12 +20,30 @@ public record CpfUnknownResultRecord(
         Instant resolvedAt) {
 
     public CpfUnknownResultRecord {
-        if (unknownType == null || unknownType.isBlank()) {
-            throw new IllegalArgumentException("unknownType은 필수입니다.");
-        }
+        unknownType = required(unknownType, "unknownType").toUpperCase(Locale.ROOT);
         unknownStatus = unknownStatus == null || unknownStatus.isBlank()
                 ? "CHECK_PENDING"
-                : unknownStatus.trim().toUpperCase();
-        detectedAt = detectedAt == null ? Instant.now() : detectedAt;
+                : required(unknownStatus, "unknownStatus").toUpperCase(Locale.ROOT);
+        detectedAt = Objects.requireNonNull(detectedAt,
+                "detectedAt is required; use CpfUnknownResultRecord.detectedNow(..., Clock) at the boundary");
+        if (resolvedAt != null && resolvedAt.isBefore(detectedAt)) {
+            throw new IllegalArgumentException("resolvedAt cannot precede detectedAt");
+        }
+    }
+
+    public static CpfUnknownResultRecord detectedNow(
+            String unknownId, String unknownType, String unknownStatus,
+            String transactionId, String segmentId, String externalKey,
+            String failureCode, String failureMessage, String nextAction, Clock clock) {
+        return new CpfUnknownResultRecord(unknownId, unknownType, unknownStatus, transactionId,
+                segmentId, externalKey, failureCode, failureMessage, nextAction,
+                Objects.requireNonNull(clock, "clock").instant(), null);
+    }
+
+    private static String required(String value, String name) {
+        if (value == null || value.isBlank()) throw new IllegalArgumentException(name + " is required");
+        String normalized = value.trim();
+        if (normalized.length() > 128) throw new IllegalArgumentException(name + " exceeds 128 characters");
+        return normalized;
     }
 }

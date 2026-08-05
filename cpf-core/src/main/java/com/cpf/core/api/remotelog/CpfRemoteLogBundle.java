@@ -13,6 +13,32 @@ public record CpfRemoteLogBundle(
         List<String> failedArtifactIds,
         Instant expiresAt) {
     public CpfRemoteLogBundle {
-        failedArtifactIds = failedArtifactIds == null ? List.of() : List.copyOf(failedArtifactIds);
+        if (bundleId == null || bundleId.isBlank() || bundleId.length() > 200) {
+            throw new IllegalArgumentException("bundleId is required");
+        }
+        if (fileName == null || fileName.isBlank() || fileName.contains("/") || fileName.contains("\\")
+                || fileName.contains("\r") || fileName.contains("\n")) {
+            throw new IllegalArgumentException("safe bundle fileName is required");
+        }
+        if (path == null || path.isAbsolute() || path.normalize().startsWith("..")
+                || path.normalize().getNameCount() == 0 || ".".equals(path.normalize().toString())) {
+            throw new IllegalArgumentException("bundle path must be relative to the managed log root");
+        }
+        if (path.normalize().getFileName() == null
+                || !fileName.trim().equals(path.normalize().getFileName().toString())) {
+            throw new IllegalArgumentException("bundle fileName must match the final path segment");
+        }
+        if (includedCount < 0) throw new IllegalArgumentException("includedCount must be non-negative");
+        if (expiresAt == null) throw new IllegalArgumentException("expiresAt is required");
+        bundleId = bundleId.trim();
+        fileName = fileName.trim();
+        path = path.normalize();
+        failedArtifactIds = failedArtifactIds == null ? List.of() : failedArtifactIds.stream()
+                .map(id -> {
+                    if (id == null || id.isBlank() || id.length() > 200) {
+                        throw new IllegalArgumentException("failed artifact ids must be non-blank");
+                    }
+                    return id.trim();
+                }).distinct().toList();
     }
 }

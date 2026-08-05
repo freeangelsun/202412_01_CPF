@@ -9,6 +9,24 @@ public record CpfRuntimeApplyResult(
         String errorCode,
         String message) {
 
+    public CpfRuntimeApplyResult {
+        int terminalSignals = (applied ? 1 : 0) + (unknownResult ? 1 : 0) + (restartRequired ? 1 : 0);
+        if (terminalSignals > 1) {
+            throw new IllegalArgumentException(
+                    "applied, unknownResult, restartRequired는 동시에 true일 수 없습니다.");
+        }
+        if ((applied || restartRequired) && (actualHash == null || actualHash.isBlank())) {
+            throw new IllegalArgumentException(
+                    "적용 성공 또는 재기동 필요 결과에는 actualHash가 필요합니다.");
+        }
+        actualHash = normalize(actualHash);
+        if (actualHash != null && actualHash.length() > 64) {
+            throw new IllegalArgumentException("actualHash는 최대 64자입니다.");
+        }
+        errorCode = normalize(errorCode);
+        message = normalize(message);
+    }
+
     /** 기존 4-인자 생성자 호환입니다. */
     public CpfRuntimeApplyResult(boolean applied, String actualHash, String errorCode, String message) {
         this(applied, false, false, actualHash, errorCode, message);
@@ -30,5 +48,11 @@ public record CpfRuntimeApplyResult(
     /** 변경을 stage했지만 프로세스 재기동이 필요한 결과입니다. */
     public static CpfRuntimeApplyResult restartRequired(String stagedHash, String message) {
         return new CpfRuntimeApplyResult(false, false, true, stagedHash, "RESTART_REQUIRED", message);
+    }
+
+    private static String normalize(String value) {
+        if (value == null) return null;
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 }

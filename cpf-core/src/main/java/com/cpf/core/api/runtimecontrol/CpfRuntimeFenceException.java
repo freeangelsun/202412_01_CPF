@@ -7,6 +7,7 @@ package com.cpf.core.api.runtimecontrol;
  * 이 Public API 예외만 의존해야 합니다.</p>
  */
 public class CpfRuntimeFenceException extends RuntimeException {
+    private static final long serialVersionUID = 1L;
 
     public CpfRuntimeFenceException(String message) {
         super(message);

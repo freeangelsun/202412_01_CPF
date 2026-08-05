@@ -4,6 +4,8 @@ import com.cpf.core.api.error.CpfValidationException;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -17,6 +19,10 @@ import java.util.regex.Pattern;
  * 구분자 문자를 허용하되 숫자형으로 변환하지 않습니다.</p>
  */
 public final class CpfSensitiveData {
+    /** Version of the field-classification and masking contract used by audit/evidence consumers. */
+    public static final int CURRENT_POLICY_VERSION = 3;
+
+    public enum Classification { PUBLIC, PII, CREDENTIAL, SECRET }
     private static final int MAX_PHONE_LENGTH = 50;
     private static final int MAX_EMAIL_LENGTH = 200;
     private static final int MAX_AUDIT_REASON_LENGTH = 500;
@@ -33,6 +39,15 @@ public final class CpfSensitiveData {
     private static final Pattern AUDIT_JSON_PII = Pattern.compile(
             "(?i)([\"']?(?:email|mobile|mobileNo|phone|officePhone|contact|address|resident[_-]?no|rrn|ssn)[\"']?\\s*[:=]\\s*[\"']?)([^\"',}\\s]+)");
     private static final int MAX_AUDIT_SNAPSHOT_DEPTH = 32;
+    private static final int MAX_AUDIT_COLLECTION_ITEMS = 10_000;
+    private static final int MAX_AUDIT_TEXT_LENGTH = 65_536;
+    private static final int MAX_AUDIT_FIELD_NAME_LENGTH = 256;
+    private static final int MAX_AUDIT_SNAPSHOT_NODES = 20_000;
+    private static final int MAX_AUDIT_SNAPSHOT_CHARACTERS = 262_144;
+    private static final String TRUNCATED_SUFFIX = "...[TRUNCATED]";
+    private static final String TRUNCATED_ITEMS = "[TRUNCATED_ITEMS]";
+    private static final String TRUNCATED_BUDGET = "[TRUNCATED_BUDGET]";
+    private static final String UNREPRESENTABLE = "[UNREPRESENTABLE]";
 
     private CpfSensitiveData() {}
 
@@ -95,20 +110,32 @@ public final class CpfSensitiveData {
      * 입력 객체는 수정하지 않으며 반환 객체는 감사 저장 전용 복사본입니다.</p>
      */
     public static Object sanitizeAuditSnapshot(Object value) {
-        return sanitizeAuditSnapshot(value, null, 0);
+        return sanitizeAuditSnapshot(
+                value, null, 0, new IdentityHashMap<>(), new SnapshotBudget());
+    }
+
+    /** Classifies a field name without inspecting or returning its value. */
+    public static Classification classifyField(String fieldName) {
+        String key = fieldName == null ? "" : normalizeAuditKey(fieldName);
+        if (isCredentialAuditKey(key)) return Classification.CREDENTIAL;
+        if (isSecretAuditKey(key)) return Classification.SECRET;
+        if (isPiiAuditKey(key)) return Classification.PII;
+        return Classification.PUBLIC;
     }
 
     /** 감사 DB의 문자열 Column에 저장할 수 있도록 정제된 Snapshot을 문자열로 변환합니다. */
     public static String sanitizeAuditSnapshotText(Object value) {
         if (value == null) return null;
         Object sanitized = sanitizeAuditSnapshot(value);
-        return sanitized == null ? null : String.valueOf(sanitized);
+        if (sanitized == null) return null;
+        return boundText(safeToString(sanitized), MAX_AUDIT_SNAPSHOT_CHARACTERS);
     }
 
     /** 자유형 오류/직렬화 문자열을 감사 저장 전에 정제합니다. 비어 있는 값은 그대로 허용합니다. */
     public static String sanitizeAuditText(String value) {
         if (value == null) return null;
-        String sanitized = BEARER.matcher(value).replaceAll("Bearer [REDACTED]");
+        String bounded = boundText(value, MAX_AUDIT_TEXT_LENGTH);
+        String sanitized = BEARER.matcher(bounded).replaceAll("Bearer [REDACTED]");
         sanitized = AUDIT_SECRET.matcher(sanitized).replaceAll("$1=[REDACTED]");
         sanitized = AUDIT_JSON_SECRET.matcher(sanitized).replaceAll("$1[REDACTED]");
         sanitized = AUDIT_JSON_PII.matcher(sanitized).replaceAll("$1[MASKED]");
@@ -118,44 +145,113 @@ public final class CpfSensitiveData {
         return sanitized;
     }
 
-    private static Object sanitizeAuditSnapshot(Object value, String fieldName, int depth) {
+    private static Object sanitizeAuditSnapshot(
+            Object value, String fieldName, int depth, IdentityHashMap<Object, Boolean> activePath,
+            SnapshotBudget budget) {
         if (value == null) return null;
+        if (!budget.enterNode()) return TRUNCATED_BUDGET;
         if (depth > MAX_AUDIT_SNAPSHOT_DEPTH) return "[DEPTH_LIMIT]";
+
         String key = fieldName == null ? "" : normalizeAuditKey(fieldName);
-        if (isSecretAuditKey(key)) return "[REDACTED]";
-        if (isPiiAuditKey(key)) return maskAuditPii(key, value);
-        if (value instanceof Map<?, ?> map) {
-            Map<String, Object> copy = new LinkedHashMap<>();
-            map.forEach((k, v) -> {
-                String name = String.valueOf(k);
-                copy.put(name, sanitizeAuditSnapshot(v, name, depth + 1));
-            });
-            return copy;
+        Classification classification = classifyField(key);
+        if (classification == Classification.CREDENTIAL || classification == Classification.SECRET) {
+            return "[REDACTED]";
         }
-        if (value instanceof Iterable<?> iterable) {
-            List<Object> copy = new ArrayList<>();
-            for (Object element : iterable) copy.add(sanitizeAuditSnapshot(element, fieldName, depth + 1));
-            return copy;
+        if (classification == Classification.PII) {
+            return maskAuditPii(key, value, budget);
         }
-        if (value.getClass().isArray()) {
-            int length = Array.getLength(value);
-            List<Object> copy = new ArrayList<>(length);
-            for (int i = 0; i < length; i++) copy.add(sanitizeAuditSnapshot(Array.get(value, i), fieldName, depth + 1));
-            return copy;
+        if (value instanceof Number || value instanceof Boolean || value instanceof Enum<?>) {
+            if (!budget.consumeCharacters(safeToString(value).length())) return TRUNCATED_BUDGET;
+            return value;
         }
-        if (value instanceof CharSequence || value instanceof Character) return sanitizeAuditText(String.valueOf(value));
-        if (value instanceof Number || value instanceof Boolean || value instanceof Enum<?>) return value;
-        return sanitizeAuditText(String.valueOf(value));
+        if (value instanceof CharSequence || value instanceof Character) {
+            return budget.boundText(sanitizeAuditText(String.valueOf(value)));
+        }
+
+        boolean container = value instanceof Map<?, ?> || value instanceof Iterable<?> || value.getClass().isArray();
+        if (container && activePath.put(value, Boolean.TRUE) != null) {
+            return "[CYCLE]";
+        }
+        try {
+            if (value instanceof Map<?, ?> map) {
+                Map<String, Object> copy = new LinkedHashMap<>();
+                int count = 0;
+                for (Map.Entry<?, ?> entry : map.entrySet()) {
+                    if (count++ >= MAX_AUDIT_COLLECTION_ITEMS || budget.exhausted()) {
+                        copy.put(TRUNCATED_ITEMS, TRUNCATED_BUDGET);
+                        break;
+                    }
+                    String rawName = safeToString(entry.getKey());
+                    String outputName = budget.boundText(sanitizeAuditFieldName(rawName));
+                    copy.put(outputName, sanitizeAuditSnapshot(
+                            entry.getValue(), rawName, depth + 1, activePath, budget));
+                }
+                return Collections.unmodifiableMap(copy);
+            }
+            if (value instanceof Iterable<?> iterable) {
+                List<Object> copy = new ArrayList<>();
+                int count = 0;
+                for (Object element : iterable) {
+                    if (count++ >= MAX_AUDIT_COLLECTION_ITEMS || budget.exhausted()) {
+                        copy.add(TRUNCATED_ITEMS);
+                        break;
+                    }
+                    copy.add(sanitizeAuditSnapshot(element, fieldName, depth + 1, activePath, budget));
+                }
+                return Collections.unmodifiableList(copy);
+            }
+            if (value.getClass().isArray()) {
+                int length = Array.getLength(value);
+                int boundedLength = Math.min(length, MAX_AUDIT_COLLECTION_ITEMS);
+                List<Object> copy = new ArrayList<>(boundedLength + (length > boundedLength ? 1 : 0));
+                for (int i = 0; i < boundedLength && !budget.exhausted(); i++) {
+                    copy.add(sanitizeAuditSnapshot(Array.get(value, i), fieldName, depth + 1, activePath, budget));
+                }
+                if (length > copy.size() || budget.exhausted()) copy.add(TRUNCATED_ITEMS);
+                return Collections.unmodifiableList(copy);
+            }
+            return budget.boundText(sanitizeAuditText(safeToString(value)));
+        } finally {
+            if (container) activePath.remove(value);
+        }
+    }
+
+    private static String sanitizeAuditFieldName(String value) {
+        String bounded = boundText(value == null ? "null" : value, MAX_AUDIT_FIELD_NAME_LENGTH);
+        return sanitizeAuditText(bounded);
+    }
+
+    private static String boundText(String value, int maximumLength) {
+        if (value == null) return null;
+        if (maximumLength <= 0) return "";
+        if (value.length() <= maximumLength) return value;
+        if (maximumLength <= TRUNCATED_SUFFIX.length()) {
+            return TRUNCATED_SUFFIX.substring(0, maximumLength);
+        }
+        int prefixLength = maximumLength - TRUNCATED_SUFFIX.length();
+        return value.substring(0, prefixLength) + TRUNCATED_SUFFIX;
+    }
+
+    private static String safeToString(Object value) {
+        try {
+            return String.valueOf(value);
+        } catch (RuntimeException | StackOverflowError failure) {
+            return UNREPRESENTABLE;
+        }
     }
 
     private static String normalizeAuditKey(String fieldName) {
         return fieldName.replaceAll("[^A-Za-z0-9]", "").toLowerCase(Locale.ROOT);
     }
 
-    private static boolean isSecretAuditKey(String key) {
+    private static boolean isCredentialAuditKey(String key) {
         return key.contains("password") || key.contains("passwd") || key.equals("pwd")
                 || key.contains("token") || key.contains("authorization") || key.contains("apikey")
-                || key.contains("secret") || key.contains("credential") || key.contains("privatekey");
+                || key.contains("credential");
+    }
+
+    private static boolean isSecretAuditKey(String key) {
+        return key.contains("secret") || key.contains("privatekey") || key.contains("signingkey");
     }
 
     private static boolean isPiiAuditKey(String key) {
@@ -163,12 +259,50 @@ public final class CpfSensitiveData {
                 || key.contains("address") || key.contains("resident") || key.equals("rrn") || key.equals("ssn");
     }
 
-    private static String maskAuditPii(String key, Object value) {
-        String text = blankToNull(String.valueOf(value));
+    private static String maskAuditPii(String key, Object value, SnapshotBudget budget) {
+        if (value instanceof Map<?, ?> || value instanceof Iterable<?> || value.getClass().isArray()) {
+            return "[MASKED]";
+        }
+        String text = blankToNull(boundText(safeToString(value), MAX_AUDIT_TEXT_LENGTH));
         if (text == null) return null;
-        if (key.contains("email")) return maskEmail(text);
-        if (key.contains("mobile") || key.contains("phone") || key.contains("contact")) return maskPhone(text);
-        return "[MASKED]";
+        String masked;
+        if (key.contains("email")) masked = maskEmail(text);
+        else if (key.contains("mobile") || key.contains("phone") || key.contains("contact")) masked = maskPhone(text);
+        else masked = "[MASKED]";
+        return budget.boundText(masked);
+    }
+
+    private static final class SnapshotBudget {
+        private int nodes;
+        private int characters;
+
+        boolean enterNode() {
+            if (nodes >= MAX_AUDIT_SNAPSHOT_NODES) return false;
+            nodes++;
+            return true;
+        }
+
+        boolean consumeCharacters(int count) {
+            if (count <= 0) return true;
+            if (characters >= MAX_AUDIT_SNAPSHOT_CHARACTERS) return false;
+            long next = (long) characters + count;
+            characters = (int) Math.min(MAX_AUDIT_SNAPSHOT_CHARACTERS, next);
+            return next <= MAX_AUDIT_SNAPSHOT_CHARACTERS;
+        }
+
+        String boundText(String value) {
+            if (value == null) return null;
+            int remaining = MAX_AUDIT_SNAPSHOT_CHARACTERS - characters;
+            if (remaining <= 0) return TRUNCATED_BUDGET;
+            String bounded = CpfSensitiveData.boundText(value, Math.min(MAX_AUDIT_TEXT_LENGTH, remaining));
+            characters += bounded.length();
+            return bounded;
+        }
+
+        boolean exhausted() {
+            return nodes >= MAX_AUDIT_SNAPSHOT_NODES
+                    || characters >= MAX_AUDIT_SNAPSHOT_CHARACTERS;
+        }
     }
 
     public static String maskPhone(String value) {

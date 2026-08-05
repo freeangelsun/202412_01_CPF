@@ -21,8 +21,8 @@ public class CpfRuntimeHttpControlPlaneClient implements CpfRuntimeAgentPort {
     private final String agentToken;
 
     public CpfRuntimeHttpControlPlaneClient(RestClient client, String agentToken) {
-        this.client = client;
-        this.agentToken = agentToken == null ? "" : agentToken;
+        this.client = java.util.Objects.requireNonNull(client, "client");
+        this.agentToken = normalizeAgentToken(agentToken);
     }
 
     @Override
@@ -74,7 +74,41 @@ public class CpfRuntimeHttpControlPlaneClient implements CpfRuntimeAgentPort {
 
     private <T> T post(String uri, Object body, Class<T> type) {
         return client.post().uri(uri).header(AGENT_TOKEN_HEADER, agentToken)
-                .contentType(MediaType.APPLICATION_JSON).body(body).retrieve().body(type);
+                .contentType(MediaType.APPLICATION_JSON).body(body).retrieve()
+                .onStatus(CpfRuntimeHttpControlPlaneClient::isFencingStatus, (request, response) -> {
+                    throw new com.cpf.core.api.runtimecontrol.CpfRuntimeFenceException(
+                            "Remote Runtime Control Plane이 stale/invalid fencing token을 거부했습니다.");
+                })
+                .onStatus(CpfRuntimeHttpControlPlaneClient::isRateLimitStatus, (request, response) -> {
+                    throw new com.cpf.core.api.runtimecontrol.CpfRuntimeRateLimitException(
+                            "Remote Runtime Control Plane rate limit을 초과했습니다.");
+                })
+                .body(type);
+    }
+
+    static boolean isFencingStatus(org.springframework.http.HttpStatusCode status) {
+        return status != null && status.value() == 409;
+    }
+
+    static boolean isRateLimitStatus(org.springframework.http.HttpStatusCode status) {
+        return status != null && status.value() == 429;
+    }
+
+    static String normalizeAgentToken(String token) {
+        if (token == null || token.isBlank()) {
+            throw new IllegalArgumentException("Runtime Agent HTTP client에는 agentToken이 필요합니다.");
+        }
+        String normalized=token.trim();
+        if(normalized.length()>2048){
+            throw new IllegalArgumentException("Runtime Agent agentToken은 최대 2048자입니다.");
+        }
+        for(int i=0;i<normalized.length();i++){
+            char ch=normalized.charAt(i);
+            if(Character.isISOControl(ch)){
+                throw new IllegalArgumentException("Runtime Agent agentToken에는 제어문자를 사용할 수 없습니다.");
+            }
+        }
+        return normalized;
     }
 
     private record ActualStateRequest(String instanceId, long fencingToken, List<CpfRuntimeActualState> states) { }

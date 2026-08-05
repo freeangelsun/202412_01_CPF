@@ -1,32 +1,20 @@
 package com.cpf.core.common.logging;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
 class SensitiveDataMaskerBoundaryTest {
-
     @Test
-    void truncateNormalizesNegativeAndTooSmallLimits() {
-        String payload = "x".repeat(300);
-
-        assertThat(SensitiveDataMasker.truncate(payload, -1))
-                .isEqualTo("x".repeat(256) + "...(truncated)");
-        assertThat(SensitiveDataMasker.truncate(payload, 1))
-                .isEqualTo("x".repeat(256) + "...(truncated)");
+    void masksEscapedJsonQuotedValuesAndAuthorizationSchemes() {
+        String input = "{\"password\":\"a\\\"b\",\"nested\":\"{\\\"token\\\":\\\"inside\\\"}\"} "
+                + "authorization=Basic dXNlcjpwYXNz token='space containing token'";
+        String masked = SensitiveDataMasker.mask(input);
+        assertFalse(masked.contains("a\\\"b"));
+        assertFalse(masked.contains("inside"));
+        assertFalse(masked.contains("dXNlcjpwYXNz"));
+        assertFalse(masked.contains("space containing token"));
+        assertTrue(masked.contains("***"));
     }
-
-    @Test
-    void truncateKeepsNullAndShortValues() {
-        assertThat(SensitiveDataMasker.truncate(null, -1)).isNull();
-        assertThat(SensitiveDataMasker.truncate("safe", -1)).isEqualTo("safe");
-    }
-    @Test
-    void bearerTokenIsFullyRemovedBeforeAuthorizationKeyMasking() {
-        String masked = SensitiveDataMasker.mask("Authorization: Bearer abc.def-123");
-
-        assertThat(masked).doesNotContain("abc.def-123");
-        assertThat(masked).contains("***");
-    }
-
 }

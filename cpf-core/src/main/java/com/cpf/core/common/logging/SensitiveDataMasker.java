@@ -1,34 +1,39 @@
 package com.cpf.core.common.logging;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HexFormat;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 
-/**
- * 로그/감사/운영 출력에 사용되는 민감정보 마스커입니다.
- *
- * <p>정책은 immutable snapshot으로 교체되며 진행 중인 호출은 기존 snapshot을,
- * 이후 호출은 새 snapshot을 사용합니다. 빈 key 정책이나 과도한 출력 길이는
- * fail-closed 기본값으로 보정합니다.</p>
- */
+/** Fail-closed masking for logs, audit records and operational output. */
 public final class SensitiveDataMasker {
-
     private static final int DEFAULT_MAX_LENGTH = 4000;
     private static final int MIN_MAX_LENGTH = 256;
     private static final int ABSOLUTE_MAX_LENGTH = 65536;
+    private static final int MAX_MASKING_PASSES = 3;
     private static final Set<String> DEFAULT_SENSITIVE_KEYS = Set.of(
             "password", "passwd", "pwd", "token", "authorization", "auth", "secret",
+            "cookie", "set-cookie", "credential", "signature", "privatekey", "private-key",
             "ssn", "rrn", "resident", "residentno", "accountno", "accountnumber",
-            "cardno", "cardnumber", "pin", "otp", "apikey", "api_key", "clientsecret"
-    );
+            "cardno", "cardnumber", "pin", "otp", "apikey", "api_key", "clientsecret");
+    private static final Pattern PRIVATE_KEY_PATTERN = Pattern.compile(
+            "(?is)(-----BEGIN(?: [A-Z0-9]+)? PRIVATE KEY-----).*?(-----END(?: [A-Z0-9]+)? PRIVATE KEY-----)");
+    private static final Pattern JWT_PATTERN = Pattern.compile(
+            "(?<![A-Za-z0-9_-])[A-Za-z0-9_-]{8,}\\.[A-Za-z0-9_-]{8,}\\.[A-Za-z0-9_-]{8,}(?![A-Za-z0-9_-])");
     private static final AtomicReference<MaskingPolicy> POLICY =
-            new AtomicReference<>(MaskingPolicy.create(DEFAULT_SENSITIVE_KEYS, DEFAULT_MAX_LENGTH, true));
+            new AtomicReference<>(MaskingPolicy.create(DEFAULT_SENSITIVE_KEYS, DEFAULT_MAX_LENGTH,
+                    true, 3L, Instant.EPOCH, sha256("CPF_MASKING_POLICY_INITIAL")));
 
-    private SensitiveDataMasker() {
-    }
+    private SensitiveDataMasker() {}
 
     public static String mask(String value) {
         MaskingPolicy policy = POLICY.get();
@@ -39,11 +44,30 @@ public final class SensitiveDataMasker {
         return mask(value, maxLength, POLICY.get());
     }
 
-    /** Runtime Control Plane에서 검증된 전체 정책 snapshot을 원자 교체합니다. */
+    /** Compatibility update. Operational callers should prefer CpfMaskingPolicyOperations. */
     public static MaskingPolicy replacePolicy(Set<String> sensitiveKeys, int maxLength, boolean maskBearerToken) {
-        MaskingPolicy next = MaskingPolicy.create(sensitiveKeys, maxLength, maskBearerToken);
-        POLICY.set(next);
-        return next;
+        while (true) {
+            MaskingPolicy current = POLICY.get();
+            MaskingPolicy next = MaskingPolicy.create(sensitiveKeys, maxLength, maskBearerToken,
+                    current.version() + 1L, Instant.now(), sha256("CPF_MASKING_POLICY_COMPATIBILITY_UPDATE"));
+            if (POLICY.compareAndSet(current, next)) return next;
+        }
+    }
+
+    /** Optimistic atomic update used by the audited runtime policy manager. */
+    public static PolicyUpdateResult compareAndSetPolicy(long expectedVersion, Set<String> sensitiveKeys,
+            int maxLength, boolean maskBearerToken, Instant updatedAt, String changeHash) {
+        if (expectedVersion < 1L) throw new IllegalArgumentException("expectedVersion must be positive");
+        MaskingPolicy current = POLICY.get();
+        if (current.version() != expectedVersion) {
+            return new PolicyUpdateResult(current, current, false);
+        }
+        MaskingPolicy next = MaskingPolicy.create(sensitiveKeys, maxLength, maskBearerToken,
+                expectedVersion + 1L, updatedAt, changeHash);
+        if (POLICY.compareAndSet(current, next)) {
+            return new PolicyUpdateResult(current, next, true);
+        }
+        return new PolicyUpdateResult(current, POLICY.get(), false);
     }
 
     public static MaskingPolicy currentPolicy() {
@@ -51,29 +75,36 @@ public final class SensitiveDataMasker {
     }
 
     private static String mask(String value, int maxLength, MaskingPolicy policy) {
-        if (value == null || value.isBlank()) {
-            return value;
-        }
-
+        if (value == null || value.isBlank()) return value;
         String masked = value;
-        if (policy.maskBearerToken()) {
-            masked = policy.bearerPattern().matcher(masked).replaceAll("$1***");
-        }
-        for (Pattern pattern : policy.jsonPatterns()) {
-            masked = pattern.matcher(masked).replaceAll("$1***$2");
-        }
-        for (Pattern pattern : policy.keyValuePatterns()) {
-            masked = pattern.matcher(masked).replaceAll("$1***");
+        for (int pass = 0; pass < MAX_MASKING_PASSES; pass++) {
+            String before = masked;
+            if (policy.maskBearerToken()) {
+                masked = policy.authorizationPattern().matcher(masked).replaceAll("$1***");
+            }
+            masked = PRIVATE_KEY_PATTERN.matcher(masked).replaceAll("$1***$2");
+            masked = JWT_PATTERN.matcher(masked).replaceAll("***JWT***");
+            for (Pattern pattern : policy.jsonPatterns()) {
+                masked = pattern.matcher(masked).replaceAll("$1***$2");
+            }
+            for (Pattern pattern : policy.escapedJsonPatterns()) {
+                masked = pattern.matcher(masked).replaceAll("$1***$2");
+            }
+            for (Pattern pattern : policy.xmlPatterns()) {
+                masked = pattern.matcher(masked).replaceAll("$1***$2");
+            }
+            for (Pattern pattern : policy.keyValuePatterns()) {
+                masked = pattern.matcher(masked).replaceAll("$1***");
+            }
+            if (masked.equals(before)) break;
         }
         return truncate(masked, normalizeMaxLength(maxLength));
     }
 
     public static String truncate(String value, int maxLength) {
-        int normalizedMaxLength = normalizeMaxLength(maxLength);
-        if (value == null || value.length() <= normalizedMaxLength) {
-            return value;
-        }
-        return value.substring(0, normalizedMaxLength) + "...(truncated)";
+        int normalized = normalizeMaxLength(maxLength);
+        if (value == null || value.length() <= normalized) return value;
+        return value.substring(0, normalized) + "...(truncated)";
     }
 
     private static int normalizeMaxLength(int value) {
@@ -81,15 +112,45 @@ public final class SensitiveDataMasker {
         return Math.min(value, ABSOLUTE_MAX_LENGTH);
     }
 
+    public record PolicyUpdateResult(MaskingPolicy previous, MaskingPolicy current, boolean applied) {
+        public PolicyUpdateResult {
+            if (previous == null || current == null) throw new IllegalArgumentException("policies are required");
+        }
+    }
+
     public record MaskingPolicy(
+            long version,
             Set<String> sensitiveKeys,
             int maxLength,
             boolean maskBearerToken,
+            String policyHash,
+            Instant updatedAt,
+            String changeHash,
             List<Pattern> jsonPatterns,
+            List<Pattern> escapedJsonPatterns,
+            List<Pattern> xmlPatterns,
             List<Pattern> keyValuePatterns,
-            Pattern bearerPattern) {
+            Pattern authorizationPattern) {
 
-        private static MaskingPolicy create(Set<String> sensitiveKeys, int maxLength, boolean maskBearerToken) {
+        public MaskingPolicy {
+            if (version < 1L) throw new IllegalArgumentException("version must be positive");
+            sensitiveKeys = Set.copyOf(sensitiveKeys);
+            updatedAt = java.util.Objects.requireNonNull(updatedAt, "updatedAt");
+            if (policyHash == null || !policyHash.matches("[0-9a-f]{64}")) {
+                throw new IllegalArgumentException("invalid policyHash");
+            }
+            if (changeHash == null || !changeHash.matches("[0-9a-f]{64}")) {
+                throw new IllegalArgumentException("invalid changeHash");
+            }
+            jsonPatterns = List.copyOf(jsonPatterns);
+            escapedJsonPatterns = List.copyOf(escapedJsonPatterns);
+            xmlPatterns = List.copyOf(xmlPatterns);
+            keyValuePatterns = List.copyOf(keyValuePatterns);
+            authorizationPattern = java.util.Objects.requireNonNull(authorizationPattern, "authorizationPattern");
+        }
+
+        private static MaskingPolicy create(Set<String> sensitiveKeys, int maxLength, boolean maskBearerToken,
+                long version, Instant updatedAt, String changeHash) {
             LinkedHashSet<String> normalized = new LinkedHashSet<>(DEFAULT_SENSITIVE_KEYS);
             if (sensitiveKeys != null) {
                 sensitiveKeys.stream()
@@ -98,21 +159,54 @@ public final class SensitiveDataMasker {
                         .filter(key -> key.matches("[a-z0-9_.-]{2,64}"))
                         .forEach(normalized::add);
             }
-            List<Pattern> json = normalized.stream()
-                    .map(Pattern::quote)
-                    .map(key -> Pattern.compile("(?i)(\\\"" + key + "\\\"\\s*:\\s*\\\")[^\\\"]*(\\\")"))
-                    .toList();
-            List<Pattern> keyValue = normalized.stream()
-                    .map(Pattern::quote)
-                    .map(key -> Pattern.compile("(?i)(\\b" + key + "\\b\\s*[=:]\\s*)[^,\\]\\}&\\s]+"))
-                    .toList();
+            if (normalized.size() > 512) throw new IllegalArgumentException("too many sensitive keys");
+            int normalizedMaxLength = normalizeMaxLength(maxLength);
+            List<Pattern> json = new ArrayList<>();
+            List<Pattern> escapedJson = new ArrayList<>();
+            List<Pattern> xml = new ArrayList<>();
+            List<Pattern> keyValue = new ArrayList<>();
+            for (String rawKey : normalized) {
+                String key = Pattern.quote(rawKey);
+                json.add(Pattern.compile("(?i)(\\\"" + key
+                        + "\\\"\\s*:\\s*\\\")(?:\\\\.|[^\\\"\\\\])*(\\\")"));
+                escapedJson.add(Pattern.compile("(?i)(\\\\\\\"" + key
+                        + "\\\\\\\"\\s*:\\s*\\\\\\\")(?:\\\\\\\\.|[^\\\\\\\"])*(\\\\\\\")"));
+                xml.add(Pattern.compile("(?is)(<\\s*" + key + "(?:\\s+[^>]*)?>).*?(<\\s*/\\s*" + key + "\\s*>)"));
+                keyValue.add(Pattern.compile("(?i)(\\b" + key + "\\b\\s*[=:]\\s*)"
+                        + "(?:\\\"(?:\\\\.|[^\\\"\\\\])*\\\"|'(?:\\\\.|[^'\\\\])*'|[^,\\]\\}&;\\r\\n\\s]+)"));
+            }
+            String policyHash = policyHash(normalized, normalizedMaxLength, maskBearerToken);
             return new MaskingPolicy(
+                    version,
                     Set.copyOf(normalized),
-                    normalizeMaxLength(maxLength),
+                    normalizedMaxLength,
                     maskBearerToken,
+                    policyHash,
+                    java.util.Objects.requireNonNull(updatedAt, "updatedAt"),
+                    requireHash(changeHash),
                     List.copyOf(json),
+                    List.copyOf(escapedJson),
+                    List.copyOf(xml),
                     List.copyOf(keyValue),
-                    Pattern.compile("(?i)(Bearer\\s+)[A-Za-z0-9._~+/=-]+"));
+                    Pattern.compile("(?i)((?:\\bAuthorization\\b\\s*[:=]\\s*)?(?:\\bBearer\\b|\\bBasic\\b)\\s+)[^,;\\s\\]\\}\\\"]+"));
+        }
+
+        private static String policyHash(Set<String> keys, int maxLength, boolean bearer) {
+            return sha256(String.join(",", new TreeSet<>(keys)) + '\n' + maxLength + '\n' + bearer);
+        }
+
+        private static String requireHash(String value) {
+            if (value == null || !value.matches("[0-9a-f]{64}")) throw new IllegalArgumentException("invalid changeHash");
+            return value;
+        }
+    }
+
+    private static String sha256(String value) {
+        try {
+            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256")
+                    .digest(value.getBytes(StandardCharsets.UTF_8)));
+        } catch (NoSuchAlgorithmException impossible) {
+            throw new IllegalStateException("SHA-256 is unavailable", impossible);
         }
     }
 }

@@ -1,6 +1,7 @@
 package com.cpf.core.common.logging.fallback;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.cpf.core.common.logging.CpfTransactionLogIdentity;
 import com.cpf.core.common.logging.SensitiveDataMasker;
 import com.cpf.core.common.logging.TransactionLogRecord;
 import com.cpf.core.common.logging.file.CpfFileLogWriter;
@@ -10,23 +11,26 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
 import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
-import java.security.MessageDigest;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HexFormat;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -39,16 +43,19 @@ import java.util.stream.Stream;
  * segment ID, 이벤트 유형, 순번으로 만든 복구 ID를 사용해 한 번만 생성합니다.</p>
  */
 @Component
-public class TransactionLogFallbackStore {
+public final class TransactionLogFallbackStore implements CpfTransactionLogFallbackPort {
     private static final Pattern SENSITIVE_KEY = Pattern.compile(
             "(?i).*(password|passwd|pwd|token|authorization|secret|credential|resident|account|card|pin|otp).*");
+    private static final Pattern RECOVERY_EVENT_ID = Pattern.compile("[0-9a-f]{64}");
     private static final long DEFAULT_MAX_BYTES = 256L * 1024L * 1024L;
+    private static final ConcurrentMap<Path, LocalCapacityLock> LOCAL_CAPACITY_LOCKS = new ConcurrentHashMap<>();
 
     private final ObjectMapper objectMapper;
     private final Clock clock;
     private final Path pendingDirectory;
     private final Path processingDirectory;
     private final Path poisonDirectory;
+    private final Path capacityLockFile;
     private final String spoolRelativeDirectory;
     private final String workerId;
     private final long maxSpoolBytes;
@@ -56,6 +63,7 @@ public class TransactionLogFallbackStore {
     private final AtomicLong staleReclaimedCount = new AtomicLong();
     private final AtomicLong malformedPoisonCount = new AtomicLong();
     private final AtomicLong poisonRetryCount = new AtomicLong();
+    private final AtomicLong staleClaimConflictCount = new AtomicLong();
 
     @Autowired
     public TransactionLogFallbackStore(
@@ -76,16 +84,22 @@ public class TransactionLogFallbackStore {
         this.pendingDirectory = root.resolve("pending");
         this.processingDirectory = root.resolve("processing");
         this.poisonDirectory = root.resolve("poison");
+        this.capacityLockFile = root.resolve(".spool-capacity.lock").toAbsolutePath().normalize();
         this.spoolRelativeDirectory = fileLogWriter.relativeToLogRoot(root)
                 .toString()
                 .replace('\\', '/');
         this.workerId = environment.getProperty("cpf.framework.instance-id", "cpf-local");
-        this.maxSpoolBytes = environment.getProperty(
+        long configuredMaxSpoolBytes = environment.getProperty(
                 "cpf.logging.db-fallback.max-spool-bytes",
                 Long.class,
                 DEFAULT_MAX_BYTES);
+        if (configuredMaxSpoolBytes <= 0L) {
+            throw new IllegalArgumentException("cpf.logging.db-fallback.max-spool-bytes must be positive");
+        }
+        this.maxSpoolBytes = configuredMaxSpoolBytes;
         initializeDirectories();
-        restoreInterruptedClaims();
+        // Claims are reclaimed by the worker only after the configured lease expires.
+        // Constructor-time reclaim would steal active work from another instance.
     }
 
     /**
@@ -93,6 +107,7 @@ public class TransactionLogFallbackStore {
      *
      * @return 새 파일을 만들었으면 {@code true}, 이미 같은 이벤트가 있으면 {@code false}
      */
+    @Override
     public synchronized boolean enqueue(
             TransactionLogRecord sourceRecord,
             Map<String, String> sourceDetails,
@@ -102,8 +117,8 @@ public class TransactionLogFallbackStore {
             enqueueFailureCount.incrementAndGet();
             throw new IllegalArgumentException("복구할 거래 로그 레코드는 필수입니다.");
         }
+        String recoveryEventId = CpfTransactionLogIdentity.ensure(sourceRecord);
         TransactionLogRecord record = sanitizedCopy(sourceRecord);
-        String recoveryEventId = recoveryEventId(record);
         record.setRecoveryEventId(recoveryEventId);
         Map<String, String> details = sanitizeDetails(sourceDetails);
         Instant now = clock.instant();
@@ -124,9 +139,7 @@ public class TransactionLogFallbackStore {
         }
         try {
             byte[] body = objectMapper.writeValueAsBytes(envelope);
-            ensureCapacity(body.length);
-            writeAtomically(target, body, false);
-            return true;
+            return writePendingWithCapacityLock(target, body, recoveryEventId);
         } catch (IOException | RuntimeException ex) {
             enqueueFailureCount.incrementAndGet();
             throw new IllegalStateException("DB 거래 로그 복구 journal 저장에 실패했습니다.", ex);
@@ -148,10 +161,11 @@ public class TransactionLogFallbackStore {
                 TransactionLogFallbackEnvelope envelope = objectMapper.readValue(
                         pending.toFile(),
                         TransactionLogFallbackEnvelope.class);
+                validateEnvelopeIdentity(envelope, pending.getFileName());
                 if (envelope.nextAttemptAt() == null || !envelope.nextAttemptAt().isAfter(now)) {
                     eligible.add(new EligibleFile(pending, envelope.firstFailedAt(), envelope.recoveryEventId()));
                 }
-            } catch (IOException ex) {
+            } catch (IOException | RuntimeException ex) {
                 moveMalformedToPoison(pending);
             }
         }
@@ -169,72 +183,131 @@ public class TransactionLogFallbackStore {
         Path processing = processingDirectory.resolve(source.getFileName());
         moveAtomically(source, processing, false);
         try {
-            TransactionLogFallbackEnvelope claimed = objectMapper
-                    .readValue(processing.toFile(), TransactionLogFallbackEnvelope.class)
-                    .claimed(workerId, clock.instant());
+            TransactionLogFallbackEnvelope envelope = objectMapper
+                    .readValue(processing.toFile(), TransactionLogFallbackEnvelope.class);
+            validateEnvelopeIdentity(envelope, processing.getFileName());
+            TransactionLogFallbackEnvelope claimed = envelope.claimed(workerId, clock.instant());
             writeAtomically(processing, objectMapper.writeValueAsBytes(claimed), true);
             return claimed;
-        } catch (IOException ex) {
-            restoreClaimAfterReadFailure(processing);
-            throw ex;
+        } catch (IOException | RuntimeException ex) {
+            moveMalformedToPoison(processing);
+            if (ex instanceof IOException ioException) throw ioException;
+            throw new IOException("invalid recovery journal envelope", ex);
         }
     }
 
+    /**
+     * Deletes only the exact claim that completed persistence. A reclaimed/reclaimed-again claim
+     * is never removed by a stale worker.
+     */
+    public synchronized boolean complete(TransactionLogFallbackEnvelope expectedClaim) throws IOException {
+        Path processing = processingPath(expectedClaim.recoveryEventId());
+        if (!Files.isRegularFile(processing, LinkOption.NOFOLLOW_LINKS) || Files.isSymbolicLink(processing)) {
+            staleClaimConflictCount.incrementAndGet();
+            return false;
+        }
+        TransactionLogFallbackEnvelope current = objectMapper.readValue(
+                processing.toFile(), TransactionLogFallbackEnvelope.class);
+        validateEnvelopeIdentity(current, processing.getFileName());
+        if (!sameClaim(current, expectedClaim)) {
+            staleClaimConflictCount.incrementAndGet();
+            return false;
+        }
+        return Files.deleteIfExists(processing);
+    }
+
+    /** Legacy id-only completion is intentionally fail-closed. */
     public synchronized void complete(String recoveryEventId) throws IOException {
-        Files.deleteIfExists(processingPath(recoveryEventId));
+        requireRecoveryEventId(recoveryEventId);
+        throw new IOException("claim-scoped completion is required");
     }
 
     public synchronized void retry(TransactionLogFallbackEnvelope envelope) throws IOException {
-        Path processing = processingPath(envelope.recoveryEventId());
-        writeAtomically(pendingPath(envelope.recoveryEventId()), objectMapper.writeValueAsBytes(envelope), true);
-        Files.deleteIfExists(processing);
+        Path processing = requireOwnedProcessing(envelope);
+        TransactionLogFallbackEnvelope released = envelope.released(
+                envelope.nextAttemptAt(), envelope.lastFailureType());
+        writeAtomically(processing, objectMapper.writeValueAsBytes(released), true);
+        moveAtomically(processing, pendingPath(envelope.recoveryEventId()), false);
     }
 
     public synchronized void poison(TransactionLogFallbackEnvelope envelope) throws IOException {
-        Path processing = processingPath(envelope.recoveryEventId());
-        Path target = poisonPath(envelope.recoveryEventId());
-        writeAtomically(target, objectMapper.writeValueAsBytes(envelope), true);
-        Files.deleteIfExists(processing);
+        Path processing = requireOwnedProcessing(envelope);
+        TransactionLogFallbackEnvelope released = envelope.released(
+                envelope.nextAttemptAt(), envelope.lastFailureType());
+        writeAtomically(processing, objectMapper.writeValueAsBytes(released), true);
+        moveAtomically(processing, poisonPath(envelope.recoveryEventId()), false);
     }
 
     /**
-     * 운영자 승인과 감사 기록을 거친 poison 항목을 재시도 대기열로 되돌립니다.
+     * 승인 시점에 관찰한 attempt count와 현재 poison 레코드가 같은 경우에만 원자적으로 재시도합니다.
+     */
+    public synchronized PoisonRetryStoreResult retryPoison(
+            String recoveryEventId,
+            int expectedAttemptCount) throws IOException {
+        Path poison = poisonPath(recoveryEventId);
+        if (!Files.isRegularFile(poison, LinkOption.NOFOLLOW_LINKS) || Files.isSymbolicLink(poison)) {
+            return PoisonRetryStoreResult.NOT_FOUND;
+        }
+        TransactionLogFallbackEnvelope envelope = objectMapper.readValue(
+                poison.toFile(),
+                TransactionLogFallbackEnvelope.class);
+        validateEnvelopeIdentity(envelope, poison.getFileName());
+        if (envelope.attemptCount() != expectedAttemptCount) {
+            return PoisonRetryStoreResult.STALE_ATTEMPT;
+        }
+        TransactionLogFallbackEnvelope approved = envelope.released(clock.instant(), "POISON_RETRY_APPROVED");
+        writeAtomically(poison, objectMapper.writeValueAsBytes(approved), true);
+        moveAtomically(poison, pendingPath(recoveryEventId), false);
+        poisonRetryCount.incrementAndGet();
+        return PoisonRetryStoreResult.RETRIED;
+    }
+
+    /**
+     * 승인 없는 기존 호출은 fail-closed 처리합니다.
+     *
+     * 호환 안내: {@link com.cpf.core.api.logging.CpfLogRecoveryOperations}를 통해 승인된 명령을 사용하십시오.
      */
     public synchronized boolean retryPoison(String recoveryEventId) throws IOException {
         Path poison = poisonPath(recoveryEventId);
-        if (!Files.isRegularFile(poison)) {
+        if (!Files.isRegularFile(poison, LinkOption.NOFOLLOW_LINKS) || Files.isSymbolicLink(poison)) {
             return false;
         }
         TransactionLogFallbackEnvelope envelope = objectMapper.readValue(
                 poison.toFile(),
                 TransactionLogFallbackEnvelope.class);
-        TransactionLogFallbackEnvelope approved = envelope.released(clock.instant(), "POISON_RETRY_APPROVED");
-        writeAtomically(pendingPath(recoveryEventId), objectMapper.writeValueAsBytes(approved), false);
-        Files.delete(poison);
-        poisonRetryCount.incrementAndGet();
-        return true;
+        validateEnvelopeIdentity(envelope, poison.getFileName());
+        return false;
     }
 
     /**
      * lease 시간이 지난 processing 파일만 회수해 정상 처리 중인 claim을 보호합니다.
      */
     public synchronized int reclaimStaleProcessing(Instant now, Duration leaseTimeout) {
+        if (now == null || leaseTimeout == null || leaseTimeout.isNegative() || leaseTimeout.isZero()) {
+            throw new IllegalArgumentException("positive processing lease and current time are required");
+        }
         int reclaimed = 0;
-        Instant staleBefore = now.minus(leaseTimeout);
+        Instant staleBefore;
+        try {
+            staleBefore = now.minus(leaseTimeout);
+        } catch (RuntimeException underflow) {
+            staleBefore = Instant.MIN;
+        }
         for (Path processing : listJsonFiles(processingDirectory)) {
             try {
                 TransactionLogFallbackEnvelope envelope = objectMapper.readValue(
                         processing.toFile(),
                         TransactionLogFallbackEnvelope.class);
+                validateEnvelopeIdentity(envelope, processing.getFileName());
                 if (envelope.claimedAt() != null && envelope.claimedAt().isAfter(staleBefore)) {
                     continue;
                 }
                 TransactionLogFallbackEnvelope released = envelope.released(now, "STALE_PROCESSING_RECLAIMED");
-                writeAtomically(pendingPath(envelope.recoveryEventId()), objectMapper.writeValueAsBytes(released), false);
-                Files.deleteIfExists(processing);
+                writeAtomically(processing, objectMapper.writeValueAsBytes(released), true);
+                moveAtomically(processing, pendingPath(envelope.recoveryEventId()), false);
                 reclaimed++;
                 staleReclaimedCount.incrementAndGet();
-            } catch (IOException ex) {
+            } catch (IOException | RuntimeException ex) {
                 moveMalformedToPoison(processing);
             }
         }
@@ -252,6 +325,7 @@ public class TransactionLogFallbackStore {
                 staleReclaimedCount.get(),
                 malformedPoisonCount.get(),
                 poisonRetryCount.get(),
+                staleClaimConflictCount.get(),
                 spoolRelativeDirectory);
     }
 
@@ -291,38 +365,74 @@ public class TransactionLogFallbackStore {
         return result;
     }
 
-    private String recoveryEventId(TransactionLogRecord record) {
-        String source = text(record.getTransactionId(), "NO_GLOBAL_ID") + '|'
-                + text(record.getSpanId(), "ROOT") + '|'
-                + text(record.getLogType(), "TRANSACTION_FINAL") + '|'
-                + (record.getSequenceNo() == null ? 1 : record.getSequenceNo());
+    private boolean writePendingWithCapacityLock(
+            Path target, byte[] body, String recoveryEventId) throws IOException {
+        LocalCapacityLock localLock = retainLocalCapacityLock(capacityLockFile);
         try {
-            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256")
-                    .digest(source.getBytes(StandardCharsets.UTF_8)));
-        } catch (Exception ex) {
-            throw new IllegalStateException("복구 이벤트 중복 방지 ID를 만들 수 없습니다.", ex);
+            synchronized (localLock.monitor()) {
+                Files.createDirectories(capacityLockFile.getParent());
+                try (FileChannel channel = FileChannel.open(
+                        capacityLockFile,
+                        StandardOpenOption.CREATE,
+                        StandardOpenOption.WRITE);
+                     FileLock lock = channel.lock()) {
+                    if (!lock.isValid()) {
+                        throw new IOException("capacity lock acquisition failed");
+                    }
+                    if (Files.exists(target, LinkOption.NOFOLLOW_LINKS)
+                            || Files.exists(processingPath(recoveryEventId), LinkOption.NOFOLLOW_LINKS)
+                            || Files.exists(poisonPath(recoveryEventId), LinkOption.NOFOLLOW_LINKS)) {
+                        return false;
+                    }
+                    ensureCapacity(body.length);
+                    writeAtomically(target, body, false);
+                    return true;
+                }
+            }
+        } finally {
+            releaseLocalCapacityLock(capacityLockFile, localLock);
         }
     }
 
+    static int localCapacityLockCount() {
+        return LOCAL_CAPACITY_LOCKS.size();
+    }
+
+    private static LocalCapacityLock retainLocalCapacityLock(Path key) {
+        return LOCAL_CAPACITY_LOCKS.compute(key, (ignored, current) -> {
+            LocalCapacityLock selected = current == null ? new LocalCapacityLock() : current;
+            selected.retain();
+            return selected;
+        });
+    }
+
+    private static void releaseLocalCapacityLock(Path key, LocalCapacityLock expected) {
+        LOCAL_CAPACITY_LOCKS.computeIfPresent(key, (ignored, current) -> {
+            if (current != expected) return current;
+            return current.release() == 0 ? null : current;
+        });
+    }
+
     private void ensureCapacity(long incomingBytes) {
-        if (incomingBytes < 0 || spoolSizeBytes() + incomingBytes > maxSpoolBytes) {
+        if (incomingBytes < 0L) {
+            throw new IllegalArgumentException("incoming journal size must be non-negative");
+        }
+        long currentBytes = spoolSizeBytes();
+        if (currentBytes > maxSpoolBytes || incomingBytes > maxSpoolBytes - currentBytes) {
             throw new IllegalStateException("DB 거래 로그 복구 journal 용량 제한을 초과했습니다.");
         }
     }
 
     private long spoolSizeBytes() {
         try (Stream<Path> stream = Files.walk(pendingDirectory.getParent())) {
-            return stream.filter(Files::isRegularFile)
-                    .mapToLong(path -> {
-                        try {
-                            return Files.size(path);
-                        } catch (IOException ex) {
-                            return 0L;
-                        }
-                    })
-                    .sum();
-        } catch (IOException ex) {
-            return 0L;
+            long total = 0L;
+            for (Path path : stream.filter(Files::isRegularFile).toList()) {
+                total = Math.addExact(total, Files.size(path));
+            }
+            return total;
+        } catch (IOException | ArithmeticException ex) {
+            enqueueFailureCount.incrementAndGet();
+            throw new IllegalStateException("DB 거래 로그 복구 journal 용량을 안전하게 계산할 수 없습니다.", ex);
         }
     }
 
@@ -334,10 +444,6 @@ public class TransactionLogFallbackStore {
         } catch (IOException ex) {
             throw new IllegalStateException("DB 거래 로그 복구 디렉터리를 초기화할 수 없습니다.", ex);
         }
-    }
-
-    private void restoreInterruptedClaims() {
-        reclaimStaleProcessing(clock.instant(), Duration.ZERO);
     }
 
     private void restoreClaimAfterReadFailure(Path processing) {
@@ -365,37 +471,118 @@ public class TransactionLogFallbackStore {
 
     private List<Path> listJsonFiles(Path directory) {
         try (Stream<Path> stream = Files.list(directory)) {
-            return stream.filter(path -> Files.isRegularFile(path) && path.getFileName().toString().endsWith(".json"))
+            return stream.filter(path -> Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS)
+                            && !Files.isSymbolicLink(path)
+                            && path.getFileName().toString().endsWith(".json"))
                     .sorted()
                     .toList();
         } catch (IOException ex) {
+            enqueueFailureCount.incrementAndGet();
             return List.of();
         }
     }
 
     private Path requireDirectChild(Path directory, Path file) {
+        if (file == null) {
+            throw new IllegalArgumentException("recovery journal path is required");
+        }
+        Path normalizedDirectory = directory.toAbsolutePath().normalize();
         Path normalized = file.toAbsolutePath().normalize();
-        if (!normalized.getParent().equals(directory.toAbsolutePath().normalize())) {
+        if (!normalized.getParent().equals(normalizedDirectory)) {
             throw new IllegalArgumentException("복구 journal 경로가 허용된 디렉터리를 벗어났습니다.");
+        }
+        if (Files.isSymbolicLink(normalized)
+                || !Files.isRegularFile(normalized, LinkOption.NOFOLLOW_LINKS)) {
+            throw new IllegalArgumentException("복구 journal은 일반 파일이어야 합니다.");
+        }
+        return normalized;
+    }
+
+    private Path requireOwnedProcessing(TransactionLogFallbackEnvelope expected) throws IOException {
+        if (expected == null) {
+            throw new IllegalArgumentException("claimed recovery envelope is required");
+        }
+        Path processing = processingPath(expected.recoveryEventId());
+        if (!Files.isRegularFile(processing, LinkOption.NOFOLLOW_LINKS) || Files.isSymbolicLink(processing)) {
+            staleClaimConflictCount.incrementAndGet();
+            throw new IOException("claimed recovery journal is no longer processing");
+        }
+        TransactionLogFallbackEnvelope current = objectMapper.readValue(
+                processing.toFile(), TransactionLogFallbackEnvelope.class);
+        validateEnvelopeIdentity(current, processing.getFileName());
+        if (!sameClaimOwner(current, expected)) {
+            staleClaimConflictCount.incrementAndGet();
+            throw new IOException("recovery journal claim was replaced or reclaimed");
+        }
+        return processing;
+    }
+
+    private static boolean sameClaim(
+            TransactionLogFallbackEnvelope current, TransactionLogFallbackEnvelope expected) {
+        return sameClaimOwner(current, expected)
+                && current.attemptCount() == expected.attemptCount();
+    }
+
+    /**
+     * Ownership fencing is based on the unguessable claim token and claimant identity. Retry and
+     * poison envelopes intentionally carry the incremented attempt count, so attemptCount cannot
+     * participate in ownership validation for those transitions.
+     */
+    private static boolean sameClaimOwner(
+            TransactionLogFallbackEnvelope current, TransactionLogFallbackEnvelope expected) {
+        if (current == null || expected == null
+                || current.claimToken() == null || expected.claimToken() == null) {
+            return false;
+        }
+        return java.security.MessageDigest.isEqual(
+                        current.claimToken().getBytes(java.nio.charset.StandardCharsets.US_ASCII),
+                        expected.claimToken().getBytes(java.nio.charset.StandardCharsets.US_ASCII))
+                && java.util.Objects.equals(current.claimedBy(), expected.claimedBy())
+                && java.util.Objects.equals(current.claimedAt(), expected.claimedAt());
+    }
+
+    private void validateEnvelopeIdentity(
+            TransactionLogFallbackEnvelope envelope, Path fileName) throws IOException {
+        if (envelope == null) throw new IOException("recovery envelope is required");
+        String id = requireRecoveryEventId(envelope.recoveryEventId());
+        if (fileName == null || !fileName.toString().equals(id + ".json")) {
+            throw new IOException("recovery envelope id does not match journal file");
+        }
+    }
+
+    private String requireRecoveryEventId(String id) {
+        String normalized = id == null ? "" : id.trim().toLowerCase(Locale.ROOT);
+        if (!RECOVERY_EVENT_ID.matcher(normalized).matches()) {
+            throw new IllegalArgumentException("invalid recovery event id");
         }
         return normalized;
     }
 
     private Path pendingPath(String id) {
-        return pendingDirectory.resolve(id + ".json");
+        return journalPath(pendingDirectory, id);
     }
 
     private Path processingPath(String id) {
-        return processingDirectory.resolve(id + ".json");
+        return journalPath(processingDirectory, id);
     }
 
     private Path poisonPath(String id) {
-        return poisonDirectory.resolve(id + ".json");
+        return journalPath(poisonDirectory, id);
+    }
+
+    private Path journalPath(Path directory, String id) {
+        Path normalizedDirectory = directory.toAbsolutePath().normalize();
+        Path target = normalizedDirectory.resolve(requireRecoveryEventId(id) + ".json").normalize();
+        if (!target.getParent().equals(normalizedDirectory)) {
+            throw new IllegalArgumentException("recovery journal path escapes its directory");
+        }
+        return target;
     }
 
     private void writeAtomically(Path target, byte[] body, boolean replace) throws IOException {
         Files.createDirectories(target.getParent());
-        Path temporary = target.resolveSibling(target.getFileName() + ".tmp-" + Thread.currentThread().threadId());
+        Path temporary = target.resolveSibling(target.getFileName() + ".tmp-"
+                + Thread.currentThread().threadId() + "-" + UUID.randomUUID());
         try {
             Files.write(temporary, body, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
             moveAtomically(temporary, target, replace);
@@ -442,6 +629,12 @@ public class TransactionLogFallbackStore {
         return value == null || value.isBlank() ? fallback : value.trim().toUpperCase(Locale.ROOT);
     }
 
+    public enum PoisonRetryStoreResult {
+        RETRIED,
+        NOT_FOUND,
+        STALE_ATTEMPT
+    }
+
     public record FallbackSnapshot(
             int pendingCount,
             int processingCount,
@@ -452,9 +645,10 @@ public class TransactionLogFallbackStore {
             long staleReclaimedCount,
             long malformedPoisonCount,
             long poisonRetryCount,
+            long staleClaimConflictCount,
             String spoolDirectory) {
         public String health() {
-            if (enqueueFailureCount > 0 || spoolBytes >= maxSpoolBytes) {
+            if (enqueueFailureCount > 0 || staleClaimConflictCount > 0 || spoolBytes >= maxSpoolBytes) {
                 return "DOWN";
             }
             if (poisonCount > 0 || pendingCount > 0 || processingCount > 0) {
@@ -466,4 +660,28 @@ public class TransactionLogFallbackStore {
 
     private record EligibleFile(Path path, Instant firstFailedAt, String recoveryEventId) {
     }
+
+    private static final class LocalCapacityLock {
+        private final Object monitor = new Object();
+        private int users;
+
+        synchronized void retain() {
+            if (users == Integer.MAX_VALUE) {
+                throw new IllegalStateException("local capacity lock user count exhausted");
+            }
+            users++;
+        }
+
+        synchronized int release() {
+            if (users < 1) {
+                throw new IllegalStateException("local capacity lock user count underflow");
+            }
+            return --users;
+        }
+
+        Object monitor() {
+            return monitor;
+        }
+    }
+
 }

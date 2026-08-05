@@ -1,0 +1,184 @@
+{
+  "properties": [
+    {
+      "name": "cpf.logging.dynamic-level.enabled",
+      "type": "java.lang.Boolean",
+      "defaultValue": true,
+      "description": "Enables the local dynamic log-level registry and trace-boost consumer wiring."
+    },
+    {
+      "name": "cpf.logging.dynamic-level.max-active-rules",
+      "type": "java.lang.Integer",
+      "defaultValue": 2048,
+      "description": "Maximum number of active local dynamic log-level rules."
+    },
+    {
+      "name": "cpf.logging.dynamic-level.max-audit-records",
+      "type": "java.lang.Integer",
+      "defaultValue": 10000,
+      "description": "Maximum retained in-memory audit records for dynamic log-level commands; oldest entries are dropped with a counter."
+    },
+    {
+      "name": "cpf.logging.dynamic-level.max-ttl",
+      "type": "java.time.Duration",
+      "defaultValue": "24h",
+      "description": "Maximum TTL accepted for one dynamic log-level rule."
+    },
+    {
+      "name": "cpf.logging.file.process-lock-timeout-ms",
+      "type": "java.lang.Long",
+      "defaultValue": 5000,
+      "description": "Bounded wait for the OS file lock used by cross-process append, restore and retention operations."
+    },
+    {
+      "name": "cpf.logging.policy-version.in-memory.command-ttl",
+      "type": "java.time.Duration",
+      "defaultValue": "7d",
+      "description": "Retention window for log-policy command idempotency records."
+    },
+    {
+      "name": "cpf.logging.policy-version.in-memory.maximum-command-records",
+      "type": "java.lang.Integer",
+      "defaultValue": 16384,
+      "description": "Maximum retained idempotency command records."
+    },
+    {
+      "name": "cpf.logging.policy-version.in-memory.maximum-history-per-target",
+      "type": "java.lang.Integer",
+      "defaultValue": 128,
+      "description": "Maximum retained versions per managed log-policy target."
+    },
+    {
+      "name": "cpf.logging.policy-version.in-memory.maximum-targets",
+      "type": "java.lang.Integer",
+      "defaultValue": 4096,
+      "description": "Maximum managed target keys in the explicit single-JVM provider."
+    },
+    {
+      "name": "cpf.logging.policy-version.mode",
+      "type": "java.lang.String",
+      "defaultValue": "disabled",
+      "description": "Versioned log-policy control-plane mode. in-memory is single-JVM only; shared deployments provide a durable store."
+    },
+    {
+      "name": "cpf.remote-log.bundle-job.download-token-ttl-seconds",
+      "type": "java.lang.Long",
+      "defaultValue": 300,
+      "description": "Lifetime of a one-time download grant token."
+    },
+    {
+      "name": "cpf.remote-log.bundle-job.job-ttl-seconds",
+      "type": "java.lang.Long",
+      "defaultValue": 900,
+      "description": "Maximum lifetime of one bundle job and artifact."
+    },
+    {
+      "name": "cpf.remote-log.bundle-job.max-active-jobs",
+      "type": "java.lang.Integer",
+      "defaultValue": 4,
+      "description": "Maximum active bundle jobs in one runtime."
+    },
+    {
+      "name": "cpf.remote-log.bundle-job.max-artifacts-per-job",
+      "type": "java.lang.Integer",
+      "defaultValue": 100,
+      "description": "Maximum distinct artifacts in one bundle job."
+    },
+    {
+      "name": "cpf.remote-log.bundle-job.max-requests-per-minute",
+      "type": "java.lang.Integer",
+      "defaultValue": 10,
+      "description": "Per-owner bundle submission rate limit."
+    },
+    {
+      "name": "cpf.remote-log.bundle-job.max-retained-jobs",
+      "type": "java.lang.Integer",
+      "defaultValue": 1000,
+      "description": "Maximum retained job metadata before new submissions fail closed."
+    },
+    {
+      "name": "cpf.remote-log.bundle-job.queue-capacity",
+      "type": "java.lang.Integer",
+      "defaultValue": 100,
+      "description": "Bounded in-memory queue for bundle jobs."
+    },
+    {
+      "name": "cpf.remote-log.bundle-job.worker-count",
+      "type": "java.lang.Integer",
+      "defaultValue": 1,
+      "description": "Bounded worker count for remote-log bundle creation."
+    },
+    {
+      "name": "cpf.security.masking-policy.in-memory.command-ttl",
+      "type": "java.time.Duration",
+      "defaultValue": "7d",
+      "description": "Retention window for masking policy command idempotency records."
+    },
+    {
+      "name": "cpf.security.masking-policy.in-memory.maximum-command-records",
+      "type": "java.lang.Integer",
+      "defaultValue": 4096,
+      "description": "Maximum retained idempotency command records in the explicit single-JVM provider."
+    },
+    {
+      "name": "cpf.security.masking-policy.in-memory.maximum-history",
+      "type": "java.lang.Integer",
+      "defaultValue": 128,
+      "description": "Maximum retained masking policy versions in the explicit single-JVM provider."
+    },
+    {
+      "name": "cpf.security.masking-policy.mode",
+      "type": "java.lang.String",
+      "defaultValue": "disabled",
+      "description": "Masking policy store mode: disabled, in-memory for single-JVM development, or jdbc for shared durable optimistic control."
+    },
+    {
+      "name": "cpf.security.sensitive-access.in-memory.maximum-grants",
+      "type": "java.lang.Integer",
+      "defaultValue": 10000,
+      "description": "Maximum retained raw-access approval grants in the explicit single-JVM provider."
+    },
+    {
+      "name": "cpf.security.sensitive-access.in-memory.terminal-retention",
+      "type": "java.time.Duration",
+      "defaultValue": "24h",
+      "description": "Retention window for terminal raw-access grants to preserve idempotent replay and prevent request-id reuse."
+    },
+    {
+      "name": "cpf.security.sensitive-access.mode",
+      "type": "java.lang.String",
+      "defaultValue": "disabled",
+      "description": "Sensitive raw-access provider mode. Use in-memory only for single-JVM development; shared deployments provide a durable CAS store."
+    },
+    {
+      "name": "cpf.state.in-memory.command-ttl",
+      "type": "java.time.Duration",
+      "defaultValue": "24h",
+      "description": "Retention window for in-memory state idempotency command records."
+    },
+    {
+      "name": "cpf.state.in-memory.maximum-operations-per-state",
+      "type": "java.lang.Integer",
+      "defaultValue": 64,
+      "description": "Maximum retained idempotency commands per configured state capacity unit."
+    },
+    {
+      "name": "cpf.state.in-memory.maximum-states",
+      "type": "java.lang.Integer",
+      "defaultValue": 10000,
+      "description": "Maximum state records held by the explicit single-JVM in-memory provider."
+    },
+    {
+      "name": "cpf.state.mode",
+      "type": "java.lang.String",
+      "defaultValue": "disabled",
+      "description": "State provider mode. Use in-memory only for single-JVM development; shared deployments must provide a durable CpfStateStore."
+    },
+    {
+      "name": "cpf.tracing.sampling.maximum-override-entries",
+      "type": "java.lang.Integer",
+      "defaultValue": 4096,
+      "description": "Maximum combined module and business-transaction trace sampling overrides."
+    }
+  ]
+}

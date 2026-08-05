@@ -26,6 +26,19 @@ public final class CpfRuntimeCanonicalHash {
         }
     }
 
+    /** Canonical DB의 CHAR/VARCHAR(64) evidence 계약에 사용하는 소문자 SHA-256 hex입니다. */
+    public static String sha256Hex(Object value) {
+        try {
+            byte[] bytes = MessageDigest.getInstance("SHA-256")
+                    .digest(canonical(value).getBytes(StandardCharsets.UTF_8));
+            StringBuilder out = new StringBuilder(64);
+            for (byte item : bytes) out.append(String.format(java.util.Locale.ROOT, "%02x", item & 0xff));
+            return out.toString();
+        } catch (Exception ex) {
+            throw new IllegalStateException("Runtime canonical SHA-256 hex 생성에 실패했습니다.", ex);
+        }
+    }
+
     static String canonical(Object value) {
         if (value == null) return "null";
         if (value instanceof CpfRuntimePayload payload) return payload.canonicalJson();

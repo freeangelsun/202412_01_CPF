@@ -2,3 +2,8 @@ com.cpf.core.config.CpfExceptionAutoConfiguration
 com.cpf.core.config.CpfTransactionMetaAutoConfiguration
 com.cpf.core.config.CpfPublicBoundaryAutoConfiguration
 com.cpf.core.config.CpfSagaAutoConfiguration
+com.cpf.core.config.CpfLoggingRuntimeAutoConfiguration
+com.cpf.core.config.CpfStateRuntimeAutoConfiguration
+com.cpf.core.config.CpfRemoteLogAutoConfiguration
+com.cpf.core.config.CpfMaskingPolicyAutoConfiguration
+com.cpf.core.config.CpfLogPolicyVersionAutoConfiguration

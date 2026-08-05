@@ -46,6 +46,31 @@ mybatis:
 
 cpf:
   environment: ${CPF_ENV:local}
+  security:
+    masking-policy:
+      # Disabled by default. Use jdbc for shared deployments; in-memory is single-JVM only.
+      mode: ${CPF_MASKING_POLICY_MODE:disabled}
+      in-memory:
+        maximum-history: ${CPF_MASKING_POLICY_MAXIMUM_HISTORY:128}
+        maximum-command-records: ${CPF_MASKING_POLICY_MAXIMUM_COMMAND_RECORDS:4096}
+        command-ttl: ${CPF_MASKING_POLICY_COMMAND_TTL:7d}
+      jdbc:
+        maximum-history: ${CPF_MASKING_POLICY_JDBC_MAXIMUM_HISTORY:256}
+        maximum-command-records: ${CPF_MASKING_POLICY_JDBC_MAXIMUM_COMMAND_RECORDS:16384}
+        command-ttl: ${CPF_MASKING_POLICY_JDBC_COMMAND_TTL:7d}
+    sensitive-access:
+      # Disabled by default. Raw access requires explicit enablement and an audit sink.
+      mode: ${CPF_SENSITIVE_ACCESS_MODE:disabled}
+      in-memory:
+        maximum-grants: ${CPF_SENSITIVE_ACCESS_MAXIMUM_GRANTS:10000}
+        terminal-retention: ${CPF_SENSITIVE_ACCESS_TERMINAL_RETENTION:24h}
+  state:
+    # Disabled by default. in-memory is single-JVM only; shared deployments provide a durable CpfStateStore.
+    mode: ${CPF_STATE_MODE:disabled}
+    in-memory:
+      maximum-states: ${CPF_STATE_MAXIMUM_STATES:10000}
+      maximum-operations-per-state: ${CPF_STATE_MAXIMUM_OPERATIONS_PER_STATE:64}
+      command-ttl: ${CPF_STATE_COMMAND_TTL:24h}
   repository-root: ${CPF_REPOSITORY_ROOT:}
   framework:
     # 실행 모듈은 자체 코드를 주입하며, cpf-core 단독 기본 시스템 코드는 CPF입니다.
@@ -99,6 +124,19 @@ cpf:
       base-url: ${CPF_SERVICE_REF_URL:http://localhost:8099}
       description: REF 온라인 교육 서비스
   logging:
+    policy-version:
+      # Disabled by default. in-memory is single-JVM only; shared deployments require a durable provider.
+      mode: ${CPF_LOG_POLICY_VERSION_MODE:disabled}
+      in-memory:
+        maximum-targets: ${CPF_LOG_POLICY_VERSION_MAXIMUM_TARGETS:4096}
+        maximum-history-per-target: ${CPF_LOG_POLICY_VERSION_MAXIMUM_HISTORY_PER_TARGET:128}
+        maximum-command-records: ${CPF_LOG_POLICY_VERSION_MAXIMUM_COMMAND_RECORDS:16384}
+        command-ttl: ${CPF_LOG_POLICY_VERSION_COMMAND_TTL:7d}
+    async:
+      enabled: ${CPF_LOGGING_ASYNC_ENABLED:true}
+      worker-count: ${CPF_LOGGING_ASYNC_WORKER_COUNT:2}
+      queue-capacity: ${CPF_LOGGING_ASYNC_QUEUE_CAPACITY:4096}
+      shutdown-wait-ms: ${CPF_LOGGING_ASYNC_SHUTDOWN_WAIT_MS:10000}
     db-fallback:
       enabled: ${CPF_DB_LOG_FALLBACK_ENABLED:true}
       max-spool-bytes: ${CPF_DB_LOG_FALLBACK_MAX_BYTES:268435456}
@@ -135,6 +173,7 @@ cpf:
       timezone: ${CPF_LOG_TIMEZONE:Asia/Seoul}
       max-history-days: ${CPF_LOG_MAX_HISTORY_DAYS:30}
       retention-check-interval-ms: ${CPF_LOG_RETENTION_CHECK_INTERVAL_MS:60000}
+      process-lock-timeout-ms: ${CPF_LOG_PROCESS_LOCK_TIMEOUT_MS:5000}
       total-size-cap: ${CPF_LOG_TOTAL_SIZE_CAP:2GB}
       archive-compress-enabled: ${CPF_LOG_ARCHIVE_COMPRESS_ENABLED:true}
       initialization-fail-fast: ${CPF_LOG_INIT_FAIL_FAST:false}
@@ -149,11 +188,44 @@ cpf:
       enabled: ${CPF_LOGGING_MASKING_ENABLED:true}
     dynamic-level:
       enabled: ${CPF_DYNAMIC_LOG_LEVEL_ENABLED:true}
+      max-ttl: ${CPF_DYNAMIC_LOG_LEVEL_MAX_TTL:24h}
+      max-active-rules: ${CPF_DYNAMIC_LOG_LEVEL_MAX_ACTIVE_RULES:2048}
+      max-audit-records: ${CPF_DYNAMIC_LOG_LEVEL_MAX_AUDIT_RECORDS:10000}
+  tracing:
+    sampling:
+      maximum-override-entries: ${CPF_TRACE_SAMPLING_MAXIMUM_OVERRIDE_ENTRIES:4096}
   remote-log:
+    local:
+      # Disabled by default. Enable only on an execution instance that owns the configured log root.
+      enabled: ${CPF_REMOTE_LOG_LOCAL_ENABLED:false}
+      root: ${CPF_REMOTE_LOG_LOCAL_ROOT:${CPF_LOG_ROOT:}}
+      module: ${CPF_REMOTE_LOG_LOCAL_MODULE:${CPF_MODULE_CODE:CPF}}
+      service: ${CPF_REMOTE_LOG_LOCAL_SERVICE:${spring.application.name:cpf-core}}
+      instance: ${CPF_REMOTE_LOG_LOCAL_INSTANCE:${CPF_INSTANCE_ID:local-1}}
+      retention: ${CPF_REMOTE_LOG_LOCAL_RETENTION:30d}
+      active-window: ${CPF_REMOTE_LOG_LOCAL_ACTIVE_WINDOW:2m}
+      bundle-ttl: ${CPF_REMOTE_LOG_LOCAL_BUNDLE_TTL:15m}
+      maximum-depth: ${CPF_REMOTE_LOG_LOCAL_MAXIMUM_DEPTH:16}
+      maximum-scanned-files: ${CPF_REMOTE_LOG_LOCAL_MAXIMUM_SCANNED_FILES:100000}
+      maximum-preview-lines: ${CPF_REMOTE_LOG_LOCAL_MAXIMUM_PREVIEW_LINES:1000}
+      maximum-search-bytes: ${CPF_REMOTE_LOG_LOCAL_MAXIMUM_SEARCH_BYTES:8388608}
+      maximum-preview-bytes: ${CPF_REMOTE_LOG_LOCAL_MAXIMUM_PREVIEW_BYTES:4194304}
+      maximum-preview-decoded-characters: ${CPF_REMOTE_LOG_LOCAL_MAXIMUM_PREVIEW_DECODED_CHARACTERS:16777216}
+      maximum-raw-line-characters: ${CPF_REMOTE_LOG_LOCAL_MAXIMUM_RAW_LINE_CHARACTERS:16384}
+      maximum-download-bytes: ${CPF_REMOTE_LOG_LOCAL_MAXIMUM_DOWNLOAD_BYTES:536870912}
+      maximum-bundle-bytes: ${CPF_REMOTE_LOG_LOCAL_MAXIMUM_BUNDLE_BYTES:2147483648}
+      maximum-bundle-artifacts: ${CPF_REMOTE_LOG_LOCAL_MAXIMUM_BUNDLE_ARTIFACTS:100}
+      # Raw direct download remains disabled unless the producer guarantees masking before write.
+      source-already-masked: ${CPF_REMOTE_LOG_LOCAL_SOURCE_ALREADY_MASKED:false}
     bundle-job:
       # 기본 adapter는 단일 ADM 인스턴스용이며 운영 cluster에서는 분산 queue adapter로 교체합니다.
+      worker-count: ${CPF_REMOTE_LOG_BUNDLE_WORKER_COUNT:1}
+      queue-capacity: ${CPF_REMOTE_LOG_BUNDLE_QUEUE_CAPACITY:100}
       max-requests-per-minute: ${CPF_REMOTE_LOG_BUNDLE_MAX_REQUESTS_PER_MINUTE:10}
       max-active-jobs: ${CPF_REMOTE_LOG_BUNDLE_MAX_ACTIVE_JOBS:4}
+      max-retained-jobs: ${CPF_REMOTE_LOG_BUNDLE_MAX_RETAINED_JOBS:1000}
+      max-artifacts-per-job: ${CPF_REMOTE_LOG_BUNDLE_MAX_ARTIFACTS:100}
+      job-ttl-seconds: ${CPF_REMOTE_LOG_BUNDLE_JOB_TTL_SECONDS:900}
       download-token-ttl-seconds: ${CPF_REMOTE_LOG_DOWNLOAD_TOKEN_TTL_SECONDS:300}
 
 # Spring Boot debug 모드가 활성화되더라도 요청 DTO와 SQL bind 값은 로그에 출력하지 않습니다.

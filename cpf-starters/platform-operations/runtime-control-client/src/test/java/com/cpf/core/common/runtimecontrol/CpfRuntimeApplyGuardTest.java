@@ -117,6 +117,35 @@ class CpfRuntimeApplyGuardTest {
     }
 
     @Test
+    void timedOutTaskThatIgnoresInterruptKeepsBulkheadPermitUntilItActuallyStops() throws Exception {
+        CountDownLatch started = new CountDownLatch(1);
+        CountDownLatch release = new CountDownLatch(1);
+        AtomicInteger firstCalls = new AtomicInteger();
+        AtomicInteger secondCalls = new AtomicInteger();
+        try (CpfRuntimeApplyGuard guard = guard(40, 1, 1, 3, 1_000)) {
+            CpfRuntimeApplyResult timedOut = guard.execute(applier(firstCalls, ignored -> {
+                started.countDown();
+                while (release.getCount() > 0) {
+                    try {
+                        release.await(20, TimeUnit.MILLISECONDS);
+                    } catch (InterruptedException ignoredInterrupt) {
+                        // 외부 provider가 interrupt를 무시하는 최악의 경계를 재현합니다.
+                    }
+                }
+                return CpfRuntimeApplyResult.success("late");
+            }), delivery(Instant.now().plusSeconds(5)));
+
+            assertTrue(started.await(1, TimeUnit.SECONDS));
+            assertTrue(timedOut.unknownResult());
+            CpfRuntimeApplyResult blocked = guard.execute(applier(secondCalls, ignored ->
+                    CpfRuntimeApplyResult.success("must-not-overlap")), delivery(Instant.now().plusSeconds(5)));
+            assertEquals("APPLY_BULKHEAD_FULL", blocked.errorCode());
+            assertEquals(0, secondCalls.get());
+            release.countDown();
+        }
+    }
+
+    @Test
     void bulkheadRejectsConcurrentApplyWithoutStartingSecondSideEffect() throws Exception {
         CountDownLatch firstStarted = new CountDownLatch(1);
         CountDownLatch releaseFirst = new CountDownLatch(1);
@@ -207,6 +236,67 @@ class CpfRuntimeApplyGuardTest {
         @Override
         public Instant instant() {
             return instant;
+        }
+    }
+
+
+    @Test
+    void safeFailureCleanupExceptionBecomesUnknownAndReleasesHalfOpenProbe() {
+        Instant base = Instant.parse("2026-08-05T00:00:00Z");
+        MutableClock clock = new MutableClock(base);
+        var policy = new CpfRuntimeApplyGuard.Policy(1_000, 2, 0, 0, 0, 1, 1, 10);
+        AtomicInteger calls = new AtomicInteger();
+        try (var guard = new CpfRuntimeApplyGuard(policy, clock, millis -> { }, () -> 0.5d)) {
+            CpfRuntimeApplyResult first = guard.execute(
+                    applier(calls, ignored -> CpfRuntimeApplyResult.failure("TEMPORARY_FAILURE", "retry")),
+                    delivery(base.plusSeconds(5)),
+                    () -> { },
+                    () -> { throw new IllegalStateException("journal cleanup failed"); });
+
+            assertTrue(first.unknownResult());
+            assertEquals("APPLY_SAFE_FAILURE_CLEANUP_UNKNOWN", first.errorCode());
+
+            clock.advanceMillis(11);
+            CpfRuntimeApplyResult probe = guard.execute(
+                    applier(calls, ignored -> CpfRuntimeApplyResult.success("hash-ok")),
+                    delivery(base.plusSeconds(5)));
+            assertTrue(probe.applied());
+        }
+    }
+
+    @Test
+    void closedGuardRejectsNewWorkAndCloseIsIdempotent() {
+        var guard = new CpfRuntimeApplyGuard(CpfRuntimeApplyGuard.Policy.defaults());
+        guard.close();
+        guard.close();
+        AtomicInteger calls = new AtomicInteger();
+
+        CpfRuntimeApplyResult result = guard.execute(
+                applier(calls, ignored -> CpfRuntimeApplyResult.success("unexpected")),
+                delivery(Instant.now().plusSeconds(5)));
+
+        assertFalse(result.applied());
+        assertFalse(result.unknownResult());
+        assertEquals("APPLY_GUARD_CLOSED", result.errorCode());
+        assertEquals(0, calls.get());
+    }
+
+
+    @Test
+    void zeroBackoffAllowsImmediateBoundedRetry() {
+        try (CpfRuntimeApplyGuard guard = new CpfRuntimeApplyGuard(new CpfRuntimeApplyGuard.Policy(
+                1_000L, 2, 0L, 0L, 0, 1, 3, 1_000L))) {
+            for (int iteration = 0; iteration < 50; iteration++) {
+                AtomicInteger calls = new AtomicInteger();
+                CpfRuntimeChangeApplier applier = applier(calls, attempt -> attempt == 1
+                        ? CpfRuntimeApplyResult.failure("TRANSIENT_FAILURE", "retry")
+                        : CpfRuntimeApplyResult.success("actual-hash"));
+
+                CpfRuntimeApplyResult result = guard.execute(applier, delivery(Instant.now().plusSeconds(5)));
+
+                assertTrue(result.applied(), "immediate retry iteration=" + iteration);
+                assertEquals(2, calls.get(), "immediate retry call count iteration=" + iteration);
+            }
         }
     }
 

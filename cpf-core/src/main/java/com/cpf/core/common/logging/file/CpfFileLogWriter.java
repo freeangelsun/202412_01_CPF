@@ -7,6 +7,7 @@ import com.cpf.core.common.logging.ServerInstanceIdentity;
 import com.cpf.core.common.logging.TransactionContext;
 import com.cpf.core.common.logging.TransactionLogRecord;
 import com.cpf.core.common.logging.CpfTransactionContextAnomalyMonitor;
+import com.cpf.core.api.logging.CpfFileLogRuntimeStatus;
 import com.cpf.core.api.logging.policy.LogPolicyDecision;
 import com.cpf.core.common.logging.segment.TransactionSegmentContext;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,11 +18,17 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InterruptedIOException;
 import java.io.OutputStream;
 import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
+import java.nio.channels.OverlappingFileLockException;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.StandardCopyOption;
@@ -41,7 +48,13 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Comparator;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.LockSupport;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
@@ -55,7 +68,7 @@ import java.util.zip.GZIPOutputStream;
  * {@code transactions/{businessDate}/{transactionId}_{businessDate}.log} 규칙을 사용합니다. 하나의 글로벌 거래에 속한 local/remote/integration/retry segment가 같은 파일 추적 키를 사용하므로 DB timeline과 파일 증적을 동일 키로 교차 조회할 수 있습니다.</p>
  */
 @Component
-public class CpfFileLogWriter {
+public final class CpfFileLogWriter implements CpfFileLogRuntimeStatus {
     private static final Logger log = LoggerFactory.getLogger(CpfFileLogWriter.class);
     private static final Pattern ISO_LOG_DATE_PATTERN = Pattern.compile("(?<!\\d)(\\d{4}-\\d{2}-\\d{2})(?!\\d)");
     private static final Pattern BASIC_LOG_DATE_PATTERN = Pattern.compile("(?<!\\d)(\\d{8})(?!\\d)");
@@ -64,8 +77,19 @@ public class CpfFileLogWriter {
     private final ZoneId logZoneId;
     private final CpfLogPathPolicy pathPolicy;
     private final ObjectMapper objectMapper;
-    private final Map<Path, Object> fileLocks = new ConcurrentHashMap<>();
-    private final Map<String, Long> nextRetentionCheckEpochMillis = new ConcurrentHashMap<>();
+    private final Map<Path, FileLockEntry> fileLocks = new ConcurrentHashMap<>();
+    private final AtomicLong nextRetentionCheckEpochMillis = new AtomicLong(Long.MIN_VALUE);
+    private final AtomicLong retentionRunCount = new AtomicLong();
+    private final AtomicLong retentionSkipCount = new AtomicLong();
+    private final AtomicLong compressedFileCount = new AtomicLong();
+    private final AtomicLong deletedFileCount = new AtomicLong();
+    private final AtomicLong retentionFailureCount = new AtomicLong();
+    private final AtomicLong processLockTimeoutCount = new AtomicLong();
+    private final AtomicLong writeFailureCount = new AtomicLong();
+    private final AtomicReference<Instant> lastRetentionStartedAt = new AtomicReference<>();
+    private final AtomicReference<Instant> lastRetentionCompletedAt = new AtomicReference<>();
+    private final AtomicReference<String> lastRetentionFailureType = new AtomicReference<>();
+    private final AtomicReference<String> lastWriteFailureType = new AtomicReference<>();
 
     @Autowired
     public CpfFileLogWriter(Environment environment) {
@@ -88,9 +112,17 @@ public class CpfFileLogWriter {
      * 온라인 거래 AOP가 수집한 요약 정보를 transaction/error 파일 로그로 남깁니다.
      */
     public void writeTransaction(TransactionLogRecord record, Map<String, String> details, LogPolicyDecision policy) {
+        writePreparedTransaction(prepareTransaction(record, details, policy));
+    }
+
+    PreparedTransactionLog prepareTransaction(
+            TransactionLogRecord record,
+            Map<String, String> details,
+            LogPolicyDecision policy) {
         if (record == null || !enabled("transaction")) {
-            return;
+            return PreparedTransactionLog.empty();
         }
+        List<PreparedFileLogEvent> prepared = new ArrayList<>(2);
         if (!hasText(record.getTransactionId()) || !hasText(record.getStandardExecutionId())) {
             long missingCount = CpfTransactionContextAnomalyMonitor.recordMissing("CpfFileLogWriter.writeTransaction");
             Map<String, Object> anomaly = baseEvent(record.getModuleId(), "error", policy, details);
@@ -100,8 +132,8 @@ public class CpfFileLogWriter {
             anomaly.put("missingTransactionId", !hasText(record.getTransactionId()));
             anomaly.put("missingStandardExecutionId", !hasText(record.getStandardExecutionId()));
             anomaly.put("missingContextCount", missingCount);
-            append(record.getModuleId(), "error", anomaly);
-            return;
+            prepared.add(PreparedFileLogEvent.module(record.getModuleId(), "error", immutableEvent(anomaly)));
+            return new PreparedTransactionLog(List.copyOf(prepared));
         }
 
         Map<String, Object> event = baseEvent(record.getModuleId(), "transaction", policy, details);
@@ -120,7 +152,6 @@ public class CpfFileLogWriter {
         event.put("failureMessageMasked", mask(record.getErrorMessage()));
         event.put("responseCode", record.getResponseCode());
         event.put("httpStatus", record.getHttpStatus());
-        event.put("standardExecutionId", record.getStandardExecutionId());
         event.put("traceId", record.getTraceId());
         event.put("spanId", record.getSpanId());
         event.put("requestHeadersMasked", detail(details, "resolvedHeaders"));
@@ -128,12 +159,79 @@ public class CpfFileLogWriter {
         LocalDate transactionBusinessDate = record.getStartTime() != null
                 ? record.getStartTime().toLocalDate()
                 : defaultBusinessDate();
-        appendTransaction(record.getTransactionId(), transactionBusinessDate, event);
+        prepared.add(PreparedFileLogEvent.transaction(
+                record.getTransactionId(), transactionBusinessDate, immutableEvent(event)));
         if ("FAILURE".equalsIgnoreCase(record.getLogType()) && enabled("error")) {
             Map<String, Object> errorEvent = new LinkedHashMap<>(event);
             errorEvent.put("logType", "error");
-            append(record.getModuleId(), "error", errorEvent);
+            prepared.add(PreparedFileLogEvent.module(
+                    record.getModuleId(), "error", immutableEvent(errorEvent)));
         }
+        return new PreparedTransactionLog(List.copyOf(prepared));
+    }
+
+    void writePreparedTransaction(PreparedTransactionLog prepared) {
+        writePreparedTransactionWithOutcome(prepared);
+    }
+
+    boolean writePreparedTransactionWithOutcome(PreparedTransactionLog prepared) {
+        if (prepared == null) return true;
+        boolean successful = true;
+        for (PreparedFileLogEvent item : prepared.events()) {
+            boolean itemSuccessful = item.target() == PreparedTarget.TRANSACTION
+                    ? appendTransactionWithOutcome(item.transactionId(), item.businessDate(), item.event())
+                    : appendWithOutcome(item.moduleCode(), item.logType(), item.event());
+            successful &= itemSuccessful;
+        }
+        return successful;
+    }
+
+    private static Map<String, Object> immutableEvent(Map<String, Object> source) {
+        return java.util.Collections.unmodifiableMap(new LinkedHashMap<>(source));
+    }
+
+    record PreparedTransactionLog(List<PreparedFileLogEvent> events) {
+        PreparedTransactionLog {
+            events = events == null ? List.of() : List.copyOf(events);
+        }
+
+        static PreparedTransactionLog empty() {
+            return new PreparedTransactionLog(List.of());
+        }
+
+        boolean emptyValue() {
+            return events.isEmpty();
+        }
+    }
+
+    record PreparedFileLogEvent(
+            PreparedTarget target,
+            String moduleCode,
+            String logType,
+            String transactionId,
+            LocalDate businessDate,
+            Map<String, Object> event) {
+        PreparedFileLogEvent {
+            target = java.util.Objects.requireNonNull(target, "target");
+            event = immutableEvent(java.util.Objects.requireNonNull(event, "event"));
+        }
+
+        static PreparedFileLogEvent module(String moduleCode, String logType, Map<String, Object> event) {
+            return new PreparedFileLogEvent(PreparedTarget.MODULE, moduleCode, logType, null, null, event);
+        }
+
+        static PreparedFileLogEvent transaction(
+                String transactionId,
+                LocalDate businessDate,
+                Map<String, Object> event) {
+            return new PreparedFileLogEvent(
+                    PreparedTarget.TRANSACTION, null, null, transactionId, businessDate, event);
+        }
+    }
+
+    enum PreparedTarget {
+        MODULE,
+        TRANSACTION
     }
 
     /**
@@ -195,10 +293,12 @@ public class CpfFileLogWriter {
     }
 
     public void writeEvent(String moduleCode, String logType, Map<String, Object> event) {
-        if (event == null) {
-            return;
-        }
-        append(moduleCode, logType, sanitizeMap(event));
+        writeEventWithOutcome(moduleCode, logType, event);
+    }
+
+    public boolean writeEventWithOutcome(String moduleCode, String logType, Map<String, Object> event) {
+        if (event == null) return true;
+        return appendWithOutcome(moduleCode, logType, sanitizeMap(event));
     }
 
     /**
@@ -206,10 +306,12 @@ public class CpfFileLogWriter {
      * 전달 경로는 환경 root 아래의 상대경로로만 해석합니다.
      */
     public void writeEventAtRelativePath(Path relativePath, Map<String, Object> event) {
-        if (relativePath == null || event == null || !enabled("file")) {
-            return;
-        }
-        appendToPath(pathPolicy.batchJobLogPath(relativePath), sanitizeMap(event));
+        writeEventAtRelativePathWithOutcome(relativePath, event);
+    }
+
+    public boolean writeEventAtRelativePathWithOutcome(Path relativePath, Map<String, Object> event) {
+        if (relativePath == null || event == null || !enabled("file")) return true;
+        return appendToPath(pathPolicy.batchJobLogPath(relativePath), sanitizeMap(event));
     }
 
     public Path logRoot() {
@@ -248,8 +350,47 @@ public class CpfFileLogWriter {
         return logZoneId;
     }
 
+    /** Visible for runtime diagnostics and leak regression tests. */
+    int retainedRetentionScheduleCount() {
+        return nextRetentionCheckEpochMillis.get() == Long.MIN_VALUE ? 0 : 1;
+    }
+
     public LocalDate currentLogDate() {
         return LocalDate.now(clock);
+    }
+
+    @Override
+    public FileLogRuntimeSnapshot fileLogRuntimeSnapshot() {
+        long runs = retentionRunCount.get();
+        long failures = retentionFailureCount.get();
+        long lockTimeouts = processLockTimeoutCount.get();
+        long writeFailures = writeFailureCount.get();
+        RetentionState state;
+        if (runs == 0L) {
+            state = failures > 0L || lockTimeouts > 0L || writeFailures > 0L
+                    ? RetentionState.DOWN : RetentionState.NEVER_RUN;
+        } else if (failures > 0L || lockTimeouts > 0L || writeFailures > 0L) {
+            state = RetentionState.DEGRADED;
+        } else {
+            state = RetentionState.HEALTHY;
+        }
+        return new FileLogRuntimeSnapshot(
+                runs,
+                retentionSkipCount.get(),
+                compressedFileCount.get(),
+                deletedFileCount.get(),
+                failures,
+                lockTimeouts,
+                lastRetentionStartedAt.get(),
+                lastRetentionCompletedAt.get(),
+                lastRetentionFailureType.get(),
+                state);
+    }
+
+    @Override
+    public FileWriteDiagnostics fileWriteDiagnostics() {
+        return new FileWriteDiagnostics(
+                writeFailureCount.get(), lastWriteFailureType.get(), clock.instant());
     }
 
     private void initializeLogRoot() {
@@ -273,7 +414,7 @@ public class CpfFileLogWriter {
             if (failFast) {
                 throw new IllegalStateException("CPF 로그 root 초기화에 실패했습니다.", ex);
             }
-            log.warn("CPF log root initialization failed. error={}", ex.getMessage());
+            log.warn("CPF log root initialization failed. error={}", SensitiveDataMasker.mask(ex.getMessage(), 512));
         }
     }
 
@@ -316,17 +457,22 @@ public class CpfFileLogWriter {
     }
 
     private void append(String moduleCode, String logType, Map<String, Object> event) {
-        if (!enabled("file") || !enabled(logType)) {
-            return;
-        }
-        appendToPath(resolveLogPath(moduleCode, logType), event);
+        appendWithOutcome(moduleCode, logType, event);
+    }
+
+    private boolean appendWithOutcome(String moduleCode, String logType, Map<String, Object> event) {
+        if (!enabled("file") || !enabled(logType)) return true;
+        return appendToPath(resolveLogPath(moduleCode, logType), event);
     }
 
     private void appendTransaction(String transactionId, LocalDate businessDate, Map<String, Object> event) {
-        if (!enabled("file") || !enabled("transaction")) {
-            return;
-        }
-        appendToPath(pathPolicy.transactionLogPath(transactionId, businessDate), sanitizeMap(event));
+        appendTransactionWithOutcome(transactionId, businessDate, event);
+    }
+
+    private boolean appendTransactionWithOutcome(
+            String transactionId, LocalDate businessDate, Map<String, Object> event) {
+        if (!enabled("file") || !enabled("transaction")) return true;
+        return appendToPath(pathPolicy.transactionLogPath(transactionId, businessDate), sanitizeMap(event));
     }
 
     private LocalDate defaultBusinessDate() {
@@ -334,25 +480,162 @@ public class CpfFileLogWriter {
         return contextDate != null ? contextDate : currentLogDate();
     }
 
-    private void appendToPath(Path logPath, Map<String, Object> event) {
+    private boolean appendToPath(Path logPath, Map<String, Object> event) {
         try {
             createDirectoriesWithSecurePermissions(logPath.getParent());
-            Object lock = fileLocks.computeIfAbsent(logPath, ignored -> new Object());
-            synchronized (lock) {
+            ensureSafeWritableLogPath(logPath);
+            FileLockEntry lock = acquireFileLock(logPath);
+            ProcessFileLock processGuard = acquireProcessFileLock(logPath);
+            try {
+                processGuard.ensureValid();
+                ensureSafeWritableLogPath(logPath);
                 restoreCompressedLog(logPath);
                 Files.writeString(
                         logPath,
                         toJson(event) + System.lineSeparator(),
                         StandardCharsets.UTF_8,
                         StandardOpenOption.CREATE,
-                        StandardOpenOption.APPEND);
+                        StandardOpenOption.APPEND,
+                        LinkOption.NOFOLLOW_LINKS);
                 applyFilePermissions(logPath);
-                applyRetentionOnce(logPath);
+            } finally {
+                try {
+                    processGuard.close();
+                } finally {
+                    releaseFileLock(logPath, lock);
+                }
             }
-        } catch (IOException ex) {
+        } catch (IOException | RuntimeException ex) {
+            writeFailureCount.incrementAndGet();
+            lastWriteFailureType.set(ex.getClass().getSimpleName());
             // 파일 로그 실패가 업무 응답 실패로 전파되지 않도록 표준 로그만 남깁니다.
-            log.warn("CPF file log write failed. path={}, error={}", logPath, ex.getMessage());
+            log.warn("CPF file log write failed. path={}, error={}",
+                    SensitiveDataMasker.mask(String.valueOf(logPath), 512),
+                    SensitiveDataMasker.mask(ex.getMessage(), 512));
+            return false;
         }
+        // Retention obtains candidate-specific locks after the active append lock is released.
+        // Retention failure is independently visible and never misreported as an append failure.
+        try {
+            applyRetentionOnce(logPath);
+        } catch (IOException | RuntimeException retentionFailure) {
+            retentionFailureCount.incrementAndGet();
+            lastRetentionFailureType.set(retentionFailure.getClass().getSimpleName());
+            log.warn("CPF file log retention failed. path={}, error={}",
+                    SensitiveDataMasker.mask(String.valueOf(logPath), 512),
+                    SensitiveDataMasker.mask(retentionFailure.getMessage(), 512));
+        }
+        return true;
+    }
+
+    private FileLockEntry acquireFileLock(Path path) {
+        Path key = logicalLockKey(path);
+        FileLockEntry entry = fileLocks.compute(key, (ignored, current) -> {
+            FileLockEntry selected = current == null ? new FileLockEntry() : current;
+            selected.references++;
+            return selected;
+        });
+        entry.lock.lock();
+        return entry;
+    }
+
+    private void releaseFileLock(Path path, FileLockEntry entry) {
+        Path key = logicalLockKey(path);
+        entry.lock.unlock();
+        fileLocks.computeIfPresent(key, (ignored, current) -> {
+            if (current != entry) return current;
+            current.references--;
+            return current.references == 0 && !current.lock.isLocked() && !current.lock.hasQueuedThreads()
+                    ? null : current;
+        });
+    }
+
+    private ProcessFileLock acquireProcessFileLock(Path protectedPath) throws IOException {
+        Path normalized = protectedPath.toAbsolutePath().normalize();
+        Path lockPath = normalized.resolveSibling("." + normalized.getFileName() + ".cpf-lock");
+        return acquireNamedProcessLock(lockPath);
+    }
+
+    private ProcessFileLock acquireNamedProcessLock(Path lockPath) throws IOException {
+        Path root = logRoot().toAbsolutePath().normalize();
+        Path normalized = lockPath.toAbsolutePath().normalize();
+        if (!normalized.startsWith(root)) {
+            throw new IOException("process lock path escapes CPF_LOG_ROOT: " + normalized);
+        }
+        createDirectoriesWithSecurePermissions(normalized.getParent());
+        if (Files.isSymbolicLink(normalized)) {
+            throw new IOException("symbolic process lock files are forbidden: " + normalized);
+        }
+        FileChannel channel = FileChannel.open(
+                normalized,
+                StandardOpenOption.CREATE,
+                StandardOpenOption.WRITE,
+                LinkOption.NOFOLLOW_LINKS);
+        try {
+            applyFilePermissions(normalized);
+            long timeoutMillis = bounded(
+                    environment.getProperty("cpf.logging.file.process-lock-timeout-ms", Long.class, 5_000L),
+                    1L, 60_000L, "cpf.logging.file.process-lock-timeout-ms");
+            long timeoutNanos = TimeUnit.MILLISECONDS.toNanos(timeoutMillis);
+            long started = System.nanoTime();
+            while (true) {
+                if (Thread.currentThread().isInterrupted()) {
+                    InterruptedIOException interrupted = new InterruptedIOException(
+                            "interrupted while acquiring CPF file process lock");
+                    Thread.currentThread().interrupt();
+                    throw interrupted;
+                }
+                try {
+                    FileLock lock = channel.tryLock();
+                    if (lock != null) return new ProcessFileLock(channel, lock);
+                } catch (OverlappingFileLockException busyInSameJvm) {
+                    // Another writer instance in this JVM owns the same OS lock. Retry within the bounded budget.
+                }
+                if (System.nanoTime() - started >= timeoutNanos) {
+                    processLockTimeoutCount.incrementAndGet();
+                    throw new IOException("timed out acquiring CPF file process lock: " + normalized);
+                }
+                LockSupport.parkNanos(Math.min(TimeUnit.MILLISECONDS.toNanos(10), timeoutNanos));
+            }
+        } catch (IOException | RuntimeException failure) {
+            channel.close();
+            throw failure;
+        }
+    }
+
+    private record ProcessFileLock(FileChannel channel, FileLock lock) implements AutoCloseable {
+        private ProcessFileLock {
+            java.util.Objects.requireNonNull(channel, "channel");
+            java.util.Objects.requireNonNull(lock, "lock");
+        }
+
+        private void ensureValid() throws IOException {
+            if (!channel.isOpen() || !lock.isValid()) {
+                throw new IOException("CPF file process lock is not valid");
+            }
+        }
+
+        @Override
+        public void close() throws IOException {
+            try {
+                lock.release();
+            } finally {
+                channel.close();
+            }
+        }
+    }
+
+    private Path logicalLockKey(Path path) {
+        Path normalized = path.toAbsolutePath().normalize();
+        String name = normalized.getFileName().toString();
+        if (name.endsWith(".gz")) {
+            return normalized.resolveSibling(name.substring(0, name.length() - 3));
+        }
+        return normalized;
+    }
+
+    int retainedLockEntryCount() {
+        return fileLocks.size();
     }
 
     private Path resolveLogPath(String moduleCode, String logType) {
@@ -389,10 +672,6 @@ public class CpfFileLogWriter {
     }
 
     private void applyPosixPermissions(Path path, String configured, boolean directory) throws IOException {
-        PosixFileAttributeView view = Files.getFileAttributeView(path, PosixFileAttributeView.class);
-        if (view == null) {
-            return;
-        }
         final Set<PosixFilePermission> permissions;
         try {
             permissions = PosixFilePermissions.fromString(configured);
@@ -408,50 +687,111 @@ public class CpfFileLogWriter {
         if (worldAccess && !allowWorldAccess) {
             throw new IOException("로그 권한에 others 접근을 허용할 수 없습니다: " + configured);
         }
-        view.setPermissions(permissions);
+        PosixFileAttributeView view = Files.getFileAttributeView(path, PosixFileAttributeView.class);
+        if (view != null) view.setPermissions(permissions);
+    }
+
+    private void ensureSafeWritableLogPath(Path path) throws IOException {
+        Path managedRoot = logRoot().toAbsolutePath().normalize();
+        Path normalized = path.toAbsolutePath().normalize();
+        if (!normalized.startsWith(managedRoot)) {
+            throw new IOException("log path escapes CPF_LOG_ROOT");
+        }
+        Path current = managedRoot;
+        for (Path part : managedRoot.relativize(normalized)) {
+            current = current.resolve(part);
+            if (Files.exists(current, LinkOption.NOFOLLOW_LINKS) && Files.isSymbolicLink(current)) {
+                throw new IOException("symbolic log path segments are forbidden");
+            }
+        }
+        Path rootReal = managedRoot.toRealPath();
+        Path parentReal = normalized.getParent().toRealPath();
+        if (!parentReal.startsWith(rootReal)) {
+            throw new IOException("log parent escapes CPF_LOG_ROOT");
+        }
+    }
+
+    private boolean isSafeManagedLogFile(Path path) {
+        try {
+            Path managedRoot = logRoot().toAbsolutePath().normalize();
+            Path normalized = path.toAbsolutePath().normalize();
+            return normalized.startsWith(managedRoot)
+                    && !Files.isSymbolicLink(normalized)
+                    && Files.isRegularFile(normalized, LinkOption.NOFOLLOW_LINKS);
+        } catch (RuntimeException failure) {
+            return false;
+        }
     }
 
     private void applyRetentionOnce(Path activeLogPath) throws IOException {
         if (!Files.isDirectory(logRoot()) || !shouldRunRetention()) {
+            retentionSkipCount.incrementAndGet();
             return;
         }
-        int maxHistoryDays = Math.max(1,
-                environment.getProperty("cpf.logging.file.max-history-days", Integer.class, 30));
+        retentionRunCount.incrementAndGet();
+        lastRetentionStartedAt.set(clock.instant());
+        ProcessFileLock retentionGuard = acquireNamedProcessLock(
+                pathPolicy.instanceRoot().resolve(".cpf-retention.lock"));
+        try {
+            retentionGuard.ensureValid();
+            int maxHistoryDays = bounded(
+                environment.getProperty("cpf.logging.file.max-history-days", Integer.class, 30),
+                1, 3_650, "cpf.logging.file.max-history-days");
         Instant cutoff = currentLogDate()
                 .minusDays(maxHistoryDays)
                 .atStartOfDay(logZoneId)
                 .toInstant();
         List<Path> candidates;
         try (var files = Files.walk(logRoot())) {
-            candidates = files.filter(Files::isRegularFile)
+            candidates = files.filter(this::isSafeManagedLogFile)
                     .filter(path -> path.getFileName().toString().matches(".*\\.log(?:\\.gz)?$"))
                     .toList();
         }
         for (Path candidate : candidates) {
-            if (logicalLogInstant(candidate).isBefore(cutoff)) {
-                Files.deleteIfExists(candidate);
+            if (logicalLockKey(candidate).equals(logicalLockKey(activeLogPath))) {
                 continue;
             }
-            if (archiveCompressionEnabled()
-                    && candidate.getFileName().toString().endsWith(".log")
-                    && !candidate.equals(activeLogPath)
-                    && isPreviousLogDate(candidate)) {
-                compressLog(candidate);
+            FileLockEntry candidateLock = acquireFileLock(candidate);
+            ProcessFileLock candidateGuard = acquireProcessFileLock(candidate);
+            try {
+                candidateGuard.ensureValid();
+                if (!isSafeManagedLogFile(candidate)) continue;
+                if (logicalLogInstant(candidate).isBefore(cutoff)) {
+                    if (Files.deleteIfExists(candidate)) {
+                        deletedFileCount.incrementAndGet();
+                    }
+                    continue;
+                }
+                if (archiveCompressionEnabled()
+                        && candidate.getFileName().toString().endsWith(".log")
+                        && isPreviousLogDate(candidate)) {
+                    compressLog(candidate);
+                }
+            } finally {
+                try {
+                    candidateGuard.close();
+                } finally {
+                    releaseFileLock(candidate, candidateLock);
+                }
             }
         }
         applyTotalSizeCap(activeLogPath);
+        lastRetentionCompletedAt.set(clock.instant());
+        } finally {
+            retentionGuard.close();
+        }
     }
 
     private synchronized boolean shouldRunRetention() {
-        long intervalMs = Math.max(0L,
-                environment.getProperty("cpf.logging.file.retention-check-interval-ms", Long.class, 60_000L));
-        String key = pathPolicy.instanceRoot() + "|" + currentLogDate();
+        long intervalMs = bounded(
+                environment.getProperty("cpf.logging.file.retention-check-interval-ms", Long.class, 60_000L),
+                0L, 86_400_000L, "cpf.logging.file.retention-check-interval-ms");
         long now = clock.millis();
-        Long nextCheck = nextRetentionCheckEpochMillis.get(key);
-        if (nextCheck != null && now < nextCheck) {
+        long nextCheck = nextRetentionCheckEpochMillis.get();
+        if (now < nextCheck) {
             return false;
         }
-        nextRetentionCheckEpochMillis.put(key, now + intervalMs);
+        nextRetentionCheckEpochMillis.set(saturatingAdd(now, intervalMs));
         return true;
     }
 
@@ -469,32 +809,49 @@ public class CpfFileLogWriter {
         }
         List<Path> files;
         try (var stream = Files.walk(logRoot())) {
-            files = stream.filter(Files::isRegularFile)
+            files = stream.filter(this::isSafeManagedLogFile)
                     .filter(path -> path.getFileName().toString().matches(".*\\.log(?:\\.gz)?$"))
                     .sorted(Comparator.comparing(this::lastModified))
                     .toList();
         }
         long total = 0L;
         for (Path file : files) {
-            total += Files.size(file);
+            try {
+                total = Math.addExact(total, Files.size(file));
+            } catch (ArithmeticException overflow) {
+                throw new IOException("log size total exceeds supported range", overflow);
+            }
         }
         for (Path file : files) {
             if (total <= capBytes) {
                 break;
             }
-            if (file.equals(activeLogPath)) {
+            if (logicalLockKey(file).equals(logicalLockKey(activeLogPath))) {
                 continue;
             }
-            long size = Files.size(file);
-            if (Files.deleteIfExists(file)) {
-                total -= size;
+            FileLockEntry candidateLock = acquireFileLock(file);
+            ProcessFileLock processGuard = acquireProcessFileLock(file);
+            try {
+                processGuard.ensureValid();
+                if (!isSafeManagedLogFile(file)) continue;
+                long size = Files.size(file);
+                if (Files.deleteIfExists(file)) {
+                    total -= size;
+                    deletedFileCount.incrementAndGet();
+                }
+            } finally {
+                try {
+                    processGuard.close();
+                } finally {
+                    releaseFileLock(file, candidateLock);
+                }
             }
         }
     }
 
     private Instant lastModified(Path path) {
         try {
-            return Files.getLastModifiedTime(path).toInstant();
+            return Files.getLastModifiedTime(path, LinkOption.NOFOLLOW_LINKS).toInstant();
         } catch (IOException ex) {
             return Instant.MAX;
         }
@@ -522,11 +879,19 @@ public class CpfFileLogWriter {
         String fileName = path.getFileName().toString();
         Matcher isoMatcher = ISO_LOG_DATE_PATTERN.matcher(fileName);
         if (isoMatcher.find()) {
-            return LocalDate.parse(isoMatcher.group(1), DateTimeFormatter.ISO_LOCAL_DATE);
+            try {
+                return LocalDate.parse(isoMatcher.group(1), DateTimeFormatter.ISO_LOCAL_DATE);
+            } catch (RuntimeException invalidDate) {
+                return null;
+            }
         }
         Matcher basicMatcher = BASIC_LOG_DATE_PATTERN.matcher(fileName);
         if (basicMatcher.find()) {
-            return LocalDate.parse(basicMatcher.group(1), DateTimeFormatter.BASIC_ISO_DATE);
+            try {
+                return LocalDate.parse(basicMatcher.group(1), DateTimeFormatter.BASIC_ISO_DATE);
+            } catch (RuntimeException invalidDate) {
+                return null;
+            }
         }
         return null;
     }
@@ -550,31 +915,37 @@ public class CpfFileLogWriter {
             normalized = normalized.substring(0, normalized.length() - 1);
         }
         try {
-            return Math.multiplyExact(Long.parseLong(normalized.trim()), multiplier);
+            long amount = Long.parseLong(normalized.trim());
+            if (amount < 0L) throw new IllegalArgumentException("size cannot be negative");
+            return Math.multiplyExact(amount, multiplier);
         } catch (ArithmeticException | NumberFormatException ex) {
             throw new IllegalArgumentException("cpf.logging.file.total-size-cap 형식이 올바르지 않습니다: " + value, ex);
         }
     }
 
     private void restoreCompressedLog(Path logPath) throws IOException {
+        ensureSafeWritableLogPath(logPath);
         Path gzipPath = logPath.resolveSibling(logPath.getFileName() + ".gz");
-        if (!Files.isRegularFile(gzipPath)) {
-            return;
+        if (!Files.exists(gzipPath, LinkOption.NOFOLLOW_LINKS)) return;
+        if (!isSafeManagedLogFile(gzipPath)) {
+            throw new IOException("compressed log is not a safe managed file");
         }
-        Path restorePath = logPath.resolveSibling(logPath.getFileName() + ".restore.tmp");
+        Path restorePath = logPath.resolveSibling(logPath.getFileName() + ".restore-"
+                + UUID.randomUUID() + ".tmp");
         try {
             try (InputStream input = new GZIPInputStream(Files.newInputStream(gzipPath));
                  OutputStream output = Files.newOutputStream(
                          restorePath,
                          StandardOpenOption.CREATE,
                          StandardOpenOption.TRUNCATE_EXISTING,
-                         StandardOpenOption.WRITE)) {
+                         StandardOpenOption.WRITE,
+                         LinkOption.NOFOLLOW_LINKS)) {
                 input.transferTo(output);
                 if (Files.isRegularFile(logPath)) {
                     Files.copy(logPath, output);
                 }
             }
-            Files.move(restorePath, logPath, StandardCopyOption.REPLACE_EXISTING);
+            moveReplacing(restorePath, logPath);
             applyFilePermissions(logPath);
             Files.deleteIfExists(gzipPath);
         } finally {
@@ -583,23 +954,59 @@ public class CpfFileLogWriter {
     }
 
     private void compressLog(Path logPath) throws IOException {
+        if (!isSafeManagedLogFile(logPath)) throw new IOException("log archive source is not safe");
         Path gzipPath = logPath.resolveSibling(logPath.getFileName() + ".gz");
-        Path temporaryPath = gzipPath.resolveSibling(gzipPath.getFileName() + ".tmp");
+        ensureSafeWritableLogPath(gzipPath);
+        Path temporaryPath = gzipPath.resolveSibling(gzipPath.getFileName() + ".tmp-"
+                + UUID.randomUUID());
         try {
             try (InputStream input = Files.newInputStream(logPath);
                  OutputStream output = new GZIPOutputStream(Files.newOutputStream(
                          temporaryPath,
                          StandardOpenOption.CREATE,
                          StandardOpenOption.TRUNCATE_EXISTING,
-                         StandardOpenOption.WRITE))) {
+                         StandardOpenOption.WRITE,
+                         LinkOption.NOFOLLOW_LINKS))) {
                 input.transferTo(output);
             }
-            Files.move(temporaryPath, gzipPath, StandardCopyOption.REPLACE_EXISTING);
+            moveReplacing(temporaryPath, gzipPath);
             applyFilePermissions(gzipPath);
-            Files.deleteIfExists(logPath);
+            if (Files.deleteIfExists(logPath)) {
+                compressedFileCount.incrementAndGet();
+            }
         } finally {
             Files.deleteIfExists(temporaryPath);
         }
+    }
+
+    private static void moveReplacing(Path source, Path target) throws IOException {
+        try {
+            Files.move(source, target, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+        } catch (AtomicMoveNotSupportedException unsupported) {
+            Files.move(source, target, StandardCopyOption.REPLACE_EXISTING);
+        }
+    }
+
+    private static long saturatingAdd(long left, long right) {
+        try {
+            return Math.addExact(left, right);
+        } catch (ArithmeticException overflow) {
+            return Long.MAX_VALUE;
+        }
+    }
+
+    private static int bounded(int value, int minimum, int maximum, String name) {
+        if (value < minimum || value > maximum) {
+            throw new IllegalArgumentException(name + " must be between " + minimum + " and " + maximum);
+        }
+        return value;
+    }
+
+    private static long bounded(long value, long minimum, long maximum, String name) {
+        if (value < minimum || value > maximum) {
+            throw new IllegalArgumentException(name + " must be between " + minimum + " and " + maximum);
+        }
+        return value;
     }
 
     private boolean enabled(String key) {
@@ -753,4 +1160,10 @@ public class CpfFileLogWriter {
     private boolean hasText(String value) {
         return value != null && !value.isBlank();
     }
+
+    private static final class FileLockEntry {
+        private final ReentrantLock lock = new ReentrantLock(true);
+        private int references;
+    }
+
 }

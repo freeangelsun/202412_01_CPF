@@ -21,11 +21,20 @@ public record CpfRuntimeChangeCommand(
         String requestedBy) {
 
     public CpfRuntimeChangeCommand {
-        payloadSchemaVersion = payloadSchemaVersion <= 0 ? 1 : payloadSchemaVersion;
+        if (payloadSchemaVersion < 1) {
+            throw new IllegalArgumentException("payloadSchemaVersion은 1 이상이어야 합니다.");
+        }
         payload = payload == null ? CpfRuntimePayload.empty() : payload;
-        rolloutMode = rolloutMode == null || rolloutMode.isBlank() ? "ALL_AT_ONCE" : rolloutMode.trim().toUpperCase();
-        waveSize = waveSize == null || waveSize < 1 ? 1 : waveSize;
-        quorumPercent = quorumPercent == null ? 100 : Math.max(1, Math.min(100, quorumPercent));
+        rolloutMode = rolloutMode == null || rolloutMode.isBlank()
+                ? "ALL_AT_ONCE" : rolloutMode.trim().toUpperCase(java.util.Locale.ROOT);
+        waveSize = waveSize == null ? 1 : waveSize;
+        quorumPercent = quorumPercent == null ? 100 : quorumPercent;
+        if (waveSize < 1 || waveSize > 100_000) {
+            throw new IllegalArgumentException("waveSize는 1..100000 범위여야 합니다.");
+        }
+        if (quorumPercent < 1 || quorumPercent > 100) {
+            throw new IllegalArgumentException("quorumPercent는 1..100 범위여야 합니다.");
+        }
     }
 
     /** 기존 14-인자 생성 코드와 동일한 schema version 기본값을 제공하는 Typed 생성자입니다. */

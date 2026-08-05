@@ -10,12 +10,12 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.Semaphore;
-import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -50,6 +50,7 @@ public final class CpfRuntimeApplyGuard implements AutoCloseable {
     private final ThreadPoolExecutor executor;
     private final Semaphore bulkhead;
     private final Map<String, Circuit> circuits = new ConcurrentHashMap<>();
+    private final AtomicBoolean closed = new AtomicBoolean();
 
     public CpfRuntimeApplyGuard(Policy policy) {
         this(policy, Clock.systemUTC(), Thread::sleep, Math::random);
@@ -72,7 +73,7 @@ public final class CpfRuntimeApplyGuard implements AutoCloseable {
                 policy.maxConcurrency(),
                 30L,
                 TimeUnit.SECONDS,
-                new SynchronousQueue<>(),
+                new ArrayBlockingQueue<>(policy.maxConcurrency()),
                 threadFactory,
                 new ThreadPoolExecutor.AbortPolicy());
         this.executor.allowCoreThreadTimeOut(true);
@@ -91,6 +92,11 @@ public final class CpfRuntimeApplyGuard implements AutoCloseable {
         Objects.requireNonNull(delivery, "delivery");
         Objects.requireNonNull(beforeAttempt, "beforeAttempt");
         Objects.requireNonNull(afterSafeFailure, "afterSafeFailure");
+        if (closed.get()) {
+            return CpfRuntimeApplyResult.failure(
+                    "APPLY_GUARD_CLOSED",
+                    "Runtime apply guard가 종료되어 새 요청을 수락할 수 없습니다.");
+        }
 
         String circuitKey = normalize(delivery.changeType());
         CircuitPermit permit = acquireCircuitPermit(circuitKey);
@@ -129,16 +135,26 @@ public final class CpfRuntimeApplyGuard implements AutoCloseable {
                 break;
             }
             if (outcome.started()) {
-                afterSafeFailure.run();
+                try {
+                    afterSafeFailure.run();
+                } catch (RuntimeException cleanupFailure) {
+                    result = CpfRuntimeApplyResult.unknown(
+                            "APPLY_SAFE_FAILURE_CLEANUP_UNKNOWN",
+                            cleanupFailure.getMessage() == null ? "" : cleanupFailure.getMessage());
+                    break;
+                }
             }
 
             long backoffMillis = backoffMillis(localAttempt);
             long remainingAfterAttempt = remainingMillis(deadline);
-            if (backoffMillis <= 0L || remainingAfterAttempt <= backoffMillis) {
+            if (backoffMillis > 0L && remainingAfterAttempt <= backoffMillis) {
                 result = CpfRuntimeApplyResult.failure(
                         "TRANSIENT_RETRY_BUDGET_EXHAUSTED",
                         "Runtime apply deadline 내 backoff budget이 부족합니다.");
                 break;
+            }
+            if (backoffMillis == 0L) {
+                continue;
             }
             try {
                 sleeper.sleep(backoffMillis);
@@ -381,7 +397,20 @@ public final class CpfRuntimeApplyGuard implements AutoCloseable {
 
     @Override
     public void close() {
+        if (!closed.compareAndSet(false, true)) {
+            return;
+        }
         executor.shutdownNow();
+        try {
+            if (!executor.awaitTermination(5L, TimeUnit.SECONDS)) {
+                executor.shutdownNow();
+            }
+        } catch (InterruptedException interrupted) {
+            executor.shutdownNow();
+            Thread.currentThread().interrupt();
+        } finally {
+            circuits.clear();
+        }
     }
 
     @FunctionalInterface

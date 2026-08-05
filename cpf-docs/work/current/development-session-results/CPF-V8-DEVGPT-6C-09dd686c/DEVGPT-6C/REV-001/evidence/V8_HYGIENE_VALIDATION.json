@@ -1,0 +1,17 @@
+{
+  "baseline_sha": "09dd686c5ae0826594b9c5e1f871d95d95d3ce1c",
+  "scanned_file_count": 100,
+  "excluded_self_referential_manifests": [
+    "cpf-docs/work/current/development-session-results/CPF-V8-DEVGPT-6C-09dd686c/DEVGPT-6C/REV-001/PACKAGE_MANIFEST.json",
+    "cpf-docs/work/current/development-session-results/CPF-V8-DEVGPT-6C-09dd686c/DEVGPT-6C/REV-001/SESSION_ARTIFACT_MANIFEST.csv"
+  ],
+  "utf8_errors": [],
+  "nul_files": [],
+  "trailing_whitespace": [],
+  "secret_findings": [],
+  "protected_paths": [],
+  "root_policy_violations": [],
+  "assignment_ownership_violations": [],
+  "case_collisions": [],
+  "pass": true
+}

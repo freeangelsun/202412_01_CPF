@@ -35,7 +35,11 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Condition;
+import org.springframework.context.annotation.ConditionContext;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.type.AnnotatedTypeMetadata;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.client.RestClient;
@@ -49,6 +53,7 @@ public class CpfRuntimeControlAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnBean(name = "cpfJdbcTemplate")
+    @Conditional(LocalRuntimeControlPlaneCondition.class)
     CpfRuntimeControlPlaneRepository runtimeControlPlaneRepository(
             @Qualifier("cpfJdbcTemplate") ObjectProvider<JdbcTemplate> jdbc,
             ObjectMapper objectMapper) {
@@ -94,7 +99,7 @@ public class CpfRuntimeControlAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(CpfRuntimeAgentPort.class)
-    @ConditionalOnProperty(prefix = "cpf.runtime.control", name = "base-url")
+    @Conditional(RemoteRuntimeControlPlaneCondition.class)
     CpfRuntimeAgentPort remoteRuntimeAgentPort(
             RestClient.Builder builder,
             @Value("${cpf.runtime.control.base-url}") String baseUrl,
@@ -145,11 +150,10 @@ public class CpfRuntimeControlAutoConfiguration {
             name = "enabled",
             havingValue = "true")
     CpfRuntimeInstanceInboxStore runtimeInstanceInboxStore(
-            @Value("${cpf.runtime.control.agent.inbox-path:${java.io.tmpdir}/cpf-runtime-inbox}")
-                    String inboxPath,
+            @Value("${cpf.runtime.control.agent.inbox-path:}") String inboxPath,
             @Value("${cpf.runtime.instance-id:${cpf.framework.was-id:}}") String instanceId) {
         requireText(instanceId, "Runtime Agent inbox에는 instance-id가 필요합니다.");
-        return new CpfRuntimeInstanceInboxStore(Path.of(inboxPath, instanceId));
+        return new CpfRuntimeInstanceInboxStore(runtimeInboxDirectory(inboxPath, instanceId));
     }
 
     @Bean
@@ -238,6 +242,44 @@ public class CpfRuntimeControlAutoConfiguration {
                 orderedAppliers,
                 inbox,
                 new CpfRuntimeApplyGuard(applyPolicy));
+    }
+
+    static Path runtimeInboxDirectory(String inboxPath, String instanceId) {
+        requireText(inboxPath, "Runtime Agent inbox에는 inbox-path가 필요합니다.");
+        requireText(instanceId, "Runtime Agent inbox에는 instance-id가 필요합니다.");
+        Path instancePath = Path.of(instanceId);
+        if (instancePath.isAbsolute() || instancePath.getNameCount() != 1
+                || ".".equals(instanceId.trim()) || "..".equals(instanceId.trim())) {
+            throw new IllegalStateException("Runtime Agent instance-id는 안전한 단일 경로 요소여야 합니다.");
+        }
+        Path base = Path.of(inboxPath).toAbsolutePath().normalize();
+        Path resolved = base.resolve(instanceId.trim()).normalize();
+        if (!base.equals(resolved.getParent())) {
+            throw new IllegalStateException("Runtime Agent Inbox 경로가 지정 루트를 벗어날 수 없습니다.");
+        }
+        return resolved;
+    }
+
+    static boolean usesLocalControlPlane(String baseUrl) {
+        return baseUrl == null || baseUrl.isBlank();
+    }
+
+    /** base-url이 명시된 분리 WAS에서는 local DB Control Plane이 Remote Agent Port를 가리지 않습니다. */
+    static final class LocalRuntimeControlPlaneCondition implements Condition {
+        @Override
+        public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+            return usesLocalControlPlane(
+                    context.getEnvironment().getProperty("cpf.runtime.control.base-url"));
+        }
+    }
+
+    /** Remote HTTP adapter는 명시적 non-blank base-url에서만 활성화합니다. */
+    static final class RemoteRuntimeControlPlaneCondition implements Condition {
+        @Override
+        public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+            return !usesLocalControlPlane(
+                    context.getEnvironment().getProperty("cpf.runtime.control.base-url"));
+        }
     }
 
     private static Map<String, String> capabilityManifest(

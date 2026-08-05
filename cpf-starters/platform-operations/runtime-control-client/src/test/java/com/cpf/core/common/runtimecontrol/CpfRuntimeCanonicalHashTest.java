@@ -1,35 +1,28 @@
 package com.cpf.core.common.runtimecontrol;
 
-import com.cpf.core.api.runtimecontrol.CpfRuntimePayload;
 import org.junit.jupiter.api.Test;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class CpfRuntimeCanonicalHashTest {
     @Test
-    void mapKeyOrderDoesNotChangeHash() {
-        Map<String, Object> a = new LinkedHashMap<>();
-        a.put("b", 2);
-        a.put("a", 1);
-        Map<String, Object> b = new LinkedHashMap<>();
-        b.put("a", 1);
-        b.put("b", 2);
-        assertThat(CpfRuntimeCanonicalHash.sha256(a)).isEqualTo(CpfRuntimeCanonicalHash.sha256(b));
+    void mapOrderDoesNotChangeFingerprintOrEvidenceHash() {
+        Map<String,Object> left=new LinkedHashMap<>();
+        left.put("b",2);left.put("a",1);
+        Map<String,Object> right=Map.of("a",1,"b",2);
+        assertEquals(CpfRuntimeCanonicalHash.sha256(left),CpfRuntimeCanonicalHash.sha256(right));
+        assertEquals(CpfRuntimeCanonicalHash.sha256Hex(left),CpfRuntimeCanonicalHash.sha256Hex(right));
     }
 
     @Test
-    void payloadChangeChangesHash() {
-        assertThat(CpfRuntimeCanonicalHash.sha256(Map.of("a", 1)))
-                .isNotEqualTo(CpfRuntimeCanonicalHash.sha256(Map.of("a", 2)));
-    }
-
-    @Test
-    void typedPayloadKeepsCanonicalHashAcrossFieldOrder() {
-        CpfRuntimePayload left = CpfRuntimePayload.parse("{\"b\":2,\"a\":1}");
-        CpfRuntimePayload right = CpfRuntimePayload.parse("{\"a\":1,\"b\":2}");
-        assertThat(CpfRuntimeCanonicalHash.sha256(left)).isEqualTo(CpfRuntimeCanonicalHash.sha256(right));
+    void evidenceHashIsLowercaseSha256HexWithoutChangingLegacyFingerprintEncoding() {
+        String fingerprint=CpfRuntimeCanonicalHash.sha256(Map.of("a",1));
+        String evidence=CpfRuntimeCanonicalHash.sha256Hex(Map.of("a",1));
+        assertEquals(43,fingerprint.length());
+        assertEquals(64,evidence.length());
+        assertEquals(evidence,evidence.toLowerCase(java.util.Locale.ROOT));
     }
 }

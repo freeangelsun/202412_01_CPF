@@ -28,7 +28,24 @@ public record CpfRemoteLogArtifactSearch(
         Boolean active,
         int limit) {
 
+    private static final int MAX_SELECTOR_LENGTH = 200;
+    private static final int MAX_FILE_NAME_LENGTH = 255;
+
     public CpfRemoteLogArtifactSearch {
+        environment = optional(environment, "environment", 100);
+        module = optional(module, "module", 100);
+        service = optional(service, "service", 100);
+        instance = optional(instance, "instance", MAX_SELECTOR_LENGTH);
+        logType = optional(logType, "logType", 100);
+        fileName = optionalFileName(fileName);
+        standardTransactionId = optional(standardTransactionId, "standardTransactionId", MAX_SELECTOR_LENGTH);
+        standardBatchId = optional(standardBatchId, "standardBatchId", MAX_SELECTOR_LENGTH);
+        transactionId = optional(transactionId, "transactionId", MAX_SELECTOR_LENGTH);
+        segmentId = optional(segmentId, "segmentId", MAX_SELECTOR_LENGTH);
+        jobInstanceId = optional(jobInstanceId, "jobInstanceId", MAX_SELECTOR_LENGTH);
+        jobExecutionId = optional(jobExecutionId, "jobExecutionId", MAX_SELECTOR_LENGTH);
+        stepExecutionId = optional(stepExecutionId, "stepExecutionId", MAX_SELECTOR_LENGTH);
+        schedulerId = optional(schedulerId, "schedulerId", MAX_SELECTOR_LENGTH);
         limit = limit < 1 ? 100 : Math.min(limit, 500);
         minSize = minSize == null ? null : Math.max(0L, minSize);
         maxSize = maxSize == null ? null : Math.max(0L, maxSize);
@@ -67,8 +84,31 @@ public record CpfRemoteLogArtifactSearch(
                         stepExecutionId,
                         schedulerId)
                 .filter(value -> value != null && !value.isBlank())
-                .map(String::trim)
                 .distinct()
                 .toList();
+    }
+
+    private static String optional(String value, String name, int maximumLength) {
+        if (value == null) return null;
+        String normalized = value.trim();
+        if (normalized.isEmpty()) return null;
+        if (normalized.length() > maximumLength || containsControlCharacter(normalized)) {
+            throw new IllegalArgumentException(name + " is invalid");
+        }
+        return normalized;
+    }
+
+    private static String optionalFileName(String value) {
+        String normalized = optional(value, "fileName", MAX_FILE_NAME_LENGTH);
+        if (normalized == null) return null;
+        if (normalized.contains("/") || normalized.contains("\\")
+                || ".".equals(normalized) || "..".equals(normalized)) {
+            throw new IllegalArgumentException("fileName must be a safe name fragment");
+        }
+        return normalized;
+    }
+
+    private static boolean containsControlCharacter(String value) {
+        return value.codePoints().anyMatch(Character::isISOControl);
     }
 }

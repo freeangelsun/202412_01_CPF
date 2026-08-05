@@ -1,10 +1,14 @@
 package com.cpf.core.common.logging.policy;
 
+import com.cpf.core.api.logging.CpfLogPolicyCacheRuntimeStatus;
+
 import com.cpf.core.api.logging.policy.LogCaptureMode;
 import com.cpf.core.api.logging.policy.LogPolicyDecision;
 import com.cpf.core.api.logging.policy.LogPolicyTargetType;
+import com.cpf.core.api.logging.policy.CpfLogPolicyVersionSnapshot;
 import org.springframework.core.env.Environment;
 
+import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -12,11 +16,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static com.cpf.core.api.logging.policy.LogCaptureMode.CaptureArea;
 
 /** 로그 정책 평가 결과를 짧은 TTL로 보관하는 로컬 캐시입니다. */
-public class LogPolicyCache {
+public class LogPolicyCache implements CpfLogPolicyCacheRuntimeStatus {
     private static final int DEFAULT_TTL_SECONDS = 30;
     private static final String DEFAULT_PROPERTY_PREFIX = "cpf.log-policy.default.";
     private static final List<String> DEFAULT_PROPERTY_SUFFIXES = List.of(
@@ -43,41 +49,208 @@ public class LogPolicyCache {
     private final LogPolicyRepository repository;
     private final Environment environment;
     private final Duration ttl;
+    private final int maximumEntries;
+    private final Clock clock;
     private final Map<CacheKey, CacheEntry> cache = new ConcurrentHashMap<>();
+    private final Map<CacheKey, CpfLogPolicyVersionSnapshot> versionedPolicies = new ConcurrentHashMap<>();
+    private final ReentrantLock capacityLock = new ReentrantLock();
+    private final AtomicLong hitCount = new AtomicLong();
+    private final AtomicLong missCount = new AtomicLong();
+    private final AtomicLong refreshCount = new AtomicLong();
+    private final AtomicLong evictionCount = new AtomicLong();
+    private final AtomicLong failureCount = new AtomicLong();
 
+    /** Compatibility constructor. Auto-configuration should prefer the Clock-aware overload. */
     public LogPolicyCache(LogPolicyRepository repository, Environment environment) {
-        this.repository = repository;
-        this.environment = environment;
-        this.ttl = Duration.ofSeconds(Math.max(1,
-                environment.getProperty("cpf.log-policy.cache.ttl-seconds", Integer.class, DEFAULT_TTL_SECONDS)));
+        this(repository, environment, Clock.systemUTC());
+    }
+
+    public LogPolicyCache(LogPolicyRepository repository, Environment environment, Clock clock) {
+        this.repository = Objects.requireNonNull(repository, "repository");
+        this.environment = Objects.requireNonNull(environment, "environment");
+        this.clock = Objects.requireNonNull(clock, "clock");
+        int ttlSeconds = environment.getProperty(
+                "cpf.log-policy.cache.ttl-seconds", Integer.class, DEFAULT_TTL_SECONDS);
+        if (ttlSeconds < 1 || ttlSeconds > 3_600) {
+            throw new IllegalArgumentException(
+                    "cpf.log-policy.cache.ttl-seconds must be between 1 and 3600");
+        }
+        this.ttl = Duration.ofSeconds(ttlSeconds);
+        this.maximumEntries = environment.getProperty(
+                "cpf.log-policy.cache.max-entries", Integer.class, 4_096);
+        if (maximumEntries < 1 || maximumEntries > 100_000) {
+            throw new IllegalArgumentException(
+                    "cpf.log-policy.cache.max-entries must be between 1 and 100000");
+        }
     }
 
     public LogPolicyDecision resolve(LogPolicyTargetType targetType, String targetId) {
         CacheKey key = new CacheKey(targetType, LogPolicyDecision.normalizeTargetId(targetId));
-        Instant now = Instant.now();
+        Instant now = clock.instant();
+        CpfLogPolicyVersionSnapshot managed = findManaged(key);
+        if (managed != null && managed.status() == CpfLogPolicyVersionSnapshot.Status.ACTIVE) {
+            hitCount.incrementAndGet();
+            return managed.decision();
+        }
         CacheEntry cached = cache.get(key);
-        if (cached != null && cached.expiresAt().isAfter(now)) return cached.decision();
-        LogPolicyDecision decision = resolveFresh(targetType, key.targetId());
-        cache.put(key, new CacheEntry(decision, now.plus(ttl)));
-        return decision;
+        if (cached != null && cached.expiresAt().isAfter(now)) {
+            hitCount.incrementAndGet();
+            return cached.decision();
+        }
+        missCount.incrementAndGet();
+        if (cached != null && cache.remove(key, cached)) evictionCount.incrementAndGet();
+        try {
+            LogPolicyDecision decision = resolveFresh(targetType, key.targetId());
+            putBounded(key, new CacheEntry(decision, safePlus(now, ttl)), now);
+            return decision;
+        } catch (RuntimeException failure) {
+            failureCount.incrementAndGet();
+            throw failure;
+        }
     }
 
     public LogPolicyDecision refresh(LogPolicyTargetType targetType, String targetId) {
         CacheKey key = new CacheKey(targetType, LogPolicyDecision.normalizeTargetId(targetId));
-        LogPolicyDecision decision = resolveFresh(targetType, key.targetId());
-        cache.put(key, new CacheEntry(decision, Instant.now().plus(ttl)));
-        return decision;
+        CpfLogPolicyVersionSnapshot managed = findManaged(key);
+        if (managed != null && managed.status() == CpfLogPolicyVersionSnapshot.Status.ACTIVE) {
+            refreshCount.incrementAndGet();
+            if (cache.remove(key) != null) evictionCount.incrementAndGet();
+            return managed.decision();
+        }
+        try {
+            LogPolicyDecision decision = resolveFresh(targetType, key.targetId());
+            Instant now = clock.instant();
+            putBounded(key, new CacheEntry(decision, safePlus(now, ttl)), now);
+            refreshCount.incrementAndGet();
+            return decision;
+        } catch (RuntimeException failure) {
+            failureCount.incrementAndGet();
+            throw failure;
+        }
     }
 
-    public void evict(LogPolicyTargetType targetType, String targetId) { cache.remove(new CacheKey(targetType, targetId)); }
-    public void clear() { cache.clear(); }
+    /** Applies one committed managed version immediately to the actual runtime evaluator. */
+    public void applyVersionedPolicy(CpfLogPolicyVersionSnapshot snapshot) {
+        Objects.requireNonNull(snapshot, "snapshot");
+        if (snapshot.status() != CpfLogPolicyVersionSnapshot.Status.ACTIVE) {
+            throw new IllegalArgumentException("only ACTIVE managed log policies can be applied");
+        }
+        CacheKey key = new CacheKey(snapshot.targetType(), snapshot.targetId());
+        capacityLock.lock();
+        try {
+            CpfLogPolicyVersionSnapshot current = versionedPolicies.get(key);
+            if (current != null) {
+                if (snapshot.version() < current.version()) {
+                    throw new IllegalStateException("stale managed log policy version");
+                }
+                if (snapshot.version() == current.version()) {
+                    if (!snapshot.decision().policyChecksum().equals(current.decision().policyChecksum())) {
+                        throw new IllegalStateException("managed log policy version checksum conflict");
+                    }
+                    return;
+                }
+            }
+            boolean newDistinctKey = current == null && !cache.containsKey(key);
+            if (newDistinctKey && distinctEntryCount() >= maximumEntries) {
+                evictOneEphemeralEntry();
+            }
+            if (newDistinctKey && distinctEntryCount() >= maximumEntries) {
+                throw new IllegalStateException("managed log policy capacity exhausted");
+            }
+            versionedPolicies.put(key, snapshot);
+            if (cache.remove(key) != null) evictionCount.incrementAndGet();
+            refreshCount.incrementAndGet();
+        } finally {
+            capacityLock.unlock();
+        }
+    }
+
+    public CpfLogPolicyVersionSnapshot versionedPolicy(LogPolicyTargetType targetType, String targetId) {
+        return versionedPolicies.get(new CacheKey(targetType, targetId));
+    }
+
+    public void evict(LogPolicyTargetType targetType, String targetId) {
+        CacheKey key = new CacheKey(targetType, LogPolicyDecision.normalizeTargetId(targetId));
+        if (cache.remove(key) != null) evictionCount.incrementAndGet();
+    }
+    public void clear() {
+        int removed = cache.size();
+        cache.clear();
+        evictionCount.addAndGet(removed);
+    }
     int size() { return cache.size(); }
+
+    @Override
+    public RuntimeSnapshot logPolicyCacheRuntimeSnapshot() {
+        long failures = failureCount.get();
+        return new RuntimeSnapshot(
+                failures > 0L ? Health.DEGRADED : Health.UP,
+                distinctEntryCount(), maximumEntries, ttl,
+                hitCount.get(), missCount.get(), refreshCount.get(),
+                evictionCount.get(), failures, clock.instant());
+    }
+
+    private void putBounded(CacheKey key, CacheEntry entry, Instant now) {
+        capacityLock.lock();
+        try {
+            cache.entrySet().removeIf(candidate -> {
+                boolean expired = !candidate.getValue().expiresAt().isAfter(now);
+                if (expired) evictionCount.incrementAndGet();
+                return expired;
+            });
+            boolean newDistinctKey = !cache.containsKey(key) && !versionedPolicies.containsKey(key);
+            if (newDistinctKey && distinctEntryCount() >= maximumEntries) {
+                evictOneEphemeralEntry();
+            }
+            if (!newDistinctKey || distinctEntryCount() < maximumEntries) {
+                cache.put(key, entry);
+            }
+        } finally {
+            capacityLock.unlock();
+        }
+    }
+
+    private CpfLogPolicyVersionSnapshot findManaged(CacheKey key) {
+        CpfLogPolicyVersionSnapshot exact = versionedPolicies.get(key);
+        if (exact != null) return exact;
+        if ("*".equals(key.targetId())) return null;
+        return versionedPolicies.get(new CacheKey(key.targetType(), "*"));
+    }
+
+    private int distinctEntryCount() {
+        if (cache.isEmpty()) return versionedPolicies.size();
+        if (versionedPolicies.isEmpty()) return cache.size();
+        java.util.HashSet<CacheKey> keys = new java.util.HashSet<>(cache.keySet());
+        keys.addAll(versionedPolicies.keySet());
+        return keys.size();
+    }
+
+    private void evictOneEphemeralEntry() {
+        Map.Entry<CacheKey, CacheEntry> victim = cache.entrySet().stream()
+                .min(java.util.Comparator
+                        .comparing((Map.Entry<CacheKey, CacheEntry> candidate) ->
+                                candidate.getValue().expiresAt())
+                        .thenComparing(candidate -> candidate.getKey().targetType().code())
+                        .thenComparing(candidate -> candidate.getKey().targetId()))
+                .orElse(null);
+        if (victim != null && cache.remove(victim.getKey(), victim.getValue())) {
+            evictionCount.incrementAndGet();
+        }
+    }
+
+    private static Instant safePlus(Instant instant, Duration duration) {
+        try {
+            return instant.plus(duration);
+        } catch (RuntimeException overflow) {
+            return Instant.MAX;
+        }
+    }
 
     private LogPolicyDecision resolveFresh(LogPolicyTargetType type, String targetId) {
         LogPolicyDecision base = repository.findActivePolicy(type, targetId)
                 .map(row -> fromRow(type, targetId, row, null))
                 .orElseGet(() -> applicationDefault(type, targetId));
-        return repository.findActiveOverride(type, targetId, LocalDateTime.now())
+        return repository.findActiveOverride(type, targetId, LocalDateTime.ofInstant(clock.instant(), clock.getZone()))
                 .map(row -> fromRow(type, targetId, row, base)).orElse(base);
     }
 

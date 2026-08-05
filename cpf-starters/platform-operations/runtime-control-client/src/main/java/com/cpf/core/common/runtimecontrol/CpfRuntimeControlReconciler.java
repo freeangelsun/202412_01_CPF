@@ -80,10 +80,30 @@ public class CpfRuntimeControlReconciler {
             String operationId = "AUTO_ROLLBACK:" + changeId;
             var existingOperation = repository.findOperation(operationId);
             if (existingOperation.isPresent()) {
-                recordDispatchedOnce(
-                        changeId,
-                        nullable(existingOperation.get().get("entity_id")),
-                        operationId);
+                String operationState = nullable(existingOperation.get().get("result_state"));
+                String rollbackChangeId = nullable(existingOperation.get().get("entity_id"));
+                if (rollbackChangeId == null || rollbackChangeId.isBlank()) {
+                    rollbackChangeId = repository.findChange("operation_id", operationId)
+                            .map(row -> nullable(row.get("change_id"))).orElse(null);
+                }
+                if (rollbackChangeId != null && !rollbackChangeId.isBlank()) {
+                    repository.linkRollbackChange(changeId, rollbackChangeId, controllerId,
+                            "Recovered automatic rollback operation");
+                    if ("PROCESSING".equals(operationState)) {
+                        repository.completeOperation(operationId, rollbackChangeId, "SUCCESS",
+                                repository.json(Map.of("changeId", rollbackChangeId, "recovered", true)));
+                    } else if (!"SUCCESS".equals(operationState)) {
+                        // Terminal operation Ledger는 덮어쓰지 않습니다. 이미 생성된 rollback Change는
+                        // 별도 lifecycle 정본이므로 관계를 복구하되 충돌 Evidence를 남깁니다.
+                        recordBlockedOnce(changeId, "OPERATION_LEDGER_CONFLICT_" + operationState,
+                                rollbackChangeId);
+                    }
+                    recordDispatchedOnce(changeId, rollbackChangeId, operationId);
+                } else if (Set.of("FAILED", "UNKNOWN", "EXPIRED", "CANCELLED").contains(operationState)) {
+                    recordBlockedOnce(changeId, "OPERATION_" + operationState, operationId);
+                } else {
+                    recordBlockedOnce(changeId, "INCOMPLETE_ROLLBACK_OPERATION", operationId);
+                }
                 continue;
             }
             int attempts = repository.autoRollbackEventCount(changeId, "AUTO_ROLLBACK_ATTEMPT");
@@ -150,7 +170,7 @@ public class CpfRuntimeControlReconciler {
     }
 
     private void recordBlockedOnce(String changeId, String reason, String evidence) {
-        String eventType = "AUTO_ROLLBACK_BLOCKED_" + reason;
+        String eventType = boundedAuditEventType("AUTO_ROLLBACK_BLOCKED_" + reason);
         if (repository.autoRollbackEventCount(changeId, eventType) == 0) {
             repository.appendAutoRollbackAudit(
                     changeId,
@@ -159,6 +179,16 @@ public class CpfRuntimeControlReconciler {
                     reason,
                     evidence);
         }
+    }
+
+
+    static String boundedAuditEventType(String value) {
+        String normalized=value==null?"":value.trim().toUpperCase(java.util.Locale.ROOT)
+                .replaceAll("[^A-Z0-9_]+","_");
+        if(normalized.isBlank()) normalized="AUTO_ROLLBACK_BLOCKED_UNKNOWN";
+        if(normalized.length()<=60) return normalized;
+        String suffix=CpfRuntimeCanonicalHash.sha256Hex(normalized).substring(0,8).toUpperCase(java.util.Locale.ROOT);
+        return normalized.substring(0,51)+"_"+suffix;
     }
 
     private String nullable(Object value) {

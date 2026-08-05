@@ -1,0 +1,153 @@
+{
+  "properties": [
+    {
+      "name": "cpf.integration.resilience.enabled",
+      "type": "java.lang.Boolean",
+      "defaultValue": false,
+      "description": "Enables the CPF integration resilience starter."
+    },
+    {
+      "name": "cpf.integration.resilience.engine.guard-idle-ttl",
+      "type": "java.time.Duration",
+      "defaultValue": "30m",
+      "description": "Idle retention for unused resilience guard state before bounded eviction."
+    },
+    {
+      "name": "cpf.integration.resilience.engine.maximum-guard-entries",
+      "type": "java.lang.Integer",
+      "defaultValue": 10000,
+      "description": "Maximum cardinality of revision-aware circuit/rate/bulkhead guard state retained by one engine."
+    },
+    {
+      "name": "cpf.integration.resilience.locking.jdbc-provider-enabled",
+      "type": "java.lang.Boolean",
+      "defaultValue": false,
+      "description": "Enables the distributed JDBC lock provider. Requires cpf_lock_shard rows 0..255 and cpf_distributed_lock vendor migrations."
+    },
+    {
+      "name": "cpf.integration.resilience.locking.local-provider-enabled",
+      "type": "java.lang.Boolean",
+      "defaultValue": false,
+      "description": "Enables the single-JVM in-memory lock provider for tests or explicitly single-instance runtimes only. Do not combine with the JDBC provider."
+    },
+    {
+      "name": "cpf.integration.resilience.locking.local.maximum-tracked-keys",
+      "type": "java.lang.Integer",
+      "defaultValue": 100000,
+      "description": "Maximum distinct lock keys whose tombstone and fencing history the single-JVM provider retains. New keys fail closed at the limit; history is never evicted or reused."
+    },
+    {
+      "name": "cpf.integration.resilience.runtime.attempt-timeout",
+      "type": "java.time.Duration",
+      "description": "Maximum duration of one resilience attempt."
+    },
+    {
+      "name": "cpf.integration.resilience.runtime.bulkhead.queue-limit",
+      "type": "java.lang.Integer",
+      "description": "Maximum number of requests waiting behind the bulkhead."
+    },
+    {
+      "name": "cpf.integration.resilience.runtime.bulkhead.queue-wait",
+      "type": "java.time.Duration",
+      "description": "Maximum bulkhead queue wait, capped by the overall deadline."
+    },
+    {
+      "name": "cpf.integration.resilience.runtime.connect-timeout",
+      "type": "java.time.Duration",
+      "description": "Global outbound TCP connect timeout; operation-specific properties override this value."
+    },
+    {
+      "name": "cpf.integration.resilience.runtime.overall-timeout",
+      "type": "java.time.Duration",
+      "description": "End-to-end deadline including bulkhead wait, attempts and backoff."
+    },
+    {
+      "name": "cpf.integration.resilience.runtime.read-timeout",
+      "type": "java.time.Duration",
+      "description": "Global response-body read timeout."
+    },
+    {
+      "name": "cpf.integration.resilience.runtime.response-header-timeout",
+      "type": "java.time.Duration",
+      "description": "Global response-header timeout before response-body reads begin."
+    },
+    {
+      "name": "cpf.integration.resilience.runtime.retry.budget-capacity",
+      "type": "java.lang.Integer",
+      "description": "Retry permits per retry budget window."
+    },
+    {
+      "name": "cpf.integration.resilience.runtime.retry.budget-window",
+      "type": "java.time.Duration",
+      "description": "Retry budget window."
+    },
+    {
+      "name": "cpf.integration.resilience.runtime.retry.initial-backoff",
+      "type": "java.time.Duration",
+      "description": "Initial exponential retry backoff."
+    },
+    {
+      "name": "cpf.integration.resilience.runtime.retry.jitter-ratio",
+      "type": "java.lang.Double",
+      "description": "Bounded retry jitter ratio from 0.0 through 1.0."
+    },
+    {
+      "name": "cpf.integration.resilience.runtime.retry.max-backoff",
+      "type": "java.time.Duration",
+      "description": "Maximum exponential retry backoff."
+    },
+    {
+      "name": "cpf.integration.resilience.runtime.tls-timeout",
+      "type": "java.time.Duration",
+      "description": "Global TLS handshake timeout."
+    },
+    {
+      "name": "cpf.integration.resilience.runtime.write-timeout",
+      "type": "java.time.Duration",
+      "description": "Global outbound request write timeout."
+    },
+    {
+      "name": "cpf.integration.resilience.state.jdbc-provider-enabled",
+      "type": "java.lang.Boolean",
+      "defaultValue": false,
+      "description": "Enables the shared JDBC operation-state provider. Requires the cpf-state-db vendor install/upgrade scripts and shard rows 0..257."
+    },
+    {
+      "name": "cpf.integration.resilience.state.jdbc.command-ttl",
+      "type": "java.time.Duration",
+      "defaultValue": "24h",
+      "description": "Retention window for durable operation-id deduplication rows; must be positive and no greater than 365 days."
+    },
+    {
+      "name": "cpf.integration.resilience.state.jdbc.maximum-commands",
+      "type": "java.lang.Integer",
+      "defaultValue": 10000000,
+      "description": "Maximum retained idempotency command rows after TTL pruning."
+    },
+    {
+      "name": "cpf.integration.resilience.state.jdbc.maximum-states",
+      "type": "java.lang.Integer",
+      "defaultValue": 1000000,
+      "description": "Maximum durable operation-state rows. New states fail closed at the limit while existing states remain updateable."
+    },
+    {
+      "name": "cpf.reconciliation.worker.id",
+      "type": "java.lang.String",
+      "defaultValue": "CPF-RECONCILIATION",
+      "description": "Stable reconciliation worker identity used for claims, locks, state transitions and audit."
+    }
+  ],
+  "hints": [
+    {
+      "name": "cpf.integration.resilience.runtime.operations",
+      "providers": [
+        {
+          "name": "any",
+          "parameters": {
+            "target": "operation-id"
+          }
+        }
+      ]
+    }
+  ]
+}

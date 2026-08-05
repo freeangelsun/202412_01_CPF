@@ -1,0 +1,17 @@
+{
+  "pass": true,
+  "summary": {
+    "oracle": {
+      "source": 0,
+      "migration_v64": 0
+    },
+    "postgresql": {
+      "source": 0,
+      "migration_v64": 0
+    },
+    "mariadb": {
+      "source": 0,
+      "migration_v64": 0
+    }
+  }
+}

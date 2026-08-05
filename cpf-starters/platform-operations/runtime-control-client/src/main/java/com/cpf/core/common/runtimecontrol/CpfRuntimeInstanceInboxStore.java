@@ -18,6 +18,7 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 
@@ -32,24 +33,76 @@ public final class CpfRuntimeInstanceInboxStore {
 
     public record Entry(String deliveryId, String changeId, String changeType, long desiredVersion,
                         String payloadHash, State state, String actualHash, Instant updatedAt) {
+        public Entry {
+            deliveryId = requireJournalText(deliveryId, "deliveryId", 80);
+            changeId = requireJournalText(changeId, "changeId", 80);
+            changeType = requireJournalText(changeType, "changeType", 80)
+                    .toUpperCase(java.util.Locale.ROOT);
+            if (desiredVersion < 0L) {
+                throw new IllegalArgumentException("Runtime Inbox desiredVersion은 0 이상이어야 합니다.");
+            }
+            payloadHash = requireJournalText(payloadHash, "payloadHash", 64);
+            state = Objects.requireNonNull(state, "Runtime Inbox state");
+            actualHash = actualHash == null || actualHash.isBlank() ? null : actualHash.trim();
+            if (state == State.PREPARED && actualHash != null) {
+                throw new IllegalArgumentException("PREPARED Runtime Inbox에는 actualHash가 없어야 합니다.");
+            }
+            if (state == State.APPLIED) {
+                actualHash = requireJournalText(actualHash, "actualHash", 64);
+            }
+            updatedAt = Objects.requireNonNull(updatedAt, "Runtime Inbox updatedAt");
+        }
+
         CpfRuntimeActualState toActualState() {
             return new CpfRuntimeActualState(changeType, desiredVersion, actualHash, deliveryId);
+        }
+
+        private static String requireJournalText(String value, String field, int maxLength) {
+            if (value == null || value.isBlank()) {
+                throw new IllegalArgumentException("Runtime Inbox " + field + "가 필요합니다.");
+            }
+            String normalized = value.trim();
+            if (normalized.length() > maxLength) {
+                throw new IllegalArgumentException(
+                        "Runtime Inbox " + field + "는 최대 " + maxLength + "자입니다.");
+            }
+            return normalized;
+        }
+    }
+
+    /** 동일 deliveryId가 다른 Change/payload를 가리키는 durable journal 오염입니다. */
+    public static final class IdentityConflictException extends IllegalStateException {
+        private static final long serialVersionUID = 1L;
+
+        IdentityConflictException(String message) {
+            super(message);
         }
     }
 
     private final Path directory;
 
     public CpfRuntimeInstanceInboxStore(Path directory) {
-        this.directory = directory.toAbsolutePath().normalize();
+        this.directory = Objects.requireNonNull(directory, "directory").toAbsolutePath().normalize();
         try {
+            if (Files.isSymbolicLink(this.directory)) {
+                throw new IllegalStateException(
+                        "Runtime Inbox 디렉터리는 심볼릭 링크일 수 없습니다: " + this.directory);
+            }
             Files.createDirectories(this.directory);
+            if (Files.isSymbolicLink(this.directory)) {
+                throw new IllegalStateException(
+                        "Runtime Inbox 디렉터리는 심볼릭 링크일 수 없습니다: " + this.directory);
+            }
         } catch (IOException ex) {
             throw new IllegalStateException("Runtime Inbox 디렉터리를 생성할 수 없습니다: " + this.directory, ex);
         }
     }
 
     public synchronized Optional<Entry> find(String deliveryId) {
-        Path path = path(deliveryId);
+        return read(path(deliveryId));
+    }
+
+    private Optional<Entry> read(Path path) {
         if (!Files.exists(path)) return Optional.empty();
         Properties p = new Properties();
         try (var in = Files.newInputStream(path)) {
@@ -60,8 +113,16 @@ public final class CpfRuntimeInstanceInboxStore {
         }
     }
 
-    public synchronized Entry prepare(CpfRuntimeDelivery delivery) {
+    /** delivery identity를 검증한 durable journal을 조회합니다. */
+    public synchronized Optional<Entry> find(CpfRuntimeDelivery delivery) {
+        Objects.requireNonNull(delivery, "delivery");
         Optional<Entry> existing = find(delivery.deliveryId());
+        existing.ifPresent(entry -> assertSameDelivery(entry, delivery));
+        return existing;
+    }
+
+    public synchronized Entry prepare(CpfRuntimeDelivery delivery) {
+        Optional<Entry> existing = find(delivery);
         if (existing.isPresent()) return existing.get();
         Entry prepared = new Entry(delivery.deliveryId(), delivery.changeId(), normalize(delivery.changeType()),
                 delivery.desiredVersion(), delivery.payloadHash(), State.PREPARED, null, Instant.now());
@@ -73,22 +134,56 @@ public final class CpfRuntimeInstanceInboxStore {
         if (actualHash == null || actualHash.isBlank()) {
             throw new IllegalArgumentException("APPLIED Inbox에는 actualHash가 필요합니다.");
         }
+        Entry existing = find(delivery).orElseThrow(() -> new IllegalStateException(
+                "Runtime Inbox PREPARED journal 없이 APPLIED를 기록할 수 없습니다: " + delivery.deliveryId()));
+        if (existing.state() == State.APPLIED) {
+            if (!actualHash.equals(existing.actualHash())) {
+                throw new IdentityConflictException(
+                        "동일 deliveryId의 APPLIED actualHash가 다릅니다: " + delivery.deliveryId());
+            }
+            return existing;
+        }
         Entry applied = new Entry(delivery.deliveryId(), delivery.changeId(), normalize(delivery.changeType()),
                 delivery.desiredVersion(), delivery.payloadHash(), State.APPLIED, actualHash, Instant.now());
         write(applied);
         return applied;
     }
 
-    /** 명시적 failure가 side effect 미발생을 보장한 경우에만 PREPARED를 제거합니다. */
+    /** 서버 ACK가 확정된 뒤 동일 delivery의 APPLIED 복구 journal을 제거합니다. */
+    public synchronized void clearApplied(CpfRuntimeDelivery delivery) {
+        Objects.requireNonNull(delivery, "delivery");
+        Optional<Entry> entry = find(delivery);
+        if (entry.isPresent() && entry.get().state() == State.APPLIED) {
+            deleteJournal(delivery.deliveryId(), "APPLIED");
+        }
+    }
+
+    /** 명시적 failure가 side effect 미발생을 보장한 경우에만 검증된 PREPARED를 제거합니다. */
+    public synchronized void clearPrepared(CpfRuntimeDelivery delivery) {
+        Optional<Entry> entry = find(delivery);
+        if (entry.isPresent() && entry.get().state() == State.PREPARED) {
+            deletePrepared(delivery.deliveryId());
+        }
+    }
+
+    /** 기존 호출 호환입니다. 신규 Consumer는 delivery identity를 전달해야 합니다. */
     public synchronized void clearPrepared(String deliveryId) {
         Optional<Entry> entry = find(deliveryId);
         if (entry.isPresent() && entry.get().state() == State.PREPARED) {
-            try {
-                Files.deleteIfExists(path(deliveryId));
-                fsyncDirectory();
-            } catch (IOException ex) {
-                throw new IllegalStateException("Runtime Inbox PREPARED 삭제 실패: " + deliveryId, ex);
-            }
+            deletePrepared(deliveryId);
+        }
+    }
+
+    private void deletePrepared(String deliveryId) {
+        deleteJournal(deliveryId, "PREPARED");
+    }
+
+    private void deleteJournal(String deliveryId, String state) {
+        try {
+            Files.deleteIfExists(path(deliveryId));
+            fsyncDirectory();
+        } catch (IOException ex) {
+            throw new IllegalStateException("Runtime Inbox " + state + " 삭제 실패: " + deliveryId, ex);
         }
     }
 
@@ -96,19 +191,11 @@ public final class CpfRuntimeInstanceInboxStore {
         Map<String, Entry> latest = new LinkedHashMap<>();
         try (var stream = Files.list(directory)) {
             stream.filter(p -> p.getFileName().toString().endsWith(".inbox"))
-                    .forEach(path -> {
-                        try {
-                            String file = path.getFileName().toString();
-                            find(file.substring(0, file.length() - 6)).ifPresent(entry -> {
-                                if (entry.state() != State.APPLIED) return;
-                                latest.merge(entry.changeType(), entry,
-                                        (a, b) -> a.desiredVersion() >= b.desiredVersion() ? a : b);
-                            });
-                        } catch (RuntimeException ignored) {
-                            // 개별 손상 journal은 startup을 실패시켜야 하므로 아래 정렬 전에 다시 읽힙니다.
-                            throw ignored;
-                        }
-                    });
+                    .forEach(path -> read(path).ifPresent(entry -> {
+                        if (entry.state() != State.APPLIED) return;
+                        latest.merge(entry.changeType(), entry,
+                                (a, b) -> a.desiredVersion() >= b.desiredVersion() ? a : b);
+                    }));
         } catch (IOException ex) {
             throw new IllegalStateException("Runtime Inbox 목록 조회 실패", ex);
         }
@@ -118,7 +205,7 @@ public final class CpfRuntimeInstanceInboxStore {
     }
 
     private Path path(String deliveryId) {
-        if (deliveryId == null || !deliveryId.matches("[A-Za-z0-9._:-]{1,180}")) {
+        if (deliveryId == null || !deliveryId.matches("[A-Za-z0-9._:-]{1,80}")) {
             throw new IllegalArgumentException("유효하지 않은 Runtime deliveryId입니다.");
         }
         String safe = Base64.getUrlEncoder().withoutPadding().encodeToString(deliveryId.getBytes(java.nio.charset.StandardCharsets.UTF_8));
@@ -127,7 +214,12 @@ public final class CpfRuntimeInstanceInboxStore {
 
     private void write(Entry entry) {
         Path target = path(entry.deliveryId());
-        Path temp = target.resolveSibling(target.getFileName() + ".tmp");
+        Path temp;
+        try {
+            temp = Files.createTempFile(directory, target.getFileName().toString() + ".", ".tmp");
+        } catch (IOException ex) {
+            throw new IllegalStateException("Runtime Inbox 고유 임시 journal 생성 실패", ex);
+        }
         Properties p = new Properties();
         p.setProperty("deliveryId", entry.deliveryId());
         p.setProperty("changeId", entry.changeId());
@@ -142,11 +234,13 @@ public final class CpfRuntimeInstanceInboxStore {
             p.store(out, "CPF Runtime Instance Inbox");
             out.flush();
         } catch (IOException ex) {
+            try { Files.deleteIfExists(temp); } catch (IOException ignored) { }
             throw new IllegalStateException("Runtime Inbox 임시 journal 저장 실패", ex);
         }
         try (FileChannel channel = FileChannel.open(temp, StandardOpenOption.WRITE)) {
             channel.force(true);
         } catch (IOException ex) {
+            try { Files.deleteIfExists(temp); } catch (IOException ignored) { }
             throw new IllegalStateException("Runtime Inbox fsync 실패", ex);
         }
         try {
@@ -156,6 +250,7 @@ public final class CpfRuntimeInstanceInboxStore {
             try { Files.deleteIfExists(temp); } catch (IOException ignored) { }
             throw new IllegalStateException("Runtime Inbox는 atomic rename을 지원하는 파일시스템이 필요합니다: " + directory, ex);
         } catch (IOException ex) {
+            try { Files.deleteIfExists(temp); } catch (IOException ignored) { }
             throw new IllegalStateException("Runtime Inbox atomic replace 실패", ex);
         }
     }
@@ -181,8 +276,20 @@ public final class CpfRuntimeInstanceInboxStore {
         return value;
     }
 
+    private void assertSameDelivery(Entry entry, CpfRuntimeDelivery delivery) {
+        String actualType = normalize(delivery.changeType());
+        if (!entry.deliveryId().equals(delivery.deliveryId())
+                || !entry.changeId().equals(delivery.changeId())
+                || !entry.changeType().equals(actualType)
+                || entry.desiredVersion() != delivery.desiredVersion()
+                || !Objects.equals(entry.payloadHash(), delivery.payloadHash())) {
+            throw new IdentityConflictException(
+                    "동일 deliveryId가 다른 Runtime Change identity를 가리킵니다: " + delivery.deliveryId());
+        }
+    }
+
     private String normalize(String value) {
-        String result = value == null ? "" : value.trim().toUpperCase();
+        String result = value == null ? "" : value.trim().toUpperCase(java.util.Locale.ROOT);
         return result.startsWith("ROLLBACK:") ? result.substring("ROLLBACK:".length()) : result;
     }
     private String empty(String value) { return value == null ? "" : value; }

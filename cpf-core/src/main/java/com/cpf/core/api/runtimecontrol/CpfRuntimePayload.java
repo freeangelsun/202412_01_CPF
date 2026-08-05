@@ -20,6 +20,8 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.LinkedHashSet;
 import java.util.TreeMap;
 
 /**
@@ -63,6 +65,35 @@ public final class CpfRuntimePayload {
     /** 최상위 Object에 field가 존재하는지 확인합니다. */
     public boolean contains(String fieldName) {
         return root().has(fieldName);
+    }
+
+    /** 최상위 Object field 이름을 canonical 순서의 불변 Set으로 반환합니다. */
+    public Set<String> fieldNames() {
+        LinkedHashSet<String> names = new LinkedHashSet<>();
+        root().properties().forEach(entry -> names.add(entry.getKey()));
+        return java.util.Collections.unmodifiableSet(names);
+    }
+
+    /** 문자열 타입을 강제하며 누락·null이면 fallback을 반환합니다. */
+    public String textStrict(String fieldName, String fallback) {
+        JsonNode value = root().get(fieldName);
+        if (value == null || value.isNull()) return fallback;
+        if (!value.isTextual()) {
+            throw new IllegalArgumentException(
+                    "Runtime payload 문자열 field가 아닙니다: " + fieldName);
+        }
+        return value.textValue();
+    }
+
+    /** JSON boolean 타입을 강제하며 누락·null이면 fallback을 반환합니다. */
+    public boolean booleanStrict(String fieldName, boolean fallback) {
+        JsonNode value = root().get(fieldName);
+        if (value == null || value.isNull()) return fallback;
+        if (!value.isBoolean()) {
+            throw new IllegalArgumentException(
+                    "Runtime payload boolean field가 아닙니다: " + fieldName);
+        }
+        return value.booleanValue();
     }
 
     /** 문자열 field를 조회하며 누락·null이면 fallback을 반환합니다. */

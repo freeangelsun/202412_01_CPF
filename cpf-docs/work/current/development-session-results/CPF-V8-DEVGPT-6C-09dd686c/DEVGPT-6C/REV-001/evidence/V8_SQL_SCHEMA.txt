@@ -1,0 +1,22 @@
+{
+  "statements_checked": 75,
+  "failed_statements": [],
+  "referenced_tables": [
+    "cpf_control_operation",
+    "cpf_runtime_change",
+    "cpf_runtime_change_audit",
+    "cpf_runtime_controller_lease",
+    "cpf_runtime_delivery",
+    "cpf_runtime_group_member",
+    "cpf_runtime_instance_feature_state",
+    "cpf_runtime_instance_group",
+    "cpf_runtime_instance_state",
+    "cpf_runtime_rate_bucket",
+    "cpf_runtime_version",
+    "cpf_service",
+    "cpf_service_endpoint",
+    "cpf_service_instance"
+  ],
+  "unknown_tables": [],
+  "pass": true
+}

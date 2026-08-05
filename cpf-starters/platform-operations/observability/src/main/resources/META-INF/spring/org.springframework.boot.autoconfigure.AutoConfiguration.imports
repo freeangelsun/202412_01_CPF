@@ -1,3 +1,5 @@
 com.cpf.core.config.CpfLogPolicyAutoConfiguration
 com.cpf.core.config.CpfLogRecoveryAutoConfiguration
 com.cpf.starter.observability.runtimecontrol.CpfObservabilityRuntimeControlAutoConfiguration
+com.cpf.starter.platform.operations.observability.CpfRemoteLogLocalAutoConfiguration
+com.cpf.starter.platform.operations.observability.CpfLogPolicyVersionJdbcAutoConfiguration

@@ -65,6 +65,19 @@ class CpfRuntimeAutoRollbackPolicyTest {
                 () -> new CpfRuntimeAutoRollbackPolicy(Set.of("CONFIG"), 3, 1, 3, 999L));
     }
 
+
+    @Test
+    void dynamicBlockedAuditEventUsesStableDatabaseLength() {
+        String event=CpfRuntimeControlReconciler.boundedAuditEventType(
+                "AUTO_ROLLBACK_BLOCKED_OPERATION_LEDGER_CONFLICT_UNKNOWN_RESULT_WITH_EXTRA_CONTEXT");
+        assertTrue(event.length()<=60);
+        assertEquals(event,CpfRuntimeControlReconciler.boundedAuditEventType(
+                "AUTO_ROLLBACK_BLOCKED_OPERATION_LEDGER_CONFLICT_UNKNOWN_RESULT_WITH_EXTRA_CONTEXT"));
+        String distinct=CpfRuntimeControlReconciler.boundedAuditEventType(
+                "AUTO_ROLLBACK_BLOCKED_OPERATION_LEDGER_CONFLICT_UNKNOWN_RESULT_WITH_OTHER_CONTEXT");
+        assertFalse(event.equals(distinct));
+    }
+
     private static CpfRuntimeAutoRollbackPolicy policy(Set<String> allowlist) {
         return new CpfRuntimeAutoRollbackPolicy(allowlist, 3, 1, 3, 30_000L);
     }

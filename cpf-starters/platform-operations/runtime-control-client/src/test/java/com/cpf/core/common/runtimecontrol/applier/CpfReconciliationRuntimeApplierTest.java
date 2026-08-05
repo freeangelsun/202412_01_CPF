@@ -60,6 +60,41 @@ class CpfReconciliationRuntimeApplierTest {
         assertEquals(30_000L, policy.current().circuitOpenMillis());
     }
 
+
+    @Test
+    void malformedBooleanAndOverflowingIntegerFailClosed() {
+        CpfReconciliationRuntimePolicy policy = new CpfReconciliationRuntimePolicy();
+        CpfReconciliationRuntimeApplier applier = new CpfReconciliationRuntimeApplier(policy);
+
+        var badBoolean=applier.apply(delivery("{\"enabled\":\"garbage\",\"unknownTypes\":[\"file\"]}"));
+        var overflow=applier.apply(delivery("{\"enabled\":true,\"unknownTypes\":[\"file\"],\"batchSize\":4294967396}"));
+        var nonString=applier.apply(delivery("{\"enabled\":true,\"unknownTypes\":[1]}"));
+
+        assertFalse(badBoolean.applied());
+        assertFalse(overflow.applied());
+        assertFalse(nonString.applied());
+        assertFalse(policy.current().enabled());
+    }
+
+
+    @Test
+    void unknownFieldFractionalNumberAndStringBooleanFailClosed() {
+        CpfReconciliationRuntimePolicy policy = new CpfReconciliationRuntimePolicy();
+        CpfReconciliationRuntimeApplier applier = new CpfReconciliationRuntimeApplier(policy);
+
+        var typo = applier.apply(delivery(
+                "{\"enabled\":true,\"unknownTypes\":[\"file\"],\"batchSzie\":7}"));
+        var fractional = applier.apply(delivery(
+                "{\"enabled\":true,\"unknownTypes\":[\"file\"],\"batchSize\":1.9}"));
+        var stringBoolean = applier.apply(delivery(
+                "{\"enabled\":\"true\",\"unknownTypes\":[\"file\"]}"));
+
+        assertFalse(typo.applied());
+        assertFalse(fractional.applied());
+        assertFalse(stringBoolean.applied());
+        assertFalse(policy.current().enabled());
+    }
+
     private CpfRuntimeDelivery delivery(String json) {
         return new CpfRuntimeDelivery(
                 "delivery",

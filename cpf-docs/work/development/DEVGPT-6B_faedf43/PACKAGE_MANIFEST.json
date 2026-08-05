@@ -1,0 +1,50 @@
+{
+  "package_type": "DEVGPT-6B_ROOT_OVERLAY_CHECKPOINT",
+  "completion_claim": "DEVGPT-6B-owned implementation and substitute Gates complete; cross-session and target-runtime items remain open",
+  "baseline_sha": "faedf43a7baffdad456bf40f8e46d622db9cfc76",
+  "branch": "master",
+  "newer_origin_master_ignored_by_user_instruction": true,
+  "owned_file_count_excluding_change_manifest": 386,
+  "overlay_file_count_including_change_manifest": 387,
+  "excluded_counts": {
+    "EXCLUDE_6E_OWNER": 12,
+    "EXCLUDE_DUPLICATE_CONTRACT": 8,
+    "EXCLUDE_STALE_BASELINE_EVIDENCE": 79,
+    "EXCLUDE_STALE_SESSION_EVIDENCE": 515
+  },
+  "source_file_count": 154,
+  "test_file_count": 71,
+  "resource_file_count": 9,
+  "doc_evidence_file_count": 161,
+  "work_item_count": 43,
+  "canonical_requirement_count": 9,
+  "cpf_fr_count": 1109,
+  "cpf_sc_count": 1698,
+  "engineering_gate_count": 16,
+  "unique_product_gate_count": 63,
+  "suite_hygiene_marker_count": 4,
+  "gate_inventory_count": 65,
+  "gate_without_pass_marker": 0,
+  "requirement_status_counts": {
+    "DIRECT_ALTERNATIVE_VERIFIED": 812,
+    "NOT_APPLICABLE_WITH_RATIONALE": 47,
+    "DIRECT_SOURCE_SUBSTITUTE_VERIFIED": 17,
+    "PARTIAL_IMPLEMENTATION": 99,
+    "CROSS_SESSION_REQUIRED": 134
+  },
+  "scenario_status_counts": {
+    "ALTERNATIVE_VERIFIED": 1380,
+    "CROSS_SESSION_REQUIRED": 155,
+    "NOT_APPLICABLE_WITH_RATIONALE": 47,
+    "DIRECT_SOURCE_SUBSTITUTE_VERIFIED": 17,
+    "PARTIAL_IMPLEMENTATION": 99
+  },
+  "requirement_unreviewed": 0,
+  "scenario_unreviewed": 0,
+  "java_target": "Java 25",
+  "executed_runtime": "OpenJDK 21.0.10 substitute runtime",
+  "archive_sha256": "external .sha256 sidecar",
+  "delete_manifest": "No repository deletion requested",
+  "protected_paths_changed": false,
+  "git_write_performed": false
+}

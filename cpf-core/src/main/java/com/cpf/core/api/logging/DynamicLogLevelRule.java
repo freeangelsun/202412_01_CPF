@@ -30,6 +30,19 @@ public record DynamicLogLevelRule(
      * 기준 시각보다 만료 일시가 지났는지 확인합니다.
      */
     public boolean expired(LocalDateTime now) {
-        return expiresAt != null && now.isAfter(expiresAt);
+        return expiresAt != null && !now.isBefore(expiresAt);
+    }
+
+    @Override
+    public String toString() {
+        return "DynamicLogLevelRule[ruleId=" + ruleId
+                + ", transactionId=" + transactionId
+                + ", businessTransactionId=" + businessTransactionId
+                + ", moduleId=" + moduleId
+                + ", logLevel=" + logLevel
+                + ", reason=[REDACTED]"
+                + ", createdBy=" + createdBy
+                + ", createdAt=" + createdAt
+                + ", expiresAt=" + expiresAt + "]";
     }
 }

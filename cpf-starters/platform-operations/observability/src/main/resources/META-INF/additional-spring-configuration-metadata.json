@@ -1,0 +1,117 @@
+{
+  "properties": [
+    {
+      "name": "cpf.remote-log.local.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enable the bounded local filesystem remote-log provider.",
+      "defaultValue": false
+    },
+    {
+      "name": "cpf.remote-log.local.root",
+      "type": "java.lang.String",
+      "description": "Managed log root. Required when the local provider is enabled."
+    },
+    {
+      "name": "cpf.remote-log.local.module",
+      "type": "java.lang.String",
+      "description": "Module identity exposed in remote-log metadata.",
+      "defaultValue": "CPF"
+    },
+    {
+      "name": "cpf.remote-log.local.service",
+      "type": "java.lang.String",
+      "description": "Service identity exposed in remote-log metadata.",
+      "defaultValue": "cpf-core"
+    },
+    {
+      "name": "cpf.remote-log.local.instance",
+      "type": "java.lang.String",
+      "description": "Instance identity exposed in remote-log metadata.",
+      "defaultValue": "local-1"
+    },
+    {
+      "name": "cpf.remote-log.local.retention",
+      "type": "java.time.Duration",
+      "description": "Retention window used to decide whether an artifact is downloadable.",
+      "defaultValue": "30d"
+    },
+    {
+      "name": "cpf.remote-log.local.active-window",
+      "type": "java.time.Duration",
+      "description": "Recent uncompressed files inside this window are treated as active.",
+      "defaultValue": "2m"
+    },
+    {
+      "name": "cpf.remote-log.local.bundle-ttl",
+      "type": "java.time.Duration",
+      "description": "Lifetime of generated local bundle artifacts.",
+      "defaultValue": "15m"
+    },
+    {
+      "name": "cpf.remote-log.local.maximum-depth",
+      "type": "java.lang.Integer",
+      "description": "Maximum filesystem traversal depth.",
+      "defaultValue": 16
+    },
+    {
+      "name": "cpf.remote-log.local.maximum-scanned-files",
+      "type": "java.lang.Integer",
+      "description": "Maximum path entries inspected by one operation.",
+      "defaultValue": 100000
+    },
+    {
+      "name": "cpf.remote-log.local.maximum-preview-lines",
+      "type": "java.lang.Integer",
+      "description": "Maximum requested preview lines.",
+      "defaultValue": 1000
+    },
+    {
+      "name": "cpf.remote-log.local.maximum-search-bytes",
+      "type": "java.lang.Long",
+      "description": "Maximum decoded bytes inspected for content identifier search.",
+      "defaultValue": 8388608
+    },
+    {
+      "name": "cpf.remote-log.local.maximum-preview-bytes",
+      "type": "java.lang.Long",
+      "description": "Maximum source bytes used for a preview.",
+      "defaultValue": 4194304
+    },
+    {
+      "name": "cpf.remote-log.local.maximum-preview-decoded-characters",
+      "type": "java.lang.Long",
+      "description": "Maximum decoded characters consumed by compressed preview.",
+      "defaultValue": 16777216
+    },
+    {
+      "name": "cpf.remote-log.local.maximum-raw-line-characters",
+      "type": "java.lang.Integer",
+      "description": "Maximum raw characters retained from one source line before masking.",
+      "defaultValue": 16384
+    },
+    {
+      "name": "cpf.remote-log.local.maximum-download-bytes",
+      "type": "java.lang.Long",
+      "description": "Maximum size of a downloadable artifact.",
+      "defaultValue": 536870912
+    },
+    {
+      "name": "cpf.remote-log.local.maximum-bundle-bytes",
+      "type": "java.lang.Long",
+      "description": "Maximum total source size included in one bundle.",
+      "defaultValue": 2147483648
+    },
+    {
+      "name": "cpf.remote-log.local.maximum-bundle-artifacts",
+      "type": "java.lang.Integer",
+      "description": "Maximum distinct artifact IDs accepted by one bundle request.",
+      "defaultValue": 100
+    },
+    {
+      "name": "cpf.remote-log.local.source-already-masked",
+      "type": "java.lang.Boolean",
+      "description": "Allows direct source-file download only when the producer guarantees that every persisted line is already masked. Preview and bundle outputs are sanitized regardless.",
+      "defaultValue": false
+    }
+  ]
+}

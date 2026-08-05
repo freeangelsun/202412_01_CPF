@@ -1,0 +1,1 @@
+python cpf-tools/scripts/verify-cpf-cache-feature-flag-runtime.py --repo-root . --report-json cache-feature.json; python cpf-tools/scripts/verify-cpf-cache-durable-lifecycle.py --repo-root . --report-json cache-durable.json; python -m pytest -q cpf-tools/scripts/tests/test_verify_cpf_cache_durable_lifecycle.py cpf-tools/scripts/tests/test_cache_provider_contract_source.py

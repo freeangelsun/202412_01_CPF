@@ -8,6 +8,7 @@ import com.cpf.core.api.cache.CpfDistributedLockPort;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -40,6 +41,7 @@ public class CpfCacheAutoConfiguration {
     }
 
     @Bean
+    @ConditionalOnBean({CpfCachePort.class, CpfDistributedLockPort.class})
     @ConditionalOnMissingBean(CpfCacheAsideService.class)
     CpfCacheAsideService cpfCacheAsideService(CpfCachePort cache, CpfDistributedLockPort locks) {
         return new CpfCacheAsideService(cache, locks);

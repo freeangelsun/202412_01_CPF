@@ -23,9 +23,9 @@ VALID_DEV_STATES = {"완료", "미완료", "재개발 요청", "재검수 요청
 
 REQ_ID_ALIASES = ("requirement_id", "id", "requirementId")
 SCENARIO_ID_ALIASES = ("scenario_id", "id", "scenarioId")
-CANONICAL_ID_ALIASES = ("canonical_requirement_id", "canonical_id", "canonicalRequirementId")
-SCENARIO_REQUIREMENT_ALIASES = ("requirement_id", "parent_requirement_id", "derived_requirement_id")
-WORK_ITEM_ALIASES = ("primary_work_item_id", "work_item_id", "development_work_item_id")
+CANONICAL_ID_ALIASES = ("canonical_requirement_id", "canonical_requirement_ids", "canonical_id", "canonicalRequirementId")
+SCENARIO_REQUIREMENT_ALIASES = ("requirement_id", "linked_requirement_id", "parent_requirement_id", "derived_requirement_id")
+WORK_ITEM_ALIASES = ("primary_work_item_id", "primary_entity_id", "work_item_id", "development_work_item_id", "work_package_id")
 TEXT_FIELDS = (
     "requirement", "requirement_text", "title", "description", "source_basis", "change_target",
     "actual_consumer", "acceptance_criteria", "verification_method", "regression_protection",
@@ -89,6 +89,13 @@ def split_values(value: str) -> List[str]:
     if not value:
         return []
     return [part.strip() for part in re.split(r"[;,|\n]+", value) if part.strip()]
+
+
+def split_identifier_values(value: str) -> List[str]:
+    """Split identifier lists without changing generic path/value splitting semantics."""
+    if not value:
+        return []
+    return [part.strip() for part in re.split(r"[;,|/\n]+", value) if part.strip()]
 
 
 def normalized_tokens(value: str) -> set[str]:
@@ -185,7 +192,7 @@ def choose_primary(row: Mapping[str, str], candidates: Sequence[Mapping[str, str
             item.get("mandatory_results", ""), item.get("implementation_proposals", ""),
             item.get("scenario_classes", ""), item.get("owner", "")
         ])
-        target_tokens = normalized_tokens(target_text)
+        target_tokens = item.get("__normalized_tokens") or normalized_tokens(target_text)
         score = 4 * len(source_tokens & target_tokens)
         axis = (item.get("axis") or "").upper()
         work_type = (item.get("work_type") or "").upper()

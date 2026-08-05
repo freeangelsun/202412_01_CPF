@@ -1,0 +1,25 @@
+{
+  "baseline_sha": "af12a0c8851a2e8d20e9e42964d8dacc0266af03",
+  "execution_mode": "isolated pytest file processes",
+  "core": {
+    "files": 21,
+    "tests": 104,
+    "exit_code": 0
+  },
+  "post_fix_unique": {
+    "files": 5,
+    "tests": 13,
+    "exit_code": 0
+  },
+  "unique_total": {
+    "files": 26,
+    "tests": 117,
+    "failed_files": 0,
+    "exit_code": 0
+  },
+  "affected_seed_dialect_rerun": {
+    "tests": 5,
+    "exit_code": 0,
+    "counted_in_core": true
+  }
+}

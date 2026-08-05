@@ -6,7 +6,7 @@ from pathlib import Path
 from devgpt_control_lib import ACTIVE_TARGET_STATES, read_csv, refresh_views, split_values, write_csv, write_json
 
 ASSIGN_FIELDS=[
-    "campaign_id","campaign_baseline_sha","assignment_revision","session_id","session_role",
+    "campaign_id","campaign_baseline_sha","assignment_revision","development_request_id","session_id","session_role",
     "entity_id","entity_type","canonical_requirement_id","priority","개발GPT_작업대상상태",
     "requirement_map_ref","scenario_map_ref","allowed_change_paths","protected_paths",
     "supporting_sessions","dependency_entities","integration_owner","scope_status",
@@ -22,6 +22,76 @@ ARTIFACT_FIELDS=[
     "integration_required","integration_status","cleanup_eligible","cleanup_reason",
     "cleanup_command","retained_reason","owner","notes"
 ]
+
+SESSION_PLAN_FIELDS=[
+    "entity_id","session_id","session_role","integration_owner","allowed_change_paths"
+]
+
+def load_explicit_session_plan(path: Path, active_ids: set[str]) -> dict[str, dict[str, str]]:
+    """Load a fail-closed exact entity-to-session assignment plan.
+
+    The campaign generator must never silently invent or drop fixed DEVGPT session
+    assignments. Every active entity must occur exactly once; inactive/unknown rows,
+    duplicate entity IDs, and empty session IDs are rejected.
+    """
+    rows=read_csv(path)
+    if not rows:
+        raise RuntimeError(f"session plan is empty: {path}")
+    by_entity={}
+    duplicate=[]
+    unknown=[]
+    empty_session=[]
+    for row in rows:
+        eid=(row.get("entity_id") or "").strip()
+        sid=(row.get("session_id") or "").strip()
+        if not eid:
+            raise RuntimeError(f"session plan contains an empty entity_id: {path}")
+        if eid in by_entity:
+            duplicate.append(eid)
+            continue
+        if eid not in active_ids:
+            unknown.append(eid)
+        if not sid:
+            empty_session.append(eid)
+        normalized={field:(row.get(field) or "").strip() for field in SESSION_PLAN_FIELDS}
+        normalized["entity_id"]=eid
+        normalized["session_id"]=sid
+        normalized["session_role"]=normalized["session_role"] or "개발GPT"
+        normalized["integration_owner"]=normalized["integration_owner"] or sid
+        by_entity[eid]=normalized
+    missing=sorted(active_ids-set(by_entity))
+    errors=[]
+    if duplicate: errors.append("duplicate="+",".join(sorted(set(duplicate))[:20]))
+    if unknown: errors.append("inactive_or_unknown="+",".join(sorted(set(unknown))[:20]))
+    if empty_session: errors.append("empty_session="+",".join(sorted(set(empty_session))[:20]))
+    if missing: errors.append("missing="+",".join(missing[:20]))
+    if errors:
+        raise RuntimeError("invalid explicit session plan: "+"; ".join(errors))
+    return by_entity
+
+def assign_entities_to_sessions(order: list[str], index: dict[str, dict[str, str]], max_items_per_session: int, plan: dict[str, dict[str, str]] | None=None) -> tuple[dict[str, str], dict[str, dict[str, str]]]:
+    """Return exact entity/session assignments and optional per-entity plan metadata."""
+    if plan is not None:
+        return {eid:plan[eid]["session_id"] for eid in order}, plan
+    groups=defaultdict(list)
+    for eid in order:
+        item=index[eid]
+        groups[item.get("owner_module") or "integration"].append(eid)
+    entity_to_session={}
+    session_no=0
+    for module in sorted(groups):
+        items=groups[module]
+        for start in range(0,len(items),max(1,max_items_per_session)):
+            session_no+=1
+            sid=f"DEV-{safe_name(module)}-{session_no:03d}"
+            for eid in items[start:start+max_items_per_session]:
+                entity_to_session[eid]=sid
+    return entity_to_session, {}
+
+def development_request_id(campaign_id: str, revision: int, session_id: str) -> str:
+    """Return the immutable top-level request identifier for one campaign session."""
+    return f"{campaign_id}-REV-{revision:03d}-{session_id}"
+
 
 def safe_name(value:str)->str:
     value=re.sub(r"[^A-Za-z0-9]+","_",value.upper()).strip("_")
@@ -49,6 +119,7 @@ def main()->int:
     p.add_argument("--baseline-sha",required=True)
     p.add_argument("--assignment-revision",type=int,default=1)
     p.add_argument("--max-items-per-session",type=int,default=8)
+    p.add_argument("--session-plan",help="CSV exact entity-to-session assignment plan; requires every active entity exactly once")
     p.add_argument("--allow-prebootstrap",action="store_true")
     a=p.parse_args()
 
@@ -131,20 +202,18 @@ def main()->int:
     if cycles:
         raise SystemExit(f"mandatory dependency cycle: {cycles}")
 
-    groups=defaultdict(list)
-    for eid in order:
-        item=index[eid]
-        groups[item.get("owner_module") or "integration"].append(eid)
-
-    entity_to_session={}
-    session_no=0
-    for module in sorted(groups):
-        items=groups[module]
-        for start in range(0,len(items),max(1,a.max_items_per_session)):
-            session_no+=1
-            sid=f"DEV-{safe_name(module)}-{session_no:03d}"
-            for eid in items[start:start+a.max_items_per_session]:
-                entity_to_session[eid]=sid
+    explicit_plan=None
+    if a.session_plan:
+        plan_path=Path(a.session_plan)
+        if not plan_path.is_absolute():
+            plan_path=root/plan_path
+        try:
+            explicit_plan=load_explicit_session_plan(plan_path,active_set)
+        except RuntimeError as exc:
+            raise SystemExit(str(exc))
+    entity_to_session,plan_metadata=assign_entities_to_sessions(
+        order,index,a.max_items_per_session,explicit_plan
+    )
 
     protected=(
         "cpf-docs/governance/**;"
@@ -170,7 +239,8 @@ def main()->int:
             entity_to_session[d] for d in deps
             if d in entity_to_session and entity_to_session[d]!=sid
         })
-        allowed=f"{module}/**" if module.startswith("cpf-") else "ASSIGNED_OWNER_PATHS_ONLY"
+        plan_row=plan_metadata.get(eid,{})
+        allowed=plan_row.get("allowed_change_paths") or (f"{module}/**" if module.startswith("cpf-") else "ASSIGNED_OWNER_PATHS_ONLY")
         session_rel=relative_session_root(a.management_dir,a.campaign_id,sid,a.assignment_revision)
         result_rel=f"{session_rel}/results"
         evidence_rel=f"{session_rel}/evidence"
@@ -183,8 +253,9 @@ def main()->int:
             "campaign_id":a.campaign_id,
             "campaign_baseline_sha":a.baseline_sha,
             "assignment_revision":str(a.assignment_revision),
+            "development_request_id":development_request_id(a.campaign_id,a.assignment_revision,sid),
             "session_id":sid,
-            "session_role":"개발GPT",
+            "session_role":plan_row.get("session_role") or "개발GPT",
             "entity_id":eid,
             "entity_type":item["entity_type"],
             "canonical_requirement_id":item.get("canonical_requirement_id",""),
@@ -196,7 +267,7 @@ def main()->int:
             "protected_paths":protected,
             "supporting_sessions":";".join(supporting),
             "dependency_entities":";".join(deps),
-            "integration_owner":"INTEGRATION-OWNER",
+            "integration_owner":plan_row.get("integration_owner") or "INTEGRATION-OWNER",
             "scope_status":"BLOCKED_BY_PREDECESSOR_SESSION" if supporting else "READY",
             "campaign_workspace_root":campaign_rel,
             "session_workspace_root":session_rel,
@@ -237,6 +308,7 @@ def main()->int:
             "",
             f"- Campaign: `{a.campaign_id}`",
             f"- Assignment Revision: `{a.assignment_revision}`",
+            f"- Development Request ID: `{assigned[0]['development_request_id']}`",
             f"- Baseline: `{a.baseline_sha}`",
             f"- Campaign Workspace: `{campaign_rel}`",
             f"- Session Workspace: `{session_rel}`",
@@ -308,7 +380,10 @@ def main()->int:
         "immutable_output":True,
         "active_items":len(rows),
         "session_count":len(sessions),
+        "development_request_ids":sorted(development_request_id(a.campaign_id,a.assignment_revision,sid) for sid in sessions),
         "max_items_per_session":a.max_items_per_session,
+        "assignment_source":"EXPLICIT_SESSION_PLAN" if a.session_plan else "AUTO_OWNER_CHUNKS",
+        "session_plan":str(a.session_plan or ""),
         "session_workspace_pattern":f"{campaign_rel}/sessions/<session-id>",
         "campaign_cleanup_command":campaign_cleanup,
         "full_assignment_required":not a.allow_prebootstrap,

@@ -1,0 +1,244 @@
+{
+  "status": "PASS",
+  "moduleOwners": {
+    "cpf-core": "core",
+    "cpf-common": "common",
+    "cpf-admin": "admin",
+    "cpf-biz-admin": "biz-admin",
+    "cpf-batch": "batch",
+    "cpf-gateway": "gateway",
+    "cpf-member": "generated-domain",
+    "cpf-reference": "generated-domain",
+    "cpf-starters": "starters",
+    "cpf-tools": "tools"
+  },
+  "packageOwners": {
+    "core": "cpf-core",
+    "common": "cpf-common",
+    "admin": "cpf-admin",
+    "bizadmin": "cpf-biz-admin",
+    "batch": "cpf-batch",
+    "gateway": "cpf-gateway",
+    "member": "cpf-member",
+    "reference": "cpf-reference",
+    "starter": "cpf-starters",
+    "tools": "cpf-tools"
+  },
+  "buildFileCount": 44,
+  "mainJavaFileCount": 40,
+  "moduleGraph": {
+    "root": [],
+    "cpf-batch/scheduler": [
+      "cpf-batch/contract",
+      "cpf-batch/execution-runtime",
+      "cpf-batch/runtime-common",
+      "cpf-batch/testkit",
+      "cpf-common",
+      "cpf-core",
+      "cpf-starter-integration-resilience",
+      "cpf-starter-messaging-reliability-jdbc",
+      "cpf-starter-profile-batch-service"
+    ],
+    "cpf-batch/worker": [
+      "cpf-batch/contract",
+      "cpf-batch/execution-runtime",
+      "cpf-batch/runtime-common",
+      "cpf-batch/testkit",
+      "cpf-common",
+      "cpf-core",
+      "cpf-starter-integration-resilience",
+      "cpf-starter-messaging-reliability-jdbc",
+      "cpf-starter-notification-dispatch",
+      "cpf-starter-profile-batch-service",
+      "cpf-starter-security-secret"
+    ],
+    "cpf-gateway": [
+      "cpf-core",
+      "cpf-starter-data-persistence-jdbc",
+      "cpf-starter-integration-resilience",
+      "cpf-starter-profile-secure-api"
+    ],
+    "cpf-member": [
+      "cpf-starter-data-persistence-mybatis",
+      "cpf-starter-profile-secure-api"
+    ],
+    "cpf-reference": [
+      "cpf-batch/contract",
+      "cpf-common",
+      "cpf-core",
+      "cpf-starter-data-persistence-mybatis",
+      "cpf-starter-file-sftp",
+      "cpf-starter-messaging-kafka",
+      "cpf-starter-messaging-reliability-jdbc",
+      "cpf-starter-profile-secure-api"
+    ],
+    "cpf-starters/data/cache-caffeine": [
+      "cpf-common",
+      "cpf-starter-foundation-base"
+    ],
+    "cpf-starters/data/cache-valkey": [
+      "cpf-common",
+      "cpf-starter-foundation-base"
+    ],
+    "cpf-starters/data/persistence-jdbc": [
+      "cpf-common",
+      "cpf-core",
+      "cpf-starter-foundation-base",
+      "cpf-starter-platform-operations-runtime-control-client"
+    ],
+    "cpf-starters/data/persistence-mybatis": [
+      "cpf-common",
+      "cpf-starter-data-persistence-jdbc"
+    ],
+    "cpf-starters/file/archive": [
+      "cpf-core"
+    ],
+    "cpf-starters/file/attachment": [
+      "cpf-core",
+      "cpf-starter-platform-operations-runtime-control-client"
+    ],
+    "cpf-starters/file/sftp": [
+      "cpf-core",
+      "cpf-starter-data-persistence-jdbc",
+      "cpf-starter-foundation-base",
+      "cpf-starter-platform-operations-runtime-control-client",
+      "cpf-starter-security-secret"
+    ],
+    "cpf-starters/file/tabular-poi": [
+      "cpf-common",
+      "cpf-starter-foundation-base"
+    ],
+    "cpf-starters/foundation/base": [
+      "cpf-core"
+    ],
+    "cpf-starters/integration/fixedlength": [
+      "cpf-core",
+      "cpf-starter-integration-fixedlength-core",
+      "cpf-starter-platform-operations-runtime-control-client"
+    ],
+    "cpf-starters/integration/fixedlength-core": [],
+    "cpf-starters/integration/http-client": [
+      "cpf-core",
+      "cpf-starter-data-persistence-jdbc",
+      "cpf-starter-foundation-base",
+      "cpf-starter-integration-fixedlength-core",
+      "cpf-starter-integration-resilience",
+      "cpf-starter-platform-operations-runtime-control-client"
+    ],
+    "cpf-starters/integration/iso8583": [
+      "cpf-core"
+    ],
+    "cpf-starters/integration/resilience": [
+      "cpf-core",
+      "cpf-starter-data-persistence-jdbc",
+      "cpf-starter-foundation-base"
+    ],
+    "cpf-starters/integration/tcp": [
+      "cpf-core",
+      "cpf-starter-foundation-base",
+      "cpf-starter-integration-resilience"
+    ],
+    "cpf-starters/messaging/ibm-mq": [
+      "cpf-starter-messaging-jms"
+    ],
+    "cpf-starters/messaging/jms": [
+      "cpf-core",
+      "cpf-starter-foundation-base",
+      "cpf-starter-messaging-reliability-jdbc"
+    ],
+    "cpf-starters/messaging/kafka": [
+      "cpf-core",
+      "cpf-starter-foundation-base",
+      "cpf-starter-messaging-reliability-jdbc"
+    ],
+    "cpf-starters/messaging/rabbitmq": [
+      "cpf-core",
+      "cpf-starter-foundation-base",
+      "cpf-starter-messaging-reliability-jdbc"
+    ],
+    "cpf-starters/messaging/reliability-jdbc": [
+      "cpf-core",
+      "cpf-starter-data-persistence-jdbc",
+      "cpf-starter-foundation-base",
+      "cpf-starter-platform-operations-runtime-control-client"
+    ],
+    "cpf-starters/notification/dispatch": [
+      "cpf-core",
+      "cpf-starter-data-persistence-jdbc",
+      "cpf-starter-foundation-base"
+    ],
+    "cpf-starters/notification/email": [
+      "cpf-starter-notification-dispatch"
+    ],
+    "cpf-starters/notification/sms-spi": [
+      "cpf-starter-notification-dispatch"
+    ],
+    "cpf-starters/platform-operations/channel-registry-jdbc": [
+      "cpf-core",
+      "cpf-starter-data-persistence-jdbc",
+      "cpf-starter-platform-operations-runtime-control-client"
+    ],
+    "cpf-starters/platform-operations/feature-flag-openfeature": [
+      "cpf-core",
+      "cpf-starter-data-persistence-jdbc",
+      "cpf-starter-foundation-base"
+    ],
+    "cpf-starters/platform-operations/observability": [
+      "cpf-core",
+      "cpf-starter-platform-operations-runtime-control-client"
+    ],
+    "cpf-starters/platform-operations/otlp": [
+      "cpf-starter-platform-operations-observability"
+    ],
+    "cpf-starters/platform-operations/runtime-control-client": [
+      "cpf-common",
+      "cpf-core"
+    ],
+    "cpf-starters/profiles/batch-service": [
+      "cpf-starter-foundation-base",
+      "cpf-starter-integration-resilience",
+      "cpf-starter-messaging-reliability-jdbc",
+      "cpf-starter-platform-operations-runtime-control-client"
+    ],
+    "cpf-starters/profiles/browser-bff": [
+      "cpf-starter-profile-web-api",
+      "cpf-starter-security-secret"
+    ],
+    "cpf-starters/profiles/event-service": [
+      "cpf-starter-foundation-base",
+      "cpf-starter-integration-resilience",
+      "cpf-starter-messaging-reliability-jdbc"
+    ],
+    "cpf-starters/profiles/minimal-domain": [
+      "cpf-starter-foundation-base"
+    ],
+    "cpf-starters/profiles/secure-api": [
+      "cpf-starter-profile-web-api",
+      "cpf-starter-security-secret"
+    ],
+    "cpf-starters/profiles/web-api": [
+      "cpf-core",
+      "cpf-starter-foundation-base"
+    ],
+    "cpf-starters/security/resource-server": [
+      "cpf-core",
+      "cpf-starter-foundation-base"
+    ],
+    "cpf-starters/security/secret": [
+      "cpf-core",
+      "cpf-starter-platform-operations-runtime-control-client"
+    ],
+    "cpf-starters/security/service-identity": [
+      "cpf-core",
+      "cpf-starter-foundation-base"
+    ],
+    "cpf-starters/security/session-jdbc": [
+      "cpf-core",
+      "cpf-starter-data-persistence-jdbc",
+      "cpf-starter-platform-operations-runtime-control-client"
+    ]
+  },
+  "internalReferenceCount": 0,
+  "internalReferences": [],
+  "findings": []
+}

@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "profileId": "CPF-S06-RUNTIME-ALTERNATIVE-V1",
+  "baselineSha": "af12a0c8851a2e8d20e9e42964d8dacc0266af03",
+  "sourceGroups": {
+    "maskingAndSupport": [
+      "cpf-tools/scripts/generate-cpf-support-bundle.py",
+      "cpf-tools/scripts/tests/test_generate_cpf_support_bundle.py"
+    ],
+    "batchReliability": [
+      "cpf-batch/execution-runtime/src/main/java/com/cpf/batch/execution/JdbcBatchExecutionControlPlaneAdapter.java",
+      "cpf-batch/execution-runtime/src/main/java/com/cpf/batch/execution/CpfSpringBatchExecutionControl.java",
+      "cpf-batch/control-server/src/main/java/com/cpf/batch/control/deploy/DeploymentCellLock.java"
+    ],
+    "partialIo": [
+      "cpf-starters/integration/tcp/src/main/java/com/cpf/starter/integration/tcp/internal/CpfResilientTcpClient.java"
+    ],
+    "brokerAndProviders": [
+      "cpf-starters/messaging/kafka/src/main/java/com/cpf/starter/messaging/kafka/internal/CpfKafkaConsumerControlAdapter.java",
+      "cpf-core/src/main/java/com/cpf/core/spi/notification/CpfNotificationProvider.java",
+      "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmNotificationController.java"
+    ],
+    "cacheAndFlags": [
+      "cpf-starters/data/cache-caffeine/build.gradle",
+      "cpf-starters/data/cache-valkey/build.gradle",
+      "cpf-starters/platform-operations/feature-flag-openfeature/build.gradle",
+      "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmCacheController.java",
+      "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmFeatureFlagController.java"
+    ],
+    "telemetry": [
+      "cpf-starters/platform-operations/observability/build.gradle",
+      "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmObservabilityController.java"
+    ],
+    "supplyChain": [
+      "cpf-tools/scripts/verify-cpf-supply-chain.py",
+      "cpf-tools/supply-chain/cpf-supply-chain-policy.json",
+      "cpf-tools/supply-chain/approved-primary-oss.csv"
+    ],
+    "performance": [
+      "cpf-tools/scripts/run-cpf-performance-contract.py",
+      "cpf-tools/performance/cpf-performance-profile.json"
+    ]
+  },
+  "performance": {
+    "operations": 40000,
+    "maxSeconds": 5.0,
+    "maxPeakBytes": 12000000
+  }
+}

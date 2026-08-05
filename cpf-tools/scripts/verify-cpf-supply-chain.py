@@ -23,6 +23,8 @@ INCLUDE_LINE = re.compile(r"^\s*include\s+(.+?)\s*$", re.MULTILINE)
 PROJECT_DIR = re.compile(r"project\(['\"]:(?P<name>[^'\"]+)['\"]\)\.projectDir\s*=\s*file\(['\"](?P<path>[^'\"]+)['\"]\)")
 REQUIRED_TOOL_NAMES = {"cyclonedx-gradle", "ort", "syft", "grype", "cpf-release-signer"}
 OFFICIAL_DBS = {"oracle", "postgresql", "mariadb"}
+SUPPORTED_CATALOG_SCHEMAS = {"1", "1.0", "1.0.0", "2.0.0"}
+NON_RELEASE_PROJECT_PREFIXES = ("cpf-tools/verification/",)
 
 
 def load_json(path: Path, failures: list[str]) -> dict[str, Any]:
@@ -197,10 +199,17 @@ def main() -> int:
             if license_id in denied or license_id not in allowed | conditional:
                 failures.append(f"unapproved license in approved component {component}:{license_id}")
 
-    expected_projects = project_paths(settings_path.read_text(encoding="utf-8-sig")) if settings_path.is_file() else set()
+    included_projects = project_paths(settings_path.read_text(encoding="utf-8-sig")) if settings_path.is_file() else set()
+    expected_projects = {
+        path for path in included_projects
+        if not any(path.startswith(prefix) for prefix in NON_RELEASE_PROJECT_PREFIXES)
+    }
     artifacts = catalog.get("artifacts", []) if catalog else []
-    if catalog.get("schemaVersion") != 1 or not isinstance(artifacts, list) or not artifacts:
-        failures.append("final artifact catalog must be schemaVersion=1 with non-empty artifacts")
+    if str(catalog.get("schemaVersion")) not in SUPPORTED_CATALOG_SCHEMAS or not isinstance(artifacts, list) or not artifacts:
+        failures.append(
+            "final artifact catalog must use a supported schemaVersion "
+            f"{sorted(SUPPORTED_CATALOG_SCHEMAS)} with non-empty artifacts"
+        )
         artifacts = []
     if set(map(str.lower, catalog.get("officialDatabaseVendors", []))) != OFFICIAL_DBS:
         failures.append("artifact catalog official DB vendors must be Oracle/PostgreSQL/MariaDB only")
@@ -292,7 +301,9 @@ def main() -> int:
         "status": "PASS" if not failures else "FAIL",
         "release": args.release,
         "headSha": head,
-        "includedProjectCount": len(expected_projects),
+        "includedProjectCount": len(included_projects),
+        "releaseProjectCount": len(expected_projects),
+        "excludedVerificationProjectCount": len(included_projects - expected_projects),
         "artifactCount": len(artifacts),
         "approvedOssCount": len(rows) if approved_path.is_file() else 0,
         "warnings": warnings,

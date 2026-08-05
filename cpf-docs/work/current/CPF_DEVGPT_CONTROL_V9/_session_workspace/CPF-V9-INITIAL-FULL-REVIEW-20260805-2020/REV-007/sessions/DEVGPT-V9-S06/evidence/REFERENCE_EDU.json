@@ -1,0 +1,24 @@
+{
+  "status": "PASS",
+  "capabilityCount": 135,
+  "consumerPath": "HTTP Controller -> EduExecutionService -> EduCapabilityRegistry -> EduBusinessConsumerRegistry -> concrete adapter -> durable repository/outbox/audit",
+  "failureCoverage": [
+    "validation",
+    "authorization",
+    "idempotency",
+    "optimistic concurrency",
+    "failure injection",
+    "UNKNOWN",
+    "retry",
+    "reconcile",
+    "compensate",
+    "restart persistence",
+    "multi-thread concurrency"
+  ],
+  "officialDbVendors": [
+    "mariadb",
+    "oracle",
+    "postgresql"
+  ],
+  "failures": []
+}

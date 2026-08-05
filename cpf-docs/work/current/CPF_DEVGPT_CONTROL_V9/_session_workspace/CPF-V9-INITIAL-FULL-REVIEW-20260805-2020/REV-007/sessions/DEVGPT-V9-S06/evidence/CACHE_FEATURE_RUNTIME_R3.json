@@ -1,0 +1,31 @@
+{
+  "status": "PASS",
+  "checks": {
+    "valkeyImplementsDistributedCache": true,
+    "admCacheConsumer": true,
+    "featureAutoConfiguration": true,
+    "frontendConsumer": true,
+    "threeVendorSchema": true,
+    "durableCoordinator": true,
+    "jdbcDurableStore": true,
+    "threeVendorCacheLedger": true
+  },
+  "cacheRuntime": {
+    "javacExitCode": 0,
+    "javaExitCode": 0,
+    "stdout": "CACHE_RUNTIME_PASS",
+    "sourceCount": 9
+  },
+  "valkeyRuntime": {
+    "javacExitCode": 0,
+    "javaExitCode": 0,
+    "stdout": "VALKEY_RUNTIME_PASS",
+    "sourceCount": 11
+  },
+  "featureFlagRuntime": {
+    "javacExitCode": 0,
+    "javaExitCode": 0,
+    "stdout": "FEATURE_FLAG_RUNTIME_PASS",
+    "sourceCount": 10
+  }
+}

@@ -1,0 +1,34 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+import argparse, json, subprocess, tempfile
+from pathlib import Path
+CACHE_FILES=[
+"cpf-core/src/main/java/com/cpf/core/api/cache/CpfCachePort.java","cpf-core/src/main/java/com/cpf/core/api/cache/CpfCacheKey.java","cpf-core/src/main/java/com/cpf/core/api/cache/CpfCacheValue.java","cpf-core/src/main/java/com/cpf/core/api/cache/CpfCacheMetricsSnapshot.java","cpf-core/src/main/java/com/cpf/core/api/cache/CpfCacheHealth.java","cpf-core/src/main/java/com/cpf/core/api/cache/CpfDistributedLockPort.java","cpf-core/src/main/java/com/cpf/core/api/cache/CpfLockToken.java","cpf-common/src/main/java/com/cpf/common/cache/CpfCacheCounters.java","cpf-starters/data/cache-caffeine/src/main/java/com/cpf/common/cache/CpfLocalCacheProvider.java"]
+FEATURE_FILES=[
+"cpf-core/src/main/java/com/cpf/core/api/featureflag/CpfFeatureFlagContext.java","cpf-core/src/main/java/com/cpf/core/api/featureflag/CpfFeatureFlagOperations.java","cpf-core/src/main/java/com/cpf/core/api/featureflag/CpfFeatureFlagResult.java","cpf-core/src/main/java/com/cpf/core/api/featureflag/CpfFeatureFlagValue.java","cpf-core/src/main/java/com/cpf/core/api/featureflag/CpfFeatureFlags.java","cpf-core/src/main/java/com/cpf/core/spi/featureflag/CpfFeatureFlagProvider.java","cpf-core/src/main/java/com/cpf/core/spi/featureflag/CpfFeatureFlagStateStore.java","cpf-core/src/main/java/com/cpf/core/spi/featureflag/CpfFeatureFlagAuditSink.java","cpf-starters/platform-operations/feature-flag-openfeature/src/main/java/com/cpf/starter/platform/operations/feature/flag/openfeature/internal/CpfFeatureFlagTransactionRunner.java","cpf-starters/platform-operations/feature-flag-openfeature/src/main/java/com/cpf/starter/platform/operations/feature/flag/openfeature/internal/CpfFeatureFlagRuntime.java"]
+VALKEY_FILES=CACHE_FILES+["cpf-starters/data/cache-valkey/src/main/java/com/cpf/starter/data/cache/valkey/CpfValkeyProperties.java","cpf-starters/data/cache-valkey/src/main/java/com/cpf/starter/data/cache/valkey/ValkeyCpfCachePort.java"]
+STATIC_PATHS=["cpf-starters/data/cache-valkey/src/main/java/com/cpf/starter/data/cache/valkey/ValkeyCpfCachePort.java","cpf-admin/src/main/java/com/cpf/admin/opr/service/AdmCacheOperationService.java","cpf-starters/platform-operations/feature-flag-openfeature/src/main/java/com/cpf/starter/platform/operations/feature/flag/openfeature/internal/CpfFeatureFlagAutoConfiguration.java","cpf-admin/frontend/src/features/feature-flags/FeatureFlagsPage.vue","cpf-tools/db/vendor/oracle/source/15_qa39_resilience_feature_flag.sql","cpf-tools/db/vendor/postgresql/source/15_qa39_resilience_feature_flag.sql","cpf-tools/db/vendor/mariadb/source/15_qa39_resilience_feature_flag.sql","cpf-common/src/main/java/com/cpf/common/cache/CpfCacheInvalidationCoordinator.java","cpf-starters/data/cache-valkey/src/main/java/com/cpf/starter/data/cache/valkey/JdbcCpfCacheInvalidationStore.java","cpf-tools/db/vendor/oracle/source/16_cache_invalidation_ledger.sql","cpf-tools/db/vendor/postgresql/source/16_cache_invalidation_ledger.sql","cpf-tools/db/vendor/mariadb/source/16_cache_invalidation_ledger.sql"]
+FIXTURE_DIR="cpf-tools/scripts/tests/runtime-fixtures/cache-feature-flag"
+def compile_run(repo,files,fixture,main,fixture_tree=False):
+ with tempfile.TemporaryDirectory(prefix='cpf-s06-runtime-') as td:
+  tmp=Path(td); src=tmp/'src'; classes=tmp/'classes'; classes.mkdir()
+  for rel in files:
+   p=repo/rel; text=p.read_text(encoding='utf-8'); pkg=next(x.split()[1].rstrip(';') for x in text.splitlines() if x.startswith('package ')); dst=src/Path(pkg.replace('.','/'))/p.name; dst.parent.mkdir(parents=True,exist_ok=True); dst.write_text(text,encoding='utf-8')
+  fixtures=([repo/FIXTURE_DIR/fixture]+list((repo/FIXTURE_DIR/'org').rglob('*.java'))) if fixture_tree else [repo/FIXTURE_DIR/fixture]
+  for h in fixtures:
+   text=h.read_text(encoding='utf-8'); pkg=next(x.split()[1].rstrip(';') for x in text.splitlines() if x.startswith('package ')); dst=src/Path(pkg.replace('.','/'))/h.name; dst.parent.mkdir(parents=True,exist_ok=True); dst.write_text(text,encoding='utf-8')
+  cp=subprocess.run(['javac','-encoding','UTF-8','-d',str(classes),*[str(p) for p in sorted(src.rglob('*.java'))]],text=True,capture_output=True)
+  if cp.returncode: raise RuntimeError(cp.stdout+cp.stderr)
+  run=subprocess.run(['java','-cp',str(classes),main],text=True,capture_output=True)
+  if run.returncode: raise RuntimeError(run.stdout+run.stderr)
+  return {'javacExitCode':cp.returncode,'javaExitCode':run.returncode,'stdout':run.stdout.strip(),'sourceCount':len(files)}
+def verify(repo):
+ required=CACHE_FILES+FEATURE_FILES+VALKEY_FILES+STATIC_PATHS+[f'{FIXTURE_DIR}/CpfCacheRuntimeHarness.java',f'{FIXTURE_DIR}/CpfFeatureFlagRuntimeHarness.java']; missing=[x for x in required if not (repo/x).is_file()]
+ if missing: raise FileNotFoundError('missing: '+','.join(missing))
+ valkey=(repo/STATIC_PATHS[0]).read_text(encoding='utf-8'); adm=(repo/STATIC_PATHS[1]).read_text(encoding='utf-8'); auto=(repo/STATIC_PATHS[2]).read_text(encoding='utf-8'); front=(repo/STATIC_PATHS[3]).read_text(encoding='utf-8').lower()
+ checks={'valkeyImplementsDistributedCache':all(x in valkey for x in ('CpfCachePort','CpfDistributedLockPort')),'admCacheConsumer':all(x in adm for x in ('CpfCachePort','evictNamespace','health','metrics')),'featureAutoConfiguration':'CpfFeatureFlagRuntime' in auto,'frontendConsumer':'feature' in front,'threeVendorSchema':all((repo/p).stat().st_size>100 for p in STATIC_PATHS[4:7]),'durableCoordinator':all(x in (repo/STATIC_PATHS[7]).read_text(encoding='utf-8') for x in ('durable.append','reconcileNow','durable.checkpoint')),'jdbcDurableStore':all(x in (repo/STATIC_PATHS[8]).read_text(encoding='utf-8') for x in ('ORACLE','POSTGRESQL','MARIADB','LAST_EVENT_ID < ?')),'threeVendorCacheLedger':all((repo/p).stat().st_size>500 for p in STATIC_PATHS[9:12])}
+ if not all(checks.values()): raise AssertionError(checks)
+ return {'status':'PASS','checks':checks,'cacheRuntime':compile_run(repo,CACHE_FILES,'CpfCacheRuntimeHarness.java','com.cpf.common.cache.CpfCacheRuntimeHarness'),'valkeyRuntime':compile_run(repo,VALKEY_FILES,'ValkeyCpfCachePortRuntimeHarness.java','com.cpf.starter.data.cache.valkey.ValkeyCpfCachePortRuntimeHarness',True),'featureFlagRuntime':compile_run(repo,FEATURE_FILES,'CpfFeatureFlagRuntimeHarness.java','com.cpf.starter.platform.operations.feature.flag.openfeature.internal.CpfFeatureFlagRuntimeHarness')}
+def main():
+ ap=argparse.ArgumentParser(); ap.add_argument('--repo-root',default='.'); ap.add_argument('--report-json',required=True); a=ap.parse_args(); r=verify(Path(a.repo_root).resolve()); Path(a.report_json).write_text(json.dumps(r,ensure_ascii=False,indent=2)+'\n',encoding='utf-8'); print(json.dumps(r,ensure_ascii=False))
+if __name__=='__main__': main()

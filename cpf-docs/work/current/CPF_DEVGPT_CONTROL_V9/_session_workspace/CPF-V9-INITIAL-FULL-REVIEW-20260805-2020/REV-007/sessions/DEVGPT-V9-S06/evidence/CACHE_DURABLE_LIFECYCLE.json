@@ -1,0 +1,83 @@
+{
+  "status": "PASS",
+  "sourceChecks": {
+    "durableFirst": true,
+    "checkpointAfterApply": true,
+    "reconcileAfterCheckpoint": true,
+    "fastSignalBestEffort": true,
+    "threeVendorDetection": true,
+    "mariadbPagination": true,
+    "oraclePostgresPagination": true,
+    "generatedKeyColumn": true,
+    "monotonicCheckpoint": true,
+    "idempotentEventKey": true,
+    "namespaceKeyUsesSqlNull": true,
+    "autoWiresStore": true,
+    "autoWiresCoordinator": true,
+    "autoWiresListener": true,
+    "compatDurableFirst": true,
+    "admConsumer": true
+  },
+  "vendors": {
+    "oracle": {
+      "tableCoverage": {
+        "CPF_CACHE_INVALIDATION_EVENT": true,
+        "CPF_CACHE_INVALIDATION_CHECKPOINT": true
+      },
+      "sourceInstallMigrationByteParity": true,
+      "rollbackDependencyOrder": true,
+      "dialectSpecific": true,
+      "packDiscoverable": true,
+      "nullableNamespaceCacheKey": true,
+      "oracleEmptyStringSafe": true,
+      "sha256": {
+        "source/16_cache_invalidation_ledger.sql": "1afa8e612d1e66641624c6ad4c53a7b0e58ab474806842c4a66c0576879ff079",
+        "install/05_cache_invalidation_ledger.sql": "1afa8e612d1e66641624c6ad4c53a7b0e58ab474806842c4a66c0576879ff079",
+        "migration/V101__cache_invalidation_ledger.sql": "1afa8e612d1e66641624c6ad4c53a7b0e58ab474806842c4a66c0576879ff079",
+        "rollback/R101__cache_invalidation_ledger.sql": "ba1adab6ba6bba81038926620bc6ef3af77af1616bf983437b473c209901ecb8",
+        "runtime/cache/cache_invalidation_queries.sql": "86d9c023f7a8726e744523ff5799883097838ab8f311dc0d9eb9c1a5640bc861",
+        "verify/101_verify_cache_invalidation_ledger.sql": "029c092cdae4e441014c2e2f1bfe7da76cb53826ebd2a127c3e438a6ef576ac0"
+      }
+    },
+    "postgresql": {
+      "tableCoverage": {
+        "CPF_CACHE_INVALIDATION_EVENT": true,
+        "CPF_CACHE_INVALIDATION_CHECKPOINT": true
+      },
+      "sourceInstallMigrationByteParity": true,
+      "rollbackDependencyOrder": true,
+      "dialectSpecific": true,
+      "packDiscoverable": true,
+      "nullableNamespaceCacheKey": true,
+      "oracleEmptyStringSafe": true,
+      "sha256": {
+        "source/16_cache_invalidation_ledger.sql": "4918f3b0609e2a6872072dbd3bfeca119a9118b2053d4b1bdefb9142aad048db",
+        "install/05_cache_invalidation_ledger.sql": "4918f3b0609e2a6872072dbd3bfeca119a9118b2053d4b1bdefb9142aad048db",
+        "migration/V101__cache_invalidation_ledger.sql": "4918f3b0609e2a6872072dbd3bfeca119a9118b2053d4b1bdefb9142aad048db",
+        "rollback/R101__cache_invalidation_ledger.sql": "c4a697c63d66d9439caf778b78c7920c00cf67369578ad8461ea48e0ea8286ff",
+        "runtime/cache/cache_invalidation_queries.sql": "86d9c023f7a8726e744523ff5799883097838ab8f311dc0d9eb9c1a5640bc861",
+        "verify/101_verify_cache_invalidation_ledger.sql": "8cae43d6ebf976fa96f3dbefbd53a97eb0a149572506b2a2d511482c612cbbe7"
+      }
+    },
+    "mariadb": {
+      "tableCoverage": {
+        "CPF_CACHE_INVALIDATION_EVENT": true,
+        "CPF_CACHE_INVALIDATION_CHECKPOINT": true
+      },
+      "sourceInstallMigrationByteParity": true,
+      "rollbackDependencyOrder": true,
+      "dialectSpecific": true,
+      "packDiscoverable": true,
+      "nullableNamespaceCacheKey": true,
+      "oracleEmptyStringSafe": true,
+      "sha256": {
+        "source/16_cache_invalidation_ledger.sql": "e8453de24aeb7d1119b4ffb13a7355c5078c805fad94f15f94d12e66c5612276",
+        "install/05_cache_invalidation_ledger.sql": "e8453de24aeb7d1119b4ffb13a7355c5078c805fad94f15f94d12e66c5612276",
+        "migration/V101__cache_invalidation_ledger.sql": "e8453de24aeb7d1119b4ffb13a7355c5078c805fad94f15f94d12e66c5612276",
+        "rollback/R101__cache_invalidation_ledger.sql": "c4a697c63d66d9439caf778b78c7920c00cf67369578ad8461ea48e0ea8286ff",
+        "runtime/cache/cache_invalidation_queries.sql": "86d9c023f7a8726e744523ff5799883097838ab8f311dc0d9eb9c1a5640bc861",
+        "verify/101_verify_cache_invalidation_ledger.sql": "63a10f6b7780badce026c7157bed7705122d6b4f4f9b8dc52c9ce3d92ee18f07"
+      }
+    }
+  }
+}

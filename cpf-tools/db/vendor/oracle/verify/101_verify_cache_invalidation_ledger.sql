@@ -1,0 +1,3 @@
+SELECT table_name FROM user_tables
+ WHERE table_name IN ('CPF_CACHE_INVALIDATION_EVENT','CPF_CACHE_INVALIDATION_CHECKPOINT')
+ ORDER BY table_name;

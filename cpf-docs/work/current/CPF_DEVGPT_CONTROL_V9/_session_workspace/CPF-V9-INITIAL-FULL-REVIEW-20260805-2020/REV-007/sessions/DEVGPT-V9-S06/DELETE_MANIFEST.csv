@@ -1,0 +1,2 @@
+﻿path,action,reason,protected_path,approval_status,required_post_delete_validation
+cpf-starters/openapi-webmvc,DELETE_DIRECTORY,Canonical starter catalog removed the artifact but the exact root remains physically present.,false,PENDING_USER_APPROVAL,python cpf-tools/scripts/verify-cpf-starter-catalog-truth.py --repo-root . --expected-sha af12a0c8851a2e8d20e9e42964d8dacc0266af03; python cpf-tools/scripts/verify-cpf-publication-starter-closure.py --repo-root . --require-physical

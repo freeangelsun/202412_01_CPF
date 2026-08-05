@@ -1,0 +1,12 @@
+{
+  "status": "PASS",
+  "policyMaturity": "PROTOTYPE_ONLY_NOT_GA",
+  "editionCount": 1,
+  "multiTenantIsolationDimensions": 7,
+  "pluginSignatureRequired": true,
+  "packageRollbackRequired": true,
+  "consumers": [
+    "cpf-tools/scripts/verify-cpf-product-governance.py",
+    "cpf-tools/scripts/run-cpf-full-qa-validation.ps1"
+  ]
+}

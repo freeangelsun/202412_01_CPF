@@ -56,7 +56,7 @@ class NotificationIncidentLifecycleTest(unittest.TestCase):
             MaintenanceSaveRequest TimelineResponse
             ''',
             "cpf-admin/frontend/src/app/methods/referenceMethods.ts": '''
-            "/adm/api/notifications/delivery-logs/dlq?limit=100"
+            admNotificationFindDlq({ limit: 100 })
             ["DLQ", "FAILED", "UNKNOWN_RESULT", "CANCELLED"]
             ["READY", "RETRY", "UNKNOWN_RESULT", "DLQ"]
             ''',
@@ -97,6 +97,13 @@ class NotificationIncidentLifecycleTest(unittest.TestCase):
 
     def test_valid(self):
         module.verify(self.fixture())
+
+    def test_raw_dlq_url_rejected(self):
+        root = self.fixture()
+        p = root / "cpf-admin/frontend/src/app/methods/referenceMethods.ts"
+        p.write_text(p.read_text(encoding="utf-8") + '\n"/adm/api/notifications/delivery-logs/dlq?limit=100"', encoding="utf-8")
+        with self.assertRaises(ValueError):
+            module.verify(root)
 
     def test_generic_failed_terminal_rejected(self):
         root = self.fixture()

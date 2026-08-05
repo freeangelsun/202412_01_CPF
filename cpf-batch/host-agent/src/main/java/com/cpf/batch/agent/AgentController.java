@@ -86,18 +86,21 @@ public class AgentController {
         String fingerprint = fingerprint("INSTALL_ARTIFACT", request.serviceId(), request);
         return execute(commandId, idempotencyKey, fingerprint, request.serviceId(), "INSTALL_ARTIFACT",
                 (id, startedAt) -> {
-                    requireCommandPolicy();
-                    catalog.requireAllowed("INSTALL_ARTIFACT");
+                    AgentCommandResult rejected = preflight(
+                            id, request.serviceId(), "INSTALL_ARTIFACT", startedAt, "INSTALL_ARTIFACT");
+                    if (rejected != null) {
+                        return rejected;
+                    }
                     try {
                         var installed = installer.install(request);
                         return result(id, request.serviceId(), "INSTALL_ARTIFACT", CommandState.SUCCEEDED,
                                 "INSTALLED", "Artifact installed", installed.version(), startedAt);
-                    } catch (SecurityException rejected) {
+                    } catch (SecurityException rejectedRequest) {
                         return result(id, request.serviceId(), "INSTALL_ARTIFACT", CommandState.FAILED,
                                 "SECURITY_REJECTED", "Artifact request rejected", null, startedAt);
                     } catch (Exception failure) {
-                        return result(id, request.serviceId(), "INSTALL_ARTIFACT", CommandState.FAILED,
-                                "INSTALL_FAILED", safe(failure), null, startedAt);
+                        return result(id, request.serviceId(), "INSTALL_ARTIFACT", CommandState.UNKNOWN_RESULT,
+                                "INSTALL_RESULT_UNKNOWN", safe(failure), null, startedAt);
                     }
                 });
     }
@@ -136,23 +139,44 @@ public class AgentController {
             @RequestHeader(IDEMPOTENCY_KEY) String idempotencyKey) {
         String fingerprint = fingerprint("ROLLBACK", id, null);
         return execute(commandId, idempotencyKey, fingerprint, id, "ROLLBACK", (stableId, startedAt) -> {
-            requireCommandPolicy();
-            catalog.requireAllowed("ROLLBACK");
+            AgentCommandResult rejected = preflight(stableId, id, "ROLLBACK", startedAt, "ROLLBACK");
+            if (rejected != null) {
+                return rejected;
+            }
+            RollbackPhase phase = RollbackPhase.NOT_STARTED;
+            String version = null;
             try {
                 var stopResult = manager.execute(id, ServiceManager.Action.STOP);
+                if (stopResult.unknownResult()) {
+                    return result(stableId, id, "ROLLBACK", CommandState.UNKNOWN_RESULT,
+                            "STOP_RESULT_UNKNOWN", sanitize(stopResult.output()), null, startedAt);
+                }
                 if (!stopResult.success() || !manager.stopped(id)) {
                     return result(stableId, id, "ROLLBACK", CommandState.UNKNOWN_RESULT,
                             "STOP_NOT_CONFIRMED", "Runtime stop result is not confirmed", null, startedAt);
                 }
-                String version = installer.rollback(id);
+                phase = RollbackPhase.STOP_CONFIRMED;
+                version = installer.rollback(id);
+                phase = RollbackPhase.ARTIFACT_SWAPPED;
                 var startResult = manager.execute(id, ServiceManager.Action.START);
+                if (startResult.unknownResult()) {
+                    return result(stableId, id, "ROLLBACK", CommandState.PARTIALLY_ROLLED_BACK,
+                            "ROLLBACK_START_RESULT_UNKNOWN", sanitize(startResult.output()), version, startedAt);
+                }
                 return result(stableId, id, "ROLLBACK",
                         startResult.success() ? CommandState.ROLLED_BACK : CommandState.PARTIALLY_ROLLED_BACK,
                         startResult.success() ? "ROLLED_BACK" : "ROLLBACK_START_FAILED",
                         sanitize(startResult.output()), version, startedAt);
             } catch (Exception failure) {
-                return result(stableId, id, "ROLLBACK", CommandState.FAILED,
-                        "ROLLBACK_FAILED", safe(failure), null, startedAt);
+                if (phase == RollbackPhase.ARTIFACT_SWAPPED) {
+                    return result(stableId, id, "ROLLBACK", CommandState.PARTIALLY_ROLLED_BACK,
+                            "ROLLBACK_RESTART_RESULT_UNKNOWN", safe(failure), version, startedAt);
+                }
+                return result(stableId, id, "ROLLBACK", CommandState.UNKNOWN_RESULT,
+                        phase == RollbackPhase.STOP_CONFIRMED
+                                ? "ROLLBACK_ARTIFACT_RESULT_UNKNOWN"
+                                : "ROLLBACK_STOP_RESULT_UNKNOWN",
+                        safe(failure), version, startedAt);
             }
         });
     }
@@ -201,15 +225,17 @@ public class AgentController {
             String serviceId, String command, String operation, String commandId, String idempotencyKey) {
         String fingerprint = fingerprint(command, serviceId, null);
         return execute(commandId, idempotencyKey, fingerprint, serviceId, command, (stableId, startedAt) -> {
+            AgentCommandResult rejected = preflight(stableId, serviceId, command, startedAt, command);
+            if (rejected != null) {
+                return rejected;
+            }
             try {
-                requireCommandPolicy();
-                catalog.requireAllowed(command);
                 runtime.invoke(serviceId, operation);
                 return result(stableId, serviceId, command, CommandState.SUCCEEDED,
                         command + "_ACCEPTED", "Runtime command accepted", null, startedAt);
             } catch (Exception failure) {
-                return result(stableId, serviceId, command, CommandState.FAILED,
-                        command + "_FAILED", safe(failure), null, startedAt);
+                return result(stableId, serviceId, command, CommandState.UNKNOWN_RESULT,
+                        command + "_RESPONSE_UNKNOWN", safe(failure), null, startedAt);
             }
         });
     }
@@ -218,17 +244,23 @@ public class AgentController {
             String serviceId, String command, ServiceManager.Action action, String commandId, String idempotencyKey) {
         String fingerprint = fingerprint(command, serviceId, null);
         return execute(commandId, idempotencyKey, fingerprint, serviceId, command, (stableId, startedAt) -> {
+            AgentCommandResult rejected = preflight(stableId, serviceId, command, startedAt, command);
+            if (rejected != null) {
+                return rejected;
+            }
             try {
-                requireCommandPolicy();
-                catalog.requireAllowed(command);
                 var commandResult = manager.execute(serviceId, action);
+                if (commandResult.unknownResult()) {
+                    return result(stableId, serviceId, command, CommandState.UNKNOWN_RESULT,
+                            "SERVICE_COMMAND_RESULT_UNKNOWN", sanitize(commandResult.output()), null, startedAt);
+                }
                 return result(stableId, serviceId, command,
                         commandResult.success() ? CommandState.SUCCEEDED : CommandState.FAILED,
                         commandResult.success() ? "OK" : "SERVICE_COMMAND_FAILED",
                         sanitize(commandResult.output()), null, startedAt);
             } catch (Exception failure) {
-                return result(stableId, serviceId, command, CommandState.FAILED,
-                        "SERVICE_COMMAND_FAILED", safe(failure), null, startedAt);
+                return result(stableId, serviceId, command, CommandState.UNKNOWN_RESULT,
+                        "SERVICE_COMMAND_RESULT_UNKNOWN", safe(failure), null, startedAt);
             }
         });
     }
@@ -246,9 +278,28 @@ public class AgentController {
         }
         try {
             return ledger.execute(commandId, fingerprint, serviceId, command, action);
+        } catch (IllegalArgumentException invalid) {
+            return result(commandId, serviceId, command, CommandState.FAILED,
+                    "COMMAND_ID_INVALID", "Command id is invalid", null, Instant.now());
         } catch (SecurityException conflict) {
             return result(commandId, serviceId, command, CommandState.FAILED,
                     "IDEMPOTENCY_CONFLICT", "Idempotency key conflict", null, Instant.now());
+        }
+    }
+
+    private AgentCommandResult preflight(
+            String commandId,
+            String serviceId,
+            String command,
+            Instant startedAt,
+            String catalogCommand) {
+        try {
+            requireCommandPolicy();
+            catalog.requireAllowed(catalogCommand);
+            return null;
+        } catch (Exception rejected) {
+            return result(commandId, serviceId, command, CommandState.FAILED,
+                    "COMMAND_REJECTED", safe(rejected), null, startedAt);
         }
     }
 
@@ -300,5 +351,11 @@ public class AgentController {
     private static String sanitize(String message) {
         String safe = SensitiveTextSanitizer.sanitize(message == null ? "" : message);
         return safe.length() > 512 ? safe.substring(0, 512) : safe;
+    }
+
+    private enum RollbackPhase {
+        NOT_STARTED,
+        STOP_CONFIRMED,
+        ARTIFACT_SWAPPED
     }
 }

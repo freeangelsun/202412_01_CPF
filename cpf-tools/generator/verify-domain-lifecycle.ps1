@@ -14,7 +14,7 @@ $ErrorActionPreference = "Stop"
 $Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
 $MarkerName = ".cpf-disposable-generator-validation-root"
 $StageIds = @(
-    "fresh-clone", "create", "database-bootstrap", "build-test", "runtime-smoke",
+    "fresh-clone", "create", "upgrade-ownership", "database-bootstrap", "build-test", "runtime-smoke",
     "adm-registration", "user-change-protection", "safe-remove", "regenerate", "parity"
 )
 $stages = New-Object System.Collections.Generic.List[object]
@@ -122,7 +122,7 @@ function Get-SnapshotDigest {
     try { return ([BitConverter]::ToString($sha.ComputeHash($bytes))).Replace('-','').ToLowerInvariant() }
     finally { $sha.Dispose() }
 }
-function Write-SanitizedResult([string]$Status, [bool]$CleanBefore, [bool]$CleanAfter, [bool]$UserProtectionVerified, [bool]$ParityVerified) {
+function Write-SanitizedResult([string]$Status, [bool]$CleanBefore, [bool]$CleanAfter, [bool]$UpgradeOwnershipVerified, [bool]$UserProtectionVerified, [bool]$ParityVerified) {
     New-Item -ItemType Directory -Force -Path $resultDir | Out-Null
     $result = [ordered]@{
         schemaVersion = 1
@@ -133,6 +133,7 @@ function Write-SanitizedResult([string]$Status, [bool]$CleanBefore, [bool]$Clean
         sanitized = $true
         cleanBefore = $CleanBefore
         cleanAfter = $CleanAfter
+        upgradeOwnershipVerified = $UpgradeOwnershipVerified
         userProtectionVerified = $UserProtectionVerified
         parityVerified = $ParityVerified
         normalizedSha256 = if ($script:regeneratedSnapshot) { Get-SnapshotDigest $script:regeneratedSnapshot } else { "" }
@@ -144,6 +145,7 @@ function Write-SanitizedResult([string]$Status, [bool]$CleanBefore, [bool]$Clean
 
 $cleanBefore = $false
 $cleanAfter = $false
+$upgradeOwnershipVerified = $false
 $userProtectionVerified = $false
 $parityVerified = $false
 $script:firstSnapshot = $null
@@ -172,9 +174,10 @@ try {
     $createArgs = @(
         '-NoProfile','-File',$createScript,
         '-DomainName',$DomainName,'-SystemCode',$SystemCode,'-Root',$cloneRoot,
-        '-DatabaseVendor',$DatabaseVendor,'-Online','Y','-Database','Y','-Batch','Y',
+        '-CapabilityProfile','batch-service',
+        '-DatabaseVendor',$DatabaseVendor,'-Online','N','-Database','Y','-Batch','Y',
         '-CenterCut','Y','-External','Y','-Messaging','Y','-File','Y','-SecurityAudit','Y',
-        '-Ui','Y','-BzaMenu','Y','-ProductionProfile','Y','-Apply'
+        '-Ui','N','-BzaMenu','N','-ProductionProfile','Y','-Apply'
     )
     $started = Get-Date
     Invoke-NativeChecked "create generated domain" "pwsh" $createArgs $cloneRoot
@@ -183,6 +186,105 @@ try {
     }
     $script:firstSnapshot = Get-NormalizedSnapshot $moduleDir
     Add-StageResult "create" $started 0 @("golden template generated", "ownership manifest and product files exist")
+
+    $started = Get-Date
+    $upgradeScript = Join-Path $cloneRoot 'cpf-tools/generator/upgrade-domain.ps1'
+    $ownershipPath = Join-Path $moduleDir 'manifest/generator-ownership.json'
+    $upgradeReportPath = Join-Path $cloneRoot "build/reports/domain-upgrade/cpf-$DomainName/upgrade-domain-result.json"
+    $ownershipBeforeUpgrade = Get-Content -LiteralPath $ownershipPath -Raw -Encoding UTF8 | ConvertFrom-Json
+    $generatedJavaEntry = @($ownershipBeforeUpgrade.createdFiles | Where-Object {
+        ([string]$_.path).StartsWith('src/main/java/') -and ([string]$_.path).EndsWith('.java')
+    } | Select-Object -First 1)
+    if ($generatedJavaEntry.Count -ne 1) { throw "no generator-owned Java file available for upgrade ownership validation" }
+    $generatedJavaRelative = [string]$generatedJavaEntry[0].path
+    $generatedJavaPath = Join-Path $moduleDir $generatedJavaRelative
+    $generatedJavaOriginal = Get-Content -LiteralPath $generatedJavaPath -Raw -Encoding UTF8
+    $userExtension = Join-Path $moduleDir 'src/main/java/UserOwnedUpgradeExtension.java'
+    [IO.File]::WriteAllText($userExtension, '// customer-owned extension outside generator ownership', $Utf8NoBom)
+
+    Invoke-NativeChecked "generated-domain ownership upgrade" "pwsh" @(
+        '-NoProfile','-File',$upgradeScript,'-DomainPath',"cpf-$DomainName",'-Root',$cloneRoot,'-Apply'
+    ) $cloneRoot
+    if (-not (Test-Path -LiteralPath $userExtension -PathType Leaf)) {
+        throw "upgrade removed a customer-owned extension"
+    }
+    $ownershipAfterUpgrade = Get-Content -LiteralPath $ownershipPath -Raw -Encoding UTF8 | ConvertFrom-Json
+    if (@($ownershipAfterUpgrade.createdFiles | Where-Object { [string]$_.path -eq $generatedJavaRelative }).Count -ne 1) {
+        throw "generator-owned Java file lost ownership during upgrade"
+    }
+    if (@($ownershipAfterUpgrade.preservedUserFiles | Where-Object { [string]$_ -eq $generatedJavaRelative }).Count -ne 0) {
+        throw "generator-owned Java file was incorrectly reclassified as user-owned"
+    }
+    if (@($ownershipAfterUpgrade.createdFiles | Where-Object { [string]$_.path -eq 'src/main/java/UserOwnedUpgradeExtension.java' }).Count -ne 0) {
+        throw "customer-owned extension was incorrectly claimed by generator ownership"
+    }
+
+    $safeOwnershipJson = Get-Content -LiteralPath $ownershipPath -Raw -Encoding UTF8
+    $outsideProbe = Join-Path $cloneRoot 'ownership-path-escape-probe.txt'
+    [IO.File]::WriteAllText($outsideProbe, 'outside-domain-sentinel', $Utf8NoBom)
+    $pathTraversalOwnership = $safeOwnershipJson | ConvertFrom-Json
+    $pathTraversalOwnership.createdFiles = @($pathTraversalOwnership.createdFiles) + [pscustomobject]@{
+        path = '../ownership-path-escape-probe.txt'
+        sha256 = ('a' * 64)
+    }
+    [IO.File]::WriteAllText($ownershipPath, ($pathTraversalOwnership | ConvertTo-Json -Depth 30), $Utf8NoBom)
+    & pwsh -NoProfile -File $upgradeScript -DomainPath "cpf-$DomainName" -Root $cloneRoot
+    $pathTraversalExitCode = $LASTEXITCODE
+    if ($pathTraversalExitCode -eq 0) { throw "upgrade accepted an ownership path traversal entry" }
+    if ((Get-Content -LiteralPath $outsideProbe -Raw -Encoding UTF8) -ne 'outside-domain-sentinel') {
+        throw "ownership path traversal probe modified a file outside the generated domain"
+    }
+    [IO.File]::WriteAllText($ownershipPath, $safeOwnershipJson, $Utf8NoBom)
+    Remove-Item -LiteralPath $outsideProbe -Force
+
+    $invalidShaOwnership = $safeOwnershipJson | ConvertFrom-Json
+    $invalidShaOwnership.createdFiles[0].sha256 = 'invalid-sha256'
+    [IO.File]::WriteAllText($ownershipPath, ($invalidShaOwnership | ConvertTo-Json -Depth 30), $Utf8NoBom)
+    & pwsh -NoProfile -File $upgradeScript -DomainPath "cpf-$DomainName" -Root $cloneRoot
+    $invalidShaExitCode = $LASTEXITCODE
+    if ($invalidShaExitCode -eq 0) { throw "upgrade accepted an invalid ownership SHA-256" }
+    [IO.File]::WriteAllText($ownershipPath, $safeOwnershipJson, $Utf8NoBom)
+
+    [IO.File]::WriteAllText($generatedJavaPath, $generatedJavaOriginal + "`n// drift probe`n", $Utf8NoBom)
+    & pwsh -NoProfile -File $upgradeScript -DomainPath "cpf-$DomainName" -Root $cloneRoot
+    $driftExitCode = $LASTEXITCODE
+    if ($driftExitCode -eq 0) { throw "upgrade accepted a modified generator-owned Java file" }
+    if (-not (Test-Path -LiteralPath $upgradeReportPath -PathType Leaf)) { throw "upgrade drift report missing" }
+    $driftReport = Get-Content -LiteralPath $upgradeReportPath -Raw -Encoding UTF8 | ConvertFrom-Json
+    if (@($driftReport.managedConflicts | Where-Object { [string]$_ -eq "managed file drift: $generatedJavaRelative" }).Count -ne 1) {
+        throw "upgrade did not report the exact managed Java drift"
+    }
+    [IO.File]::WriteAllText($generatedJavaPath, $generatedJavaOriginal, $Utf8NoBom)
+
+    $obsoleteRelative = 'manifest/obsolete-generator-probe.txt'
+    $obsoletePath = Join-Path $moduleDir $obsoleteRelative
+    [IO.File]::WriteAllText($obsoletePath, 'obsolete generated file retained until approved delete manifest', $Utf8NoBom)
+    $ownershipForObsoleteProbe = Get-Content -LiteralPath $ownershipPath -Raw -Encoding UTF8 | ConvertFrom-Json
+    $ownershipForObsoleteProbe.createdFiles = @($ownershipForObsoleteProbe.createdFiles) + [pscustomobject]@{
+        path = $obsoleteRelative
+        sha256 = (Get-FileSha256 $obsoletePath)
+    }
+    [IO.File]::WriteAllText($ownershipPath, ($ownershipForObsoleteProbe | ConvertTo-Json -Depth 30), $Utf8NoBom)
+    Invoke-NativeChecked "obsolete ownership retention upgrade" "pwsh" @(
+        '-NoProfile','-File',$upgradeScript,'-DomainPath',"cpf-$DomainName",'-Root',$cloneRoot,'-Apply'
+    ) $cloneRoot
+    $ownershipAfterObsoleteProbe = Get-Content -LiteralPath $ownershipPath -Raw -Encoding UTF8 | ConvertFrom-Json
+    $obsoleteReport = Get-Content -LiteralPath $upgradeReportPath -Raw -Encoding UTF8 | ConvertFrom-Json
+    if (@($ownershipAfterObsoleteProbe.createdFiles | Where-Object { [string]$_.path -eq $obsoleteRelative }).Count -ne 1) {
+        throw "obsolete generated file ownership was dropped before approved deletion"
+    }
+    if (@($obsoleteReport.retainedObsoleteOwnership | Where-Object { [string]$_ -eq $obsoleteRelative }).Count -ne 1) {
+        throw "obsolete generated file retention was not reported"
+    }
+    Remove-Item -LiteralPath $userExtension -Force
+    $upgradeOwnershipVerified = $true
+    Add-StageResult "upgrade-ownership" $started 0 @(
+        "generator-owned Java remains managed and receives template upgrades",
+        "modified generated files fail closed with exact drift evidence",
+        "customer-owned extensions are preserved without ownership capture",
+        "ownership paths are canonical relative paths contained by the generated domain root",
+        "ownership SHA-256 values are exact 64-character hexadecimal digests",
+        "obsolete generated paths retain ownership until approved exact deletion")
 
     $started = Get-Date
     $dbScript = Join-Path $cloneRoot "cpf-tools/scripts/initialize-domain-database.ps1"
@@ -215,14 +317,25 @@ try {
     if (-not $smokePassed) { throw "generated runtime smoke did not pass" }
     Stop-Process -Id $runtimeProcess.Id -Force
     $runtimeProcess = $null
-    Add-StageResult "runtime-smoke" $started 0 @("generated runtime started", "generated HTTP smoke passed")
+    Add-StageResult "runtime-smoke" $started 0 @("generated runtime started", "generated profile-aware health/API smoke passed")
 
     $started = Get-Date
     $manifest = Get-Content -LiteralPath (Join-Path $moduleDir 'manifest/domain-manifest.json') -Raw -Encoding UTF8 | ConvertFrom-Json
-    if ($manifest.bzaMenuEnabled -ne $true) { throw "generated ADM/BZA registration is not enabled" }
-    $registrationFiles = @(Get-ChildItem -LiteralPath $moduleDir -Recurse -File | Where-Object { $_.Name -match 'menu|openapi|registration' })
-    if ($registrationFiles.Count -eq 0) { throw "generated ADM registration artifacts missing" }
-    Add-StageResult "adm-registration" $started 0 @("BZA menu enabled in domain manifest", "ADM/OpenAPI registration artifact exists")
+    if ([string]$manifest.capabilityProfile -ne 'batch-service' -or
+            $manifest.batchEnabled -ne $true -or $manifest.centerCutEnabled -ne $true) {
+        throw "generated batch-service profile contract is not active"
+    }
+    if ($manifest.onlineEnabled -eq $true -or $manifest.uiEnabled -eq $true -or
+            $manifest.bzaMenuEnabled -eq $true) {
+        throw "batch-service must not embed Online/UI/BZA surfaces"
+    }
+    if ($manifest.serviceRegistration.candidate -ne $true -or
+            [string]$manifest.serviceRegistration.ownerModule -ne $projectName) {
+        throw "generated service registration candidate is missing or owned by another module"
+    }
+    Add-StageResult "adm-registration" $started 0 @(
+        "batch-service exposes an ADM-consumable service registration candidate",
+        "Online/UI/BZA remain external to the generated batch runtime")
 
     $started = Get-Date
     $ownership = Get-Content -LiteralPath (Join-Path $moduleDir 'manifest/generator-ownership.json') -Raw -Encoding UTF8 | ConvertFrom-Json
@@ -286,12 +399,12 @@ try {
     $snapshotArtifact = Join-Path $resultDir 'normalized-generator-snapshot.json'
     [IO.File]::WriteAllText($snapshotArtifact, ($script:regeneratedSnapshot | ConvertTo-Json -Depth 20), $Utf8NoBom)
     $artifacts.Add([ordered]@{ path = (Get-RelativePath (Split-Path -Parent $resultDir) $snapshotArtifact); sha256 = (Get-FileHash -LiteralPath $snapshotArtifact -Algorithm SHA256).Hash.ToLowerInvariant() })
-    Write-SanitizedResult 'PASS' $cleanBefore $cleanAfter $userProtectionVerified $parityVerified
+    Write-SanitizedResult 'PASS' $cleanBefore $cleanAfter $upgradeOwnershipVerified $userProtectionVerified $parityVerified
     Write-Host "[CPF][PASS] generator lifecycle vendor=$DatabaseVendor SHA=$ExpectedSha result=$resultPath"
 }
 catch {
     if ($null -ne $runtimeProcess -and -not $runtimeProcess.HasExited) { Stop-Process -Id $runtimeProcess.Id -Force -ErrorAction SilentlyContinue }
-    Write-SanitizedResult 'FAIL' $cleanBefore $cleanAfter $userProtectionVerified $parityVerified
+    Write-SanitizedResult 'FAIL' $cleanBefore $cleanAfter $upgradeOwnershipVerified $userProtectionVerified $parityVerified
     throw
 }
 finally {

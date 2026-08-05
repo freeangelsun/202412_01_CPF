@@ -8,6 +8,10 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -72,6 +76,63 @@ class ApprovedFileExecutorTest {
 
         assertTrue(reacquired.fencingToken() > previousToken);
         assertEquals("worker-new", reacquired.ownerId());
+    }
+
+
+    @Test
+    void concurrentExpiredClaimTakeoverHasExactlyOneWinner() throws Exception {
+        ApprovedFileExecutor firstExecutor = new ApprovedFileExecutor(properties(temp));
+        ApprovedFileExecutor secondExecutor = new ApprovedFileExecutor(properties(temp));
+        Path file = temp.resolve("inbox/data.dat");
+        Files.createDirectories(file.getParent());
+        Files.writeString(file, "payload");
+        Path claim = file.resolveSibling("data.dat.cpf-claim");
+        Files.writeString(claim, "worker-old\n41\n2000-01-01T00:00:00Z\n");
+
+        CountDownLatch start = new CountDownLatch(1);
+        try (ExecutorService pool = Executors.newFixedThreadPool(2)) {
+            Future<ApprovedFileExecutor.Claim> first = pool.submit(() -> {
+                start.await();
+                return firstExecutor.claim("inbox", "data.dat", "worker-1", Duration.ofMinutes(1));
+            });
+            Future<ApprovedFileExecutor.Claim> second = pool.submit(() -> {
+                start.await();
+                return secondExecutor.claim("inbox", "data.dat", "worker-2", Duration.ofMinutes(1));
+            });
+            start.countDown();
+
+            int winners = 0;
+            ApprovedFileExecutor.Claim winner = null;
+            for (Future<ApprovedFileExecutor.Claim> attempt : List.of(first, second)) {
+                try {
+                    winner = attempt.get();
+                    winners++;
+                } catch (java.util.concurrent.ExecutionException failure) {
+                    assertInstanceOf(java.nio.file.FileAlreadyExistsException.class, failure.getCause());
+                }
+            }
+            assertEquals(1, winners);
+            assertNotNull(winner);
+            assertTrue(winner.fencingToken() > 41L);
+        }
+    }
+
+    @Test
+    void fencingTokenRemainsMonotonicAfterRelease() throws Exception {
+        ApprovedFileExecutor executor = new ApprovedFileExecutor(properties(temp));
+        Path file = temp.resolve("inbox/data.dat");
+        Files.createDirectories(file.getParent());
+        Files.writeString(file, "payload");
+
+        ApprovedFileExecutor.Claim first = executor.claim(
+                "inbox", "data.dat", "worker-1", Duration.ofMinutes(1));
+        executor.release(first);
+        ApprovedFileExecutor.Claim second = executor.claim(
+                "inbox", "data.dat", "worker-2", Duration.ofMinutes(1));
+
+        assertTrue(second.fencingToken() > first.fencingToken());
+        assertFalse(executor.restartScan("inbox", ".").stream()
+                .anyMatch(path -> path.getFileName().toString().contains("cpf-claim")));
     }
 
     @Test

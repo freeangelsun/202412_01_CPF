@@ -1128,6 +1128,5 @@
       ]
     }
   },
-  "baselinePolicy": "GIT_HEAD_RUNTIME",
-  "catalogRevision": "2026-08-03-r1"
+  "baselinePolicy": "GIT_HEAD_RUNTIME"
 }

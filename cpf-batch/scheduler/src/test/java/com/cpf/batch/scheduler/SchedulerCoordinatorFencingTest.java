@@ -7,6 +7,8 @@ import org.springframework.dao.DataAccessResourceFailureException;
 
 import java.time.Instant;
 import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -14,6 +16,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
 
 class SchedulerCoordinatorFencingTest {
     @Test
@@ -38,6 +42,36 @@ class SchedulerCoordinatorFencingTest {
                 .hasMessageContaining("fenced");
         assertThat(coordinator.fencingToken()).isZero();
         assertThat(coordinator.ready()).isFalse();
+    }
+
+    @Test
+    void overlappingElectionDoesNotClearWinningLease() throws Exception {
+        JdbcSchedulerLeaderRepository repository = mock(JdbcSchedulerLeaderRepository.class);
+        var won = new JdbcSchedulerLeaderRepository.Lease(
+                "scheduler-a", 21L, Instant.now().plusSeconds(15));
+        CountDownLatch entered = new CountDownLatch(1);
+        CountDownLatch release = new CountDownLatch(1);
+        when(repository.acquire(eq(SchedulerCoordinator.LEASE_KEY), eq("scheduler-a"), any()))
+                .thenAnswer(invocation -> {
+                    entered.countDown();
+                    release.await();
+                    return Optional.of(won);
+                });
+        SchedulerCoordinator coordinator = new SchedulerCoordinator(repository, "scheduler-a", 15);
+        AtomicReference<Throwable> failure = new AtomicReference<>();
+        Thread first = new Thread(() -> {
+            try { coordinator.elect(); } catch (Throwable thrown) { failure.set(thrown); }
+        });
+        first.start();
+        entered.await();
+
+        coordinator.elect();
+        release.countDown();
+        first.join();
+
+        assertThat(failure.get()).isNull();
+        assertThat(coordinator.fencingToken()).isEqualTo(21L);
+        verify(repository, times(1)).acquire(eq(SchedulerCoordinator.LEASE_KEY), eq("scheduler-a"), any());
     }
 
     @Test

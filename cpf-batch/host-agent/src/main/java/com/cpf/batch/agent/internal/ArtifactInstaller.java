@@ -51,18 +51,29 @@ public final class ArtifactInstaller {
         Path root = secureRoot(service.getInstallRoot());
         Path part = null;
         try (FileChannel channel = FileChannel.open(root.resolve(".install.lock"),
-                StandardOpenOption.CREATE, StandardOpenOption.WRITE);
+                StandardOpenOption.CREATE, StandardOpenOption.WRITE, LinkOption.NOFOLLOW_LINKS);
                 FileLock ignored = exclusiveLock(channel)) {
             Path currentStatePath = root.resolve("artifact-state.properties");
             Path previousStatePath = root.resolve("artifact-previous.properties");
+            Path configPath = root.resolve("deployment-config.ref");
             Properties current = stateStore.read(currentStatePath, false);
             long currentSequence = longValue(current, "releaseSequence", -1);
             validateSequence(request, current, currentSequence);
             if (isExactReplay(request, current, currentSequence)) {
-                // State와 Binary가 모두 온전한 경우에만 idempotent replay로 인정합니다.
                 Path replayArtifact = secureArtifactPath(root, required(current, "path"));
                 verifier.verifyStored(replayArtifact, current, service);
                 return new Result(request.version(), current.getProperty("previousVersion", ""), replayArtifact.toString());
+            }
+
+            Properties previous = stateStore.read(previousStatePath, false);
+            boolean currentStateExisted = Files.exists(currentStatePath, LinkOption.NOFOLLOW_LINKS);
+            boolean previousStateExisted = Files.exists(previousStatePath, LinkOption.NOFOLLOW_LINKS);
+            boolean configExisted = Files.exists(configPath, LinkOption.NOFOLLOW_LINKS);
+            byte[] previousConfig = readOptionalRegularFile(configPath);
+
+            if (!current.isEmpty()) {
+                Path activeArtifact = secureArtifactPath(root, required(current, "path"));
+                verifier.verifyStored(activeArtifact, current, service);
             }
 
             Path releases = secureDirectory(root, root.resolve("releases"));
@@ -71,29 +82,39 @@ public final class ArtifactInstaller {
             Path target = release.resolve(service.getArtifactId() + extension).normalize();
             requireChild(root, part);
             requireChild(root, target);
+            if (Files.exists(target, LinkOption.NOFOLLOW_LINKS)) {
+                throw new SecurityException("ARTIFACT_RELEASE_PATH_COLLISION");
+            }
             Files.deleteIfExists(part);
 
             long size = download(artifactUri(request, extension), part, request, extension);
             ArtifactVerifier.Verified verified = verifier.verify(part, request, size);
-            move(part, target);
-            part = null;
-
-            if (request.configRef() != null && !request.configRef().isBlank()) {
-                if (!request.configRef().matches("(?i)^(vault|secret|config)://[A-Za-z0-9._/@:-]+$")) {
-                    throw new SecurityException("ARTIFACT_CONFIG_REFERENCE_INVALID");
-                }
-                write(root.resolve("deployment-config.ref"), request.configRef());
-            }
-
-            if (!current.isEmpty()) {
-                // 기존 active state도 쓰기 전에 Binary/서명을 재검증하여 손상 상태를 previous로 승격하지 않습니다.
-                Path activeArtifact = secureArtifactPath(root, required(current, "path"));
-                verifier.verifyStored(activeArtifact, current, service);
-                stateStore.write(previousStatePath, current);
-            }
             Properties next = state(request, current, verified, target);
-            stateStore.write(currentStatePath, next);
-            return new Result(request.version(), current.getProperty("version", ""), target.toString());
+
+            boolean targetPublished = false;
+            try {
+                move(part, target);
+                part = null;
+                targetPublished = true;
+                publishConfig(configPath, request.configRef());
+                if (!current.isEmpty()) {
+                    stateStore.write(previousStatePath, current);
+                }
+                stateStore.write(currentStatePath, next);
+                return new Result(request.version(), current.getProperty("version", ""), target.toString());
+            } catch (Exception publicationFailure) {
+                Exception restoreFailure = restorePublication(
+                        target, targetPublished,
+                        configPath, configExisted, previousConfig,
+                        previousStatePath, previousStateExisted, previous,
+                        currentStatePath, currentStateExisted, current);
+                String code = restoreFailure == null
+                        ? "ARTIFACT_INSTALL_PUBLICATION_ROLLED_BACK"
+                        : "ARTIFACT_INSTALL_RESULT_UNKNOWN";
+                IllegalStateException wrapped = new IllegalStateException(code, publicationFailure);
+                if (restoreFailure != null) wrapped.addSuppressed(restoreFailure);
+                throw wrapped;
+            }
         } catch (OverlappingFileLockException failure) {
             throw new IllegalStateException("ARTIFACT_INSTALL_ALREADY_RUNNING", failure);
         } finally {
@@ -105,28 +126,43 @@ public final class ArtifactInstaller {
         AgentProperties.ServiceDefinition service = service(serviceId);
         Path root = secureRoot(service.getInstallRoot());
         try (FileChannel channel = FileChannel.open(root.resolve(".install.lock"),
-                StandardOpenOption.CREATE, StandardOpenOption.WRITE);
+                StandardOpenOption.CREATE, StandardOpenOption.WRITE, LinkOption.NOFOLLOW_LINKS);
                 FileLock ignored = exclusiveLock(channel)) {
             Path currentStatePath = root.resolve("artifact-state.properties");
             Path previousStatePath = root.resolve("artifact-previous.properties");
+            Path configPath = root.resolve("deployment-config.ref");
             Properties previous = stateStore.read(previousStatePath, true);
             Properties current = stateStore.read(currentStatePath, true);
+            boolean configExisted = Files.exists(configPath, LinkOption.NOFOLLOW_LINKS);
+            byte[] currentConfig = readOptionalRegularFile(configPath);
 
             Path previousArtifact = secureArtifactPath(root, required(previous, "path"));
             Path currentArtifact = secureArtifactPath(root, required(current, "path"));
-            // Rollback 전 양쪽 상태를 모두 검증합니다. 손상된 active를 previous slot에 저장하지 않습니다.
             verifier.verifyStored(previousArtifact, previous, service);
             verifier.verifyStored(currentArtifact, current, service);
+            String previousConfigRef = previous.getProperty("configRef", "");
+            validateConfigReference(previousConfigRef);
 
-            stateStore.write(currentStatePath, previous);
             try {
+                publishConfig(configPath, previousConfigRef);
+                stateStore.write(currentStatePath, previous);
                 stateStore.write(previousStatePath, current);
-            } catch (Exception failure) {
-                // 두 상태 파일 publish 중 부분 실패가 발생하면 active pointer를 원래 상태로 복구합니다.
-                stateStore.write(currentStatePath, current);
-                throw new IllegalStateException("ARTIFACT_ROLLBACK_STATE_SWAP_FAILED", failure);
+                return required(previous, "version");
+            } catch (Exception publicationFailure) {
+                Exception restoreFailure = null;
+                restoreFailure = attemptRestore(
+                        restoreFailure, () -> stateStore.write(currentStatePath, current));
+                restoreFailure = attemptRestore(
+                        restoreFailure, () -> stateStore.write(previousStatePath, previous));
+                restoreFailure = attemptRestore(
+                        restoreFailure, () -> restoreFile(configPath, configExisted, currentConfig));
+                String code = restoreFailure == null
+                        ? "ARTIFACT_ROLLBACK_PUBLICATION_ROLLED_BACK"
+                        : "ARTIFACT_ROLLBACK_RESULT_UNKNOWN";
+                IllegalStateException wrapped = new IllegalStateException(code, publicationFailure);
+                if (restoreFailure != null) wrapped.addSuppressed(restoreFailure);
+                throw wrapped;
             }
-            return required(previous, "version");
         } catch (OverlappingFileLockException failure) {
             throw new IllegalStateException("ARTIFACT_INSTALL_ALREADY_RUNNING", failure);
         }
@@ -160,6 +196,7 @@ public final class ArtifactInstaller {
                 || request.requestedBy() == null || request.requestedBy().isBlank()) {
             throw new SecurityException("ARTIFACT_OPERATOR_REASON_REQUIRED");
         }
+        validateConfigReference(request.configRef());
     }
 
     private static void validateSequence(AgentArtifactRequest request, Properties current, long currentSequence) {
@@ -309,11 +346,97 @@ public final class ArtifactInstaller {
         }
     }
 
+    private static void validateConfigReference(String configRef) {
+        if (configRef != null && !configRef.isBlank()
+                && !configRef.matches("(?i)^(vault|secret|config)://[A-Za-z0-9._/@:-]+$")) {
+            throw new SecurityException("ARTIFACT_CONFIG_REFERENCE_INVALID");
+        }
+    }
+
+    private static void publishConfig(Path configPath, String configRef) throws IOException {
+        if (configRef == null || configRef.isBlank()) {
+            Files.deleteIfExists(configPath);
+        } else {
+            write(configPath, configRef);
+        }
+    }
+
+    private Exception restorePublication(
+            Path target,
+            boolean targetPublished,
+            Path configPath,
+            boolean configExisted,
+            byte[] previousConfig,
+            Path previousStatePath,
+            boolean previousStateExisted,
+            Properties previousState,
+            Path currentStatePath,
+            boolean currentStateExisted,
+            Properties currentState) {
+        Exception first = null;
+        first = attemptRestore(first, () -> restoreState(currentStatePath, currentStateExisted, currentState));
+        first = attemptRestore(first, () -> restoreState(previousStatePath, previousStateExisted, previousState));
+        first = attemptRestore(first, () -> restoreFile(configPath, configExisted, previousConfig));
+        if (targetPublished) first = attemptRestore(first, () -> Files.deleteIfExists(target));
+        return first;
+    }
+
+    private void restoreState(Path path, boolean existed, Properties state) throws Exception {
+        if (existed) stateStore.write(path, state);
+        else Files.deleteIfExists(path);
+    }
+
+    private static void restoreFile(Path path, boolean existed, byte[] content) throws Exception {
+        if (existed) write(path, content == null ? new byte[0] : content);
+        else Files.deleteIfExists(path);
+    }
+
+    private static Exception attemptRestore(Exception first, RestoreAction action) {
+        try {
+            action.run();
+            return first;
+        } catch (Exception failure) {
+            if (first == null) return failure;
+            first.addSuppressed(failure);
+            return first;
+        }
+    }
+
+    private static byte[] readOptionalRegularFile(Path path) throws IOException {
+        if (!Files.exists(path, LinkOption.NOFOLLOW_LINKS)) return null;
+        if (Files.isSymbolicLink(path) || !Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS)) {
+            throw new SecurityException("ARTIFACT_CONFIG_FILE_UNSAFE");
+        }
+        return Files.readAllBytes(path);
+    }
+
     private static void write(Path path, String value) throws IOException {
-        Path temporary = path.resolveSibling(path.getFileName() + ".tmp");
-        Files.writeString(temporary, value, StandardCharsets.UTF_8,
-                StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-        move(temporary, path);
+        write(path, value.getBytes(StandardCharsets.UTF_8));
+    }
+
+    private static void write(Path path, byte[] value) throws IOException {
+        Path parent = path.toAbsolutePath().normalize().getParent();
+        if (parent == null) throw new IOException("ARTIFACT_CONFIG_PARENT_MISSING");
+        if (Files.exists(path, LinkOption.NOFOLLOW_LINKS) && Files.isSymbolicLink(path)) {
+            throw new SecurityException("ARTIFACT_CONFIG_FILE_UNSAFE");
+        }
+        Path temporary = Files.createTempFile(parent, path.getFileName() + ".", ".tmp");
+        try {
+            try (FileChannel channel = FileChannel.open(temporary,
+                    StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING, LinkOption.NOFOLLOW_LINKS)) {
+                java.nio.ByteBuffer buffer = java.nio.ByteBuffer.wrap(value);
+                while (buffer.hasRemaining()) channel.write(buffer);
+                channel.force(true);
+            }
+            move(temporary, path);
+        } finally {
+            Files.deleteIfExists(temporary);
+        }
+    }
+
+    @FunctionalInterface
+    private interface RestoreAction {
+        void run() throws Exception;
     }
 
     private static String required(Properties state, String name) {

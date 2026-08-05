@@ -20,6 +20,7 @@ public class SchedulerCoordinator implements RuntimeStateProvider {
     private final AtomicReference<JdbcSchedulerLeaderRepository.Lease> lease = new AtomicReference<>();
     private final AtomicReference<String> lastElectionError = new AtomicReference<>();
     private final AtomicBoolean electionAttempted = new AtomicBoolean();
+    private final AtomicBoolean electionInProgress = new AtomicBoolean();
 
     public SchedulerCoordinator(
             JdbcSchedulerLeaderRepository repository,
@@ -33,8 +34,11 @@ public class SchedulerCoordinator implements RuntimeStateProvider {
     @Scheduled(fixedDelayString = "${cpf.batch.scheduler.election-ms:3000}")
     public void elect() {
         electionAttempted.set(true);
+        if (!electionInProgress.compareAndSet(false, true)) {
+            return;
+        }
         try {
-            var current = lease.get();
+            JdbcSchedulerLeaderRepository.Lease current = lease.get();
             if (current != null && repository.heartbeat(LEASE_KEY, current, duration)) {
                 lastElectionError.set(null);
                 return;
@@ -45,6 +49,8 @@ public class SchedulerCoordinator implements RuntimeStateProvider {
             lease.set(null);
             lastElectionError.set(failure.getClass().getSimpleName());
             throw failure;
+        } finally {
+            electionInProgress.set(false);
         }
     }
 
@@ -59,7 +65,8 @@ public class SchedulerCoordinator implements RuntimeStateProvider {
     }
 
     public long fencingToken() {
-        return lease.get() == null ? 0 : lease.get().fencingToken();
+        JdbcSchedulerLeaderRepository.Lease current = lease.get();
+        return current == null ? 0L : current.fencingToken();
     }
 
     @Override
@@ -67,12 +74,15 @@ public class SchedulerCoordinator implements RuntimeStateProvider {
         if (lastElectionError.get() != null) {
             return ActualState.DEGRADED;
         }
-        return lease.get() == null ? ActualState.STARTING : ActualState.READY;
+        JdbcSchedulerLeaderRepository.Lease current = lease.get();
+        return current == null ? ActualState.STARTING : ActualState.READY;
     }
 
     @Override
     public boolean ready() {
-        return lastElectionError.get() == null && lease.get() != null;
+        String electionError = lastElectionError.get();
+        JdbcSchedulerLeaderRepository.Lease current = lease.get();
+        return electionError == null && current != null;
     }
 
     @Override

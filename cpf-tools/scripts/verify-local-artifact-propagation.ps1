@@ -123,54 +123,114 @@ if (-not (Test-Path -LiteralPath $artifactCatalogPath -PathType Leaf)) {
 }
 $artifactCatalog = Get-Content -LiteralPath $artifactCatalogPath -Raw -Encoding UTF8 |
     ConvertFrom-Json -Depth 30
+$starterKinds = @('starter-profile', 'internal-starter')
 $starterCatalogRows = @($artifactCatalog.artifacts |
-    Where-Object { [string]$_.kind -eq 'starter' } |
+    Where-Object { [string]$_.kind -in $starterKinds } |
     Sort-Object { [string]$_.ownerPath })
 if ($starterCatalogRows.Count -eq 0) {
-    throw 'CPF final artifact catalog has no Starter artifacts.'
+    throw 'CPF final artifact catalog has no Starter profile/internal artifacts.'
 }
+
+$canonicalStarterCatalogRelative = [string]$artifactCatalog.canonicalStarterCatalog
+if ([string]::IsNullOrWhiteSpace($canonicalStarterCatalogRelative)) {
+    throw 'CPF final artifact catalog does not declare canonicalStarterCatalog.'
+}
+$canonicalStarterCatalogPath = Join-Path $Root $canonicalStarterCatalogRelative
+if (-not (Test-Path -LiteralPath $canonicalStarterCatalogPath -PathType Leaf)) {
+    throw "Canonical Starter catalog is missing: $canonicalStarterCatalogPath"
+}
+$canonicalStarterCatalog = Get-Content -LiteralPath $canonicalStarterCatalogPath -Raw -Encoding UTF8 |
+    ConvertFrom-Json -Depth 30
+$canonicalStarterRows = @($canonicalStarterCatalog.modules | Sort-Object { [string]$_.ownerPath })
+if ($canonicalStarterRows.Count -eq 0) {
+    throw 'Canonical Starter catalog has no modules.'
+}
+
+$canonicalByArtifact = @{}
+foreach ($row in $canonicalStarterRows) {
+    $artifactId = [string]$row.artifactId
+    $ownerPath = ([string]$row.ownerPath).Replace('\', '/').TrimEnd('/')
+    if ([string]::IsNullOrWhiteSpace($artifactId) -or [string]::IsNullOrWhiteSpace($ownerPath)) {
+        throw 'Canonical Starter catalog contains a missing artifactId/ownerPath.'
+    }
+    if ($canonicalByArtifact.ContainsKey($artifactId)) {
+        throw "Canonical Starter catalog contains duplicate artifactId: $artifactId"
+    }
+    $canonicalByArtifact[$artifactId] = $ownerPath
+}
+
 $starterCatalogOwnerPaths = [System.Collections.Generic.List[string]]::new()
 $starterCoordinates = @($starterCatalogRows | ForEach-Object {
     $ownerPath = ([string]$_.ownerPath).Replace('\', '/').TrimEnd('/')
-    if ($ownerPath -notmatch '^cpf-starters/([^/]+)$') {
+    $artifactId = [string]$_.artifactId
+    if ($ownerPath -notmatch '^cpf-starters/[A-Za-z0-9._-]+(?:/[A-Za-z0-9._-]+)+$' -or
+            $ownerPath.Contains('/../') -or $ownerPath.EndsWith('/..')) {
         throw "Starter artifact ownerPath is invalid: $ownerPath"
     }
-    $expectedArtifactId = "cpf-starter-$($Matches[1])"
-    if ([string]$_.artifactId -ne $expectedArtifactId) {
-        throw "Starter artifact identity mismatch: owner=$ownerPath artifact=$($_.artifactId)"
+    if ($artifactId -notmatch '^cpf-starter-[A-Za-z0-9._-]+$') {
+        throw "Starter artifactId is invalid: $artifactId"
     }
-    if (-not (Test-Path -LiteralPath (Join-Path $Root "$ownerPath/build.gradle") -PathType Leaf)) {
+    if (-not $canonicalByArtifact.ContainsKey($artifactId)) {
+        throw "Final artifact catalog Starter is absent from canonical catalog: $artifactId"
+    }
+    if ([string]$canonicalByArtifact[$artifactId] -ne $ownerPath) {
+        throw "Starter catalog owner mismatch: artifact=$artifactId final=$ownerPath canonical=$($canonicalByArtifact[$artifactId])"
+    }
+    if (-not (Test-Path -LiteralPath (Join-Path $Root "$ownerPath/build.gradle") -PathType Leaf) -and
+            -not (Test-Path -LiteralPath (Join-Path $Root "$ownerPath/build.gradle.kts") -PathType Leaf)) {
         throw "Starter catalog owner has no Gradle project: $ownerPath"
     }
     $starterCatalogOwnerPaths.Add($ownerPath) | Out-Null
-    @{ group='com.cpf.starter'; artifact=$expectedArtifactId; packaging='jar' }
+    @{ group='com.cpf.starter'; artifact=$artifactId; packaging='jar' }
 })
 if (@($starterCatalogOwnerPaths | Sort-Object -Unique).Count -ne $starterCatalogOwnerPaths.Count) {
     throw "Starter artifact catalog contains duplicate owner paths: $($starterCatalogOwnerPaths -join ', ')"
 }
-$physicalStarterOwnerPaths = @(Get-ChildItem -LiteralPath (Join-Path $Root 'cpf-starters') -Directory |
-    Where-Object { Test-Path -LiteralPath (Join-Path $_.FullName 'build.gradle') -PathType Leaf } |
-    Sort-Object Name |
-    ForEach-Object { "cpf-starters/$($_.Name)" })
+if ($canonicalByArtifact.Count -ne $starterCatalogRows.Count) {
+    $finalArtifacts = @($starterCatalogRows | ForEach-Object { [string]$_.artifactId } | Sort-Object -Unique)
+    $canonicalArtifacts = @($canonicalByArtifact.Keys | Sort-Object)
+    $drift = @(Compare-Object -ReferenceObject $canonicalArtifacts -DifferenceObject $finalArtifacts)
+    throw "Final/canonical Starter artifact closure mismatch: $($drift | ConvertTo-Json -Compress)"
+}
+
+$physicalStarterOwnerPaths = @(Get-ChildItem -LiteralPath (Join-Path $Root 'cpf-starters') -Recurse -File |
+    Where-Object { $_.Name -in @('build.gradle', 'build.gradle.kts') } |
+    ForEach-Object {
+        $_.Directory.FullName.Substring([IO.Path]::GetFullPath($Root).TrimEnd('\','/').Length).TrimStart('\','/').Replace('\','/')
+    } |
+    Where-Object { $_ -match '^cpf-starters/' } |
+    Sort-Object -Unique)
 $starterPathDrift = @(Compare-Object -ReferenceObject @($starterCatalogOwnerPaths | Sort-Object) `
     -DifferenceObject $physicalStarterOwnerPaths)
 if ($starterPathDrift.Count -gt 0) {
     throw "Starter catalog/physical project mismatch: $($starterPathDrift | ConvertTo-Json -Compress)"
 }
 
+$batchArtifactRows = @($artifactCatalog.artifacts |
+    Where-Object {
+        ([string]$_.ownerPath).Replace('\','/').StartsWith('cpf-batch/') -and
+        [string]$_.kind -in @('library','runtime','testkit')
+    } | Sort-Object { [string]$_.artifactId })
+if ($batchArtifactRows.Count -eq 0) {
+    throw 'CPF final artifact catalog has no Batch artifacts.'
+}
+$batchCoordinates = @($batchArtifactRows | ForEach-Object {
+    $artifactId = [string]$_.artifactId
+    if ($artifactId -notmatch '^cpf-batch-') {
+        throw "Unexpected Batch artifact identity: $artifactId"
+    }
+    @{ group='com.cpf.batch'; artifact=$artifactId; packaging='jar' }
+})
+if (@($batchCoordinates.artifact | Sort-Object -Unique).Count -ne $batchCoordinates.Count) {
+    throw 'CPF final artifact catalog contains duplicate Batch artifact coordinates.'
+}
+
 $coordinates = @(
     @{ group='com.cpf.core'; artifact='cpf-core'; packaging='jar' },
-    @{ group='com.cpf.common'; artifact='cpf-common'; packaging='jar' },
-    @{ group='com.cpf.batch'; artifact='cpf-batch-contract'; packaging='jar' },
-    @{ group='com.cpf.batch'; artifact='cpf-batch-runtime-common'; packaging='jar' },
-    @{ group='com.cpf.batch'; artifact='cpf-batch-testkit'; packaging='jar' },
-    @{ group='com.cpf.batch'; artifact='cpf-batch-control-server'; packaging='jar' },
-    @{ group='com.cpf.batch'; artifact='cpf-batch-scheduler'; packaging='jar' },
-    @{ group='com.cpf.batch'; artifact='cpf-batch-worker'; packaging='jar' },
-    @{ group='com.cpf.batch'; artifact='cpf-center-cut-runner'; packaging='jar' },
-    @{ group='com.cpf.batch'; artifact='cpf-batch-host-agent'; packaging='jar' }
-) + $starterCoordinates + @(
+    @{ group='com.cpf.common'; artifact='cpf-common'; packaging='jar' }
+) + $batchCoordinates + $starterCoordinates + @(
     @{ group='com.cpf'; artifact='cpf-platform-bom'; packaging='pom' },
+    @{ group='com.cpf.internal'; artifact='cpf-internal-platform-bom'; packaging='pom' },
     @{ group='com.cpf.gradle'; artifact='cpf-gradle-plugin'; packaging='jar' }
 )
 $files = [System.Collections.Generic.List[object]]::new()
@@ -228,15 +288,40 @@ if ($markerDependency.Count -ne 1) { throw 'CPF Gradle plugin marker does not po
 Add-ManifestFile "$markerBase.pom" 'plugin-marker'
 Add-VersionDirectoryFiles $markerBase $markerArtifact $version
 
-$bomPomPath = Join-Path $LocalRepository (("com/cpf/cpf-platform-bom/$version/cpf-platform-bom-$version.pom").Replace('/', [IO.Path]::DirectorySeparatorChar))
-[xml]$bomXml = Get-Content -LiteralPath $bomPomPath -Raw -Encoding UTF8
-$bomDependencies = @($bomXml.project.dependencyManagement.dependencies.dependency)
-$requiredBomArtifacts = @(
+$publicBomPomPath = Join-Path $LocalRepository (("com/cpf/cpf-platform-bom/$version/cpf-platform-bom-$version.pom").Replace('/', [IO.Path]::DirectorySeparatorChar))
+[xml]$publicBomXml = Get-Content -LiteralPath $publicBomPomPath -Raw -Encoding UTF8
+$publicBomDependencies = @($publicBomXml.project.dependencyManagement.dependencies.dependency)
+$publicStarterArtifacts = @($starterCatalogRows |
+    Where-Object { [string]$_.kind -eq 'starter-profile' } |
+    ForEach-Object { [string]$_.artifactId } | Sort-Object)
+$internalStarterArtifacts = @($starterCatalogRows |
+    Where-Object { [string]$_.kind -eq 'internal-starter' } |
+    ForEach-Object { [string]$_.artifactId } | Sort-Object)
+$requiredPublicBomArtifacts = @(
     'cpf-core','cpf-common','cpf-batch-contract','cpf-batch-testkit'
-) + @($starterCatalogRows | ForEach-Object { [string]$_.artifactId } | Sort-Object)
-foreach ($required in $requiredBomArtifacts) {
-    $matches = @($bomDependencies | Where-Object { [string]$_.artifactId -eq $required -and [string]$_.version -eq $version })
-    if ($matches.Count -ne 1) { throw "CPF BOM exact-version constraint missing or duplicated: ${required}:$version" }
+) + $publicStarterArtifacts
+foreach ($required in $requiredPublicBomArtifacts) {
+    $matches = @($publicBomDependencies | Where-Object { [string]$_.artifactId -eq $required -and [string]$_.version -eq $version })
+    if ($matches.Count -ne 1) { throw "CPF public BOM exact-version constraint missing or duplicated: ${required}:$version" }
+}
+$leakedInternal = @($publicBomDependencies | Where-Object { [string]$_.artifactId -in $internalStarterArtifacts })
+if ($leakedInternal.Count -gt 0) {
+    throw "Internal Starter leaked into public BOM: $(@($leakedInternal | ForEach-Object { [string]$_.artifactId }) -join ', ')"
+}
+
+$internalBomPomPath = Join-Path $LocalRepository (("com/cpf/internal/cpf-internal-platform-bom/$version/cpf-internal-platform-bom-$version.pom").Replace('/', [IO.Path]::DirectorySeparatorChar))
+[xml]$internalBomXml = Get-Content -LiteralPath $internalBomPomPath -Raw -Encoding UTF8
+$internalBomDependencies = @($internalBomXml.project.dependencyManagement.dependencies.dependency)
+$publicBomImports = @($internalBomDependencies | Where-Object {
+    [string]$_.groupId -eq 'com.cpf' -and [string]$_.artifactId -eq 'cpf-platform-bom' -and
+    [string]$_.version -eq $version -and [string]$_.type -eq 'pom' -and [string]$_.scope -eq 'import'
+})
+if ($publicBomImports.Count -ne 1) {
+    throw "CPF internal BOM must import the exact public BOM once: $version"
+}
+foreach ($required in $internalStarterArtifacts) {
+    $matches = @($internalBomDependencies | Where-Object { [string]$_.artifactId -eq $required -and [string]$_.version -eq $version })
+    if ($matches.Count -ne 1) { throw "CPF internal BOM exact-version constraint missing or duplicated: ${required}:$version" }
 }
 
 $sourceIdentity = Get-SourceIdentity $Root

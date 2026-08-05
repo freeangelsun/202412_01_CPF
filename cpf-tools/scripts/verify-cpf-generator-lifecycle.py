@@ -11,7 +11,7 @@ from pathlib import Path
 
 VENDORS = ["mariadb", "postgresql", "oracle"]
 STAGES = [
-    "fresh-clone", "create", "database-bootstrap", "build-test", "runtime-smoke",
+    "fresh-clone", "create", "upgrade-ownership", "database-bootstrap", "build-test", "runtime-smoke",
     "adm-registration", "user-change-protection", "safe-remove", "regenerate", "parity",
 ]
 SHA_RE = re.compile(r"^[0-9a-f]{40}$")
@@ -59,9 +59,12 @@ def validate_contract(root: Path, contract: dict) -> None:
     if not isinstance(marker, str) or not marker.startswith(".cpf-disposable-"):
         raise ContractError("disposableRootMarker must be an explicit .cpf-disposable-* marker")
     scripts = contract.get("requiredScripts")
-    if not isinstance(scripts, dict) or set(scripts) != {"create", "database", "remove", "lifecycle"}:
-        raise ContractError("requiredScripts must define create/database/remove/lifecycle")
+    if not isinstance(scripts, dict) or set(scripts) != {"createEntryPoint", "create", "database", "remove", "lifecycle", "upgrade"}:
+        raise ContractError("requiredScripts must define createEntryPoint/create/database/remove/lifecycle/upgrade")
     resolved = {name: require_file(root, rel) for name, rel in scripts.items()}
+    assert_tokens(resolved["createEntryPoint"], [
+        "generator/create-domain.ps1", "Canonical CPF generator not found", "@GeneratorArgs",
+    ])
     assert_tokens(resolved["create"], [
         "generator-ownership.json", "createdFiles", "sha256", "Generated file already exists",
         "databaseRemovalPolicy",
@@ -74,10 +77,24 @@ def validate_contract(root: Path, contract: dict) -> None:
         "changedGeneratedFiles", "userOwnedFiles", "externalReferences", "blockReasons",
         "databaseObjectsRemoved = $false", "DryRun",
     ])
+    assert_tokens(resolved["upgrade"], [
+        "managed file drift", "unmanaged target collision", "obsolete managed file drift",
+        "retainedObsoleteOwnership", "ADD_USER_OWNED_DEFAULT",
+    ])
     assert_tokens(resolved["lifecycle"], [
         marker, *STAGES, "generator-lifecycle-result.sanitized.json", "normalizedSha256",
         "changedGeneratedFiles", "userOwnedFiles", "externalReferences",
     ])
+
+    expected_upgrade_protection = {
+        "generatedOwnedFileUpdatedWhenChecksumMatches": True,
+        "generatedOwnedFileDriftBlocksUpgrade": True,
+        "unmanagedTargetCollisionBlocksUpgrade": True,
+        "customerOwnedExtensionPreservedWithoutOwnershipCapture": True,
+        "obsoleteGeneratedOwnershipRetainedUntilApprovedDeletion": True,
+    }
+    if contract.get("upgradeProtection") != expected_upgrade_protection:
+        raise ContractError("upgradeProtection must remain fail-closed for all five policies")
 
     expected_protection = {
         "changedGeneratedFileBlocksRemoval": True,
@@ -125,6 +142,8 @@ def validate_release_evidence(root: Path, contract: dict, expected_sha: str, evi
                 raise ContractError(f"{vendor}: stage failed or unexecuted: {item.get('id')}")
             if not isinstance(item.get("assertions"), list) or not item["assertions"]:
                 raise ContractError(f"{vendor}: stage assertions missing: {item.get('id')}")
+        if evidence.get("upgradeOwnershipVerified") is not True:
+            raise ContractError(f"{vendor}: upgrade ownership protection not verified")
         if evidence.get("userProtectionVerified") is not True:
             raise ContractError(f"{vendor}: user-change protection not verified")
         if evidence.get("parityVerified") is not True:

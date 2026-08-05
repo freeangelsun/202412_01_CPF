@@ -2,6 +2,7 @@ package com.cpf.batch.control;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
@@ -16,7 +17,9 @@ import com.cpf.batch.api.RuntimeCommand;
 import com.cpf.batch.control.deploy.RuntimeLifecycleService;
 import com.cpf.batch.control.internal.JdbcRuntimeCommandRepository;
 import com.cpf.batch.control.internal.JdbcRuntimeRegistry;
+import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -166,19 +169,40 @@ class RuntimeCommandExecutorFailureClassificationTest {
     }
 
     private void persisted(RuntimeCommand command, CommandState resultState) {
-        when(commands.create(command)).thenReturn(Map.of("command_id", command.commandId()));
+        RuntimeCommand normalized = RuntimeCommandIdentity.normalize(command);
+        when(commands.create(any(RuntimeCommand.class))).thenReturn(persistedRow(normalized));
         when(commands.find(command.idempotencyKey())).thenReturn(Optional.of(Map.of(
-                "command_id", command.commandId(), "execution_state", resultState.name())));
+                "command_id", command.commandId(), "command_state", resultState.name())));
     }
 
     private static RuntimeCommand command(List<String> targets) {
         Instant now = Instant.now();
         return new RuntimeCommand(
                 "CMD-1", "IDEM-1", "RESTART", "INSTANCE", targets,
-                "snapshot", "snapshot-hash", 7L, "requester", "approved maintenance",
+                null, null, 7L, "requester", "approved maintenance",
                 now, "POLICY-1", "APR-1", "approver", now.plusSeconds(300),
                 CommandState.APPROVED, 0, Map.of(), null, null, "before", null,
                 "OBAT-AA-00000000000000000000000000", null);
+    }
+
+    private static Map<String, Object> persistedRow(RuntimeCommand command) {
+        Map<String, Object> row = new LinkedHashMap<>();
+        row.put("command_id", command.commandId());
+        row.put("idempotency_key", command.idempotencyKey());
+        row.put("command_type", command.commandType());
+        row.put("target_type", command.targetType());
+        row.put("target_snapshot", command.targetSnapshot());
+        row.put("target_snapshot_hash", command.targetSnapshotHash());
+        row.put("expected_version", command.expectedVersion());
+        row.put("requested_by", command.requestedBy());
+        row.put("reason_text", command.reason());
+        row.put("approval_policy_version", command.approvalPolicyVersion());
+        row.put("approval_request_id", command.approvalRequestId());
+        row.put("approved_by", command.approvedBy());
+        row.put("requested_at", Timestamp.from(command.requestedAt()));
+        row.put("expires_at", Timestamp.from(command.expiresAt()));
+        row.put("transaction_id", command.transactionId());
+        return row;
     }
 
     private static AgentCommandResult result(CommandState state, String message) {

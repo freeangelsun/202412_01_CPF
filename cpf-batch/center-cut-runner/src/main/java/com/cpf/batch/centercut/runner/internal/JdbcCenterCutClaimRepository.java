@@ -6,7 +6,12 @@ import com.cpf.core.api.database.CpfVendorSqlCatalogProvider;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionOperations;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.sql.Timestamp;
 import java.time.*;
@@ -17,14 +22,26 @@ public class JdbcCenterCutClaimRepository {
     private final JdbcTemplate jdbc;
     private final JdbcCenterCutAdmissionControl admission;
     private final CpfVendorSqlCatalog sql;
+    private final TransactionOperations claimTransactions;
 
+    @Autowired
     public JdbcCenterCutClaimRepository(
             JdbcTemplate jdbc,
             JdbcCenterCutAdmissionControl admission,
-            CpfVendorSqlCatalogProvider sqlCatalogProvider) {
-        this.jdbc=jdbc;
-        this.admission=admission;
-        this.sql= sqlCatalogProvider.forModule("bat");
+            CpfVendorSqlCatalogProvider sqlCatalogProvider,
+            PlatformTransactionManager transactionManager) {
+        this(jdbc, admission, sqlCatalogProvider, new TransactionTemplate(transactionManager));
+    }
+
+    JdbcCenterCutClaimRepository(
+            JdbcTemplate jdbc,
+            JdbcCenterCutAdmissionControl admission,
+            CpfVendorSqlCatalogProvider sqlCatalogProvider,
+            TransactionOperations claimTransactions) {
+        this.jdbc=Objects.requireNonNull(jdbc, "jdbc");
+        this.admission=Objects.requireNonNull(admission, "admission");
+        this.sql=Objects.requireNonNull(sqlCatalogProvider, "sqlCatalogProvider").forModule("bat");
+        this.claimTransactions=Objects.requireNonNull(claimTransactions, "claimTransactions");
     }
 
     @Transactional
@@ -47,7 +64,6 @@ public class JdbcCenterCutClaimRepository {
         return count;
     }
 
-    @Transactional
     public Optional<Claim> claimForExecution(
             String requiredExecutionId,String runner,String pool,Duration duration) {
         if(requiredExecutionId==null||requiredExecutionId.isBlank()) {
@@ -58,15 +74,35 @@ public class JdbcCenterCutClaimRepository {
         for(Map<String,Object> row:candidates){
             String executionId=Objects.toString(row.get("center_cut_execution_id"),"");
             if(!requiredExecutionId.equals(executionId))continue;
-            if(!executionId.isBlank()){
-                int tps=((Number)row.getOrDefault("tps_limit",0)).intValue();
-                int concurrency=((Number)row.getOrDefault("concurrency_limit",1)).intValue();
-                if(!admission.acquire(executionId,tps,concurrency))continue;
-            }
-            Optional<Claim> claim=tryClaim(((Number)row.get("center_cut_item_id")).longValue(),runner,pool,duration,executionId);
-            if(claim.isPresent())return claim;
+            int tps=((Number)row.getOrDefault("tps_limit",0)).intValue();
+            int concurrency=((Number)row.getOrDefault("concurrency_limit",1)).intValue();
+            long itemId=((Number)row.get("center_cut_item_id")).longValue();
+            Optional<Claim> claim=claimTransactions.execute(status ->
+                    claimWithinTransaction(status, itemId, runner, pool, duration, executionId, tps, concurrency));
+            if(claim!=null&&claim.isPresent())return claim;
         }
         return Optional.empty();
+    }
+
+    private Optional<Claim> claimWithinTransaction(
+            TransactionStatus status,
+            long itemId,
+            String runner,
+            String pool,
+            Duration duration,
+            String executionId,
+            int tps,
+            int concurrency) {
+        if(!executionId.isBlank()&&!admission.acquire(executionId,tps,concurrency)) {
+            status.setRollbackOnly();
+            return Optional.empty();
+        }
+        Optional<Claim> claimed=tryClaim(itemId,runner,pool,duration,executionId);
+        if(claimed.isEmpty()) {
+            // Admission and claim are one atomic attempt. A normal empty result must not commit a TPS permit.
+            status.setRollbackOnly();
+        }
+        return claimed;
     }
 
     @Transactional

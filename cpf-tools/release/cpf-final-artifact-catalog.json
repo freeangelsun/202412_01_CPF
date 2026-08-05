@@ -2,7 +2,7 @@
   "schemaVersion": "2.0.0",
   "catalogId": "CPF-FINAL-ARTIFACT-CATALOG",
   "sourceShaPolicy": "runtime-exact-sha-evidence",
-  "baselineSha": "4aea798c913787e86341809e2cef2b9495cbf7ba",
+  "baselineSha": "RUNTIME_GIT_HEAD",
   "officialDatabaseVendors": [
     "oracle",
     "postgresql",
@@ -1254,5 +1254,6 @@
         "coordinate": "com.cpf.starter:cpf-starter-security-service-identity"
       }
     }
-  }
+  },
+  "baselinePolicy": "GIT_HEAD_RUNTIME"
 }

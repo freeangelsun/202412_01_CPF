@@ -7,7 +7,6 @@ import com.cpf.core.api.database.CpfVendorSqlCatalogProvider;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.util.*;
@@ -22,7 +21,6 @@ public class JdbcRuntimeCommandRepository {
         this.sql = sqlCatalogProvider.forModule("bat");
     }
 
-    @Transactional
     public Map<String,Object> create(RuntimeCommand c) {
         try {
             jdbc.update(sql.required("runtime-command-insert"),
@@ -31,8 +29,17 @@ public class JdbcRuntimeCommandRepository {
               c.executionState().name(),c.executionAttempt(),Timestamp.from(c.requestedAt()),c.expiresAt()==null?null:Timestamp.from(c.expiresAt()),
               SensitiveTextSanitizer.sanitize(c.result()),c.failureStage(),SensitiveTextSanitizer.sanitize(c.beforeState()),
               SensitiveTextSanitizer.sanitize(c.afterState()),c.transactionId(),c.evidenceRef());
-        } catch(DuplicateKeyException duplicate){return find(c.idempotencyKey()).orElseThrow();}
-        return find(c.idempotencyKey()).orElseThrow();
+        } catch (DuplicateKeyException duplicate) {
+            return find(c.idempotencyKey()).orElseThrow(() ->
+                    new RuntimeCommandIdempotencyConflictException(
+                            "Runtime commandId is already bound to another idempotency key: "
+                                    + c.commandId(),
+                            duplicate));
+        }
+        return find(c.idempotencyKey()).orElseThrow(() ->
+                new IllegalStateException(
+                        "Runtime command insert completed but persisted identity is unavailable: "
+                                + c.idempotencyKey()));
     }
 
     public Optional<Map<String,Object>> find(String idempotencyKey){

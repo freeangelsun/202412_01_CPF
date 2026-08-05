@@ -1,7 +1,7 @@
 {
   "schemaVersion": "2.0.0",
   "catalogId": "CPF-QA39-CANONICAL-STARTER-CATALOG",
-  "baselineSha": "4aea798c913787e86341809e2cef2b9495cbf7ba",
+  "baselineSha": "RUNTIME_GIT_HEAD",
   "publicProfiles": [
     "minimal-domain",
     "web-api",
@@ -1127,5 +1127,6 @@
         "messaging"
       ]
     }
-  }
+  },
+  "baselinePolicy": "GIT_HEAD_RUNTIME"
 }

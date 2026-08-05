@@ -13,6 +13,7 @@
   "stages": [
     "fresh-clone",
     "create",
+    "upgrade-ownership",
     "database-bootstrap",
     "build-test",
     "runtime-smoke",
@@ -23,7 +24,9 @@
     "parity"
   ],
   "requiredScripts": {
-    "create": "cpf-tools/scripts/create-domain.ps1",
+    "createEntryPoint": "cpf-tools/scripts/create-domain.ps1",
+    "create": "cpf-tools/generator/create-domain.ps1",
+    "upgrade": "cpf-tools/generator/upgrade-domain.ps1",
     "database": "cpf-tools/scripts/initialize-domain-database.ps1",
     "remove": "cpf-tools/scripts/remove-domain.ps1",
     "lifecycle": "cpf-tools/generator/verify-domain-lifecycle.ps1"
@@ -65,6 +68,14 @@
     "requireCleanBeforeAfter": true,
     "requireAllStages": true,
     "requireArtifactHashes": true,
-    "requireSanitized": true
+    "requireSanitized": true,
+    "requireUpgradeOwnershipVerified": true
+  },
+  "upgradeProtection": {
+    "generatedOwnedFileUpdatedWhenChecksumMatches": true,
+    "generatedOwnedFileDriftBlocksUpgrade": true,
+    "unmanagedTargetCollisionBlocksUpgrade": true,
+    "customerOwnedExtensionPreservedWithoutOwnershipCapture": true,
+    "obsoleteGeneratedOwnershipRetainedUntilApprovedDeletion": true
   }
 }

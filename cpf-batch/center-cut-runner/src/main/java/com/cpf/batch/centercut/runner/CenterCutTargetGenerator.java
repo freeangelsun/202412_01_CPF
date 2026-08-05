@@ -81,7 +81,7 @@ public class CenterCutTargetGenerator {
         String cursor = Objects.toString(row.get("target_cursor"), null);
         int limit = Math.max(1, ((Number) row.get("chunk_size")).intValue());
         List<CenterCutTargetProvider.Target> returned = provider.next(jobId, executionId, cursor, limit, parameters);
-        List<CenterCutTargetProvider.Target> targets = returned == null ? List.of() : List.copyOf(returned);
+        List<CenterCutTargetProvider.Target> targets = validatePage(cursor, limit, returned);
 
         tx.executeWithoutResult(status -> {
             jdbc.update(sql.required("centercut-target-mark-targeting"), executionId);
@@ -105,4 +105,37 @@ public class CenterCutTargetGenerator {
                     last ? "RUNNING" : "TARGETING", executionId);
         });
     }
+    static List<CenterCutTargetProvider.Target> validatePage(
+            String currentCursor, int limit, List<CenterCutTargetProvider.Target> returned) {
+        if (limit <= 0) throw new IllegalArgumentException("limit must be positive");
+        List<CenterCutTargetProvider.Target> targets = returned == null ? List.of() : List.copyOf(returned);
+        if (targets.size() > limit) {
+            throw new IllegalStateException("BATCH_CENTER_CUT_PROVIDER_PAGE_LIMIT_EXCEEDED");
+        }
+
+        Set<String> businessKeys = new HashSet<>();
+        String previousCursor = currentCursor;
+        for (int index = 0; index < targets.size(); index++) {
+            CenterCutTargetProvider.Target target = targets.get(index);
+            if (target == null || target.businessKey() == null || target.businessKey().isBlank()) {
+                throw new IllegalArgumentException("Center-Cut target businessKey is required");
+            }
+            if (!businessKeys.add(target.businessKey())) {
+                throw new IllegalArgumentException("BATCH_CENTER_CUT_DUPLICATE_BUSINESS_KEY");
+            }
+            if (target.last() && index != targets.size() - 1) {
+                throw new IllegalArgumentException("BATCH_CENTER_CUT_EARLY_LAST_MARKER");
+            }
+            String nextCursor = target.cursor();
+            if (!target.last() && (nextCursor == null || nextCursor.isBlank())) {
+                throw new IllegalArgumentException("BATCH_CENTER_CUT_MISSING_CONTINUATION_CURSOR");
+            }
+            if (nextCursor != null && !nextCursor.isBlank() && Objects.equals(previousCursor, nextCursor)) {
+                throw new IllegalStateException("BATCH_CENTER_CUT_NON_ADVANCING_CURSOR");
+            }
+            if (nextCursor != null && !nextCursor.isBlank()) previousCursor = nextCursor;
+        }
+        return targets;
+    }
+
 }

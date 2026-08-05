@@ -182,6 +182,11 @@ public class SchedulerDispatchService {
             String scheduleId,
             Timestamp scheduledAt) {
         try {
+            // The durable command was claimed under this lease, but the lease can expire while
+            // the claim transaction commits or while the command projection is materialized.
+            // Re-check immediately before the irreversible external start so a fenced leader
+            // cannot launch a duplicate Spring Batch execution.
+            coordinator.assertLeader(lease.fencingToken());
             ZoneId zone = ZoneId.of(requiredText(command, "fire_zone"));
             ZonedDateTime fireAt = scheduledAt.toInstant().atZone(zone);
             BatchExecutionLink execution = executionControl.start(launchRequestResolver.resolve(

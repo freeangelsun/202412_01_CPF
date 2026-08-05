@@ -16,7 +16,13 @@ def require(text: str, token: str, rel: str, errors: list[str]) -> None:
 
 
 def normalized_sql(text: str) -> str:
-    return re.sub(r"\s+", " ", text.strip().lower())
+    normalized = re.sub(r"\s+", " ", text.strip().lower())
+    normalized = re.sub(
+        r"(?<!\w)(?:systimestamp|current_timestamp(?:\(3\))?)(?!\w)",
+        "<current-timestamp>",
+        normalized,
+    )
+    return normalized
 
 
 def verify(root: Path) -> None:
@@ -40,7 +46,7 @@ def verify(root: Path) -> None:
         'exactOne("compat-execution-lock", executionId)',
         'requireGhostCandidate(before, executionId)',
         'exactOne("compat-lock-expired-for-job-for-update", jobId)',
-        'requireSingleMutation(changed, "ghost lock release", jobId)',
+        'requireSingleMutation(changed, "ghost lock release", lockKey)',
         'requireSingleMutation(changed, "ghost execution transition", String.valueOf(executionId))',
         'GHOST_ACTIVE_STATUSES',
         'last_heartbeat_at',

@@ -6,6 +6,8 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
@@ -69,6 +71,64 @@ class ApprovedShellExecutorTest {
         assertTrue(failure.getMessage().contains("byte limit"));
     }
 
+
+
+    @Test
+    void drainsChildOutputBeforeCompletingLargeStdinDelivery() throws Exception {
+        Path java = javaExecutable();
+        WorkerOperationalProperties properties = new WorkerOperationalProperties();
+        WorkerOperationalProperties.ShellDefinition definition = new WorkerOperationalProperties.ShellDefinition();
+        definition.setExecutable(java.toString());
+        definition.setFixedArguments(List.of(
+                "-cp",
+                Path.of(StdoutBeforeStdinConsumer.class.getProtectionDomain()
+                                .getCodeSource().getLocation().toURI()).toString(),
+                StdoutBeforeStdinConsumer.class.getName()));
+        definition.setAllowedParameters(List.of("credential"));
+        definition.setSensitiveParameters(List.of("credential"));
+        definition.setParameterDeliveryMode("STDIN_JSON");
+        definition.setSha256(sha256(java));
+        definition.setVerificationMode("HASH_ONLY");
+        definition.setTimeoutSeconds(5);
+        definition.setMaxOutputBytes(64 * 1024);
+        properties.setScripts(Map.of("backpressure", definition));
+
+        ApprovedShellExecutor.Result result = new ApprovedShellExecutor(properties).execute(
+                "backpressure", Map.of("credential", "x".repeat(900_000)));
+
+        assertTrue(result.success(), result.output());
+        assertEquals("SUCCESS", result.status());
+        assertTrue(result.outputTruncated());
+    }
+
+    @Test
+    void timeoutCoversBlockedStdinWriterAndTerminatesProcessTree() throws Exception {
+        Path java = javaExecutable();
+        WorkerOperationalProperties properties = new WorkerOperationalProperties();
+        WorkerOperationalProperties.ShellDefinition definition = new WorkerOperationalProperties.ShellDefinition();
+        definition.setExecutable(java.toString());
+        definition.setFixedArguments(List.of(
+                "-cp",
+                Path.of(NeverReadsStdinConsumer.class.getProtectionDomain()
+                                .getCodeSource().getLocation().toURI()).toString(),
+                NeverReadsStdinConsumer.class.getName()));
+        definition.setAllowedParameters(List.of("credential"));
+        definition.setSensitiveParameters(List.of("credential"));
+        definition.setParameterDeliveryMode("STDIN_JSON");
+        definition.setSha256(sha256(java));
+        definition.setVerificationMode("HASH_ONLY");
+        definition.setTimeoutSeconds(1);
+        definition.setGracefulShutdownSeconds(1);
+        properties.setScripts(Map.of("blocked-stdin", definition));
+
+        Instant started = Instant.now();
+        ApprovedShellExecutor.Result result = new ApprovedShellExecutor(properties).execute(
+                "blocked-stdin", Map.of("credential", "x".repeat(900_000)));
+
+        assertEquals("TIMEOUT", result.status());
+        assertFalse(result.success());
+        assertTrue(Duration.between(started, Instant.now()).toSeconds() < 8);
+    }
 
     @Test
     void rejectsCatalogThatDisablesProcessTreeTermination() throws Exception {
@@ -138,4 +198,26 @@ class ApprovedShellExecutorTest {
             }
         }
     }
+
+    /** Writes more than an OS pipe before reading STDIN to reproduce bidirectional backpressure. */
+    public static final class StdoutBeforeStdinConsumer {
+        public static void main(String[] args) throws Exception {
+            byte[] output = new byte[256 * 1024];
+            java.util.Arrays.fill(output, (byte) 'o');
+            System.out.write(output);
+            System.out.flush();
+            byte[] buffer = new byte[8192];
+            while (System.in.read(buffer) >= 0) {
+                // Consume after stdout pressure has been created.
+            }
+        }
+    }
+
+    /** Never consumes STDIN; the parent timeout must still remain effective. */
+    public static final class NeverReadsStdinConsumer {
+        public static void main(String[] args) throws Exception {
+            Thread.sleep(60_000L);
+        }
+    }
+
 }

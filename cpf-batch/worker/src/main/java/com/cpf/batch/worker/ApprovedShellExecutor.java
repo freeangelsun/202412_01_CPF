@@ -18,6 +18,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * 승인된 Script Catalog만 실행합니다.
@@ -88,11 +89,6 @@ public class ApprovedShellExecutor {
             }
 
             Process process = builder.start();
-            if (stdinJson != null) {
-                writeParametersToStdin(process, stdinJson);
-            } else {
-                process.getOutputStream().close();
-            }
             BoundedOutput stdout = new BoundedOutput(
                     definition.getMaxOutputBytes(), definition.getMaxOutputLinesPerSecond());
             BoundedOutput stderr = new BoundedOutput(
@@ -101,6 +97,21 @@ public class ApprovedShellExecutor {
                     .start(() -> copyBounded(process.getInputStream(), stdout));
             Thread errReader = Thread.ofVirtual().name("cpf-shell-stderr-" + scriptKey)
                     .start(() -> copyBounded(process.getErrorStream(), stderr));
+
+            AtomicReference<Throwable> stdinFailure = new AtomicReference<>();
+            Thread stdinWriter = null;
+            if (stdinJson != null) {
+                byte[] stdinPayload = stdinJson;
+                stdinWriter = Thread.ofVirtual().name("cpf-shell-stdin-" + scriptKey).start(() -> {
+                    try {
+                        writeParametersToStdin(process, stdinPayload);
+                    } catch (Throwable failure) {
+                        stdinFailure.set(failure);
+                    }
+                });
+            } else {
+                process.getOutputStream().close();
+            }
 
             boolean finished = process.waitFor(Math.max(1, definition.getTimeoutSeconds()), TimeUnit.SECONDS);
             String status;
@@ -113,8 +124,27 @@ public class ApprovedShellExecutor {
                 status = classifyExit(definition, process.exitValue());
             }
 
-            outReader.join(Math.max(1, definition.getGracefulShutdownSeconds()) * 1_000L);
-            errReader.join(Math.max(1, definition.getGracefulShutdownSeconds()) * 1_000L);
+            long joinMillis = Math.max(1, definition.getGracefulShutdownSeconds()) * 1_000L;
+            if (stdinWriter != null) {
+                stdinWriter.join(joinMillis);
+                if (stdinWriter.isAlive()) {
+                    try {
+                        process.getOutputStream().close();
+                    } catch (IOException ignored) {
+                        // The process may already have closed its STDIN pipe.
+                    }
+                    stdinWriter.interrupt();
+                    stdinWriter.join(joinMillis);
+                    if (finished) {
+                        status = "BATCH_SHELL_STDIN_INCOMPLETE";
+                    }
+                } else if (stdinFailure.get() != null && finished && "SUCCESS".equals(status)) {
+                    status = "BATCH_SHELL_STDIN_INCOMPLETE";
+                }
+            }
+
+            outReader.join(joinMillis);
+            errReader.join(joinMillis);
 
             int exitCode = process.isAlive() ? -1 : process.exitValue();
             String sanitizedStdout = SensitiveTextSanitizer.sanitize(stdout.asText());

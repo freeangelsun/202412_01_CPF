@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "1.0",
+  "catalogId": "cpf-product-capability-policy",
+  "baselinePolicy": "GIT_HEAD_RUNTIME",
+  "baselineSha": "RUNTIME_GIT_HEAD",
+  "policyMaturity": "PROTOTYPE_ONLY_NOT_GA",
+  "commercialPolicyResolved": false,
+  "defaultFailClosed": true,
+  "editions": [
+    {
+      "id": "cpf-foundation",
+      "maturity": "TECHNICAL_BASELINE",
+      "licensePolicy": "UNRESOLVED",
+      "capabilitySelection": "EXPLICIT_CATALOG_ONLY",
+      "unsupportedCapabilityAction": "REJECT",
+      "runtimeDependencyOnCommercialPolicy": false
+    }
+  ],
+  "multiTenantPrototype": {
+    "maturity": "OPT_IN_PROTOTYPE",
+    "enabledByDefault": false,
+    "contextRequired": true,
+    "crossTenantAccess": "DENY",
+    "isolationDimensions": [
+      "tenant-context",
+      "data",
+      "configuration",
+      "permission",
+      "secret",
+      "quota",
+      "audit"
+    ],
+    "lifecycle": ["PROVISION", "SUSPEND", "RESUME", "RETIRE"],
+    "unknownTenantAction": "REJECT_AND_AUDIT",
+    "mixedVersionPolicy": "DENY_UNLESS_EXPLICITLY_COMPATIBLE"
+  },
+  "pluginPrototype": {
+    "maturity": "OPT_IN_PROTOTYPE",
+    "enabledByDefault": false,
+    "spiOnly": true,
+    "internalPackageAccess": "DENY",
+    "signatureRequired": true,
+    "unsignedPluginAction": "REJECT_AND_AUDIT",
+    "permissionModel": "DENY_BY_DEFAULT",
+    "compatibilityContractRequired": true,
+    "isolatedClassLoaderRequired": true,
+    "installLifecycle": ["VERIFY", "STAGE", "ACTIVATE", "DRAIN", "ROLLBACK", "REMOVE"],
+    "marketplace": "NOT_PROVIDED"
+  },
+  "capabilityPackagePrototype": {
+    "maturity": "OPT_IN_PROTOTYPE",
+    "enabledByDefault": false,
+    "signedManifestRequired": true,
+    "exactDependencyClosureRequired": true,
+    "installPlanRequired": true,
+    "upgradePlanRequired": true,
+    "rollbackPlanRequired": true,
+    "compatibilityMatrixRequired": true,
+    "licensePolicy": "UNRESOLVED",
+    "supportBoundary": "EXPLICIT_PER_PACKAGE"
+  },
+  "securityAndCompatibility": {
+    "crossTenant": "DENY",
+    "unsignedPlugin": "DENY",
+    "incompatiblePackage": "DENY",
+    "permissionBypass": "DENY",
+    "rollbackRequired": true,
+    "mixedVersionRequiresEvidence": true,
+    "secretsInPackage": "DENY"
+  },
+  "requiredConsumers": [
+    "cpf-tools/scripts/verify-cpf-product-governance.py",
+    "cpf-tools/scripts/run-cpf-full-qa-validation.ps1"
+  ]
+}

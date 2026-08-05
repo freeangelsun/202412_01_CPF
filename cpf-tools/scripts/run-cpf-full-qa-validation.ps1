@@ -40,6 +40,7 @@ if($javaMajor -lt 25){throw "Java 25 이상 필요 actual=$javaMajor"}
 # Gate implementation and canonical split datasets must be independently valid first.
 Run-Step 'PYTHON_GATE_TESTS' { python -m pytest -q .\cpf-tools\scripts\tests }
 Run-Step 'PYTHON_COMPILEALL' { python -m compileall -q .\cpf-tools\scripts .\cpf-tools\verification }
+Run-Step 'GRADLE_WRAPPER_INTEGRITY' { python .\cpf-tools\scripts\verify-cpf-gradle-wrapper-integrity.py --root . --json-output (Join-Path $logRoot 'gradle-wrapper-integrity.json') }
 Run-Step 'SPLIT_MASTER_DATASET' {
   python .\cpf-tools\scripts\verify-cpf-split-master-dataset.py --root . --expected-sha $ExpectedHead --require-clean --json-output (Join-Path $logRoot 'split-master.json')
 }
@@ -47,10 +48,15 @@ Run-Step 'OWNER_BOUNDARIES' { python .\cpf-tools\scripts\verify-cpf-owner-bounda
 Run-Step 'SPRING_REQUEST_MAPPING_UNIQUENESS' { python .\cpf-tools\scripts\verify-cpf-spring-request-mapping-uniqueness.py --root . --json-output (Join-Path $logRoot 'spring-request-mappings.json') }
 Run-Step 'APPROVAL_STATE_MACHINE' { python .\cpf-tools\scripts\verify-cpf-approval-state-machine.py --root . --json-output (Join-Path $logRoot 'approval-state-machine.json') }
 Run-Step 'STARTER_CATALOG' { python .\cpf-tools\scripts\verify-cpf-starter-catalog-truth.py --root . --json-output (Join-Path $logRoot 'starter-catalog.json') }
+Run-Step 'PUBLICATION_STARTER_CLOSURE' { python .\cpf-tools\scripts\verify-cpf-publication-starter-closure.py --root . --require-physical --json-output (Join-Path $logRoot 'publication-starter-closure.json') }
+Run-Step 'PRODUCT_GOVERNANCE' { python .\cpf-tools\scripts\verify-cpf-product-governance.py --root . --json-output (Join-Path $logRoot 'product-governance.json') }
 Run-Step 'OPERATOR_TRUST' { python .\cpf-tools\scripts\verify-cpf-operator-trust-boundary.py --root . --json-output (Join-Path $logRoot 'operator-trust.json') }
 Run-Step 'INTERNAL_SERVICE_IDENTITY_BINDING' { python .\cpf-tools\scripts\verify-cpf-internal-service-identity-binding.py --root . --json-output (Join-Path $logRoot 'internal-service-identity.json') }
 Run-Step 'BATCH_APPROVAL_TRUST_BOUNDARY' { python .\cpf-tools\scripts\verify-cpf-batch-approval-trust-boundary.py --root . --json-output (Join-Path $logRoot 'batch-approval-trust.json') }
 Run-Step 'BATCH_RUNTIME_COMMAND_VERSIONING' { python .\cpf-tools\scripts\verify-cpf-batch-runtime-command-versioning.py --root . --json-output (Join-Path $logRoot 'batch-runtime-versioning.json') }
+Run-Step 'BATCH_RUNTIME_COMMAND_IDENTITY' { python .\cpf-tools\scripts\verify-cpf-batch-runtime-command-identity.py --root . --json-output (Join-Path $logRoot 'batch-runtime-command-identity.json') }
+Run-Step 'BATCH_EXECUTION_FENCING' { python .\cpf-tools\scripts\verify-cpf-batch-execution-fencing.py --root . --json-output (Join-Path $logRoot 'batch-execution-fencing.json') }
+Run-Step 'BATCH_AGENT_FAIL_CLOSED' { python .\cpf-tools\scripts\verify-cpf-batch-agent-fail-closed.py --root . --json-output (Join-Path $logRoot 'batch-agent-fail-closed.json') }
 Run-Step 'TRANSACTION_ID' { python .\cpf-tools\scripts\verify-cpf-transaction-id-standard.py --root . --json-output (Join-Path $logRoot 'transaction-id.json') }
 Run-Step 'FRONTEND_CONSUMER_CLOSURE' { python .\cpf-tools\scripts\verify-cpf-frontend-consumer-closure.py --root . --json-output (Join-Path $logRoot 'frontend-consumer.json') }
 Run-Step 'NETWORK_POLICY_CONSUMERS' { python .\cpf-tools\scripts\verify-cpf-network-policy-consumers.py --root . --json-output (Join-Path $logRoot 'network-consumers.json') }

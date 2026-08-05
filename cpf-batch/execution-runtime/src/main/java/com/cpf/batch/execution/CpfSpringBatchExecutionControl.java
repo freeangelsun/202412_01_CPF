@@ -181,12 +181,22 @@ public final class CpfSpringBatchExecutionControl implements BatchExecutionContr
 
     public BatchExecutionLink recover(long jobExecutionId, String operatorId, String reason) {
         requireOperator(operatorId, reason);
-        JobExecution recovered = operator.recover(required(jobExecutionId));
-        String cpfExecutionId = required(recovered, "cpfExecutionId");
-        BatchExecutionLink link = link(cpfExecutionId, required(recovered, "jobId"),
-                requiredLong(recovered, "definitionVersion"), requiredLong(recovered, "fencingToken"), recovered);
-        ledger.bind(link);
-        return link;
+        JobExecution previous = required(jobExecutionId);
+        String cpfExecutionId = required(previous, "cpfExecutionId");
+        String jobId = required(previous, "jobId");
+        long fencingToken = requiredLong(previous, "fencingToken");
+        fencing.assertCurrent(jobId, cpfExecutionId, fencingToken);
+        try {
+            JobExecution recovered = operator.recover(previous);
+            BatchExecutionLink link = link(cpfExecutionId, jobId,
+                    requiredLong(previous, "definitionVersion"), fencingToken, recovered);
+            ledger.bind(link);
+            return link;
+        } catch (JobExecutionException | RuntimeException failure) {
+            ledger.recordUnknown(cpfExecutionId, "BATCH_RECOVER_RESPONSE_UNKNOWN", safe(failure));
+            throw new CpfBatchUnknownResultException(
+                    "BATCH_RECOVER_RESPONSE_UNKNOWN", "Recover outcome is unknown for " + cpfExecutionId);
+        }
     }
 
     static JobParameters parameters(BatchApprovedLaunchRequest request, String cpfExecutionId) {

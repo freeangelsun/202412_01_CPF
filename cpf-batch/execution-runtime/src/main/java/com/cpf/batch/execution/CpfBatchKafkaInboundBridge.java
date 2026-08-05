@@ -1,5 +1,6 @@
 package com.cpf.batch.execution;
 
+import java.util.UUID;
 import org.springframework.batch.integration.chunk.ChunkRequest;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -15,10 +16,15 @@ public final class CpfBatchKafkaInboundBridge implements CpfBatchInboundHandler 
     public boolean reply(String json){return accept("REPLY",json,message->{if(!replies.send(message))throw new IllegalStateException("BATCH_REMOTE_MANAGER_REPLY_REJECTED");});}
     private boolean accept(String direction,String json,java.util.function.Consumer<Message<?>> consumer){
         CpfBatchRemoteEnvelope envelope=codec.readEnvelope(json);
-        CpfBatchRemoteMessageLedger.Claim claim=ledger.claim(direction,envelope.messageId(),envelope.payloadSha256(),envelope.expiresAt(),ownerId);
+        String attemptOwnerId=attemptOwnerId();
+        CpfBatchRemoteMessageLedger.Claim claim=ledger.claim(direction,envelope.messageId(),envelope.payloadSha256(),envelope.expiresAt(),attemptOwnerId);
         if(claim==CpfBatchRemoteMessageLedger.Claim.DUPLICATE_COMPLETE)return false;
         if(claim==CpfBatchRemoteMessageLedger.Claim.IN_PROGRESS)throw new IllegalStateException("BATCH_REMOTE_MESSAGE_IN_PROGRESS");
-        try{consumer.accept(codec.decode(envelope));ledger.complete(direction,envelope.messageId(),ownerId);return true;}
-        catch(RuntimeException failure){try{ledger.fail(direction,envelope.messageId(),ownerId,failure.getClass().getSimpleName());}catch(RuntimeException fence){failure.addSuppressed(fence);}throw failure;}
+        try{consumer.accept(codec.decode(envelope));ledger.complete(direction,envelope.messageId(),attemptOwnerId);return true;}
+        catch(RuntimeException failure){try{ledger.fail(direction,envelope.messageId(),attemptOwnerId,failure.getClass().getSimpleName());}catch(RuntimeException fence){failure.addSuppressed(fence);}throw failure;}
+    }
+    private String attemptOwnerId(){
+        String stablePrefix=ownerId.length()<=100?ownerId:ownerId.substring(0,100);
+        return stablePrefix+":"+UUID.randomUUID();
     }
 }

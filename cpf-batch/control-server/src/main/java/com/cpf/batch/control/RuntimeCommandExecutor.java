@@ -7,6 +7,7 @@ import com.cpf.batch.api.RuntimeCommand;
 import com.cpf.batch.control.deploy.RuntimeLifecycleService;
 import com.cpf.batch.control.internal.JdbcRuntimeCommandRepository;
 import com.cpf.batch.control.internal.JdbcRuntimeRegistry;
+import com.cpf.batch.control.internal.RuntimeCommandIdempotencyConflictException;
 import com.cpf.batch.runtime.SensitiveTextSanitizer;
 import java.util.Locale;
 import java.util.Map;
@@ -40,11 +41,25 @@ public class RuntimeCommandExecutor {
     }
 
     public Map<String, Object> execute(RuntimeCommand command) {
-        Objects.requireNonNull(command, "command");
-        Map<String, Object> persisted = commands.create(command);
-        if (!command.commandId().equals(String.valueOf(persisted.get("command_id")))) {
-            return persisted;
+        RuntimeCommand normalized = RuntimeCommandIdentity.normalize(command);
+        Map<String, Object> persisted;
+        try {
+            persisted = commands.create(normalized);
+        } catch (RuntimeCommandIdempotencyConflictException conflict) {
+            throw new RuntimeCommandExecutionException(
+                    "BATCH_RUNTIME_COMMAND_IDEMPOTENCY_CONFLICT",
+                    CommandState.FAILED,
+                    "Runtime commandId is already bound to another idempotency key",
+                    conflict);
+        } catch (RuntimeException failure) {
+            throw new RuntimeCommandExecutionException(
+                    "BATCH_RUNTIME_COMMAND_PERSISTENCE_UNKNOWN",
+                    CommandState.UNKNOWN_RESULT,
+                    "Runtime command persistence is unavailable. Retry only with the same idempotency key",
+                    failure);
         }
+        RuntimeCommandIdentity.assertMatches(normalized, persisted);
+        command = normalized;
 
         String type = normalizeType(command.commandType());
         String validationError = validate(command, type);
@@ -214,7 +229,10 @@ public class RuntimeCommandExecutor {
                 || command.approvedBy().equals(command.requestedBy())) {
             return "APPROVAL:Requester/approver separation is required";
         }
-        if (command.expiresAt() != null && command.expiresAt().isBefore(java.time.Instant.now())) {
+        if (command.expiresAt() == null) {
+            return "EXPIRY:Approved command expiry is required";
+        }
+        if (!command.expiresAt().isAfter(java.time.Instant.now())) {
             return "EXPIRY:Approved command expired";
         }
         return null;

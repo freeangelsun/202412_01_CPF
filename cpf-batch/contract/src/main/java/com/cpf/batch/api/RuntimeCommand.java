@@ -37,6 +37,8 @@ public record RuntimeCommand(
         require(commandId, "commandId"); require(idempotencyKey, "idempotencyKey");
         require(commandType, "commandType"); require(targetType, "targetType");
         require(requestedBy, "requestedBy"); require(reason, "reason");
+        if (expectedVersion < 0) throw new IllegalArgumentException("expectedVersion must be non-negative");
+        if (executionAttempt < 0) throw new IllegalArgumentException("executionAttempt must be non-negative");
         targetIds = targetIds == null ? List.of() : List.copyOf(targetIds);
         if (targetIds.isEmpty()) throw new IllegalArgumentException("targetIds is required");
         parameters = parameters == null ? Map.of() : Map.copyOf(parameters);

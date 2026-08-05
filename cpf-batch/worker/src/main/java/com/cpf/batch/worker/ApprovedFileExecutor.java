@@ -12,6 +12,9 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -21,6 +24,7 @@ import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -34,6 +38,8 @@ import java.util.stream.Stream;
 public class ApprovedFileExecutor {
     private static final Logger log = LoggerFactory.getLogger(ApprovedFileExecutor.class);
     private static final long POLL_MILLIS = 250L;
+    private static final int CLAIM_LOCK_STRIPES = 64;
+    private static final ReentrantLock[] LOCAL_CLAIM_LOCKS = createClaimLockStripes();
 
     private final WorkerOperationalProperties properties;
     private volatile CpfFileTransferClient fileTransferClient;
@@ -310,31 +316,47 @@ public class ApprovedFileExecutor {
             throw new NoSuchFileException(target.toString());
         }
         String safeOwner = requireToken(ownerId, "ownerId");
-        long token = System.currentTimeMillis();
-        Instant expiresAt = Instant.now().plus(requirePositive(leaseDuration, "leaseDuration"));
+        Duration safeLease = requirePositive(leaseDuration, "leaseDuration");
         Path claimPath = target.resolveSibling(target.getFileName() + ".cpf-claim");
-        try {
-            writeClaim(claimPath, safeOwner, token, expiresAt);
-        } catch (FileAlreadyExistsException existing) {
-            Claim current = readClaim(claimPath, target);
-            if (current.expiresAt().isAfter(Instant.now())) {
-                throw new FileAlreadyExistsException("File is already claimed by " + current.ownerId());
+        Path lockPath = target.resolveSibling(target.getFileName() + ".cpf-claim.lock");
+        Files.createDirectories(lockPath.getParent());
+
+        return withClaimLock(lockPath, channel -> {
+            Instant now = Instant.now();
+            long previousToken = readFenceToken(channel);
+            if (Files.exists(claimPath, LinkOption.NOFOLLOW_LINKS)) {
+                if (Files.isSymbolicLink(claimPath)) {
+                    throw new SecurityException("BATCH_FILE_CLAIM_FENCE_CONFLICT: claim metadata is symbolic link");
+                }
+                Claim current = readClaim(claimPath, target);
+                previousToken = Math.max(previousToken, current.fencingToken());
+                if (current.expiresAt().isAfter(now)) {
+                    throw new FileAlreadyExistsException("File is already claimed by " + current.ownerId());
+                }
             }
-            token = Math.max(System.currentTimeMillis(), current.fencingToken() + 1);
-            expiresAt = Instant.now().plus(requirePositive(leaseDuration, "leaseDuration"));
-            Files.deleteIfExists(claimPath);
-            writeClaim(claimPath, safeOwner, token, expiresAt);
-        }
-        return new Claim(target, claimPath, safeOwner, token, expiresAt);
+
+            long token = nextFenceToken(previousToken);
+            Instant expiresAt = now.plus(safeLease);
+            writeFenceToken(channel, token);
+            writeClaimAtomically(claimPath, safeOwner, token, expiresAt);
+            return new Claim(target, claimPath, safeOwner, token, expiresAt);
+        });
     }
 
     public void release(Claim claim) throws IOException {
         Objects.requireNonNull(claim, "claim");
-        Claim current = readClaim(claim.claimPath(), claim.path());
-        if (!current.ownerId().equals(claim.ownerId()) || current.fencingToken() != claim.fencingToken()) {
-            throw new SecurityException("Stale file claim cannot be released");
-        }
-        Files.deleteIfExists(claim.claimPath());
+        Path lockPath = claim.path().resolveSibling(claim.path().getFileName() + ".cpf-claim.lock");
+        withClaimLock(lockPath, channel -> {
+            if (!Files.exists(claim.claimPath(), LinkOption.NOFOLLOW_LINKS)) {
+                throw new SecurityException("BATCH_FILE_CLAIM_FENCE_CONFLICT: claim metadata is missing");
+            }
+            Claim current = readClaim(claim.claimPath(), claim.path());
+            if (!current.ownerId().equals(claim.ownerId()) || current.fencingToken() != claim.fencingToken()) {
+                throw new SecurityException("BATCH_FILE_CLAIM_FENCE_CONFLICT: stale file claim cannot be released");
+            }
+            Files.delete(claim.claimPath());
+            return null;
+        });
     }
 
     public List<Path> restartScan(String alias, String relativeDirectory) throws IOException {
@@ -343,6 +365,7 @@ public class ApprovedFileExecutor {
         try (Stream<Path> files = Files.walk(root)) {
             return files.filter(path -> Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS))
                     .filter(path -> !path.getFileName().toString().endsWith(".cpf-claim"))
+                    .filter(path -> !path.getFileName().toString().endsWith(".cpf-claim.lock"))
                     .sorted()
                     .toList();
         }
@@ -525,11 +548,88 @@ public class ApprovedFileExecutor {
     }
 
 
-    private static void writeClaim(Path claimPath, String ownerId, long fencingToken, Instant expiresAt)
-            throws IOException {
+    private static ReentrantLock[] createClaimLockStripes() {
+        ReentrantLock[] locks = new ReentrantLock[CLAIM_LOCK_STRIPES];
+        Arrays.setAll(locks, ignored -> new ReentrantLock());
+        return locks;
+    }
+
+    private static <T> T withClaimLock(Path lockPath, ClaimIoOperation<T> operation) throws IOException {
+        Path normalized = lockPath.toAbsolutePath().normalize();
+        ReentrantLock localLock = LOCAL_CLAIM_LOCKS[Math.floorMod(normalized.hashCode(), CLAIM_LOCK_STRIPES)];
+        localLock.lock();
+        try {
+            if (Files.exists(normalized, LinkOption.NOFOLLOW_LINKS) && Files.isSymbolicLink(normalized)) {
+                throw new SecurityException("BATCH_FILE_CLAIM_FENCE_CONFLICT: claim lock is symbolic link");
+            }
+            Files.createDirectories(normalized.getParent());
+            try (FileChannel channel = FileChannel.open(normalized,
+                    StandardOpenOption.CREATE, StandardOpenOption.READ, StandardOpenOption.WRITE);
+                 FileLock ignored = channel.lock()) {
+                return operation.run(channel);
+            }
+        } finally {
+            localLock.unlock();
+        }
+    }
+
+    @FunctionalInterface
+    private interface ClaimIoOperation<T> {
+        T run(FileChannel channel) throws IOException;
+    }
+
+    private static void writeClaimAtomically(
+            Path claimPath, String ownerId, long fencingToken, Instant expiresAt) throws IOException {
         String payload = ownerId + "\n" + fencingToken + "\n" + expiresAt + "\n";
-        Files.writeString(claimPath, payload, StandardCharsets.UTF_8,
-                StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
+        Path staging = Files.createTempFile(claimPath.getParent(), claimPath.getFileName() + ".", ".tmp");
+        try {
+            Files.writeString(staging, payload, StandardCharsets.UTF_8,
+                    StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
+            try {
+                Files.move(staging, claimPath,
+                        StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+            } catch (AtomicMoveNotSupportedException unsupported) {
+                Files.move(staging, claimPath, StandardCopyOption.REPLACE_EXISTING);
+            }
+        } finally {
+            Files.deleteIfExists(staging);
+        }
+    }
+
+    private static long readFenceToken(FileChannel channel) throws IOException {
+        channel.position(0L);
+        long size = channel.size();
+        if (size == 0L) return 0L;
+        if (size > 64L) throw new IOException("BATCH_FILE_CLAIM_FENCE_CONFLICT: invalid fence ledger");
+        ByteBuffer buffer = ByteBuffer.allocate((int) size);
+        while (buffer.hasRemaining() && channel.read(buffer) >= 0) {
+            // Continue until the durable token has been read.
+        }
+        String value = StandardCharsets.UTF_8.decode((ByteBuffer) buffer.flip()).toString().trim();
+        if (value.isEmpty()) return 0L;
+        try {
+            long token = Long.parseLong(value);
+            if (token < 0L) throw new NumberFormatException("negative");
+            return token;
+        } catch (NumberFormatException malformed) {
+            throw new IOException("BATCH_FILE_CLAIM_FENCE_CONFLICT: invalid fence token", malformed);
+        }
+    }
+
+    private static void writeFenceToken(FileChannel channel, long token) throws IOException {
+        byte[] payload = (Long.toString(token) + "\n").getBytes(StandardCharsets.UTF_8);
+        channel.truncate(0L);
+        channel.position(0L);
+        ByteBuffer buffer = ByteBuffer.wrap(payload);
+        while (buffer.hasRemaining()) channel.write(buffer);
+        channel.force(true);
+    }
+
+    private static long nextFenceToken(long previousToken) throws IOException {
+        if (previousToken == Long.MAX_VALUE) {
+            throw new IOException("BATCH_FILE_CLAIM_FENCE_CONFLICT: fencing token exhausted");
+        }
+        return Math.max(System.currentTimeMillis(), previousToken + 1L);
     }
 
     private static Claim readClaim(Path claimPath, Path target) throws IOException {

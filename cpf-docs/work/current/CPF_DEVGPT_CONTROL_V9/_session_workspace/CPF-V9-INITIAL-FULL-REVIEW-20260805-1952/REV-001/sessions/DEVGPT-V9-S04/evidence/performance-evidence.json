@@ -1,0 +1,58 @@
+{
+  "sourceSha": "fc207ac5560da59f352ee0c5f83199177f2987b4",
+  "resultSha": "fc207ac5560da59f352ee0c5f83199177f2987b4",
+  "vendor": "mariadb",
+  "databaseVersion": "11.4",
+  "dataScale": "small",
+  "rowCount": 1000,
+  "startedAt": "2026-08-05T10:00:00Z",
+  "endedAt": "2026-08-05T10:01:00Z",
+  "sanitized": true,
+  "statistics": {
+    "statisticsCommand": "ANALYZE TABLE",
+    "statisticsCompletedAt": "2026-08-05T10:00:10Z",
+    "statisticsExitCode": 0
+  },
+  "queryResults": [
+    {
+      "queryId": "Q-POINT",
+      "queryClass": "pointLookup",
+      "status": "PASS",
+      "latencyMs": 5,
+      "examinedRows": 1,
+      "indexedAccess": true,
+      "planSha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "bindValuesSanitized": true
+    },
+    {
+      "queryId": "Q-PAGE",
+      "queryClass": "pagedSearch",
+      "status": "PASS",
+      "latencyMs": 20,
+      "examinedRows": 100,
+      "stableSort": true,
+      "planSha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "bindValuesSanitized": true
+    },
+    {
+      "queryId": "Q-CLAIM",
+      "queryClass": "batchClaim",
+      "status": "PASS",
+      "latencyMs": 25,
+      "examinedRows": 10,
+      "lockEvidence": "SKIP LOCKED",
+      "planSha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "bindValuesSanitized": true
+    },
+    {
+      "queryId": "Q-RET",
+      "queryClass": "retentionPreview",
+      "status": "PASS",
+      "latencyMs": 30,
+      "examinedRows": 100,
+      "boundedBatch": true,
+      "planSha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "bindValuesSanitized": true
+    }
+  ]
+}

@@ -1,5 +1,7 @@
 package com.cpf.common.calendar;
 
+import com.cpf.common.sql.CmnSqlResourceLoader;
+
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -19,28 +21,28 @@ public class CmnJdbcCalendarStore implements CmnCalendarStore {
     private final JdbcTemplate jdbc;
     public CmnJdbcCalendarStore(@Qualifier("cmnDataSource") DataSource dataSource) { this.jdbc = new JdbcTemplate(dataSource); }
     @Override public Optional<CmnCalendarDay> find(String calendarId, LocalDate businessDate) {
-        return jdbc.query("SELECT calendar_id,business_date,business_day_yn,day_type,institution_code,reason,version_no FROM cmn_business_calendar_day WHERE calendar_id=? AND business_date=?",
+        return jdbc.query(CmnSqlResourceLoader.load("calendar/find.sql"),
                 (rs,n)->map(rs), calendarId,businessDate).stream().findFirst();
     }
     @Override public List<CmnCalendarDay> findRange(String calendarId, LocalDate from, LocalDate to, int limit) {
         LocalDate safeFrom=from==null?LocalDate.of(1900,1,1):from; LocalDate safeTo=to==null?LocalDate.of(2999,12,31):to;
-        return jdbc.query(con->{var st=con.prepareStatement("SELECT calendar_id,business_date,business_day_yn,day_type,institution_code,reason,version_no FROM cmn_business_calendar_day WHERE calendar_id=? AND business_date BETWEEN ? AND ? ORDER BY business_date"); st.setString(1,calendarId); st.setObject(2,safeFrom); st.setObject(3,safeTo); st.setMaxRows(Math.max(1,Math.min(limit,1000))); return st;},(rs,n)->map(rs));
+        return jdbc.query(con->{var st=con.prepareStatement(CmnSqlResourceLoader.load("calendar/find-range.sql")); st.setString(1,calendarId); st.setObject(2,safeFrom); st.setObject(3,safeTo); st.setMaxRows(Math.max(1,Math.min(limit,1000))); return st;},(rs,n)->map(rs));
     }
     @Override public CmnCalendarDay save(CmnCalendarDay day,long expectedVersion){ throw new IllegalStateException("CmnJdbcCalendarStore mutation은 operatorId가 필수입니다."); }
     @Override public CmnCalendarDay save(CmnCalendarDay day,long expectedVersion,String operatorId){
         String actor=required(operatorId,"operatorId");
         if(expectedVersion==0){
-            try { jdbc.update("INSERT INTO cmn_business_calendar_day (calendar_id,business_date,business_day_yn,day_type,institution_code,reason,version_no,created_by,updated_by,updated_at) VALUES (?,?,?,?,?,?,1,?,?,CURRENT_TIMESTAMP)",day.calendarId(),day.businessDate(),yn(day.businessDay()),day.dayType(),day.institutionCode(),day.reason(),actor,actor); }
+            try { jdbc.update(CmnSqlResourceLoader.load("calendar/insert.sql"),day.calendarId(),day.businessDate(),yn(day.businessDay()),day.dayType(),day.institutionCode(),day.reason(),actor,actor); }
             catch(DuplicateKeyException ex){ throw new CmnCalendarConflictException(CmnCalendarConflictException.Type.CREATE_CONFLICT,"Calendar 신규 등록 경쟁이 발생했습니다."); }
         } else {
-            int updated=jdbc.update("UPDATE cmn_business_calendar_day SET business_day_yn=?,day_type=?,institution_code=?,reason=?,version_no=version_no+1,updated_by=?,updated_at=CURRENT_TIMESTAMP WHERE calendar_id=? AND business_date=? AND version_no=?",yn(day.businessDay()),day.dayType(),day.institutionCode(),day.reason(),actor,day.calendarId(),day.businessDate(),expectedVersion);
+            int updated=jdbc.update(CmnSqlResourceLoader.load("calendar/update.sql"),yn(day.businessDay()),day.dayType(),day.institutionCode(),day.reason(),actor,day.calendarId(),day.businessDate(),expectedVersion);
             if(updated!=1) throw new CmnCalendarConflictException(CmnCalendarConflictException.Type.VERSION_CONFLICT,"Calendar version 충돌입니다.");
         }
         return find(day.calendarId(),day.businessDate()).orElseThrow(()->new CmnCalendarConflictException(CmnCalendarConflictException.Type.NOT_FOUND,"Calendar 저장 결과를 찾을 수 없습니다."));
     }
     @Override public void delete(String calendarId,LocalDate businessDate,long expectedVersion){ throw new IllegalStateException("CmnJdbcCalendarStore mutation은 operatorId가 필수입니다."); }
     @Override public void delete(String calendarId,LocalDate businessDate,long expectedVersion,String operatorId){
-        required(operatorId,"operatorId"); int deleted=jdbc.update("DELETE FROM cmn_business_calendar_day WHERE calendar_id=? AND business_date=? AND version_no=?",calendarId,businessDate,expectedVersion);
+        required(operatorId,"operatorId"); int deleted=jdbc.update(CmnSqlResourceLoader.load("calendar/delete.sql"),calendarId,businessDate,expectedVersion);
         if(deleted!=1) throw new CmnCalendarConflictException(CmnCalendarConflictException.Type.DELETE_CONFLICT,"Calendar delete version 충돌 또는 대상 없음입니다.");
     }
     @Override public boolean actorAwareMutations(){return true;}

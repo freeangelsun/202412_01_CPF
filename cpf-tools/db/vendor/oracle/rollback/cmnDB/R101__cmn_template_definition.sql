@@ -1,0 +1,2 @@
+DROP TABLE cmn_template_audit CASCADE CONSTRAINTS;
+DROP TABLE cmn_template_definition CASCADE CONSTRAINTS;

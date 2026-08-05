@@ -1,0 +1,1 @@
+SELECT template_code,template_version,channel_code,template_body,allowed_variables,status_code,active_yn,revision_no,created_by FROM cmn_template_definition WHERE template_code=? AND channel_code=? AND status_code='APPROVED' AND active_yn='Y' ORDER BY template_version DESC

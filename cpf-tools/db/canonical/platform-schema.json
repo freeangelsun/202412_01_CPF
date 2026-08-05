@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 47,
+  "schemaVersion": 48,
   "canonicalPolicy": {
     "officialVendors": [
       "mariadb",
@@ -42,7 +42,7 @@
     "batchExecutionAttemptDetailPolicy": "Shell/external attempt detail including exit/stdout/stderr/truncation/duration/artifactHash/unknown is durable and transactionally finalized.",
     "qa39RuntimeControlPlane": "RESILIENCE_AND_FEATURE_FLAG_FAIL_CLOSED_APPROVAL_AUDIT"
   },
-  "tableCount": 201,
+  "tableCount": 203,
   "tables": [
     {
       "name": "BATCH_JOB_EXECUTION",
@@ -35303,6 +35303,329 @@
       "comment": "REF Minimal Transaction Reference Sample",
       "module": "biz",
       "logicalDatabase": "refDB"
+    },
+    {
+      "name": "CMN_TEMPLATE_DEFINITION",
+      "columns": [
+        {
+          "name": "TEMPLATE_CODE",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Template 식별 코드"
+        },
+        {
+          "name": "TEMPLATE_VERSION",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "불변 Template 버전"
+        },
+        {
+          "name": "CHANNEL_CODE",
+          "type": "VARCHAR(30)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "EMAIL/SMS/PUSH/DOCUMENT 등 채널 코드"
+        },
+        {
+          "name": "TEMPLATE_BODY",
+          "type": "TEXT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Fail-closed token renderer 입력 본문"
+        },
+        {
+          "name": "ALLOWED_VARIABLES",
+          "type": "VARCHAR(2000)",
+          "nullable": false,
+          "default": "'-'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "쉼표 구분 허용 변수 Schema"
+        },
+        {
+          "name": "STATUS_CODE",
+          "type": "VARCHAR(20)",
+          "nullable": false,
+          "default": "'DRAFT'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "DRAFT/APPROVED/RETIRED 상태"
+        },
+        {
+          "name": "ACTIVE_YN",
+          "type": "CHAR(1)",
+          "nullable": false,
+          "default": "'N'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "현재 활성 승인본 여부"
+        },
+        {
+          "name": "REVISION_NO",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "0",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "낙관적 잠금 Revision"
+        },
+        {
+          "name": "APPROVED_BY",
+          "type": "VARCHAR(100)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "승인자"
+        },
+        {
+          "name": "APPROVED_AT",
+          "type": "DATETIME(3)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "승인 일시"
+        },
+        {
+          "name": "CREATED_BY",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "등록자"
+        },
+        {
+          "name": "CREATED_AT",
+          "type": "DATETIME(3)",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP(3)",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "등록 일시"
+        },
+        {
+          "name": "UPDATED_BY",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "최종 수정자"
+        },
+        {
+          "name": "UPDATED_AT",
+          "type": "DATETIME(3)",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP(3)",
+          "autoIncrement": false,
+          "onUpdate": "CURRENT_TIMESTAMP(3)",
+          "comment": "최종 수정 일시"
+        }
+      ],
+      "primaryKey": [
+        "TEMPLATE_CODE",
+        "TEMPLATE_VERSION",
+        "CHANNEL_CODE"
+      ],
+      "uniqueKeys": [],
+      "indexes": [
+        {
+          "name": "IX_CMN_TEMPLATE_ACTIVE",
+          "columns": [
+            "TEMPLATE_CODE",
+            "CHANNEL_CODE",
+            "STATUS_CODE",
+            "ACTIVE_YN",
+            "TEMPLATE_VERSION"
+          ],
+          "unique": false
+        }
+      ],
+      "foreignKeys": [],
+      "checks": [
+        {
+          "name": "CK_CMN_TEMPLATE_VERSION",
+          "expression": "TEMPLATE_VERSION > 0"
+        },
+        {
+          "name": "CK_CMN_TEMPLATE_STATUS",
+          "expression": "STATUS_CODE IN ('DRAFT','APPROVED','RETIRED')"
+        },
+        {
+          "name": "CK_CMN_TEMPLATE_ACTIVE",
+          "expression": "ACTIVE_YN IN ('Y','N')"
+        },
+        {
+          "name": "CK_CMN_TEMPLATE_REVISION",
+          "expression": "REVISION_NO >= 0"
+        }
+      ],
+      "comment": "CMN 알림·문서 Template 버전·승인·활성·감사 제품 정본",
+      "module": "cmn",
+      "logicalDatabase": "cmnDB"
+    },
+    {
+      "name": "CMN_TEMPLATE_AUDIT",
+      "columns": [
+        {
+          "name": "AUDIT_ID",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "감사 이벤트 ID"
+        },
+        {
+          "name": "TEMPLATE_CODE",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Template 식별 코드"
+        },
+        {
+          "name": "TEMPLATE_VERSION",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Template 버전"
+        },
+        {
+          "name": "CHANNEL_CODE",
+          "type": "VARCHAR(30)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "채널 코드"
+        },
+        {
+          "name": "ACTION_TYPE",
+          "type": "VARCHAR(30)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "CREATE_DRAFT/APPROVE/SUPERSEDE/RETIRE"
+        },
+        {
+          "name": "REQUEST_USER",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "요청자"
+        },
+        {
+          "name": "REQUEST_REASON",
+          "type": "VARCHAR(500)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "변경 사유"
+        },
+        {
+          "name": "BEFORE_STATUS",
+          "type": "VARCHAR(30)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "변경 전 상태"
+        },
+        {
+          "name": "AFTER_STATUS",
+          "type": "VARCHAR(30)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "변경 후 상태"
+        },
+        {
+          "name": "REVISION_NO",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "변경 후 Revision"
+        },
+        {
+          "name": "OCCURRED_AT",
+          "type": "DATETIME(3)",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP(3)",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "발생 시각"
+        }
+      ],
+      "primaryKey": [
+        "AUDIT_ID"
+      ],
+      "uniqueKeys": [],
+      "indexes": [
+        {
+          "name": "IX_CMN_TEMPLATE_AUDIT_LOOKUP",
+          "columns": [
+            "TEMPLATE_CODE",
+            "CHANNEL_CODE",
+            "TEMPLATE_VERSION",
+            "OCCURRED_AT"
+          ],
+          "unique": false
+        }
+      ],
+      "foreignKeys": [
+        {
+          "name": "FK_CMN_TEMPLATE_AUDIT_DEFINITION",
+          "columns": [
+            "TEMPLATE_CODE",
+            "TEMPLATE_VERSION",
+            "CHANNEL_CODE"
+          ],
+          "refTable": "CMN_TEMPLATE_DEFINITION",
+          "refColumns": [
+            "TEMPLATE_CODE",
+            "TEMPLATE_VERSION",
+            "CHANNEL_CODE"
+          ],
+          "onDelete": null,
+          "onUpdate": null
+        }
+      ],
+      "checks": [
+        {
+          "name": "CK_CMN_TEMPLATE_AUDIT_ACTION",
+          "expression": "ACTION_TYPE IN ('CREATE_DRAFT','APPROVE','SUPERSEDE','RETIRE')"
+        },
+        {
+          "name": "CK_CMN_TEMPLATE_AUDIT_REVISION",
+          "expression": "REVISION_NO >= 0"
+        }
+      ],
+      "comment": "CMN Template 변경 append-only 감사 원장",
+      "module": "cmn",
+      "logicalDatabase": "cmnDB"
     }
   ]
 }

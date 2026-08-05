@@ -195,15 +195,23 @@ foreach ($marker in @("'CPF'", "MCPF", "SCPF", "ECPF")) {
     }
 }
 
-# cpf-common은 공통 EDU Sample과 Platform 영업일 원장만 소유합니다.
+# cpf-common의 cmnDB active table 집합은 Canonical Schema에서 산출합니다.
+# 고정 목록은 신규 Canonical table을 stale/미승인으로 오판하므로 금지합니다.
 $cmnTableMatches = [regex]::Matches(
     $cmnSchema,
     "CREATE\s+TABLE\s+IF\s+NOT\s+EXISTS\s+([a-z0-9_]+)\s*\(",
     [System.Text.RegularExpressions.RegexOptions]::IgnoreCase
 )
-$cmnTables = @($cmnTableMatches | ForEach-Object { $_.Groups[1].Value.ToLowerInvariant() })
-$expectedCmnTables = @("cmn_business_calendar_day", "cmn_sample_item")
-if ((Compare-Object -ReferenceObject $expectedCmnTables -DifferenceObject @($cmnTables | Sort-Object -Unique)).Count -gt 0) {
+$cmnTables = @($cmnTableMatches | ForEach-Object { $_.Groups[1].Value.ToLowerInvariant() } | Sort-Object -Unique)
+$expectedCmnTables = @(
+    $canonicalSchema.tables |
+        Where-Object { [string]$_.logicalDatabase -ieq "cmnDB" } |
+        ForEach-Object { ([string]$_.name).ToLowerInvariant() } |
+        Sort-Object -Unique
+)
+if ($expectedCmnTables.Count -eq 0) {
+    $failures.Add("cmnDB canonical table discovery is empty")
+} elseif ((Compare-Object -ReferenceObject $expectedCmnTables -DifferenceObject $cmnTables).Count -gt 0) {
     $failures.Add("cmnDB active table contract mismatch: expected=[$($expectedCmnTables -join ', ')] actual=[$($cmnTables -join ', ')]")
 }
 foreach ($forbiddenMarker in @("cmn_sequence", "cmn_edu_query_item", "cmn_fixed_length_", "cmn_notification_log", "cmn_business_log")) {

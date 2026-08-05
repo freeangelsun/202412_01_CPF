@@ -1,0 +1,1 @@
+SELECT calendar_id,business_date,business_day_yn,day_type,institution_code,reason,version_no FROM cmn_business_calendar_day WHERE calendar_id=? AND business_date=?

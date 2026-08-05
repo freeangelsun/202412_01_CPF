@@ -1,0 +1,1 @@
+SELECT table_name FROM user_tables WHERE table_name IN ('CMN_TEMPLATE_DEFINITION','CMN_TEMPLATE_AUDIT');

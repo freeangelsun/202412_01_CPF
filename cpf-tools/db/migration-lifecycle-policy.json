@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "officialVendors": [
+    "mariadb",
+    "postgresql",
+    "oracle"
+  ],
+  "stateModel": {
+    "states": [
+      "NOT_STARTED",
+      "RUNNING",
+      "APPLIED",
+      "ROLLED_BACK",
+      "FORWARD_RECOVERED",
+      "FAILED",
+      "UNKNOWN"
+    ],
+    "terminalStates": [
+      "APPLIED",
+      "ROLLED_BACK",
+      "FORWARD_RECOVERED",
+      "FAILED"
+    ],
+    "nonTerminalStates": [
+      "NOT_STARTED",
+      "RUNNING",
+      "UNKNOWN"
+    ]
+  },
+  "unknownResultPolicy": {
+    "failClosed": true,
+    "reconcileRequired": true,
+    "automaticRetryAllowed": false,
+    "reconcileIdentity": "vendor|logicalDatabase|version|checksumSha256",
+    "successTransition": "UNKNOWN->APPLIED|ROLLED_BACK|FORWARD_RECOVERED",
+    "failureTransition": "UNKNOWN->FAILED"
+  },
+  "partialFailurePolicy": {
+    "checkpointRequired": true,
+    "stopAtFirstFailedStatement": true,
+    "subsequentMigrationBlocked": true,
+    "requiredEvidence": [
+      "vendor",
+      "logicalDatabase",
+      "migrationVersion",
+      "checksumSha256",
+      "lastSuccessfulStatement",
+      "failedStatementHash",
+      "databaseErrorCode",
+      "startedAt",
+      "endedAt"
+    ]
+  },
+  "reapplyPolicy": {
+    "checksumMustMatch": true,
+    "duplicateApplyMustFailClosed": true,
+    "alreadyAppliedResult": "NO_OP_ONLY_WHEN_CHECKSUM_MATCHES",
+    "driftResult": "FAILED_RECONCILIATION_REQUIRED"
+  },
+  "unpairedMigrationDefault": {
+    "id": "CPF-DB-FORWARD-RECOVERY-DEFAULT",
+    "strategy": "FORWARD_RECOVERY",
+    "reason": "No reversible SQL is published for this migration. Recovery is backup/PITR restore followed by checksum-locked forward reapply and schema reconciliation.",
+    "recoveryPlan": [
+      "cpf-tools/db/cpf-backup-lifecycle-contract.json",
+      "cpf-tools/db/cpf-pitr-lifecycle-contract.json",
+      "cpf-tools/db/cpf-db-lifecycle-contract.json"
+    ]
+  },
+  "overrides": []
+}

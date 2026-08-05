@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 3,
+  "baselineSha": "fc207ac5560da59f352ee0c5f83199177f2987b4",
+  "requestId": "MISSING_IN_ASSIGNMENT_SOURCE",
+  "sessionLocalTrackingId": "DEVGPT-V9-S04-LOCAL-20260805-1952",
+  "assigned": {
+    "workItems": 93,
+    "canonical": 18,
+    "requirements": 1492,
+    "scenarios": 2015,
+    "gates": 16
+  },
+  "judged": {
+    "workItems": 93,
+    "canonical": 18,
+    "requirements": 1492,
+    "scenarios": 2015,
+    "gates": 16
+  },
+  "notReviewed": {
+    "workItems": 0,
+    "requirements": 0,
+    "scenarios": 0,
+    "gates": 0
+  },
+  "missing": {
+    "workItems": 0,
+    "requirements": 0,
+    "scenarios": 0,
+    "gates": 0
+  },
+  "duplicatePrimary": {
+    "requirements": 0,
+    "scenarios": 0
+  },
+  "unassigned": {
+    "requirements": 0,
+    "scenarios": 0
+  },
+  "orphanScenarios": 0,
+  "evidenceMissingVerdicts": 0,
+  "consumerUnconfirmed": 0,
+  "actionableS04P0P1Unaddressed": 0,
+  "developmentStatus": "완료",
+  "verificationStatus": "완료",
+  "qaStatus": "미검수",
+  "finalCompletion": false,
+  "finalCompletionReason": "Integrated ICR application and QA live official-vendor/PowerShell run remain pending; no Git write was authorized."
+}

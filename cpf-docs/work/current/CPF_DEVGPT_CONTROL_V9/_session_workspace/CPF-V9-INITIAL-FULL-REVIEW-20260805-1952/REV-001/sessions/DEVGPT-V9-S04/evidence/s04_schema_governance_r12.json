@@ -1,0 +1,372 @@
+{
+  "schemaVersion": 1,
+  "canonicalSchemaVersion": 48,
+  "tableCount": 203,
+  "moduleCounts": {
+    "adm": 31,
+    "admin": 2,
+    "bat": 57,
+    "biz": 32,
+    "cmn": 4,
+    "core": 4,
+    "cpf": 73
+  },
+  "logicalDatabaseCounts": {
+    "admDB": 33,
+    "batDB": 57,
+    "bzaDB": 29,
+    "cmnDB": 4,
+    "cpfDB": 77,
+    "refDB": 3
+  },
+  "foreignKeyCount": 148,
+  "foreignKeyIndexReviewCandidateCount": 41,
+  "foreignKeyIndexReviewCandidates": [
+    {
+      "table": "BATCH_JOB_EXECUTION",
+      "foreignKey": "JOB_INST_EXEC_FK",
+      "columns": [
+        "JOB_INSTANCE_ID"
+      ],
+      "logicalDatabase": "batDB"
+    },
+    {
+      "table": "BATCH_JOB_EXECUTION_PARAMS",
+      "foreignKey": "JOB_EXEC_PARAMS_FK",
+      "columns": [
+        "JOB_EXECUTION_ID"
+      ],
+      "logicalDatabase": "batDB"
+    },
+    {
+      "table": "BATCH_STEP_EXECUTION",
+      "foreignKey": "JOB_EXEC_STEP_FK",
+      "columns": [
+        "JOB_EXECUTION_ID"
+      ],
+      "logicalDatabase": "batDB"
+    },
+    {
+      "table": "adm_api_permission",
+      "foreignKey": "fk_adm_api_permission_button",
+      "columns": [
+        "BUTTON_ID"
+      ],
+      "logicalDatabase": "admDB"
+    },
+    {
+      "table": "adm_approval_request",
+      "foreignKey": "fk_adm_approval_request_policy",
+      "columns": [
+        "POLICY_CODE",
+        "POLICY_VERSION"
+      ],
+      "logicalDatabase": "admDB"
+    },
+    {
+      "table": "adm_operator_role",
+      "foreignKey": "fk_adm_operator_role_role",
+      "columns": [
+        "ROLE_ID"
+      ],
+      "logicalDatabase": "admDB"
+    },
+    {
+      "table": "adm_organization",
+      "foreignKey": "fk_adm_organization_manager",
+      "columns": [
+        "MANAGER_OPERATOR_ID"
+      ],
+      "logicalDatabase": "admDB"
+    },
+    {
+      "table": "adm_role_api_permission",
+      "foreignKey": "fk_adm_role_api_permission_api",
+      "columns": [
+        "API_PERMISSION_ID"
+      ],
+      "logicalDatabase": "admDB"
+    },
+    {
+      "table": "adm_role_button",
+      "foreignKey": "fk_adm_role_button_button",
+      "columns": [
+        "BUTTON_ID"
+      ],
+      "logicalDatabase": "admDB"
+    },
+    {
+      "table": "adm_role_menu",
+      "foreignKey": "fk_adm_role_menu_menu",
+      "columns": [
+        "MENU_ID"
+      ],
+      "logicalDatabase": "admDB"
+    },
+    {
+      "table": "bat_execution",
+      "foreignKey": "fk_bat_execution_instance",
+      "columns": [
+        "batch_instance_id"
+      ],
+      "logicalDatabase": "batDB"
+    },
+    {
+      "table": "bat_execution",
+      "foreignKey": "fk_bat_execution_definition",
+      "columns": [
+        "job_id",
+        "definition_version"
+      ],
+      "logicalDatabase": "batDB"
+    },
+    {
+      "table": "bat_execution_target",
+      "foreignKey": "fk_bat_execution_target_schedule",
+      "columns": [
+        "schedule_id"
+      ],
+      "logicalDatabase": "batDB"
+    },
+    {
+      "table": "bat_job",
+      "foreignKey": "fk_bat_job_published_definition",
+      "columns": [
+        "job_id",
+        "published_definition_version"
+      ],
+      "logicalDatabase": "batDB"
+    },
+    {
+      "table": "bat_schedule",
+      "foreignKey": "fk_bat_schedule_definition",
+      "columns": [
+        "job_id",
+        "definition_version"
+      ],
+      "logicalDatabase": "batDB"
+    },
+    {
+      "table": "bza_approval_delegation",
+      "foreignKey": "fk_bza_approval_delegation_to",
+      "columns": [
+        "delegate_employee_no"
+      ],
+      "logicalDatabase": "bzaDB"
+    },
+    {
+      "table": "bza_approval_document",
+      "foreignKey": "fk_bza_approval_document_policy",
+      "columns": [
+        "policy_code",
+        "policy_version"
+      ],
+      "logicalDatabase": "bzaDB"
+    },
+    {
+      "table": "bza_approval_participant",
+      "foreignKey": "fk_bza_approval_participant_document",
+      "columns": [
+        "approval_id"
+      ],
+      "logicalDatabase": "bzaDB"
+    },
+    {
+      "table": "bza_employee",
+      "foreignKey": "fk_bza_employee_position",
+      "columns": [
+        "position_code"
+      ],
+      "logicalDatabase": "bzaDB"
+    },
+    {
+      "table": "bza_employee",
+      "foreignKey": "fk_bza_employee_job_title",
+      "columns": [
+        "job_title_code"
+      ],
+      "logicalDatabase": "bzaDB"
+    },
+    {
+      "table": "bza_employee_assignment",
+      "foreignKey": "fk_bza_employee_assignment_position",
+      "columns": [
+        "position_code"
+      ],
+      "logicalDatabase": "bzaDB"
+    },
+    {
+      "table": "bza_employee_assignment",
+      "foreignKey": "fk_bza_employee_assignment_job_title",
+      "columns": [
+        "job_title_code"
+      ],
+      "logicalDatabase": "bzaDB"
+    },
+    {
+      "table": "cpf_channel_execution_policy",
+      "foreignKey": "fk_cpf_channel_execution_policy_original",
+      "columns": [
+        "original_channel_code"
+      ],
+      "logicalDatabase": "cpfDB"
+    },
+    {
+      "table": "cpf_channel_execution_policy",
+      "foreignKey": "fk_cpf_channel_execution_policy_caller",
+      "columns": [
+        "caller_channel_code"
+      ],
+      "logicalDatabase": "cpfDB"
+    },
+    {
+      "table": "cpf_gateway_binding",
+      "foreignKey": "fk_cpf_gwy_binding_service",
+      "columns": [
+        "service_id"
+      ],
+      "logicalDatabase": "cpfDB"
+    },
+    {
+      "table": "cpf_gateway_binding",
+      "foreignKey": "fk_cpf_gwy_binding_group",
+      "columns": [
+        "server_group_id"
+      ],
+      "logicalDatabase": "cpfDB"
+    },
+    {
+      "table": "cpf_gateway_health_history",
+      "foreignKey": "fk_cpf_gwy_health_instance",
+      "columns": [
+        "instance_id"
+      ],
+      "logicalDatabase": "cpfDB"
+    },
+    {
+      "table": "cpf_gateway_server_group",
+      "foreignKey": "fk_cpf_gwy_group_service",
+      "columns": [
+        "service_id"
+      ],
+      "logicalDatabase": "cpfDB"
+    },
+    {
+      "table": "cpf_gateway_server_group",
+      "foreignKey": "fk_cpf_gwy_group_endpoint",
+      "columns": [
+        "endpoint_code"
+      ],
+      "logicalDatabase": "cpfDB"
+    },
+    {
+      "table": "cpf_gateway_server_group_member",
+      "foreignKey": "fk_cpf_gwy_member_instance",
+      "columns": [
+        "instance_id"
+      ],
+      "logicalDatabase": "cpfDB"
+    },
+    {
+      "table": "cpf_gateway_transaction",
+      "foreignKey": "fk_cpf_gwy_tx_binding",
+      "columns": [
+        "binding_id"
+      ],
+      "logicalDatabase": "cpfDB"
+    },
+    {
+      "table": "cpf_log_policy_audit",
+      "foreignKey": "fk_cpf_log_policy_audit_override",
+      "columns": [
+        "override_id"
+      ],
+      "logicalDatabase": "cpfDB"
+    },
+    {
+      "table": "cpf_notification_delivery_log",
+      "foreignKey": "fk_cpf_notification_delivery_rule",
+      "columns": [
+        "rule_id"
+      ],
+      "logicalDatabase": "cpfDB"
+    },
+    {
+      "table": "cpf_service_call_history",
+      "foreignKey": "fk_cpf_service_call_history_endpoint",
+      "columns": [
+        "endpoint_code"
+      ],
+      "logicalDatabase": "cpfDB"
+    },
+    {
+      "table": "cpf_service_call_history",
+      "foreignKey": "fk_cpf_service_call_history_instance",
+      "columns": [
+        "instance_id"
+      ],
+      "logicalDatabase": "cpfDB"
+    },
+    {
+      "table": "cpf_service_circuit_state",
+      "foreignKey": "fk_cpf_service_circuit_endpoint",
+      "columns": [
+        "endpoint_code"
+      ],
+      "logicalDatabase": "cpfDB"
+    },
+    {
+      "table": "cpf_service_circuit_state",
+      "foreignKey": "fk_cpf_service_circuit_instance",
+      "columns": [
+        "instance_id"
+      ],
+      "logicalDatabase": "cpfDB"
+    },
+    {
+      "table": "cpf_service_health_status",
+      "foreignKey": "fk_cpf_service_health_endpoint",
+      "columns": [
+        "endpoint_code"
+      ],
+      "logicalDatabase": "cpfDB"
+    },
+    {
+      "table": "cpf_service_health_status",
+      "foreignKey": "fk_cpf_service_health_instance",
+      "columns": [
+        "instance_id"
+      ],
+      "logicalDatabase": "cpfDB"
+    },
+    {
+      "table": "cpf_service_routing_policy",
+      "foreignKey": "fk_cpf_service_routing_endpoint",
+      "columns": [
+        "endpoint_code"
+      ],
+      "logicalDatabase": "cpfDB"
+    },
+    {
+      "table": "CMN_TEMPLATE_AUDIT",
+      "foreignKey": "FK_CMN_TEMPLATE_AUDIT_DEFINITION",
+      "columns": [
+        "TEMPLATE_CODE",
+        "TEMPLATE_VERSION",
+        "CHANNEL_CODE"
+      ],
+      "logicalDatabase": "cmnDB"
+    }
+  ],
+  "failureCount": 0,
+  "warningCount": 1,
+  "status": "PASS",
+  "runtimeClaim": "STATIC_METADATA_ONLY",
+  "warnings": [
+    {
+      "path": "/mnt/data/S04_FINAL_APPLIED_R10/cpf-tools/db/canonical/platform-schema.json",
+      "message": "41 foreign keys need representative plan/index review"
+    }
+  ],
+  "failures": []
+}

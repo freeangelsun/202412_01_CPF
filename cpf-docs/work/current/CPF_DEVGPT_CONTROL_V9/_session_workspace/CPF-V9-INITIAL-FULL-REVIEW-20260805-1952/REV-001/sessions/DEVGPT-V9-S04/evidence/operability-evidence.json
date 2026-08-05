@@ -1,0 +1,34 @@
+{
+  "operationId": "DB-OP-001",
+  "capabilityId": "DB-PERF",
+  "vendor": "mariadb",
+  "environment": "test",
+  "topology": "single-instance",
+  "operator": "operator-a",
+  "reason": "verify database operation envelope",
+  "approvalReference": "APR-001",
+  "approvedBy": "approver-b",
+  "startedAt": "2026-08-05T10:00:00Z",
+  "finishedAt": "2026-08-05T10:00:01Z",
+  "resultStatus": "SUCCEEDED",
+  "reconcileRequired": false,
+  "sourceSha": "fc207ac5560da59f352ee0c5f83199177f2987b4",
+  "evidenceSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "metrics": {
+    "durationMs": 1000,
+    "affectedRows": 0,
+    "errorCount": 0,
+    "retryCount": 0
+  },
+  "trace": {
+    "traceId": "cccccccccccccccccccccccccccccccc",
+    "spanId": "dddddddddddddddd"
+  },
+  "health": {
+    "before": "UP",
+    "after": "UP"
+  },
+  "alerts": [],
+  "runbookRef": "RUNBOOK-DB-PERF",
+  "sanitized": true
+}

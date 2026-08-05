@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "status": "PASS",
+  "operationId": "DB-OP-001",
+  "capabilityId": "DB-PERF",
+  "vendor": "mariadb",
+  "reasons": [],
+  "envelopeSha256": "50b1886ef5a4df7e4e1a458ee56aeaa31e4446722f5c493c4596e51817fb39a9"
+}

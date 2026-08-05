@@ -1,6 +1,7 @@
 package com.cpf.common.sample;
 
 import com.cpf.common.common.base.CmnBaseService;
+import com.cpf.common.sql.CmnSqlResourceLoader;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DuplicateKeyException;
@@ -11,8 +12,8 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
@@ -29,6 +30,7 @@ public class CmnSampleItemService extends CmnBaseService {
 
     private final ObjectProvider<JdbcTemplate> jdbcTemplateProvider;
     private final ObjectProvider<TransactionTemplate> transactionTemplateProvider;
+    private volatile CmnSampleSqlDialect sqlDialect;
 
     public CmnSampleItemService(
             @Qualifier("cmnSampleJdbcTemplate") ObjectProvider<JdbcTemplate> jdbcTemplateProvider,
@@ -48,13 +50,8 @@ public class CmnSampleItemService extends CmnBaseService {
         KeyHolder keyHolder = new GeneratedKeyHolder();
         try {
             jdbcTemplate.update(connection -> {
-                PreparedStatement statement = connection.prepareStatement("""
-                        INSERT INTO cmn_sample_item (
-                            sample_key, item_name, category_code, status_code,
-                            searchable_text, owner_reference, sort_order, version_no,
-                            deleted_yn, created_by, updated_by
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?, 0, 'N', ?, ?)
-                        """, Statement.RETURN_GENERATED_KEYS);
+                PreparedStatement statement = connection.prepareStatement(CmnSqlResourceLoader.load("sample/insert.sql"),
+                        new String[] {"sample_item_id"});
                 statement.setString(1, validated.sampleKey());
                 statement.setString(2, validated.itemName());
                 statement.setString(3, validated.categoryCode());
@@ -77,13 +74,7 @@ public class CmnSampleItemService extends CmnBaseService {
     }
 
     public Optional<CmnSampleItem> find(long sampleItemId) {
-        List<CmnSampleItem> items = requireJdbcTemplate().query("""
-                SELECT sample_item_id, sample_key, item_name, category_code, status_code,
-                       searchable_text, owner_reference, sort_order, version_no,
-                       created_at, updated_at
-                FROM cmn_sample_item
-                WHERE sample_item_id = ? AND deleted_yn = 'N'
-                """, (rs, rowNum) -> map(rs), sampleItemId);
+        List<CmnSampleItem> items = requireJdbcTemplate().query(CmnSqlResourceLoader.load("sample/find-by-id.sql"), (rs, rowNum) -> map(rs), sampleItemId);
         return items.stream().findFirst();
     }
 
@@ -91,38 +82,28 @@ public class CmnSampleItemService extends CmnBaseService {
             String keyword, String statusCode, int offset, int limit) {
         int safeOffset = Math.max(offset, 0);
         int safeLimit = normalizeLimit(limit);
-        return requireJdbcTemplate().query("""
-                SELECT sample_item_id, sample_key, item_name, category_code, status_code,
-                       searchable_text, owner_reference, sort_order, version_no,
-                       created_at, updated_at
-                FROM cmn_sample_item
-                WHERE deleted_yn = 'N'
-                  AND (? IS NULL OR status_code = ?)
-                  AND (? IS NULL OR LOWER(CONCAT(item_name, ' ', category_code, ' ', COALESCE(searchable_text, '')))
-                       LIKE CONCAT('%', LOWER(?), '%'))
-                ORDER BY sort_order, sample_item_id
-                LIMIT ? OFFSET ?
-                """, (rs, rowNum) -> map(rs),
-                blankToNull(statusCode), blankToNull(statusCode),
-                blankToNull(keyword), blankToNull(keyword),
-                safeLimit, safeOffset);
+        String normalizedStatus = blankToNull(statusCode);
+        String normalizedKeyword = blankToNull(keyword);
+        CmnSampleSqlDialect dialect = requireSqlDialect();
+        return requireJdbcTemplate().query(
+                dialect.offsetPageSql(),
+                (rs, rowNum) -> map(rs),
+                dialect.offsetPageParameters(
+                        normalizedStatus,
+                        normalizedKeyword,
+                        safeOffset,
+                        safeLimit));
     }
 
     public CmnSampleSlice cursorPage(Long afterId, String statusCode, int limit) {
         int safeLimit = normalizeLimit(limit);
-        List<CmnSampleItem> rows = requireJdbcTemplate().query("""
-                SELECT sample_item_id, sample_key, item_name, category_code, status_code,
-                       searchable_text, owner_reference, sort_order, version_no,
-                       created_at, updated_at
-                FROM cmn_sample_item
-                WHERE deleted_yn = 'N'
-                  AND sample_item_id > ?
-                  AND (? IS NULL OR status_code = ?)
-                ORDER BY sample_item_id
-                LIMIT ?
-                """, (rs, rowNum) -> map(rs),
+        String normalizedStatus = blankToNull(statusCode);
+        List<CmnSampleItem> rows = requireJdbcTemplate().query(
+                requireSqlDialect().cursorPageSql(),
+                (rs, rowNum) -> map(rs),
                 afterId == null ? 0L : Math.max(afterId, 0L),
-                blankToNull(statusCode), blankToNull(statusCode),
+                normalizedStatus,
+                normalizedStatus,
                 safeLimit + 1);
         boolean hasNext = rows.size() > safeLimit;
         List<CmnSampleItem> items = hasNext ? List.copyOf(rows.subList(0, safeLimit)) : List.copyOf(rows);
@@ -135,13 +116,7 @@ public class CmnSampleItemService extends CmnBaseService {
     public CmnSampleItem update(
             long sampleItemId, long expectedVersion, CmnSampleItemRequest request) {
         ValidatedRequest validated = validate(request);
-        int updated = requireJdbcTemplate().update("""
-                UPDATE cmn_sample_item
-                SET sample_key = ?, item_name = ?, category_code = ?, status_code = ?,
-                    searchable_text = ?, owner_reference = ?, sort_order = ?,
-                    version_no = version_no + 1, updated_by = ?, updated_at = CURRENT_TIMESTAMP(3)
-                WHERE sample_item_id = ? AND version_no = ? AND deleted_yn = 'N'
-                """,
+        int updated = requireJdbcTemplate().update(CmnSqlResourceLoader.load("sample/update.sql"),
                 validated.sampleKey(), validated.itemName(), validated.categoryCode(), validated.statusCode(),
                 validated.searchableText(), validated.ownerReference(), validated.sortOrder(),
                 validated.requestUser(), sampleItemId, expectedVersion);
@@ -153,12 +128,7 @@ public class CmnSampleItemService extends CmnBaseService {
     }
 
     public void delete(long sampleItemId, long expectedVersion, String requestUser) {
-        int updated = requireJdbcTemplate().update("""
-                UPDATE cmn_sample_item
-                SET deleted_yn = 'Y', status_code = 'INACTIVE',
-                    version_no = version_no + 1, updated_by = ?, updated_at = CURRENT_TIMESTAMP(3)
-                WHERE sample_item_id = ? AND version_no = ? AND deleted_yn = 'N'
-                """, requireText(requestUser, "requestUser"), sampleItemId, expectedVersion);
+        int updated = requireJdbcTemplate().update(CmnSqlResourceLoader.load("sample/soft-delete.sql"), requireText(requestUser, "requestUser"), sampleItemId, expectedVersion);
         if (updated != 1) {
             throw new OptimisticLockingFailureException(
                     "CMN Sample이 없거나 version이 변경되었습니다. sampleItemId=" + sampleItemId);
@@ -172,24 +142,18 @@ public class CmnSampleItemService extends CmnBaseService {
         TransactionTemplate transactionTemplate = requireTransactionTemplate();
         ValidatedRequest validated = validate(request);
         Integer rowCountBefore = requireJdbcTemplate().queryForObject(
-                "SELECT COUNT(*) FROM cmn_sample_item WHERE sample_key = ?",
+                CmnSqlResourceLoader.load("sample/count-by-key.sql"),
                 Integer.class,
                 validated.sampleKey());
         transactionTemplate.executeWithoutResult(status -> {
-            requireJdbcTemplate().update("""
-                    INSERT INTO cmn_sample_item (
-                        sample_key, item_name, category_code, status_code,
-                        searchable_text, owner_reference, sort_order, version_no,
-                        deleted_yn, created_by, updated_by
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, 0, 'N', ?, ?)
-                    """,
+            requireJdbcTemplate().update(CmnSqlResourceLoader.load("sample/insert.sql"),
                     validated.sampleKey(), validated.itemName(), validated.categoryCode(), validated.statusCode(),
                     validated.searchableText(), validated.ownerReference(), validated.sortOrder(),
                     validated.requestUser(), validated.requestUser());
             status.setRollbackOnly();
         });
         Integer rowCountAfter = requireJdbcTemplate().queryForObject(
-                "SELECT COUNT(*) FROM cmn_sample_item WHERE sample_key = ?",
+                CmnSqlResourceLoader.load("sample/count-by-key.sql"),
                 Integer.class,
                 validated.sampleKey());
         return rowCountBefore != null && rowCountBefore.equals(rowCountAfter);
@@ -217,6 +181,31 @@ public class CmnSampleItemService extends CmnBaseService {
 
     private Instant instant(Timestamp timestamp) {
         return timestamp == null ? null : timestamp.toInstant();
+    }
+
+    private CmnSampleSqlDialect requireSqlDialect() {
+        CmnSampleSqlDialect current = sqlDialect;
+        if (current != null) {
+            return current;
+        }
+        synchronized (this) {
+            current = sqlDialect;
+            if (current == null) {
+                JdbcTemplate jdbcTemplate = requireJdbcTemplate();
+                if (jdbcTemplate.getDataSource() == null) {
+                    throw new IllegalStateException("CMN Sample DataSource is not configured.");
+                }
+                try (Connection connection = jdbcTemplate.getDataSource().getConnection()) {
+                    current = CmnSampleSqlDialect.fromDatabaseProductName(
+                            connection.getMetaData().getDatabaseProductName());
+                } catch (java.sql.SQLException ex) {
+                    throw new IllegalStateException(
+                            "CMN Sample database vendor detection failed.", ex);
+                }
+                sqlDialect = current;
+            }
+            return current;
+        }
     }
 
     private JdbcTemplate requireJdbcTemplate() {

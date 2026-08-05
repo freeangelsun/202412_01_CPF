@@ -1,0 +1,2 @@
+javac_exit=0
+behavior_exit=0

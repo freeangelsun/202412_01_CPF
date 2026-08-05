@@ -77,6 +77,9 @@ public final class JdbcCpfBatchRemoteMessageLedger implements CpfBatchRemoteMess
             if ("COMPLETE".equals(state.status())) {
                 return Claim.DUPLICATE_COMPLETE;
             }
+            if ("UNKNOWN".equals(state.status())) {
+                return Claim.UNKNOWN_RECONCILE_REQUIRED;
+            }
             // 같은 Instance에 재전달된 경우도 Lease가 살아 있으면 병렬 실행하지 않습니다.
             if (state.leaseUntil().isAfter(now)) {
                 return Claim.IN_PROGRESS;
@@ -100,6 +103,11 @@ public final class JdbcCpfBatchRemoteMessageLedger implements CpfBatchRemoteMess
     @Override
     public void fail(String direction, String messageId, String ownerId, String errorCode) {
         transition(direction, messageId, ownerId, "FAILED", sanitize(errorCode));
+    }
+
+    @Override
+    public void unknown(String direction, String messageId, String ownerId, String errorCode) {
+        transition(direction, messageId, ownerId, "UNKNOWN", sanitize(errorCode));
     }
 
     private void transition(

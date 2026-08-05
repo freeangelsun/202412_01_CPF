@@ -28,6 +28,21 @@ class CpfBatchKafkaWorkerListenerAckBoundaryTest {
         assertEquals(List.of(), order);
     }
 
+
+    @Test
+    void durableUnknownReturnStillAcknowledgesToPreventBlindRedelivery() {
+        List<String> order = new ArrayList<>();
+        CpfBatchInboundHandler handler = new CpfBatchInboundHandler() {
+            @Override public boolean request(String json) { order.add("unknown-durable"); return false; }
+            @Override public boolean reply(String json) { return false; }
+        };
+        Acknowledgment ack = () -> order.add("ack");
+
+        new CpfBatchKafkaWorkerListener(handler).request("{}", ack);
+
+        assertEquals(List.of("unknown-durable", "ack"), order);
+    }
+
     private record StubHandler(Runnable action) implements CpfBatchInboundHandler {
         @Override public boolean request(String json) { action.run(); return true; }
         @Override public boolean reply(String json) { action.run(); return true; }

@@ -16,6 +16,7 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -92,7 +93,7 @@ public class SchedulerDispatchService {
         dispatchPending(lease);
     }
 
-    /** 재시작 또는 앞선 UNKNOWN 결과까지 포함해 durable command를 재조정합니다. */
+    /** 재시작 시 자동 재처리 가능한 durable command만 dispatch합니다. UNKNOWN은 명시적 승인 Reconcile 전까지 제외됩니다. */
     public void dispatchPending() {
         if (!runtimeEnabled()) {
             return;
@@ -158,6 +159,7 @@ public class SchedulerDispatchService {
 
     private void dispatchPending(JdbcSchedulerLeaderRepository.Lease lease) {
         coordinator.assertLeader(lease.fencingToken());
+        assertAutomaticDispatchSqlSafe();
         List<Map<String, Object>> commands = jdbc.queryForList(
                 sql.required("scheduler-trigger-find-dispatchable"), DISPATCH_BATCH_SIZE);
         for (Map<String, Object> command : commands) {
@@ -173,6 +175,31 @@ public class SchedulerDispatchService {
                 continue;
             }
             dispatchClaimed(command, lease, scheduleId, scheduledAt);
+        }
+    }
+
+
+    /**
+     * Vendor SQL이 UNKNOWN을 정상 자동 dispatch 대상으로 포함하면 외부 실행 결과 확인 전에
+     * 동일 Trigger를 재시작할 수 있으므로 Scheduler 전체를 fail-closed 합니다.
+     *
+     * <p>S04가 안전한 SQL을 통합하기 전까지 가용성보다 중복 실행 방지를 우선합니다.</p>
+     */
+    void assertAutomaticDispatchSqlSafe() {
+        requireSafeAutomaticDispatchSql(
+                "scheduler-trigger-find-dispatchable",
+                sql.required("scheduler-trigger-find-dispatchable"));
+        requireSafeAutomaticDispatchSql(
+                "scheduler-trigger-claim",
+                sql.required("scheduler-trigger-claim"));
+    }
+
+    static void requireSafeAutomaticDispatchSql(String key, String statement) {
+        String normalized = Objects.requireNonNull(statement, key + " SQL is required")
+                .toUpperCase(Locale.ROOT);
+        if (normalized.contains("'UNKNOWN'")) {
+            throw new IllegalStateException(
+                    "SCHEDULER_UNKNOWN_AUTO_DISPATCH_SQL_REJECTED:" + key);
         }
     }
 
@@ -210,10 +237,30 @@ public class SchedulerDispatchService {
                 throw new IllegalStateException("SCHEDULER_DISPATCH_FENCED_AFTER_START");
             }
         } catch (RuntimeException failure) {
-            transaction.executeWithoutResult(status -> jdbc.update(
-                    sql.required("scheduler-trigger-mark-unknown"),
-                    failureCode(failure), scheduleId, scheduledAt,
-                    lease.instanceId(), lease.fencingToken()));
+            markUnknownOrFail(failure, scheduleId, scheduledAt, lease);
+        }
+    }
+
+    /**
+     * 외부 실행 결과가 불명확해진 경우 durable UNKNOWN 전이가 실제로 1건 반영됐는지 확인합니다.
+     *
+     * <p>0건을 성공처럼 삼키면 Spring Batch 실행은 시작됐지만 Trigger가 DISPATCHING 또는
+     * 다른 상태로 남아 결과불명 Evidence와 Reconcile 진입점이 사라질 수 있습니다.
+     * UNKNOWN 저장 자체가 fencing/concurrency에 의해 거절되면 호출자에게 즉시 전파해
+     * 운영 경보와 수동 조사 대상이 되도록 fail-closed 합니다.</p>
+     */
+    void markUnknownOrFail(
+            RuntimeException failure,
+            String scheduleId,
+            Timestamp scheduledAt,
+            JdbcSchedulerLeaderRepository.Lease lease) {
+        Integer changed = transaction.execute(status -> jdbc.update(
+                sql.required("scheduler-trigger-mark-unknown"),
+                failureCode(failure), scheduleId, scheduledAt,
+                lease.instanceId(), lease.fencingToken()));
+        if (changed == null || changed != 1) {
+            throw new IllegalStateException(
+                    "SCHEDULER_UNKNOWN_PERSISTENCE_REJECTED", failure);
         }
     }
 

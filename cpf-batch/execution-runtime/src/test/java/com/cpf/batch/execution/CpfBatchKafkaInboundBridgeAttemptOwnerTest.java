@@ -2,6 +2,7 @@ package com.cpf.batch.execution;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -54,9 +55,38 @@ class CpfBatchKafkaInboundBridgeAttemptOwnerTest {
         verify(stepRequests, org.mockito.Mockito.times(2)).send(decoded);
     }
 
+
+    @Test
+    void unknownSideEffectIsDurablyBlockedAndReturnsForKafkaAck() {
+        CpfBatchRemoteCodec codec = mock(CpfBatchRemoteCodec.class);
+        CpfSynchronousWorkerChannel stepRequests = mock(CpfSynchronousWorkerChannel.class);
+        CpfSynchronousWorkerChannel chunkRequests = mock(CpfSynchronousWorkerChannel.class);
+        PollableChannel replies = mock(PollableChannel.class);
+        Message<?> decoded = mock(Message.class);
+        CpfBatchRemoteEnvelope envelope = mock(CpfBatchRemoteEnvelope.class);
+        when(envelope.messageId()).thenReturn("M-UNKNOWN");
+        when(envelope.payloadSha256()).thenReturn("c".repeat(64));
+        when(envelope.expiresAt()).thenReturn(Instant.now().plusSeconds(60));
+        when(codec.readEnvelope("unknown")).thenReturn(envelope);
+        when(codec.decode(envelope)).thenReturn(decoded);
+        when(stepRequests.send(decoded)).thenThrow(
+                new CpfBatchUnknownResultException("REMOTE_RESULT_UNKNOWN", "response lost"));
+        CapturingLedger ledger = new CapturingLedger();
+        CpfBatchKafkaInboundBridge bridge = new CpfBatchKafkaInboundBridge(
+                codec, stepRequests, chunkRequests, replies, ledger, "worker-1");
+
+        assertFalse(bridge.request("unknown"));
+
+        assertEquals(List.of("M-UNKNOWN"), ledger.unknownMessages);
+        assertEquals(List.of(), ledger.completeOwners);
+        assertEquals(List.of(), ledger.failedMessages);
+    }
+
     private static final class CapturingLedger implements CpfBatchRemoteMessageLedger {
         private final List<String> claimOwners = new ArrayList<>();
         private final List<String> completeOwners = new ArrayList<>();
+        private final List<String> unknownMessages = new ArrayList<>();
+        private final List<String> failedMessages = new ArrayList<>();
 
         @Override
         public Claim claim(String direction, String messageId, String payloadSha256,
@@ -72,7 +102,12 @@ class CpfBatchKafkaInboundBridgeAttemptOwnerTest {
 
         @Override
         public void fail(String direction, String messageId, String ownerId, String errorCode) {
-            throw new AssertionError("unexpected failure");
+            failedMessages.add(messageId);
+        }
+
+        @Override
+        public void unknown(String direction, String messageId, String ownerId, String errorCode) {
+            unknownMessages.add(messageId);
         }
     }
 }

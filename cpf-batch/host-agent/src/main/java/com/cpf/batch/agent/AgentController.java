@@ -163,10 +163,20 @@ public class AgentController {
                     return result(stableId, id, "ROLLBACK", CommandState.PARTIALLY_ROLLED_BACK,
                             "ROLLBACK_START_RESULT_UNKNOWN", sanitize(startResult.output()), version, startedAt);
                 }
-                return result(stableId, id, "ROLLBACK",
-                        startResult.success() ? CommandState.ROLLED_BACK : CommandState.PARTIALLY_ROLLED_BACK,
-                        startResult.success() ? "ROLLED_BACK" : "ROLLBACK_START_FAILED",
-                        sanitize(startResult.output()), version, startedAt);
+                if (!startResult.success()) {
+                    return result(stableId, id, "ROLLBACK", CommandState.PARTIALLY_ROLLED_BACK,
+                            "ROLLBACK_START_FAILED", sanitize(startResult.output()), version, startedAt);
+                }
+                ServiceManager.ServiceState state = manager.state(id);
+                if (state != ServiceManager.ServiceState.RUNNING) {
+                    return result(stableId, id, "ROLLBACK", CommandState.PARTIALLY_ROLLED_BACK,
+                            state == ServiceManager.ServiceState.UNKNOWN
+                                    ? "ROLLBACK_START_STATE_UNKNOWN"
+                                    : "ROLLBACK_START_NOT_CONFIRMED",
+                            "Rollback artifact was activated but runtime start was not confirmed", version, startedAt);
+                }
+                return result(stableId, id, "ROLLBACK", CommandState.ROLLED_BACK,
+                        "ROLLED_BACK", sanitize(startResult.output()), version, startedAt);
             } catch (Exception failure) {
                 if (phase == RollbackPhase.ARTIFACT_SWAPPED) {
                     return result(stableId, id, "ROLLBACK", CommandState.PARTIALLY_ROLLED_BACK,
@@ -249,15 +259,44 @@ public class AgentController {
                 return rejected;
             }
             try {
+                if (action == ServiceManager.Action.STATUS) {
+                    ServiceManager.ServiceState state = manager.state(serviceId);
+                    if (state == ServiceManager.ServiceState.UNKNOWN) {
+                        return result(stableId, serviceId, command, CommandState.UNKNOWN_RESULT,
+                                "SERVICE_STATUS_UNKNOWN", "Runtime status could not be determined", null, startedAt);
+                    }
+                    return result(stableId, serviceId, command, CommandState.SUCCEEDED,
+                            state == ServiceManager.ServiceState.RUNNING
+                                    ? "SERVICE_RUNNING"
+                                    : "SERVICE_STOPPED",
+                            "Runtime status confirmed as " + state.name(), null, startedAt);
+                }
+
                 var commandResult = manager.execute(serviceId, action);
                 if (commandResult.unknownResult()) {
                     return result(stableId, serviceId, command, CommandState.UNKNOWN_RESULT,
                             "SERVICE_COMMAND_RESULT_UNKNOWN", sanitize(commandResult.output()), null, startedAt);
                 }
-                return result(stableId, serviceId, command,
-                        commandResult.success() ? CommandState.SUCCEEDED : CommandState.FAILED,
-                        commandResult.success() ? "OK" : "SERVICE_COMMAND_FAILED",
-                        sanitize(commandResult.output()), null, startedAt);
+                if (!commandResult.success()) {
+                    return result(stableId, serviceId, command, CommandState.FAILED,
+                            "SERVICE_COMMAND_FAILED", sanitize(commandResult.output()), null, startedAt);
+                }
+
+                ServiceManager.ServiceState state = manager.state(serviceId);
+                ServiceManager.ServiceState expected = action == ServiceManager.Action.STOP
+                        ? ServiceManager.ServiceState.STOPPED
+                        : ServiceManager.ServiceState.RUNNING;
+                if (state != expected) {
+                    return result(stableId, serviceId, command, CommandState.UNKNOWN_RESULT,
+                            state == ServiceManager.ServiceState.UNKNOWN
+                                    ? "SERVICE_POSTCONDITION_UNKNOWN"
+                                    : "SERVICE_POSTCONDITION_NOT_CONFIRMED",
+                            "Runtime command returned success but actual state was not confirmed as " + expected.name(),
+                            null,
+                            startedAt);
+                }
+                return result(stableId, serviceId, command, CommandState.SUCCEEDED,
+                        "OK", sanitize(commandResult.output()), null, startedAt);
             } catch (Exception failure) {
                 return result(stableId, serviceId, command, CommandState.UNKNOWN_RESULT,
                         "SERVICE_COMMAND_RESULT_UNKNOWN", safe(failure), null, startedAt);

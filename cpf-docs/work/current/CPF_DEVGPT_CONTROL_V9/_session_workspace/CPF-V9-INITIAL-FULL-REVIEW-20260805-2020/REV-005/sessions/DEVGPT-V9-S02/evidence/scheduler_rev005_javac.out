@@ -1,0 +1,4 @@
+/mnt/data/s02_scheduler_harness_rev005/src/org/springframework/dao/DuplicateKeyException.java:1: warning: [serial] serializable class DuplicateKeyException has no definition of serialVersionUID
+package org.springframework.dao; public class DuplicateKeyException extends RuntimeException { public DuplicateKeyException(String m){super(m);} }
+                                        ^
+1 warning

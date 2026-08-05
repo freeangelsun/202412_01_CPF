@@ -65,13 +65,29 @@ public final class ServiceManager {
         }
     }
 
+    public ServiceState state(String serviceId) throws Exception {
+        return classifyStatus(execute(serviceId, Action.STATUS));
+    }
+
     public boolean stopped(String serviceId) throws Exception {
-        Result result = execute(serviceId, Action.STATUS);
-        if (result.unknownResult()) {
-            return false;
+        return state(serviceId) == ServiceState.STOPPED;
+    }
+
+    static ServiceState classifyStatus(Result result) {
+        if (result == null || result.unknownResult()) {
+            return ServiceState.UNKNOWN;
         }
         String output = result.output().toLowerCase(Locale.ROOT);
-        return (!result.success() && Set.of(3, 4).contains(result.exitCode())) || output.contains("inactive");
+        if ((!result.success() && Set.of(3, 4).contains(result.exitCode()))
+                || output.contains("inactive")
+                || output.contains("stopped")
+                || output.contains("dead")) {
+            return ServiceState.STOPPED;
+        }
+        if (result.success()) {
+            return ServiceState.RUNNING;
+        }
+        return ServiceState.UNKNOWN;
     }
 
     private List<String> command(AgentProperties.ServiceDefinition service, Action action) {
@@ -188,6 +204,12 @@ public final class ServiceManager {
         STOP,
         RESTART,
         STATUS
+    }
+
+    public enum ServiceState {
+        RUNNING,
+        STOPPED,
+        UNKNOWN
     }
 
     public record Result(boolean success, int exitCode, String output, boolean unknownResult) {

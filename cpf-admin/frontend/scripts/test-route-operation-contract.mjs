@@ -19,7 +19,7 @@ while ((match = routePattern.exec(routesSource))) {
   fs.mkdirSync(path.dirname(component), { recursive: true });
   fs.writeFileSync(component.endsWith(".vue") ? component : `${component}.vue`, "<template><section /></template><script setup lang=\"ts\"></script>\n", "utf8");
 }
-if (routes !== 59) throw new Error(`Fixture route count drift: ${routes}`);
+if (!routes) throw new Error("Fixture route registry is empty");
 const paths = {};
 let index = 0;
 for (const operationId of [...operationIds].sort()) {
@@ -38,5 +38,68 @@ const result = spawnSync(process.execPath, ["scripts/write-route-operation-contr
 if (result.status !== 0) throw new Error(`${result.stdout}\n${result.stderr}`);
 const generated = fs.readFileSync(path.join(fixture, "src/generated/adm-route-operation-contract.ts"), "utf8");
 const generatedRoutes = (generated.match(/^  "[^"]+":/gm) || []).length;
-if (generatedRoutes !== 59) throw new Error(`Generated route contract count drift: ${generatedRoutes}`);
+if (generatedRoutes !== routes) throw new Error(`Generated route contract count drift: expected=${routes} actual=${generatedRoutes}`);
 console.log(`[CPF][FRONTEND][PASS] route operation contract fixture routes=${generatedRoutes} explicitOperations=${operationIds.size}`);
+
+// Negative fixture: a route-bound page may use the single global ADM store, but the store action
+// registry must not make every privileged URL appear as a consumer of that route. Direct route
+// component calls remain discoverable.
+const boundaryFixture = fs.mkdtempSync(path.join(os.tmpdir(), "cpf-route-boundary-"));
+const boundaryApp = path.join(boundaryFixture, "src/app");
+fs.mkdirSync(boundaryApp, { recursive: true });
+fs.writeFileSync(path.join(boundaryApp, "routes.ts"), `
+export const admCapabilityRegistry = {
+  "routeA": { routeId: "routeA", expectedOperationIds: ["opA"], component: defineAsyncComponent(() => import("../features/a/PageA.vue")) },
+  "routeB": { routeId: "routeB", expectedOperationIds: [], component: defineAsyncComponent(() => import("../features/b/PageB.vue")) }
+};
+`, "utf8");
+fs.mkdirSync(path.join(boundaryFixture, "src/features/a"), { recursive: true });
+fs.mkdirSync(path.join(boundaryFixture, "src/features/b"), { recursive: true });
+fs.mkdirSync(path.join(boundaryFixture, "src/stores"), { recursive: true });
+fs.writeFileSync(path.join(boundaryFixture, "src/features/a/PageA.vue"), `
+<script setup lang="ts">import { useAdmConsolePage } from "../../app/useAdmConsolePage"; useAdmConsolePage();</script>
+<template><section /></template>
+`, "utf8");
+fs.writeFileSync(path.join(boundaryFixture, "src/features/b/PageB.vue"), `
+<script setup lang="ts">const load = () => admQuery("/adm/api/direct"); void load;</script>
+<template><section /></template>
+`, "utf8");
+fs.writeFileSync(path.join(boundaryApp, "useAdmConsolePage.ts"), `
+import { useAdmConsoleStore } from "../stores/admConsoleStore";
+export function useAdmConsolePage(){ return useAdmConsoleStore(); }
+`, "utf8");
+fs.writeFileSync(path.join(boundaryFixture, "src/stores/admConsoleStore.ts"), `
+export function useAdmConsoleStore(){ return { load: () => admQuery("/adm/api/unrelated") }; }
+`, "utf8");
+const boundarySpec = path.join(boundaryFixture, "openapi.json");
+fs.writeFileSync(boundarySpec, JSON.stringify({
+  openapi: "3.0.3",
+  paths: {
+    "/adm/api/a": { get: { operationId: "opA", responses: { 200: { description: "OK" } } } },
+    "/adm/api/direct": { get: { operationId: "opDirect", responses: { 200: { description: "OK" } } } },
+    "/adm/api/unrelated": { get: { operationId: "opUnrelated", responses: { 200: { description: "OK" } } } }
+  }
+}), "utf8");
+fs.mkdirSync(path.join(boundaryFixture, "scripts"), { recursive: true });
+fs.copyFileSync(path.join(sourceRoot, "scripts/write-route-operation-contract.mjs"), path.join(boundaryFixture, "scripts/write-route-operation-contract.mjs"));
+const boundaryResult = spawnSync(process.execPath, ["scripts/write-route-operation-contract.mjs"], {
+  cwd: boundaryFixture,
+  env: { ...process.env, CPF_OPENAPI_FILE: boundarySpec },
+  encoding: "utf8"
+});
+if (boundaryResult.status !== 0) throw new Error(`${boundaryResult.stdout}\n${boundaryResult.stderr}`);
+const boundaryGenerated = fs.readFileSync(path.join(boundaryFixture, "src/generated/adm-route-operation-contract.ts"), "utf8");
+function routeIds(routeId) {
+  const found = boundaryGenerated.match(new RegExp(`^  ${JSON.stringify(routeId)}: (\\[[^\\n]*\\])`, "m"));
+  if (!found) throw new Error(`Boundary fixture route missing: ${routeId}`);
+  return JSON.parse(found[1]);
+}
+const routeAIds = routeIds("routeA");
+const routeBIds = routeIds("routeB");
+if (routeAIds.length !== 1 || routeAIds[0] !== "opA") {
+  throw new Error(`Global store operation leakage: ${JSON.stringify(routeAIds)}`);
+}
+if (routeBIds.length !== 1 || routeBIds[0] !== "opDirect") {
+  throw new Error(`Direct route operation discovery failed: ${JSON.stringify(routeBIds)}`);
+}
+console.log("[CPF][FRONTEND][PASS] route consumer boundary blocks global store leakage and preserves direct discovery");

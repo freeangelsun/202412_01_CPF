@@ -16,3 +16,7 @@ cpf:
   adm:
     persistence:
       mode: ${CPF_ADM_PERSISTENCE_MODE:DATABASE}
+
+  openapi:
+    webmvc:
+      api-docs-enabled: ${CPF_OPENAPI_WEBMVC_API_DOCS_ENABLED:true}

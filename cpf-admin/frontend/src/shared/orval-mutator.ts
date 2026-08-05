@@ -7,6 +7,17 @@ export interface CpfOrvalRequestConfig {
   signal?: AbortSignal;
 }
 
+export type CpfOrvalRequestOptions = Partial<Omit<CpfOrvalRequestConfig, "url">>;
+
+/** Options exposed to generated operation callers. Method, body, and query shape are fixed by OpenAPI. */
+export type CpfOrvalGeneratedRequestOptions = Pick<CpfOrvalRequestConfig, "headers" | "signal">;
+
+export interface CpfOrvalResponse<T> {
+  data: T;
+  status: number;
+  headers: Headers;
+}
+
 export class CpfOrvalError extends Error {
   constructor(
     public readonly status: number,
@@ -34,7 +45,10 @@ function assertNoClientActor(
   if (value === null || value === undefined) return;
   if (typeof value === "string") {
     const trimmed = value.trim();
-    if (!trimmed.startsWith("{") && !trimmed.startsWith("[")) return;
+    if (!trimmed.startsWith("{") && !trimmed.startsWith("[")) {
+      if (path === "$") throw new Error("CPF privileged BFF raw string body is forbidden; send a typed JSON value");
+      return;
+    }
     try { assertNoClientActor(JSON.parse(trimmed) as unknown, path, visited, allowOperatorIdentity); }
     catch (error) {
       if (error instanceof SyntaxError) throw new Error(`Malformed JSON actor payload is forbidden at ${path}`);
@@ -56,8 +70,13 @@ function assertNoClientActor(
     }
     return;
   }
-  if (typeof Blob !== "undefined" && value instanceof Blob) return;
-  if (value instanceof ArrayBuffer || ArrayBuffer.isView(value) || typeof value !== "object") return;
+  if (typeof Blob !== "undefined" && value instanceof Blob) {
+    throw new Error("CPF privileged BFF Blob body is forbidden; generated contracts are JSON-only");
+  }
+  if (value instanceof ArrayBuffer || ArrayBuffer.isView(value)) {
+    throw new Error("CPF privileged BFF binary body is forbidden; generated contracts are JSON-only");
+  }
+  if (typeof value !== "object") return;
   if (visited.has(value as object)) return;
   visited.add(value as object);
   if (Array.isArray(value)) {
@@ -107,30 +126,38 @@ function requestBody(data: unknown, headers: Headers): BodyInit | undefined {
 async function responsePayload(response: Response): Promise<unknown> {
   if (response.status === 204) return undefined;
   const contentType = response.headers.get("Content-Type") || "";
-  if (contentType.includes("application/json")) return response.json();
+  if (contentType.includes("application/json") || contentType.includes("+json")) return response.json();
   if (contentType.startsWith("text/")) return response.text();
   return response.blob();
 }
 
 function normalizeRequest(
   configOrUrl: CpfOrvalRequestConfig | string,
-  requestOptions?: RequestInit
+  requestOptions?: CpfOrvalRequestOptions
 ): CpfOrvalRequestConfig {
   if (typeof configOrUrl !== "string") return configOrUrl;
   return {
     url: configOrUrl,
     method: requestOptions?.method || "GET",
     headers: requestOptions?.headers,
-    data: requestOptions?.body ?? undefined,
-    signal: requestOptions?.signal ?? undefined
+    data: requestOptions?.data,
+    params: requestOptions?.params,
+    signal: requestOptions?.signal
   };
 }
 
 export async function cpfOrvalRequest<T>(
   configOrUrl: CpfOrvalRequestConfig | string,
-  requestOptions?: RequestInit
+  requestOptions?: CpfOrvalRequestOptions
 ): Promise<T> {
   const config = normalizeRequest(configOrUrl, requestOptions);
+  const method = config.method.trim().toUpperCase();
+  if (!["GET", "POST", "PUT", "PATCH", "DELETE"].includes(method)) {
+    throw new Error(`Unsupported CPF generated method: ${method || "<empty>"}`);
+  }
+  if (method === "GET" && config.data !== undefined && config.data !== null) {
+    throw new Error("GET request body is forbidden by the generated OpenAPI contract");
+  }
   const url = new URL(config.url, window.location.origin);
   if (url.origin !== window.location.origin) throw new Error("CPF BFF request must be same-origin");
   assertNoClientActor(config.data, "$", new WeakSet<object>(), allowTopLevelOperatorIdentity(url));
@@ -145,7 +172,7 @@ export async function cpfOrvalRequest<T>(
   if (headers.has("Authorization")) throw new Error("Browser Bearer Token 금지");
 
   const response = await fetch(url, {
-    method: config.method,
+    method,
     headers,
     body: requestBody(config.data, headers),
     signal: config.signal,
@@ -162,7 +189,11 @@ export async function cpfOrvalRequest<T>(
         : `HTTP ${response.status}`;
     throw new CpfOrvalError(response.status, message, payload);
   }
-  return payload as T;
+  return {
+    data: payload,
+    status: response.status,
+    headers: response.headers
+  } as T;
 }
 
 export default cpfOrvalRequest;

@@ -9,3 +9,8 @@ spring:
       url: ${ADM_DATASOURCE_URL}
       username: ${ADM_DATASOURCE_USERNAME}
       password: ${ADM_DATASOURCE_PASSWORD}
+
+cpf:
+  openapi:
+    webmvc:
+      api-docs-enabled: ${CPF_OPENAPI_WEBMVC_API_DOCS_ENABLED:true}

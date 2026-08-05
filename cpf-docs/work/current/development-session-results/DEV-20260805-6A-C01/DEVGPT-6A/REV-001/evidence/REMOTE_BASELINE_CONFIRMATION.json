@@ -1,0 +1,15 @@
+{
+  "repository": "freeangelsun/202412_01_CPF",
+  "branch": "master",
+  "latest_sha": "09dd686c5ae0826594b9c5e1f871d95d95d3ce1c",
+  "latest_commit": "04_08",
+  "checked_at": "2026-08-05T13:32:00+09:00",
+  "method": "GitHub_CPF_Full.list_commits/get_commit",
+  "product_change_since_2b259ea": false,
+  "intervening_commits": [
+    "be03808e0bed7aa02c2978c5aa73b315359bbead",
+    "09dd686c5ae0826594b9c5e1f871d95d95d3ce1c"
+  ],
+  "intervening_change_scope": "CPF Development Management V8 documents/templates/scripts only; no DEVGPT-6A product source paths",
+  "local_working_tree": "synthetic minimal workspace without .git metadata; full local Working Tree status unavailable"
+}

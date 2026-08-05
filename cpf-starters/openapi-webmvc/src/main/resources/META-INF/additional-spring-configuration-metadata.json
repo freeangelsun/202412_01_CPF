@@ -1,0 +1,9 @@
+{
+  "properties": [
+    {"name":"cpf.openapi.webmvc.enabled","type":"java.lang.Boolean","defaultValue":true,"description":"Enables the CPF OpenAPI Web MVC capability when the starter is selected."},
+    {"name":"cpf.openapi.webmvc.api-docs-enabled","type":"java.lang.Boolean","defaultValue":false,"description":"Exposes runtime API docs. Disabled by default."},
+    {"name":"cpf.openapi.webmvc.management-enabled","type":"java.lang.Boolean","defaultValue":true,"description":"Enables sanitized health and actuator status."},
+    {"name":"cpf.openapi.webmvc.api-docs-path","type":"java.lang.String","defaultValue":"/v3/api-docs"},
+    {"name":"cpf.openapi.webmvc.minimum-refresh-interval","type":"java.time.Duration","defaultValue":"1s"}
+  ]
+}

@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.dao.DataAccessException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,9 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-/**
- * ADM response-code catalog API.
- */
+/** ADM response-code catalog API. */
 @RestController
 @RequestMapping("/adm/api/response-codes")
 @Tag(name = "ADM-OPR Response Codes", description = "cpf_response_code management API")
@@ -42,14 +41,16 @@ public class AdmResponseCodeController extends com.cpf.admin.common.base.AdmBase
     @GetMapping
     @CpfOnlineTransaction(id = "OADMOP0040", name = "ADMResponseCodeList")
     @Operation(operationId = "admResponseCodeFindAll", summary = "List response codes", description = "Lists active response codes from cpf_response_code.")
-    public ResponseEntity<Map<String, Object>> findAll() {
+    public ResponseEntity<Map<String, Object>> findAll(HttpServletRequest request) {
+        requireOperator(request);
         return safeResponse(() -> responseCodeCacheService.getAllResponseCodes());
     }
 
     @GetMapping("/{responseCode}")
     @CpfOnlineTransaction(id = "OADMOP0042", name = "ADMResponseCodeDetail")
     @Operation(operationId = "admResponseCodeFindOne", summary = "Get response code", description = "Gets one active response code from cpf_response_code.")
-    public ResponseEntity<Map<String, Object>> findOne(@PathVariable String responseCode) {
+    public ResponseEntity<Map<String, Object>> findOne(@PathVariable String responseCode, HttpServletRequest request) {
+        requireOperator(request);
         return safeResponse(() -> responseCodeCacheService.getResponseCode(responseCode));
     }
 
@@ -60,9 +61,11 @@ public class AdmResponseCodeController extends com.cpf.admin.common.base.AdmBase
             @Valid @RequestBody CommonResponseCodeRequest request,
             @RequestParam String reason,
             HttpServletRequest servletRequest) {
+        String operator = requireOperator(servletRequest);
+        request.setRequestUser(operator);
         String auditReason = auditLogService.requireReason(reason);
         ResponseEntity<Map<String, Object>> response = safeResponse(() -> responseCodeCacheService.createResponseCode(request));
-        recordAudit(servletRequest, request.getRequestUser(), "RESPONSE_CODE_CREATE", request.getResponseCode(), auditReason);
+        recordAudit(servletRequest, operator, "RESPONSE_CODE_CREATE", request.getResponseCode(), auditReason);
         return response;
     }
 
@@ -74,9 +77,11 @@ public class AdmResponseCodeController extends com.cpf.admin.common.base.AdmBase
             @Valid @RequestBody CommonResponseCodeRequest request,
             @RequestParam String reason,
             HttpServletRequest servletRequest) {
+        String operator = requireOperator(servletRequest);
+        request.setRequestUser(operator);
         String auditReason = auditLogService.requireReason(reason);
         ResponseEntity<Map<String, Object>> response = safeResponse(() -> responseCodeCacheService.updateResponseCode(responseCode, request));
-        recordAudit(servletRequest, request.getRequestUser(), "RESPONSE_CODE_UPDATE", responseCode, auditReason);
+        recordAudit(servletRequest, operator, "RESPONSE_CODE_UPDATE", responseCode, auditReason);
         return response;
     }
 
@@ -86,11 +91,11 @@ public class AdmResponseCodeController extends com.cpf.admin.common.base.AdmBase
     public ResponseEntity<Map<String, Object>> delete(
             @PathVariable String responseCode,
             @RequestParam String reason,
-            @RequestParam(defaultValue = "ADM") String requestUser,
             HttpServletRequest servletRequest) {
+        String operator = requireOperator(servletRequest);
         String auditReason = auditLogService.requireReason(reason);
         ResponseEntity<Map<String, Object>> response = safeResponse(() -> responseCodeCacheService.deleteResponseCode(responseCode));
-        recordAudit(servletRequest, requestUser, "RESPONSE_CODE_DELETE", responseCode, auditReason);
+        recordAudit(servletRequest, operator, "RESPONSE_CODE_DELETE", responseCode, auditReason);
         return response;
     }
 
@@ -99,16 +104,17 @@ public class AdmResponseCodeController extends com.cpf.admin.common.base.AdmBase
         try {
             response.put("available", true);
             response.put("result", action.run());
+            return ResponseEntity.ok(response);
         } catch (IllegalArgumentException ex) {
             response.put("available", false);
             response.put("message", ex.getMessage());
+            return ResponseEntity.badRequest().body(response);
         } catch (DataAccessException ex) {
             response.put("available", false);
             response.put("result", Map.of());
-            response.put("message", "cpf_response_code operation failed. Check cpfDB schema and seed data.");
-            response.put("detail", ex.getMostSpecificCause().getMessage());
+            response.put("message", "cpf_response_code operation is temporarily unavailable.");
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(response);
         }
-        return ResponseEntity.ok(response);
     }
 
     @FunctionalInterface
@@ -118,23 +124,12 @@ public class AdmResponseCodeController extends com.cpf.admin.common.base.AdmBase
 
     private void recordAudit(
             HttpServletRequest servletRequest,
-            String requestUser,
+            String operator,
             String actionType,
             String responseCode,
             String reason) {
-
         auditLogService.record(
-                CpfTransactionContext.transactionId(),
-                requestUser(servletRequest, requestUser),
-                actionType,
-                "cpf_response_code",
-                responseCode,
-                reason,
+                CpfTransactionContext.transactionId(), operator, actionType, "cpf_response_code", responseCode, reason,
                 servletRequest.getRemoteAddr());
     }
-
-    private String requestUser(HttpServletRequest request, String fallback) {
-        return requireOperator(request);
-    }
 }
-

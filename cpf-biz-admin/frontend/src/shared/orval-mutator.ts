@@ -7,6 +7,17 @@ export interface CpfOrvalRequestConfig {
   signal?: AbortSignal;
 }
 
+export type CpfOrvalRequestOptions = Partial<Omit<CpfOrvalRequestConfig, "url">>;
+
+/** Options exposed to generated operation callers. Method, body, and query shape are fixed by OpenAPI. */
+export type CpfOrvalGeneratedRequestOptions = Pick<CpfOrvalRequestConfig, "headers" | "signal">;
+
+export interface CpfOrvalResponse<T> {
+  data: T;
+  status: number;
+  headers: Headers;
+}
+
 export class CpfOrvalError extends Error {
   constructor(
     public readonly status: number,
@@ -121,7 +132,7 @@ function requestBody(data: unknown, headers: Headers): BodyInit | undefined {
 async function responsePayload(response: Response): Promise<unknown> {
   if (response.status === 204) return undefined;
   const contentType = response.headers.get("Content-Type") || "";
-  if (contentType.includes("application/json")) return response.json();
+  if (contentType.includes("application/json") || contentType.includes("+json")) return response.json();
   if (contentType.startsWith("text/")) return response.text();
   return response.blob();
 }
@@ -148,23 +159,31 @@ function refreshOnce(recovery: CpfBffSessionRecovery, epoch: number): Promise<vo
 
 function normalizeRequest(
   configOrUrl: CpfOrvalRequestConfig | string,
-  requestOptions?: RequestInit
+  requestOptions?: CpfOrvalRequestOptions
 ): CpfOrvalRequestConfig {
   if (typeof configOrUrl !== "string") return configOrUrl;
   return {
     url: configOrUrl,
     method: requestOptions?.method || "GET",
     headers: requestOptions?.headers,
-    data: requestOptions?.body ?? undefined,
-    signal: requestOptions?.signal ?? undefined
+    data: requestOptions?.data,
+    params: requestOptions?.params,
+    signal: requestOptions?.signal
   };
 }
 
 export async function cpfOrvalRequest<T>(
   configOrUrl: CpfOrvalRequestConfig | string,
-  requestOptions?: RequestInit
+  requestOptions?: CpfOrvalRequestOptions
 ): Promise<T> {
   const config = normalizeRequest(configOrUrl, requestOptions);
+  const method = config.method.trim().toUpperCase();
+  if (!["GET", "POST", "PUT", "PATCH", "DELETE"].includes(method)) {
+    throw new Error(`Unsupported CPF generated method: ${method || "<empty>"}`);
+  }
+  if (method === "GET" && config.data !== undefined && config.data !== null) {
+    throw new Error("GET request body is forbidden by the generated OpenAPI contract");
+  }
   const url = new URL(config.url, window.location.origin);
   if (url.origin !== window.location.origin) throw new Error("CPF BFF request must be same-origin");
   assertNoClientActor(config.data, "$", new WeakSet<object>(), allowTopLevelOperatorIdentity(url));
@@ -180,7 +199,7 @@ export async function cpfOrvalRequest<T>(
 
   const body = requestBody(config.data, headers);
   const execute = () => fetch(url, {
-      method: config.method,
+      method,
       headers,
       body,
       signal: config.signal,
@@ -218,7 +237,11 @@ export async function cpfOrvalRequest<T>(
         : `HTTP ${response.status}`;
     throw new CpfOrvalError(response.status, message, payload);
   }
-  return payload as T;
+  return {
+    data: payload,
+    status: response.status,
+    headers: response.headers
+  } as T;
 }
 
 export default cpfOrvalRequest;

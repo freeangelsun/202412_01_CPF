@@ -138,10 +138,18 @@ public final class CpfSpringBatchExecutionControl implements BatchExecutionContr
         Optional<BatchExecutionLink> linked = ledger.findByCpfExecutionId(cpfExecutionId).stream()
                 .filter(link -> link.stepExecutionId() == null && link.jobExecutionId() != null)
                 .max(Comparator.comparing(BatchExecutionLink::observedAt));
-        if (linked.isPresent()) {
-            JobExecution execution = required(linked.get().jobExecutionId());
-            BatchExecutionLink observed = link(cpfExecutionId, reservation.jobId(), reservation.definitionVersion(),
-                    reservation.fencingToken(), execution);
+        Optional<JobExecution> linkedExecution = linked
+                .map(BatchExecutionLink::jobExecutionId)
+                .map(repository::getJobExecution)
+                .filter(execution -> cpfExecutionId.equals(
+                        execution.getJobParameters().getString("cpfExecutionId")));
+        if (linkedExecution.isPresent()) {
+            BatchExecutionLink observed = link(
+                    cpfExecutionId,
+                    reservation.jobId(),
+                    reservation.definitionVersion(),
+                    reservation.fencingToken(),
+                    linkedExecution.get());
             ledger.bind(observed);
             return observed;
         }

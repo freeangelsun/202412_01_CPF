@@ -44,24 +44,70 @@ public class JdbcCenterCutClaimRepository {
         this.claimTransactions=Objects.requireNonNull(claimTransactions, "claimTransactions");
     }
 
-    @Transactional
+    /**
+     * 만료 Claim을 Item별 독립 transaction으로 회수합니다.
+     *
+     * <p>하나의 손상된 Claim이 같은 주기의 정상 Claim 회수까지 계속 롤백시키는 poison-row
+     * 장애를 막습니다. 성공 행은 커밋하고 실패 행은 롤백한 뒤, 처리된 수와 실패 식별자를
+     * 포함한 예외를 던져 운영 경보와 후속 Reconcile이 누락되지 않게 합니다.</p>
+     */
     public int recoverExpiredToUnknown() {
         List<Map<String,Object>> rows =
                 jdbc.queryForList(sql.required("centercut-claim-find-expired-running"));
-        int count=0;
+        int recovered=0;
+        List<String> failures=new ArrayList<>();
+        List<RuntimeException> causes=new ArrayList<>();
         for(Map<String,Object> row:rows){
-            long id=((Number)row.get("center_cut_item_id")).longValue();
-            int changed=jdbc.update(sql.required("centercut-claim-expire"),id);
-            if(changed==1){
-                int item=jdbc.update(sql.required("centercut-item-mark-unknown"),id);
-                count+=item;
-                if(item==1 && row.get("center_cut_execution_id")!=null) {
-                    jdbc.update(sql.required("centercut-execution-increment-unknown"),
-                            row.get("center_cut_execution_id"));
-                }
+            String itemRef=Objects.toString(row.get("center_cut_item_id"), "<missing>");
+            try {
+                long id=requiredItemId(row);
+                Integer changed=claimTransactions.execute(status -> recoverExpiredRow(row, id));
+                recovered+=changed==null?0:changed;
+            } catch(RuntimeException failure) {
+                failures.add(itemRef+":"+recoveryCode(failure));
+                causes.add(failure);
             }
         }
-        return count;
+        if(!failures.isEmpty()) {
+            IllegalStateException partial=new IllegalStateException(
+                    "CENTER_CUT_EXPIRED_CLAIM_RECOVERY_PARTIAL recovered="+recovered
+                            +",failures="+String.join("|",failures));
+            causes.forEach(partial::addSuppressed);
+            throw partial;
+        }
+        return recovered;
+    }
+
+    private int recoverExpiredRow(Map<String,Object> row,long id) {
+        int changed=jdbc.update(sql.required("centercut-claim-expire"),id);
+        if(changed!=1) return 0;
+        int item=jdbc.update(sql.required("centercut-item-mark-unknown"),id);
+        if(item!=1) {
+            throw new IllegalStateException("CENTER_CUT_ITEM_UNKNOWN_CONFLICT");
+        }
+        String executionId=Objects.toString(row.get("center_cut_execution_id"), "").trim();
+        if(executionId.isEmpty()) {
+            throw new IllegalStateException("CENTER_CUT_UNKNOWN_EXECUTION_ID_MISSING");
+        }
+        int executionChanged=jdbc.update(
+                sql.required("centercut-execution-increment-unknown"), executionId);
+        if(executionChanged!=1) {
+            throw new IllegalStateException("CENTER_CUT_UNKNOWN_EXECUTION_STATE_CONFLICT");
+        }
+        return 1;
+    }
+
+    private static long requiredItemId(Map<String,Object> row) {
+        Object value=row.get("center_cut_item_id");
+        if(!(value instanceof Number number)) {
+            throw new IllegalStateException("CENTER_CUT_EXPIRED_CLAIM_ITEM_ID_INVALID");
+        }
+        return number.longValue();
+    }
+
+    private static String recoveryCode(RuntimeException failure) {
+        String message=Objects.toString(failure.getMessage(), failure.getClass().getSimpleName());
+        return SensitiveTextSanitizer.sanitize(message).replaceAll("[\r\n\t|,]+", "_");
     }
 
     public Optional<Claim> claimForExecution(
@@ -141,23 +187,36 @@ public class JdbcCenterCutClaimRepository {
 
     @Transactional
     public void complete(Claim c,String status,String result,String message) {
-        int n=jdbc.update(sql.required("centercut-claim-release-complete"),
+        int claimChanged=jdbc.update(sql.required("centercut-claim-release-complete"),
                 c.itemId(),c.runnerId(),c.claimToken(),c.fencingToken());
-        if(n!=1) throw new IllegalStateException("Stale center-cut runner fenced; completion rejected");
-        jdbc.update(sql.required("centercut-item-complete"),
-                status,SensitiveTextSanitizer.sanitize(message),c.itemId());
-        jdbc.update(sql.required("centercut-result-insert"),
-                status,result,SensitiveTextSanitizer.sanitize(message),c.itemId());
+        requireSingleRow(claimChanged, "CENTER_CUT_STALE_RUNNER_FENCED");
+        String sanitized=SensitiveTextSanitizer.sanitize(message);
+        int itemChanged=jdbc.update(sql.required("centercut-item-complete"),
+                status,sanitized,c.itemId());
+        requireSingleRow(itemChanged, "CENTER_CUT_ITEM_COMPLETION_CONFLICT");
+        int resultInserted=jdbc.update(sql.required("centercut-result-insert"),
+                status,result,sanitized,c.itemId());
+        requireSingleRow(resultInserted, "CENTER_CUT_RESULT_PERSISTENCE_CONFLICT");
         if(c.executionId()!=null&&!c.executionId().isBlank()&&!"RETRY".equals(status)){
-            jdbc.update(sql.required("centercut-execution-update-counters"),
+            int executionChanged=jdbc.update(sql.required("centercut-execution-update-counters"),
                     status,status,status,c.executionId());
+            requireSingleRow(executionChanged, "CENTER_CUT_EXECUTION_COUNTER_CONFLICT");
             Integer remaining=jdbc.queryForObject(
                     sql.required("centercut-item-count-remaining"),
                     Integer.class,c.executionId());
-            if(remaining!=null&&remaining==0) {
-                jdbc.update(sql.required("centercut-execution-finalize"),c.executionId());
+            if(remaining==null) {
+                throw new IllegalStateException("CENTER_CUT_REMAINING_COUNT_UNAVAILABLE");
+            }
+            if(remaining==0) {
+                int finalized=jdbc.update(
+                        sql.required("centercut-execution-finalize"),c.executionId());
+                requireSingleRow(finalized, "CENTER_CUT_EXECUTION_FINALIZE_CONFLICT");
             }
         }
+    }
+
+    private static void requireSingleRow(int changed,String code) {
+        if(changed!=1) throw new IllegalStateException(code);
     }
 
     public int requeueFailed(String jobId) {

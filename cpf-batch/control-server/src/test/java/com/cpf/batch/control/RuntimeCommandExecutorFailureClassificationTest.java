@@ -144,6 +144,147 @@ class RuntimeCommandExecutorFailureClassificationTest {
                 argThat(summary -> summary.contains("runtime-1=UNKNOWN_RESULT")));
     }
 
+
+    @Test
+    void responseLossWithoutAttemptEvidenceUsesEvidencePersistenceStage() {
+        RuntimeCommand command = command(List.of("runtime-1"));
+        persisted(command, CommandState.APPROVED);
+        when(commands.beginExecution(command.commandId())).thenReturn(true);
+        when(registry.snapshot("runtime-1")).thenReturn(Map.of("actual_state", "RUNNING"));
+        when(lifecycle.operate(
+                "runtime-1", "RESTART", "requester", "approver", "APR-1",
+                "approved maintenance"))
+                .thenThrow(new IllegalStateException("response lost"));
+        doThrow(new IllegalStateException("attempt store unavailable"))
+                .when(commands).recordAttempt(
+                        eq("CMD-1"), eq(1), eq("runtime-1"), eq("OWNER_API_DISPATCH"),
+                        eq(CommandState.UNKNOWN_RESULT), any(String.class));
+
+        executor.execute(command);
+
+        verify(commands).transition(
+                eq("CMD-1"), eq(CommandState.UNKNOWN_RESULT),
+                eq("ATTEMPT_EVIDENCE_PERSISTENCE"),
+                argThat(summary -> summary.contains("runtime-1=UNKNOWN_RESULT")));
+    }
+
+    @Test
+    void postRollbackEvidenceFailureDoesNotHideTheEvidenceGap() {
+        RuntimeCommand command = new RuntimeCommand(
+                "CMD-1", "IDEM-1", "ROLLBACK", "INSTANCE", List.of("runtime-1"),
+                null, null, 7L, "requester", "approved maintenance",
+                Instant.now(), "POLICY-1", "APR-1", "approver",
+                Instant.now().plusSeconds(300), CommandState.APPROVED, 0, Map.of(),
+                null, null, "before", null,
+                "OBAT-AA-00000000000000000000000000", null);
+        persisted(command, CommandState.APPROVED);
+        when(commands.beginExecution(command.commandId())).thenReturn(true);
+        when(registry.snapshot("runtime-1")).thenReturn(Map.of("actual_state", "RUNNING"));
+        when(lifecycle.operate(
+                "runtime-1", "ROLLBACK", "requester", "approver", "APR-1",
+                "approved maintenance"))
+                .thenReturn(result(CommandState.SUCCEEDED, "rolled back"));
+        doThrow(new IllegalStateException("desired state store unavailable"))
+                .when(registry).updateDesiredState(
+                        eq("runtime-1"), eq(com.cpf.batch.api.DesiredState.RUNNING), eq(0L));
+        doThrow(new IllegalStateException("attempt store unavailable"))
+                .when(commands).recordAttempt(
+                        eq("CMD-1"), eq(1), eq("runtime-1"), eq("POST_ROLLBACK_STATE"),
+                        eq(CommandState.UNKNOWN_RESULT), any(String.class));
+
+        executor.execute(command);
+
+        verify(commands).transition(
+                eq("CMD-1"), eq(CommandState.UNKNOWN_RESULT),
+                eq("ATTEMPT_EVIDENCE_PERSISTENCE"),
+                argThat(summary -> summary.contains("runtime-1=UNKNOWN_RESULT")));
+    }
+
+    @Test
+    void nonTerminalAgentStateRequiresExplicitReconcile() {
+        RuntimeCommand command = command(List.of("runtime-1"));
+        persisted(command, CommandState.APPROVED);
+        when(commands.beginExecution(command.commandId())).thenReturn(true);
+        when(registry.snapshot("runtime-1")).thenReturn(Map.of("actual_state", "RUNNING"));
+        when(lifecycle.operate(
+                "runtime-1", "RESTART", "requester", "approver", "APR-1",
+                "approved maintenance"))
+                .thenReturn(result(CommandState.EXECUTING, "still running"));
+
+        executor.execute(command);
+
+        verify(commands).recordAttempt(
+                eq("CMD-1"), eq(1), eq("runtime-1"),
+                eq("AGENT_RESTART_NON_TERMINAL_RESULT"), eq(CommandState.UNKNOWN_RESULT),
+                argThat(message -> message.contains("explicit reconcile")));
+        verify(commands).transition(
+                eq("CMD-1"), eq(CommandState.UNKNOWN_RESULT),
+                eq("AGENT_RESTART_NON_TERMINAL_RESULT"),
+                argThat(summary -> summary.contains("runtime-1=UNKNOWN_RESULT")));
+    }
+
+    @Test
+    void partiallyRolledBackAgentStateIsNeverCollapsedToSuccess() {
+        RuntimeCommand command = command(List.of("runtime-1"));
+        persisted(command, CommandState.APPROVED);
+        when(commands.beginExecution(command.commandId())).thenReturn(true);
+        when(registry.snapshot("runtime-1")).thenReturn(Map.of("actual_state", "RUNNING"));
+        when(lifecycle.operate(
+                "runtime-1", "RESTART", "requester", "approver", "APR-1",
+                "approved maintenance"))
+                .thenReturn(result(CommandState.PARTIALLY_ROLLED_BACK, "rollback incomplete"));
+
+        executor.execute(command);
+
+        verify(commands).transition(
+                eq("CMD-1"), eq(CommandState.PARTIALLY_ROLLED_BACK), eq("AGENT_RESTART"),
+                argThat(summary -> summary.contains("runtime-1=PARTIALLY_ROLLED_BACK")));
+    }
+
+    @Test
+    void fullyRolledBackTargetsPreserveRolledBackTerminalState() {
+        RuntimeCommand command = command(List.of("runtime-1", "runtime-2"));
+        persisted(command, CommandState.APPROVED);
+        when(commands.beginExecution(command.commandId())).thenReturn(true);
+        when(registry.snapshot("runtime-1")).thenReturn(Map.of("actual_state", "RUNNING"));
+        when(registry.snapshot("runtime-2")).thenReturn(Map.of("actual_state", "RUNNING"));
+        when(lifecycle.operate(
+                any(String.class), eq("RESTART"), eq("requester"), eq("approver"), eq("APR-1"),
+                eq("approved maintenance")))
+                .thenReturn(result(CommandState.ROLLED_BACK, "rolled back"));
+
+        executor.execute(command);
+
+        verify(commands).transition(
+                eq("CMD-1"), eq(CommandState.ROLLED_BACK), eq(null),
+                argThat(summary -> summary.contains("runtime-1=ROLLED_BACK")
+                        && summary.contains("runtime-2=ROLLED_BACK")));
+    }
+
+    @Test
+    void mixedRollbackAndSuccessIsPartialRollback() {
+        RuntimeCommand command = command(List.of("runtime-1", "runtime-2"));
+        persisted(command, CommandState.APPROVED);
+        when(commands.beginExecution(command.commandId())).thenReturn(true);
+        when(registry.snapshot("runtime-1")).thenReturn(Map.of("actual_state", "RUNNING"));
+        when(registry.snapshot("runtime-2")).thenReturn(Map.of("actual_state", "RUNNING"));
+        when(lifecycle.operate(
+                "runtime-1", "RESTART", "requester", "approver", "APR-1",
+                "approved maintenance"))
+                .thenReturn(result(CommandState.ROLLED_BACK, "rolled back"));
+        when(lifecycle.operate(
+                "runtime-2", "RESTART", "requester", "approver", "APR-1",
+                "approved maintenance"))
+                .thenReturn(result(CommandState.SUCCEEDED, "restarted"));
+
+        executor.execute(command);
+
+        verify(commands).transition(
+                eq("CMD-1"), eq(CommandState.PARTIALLY_ROLLED_BACK), eq("AGENT_RESTART"),
+                argThat(summary -> summary.contains("runtime-1=ROLLED_BACK")
+                        && summary.contains("runtime-2=SUCCEEDED")));
+    }
+
     @Test
     void finalTransitionFailureDoesNotReportSuccess() {
         RuntimeCommand command = command(List.of("runtime-1"));

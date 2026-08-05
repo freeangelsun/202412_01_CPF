@@ -125,8 +125,14 @@ public class RuntimeCommandExecutor {
                     command.reason());
         } catch (RuntimeException failure) {
             String message = safe(failure);
-            recordAttemptBestEffort(command.commandId(), attempt, target,
+            boolean dispatchEvidencePersisted = recordAttemptBestEffort(
+                    command.commandId(), attempt, target,
                     "OWNER_API_DISPATCH", CommandState.UNKNOWN_RESULT, message);
+            if (!dispatchEvidencePersisted) {
+                return new TargetOutcome(target, CommandState.UNKNOWN_RESULT,
+                        "ATTEMPT_EVIDENCE_PERSISTENCE",
+                        "Agent dispatch outcome evidence was not persisted", true);
+            }
             return new TargetOutcome(target, CommandState.UNKNOWN_RESULT,
                     "OWNER_API_DISPATCH", message, true);
         }
@@ -136,6 +142,13 @@ public class RuntimeCommandExecutor {
                 : result.state();
         String stage = "AGENT_" + type;
         String message = result == null ? "Agent returned null result" : safe(result.message());
+        if (!terminalAgentState(resultState)) {
+            CommandState nonTerminal = resultState;
+            resultState = CommandState.UNKNOWN_RESULT;
+            stage = stage + "_NON_TERMINAL_RESULT";
+            message = "Agent returned non-terminal state " + nonTerminal
+                    + "; explicit reconcile is required";
+        }
         boolean evidencePersisted = recordAttemptBestEffort(
                 command.commandId(), attempt, target, stage, resultState, message);
         if (!evidencePersisted) {
@@ -148,8 +161,14 @@ public class RuntimeCommandExecutor {
                 registry.updateDesiredState(target, DesiredState.RUNNING, 0L);
             } catch (RuntimeException failure) {
                 String detail = safe(failure);
-                recordAttemptBestEffort(command.commandId(), attempt, target,
+                boolean postRollbackEvidencePersisted = recordAttemptBestEffort(
+                        command.commandId(), attempt, target,
                         "POST_ROLLBACK_STATE", CommandState.UNKNOWN_RESULT, detail);
+                if (!postRollbackEvidencePersisted) {
+                    return new TargetOutcome(target, CommandState.UNKNOWN_RESULT,
+                            "ATTEMPT_EVIDENCE_PERSISTENCE",
+                            "Post-rollback state evidence was not persisted", true);
+                }
                 return new TargetOutcome(target, CommandState.UNKNOWN_RESULT,
                         "POST_ROLLBACK_STATE", detail, true);
             }
@@ -238,6 +257,14 @@ public class RuntimeCommandExecutor {
         return null;
     }
 
+    private static boolean terminalAgentState(CommandState state) {
+        return state == CommandState.SUCCEEDED
+                || state == CommandState.FAILED
+                || state == CommandState.UNKNOWN_RESULT
+                || state == CommandState.ROLLED_BACK
+                || state == CommandState.PARTIALLY_ROLLED_BACK;
+    }
+
     private static String normalizeType(String type) {
         return type == null ? "" : type.trim().toUpperCase(Locale.ROOT);
     }
@@ -275,31 +302,52 @@ public class RuntimeCommandExecutor {
 
     private static final class Aggregate {
         private final StringBuilder summary = new StringBuilder();
+        private int total;
+        private int succeeded;
+        private int rolledBack;
         private boolean failed;
         private boolean unknown;
+        private boolean partiallyRolledBack;
         private String firstFailedStage;
         private String firstUnknownStage;
+        private String firstRollbackStage;
 
         void accept(TargetOutcome outcome) {
+            total++;
             summary.append(outcome.target()).append('=').append(outcome.state()).append(';');
             if (outcome.unknown() || outcome.state() == CommandState.UNKNOWN_RESULT) {
                 unknown = true;
                 if (firstUnknownStage == null) firstUnknownStage = outcome.stage();
+            } else if (outcome.state() == CommandState.PARTIALLY_ROLLED_BACK) {
+                partiallyRolledBack = true;
+                if (firstRollbackStage == null) firstRollbackStage = outcome.stage();
+            } else if (outcome.state() == CommandState.ROLLED_BACK) {
+                rolledBack++;
+                if (firstRollbackStage == null) firstRollbackStage = outcome.stage();
             } else if (outcome.state() == CommandState.FAILED) {
                 failed = true;
                 if (firstFailedStage == null) firstFailedStage = outcome.stage();
+            } else if (outcome.state() == CommandState.SUCCEEDED) {
+                succeeded++;
             }
         }
 
         CommandState finalState() {
-            return unknown ? CommandState.UNKNOWN_RESULT
-                    : failed ? CommandState.FAILED
-                    : CommandState.SUCCEEDED;
+            if (unknown) return CommandState.UNKNOWN_RESULT;
+            if (partiallyRolledBack) return CommandState.PARTIALLY_ROLLED_BACK;
+            if (rolledBack > 0) {
+                return rolledBack == total
+                        ? CommandState.ROLLED_BACK
+                        : CommandState.PARTIALLY_ROLLED_BACK;
+            }
+            if (failed) return CommandState.FAILED;
+            return succeeded == total ? CommandState.SUCCEEDED : CommandState.UNKNOWN_RESULT;
         }
 
         String failureStage(CommandState state) {
             return state == CommandState.UNKNOWN_RESULT ? firstUnknownStage
                     : state == CommandState.FAILED ? firstFailedStage
+                    : state == CommandState.PARTIALLY_ROLLED_BACK ? firstRollbackStage
                     : null;
         }
 

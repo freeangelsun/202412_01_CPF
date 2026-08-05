@@ -5,12 +5,20 @@ import com.cpf.admin.opr.dto.AdmMfaOtpRequest;
 import com.cpf.core.api.error.CpfBusinessException;
 import com.cpf.core.api.error.CpfErrorCode;
 import com.cpf.core.api.util.CpfStrings;
+import com.cpf.core.api.security.secret.CpfSecretProvider;
+import com.cpf.core.api.security.secret.CpfSecretReference;
+import com.cpf.core.api.security.secret.CpfSecretValue;
+import com.cpf.admin.opr.security.AdmTotpVerifier;
+import com.cpf.core.api.error.CpfValidationException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -20,9 +28,22 @@ import java.util.Map;
 @Service
 public class AdmSecurityOperationService extends com.cpf.admin.common.base.AdmBaseService {
     private final JdbcTemplate admJdbcTemplate;
+    private final List<CpfSecretProvider> secretProviders;
+    private final AdmTotpVerifier totpVerifier;
 
-    public AdmSecurityOperationService(@Qualifier("admJdbcTemplate") JdbcTemplate admJdbcTemplate) {
+    /** Source-compatible constructor for focused unit tests; production uses the autowired constructor. */
+    public AdmSecurityOperationService(JdbcTemplate admJdbcTemplate) {
+        this(admJdbcTemplate, List.of(), new AdmTotpVerifier());
+    }
+
+    @Autowired
+    public AdmSecurityOperationService(
+            @Qualifier("admJdbcTemplate") JdbcTemplate admJdbcTemplate,
+            List<CpfSecretProvider> secretProviders,
+            AdmTotpVerifier totpVerifier) {
         this.admJdbcTemplate = admJdbcTemplate;
+        this.secretProviders = List.copyOf(secretProviders);
+        this.totpVerifier = totpVerifier;
     }
 
     public List<Map<String, Object>> findIpAllowlist() {
@@ -75,6 +96,8 @@ public class AdmSecurityOperationService extends com.cpf.admin.common.base.AdmBa
 
     public Map<String, Object> registerMfa(String operatorId, AdmMfaOtpRequest request) {
         String secretRef = CpfStrings.requireText(request.secretRef(), "secretRef");
+        CpfSecretReference reference = parseReference(secretRef);
+        provider(reference.provider());
         String requestUser = CpfStrings.defaultIfBlank(request.requestUser(), "ADM");
         if (updateMfaRegistration(operatorId, secretRef, requestUser) == 0) {
             try {
@@ -93,16 +116,31 @@ public class AdmSecurityOperationService extends com.cpf.admin.common.base.AdmBa
     }
 
     public Map<String, Object> verifyMfa(String operatorId, AdmMfaOtpRequest request) {
-        CpfStrings.requireText(request.otpCode(), "otpCode");
-        admJdbcTemplate.update("""
+        String otpCode = CpfStrings.requireText(request.otpCode(), "otpCode");
+        Map<String,Object> state = findMfaState(operatorId);
+        verifyReferencedTotp(string(state, "SECRET_REF"), otpCode);
+        int updated = admJdbcTemplate.update("""
                 UPDATE adm_mfa_otp_secret
                 SET ENABLED_YN = 'Y',
                     VERIFIED_AT = CURRENT_TIMESTAMP,
                     UPDATED_BY = ?,
                     UPDATED_AT = CURRENT_TIMESTAMP
-                WHERE OPERATOR_ID = ?
-                """, CpfStrings.defaultIfBlank(request.requestUser(), "ADM"), operatorId);
+                WHERE OPERATOR_ID = ? AND SECRET_REF = ?
+                """, CpfStrings.defaultIfBlank(request.requestUser(), "ADM"), operatorId, string(state, "SECRET_REF"));
+        if (updated != 1) throw new CpfValidationException("MFA 등록 상태가 동시에 변경되었습니다.");
         return findMfaState(operatorId);
+    }
+
+    /** Password 인증 이후, 활성화된 MFA가 있으면 TOTP를 반드시 검증합니다. */
+    public void requireMfaForLogin(String operatorId, String otpCode) {
+        Map<String,Object> state;
+        try {
+            state = findMfaState(operatorId);
+        } catch (org.springframework.dao.EmptyResultDataAccessException noRegistration) {
+            return;
+        }
+        if (!"Y".equalsIgnoreCase(string(state, "ENABLED_YN"))) return;
+        verifyReferencedTotp(string(state, "SECRET_REF"), CpfStrings.requireText(otpCode, "otpCode"));
     }
 
     public Map<String, Object> disableMfa(String operatorId, String requestUser) {
@@ -145,6 +183,53 @@ public class AdmSecurityOperationService extends com.cpf.admin.common.base.AdmBa
                     UPDATED_AT = CURRENT_TIMESTAMP
                 WHERE OPERATOR_ID = ?
                 """, secretRef, requestUser, operatorId);
+    }
+
+    private void verifyReferencedTotp(String secretRef, String otpCode) {
+        CpfSecretReference reference = parseReference(secretRef);
+        CpfSecretProvider secretProvider = provider(reference.provider());
+        try (CpfSecretValue value = secretProvider.resolve(reference)) {
+            if (!totpVerifier.verify(value, otpCode)) {
+                throw new CpfValidationException("MFA 인증에 실패했습니다.");
+            }
+        } catch (CpfValidationException ex) {
+            throw ex;
+        } catch (RuntimeException ex) {
+            throw new CpfBusinessException(
+                    CpfErrorCode.INFRASTRUCTURE_UNAVAILABLE,
+                    "MFA Secret Provider를 사용할 수 없습니다.",
+                    Map.of("0", reference.provider(), "1", ex.getClass().getSimpleName()));
+        }
+    }
+
+    private CpfSecretProvider provider(String providerId) {
+        return secretProviders.stream()
+                .filter(candidate -> candidate.providerId().equalsIgnoreCase(providerId))
+                .findFirst()
+                .orElseThrow(() -> new CpfBusinessException(
+                        CpfErrorCode.INFRASTRUCTURE_UNAVAILABLE,
+                        "MFA Secret Provider가 구성되지 않았습니다.",
+                        Map.of("0", providerId)));
+    }
+
+    private static CpfSecretReference parseReference(String raw) {
+        String value = CpfStrings.requireText(raw, "secretRef");
+        int scheme = value.indexOf("://");
+        if (scheme > 0 && scheme + 3 < value.length()) {
+            return new CpfSecretReference(value.substring(0, scheme), value.substring(scheme + 3));
+        }
+        int colon = value.indexOf(':');
+        if (colon > 0 && colon + 1 < value.length()) {
+            return new CpfSecretReference(value.substring(0, colon), value.substring(colon + 1));
+        }
+        throw new CpfValidationException("secretRef는 provider:key 또는 provider://key 형식이어야 합니다.");
+    }
+
+    private static String string(Map<String,Object> source, String key) {
+        Object value = source.get(key);
+        if (value == null) value = source.get(key.toLowerCase(java.util.Locale.ROOT));
+        if (value == null) throw new CpfValidationException("MFA 상태에 " + key + "가 없습니다.");
+        return String.valueOf(value);
     }
 
     private CpfBusinessException unavailable(String component, DataAccessException ex) {

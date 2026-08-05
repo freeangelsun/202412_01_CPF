@@ -14,7 +14,7 @@ export function createAdmState() {
         permissionsLoaded: false,
         authMessage: "",
         uiMessage: "",
-        loginForm: { operatorId: "admin", password: "" },
+        loginForm: { operatorId: "admin", password: "", otpCode: "" },
         forcedPasswordForm: {
           currentPassword: "",
           newPassword: "",
@@ -511,7 +511,7 @@ export function resetAdmSensitiveState(state: Record<string, any>) {
     state.forcedPasswordForm.newPassword = "";
     state.forcedPasswordForm.newPasswordConfirm = "";
   }
-  if (state.loginForm) state.loginForm.password = "";
+  if (state.loginForm) { state.loginForm.password = ""; state.loginForm.otpCode = ""; }
   if (state.passwordForm) state.passwordForm.newPassword = "";
   if (state.securityForm) state.securityForm.otpCode = "";
 }

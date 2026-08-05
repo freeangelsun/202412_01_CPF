@@ -29,7 +29,7 @@ export const admRouteOperationContract = {
   "batch-instances": ["admBatchFindInstances","admBatchRuntimeInstances","admBatchRuntimeView","admBatchWorkbenchInfrastructure"],
   "batch-scheduler": ["admBatchDisableSchedule","admBatchEnableSchedule","admBatchFindSchedules","admBatchRunSchedulerOnce","admBatchSimulateSchedule","admBatchWorkbenchSchedules"],
   "batch-worker-pools": ["admBatchFindWorkers","admBatchRuntimeCommand","admBatchRuntimeCommandState","admBatchRuntimeView","admBatchWorkbenchInfrastructure"],
-  "batch-center-cut": ["admCenterCutFindJobDetail","admCenterCutFindJobs","admCenterCutFindParameters","admCenterCutFindResultDetail","admCenterCutFindResults","admCenterCutFindSummary","admCenterCutFindTargets"],
+  "batch-center-cut": ["admCenterCutFindJobDetail","admCenterCutFindJobs","admCenterCutFindParameters","admCenterCutFindResultDetail","admCenterCutFindResults","admCenterCutFindSummary","admCenterCutFindTargets","admCenterCutReconcileUnknownExecution","admCenterCutReprocessFailedExecution"],
   "batch-agents": ["admBatchRuntimeCommand","admBatchRuntimeCommandState","admBatchRuntimeInstances","admBatchRuntimeView","admBatchWorkbenchInfrastructure"],
   "batch-job-packs": ["admBatchFindJobs","admBatchJobDefinitionDetail","admBatchJobDefinitionSave","admBatchJobDefinitionTransition","admBatchJobDefinitionValidate","admBatchJobDefinitions","admBatchWorkbenchJobDetail","admBatchWorkbenchJobs"],
   "batch-executions": ["admBatchFindExecutionDetail","admBatchFindExecutionPage","admBatchFindStepExecutions","admBatchRetryExecution","admBatchStopExecution","admBatchWorkbenchExecutionDetail","admBatchWorkbenchExecutions"],

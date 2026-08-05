@@ -7,7 +7,7 @@ import com.cpf.core.api.data.CpfDataRow;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.function.Supplier;
+import java.util.function.Function;
 
 /**
  * ADM Batch Control Plane Facade.
@@ -70,7 +70,7 @@ public class AdmBatchOperationService extends com.cpf.admin.common.base.AdmBaseS
     }
     public CpfDataRow releaseLock(String key, CpfBatchRiskCommand command){
         command.assertOperation("releaseLock", "bat_lock", key);
-        return executeRisk(command, () -> operations.releaseLock(key, command));
+        return executeRisk(command, ownerCommand -> operations.releaseLock(key, ownerCommand));
     }
 
     public List<CpfDataRow> findGhostCandidates(int timeout){return operations.findGhostCandidates(timeout);}
@@ -79,7 +79,7 @@ public class AdmBatchOperationService extends com.cpf.admin.common.base.AdmBaseS
     }
     public CpfDataRow actGhostExecution(long id,String action,CpfBatchRiskCommand command){
         command.assertOperation("actGhostExecution", "bat_execution", String.valueOf(id));
-        return executeRisk(command, () -> operations.actGhostExecution(id, action, command));
+        return executeRisk(command, ownerCommand -> operations.actGhostExecution(id, action, ownerCommand));
     }
 
     public List<CpfDataRow> findOperationLogs(String jobId,Long executionId,int limit){return operations.findOperationLogs(jobId,executionId,limit);}
@@ -91,7 +91,7 @@ public class AdmBatchOperationService extends com.cpf.admin.common.base.AdmBaseS
     }
     public CpfDataRow requestRun(String jobId,String params,CpfBatchRiskCommand command){
         command.assertOperation("requestRun", "bat_job", jobId);
-        return executeRisk(command, () -> operations.requestRun(jobId, params, command));
+        return executeRisk(command, ownerCommand -> operations.requestRun(jobId, params, ownerCommand));
     }
 
     public CpfDataRow requestScheduledRun(String schedule,String job,String params,String user,String reason){
@@ -103,7 +103,7 @@ public class AdmBatchOperationService extends com.cpf.admin.common.base.AdmBaseS
     }
     public CpfDataRow requestRetry(long id,CpfBatchRiskCommand command){
         command.assertOperation("requestRetry", "bat_execution", String.valueOf(id));
-        return executeRisk(command, () -> operations.requestRetry(id, command));
+        return executeRisk(command, ownerCommand -> operations.requestRetry(id, ownerCommand));
     }
 
     public CpfDataRow requestStop(long id,String user,String reason,long expectedVersion){
@@ -111,7 +111,7 @@ public class AdmBatchOperationService extends com.cpf.admin.common.base.AdmBaseS
     }
     public CpfDataRow requestStop(long id,CpfBatchRiskCommand command){
         command.assertOperation("requestStop", "bat_execution", String.valueOf(id));
-        return executeRisk(command, () -> operations.requestStop(id, command));
+        return executeRisk(command, ownerCommand -> operations.requestStop(id, ownerCommand));
     }
 
     public CpfDataRow updateScheduleEnabled(String id,boolean enabled,String user,String reason,long expectedVersion){
@@ -119,7 +119,7 @@ public class AdmBatchOperationService extends com.cpf.admin.common.base.AdmBaseS
     }
     public CpfDataRow updateScheduleEnabled(String id,boolean enabled,CpfBatchRiskCommand command){
         command.assertOperation("updateScheduleEnabled", "bat_schedule", id);
-        return executeRisk(command, () -> operations.updateScheduleEnabled(id, enabled, command));
+        return executeRisk(command, ownerCommand -> operations.updateScheduleEnabled(id, enabled, ownerCommand));
     }
 
     public List<CpfDataRow> runSchedulerOnce(String user){
@@ -127,11 +127,15 @@ public class AdmBatchOperationService extends com.cpf.admin.common.base.AdmBaseS
     }
     public List<CpfDataRow> runSchedulerOnce(CpfBatchRiskCommand command){
         command.assertOperation("runSchedulerOnce", "bat_schedule", "DUE_SCHEDULES");
-        return executeRisk(command, () -> operations.runSchedulerOnce(command));
+        return executeRisk(command, operations::runSchedulerOnce);
     }
 
-    private <T> T executeRisk(CpfBatchRiskCommand command, Supplier<T> ownerCall) {
+    private <T> T executeRisk(
+            CpfBatchRiskCommand command,
+            Function<CpfBatchRiskCommand, T> ownerCall) {
         AdmBatchApprovalService.Reservation reservation = approvals.reserve(command);
+        CpfBatchRiskCommand ownerCommand =
+                AdmBatchApprovalService.withRequestUser(command, reservation.requestedBy());
         String priorState = reservation.executionStatus().toUpperCase(java.util.Locale.ROOT);
         if (reservation.replay()) {
             if (priorState.equals("RUNNING") || priorState.equals("UNKNOWN")) {
@@ -151,7 +155,7 @@ public class AdmBatchOperationService extends com.cpf.admin.common.base.AdmBaseS
             // Completed commands may call BAT once more only to retrieve the BAT idempotency-ledger replay result.
         }
         try {
-            T result = ownerCall.get();
+            T result = ownerCall.apply(ownerCommand);
             if (!reservation.replay()) {
                 try {
                     approvals.complete(reservation, command.requestUser());

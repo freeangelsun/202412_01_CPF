@@ -1,0 +1,2153 @@
+{
+  "package_type": "ROOT_RELATIVE_OVERLAY",
+  "campaign_id": "CPF-V9-INITIAL-FULL-REVIEW-20260805-1952",
+  "revision": "REV-006",
+  "session_workspace_alias": "S05-R6",
+  "session_id": "DEVGPT-V9-S05",
+  "request_id": "DEVREQ-V9-S05-CPF-V9-INITIAL-FULL-REVIEW-20260805-1952-REV006",
+  "baseline_sha": "af12a0c8851a2e8d20e9e42964d8dacc0266af03",
+  "file_count_excluding_manifests": 348,
+  "product_file_count": 281,
+  "session_file_count": 67,
+  "protected_paths_modified": false,
+  "delete_manifest": [],
+  "git_write_performed": false,
+  "assignment_equations": {
+    "request_id": "DEVREQ-V9-S05-CPF-V9-INITIAL-FULL-REVIEW-20260805-1952-REV006",
+    "campaign_id": "CPF-V9-INITIAL-FULL-REVIEW-20260805-1952",
+    "session_id": "DEVGPT-V9-S05",
+    "baseline_sha": "af12a0c8851a2e8d20e9e42964d8dacc0266af03",
+    "assigned_work_items": 95,
+    "adjudicated_work_items": 95,
+    "unique_work_item_ids": 95,
+    "assigned_canonical": 19,
+    "adjudicated_canonical": 19,
+    "assigned_requirements": 1159,
+    "adjudicated_requirements": 1159,
+    "unique_requirement_ids": 1159,
+    "assigned_scenarios": 1368,
+    "adjudicated_scenarios": 1368,
+    "unique_scenario_ids": 1368,
+    "assigned_gates": 19,
+    "adjudicated_gates": 19,
+    "unique_gate_ids": 19,
+    "unreviewed_ids": 0,
+    "missing_ids": 0,
+    "duplicate_primary_ids": 0,
+    "unassigned_ids": 0,
+    "adjudications_without_evidence": 0,
+    "consumer_unconfirmed": 0,
+    "actionable_p0_p1_unaddressed": 0,
+    "full_assignment_builder_integration_issue": "ICR-V9-S05-S06-FULL-ASSIGNMENT-ALIASES-001",
+    "central_state_modified": false,
+    "git_write_performed": false,
+    "qa_final_status": "NOT_YET_QA_VALIDATED_ON_INTEGRATED_MASTER",
+    "source_path_missing": 0,
+    "openapi_operation_inventory_total": 407,
+    "openapi_operation_inventory_unassigned": 0,
+    "adm_agent_openapi_operations": 1,
+    "evidence_revision": "REV-006_EVIDENCE_CLOSURE_AND_TEST_API_ALIGNMENT",
+    "adm_openapi_operation_count": 323,
+    "bza_openapi_operation_count": 84,
+    "inbound_integration_request": "ICR-V9-S02-S05-0001",
+    "inbound_integration_status": "IMPLEMENTED_AND_SELF_VERIFIED_IN_REV006_OVERLAY",
+    "evidence_reference_integrity": "ALL_RESULT_REFS_PACKAGE_LOCAL_AND_EXISTING",
+    "product_test_api_drift_unaddressed": 0,
+    "workspace_alias": "S05-R6"
+  },
+  "files": [
+    {
+      "path": "cpf-admin/frontend/e2e/center-cut-recovery.spec.ts",
+      "size": 1972,
+      "sha256": "0882e920ced2af1b7a20ae88137b679a0d6b772b05581d5ceb2fbfeb714b5c40",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/openapi/cpf-openapi.json",
+      "size": 382201,
+      "sha256": "89ea915ddeea17ed81a813ff464b244741026139a4dfd33c5d1eb1ead926a35a",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/package.json",
+      "size": 3100,
+      "sha256": "0ad90668663e7b7b951ee46dcfcfae9963a73887b855da35fede0c7b1ccbdf31",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/scripts/test-adm-mfa-login-contract.mjs",
+      "size": 1096,
+      "sha256": "18ac91d71bb9ed5b81b02041b6bdfaa4ae77245d3e5ec57be56958f6ba279df9",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/scripts/test-approval-consumer-contract.mjs",
+      "size": 929,
+      "sha256": "b924ef3a893801380cd1702199b17cf62a1f35bb66415ff41c541e887ab513d8",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/scripts/test-center-cut-execution-contract.mjs",
+      "size": 3478,
+      "sha256": "ffaf0e416f2e99025aaa72530138fd81e187a11ff0c2f6d056c2cb52cbb0ca64",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/scripts/validate-openapi.mjs",
+      "size": 5477,
+      "sha256": "de6ada3439e6cb05a718fab5fdc73a43dc08e6f3a7c100200ffc8ea75fe838e1",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/scripts/verify-operation-consumer.mjs",
+      "size": 8405,
+      "sha256": "b69c338adea442ab71404af15a81a43c795cbc6964c0f4e87a9136f8f7bc40e2",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/App.vue",
+      "size": 11932,
+      "sha256": "c13b2832681fbffab831e4a400447655d8b092124c434f608345dcb0c6adf7ed",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/app/methods/accessMethods.ts",
+      "size": 13673,
+      "sha256": "357990144d76829ad2104637d30683a1a475b4e29360968f6237f822a81a27b9",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/app/routes.ts",
+      "size": 38346,
+      "sha256": "f8251cda90c39b937ed3828bcf5f739132a0d6a92f5c5c6ed94bd0fe64bdcf69",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/components/DangerousActionDialog.vue",
+      "size": 4684,
+      "sha256": "e133a027b5919039dc3ec724b646c3aedf1e7e1d7fe18c9284ef30756641050a",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/features/approvals/ApprovalsPage.vue",
+      "size": 12346,
+      "sha256": "1fd5f7a9d3aa29a4b3a466fa8fc77b77ccc9a457f600a4c631336e90d2882592",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/features/batch-center-cut/BatchCenterCutPage.vue",
+      "size": 10698,
+      "sha256": "239a8a29fdfa78b86abc2b6526dd5b007bfbacbc83a68260955b14a7eb1de0c8",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/features/batch-runtime-control/api.ts",
+      "size": 27966,
+      "sha256": "6fc0d772d871e1d1a652399cc148d96723a256e88437f75e5ae948c4f19902bd",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/.cpf-openapi-source.json",
+      "size": 38741,
+      "sha256": "226d798142640584761b8604a75055ce14e7d01214dc1757086fc2c91212bd8a",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/adm-route-operation-contract.ts",
+      "size": 11062,
+      "sha256": "ebd64720a2e1fc3db964cc230b6f09f057712339271d491a9bc5fd05071a2b6c",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/cpf-api.ts",
+      "size": 109225,
+      "sha256": "92a9c4fbe867c69642626dedf8311f7f89e3a66f29116ed575df04f75cbd6214",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/cpf-operation-contract.ts",
+      "size": 47527,
+      "sha256": "83846e8a630b2ad46295313748ac2db2fc89972e79b1714f48e2eb8873b0f69c",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/cpf-api.ts",
+      "size": 950641,
+      "sha256": "cc4f7686733a83c4ea6b9671fe99ed6fd1955580fcea3b7737a99bc41ad89d28",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admApiPermissionRoleUpdateRequest.ts",
+      "size": 171,
+      "sha256": "d7403f4dffd3c359cb0530b1fe1bea464b70af5726ef769c6addbd3f816fe7dd",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admApiPermissionSaveRequest.ts",
+      "size": 165,
+      "sha256": "7ad3a8ed6205a1fbc56f3fbfec82126412526c28ab593fb0334a83078e5c7202",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admApprovalPoliciesParams.ts",
+      "size": 125,
+      "sha256": "7f6d8ae468b9f88118cc6c75ae6d10fc9663bdd42e006ca015eeafcc935d51cb",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admAuditDeliveryListParams.ts",
+      "size": 148,
+      "sha256": "26c9bc02373749cdf0e1b205542e18b84a2bd368a8ace0fb0c091eb6af5f94d6",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admAuditDeliveryRetryParams.ts",
+      "size": 122,
+      "sha256": "e07d10e21e28d1199136a96fd9f8e7a46eb9caa3279b731fa8e28e4ceb6e191b",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admAuditLogFindAuditLogsParams.ts",
+      "size": 192,
+      "sha256": "85c1cbc8a95231960f7f54360b57a4b95ec44ad58426e3cdc65fe0bea1838297",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admAuthLogoutParams.ts",
+      "size": 121,
+      "sha256": "4905dd2363c45f12cfca1c132ade92d53454ded76e072f9f0bbaeb0e2c8cc58d",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admAuthMeParams.ts",
+      "size": 117,
+      "sha256": "ecadd13118ac838ebf2a546e99a624d9f984136c81be8d05b08ea071443b5318",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admBatchFindExecutionPageParams.ts",
+      "size": 332,
+      "sha256": "4f97c747c1efd8574d32412d7d4994f9e61560dbe4f1bc6aae92d94d37f4a360",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admBatchFindExecutionTargetsParams.ts",
+      "size": 174,
+      "sha256": "cc03d460e4075ddccd37c037b629bcc4a57d9b03c4424b1b91adb2bdf1d268c2",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admBatchFindExecutionsParams.ts",
+      "size": 254,
+      "sha256": "e05f31ffb63746af9bebe305df45c51ceb45c2abec73ac226ca8c5764301f31e",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admBatchFindGhostCandidatesParams.ts",
+      "size": 146,
+      "sha256": "6bc9979dc7f97709d3eaa859b8da6eb99249d5ca507edcd438f4699e4189f59d",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admBatchFindLocksParams.ts",
+      "size": 118,
+      "sha256": "153254c6420ac7008b30b9fd0a8bd93a92de8b9100719eaad3f8f433d92b9869",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admBatchFindOperationLogsParams.ts",
+      "size": 168,
+      "sha256": "8c1f90c04d7f6d1b022e39ed9af7c930d3b528b924fb864c1eebcd8f44c9c89d",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admBatchFindRelationsParams.ts",
+      "size": 122,
+      "sha256": "22a17959f342a54bfc309d245aebe8d4ffd06fa6b5168c0da8678586916a666b",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admBatchFindStepExecutionsParams.ts",
+      "size": 169,
+      "sha256": "480d9b33ec30e1ff6880f90ac23df5e1d0a4581fc95b32e7c92edd93323f4752",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admBatchFindWorkersParams.ts",
+      "size": 138,
+      "sha256": "4f5274f936eace10740b557a7b46dddf07cc2a24d7df9b61a3ca9fd667a3b80c",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admBatchGhostActionRequest.ts",
+      "size": 164,
+      "sha256": "d91110fdd0ba883184ee6b51805f365f1db26b98bbea6503e60dd132b57b4a45",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admBatchJobRegisterRequest.ts",
+      "size": 164,
+      "sha256": "01e4c5683364197ed7cadae2b895dcde604e330fd31976bbc6d0b950308118f0",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admBatchLockReleaseRequest.ts",
+      "size": 164,
+      "sha256": "da52ded91a83a3606805cdcb6d04ba0362ebd90cb56cab03f15bbb4a5d1d6b71",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admBatchOperationRequest.ts",
+      "size": 162,
+      "sha256": "e5770fe4f4741c563a35adb71b944c6a2f432971d484b44eed8e613f144c528a",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admBatchSimulateScheduleParams.ts",
+      "size": 145,
+      "sha256": "08f14afa6d339f961affc50f38ec06d2a76c772d15a15cf778c372f49b13291c",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admBatchWorkbenchExecutionsParams.ts",
+      "size": 334,
+      "sha256": "076d29c32ae156b12c142192ee2b8dab13d402e02aebf24894604647262d0e3f",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admBatchWorkbenchInfrastructureParams.ts",
+      "size": 168,
+      "sha256": "d56bd4272a6119a1a7c2e018ecf2f38f7ee3e10dd3ab2abf789e90a490119c04",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admBatchWorkbenchJobsParams.ts",
+      "size": 195,
+      "sha256": "5323ccc15bf450024f8fa04947936d0bd87c70fae1039d739f2b6b76f3a04483",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admBatchWorkbenchRecoveryParams.ts",
+      "size": 162,
+      "sha256": "bd3ae6c28b23e762ca76268a7278be810b2046b5f33da0bfd6223dfbc18307a9",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admBatchWorkbenchSchedulesParams.ts",
+      "size": 200,
+      "sha256": "aa3fea9af55bd0fcc4aaa34729046d69527088f76adf05f5ab572e6135681646",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admBreakGlassCloseSessionRequest.ts",
+      "size": 132,
+      "sha256": "d015efee0b9587561200d614192956ef8ba007c95e48f5d5f259b8bf148c4813",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admBreakGlassFindSessionsParams.ts",
+      "size": 145,
+      "sha256": "aed0b614c8434d2466ab251ff91f2f6f563bca761d26bb4e7685a1eeeb0b1403",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admBreakGlassOpenSessionRequest.ts",
+      "size": 131,
+      "sha256": "63e44153d389a75ef1f14db2eef2f43f89b5e58d76bdeeb09a7c67b42eeb083f",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admBreakGlassReviewSessionRequest.ts",
+      "size": 133,
+      "sha256": "8f29568cee0ebe29d4b5a99db81677798ed246318582593c9a2218d198443056",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admButtonPermissionUpdateRequest.ts",
+      "size": 170,
+      "sha256": "2003f0c4144fc8ccf089370134fc7defb744a8b1144f1cd837e05a7834100ef4",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admButtonSaveRequest.ts",
+      "size": 158,
+      "sha256": "2de230e5fd34b71b04ee08c6a717e54e148bb455f34829228a2f7c461da2eb18",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admCacheControlRequest.ts",
+      "size": 166,
+      "sha256": "954f46a1d810a1bad0f8e7f69edf4feaf4975a660e63a060855103af1bc1d88e",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admCacheEvictKeyRequest.ts",
+      "size": 246,
+      "sha256": "468ca322499eca42ce31ed166831281b442f088a8cec94d7fb74fd28a0c46682",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admCacheEvictNamespaceRequest.ts",
+      "size": 243,
+      "sha256": "d0f3a07e9a458ac8f5465380c12dee2b1b9855916af75e385652cffc70322213",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admCacheReconcileRequest.ts",
+      "size": 167,
+      "sha256": "e7aca250faef8ebcf9d1c61302ddb30d7fd5fea8117d0b603cf72c563836db69",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admCacheRefreshParams.ts",
+      "size": 184,
+      "sha256": "ffba9fd2d796452f9c090d7678b14a1407fadbe35024a2dbb946a5293580cd5a",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admCalendarDeleteDayParams.ts",
+      "size": 153,
+      "sha256": "d8fa4068c438659ec1eb1ff54700d2f24bad031f8bf32b04afd1d2efc1d22bba",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admCalendarFindDaysParams.ts",
+      "size": 152,
+      "sha256": "54597be82f53ff6f78be9d6a32dc90ed4c6a6c144e3aa61e83d0283bd4e502e6",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admCalendarResolveDateParams.ts",
+      "size": 140,
+      "sha256": "70e79de82c1dbfe786d14d41d4d079a624939950b067b7eb4397f48c7bee6794",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admCalendarSaveDayParams.ts",
+      "size": 129,
+      "sha256": "ab44d10bd0baaa0741081b6dff59b06bacf30ea9827496ec9a9eb824beccbeaf",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admCalendarSaveDayRequest.ts",
+      "size": 265,
+      "sha256": "f3d8ac77bc0c3790cf06555ed4d9066d61a43a16e7dc5718c0c621349064e9b2",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admCenterCutActionRequest.ts",
+      "size": 245,
+      "sha256": "10f20d96348aa47401595415e39827f847e2f1435ded981b34fb0a10622c0bd4",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admCenterCutFindResultsParams.ts",
+      "size": 149,
+      "sha256": "34ca36af24d20deb04db52624757102362f9c5ed8cf0e3dc11635d538232f8dd",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admCenterCutFindTargetsParams.ts",
+      "size": 147,
+      "sha256": "f3c31278be3ce0e17581c4d3d1f15382094f32277f36c5a756b6346638392687",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admChannelPackageImportRequest.ts",
+      "size": 168,
+      "sha256": "ec2d22a9e9e03228c5c0ba2cd57b9e4cd6c1b527064a56ebfec842c4c4532a23",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admChannelPolicySaveRequest.ts",
+      "size": 165,
+      "sha256": "e396a93f5d7e0aaa8b63f677e9bbadb8593804963904e01c0b07c11d5996f4bf",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admChannelSaveRequest.ts",
+      "size": 159,
+      "sha256": "9f608bb0ea7a3610928ba46fd3d8468e71e6f9ebc88dea23d6222d5e30f802fb",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admCodeDeleteCodeParams.ts",
+      "size": 118,
+      "sha256": "165392c30afa8edb56a1a78abeac4e284f04d5a8303ed147689eae8c8e4f8873",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admConfigDeleteConfigParams.ts",
+      "size": 122,
+      "sha256": "1a4a7ccbb778f0b9798ff42f58dfa19b298f6aea32c53acb26404099be17eabb",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admDownloadFindDownloadAuditLogsParams.ts",
+      "size": 178,
+      "sha256": "510a3de0494c56a384c54aeed3d15f6ed0fb807612dc01d9283e98cc042784d8",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admDynamicLogLevelRegisterParams.ts",
+      "size": 231,
+      "sha256": "0c92c8185303dcb32763626c3bddb92774b94aeb06cd5b340b2063076da99318",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admDynamicLogLevelRemoveParams.ts",
+      "size": 125,
+      "sha256": "b98ef4461ad31fd0e0e72278ceded424525594ff87439fcf2b293516dc1bce38",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admFeatureFlagApproveOverrideParams.ts",
+      "size": 151,
+      "sha256": "964b95575f31fe00d6c4f23ad1688314f902c57482f9033f1cfa00c53454caa8",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admFeatureFlagApproveOverrideRequest.ts",
+      "size": 180,
+      "sha256": "3a02f7850c6b9c94fe22d16571a684830be26c2787217a730f7cae28ff098f6b",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admFeatureFlagDecisionRequest.ts",
+      "size": 116,
+      "sha256": "a329028b2138fb74fde381a36a2da8843ef841dd3a95dd4c817c1718be123f69",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admFeatureFlagEvaluateRequest.ts",
+      "size": 267,
+      "sha256": "63a7e0fb7448ffe3f82c74716b6ba7a9e6e070c8df6ab643cd831b8c9a5b9dec",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admFeatureFlagKillSwitchRequest.ts",
+      "size": 132,
+      "sha256": "44cddbebf8a823335ce8d10521adbe5c67a70d57b7ad863a329c1553f553eb36",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admFeatureFlagOverrideRequest.ts",
+      "size": 264,
+      "sha256": "c043d9a115438c4041f098a0dddfb48129df7fa944fb32e999e7c839b79e611c",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admFeatureFlagRequestOverrideRequest.ts",
+      "size": 262,
+      "sha256": "573ee8f714952467fff344c11363390273e6b2a5b6d7c76456dc87042c7e9a9b",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admFeatureFlagRevokeOverrideParams.ts",
+      "size": 150,
+      "sha256": "bed4873ab5d0dc6a5bb2cf9e8b206b437b8d82f5c5cf4e42e7ea284ba448547b",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admFeatureFlagRevokeOverrideRequest.ts",
+      "size": 179,
+      "sha256": "6f46b1ff86366a59dc6f1f30694d253377599ee93f37cf3c11a2296587e0eb9f",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admFeatureFlagSearchParams.ts",
+      "size": 155,
+      "sha256": "85fd6d9c065076f0ca0b8c4b62ea958a36ae1b21ffc26dc79edfd83f4d6bb902",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admFeatureFlagSetKillSwitchParams.ts",
+      "size": 149,
+      "sha256": "f8f0b4dfeec4b1ddb938bef1e089663b38993dad0e33d793319648a4341f98d9",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admFeatureFlagSetKillSwitchRequest.ts",
+      "size": 198,
+      "sha256": "6824f1b60e0596d43f424095bef8c1ca85028210d9ca3b31ac2e7e35a05bb7ce",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admFileJobApplyRequest.ts",
+      "size": 189,
+      "sha256": "708582e5c50085f7f38318c895ec7ffccc67f5a1f22c74e66ee04ba491e85c8b",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admFileJobCancelRequest.ts",
+      "size": 190,
+      "sha256": "07e926f1b35952c1a68cee46ca8269ffe45cabb79f0d89e3be7268163f097c8b",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admFileJobListParams.ts",
+      "size": 115,
+      "sha256": "cf3e7a1f67db2acce8470eb9339418fd36c7dc00eb5b71b6e301b1b1f655100d",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admFileJobResolveUnknownRequest.ts",
+      "size": 366,
+      "sha256": "95cf6657d7080d1f0b131949e9065bacb1082aac962591ead0b4a0d957778384",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admFileJobRetryRequest.ts",
+      "size": 189,
+      "sha256": "7a1fd4828c78a708b47bfdf34800f11d46a45965e4beaaf052d47033cb3daa7a",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admFileJobRollbackRequest.ts",
+      "size": 192,
+      "sha256": "a954cdd99f248c5f6ce5bbe961315828e0e351fcefa63d8b323cb9d83db8e628",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admFileJobUploadParams.ts",
+      "size": 229,
+      "sha256": "933f3dc09ba30f967d2dc068b45e7d6d1ff463bb085871abda397c4406f507c7",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admGatewayFindApplyStatusParams.ts",
+      "size": 126,
+      "sha256": "14f12baef1db85674ac20e3b5b1557061ca870a6a924ea6ac306515ae0783999",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admGatewayFindBindingsParams.ts",
+      "size": 190,
+      "sha256": "8627c55ff32b0b23abfd8069d2eba7e661fa50f116f106645276323a775888d0",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admGatewayFindConnectionTestsParams.ts",
+      "size": 130,
+      "sha256": "cbb3efedc9359126f15b646957f6653a0595afaa8a9dc63db9ef615207cb2913",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admGatewayFindServerGroupsParams.ts",
+      "size": 196,
+      "sha256": "abd4e633b4cf585f6fc0a7e1e035b1ec19af05a2e85e455805f3b56f1043ec26",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admGatewayOperationsEventsParams.ts",
+      "size": 152,
+      "sha256": "7c10f9d0b39a1c22053565185d821e100d282b2639f4dde1b33aa2510974383b",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admGatewayOperationsStreamParams.ts",
+      "size": 162,
+      "sha256": "9ecd25a8c5ce50120b063e2377a7c2bfb440e0b6921434e05c23c073f30c195d",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admIncidentCreateIncidentRequest.ts",
+      "size": 132,
+      "sha256": "36fb96b69875e7580ae3ddaa847b8ca2700d6d0d8efde979cbd490e1db5fc11c",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admIncidentFindIncidentsParams.ts",
+      "size": 160,
+      "sha256": "7322da681e0a366eb537d1c9b0b00f519661308f0fda916f359b59fc7f18d3a0",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admIncidentFindMaintenanceParams.ts",
+      "size": 143,
+      "sha256": "de4ecce04ca4400cc3e25506b8f211fb5832c27374de9be9737ed7ec163339ae",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admIncidentFindPoliciesParams.ts",
+      "size": 140,
+      "sha256": "8d21b394b2ecb71b92bad3a93018dc4c866e0bcb141d2e7237677c61956671e8",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admIncidentTransitionIncidentRequest.ts",
+      "size": 136,
+      "sha256": "4f44da826c8077a164ba19ef3fd76c45d9b137b96952c8444bc923902437d007",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admIpAllowlistRequest.ts",
+      "size": 159,
+      "sha256": "3e35113da58e1cac3bebdaed7ea53a981a1d12f46df468f794c27fa538a4b8fa",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admLogExportRequest.ts",
+      "size": 157,
+      "sha256": "cd84f1dbb2f210b9cde86c84882abdee92455d66e4b1f9b5ba5235aea74f8086",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admLogFindLogsParams.ts",
+      "size": 436,
+      "sha256": "77bd44a17a8c63c90fd1e77832063466390fb6ad0076275c836e541138833727",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admLogPolicyAuditFindPolicyAuditsParams.ts",
+      "size": 245,
+      "sha256": "bab304fb8edbadaa4c7e4b46b07665d98b3bd4338b16e1fa7a473f4a1c1d59b3",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admLogPolicyClearCacheParams.ts",
+      "size": 123,
+      "sha256": "28a48f383b7accea613ddd81d5257ca2c7d46e45a0a68f7f208e1f3f405f4804",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admLogPolicyDisableOverrideParams.ts",
+      "size": 128,
+      "sha256": "37bf4913d058403f4ceb6c90521d41cd22d3d308a41631491e647d2123076314",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admLogPolicyDisablePolicyParams.ts",
+      "size": 126,
+      "sha256": "cbc682971fc33c3ff96481817220402bae4cae9c64439a3d8df98ee2eff7d2f7",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admLogPolicyDistributionStatusParams.ts",
+      "size": 175,
+      "sha256": "8698154f244dc6fb5e08dea4b3ec05546232719e8635e71c0009418e9da54df6",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admLogPolicyFindPoliciesParams.ts",
+      "size": 190,
+      "sha256": "080ccb13159d261fe324d6c24ecfe2651fc13fc07058d6cb823f53474c1cbc35",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admLogPolicyFindTraceBoostHistoryParams.ts",
+      "size": 134,
+      "sha256": "b2e47c30a38227af442c7d2f65f1c04cfc384483cdd6d846ac98b0793576dff8",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admLogPolicyFindTraceBoostRuntimeStateParams.ts",
+      "size": 139,
+      "sha256": "6566990c47338557756f2f82e172f01d5136b3e43621aff576dae84b535517e5",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admLogPolicyOverrideRequest.ts",
+      "size": 165,
+      "sha256": "df3acf687bf893607f91e43efbac939bf743ff7bf0561dd71af038f8137b9824",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admLogPolicyRefreshCacheParams.ts",
+      "size": 167,
+      "sha256": "447d70dca9a3d06fbf90acd7e58b9491af5d3bc78808680e5a198cfab729a46c",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admLogPolicyRequest.ts",
+      "size": 157,
+      "sha256": "89de4582041dd314270136511f08e7b7104dddd078de82e2394ef88b767dcc5c",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admLoginRequest.ts",
+      "size": 153,
+      "sha256": "5326929b009f3744c6deb8e2e3fbd0f3914d7e0cdd31de08b8f40d30fc847397",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admMaintenanceExecuteActionRequest.ts",
+      "size": 134,
+      "sha256": "00211b85389bc33e523ad5271cf06a2ec1526810aa19f7ae02064c8b57d0eb0b",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admMaintenanceFindActionsParams.ts",
+      "size": 126,
+      "sha256": "96f14bbd2ebcbd6aa551788147dbe2c13cb5d16256bfc60caafe58a58116f9d7",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admMenuPermissionUpdateRequest.ts",
+      "size": 168,
+      "sha256": "5afe33932ff51f47fafd878119a810fd709672f6ce1290c74fadf4781bd75487",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admMenuSaveRequest.ts",
+      "size": 156,
+      "sha256": "ad005e9f4270e60432a5c398037fb98dbce287088eebdb37f8c17f4f750ccef6",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admMessageDeleteMessageParams.ts",
+      "size": 124,
+      "sha256": "cf0da824c46fce9e605642489f9cf3d808dcac6fe10b38c5e7897820c3da5d82",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admMfaOtpRequest.ts",
+      "size": 154,
+      "sha256": "47df5ef424106d4fc18a88acd6917fe3b5d146a430c4151b2f89a8e71a715b91",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admNotificationCancelDeliveryParams.ts",
+      "size": 157,
+      "sha256": "d299adda411ddbcea7fa75442b23535ed2284beb9682c8e569254f9da5ca6497",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admNotificationDisableRuleParams.ts",
+      "size": 127,
+      "sha256": "df407188be7997b557ff7f1340b548d66f94ed688cbcc3574fb7d3fba7e2f497",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admNotificationFindDeliveryAttemptsParams.ts",
+      "size": 136,
+      "sha256": "c81f207543d7e7597c797eb87e55cafc9fece89800ada01675df6a10003c74f0",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admNotificationFindDeliveryLogsParams.ts",
+      "size": 132,
+      "sha256": "0cb79e922076830e2259f53d2a63dace4d36d4ce1fe93ecbb78dd2daf22c0028",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admNotificationFindDlqParams.ts",
+      "size": 123,
+      "sha256": "22efd22f995a5978def02aa7af6553c704ce8bde91a986d3d919a64aca4e1463",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admNotificationFindRulesParams.ts",
+      "size": 125,
+      "sha256": "a45794982dd2aea155d77b87df28f2cc30827af1423c8d70544353801209cb59",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admNotificationRetryDeliveryParams.ts",
+      "size": 156,
+      "sha256": "fc7920cc14f67325899715996456a48cfb2e4ae3be88c8f4d41949fe402b8aec",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admNotificationRuleRequest.ts",
+      "size": 410,
+      "sha256": "4b98b9baf5e7776dc5a6f80166d9f1cfc6d0d50d54a030d07deb5b767c9f874e",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admNotificationTestSendRequest.ts",
+      "size": 285,
+      "sha256": "595564053bfc3f9def5651943a1fd60f37ca54c06b1a6d9f19be30dfa3d2d046",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admOpenApiRefreshParams.ts",
+      "size": 139,
+      "sha256": "ad9ce19cb93807aec6835d6a6635c8ba87523ff3b577270246452e06b0d79546",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admOpenApiRefreshRequest.ts",
+      "size": 184,
+      "sha256": "a88367949c2d9d87af9767a13d8a77b65a8ac5edaa82a4ae7338fc821a9ebf80",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admOperatorContactUpdateRequest.ts",
+      "size": 169,
+      "sha256": "0b542ba9bef1a3e7fb0171e366cfe54c7f6603a03468fc9728494863257abbb2",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admOperatorCreateRequest.ts",
+      "size": 162,
+      "sha256": "7a323e7134d76283f8c030fbf5ebba29050bd073573f43ea5e3562d40ce70a4d",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admOperatorPasswordResetRequest.ts",
+      "size": 169,
+      "sha256": "0a3122e9c22c5fdb9db84b35023c3e2838625147e48d9fa5228dc2e5349e28e6",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admOperatorRoleUpdateRequest.ts",
+      "size": 166,
+      "sha256": "2b617cf04d4428ea7bdc5d0f37c683cd26b8c1b1556b681c7ad382e4dd423b3e",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admOperatorStatusUpdateRequest.ts",
+      "size": 168,
+      "sha256": "35c4d3cf9648eded706fabaadac58e71b894e23229a8b9396daa620b8a49a0bf",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admOperatorValidatePasswordParams.ts",
+      "size": 130,
+      "sha256": "b6dfd2b8da49c545792b3de9707ce4525a6368beb2f84d15a74b771c5d045d9e",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admParameterReferenceSearchParams.ts",
+      "size": 230,
+      "sha256": "25a3be52544c8690b2e43871de00262783bc947c5a1ae7f7d7d68f32d77bd71e",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admPasswordChangeRequest.ts",
+      "size": 162,
+      "sha256": "4d08da4785869a68fd818a6386e1422e3d2eabbefb8f4dca7b30668417daa674",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admPermissionFindButtonsParams.ts",
+      "size": 126,
+      "sha256": "500cd176b2a268fca9e1acbb60029e7e18e1dfe0a0393efd3f5a4f8733fe9d10",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admReliabilityActionRequest.ts",
+      "size": 216,
+      "sha256": "1ad2639ae997d963283a4d75338a725f166da4d4432fa7ba3702c96eaa52dbb5",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admRemoteLogBundleDownloadRequest.ts",
+      "size": 208,
+      "sha256": "4e62a986317409e3b4b11dca73d43e1ff67ed47d4b09e4bff864966bfa5c41be",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admRemoteLogBundleDownloadTokenIssueRequest.ts",
+      "size": 187,
+      "sha256": "5520e8c6606846a7762e649a7b3261f2c3838d669561f1d1c2abee33765d32d9",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admRemoteLogBundleJobCreateRequest.ts",
+      "size": 209,
+      "sha256": "4513047d1c7bc622d04dcad02497f690f302e47f396904668c48a80efa67605b",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admRemoteLogBundleJobDownloadParams.ts",
+      "size": 147,
+      "sha256": "e2f2e7f69c6fcb87fe50b57587351eda83b3bdd924abdabf36018653071ca0ad",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admRemoteLogDownloadParams.ts",
+      "size": 121,
+      "sha256": "33952e609ed43f8a683f2bc087c461b19f9401545449d93c2980ccbffcb90966",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admRemoteLogPreviewParams.ts",
+      "size": 144,
+      "sha256": "992ae23e486bcf5748d3c12438370282ec97835963834f7787058c0ea3e7b5d7",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admRemoteLogSearchParams.ts",
+      "size": 591,
+      "sha256": "2198119a286e8aa555d952e84a6e439d114ede93482d344fc038f0b14bd5ffd1",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admResilienceDecisionRequest.ts",
+      "size": 123,
+      "sha256": "3931d5821a38f998ba559f6a3833cd3129af01b8be5545c8b34158e9e83c81aa",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admResiliencePolicyApproveParams.ts",
+      "size": 148,
+      "sha256": "0d697967d7e732e45a66c72f26406ce29a536367cdfd05a8f4e40450fab65004",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admResiliencePolicyApproveRequest.ts",
+      "size": 177,
+      "sha256": "4403f39573db93220fa747d8b1b9df3dc24d0a9af93225fa034d9d3eb0c657a6",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admResiliencePolicyRejectParams.ts",
+      "size": 147,
+      "sha256": "70ba8eb51c14dd48975124ca0c282d25d2ac2e8a25cdcdcd242531a217f323ad",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admResiliencePolicyRejectRequest.ts",
+      "size": 176,
+      "sha256": "626622310633231976001577818f05fc9d0266f07dd0895096b7626f5d02b7e5",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admResiliencePolicyRequest.ts",
+      "size": 445,
+      "sha256": "28631545564016528f59f2bd3685c3d5883f2bbd697d499accc2b39758b8ecd8",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admResiliencePolicyRequestRequest.ts",
+      "size": 486,
+      "sha256": "eda8af92f5bf7f90aaf836aae270a71d5576402f4d4d07be3758fa8c631ea677",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admResiliencePolicySearchParams.ts",
+      "size": 160,
+      "sha256": "67c3c2ea822737df06ddc049f4fb88347035d5163cd7feca52db053069afa889",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admResponseCodeCreateParams.ts",
+      "size": 122,
+      "sha256": "eb391eadb4c5ee97c442a7254d5cc8c322b947d1dced83e13a07324fa6816e1e",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admResponseCodeDeleteParams.ts",
+      "size": 122,
+      "sha256": "87f83fbf4990a4f37c449ae016225fc5c4994d20a3dbf040118dcf0f4c4e0480",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admResponseCodeUpdateParams.ts",
+      "size": 122,
+      "sha256": "10f4f366a93ff52565d9ff424a2507ff8a5ddc541d58d5edaeeec83eac6beeb3",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admRoleSaveRequest.ts",
+      "size": 156,
+      "sha256": "4f0e319c7ca1daf9b3f9c4b3e60a1fd15dad29c8f201ca9898505e7dc40ecfe3",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admRuntimeControlCancelChangeRequest.ts",
+      "size": 204,
+      "sha256": "b1dc6a3c15850c4533e15342057fbf2d058cc03ce3026caa9d7443cdbee6f038",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admRuntimeControlChangeGroupMemberRequest.ts",
+      "size": 271,
+      "sha256": "745f7f92397455c13a8ef0f9169f30eeec86aedfe8a6986246bc5e99d07dd384",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admRuntimeControlCreateChangeRequest.ts",
+      "size": 659,
+      "sha256": "6a3c2c0e380e1a6d5f92ef2c6e93cac44c9ac24623dcf514b31b5f1962cc9269",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admRuntimeControlDeleteGroupParams.ts",
+      "size": 179,
+      "sha256": "2d058f23f7aafd03d47f22530ece861b7c21f1cac721b9a8252602416d4b1d8a",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admRuntimeControlFindStatusParams.ts",
+      "size": 156,
+      "sha256": "d9d899b6f98188b25b213782224879dc6621e6fb46a15d1cf96d7ff27009c76e",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admRuntimeControlPreviewChangeRequest.ts",
+      "size": 660,
+      "sha256": "2b7e3e512eeb9d33e6b7dbe25541a9a4833ae456663558ec2e9744a10434bb90",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admRuntimeControlPreviewTargetsRequest.ts",
+      "size": 332,
+      "sha256": "93913ec2f017773a719a9176e7d55ca02e6c43c053367394a67a1b12b215b9a1",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admRuntimeControlRollbackChangeRequest.ts",
+      "size": 206,
+      "sha256": "538a67770ca779c7155ad49de442768795f91a5517707cde6ebb5096615439d7",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admRuntimeControlSaveGroupRequest.ts",
+      "size": 364,
+      "sha256": "a940ffb2521a3d832c2d9ab6536a6bacbc575651ef9d06cb7533db18fec2d86b",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admSecretFindMetadataParams.ts",
+      "size": 139,
+      "sha256": "1216c3880cd6ff7fd4f2530601ace8c184d0807f277a6977aa3d3b4f971f5360",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admSecretRotateRequest.ts",
+      "size": 203,
+      "sha256": "719ef7510f2c1b53a1a170fd70a897db9ef966358d3f76f58e049ab4907f5457",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admSecurityDisableMfaParams.ts",
+      "size": 122,
+      "sha256": "a49135434836a40d810c91ca80708411f979f209a1cb2cefe1f3ca2ad9600ba1",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admServiceRegistryChangeInstanceStateRequest.ts",
+      "size": 328,
+      "sha256": "400c83a824544333d0abaf38517ce3e2262a5d6076bb4448faec397871950cd4",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admServiceRegistryFindCallHistoryParams.ts",
+      "size": 182,
+      "sha256": "784c1eef54cc6c1b43a573bd11344c85e9e2eeb6f6fa3f95201339962f273aa9",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admServiceRegistryFindCircuitStatesParams.ts",
+      "size": 183,
+      "sha256": "259cb12d0a2528fbead094dac31e558ba44d6fdedd67db9eb4645fe33068959d",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admServiceRegistryFindEndpointsParams.ts",
+      "size": 197,
+      "sha256": "cdff5705348bb4f86a1a6ca49e48701259b9089be9bc3bf493c0cd58fce152e2",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admServiceRegistryFindHealthParams.ts",
+      "size": 176,
+      "sha256": "449bcea81c608723844a2c569b067ac7aa95a15a2e338189ae150ec308d183fc",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admServiceRegistryFindInstancesParams.ts",
+      "size": 198,
+      "sha256": "05836e9c74e582289ee78ac4d7ce783fcbf9309d3f4f7d9c7df725e48f38ef7f",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admServiceRegistryFindRoutingPoliciesParams.ts",
+      "size": 206,
+      "sha256": "b9b30b8ff00d5db9e3e50f46ac486ac14414ab13a51e524b33e1f9fb743fc091",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admServiceRegistryFindServicesParams.ts",
+      "size": 171,
+      "sha256": "7c75b3063086144e9e6fb7ecef5290c5cabb1f9cc1f02e24804f17243b3ea943",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admSessionRevokeRequest.ts",
+      "size": 161,
+      "sha256": "fa5af1d52ed151b154d6ea06559bc8f004ea5fd3689e1b3adecff7001fed58fa",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admStandardExecutionFindAllParams.ts",
+      "size": 171,
+      "sha256": "9932e92748aba6d528dbbc90b6b17d93048c9bcca47e4c25cddf6d5e36281952",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admStatusUpdateRequest.ts",
+      "size": 160,
+      "sha256": "87caa875aa848321461ba5c00ea6c854e34c987c3cde1b2bb9f530d11604f1d6",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admTraceBoostRequest.ts",
+      "size": 158,
+      "sha256": "cf0c232ac9ef7ccee2d2ef6bf4d2621620493ade48766f250a2e11951a611b8f",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admTransactionGroupFindGroupsParams.ts",
+      "size": 148,
+      "sha256": "7888f286a30b23f5d60bf9cdefcbfbc1798f1267d07d06076ab0c2b92f6ad029",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admTransactionMetaFindPageParams.ts",
+      "size": 213,
+      "sha256": "79ca63b6aecbca70fabc11e6af5406d1d13f5f272abb4d2b9cc4453b6207f2ac",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admTransactionMetaFindTransactionsParams.ts",
+      "size": 205,
+      "sha256": "5ce967adb2ecfefffacca3bab052543962e44fa138c3802bd01e78440caaadf3",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admTransactionMetaInactivateParams.ts",
+      "size": 129,
+      "sha256": "41858eeff16741772ccab70c81d181903fc8feecbfff60ad862d24315d054d22",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/admTransactionMetaScanParams.ts",
+      "size": 123,
+      "sha256": "ca17813f81b853ea451ae6d16edbd148167b50875ddc9a41a642f9ad3345ad31",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/bindingStateCommand.ts",
+      "size": 157,
+      "sha256": "648c42f192ae75d03b2536826fd0d83b38da4b31cf89c1de23359d4f9a58e8f1",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/commonCodeRequest.ts",
+      "size": 315,
+      "sha256": "d0fca49efa08b470a7b4acb8086a426a4950e9b7e8e6d03cb67eca2d63888240",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/commonConfigRequest.ts",
+      "size": 395,
+      "sha256": "86c5af9f561c57d789672a2e9156ceab07c6991f3835fdc69ff74b372ce81385",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/commonMessageRequest.ts",
+      "size": 504,
+      "sha256": "8855e6161b0c5eaac091ca57fca3561fb571a61e1367a8758bf7092bdd80f95d",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/commonResponseCodeRequest.ts",
+      "size": 388,
+      "sha256": "0fc6d6a923d19b5694138704c82bcbc1ffb77cb050ee987efb534084abbba21a",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/connectionTestCancel.ts",
+      "size": 158,
+      "sha256": "c7925ce65ddf4aa8dc51b9455688078ebf9abe01383eef77550e4271d3b9a1cf",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/connectionTestRequest.ts",
+      "size": 159,
+      "sha256": "6383289abcf2cd8bae7c9b1f662cbc29c2dbe4b2c2def63fcfb49f4ef2a289bf",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/connectionTestRevalidation.ts",
+      "size": 164,
+      "sha256": "828a5e57c58144f70ce4f95f10edf58af8cdc16b9a0896eb139ef28dea598d85",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/cpfControllerSourceResponse.ts",
+      "size": 127,
+      "sha256": "221348086f3f9c8bf4270e03d584a3e52ab13ccbffd8fd5775d896a2fb171df5",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/cpfLogLevel.ts",
+      "size": 95,
+      "sha256": "a1fd1996afe2820949643c0a7273b3beea1808254b3d25d9fdbd81039d1ba3fc",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/cpfRuntimeActualState.ts",
+      "size": 185,
+      "sha256": "6536d576e868fceface34d1c3be4bc8db553208a1164521ef5098a16e586bf56",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/cpfRuntimePayload.ts",
+      "size": 124,
+      "sha256": "b51cf215919c612abb0763de06ea5bd93fce0cf7660ff0c2a4f0176acf25199d",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/cpfRuntimeTargetSelector.ts",
+      "size": 376,
+      "sha256": "210355188589710adc8cbef14547b77aaa17f9becf940a96d5a88e75305d5b45",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/cpfSensitiveDataAccessRequest.ts",
+      "size": 167,
+      "sha256": "02a84adaae73f1852cce155093e5845dbfd5e0a58fa7bc48314b0cfc3a2e39e8",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/cpfTabularFormat.ts",
+      "size": 85,
+      "sha256": "cbf7fa20523bd437b74eb3650b5a7bbde6e23a9f943a90f7deff0c46a8600543",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/decisionCommand.ts",
+      "size": 153,
+      "sha256": "3ac447ff8d04cfe2b4b73e0e24e77841e1d49cec264b45671fcd75d91dc69c89",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/deleteCommand.ts",
+      "size": 151,
+      "sha256": "10d9506967cc4a222152db4fdb9497a9e4487e63c0f443dc4bbe2297ddb77660",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/downloadRequest.ts",
+      "size": 153,
+      "sha256": "2f642baa0fde577b500c475e2d5553360a30ea33e8d8adc84925749219122c91",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/endpointDefinition.ts",
+      "size": 156,
+      "sha256": "6cd3f73078894cc282da20be0f48d273104de0dc713a442a85ddbd1b7232a21d",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/findAdmBatchJobInstanceLogsParams.ts",
+      "size": 228,
+      "sha256": "937af8405d48bfe7f3d42336c0e8e340abb6076a0de78470159c950ae1d7e38a",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/findAdmBrokerDlqParams.ts",
+      "size": 180,
+      "sha256": "1c6af9fe0727c203ca3defd26fa01ac23d04760b8adda553c1433a66cce812bb",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/findAdmBrokerInboxParams.ts",
+      "size": 154,
+      "sha256": "c6d25f513c291fd24841d59e280a41c0e844f9f7f2404749fb90d7a26a93175a",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/findAdmBrokerOutboxParams.ts",
+      "size": 183,
+      "sha256": "2de46bf97787f9aa14e0d564cab4b5bd5f0f8c55c3d9bdc333a097de18a93548",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/findAdmFileTransferHistoryParams.ts",
+      "size": 197,
+      "sha256": "6b762e8566c216c73866a2a05dfa46c1ba8af2f4f6e9d91f7df9e7f0d0867da3",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/findAdmIdempotencyRecordsParams.ts",
+      "size": 179,
+      "sha256": "f3aa5f598ebe8a7ed718c85072a2679a02a1d04721cb63f44ece02d13128d3b4",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/findAdmUnknownResultsParams.ts",
+      "size": 184,
+      "sha256": "93e2eed9e01e7d778ebd042d9ae2e231cb7971968667dc6fc8f105b858a03bf8",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/gatewayBindingCommand.ts",
+      "size": 159,
+      "sha256": "603685818a6a15b43eec5419de5fa513dadf4ed4dc482ba4c583f56c0bba1ca8",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/getAdmBatchJobInstanceLogParams.ts",
+      "size": 159,
+      "sha256": "1852b276b9b07c518cc21768e336a0017e3350c9e24b15f49e58ddf27ab3c8aa",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/incidentActionRequest.ts",
+      "size": 159,
+      "sha256": "288052e67f6b367854e5f3c7fb8275e3ef0cab0863bfae116bbf0ee7ee1084ff",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/index.ts",
+      "size": 10446,
+      "sha256": "fef5458c9263562a0759af4e5c997d92e4f8efe0e062c61958f665290de906ea",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/instanceCommand.ts",
+      "size": 101,
+      "sha256": "c221cec3cb92211111257cd55888cebd2288d98cf52ddeaa17a800274792cfe4",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/instanceDefinition.ts",
+      "size": 156,
+      "sha256": "865be9232030908a17a65fe1e28847723e0d6f4c4afb1a50f8447cc8e4223116",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/maintenanceSaveRequest.ts",
+      "size": 160,
+      "sha256": "e9cb1843e7b752942d0549e6514eb536c9c6977e20919319ad639aa9d647aaa5",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/policyCommand.ts",
+      "size": 151,
+      "sha256": "773c1ffccfeb3ffafbbfe6da79929fd4f98d503b014c730ec98f393c9d9555f8",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/policySaveRequest.ts",
+      "size": 155,
+      "sha256": "b6f6e1bddca3ebf5fb6882d5047f4e730e47fadaa5451fb397c64844b76f8ebc",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/recoveryTarget.ts",
+      "size": 86,
+      "sha256": "144265675f42df7654a006e909b146fe1ad4b0f403a74c768bc8e31ca27d5f59",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/requestCommand.ts",
+      "size": 152,
+      "sha256": "fb7786d71656b5ada19254791202c2571b41a4bdc7829d7a3ad3c964f02727d2",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/serverGroupCommand.ts",
+      "size": 156,
+      "sha256": "88c02fa50cb4b18bcc21b025247b0607d4b9d0215bbe13c031ef2c9a7425e1ce",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/serviceDefinition.ts",
+      "size": 155,
+      "sha256": "a3dc3739938965375b7a81b6a6990a36ba991486721a9783b9dc7be92133a70d",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/signalRequest.ts",
+      "size": 151,
+      "sha256": "648ad4071075621352b9ccb3e96ffe6bfe3aefc8e35287ef53fa20d5e1d65e4c",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/traceAdmByBusinessTransactionIdParams.ts",
+      "size": 132,
+      "sha256": "f71586f1a99559c3bd5e33fa71072503bebad6395b29751f79c21d30b2b024d7",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/traceAdmByTraceIdParams.ts",
+      "size": 118,
+      "sha256": "39eb15da7244504af6bfe8d5c92008b20d34b40f471f2c8eb26f4404a05dee65",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/traceAdmByTransactionIdParams.ts",
+      "size": 124,
+      "sha256": "886939464e0a8305b9cc555e63ffc406ceea7398c78d3b36f7d620d116d6e12c",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/generated/orval/model/unknownResolution.ts",
+      "size": 161,
+      "sha256": "692414f98f69965efdbebca93cecbcc3ee96405d65fe3cbc6c90bde306d141ad",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/frontend/src/state/createAdmState.ts",
+      "size": 22782,
+      "sha256": "ad1ee794eedee29e28978753e19adb676e93f7272c91a4740993b5cbb8c38561",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/src/main/java/com/cpf/admin/approval/owner/BatchRuntimeApprovalOwnerCommandAdapter.java",
+      "size": 8947,
+      "sha256": "73e310cbb61f0d6a4f9b2ac7ac29915f85bc2a5132f62f93cfb196dd003eeda0",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/src/main/java/com/cpf/admin/approval/owner/CenterCutApprovalOwnerCommandAdapter.java",
+      "size": 7334,
+      "sha256": "934fcf5c231fb35f9462fb46cb9fb88865ca941a246b8a50b2aa58f084764b83",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/src/main/java/com/cpf/admin/approval/service/AdmApprovalService.java",
+      "size": 28718,
+      "sha256": "251c34d441b4c3470787fe6cde474f7a91b37ddf0a2a58f63fa0e46596e277ae",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/src/main/java/com/cpf/admin/opr/batch/RemoteCpfBatchOperationsAdapter.java",
+      "size": 13960,
+      "sha256": "7b74e0022937bbc176270335da9889377f5eda837ae54d3077b79aee3d112cca",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/src/main/java/com/cpf/admin/opr/centercut/AdmCenterCutCommandClient.java",
+      "size": 444,
+      "sha256": "2f1a6f9de5b3b91838f0e6e495c2f6476937e888c8de523f1d07ace04f97449c",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/src/main/java/com/cpf/admin/opr/centercut/RemoteAdmCenterCutCommandClient.java",
+      "size": 6012,
+      "sha256": "91185c70eb5d111f43b1f7e881b6c6573c3b9150e070d85cf7ed9d161aab9853",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmApprovalController.java",
+      "size": 3628,
+      "sha256": "20c08ee6f7ce0b77264b9511fc523014a7621e0ddd59f7de4265af80ec7e83b5",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmAuthController.java",
+      "size": 4262,
+      "sha256": "0c947ab4d6ddf59e389276682979b435d6b531bc2a7299a3dc20b2eb7b3f27d9",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmCenterCutController.java",
+      "size": 10062,
+      "sha256": "036570475e18da0709bf7b3b23a5318fd61fae1985b3725f030d9edb069c95b9",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmSecurityController.java",
+      "size": 7124,
+      "sha256": "c50b95ef7539b34039ac48ded137d60871051d6f90eba1e2d53ff26a4f2921e1",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/src/main/java/com/cpf/admin/opr/dto/AdmCenterCutActionRequest.java",
+      "size": 701,
+      "sha256": "89ca4e30c93b2ff9ee398d859dca89adb15d7419051cb68d198df06b7f1158f5",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/src/main/java/com/cpf/admin/opr/dto/AdmLoginRequest.java",
+      "size": 509,
+      "sha256": "358ef3ebdacb15d71ab1be30102d19da4db07fbd1a9a0528bd6e238d35790636",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/src/main/java/com/cpf/admin/opr/security/AdmTotpVerifier.java",
+      "size": 5151,
+      "sha256": "63351ce574811e9a8788952b671694d8f97a579b34cb550fd3df6f7b4d3ecdef",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/src/main/java/com/cpf/admin/opr/service/AdmApprovalEngineService.java",
+      "size": 42878,
+      "sha256": "fd346ea20754d0b0b0e0ef8c9bc40325c77bf39b1521102e9bb724adc87eb040",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/src/main/java/com/cpf/admin/opr/service/AdmBatchApprovalService.java",
+      "size": 12654,
+      "sha256": "80f950c7fdbfdc5d558d99d746ec2d05ab2f8130344f2c83fcae3bde7cc076e6",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/src/main/java/com/cpf/admin/opr/service/AdmBatchOperationService.java",
+      "size": 11051,
+      "sha256": "d99e718d025321ca947321edb25a1caa7b98a7ac64d661cd92fc0cb7397460b7",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/src/main/java/com/cpf/admin/opr/service/AdmCenterCutOperationService.java",
+      "size": 4822,
+      "sha256": "0d7d07b2eeebf1d283c36ddd7032e999edd7875aa44a8b05be2a4c1c76cf55d7",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/src/main/java/com/cpf/admin/opr/service/AdmSecurityOperationService.java",
+      "size": 11073,
+      "sha256": "97600d4feba0892b4dcb44ce35e13196255792b8876d4ef6f61a0dc19e8b241b",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/src/main/java/com/cpf/admin/opr/service/MockNotificationSender.java",
+      "size": 3512,
+      "sha256": "4c2fa416a5cb1c67233445579cd894705ecfa7861ba1db96d2625f918b24ea03",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/src/main/java/com/cpf/admin/opr/service/NotificationSender.java",
+      "size": 729,
+      "sha256": "ee85e88d828c38d027e24c39019dccb03fbc8441baaeb379e60f058c1e8f1383",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/src/main/java/com/cpf/admin/opr/service/UnavailableNotificationSender.java",
+      "size": 1810,
+      "sha256": "5cf295a7f4952f66f5090d324091aa4cd7804b4b9f6f58434f29282fdff563a1",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/src/test/java/com/cpf/admin/approval/api/AdmApprovalControllerOwnershipTest.java",
+      "size": 1307,
+      "sha256": "7af728d19a515a9fad45539f229d23762bdf8ee85299221968d899af3ca1826e",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/src/test/java/com/cpf/admin/approval/controller/AdmApprovalRouteOwnershipTest.java",
+      "size": 1009,
+      "sha256": "8d6289acfe19e2d06c2e15fd6b7780d622bcd0502e154700a48e71bf23c0d972",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/src/test/java/com/cpf/admin/approval/owner/BatchRuntimeApprovalOwnerCommandAdapterTest.java",
+      "size": 4299,
+      "sha256": "8c59a06cad820bfc3ad65915f8756fe30f34caf75182fcfe1180faff8d079678",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/src/test/java/com/cpf/admin/approval/owner/CenterCutApprovalOwnerCommandAdapterTest.java",
+      "size": 4435,
+      "sha256": "28b00bcebf2f268fa8920219b82b1ec09c7eb8c590161e3c938a0c50c86dfefc",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/src/test/java/com/cpf/admin/approval/service/AdmApprovalServiceExecutionTest.java",
+      "size": 11040,
+      "sha256": "8b0f3e9d9835cac2711fe22091fab881a6c245d9709f4e9c17867bff3c5292ab",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/src/test/java/com/cpf/admin/approval/service/AdmApprovalServiceIdempotencyTest.java",
+      "size": 11591,
+      "sha256": "c0c3f65bb200621c694ea5f2729d9f56835e3a7f1d302af1b6891ae94d413aba",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/src/test/java/com/cpf/admin/opr/controller/AdmCenterCutControllerContractTest.java",
+      "size": 1505,
+      "sha256": "9da79e0eae6f9d0c56330905c5dc13fda59449ba19f7e5304d468801a458f433",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/src/test/java/com/cpf/admin/opr/security/AdmTotpVerifierTest.java",
+      "size": 1534,
+      "sha256": "b33950b248ed7c221d692b03be530c9805b8cd0ef672e96f80c8a3af70e4da42",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/src/test/java/com/cpf/admin/opr/service/AdmBatchApprovalServiceRequesterIdentityTest.java",
+      "size": 5146,
+      "sha256": "e04d196677295d68920f25c0d55a7e66096bdc9f153fb0159f3bcda8b280502e",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/src/test/java/com/cpf/admin/opr/service/AdmBatchOperationServiceApprovalIdentityTest.java",
+      "size": 1994,
+      "sha256": "23fb3837224333ee4b21ade11ff240ac34072c43c6fe74017edbc64852fa1027",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/src/test/java/com/cpf/admin/opr/service/AdmCenterCutOperationServiceTest.java",
+      "size": 4455,
+      "sha256": "7028280ea6ad13d101ee4f3bcc4a1ba1281dadf35cd98e3b7d9dd2e3f69f5622",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/src/test/java/com/cpf/admin/opr/service/AdmSecurityOperationServiceTest.java",
+      "size": 8527,
+      "sha256": "3294e111b0d6d221125c81be368784678e2ef3e61f6233cfbfbc86a73afaeada",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/src/test/java/com/cpf/admin/opr/service/NotificationSenderFailClosedTest.java",
+      "size": 1997,
+      "sha256": "df77db2c8b8fe0433e44fe5eca70c9e91f5d5d404654f89e2bb6a8ccf1b61e27",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-admin/src/test/java/com/cpf/admin/opr/service/NotificationSenderSafetyTest.java",
+      "size": 1583,
+      "sha256": "84f2a2caa6618c51f56f524407a3d13c880ff36257f73fa4b36524df84289757",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-biz-admin/frontend/scripts/validate-openapi.mjs",
+      "size": 5477,
+      "sha256": "de6ada3439e6cb05a718fab5fdc73a43dc08e6f3a7c100200ffc8ea75fe838e1",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-biz-admin/frontend/scripts/verify-operation-consumer.mjs",
+      "size": 8405,
+      "sha256": "b69c338adea442ab71404af15a81a43c795cbc6964c0f4e87a9136f8f7bc40e2",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-biz-admin/frontend/src/generated/.cpf-openapi-source.json",
+      "size": 1811,
+      "sha256": "992b2e0eb7fdde87cfaf2824c6b5c13b9a0b37f17a9d14e9741982ea73e7c9db",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/approval/service/BzaApprovalPolicyService.java",
+      "size": 39787,
+      "sha256": "e689264ba9b4aabbdd667215d50b36715de5cbcb380211f73bee6dd326c8cdc1",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/sample/sequence/BzaSequenceSampleService.java",
+      "size": 6699,
+      "sha256": "00e96f2cdf1d6482f473263d921883ada978a9fe3ac062e2954725828f3f3f1f",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-biz-admin/src/test/java/com/cpf/bizadmin/approval/service/BzaApprovalPolicyServiceIdempotencyTest.java",
+      "size": 7347,
+      "sha256": "e00e1e8a99b06366d230fef182be6977cd3b5fe703d71761c22600993895c3d4",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-biz-admin/src/test/java/com/cpf/bizadmin/sample/sequence/BzaSequenceSampleServiceTest.java",
+      "size": 2915,
+      "sha256": "c50a0f625344034709e5da08033373da6d70539fe58e2363eefabc4276c3caad",
+      "category": "PRODUCT"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/requests/ICR-V9-S02-S05-0001_RESPONSE.md",
+      "size": 927,
+      "sha256": "923bc7fadeb088a55816d7bf3a32ad508386e92302058b4190b3023c52a4407b",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/requests/ICR-V9-S05-S06-FULL-ASSIGNMENT-ALIASES-001_INTEGRATION_CHANGE_REQUEST.md",
+      "size": 1427,
+      "sha256": "efc7f7e46dee4f9a019a72d2a529178535e0e01475422ecd4294efa0ca416009",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/APPLY_AND_LOW_COST_VERIFY.ps1",
+      "size": 514,
+      "sha256": "79abd398917487fcbd3368267b8dfee9413689e21f7ca8ec14a0ca37b752dbcf",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/APPLY_ONE_LINE.txt",
+      "size": 486,
+      "sha256": "177c3f7f61a4e8f3b8dd6feeb223996fb08b460e2fb466429d92266b0370508e",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/CLEANUP_ONE_LINE.txt",
+      "size": 59,
+      "sha256": "f6f304f063236de0d897c6b7a7ed5f63e8e07af8f5100d66de6f42877ab90e39",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/CODEX_REVIEW_REQUEST.md",
+      "size": 856,
+      "sha256": "c03d2138dbd2f3ab0ca7b943cbd9c35fad17c3e32771d5afa83e9a8a88c5bd6a",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/GIT_STATUS_ONE_LINE.txt",
+      "size": 19,
+      "sha256": "344fc453349a52a32ce664b388c923ac1b8975be439f1bfacc005457301275d3",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/HANDOVER.md",
+      "size": 1204,
+      "sha256": "b6b3de5f46e039864bad4bb982c592c072ed63592eb08ac1db5bf00d90edc205",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/LOW_COST_VERIFY_ONE_LINE.txt",
+      "size": 139,
+      "sha256": "4a8f2f880def3b605a1598f47d77851071906dc334a630931db1da829f95ce5b",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/OPEN_ISSUES.md",
+      "size": 896,
+      "sha256": "495f6f7a2db0b63dc8400e2fb51e61791a63cc06b09f0709a75811d3c7ef49de",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/QA_REWORK_REQUEST.md",
+      "size": 294,
+      "sha256": "dd3ef3f5ba79e872023b4cc7892dfb9fd2d7e2feb1dba8cb12b6413b743a00c6",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/REQUEST.md",
+      "size": 6839,
+      "sha256": "380f766c267bfbd0170016548c75109c266b4457bbd5be831a49b8d3c28234e7",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/SESSION_CLEANUP_COMMAND.ps1",
+      "size": 158,
+      "sha256": "0e26d00b38e7a2eae4af2c010107e461febd76c3ccd25265653d9fc3fb2b1d26",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/TEST_AND_EVIDENCE.md",
+      "size": 2647,
+      "sha256": "888fb7463ca500d25709dbe6791c783c627ddc3de0ae2af581f892b0a4cf7433",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/evidence/ADM_BZA_OPENAPI_OPERATION_INVENTORY.csv",
+      "size": 68654,
+      "sha256": "183a39382d91e1944113bad63990fdd3c3c4d177dece725ab6f7fc67cf0001c4",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/evidence/ASSIGNMENT_VALIDATION.json",
+      "size": 1688,
+      "sha256": "edb5e53d42b7e20e6ac276f93e40c82ef7a88b5d12429e0c24648d1eeece4456",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/evidence/CANONICAL_SOURCE_TRACE.csv",
+      "size": 13298,
+      "sha256": "da1c3fc720d5c26bcd69a012e13de9e1a9ac93dc2724922b73e5416119fb1a27",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/evidence/FINAL_INDEPENDENT_VALIDATION.json",
+      "size": 238,
+      "sha256": "49acacd2a733bc1e41957da6cba472e0ed0c969d65e1fe3c19a0dae3a1591628",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/evidence/REV006_ADM_APPROVAL_JAVA21.log",
+      "size": 925,
+      "sha256": "8e2e1e94c83293ead719199e168002fcd8309875d20cadee8e0d7b2428422f0f",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/evidence/REV006_ADM_MFA_JAVA21.log",
+      "size": 754,
+      "sha256": "3754b08f2a3dcd523ce30de059432e658d3266d0d57b14213a8e9de76456bc46",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/evidence/REV006_BATCH_OWNER_ADAPTER_JAVA21.log",
+      "size": 635,
+      "sha256": "a8bca781be9c989d71e2b1d1867500551f9ae972d91743d841f0240550f51ecb",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/evidence/REV006_BZA_APPROVAL_JAVA21.log",
+      "size": 722,
+      "sha256": "271eab3612c2e63a76579d99bdb3dd4aa442724c37e05b2f2bd5e56f2bec5e0f",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/evidence/REV006_BZA_SEQUENCE_JAVA21.log",
+      "size": 529,
+      "sha256": "863d6c14fd9ad23c855cbd57c65adcba6c03d7acadf887e3c8cbe85f79b81985",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/evidence/REV006_CENTER_CUT_APPROVAL_JAVA21.log",
+      "size": 676,
+      "sha256": "acad9bd5562072eec85150075c15b9449d1335ea0f648a6d13284ce0c2c9ee5b",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/evidence/REV006_CENTER_CUT_REMOTE_JAVA21.log",
+      "size": 810,
+      "sha256": "ab0a40128807b7b83e4ea16838ef11883e411573963bcbb3e03a0c8779e369d9",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/evidence/REV006_CENTER_CUT_SERVICE_COMPILE.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/evidence/REV006_CENTER_CUT_SERVICE_RUN.log",
+      "size": 35,
+      "sha256": "85f96343b401a84fcf06ce67e149574be9ae4f90777a9cc1066f3924b76a39eb",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/evidence/REV006_CENTER_CUT_TEST_API_DRIFT_CORRECTION.log",
+      "size": 575,
+      "sha256": "190bb843f620c11c6abfb8552f4cec4d8873e27480d30a11f63a5b5483e8a76d",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/evidence/REV006_CORRECTION_HISTORY.md",
+      "size": 1270,
+      "sha256": "744575f38eff3fca0fc1787ebab8bc0044ccaa64b5c3cc6c453848445a65db2c",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/evidence/REV006_FRONTEND_ASSEMBLED_CONSUMER_AND_OPENAPI.log",
+      "size": 836,
+      "sha256": "5fa6c96ae60e9715e650849687457790caf07c78868826a138df4923adc91467",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/evidence/REV006_INDEPENDENT_AUDIT.json",
+      "size": 932,
+      "sha256": "d99decabed798c552e9cb5bd5e5d20abbe55e2994cdcdd87da05ad961470d24a",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/evidence/REV006_MASTER_RECHECK.log",
+      "size": 225,
+      "sha256": "85a0671e447dcf46966d22b43e5b9c4ad63ccb8ad42bab4b790a6983ed171b15",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/evidence/REV006_NOTIFICATION_JAVA21.log",
+      "size": 929,
+      "sha256": "84c8314d43777f19014793fb450f487b2d4b22c076e1673593247ebf4a45ec21",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/evidence/REV006_PREPACKAGE_AUDIT.json",
+      "size": 101,
+      "sha256": "2d0482dab0a51fa6e7c8c0934da422004c79bdd628f760340a3f9e1d5a0d4a08",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/evidence/REV006_VERIFY_OVERLAY.log",
+      "size": 41,
+      "sha256": "f883c6aee3dc75a9f474c521618d1fe4869a4a8943198dac6df7153cf126278c",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/evidence/SOURCE_PATH_EXISTENCE_AUDIT.csv",
+      "size": 8560,
+      "sha256": "6ddb9032c557e013f8bd09ca8ffc1c6d86ba1461292c1be823ff6f468d912c0f",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/evidence/SOURCE_PATH_EXISTENCE_AUDIT.log",
+      "size": 827,
+      "sha256": "7a2d2f3cab3602aa9bd3a4ae6f748c932562d73f62fee5929289fda7c5ec4a0a",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/evidence/atomic/ADM-AGENT.md",
+      "size": 1604,
+      "sha256": "fa8b82deecf9765436ab2e52dc5b1974166028e1da1f61367bff18ef8dfebf7f",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/evidence/atomic/ADM-APPROVAL.md",
+      "size": 2098,
+      "sha256": "0f90a25a0fd2af1e0a644715d3b3a2d97bc2f605b97be798b81ae7add8871d65",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/evidence/atomic/ADM-AUDIT.md",
+      "size": 1632,
+      "sha256": "5b17de9b3a2e02e54885748de0f523bb8e53d3e939eb898a817e97511cc195b2",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/evidence/atomic/ADM-AUTH.md",
+      "size": 1993,
+      "sha256": "84df42ef8941714861883ca0a6084acd7df7ec48c88be24fc1a565eacf35538e",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/evidence/atomic/ADM-BATCH.md",
+      "size": 1692,
+      "sha256": "21c2ea50f9f95f6bfd0785a5616bc371f20685056a79d1a4eb7811d6eefc4773",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/evidence/atomic/ADM-CENTER.md",
+      "size": 2966,
+      "sha256": "f24da635927e54f3dd909970badc4d21db9581956b7f24d72f520f0e4290bc70",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/evidence/atomic/ADM-EXS.md",
+      "size": 1616,
+      "sha256": "b1c7455806cb995141aed8de3078fd3d5e065e636c3c0318a8e68542102f9e31",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/evidence/atomic/ADM-INCIDENT.md",
+      "size": 1590,
+      "sha256": "587e4f2df9b7fd276bd96563775f1e35ce7e5d651fbf4df5bca83e548903dcb8",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/evidence/atomic/ADM-LOG.md",
+      "size": 1763,
+      "sha256": "facffe405f5cfe3a471fc4b1b30af1220ceb8700db268079faa5ddd2887b41c9",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/evidence/atomic/ADM-RBAC.md",
+      "size": 1716,
+      "sha256": "89eaceff02f174256c7bbe897c9e3c4c93ef4ad4d8a84f09ae70f2b51c15c031",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/evidence/atomic/ADM-RECOVERY.md",
+      "size": 1709,
+      "sha256": "eb4c9d37a4bbe2c73c2e0c4f3fb6b80d3f5749e4a34f7d8a598d539517a7156b",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/evidence/atomic/ADM-SERVICE.md",
+      "size": 1601,
+      "sha256": "e5c8b73e02cfae63b52473b26e7a273279981cebcc51421cc584e3f4fd1f6fb0",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/evidence/atomic/ADM-TIMELINE.md",
+      "size": 1666,
+      "sha256": "24d022522d2126e8b8c28d1597c185a118d7da2fbc0e9e9491482ed30e82b261",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/evidence/atomic/ADM-TX.md",
+      "size": 1605,
+      "sha256": "3f1dfd2522f247a85bf4de35abd7066a40ed1e2402eb70c94dcdc4ae11311b10",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/evidence/atomic/ADM-UX.md",
+      "size": 1700,
+      "sha256": "059fe320974d62ad693534a60e94edfbffa1a6537c37edb52afc81515a91417e",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/evidence/atomic/BZA-APPROVAL.md",
+      "size": 1916,
+      "sha256": "d26beb697e6ad1f4fb6e719813dd79d771a1f61fd8628abe307863699fd7451f",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/evidence/atomic/BZA-BUSINESS.md",
+      "size": 1683,
+      "sha256": "e71cc41525853f94d5492d4dd5d5b2d4c0b92dc6dd09839a0a24a2b9b084bcb3",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/evidence/atomic/BZA-ORG.md",
+      "size": 1891,
+      "sha256": "27c478eba09270af1c450bcfc5eaf8927c6dbed46d0eb7695560724a8ad07fbe",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/evidence/atomic/BZA-SEQUENCE-SAMPLE.md",
+      "size": 1663,
+      "sha256": "6be757b5b22a9d53ce8a17b715b3fcbf798a8e901c4db0e91b072d547beb0cf9",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/results/CHANGE_MANIFEST.csv",
+      "size": 87176,
+      "sha256": "8bc8dcef89dfc4cd10acfc866ac68607c0a9cacdabe39188b502a5e75b498aea",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/results/DELETE_MANIFEST.csv",
+      "size": 35,
+      "sha256": "ad3540f0e33b36508d775ac75384fe7b77e21f78e07ae0e9698351d41ebd69fe",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/results/DEVELOPMENT_REQUIREMENT_RESULT.csv",
+      "size": 4153926,
+      "sha256": "05fb0a60e868a7027763a5b842291760524e284d67092f81b54f08c404081f71",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/results/DEVELOPMENT_SCENARIO_RESULT.csv",
+      "size": 4188646,
+      "sha256": "c1ced9338c560d0f3fdcfe85a06d38e8788caca5a0c24a10dbfd9967940358ca",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/results/DEVELOPMENT_SESSION_RESULT.csv",
+      "size": 241539,
+      "sha256": "eeb780accef34ae5adfd8d9a2135d46fdf7048b577fb1d9fb741746f5db1a9e2",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/results/ENGINEERING_GATE_RESULT.csv",
+      "size": 23752,
+      "sha256": "44030e18134623b21f070a86c5c11b4015f2622bf84032b3ab0bd8c8aa395a71",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/results/INTEGRATION_REQUEST_STATUS.csv",
+      "size": 1351,
+      "sha256": "ec3843a64ac80ca3d1db5aba7f90758c5a7eb7c1e1326a51858a5fb245cf0bfc",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/results/QA_PATCH_REVIEW.csv",
+      "size": 2229,
+      "sha256": "762a7b95423595016bc16b36e35fb0c353bcec302493842892e14376ca33731c",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/results/REQUIREMENT_STATUS.csv",
+      "size": 285381,
+      "sha256": "0dbf02f3ace1846eeffd48ba6643d1c4d7fa1937d6cb2c01af37b6f9e0eda2a8",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/results/WORK_ITEM_RESULT.csv",
+      "size": 196138,
+      "sha256": "f5d728a2af6450c021670952b4769b80a3f39ed7f5084739a186d62483cb1201",
+      "category": "SESSION"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/tools/verify_s05_overlay.py",
+      "size": 1499,
+      "sha256": "c1db6692fe631add5ad9be2178d0c75c99eb171cde459cb128a0a577117ea7c0",
+      "category": "SESSION"
+    }
+  ],
+  "manifest_exclusions": [
+    "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/PACKAGE_MANIFEST.json",
+    "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/SESSION_ARTIFACT_MANIFEST.csv",
+    "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/SHA256SUMS.txt"
+  ]
+}

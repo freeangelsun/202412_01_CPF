@@ -53,7 +53,7 @@ function inferWrapperCalls(text,rel){
    match(explicit?explicit[2].toUpperCase():"GET",raw,rel);
  }
 }
-for(const file of walk(path.join(root,"src"))){const rel=path.relative(root,file).replaceAll("\\","/");if(rel.startsWith("src/generated/"))continue;const text=fs.readFileSync(file,"utf8");if(/\bfetch\s*\(/.test(text)&&/\/(?:adm\/api|api\/bza)\b/.test(text)&&rel!=="src/shared/cpfApi.ts")failures.push(`${rel}: direct privileged API fetch is forbidden`);if(/\b(?:axios|XMLHttpRequest)\b/.test(text))failures.push(`${rel}: direct HTTP client usage is forbidden`);
+for(const file of walk(path.join(root,"src"))){const rel=path.relative(root,file).replaceAll("\\","/");if(rel.startsWith("src/generated/"))continue;const text=fs.readFileSync(file,"utf8");if(/\bfetch\s*\(/.test(text)&&/\/(?:adm\/api|api\/bza)\b/.test(text)&&!["src/shared/cpfApi.ts","src/shared/orval-mutator.ts"].includes(rel))failures.push(`${rel}: direct privileged API fetch is forbidden`);if(/\b(?:axios|XMLHttpRequest)\b/.test(text))failures.push(`${rel}: direct HTTP client usage is forbidden`);
  for(const pattern of patterns){for(const matchValue of text.matchAll(pattern.re)){const raw=matchValue[2];if(!/^\/(?:adm\/api|api\/bza)\//.test(raw))continue;const method=pattern.method===null?matchValue[4]:(pattern.method==="RAW"?(matchValue[4]||"GET"):pattern.method);if(method!=="DYNAMIC")match(method,raw,rel);}}
  inferWrapperCalls(text,rel);
  for(const invoked of text.matchAll(/\badmInvokeOperation(?:<[^>]+>)?\s*\(\s*["']([^"']+)["']/g)){
@@ -66,7 +66,7 @@ for(const file of walk(path.join(root,"src"))){const rel=path.relative(root,file
 const routeRegistry=read("src/app/routes.ts");
 const appSource=read("src/App.vue");
 const workbenchSource=read("src/components/RouteOperationWorkbench.vue");
-const hasRouteWorkbench=appSource.includes("RouteOperationWorkbench")&&workbenchSource.includes("admInvokeOperation")&&workbenchSource.includes("cpfOperationDescriptors");
+const hasRouteWorkbench=appSource.includes("RouteOperationWorkbench")&&/(?:adm|bza)InvokeOperation/.test(workbenchSource)&&workbenchSource.includes("cpfOperationDescriptors");
 if(!hasRouteWorkbench)failures.push("route operation workbench is not wired to the generated operation contract");
 if(hasRouteWorkbench){
   for(const block of routeRegistry.matchAll(/expectedOperationIds\s*:\s*\[([^\]]*)\]/gs)){

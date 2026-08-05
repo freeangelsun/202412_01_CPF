@@ -197,12 +197,26 @@ public class BzaApprovalPolicyService extends BzaBaseService {
 
     private Map<String,Object> submitInternal(SubmitRequest request, String operatorId, Long resubmittedFromApprovalId) {
         String idem = required(request.requestIdempotencyKey(), "requestIdempotencyKey");
-        Optional<Long> existing = repository.findApprovalByIdempotencyKey(idem);
-        if (existing.isPresent()) return detail(existing.get());
-
+        String normalizedOperator = required(operatorId, "operatorId");
         Instant at = Instant.now();
-        String requester = repository.findEmployeeNoByLoginId(required(operatorId, "operatorId"))
+        String requester = repository.findEmployeeNoByLoginId(normalizedOperator)
                 .orElseThrow(() -> new CpfValidationException("로그인 사용자와 연결된 직원이 없습니다."));
+        String title = required(request.title(), "title");
+        String mode = upper(request.approvalMode(), "SEQUENTIAL");
+        if (!MODES.contains(mode)) throw new CpfValidationException("approvalMode는 SEQUENTIAL/PARALLEL 이어야 합니다.");
+        String payload = request.payloadJson() == null ? "{}" : request.payloadJson();
+        String payloadHash = sha256(payload);
+        String reason = required(request.reason(), "reason");
+        if (request.dueAt() != null && !request.dueAt().isAfter(at)) {
+            throw new CpfValidationException("dueAt은 현재 시각보다 뒤여야 합니다.");
+        }
+        Optional<Long> existing = repository.findApprovalByIdempotencyKey(idem);
+        if (existing.isPresent()) {
+            Map<String,Object> replay = repository.findDocument(existing.get())
+                    .orElseThrow(() -> new CpfValidationException("멱등 결재 문서를 찾을 수 없습니다."));
+            validateSubmitReplay(replay, request, requester, title, mode, payloadHash, resubmittedFromApprovalId);
+            return detail(existing.get());
+        }
         if (request.requesterEmployeeNo() != null && !request.requesterEmployeeNo().isBlank()
                 && !requester.equalsIgnoreCase(request.requesterEmployeeNo().trim())) {
             throw new CpfValidationException("requesterEmployeeNo는 인증 사용자와 일치해야 합니다.");
@@ -216,9 +230,6 @@ public class BzaApprovalPolicyService extends BzaBaseService {
         BzaApprovalDirectoryEntry requesterProfile = repository.findPrimaryAssignment(requester, at)
                 .orElseThrow(() -> new CpfValidationException("요청자의 유효 직원/대표 소속 Snapshot을 찾을 수 없습니다."));
 
-        String mode = upper(request.approvalMode(), "SEQUENTIAL");
-        if (!MODES.contains(mode)) throw new CpfValidationException("approvalMode는 SEQUENTIAL/PARALLEL 이어야 합니다.");
-        String payload = request.payloadJson() == null ? "{}" : request.payloadJson();
         String policySnapshot = json(Map.of("policy", policy, "steps", steps, "participants", resolved));
 
         Map<String,Object> doc = new LinkedHashMap<>();
@@ -228,7 +239,7 @@ public class BzaApprovalPolicyService extends BzaBaseService {
         doc.put("policyCode", policyCode);
         doc.put("policyVersion", policyVersion);
         doc.put("policySnapshotJson", policySnapshot);
-        doc.put("title", required(request.title(), "title"));
+        doc.put("title", title);
         doc.put("requesterEmployeeNo", requester);
         doc.put("requesterOrganizationCode", requesterProfile.organizationCode());
         doc.put("requesterPositionCode", requesterProfile.positionCode());
@@ -236,12 +247,12 @@ public class BzaApprovalPolicyService extends BzaBaseService {
         doc.put("approvalMode", mode);
         doc.put("dueAt", request.dueAt() == null ? null : Timestamp.from(request.dueAt()));
         doc.put("payloadJson", payload);
-        doc.put("payloadHash", sha256(payload));
+        doc.put("payloadHash", payloadHash);
         doc.put("requestIdempotencyKey", idem);
         doc.put("attachmentGroupId", blankToNull(request.attachmentGroupId()));
         doc.put("resubmittedFromApprovalId", resubmittedFromApprovalId);
         doc.put("transactionId", CpfTransactionContext.transactionId());
-        doc.put("operatorId", required(operatorId, "operatorId"));
+        doc.put("operatorId", normalizedOperator);
         long approvalId = repository.insertPolicyApproval(doc);
 
         Map<String,List<Map<String,Object>>> participantsByTarget = new LinkedHashMap<>();
@@ -273,17 +284,28 @@ public class BzaApprovalPolicyService extends BzaBaseService {
             }
         }
         repository.insertHistory(approvalId, "SUBMIT", requester, idem + ":submit",
-                required(request.reason(), "reason"), "DRAFT", "IN_REVIEW", null,
-                string(doc, "transactionId"), operatorId);
+                reason, "DRAFT", "IN_REVIEW", null,
+                string(doc, "transactionId"), normalizedOperator);
         return detail(approvalId);
     }
 
     @Transactional(transactionManager = "bzaTransactionManager")
     public Map<String,Object> decide(long approvalId, DecisionRequest request, String operatorId) {
         String idem = required(request.idempotencyKey(), "idempotencyKey");
-        if (repository.participantDecisionExists(idem)) return detail(approvalId);
-        String actor = repository.findEmployeeNoByLoginId(required(operatorId, "operatorId"))
+        String normalizedOperator = required(operatorId, "operatorId");
+        String actor = repository.findEmployeeNoByLoginId(normalizedOperator)
                 .orElseThrow(() -> new CpfValidationException("로그인 사용자와 연결된 직원이 없습니다."));
+        String action = upper(request.action(), "APPROVE");
+        String participantStatus = switch (action) {
+            case "APPROVE" -> "APPROVED";
+            case "AGREE" -> "AGREED";
+            case "REJECT" -> "REJECTED";
+            default -> throw new CpfValidationException("APPROVE/AGREE/REJECT만 지원합니다.");
+        };
+        if (repository.participantDecisionExists(idem)) {
+            validateDecisionReplay(approvalId, idem, actor, participantStatus, blankToNull(request.comment()));
+            return detail(approvalId);
+        }
         Map<String,Object> doc = repository.findDocument(approvalId)
                 .orElseThrow(() -> new CpfValidationException("결재 문서를 찾을 수 없습니다."));
         String beforeStatus = string(doc, "approvalStatus");
@@ -292,15 +314,8 @@ public class BzaApprovalPolicyService extends BzaBaseService {
         String mode = string(doc, "approvalMode");
         Map<String,Object> participant = repository.findWaitingParticipant(approvalId, actor, mode, currentStep)
                 .orElseThrow(() -> new CpfValidationException("현재 결정 가능한 결재 참여자가 아닙니다."));
-        String action = upper(request.action(), "APPROVE");
-        String participantStatus = switch (action) {
-            case "APPROVE" -> "APPROVED";
-            case "AGREE" -> "AGREED";
-            case "REJECT" -> "REJECTED";
-            default -> throw new CpfValidationException("APPROVE/AGREE/REJECT만 지원합니다.");
-        };
         if (repository.decideParticipant(number(participant, "participantId").longValue(), participantStatus,
-                idem, blankToNull(request.comment()), operatorId) != 1) {
+                idem, blankToNull(request.comment()), normalizedOperator) != 1) {
             throw new CpfValidationException("결재 참여자 상태가 동시에 변경되었습니다.");
         }
 
@@ -317,7 +332,7 @@ public class BzaApprovalPolicyService extends BzaBaseService {
             case REJECTED -> "REJECTED";
             case WAITING -> "WAITING";
         };
-        repository.updateLineStatus(lineId, lineStatus, blankToNull(request.comment()), operatorId);
+        repository.updateLineStatus(lineId, lineStatus, blankToNull(request.comment()), normalizedOperator);
 
         List<Map<String,Object>> lines = repository.findLineStatuses(approvalId);
         String afterStatus = "IN_REVIEW";
@@ -345,12 +360,12 @@ public class BzaApprovalPolicyService extends BzaBaseService {
             }
         }
         long version = number(doc, "versionNo").longValue();
-        if (repository.updateDocumentStatus(approvalId, version, afterStatus, nextStep, completed, operatorId) != 1) {
+        if (repository.updateDocumentStatus(approvalId, version, afterStatus, nextStep, completed, normalizedOperator) != 1) {
             throw new CpfValidationException("결재 문서가 동시에 변경되었습니다. 최신 상태를 다시 조회하세요.");
         }
         repository.insertHistory(approvalId, action, actor, idem + ":history",
                 required(request.reason(), "reason"), beforeStatus, afterStatus,
-                blankToNull(request.comment()), string(doc, "transactionId"), operatorId);
+                blankToNull(request.comment()), string(doc, "transactionId"), normalizedOperator);
         return detail(approvalId);
     }
 
@@ -390,7 +405,9 @@ public class BzaApprovalPolicyService extends BzaBaseService {
     private Map<String,Object> requesterLifecycle(long approvalId, LifecycleRequest request, String operatorId,
                                                    String action, String targetStatus) {
         String idem = required(request.idempotencyKey(), "idempotencyKey");
-        if (repository.historyActionExists(idem)) return detail(approvalId);
+        if (repository.historyActionExists(idem)) {
+            throw new CpfValidationException("멱등 이력 Key의 원 결재 문서·행위를 확인할 수 없어 안전하게 재사용을 거부합니다.");
+        }
         String actor = repository.findEmployeeNoByLoginId(required(operatorId, "operatorId"))
                 .orElseThrow(() -> new CpfValidationException("로그인 사용자와 연결된 직원이 없습니다."));
         Map<String,Object> doc = repository.findDocument(approvalId)
@@ -408,6 +425,60 @@ public class BzaApprovalPolicyService extends BzaBaseService {
         repository.insertHistory(approvalId, action, actor, idem, required(request.reason(), "reason"),
                 before, targetStatus, blankToNull(request.comment()), string(doc, "transactionId"), operatorId);
         return detail(approvalId);
+    }
+
+    private void validateSubmitReplay(Map<String,Object> replay, SubmitRequest request, String requester,
+                                      String title, String mode, String payloadHash,
+                                      Long resubmittedFromApprovalId) {
+        List<String> conflicts = new ArrayList<>();
+        compare(conflicts, "requesterEmployeeNo", requester, string(replay, "requesterEmployeeNo"));
+        compare(conflicts, "title", title, string(replay, "title"));
+        compare(conflicts, "approvalMode", mode, string(replay, "approvalMode"));
+        compare(conflicts, "payloadHash", payloadHash, string(replay, "payloadHash"));
+        compare(conflicts, "attachmentGroupId", blankToNull(request.attachmentGroupId()), nullableString(replay.get("attachmentGroupId")));
+        compare(conflicts, "resubmittedFromApprovalId", resubmittedFromApprovalId,
+                replay.get("resubmittedFromApprovalId") == null ? null : number(replay, "resubmittedFromApprovalId").longValue());
+        if (blankToNull(request.policyCode()) != null) compare(conflicts, "policyCode", request.policyCode().trim(), string(replay, "policyCode"));
+        if (request.policyVersion() != null) compare(conflicts, "policyVersion", request.policyVersion(), number(replay, "policyVersion").intValue());
+        if (blankToNull(request.businessDomain()) != null) compare(conflicts, "businessDomain", request.businessDomain().trim(), string(replay, "businessDomain"));
+        if (blankToNull(request.approvalType()) != null) compare(conflicts, "approvalType", request.approvalType().trim(), string(replay, "approvalType"));
+        Instant existingDueAt = timestampInstant(replay.get("dueAt"));
+        if (!Objects.equals(request.dueAt(), existingDueAt)) conflicts.add("dueAt");
+        if (!conflicts.isEmpty()) {
+            throw new CpfValidationException("동일 requestIdempotencyKey가 다른 결재 요청에 재사용되었습니다. conflicts=" + String.join(",", conflicts));
+        }
+    }
+
+    private void validateDecisionReplay(long approvalId, String idempotencyKey, String actor,
+                                        String decisionStatus, String comment) {
+        Map<String,Object> replay = repository.findParticipants(approvalId).stream()
+                .filter(row -> idempotencyKey.equals(nullableString(row.get("decisionIdempotencyKey"))))
+                .findFirst()
+                .orElseThrow(() -> new CpfValidationException(
+                        "동일 idempotencyKey가 다른 결재 또는 행위에 사용되었습니다."));
+        List<String> conflicts = new ArrayList<>();
+        compare(conflicts, "approvalId", approvalId, number(replay, "approvalId").longValue());
+        compare(conflicts, "participantEmployeeNo", actor, string(replay, "participantEmployeeNo"));
+        compare(conflicts, "decisionStatus", decisionStatus, string(replay, "decisionStatus"));
+        compare(conflicts, "decisionComment", comment, nullableString(replay.get("decisionComment")));
+        if (!conflicts.isEmpty()) {
+            throw new CpfValidationException("동일 idempotencyKey의 결정 내용이 일치하지 않습니다. conflicts=" + String.join(",", conflicts));
+        }
+    }
+
+    private static void compare(List<String> conflicts, String field, Object expected, Object actual) {
+        if (!Objects.equals(expected, actual)) conflicts.add(field);
+    }
+
+    private static Instant timestampInstant(Object value) {
+        if (value == null) return null;
+        if (value instanceof Timestamp timestamp) return timestamp.toInstant();
+        if (value instanceof Instant instant) return instant;
+        return Instant.parse(String.valueOf(value));
+    }
+
+    private static String nullableString(Object value) {
+        return value == null ? null : String.valueOf(value);
     }
 
     public Map<String,Object> detail(long approvalId) {

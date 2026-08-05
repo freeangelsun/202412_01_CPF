@@ -3,6 +3,12 @@ package com.cpf.admin.opr.service;
 import com.cpf.admin.opr.dto.AdmIpAllowlistRequest;
 import com.cpf.admin.opr.dto.AdmMfaOtpRequest;
 import com.cpf.core.api.error.CpfBusinessException;
+import com.cpf.core.api.error.CpfValidationException;
+import com.cpf.core.api.security.secret.CpfSecretMetadata;
+import com.cpf.core.api.security.secret.CpfSecretProvider;
+import com.cpf.core.api.security.secret.CpfSecretReference;
+import com.cpf.core.api.security.secret.CpfSecretValue;
+import com.cpf.admin.opr.security.AdmTotpVerifier;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.DuplicateKeyException;
@@ -102,7 +108,8 @@ class AdmSecurityOperationServiceTest {
                 "SECRET_REF", "vault://otp/operator-1",
                 "ENABLED_YN", "N");
         when(jdbc.queryForMap(anyString(), eq("operator-1"))).thenReturn(persisted);
-        AdmSecurityOperationService service = new AdmSecurityOperationService(jdbc);
+        CpfSecretProvider provider = provider("vault");
+        AdmSecurityOperationService service = new AdmSecurityOperationService(jdbc, List.of(provider), new AdmTotpVerifier());
 
         Map<String, Object> result = service.registerMfa(
                 "operator-1",
@@ -113,4 +120,58 @@ class AdmSecurityOperationServiceTest {
                 contains("UPDATE adm_mfa_otp_secret"),
                 eq("vault://otp/operator-1"), eq("tester"), eq("operator-1"));
     }
+    @Test
+    void verifyMfaResolvesSecretAndRejectsInvalidOtpWithoutEnabling() {
+        JdbcTemplate jdbc = mock(JdbcTemplate.class);
+        when(jdbc.queryForMap(contains("FROM adm_mfa_otp_secret"), eq("operator-1"))).thenReturn(Map.of(
+                "OPERATOR_ID", "operator-1", "SECRET_REF", "ENV:ADM_OTP", "ENABLED_YN", "N"));
+        CpfSecretProvider provider = new CpfSecretProvider() {
+            public String providerId() { return "ENV"; }
+            public CpfSecretMetadata metadata(CpfSecretReference reference) { return null; }
+            public CpfSecretValue resolve(CpfSecretReference reference) {
+                return new CpfSecretValue("GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ".toCharArray());
+            }
+        };
+        AdmTotpVerifier rejecting = mock(AdmTotpVerifier.class);
+        when(rejecting.verify(org.mockito.ArgumentMatchers.any(CpfSecretValue.class), eq("000000"))).thenReturn(false);
+        AdmSecurityOperationService service = new AdmSecurityOperationService(jdbc, List.of(provider), rejecting);
+
+        assertThatThrownBy(() -> service.verifyMfa("operator-1",
+                new AdmMfaOtpRequest(null, "000000", "tester", "verify")))
+                .isInstanceOf(CpfValidationException.class)
+                .hasMessageContaining("MFA 인증");
+        verify(jdbc, org.mockito.Mockito.never()).update(contains("ENABLED_YN = 'Y'"),
+                org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
+    void loginRequiresOtpOnlyWhenMfaIsEnabled() {
+        JdbcTemplate jdbc = mock(JdbcTemplate.class);
+        when(jdbc.queryForMap(contains("FROM adm_mfa_otp_secret"), eq("operator-1"))).thenReturn(Map.of(
+                "OPERATOR_ID", "operator-1", "SECRET_REF", "ENV:ADM_OTP", "ENABLED_YN", "Y"));
+        CpfSecretProvider provider = new CpfSecretProvider() {
+            public String providerId() { return "ENV"; }
+            public CpfSecretMetadata metadata(CpfSecretReference reference) { return null; }
+            public CpfSecretValue resolve(CpfSecretReference reference) {
+                return new CpfSecretValue("GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ".toCharArray());
+            }
+        };
+        AdmTotpVerifier verifier = mock(AdmTotpVerifier.class);
+        when(verifier.verify(org.mockito.ArgumentMatchers.any(CpfSecretValue.class), eq("123456"))).thenReturn(true);
+        AdmSecurityOperationService service = new AdmSecurityOperationService(jdbc, List.of(provider), verifier);
+
+        service.requireMfaForLogin("operator-1", "123456");
+        verify(verifier).verify(org.mockito.ArgumentMatchers.any(CpfSecretValue.class), eq("123456"));
+    }
+
+    private static CpfSecretProvider provider(String providerId) {
+        return new CpfSecretProvider() {
+            public String providerId() { return providerId; }
+            public CpfSecretMetadata metadata(CpfSecretReference reference) { return null; }
+            public CpfSecretValue resolve(CpfSecretReference reference) {
+                return new CpfSecretValue("GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ".toCharArray());
+            }
+        };
+    }
+
 }

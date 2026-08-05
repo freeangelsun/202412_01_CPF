@@ -1,13 +1,19 @@
 package com.cpf.admin.opr.controller;
 
+import com.cpf.admin.opr.dto.AdmCenterCutActionRequest;
+import com.cpf.admin.opr.service.AdmAuditLogService;
 import com.cpf.admin.opr.service.AdmCenterCutOperationService;
 import com.cpf.core.api.execution.CpfOnlineTransaction;
+import com.cpf.core.api.logging.CpfTransactionContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -26,9 +32,13 @@ import java.util.Map;
 @Tag(name = "ADM-CenterCut", description = "Center-Cut job, target, result 운영 관제 API")
 public class AdmCenterCutController extends com.cpf.admin.common.base.AdmBaseController {
     private final AdmCenterCutOperationService centerCutOperationService;
+    private final AdmAuditLogService auditLogService;
 
-    public AdmCenterCutController(AdmCenterCutOperationService centerCutOperationService) {
+    public AdmCenterCutController(
+            AdmCenterCutOperationService centerCutOperationService,
+            AdmAuditLogService auditLogService) {
         this.centerCutOperationService = centerCutOperationService;
+        this.auditLogService = auditLogService;
     }
 
     @GetMapping("/jobs")
@@ -99,4 +109,61 @@ public class AdmCenterCutController extends com.cpf.admin.common.base.AdmBaseCon
             @PathVariable String resultId) {
         return ResponseEntity.ok(centerCutOperationService.findResultDetail(resultId));
     }
+
+    @PostMapping("/executions/{executionId}/reprocess-failed")
+    @CpfOnlineTransaction(id = "OADMCT0080", name = "ADMCenterCutReprocessFailed")
+    @Operation(
+            operationId = "admCenterCutReprocessFailedExecution",
+            summary = "Center-Cut 실패 실행 재처리",
+            description = "별도 승인과 멱등 키를 검증한 뒤 executionId 범위의 실패 Item만 재처리합니다.")
+    public ResponseEntity<Map<String, Object>> reprocessFailedExecution(
+            @PathVariable String executionId,
+            @RequestBody AdmCenterCutActionRequest request,
+            HttpServletRequest servletRequest) {
+        String operator = requireOperator(servletRequest);
+        String reason = auditLogService.requireReason(request.reason());
+        long approvalRequestId = parseApprovalRequestId(request.approvalRequestId());
+        Map<String, Object> result = auditLogService.executeAudited(
+                CpfTransactionContext.transactionId(), operator, "CENTER_CUT_REPROCESS_FAILED",
+                "center_cut_execution", executionId, reason, null, servletRequest.getRemoteAddr(),
+                () -> centerCutOperationService.reprocessFailed(
+                        executionId, approvalRequestId, request.idempotencyKey(), reason, operator),
+                String::valueOf);
+        return ResponseEntity.accepted().body(result);
+    }
+
+    @PostMapping("/executions/{executionId}/reconcile-unknown")
+    @CpfOnlineTransaction(id = "OADMCT0090", name = "ADMCenterCutReconcileUnknown")
+    @Operation(
+            operationId = "admCenterCutReconcileUnknownExecution",
+            summary = "Center-Cut 결과불명 실행 대사",
+            description = "별도 승인과 멱등 키를 검증한 뒤 executionId 범위의 UNKNOWN Item만 재대사합니다.")
+    public ResponseEntity<Map<String, Object>> reconcileUnknownExecution(
+            @PathVariable String executionId,
+            @RequestBody AdmCenterCutActionRequest request,
+            HttpServletRequest servletRequest) {
+        String operator = requireOperator(servletRequest);
+        String reason = auditLogService.requireReason(request.reason());
+        long approvalRequestId = parseApprovalRequestId(request.approvalRequestId());
+        Map<String, Object> result = auditLogService.executeAudited(
+                CpfTransactionContext.transactionId(), operator, "CENTER_CUT_RECONCILE_UNKNOWN",
+                "center_cut_execution", executionId, reason, null, servletRequest.getRemoteAddr(),
+                () -> centerCutOperationService.reconcileUnknown(
+                        executionId, approvalRequestId, request.idempotencyKey(), reason, operator),
+                String::valueOf);
+        return ResponseEntity.accepted().body(result);
+    }
+
+
+    private static long parseApprovalRequestId(String value) {
+        try {
+            long parsed = Long.parseLong(value);
+            if (parsed <= 0) throw new NumberFormatException("non-positive");
+            return parsed;
+        } catch (RuntimeException invalid) {
+            throw new com.cpf.core.api.error.CpfValidationException(
+                    "approvalRequestId는 양수 숫자여야 합니다.");
+        }
+    }
+
 }

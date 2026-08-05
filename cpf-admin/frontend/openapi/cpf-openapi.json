@@ -1649,6 +1649,32 @@
           }
         },
         "description": "Runtime agent actual state report."
+      },
+      "AdmCenterCutActionRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "reason",
+          "approvalRequestId",
+          "idempotencyKey"
+        ],
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 500
+          },
+          "approvalRequestId": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]{0,18}$"
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 128
+          }
+        },
+        "description": "Approved Center-Cut execution-scope recovery command. The authenticated executor is resolved from the server session."
       }
     }
   },
@@ -13129,14 +13155,138 @@
         },
         "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmSystemInfoController.java"
       }
+    },
+    "/adm/api/center-cut/executions/{executionId}/reprocess-failed": {
+      "post": {
+        "operationId": "admCenterCutReprocessFailedExecution",
+        "summary": "Center-Cut 실패 실행 재처리",
+        "description": "승인 원장 Snapshot과 멱등 키를 검증한 뒤 선택한 executionId 범위만 처리합니다.",
+        "parameters": [
+          {
+            "name": "executionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9._:-]+$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdmCenterCutActionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Center-Cut execution-scope command accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CpfControllerSourceResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Permission denied"
+          },
+          "409": {
+            "description": "Approval, idempotency or state conflict"
+          },
+          "500": {
+            "description": "Internal error"
+          },
+          "503": {
+            "description": "BAT owner unavailable or result unknown"
+          }
+        },
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmCenterCutController.java",
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT"
+      }
+    },
+    "/adm/api/center-cut/executions/{executionId}/reconcile-unknown": {
+      "post": {
+        "operationId": "admCenterCutReconcileUnknownExecution",
+        "summary": "Center-Cut 결과불명 실행 대사",
+        "description": "승인 원장 Snapshot과 멱등 키를 검증한 뒤 선택한 executionId 범위만 처리합니다.",
+        "parameters": [
+          {
+            "name": "executionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9._:-]+$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdmCenterCutActionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Center-Cut execution-scope command accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CpfControllerSourceResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Permission denied"
+          },
+          "409": {
+            "description": "Approval, idempotency or state conflict"
+          },
+          "500": {
+            "description": "Internal error"
+          },
+          "503": {
+            "description": "BAT owner unavailable or result unknown"
+          }
+        },
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmCenterCutController.java",
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT"
+      }
     }
   },
   "x-cpf-canonical-schema-version": 5,
   "x-cpf-controller-source-contract-version": 2,
   "x-cpf-export-origin": "CONTROLLER_SOURCE_PRE_RUNTIME",
-  "x-cpf-openapi-operation-count": 321,
+  "x-cpf-openapi-operation-count": 323,
   "x-cpf-product-module": "ADM",
-  "x-cpf-public-operation-count": 321,
+  "x-cpf-public-operation-count": 323,
   "x-cpf-release-eligible": false,
-  "x-cpf-adm-explicit-contract-version": 6
+  "x-cpf-adm-explicit-contract-version": 7
 }

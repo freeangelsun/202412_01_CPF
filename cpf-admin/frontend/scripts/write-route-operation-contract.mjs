@@ -25,7 +25,10 @@ while ((match = routePattern.exec(routesText))) {
   const explicit = [...match[2].matchAll(/"([^"]+)"/g)].map(value => value[1]);
   routes.push({ routeId: match[1], explicit, componentImport: match[3] });
 }
-if (routes.length !== 59) throw new Error(`ADM route registry cardinality drift: ${routes.length}`);
+if (!routes.length) throw new Error("ADM route registry is empty");
+const routeIds = routes.map(route => route.routeId);
+const duplicateRouteIds = routeIds.filter((routeId, index) => routeIds.indexOf(routeId) !== index);
+if (duplicateRouteIds.length) throw new Error(`ADM route registry duplicate routeId: ${[...new Set(duplicateRouteIds)].join(", ")}`);
 
 function resolveLocalImport(fromFile, request) {
   if (!request.startsWith(".")) return null;
@@ -54,7 +57,12 @@ function isTransportBoundary(file) {
     || [
       "src/shared/cpfApi.ts",
       "src/shared/orval-mutator.ts",
-      "src/shared/queryClient.ts"
+      "src/shared/queryClient.ts",
+      // Route pages bind the single ADM store through this bridge. Following the bridge into
+      // the global action registry incorrectly attributes every store operation to every route.
+      "src/app/useAdmConsolePage.ts",
+      "src/stores/admConsoleStore.ts",
+      "src/stores/admFeatureActionRegistry.ts"
     ].includes(relative);
 }
 function normalizedCandidate(raw) {

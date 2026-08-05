@@ -39,14 +39,16 @@ public class AdmCodeController extends com.cpf.admin.common.base.AdmBaseControll
     @GetMapping
     @CpfOnlineTransaction(id = "OADMCD0010", name = "ADMCodeList")
     @Operation(operationId = "admCodeFindCodes", summary = "공통 코드 목록 조회", description = "cpf_code 기준 코드 그룹과 코드를 조회합니다.")
-    public ResponseEntity<List<Map<String, Object>>> findCodes() {
+    public ResponseEntity<List<Map<String, Object>>> findCodes(HttpServletRequest request) {
+        requireOperator(request);
         return ResponseEntity.ok(codeCacheService.getAllCodes());
     }
 
     @GetMapping("/{codeId}")
     @CpfOnlineTransaction(id = "OADMCD0011", name = "ADMCodeDetail")
     @Operation(operationId = "admCodeFindCode", summary = "공통 코드 상세 조회", description = "코드 ID로 cpf_code 상세 정보를 조회합니다.")
-    public ResponseEntity<Map<String, Object>> findCode(@PathVariable Long codeId) {
+    public ResponseEntity<Map<String, Object>> findCode(@PathVariable Long codeId, HttpServletRequest request) {
+        requireOperator(request);
         return ResponseEntity.ok(codeCacheService.getCodeById(codeId));
     }
 
@@ -56,11 +58,13 @@ public class AdmCodeController extends com.cpf.admin.common.base.AdmBaseControll
     public ResponseEntity<Map<String, Object>> createCode(
             @Valid @RequestBody CommonCodeRequest request,
             HttpServletRequest servletRequest) {
+        String operator = requireOperator(servletRequest);
+        request.setRequestUser(operator);
         String reason = auditLogService.requireReason(request.getReason());
         Map<String, Object> created = codeCacheService.createCode(request);
         auditLogService.record(
                 CpfTransactionContext.transactionId(),
-                requestUser(servletRequest, request.getRequestUser()),
+                operator,
                 "CODE_CREATE",
                 "cpf_code",
                 String.valueOf(created.getOrDefault("codeId", request.getCodeKey())),
@@ -79,12 +83,14 @@ public class AdmCodeController extends com.cpf.admin.common.base.AdmBaseControll
             @PathVariable Long codeId,
             @Valid @RequestBody CommonCodeRequest request,
             HttpServletRequest servletRequest) {
+        String operator = requireOperator(servletRequest);
+        request.setRequestUser(operator);
         String reason = auditLogService.requireReason(request.getReason());
         Map<String, Object> before = codeCacheService.getCodeById(codeId);
         Map<String, Object> updated = codeCacheService.updateCode(codeId, request);
         auditLogService.record(
                 CpfTransactionContext.transactionId(),
-                requestUser(servletRequest, request.getRequestUser()),
+                operator,
                 "CODE_UPDATE",
                 "cpf_code",
                 String.valueOf(codeId),
@@ -102,14 +108,14 @@ public class AdmCodeController extends com.cpf.admin.common.base.AdmBaseControll
     public ResponseEntity<List<Map<String, Object>>> deleteCode(
             @PathVariable Long codeId,
             @RequestParam String reason,
-            @RequestParam(defaultValue = "SYSTEM") String requestUser,
             HttpServletRequest servletRequest) {
+        String operator = requireOperator(servletRequest);
         String requiredReason = auditLogService.requireReason(reason);
         Map<String, Object> before = codeCacheService.getCodeById(codeId);
         List<Map<String, Object>> latest = codeCacheService.deleteCode(codeId);
         auditLogService.record(
                 CpfTransactionContext.transactionId(),
-                requestUser(servletRequest, requestUser),
+                operator,
                 "CODE_DISABLE",
                 "cpf_code",
                 String.valueOf(codeId),
@@ -119,9 +125,5 @@ public class AdmCodeController extends com.cpf.admin.common.base.AdmBaseControll
                 "코드 비활성",
                 servletRequest.getRemoteAddr());
         return ResponseEntity.ok(latest);
-    }
-
-    private String requestUser(HttpServletRequest request, String fallback) {
-        return requireOperator(request);
     }
 }

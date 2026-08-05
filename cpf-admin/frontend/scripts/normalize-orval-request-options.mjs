@@ -1,0 +1,21 @@
+import fs from "node:fs";
+import path from "node:path";
+
+const root = process.cwd();
+const clientPath = path.resolve(root, process.env.CPF_GENERATED_CLIENT || "src/generated/orval/cpf-api.ts");
+if (!fs.existsSync(clientPath)) throw new Error(`Generated client missing: ${clientPath}`);
+let source = fs.readFileSync(clientPath, "utf8");
+const valueImport = "import { cpfOrvalRequest } from '../../shared/orval-mutator';";
+const typeImport = "import type { CpfOrvalGeneratedRequestOptions } from '../../shared/orval-mutator';";
+if (!source.includes(valueImport)) throw new Error("Generated mutator import is missing");
+if (!source.includes(typeImport)) source = source.replace(valueImport, `${valueImport}\n${typeImport}`);
+const unsafeParameters = /Parameters<typeof cpfOrvalRequest>\[1\]/g;
+const unsafeParameterCount = (source.match(unsafeParameters) || []).length;
+source = source.replace(unsafeParameters, "CpfOrvalGeneratedRequestOptions");
+const unsafeAlias = /type SecondParameter<T extends \(\.\.\.args: never\) => unknown> = Parameters<T>\[1\];/;
+const safeAlias = "type SecondParameter<T extends (...args: never) => unknown> = CpfOrvalGeneratedRequestOptions;";
+if (unsafeAlias.test(source)) source = source.replace(unsafeAlias, safeAlias);
+else if (!source.includes(safeAlias)) throw new Error("Generated SecondParameter alias is missing or unexpected");
+if (source.includes("Parameters<typeof cpfOrvalRequest>[1]")) throw new Error("Unsafe generated request options remain");
+fs.writeFileSync(clientPath, source);
+console.log(`[CPF][FRONTEND] normalized generated request boundary replacements=${unsafeParameterCount}`);

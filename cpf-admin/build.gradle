@@ -14,6 +14,7 @@ java {
 
 dependencies {
     implementation project(':cpf-starter-profile-browser-bff')
+    implementation project(':cpf-starter-openapi-webmvc')
     implementation project(':cpf-starter-data-persistence-mybatis')
     implementation project(':cpf-starter-file-attachment')
     implementation project(':cpf-starter-file-tabular-poi')

@@ -8,5 +8,15 @@ cpf:
   service-call:
     registry-mode: ${ADM_SERVICE_REGISTRY_MODE:${CPF_SERVICE_REGISTRY_MODE:LOCAL}}
 
+  openapi:
+    webmvc:
+      enabled: ${CPF_OPENAPI_WEBMVC_ENABLED:true}
+      api-docs-enabled: ${CPF_OPENAPI_WEBMVC_API_DOCS_ENABLED:false}
+      management-enabled: ${CPF_OPENAPI_WEBMVC_MANAGEMENT_ENABLED:true}
+      api-docs-path: ${CPF_OPENAPI_WEBMVC_API_DOCS_PATH:/v3/api-docs}
+      title: ${CPF_OPENAPI_TITLE:CPF ADM API}
+      version: ${CPF_OPENAPI_VERSION:unspecified}
+      instance-id: ${ADM_INSTANCE_ID:${CPF_INSTANCE_ID:${SERVER_INSTANCE_ID:adm-local-01}}}
+
 logging:
   config: classpath:log/cpf-logback-spring.xml

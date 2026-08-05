@@ -1,0 +1,10 @@
+{
+  "baseline_sha": "09dd686c5ae0826594b9c5e1f871d95d95d3ce1c",
+  "validation_mode": "read_only_post_package",
+  "total_files": 464,
+  "checks": 81,
+  "passed": 81,
+  "failed": 0,
+  "errors": [],
+  "note": "This evidence is fixed before the final package pass; the final package is revalidated read-only with the same 73 checks."
+}

@@ -1,5 +1,5 @@
 import { MutationObserver } from "@tanstack/vue-query";
-import { CpfOrvalError, cpfOrvalRequest } from "./orval-mutator";
+import { CpfOrvalError, cpfOrvalRequest, type CpfOrvalResponse } from "./orval-mutator";
 import { cpfOperationDescriptors, resolveCpfOperation, type CpfOperationId } from "../generated/cpf-operation-contract";
 import { cpfQueryClient } from "./queryClient";
 import { createTransactionId, defaultHeaders, isValidTransactionId } from "./transaction";
@@ -92,6 +92,10 @@ function convert(error: unknown): never {
   if (error instanceof CpfOrvalError) throw new CpfApiError(error.status, error.message, error.payload);
   throw error;
 }
+async function cpfOrvalPayload<T>(config: Parameters<typeof cpfOrvalRequest>[0]): Promise<T> {
+  const response = await cpfOrvalRequest<CpfOrvalResponse<T>>(config);
+  return response.data;
+}
 export async function bzaQuery<T = unknown>(url: string, params?: Record<string, unknown>): Promise<T> {
   const target = new URL(url, window.location.origin);
   assertNoClientActorQuery(target);
@@ -104,7 +108,7 @@ export async function bzaQuery<T = unknown>(url: string, params?: Record<string,
   try {
     return await cpfQueryClient.fetchQuery<T>({
       queryKey: ["cpf", operation.operationId, target.pathname, target.search],
-      queryFn: () => cpfOrvalRequest<T>({ url: relative, method: "GET", headers: createBzaHeaders({ "X-CPF-Operation-Id": operation.operationId }) })
+      queryFn: () => cpfOrvalPayload<T>({ url: relative, method: "GET", headers: createBzaHeaders({ "X-CPF-Operation-Id": operation.operationId }) })
     });
   } catch (error) { return convert(error); }
 }
@@ -166,7 +170,7 @@ export async function bzaMutation<T = unknown>(url: string, method: "POST" | "PU
   const operation = resolveCpfOperation(method, relative);
   const observer = new MutationObserver<T, unknown, unknown, unknown>(cpfQueryClient, {
     mutationKey: ["cpf", operation.operationId],
-    mutationFn: () => cpfOrvalRequest<T>({ url: relative, method, headers: createBzaHeaders({ "Content-Type": "application/json", "X-CPF-Operation-Id": operation.operationId }), data: body })
+    mutationFn: () => cpfOrvalPayload<T>({ url: relative, method, headers: createBzaHeaders({ "Content-Type": "application/json", "X-CPF-Operation-Id": operation.operationId }), data: body })
   });
   try {
     const result = await observer.mutate(undefined);

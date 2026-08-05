@@ -1,5 +1,6 @@
 import { MutationObserver } from "@tanstack/vue-query";
 import { CpfOrvalError, cpfOrvalRequest } from "./orval-mutator";
+import type { CpfOrvalResponse } from "./orval-mutator";
 import { cpfOperationDescriptors, resolveCpfOperation, type CpfOperationId } from "../generated/cpf-operation-contract";
 import { cpfQueryClient } from "./queryClient";
 import { createTransactionId, defaultHeaders, isValidTransactionId } from "./transaction";
@@ -96,6 +97,11 @@ function assertNoClientActorQuery(target: URL): void {
     if (actorKey(key)) throw new Error(`Browser actor query field is forbidden: ${key}`);
   }
 }
+
+async function cpfOrvalPayload<T>(config: Parameters<typeof cpfOrvalRequest>[0]): Promise<T> {
+  const response = await cpfOrvalRequest<CpfOrvalResponse<T>>(config);
+  return response.data;
+}
 function convert(error: unknown): never {
   if (error instanceof CpfOrvalError) throw new CpfApiError(error.status, error.message, error.payload);
   throw error;
@@ -112,7 +118,7 @@ export async function admQuery<T = unknown>(url: string, params?: Record<string,
   try {
     return await cpfQueryClient.fetchQuery<T>({
       queryKey: ["cpf", operation.operationId, target.pathname, target.search],
-      queryFn: () => cpfOrvalRequest<T>({ url: relative, method: "GET", headers: createAdmHeaders({ "X-CPF-Operation-Id": operation.operationId }) })
+      queryFn: () => cpfOrvalPayload<T>({ url: relative, method: "GET", headers: createAdmHeaders({ "X-CPF-Operation-Id": operation.operationId }) })
     });
   } catch (error) { return convert(error); }
 }
@@ -124,7 +130,7 @@ export async function admMutation<T = unknown>(url: string, method: "POST" | "PU
   const operation = resolveCpfOperation(method, relative);
   const observer = new MutationObserver<T, unknown, unknown, unknown>(cpfQueryClient, {
     mutationKey: ["cpf", operation.operationId],
-    mutationFn: () => cpfOrvalRequest<T>({ url: relative, method, headers: createAdmHeaders({ "Content-Type": "application/json", "X-CPF-Operation-Id": operation.operationId }), data: body })
+    mutationFn: () => cpfOrvalPayload<T>({ url: relative, method, headers: createAdmHeaders({ "Content-Type": "application/json", "X-CPF-Operation-Id": operation.operationId }), data: body })
   });
   try {
     const result = await observer.mutate(undefined);

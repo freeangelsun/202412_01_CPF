@@ -1,0 +1,23 @@
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
+
+const repoRoot = path.resolve(process.cwd(), "../..");
+const controller = fs.readFileSync(path.join(repoRoot, "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmCacheController.java"), "utf8");
+const test = fs.readFileSync(path.join(repoRoot, "cpf-admin/src/test/java/com/cpf/admin/opr/controller/AdmCacheControllerAuthenticationTest.java"), "utf8");
+assert.match(controller, /@Validated/);
+assert.match(controller, /@Valid @RequestBody EvictKeyRequest/);
+assert.match(controller, /@Valid @RequestBody EvictNamespaceRequest/);
+assert.match(controller, /@Valid @RequestBody ControlRequest/);
+assert.match(controller, /@PositiveOrZero long version/);
+assert.match(controller, /@NotBlank String reason/);
+const audited = controller.slice(controller.indexOf("private AdmCacheControlResponse audited"), controller.indexOf("@FunctionalInterface"));
+const authIndex = audited.indexOf("requireOperator(request)");
+const reasonIndex = audited.indexOf("audit.requireReason(reason)");
+const operationIndex = audited.indexOf("operation.run(operator, requiredReason)");
+assert.ok(authIndex >= 0 && authIndex < reasonIndex && reasonIndex < operationIndex, "authentication and audit reason must precede side effects");
+assert.doesNotMatch(controller, /requestUser/);
+assert.match(test, /never\(\)\)\.requireReason/);
+assert.match(test, /never\(\)\)\.refresh/);
+assert.match(test, /never\(\)\)\.evictKey/);
+console.log("[CPF][BACKEND][PASS] cache authentication-before-validation, audited reason, CAS version, actor-spoof boundary");

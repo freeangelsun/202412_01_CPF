@@ -40,14 +40,16 @@ public class AdmConfigController extends com.cpf.admin.common.base.AdmBaseContro
     @GetMapping
     @CpfOnlineTransaction(id = "OADMCF0010", name = "ADMConfigList")
     @Operation(operationId = "admConfigFindConfigs", summary = "공통 설정 목록 조회", description = "cpf_config 기준 설정을 조회하며 암호화 항목 값은 마스킹합니다.")
-    public ResponseEntity<List<Map<String, Object>>> findConfigs() {
+    public ResponseEntity<List<Map<String, Object>>> findConfigs(HttpServletRequest request) {
+        requireOperator(request);
         return ResponseEntity.ok(configCacheService.getAllConfigs().stream().map(this::maskSecret).toList());
     }
 
     @GetMapping("/{configId}")
     @CpfOnlineTransaction(id = "OADMCF0011", name = "ADMConfigDetail")
     @Operation(operationId = "admConfigFindConfig", summary = "공통 설정 상세 조회", description = "설정 ID로 cpf_config 상세 정보를 조회하며 암호화 항목 값은 마스킹합니다.")
-    public ResponseEntity<Map<String, Object>> findConfig(@PathVariable Long configId) {
+    public ResponseEntity<Map<String, Object>> findConfig(@PathVariable Long configId, HttpServletRequest request) {
+        requireOperator(request);
         return ResponseEntity.ok(maskSecret(configCacheService.getConfigById(configId)));
     }
 
@@ -57,19 +59,14 @@ public class AdmConfigController extends com.cpf.admin.common.base.AdmBaseContro
     public ResponseEntity<Map<String, Object>> createConfig(
             @Valid @RequestBody CommonConfigRequest request,
             HttpServletRequest servletRequest) {
+        String operator = requireOperator(servletRequest);
+        request.setRequestUser(operator);
         String reason = auditLogService.requireReason(request.getReason());
         Map<String, Object> created = configCacheService.createConfig(request);
         auditLogService.record(
-                CpfTransactionContext.transactionId(),
-                requestUser(servletRequest, request.getRequestUser()),
-                "CONFIG_CREATE",
-                "cpf_config",
-                String.valueOf(created.getOrDefault("configId", request.getConfigKey())),
-                reason,
-                null,
-                String.valueOf(maskSecret(created)),
-                String.valueOf(maskSecret(created)),
-                servletRequest.getRemoteAddr());
+                CpfTransactionContext.transactionId(), operator, "CONFIG_CREATE", "cpf_config",
+                String.valueOf(created.getOrDefault("configId", request.getConfigKey())), reason,
+                null, String.valueOf(maskSecret(created)), String.valueOf(maskSecret(created)), servletRequest.getRemoteAddr());
         return ResponseEntity.ok(maskSecret(created));
     }
 
@@ -80,20 +77,14 @@ public class AdmConfigController extends com.cpf.admin.common.base.AdmBaseContro
             @PathVariable Long configId,
             @Valid @RequestBody CommonConfigRequest request,
             HttpServletRequest servletRequest) {
+        String operator = requireOperator(servletRequest);
+        request.setRequestUser(operator);
         String reason = auditLogService.requireReason(request.getReason());
         Map<String, Object> before = configCacheService.getConfigById(configId);
         Map<String, Object> updated = configCacheService.updateConfig(configId, request);
         auditLogService.record(
-                CpfTransactionContext.transactionId(),
-                requestUser(servletRequest, request.getRequestUser()),
-                "CONFIG_UPDATE",
-                "cpf_config",
-                String.valueOf(configId),
-                reason,
-                String.valueOf(maskSecret(before)),
-                String.valueOf(maskSecret(updated)),
-                "설정 수정",
-                servletRequest.getRemoteAddr());
+                CpfTransactionContext.transactionId(), operator, "CONFIG_UPDATE", "cpf_config", String.valueOf(configId), reason,
+                String.valueOf(maskSecret(before)), String.valueOf(maskSecret(updated)), "설정 수정", servletRequest.getRemoteAddr());
         return ResponseEntity.ok(maskSecret(updated));
     }
 
@@ -103,29 +94,19 @@ public class AdmConfigController extends com.cpf.admin.common.base.AdmBaseContro
     public ResponseEntity<List<Map<String, Object>>> deleteConfig(
             @PathVariable Long configId,
             @RequestParam String reason,
-            @RequestParam(defaultValue = "SYSTEM") String requestUser,
             HttpServletRequest servletRequest) {
+        String operator = requireOperator(servletRequest);
         String requiredReason = auditLogService.requireReason(reason);
         Map<String, Object> before = configCacheService.getConfigById(configId);
         List<Map<String, Object>> latest = configCacheService.deleteConfig(configId).stream().map(this::maskSecret).toList();
         auditLogService.record(
-                CpfTransactionContext.transactionId(),
-                requestUser(servletRequest, requestUser),
-                "CONFIG_DISABLE",
-                "cpf_config",
-                String.valueOf(configId),
-                requiredReason,
-                String.valueOf(maskSecret(before)),
-                null,
-                "설정 비활성",
-                servletRequest.getRemoteAddr());
+                CpfTransactionContext.transactionId(), operator, "CONFIG_DISABLE", "cpf_config", String.valueOf(configId), requiredReason,
+                String.valueOf(maskSecret(before)), null, "설정 비활성", servletRequest.getRemoteAddr());
         return ResponseEntity.ok(latest);
     }
 
     private Map<String, Object> maskSecret(Map<String, Object> source) {
-        if (source == null) {
-            return Map.of();
-        }
+        if (source == null) return Map.of();
         Map<String, Object> masked = new LinkedHashMap<>(source);
         Object encrypted = firstValue(masked, "encryptedYn", "encrypted_yn", "ENCRYPTED_YN");
         if ("Y".equalsIgnoreCase(String.valueOf(encrypted))) {
@@ -137,15 +118,7 @@ public class AdmConfigController extends com.cpf.admin.common.base.AdmBaseContro
     }
 
     private Object firstValue(Map<String, Object> source, String... keys) {
-        for (String key : keys) {
-            if (source.containsKey(key)) {
-                return source.get(key);
-            }
-        }
+        for (String key : keys) if (source.containsKey(key)) return source.get(key);
         return "";
-    }
-
-    private String requestUser(HttpServletRequest request, String fallback) {
-        return requireOperator(request);
     }
 }

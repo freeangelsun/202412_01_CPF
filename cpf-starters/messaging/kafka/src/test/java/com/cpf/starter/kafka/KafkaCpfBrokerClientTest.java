@@ -4,9 +4,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.cpf.core.api.broker.CpfBrokerPublishRequest;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -14,77 +16,50 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 
 class KafkaCpfBrokerClientTest {
-    @AfterEach
-    void clearInterruptFlag() {
-        Thread.interrupted();
-    }
+    @AfterEach void clearInterruptFlag(){Thread.interrupted();}
 
-    @Test
-    void returnsPublishedOnlyAfterBrokerAck() throws Exception {
-        KafkaTemplate<String, byte[]> template = template();
-        SendResult<String, byte[]> sendResult = mock(SendResult.class);
-        RecordMetadata metadata = mock(RecordMetadata.class);
-        when(metadata.partition()).thenReturn(2);
-        when(metadata.offset()).thenReturn(9L);
-        when(sendResult.getRecordMetadata()).thenReturn(metadata);
+    @Test void returnsPublishedOnlyAfterBrokerAckAndPropagatesCompleteCpfMetadata(){
+        KafkaTemplate<String,byte[]> template=template();SendResult<String,byte[]> sendResult=mock(SendResult.class);RecordMetadata metadata=mock(RecordMetadata.class);
+        when(metadata.partition()).thenReturn(2);when(metadata.offset()).thenReturn(9L);when(sendResult.getRecordMetadata()).thenReturn(metadata);
         when(template.send(any(ProducerRecord.class))).thenReturn(CompletableFuture.completedFuture(sendResult));
-
-        var result = client(template, Duration.ofMillis(50)).enqueue(request());
-
+        var result=client(template,Duration.ofMillis(50)).enqueue(request(Map.of("X-A","v")));
         assertThat(result.status()).isEqualTo("PUBLISHED");
-        assertThat(result.partitionKey()).isEqualTo("2");
-        assertThat(result.detail()).isEqualTo("offset=9");
+        ArgumentCaptor<ProducerRecord<String,byte[]>> captor=ArgumentCaptor.forClass(ProducerRecord.class);verify(template).send(captor.capture());
+        ProducerRecord<String,byte[]> sent=captor.getValue();
+        assertThat(value(sent,"cpf-message-id")).isEqualTo("message-1");
+        assertThat(value(sent,"cpf-transaction-id")).isEqualTo("transaction-1");
+        assertThat(value(sent,"cpf-idempotency-key")).isEqualTo("idempotency-1");
+        assertThat(value(sent,"cpf-content-type")).isEqualTo("application/octet-stream");
+        assertThat(value(sent,"cpf-segment-id")).isEqualTo("segment-1");
+        assertThat(value(sent,"cpf-producer-module")).isEqualTo("producer");
+        assertThat(value(sent,"cpf-consumer-module")).isEqualTo("consumer");
+        assertThat(value(sent,"X-A")).isEqualTo("v");
     }
 
-    @Test
-    void timeoutIsUnknownWithoutPollutingInterruptFlag() {
-        KafkaTemplate<String, byte[]> template = template();
-        when(template.send(any(ProducerRecord.class))).thenReturn(new CompletableFuture<>());
-
-        assertThatThrownBy(() -> client(template, Duration.ofMillis(1)).enqueue(request()))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("UNKNOWN");
-        assertThat(Thread.currentThread().isInterrupted()).isFalse();
+    @Test void reservedOrInvalidHeaderFailsBeforeProviderCall(){
+        KafkaTemplate<String,byte[]> template=template();
+        assertThatThrownBy(()->client(template,Duration.ofSeconds(1)).enqueue(request(Map.of("CPF-TRANSACTION-ID","evil"))))
+                .isInstanceOf(SecurityException.class);
+        assertThatThrownBy(()->client(template,Duration.ofSeconds(1)).enqueue(request(Map.of("bad header","v"))))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
-    @Test
-    void interruptedWaitRestoresInterruptFlag() {
-        KafkaTemplate<String, byte[]> template = template();
-        when(template.send(any(ProducerRecord.class))).thenReturn(new CompletableFuture<>());
-        Thread.currentThread().interrupt();
-
-        assertThatThrownBy(() -> client(template, Duration.ofSeconds(1)).enqueue(request()))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("UNKNOWN");
-        assertThat(Thread.currentThread().isInterrupted()).isTrue();
+    @Test void missingTrackingFailsBeforeProviderCall(){
+        KafkaTemplate<String,byte[]> template=template();
+        CpfBrokerPublishRequest invalid=new CpfBrokerPublishRequest("m","t","k",new byte[0],"x",null,"s","p","c","i",Map.of(),Map.of());
+        assertThatThrownBy(()->client(template,Duration.ofSeconds(1)).enqueue(invalid)).isInstanceOf(IllegalArgumentException.class).hasMessageContaining("transactionId");
     }
 
-    @SuppressWarnings("unchecked")
-    private static KafkaTemplate<String, byte[]> template() {
-        return mock(KafkaTemplate.class);
-    }
+    @Test void timeoutIsUnknownWithoutPollutingInterruptFlag(){KafkaTemplate<String,byte[]> t=template();when(t.send(any(ProducerRecord.class))).thenReturn(new CompletableFuture<>());assertThatThrownBy(()->client(t,Duration.ofMillis(1)).enqueue(request(Map.of()))).isInstanceOf(IllegalStateException.class).hasMessageContaining("UNKNOWN");assertThat(Thread.currentThread().isInterrupted()).isFalse();}
+    @Test void interruptedWaitRestoresInterruptFlag(){KafkaTemplate<String,byte[]> t=template();when(t.send(any(ProducerRecord.class))).thenReturn(new CompletableFuture<>());Thread.currentThread().interrupt();assertThatThrownBy(()->client(t,Duration.ofSeconds(1)).enqueue(request(Map.of()))).isInstanceOf(IllegalStateException.class).hasMessageContaining("UNKNOWN");assertThat(Thread.currentThread().isInterrupted()).isTrue();}
 
-    private static KafkaCpfBrokerClient client(KafkaTemplate<String, byte[]> template, Duration timeout) {
-        return new KafkaCpfBrokerClient(template, new CpfKafkaProperties(timeout, 1024, true));
-    }
-
-    private static CpfBrokerPublishRequest request() {
-        return new CpfBrokerPublishRequest(
-                "message-1",
-                "cpf.events",
-                "partition-key",
-                new byte[] {1},
-                "application/octet-stream",
-                "transaction-1",
-                null,
-                "producer",
-                "consumer",
-                "idempotency-1",
-                Map.of(),
-                Map.of());
-    }
+    @SuppressWarnings("unchecked") private static KafkaTemplate<String,byte[]> template(){return mock(KafkaTemplate.class);}
+    private static KafkaCpfBrokerClient client(KafkaTemplate<String,byte[]> t,Duration d){return new KafkaCpfBrokerClient(t,new CpfKafkaProperties(d,1024,true));}
+    private static CpfBrokerPublishRequest request(Map<String,String> headers){return new CpfBrokerPublishRequest("message-1","cpf.events","partition-key",new byte[]{1},"application/octet-stream","transaction-1","segment-1","producer","consumer","idempotency-1",headers,Map.of());}
+    private static String value(ProducerRecord<String,byte[]> r,String n){var h=r.headers().lastHeader(n);return h==null?null:new String(h.value(),StandardCharsets.UTF_8);}
 }

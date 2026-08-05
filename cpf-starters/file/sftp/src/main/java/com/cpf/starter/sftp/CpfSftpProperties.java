@@ -16,6 +16,7 @@ public class CpfSftpProperties {
     private String password;
     private Duration connectTimeout = Duration.ofSeconds(10);
     private Duration operationTimeout = Duration.ofSeconds(30);
+    private Duration startedRecoveryAge = Duration.ofMinutes(15);
     private int bufferBytes = 65_536;
     private long maxTransferBytes = 1024L * 1024 * 1024;
     private boolean ledgerRequired = true;
@@ -86,6 +87,14 @@ public class CpfSftpProperties {
         this.operationTimeout = operationTimeout;
     }
 
+    public Duration getStartedRecoveryAge() {
+        return startedRecoveryAge;
+    }
+
+    public void setStartedRecoveryAge(Duration startedRecoveryAge) {
+        this.startedRecoveryAge = startedRecoveryAge;
+    }
+
     public int getBufferBytes() {
         return bufferBytes;
     }
@@ -153,6 +162,7 @@ public class CpfSftpProperties {
         }
         requirePositive(connectTimeout, "connect-timeout");
         requirePositive(operationTimeout, "operation-timeout");
+        requirePositive(startedRecoveryAge, "started-recovery-age");
         if (localRoot == null || localRoot.isBlank()
                 || remoteRoot == null || remoteRoot.isBlank()) {
             throw new IllegalStateException("SFTP local-root and remote-root are required");

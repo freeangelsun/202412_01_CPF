@@ -53,6 +53,7 @@ class CpfJmsBrokerClientTest {
         var result = client.enqueue(request(Map.of("x-cpf-source", "REF")));
 
         assertThat(result.status()).isEqualTo("PUBLISHED");
+        verify(message).writeBytes("{}".getBytes(StandardCharsets.UTF_8));
         verify(message).setJMSCorrelationID("T-1");
         verify(message).setStringProperty("cpfMessageId", "M-1");
         verify(message).setStringProperty("cpfIdempotencyKey", "ID-1");
@@ -102,6 +103,34 @@ class CpfJmsBrokerClientTest {
                 .hasMessageContaining("UNKNOWN")
                 .hasMessageContaining("reconcile")
                 .hasCause(failure);
+    }
+
+    @Test
+    void enqueueRejectsNullOrBlankHeaderBeforeProviderCall() {
+        java.util.Map<String, String> blankName = new java.util.LinkedHashMap<>();
+        blankName.put(" ", "value");
+        java.util.Map<String, String> nullValue = new java.util.LinkedHashMap<>();
+        nullValue.put("x-source", null);
+        var client = new CpfJmsBrokerClient(template, properties);
+
+        assertThatIllegalArgumentException().isThrownBy(() -> client.enqueue(request(blankName));
+        assertThatIllegalArgumentException().isThrownBy(() -> client.enqueue(request(nullValue));
+        verifyNoInteractions(template);
+    }
+
+    @Test
+    void enqueueRejectsMissingTrackingBeforeProviderCall() {
+        var client = new CpfJmsBrokerClient(template, properties);
+        CpfBrokerPublishRequest missingTransaction = new CpfBrokerPublishRequest(
+                "M-X", "topic", "key", new byte[] {1}, "application/octet-stream",
+                null, "segment", "producer", "consumer", "idem", Map.of(), Map.of());
+        CpfBrokerPublishRequest missingIdempotency = new CpfBrokerPublishRequest(
+                "M-X", "topic", "key", new byte[] {1}, "application/octet-stream",
+                "tx", "segment", "producer", "consumer", null, Map.of(), Map.of());
+
+        assertThatIllegalArgumentException().isThrownBy(() -> client.enqueue(missingTransaction));
+        assertThatIllegalArgumentException().isThrownBy(() -> client.enqueue(missingIdempotency));
+        verifyNoInteractions(template);
     }
 
     private static CpfBrokerPublishRequest request(Map<String, String> headers) {

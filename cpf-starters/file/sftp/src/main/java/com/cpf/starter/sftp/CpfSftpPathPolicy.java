@@ -77,8 +77,10 @@ final class CpfSftpPathPolicy {
         String candidate = supplied.startsWith("/")
                 ? normalizeRemote(supplied)
                 : normalizeRemote(remoteRoot + "/" + supplied);
-        if (!candidate.equals(remoteRoot)
-                && !candidate.startsWith(remoteRoot + "/")) {
+        boolean withinRoot = "/".equals(remoteRoot)
+                ? candidate.startsWith("/")
+                : candidate.equals(remoteRoot) || candidate.startsWith(remoteRoot + "/");
+        if (!withinRoot) {
             throw new SecurityException("SFTP remote path escapes configured root");
         }
         return candidate;

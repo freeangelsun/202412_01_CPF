@@ -1,5 +1,6 @@
 package com.cpf.starter.messaging.reliability;
 
+import com.cpf.core.api.broker.CpfBrokerClient;
 import com.cpf.core.common.broker.CpfBrokerConsumerRuntimePolicy;
 import com.cpf.core.common.broker.CpfBrokerConsumerWorker;
 import com.cpf.core.common.broker.CpfBrokerPublishResultProbe;
@@ -18,12 +19,15 @@ import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 @AutoConfiguration
 @EnableConfigurationProperties(CpfMessagingReliabilityProperties.class)
+@ConditionalOnProperty(prefix = "cpf.messaging.reliability", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class CpfBrokerReliabilityAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(name = "cpfBrokerClock")
@@ -50,6 +54,23 @@ public class CpfBrokerReliabilityAutoConfiguration {
             JdbcCpfBrokerReliabilityRepository repository,
             CpfBrokerConsumerRuntimePolicy policy) {
         return new CpfBrokerConsumerWorker(repository, repository, policy);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(CpfBrokerPublisher.class)
+    CpfBrokerPublisher cpfProviderBrokerPublisher(
+            CpfBrokerClientRouter router,
+            @Qualifier("cpfBrokerClock") Clock clock) {
+        return new CpfProviderBrokerPublisher(router, clock);
+    }
+
+    @Bean
+    @Primary
+    @ConditionalOnMissingBean(name = "cpfReliableBrokerClient")
+    CpfBrokerClient cpfReliableBrokerClient(
+            JdbcCpfBrokerReliabilityRepository repository,
+            @Qualifier("cpfBrokerClock") Clock clock) {
+        return new CpfReliableBrokerClient(repository, clock);
     }
 
     @Bean

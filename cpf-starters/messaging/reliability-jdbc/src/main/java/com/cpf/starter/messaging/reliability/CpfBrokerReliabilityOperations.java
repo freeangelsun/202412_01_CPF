@@ -9,28 +9,34 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Auditable broker reliability operations facade.
+ * Broker reliability 운영 facade입니다.
  *
- * <p>Replay requests require an authenticated operator and a non-empty reason. The transaction
- * boundary covers all JDBC replay mutations so a missing outbox or another provider failure cannot
- * leave the DLQ and inbox in a partially changed state.</p>
+ * <p>과거 operator/reason만으로 실행하던 replay API는 승인 정책을 우회하므로 fail-closed합니다.
+ * 실제 실행은 ADM Approval Engine의 BrokerReliabilityApprovalOwnerCommandAdapter가 승인 Snapshot을
+ * 검증한 뒤 CPF public reliability port를 호출합니다.</p>
  */
-public final class CpfBrokerReliabilityOperations {
+public class CpfBrokerReliabilityOperations {
     private static final int MAX_REPLAY_RANGE = 5_000;
 
+    @SuppressWarnings("unused")
     private final CpfBrokerReplayPort replay;
 
     public CpfBrokerReliabilityOperations(CpfBrokerReplayPort replay) {
         this.replay = Objects.requireNonNull(replay, "replay must not be null");
     }
 
-    @Transactional
+    /** @deprecated 승인 완료 Owner Command 없이 단건 replay를 실행할 수 없습니다. */
+    @Deprecated(forRemoval = false)
+    @Transactional(transactionManager = "cpfTransactionManager")
     public CpfBrokerResult replay(String messageId, String operatorId, String reason) {
         requireAudit(operatorId, reason);
-        return replay.replay(requireText(messageId, "messageId"));
+        requireText(messageId, "messageId");
+        throw new SecurityException("DLQ replay requires an approved owner command");
     }
 
-    @Transactional
+    /** @deprecated 범위 replay도 개별 대상 Snapshot 승인 없이는 실행할 수 없습니다. */
+    @Deprecated(forRemoval = false)
+    @Transactional(transactionManager = "cpfTransactionManager")
     public List<CpfBrokerResult> replayRange(
             String topic,
             Instant from,
@@ -45,8 +51,7 @@ public final class CpfBrokerReliabilityOperations {
         if (limit < 1 || limit > MAX_REPLAY_RANGE) {
             throw new IllegalArgumentException("limit must be between 1 and " + MAX_REPLAY_RANGE);
         }
-        String normalizedTopic = topic == null || topic.isBlank() ? null : topic.trim();
-        return replay.replayRange(normalizedTopic, from, to, limit);
+        throw new SecurityException("DLQ range replay requires per-target approval snapshots");
     }
 
     private static void requireAudit(String operatorId, String reason) {

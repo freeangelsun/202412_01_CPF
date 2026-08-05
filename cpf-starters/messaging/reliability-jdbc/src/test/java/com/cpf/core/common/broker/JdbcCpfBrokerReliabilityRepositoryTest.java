@@ -94,32 +94,31 @@ class JdbcCpfBrokerReliabilityRepositoryTest {
     }
 
     @Test
-    void replayMarksDlqAsRequested() {
+    void directReplayFailsClosedWithoutDatabaseMutation() {
         JdbcTemplate jdbcTemplate = mock(JdbcTemplate.class);
-        when(jdbcTemplate.queryForObject(anyString(), eq(Integer.class), eq("msg-004")))
-                .thenReturn(1);
-        when(jdbcTemplate.update(anyString(), eq("msg-004"))).thenReturn(1);
         JdbcCpfBrokerReliabilityRepository repository = new JdbcCpfBrokerReliabilityRepository(jdbcTemplate);
 
-        CpfBrokerResult result = repository.replay("msg-004");
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> repository.replay("msg-004"))
+                .isInstanceOf(SecurityException.class)
+                .hasMessageContaining("approved owner command");
 
-        assertThat(result.status()).isEqualTo("ACCEPTED");
-        verify(jdbcTemplate, org.mockito.Mockito.times(3)).update(anyString(), eq("msg-004"));
+        verifyNoInteractions(jdbcTemplate);
     }
 
-
     @Test
-    void replayRejectsMissingOutboxBeforeAnyMutation() {
+    void directRangeReplayFailsClosedAndValidatesBoundaryFirst() {
         JdbcTemplate jdbcTemplate = mock(JdbcTemplate.class);
-        when(jdbcTemplate.queryForObject(anyString(), eq(Integer.class), eq("msg-missing")))
-                .thenReturn(0);
         JdbcCpfBrokerReliabilityRepository repository = new JdbcCpfBrokerReliabilityRepository(jdbcTemplate);
+        Instant now = Instant.parse("2026-08-05T00:00:00Z");
 
-        org.assertj.core.api.Assertions.assertThatThrownBy(() -> repository.replay("msg-missing"))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("outbox");
+        org.assertj.core.api.Assertions.assertThatThrownBy(
+                        () -> repository.replayRange("topic", now, now.minusSeconds(1), 10))
+                .isInstanceOf(IllegalArgumentException.class);
+        org.assertj.core.api.Assertions.assertThatThrownBy(
+                        () -> repository.replayRange("topic", null, null, 10))
+                .isInstanceOf(SecurityException.class);
 
-        verify(jdbcTemplate, never()).update(anyString(), eq("msg-missing"));
+        verifyNoInteractions(jdbcTemplate);
     }
 
     @Test

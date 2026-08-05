@@ -1,0 +1,1193 @@
+{
+  "package": "CPF_DEVGPT-6D_09dd686_ROOT_OVERLAY",
+  "current_master": "09dd686c5ae0826594b9c5e1f871d95d95d3ce1c",
+  "initial_development_base": "2b259ea45f3ad1a93bfefd5e7d3bc35f3406bf06",
+  "created_at": "2026-08-05T14:04:41+09:00",
+  "session": "DEVGPT-6D",
+  "delivery_status": "development-self-review-candidate-not-qa-final",
+  "management_model": "CPF_DEVELOPMENT_MANAGEMENT_V8",
+  "v8_scope_continuity": {
+    "assigned_work_items": 96,
+    "exact_matches": 96,
+    "canonical_requirements": 21,
+    "central_assignment_pending": true
+  },
+  "file_count_excluding_manifest_and_hash_list": 225,
+  "product_file_count": 102,
+  "development_document_count": 35,
+  "evidence_file_count": 88,
+  "detailed_requirement_counts": {
+    "assigned": 1281,
+    "reviewed": 1281,
+    "development_status": {
+      "완료": 1015,
+      "미완료": 266
+    }
+  },
+  "scenario_counts": {
+    "total": 1886,
+    "core_acceptance": 252,
+    "cross_session_frontend": 1634
+  },
+  "v7_work_item_counts": {
+    "current_master": "09dd686c5ae0826594b9c5e1f871d95d95d3ce1c",
+    "initial_development_base": "2b259ea45f3ad1a93bfefd5e7d3bc35f3406bf06",
+    "v7_work_item_total": 110,
+    "devgpt_6d_assigned": 96,
+    "devgpt_6d_completed": 86,
+    "devgpt_6d_incomplete_cross_session": 10,
+    "out_of_scope_saga": 14,
+    "unreviewed_assigned": 0,
+    "duplicate_work_item_id": 0,
+    "evidence_less_assigned": 0,
+    "completion_rule": "V7 assigned work items require product source, actual consumer and evidence. DB lifecycle, generator/publication and 6C DLQ public-port/CAS rows remain cross-session incomplete and are not PASS."
+  },
+  "executed_gates": [
+    "19 Java21 alternative/compile/semantic gate groups",
+    "Gateway Runtime Applier exact-integer harness",
+    "Gateway semantic contract 25/25",
+    "canonical requirement master comparison",
+    "requirement/scenario/V7 coverage with zero unlinked requirements",
+    "CSV/JSON/YAML and Java static/hygiene",
+    "high-confidence secret scan",
+    "official DB vendor scan",
+    "protected/delete gate",
+    "ZIP extraction/hash integrity"
+  ],
+  "not_executed_as_pass": [
+    "Java25 Gradle9.1 full build/test/publication",
+    "real broker/SFTP/TCP institution runtime",
+    "Oracle/PostgreSQL/MariaDB lifecycle runtime",
+    "browser/generated-client/a11y E2E"
+  ],
+  "protected_paths_modified": [],
+  "delete_targets": [],
+  "manifest_scope": "files list excludes PACKAGE_MANIFEST.json and FILE_HASHES.sha256 to avoid circular hashing",
+  "files": [
+    {
+      "path": "cpf-admin/src/main/java/com/cpf/admin/approval/owner/BrokerReliabilityApprovalOwnerCommandAdapter.java",
+      "size": 9861,
+      "sha256": "028c1a8ff9336fed9b31b882d23b930b143e196a16805c440ced91a81a9b9ae9"
+    },
+    {
+      "path": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmReliabilityController.java",
+      "size": 15368,
+      "sha256": "b68c80da82ecbb93f7554bb63426355390a91e282e25eae2663f5589c7f49f44"
+    },
+    {
+      "path": "cpf-admin/src/main/java/com/cpf/admin/opr/reliability/AdmBrokerDlqReplayApprovalSnapshot.java",
+      "size": 5656,
+      "sha256": "645dddb18597597c0e62e9c4b36d9453bc7a07ce77cf3d08c89197f5fc2bd9b3"
+    },
+    {
+      "path": "cpf-admin/src/main/java/com/cpf/admin/opr/service/AdmReliabilityService.java",
+      "size": 7448,
+      "sha256": "6649f6386702e69f8345987e10de505f0fbd92e0125770606f486fd94459be57"
+    },
+    {
+      "path": "cpf-admin/src/test/java/com/cpf/admin/approval/owner/BrokerReliabilityApprovalOwnerCommandAdapterTest.java",
+      "size": 10557,
+      "sha256": "3c3f968af68b8c325a8d792a36dde1c780854a5a1bb26162246acf39dfde8df3"
+    },
+    {
+      "path": "cpf-admin/src/test/java/com/cpf/admin/opr/reliability/AdmBrokerDlqReplayApprovalSnapshotTest.java",
+      "size": 2353,
+      "sha256": "e6bbe238e5b27b7deb59eede21bc0c44da8ab71b273d86a0366e89ae507773d6"
+    },
+    {
+      "path": "cpf-admin/src/test/java/com/cpf/admin/opr/service/AdmReliabilityServiceTest.java",
+      "size": 5258,
+      "sha256": "5d3fd483626c9295e8a5be940799829d32924f58edb8024bbd36c9fae65511a6"
+    },
+    {
+      "path": "cpf-core/src/main/java/com/cpf/core/api/gateway/CpfGatewayEntryPolicyPort.java",
+      "size": 5049,
+      "sha256": "31bfa81fb3e1954f75e58af1a8d7659446bf99c99f68c37d8c2c335a50602866"
+    },
+    {
+      "path": "cpf-core/src/main/java/com/cpf/core/api/gateway/CpfGatewayRateLimitCounterPort.java",
+      "size": 5763,
+      "sha256": "be050f8048c27b0c1f21eb96d12726dd664b0b25e15032437fb287c82fcf0978"
+    },
+    {
+      "path": "cpf-core/src/main/java/com/cpf/core/api/gateway/CpfGatewayRateLimitPort.java",
+      "size": 4123,
+      "sha256": "09fe7e44b7742c9578e29b06e53a203d813d7db473aab2375a62ed39a54be395"
+    },
+    {
+      "path": "cpf-core/src/main/java/com/cpf/core/common/broker/CpfBrokerFailureSanitizer.java",
+      "size": 1270,
+      "sha256": "f23932aa8b43cc95db6972cd896c41ab993016e82577213d57e2b78c7d35f6ad"
+    },
+    {
+      "path": "cpf-core/src/main/java/com/cpf/core/common/broker/CpfBrokerFailureTransitionPort.java",
+      "size": 234,
+      "sha256": "677d36a9eedef0dd415a37d71913bd654361e0f685439866739334d81ec508aa"
+    },
+    {
+      "path": "cpf-core/src/main/java/com/cpf/core/common/broker/CpfBrokerInboxPort.java",
+      "size": 585,
+      "sha256": "d34c1576519172ad998e19866ac4ce16a16ee0df49da2ee5993788a0b88cc14e"
+    },
+    {
+      "path": "cpf-core/src/main/java/com/cpf/core/common/broker/CpfBrokerOutboxPort.java",
+      "size": 714,
+      "sha256": "0a9e39795fb96de91c59246d8f16e3880dd0fceb668d94fc66b33545c6d25140"
+    },
+    {
+      "path": "cpf-core/src/main/java/com/cpf/core/common/broker/CpfBrokerUnknownResultPort.java",
+      "size": 788,
+      "sha256": "dd50d9d8236c33cea915d57288fec67b2b9390b3674a8561aa89c9572a341396"
+    },
+    {
+      "path": "cpf-core/src/test/java/com/cpf/core/api/gateway/CpfGatewayEntryPolicyPortTest.java",
+      "size": 1322,
+      "sha256": "7ae5f22c6312d3aed124ba51bedfb1412bd9229c769c003b78301634898b5665"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/ALL_LOW_COST_GATES.txt",
+      "size": 2479,
+      "sha256": "95cc351f0eec3df825112a0423cd7ff08cbd687017a20e69f61c613cf9eb5ec3"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/APPROVAL_EXECUTION_DOUBLE_RESERVATION_REPRO.txt",
+      "size": 818,
+      "sha256": "035eae1ff54e464f881450c11f4b2eedc7187cf935deb3937e7a3c919c809bf4"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/BASELINE_HEAD_REVALIDATION.txt",
+      "size": 610,
+      "sha256": "e893c413c51bbbc582a04a1c73fb94420d3e6177c8b3bf7f05722627863e3296"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/CONSUMER_RECOVERY_JAVA21_HARNESS.txt",
+      "size": 66,
+      "sha256": "7d4fd903977a4f3a9a4266884b8ec2f4c442191c77f0466859283da0ea0374c6"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/DLQ_APPROVAL_JAVA21_HARNESS_R3.txt",
+      "size": 46,
+      "sha256": "e1204494653e0ec9f32de983587f08fde5dcab796dd4adb66394f637c8023237"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/FINAL_OVERLAY_VALIDATION.txt",
+      "size": 426,
+      "sha256": "bf0c2c95c43d1c9edbed02af747add12aeb78c3341d136007d0a97278c237759"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/FULL_FINAL_GATE_RERUN.txt",
+      "size": 2835,
+      "sha256": "e20b483196dbd0c0841d038a36aa152d3aa3f63676e2387966f03898200af492"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/GATEWAY_ENTRY_SCOPE_AND_RUNTIME_EVIDENCE.md",
+      "size": 1799,
+      "sha256": "c4bca29fe836086edc8aac765fdb5bd9be08c2842657d43ae0e1ccf599e9c674"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/GATEWAY_HANDLER_TARGET_COMPILE_LIMITATION.txt",
+      "size": 658,
+      "sha256": "2f43d5adf3b4914ff7cc27257a32f52bd05fb8c245dd2d8f888cd37403dc8efb"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/GATEWAY_JDBC_BATCH_VALIDATION_HARNESS_R2.txt",
+      "size": 50,
+      "sha256": "fc37b18edd56dafb285dad587cad34c40de6487698306a0d578e0aa0bea5ad0c"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/GATEWAY_JDBC_DISTRIBUTED_COUNTER_COMPILE.log",
+      "size": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/GATEWAY_JDBC_DISTRIBUTED_COUNTER_JAVA21_COMPILE.txt",
+      "size": 53,
+      "sha256": "05ef25df724dda0d182e63d9e77ae76060b4a340a206b8c08016138943a183ae"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/GATEWAY_JDBC_REQUEST_HASH_HARNESS_R3.txt",
+      "size": 40,
+      "sha256": "a62e75df1e41f607f7ee15eb85de2f4bd416d3b8d862c5ecd8623f77fa53b9c9"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/GATEWAY_JUNIT_SOURCE_COMPILE.txt",
+      "size": 330,
+      "sha256": "534d456da4eb42c3d7ba8a601121082e1d358bd1df15403e09fb2cff94fba06c"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/GATEWAY_RATE_LIMIT_JAVA21_COMPILE.log",
+      "size": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/GATEWAY_RATE_LIMIT_JAVA21_COMPILE_R5.log",
+      "size": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/GATEWAY_RATE_LIMIT_JAVA21_HARNESS.txt",
+      "size": 75,
+      "sha256": "a66d22d8600de36c4e79b389b36169f8f14f47f27606a3844fb8203e5b469a9e"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/GATEWAY_RATE_LIMIT_JAVA21_HARNESS_R5.txt",
+      "size": 105,
+      "sha256": "e471f4cf674a2afe563961b50b09f3caa8d5ae280c754d5d61c8ecba82c51dd2"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/GATEWAY_RUNTIME_APPLIER_JAVA21_COMPILE.log",
+      "size": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/GATEWAY_RUNTIME_APPLIER_JAVA21_HARNESS.txt",
+      "size": 49,
+      "sha256": "713efb87c1b79632914016a7002704a2f2bcd3aa9999bd41e8136e36aa71d66b"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/GATEWAY_SEMANTIC_CONTRACT.txt",
+      "size": 445,
+      "sha256": "be790b495dd35392cba6112cad9c012502edc30b4f477b40e5eafcdc3ffb3887"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/GATEWAY_SEMANTIC_CONTRACT_R5.txt",
+      "size": 504,
+      "sha256": "db37ca38970c48c4eb7dcf7ac233db38dcd317576714051a23794081c8b949fd"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/GIT_CLONE_RETRY.txt",
+      "size": 159,
+      "sha256": "a175806fd232ca201bbd1449cc14bad407fceee9f5e72e4e62ad4b4b85b673e9"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/GIT_CLONE_RETRY_CURRENT.txt",
+      "size": 180,
+      "sha256": "9dd90df9bbd0344d4cae7e0be2a01c46413caf5256413bbbcca975a0f76ed696"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/JAVA21_SUBSTITUTE_VALIDATION.txt",
+      "size": 49,
+      "sha256": "4554c4ea0be29012bca524ed7c8fa9e917e72e95da7c18650eb28dcabfc99676"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/KAFKA_HEADER_JAVA21_HARNESS.txt",
+      "size": 49,
+      "sha256": "91f5a0c0562f66e77fc9ac2dc5e22717efa33ffb0b9342bfc8b1274079969832"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/LATEST_MASTER_DELTA_REVIEW.md",
+      "size": 1117,
+      "sha256": "a55dcd97369a2c538cb9464f026a88d25a35fbcb3281747f799f7cbf9bc01c4b"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/OUTBOX_PATH_JAVA21_HARNESS_R3.txt",
+      "size": 68,
+      "sha256": "ae619bc51a0fedf47601e57f1ba4df0d3c866355ad8d10ce3e3091ef5ff64cf1"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/OWNERSHIP_BOUNDARY_REVIEW.txt",
+      "size": 478,
+      "sha256": "39cf45e1b2e5fa2803ad14610ba29161e3db210a415c7829bfe228fa06c13c3f"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/PREPACKAGE_VALIDATION.txt",
+      "size": 426,
+      "sha256": "bf0c2c95c43d1c9edbed02af747add12aeb78c3341d136007d0a97278c237759"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/REFERENCE_GATEWAY_RATE_LIMIT_JAVA21_HARNESS.txt",
+      "size": 50,
+      "sha256": "ef7b2a3b537e12f7b2f3e256e3af0e3f12d870fc4914fb9c82efe6b4f6eb2ced"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/REQUIREMENT_SCENARIO_COVERAGE.txt",
+      "size": 271,
+      "sha256": "c4be92a6094da0ba6091d634342e569ccc5825cdd54a6b186e5cbd0938199a41"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/SCOPE_CANONICAL_VALIDATION.txt",
+      "size": 338,
+      "sha256": "03445a729505dd96a97eaea3125ae9549b9d54d7b48118636b0cc154bb0e93c3"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/STATIC_DATA_GATE.txt",
+      "size": 173,
+      "sha256": "202a2aa736dc4d847c61fc21f2d295b886f587ffa00c3933924d38ee0b90eaa9"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/TCP_UNKNOWN_JOURNAL_ABA_HARNESS_R3.txt",
+      "size": 49,
+      "sha256": "59466486571e4300280bdff6b8f10c1f4441d004f3bac63eb880a544e85361ba"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/TEST_AND_EVIDENCE.md",
+      "size": 5533,
+      "sha256": "81334fbcd0ff4fcbab8ea61e3492f9a47e5f772da940a5830d7c8d89421ef457"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/V8_SCOPE_CONTINUITY.txt",
+      "size": 282,
+      "sha256": "d4be22172d83d4a049193e04ec048e72076407b561486db35eecf0edbf789640"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/handler_javac_stderr.txt",
+      "size": 132,
+      "sha256": "4a7d2328de03ed1d22ed31960540a071b7dae1176ed606e903bd60cff3e16d83"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/java-candidates.txt",
+      "size": 44,
+      "sha256": "9b3fd637e691587ff1ee9c22789cb302a0b873e430a168bf81e1c96260bcd7f1"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/java-home.txt",
+      "size": 11,
+      "sha256": "89ceed2fcaac8e4f5a8e6df91bfda0169976f318a319c0b5ece8c634297afa52"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/java-version.txt",
+      "size": 179,
+      "sha256": "96994c46d04674d93e77508dabca503b024aac6808716cf39d9da67c21a75dd6"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/javac-version.txt",
+      "size": 14,
+      "sha256": "fc77c1bff71ef3d96ab91ecea5d18c5b326d7215c937176bad04cdc79a4de547"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/low-cost-gates/SUMMARY.txt",
+      "size": 2479,
+      "sha256": "95cc351f0eec3df825112a0423cd7ff08cbd687017a20e69f61c613cf9eb5ec3"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/low-cost-gates/api_client_runtime.compile.log",
+      "size": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/low-cost-gates/api_client_runtime.run.log",
+      "size": 70,
+      "sha256": "65c7f1e4d86adcc68408f10a190f83493919792cbef3dc1fcca0bb6433f35a95"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/low-cost-gates/consumer.compile.log",
+      "size": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/low-cost-gates/consumer.run.log",
+      "size": 66,
+      "sha256": "7d4fd903977a4f3a9a4266884b8ec2f4c442191c77f0466859283da0ea0374c6"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/low-cost-gates/dlq.compile.log",
+      "size": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/low-cost-gates/dlq.run.log",
+      "size": 74,
+      "sha256": "2251c1f6c5618d630d34fa1faf0b020459081a78d6a1442fa6bbeb552bcad444"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/low-cost-gates/fixedlength.compile.log",
+      "size": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/low-cost-gates/fixedlength.run.log",
+      "size": 63,
+      "sha256": "24902f8c0ba3af6a798dd759e2f769fe07a24fc6125b71b3cbd2d2d37b58472c"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/low-cost-gates/gateway-semantic.log",
+      "size": 504,
+      "sha256": "db37ca38970c48c4eb7dcf7ac233db38dcd317576714051a23794081c8b949fd"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/low-cost-gates/gateway_entry.compile.log",
+      "size": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/low-cost-gates/gateway_entry.run.log",
+      "size": 75,
+      "sha256": "95a70f7a2dc73ec397ca7e72ae76a2d1ac3d4c54023b20fed68ec234781dfede"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/low-cost-gates/gateway_entry_applier.compile.log",
+      "size": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/low-cost-gates/gateway_entry_applier.run.log",
+      "size": 43,
+      "sha256": "d9aa607fdfcd03c17849fff6df3061c683506dd4c33587cad5918aa1af5040e2"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/low-cost-gates/gateway_entry_reference.compile.log",
+      "size": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/low-cost-gates/gateway_entry_reference.run.log",
+      "size": 77,
+      "sha256": "9ec76da7dfd836836464243c8adfcb91a9bb9507c3cd7172ef4ce9b8a1817c48"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/low-cost-gates/gateway_entry_startup.compile.log",
+      "size": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/low-cost-gates/gateway_entry_startup.run.log",
+      "size": 54,
+      "sha256": "4612abdd8424fc1fde94604f49b093f2331236fa30fb62779f793873c690b1b5"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/low-cost-gates/gateway_jdbc.compile.log",
+      "size": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/low-cost-gates/gateway_jdbc.run.log",
+      "size": 103,
+      "sha256": "d9d199138cd44649e6b57b5312b9276523496dc8dfd24949df7ebc9ea7d3acc6"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/low-cost-gates/gateway_rate.compile.log",
+      "size": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/low-cost-gates/gateway_rate.run.log",
+      "size": 148,
+      "sha256": "a19b357a5cf7463771234939c61d1bbb612472c97f46e47e46b7ac1bbec09fd2"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/low-cost-gates/gateway_security.compile.log",
+      "size": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/low-cost-gates/gateway_security.run.log",
+      "size": 74,
+      "sha256": "0d22938e602d71820bd1228a70deb7ef8e87125c827bdfd1d7a5b673095850b0"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/low-cost-gates/gateway_semantic.run.log",
+      "size": 746,
+      "sha256": "f5f0ff2f52c20ea73e4183be4d3fc5bfd3a0ec518ea0d0ca909053006e2d1e37"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/low-cost-gates/http.compile.log",
+      "size": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/low-cost-gates/http.run.log",
+      "size": 88,
+      "sha256": "f9237946ca7314cd382b0f55fcd290b1064354ba6b4eda379227cc06b962becb"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/low-cost-gates/kafka.compile.log",
+      "size": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/low-cost-gates/kafka.run.log",
+      "size": 49,
+      "sha256": "91f5a0c0562f66e77fc9ac2dc5e22717efa33ffb0b9342bfc8b1274079969832"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/low-cost-gates/kafka_bridge_compile.compile.log",
+      "size": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/low-cost-gates/kafka_bridge_compile.run.log",
+      "size": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/low-cost-gates/outbox.compile.log",
+      "size": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/low-cost-gates/outbox.run.log",
+      "size": 68,
+      "sha256": "ae619bc51a0fedf47601e57f1ba4df0d3c866355ad8d10ce3e3091ef5ff64cf1"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/low-cost-gates/repository_compile.compile.log",
+      "size": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/low-cost-gates/repository_compile.run.log",
+      "size": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/low-cost-gates/sftp.compile.log",
+      "size": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/low-cost-gates/sftp.run.log",
+      "size": 69,
+      "sha256": "8d5b2b8fc90bdc30e4fe3c342ddb590ce222c510c83bb87319484ad1775d7fcf"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/low-cost-gates/tcp_journal.compile.log",
+      "size": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/low-cost-gates/tcp_journal.run.log",
+      "size": 49,
+      "sha256": "59466486571e4300280bdff6b8f10c1f4441d004f3bac63eb880a544e85361ba"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/static-gates/coverage-integrity.txt",
+      "size": 427,
+      "sha256": "3aae5c566fa7098ccea8e413b8c9d9684159bb267806809249b563257e3f6782"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/static-gates/hygiene-rerun.txt",
+      "size": 21,
+      "sha256": "f381a946d016bfa86803c906a1aba72cde007613e3a2bf139adf72f7e94eb8ef"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/static-gates/java-static.txt",
+      "size": 36,
+      "sha256": "eda87a2e4c66fe3194178c6e98729b90d826feaa60d76f45663ad5f11a253700"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/static-gates/protected-delete-gate.txt",
+      "size": 53,
+      "sha256": "3922e5268793656eb7720d534a969d8046ff50b6cc3fbcc8fc64e9e3f14df50a"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/static-gates/refined-secret-scan.txt",
+      "size": 23,
+      "sha256": "1862acc98da9ac3646503f867eedb31722252420090b1f45a785a5d2a5cd6dd1"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/static-gates/structured-data.txt",
+      "size": 42,
+      "sha256": "7638e913f728e1a7bbf44473f482ed54c2005619b4279b8760038681ddef5389"
+    },
+    {
+      "path": "cpf-docs/evidence/development/DEVGPT-6D_09dd686/static-gates/vendor-scan.txt",
+      "size": 42,
+      "sha256": "4c936331f442f14d1933885b3e7e68bb7eab27066c438e1e51881eba09b722db"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6D_09dd686/APPLY_ONE_LINE.txt",
+      "size": 309,
+      "sha256": "6bdc89e2489c524a1a20f5003bffacf1f9d941e1c830f2e661f1fa2efaf3efcb"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6D_09dd686/CAPABILITY_SOURCE_TRACE.csv",
+      "size": 19219,
+      "sha256": "21ce1400ea855a86efaa17117b6fbe55c82c73d9e71e7c0c2881787630c9613b"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6D_09dd686/CHANGE_MANIFEST.csv",
+      "size": 411427,
+      "sha256": "5f95f985a6365d40c41ffb19f7305ff5eaed54a97a9d568eeb5c83e5da2a0448"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6D_09dd686/CLEANUP_ONE_LINE.txt",
+      "size": 21,
+      "sha256": "bec0806d89ce7f2fb09de6c0241163f13ea5707b37277211f93235c29a29668a"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6D_09dd686/CODEX_REVIEW_REQUEST.md",
+      "size": 1865,
+      "sha256": "830a6830a74d1cbf01c68ba1be12eae05169101bc03b455f4af9f7f262f276a6"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6D_09dd686/CROSS_SESSION_CHANGE_REQUEST.csv",
+      "size": 4643,
+      "sha256": "818e45a4c174f95815b56a3980dc3474134b1f1577d47ff777c7efd69a32573d"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6D_09dd686/CROSS_SESSION_IMPACT.csv",
+      "size": 3865,
+      "sha256": "17537d49b5a96e6231bbab83873f910261bdd254b48eb40e4894edf115db524a"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6D_09dd686/DELETE_MANIFEST.csv",
+      "size": 46,
+      "sha256": "e10e326bc2b7fd1ff5f671860ab8552d75ba6316221ad74c39caeeaa61281da7"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6D_09dd686/DEVELOPMENT_EXECUTION_PLAN.csv",
+      "size": 1676,
+      "sha256": "3578f0cd68e9680827e36de4196dcce817bfa915763da2b6ab9f23b4c1b40c93"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6D_09dd686/FINAL_DEVELOPMENT_SELF_REVIEW.md",
+      "size": 2582,
+      "sha256": "81e8fd86721b0c1753daf8a250d8470f8ef5c3f52e60a11451a778fe1d39f024"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6D_09dd686/FUNCTION_POINT_REQUIREMENT_MAP.csv",
+      "size": 578925,
+      "sha256": "a31a60e713acb3a4582229bd5430a6dac7088788491dfd8768bbf4ce55c5c266"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6D_09dd686/FUNCTION_POINT_SCENARIO_MAP.csv",
+      "size": 1219621,
+      "sha256": "d964d1bab386647dc4b2c48a3f43263257b71d5da860d1e079ed1175d13231b8"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6D_09dd686/FUNCTION_POINT_STATUS.csv",
+      "size": 4140,
+      "sha256": "6a16a4ae665d95460584f033fa4a7d11b48a93e3a6721757812de7391d515155"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6D_09dd686/GATEWAY_TRUST_RESILIENCE_RATE_LIMIT_RUNBOOK.md",
+      "size": 5469,
+      "sha256": "1576dd0572c6b4fd2e4c43048881c83764799cbc8e369470353f282a2831cd8b"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6D_09dd686/GIT_STATUS_ONE_LINE.txt",
+      "size": 52,
+      "sha256": "665b56a9be1ab8bc6935b32a3b12877d6f401e9d99190a1abd1a194cc70cf59c"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6D_09dd686/ID_COVERAGE_VALIDATION.json",
+      "size": 3918,
+      "sha256": "261bd724f77bb7e9c3c42c996858e3311f1cebcb263588a283f48a1403a09c58"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6D_09dd686/OPEN_ISSUES.md",
+      "size": 1223,
+      "sha256": "ed4086f05fbbfe9ed474504baa7396d734a43b6d8ab84ea63b32a192eb1a0f42"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6D_09dd686/QA_PATCH_REVIEW.csv",
+      "size": 31753,
+      "sha256": "afd6618e8803e5cb91113d4e8ef1a08f13791435ea51fc4e88f11ec71591304f"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6D_09dd686/QA_REWORK_RESPONSE.md",
+      "size": 992,
+      "sha256": "8e774070a90f322cf5bf3c7669ba55d100e2e42782f331aadf3944ed1f7ab2bc"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6D_09dd686/REQUIREMENT_DEVELOPMENT_REVIEW.csv",
+      "size": 3925883,
+      "sha256": "9a63bf6e610017729fe92384a1ce0f510cad0cfb4d114e0c32118852d84f19c7"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6D_09dd686/REQUIREMENT_STATUS.csv",
+      "size": 357701,
+      "sha256": "339ddd9bfbff159811fbfbd37e067515660b56c5214a0a5cb3915794b2671c54"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6D_09dd686/REVIEW_INDEX.md",
+      "size": 1345,
+      "sha256": "0917ff263ef836bf6abdefd390d608f5625b7bb27e34532b52c4c1b02058848a"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6D_09dd686/SCENARIO_STATUS.csv",
+      "size": 1059566,
+      "sha256": "d342c072ce483600e1885ecfbde55b4711791bee92f91a7e2cfbb06358624cf8"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6D_09dd686/SCOPE_RECONCILIATION.csv",
+      "size": 345039,
+      "sha256": "795c07c5d0f54a2f1e307ca062f0295891b34239154b7c29e40b6add06f2d6d4"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6D_09dd686/SCOPE_RECONCILIATION.md",
+      "size": 9789,
+      "sha256": "4e08236357abf6b8374d61a5bbcf91280d8eb1b1207fb4835a4216861c9263e8"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6D_09dd686/SESSION_HANDOVER.md",
+      "size": 2015,
+      "sha256": "73cd9a4f36edae6e9738b462af96bc33148a0d4f66965e502bb05e7ecf13be93"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6D_09dd686/SESSION_REQUIREMENT_SCOPE.csv",
+      "size": 2135114,
+      "sha256": "37a59f28ba361fd18675b7708310ac0e0c46816eed7258c09873a55d8567da59"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6D_09dd686/SESSION_SCOPE.md",
+      "size": 1537,
+      "sha256": "8a711638d55d183627bd7d5c46ae8b89aff8f1d309d97f637f67e3d47d9e624c"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6D_09dd686/SESSION_SCOPE_DELTA.md",
+      "size": 749,
+      "sha256": "24276e4e214f1c8f2e6f69f561fdc81245c6b043f8343452629e0fd15e5808ce"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6D_09dd686/TEST_AND_EVIDENCE.md",
+      "size": 5533,
+      "sha256": "81334fbcd0ff4fcbab8ea61e3492f9a47e5f772da940a5830d7c8d89421ef457"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6D_09dd686/V7_WORK_ITEM_COVERAGE.json",
+      "size": 607,
+      "sha256": "39b354ceb735349fa9b6dbd205831784a0063d2e6c395e1d19ac5d194b4c7115"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6D_09dd686/V7_WORK_ITEM_STATUS.csv",
+      "size": 150658,
+      "sha256": "3d5f3623388e466bfc067b3322cece8153da07d8007ebe223021db217e7fa527"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6D_09dd686/V8_SCOPE_CONTINUITY.csv",
+      "size": 35714,
+      "sha256": "078f322fa60c064c537ce089e45e0c02ff87024b7f9ff3e3ea415e581a248835"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6D_09dd686/V8_SCOPE_CONTINUITY.md",
+      "size": 1117,
+      "sha256": "a55dcd97369a2c538cb9464f026a88d25a35fbcb3281747f799f7cbf9bc01c4b"
+    },
+    {
+      "path": "cpf-docs/work/development/DEVGPT-6D_09dd686/VALIDATE_ONE_LINE.txt",
+      "size": 194,
+      "sha256": "454635b53c0e842cfb058ac74479726ab3b4172420b5efe16a7afd502361d4d7"
+    },
+    {
+      "path": "cpf-gateway/src/main/java/com/cpf/gateway/config/CpfGatewayConfiguration.java",
+      "size": 7039,
+      "sha256": "a5a19ba589219af9416acee7d8ae3627311584be50727f499581c0c69bd923d0"
+    },
+    {
+      "path": "cpf-gateway/src/main/java/com/cpf/gateway/config/CpfGatewaySafetyProperties.java",
+      "size": 12996,
+      "sha256": "a1363391d70ae25acde3f3ddefd5167b697fadb4b543f93ad16e79c018e9c636"
+    },
+    {
+      "path": "cpf-gateway/src/main/java/com/cpf/gateway/config/CpfGatewaySafetyStartupValidator.java",
+      "size": 2592,
+      "sha256": "7bcfef917d07af36f01e941ba0248f39b5467797b17131b1ea8d1ee0f3e4c961"
+    },
+    {
+      "path": "cpf-gateway/src/main/java/com/cpf/gateway/control/CpfGatewayControlListenerConfiguration.java",
+      "size": 2208,
+      "sha256": "03e6dfaca0abf4fecc35bc3f204776bf1ef39f413fd4b346cbd4979b7ddfe725"
+    },
+    {
+      "path": "cpf-gateway/src/main/java/com/cpf/gateway/control/CpfGatewayControlSecurityProperties.java",
+      "size": 7234,
+      "sha256": "d954688f6d49af758825ac7ed0dbee9efe87b56b752b9b93fc09b474e928d3f3"
+    },
+    {
+      "path": "cpf-gateway/src/main/java/com/cpf/gateway/control/CpfGatewayPlaneBoundaryFilter.java",
+      "size": 1903,
+      "sha256": "184fa3a2251898f8e43e27ae912dc2e5cc4bc4e202a10bfacb2f0e78fcf7865b"
+    },
+    {
+      "path": "cpf-gateway/src/main/java/com/cpf/gateway/runtime/CpfApiClientSecurityPolicy.java",
+      "size": 6168,
+      "sha256": "c2794d999fc37a920586d35b5937f7622dd7fbeb420316b37967b04289c73ead"
+    },
+    {
+      "path": "cpf-gateway/src/main/java/com/cpf/gateway/runtime/CpfApiClientSecurityRuntimeApplier.java",
+      "size": 3461,
+      "sha256": "58834588fb4aac443be8f79f9f7f346c899656d00c4f1661578aca9068db0cf2"
+    },
+    {
+      "path": "cpf-gateway/src/main/java/com/cpf/gateway/runtime/CpfGatewayEntryRuntimeApplier.java",
+      "size": 2051,
+      "sha256": "8a9f54f8527919d25b6f6afde46c6ccb0137baf8184c985b4ddc7d7bb75e13bf"
+    },
+    {
+      "path": "cpf-gateway/src/main/java/com/cpf/gateway/runtime/CpfGatewayRuntimeApplier.java",
+      "size": 4184,
+      "sha256": "27fa4bb71fcf3575d86045a014b5c449d435bb6bdebfa0bab3bfa9bd73cb04ff"
+    },
+    {
+      "path": "cpf-gateway/src/main/java/com/cpf/gateway/runtime/CpfGatewayRuntimePolicy.java",
+      "size": 23245,
+      "sha256": "c16eb1f3e584fea5de4c9667b296359cd9bab57e0a61a9a178f9a91b065e6a77"
+    },
+    {
+      "path": "cpf-gateway/src/main/java/com/cpf/gateway/runtime/DefaultCpfGatewayEntryPolicy.java",
+      "size": 5179,
+      "sha256": "5d955de189d2652b3a98c3786aed945ad6624ac85eadad08e844280eff7f9523"
+    },
+    {
+      "path": "cpf-gateway/src/main/java/com/cpf/gateway/runtime/InMemoryCpfGatewayRateLimitCounterAdapter.java",
+      "size": 14397,
+      "sha256": "89ae4685f2159e6a999666c043411b1b09434ce0b5b5d073371c3f4be7c2b3fd"
+    },
+    {
+      "path": "cpf-gateway/src/main/java/com/cpf/gateway/runtime/JdbcCpfGatewayRateLimitCounterAdapter.java",
+      "size": 18144,
+      "sha256": "8ba2d9690da145fff5fb52fa31879077d5ebd57248ab28979935ff81be2b4d92"
+    },
+    {
+      "path": "cpf-gateway/src/main/java/com/cpf/gateway/scg/CpfGatewayLedgerCompletionFilter.java",
+      "size": 17983,
+      "sha256": "a5aeff12ba52cc30b2755f7d6efac3b100ff5a0bb4cbf1adac74329bc8d36702"
+    },
+    {
+      "path": "cpf-gateway/src/main/java/com/cpf/gateway/scg/CpfScgPrimaryHandler.java",
+      "size": 53832,
+      "sha256": "210bd619ecf4af85f193a62b725ad5a1ba77930ebf45ff21edda5f164e92dc84"
+    },
+    {
+      "path": "cpf-gateway/src/main/resources/application.yml",
+      "size": 4382,
+      "sha256": "cff8fb28414e249dcd5b931a558cb5c670f1bfffcd6a9ccc0130e0216050caff"
+    },
+    {
+      "path": "cpf-gateway/src/test/java/com/cpf/gateway/config/CpfGatewaySafetyPropertiesEntryTest.java",
+      "size": 1849,
+      "sha256": "5a3902241de34a20f1b30c3e6983eee18668a7f50d675a5ef10af5e8f2ff7dfe"
+    },
+    {
+      "path": "cpf-gateway/src/test/java/com/cpf/gateway/config/CpfGatewaySafetyStartupValidatorEntryTest.java",
+      "size": 4335,
+      "sha256": "7045df6a561fa936bf972d8215019e9d2cd09c4b82bed5a1efecac57f0ffff37"
+    },
+    {
+      "path": "cpf-gateway/src/test/java/com/cpf/gateway/control/CpfGatewayControlListenerConfigurationTest.java",
+      "size": 1230,
+      "sha256": "1c891c0ab7f6d1c4e1d0230fa15e6a6ef47e383ffb436ef3e9080fabbc77caab"
+    },
+    {
+      "path": "cpf-gateway/src/test/java/com/cpf/gateway/control/CpfGatewayControlSecurityPropertiesListenerTest.java",
+      "size": 1663,
+      "sha256": "4d2544d9ec74b00b934c0e21c5271738e4cf4b49b59054a951fe1f7399a8af4f"
+    },
+    {
+      "path": "cpf-gateway/src/test/java/com/cpf/gateway/control/CpfGatewayPlaneBoundaryFilterTest.java",
+      "size": 2962,
+      "sha256": "83cff8c58abf6ac2ae87d3bbc2c217ef62f1d325a8a2d2f4dd66f081c306bf31"
+    },
+    {
+      "path": "cpf-gateway/src/test/java/com/cpf/gateway/runtime/CpfApiClientSecurityPolicyTest.java",
+      "size": 4356,
+      "sha256": "fd5cf38416283a6ce3dbe128137d0ab221ecb4c7bd62b1db4fa2675d8af8fae5"
+    },
+    {
+      "path": "cpf-gateway/src/test/java/com/cpf/gateway/runtime/CpfApiClientSecurityRuntimeApplierTest.java",
+      "size": 3977,
+      "sha256": "f93c5639090ace0ce5f6b2693e7e7b0a56faee98c4dde160852d08581ddc64b7"
+    },
+    {
+      "path": "cpf-gateway/src/test/java/com/cpf/gateway/runtime/CpfGatewayEntryRuntimeApplierTest.java",
+      "size": 2221,
+      "sha256": "b5ab18edc5288bd5dad715aee2c7611c52994594ac3dbc2a3742d14b721a0789"
+    },
+    {
+      "path": "cpf-gateway/src/test/java/com/cpf/gateway/runtime/CpfGatewayRuntimeApplierTest.java",
+      "size": 1555,
+      "sha256": "60a388fc05ca0e84b96981dc303da932bdc30d8aaea1109dd43095b672a75d2f"
+    },
+    {
+      "path": "cpf-gateway/src/test/java/com/cpf/gateway/runtime/CpfGatewayRuntimePolicyRateLimitTest.java",
+      "size": 10761,
+      "sha256": "801e40925844e56177e867fd5be913790d2ef29162b0820de1ef90324fa50a60"
+    },
+    {
+      "path": "cpf-gateway/src/test/java/com/cpf/gateway/runtime/DefaultCpfGatewayEntryPolicyTest.java",
+      "size": 5232,
+      "sha256": "78b35921200475d3ba87a0d228da6ee7bb877e8d1e5d5c7b32cb4219588615d5"
+    },
+    {
+      "path": "cpf-gateway/src/test/java/com/cpf/gateway/runtime/InMemoryCpfGatewayRateLimitCounterAdapterTest.java",
+      "size": 8850,
+      "sha256": "9fb18ab242b5788820af151aaa27b7bb880a128649da152e2974d636226fa4e8"
+    },
+    {
+      "path": "cpf-gateway/src/test/java/com/cpf/gateway/runtime/JdbcCpfGatewayRateLimitCounterAdapterTest.java",
+      "size": 6419,
+      "sha256": "f444e82c84e64c8e6b609099bf424e604bab55d07a61103e39906932993f2e53"
+    },
+    {
+      "path": "cpf-gateway/src/test/java/com/cpf/gateway/scg/CpfGatewayRateLimitResponseHeaderPolicyTest.java",
+      "size": 4538,
+      "sha256": "601c5186a11de66a130b8e0ad0fd156bd73b8339b633e193659e89c373adc57e"
+    },
+    {
+      "path": "cpf-gateway/src/test/java/com/cpf/gateway/scg/CpfScgPrimaryHandlerEntryPolicyTest.java",
+      "size": 6292,
+      "sha256": "ed013dcb228ab1b03f7dc4898e36601929120d5af122fdd8bf53a8b3a44a1b04"
+    },
+    {
+      "path": "cpf-gateway/src/test/java/com/cpf/gateway/scg/CpfScgPrimaryHandlerPolicyTest.java",
+      "size": 12254,
+      "sha256": "a79dc600e5d9bfe9c7d1cfa11497cf9d64c4c785a6f5538ed6284e522aaa8b0f"
+    },
+    {
+      "path": "cpf-reference/src/main/java/com/cpf/reference/gateway/ReferenceGatewayEntryEducationSample.java",
+      "size": 1554,
+      "sha256": "443282bc6d70b488160ade57193c434baf5cc65dd0d6cfbfe7140de9ae4f1cae"
+    },
+    {
+      "path": "cpf-reference/src/main/java/com/cpf/reference/gateway/ReferenceGatewayRateLimitEducationSample.java",
+      "size": 2686,
+      "sha256": "14a36c030d26230322e473b45026871ae56de2dbf1028ac3befa7b4aa9fee600"
+    },
+    {
+      "path": "cpf-reference/src/main/java/com/cpf/reference/messaging/ReferenceBrokerPublishEducationSample.java",
+      "size": 3309,
+      "sha256": "381f1845d72c83e2df4ef9e16a85c0fa1dba0937750a63de283ef1ca057fa0a5"
+    },
+    {
+      "path": "cpf-reference/src/main/java/com/cpf/reference/messaging/controller/ReferenceMessagingEducationController.java",
+      "size": 5800,
+      "sha256": "c49bea2fbc0ae83b75324dbd78a89b4c5738c417fd25e3f77d8ce4979a7134e1"
+    },
+    {
+      "path": "cpf-reference/src/test/java/com/cpf/reference/gateway/ReferenceGatewayEntryEducationSampleTest.java",
+      "size": 1497,
+      "sha256": "f7adb09a82028ae5155ffc18d681359419fb4cd2bc336f2f0a45b7a82dbfc07e"
+    },
+    {
+      "path": "cpf-reference/src/test/java/com/cpf/reference/gateway/ReferenceGatewayRateLimitEducationSampleTest.java",
+      "size": 2544,
+      "sha256": "375b7e651fa2aee26957481a398b8f20786d915fe0eb0c21c8436969639033d0"
+    },
+    {
+      "path": "cpf-starters/file/sftp/src/main/java/com/cpf/starter/sftp/CpfSftpClient.java",
+      "size": 20485,
+      "sha256": "f2911eb68b46082af23a3dab73b29b84b83955017842559d2672db50059925ce"
+    },
+    {
+      "path": "cpf-starters/file/sftp/src/main/java/com/cpf/starter/sftp/CpfSftpPathPolicy.java",
+      "size": 5185,
+      "sha256": "b9fd848062c111110aa0fc57eff4300606d16535e180ba4411b1bd4d24de5bb9"
+    },
+    {
+      "path": "cpf-starters/file/sftp/src/main/java/com/cpf/starter/sftp/CpfSftpProperties.java",
+      "size": 5198,
+      "sha256": "36c93ccc8ce05ab6d7f6ef06df1465453a6998ca195218f806a00f363bcde49b"
+    },
+    {
+      "path": "cpf-starters/file/sftp/src/main/java/com/cpf/starter/sftp/JdbcCpfSftpTransferLedger.java",
+      "size": 3370,
+      "sha256": "2a4692d3b75d270c45f47f51715dabfc719db8bb1a2f3ad13c9747ffaa788382"
+    },
+    {
+      "path": "cpf-starters/file/sftp/src/test/java/com/cpf/starter/sftp/CpfSftpPathPolicyTest.java",
+      "size": 994,
+      "sha256": "e1cc23adfb661be9718d6846a489f389088cdebf7971c6ec494465da85a12ac1"
+    },
+    {
+      "path": "cpf-starters/integration/fixedlength-core/src/main/java/com/cpf/starter/integration/fixedlength/CpfFixedLengthCodec.java",
+      "size": 5162,
+      "sha256": "be1db44c82b48ddc65fada1ebecfb3f41eb928034b18f1e435a61873bccf23f7"
+    },
+    {
+      "path": "cpf-starters/integration/fixedlength-core/src/main/java/com/cpf/starter/integration/fixedlength/CpfFixedLengthLayout.java",
+      "size": 1405,
+      "sha256": "876727a022aa989d3e7f06b6bab7bc966e95cd9bb095083f01e3070aec61d6d4"
+    },
+    {
+      "path": "cpf-starters/integration/fixedlength-core/src/test/java/com/cpf/starter/integration/fixedlength/CpfFixedLengthCodecByteContractTest.java",
+      "size": 2822,
+      "sha256": "bd8e62421da9999ee176beba2a57be715d45c034745e917892b677bb014453bd"
+    },
+    {
+      "path": "cpf-starters/integration/http-client/src/main/java/com/cpf/starter/integration/http/CpfHttpClientProperties.java",
+      "size": 5054,
+      "sha256": "4ae5706ee5b69a2ae26b695bb4977e720c7db7c50cf48fdd3681b5b62840fd05"
+    },
+    {
+      "path": "cpf-starters/integration/http-client/src/main/java/com/cpf/starter/integration/http/CpfTypedHttpClient.java",
+      "size": 10027,
+      "sha256": "ca100c0e9dacfc80c8ccaf6141c7af36ebac7f00b1793e4b77761ec286451a84"
+    },
+    {
+      "path": "cpf-starters/integration/http-client/src/test/java/com/cpf/starter/integration/http/CpfTypedHttpClientTest.java",
+      "size": 5279,
+      "sha256": "de9a878f899d87124d14290690e0aff842f1c2a19007028b10dfd244c4b16086"
+    },
+    {
+      "path": "cpf-starters/integration/tcp/src/main/java/com/cpf/starter/tcp/CpfTcpAutoConfiguration.java",
+      "size": 3869,
+      "sha256": "16a21b6cb6792147018eeea036a8f7cb0a462da9f4f9b9b8bef9bd8ff5f35507"
+    },
+    {
+      "path": "cpf-starters/integration/tcp/src/main/java/com/cpf/starter/tcp/CpfTcpClient.java",
+      "size": 7476,
+      "sha256": "90e3bc7670bacc342758782048c819210f85beffc80ed4e6e8cb8602cd20ec43"
+    },
+    {
+      "path": "cpf-starters/integration/tcp/src/main/java/com/cpf/starter/tcp/CpfTcpOperations.java",
+      "size": 2608,
+      "sha256": "1d7fb916b54b0a54badefbd63fedebd3f560bb8485ef06f245fa155b413fce55"
+    },
+    {
+      "path": "cpf-starters/integration/tcp/src/main/java/com/cpf/starter/tcp/CpfTcpProperties.java",
+      "size": 6397,
+      "sha256": "c841fb208040f74e6124ecfc616af7bbf75210eb2e61ba0a0f1d612315c5bea9"
+    },
+    {
+      "path": "cpf-starters/integration/tcp/src/main/java/com/cpf/starter/tcp/CpfTcpUnknownResultStore.java",
+      "size": 19409,
+      "sha256": "38b37cde2dd3d7a935cc5bd10ae58dfc8cef288ec8722cfd591e5455d444be08"
+    },
+    {
+      "path": "cpf-starters/integration/tcp/src/test/java/com/cpf/starter/tcp/CpfTcpClientTest.java",
+      "size": 7713,
+      "sha256": "b0d41f06ee20d657d5e04c4c25ef862e199cc0bf383e7becf9b082461088c756"
+    },
+    {
+      "path": "cpf-starters/integration/tcp/src/test/java/com/cpf/starter/tcp/CpfTcpOperationsDurableAuditTest.java",
+      "size": 1268,
+      "sha256": "9beca1bb3c7700f3599c3517f7eb2fc9ca9ee64e18bdd29cc29681ac99dfd8ab"
+    },
+    {
+      "path": "cpf-starters/integration/tcp/src/test/java/com/cpf/starter/tcp/CpfTcpUnknownResultStoreDurabilityTest.java",
+      "size": 5925,
+      "sha256": "c5e942a27af3c10dd8c5054a155d65688f3b9d3cc18512d91d431fefa0d012d2"
+    },
+    {
+      "path": "cpf-starters/messaging/ibm-mq/src/main/java/com/cpf/starter/ibmmq/CpfIbmMqBrokerClient.java",
+      "size": 6011,
+      "sha256": "c46d129f49c7ac8c4d05c2683ce63e9e80743e68d651552642e2ce85f4028143"
+    },
+    {
+      "path": "cpf-starters/messaging/ibm-mq/src/test/java/com/cpf/starter/ibmmq/CpfIbmMqBrokerClientTest.java",
+      "size": 5961,
+      "sha256": "38a294c40c52f503fd1c1633a052b09965b2fcc20194671062c402bd5bb992f7"
+    },
+    {
+      "path": "cpf-starters/messaging/jms/src/main/java/com/cpf/starter/jms/CpfJmsAutoConfiguration.java",
+      "size": 3174,
+      "sha256": "a365896e48f07ff844d6b79a682414722bf0a0dbebe1d6398f3f84ecf4f3a217"
+    },
+    {
+      "path": "cpf-starters/messaging/jms/src/main/java/com/cpf/starter/jms/CpfJmsBrokerClient.java",
+      "size": 5299,
+      "sha256": "ef0e3f0f8274df96efd4ed85c8f1ffbb9fc16bea518c6b719e63da585d3ccc56"
+    },
+    {
+      "path": "cpf-starters/messaging/jms/src/main/java/com/cpf/starter/jms/JmsCpfBrokerBridgeAdapter.java",
+      "size": 10523,
+      "sha256": "baee0e8ba34b07097e38a9f9d341f56f5fd280833817fc6a539dd2edd5a3f483"
+    },
+    {
+      "path": "cpf-starters/messaging/jms/src/test/java/com/cpf/starter/jms/CpfJmsBrokerClientTest.java",
+      "size": 6298,
+      "sha256": "87dbd11a429b475113d947af1e68ea322863b74e352fe3dc05778aaf944a0aef"
+    },
+    {
+      "path": "cpf-starters/messaging/kafka/src/main/java/com/cpf/starter/kafka/CpfKafkaAutoConfiguration.java",
+      "size": 1658,
+      "sha256": "eab74c582949d8d1c19509eb875ef5003462fae30fea1aa7819cb06e4da1854f"
+    },
+    {
+      "path": "cpf-starters/messaging/kafka/src/main/java/com/cpf/starter/kafka/KafkaCpfBrokerBridgeAdapter.java",
+      "size": 7623,
+      "sha256": "46d58312743cfae5c899e1f0a5f62e35088ce8c6ec56f71be7c18261f1a8b0c8"
+    },
+    {
+      "path": "cpf-starters/messaging/kafka/src/main/java/com/cpf/starter/kafka/KafkaCpfBrokerClient.java",
+      "size": 5270,
+      "sha256": "af8197986c6bccb449808f5d9304c0ba4f7686be9bf7c7def9168e8608a523c6"
+    },
+    {
+      "path": "cpf-starters/messaging/kafka/src/test/java/com/cpf/starter/kafka/KafkaCpfBrokerClientTest.java",
+      "size": 4939,
+      "sha256": "81c5c7f0d2f9c7068d33cf32e46d7254725b807a5dfe3b509e69eabbdaafb429"
+    },
+    {
+      "path": "cpf-starters/messaging/rabbitmq/src/main/java/com/cpf/starter/rabbitmq/CpfRabbitMqAutoConfiguration.java",
+      "size": 4639,
+      "sha256": "67749c87330c345b930b99ff1e91a7c0285de8f6cf450e4af1a2c47a97b1850b"
+    },
+    {
+      "path": "cpf-starters/messaging/rabbitmq/src/main/java/com/cpf/starter/rabbitmq/CpfRabbitMqBrokerClient.java",
+      "size": 6770,
+      "sha256": "b0f1efda7b30635c331895bf230875c2020119316a8dcd6d963309d80a04bf5b"
+    },
+    {
+      "path": "cpf-starters/messaging/rabbitmq/src/main/java/com/cpf/starter/rabbitmq/RabbitCpfBrokerBridgeAdapter.java",
+      "size": 11332,
+      "sha256": "05259f283da0b57eab3ed5fadc97f711a568937462a95d6e7c6246cf183c91ae"
+    },
+    {
+      "path": "cpf-starters/messaging/rabbitmq/src/test/java/com/cpf/starter/rabbitmq/CpfRabbitMqBrokerClientTest.java",
+      "size": 6894,
+      "sha256": "4acd5f16bc156916bf3665006af69f9b618101d89670881c08c877b154a62c57"
+    },
+    {
+      "path": "cpf-starters/messaging/reliability-jdbc/src/main/java/com/cpf/core/common/broker/CpfBrokerConsumerWorker.java",
+      "size": 3535,
+      "sha256": "761ef1ce1dd3cd7cccc1ef82f2903e4be13bec7895bd81261eca2c2258ad1427"
+    },
+    {
+      "path": "cpf-starters/messaging/reliability-jdbc/src/main/java/com/cpf/core/common/broker/CpfBrokerPublisherWorker.java",
+      "size": 4962,
+      "sha256": "d5e200cb76360b271d23180eddfc8ec1ccec9c9c9c9db0006e9045bf7540dea9"
+    },
+    {
+      "path": "cpf-starters/messaging/reliability-jdbc/src/main/java/com/cpf/core/common/broker/JdbcCpfBrokerReliabilityRepository.java",
+      "size": 31756,
+      "sha256": "3776fa67435a610cb7fbfc5186a435755e0fa05b3043772676a5573f337e396b"
+    },
+    {
+      "path": "cpf-starters/messaging/reliability-jdbc/src/main/java/com/cpf/starter/messaging/reliability/CpfBrokerReliabilityAutoConfiguration.java",
+      "size": 6389,
+      "sha256": "62f667d077e03f5a6136b8f7603653c2b9b6b5d31f4645c6c1e591995b62e7bf"
+    },
+    {
+      "path": "cpf-starters/messaging/reliability-jdbc/src/main/java/com/cpf/starter/messaging/reliability/CpfBrokerReliabilityOperations.java",
+      "size": 2871,
+      "sha256": "8411152e2f282ec8547e97d6284756fbf60a525ee0900f0e5a241f23a2990c13"
+    },
+    {
+      "path": "cpf-starters/messaging/reliability-jdbc/src/main/java/com/cpf/starter/messaging/reliability/CpfBrokerUnknownResultReconciler.java",
+      "size": 4050,
+      "sha256": "d2001357eae34f674a32ca3a0f002bceaeacd1202a800f4d926ec23c963b9403"
+    },
+    {
+      "path": "cpf-starters/messaging/reliability-jdbc/src/main/java/com/cpf/starter/messaging/reliability/CpfProviderBrokerPublisher.java",
+      "size": 3060,
+      "sha256": "6d8c22df6154466f175dda2a98d4d0478a1283f27af0a195866d6740fcf4bc6b"
+    },
+    {
+      "path": "cpf-starters/messaging/reliability-jdbc/src/main/java/com/cpf/starter/messaging/reliability/CpfReliableBrokerClient.java",
+      "size": 3029,
+      "sha256": "6da8f03e3f288cf260f9351fd39d97c3156bce072850678d77471347b3d0172b"
+    },
+    {
+      "path": "cpf-starters/messaging/reliability-jdbc/src/test/java/com/cpf/core/common/broker/CpfBrokerConsumerWorkerRecoveryTest.java",
+      "size": 2174,
+      "sha256": "3863470bb74117c223b5fb41a5081713a860da35cd4edec44c60751d4ac643dc"
+    },
+    {
+      "path": "cpf-starters/messaging/reliability-jdbc/src/test/java/com/cpf/core/common/broker/CpfBrokerPublisherWorkerMaskingTest.java",
+      "size": 2896,
+      "sha256": "e6f75749285ba6d6f669969045470f844b332ab8ffbaa689bb8a8bb6669bcfb7"
+    },
+    {
+      "path": "cpf-starters/messaging/reliability-jdbc/src/test/java/com/cpf/core/common/broker/JdbcCpfBrokerReliabilityRepositoryTest.java",
+      "size": 7391,
+      "sha256": "e7e6c54a7268feaa38265cda14bd5705c6357a9fff0dadd67b8f9fd51da13dd4"
+    },
+    {
+      "path": "cpf-starters/messaging/reliability-jdbc/src/test/java/com/cpf/starter/messaging/reliability/CpfBrokerReliabilityOperationsTest.java",
+      "size": 3456,
+      "sha256": "3ec2b8e4db90dd204512eb58f0fabd0d02ad482b2a1e3373b9ae40cd0b0d94fa"
+    },
+    {
+      "path": "cpf-starters/messaging/reliability-jdbc/src/test/java/com/cpf/starter/messaging/reliability/CpfProviderBrokerPublisherTest.java",
+      "size": 3990,
+      "sha256": "795661a2899398a87316f7c2280ed2a48c6e13fe61986aa693dd89d93f2eb82c"
+    },
+    {
+      "path": "cpf-starters/messaging/reliability-jdbc/src/test/java/com/cpf/starter/messaging/reliability/CpfReliableBrokerClientTest.java",
+      "size": 3067,
+      "sha256": "2b169d441dd082ad2829c91d263fbed5019d17a3d8a96a8af29ce53144f604d8"
+    }
+  ]
+}

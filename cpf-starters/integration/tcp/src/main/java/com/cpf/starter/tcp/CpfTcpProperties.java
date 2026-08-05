@@ -30,6 +30,7 @@ public class CpfTcpProperties {
     private int maxPending = 10_000;
     private int maxOrphans = 1_000;
     private int maxUnknownResults = 10_000;
+    private String unknownResultJournal = "runtime/cpf/tcp/unknown-results.journal";
     private Duration reconnectInitial = Duration.ofMillis(200);
     private Duration reconnectMax = Duration.ofSeconds(30);
     private double reconnectJitter = 0.2;
@@ -76,6 +77,8 @@ public class CpfTcpProperties {
     public void setMaxOrphans(int value) { maxOrphans = value; }
     public int getMaxUnknownResults() { return maxUnknownResults; }
     public void setMaxUnknownResults(int value) { maxUnknownResults = value; }
+    public String getUnknownResultJournal() { return unknownResultJournal; }
+    public void setUnknownResultJournal(String value) { unknownResultJournal = value; }
     public Duration getReconnectInitial() { return reconnectInitial; }
     public void setReconnectInitial(Duration value) { reconnectInitial = value; }
     public Duration getReconnectMax() { return reconnectMax; }
@@ -99,6 +102,9 @@ public class CpfTcpProperties {
         }
         if (maxPending < 1 || maxOrphans < 1 || maxUnknownResults < 1) {
             throw new IllegalStateException("invalid TCP tracking limits");
+        }
+        if (unknownResultJournal == null || unknownResultJournal.isBlank()) {
+            throw new IllegalStateException("unknown-result-journal is required for durable UNKNOWN results");
         }
         validateTimeout(connectTimeout, "connect-timeout");
         validateTimeout(responseTimeout, "response-timeout");

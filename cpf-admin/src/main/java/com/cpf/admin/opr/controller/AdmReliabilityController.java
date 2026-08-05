@@ -90,24 +90,36 @@ public class AdmReliabilityController extends com.cpf.admin.common.base.AdmBaseC
     }
 
     @PostMapping("/broker/dlq/{messageId}/replay")
-    @CpfOnlineTransaction(id = "OADMRE0005", name = "ADMReliabilityDlqReplay")
+    @CpfOnlineTransaction(id = "OADMRE0005", name = "ADMReliabilityDlqReplayApprovalRequest")
     @Operation(
             operationId = "requestAdmBrokerDlqReplay",
-            summary = "Broker DLQ 재처리 요청",
-            description = "서버 권한검사와 감사 사유 확인 후 중복되지 않게 재처리를 요청합니다.")
-    public ResponseEntity<AdmReliabilityService.ChangeResult> replay(
+            summary = "Broker DLQ 재처리 승인 요청",
+            description = "DLQ를 직접 변경하지 않고 현재 상태 Snapshot을 고정해 위험조치 승인 요청을 생성합니다. 승인 완료 후 Owner Command가 실제 재처리를 실행합니다.")
+    public ResponseEntity<Map<String, Object>> replay(
             @Parameter(description = "Broker message ID", required = true)
             @PathVariable String messageId,
             @RequestBody AdmReliabilityActionRequest request,
             HttpServletRequest servletRequest) {
         String operatorId = requestUser(servletRequest, request.requestUser());
         String reason = auditLogService.requireReason(request.reason());
-        AdmReliabilityService.ChangeResult result = reliabilityService.requestDlqReplay(
+        Map<String, Object> approval = reliabilityService.requestDlqReplayApproval(
                 messageId,
                 operatorId,
                 reason);
-        recordAudit(servletRequest, operatorId, "BROKER_DLQ_REPLAY", "cpf_broker_dlq", messageId, result);
-        return ResponseEntity.ok(result);
+        auditLogService.record(
+                CpfTransactionContext.transactionId(),
+                operatorId,
+                "BROKER_DLQ_REPLAY_APPROVAL_REQUEST",
+                "cpf_broker_dlq",
+                messageId,
+                reason,
+                "{}",
+                String.valueOf(Map.of(
+                        "approvalRequestId", approval.getOrDefault("approvalRequestId", ""),
+                        "approvalStatus", approval.getOrDefault("approvalStatus", "PENDING"))),
+                "DLQ 재처리 승인 요청",
+                servletRequest.getRemoteAddr());
+        return ResponseEntity.accepted().body(approval);
     }
 
     @GetMapping("/file-transfers")

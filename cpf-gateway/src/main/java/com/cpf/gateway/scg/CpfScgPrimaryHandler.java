@@ -2,14 +2,17 @@ package com.cpf.gateway.scg;
 
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.cloud.gateway.server.mvc.filter.RetryFilterFunctions;
 
 import com.cpf.core.api.gateway.CpfGatewayAuditEvent;
+import com.cpf.core.api.gateway.CpfGatewayEntryPolicyPort;
 import com.cpf.core.api.gateway.CpfGatewayAuthenticationPort;
 import com.cpf.core.api.gateway.CpfGatewayAuthorizationPort;
 import com.cpf.core.api.gateway.CpfGatewayLedgerPort;
 import com.cpf.core.api.gateway.CpfGatewayPrincipal;
+import com.cpf.core.api.gateway.CpfGatewayRateLimitPort;
 import com.cpf.core.api.gateway.CpfGatewayRoute;
 import com.cpf.core.api.header.CpfHeaderNames;
 import com.cpf.core.api.logging.policy.LogPolicyDecision;
@@ -21,6 +24,7 @@ import com.cpf.gateway.logging.CpfGatewayCaptureService;
 import com.cpf.gateway.route.CpfGatewayPathRewriter;
 import com.cpf.gateway.route.CpfGatewayRouteSnapshot;
 import com.cpf.gateway.runtime.CpfGatewayRuntimePolicy;
+import com.cpf.gateway.runtime.DefaultCpfGatewayEntryPolicy;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.EOFException;
@@ -76,6 +80,7 @@ public final class CpfScgPrimaryHandler implements HandlerFunction<ServerRespons
     public static final String ROUTE_VERSION_ATTR = "cpf.gateway.routeVersion";
     public static final String LOG_POLICY_ATTR = "cpf.gateway.logPolicy";
     public static final String CORS_DECISION_ATTR = "cpf.gateway.corsDecision";
+    public static final String RATE_LIMIT_DECISION_ATTR = "cpf.gateway.rateLimitDecision";
 
     private static final String EXECUTE_PATH = "/cpf/execute";
     private static final String LEGACY_PUBLIC_PREFIX = "/gateway/public";
@@ -101,7 +106,40 @@ public final class CpfScgPrimaryHandler implements HandlerFunction<ServerRespons
     private final CircuitBreakerFactory<?, ?> circuitBreakers;
     private final CpfGatewaySafetyProperties safety;
     private final CpfGatewaySafetyEnforcer safetyEnforcer;
+    private final CpfGatewayEntryPolicyPort entryPolicy;
 
+    @Autowired
+    public CpfScgPrimaryHandler(
+            CpfGatewayRouteSnapshot snapshot,
+            CpfScgTargetResolver targets,
+            CpfGatewayAuthenticationPort authentication,
+            CpfGatewayAuthorizationPort authorization,
+            CpfChannelPolicyService channelPolicies,
+            CpfGatewayRuntimePolicy runtimePolicy,
+            CpfGatewayAuditRecoverySpool auditRecovery,
+            CpfGatewayLedgerRecoverySpool ledgerRecovery,
+            CpfGatewayCaptureService captureService,
+            CircuitBreakerFactory<?, ?> circuitBreakers,
+            CpfGatewaySafetyProperties safety,
+            CpfGatewaySafetyEnforcer safetyEnforcer,
+            CpfGatewayEntryPolicyPort entryPolicy) {
+        this.snapshot = snapshot;
+        this.targets = targets;
+        this.authentication = authentication;
+        this.authorization = authorization;
+        this.channelPolicies = channelPolicies;
+        this.runtimePolicy = runtimePolicy;
+        this.auditRecovery = auditRecovery;
+        this.ledgerRecovery = ledgerRecovery;
+        this.captureService = captureService;
+        this.circuitBreakers = circuitBreakers;
+        this.safety = safety;
+        this.safetyEnforcer = safetyEnforcer;
+        this.entryPolicy = entryPolicy;
+    }
+
+    /** Source compatibility용 생성자이며 제품 Runtime은 Entry Policy Bean을 주입합니다. */
+    @Deprecated(forRemoval = false)
     public CpfScgPrimaryHandler(
             CpfGatewayRouteSnapshot snapshot,
             CpfScgTargetResolver targets,
@@ -115,22 +153,25 @@ public final class CpfScgPrimaryHandler implements HandlerFunction<ServerRespons
             CircuitBreakerFactory<?, ?> circuitBreakers,
             CpfGatewaySafetyProperties safety,
             CpfGatewaySafetyEnforcer safetyEnforcer) {
-        this.snapshot = snapshot;
-        this.targets = targets;
-        this.authentication = authentication;
-        this.authorization = authorization;
-        this.channelPolicies = channelPolicies;
-        this.runtimePolicy = runtimePolicy;
-        this.auditRecovery = auditRecovery;
-        this.ledgerRecovery = ledgerRecovery;
-        this.captureService = captureService;
-        this.circuitBreakers = circuitBreakers;
-        this.safety = safety;
-        this.safetyEnforcer = safetyEnforcer;
+        this(snapshot, targets, authentication, authorization, channelPolicies, runtimePolicy,
+                auditRecovery, ledgerRecovery, captureService, circuitBreakers, safety, safetyEnforcer,
+                new DefaultCpfGatewayEntryPolicy(safety));
     }
 
     @Override
     public ServerResponse handle(ServerRequest request) throws Exception {
+        CpfGatewayEntryPolicyPort.Decision entryDecision = entryPolicy.evaluate(
+                new CpfGatewayEntryPolicyPort.Request(
+                        request.path(),
+                        request.method().name(),
+                        request.servletRequest().getProtocol(),
+                        request.servletRequest().isSecure(),
+                        request.servletRequest().getLocalPort(),
+                        request.servletRequest().getRemoteAddr(),
+                        java.time.Instant.now()));
+        if (!entryDecision.allowed()) {
+            return entryDenied(request, entryDecision);
+        }
         ResolvedRoute resolved = resolveRoute(request);
         CpfGatewayRoute route = resolved.route();
         safetyEnforcer.validateRoute(route);
@@ -182,6 +223,46 @@ public final class CpfScgPrimaryHandler implements HandlerFunction<ServerRespons
             CpfGatewayPrincipal principal = Objects.requireNonNullElse(
                     authentication.authenticate(route, credentialHeaders(request)),
                     CpfGatewayPrincipal.anonymous());
+            String channelId = value(
+                    request.headers().firstHeader(CpfHeaderNames.CHANNEL_CODE), "");
+            String tenantId = principal.authenticated()
+                    ? value(principal.attributes().get("tenantId"), "")
+                    : "";
+            String clientId = principal.authenticated()
+                    ? value(principal.attributes().get("clientId"), principal.principalId())
+                    : sourceIp(request);
+            CpfGatewayRateLimitPort.Decision rateDecision = runtimePolicy.acquire(
+                    new CpfGatewayRateLimitPort.Request(
+                            route.standardExecutionId(),
+                            route.routeId(),
+                            clientId,
+                            channelId,
+                            tenantId,
+                            rateLimitRequestId(trusted, route.routeId(), tx),
+                            1,
+                            java.time.Instant.now()));
+            request.servletRequest().setAttribute(RATE_LIMIT_DECISION_ATTR, rateDecision);
+            if (!rateDecision.allowed()) {
+                request.servletRequest().setAttribute(PRINCIPAL_ATTR, principal.principalId());
+                auditRecovery.record(new CpfGatewayAuditEvent(
+                        tx,
+                        route.standardExecutionId(),
+                        principal.principalId(),
+                        null,
+                        "RATE_LIMIT",
+                        "DENIED",
+                        rateDecision.reason(),
+                        null,
+                        java.time.Instant.now(),
+                        Map.of(
+                                "routeId", route.routeId(),
+                                "policyId", rateDecision.policyId(),
+                                "scope", rateDecision.limitingScope() == null
+                                        ? "" : rateDecision.limitingScope().name(),
+                                "degraded", Boolean.toString(rateDecision.degraded()))));
+                return rateLimitResponse(rateDecision);
+            }
+
             if (route.requiredPermission() != null
                     && !route.requiredPermission().isBlank()
                     && !principal.authenticated()) {
@@ -209,14 +290,6 @@ public final class CpfScgPrimaryHandler implements HandlerFunction<ServerRespons
                 throw new SecurityException(
                         "Gateway route 실행 권한이 없습니다. permission=" + route.requiredPermission());
             }
-            if (!runtimePolicy.tryAcquire(
-                    route.standardExecutionId(),
-                    principal.principalId(),
-                    request.headers().firstHeader(CpfHeaderNames.CHANNEL_CODE))) {
-                throw new ResponseStatusException(
-                        HttpStatus.TOO_MANY_REQUESTS, "Gateway rate limit 초과");
-            }
-
             CpfGatewayRuntimePolicy.CorsDecision corsDecision = corsDecision(
                     request, request.method().name());
             if (!corsDecision.allowed()) {
@@ -441,6 +514,104 @@ public final class CpfScgPrimaryHandler implements HandlerFunction<ServerRespons
                 accessControlRequestHeaders(request));
     }
 
+    private ServerResponse entryDenied(
+            ServerRequest request, CpfGatewayEntryPolicyPort.Decision decision) {
+        String transactionId = UUID.randomUUID().toString();
+        try {
+            auditRecovery.record(new CpfGatewayAuditEvent(
+                    transactionId,
+                    "",
+                    "anonymous",
+                    null,
+                    "ENTRY",
+                    "DENIED",
+                    safety.getInstanceId(),
+                    decision.httpStatus(),
+                    java.time.Instant.now(),
+                    Map.of(
+                            "state", decision.state().name(),
+                            "reason", decision.reason(),
+                            "method", request.method().name(),
+                            "pathHash", opaqueValue(request.path()),
+                            "policyVersion", Long.toString(decision.policyVersion()))));
+        } catch (RuntimeException auditFailure) {
+            return ServerResponse.status(HttpStatus.SERVICE_UNAVAILABLE)
+                    .header(HttpHeaders.CACHE_CONTROL, "no-store")
+                    .header("X-Cpf-Gateway-State", decision.state().name())
+                    .header("X-Cpf-Gateway-Entry-Reason", "ENTRY_AUDIT_UNAVAILABLE")
+                    .build();
+        }
+        ServerResponse.BodyBuilder response = ServerResponse.status(decision.httpStatus())
+                .header(HttpHeaders.CACHE_CONTROL, "no-store")
+                .header("X-Cpf-Gateway-State", decision.state().name())
+                .header("X-Cpf-Gateway-Entry-Reason", decision.reason())
+                .header("X-Cpf-Gateway-Policy-Version", Long.toString(decision.policyVersion()));
+        if (!decision.retryAfter().isZero()) {
+            response.header(HttpHeaders.RETRY_AFTER,
+                    Long.toString(Math.max(1L, decision.retryAfter().toSeconds())));
+        }
+        return response.build();
+    }
+
+    private static String opaqueValue(String value) {
+        try {
+            byte[] digest = java.security.MessageDigest.getInstance("SHA-256")
+                    .digest(value.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            return java.util.HexFormat.of().formatHex(digest, 0, 16);
+        } catch (java.security.NoSuchAlgorithmException impossible) {
+            throw new IllegalStateException("SHA-256 unavailable", impossible);
+        }
+    }
+
+    private static ServerResponse rateLimitResponse(CpfGatewayRateLimitPort.Decision decision) {
+        long retrySeconds = Math.max(1L, (decision.retryAfter().toMillis() + 999L) / 1_000L);
+        return ServerResponse.status(HttpStatus.TOO_MANY_REQUESTS)
+                .header(HttpHeaders.RETRY_AFTER, Long.toString(retrySeconds))
+                .header("X-RateLimit-Remaining", Long.toString(decision.remaining()))
+                .header("X-RateLimit-Reset", Long.toString(decision.resetAt().getEpochSecond()))
+                .header("X-Cpf-RateLimit-Policy", decision.policyId())
+                .header("X-Cpf-RateLimit-Scope",
+                        decision.limitingScope() == null ? "" : decision.limitingScope().name())
+                .header("X-Cpf-RateLimit-Degraded", Boolean.toString(decision.degraded()))
+                .header("X-Cpf-RateLimit-Reason", decision.reason())
+                .build();
+    }
+
+    private static void applyTrustedForwardedHeaders(HttpHeaders headers, ServerRequest request) {
+        String source = sourceIp(request);
+        String host = safeForwardedHost(request.headers().firstHeader(HttpHeaders.HOST));
+        String proto = request.servletRequest().isSecure() ? "https" : "http";
+        headers.set("X-Forwarded-For", source);
+        headers.set("X-Forwarded-Host", host);
+        headers.set("X-Forwarded-Proto", proto);
+        headers.set(HttpHeaders.FORWARDED,
+                "for=" + forwardedFor(source) + ";proto=" + proto + ";host=\"" + host + "\"");
+    }
+
+    private static String safeForwardedHost(String value) {
+        String host = value == null ? "" : value.trim();
+        if (host.isEmpty() || host.length() > 255
+                || !host.matches("[A-Za-z0-9._\\-\\[\\]:]+")) {
+            throw new SecurityException("Gateway Host header denied");
+        }
+        return host;
+    }
+
+    private static String forwardedFor(String value) {
+        if (value != null && value.indexOf(':') >= 0) {
+            return "\"[" + value + "]\"";
+        }
+        return value == null ? "unknown" : value;
+    }
+
+    private static boolean isConnectPhaseFailure(Throwable failure) {
+        String name = failure.getClass().getName();
+        return name.endsWith("ConnectTimeoutException")
+                || name.endsWith("ConnectionRequestTimeoutException")
+                || name.endsWith("NoRouteToHostException")
+                || name.endsWith("PortUnreachableException");
+    }
+
     private static List<String> accessControlRequestHeaders(ServerRequest request) {
         List<String> values = request.headers().header(HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS);
         if (values.isEmpty()) return List.of();
@@ -582,6 +753,7 @@ public final class CpfScgPrimaryHandler implements HandlerFunction<ServerRespons
                     headers.set(CpfHeaderNames.GATEWAY_ROUTE_VERSION, route.routeVersion());
                     headers.set(CpfHeaderNames.GATEWAY_INSTANCE_ID, safety.getInstanceId());
                     headers.set(CpfHeaderNames.INGRESS_TYPE, "CPF_GATEWAY");
+                    applyTrustedForwardedHeaders(headers, original);
                 })
                 .cookies(cookies -> cookies.clear())
                 .attribute(MvcUtils.GATEWAY_REQUEST_URL_ATTR, target.uri())
@@ -612,6 +784,9 @@ public final class CpfScgPrimaryHandler implements HandlerFunction<ServerRespons
                     && !STANDARD_CONTEXT_HEADERS.contains(lower)) {
                 continue;
             }
+            if (entry.getValue().size() != 1) {
+                throw new SecurityException("Gateway trusted header must have exactly one value: " + entry.getKey());
+            }
             String headerValue = entry.getValue().getFirst();
             if ("traceparent".equals(lower) && validatedTrace(headerValue).isEmpty()) {
                 throw new SecurityException("Gateway traceparent header denied");
@@ -627,6 +802,18 @@ public final class CpfScgPrimaryHandler implements HandlerFunction<ServerRespons
             values.put(lower, headerValue);
         }
         return values;
+    }
+
+
+    private static String rateLimitRequestId(
+            Map<String, String> trustedHeaders, String routeId, String fallbackTransactionId) {
+        String raw = firstText(
+                trustedHeaders.get(CpfHeaderNames.IDEMPOTENCY_KEY.toLowerCase(Locale.ROOT)),
+                trustedHeaders.get("idempotency-key"));
+        if (raw == null || !raw.matches("[A-Za-z0-9._:-]{8,128}")) {
+            return fallbackTransactionId;
+        }
+        return sha256((routeId + '|' + raw).getBytes(StandardCharsets.UTF_8));
     }
 
     private static BodyPlan bodyPlan(
@@ -726,7 +913,9 @@ public final class CpfScgPrimaryHandler implements HandlerFunction<ServerRespons
 
     private static boolean unknownResult(Throwable failure) {
         Throwable value = unwrap(failure);
-        if (value instanceof ConnectException || value instanceof UnknownHostException) {
+        if (value instanceof ConnectException
+                || value instanceof UnknownHostException
+                || isConnectPhaseFailure(value)) {
             return false;
         }
         return value instanceof SocketTimeoutException

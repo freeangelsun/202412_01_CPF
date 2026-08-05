@@ -37,13 +37,21 @@ public class ReferenceMessagingEducationController extends com.cpf.reference.com
     private final CpfBrokerBridgePort brokerBridgePort;
     private final ReferenceBrokerPublishEducationSample brokerPublishSample;
     private final List<CpfBrokerBridgeMessage> consumedMessages = new CopyOnWriteArrayList<>();
+    private final String subscriptionStatus;
 
     public ReferenceMessagingEducationController(
             CpfBrokerBridgePort brokerBridgePort,
             CpfBrokerClient brokerClient) {
         this.brokerBridgePort = brokerBridgePort;
         this.brokerPublishSample = new ReferenceBrokerPublishEducationSample(brokerClient);
-        this.brokerBridgePort.subscribe("com.cpf.reference.event", consumedMessages::add);
+        String status;
+        try {
+            this.brokerBridgePort.subscribe("com.cpf.reference.event", consumedMessages::add);
+            status = "SUBSCRIBED";
+        } catch (UnsupportedOperationException unavailable) {
+            status = "PROVIDER_LISTENER_NOT_CONFIGURED";
+        }
+        this.subscriptionStatus = status;
     }
 
     @PostMapping("/messaging/publish")
@@ -66,6 +74,7 @@ public class ReferenceMessagingEducationController extends com.cpf.reference.com
         response.put("publishResult", publishResult);
         response.put("recentMessages", brokerBridgePort.findRecent(destination, 10));
         response.put("consumedMessages", consumedMessages);
+        response.put("subscriptionStatus", subscriptionStatus);
         return ResponseEntity.ok(response);
     }
 
@@ -74,7 +83,7 @@ public class ReferenceMessagingEducationController extends com.cpf.reference.com
     @Operation(
             operationId = "refMessagingEducationEnqueueMessage",
             summary = "신뢰성 메시지 Enqueue 샘플",
-            description = "CpfBrokerClient를 통해 실제 Outbox/Broker Provider 경로를 호출하고 PUBLISHED·FAILED·UNKNOWN 결과를 그대로 반환합니다.")
+            description = "CpfBrokerClient를 통해 업무 트랜잭션 Outbox에 저장하고 ACCEPTED를 반환합니다. 실제 Provider 결과는 Worker와 운영 조회에서 확인합니다.")
     public ResponseEntity<CpfBrokerPublishResult> enqueueMessage(
             @RequestParam String transactionId,
             @RequestParam String idempotencyKey) {
@@ -89,6 +98,7 @@ public class ReferenceMessagingEducationController extends com.cpf.reference.com
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("recentMessages", brokerBridgePort.findRecent(destination, 50));
         response.put("consumedMessages", consumedMessages);
+        response.put("subscriptionStatus", subscriptionStatus);
         response.put("guide", "운영 adapter는 CPF broker bridge port와 Kafka 또는 RabbitMQ listener를 연결합니다.");
         return ResponseEntity.ok(response);
     }

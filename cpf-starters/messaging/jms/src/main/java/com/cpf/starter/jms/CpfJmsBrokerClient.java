@@ -41,6 +41,8 @@ public final class CpfJmsBrokerClient implements CpfBrokerClient {
 
     @Override
     public CpfBrokerPublishResult enqueue(CpfBrokerPublishRequest request) {
+        requireTracking(request.transactionId(), "transactionId");
+        requireTracking(request.idempotencyKey(), "idempotencyKey");
         if (request.payload().length > properties.getMaxPayloadBytes()) {
             throw new IllegalArgumentException("JMS payload exceeds CPF maximum size");
         }
@@ -75,8 +77,17 @@ public final class CpfJmsBrokerClient implements CpfBrokerClient {
 
     private static Map<String, String> normalizeUserProperties(Map<String, String> headers) {
         Map<String, String> normalized = new LinkedHashMap<>();
+        if (headers == null) {
+            throw new IllegalArgumentException("JMS headers must not be null");
+        }
         for (var header : headers.entrySet()) {
-            String propertyName = safeName(header.getKey());
+            if (header.getKey() == null || header.getKey().isBlank()) {
+                throw new IllegalArgumentException("JMS header name must not be blank");
+            }
+            if (header.getValue() == null) {
+                throw new IllegalArgumentException("JMS header value must not be null: " + header.getKey());
+            }
+            String propertyName = safeName(header.getKey().trim());
             if (RESERVED_PROPERTY_NAMES.contains(propertyName.toLowerCase(Locale.ROOT))) {
                 throw new IllegalArgumentException(
                         "JMS header conflicts with reserved CPF property: " + header.getKey());
@@ -87,6 +98,13 @@ public final class CpfJmsBrokerClient implements CpfBrokerClient {
             }
         }
         return Map.copyOf(normalized);
+    }
+
+    private static String requireTracking(String value, String name) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException(name + " is required before provider publish");
+        }
+        return value.trim();
     }
 
     private static String safeName(String name) {

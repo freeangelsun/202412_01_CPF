@@ -1,0 +1,96 @@
+{
+  "current_master": "09dd686c5ae0826594b9c5e1f871d95d95d3ce1c",
+  "initial_development_base": "2b259ea45f3ad1a93bfefd5e7d3bc35f3406bf06",
+  "head_delta_validation": "f3814cc and 09dd686 changed V7.1 worklist documentation only; no product source delta in assigned paths.",
+  "session": "DEVGPT-6D",
+  "scope_derivation": "21 canonical capabilities from V7.1 WORK_ITEM_INDEX.csv → 30/31 markdown_file → ledger_part, then canonical requirement master parts 002+003 and scenario master part 001",
+  "assigned_detailed_total": 1281,
+  "reviewed_detailed_total": 1281,
+  "unreviewed_detailed": 0,
+  "duplicate_requirement_id": 0,
+  "actual_consumer_unconfirmed": 0,
+  "evidence_less_decision": 0,
+  "scenario_total_mapped": 1886,
+  "core_scenario_total": 252,
+  "cross_session_frontend_scenario_total": 1634,
+  "core_scenario_link_missing": [],
+  "cross_session_scenario_missing_reason_or_evidence": [],
+  "development_status_counts": {
+    "완료": 1015,
+    "미완료": 266
+  },
+  "overall_status_counts": {
+    "구현 완료·정식 Runtime 재확인": 1015,
+    "교차 세션 변경 대기": 266
+  },
+  "capability_counts": {
+    "GWY-ENTRY": 61,
+    "GWY-ROUTING": 61,
+    "GWY-TRUST": 61,
+    "GWY-RESILIENCE": 61,
+    "API-LIMIT": 61,
+    "EXS-INST": 61,
+    "EXS-REST": 61,
+    "EXS-FIXED": 61,
+    "EXS-SEC": 61,
+    "EXS-FILE": 61,
+    "EXS-UNKNOWN": 61,
+    "EXS-RECON": 61,
+    "EVENT-CORE": 61,
+    "EVENT-OUTBOX": 61,
+    "EVENT-BROKER": 61,
+    "EVENT-MQ": 61,
+    "EVENT-JMS": 61,
+    "EVENT-IBM-MQ": 61,
+    "EVENT-AMQP": 61,
+    "EXS-TCP": 61,
+    "EVENT-DLQ": 61
+  },
+  "v7_work_item_coverage": {
+    "current_master": "09dd686c5ae0826594b9c5e1f871d95d95d3ce1c",
+    "initial_development_base": "2b259ea45f3ad1a93bfefd5e7d3bc35f3406bf06",
+    "v7_work_item_total": 110,
+    "devgpt_6d_assigned": 96,
+    "devgpt_6d_completed": 86,
+    "devgpt_6d_incomplete_cross_session": 10,
+    "out_of_scope_saga": 14,
+    "unreviewed_assigned": 0,
+    "duplicate_work_item_id": 0,
+    "evidence_less_assigned": 0,
+    "completion_rule": "V7 assigned work items require product source, actual consumer and evidence. DB lifecycle, generator/publication and 6C DLQ public-port/CAS rows remain cross-session incomplete and are not PASS."
+  },
+  "coverage_equation": "1281 reviewed + 0 unreviewed = 1281 assigned detailed requirements",
+  "final_gate": "DEVGPT-6D_DEVELOPMENT_AND_SELF_REVIEW_GATE_PASS",
+  "completion_boundary": "Development/self-review candidate only. QA and Codex states were not modified; formal runtime and cross-session rows remain explicit.",
+  "requirements_without_scenario": 0,
+  "scenario_duplicate_id": 0,
+  "canonical_validation_errors": 0,
+  "scenario_mapping_contract": {
+    "core_scenarios": "each maps all 61 canonical requirements in its capability",
+    "cross_session_frontend_scenarios": "each maps the 4 API_OPENAPI/FRONTEND/ADM_UI/BZA_UI requirements and preserves source_requirement_id"
+  },
+  "false_green_corrections": [
+    "removed identical/generic 156-row scope",
+    "re-derived 21 canonical capabilities and 1,281 requirement rows",
+    "restored omitted GWY-ENTRY 61 requirements and 26 exact canonical scenarios",
+    "linked every assigned requirement to scenario rows",
+    "kept 11 cross-session requirement types incomplete and did not mark Java21 substitutes as Java25/runtime PASS"
+  ],
+  "executed_alternative_gates": {
+    "all_low_cost_gate_groups": 19,
+    "gateway_entry_groups": 4,
+    "gateway_semantic_contract_checks": "25/25 PASS",
+    "canonical_scope": "PASS",
+    "coverage_integrity": "PASS",
+    "structured_static_secret_vendor_protected": "PASS"
+  },
+  "cpf_final_gate": "NOT_PASSED_PENDING_CROSS_SESSION_CODEX_AND_QA",
+  "management_model": "CPF_DEVELOPMENT_MANAGEMENT_V8",
+  "v8_scope_continuity": {
+    "legacy_assigned": 96,
+    "exact_matches": 96,
+    "missing": 0,
+    "duplicate": 0,
+    "central_assignment_pending": true
+  }
+}

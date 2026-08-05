@@ -1,0 +1,758 @@
+{
+  "schema_version": 1,
+  "package": "CPF_DEVGPT_CONTROL_V9_ISOLATED_ROOT_OVERLAY",
+  "repository": "freeangelsun/202412_01_CPF",
+  "branch": "master",
+  "baseline_sha": "09dd686c5ae0826594b9c5e1f871d95d95d3ce1c",
+  "baseline_message": "04_08",
+  "generated_at": "2026-08-05T13:39:00+09:00",
+  "extract_at": "repository root",
+  "repository_root_new_entries": [],
+  "old_namespace_modified": false,
+  "namespaces": {
+    "management": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9",
+    "scripts": "cpf-tools/scripts/devgpt-control-v9",
+    "tests": "cpf-tools/scripts/tests/devgpt_control_v9",
+    "runtime_workspace": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace"
+  },
+  "migration": {
+    "old_management": "cpf-docs/work/current/CPF_DEVELOPMENT_MANAGEMENT_V8",
+    "old_scripts": "cpf-tools/scripts/development-management",
+    "old_tests": "cpf-tools/scripts/tests/development_management",
+    "old_results": "cpf-docs/work/current/development-session-results",
+    "delete_command_file": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/DELETE_OLD_V8_AFTER_MIGRATION.ps1",
+    "delete_status": "APPROVAL_REQUIRED_AFTER_ACTIVE_V8_WORK_COMPLETES"
+  },
+  "status": {
+    "namespace_isolation": "PASS",
+    "unit_tests": "PASS (8/8)",
+    "old_v8_delete_command_safety": "PASS",
+    "full_requirement_scenario_assignment": "NOT_EXECUTED",
+    "product_runtime": "NOT_EXECUTED",
+    "qa_final": "NOT_EXECUTED"
+  },
+  "counts": {
+    "files_excluding_manifest": 117,
+    "repository_root_entries": 0,
+    "old_namespace_overlay_entries": 0,
+    "canonical_requirements": 169,
+    "work_packages": 775,
+    "baseline_stabilization": 28,
+    "requirement_gap_items": 24,
+    "development_managed_items": 827,
+    "expected_detailed_requirements": 30558,
+    "expected_scenarios": 40763
+  },
+  "entrypoints": {
+    "review_index": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/REVIEW_INDEX.md",
+    "application_policy": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/00_APPLICATION_POLICY.md",
+    "future_handover_requirements": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/05_SESSION_HANDOVER_REQUIREMENTS.md",
+    "bootstrap": "cpf-tools/scripts/devgpt-control-v9/initialize-development-management.ps1",
+    "request_generator": "cpf-tools/scripts/devgpt-control-v9/generate-development-requests.ps1",
+    "validator": "cpf-tools/scripts/devgpt-control-v9/validate-development-management.ps1"
+  },
+  "files": [
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/00_APPLICATION_POLICY.md",
+      "bytes": 3893,
+      "lines": 102,
+      "sha256": "31d4e2c0cf95e396ad1d0ffe0f134b6b7067233cd5e534adbd19bd763c58a30f"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/01_COMMON_ENGINEERING_GATES.md",
+      "bytes": 12596,
+      "lines": 487,
+      "sha256": "7d8020a4b0af17626604b76f46a2319617fc6d6bd7dc9b2f38012f2a7102cd03"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/02_STANDARDS_TECHNOLOGY_CROSSWALK.md",
+      "bytes": 8142,
+      "lines": 191,
+      "sha256": "895f44a3a681d2486a50b7d1baacba580c110df3a957f8855cfba085522a376b"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/03_BASELINE_STABILIZATION.md",
+      "bytes": 31326,
+      "lines": 862,
+      "sha256": "63bb9327aabba078b50cf4fb75986dc796f82c06ed2b335fbd04a93337e7c711"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/04_REQUIREMENT_GAP_PROMOTION_REVIEW.md",
+      "bytes": 22588,
+      "lines": 513,
+      "sha256": "144a7a0330375f2af4592833f075370a983ec3d992cb60bfbedb3515c82dcc8c"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/05_DEVELOPMENT_MANAGEMENT_MODEL.md",
+      "bytes": 1406,
+      "lines": 35,
+      "sha256": "32e81da127fe66da230c64a2e8a4354dc4873a08e1d04fd6995c62d052a41088"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/05_SESSION_HANDOVER_REQUIREMENTS.md",
+      "bytes": 1795,
+      "lines": 26,
+      "sha256": "23674c9de29d85d5878e5a71ca1be6382a895434394215d976fb51a0ccd6db1f"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/06_PARALLEL_SESSION_ORCHESTRATION.md",
+      "bytes": 1316,
+      "lines": 38,
+      "sha256": "04ceecfb3ff47913d4c564d111c16d708bb13c01bba3892a03ad925ac7d3ec6c"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/07_COMPLETION_SKIP_REOPEN_RULES.md",
+      "bytes": 764,
+      "lines": 17,
+      "sha256": "9c619d6748725f3805908098832875d22a7cf77aebcf233220ab3d970a927a83"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/08_FULL_REQUIREMENT_SCENARIO_MAPPING.md",
+      "bytes": 1229,
+      "lines": 21,
+      "sha256": "f70c2d7b27fa24702208326d7cd0549d73251f97f950c81441fb9aae55ca4b3a"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/09_DEVELOPMENT_REQUEST_GENERATION.md",
+      "bytes": 594,
+      "lines": 15,
+      "sha256": "1dc353c95ccd95e7bddbde0c9949c0e1874589fb15237be966734c3115956c08"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/100_RELEASE_PRODUCT_GOVERNANCE.md",
+      "bytes": 192486,
+      "lines": 3528,
+      "sha256": "ad7a462dc4e136b2b3c0e19c00db8634b43d079c60a6c6f5af4598eaa27c1eb4"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/10_ARCHITECTURE_MODULE_BOUNDARY.md",
+      "bytes": 147282,
+      "lines": 2557,
+      "sha256": "642189631766faafe9273daaeccb309151f78c48f3ee9088c09c79ea1f6077b2"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/10_FINAL_TARGET_GAP_AND_PATCH_DECISIONS.md",
+      "bytes": 1088,
+      "lines": 12,
+      "sha256": "1b5990390476ec79c86627818a1a030ac7b2bac029d2c5e872830cea61b203fa"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/11_CORE_CALL_CONTEXT_STATE_RESILIENCE.md",
+      "bytes": 1167,
+      "lines": 16,
+      "sha256": "8d0829922799941ae9f064703093f735b4b427d2e369846ad51c8c9858d8fe0a"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/11_CORE_CALL_CONTEXT_STATE_RESILIENCE_PART_01.md",
+      "bytes": 206493,
+      "lines": 3653,
+      "sha256": "19413ef33d999885d9d23430591db6bd62c6ca45f6143ab7518f97c719d51bed"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/11_CORE_CALL_CONTEXT_STATE_RESILIENCE_PART_02.md",
+      "bytes": 86928,
+      "lines": 1553,
+      "sha256": "82973d059394941348217f6f9c902d44e6e6eb686e846d69f965df136c244f49"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/11_DEVELOPMENT_COMPLETENESS_TRACKING.md",
+      "bytes": 754,
+      "lines": 14,
+      "sha256": "096e9e733264d37710bbf7de87bee0953ab9bc391aa05d154e24351c07f6086a"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/12_CORE_OBSERVABILITY_FILE_MESSAGE.md",
+      "bytes": 179237,
+      "lines": 3113,
+      "sha256": "41c5675448dcd4e1d93fb2ce40be8d282221a7a2ed32cc982175a75fec0045dd"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/12_ROOT_OVERLAY_INSTALL_AND_RUN.md",
+      "bytes": 861,
+      "lines": 27,
+      "sha256": "d3bbd7ac0d0444a802871e83188ce750e9c5471ac84e23ca7711a86b1aa7a9b9"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/13_DELETE_AND_RETIREMENT_PLAN.md",
+      "bytes": 612,
+      "lines": 12,
+      "sha256": "539508a07bf7ff487ca0726006250adbab9ad7155afee6037c9bbe4cea3f4656"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/14_V8_TO_V9_NAMESPACE_MIGRATION.md",
+      "bytes": 1532,
+      "lines": 40,
+      "sha256": "38c2f1d50f7c6d81bd435c4898215720cd038ed495b71f9af51b294a9d2f0dad"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/20_COMMON_DATA_DB.md",
+      "bytes": 1169,
+      "lines": 16,
+      "sha256": "44ee8a1feb35acefe96cde4aff5d4537403e0e13fbc26e0d28b68ba716996a82"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/20_COMMON_DATA_DB_PART_01.md",
+      "bytes": 207689,
+      "lines": 3723,
+      "sha256": "c857491e9ac65ccffb96f0b7816b236a21ebc374712164047fa5420f49ce27c0"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/20_COMMON_DATA_DB_PART_02.md",
+      "bytes": 156390,
+      "lines": 2813,
+      "sha256": "e7f168fac03eb0b35d82e41ffc03548e37a4b155210ad82634bd176462d1db63"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/30_GATEWAY_EXTERNAL_INTEGRATION.md",
+      "bytes": 238722,
+      "lines": 4217,
+      "sha256": "ff2b16b69504ddcdf19dd627dfe6de9e79d00f3c368830b1db17cf90c44c987a"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/31_EVENT_MESSAGING_SAGA.md",
+      "bytes": 195199,
+      "lines": 3389,
+      "sha256": "3c1ad1da6732355694a46f5d896244ce927357704cb27ee84806f35d71f5787b"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/40_BATCH_AGENT_WORKER.md",
+      "bytes": 145315,
+      "lines": 2561,
+      "sha256": "1e109694f604d379f441553210dca2827463a97bb39209e9efdda078a6b02f7c"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/41_CENTER_CUT.md",
+      "bytes": 134281,
+      "lines": 2423,
+      "sha256": "bac9eaea445cb94ed28470a316e423ef0a5a77c33d48827fd2d469a18ca69116"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/50_ADMIN_PLATFORM.md",
+      "bytes": 1109,
+      "lines": 16,
+      "sha256": "4821cbc35ceee7ad1bc553f01929c68595d2fa0253c273731d1b652352bb342b"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/50_ADMIN_PLATFORM_PART_01.md",
+      "bytes": 207052,
+      "lines": 3653,
+      "sha256": "0b347139de6a79aa874db711ea438f40342726c0fe8e87d882907959e825136d"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/50_ADMIN_PLATFORM_PART_02.md",
+      "bytes": 100070,
+      "lines": 1763,
+      "sha256": "8b8fd520aca14f2c265c00c643b5a00997054608d151d68528b81cabdcd12bde"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/51_BIZ_ADMIN.md",
+      "bytes": 68932,
+      "lines": 1242,
+      "sha256": "e18cc9e0befc0ad853bd4a749fa72c6ea774cef6e96d8e4104573b3d9aa24947"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/60_SECURITY_PRIVACY_CRYPTO.md",
+      "bytes": 181831,
+      "lines": 3182,
+      "sha256": "75a2fb82e5128eed2a5dc4f7fe412760bdfd60055e9bbbf4d5cd77587352f4e9"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/70_OPERATIONS_SRE_RUNTIME_CONTROL.md",
+      "bytes": 1097,
+      "lines": 16,
+      "sha256": "6e74ba38004be586537c83decdb0443387a5dd054aa29fade8be981d9d850090"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/70_OPERATIONS_SRE_RUNTIME_CONTROL_PART_01.md",
+      "bytes": 206828,
+      "lines": 3653,
+      "sha256": "19fd41451d35a5560fe40987583b7dad0ea031398efda90e3bb26a46a6e9151c"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/70_OPERATIONS_SRE_RUNTIME_CONTROL_PART_02.md",
+      "bytes": 67552,
+      "lines": 1203,
+      "sha256": "a12ebef26aaf718f54142f7d080d1e32de4d865f4cb8e8c8ec2cfac3c59afbf5"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/80_DEVEX_GENERATOR_SAMPLE.md",
+      "bytes": 120629,
+      "lines": 2245,
+      "sha256": "732f284f03ed5d695a0ce8d068a12643fb39a165f4a0f32e8f059b64c3c92973"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/90_API_QUALITY_TESTING.md",
+      "bytes": 177663,
+      "lines": 3329,
+      "sha256": "c6005d118f26aae6bd7c54aaec11142b4cd9e4de0022f0c72a98bc77d5acd903"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/99_EXPERT_REVIEW.md",
+      "bytes": 7879,
+      "lines": 170,
+      "sha256": "194df8173c480db1d15037350b3563a642ea00860b3bd1c056c631ec1ae83fc5"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/ACTIVE_DEVELOPMENT_SCOPE.csv",
+      "bytes": 318031,
+      "lines": 826,
+      "sha256": "8376f621c0b97d2ec2d8ee0bdf5450ebac8a06ef6f2175ba9f20c8671f458ea1"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/CANONICAL_COVERAGE_MAP.csv",
+      "bytes": 94068,
+      "lines": 170,
+      "sha256": "3d11ea7781cd8917e287bb0a14e27625f5e606ae5b883a0e10996e7dc6e4469a"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/CHANGE_MANIFEST.csv",
+      "bytes": 31160,
+      "lines": 117,
+      "sha256": "39976f141093663bc252f33069e833750ef68668ea9173d5157fbc64ba4e15d3"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/COMPLETED_SKIP_SCOPE.csv",
+      "bytes": 894,
+      "lines": 2,
+      "sha256": "558613ab32fda3e17671269b78c0b06f4c926ead51f73ea37d6144191b85cb53"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/DELETE_COMMANDS.ps1",
+      "bytes": 450,
+      "lines": 3,
+      "sha256": "b9c093e9672e36b3bbe12eff009cfc33e133f4815fadbb1ba941e680070d8335"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/DELETE_MANIFEST.csv",
+      "bytes": 3339,
+      "lines": 5,
+      "sha256": "1ff42e4154c57ef2ed6db0695dcef146d4092b1c50227e44042a9dcd225dbfd8"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/DELETE_OLD_V8_AFTER_MIGRATION.ps1",
+      "bytes": 450,
+      "lines": 3,
+      "sha256": "b9c093e9672e36b3bbe12eff009cfc33e133f4815fadbb1ba941e680070d8335"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/DEVELOPMENT_ITEM_INDEX.csv",
+      "bytes": 299795,
+      "lines": 828,
+      "sha256": "b8722e5bcf33ea86671440531615cc7fd6777bb6d1189a4ec3a10517f3ffc912"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/DEVELOPMENT_ITEM_STATE.csv",
+      "bytes": 318745,
+      "lines": 828,
+      "sha256": "6e663d5d5aff6a4a946e0c8a6233a17ef2537e279bbcfa9c8097a7a55d5fb93a"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/DEVELOPMENT_PROGRESS_SNAPSHOT.json",
+      "bytes": 983,
+      "lines": 21,
+      "sha256": "a19a8001851a007e1f6555042aa19f1e833a53770fe767afd6cfbea55343cb4a"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/FILE_OWNERSHIP_AND_CHANGE_POLICY.csv",
+      "bytes": 5922,
+      "lines": 33,
+      "sha256": "715bcfc052124a7e359474653fb920a453a9827f431a5427b585dbb538bb4749"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/FULL_ASSIGNMENT_VALIDATION.json",
+      "bytes": 867,
+      "lines": 22,
+      "sha256": "8ed6d682c1f9b44d383f34d6ad7857b61e53581599471d9268380de73ff0fcb2"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/GATE_APPLICABILITY_MATRIX.csv",
+      "bytes": 198396,
+      "lines": 776,
+      "sha256": "25f5a1dbdfef8b53176b30bea0e0873dc101d84c6eb684cf153a43c4c6714bd7"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/MANAGEMENT_VALIDATION_RESULT.json",
+      "bytes": 295,
+      "lines": 14,
+      "sha256": "50fd320d4565824263e087b1192efb212f6289ae8d1c2788ba10a5fccb6fd9c3"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/OPEN_ISSUES.md",
+      "bytes": 790,
+      "lines": 9,
+      "sha256": "db9f3e93e3c65e71ef6c0c6d9393f24fbff690da30a389e1d268e0a2c83ac04d"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/PROPOSED_REQUIREMENT_ADDITIONS.csv",
+      "bytes": 12533,
+      "lines": 25,
+      "sha256": "bfb5e3465c3b8dd8baec4df0dc9999130236ead886fad908fc005a0ed0dbbdae"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/QA_REWORK_REQUEST.md",
+      "bytes": 551,
+      "lines": 12,
+      "sha256": "457d840c23aaa2328c742f11b528166c4f18766a1e090f6966d1f53c33d711de"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/REQUIRED_CANONICAL_PATCHES.csv",
+      "bytes": 918,
+      "lines": 3,
+      "sha256": "a29a1e990086750b41be31a4bcfe89adb2145f09de3eaf7ffdd4f70f6b08765c"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/REQUIREMENT_STATUS.csv",
+      "bytes": 208382,
+      "lines": 828,
+      "sha256": "fb37764aa2421a64e1e57d58fc351b847bf47528d4ad2a6911d36134a2694257"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/REVIEW_INDEX.md",
+      "bytes": 1637,
+      "lines": 36,
+      "sha256": "8dc221ec81c3d9e42437bea2f77f0e737fbd1e5751ec3afba415f8d2f52afd8c"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/STANDARD_CROSSWALK.csv",
+      "bytes": 5610,
+      "lines": 18,
+      "sha256": "228d1987d1a9b84e0e2abfd339a82bfb4b888231e2ba42f588eac5717884f43f"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/TEST_AND_EVIDENCE.md",
+      "bytes": 1106,
+      "lines": 30,
+      "sha256": "e88f002b0bbadabb5738df09f4f72c967f10d0cc239f78731513c8ab0f4e273d"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/WORK_ITEM_DEPENDENCY_GRAPH.csv",
+      "bytes": 103986,
+      "lines": 756,
+      "sha256": "203c4f7a9289e1cf458d82d52172b6c0f0fa359f22ceeee72bb089403e42589d"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/WORK_ITEM_INDEX.csv",
+      "bytes": 275392,
+      "lines": 776,
+      "sha256": "bc83b310d030be065b45d74b1ecad82c052b0481267f6f16aff318608aa52712"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/WORK_ITEM_SCOPE_SUMMARY.csv",
+      "bytes": 204127,
+      "lines": 828,
+      "sha256": "b42cc9f37c2bfa701a15aa29e85d0b22bcfaa00e54cc2844d50f46a9ee412392"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/evidence/ARTIFACT_SMOKE_TEST.md",
+      "bytes": 845,
+      "lines": 16,
+      "sha256": "abd57b072301c7584a640ae171dca956be19dcd965d822cb4abbc367d5f91e6e"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/evidence/ARTIFACT_STATIC_VALIDATION.json",
+      "bytes": 295,
+      "lines": 14,
+      "sha256": "50fd320d4565824263e087b1192efb212f6289ae8d1c2788ba10a5fccb6fd9c3"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/evidence/ARTIFACT_UNIT_TEST.txt",
+      "bytes": 645,
+      "lines": 13,
+      "sha256": "05de587cf8298a37bda6faa5d0b13fae19a792f0b70ac3dca519c0aee6d5fe70"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/evidence/CORRECTION_04_07_UNIT_TEST.txt",
+      "bytes": 1845,
+      "lines": 21,
+      "sha256": "90550991c98c44232a764a10de920a1b25313e127fe870dbdd7f9605138f4c8c"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/evidence/CORRECTION_04_07_VALIDATION.json",
+      "bytes": 818,
+      "lines": 23,
+      "sha256": "83e139373e38200e91209d86cdb95ffa9c291cccfa8966fa9980264b21d39eb8"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/evidence/REMOTE_BASELINE_CONFIRMATION.json",
+      "bytes": 308,
+      "lines": 9,
+      "sha256": "314df448957ee9d00732f29883987e101b66836c019773d95b2a0447d38783ae"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/evidence/V9_NAMESPACE_ISOLATION_VALIDATION.json",
+      "bytes": 1208,
+      "lines": 28,
+      "sha256": "8126e39345f7706d9b35714bccdb15b08729cd6c929c16498275e7180f49473d"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/evidence/V9_NAMESPACE_UNIT_TEST.txt",
+      "bytes": 2099,
+      "lines": 23,
+      "sha256": "9555c44058f845c9a8ca45556b730fd252e861831630979dd670e85ab13f15dc"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/ledgers/100_RELEASE_PRODUCT_GOVERNANCE_WORK_ITEMS.csv",
+      "bytes": 64963,
+      "lines": 53,
+      "sha256": "f319dd27ce407704503bdd5bdc56c7b5b3895b3eaab0163992129a543f6ff350"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/ledgers/10_ARCHITECTURE_MODULE_BOUNDARY_WORK_ITEMS.csv",
+      "bytes": 54873,
+      "lines": 38,
+      "sha256": "45e6059d734443fa488b5738dfab2337b54eaad80aed09ef104e1b521ce1bb43"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/ledgers/11_CORE_CALL_CONTEXT_STATE_RESILIENCE_PART_01_WORK_ITEMS.csv",
+      "bytes": 77628,
+      "lines": 53,
+      "sha256": "ee58ff264359eaa360bb509e6a95b4e10f5d082c1eb804b094fe5cbdacaa0928"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/ledgers/11_CORE_CALL_CONTEXT_STATE_RESILIENCE_PART_02_WORK_ITEMS.csv",
+      "bytes": 32222,
+      "lines": 23,
+      "sha256": "224e72a9488bedd47b7bbc894675f33b0eb091c27577d58f60012096083880ff"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/ledgers/12_CORE_OBSERVABILITY_FILE_MESSAGE_WORK_ITEMS.csv",
+      "bytes": 66804,
+      "lines": 46,
+      "sha256": "bcf7d1733606c99e993ee9cf58a6a814468da084ee46806866c760951e8aece1"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/ledgers/20_COMMON_DATA_DB_PART_01_WORK_ITEMS.csv",
+      "bytes": 75957,
+      "lines": 54,
+      "sha256": "4e616eec25f9bd7e01ed399c28dbc2759d348d2c903859110a5313142d8268d5"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/ledgers/20_COMMON_DATA_DB_PART_02_WORK_ITEMS.csv",
+      "bytes": 57099,
+      "lines": 41,
+      "sha256": "e8a08cb5469c17dd07f73f3494c55f23175d3e29e527c7d8cc839a547cf7832e"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/ledgers/30_GATEWAY_EXTERNAL_INTEGRATION_WORK_ITEMS.csv",
+      "bytes": 88746,
+      "lines": 62,
+      "sha256": "23afe6a6630322e3dc549effb892152c460ad8b9317a1bdeb3851d349ee48a89"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/ledgers/31_EVENT_MESSAGING_SAGA_WORK_ITEMS.csv",
+      "bytes": 73447,
+      "lines": 50,
+      "sha256": "e1f16a3e3c34837c2afa227305513c0aee36e464621c1a75f5961f5081c692d3"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/ledgers/40_BATCH_AGENT_WORKER_WORK_ITEMS.csv",
+      "bytes": 53261,
+      "lines": 38,
+      "sha256": "5d53ae81a1155c5028c6868fc8f60d5a24df1434b839547efe8aa755c215ddda"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/ledgers/41_CENTER_CUT_WORK_ITEMS.csv",
+      "bytes": 49019,
+      "lines": 36,
+      "sha256": "7fdf9d1fb60e1c6518cc4844cca88b159df8a2eacf4e406256a8f816b8645dc1"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/ledgers/50_ADMIN_PLATFORM_PART_01_WORK_ITEMS.csv",
+      "bytes": 79069,
+      "lines": 53,
+      "sha256": "0d3db197dbaa364337b84a3d4c01d5d6a70b98175ce490bd32302a11a6b5e923"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/ledgers/50_ADMIN_PLATFORM_PART_02_WORK_ITEMS.csv",
+      "bytes": 38188,
+      "lines": 26,
+      "sha256": "dee1dd58cdf86ca61799d1f8f7c35e4fd5b21d937f7ce7e19de694f628c3bde8"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/ledgers/51_BIZ_ADMIN_WORK_ITEMS.csv",
+      "bytes": 25176,
+      "lines": 19,
+      "sha256": "d2bdfa06890fc81054553a8d8ca71b2293f5ef61407cee70c81002390700bdaa"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/ledgers/60_SECURITY_PRIVACY_CRYPTO_WORK_ITEMS.csv",
+      "bytes": 68004,
+      "lines": 47,
+      "sha256": "a053a876563e413a64d9875e6d15059a516f157e0e41efeb8b7a9895dece1079"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/ledgers/70_OPERATIONS_SRE_RUNTIME_CONTROL_PART_01_WORK_ITEMS.csv",
+      "bytes": 79374,
+      "lines": 53,
+      "sha256": "62424323e8513b2426d86a90dd665c2797ac25962f05c912a8c5defba3a3e1eb"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/ledgers/70_OPERATIONS_SRE_RUNTIME_CONTROL_PART_02_WORK_ITEMS.csv",
+      "bytes": 25848,
+      "lines": 18,
+      "sha256": "72e8fc454d0e702a55488c8069009b86f4c07748dae42a477c6724b3c1865d8c"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/ledgers/80_DEVEX_GENERATOR_SAMPLE_WORK_ITEMS.csv",
+      "bytes": 42126,
+      "lines": 34,
+      "sha256": "d41ef410523aa5b1da751db5d1fb1a6f15a44e83aaef651c68732a2128499d8a"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/ledgers/90_API_QUALITY_TESTING_WORK_ITEMS.csv",
+      "bytes": 59632,
+      "lines": 50,
+      "sha256": "985184a98789ae110a411b276039596abb5f65bf750b3538054b1c7d7ca672d6"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/templates/CROSS_SESSION_CHANGE_REQUEST_TEMPLATE.csv",
+      "bytes": 210,
+      "lines": 1,
+      "sha256": "10fedf91044acaef3df2a4b1e13aeffe76e8dd82be2723882815d5cbc608b5ca"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/templates/DEVELOPMENT_REQUIREMENT_RESULT_TEMPLATE.csv",
+      "bytes": 240,
+      "lines": 1,
+      "sha256": "fd0ae71335dd4e20ccbba72a9fdd917d0dc8be66ea27491b4e9a30fd55268983"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/templates/DEVELOPMENT_SCENARIO_RESULT_TEMPLATE.csv",
+      "bytes": 222,
+      "lines": 1,
+      "sha256": "bb86fdaf5af59f59f034778d44246780e4a6e7759560d4050cc273ffbbf92e84"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/templates/DEVELOPMENT_SESSION_ARTIFACT_MANIFEST_TEMPLATE.csv",
+      "bytes": 263,
+      "lines": 1,
+      "sha256": "6da9ff13a9e90e5dcc1dfc975f49d3ee6a048a66110c445082e26392576b7841"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/templates/DEVELOPMENT_SESSION_ASSIGNMENT_TEMPLATE.csv",
+      "bytes": 554,
+      "lines": 1,
+      "sha256": "68110f2860c51e7fcd36ce1695b10b3cc84c33d0c292ef99929f01fb90be7ca6"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/templates/DEVELOPMENT_SESSION_CLEANUP_HANDOVER_TEMPLATE.md",
+      "bytes": 589,
+      "lines": 20,
+      "sha256": "b772f13c72511584fc1c6c4fed1546ac3829643e27e98198d70b2d5f99b129f3"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/templates/DEVELOPMENT_SESSION_RESULT_TEMPLATE.csv",
+      "bytes": 293,
+      "lines": 1,
+      "sha256": "3f7290681c73e90a335121103cdb1cc7e1dcbed15f63c878a1ead6ed7c3cee0a"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/templates/DEVELOPMENT_TO_QA_HANDOFF_TEMPLATE.csv",
+      "bytes": 292,
+      "lines": 1,
+      "sha256": "14b81e6ef48f8da9e0a0826076df71dca9892de45d67dc5dfce63836903b1c62"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/templates/QA_REOPEN_FEED_TEMPLATE.csv",
+      "bytes": 231,
+      "lines": 1,
+      "sha256": "b582dddb83e9a89174121a01bf000c46e8915cfba008a4a19f00412f20043852"
+    },
+    {
+      "path": "cpf-tools/scripts/devgpt-control-v9/__pycache__/devgpt_control_lib.cpython-313.pyc",
+      "bytes": 21102,
+      "lines": 561,
+      "sha256": "93a1f1be96e5b75278e5cd0986d61038a117df65a6825467ad975f269c960837"
+    },
+    {
+      "path": "cpf-tools/scripts/devgpt-control-v9/__pycache__/generate_development_requests.cpython-313.pyc",
+      "bytes": 17448,
+      "lines": 616,
+      "sha256": "5604b8ee6a8aa520f110bf7458e8d319d37ecdc67b9f4b921c30775c61878204"
+    },
+    {
+      "path": "cpf-tools/scripts/devgpt-control-v9/apply-qa-reopen-feed.ps1",
+      "bytes": 260,
+      "lines": 4,
+      "sha256": "576a0e019dee208a0185e2d2852d858e6afb235498ee1501c31851e8b3c2b57d"
+    },
+    {
+      "path": "cpf-tools/scripts/devgpt-control-v9/apply_qa_reopen_feed.py",
+      "bytes": 2389,
+      "lines": 33,
+      "sha256": "b033f2f5c1d7c41a14da2e52940abb00e5aab1045063b6815cdafc32904013bc"
+    },
+    {
+      "path": "cpf-tools/scripts/devgpt-control-v9/bootstrap-and-generate-first-campaign.ps1",
+      "bytes": 541,
+      "lines": 5,
+      "sha256": "4ac9895d8faa425caea4304802d3d072b4b6749b7dbb63ee5095041f7a92d2ef"
+    },
+    {
+      "path": "cpf-tools/scripts/devgpt-control-v9/build_full_assignment.py",
+      "bytes": 9740,
+      "lines": 149,
+      "sha256": "2f9f394085d8b296e4e06ce8ae3efeb7f9463b23b3d6105e49dedbbd77b93992"
+    },
+    {
+      "path": "cpf-tools/scripts/devgpt-control-v9/devgpt_control_lib.py",
+      "bytes": 13778,
+      "lines": 274,
+      "sha256": "0de1082517d686ebcdebeb54b7ded857e3f0251c10689305ab9634dd2aa14db0"
+    },
+    {
+      "path": "cpf-tools/scripts/devgpt-control-v9/generate-development-requests.ps1",
+      "bytes": 559,
+      "lines": 15,
+      "sha256": "cafe3f9fa772e3d120d08b28b33dc6fc6bbf37d625aa45b0874275124cca3db6"
+    },
+    {
+      "path": "cpf-tools/scripts/devgpt-control-v9/generate_development_requests.py",
+      "bytes": 14209,
+      "lines": 322,
+      "sha256": "de32ca595efc7cbf708c726ed5898e0407b398fd9e5f17790899c7485d79f9e6"
+    },
+    {
+      "path": "cpf-tools/scripts/devgpt-control-v9/initialize-development-management.ps1",
+      "bytes": 358,
+      "lines": 5,
+      "sha256": "4734bed9c0c76b8cd5a6f537e2ac772ffb01ad1850bbc57442391e91391d6155"
+    },
+    {
+      "path": "cpf-tools/scripts/devgpt-control-v9/merge-development-results.ps1",
+      "bytes": 270,
+      "lines": 4,
+      "sha256": "b624db8d65a8fb329ad6001395bfa6bc1812d6cc81b227a83a2964aff2fd1528"
+    },
+    {
+      "path": "cpf-tools/scripts/devgpt-control-v9/merge_session_results.py",
+      "bytes": 2459,
+      "lines": 30,
+      "sha256": "2510de67a2c797fb7908b3b4ebaff56431c8ad473e81d8ad0570f5ef5f858148"
+    },
+    {
+      "path": "cpf-tools/scripts/devgpt-control-v9/validate-development-management.ps1",
+      "bytes": 263,
+      "lines": 5,
+      "sha256": "2f2f278e499506eb3dde72875592ba2535eff6ff9095ddc71802073d60ffeba2"
+    },
+    {
+      "path": "cpf-tools/scripts/devgpt-control-v9/validate_development_management.py",
+      "bytes": 5460,
+      "lines": 78,
+      "sha256": "68a8e235b2a030ff25a0a09e09448b2f676f57fabee3bee69626a2f9148c1b70"
+    },
+    {
+      "path": "cpf-tools/scripts/tests/devgpt_control_v9/__pycache__/test_devgpt_control.cpython-313.pyc",
+      "bytes": 7377,
+      "lines": 193,
+      "sha256": "454903203f1241b94e117dc7d8e7ebbae55584c2ebe576a75da0d8f09e3b5099"
+    },
+    {
+      "path": "cpf-tools/scripts/tests/devgpt_control_v9/test_devgpt_control.py",
+      "bytes": 4315,
+      "lines": 76,
+      "sha256": "0c5f280d70e7be11a2358a5c8829868e04a32b79f42444ceb09a100f250afc6a"
+    }
+  ]
+}

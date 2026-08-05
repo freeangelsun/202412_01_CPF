@@ -1,1 +1,0 @@
-﻿qa_cycle_id,qa_baseline_sha,entity_type,entity_id,action,target_entity_id,reason_code,reason_summary,affected_paths,required_fix,revalidation_commands,expected_result,failure_criteria,required_evidence,risk,qa_result_ref,issued_at

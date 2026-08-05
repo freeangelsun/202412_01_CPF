@@ -1,0 +1,1 @@
+campaign_id,session_id,requirement_id,canonical_requirement_id,primary_entity_id,개발GPT_수행상태,개발GPT_자체검수상태,acceptance_result,test_method,assertion_ref,direct_or_alternative,actual_result,evidence_ref,remaining_gap

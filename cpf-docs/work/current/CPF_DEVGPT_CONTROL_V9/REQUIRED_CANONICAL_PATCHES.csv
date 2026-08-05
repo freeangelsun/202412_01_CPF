@@ -1,0 +1,3 @@
+patch_id,target_path,patch_type,current_issue,required_change,status,approval,validation
+CANON-PATCH-001,cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md,COUNT_CORRECTION,문서 상단은 Canonical 169개이나 Section 21 본문은 162개로 불일치,Section 21의 현재 Canonical Requirement Count를 169개로 정정하고 Builder/Validator Negative Fixture와 일치,REQUIRED,USER_PUSH_AND_QA_REVIEW,"Catalog ID count=169, unique=169, Legacy Alias=8 중복 집계 금지"
+CANON-PATCH-002,cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md,REQ_GAP_INTEGRATION,16개 PROMOTE_NEW_CANONICAL 후보가 Stack/상용 운영 목표에 있으나 독립 Canonical Acceptance가 약함,PROPOSED_REQUIREMENT_ADDITIONS.csv의 신규 후보를 기존 ID 중복 검산 후 Continuity Ledger와 Catalog에 승인 반영,PROPOSED,REQ-GAP_AND_USER_PUSH,"새 ID 중복 0, Owner/Consumer/Acceptance/Evidence/Continuity 완비"

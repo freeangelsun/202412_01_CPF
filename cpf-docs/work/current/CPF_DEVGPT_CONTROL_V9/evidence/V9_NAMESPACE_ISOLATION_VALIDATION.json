@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "package": "CPF_DEVGPT_CONTROL_V9_ISOLATED",
+  "baseline_sha": "09dd686c5ae0826594b9c5e1f871d95d95d3ce1c",
+  "baseline_message": "04_08",
+  "generated_at": "2026-08-05T13:39:00+09:00",
+  "status": "PASS",
+  "checks": {
+    "management_namespace": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9",
+    "script_namespace": "cpf-tools/scripts/devgpt-control-v9",
+    "test_namespace": "cpf-tools/scripts/tests/devgpt_control_v9",
+    "isolated_runtime_namespace": "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace",
+    "repository_root_entries": 0,
+    "old_namespace_overlay_entries": 0,
+    "old_namespace_reference_leaks": 0,
+    "immutable_campaign_revision": true,
+    "single_campaign_cleanup_root": true,
+    "session_cleanup_exact_path": true,
+    "future_handover_cleanup_requirement": true,
+    "old_v8_delete_command_targets_only_old_paths": true,
+    "unit_tests": "8/8 PASS"
+  },
+  "limitations": [
+    "30,558 Requirement and 40,763 Scenario full bootstrap remains to be executed in the repository.",
+    "Product runtime and QA final pass are not claimed.",
+    "Old V8 paths must not be deleted until active V8-based development work is integrated."
+  ]
+}

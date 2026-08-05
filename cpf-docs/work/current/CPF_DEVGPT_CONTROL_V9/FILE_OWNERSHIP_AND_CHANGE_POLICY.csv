@@ -1,0 +1,33 @@
+rule_order,path_pattern,policy_type,owner_role,allowed_change_actor,change_method,conflict_action,notes
+10,cpf-docs/governance/**,READ_ONLY_CANONICAL,architecture/governance integration owner,INTEGRATION_SESSION_ONLY,CROSS_SESSION_CHANGE_REQUEST then controlled integration,BLOCK_SESSION_CHANGE,Final Target/Continuity/ADR canonical documents
+20,cpf-docs/work/current/CPF_REQUIREMENT_MASTER.csv,READ_ONLY_CANONICAL,development management owner,MANAGEMENT_GENERATOR_ONLY,regenerate from canonical source,BLOCK_SESSION_CHANGE,Logical split index
+21,cpf-docs/work/current/CPF_REQUIREMENT_MASTER.parts/**,READ_ONLY_CANONICAL,development management owner,MANAGEMENT_GENERATOR_ONLY,regenerate through official builder,BLOCK_SESSION_CHANGE,"30,558 detailed requirements"
+22,cpf-docs/work/current/CPF_SCENARIO_MASTER.csv,READ_ONLY_CANONICAL,development management owner,MANAGEMENT_GENERATOR_ONLY,regenerate from scenario builder,BLOCK_SESSION_CHANGE,Logical split index
+23,cpf-docs/work/current/CPF_SCENARIO_MASTER.parts/**,READ_ONLY_CANONICAL,development management owner,MANAGEMENT_GENERATOR_ONLY,regenerate through official builder,BLOCK_SESSION_CHANGE,"40,763 scenarios"
+30,cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/DEVELOPMENT_ITEM_STATE.csv,CENTRAL_MANAGER_ONLY,development management integrator,MERGE_SCRIPT_ONLY,merge validated session results and QA reopen feed,BLOCK_SESSION_CHANGE,Development GPT sessions submit append-only result files
+31,cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/ACTIVE_DEVELOPMENT_SCOPE.csv,GENERATED_VIEW,development management generator,GENERATOR_ONLY,derive from authoritative state,BLOCK_SESSION_CHANGE,Never manually edit
+32,cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/COMPLETED_SKIP_SCOPE.csv,GENERATED_VIEW,development management generator,GENERATOR_ONLY,derive from authoritative state,BLOCK_SESSION_CHANGE,Never manually edit
+33,cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/generated/**,GENERATED_VIEW,development management generator,GENERATOR_ONLY,run official management scripts,BLOCK_SESSION_CHANGE,Requirement/Scenario maps and generated requests
+40,settings.gradle*,SHARED_INTEGRATION_OWNER,root build integration owner,INTEGRATION_SESSION_ONLY,cross-session request then integration,QUEUE_FOR_INTEGRATION,High conflict root build
+41,build.gradle*,SHARED_INTEGRATION_OWNER,root build integration owner,INTEGRATION_SESSION_ONLY,cross-session request then integration,QUEUE_FOR_INTEGRATION,High conflict root build
+42,gradle/**,SHARED_INTEGRATION_OWNER,root build integration owner,INTEGRATION_SESSION_ONLY,cross-session request then integration,QUEUE_FOR_INTEGRATION,Wrapper/BOM/stack/locks
+43,gradlew*,SHARED_INTEGRATION_OWNER,root build integration owner,INTEGRATION_SESSION_ONLY,cross-session request then integration,QUEUE_FOR_INTEGRATION,Wrapper scripts
+50,cpf-core/src/main/java/**/api/**,SHARED_INTEGRATION_OWNER,cpf-core public-contract owner,INTEGRATION_SESSION_ONLY,contract request then central implementation,QUEUE_FOR_INTEGRATION,Public API compatibility
+51,cpf-core/src/main/java/**/spi/**,SHARED_INTEGRATION_OWNER,cpf-core SPI owner,INTEGRATION_SESSION_ONLY,SPI request then central implementation,QUEUE_FOR_INTEGRATION,SPI compatibility
+60,cpf-tools/db/canonical/**,GENERATED_SOURCE_OWNER,DB canonical/generator owner,DB_INTEGRATION_SESSION_ONLY,change canonical model then generate vendors,BLOCK_DIRECT_DERIVED_EDIT,Generator-first DB
+61,cpf-tools/**/domain-template/**,GENERATED_SOURCE_OWNER,generator owner,GENERATOR_INTEGRATION_SESSION_ONLY,change template then regenerate,BLOCK_DIRECT_DERIVED_EDIT,Golden template
+62,cpf-tools/**/generator/**,SHARED_INTEGRATION_OWNER,generator integration owner,GENERATOR_INTEGRATION_SESSION_ONLY,central generator change,QUEUE_FOR_INTEGRATION,Generated-domain impact
+63,cpf-admin/frontend/openapi/**,GENERATED_SOURCE_OWNER,OpenAPI contract owner,API_INTEGRATION_SESSION_ONLY,change OpenAPI source then regenerate client,BLOCK_DIRECT_DERIVED_EDIT,API source
+64,cpf-admin/frontend/src/generated/**,GENERATED_OUTPUT_NO_DIRECT_EDIT,OpenAPI generator,GENERATOR_ONLY,regenerate from OpenAPI source,BLOCK_DIRECT_EDIT,Generated frontend client
+65,**/build/generated/**,GENERATED_OUTPUT_NO_DIRECT_EDIT,owning generator,GENERATOR_ONLY,regenerate from source,BLOCK_DIRECT_EDIT,Build-generated outputs
+70,cpf-core/**,EXCLUSIVE_OWNER_MODULE,cpf-core owner,ASSIGNED_OWNER_SESSION,exclusive session scope or cross-session request,BLOCK_OVERLAP,Internal implementation outside shared API/SPI
+71,cpf-common/**,EXCLUSIVE_OWNER_MODULE,cpf-common owner,ASSIGNED_OWNER_SESSION,exclusive session scope,BLOCK_OVERLAP,Customer common
+72,cpf-admin/**,EXCLUSIVE_OWNER_MODULE,cpf-admin owner,ASSIGNED_OWNER_SESSION,exclusive session scope,BLOCK_OVERLAP,Platform admin
+73,cpf-biz-admin/**,EXCLUSIVE_OWNER_MODULE,cpf-biz-admin owner,ASSIGNED_OWNER_SESSION,exclusive session scope,BLOCK_OVERLAP,Business admin
+74,cpf-batch/**,EXCLUSIVE_OWNER_MODULE,cpf-batch owner,ASSIGNED_OWNER_SESSION,exclusive session scope,BLOCK_OVERLAP,Batch/center-cut
+75,cpf-gateway/**,EXCLUSIVE_OWNER_MODULE,cpf-gateway owner,ASSIGNED_OWNER_SESSION,exclusive session scope,BLOCK_OVERLAP,Gateway
+76,cpf-starters/**,EXCLUSIVE_OWNER_MODULE,starter capability owner,ASSIGNED_OWNER_SESSION,exclusive capability slice,BLOCK_OVERLAP,Leaf starters
+77,cpf-member/**,EXCLUSIVE_OWNER_MODULE,generated golden-domain owner,ASSIGNED_OWNER_SESSION,generator-led change,BLOCK_OVERLAP,Golden generated domain
+78,cpf-reference/**,EXCLUSIVE_OWNER_MODULE,reference runtime owner,ASSIGNED_OWNER_SESSION,exclusive reference slice,BLOCK_OVERLAP,Reference/EDU
+80,cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/**,SESSION_RESULT_APPEND_ONLY,session result owner,ASSIGNED_SESSION_ONLY,create new session-specific files,BLOCK_OVERWRITE,Avoid central-ledger conflicts
+90,**,DEFAULT_REVIEW_REQUIRED,owning module,ASSIGNED_OWNER_SESSION,apply most-specific rule first,REVIEW_CONFLICT,Fallback

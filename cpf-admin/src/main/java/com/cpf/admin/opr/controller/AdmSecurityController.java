@@ -57,7 +57,7 @@ public class AdmSecurityController extends com.cpf.admin.common.base.AdmBaseCont
     @CpfOnlineTransaction(id = "OADMSE0012", name = "ADMMfaList")
     @Operation(operationId = "admSecurityFindMfaStates", summary = "MFA 상태 조회", description = "ADM 운영자 MFA 등록/검증 상태를 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findMfaStates() {
-        return ResponseEntity.ok(securityService.findMfaStates());
+        return ResponseEntity.ok(securityService.findMfaStates().stream().map(this::maskSecret).toList());
     }
 
     @PostMapping("/mfa/{operatorId}/register")

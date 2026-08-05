@@ -10,9 +10,12 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
-/** ADM Approval Engine REST Consumer. */
-@RestController
-@RequestMapping("/adm/api/approvals")
+/**
+ * @deprecated V9 canonical REST owner is {@code com.cpf.admin.approval.controller.AdmApprovalController}.
+ * This source remains only as a binary/source compatibility facade and is intentionally not a Spring bean,
+ * preventing duplicate {@code /adm/api/approvals/**} mappings and duplicate OpenAPI operationIds.
+ */
+@Deprecated(forRemoval = true, since = "V9")
 public class AdmApprovalController {
     private final AdmApprovalEngineService approvals; private final AdmAuthenticatedOperatorContext operators;
     public AdmApprovalController(AdmApprovalEngineService approvals,AdmAuthenticatedOperatorContext operators){this.approvals=approvals;this.operators=operators;}

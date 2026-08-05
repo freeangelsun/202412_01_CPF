@@ -45,14 +45,14 @@ public class AdmBatchApprovalService extends com.cpf.admin.common.base.AdmBaseSe
                 throw new IllegalStateException("approval request is already bound to another idempotency key");
             }
             String state = text(existing, "execution_status").toUpperCase(Locale.ROOT);
-            return new Reservation(approvalId, command.idempotencyKey(), state, true);
+            return new Reservation(approvalId, command.idempotencyKey(), state, true, text(row, "requested_by"));
         }
 
         String status = text(row, "approval_status").toUpperCase(Locale.ROOT);
         if (!"APPROVED".equals(status)) {
             throw new IllegalStateException("approval request is not APPROVED: " + status);
         }
-        assertIndependentApproval(approvalId, text(row, "requested_by"));
+        assertIndependentApproval(approvalId, text(row, "requested_by"), command.requestUser());
         long version = number(row, "version_no");
         int changed = jdbc.update(
                 "UPDATE adm_approval_request SET approval_status='EXECUTING', version_no=version_no+1, "
@@ -68,7 +68,7 @@ public class AdmBatchApprovalService extends com.cpf.admin.common.base.AdmBaseSe
                         + "recovery_required_yn,created_by,updated_by) "
                         + "VALUES(?,?,'RUNNING',CURRENT_TIMESTAMP,'N',?,?)",
                 approvalId, command.idempotencyKey(), command.requestUser(), command.requestUser());
-        return new Reservation(approvalId, command.idempotencyKey(), "RUNNING", false);
+        return new Reservation(approvalId, command.idempotencyKey(), "RUNNING", false, text(row, "requested_by"));
     }
 
     @Transactional(transactionManager = "admTransactionManager")
@@ -147,22 +147,41 @@ public class AdmBatchApprovalService extends com.cpf.admin.common.base.AdmBaseSe
             throw new IllegalArgumentException("approval target id does not match BAT command");
         }
         String approvedHash = text(row, "command_payload_hash");
-        if (!approvedHash.equalsIgnoreCase(command.fingerprint())) {
+        CpfBatchRiskCommand approvedSnapshot = withRequestUser(command, text(row, "requested_by"));
+        if (!approvedHash.equalsIgnoreCase(approvedSnapshot.fingerprint())) {
             throw new IllegalArgumentException("approval payload hash does not match BAT command");
         }
         Instant expires = instant(value(row, "expire_at"));
-        if (expires != null && !expires.isAfter(Instant.now())) {
+        if (expires == null) {
+            throw new IllegalStateException("approval expiry is required for BAT risk commands");
+        }
+        if (!expires.isAfter(Instant.now())) {
             throw new IllegalStateException("approval request has expired");
         }
     }
 
-    private void assertIndependentApproval(long approvalId, String requesterId) {
+    /**
+     * 승인 Snapshot의 requester와 현재 실행자를 분리합니다. Controller의 requestUser는 현재
+     * 승인 실행자이며, Owner 전송용 fingerprint는 원장의 requested_by를 기준으로 검증합니다.
+     */
+    public static CpfBatchRiskCommand withRequestUser(CpfBatchRiskCommand command, String requestUser) {
+        Objects.requireNonNull(command, "command");
+        return new CpfBatchRiskCommand(
+                command.operation(), command.targetType(), command.targetId(), command.actionType(),
+                required(requestUser, "requestUser"), command.reason(), command.approvalRequestId(),
+                command.idempotencyKey(), command.expectedVersion(), command.payload());
+    }
+
+    private void assertIndependentApproval(long approvalId, String requesterId, String executorId) {
+        String executor = required(executorId, "executorId");
         Long count = jdbc.queryForObject(
                 "SELECT COUNT(*) FROM adm_approval_participant "
-                        + "WHERE approval_request_id=? AND decision_status='APPROVED' AND operator_id<>?",
-                Long.class, approvalId, requesterId);
+                        + "WHERE approval_request_id=? AND decision_status='APPROVED' "
+                        + "AND operator_id=? AND operator_id<>?",
+                Long.class, approvalId, executor, requesterId);
         if (count == null || count < 1) {
-            throw new IllegalStateException("an independent approved participant is required");
+            throw new IllegalStateException(
+                    "the executing operator must be an independent approved participant");
         }
     }
 
@@ -224,10 +243,15 @@ public class AdmBatchApprovalService extends com.cpf.admin.common.base.AdmBaseSe
     }
 
     public record Reservation(
-            long approvalRequestId, String commandRequestId, String executionStatus, boolean replay) {
+            long approvalRequestId,
+            String commandRequestId,
+            String executionStatus,
+            boolean replay,
+            String requestedBy) {
         public Reservation {
             commandRequestId = required(commandRequestId, "commandRequestId");
             executionStatus = required(executionStatus, "executionStatus");
+            requestedBy = required(requestedBy, "requestedBy");
         }
     }
 }

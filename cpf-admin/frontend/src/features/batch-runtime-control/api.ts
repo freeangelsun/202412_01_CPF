@@ -1,4 +1,4 @@
-import { admApi, CpfApiError } from "../../shared/cpfApi";
+import { admApi, admInvokeOperation, CpfApiError } from "../../shared/cpfApi";
 
 export interface RuntimeInstance {
   instance_id: string
@@ -401,6 +401,89 @@ export async function fetchCenterCutWorkspace(centerCutJobId: string): Promise<C
     : undefined
   return { job, summary, results, resultDetail, targets, parameters }
 }
+export type CenterCutExecutionAction = 'reprocess-failed' | 'reconcile-unknown'
+export interface CenterCutApprovalTicket {
+  approvalRequestId: string
+  requestKey: string
+  reason: string
+  status: string
+  action: CenterCutExecutionAction
+  executionId: string
+}
+
+const centerCutContract = (action: CenterCutExecutionAction) => action === 'reprocess-failed'
+  ? { actionType: 'CENTER_CUT_REPROCESS_FAILED', ownerCommand: 'reprocessCenterCutFailed', operationId: 'admCenterCutReprocessFailedExecution' }
+  : { actionType: 'CENTER_CUT_RECONCILE_UNKNOWN', ownerCommand: 'reconcileCenterCutUnknown', operationId: 'admCenterCutReconcileUnknownExecution' }
+
+export async function createCenterCutApproval(
+  executionId: string,
+  action: CenterCutExecutionAction,
+  reason: string,
+  requestKey: string,
+): Promise<CenterCutApprovalTicket> {
+  const id = requiredId(executionId, 'executionId')
+  const contract = centerCutContract(action)
+  const expireAt = new Date(Date.now() + 30 * 60 * 1000).toISOString()
+  const result = await admInvokeOperation<Record<string, unknown>>('admApprovalRequest', {
+    body: {
+      requestKey: requiredId(requestKey, 'requestKey'),
+      policyCode: null,
+      policyVersion: null,
+      actionType: contract.actionType,
+      ownerModule: 'BAT',
+      ownerCommand: contract.ownerCommand,
+      targetType: 'center_cut_execution',
+      targetId: id,
+      payloadSnapshot: '{}',
+      expireAt,
+      reason: requiredReason(reason),
+    },
+  })
+  const approvalRequestId = String(result.approvalRequestId ?? result.requestId ?? result.id ?? '').trim()
+  if (!approvalRequestId || !/^\d+$/.test(approvalRequestId)) throw new Error('승인 요청 ID를 확인할 수 없습니다.')
+  return { approvalRequestId, requestKey, reason: requiredReason(reason), status: String(result.approvalStatus ?? 'PENDING'), action, executionId: id }
+}
+
+export async function fetchCenterCutApproval(ticket: CenterCutApprovalTicket): Promise<CenterCutApprovalTicket> {
+  const detail = await admInvokeOperation<Record<string, unknown>>('admApprovalRequestDetail', {
+    path: { id: requiredId(ticket.approvalRequestId, 'approvalRequestId') },
+  })
+  const contract = centerCutContract(ticket.action)
+  const status = String(detail.approvalStatus ?? '').trim().toUpperCase()
+  if (String(detail.ownerModule ?? '').trim().toUpperCase() !== 'BAT'
+      || String(detail.ownerCommand ?? '').trim() !== contract.ownerCommand
+      || String(detail.actionType ?? '').trim().toUpperCase() !== contract.actionType
+      || String(detail.targetType ?? '').trim().toLowerCase() !== 'center_cut_execution'
+      || String(detail.targetId ?? '').trim() !== ticket.executionId
+      || String(detail.requestKey ?? '').trim() !== ticket.requestKey
+      || String(detail.requestReason ?? '').trim() !== ticket.reason) {
+    throw new Error('승인 요청 Snapshot이 선택한 Center-Cut 실행 조치와 일치하지 않습니다.')
+  }
+  return { ...ticket, status }
+}
+
+export async function executeCenterCutAction(
+  ticket: CenterCutApprovalTicket,
+  command: DangerousBatchCommand,
+): Promise<Record<string, unknown>> {
+  const verified = await fetchCenterCutApproval(ticket)
+  if (verified.status !== 'APPROVED') throw new Error(`APPROVED 승인만 실행할 수 있습니다. 현재 상태: ${verified.status || 'UNKNOWN'}`)
+  if (command.approvalId.trim() !== verified.approvalRequestId) throw new Error('승인 ID가 저장된 Center-Cut 요청과 다릅니다.')
+  if (command.idempotencyKey.trim() !== verified.requestKey) throw new Error('멱등 키는 승인 Request Key와 같아야 합니다.')
+  if (command.reason.trim() !== verified.reason) throw new Error('실행 사유는 승인 요청 사유와 같아야 합니다.')
+  const contract = centerCutContract(verified.action)
+  return admInvokeOperation<Record<string, unknown>>(contract.operationId, {
+    path: { executionId: verified.executionId },
+    body: commandBody(command),
+  })
+}
+
+function requiredReason(value: string): string {
+  const reason = value?.trim()
+  if (!reason || reason.length < 5) throw new Error('감사 가능한 사유를 5자 이상 입력하세요.')
+  return reason
+}
+
 export async function fetchUnknownResults(status = '', limit = 200): Promise<Array<Record<string, unknown>>> {
   const params = pageParams({ status, limit })
   return request(`/adm/api/reliability/unknown-results?${params}`, { credentials: 'same-origin' })

@@ -8,6 +8,7 @@ import com.cpf.admin.opr.dto.AdmMenu;
 import com.cpf.admin.opr.dto.AdmOperator;
 import com.cpf.admin.opr.service.AdmOperatorService;
 import com.cpf.admin.opr.service.AdmSessionService;
+import com.cpf.admin.opr.service.AdmSecurityOperationService;
 import com.cpf.core.api.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -28,10 +29,13 @@ import java.util.List;
 public class AdmAuthController extends com.cpf.admin.common.base.AdmBaseController {
     private final AdmOperatorService operatorService;
     private final AdmSessionService sessionService;
+    private final AdmSecurityOperationService securityService;
 
-    public AdmAuthController(AdmOperatorService operatorService, AdmSessionService sessionService) {
+    public AdmAuthController(AdmOperatorService operatorService, AdmSessionService sessionService,
+                             AdmSecurityOperationService securityService) {
         this.operatorService = operatorService;
         this.sessionService = sessionService;
+        this.securityService = securityService;
     }
 
     @PostMapping("/login")
@@ -39,6 +43,7 @@ public class AdmAuthController extends com.cpf.admin.common.base.AdmBaseControll
     @Operation(operationId = "admAuthLogin", summary = "ADM 로그인", description = "운영자를 인증하고 Bearer 토큰 세션을 발급합니다.")
     public ResponseEntity<AdmLoginResponse> login(@RequestBody AdmLoginRequest request) {
         AdmOperator operator = operatorService.authenticate(request);
+        securityService.requireMfaForLogin(operator.operatorId(), request.otpCode());
         List<AdmMenu> menus = operatorService.findMenusForRoles(operator.roleIds());
         return ResponseEntity.ok(sessionService.issue(operator, menus, operatorService.findButtonIdsForRoles(operator.roleIds())));
     }

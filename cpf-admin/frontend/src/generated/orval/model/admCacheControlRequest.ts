@@ -1,2 +1,4 @@
-/** Audited cache reconcile input. The authenticated operator is server-derived. */
-export interface AdmCacheControlRequest { reason: string; }
+/** Audited cache reconcile request. The authenticated operator is resolved from the server session. */
+export interface AdmCacheControlRequest {
+  reason: string;
+}

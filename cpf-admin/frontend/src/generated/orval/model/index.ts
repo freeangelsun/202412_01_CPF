@@ -43,6 +43,7 @@ export * from './admCalendarFindDaysParams';
 export * from './admCalendarResolveDateParams';
 export * from './admCalendarSaveDayParams';
 export * from './admCalendarSaveDayRequest';
+export * from './admCenterCutActionRequest';
 export * from './admCenterCutFindResultsParams';
 export * from './admCenterCutFindTargetsParams';
 export * from './admChannelPackageImportRequest';

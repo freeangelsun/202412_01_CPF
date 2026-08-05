@@ -1,0 +1,31 @@
+{
+  "baseline_sha": "af12a0c8851a2e8d20e9e42964d8dacc0266af03",
+  "metrics": {
+    "WORK_ITEM_RESULT.csv": {
+      "rows": 95,
+      "unique": 95
+    },
+    "DEVELOPMENT_REQUIREMENT_RESULT.csv": {
+      "rows": 1159,
+      "unique": 1159
+    },
+    "DEVELOPMENT_SCENARIO_RESULT.csv": {
+      "rows": 1368,
+      "unique": 1368
+    },
+    "ENGINEERING_GATE_RESULT.csv": {
+      "rows": 19,
+      "unique": 19
+    },
+    "manifest_entries": 535,
+    "actual_files": 538,
+    "exclusions": [
+      "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/PACKAGE_MANIFEST.json",
+      "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/SESSION_ARTIFACT_MANIFEST.csv",
+      "cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/S05-R6/sessions/DEVGPT-V9-S05/SHA256SUMS.txt"
+    ],
+    "issues_count": 0
+  },
+  "issues": [],
+  "status": "PASS"
+}

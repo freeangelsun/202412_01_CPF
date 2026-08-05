@@ -6,6 +6,7 @@
       <form class="adm-login-form" @submit.prevent="login">
         <label>운영자 ID <input v-model="loginForm.operatorId" type="text" autocomplete="username"></label>
         <label>비밀번호 <input v-model="loginForm.password" type="password" autocomplete="current-password"></label>
+        <label>MFA 코드 <input v-model="loginForm.otpCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="MFA 사용 계정만 입력"></label>
         <button class="primary" type="submit">로그인</button>
         <p class="hint">최초 운영자는 승인된 bootstrap 환경변수로 생성하며 초기 비밀번호는 저장소와 화면에 제공하지 않습니다.</p>
         <p v-if="authMessage" class="detail" role="alert">{{ authMessage }}</p>

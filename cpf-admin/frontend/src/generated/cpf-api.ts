@@ -629,6 +629,12 @@ export async function admCacheReconcile<T = unknown>(options: CpfGeneratedReques
 export async function admCacheRefresh<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/cache/refresh", options.path), method: "POST", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
 }
+export async function admCenterCutReconcileUnknownExecution<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
+  return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/center-cut/executions/{executionId}/reconcile-unknown", options.path), method: "POST", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
+}
+export async function admCenterCutReprocessFailedExecution<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
+  return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/center-cut/executions/{executionId}/reprocess-failed", options.path), method: "POST", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
+}
 export async function admChannelImportPackage<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/channels/package/import", options.path), method: "POST", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
 }

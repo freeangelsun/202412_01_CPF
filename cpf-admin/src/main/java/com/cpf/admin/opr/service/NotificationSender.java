@@ -6,8 +6,8 @@ import com.cpf.admin.opr.dto.NotificationSendResult;
 /**
  * 운영 알림 발송 채널의 공통 인터페이스입니다.
  *
- * <p>초기 프레임워크는 mock sender로 발송 이력과 운영 흐름을 검증하고,
- * 실제 프로젝트에서는 Email, SMS, Mattermost, Kafka 같은 채널 sender를 이 인터페이스로 확장합니다.</p>
+ * <p>실제 제품은 Email, SMS, Webhook, Message Provider 구현을 연결해야 합니다.
+ * Provider가 없을 때는 fail-closed 구현이 실패를 반환하며, Simulator는 명시적 설정에서만 활성화됩니다.</p>
  */
 public interface NotificationSender {
 

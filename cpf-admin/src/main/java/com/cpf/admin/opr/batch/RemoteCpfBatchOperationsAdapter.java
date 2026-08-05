@@ -60,7 +60,7 @@ public class RemoteCpfBatchOperationsAdapter implements CpfBatchOperationsPort {
         body.put("expectedVersion", command.expectedVersion());
         body.put("payload", command.payload());
         body.put("requestHash", command.fingerprint());
-        return invoke(operation, body, command.requestUser(), command);
+        return invoke(operation, body, operatorContext.currentOperatorId(), command);
     }
 
     private Object invoke(

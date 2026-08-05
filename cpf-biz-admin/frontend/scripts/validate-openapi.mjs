@@ -20,7 +20,7 @@ const expectedOrigin = verificationScope === "release" ? "BACKEND_RUNTIME" : "CO
 if (spec["x-cpf-export-origin"] !== expectedOrigin) throw new Error(`x-cpf-export-origin=${expectedOrigin} 필요`);
 if (verificationScope === "source" && spec["x-cpf-release-eligible"] !== false) throw new Error("Source contract must be release-ineligible");
 if (verificationScope === "release" && spec["x-cpf-release-eligible"] !== true) throw new Error("Runtime contract must be release-eligible");
-if (Number(spec["x-cpf-canonical-schema-version"]) !== 4) throw new Error("canonical OpenAPI schemaVersion 4 필요");
+if (Number(spec["x-cpf-canonical-schema-version"]) !== 5) throw new Error("canonical OpenAPI schemaVersion 5 필요");
 const module = String(spec["x-cpf-product-module"] || "").toUpperCase();
 const publicPrefix = module === "ADM" ? "/adm/api/" : module === "BZA" ? "/api/bza/" : null;
 if (!publicPrefix) throw new Error(`지원하지 않는 제품 Module: ${module}`);

@@ -10,7 +10,6 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.charset.StandardCharsets;
@@ -30,13 +29,15 @@ import java.util.Objects;
 import java.util.Set;
 
 /**
- * Versioned ADM Approval Engine.
+ * @deprecated V9 canonical state owner is {@code com.cpf.admin.approval.service.AdmApprovalService}.
+ * This source remains only for source compatibility and is intentionally not a Spring bean.
  *
- * <p>Policy, participant snapshots, decisions and the immutable owner-command snapshot are persisted
- * before a dangerous owner command can execute. Work-package evidence may be shared, but every
- * request keeps its own policy version, participants, command hash and execution ledger.</p>
+ * <p>Legacy versioned ADM Approval Engine. Policy, participant snapshots, decisions and the immutable
+ * owner-command snapshot are persisted before a dangerous owner command can execute. Work-package
+ * evidence may be shared, but every request keeps its own policy version, participants, command hash
+ * and execution ledger.</p>
  */
-@Service
+@Deprecated(forRemoval = true, since = "V9")
 public class AdmApprovalEngineService extends com.cpf.admin.common.base.AdmBaseService {
     private static final Set<String> SENSITIVE_INLINE_KEYS = Set.of(
             "password", "passwd", "secret", "token", "authorization", "apikey", "api_key");

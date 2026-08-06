@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="760" viewBox="0 0 1400 760" role="img" aria-labelledby="title desc">
+<title id="title">CPF Common 변경의 Transaction·Durable 전파</title>
+<desc id="desc">Calendar와 Common Template 변경은 cmnDB Transaction과 durable cache-refresh outbox를 함께 사용한다.</desc>
+<defs>
+  <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+    <path d="M0,0 L0,6 L9,3 z" fill="#334155"/>
+  </marker>
+  <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+    <feDropShadow dx="0" dy="3" stdDeviation="4" flood-opacity="0.18"/>
+  </filter>
+</defs>
+<rect width="1400" height="760" fill="#f8fafc"/>
+<text x="70" y="70" font-family="Arial, sans-serif" font-size="34" font-weight="700" fill="#0f172a">CPF Common 변경의 Transaction·Durable 전파</text>
+<text x="70" y="108" font-family="Arial, sans-serif" font-size="18" fill="#475569">Calendar와 Common Template 변경은 cmnDB Transaction과 durable cache-refresh outbox를 함께 사용한다.</text>
+<line x1="330" y1="260" x2="400" y2="260" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
+<text x="365" y="250" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" fill="#475569">요청</text>
+<line x1="665" y1="260" x2="735" y2="260" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
+<text x="700" y="250" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" fill="#475569">Commit 후 전파</text>
+<line x1="1000" y1="260" x2="1070" y2="260" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
+<text x="1035" y="250" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" fill="#475569">소비</text>
+<line x1="535" y1="350" x2="535" y2="455" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
+<text x="535" y="392" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" fill="#475569">실패/대사</text>
+<line x1="870" y1="350" x2="870" y2="455" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
+<text x="870" y="392" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" fill="#475569">관측</text>
+<rect x="70" y="170" width="260" height="180" rx="16" fill="#ffffff" stroke="#94a3b8" stroke-width="2" filter="url(#shadow)"/>
+<text x="92" y="208" font-family="Arial, sans-serif" font-size="21" font-weight="700" fill="#0f172a">운영 Command</text>
+<text x="92" y="242" font-family="Arial, sans-serif" font-size="16" fill="#334155">Actor·Reason·Expected Revision</text>
+<text x="92" y="269" font-family="Arial, sans-serif" font-size="16" fill="#334155">Calendar UPSERT/DELETE</text>
+<text x="92" y="296" font-family="Arial, sans-serif" font-size="16" fill="#334155">Template DRAFT/APPROVE/RETIRE</text>
+<rect x="405" y="170" width="260" height="180" rx="16" fill="#ffffff" stroke="#94a3b8" stroke-width="2" filter="url(#shadow)"/>
+<text x="427" y="208" font-family="Arial, sans-serif" font-size="21" font-weight="700" fill="#0f172a">cmnTransaction</text>
+<text x="427" y="242" font-family="Arial, sans-serif" font-size="16" fill="#334155">업무 Row 변경</text>
+<text x="427" y="269" font-family="Arial, sans-serif" font-size="16" fill="#334155">Audit Row 기록</text>
+<text x="427" y="296" font-family="Arial, sans-serif" font-size="16" fill="#334155">Outbox insertRequired</text>
+<rect x="740" y="170" width="260" height="180" rx="16" fill="#ffffff" stroke="#94a3b8" stroke-width="2" filter="url(#shadow)"/>
+<text x="762" y="208" font-family="Arial, sans-serif" font-size="21" font-weight="700" fill="#0f172a">Durable Worker</text>
+<text x="762" y="242" font-family="Arial, sans-serif" font-size="16" fill="#334155">Instance별 checkpoint</text>
+<text x="762" y="269" font-family="Arial, sans-serif" font-size="16" fill="#334155">Retry·Reconcile</text>
+<text x="762" y="296" font-family="Arial, sans-serif" font-size="16" fill="#334155">Sensitive data 제외</text>
+<rect x="1075" y="170" width="255" height="180" rx="16" fill="#ffffff" stroke="#94a3b8" stroke-width="2" filter="url(#shadow)"/>
+<text x="1097" y="208" font-family="Arial, sans-serif" font-size="21" font-weight="700" fill="#0f172a">Runtime Instance</text>
+<text x="1097" y="242" font-family="Arial, sans-serif" font-size="16" fill="#334155">Event 소비</text>
+<text x="1097" y="269" font-family="Arial, sans-serif" font-size="16" fill="#334155">Canonical cmnDB 재조회</text>
+<text x="1097" y="296" font-family="Arial, sans-serif" font-size="16" fill="#334155">Observed state 확인</text>
+<rect x="405" y="465" width="260" height="155" rx="16" fill="#ffffff" stroke="#94a3b8" stroke-width="2" filter="url(#shadow)"/>
+<text x="427" y="503" font-family="Arial, sans-serif" font-size="21" font-weight="700" fill="#0f172a">실패 판정</text>
+<text x="427" y="537" font-family="Arial, sans-serif" font-size="16" fill="#334155">Outbox 저장 실패 → Rollback</text>
+<text x="427" y="564" font-family="Arial, sans-serif" font-size="16" fill="#334155">Version 충돌 → Conflict</text>
+<text x="427" y="591" font-family="Arial, sans-serif" font-size="16" fill="#334155">응답 유실 → 원장 조회</text>
+<rect x="740" y="465" width="260" height="155" rx="16" fill="#ffffff" stroke="#94a3b8" stroke-width="2" filter="url(#shadow)"/>
+<text x="762" y="503" font-family="Arial, sans-serif" font-size="21" font-weight="700" fill="#0f172a">운영 종료 기준</text>
+<text x="762" y="537" font-family="Arial, sans-serif" font-size="16" fill="#334155">Row·Audit·Outbox 일치</text>
+<text x="762" y="564" font-family="Arial, sans-serif" font-size="16" fill="#334155">모든 Instance checkpoint</text>
+<text x="762" y="591" font-family="Arial, sans-serif" font-size="16" fill="#334155">UNKNOWN/Drift 없음</text>
+</svg>

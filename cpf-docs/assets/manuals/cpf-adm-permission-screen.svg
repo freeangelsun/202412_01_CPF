@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="820" viewBox="0 0 1400 820" role="img" aria-labelledby="title desc">
+<title id="title">ADM Permission 운영 화면</title><desc id="desc">Menu·Button·API Permission과 Role Matrix·Data Scope를 같은 정책으로 판독한다.</desc>
+<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#334155"/></marker><filter id="shadow"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-opacity="0.18"/></filter></defs>
+<rect width="1400" height="820" fill="#f8fafc"/>
+<text x="70" y="65" font-family="Arial,sans-serif" font-size="34" font-weight="700" fill="#0f172a">ADM Permission 운영 화면</text>
+<text x="70" y="102" font-family="Arial,sans-serif" font-size="18" fill="#475569">Menu·Button·API Permission과 Role Matrix·Data Scope를 같은 정책으로 판독한다.</text>
+<line x1="330" y1="260" x2="395" y2="260" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
+<text x="362" y="252" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" fill="#475569">map</text>
+<line x1="650" y1="260" x2="715" y2="260" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
+<text x="682" y="252" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" fill="#475569">simulate</text>
+<line x1="970" y1="260" x2="1035" y2="260" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
+<text x="1002" y="252" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" fill="#475569">change</text>
+<line x1="1165" y1="350" x2="845" y2="495" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
+<text x="1005" y="414" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" fill="#475569">verify</text>
+<line x1="525" y1="350" x2="525" y2="495" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
+<text x="525" y="414" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" fill="#475569">deny</text>
+<rect x="80" y="170" width="250" height="180" rx="15" fill="#fff" stroke="#94a3b8" stroke-width="2" filter="url(#shadow)"/>
+<text x="100" y="206" font-family="Arial,sans-serif" font-size="20" font-weight="700" fill="#0f172a">Definition</text>
+<text x="100" y="240" font-family="Arial,sans-serif" font-size="15" fill="#334155">Menu·Button·API</text>
+<text x="100" y="266" font-family="Arial,sans-serif" font-size="15" fill="#334155">Code·Status·Version</text>
+<rect x="400" y="170" width="250" height="180" rx="15" fill="#fff" stroke="#94a3b8" stroke-width="2" filter="url(#shadow)"/>
+<text x="420" y="206" font-family="Arial,sans-serif" font-size="20" font-weight="700" fill="#0f172a">Role Matrix</text>
+<text x="420" y="240" font-family="Arial,sans-serif" font-size="15" fill="#334155">Role·Permission</text>
+<text x="420" y="266" font-family="Arial,sans-serif" font-size="15" fill="#334155">Allow/Deny·Scope</text>
+<rect x="720" y="170" width="250" height="180" rx="15" fill="#fff" stroke="#94a3b8" stroke-width="2" filter="url(#shadow)"/>
+<text x="740" y="206" font-family="Arial,sans-serif" font-size="20" font-weight="700" fill="#0f172a">Impact</text>
+<text x="740" y="240" font-family="Arial,sans-serif" font-size="15" fill="#334155">사용자·Route·API</text>
+<text x="740" y="266" font-family="Arial,sans-serif" font-size="15" fill="#334155">자기 권한 상실 검사</text>
+<rect x="1040" y="170" width="250" height="180" rx="15" fill="#fff" stroke="#94a3b8" stroke-width="2" filter="url(#shadow)"/>
+<text x="1060" y="206" font-family="Arial,sans-serif" font-size="20" font-weight="700" fill="#0f172a">Apply</text>
+<text x="1060" y="240" font-family="Arial,sans-serif" font-size="15" fill="#334155">Reason·Expected Version</text>
+<text x="1060" y="266" font-family="Arial,sans-serif" font-size="15" fill="#334155">Audit·Simulation</text>
+<rect x="400" y="505" width="250" height="150" rx="15" fill="#fff" stroke="#94a3b8" stroke-width="2" filter="url(#shadow)"/>
+<text x="420" y="541" font-family="Arial,sans-serif" font-size="20" font-weight="700" fill="#0f172a">Negative Test</text>
+<text x="420" y="575" font-family="Arial,sans-serif" font-size="15" fill="#334155">메뉴 숨김만 의존 금지</text>
+<text x="420" y="601" font-family="Arial,sans-serif" font-size="15" fill="#334155">API 403·Scope 차단</text>
+<rect x="720" y="505" width="250" height="150" rx="15" fill="#fff" stroke="#94a3b8" stroke-width="2" filter="url(#shadow)"/>
+<text x="740" y="541" font-family="Arial,sans-serif" font-size="20" font-weight="700" fill="#0f172a">Recovery</text>
+<text x="740" y="575" font-family="Arial,sans-serif" font-size="15" fill="#334155">Break-glass 경로</text>
+<text x="740" y="601" font-family="Arial,sans-serif" font-size="15" fill="#334155">이전 Matrix 복구</text>
+</svg>

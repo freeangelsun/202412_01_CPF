@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="760" viewBox="0 0 1400 760" role="img" aria-labelledby="title desc">
+<title id="title">Common Template Version Lifecycle</title>
+<desc id="desc">Template은 Version·Revision·Audit와 DRAFT→APPROVED→RETIRED 생명주기를 사용한다.</desc>
+<defs>
+  <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+    <path d="M0,0 L0,6 L9,3 z" fill="#334155"/>
+  </marker>
+  <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+    <feDropShadow dx="0" dy="3" stdDeviation="4" flood-opacity="0.18"/>
+  </filter>
+</defs>
+<rect width="1400" height="760" fill="#f8fafc"/>
+<text x="70" y="70" font-family="Arial, sans-serif" font-size="34" font-weight="700" fill="#0f172a">Common Template Version Lifecycle</text>
+<text x="70" y="108" font-family="Arial, sans-serif" font-size="18" fill="#475569">Template은 Version·Revision·Audit와 DRAFT→APPROVED→RETIRED 생명주기를 사용한다.</text>
+<line x1="350" y1="295" x2="465" y2="295" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
+<text x="407" y="285" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" fill="#475569">approve</text>
+<line x1="730" y1="295" x2="845" y2="295" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
+<text x="787" y="285" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" fill="#475569">retire</text>
+<line x1="600" y1="380" x2="650" y2="490" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
+<text x="625" y="425" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" fill="#475569">render</text>
+<line x1="980" y1="380" x2="790" y2="490" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
+<text x="885" y="425" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" fill="#475569">history</text>
+<rect x="90" y="210" width="260" height="170" rx="16" fill="#ffffff" stroke="#94a3b8" stroke-width="2" filter="url(#shadow)"/>
+<text x="112" y="248" font-family="Arial, sans-serif" font-size="21" font-weight="700" fill="#0f172a">DRAFT</text>
+<text x="112" y="282" font-family="Arial, sans-serif" font-size="16" fill="#334155">createDraft</text>
+<text x="112" y="309" font-family="Arial, sans-serif" font-size="16" fill="#334155">본문·Channel·Version</text>
+<text x="112" y="336" font-family="Arial, sans-serif" font-size="16" fill="#334155">Actor·Reason·Audit</text>
+<rect x="470" y="210" width="260" height="170" rx="16" fill="#ffffff" stroke="#94a3b8" stroke-width="2" filter="url(#shadow)"/>
+<text x="492" y="248" font-family="Arial, sans-serif" font-size="21" font-weight="700" fill="#0f172a">APPROVED</text>
+<text x="492" y="282" font-family="Arial, sans-serif" font-size="16" fill="#334155">expectedRevision CAS</text>
+<text x="492" y="309" font-family="Arial, sans-serif" font-size="16" fill="#334155">활성 Version</text>
+<text x="492" y="336" font-family="Arial, sans-serif" font-size="16" fill="#334155">durable refresh event</text>
+<rect x="850" y="210" width="260" height="170" rx="16" fill="#ffffff" stroke="#94a3b8" stroke-width="2" filter="url(#shadow)"/>
+<text x="872" y="248" font-family="Arial, sans-serif" font-size="21" font-weight="700" fill="#0f172a">RETIRED</text>
+<text x="872" y="282" font-family="Arial, sans-serif" font-size="16" fill="#334155">expectedRevision CAS</text>
+<text x="872" y="309" font-family="Arial, sans-serif" font-size="16" fill="#334155">신규 사용 중지</text>
+<text x="872" y="336" font-family="Arial, sans-serif" font-size="16" fill="#334155">이력·Audit 보존</text>
+<rect x="510" y="500" width="420" height="135" rx="16" fill="#ffffff" stroke="#94a3b8" stroke-width="2" filter="url(#shadow)"/>
+<text x="532" y="538" font-family="Arial, sans-serif" font-size="21" font-weight="700" fill="#0f172a">Renderer</text>
+<text x="532" y="572" font-family="Arial, sans-serif" font-size="16" fill="#334155">APPROVED Version 조회</text>
+<text x="532" y="599" font-family="Arial, sans-serif" font-size="16" fill="#334155">변수·출력 한도 검증</text>
+<text x="532" y="626" font-family="Arial, sans-serif" font-size="16" fill="#334155">민감값 Log 제외</text>
+</svg>

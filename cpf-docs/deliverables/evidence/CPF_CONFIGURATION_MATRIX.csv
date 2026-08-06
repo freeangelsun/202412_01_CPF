@@ -1,0 +1,71 @@
+﻿kind,key,type,default,required_range,consumer,apply,secret,verification,rollback
+environment,CPF_ARTIFACT_MODE,String,LOCAL_DEV,LOCAL_DEV/REMOTE/OFFLINE,Gradle,Build,N,Mode/Repository,이전 Mode
+environment,CPF_ARTIFACT_REPOSITORY_URL,URI,없음,REMOTE 필수,Gradle,Build,N,Repository 연결,이전 URL
+environment,CPF_ARTIFACT_REPOSITORY_USER,String,없음,인증 Repository,Gradle,Build,Y,Credential 오류 없음,이전 Secret
+environment,CPF_ARTIFACT_REPOSITORY_PASSWORD,Secret,없음,인증 Repository,Gradle,Build,Y,Log 비노출,이전 Secret
+environment,CPF_LOCAL_ARTIFACT_REPOSITORY,Path,~/.cpf/repository,LOCAL_DEV,Gradle,Build,N,Artifact 조회,이전 경로
+environment,CPF_OFFLINE_ARTIFACT_REPOSITORY,Path,없음,OFFLINE 필수,Gradle,Build,N,외부 접속 없는 Build,이전 경로
+environment,CPF_SOURCE_SHA,SHA,git HEAD,40 hex,Build/JAR,Build,N,Manifest Git-Commit,정확한 SHA
+environment,SPRING_PROFILES_ACTIVE,String,Module별,승인 Profile,Runtime,Restart,N,Startup Log,이전 Profile
+environment,SERVER_PORT,Integer,Module별,1~65535,Web Runtime,Restart,N,Listen/Health,이전 Port
+environment,ADM_MODULE_ID,String,ADM,조직 Naming,ADM,Restart,N,Framework Context,이전 ID
+environment,ADM_INSTANCE_ID,String,adm-local-01,Instance Unique,ADM,Restart,N,Topology/OpenAPI,이전 ID
+environment,ADM_WAS_ID,String,admAP01,WAS Unique,ADM,Restart,N,Context,이전 ID
+environment,ADM_SERVICE_REGISTRY_MODE,String,LOCAL,승인 Mode,ADM,Restart,N,Service Call,이전 Mode
+environment,CPF_OPENAPI_WEBMVC_ENABLED,Boolean,true,true/false,ADM OpenAPI,Restart,N,OpenAPI Status,이전 값
+environment,CPF_OPENAPI_WEBMVC_API_DOCS_ENABLED,Boolean,false,환경 정책,ADM OpenAPI,Restart,N,Docs 노출,false
+environment,CPF_OPENAPI_WEBMVC_MANAGEMENT_ENABLED,Boolean,true,true/false,ADM OpenAPI,Restart,N,openApiOperations,이전 값
+environment,CPF_OPENAPI_WEBMVC_API_DOCS_PATH,Path,/v3/api-docs,Context Path,ADM OpenAPI,Restart,N,Status Path,이전 Path
+environment,CPF_RUNTIME_INSTANCE_ID,String,없음,runtime-agent 필수,Runtime Agent,Restart,N,Agent 등록,이전 ID
+environment,CPF_RUNTIME_SERVICE_ID,String,없음,runtime-agent 필수,Runtime Agent,Restart,N,Control 상태,이전 ID
+environment,CPF_RUNTIME_ENDPOINT_CODE,String,없음,runtime-agent 필수,Runtime Agent,Restart,N,Endpoint,이전 Code
+environment,CPF_RUNTIME_BASE_URL,URI,없음,runtime-agent 필수,Runtime Agent,Restart,N,Probe,이전 URL
+environment,CPF_RUNTIME_CONTROL_BASE_URL,URI,없음,runtime-agent 필수,Runtime Agent,Restart,N,Control Health,이전 URL
+environment,CPF_RUNTIME_CONTROL_AGENT_TOKEN,Secret,없음,runtime-agent 필수,Runtime Agent,Restart,Y,Auth·Log 비노출,이전 Token
+config-prefix,cpf.profile.minimal-domain,,,Profile 선택,minimal-domain Profile,Restart,N,Context/Manifest,이전 Config Revision
+config-prefix,cpf.profile.web-api,,,Profile 선택,web-api,Restart,N,Web/OpenAPI,이전 Config Revision
+config-prefix,cpf.profile.secure-api,,,Profile 선택,secure-api,Restart,일부,Security Health,이전 Config Revision
+config-prefix,cpf.profile.browser-bff,,,Profile 선택,browser-bff,Restart,일부,Session/CSRF,이전 Config Revision
+config-prefix,cpf.profile.event-service,,,Profile 선택,event-service,Restart,일부,Broker/Reliability,이전 Config Revision
+config-prefix,cpf.profile.batch-service,,,Profile 선택,batch-service,Restart,일부,Batch Runtime,이전 Config Revision
+config-prefix,cpf.data.persistence.jdbc,,,data=jdbc,JDBC,Restart,Y,DB Health,이전 Config Revision
+config-prefix,cpf.data.persistence.mybatis,,,data=mybatis,MyBatis,Restart,Y,DB/Mapper,이전 Config Revision
+config-prefix,cpf.data.cache.caffeine,,,cache=caffeine,Local Cache,정책/Restart,N,Cache Metric,이전 Config Revision
+config-prefix,cpf.data.cache.valkey,,,cache=valkey,Distributed Cache,Restart,Y,Valkey Health,이전 Config Revision
+config-prefix,cpf.messaging.reliability.jdbc,,,messaging,Outbox/Inbox/DLQ,정책/Restart,Y,Reliability,이전 Config Revision
+config-prefix,cpf.messaging.kafka,,,messaging=kafka,Kafka,Restart,Y,Topic/ACL/Lag,이전 Config Revision
+config-prefix,cpf.messaging.rabbitmq,,,messaging=rabbitmq,RabbitMQ,Restart,Y,Exchange/Queue,이전 Config Revision
+config-prefix,cpf.messaging.jms,,,messaging=jms,JMS,Restart,Y,Destination,이전 Config Revision
+config-prefix,cpf.messaging.ibm-mq,,,messaging=ibm-mq,IBM MQ,Restart,Y,QM/Channel,이전 Config Revision
+config-prefix,cpf.integration.http,,,transport=http,HTTP,정책/Restart,Y,Target Health,이전 Config Revision
+config-prefix,cpf.integration.resilience,,,integration,Resilience,Runtime Control,N,Policy Revision,이전 Config Revision
+config-prefix,cpf.integration.tcp,,,transport=tcp,TCP,Restart,Y,Connection,이전 Config Revision
+config-prefix,cpf.integration.fixedlength,,,codec=fixed-length,Fixed-length,Restart,N,Layout Test,이전 Config Revision
+config-prefix,cpf.integration.iso8583,,,codec=iso8583,ISO8583,Restart,Y,MAC/Layout,이전 Config Revision
+config-prefix,cpf.file.attachment,,,file,Attachment,정책/Restart,Y,File Health,이전 Config Revision
+config-prefix,cpf.file.archive,,,file,Archive,정책/Restart,N,Limit,이전 Config Revision
+config-prefix,cpf.file.tabular.poi,,,file,Tabular,정책/Restart,N,Row/Cell,이전 Config Revision
+config-prefix,cpf.file.sftp,,,file=sftp,SFTP,Restart,Y,Host Key/Probe,이전 Config Revision
+config-prefix,cpf.notification.dispatch,,,notification,Notification,정책/Restart,Y,Delivery,이전 Config Revision
+config-prefix,cpf.notification.email,,,notification=email,Email,Restart,Y,SMTP/Receipt,이전 Config Revision
+config-prefix,cpf.notification.sms,,,notification=sms-spi,SMS SPI,Restart,Y,Provider,이전 Config Revision
+config-prefix,cpf.security.resource-server,,,resource-server,JWT,Restart,Y,Issuer/Audience,이전 Config Revision
+config-prefix,cpf.security.session.jdbc,,,browser-session,Session,Restart,Y,Session Store,이전 Config Revision
+config-prefix,cpf.security.service-identity,,,service-identity,Service Identity,Restart,Y,Audience/Auth,이전 Config Revision
+config-prefix,cpf.security.secret,,,security,Secret Provider,Restart,Y,Provider Metadata,이전 Config Revision
+config-prefix,cpf.platform-operations.observability,,,platform-operations,Observability,정책/Restart,N,Telemetry,이전 Config Revision
+config-prefix,cpf.platform-operations.otlp,,,observability=otlp,OTLP,Restart,Y,Collector,이전 Config Revision
+config-prefix,cpf.platform-operations.runtime-control,,,platform-operations,Runtime Control,Restart,Y,ACK/Observed,이전 Config Revision
+config-prefix,cpf.platform-operations.channel-registry.jdbc,,,platform-operations,Channel Registry,정책/Restart,Y,Snapshot,이전 Config Revision
+config-prefix,cpf.platform-operations.feature-flag,,,platform-operations,OpenFeature,Runtime Control,일부,Evaluation/Audit,이전 Config Revision
+config-prefix,cpf.data.cache.valkey.enabled,Boolean,false,true/false,cache-valkey starter,재기동,N,Cache Provider Bean·ADM /cache summary,false로 복귀 후 재기동
+config-prefix,cpf.data.cache.valkey.key-prefix,String,cpf:,"[A-Za-z0-9._:-]{1,120}",ValkeyCpfCachePort,재기동,N,실제 Key prefix·tenant/namespace 격리,이전 Prefix 복원
+config-prefix,cpf.data.cache.valkey.invalidation-channel,String,cpf.cache.invalidate,"[A-Za-z0-9._:-]{1,180}",Valkey invalidation signal,재기동,N,Signal publish·durable reconcile,이전 Channel 복원
+config-prefix,cpf.data.cache.valkey.default-ttl,Duration,10m,0보다 큰 Duration,ValkeyCpfCachePort,재기동,N,TTL 조회,이전 TTL 복원
+config-prefix,cpf.data.cache.valkey.required,Boolean,true,true/false,Valkey auto-configuration,재기동,N,Provider 부재 시 Fail-closed 여부,이전 값 복원
+config-prefix,cpf.data.cache.valkey.tls,Boolean,false,고객 TLS 정책,Redis/Valkey Connection,재기동,N,TLS Handshake·Certificate,이전 연결 설정
+config-prefix,cpf.data.cache.valkey.maximum-payload-bytes,Long,1048576,1~67108864,ValkeyCpfCachePort,재기동,N,경계 Payload Test,이전 한도 복원
+config-prefix,cpf.data.cache.valkey.scan-count,Long,500,10~10000,Namespace eviction SCAN,재기동,N,SCAN 부하·삭제 건수,이전 Count 복원
+config-prefix,cpf.cache.invalidation.consumer-id,String,cache-<host>-<CPF_INSTANCE_ID>,"[A-Za-z0-9._:-]{1,180}",CpfCacheInvalidationCoordinator,재기동,N,durable checkpoint consumer_id,이전 Consumer ID 복원
+config-prefix,cpf.cache.invalidation.reconcile-batch-size,Integer,200,1~10000,CpfCacheInvalidationCoordinator,재기동,N,reconcile 처리량·DB 부하,이전 Batch Size
+config-prefix,cpf.cache.invalidation.reconcile-max-batches,Integer,20,1~1000,CpfCacheInvalidationCoordinator,재기동,N,1회 reconcile 상한,이전 Max Batches

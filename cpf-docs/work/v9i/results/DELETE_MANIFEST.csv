@@ -1,2 +1,3 @@
-﻿path,reason,approval_status,related_request_id
-cpf-starters/openapi-webmvc,Catalog removed root remains physically present; deletion requires explicit user approval,PENDING_USER_APPROVAL_NOT_DELETED,S06-DELETE-OPENAPI-WEBMVC-STALE-ROOT
+﻿path,classification,reason,approval_status,command_included,related_request_id
+cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/CPF-V9-FINAL-INTEGRATION-CLOSURE-20260806/REV-001/sessions/DEVGPT-V9-INTEGRATION,SESSION_DOCUMENT_DUPLICATE,Windows short-path 정본 cpf-docs/work/v9i와 중복된 통합 세션 문서 Root,USER_REQUESTED_COMMAND_NOT_EXECUTED,YES,
+cpf-starters/openapi-webmvc,PRODUCT_SOURCE_EXCLUDED,사용자는 불필요한 세션 문서만 정리하도록 지시함,KEEP_NOT_IN_SESSION_CLEANUP,NO,S06-DELETE-OPENAPI-WEBMVC-STALE-ROOT

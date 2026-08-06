@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="760" viewBox="0 0 1400 760" role="img" aria-labelledby="title desc">
+<title id="title">Batch 결과 불명·부분 실패 Reconciliation</title>
+<desc id="desc">Center-Cut과 Remote Message는 실행·메시지 단위의 승인된 조치만 허용한다.</desc>
+<defs>
+  <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+    <path d="M0,0 L0,6 L9,3 z" fill="#334155"/>
+  </marker>
+  <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+    <feDropShadow dx="0" dy="3" stdDeviation="4" flood-opacity="0.18"/>
+  </filter>
+</defs>
+<rect width="1400" height="760" fill="#f8fafc"/>
+<text x="70" y="70" font-family="Arial, sans-serif" font-size="34" font-weight="700" fill="#0f172a">Batch 결과 불명·부분 실패 Reconciliation</text>
+<text x="70" y="108" font-family="Arial, sans-serif" font-size="18" fill="#475569">Center-Cut과 Remote Message는 실행·메시지 단위의 승인된 조치만 허용한다.</text>
+<line x1="320" y1="245" x2="385" y2="245" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
+<text x="352" y="235" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" fill="#475569">조회</text>
+<line x1="640" y1="245" x2="705" y2="245" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
+<text x="672" y="235" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" fill="#475569">근거</text>
+<line x1="960" y1="245" x2="1025" y2="245" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
+<text x="992" y="235" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" fill="#475569">승인 실행</text>
+<line x1="1150" y1="330" x2="1150" y2="455" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
+<text x="1150" y="382" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" fill="#475569">대사</text>
+<line x1="835" y1="330" x2="800" y2="455" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
+<text x="817" y="382" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" fill="#475569">결과</text>
+<line x1="515" y1="330" x2="420" y2="455" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
+<text x="467" y="382" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" fill="#475569">거부</text>
+<rect x="70" y="160" width="250" height="170" rx="16" fill="#ffffff" stroke="#94a3b8" stroke-width="2" filter="url(#shadow)"/>
+<text x="92" y="198" font-family="Arial, sans-serif" font-size="21" font-weight="700" fill="#0f172a">UNKNOWN 발견</text>
+<text x="92" y="232" font-family="Arial, sans-serif" font-size="16" fill="#334155">Execution/Message ID</text>
+<text x="92" y="259" font-family="Arial, sans-serif" font-size="16" fill="#334155">Payload SHA-256</text>
+<text x="92" y="286" font-family="Arial, sans-serif" font-size="16" fill="#334155">Status·Version·Attempt</text>
+<rect x="390" y="160" width="250" height="170" rx="16" fill="#ffffff" stroke="#94a3b8" stroke-width="2" filter="url(#shadow)"/>
+<text x="412" y="198" font-family="Arial, sans-serif" font-size="21" font-weight="700" fill="#0f172a">Evidence 확인</text>
+<text x="412" y="232" font-family="Arial, sans-serif" font-size="16" fill="#334155">업무 원장·Broker</text>
+<text x="412" y="259" font-family="Arial, sans-serif" font-size="16" fill="#334155">Request/Reply direction</text>
+<text x="412" y="286" font-family="Arial, sans-serif" font-size="16" fill="#334155">Target별 상태</text>
+<rect x="710" y="160" width="250" height="170" rx="16" fill="#ffffff" stroke="#94a3b8" stroke-width="2" filter="url(#shadow)"/>
+<text x="732" y="198" font-family="Arial, sans-serif" font-size="21" font-weight="700" fill="#0f172a">승인</text>
+<text x="732" y="232" font-family="Arial, sans-serif" font-size="16" fill="#334155">Requester≠Approver</text>
+<text x="732" y="259" font-family="Arial, sans-serif" font-size="16" fill="#334155">Approval Request</text>
+<text x="732" y="286" font-family="Arial, sans-serif" font-size="16" fill="#334155">Reason·Expiry</text>
+<rect x="1030" y="160" width="300" height="170" rx="16" fill="#ffffff" stroke="#94a3b8" stroke-width="2" filter="url(#shadow)"/>
+<text x="1052" y="198" font-family="Arial, sans-serif" font-size="21" font-weight="700" fill="#0f172a">Execution-scope 조치</text>
+<text x="1052" y="232" font-family="Arial, sans-serif" font-size="16" fill="#334155">Center-Cut FAILED/UNKNOWN</text>
+<text x="1052" y="259" font-family="Arial, sans-serif" font-size="16" fill="#334155">Remote Message UNKNOWN</text>
+<text x="1052" y="286" font-family="Arial, sans-serif" font-size="16" fill="#334155">CAS·Audit Transaction</text>
+<rect x="250" y="465" width="300" height="170" rx="16" fill="#ffffff" stroke="#94a3b8" stroke-width="2" filter="url(#shadow)"/>
+<text x="272" y="503" font-family="Arial, sans-serif" font-size="21" font-weight="700" fill="#0f172a">Conflict</text>
+<text x="272" y="537" font-family="Arial, sans-serif" font-size="16" fill="#334155">Job-scope Reprocess 409</text>
+<text x="272" y="564" font-family="Arial, sans-serif" font-size="16" fill="#334155">Payload/Version mismatch</text>
+<text x="272" y="591" font-family="Arial, sans-serif" font-size="16" fill="#334155">Not UNKNOWN</text>
+<rect x="650" y="465" width="300" height="170" rx="16" fill="#ffffff" stroke="#94a3b8" stroke-width="2" filter="url(#shadow)"/>
+<text x="672" y="503" font-family="Arial, sans-serif" font-size="21" font-weight="700" fill="#0f172a">결과</text>
+<text x="672" y="537" font-family="Arial, sans-serif" font-size="16" fill="#334155">ACCEPTED + Operation</text>
+<text x="672" y="564" font-family="Arial, sans-serif" font-size="16" fill="#334155">Retryable state 전이</text>
+<text x="672" y="591" font-family="Arial, sans-serif" font-size="16" fill="#334155">Idempotent replay 표시</text>
+<rect x="1030" y="465" width="300" height="170" rx="16" fill="#ffffff" stroke="#94a3b8" stroke-width="2" filter="url(#shadow)"/>
+<text x="1052" y="503" font-family="Arial, sans-serif" font-size="21" font-weight="700" fill="#0f172a">종료 판정</text>
+<text x="1052" y="537" font-family="Arial, sans-serif" font-size="16" fill="#334155">Audit 1건</text>
+<text x="1052" y="564" font-family="Arial, sans-serif" font-size="16" fill="#334155">Target/Execution 대사</text>
+<text x="1052" y="591" font-family="Arial, sans-serif" font-size="16" fill="#334155">재처리 결과 확인</text>
+</svg>

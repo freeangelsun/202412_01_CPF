@@ -1,0 +1,9 @@
+cpf-docs/guides/00_CPF_프레임워크안내.md
+cpf-docs/guides/01_CPF_개발자매뉴얼.md
+cpf-docs/guides/02_CPF_배치개발매뉴얼.md
+cpf-docs/guides/03_CPF_ADM매뉴얼.md
+cpf-docs/guides/05_CPF_플랫폼운영매뉴얼.md
+cpf-docs/guides/90_CPF_Starters_매뉴얼.md
+cpf-docs/guides/91_CPF_Tools_매뉴얼.md
+cpf-docs/guides/92_CPF_Gateway_매뉴얼.md
+cpf-docs/guides/95_CPF_BZA_매뉴얼.md

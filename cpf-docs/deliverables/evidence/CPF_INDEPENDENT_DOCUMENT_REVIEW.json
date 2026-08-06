@@ -1,0 +1,909 @@
+{
+  "status": "PASS",
+  "baseline_sha": "2a013663090d4e430a15983ad7269f8e86c5ef58",
+  "checks_total": 174,
+  "checks_passed": 174,
+  "problems": [],
+  "metrics": {
+    "markdown_files": 13,
+    "markdown_lines": 15385,
+    "svg_files": 30,
+    "adm_routes": 62,
+    "adm_route_operation_links": 405,
+    "adm_unique_operations": 320,
+    "bza_routes": 26,
+    "bza_operations": 78,
+    "features": 42,
+    "configuration_items": 70,
+    "source_evidence": 33,
+    "playbook_rows": 483,
+    "repeated_long_paragraphs_3plus": 0
+  },
+  "checks": [
+    {
+      "check": "file:cpf-docs/guides/00_프레임워크안내.md",
+      "status": "PASS",
+      "evidence": "exists"
+    },
+    {
+      "check": "line-density:cpf-docs/guides/00_프레임워크안내.md",
+      "status": "PASS",
+      "evidence": "286 >= 250"
+    },
+    {
+      "check": "h1:cpf-docs/guides/00_프레임워크안내.md",
+      "status": "PASS",
+      "evidence": "H1 exactly one"
+    },
+    {
+      "check": "h2-order:cpf-docs/guides/00_프레임워크안내.md",
+      "status": "PASS",
+      "evidence": "[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]"
+    },
+    {
+      "check": "baseline:cpf-docs/guides/00_프레임워크안내.md",
+      "status": "PASS",
+      "evidence": "baseline SHA present"
+    },
+    {
+      "check": "fence:cpf-docs/guides/00_프레임워크안내.md",
+      "status": "PASS",
+      "evidence": "balanced fences"
+    },
+    {
+      "check": "trailing:cpf-docs/guides/00_프레임워크안내.md",
+      "status": "PASS",
+      "evidence": "trailing spaces 0"
+    },
+    {
+      "check": "file:cpf-docs/guides/01_개발자매뉴얼.md",
+      "status": "PASS",
+      "evidence": "exists"
+    },
+    {
+      "check": "line-density:cpf-docs/guides/01_개발자매뉴얼.md",
+      "status": "PASS",
+      "evidence": "3397 >= 3000"
+    },
+    {
+      "check": "h1:cpf-docs/guides/01_개발자매뉴얼.md",
+      "status": "PASS",
+      "evidence": "H1 exactly one"
+    },
+    {
+      "check": "h2-order:cpf-docs/guides/01_개발자매뉴얼.md",
+      "status": "PASS",
+      "evidence": "[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]"
+    },
+    {
+      "check": "baseline:cpf-docs/guides/01_개발자매뉴얼.md",
+      "status": "PASS",
+      "evidence": "baseline SHA present"
+    },
+    {
+      "check": "fence:cpf-docs/guides/01_개발자매뉴얼.md",
+      "status": "PASS",
+      "evidence": "balanced fences"
+    },
+    {
+      "check": "trailing:cpf-docs/guides/01_개발자매뉴얼.md",
+      "status": "PASS",
+      "evidence": "trailing spaces 0"
+    },
+    {
+      "check": "file:cpf-docs/guides/02_배치개발매뉴얼.md",
+      "status": "PASS",
+      "evidence": "exists"
+    },
+    {
+      "check": "line-density:cpf-docs/guides/02_배치개발매뉴얼.md",
+      "status": "PASS",
+      "evidence": "578 >= 500"
+    },
+    {
+      "check": "h1:cpf-docs/guides/02_배치개발매뉴얼.md",
+      "status": "PASS",
+      "evidence": "H1 exactly one"
+    },
+    {
+      "check": "h2-order:cpf-docs/guides/02_배치개발매뉴얼.md",
+      "status": "PASS",
+      "evidence": "[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]"
+    },
+    {
+      "check": "baseline:cpf-docs/guides/02_배치개발매뉴얼.md",
+      "status": "PASS",
+      "evidence": "baseline SHA present"
+    },
+    {
+      "check": "fence:cpf-docs/guides/02_배치개발매뉴얼.md",
+      "status": "PASS",
+      "evidence": "balanced fences"
+    },
+    {
+      "check": "trailing:cpf-docs/guides/02_배치개발매뉴얼.md",
+      "status": "PASS",
+      "evidence": "trailing spaces 0"
+    },
+    {
+      "check": "file:cpf-docs/guides/03_ADM개발자매뉴얼.md",
+      "status": "PASS",
+      "evidence": "exists"
+    },
+    {
+      "check": "line-density:cpf-docs/guides/03_ADM개발자매뉴얼.md",
+      "status": "PASS",
+      "evidence": "370 >= 350"
+    },
+    {
+      "check": "h1:cpf-docs/guides/03_ADM개발자매뉴얼.md",
+      "status": "PASS",
+      "evidence": "H1 exactly one"
+    },
+    {
+      "check": "h2-order:cpf-docs/guides/03_ADM개발자매뉴얼.md",
+      "status": "PASS",
+      "evidence": "[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]"
+    },
+    {
+      "check": "baseline:cpf-docs/guides/03_ADM개발자매뉴얼.md",
+      "status": "PASS",
+      "evidence": "baseline SHA present"
+    },
+    {
+      "check": "fence:cpf-docs/guides/03_ADM개발자매뉴얼.md",
+      "status": "PASS",
+      "evidence": "balanced fences"
+    },
+    {
+      "check": "trailing:cpf-docs/guides/03_ADM개발자매뉴얼.md",
+      "status": "PASS",
+      "evidence": "trailing spaces 0"
+    },
+    {
+      "check": "file:cpf-docs/guides/04_ADM운영자매뉴얼.md",
+      "status": "PASS",
+      "evidence": "exists"
+    },
+    {
+      "check": "line-density:cpf-docs/guides/04_ADM운영자매뉴얼.md",
+      "status": "PASS",
+      "evidence": "4786 >= 4500"
+    },
+    {
+      "check": "h1:cpf-docs/guides/04_ADM운영자매뉴얼.md",
+      "status": "PASS",
+      "evidence": "H1 exactly one"
+    },
+    {
+      "check": "h2-order:cpf-docs/guides/04_ADM운영자매뉴얼.md",
+      "status": "PASS",
+      "evidence": "[1, 2, 3, 4, 5, 6, 7, 8]"
+    },
+    {
+      "check": "baseline:cpf-docs/guides/04_ADM운영자매뉴얼.md",
+      "status": "PASS",
+      "evidence": "baseline SHA present"
+    },
+    {
+      "check": "fence:cpf-docs/guides/04_ADM운영자매뉴얼.md",
+      "status": "PASS",
+      "evidence": "balanced fences"
+    },
+    {
+      "check": "trailing:cpf-docs/guides/04_ADM운영자매뉴얼.md",
+      "status": "PASS",
+      "evidence": "trailing spaces 0"
+    },
+    {
+      "check": "file:cpf-docs/guides/05_플랫폼운영매뉴얼.md",
+      "status": "PASS",
+      "evidence": "exists"
+    },
+    {
+      "check": "line-density:cpf-docs/guides/05_플랫폼운영매뉴얼.md",
+      "status": "PASS",
+      "evidence": "1998 >= 1800"
+    },
+    {
+      "check": "h1:cpf-docs/guides/05_플랫폼운영매뉴얼.md",
+      "status": "PASS",
+      "evidence": "H1 exactly one"
+    },
+    {
+      "check": "h2-order:cpf-docs/guides/05_플랫폼운영매뉴얼.md",
+      "status": "PASS",
+      "evidence": "[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]"
+    },
+    {
+      "check": "baseline:cpf-docs/guides/05_플랫폼운영매뉴얼.md",
+      "status": "PASS",
+      "evidence": "baseline SHA present"
+    },
+    {
+      "check": "fence:cpf-docs/guides/05_플랫폼운영매뉴얼.md",
+      "status": "PASS",
+      "evidence": "balanced fences"
+    },
+    {
+      "check": "trailing:cpf-docs/guides/05_플랫폼운영매뉴얼.md",
+      "status": "PASS",
+      "evidence": "trailing spaces 0"
+    },
+    {
+      "check": "file:cpf-docs/guides/90_BZA매뉴얼.md",
+      "status": "PASS",
+      "evidence": "exists"
+    },
+    {
+      "check": "line-density:cpf-docs/guides/90_BZA매뉴얼.md",
+      "status": "PASS",
+      "evidence": "1385 >= 1300"
+    },
+    {
+      "check": "h1:cpf-docs/guides/90_BZA매뉴얼.md",
+      "status": "PASS",
+      "evidence": "H1 exactly one"
+    },
+    {
+      "check": "h2-order:cpf-docs/guides/90_BZA매뉴얼.md",
+      "status": "PASS",
+      "evidence": "[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]"
+    },
+    {
+      "check": "baseline:cpf-docs/guides/90_BZA매뉴얼.md",
+      "status": "PASS",
+      "evidence": "baseline SHA present"
+    },
+    {
+      "check": "fence:cpf-docs/guides/90_BZA매뉴얼.md",
+      "status": "PASS",
+      "evidence": "balanced fences"
+    },
+    {
+      "check": "trailing:cpf-docs/guides/90_BZA매뉴얼.md",
+      "status": "PASS",
+      "evidence": "trailing spaces 0"
+    },
+    {
+      "check": "file:cpf-docs/guides/91_Gateway매뉴얼.md",
+      "status": "PASS",
+      "evidence": "exists"
+    },
+    {
+      "check": "line-density:cpf-docs/guides/91_Gateway매뉴얼.md",
+      "status": "PASS",
+      "evidence": "578 >= 500"
+    },
+    {
+      "check": "h1:cpf-docs/guides/91_Gateway매뉴얼.md",
+      "status": "PASS",
+      "evidence": "H1 exactly one"
+    },
+    {
+      "check": "h2-order:cpf-docs/guides/91_Gateway매뉴얼.md",
+      "status": "PASS",
+      "evidence": "[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]"
+    },
+    {
+      "check": "baseline:cpf-docs/guides/91_Gateway매뉴얼.md",
+      "status": "PASS",
+      "evidence": "baseline SHA present"
+    },
+    {
+      "check": "fence:cpf-docs/guides/91_Gateway매뉴얼.md",
+      "status": "PASS",
+      "evidence": "balanced fences"
+    },
+    {
+      "check": "trailing:cpf-docs/guides/91_Gateway매뉴얼.md",
+      "status": "PASS",
+      "evidence": "trailing spaces 0"
+    },
+    {
+      "check": "file:cpf-docs/deliverables/아키텍처설계서.md",
+      "status": "PASS",
+      "evidence": "exists"
+    },
+    {
+      "check": "line-density:cpf-docs/deliverables/아키텍처설계서.md",
+      "status": "PASS",
+      "evidence": "473 >= 450"
+    },
+    {
+      "check": "h1:cpf-docs/deliverables/아키텍처설계서.md",
+      "status": "PASS",
+      "evidence": "H1 exactly one"
+    },
+    {
+      "check": "h2-order:cpf-docs/deliverables/아키텍처설계서.md",
+      "status": "PASS",
+      "evidence": "[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]"
+    },
+    {
+      "check": "baseline:cpf-docs/deliverables/아키텍처설계서.md",
+      "status": "PASS",
+      "evidence": "baseline SHA present"
+    },
+    {
+      "check": "fence:cpf-docs/deliverables/아키텍처설계서.md",
+      "status": "PASS",
+      "evidence": "balanced fences"
+    },
+    {
+      "check": "trailing:cpf-docs/deliverables/아키텍처설계서.md",
+      "status": "PASS",
+      "evidence": "trailing spaces 0"
+    },
+    {
+      "check": "file:cpf-docs/deliverables/기술사양서.md",
+      "status": "PASS",
+      "evidence": "exists"
+    },
+    {
+      "check": "line-density:cpf-docs/deliverables/기술사양서.md",
+      "status": "PASS",
+      "evidence": "778 >= 700"
+    },
+    {
+      "check": "h1:cpf-docs/deliverables/기술사양서.md",
+      "status": "PASS",
+      "evidence": "H1 exactly one"
+    },
+    {
+      "check": "h2-order:cpf-docs/deliverables/기술사양서.md",
+      "status": "PASS",
+      "evidence": "[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]"
+    },
+    {
+      "check": "baseline:cpf-docs/deliverables/기술사양서.md",
+      "status": "PASS",
+      "evidence": "baseline SHA present"
+    },
+    {
+      "check": "fence:cpf-docs/deliverables/기술사양서.md",
+      "status": "PASS",
+      "evidence": "balanced fences"
+    },
+    {
+      "check": "trailing:cpf-docs/deliverables/기술사양서.md",
+      "status": "PASS",
+      "evidence": "trailing spaces 0"
+    },
+    {
+      "check": "file:cpf-docs/deliverables/기술표준서.md",
+      "status": "PASS",
+      "evidence": "exists"
+    },
+    {
+      "check": "line-density:cpf-docs/deliverables/기술표준서.md",
+      "status": "PASS",
+      "evidence": "287 >= 250"
+    },
+    {
+      "check": "h1:cpf-docs/deliverables/기술표준서.md",
+      "status": "PASS",
+      "evidence": "H1 exactly one"
+    },
+    {
+      "check": "h2-order:cpf-docs/deliverables/기술표준서.md",
+      "status": "PASS",
+      "evidence": "[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21]"
+    },
+    {
+      "check": "baseline:cpf-docs/deliverables/기술표준서.md",
+      "status": "PASS",
+      "evidence": "baseline SHA present"
+    },
+    {
+      "check": "fence:cpf-docs/deliverables/기술표준서.md",
+      "status": "PASS",
+      "evidence": "balanced fences"
+    },
+    {
+      "check": "trailing:cpf-docs/deliverables/기술표준서.md",
+      "status": "PASS",
+      "evidence": "trailing spaces 0"
+    },
+    {
+      "check": "file:cpf-docs/deliverables/데이터베이스표준서.md",
+      "status": "PASS",
+      "evidence": "exists"
+    },
+    {
+      "check": "line-density:cpf-docs/deliverables/데이터베이스표준서.md",
+      "status": "PASS",
+      "evidence": "305 >= 300"
+    },
+    {
+      "check": "h1:cpf-docs/deliverables/데이터베이스표준서.md",
+      "status": "PASS",
+      "evidence": "H1 exactly one"
+    },
+    {
+      "check": "h2-order:cpf-docs/deliverables/데이터베이스표준서.md",
+      "status": "PASS",
+      "evidence": "[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]"
+    },
+    {
+      "check": "baseline:cpf-docs/deliverables/데이터베이스표준서.md",
+      "status": "PASS",
+      "evidence": "baseline SHA present"
+    },
+    {
+      "check": "fence:cpf-docs/deliverables/데이터베이스표준서.md",
+      "status": "PASS",
+      "evidence": "balanced fences"
+    },
+    {
+      "check": "trailing:cpf-docs/deliverables/데이터베이스표준서.md",
+      "status": "PASS",
+      "evidence": "trailing spaces 0"
+    },
+    {
+      "check": "file:cpf-docs/deliverables/산출물목록.md",
+      "status": "PASS",
+      "evidence": "exists"
+    },
+    {
+      "check": "line-density:cpf-docs/deliverables/산출물목록.md",
+      "status": "PASS",
+      "evidence": "164 >= 150"
+    },
+    {
+      "check": "h1:cpf-docs/deliverables/산출물목록.md",
+      "status": "PASS",
+      "evidence": "H1 exactly one"
+    },
+    {
+      "check": "h2-order:cpf-docs/deliverables/산출물목록.md",
+      "status": "PASS",
+      "evidence": "[1, 2, 3, 4, 5, 6, 7, 8, 9]"
+    },
+    {
+      "check": "baseline:cpf-docs/deliverables/산출물목록.md",
+      "status": "PASS",
+      "evidence": "baseline SHA present"
+    },
+    {
+      "check": "fence:cpf-docs/deliverables/산출물목록.md",
+      "status": "PASS",
+      "evidence": "balanced fences"
+    },
+    {
+      "check": "trailing:cpf-docs/deliverables/산출물목록.md",
+      "status": "PASS",
+      "evidence": "trailing spaces 0"
+    },
+    {
+      "check": "required:cpf-docs/guides/00_프레임워크안내.md",
+      "status": "PASS",
+      "evidence": "missing="
+    },
+    {
+      "check": "required:cpf-docs/guides/01_개발자매뉴얼.md",
+      "status": "PASS",
+      "evidence": "missing="
+    },
+    {
+      "check": "required:cpf-docs/guides/02_배치개발매뉴얼.md",
+      "status": "PASS",
+      "evidence": "missing="
+    },
+    {
+      "check": "required:cpf-docs/guides/03_ADM개발자매뉴얼.md",
+      "status": "PASS",
+      "evidence": "missing="
+    },
+    {
+      "check": "required:cpf-docs/guides/04_ADM운영자매뉴얼.md",
+      "status": "PASS",
+      "evidence": "missing="
+    },
+    {
+      "check": "required:cpf-docs/guides/05_플랫폼운영매뉴얼.md",
+      "status": "PASS",
+      "evidence": "missing="
+    },
+    {
+      "check": "required:cpf-docs/guides/90_BZA매뉴얼.md",
+      "status": "PASS",
+      "evidence": "missing="
+    },
+    {
+      "check": "required:cpf-docs/guides/91_Gateway매뉴얼.md",
+      "status": "PASS",
+      "evidence": "missing="
+    },
+    {
+      "check": "required:cpf-docs/deliverables/아키텍처설계서.md",
+      "status": "PASS",
+      "evidence": "missing="
+    },
+    {
+      "check": "required:cpf-docs/deliverables/기술사양서.md",
+      "status": "PASS",
+      "evidence": "missing="
+    },
+    {
+      "check": "required:cpf-docs/deliverables/기술표준서.md",
+      "status": "PASS",
+      "evidence": "missing="
+    },
+    {
+      "check": "required:cpf-docs/deliverables/데이터베이스표준서.md",
+      "status": "PASS",
+      "evidence": "missing="
+    },
+    {
+      "check": "required:cpf-docs/deliverables/산출물목록.md",
+      "status": "PASS",
+      "evidence": "missing="
+    },
+    {
+      "check": "adm-route-count",
+      "status": "PASS",
+      "evidence": "62"
+    },
+    {
+      "check": "adm-operation-links",
+      "status": "PASS",
+      "evidence": "405"
+    },
+    {
+      "check": "adm-unique-operations",
+      "status": "PASS",
+      "evidence": "320"
+    },
+    {
+      "check": "adm-screen-count",
+      "status": "PASS",
+      "evidence": "62"
+    },
+    {
+      "check": "adm-screen-search_fields",
+      "status": "PASS",
+      "evidence": "search_fields"
+    },
+    {
+      "check": "adm-screen-columns",
+      "status": "PASS",
+      "evidence": "columns"
+    },
+    {
+      "check": "adm-screen-detail_areas",
+      "status": "PASS",
+      "evidence": "detail_areas"
+    },
+    {
+      "check": "adm-screen-buttons",
+      "status": "PASS",
+      "evidence": "buttons"
+    },
+    {
+      "check": "adm-screen-normal_result",
+      "status": "PASS",
+      "evidence": "normal_result"
+    },
+    {
+      "check": "adm-screen-failure_boundary",
+      "status": "PASS",
+      "evidence": "failure_boundary"
+    },
+    {
+      "check": "adm-screen-recovery",
+      "status": "PASS",
+      "evidence": "recovery"
+    },
+    {
+      "check": "adm-search-uniqueness",
+      "status": "PASS",
+      "evidence": "62"
+    },
+    {
+      "check": "adm-button-uniqueness",
+      "status": "PASS",
+      "evidence": "58"
+    },
+    {
+      "check": "adm-manual-operations",
+      "status": "PASS",
+      "evidence": "missing=0"
+    },
+    {
+      "check": "adm-manual-routes",
+      "status": "PASS",
+      "evidence": "missing=0"
+    },
+    {
+      "check": "bza-route-count",
+      "status": "PASS",
+      "evidence": "26"
+    },
+    {
+      "check": "bza-operation-count",
+      "status": "PASS",
+      "evidence": "78"
+    },
+    {
+      "check": "bza-manual-operations",
+      "status": "PASS",
+      "evidence": "all operations present"
+    },
+    {
+      "check": "feature-count",
+      "status": "PASS",
+      "evidence": "42"
+    },
+    {
+      "check": "feature-manual",
+      "status": "PASS",
+      "evidence": "42 IDs present"
+    },
+    {
+      "check": "config-count",
+      "status": "PASS",
+      "evidence": "70"
+    },
+    {
+      "check": "config-cards",
+      "status": "PASS",
+      "evidence": "70 keys present"
+    },
+    {
+      "check": "source-evidence-count",
+      "status": "PASS",
+      "evidence": "33"
+    },
+    {
+      "check": "playbook-count",
+      "status": "PASS",
+      "evidence": "483"
+    },
+    {
+      "check": "high-risk:cpf-docs/guides/04_ADM운영자매뉴얼.md",
+      "status": "PASS",
+      "evidence": "missing="
+    },
+    {
+      "check": "high-risk:cpf-docs/guides/05_플랫폼운영매뉴얼.md",
+      "status": "PASS",
+      "evidence": "missing="
+    },
+    {
+      "check": "high-risk:cpf-docs/guides/91_Gateway매뉴얼.md",
+      "status": "PASS",
+      "evidence": "missing="
+    },
+    {
+      "check": "bad-phrase:원장 원장",
+      "status": "PASS",
+      "evidence": "0"
+    },
+    {
+      "check": "bad-phrase:업무별",
+      "status": "PASS",
+      "evidence": "0"
+    },
+    {
+      "check": "bad-phrase:해당 시",
+      "status": "PASS",
+      "evidence": "0"
+    },
+    {
+      "check": "bad-phrase:검색 조건·상태·기간·Owner",
+      "status": "PASS",
+      "evidence": "0"
+    },
+    {
+      "check": "bad-phrase:TODO",
+      "status": "PASS",
+      "evidence": "0"
+    },
+    {
+      "check": "bad-phrase:TBD",
+      "status": "PASS",
+      "evidence": "0"
+    },
+    {
+      "check": "bad-phrase:내용을 입력",
+      "status": "PASS",
+      "evidence": "0"
+    },
+    {
+      "check": "forbidden:완벽한",
+      "status": "PASS",
+      "evidence": "0"
+    },
+    {
+      "check": "forbidden:최고",
+      "status": "PASS",
+      "evidence": "0"
+    },
+    {
+      "check": "forbidden:최상의",
+      "status": "PASS",
+      "evidence": "0"
+    },
+    {
+      "check": "forbidden:혁신적인",
+      "status": "PASS",
+      "evidence": "0"
+    },
+    {
+      "check": "forbidden:엔터프라이즈급",
+      "status": "PASS",
+      "evidence": "0"
+    },
+    {
+      "check": "forbidden:금융권 최고 수준",
+      "status": "PASS",
+      "evidence": "0"
+    },
+    {
+      "check": "forbidden:상용 수준",
+      "status": "PASS",
+      "evidence": "0"
+    },
+    {
+      "check": "forbidden:Production Ready",
+      "status": "PASS",
+      "evidence": "0"
+    },
+    {
+      "check": "forbidden:운영 준비 완료",
+      "status": "PASS",
+      "evidence": "0"
+    },
+    {
+      "check": "forbidden:검증 완료",
+      "status": "PASS",
+      "evidence": "0"
+    },
+    {
+      "check": "forbidden:기능 완료",
+      "status": "PASS",
+      "evidence": "0"
+    },
+    {
+      "check": "forbidden:최종본",
+      "status": "PASS",
+      "evidence": "0"
+    },
+    {
+      "check": "forbidden:자동으로",
+      "status": "PASS",
+      "evidence": "0"
+    },
+    {
+      "check": "forbidden:실시간으로",
+      "status": "PASS",
+      "evidence": "0"
+    },
+    {
+      "check": "forbidden:무중단",
+      "status": "PASS",
+      "evidence": "0"
+    },
+    {
+      "check": "forbidden:무손실",
+      "status": "PASS",
+      "evidence": "0"
+    },
+    {
+      "check": "forbidden:완전 호환",
+      "status": "PASS",
+      "evidence": "0"
+    },
+    {
+      "check": "forbidden:항상",
+      "status": "PASS",
+      "evidence": "0"
+    },
+    {
+      "check": "forbidden:절대로",
+      "status": "PASS",
+      "evidence": "0"
+    },
+    {
+      "check": "forbidden:문제없이",
+      "status": "PASS",
+      "evidence": "0"
+    },
+    {
+      "check": "forbidden:즉시",
+      "status": "PASS",
+      "evidence": "0"
+    },
+    {
+      "check": "forbidden:원클릭",
+      "status": "PASS",
+      "evidence": "0"
+    },
+    {
+      "check": "forbidden:투명하게",
+      "status": "PASS",
+      "evidence": "0"
+    },
+    {
+      "check": "forbidden:안정적으로",
+      "status": "PASS",
+      "evidence": "0"
+    },
+    {
+      "check": "forbidden:안전하게",
+      "status": "PASS",
+      "evidence": "0"
+    },
+    {
+      "check": "forbidden:통합 관리",
+      "status": "PASS",
+      "evidence": "0"
+    },
+    {
+      "check": "forbidden:향후 지원",
+      "status": "PASS",
+      "evidence": "0"
+    },
+    {
+      "check": "forbidden:추후 보완",
+      "status": "PASS",
+      "evidence": "0"
+    },
+    {
+      "check": "paragraph-repeat-3plus",
+      "status": "PASS",
+      "evidence": "0 paragraphs"
+    },
+    {
+      "check": "internal-links",
+      "status": "PASS",
+      "evidence": "[]"
+    },
+    {
+      "check": "svg-count",
+      "status": "PASS",
+      "evidence": "30"
+    },
+    {
+      "check": "svg-parse",
+      "status": "PASS",
+      "evidence": "[]"
+    },
+    {
+      "check": "delete-count",
+      "status": "PASS",
+      "evidence": "9"
+    },
+    {
+      "check": "delete-exact",
+      "status": "PASS",
+      "evidence": "['cpf-docs/guides/00_CPF_프레임워크안내.md', 'cpf-docs/guides/01_CPF_개발자매뉴얼.md', 'cpf-docs/guides/02_CPF_배치개발매뉴얼.md', 'cpf-docs/guides/03_CPF_ADM매뉴얼.md', 'cpf-docs/guides/05_CPF_플랫폼운영매뉴얼.md', 'cpf-docs/guides/90_CPF_Starters_매뉴얼.md', 'cpf-docs/guides/91_CPF_Tools_매뉴얼.md', 'cpf-docs/guides/92_CPF_Gateway_매뉴얼.md', 'cpf-docs/guides/95_CPF_BZA_매뉴얼.md']"
+    },
+    {
+      "check": "zip-crc",
+      "status": "PASS",
+      "evidence": "testzip"
+    },
+    {
+      "check": "zip-current-files",
+      "status": "PASS",
+      "evidence": "zip=56, files=56"
+    },
+    {
+      "check": "final-zip-crc",
+      "status": "PASS",
+      "evidence": "None"
+    },
+    {
+      "check": "final-reextract-hash",
+      "status": "PASS",
+      "evidence": "[]"
+    }
+  ],
+  "package": "CPF_DOCUMENTATION_PRODUCT_R7_2A01366.zip",
+  "file_count": 57,
+  "zip_crc": "PASS",
+  "reextract_hash": "PASS",
+  "package_integrity": "ZIP CRC와 재해제 파일 Hash를 확인했다. 최종 ZIP SHA-256은 Archive 외부 전달 메타데이터에 기록한다."
+}

@@ -1,0 +1,43 @@
+﻿feature_id,feature,business_result,selection,owner,consumer,development_document,operation_document,status
+F01,조건 검색·목록·상세,검색 API와 화면을 일관된 Paging·Sorting·Masking 계약으로 제공한다.,web-api 또는 secure-api,업무 Domain,ADM·Frontend·외부 Consumer,01_개발자매뉴얼.md,"`/transactions`, `/logs`, `/transactionGroups`",완료
+F02,등록·수정·정지·재개·삭제,업무 상태를 Version과 Reason을 사용해 예측 가능한 전이로 변경한다.,secure-api,업무 Domain,ADM Command·외부 API,01_개발자매뉴얼.md,"`/transactions`, `/auditLogs`, `/incidents`",완료
+F03,멱등 요청과 Replay,같은 업무 요청의 중복 부작용을 막고 동일 결과를 재사용한다.,data reliability,cpf-core reliability + 업무 Owner,모든 Write Consumer,01_개발자매뉴얼.md,"`/reliability`, `/incidents`, `/recoveryCenter`",완료
+F04,결과 불명과 대사,외부 부작용 이후 응답이 유실된 요청을 UNKNOWN_RESULT로 보존하고 근거로 종료한다.,reliability,Operation Owner,ADM Recovery·Batch·Gateway,01_개발자매뉴얼.md,"`/incidents`, `/recoveryCenter`, `/reliability`",완료
+F05,Local·Remote 동일 계약,Same-JVM과 Remote 호출이 같은 Port·DTO·오류 의미를 사용한다.,integration,Owner Port,Modular Monolith·MSA Consumer,01_개발자매뉴얼.md,"`/serviceRegistry`, `/runtimeControl`, `/transactionGroups`",완료
+F06,업무 Transaction·Audit·Outbox,"업무 Row, History, Audit, Outbox를 원자적 경계로 묶는다.",data,업무 Persistence Owner,Message Publisher·ADM·Audit,01_개발자매뉴얼.md,"`/logs`, `/auditLogs`, `/reliability`",완료
+F07,Kafka 이벤트,Partition Key와 Consumer Group을 사용해 순서·중복·재처리를 통제한다.,messaging=kafka,Messaging Owner,업무 Producer·Consumer·ADM Broker,01_개발자매뉴얼.md,"`/reliability`, `/incidents`",완료
+F08,RabbitMQ 이벤트,Exchange·Queue·Binding·Publisher Confirm을 사용한다.,messaging=rabbitmq,Messaging Owner,Producer·Consumer·Broker 운영,01_개발자매뉴얼.md,"`/reliability`, `/incidents`",완료
+F09,JMS 이벤트,Destination·Session Transaction·Redelivery 정책을 사용한다.,messaging=jms,Messaging Owner,JMS Producer·Listener,01_개발자매뉴얼.md,"`/reliability`, `/incidents`",완료
+F10,IBM MQ 연계,Queue Manager·Channel·Queue·CCSID·Reason Code를 명시한다.,messaging=ibm-mq,IBM MQ Provider,대외 전문 Producer·Consumer,01_개발자매뉴얼.md,"`/messages`, `/reliability`, `/incidents`",완료
+F11,Attachment,파일 Upload·검사·보관·Download를 Metadata와 함께 관리한다.,file,File/Attachment Owner,업무 API·BZA·ADM,01_개발자매뉴얼.md,"`/file-jobs`, `/downloads`, `/auditLogs`",완료
+F12,대량 파일 Job,Preview·Row Validation·Apply·Retry·Rollback을 Job/Row 원장으로 수행한다.,file-job,File Job Owner,ADM file-jobs·업무 Service,01_개발자매뉴얼.md,`/file-jobs`,완료
+F13,SFTP 송수신,Host Key·Checksum·Temp Name·Rename·Resume를 통제한다.,file=sftp,SFTP Provider,File Batch·외부기관,01_개발자매뉴얼.md,"`/file-jobs`, `/reliability`",완료
+F14,HTTP 외부 연계,Target·Timeout·Authentication·Retry·Circuit·Attempt를 사용한다.,integration=http,HTTP Integration Owner,업무 Service·Gateway,01_개발자매뉴얼.md,"`/serviceRegistry`, `/transactionGroups`, `/incidents`",완료
+F15,TCP 연계,Framing·Correlation·TLS·Connection Lifecycle을 명시한다.,integration=tcp,TCP Integration Owner,전문 업무 Service,01_개발자매뉴얼.md,"`/messages`, `/transactionGroups`",완료
+F16,Fixed-length 전문,Field Layout·Offset·Length·Charset·Padding을 Version으로 관리한다.,codec=fixed-length,Codec Owner,TCP/File Consumer,01_개발자매뉴얼.md,`/messages`,완료
+F17,ISO8583 전문,MTI·Bitmap·Data Element·STAN/RRN·MAC을 계약으로 관리한다.,codec=iso8583,ISO8583 Codec Owner,대외 금융 연계,01_개발자매뉴얼.md,"`/messages`, `/transactionGroups`",완료
+F18,Cache·Valkey,Tenant·Namespace·TTL·Payload 제한과 durable invalidation ledger를 사용한다.,data cache,cpf-common/cache + Provider,업무 조회·ADM /cache,01_개발자매뉴얼.md,`/cache`,완료
+F19,Feature Flag,Typed Evaluation·Rule·Override·Kill Switch를 Context와 Version으로 평가한다.,platform-operations,Feature Flag Owner,업무 Service·ADM,01_개발자매뉴얼.md,"`/featureFlags`, `/runtimeControl`, `/logs`",완료
+F20,Resilience 정책,Timeout·Retry·Circuit Breaker·Bulkhead·Rate Limit을 Operation별로 관리한다.,integration resilience,Resilience Policy Owner,HTTP·Gateway·업무 Consumer,01_개발자매뉴얼.md,"`/resiliencePolicies`, `/incidents`",완료
+F21,Notification,Rule·Template Version·Provider Receipt·Retry·DLQ를 관리한다.,notification,Notification Owner,업무 Service·ADM·BZA,01_개발자매뉴얼.md,`/notifications`,완료
+F22,인증·Session·Service Identity,사용자 JWT/Session과 서비스 Identity를 분리한다.,security,Security Owner,모든 API·ADM·BZA·Gateway,01_개발자매뉴얼.md,"`/security`, `/operators`, `/secrets`",완료
+F23,Role·Permission·Data Scope·Masking,화면·Button·API·데이터 범위를 함께 통제한다.,BZA/ADM,BZA/ADM Permission Owner,Frontend·Controller·Repository,01_개발자매뉴얼.md,"`/permissions`, BZA `/permissionTools`",완료
+F24,Audit·Reason·Approval,Before/After·Actor·Reason·Approval·Operation을 변경과 연결한다.,platform operations,Audit Owner,모든 Write·ADM·BZA,01_개발자매뉴얼.md,"`/auditLogs`, `/runtimeControl`, `/incidents`",완료
+F25,Tasklet Batch,하나의 명시적 작업과 완료 Marker를 실행한다.,batch-service,Batch Job Owner,Scheduler·ADM,01_개발자매뉴얼.md,Batch 메뉴군,완료
+F26,Chunk Batch,Reader·Processor·Writer와 Commit Interval·Checkpoint를 사용한다.,batch-service,Batch Job Owner,Worker·ADM,01_개발자매뉴얼.md,Batch 메뉴군,완료
+F27,Partition·Remote Worker,Partition Key·Lease·Claim·Fencing Token으로 병렬 처리한다.,batch-service,Batch Partition Owner,Manager·Worker·Agent,01_개발자매뉴얼.md,Batch 메뉴군,완료
+F28,Center-Cut,대상 Preview·조건 Hash·Partition·처리·대사를 Execution 단위로 수행한다.,batch-service,Center-Cut Owner,ADM batch-center-cut·업무 원장,01_개발자매뉴얼.md,Batch 메뉴군,완료
+F29,Scheduler·Calendar·Misfire·HA,Cron·Timezone·영업일·Misfire·Lease Owner로 단일 Dispatch를 보장한다.,batch-service,Scheduler Owner,Batch Control·ADM,01_개발자매뉴얼.md,Batch 메뉴군,완료
+F30,Job Pack·Artifact,Definition·Version·Checksum·Lifecycle·Deployment를 관리한다.,batch-service,Batch Artifact Owner,Runner·Agent·ADM,01_개발자매뉴얼.md,Batch 메뉴군,완료
+F31,Runtime Agent,Host의 Process Command와 Evidence를 반환한다.,batch-service,Host Agent Owner,Batch Runtime Control·플랫폼 운영,01_개발자매뉴얼.md,Batch 메뉴군,완료
+F32,ADM 업무 연동,Owner Query·Command를 Generated Client와 Route에 연결한다.,cpf-admin,고객 업무 Owner + cpf-admin,운영자·승인자,01_개발자매뉴얼.md,대상 Route와 `/openApiOperations`,완료
+F33,BZA 조직·권한·결재,조직·직원·사용자·Role·Data Scope·Versioned Approval을 업무에 적용한다.,cpf-biz-admin,cpf-biz-admin,업무 Service·BZA 사용자,01_개발자매뉴얼.md,BZA 대상 Route,완료
+F34,Gateway API 공개,Server Group·Binding·Security·Attempt·Publish·LKG를 운영한다.,cpf-gateway,cpf-gateway,외부 Client·업무 Service·ADM,01_개발자매뉴얼.md,Gateway 메뉴군,완료
+F35,DB 설치·Migration·Drift,MariaDB·PostgreSQL·Oracle Lifecycle을 같은 논리 계약으로 운영한다.,3 vendors,DB Schema Owner,Repository·운영 DBA,01_개발자매뉴얼.md,"`/runtimeControl`, `/incidents`와 DB Verify",완료
+F36,Artifact·BOM·Publication,Source SHA·BOM·Manifest·Checksum·SBOM을 배포 단위로 관리한다.,cpf-tools,Release Owner,Build·배포·고객 Consumer,01_개발자매뉴얼.md,배포 Pipeline·Support Bundle,완료
+F37,Log·Metric·Trace·Alert,Transaction·Operation·Attempt·Target 식별자를 관측 데이터에 연결한다.,platform-operations,Observability Owner,개발자·운영자·감사,01_개발자매뉴얼.md,"`/featureFlags`, `/runtimeControl`, `/logs`",완료
+F38,Backup·Restore·DR,업무 DB·Metadata·Object·Config·Secret을 일관된 복구점으로 복원한다.,platform operations,Platform/DBA/DR Owner,모든 Runtime,01_개발자매뉴얼.md,"`/auditLogs`, `/runtimeControl`, `/incidents`",완료
+F39,Common Template Version,DRAFT·APPROVED·RETIRED와 Revision CAS로 알림·업무 문구를 관리한다.,common template,cpf-common/template,Notification·BZA·업무 Consumer,01_개발자매뉴얼.md,"`/notifications`, BZA 알림",완료
+F40,영업일 Calendar,기관별 영업일과 기준일 계산을 durable refresh로 전파한다.,common calendar,cpf-common/calendar,Batch·업무 API·ADM,01_개발자매뉴얼.md,`/businessCalendar`,완료
+F41,고객 업무 채번,고객 DB Transaction 안에서 Version·Operation ID·Request Hash로 번호를 발급한다.,BZA sequence sample,고객 BZA 확장 Domain,업무 Service·Audit,01_개발자매뉴얼.md,고객 업무 화면과 BZA Audit,완료
+F42,Support Bundle,운영 진단 자료를 Manifest와 Masking 정책으로 묶는다.,cpf-tools,CPF Operations Tooling,운영자·지원 담당자,01_개발자매뉴얼.md,배포 Pipeline·Support Bundle,완료

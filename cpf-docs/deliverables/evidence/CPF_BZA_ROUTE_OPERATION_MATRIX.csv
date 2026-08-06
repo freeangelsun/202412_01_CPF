@@ -1,0 +1,79 @@
+﻿route_id,path,label,menu_id,operation_id,operation_kind,manual_section
+dashboard,/,업무 운영 현황,DASHBOARD,bzaSupportDashboard,업무 Operation,90_BZA매뉴얼.md#dashboard
+organizations,/organizations,조직 계층,ORGANIZATION,bzaBackofficeFindOrganizations,조회,90_BZA매뉴얼.md#organizations
+organizations,/organizations,조직 계층,ORGANIZATION,bzaBackofficeSaveOrganization,생성·요청,90_BZA매뉴얼.md#organizations
+organizations,/organizations,조직 계층,ORGANIZATION,bzaBackofficeFindOrganizationsPage,조회,90_BZA매뉴얼.md#organizations
+employees,/employees,직원 Profile,EMPLOYEE,bzaBackofficeFindEmployees,조회,90_BZA매뉴얼.md#employees
+employees,/employees,직원 Profile,EMPLOYEE,bzaBackofficeSaveEmployee,생성·요청,90_BZA매뉴얼.md#employees
+employees,/employees,직원 Profile,EMPLOYEE,bzaBackofficeFindEmployeesPage,조회,90_BZA매뉴얼.md#employees
+employees,/employees,직원 Profile,EMPLOYEE,bzaBackofficeEmployeeRawContact,업무 Operation,90_BZA매뉴얼.md#employees
+positions,/positions,직급,EMPLOYEE,bzaDirectoryFindPositions,조회,90_BZA매뉴얼.md#positions
+positions,/positions,직급,EMPLOYEE,bzaDirectorySavePosition,생성·요청,90_BZA매뉴얼.md#positions
+positions,/positions,직급,EMPLOYEE,bzaDirectoryFindPositionsPage,조회,90_BZA매뉴얼.md#positions
+jobTitles,/jobTitles,직책,EMPLOYEE,bzaDirectoryFindJobTitles,조회,90_BZA매뉴얼.md#jobTitles
+jobTitles,/jobTitles,직책,EMPLOYEE,bzaDirectorySaveJobTitle,생성·요청,90_BZA매뉴얼.md#jobTitles
+jobTitles,/jobTitles,직책,EMPLOYEE,bzaDirectoryFindJobTitlesPage,조회,90_BZA매뉴얼.md#jobTitles
+assignments,/assignments,발령·겸직·파견·대행,EMPLOYEE,bzaDirectoryFindAssignments,조회,90_BZA매뉴얼.md#assignments
+assignments,/assignments,발령·겸직·파견·대행,EMPLOYEE,bzaDirectorySaveAssignment,생성·요청,90_BZA매뉴얼.md#assignments
+assignments,/assignments,발령·겸직·파견·대행,EMPLOYEE,bzaDirectoryFindAssignmentsPage,조회,90_BZA매뉴얼.md#assignments
+organizationResponsibilities,/organizationResponsibilities,조직 책임,ORGANIZATION,bzaDirectoryFindResponsibilities,조회,90_BZA매뉴얼.md#organizationResponsibilities
+organizationResponsibilities,/organizationResponsibilities,조직 책임,ORGANIZATION,bzaDirectorySaveResponsibility,생성·요청,90_BZA매뉴얼.md#organizationResponsibilities
+organizationResponsibilities,/organizationResponsibilities,조직 책임,ORGANIZATION,bzaDirectoryFindResponsibilitiesPage,조회,90_BZA매뉴얼.md#organizationResponsibilities
+users,/users,사용자,AUTHORIZATION,bzaOperationFindAdminUsers,조회,90_BZA매뉴얼.md#users
+users,/users,사용자,AUTHORIZATION,bzaOperationSaveAdminUser,생성·요청,90_BZA매뉴얼.md#users
+users,/users,사용자,AUTHORIZATION,bzaOperationFindAdminUsersPage,조회,90_BZA매뉴얼.md#users
+roles,/roles,Role,AUTHORIZATION,bzaOperationFindRoles,조회,90_BZA매뉴얼.md#roles
+roles,/roles,Role,AUTHORIZATION,bzaOperationSaveRole,생성·요청,90_BZA매뉴얼.md#roles
+roles,/roles,Role,AUTHORIZATION,bzaOperationFindRolesPage,조회,90_BZA매뉴얼.md#roles
+userRoles,/userRoles,사용자 Role·유효기간,AUTHORIZATION,bzaDirectoryFindUserRoles,조회,90_BZA매뉴얼.md#userRoles
+userRoles,/userRoles,사용자 Role·유효기간,AUTHORIZATION,bzaDirectorySaveUserRole,생성·요청,90_BZA매뉴얼.md#userRoles
+userRoles,/userRoles,사용자 Role·유효기간,AUTHORIZATION,bzaDirectoryFindUserRolesPage,조회,90_BZA매뉴얼.md#userRoles
+menus,/menus,Menu Registry,AUTHORIZATION,bzaOperationFindMenus,조회,90_BZA매뉴얼.md#menus
+menus,/menus,Menu Registry,AUTHORIZATION,bzaOperationSaveMenu,생성·요청,90_BZA매뉴얼.md#menus
+menus,/menus,Menu Registry,AUTHORIZATION,bzaOperationFindMenusPage,조회,90_BZA매뉴얼.md#menus
+menus,/menus,Menu Registry,AUTHORIZATION,bzaOperationDeleteMenu,중지·회수·삭제,90_BZA매뉴얼.md#menus
+menus,/menus,Menu Registry,AUTHORIZATION,bzaOperationFindMenuImpact,조회,90_BZA매뉴얼.md#menus
+permissions,/permissions,화면·행위·API·Data Scope,AUTHORIZATION,bzaOperationFindPermissions,조회,90_BZA매뉴얼.md#permissions
+permissions,/permissions,화면·행위·API·Data Scope,AUTHORIZATION,bzaOperationSavePermission,생성·요청,90_BZA매뉴얼.md#permissions
+permissions,/permissions,화면·행위·API·Data Scope,AUTHORIZATION,bzaOperationFindPermissionsPage,조회,90_BZA매뉴얼.md#permissions
+permissionTools,/permissionTools,Role 비교·권한 Simulation,AUTHORIZATION,bzaBackofficeFindEffectivePermissions,조회,90_BZA매뉴얼.md#permissionTools
+permissionTools,/permissionTools,Role 비교·권한 Simulation,AUTHORIZATION,bzaSupportCompareRolePermissions,업무 Operation,90_BZA매뉴얼.md#permissionTools
+permissionTools,/permissionTools,Role 비교·권한 Simulation,AUTHORIZATION,bzaSupportSimulatePermission,사전 검증,90_BZA매뉴얼.md#permissionTools
+approvalInbox,/approvalInbox,결재 처리,APPROVAL,bzaApprovalInbox,업무 Operation,90_BZA매뉴얼.md#approvalInbox
+approvalInbox,/approvalInbox,결재 처리,APPROVAL,bzaBackofficeFindApprovals,조회,90_BZA매뉴얼.md#approvalInbox
+approvalInbox,/approvalInbox,결재 처리,APPROVAL,bzaBackofficeCreateApproval,생성·요청,90_BZA매뉴얼.md#approvalInbox
+approvalInbox,/approvalInbox,결재 처리,APPROVAL,bzaBackofficeFindApproval,조회,90_BZA매뉴얼.md#approvalInbox
+approvalInbox,/approvalInbox,결재 처리,APPROVAL,bzaBackofficeActApproval,상태 변경,90_BZA매뉴얼.md#approvalInbox
+approvalSubmissions,/approvalSubmissions,결재 상신·Lifecycle,APPROVAL,bzaApprovalSubmissions,업무 Operation,90_BZA매뉴얼.md#approvalSubmissions
+approvalSubmissions,/approvalSubmissions,결재 상신·Lifecycle,APPROVAL,bzaApprovalPolicySubmit,생성·요청,90_BZA매뉴얼.md#approvalSubmissions
+approvalSubmissions,/approvalSubmissions,결재 상신·Lifecycle,APPROVAL,bzaApprovalExpireDue,업무 Operation,90_BZA매뉴얼.md#approvalSubmissions
+approvalSubmissions,/approvalSubmissions,결재 상신·Lifecycle,APPROVAL,bzaApprovalSubmissionDetail,조회,90_BZA매뉴얼.md#approvalSubmissions
+approvalSubmissions,/approvalSubmissions,결재 상신·Lifecycle,APPROVAL,bzaApprovalCancel,중지·회수·삭제,90_BZA매뉴얼.md#approvalSubmissions
+approvalSubmissions,/approvalSubmissions,결재 상신·Lifecycle,APPROVAL,bzaApprovalResubmit,업무 Operation,90_BZA매뉴얼.md#approvalSubmissions
+approvalSubmissions,/approvalSubmissions,결재 상신·Lifecycle,APPROVAL,bzaApprovalWithdraw,중지·회수·삭제,90_BZA매뉴얼.md#approvalSubmissions
+approvalSubmissions,/approvalSubmissions,결재 상신·Lifecycle,APPROVAL,bzaApprovalParticipantDecision,상태 변경,90_BZA매뉴얼.md#approvalSubmissions
+approvalPolicies,/approvalPolicies,Versioned 결재 정책,APPROVAL,bzaApprovalPolicies,업무 Operation,90_BZA매뉴얼.md#approvalPolicies
+approvalPolicies,/approvalPolicies,Versioned 결재 정책,APPROVAL,bzaApprovalPolicySave,생성·요청,90_BZA매뉴얼.md#approvalPolicies
+approvalPolicies,/approvalPolicies,Versioned 결재 정책,APPROVAL,bzaApprovalPolicyDetail,조회,90_BZA매뉴얼.md#approvalPolicies
+approvalSimulation,/approvalSimulation,결재 경로 Simulation,APPROVAL,bzaApprovalPolicySimulate,사전 검증,90_BZA매뉴얼.md#approvalSimulation
+approvalDelegations,/approvalDelegations,위임·대결,APPROVAL,bzaApprovalDelegations,업무 Operation,90_BZA매뉴얼.md#approvalDelegations
+approvalDelegations,/approvalDelegations,위임·대결,APPROVAL,bzaApprovalDelegationSave,생성·요청,90_BZA매뉴얼.md#approvalDelegations
+sessions,/sessions,Session,AUTHORIZATION,bzaAuthSessions,업무 Operation,90_BZA매뉴얼.md#sessions
+sessions,/sessions,Session,AUTHORIZATION,bzaAuthRevokeSession,중지·회수·삭제,90_BZA매뉴얼.md#sessions
+audits,/audits,업무 Audit,AUDIT,bzaBusinessAuditVerify,사전 검증,90_BZA매뉴얼.md#audits
+audits,/audits,업무 Audit,AUDIT,bzaBackofficeFindBusinessAudits,조회,90_BZA매뉴얼.md#audits
+notifications,/notifications,업무 알림,SETTING,bzaSupportFindNotifications,조회,90_BZA매뉴얼.md#notifications
+notifications,/notifications,업무 알림,SETTING,bzaSupportCreateNotification,생성·요청,90_BZA매뉴얼.md#notifications
+notifications,/notifications,업무 알림,SETTING,bzaSupportReadAllNotifications,업무 Operation,90_BZA매뉴얼.md#notifications
+notifications,/notifications,업무 알림,SETTING,bzaSupportReadNotification,업무 Operation,90_BZA매뉴얼.md#notifications
+attachments,/attachments,첨부,ATTACHMENT,bzaSupportFindAttachments,조회,90_BZA매뉴얼.md#attachments
+attachments,/attachments,첨부,ATTACHMENT,bzaSupportUploadAttachment,생성·요청,90_BZA매뉴얼.md#attachments
+attachments,/attachments,첨부,ATTACHMENT,bzaSupportDownloadAttachment,산출물·다운로드,90_BZA매뉴얼.md#attachments
+attachments,/attachments,첨부,ATTACHMENT,bzaSupportRecheckAttachment,업무 Operation,90_BZA매뉴얼.md#attachments
+attachments,/attachments,첨부,ATTACHMENT,bzaSupportUpdateAttachmentSecurity,상태 변경,90_BZA매뉴얼.md#attachments
+savedSearches,/savedSearches,저장 검색,SETTING,bzaSupportFindSavedSearches,조회,90_BZA매뉴얼.md#savedSearches
+savedSearches,/savedSearches,저장 검색,SETTING,bzaSupportSaveSavedSearch,조회,90_BZA매뉴얼.md#savedSearches
+savedSearches,/savedSearches,저장 검색,SETTING,bzaSupportDisableSavedSearch,조회,90_BZA매뉴얼.md#savedSearches
+settings,/settings,업무 설정,SETTING,bzaOperationFindSettings,조회,90_BZA매뉴얼.md#settings
+downloads,/downloads,Download Policy,SETTING,bzaOperationFindDownloadPolicies,조회,90_BZA매뉴얼.md#downloads
+downloadAudits,/downloadAudits,Download Audit,AUDIT,bzaSupportFindDownloadAudits,조회,90_BZA매뉴얼.md#downloadAudits

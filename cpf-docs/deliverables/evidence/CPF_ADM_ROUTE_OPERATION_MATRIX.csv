@@ -1,0 +1,406 @@
+﻿route_id,path,label,menu_id,group,risk,feature_flag,operation_id,operation_kind,manual_section
+dashboard,/,통합 운영 Dashboard,DASHBOARD,home,MEDIUM,adm.route.dashboard.enabled,admRuntimeControlFindHealth,조회,04_ADM운영자매뉴얼.md#dashboard
+dashboard,/,통합 운영 Dashboard,DASHBOARD,home,MEDIUM,adm.route.dashboard.enabled,admRuntimeControlFindStatus,조회,04_ADM운영자매뉴얼.md#dashboard
+dashboard,/,통합 운영 Dashboard,DASHBOARD,home,MEDIUM,adm.route.dashboard.enabled,findAdmUnknownResults,조회,04_ADM운영자매뉴얼.md#dashboard
+dashboard,/,통합 운영 Dashboard,DASHBOARD,home,MEDIUM,adm.route.dashboard.enabled,findAdmBrokerDlq,조회,04_ADM운영자매뉴얼.md#dashboard
+dashboard,/,통합 운영 Dashboard,DASHBOARD,home,MEDIUM,adm.route.dashboard.enabled,findAdmBrokerOutbox,조회,04_ADM운영자매뉴얼.md#dashboard
+dashboard,/,통합 운영 Dashboard,DASHBOARD,home,MEDIUM,adm.route.dashboard.enabled,admBatchFindExecutionPage,조회,04_ADM운영자매뉴얼.md#dashboard
+dashboard,/,통합 운영 Dashboard,DASHBOARD,home,MEDIUM,adm.route.dashboard.enabled,getAdmReadiness,조회,04_ADM운영자매뉴얼.md#dashboard
+dashboard,/,통합 운영 Dashboard,DASHBOARD,home,MEDIUM,adm.route.dashboard.enabled,getAdmLiveness,조회,04_ADM운영자매뉴얼.md#dashboard
+dashboard,/,통합 운영 Dashboard,DASHBOARD,home,MEDIUM,adm.route.dashboard.enabled,getAdmSystemVersion,조회,04_ADM운영자매뉴얼.md#dashboard
+topology,/topology,서비스 토폴로지,TOPOLOGY,home,MEDIUM,adm.route.topology.enabled,admServiceRegistryFindServices,조회,04_ADM운영자매뉴얼.md#topology
+topology,/topology,서비스 토폴로지,TOPOLOGY,home,MEDIUM,adm.route.topology.enabled,admServiceRegistryFindInstances,조회,04_ADM운영자매뉴얼.md#topology
+topology,/topology,서비스 토폴로지,TOPOLOGY,home,MEDIUM,adm.route.topology.enabled,admServiceRegistryFindEndpoints,조회,04_ADM운영자매뉴얼.md#topology
+topology,/topology,서비스 토폴로지,TOPOLOGY,home,MEDIUM,adm.route.topology.enabled,admServiceRegistryFindHealth,조회,04_ADM운영자매뉴얼.md#topology
+capacity,/capacity,Online Runtime Diagnostics,CAPACITY,home,MEDIUM,adm.route.capacity.enabled,admRuntimeControlFindHealth,조회,04_ADM운영자매뉴얼.md#capacity
+capacity,/capacity,Online Runtime Diagnostics,CAPACITY,home,MEDIUM,adm.route.capacity.enabled,admRuntimeControlFindStatus,조회,04_ADM운영자매뉴얼.md#capacity
+capacity,/capacity,Online Runtime Diagnostics,CAPACITY,home,MEDIUM,adm.route.capacity.enabled,findAdmBrokerOutbox,조회,04_ADM운영자매뉴얼.md#capacity
+capacity,/capacity,Online Runtime Diagnostics,CAPACITY,home,MEDIUM,adm.route.capacity.enabled,findAdmBrokerInbox,조회,04_ADM운영자매뉴얼.md#capacity
+capacity,/capacity,Online Runtime Diagnostics,CAPACITY,home,MEDIUM,adm.route.capacity.enabled,findAdmIdempotencyRecords,조회,04_ADM운영자매뉴얼.md#capacity
+capacity,/capacity,Online Runtime Diagnostics,CAPACITY,home,MEDIUM,adm.route.capacity.enabled,findAdmFileTransferHistory,조회,04_ADM운영자매뉴얼.md#capacity
+logs,/logs,거래 로그,LOG_LIST,monitoring,MEDIUM,adm.route.logs.enabled,admLogFindLogs,조회,04_ADM운영자매뉴얼.md#logs
+logs,/logs,거래 로그,LOG_LIST,monitoring,MEDIUM,adm.route.logs.enabled,admLogGetLogDetail,조회,04_ADM운영자매뉴얼.md#logs
+logs,/logs,거래 로그,LOG_LIST,monitoring,MEDIUM,adm.route.logs.enabled,admLogExportCreate,등록·변경,04_ADM운영자매뉴얼.md#logs
+logs,/logs,거래 로그,LOG_LIST,monitoring,MEDIUM,adm.route.logs.enabled,admLogExportDownload,등록·변경,04_ADM운영자매뉴얼.md#logs
+transactionGroups,/transactionGroups,Online·Batch 통합 Trace,LOG_LIST,online,MEDIUM,adm.route.transactionGroups.enabled,traceAdmByTransactionId,업무 Operation,04_ADM운영자매뉴얼.md#transactiongroups
+transactionGroups,/transactionGroups,Online·Batch 통합 Trace,LOG_LIST,online,MEDIUM,adm.route.transactionGroups.enabled,traceAdmByTraceId,업무 Operation,04_ADM운영자매뉴얼.md#transactiongroups
+transactionGroups,/transactionGroups,Online·Batch 통합 Trace,LOG_LIST,online,MEDIUM,adm.route.transactionGroups.enabled,traceAdmByBusinessTransactionId,업무 Operation,04_ADM운영자매뉴얼.md#transactiongroups
+transactionGroups,/transactionGroups,Online·Batch 통합 Trace,LOG_LIST,online,MEDIUM,adm.route.transactionGroups.enabled,admTransactionGroupFindTimeline,조회,04_ADM운영자매뉴얼.md#transactiongroups
+transactionGroups,/transactionGroups,Online·Batch 통합 Trace,LOG_LIST,online,MEDIUM,adm.route.transactionGroups.enabled,admTransactionGroupFindGroups,조회,04_ADM운영자매뉴얼.md#transactiongroups
+transactionGroups,/transactionGroups,Online·Batch 통합 Trace,LOG_LIST,online,MEDIUM,adm.route.transactionGroups.enabled,admTransactionGroupFindDetail,조회,04_ADM운영자매뉴얼.md#transactiongroups
+transactionGroups,/transactionGroups,Online·Batch 통합 Trace,LOG_LIST,online,MEDIUM,adm.route.transactionGroups.enabled,admTransactionGroupFindExternalLogs,조회,04_ADM운영자매뉴얼.md#transactiongroups
+transactionGroups,/transactionGroups,Online·Batch 통합 Trace,LOG_LIST,online,MEDIUM,adm.route.transactionGroups.enabled,admTransactionGroupFindHeaders,조회,04_ADM운영자매뉴얼.md#transactiongroups
+transactionGroups,/transactionGroups,Online·Batch 통합 Trace,LOG_LIST,online,MEDIUM,adm.route.transactionGroups.enabled,admTransactionGroupFindSegments,조회,04_ADM운영자매뉴얼.md#transactiongroups
+transactions,/transactions,온라인 거래 정의,TRANSACTION_META,online,HIGH,adm.route.transactions.enabled,admTransactionMetaFindPage,조회,04_ADM운영자매뉴얼.md#transactions
+transactions,/transactions,온라인 거래 정의,TRANSACTION_META,online,HIGH,adm.route.transactions.enabled,admTransactionMetaFindTransaction,조회,04_ADM운영자매뉴얼.md#transactions
+transactions,/transactions,온라인 거래 정의,TRANSACTION_META,online,HIGH,adm.route.transactions.enabled,admTransactionMetaScan,업무 Operation,04_ADM운영자매뉴얼.md#transactions
+transactions,/transactions,온라인 거래 정의,TRANSACTION_META,online,HIGH,adm.route.transactions.enabled,admTransactionMetaInactivate,비활성·취소·삭제,04_ADM운영자매뉴얼.md#transactions
+transactions,/transactions,온라인 거래 정의,TRANSACTION_META,online,HIGH,adm.route.transactions.enabled,admTransactionMetaFindTransactions,조회,04_ADM운영자매뉴얼.md#transactions
+remoteLogs,/remoteLogs,원격 로그,REMOTE_LOG,monitoring,MEDIUM,adm.route.remoteLogs.enabled,admRemoteLogSearch,조회,04_ADM운영자매뉴얼.md#remotelogs
+remoteLogs,/remoteLogs,원격 로그,REMOTE_LOG,monitoring,MEDIUM,adm.route.remoteLogs.enabled,admRemoteLogPreview,조회,04_ADM운영자매뉴얼.md#remotelogs
+remoteLogs,/remoteLogs,원격 로그,REMOTE_LOG,monitoring,MEDIUM,adm.route.remoteLogs.enabled,admRemoteLogBundleJobCreate,등록·변경,04_ADM운영자매뉴얼.md#remotelogs
+remoteLogs,/remoteLogs,원격 로그,REMOTE_LOG,monitoring,MEDIUM,adm.route.remoteLogs.enabled,admRemoteLogBundleJobFind,조회,04_ADM운영자매뉴얼.md#remotelogs
+remoteLogs,/remoteLogs,원격 로그,REMOTE_LOG,monitoring,MEDIUM,adm.route.remoteLogs.enabled,admRemoteLogBundleJobDownload,업무 Operation,04_ADM운영자매뉴얼.md#remotelogs
+remoteLogs,/remoteLogs,원격 로그,REMOTE_LOG,monitoring,MEDIUM,adm.route.remoteLogs.enabled,admRemoteLogBundleDownloadTokenIssue,등록·변경,04_ADM운영자매뉴얼.md#remotelogs
+remoteLogs,/remoteLogs,원격 로그,REMOTE_LOG,monitoring,MEDIUM,adm.route.remoteLogs.enabled,admRemoteLogBundleDownload,업무 Operation,04_ADM운영자매뉴얼.md#remotelogs
+remoteLogs,/remoteLogs,원격 로그,REMOTE_LOG,monitoring,MEDIUM,adm.route.remoteLogs.enabled,admRemoteLogDiagnostics,조회,04_ADM운영자매뉴얼.md#remotelogs
+remoteLogs,/remoteLogs,원격 로그,REMOTE_LOG,monitoring,MEDIUM,adm.route.remoteLogs.enabled,admRemoteLogDownload,업무 Operation,04_ADM운영자매뉴얼.md#remotelogs
+auditLogs,/auditLogs,감사 로그,AUDIT_LOG,monitoring,MEDIUM,adm.route.auditLogs.enabled,admAuditLogFindAuditLogs,조회,04_ADM운영자매뉴얼.md#auditlogs
+auditLogs,/auditLogs,감사 로그,AUDIT_LOG,monitoring,MEDIUM,adm.route.auditLogs.enabled,admAuditDeliveryList,조회,04_ADM운영자매뉴얼.md#auditlogs
+auditLogs,/auditLogs,감사 로그,AUDIT_LOG,monitoring,MEDIUM,adm.route.auditLogs.enabled,admAuditDeliveryRetry,복구·재처리,04_ADM운영자매뉴얼.md#auditlogs
+auditLogs,/auditLogs,감사 로그,AUDIT_LOG,monitoring,MEDIUM,adm.route.auditLogs.enabled,admLogPolicyAuditFindPolicyAudits,조회,04_ADM운영자매뉴얼.md#auditlogs
+logLevel,/logLevel,동적 로그,DYNAMIC_LOG,monitoring,HIGH,adm.route.logLevel.enabled,admDynamicLogLevelFindRules,조회,04_ADM운영자매뉴얼.md#loglevel
+logLevel,/logLevel,동적 로그,DYNAMIC_LOG,monitoring,HIGH,adm.route.logLevel.enabled,admDynamicLogLevelRegister,등록·변경,04_ADM운영자매뉴얼.md#loglevel
+logLevel,/logLevel,동적 로그,DYNAMIC_LOG,monitoring,HIGH,adm.route.logLevel.enabled,admDynamicLogLevelRemove,비활성·취소·삭제,04_ADM운영자매뉴얼.md#loglevel
+logPolicies,/logPolicies,로그 정책,LOG_POLICY,monitoring,MEDIUM,adm.route.logPolicies.enabled,admLogPolicyFindPolicies,조회,04_ADM운영자매뉴얼.md#logpolicies
+logPolicies,/logPolicies,로그 정책,LOG_POLICY,monitoring,MEDIUM,adm.route.logPolicies.enabled,admLogPolicyFindPolicy,조회,04_ADM운영자매뉴얼.md#logpolicies
+logPolicies,/logPolicies,로그 정책,LOG_POLICY,monitoring,MEDIUM,adm.route.logPolicies.enabled,admLogPolicyCreatePolicy,등록·변경,04_ADM운영자매뉴얼.md#logpolicies
+logPolicies,/logPolicies,로그 정책,LOG_POLICY,monitoring,MEDIUM,adm.route.logPolicies.enabled,admLogPolicyUpdatePolicy,등록·변경,04_ADM운영자매뉴얼.md#logpolicies
+logPolicies,/logPolicies,로그 정책,LOG_POLICY,monitoring,MEDIUM,adm.route.logPolicies.enabled,admLogPolicyDisablePolicy,비활성·취소·삭제,04_ADM운영자매뉴얼.md#logpolicies
+logPolicies,/logPolicies,로그 정책,LOG_POLICY,monitoring,MEDIUM,adm.route.logPolicies.enabled,admLogPolicyDistributionStatus,조회,04_ADM운영자매뉴얼.md#logpolicies
+logPolicies,/logPolicies,로그 정책,LOG_POLICY,monitoring,MEDIUM,adm.route.logPolicies.enabled,admLogPolicyClearCache,복구·재처리,04_ADM운영자매뉴얼.md#logpolicies
+logPolicies,/logPolicies,로그 정책,LOG_POLICY,monitoring,MEDIUM,adm.route.logPolicies.enabled,admLogPolicyRefreshCache,복구·재처리,04_ADM운영자매뉴얼.md#logpolicies
+logPolicies,/logPolicies,로그 정책,LOG_POLICY,monitoring,MEDIUM,adm.route.logPolicies.enabled,admLogPolicyFindTraceBoostHistory,조회,04_ADM운영자매뉴얼.md#logpolicies
+logPolicies,/logPolicies,로그 정책,LOG_POLICY,monitoring,MEDIUM,adm.route.logPolicies.enabled,admLogPolicyCreateOverride,등록·변경,04_ADM운영자매뉴얼.md#logpolicies
+logPolicies,/logPolicies,로그 정책,LOG_POLICY,monitoring,MEDIUM,adm.route.logPolicies.enabled,admLogPolicyDisableOverride,비활성·취소·삭제,04_ADM운영자매뉴얼.md#logpolicies
+logPolicies,/logPolicies,로그 정책,LOG_POLICY,monitoring,MEDIUM,adm.route.logPolicies.enabled,admLogPolicyFindTraceBoostRuntimeState,조회,04_ADM운영자매뉴얼.md#logpolicies
+logPolicies,/logPolicies,로그 정책,LOG_POLICY,monitoring,MEDIUM,adm.route.logPolicies.enabled,admLogPolicyCreateTraceBoost,등록·변경,04_ADM운영자매뉴얼.md#logpolicies
+standardExecutions,/standardExecutions,표준 실행,STANDARD_EXECUTION,online,MEDIUM,adm.route.standardExecutions.enabled,admStandardExecutionFindAll,조회,04_ADM운영자매뉴얼.md#standardexecutions
+standardExecutions,/standardExecutions,표준 실행,STANDARD_EXECUTION,online,MEDIUM,adm.route.standardExecutions.enabled,admStandardExecutionFindOne,조회,04_ADM운영자매뉴얼.md#standardexecutions
+channelPolicy,/channelPolicy,채널 정책,CHANNEL_POLICY,online,HIGH,adm.route.channelPolicy.enabled,admChannelFindSnapshot,조회,04_ADM운영자매뉴얼.md#channelpolicy
+channelPolicy,/channelPolicy,채널 정책,CHANNEL_POLICY,online,HIGH,adm.route.channelPolicy.enabled,admChannelRefreshSnapshot,조회,04_ADM운영자매뉴얼.md#channelpolicy
+channelPolicy,/channelPolicy,채널 정책,CHANNEL_POLICY,online,HIGH,adm.route.channelPolicy.enabled,admChannelSave,등록·변경,04_ADM운영자매뉴얼.md#channelpolicy
+channelPolicy,/channelPolicy,채널 정책,CHANNEL_POLICY,online,HIGH,adm.route.channelPolicy.enabled,admChannelSaveExecutionPolicy,등록·변경,04_ADM운영자매뉴얼.md#channelpolicy
+channelPolicy,/channelPolicy,채널 정책,CHANNEL_POLICY,online,HIGH,adm.route.channelPolicy.enabled,admChannelExportPackage,등록·변경,04_ADM운영자매뉴얼.md#channelpolicy
+channelPolicy,/channelPolicy,채널 정책,CHANNEL_POLICY,online,HIGH,adm.route.channelPolicy.enabled,admChannelImportPackage,등록·변경,04_ADM운영자매뉴얼.md#channelpolicy
+serviceRegistry,/serviceRegistry,서비스 레지스트리,SERVICE_REGISTRY,online,MEDIUM,adm.route.serviceRegistry.enabled,admServiceRegistryFindServices,조회,04_ADM운영자매뉴얼.md#serviceregistry
+serviceRegistry,/serviceRegistry,서비스 레지스트리,SERVICE_REGISTRY,online,MEDIUM,adm.route.serviceRegistry.enabled,admServiceRegistryFindInstances,조회,04_ADM운영자매뉴얼.md#serviceregistry
+serviceRegistry,/serviceRegistry,서비스 레지스트리,SERVICE_REGISTRY,online,MEDIUM,adm.route.serviceRegistry.enabled,admServiceRegistryFindEndpoints,조회,04_ADM운영자매뉴얼.md#serviceregistry
+serviceRegistry,/serviceRegistry,서비스 레지스트리,SERVICE_REGISTRY,online,MEDIUM,adm.route.serviceRegistry.enabled,admServiceRegistryFindHealth,조회,04_ADM운영자매뉴얼.md#serviceregistry
+serviceRegistry,/serviceRegistry,서비스 레지스트리,SERVICE_REGISTRY,online,MEDIUM,adm.route.serviceRegistry.enabled,admServiceRegistrySaveService,등록·변경,04_ADM운영자매뉴얼.md#serviceregistry
+serviceRegistry,/serviceRegistry,서비스 레지스트리,SERVICE_REGISTRY,online,MEDIUM,adm.route.serviceRegistry.enabled,admServiceRegistrySaveInstance,등록·변경,04_ADM운영자매뉴얼.md#serviceregistry
+serviceRegistry,/serviceRegistry,서비스 레지스트리,SERVICE_REGISTRY,online,MEDIUM,adm.route.serviceRegistry.enabled,admServiceRegistrySaveEndpoint,등록·변경,04_ADM운영자매뉴얼.md#serviceregistry
+serviceRegistry,/serviceRegistry,서비스 레지스트리,SERVICE_REGISTRY,online,MEDIUM,adm.route.serviceRegistry.enabled,admServiceRegistryChangeInstanceState,승인·실행·상태변경,04_ADM운영자매뉴얼.md#serviceregistry
+serviceRegistry,/serviceRegistry,서비스 레지스트리,SERVICE_REGISTRY,online,MEDIUM,adm.route.serviceRegistry.enabled,admServiceRegistryDeleteEndpoint,비활성·취소·삭제,04_ADM운영자매뉴얼.md#serviceregistry
+serviceRegistry,/serviceRegistry,서비스 레지스트리,SERVICE_REGISTRY,online,MEDIUM,adm.route.serviceRegistry.enabled,admServiceRegistryDeleteInstance,비활성·취소·삭제,04_ADM운영자매뉴얼.md#serviceregistry
+serviceRegistry,/serviceRegistry,서비스 레지스트리,SERVICE_REGISTRY,online,MEDIUM,adm.route.serviceRegistry.enabled,admServiceRegistryDeleteService,비활성·취소·삭제,04_ADM운영자매뉴얼.md#serviceregistry
+serviceRegistry,/serviceRegistry,서비스 레지스트리,SERVICE_REGISTRY,online,MEDIUM,adm.route.serviceRegistry.enabled,admServiceRegistryFindCallHistory,조회,04_ADM운영자매뉴얼.md#serviceregistry
+serviceRegistry,/serviceRegistry,서비스 레지스트리,SERVICE_REGISTRY,online,MEDIUM,adm.route.serviceRegistry.enabled,admServiceRegistryCapabilities,조회,04_ADM운영자매뉴얼.md#serviceregistry
+serviceRegistry,/serviceRegistry,서비스 레지스트리,SERVICE_REGISTRY,online,MEDIUM,adm.route.serviceRegistry.enabled,admServiceRegistryFindCircuitStates,조회,04_ADM운영자매뉴얼.md#serviceregistry
+serviceRegistry,/serviceRegistry,서비스 레지스트리,SERVICE_REGISTRY,online,MEDIUM,adm.route.serviceRegistry.enabled,admServiceRegistryFindRoutingPolicies,조회,04_ADM운영자매뉴얼.md#serviceregistry
+runtimeControl,/runtimeControl,Deployment·Promotion·Rollback,RUNTIME_CONTROL,online,HIGH,adm.route.runtimeControl.enabled,admRuntimeControlFindHealth,조회,04_ADM운영자매뉴얼.md#runtimecontrol
+runtimeControl,/runtimeControl,Deployment·Promotion·Rollback,RUNTIME_CONTROL,online,HIGH,adm.route.runtimeControl.enabled,admRuntimeControlFindStatus,조회,04_ADM운영자매뉴얼.md#runtimecontrol
+runtimeControl,/runtimeControl,Deployment·Promotion·Rollback,RUNTIME_CONTROL,online,HIGH,adm.route.runtimeControl.enabled,admRuntimeControlFindCapabilities,조회,04_ADM운영자매뉴얼.md#runtimecontrol
+runtimeControl,/runtimeControl,Deployment·Promotion·Rollback,RUNTIME_CONTROL,online,HIGH,adm.route.runtimeControl.enabled,admRuntimeControlPreviewChange,조회,04_ADM운영자매뉴얼.md#runtimecontrol
+runtimeControl,/runtimeControl,Deployment·Promotion·Rollback,RUNTIME_CONTROL,online,HIGH,adm.route.runtimeControl.enabled,admRuntimeControlCreateChange,승인·실행·상태변경,04_ADM운영자매뉴얼.md#runtimecontrol
+runtimeControl,/runtimeControl,Deployment·Promotion·Rollback,RUNTIME_CONTROL,online,HIGH,adm.route.runtimeControl.enabled,admRuntimeControlFindChange,조회,04_ADM운영자매뉴얼.md#runtimecontrol
+runtimeControl,/runtimeControl,Deployment·Promotion·Rollback,RUNTIME_CONTROL,online,HIGH,adm.route.runtimeControl.enabled,admRuntimeControlFindByOperation,조회,04_ADM운영자매뉴얼.md#runtimecontrol
+runtimeControl,/runtimeControl,Deployment·Promotion·Rollback,RUNTIME_CONTROL,online,HIGH,adm.route.runtimeControl.enabled,admRuntimeControlCancelChange,비활성·취소·삭제,04_ADM운영자매뉴얼.md#runtimecontrol
+runtimeControl,/runtimeControl,Deployment·Promotion·Rollback,RUNTIME_CONTROL,online,HIGH,adm.route.runtimeControl.enabled,admRuntimeControlRollbackChange,복구·재처리,04_ADM운영자매뉴얼.md#runtimecontrol
+runtimeControl,/runtimeControl,Deployment·Promotion·Rollback,RUNTIME_CONTROL,online,HIGH,adm.route.runtimeControl.enabled,admRuntimeControlVerifyAudit,승인·실행·상태변경,04_ADM운영자매뉴얼.md#runtimecontrol
+runtimeControl,/runtimeControl,Deployment·Promotion·Rollback,RUNTIME_CONTROL,online,HIGH,adm.route.runtimeControl.enabled,admRuntimeControlSaveGroup,승인·실행·상태변경,04_ADM운영자매뉴얼.md#runtimecontrol
+runtimeControl,/runtimeControl,Deployment·Promotion·Rollback,RUNTIME_CONTROL,online,HIGH,adm.route.runtimeControl.enabled,admRuntimeControlFindGroup,조회,04_ADM운영자매뉴얼.md#runtimecontrol
+runtimeControl,/runtimeControl,Deployment·Promotion·Rollback,RUNTIME_CONTROL,online,HIGH,adm.route.runtimeControl.enabled,admRuntimeControlDeleteGroup,비활성·취소·삭제,04_ADM운영자매뉴얼.md#runtimecontrol
+runtimeControl,/runtimeControl,Deployment·Promotion·Rollback,RUNTIME_CONTROL,online,HIGH,adm.route.runtimeControl.enabled,admRuntimeControlChangeGroupMember,승인·실행·상태변경,04_ADM운영자매뉴얼.md#runtimecontrol
+runtimeControl,/runtimeControl,Deployment·Promotion·Rollback,RUNTIME_CONTROL,online,HIGH,adm.route.runtimeControl.enabled,admRuntimeControlPreviewTargets,조회,04_ADM운영자매뉴얼.md#runtimecontrol
+runtimeControl,/runtimeControl,Deployment·Promotion·Rollback,RUNTIME_CONTROL,online,HIGH,adm.route.runtimeControl.enabled,admRuntimeControlFindStateCatalog,조회,04_ADM운영자매뉴얼.md#runtimecontrol
+maintenance,/maintenance,점검·Drain,MAINTENANCE,framework,HIGH,adm.route.maintenance.enabled,admMaintenanceFindActions,조회,04_ADM운영자매뉴얼.md#maintenance
+maintenance,/maintenance,점검·Drain,MAINTENANCE,framework,HIGH,adm.route.maintenance.enabled,admMaintenanceExecuteAction,승인·실행·상태변경,04_ADM운영자매뉴얼.md#maintenance
+cache,/cache,캐시,CACHE,framework,HIGH,adm.route.cache.enabled,admCacheSummary,조회,04_ADM운영자매뉴얼.md#cache
+cache,/cache,캐시,CACHE,framework,HIGH,adm.route.cache.enabled,admCacheRefresh,복구·재처리,04_ADM운영자매뉴얼.md#cache
+cache,/cache,캐시,CACHE,framework,HIGH,adm.route.cache.enabled,admCacheEvictKey,업무 Operation,04_ADM운영자매뉴얼.md#cache
+cache,/cache,캐시,CACHE,framework,HIGH,adm.route.cache.enabled,admCacheEvictNamespace,업무 Operation,04_ADM운영자매뉴얼.md#cache
+cache,/cache,캐시,CACHE,framework,HIGH,adm.route.cache.enabled,admCacheReconcile,복구·재처리,04_ADM운영자매뉴얼.md#cache
+configs,/configs,설정,CONFIG,framework,HIGH,adm.route.configs.enabled,admConfigFindConfigs,조회,04_ADM운영자매뉴얼.md#configs
+configs,/configs,설정,CONFIG,framework,HIGH,adm.route.configs.enabled,admConfigFindConfig,조회,04_ADM운영자매뉴얼.md#configs
+configs,/configs,설정,CONFIG,framework,HIGH,adm.route.configs.enabled,admConfigCreateConfig,등록·변경,04_ADM운영자매뉴얼.md#configs
+configs,/configs,설정,CONFIG,framework,HIGH,adm.route.configs.enabled,admConfigUpdateConfig,등록·변경,04_ADM운영자매뉴얼.md#configs
+configs,/configs,설정,CONFIG,framework,HIGH,adm.route.configs.enabled,admConfigDeleteConfig,비활성·취소·삭제,04_ADM운영자매뉴얼.md#configs
+configs,/configs,설정,CONFIG,framework,HIGH,adm.route.configs.enabled,admParameterReferenceSearch,조회,04_ADM운영자매뉴얼.md#configs
+responseCodes,/responseCodes,응답코드,RESPONSE_CODE,framework,MEDIUM,adm.route.responseCodes.enabled,admResponseCodeFindAll,조회,04_ADM운영자매뉴얼.md#responsecodes
+responseCodes,/responseCodes,응답코드,RESPONSE_CODE,framework,MEDIUM,adm.route.responseCodes.enabled,admResponseCodeFindOne,조회,04_ADM운영자매뉴얼.md#responsecodes
+responseCodes,/responseCodes,응답코드,RESPONSE_CODE,framework,MEDIUM,adm.route.responseCodes.enabled,admResponseCodeCreate,등록·변경,04_ADM운영자매뉴얼.md#responsecodes
+responseCodes,/responseCodes,응답코드,RESPONSE_CODE,framework,MEDIUM,adm.route.responseCodes.enabled,admResponseCodeUpdate,등록·변경,04_ADM운영자매뉴얼.md#responsecodes
+responseCodes,/responseCodes,응답코드,RESPONSE_CODE,framework,MEDIUM,adm.route.responseCodes.enabled,admResponseCodeDelete,비활성·취소·삭제,04_ADM운영자매뉴얼.md#responsecodes
+businessCalendar,/businessCalendar,영업일·휴일,BUSINESS_CALENDAR,framework,MEDIUM,adm.route.businessCalendar.enabled,admCalendarFindDays,조회,04_ADM운영자매뉴얼.md#businesscalendar
+businessCalendar,/businessCalendar,영업일·휴일,BUSINESS_CALENDAR,framework,MEDIUM,adm.route.businessCalendar.enabled,admCalendarResolveDate,복구·재처리,04_ADM운영자매뉴얼.md#businesscalendar
+businessCalendar,/businessCalendar,영업일·휴일,BUSINESS_CALENDAR,framework,MEDIUM,adm.route.businessCalendar.enabled,admCalendarSaveDay,등록·변경,04_ADM운영자매뉴얼.md#businesscalendar
+businessCalendar,/businessCalendar,영업일·휴일,BUSINESS_CALENDAR,framework,MEDIUM,adm.route.businessCalendar.enabled,admCalendarDeleteDay,비활성·취소·삭제,04_ADM운영자매뉴얼.md#businesscalendar
+recoveryCenter,/recoveryCenter,복구 센터,RECOVERY_CENTER,monitoring,MEDIUM,adm.route.recoveryCenter.enabled,getAdmTransactionLogRecoveryStatus,조회,04_ADM운영자매뉴얼.md#recoverycenter
+recoveryCenter,/recoveryCenter,복구 센터,RECOVERY_CENTER,monitoring,MEDIUM,adm.route.recoveryCenter.enabled,runAdmTransactionLogRecovery,복구·재처리,04_ADM운영자매뉴얼.md#recoverycenter
+recoveryCenter,/recoveryCenter,복구 센터,RECOVERY_CENTER,monitoring,MEDIUM,adm.route.recoveryCenter.enabled,retryAdmTraceRecoveryPoison,복구·재처리,04_ADM운영자매뉴얼.md#recoverycenter
+recoveryCenter,/recoveryCenter,복구 센터,RECOVERY_CENTER,monitoring,MEDIUM,adm.route.recoveryCenter.enabled,resolveAdmUnknownResult,복구·재처리,04_ADM운영자매뉴얼.md#recoverycenter
+recoveryCenter,/recoveryCenter,복구 센터,RECOVERY_CENTER,monitoring,MEDIUM,adm.route.recoveryCenter.enabled,requestAdmBrokerDlqReplay,복구·재처리,04_ADM운영자매뉴얼.md#recoverycenter
+incidents,/incidents,Error·Unknown Result,INCIDENT,monitoring,HIGH,adm.route.incidents.enabled,findAdmUnknownResults,조회,04_ADM운영자매뉴얼.md#incidents
+incidents,/incidents,Error·Unknown Result,INCIDENT,monitoring,HIGH,adm.route.incidents.enabled,findAdmBrokerDlq,조회,04_ADM운영자매뉴얼.md#incidents
+incidents,/incidents,Error·Unknown Result,INCIDENT,monitoring,HIGH,adm.route.incidents.enabled,requestAdmBrokerDlqReplay,복구·재처리,04_ADM운영자매뉴얼.md#incidents
+incidents,/incidents,Error·Unknown Result,INCIDENT,monitoring,HIGH,adm.route.incidents.enabled,resolveAdmUnknownResult,복구·재처리,04_ADM운영자매뉴얼.md#incidents
+incidents,/incidents,Error·Unknown Result,INCIDENT,monitoring,HIGH,adm.route.incidents.enabled,getAdmTransactionLogRecoveryStatus,조회,04_ADM운영자매뉴얼.md#incidents
+incidents,/incidents,Error·Unknown Result,INCIDENT,monitoring,HIGH,adm.route.incidents.enabled,runAdmTransactionLogRecovery,복구·재처리,04_ADM운영자매뉴얼.md#incidents
+incidents,/incidents,Error·Unknown Result,INCIDENT,monitoring,HIGH,adm.route.incidents.enabled,admIncidentFindIncidents,조회,04_ADM운영자매뉴얼.md#incidents
+incidents,/incidents,Error·Unknown Result,INCIDENT,monitoring,HIGH,adm.route.incidents.enabled,admIncidentCreateIncident,등록·변경,04_ADM운영자매뉴얼.md#incidents
+incidents,/incidents,Error·Unknown Result,INCIDENT,monitoring,HIGH,adm.route.incidents.enabled,admIncidentFindMaintenance,조회,04_ADM운영자매뉴얼.md#incidents
+incidents,/incidents,Error·Unknown Result,INCIDENT,monitoring,HIGH,adm.route.incidents.enabled,admIncidentFindPolicies,조회,04_ADM운영자매뉴얼.md#incidents
+incidents,/incidents,Error·Unknown Result,INCIDENT,monitoring,HIGH,adm.route.incidents.enabled,admIncidentIngestSignal,업무 Operation,04_ADM운영자매뉴얼.md#incidents
+incidents,/incidents,Error·Unknown Result,INCIDENT,monitoring,HIGH,adm.route.incidents.enabled,admIncidentTransitionIncident,승인·실행·상태변경,04_ADM운영자매뉴얼.md#incidents
+incidents,/incidents,Error·Unknown Result,INCIDENT,monitoring,HIGH,adm.route.incidents.enabled,admIncidentCreateMaintenance,등록·변경,04_ADM운영자매뉴얼.md#incidents
+incidents,/incidents,Error·Unknown Result,INCIDENT,monitoring,HIGH,adm.route.incidents.enabled,admIncidentUpdateMaintenance,등록·변경,04_ADM운영자매뉴얼.md#incidents
+incidents,/incidents,Error·Unknown Result,INCIDENT,monitoring,HIGH,adm.route.incidents.enabled,admIncidentCreatePolicy,등록·변경,04_ADM운영자매뉴얼.md#incidents
+incidents,/incidents,Error·Unknown Result,INCIDENT,monitoring,HIGH,adm.route.incidents.enabled,admIncidentUpdatePolicy,등록·변경,04_ADM운영자매뉴얼.md#incidents
+incidents,/incidents,Error·Unknown Result,INCIDENT,monitoring,HIGH,adm.route.incidents.enabled,admIncidentFindIncident,조회,04_ADM운영자매뉴얼.md#incidents
+incidents,/incidents,Error·Unknown Result,INCIDENT,monitoring,HIGH,adm.route.incidents.enabled,admIncidentAcknowledge,업무 Operation,04_ADM운영자매뉴얼.md#incidents
+incidents,/incidents,Error·Unknown Result,INCIDENT,monitoring,HIGH,adm.route.incidents.enabled,admIncidentEscalate,업무 Operation,04_ADM운영자매뉴얼.md#incidents
+incidents,/incidents,Error·Unknown Result,INCIDENT,monitoring,HIGH,adm.route.incidents.enabled,admIncidentReopen,승인·실행·상태변경,04_ADM운영자매뉴얼.md#incidents
+incidents,/incidents,Error·Unknown Result,INCIDENT,monitoring,HIGH,adm.route.incidents.enabled,admIncidentResolve,복구·재처리,04_ADM운영자매뉴얼.md#incidents
+incidents,/incidents,Error·Unknown Result,INCIDENT,monitoring,HIGH,adm.route.incidents.enabled,admIncidentFindTimeline,조회,04_ADM운영자매뉴얼.md#incidents
+reliability,/reliability,Analysis Center,RELIABILITY,monitoring,MEDIUM,adm.route.reliability.enabled,findAdmUnknownResults,조회,04_ADM운영자매뉴얼.md#reliability
+reliability,/reliability,Analysis Center,RELIABILITY,monitoring,MEDIUM,adm.route.reliability.enabled,findAdmBrokerDlq,조회,04_ADM운영자매뉴얼.md#reliability
+reliability,/reliability,Analysis Center,RELIABILITY,monitoring,MEDIUM,adm.route.reliability.enabled,findAdmBrokerOutbox,조회,04_ADM운영자매뉴얼.md#reliability
+reliability,/reliability,Analysis Center,RELIABILITY,monitoring,MEDIUM,adm.route.reliability.enabled,findAdmBrokerInbox,조회,04_ADM운영자매뉴얼.md#reliability
+reliability,/reliability,Analysis Center,RELIABILITY,monitoring,MEDIUM,adm.route.reliability.enabled,findAdmIdempotencyRecords,조회,04_ADM운영자매뉴얼.md#reliability
+reliability,/reliability,Analysis Center,RELIABILITY,monitoring,MEDIUM,adm.route.reliability.enabled,findAdmFileTransferHistory,조회,04_ADM운영자매뉴얼.md#reliability
+reliability,/reliability,Analysis Center,RELIABILITY,monitoring,MEDIUM,adm.route.reliability.enabled,getAdmTransactionLogRecoveryStatus,조회,04_ADM운영자매뉴얼.md#reliability
+reliability,/reliability,Analysis Center,RELIABILITY,monitoring,MEDIUM,adm.route.reliability.enabled,findAdmBatchJobInstanceLogs,조회,04_ADM운영자매뉴얼.md#reliability
+notifications,/notifications,알림,NOTIFICATION,integration,MEDIUM,adm.route.notifications.enabled,admNotificationFindRules,조회,04_ADM운영자매뉴얼.md#notifications
+notifications,/notifications,알림,NOTIFICATION,integration,MEDIUM,adm.route.notifications.enabled,admNotificationFindRule,조회,04_ADM운영자매뉴얼.md#notifications
+notifications,/notifications,알림,NOTIFICATION,integration,MEDIUM,adm.route.notifications.enabled,admNotificationFindDeliveryLogs,조회,04_ADM운영자매뉴얼.md#notifications
+notifications,/notifications,알림,NOTIFICATION,integration,MEDIUM,adm.route.notifications.enabled,admNotificationFindDeliveryAttempts,조회,04_ADM운영자매뉴얼.md#notifications
+notifications,/notifications,알림,NOTIFICATION,integration,MEDIUM,adm.route.notifications.enabled,admNotificationSaveRule,등록·변경,04_ADM운영자매뉴얼.md#notifications
+notifications,/notifications,알림,NOTIFICATION,integration,MEDIUM,adm.route.notifications.enabled,admNotificationUpdateRule,등록·변경,04_ADM운영자매뉴얼.md#notifications
+notifications,/notifications,알림,NOTIFICATION,integration,MEDIUM,adm.route.notifications.enabled,admNotificationRetryDelivery,복구·재처리,04_ADM운영자매뉴얼.md#notifications
+notifications,/notifications,알림,NOTIFICATION,integration,MEDIUM,adm.route.notifications.enabled,admNotificationCancelDelivery,비활성·취소·삭제,04_ADM운영자매뉴얼.md#notifications
+notifications,/notifications,알림,NOTIFICATION,integration,MEDIUM,adm.route.notifications.enabled,admNotificationSendTest,업무 Operation,04_ADM운영자매뉴얼.md#notifications
+notifications,/notifications,알림,NOTIFICATION,integration,MEDIUM,adm.route.notifications.enabled,admNotificationFindDlq,조회,04_ADM운영자매뉴얼.md#notifications
+notifications,/notifications,알림,NOTIFICATION,integration,MEDIUM,adm.route.notifications.enabled,admNotificationDisableRule,비활성·취소·삭제,04_ADM운영자매뉴얼.md#notifications
+batch,/batch,Batch / Center-Cut,BATCH,batch,MEDIUM,adm.route.batch.enabled,admBatchFindJobs,조회,04_ADM운영자매뉴얼.md#batch
+batch,/batch,Batch / Center-Cut,BATCH,batch,MEDIUM,adm.route.batch.enabled,admBatchFindSchedules,조회,04_ADM운영자매뉴얼.md#batch
+batch,/batch,Batch / Center-Cut,BATCH,batch,MEDIUM,adm.route.batch.enabled,admBatchFindExecutionPage,조회,04_ADM운영자매뉴얼.md#batch
+batch,/batch,Batch / Center-Cut,BATCH,batch,MEDIUM,adm.route.batch.enabled,admBatchFindInstances,조회,04_ADM운영자매뉴얼.md#batch
+batch,/batch,Batch / Center-Cut,BATCH,batch,MEDIUM,adm.route.batch.enabled,admBatchFindWorkers,조회,04_ADM운영자매뉴얼.md#batch
+batch,/batch,Batch / Center-Cut,BATCH,batch,MEDIUM,adm.route.batch.enabled,admBatchWorkbenchJobDetail,조회,04_ADM운영자매뉴얼.md#batch
+batch,/batch,Batch / Center-Cut,BATCH,batch,MEDIUM,adm.route.batch.enabled,admBatchFindExecutionTargets,조회,04_ADM운영자매뉴얼.md#batch
+batch,/batch,Batch / Center-Cut,BATCH,batch,MEDIUM,adm.route.batch.enabled,admBatchFindExecutions,조회,04_ADM운영자매뉴얼.md#batch
+batch,/batch,Batch / Center-Cut,BATCH,batch,MEDIUM,adm.route.batch.enabled,admBatchRegisterJob,등록·변경,04_ADM운영자매뉴얼.md#batch
+batch,/batch,Batch / Center-Cut,BATCH,batch,MEDIUM,adm.route.batch.enabled,admBatchFindJobDetail,조회,04_ADM운영자매뉴얼.md#batch
+batch,/batch,Batch / Center-Cut,BATCH,batch,MEDIUM,adm.route.batch.enabled,admBatchRunJob,승인·실행·상태변경,04_ADM운영자매뉴얼.md#batch
+batch,/batch,Batch / Center-Cut,BATCH,batch,MEDIUM,adm.route.batch.enabled,admBatchFindRelations,조회,04_ADM운영자매뉴얼.md#batch
+batch-overview,/batch-overview,Batch Overview,BATCH_OVERVIEW,batch,MEDIUM,adm.route.batch-overview.enabled,admBatchWorkbenchOverview,조회,04_ADM운영자매뉴얼.md#batch-overview
+batch-overview,/batch-overview,Batch Overview,BATCH_OVERVIEW,batch,MEDIUM,adm.route.batch-overview.enabled,admBatchFindJobs,조회,04_ADM운영자매뉴얼.md#batch-overview
+batch-overview,/batch-overview,Batch Overview,BATCH_OVERVIEW,batch,MEDIUM,adm.route.batch-overview.enabled,admBatchFindSchedules,조회,04_ADM운영자매뉴얼.md#batch-overview
+batch-overview,/batch-overview,Batch Overview,BATCH_OVERVIEW,batch,MEDIUM,adm.route.batch-overview.enabled,admBatchFindExecutionPage,조회,04_ADM운영자매뉴얼.md#batch-overview
+batch-overview,/batch-overview,Batch Overview,BATCH_OVERVIEW,batch,MEDIUM,adm.route.batch-overview.enabled,admBatchFindInstances,조회,04_ADM운영자매뉴얼.md#batch-overview
+batch-overview,/batch-overview,Batch Overview,BATCH_OVERVIEW,batch,MEDIUM,adm.route.batch-overview.enabled,admBatchFindWorkers,조회,04_ADM운영자매뉴얼.md#batch-overview
+batch-overview,/batch-overview,Batch Overview,BATCH_OVERVIEW,batch,MEDIUM,adm.route.batch-overview.enabled,admBatchFindLocks,조회,04_ADM운영자매뉴얼.md#batch-overview
+batch-runtime,/batch-runtime,Runtime Topology,BATCH_RUNTIME,batch,HIGH,adm.route.batch-runtime.enabled,admBatchRuntimeInstances,승인·실행·상태변경,04_ADM운영자매뉴얼.md#batch-runtime
+batch-runtime,/batch-runtime,Runtime Topology,BATCH_RUNTIME,batch,HIGH,adm.route.batch-runtime.enabled,admBatchRuntimeView,조회,04_ADM운영자매뉴얼.md#batch-runtime
+batch-runtime,/batch-runtime,Runtime Topology,BATCH_RUNTIME,batch,HIGH,adm.route.batch-runtime.enabled,admBatchRuntimeCommand,승인·실행·상태변경,04_ADM운영자매뉴얼.md#batch-runtime
+batch-runtime,/batch-runtime,Runtime Topology,BATCH_RUNTIME,batch,HIGH,adm.route.batch-runtime.enabled,admBatchRuntimeCommandState,승인·실행·상태변경,04_ADM운영자매뉴얼.md#batch-runtime
+batch-instances,/batch-instances,Runtime Instances,BATCH_INSTANCES,batch,MEDIUM,adm.route.batch-instances.enabled,admBatchWorkbenchInfrastructure,업무 Operation,04_ADM운영자매뉴얼.md#batch-instances
+batch-instances,/batch-instances,Runtime Instances,BATCH_INSTANCES,batch,MEDIUM,adm.route.batch-instances.enabled,admBatchFindInstances,조회,04_ADM운영자매뉴얼.md#batch-instances
+batch-instances,/batch-instances,Runtime Instances,BATCH_INSTANCES,batch,MEDIUM,adm.route.batch-instances.enabled,admBatchRuntimeInstances,승인·실행·상태변경,04_ADM운영자매뉴얼.md#batch-instances
+batch-instances,/batch-instances,Runtime Instances,BATCH_INSTANCES,batch,MEDIUM,adm.route.batch-instances.enabled,admBatchRuntimeView,조회,04_ADM운영자매뉴얼.md#batch-instances
+batch-scheduler,/batch-scheduler,Scheduler HA,BATCH_SCHEDULER,batch,MEDIUM,adm.route.batch-scheduler.enabled,admBatchWorkbenchSchedules,업무 Operation,04_ADM운영자매뉴얼.md#batch-scheduler
+batch-scheduler,/batch-scheduler,Scheduler HA,BATCH_SCHEDULER,batch,MEDIUM,adm.route.batch-scheduler.enabled,admBatchFindSchedules,조회,04_ADM운영자매뉴얼.md#batch-scheduler
+batch-scheduler,/batch-scheduler,Scheduler HA,BATCH_SCHEDULER,batch,MEDIUM,adm.route.batch-scheduler.enabled,admBatchSimulateSchedule,조회,04_ADM운영자매뉴얼.md#batch-scheduler
+batch-scheduler,/batch-scheduler,Scheduler HA,BATCH_SCHEDULER,batch,MEDIUM,adm.route.batch-scheduler.enabled,admBatchEnableSchedule,업무 Operation,04_ADM운영자매뉴얼.md#batch-scheduler
+batch-scheduler,/batch-scheduler,Scheduler HA,BATCH_SCHEDULER,batch,MEDIUM,adm.route.batch-scheduler.enabled,admBatchDisableSchedule,비활성·취소·삭제,04_ADM운영자매뉴얼.md#batch-scheduler
+batch-scheduler,/batch-scheduler,Scheduler HA,BATCH_SCHEDULER,batch,MEDIUM,adm.route.batch-scheduler.enabled,admBatchRunSchedulerOnce,승인·실행·상태변경,04_ADM운영자매뉴얼.md#batch-scheduler
+batch-worker-pools,/batch-worker-pools,Worker Pools,BATCH_WORKER_POOLS,batch,MEDIUM,adm.route.batch-worker-pools.enabled,admBatchWorkbenchInfrastructure,업무 Operation,04_ADM운영자매뉴얼.md#batch-worker-pools
+batch-worker-pools,/batch-worker-pools,Worker Pools,BATCH_WORKER_POOLS,batch,MEDIUM,adm.route.batch-worker-pools.enabled,admBatchFindWorkers,조회,04_ADM운영자매뉴얼.md#batch-worker-pools
+batch-worker-pools,/batch-worker-pools,Worker Pools,BATCH_WORKER_POOLS,batch,MEDIUM,adm.route.batch-worker-pools.enabled,admBatchRuntimeView,조회,04_ADM운영자매뉴얼.md#batch-worker-pools
+batch-worker-pools,/batch-worker-pools,Worker Pools,BATCH_WORKER_POOLS,batch,MEDIUM,adm.route.batch-worker-pools.enabled,admBatchRuntimeCommand,승인·실행·상태변경,04_ADM운영자매뉴얼.md#batch-worker-pools
+batch-worker-pools,/batch-worker-pools,Worker Pools,BATCH_WORKER_POOLS,batch,MEDIUM,adm.route.batch-worker-pools.enabled,admBatchRuntimeCommandState,승인·실행·상태변경,04_ADM운영자매뉴얼.md#batch-worker-pools
+batch-center-cut,/batch-center-cut,Center-Cut,BATCH_CENTER_CUT,batch,MEDIUM,adm.route.batch-center-cut.enabled,admCenterCutFindSummary,조회,04_ADM운영자매뉴얼.md#batch-center-cut
+batch-center-cut,/batch-center-cut,Center-Cut,BATCH_CENTER_CUT,batch,MEDIUM,adm.route.batch-center-cut.enabled,admCenterCutFindJobs,조회,04_ADM운영자매뉴얼.md#batch-center-cut
+batch-center-cut,/batch-center-cut,Center-Cut,BATCH_CENTER_CUT,batch,MEDIUM,adm.route.batch-center-cut.enabled,admCenterCutFindJobDetail,조회,04_ADM운영자매뉴얼.md#batch-center-cut
+batch-center-cut,/batch-center-cut,Center-Cut,BATCH_CENTER_CUT,batch,MEDIUM,adm.route.batch-center-cut.enabled,admCenterCutFindResults,조회,04_ADM운영자매뉴얼.md#batch-center-cut
+batch-center-cut,/batch-center-cut,Center-Cut,BATCH_CENTER_CUT,batch,MEDIUM,adm.route.batch-center-cut.enabled,admCenterCutFindResultDetail,조회,04_ADM운영자매뉴얼.md#batch-center-cut
+batch-center-cut,/batch-center-cut,Center-Cut,BATCH_CENTER_CUT,batch,MEDIUM,adm.route.batch-center-cut.enabled,admCenterCutFindTargets,조회,04_ADM운영자매뉴얼.md#batch-center-cut
+batch-center-cut,/batch-center-cut,Center-Cut,BATCH_CENTER_CUT,batch,MEDIUM,adm.route.batch-center-cut.enabled,admCenterCutFindParameters,조회,04_ADM운영자매뉴얼.md#batch-center-cut
+batch-center-cut,/batch-center-cut,Center-Cut,BATCH_CENTER_CUT,batch,MEDIUM,adm.route.batch-center-cut.enabled,admCenterCutReprocessFailedExecution,복구·재처리,04_ADM운영자매뉴얼.md#batch-center-cut
+batch-center-cut,/batch-center-cut,Center-Cut,BATCH_CENTER_CUT,batch,MEDIUM,adm.route.batch-center-cut.enabled,admCenterCutReconcileUnknownExecution,복구·재처리,04_ADM운영자매뉴얼.md#batch-center-cut
+batch-agents,/batch-agents,Host Agents,BATCH_AGENTS,batch,MEDIUM,adm.route.batch-agents.enabled,admBatchWorkbenchInfrastructure,업무 Operation,04_ADM운영자매뉴얼.md#batch-agents
+batch-agents,/batch-agents,Host Agents,BATCH_AGENTS,batch,MEDIUM,adm.route.batch-agents.enabled,admBatchRuntimeInstances,승인·실행·상태변경,04_ADM운영자매뉴얼.md#batch-agents
+batch-agents,/batch-agents,Host Agents,BATCH_AGENTS,batch,MEDIUM,adm.route.batch-agents.enabled,admBatchRuntimeView,조회,04_ADM운영자매뉴얼.md#batch-agents
+batch-agents,/batch-agents,Host Agents,BATCH_AGENTS,batch,MEDIUM,adm.route.batch-agents.enabled,admBatchRuntimeCommand,승인·실행·상태변경,04_ADM운영자매뉴얼.md#batch-agents
+batch-agents,/batch-agents,Host Agents,BATCH_AGENTS,batch,MEDIUM,adm.route.batch-agents.enabled,admBatchRuntimeCommandState,승인·실행·상태변경,04_ADM운영자매뉴얼.md#batch-agents
+batch-job-packs,/batch-job-packs,Job Packs,BATCH_JOB_PACKS,batch,MEDIUM,adm.route.batch-job-packs.enabled,admBatchWorkbenchJobDetail,조회,04_ADM운영자매뉴얼.md#batch-job-packs
+batch-job-packs,/batch-job-packs,Job Packs,BATCH_JOB_PACKS,batch,MEDIUM,adm.route.batch-job-packs.enabled,admBatchWorkbenchJobs,업무 Operation,04_ADM운영자매뉴얼.md#batch-job-packs
+batch-job-packs,/batch-job-packs,Job Packs,BATCH_JOB_PACKS,batch,MEDIUM,adm.route.batch-job-packs.enabled,admBatchJobDefinitions,업무 Operation,04_ADM운영자매뉴얼.md#batch-job-packs
+batch-job-packs,/batch-job-packs,Job Packs,BATCH_JOB_PACKS,batch,MEDIUM,adm.route.batch-job-packs.enabled,admBatchJobDefinitionDetail,조회,04_ADM운영자매뉴얼.md#batch-job-packs
+batch-job-packs,/batch-job-packs,Job Packs,BATCH_JOB_PACKS,batch,MEDIUM,adm.route.batch-job-packs.enabled,admBatchJobDefinitionValidate,업무 Operation,04_ADM운영자매뉴얼.md#batch-job-packs
+batch-job-packs,/batch-job-packs,Job Packs,BATCH_JOB_PACKS,batch,MEDIUM,adm.route.batch-job-packs.enabled,admBatchJobDefinitionSave,등록·변경,04_ADM운영자매뉴얼.md#batch-job-packs
+batch-job-packs,/batch-job-packs,Job Packs,BATCH_JOB_PACKS,batch,MEDIUM,adm.route.batch-job-packs.enabled,admBatchJobDefinitionTransition,승인·실행·상태변경,04_ADM운영자매뉴얼.md#batch-job-packs
+batch-job-packs,/batch-job-packs,Job Packs,BATCH_JOB_PACKS,batch,MEDIUM,adm.route.batch-job-packs.enabled,admBatchFindJobs,조회,04_ADM운영자매뉴얼.md#batch-job-packs
+batch-executions,/batch-executions,Executions,BATCH_EXECUTIONS,batch,MEDIUM,adm.route.batch-executions.enabled,admBatchWorkbenchExecutionDetail,조회,04_ADM운영자매뉴얼.md#batch-executions
+batch-executions,/batch-executions,Executions,BATCH_EXECUTIONS,batch,MEDIUM,adm.route.batch-executions.enabled,admBatchWorkbenchExecutions,업무 Operation,04_ADM운영자매뉴얼.md#batch-executions
+batch-executions,/batch-executions,Executions,BATCH_EXECUTIONS,batch,MEDIUM,adm.route.batch-executions.enabled,admBatchFindExecutionPage,조회,04_ADM운영자매뉴얼.md#batch-executions
+batch-executions,/batch-executions,Executions,BATCH_EXECUTIONS,batch,MEDIUM,adm.route.batch-executions.enabled,admBatchFindExecutionDetail,조회,04_ADM운영자매뉴얼.md#batch-executions
+batch-executions,/batch-executions,Executions,BATCH_EXECUTIONS,batch,MEDIUM,adm.route.batch-executions.enabled,admBatchFindStepExecutions,조회,04_ADM운영자매뉴얼.md#batch-executions
+batch-executions,/batch-executions,Executions,BATCH_EXECUTIONS,batch,MEDIUM,adm.route.batch-executions.enabled,admBatchRetryExecution,복구·재처리,04_ADM운영자매뉴얼.md#batch-executions
+batch-executions,/batch-executions,Executions,BATCH_EXECUTIONS,batch,MEDIUM,adm.route.batch-executions.enabled,admBatchStopExecution,업무 Operation,04_ADM운영자매뉴얼.md#batch-executions
+batch-deployment,/batch-deployment,Deployment / Rollback,BATCH_DEPLOYMENT,batch,HIGH,adm.route.batch-deployment.enabled,admBatchRuntimeCreateDeploymentPlan,승인·실행·상태변경,04_ADM운영자매뉴얼.md#batch-deployment
+batch-deployment,/batch-deployment,Deployment / Rollback,BATCH_DEPLOYMENT,batch,HIGH,adm.route.batch-deployment.enabled,admBatchRuntimeView,조회,04_ADM운영자매뉴얼.md#batch-deployment
+batch-deployment,/batch-deployment,Deployment / Rollback,BATCH_DEPLOYMENT,batch,HIGH,adm.route.batch-deployment.enabled,admBatchRuntimeCommandState,승인·실행·상태변경,04_ADM운영자매뉴얼.md#batch-deployment
+batch-recovery,/batch-recovery,Recovery / Unknown,BATCH_RECOVERY,monitoring,MEDIUM,adm.route.batch-recovery.enabled,admBatchWorkbenchRecovery,복구·재처리,04_ADM운영자매뉴얼.md#batch-recovery
+batch-recovery,/batch-recovery,Recovery / Unknown,BATCH_RECOVERY,monitoring,MEDIUM,adm.route.batch-recovery.enabled,admBatchRuntimeView,조회,04_ADM운영자매뉴얼.md#batch-recovery
+batch-recovery,/batch-recovery,Recovery / Unknown,BATCH_RECOVERY,monitoring,MEDIUM,adm.route.batch-recovery.enabled,admBatchFindGhostCandidates,조회,04_ADM운영자매뉴얼.md#batch-recovery
+batch-recovery,/batch-recovery,Recovery / Unknown,BATCH_RECOVERY,monitoring,MEDIUM,adm.route.batch-recovery.enabled,admBatchActGhostExecution,업무 Operation,04_ADM운영자매뉴얼.md#batch-recovery
+batch-recovery,/batch-recovery,Recovery / Unknown,BATCH_RECOVERY,monitoring,MEDIUM,adm.route.batch-recovery.enabled,findAdmUnknownResults,조회,04_ADM운영자매뉴얼.md#batch-recovery
+batch-recovery,/batch-recovery,Recovery / Unknown,BATCH_RECOVERY,monitoring,MEDIUM,adm.route.batch-recovery.enabled,resolveAdmUnknownResult,복구·재처리,04_ADM운영자매뉴얼.md#batch-recovery
+batch-leases,/batch-leases,Lease / Fencing,BATCH_LEASES,monitoring,MEDIUM,adm.route.batch-leases.enabled,admBatchWorkbenchRecovery,복구·재처리,04_ADM운영자매뉴얼.md#batch-leases
+batch-leases,/batch-leases,Lease / Fencing,BATCH_LEASES,monitoring,MEDIUM,adm.route.batch-leases.enabled,admBatchRuntimeView,조회,04_ADM운영자매뉴얼.md#batch-leases
+batch-leases,/batch-leases,Lease / Fencing,BATCH_LEASES,monitoring,MEDIUM,adm.route.batch-leases.enabled,admBatchFindLocks,조회,04_ADM운영자매뉴얼.md#batch-leases
+batch-leases,/batch-leases,Lease / Fencing,BATCH_LEASES,monitoring,MEDIUM,adm.route.batch-leases.enabled,admBatchReleaseLock,복구·재처리,04_ADM운영자매뉴얼.md#batch-leases
+batch-alerts,/batch-alerts,Batch Alerts,BATCH_ALERTS,monitoring,MEDIUM,adm.route.batch-alerts.enabled,findAdmUnknownResults,조회,04_ADM운영자매뉴얼.md#batch-alerts
+batch-alerts,/batch-alerts,Batch Alerts,BATCH_ALERTS,monitoring,MEDIUM,adm.route.batch-alerts.enabled,findAdmBrokerDlq,조회,04_ADM운영자매뉴얼.md#batch-alerts
+batch-alerts,/batch-alerts,Batch Alerts,BATCH_ALERTS,monitoring,MEDIUM,adm.route.batch-alerts.enabled,findAdmBrokerOutbox,조회,04_ADM운영자매뉴얼.md#batch-alerts
+batch-alerts,/batch-alerts,Batch Alerts,BATCH_ALERTS,monitoring,MEDIUM,adm.route.batch-alerts.enabled,admBatchFindOperationLogs,조회,04_ADM운영자매뉴얼.md#batch-alerts
+batch-audit,/batch-audit,Audit / Evidence,BATCH_AUDIT,monitoring,MEDIUM,adm.route.batch-audit.enabled,admBatchWorkbenchRecovery,복구·재처리,04_ADM운영자매뉴얼.md#batch-audit
+batch-audit,/batch-audit,Audit / Evidence,BATCH_AUDIT,monitoring,MEDIUM,adm.route.batch-audit.enabled,admBatchFindOperationLogs,조회,04_ADM운영자매뉴얼.md#batch-audit
+batch-audit,/batch-audit,Audit / Evidence,BATCH_AUDIT,monitoring,MEDIUM,adm.route.batch-audit.enabled,admAuditLogFindAuditLogs,조회,04_ADM운영자매뉴얼.md#batch-audit
+batch-audit,/batch-audit,Audit / Evidence,BATCH_AUDIT,monitoring,MEDIUM,adm.route.batch-audit.enabled,admAuditDeliveryList,조회,04_ADM운영자매뉴얼.md#batch-audit
+batch-audit,/batch-audit,Audit / Evidence,BATCH_AUDIT,monitoring,MEDIUM,adm.route.batch-audit.enabled,getAdmBatchJobInstanceLog,조회,04_ADM운영자매뉴얼.md#batch-audit
+workers,/workers,Agent / Worker,WORKER,batch,MEDIUM,adm.route.workers.enabled,admBatchFindWorkers,조회,04_ADM운영자매뉴얼.md#workers
+workers,/workers,Agent / Worker,WORKER,batch,MEDIUM,adm.route.workers.enabled,admBatchFindInstances,조회,04_ADM운영자매뉴얼.md#workers
+workers,/workers,Agent / Worker,WORKER,batch,MEDIUM,adm.route.workers.enabled,admBatchRuntimeInstances,승인·실행·상태변경,04_ADM운영자매뉴얼.md#workers
+downloads,/downloads,다운로드,DOWNLOAD,integration,MEDIUM,adm.route.downloads.enabled,admDownloadFindPolicies,조회,04_ADM운영자매뉴얼.md#downloads
+downloads,/downloads,다운로드,DOWNLOAD,integration,MEDIUM,adm.route.downloads.enabled,admDownloadFindDownloadAuditLogs,조회,04_ADM운영자매뉴얼.md#downloads
+downloads,/downloads,다운로드,DOWNLOAD,integration,MEDIUM,adm.route.downloads.enabled,admDownloadDownloadCsv,업무 Operation,04_ADM운영자매뉴얼.md#downloads
+file-jobs,/file-jobs,대량파일 Job,FILE_JOB,batch,MEDIUM,adm.route.file-jobs.enabled,admFileJobList,조회,04_ADM운영자매뉴얼.md#file-jobs
+file-jobs,/file-jobs,대량파일 Job,FILE_JOB,batch,MEDIUM,adm.route.file-jobs.enabled,admFileJobDetail,조회,04_ADM운영자매뉴얼.md#file-jobs
+file-jobs,/file-jobs,대량파일 Job,FILE_JOB,batch,MEDIUM,adm.route.file-jobs.enabled,admFileJobRows,업무 Operation,04_ADM운영자매뉴얼.md#file-jobs
+file-jobs,/file-jobs,대량파일 Job,FILE_JOB,batch,MEDIUM,adm.route.file-jobs.enabled,admFileJobUpload,등록·변경,04_ADM운영자매뉴얼.md#file-jobs
+file-jobs,/file-jobs,대량파일 Job,FILE_JOB,batch,MEDIUM,adm.route.file-jobs.enabled,admFileJobApply,승인·실행·상태변경,04_ADM운영자매뉴얼.md#file-jobs
+file-jobs,/file-jobs,대량파일 Job,FILE_JOB,batch,MEDIUM,adm.route.file-jobs.enabled,admFileJobRetry,복구·재처리,04_ADM운영자매뉴얼.md#file-jobs
+file-jobs,/file-jobs,대량파일 Job,FILE_JOB,batch,MEDIUM,adm.route.file-jobs.enabled,admFileJobCancel,비활성·취소·삭제,04_ADM운영자매뉴얼.md#file-jobs
+file-jobs,/file-jobs,대량파일 Job,FILE_JOB,batch,MEDIUM,adm.route.file-jobs.enabled,admFileJobRollback,복구·재처리,04_ADM운영자매뉴얼.md#file-jobs
+file-jobs,/file-jobs,대량파일 Job,FILE_JOB,batch,MEDIUM,adm.route.file-jobs.enabled,admFileJobResolveUnknown,복구·재처리,04_ADM운영자매뉴얼.md#file-jobs
+file-jobs,/file-jobs,대량파일 Job,FILE_JOB,batch,MEDIUM,adm.route.file-jobs.enabled,admFileJobArtifact,업무 Operation,04_ADM운영자매뉴얼.md#file-jobs
+messages,/messages,전문·Protocol Message,MESSAGE,integration,MEDIUM,adm.route.messages.enabled,admMessageFindMessages,조회,04_ADM운영자매뉴얼.md#messages
+messages,/messages,전문·Protocol Message,MESSAGE,integration,MEDIUM,adm.route.messages.enabled,admMessageFindMessage,조회,04_ADM운영자매뉴얼.md#messages
+messages,/messages,전문·Protocol Message,MESSAGE,integration,MEDIUM,adm.route.messages.enabled,admMessageCreateMessage,등록·변경,04_ADM운영자매뉴얼.md#messages
+messages,/messages,전문·Protocol Message,MESSAGE,integration,MEDIUM,adm.route.messages.enabled,admMessageUpdateMessage,등록·변경,04_ADM운영자매뉴얼.md#messages
+messages,/messages,전문·Protocol Message,MESSAGE,integration,MEDIUM,adm.route.messages.enabled,admMessageDeleteMessage,비활성·취소·삭제,04_ADM운영자매뉴얼.md#messages
+messages,/messages,전문·Protocol Message,MESSAGE,integration,MEDIUM,adm.route.messages.enabled,traceAdmByTransactionId,업무 Operation,04_ADM운영자매뉴얼.md#messages
+codes,/codes,코드,CODE,framework,MEDIUM,adm.route.codes.enabled,admCodeFindCodes,조회,04_ADM운영자매뉴얼.md#codes
+codes,/codes,코드,CODE,framework,MEDIUM,adm.route.codes.enabled,admCodeFindCode,조회,04_ADM운영자매뉴얼.md#codes
+codes,/codes,코드,CODE,framework,MEDIUM,adm.route.codes.enabled,admCodeCreateCode,등록·변경,04_ADM운영자매뉴얼.md#codes
+codes,/codes,코드,CODE,framework,MEDIUM,adm.route.codes.enabled,admCodeUpdateCode,등록·변경,04_ADM운영자매뉴얼.md#codes
+codes,/codes,코드,CODE,framework,MEDIUM,adm.route.codes.enabled,admCodeDeleteCode,비활성·취소·삭제,04_ADM운영자매뉴얼.md#codes
+gateway-dashboard,/gateway-dashboard,Gateway 대시보드,GATEWAY_DASHBOARD,online,MEDIUM,adm.route.gateway-dashboard.enabled,admGatewayCapability,조회,04_ADM운영자매뉴얼.md#gateway-dashboard
+gateway-dashboard,/gateway-dashboard,Gateway 대시보드,GATEWAY_DASHBOARD,online,MEDIUM,adm.route.gateway-dashboard.enabled,admGatewayOperationsSnapshot,조회,04_ADM운영자매뉴얼.md#gateway-dashboard
+gateway-dashboard,/gateway-dashboard,Gateway 대시보드,GATEWAY_DASHBOARD,online,MEDIUM,adm.route.gateway-dashboard.enabled,admGatewayOperationsEvents,조회,04_ADM운영자매뉴얼.md#gateway-dashboard
+gateway-dashboard,/gateway-dashboard,Gateway 대시보드,GATEWAY_DASHBOARD,online,MEDIUM,adm.route.gateway-dashboard.enabled,admGatewayOperationsStream,조회,04_ADM운영자매뉴얼.md#gateway-dashboard
+gateway-servers,/gateway-servers,Gateway 연동 서버,GATEWAY_SERVERS,online,MEDIUM,adm.route.gateway-servers.enabled,admGatewayFindServerGroups,조회,04_ADM운영자매뉴얼.md#gateway-servers
+gateway-servers,/gateway-servers,Gateway 연동 서버,GATEWAY_SERVERS,online,MEDIUM,adm.route.gateway-servers.enabled,admGatewayFindGroupMembers,조회,04_ADM운영자매뉴얼.md#gateway-servers
+gateway-servers,/gateway-servers,Gateway 연동 서버,GATEWAY_SERVERS,online,MEDIUM,adm.route.gateway-servers.enabled,admGatewaySaveServerGroup,등록·변경,04_ADM운영자매뉴얼.md#gateway-servers
+gateway-servers,/gateway-servers,Gateway 연동 서버,GATEWAY_SERVERS,online,MEDIUM,adm.route.gateway-servers.enabled,admGatewayDeleteServerGroup,비활성·취소·삭제,04_ADM운영자매뉴얼.md#gateway-servers
+gateway-groups,/gateway-groups,Gateway 서버 그룹,GATEWAY_GROUPS,online,MEDIUM,adm.route.gateway-groups.enabled,admGatewayFindServerGroups,조회,04_ADM운영자매뉴얼.md#gateway-groups
+gateway-groups,/gateway-groups,Gateway 서버 그룹,GATEWAY_GROUPS,online,MEDIUM,adm.route.gateway-groups.enabled,admGatewayFindGroupMembers,조회,04_ADM운영자매뉴얼.md#gateway-groups
+gateway-groups,/gateway-groups,Gateway 서버 그룹,GATEWAY_GROUPS,online,MEDIUM,adm.route.gateway-groups.enabled,admGatewaySaveServerGroup,등록·변경,04_ADM운영자매뉴얼.md#gateway-groups
+gateway-groups,/gateway-groups,Gateway 서버 그룹,GATEWAY_GROUPS,online,MEDIUM,adm.route.gateway-groups.enabled,admGatewayDeleteServerGroup,비활성·취소·삭제,04_ADM운영자매뉴얼.md#gateway-groups
+gateway-routes,/gateway-routes,Gateway 경로·라우팅,GATEWAY_ROUTES,online,MEDIUM,adm.route.gateway-routes.enabled,admGatewayFindBindings,조회,04_ADM운영자매뉴얼.md#gateway-routes
+gateway-routes,/gateway-routes,Gateway 경로·라우팅,GATEWAY_ROUTES,online,MEDIUM,adm.route.gateway-routes.enabled,admGatewaySaveBinding,등록·변경,04_ADM운영자매뉴얼.md#gateway-routes
+gateway-routes,/gateway-routes,Gateway 경로·라우팅,GATEWAY_ROUTES,online,MEDIUM,adm.route.gateway-routes.enabled,admGatewayChangeBindingState,승인·실행·상태변경,04_ADM운영자매뉴얼.md#gateway-routes
+gateway-routes,/gateway-routes,Gateway 경로·라우팅,GATEWAY_ROUTES,online,MEDIUM,adm.route.gateway-routes.enabled,admGatewayDeleteBinding,비활성·취소·삭제,04_ADM운영자매뉴얼.md#gateway-routes
+gateway-security,/gateway-security,Gateway 보안·제한,GATEWAY_SECURITY,online,HIGH,adm.route.gateway-security.enabled,admGatewayFindBindings,조회,04_ADM운영자매뉴얼.md#gateway-security
+gateway-security,/gateway-security,Gateway 보안·제한,GATEWAY_SECURITY,online,HIGH,adm.route.gateway-security.enabled,admGatewaySaveBinding,등록·변경,04_ADM운영자매뉴얼.md#gateway-security
+gateway-security,/gateway-security,Gateway 보안·제한,GATEWAY_SECURITY,online,HIGH,adm.route.gateway-security.enabled,admGatewayChangeBindingState,승인·실행·상태변경,04_ADM운영자매뉴얼.md#gateway-security
+gateway-health,/gateway-health,Gateway Health·연결시험,GATEWAY_HEALTH,online,MEDIUM,adm.route.gateway-health.enabled,admGatewayCapability,조회,04_ADM운영자매뉴얼.md#gateway-health
+gateway-health,/gateway-health,Gateway Health·연결시험,GATEWAY_HEALTH,online,MEDIUM,adm.route.gateway-health.enabled,admGatewayFindApplyStatus,조회,04_ADM운영자매뉴얼.md#gateway-health
+gateway-health,/gateway-health,Gateway Health·연결시험,GATEWAY_HEALTH,online,MEDIUM,adm.route.gateway-health.enabled,admGatewayFindConnectionTests,조회,04_ADM운영자매뉴얼.md#gateway-health
+gateway-health,/gateway-health,Gateway Health·연결시험,GATEWAY_HEALTH,online,MEDIUM,adm.route.gateway-health.enabled,admGatewayRequestConnectionTest,등록·변경,04_ADM운영자매뉴얼.md#gateway-health
+gateway-health,/gateway-health,Gateway Health·연결시험,GATEWAY_HEALTH,online,MEDIUM,adm.route.gateway-health.enabled,admGatewayFindConnectionTestOperation,조회,04_ADM운영자매뉴얼.md#gateway-health
+gateway-health,/gateway-health,Gateway Health·연결시험,GATEWAY_HEALTH,online,MEDIUM,adm.route.gateway-health.enabled,admGatewayCancelConnectionTest,비활성·취소·삭제,04_ADM운영자매뉴얼.md#gateway-health
+gateway-health,/gateway-health,Gateway Health·연결시험,GATEWAY_HEALTH,online,MEDIUM,adm.route.gateway-health.enabled,admGatewayRevalidateConnectionTest,업무 Operation,04_ADM운영자매뉴얼.md#gateway-health
+gateway-transactions,/gateway-transactions,Gateway 거래 조회,GATEWAY_TRANSACTIONS,online,MEDIUM,adm.route.gateway-transactions.enabled,admGatewayOperationsSnapshot,조회,04_ADM운영자매뉴얼.md#gateway-transactions
+gateway-transactions,/gateway-transactions,Gateway 거래 조회,GATEWAY_TRANSACTIONS,online,MEDIUM,adm.route.gateway-transactions.enabled,admGatewayOperationsEvents,조회,04_ADM운영자매뉴얼.md#gateway-transactions
+gateway-transactions,/gateway-transactions,Gateway 거래 조회,GATEWAY_TRANSACTIONS,online,MEDIUM,adm.route.gateway-transactions.enabled,traceAdmByTransactionId,업무 Operation,04_ADM운영자매뉴얼.md#gateway-transactions
+gateway-log-policies,/gateway-log-policies,Gateway 로그 정책,GATEWAY_LOG_POLICY,online,MEDIUM,adm.route.gateway-log-policies.enabled,admGatewayOperationsSnapshot,조회,04_ADM운영자매뉴얼.md#gateway-log-policies
+gateway-log-policies,/gateway-log-policies,Gateway 로그 정책,GATEWAY_LOG_POLICY,online,MEDIUM,adm.route.gateway-log-policies.enabled,admLogPolicyFindPolicies,조회,04_ADM운영자매뉴얼.md#gateway-log-policies
+gateway-log-policies,/gateway-log-policies,Gateway 로그 정책,GATEWAY_LOG_POLICY,online,MEDIUM,adm.route.gateway-log-policies.enabled,admLogPolicyDistributionStatus,조회,04_ADM운영자매뉴얼.md#gateway-log-policies
+gateway-apply-status,/gateway-apply-status,Gateway 적용 상태·이력,GATEWAY_APPLY_STATUS,online,MEDIUM,adm.route.gateway-apply-status.enabled,admGatewayFindApplyStatus,조회,04_ADM운영자매뉴얼.md#gateway-apply-status
+gateway-apply-status,/gateway-apply-status,Gateway 적용 상태·이력,GATEWAY_APPLY_STATUS,online,MEDIUM,adm.route.gateway-apply-status.enabled,admGatewayOperationsEvents,조회,04_ADM운영자매뉴얼.md#gateway-apply-status
+gateway-apply-status,/gateway-apply-status,Gateway 적용 상태·이력,GATEWAY_APPLY_STATUS,online,MEDIUM,adm.route.gateway-apply-status.enabled,admGatewayFindConnectionTestOperation,조회,04_ADM운영자매뉴얼.md#gateway-apply-status
+permissions,/permissions,권한,PERMISSION,framework,MEDIUM,adm.route.permissions.enabled,admPermissionFindManagedMenus,조회,04_ADM운영자매뉴얼.md#permissions
+permissions,/permissions,권한,PERMISSION,framework,MEDIUM,adm.route.permissions.enabled,admPermissionFindButtons,조회,04_ADM운영자매뉴얼.md#permissions
+permissions,/permissions,권한,PERMISSION,framework,MEDIUM,adm.route.permissions.enabled,admPermissionFindApiPermissions,조회,04_ADM운영자매뉴얼.md#permissions
+permissions,/permissions,권한,PERMISSION,framework,MEDIUM,adm.route.permissions.enabled,admPermissionFindRoles,조회,04_ADM운영자매뉴얼.md#permissions
+permissions,/permissions,권한,PERMISSION,framework,MEDIUM,adm.route.permissions.enabled,admPermissionFindMenuMatrix,조회,04_ADM운영자매뉴얼.md#permissions
+permissions,/permissions,권한,PERMISSION,framework,MEDIUM,adm.route.permissions.enabled,admPermissionFindButtonMatrix,조회,04_ADM운영자매뉴얼.md#permissions
+permissions,/permissions,권한,PERMISSION,framework,MEDIUM,adm.route.permissions.enabled,admPermissionFindApiPermissionMatrix,조회,04_ADM운영자매뉴얼.md#permissions
+permissions,/permissions,권한,PERMISSION,framework,MEDIUM,adm.route.permissions.enabled,admPermissionFindApiPermission,조회,04_ADM운영자매뉴얼.md#permissions
+permissions,/permissions,권한,PERMISSION,framework,MEDIUM,adm.route.permissions.enabled,admPermissionUpdateApiPermissionStatus,조회,04_ADM운영자매뉴얼.md#permissions
+permissions,/permissions,권한,PERMISSION,framework,MEDIUM,adm.route.permissions.enabled,admPermissionFindButton,조회,04_ADM운영자매뉴얼.md#permissions
+permissions,/permissions,권한,PERMISSION,framework,MEDIUM,adm.route.permissions.enabled,admPermissionUpdateButtonStatus,조회,04_ADM운영자매뉴얼.md#permissions
+permissions,/permissions,권한,PERMISSION,framework,MEDIUM,adm.route.permissions.enabled,admPermissionFindManagedMenu,조회,04_ADM운영자매뉴얼.md#permissions
+permissions,/permissions,권한,PERMISSION,framework,MEDIUM,adm.route.permissions.enabled,admPermissionUpdateMenuStatus,조회,04_ADM운영자매뉴얼.md#permissions
+permissions,/permissions,권한,PERMISSION,framework,MEDIUM,adm.route.permissions.enabled,admPermissionFindRole,조회,04_ADM운영자매뉴얼.md#permissions
+permissions,/permissions,권한,PERMISSION,framework,MEDIUM,adm.route.permissions.enabled,admPermissionUpdateRoleStatus,조회,04_ADM운영자매뉴얼.md#permissions
+permissions,/permissions,권한,PERMISSION,framework,MEDIUM,adm.route.permissions.enabled,admPermissionCreateApiPermission,등록·변경,04_ADM운영자매뉴얼.md#permissions
+permissions,/permissions,권한,PERMISSION,framework,MEDIUM,adm.route.permissions.enabled,admPermissionUpdateApiPermission,등록·변경,04_ADM운영자매뉴얼.md#permissions
+permissions,/permissions,권한,PERMISSION,framework,MEDIUM,adm.route.permissions.enabled,admPermissionCreateButton,등록·변경,04_ADM운영자매뉴얼.md#permissions
+permissions,/permissions,권한,PERMISSION,framework,MEDIUM,adm.route.permissions.enabled,admPermissionUpdateButton,등록·변경,04_ADM운영자매뉴얼.md#permissions
+permissions,/permissions,권한,PERMISSION,framework,MEDIUM,adm.route.permissions.enabled,admPermissionCreateMenu,등록·변경,04_ADM운영자매뉴얼.md#permissions
+permissions,/permissions,권한,PERMISSION,framework,MEDIUM,adm.route.permissions.enabled,admPermissionUpdateMenu,등록·변경,04_ADM운영자매뉴얼.md#permissions
+permissions,/permissions,권한,PERMISSION,framework,MEDIUM,adm.route.permissions.enabled,admPermissionCreateRole,등록·변경,04_ADM운영자매뉴얼.md#permissions
+permissions,/permissions,권한,PERMISSION,framework,MEDIUM,adm.route.permissions.enabled,admPermissionUpdateRole,등록·변경,04_ADM운영자매뉴얼.md#permissions
+permissions,/permissions,권한,PERMISSION,framework,MEDIUM,adm.route.permissions.enabled,admPermissionUpdateRoleApiPermission,등록·변경,04_ADM운영자매뉴얼.md#permissions
+permissions,/permissions,권한,PERMISSION,framework,MEDIUM,adm.route.permissions.enabled,admPermissionUpdateButtonPermission,등록·변경,04_ADM운영자매뉴얼.md#permissions
+permissions,/permissions,권한,PERMISSION,framework,MEDIUM,adm.route.permissions.enabled,admPermissionUpdateMenuPermission,등록·변경,04_ADM운영자매뉴얼.md#permissions
+password,/password,비밀번호,PASSWORD,framework,HIGH,adm.route.password.enabled,admOperatorPasswordPolicy,업무 Operation,04_ADM운영자매뉴얼.md#password
+password,/password,비밀번호,PASSWORD,framework,HIGH,adm.route.password.enabled,admOperatorValidatePassword,업무 Operation,04_ADM운영자매뉴얼.md#password
+password,/password,비밀번호,PASSWORD,framework,HIGH,adm.route.password.enabled,admOperatorChangePassword,승인·실행·상태변경,04_ADM운영자매뉴얼.md#password
+password,/password,비밀번호,PASSWORD,framework,HIGH,adm.route.password.enabled,admOperatorResetPassword,업무 Operation,04_ADM운영자매뉴얼.md#password
+password,/password,비밀번호,PASSWORD,framework,HIGH,adm.route.password.enabled,admOperatorRevokeSession,비활성·취소·삭제,04_ADM운영자매뉴얼.md#password
+security,/security,보안,SECURITY,framework,HIGH,adm.route.security.enabled,admSecurityFindMfaStates,조회,04_ADM운영자매뉴얼.md#security
+security,/security,보안,SECURITY,framework,HIGH,adm.route.security.enabled,admSecurityRegisterMfa,등록·변경,04_ADM운영자매뉴얼.md#security
+security,/security,보안,SECURITY,framework,HIGH,adm.route.security.enabled,admSecurityVerifyMfa,업무 Operation,04_ADM운영자매뉴얼.md#security
+security,/security,보안,SECURITY,framework,HIGH,adm.route.security.enabled,admSecurityDisableMfa,비활성·취소·삭제,04_ADM운영자매뉴얼.md#security
+security,/security,보안,SECURITY,framework,HIGH,adm.route.security.enabled,admSecurityFindIpAllowlist,조회,04_ADM운영자매뉴얼.md#security
+security,/security,보안,SECURITY,framework,HIGH,adm.route.security.enabled,admSecuritySaveIpAllowlist,조회,04_ADM운영자매뉴얼.md#security
+operators,/operators,운영자,OPERATOR,framework,HIGH,adm.route.operators.enabled,admOperatorFindOperators,조회,04_ADM운영자매뉴얼.md#operators
+operators,/operators,운영자,OPERATOR,framework,HIGH,adm.route.operators.enabled,admOperatorFindRoles,조회,04_ADM운영자매뉴얼.md#operators
+operators,/operators,운영자,OPERATOR,framework,HIGH,adm.route.operators.enabled,admOperatorFindSessions,조회,04_ADM운영자매뉴얼.md#operators
+operators,/operators,운영자,OPERATOR,framework,HIGH,adm.route.operators.enabled,admOperatorCreateOperator,등록·변경,04_ADM운영자매뉴얼.md#operators
+operators,/operators,운영자,OPERATOR,framework,HIGH,adm.route.operators.enabled,admOperatorUpdateRoles,등록·변경,04_ADM운영자매뉴얼.md#operators
+operators,/operators,운영자,OPERATOR,framework,HIGH,adm.route.operators.enabled,admOperatorUpdateStatus,조회,04_ADM운영자매뉴얼.md#operators
+operators,/operators,운영자,OPERATOR,framework,HIGH,adm.route.operators.enabled,admOperatorUnlockOperator,복구·재처리,04_ADM운영자매뉴얼.md#operators
+operators,/operators,운영자,OPERATOR,framework,HIGH,adm.route.operators.enabled,admOperatorUpdateContact,등록·변경,04_ADM운영자매뉴얼.md#operators
+operators,/operators,운영자,OPERATOR,framework,HIGH,adm.route.operators.enabled,admOperatorFindMenus,조회,04_ADM운영자매뉴얼.md#operators
+operators,/operators,운영자,OPERATOR,framework,HIGH,adm.route.operators.enabled,admOperatorFindCreateResult,조회,04_ADM운영자매뉴얼.md#operators
+operators,/operators,운영자,OPERATOR,framework,HIGH,adm.route.operators.enabled,admOperatorCleanupExpiredSessions,업무 Operation,04_ADM운영자매뉴얼.md#operators
+operators,/operators,운영자,OPERATOR,framework,HIGH,adm.route.operators.enabled,admOperatorRawContact,업무 Operation,04_ADM운영자매뉴얼.md#operators
+secrets,/secrets,Secret / Key,SECRET,framework,HIGH,adm.route.secrets.enabled,admSecretFindMetadata,조회,04_ADM운영자매뉴얼.md#secrets
+secrets,/secrets,Secret / Key,SECRET,framework,HIGH,adm.route.secrets.enabled,admSecretFindProviders,조회,04_ADM운영자매뉴얼.md#secrets
+secrets,/secrets,Secret / Key,SECRET,framework,HIGH,adm.route.secrets.enabled,admSecretRotate,승인·실행·상태변경,04_ADM운영자매뉴얼.md#secrets
+approvals,/approvals,위험조치 승인,APPROVAL,framework,HIGH,adm.route.approvals.enabled,admApprovalPolicies,업무 Operation,04_ADM운영자매뉴얼.md#approvals
+approvals,/approvals,위험조치 승인,APPROVAL,framework,HIGH,adm.route.approvals.enabled,admApprovalPolicyDetail,조회,04_ADM운영자매뉴얼.md#approvals
+approvals,/approvals,위험조치 승인,APPROVAL,framework,HIGH,adm.route.approvals.enabled,admApprovalPolicySave,등록·변경,04_ADM운영자매뉴얼.md#approvals
+approvals,/approvals,위험조치 승인,APPROVAL,framework,HIGH,adm.route.approvals.enabled,admApprovalRequest,등록·변경,04_ADM운영자매뉴얼.md#approvals
+approvals,/approvals,위험조치 승인,APPROVAL,framework,HIGH,adm.route.approvals.enabled,admApprovalRequestDetail,조회,04_ADM운영자매뉴얼.md#approvals
+approvals,/approvals,위험조치 승인,APPROVAL,framework,HIGH,adm.route.approvals.enabled,admApprovalDecision,승인·실행·상태변경,04_ADM운영자매뉴얼.md#approvals
+approvals,/approvals,위험조치 승인,APPROVAL,framework,HIGH,adm.route.approvals.enabled,admApprovalExecute,승인·실행·상태변경,04_ADM운영자매뉴얼.md#approvals
+approvals,/approvals,위험조치 승인,APPROVAL,framework,HIGH,adm.route.approvals.enabled,admRuntimeControlFindChange,조회,04_ADM운영자매뉴얼.md#approvals
+approvals,/approvals,위험조치 승인,APPROVAL,framework,HIGH,adm.route.approvals.enabled,admRuntimeControlFindByOperation,조회,04_ADM운영자매뉴얼.md#approvals
+approvals,/approvals,위험조치 승인,APPROVAL,framework,HIGH,adm.route.approvals.enabled,admBreakGlassFindSessions,조회,04_ADM운영자매뉴얼.md#approvals
+approvals,/approvals,위험조치 승인,APPROVAL,framework,HIGH,adm.route.approvals.enabled,admBreakGlassReviewSession,조회,04_ADM운영자매뉴얼.md#approvals
+breakGlass,/breakGlass,Break-glass,BREAK_GLASS,framework,HIGH,adm.route.breakGlass.enabled,admBreakGlassFindSessions,조회,04_ADM운영자매뉴얼.md#breakglass
+breakGlass,/breakGlass,Break-glass,BREAK_GLASS,framework,HIGH,adm.route.breakGlass.enabled,admBreakGlassOpenSession,승인·실행·상태변경,04_ADM운영자매뉴얼.md#breakglass
+breakGlass,/breakGlass,Break-glass,BREAK_GLASS,framework,HIGH,adm.route.breakGlass.enabled,admBreakGlassReviewSession,조회,04_ADM운영자매뉴얼.md#breakglass
+breakGlass,/breakGlass,Break-glass,BREAK_GLASS,framework,HIGH,adm.route.breakGlass.enabled,admBreakGlassCloseSession,비활성·취소·삭제,04_ADM운영자매뉴얼.md#breakglass
+featureFlags,/featureFlags,Feature Flag,FEATURE_FLAG,framework,CRITICAL,adm.route.featureFlags.enabled,admFeatureFlagSearch,조회,04_ADM운영자매뉴얼.md#featureflags
+featureFlags,/featureFlags,Feature Flag,FEATURE_FLAG,framework,CRITICAL,adm.route.featureFlags.enabled,admFeatureFlagFind,조회,04_ADM운영자매뉴얼.md#featureflags
+featureFlags,/featureFlags,Feature Flag,FEATURE_FLAG,framework,CRITICAL,adm.route.featureFlags.enabled,admFeatureFlagEvaluate,조회,04_ADM운영자매뉴얼.md#featureflags
+featureFlags,/featureFlags,Feature Flag,FEATURE_FLAG,framework,CRITICAL,adm.route.featureFlags.enabled,admFeatureFlagRequestOverride,등록·변경,04_ADM운영자매뉴얼.md#featureflags
+featureFlags,/featureFlags,Feature Flag,FEATURE_FLAG,framework,CRITICAL,adm.route.featureFlags.enabled,admFeatureFlagApproveOverride,승인·실행·상태변경,04_ADM운영자매뉴얼.md#featureflags
+featureFlags,/featureFlags,Feature Flag,FEATURE_FLAG,framework,CRITICAL,adm.route.featureFlags.enabled,admFeatureFlagRevokeOverride,비활성·취소·삭제,04_ADM운영자매뉴얼.md#featureflags
+featureFlags,/featureFlags,Feature Flag,FEATURE_FLAG,framework,CRITICAL,adm.route.featureFlags.enabled,admFeatureFlagSetKillSwitch,승인·실행·상태변경,04_ADM운영자매뉴얼.md#featureflags
+openApiOperations,/openApiOperations,OpenAPI 운영,OPENAPI_OPERATIONS,framework,HIGH,adm.route.openApiOperations.enabled,admOpenApiStatus,조회,04_ADM운영자매뉴얼.md#openapioperations
+openApiOperations,/openApiOperations,OpenAPI 운영,OPENAPI_OPERATIONS,framework,HIGH,adm.route.openApiOperations.enabled,admOpenApiRefresh,복구·재처리,04_ADM운영자매뉴얼.md#openapioperations
+resiliencePolicies,/resiliencePolicies,Resilience 정책,RESILIENCE_POLICY,framework,CRITICAL,adm.route.resiliencePolicies.enabled,admResiliencePolicySearch,조회,04_ADM운영자매뉴얼.md#resiliencepolicies
+resiliencePolicies,/resiliencePolicies,Resilience 정책,RESILIENCE_POLICY,framework,CRITICAL,adm.route.resiliencePolicies.enabled,admResiliencePolicyFind,조회,04_ADM운영자매뉴얼.md#resiliencepolicies
+resiliencePolicies,/resiliencePolicies,Resilience 정책,RESILIENCE_POLICY,framework,CRITICAL,adm.route.resiliencePolicies.enabled,admResiliencePolicyRequest,등록·변경,04_ADM운영자매뉴얼.md#resiliencepolicies
+resiliencePolicies,/resiliencePolicies,Resilience 정책,RESILIENCE_POLICY,framework,CRITICAL,adm.route.resiliencePolicies.enabled,admResiliencePolicyApprove,승인·실행·상태변경,04_ADM운영자매뉴얼.md#resiliencepolicies
+resiliencePolicies,/resiliencePolicies,Resilience 정책,RESILIENCE_POLICY,framework,CRITICAL,adm.route.resiliencePolicies.enabled,admResiliencePolicyReject,비활성·취소·삭제,04_ADM운영자매뉴얼.md#resiliencepolicies

@@ -1,90 +1,63 @@
-# CPF V9 Final Integration Review Index — 100%
+# CPF V9 통합 검수 문서 인덱스
 
-## 1. 기준 SHA와 환경
-- origin/master: `2a013663090d4e430a15983ad7269f8e86c5ef58`
-- state revision: `REV-001`
-- generated at: `2026-08-06T05:14:50+09:00`
-- direct local: Java 21, Python, Node/TypeScript
-- external reexecution: Java25/Gradle9.1, 3 DB engines, browser, broker/multi-process
+## 기준
 
-## 2. 전체 Scope 집계
-- source sessions: 6/6
-- unique exact IDs: 47,745
-- source result files discovered across S01~S06: 82
-- captured source ledgers used for deterministic merge: 36
-- source result files discovered across S01~S06: 82
-- captured source ledgers used for deterministic merge: 36
-- source result rows/provenance rows: 47,827
-- integration closure target: 18,120
-- completed in this package: 47,745
-- remaining internal: 0
-- target-runtime reexecution tracked: 2,618
+- 현재 `master` 검토 Commit: `1b35d84801e256e3e6d7e4482918817ec82865dd`
+- 개발 Overlay 작성 기준 SHA: `2a013663090d4e430a15983ad7269f8e86c5ef58`
+- 현재 논리 정본 Root: `cpf-docs/work/v9i`
+- QA 최종 판정: **미수행**
+- GitHub Commit status / workflow run: **등록 결과 없음**
+- 이 문서는 개발GPT 완료 보고를 QA 통과로 변경하지 않는다.
 
-## 3. entity type별 상태 집계
-- WORK_ITEM: 735
-- CPF_FR: 19,914
-- CPF_SC: 27,075
-- GATE: 21
-- status summary: `results/PROGRESS_STATUS.csv`
+## 현재 집계
 
-## 4. 분할 원장 Index
-- `results/REQUIREMENT_STATUS_INDEX.csv`
-- `results/PROVENANCE_INDEX.csv`
-- `results/FILE_CATALOG_INDEX.csv`
-- `results/EVIDENCE_CATALOG_INDEX.csv`
-- `results/SELF_REVIEW_CATALOG_INDEX.csv`
-- entity detail indexes: `results/DEVELOPMENT_*_INDEX.csv`, `results/ENGINEERING_GATE_RESULT_INDEX.csv`
-- all parts are deterministic and limited to 20,000 rows / 25 MiB.
+| 구분 | 수량 | 현재 해석 |
+|---|---:|---|
+| Work Item | 735 | 개발GPT 완료·자체검수 완료 보고 |
+| CPF-FR | 19,914 | 개발GPT 완료·자체검수 완료 보고 |
+| CPF-SC | 27,075 | 개발GPT 완료·자체검수 완료 보고 |
+| Engineering Gate | 21 | 개발GPT 완료·자체검수 완료 보고 |
+| 전체 exact ID | 47,745 | 논리 Dataset의 unique ID |
+| Integration Request | 32 | DevGPT 종결 30, 외부 실행·승인 대기 2 |
+| Target-runtime 재실행 추적 | 2,618 | 실제 Target Runtime PASS가 아님 |
 
-## 5. Request 집계
-- unique request IDs: 32
-- closed by DevGPT: 30
-- external approval/target runtime ready: 2
-- union: `results/INTEGRATION_REQUEST_UNION.csv`
-- exact-ID links: `results/INTEGRATION_REQUEST_UNION_INDEX.csv`
+## 원장 탐색 순서
 
-## 6. 실행·검증 집계
-- execution ledger: `results/TEST_EXECUTION_LEDGER.csv`
-- Java contract compile/harness: PASS
-- Batch UNKNOWN 3-vendor semantic gate: PASS
-- TypeScript strict compile/syntax: PASS
-- ADM consumer javac: PASS
-- notification/incident lifecycle gate: PASS
-- secret scan: PASS (0 high-confidence findings)
-- hygiene scan: PASS (0 trailing whitespace / conflict markers)
+1. `REPOSITORY_PUSH_REVIEW.md`
+2. `DATASET_MAP.md`
+3. `results/REQUIREMENT_STATUS_INDEX.csv`
+4. `results/status/REQUIREMENT_STATUS_PART_*.csv`
+5. `results/INTEGRATION_REQUEST_CLOSURE.csv`
+6. `results/TEST_EXECUTION_LEDGER.csv`
+7. `evidence/FINAL_INTEGRITY.json`
 
-## 7. Product 변경 Bundle 목록
-- catalog: `results/BUNDLE_CATALOG.csv`
-- product file information: `results/PRODUCT_FILE_CATALOG.csv`
-- change manifest: `results/CHANGE_MANIFEST.csv`
-- each row includes path, type, size, SHA-256, bundle, change type and verification result.
+`results/REQUIREMENT_STATUS.csv`는 현재 Commit에서 **헤더만 있는 Schema 파일**이다.
+47,745건의 실제 상태 정본은 `REQUIREMENT_STATUS_INDEX.csv`와 4개 Part를 합친
+**단일 논리 Dataset**으로 해석해야 한다.
 
-## 8. Evidence Catalog
-- index: `results/EVIDENCE_CATALOG_INDEX.csv`
-- self-review index: `results/SELF_REVIEW_CATALOG_INDEX.csv`
-- evidence files: `evidence/**`
+## 이번 점검에서 확인한 정리 필요 항목
 
-## 9. 검산 결과
-- validator: `cpf-tools/scripts/verify-cpf-final-integration-ledger.py`
-- result: `evidence/FINAL_LEDGER_VALIDATION.json`
-- expected duplicate primary, orphan reference and hash mismatch: 0
-- final independent integrity: `evidence/FINAL_INTEGRITY.json`
-- `results/REOPENED_IDS.csv` is the historical integration-start target set; it is not a current incomplete list.
-- final independent integrity: `evidence/FINAL_INTEGRITY.json`
-- `results/REOPENED_IDS.csv` is the historical integration-start target set; it is not a current incomplete list.
+- 긴 Integration Workspace와 `cpf-docs/work/v9i`가 동시에 Commit되어 중복 보관됨
+- 긴 Workspace는 Windows 경로 문제를 다시 유발할 수 있어 삭제 후보
+- 기존 `REVIEW_INDEX.md`에 동일 문장이 반복 기록됨
+- `PROGRESS_STATUS.csv`의 Request 진행률이 `30/32`인데 `100%`로 기록됨
+- 기존 Handover가 이미 Push된 상태에서도 “Overlay 적용” 단계로 남아 있음
+- 전체 Gradle/Spring Context, 실제 DB, Browser, Broker·Multi-process 검증은 미수행
+- ADM 신규 Service와 SPI 구현의 Runtime Bean wiring은 실제 Context로 입증되지 않음
+- 데이터 품질 정정 API가 요청 Boolean `approved`를 신뢰하므로 서버 측 승인 증명이 필요함
 
-## 10. Open Issues와 외부 차단
-- internal implementation incomplete: 0
-- `S06-ENV-JAVA25-GRADLE91-RUNTIME`: target environment execution ready, not executed here.
-- stale root deletion requires user approval and was not performed.
+## 삭제 범위
 
-## 11. Delete Manifest
-- `results/DELETE_MANIFEST.csv`
-- no file was deleted in this package.
-- pending path is recorded only as `PENDING_USER_APPROVAL_NOT_DELETED`.
-- pending path is recorded only as `PENDING_USER_APPROVAL_NOT_DELETED`.
+이번 정리 명령에는 아래 **중복 세션 문서 Root만** 포함한다.
 
-## 12. Package Hash 검산
-- `PACKAGE_MANIFEST.json`
-- `SHA256SUMS.txt`
-- `results/REVIEW_FILE_INVENTORY.csv`
+`cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/CPF-V9-FINAL-INTEGRATION-CLOSURE-20260806/REV-001/sessions/DEVGPT-V9-INTEGRATION`
+
+다음은 포함하지 않는다.
+
+- Product Source·SQL·Test·Config·Frontend·Script
+- `cpf-docs/work/v9i`
+- S01~S06 원본 Workspace
+- `cpf-starters/openapi-webmvc`
+- 현재 QA Evidence
+
+실제 삭제는 `CLEANUP_ONE_LINE.txt`의 검증형 명령을 사용자가 실행할 때만 수행된다.

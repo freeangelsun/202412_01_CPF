@@ -1,0 +1,8 @@
+﻿finding_id,severity,area,status,evidence_path,issue,required_action,verification
+RV-001,P1,Repository,OPEN,cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/CPF-V9-FINAL-INTEGRATION-CLOSURE-20260806/REV-001/sessions/DEVGPT-V9-INTEGRATION,긴 통합 Workspace와 짧은 정본이 동시에 Commit됨,짧은 Root 보존 후 검증형 명령으로 긴 Root만 삭제,긴 Root 부재 및 short Root 무결성 확인
+RV-002,P1,CI,OPEN,1b35d84801e256e3e6d7e4482918817ec82865dd,Commit에 연결된 CI status/workflow run 없음,QA 환경에서 전체 Build·Test 실행,실행 URL·Exit Code·결과 Evidence
+RV-003,P1,Runtime Wiring,REWORK_REQUIRED,cpf-admin/src/main/java/com/cpf/admin/opr/integration/AdmIntegrationClosureService.java,Service와 신규 SPI 구현 Bean wiring 미입증,AutoConfiguration 또는 명시 Bean 구성 및 Context Test,Spring Context 정상 시작
+RV-004,P1,Security Approval,REWORK_REQUIRED,cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmIntegrationClosureController.java,클라이언트 Boolean approved를 위험 조치 승인으로 신뢰,서버 검증 승인 ID·권한·상태 사용,승인 없음/만료/권한 없음 거부 Test
+RV-005,P2,Progress Ledger,FIXED_IN_OVERLAY,cpf-docs/work/v9i/results/PROGRESS_STATUS.csv,Request 30/32인데 100%로 기록,93.75%로 수정,30 / 32 = 93.75 확인
+RV-006,P2,Dataset Navigation,DOCUMENTED_IN_OVERLAY,cpf-docs/work/v9i/results/REQUIREMENT_STATUS.csv,헤더 전용 파일이 단일 현재 정본처럼 보임,Index + 4 Parts가 논리 정본임을 명시,"Part 행 합계 47,745"
+RV-007,P1,Target Runtime,OPEN,cpf-docs/work/v9i/results/ENVIRONMENT_CAPABILITY_MATRIX.csv,Java25·DB3·Browser·Multi-process 직접 실행 미완료,QA Target 환경 실행,NOT_EXECUTED 제거 전 실제 PASS Evidence

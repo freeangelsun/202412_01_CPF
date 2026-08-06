@@ -1,0 +1,13 @@
+﻿delta_id,area,source_path,change_contract,affected_documents,status
+R7-DELTA-001,ADM Route Registry,cpf-admin/frontend/src/app/routes.ts,62 Route와 최신 expectedOperationIds 재대사,"03,04,기술사양서,Operation Matrix",완료
+R7-DELTA-002,ADM Center-Cut,BatchCenterCutPage.vue; AdmCenterCutActionRequest.java,FAILED/UNKNOWN Execution-scope 승인 조치,"02,03,04",완료
+R7-DELTA-003,Cache Durable Invalidation,CpfCacheInvalidationCoordinator.java; CpfRedisProperties.java,DB ledger·apply·checkpoint·fast signal best effort·reconcile,"00,01,04,05,Architecture,TechSpec,DB",완료
+R7-DELTA-004,Valkey Provider,CpfValkeyProperties.java; cache-valkey starter,TTL·prefix·channel·payload·SCAN validation,"01,05,TechSpec,Configuration",완료
+R7-DELTA-005,ADM MFA,AdmLoginRequest.java; AdmTotpVerifier.java,6-digit TOTP·30s·±1·secret zeroing,"03,04,05,TechSpec,Standard",완료
+R7-DELTA-006,Notification Fail-closed,UnavailableNotificationSender.java,Provider 부재를 성공으로 기록하지 않음,"01,04,05,TechSpec",완료
+R7-DELTA-007,BZA Approval,BzaApprovalPolicyService.java,Version policy·participant snapshot·idempotent submit·delegation,"90,Architecture,TechSpec",완료
+R7-DELTA-008,BZA Sequence Sample,BzaSequenceSampleService.java,고객 DB transaction 내 versioned/idempotent sequence,"01,90",완료
+R7-DELTA-009,AsyncAPI Catalog,cpf-tools/contracts/asyncapi/**,Broker contract catalog,"01,05,TechSpec",완료
+R7-DELTA-010,Support Bundle,cpf-tools/scripts/generate-cpf-support-bundle.*,allowlist·masking·manifest support bundle,"05,Standard",완료
+R7-DELTA-011,3 Vendor Cache DB,"cpf-tools/db/vendor/{mariadb,postgresql,oracle}/**cache_invalidation**",source/install/migration/rollback/runtime/verify,"05,DB Standard",완료
+R7-DELTA-012,R6 Editorial Rebuild,R6 official manuals,"duplicate headings/generic cards 제거, single outline",13 Markdown,완료

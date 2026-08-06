@@ -1,0 +1,49 @@
+﻿role,sequence,task,completion_criterion,evidence,status
+아키텍트,1,기능·Profile·Capability 선택,기능·Profile·Capability 선택의 입력·결과·오류·복구·Evidence를 문서 절차대로 제시,해당 공식 매뉴얼·Operation/Source Matrix,완료
+아키텍트,2,State Owner·Consumer·Topology 결정,State Owner·Consumer·Topology 결정의 입력·결과·오류·복구·Evidence를 문서 절차대로 제시,해당 공식 매뉴얼·Operation/Source Matrix,완료
+아키텍트,3,Security·DB·Failure 모델 작성,Security·DB·Failure 모델 작성의 입력·결과·오류·복구·Evidence를 문서 절차대로 제시,해당 공식 매뉴얼·Operation/Source Matrix,완료
+아키텍트,4,Architecture Review 수행,Architecture Review 수행의 입력·결과·오류·복구·Evidence를 문서 절차대로 제시,해당 공식 매뉴얼·Operation/Source Matrix,완료
+아키텍트,5,변경 영향 Matrix 작성,변경 영향 Matrix 작성의 입력·결과·오류·복구·Evidence를 문서 절차대로 제시,해당 공식 매뉴얼·Operation/Source Matrix,완료
+아키텍트,6,운영/DR 인수 기준 승인,운영/DR 인수 기준 승인의 입력·결과·오류·복구·Evidence를 문서 절차대로 제시,해당 공식 매뉴얼·Operation/Source Matrix,완료
+온라인·연계 개발자,1,Generator Domain 생성,Generator Domain 생성의 입력·결과·오류·복구·Evidence를 문서 절차대로 제시,해당 공식 매뉴얼·Operation/Source Matrix,완료
+온라인·연계 개발자,2,조회·상태 변경 구현,조회·상태 변경 구현의 입력·결과·오류·복구·Evidence를 문서 절차대로 제시,해당 공식 매뉴얼·Operation/Source Matrix,완료
+온라인·연계 개발자,3,Idempotency·Audit·Outbox 적용,Idempotency·Audit·Outbox 적용의 입력·결과·오류·복구·Evidence를 문서 절차대로 제시,해당 공식 매뉴얼·Operation/Source Matrix,완료
+온라인·연계 개발자,4,메시지·파일·외부 연계 구현,메시지·파일·외부 연계 구현의 입력·결과·오류·복구·Evidence를 문서 절차대로 제시,해당 공식 매뉴얼·Operation/Source Matrix,완료
+온라인·연계 개발자,5,오류·응답 유실·복구 Test,오류·응답 유실·복구 Test의 입력·결과·오류·복구·Evidence를 문서 절차대로 제시,해당 공식 매뉴얼·Operation/Source Matrix,완료
+온라인·연계 개발자,6,ADM 확인·운영 인계,ADM 확인·운영 인계의 입력·결과·오류·복구·Evidence를 문서 절차대로 제시,해당 공식 매뉴얼·Operation/Source Matrix,완료
+Batch 개발자,1,Job/Parameter/Step 설계,Job/Parameter/Step 설계의 입력·결과·오류·복구·Evidence를 문서 절차대로 제시,해당 공식 매뉴얼·Operation/Source Matrix,완료
+Batch 개발자,2,Checkpoint·Restart 구현,Checkpoint·Restart 구현의 입력·결과·오류·복구·Evidence를 문서 절차대로 제시,해당 공식 매뉴얼·Operation/Source Matrix,완료
+Batch 개발자,3,Partition·Lease·Fencing 구현,Partition·Lease·Fencing 구현의 입력·결과·오류·복구·Evidence를 문서 절차대로 제시,해당 공식 매뉴얼·Operation/Source Matrix,완료
+Batch 개발자,4,Scheduler·Center-Cut 구성,Scheduler·Center-Cut 구성의 입력·결과·오류·복구·Evidence를 문서 절차대로 제시,해당 공식 매뉴얼·Operation/Source Matrix,완료
+Batch 개발자,5,Process Kill·부분 실패 Test,Process Kill·부분 실패 Test의 입력·결과·오류·복구·Evidence를 문서 절차대로 제시,해당 공식 매뉴얼·Operation/Source Matrix,완료
+Batch 개발자,6,ADM·운영 인계,ADM·운영 인계의 입력·결과·오류·복구·Evidence를 문서 절차대로 제시,해당 공식 매뉴얼·Operation/Source Matrix,완료
+ADM 연동 개발자,1,Owner Query/Command 설계,Owner Query/Command 설계의 입력·결과·오류·복구·Evidence를 문서 절차대로 제시,해당 공식 매뉴얼·Operation/Source Matrix,완료
+ADM 연동 개발자,2,Local/Remote Adapter,Local/Remote Adapter의 입력·결과·오류·복구·Evidence를 문서 절차대로 제시,해당 공식 매뉴얼·Operation/Source Matrix,완료
+ADM 연동 개발자,3,OpenAPI·Generated Client,OpenAPI·Generated Client의 입력·결과·오류·복구·Evidence를 문서 절차대로 제시,해당 공식 매뉴얼·Operation/Source Matrix,완료
+ADM 연동 개발자,4,Route·Permission·Form 연결,Route·Permission·Form 연결의 입력·결과·오류·복구·Evidence를 문서 절차대로 제시,해당 공식 매뉴얼·Operation/Source Matrix,완료
+ADM 연동 개발자,5,UNKNOWN/PARTIAL Browser Test,UNKNOWN/PARTIAL Browser Test의 입력·결과·오류·복구·Evidence를 문서 절차대로 제시,해당 공식 매뉴얼·Operation/Source Matrix,완료
+ADM 연동 개발자,6,운영 매뉴얼 현행화,운영 매뉴얼 현행화의 입력·결과·오류·복구·Evidence를 문서 절차대로 제시,해당 공식 매뉴얼·Operation/Source Matrix,완료
+ADM 운영자,1,Dashboard 이상 식별,Dashboard 이상 식별의 입력·결과·오류·복구·Evidence를 문서 절차대로 제시,해당 공식 매뉴얼·Operation/Source Matrix,완료
+ADM 운영자,2,Owner 원장 대사,Owner 원장 대사의 입력·결과·오류·복구·Evidence를 문서 절차대로 제시,해당 공식 매뉴얼·Operation/Source Matrix,완료
+ADM 운영자,3,승인된 조치 실행,승인된 조치 실행의 입력·결과·오류·복구·Evidence를 문서 절차대로 제시,해당 공식 매뉴얼·Operation/Source Matrix,완료
+ADM 운영자,4,UNKNOWN/PARTIAL 복구,UNKNOWN/PARTIAL 복구의 입력·결과·오류·복구·Evidence를 문서 절차대로 제시,해당 공식 매뉴얼·Operation/Source Matrix,완료
+ADM 운영자,5,Audit·Download 검증,Audit·Download 검증의 입력·결과·오류·복구·Evidence를 문서 절차대로 제시,해당 공식 매뉴얼·Operation/Source Matrix,완료
+ADM 운영자,6,교대 인계,교대 인계의 입력·결과·오류·복구·Evidence를 문서 절차대로 제시,해당 공식 매뉴얼·Operation/Source Matrix,완료
+플랫폼·DBA,1,Artifact·Config·Secret 준비,Artifact·Config·Secret 준비의 입력·결과·오류·복구·Evidence를 문서 절차대로 제시,해당 공식 매뉴얼·Operation/Source Matrix,완료
+플랫폼·DBA,2,3 Vendor 설치·Migration,3 Vendor 설치·Migration의 입력·결과·오류·복구·Evidence를 문서 절차대로 제시,해당 공식 매뉴얼·Operation/Source Matrix,완료
+플랫폼·DBA,3,기동·배포·관측,기동·배포·관측의 입력·결과·오류·복구·Evidence를 문서 절차대로 제시,해당 공식 매뉴얼·Operation/Source Matrix,완료
+플랫폼·DBA,4,Broker·Cache 운영,Broker·Cache 운영의 입력·결과·오류·복구·Evidence를 문서 절차대로 제시,해당 공식 매뉴얼·Operation/Source Matrix,완료
+플랫폼·DBA,5,Backup·Restore·DR Drill,Backup·Restore·DR Drill의 입력·결과·오류·복구·Evidence를 문서 절차대로 제시,해당 공식 매뉴얼·Operation/Source Matrix,완료
+플랫폼·DBA,6,Upgrade·Rollback 인계,Upgrade·Rollback 인계의 입력·결과·오류·복구·Evidence를 문서 절차대로 제시,해당 공식 매뉴얼·Operation/Source Matrix,완료
+BZA 담당자,1,조직·발령·사용자 구성,조직·발령·사용자 구성의 입력·결과·오류·복구·Evidence를 문서 절차대로 제시,해당 공식 매뉴얼·Operation/Source Matrix,완료
+BZA 담당자,2,Role·Permission·Data Scope,Role·Permission·Data Scope의 입력·결과·오류·복구·Evidence를 문서 절차대로 제시,해당 공식 매뉴얼·Operation/Source Matrix,완료
+BZA 담당자,3,결재 Policy·Simulation,결재 Policy·Simulation의 입력·결과·오류·복구·Evidence를 문서 절차대로 제시,해당 공식 매뉴얼·Operation/Source Matrix,완료
+BZA 담당자,4,상신·결정·위임 운영,상신·결정·위임 운영의 입력·결과·오류·복구·Evidence를 문서 절차대로 제시,해당 공식 매뉴얼·Operation/Source Matrix,완료
+BZA 담당자,5,Attachment·Notification·Download,Attachment·Notification·Download의 입력·결과·오류·복구·Evidence를 문서 절차대로 제시,해당 공식 매뉴얼·Operation/Source Matrix,완료
+BZA 담당자,6,Backup·Audit 검증,Backup·Audit 검증의 입력·결과·오류·복구·Evidence를 문서 절차대로 제시,해당 공식 매뉴얼·Operation/Source Matrix,완료
+Gateway 담당자,1,Server Group·Route 설계,Server Group·Route 설계의 입력·결과·오류·복구·Evidence를 문서 절차대로 제시,해당 공식 매뉴얼·Operation/Source Matrix,완료
+Gateway 담당자,2,HMAC·SSRF·TLS 구성,HMAC·SSRF·TLS 구성의 입력·결과·오류·복구·Evidence를 문서 절차대로 제시,해당 공식 매뉴얼·Operation/Source Matrix,완료
+Gateway 담당자,3,Connection Test,Connection Test의 입력·결과·오류·복구·Evidence를 문서 절차대로 제시,해당 공식 매뉴얼·Operation/Source Matrix,완료
+Gateway 담당자,4,Validate·Approve·Publish,Validate·Approve·Publish의 입력·결과·오류·복구·Evidence를 문서 절차대로 제시,해당 공식 매뉴얼·Operation/Source Matrix,완료
+Gateway 담당자,5,Attempt·Partial·LKG 복구,Attempt·Partial·LKG 복구의 입력·결과·오류·복구·Evidence를 문서 절차대로 제시,해당 공식 매뉴얼·Operation/Source Matrix,완료
+Gateway 담당자,6,Upgrade·운영 인계,Upgrade·운영 인계의 입력·결과·오류·복구·Evidence를 문서 절차대로 제시,해당 공식 매뉴얼·Operation/Source Matrix,완료

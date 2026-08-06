@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="820" viewBox="0 0 1400 820" role="img" aria-labelledby="title desc">
+<title id="title">ADM Cache 운영 화면</title><desc id="desc">Key/Namespace 무효화와 durable checkpoint 대사를 분리한다.</desc>
+<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#334155"/></marker><filter id="shadow"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-opacity="0.18"/></filter></defs>
+<rect width="1400" height="820" fill="#f8fafc"/>
+<text x="70" y="65" font-family="Arial,sans-serif" font-size="34" font-weight="700" fill="#0f172a">ADM Cache 운영 화면</text>
+<text x="70" y="102" font-family="Arial,sans-serif" font-size="18" fill="#475569">Key/Namespace 무효화와 durable checkpoint 대사를 분리한다.</text>
+<line x1="325" y1="262" x2="370" y2="262" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
+<text x="347" y="254" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" fill="#475569">select</text>
+<line x1="630" y1="262" x2="675" y2="262" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
+<text x="652" y="254" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" fill="#475569">scope</text>
+<line x1="935" y1="262" x2="980" y2="262" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
+<text x="957" y="254" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" fill="#475569">execute</text>
+<line x1="1115" y1="355" x2="870" y2="500" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
+<text x="992" y="419" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" fill="#475569">verify</text>
+<line x1="530" y1="355" x2="400" y2="500" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
+<text x="465" y="419" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" fill="#475569">audit</text>
+<rect x="70" y="170" width="255" height="185" rx="15" fill="#fff" stroke="#94a3b8" stroke-width="2" filter="url(#shadow)"/>
+<text x="90" y="206" font-family="Arial,sans-serif" font-size="20" font-weight="700" fill="#0f172a">조회 영역</text>
+<text x="90" y="240" font-family="Arial,sans-serif" font-size="15" fill="#334155">Provider·Tenant·Namespace</text>
+<text x="90" y="266" font-family="Arial,sans-serif" font-size="15" fill="#334155">Consumer·Lag·Checkpoint</text>
+<rect x="375" y="170" width="255" height="185" rx="15" fill="#fff" stroke="#94a3b8" stroke-width="2" filter="url(#shadow)"/>
+<text x="395" y="206" font-family="Arial,sans-serif" font-size="20" font-weight="700" fill="#0f172a">Key 조치</text>
+<text x="395" y="240" font-family="Arial,sans-serif" font-size="15" fill="#334155">Cache Key·Version</text>
+<text x="395" y="266" font-family="Arial,sans-serif" font-size="15" fill="#334155">Reason·Event Key</text>
+<rect x="680" y="170" width="255" height="185" rx="15" fill="#fff" stroke="#94a3b8" stroke-width="2" filter="url(#shadow)"/>
+<text x="700" y="206" font-family="Arial,sans-serif" font-size="20" font-weight="700" fill="#0f172a">Namespace 조치</text>
+<text x="700" y="240" font-family="Arial,sans-serif" font-size="15" fill="#334155">Namespace·Target 수</text>
+<text x="700" y="266" font-family="Arial,sans-serif" font-size="15" fill="#334155">Approval·Idempotency</text>
+<rect x="985" y="170" width="275" height="185" rx="15" fill="#fff" stroke="#94a3b8" stroke-width="2" filter="url(#shadow)"/>
+<text x="1005" y="206" font-family="Arial,sans-serif" font-size="20" font-weight="700" fill="#0f172a">Reconcile</text>
+<text x="1005" y="240" font-family="Arial,sans-serif" font-size="15" fill="#334155">Consumer ID</text>
+<text x="1005" y="266" font-family="Arial,sans-serif" font-size="15" fill="#334155">Batch size·Applied 수</text>
+<rect x="250" y="510" width="300" height="145" rx="15" fill="#fff" stroke="#94a3b8" stroke-width="2" filter="url(#shadow)"/>
+<text x="270" y="546" font-family="Arial,sans-serif" font-size="20" font-weight="700" fill="#0f172a">정상 판정</text>
+<text x="270" y="580" font-family="Arial,sans-serif" font-size="15" fill="#334155">Ledger Event 존재</text>
+<text x="270" y="606" font-family="Arial,sans-serif" font-size="15" fill="#334155">Apply 후 Checkpoint 전진</text>
+<rect x="720" y="510" width="300" height="145" rx="15" fill="#fff" stroke="#94a3b8" stroke-width="2" filter="url(#shadow)"/>
+<text x="740" y="546" font-family="Arial,sans-serif" font-size="20" font-weight="700" fill="#0f172a">복구</text>
+<text x="740" y="580" font-family="Arial,sans-serif" font-size="15" fill="#334155">Fast signal 손실 허용</text>
+<text x="740" y="606" font-family="Arial,sans-serif" font-size="15" fill="#334155">Ledger 기준 재대사</text>
+</svg>

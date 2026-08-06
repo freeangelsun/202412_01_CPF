@@ -1,0 +1,17 @@
+﻿state,meaning,evidence,next_action,operator_rule
+REQUESTED,"요청 수락, 실행 전",Operation row·Request hash,Worker/Owner 실행,중복 Key로 새 요청 금지
+RUNNING,실행 중,Heartbeat·Progress·Attempt,관측,Timeout만으로 실패 처리 금지
+SUCCEEDED,명시 성공,Owner/Target 결과·Audit,종료,재실행 금지
+FAILED,결정적 실패,Error code·dispatch 여부,원인 수정 후 새 요청,원본 Attempt 보존
+UNKNOWN_RESULT,외부 부작용 후 결과 불명,Attempt·Target 원장,Reconcile,Blind Retry 금지
+PARTIAL,일부 Target/Item 성공,Target별 Result,실패/불명 대상만 복구,성공 대상 재실행 금지
+NACK,Target 적용 거부,Target error·version,원인 수정·재게시,LKG 유지
+DRIFT,Desired와 Observed 불일치,Version·Checksum,Reconcile/Rollback,수동 덮어쓰기 금지
+STOPPING,Batch 안전 정지 진행,Step/Transaction progress,경계 도달 관측,즉시 Kill 대체 금지
+STOPPED,일관성 경계 정지,Metadata·Checkpoint,Restart/Reprocess 판정,Input 변경 확인
+ABANDONED,재시작 금지 표시,운영 결정·Audit,새 Reprocess 가능,업무 결과 대사 후 사용
+ROLLED_BACK,모든 Target 이전 상태,Rollback Attempt,종료/새 변경,Observed 일치 확인
+PARTIALLY_ROLLED_BACK,일부 Target만 복귀,Target별 Rollback,남은 Target 복구,성공 보고 금지
+PROVIDER_NOT_CONFIGURED,Notification Provider 부재,Delivery result code,Provider Config/Secret 복구,성공으로 변환 금지
+VERSION_CONFLICT,Expected Version 불일치,Expected/Actual,최신값 재조회,마지막 Write Wins 금지
+IDEMPOTENCY_CONFLICT,같은 Key 다른 Payload,Request hash 비교,새 Key/요청 검토,기존 결과 덮기 금지

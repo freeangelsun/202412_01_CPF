@@ -1,0 +1,53 @@
+{
+  "package_id": "CPF-FINAL-DEVGPT-REQUEST-REV-003",
+  "baseline_sha_at_draft": "7bc8f271a73787b7ddc9ff9aab9840d53c0ac051",
+  "generated_at": "2026-08-06T12:17:00+09:00",
+  "requirement_count": 24,
+  "devgpt_direct_count": 20,
+  "target_runtime_delegated_count": 4,
+  "canonical_integration_root": "cpf-docs/work/v9i",
+  "canonical_integration_control": "cpf-docs/work/v9i/final-dev-request/REV-003/CANONICAL_INTEGRATION_CONTROL.md",
+  "files_excluding_manifest_and_sums": [
+    {
+      "path": "cpf-docs/work/v9i/final-dev-request/REV-003/CANONICAL_INTEGRATION_CONTROL.md",
+      "size": 3664,
+      "sha256": "21a27be858617e46c2362b064390b602f8a78ff91f107cb9c5283b036d78cc9f"
+    },
+    {
+      "path": "cpf-docs/work/v9i/final-dev-request/REV-003/ENVIRONMENT_DELEGATION_MATRIX.csv",
+      "size": 1497,
+      "sha256": "9d3f05b7e221e85adc1edf41ad8a3be46df2e1eb0673776bfece00bd8e44f5c2"
+    },
+    {
+      "path": "cpf-docs/work/v9i/final-dev-request/REV-003/EXECUTION_GATE.md",
+      "size": 1396,
+      "sha256": "d993919e4b6480c6b32d45ed8982dbe48a16462872dac76441427e36c55c094d"
+    },
+    {
+      "path": "cpf-docs/work/v9i/final-dev-request/REV-003/HANDOVER_TEMPLATE.md",
+      "size": 814,
+      "sha256": "f8ec96a6efa2f575bee6710be90f0938f12968f5a38a61732e36741e7b66853c"
+    },
+    {
+      "path": "cpf-docs/work/v9i/final-dev-request/REV-003/NO_PINGPONG_POLICY.md",
+      "size": 1164,
+      "sha256": "dc1fba07fcb5e6108d1a606f68b5ee50c50e807fe46e21d7d2b96e8b520d4fab"
+    },
+    {
+      "path": "cpf-docs/work/v9i/final-dev-request/REV-003/REQUEST.md",
+      "size": 6190,
+      "sha256": "bce7b42df7a4791192f4243d6cf8e8793cb1659cdc0950244d08bf40fd7f6a22"
+    },
+    {
+      "path": "cpf-docs/work/v9i/final-dev-request/REV-003/REQUIREMENT_STATUS.csv",
+      "size": 51645,
+      "sha256": "47a42b2ec6fabc40dc8f5a1d4901753660384dd472c636843a7f567e5e6045ed"
+    },
+    {
+      "path": "cpf-docs/work/v9i/final-dev-request/REV-003/REVIEW_SUMMARY.md",
+      "size": 1191,
+      "sha256": "9493b115b428dbaf80d7e38c2784fd1e030d35b7883a2975a331b0a690dba982"
+    }
+  ],
+  "automatic_commit_push_delete": false
+}

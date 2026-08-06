@@ -1,0 +1,9 @@
+21a27be858617e46c2362b064390b602f8a78ff91f107cb9c5283b036d78cc9f  cpf-docs/work/v9i/final-dev-request/REV-003/CANONICAL_INTEGRATION_CONTROL.md
+9d3f05b7e221e85adc1edf41ad8a3be46df2e1eb0673776bfece00bd8e44f5c2  cpf-docs/work/v9i/final-dev-request/REV-003/ENVIRONMENT_DELEGATION_MATRIX.csv
+d993919e4b6480c6b32d45ed8982dbe48a16462872dac76441427e36c55c094d  cpf-docs/work/v9i/final-dev-request/REV-003/EXECUTION_GATE.md
+f8ec96a6efa2f575bee6710be90f0938f12968f5a38a61732e36741e7b66853c  cpf-docs/work/v9i/final-dev-request/REV-003/HANDOVER_TEMPLATE.md
+dc1fba07fcb5e6108d1a606f68b5ee50c50e807fe46e21d7d2b96e8b520d4fab  cpf-docs/work/v9i/final-dev-request/REV-003/NO_PINGPONG_POLICY.md
+aae1b97e54330f2206022bc8a8cb772459417e989f8c44653709689d0f9c7b33  cpf-docs/work/v9i/final-dev-request/REV-003/PACKAGE_MANIFEST.json
+bce7b42df7a4791192f4243d6cf8e8793cb1659cdc0950244d08bf40fd7f6a22  cpf-docs/work/v9i/final-dev-request/REV-003/REQUEST.md
+47a42b2ec6fabc40dc8f5a1d4901753660384dd472c636843a7f567e5e6045ed  cpf-docs/work/v9i/final-dev-request/REV-003/REQUIREMENT_STATUS.csv
+9493b115b428dbaf80d7e38c2784fd1e030d35b7883a2975a331b0a690dba982  cpf-docs/work/v9i/final-dev-request/REV-003/REVIEW_SUMMARY.md

@@ -1,4 +1,4 @@
-﻿route_id,path,label,menu_id,group,risk,feature_flag,operation_id,operation_kind,manual_section
+route_id,path,label,menu_id,group,risk,feature_flag,operation_id,operation_kind,manual_section
 dashboard,/,통합 운영 Dashboard,DASHBOARD,home,MEDIUM,adm.route.dashboard.enabled,admRuntimeControlFindHealth,조회,04_ADM운영자매뉴얼.md#dashboard
 dashboard,/,통합 운영 Dashboard,DASHBOARD,home,MEDIUM,adm.route.dashboard.enabled,admRuntimeControlFindStatus,조회,04_ADM운영자매뉴얼.md#dashboard
 dashboard,/,통합 운영 Dashboard,DASHBOARD,home,MEDIUM,adm.route.dashboard.enabled,findAdmUnknownResults,조회,04_ADM운영자매뉴얼.md#dashboard

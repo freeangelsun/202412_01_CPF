@@ -1,9 +1,6 @@
-cpf-docs/guides/00_CPF_프레임워크안내.md
-cpf-docs/guides/01_CPF_개발자매뉴얼.md
-cpf-docs/guides/02_CPF_배치개발매뉴얼.md
-cpf-docs/guides/03_CPF_ADM매뉴얼.md
-cpf-docs/guides/05_CPF_플랫폼운영매뉴얼.md
-cpf-docs/guides/90_CPF_Starters_매뉴얼.md
-cpf-docs/guides/91_CPF_Tools_매뉴얼.md
-cpf-docs/guides/92_CPF_Gateway_매뉴얼.md
-cpf-docs/guides/95_CPF_BZA_매뉴얼.md
+# CPF R8 Delete Manifest
+
+- 기준 Commit: `6976d2747481b8540b48ddb9ab8f53cfeaa4b888`
+- 삭제 파일 수: `0`
+- R8 ZIP은 기존 파일 삭제를 수행하지 않는다.
+- 공식 문서 13개는 동일 경로에 덮어쓰고 assets/evidence만 신규 또는 교체한다.

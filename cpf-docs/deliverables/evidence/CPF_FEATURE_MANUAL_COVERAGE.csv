@@ -41,3 +41,7 @@ F39,Common Template Version,DRAFT·APPROVED·RETIRED와 Revision CAS로 알림·
 F40,영업일 Calendar,기관별 영업일과 기준일 계산을 durable refresh로 전파한다.,common calendar,cpf-common/calendar,Batch·업무 API·ADM,01_개발자매뉴얼.md,`/businessCalendar`,완료
 F41,고객 업무 채번,고객 DB Transaction 안에서 Version·Operation ID·Request Hash로 번호를 발급한다.,BZA sequence sample,고객 BZA 확장 Domain,업무 Service·Audit,01_개발자매뉴얼.md,고객 업무 화면과 BZA Audit,완료
 F42,Support Bundle,운영 진단 자료를 Manifest와 Masking 정책으로 묶는다.,cpf-tools,CPF Operations Tooling,운영자·지원 담당자,01_개발자매뉴얼.md,배포 Pipeline·Support Bundle,완료
+F43,업무시간·Deadline,UTC·업무 Zone·monotonic time으로 일관된 시간 판정,time operations,cpf-core,모든 Runtime,01_개발자매뉴얼.md,04·05,완료
+F44,데이터 품질 격리·정정,오류 Row를 격리하고 승인 정정·재검증,data quality,cpf-core/common,File·Integration·ADM,01_개발자매뉴얼.md,04·05,완료
+F45,필드 암호화·키 교체,분류별 암호화·Masking·Rekey,security/data,cpf-core/common,Domain·BZA,01_개발자매뉴얼.md,05·90,완료
+F46,외부 Webhook Callback,외부 Event 전달·UNKNOWN·DLQ·Replay,integration/webhook,cpf-core+starter,외부 Callback·ADM,01_개발자매뉴얼.md,04·05·91,완료

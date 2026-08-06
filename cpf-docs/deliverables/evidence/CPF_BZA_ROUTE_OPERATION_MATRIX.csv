@@ -1,4 +1,4 @@
-﻿route_id,path,label,menu_id,operation_id,operation_kind,manual_section
+route_id,path,label,menu_id,operation_id,operation_kind,manual_section
 dashboard,/,업무 운영 현황,DASHBOARD,bzaSupportDashboard,업무 Operation,90_BZA매뉴얼.md#dashboard
 organizations,/organizations,조직 계층,ORGANIZATION,bzaBackofficeFindOrganizations,조회,90_BZA매뉴얼.md#organizations
 organizations,/organizations,조직 계층,ORGANIZATION,bzaBackofficeSaveOrganization,생성·요청,90_BZA매뉴얼.md#organizations

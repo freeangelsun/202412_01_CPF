@@ -15,3 +15,8 @@ PARTIALLY_ROLLED_BACK,일부 Target만 복귀,Target별 Rollback,남은 Target �
 PROVIDER_NOT_CONFIGURED,Notification Provider 부재,Delivery result code,Provider Config/Secret 복구,성공으로 변환 금지
 VERSION_CONFLICT,Expected Version 불일치,Expected/Actual,최신값 재조회,마지막 Write Wins 금지
 IDEMPOTENCY_CONFLICT,같은 Key 다른 Payload,Request hash 비교,새 Key/요청 검토,기존 결과 덮기 금지
+QUARANTINED,Data Quality ERROR/CRITICAL로 업무 반영 보류,Quarantine ID·Violation·Version,승인 정정 또는 폐기,정상 원장에 부분 반영 금지
+CORRECTED,승인된 정정값 저장,Actor·Reason·Version·Audit,Replay validation,같은 Version 재정정 금지
+REPLAYED,정정/원본 재검증 통과,Decision·Audit·업무 반영 ID,업무 원장 반영 확인,원본 Quarantine 이력 보존
+WEBHOOK_DLQ,Retry 한도 또는 결정적 실패,Delivery·Attempt·Last Error,Target 대사 후 승인 Replay,무근거 대량 Replay 금지
+TIME_UNHEALTHY,Clock skew가 허용 범위 초과,Time snapshot·Host/NTP metric,시간 의존 Write 중단·NTP 복구,업무일자·만료 우회 금지

@@ -47,3 +47,7 @@ Gateway 담당자,3,Connection Test,Connection Test의 입력·결과·오류·�
 Gateway 담당자,4,Validate·Approve·Publish,Validate·Approve·Publish의 입력·결과·오류·복구·Evidence를 문서 절차대로 제시,해당 공식 매뉴얼·Operation/Source Matrix,완료
 Gateway 담당자,5,Attempt·Partial·LKG 복구,Attempt·Partial·LKG 복구의 입력·결과·오류·복구·Evidence를 문서 절차대로 제시,해당 공식 매뉴얼·Operation/Source Matrix,완료
 Gateway 담당자,6,Upgrade·운영 인계,Upgrade·운영 인계의 입력·결과·오류·복구·Evidence를 문서 절차대로 제시,해당 공식 매뉴얼·Operation/Source Matrix,완료
+업무 개발자,10,시간·Deadline 계약 적용,UTC·업무 Zone·monotonic timeout과 unhealthy 차단을 구현,01 개발자·Time Source Test,완료
+데이터 운영자,1,Quarantine 정정·재검증,Violation·Version·승인·Audit를 확인해 REPLAYED까지 종료,04 ADM·DQ Ledger,완료
+보안 운영자,6,Field Key Version 교체,Actor·Reason·Target Key Version·실패 Row 대사를 완료,05 운영·Encryption Ledger,완료
+연계 운영자,7,Webhook UNKNOWN·DLQ 복구,Target Event ID 대사 후 Version Replay와 Audit 확인,04/05·Webhook Ledger,완료

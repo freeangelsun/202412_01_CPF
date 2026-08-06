@@ -3,7 +3,7 @@
 > 문서: `CPF ADM 개발자 매뉴얼`
 > 기준 Repository: `https://github.com/freeangelsun/202412_01_CPF`
 > 기준 Branch: `master`
-> 기준 Commit: `2a013663090d4e430a15983ad7269f8e86c5ef58` (`Merge B`)
+> 기준 Commit: `6976d2747481b8540b48ddb9ab8f53cfeaa4b888` (`06_02`)
 > 기준일: `2026-08-06 Asia/Seoul`
 
 | 항목 | 내용 |
@@ -368,3 +368,18 @@ Preview Target과 실제 실행 Target, Desired/Observed, Target Attempt, ACK/NA
 8. Operation/Attempt/Audit를 운영자가 찾을 수 있는가?
 9. Browser E2E와 Fault Test가 있는가?
 10. 04 운영자 매뉴얼의 해당 Route 카드가 갱신됐는가?
+
+## 17. Integration Closure 운영 기능 연결
+
+Integration Closure는 새 ADM 제품을 만드는 작업이 아니라 기존 ADM Store와 Generated Client에 다음 Owner Operation을 연결하는 작업이다.
+
+| Operation | Method·Path | 화면 입력 | 표시 결과 |
+|---|---|---|---|
+| `admIntegrationTimeHealth` | `GET /adm/api/integration-closure/time/health` | Zone, Max Skew ms | UTC·업무시각·편차·Healthy |
+| `admIntegrationDataQualityValidate` | `POST .../data-quality/validate/{recordId}` | Record ID, JSON Record | Accepted·Violation·Quarantine ID |
+| `admIntegrationDataQualityCorrect` | `POST .../quarantine/{id}/correct` | Expected Version·Reason·Approved·Corrected JSON | State·Version |
+| `admIntegrationDataQualityReplay` | `POST .../quarantine/{id}/replay` | Actor Session·Reason | Decision·Replay 상태 |
+| `admIntegrationWebhookDlq` | `GET .../webhooks/dlq` | Limit | Delivery 목록·상태·Attempt |
+| `admIntegrationWebhookReplay` | `POST .../webhooks/{id}/replay` | Expected Version·Reason | Delivery 상태·Version |
+
+Frontend는 `integrationClosureMethods.ts`와 Generated API를 사용하며 Feature Page에서 Raw URL을 다시 작성하지 않는다. 위험 조치는 Server Session의 `adm.operatorId`, Reason, Expected Version, 승인 여부를 Owner Controller에 전달한다. Browser Test는 권한 거부, Version Conflict, 503 Time unhealthy, Webhook 429·503, 응답 유실 후 재조회까지 포함한다.

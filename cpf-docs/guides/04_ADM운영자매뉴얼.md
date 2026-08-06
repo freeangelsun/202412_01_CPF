@@ -3,7 +3,7 @@
 > 문서: `CPF ADM 운영자 매뉴얼`
 > 기준 Repository: `https://github.com/freeangelsun/202412_01_CPF`
 > 기준 Branch: `master`
-> 기준 Commit: `2a013663090d4e430a15983ad7269f8e86c5ef58` (`Merge B`)
+> 기준 Commit: `6976d2747481b8540b48ddb9ab8f53cfeaa4b888` (`06_02`)
 > 기준일: `2026-08-06 Asia/Seoul`
 
 | 항목 | 내용 |
@@ -4784,3 +4784,36 @@ Permissions Simulation과 Operators/Break-glass 상태를 확인한다. 마지�
 8. Gateway NACK를 LKG로 정상화한다.
 9. Download의 Masking·Row Count·Audit를 확인한다.
 10. 교대 기록만 보고 다음 운영자가 미종결 건을 이어서 처리한다.
+
+## 9. 시간·데이터 품질·Webhook 운영
+
+![Integration Closure 운영 흐름](../assets/manuals/cpf-integration-closure-operations.svg)
+
+### 9.1 시간 상태 확인
+
+1. Zone에 `Asia/Seoul` 등 승인된 IANA Zone을 입력한다.
+2. Max Skew는 환경 운영 기준 ms를 입력한다.
+3. 조회 결과의 `utc`, `businessTime`, `estimatedSkew`, `healthy`를 확인한다.
+4. `healthy=false`이면 Scheduler·결재 만료·Token·Lease에 영향을 주는 위험 조치를 중단하고 NTP·Host Clock·Container Clock을 점검한다.
+5. 정상화 판정은 Instance별 편차가 허용 범위 안이고 같은 업무일자를 계산하는 것이다.
+
+### 9.2 데이터 품질 격리 처리
+
+| 단계 | 입력 | 완료 판정 |
+|---|---|---|
+| 검증 | Record ID·Record JSON | Accepted 또는 Quarantine ID와 Violation 표시 |
+| 격리 조회 | Quarantine ID | 원본·Violation·State·Version 확인 |
+| 정정 | Expected Version·Corrected JSON·Reason·Approval | `CORRECTED`, Version +1, Audit 생성 |
+| 재검증 | Quarantine ID·Reason | Accepted 후 `REPLAYED` 또는 새 Violation |
+
+승인 없이 정정하거나 오래된 Version을 보내면 실행하지 않는다. 응답 유실 시 Quarantine ID와 Audit를 조회해 상태가 이미 `CORRECTED` 또는 `REPLAYED`인지 확인한다.
+
+### 9.3 Webhook DLQ와 결과 불명
+
+1. DLQ 목록에서 Delivery ID, Endpoint ID, Event ID, Event Type, Attempt, Last Error, Version을 확인한다.
+2. Target 시스템에서 Event ID 처리 여부를 조회한다.
+3. Target 미처리와 재시도 허용을 확인한 뒤 Expected Version·Reason으로 Replay한다.
+4. 409는 최신 Version 재조회, 429는 Rate Limit 해제 후 재평가, 503은 Provider·Network·TLS 복구 후 재평가한다.
+5. 성공 판정은 CPF Delivery와 Target 원장이 같은 Event ID를 성공으로 기록하고 Audit가 연결된 경우다.
+
+Integration Closure API는 별도 Menu가 확인되지 않은 환경에서도 ADM Generated Client와 운영 API로 제공된다. 고객 화면을 추가할 때는 03의 연동 계약을 사용하고 임의 Raw URL을 만들지 않는다.

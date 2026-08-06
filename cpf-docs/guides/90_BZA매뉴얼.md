@@ -3,7 +3,7 @@
 > 문서: `CPF BZA 매뉴얼`
 > 기준 Repository: `https://github.com/freeangelsun/202412_01_CPF`
 > 기준 Branch: `master`
-> 기준 Commit: `2a013663090d4e430a15983ad7269f8e86c5ef58` (`Merge B`)
+> 기준 Commit: `6976d2747481b8540b48ddb9ab8f53cfeaa4b888` (`06_02`)
 > 기준일: `2026-08-06 Asia/Seoul`
 
 | 항목 | 내용 |
@@ -1383,3 +1383,9 @@ Restore 후 조직 경로·대표 발령·사용자 연결·실효 권한·미�
 6. 위임 만료·재상신·Idempotency를 처리할 수 있는가?
 7. Attachment 격리·재검사·Download Audit가 동작하는가?
 8. Backup에서 실효 권한·미결 결재까지 복원되는가?
+
+## 13. 개인정보 필드와 품질 격리 연계
+
+BZA 조직·직원·사용자·결재 업무의 개인정보 Field는 업무 DTO에서 분류하고 `CpfFieldEncryptionOperations`를 통해 저장한다. 목록·Export에는 Masking을 적용하고 복호화는 권한·Actor·Reason이 있는 상세 조치에서만 수행한다.
+
+기관 인사 파일이나 대량 사용자 적재는 업무 반영 전에 Data Quality Rule을 실행한다. ERROR·CRITICAL 위반 Row는 BZA 원장에 일부 반영하지 않고 Quarantine으로 분리한다. 운영자는 원본·Violation·Version을 확인해 승인 정정하고 Replay 결과가 Accepted인 Row만 업무 원장에 반영한다. 결재 참가자 Snapshot과 사용자 권한 변경 Audit는 정정 전후 모두 보존한다.

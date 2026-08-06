@@ -3,7 +3,7 @@
 > 문서: `CPF Gateway 매뉴얼`
 > 기준 Repository: `https://github.com/freeangelsun/202412_01_CPF`
 > 기준 Branch: `master`
-> 기준 Commit: `2a013663090d4e430a15983ad7269f8e86c5ef58` (`Merge B`)
+> 기준 Commit: `6976d2747481b8540b48ddb9ab8f53cfeaa4b888` (`06_02`)
 > 기준일: `2026-08-06 Asia/Seoul`
 
 | 항목 | 내용 |
@@ -576,3 +576,17 @@ Instance Version·Checksum·Event Checkpoint를 대사하고 Manual Change를 �
 Backup 대상은 Server Group·Binding·Security·Resilience·Publish/LKG·Attempt/Idempotency·Secret Metadata·Certificate·Audit다.
 
 Upgrade는 Runtime Artifact, Route Schema, Generated Client, DB Migration, Secret/Certificate, Publish Event 호환을 검토한다. 운영 인계에는 Route Owner, Target, Security, Timeout, Retry, Idempotency, Probe, Alert, LKG, Rollback, UNKNOWN 대사, 담당자를 포함한다.
+
+## 18. Gateway 호출과 Webhook Callback의 경계
+
+Gateway는 외부 요청이 CPF 업무 API로 들어오는 진입 계약이고, Webhook은 CPF Event가 외부 Endpoint로 나가는 Callback 계약이다.
+
+| 구분 | Gateway | Webhook |
+|---|---|---|
+| 방향 | 외부 → CPF | CPF → 외부 |
+| 정본 | Route Version·Publish·Attempt Ledger | Endpoint·Delivery Ledger |
+| 중복 방지 | Request Idempotency·Attempt | Endpoint + Idempotency Key |
+| 결과 불명 | Target 거래 대사 | Event ID Target 대사 |
+| 복구 | Route LKG·Rollback·Reconcile | Retry·DLQ·Expected Version Replay |
+
+Webhook Callback URI도 SSRF·DNS·TLS·Allowlist 통제를 적용한다. Gateway Route Publish 승인과 Webhook Endpoint 변경 승인은 별도 Audit로 보존한다.

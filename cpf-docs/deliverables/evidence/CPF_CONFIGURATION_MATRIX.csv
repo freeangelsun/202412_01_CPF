@@ -69,3 +69,10 @@ config-prefix,cpf.data.cache.valkey.scan-count,Long,500,10~10000,Namespace evict
 config-prefix,cpf.cache.invalidation.consumer-id,String,cache-<host>-<CPF_INSTANCE_ID>,"[A-Za-z0-9._:-]{1,180}",CpfCacheInvalidationCoordinator,재기동,N,durable checkpoint consumer_id,이전 Consumer ID 복원
 config-prefix,cpf.cache.invalidation.reconcile-batch-size,Integer,200,1~10000,CpfCacheInvalidationCoordinator,재기동,N,reconcile 처리량·DB 부하,이전 Batch Size
 config-prefix,cpf.cache.invalidation.reconcile-max-batches,Integer,20,1~1000,CpfCacheInvalidationCoordinator,재기동,N,1회 reconcile 상한,이전 Max Batches
+environment,CPF_FRONTEND_URL,URI,없음,Browser Test 필수,Playwright ADM E2E,Test start,N,Target URL 연결,이전 URL
+environment,CPF_E2E_RELEASE,Boolean,false,true/false,Playwright ADM E2E,Test start,N,Release mode worker/retry,false
+environment,CPF_E2E_AUTH_STATE,Path,없음,Release 필수·파일 존재,Playwright ADM E2E,Test start,Y,Authenticated session restore,이전 session file
+environment,CPF_E2E_PRIVILEGED_ENDPOINTS,Path/String,없음,Release 필수,Playwright ADM E2E,Test start,N,Risk endpoint coverage,이전 matrix
+environment,CPF_E2E_ROUTE_MATRIX,Path/String,없음,Release 필수,Playwright ADM E2E,Test start,N,Route coverage,이전 matrix
+environment,CPF_E2E_FAILURE_MATRIX,Path/String,없음,Release 필수,Playwright ADM E2E,Test start,N,Failure/recovery coverage,이전 matrix
+environment,CPF_E2E_SECURITY_FIXTURE,Path/String,없음,Release 필수,Playwright ADM E2E,Test start,Y,Permission/masking negative cases,이전 fixture

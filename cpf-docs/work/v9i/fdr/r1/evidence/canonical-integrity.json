@@ -1,0 +1,44 @@
+{
+  "baselineSha": "2929163b3bb40159e22e1f57e79b6cd070abf7ad",
+  "exactIdRows": 47745,
+  "integrationRequestIds": 32,
+  "parts": [
+    {
+      "part": "REQUIREMENT_STATUS_PART_001.csv",
+      "rows": 12000,
+      "expectedRows": 12000,
+      "sha256Crlf": "617d14df0c1f3d2c728b8f62d2c86ef73019488d1045a087e69afed343fabc10",
+      "expectedSha256": "617d14df0c1f3d2c728b8f62d2c86ef73019488d1045a087e69afed343fabc10",
+      "bytesCrlf": 10257998
+    },
+    {
+      "part": "REQUIREMENT_STATUS_PART_002.csv",
+      "rows": 12000,
+      "expectedRows": 12000,
+      "sha256Crlf": "e5fb06f608ea45d6bc169ce9dbb3419609802bea14bda9872db0cc42f5bf3b28",
+      "expectedSha256": "e5fb06f608ea45d6bc169ce9dbb3419609802bea14bda9872db0cc42f5bf3b28",
+      "bytesCrlf": 9349085
+    },
+    {
+      "part": "REQUIREMENT_STATUS_PART_003.csv",
+      "rows": 12000,
+      "expectedRows": 12000,
+      "sha256Crlf": "1d848a56991dec8b6e977e34ce9e36fab1fbc5632c5c214c3a6ad9f5d134a6e6",
+      "expectedSha256": "1d848a56991dec8b6e977e34ce9e36fab1fbc5632c5c214c3a6ad9f5d134a6e6",
+      "bytesCrlf": 6278527
+    },
+    {
+      "part": "REQUIREMENT_STATUS_PART_004.csv",
+      "rows": 11745,
+      "expectedRows": 11745,
+      "sha256Crlf": "885f99873cb75dabffbeaa0771a00eed3da669b83ff318c6e19582c3cb69b226",
+      "expectedSha256": "885f99873cb75dabffbeaa0771a00eed3da669b83ff318c6e19582c3cb69b226",
+      "bytesCrlf": 7210759
+    }
+  ],
+  "duplicatePrimary": 0,
+  "orphanEvidence": 0,
+  "orphanExecution": 0,
+  "orphanRequest": 0,
+  "hashMismatch": 0
+}

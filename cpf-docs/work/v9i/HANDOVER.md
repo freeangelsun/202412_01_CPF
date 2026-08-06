@@ -9,3 +9,11 @@
 - QA final result: PENDING
 - External runtime and approval verification: PENDING
 - This cleanup did not commit or push
+
+## Final Development GPT Campaign Handover
+
+- Current basis: `2929163b3bb40159e22e1f57e79b6cd070abf7ad`
+- Result root: `cpf-docs/work/v9i/fdr/r1`
+- Apply Overlay only to exact basis, then run `python cpf-tools/verification/final_dev_campaign.py --expected-sha 2929163b3bb40159e22e1f57e79b6cd070abf7ad`.
+- FDEV-004/005/006/017 remain target-runtime verification items.
+- Existing `cpf-starters/openapi-webmvc` is a deletion candidate only; no deletion was performed.

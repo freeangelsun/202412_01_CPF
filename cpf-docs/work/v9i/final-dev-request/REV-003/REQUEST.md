@@ -1,15 +1,15 @@
-# CPF 마지막 개발GPT 전수 보완 개발 요청서 — REV-002
+# CPF 마지막 개발GPT 전수 보완 개발 요청서 — REV-003
 
 ## 1. 핵심 변경
 
 이번 Revision은 **환경이 없는 개발GPT에게 Java 25, 실제 DB, Browser, Broker 실행을 반복 요구하지 않는다.**
 
-총 Requirement는 24건으로 유지한다.
+총 Requirement는 25건으로 확장한다(FDEV-025 P0 Defect append).
 
-- 개발GPT 직접 구현·검증: 20건
+- 개발GPT 직접 구현·검증: 21건
 - 개발GPT 대체검증 후 Codex/QA Target Runtime 이관: 4건
-- 기준 Commit 초안: `7bc8f271a73787b7ddc9ff9aab9840d53c0ac051`
-- 작업 시작 시 최신 `origin/master` exact SHA로 갱신
+- 현재 작업 기준 Commit: `2929163b3bb40159e22e1f57e79b6cd070abf7ad`
+- 과거 SHA는 이력으로만 보존하고 현재 실행 기준과 구분
 
 
 ## 1-1. 통합 검증 정본 우선 원칙
@@ -31,7 +31,7 @@
 
 ### 개발GPT 완료 판정
 
-개발GPT는 24건 모두 검토하되, 환경 의존 4건은 다음을 완료하면 자기 역할을 `완료`로 판정할 수 있다.
+개발GPT는 25건 모두 검토하되, 환경 의존 4건은 다음을 완료하면 자기 역할을 `완료`로 판정할 수 있다.
 
 1. 제품 구현과 Config·Build Script·Migration·Test·Runtime Script 보완
 2. 현재 환경에서 가능한 정적검증·로컬 Harness·대체 실행
@@ -70,7 +70,7 @@ Codex 환경에도 해당 Runtime이 없으면 같은 요청을 개발GPT에게 
 5. 대체검증 완료 후 개발GPT 역할을 닫고 Codex/QA로 넘긴다.
 6. Codex가 환경 부족으로 실패해도 개발GPT 구현 결함이 아닌 한 개발GPT 재개발 요청으로 돌리지 않는다.
 7. 실제 Runtime 실패가 Source·Config·Script 결함을 드러낼 때만 같은 Requirement ID로 개발GPT 재개발 요청한다.
-8. 외부 환경 대기 때문에 다른 20건을 보류하지 않는다.
+8. 외부 환경 대기 때문에 다른 21건을 보류하지 않는다.
 
 ## 4. 대체검증 최소 기준
 
@@ -101,9 +101,9 @@ Codex 환경에도 해당 Runtime이 없으면 같은 요청을 개발GPT에게 
 - Process start/kill/restart Script와 대사 기준 완성
 - 실제 다중 Process·Broker 실행은 Codex/QA 환경에서 판정
 
-## 5. 직접 수행 20건
+## 5. 직접 수행 21건
 
-환경 의존 4건을 제외한 Architecture, Consumer, Security, ADM/BZA, OpenAPI, Generator, SQL, 문서, 원장, Evidence, Packaging 등 20건은 개발GPT가 실제 구현·실행·자체검수까지 수행한다.
+환경 의존 4건을 제외한 Architecture, Consumer, Security, ADM/BZA, OpenAPI, Generator, SQL, 문서, 원장, Evidence, Packaging 등 21건은 개발GPT가 실제 구현·실행·자체검수까지 수행한다.
 
 환경 문제를 이유로 직접 수행 가능한 항목을 `미완료`로 이월하지 않는다.
 
@@ -145,3 +145,10 @@ Codex 환경에도 해당 Runtime이 없으면 같은 요청을 개발GPT에게 
 - `SHA256SUMS.txt`
 
 Commit·Push·삭제는 수행하지 않는다.
+
+
+## REV-004 Steering Addendum
+
+- FDEV-025 P0 Starter Catalog/BOM exact-equality defect를 append한다.
+- 기존 47,745 exact ID 및 32 request_id는 변경·삭제·재번호화하지 않는다.
+- openapi-webmvc 구현은 public web-api Profile 내부로 통합하고 기존 경로 삭제는 승인 전 수행하지 않는다.

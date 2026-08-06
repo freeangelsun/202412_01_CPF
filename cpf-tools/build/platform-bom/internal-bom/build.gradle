@@ -14,7 +14,6 @@ group='com.cpf.internal'; version=versionValue
 javaPlatform { allowDependencies() }
 repositories { mavenCentral() }
 def internalModules=(catalog.modules ?: []).findAll { it.visibility?.toString()=='internal' }
-if (internalModules.size()!=32) throw new GradleException("Internal BOM requires exactly 32 leaves: ${internalModules.size()}")
 def publicLeak=internalModules.findAll { it.kind?.toString()!='internal-starter' }
 if (!publicLeak.isEmpty()) throw new GradleException("Public profile leaked into internal BOM: ${publicLeak}")
 dependencies {
@@ -28,5 +27,20 @@ publishing {
  publications { cpfInternalPlatformBom(MavenPublication) { from components.javaPlatform; artifactId='cpf-internal-platform-bom'; pom { name='CPF Internal Platform BOM'; description='Internal provider/runtime alignment; never a public selection surface.' } } }
  repositories { maven { name='CpfLocal'; url=uri(localRepo.get()) }; maven { name='CpfStaging'; url=uri(stagingRepo.get()) }; maven { name='CpfInternal'; url=uri(internalRepo.get()) } }
 }
-tasks.register('verifyInternalBom') { doLast { assert internalModules.size()==32; assert publicLeak.isEmpty() } }
+tasks.register('verifyInternalBom') {
+    doLast {
+        def expected=internalModules.collect { "${it.groupId}:${it.artifactId}:${versionValue}" }
+        def actual=configurations.api.dependencyConstraints.collect { "${it.group}:${it.name}:${it.version}" }
+                .findAll { !it.startsWith('com.cpf:cpf-platform-bom:') }
+        def duplicateActual=actual.groupBy { it }.findAll { k,v -> v.size()>1 }.keySet()
+        def missing=expected.toSet()-actual.toSet()
+        def extra=actual.toSet()-expected.toSet()
+        def publicCoordinates=(catalog.modules ?: []).findAll { it.visibility?.toString()=='public' }
+                .collect { "${it.groupId}:${it.artifactId}:${versionValue}" }.toSet()
+        def publicConstraintLeak=actual.toSet().intersect(publicCoordinates)
+        if (!publicLeak.isEmpty() || !duplicateActual.isEmpty() || !missing.isEmpty() || !extra.isEmpty() || !publicConstraintLeak.isEmpty()) {
+            throw new GradleException("Internal BOM/catalog mismatch: missing=${missing}, extra=${extra}, duplicate=${duplicateActual}, publicLeak=${publicConstraintLeak}")
+        }
+    }
+}
 check.dependsOn tasks.named('verifyInternalBom')

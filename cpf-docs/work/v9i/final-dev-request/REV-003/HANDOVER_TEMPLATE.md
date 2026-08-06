@@ -1,4 +1,4 @@
-# Handover Template — REV-002
+# Handover Template — REV-003
 
 ## Baseline
 - origin/master:
@@ -6,7 +6,7 @@
 - Working Tree:
 
 ## DevGPT direct execution
-- 20 requirements complete:
+- 21 requirements complete:
 - failed:
 - evidence:
 

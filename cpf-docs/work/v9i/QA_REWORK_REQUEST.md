@@ -1,6 +1,8 @@
 # QA Rework Request
 
-검토 기준 Commit: `1b35d84801e256e3e6d7e4482918817ec82865dd`
+과거 QA 검토 기준 Commit: `1b35d84801e256e3e6d7e4482918817ec82865dd`
+
+현재 개발GPT 구현 기준 Commit: `2929163b3bb40159e22e1f57e79b6cd070abf7ad`
 
 ## QA-RW-01 — Spring Context wiring
 
@@ -38,3 +40,8 @@
 - 헤더 전용 `REQUIREMENT_STATUS.csv`와 실제 분할 Dataset 관계를 명시
 - QA 기준 Commit `1b35d84801e256e3e6d7e4482918817ec82865dd`를 문서에 추가
 - 긴 중복 Workspace 삭제 후 짧은 Root만 정본으로 유지
+
+## QA-RW-05 — FDEV-025 Starter Catalog/BOM
+
+- Internal/Public BOM과 Catalog 좌표 exact equality, 누락·추가·중복·누출 0을 검수한다.
+- `openapi-webmvc` 구현은 canonical `web-api` Profile로 내부화했으며 기존 경로 삭제는 별도 승인 전 금지다.

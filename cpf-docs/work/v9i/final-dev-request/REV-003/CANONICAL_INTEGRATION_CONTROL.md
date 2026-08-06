@@ -85,7 +85,7 @@ Java25, DB3, Browser, Multi-process 실제 Runtime이 없더라도 통합 검증
 
 ## 6. 종료 조건
 
-24건 개발 요청의 완료 보고 전 다음이 모두 필요하다.
+25건 개발 요청의 완료 보고 전 다음이 모두 필요하다.
 
 - 모든 Requirement의 사전·사후 통합 검증 기록
 - 기존 47,745 exact ID와 32 request_id 보존 또는 증분 근거
@@ -94,3 +94,7 @@ Java25, DB3, Browser, Multi-process 실제 Runtime이 없더라도 통합 검증
 - Development 상태와 Runtime Verification 상태 분리
 - Codex/QA 이관 항목 명확화
 - QA 통과 전 전체 완료 주장 금지
+
+## FDEV-025 Append Rule
+
+FDEV-025는 Campaign Requirement 원장에만 append하며, 47,745 exact ID Part와 32 integration request ID는 그대로 보존한다.

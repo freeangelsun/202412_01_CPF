@@ -121,5 +121,9 @@
     "max_example_absolute_path_chars": 150,
     "legacy_max_path_limit": 260,
     "pass": true
-  }
+  },
+  "currentReviewBasisSha": "2929163b3bb40159e22e1f57e79b6cd070abf7ad",
+  "finalDevCampaignPath": "cpf-docs/work/v9i/fdr/r1",
+  "campaignRequirementCount": 25,
+  "updatedAt": "2026-08-06T13:00:00+09:00"
 }

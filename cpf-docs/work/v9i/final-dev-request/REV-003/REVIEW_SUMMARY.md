@@ -1,9 +1,9 @@
-# REV-002 Review Summary
+# REV-003 Review Summary
 
 ## 총 요청
 
-- 총 24건
-- 개발GPT 직접 수행 20건
+- 총 25건
+- 개발GPT 직접 수행 21건
 - 개발GPT 대체검증 후 Codex/QA 실제 Runtime 4건
 
 ## 환경 이관 4건
@@ -25,5 +25,9 @@
 
 기존 `cpf-docs/work/v9i` 통합 검증 문서는 계속 중심 정본으로 유지한다.
 
-24건은 별도 병렬 원장이 아니라 통합 정본을 최신 Source·실행·Evidence로 갱신하는 개발 Gate다.
+25건은 별도 병렬 원장이 아니라 통합 정본을 최신 Source·실행·Evidence로 갱신하는 개발 Gate다.
 각 Requirement는 변경 전·후 통합 검증을 의무적으로 수행한다.
+
+## 추가 P0 Defect
+
+- FDEV-025 — Starter Catalog/BOM exact equality와 openapi-webmvc canonical web-api 내부화

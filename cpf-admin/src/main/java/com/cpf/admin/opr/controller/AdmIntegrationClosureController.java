@@ -1,16 +1,130 @@
 package com.cpf.admin.opr.controller;
+
 import com.cpf.admin.opr.integration.AdmIntegrationClosureService;
-import com.cpf.core.api.data.quality.*; import com.cpf.core.api.time.*; import com.cpf.core.api.webhook.*;
+import com.cpf.core.api.data.quality.CpfDataQualityDecision;
 import com.cpf.core.api.execution.CpfOnlineTransaction;
-import io.swagger.v3.oas.annotations.Operation; import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.http.ResponseEntity; import org.springframework.web.bind.annotation.*; import java.util.*;
-@RestController @RequestMapping("/adm/api/integration-closure") @Tag(name="ADM-Integration-Closure",description="시간·데이터 품질·Webhook 운영 조회 및 승인 조치")
+import com.cpf.core.api.time.CpfTimeSnapshot;
+import com.cpf.core.api.webhook.CpfWebhookDelivery;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
+
+@RestController
+@ConditionalOnBean(AdmIntegrationClosureService.class)
+@RequestMapping("/adm/api/integration-closure")
+@Tag(name = "ADM-Integration-Closure", description = "시간·데이터 품질·Webhook 운영 조회 및 서버 승인 조치")
 public class AdmIntegrationClosureController extends com.cpf.admin.common.base.AdmBaseController {
- private final AdmIntegrationClosureService service; public AdmIntegrationClosureController(AdmIntegrationClosureService service){this.service=service;}
- @GetMapping("/time/health") @CpfOnlineTransaction(id="OADMIC0101",name="AdmTimeHealth") @Operation(operationId="admIntegrationTimeHealth",summary="UTC/업무시간/NTP skew 상태") public ResponseEntity<CpfTimeSnapshot> time(@RequestParam(defaultValue="Asia/Seoul")String zone,@RequestParam(defaultValue="1000")long maxSkewMillis){return ResponseEntity.ok(service.timeHealth(zone,maxSkewMillis));}
- @PostMapping("/data-quality/validate/{recordId}") @CpfOnlineTransaction(id="OADMIC0102",name="AdmDataQualityValidate") @Operation(operationId="admIntegrationDataQualityValidate",summary="데이터 품질 검증") public ResponseEntity<CpfDataQualityDecision> validate(@PathVariable String recordId,@RequestBody Map<String,Object> record){return ResponseEntity.ok(service.validate(recordId,record));}
- @PostMapping("/data-quality/quarantine/{id}/correct") @CpfOnlineTransaction(id="OADMIC0103",name="AdmDataQualityCorrect") @Operation(operationId="admIntegrationDataQualityCorrect",summary="승인된 격리 데이터 정정") public ResponseEntity<CpfDataQualityOperations.QuarantineItem> correct(@PathVariable String id,@RequestParam long expectedVersion,@RequestParam String reason,@RequestParam boolean approved,@RequestAttribute("adm.operatorId")String operator,@RequestBody Map<String,Object> corrected){return ResponseEntity.ok(service.correct(id,expectedVersion,corrected,operator,reason,approved));}
- @PostMapping("/data-quality/quarantine/{id}/replay") @CpfOnlineTransaction(id="OADMIC0104",name="AdmDataQualityReplay") @Operation(operationId="admIntegrationDataQualityReplay",summary="격리 데이터 재검증") public ResponseEntity<CpfDataQualityDecision> replayQuality(@PathVariable String id,@RequestParam String reason,@RequestAttribute("adm.operatorId")String operator){return ResponseEntity.ok(service.replayQuality(id,operator,reason));}
- @GetMapping("/webhooks/dlq") @CpfOnlineTransaction(id="OADMIC0105",name="AdmWebhookDlq") @Operation(operationId="admIntegrationWebhookDlq",summary="Webhook DLQ 조회") public ResponseEntity<List<CpfWebhookDelivery>> dlq(@RequestParam(defaultValue="100")int limit){return ResponseEntity.ok(service.webhookDlq(limit));}
- @PostMapping("/webhooks/{id}/replay") @CpfOnlineTransaction(id="OADMIC0106",name="AdmWebhookReplay") @Operation(operationId="admIntegrationWebhookReplay",summary="Webhook DLQ/UNKNOWN 재처리") public ResponseEntity<CpfWebhookDelivery> replayWebhook(@PathVariable String id,@RequestParam long expectedVersion,@RequestParam String reason,@RequestAttribute("adm.operatorId")String operator){return ResponseEntity.ok(service.replayWebhook(id,expectedVersion,operator,reason));}
+    private final AdmIntegrationClosureService service;
+
+    public AdmIntegrationClosureController(AdmIntegrationClosureService service) {
+        this.service = service;
+    }
+
+
+    @GetMapping("/crypto/status")
+    @CpfOnlineTransaction(id = "OADMIC0108", name = "AdmCryptoStatus")
+    @Operation(operationId = "admIntegrationCryptoStatus", summary = "암호화 Provider 및 활성 Key Version 상태")
+    public ResponseEntity<Map<String, Object>> cryptoStatus() {
+        return ResponseEntity.ok(service.cryptoStatus());
+    }
+
+    @GetMapping("/time/health")
+    @CpfOnlineTransaction(id = "OADMIC0101", name = "AdmTimeHealth")
+    @Operation(operationId = "admIntegrationTimeHealth", summary = "UTC/업무시간/NTP skew 상태")
+    public ResponseEntity<CpfTimeSnapshot> time(
+            @RequestParam(defaultValue = "Asia/Seoul") String zone,
+            @RequestParam(defaultValue = "1000") long maxSkewMillis) {
+        return ResponseEntity.ok(service.timeHealth(zone, maxSkewMillis));
+    }
+
+    @PostMapping("/data-quality/validate/{recordId}")
+    @CpfOnlineTransaction(id = "OADMIC0102", name = "AdmDataQualityValidate")
+    @Operation(operationId = "admIntegrationDataQualityValidate", summary = "데이터 품질 검증")
+    public ResponseEntity<CpfDataQualityDecision> validate(
+            @PathVariable String recordId,
+            @RequestBody Map<String, Object> record) {
+        return ResponseEntity.ok(service.validate(recordId, record));
+    }
+
+    @PostMapping("/data-quality/quarantine/{id}/correction-approvals")
+    @CpfOnlineTransaction(id = "OADMIC0103", name = "AdmDataQualityCorrectionApprovalRequest")
+    @Operation(operationId = "admIntegrationDataQualityCorrectionApprovalRequest", summary = "격리 데이터 정정 승인 요청")
+    public ResponseEntity<Map<String, Object>> requestCorrection(
+            @PathVariable String id,
+            @RequestAttribute("adm.operatorId") String operator,
+            @RequestBody CorrectionApprovalRequest request) {
+        return ResponseEntity.ok(service.requestCorrection(
+                id,
+                request.expectedVersion(),
+                request.corrected(),
+                request.idempotencyKey(),
+                operator,
+                request.reason()));
+    }
+
+    @PostMapping("/data-quality/correction-approvals/{approvalRequestId}/execute")
+    @CpfOnlineTransaction(id = "OADMIC0107", name = "AdmDataQualityCorrectionExecute")
+    @Operation(operationId = "admIntegrationDataQualityCorrectionExecute", summary = "승인 완료 격리 데이터 정정 단회 실행")
+    public ResponseEntity<Map<String, Object>> executeCorrection(
+            @PathVariable long approvalRequestId,
+            @RequestAttribute("adm.operatorId") String operator,
+            @RequestBody CorrectionExecutionRequest request) {
+        return ResponseEntity.ok(service.executeCorrection(approvalRequestId, operator, request.reason()));
+    }
+
+    @PostMapping("/data-quality/quarantine/{id}/replay")
+    @CpfOnlineTransaction(id = "OADMIC0104", name = "AdmDataQualityReplay")
+    @Operation(operationId = "admIntegrationDataQualityReplay", summary = "격리 데이터 재검증")
+    public ResponseEntity<CpfDataQualityDecision> replayQuality(
+            @PathVariable String id,
+            @RequestParam String reason,
+            @RequestAttribute("adm.operatorId") String operator) {
+        return ResponseEntity.ok(service.replayQuality(id, operator, reason));
+    }
+
+    @GetMapping("/webhooks/dlq")
+    @CpfOnlineTransaction(id = "OADMIC0105", name = "AdmWebhookDlq")
+    @Operation(operationId = "admIntegrationWebhookDlq", summary = "Webhook DLQ 조회")
+    public ResponseEntity<List<CpfWebhookDelivery>> dlq(@RequestParam(defaultValue = "100") int limit) {
+        return ResponseEntity.ok(service.webhookDlq(limit));
+    }
+
+    @PostMapping("/webhooks/{id}/replay")
+    @CpfOnlineTransaction(id = "OADMIC0106", name = "AdmWebhookReplay")
+    @Operation(operationId = "admIntegrationWebhookReplay", summary = "Webhook DLQ/UNKNOWN 재처리")
+    public ResponseEntity<CpfWebhookDelivery> replayWebhook(
+            @PathVariable String id,
+            @RequestParam long expectedVersion,
+            @RequestParam String reason,
+            @RequestAttribute("adm.operatorId") String operator) {
+        return ResponseEntity.ok(service.replayWebhook(id, expectedVersion, operator, reason));
+    }
+
+    public record CorrectionApprovalRequest(
+            long expectedVersion,
+            String idempotencyKey,
+            String reason,
+            Map<String, Object> corrected) {
+        public CorrectionApprovalRequest {
+            if (expectedVersion < 1) throw new IllegalArgumentException("expectedVersion must be positive");
+            idempotencyKey = require(idempotencyKey, "idempotencyKey");
+            reason = require(reason, "reason");
+            corrected = corrected == null ? Map.of() : Map.copyOf(corrected);
+            if (corrected.isEmpty()) throw new IllegalArgumentException("corrected payload is required");
+        }
+    }
+
+    public record CorrectionExecutionRequest(String reason) {
+        public CorrectionExecutionRequest { reason = require(reason, "reason"); }
+    }
+
+    private static String require(String value, String field) {
+        if (value == null || value.isBlank()) throw new IllegalArgumentException(field + " is required");
+        return value.trim();
+    }
 }

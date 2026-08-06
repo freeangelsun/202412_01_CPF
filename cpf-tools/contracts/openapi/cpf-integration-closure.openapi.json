@@ -1,69 +1,487 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "CPF Integration Closure Operations",
-    "version": "1.0.0"
+    "title": "CPF ADM Integration Closure API",
+    "version": "1.1.0"
   },
+  "servers": [
+    {
+      "url": "/"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
   "paths": {
+    "/adm/api/integration-closure/crypto/status": {
+      "get": {
+        "operationId": "admIntegrationCryptoStatus",
+        "summary": "Crypto provider and active key version status",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Insufficient permission or SoD violation"
+          },
+          "404": {
+            "description": "Target not found"
+          },
+          "409": {
+            "description": "Optimistic concurrency or approval conflict"
+          },
+          "429": {
+            "description": "Rate limited"
+          },
+          "500": {
+            "description": "Internal error"
+          },
+          "503": {
+            "description": "Dependency unavailable"
+          }
+        }
+      }
+    },
     "/adm/api/integration-closure/time/health": {
       "get": {
         "operationId": "admIntegrationTimeHealth",
+        "summary": "UTC/business time and skew health",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid request"
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Authentication required"
           },
           "403": {
-            "description": "Forbidden"
+            "description": "Insufficient permission or SoD violation"
+          },
+          "404": {
+            "description": "Target not found"
+          },
+          "409": {
+            "description": "Optimistic concurrency or approval conflict"
+          },
+          "429": {
+            "description": "Rate limited"
+          },
+          "500": {
+            "description": "Internal error"
           },
           "503": {
-            "description": "Time source unhealthy"
+            "description": "Dependency unavailable"
           }
-        }
+        },
+        "parameters": [
+          {
+            "name": "zone",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "maxSkewMillis",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ]
       }
     },
     "/adm/api/integration-closure/data-quality/validate/{recordId}": {
       "post": {
         "operationId": "admIntegrationDataQualityValidate",
+        "summary": "Validate data quality",
         "responses": {
           "200": {
-            "description": "Decision"
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Insufficient permission or SoD violation"
+          },
+          "404": {
+            "description": "Target not found"
           },
           "409": {
-            "description": "Quarantined/conflict"
+            "description": "Optimistic concurrency or approval conflict"
+          },
+          "429": {
+            "description": "Rate limited"
+          },
+          "500": {
+            "description": "Internal error"
+          },
+          "503": {
+            "description": "Dependency unavailable"
+          }
+        },
+        "parameters": [
+          {
+            "name": "recordId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
           }
         }
+      }
+    },
+    "/adm/api/integration-closure/data-quality/quarantine/{id}/correction-approvals": {
+      "post": {
+        "operationId": "admIntegrationDataQualityCorrectionApprovalRequest",
+        "summary": "Create immutable correction approval",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Insufficient permission or SoD violation"
+          },
+          "404": {
+            "description": "Target not found"
+          },
+          "409": {
+            "description": "Optimistic concurrency or approval conflict"
+          },
+          "429": {
+            "description": "Rate limited"
+          },
+          "500": {
+            "description": "Internal error"
+          },
+          "503": {
+            "description": "Dependency unavailable"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CorrectionApprovalRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/adm/api/integration-closure/data-quality/correction-approvals/{approvalRequestId}/execute": {
+      "post": {
+        "operationId": "admIntegrationDataQualityCorrectionExecute",
+        "summary": "Execute one approved correction",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Insufficient permission or SoD violation"
+          },
+          "404": {
+            "description": "Target not found"
+          },
+          "409": {
+            "description": "Optimistic concurrency or approval conflict"
+          },
+          "429": {
+            "description": "Rate limited"
+          },
+          "500": {
+            "description": "Internal error"
+          },
+          "503": {
+            "description": "Dependency unavailable"
+          }
+        },
+        "parameters": [
+          {
+            "name": "approvalRequestId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CorrectionExecutionRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/adm/api/integration-closure/data-quality/quarantine/{id}/replay": {
+      "post": {
+        "operationId": "admIntegrationDataQualityReplay",
+        "summary": "Replay quarantined record",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Insufficient permission or SoD violation"
+          },
+          "404": {
+            "description": "Target not found"
+          },
+          "409": {
+            "description": "Optimistic concurrency or approval conflict"
+          },
+          "429": {
+            "description": "Rate limited"
+          },
+          "500": {
+            "description": "Internal error"
+          },
+          "503": {
+            "description": "Dependency unavailable"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "reason",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
       }
     },
     "/adm/api/integration-closure/webhooks/dlq": {
       "get": {
         "operationId": "admIntegrationWebhookDlq",
+        "summary": "List Webhook DLQ",
         "responses": {
           "200": {
-            "description": "DLQ"
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Insufficient permission or SoD violation"
+          },
+          "404": {
+            "description": "Target not found"
+          },
+          "409": {
+            "description": "Optimistic concurrency or approval conflict"
+          },
+          "429": {
+            "description": "Rate limited"
+          },
+          "500": {
+            "description": "Internal error"
+          },
+          "503": {
+            "description": "Dependency unavailable"
           }
-        }
+        },
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ]
       }
     },
     "/adm/api/integration-closure/webhooks/{id}/replay": {
       "post": {
         "operationId": "admIntegrationWebhookReplay",
+        "summary": "Replay DLQ/UNKNOWN Webhook",
         "responses": {
           "200": {
-            "description": "Replayed"
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Insufficient permission or SoD violation"
+          },
+          "404": {
+            "description": "Target not found"
           },
           "409": {
-            "description": "Version conflict"
+            "description": "Optimistic concurrency or approval conflict"
           },
           "429": {
             "description": "Rate limited"
           },
+          "500": {
+            "description": "Internal error"
+          },
           "503": {
-            "description": "Provider unavailable"
+            "description": "Dependency unavailable"
           }
-        }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expectedVersion",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "reason",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "CorrectionApprovalRequest": {
+        "type": "object",
+        "required": [
+          "expectedVersion",
+          "idempotencyKey",
+          "reason",
+          "corrected"
+        ],
+        "properties": {
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "corrected": {
+            "type": "object",
+            "minProperties": 1,
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "CorrectionExecutionRequest": {
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          }
+        },
+        "additionalProperties": false
       }
     }
   }

@@ -14,9 +14,9 @@ describe("ADM canonical capability registry", () => {
     expect(Object.values(admGroupLabels)).toEqual(["홈", "온라인 운영", "배치 운영", "연계 관리", "통합 관제", "프레임워크 관리"]);
   });
 
-  it("contains exactly the canonical 59 route capabilities", () => {
-    expect(Object.keys(admCapabilityRegistry)).toHaveLength(59);
-    expect(admRouterRecords).toHaveLength(59);
+  it("contains exactly the canonical 60 route capabilities", () => {
+    expect(Object.keys(admCapabilityRegistry)).toHaveLength(60);
+    expect(admRouterRecords).toHaveLength(60);
     expect(admFeatureRoutes).toBe(admCapabilityRegistry);
   });
 
@@ -60,4 +60,21 @@ describe("ADM canonical capability registry", () => {
       "admBatchStopExecution"
     ]);
   });
+
+  it("binds integration closure to server-approved operations only", () => {
+    const route = admCapabilityRegistry.integrationClosure;
+    expect(route.menuId).toBe("INTEGRATION_CLOSURE");
+    expect(route.riskLevel).toBe("CRITICAL");
+    expect(route.expectedOperationIds).toEqual([
+      "admIntegrationCryptoStatus",
+      "admIntegrationTimeHealth",
+      "admIntegrationDataQualityValidate",
+      "admIntegrationDataQualityCorrectionApprovalRequest",
+      "admIntegrationDataQualityCorrectionExecute",
+      "admIntegrationDataQualityReplay",
+      "admIntegrationWebhookDlq",
+      "admIntegrationWebhookReplay"
+    ]);
+  });
+
 });

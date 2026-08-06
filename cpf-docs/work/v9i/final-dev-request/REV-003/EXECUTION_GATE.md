@@ -1,8 +1,8 @@
-# Execution Gate — REV-002
+# Execution Gate — REV-003
 
 ## Gate A: 개발GPT 직접 수행
 
-FDEV-001~FDEV-003, FDEV-007~FDEV-016, FDEV-018~FDEV-024는 개발GPT가 실제 구현·실행·자체검수한다.
+FDEV-001~FDEV-003, FDEV-007~FDEV-016, FDEV-018~FDEV-025는 개발GPT가 실제 구현·실행·자체검수한다.
 
 ## Gate B: 개발GPT 대체검증
 
@@ -38,3 +38,5 @@ QA는 최신 master에서 실제 구현과 실행 Evidence를 검수한다. QA �
 각 변경 완료 후 통합 원장 append/upsert, Consumer/Request/Evidence 연결, Index/Part Hash, orphan/duplicate 검증을 다시 수행한다.
 
 Gate E가 실패하면 해당 Requirement의 개발GPT 역할 완료를 인정하지 않는다.
+
+- `FDEV-025`: `python cpf-tools/verification/verify_starter_catalog.py --root .` 및 BOM exact equality Gate

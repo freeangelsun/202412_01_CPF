@@ -1,0 +1,192 @@
+{
+  "expectedSha": "2929163b3bb40159e22e1f57e79b6cd070abf7ad",
+  "root": ".",
+  "mode": "OVERLAY",
+  "checks": [
+    {
+      "requirementId": "FDEV-001",
+      "name": "exact-head",
+      "status": "SKIP",
+      "detail": "overlay-only; execute after application to exact clean snapshot"
+    },
+    {
+      "requirementId": "FDEV-020",
+      "name": "git-diff-check",
+      "status": "SKIP",
+      "detail": "overlay-only"
+    },
+    {
+      "requirementId": "FDEV-002",
+      "name": "runtime-wiring-files",
+      "status": "PASS",
+      "detail": "configuration/service/controller/owner port present"
+    },
+    {
+      "requirementId": "FDEV-002",
+      "name": "fail-fast-and-override-wiring",
+      "status": "PASS",
+      "detail": "default, override, property and fail-fast markers"
+    },
+    {
+      "requirementId": "FDEV-003",
+      "name": "client-approval-bypass",
+      "status": "PASS",
+      "detail": "no client boolean/direct correction endpoint"
+    },
+    {
+      "requirementId": "FDEV-003",
+      "name": "server-approval-validation",
+      "status": "PASS",
+      "detail": "[]"
+    },
+    {
+      "requirementId": "FDEV-016",
+      "name": "openapi-client-route-contract",
+      "status": "PASS",
+      "detail": "PASS operations=8 serverApprovalOnly=true actualRouteConsumer=true"
+    },
+    {
+      "requirementId": "FDEV-025",
+      "name": "starter-catalog-bom",
+      "status": "PASS",
+      "detail": "PASS modules=39 public=6 internal=33"
+    },
+    {
+      "requirementId": "FDEV-025",
+      "name": "unregistered-openapi-project-dependency",
+      "status": "PASS",
+      "detail": "unknown project dependency absent"
+    },
+    {
+      "requirementId": "FDEV-025",
+      "name": "web-api-openapi-internalization",
+      "status": "PASS",
+      "detail": "canonical web-api owns runtime implementation"
+    },
+    {
+      "requirementId": "FDEV-007",
+      "name": "architecture-ownership",
+      "status": "SKIP",
+      "detail": "requires full repository snapshot"
+    },
+    {
+      "requirementId": "FDEV-008",
+      "name": "framework-consumers",
+      "status": "PASS",
+      "detail": "changed Time/DataQuality/Webhook SPI have controller/service/default provider/owner consumer"
+    },
+    {
+      "requirementId": "FDEV-009",
+      "name": "async-outbox-webhook-incident",
+      "status": "SKIP",
+      "detail": "requires full repository source"
+    },
+    {
+      "requirementId": "FDEV-010",
+      "name": "batch-scheduler-worker-centercut",
+      "status": "SKIP",
+      "detail": "requires full repository source"
+    },
+    {
+      "requirementId": "FDEV-011",
+      "name": "cache-durable-invalidation",
+      "status": "SKIP",
+      "detail": "requires full repository source"
+    },
+    {
+      "requirementId": "FDEV-012",
+      "name": "reliability-common-policy",
+      "status": "SKIP",
+      "detail": "requires full repository source"
+    },
+    {
+      "requirementId": "FDEV-013",
+      "name": "plaintext-secret-scan",
+      "status": "PASS",
+      "detail": "[]"
+    },
+    {
+      "requirementId": "FDEV-013",
+      "name": "approval-sod-masking",
+      "status": "PASS",
+      "detail": "SoD and response masking"
+    },
+    {
+      "requirementId": "FDEV-014",
+      "name": "cpf-admin-surface",
+      "status": "PASS",
+      "detail": "frontend=True backend=True"
+    },
+    {
+      "requirementId": "FDEV-015",
+      "name": "cpf-biz-admin-surface",
+      "status": "SKIP",
+      "detail": "BZA not changed in overlay"
+    },
+    {
+      "requirementId": "FDEV-017",
+      "name": "frontend-no-runtime-cdn",
+      "status": "PASS",
+      "detail": "[]"
+    },
+    {
+      "requirementId": "FDEV-018",
+      "name": "generator-generated-sample-edu",
+      "status": "SKIP",
+      "detail": "requires full generator/sample/EDU snapshot"
+    },
+    {
+      "requirementId": "FDEV-019",
+      "name": "three-vendor-sql",
+      "status": "SKIP",
+      "detail": "requires unchanged canonical/vendor tree"
+    },
+    {
+      "requirementId": "FDEV-020",
+      "name": "conflict-and-zero-source",
+      "status": "PASS",
+      "detail": "{'conflicts': [], 'zero': []}"
+    },
+    {
+      "requirementId": "FDEV-020",
+      "name": "protected-path-existence",
+      "status": "PASS",
+      "detail": "['cpf-docs/deliverables', 'cpf-docs/guides', 'cpf-docs/environment/docker', 'cpf-tools/environment/docker-development-test']"
+    },
+    {
+      "requirementId": "FDEV-021",
+      "name": "canonical-docs",
+      "status": "PASS",
+      "detail": "[]"
+    },
+    {
+      "requirementId": "FDEV-022",
+      "name": "campaign-ledger",
+      "status": "PASS",
+      "detail": "rows=25 unique=25"
+    },
+    {
+      "requirementId": "FDEV-022",
+      "name": "canonical-exact-id-integrity",
+      "status": "PASS",
+      "detail": "{'baselineSha': '2929163b3bb40159e22e1f57e79b6cd070abf7ad', 'exactIdRows': 47745, 'integrationRequestIds': 32, 'parts': [{'part': 'REQUIREMENT_STATUS_PART_001.csv', 'rows': 12000, 'expectedRows': 12000, 'sha256Crlf': '617d14df0c1f3d2c728b8f62d2c86ef73019488d1045a087e69afed343fabc10', 'expectedSha256': '617d14df0c1f3d2c728b8f62d2c86ef73019488d1045a087e69afed343fabc10', 'bytesCrlf': 10257998}, {'part': 'REQUIREMENT_STATUS_PART_002.csv', 'rows': 12000, 'expectedRows': 12000, 'sha256Crlf': 'e5fb06f608ea45d6bc169ce9dbb3419609802bea14bda9872db0cc42f5bf3b28', 'expectedSha256': 'e5fb06f608ea45d6bc169ce9dbb3419609802bea14bda9872db0cc42f5bf3b28', 'bytesCrlf': 9349085}, {'part': 'REQUIREMENT_STATUS_PART_003.csv', 'rows': 12000, 'expectedRows': 12000, 'sha256Crlf': '1d848a56991dec8b6e977e34ce9e36fab1fbc5632c5c214c3a6ad9f5d134a6e6', 'expectedSha256': '1d848a56991dec8b6e977e34ce9e36fab1fbc5632c5c214c3a6ad9f5d134a6e6', 'bytesCrlf': 6278527}, {'part': 'REQUIREMENT_STATUS_PART_004.csv', 'rows': 11745, 'expectedRows': 11745, 'sha256Crlf': '885f99873cb75dabffbeaa0771a00eed3da669b83ff318c6e19582c3cb69b226', 'expectedSha256': '885f99873cb75dabffbeaa0771a00eed3da669b83ff318c6e19582c3cb69b226', 'bytesCrlf': 7210759}], 'duplicatePrimary': 0, 'orphanEvidence': 0, 'orphanExecution': 0, 'orphanRequest': 0, 'hashMismatch': 0}"
+    },
+    {
+      "requirementId": "FDEV-023",
+      "name": "target-runtime-package",
+      "status": "PASS",
+      "detail": "['run-browser-matrix.ps1', 'run-multiprocess-chaos.ps1', 'run-java25-gradle91.ps1', 'run-db3-lifecycle.ps1']"
+    },
+    {
+      "requirementId": "FDEV-024",
+      "name": "final-package-docs",
+      "status": "PASS",
+      "detail": "complete"
+    }
+  ],
+  "summary": {
+    "PASS": 20,
+    "FAIL": 0,
+    "SKIP": 10
+  }
+}

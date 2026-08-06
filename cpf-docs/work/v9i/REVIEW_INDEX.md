@@ -2,12 +2,23 @@
 
 ## Baseline
 
-- Cleanup basis HEAD and origin/master: cb3b2aa5b009f27ab628f43f3b4ae157f7f55412
+- Historical cleanup basis HEAD and origin/master: cb3b2aa5b009f27ab628f43f3b4ae157f7f55412
+- Current final-dev review basis: 2929163b3bb40159e22e1f57e79b6cd070abf7ad
 - Implementation overlay baseline: 2a013663090d4e430a15983ad7269f8e86c5ef58
 - Canonical management root: cpf-docs/work/v9i
 - DevGPT internal implementation incomplete: 0
 - QA final verification: PENDING
 - Target runtime verification: PENDING items remain
+
+
+## Final Development GPT Campaign
+
+- Campaign path: `fdr/r1`
+- Request path: `final-dev-request/REV-003`
+- Campaign requirements: 25 (`FDEV-001`~`FDEV-025`)
+- Direct product fixes: Runtime wiring, server approval, OpenAPI/frontend, Starter Catalog/BOM
+- Target runtime delegated with executable packages: FDEV-004/005/006/017
+- QA final verification: PENDING
 
 ## Canonical dataset
 

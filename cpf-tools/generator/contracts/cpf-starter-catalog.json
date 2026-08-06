@@ -1,7 +1,7 @@
 {
   "schemaVersion": "2.0.0",
   "catalogId": "CPF-QA39-CANONICAL-STARTER-CATALOG",
-  "baselineSha": "RUNTIME_GIT_HEAD",
+  "baselineSha": "2929163b3bb40159e22e1f57e79b6cd070abf7ad",
   "publicProfiles": [
     "minimal-domain",
     "web-api",
@@ -1067,7 +1067,7 @@
     ],
     "capabilityGroupCount": 7,
     "profileCount": 6,
-    "moduleCount": 38
+    "moduleCount": 39
   },
   "profileMode": "ACTUAL_PROFILE_ARTIFACT",
   "profileDefinitions": {

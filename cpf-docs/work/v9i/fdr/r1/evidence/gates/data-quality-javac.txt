@@ -1,0 +1,2 @@
+COMMAND=javac --release 21 -Xlint:all -Werror
+EXIT=0

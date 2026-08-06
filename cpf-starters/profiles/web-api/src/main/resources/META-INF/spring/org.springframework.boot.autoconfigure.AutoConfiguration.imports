@@ -1,1 +1,1 @@
-com.cpf.core.config.CpfOpenApiAutoConfiguration
+com.cpf.starter.openapi.webmvc.internal.CpfOpenApiWebMvcAutoConfiguration

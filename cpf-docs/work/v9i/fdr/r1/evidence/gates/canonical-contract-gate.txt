@@ -1,0 +1,28 @@
+PASS catalog module count=39
+PASS internal partition count=33
+PASS public partition count=6
+PASS catalog coordinates unique
+PASS targetPhysicalLayout moduleCount exact
+PASS targetPhysicalLayout profileCount exact
+PASS removed artifacts not active
+PASS openapi-webmvc remains removed/internalized
+PASS cpf-admin no removed project dependency
+PASS cpf-admin uses browser-bff profile path
+PASS internal BOM checks published constraints
+PASS internal BOM exact-set diagnostics
+PASS internal BOM visibility leak check
+PASS public BOM checks published constraints
+PASS public BOM exact-set diagnostics
+PASS public BOM visibility leak check
+PASS no hardcoded 32 check
+PASS OpenAPI exact operation set
+PASS active client/OpenAPI contract has no approved boolean
+PASS consumer linked: admIntegrationCryptoStatus
+PASS consumer linked: admIntegrationDataQualityCorrectionApprovalRequest
+PASS consumer linked: admIntegrationDataQualityCorrectionExecute
+PASS consumer linked: admIntegrationDataQualityReplay
+PASS consumer linked: admIntegrationDataQualityValidate
+PASS consumer linked: admIntegrationTimeHealth
+PASS consumer linked: admIntegrationWebhookDlq
+PASS consumer linked: admIntegrationWebhookReplay
+exit_code=0

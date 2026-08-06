@@ -28,3 +28,14 @@
 - 진행률 집계는 `PROGRESS_STATUS.csv`, 실제 행은 분할 Part를 사용한다.
 - `baseline_sha`는 구현 작성 기준이며, QA는 별도 `reviewed_commit_sha`를 사용한다.
 - `개발GPT 완료`와 `QA 통과`는 서로 다른 상태다.
+
+## Final Development GPT Campaign
+
+| 목적 | 파일 |
+|---|---|
+| 25건 Campaign 상태 | `fdr/r1/REQUIREMENT_STATUS.csv` |
+| 실행·Evidence | `fdr/r1/TEST_AND_EVIDENCE.md` |
+| 변경 Manifest | `fdr/r1/CHANGE_MANIFEST.csv` |
+| Codex 인계 | `fdr/r1/CODEX_REVIEW_REQUEST.md` |
+
+현재 검토 기준 SHA는 `2929163b3bb40159e22e1f57e79b6cd070abf7ad`다. 기존 exact ID 47,745행과 integration request_id 32개는 변경하지 않았다.

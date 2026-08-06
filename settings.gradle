@@ -103,45 +103,48 @@ project(':cpf-gateway').projectDir = file('cpf-gateway')
 project(':cpf-local-runtime').projectDir = file('cpf-tools/runtime/cpf-local-runtime')
 project(':cpf-local-batch-runtime').projectDir = file('cpf-tools/runtime/cpf-local-batch-runtime')
 
-// QA39: Starter Build Graph의 단일 정본. 공개 Profile 6개와 내부 Provider를 같은 Catalog에서 등록합니다.
+// QA39/FDEV-025: Starter Build Graph의 단일 정본과 물리 Layout을 exact equality로 검증합니다.
 def cpfStarterCatalogFile = file('cpf-tools/generator/contracts/cpf-starter-catalog.json')
-if (!cpfStarterCatalogFile.isFile()) {
-    throw new GradleException("CPF canonical starter catalog is missing: ${cpfStarterCatalogFile}")
-}
+if (!cpfStarterCatalogFile.isFile()) throw new GradleException("CPF canonical starter catalog is missing: ${cpfStarterCatalogFile}")
 def cpfStarterCatalog = new groovy.json.JsonSlurper().parse(cpfStarterCatalogFile)
 def cpfPublicProfiles = (cpfStarterCatalog.publicProfiles ?: [])*.toString()
 def cpfCapabilityGroups = (cpfStarterCatalog.capabilityGroups ?: []).collect { it.id?.toString() }
-if (cpfPublicProfiles != ['minimal-domain', 'web-api', 'secure-api', 'browser-bff', 'event-service', 'batch-service']) {
-    throw new GradleException("CPF public profile surface must be the six QA39 profiles: ${cpfPublicProfiles}")
-}
-if (cpfCapabilityGroups != ['data', 'messaging', 'integration', 'file', 'notification', 'security', 'platform-operations']) {
-    throw new GradleException("CPF capability group surface must be the seven QA39 groups: ${cpfCapabilityGroups}")
-}
+def canonicalProfiles = ['minimal-domain', 'web-api', 'secure-api', 'browser-bff', 'event-service', 'batch-service']
+def canonicalGroups = ['data', 'messaging', 'integration', 'file', 'notification', 'security', 'platform-operations']
+if (cpfPublicProfiles != canonicalProfiles) throw new GradleException("CPF public profile surface mismatch: ${cpfPublicProfiles}")
+if (cpfCapabilityGroups != canonicalGroups) throw new GradleException("CPF capability group surface mismatch: ${cpfCapabilityGroups}")
 def cpfStarterModules = cpfStarterCatalog.modules ?: []
-def cpfProjectPaths = new LinkedHashSet<String>()
-def cpfOwnerPaths = new LinkedHashSet<String>()
+def layout = cpfStarterCatalog.targetPhysicalLayout ?: [:]
+if ((layout.moduleCount as Integer) != cpfStarterModules.size()) throw new GradleException("Catalog moduleCount mismatch: target=${layout.moduleCount}, actual=${cpfStarterModules.size()}")
+if ((layout.profileCount as Integer) != cpfStarterModules.count { it.visibility?.toString() == 'public' }) throw new GradleException("Catalog profile partition mismatch")
+if ((layout.capabilityGroupCount as Integer) != cpfCapabilityGroups.size()) throw new GradleException("Catalog capability group count mismatch")
+def allowedRoots = (layout.rootDirectories ?: [])*.toString() as Set
+def seen = [projectPath:new LinkedHashSet<String>(), ownerPath:new LinkedHashSet<String>(), gav:new LinkedHashSet<String>(), artifactId:new LinkedHashSet<String>(), configPrefix:new LinkedHashSet<String>()]
 cpfStarterModules.each { module ->
     def projectPath = module.projectPath?.toString()
     def ownerPath = module.ownerPath?.toString()?.replace('\\', '/')
-    if (!projectPath?.startsWith(':cpf-') || !ownerPath?.startsWith('cpf-starters/')) {
-        throw new GradleException("Invalid CPF starter catalog entry: ${module}")
+    def visibility = module.visibility?.toString()
+    def kind = module.kind?.toString()
+    def ownerGroup = module.ownerGroup?.toString()
+    def internalRole = module.internalRole?.toString()
+    def gav = "${module.groupId}:${module.artifactId}"
+    if (!projectPath?.startsWith(':cpf-') || !ownerPath?.startsWith('cpf-starters/')) throw new GradleException("Invalid CPF starter catalog entry: ${module}")
+    [projectPath:projectPath, ownerPath:ownerPath, gav:gav, artifactId:module.artifactId?.toString(), configPrefix:module.configPrefix?.toString()].each { k,v ->
+        if (!v || !seen[k].add(v)) throw new GradleException("Duplicate/blank ${k} in canonical catalog: ${v}")
     }
-    if (!cpfProjectPaths.add(projectPath)) {
-        throw new GradleException("Duplicate CPF projectPath in canonical catalog: ${projectPath}")
-    }
-    if (!cpfOwnerPaths.add(ownerPath)) {
-        throw new GradleException("Duplicate CPF ownerPath in canonical catalog: ${ownerPath}")
-    }
+    if (!(visibility in ['public','internal'])) throw new GradleException("Invalid visibility: ${module}")
+    if (visibility == 'public' && (kind != 'starter-profile' || ownerGroup != 'profiles' || internalRole != 'public-profile')) throw new GradleException("Invalid public profile partition: ${module}")
+    if (visibility == 'internal' && kind != 'internal-starter') throw new GradleException("Invalid internal partition: ${module}")
+    def rel = ownerPath.substring('cpf-starters/'.length())
+    def root = rel.contains('/') ? rel.substring(0, rel.indexOf('/')) : rel
+    if (!allowedRoots.contains(root)) throw new GradleException("Owner path is outside targetPhysicalLayout roots: ${ownerPath}")
+    if (!file(ownerPath).isDirectory() || !file("${ownerPath}/build.gradle").isFile()) throw new GradleException("Catalog physical module is missing: ${ownerPath}")
     include projectPath
     project(projectPath).projectDir = file(ownerPath)
 }
-
-def cpfRemovedArtifactIds = (cpfStarterCatalog.removedArtifactIds ?: [])*.toString()
-cpfRemovedArtifactIds.each { removedId ->
-    if (cpfStarterModules.any { it.artifactId?.toString() == removedId }) {
-        throw new GradleException("Removed CPF artifact is still active in canonical catalog: ${removedId}")
-    }
-}
+def removedIds = (cpfStarterCatalog.removedArtifactIds ?: [])*.toString() as Set
+def activeIds = cpfStarterModules.collect { it.artifactId?.toString() } as Set
+if (!removedIds.intersect(activeIds).isEmpty()) throw new GradleException("Removed CPF artifact is still active: ${removedIds.intersect(activeIds)}")
 
 // CPF BOM과 convention 정책은 cpf-tools 소유의 추적 가능한 isolated build 정본으로 관리합니다.
 // Root Build는 아래 Included Build의 check/publication task를 직접 소비합니다.

@@ -1,15 +1,189 @@
+
 package com.cpf.common.data.quality;
-import com.cpf.core.api.data.quality.*;
-import java.time.Instant; import java.util.*; import java.util.concurrent.*; import java.util.regex.Pattern;
-/** Deterministic reference implementation for rule lifecycle, quarantine, approval, replay and reconcile. */
+
+import com.cpf.core.api.data.quality.CpfDataQualityDecision;
+import com.cpf.core.api.data.quality.CpfDataQualityOperations;
+import com.cpf.core.api.data.quality.CpfDataQualityRule;
+
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.regex.Pattern;
+
+/** Deterministic reference implementation for rule lifecycle, quarantine, approved correction, replay and reconcile. */
 public final class InMemoryCpfDataQualityOperations implements CpfDataQualityOperations {
- public record Audit(Instant at,String actor,String action,String target,String reason,long version){}
- private final Map<String,CpfDataQualityRule> rules=new ConcurrentHashMap<>(); private final Map<String,QuarantineItem> quarantine=new ConcurrentHashMap<>(); private final List<Audit> audit=new CopyOnWriteArrayList<>();
- @Override public CpfDataQualityRule register(CpfDataQualityRule rule,String actor,String reason){require(actor,"actor");require(reason,"reason"); rules.compute(rule.ruleId(),(id,old)->{if(old!=null&&rule.version()<=old.version())throw new IllegalStateException("rule version must increase");return rule;});audit.add(new Audit(Instant.now(),actor,"RULE_REGISTER",rule.ruleId(),reason,rule.version()));return rule;}
- @Override public CpfDataQualityDecision validate(String recordId,Map<String,Object> record){ List<CpfDataQualityDecision.Violation> violations=new ArrayList<>(); for(CpfDataQualityRule r:rules.values()) if(r.state()==CpfDataQualityRule.State.ACTIVE&&!matches(r,record.get(r.fieldName()))) violations.add(new CpfDataQualityDecision.Violation(r.ruleId(),r.severity(),r.fieldName(),"Rule failed: "+r.expression())); boolean accepted=violations.stream().noneMatch(v->v.severity()==CpfDataQualityRule.Severity.ERROR||v.severity()==CpfDataQualityRule.Severity.CRITICAL); String qid=accepted?"":"DQ-"+UUID.randomUUID(); CpfDataQualityDecision decision=new CpfDataQualityDecision(recordId,accepted,violations,qid,Instant.now()); if(!accepted)quarantine.put(qid,new QuarantineItem(qid,recordId,Map.copyOf(record),Map.of(),"QUARANTINED",1,List.copyOf(violations))); return decision; }
- @Override public Optional<QuarantineItem> quarantine(String id){return Optional.ofNullable(quarantine.get(id));}
- @Override public QuarantineItem correct(String id,long expected,Map<String,Object> corrected,String actor,String reason,boolean approved){require(actor,"actor");require(reason,"reason");if(!approved)throw new SecurityException("approved correction required");return quarantine.compute(id,(k,old)->{if(old==null)throw new NoSuchElementException(id);if(old.version()!=expected)throw new ConcurrentModificationException("quarantine version conflict");QuarantineItem n=new QuarantineItem(id,old.recordId(),old.original(),Map.copyOf(corrected),"CORRECTED",old.version()+1,old.violations());audit.add(new Audit(Instant.now(),actor,"CORRECT",id,reason,n.version()));return n;});}
- @Override public CpfDataQualityDecision replay(String id,String actor,String reason){require(actor,"actor");require(reason,"reason");QuarantineItem item=Optional.ofNullable(quarantine.get(id)).orElseThrow();Map<String,Object> candidate=item.corrected().isEmpty()?item.original():item.corrected();CpfDataQualityDecision d=validate(item.recordId(),candidate);if(d.accepted()){quarantine.computeIfPresent(id,(k,old)->new QuarantineItem(id,old.recordId(),old.original(),old.corrected(),"REPLAYED",old.version()+1,old.violations()));audit.add(new Audit(Instant.now(),actor,"REPLAY",id,reason,item.version()+1));}return d;}
- @Override public ReconcileResult reconcile(String actor,String reason){require(actor,"actor");require(reason,"reason");int inspected=0,replayed=0;for(QuarantineItem q:new ArrayList<>(quarantine.values())){if("CORRECTED".equals(q.state())){inspected++;if(replay(q.quarantineId(),actor,reason).accepted())replayed++;}}long remaining=quarantine.values().stream().filter(q->!"REPLAYED".equals(q.state())).count();return new ReconcileResult(inspected,replayed,(int)remaining);}
- public List<Audit> audit(){return List.copyOf(audit);} private static boolean matches(CpfDataQualityRule r,Object value){String exp=r.expression().trim();String v=value==null?"":String.valueOf(value);if("NOT_BLANK".equals(exp))return !v.isBlank();if(exp.startsWith("REGEX:"))return Pattern.compile(exp.substring(6)).matcher(v).matches();if(exp.startsWith("MIN_LENGTH:"))return v.length()>=Integer.parseInt(exp.substring(11));if(exp.startsWith("MAX_LENGTH:"))return v.length()<=Integer.parseInt(exp.substring(11));throw new IllegalArgumentException("Unsupported rule expression: "+exp);} private static void require(String v,String n){if(v==null||v.isBlank())throw new IllegalArgumentException(n+" required");}
+    public record Audit(
+            Instant at,
+            String actor,
+            String action,
+            String target,
+            String reason,
+            String approvalReference,
+            long version) {
+    }
+
+    private final Map<String, CpfDataQualityRule> rules = new ConcurrentHashMap<>();
+    private final Map<String, QuarantineItem> quarantine = new ConcurrentHashMap<>();
+    private final List<Audit> audit = new CopyOnWriteArrayList<>();
+
+    @Override
+    public CpfDataQualityRule register(CpfDataQualityRule rule, String actor, String reason) {
+        require(actor, "actor");
+        require(reason, "reason");
+        rules.compute(rule.ruleId(), (id, old) -> {
+            if (old != null && rule.version() <= old.version()) {
+                throw new IllegalStateException("rule version must increase");
+            }
+            return rule;
+        });
+        audit.add(new Audit(Instant.now(), actor, "RULE_REGISTER", rule.ruleId(), reason, "", rule.version()));
+        return rule;
+    }
+
+    @Override
+    public CpfDataQualityDecision validate(String recordId, Map<String, Object> record) {
+        List<CpfDataQualityDecision.Violation> violations = new ArrayList<>();
+        for (CpfDataQualityRule rule : rules.values()) {
+            if (rule.state() == CpfDataQualityRule.State.ACTIVE && !matches(rule, record.get(rule.fieldName()))) {
+                violations.add(new CpfDataQualityDecision.Violation(
+                        rule.ruleId(),
+                        rule.severity(),
+                        rule.fieldName(),
+                        "Rule failed: " + rule.expression()));
+            }
+        }
+        boolean accepted = violations.stream().noneMatch(violation ->
+                violation.severity() == CpfDataQualityRule.Severity.ERROR
+                        || violation.severity() == CpfDataQualityRule.Severity.CRITICAL);
+        String quarantineId = accepted ? "" : "DQ-" + UUID.randomUUID();
+        CpfDataQualityDecision decision =
+                new CpfDataQualityDecision(recordId, accepted, violations, quarantineId, Instant.now());
+        if (!accepted) {
+            quarantine.put(quarantineId, new QuarantineItem(
+                    quarantineId,
+                    recordId,
+                    Map.copyOf(record),
+                    Map.of(),
+                    "QUARANTINED",
+                    1,
+                    List.copyOf(violations)));
+        }
+        return decision;
+    }
+
+    @Override
+    public Optional<QuarantineItem> quarantine(String id) {
+        return Optional.ofNullable(quarantine.get(id));
+    }
+
+    @Override
+    public QuarantineItem correctAuthorized(
+            String id,
+            long expectedVersion,
+            Map<String, Object> corrected,
+            String actor,
+            String reason,
+            CorrectionAuthorization authorization) {
+        require(actor, "actor");
+        require(reason, "reason");
+        if (authorization == null) {
+            throw new SecurityException("server approval authorization is required");
+        }
+        if (!actor.equals(authorization.approvedBy())) {
+            throw new SecurityException("approvedBy must match the correction actor");
+        }
+        if (corrected == null || corrected.isEmpty()) {
+            throw new IllegalArgumentException("corrected payload is required");
+        }
+        return quarantine.compute(id, (key, old) -> {
+            if (old == null) throw new NoSuchElementException(id);
+            if (!"QUARANTINED".equals(old.state())) {
+                throw new IllegalStateException("only QUARANTINED data can be corrected");
+            }
+            if (old.version() != expectedVersion) {
+                throw new ConcurrentModificationException("quarantine version conflict");
+            }
+            QuarantineItem next = new QuarantineItem(
+                    id,
+                    old.recordId(),
+                    old.original(),
+                    Map.copyOf(corrected),
+                    "CORRECTED",
+                    old.version() + 1,
+                    old.violations());
+            audit.add(new Audit(
+                    Instant.now(),
+                    actor,
+                    "CORRECT",
+                    id,
+                    reason,
+                    authorization.approvalReference(),
+                    next.version()));
+            return next;
+        });
+    }
+
+    @Override
+    public CpfDataQualityDecision replay(String id, String actor, String reason) {
+        require(actor, "actor");
+        require(reason, "reason");
+        QuarantineItem item = Optional.ofNullable(quarantine.get(id)).orElseThrow();
+        Map<String, Object> candidate = item.corrected().isEmpty() ? item.original() : item.corrected();
+        CpfDataQualityDecision decision = validate(item.recordId(), candidate);
+        if (decision.accepted()) {
+            quarantine.computeIfPresent(id, (key, old) -> new QuarantineItem(
+                    id,
+                    old.recordId(),
+                    old.original(),
+                    old.corrected(),
+                    "REPLAYED",
+                    old.version() + 1,
+                    old.violations()));
+            audit.add(new Audit(Instant.now(), actor, "REPLAY", id, reason, "", item.version() + 1));
+        }
+        return decision;
+    }
+
+    @Override
+    public ReconcileResult reconcile(String actor, String reason) {
+        require(actor, "actor");
+        require(reason, "reason");
+        int inspected = 0;
+        int replayed = 0;
+        for (QuarantineItem item : new ArrayList<>(quarantine.values())) {
+            if ("CORRECTED".equals(item.state())) {
+                inspected++;
+                if (replay(item.quarantineId(), actor, reason).accepted()) replayed++;
+            }
+        }
+        long remaining = quarantine.values().stream()
+                .filter(item -> !"REPLAYED".equals(item.state()))
+                .count();
+        return new ReconcileResult(inspected, replayed, (int) remaining);
+    }
+
+    public List<Audit> audit() {
+        return List.copyOf(audit);
+    }
+
+    private static boolean matches(CpfDataQualityRule rule, Object value) {
+        String expression = rule.expression().trim();
+        String text = value == null ? "" : String.valueOf(value);
+        if ("NOT_BLANK".equals(expression)) return !text.isBlank();
+        if (expression.startsWith("REGEX:")) return Pattern.compile(expression.substring(6)).matcher(text).matches();
+        if (expression.startsWith("MIN_LENGTH:")) return text.length() >= Integer.parseInt(expression.substring(11));
+        if (expression.startsWith("MAX_LENGTH:")) return text.length() <= Integer.parseInt(expression.substring(11));
+        throw new IllegalArgumentException("Unsupported rule expression: " + expression);
+    }
+
+    private static void require(String value, String field) {
+        if (value == null || value.isBlank()) throw new IllegalArgumentException(field + " required");
+    }
 }

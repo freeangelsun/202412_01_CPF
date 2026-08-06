@@ -1,0 +1,10 @@
+Peer package: /mnt/data/CPF_QA_REV004_R5_ROOT_OVERLAY.zip
+unzip_test=PASS
+sha256sum_check=PASS (17 hash-listed files; SHA256SUMS.txt is the 18th ZIP entry)
+manifest_payload_file_count=16
+manifest_files_array_count=16
+zip_total_entries=18
+standalone_report_sha256=8fef6b6048aa06f94e92954ae875656bdc3ab132d660d59c2c390b08db34d2c4
+package_report_sha256=8fef6b6048aa06f94e92954ae875656bdc3ab132d660d59c2c390b08db34d2c4
+reports_byte_identical=True
+conclusion=PACKAGE_CONTAINER_INTEGRITY_PASS_CONTENT_QA_FAIL

@@ -1,0 +1,3 @@
+﻿path,qa_action,approved,performed,reason
+cpf-docs/assets/manuals/cpf-document-quality-r9.svg,RESTORE_OR_EXPLICIT_APPROVAL_REQUIRED,N,N,06_09 commit removed file introduced at 06_08; no exact-path user approval evidence reviewed
+cpf-starters/openapi-webmvc,NO_DELETE_PENDING,N,N,retained inactive legacy root; explicit path-level approval required

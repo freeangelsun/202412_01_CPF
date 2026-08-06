@@ -1,0 +1,17 @@
+{
+  "package": "CPF_REV004_R4_DEVGPT_COMPLETE_ROOT_OVERLAY",
+  "revision": "REV-004-R4",
+  "baselineSha": "a8be27a34bdac0b7c075e06d6e86571244c96421",
+  "createdAt": "2026-08-06T19:33:22+09:00",
+  "developmentStatus": "재확인 필요",
+  "verificationStatus": "미검증",
+  "qaStatus": "PENDING",
+  "productFileCount": 59,
+  "productTreeSha256": "bc5ef3222bdc96cb42647c39138a90e8744112bbc83d0164530f02b7fc4abcbd",
+  "payloadFileCountExcludingManifestAndSums": 117,
+  "canonicalExactIdCountPreserved": 47745,
+  "integrationRequestCountPreserved": 32,
+  "latestMasterSha": "e7cc9ada86c871214a20862779f2433bc46fea1b",
+  "baselineMatchesLatest": false,
+  "conclusion": "INVALID_FOR_LATEST_MASTER_QA"
+}

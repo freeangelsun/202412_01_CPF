@@ -1,0 +1,9 @@
+{
+  "a1": "idem-A-original",
+  "b1": "idem-B-original",
+  "a2": "idem-A-rotated",
+  "stable": false,
+  "stored": "{\"fingerprint\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"key\":\"idem-A-rotated\",\"state\":\"pending\"}"
+}
+confirm-original-A: Approval idempotency state changed before confirmation
+exit_code=2

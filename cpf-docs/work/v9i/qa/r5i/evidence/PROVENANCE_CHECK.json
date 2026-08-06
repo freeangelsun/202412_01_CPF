@@ -1,0 +1,19 @@
+{
+  "repository": "freeangelsun/202412_01_CPF",
+  "branch": "master",
+  "instruction_basis_sha": "ee977cf66c251081df78ea5e9675b81c3dfafa59",
+  "documentation_delta_sha": "a8be27a34bdac0b7c075e06d6e86571244c96421",
+  "documentation_commit": "06_08",
+  "documentation_followup_sha": "11093fe26b4e94d9066f2d9edcc1d06c879d868e",
+  "documentation_followup_commit": "06_09",
+  "result_commit_sha": "e7cc9ada86c871214a20862779f2433bc46fea1b",
+  "result_commit": "06_10",
+  "qa_round": "R5I",
+  "created_at": "2026-08-06T20:46:00+09:00",
+  "peer_package_sha256": "4e1080c6e87d4fff88a17953809a320abb308c805328e799dbdfdac806a37d6b",
+  "peer_report_sha256": "8fef6b6048aa06f94e92954ae875656bdc3ab132d660d59c2c390b08db34d2c4",
+  "self_package_sha256": "464a33d26c701b26859e8a3583ef4a86723fcffb37307bb35c295789d0c44c53",
+  "current_master_verified": true,
+  "working_tree": "REMOTE_READ_ONLY_NOT_AVAILABLE",
+  "runtime_pass_claimed": false
+}

@@ -1,0 +1,5 @@
+ADM-APPROVAL:999:forged
+javac_exit=0
+java_exit=0
+external_package=qa.external
+result=

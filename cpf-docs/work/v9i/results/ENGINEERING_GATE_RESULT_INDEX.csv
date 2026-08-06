@@ -1,0 +1,2 @@
+﻿dataset_name,part_number,part_path,entity_type,first_exact_id,last_exact_id,row_count,file_size_bytes,sha256,baseline_sha,generated_at
+ENGINEERING_GATE_RESULT,1,results/detail/gate/ENGINEERING_GATE_RESULT_PART_001.csv,GATE,GATE-01-OWNERSHIP,GATE-21-TIME,21,21114,c1e94005f8a0b09e065b9ce72af2992216f8c3fbef08f8561265f5b564fe6bd4,2a013663090d4e430a15983ad7269f8e86c5ef58,2026-08-06T05:14:50+09:00

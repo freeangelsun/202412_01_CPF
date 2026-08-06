@@ -1,0 +1,70 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "CPF Integration Closure Operations",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/adm/api/integration-closure/time/health": {
+      "get": {
+        "operationId": "admIntegrationTimeHealth",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "503": {
+            "description": "Time source unhealthy"
+          }
+        }
+      }
+    },
+    "/adm/api/integration-closure/data-quality/validate/{recordId}": {
+      "post": {
+        "operationId": "admIntegrationDataQualityValidate",
+        "responses": {
+          "200": {
+            "description": "Decision"
+          },
+          "409": {
+            "description": "Quarantined/conflict"
+          }
+        }
+      }
+    },
+    "/adm/api/integration-closure/webhooks/dlq": {
+      "get": {
+        "operationId": "admIntegrationWebhookDlq",
+        "responses": {
+          "200": {
+            "description": "DLQ"
+          }
+        }
+      }
+    },
+    "/adm/api/integration-closure/webhooks/{id}/replay": {
+      "post": {
+        "operationId": "admIntegrationWebhookReplay",
+        "responses": {
+          "200": {
+            "description": "Replayed"
+          },
+          "409": {
+            "description": "Version conflict"
+          },
+          "429": {
+            "description": "Rate limited"
+          },
+          "503": {
+            "description": "Provider unavailable"
+          }
+        }
+      }
+    }
+  }
+}

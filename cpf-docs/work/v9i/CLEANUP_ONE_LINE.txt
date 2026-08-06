@@ -1,0 +1,1 @@
+Write-Host "정리 대상 없음; DELETE_MANIFEST의 항목은 사용자 승인 전 삭제하지 않음"

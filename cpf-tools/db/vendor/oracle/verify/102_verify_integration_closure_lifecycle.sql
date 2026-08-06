@@ -1,0 +1,1 @@
+SELECT table_name FROM (SELECT 'CPF_FIELD_ENCRYPTION_LEDGER' table_name FROM dual UNION ALL SELECT 'CPF_DATA_QUALITY_QUARANTINE' FROM dual UNION ALL SELECT 'CPF_WEBHOOK_DELIVERY' FROM dual) expected WHERE NOT EXISTS (SELECT 1 FROM user_tables actual WHERE actual.table_name=expected.table_name);

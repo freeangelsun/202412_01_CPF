@@ -8,3 +8,4 @@ UPDATE bat_remote_message_ledger
  WHERE direction_cd = ?
    AND message_id = ?
    AND version_no = ?
+   AND status_cd IN ('PROCESSING','FAILED')

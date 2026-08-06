@@ -1,0 +1,6 @@
+﻿entity_type,total_target_count,completed_count,in_progress_count,blocked_count,completion_rate,last_completed_exact_id,next_exact_id,updated_at
+WORK_ITEM,323,323,0,0,100.00,STAB-028,,2026-08-06T05:14:50+09:00
+CPF_FR,7752,7752,0,0,100.00,CPF-GATE-15,,2026-08-06T05:14:50+09:00
+CPF_SC,10034,10034,0,0,100.00,CPF-SC-040763,,2026-08-06T05:14:50+09:00
+GATE,11,11,0,0,100.00,GATE-21-TIME,,2026-08-06T05:14:50+09:00
+INTEGRATION_REQUEST,32,30,0,2,100.00,,,2026-08-06T05:14:50+09:00

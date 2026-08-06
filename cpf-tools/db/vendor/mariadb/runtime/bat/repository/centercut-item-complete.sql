@@ -4,3 +4,4 @@ UPDATE bat_center_cut_item
        last_error_message = ?,
        updated_at = CURRENT_TIMESTAMP
  WHERE center_cut_item_id = ?
+   AND item_status = 'RUNNING'

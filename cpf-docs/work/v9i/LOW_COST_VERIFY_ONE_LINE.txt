@@ -1,0 +1,1 @@
+python cpf-tools/scripts/verify-cpf-final-integration-ledger.py . cpf-docs/work/v9i; if($LASTEXITCODE -ne 0){throw "Ledger 검증 실패"}; python cpf-tools/scripts/verify-cpf-integration-closure.py .; if($LASTEXITCODE -ne 0){throw "Product 정적 검증 실패"}

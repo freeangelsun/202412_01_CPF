@@ -1,0 +1,2 @@
+﻿path,reason,approval_status,related_request_id
+cpf-starters/openapi-webmvc,Catalog removed root remains physically present; deletion requires explicit user approval,PENDING_USER_APPROVAL_NOT_DELETED,S06-DELETE-OPENAPI-WEBMVC-STALE-ROOT

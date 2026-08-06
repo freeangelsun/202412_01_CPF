@@ -11,6 +11,7 @@ import { observabilityMethods } from "../app/methods/observabilityMethods";
 import { platformMethods } from "../app/methods/platformMethods";
 import { referenceMethods } from "../app/methods/referenceMethods";
 import { routeClosureMethods } from "../app/methods/routeClosureMethods";
+import { integrationClosureMethods } from "../app/methods/integrationClosureMethods";
 
 const sessionActions = {
   async restoreServerSession(this: any) {
@@ -51,6 +52,7 @@ const actions = composeAdmFeatureActions([
   { owner: "platform", actions: platformMethods },
   { owner: "reference", actions: referenceMethods },
   { owner: "route-closure", actions: routeClosureMethods },
+  { owner: "integration-closure", actions: integrationClosureMethods },
   { owner: "session", actions: sessionActions }
  ] as const);
 

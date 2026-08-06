@@ -144,5 +144,42 @@
     "provider": "com.cpf.starter.data.cache.valkey.JdbcCpfCacheInvalidationStore",
     "recovery": "durable-first + per-instance checkpoint + reconcile",
     "officialVendor": true
+  },
+  "integrationClosurePack": {
+    "ownerArtifact": "cpf-common/cpf-starter-integration-webhook",
+    "logicalDatabase": "cpfDB",
+    "canonicalSource": "source/17_integration_closure_lifecycle.sql",
+    "freshInstall": "install/06_integration_closure_lifecycle.sql",
+    "migration": "migration/V102__integration_closure_lifecycle.sql",
+    "rollback": "rollback/R102__integration_closure_lifecycle.sql",
+    "runtimeQueries": "runtime/integration-closure/integration_closure_queries.sql",
+    "verify": "verify/102_verify_integration_closure_lifecycle.sql",
+    "tables": [
+      "CPF_FIELD_ENCRYPTION_LEDGER",
+      "CPF_DATA_QUALITY_RULE",
+      "CPF_DATA_QUALITY_QUARANTINE",
+      "CPF_WEBHOOK_ENDPOINT",
+      "CPF_WEBHOOK_DELIVERY",
+      "CPF_INTEGRATION_CLOSURE_AUDIT"
+    ],
+    "tableCount": 6,
+    "officialVendor": true
+  },
+  "batchUnknownReconciliationPack": {
+    "source": "source/18_batch_unknown_reconciliation.sql",
+    "install": "install/07_batch_unknown_reconciliation.sql",
+    "migration": "migration/V103__batch_unknown_reconciliation.sql",
+    "rollback": "rollback/R103__batch_unknown_reconciliation.sql",
+    "verify": "verify/103_verify_batch_unknown_reconciliation.sql",
+    "runtimeRoot": "runtime/bat/repository",
+    "runtimeKeys": [
+      "scheduler-trigger-reconcile-load",
+      "scheduler-trigger-unknown-retry",
+      "scheduler-trigger-reconcile-audit",
+      "execution-remote-message-reconcile-load",
+      "execution-remote-message-unknown-retry",
+      "execution-remote-message-reconcile-audit"
+    ],
+    "tableCount": 1
   }
 }

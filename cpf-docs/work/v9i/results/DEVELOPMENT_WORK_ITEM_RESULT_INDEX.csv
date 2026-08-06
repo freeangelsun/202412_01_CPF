@@ -1,0 +1,2 @@
+﻿dataset_name,part_number,part_path,entity_type,first_exact_id,last_exact_id,row_count,file_size_bytes,sha256,baseline_sha,generated_at
+DEVELOPMENT_WORK_ITEM_RESULT,1,results/detail/work_item/DEVELOPMENT_WORK_ITEM_RESULT_PART_001.csv,WORK_ITEM,CPF-WP-ADM-AGENT-01-CONTRACT_OWNERSHIP,STAB-028,735,730758,acc4668b4eff497f2b1b87dc4242734c9422e97ef599badd42faf4191d933f7b,2a013663090d4e430a15983ad7269f8e86c5ef58,2026-08-06T05:14:50+09:00

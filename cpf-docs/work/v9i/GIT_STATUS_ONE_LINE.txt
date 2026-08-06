@@ -1,0 +1,1 @@
+git -c core.quotepath=false status --short --branch

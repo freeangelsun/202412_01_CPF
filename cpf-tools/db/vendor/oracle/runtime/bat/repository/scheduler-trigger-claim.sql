@@ -7,7 +7,7 @@ UPDATE bat_schedule_trigger
        updated_at = CURRENT_TIMESTAMP(6)
  WHERE schedule_id = ?
    AND scheduled_fire_at = ?
-   AND trigger_status IN ('CREATED','UNKNOWN','FAILED')
+   AND trigger_status IN ('CREATED','FAILED')
    AND (dispatch_lease_until IS NULL OR dispatch_lease_until < CURRENT_TIMESTAMP(6))
    AND EXISTS (
        SELECT 1 FROM bat_scheduler_lease

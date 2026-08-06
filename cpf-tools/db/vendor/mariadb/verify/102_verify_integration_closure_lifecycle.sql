@@ -1,0 +1,1 @@
+SELECT 'CPF_FIELD_ENCRYPTION_LEDGER' AS missing_object WHERE NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name='CPF_FIELD_ENCRYPTION_LEDGER');

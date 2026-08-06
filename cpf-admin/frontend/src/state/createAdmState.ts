@@ -3,6 +3,9 @@ import { createAdmEducationFixture } from "./createAdmEducationFixture";
 export function createAdmState() {
       const edu = import.meta.env.VITE_CPF_EDU_PROFILE === "true" ? createAdmEducationFixture() : undefined;
       return {
+    integrationTimeHealth: null as any,
+    integrationDataQualityResult: null as any,
+    integrationWebhookDlq: [] as any[],
         activeMenu: "dashboard",
         token: "", // BFF 전환 후 Browser credential 상태는 사용하지 않는다.
         initializationStatus: "IDLE",

@@ -1,1 +1,0 @@
-java -cp /mnt/data/cpf_s03_work/final_harness_run/http/classes com.cpf.starter.integration.http.S03HttpClientHarness

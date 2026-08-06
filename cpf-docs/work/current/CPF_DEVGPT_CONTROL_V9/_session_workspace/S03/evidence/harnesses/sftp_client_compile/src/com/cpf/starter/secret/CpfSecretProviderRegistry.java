@@ -1,1 +1,0 @@
-package com.cpf.starter.secret; import com.cpf.core.api.security.secret.*; public class CpfSecretProviderRegistry { public CpfSecretValue resolve(CpfSecretReference r){return new CpfSecretValue("x".toCharArray());} }

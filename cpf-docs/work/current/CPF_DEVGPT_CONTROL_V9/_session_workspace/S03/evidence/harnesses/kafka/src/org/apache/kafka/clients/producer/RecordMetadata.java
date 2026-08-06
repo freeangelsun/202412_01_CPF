@@ -1,1 +1,0 @@
-package org.apache.kafka.clients.producer; public class RecordMetadata{private final int p;private final long o;public RecordMetadata(int p,long o){this.p=p;this.o=o;}public int partition(){return p;}public long offset(){return o;}}

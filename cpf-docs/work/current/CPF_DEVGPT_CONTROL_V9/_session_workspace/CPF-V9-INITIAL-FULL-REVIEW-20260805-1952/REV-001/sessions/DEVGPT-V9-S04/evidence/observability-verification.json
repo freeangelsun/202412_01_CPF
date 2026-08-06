@@ -1,8 +1,0 @@
-{
-  "schemaVersion": 1,
-  "status": "PASS",
-  "vendor": "mariadb",
-  "operationId": "OBS-001",
-  "reasons": [],
-  "evidenceSha256": "2daf7c42578a8023a43d5999b5390c403690bc0213410e294370dd0bfea81fea"
-}

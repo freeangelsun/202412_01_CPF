@@ -1,3 +1,9 @@
-﻿path,classification,reason,approval_status,command_included,related_request_id
-cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/CPF-V9-FINAL-INTEGRATION-CLOSURE-20260806/REV-001/sessions/DEVGPT-V9-INTEGRATION,SESSION_DOCUMENT_DUPLICATE,Windows short-path 정본 cpf-docs/work/v9i와 중복된 통합 세션 문서 Root,USER_REQUESTED_COMMAND_NOT_EXECUTED,YES,
-cpf-starters/openapi-webmvc,PRODUCT_SOURCE_EXCLUDED,사용자는 불필요한 세션 문서만 정리하도록 지시함,KEEP_NOT_IN_SESSION_CLEANUP,NO,S06-DELETE-OPENAPI-WEBMVC-STALE-ROOT
+﻿"path","classification","reason","approval_status","command_included","related_request_id"
+"cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace","OBSOLETE_SESSION_WORKSPACE_ROOT","Merged into the final canonical ledger, provenance, request, and evidence package","STAGED_AND_REMOVED","YES",""
+"cpf-docs/work/v9i/APPLY_ONE_LINE.txt","OBSOLETE_TOP_LEVEL_HELPER","Temporary apply or status helper is no longer used after final integration","STAGED_AND_REMOVED","YES",""
+"cpf-docs/work/v9i/APPLY_README.txt","OBSOLETE_TOP_LEVEL_HELPER","Temporary apply or status helper is no longer used after final integration","STAGED_AND_REMOVED","YES",""
+"cpf-docs/work/v9i/CODEX_REVIEW_REQUEST.md","OBSOLETE_TOP_LEVEL_HELPER","Temporary apply or status helper is no longer used after final integration","STAGED_AND_REMOVED","YES",""
+"cpf-docs/work/v9i/GIT_STATUS_ONE_LINE.txt","OBSOLETE_TOP_LEVEL_HELPER","Temporary apply or status helper is no longer used after final integration","STAGED_AND_REMOVED","YES",""
+"cpf-docs/work/v9i/LOW_COST_VERIFY_ONE_LINE.txt","OBSOLETE_TOP_LEVEL_HELPER","Temporary apply or status helper is no longer used after final integration","STAGED_AND_REMOVED","YES",""
+"cpf-docs/work/v9i/CLEANUP_ONE_LINE.txt","OBSOLETE_TOP_LEVEL_HELPER","Temporary apply or status helper is no longer used after final integration","STAGED_AND_REMOVED","YES",""
+"cpf-starters/openapi-webmvc","PRODUCT_SOURCE_EXCLUDED","Product source is outside this document cleanup approval","KEEP_NOT_IN_SESSION_CLEANUP","NO","S06-DELETE-OPENAPI-WEBMVC-STALE-ROOT"

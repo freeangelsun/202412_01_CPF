@@ -1,1 +1,0 @@
-package org.springframework.kafka.core; import java.util.concurrent.CompletableFuture; import org.apache.kafka.clients.producer.ProducerRecord; import org.springframework.kafka.support.SendResult; public abstract class KafkaTemplate<K,V>{public abstract CompletableFuture<SendResult<K,V>> send(ProducerRecord<K,V> record);}

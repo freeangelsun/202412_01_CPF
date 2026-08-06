@@ -1,1 +1,0 @@
-package com.cpf.starter.rabbitmq; import java.time.*; public class CpfRabbitMqProperties { public String getExchange(){return "E";} public String getRoutingKey(){return "R";} public int getMaxPayloadBytes(){return 1024;} public Duration getConfirmTimeout(){return Duration.ofMillis(10);} }

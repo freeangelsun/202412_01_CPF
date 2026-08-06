@@ -1,9 +1,0 @@
-{
-  "schemaVersion": 1,
-  "policyId": "BAT_OPERATION_LOG_RETENTION_V1",
-  "holdKeys": [],
-  "operator": "devgpt-v9-s04",
-  "reason": "S04 deterministic retention lifecycle verification",
-  "approvalReference": "DEVGPT-V9-S04-LOCAL-VERIFY",
-  "createdAt": "2026-08-05T12:00:00Z"
-}

@@ -1,3 +1,0 @@
-﻿entity_id,entity_type,title,owner,target_state,exclusion_reason,next_action
-GAP-DATA-RESIDENCY,REQUIREMENT_GAP,Data Residency·Localization,privacy/data/product policy,소유권 검토,Canonical 분리·Owner·실제 Consumer 확정 전 개발 배정 보류,REQ-GAP 중복·Owner·Canonical 승격 여부 확정
-GAP-AI-SECURITY,REQUIREMENT_GAP,AI Security Verification,future product governance,해당 없음 스킵,현재 CPF 제품 범위 밖이며 재개 조건 전까지 개발 요청에서 제외,현재 개발 요청에서 제외; AI 제품 Capability가 공식 범위에 들어오면 재개

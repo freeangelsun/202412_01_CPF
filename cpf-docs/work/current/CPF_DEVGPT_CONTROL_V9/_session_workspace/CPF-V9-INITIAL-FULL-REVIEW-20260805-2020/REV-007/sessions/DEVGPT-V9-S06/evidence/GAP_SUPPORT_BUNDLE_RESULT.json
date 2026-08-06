@@ -1,9 +1,0 @@
-{
-  "status": "PASS",
-  "output": "/mnt/data/s06_rev006_gap_closure/support-bundle-after-fix.zip",
-  "file_count": 1,
-  "masked_values": 5,
-  "manifest_sha256": "d2a94a72e18360577f854a80bfd3a6b6d2c2c30108c17ddc57956fa53732d106",
-  "bundle_sha256": "288dde81a9956e027e68ed58e35ef2f3d51aff698094a4257943c066090d9f73",
-  "expires_at": "2026-08-06T13:00:00Z"
-}

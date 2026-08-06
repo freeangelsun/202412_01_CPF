@@ -1,1 +1,0 @@
-java -cp /mnt/data/cpf_s03_work/final_harness_run/fixedlength/classes S03FixedLengthHarness

@@ -1,1 +1,0 @@
-package com.cpf.starter.sftp;import java.time.Instant;public record CpfSftpTransferRecord(String transferId,String operation,String sourcePath,String targetPath,String status,long bytes,String checksum,String transactionId,String detail,Instant startedAt,Instant completedAt){}

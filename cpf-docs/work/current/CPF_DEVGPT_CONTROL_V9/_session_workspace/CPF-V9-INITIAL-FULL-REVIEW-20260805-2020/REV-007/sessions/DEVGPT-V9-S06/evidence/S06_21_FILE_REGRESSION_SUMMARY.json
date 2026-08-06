@@ -1,9 +1,0 @@
-{
-  "baseline_sha": "af12a0c8851a2e8d20e9e42964d8dacc0266af03",
-  "execution_mode": "isolated pytest file processes",
-  "files": 21,
-  "tests": 104,
-  "failed_files": 0,
-  "exit_code": 0,
-  "source_log": "evidence/S06_21_FILE_REGRESSION.log"
-}

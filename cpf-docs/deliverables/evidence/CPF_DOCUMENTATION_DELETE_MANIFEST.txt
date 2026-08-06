@@ -1,6 +1,1 @@
-# CPF R8 Delete Manifest
-
-- 기준 Commit: `6976d2747481b8540b48ddb9ab8f53cfeaa4b888`
-- 삭제 파일 수: `0`
-- R8 ZIP은 기존 파일 삭제를 수행하지 않는다.
-- 공식 문서 13개는 동일 경로에 덮어쓰고 assets/evidence만 신규 또는 교체한다.
+삭제 대상 없음

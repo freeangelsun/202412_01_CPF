@@ -1,0 +1,10 @@
+﻿document,reader,task,completion_result,evidence
+README.md,처음 방문한 사용자,CPF 범위 파악과 역할별 매뉴얼 선택,첫 문서와 첫 과제를 선택하고 제품 여정을 설명한다.,README의 시작 경로·Guide Map
+cpf-docs/guides/00_프레임워크안내.md,도입 검토자·아키텍트,Profile·Capability·Topology·책임 결정,대표 업무의 도입 결정표와 RACI를 작성한다.,Profile 선택표·Topology 표·체크리스트
+cpf-docs/guides/01_개발자매뉴얼.md,온라인·연계 개발자,PAY Query·Command·DB·Kafka·HTTP·복구,중복·Version 충돌·Consumer Kill·응답 유실을 재현하고 인계한다.,Source·SQL·JSON·Fault·ADM·운영 인계
+cpf-docs/guides/02_배치개발매뉴얼.md,배치 개발·운영,Job·Chunk·Partition·Center-Cut·Restart,Process Kill 뒤 Checkpoint부터 Restart하고 건수·금액을 대사한다.,Metadata·대사 SQL·ADM Route
+cpf-docs/guides/03_ADM개발자매뉴얼.md,ADM 연동 개발자,Owner Port→OpenAPI→Route→화면,Local·Remote Contract와 Browser Negative Test를 연결한다.,Java·Vue 예제·Operation·Route 계약
+cpf-docs/guides/04_ADM운영자매뉴얼.md,운영자·승인자·보안,Route별 조회·조치·복구,UNKNOWN_RESULT·PARTIAL·NACK·DRIFT를 Owner·Audit로 종결한다.,Route 카드·증상별 바로가기·장애 실습
+cpf-docs/guides/05_플랫폼운영매뉴얼.md,인프라·DBA·DR,설치·Config·DB·배포·Backup·Runbook,Artifact 검증부터 Canary·Rollback·Restore Drill을 수행한다.,Property 표·DB Lifecycle·장애 Runbook
+cpf-docs/guides/90_BZA매뉴얼.md,조직·권한·결재 담당,조직→사용자→Role→결재→업무 적용,기준일·Effective Permission·Approval Snapshot을 업무와 대사한다.,26 Route 지도·종합 실습·오류 복구
+cpf-docs/guides/91_Gateway매뉴얼.md,Gateway 개발·운영,Route·HMAC·Attempt·Publish·LKG,NACK·응답 유실을 재현하고 성공 Target을 보존해 복구한다.,YAML·HMAC·Publish·Runbook

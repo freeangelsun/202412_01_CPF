@@ -1,21 +1,4 @@
-﻿delta_id,area,source_path,change_contract,affected_documents,status
-R8-DELTA-001,ADM Route Registry,cpf-admin/frontend/src/app/routes.ts,62 Route와 최신 expectedOperationIds 재대사,"03,04,기술사양서,Operation Matrix",완료
-R8-DELTA-002,ADM Center-Cut,BatchCenterCutPage.vue; AdmCenterCutActionRequest.java,FAILED/UNKNOWN Execution-scope 승인 조치,"02,03,04",완료
-R8-DELTA-003,Cache Durable Invalidation,CpfCacheInvalidationCoordinator.java; CpfRedisProperties.java,DB ledger·apply·checkpoint·fast signal best effort·reconcile,"00,01,04,05,Architecture,TechSpec,DB",완료
-R8-DELTA-004,Valkey Provider,CpfValkeyProperties.java; cache-valkey starter,TTL·prefix·channel·payload·SCAN validation,"01,05,TechSpec,Configuration",완료
-R8-DELTA-005,ADM MFA,AdmLoginRequest.java; AdmTotpVerifier.java,6-digit TOTP·30s·±1·secret zeroing,"03,04,05,TechSpec,Standard",완료
-R8-DELTA-006,Notification Fail-closed,UnavailableNotificationSender.java,Provider 부재를 성공으로 기록하지 않음,"01,04,05,TechSpec",완료
-R8-DELTA-007,BZA Approval,BzaApprovalPolicyService.java,Version policy·participant snapshot·idempotent submit·delegation,"90,Architecture,TechSpec",완료
-R8-DELTA-008,BZA Sequence Sample,BzaSequenceSampleService.java,고객 DB transaction 내 versioned/idempotent sequence,"01,90",완료
-R8-DELTA-009,AsyncAPI Catalog,cpf-tools/contracts/asyncapi/**,Broker contract catalog,"01,05,TechSpec",완료
-R8-DELTA-010,Support Bundle,cpf-tools/scripts/generate-cpf-support-bundle.*,allowlist·masking·manifest support bundle,"05,Standard",완료
-R8-DELTA-011,3 Vendor Cache DB,"cpf-tools/db/vendor/{mariadb,postgresql,oracle}/**cache_invalidation**",source/install/migration/rollback/runtime/verify,"05,DB Standard",완료
-R8-DELTA-012,R6 Editorial Rebuild,R6 official manuals,"duplicate headings/generic cards 제거, single outline",13 Markdown,완료
-R8-DELTA-013,Time Standard,cpf-core/**/time/**,UTC·business zone·monotonic·skew·deadline,"00,01,04,05,Architecture,TechSpec",완료
-R8-DELTA-014,Data Quality,cpf-core/**/data/quality/**; cpf-common/**/data/quality/**,rule version·quarantine·approval correction·replay·reconcile,"01,03,04,05,DB,TechSpec",완료
-R8-DELTA-015,Field Encryption,cpf-core/**/data/encryption/**; cpf-common/**/data/encryption/**,classification·search token·mask·rekey,"01,05,90,Architecture,TechSpec",완료
-R8-DELTA-016,Crypto Agility,cpf-core/**/security/crypto/**; JceCpfCryptoOperations.java,algorithm/provider/deprecation/min bits/PQC policy,"01,05,TechSpec,Standard",완료
-R8-DELTA-017,Webhook Lifecycle,cpf-core/**/webhook/**; cpf-starters/integration/webhook/**,endpoint·delivery·unknown·DLQ·replay·reconcile,"01,03,04,05,91,TechSpec",완료
-R8-DELTA-018,ADM Integration Closure,AdmIntegrationClosureController.java; integrationClosureApi.ts,6 owner operations and generated client,"03,04,TechSpec,Operation Playbook",완료
-R8-DELTA-019,DB V102/V103,"cpf-tools/db/vendor/{mariadb,postgresql,oracle}/**",integration closure lifecycle and batch reconciliation audit,"02,05,DB Standard",완료
-R8-DELTA-020,Release Browser Gate,cpf-admin/frontend/playwright.config.ts,required URL/auth/route/failure/security inputs; no silent skip,"03,05,Configuration",완료
+﻿commit,sha,source_delta,documents,documentation_result
+06_06,2929163b3bb40159e22e1f57e79b6cd070abf7ad,OpenAPI WebMVC public contract·properties·management snapshot,"01,03,04,05,기술사양서","cpf.openapi.webmvc property table, OpenAPI operation/client/route contract"
+06_07,ee977cf66c251081df78ea5e9675b81c3dfafa59,ADM integration closure route·data-quality immutable correction approval snapshot·generated client,"00,01,03,04,05,아키텍처,기술사양","/integrationClosure, 8 operations, approval ID execution, cpf.adm.integration-closure properties"
+06_07,ee977cf66c251081df78ea5e9675b81c3dfafa59,Current ADM route registry transcription,"04,evidence",CPF_ADM_ROUTE_READER_MATRIX.csv route cards

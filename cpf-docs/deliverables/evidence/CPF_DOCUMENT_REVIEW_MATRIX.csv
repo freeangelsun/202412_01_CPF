@@ -1,12 +1,12 @@
-﻿review_id,review_area,status,evidence,result
-R8-001,Baseline,완료,6976d2747481b8540b48ddb9ab8f53cfeaa4b888,Repository·Branch·Commit 표기 일치
-R8-002,공식 문서 구조,완료,13 Markdown,H1·Fence·Baseline PASS
-R8-003,기능 Recipe,완료,CPF_FEATURE_MANUAL_COVERAGE.csv,46
-R8-004,ADM Route/Operation,완료,ADM Matrix + Integration Closure API,기존 Route Matrix + API 6개
-R8-005,Configuration,완료,CPF_CONFIGURATION_MATRIX.csv,77
-R8-006,Source Evidence,완료,CPF_SOURCE_EVIDENCE_MATRIX.csv,43
-R8-007,Operation Playbook,완료,CPF_OPERATION_PLAYBOOK_INDEX.csv,489
-R8-008,링크·SVG·Markdown,완료,정적 검사,SVG 31개
-R8-009,문단 반복,완료,140자 이상 문단 3회 반복 검사,69
-R8-010,삭제 안전,완료,CPF_DOCUMENTATION_DELETE_MANIFEST.txt,삭제 0건
-R8-011,Runtime 재실행,미검증,문서 작성 범위 밖,제품 기능 사용 전제로 작성
+﻿review_area,status,evidence,result
+official_and_deliverable_paths,완료,"official=9,deliverables=5",missing=[]
+markdown_structure,완료,markdown=14,"{""h1"": [], ""fence"": [], ""h2"": []}"
+baseline_marking,완료,ee977cf66c251081df78ea5e9675b81c3dfafa59,missing=[]
+control_character_scan,완료,files scanned,[]
+prohibited_phrase_scan,완료,terms=29,[]
+whitespace_and_package_hygiene,완료,files=38,"{""trailing"": [], ""garbage"": []}"
+long_exact_duplicate_scan,완료,paragraphs=171,{}
+svg_xml,완료,svg=15,[]
+relative_link_scan,완료,markdown=14,[]
+manual_reader_task_coverage,완료,manuals=7,[]
+adm_route_reader_matrix,완료,rows=63,duplicates=[]

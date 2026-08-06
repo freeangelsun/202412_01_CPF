@@ -1,44 +1,14 @@
-﻿evidence_id,source_path,owner,contract,consumer,document,verification
-STACK,gradle/cpf-stack.properties,CPF Stack Owner,Java·Gradle·Spring·Batch·Cloud·OpenFeature Version,Build·모든 Runtime,"00,01,05,기술사양서",Toolchain·BOM·Startup
-PLATFORM_VERSION,gradle/cpf-platform.properties,CPF Release Owner,제품 Version·호환 범위·Component Version,Publication·Consumer,"05,기술사양서,산출물목록",Manifest·BOM
-MODULE_GRAPH,settings.gradle,CPF Architecture Owner,Module·Included Build·Profile 6·Capability Group 7,모든 Module,"00,아키텍처설계서",Gradle Settings
-GENERATOR,cpf-tools/generator/create-domain.ps1,CPF Generator Owner,Domain 입력·Profile·Provider·DB·DryRun·Apply,고객 Domain,01,DryRun·Generated Build
-DOMAIN_CONTRACT,cpf-tools/generator/contracts/central-domain-template-contract.json,CPF DB Tool,2 Table·14/8 Column·22 Operation·3 Vendor·Runtime Agent,생성 Domain,"01,데이터베이스표준서",Generated Contract Test
-STARTER_CATALOG,cpf-tools/generator/contracts/cpf-starter-catalog.json,CPF Starter Owner,Public Profile·Provider Module·Config Prefix,Generated Runtime,"00,01,05,기술사양서",Settings Catalog Gate
-ADM_ROUTE,cpf-admin/frontend/src/app/routes.ts,cpf-admin,Route·Menu·Risk·Feature Flag·Operation·Component,ADM Operator,"03,04",Route Operation Contract
-ADM_OPENAPI,cpf-admin/frontend/openapi/cpf-openapi.json,cpf-admin Backend,Operation·Path·Schema·Error,Generated Client·ADM UI,"03,04",Schema Ref·Type·Browser
-BZA_ROUTE,cpf-biz-admin/frontend/src/app/routes.ts,cpf-biz-admin,Route·Menu·Operation·Component,BZA User,90,Route Operation Contract
-ARTIFACT_CATALOG,cpf-tools/release/cpf-final-artifact-catalog.json,CPF Release Owner,Artifact Owner·Producer·Consumer·Attestation,배포·운영,"05,산출물목록",Hash·SBOM·Publication
-DB_PACK,"cpf-tools/db/vendor/{mariadb,postgresql,oracle}/**",CPF DB Tool,Provision·Install·Seed·Migration·Verify·Rollback,DBA·Runtime,"05,데이터베이스표준서",Vendor Runtime·Drift
-LOCAL_RUNTIME,cpf-tools/scripts/start-cpf-local.ps1,CPF Operations Tool,Local Mode·Port·Process Registry·Health,개발·교육,"01,02,05",Start/Status/Stop
-DB_INIT,cpf-tools/scripts/initialize-cpf-database.ps1,CPF DB Tool,Profile·Vendor·Seed·RequireRun,DBA,05,Install·Verify
-V9_CONTROL,cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/**,CPF Development Control,Requirement·Scenario·Campaign·Session 상태,개발 관리·QA,산출물목록,FULL_ASSIGNMENT
-COMMON_CALENDAR_TX,cpf-common/src/main/java/com/cpf/common/calendar/CmnCalendarService.java,cpf-common,Calendar mutation + durable outbox in cmnTransactionManager,ADM·업무 Runtime,"01,05,아키텍처,DB표준",Version conflict·outbox rollback·checkpoint
-COMMON_CALENDAR_EVENT,cpf-common/src/main/java/com/cpf/common/calendar/CmnCalendarChangeEvent.java,cpf-common,UPSERT/DELETE strict event·date/version validation,Cache refresh listener,"01,05,기술사양",Unit test·event key
-COMMON_TEMPLATE_MGMT,cpf-common/src/main/java/com/cpf/common/template/CmnTemplateManagementService.java,cpf-common,DRAFT/APPROVED/RETIRED·revision CAS·audit·durable refresh,Notification·BZA·업무 문구,"01,05,90,아키텍처,기술사양",Template management tests·audit history
-COMMON_SQL_RESOURCE,cpf-common/src/main/java/com/cpf/common/sql/CmnSqlResourceLoader.java,cpf-common,Owner SQL resource loading,Calendar·Sample·Template Store,"01,05,기술표준,DB표준",Resource existence·vendor tests
-CENTER_CUT_RECONCILE,cpf-batch/control-server/src/main/java/com/cpf/batch/control/CenterCutReconciliationController.java,cpf-batch,Execution-scope failed/unknown requeue·approval·atomic audit,ADM Batch Recovery,"02,03,04,기술사양",Controller tests·transaction rollback
-REMOTE_MESSAGE_RECONCILE,cpf-batch/control-server/src/main/java/com/cpf/batch/control/RemoteMessageReconciliationController.java,cpf-batch,REQUEST/REPLY UNKNOWN retry·payload hash·version·idempotency·approval,ADM Batch Recovery·Worker,"02,03,04,기술사양",Controller tests·idempotent replay
-RUNTIME_COMMAND_CLASSIFY,cpf-batch/control-server/src/main/java/com/cpf/batch/control/RuntimeCommandExecutor.java,cpf-batch,Deterministic FAILED vs post-dispatch UNKNOWN_RESULT·target aggregate,ADM Runtime Control·Host Agent,"02,04,05,아키텍처",Failure classification tests
-CORE_LOCK_DEFAULT,cpf-core/src/main/java/com/cpf/core/api/locking/CpfLockManager.java,cpf-core,Default lock token validation,All lock consumers,"기술사양,기술표준",Default token harness
-CORE_ASYNC_LOG_DEFAULT,cpf-core/src/main/java/com/cpf/core/api/logging/CpfAsyncLogWriterOperations.java,cpf-core,Async log default operation evidence contract,Observability providers,"05,기술사양,기술표준",Async log harness
-ADM_ROUTE_REGISTRY_CURRENT,cpf-admin/frontend/src/app/routes.ts,cpf-admin frontend,62 Route·Menu·Risk·Feature Flag·expectedOperationIds,ADM Router·Menu·권한·운영 매뉴얼,"03,04,기술사양서",Route Registry와 OpenAPI consumer 대조
-CACHE_DURABLE_COORDINATOR,cpf-common/src/main/java/com/cpf/common/cache/CpfCacheInvalidationCoordinator.java,cpf-common/cache,durable ledger 정본·apply 후 checkpoint·fast signal best effort·reconcileNow,Caffeine·Valkey Provider·ADM /cache,"01,04,05,아키텍처,DB표준",process kill·signal loss·checkpoint recovery
-CACHE_VALKEY_PROPERTIES,cpf-starters/data/cache-valkey/src/main/java/com/cpf/starter/data/cache/valkey/CpfValkeyProperties.java,cache-valkey starter,key prefix·channel·TTL·payload·SCAN validation,Valkey cache runtime,"01,05,기술사양서",Property boundary test·startup validation
-ADM_MFA_TOTP,cpf-admin/src/main/java/com/cpf/admin/opr/security/AdmTotpVerifier.java,cpf-admin security,RFC 6238 6자리 TOTP·30초·±1 window·constant-time compare·secret zeroing,ADM Login·Security 화면,"04,05,기술사양서,기술표준서",valid/expired/malformed/clock skew test
-ADM_CENTER_CUT_UI,cpf-admin/frontend/src/features/batch-center-cut/BatchCenterCutPage.vue,cpf-admin frontend,Execution-scope FAILED/UNKNOWN만 승인 후 조치,Batch 운영자·승인자,"02,03,04",E2E center-cut recovery
-NOTIFICATION_FAIL_CLOSED,cpf-admin/src/main/java/com/cpf/admin/opr/service/UnavailableNotificationSender.java,cpf-admin notification,Provider 미설정 시 성공을 기록하지 않고 PROVIDER_NOT_CONFIGURED,알림 Outbox·ADM notifications,"01,04,05",fail-closed provider test
-BZA_APPROVAL_POLICY,cpf-biz-admin/src/main/java/com/cpf/bizadmin/approval/service/BzaApprovalPolicyService.java,cpf-biz-admin approval,Versioned policy·participant snapshot·ALL/ANY/N_OF_M·idempotent submit·delegation,BZA 결재·고객 업무,"90,아키텍처,기술사양서",policy/idempotency/delegation test
-BZA_SEQUENCE_SAMPLE,cpf-biz-admin/src/main/java/com/cpf/bizadmin/sample/sequence/BzaSequenceSampleService.java,cpf-biz-admin sample,고객 DB transaction 안의 versioned·idempotent 업무 채번 교육 Sample,고객 BZA 확장 개발자,"90,01",replay/version/max value/reconcile test
-ASYNCAPI_CATALOG,cpf-tools/contracts/asyncapi/cpf-asyncapi-catalog.json,CPF Contract Owner,Broker message contract catalog,Messaging 개발·운영·문서,"01,05,기술사양서",catalog schema·consumer parity
-SUPPORT_BUNDLE,cpf-tools/scripts/generate-cpf-support-bundle.py,CPF Operations Tooling,민감정보 제외 Support Bundle 생성,플랫폼 운영·장애 분석,05,bundle manifest·masking test
-TIME_API,cpf-core/src/main/java/com/cpf/core/api/time/CpfTimeOperations.java,cpf-core,UTC·business zone·monotonic·skew·deadline,Online·Batch·ADM·BZA·Gateway,"00,01,04,05,Architecture,TechSpec",Time snapshot·deadline boundary
-TIME_SNAPSHOT,cpf-core/src/main/java/com/cpf/core/api/time/CpfTimeSnapshot.java,cpf-core,utc·businessTime·monotonicNanos·estimatedSkew·healthy,ADM time health·runtime consumers,"01,04,05,TechSpec",Null guard·skew health
-DATA_QUALITY_API,cpf-core/src/main/java/com/cpf/core/api/data/quality/CpfDataQualityOperations.java,cpf-core,rule·validate·quarantine·correct·replay·reconcile,File·Integration·ADM·Domain,"01,03,04,05,DB,TechSpec",Version conflict·approval·replay
-DATA_QUALITY_IMPL,cpf-common/src/main/java/com/cpf/common/data/quality/InMemoryCpfDataQualityOperations.java,cpf-common,QUARANTINED→CORRECTED→REPLAYED reference lifecycle,EDU·ADM consumer,"01,04,TechSpec",Rule/version/audit tests
-FIELD_ENCRYPTION_API,cpf-core/src/main/java/com/cpf/core/api/data/encryption/CpfFieldEncryptionOperations.java,cpf-core,encrypt·decrypt·rekey·mask,PII domain·BZA,"01,05,90,Architecture,TechSpec",Actor/reason·masking·rekey
-CRYPTO_POLICY,cpf-core/src/main/java/com/cpf/core/api/security/crypto/CpfCryptoPolicy.java,cpf-core,algorithm/provider/deprecation/minimum key bits/PQC policy,Crypto providers,"01,05,TechSpec,Standard",Policy negative corpus
-WEBHOOK_API,cpf-core/src/main/java/com/cpf/core/api/webhook/CpfWebhookOperations.java,cpf-core,endpoint·delivery·signed attempt·DLQ·replay·reconcile,integration/webhook starter·ADM,"01,03,04,05,91,TechSpec",2xx+known result·idempotency
-ADM_INTEGRATION_CLOSURE,cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmIntegrationClosureController.java,cpf-admin,time·data quality·webhook query/command API,ADM generated client·operator,"03,04,TechSpec",Auth·version·reason·503
-DB_V102,"cpf-tools/db/vendor/{postgresql,mariadb,oracle}/migration/V102__integration_closure_lifecycle.sql",DB Tool,field encryption·data quality·webhook·audit schema,Runtime stores·ADM,"05,DB Standard",3 vendor migration/rollback/verify
-DB_V103,"cpf-tools/db/vendor/{postgresql,mariadb,oracle}/migration/V103__batch_unknown_reconciliation.sql",DB Tool,approved idempotent UNKNOWN reconciliation audit,Batch control·ADM,"02,05,DB Standard",requester/approver check·unique idem
+﻿source,contract,documents
+cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md,제품 목표·Module·Topology·공통 완료 축,"00,아키텍처,기술사양"
+cpf-docs/specification/CPF_DOCUMENTATION_STANDARD.md,독자·기능 장 구조·교육 예제·공식 문서,전체 공식 문서
+README.md,기존 브로셔 구조·공식 문서 Entry,README 최소 보강
+cpf-admin/frontend/src/app/routes.ts,ADM Route·Menu·Risk·Operation Registry,"04,CPF_ADM_ROUTE_READER_MATRIX.csv"
+cpf-admin/frontend/src/features/integration-closure/IntegrationClosurePage.vue,정정 승인 요청·Approval ID 실행 화면,"03,04"
+cpf-admin/frontend/src/generated/integrationClosureApi.ts,Generated client request contract,"03,기술사양"
+cpf-admin/src/main/java/com/cpf/admin/config/AdmIntegrationClosureProperties.java,integration closure runtime properties,05
+cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmIntegrationClosureController.java,integration closure API,"03,04,기술사양"
+cpf-core/src/main/java/com/cpf/core/api/data/quality/CpfDataQualityOperations.java,Data Quality rule·quarantine·approval·replay,"01,03,04"
+cpf-starters/profiles/web-api/src/main/java/com/cpf/starter/openapi/webmvc/internal/CpfOpenApiWebMvcProperties.java,OpenAPI property contract,"01,03,05,기술사양"
+cpf-batch,Spring Batch·Scheduler·Worker·Center-Cut,"02,04,아키텍처"
+cpf-biz-admin,조직·사용자·권한·결재,"90,아키텍처"
+cpf-gateway,Route·Security·Attempt·Publish,"91,아키텍처"

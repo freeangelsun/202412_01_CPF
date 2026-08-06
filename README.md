@@ -17,6 +17,25 @@
 
 ---
 
+## 처음 방문했다면 여기서 시작합니다
+
+![CPF 문서 시작 경로](cpf-docs/assets/manuals/cpf-reader-start.svg)
+
+| 지금 알고 싶은 것 | 먼저 읽을 문서 | 첫 번째 과제 |
+|---|---|---|
+| CPF가 어떤 시스템에 맞는가 | [00 프레임워크 안내](cpf-docs/guides/00_프레임워크안내.md) | 적용 사례를 고르고 Profile·Topology 선택표 작성 |
+| 온라인·연계 업무를 만드는 방법 | [01 개발자 매뉴얼](cpf-docs/guides/01_개발자매뉴얼.md) | PAY 예제로 조회·상태 변경·응답 유실 복구 수행 |
+| 정기·대량 처리를 만드는 방법 | [02 배치 개발 매뉴얼](cpf-docs/guides/02_배치개발매뉴얼.md) | Job을 실행하고 Process Kill 뒤 Restart·대사 |
+| 고객 업무를 ADM에 연결하는 방법 | [03 ADM 개발자 매뉴얼](cpf-docs/guides/03_ADM개발자매뉴얼.md) | Owner Port에서 Route·화면·Browser Test까지 연결 |
+| 화면에서 장애를 판단하고 복구하는 방법 | [04 ADM 운영자 매뉴얼](cpf-docs/guides/04_ADM운영자매뉴얼.md) | `UNKNOWN_RESULT` 사례를 Operation과 Owner 원장으로 종결 |
+| 설치·설정·배포·백업 방법 | [05 플랫폼 운영 매뉴얼](cpf-docs/guides/05_플랫폼운영매뉴얼.md) | Artifact 검증부터 Health·Rollback까지 수행 |
+| 조직·사용자·권한·결재 적용 방법 | [90 BZA 매뉴얼](cpf-docs/guides/90_BZA매뉴얼.md) | 조직 기준일과 Effective Permission을 업무에 연결 |
+| 외부 API 공개와 게시 복구 방법 | [91 Gateway 매뉴얼](cpf-docs/guides/91_Gateway매뉴얼.md) | Route Draft를 게시하고 NACK 뒤 LKG로 복구 |
+
+전문 용어를 모르는 독자도 각 매뉴얼의 **용어 준비 → 따라 하기 → 오류 재현 → 복구 → 운영 인계** 순서로 읽을 수 있습니다. 이미 CPF를 사용하는 독자는 각 장의 판단표와 Source·API·SQL·화면 경로를 바로 참조합니다.
+
+---
+
 ## 시스템의 전체 생명주기를 하나의 구조로
 
 CPF는 조회·등록·상태 변경 API, 정기·대량 처리, 비동기 메시지, 파일·외부기관 연계, 권한·감사, 운영 화면과 장애 정상화를 같은 제품 계약으로 구성하는 Business Platform Framework입니다.
@@ -60,7 +79,7 @@ CPF는 조회·등록·상태 변경 API, 정기·대량 처리, 비동기 메�
 - `cpf-biz-admin` — 조직·직원·사용자·역할·권한·결재가 필요한 업무
 - `cpf-gateway` — 외부 Client와 내부 API 사이의 인증·라우팅·제한·적용 통제가 필요한 업무
 
-고객 개발자가 선택하는 공개면은 `minimal-domain`, `web-api`, `secure-api`, `browser-bff`, `event-service`, `batch-service`의 6개 Profile입니다. 내부 Provider는 7개 Capability Group에서 Generator Binding과 `resolved-starter-lock.json`으로 결정합니다.
+고객 개발자가 선택하는 공개면은 `minimal-domain`, `web-api`, `secure-api`, `browser-bff`, `event-service`, `batch-service`의 6개 Profile입니다. 내부 Provider는 Capability Group에서 Generator Binding과 `resolved-starter-lock.json`으로 결정합니다.
 
 ---
 

@@ -165,6 +165,20 @@ Dry Run에서 Module·Package·System Code·Profile·Provider Binding·DB Vendor
 
 ---
 
+
+## 처음 접하는 사용자의 책형 학습 경로
+
+CPF 문서는 기능 목록만 읽는 방식이 아니라 **하나의 업무를 설계·개발·실행·장애 재현·복구·운영 인계하는 순서**로 사용합니다.
+
+1. [00 프레임워크 안내](cpf-docs/guides/00_프레임워크안내.md)에서 적용 시나리오와 Profile·Topology를 고릅니다.
+2. [01 개발자 매뉴얼](cpf-docs/guides/01_개발자매뉴얼.md)의 PAY Golden Journey와 45개 EDU로 온라인·연계 업무를 만듭니다.
+3. [02 배치 개발 매뉴얼](cpf-docs/guides/02_배치개발매뉴얼.md)에서 Process Kill·Restart·대사를 수행합니다.
+4. [03/04 ADM 매뉴얼](cpf-docs/guides/03_ADM개발자매뉴얼.md)에서 업무 계약을 화면에 연결하고 Route별 운영 판단을 연습합니다.
+5. [05 플랫폼 운영](cpf-docs/guides/05_플랫폼운영매뉴얼.md), [90 BZA](cpf-docs/guides/90_BZA매뉴얼.md), [91 Gateway](cpf-docs/guides/91_Gateway매뉴얼.md)에서 설치·권한·게시·복구를 역할별로 완료합니다.
+
+![CPF 문서 품질 Gate](cpf-docs/assets/manuals/cpf-document-quality-r10.svg)
+
+---
 ## 제품 요구사항과 설계 산출물
 
 - [산출물 목록](cpf-docs/deliverables/산출물목록.md)

@@ -1,30 +1,349 @@
 {
-  "baseline_sha": "ee977cf66c251081df78ea5e9675b81c3dfafa59",
-  "baseline_message": "06_07",
-  "repository": "https://github.com/freeangelsun/202412_01_CPF",
+  "package_id": "CPF-DOCUMENTATION-PRODUCT-R10-A8BE27A",
+  "repository": "freeangelsun/202412_01_CPF",
   "branch": "master",
-  "official_documents": 9,
-  "design_deliverables": 5,
-  "markdown_files": 14,
-  "markdown_lines": 4907,
-  "svg_files": 15,
-  "route_reader_rows": 63,
-  "checks": {
-    "official_and_deliverable_paths": "완료",
-    "markdown_structure": "완료",
-    "baseline_marking": "완료",
-    "control_character_scan": "완료",
-    "prohibited_phrase_scan": "완료",
-    "whitespace_and_package_hygiene": "완료",
-    "long_exact_duplicate_scan": "완료",
-    "svg_xml": "완료",
-    "relative_link_scan": "완료",
-    "manual_reader_task_coverage": "완료",
-    "adm_route_reader_matrix": "완료"
+  "baseline": "a8be27a34bdac0b7c075e06d6e86571244c96421",
+  "generated_at": "2026-08-06T19:03:56+09:00",
+  "scope": {
+    "official_user_documents": 9,
+    "design_deliverables": 5,
+    "evidence_files": 17,
+    "new_svg": 6,
+    "deleted_files": 1
   },
-  "static_review_status": "완료",
-  "runtime_reexecuted": false,
-  "browser_reexecuted": false,
-  "database_reexecuted": false,
-  "note": "제품 기능을 사용할 수 있는 상태로 설명한 문서 Package다. 이 실행 환경에서는 제품 Runtime·Browser·DB를 재실행하지 않았다."
+  "content_metrics": {
+    "markdown_lines": 16520,
+    "manual_lines": {
+      "cpf-docs/guides/00_프레임워크안내.md": 1141,
+      "cpf-docs/guides/01_개발자매뉴얼.md": 2233,
+      "cpf-docs/guides/02_배치개발매뉴얼.md": 1347,
+      "cpf-docs/guides/03_ADM개발자매뉴얼.md": 1069,
+      "cpf-docs/guides/04_ADM운영자매뉴얼.md": 3598,
+      "cpf-docs/guides/05_플랫폼운영매뉴얼.md": 2575,
+      "cpf-docs/guides/90_BZA매뉴얼.md": 1444,
+      "cpf-docs/guides/91_Gateway매뉴얼.md": 1067
+    },
+    "edu": 135,
+    "operations": 639,
+    "configuration": 77,
+    "adm_routes": 63,
+    "bza_routes": 26,
+    "features": 50,
+    "source_evidence": 55
+  },
+  "checks": [
+    {
+      "name": "공식 사용자 문서 9개",
+      "status": "완료",
+      "detail": "README + Guide 8"
+    },
+    {
+      "name": "Guide README 금지",
+      "status": "완료",
+      "detail": "없음"
+    },
+    {
+      "name": "Markdown 고유 설명량 안전선",
+      "status": "완료",
+      "detail": {
+        "total": 16520,
+        "prior_detailed_baseline": 15695
+      }
+    },
+    {
+      "name": "매뉴얼별 설명량 안전선",
+      "status": "완료",
+      "detail": {
+        "cpf-docs/guides/00_프레임워크안내.md": 1141,
+        "cpf-docs/guides/01_개발자매뉴얼.md": 2233,
+        "cpf-docs/guides/02_배치개발매뉴얼.md": 1347,
+        "cpf-docs/guides/03_ADM개발자매뉴얼.md": 1069,
+        "cpf-docs/guides/04_ADM운영자매뉴얼.md": 3598,
+        "cpf-docs/guides/05_플랫폼운영매뉴얼.md": 2575,
+        "cpf-docs/guides/90_BZA매뉴얼.md": 1444,
+        "cpf-docs/guides/91_Gateway매뉴얼.md": 1067
+      }
+    },
+    {
+      "name": "Markdown 구조·UTF-8/LF",
+      "status": "완료",
+      "detail": {
+        "README.md": {
+          "h1": 0,
+          "fence_balanced": true,
+          "trailing": 0,
+          "lf": true
+        },
+        "cpf-docs/guides/00_프레임워크안내.md": {
+          "h1": 1,
+          "fence_balanced": true,
+          "trailing": 0,
+          "lf": true
+        },
+        "cpf-docs/guides/01_개발자매뉴얼.md": {
+          "h1": 1,
+          "fence_balanced": true,
+          "trailing": 0,
+          "lf": true
+        },
+        "cpf-docs/guides/02_배치개발매뉴얼.md": {
+          "h1": 1,
+          "fence_balanced": true,
+          "trailing": 0,
+          "lf": true
+        },
+        "cpf-docs/guides/03_ADM개발자매뉴얼.md": {
+          "h1": 1,
+          "fence_balanced": true,
+          "trailing": 0,
+          "lf": true
+        },
+        "cpf-docs/guides/04_ADM운영자매뉴얼.md": {
+          "h1": 1,
+          "fence_balanced": true,
+          "trailing": 0,
+          "lf": true
+        },
+        "cpf-docs/guides/05_플랫폼운영매뉴얼.md": {
+          "h1": 1,
+          "fence_balanced": true,
+          "trailing": 0,
+          "lf": true
+        },
+        "cpf-docs/guides/90_BZA매뉴얼.md": {
+          "h1": 1,
+          "fence_balanced": true,
+          "trailing": 0,
+          "lf": true
+        },
+        "cpf-docs/guides/91_Gateway매뉴얼.md": {
+          "h1": 1,
+          "fence_balanced": true,
+          "trailing": 0,
+          "lf": true
+        },
+        "cpf-docs/deliverables/아키텍처설계서.md": {
+          "h1": 1,
+          "fence_balanced": true,
+          "trailing": 0,
+          "lf": true
+        },
+        "cpf-docs/deliverables/기술사양서.md": {
+          "h1": 1,
+          "fence_balanced": true,
+          "trailing": 0,
+          "lf": true
+        },
+        "cpf-docs/deliverables/기술표준서.md": {
+          "h1": 1,
+          "fence_balanced": true,
+          "trailing": 0,
+          "lf": true
+        },
+        "cpf-docs/deliverables/데이터베이스표준서.md": {
+          "h1": 1,
+          "fence_balanced": true,
+          "trailing": 0,
+          "lf": true
+        },
+        "cpf-docs/deliverables/산출물목록.md": {
+          "h1": 1,
+          "fence_balanced": true,
+          "trailing": 0,
+          "lf": true
+        }
+      }
+    },
+    {
+      "name": "근거 없는 금지 표현",
+      "status": "완료",
+      "detail": {}
+    },
+    {
+      "name": "140자 이상 문단 3회 반복",
+      "status": "완료",
+      "detail": {
+        "count": 0,
+        "samples": []
+      }
+    },
+    {
+      "name": "매뉴얼 정상·실패·복구·검증 Coverage",
+      "status": "완료",
+      "detail": {
+        "00_프레임워크안내.md": {
+          "정상": true,
+          "실패": true,
+          "복구": true,
+          "입력": true,
+          "권한": true,
+          "Audit": true,
+          "Test": true
+        },
+        "01_개발자매뉴얼.md": {
+          "정상": true,
+          "실패": true,
+          "복구": true,
+          "입력": true,
+          "권한": true,
+          "Audit": true,
+          "Test": true
+        },
+        "02_배치개발매뉴얼.md": {
+          "정상": true,
+          "실패": true,
+          "복구": true,
+          "입력": true,
+          "권한": true,
+          "Audit": true,
+          "Test": true
+        },
+        "03_ADM개발자매뉴얼.md": {
+          "정상": true,
+          "실패": true,
+          "복구": true,
+          "입력": true,
+          "권한": true,
+          "Audit": true,
+          "Test": true
+        },
+        "04_ADM운영자매뉴얼.md": {
+          "정상": true,
+          "실패": true,
+          "복구": true,
+          "입력": true,
+          "권한": true,
+          "Audit": true,
+          "Test": true
+        },
+        "05_플랫폼운영매뉴얼.md": {
+          "정상": true,
+          "실패": true,
+          "복구": true,
+          "입력": true,
+          "권한": true,
+          "Audit": true,
+          "Test": true
+        },
+        "90_BZA매뉴얼.md": {
+          "정상": true,
+          "실패": true,
+          "복구": true,
+          "입력": true,
+          "권한": true,
+          "Audit": true,
+          "Test": true
+        },
+        "91_Gateway매뉴얼.md": {
+          "정상": true,
+          "실패": true,
+          "복구": true,
+          "입력": true,
+          "권한": true,
+          "Audit": true,
+          "Test": true
+        }
+      }
+    },
+    {
+      "name": "Coverage·EDU·Route·Property·Playbook 수량",
+      "status": "완료",
+      "detail": {
+        "actual": {
+          "CPF_EDU_EXECUTION_CATALOG.csv": 135,
+          "CPF_OPERATION_PLAYBOOK_INDEX.csv": 639,
+          "CPF_CONFIGURATION_MATRIX.csv": 77,
+          "CPF_ADM_ROUTE_OPERATION_MATRIX.csv": 63,
+          "CPF_ADM_ROUTE_READER_MATRIX.csv": 63,
+          "CPF_BZA_ROUTE_OPERATION_MATRIX.csv": 26,
+          "CPF_FEATURE_MANUAL_COVERAGE.csv": 50,
+          "CPF_STATE_ERROR_RECOVERY_CATALOG.csv": 135,
+          "CPF_SOURCE_EVIDENCE_MATRIX.csv": 55
+        },
+        "expected": {
+          "CPF_EDU_EXECUTION_CATALOG.csv": 135,
+          "CPF_OPERATION_PLAYBOOK_INDEX.csv": 639,
+          "CPF_CONFIGURATION_MATRIX.csv": 77,
+          "CPF_ADM_ROUTE_OPERATION_MATRIX.csv": 63,
+          "CPF_ADM_ROUTE_READER_MATRIX.csv": 63,
+          "CPF_BZA_ROUTE_OPERATION_MATRIX.csv": 26,
+          "CPF_FEATURE_MANUAL_COVERAGE.csv": 50,
+          "CPF_STATE_ERROR_RECOVERY_CATALOG.csv": 135,
+          "CPF_SOURCE_EVIDENCE_MATRIX.csv": 55
+        }
+      }
+    },
+    {
+      "name": "EDU 135 영역 배분",
+      "status": "완료",
+      "detail": {
+        "ONL": 45,
+        "BAT": 30,
+        "ADM": 17,
+        "OPS": 15,
+        "BZA": 14,
+        "GWY": 14
+      }
+    },
+    {
+      "name": "신규 SVG XML",
+      "status": "완료",
+      "detail": [
+        "cpf-docs/assets/manuals/cpf-document-quality-r10.svg",
+        "cpf-docs/assets/manuals/cpf-pay-golden-journey-r10.svg",
+        "cpf-docs/assets/manuals/cpf-batch-restart-timeline-r10.svg",
+        "cpf-docs/assets/manuals/cpf-adm-version-conflict-r10.svg",
+        "cpf-docs/assets/manuals/cpf-gateway-lkg-r10.svg",
+        "cpf-docs/assets/manuals/cpf-dr-failover-r10.svg"
+      ]
+    },
+    {
+      "name": "신규 SVG 본문 사용",
+      "status": "완료",
+      "detail": []
+    },
+    {
+      "name": "신규·수정 문서 상대 링크",
+      "status": "완료",
+      "detail": {
+        "missing": [],
+        "unchanged_baseline_refs": [
+          "cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md",
+          "cpf-docs/guides/png/cpf-guide-map.png"
+        ]
+      }
+    },
+    {
+      "name": "제어문자",
+      "status": "완료",
+      "detail": []
+    },
+    {
+      "name": "ADM Route 63/단위 Test 60 차이 명시",
+      "status": "완료",
+      "detail": "문서와 Evidence에 명시"
+    },
+    {
+      "name": "Package 가비지",
+      "status": "완료",
+      "detail": []
+    },
+    {
+      "name": "R9 품질 SVG 제거",
+      "status": "완료",
+      "detail": "삭제 Manifest 1건"
+    }
+  ],
+  "all_documentation_gates_passed": true,
+  "runtime_not_executed": [
+    "Java 25·Gradle 9.1 전체 Build",
+    "MariaDB·PostgreSQL·Oracle 실제 Lifecycle",
+    "Kafka·다중 Process·Process Kill",
+    "ADM·BZA·Gateway 실제 Browser·Playwright",
+    "실제 DR Failover/Failback"
+  ],
+  "known_source_revalidation": [
+    "ADM Route Registry Reader 63행과 routes.test.ts 60 기대값 차이"
+  ],
+  "claim_boundary": "문서 구조·내용·정적 정합성·Package 품질은 자체 검수했다. Target Runtime 실행 결과는 성공으로 기록하지 않는다."
 }

@@ -1,78 +1,78 @@
-﻿kind,key,type,default,required_range,consumer,apply,secret,verification,rollback
-environment,CPF_ARTIFACT_MODE,String,LOCAL_DEV,LOCAL_DEV/REMOTE/OFFLINE,Gradle,Build,N,Mode/Repository,이전 Mode
-environment,CPF_ARTIFACT_REPOSITORY_URL,URI,없음,REMOTE 필수,Gradle,Build,N,Repository 연결,이전 URL
-environment,CPF_ARTIFACT_REPOSITORY_USER,String,없음,인증 Repository,Gradle,Build,Y,Credential 오류 없음,이전 Secret
-environment,CPF_ARTIFACT_REPOSITORY_PASSWORD,Secret,없음,인증 Repository,Gradle,Build,Y,Log 비노출,이전 Secret
-environment,CPF_LOCAL_ARTIFACT_REPOSITORY,Path,~/.cpf/repository,LOCAL_DEV,Gradle,Build,N,Artifact 조회,이전 경로
-environment,CPF_OFFLINE_ARTIFACT_REPOSITORY,Path,없음,OFFLINE 필수,Gradle,Build,N,외부 접속 없는 Build,이전 경로
-environment,CPF_SOURCE_SHA,SHA,git HEAD,40 hex,Build/JAR,Build,N,Manifest Git-Commit,정확한 SHA
-environment,SPRING_PROFILES_ACTIVE,String,Module별,승인 Profile,Runtime,Restart,N,Startup Log,이전 Profile
-environment,SERVER_PORT,Integer,Module별,1~65535,Web Runtime,Restart,N,Listen/Health,이전 Port
-environment,ADM_MODULE_ID,String,ADM,조직 Naming,ADM,Restart,N,Framework Context,이전 ID
-environment,ADM_INSTANCE_ID,String,adm-local-01,Instance Unique,ADM,Restart,N,Topology/OpenAPI,이전 ID
-environment,ADM_WAS_ID,String,admAP01,WAS Unique,ADM,Restart,N,Context,이전 ID
-environment,ADM_SERVICE_REGISTRY_MODE,String,LOCAL,승인 Mode,ADM,Restart,N,Service Call,이전 Mode
-environment,CPF_OPENAPI_WEBMVC_ENABLED,Boolean,true,true/false,ADM OpenAPI,Restart,N,OpenAPI Status,이전 값
-environment,CPF_OPENAPI_WEBMVC_API_DOCS_ENABLED,Boolean,false,환경 정책,ADM OpenAPI,Restart,N,Docs 노출,false
-environment,CPF_OPENAPI_WEBMVC_MANAGEMENT_ENABLED,Boolean,true,true/false,ADM OpenAPI,Restart,N,openApiOperations,이전 값
-environment,CPF_OPENAPI_WEBMVC_API_DOCS_PATH,Path,/v3/api-docs,Context Path,ADM OpenAPI,Restart,N,Status Path,이전 Path
-environment,CPF_RUNTIME_INSTANCE_ID,String,없음,runtime-agent 필수,Runtime Agent,Restart,N,Agent 등록,이전 ID
-environment,CPF_RUNTIME_SERVICE_ID,String,없음,runtime-agent 필수,Runtime Agent,Restart,N,Control 상태,이전 ID
-environment,CPF_RUNTIME_ENDPOINT_CODE,String,없음,runtime-agent 필수,Runtime Agent,Restart,N,Endpoint,이전 Code
-environment,CPF_RUNTIME_BASE_URL,URI,없음,runtime-agent 필수,Runtime Agent,Restart,N,Probe,이전 URL
-environment,CPF_RUNTIME_CONTROL_BASE_URL,URI,없음,runtime-agent 필수,Runtime Agent,Restart,N,Control Health,이전 URL
-environment,CPF_RUNTIME_CONTROL_AGENT_TOKEN,Secret,없음,runtime-agent 필수,Runtime Agent,Restart,Y,Auth·Log 비노출,이전 Token
-config-prefix,cpf.profile.minimal-domain,,,Profile 선택,minimal-domain Profile,Restart,N,Context/Manifest,이전 Config Revision
-config-prefix,cpf.profile.web-api,,,Profile 선택,web-api,Restart,N,Web/OpenAPI,이전 Config Revision
-config-prefix,cpf.profile.secure-api,,,Profile 선택,secure-api,Restart,일부,Security Health,이전 Config Revision
-config-prefix,cpf.profile.browser-bff,,,Profile 선택,browser-bff,Restart,일부,Session/CSRF,이전 Config Revision
-config-prefix,cpf.profile.event-service,,,Profile 선택,event-service,Restart,일부,Broker/Reliability,이전 Config Revision
-config-prefix,cpf.profile.batch-service,,,Profile 선택,batch-service,Restart,일부,Batch Runtime,이전 Config Revision
-config-prefix,cpf.data.persistence.jdbc,,,data=jdbc,JDBC,Restart,Y,DB Health,이전 Config Revision
-config-prefix,cpf.data.persistence.mybatis,,,data=mybatis,MyBatis,Restart,Y,DB/Mapper,이전 Config Revision
-config-prefix,cpf.data.cache.caffeine,,,cache=caffeine,Local Cache,정책/Restart,N,Cache Metric,이전 Config Revision
-config-prefix,cpf.data.cache.valkey,,,cache=valkey,Distributed Cache,Restart,Y,Valkey Health,이전 Config Revision
-config-prefix,cpf.messaging.reliability.jdbc,,,messaging,Outbox/Inbox/DLQ,정책/Restart,Y,Reliability,이전 Config Revision
-config-prefix,cpf.messaging.kafka,,,messaging=kafka,Kafka,Restart,Y,Topic/ACL/Lag,이전 Config Revision
-config-prefix,cpf.messaging.rabbitmq,,,messaging=rabbitmq,RabbitMQ,Restart,Y,Exchange/Queue,이전 Config Revision
-config-prefix,cpf.messaging.jms,,,messaging=jms,JMS,Restart,Y,Destination,이전 Config Revision
-config-prefix,cpf.messaging.ibm-mq,,,messaging=ibm-mq,IBM MQ,Restart,Y,QM/Channel,이전 Config Revision
-config-prefix,cpf.integration.http,,,transport=http,HTTP,정책/Restart,Y,Target Health,이전 Config Revision
-config-prefix,cpf.integration.resilience,,,integration,Resilience,Runtime Control,N,Policy Revision,이전 Config Revision
-config-prefix,cpf.integration.tcp,,,transport=tcp,TCP,Restart,Y,Connection,이전 Config Revision
-config-prefix,cpf.integration.fixedlength,,,codec=fixed-length,Fixed-length,Restart,N,Layout Test,이전 Config Revision
-config-prefix,cpf.integration.iso8583,,,codec=iso8583,ISO8583,Restart,Y,MAC/Layout,이전 Config Revision
-config-prefix,cpf.file.attachment,,,file,Attachment,정책/Restart,Y,File Health,이전 Config Revision
-config-prefix,cpf.file.archive,,,file,Archive,정책/Restart,N,Limit,이전 Config Revision
-config-prefix,cpf.file.tabular.poi,,,file,Tabular,정책/Restart,N,Row/Cell,이전 Config Revision
-config-prefix,cpf.file.sftp,,,file=sftp,SFTP,Restart,Y,Host Key/Probe,이전 Config Revision
-config-prefix,cpf.notification.dispatch,,,notification,Notification,정책/Restart,Y,Delivery,이전 Config Revision
-config-prefix,cpf.notification.email,,,notification=email,Email,Restart,Y,SMTP/Receipt,이전 Config Revision
-config-prefix,cpf.notification.sms,,,notification=sms-spi,SMS SPI,Restart,Y,Provider,이전 Config Revision
-config-prefix,cpf.security.resource-server,,,resource-server,JWT,Restart,Y,Issuer/Audience,이전 Config Revision
-config-prefix,cpf.security.session.jdbc,,,browser-session,Session,Restart,Y,Session Store,이전 Config Revision
-config-prefix,cpf.security.service-identity,,,service-identity,Service Identity,Restart,Y,Audience/Auth,이전 Config Revision
-config-prefix,cpf.security.secret,,,security,Secret Provider,Restart,Y,Provider Metadata,이전 Config Revision
-config-prefix,cpf.platform-operations.observability,,,platform-operations,Observability,정책/Restart,N,Telemetry,이전 Config Revision
-config-prefix,cpf.platform-operations.otlp,,,observability=otlp,OTLP,Restart,Y,Collector,이전 Config Revision
-config-prefix,cpf.platform-operations.runtime-control,,,platform-operations,Runtime Control,Restart,Y,ACK/Observed,이전 Config Revision
-config-prefix,cpf.platform-operations.channel-registry.jdbc,,,platform-operations,Channel Registry,정책/Restart,Y,Snapshot,이전 Config Revision
-config-prefix,cpf.platform-operations.feature-flag,,,platform-operations,OpenFeature,Runtime Control,일부,Evaluation/Audit,이전 Config Revision
-config-prefix,cpf.data.cache.valkey.enabled,Boolean,false,true/false,cache-valkey starter,재기동,N,Cache Provider Bean·ADM /cache summary,false로 복귀 후 재기동
-config-prefix,cpf.data.cache.valkey.key-prefix,String,cpf:,"[A-Za-z0-9._:-]{1,120}",ValkeyCpfCachePort,재기동,N,실제 Key prefix·tenant/namespace 격리,이전 Prefix 복원
-config-prefix,cpf.data.cache.valkey.invalidation-channel,String,cpf.cache.invalidate,"[A-Za-z0-9._:-]{1,180}",Valkey invalidation signal,재기동,N,Signal publish·durable reconcile,이전 Channel 복원
-config-prefix,cpf.data.cache.valkey.default-ttl,Duration,10m,0보다 큰 Duration,ValkeyCpfCachePort,재기동,N,TTL 조회,이전 TTL 복원
-config-prefix,cpf.data.cache.valkey.required,Boolean,true,true/false,Valkey auto-configuration,재기동,N,Provider 부재 시 Fail-closed 여부,이전 값 복원
-config-prefix,cpf.data.cache.valkey.tls,Boolean,false,고객 TLS 정책,Redis/Valkey Connection,재기동,N,TLS Handshake·Certificate,이전 연결 설정
-config-prefix,cpf.data.cache.valkey.maximum-payload-bytes,Long,1048576,1~67108864,ValkeyCpfCachePort,재기동,N,경계 Payload Test,이전 한도 복원
-config-prefix,cpf.data.cache.valkey.scan-count,Long,500,10~10000,Namespace eviction SCAN,재기동,N,SCAN 부하·삭제 건수,이전 Count 복원
-config-prefix,cpf.cache.invalidation.consumer-id,String,cache-<host>-<CPF_INSTANCE_ID>,"[A-Za-z0-9._:-]{1,180}",CpfCacheInvalidationCoordinator,재기동,N,durable checkpoint consumer_id,이전 Consumer ID 복원
-config-prefix,cpf.cache.invalidation.reconcile-batch-size,Integer,200,1~10000,CpfCacheInvalidationCoordinator,재기동,N,reconcile 처리량·DB 부하,이전 Batch Size
-config-prefix,cpf.cache.invalidation.reconcile-max-batches,Integer,20,1~1000,CpfCacheInvalidationCoordinator,재기동,N,1회 reconcile 상한,이전 Max Batches
-environment,CPF_FRONTEND_URL,URI,없음,Browser Test 필수,Playwright ADM E2E,Test start,N,Target URL 연결,이전 URL
-environment,CPF_E2E_RELEASE,Boolean,false,true/false,Playwright ADM E2E,Test start,N,Release mode worker/retry,false
-environment,CPF_E2E_AUTH_STATE,Path,없음,Release 필수·파일 존재,Playwright ADM E2E,Test start,Y,Authenticated session restore,이전 session file
-environment,CPF_E2E_PRIVILEGED_ENDPOINTS,Path/String,없음,Release 필수,Playwright ADM E2E,Test start,N,Risk endpoint coverage,이전 matrix
-environment,CPF_E2E_ROUTE_MATRIX,Path/String,없음,Release 필수,Playwright ADM E2E,Test start,N,Route coverage,이전 matrix
-environment,CPF_E2E_FAILURE_MATRIX,Path/String,없음,Release 필수,Playwright ADM E2E,Test start,N,Failure/recovery coverage,이전 matrix
-environment,CPF_E2E_SECURITY_FIXTURE,Path/String,없음,Release 필수,Playwright ADM E2E,Test start,Y,Permission/masking negative cases,이전 fixture
+﻿key,env,type,default,required,range,consumer,profile,restart,secret,symptom,check,rollback,kind
+cpf.openapi.webmvc.enabled,CPF_OPENAPI_WEBMVC_ENABLED,boolean,true,N,true|false,OpenAPI AutoConfiguration,web-api,Y,N,Controller 문서화 비활성,/actuator/health + /openApiOperations,이전 값 복원,actual-key
+cpf.openapi.webmvc.api-docs-enabled,CPF_OPENAPI_WEBMVC_API_DOCS_ENABLED,boolean,false,N,true|false,OpenAPI endpoint,non-prod,Y,N,/v3/api-docs 404 또는 노출,GET api docs,false 복원,actual-key
+cpf.openapi.webmvc.management-enabled,CPF_OPENAPI_WEBMVC_MANAGEMENT_ENABLED,boolean,true,N,true|false,ADM OpenAPI operations,adm,Y,N,상태/Refresh API 없음,/openApiOperations,이전 값,actual-key
+cpf.openapi.webmvc.api-docs-path,CPF_OPENAPI_WEBMVC_API_DOCS_PATH,string,/v3/api-docs,N,"/로 시작, .. 금지",OpenAPI endpoint,web-api,Y,N,Unsafe Path 기동 실패,Config binding log,안전 경로 복원,actual-key
+cpf.openapi.webmvc.title,CPF_OPENAPI_WEBMVC_TITLE,string,CPF API,N,non-blank,OpenAPI document,all,Y,N,문서 제목 공란,OpenAPI snapshot,이전 값,actual-key
+cpf.openapi.webmvc.version,CPF_OPENAPI_WEBMVC_VERSION,string,unspecified,N,non-blank,OpenAPI document,all,Y,N,Client Version 추적 불가,Snapshot version,Artifact version 복원,actual-key
+cpf.openapi.webmvc.description,CPF_OPENAPI_WEBMVC_DESCRIPTION,string,Core Platform Framework API,N,text,OpenAPI document,all,Y,N,설명 불일치,Snapshot description,이전 값,actual-key
+cpf.openapi.webmvc.instance-id,CPF_OPENAPI_WEBMVC_INSTANCE_ID,string,local,N,non-blank unique,OpenAPI status,all,Y,N,Instance 구분 불가,/openApiOperations,고유 ID 복원,actual-key
+cpf.openapi.webmvc.minimum-refresh-interval,CPF_OPENAPI_WEBMVC_MINIMUM_REFRESH_INTERVAL,Duration,1s,N,>=0,OpenAPI refresh limiter,adm,Y,N,Refresh 과다/차단,Refresh audit,이전 Duration,actual-key
+cpf.adm.integration-closure.enabled,CPF_ADM_INTEGRATION_CLOSURE_ENABLED,boolean,false,N,true|false,ADM integration closure,adm,Y,N,Route 404/기능 비활성,/integrationClosure,false 복원,actual-key
+cpf.adm.integration-closure.ephemeral-providers-enabled,CPF_ADM_INTEGRATION_CLOSURE_EPHEMERAL_PROVIDERS_ENABLED,boolean,false,N,prod=false,Local/dev provider,"local,dev",Y,N,Production 기동 거부 대상,Profile config,false,actual-key
+cpf.adm.integration-closure.correction-approval-ttl,CPF_ADM_INTEGRATION_CLOSURE_CORRECTION_APPROVAL_TTL,Duration,15m,N,>0,Correction approval,adm,Y,N,승인 즉시 만료/장기 잔존,Approval expiry,이전 값,actual-key
+cpf.adm.integration-closure.webhook.allowed-hosts,CPF_ADM_INTEGRATION_CLOSURE_WEBHOOK_ALLOWED_HOSTS,set,[],Y when webhook,hostname allowlist,Webhook provider,adm,Y,N,SSRF 차단/허용 대상 없음,Config + negative test,이전 allowlist,actual-key
+cpf.adm.integration-closure.webhook.max-attempts,CPF_ADM_INTEGRATION_CLOSURE_WEBHOOK_MAX_ATTEMPTS,int,5,N,>=1,Webhook delivery,adm,Y,N,Retry 0/폭증,DLQ attempt history,이전 값,actual-key
+cpf.adm.integration-closure.webhook.base-delay,CPF_ADM_INTEGRATION_CLOSURE_WEBHOOK_BASE_DELAY,Duration,1s,N,>0,Webhook retry,adm,Y,N,Retry storm,Attempt interval,이전 값,actual-key
+cpf.adm.integration-closure.crypto.enabled,CPF_ADM_INTEGRATION_CLOSURE_CRYPTO_ENABLED,boolean,false,N,true|false,Integration crypto,adm,Y,N,암호화 상태 비활성,crypto status,false,actual-key
+cpf.adm.integration-closure.crypto.active-key-version,CPF_ADM_INTEGRATION_CLOSURE_CRYPTO_ACTIVE_KEY_VERSION,string,-,Y if crypto,non-blank,Crypto provider,adm,Y,Y,Key Version 없음,Secret metadata,이전 Version,actual-key
+cpf.adm.integration-closure.crypto.active-key-base64,CPF_ADM_INTEGRATION_CLOSURE_CRYPTO_ACTIVE_KEY_BASE64,secret string,-,Y if crypto,valid base64,Crypto provider,local only,Y,Y,Decode/기동 실패,Secret provider metadata,Secret reference 복원,actual-key
+cpf.data.cache.valkey.enabled,CPF_DATA_CACHE_VALKEY_ENABLED,boolean,false,N,true|false,Cache/Invalidation,cache,Y,N,Cache stale 또는 기동 실패,/cache + config binding,이전 값,actual-key
+cpf.data.cache.valkey.required,CPF_DATA_CACHE_VALKEY_REQUIRED,boolean,false,N,true|false,Cache/Invalidation,cache,Y,N,Cache stale 또는 기동 실패,/cache + config binding,이전 값,actual-key
+cpf.data.cache.valkey.default-ttl,CPF_DATA_CACHE_VALKEY_DEFAULT_TTL,Duration,10m,N,>0,Cache/Invalidation,cache,Y,N,Cache stale 또는 기동 실패,/cache + config binding,이전 값,actual-key
+cpf.data.cache.valkey.key-prefix,CPF_DATA_CACHE_VALKEY_KEY_PREFIX,string,cpf:,N,non-blank,Cache/Invalidation,cache,Y,N,Cache stale 또는 기동 실패,/cache + config binding,이전 값,actual-key
+cpf.data.cache.valkey.invalidation-channel,CPF_DATA_CACHE_VALKEY_INVALIDATION_CHANNEL,string,cpf:cache:invalidate,N,non-blank,Cache/Invalidation,cache,Y,N,Cache stale 또는 기동 실패,/cache + config binding,이전 값,actual-key
+cpf.data.cache.valkey.maximum-payload-bytes,CPF_DATA_CACHE_VALKEY_MAXIMUM_PAYLOAD_BYTES,int,1048576,N,>0,Cache/Invalidation,cache,Y,N,Cache stale 또는 기동 실패,/cache + config binding,이전 값,actual-key
+cpf.data.cache.valkey.scan-count,CPF_DATA_CACHE_VALKEY_SCAN_COUNT,int,100,N,>0,Cache/Invalidation,cache,Y,N,Cache stale 또는 기동 실패,/cache + config binding,이전 값,actual-key
+cpf.data.cache.valkey.tls,CPF_DATA_CACHE_VALKEY_TLS,boolean,false,N,true|false,Cache/Invalidation,cache,Y,N,Cache stale 또는 기동 실패,/cache + config binding,이전 값,actual-key
+cpf.cache.invalidation.consumer-id,CPF_CACHE_INVALIDATION_CONSUMER_ID,string,instance-id,N,unique,Cache/Invalidation,cache,Y,N,Cache stale 또는 기동 실패,/cache + config binding,이전 값,actual-key
+cpf.cache.invalidation.reconcile-batch-size,CPF_CACHE_INVALIDATION_RECONCILE_BATCH_SIZE,int,100,N,>0,Cache/Invalidation,cache,Y,N,Cache stale 또는 기동 실패,/cache + config binding,이전 값,actual-key
+cpf.cache.invalidation.reconcile-max-batches,CPF_CACHE_INVALIDATION_RECONCILE_MAX_BATCHES,int,10,N,>0,Cache/Invalidation,cache,Y,N,Cache stale 또는 기동 실패,/cache + config binding,이전 값,actual-key
+cpf.runtime-control,CPF_RUNTIME_CONTROL_*,capability prefix,module-defined,기능 선택 시,하위 Key는 configuration metadata 기준,Runtime Control desired/observed/target,selected profile,key-dependent,key-dependent,Capability 미기동·Binding 실패,Configuration metadata·Health·ADM config,이전 Config Snapshot,capability-prefix
+cpf.observability,CPF_OBSERVABILITY_*,capability prefix,module-defined,기능 선택 시,하위 Key는 configuration metadata 기준,Log·Metric·Trace,selected profile,key-dependent,key-dependent,Capability 미기동·Binding 실패,Configuration metadata·Health·ADM config,이전 Config Snapshot,capability-prefix
+cpf.observability.otlp,CPF_OBSERVABILITY_OTLP_*,capability prefix,module-defined,기능 선택 시,하위 Key는 configuration metadata 기준,OTLP exporter,selected profile,key-dependent,key-dependent,Capability 미기동·Binding 실패,Configuration metadata·Health·ADM config,이전 Config Snapshot,capability-prefix
+cpf.security.resource-server,CPF_SECURITY_RESOURCE_SERVER_*,capability prefix,module-defined,기능 선택 시,하위 Key는 configuration metadata 기준,Resource Server,selected profile,key-dependent,key-dependent,Capability 미기동·Binding 실패,Configuration metadata·Health·ADM config,이전 Config Snapshot,capability-prefix
+cpf.security.session,CPF_SECURITY_SESSION_*,capability prefix,module-defined,기능 선택 시,하위 Key는 configuration metadata 기준,Browser Session,selected profile,key-dependent,key-dependent,Capability 미기동·Binding 실패,Configuration metadata·Health·ADM config,이전 Config Snapshot,capability-prefix
+cpf.security.service-identity,CPF_SECURITY_SERVICE_IDENTITY_*,capability prefix,module-defined,기능 선택 시,하위 Key는 configuration metadata 기준,Service Identity,selected profile,key-dependent,key-dependent,Capability 미기동·Binding 실패,Configuration metadata·Health·ADM config,이전 Config Snapshot,capability-prefix
+cpf.secret,CPF_SECRET_*,capability prefix,module-defined,기능 선택 시,하위 Key는 configuration metadata 기준,Secret Provider,selected profile,key-dependent,key-dependent,Capability 미기동·Binding 실패,Configuration metadata·Health·ADM config,이전 Config Snapshot,capability-prefix
+cpf.feature-flag,CPF_FEATURE_FLAG_*,capability prefix,module-defined,기능 선택 시,하위 Key는 configuration metadata 기준,Feature Flag,selected profile,key-dependent,key-dependent,Capability 미기동·Binding 실패,Configuration metadata·Health·ADM config,이전 Config Snapshot,capability-prefix
+cpf.resilience,CPF_RESILIENCE_*,capability prefix,module-defined,기능 선택 시,하위 Key는 configuration metadata 기준,Timeout·Retry·Circuit·Bulkhead,selected profile,key-dependent,key-dependent,Capability 미기동·Binding 실패,Configuration metadata·Health·ADM config,이전 Config Snapshot,capability-prefix
+cpf.messaging.kafka,CPF_MESSAGING_KAFKA_*,capability prefix,module-defined,기능 선택 시,하위 Key는 configuration metadata 기준,Kafka,selected profile,key-dependent,key-dependent,Capability 미기동·Binding 실패,Configuration metadata·Health·ADM config,이전 Config Snapshot,capability-prefix
+cpf.messaging.rabbitmq,CPF_MESSAGING_RABBITMQ_*,capability prefix,module-defined,기능 선택 시,하위 Key는 configuration metadata 기준,RabbitMQ,selected profile,key-dependent,key-dependent,Capability 미기동·Binding 실패,Configuration metadata·Health·ADM config,이전 Config Snapshot,capability-prefix
+cpf.messaging.jms,CPF_MESSAGING_JMS_*,capability prefix,module-defined,기능 선택 시,하위 Key는 configuration metadata 기준,JMS,selected profile,key-dependent,key-dependent,Capability 미기동·Binding 실패,Configuration metadata·Health·ADM config,이전 Config Snapshot,capability-prefix
+cpf.messaging.ibm-mq,CPF_MESSAGING_IBM_MQ_*,capability prefix,module-defined,기능 선택 시,하위 Key는 configuration metadata 기준,IBM MQ,selected profile,key-dependent,key-dependent,Capability 미기동·Binding 실패,Configuration metadata·Health·ADM config,이전 Config Snapshot,capability-prefix
+cpf.messaging.reliability,CPF_MESSAGING_RELIABILITY_*,capability prefix,module-defined,기능 선택 시,하위 Key는 configuration metadata 기준,Outbox·Inbox·DLQ,selected profile,key-dependent,key-dependent,Capability 미기동·Binding 실패,Configuration metadata·Health·ADM config,이전 Config Snapshot,capability-prefix
+cpf.integration.http,CPF_INTEGRATION_HTTP_*,capability prefix,module-defined,기능 선택 시,하위 Key는 configuration metadata 기준,HTTP client,selected profile,key-dependent,key-dependent,Capability 미기동·Binding 실패,Configuration metadata·Health·ADM config,이전 Config Snapshot,capability-prefix
+cpf.integration.tcp,CPF_INTEGRATION_TCP_*,capability prefix,module-defined,기능 선택 시,하위 Key는 configuration metadata 기준,TCP,selected profile,key-dependent,key-dependent,Capability 미기동·Binding 실패,Configuration metadata·Health·ADM config,이전 Config Snapshot,capability-prefix
+cpf.integration.fixedlength,CPF_INTEGRATION_FIXEDLENGTH_*,capability prefix,module-defined,기능 선택 시,하위 Key는 configuration metadata 기준,Fixed-length,selected profile,key-dependent,key-dependent,Capability 미기동·Binding 실패,Configuration metadata·Health·ADM config,이전 Config Snapshot,capability-prefix
+cpf.integration.iso8583,CPF_INTEGRATION_ISO8583_*,capability prefix,module-defined,기능 선택 시,하위 Key는 configuration metadata 기준,ISO8583,selected profile,key-dependent,key-dependent,Capability 미기동·Binding 실패,Configuration metadata·Health·ADM config,이전 Config Snapshot,capability-prefix
+cpf.integration.sftp,CPF_INTEGRATION_SFTP_*,capability prefix,module-defined,기능 선택 시,하위 Key는 configuration metadata 기준,SFTP,selected profile,key-dependent,key-dependent,Capability 미기동·Binding 실패,Configuration metadata·Health·ADM config,이전 Config Snapshot,capability-prefix
+cpf.file.attachment,CPF_FILE_ATTACHMENT_*,capability prefix,module-defined,기능 선택 시,하위 Key는 configuration metadata 기준,Attachment,selected profile,key-dependent,key-dependent,Capability 미기동·Binding 실패,Configuration metadata·Health·ADM config,이전 Config Snapshot,capability-prefix
+cpf.file.archive,CPF_FILE_ARCHIVE_*,capability prefix,module-defined,기능 선택 시,하위 Key는 configuration metadata 기준,Archive,selected profile,key-dependent,key-dependent,Capability 미기동·Binding 실패,Configuration metadata·Health·ADM config,이전 Config Snapshot,capability-prefix
+cpf.file.tabular,CPF_FILE_TABULAR_*,capability prefix,module-defined,기능 선택 시,하위 Key는 configuration metadata 기준,Tabular,selected profile,key-dependent,key-dependent,Capability 미기동·Binding 실패,Configuration metadata·Health·ADM config,이전 Config Snapshot,capability-prefix
+cpf.notification,CPF_NOTIFICATION_*,capability prefix,module-defined,기능 선택 시,하위 Key는 configuration metadata 기준,Notification,selected profile,key-dependent,key-dependent,Capability 미기동·Binding 실패,Configuration metadata·Health·ADM config,이전 Config Snapshot,capability-prefix
+cpf.notification.email,CPF_NOTIFICATION_EMAIL_*,capability prefix,module-defined,기능 선택 시,하위 Key는 configuration metadata 기준,Email,selected profile,key-dependent,key-dependent,Capability 미기동·Binding 실패,Configuration metadata·Health·ADM config,이전 Config Snapshot,capability-prefix
+cpf.batch,CPF_BATCH_*,capability prefix,module-defined,기능 선택 시,하위 Key는 configuration metadata 기준,Spring Batch,selected profile,key-dependent,key-dependent,Capability 미기동·Binding 실패,Configuration metadata·Health·ADM config,이전 Config Snapshot,capability-prefix
+cpf.batch.scheduler,CPF_BATCH_SCHEDULER_*,capability prefix,module-defined,기능 선택 시,하위 Key는 configuration metadata 기준,Scheduler,selected profile,key-dependent,key-dependent,Capability 미기동·Binding 실패,Configuration metadata·Health·ADM config,이전 Config Snapshot,capability-prefix
+cpf.batch.worker,CPF_BATCH_WORKER_*,capability prefix,module-defined,기능 선택 시,하위 Key는 configuration metadata 기준,Worker,selected profile,key-dependent,key-dependent,Capability 미기동·Binding 실패,Configuration metadata·Health·ADM config,이전 Config Snapshot,capability-prefix
+cpf.batch.agent,CPF_BATCH_AGENT_*,capability prefix,module-defined,기능 선택 시,하위 Key는 configuration metadata 기준,Agent,selected profile,key-dependent,key-dependent,Capability 미기동·Binding 실패,Configuration metadata·Health·ADM config,이전 Config Snapshot,capability-prefix
+cpf.batch.center-cut,CPF_BATCH_CENTER_CUT_*,capability prefix,module-defined,기능 선택 시,하위 Key는 configuration metadata 기준,Center-Cut,selected profile,key-dependent,key-dependent,Capability 미기동·Binding 실패,Configuration metadata·Health·ADM config,이전 Config Snapshot,capability-prefix
+cpf.gateway,CPF_GATEWAY_*,capability prefix,module-defined,기능 선택 시,하위 Key는 configuration metadata 기준,Gateway,selected profile,key-dependent,key-dependent,Capability 미기동·Binding 실패,Configuration metadata·Health·ADM config,이전 Config Snapshot,capability-prefix
+cpf.gateway.security,CPF_GATEWAY_SECURITY_*,capability prefix,module-defined,기능 선택 시,하위 Key는 configuration metadata 기준,Gateway security,selected profile,key-dependent,key-dependent,Capability 미기동·Binding 실패,Configuration metadata·Health·ADM config,이전 Config Snapshot,capability-prefix
+cpf.gateway.publish,CPF_GATEWAY_PUBLISH_*,capability prefix,module-defined,기능 선택 시,하위 Key는 configuration metadata 기준,Gateway publish,selected profile,key-dependent,key-dependent,Capability 미기동·Binding 실패,Configuration metadata·Health·ADM config,이전 Config Snapshot,capability-prefix
+cpf.bza,CPF_BZA_*,capability prefix,module-defined,기능 선택 시,하위 Key는 configuration metadata 기준,BZA,selected profile,key-dependent,key-dependent,Capability 미기동·Binding 실패,Configuration metadata·Health·ADM config,이전 Config Snapshot,capability-prefix
+cpf.adm,CPF_ADM_*,capability prefix,module-defined,기능 선택 시,하위 Key는 configuration metadata 기준,ADM,selected profile,key-dependent,key-dependent,Capability 미기동·Binding 실패,Configuration metadata·Health·ADM config,이전 Config Snapshot,capability-prefix
+cpf.data.persistence,CPF_DATA_PERSISTENCE_*,capability prefix,module-defined,기능 선택 시,하위 Key는 configuration metadata 기준,Persistence,selected profile,key-dependent,key-dependent,Capability 미기동·Binding 실패,Configuration metadata·Health·ADM config,이전 Config Snapshot,capability-prefix
+cpf.data.quality,CPF_DATA_QUALITY_*,capability prefix,module-defined,기능 선택 시,하위 Key는 configuration metadata 기준,Data quality,selected profile,key-dependent,key-dependent,Capability 미기동·Binding 실패,Configuration metadata·Health·ADM config,이전 Config Snapshot,capability-prefix
+cpf.business-calendar,CPF_BUSINESS_CALENDAR_*,capability prefix,module-defined,기능 선택 시,하위 Key는 configuration metadata 기준,Business calendar,selected profile,key-dependent,key-dependent,Capability 미기동·Binding 실패,Configuration metadata·Health·ADM config,이전 Config Snapshot,capability-prefix
+cpf.time,CPF_TIME_*,capability prefix,module-defined,기능 선택 시,하위 Key는 configuration metadata 기준,Time/Deadline,selected profile,key-dependent,key-dependent,Capability 미기동·Binding 실패,Configuration metadata·Health·ADM config,이전 Config Snapshot,capability-prefix
+cpf.download,CPF_DOWNLOAD_*,capability prefix,module-defined,기능 선택 시,하위 Key는 configuration metadata 기준,Download audit,selected profile,key-dependent,key-dependent,Capability 미기동·Binding 실패,Configuration metadata·Health·ADM config,이전 Config Snapshot,capability-prefix
+cpf.audit,CPF_AUDIT_*,capability prefix,module-defined,기능 선택 시,하위 Key는 configuration metadata 기준,Audit,selected profile,key-dependent,key-dependent,Capability 미기동·Binding 실패,Configuration metadata·Health·ADM config,이전 Config Snapshot,capability-prefix
+cpf.approval,CPF_APPROVAL_*,capability prefix,module-defined,기능 선택 시,하위 Key는 configuration metadata 기준,Approval,selected profile,key-dependent,key-dependent,Capability 미기동·Binding 실패,Configuration metadata·Health·ADM config,이전 Config Snapshot,capability-prefix
+cpf.break-glass,CPF_BREAK_GLASS_*,capability prefix,module-defined,기능 선택 시,하위 Key는 configuration metadata 기준,Break-glass,selected profile,key-dependent,key-dependent,Capability 미기동·Binding 실패,Configuration metadata·Health·ADM config,이전 Config Snapshot,capability-prefix
+cpf.log-policy,CPF_LOG_POLICY_*,capability prefix,module-defined,기능 선택 시,하위 Key는 configuration metadata 기준,Log policy,selected profile,key-dependent,key-dependent,Capability 미기동·Binding 실패,Configuration metadata·Health·ADM config,이전 Config Snapshot,capability-prefix
+cpf.maintenance,CPF_MAINTENANCE_*,capability prefix,module-defined,기능 선택 시,하위 Key는 configuration metadata 기준,Maintenance/Drain,selected profile,key-dependent,key-dependent,Capability 미기동·Binding 실패,Configuration metadata·Health·ADM config,이전 Config Snapshot,capability-prefix
+cpf.incident,CPF_INCIDENT_*,capability prefix,module-defined,기능 선택 시,하위 Key는 configuration metadata 기준,Incident,selected profile,key-dependent,key-dependent,Capability 미기동·Binding 실패,Configuration metadata·Health·ADM config,이전 Config Snapshot,capability-prefix
+cpf.service-registry,CPF_SERVICE_REGISTRY_*,capability prefix,module-defined,기능 선택 시,하위 Key는 configuration metadata 기준,Service registry,selected profile,key-dependent,key-dependent,Capability 미기동·Binding 실패,Configuration metadata·Health·ADM config,이전 Config Snapshot,capability-prefix
+cpf.channel,CPF_CHANNEL_*,capability prefix,module-defined,기능 선택 시,하위 Key는 configuration metadata 기준,Channel policy,selected profile,key-dependent,key-dependent,Capability 미기동·Binding 실패,Configuration metadata·Health·ADM config,이전 Config Snapshot,capability-prefix
+cpf.response-code,CPF_RESPONSE_CODE_*,capability prefix,module-defined,기능 선택 시,하위 Key는 configuration metadata 기준,Response code,selected profile,key-dependent,key-dependent,Capability 미기동·Binding 실패,Configuration metadata·Health·ADM config,이전 Config Snapshot,capability-prefix

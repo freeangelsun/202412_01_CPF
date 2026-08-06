@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="785" viewBox="0 0 1600 785">
+<rect width="100%" height="100%" fill="#f8fafc"/>
+<text x="80" y="70" font-family="Arial, sans-serif" font-size="38" font-weight="700" fill="#0f172a">Batch Restart Timeline</text>
+<text x="80" y="112" font-family="Arial, sans-serif" font-size="21" fill="#475569">Commit 경계와 Process Kill의 복구 의미</text>
+<rect x="80" y="160" width="1440" height="78" rx="16" fill="#ffffff" stroke="#94a3b8"/>
+<circle cx="125" cy="199" r="24" fill="#0f172a"/>
+<text x="125" y="207" text-anchor="middle" font-family="Arial" font-size="20" fill="#fff">1</text>
+<text x="170" y="191" font-family="Arial, sans-serif" font-size="24" font-weight="700" fill="#0f172a">Select</text>
+<text x="170" y="220" font-family="Arial, sans-serif" font-size="18" fill="#475569">식별 Parameter와 Selection Hash</text>
+<rect x="80" y="265" width="1440" height="78" rx="16" fill="#ffffff" stroke="#94a3b8"/>
+<circle cx="125" cy="304" r="24" fill="#0f172a"/>
+<text x="125" y="312" text-anchor="middle" font-family="Arial" font-size="20" fill="#fff">2</text>
+<text x="170" y="296" font-family="Arial, sans-serif" font-size="24" font-weight="700" fill="#0f172a">Chunk Commit</text>
+<text x="170" y="325" font-family="Arial, sans-serif" font-size="18" fill="#475569">업무 결과·Metadata·Checkpoint</text>
+<rect x="80" y="370" width="1440" height="78" rx="16" fill="#ffffff" stroke="#94a3b8"/>
+<circle cx="125" cy="409" r="24" fill="#0f172a"/>
+<text x="125" y="417" text-anchor="middle" font-family="Arial" font-size="20" fill="#fff">3</text>
+<text x="170" y="401" font-family="Arial, sans-serif" font-size="24" font-weight="700" fill="#0f172a">Kill</text>
+<text x="170" y="430" font-family="Arial, sans-serif" font-size="18" fill="#475569">Commit 전/후·ACK 전/후 분류</text>
+<rect x="80" y="475" width="1440" height="78" rx="16" fill="#ffffff" stroke="#94a3b8"/>
+<circle cx="125" cy="514" r="24" fill="#0f172a"/>
+<text x="125" y="522" text-anchor="middle" font-family="Arial" font-size="20" fill="#fff">4</text>
+<text x="170" y="506" font-family="Arial, sans-serif" font-size="24" font-weight="700" fill="#0f172a">Restart</text>
+<text x="170" y="535" font-family="Arial, sans-serif" font-size="18" fill="#475569">같은 JobInstance와 호환 Definition</text>
+<rect x="80" y="580" width="1440" height="78" rx="16" fill="#ffffff" stroke="#94a3b8"/>
+<circle cx="125" cy="619" r="24" fill="#0f172a"/>
+<text x="125" y="627" text-anchor="middle" font-family="Arial" font-size="20" fill="#fff">5</text>
+<text x="170" y="611" font-family="Arial, sans-serif" font-size="24" font-weight="700" fill="#0f172a">Reconcile</text>
+<text x="170" y="640" font-family="Arial, sans-serif" font-size="18" fill="#475569">건수·금액·Hash·Unknown 대사</text>
+</svg>

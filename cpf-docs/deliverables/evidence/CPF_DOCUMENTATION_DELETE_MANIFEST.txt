@@ -1,1 +1,6 @@
-삭제 대상 없음
+# Repository Root 기준 삭제 Manifest
+# 이번 Overlay 적용 시 아래 추적 파일 1개를 정확한 경로로 삭제한다.
+cpf-docs/assets/manuals/cpf-document-quality-r9.svg
+
+# 보호 대상
+# README.md, cpf-docs/guides/**, cpf-docs/deliverables/**, 현재 R10 SVG, Source·SQL·API·Config·Frontend·Script·Test, 다른 미추적 파일

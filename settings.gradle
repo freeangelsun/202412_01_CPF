@@ -142,9 +142,52 @@ cpfStarterModules.each { module ->
     include projectPath
     project(projectPath).projectDir = file(ownerPath)
 }
-def removedIds = (cpfStarterCatalog.removedArtifactIds ?: [])*.toString() as Set
 def activeIds = cpfStarterModules.collect { it.artifactId?.toString() } as Set
+def activeOwnerPaths = cpfStarterModules.collect { it.ownerPath?.toString()?.replace('\\', '/')?.replaceAll('/+$', '') } as Set
+def removedIds = (cpfStarterCatalog.removedArtifactIds ?: [])*.toString() as Set
+def removedPaths = (cpfStarterCatalog.removedRepositoryRoots ?: [])*.toString()*.replace('\\', '/')*.replaceAll('/+$', '') as Set
+def retainedRows = (cpfStarterCatalog.retainedInactiveRoots ?: [])
+if (!(retainedRows instanceof List)) throw new GradleException('retainedInactiveRoots must be an array')
+def retainedPaths = new LinkedHashSet<String>()
+def retainedIds = new LinkedHashSet<String>()
+retainedRows.each { retained ->
+    def path = retained.path?.toString()?.replace('\\', '/')?.replaceAll('/+$', '')
+    def artifactId = retained.artifactId?.toString()
+    def replacementId = retained.replacementArtifactId?.toString()
+    def replacementPath = retained.replacementOwnerPath?.toString()?.replace('\\', '/')?.replaceAll('/+$', '')
+    if (!path || !artifactId || !replacementId || !replacementPath) throw new GradleException("Incomplete retained inactive Starter contract: ${retained}")
+    if (!retainedPaths.add(path) || !retainedIds.add(artifactId)) throw new GradleException("Duplicate retained inactive Starter: ${retained}")
+    if (retained.status?.toString() != 'PENDING_USER_DELETE_APPROVAL' || retained.active != false ||
+            retained.includeInSettings != false || retained.publishable != false || retained.consumerAllowed != false || retained.approvalRequired != true) {
+        throw new GradleException("Invalid retained inactive Starter transition contract: ${retained}")
+    }
+    def replacement = cpfStarterModules.find { it.artifactId?.toString() == replacementId }
+    if (replacement == null || replacement.ownerPath?.toString()?.replace('\\', '/')?.replaceAll('/+$', '') != replacementPath) {
+        throw new GradleException("Retained inactive Starter replacement is not active/canonical: ${retained}")
+    }
+    if (!file(path).isDirectory() || !file("${path}/build.gradle").isFile()) throw new GradleException("Retained inactive Starter root must exist until approved deletion: ${path}")
+}
 if (!removedIds.intersect(activeIds).isEmpty()) throw new GradleException("Removed CPF artifact is still active: ${removedIds.intersect(activeIds)}")
+if (!activeIds.intersect(retainedIds).isEmpty()) throw new GradleException("Active/retained artifact overlap: ${activeIds.intersect(retainedIds)}")
+if (!activeOwnerPaths.intersect(retainedPaths).isEmpty()) throw new GradleException("Active/retained path overlap: ${activeOwnerPaths.intersect(retainedPaths)}")
+if (!retainedPaths.intersect(removedPaths).isEmpty()) throw new GradleException("Retained/removed path overlap: ${retainedPaths.intersect(removedPaths)}")
+def physicalStarterPaths = fileTree('cpf-starters') { include '**/build.gradle'; exclude 'build/**', '**/build/**' }.files.collect {
+    rootDir.toPath().relativize(it.parentFile.toPath()).toString().replace('\\', '/')
+} as Set
+def expectedPhysicalPaths = activeOwnerPaths + retainedPaths
+def missingPhysical = expectedPhysicalPaths - physicalStarterPaths
+def extraPhysical = physicalStarterPaths - expectedPhysicalPaths
+def removedPhysical = physicalStarterPaths.intersect(removedPaths)
+if (!missingPhysical.isEmpty() || !extraPhysical.isEmpty() || !removedPhysical.isEmpty()) {
+    throw new GradleException("Starter physical closure mismatch: missing=${missingPhysical.sort()}, extra=${extraPhysical.sort()}, retained=${retainedPaths.sort()}, removedPresent=${removedPhysical.sort()}")
+}
+cpfStarterModules.each { module ->
+    def buildText = file("${module.ownerPath}/build.gradle").getText('UTF-8')
+    def leaked = retainedIds.findAll { id -> buildText.contains("project(':${id}')") || buildText.contains(":${id}:") }
+    if (!leaked.isEmpty()) throw new GradleException("Active Starter depends on retained inactive coordinates: ${module.artifactId} -> ${leaked}")
+}
+def removedStillPresent = removedPaths.findAll { file(it).exists() }
+if (!removedStillPresent.isEmpty()) throw new GradleException("Removed CPF repository roots still exist: ${removedStillPresent.sort()}")
 
 // CPF BOM과 convention 정책은 cpf-tools 소유의 추적 가능한 isolated build 정본으로 관리합니다.
 // Root Build는 아래 Included Build의 check/publication task를 직접 소비합니다.

@@ -6,8 +6,10 @@ import com.cpf.core.api.execution.CpfOnlineTransaction;
 import com.cpf.core.api.time.CpfTimeSnapshot;
 import com.cpf.core.api.webhook.CpfWebhookDelivery;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,6 +20,7 @@ import java.util.Map;
 @ConditionalOnBean(AdmIntegrationClosureService.class)
 @RequestMapping("/adm/api/integration-closure")
 @Tag(name = "ADM-Integration-Closure", description = "시간·데이터 품질·Webhook 운영 조회 및 서버 승인 조치")
+@SecurityRequirement(name = "admSessionCookie")
 public class AdmIntegrationClosureController extends com.cpf.admin.common.base.AdmBaseController {
     private final AdmIntegrationClosureService service;
 
@@ -74,7 +77,10 @@ public class AdmIntegrationClosureController extends com.cpf.admin.common.base.A
             @PathVariable long approvalRequestId,
             @RequestAttribute("adm.operatorId") String operator,
             @RequestBody CorrectionExecutionRequest request) {
-        return ResponseEntity.ok(service.executeCorrection(approvalRequestId, operator, request.reason()));
+        Map<String, Object> result = service.executeCorrection(approvalRequestId, operator, request.reason());
+        return "DQ-VERSION-CONFLICT".equals(ownerResultCode(result))
+                ? ResponseEntity.status(HttpStatus.CONFLICT).body(result)
+                : ResponseEntity.ok(result);
     }
 
     @PostMapping("/data-quality/quarantine/{id}/replay")
@@ -121,6 +127,16 @@ public class AdmIntegrationClosureController extends com.cpf.admin.common.base.A
 
     public record CorrectionExecutionRequest(String reason) {
         public CorrectionExecutionRequest { reason = require(reason, "reason"); }
+    }
+
+    private static String ownerResultCode(Map<String, Object> result) {
+        Object execution = result.get("execution");
+        if (!(execution instanceof Map<?, ?> row)) return "";
+        for (String key : List.of("ownerResultCode", "OWNER_RESULT_CODE", "owner_result_code")) {
+            Object value = row.get(key);
+            if (value != null) return String.valueOf(value).trim();
+        }
+        return "";
     }
 
     private static String require(String value, String field) {

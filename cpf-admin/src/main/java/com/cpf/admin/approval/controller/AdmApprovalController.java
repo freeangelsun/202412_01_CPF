@@ -4,6 +4,7 @@ import com.cpf.admin.approval.service.AdmApprovalService;
 import com.cpf.core.api.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,7 +14,8 @@ import java.util.Map;
 /** ADM 위험조치 Approval Policy/Request/Execution API. */
 @RestController
 @RequestMapping("/adm/api/approvals")
-@Tag(name="ADM-Approval",description="위험조치 정책·승인·Owner Command 실행·UNKNOWN 보존 API")
+@Tag(name="ADM-Approval",description="위험조치 정책·승인·Owner Command 실행·UNKNOWN Reconcile API")
+@SecurityRequirement(name = "admSessionCookie")
 public class AdmApprovalController extends com.cpf.admin.common.base.AdmBaseController {
     private final AdmApprovalService service;
     public AdmApprovalController(AdmApprovalService service){this.service=service;}
@@ -62,6 +64,15 @@ public class AdmApprovalController extends com.cpf.admin.common.base.AdmBaseCont
             @RequestBody AdmApprovalService.DecisionRequest request,
             @RequestAttribute("adm.operatorId") String operatorId){
         return ResponseEntity.ok(service.decide(id,request,operatorId));
+    }
+
+    @PostMapping("/requests/{id}/reconcile")
+    @CpfOnlineTransaction(id="OADMAP0108",name="AdmApprovalReconcile")
+    @Operation(operationId="admApprovalReconcile",summary="UNKNOWN 승인 실행 상태 Reconcile",
+            description="Owner 상태를 조회해 Side Effect를 확정하며 Mutation을 자동 재실행하지 않습니다.")
+    public ResponseEntity<Map<String,Object>> reconcile(@PathVariable long id,@RequestParam String reason,
+            @RequestAttribute("adm.operatorId") String operatorId){
+        return ResponseEntity.ok(service.reconcile(id,reason,operatorId));
     }
 
     @PostMapping("/requests/{id}/execute")

@@ -53,6 +53,21 @@
         "description": "Controller-source pre-runtime placeholder; runtime OpenAPI must supply validation details.",
         "type": "object"
       },
+      "AdmCacheControlRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "reason"
+        ],
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          }
+        },
+        "description": "Audited cache reconcile request. The authenticated operator is resolved from the server session."
+      },
       "AdmCacheEvictKeyRequest": {
         "type": "object",
         "additionalProperties": false,
@@ -159,6 +174,32 @@
         ],
         "type": "object"
       },
+      "AdmCenterCutActionRequest": {
+        "additionalProperties": false,
+        "description": "Approved Center-Cut execution-scope recovery command. The authenticated executor is resolved from the server session.",
+        "properties": {
+          "approvalRequestId": {
+            "pattern": "^[1-9][0-9]{0,18}$",
+            "type": "string"
+          },
+          "idempotencyKey": {
+            "maxLength": 128,
+            "minLength": 8,
+            "type": "string"
+          },
+          "reason": {
+            "maxLength": 500,
+            "minLength": 5,
+            "type": "string"
+          }
+        },
+        "required": [
+          "reason",
+          "approvalRequestId",
+          "idempotencyKey"
+        ],
+        "type": "object"
+      },
       "AdmChannelPackageImportRequest": {
         "additionalProperties": true,
         "description": "Controller-source pre-runtime placeholder; runtime OpenAPI must supply validation details.",
@@ -183,6 +224,21 @@
           }
         },
         "type": "object"
+      },
+      "AdmFeatureFlagDecisionRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "reason"
+        ],
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          }
+        },
+        "description": "Feature Flag approval or revoke reason."
       },
       "AdmFeatureFlagEvaluateRequest": {
         "type": "object",
@@ -225,6 +281,68 @@
           }
         },
         "description": "Typed Feature Flag evaluation request."
+      },
+      "AdmFeatureFlagKillSwitchRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "enabled",
+          "reason"
+        ],
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          }
+        },
+        "description": "Feature Flag kill-switch command."
+      },
+      "AdmFeatureFlagOverrideRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "flagKey",
+          "valueType",
+          "value",
+          "expiresAt",
+          "reason"
+        ],
+        "properties": {
+          "flagKey": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "valueType": {
+            "type": "string",
+            "enum": [
+              "BOOLEAN",
+              "STRING",
+              "INTEGER",
+              "DECIMAL",
+              "NUMBER"
+            ]
+          },
+          "value": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          }
+        },
+        "description": "Feature Flag override request requiring a separate approval."
       },
       "AdmFeatureFlagRequestOverrideRequest": {
         "additionalProperties": false,
@@ -363,6 +481,59 @@
       "AdmIncidentTransitionIncidentRequest": {
         "additionalProperties": {},
         "type": "object"
+      },
+      "AdmIntegrationCorrectionApprovalRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "expectedVersion",
+          "idempotencyKey",
+          "reason",
+          "corrected"
+        ],
+        "properties": {
+          "expectedVersion": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "corrected": {
+            "type": "object",
+            "minProperties": 1,
+            "additionalProperties": true
+          }
+        },
+        "description": "Immutable correction draft. The server binds the authenticated requester and stores a canonical SHA-256 snapshot."
+      },
+      "AdmIntegrationCorrectionExecutionRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "reason"
+        ],
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          }
+        },
+        "description": "Execution reason only. Approval identity, target, payload and actor are resolved from the server ledger."
+      },
+      "AdmIntegrationRecord": {
+        "type": "object",
+        "additionalProperties": true,
+        "description": "Business record submitted for server-side data-quality validation."
       },
       "AdmIpAllowlistRequest": {
         "additionalProperties": true,
@@ -612,6 +783,21 @@
         },
         "type": "object"
       },
+      "AdmResilienceDecisionRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "reason"
+        ],
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          }
+        },
+        "description": "Resilience policy approval or rejection reason."
+      },
       "AdmResiliencePolicyApproveRequest": {
         "additionalProperties": false,
         "description": "Controller-source pre-runtime request schema. Authenticated operator fields are server-derived.",
@@ -631,6 +817,83 @@
           }
         },
         "type": "object"
+      },
+      "AdmResiliencePolicyRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "operationId",
+          "timeoutMs",
+          "maxAttempts",
+          "retryBackoffMs",
+          "circuitFailureThreshold",
+          "circuitOpenMs",
+          "bulkheadMaxConcurrent",
+          "rateLimitPermits",
+          "rateLimitWindowMs",
+          "idempotent",
+          "unknownResultReconcileEnabled",
+          "reason"
+        ],
+        "properties": {
+          "operationId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300
+          },
+          "timeoutMs": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1
+          },
+          "maxAttempts": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 1
+          },
+          "retryBackoffMs": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "circuitFailureThreshold": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 1
+          },
+          "circuitOpenMs": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1
+          },
+          "bulkheadMaxConcurrent": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 1
+          },
+          "rateLimitPermits": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 1
+          },
+          "rateLimitWindowMs": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1
+          },
+          "idempotent": {
+            "type": "boolean"
+          },
+          "unknownResultReconcileEnabled": {
+            "type": "boolean"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          }
+        },
+        "description": "Resilience policy change request requiring a separate approval."
       },
       "AdmResiliencePolicyRequestRequest": {
         "additionalProperties": false,
@@ -1264,6 +1527,40 @@
         "additionalProperties": true,
         "type": "object"
       },
+      "CpfLogLevel": {
+        "type": "string",
+        "enum": [
+          "TRACE",
+          "DEBUG",
+          "INFO",
+          "WARN",
+          "ERROR"
+        ],
+        "description": "CPF log level."
+      },
+      "CpfRuntimeActualState": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "actualVersion"
+        ],
+        "properties": {
+          "changeType": {
+            "type": "string"
+          },
+          "actualVersion": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "actualHash": {
+            "type": "string"
+          },
+          "sourceDeliveryId": {
+            "type": "string"
+          }
+        },
+        "description": "Runtime agent actual state report."
+      },
       "CpfRuntimePayload": {
         "type": "object",
         "additionalProperties": true,
@@ -1328,6 +1625,14 @@
         "description": "Controller-source pre-runtime placeholder; runtime OpenAPI must supply validation details.",
         "type": "object"
       },
+      "CpfTabularFormat": {
+        "type": "string",
+        "enum": [
+          "CSV",
+          "XLSX"
+        ],
+        "description": "Supported tabular file format."
+      },
       "DecisionCommand": {
         "additionalProperties": true,
         "description": "Controller-source pre-runtime placeholder; runtime OpenAPI must supply validation details.",
@@ -1387,6 +1692,14 @@
         "description": "Controller-source pre-runtime placeholder; runtime OpenAPI must supply validation details.",
         "type": "object"
       },
+      "RecoveryTarget": {
+        "type": "string",
+        "enum": [
+          "TRANSACTION",
+          "SEGMENT"
+        ],
+        "description": "Trace recovery target."
+      },
       "RequestCommand": {
         "additionalProperties": true,
         "description": "Controller-source pre-runtime placeholder; runtime OpenAPI must supply validation details.",
@@ -1415,266 +1728,20 @@
           "SIDE_EFFECT_COMPENSATED"
         ],
         "description": "Operator-confirmed UNKNOWN row resolution."
+      }
+    },
+    "securitySchemes": {
+      "admCsrfHeader": {
+        "description": "CSRF token paired with the same-origin XSRF-TOKEN cookie for state-changing ADM requests.",
+        "in": "header",
+        "name": "X-XSRF-TOKEN",
+        "type": "apiKey"
       },
-      "AdmCacheControlRequest": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": [
-          "reason"
-        ],
-        "properties": {
-          "reason": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 500
-          }
-        },
-        "description": "Audited cache reconcile request. The authenticated operator is resolved from the server session."
-      },
-      "AdmFeatureFlagOverrideRequest": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": [
-          "flagKey",
-          "valueType",
-          "value",
-          "expiresAt",
-          "reason"
-        ],
-        "properties": {
-          "flagKey": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 200
-          },
-          "valueType": {
-            "type": "string",
-            "enum": [
-              "BOOLEAN",
-              "STRING",
-              "INTEGER",
-              "DECIMAL",
-              "NUMBER"
-            ]
-          },
-          "value": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 4000
-          },
-          "expiresAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "reason": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 500
-          }
-        },
-        "description": "Feature Flag override request requiring a separate approval."
-      },
-      "AdmFeatureFlagDecisionRequest": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": [
-          "reason"
-        ],
-        "properties": {
-          "reason": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 500
-          }
-        },
-        "description": "Feature Flag approval or revoke reason."
-      },
-      "AdmFeatureFlagKillSwitchRequest": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": [
-          "enabled",
-          "reason"
-        ],
-        "properties": {
-          "enabled": {
-            "type": "boolean"
-          },
-          "reason": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 500
-          }
-        },
-        "description": "Feature Flag kill-switch command."
-      },
-      "AdmResiliencePolicyRequest": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": [
-          "operationId",
-          "timeoutMs",
-          "maxAttempts",
-          "retryBackoffMs",
-          "circuitFailureThreshold",
-          "circuitOpenMs",
-          "bulkheadMaxConcurrent",
-          "rateLimitPermits",
-          "rateLimitWindowMs",
-          "idempotent",
-          "unknownResultReconcileEnabled",
-          "reason"
-        ],
-        "properties": {
-          "operationId": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300
-          },
-          "timeoutMs": {
-            "type": "integer",
-            "format": "int64",
-            "minimum": 1
-          },
-          "maxAttempts": {
-            "type": "integer",
-            "format": "int32",
-            "minimum": 1
-          },
-          "retryBackoffMs": {
-            "type": "integer",
-            "format": "int64",
-            "minimum": 0
-          },
-          "circuitFailureThreshold": {
-            "type": "integer",
-            "format": "int32",
-            "minimum": 1
-          },
-          "circuitOpenMs": {
-            "type": "integer",
-            "format": "int64",
-            "minimum": 1
-          },
-          "bulkheadMaxConcurrent": {
-            "type": "integer",
-            "format": "int32",
-            "minimum": 1
-          },
-          "rateLimitPermits": {
-            "type": "integer",
-            "format": "int32",
-            "minimum": 1
-          },
-          "rateLimitWindowMs": {
-            "type": "integer",
-            "format": "int64",
-            "minimum": 1
-          },
-          "idempotent": {
-            "type": "boolean"
-          },
-          "unknownResultReconcileEnabled": {
-            "type": "boolean"
-          },
-          "reason": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 500
-          }
-        },
-        "description": "Resilience policy change request requiring a separate approval."
-      },
-      "AdmResilienceDecisionRequest": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": [
-          "reason"
-        ],
-        "properties": {
-          "reason": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 500
-          }
-        },
-        "description": "Resilience policy approval or rejection reason."
-      },
-      "RecoveryTarget": {
-        "type": "string",
-        "enum": [
-          "TRANSACTION",
-          "SEGMENT"
-        ],
-        "description": "Trace recovery target."
-      },
-      "CpfLogLevel": {
-        "type": "string",
-        "enum": [
-          "TRACE",
-          "DEBUG",
-          "INFO",
-          "WARN",
-          "ERROR"
-        ],
-        "description": "CPF log level."
-      },
-      "CpfTabularFormat": {
-        "type": "string",
-        "enum": [
-          "CSV",
-          "XLSX"
-        ],
-        "description": "Supported tabular file format."
-      },
-      "CpfRuntimeActualState": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": [
-          "actualVersion"
-        ],
-        "properties": {
-          "changeType": {
-            "type": "string"
-          },
-          "actualVersion": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "actualHash": {
-            "type": "string"
-          },
-          "sourceDeliveryId": {
-            "type": "string"
-          }
-        },
-        "description": "Runtime agent actual state report."
-      },
-      "AdmCenterCutActionRequest": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": [
-          "reason",
-          "approvalRequestId",
-          "idempotencyKey"
-        ],
-        "properties": {
-          "reason": {
-            "type": "string",
-            "minLength": 5,
-            "maxLength": 500
-          },
-          "approvalRequestId": {
-            "type": "string",
-            "pattern": "^[1-9][0-9]{0,18}$"
-          },
-          "idempotencyKey": {
-            "type": "string",
-            "minLength": 8,
-            "maxLength": 128
-          }
-        },
-        "description": "Approved Center-Cut execution-scope recovery command. The authenticated executor is resolved from the server session."
+      "admSessionCookie": {
+        "description": "Authenticated ADM Browser BFF session cookie. Browser JavaScript never reads this HttpOnly cookie.",
+        "in": "cookie",
+        "name": "JSESSIONID",
+        "type": "apiKey"
       }
     }
   },
@@ -1707,9 +1774,38 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "400": {
+            "description": "Bad request"
+          },
+          "401": {
+            "description": "ADM session required"
+          },
+          "403": {
+            "description": "Permission denied"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "409": {
+            "description": "State/version conflict"
+          },
+          "429": {
+            "description": "Rate limited"
+          },
+          "500": {
+            "description": "Internal error"
+          },
+          "503": {
+            "description": "Service unavailable"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmApprovalController.java"
+        "security": [
+          {
+            "admSessionCookie": []
+          }
+        ],
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/approval/controller/AdmApprovalController.java"
       },
       "post": {
         "operationId": "admApprovalPolicySave",
@@ -1733,9 +1829,39 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "400": {
+            "description": "Bad request"
+          },
+          "401": {
+            "description": "ADM session required"
+          },
+          "403": {
+            "description": "Permission denied"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "409": {
+            "description": "State/version conflict"
+          },
+          "429": {
+            "description": "Rate limited"
+          },
+          "500": {
+            "description": "Internal error"
+          },
+          "503": {
+            "description": "Service unavailable"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmApprovalController.java"
+        "security": [
+          {
+            "admCsrfHeader": [],
+            "admSessionCookie": []
+          }
+        ],
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/approval/controller/AdmApprovalController.java"
       }
     },
     "/adm/api/approvals/policies/{policyCode}/versions/{version}": {
@@ -1770,9 +1896,38 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "400": {
+            "description": "Bad request"
+          },
+          "401": {
+            "description": "ADM session required"
+          },
+          "403": {
+            "description": "Permission denied"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "409": {
+            "description": "State/version conflict"
+          },
+          "429": {
+            "description": "Rate limited"
+          },
+          "500": {
+            "description": "Internal error"
+          },
+          "503": {
+            "description": "Service unavailable"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmApprovalController.java"
+        "security": [
+          {
+            "admSessionCookie": []
+          }
+        ],
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/approval/controller/AdmApprovalController.java"
       }
     },
     "/adm/api/approvals/requests": {
@@ -1798,9 +1953,39 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "400": {
+            "description": "Bad request"
+          },
+          "401": {
+            "description": "ADM session required"
+          },
+          "403": {
+            "description": "Permission denied"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "409": {
+            "description": "State/version conflict"
+          },
+          "429": {
+            "description": "Rate limited"
+          },
+          "500": {
+            "description": "Internal error"
+          },
+          "503": {
+            "description": "Service unavailable"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmApprovalController.java"
+        "security": [
+          {
+            "admCsrfHeader": [],
+            "admSessionCookie": []
+          }
+        ],
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/approval/controller/AdmApprovalController.java"
       }
     },
     "/adm/api/approvals/requests/{id}": {
@@ -1827,9 +2012,38 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "400": {
+            "description": "Bad request"
+          },
+          "401": {
+            "description": "ADM session required"
+          },
+          "403": {
+            "description": "Permission denied"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "409": {
+            "description": "State/version conflict"
+          },
+          "429": {
+            "description": "Rate limited"
+          },
+          "500": {
+            "description": "Internal error"
+          },
+          "503": {
+            "description": "Service unavailable"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmApprovalController.java"
+        "security": [
+          {
+            "admSessionCookie": []
+          }
+        ],
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/approval/controller/AdmApprovalController.java"
       }
     },
     "/adm/api/approvals/requests/{id}/decisions": {
@@ -1866,9 +2080,39 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "400": {
+            "description": "Bad request"
+          },
+          "401": {
+            "description": "ADM session required"
+          },
+          "403": {
+            "description": "Permission denied"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "409": {
+            "description": "State/version conflict"
+          },
+          "429": {
+            "description": "Rate limited"
+          },
+          "500": {
+            "description": "Internal error"
+          },
+          "503": {
+            "description": "Service unavailable"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmApprovalController.java"
+        "security": [
+          {
+            "admCsrfHeader": [],
+            "admSessionCookie": []
+          }
+        ],
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/approval/controller/AdmApprovalController.java"
       }
     },
     "/adm/api/approvals/requests/{id}/execute": {
@@ -1895,9 +2139,115 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "400": {
+            "description": "Bad request"
+          },
+          "401": {
+            "description": "ADM session required"
+          },
+          "403": {
+            "description": "Permission denied"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "409": {
+            "description": "State/version conflict"
+          },
+          "429": {
+            "description": "Rate limited"
+          },
+          "500": {
+            "description": "Internal error"
+          },
+          "503": {
+            "description": "Service unavailable"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmApprovalController.java"
+        "security": [
+          {
+            "admCsrfHeader": [],
+            "admSessionCookie": []
+          }
+        ],
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/approval/controller/AdmApprovalController.java"
+      }
+    },
+    "/adm/api/approvals/requests/{id}/reconcile": {
+      "post": {
+        "description": "Owner 상태를 조회해 Side Effect를 확정하며 Mutation을 자동 재실행하지 않습니다.",
+        "operationId": "admApprovalReconcile",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "reason",
+            "in": "query",
+            "required": true,
+            "description": "Audited operation reason",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CpfControllerSourceResponse"
+                }
+              }
+            },
+            "description": "Reconciliation result"
+          },
+          "400": {
+            "description": "Bad request"
+          },
+          "401": {
+            "description": "ADM session required"
+          },
+          "403": {
+            "description": "Permission denied"
+          },
+          "404": {
+            "description": "Approval request not found"
+          },
+          "409": {
+            "description": "State/version conflict"
+          },
+          "429": {
+            "description": "Rate limited"
+          },
+          "500": {
+            "description": "Internal error"
+          },
+          "503": {
+            "description": "Service unavailable"
+          }
+        },
+        "security": [
+          {
+            "admSessionCookie": [],
+            "admCsrfHeader": []
+          }
+        ],
+        "summary": "UNKNOWN 승인 실행 상태 Reconcile",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/approval/controller/AdmApprovalController.java",
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-browser-auth": "SESSION_COOKIE_AND_CSRF",
+        "x-cpf-bearer-token-accepted": false
       }
     },
     "/adm/api/audit-logs": {
@@ -4020,8 +4370,8 @@
             "description": "Controller source contract response"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmCacheController.java",
-        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT"
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmCacheController.java"
       }
     },
     "/adm/api/cache/evict-namespace": {
@@ -4049,8 +4399,8 @@
             "description": "Controller source contract response"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmCacheController.java",
-        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT"
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmCacheController.java"
       }
     },
     "/adm/api/cache/reconcile": {
@@ -4078,8 +4428,8 @@
             "description": "Controller source contract response"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmCacheController.java",
-        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT"
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmCacheController.java"
       }
     },
     "/adm/api/cache/refresh": {
@@ -4126,8 +4476,8 @@
             "description": "Controller source contract response"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmCacheController.java",
-        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT"
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmCacheController.java"
       }
     },
     "/adm/api/cache/summary": {
@@ -4145,8 +4495,132 @@
             "description": "Controller source contract response"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmCacheController.java",
-        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT"
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmCacheController.java"
+      }
+    },
+    "/adm/api/center-cut/executions/{executionId}/reconcile-unknown": {
+      "post": {
+        "description": "승인 원장 Snapshot과 멱등 키를 검증한 뒤 선택한 executionId 범위만 처리합니다.",
+        "operationId": "admCenterCutReconcileUnknownExecution",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "executionId",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9._:-]+$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdmCenterCutActionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CpfControllerSourceResponse"
+                }
+              }
+            },
+            "description": "Center-Cut execution-scope command accepted"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Permission denied"
+          },
+          "409": {
+            "description": "Approval, idempotency or state conflict"
+          },
+          "500": {
+            "description": "Internal error"
+          },
+          "503": {
+            "description": "BAT owner unavailable or result unknown"
+          }
+        },
+        "summary": "Center-Cut 결과불명 실행 대사",
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmCenterCutController.java"
+      }
+    },
+    "/adm/api/center-cut/executions/{executionId}/reprocess-failed": {
+      "post": {
+        "description": "승인 원장 Snapshot과 멱등 키를 검증한 뒤 선택한 executionId 범위만 처리합니다.",
+        "operationId": "admCenterCutReprocessFailedExecution",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "executionId",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9._:-]+$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdmCenterCutActionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CpfControllerSourceResponse"
+                }
+              }
+            },
+            "description": "Center-Cut execution-scope command accepted"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Permission denied"
+          },
+          "409": {
+            "description": "Approval, idempotency or state conflict"
+          },
+          "500": {
+            "description": "Internal error"
+          },
+          "503": {
+            "description": "BAT owner unavailable or result unknown"
+          }
+        },
+        "summary": "Center-Cut 실패 실행 재처리",
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmCenterCutController.java"
       }
     },
     "/adm/api/center-cut/jobs": {
@@ -4544,8 +5018,8 @@
             "description": "Controller source contract response"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmCodeController.java",
-        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT"
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmCodeController.java"
       },
       "post": {
         "operationId": "admCodeCreateCode",
@@ -4571,8 +5045,8 @@
             "description": "Controller source contract response"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmCodeController.java",
-        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT"
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmCodeController.java"
       }
     },
     "/adm/api/codes/{codeId}": {
@@ -4613,8 +5087,8 @@
             "description": "Controller source contract response"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmCodeController.java",
-        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT"
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmCodeController.java"
       },
       "get": {
         "operationId": "admCodeFindCode",
@@ -4642,8 +5116,8 @@
             "description": "Controller source contract response"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmCodeController.java",
-        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT"
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmCodeController.java"
       },
       "put": {
         "operationId": "admCodeUpdateCode",
@@ -4681,8 +5155,8 @@
             "description": "Controller source contract response"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmCodeController.java",
-        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT"
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmCodeController.java"
       }
     },
     "/adm/api/configs": {
@@ -4700,8 +5174,8 @@
             "description": "Controller source contract response"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmConfigController.java",
-        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT"
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmConfigController.java"
       },
       "post": {
         "operationId": "admConfigCreateConfig",
@@ -4727,8 +5201,8 @@
             "description": "Controller source contract response"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmConfigController.java",
-        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT"
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmConfigController.java"
       }
     },
     "/adm/api/configs/{configId}": {
@@ -4769,8 +5243,8 @@
             "description": "Controller source contract response"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmConfigController.java",
-        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT"
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmConfigController.java"
       },
       "get": {
         "operationId": "admConfigFindConfig",
@@ -4798,8 +5272,8 @@
             "description": "Controller source contract response"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmConfigController.java",
-        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT"
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmConfigController.java"
       },
       "put": {
         "operationId": "admConfigUpdateConfig",
@@ -4837,8 +5311,8 @@
             "description": "Controller source contract response"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmConfigController.java",
-        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT"
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmConfigController.java"
       }
     },
     "/adm/api/downloads/audit-logs": {
@@ -6537,6 +7011,574 @@
         "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/incident/AdmIncidentLifecycleController.java"
       }
     },
+    "/adm/api/integration-closure/crypto/status": {
+      "get": {
+        "operationId": "admIntegrationCryptoStatus",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Controller source contract response"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "ADM session required or expired"
+          },
+          "403": {
+            "description": "Permission or CSRF validation failed"
+          },
+          "404": {
+            "description": "Target not found"
+          },
+          "409": {
+            "description": "Version or execution-state conflict"
+          },
+          "429": {
+            "description": "Request rate limited"
+          },
+          "500": {
+            "description": "Internal processing failure"
+          },
+          "503": {
+            "description": "Dependent service unavailable"
+          }
+        },
+        "security": [
+          {
+            "admSessionCookie": []
+          }
+        ],
+        "x-cpf-bearer-token-accepted": false,
+        "x-cpf-browser-auth": "SESSION_COOKIE",
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmIntegrationClosureController.java"
+      }
+    },
+    "/adm/api/integration-closure/data-quality/correction-approvals/{approvalRequestId}/execute": {
+      "post": {
+        "operationId": "admIntegrationDataQualityCorrectionExecute",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "approvalRequestId",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdmIntegrationCorrectionExecutionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Controller source contract response"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "ADM session required or expired"
+          },
+          "403": {
+            "description": "Permission or CSRF validation failed"
+          },
+          "404": {
+            "description": "Target not found"
+          },
+          "409": {
+            "description": "Version or execution-state conflict"
+          },
+          "429": {
+            "description": "Request rate limited"
+          },
+          "500": {
+            "description": "Internal processing failure"
+          },
+          "503": {
+            "description": "Dependent service unavailable"
+          }
+        },
+        "security": [
+          {
+            "admSessionCookie": [],
+            "admCsrfHeader": []
+          }
+        ],
+        "x-cpf-bearer-token-accepted": false,
+        "x-cpf-browser-auth": "SESSION_COOKIE_AND_CSRF",
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmIntegrationClosureController.java"
+      }
+    },
+    "/adm/api/integration-closure/data-quality/quarantine/{id}/correction-approvals": {
+      "post": {
+        "operationId": "admIntegrationDataQualityCorrectionApprovalRequest",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdmIntegrationCorrectionApprovalRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Controller source contract response"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "ADM session required or expired"
+          },
+          "403": {
+            "description": "Permission or CSRF validation failed"
+          },
+          "404": {
+            "description": "Target not found"
+          },
+          "409": {
+            "description": "Version or execution-state conflict"
+          },
+          "429": {
+            "description": "Request rate limited"
+          },
+          "500": {
+            "description": "Internal processing failure"
+          },
+          "503": {
+            "description": "Dependent service unavailable"
+          }
+        },
+        "security": [
+          {
+            "admSessionCookie": [],
+            "admCsrfHeader": []
+          }
+        ],
+        "x-cpf-bearer-token-accepted": false,
+        "x-cpf-browser-auth": "SESSION_COOKIE_AND_CSRF",
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmIntegrationClosureController.java"
+      }
+    },
+    "/adm/api/integration-closure/data-quality/quarantine/{id}/replay": {
+      "post": {
+        "operationId": "admIntegrationDataQualityReplay",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "reason",
+            "in": "query",
+            "required": true,
+            "description": "Audited operation reason",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Controller source contract response"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "ADM session required or expired"
+          },
+          "403": {
+            "description": "Permission or CSRF validation failed"
+          },
+          "404": {
+            "description": "Target not found"
+          },
+          "409": {
+            "description": "Version or execution-state conflict"
+          },
+          "429": {
+            "description": "Request rate limited"
+          },
+          "500": {
+            "description": "Internal processing failure"
+          },
+          "503": {
+            "description": "Dependent service unavailable"
+          }
+        },
+        "security": [
+          {
+            "admSessionCookie": [],
+            "admCsrfHeader": []
+          }
+        ],
+        "x-cpf-bearer-token-accepted": false,
+        "x-cpf-browser-auth": "SESSION_COOKIE_AND_CSRF",
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmIntegrationClosureController.java"
+      }
+    },
+    "/adm/api/integration-closure/data-quality/validate/{recordId}": {
+      "post": {
+        "operationId": "admIntegrationDataQualityValidate",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "recordId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdmIntegrationRecord"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Controller source contract response"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "ADM session required or expired"
+          },
+          "403": {
+            "description": "Permission or CSRF validation failed"
+          },
+          "404": {
+            "description": "Target not found"
+          },
+          "409": {
+            "description": "Version or execution-state conflict"
+          },
+          "429": {
+            "description": "Request rate limited"
+          },
+          "500": {
+            "description": "Internal processing failure"
+          },
+          "503": {
+            "description": "Dependent service unavailable"
+          }
+        },
+        "security": [
+          {
+            "admSessionCookie": [],
+            "admCsrfHeader": []
+          }
+        ],
+        "x-cpf-bearer-token-accepted": false,
+        "x-cpf-browser-auth": "SESSION_COOKIE_AND_CSRF",
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmIntegrationClosureController.java"
+      }
+    },
+    "/adm/api/integration-closure/time/health": {
+      "get": {
+        "operationId": "admIntegrationTimeHealth",
+        "parameters": [
+          {
+            "name": "zone",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "Asia/Seoul"
+            }
+          },
+          {
+            "name": "maxSkewMillis",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 0,
+              "default": 1000
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Controller source contract response"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "ADM session required or expired"
+          },
+          "403": {
+            "description": "Permission or CSRF validation failed"
+          },
+          "404": {
+            "description": "Target not found"
+          },
+          "409": {
+            "description": "Version or execution-state conflict"
+          },
+          "429": {
+            "description": "Request rate limited"
+          },
+          "500": {
+            "description": "Internal processing failure"
+          },
+          "503": {
+            "description": "Dependent service unavailable"
+          }
+        },
+        "security": [
+          {
+            "admSessionCookie": []
+          }
+        ],
+        "x-cpf-bearer-token-accepted": false,
+        "x-cpf-browser-auth": "SESSION_COOKIE",
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmIntegrationClosureController.java"
+      }
+    },
+    "/adm/api/integration-closure/webhooks/dlq": {
+      "get": {
+        "operationId": "admIntegrationWebhookDlq",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Maximum number of rows",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 1,
+              "maximum": 500,
+              "default": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Controller source contract response"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "ADM session required or expired"
+          },
+          "403": {
+            "description": "Permission or CSRF validation failed"
+          },
+          "404": {
+            "description": "Target not found"
+          },
+          "409": {
+            "description": "Version or execution-state conflict"
+          },
+          "429": {
+            "description": "Request rate limited"
+          },
+          "500": {
+            "description": "Internal processing failure"
+          },
+          "503": {
+            "description": "Dependent service unavailable"
+          }
+        },
+        "security": [
+          {
+            "admSessionCookie": []
+          }
+        ],
+        "x-cpf-bearer-token-accepted": false,
+        "x-cpf-browser-auth": "SESSION_COOKIE",
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmIntegrationClosureController.java"
+      }
+    },
+    "/adm/api/integration-closure/webhooks/{id}/replay": {
+      "post": {
+        "operationId": "admIntegrationWebhookReplay",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expectedVersion",
+            "in": "query",
+            "required": true,
+            "description": "Optimistic-lock version",
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "reason",
+            "in": "query",
+            "required": true,
+            "description": "Audited operation reason",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Controller source contract response"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "ADM session required or expired"
+          },
+          "403": {
+            "description": "Permission or CSRF validation failed"
+          },
+          "404": {
+            "description": "Target not found"
+          },
+          "409": {
+            "description": "Version or execution-state conflict"
+          },
+          "429": {
+            "description": "Request rate limited"
+          },
+          "500": {
+            "description": "Internal processing failure"
+          },
+          "503": {
+            "description": "Dependent service unavailable"
+          }
+        },
+        "security": [
+          {
+            "admSessionCookie": [],
+            "admCsrfHeader": []
+          }
+        ],
+        "x-cpf-bearer-token-accepted": false,
+        "x-cpf-browser-auth": "SESSION_COOKIE_AND_CSRF",
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmIntegrationClosureController.java"
+      }
+    },
     "/adm/api/log-exports": {
       "post": {
         "operationId": "admLogExportCreate",
@@ -7478,8 +8520,8 @@
             "description": "Controller source contract response"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmMessageController.java",
-        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT"
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmMessageController.java"
       },
       "post": {
         "operationId": "admMessageCreateMessage",
@@ -7505,8 +8547,8 @@
             "description": "Controller source contract response"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmMessageController.java",
-        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT"
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmMessageController.java"
       }
     },
     "/adm/api/messages/{messageId}": {
@@ -7546,8 +8588,8 @@
             "description": "Controller source contract response"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmMessageController.java",
-        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT"
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmMessageController.java"
       },
       "get": {
         "operationId": "admMessageFindMessage",
@@ -7574,8 +8616,8 @@
             "description": "Controller source contract response"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmMessageController.java",
-        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT"
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmMessageController.java"
       },
       "put": {
         "operationId": "admMessageUpdateMessage",
@@ -7612,8 +8654,8 @@
             "description": "Controller source contract response"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmMessageController.java",
-        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT"
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmMessageController.java"
       }
     },
     "/adm/api/notifications/delivery-logs": {
@@ -7646,8 +8688,8 @@
             "description": "Controller source contract response"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmNotificationController.java",
-        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT"
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmNotificationController.java"
       }
     },
     "/adm/api/notifications/delivery-logs/dlq": {
@@ -7680,8 +8722,8 @@
             "description": "Controller source contract response"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmNotificationController.java",
-        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT"
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmNotificationController.java"
       }
     },
     "/adm/api/notifications/delivery-logs/{deliveryId}/attempts": {
@@ -7723,8 +8765,8 @@
             "description": "Controller source contract response"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmNotificationController.java",
-        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT"
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmNotificationController.java"
       }
     },
     "/adm/api/notifications/delivery-logs/{deliveryId}/cancel": {
@@ -7775,8 +8817,8 @@
             "description": "Controller source contract response"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmNotificationController.java",
-        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT"
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmNotificationController.java"
       }
     },
     "/adm/api/notifications/delivery-logs/{deliveryId}/retry": {
@@ -7827,8 +8869,8 @@
             "description": "Controller source contract response"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmNotificationController.java",
-        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT"
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmNotificationController.java"
       }
     },
     "/adm/api/notifications/rules": {
@@ -7861,8 +8903,8 @@
             "description": "Controller source contract response"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmNotificationController.java",
-        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT"
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmNotificationController.java"
       },
       "post": {
         "operationId": "admNotificationSaveRule",
@@ -7888,8 +8930,8 @@
             "description": "Controller source contract response"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmNotificationController.java",
-        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT"
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmNotificationController.java"
       }
     },
     "/adm/api/notifications/rules/{ruleId}": {
@@ -7918,8 +8960,8 @@
             "description": "Controller source contract response"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmNotificationController.java",
-        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT"
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmNotificationController.java"
       },
       "put": {
         "operationId": "admNotificationUpdateRule",
@@ -7956,8 +8998,8 @@
             "description": "Controller source contract response"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmNotificationController.java",
-        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT"
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmNotificationController.java"
       }
     },
     "/adm/api/notifications/rules/{ruleId}/disable": {
@@ -7997,8 +9039,8 @@
             "description": "Controller source contract response"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmNotificationController.java",
-        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT"
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmNotificationController.java"
       }
     },
     "/adm/api/notifications/rules/{ruleId}/test-send": {
@@ -8037,8 +9079,8 @@
             "description": "Controller source contract response"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmNotificationController.java",
-        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT"
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmNotificationController.java"
       }
     },
     "/adm/api/observability/business-transactions/{businessTransactionId}": {
@@ -8194,8 +9236,8 @@
             "description": "Controller source contract response"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmOpenApiController.java",
-        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT"
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmOpenApiController.java"
       }
     },
     "/adm/api/openapi/status": {
@@ -8213,8 +9255,8 @@
             "description": "Controller source contract response"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmOpenApiController.java",
-        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT"
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmOpenApiController.java"
       }
     },
     "/adm/api/operators": {
@@ -9631,8 +10673,8 @@
             "description": "Controller source contract response"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmFeatureFlagController.java",
-        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT"
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmFeatureFlagController.java"
       }
     },
     "/adm/api/platform/feature-flags/evaluate": {
@@ -9660,8 +10702,8 @@
             "description": "Controller source contract response"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmFeatureFlagController.java",
-        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT"
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmFeatureFlagController.java"
       }
     },
     "/adm/api/platform/feature-flags/override-requests": {
@@ -9689,8 +10731,8 @@
             "description": "Controller source contract response"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmFeatureFlagController.java",
-        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT"
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmFeatureFlagController.java"
       }
     },
     "/adm/api/platform/feature-flags/override-requests/{requestId}/approve": {
@@ -9740,8 +10782,8 @@
             "description": "Controller source contract response"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmFeatureFlagController.java",
-        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT"
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmFeatureFlagController.java"
       }
     },
     "/adm/api/platform/feature-flags/override-requests/{requestId}/revoke": {
@@ -9791,8 +10833,8 @@
             "description": "Controller source contract response"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmFeatureFlagController.java",
-        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT"
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmFeatureFlagController.java"
       }
     },
     "/adm/api/platform/feature-flags/{flagKey}": {
@@ -9820,8 +10862,8 @@
             "description": "Controller source contract response"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmFeatureFlagController.java",
-        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT"
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmFeatureFlagController.java"
       }
     },
     "/adm/api/platform/feature-flags/{flagKey}/kill-switch": {
@@ -9871,8 +10913,8 @@
             "description": "Controller source contract response"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmFeatureFlagController.java",
-        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT"
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmFeatureFlagController.java"
       }
     },
     "/adm/api/platform/resilience-policies": {
@@ -9927,8 +10969,8 @@
             "description": "Controller source contract response"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmResiliencePolicyController.java",
-        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT"
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmResiliencePolicyController.java"
       }
     },
     "/adm/api/platform/resilience-policies/requests": {
@@ -9956,8 +10998,8 @@
             "description": "Controller source contract response"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmResiliencePolicyController.java",
-        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT"
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmResiliencePolicyController.java"
       }
     },
     "/adm/api/platform/resilience-policies/requests/{requestId}/approve": {
@@ -10007,8 +11049,8 @@
             "description": "Controller source contract response"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmResiliencePolicyController.java",
-        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT"
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmResiliencePolicyController.java"
       }
     },
     "/adm/api/platform/resilience-policies/requests/{requestId}/reject": {
@@ -10058,8 +11100,8 @@
             "description": "Controller source contract response"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmResiliencePolicyController.java",
-        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT"
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmResiliencePolicyController.java"
       }
     },
     "/adm/api/platform/resilience-policies/{operationId}": {
@@ -10087,8 +11129,8 @@
             "description": "Controller source contract response"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmResiliencePolicyController.java",
-        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT"
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmResiliencePolicyController.java"
       }
     },
     "/adm/api/reliability/batch-job-logs": {
@@ -10306,8 +11348,8 @@
             "description": "Controller source contract response"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmReliabilityController.java",
-        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT"
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmReliabilityController.java"
       }
     },
     "/adm/api/reliability/broker/inbox": {
@@ -11178,8 +12220,8 @@
             "description": "Controller source contract response"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmResponseCodeController.java",
-        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT"
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmResponseCodeController.java"
       },
       "post": {
         "operationId": "admResponseCodeCreate",
@@ -11218,8 +12260,8 @@
             "description": "Controller source contract response"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmResponseCodeController.java",
-        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT"
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmResponseCodeController.java"
       }
     },
     "/adm/api/response-codes/{responseCode}": {
@@ -11259,8 +12301,8 @@
             "description": "Controller source contract response"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmResponseCodeController.java",
-        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT"
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmResponseCodeController.java"
       },
       "get": {
         "operationId": "admResponseCodeFindOne",
@@ -11287,8 +12329,8 @@
             "description": "Controller source contract response"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmResponseCodeController.java",
-        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT"
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmResponseCodeController.java"
       },
       "put": {
         "operationId": "admResponseCodeUpdate",
@@ -11336,8 +12378,8 @@
             "description": "Controller source contract response"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmResponseCodeController.java",
-        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT"
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmResponseCodeController.java"
       }
     },
     "/adm/api/runtime-control/capabilities": {
@@ -13155,138 +14197,14 @@
         },
         "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmSystemInfoController.java"
       }
-    },
-    "/adm/api/center-cut/executions/{executionId}/reprocess-failed": {
-      "post": {
-        "operationId": "admCenterCutReprocessFailedExecution",
-        "summary": "Center-Cut 실패 실행 재처리",
-        "description": "승인 원장 Snapshot과 멱등 키를 검증한 뒤 선택한 executionId 범위만 처리합니다.",
-        "parameters": [
-          {
-            "name": "executionId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 128,
-              "pattern": "^[A-Za-z0-9._:-]+$"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/AdmCenterCutActionRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "202": {
-            "description": "Center-Cut execution-scope command accepted",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CpfControllerSourceResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid request"
-          },
-          "401": {
-            "description": "Authentication required"
-          },
-          "403": {
-            "description": "Permission denied"
-          },
-          "409": {
-            "description": "Approval, idempotency or state conflict"
-          },
-          "500": {
-            "description": "Internal error"
-          },
-          "503": {
-            "description": "BAT owner unavailable or result unknown"
-          }
-        },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmCenterCutController.java",
-        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT"
-      }
-    },
-    "/adm/api/center-cut/executions/{executionId}/reconcile-unknown": {
-      "post": {
-        "operationId": "admCenterCutReconcileUnknownExecution",
-        "summary": "Center-Cut 결과불명 실행 대사",
-        "description": "승인 원장 Snapshot과 멱등 키를 검증한 뒤 선택한 executionId 범위만 처리합니다.",
-        "parameters": [
-          {
-            "name": "executionId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 128,
-              "pattern": "^[A-Za-z0-9._:-]+$"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/AdmCenterCutActionRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "202": {
-            "description": "Center-Cut execution-scope command accepted",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CpfControllerSourceResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid request"
-          },
-          "401": {
-            "description": "Authentication required"
-          },
-          "403": {
-            "description": "Permission denied"
-          },
-          "409": {
-            "description": "Approval, idempotency or state conflict"
-          },
-          "500": {
-            "description": "Internal error"
-          },
-          "503": {
-            "description": "BAT owner unavailable or result unknown"
-          }
-        },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmCenterCutController.java",
-        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT"
-      }
     }
   },
+  "x-cpf-adm-explicit-contract-version": 8,
   "x-cpf-canonical-schema-version": 5,
   "x-cpf-controller-source-contract-version": 2,
   "x-cpf-export-origin": "CONTROLLER_SOURCE_PRE_RUNTIME",
-  "x-cpf-openapi-operation-count": 323,
+  "x-cpf-openapi-operation-count": 332,
   "x-cpf-product-module": "ADM",
-  "x-cpf-public-operation-count": 323,
-  "x-cpf-release-eligible": false,
-  "x-cpf-adm-explicit-contract-version": 7
+  "x-cpf-public-operation-count": 331,
+  "x-cpf-release-eligible": false
 }

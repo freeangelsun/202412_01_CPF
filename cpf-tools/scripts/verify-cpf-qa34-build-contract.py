@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from pathlib import Path
 
 CANONICAL_PLUGIN = "com.cpf.platform-conventions"
@@ -74,10 +75,13 @@ def verify_catalog(root: Path) -> dict:
         raise ContractError("starter catalog modules must be non-empty")
     public = [m for m in modules if isinstance(m, dict) and m.get("visibility") == "public"]
     internal = [m for m in modules if isinstance(m, dict) and m.get("visibility") == "internal"]
-    if len(public) != 6:
-        raise ContractError(f"public starter profile count mismatch expected=6 actual={len(public)}")
-    if len(internal) != 32:
-        raise ContractError(f"internal starter leaf count mismatch expected=32 actual={len(internal)}")
+    official_profiles = catalog.get("publicProfiles") or []
+    public_ids = {str(m.get("artifactId", "")).removeprefix("cpf-starter-profile-") for m in public}
+    if public_ids != set(official_profiles):
+        raise ContractError(f"public starter profile exact set mismatch expected={sorted(official_profiles)} actual={sorted(public_ids)}")
+    layout = catalog.get("targetPhysicalLayout") or {}
+    if layout.get("moduleCount") != len(modules) or layout.get("profileCount") != len(public):
+        raise ContractError("starter catalog derived layout counts mismatch")
     for key in ("artifactId", "projectPath", "ownerPath"):
         values = [m.get(key) for m in modules if isinstance(m, dict)]
         if any(not isinstance(value, str) or not value.strip() for value in values):
@@ -121,15 +125,19 @@ def verify(root: Path) -> dict:
     ):
         require(aggregate_bom, token, "platform BOM aggregate")
 
-    for material, label, group, artifact, visibility, count in (
-        (public_bom, "public BOM", "group='com.cpf'", "artifactId='cpf-platform-bom'", "visibility?.toString()=='public'", "publicModules.size()!=6"),
-        (internal_bom, "internal BOM", "group='com.cpf.internal'", "artifactId='cpf-internal-platform-bom'", "visibility?.toString()=='internal'", "internalModules.size()!=32"),
+    for material, label, group, artifact, visibility, verify_task in (
+        (public_bom, "public BOM", "group='com.cpf'", "artifactId='cpf-platform-bom'", "visibility?.toString()=='public'", "verifyPublicBom"),
+        (internal_bom, "internal BOM", "group='com.cpf.internal'", "artifactId='cpf-internal-platform-bom'", "visibility?.toString()=='internal'", "verifyInternalBom"),
     ):
         require(material, group, label)
         require(material, artifact, label)
         require(material, str(CANONICAL_CATALOG.name), label)
         require(material, visibility, label)
-        require(material, count, label)
+        require(material, verify_task, label)
+        for equality_marker in ("missing", "extra", "duplicate"):
+            require(material, equality_marker, label)
+        if re.search(r"(?:publicModules|internalModules)\.size\(\)\s*[!=]=\s*\d+", material):
+            raise ContractError(f"{label} contains fixed-count validation")
     require(public_bom, "Internal Starter leaked into public BOM", "public BOM")
     require(internal_bom, CANONICAL_BOM, "internal BOM")
     require(internal_bom, "Public profile leaked into internal BOM", "internal BOM")

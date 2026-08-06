@@ -13,9 +13,9 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[3]
 CATALOG = ROOT / "cpf-tools/generator/contracts/cpf-starter-catalog.json"
 PROFILES = ROOT / "cpf-tools/generator/contracts/capability-profiles.json"
-DELETE_PATHS = ROOT / "cpf-docs/work/CPF_DELETE_MANIFEST.txt"
+DELETE_PATHS = ROOT / "cpf-docs/work/CPF_DELETE_MANIFEST.log"
 DELETE_WORK_ITEMS = ROOT / "cpf-docs/work/CPF_PRODUCT_DELETE_WORK_ITEMS.csv"
-DELETE_ONE_LINE = ROOT / "cpf-docs/work/CPF_DELETE_ONE_LINE.ps1.txt"
+DELETE_ONE_LINE = ROOT / "cpf-docs/work/CPF_DELETE_ONE_LINE.ps1.log"
 ARTIFACT_CATALOG = ROOT / "cpf-tools/release/cpf-final-artifact-catalog.json"
 REQUIREMENT_MATRIX = ROOT / "cpf-docs/work/CPF_REQUIREMENT_MATRIX.csv"
 SCENARIO_MATRIX = ROOT / "cpf-docs/work/CPF_SCENARIO_MATRIX.csv"
@@ -191,7 +191,7 @@ def validate_policy_contract(data: dict[str, Any], label: str) -> None:
             fail(f"{label} {key} must be FAIL_CLOSED")
 
 
-def validate_canonical_catalogs() -> tuple[dict[str, Any], dict[str, Any], list[str]]:
+def validate_canonical_catalogs() -> tuple[dict[str, Any], dict[str, Any], list[str], bool]:
     catalog = load_json(CATALOG)
     profiles = load_json(PROFILES)
     if catalog.get("publicProfiles") != EXPECTED_PROFILES:
@@ -322,6 +322,42 @@ def validate_canonical_catalogs() -> tuple[dict[str, Any], dict[str, Any], list[
     leaked = sorted(removed_ids.intersection(artifact_ids))
     if leaked:
         fail(f"removed artifacts remain in canonical catalog: {leaked}")
+
+    retained_rows = catalog.get("retainedInactiveRoots") or []
+    retained_required = {
+        "path", "artifactId", "replacementArtifactId", "replacementOwnerPath", "status",
+        "active", "includeInSettings", "publishable", "consumerAllowed", "approvalRequired",
+    }
+    retained_paths: set[str] = set()
+    retained_ids: set[str] = set()
+    for retained in retained_rows:
+        missing_fields = sorted(retained_required - set(retained))
+        if missing_fields:
+            fail(f"retained inactive root fields missing: {missing_fields}: {retained}")
+        path = str(retained["path"]).replace("\\", "/").rstrip("/")
+        artifact_id = str(retained["artifactId"])
+        if path in retained_paths or artifact_id in retained_ids:
+            fail(f"duplicate retained inactive root: {retained}")
+        retained_paths.add(path); retained_ids.add(artifact_id)
+        expected = {
+            "status": "PENDING_USER_DELETE_APPROVAL", "active": False,
+            "includeInSettings": False, "publishable": False,
+            "consumerAllowed": False, "approvalRequired": True,
+        }
+        if any(retained.get(key) != value for key, value in expected.items()):
+            fail(f"retained inactive root is not fail-closed: {retained}")
+        if retained.get("replacementArtifactId") not in artifact_ids:
+            fail(f"retained replacement artifact is not active: {retained}")
+        if retained.get("replacementOwnerPath") not in owner_paths:
+            fail(f"retained replacement owner path is not active: {retained}")
+    active_paths = set(owner_paths)
+    active_ids = set(artifact_ids)
+    removed_roots = {str(path).replace("\\", "/").rstrip("/") for path in catalog.get("removedRepositoryRoots", [])}
+    if active_paths & retained_paths or active_paths & removed_roots or retained_paths & removed_roots:
+        fail(f"active/retained/removed root sets overlap: active-retained={sorted(active_paths & retained_paths)}, active-removed={sorted(active_paths & removed_roots)}, retained-removed={sorted(retained_paths & removed_roots)}")
+    if active_ids & retained_ids or active_ids & removed_ids:
+        fail(f"active/retained/removed artifact sets overlap: active-retained={sorted(active_ids & retained_ids)}, active-removed={sorted(active_ids & removed_ids)}")
+
     full_repository = (ROOT / "cpf-core/build.gradle").is_file() and (ROOT / "cpf-common/build.gradle").is_file()
     missing_module_builds = []
     for module in modules:
@@ -332,6 +368,23 @@ def validate_canonical_catalogs() -> tuple[dict[str, Any], dict[str, Any], list[
         fail(f"catalog modules have no build.gradle: {missing_module_builds}")
     if not full_repository and missing_module_builds:
         print(f"[CPF][QA39][OVERLAY] deferred module existence checks={len(missing_module_builds)}")
+    if full_repository:
+        physical_paths = {
+            path.parent.relative_to(ROOT).as_posix()
+            for path in (ROOT / "cpf-starters").rglob("build.gradle")
+            if "build" not in path.parent.relative_to(ROOT / "cpf-starters").parts
+        }
+        expected_physical = active_paths | retained_paths
+        missing_physical = sorted(expected_physical - physical_paths)
+        extra_physical = sorted(physical_paths - expected_physical)
+        if missing_physical or extra_physical:
+            fail(f"physical Starter closure mismatch: missing={missing_physical}, extra={extra_physical}, retained={sorted(retained_paths)}")
+        missing_retained = sorted(path for path in retained_paths if not (ROOT / path / "build.gradle").is_file())
+        if missing_retained:
+            fail(f"retained inactive roots must remain until deletion approval: {missing_retained}")
+        present_removed = sorted(path for path in removed_roots if (ROOT / path).exists())
+        if present_removed:
+            fail(f"removed repository roots still exist: {present_removed}")
 
     settings = (ROOT / "settings.gradle").read_text(encoding="utf-8")
     if "cpf-starter-catalog.json" not in settings or "JsonSlurper" not in settings:
@@ -353,9 +406,16 @@ def validate_canonical_catalogs() -> tuple[dict[str, Any], dict[str, Any], list[
         item.get("artifactId"): item
         for item in artifact_catalog.get("artifacts", []) if item.get("artifactId")
     }
-    missing = sorted(set(canonical_artifacts) - set(release_artifacts))
-    if missing:
-        fail(f"release catalog omits canonical Starter artifacts: {missing}")
+    starter_kinds = {"starter-profile", "internal-starter"}
+    release_starter_rows = [item for item in artifact_catalog.get("artifacts", []) if item.get("kind") in starter_kinds]
+    release_starter_ids = [item.get("artifactId") for item in release_starter_rows]
+    duplicate_release_ids = sorted({artifact_id for artifact_id in release_starter_ids if not artifact_id or release_starter_ids.count(artifact_id) > 1})
+    if duplicate_release_ids:
+        fail(f"duplicate/blank release Starter IDs: {duplicate_release_ids}")
+    missing = sorted(set(canonical_artifacts) - set(release_starter_ids))
+    extra = sorted(set(release_starter_ids) - set(canonical_artifacts))
+    if missing or extra:
+        fail(f"release/canonical active Starter exact-set mismatch: missing={missing}, extra={extra}")
     drift = []
     for artifact_id, module in canonical_artifacts.items():
         release = release_artifacts[artifact_id]
@@ -366,14 +426,11 @@ def validate_canonical_catalogs() -> tuple[dict[str, Any], dict[str, Any], list[
                 drift.append((artifact_id, field, module.get(field), release.get(field)))
     if drift:
         fail(f"release/canonical Starter metadata drift: {drift}")
-    unexpected_starters = sorted(
-        artifact_id for artifact_id in release_artifacts
-        if artifact_id.startswith("cpf-starter-")
-        and artifact_id not in canonical_artifacts
-        and artifact_id not in removed_ids
-    )
-    if unexpected_starters:
-        fail(f"release catalog exposes non-canonical Starter artifacts: {unexpected_starters}")
+    removed_release_leak = sorted(removed_ids.intersection(release_starter_ids))
+    if removed_release_leak:
+        fail(f"release catalog exposes removed Starter artifacts: {removed_release_leak}")
+    if artifact_catalog.get("retainedInactiveRoots") != retained_rows:
+        fail("release/canonical retained inactive root contract drift")
     if set(artifact_catalog.get("removedArtifactIds", [])) != removed_ids:
         fail("release/canonical removed artifact IDs drift")
     if artifact_catalog.get("removedRepositoryRoots") != catalog.get("removedRepositoryRoots"):
@@ -382,7 +439,7 @@ def validate_canonical_catalogs() -> tuple[dict[str, Any], dict[str, Any], list[
     root_build = (ROOT / "build.gradle").read_text(encoding="utf-8")
     if "checkQa39CanonicalStarterClosure" not in root_build or "qualityGate" not in root_build:
         fail("root qualityGate is not connected to QA39 canonical closure")
-    return catalog, profiles, sorted(removed_ids)
+    return catalog, profiles, sorted(removed_ids), full_repository
 
 
 
@@ -1135,7 +1192,7 @@ def validate_completion_matrices() -> tuple[int, int]:
     return len(rows), len(scenarios)
 
 def main() -> None:
-    catalog, profiles, removed_ids = validate_canonical_catalogs()
+    catalog, profiles, removed_ids, full_repository = validate_canonical_catalogs()
     validate_resolution_semantics(profiles)
     validate_generator_and_enforcement()
     validate_dependency_graph_and_ownership(catalog)
@@ -1143,12 +1200,16 @@ def main() -> None:
     delete_paths = validate_delete_closure(catalog, removed_ids)
     generated_domains = validate_generated_domains()
     requirement_count, scenario_count = validate_completion_matrices()
-    print(
-        "[CPF][QA39][PASS] "
+    summary = (
         f"profiles={len(EXPECTED_PROFILES)}, groups={len(EXPECTED_GROUPS)}, "
-        f"modules={len(catalog.get('modules', []))}, deletePaths={len(delete_paths)}, "
-        f"generatedDomains={generated_domains}, requirements={requirement_count}, scenarios={scenario_count}"
+        f"modules={len(catalog.get('modules', []))}, retained={len(catalog.get('retainedInactiveRoots') or [])}, "
+        f"deletePaths={len(delete_paths)}, generatedDomains={generated_domains}, "
+        f"requirements={requirement_count}, scenarios={scenario_count}"
     )
+    if not full_repository:
+        print(f"[CPF][QA39][PARTIAL] {summary}; full repository physical/build closure NOT_EXECUTED")
+        raise SystemExit(3)
+    print(f"[CPF][QA39][PASS] {summary}; full repository closure executed")
 
 
 if __name__ == "__main__":

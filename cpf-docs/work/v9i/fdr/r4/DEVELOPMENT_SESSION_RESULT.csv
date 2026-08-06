@@ -1,0 +1,2 @@
+﻿session_id,baseline_sha,source_sessions,source_result_files,source_capture_files,total_exact_ids,completed_exact_ids,self_review_completed_exact_ids,integration_target_exact_ids,target_runtime_reexecution_tracked,request_total,request_closed_devgpt,request_external_ready,development_status,verification_status,evidence_ref,updated_at
+DEVGPT-V9-REV004-R4,a8be27a34bdac0b7c075e06d6e86571244c96421,6,82,36,47745,47745,47745,18120,2618,32,30,2,재확인 필요,미검증,cpf-docs/work/v9i/fdr/r4/TEST_AND_EVIDENCE.md,2026-08-06T19:33:22+09:00

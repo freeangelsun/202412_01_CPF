@@ -4,6 +4,7 @@ package com.cpf.common.data.quality;
 import com.cpf.core.api.data.quality.CpfDataQualityDecision;
 import com.cpf.core.api.data.quality.CpfDataQualityOperations;
 import com.cpf.core.api.data.quality.CpfDataQualityRule;
+import com.cpf.core.spi.data.quality.CpfDataQualityCorrectionPort;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -18,7 +19,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.regex.Pattern;
 
 /** Deterministic reference implementation for rule lifecycle, quarantine, approved correction, replay and reconcile. */
-public final class InMemoryCpfDataQualityOperations implements CpfDataQualityOperations {
+public final class InMemoryCpfDataQualityOperations implements CpfDataQualityOperations, CpfDataQualityCorrectionPort {
     public record Audit(
             Instant at,
             String actor,
@@ -84,48 +85,27 @@ public final class InMemoryCpfDataQualityOperations implements CpfDataQualityOpe
     }
 
     @Override
-    public QuarantineItem correctAuthorized(
-            String id,
-            long expectedVersion,
-            Map<String, Object> corrected,
-            String actor,
-            String reason,
-            CorrectionAuthorization authorization) {
-        require(actor, "actor");
-        require(reason, "reason");
-        if (authorization == null) {
-            throw new SecurityException("server approval authorization is required");
+    public QuarantineItem correctApproved(ApprovedCorrection command) {
+        if (command == null) throw new SecurityException("approved owner command is required");
+        String actor = require(command.actorId(), "actor");
+        String reason = require(command.reason(), "reason");
+        if (command.approvalExecutionReference() == null || command.approvalExecutionReference().isBlank()
+                || command.approvedAt() == null) {
+            throw new SecurityException("server approval execution metadata is required");
         }
-        if (!actor.equals(authorization.approvedBy())) {
-            throw new SecurityException("approvedBy must match the correction actor");
-        }
-        if (corrected == null || corrected.isEmpty()) {
-            throw new IllegalArgumentException("corrected payload is required");
-        }
-        return quarantine.compute(id, (key, old) -> {
-            if (old == null) throw new NoSuchElementException(id);
+        return quarantine.compute(command.quarantineId(), (key, old) -> {
+            if (old == null) throw new NoSuchElementException(command.quarantineId());
             if (!"QUARANTINED".equals(old.state())) {
                 throw new IllegalStateException("only QUARANTINED data can be corrected");
             }
-            if (old.version() != expectedVersion) {
+            if (old.version() != command.expectedVersion()) {
                 throw new ConcurrentModificationException("quarantine version conflict");
             }
             QuarantineItem next = new QuarantineItem(
-                    id,
-                    old.recordId(),
-                    old.original(),
-                    Map.copyOf(corrected),
-                    "CORRECTED",
-                    old.version() + 1,
-                    old.violations());
-            audit.add(new Audit(
-                    Instant.now(),
-                    actor,
-                    "CORRECT",
-                    id,
-                    reason,
-                    authorization.approvalReference(),
-                    next.version()));
+                    command.quarantineId(), old.recordId(), old.original(),
+                    Map.copyOf(command.corrected()), "CORRECTED", old.version() + 1, old.violations());
+            audit.add(new Audit(Instant.now(), actor, "CORRECT", command.quarantineId(), reason,
+                    command.approvalExecutionReference(), next.version()));
             return next;
         });
     }
@@ -183,7 +163,8 @@ public final class InMemoryCpfDataQualityOperations implements CpfDataQualityOpe
         throw new IllegalArgumentException("Unsupported rule expression: " + expression);
     }
 
-    private static void require(String value, String field) {
+    private static String require(String value, String field) {
         if (value == null || value.isBlank()) throw new IllegalArgumentException(field + " required");
+        return value.trim();
     }
 }

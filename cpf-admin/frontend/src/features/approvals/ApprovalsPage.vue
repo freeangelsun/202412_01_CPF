@@ -30,7 +30,7 @@
         <label>사유 <input v-model.trim="approvalEngine.reason"></label>
       </div>
       <div class="form-grid"><label class="wide">Owner Payload Snapshot JSON<textarea v-model="approvalEngine.payloadSnapshot" rows="5" spellcheck="false"></textarea></label></div>
-      <div class="actions"><button @click="createApprovalEngineRequest">승인 요청</button><button @click="loadApprovalEngineRequest">요청 상세</button><button @click="decideApprovalEngineRequest">승인/반려</button><button class="primary" @click="executeApprovalEngineRequest">Owner Command 실행</button></div>
+      <div class="actions"><button @click="createApprovalEngineRequest">승인 요청</button><button @click="loadApprovalEngineRequest">요청 상세</button><button @click="decideApprovalEngineRequest">승인/반려</button><button class="primary" @click="executeApprovalEngineRequest">Owner Command 실행</button><button @click="reconcileApprovalEngineRequest">UNKNOWN Reconcile</button></div>
       <CpfStructuredData class="detail" :value="approvalEngineResult" />
     </section>
 
@@ -100,7 +100,8 @@ export default defineComponent({
     async createApprovalEngineRequest(){await this.runApprovalEngine(async()=>{JSON.parse(this.approvalEngine.payloadSnapshot);const result=await admInvokeOperation<Record<string,unknown>>("admApprovalRequest",{body:{requestKey:this.approvalEngine.requestKey,policyCode:this.approvalEngine.policyCode||null,policyVersion:this.approvalEngine.policyCode?this.approvalEngine.policyVersion:null,actionType:this.approvalEngine.actionType,ownerModule:this.approvalEngine.ownerModule,ownerCommand:this.approvalEngine.ownerCommand,targetType:this.approvalEngine.targetType,targetId:this.approvalEngine.targetId,payloadSnapshot:this.approvalEngine.payloadSnapshot,expireAt:this.approvalEngine.expireAt||null,reason:this.approvalEngine.reason}});this.approvalEngine.requestId=String(result.approvalRequestId??result.requestId??result.id??this.approvalEngine.requestId);return result;});},
     async loadApprovalEngineRequest(){if(!this.approvalEngine.requestId){this.approvalEngineError="Request ID가 필요합니다.";return;}await this.runApprovalEngine(()=>admInvokeOperation("admApprovalRequestDetail",{path:{id:this.approvalEngine.requestId}}));},
     async decideApprovalEngineRequest(){if(!this.approvalEngine.requestId){this.approvalEngineError="Request ID가 필요합니다.";return;}await this.runApprovalEngine(()=>admInvokeOperation("admApprovalDecision",{path:{id:this.approvalEngine.requestId},body:{action:this.approvalEngine.decision,idempotencyKey:this.approvalEngine.idempotencyKey,reason:this.approvalEngine.reason}}));},
-    async executeApprovalEngineRequest(){if(!this.approvalEngine.requestId){this.approvalEngineError="Request ID가 필요합니다.";return;}await this.runApprovalEngine(()=>admInvokeOperation("admApprovalExecute",{path:{id:this.approvalEngine.requestId},query:{reason:this.approvalEngine.reason}}));}
+    async executeApprovalEngineRequest(){if(!this.approvalEngine.requestId){this.approvalEngineError="Request ID가 필요합니다.";return;}if(!window.confirm(`승인 요청 ${this.approvalEngine.requestId}의 Owner Command를 실행하시겠습니까?`))return;await this.runApprovalEngine(()=>admInvokeOperation("admApprovalExecute",{path:{id:this.approvalEngine.requestId},query:{reason:this.approvalEngine.reason}}));},
+    async reconcileApprovalEngineRequest(){if(!this.approvalEngine.requestId){this.approvalEngineError="Request ID가 필요합니다.";return;}if(!window.confirm(`UNKNOWN 승인 요청 ${this.approvalEngine.requestId}의 Owner 상태만 대조하시겠습니까? Mutation은 재실행하지 않습니다.`))return;await this.runApprovalEngine(()=>admInvokeOperation("admApprovalReconcile",{path:{id:this.approvalEngine.requestId},query:{reason:this.approvalEngine.reason}}));}
   }
 });
 </script>

@@ -1,0 +1,2 @@
+﻿path,delete_requested,approved,protected_path,replacement,reason,action_taken,required_decision
+cpf-starters/openapi-webmvc,Y,N,N,cpf-starters/profiles/web-api,Inactive retained legacy starter; canonical active profile is cpf-starter-profile-web-api,NONE_RETAINED_PENDING_USER_APPROVAL,User/QA explicit path-level deletion approval before any deletion

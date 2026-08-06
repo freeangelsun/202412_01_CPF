@@ -1,0 +1,3 @@
+===== qa34_synthetic =====
+CPF canonical build contract: PASS modules=39 public=6 internal=33
+EXIT_CODE=0

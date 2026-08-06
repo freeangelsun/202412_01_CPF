@@ -1,15 +1,16 @@
 package com.cpf.admin.approval.service;
 
 import com.cpf.admin.approval.repository.AdmApprovalRepository;
+import com.cpf.admin.approval.security.AdmApprovalSnapshotIntegrity;
 import com.cpf.admin.approval.spi.AdmApprovalDirectoryEntry;
 import com.cpf.admin.approval.api.AdmApprovalTargetType;
-import com.cpf.core.api.batch.CpfBatchRiskCommand;
 import com.cpf.core.api.error.CpfValidationException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -141,10 +142,14 @@ class AdmApprovalServiceIdempotencyTest {
 
         service.requestApproval(request, "requester-a");
 
+        org.mockito.ArgumentCaptor<Map<String,Object>> inserted = org.mockito.ArgumentCaptor.forClass(Map.class);
         org.mockito.ArgumentCaptor<String> hash = org.mockito.ArgumentCaptor.forClass(String.class);
         org.mockito.ArgumentCaptor<String> snapshot = org.mockito.ArgumentCaptor.forClass(String.class);
+        verify(repository).insertRequest(inserted.capture());
         verify(repository).updateCommandSnapshot(eq(42L), eq(0L), hash.capture(), snapshot.capture(), eq("requester-a"));
-        assertThat(hash.getValue()).isEqualTo(batCenterCutHash(42L, "REQ-CC-1", "EX-9"));
+        Map<String,Object> expectedEnvelope = new LinkedHashMap<>(inserted.getValue());
+        expectedEnvelope.put("payloadSnapshot", snapshot.getValue());
+        assertThat(hash.getValue()).isEqualTo(new AdmApprovalSnapshotIntegrity(new ObjectMapper()).hash(expectedEnvelope));
         assertThat(snapshot.getValue()).contains("\"operation\":\"reprocessCenterCutFailed\"")
                 .contains("\"approvalRequestId\":\"42\"")
                 .contains("\"idempotencyKey\":\"REQ-CC-1\"");
@@ -165,49 +170,34 @@ class AdmApprovalServiceIdempotencyTest {
         verify(repository, never()).insertRequest(anyMap());
     }
 
-    private static Map<String,Object> storedRequest(Instant expiry, String payloadHash) {
-        return Map.ofEntries(
-                Map.entry("approvalRequestId", 42L),
-                Map.entry("requestKey", "REQ-1"),
-                Map.entry("policyCode", "POLICY"),
-                Map.entry("policyVersion", 1),
-                Map.entry("actionType", "DRAIN"),
-                Map.entry("ownerModule", "BAT"),
-                Map.entry("ownerCommand", "DRAIN"),
-                Map.entry("targetType", "INSTANCE"),
-                Map.entry("targetId", "runtime-01"),
-                Map.entry("requestedBy", "requester-a"),
-                Map.entry("requestReason", "maintenance"),
-                Map.entry("payloadHash", payloadHash),
-                Map.entry("payloadSnapshot", "{\"force\":false}"),
-                Map.entry("approvalStatus", "PENDING"),
-                Map.entry("currentStepNo", 1),
-                Map.entry("expireAt", Timestamp.from(expiry)),
-                Map.entry("transactionId", "20260805000000000ADMapproval000001"),
-                Map.entry("versionNo", 1L));
+    private static Map<String,Object> storedRequest(Instant expiry, String ignoredLegacyHash) {
+        Map<String,Object> stored = new LinkedHashMap<>();
+        stored.put("approvalRequestId", 42L);
+        stored.put("requestKey", "REQ-1");
+        stored.put("policyCode", "POLICY");
+        stored.put("policyVersion", 1);
+        stored.put("actionType", "DRAIN");
+        stored.put("ownerModule", "BAT");
+        stored.put("ownerCommand", "DRAIN");
+        stored.put("targetType", "INSTANCE");
+        stored.put("targetId", "runtime-01");
+        stored.put("requestedBy", "requester-a");
+        stored.put("requestReason", "maintenance");
+        stored.put("payloadSnapshot", "{\"operation\":\"DRAIN\",\"targetType\":\"INSTANCE\",\"targetId\":\"runtime-01\",\"actionType\":\"DRAIN\",\"requestUser\":\"requester-a\",\"reason\":\"maintenance\",\"approvalRequestId\":\"42\",\"idempotencyKey\":\"REQ-1\",\"expectedVersion\":null,\"payload\":\"\"}");
+        stored.put("approvalStatus", "PENDING");
+        stored.put("currentStepNo", 1);
+        stored.put("expireAt", Timestamp.from(expiry));
+        stored.put("transactionId", "20260805000000000ADMapproval000001");
+        stored.put("versionNo", 1L);
+        stored.put("payloadHash", new AdmApprovalSnapshotIntegrity(new ObjectMapper()).hash(stored));
+        return stored;
     }
 
-
     private static String batHash(long requestId, String targetId, String ignoredPayload) {
-        return new CpfBatchRiskCommand(
-                "DRAIN", "INSTANCE", targetId, "DRAIN", "requester-a", "maintenance",
-                String.valueOf(requestId), "REQ-1", null, "").fingerprint();
+        return "legacy-hash-not-used";
     }
 
     private static String batCenterCutHash(long requestId, String requestKey, String executionId) {
-        return new CpfBatchRiskCommand(
-                "reprocessCenterCutFailed", "center_cut_execution", executionId,
-                "CENTER_CUT_REPROCESS_FAILED", "requester-a", "incident recovery",
-                String.valueOf(requestId), requestKey, null, "").fingerprint();
-    }
-
-    private static String sha256(String value) {
-        try {
-            return java.util.HexFormat.of().formatHex(
-                    java.security.MessageDigest.getInstance("SHA-256")
-                            .digest(value.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
-        } catch (java.security.GeneralSecurityException e) {
-            throw new IllegalStateException(e);
-        }
+        return "legacy-hash-not-used";
     }
 }

@@ -57,10 +57,11 @@ export const admRouteOperationContract = {
   "security": ["admSecurityDisableMfa","admSecurityFindIpAllowlist","admSecurityFindMfaStates","admSecurityRegisterMfa","admSecuritySaveIpAllowlist","admSecurityVerifyMfa"],
   "operators": ["admOperatorCreateOperator","admOperatorFindMenus","admOperatorFindOperators","admOperatorFindRoles","admOperatorFindSessions","admOperatorUnlockOperator","admOperatorUpdateContact","admOperatorUpdateRoles","admOperatorUpdateStatus"],
   "secrets": ["admSecretFindMetadata","admSecretFindProviders","admSecretRotate"],
-  "approvals": ["admApprovalDecision","admApprovalExecute","admApprovalPolicies","admApprovalPolicyDetail","admApprovalPolicySave","admApprovalRequest","admApprovalRequestDetail","admBreakGlassFindSessions","admBreakGlassReviewSession","admRuntimeControlFindByOperation","admRuntimeControlFindChange"],
+  "approvals": ["admApprovalDecision","admApprovalExecute","admApprovalReconcile","admApprovalPolicies","admApprovalPolicyDetail","admApprovalPolicySave","admApprovalRequest","admApprovalRequestDetail","admBreakGlassFindSessions","admBreakGlassReviewSession","admRuntimeControlFindByOperation","admRuntimeControlFindChange"],
   "breakGlass": ["admBreakGlassCloseSession","admBreakGlassFindSessions","admBreakGlassOpenSession","admBreakGlassReviewSession"],
   "featureFlags": ["admFeatureFlagApproveOverride","admFeatureFlagEvaluate","admFeatureFlagFind","admFeatureFlagRequestOverride","admFeatureFlagRevokeOverride","admFeatureFlagSearch","admFeatureFlagSetKillSwitch"],
   "openApiOperations": ["admOpenApiRefresh","admOpenApiStatus"],
-  "resiliencePolicies": ["admResiliencePolicyApprove","admResiliencePolicyFind","admResiliencePolicyReject","admResiliencePolicyRequest","admResiliencePolicySearch"]
+  "resiliencePolicies": ["admResiliencePolicyApprove","admResiliencePolicyFind","admResiliencePolicyReject","admResiliencePolicyRequest","admResiliencePolicySearch"],
+  "integrationClosure": ["admIntegrationCryptoStatus","admIntegrationTimeHealth","admIntegrationDataQualityValidate","admIntegrationDataQualityCorrectionApprovalRequest","admIntegrationDataQualityCorrectionExecute","admIntegrationDataQualityReplay","admIntegrationWebhookDlq","admIntegrationWebhookReplay"],
 } as const;
 export type AdmRouteOperationContract = typeof admRouteOperationContract;

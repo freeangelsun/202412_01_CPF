@@ -1,0 +1,3 @@
+===== starter_synthetic_full =====
+PASS modules=39 public=6 internal=33 retained=1; physical repository closure executed
+EXIT_CODE=0

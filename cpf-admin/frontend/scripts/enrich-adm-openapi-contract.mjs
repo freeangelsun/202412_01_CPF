@@ -11,6 +11,15 @@ const spec = JSON.parse(fs.readFileSync(sourcePath, "utf8"));
 const paths = spec.paths || {};
 const components = spec.components ||= {};
 const schemas = components.schemas ||= {};
+const securitySchemes = components.securitySchemes ||= {};
+securitySchemes.admSessionCookie ||= {
+  type: "apiKey", in: "cookie", name: "JSESSIONID",
+  description: "Authenticated ADM Browser BFF session cookie. Browser JavaScript never reads this HttpOnly cookie."
+};
+securitySchemes.admCsrfHeader ||= {
+  type: "apiKey", in: "header", name: "X-XSRF-TOKEN",
+  description: "CSRF token paired with the same-origin XSRF-TOKEN cookie for state-changing ADM requests."
+};
 
 function ensureOperation(route, method, operationId, summary) {
   const item = paths[route] ||= {};
@@ -64,6 +73,48 @@ function apply(operationId, contract) {
   if (contract.requestBody) target.requestBody = requestBody(contract.requestBody);
   else delete target.requestBody;
   target["x-cpf-contract-source"] = "ADM_CONTROLLER_EXPLICIT";
+}
+function secure(operationId, csrf = false) {
+  const target = operation(operationId).value;
+  target.security = csrf
+    ? [{ admSessionCookie: [], admCsrfHeader: [] }]
+    : [{ admSessionCookie: [] }];
+  target["x-cpf-browser-auth"] = csrf ? "SESSION_COOKIE_AND_CSRF" : "SESSION_COOKIE";
+  target["x-cpf-bearer-token-accepted"] = false;
+}
+function addStandardResponses(operationId) {
+  const target = operation(operationId).value;
+  target.responses ||= {};
+  const descriptions = {
+    "400": "Invalid request",
+    "401": "ADM session is missing or expired",
+    "403": "Permission or CSRF validation failed",
+    "404": "Target does not exist",
+    "409": "Optimistic version or execution-state conflict",
+    "429": "Rate limit exceeded",
+    "500": "Unexpected server error",
+    "503": "Required provider is unavailable"
+  };
+  for (const [status, description] of Object.entries(descriptions)) {
+    target.responses[status] ||= {
+      description,
+      content: { "application/json": { schema: { $ref: "#/components/schemas/CpfControllerSourceResponse" } } }
+    };
+  }
+}
+function standardOperationalErrors(operationId) {
+  const target = operation(operationId).value;
+  target.responses ||= {};
+  const response = description => ({
+    description,
+    content: { "application/json": { schema: { $ref: "#/components/schemas/CpfControllerSourceResponse" } } }
+  });
+  for (const [status, description] of Object.entries({
+    "400": "Invalid request", "401": "Authentication required or session expired",
+    "403": "Permission or CSRF denied", "404": "Target not found",
+    "409": "Optimistic version or state conflict", "429": "Rate limited",
+    "500": "Internal error", "503": "Service unavailable"
+  })) target.responses[status] ||= response(description);
 }
 function objectSchema(required, properties, description) {
   return { type: "object", additionalProperties: false, required, properties, description };
@@ -259,6 +310,25 @@ schemas.AdmOpenApiRefreshRequest = objectSchema(
   "Audited OpenAPI route inventory refresh request. The authenticated operator is resolved from the server session."
 );
 
+schemas.AdmIntegrationRecord = {
+  type: "object", additionalProperties: true,
+  description: "Business record submitted for server-side data-quality validation."
+};
+schemas.AdmIntegrationCorrectionApprovalRequest = objectSchema(
+  ["expectedVersion", "idempotencyKey", "reason", "corrected"],
+  {
+    expectedVersion: { type: "integer", format: "int64", minimum: 1 },
+    idempotencyKey: { type: "string", minLength: 1, maxLength: 200 },
+    reason: reasonProperty,
+    corrected: { type: "object", minProperties: 1, additionalProperties: true }
+  },
+  "Immutable correction draft. The server binds the authenticated requester and stores a canonical SHA-256 snapshot."
+);
+schemas.AdmIntegrationCorrectionExecutionRequest = objectSchema(
+  ["reason"], { reason: reasonProperty },
+  "Execution reason only. Approval identity, target, payload and actor are resolved from the server ledger."
+);
+
 // Canonical public types referenced by controller-local request records.
 schemas.RecoveryTarget = { type: "string", enum: ["TRANSACTION", "SEGMENT"], description: "Trace recovery target." };
 schemas.CpfLogLevel = { type: "string", enum: ["TRACE", "DEBUG", "INFO", "WARN", "ERROR"], description: "CPF log level." };
@@ -297,6 +367,15 @@ schemas.CpfRuntimeActualState = objectSchema(
 
 ensureOperation("/adm/api/openapi/status", "get", "admOpenApiStatus", "OpenAPI Web MVC status");
 ensureOperation("/adm/api/openapi/refresh", "post", "admOpenApiRefresh", "Refresh OpenAPI Web MVC route inventory");
+ensureOperation("/adm/api/integration-closure/crypto/status", "get", "admIntegrationCryptoStatus", "Encryption provider and active-key status");
+ensureOperation("/adm/api/integration-closure/time/health", "get", "admIntegrationTimeHealth", "UTC, business-zone and clock-skew health");
+ensureOperation("/adm/api/integration-closure/data-quality/validate/{recordId}", "post", "admIntegrationDataQualityValidate", "Validate a data-quality record");
+ensureOperation("/adm/api/integration-closure/data-quality/quarantine/{id}/correction-approvals", "post", "admIntegrationDataQualityCorrectionApprovalRequest", "Request immutable correction approval");
+ensureOperation("/adm/api/integration-closure/data-quality/correction-approvals/{approvalRequestId}/execute", "post", "admIntegrationDataQualityCorrectionExecute", "Execute a server-approved correction once");
+ensureOperation("/adm/api/integration-closure/data-quality/quarantine/{id}/replay", "post", "admIntegrationDataQualityReplay", "Replay a corrected quarantine record");
+ensureOperation("/adm/api/integration-closure/webhooks/dlq", "get", "admIntegrationWebhookDlq", "List Webhook DLQ rows");
+ensureOperation("/adm/api/integration-closure/webhooks/{id}/replay", "post", "admIntegrationWebhookReplay", "Replay a Webhook DLQ or UNKNOWN row");
+ensureOperation("/adm/api/approvals/requests/{id}/reconcile", "post", "admApprovalReconcile", "Reconcile an UNKNOWN approval execution without replaying the mutation");
 
 const limit = query("limit", { type: "integer", format: "int32", minimum: 1, maximum: 500, default: 100 }, false, "Maximum number of rows");
 const expectedVersion = query("expectedVersion", { type: "integer", format: "int64", minimum: 0 }, true, "Optimistic-lock version");
@@ -367,11 +446,46 @@ apply("admResiliencePolicyReject", { parameters: [riskConfirmed], requestBody: "
 apply("admOpenApiStatus", {});
 apply("admOpenApiRefresh", { parameters: [riskConfirmed], requestBody: "AdmOpenApiRefreshRequest" });
 
+apply("admIntegrationCryptoStatus", {});
+apply("admIntegrationTimeHealth", { parameters: [
+  query("zone", { type: "string", default: "Asia/Seoul" }, false),
+  query("maxSkewMillis", { type: "integer", format: "int64", minimum: 0, default: 1000 }, false)
+] });
+apply("admIntegrationDataQualityValidate", { requestBody: "AdmIntegrationRecord" });
+apply("admIntegrationDataQualityCorrectionApprovalRequest", { requestBody: "AdmIntegrationCorrectionApprovalRequest" });
+apply("admIntegrationDataQualityCorrectionExecute", { requestBody: "AdmIntegrationCorrectionExecutionRequest" });
+apply("admIntegrationDataQualityReplay", { parameters: [reason] });
+apply("admIntegrationWebhookDlq", { parameters: [limit] });
+apply("admIntegrationWebhookReplay", { parameters: [expectedVersion, reason] });
+apply("admApprovalReconcile", { parameters: [reason] });
+operation("admApprovalReconcile").value.description = "Owner 상태를 조회해 Side Effect를 확정하며 Mutation을 자동 재실행하지 않습니다.";
+secure("admApprovalReconcile", true);
+addStandardResponses("admApprovalReconcile");
+standardOperationalErrors("admApprovalReconcile");
+for (const operationId of ["admIntegrationCryptoStatus", "admIntegrationTimeHealth", "admIntegrationWebhookDlq"]) secure(operationId, false);
+for (const operationId of [
+  "admIntegrationDataQualityValidate", "admIntegrationDataQualityCorrectionApprovalRequest",
+  "admIntegrationDataQualityCorrectionExecute", "admIntegrationDataQualityReplay", "admIntegrationWebhookReplay"
+]) secure(operationId, true);
+for (const operationId of [
+  "admIntegrationCryptoStatus", "admIntegrationTimeHealth", "admIntegrationDataQualityValidate",
+  "admIntegrationDataQualityCorrectionApprovalRequest", "admIntegrationDataQualityCorrectionExecute",
+  "admIntegrationDataQualityReplay", "admIntegrationWebhookDlq", "admIntegrationWebhookReplay"
+]) addStandardResponses(operationId);
+for (const operationId of [
+  "admIntegrationCryptoStatus", "admIntegrationTimeHealth", "admIntegrationDataQualityValidate",
+  "admIntegrationDataQualityCorrectionApprovalRequest", "admIntegrationDataQualityCorrectionExecute",
+  "admIntegrationDataQualityReplay", "admIntegrationWebhookDlq", "admIntegrationWebhookReplay"
+]) standardOperationalErrors(operationId);
+
 // The source DTO contains requestUser for legacy compatibility, but the controller ignores it and
 // binds the authenticated operator. Keep the public generated contract free from actor spoofing.
 apply("requestAdmBrokerDlqReplay", { requestBody: "AdmReliabilityActionRequest" });
 
-spec["x-cpf-adm-explicit-contract-version"] = 6;
+spec["x-cpf-adm-explicit-contract-version"] = 8;
+spec["x-cpf-openapi-operation-count"] = Object.values(spec.paths || {}).reduce((count, item) =>
+  count + Object.entries(item || {}).filter(([method, value]) =>
+    ["get", "post", "put", "patch", "delete", "head", "options", "trace"].includes(method) && value?.operationId).length, 0);
 const canonical = JSON.stringify(spec, null, 2) + "\n";
 fs.mkdirSync(path.dirname(outputPath), { recursive: true });
 fs.writeFileSync(outputPath, canonical);

@@ -12,12 +12,11 @@ protected = (
     'cpf-tools/environment/docker-development-test/',
 )
 
-# File hygiene and protected paths.
+# File hygiene. Protected path presence is valid in a full checkout; modification safety is
+# enforced by the overlay manifest/diff gate instead of falsely rejecting canonical manuals.
 files = [p for p in R.rglob('*') if p.is_file()]
 for p in files:
     rel = p.relative_to(R).as_posix()
-    if any(rel.startswith(prefix) for prefix in protected):
-        errors.append(f'protected path included: {rel}')
     if rel.endswith(('.log', '.tmp', '.bak', '.orig', '.rej', '.pyc')):
         errors.append(f'generated/temporary file included: {rel}')
     if p.stat().st_size == 0:
@@ -49,6 +48,18 @@ mappings = {
     name.lstrip(':'): path
     for name, path in re.findall(r"project\('(:[^']+)'\)\.projectDir\s*=\s*file\('([^']+)'\)", settings_no_comments)
 }
+starter_catalog_path = R / 'cpf-tools/generator/contracts/cpf-starter-catalog.json'
+starter_catalog = json.loads(starter_catalog_path.read_text(encoding='utf-8'))
+starter_modules = starter_catalog.get('modules') or []
+catalog_projects = {
+    str(module.get('projectPath', '')).lstrip(':'): str(module.get('ownerPath', '')).replace('\\', '/').rstrip('/')
+    for module in starter_modules
+}
+# settings.gradle includes canonical modules dynamically; use the canonical rows only after verifying the dynamic fail-closed gate exists.
+if 'cpfStarterModules.each' not in settings or 'include projectPath' not in settings:
+    errors.append('settings.gradle does not include canonical Starter modules dynamically')
+include_set.update(catalog_projects)
+mappings.update(catalog_projects)
 project_refs: list[tuple[str, str]] = []
 for p in R.rglob('build.gradle'):
     text = p.read_text(encoding='utf-8', errors='replace')
@@ -58,27 +69,8 @@ for source, ref in project_refs:
     if ref not in include_set:
         errors.append(f'project reference not included: {source} -> {ref}')
 
-# Required QA38 project mappings and physical dirs.
-required_projects = {
-    'cpf-starter-foundation-base': 'cpf-starters/foundation/base',
-    'cpf-starter-data-persistence-jdbc': 'cpf-starters/data/persistence-jdbc',
-    'cpf-starter-data-persistence-mybatis': 'cpf-starters/data/persistence-mybatis',
-    'cpf-starter-aop-service-access': 'cpf-starters/aop-service-access',
-    'cpf-starter-profile-web-api': 'cpf-starters/openapi-webmvc',
-    'cpf-starter-security-resource-server': 'cpf-starters/security/resource-server',
-    'cpf-starter-security-service-identity': 'cpf-starters/security/service-identity',
-    'cpf-starter-messaging-reliability-jdbc': 'cpf-starters/messaging/reliability-jdbc',
-    'cpf-starter-messaging-rabbitmq': 'cpf-starters/messaging/rabbitmq',
-    'cpf-starter-messaging-jms': 'cpf-starters/messaging/jms',
-    'cpf-starter-messaging-ibm-mq': 'cpf-starters/messaging/ibm-mq',
-    'cpf-starter-integration-tcp': 'cpf-starters/integration/tcp',
-    'cpf-starter-integration-iso8583': 'cpf-starters/integration/iso8583',
-    'cpf-starter-file-sftp': 'cpf-starters/file/sftp',
-    'cpf-starter-notification-dispatch': 'cpf-starters/notification/dispatch',
-    'cpf-starter-notification-email': 'cpf-starters/notification/email',
-    'cpf-starter-notification-sms-spi': 'cpf-starters/notification/sms-spi',
-    'cpf-starter-scheduler-quartz': 'cpf-starters/scheduler-quartz',
-}
+# Canonical Starter project mappings and physical dirs. No duplicated path list is allowed here.
+required_projects = catalog_projects
 for project, path in required_projects.items():
     if project not in include_set:
         errors.append(f'required project not included: {project}')
@@ -87,30 +79,32 @@ for project, path in required_projects.items():
     if not (R / path / 'build.gradle').is_file():
         errors.append(f'required module build missing: {path}')
 
-# Starter substance and aggregate constraints.
-legacy_with_baseline_source = {'cache', 'security', 'messaging-kafka', 'observability', 'resilience', 'featureflag', 'secret'}
-aggregate_dirs = {'cache-aggregate', 'security-aggregate'}
-for d in sorted(p for p in (R / 'cpf-starters').iterdir() if p.is_dir()):
-    if d.name == 'profiles':
+# Active modules may own Source when their canonical role requires implementation.
+for module in starter_modules:
+    owner = R / str(module.get('ownerPath'))
+    java = list(owner.rglob('src/main/java/**/*.java'))
+    resources = [path for path in owner.rglob('src/main/resources/**/*') if path.is_file()]
+    build = owner / 'build.gradle'
+    if not build.is_file():
         continue
-    java = list(d.rglob('src/main/java/**/*.java'))
-    resources = list(d.rglob('src/main/resources/**/*'))
-    if d.name in aggregate_dirs:
-        if java or resources:
-            errors.append(f'aggregate starter contains source/resources: {d.relative_to(R)}')
-    elif d.name not in legacy_with_baseline_source and not java:
-        errors.append(f'leaf starter has no implementation source: {d.relative_to(R)}')
+    if module.get('visibility') == 'public':
+        # Public profiles can be dependency-only or implementation-owning (web-api owns OpenAPI WebMVC).
+        if not java and not resources and 'dependencies' not in build.read_text(encoding='utf-8'):
+            errors.append(f'public profile has neither implementation nor composition dependencies: {owner.relative_to(R)}')
+    elif not java and not resources:
+        errors.append(f'active internal Starter has no implementation/resource substance: {owner.relative_to(R)}')
 
-# Profile aggregate constraints.
-profile_root = R / 'cpf-starters/profiles'
-for d in profile_root.iterdir():
-    if not d.is_dir():
-        continue
-    if (d / 'src').exists():
-        errors.append(f'capability profile contains source: {d.relative_to(R)}')
-    build = d / 'build.gradle'
-    if not build.is_file() or "id 'java-library'" not in build.read_text(encoding='utf-8'):
-        errors.append(f'capability profile build invalid: {d.relative_to(R)}')
+# Retained inactive roots are not active projects and must satisfy the transition contract exactly.
+for retained in starter_catalog.get('retainedInactiveRoots') or []:
+    path = str(retained.get('path', '')).replace('\\', '/').rstrip('/')
+    if retained.get('active') is not False or retained.get('includeInSettings') is not False \
+            or retained.get('publishable') is not False or retained.get('consumerAllowed') is not False \
+            or retained.get('approvalRequired') is not True:
+        errors.append(f'retained root contract is not fail-closed: {retained}')
+    if path in required_projects.values():
+        errors.append(f'retained root is also active: {path}')
+    if path and not (R / path / 'build.gradle').is_file():
+        errors.append(f'retained root missing before deletion approval: {path}')
 
 # Duplicate FQCN and package declaration.
 fqcn_to_path: dict[str, str] = {}

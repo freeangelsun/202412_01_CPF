@@ -9,6 +9,14 @@ import type { MaybeRefOrGetter } from 'vue';
 import type {
   AdmApiPermissionRoleUpdateRequest,
   AdmApiPermissionSaveRequest,
+  AdmIntegrationWebhookReplayParams,
+  AdmIntegrationWebhookDlqParams,
+  AdmIntegrationTimeHealthParams,
+  AdmIntegrationRecord,
+  AdmIntegrationDataQualityReplayParams,
+  AdmIntegrationCorrectionExecutionRequest,
+  AdmIntegrationCorrectionApprovalRequest,
+  AdmApprovalReconcileParams,
   AdmApprovalPoliciesParams,
   AdmAuditDeliveryListParams,
   AdmAuditDeliveryRetryParams,
@@ -16327,3 +16335,82 @@ export const useAdmCenterCutReconcileUnknownExecution = <TError = unknown, TCont
   return useMutation(getAdmCenterCutReconcileUnknownExecutionMutationOptions(options), queryClient);
 };
 // CPF PRE-RUNTIME FALLBACK END admCenterCutReconcileUnknownExecution
+
+// CPF PRE-RUNTIME FALLBACK START REV-004
+export const admApprovalReconcile = async (
+  id: number,
+  params: AdmApprovalReconcileParams,
+  options?: CpfOrvalGeneratedRequestOptions,
+): Promise<CpfControllerSourceResponse> => cpfOrvalRequest<CpfControllerSourceResponse>(
+  `/adm/api/approvals/requests/${encodeURIComponent(String(id))}/reconcile`,
+  { ...options, method: 'POST', params: { reason: params.reason } },
+);
+
+export const admIntegrationCryptoStatus = async (
+  options?: CpfOrvalGeneratedRequestOptions,
+): Promise<CpfControllerSourceResponse> => cpfOrvalRequest<CpfControllerSourceResponse>(
+  '/adm/api/integration-closure/crypto/status',
+  { ...options, method: 'GET' },
+);
+
+export const admIntegrationTimeHealth = async (
+  params?: AdmIntegrationTimeHealthParams,
+  options?: CpfOrvalGeneratedRequestOptions,
+): Promise<CpfControllerSourceResponse> => cpfOrvalRequest<CpfControllerSourceResponse>(
+  '/adm/api/integration-closure/time/health',
+  { ...options, method: 'GET', params: { zone: params?.zone, maxSkewMillis: params?.maxSkewMillis } },
+);
+
+export const admIntegrationDataQualityValidate = async (
+  recordId: string,
+  data: AdmIntegrationRecord,
+  options?: CpfOrvalGeneratedRequestOptions,
+): Promise<CpfControllerSourceResponse> => cpfOrvalRequest<CpfControllerSourceResponse>(
+  `/adm/api/integration-closure/data-quality/validate/${encodeURIComponent(String(recordId))}`,
+  { ...options, method: 'POST', headers: { 'Content-Type': 'application/json', ...options?.headers }, data },
+);
+
+export const admIntegrationDataQualityCorrectionApprovalRequest = async (
+  id: string,
+  data: AdmIntegrationCorrectionApprovalRequest,
+  options?: CpfOrvalGeneratedRequestOptions,
+): Promise<CpfControllerSourceResponse> => cpfOrvalRequest<CpfControllerSourceResponse>(
+  `/adm/api/integration-closure/data-quality/quarantine/${encodeURIComponent(String(id))}/correction-approvals`,
+  { ...options, method: 'POST', headers: { 'Content-Type': 'application/json', ...options?.headers }, data },
+);
+
+export const admIntegrationDataQualityCorrectionExecute = async (
+  approvalRequestId: number,
+  data: AdmIntegrationCorrectionExecutionRequest,
+  options?: CpfOrvalGeneratedRequestOptions,
+): Promise<CpfControllerSourceResponse> => cpfOrvalRequest<CpfControllerSourceResponse>(
+  `/adm/api/integration-closure/data-quality/correction-approvals/${encodeURIComponent(String(approvalRequestId))}/execute`,
+  { ...options, method: 'POST', headers: { 'Content-Type': 'application/json', ...options?.headers }, data },
+);
+
+export const admIntegrationDataQualityReplay = async (
+  id: string,
+  params: AdmIntegrationDataQualityReplayParams,
+  options?: CpfOrvalGeneratedRequestOptions,
+): Promise<CpfControllerSourceResponse> => cpfOrvalRequest<CpfControllerSourceResponse>(
+  `/adm/api/integration-closure/data-quality/quarantine/${encodeURIComponent(String(id))}/replay`,
+  { ...options, method: 'POST', params: { reason: params.reason } },
+);
+
+export const admIntegrationWebhookDlq = async (
+  params?: AdmIntegrationWebhookDlqParams,
+  options?: CpfOrvalGeneratedRequestOptions,
+): Promise<CpfControllerSourceResponse> => cpfOrvalRequest<CpfControllerSourceResponse>(
+  '/adm/api/integration-closure/webhooks/dlq',
+  { ...options, method: 'GET', params: { limit: params?.limit } },
+);
+
+export const admIntegrationWebhookReplay = async (
+  id: string,
+  params: AdmIntegrationWebhookReplayParams,
+  options?: CpfOrvalGeneratedRequestOptions,
+): Promise<CpfControllerSourceResponse> => cpfOrvalRequest<CpfControllerSourceResponse>(
+  `/adm/api/integration-closure/webhooks/${encodeURIComponent(String(id))}/replay`,
+  { ...options, method: 'POST', params: { expectedVersion: params.expectedVersion, reason: params.reason } },
+);
+// CPF PRE-RUNTIME FALLBACK END REV-004

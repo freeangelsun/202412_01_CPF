@@ -1,21 +1,199 @@
+[CmdletBinding()]
 param(
-  [string]$RepoRoot=(Get-Location).Path,
-  [string]$EvidenceDir="cpf-docs/work/v9i/fdr/r1/evidence/runtime/FDEV-005"
+    [Parameter(Mandatory = $true)]
+    [ValidatePattern('^[0-9a-fA-F]{40}$')]
+    [string]$ExpectedHead,
+
+    [string]$EvidenceDir,
+    [string]$RunnerExecutable,
+    [string[]]$RunnerPrefixArguments = @(),
+    [string]$RunnerClass = 'com.cpf.tools.db.CpfDbLifecycleRunner',
+    [string]$RunnerClasspath
 )
-$ErrorActionPreference='Stop'
-Set-Location $RepoRoot
-$EvidencePath=Join-Path $RepoRoot $EvidenceDir
-New-Item -ItemType Directory -Force $EvidencePath | Out-Null
-$Baseline='2929163b3bb40159e22e1f57e79b6cd070abf7ad'
-python cpf-tools/db/verify_migration_lifecycle.py --root $RepoRoot --source-sha $Baseline --report (Join-Path $EvidencePath 'static-lifecycle.json') 2>&1 | Tee-Object (Join-Path $EvidencePath 'static-lifecycle.log')
-if($LASTEXITCODE-ne 0){throw "Static DB lifecycle gate failed: $LASTEXITCODE"}
-$Runner=$env:CPF_DB_LIFECYCLE_RUNNER
-if([string]::IsNullOrWhiteSpace($Runner) -or -not (Test-Path -LiteralPath $Runner)){throw 'CPF_DB_LIFECYCLE_RUNNER must point to the approved target-runtime DB lifecycle runner.'}
-foreach($Vendor in @('ORACLE','POSTGRESQL','MARIADB')){
-  $Url=[Environment]::GetEnvironmentVariable("CPF_${Vendor}_URL")
-  $User=[Environment]::GetEnvironmentVariable("CPF_${Vendor}_USER")
-  $Password=[Environment]::GetEnvironmentVariable("CPF_${Vendor}_PASSWORD")
-  if([string]::IsNullOrWhiteSpace($Url)-or[string]::IsNullOrWhiteSpace($User)-or[string]::IsNullOrWhiteSpace($Password)){throw "Missing CPF_${Vendor}_URL/USER/PASSWORD"}
-  & $Runner --vendor $Vendor.ToLowerInvariant() --repo-root $RepoRoot --url $Url --user $User --password-stdin --evidence-dir (Join-Path $EvidencePath $Vendor.ToLowerInvariant()) 2>&1 | Tee-Object (Join-Path $EvidencePath "$($Vendor.ToLowerInvariant()).log")
-  if($LASTEXITCODE-ne 0){throw "$Vendor lifecycle failed: $LASTEXITCODE"}
+
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
+function Get-RepositoryRoot {
+    $root = (& git -C $PSScriptRoot rev-parse --show-toplevel 2>$null | Select-Object -First 1)
+    if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($root)) {
+        throw 'Repository Root를 git rev-parse --show-toplevel로 확인할 수 없습니다.'
+    }
+    return [IO.Path]::GetFullPath($root.Trim())
 }
+
+function Protect-Text {
+    param([AllowNull()][string]$Text, [string[]]$Secrets)
+    $safe = if ($null -eq $Text) { '' } else { $Text }
+    foreach ($secret in $Secrets) {
+        if (-not [string]::IsNullOrEmpty($secret)) {
+            $variants = @(
+                $secret,
+                $secret.Replace('\', '\\').Replace('"', '\"').Replace("`r", '\r').Replace("`n", '\n').Replace("`t", '\t')
+            ) | Sort-Object -Unique
+            foreach ($variant in $variants) {
+                if (-not [string]::IsNullOrEmpty($variant)) {
+                    $safe = $safe.Replace($variant, '***REDACTED***')
+                }
+            }
+        }
+    }
+    return $safe
+}
+
+function Invoke-LifecycleRunner {
+    param(
+        [Parameter(Mandatory = $true)][string]$Executable,
+        [Parameter(Mandatory = $true)][string[]]$Arguments,
+        [Parameter(Mandatory = $true)][string]$Password,
+        [Parameter(Mandatory = $true)][string[]]$Secrets
+    )
+
+    $start = [Diagnostics.ProcessStartInfo]::new()
+    $start.FileName = $Executable
+    $start.UseShellExecute = $false
+    $start.CreateNoWindow = $true
+    $start.RedirectStandardInput = $true
+    $start.RedirectStandardOutput = $true
+    $start.RedirectStandardError = $true
+    foreach ($argument in $Arguments) { [void]$start.ArgumentList.Add($argument) }
+
+    $process = [Diagnostics.Process]::new()
+    $process.StartInfo = $start
+    $started = $false
+    try {
+        if (-not $process.Start()) { throw "DB Lifecycle Runner를 시작할 수 없습니다: $Executable" }
+        $started = $true
+        $stdoutTask = $process.StandardOutput.ReadToEndAsync()
+        $stderrTask = $process.StandardError.ReadToEndAsync()
+        $process.StandardInput.WriteLine($Password)
+        $process.StandardInput.Close()
+        $process.WaitForExit()
+        $stdout = $stdoutTask.GetAwaiter().GetResult()
+        $stderr = $stderrTask.GetAwaiter().GetResult()
+        [pscustomobject]@{
+            ExitCode = $process.ExitCode
+            Stdout = Protect-Text -Text $stdout -Secrets $Secrets
+            Stderr = Protect-Text -Text $stderr -Secrets $Secrets
+        }
+    }
+    finally {
+        if ($started -and -not $process.HasExited) { $process.Kill($true) }
+        $process.Dispose()
+    }
+}
+
+$repoRoot = Get-RepositoryRoot
+$actualHead = (& git -C $repoRoot rev-parse HEAD).Trim().ToLowerInvariant()
+if ($LASTEXITCODE -ne 0) { throw '현재 Git HEAD를 확인할 수 없습니다.' }
+if ($actualHead -ne $ExpectedHead.Trim().ToLowerInvariant()) {
+    throw "ExpectedHead mismatch. expected=$ExpectedHead actual=$actualHead"
+}
+
+if ([string]::IsNullOrWhiteSpace($EvidenceDir)) {
+    $EvidenceDir = Join-Path $repoRoot 'build/evidence/db3-lifecycle'
+} elseif (-not [IO.Path]::IsPathRooted($EvidenceDir)) {
+    $EvidenceDir = Join-Path $repoRoot $EvidenceDir
+}
+$EvidenceDir = [IO.Path]::GetFullPath($EvidenceDir)
+New-Item -ItemType Directory -Path $EvidenceDir -Force | Out-Null
+
+if ([string]::IsNullOrWhiteSpace($RunnerExecutable)) {
+    $isWindowsPlatform = [Runtime.InteropServices.RuntimeInformation]::IsOSPlatform([Runtime.InteropServices.OSPlatform]::Windows)
+    $javaRelativePath = if ($isWindowsPlatform) { 'bin/java.exe' } else { 'bin/java' }
+    $RunnerExecutable = if ($env:JAVA_HOME) { Join-Path $env:JAVA_HOME $javaRelativePath } else { 'java' }
+    if ([string]::IsNullOrWhiteSpace($RunnerClasspath)) {
+        $RunnerClasspath = Join-Path $repoRoot 'cpf-tools/verification/final-dev/build/classes/java/main'
+    }
+    $RunnerPrefixArguments = @('-cp', $RunnerClasspath, $RunnerClass)
+}
+
+$vendors = [ordered]@{
+    oracle = @{ Url = 'CPF_RUNTIME_ORACLE_JDBC_URL'; User = 'CPF_RUNTIME_ORACLE_USERNAME'; Password = 'CPF_RUNTIME_ORACLE_PASSWORD' }
+    postgresql = @{ Url = 'CPF_RUNTIME_POSTGRESQL_JDBC_URL'; User = 'CPF_RUNTIME_POSTGRESQL_USERNAME'; Password = 'CPF_RUNTIME_POSTGRESQL_PASSWORD' }
+    mariadb = @{ Url = 'CPF_RUNTIME_MARIADB_JDBC_URL'; User = 'CPF_RUNTIME_MARIADB_USERNAME'; Password = 'CPF_RUNTIME_MARIADB_PASSWORD' }
+}
+
+$missing = [Collections.Generic.List[string]]::new()
+foreach ($vendor in $vendors.GetEnumerator()) {
+    foreach ($field in @('Url', 'User', 'Password')) {
+        $name = $vendor.Value[$field]
+        if ([string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($name))) { $missing.Add($name) }
+    }
+}
+if ($missing.Count -gt 0) {
+    throw "DB3 환경변수 Preflight 실패: $([string]::Join(', ', ($missing | Sort-Object -Unique)))"
+}
+
+$allSecrets = @($vendors.Values | ForEach-Object { [Environment]::GetEnvironmentVariable($_.Password) })
+$results = [Collections.Generic.List[object]]::new()
+$overallExit = 0
+foreach ($vendor in $vendors.GetEnumerator()) {
+    $name = $vendor.Key
+    $url = [Environment]::GetEnvironmentVariable($vendor.Value.Url)
+    $username = [Environment]::GetEnvironmentVariable($vendor.Value.User)
+    $password = [Environment]::GetEnvironmentVariable($vendor.Value.Password)
+    $auditPath = Join-Path $EvidenceDir "$name-audit.json"
+    $stdoutPath = Join-Path $EvidenceDir "$name-stdout.log"
+    $stderrPath = Join-Path $EvidenceDir "$name-stderr.log"
+
+    $arguments = @($RunnerPrefixArguments) + @(
+        "--vendor=$name",
+        "--url=$url",
+        "--username=$username",
+        '--password-stdin',
+        "--audit-output=$auditPath"
+    )
+    $startedAt = [DateTimeOffset]::UtcNow
+    try {
+        $run = Invoke-LifecycleRunner -Executable $RunnerExecutable -Arguments $arguments -Password $password -Secrets $allSecrets
+        [IO.File]::WriteAllText($stdoutPath, $run.Stdout, [Text.UTF8Encoding]::new($false))
+        [IO.File]::WriteAllText($stderrPath, $run.Stderr, [Text.UTF8Encoding]::new($false))
+        if ($run.ExitCode -ne 0 -and $overallExit -eq 0) { $overallExit = $run.ExitCode }
+        $dbVersion = $null
+        $lifecycleStatus = if ($run.ExitCode -eq 0) { 'SUCCEEDED' } else { 'FAILED' }
+        if (Test-Path -LiteralPath $auditPath) {
+            try {
+                $auditRaw = Get-Content -LiteralPath $auditPath -Raw
+                $auditSafe = Protect-Text -Text $auditRaw -Secrets $allSecrets
+                [IO.File]::WriteAllText($auditPath, $auditSafe, [Text.UTF8Encoding]::new($false))
+                $audit = $auditSafe | ConvertFrom-Json
+                $dbVersion = $audit.dbVersion
+                if ($audit.lifecycleStatus) { $lifecycleStatus = $audit.lifecycleStatus }
+            } catch {
+                if ($overallExit -eq 0) { $overallExit = 70 }
+                $lifecycleStatus = 'INVALID_AUDIT'
+            }
+        } elseif ($run.ExitCode -eq 0) {
+            if ($overallExit -eq 0) { $overallExit = 71 }
+            $lifecycleStatus = 'MISSING_AUDIT'
+        }
+        $results.Add([ordered]@{
+            vendor = $name; exitCode = $run.ExitCode; dbVersion = $dbVersion
+            lifecycleStatus = $lifecycleStatus; startedAt = $startedAt.ToString('O')
+            finishedAt = [DateTimeOffset]::UtcNow.ToString('O')
+            auditFile = [IO.Path]::GetFileName($auditPath)
+            stdoutFile = [IO.Path]::GetFileName($stdoutPath)
+            stderrFile = [IO.Path]::GetFileName($stderrPath)
+        })
+    }
+    finally {
+        $password = $null
+    }
+}
+
+$summary = [ordered]@{
+    protocolVersion = 'CPF-DB3-LIFECYCLE-1'
+    expectedHead = $ExpectedHead.ToLowerInvariant()
+    actualHead = $actualHead
+    repositoryRootResolvedByGit = $true
+    passwordTransport = 'STDIN'
+    passwordInArguments = $false
+    vendors = $results
+    exitCode = $overallExit
+}
+$summaryPath = Join-Path $EvidenceDir 'db3-lifecycle-summary.json'
+$summaryJson = $summary | ConvertTo-Json -Depth 8
+$summaryJson = Protect-Text -Text $summaryJson -Secrets $allSecrets
+[IO.File]::WriteAllText($summaryPath, $summaryJson, [Text.UTF8Encoding]::new($false))
+exit $overallExit

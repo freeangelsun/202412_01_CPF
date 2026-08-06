@@ -1845,56 +1845,88 @@ subprojects { candidate ->
     }
 }
 
+def cpfCanonicalStarterCatalogFile = file('cpf-tools/generator/contracts/cpf-starter-catalog.json')
+if (!cpfCanonicalStarterCatalogFile.isFile()) {
+    throw new GradleException("CPF canonical Starter catalog is missing: ${cpfCanonicalStarterCatalogFile}")
+}
+def cpfCanonicalStarterCatalog = new groovy.json.JsonSlurper().parse(cpfCanonicalStarterCatalogFile)
 def cpfFinalArtifactCatalogFile = file('cpf-tools/release/cpf-final-artifact-catalog.json')
 if (!cpfFinalArtifactCatalogFile.isFile()) {
     throw new GradleException("CPF final artifact catalog is missing: ${cpfFinalArtifactCatalogFile}")
 }
 def cpfFinalArtifactCatalog = new groovy.json.JsonSlurper().parse(cpfFinalArtifactCatalogFile)
 def cpfStarterKinds = ['starter-profile', 'internal-starter'] as Set
-// QA39: 중복을 Map/Dictionary로 숨기기 전에 원본 행에서 먼저 검출한다.
-def cpfStarterCatalogRows = (cpfFinalArtifactCatalog.artifacts ?: [])
-        .findAll { artifact -> cpfStarterKinds.contains(artifact.kind?.toString()) }
-if (cpfStarterCatalogRows.isEmpty()) {
-    throw new GradleException('CPF final artifact catalog has no Starter artifacts.')
+
+// REV-004/FDEV-025: canonical modules are the only active Starter publication source.
+def cpfStarterCatalogRows = (cpfCanonicalStarterCatalog.modules ?: []) as List
+if (cpfStarterCatalogRows.isEmpty()) throw new GradleException('CPF canonical Starter catalog has no active modules.')
+['projectPath', 'ownerPath', 'artifactId'].each { identityField ->
+    def duplicates = cpfStarterCatalogRows.groupBy { row ->
+        row[identityField]?.toString()?.replace('\\', '/')?.replaceAll('/+$', '')
+    }.findAll { identity, rows -> !identity || rows.size() > 1 }
+    if (!duplicates.isEmpty()) throw new GradleException("Duplicate/blank active Starter ${identityField}: ${duplicates.keySet().sort()}")
 }
-['artifactId', 'ownerPath'].each { identityField ->
-    def duplicates = cpfStarterCatalogRows.groupBy { artifact ->
-        artifact[identityField]?.toString()?.replace('\\', '/')?.replaceAll('/+$', '')
-    }.findAll { identity, rows -> identity && rows.size() > 1 }
-    if (!duplicates.isEmpty()) {
-        throw new GradleException(
-                "Duplicate Starter ${identityField} in final artifact catalog: ${duplicates.keySet().sort().join(', ')}")
-    }
+def activeRowsById = cpfStarterCatalogRows.collectEntries { row -> [(row.artifactId.toString()): row] }
+def activePaths = cpfStarterCatalogRows.collect { row -> row.ownerPath.toString().replace('\\','/').replaceAll('/+$','') } as Set
+
+def releaseStarterRows = (cpfFinalArtifactCatalog.artifacts ?: []).findAll { row -> cpfStarterKinds.contains(row.kind?.toString()) }
+def releaseById = releaseStarterRows.collectEntries { row -> [(row.artifactId?.toString()): row] }
+def duplicateReleaseIds = releaseStarterRows.groupBy { it.artifactId?.toString() }.findAll { id, rows -> !id || rows.size() > 1 }.keySet()
+if (!duplicateReleaseIds.isEmpty()) throw new GradleException("Duplicate/blank Starter artifactId in release catalog: ${duplicateReleaseIds.sort()}")
+def missingRelease = activeRowsById.keySet() - releaseById.keySet()
+def extraRelease = releaseById.keySet() - activeRowsById.keySet()
+def driftRelease = activeRowsById.keySet().intersect(releaseById.keySet()).findAll { id ->
+    def active = activeRowsById[id]; def release = releaseById[id]
+    active.ownerPath?.toString()?.replace('\\','/')?.replaceAll('/+$','') != release.ownerPath?.toString()?.replace('\\','/')?.replaceAll('/+$','') ||
+            active.kind?.toString() != release.kind?.toString() || active.visibility?.toString() != release.visibility?.toString()
 }
-cpfStarterCatalogRows = cpfStarterCatalogRows.sort { artifact -> artifact.ownerPath?.toString() }
-def cpfStarterCatalogOwnerPaths = cpfStarterCatalogRows.collect { artifact ->
-    artifact.ownerPath?.toString()?.replace('\\', '/')?.replaceAll('/+$', '')
+if (!missingRelease.isEmpty() || !extraRelease.isEmpty() || !driftRelease.isEmpty()) {
+    throw new GradleException("Canonical/release Starter mismatch: missing=${missingRelease.sort()}, extra=${extraRelease.sort()}, drift=${driftRelease.sort()}")
 }
-// QA39: profiles/groups/foundation 등 중첩 경로 전체를 재귀 스캔한다.
+
+def retainedRows = (cpfCanonicalStarterCatalog.retainedInactiveRoots ?: []) as List
+def retainedPaths = retainedRows.collect { row -> row.path?.toString()?.replace('\\','/')?.replaceAll('/+$','') } as Set
+def retainedIds = retainedRows.collect { row -> row.artifactId?.toString() } as Set
+retainedRows.each { row ->
+    if (row.active != false || row.includeInSettings != false || row.publishable != false ||
+            row.consumerAllowed != false || row.approvalRequired != true ||
+            row.status?.toString() != 'PENDING_USER_DELETE_APPROVAL')
+        throw new GradleException("Retained inactive root contract is not fail-closed: ${row}")
+    if (!file(row.path.toString()).isDirectory() || !file("${row.path}/build.gradle").isFile())
+        throw new GradleException("Retained inactive root must exist until user-approved deletion: ${row.path}")
+    def replacement = activeRowsById[row.replacementArtifactId?.toString()]
+    if (replacement == null || replacement.ownerPath?.toString()?.replace('\\','/')?.replaceAll('/+$','') != row.replacementOwnerPath?.toString()?.replace('\\','/')?.replaceAll('/+$',''))
+        throw new GradleException("Retained replacement artifact/owner is not active: ${row}")
+}
+if (!activePaths.intersect(retainedPaths).isEmpty()) throw new GradleException("Active/retained root collision: ${activePaths.intersect(retainedPaths)}")
+if (!activeRowsById.keySet().intersect(retainedIds).isEmpty()) throw new GradleException("Active/retained artifact collision: ${activeRowsById.keySet().intersect(retainedIds)}")
+
+def removedRoots = (cpfCanonicalStarterCatalog.removedRepositoryRoots ?: [])*.toString()*.replace('\\','/')*.replaceAll('/+$','') as Set
+if (!removedRoots.intersect(activePaths).isEmpty() || !removedRoots.intersect(retainedPaths).isEmpty())
+    throw new GradleException("Removed root collides with active/retained roots: active=${removedRoots.intersect(activePaths)}, retained=${removedRoots.intersect(retainedPaths)}")
+def presentRemovedRoots = removedRoots.findAll { path -> file(path).exists() }
+if (!presentRemovedRoots.isEmpty()) throw new GradleException("Removed repository roots still exist: ${presentRemovedRoots.sort()}")
+
 def cpfPhysicalStarterOwnerPaths = fileTree('cpf-starters') {
     include '**/build.gradle'
     exclude 'build/**', '**/build/**'
 }.files.collect { buildFile ->
-    rootProject.projectDir.toPath().relativize(buildFile.parentFile.toPath())
-            .toString().replace('\\', '/')
-}.sort()
-if (cpfStarterCatalogOwnerPaths != cpfPhysicalStarterOwnerPaths) {
-    throw new GradleException(
-            "Starter catalog/physical project mismatch: catalog=${cpfStarterCatalogOwnerPaths}, " +
-                    "physical=${cpfPhysicalStarterOwnerPaths}")
+    rootProject.projectDir.toPath().relativize(buildFile.parentFile.toPath()).toString().replace('\\', '/')
+}.toSet()
+def expectedPhysicalPaths = (activePaths + retainedPaths) as Set
+def missingPhysicalPaths = expectedPhysicalPaths - cpfPhysicalStarterOwnerPaths
+def extraPhysicalPaths = cpfPhysicalStarterOwnerPaths - expectedPhysicalPaths
+if (!missingPhysicalPaths.isEmpty() || !extraPhysicalPaths.isEmpty()) {
+    throw new GradleException("Starter physical closure mismatch: missing=${missingPhysicalPaths.sort()}, extra=${extraPhysicalPaths.sort()}, retained=${retainedPaths.sort()}")
 }
+
 def cpfStarterPublicationProjects = cpfStarterCatalogRows.collect { artifact ->
     def ownerPath = artifact.ownerPath.toString().replace('\\', '/').replaceAll('/+$', '')
     def expectedArtifactId = artifact.artifactId?.toString()
-    if (!expectedArtifactId) {
-        throw new GradleException("Starter catalog artifactId is missing: owner=${ownerPath}")
-    }
-    def ownerDirectory = file(ownerPath).canonicalFile
-    def candidate = subprojects.find { project -> project.projectDir.canonicalFile == ownerDirectory }
-    if (candidate == null || candidate.name != expectedArtifactId) {
-        throw new GradleException(
-                "Starter catalog project is not mapped in settings.gradle: owner=${ownerPath}, " +
-                        "artifact=${expectedArtifactId}")
+    def expectedProjectPath = artifact.projectPath?.toString()
+    def candidate = subprojects.find { project -> project.projectDir.canonicalFile == file(ownerPath).canonicalFile }
+    if (candidate == null || candidate.name != expectedArtifactId || candidate.path != expectedProjectPath) {
+        throw new GradleException("Active Starter is not mapped exactly in settings.gradle: project=${expectedProjectPath}, owner=${ownerPath}, artifact=${expectedArtifactId}")
     }
     candidate
 }.sort { candidate -> candidate.path }
@@ -2133,7 +2165,7 @@ tasks.register('qa37JavaLifecycle') {
 // QA39 final closure: canonical naming, physical ownership, API/SPI/Internal and evidence truth gates.
 tasks.register('checkQa39FinalCanonical', Exec) {
     group = 'verification'
-    description = 'QA39 38-module physical/catalog/BOM/generator/naming closure.'
+    description = 'QA39 canonical active-module physical/catalog/BOM/generator/naming closure.'
     commandLine 'java', file('cpf-tools/scripts/Qa39Tool.java').absolutePath, 'verify', '--root', rootProject.projectDir.absolutePath
 }
 

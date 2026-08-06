@@ -8,6 +8,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.PreparedStatement;
@@ -270,6 +271,22 @@ public class AdmApprovalRepository implements AdmApprovalDirectoryPort {
             """,status,step,operatorId,id,version);
     }
 
+
+    /**
+     * Persists a fail-closed integrity incident independently from the caller transaction so that
+     * the audit survives the service exception and the compromised approval cannot be retried.
+     */
+    @Transactional(transactionManager = "admTransactionManager", propagation = Propagation.REQUIRES_NEW)
+    public void recordIntegrityFailure(long id,String operatorId,String beforeStatus,
+                                       String reason,String eventData,String transactionId){
+        int changed=jdbc.update("""
+            UPDATE adm_approval_request SET APPROVAL_STATUS='UNKNOWN',VERSION_NO=VERSION_NO+1,updated_by=?
+             WHERE APPROVAL_REQUEST_ID=? AND APPROVAL_STATUS=?
+            """,operatorId,id,beforeStatus);
+        if(changed!=1)throw new IllegalStateException("approval integrity status transition failed");
+        history(id,"SNAPSHOT_HASH_MISMATCH",operatorId,beforeStatus,"UNKNOWN",reason,eventData,transactionId);
+    }
+
     public void history(long id,String event,String actor,String before,String after,String reason,String data,String tx){
         jdbc.update("""
             INSERT INTO adm_approval_history (
@@ -288,6 +305,34 @@ public class AdmApprovalRepository implements AdmApprovalDirectoryPort {
             """,id).stream().findFirst();
     }
 
+    /**
+     * Returns the exact server-reserved execution envelope immediately before Owner mutation.
+     * Direct adapter calls without an APPROVED -> EXECUTING reservation fail closed.
+     */
+    public boolean isApprovedParticipant(long requestId,String operatorId){
+        Integer count=jdbc.queryForObject("""
+            SELECT COUNT(*) FROM adm_approval_participant
+             WHERE APPROVAL_REQUEST_ID=? AND OPERATOR_ID=? AND DECISION_STATUS='APPROVED'
+            """,Integer.class,requestId,operatorId);
+        return count!=null&&count>0;
+    }
+
+    public Optional<Map<String,Object>> findReservedExecutionCommand(long id,String commandRequestId){
+        return jdbc.queryForList("""
+            SELECT r.APPROVAL_REQUEST_ID approvalRequestId,r.REQUEST_KEY requestKey,
+                   r.POLICY_CODE policyCode,r.POLICY_VERSION policyVersion,r.ACTION_TYPE actionType,
+                   r.OWNER_MODULE ownerModule,r.OWNER_COMMAND ownerCommand,r.TARGET_TYPE targetType,
+                   r.TARGET_ID targetId,r.REQUESTED_BY requestedBy,r.REQUEST_REASON requestReason,
+                   r.COMMAND_PAYLOAD_HASH payloadHash,r.COMMAND_PAYLOAD_SNAPSHOT payloadSnapshot,
+                   r.APPROVAL_STATUS approvalStatus,r.EXPIRE_AT expireAt,r.TRANSACTION_ID transactionId,
+                   r.VERSION_NO versionNo,e.COMMAND_REQUEST_ID commandRequestId,e.EXECUTION_STATUS executionStatus
+              FROM adm_approval_request r
+              JOIN adm_approval_execution e ON e.APPROVAL_REQUEST_ID=r.APPROVAL_REQUEST_ID
+             WHERE r.APPROVAL_REQUEST_ID=? AND e.COMMAND_REQUEST_ID=?
+               AND r.APPROVAL_STATUS='EXECUTING' AND e.EXECUTION_STATUS='RUNNING'
+            """,id,commandRequestId).stream().findFirst();
+    }
+
     @Transactional(transactionManager = "admTransactionManager")
     public boolean reserveExecution(long id,long expectedVersion,String commandRequestId,String operatorId){
         int requestChanged=jdbc.update("""
@@ -300,6 +345,23 @@ public class AdmApprovalRepository implements AdmApprovalDirectoryPort {
               APPROVAL_REQUEST_ID,COMMAND_REQUEST_ID,EXECUTION_STATUS,STARTED_AT,RECOVERY_REQUIRED_YN,created_by,updated_by
             ) VALUES (?,?,'RUNNING',CURRENT_TIMESTAMP,'N',?,?)
             """,id,commandRequestId,operatorId,operatorId);
+        return true;
+    }
+
+    /** Atomically reserves UNKNOWN -> EXECUTING for observation-only reconciliation. */
+    @Transactional(transactionManager = "admTransactionManager")
+    public boolean reserveReconcile(long id,long expectedVersion,String operatorId){
+        int executionChanged=jdbc.update("""
+            UPDATE adm_approval_execution SET EXECUTION_STATUS='RUNNING',STARTED_AT=CURRENT_TIMESTAMP,
+                   COMPLETED_AT=NULL,updated_by=?
+             WHERE APPROVAL_REQUEST_ID=? AND EXECUTION_STATUS='UNKNOWN' AND RECOVERY_REQUIRED_YN='Y'
+            """,operatorId,id);
+        if(executionChanged!=1)return false;
+        int requestChanged=jdbc.update("""
+            UPDATE adm_approval_request SET APPROVAL_STATUS='EXECUTING',VERSION_NO=VERSION_NO+1,updated_by=?
+             WHERE APPROVAL_REQUEST_ID=? AND APPROVAL_STATUS='UNKNOWN' AND VERSION_NO=?
+            """,operatorId,id,expectedVersion);
+        if(requestChanged!=1)throw new IllegalStateException("approval reconcile reservation failed");
         return true;
     }
 
@@ -333,17 +395,38 @@ public class AdmApprovalRepository implements AdmApprovalDirectoryPort {
         history(id,"RESULT",operatorId,"EXECUTING",requestStatus,reason,eventData,transactionId);
     }
 
+
+    /** Atomically preserves a post-reservation integrity failure as UNKNOWN with an audit event. */
     @Transactional(transactionManager = "admTransactionManager")
-    public void markExecutionUnknown(long id,String code,String message,String operatorId){
-        jdbc.update("""
+    public void recordExecutionIntegrityFailure(long id,String code,String message,String operatorId,
+                                                String reason,String eventData,String transactionId){
+        int executionChanged=jdbc.update("""
             UPDATE adm_approval_execution SET EXECUTION_STATUS='UNKNOWN',OWNER_RESULT_CODE=?,
                    OWNER_RESULT_MESSAGE=?,COMPLETED_AT=CURRENT_TIMESTAMP,RECOVERY_REQUIRED_YN='Y',updated_by=?
              WHERE APPROVAL_REQUEST_ID=? AND EXECUTION_STATUS='RUNNING'
             """,code,message,operatorId,id);
-        jdbc.update("""
+        int requestChanged=jdbc.update("""
             UPDATE adm_approval_request SET APPROVAL_STATUS='UNKNOWN',VERSION_NO=VERSION_NO+1,updated_by=?
              WHERE APPROVAL_REQUEST_ID=? AND APPROVAL_STATUS='EXECUTING'
             """,operatorId,id);
+        if(executionChanged!=1||requestChanged!=1)
+            throw new IllegalStateException("approval execution integrity transition failed");
+        history(id,"SNAPSHOT_HASH_MISMATCH",operatorId,"EXECUTING","UNKNOWN",reason,eventData,transactionId);
+    }
+
+    @Transactional(transactionManager = "admTransactionManager")
+    public void markExecutionUnknown(long id,String code,String message,String operatorId){
+        int executionChanged=jdbc.update("""
+            UPDATE adm_approval_execution SET EXECUTION_STATUS='UNKNOWN',OWNER_RESULT_CODE=?,
+                   OWNER_RESULT_MESSAGE=?,COMPLETED_AT=CURRENT_TIMESTAMP,RECOVERY_REQUIRED_YN='Y',updated_by=?
+             WHERE APPROVAL_REQUEST_ID=? AND EXECUTION_STATUS='RUNNING'
+            """,code,message,operatorId,id);
+        int requestChanged=jdbc.update("""
+            UPDATE adm_approval_request SET APPROVAL_STATUS='UNKNOWN',VERSION_NO=VERSION_NO+1,updated_by=?
+             WHERE APPROVAL_REQUEST_ID=? AND APPROVAL_STATUS='EXECUTING'
+            """,operatorId,id);
+        if(executionChanged!=1||requestChanged!=1)
+            throw new IllegalStateException("approval UNKNOWN transition failed");
     }
 
     public int updateCommandSnapshot(long id,long version,String payloadHash,String payloadSnapshot,String operatorId){

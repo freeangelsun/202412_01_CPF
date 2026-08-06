@@ -1,7 +1,7 @@
 {
-  "schemaVersion": "2.0.0",
+  "schemaVersion": "2.1.0",
   "catalogId": "CPF-QA39-CANONICAL-STARTER-CATALOG",
-  "baselineSha": "2929163b3bb40159e22e1f57e79b6cd070abf7ad",
+  "baselineSha": "RUNTIME_GIT_HEAD",
   "publicProfiles": [
     "minimal-domain",
     "web-api",
@@ -603,7 +603,11 @@
       "internalRole": "public-profile",
       "packageBase": "com.cpf.starter.profile.webapi",
       "configPrefix": "cpf.profile.web-api",
-      "legacyArtifactIds": []
+      "legacyArtifactIds": [],
+      "sourceOwnership": "implementation-and-profile",
+      "internalizedArtifacts": [
+        "cpf-starter-openapi-webmvc"
+      ]
     },
     {
       "projectPath": ":cpf-starter-security-resource-server",
@@ -1067,7 +1071,8 @@
     ],
     "capabilityGroupCount": 7,
     "profileCount": 6,
-    "moduleCount": 39
+    "moduleCount": 39,
+    "retainedInactiveCount": 1
   },
   "profileMode": "ACTUAL_PROFILE_ARTIFACT",
   "profileDefinitions": {
@@ -1143,5 +1148,19 @@
       ]
     }
   },
-  "baselinePolicy": "GIT_HEAD_RUNTIME"
+  "baselinePolicy": "GIT_HEAD_RUNTIME",
+  "retainedInactiveRoots": [
+    {
+      "path": "cpf-starters/openapi-webmvc",
+      "artifactId": "cpf-starter-openapi-webmvc",
+      "replacementArtifactId": "cpf-starter-profile-web-api",
+      "replacementOwnerPath": "cpf-starters/profiles/web-api",
+      "status": "PENDING_USER_DELETE_APPROVAL",
+      "active": false,
+      "includeInSettings": false,
+      "publishable": false,
+      "consumerAllowed": false,
+      "approvalRequired": true
+    }
+  ]
 }

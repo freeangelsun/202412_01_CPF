@@ -1,12 +1,15 @@
 package com.cpf.admin.config;
 
 import com.cpf.admin.approval.owner.DataQualityCorrectionApprovalOwnerCommandAdapter;
+import com.cpf.admin.approval.repository.AdmApprovalRepository;
+import com.cpf.admin.approval.security.AdmApprovalSnapshotIntegrity;
 import com.cpf.admin.approval.service.AdmApprovalService;
 import com.cpf.admin.opr.integration.AdmIntegrationClosureService;
 import com.cpf.common.data.quality.InMemoryCpfDataQualityOperations;
 import com.cpf.common.security.crypto.JceCpfCryptoOperations;
 import com.cpf.common.time.SystemCpfTimeOperations;
 import com.cpf.core.api.data.quality.CpfDataQualityOperations;
+import com.cpf.core.spi.data.quality.CpfDataQualityCorrectionPort;
 import com.cpf.core.api.security.crypto.CpfCryptoOperations;
 import com.cpf.core.api.security.crypto.CpfCryptoPolicy;
 import com.cpf.core.api.time.CpfTimeOperations;
@@ -43,7 +46,7 @@ public class AdmIntegrationClosureConfiguration {
             prefix = "cpf.adm.integration-closure",
             name = "ephemeral-providers-enabled",
             havingValue = "true")
-    CpfDataQualityOperations cpfDataQualityOperations() {
+    InMemoryCpfDataQualityOperations cpfDataQualityOperations() {
         return new InMemoryCpfDataQualityOperations();
     }
 
@@ -93,9 +96,13 @@ public class AdmIntegrationClosureConfiguration {
     @Bean
     @ConditionalOnMissingBean(DataQualityCorrectionApprovalOwnerCommandAdapter.class)
     DataQualityCorrectionApprovalOwnerCommandAdapter dataQualityCorrectionApprovalOwnerCommandAdapter(
+            CpfDataQualityCorrectionPort correctionPort,
             CpfDataQualityOperations quality,
-            ObjectMapper objectMapper) {
-        return new DataQualityCorrectionApprovalOwnerCommandAdapter(quality, objectMapper);
+            ObjectMapper objectMapper,
+            AdmApprovalRepository repository,
+            AdmApprovalSnapshotIntegrity snapshotIntegrity) {
+        return new DataQualityCorrectionApprovalOwnerCommandAdapter(
+                correctionPort, quality, objectMapper, repository, snapshotIntegrity);
     }
 
     /**

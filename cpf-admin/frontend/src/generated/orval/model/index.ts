@@ -2,6 +2,14 @@
 
 export * from './admApiPermissionRoleUpdateRequest';
 export * from './admApiPermissionSaveRequest';
+export * from './admIntegrationWebhookReplayParams';
+export * from './admIntegrationWebhookDlqParams';
+export * from './admIntegrationTimeHealthParams';
+export * from './admIntegrationRecord';
+export * from './admIntegrationDataQualityReplayParams';
+export * from './admIntegrationCorrectionExecutionRequest';
+export * from './admIntegrationCorrectionApprovalRequest';
+export * from './admApprovalReconcileParams';
 export * from './admApprovalPoliciesParams';
 export * from './admAuditDeliveryListParams';
 export * from './admAuditDeliveryRetryParams';

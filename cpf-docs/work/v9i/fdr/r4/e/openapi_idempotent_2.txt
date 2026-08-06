@@ -1,0 +1,1 @@
+[CPF][OPENAPI][PASS] explicit ADM contracts output=openapi/cpf-openapi.json sha256=935f1063cf0330f0d404cbed98f5a4301a762d754792cddea8e5120b6c68b2d1

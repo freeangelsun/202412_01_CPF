@@ -4,14 +4,16 @@ import com.cpf.admin.approval.api.AdmApprovalExecutionStatus;
 import com.cpf.admin.approval.api.AdmApprovedOperationCommand;
 import com.cpf.admin.approval.api.AdmApprovedOperationResult;
 import com.cpf.admin.approval.repository.AdmApprovalRepository;
+import com.cpf.admin.approval.security.AdmApprovalSnapshotIntegrity;
 import com.cpf.admin.approval.spi.AdmApprovalOwnerCommandPort;
-import com.cpf.core.exception.CpfValidationException;
+import com.cpf.core.api.error.CpfValidationException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -36,6 +38,7 @@ class AdmApprovalServiceExecutionTest {
         when(repository.findParticipants(42L)).thenReturn(List.of());
         when(repository.reserveExecution(eq(42L), eq(3L), anyString(), eq("approver-b")))
                 .thenReturn(true);
+        when(repository.findReservedExecutionCommand(eq(42L), anyString())).thenReturn(Optional.of(request));
         when(ownerPort.execute(any(AdmApprovedOperationCommand.class)))
                 .thenReturn(new AdmApprovedOperationResult(
                         AdmApprovalExecutionStatus.SUCCEEDED,
@@ -91,11 +94,13 @@ class AdmApprovalServiceExecutionTest {
     void executeConvertsOwnerExceptionToUnknownAndRequiresRecovery() {
         AdmApprovalRepository repository = mock(AdmApprovalRepository.class);
         AdmApprovalOwnerCommandPort ownerPort = supportedOwnerPort();
-        when(repository.findRequest(42L)).thenReturn(Optional.of(approvedRequest(Instant.now().plusSeconds(900))));
+        Map<String, Object> request = approvedRequest(Instant.now().plusSeconds(900));
+        when(repository.findRequest(42L)).thenReturn(Optional.of(request));
         when(repository.findExecution(42L)).thenReturn(Optional.empty());
         when(repository.findParticipants(42L)).thenReturn(List.of());
         when(repository.reserveExecution(eq(42L), eq(3L), anyString(), eq("approver-b")))
                 .thenReturn(true);
+        when(repository.findReservedExecutionCommand(eq(42L), anyString())).thenReturn(Optional.of(request));
         when(ownerPort.execute(any())).thenThrow(new IllegalStateException("network response lost"));
         AdmApprovalService service =
                 new AdmApprovalService(repository, new ObjectMapper(), Map.of("batOwner", ownerPort));
@@ -112,11 +117,13 @@ class AdmApprovalServiceExecutionTest {
     void executeMarksUnknownWhenOwnerResultCannotBePersistedAtomically() {
         AdmApprovalRepository repository = mock(AdmApprovalRepository.class);
         AdmApprovalOwnerCommandPort ownerPort = supportedOwnerPort();
-        when(repository.findRequest(42L)).thenReturn(Optional.of(approvedRequest(Instant.now().plusSeconds(900))));
+        Map<String, Object> request = approvedRequest(Instant.now().plusSeconds(900));
+        when(repository.findRequest(42L)).thenReturn(Optional.of(request));
         when(repository.findExecution(42L)).thenReturn(Optional.empty());
         when(repository.findParticipants(42L)).thenReturn(List.of());
         when(repository.reserveExecution(eq(42L), eq(3L), anyString(), eq("approver-b")))
                 .thenReturn(true);
+        when(repository.findReservedExecutionCommand(eq(42L), anyString())).thenReturn(Optional.of(request));
         when(ownerPort.execute(any())).thenReturn(new AdmApprovedOperationResult(
                 AdmApprovalExecutionStatus.SUCCEEDED, "BAT-SUCCEEDED", "done"));
         doThrow(new IllegalStateException("request finalization failed"))
@@ -134,6 +141,67 @@ class AdmApprovalServiceExecutionTest {
         verify(repository).history(
                 eq(42L), eq("RESULT_UNKNOWN"), eq("approver-b"), eq("EXECUTING"), eq("UNKNOWN"),
                 eq("approved maintenance"), contains("\"failure\":\"FINALIZATION\""), eq(TRANSACTION_ID));
+    }
+
+    @Test
+    void reconcileUnknownQueriesOwnerWithoutRepeatingMutationAndFinalizesRecovered() {
+        AdmApprovalRepository repository = mock(AdmApprovalRepository.class);
+        AdmApprovalOwnerCommandPort ownerPort = supportedOwnerPort();
+        Map<String, Object> request = approvedRequest(Instant.now().plusSeconds(900));
+        request.put("approvalStatus", "UNKNOWN");
+        request.put("versionNo", 5L);
+        request.put("payloadHash", new AdmApprovalSnapshotIntegrity(new ObjectMapper()).hash(request));
+        Map<String, Object> execution = Map.of(
+                "commandRequestId", "ADM-APP-42-original",
+                "executionStatus", "UNKNOWN",
+                "recoveryRequiredYn", "Y");
+        when(repository.findRequest(42L)).thenReturn(Optional.of(request));
+        when(repository.findExecution(42L)).thenReturn(Optional.of(execution));
+        when(repository.findParticipants(42L)).thenReturn(List.of());
+        when(repository.reserveReconcile(42L, 5L, "approver-b")).thenReturn(true);
+        when(repository.findReservedExecutionCommand(42L, "ADM-APP-42-original"))
+                .thenReturn(Optional.of(request));
+        when(ownerPort.reconcile(any())).thenReturn(new AdmApprovedOperationResult(
+                AdmApprovalExecutionStatus.RECOVERED, "BAT-RECONCILED", "side effect applied"));
+        AdmApprovalService service =
+                new AdmApprovalService(repository, new ObjectMapper(), Map.of("batOwner", ownerPort));
+
+        service.reconcile(42L, "resolve unknown", "approver-b");
+
+        verify(ownerPort).reconcile(any(AdmApprovedOperationCommand.class));
+        verify(ownerPort, never()).execute(any());
+        verify(repository).finishExecutionAndRequest(
+                eq(42L), eq(6L), eq("RECOVERED"), eq("COMPLETED"),
+                eq("BAT-RECONCILED"), eq("side effect applied"), eq(false), eq("approver-b"),
+                eq("resolve unknown"), contains("\"reconciliation\":true"), eq(TRANSACTION_ID));
+    }
+
+    @Test
+    void reconcileUnknownKeepsUnknownWhenOwnerCannotProveOutcome() {
+        AdmApprovalRepository repository = mock(AdmApprovalRepository.class);
+        AdmApprovalOwnerCommandPort ownerPort = supportedOwnerPort();
+        Map<String, Object> request = approvedRequest(Instant.now().plusSeconds(900));
+        request.put("approvalStatus", "UNKNOWN");
+        request.put("versionNo", 5L);
+        request.put("payloadHash", new AdmApprovalSnapshotIntegrity(new ObjectMapper()).hash(request));
+        Map<String, Object> execution = Map.of("commandRequestId", "CMD-UNKNOWN", "executionStatus", "UNKNOWN");
+        when(repository.findRequest(42L)).thenReturn(Optional.of(request));
+        when(repository.findExecution(42L)).thenReturn(Optional.of(execution));
+        when(repository.findParticipants(42L)).thenReturn(List.of());
+        when(repository.reserveReconcile(42L, 5L, "approver-b")).thenReturn(true);
+        when(repository.findReservedExecutionCommand(42L, "CMD-UNKNOWN")).thenReturn(Optional.of(request));
+        when(ownerPort.reconcile(any())).thenReturn(new AdmApprovedOperationResult(
+                AdmApprovalExecutionStatus.UNKNOWN, "BAT-STILL-UNKNOWN", "not provable"));
+        AdmApprovalService service =
+                new AdmApprovalService(repository, new ObjectMapper(), Map.of("batOwner", ownerPort));
+
+        service.reconcile(42L, "resolve unknown", "approver-b");
+
+        verify(ownerPort, never()).execute(any());
+        verify(repository).finishExecutionAndRequest(
+                eq(42L), eq(6L), eq("UNKNOWN"), eq("UNKNOWN"),
+                eq("BAT-STILL-UNKNOWN"), eq("not provable"), eq(true), eq("approver-b"),
+                eq("resolve unknown"), anyString(), eq(TRANSACTION_ID));
     }
 
     @Test
@@ -179,21 +247,25 @@ class AdmApprovalServiceExecutionTest {
     }
 
     private static Map<String, Object> approvedRequest(Instant expireAt) {
-        return Map.ofEntries(
-                Map.entry("approvalRequestId", 42L),
-                Map.entry("actionType", "DRAIN"),
-                Map.entry("ownerModule", "BAT"),
-                Map.entry("ownerCommand", "DRAIN"),
-                Map.entry("targetType", "INSTANCE"),
-                Map.entry("targetId", "runtime-01"),
-                Map.entry("requestedBy", "requester-a"),
-                Map.entry("requestReason", "maintenance request"),
-                Map.entry("payloadHash", "a".repeat(64)),
-                Map.entry("payloadSnapshot", PAYLOAD),
-                Map.entry("approvalStatus", "APPROVED"),
-                Map.entry("currentStepNo", 1),
-                Map.entry("expireAt", Timestamp.from(expireAt)),
-                Map.entry("transactionId", TRANSACTION_ID),
-                Map.entry("versionNo", 3L));
+        Map<String, Object> request = new LinkedHashMap<>();
+        request.put("approvalRequestId", 42L);
+        request.put("requestKey", "REQ-EXEC-42");
+        request.put("policyCode", "BAT-DRAIN");
+        request.put("policyVersion", 1);
+        request.put("actionType", "DRAIN");
+        request.put("ownerModule", "BAT");
+        request.put("ownerCommand", "DRAIN");
+        request.put("targetType", "INSTANCE");
+        request.put("targetId", "runtime-01");
+        request.put("requestedBy", "requester-a");
+        request.put("requestReason", "maintenance request");
+        request.put("payloadSnapshot", PAYLOAD);
+        request.put("approvalStatus", "APPROVED");
+        request.put("currentStepNo", 1);
+        request.put("expireAt", Timestamp.from(expireAt));
+        request.put("transactionId", TRANSACTION_ID);
+        request.put("versionNo", 3L);
+        request.put("payloadHash", new AdmApprovalSnapshotIntegrity(new ObjectMapper()).hash(request));
+        return request;
     }
 }

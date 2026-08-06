@@ -47,3 +47,15 @@ REQUIREMENT_STATUS.csv is a schema-header file.
 
 The obsolete _session_workspace root and temporary helper files were removed after independent PowerShell validation.
 Product source, SQL, tests, configuration, frontend, scripts, canonical ledgers, and canonical evidence were not deleted.
+
+## REV-004 R4 Developer Closure
+
+- Current origin/master exact SHA: `a8be27a34bdac0b7c075e06d6e86571244c96421`
+- Developer payload path: `fdr/r4`
+- Reopened campaign requirements: `FDEV-003`, `FDEV-005`, `FDEV-014`, `FDEV-016`, `FDEV-025`
+- Development GPT status: implementation and independent self-review complete for the five rows
+- Overall development status: `재확인 필요` because the overlay is not applied to a clean exact-SHA checkout
+- Runtime verification status: `미검증` for Java 25 Gradle, full Node toolchain, Playwright, PowerShell/Pester, and live DB3
+- QA final verification: `PENDING`
+- Canonical exact-ID count preserved: `47,745`; integration request total preserved: `32`
+- No commit, push, branch, history rewrite, protected-path deletion, or approved deletion was performed by Development GPT

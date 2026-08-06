@@ -1,1 +1,0 @@
-python cpf-tools/scripts/verify-cpf-final-integration-ledger.py . cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/_session_workspace/CPF-V9-FINAL-INTEGRATION-CLOSURE-20260806/REV-001/sessions/DEVGPT-V9-INTEGRATION; if($LASTEXITCODE -ne 0){throw "Ledger 검증 실패"}; python cpf-tools/scripts/verify-cpf-integration-closure.py .; if($LASTEXITCODE -ne 0){throw "Product 정적 검증 실패"}

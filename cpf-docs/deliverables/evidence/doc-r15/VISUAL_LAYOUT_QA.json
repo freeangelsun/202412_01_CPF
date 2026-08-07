@@ -1,0 +1,11 @@
+{
+  "rendered_pages": 307,
+  "low_density_pages": [],
+  "edge_intrusion": [],
+  "text_overflow": [],
+  "banned_phrase_hits": [],
+  "long_duplicate_paragraphs": [],
+  "markdown_anchor_artifact_hits": 0,
+  "manual_visual_review": "13개 문서의 307페이지를 문서별 전체-page overview로 재검토하고, 코드/표/Route/Property 대표 페이지는 full-resolution render로 추가 확인했다. H2 강제 Page Break, 반 페이지 공백 반복, {#...} Anchor 노출, Heading/TOC 백틱 노출을 제거한 뒤 영향 DOCX/PDF를 재렌더했다.",
+  "status": "PASS"
+}

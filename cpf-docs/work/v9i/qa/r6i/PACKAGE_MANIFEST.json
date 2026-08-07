@@ -1,0 +1,122 @@
+{
+  "packageType": "ROOT_RELATIVE_OVERLAY",
+  "qaRound": "R6I",
+  "instructionBasisSha": "77db10ad9aff44ee422795080fb2e96b364c9d65",
+  "createdAt": "2026-08-07T11:36:00+09:00",
+  "overallStatus": "RELEASE_BLOCKED",
+  "findings": {
+    "total": 40,
+    "P0": 31,
+    "P1": 8,
+    "P2": 1
+  },
+  "deleteCount": 0,
+  "protectedPathsModified": false,
+  "files": [
+    {
+      "path": "cpf-docs/work/v9i/CHECKPOINT_STATUS.md",
+      "size": 206,
+      "sha256": "ea26f2ad07a19d51813ff6e6a487990cde4ccc5ce367ccc7ce2e2043c9f314cf"
+    },
+    {
+      "path": "cpf-docs/work/v9i/DATASET_MAP.md",
+      "size": 287,
+      "sha256": "5a2d2e49bff79b614f059eaed2bd394560873f5841aec0b0459ad340681f7bae"
+    },
+    {
+      "path": "cpf-docs/work/v9i/HANDOVER.md",
+      "size": 150,
+      "sha256": "68967fdf729e631e2a2d1f648caf7e52be122c19dd49589229ba374f6810e89d"
+    },
+    {
+      "path": "cpf-docs/work/v9i/OPEN_ISSUES.md",
+      "size": 176,
+      "sha256": "8ac14a39319f8e3a4ab74a8f69e631bee13745596022af4fff9726828293933a"
+    },
+    {
+      "path": "cpf-docs/work/v9i/QA_REWORK_REQUEST.md",
+      "size": 149,
+      "sha256": "63b65acc5bf0aa92006fcd35089689572a7b4aac8c4a767704534eb5615b132d"
+    },
+    {
+      "path": "cpf-docs/work/v9i/REVIEW_INDEX.md",
+      "size": 471,
+      "sha256": "6a7c05ef6c473275c13c7c05808b403f74c31647d865e63375d663710213e243"
+    },
+    {
+      "path": "cpf-docs/work/v9i/final-dev-request/CPF_DEVGPT_R6I_EXECUTION_INSTRUCTION.md",
+      "size": 7963,
+      "sha256": "b86a635cd2579ac5859118c88527abf754bb9c4b8ee2fd9d9acd53822dbcb46d"
+    },
+    {
+      "path": "cpf-docs/work/v9i/qa/QA_LATEST.md",
+      "size": 157,
+      "sha256": "54cd200da66179420dbdb2f5dae9d42712e689b9a270d31d4d520cdb2f48f3c6"
+    },
+    {
+      "path": "cpf-docs/work/v9i/qa/r6i/HANDOVER.md",
+      "size": 411,
+      "sha256": "31ae2c94d195ead01f5d4747e2886745bc9353fe49f6799c15212fa175e1d397"
+    },
+    {
+      "path": "cpf-docs/work/v9i/qa/r6i/QA_CROSSWALK.csv",
+      "size": 7242,
+      "sha256": "250eda1fbb6edfc565386f0625d682c426cd5474e8c51d455115f845cb147ee0"
+    },
+    {
+      "path": "cpf-docs/work/v9i/qa/r6i/QA_DELETE_MANIFEST.csv",
+      "size": 89,
+      "sha256": "68a2b8b8ff0f537a8f18ef0fb4db5608a714a71e39ac3afd7b7c77a05e6f6828"
+    },
+    {
+      "path": "cpf-docs/work/v9i/qa/r6i/QA_EVIDENCE_INDEX.csv",
+      "size": 712,
+      "sha256": "a6c5d54c23c7a27c02a2d065ec2e626c4f1555ecf5ac58b203ddfda790ed0a15"
+    },
+    {
+      "path": "cpf-docs/work/v9i/qa/r6i/QA_FINDINGS.csv",
+      "size": 31771,
+      "sha256": "e1671c970ecec9386b1105e6e3b47b94bcf407a8379106f2d05047f8d7e888a0"
+    },
+    {
+      "path": "cpf-docs/work/v9i/qa/r6i/QA_REPORT_R6I.md",
+      "size": 2168,
+      "sha256": "42cd2711e4c719ef5e7abaa1f575e3140f8e2675ccc147c7d0ec65996205ae2e"
+    },
+    {
+      "path": "cpf-docs/work/v9i/qa/r6i/QA_REQUIREMENT_STATUS.csv",
+      "size": 6563,
+      "sha256": "3ede02cba85463089aab9e8ea79f6bd42ffe9926fd44e8247fe0e263aabd0538"
+    },
+    {
+      "path": "cpf-docs/work/v9i/qa/r6i/QA_REWORK_REQUEST.md",
+      "size": 283,
+      "sha256": "af7d5f922e755d0ab761137261b09f989c27bbf3f03f8567a4f0913e76ccb308"
+    },
+    {
+      "path": "cpf-docs/work/v9i/qa/r6i/QA_SOURCE_VALIDATION_INDEX.csv",
+      "size": 7473,
+      "sha256": "de284257f730e2a83bef67898212e3d0c9b85d6dad43280c5317f9e520187625"
+    },
+    {
+      "path": "cpf-docs/work/v9i/qa/r6i/QA_TEST_EXECUTION_LEDGER.csv",
+      "size": 1064,
+      "sha256": "8751c095a609f74314156953261b19be9f2a3293b22d54568626ea6d2714d1b2"
+    },
+    {
+      "path": "cpf-docs/work/v9i/qa/r6i/README.md",
+      "size": 192,
+      "sha256": "6e12a7c1a79dde505cd17c32bcb933ef5263517366b12d1065200f2a8f4279ab"
+    },
+    {
+      "path": "cpf-docs/work/v9i/qa/r6i/inputs/QA_AB_DEEP_REVIEW_40_CANDIDATES.md",
+      "size": 116462,
+      "sha256": "b53144302e824f4c24cf59b6b109875f9460d253b599a4ae0b96582177d59277"
+    },
+    {
+      "path": "cpf-docs/work/v9i/qa/r6i/inputs/QA_AB_INPUT_33_RECORD.md",
+      "size": 117929,
+      "sha256": "275f532eae59f9e4175f88f08c3e717c61afcc8d6f5adb5c70ce862d676d7954"
+    }
+  ]
+}

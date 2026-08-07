@@ -1,0 +1,8 @@
+﻿test_id,scope,command_or_method,result,exit_code,evidence,baseline_sha,note
+R6I-T001,Git baseline,GitHub connector list_commits(master),PASS,0,QA_REPORT_R6I.md,77db10ad9aff44ee422795080fb2e96b364c9d65,master exact SHA confirmed
+R6I-T002,QA source comparison,Uploaded QA A+B reports cross-review,PASS,0,inputs/**,77db10ad9aff44ee422795080fb2e96b364c9d65,40 integrated findings established
+R6I-T003,Java25/Gradle9.1,NOT_EXECUTED,미검증,,,77db10ad9aff44ee422795080fb2e96b364c9d65,runtime unavailable in QA input
+R6I-T004,DB3 live,NOT_EXECUTED,미검증,,,77db10ad9aff44ee422795080fb2e96b364c9d65,Oracle/PostgreSQL/MariaDB live evidence absent
+R6I-T005,Actual browser,NOT_EXECUTED,미검증,,,77db10ad9aff44ee422795080fb2e96b364c9d65,authenticated backend/frontend evidence absent
+R6I-T006,Broker/multiprocess/process-kill,NOT_EXECUTED,미검증,,,77db10ad9aff44ee422795080fb2e96b364c9d65,required for development completion
+R6I-T007,Codex independent review,NOT_EXECUTED,미완료,,,77db10ad9aff44ee422795080fb2e96b364c9d65,must run on final result SHA

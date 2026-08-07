@@ -11,7 +11,7 @@
 
 동일 JVM · 분리 WAS · 모듈형 단일 애플리케이션 · 마이크로서비스 · 다중 인스턴스 · 정기·대량 처리 · 비동기 메시지 처리 · 운영 통제
 
-[프레임워크 안내](cpf-docs/guides/00_프레임워크안내.md) · [개발자 매뉴얼](cpf-docs/guides/01_개발자매뉴얼.md) · [배치 개발](cpf-docs/guides/02_배치개발매뉴얼.md) · [ADM 연동 개발](cpf-docs/guides/03_ADM개발자매뉴얼.md) · [ADM 운영](cpf-docs/guides/04_ADM운영자매뉴얼.md) · [플랫폼 운영](cpf-docs/guides/05_플랫폼운영매뉴얼.md)
+[프레임워크 안내](cpf-docs/guides/00_프레임워크안내.pdf) · [개발자 매뉴얼](cpf-docs/guides/01_개발자매뉴얼.pdf) · [배치 개발](cpf-docs/guides/02_배치개발매뉴얼.pdf) · [ADM 연동 개발](cpf-docs/guides/03_ADM개발자매뉴얼.pdf) · [ADM 운영](cpf-docs/guides/04_ADM운영자매뉴얼.pdf) · [플랫폼 운영](cpf-docs/guides/05_플랫폼운영매뉴얼.pdf)
 
 </div>
 
@@ -23,14 +23,14 @@
 
 | 지금 알고 싶은 것 | 먼저 읽을 문서 | 첫 번째 과제 |
 |---|---|---|
-| CPF가 어떤 시스템에 맞는가 | [00 프레임워크 안내](cpf-docs/guides/00_프레임워크안내.md) | 적용 사례를 고르고 Profile·Topology 선택표 작성 |
-| 온라인·연계 업무를 만드는 방법 | [01 개발자 매뉴얼](cpf-docs/guides/01_개발자매뉴얼.md) | PAY 예제로 조회·상태 변경·응답 유실 복구 수행 |
-| 정기·대량 처리를 만드는 방법 | [02 배치 개발 매뉴얼](cpf-docs/guides/02_배치개발매뉴얼.md) | Job을 실행하고 Process Kill 뒤 Restart·대사 |
-| 고객 업무를 ADM에 연결하는 방법 | [03 ADM 개발자 매뉴얼](cpf-docs/guides/03_ADM개발자매뉴얼.md) | Owner Port에서 Route·화면·Browser Test까지 연결 |
-| 화면에서 장애를 판단하고 복구하는 방법 | [04 ADM 운영자 매뉴얼](cpf-docs/guides/04_ADM운영자매뉴얼.md) | `UNKNOWN_RESULT` 사례를 Operation과 Owner 원장으로 종결 |
-| 설치·설정·배포·백업 방법 | [05 플랫폼 운영 매뉴얼](cpf-docs/guides/05_플랫폼운영매뉴얼.md) | Artifact 검증부터 Health·Rollback까지 수행 |
-| 조직·사용자·권한·결재 적용 방법 | [90 BZA 매뉴얼](cpf-docs/guides/90_BZA매뉴얼.md) | 조직 기준일과 Effective Permission을 업무에 연결 |
-| 외부 API 공개와 게시 복구 방법 | [91 Gateway 매뉴얼](cpf-docs/guides/91_Gateway매뉴얼.md) | Route Draft를 게시하고 NACK 뒤 LKG로 복구 |
+| CPF가 어떤 시스템에 맞는가 | [00 프레임워크 안내](cpf-docs/guides/00_프레임워크안내.pdf) | 적용 사례를 고르고 Profile·Topology 선택표 작성 |
+| 온라인·연계 업무를 만드는 방법 | [01 개발자 매뉴얼](cpf-docs/guides/01_개발자매뉴얼.pdf) | PAY 예제로 조회·상태 변경·응답 유실 복구 수행 |
+| 정기·대량 처리를 만드는 방법 | [02 배치 개발 매뉴얼](cpf-docs/guides/02_배치개발매뉴얼.pdf) | Job을 실행하고 Process Kill 뒤 Restart·대사 |
+| 고객 업무를 ADM에 연결하는 방법 | [03 ADM 개발자 매뉴얼](cpf-docs/guides/03_ADM개발자매뉴얼.pdf) | Owner Port에서 Route·화면·Browser Test까지 연결 |
+| 화면에서 장애를 판단하고 복구하는 방법 | [04 ADM 운영자 매뉴얼](cpf-docs/guides/04_ADM운영자매뉴얼.pdf) | `UNKNOWN_RESULT` 사례를 Operation과 Owner 원장으로 종결 |
+| 설치·설정·배포·백업 방법 | [05 플랫폼 운영 매뉴얼](cpf-docs/guides/05_플랫폼운영매뉴얼.pdf) | Artifact 검증부터 Health·Rollback까지 수행 |
+| 조직·사용자·권한·결재 적용 방법 | [90 BZA 매뉴얼](cpf-docs/guides/90_BZA매뉴얼.pdf) | 조직 기준일과 Effective Permission을 업무에 연결 |
+| 외부 API 공개와 게시 복구 방법 | [91 Gateway 매뉴얼](cpf-docs/guides/91_Gateway매뉴얼.pdf) | Route Draft를 게시하고 NACK 뒤 LKG로 복구 |
 
 전문 용어를 모르는 독자도 각 매뉴얼의 **용어 준비 → 따라 하기 → 오류 재현 → 복구 → 운영 인계** 순서로 읽을 수 있습니다. 이미 CPF를 사용하는 독자는 각 장의 판단표와 Source·API·SQL·화면 경로를 바로 참조합니다.
 
@@ -53,7 +53,7 @@ CPF는 조회·등록·상태 변경 API, 정기·대량 처리, 비동기 메�
 - ADM에서 상태·로그·배치·설정·복구·승인·감사를 조회하고 허용된 조치를 Owner 계약으로 전달합니다.
 - BZA는 조직·사용자·권한·결재를, Gateway는 외부 API의 인증·라우팅·적용 상태를 담당합니다.
 
-[제품 범위와 선택 절차 →](cpf-docs/guides/00_프레임워크안내.md)
+[제품 범위와 선택 절차 →](cpf-docs/guides/00_프레임워크안내.pdf)
 
 ---
 
@@ -94,7 +94,7 @@ Modular Monolith에서는 Local Facade가, Microservice와 분리 WAS에서는 R
 
 다중 인스턴스에서는 Lease·Claim·Fencing Token·Expected Version을 사용해 이전 실행자의 늦은 갱신과 중복 부작용을 차단합니다.
 
-[온라인·비동기·외부 연계 개발 절차 →](cpf-docs/guides/01_개발자매뉴얼.md)
+[온라인·비동기·외부 연계 개발 절차 →](cpf-docs/guides/01_개발자매뉴얼.pdf)
 
 ---
 
@@ -113,7 +113,7 @@ Modular Monolith에서는 Local Facade가, Microservice와 분리 WAS에서는 R
 
 CPF 배치는 Tasklet·Chunk·File·Partition·Remote Worker·Center-Cut·Scheduler를 Spring Batch 메타데이터와 운영 상태로 연결합니다. 운영자는 대상 Preview, 승인, 실행, 진행, Stop·Restart·Abandon·Reprocess, 결과 불명 대사와 업무 합계를 같은 Execution ID로 추적합니다.
 
-[배치 개발과 운영 절차 →](cpf-docs/guides/02_배치개발매뉴얼.md)
+[배치 개발과 운영 절차 →](cpf-docs/guides/02_배치개발매뉴얼.pdf)
 
 ---
 
@@ -126,9 +126,9 @@ CPF 배치는 Tasklet·Chunk·File·Partition·Remote Worker·Center-Cut·Schedu
 
 업무 개발자는 Owner Query·Command를 ADM에 연결하고, 운영자는 Route별 권한·Data Scope·Reason·Approval·Expected Version에 따라 조회와 조치를 수행합니다. 플랫폼 운영자는 Artifact·Config·Secret·DB·Broker·배포·관측·Backup·DR을 관리합니다.
 
-- [ADM 연동 개발자 매뉴얼 →](cpf-docs/guides/03_ADM개발자매뉴얼.md)
-- [ADM 운영자 매뉴얼 →](cpf-docs/guides/04_ADM운영자매뉴얼.md)
-- [플랫폼 운영 매뉴얼 →](cpf-docs/guides/05_플랫폼운영매뉴얼.md)
+- [ADM 연동 개발자 매뉴얼 →](cpf-docs/guides/03_ADM개발자매뉴얼.pdf)
+- [ADM 운영자 매뉴얼 →](cpf-docs/guides/04_ADM운영자매뉴얼.pdf)
+- [플랫폼 운영 매뉴얼 →](cpf-docs/guides/05_플랫폼운영매뉴얼.pdf)
 
 ---
 
@@ -154,14 +154,14 @@ Dry Run에서 Module·Package·System Code·Profile·Provider Binding·DB Vendor
 
 | 문서 | 주 독자와 완료 결과 |
 |---|---|
-| [00 프레임워크 안내](cpf-docs/guides/00_프레임워크안내.md) | 도입 검토자·아키텍트가 기능 범위·Profile·Topology·도입 순서를 결정 |
-| [01 개발자 매뉴얼](cpf-docs/guides/01_개발자매뉴얼.md) | 온라인·비동기·파일·외부 연계 업무를 설계·구현·시험·운영 인계 |
-| [02 배치 개발 매뉴얼](cpf-docs/guides/02_배치개발매뉴얼.md) | 배치를 개발하고 실행·중지·재시작·재처리·대사 |
-| [03 ADM 개발자 매뉴얼](cpf-docs/guides/03_ADM개발자매뉴얼.md) | 고객 업무의 조회·조치·승인·복구 계약을 ADM에 연결 |
-| [04 ADM 운영자 매뉴얼](cpf-docs/guides/04_ADM운영자매뉴얼.md) | 실제 Route에서 조회·조치·승인·대사·Rollback 수행 |
-| [05 플랫폼 운영 매뉴얼](cpf-docs/guides/05_플랫폼운영매뉴얼.md) | 설치·설정·DB·배포·관측·Backup·DR·장애 정상화 |
-| [90 BZA 매뉴얼](cpf-docs/guides/90_BZA매뉴얼.md) | 조직·사용자·권한·결재·첨부·감사 운영 |
-| [91 Gateway 매뉴얼](cpf-docs/guides/91_Gateway매뉴얼.md) | API Route·보안·게시·ACK/NACK·Drift·Rollback 운영 |
+| [00 프레임워크 안내](cpf-docs/guides/00_프레임워크안내.pdf) | 도입 검토자·아키텍트가 기능 범위·Profile·Topology·도입 순서를 결정 |
+| [01 개발자 매뉴얼](cpf-docs/guides/01_개발자매뉴얼.pdf) | 온라인·비동기·파일·외부 연계 업무를 설계·구현·시험·운영 인계 |
+| [02 배치 개발 매뉴얼](cpf-docs/guides/02_배치개발매뉴얼.pdf) | 배치를 개발하고 실행·중지·재시작·재처리·대사 |
+| [03 ADM 개발자 매뉴얼](cpf-docs/guides/03_ADM개발자매뉴얼.pdf) | 고객 업무의 조회·조치·승인·복구 계약을 ADM에 연결 |
+| [04 ADM 운영자 매뉴얼](cpf-docs/guides/04_ADM운영자매뉴얼.pdf) | 실제 Route에서 조회·조치·승인·대사·Rollback 수행 |
+| [05 플랫폼 운영 매뉴얼](cpf-docs/guides/05_플랫폼운영매뉴얼.pdf) | 설치·설정·DB·배포·관측·Backup·DR·장애 정상화 |
+| [90 BZA 매뉴얼](cpf-docs/guides/90_BZA매뉴얼.pdf) | 조직·사용자·권한·결재·첨부·감사 운영 |
+| [91 Gateway 매뉴얼](cpf-docs/guides/91_Gateway매뉴얼.pdf) | API Route·보안·게시·ACK/NACK·Drift·Rollback 운영 |
 
 ---
 
@@ -170,22 +170,21 @@ Dry Run에서 Module·Package·System Code·Profile·Provider Binding·DB Vendor
 
 CPF 문서는 기능 목록만 읽는 방식이 아니라 **하나의 업무를 설계·개발·실행·장애 재현·복구·운영 인계하는 순서**로 사용합니다.
 
-1. [00 프레임워크 안내](cpf-docs/guides/00_프레임워크안내.md)에서 적용 시나리오와 Profile·Topology를 고릅니다.
-2. [01 개발자 매뉴얼](cpf-docs/guides/01_개발자매뉴얼.md)의 PAY Golden Journey와 45개 EDU로 온라인·연계 업무를 만듭니다.
-3. [02 배치 개발 매뉴얼](cpf-docs/guides/02_배치개발매뉴얼.md)에서 Process Kill·Restart·대사를 수행합니다.
-4. [03/04 ADM 매뉴얼](cpf-docs/guides/03_ADM개발자매뉴얼.md)에서 업무 계약을 화면에 연결하고 Route별 운영 판단을 연습합니다.
-5. [05 플랫폼 운영](cpf-docs/guides/05_플랫폼운영매뉴얼.md), [90 BZA](cpf-docs/guides/90_BZA매뉴얼.md), [91 Gateway](cpf-docs/guides/91_Gateway매뉴얼.md)에서 설치·권한·게시·복구를 역할별로 완료합니다.
+1. [00 프레임워크 안내](cpf-docs/guides/00_프레임워크안내.pdf)에서 적용 시나리오와 Profile·Topology를 고릅니다.
+2. [01 개발자 매뉴얼](cpf-docs/guides/01_개발자매뉴얼.pdf)의 PAY Golden Journey와 45개 EDU로 온라인·연계 업무를 만듭니다.
+3. [02 배치 개발 매뉴얼](cpf-docs/guides/02_배치개발매뉴얼.pdf)에서 Process Kill·Restart·대사를 수행합니다.
+4. [03/04 ADM 매뉴얼](cpf-docs/guides/03_ADM개발자매뉴얼.pdf)에서 업무 계약을 화면에 연결하고 Route별 운영 판단을 연습합니다.
+5. [05 플랫폼 운영](cpf-docs/guides/05_플랫폼운영매뉴얼.pdf), [90 BZA](cpf-docs/guides/90_BZA매뉴얼.pdf), [91 Gateway](cpf-docs/guides/91_Gateway매뉴얼.pdf)에서 설치·권한·게시·복구를 역할별로 완료합니다.
 
-![CPF 문서 품질 Gate](cpf-docs/assets/manuals/cpf-document-quality-r10.svg)
 
 ---
 ## 제품 요구사항과 설계 산출물
 
-- [산출물 목록](cpf-docs/deliverables/산출물목록.md)
-- [아키텍처 설계서](cpf-docs/deliverables/아키텍처설계서.md)
-- [기술 사양서](cpf-docs/deliverables/기술사양서.md)
-- [기술 표준서](cpf-docs/deliverables/기술표준서.md)
-- [데이터베이스 표준서](cpf-docs/deliverables/데이터베이스표준서.md)
+- [산출물 목록](cpf-docs/deliverables/산출물목록.pdf)
+- [아키텍처 설계서](cpf-docs/deliverables/아키텍처설계서.pdf)
+- [기술 사양서](cpf-docs/deliverables/기술사양서.pdf)
+- [기술 표준서](cpf-docs/deliverables/기술표준서.pdf)
+- [데이터베이스 표준서](cpf-docs/deliverables/데이터베이스표준서.pdf)
 - [최상위 제품 요구사항](cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md)
 
 ---
@@ -202,6 +201,10 @@ java -version
 & (Join-Path $repo 'gradlew.bat') clean test assemble --no-daemon --max-workers=1 --stacktrace
 ```
 
-설치·기동·종료·DB·검증·되돌리기 절차는 [플랫폼 운영 매뉴얼](cpf-docs/guides/05_플랫폼운영매뉴얼.md)을 사용합니다.
+설치·기동·종료·DB·검증·되돌리기 절차는 [플랫폼 운영 매뉴얼](cpf-docs/guides/05_플랫폼운영매뉴얼.pdf)을 사용합니다.
 
 </details>
+
+
+> **PDF·DOCX 문서 탐색**  
+> 공식 매뉴얼과 설계 산출물은 PDF와 원본 DOCX를 함께 제공한다. 두 형식 모두 클릭 가능한 전체 문단 목차를 포함하고, PDF는 Viewer Bookmark와 업무·예제·복구·Source 색인을 제공한다. 기준 Commit은 `77db10ad9aff44ee422795080fb2e96b364c9d65` (`08_01`)이다. Runtime·DB·Browser에서 직접 실행하지 않은 범위는 각 PDF에서 `미검증`으로 표시한다.

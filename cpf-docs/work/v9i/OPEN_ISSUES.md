@@ -1,10 +1,3 @@
-# Open Issues
+# CPF Open Issues
 
-- QA final verification is not complete.
-- Java 25 and Gradle 9.1 full build, test, and publication remain.
-- Live Oracle, PostgreSQL, and MariaDB verification remain.
-- Browser and Playwright release verification remain.
-- Broker, multi-process, split-WAS, and process-kill verification remain.
-- Spring context wiring for the new ADM service and SPI implementations must be verified.
-- Risky correction approval must use server-verified approval evidence instead of a client boolean.
-- cpf-starters/openapi-webmvc was excluded because it is product source.
+현재 QA R6I 판정은 Release Blocked다. 상세 40건은 `qa/r6i/QA_FINDINGS.csv`를 참조한다. Target Runtime 및 Codex 독립검수는 미완료다.

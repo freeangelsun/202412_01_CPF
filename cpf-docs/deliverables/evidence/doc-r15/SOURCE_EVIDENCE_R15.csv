@@ -1,0 +1,31 @@
+﻿evidence_id,path_or_root,role,manual_link,basis,baseline,runtime_verification
+SRC-001,cpf-docs/specification/CPF_DOCUMENTATION_STANDARD.md,문서 표준 정본,전체,current-direct,77db10ad9aff44ee422795080fb2e96b364c9d65,미검증
+SRC-002,cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md,제품 요구 정본,전체,baseline-reference,77db10ad9aff44ee422795080fb2e96b364c9d65,미검증
+SRC-003,README.md,제품 브로셔·문서 진입점,README,current-baseline,77db10ad9aff44ee422795080fb2e96b364c9d65,미검증
+SRC-004,settings.gradle,Module/Starter 조립,00·01·05·아키텍처,08_01-diff,77db10ad9aff44ee422795080fb2e96b364c9d65,미검증
+SRC-005,cpf-admin/frontend/src/app/routes.ts,ADM Route Registry,03·04,baseline+08_01,77db10ad9aff44ee422795080fb2e96b364c9d65,미검증
+SRC-006,cpf-admin/frontend/src/features/integration-closure/IntegrationClosurePage.vue,Integration Closure 화면,03·04,08_01-diff,77db10ad9aff44ee422795080fb2e96b364c9d65,미검증
+SRC-007,cpf-admin/frontend/src/features/integration-closure/integrationClosureApi.ts,Operation facade,03·04,08_01-diff,77db10ad9aff44ee422795080fb2e96b364c9d65,미검증
+SRC-008,cpf-admin/frontend/src/features/integration-closure/integrationClosureIdempotency.ts,Browser Idempotency Ledger v3,01·03·04,08_01-direct,77db10ad9aff44ee422795080fb2e96b364c9d65,미검증
+SRC-009,cpf-admin/frontend/src/shared/strictJsonObject.ts,Strict JSON Canonicalization,03·04,08_01-added,77db10ad9aff44ee422795080fb2e96b364c9d65,미검증
+SRC-010,cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmIntegrationClosureController.java,Integration Closure API validation,03·04,08_01-direct,77db10ad9aff44ee422795080fb2e96b364c9d65,미검증
+SRC-011,cpf-admin/src/main/java/com/cpf/admin/config/AdmIntegrationClosureProperties.java,Integration Closure Property,05,08_01-direct,77db10ad9aff44ee422795080fb2e96b364c9d65,미검증
+SRC-012,cpf-admin/src/main/java/com/cpf/admin/config/AdmIntegrationClosureProfileGuard.java,Prod/local Provider guard,05,08_01-added,77db10ad9aff44ee422795080fb2e96b364c9d65,미검증
+SRC-013,cpf-admin/src/main/java/com/cpf/admin/approval/security/AdmApprovalSnapshotIntegrity.java,Approval Snapshot canonical hash,03·04·기술표준,08_01-diff,77db10ad9aff44ee422795080fb2e96b364c9d65,미검증
+SRC-014,cpf-admin/src/main/java/com/cpf/admin/approval/security/AdmDataQualityApprovalProofService.java,Data Quality single-use HMAC proof,03·04·05·기술사양·아키텍처,08_01-direct,77db10ad9aff44ee422795080fb2e96b364c9d65,미검증
+SRC-015,cpf-admin/src/main/java/com/cpf/admin/approval/owner/DataQualityCorrectionApprovalOwnerCommandAdapter.java,Owner mutation adapter,03·04,08_01-diff,77db10ad9aff44ee422795080fb2e96b364c9d65,미검증
+SRC-016,cpf-core/src/main/java/com/cpf/core/spi/data/quality/CpfDataQualityCorrectionPort.java,Owner-side mutation SPI,01·03·04·기술사양,08_01-direct,77db10ad9aff44ee422795080fb2e96b364c9d65,미검증
+SRC-017,cpf-common/src/main/java/com/cpf/common/data/quality/InMemoryCpfDataQualityOperations.java,Local/dev Data Quality adapter,01·03,08_01-diff,77db10ad9aff44ee422795080fb2e96b364c9d65,미검증
+SRC-018,cpf-tools/db/vendor/mariadb/migration/V104__approval_integrity_r6.sql,MariaDB approval history migration,05·DB표준,08_01-added,77db10ad9aff44ee422795080fb2e96b364c9d65,미검증
+SRC-019,cpf-tools/db/vendor/postgresql/migration/V104__approval_integrity_r6.sql,PostgreSQL approval history migration,05·DB표준,08_01-direct,77db10ad9aff44ee422795080fb2e96b364c9d65,미검증
+SRC-020,cpf-tools/db/vendor/oracle/migration/V104__approval_integrity_r6.sql,Oracle approval history migration,05·DB표준,08_01-added,77db10ad9aff44ee422795080fb2e96b364c9d65,미검증
+SRC-021,cpf-tools/verification/final-dev/run-db3-lifecycle.ps1,DB3 lifecycle runner,05·DB표준,08_01-diff,77db10ad9aff44ee422795080fb2e96b364c9d65,미검증
+SRC-022,cpf-tools/verification/final-dev/run-r6-release-gates.ps1,R6 release gate orchestrator,01·03·04·05·산출물,08_01-direct,77db10ad9aff44ee422795080fb2e96b364c9d65,미검증
+SRC-023,cpf-tools/verification/final-dev/verify-r6-approval-contract.py,R6 approval static contract gate,03·04·05,08_01-added,77db10ad9aff44ee422795080fb2e96b364c9d65,미검증
+SRC-024,cpf-tools/verification/final-dev/verify-r6-behavior-contracts.py,R6 behavior static gate,03·04·05,08_01-added,77db10ad9aff44ee422795080fb2e96b364c9d65,미검증
+SRC-025,cpf-tools/verification/qa38/verify-qa38-structure.py,QA38 structure gate,산출물,08_01-diff,77db10ad9aff44ee422795080fb2e96b364c9d65,미검증
+SRC-026,cpf-tools/verification/qa39/verify-qa39-canonical-starter-closure.py,QA39 canonical starter gate,00·01·05,08_01-diff,77db10ad9aff44ee422795080fb2e96b364c9d65,미검증
+SRC-027,cpf-tools/generator/contracts/cpf-starter-catalog.json,Canonical Starter catalog,00·01·05,06_10+08_01-baseline,77db10ad9aff44ee422795080fb2e96b364c9d65,미검증
+SRC-028,cpf-batch,Batch Engine/Control root,02·04,baseline-root,77db10ad9aff44ee422795080fb2e96b364c9d65,미검증
+SRC-029,cpf-gateway,Gateway Runtime root,91,baseline-root,77db10ad9aff44ee422795080fb2e96b364c9d65,미검증
+SRC-030,cpf-biz-admin,BZA Backend/Frontend root,90,baseline-root,77db10ad9aff44ee422795080fb2e96b364c9d65,미검증

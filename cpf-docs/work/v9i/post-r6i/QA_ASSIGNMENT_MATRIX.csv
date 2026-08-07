@@ -1,0 +1,17 @@
+﻿assignment_id,owner,role,area,scope,priority
+R6J-A01,QA-A,PRIMARY,Runtime/Release/Exact-SHA,"Release workflow, Java25/Gradle9.1, current SHA evidence provenance, artifact binding",P0
+R6J-A02,QA-A,PRIMARY,Transaction/Logging,"transactionId lineage, ADM one-shot lookup, file log, DB timeline, batch/external log standard",P0
+R6J-A03,QA-A,PRIMARY,DB3/Artifact/DR,"DB3 lifecycle, backup/restore, offline/remote/local artifact, supply chain",P0
+R6J-A04,QA-A,PRIMARY,Observability/Performance,"SLI/SLO, log loss, capacity, backpressure, live probes",P1
+R6J-A05,QA-A,PRIMARY,Verification Tool,mutation/adversarial false-green review of new gates,P0
+R6J-A06,QA-A,CROSS,ADM/BZA/EDU,critical consumer/Browser/Architecture sample cross-check,P0
+R6J-B01,QA-B,PRIMARY,Architecture/Ownership,"Public API/SPI/Internal, Consumer, dependency, duplicate primary",P0
+R6J-B02,QA-B,PRIMARY,ADM/BZA,"63 routes, operation consumers, auth/permission/error/browser/realtime",P0
+R6J-B03,QA-B,PRIMARY,EDU/Generator,"EDU 135 architecture reclassification, EDU-ADM 17, generator/reference parity",P0
+R6J-B04,QA-B,PRIMARY,Approval/Security,"4D tuple, capability single-use, secret, UNKNOWN, audit",P0
+R6J-B05,QA-B,PRIMARY,Batch/Gateway/Integration,"transaction propagation, retry/recovery, runtime owner boundaries",P0
+R6J-B06,QA-B,CROSS,Runtime/Logging,release evidence and transaction/file/db log cross-check,P0
+R6J-X01,QA-A+QA-B,BOTH,Evidence Provenance,"14 referenced local evidence logs vs pushed package, result SHA binding",P0
+R6J-X02,QA-A+QA-B,BOTH,EDU/ADM Architecture,product-vs-education boundary; keep/merge/product/extension/remove classification,P0
+R6J-X03,QA-A+QA-B,BOTH,Transaction/Logging,transactionId end-to-end trace and ADM lookup,P0
+R6J-X04,QA-A+QA-B,BOTH,Open Runtime,51 unverified requirements independently classified and executed where possible,P0

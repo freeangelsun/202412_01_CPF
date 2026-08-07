@@ -165,6 +165,20 @@ com.cpf.<owner>.internal
 - Consumer 없는 Starter를 GA 완료로 처리하는 행위
 
 
+
+### 5.2 제품 제공 영역과 EDU/Reference 경계
+
+CPF가 제품으로 제공하는 Runtime/Application 자체와 CPF 도입 개발자가 직접 개발해야 하는 영역을 구분한다.
+
+- `cpf-admin`의 ADM은 플랫폼 운영 Control Plane **제품**이다. CPF 도입 개발자가 ADM 자체를 다시 개발하는 교육 대상이 아니다.
+- `cpf-biz-admin`의 BZA도 고객 업무 관리 제품/확장 Surface이며, 제품 본체의 내부 기능을 EDU에 복제하지 않는다.
+- `cpf-reference`/EDU는 CPF 도입 개발자가 실제로 사용해야 하는 **Public API, Public SPI, 공식 Extension Point, Integration Contract, Generator 산출물 사용법**을 실행 가능한 예제로 교육하는 영역이다.
+- ADM/BZA/Gateway/Batch 내부 구현을 이름만 바꾼 Generic Handler/JDBC 예제로 EDU에 중복 구현하지 않는다.
+- ADM/BZA 제품 기능의 완전성은 해당 Product Source/API/Frontend/SQL/Test/Runtime/Manual에서 검증한다.
+- ADM/BZA와 관련된 EDU는 외부 Consumer가 실제로 구현·호출하는 공식 Public Extension/Integration 시나리오일 때만 유지한다.
+- EDU 수량은 그 자체가 목표가 아니다. Canonical EDU Catalog의 수량은 Public Consumer 교육 필요성과 Architecture Ownership에 의해 결정한다.
+- 기존 EDU ID를 축소·통합·재분류해야 할 경우 QA가 Source/Consumer/Generator/Manual/Test 영향도를 검토하고 정본 Requirement를 먼저 갱신한다. 개발GPT가 QA 원장을 임의 삭제하거나 완료 처리하지 않는다.
+
 ## 6. 모든 Requirement에 적용되는 공통 완료 축
 
 각 Requirement는 적용 가능한 항목을 모두 충족해야 한다. `N/A`는 이유와 검수 승인이 있어야 한다.
@@ -221,6 +235,67 @@ Dependency나 파일만 추가하고 실제 Consumer가 Legacy를 사용하면 �
 - 오류는 code, message, field/offset, retryability, failure stage, unknown-result 여부와 operator guidance를 가져야 한다.
 - pre-execution failure, side-effect confirmed failure, success, stopped, retryable failure와 unknown result를 구분한다.
 - 결과 불명은 자동 성공이나 무조건 재시도로 닫지 않는다.
+
+
+### 8.1 거래 추적·파일로그·DB로그 표준
+
+프레임워크의 거래·대외연계·Batch·Scheduler·Center-Cut·Gateway·비동기 실행은 장애 분석과 운영 추적을 위해 동일한 식별 체계를 사용한다.
+
+#### 거래 계보
+
+- 최상위 거래의 `transactionId`는 호출 체인 전체에서 유지한다.
+- 거래가 다른 거래, Remote Service, Gateway, Message, File, Batch 또는 비동기 작업을 호출해도 원 `transactionId`를 잃지 않는다.
+- 하위 호출은 `segmentId`, `parentSegmentId`, `attempt`, `traceId`, `spanId`로 계층과 재시도를 구분한다.
+- Batch 전환 시 `jobId/jobInstanceId/jobExecutionId/stepExecutionId/partitionId/itemId/agentId/workerId`와 원 `transactionId/requestId`를 연결한다.
+- 외부 연계는 destination/service/operation/requestId/attempt/timeout/result/error를 거래 계보에 연결한다.
+- Client가 임의 입력한 내부 transaction/instance/security header를 신뢰하지 않고 trust boundary에서 검증·재생성 정책을 적용한다.
+
+#### 표준 로그 필드
+
+로그 종류에 따라 적용 가능한 범위에서 최소 다음을 구조화한다.
+
+`timestamp`, `level`, `systemCode`, `environment`, `instanceId/wasId`, `transactionId`, `traceId`, `spanId`,
+`segmentId`, `parentSegmentId`, `attempt`, `requestId/idempotencyKey`, `actor/tenant/channel`,
+`jobId/jobInstanceId/jobExecutionId/stepExecutionId/partitionId/itemId/agentId/workerId`,
+`operation/endpoint/remoteSystem`, `result/status`, `errorCode`, `failureStage`, `retryable`,
+`unknownResult`, `elapsedMs`, `message/file identifiers`.
+
+민감 Payload, Credential, Token, Session, Private Key, 주민번호/계좌 등 PII는 원문 기록하지 않고 표준 masking/redaction 정책을 적용한다.
+
+#### 파일 로그
+
+- 제품 표준 경로·파일명·encoding·event format·rotation·compression·retention·권한을 정의한다.
+- 다중 인스턴스에서 파일 충돌이나 교차 기록이 없도록 system/date/instance 식별이 가능해야 한다.
+- 비동기 File Writer는 bounded queue, backpressure/fallback, shutdown drain, disk-full/write-failure, process-kill, terminal-loss 탐지와 alert를 제공한다.
+- 로그 저장 실패가 원 업무 Transaction을 불필요하게 Rollback시키지 않되, 법적/보안 감사처럼 fail-closed가 필요한 로그는 정책을 구분한다.
+- local spool/replay를 사용하는 경우 순서, 중복 제거, checksum, retry, poison record/quarantine와 유실 탐지를 제공한다.
+
+#### DB 거래·운영 로그
+
+- transaction/segment/attempt/batch execution/remote call 상태를 조회할 수 있는 Canonical Schema와 Index를 제공한다.
+- `transactionId` 단일 조건으로 대량 데이터에서도 효율적으로 전체 Timeline을 조회할 수 있어야 한다.
+- append/duplicate/idempotency, retention/partition/archive/purge, DB 장애와 재전송, 부분 기록을 검증한다.
+- Audit DB Log는 append-only/tamper-evident 요구를 별도로 만족한다.
+- File Log와 DB Timeline이 동일 거래를 가리키되 민감 Payload를 중복 저장하지 않는다.
+
+#### ADM 통합 거래 조회
+
+ADM은 운영자가 **transactionId 하나로** 해당 거래의 전체 호출 계보를 조회할 수 있어야 한다.
+
+최소 조회 범위:
+
+- 최초 요청과 종료 결과
+- Local/Remote 하위 Transaction Segment
+- 외부 REST/전문/File/Gateway 호출과 attempt
+- Message producer/consumer, retry, DLQ
+- Batch/Center-Cut/Scheduler로 이어진 job/execution/step/partition/worker
+- instance/was/agent/server identity
+- 오류 code/failure stage/UNKNOWN/reconcile 결과
+- 관련 File Log/Remote Log/Trace/Audit의 안전한 연결
+- 시간순 Timeline, 계층 Tree, 검색/Paging/Detail
+- 데이터 누락·지연·수집 불가 시 명시적 partial/stale 경고
+
+원문 민감 로그 조회·다운로드는 별도 권한, 사유, 승인, masking, 감사와 만료 정책을 적용한다.
 
 ## 9. 데이터·SQL·Migration 정본
 
@@ -428,6 +503,17 @@ create → optional DB bootstrap → build/test/runtime
 - `cpf-member`와 임의 생성 Domain을 이름 normalize 후 parity 비교한다.
 - Generated Domain은 CPF BOM + Convention Plugin + Versioned Maven Artifact를 사용하고 Source/JAR 수동 복사를 금지한다.
 - EDU와 Sample은 실제 제품 Header/API/DB/Event/Batch/Security 계약을 사용하고 정상뿐 아니라 오류·복구·권한·운영을 교육한다.
+
+
+### 16.1 EDU Architecture 판정 기준
+
+EDU는 Product 완성도를 대신하는 우회 구현이 아니다.
+
+- 제품 ADM/BZA/Gateway/Batch 자체의 CRUD·운영·승인·Incident·Topology·Log/Trace·Session 기능은 제품 Module에서 완성한다.
+- EDU는 도입 개발자가 직접 작성해야 하는 Consumer/Extension/Integration 개발 예제에 집중한다.
+- EDU ID별로 `교육 대상 사용자`, `공개 계약`, `실제 Consumer`, `왜 EDU가 필요한지`를 설명할 수 없으면 Architecture 재분류 대상으로 본다.
+- 기존 `EDU-ADM-*`를 포함한 EDU 항목은 숫자를 유지하기 위해 Product 기능을 복제하지 않는다.
+- QA는 각 항목을 `유지`, `통합`, `Product 귀속`, `공식 Extension Sample`, `삭제 후보`로 판정하고 영향도를 보고한다.
 
 ## 17. Build·Artifact·배포·Supply Chain
 

@@ -1,0 +1,21 @@
+﻿path,action,purpose
+cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md,MODIFY,Post-R6I central QA/development governance
+cpf-docs/work/v9i/CHECKPOINT_STATUS.md,MODIFY,Post-R6I central QA/development governance
+cpf-docs/work/v9i/DATASET_MAP.md,MODIFY,Post-R6I central QA/development governance
+cpf-docs/work/v9i/HANDOVER.md,MODIFY,Post-R6I central QA/development governance
+cpf-docs/work/v9i/REVIEW_INDEX.md,MODIFY,Post-R6I central QA/development governance
+cpf-docs/work/v9i/final-dev-request/CPF_DEVGPT_NEXT_CYCLE_EXECUTION_POLICY.md,ADD,Post-R6I central QA/development governance
+cpf-docs/work/v9i/post-r6i/CENTRAL_INTEGRATED_REVIEW.md,ADD,Post-R6I central QA/development governance
+cpf-docs/work/v9i/post-r6i/CENTRAL_REVIEW_CANDIDATES.csv,ADD,Post-R6I central QA/development governance
+cpf-docs/work/v9i/post-r6i/CROSS_AGENT_COLLABORATION_POLICY.md,ADD,Post-R6I central QA/development governance
+cpf-docs/work/v9i/post-r6i/HANDOVER.md,ADD,Post-R6I central QA/development governance
+cpf-docs/work/v9i/post-r6i/LOGGING_TRANSACTION_QA_STANDARD.md,ADD,Post-R6I central QA/development governance
+cpf-docs/work/v9i/post-r6i/QA_ASSIGNMENT_MATRIX.csv,ADD,Post-R6I central QA/development governance
+cpf-docs/work/v9i/post-r6i/QA_FEEDBACK_EXCHANGE.csv,ADD,Post-R6I central QA/development governance
+cpf-docs/work/v9i/post-r6i/RESULT_SHA_BINDING.md,ADD,Post-R6I central QA/development governance
+cpf-docs/work/v9i/qa/r6i/QA_REPORT_R6I.md,MODIFY,Post-R6I central QA/development governance
+cpf-docs/work/v9i/qa/r6j/a/QA_A_EXECUTION_INSTRUCTION.md,ADD,Post-R6I central QA/development governance
+cpf-docs/work/v9i/qa/r6j/b/QA_B_EXECUTION_INSTRUCTION.md,ADD,Post-R6I central QA/development governance
+cpf-docs/work/v9i/post-r6i/CHANGE_MANIFEST.csv,ADD,package change manifest
+cpf-docs/work/v9i/post-r6i/PACKAGE_MANIFEST.json,ADD,package manifest
+cpf-docs/work/v9i/post-r6i/SHA256SUMS.txt,ADD,package hashes

@@ -1,0 +1,109 @@
+{
+  "packageType": "CPF_POST_R6I_CENTRAL_QA_PREPARATION_OVERLAY",
+  "basisSha": "0427758db041d38eb0f34d88b55bd5366e2d9e47",
+  "developerBaselineSha": "64049044956924032360fa80be83b5e37c64f828",
+  "generatedAt": "2026-08-07T19:45:00+09:00",
+  "developerResult": {
+    "requirements": 77,
+    "implementedClaim": 77,
+    "verifiedClaim": 26,
+    "unverified": 51
+  },
+  "centralReviewCandidates": 8,
+  "qaAssignmentCount": 16,
+  "deleteCount": 0,
+  "gitWritesPerformed": false,
+  "protectedPathPolicy": "No deletion; governance/work control documents only",
+  "files": [
+    {
+      "path": "cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md",
+      "size": 92299,
+      "sha256": "7e86091902cab727f16cc712c5124f5ca682e7151fa015dbd19abfc030540bd5"
+    },
+    {
+      "path": "cpf-docs/work/v9i/CHECKPOINT_STATUS.md",
+      "size": 1170,
+      "sha256": "cc3beea1fd928113fad804845a8164d955c82a6c1b9a45a891cb5c3d44930997"
+    },
+    {
+      "path": "cpf-docs/work/v9i/DATASET_MAP.md",
+      "size": 848,
+      "sha256": "fd8878eb2ea17c010bd9c8d773dd3669a99ad330c17caf57e5845708e516c267"
+    },
+    {
+      "path": "cpf-docs/work/v9i/HANDOVER.md",
+      "size": 1289,
+      "sha256": "734383f64bd6aae28fd906eefac1d31820d7bba318bf481de09832d1b13b81b4"
+    },
+    {
+      "path": "cpf-docs/work/v9i/REVIEW_INDEX.md",
+      "size": 1093,
+      "sha256": "44e83568bc0c13a585650479e8d5b2998ae28689db81e49e5d19e10c365b5d33"
+    },
+    {
+      "path": "cpf-docs/work/v9i/final-dev-request/CPF_DEVGPT_NEXT_CYCLE_EXECUTION_POLICY.md",
+      "size": 2296,
+      "sha256": "88edd03f2f45f852c1fa1f95b058f9f43c956d5a60b3cc9125372cc7c172d26e"
+    },
+    {
+      "path": "cpf-docs/work/v9i/post-r6i/CENTRAL_INTEGRATED_REVIEW.md",
+      "size": 8717,
+      "sha256": "bdbeb5303b162a92ed5865e17887580cc9656dcf6ed7b379bfeb6dfcc555f84a"
+    },
+    {
+      "path": "cpf-docs/work/v9i/post-r6i/CENTRAL_REVIEW_CANDIDATES.csv",
+      "size": 1664,
+      "sha256": "281873cad9eca4bd8fd0b5d684cb7e7f081a23b450de351254f6f4a66a1a6458"
+    },
+    {
+      "path": "cpf-docs/work/v9i/post-r6i/CHANGE_MANIFEST.csv",
+      "size": 1920,
+      "sha256": "e2946b7b3e80da43d81fb11e9943e6d4eb91ff1be455cfbf4b5fa292d6a476a1"
+    },
+    {
+      "path": "cpf-docs/work/v9i/post-r6i/CROSS_AGENT_COLLABORATION_POLICY.md",
+      "size": 1954,
+      "sha256": "16086c273eb974fdb18983d6d67c240492c5347fea9cf616fcee1677d2983cb9"
+    },
+    {
+      "path": "cpf-docs/work/v9i/post-r6i/HANDOVER.md",
+      "size": 849,
+      "sha256": "b98c15ac08d931be1697208c13af8f0ef2c810bb280f2de0e2f9b62d8b97bf66"
+    },
+    {
+      "path": "cpf-docs/work/v9i/post-r6i/LOGGING_TRANSACTION_QA_STANDARD.md",
+      "size": 5023,
+      "sha256": "5ee95f75c671789bfc5793762a761659da51dfd23710b00da8e3ea7ab72c09ff"
+    },
+    {
+      "path": "cpf-docs/work/v9i/post-r6i/QA_ASSIGNMENT_MATRIX.csv",
+      "size": 1865,
+      "sha256": "a2a325ebe0a4625e92d4d17fb5d98522f6ab5497f3a77e930930e7df4cd8de87"
+    },
+    {
+      "path": "cpf-docs/work/v9i/post-r6i/QA_FEEDBACK_EXCHANGE.csv",
+      "size": 268,
+      "sha256": "95b00c4dbaa79480261f6a8019b230044b13be2f458c03d04514af1bbbf92d5a"
+    },
+    {
+      "path": "cpf-docs/work/v9i/post-r6i/RESULT_SHA_BINDING.md",
+      "size": 827,
+      "sha256": "75a362e9d6045343d36ceb7004afdef5cc03a5e813e730d63169036cdbe17338"
+    },
+    {
+      "path": "cpf-docs/work/v9i/qa/r6i/QA_REPORT_R6I.md",
+      "size": 4513,
+      "sha256": "1e92163c1aece8793fa43ad8eab344f0aed1e0dc52eac704a490ed84686dfe68"
+    },
+    {
+      "path": "cpf-docs/work/v9i/qa/r6j/a/QA_A_EXECUTION_INSTRUCTION.md",
+      "size": 6665,
+      "sha256": "130cce3aa94f2d6813a3df36afb1547e3f9caaac66a63d5c54515548d38f8ed8"
+    },
+    {
+      "path": "cpf-docs/work/v9i/qa/r6j/b/QA_B_EXECUTION_INSTRUCTION.md",
+      "size": 6563,
+      "sha256": "495c6dda967fc248bd2bd27d5a6f2ce4a3ae6db17c1d13f27f16e64a29e49dfc"
+    }
+  ]
+}

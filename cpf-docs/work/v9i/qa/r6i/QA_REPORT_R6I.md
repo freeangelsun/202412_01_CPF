@@ -40,3 +40,34 @@ QA A 19건·QA B 14건의 33개 Record와 A+B 교차검수 40개 Candidate를 �
 ## 보호 원칙
 
 사용자 승인 없는 Commit·Push·Branch·Tag·PR·Reset·Restore·Stash·Clean·삭제는 수행하지 않는다. 기존 R5I 역사와 보호 경로는 보존한다.
+
+---
+
+# Post-R6I Development Update — Central Management
+
+- 실제 적용/Push 확인 SHA: `0427758db041d38eb0f34d88b55bd5366e2d9e47`
+- 개발 작업 기준 SHA: `64049044956924032360fa80be83b5e37c64f828`
+- 개발GPT 원장: 77 rows = QA 40 + FDEV 25 + HARDEN 12
+- 개발 상태: 77/77 `완료` 주장
+- 검증 상태: 26 `완료`, 51 `미검증`
+- 이 Update는 **QA A/B 재검수 전 개발결과 통합 기록**이며 기존 `미통과 — Release Blocked` 판정을 자동 해제하지 않는다.
+
+## 중앙에서 QA 재검수에 추가한 필수 축
+
+1. current result SHA ↔ Evidence ↔ Artifact provenance
+2. 개발 원장이 참조하는 14개 `evidence/*.log`의 실재성/재현성
+3. 51개 external/runtime 미검증
+4. ADM full 332-operation clean checkout closure
+5. 신규 Verification Tool false-green adversarial review
+6. ADM Product와 EDU/Reference의 Architecture 경계
+7. transactionId end-to-end lineage, ADM 단일 transaction 조회, File/DB logging
+8. QA A/B Primary 영역 순환 + 공통 P0 Cross-check
+9. Requirement 밖 신규 문제의 자율 Finding
+10. Developer/QA A/QA B/Central 의견교환과 이견 보존
+
+상세 정본:
+- `../../post-r6i/CENTRAL_INTEGRATED_REVIEW.md`
+- `../../post-r6i/LOGGING_TRANSACTION_QA_STANDARD.md`
+- `../../post-r6i/CROSS_AGENT_COLLABORATION_POLICY.md`
+- `../r6j/a/QA_A_EXECUTION_INSTRUCTION.md`
+- `../r6j/b/QA_B_EXECUTION_INSTRUCTION.md`

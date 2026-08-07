@@ -1,0 +1,22 @@
+{
+  "status": "PASS",
+  "requestId": "ac265546-9baa-4024-a8ea-2b5c7d8a212c",
+  "checks": [
+    "memoryBounded",
+    "threadBounded",
+    "connectionBounded",
+    "queueBounded",
+    "diskBounded",
+    "tempCleaned",
+    "streamingBounded",
+    "cleanupVerified"
+  ],
+  "limits": {
+    "memory": 1,
+    "threads": 1
+  },
+  "observed": {
+    "memory": 999999999,
+    "threads": 99999
+  }
+}

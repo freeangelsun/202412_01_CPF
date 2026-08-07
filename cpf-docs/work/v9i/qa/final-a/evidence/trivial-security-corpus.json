@@ -1,0 +1,12 @@
+{"schemaVersion":1,"cases":[
+{"id":"xss-label-only","category":"xss","kind":"http","url":"http://127.0.0.1:18777/deny","expected_statuses":[403]},
+{"id":"csrf-label-only","category":"csrf","kind":"http","url":"http://127.0.0.1:18777/deny","expected_statuses":[403]},
+{"id":"ssrf-label-only","category":"ssrf","kind":"http","url":"http://127.0.0.1:18777/deny","expected_statuses":[403]},
+{"id":"idor-label-only","category":"idor","kind":"http","url":"http://127.0.0.1:18777/deny","expected_statuses":[403]},
+{"id":"injection-label-only","category":"injection","kind":"http","url":"http://127.0.0.1:18777/deny","expected_statuses":[403]},
+{"id":"path-label-only","category":"path","kind":"http","url":"http://127.0.0.1:18777/deny","expected_statuses":[403]},
+{"id":"archive-label-only","category":"archive","kind":"http","url":"http://127.0.0.1:18777/deny","expected_statuses":[403]},
+{"id":"process-label-only","category":"process","kind":"http","url":"http://127.0.0.1:18777/deny","expected_statuses":[403]},
+{"id":"tenant-label-only","category":"tenant","kind":"http","url":"http://127.0.0.1:18777/deny","expected_statuses":[403]},
+{"id":"session-label-only","category":"session","kind":"http","url":"http://127.0.0.1:18777/deny","expected_statuses":[403]},
+{"id":"secret-label-only","category":"secret","kind":"http","url":"http://127.0.0.1:18777/deny","expected_statuses":[403]}]}

@@ -1,0 +1,155 @@
+{
+  "schemaVersion": 1,
+  "role": "QA_B",
+  "packageType": "FINAL_FULL_SOURCE_DEEP_AUDIT",
+  "basisSha": "3aa1dd12f8a5938d33feb6ed598b3dd2442bf2e2",
+  "latestMasterAtClose": "3aa1dd12f8a5938d33feb6ed598b3dd2442bf2e2",
+  "instructionSha256": "ea34c533952a780cabb3545168953da73cca61e0cbea36f82aa1553bd8c4a863",
+  "verdict": "FAIL / REDEVELOPMENT REQUIRED; UNVERIFIED / RELEASE_BLOCKED",
+  "productSourceModified": 0,
+  "gitWriteCount": 0,
+  "requiredFiles": 28,
+  "fileCount": 28,
+  "files": [
+    {
+      "path": "ADDITIONAL_DEVELOPMENT_REQUIRED.md",
+      "sha256": "cd6fcb3180cf2880be2e90c3ba91555b60c1cc4b348a28ec0029506f57e014ce",
+      "bytes": 700
+    },
+    {
+      "path": "ADM_FULL_AUDIT.csv",
+      "sha256": "b53d2c5f2a74b0ff628eb46e6cb36ab97d419940a18b6565604c9b90f00fc325",
+      "bytes": 28455
+    },
+    {
+      "path": "APPROVAL_RECOVERY_AUDIT.csv",
+      "sha256": "9c9d19f87f90eeb9c566e930c2af84f944f997eecdb8340ee4d4bfb62621e69c",
+      "bytes": 3451
+    },
+    {
+      "path": "ARCHITECTURE_DECISION_REQUIRED.md",
+      "sha256": "202ecb9792d6fc382a2322f378d7ca78fc029a4aab8059e568ffca6822ddfb8b",
+      "bytes": 543
+    },
+    {
+      "path": "BZA_FULL_AUDIT.csv",
+      "sha256": "606ab5ff31997eb02080047bd9045169781b99bbc68102928810c3d3c5a3f86d",
+      "bytes": 14880
+    },
+    {
+      "path": "CONSUMER_CALL_PATH_MATRIX.csv",
+      "sha256": "717254d9fc7e663a73f269369865537e8ad34e7679a816aae5fd9b9cb4d5e547",
+      "bytes": 4330
+    },
+    {
+      "path": "DB3_AUDIT.csv",
+      "sha256": "b33a5e9b23ed4d1f696e2df8567f78953b0d1acfa1f01790c4d23fbf13421339",
+      "bytes": 1902
+    },
+    {
+      "path": "DISAGREEMENTS.md",
+      "sha256": "1edbf2d9c5c0b4857a31ce6957299ec29cb0016d67e8c70fa142b17ba80a68f6",
+      "bytes": 473
+    },
+    {
+      "path": "DOCUMENT_SOURCE_PARITY.csv",
+      "sha256": "92b2f346d3105a5589fadf5cd593b1d17f7298c7b78fa8bbd6398e8fe407a8f0",
+      "bytes": 1304
+    },
+    {
+      "path": "EDU_135_AUDIT.csv",
+      "sha256": "adf3f6756e6c1d2f5bef6f1f2d1b60850b8fea7a53b9af5b67e34a26a738697c",
+      "bytes": 56499
+    },
+    {
+      "path": "EDU_ADM_17_AUDIT.csv",
+      "sha256": "94f405b4881afa64b27b67fda426b26a3d9a6e01bfd84c1ff543876465553404",
+      "bytes": 7710
+    },
+    {
+      "path": "EVIDENCE_PROVENANCE.csv",
+      "sha256": "a8f3b2a8d8c6480a48c38624c16c8531ee4757c81df606374243509a1cd5b520",
+      "bytes": 1558
+    },
+    {
+      "path": "FALSE_GREEN_MUTATION_AUDIT.csv",
+      "sha256": "37308d99c57267b6beb50eb7a790d47639b488c2a8b006fbd65f5c84ea9ddccc",
+      "bytes": 1690
+    },
+    {
+      "path": "FILELOG_RECOVERY_AUDIT.csv",
+      "sha256": "087ffcd3c8b5571555f4e53103054a1562fb9e9854f29ea1a7466c50ecca4bb4",
+      "bytes": 1668
+    },
+    {
+      "path": "FINDINGS.csv",
+      "sha256": "b7b3ebff5e56ba9401b6794b54206dd1048b4344f6db5b91fab8d61360f9f9d6",
+      "bytes": 27628
+    },
+    {
+      "path": "NEW_FINDINGS.csv",
+      "sha256": "6438011a0cf4bb6d4f3decd294abec6679f508755673797db4530bf11b51a4cc",
+      "bytes": 9943
+    },
+    {
+      "path": "OPENAPI_FRONTEND_AUDIT.csv",
+      "sha256": "14cb474e3aade9d5e086bee9b88994f29394f363f45431727cf7f5318a9d381c",
+      "bytes": 1641
+    },
+    {
+      "path": "OPEN_ISSUES.md",
+      "sha256": "e9965784464183e8b7a102ab02fbbd8b768d4111cdf8e51a743cb30f9b16c576",
+      "bytes": 361
+    },
+    {
+      "path": "PACKAGE_MANIFEST.json",
+      "sha256": "e90937e12e0448889147a442b542a2c95d5f2aff4cee343f05e9d87695cbaace",
+      "bytes": 460
+    },
+    {
+      "path": "QA_FINAL_RESULT.md",
+      "sha256": "6754a2f980a8c6b5f3cca2382549ce8d185b1f2e0e94af30c714e10a664616ba",
+      "bytes": 3539
+    },
+    {
+      "path": "QA_TO_CENTRAL_HANDOFF.md",
+      "sha256": "ea947a42d950c79e17d278a37909bfabf1d232d5e77d0cb0fe4aa15bc4cf36ef",
+      "bytes": 1169
+    },
+    {
+      "path": "REQUIREMENT_STATUS.csv",
+      "sha256": "579a5001112de07aa970b648aa886c5ab1e3482906eb5e5b5a8cd9b32aa25b71",
+      "bytes": 1460
+    },
+    {
+      "path": "REVIEW_INDEX.md",
+      "sha256": "b7997bfb178cffc3722a51d0361b07096fb1c1100d1c226693fa83832f94a43f",
+      "bytes": 366
+    },
+    {
+      "path": "RUNTIME_QUALIFICATION_MATRIX.csv",
+      "sha256": "ca6fb74d6aa6450d252995b753a38fc9231f509cdd0e8ee67548ea0795a783ca",
+      "bytes": 8454
+    },
+    {
+      "path": "SECURITY_NEGATIVE_AUDIT.csv",
+      "sha256": "42a4815018f2323f4308ef91b9eb74025fe87a8cc98bffae1ab806860fa5dbdd",
+      "bytes": 4598
+    },
+    {
+      "path": "SHA256SUMS.txt",
+      "sha256": "78e5b3de7df60390188e72af251339c3d6fc59e25409a7e58684e1b38835fa16",
+      "bytes": 2416
+    },
+    {
+      "path": "SOURCE_DEEP_AUDIT.csv",
+      "sha256": "df335d9d162cca68d7c550b1b7be09a71ef573d8f9c298c842457d426da5689e",
+      "bytes": 28029
+    },
+    {
+      "path": "TRANSACTION_LOGGING_AUDIT.csv",
+      "sha256": "d25388e0db55bd0f8fa63d9f46c1322a56a3f54499f7480a3c29de2bcae908ea",
+      "bytes": 1811
+    }
+  ]
+}

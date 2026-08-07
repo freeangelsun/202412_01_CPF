@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "protocol": "CPF-R6-DR-CHAOS",
+  "sourceSha": "3aa1dd12f8a5938d33feb6ed598b3dd2442bf2e2",
+  "status": "PASS",
+  "checks": [
+    "splitBrainFenced",
+    "powerLossRecovered",
+    "selectiveRollbackSafe",
+    "reconciled",
+    "dataConsistent",
+    "artifactConsistent"
+  ],
+  "rpoSeconds": 0.0,
+  "rtoSeconds": 0.0,
+  "maxRpoSeconds": 300.0,
+  "maxRtoSeconds": 1800.0
+}

@@ -249,6 +249,7 @@ export const routeClosureMethods = {
   },
 
   async unlockManagedOperator() {
+    if (!this.canButton("PASSWORD_UNLOCK", "PASSWORD")) throw new Error("PASSWORD_UNLOCK 권한이 없습니다.");
     const operatorId = String(this.operationForm.operatorId || this.operatorForm.operatorId || "").trim();
     if (!operatorId || !this.requireReason(this.operationForm.reason)) return;
     this.operationResult = await this.sendJson(`/adm/api/operators/${encodeURIComponent(operatorId)}/unlock`, "POST", { reason: this.operationForm.reason });
@@ -256,6 +257,7 @@ export const routeClosureMethods = {
   },
 
   async updateOperatorContact() {
+    if (!this.canButton("OPERATOR_CONTACT_UPDATE", "OPERATOR")) throw new Error("OPERATOR_CONTACT_UPDATE 권한이 없습니다.");
     const operatorId = String(this.operationForm.operatorId || this.operatorForm.operatorId || "").trim();
     if (!operatorId || !this.requireReason(this.operationForm.reason)) return;
     this.operationResult = await this.sendJson(`/adm/api/operators/${encodeURIComponent(operatorId)}/contacts`, "PUT", {
@@ -267,6 +269,7 @@ export const routeClosureMethods = {
   },
 
   async updateOperatorRoles() {
+    if (!this.canButton("OPERATOR_ROLE_UPDATE", "OPERATOR")) throw new Error("OPERATOR_ROLE_UPDATE 권한이 없습니다.");
     const operatorId = String(this.operationForm.operatorId || this.operatorForm.operatorId || "").trim();
     const roleIds = String(this.operationForm.roleIds || "").split(",").map((value: string) => value.trim()).filter(Boolean);
     if (!operatorId || !roleIds.length || !this.requireReason(this.operationForm.reason)) return;

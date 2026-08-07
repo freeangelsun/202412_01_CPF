@@ -20,6 +20,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * CPF 소유 거래 구간 스키마를 조회하고 외부에는 테이블 독립적인 결과만 반환합니다.
@@ -103,6 +104,223 @@ public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimeline
                 """, transactionId.trim()).stream()
                 .map(this::maskSegmentRow)
                 .toList();
+    }
+
+    @Override
+    public List<Map<String, Object>> findLineage(String transactionId, int limit) {
+        if (!hasText(transactionId) || jdbcTemplate == null) return List.of();
+        String tx = transactionId.trim();
+        int max = boundedLimit(limit);
+        List<Map<String, Object>> rows = new ArrayList<>();
+
+        // Canonical extension/ingress table: used by owners living outside cpfDB (BAT/ADM/etc.).
+        if (lineageTableAvailable()) {
+            rows.addAll(queryForListLimited("""
+                    SELECT transaction_id AS transactionId, segment_id AS segmentId,
+                           parent_segment_id AS parentSegmentId, attempt_no AS attempt,
+                           trace_id AS traceId, span_id AS spanId, request_id AS requestId,
+                           idempotency_key AS idempotencyKey, tenant_id AS tenantId,
+                           channel_code AS channel, actor_id_masked AS actorIdMasked,
+                           instance_id AS instanceId, was_id AS wasId, agent_id AS agentId,
+                           worker_id AS workerId, remote_system AS remoteSystem, operation_id AS operation,
+                           message_id AS messageId, consumer_group AS consumerGroup, dlq_id AS dlqId,
+                           batch_job_instance_id AS batchJobInstanceId,
+                           batch_job_execution_id AS batchJobExecutionId,
+                           batch_step_execution_id AS batchStepExecutionId, partition_id AS partitionId,
+                           file_id AS fileId, source_type AS sourceType, source_ref_id AS sourceRefId,
+                           lifecycle_state AS lifecycleState, failure_stage AS failureStage,
+                           unknown_yn AS unknownYn, reconcile_state AS reconcileState,
+                           occurred_at AS occurredAt, freshness_at AS freshnessAt
+                      FROM cpf_transaction_lineage
+                     WHERE transaction_id = ?
+                     ORDER BY occurred_at, segment_id, attempt_no
+                    """, List.of(tx), max));
+        }
+
+        // Existing canonical stores are queried directly so the one-shot view is useful even before
+        // optional cross-database lineage exporters are enabled.
+        appendIfTable(rows, "cpf_transaction_segment", """
+                SELECT transaction_id AS transactionId, transaction_segment_id AS segmentId,
+                       parent_segment_id AS parentSegmentId, COALESCE(attempt_no,1) AS attempt,
+                       NULL AS traceId, NULL AS spanId, NULL AS requestId, NULL AS idempotencyKey,
+                       NULL AS tenantId, channel_code AS channel, operator_id_masked AS actorIdMasked,
+                       selected_instance_id AS instanceId, NULL AS wasId, NULL AS agentId, NULL AS workerId,
+                       external_institution_code AS remoteSystem, transaction_name AS operation,
+                       NULL AS messageId, NULL AS consumerGroup, NULL AS dlqId,
+                       NULL AS batchJobInstanceId, NULL AS batchJobExecutionId, NULL AS batchStepExecutionId,
+                       NULL AS partitionId, NULL AS fileId,
+                       CASE WHEN transaction_role='EXTERNAL' THEN 'REMOTE' ELSE 'LOCAL' END AS sourceType,
+                       transaction_segment_id AS sourceRefId, status AS lifecycleState,
+                       failure_code AS failureStage, CASE WHEN result_state='UNKNOWN' OR unknown_result_id IS NOT NULL THEN 'Y' ELSE 'N' END AS unknownYn,
+                       result_state AS reconcileState, started_at AS occurredAt, updated_at AS freshnessAt
+                  FROM cpf_transaction_segment WHERE transaction_id = ? ORDER BY started_at, sequence_no
+                """, tx, max);
+        appendIfTable(rows, "cpf_transaction_log", """
+                SELECT transaction_id AS transactionId, span_id AS segmentId,
+                       parent_span_id AS parentSegmentId, COALESCE(sequence_no,1) AS attempt,
+                       trace_id AS traceId, span_id AS spanId, correlation_id AS requestId,
+                       idempotency_key AS idempotencyKey, NULL AS tenantId, channel_code AS channel,
+                       NULL AS actorIdMasked, server_instance_id AS instanceId, was_id AS wasId,
+                       NULL AS agentId, NULL AS workerId, caller_service AS remoteSystem,
+                       COALESCE(execution_method, business_transaction_name) AS operation,
+                       NULL AS messageId, NULL AS consumerGroup, NULL AS dlqId,
+                       NULL AS batchJobInstanceId, NULL AS batchJobExecutionId, NULL AS batchStepExecutionId,
+                       NULL AS partitionId, NULL AS fileId, 'TRACE' AS sourceType,
+                       log_idx AS sourceRefId,
+                       CASE WHEN error_code IS NULL THEN 'COMPLETED' ELSE 'FAILED' END AS lifecycleState,
+                       error_code AS failureStage, 'N' AS unknownYn, NULL AS reconcileState,
+                       COALESCE(start_time,created_at) AS occurredAt, updated_at AS freshnessAt
+                  FROM cpf_transaction_log WHERE transaction_id = ? ORDER BY start_time, log_idx
+                """, tx, max);
+        appendIfTable(rows, "cpf_broker_outbox", """
+                SELECT transaction_id AS transactionId, segment_id AS segmentId, NULL AS parentSegmentId,
+                       GREATEST(attempt_count,1) AS attempt, NULL AS traceId, NULL AS spanId, NULL AS requestId,
+                       idempotency_key AS idempotencyKey, NULL AS tenantId, NULL AS channel, NULL AS actorIdMasked,
+                       NULL AS instanceId, NULL AS wasId, NULL AS agentId, worker_id AS workerId,
+                       broker_name AS remoteSystem, topic AS operation, message_id AS messageId,
+                       consumer_module AS consumerGroup, NULL AS dlqId,
+                       NULL AS batchJobInstanceId, NULL AS batchJobExecutionId, NULL AS batchStepExecutionId,
+                       partition_key AS partitionId, NULL AS fileId, 'MESSAGE' AS sourceType,
+                       outbox_id AS sourceRefId, outbox_status AS lifecycleState,
+                       failure_message AS failureStage, 'N' AS unknownYn, NULL AS reconcileState,
+                       occurred_at AS occurredAt, updated_at AS freshnessAt
+                  FROM cpf_broker_outbox WHERE transaction_id = ? ORDER BY occurred_at, outbox_id
+                """, tx, max);
+        appendIfTable(rows, "cpf_broker_dlq", """
+                SELECT transaction_id AS transactionId, segment_id AS segmentId, NULL AS parentSegmentId,
+                       GREATEST(replay_count,1) AS attempt, NULL AS traceId, NULL AS spanId, NULL AS requestId,
+                       NULL AS idempotencyKey, NULL AS tenantId, NULL AS channel, NULL AS actorIdMasked,
+                       NULL AS instanceId, NULL AS wasId, NULL AS agentId, NULL AS workerId,
+                       NULL AS remoteSystem, topic AS operation, message_id AS messageId,
+                       NULL AS consumerGroup, dlq_id AS dlqId,
+                       NULL AS batchJobInstanceId, NULL AS batchJobExecutionId, NULL AS batchStepExecutionId,
+                       NULL AS partitionId, NULL AS fileId, 'DLQ' AS sourceType,
+                       dlq_id AS sourceRefId, replay_status AS lifecycleState,
+                       failure_reason AS failureStage, 'N' AS unknownYn, replay_status AS reconcileState,
+                       created_at AS occurredAt, updated_at AS freshnessAt
+                  FROM cpf_broker_dlq WHERE transaction_id = ? ORDER BY created_at, dlq_id
+                """, tx, max);
+        appendIfTable(rows, "cpf_file_transfer_history", """
+                SELECT transaction_id AS transactionId, segment_id AS segmentId, NULL AS parentSegmentId,
+                       1 AS attempt, NULL AS traceId, NULL AS spanId, NULL AS requestId,
+                       duplicate_key AS idempotencyKey, NULL AS tenantId, NULL AS channel, NULL AS actorIdMasked,
+                       NULL AS instanceId, NULL AS wasId, NULL AS agentId, NULL AS workerId,
+                       endpoint_code AS remoteSystem, transfer_operation AS operation,
+                       NULL AS messageId, NULL AS consumerGroup, NULL AS dlqId,
+                       NULL AS batchJobInstanceId, NULL AS batchJobExecutionId, NULL AS batchStepExecutionId,
+                       NULL AS partitionId, transfer_id AS fileId, 'FILE' AS sourceType,
+                       transfer_id AS sourceRefId, transfer_status AS lifecycleState,
+                       result_detail AS failureStage, 'N' AS unknownYn, NULL AS reconcileState,
+                       created_at AS occurredAt, updated_at AS freshnessAt
+                  FROM cpf_file_transfer_history WHERE transaction_id = ? ORDER BY created_at, history_id
+                """, tx, max);
+        appendIfTable(rows, "cpf_unknown_result", """
+                SELECT transaction_id AS transactionId, segment_id AS segmentId, NULL AS parentSegmentId,
+                       GREATEST(attempt_count,1) AS attempt, NULL AS traceId, NULL AS spanId,
+                       external_key AS requestId, NULL AS idempotencyKey, NULL AS tenantId, NULL AS channel,
+                       NULL AS actorIdMasked, lease_owner AS instanceId, NULL AS wasId, NULL AS agentId,
+                       NULL AS workerId, NULL AS remoteSystem, unknown_type AS operation,
+                       NULL AS messageId, NULL AS consumerGroup, NULL AS dlqId,
+                       NULL AS batchJobInstanceId, NULL AS batchJobExecutionId, NULL AS batchStepExecutionId,
+                       NULL AS partitionId, NULL AS fileId, 'UNKNOWN' AS sourceType,
+                       unknown_id AS sourceRefId, unknown_status AS lifecycleState,
+                       failure_code AS failureStage, 'Y' AS unknownYn, unknown_status AS reconcileState,
+                       detected_at AS occurredAt, updated_at AS freshnessAt
+                  FROM cpf_unknown_result WHERE transaction_id = ? ORDER BY detected_at, unknown_seq
+                """, tx, max);
+        appendIfTable(rows, "cpf_service_call_history", """
+                SELECT transaction_id AS transactionId, call_id AS segmentId,
+                       NULL AS parentSegmentId, GREATEST(COALESCE(retry_count,0)+1,1) AS attempt,
+                       trace_id AS traceId, NULL AS spanId, NULL AS requestId, NULL AS idempotencyKey,
+                       NULL AS tenantId, NULL AS channel, NULL AS actorIdMasked, instance_id AS instanceId,
+                       NULL AS wasId, NULL AS agentId, NULL AS workerId, service_id AS remoteSystem,
+                       endpoint_code AS operation, NULL AS messageId, NULL AS consumerGroup, NULL AS dlqId,
+                       NULL AS batchJobInstanceId, NULL AS batchJobExecutionId, NULL AS batchStepExecutionId,
+                       NULL AS partitionId, NULL AS fileId, 'REMOTE' AS sourceType,
+                       call_id AS sourceRefId, call_status AS lifecycleState,
+                       failure_code AS failureStage, CASE WHEN call_status='UNKNOWN' THEN 'Y' ELSE 'N' END AS unknownYn,
+                       call_status AS reconcileState, created_at AS occurredAt, updated_at AS freshnessAt
+                  FROM cpf_service_call_history WHERE transaction_id = ? ORDER BY created_at, call_id
+                """, tx, max);
+        appendIfTable(rows, "cpf_security_token_audit_log", """
+                SELECT transaction_id AS transactionId, TOKEN_AUDIT_ID AS segmentId,
+                       NULL AS parentSegmentId, 1 AS attempt, TRACE_ID AS traceId, NULL AS spanId,
+                       NULL AS requestId, NULL AS idempotencyKey, NULL AS tenantId, NULL AS channel,
+                       NULL AS actorIdMasked, NULL AS instanceId, NULL AS wasId, NULL AS agentId,
+                       NULL AS workerId, ISSUER AS remoteSystem, TOKEN_TYPE AS operation,
+                       NULL AS messageId, NULL AS consumerGroup, NULL AS dlqId,
+                       NULL AS batchJobInstanceId, NULL AS batchJobExecutionId, NULL AS batchStepExecutionId,
+                       NULL AS partitionId, NULL AS fileId, 'AUDIT' AS sourceType,
+                       TOKEN_AUDIT_ID AS sourceRefId, ACTIVE_YN AS lifecycleState,
+                       FAILURE_REASON AS failureStage, 'N' AS unknownYn, NULL AS reconcileState,
+                       CREATED_AT AS occurredAt, CREATED_AT AS freshnessAt
+                  FROM cpf_security_token_audit_log WHERE transaction_id = ? ORDER BY CREATED_AT, TOKEN_AUDIT_ID
+                """, tx, max);
+
+        LinkedHashMap<String, Map<String,Object>> unique = new LinkedHashMap<>();
+        for (Map<String,Object> raw : rows) {
+            Map<String,Object> safe = maskLineageRow(raw);
+            String key = stringValue(value(safe,"sourceType"))+"|"+stringValue(value(safe,"sourceRefId"))+"|"+stringValue(value(safe,"segmentId"));
+            unique.putIfAbsent(key, safe);
+        }
+        return unique.values().stream()
+                .sorted(java.util.Comparator.comparing(row -> Objects.toString(value(row,"occurredAt"), "")))
+                .limit(max).toList();
+    }
+
+    @Override
+    public Map<String, Object> sourceFreshness(String transactionId) {
+        String tx = transactionId == null ? "" : transactionId.trim();
+        if (tx.isEmpty() || jdbcTemplate == null) {
+            return Map.of("transactionId", tx, "partial", true, "stale", true,
+                    "missingSources", List.of("LOCAL"), "sources", List.of());
+        }
+        List<Map<String,Object>> lineage = findLineage(tx, 500);
+        LinkedHashMap<String, Map<String,Object>> sources = new LinkedHashMap<>();
+        for (Map<String,Object> row : lineage) {
+            String type = Objects.toString(value(row,"sourceType"), "UNKNOWN");
+            Map<String,Object> current = sources.computeIfAbsent(type, ignored -> new LinkedHashMap<>());
+            current.put("sourceType", type);
+            current.put("eventCount", ((Number)current.getOrDefault("eventCount",0)).intValue()+1);
+            Object freshness=value(row,"freshnessAt");
+            Object previous=current.get("freshnessAt");
+            if (freshness != null && (previous == null || String.valueOf(freshness).compareTo(String.valueOf(previous))>0)) current.put("freshnessAt",freshness);
+        }
+        List<String> expected = List.of("LOCAL", "REMOTE", "MESSAGE", "DLQ", "BATCH", "FILE", "TRACE", "AUDIT");
+        List<String> missing = expected.stream().filter(src -> !sources.containsKey(src)).toList();
+        boolean stale = sources.values().stream().anyMatch(row -> staleTimestamp(row.get("freshnessAt")));
+        return Map.of("transactionId", tx, "partial", !missing.isEmpty(), "stale", stale,
+                "missingSources", missing, "sources", List.copyOf(sources.values()));
+    }
+
+    private void appendIfTable(List<Map<String,Object>> target, String table, String sql, String transactionId, int limit) {
+        if (!namedTableAvailable(table)) return;
+        try { target.addAll(queryForListLimited(sql, List.of(transactionId), limit)); }
+        catch (RuntimeException ignored) { /* one broken source makes the result partial, never falsely complete */ }
+    }
+
+    private boolean staleTimestamp(Object value) {
+        if (value == null) return true;
+        try {
+            java.time.Instant instant;
+            if (value instanceof java.sql.Timestamp ts) instant=ts.toInstant();
+            else if (value instanceof java.time.Instant i) instant=i;
+            else if (value instanceof java.time.LocalDateTime ldt) instant=ldt.atZone(java.time.ZoneId.systemDefault()).toInstant();
+            else instant=java.time.Instant.parse(String.valueOf(value));
+            return instant.isBefore(java.time.Instant.now().minusSeconds(300));
+        } catch (RuntimeException ignored) { return true; }
+    }
+
+    private boolean namedTableAvailable(String table) {
+        if (jdbcTemplate == null || table == null || !table.matches("[A-Za-z0-9_]+")) return false;
+        DataSource dataSource=jdbcTemplate.getDataSource(); if(dataSource==null)return false;
+        try(Connection connection=dataSource.getConnection()){
+            String catalog=connection.getCatalog(), schema=currentSchema(connection);
+            for(String candidate:List.of(table,table.toUpperCase(java.util.Locale.ROOT))){
+                try(ResultSet rs=connection.getMetaData().getTables(catalog,schema,candidate,new String[]{"TABLE"})){if(rs.next())return true;}
+            }
+            return false;
+        } catch(SQLException ex){return false;}
     }
 
     @Override
@@ -311,6 +529,23 @@ public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimeline
 
     private void mask(Map<String, Object> row, String key, int limit) {
         row.computeIfPresent(key, (ignored, value) -> SensitiveDataMasker.mask(String.valueOf(value), limit));
+    }
+
+    private Map<String, Object> maskLineageRow(Map<String, Object> row) {
+        Map<String, Object> safe = new LinkedHashMap<>(row);
+        Object actor = value(safe, "actorIdMasked");
+        if (actor != null) safe.put("actorIdMasked", SensitiveDataMasker.mask(String.valueOf(actor), 128));
+        return safe;
+    }
+
+    private boolean lineageTableAvailable() {
+        try {
+            if (jdbcTemplate == null) return false;
+            jdbcTemplate.queryForObject("SELECT COUNT(*) FROM cpf_transaction_lineage WHERE 1 = 0", Long.class);
+            return true;
+        } catch (Exception ignored) {
+            return false;
+        }
     }
 
     private boolean tableAvailable() {

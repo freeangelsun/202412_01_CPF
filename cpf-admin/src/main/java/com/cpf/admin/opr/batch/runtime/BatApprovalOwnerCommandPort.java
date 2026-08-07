@@ -79,6 +79,47 @@ public class BatApprovalOwnerCommandPort implements AdmApprovalOwnerCommandPort 
         }
     }
 
+    @Override
+    public AdmApprovedOperationResult reconcile(AdmApprovedOperationCommand command) {
+        if (command == null || !supports(command.ownerModule(), command.ownerCommand(), command.actionType(), command.targetType())) {
+            return failed("BAT-OWNER-MISMATCH", "BAT Owner/Command/Action/Target mismatch");
+        }
+        try {
+            boolean deployment = Set.of("DEPLOY_PLAN", "ROLLBACK_PLAN").contains(command.ownerCommand());
+            RestClient.RequestHeadersSpec<?> observation = deployment
+                    ? client.get().uri("/api/v1/batch/deployment-plans/{id}/executions/by-command/{key}",
+                            command.targetId(), command.commandRequestId())
+                    : client.get().uri("/api/v1/batch/runtime/commands/{key}", command.commandRequestId());
+            Map<?, ?> state = observation
+                    .headers(headers -> {
+                        headers.set(CpfHeaders.callerService(), CALLER_SERVICE);
+                        headers.set(CpfHeaders.callerInstanceId(), callerInstanceId);
+                        headers.set(CpfHeaders.operatorId(), command.approvedBy());
+                        headers.set(CpfHeaders.transactionId(), command.transactionId());
+                        headers.set(BatControlHeaders.APPROVAL_REQUEST_ID, Long.toString(command.approvalRequestId()));
+                        headers.set(BatControlHeaders.APPROVAL_REQUESTER_ID, command.requestedBy());
+                    })
+                    .retrieve().body(Map.class);
+            if (state == null || state.isEmpty()) return unknown("BAT-RECONCILE-NOT-OBSERVED");
+            String observedRequestId = Objects.toString(state.get("request_id"),
+                    Objects.toString(state.get("requestId"), Objects.toString(state.get("command_request_id"), "")));
+            if (!observedRequestId.isBlank() && !command.commandRequestId().equals(observedRequestId)) {
+                return unknown("BAT-RECONCILE-CORRELATION-MISMATCH");
+            }
+            String resolvedState = Objects.toString(state.get("command_state"),
+                    Objects.toString(state.get("commandState"),
+                            Objects.toString(state.get("state"), "UNKNOWN_RESULT")));
+            return map(CommandState.valueOf(resolvedState.toUpperCase(Locale.ROOT)),
+                    "BAT-RECONCILED-" + resolvedState.toUpperCase(Locale.ROOT), "BAT owner ledger observation");
+        } catch (org.springframework.web.client.HttpClientErrorException.NotFound notObserved) {
+            return unknown("BAT-RECONCILE-NOT-OBSERVED");
+        } catch (IllegalArgumentException invalidState) {
+            return unknown("BAT-RECONCILE-UNKNOWN-STATE");
+        } catch (RuntimeException readFailure) {
+            return unknown("BAT-RECONCILE-READ-FAILED");
+        }
+    }
+
     private AdmApprovedOperationResult executeDeployment(
             AdmApprovedOperationCommand command,
             String ownerCommand) {

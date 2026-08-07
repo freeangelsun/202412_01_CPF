@@ -55,6 +55,35 @@ public final class BatchJobDefinitionApprovalOwnerCommandAdapter implements AdmA
             return failed("BAT_PUBLISH_FAILED","BAT Job Definition 배포가 실패했습니다.");
         }
     }
+    @Override
+    public AdmApprovedOperationResult reconcile(AdmApprovedOperationCommand command) {
+        if (command == null || !supports(command.ownerModule(), command.ownerCommand(), command.actionType(), command.targetType())) {
+            return failed("BAT_RECONCILE_UNSUPPORTED", "지원하지 않는 BAT 승인 Owner/Command/Action/Target 조합입니다.");
+        }
+        final Target target;
+        try {
+            target = parse(command.targetId());
+        } catch (RuntimeException invalidTarget) {
+            return failed("BAT_RECONCILE_TARGET_INVALID", "BAT targetId를 해석할 수 없습니다.");
+        }
+        try {
+            BatchJobDefinitionControlPort.DefinitionState current = port.state(target.jobId(), target.version());
+            if (!Objects.equals(current.checksum(), command.payloadHash())) {
+                return failed("BAT_RECONCILE_HASH_MISMATCH", "현재 Definition checksum이 승인 Snapshot과 다릅니다.");
+            }
+            if ("PUBLISHED".equalsIgnoreCase(current.state()) || "ACTIVE".equalsIgnoreCase(current.state())) {
+                return new AdmApprovedOperationResult(AdmApprovalExecutionStatus.SUCCEEDED,
+                        "BAT_RECONCILED_" + current.state().toUpperCase(Locale.ROOT),
+                        "BAT Owner 상태 조회로 배포 완료를 확인했습니다.");
+            }
+            return new AdmApprovedOperationResult(AdmApprovalExecutionStatus.UNKNOWN,
+                    "BAT_RECONCILE_PENDING", "BAT Owner 상태가 아직 성공을 확정하지 못했습니다.");
+        } catch (RuntimeException observationFailure) {
+            return new AdmApprovedOperationResult(AdmApprovalExecutionStatus.UNKNOWN,
+                    "BAT_RECONCILE_OBSERVATION_FAILED", "BAT Owner 상태 조회 실패로 UNKNOWN을 유지합니다.");
+        }
+    }
+
     private static Target parse(String value){String[] p=Objects.toString(value,"").split("@",2);if(p.length!=2||p[0].isBlank())throw new IllegalArgumentException("BAT targetId는 jobId@definitionVersion 형식이어야 합니다.");return new Target(p[0],Long.parseLong(p[1]));}
     private static AdmApprovedOperationResult failed(String c,String m){return new AdmApprovedOperationResult(AdmApprovalExecutionStatus.FAILED,c,m);}
     private static String canonical(String v){return Objects.toString(v,"").trim().toUpperCase(Locale.ROOT);}

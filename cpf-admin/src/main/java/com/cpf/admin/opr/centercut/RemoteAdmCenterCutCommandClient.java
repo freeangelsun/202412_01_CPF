@@ -48,6 +48,28 @@ public final class RemoteAdmCenterCutCommandClient implements AdmCenterCutComman
         return invoke(executionId, "reconcile-unknown", command);
     }
 
+    @Override
+    public Map<String, Object> observe(String executionId) {
+        String safeExecutionId = requiredIdentifier(executionId);
+        String actor = required(operatorContext.currentOperatorId(), "operatorId");
+        String path = "/api/v1/batch/center-cut/executions/" + safeExecutionId + "/reconciliation-status";
+        CpfServiceRequest request = CpfServiceRequest.builder(SERVICE_ID)
+                .endpointCode(ENDPOINT_CODE).httpMethod("GET").requestPath(path)
+                .header(CpfHeaders.callerService(), CALLER_SERVICE)
+                .header(CpfHeaders.callerInstanceId(), callerInstanceId)
+                .header(CpfHeaders.operatorId(), actor)
+                .attribute("ownerDomain", "BAT").attribute("callerDomain", "ADM").build();
+        CpfServiceResult<Object> result = caller.invoke(request, target -> webClient.get()
+                .uri(join(target.baseUrl(), path))
+                .headers(headers -> {
+                    headers.set(CpfHeaders.callerService(), CALLER_SERVICE);
+                    headers.set(CpfHeaders.callerInstanceId(), callerInstanceId);
+                    headers.set(CpfHeaders.operatorId(), actor);
+                }).retrieve().bodyToMono(Object.class).block());
+        if (result.unknown() || !result.success() || result.responseBody() == null) return Map.of();
+        return new LinkedHashMap<>(CpfDataRow.copyOf(result.responseBody()));
+    }
+
     private Map<String, Object> invoke(
             String executionId, String operationPath, CpfBatchRiskCommand command) {
         String safeExecutionId = requiredIdentifier(executionId);

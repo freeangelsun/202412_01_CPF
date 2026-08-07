@@ -90,6 +90,44 @@ public final class CenterCutApprovalOwnerCommandAdapter implements AdmApprovalOw
         }
     }
 
+    @Override
+    public AdmApprovedOperationResult reconcile(AdmApprovedOperationCommand command) {
+        if (command == null || !supports(command.ownerModule(), command.ownerCommand(), command.actionType(), command.targetType())) {
+            return failed("CENTER_CUT_COMMAND_UNSUPPORTED", "지원하지 않는 Center-Cut 승인 Command입니다.");
+        }
+        final CpfBatchRiskCommand risk;
+        try { risk = approvedRisk(command); }
+        catch (RuntimeException invalid) { return failed("CENTER_CUT_APPROVAL_SNAPSHOT_MISMATCH", "승인 Snapshot이 일치하지 않습니다."); }
+        try {
+            Map<String,Object> row = owner.observe(risk.targetId());
+            if (row == null || row.isEmpty()) return unknown("CENTER_CUT_RECONCILE_NOT_OBSERVED", "BAT 상태를 관측하지 못했습니다.");
+            String state = upper(first(row, "status", "executionStatus", "state", "reconcileState"));
+            long failed = number(row, "failedCount", "failed_count", "failureCount");
+            long unknown = number(row, "unknownCount", "unknown_count");
+            if ("reprocessCenterCutFailed".equals(command.ownerCommand()) && failed == 0
+                    && Set.of("RUNNING", "RETRYING", "COMPLETED", "SUCCEEDED").contains(state))
+                return succeeded("CENTER_CUT_REPROCESS_RECONCILED", "실패 항목 재처리 상태를 Owner에서 관측했습니다.");
+            if ("reconcileCenterCutUnknown".equals(command.ownerCommand()) && unknown == 0
+                    && !Set.of("UNKNOWN", "UNKNOWN_RESULT").contains(state))
+                return succeeded("CENTER_CUT_UNKNOWN_RECONCILED", "UNKNOWN 해소 상태를 Owner에서 관측했습니다.");
+            if (Set.of("FAILED", "REJECTED").contains(state)) return failed("CENTER_CUT_RECONCILED_"+state, "Owner 실패 상태를 관측했습니다.");
+            return unknown("CENTER_CUT_RECONCILE_PENDING", "Owner 상태가 아직 최종 결과를 증명하지 못합니다.");
+        } catch (RuntimeException readFailure) {
+            return unknown("CENTER_CUT_RECONCILE_READ_FAILED", "BAT 상태 조회 실패로 UNKNOWN을 유지합니다.");
+        }
+    }
+
+    private static String first(Map<String,Object> row, String... keys) {
+        for (String key:keys) { Object v=value(row,key); if(v!=null&&!String.valueOf(v).isBlank()) return String.valueOf(v).trim(); }
+        return "";
+    }
+    private static long number(Map<String,Object> row, String... keys) {
+        String v=first(row,keys); if(v.isBlank()) return -1L; try{return Long.parseLong(v);}catch(NumberFormatException ignored){return -1L;}
+    }
+    private static String upper(String v){return Objects.toString(v,"").trim().toUpperCase(Locale.ROOT);}
+    private static AdmApprovedOperationResult succeeded(String code,String message){return new AdmApprovedOperationResult(AdmApprovalExecutionStatus.SUCCEEDED,code,message);}
+    private static AdmApprovedOperationResult unknown(String code,String message){return new AdmApprovedOperationResult(AdmApprovalExecutionStatus.UNKNOWN,code,message);}
+
     private CpfBatchRiskCommand approvedRisk(AdmApprovedOperationCommand command) {
         Map<String,Object> snapshot = read(command.payloadSnapshot());
         CpfBatchRiskCommand risk = new CpfBatchRiskCommand(

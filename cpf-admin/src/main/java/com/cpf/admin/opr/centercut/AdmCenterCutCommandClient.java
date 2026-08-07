@@ -7,4 +7,6 @@ import java.util.Map;
 public interface AdmCenterCutCommandClient {
     Map<String, Object> reprocessFailed(String executionId, CpfBatchRiskCommand command);
     Map<String, Object> reconcileUnknown(String executionId, CpfBatchRiskCommand command);
+    /** Observation-only owner read used to reconcile UNKNOWN without replaying the mutation. */
+    Map<String, Object> observe(String executionId);
 }

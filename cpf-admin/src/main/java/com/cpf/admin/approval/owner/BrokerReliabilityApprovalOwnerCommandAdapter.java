@@ -108,6 +108,26 @@ public final class BrokerReliabilityApprovalOwnerCommandAdapter implements AdmAp
         }
     }
 
+    @Override
+    public AdmApprovedOperationResult reconcile(AdmApprovedOperationCommand command) {
+        if (command == null || !supports(command.ownerModule(), command.ownerCommand(), command.actionType(), command.targetType())) {
+            return failed("BROKER_DLQ_OWNER_MISMATCH", "Broker reliability Owner Command가 아닙니다.");
+        }
+        Map<String, Object> current = findDlqMessage(command.targetId());
+        if (current == null) {
+            return unknown("BROKER_DLQ_RECONCILE_NOT_OBSERVED", "DLQ 상태를 관측할 수 없어 UNKNOWN을 유지합니다.");
+        }
+        String state = upper(first(current, "status", "replayStatus", "deliveryStatus", "state"));
+        if (Set.of("REPLAYED", "DELIVERED", "RESOLVED", "SUCCEEDED").contains(state)) {
+            return new AdmApprovedOperationResult(AdmApprovalExecutionStatus.SUCCEEDED,
+                    "BROKER_DLQ_RECONCILED_" + state, "Owner DLQ 상태에서 재처리 결과를 관측했습니다.");
+        }
+        if (Set.of("FAILED", "REPLAY_FAILED", "QUARANTINED", "DEAD").contains(state)) {
+            return failed("BROKER_DLQ_RECONCILED_" + state, "Owner DLQ 상태에서 재처리 실패를 관측했습니다.");
+        }
+        return unknown("BROKER_DLQ_RECONCILE_PENDING", "DLQ 상태가 아직 최종 결과를 증명하지 못합니다.");
+    }
+
     private Map<String, Object> findDlqMessage(String messageId) {
         if (messageId == null || messageId.isBlank()) {
             return null;
@@ -192,6 +212,18 @@ public final class BrokerReliabilityApprovalOwnerCommandAdapter implements AdmAp
 
     private static boolean same(String left, String right) {
         return Objects.equals(Objects.toString(left, "").trim(), Objects.toString(right, "").trim());
+    }
+
+    private static String first(Map<String, ?> row, String... keys) {
+        for (String key : keys) {
+            String found = value(row, key);
+            if (!found.isBlank()) return found;
+        }
+        return "";
+    }
+
+    private static AdmApprovedOperationResult unknown(String code, String message) {
+        return new AdmApprovedOperationResult(AdmApprovalExecutionStatus.UNKNOWN, code, message);
     }
 
     private static AdmApprovedOperationResult failed(String code, String message) {

@@ -8149,7 +8149,11 @@
       "generatedDomainIndependent": true,
       "productModuleIndependent": true,
       "databaseOwner": "refDB",
-      "verificationEvidence": "SOURCE_COMPILE_AND_STATE_MACHINE_SELFTEST_ONLY; JAVA25_GRADLE_AND_RUNTIME_PENDING"
+      "verificationEvidence": "SOURCE_COMPILE_AND_STATE_MACHINE_SELFTEST_ONLY; JAVA25_GRADLE_AND_RUNTIME_PENDING",
+      "architectureDecision": "MERGE_EDU",
+      "executable": false,
+      "mergedIntoRequirementId": "EDU-DEV-06",
+      "architectureDecisionReason": "ADM reuse guidance is merged into public same-JVM/remote adapter extension guidance."
     },
     {
       "requirementId": "EDU-ADM-02",
@@ -8242,7 +8246,10 @@
       "generatedDomainIndependent": true,
       "productModuleIndependent": true,
       "databaseOwner": "refDB",
-      "verificationEvidence": "SOURCE_COMPILE_AND_STATE_MACHINE_SELFTEST_ONLY; JAVA25_GRADLE_AND_RUNTIME_PENDING"
+      "verificationEvidence": "SOURCE_COMPILE_AND_STATE_MACHINE_SELFTEST_ONLY; JAVA25_GRADLE_AND_RUNTIME_PENDING",
+      "architectureDecision": "EXTENSION_SAMPLE",
+      "executable": true,
+      "architectureDecisionReason": "Retained adopter-facing public query/integration extension sample."
     },
     {
       "requirementId": "EDU-ADM-03",
@@ -8336,7 +8343,10 @@
       "generatedDomainIndependent": true,
       "productModuleIndependent": true,
       "databaseOwner": "refDB",
-      "verificationEvidence": "SOURCE_COMPILE_AND_STATE_MACHINE_SELFTEST_ONLY; JAVA25_GRADLE_AND_RUNTIME_PENDING"
+      "verificationEvidence": "SOURCE_COMPILE_AND_STATE_MACHINE_SELFTEST_ONLY; JAVA25_GRADLE_AND_RUNTIME_PENDING",
+      "architectureDecision": "EXTENSION_SAMPLE",
+      "executable": true,
+      "architectureDecisionReason": "Retained adopter-facing public command/extension sample."
     },
     {
       "requirementId": "EDU-ADM-04",
@@ -8433,7 +8443,10 @@
       "generatedDomainIndependent": true,
       "productModuleIndependent": true,
       "databaseOwner": "refDB",
-      "verificationEvidence": "SOURCE_COMPILE_AND_STATE_MACHINE_SELFTEST_ONLY; JAVA25_GRADLE_AND_RUNTIME_PENDING"
+      "verificationEvidence": "SOURCE_COMPILE_AND_STATE_MACHINE_SELFTEST_ONLY; JAVA25_GRADLE_AND_RUNTIME_PENDING",
+      "architectureDecision": "EXTENSION_SAMPLE",
+      "executable": true,
+      "architectureDecisionReason": "Retained only as public integration sample that invokes ADM approval; no approval-engine duplication."
     },
     {
       "requirementId": "EDU-ADM-05",
@@ -8535,7 +8548,11 @@
       "generatedDomainIndependent": true,
       "productModuleIndependent": true,
       "databaseOwner": "refDB",
-      "verificationEvidence": "SOURCE_COMPILE_AND_STATE_MACHINE_SELFTEST_ONLY; JAVA25_GRADLE_AND_RUNTIME_PENDING"
+      "verificationEvidence": "SOURCE_COMPILE_AND_STATE_MACHINE_SELFTEST_ONLY; JAVA25_GRADLE_AND_RUNTIME_PENDING",
+      "architectureDecision": "MERGE_EDU",
+      "executable": false,
+      "mergedIntoRequirementId": "EDU-DEV-24",
+      "architectureDecisionReason": "Async response-loss pattern is merged into the common long-running operation/reconcile EDU."
     },
     {
       "requirementId": "EDU-ADM-06",
@@ -8631,7 +8648,11 @@
       "generatedDomainIndependent": true,
       "productModuleIndependent": true,
       "databaseOwner": "refDB",
-      "verificationEvidence": "SOURCE_COMPILE_AND_STATE_MACHINE_SELFTEST_ONLY; JAVA25_GRADLE_AND_RUNTIME_PENDING"
+      "verificationEvidence": "SOURCE_COMPILE_AND_STATE_MACHINE_SELFTEST_ONLY; JAVA25_GRADLE_AND_RUNTIME_PENDING",
+      "architectureDecision": "MERGE_EDU",
+      "executable": false,
+      "mergedIntoRequirementId": "EDU-DEV-17",
+      "architectureDecisionReason": "Partial-success/reprocess pattern is merged into the common bulk partial-failure EDU."
     },
     {
       "requirementId": "EDU-ADM-07",
@@ -8725,7 +8746,10 @@
       "generatedDomainIndependent": true,
       "productModuleIndependent": true,
       "databaseOwner": "refDB",
-      "verificationEvidence": "SOURCE_COMPILE_AND_STATE_MACHINE_SELFTEST_ONLY; JAVA25_GRADLE_AND_RUNTIME_PENDING"
+      "verificationEvidence": "SOURCE_COMPILE_AND_STATE_MACHINE_SELFTEST_ONLY; JAVA25_GRADLE_AND_RUNTIME_PENDING",
+      "architectureDecision": "EXTENSION_SAMPLE",
+      "executable": true,
+      "architectureDecisionReason": "Retained only for a documented public ADM custom-screen/extension surface."
     },
     {
       "requirementId": "EDU-ADM-08",
@@ -8834,7 +8858,12 @@
       "generatedDomainIndependent": true,
       "productModuleIndependent": true,
       "databaseOwner": "refDB",
-      "verificationEvidence": "SOURCE_COMPILE_AND_STATE_MACHINE_SELFTEST_ONLY; JAVA25_GRADLE_AND_RUNTIME_PENDING"
+      "verificationEvidence": "SOURCE_COMPILE_AND_STATE_MACHINE_SELFTEST_ONLY; JAVA25_GRADLE_AND_RUNTIME_PENDING",
+      "architectureDecision": "PRODUCT_ADM",
+      "executable": false,
+      "productOwnerModule": "cpf-admin",
+      "productSurface": "/security",
+      "architectureDecisionReason": "Authorization, data scope, masking, reason and audit are ADM Product responsibilities."
     },
     {
       "requirementId": "EDU-ADM-09",
@@ -8937,7 +8966,11 @@
       "generatedDomainIndependent": true,
       "productModuleIndependent": true,
       "databaseOwner": "refDB",
-      "verificationEvidence": "SOURCE_COMPILE_AND_STATE_MACHINE_SELFTEST_ONLY; JAVA25_GRADLE_AND_RUNTIME_PENDING"
+      "verificationEvidence": "SOURCE_COMPILE_AND_STATE_MACHINE_SELFTEST_ONLY; JAVA25_GRADLE_AND_RUNTIME_PENDING",
+      "architectureDecision": "MERGE_EDU",
+      "executable": false,
+      "mergedIntoRequirementId": "EDU-DEV-04",
+      "architectureDecisionReason": "Optimistic-lock pattern is merged into common expected-version concurrency EDU; ADM UX remains Product."
     },
     {
       "requirementId": "EDU-ADM-10",
@@ -9048,7 +9081,12 @@
       "generatedDomainIndependent": true,
       "productModuleIndependent": true,
       "databaseOwner": "refDB",
-      "verificationEvidence": "SOURCE_COMPILE_AND_STATE_MACHINE_SELFTEST_ONLY; JAVA25_GRADLE_AND_RUNTIME_PENDING"
+      "verificationEvidence": "SOURCE_COMPILE_AND_STATE_MACHINE_SELFTEST_ONLY; JAVA25_GRADLE_AND_RUNTIME_PENDING",
+      "architectureDecision": "PRODUCT_ADM",
+      "executable": false,
+      "productOwnerModule": "cpf-admin",
+      "productSurface": "/operations",
+      "architectureDecisionReason": "Bulk operational action, partial result and result file are ADM Product functions."
     },
     {
       "requirementId": "EDU-ADM-11",
@@ -9155,7 +9193,12 @@
       "generatedDomainIndependent": true,
       "productModuleIndependent": true,
       "databaseOwner": "refDB",
-      "verificationEvidence": "SOURCE_COMPILE_AND_STATE_MACHINE_SELFTEST_ONLY; JAVA25_GRADLE_AND_RUNTIME_PENDING"
+      "verificationEvidence": "SOURCE_COMPILE_AND_STATE_MACHINE_SELFTEST_ONLY; JAVA25_GRADLE_AND_RUNTIME_PENDING",
+      "architectureDecision": "PRODUCT_ADM",
+      "executable": false,
+      "productOwnerModule": "cpf-admin",
+      "productSurface": "/configs;/feature-flags;/maintenance",
+      "architectureDecisionReason": "Configuration, feature switching, maintenance and LKG rollback are ADM Product functions."
     },
     {
       "requirementId": "EDU-ADM-12",
@@ -9259,7 +9302,12 @@
       "generatedDomainIndependent": true,
       "productModuleIndependent": true,
       "databaseOwner": "refDB",
-      "verificationEvidence": "SOURCE_COMPILE_AND_STATE_MACHINE_SELFTEST_ONLY; JAVA25_GRADLE_AND_RUNTIME_PENDING"
+      "verificationEvidence": "SOURCE_COMPILE_AND_STATE_MACHINE_SELFTEST_ONLY; JAVA25_GRADLE_AND_RUNTIME_PENDING",
+      "architectureDecision": "PRODUCT_ADM",
+      "executable": false,
+      "productOwnerModule": "cpf-admin",
+      "productSurface": "/recovery-center",
+      "architectureDecisionReason": "Incident and Recovery Center lifecycle is an ADM Product function."
     },
     {
       "requirementId": "EDU-ADM-13",
@@ -9375,7 +9423,12 @@
       "generatedDomainIndependent": true,
       "productModuleIndependent": true,
       "databaseOwner": "refDB",
-      "verificationEvidence": "SOURCE_COMPILE_AND_STATE_MACHINE_SELFTEST_ONLY; JAVA25_GRADLE_AND_RUNTIME_PENDING"
+      "verificationEvidence": "SOURCE_COMPILE_AND_STATE_MACHINE_SELFTEST_ONLY; JAVA25_GRADLE_AND_RUNTIME_PENDING",
+      "architectureDecision": "PRODUCT_ADM",
+      "executable": false,
+      "productOwnerModule": "cpf-admin",
+      "productSurface": "/audit-logs;/downloads",
+      "architectureDecisionReason": "Audit evidence, approved export and download are ADM Product functions."
     },
     {
       "requirementId": "EDU-ADM-14",
@@ -9474,7 +9527,12 @@
       "generatedDomainIndependent": true,
       "productModuleIndependent": true,
       "databaseOwner": "refDB",
-      "verificationEvidence": "SOURCE_COMPILE_AND_STATE_MACHINE_SELFTEST_ONLY; JAVA25_GRADLE_AND_RUNTIME_PENDING"
+      "verificationEvidence": "SOURCE_COMPILE_AND_STATE_MACHINE_SELFTEST_ONLY; JAVA25_GRADLE_AND_RUNTIME_PENDING",
+      "architectureDecision": "PRODUCT_ADM",
+      "executable": false,
+      "productOwnerModule": "cpf-admin",
+      "productSurface": "/topology",
+      "architectureDecisionReason": "Topology, health and capacity drill-down is an ADM Product function."
     },
     {
       "requirementId": "EDU-ADM-15",
@@ -9576,7 +9634,12 @@
       "generatedDomainIndependent": true,
       "productModuleIndependent": true,
       "databaseOwner": "refDB",
-      "verificationEvidence": "SOURCE_COMPILE_AND_STATE_MACHINE_SELFTEST_ONLY; JAVA25_GRADLE_AND_RUNTIME_PENDING"
+      "verificationEvidence": "SOURCE_COMPILE_AND_STATE_MACHINE_SELFTEST_ONLY; JAVA25_GRADLE_AND_RUNTIME_PENDING",
+      "architectureDecision": "PRODUCT_ADM",
+      "executable": false,
+      "productOwnerModule": "cpf-admin",
+      "productSurface": "/transaction-groups",
+      "architectureDecisionReason": "Log/trace/transaction correlation is an ADM Product function."
     },
     {
       "requirementId": "EDU-ADM-16",
@@ -9689,7 +9752,12 @@
       "generatedDomainIndependent": true,
       "productModuleIndependent": true,
       "databaseOwner": "refDB",
-      "verificationEvidence": "SOURCE_COMPILE_AND_STATE_MACHINE_SELFTEST_ONLY; JAVA25_GRADLE_AND_RUNTIME_PENDING"
+      "verificationEvidence": "SOURCE_COMPILE_AND_STATE_MACHINE_SELFTEST_ONLY; JAVA25_GRADLE_AND_RUNTIME_PENDING",
+      "architectureDecision": "PRODUCT_ADM",
+      "executable": false,
+      "productOwnerModule": "cpf-admin",
+      "productSurface": "/notifications",
+      "architectureDecisionReason": "Alert acknowledgement, escalation and handover are ADM Product functions."
     },
     {
       "requirementId": "EDU-ADM-17",
@@ -9789,7 +9857,12 @@
       "generatedDomainIndependent": true,
       "productModuleIndependent": true,
       "databaseOwner": "refDB",
-      "verificationEvidence": "SOURCE_COMPILE_AND_STATE_MACHINE_SELFTEST_ONLY; JAVA25_GRADLE_AND_RUNTIME_PENDING"
+      "verificationEvidence": "SOURCE_COMPILE_AND_STATE_MACHINE_SELFTEST_ONLY; JAVA25_GRADLE_AND_RUNTIME_PENDING",
+      "architectureDecision": "PRODUCT_ADM",
+      "executable": false,
+      "productOwnerModule": "cpf-admin",
+      "productSurface": "/operators",
+      "architectureDecisionReason": "Browser session expiry/relogin and risky-action safety are ADM/Security Product functions."
     },
     {
       "requirementId": "EDU-BZA-01",

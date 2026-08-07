@@ -1991,6 +1991,9 @@
           },
           "503": {
             "description": "Service unavailable"
+          },
+          "422": {
+            "description": "Validation failed"
           }
         },
         "security": [
@@ -2125,6 +2128,9 @@
           },
           "503": {
             "description": "Service unavailable"
+          },
+          "422": {
+            "description": "Validation failed"
           }
         },
         "security": [
@@ -2258,6 +2264,9 @@
           },
           "503": {
             "description": "Service unavailable"
+          },
+          "422": {
+            "description": "Validation failed"
           }
         },
         "security": [
@@ -2331,6 +2340,9 @@
           },
           "503": {
             "description": "Service unavailable"
+          },
+          "422": {
+            "description": "Validation failed"
           }
         },
         "security": [
@@ -2406,6 +2418,9 @@
           },
           "503": {
             "description": "Service unavailable"
+          },
+          "422": {
+            "description": "Validation failed"
           }
         },
         "security": [
@@ -7293,6 +7308,9 @@
           },
           "503": {
             "description": "Dependent service unavailable"
+          },
+          "422": {
+            "description": "Validation failed"
           }
         },
         "security": [
@@ -7365,6 +7383,9 @@
           },
           "503": {
             "description": "Dependent service unavailable"
+          },
+          "422": {
+            "description": "Validation failed"
           }
         },
         "security": [

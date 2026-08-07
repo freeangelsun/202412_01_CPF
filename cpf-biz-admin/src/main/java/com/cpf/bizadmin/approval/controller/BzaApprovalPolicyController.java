@@ -3,6 +3,7 @@ package com.cpf.bizadmin.approval.controller;
 import com.cpf.bizadmin.approval.service.BzaApprovalPolicyService;
 import com.cpf.core.api.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -40,6 +41,7 @@ public class BzaApprovalPolicyController extends com.cpf.bizadmin.common.base.Bz
     @CpfOnlineTransaction(id = "OBZAAP0103", name = "BzaApprovalPolicySave")
     @Operation(operationId = "bzaApprovalPolicySave", summary = "Versioned 결재 정책 저장",
             description = "EMPLOYEE/ROLE/ORGANIZATION/ORG_MANAGER/POSITION Target과 ALL/ANY/N_OF_M 규칙을 저장합니다.")
+    @ApiResponse(responseCode = "422", description = "Validation failed")
     public ResponseEntity<Map<String,Object>> savePolicy(
             @RequestBody BzaApprovalPolicyService.PolicyRequest request,
             @RequestAttribute("bza.operatorId") String operatorId) {
@@ -50,6 +52,7 @@ public class BzaApprovalPolicyController extends com.cpf.bizadmin.common.base.Bz
     @CpfOnlineTransaction(id = "OBZAAP0104", name = "BzaApprovalPolicySimulation")
     @Operation(operationId = "bzaApprovalPolicySimulate", summary = "결재 정책 참여자 Simulation",
             description = "상신 전에 유효 조직/Role/직급/책임자/위임을 해석하고 fail-closed 결과를 반환합니다.")
+    @ApiResponse(responseCode = "422", description = "Validation failed")
     public ResponseEntity<Map<String,Object>> simulate(
             @RequestBody SimulationRequest request) {
         return ResponseEntity.ok(service.simulate(
@@ -69,6 +72,7 @@ public class BzaApprovalPolicyController extends com.cpf.bizadmin.common.base.Bz
     @PostMapping("/delegations")
     @CpfOnlineTransaction(id = "OBZAAP0106", name = "BzaApprovalDelegationSave")
     @Operation(operationId = "bzaApprovalDelegationSave", summary = "결재 위임/대결 유효기간 저장")
+    @ApiResponse(responseCode = "422", description = "Validation failed")
     public ResponseEntity<Map<String,Object>> saveDelegation(
             @RequestBody BzaApprovalPolicyService.DelegationRequest request,
             @RequestAttribute("bza.operatorId") String operatorId) {
@@ -79,6 +83,7 @@ public class BzaApprovalPolicyController extends com.cpf.bizadmin.common.base.Bz
     @CpfOnlineTransaction(id = "OBZAAP0107", name = "BzaApprovalPolicySubmit")
     @Operation(operationId = "bzaApprovalPolicySubmit", summary = "정책 기반 결재 상신",
             description = "Policy/참여자/요청자 조직정보를 Snapshot하고 상신 멱등 키와 payload hash를 고정합니다.")
+    @ApiResponse(responseCode = "422", description = "Validation failed")
     public ResponseEntity<Map<String,Object>> submit(
             @RequestBody BzaApprovalPolicyService.SubmitRequest request,
             @RequestAttribute("bza.operatorId") String operatorId) {
@@ -116,6 +121,7 @@ public class BzaApprovalPolicyController extends com.cpf.bizadmin.common.base.Bz
     @CpfOnlineTransaction(id = "OBZAAP0109", name = "BzaApprovalPolicyDecision")
     @Operation(operationId = "bzaApprovalParticipantDecision", summary = "결재 참여자 결정",
             description = "Snapshot 참여자만 결정할 수 있으며 ALL/ANY/N_OF_M, 순차/병렬, 멱등성, 낙관적 잠금을 적용합니다.")
+    @ApiResponse(responseCode = "422", description = "Validation failed")
     public ResponseEntity<Map<String,Object>> decide(
             @PathVariable long approvalId,
             @RequestBody BzaApprovalPolicyService.DecisionRequest request,
@@ -126,6 +132,7 @@ public class BzaApprovalPolicyController extends com.cpf.bizadmin.common.base.Bz
     @PostMapping("/submissions/{approvalId}/withdraw")
     @CpfOnlineTransaction(id = "OBZAAP0110", name = "BzaApprovalWithdraw")
     @Operation(operationId = "bzaApprovalWithdraw", summary = "결재 철회")
+    @ApiResponse(responseCode = "422", description = "Validation failed")
     public ResponseEntity<Map<String,Object>> withdraw(
             @PathVariable long approvalId,
             @RequestBody BzaApprovalPolicyService.LifecycleRequest request,
@@ -136,6 +143,7 @@ public class BzaApprovalPolicyController extends com.cpf.bizadmin.common.base.Bz
     @PostMapping("/submissions/{approvalId}/cancel")
     @CpfOnlineTransaction(id = "OBZAAP0111", name = "BzaApprovalCancel")
     @Operation(operationId = "bzaApprovalCancel", summary = "결재 취소")
+    @ApiResponse(responseCode = "422", description = "Validation failed")
     public ResponseEntity<Map<String,Object>> cancel(
             @PathVariable long approvalId,
             @RequestBody BzaApprovalPolicyService.LifecycleRequest request,
@@ -147,6 +155,7 @@ public class BzaApprovalPolicyController extends com.cpf.bizadmin.common.base.Bz
     @CpfOnlineTransaction(id = "OBZAAP0112", name = "BzaApprovalResubmit")
     @Operation(operationId = "bzaApprovalResubmit", summary = "결재 재상신",
             description = "기존 Snapshot을 재활성화하지 않고 새로운 정책/참여자 Snapshot의 새 문서를 생성합니다.")
+    @ApiResponse(responseCode = "422", description = "Validation failed")
     public ResponseEntity<Map<String,Object>> resubmit(
             @PathVariable long approvalId,
             @RequestBody BzaApprovalPolicyService.SubmitRequest request,
@@ -158,6 +167,7 @@ public class BzaApprovalPolicyController extends com.cpf.bizadmin.common.base.Bz
     @CpfOnlineTransaction(id = "OBZAAP0113", name = "BzaApprovalExpireDue")
     @Operation(operationId = "bzaApprovalExpireDue", summary = "기한 경과 결재 만료 처리",
             description = "BAT Scheduler 등 외부 실행 Owner가 호출할 수 있는 멱등 만료 처리 API입니다.")
+    @ApiResponse(responseCode = "422", description = "Validation failed")
     public ResponseEntity<Map<String,Object>> expireDue(
             @RequestParam(defaultValue = "100") int limit,
             @RequestAttribute("bza.operatorId") String operatorId) {

@@ -18,11 +18,27 @@ export interface CpfOrvalResponse<T> {
   headers: Headers;
 }
 
+export type CpfOrvalErrorCategory = "AUTHENTICATION" | "AUTHORIZATION" | "NOT_FOUND" | "CONFLICT" | "RATE_LIMIT" | "VALIDATION" | "UNAVAILABLE" | "SERVER" | "CLIENT" | "UNKNOWN";
+
+export function cpfOrvalErrorCategory(status: number): CpfOrvalErrorCategory {
+  if (status === 401) return "AUTHENTICATION";
+  if (status === 403) return "AUTHORIZATION";
+  if (status === 404) return "NOT_FOUND";
+  if (status === 409) return "CONFLICT";
+  if (status === 422) return "VALIDATION";
+  if (status === 429) return "RATE_LIMIT";
+  if (status === 503) return "UNAVAILABLE";
+  if (status >= 500) return "SERVER";
+  if (status >= 400) return "CLIENT";
+  return "UNKNOWN";
+}
+
 export class CpfOrvalError extends Error {
   constructor(
     public readonly status: number,
     message: string,
-    public readonly payload: unknown
+    public readonly payload: unknown,
+    public readonly category: CpfOrvalErrorCategory = cpfOrvalErrorCategory(status)
   ) {
     super(message);
     this.name = "CpfOrvalError";

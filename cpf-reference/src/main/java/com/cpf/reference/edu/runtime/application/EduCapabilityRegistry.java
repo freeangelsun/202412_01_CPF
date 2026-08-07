@@ -8,7 +8,7 @@ import java.util.*;
 public final class EduCapabilityRegistry {
     private static final Map<String,Integer> EXPECTED_COUNTS=Map.of(
             "reference-core",60,
-            "reference-operations",17,
+            "reference-operations",4,
             "reference-backoffice",14,
             "reference-gateway",14,
             "reference-batch",30);

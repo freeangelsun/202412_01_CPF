@@ -9,7 +9,7 @@ import com.cpf.reference.optional.operations.config.ReferenceOperationsCapabilit
 
 import java.util.List;
 
-/** Typed contributor registry for the full 135-capability Reference test variant. */
+/** Typed contributor registry for the full executable Reference test variant (122 executable capabilities / 135 manual topics). */
 final class EduFullReferenceTestRegistry {
     private EduFullReferenceTestRegistry() {}
 

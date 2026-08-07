@@ -16,7 +16,7 @@
       <label>운영 사유 <input v-model="operatorForm.reason" type="text" maxlength="500"></label>
     </div>
     <div class="actions">
-      <button type="button" class="primary" @click="createOperator">운영자 등록</button>
+      <button v-if="canCreateOperator" type="button" class="primary" @click="createOperator">운영자 등록</button>
     </div>
     <div v-if="Array.isArray(operatorResult)" class="table-wrap">
       <table>
@@ -28,7 +28,7 @@
             <td>{{ (operator.roleIds || []).join(", ") || "-" }}</td><td>{{ operator.locked ? "Y" : "N" }}</td>
             <td>
               <button v-if="canViewRaw" type="button" @click="openOperatorRaw(operator)">원문 보기</button>
-              <button v-if="operator.accountStatus !== 'ACTIVE' && (operator.roleIds || []).length && canManageOperator" type="button" @click="activateOperator(operator)">활성화</button>
+              <button v-if="operator.accountStatus !== 'ACTIVE' && (operator.roleIds || []).length && canUpdateStatus" type="button" @click="activateOperator(operator)">활성화</button>
             </td>
           </tr>
         </tbody>
@@ -61,7 +61,7 @@
     </dialog>
   </section>
 
-  <section class="panel route-operation-panel"><h3>역할·세션·연락처 운영</h3><div class="filters"><label>대상 운영자 ID <input v-model="operationForm.operatorId"></label><label>Role IDs <input v-model="operationForm.roleIds" placeholder="ADM_VIEWER,ADM_OPERATOR"></label><label>사유 <input v-model="operationForm.reason"></label></div><div class="actions"><button type="button" @click="loadOperatorRoles">역할 조회</button><button type="button" @click="loadOperatorSessions">세션 조회</button><button type="button" @click="unlockManagedOperator">잠금 해제</button><button type="button" @click="updateOperatorContact">연락처 수정</button><button type="button" @click="updateOperatorRoles">역할 수정</button></div><CpfStructuredData class="detail" :value="operationResult" /></section>
+  <section class="panel route-operation-panel"><h3>역할·세션·연락처 운영</h3><div class="filters"><label>대상 운영자 ID <input v-model="operationForm.operatorId"></label><label>Role IDs <input v-model="operationForm.roleIds" placeholder="ADM_VIEWER,ADM_OPERATOR"></label><label>사유 <input v-model="operationForm.reason"></label></div><div class="actions"><button type="button" @click="loadOperatorRoles">역할 조회</button><button type="button" @click="loadOperatorSessions">세션 조회</button><button v-if="canUnlock" type="button" @click="unlockManagedOperator">잠금 해제</button><button v-if="canUpdateContact" type="button" @click="updateOperatorContact">연락처 수정</button><button v-if="canUpdateRoles" type="button" @click="updateOperatorRoles">역할 수정</button></div><CpfStructuredData class="detail" :value="operationResult" /></section>
 </template>
 
 <script lang="ts">
@@ -72,12 +72,12 @@ export default defineComponent({setup(){return useAdmConsolePage()},
   name: "OperatorsPage",
 
   computed: {
-    canManageOperator(): boolean {
-      return this.permission("OPERATOR").writeAllowed === true;
-    },
-    canViewRaw(): boolean {
-      return this.permission("OPERATOR").writeAllowed === true;
-    }
+    canCreateOperator(): boolean { return this.canButton("OPERATOR_CREATE", "OPERATOR"); },
+    canUpdateStatus(): boolean { return this.canButton("OPERATOR_STATUS_UPDATE", "OPERATOR"); },
+    canUpdateContact(): boolean { return this.canButton("OPERATOR_CONTACT_UPDATE", "OPERATOR"); },
+    canUpdateRoles(): boolean { return this.canButton("OPERATOR_ROLE_UPDATE", "OPERATOR"); },
+    canViewRaw(): boolean { return this.canButton("OPERATOR_PII_RAW", "OPERATOR"); },
+    canUnlock(): boolean { return this.canButton("PASSWORD_UNLOCK", "PASSWORD"); }
   },
   mounted() { this.loadOperators(); },
   beforeUnmount() { this.closeOperatorRaw(); }

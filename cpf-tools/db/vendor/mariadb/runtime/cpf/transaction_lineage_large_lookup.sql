@@ -1,0 +1,2 @@
+-- Required bounded lookup path for transactionId one-shot UI; bind :transaction_id and :from_time/:to_time.
+SELECT transaction_id, segment_id, parent_segment_id, attempt_no, trace_id, span_id, request_id, idempotency_key, tenant_id, message_id, dlq_id, batch_job_execution_id, file_id, source_type, source_ref_id, lifecycle_state, unknown_yn, reconcile_state, occurred_at, freshness_at FROM cpf_transaction_lineage WHERE transaction_id = :transaction_id AND occurred_at >= :from_time AND occurred_at < :to_time ORDER BY occurred_at, segment_id, attempt_no;

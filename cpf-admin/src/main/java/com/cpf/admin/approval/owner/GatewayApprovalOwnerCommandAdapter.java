@@ -69,6 +69,41 @@ public final class GatewayApprovalOwnerCommandAdapter implements AdmApprovalOwne
         }
     }
 
+    @Override
+    public AdmApprovedOperationResult reconcile(AdmApprovedOperationCommand command) {
+        if (command == null || !supports(command.ownerModule(), command.ownerCommand(), command.actionType(), command.targetType())) {
+            return failed("GATEWAY_RECONCILE_UNSUPPORTED", "Gateway Owner/Command/Action/Target 조합이 일치하지 않습니다.");
+        }
+        try {
+            CpfGatewayRegistryPort.GatewayBinding binding = registry.findBindings(null, null, null, 10_000).stream()
+                    .filter(item -> item.bindingId().equals(command.targetId()))
+                    .findFirst().orElse(null);
+            if (binding == null) {
+                return failed("GATEWAY_RECONCILE_NOT_FOUND", "Gateway Binding을 찾을 수 없습니다.");
+            }
+            if (!Objects.equals(binding.bindingChecksum(), command.payloadHash())) {
+                return failed("GATEWAY_RECONCILE_HASH_MISMATCH", "현재 Binding checksum이 승인 Snapshot과 다릅니다.");
+            }
+            String expected = switch (command.ownerCommand().toUpperCase(Locale.ROOT)) {
+                case "GATEWAY_BINDING_APPROVE" -> "APPROVED";
+                case "GATEWAY_BINDING_ACTIVATE" -> "ACTIVE";
+                case "GATEWAY_BINDING_BLOCK" -> "BLOCKED";
+                case "GATEWAY_BINDING_RETIRE" -> "RETIRED";
+                default -> "";
+            };
+            if (!expected.isBlank() && expected.equalsIgnoreCase(binding.status())) {
+                return new AdmApprovedOperationResult(AdmApprovalExecutionStatus.SUCCEEDED,
+                        "GATEWAY_RECONCILED_" + expected,
+                        "Gateway Owner 상태 조회로 상태 전환 완료를 확인했습니다.");
+            }
+            return new AdmApprovedOperationResult(AdmApprovalExecutionStatus.UNKNOWN,
+                    "GATEWAY_RECONCILE_PENDING", "Gateway Owner 상태가 아직 성공을 확정하지 못했습니다.");
+        } catch (RuntimeException observationFailure) {
+            return new AdmApprovedOperationResult(AdmApprovalExecutionStatus.UNKNOWN,
+                    "GATEWAY_RECONCILE_OBSERVATION_FAILED", "Gateway Owner 상태 조회 실패로 UNKNOWN을 유지합니다.");
+        }
+    }
+
     private static AdmApprovedOperationResult failed(String code,String message) {
         return new AdmApprovedOperationResult(AdmApprovalExecutionStatus.FAILED,code,message);
     }

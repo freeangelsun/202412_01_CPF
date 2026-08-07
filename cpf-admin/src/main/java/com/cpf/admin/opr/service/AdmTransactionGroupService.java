@@ -1,6 +1,10 @@
 package com.cpf.admin.opr.service;
 
+import com.cpf.core.api.batch.CpfBatchOperationsPort;
+import com.cpf.core.api.data.CpfDataRow;
 import com.cpf.core.api.logging.CpfTransactionTimelineQueryPort;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -18,9 +22,20 @@ import java.util.StringJoiner;
 @Service
 public class AdmTransactionGroupService extends com.cpf.admin.common.base.AdmBaseService {
     private final CpfTransactionTimelineQueryPort timelineQueryPort;
+    private final CpfBatchOperationsPort batchOperations;
 
+    @Autowired
+    public AdmTransactionGroupService(
+            CpfTransactionTimelineQueryPort timelineQueryPort,
+            ObjectProvider<CpfBatchOperationsPort> batchOperationsProvider) {
+        this.timelineQueryPort = timelineQueryPort;
+        this.batchOperations = batchOperationsProvider == null ? null : batchOperationsProvider.getIfAvailable();
+    }
+
+    /** Test/single-module compatibility constructor. */
     public AdmTransactionGroupService(CpfTransactionTimelineQueryPort timelineQueryPort) {
         this.timelineQueryPort = timelineQueryPort;
+        this.batchOperations = null;
     }
 
     public Map<String, Object> findGroups(Map<String, String> criteria) {
@@ -46,6 +61,13 @@ public class AdmTransactionGroupService extends com.cpf.admin.common.base.AdmBas
         detail.put("summary", summarize(transactionId, segments));
         detail.put("headers", headerSnapshots(segments));
         detail.put("externalLogs", findExternalLogs(transactionId, 100));
+        List<Map<String, Object>> batchLineage = findBatchLineage(transactionId, 200);
+        List<Map<String, Object>> lineage = new ArrayList<>(timelineQueryPort.findLineage(transactionId, 500));
+        lineage.addAll(batchLineage);
+        lineage.sort((left, right) -> text(left, "occurredAt").compareTo(text(right, "occurredAt")));
+        detail.put("lineage", List.copyOf(lineage));
+        detail.put("tree", lineageTree(lineage));
+        detail.put("sourceFreshness", mergeBatchFreshness(timelineQueryPort.sourceFreshness(transactionId), batchLineage));
         return detail;
     }
 
@@ -178,6 +200,147 @@ public class AdmTransactionGroupService extends com.cpf.admin.common.base.AdmBas
 
     private int boundedLimit(int limit) {
         return Math.max(1, Math.min(500, limit));
+    }
+
+    private List<Map<String, Object>> lineageTree(List<Map<String, Object>> lineage) {
+        Map<String, Map<String, Object>> nodes = new LinkedHashMap<>();
+        List<Map<String, Object>> roots = new ArrayList<>();
+        for (Map<String, Object> row : lineage) {
+            Map<String, Object> node = new LinkedHashMap<>(row);
+            node.put("children", new ArrayList<Map<String, Object>>());
+            String segmentId = text(row, "segmentId");
+            if (!segmentId.isBlank()) nodes.put(segmentId, node);
+        }
+        for (Map<String, Object> node : nodes.values()) {
+            String parent = text(node, "parentSegmentId");
+            Map<String, Object> parentNode = nodes.get(parent);
+            if (parentNode == null) {
+                roots.add(node);
+            } else {
+                @SuppressWarnings("unchecked")
+                List<Map<String, Object>> children = (List<Map<String, Object>>) parentNode.get("children");
+                children.add(node);
+            }
+        }
+        return roots;
+    }
+
+
+    private List<Map<String, Object>> findBatchLineage(String transactionId, int limit) {
+        if (!hasText(transactionId) || batchOperations == null) {
+            return List.of();
+        }
+        try {
+            List<CpfDataRow> executions = batchOperations.findExecutions(
+                    null, transactionId.trim(), null, null, null, boundedLimit(limit));
+            if (executions == null || executions.isEmpty()) {
+                return List.of();
+            }
+            List<Map<String, Object>> rows = new ArrayList<>();
+            for (CpfDataRow execution : executions) {
+                Map<String, Object> row = new LinkedHashMap<>();
+                Object executionId = firstValue(execution, "executionId", "execution_id", "jobExecutionId", "job_execution_id");
+                Object jobInstanceId = firstValue(execution, "springBatchJobInstanceId", "spring_batch_job_instance_id", "jobInstanceId", "job_instance_id");
+                Object jobId = firstValue(execution, "jobId", "job_id", "jobName", "job_name");
+                Object workerId = firstValue(execution, "workerId", "worker_id");
+                Object instanceId = firstValue(execution, "serverInstanceId", "server_instance_id", "instanceId", "instance_id");
+                Object startedAt = firstValue(execution, "startedAt", "startTime", "start_time", "createdAt", "created_at");
+                Object endedAt = firstValue(execution, "endedAt", "endTime", "end_time", "updatedAt", "updated_at");
+                Object status = firstValue(execution, "status", "batchStatus", "batch_status", "executionStatus", "execution_status");
+                Object failure = firstValue(execution, "failureMessageMasked", "exitMessageMasked", "errorMessageMasked", "failureCode");
+                row.put("transactionId", transactionId.trim());
+                row.put("segmentId", executionId == null ? "BATCH:" + String.valueOf(jobId) : "BATCH:" + executionId);
+                row.put("parentSegmentId", firstValue(execution, "parentSegmentId", "parent_segment_id"));
+                row.put("attempt", firstValueOrDefault(execution, 1, "attempt", "attemptNo", "attempt_no"));
+                row.put("traceId", firstValue(execution, "traceId", "trace_id"));
+                row.put("spanId", firstValue(execution, "spanId", "span_id"));
+                row.put("requestId", firstValue(execution, "requestId", "request_id", "commandRequestId", "command_request_id"));
+                row.put("idempotencyKey", firstValue(execution, "idempotencyKey", "idempotency_key"));
+                row.put("tenantId", firstValue(execution, "tenantId", "tenant_id"));
+                row.put("channel", "BATCH");
+                row.put("actorIdMasked", firstValue(execution, "requestUserMasked", "request_user_masked", "actorIdMasked"));
+                row.put("instanceId", instanceId);
+                row.put("wasId", firstValue(execution, "wasId", "was_id"));
+                row.put("agentId", firstValue(execution, "agentId", "agent_id"));
+                row.put("workerId", workerId);
+                row.put("remoteSystem", "cpf-batch");
+                row.put("operation", jobId);
+                row.put("messageId", null);
+                row.put("consumerGroup", null);
+                row.put("dlqId", null);
+                row.put("batchJobInstanceId", jobInstanceId);
+                row.put("batchJobExecutionId", executionId);
+                row.put("batchStepExecutionId", firstValue(execution, "stepExecutionId", "step_execution_id"));
+                row.put("partitionId", firstValue(execution, "partitionId", "partition_id"));
+                row.put("fileId", null);
+                row.put("sourceType", "BATCH");
+                row.put("sourceRefId", executionId);
+                row.put("lifecycleState", status);
+                row.put("failureStage", failure);
+                row.put("unknownYn", "UNKNOWN".equalsIgnoreCase(String.valueOf(status)) ? "Y" : "N");
+                row.put("reconcileState", firstValue(execution, "reconcileState", "reconcile_state"));
+                row.put("occurredAt", startedAt);
+                row.put("freshnessAt", endedAt == null ? startedAt : endedAt);
+                rows.add(row);
+            }
+            return List.copyOf(rows);
+        } catch (RuntimeException ignored) {
+            // Batch owner unavailability is represented as partial freshness, never as a false complete result.
+            return List.of();
+        }
+    }
+
+    private Map<String, Object> mergeBatchFreshness(Map<String, Object> base, List<Map<String, Object>> batchRows) {
+        Map<String, Object> result = new LinkedHashMap<>(base == null ? Map.of() : base);
+        List<Map<String, Object>> sources = new ArrayList<>();
+        Object existingSources = result.get("sources");
+        if (existingSources instanceof List<?> list) {
+            for (Object item : list) {
+                if (item instanceof Map<?, ?> map) {
+                    Map<String, Object> copy = new LinkedHashMap<>();
+                    map.forEach((key, value) -> copy.put(String.valueOf(key), value));
+                    sources.add(copy);
+                }
+            }
+        }
+        if (!batchRows.isEmpty()) {
+            Object latest = null;
+            for (Map<String, Object> row : batchRows) {
+                Object candidate = row.get("freshnessAt");
+                if (candidate != null && (latest == null || String.valueOf(candidate).compareTo(String.valueOf(latest)) > 0)) {
+                    latest = candidate;
+                }
+            }
+            Map<String, Object> batch = new LinkedHashMap<>();
+            batch.put("sourceType", "BATCH");
+            batch.put("eventCount", batchRows.size());
+            batch.put("freshnessAt", latest);
+            sources.removeIf(source -> "BATCH".equals(String.valueOf(source.get("sourceType"))));
+            sources.add(batch);
+            List<String> missing = new ArrayList<>();
+            Object currentMissing = result.get("missingSources");
+            if (currentMissing instanceof List<?> list) {
+                for (Object value : list) if (!"BATCH".equals(String.valueOf(value))) missing.add(String.valueOf(value));
+            }
+            result.put("missingSources", List.copyOf(missing));
+            result.put("partial", !missing.isEmpty());
+        }
+        result.put("sources", List.copyOf(sources));
+        return result;
+    }
+
+    private Object firstValue(Map<String, Object> row, String... keys) {
+        if (row == null || keys == null) return null;
+        for (String key : keys) {
+            Object value = row.get(key);
+            if (value != null && !String.valueOf(value).isBlank()) return value;
+        }
+        return null;
+    }
+
+    private Object firstValueOrDefault(Map<String, Object> row, Object fallback, String... keys) {
+        Object value = firstValue(row, keys);
+        return value == null ? fallback : value;
     }
 
     private boolean hasText(String value) {

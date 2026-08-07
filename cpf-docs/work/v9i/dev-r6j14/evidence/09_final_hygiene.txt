@@ -1,0 +1,6 @@
+files= 141 counts= {'py': 6, 'json': 4, 'yaml': 1, 'csv': 9} max_path= 118
+cpf-docs/work/v9i/dev-r6j14/REQUIREMENT_STATUS.csv rows= 93
+cpf-docs/work/v9i/dev-r6j14/CENTRAL_FINDING_RESULT.csv rows= 56
+cpf-docs/work/v9i/dev-r6j14/EDU_ARCH_MIGRATION_MATRIX.csv rows= 17
+cpf-docs/work/v9i/dev-r6j14/RUNTIME_QUALIFICATION_MATRIX.csv rows= 13
+[CPF][R6J][FINAL-HYGIENE][PASS]

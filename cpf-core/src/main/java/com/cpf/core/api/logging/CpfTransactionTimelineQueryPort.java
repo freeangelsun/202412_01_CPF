@@ -14,6 +14,15 @@ public interface CpfTransactionTimelineQueryPort {
 
     List<Map<String, Object>> findExternalCandidates(String transactionId, int limit);
 
+    /**
+     * Cross-source lineage for one-shot ADM transaction lookup. Implementations must query
+     * framework-owned lineage state only; caller-provided correlation headers are not authoritative.
+     */
+    default List<Map<String, Object>> findLineage(String transactionId, int limit) { return List.of(); }
+
+    default Map<String, Object> sourceFreshness(String transactionId) { return Map.of(
+            "transactionId", transactionId, "partial", true, "missingSources", List.of("LINEAGE")); }
+
     record GroupQueryResult(
             boolean available,
             List<Map<String, Object>> items,

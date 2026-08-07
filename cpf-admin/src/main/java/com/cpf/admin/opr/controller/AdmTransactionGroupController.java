@@ -35,7 +35,7 @@ public class AdmTransactionGroupController extends com.cpf.admin.common.base.Adm
 
     @GetMapping("/{transactionId}")
     @CpfOnlineTransaction(id = "OADMTR0002", name = "ADMTransactionGroupDetail")
-    @Operation(operationId = "admTransactionGroupFindDetail", summary = "거래 그룹 상세", description = "transactionId 기준 구간, 타임라인, 헤더 스냅샷, 표준 외부 호출 로그를 함께 조회합니다.")
+    @Operation(operationId = "admTransactionGroupFindDetail", summary = "거래 그룹 상세", description = "transactionId 하나로 구간/트리/외부호출/Message/DLQ/Batch/File/Trace/Audit/UNKNOWN-reconcile lineage와 freshness를 함께 조회합니다.")
     public ResponseEntity<Map<String, Object>> findDetail(@PathVariable String transactionId) {
         return ResponseEntity.ok(transactionGroupService.findDetail(transactionId));
     }

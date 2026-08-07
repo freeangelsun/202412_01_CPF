@@ -7,6 +7,7 @@ import com.cpf.admin.approval.spi.AdmApprovalOwnerCommandPort;
 import com.cpf.core.api.batch.CpfBatchOperationsPort;
 import com.cpf.core.api.batch.CpfBatchOwnerUnknownResultException;
 import com.cpf.core.api.batch.CpfBatchRiskCommand;
+import com.cpf.core.api.data.CpfDataRow;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Component;
@@ -97,6 +98,105 @@ public final class BatchRuntimeApprovalOwnerCommandAdapter implements AdmApprova
         }
     }
 
+    @Override
+    public AdmApprovedOperationResult reconcile(AdmApprovedOperationCommand command) {
+        if (command == null || !supports(command.ownerModule(), command.ownerCommand(), command.actionType(), command.targetType())) {
+            return failed("BAT_COMMAND_UNSUPPORTED", "지원하지 않는 BAT Runtime 승인 Command입니다.");
+        }
+        final CpfBatchRiskCommand risk;
+        try {
+            risk = approvedRisk(command);
+        } catch (RuntimeException invalid) {
+            return failed("BAT_APPROVAL_SNAPSHOT_MISMATCH", "승인 BAT Command Snapshot이 실행 명령과 일치하지 않습니다.");
+        }
+        try {
+            return switch (command.ownerCommand()) {
+                case "releaseLock" -> observeReleasedLock(risk);
+                case "requestStop" -> observeExecutionState(risk, Set.of("STOPPED", "ABANDONED"));
+                case "actGhostExecution" -> observeGhostState(risk);
+                case "updateScheduleEnabled" -> observeScheduleState(risk);
+                case "requestRetry", "requestRun", "runSchedulerOnce" -> observeOperationLedger(command, risk);
+                default -> unknown("BAT_RECONCILE_UNSUPPORTED", "Owner 상태 관측 계약이 없습니다.");
+            };
+        } catch (RuntimeException readFailure) {
+            return unknown("BAT_RECONCILE_READ_FAILED", "BAT Owner 상태 조회에 실패해 UNKNOWN을 유지합니다.");
+        }
+    }
+
+    private AdmApprovedOperationResult observeReleasedLock(CpfBatchRiskCommand risk) {
+        boolean stillPresent = batch.findLocks(null).stream().anyMatch(row ->
+                risk.targetId().equals(first(row, "lockKey", "lock_key", "id", "targetId")));
+        return stillPresent ? unknown("BAT_LOCK_RELEASE_PENDING", "Lock이 아직 Owner에 존재합니다.")
+                : succeeded("BAT_LOCK_RELEASE_RECONCILED", "Owner 조회에서 Lock 해제를 관측했습니다.");
+    }
+
+    private AdmApprovedOperationResult observeExecutionState(CpfBatchRiskCommand risk, Set<String> accepted) {
+        CpfDataRow row = batch.findExecutionDetail(Long.parseLong(risk.targetId()));
+        String state = upper(first(row, "status", "executionStatus", "batchStatus"));
+        if (accepted.contains(state)) return succeeded("BAT_EXECUTION_RECONCILED_" + state, "Owner 실행 상태를 관측했습니다.");
+        if (Set.of("FAILED", "ERROR").contains(state)) return failed("BAT_EXECUTION_RECONCILED_" + state, "Owner 실행 실패를 관측했습니다.");
+        return unknown("BAT_EXECUTION_RECONCILE_PENDING", "실행 상태가 아직 최종 결과를 증명하지 못합니다.");
+    }
+
+    private AdmApprovedOperationResult observeGhostState(CpfBatchRiskCommand risk) {
+        String action = ghostAction(risk);
+        if ("RELEASE_LOCK".equals(action)) {
+            return observeReleasedLock(risk);
+        }
+        return observeExecutionState(risk, "FAIL".equals(action) ? Set.of("FAILED") : Set.of("ABANDONED"));
+    }
+
+    private AdmApprovedOperationResult observeScheduleState(CpfBatchRiskCommand risk) {
+        boolean expected = scheduleEnabled(risk);
+        CpfDataRow row = batch.findSchedules().stream()
+                .filter(item -> risk.targetId().equals(first(item, "scheduleId", "schedule_id", "id")))
+                .findFirst().orElse(null);
+        if (row == null) return unknown("BAT_SCHEDULE_NOT_OBSERVED", "Schedule을 Owner에서 찾지 못했습니다.");
+        String actual = upper(first(row, "enabledYn", "enabled", "activeYn", "status"));
+        boolean observed = expected ? Set.of("Y", "TRUE", "ENABLED", "ACTIVE").contains(actual)
+                : Set.of("N", "FALSE", "DISABLED", "INACTIVE").contains(actual);
+        return observed ? succeeded("BAT_SCHEDULE_RECONCILED", "Owner Schedule 상태가 승인 명령과 일치합니다.")
+                : unknown("BAT_SCHEDULE_RECONCILE_PENDING", "Owner Schedule 상태가 승인 명령 결과를 아직 증명하지 못합니다.");
+    }
+
+    private AdmApprovedOperationResult observeOperationLedger(AdmApprovedOperationCommand command, CpfBatchRiskCommand risk) {
+        Long executionId = "bat_execution".equals(risk.targetType()) ? Long.parseLong(risk.targetId()) : null;
+        String jobId = "bat_job".equals(risk.targetType()) ? risk.targetId() : null;
+        CpfDataRow row = batch.findOperationLogs(jobId, executionId, 1000).stream()
+                .filter(item -> matchesAny(item, command.commandRequestId(), risk.idempotencyKey(), String.valueOf(command.approvalRequestId())))
+                .findFirst().orElse(null);
+        if (row == null) return unknown("BAT_OPERATION_NOT_OBSERVED", "원 승인 명령의 Owner operation ledger를 찾지 못했습니다.");
+        String state = upper(first(row, "status", "resultState", "operationStatus", "commandState"));
+        if (Set.of("SUCCEEDED", "SUCCESS", "COMPLETED").contains(state))
+            return succeeded("BAT_OPERATION_RECONCILED_" + state, "원 승인 명령의 Owner operation ledger를 관측했습니다.");
+        if (Set.of("FAILED", "REJECTED", "ERROR").contains(state))
+            return failed("BAT_OPERATION_RECONCILED_" + state, "Owner operation ledger에서 실패를 관측했습니다.");
+        return unknown("BAT_OPERATION_RECONCILE_PENDING", "Owner operation ledger가 아직 최종 결과를 증명하지 못합니다.");
+    }
+
+    private static boolean matchesAny(Map<String, ?> row, String... needles) {
+        String haystack = row.values().stream().filter(Objects::nonNull).map(String::valueOf)
+                .collect(java.util.stream.Collectors.joining("|"));
+        for (String needle : needles) if (needle != null && !needle.isBlank() && haystack.contains(needle)) return true;
+        return false;
+    }
+
+    private static String first(Map<String, ?> row, String... keys) {
+        if (row == null) return "";
+        for (String key : keys) {
+            Object v=value(row,key); if (v != null && !String.valueOf(v).isBlank()) return String.valueOf(v).trim();
+        }
+        return "";
+    }
+
+    private static String upper(String value) { return Objects.toString(value, "").trim().toUpperCase(Locale.ROOT); }
+    private static AdmApprovedOperationResult succeeded(String code, String message) {
+        return new AdmApprovedOperationResult(AdmApprovalExecutionStatus.SUCCEEDED, code, message);
+    }
+    private static AdmApprovedOperationResult unknown(String code, String message) {
+        return new AdmApprovedOperationResult(AdmApprovalExecutionStatus.UNKNOWN, code, message);
+    }
+
     private CpfBatchRiskCommand approvedRisk(AdmApprovedOperationCommand command) {
         Map<String,Object> snapshot = read(command.payloadSnapshot());
         CpfBatchRiskCommand risk = new CpfBatchRiskCommand(
@@ -150,7 +250,7 @@ public final class BatchRuntimeApprovalOwnerCommandAdapter implements AdmApprova
         throw new IllegalArgumentException("Schedule enabled 값이 필요합니다.");
     }
 
-    private static Object value(Map<String,Object> map, String key) {
+    private static Object value(Map<String,?> map, String key) {
         Object value = map.get(key);
         if (value != null) return value;
         value = map.get(key.toUpperCase(Locale.ROOT));

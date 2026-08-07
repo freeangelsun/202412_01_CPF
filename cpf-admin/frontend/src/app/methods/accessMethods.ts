@@ -123,6 +123,7 @@ export const accessMethods = {
         this.operatorResult = await this.getJson("/adm/api/operators");
       },
   async createOperator() {
+        if (!this.canButton("OPERATOR_CREATE", "OPERATOR")) throw new Error("OPERATOR_CREATE 권한이 없습니다.");
         if (!this.operatorForm.operatorId || !this.operatorForm.operatorName || !this.operatorForm.password) {
           this.setMessage("운영자 ID, 이름, 초기 비밀번호가 필요합니다.");
           return;
@@ -170,6 +171,7 @@ export const accessMethods = {
         this.clearOperatorRaw();
       },
   async viewOperatorRaw() {
+        if (!this.canButton("OPERATOR_PII_RAW", "OPERATOR")) throw new Error("OPERATOR_PII_RAW 권한이 없습니다.");
         const operator = this.operatorRawTarget;
         const reason = (this.operatorRawReason || "").trim();
         if (!operator?.operatorId || !this.requireReason(reason)) return;
@@ -193,6 +195,7 @@ export const accessMethods = {
         }
       },
   async activateOperator(operator: any) {
+        if (!this.canButton("OPERATOR_STATUS_UPDATE", "OPERATOR")) throw new Error("OPERATOR_STATUS_UPDATE 권한이 없습니다.");
         const reason = (this.operatorForm.reason || "").trim();
         if (!this.requireReason(reason)) return;
         this.operatorResult = await this.sendJson(`/adm/api/operators/${encodeURIComponent(operator.operatorId)}/status`, "PUT", {

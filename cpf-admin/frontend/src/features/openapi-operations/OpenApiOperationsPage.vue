@@ -28,13 +28,14 @@
       </label>
       <small id="openapi-reason-help">감사 로그에 기록할 구체적인 사유를 입력하세요.</small>
       <label class="cpf-check"><input v-model="confirmed" type="checkbox"> 위험 조치를 확인했습니다.</label>
-      <button class="danger" :disabled="busy || !reason || !confirmed" @click="refreshInventory">재대사 실행</button>
+      <button class="danger" :disabled="busy || !reason || !confirmed || !canRefreshInventory" @click="refreshInventory">재대사 실행</button>
     </section>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from "vue";
+import { useAdmSessionStore } from "../../stores/admSessionStore";
 import { admOpenApiRefresh, admOpenApiStatus } from "../../generated/cpf-api";
 
 type Snapshot = {
@@ -51,10 +52,12 @@ type Snapshot = {
 
 export default defineComponent({
   name: "OpenApiOperationsPage",
+  setup() { const session = useAdmSessionStore(); return { session }; },
   data() {
     return { busy: false, error: "", reason: "", confirmed: false, snapshot: null as Snapshot | null };
   },
   computed: {
+    canRefreshInventory(): boolean { return this.session.hasButton("OPENAPI_REFRESH"); },
     statusClass(): string {
       return this.snapshot?.status === "UP" ? "success" : this.snapshot?.status === "DOWN" ? "danger" : "warning";
     }
@@ -72,6 +75,7 @@ export default defineComponent({
       if (result) this.snapshot = result;
     },
     async refreshInventory() {
+      if (!this.canRefreshInventory) throw new Error("OPENAPI_REFRESH 권한이 없습니다.");
       if (!this.reason || !this.confirmed) return;
       const result = await this.run(() => admOpenApiRefresh<Snapshot>({
         data: { reason: this.reason },

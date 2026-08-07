@@ -1,0 +1,14 @@
+document,pdf_path,docx_path,pdf_pages,docx_render_pages,pdf_bytes,docx_bytes,first_page_orientation
+00_프레임워크안내,cpf-docs/guides/00_프레임워크안내.pdf,cpf-docs/guides/00_프레임워크안내.docx,16,16,716973,36472,portrait
+01_개발자매뉴얼,cpf-docs/guides/01_개발자매뉴얼.pdf,cpf-docs/guides/01_개발자매뉴얼.docx,39,39,1714222,70158,portrait
+02_배치개발매뉴얼,cpf-docs/guides/02_배치개발매뉴얼.pdf,cpf-docs/guides/02_배치개발매뉴얼.docx,29,29,1165905,45914,portrait
+03_ADM개발자매뉴얼,cpf-docs/guides/03_ADM개발자매뉴얼.pdf,cpf-docs/guides/03_ADM개발자매뉴얼.docx,12,12,460901,25967,portrait
+04_ADM운영자매뉴얼,cpf-docs/guides/04_ADM운영자매뉴얼.pdf,cpf-docs/guides/04_ADM운영자매뉴얼.docx,160,160,4776633,224779,landscape
+05_플랫폼운영매뉴얼,cpf-docs/guides/05_플랫폼운영매뉴얼.pdf,cpf-docs/guides/05_플랫폼운영매뉴얼.docx,108,108,3719522,122195,landscape
+90_BZA매뉴얼,cpf-docs/guides/90_BZA매뉴얼.pdf,cpf-docs/guides/90_BZA매뉴얼.docx,13,13,509552,26849,landscape
+91_Gateway매뉴얼,cpf-docs/guides/91_Gateway매뉴얼.pdf,cpf-docs/guides/91_Gateway매뉴얼.docx,9,9,349409,23668,portrait
+기술사양서,cpf-docs/deliverables/기술사양서.pdf,cpf-docs/deliverables/기술사양서.docx,16,16,632572,37238,portrait
+기술표준서,cpf-docs/deliverables/기술표준서.pdf,cpf-docs/deliverables/기술표준서.docx,15,15,636365,36247,portrait
+데이터베이스표준서,cpf-docs/deliverables/데이터베이스표준서.pdf,cpf-docs/deliverables/데이터베이스표준서.docx,15,15,532383,33581,portrait
+산출물목록,cpf-docs/deliverables/산출물목록.pdf,cpf-docs/deliverables/산출물목록.docx,11,11,509128,26949,portrait
+아키텍처설계서,cpf-docs/deliverables/아키텍처설계서.pdf,cpf-docs/deliverables/아키텍처설계서.docx,23,23,801951,44915,portrait

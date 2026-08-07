@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import { admApi } from "../../shared/cpfApi";
+import { useAdmSessionStore } from "../../stores/admSessionStore";
 
 interface SecretProvider {
   providerId: string;
@@ -16,6 +17,7 @@ interface SecretMetadata {
   attributes?: Record<string, string>;
 }
 
+const session = useAdmSessionStore();
 const providers = ref<SecretProvider[]>([]);
 const provider = ref("ENV");
 const key = ref("");
@@ -27,7 +29,7 @@ const attributeRows = computed(() => Object.entries(metadata.value?.attributes ?
 const selectedProvider = computed(() => providers.value.find(
   (item) => item.providerId.toUpperCase() === provider.value.toUpperCase()
 ));
-const canRotate = computed(() => Boolean(selectedProvider.value?.rotatable && metadata.value?.rotatable));
+const canRotate = computed(() => session.hasButton("SECRET_ROTATE") && Boolean(selectedProvider.value?.rotatable && metadata.value?.rotatable));
 
 function requireReference(): void {
   if (!provider.value.trim()) throw new Error("Provider를 선택하세요.");
@@ -64,6 +66,7 @@ async function rotate(): Promise<void> {
   error.value = "";
   try {
     requireReference();
+    if (!session.hasButton("SECRET_ROTATE")) throw new Error("SECRET_ROTATE 권한이 없습니다.");
     if (!reason.value.trim()) throw new Error("Rotation 사유를 입력하세요.");
     if (!canRotate.value) throw new Error("선택한 Provider 또는 Secret은 Rotation을 지원하지 않습니다.");
     metadata.value = await admApi<SecretMetadata>("/adm/api/secrets/rotate", {

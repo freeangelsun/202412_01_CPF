@@ -1,8 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
 import fs from 'node:fs';
 import path from 'node:path';
-const baseURL = process.env.CPF_BZA_FRONTEND_URL || process.env.CPF_FRONTEND_URL;
-if (!baseURL) throw new Error('CPF_BZA_FRONTEND_URL (or CPF_FRONTEND_URL fallback) is required. Browser validation cannot silently skip.');
+const baseURL = process.env.CPF_BZA_FRONTEND_URL;
+if (!baseURL) throw new Error('CPF_BZA_FRONTEND_URL is required. Browser validation cannot silently skip.');
 const release = process.env.CPF_E2E_RELEASE === 'true';
 const storageState = process.env.CPF_BZA_E2E_AUTH_STATE || process.env.CPF_E2E_AUTH_STATE;
 const requiredReleaseInputs = [

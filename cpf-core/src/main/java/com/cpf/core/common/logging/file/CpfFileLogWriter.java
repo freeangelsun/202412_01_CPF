@@ -68,7 +68,7 @@ import java.util.zip.GZIPOutputStream;
  * {@code transactions/{businessDate}/{transactionId}_{businessDate}.log} 규칙을 사용합니다. 하나의 글로벌 거래에 속한 local/remote/integration/retry segment가 같은 파일 추적 키를 사용하므로 DB timeline과 파일 증적을 동일 키로 교차 조회할 수 있습니다.</p>
  */
 @Component
-public final class CpfFileLogWriter implements CpfFileLogRuntimeStatus {
+public final class CpfFileLogWriter implements CpfFileLogRuntimeStatus, AutoCloseable {
     private static final Logger log = LoggerFactory.getLogger(CpfFileLogWriter.class);
     private static final Pattern ISO_LOG_DATE_PATTERN = Pattern.compile("(?<!\\d)(\\d{4}-\\d{2}-\\d{2})(?!\\d)");
     private static final Pattern BASIC_LOG_DATE_PATTERN = Pattern.compile("(?<!\\d)(\\d{8})(?!\\d)");
@@ -77,6 +77,7 @@ public final class CpfFileLogWriter implements CpfFileLogRuntimeStatus {
     private final ZoneId logZoneId;
     private final CpfLogPathPolicy pathPolicy;
     private final ObjectMapper objectMapper;
+    private final CpfFileLogRecoverySpool recoverySpool;
     private final Map<Path, FileLockEntry> fileLocks = new ConcurrentHashMap<>();
     private final AtomicLong nextRetentionCheckEpochMillis = new AtomicLong(Long.MIN_VALUE);
     private final AtomicLong retentionRunCount = new AtomicLong();
@@ -105,6 +106,8 @@ public final class CpfFileLogWriter implements CpfFileLogRuntimeStatus {
         this.clock = clock.withZone(logZoneId);
         this.pathPolicy = new CpfLogPathPolicy(environment);
         this.objectMapper = new ObjectMapper();
+        this.recoverySpool = new CpfFileLogRecoverySpool(environment, this.clock);
+        this.recoverySpool.replayAvailable();
         initializeLogRoot();
     }
 
@@ -393,6 +396,24 @@ public final class CpfFileLogWriter implements CpfFileLogRuntimeStatus {
                 writeFailureCount.get(), lastWriteFailureType.get(), clock.instant());
     }
 
+
+    @Override
+    public FileRecoveryDiagnostics fileRecoveryDiagnostics() {
+        CpfFileLogRecoverySpool.Diagnostics d = recoverySpool.diagnostics();
+        return new FileRecoveryDiagnostics(d.pending(), d.enqueued(), d.replayed(), d.deduplicated(),
+                d.quarantined(), d.terminalLoss(), d.capturedAt());
+    }
+
+    /**
+     * Best-effort shutdown drain. Pending records remain durably spooled if the original
+     * destination is still unavailable, so process termination never converts a retryable
+     * write failure into a false success.
+     */
+    @Override
+    public void close() {
+        recoverySpool.replayAvailable();
+    }
+
     private void initializeLogRoot() {
         if (!enabled("file")) {
             return;
@@ -481,6 +502,7 @@ public final class CpfFileLogWriter implements CpfFileLogRuntimeStatus {
     }
 
     private boolean appendToPath(Path logPath, Map<String, Object> event) {
+        recoverySpool.replayAvailable();
         try {
             createDirectoriesWithSecurePermissions(logPath.getParent());
             ensureSafeWritableLogPath(logPath);
@@ -509,9 +531,15 @@ public final class CpfFileLogWriter implements CpfFileLogRuntimeStatus {
             writeFailureCount.incrementAndGet();
             lastWriteFailureType.set(ex.getClass().getSimpleName());
             // 파일 로그 실패가 업무 응답 실패로 전파되지 않도록 표준 로그만 남깁니다.
-            log.warn("CPF file log write failed. path={}, error={}",
+            boolean spooled = recoverySpool.enqueue(logPath, toJson(event));
+            log.warn("CPF file log write failed. recoverySpooled={}, path={}, error={}",
+                    spooled,
                     SensitiveDataMasker.mask(String.valueOf(logPath), 512),
                     SensitiveDataMasker.mask(ex.getMessage(), 512));
+            if (!spooled && "audit".equalsIgnoreCase(String.valueOf(event.get("logType")))
+                    && environment.getProperty("cpf.logging.file.audit-fail-closed", Boolean.class, false)) {
+                throw new IllegalStateException("CPF audit log durable recovery failed", ex);
+            }
             return false;
         }
         // Retention obtains candidate-specific locks after the active append lock is released.

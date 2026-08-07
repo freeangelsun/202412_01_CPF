@@ -66,6 +66,7 @@ function Add-ConfigurationFailure {
 try {
     Invoke-Gate 'python-r6-contract' 'python' @('cpf-tools/verification/final-dev/verify-r6-approval-contract.py',$root) | Out-Null
     Invoke-Gate 'python-r6-behavior' 'python' @('cpf-tools/verification/final-dev/verify-r6-behavior-contracts.py',$root) | Out-Null
+    Invoke-Gate 'python-r6j-rework' 'python' @('cpf-tools/verification/final-dev/verify-r6j-rework-contract.py','--root',$root,'--self-test') | Out-Null
     Invoke-Gate 'python-r6-frontend' 'python' @('cpf-tools/verification/final-dev/verify-r6-frontend-contract.py',$root) | Out-Null
     Invoke-Gate 'python-r6-edu-consumer' 'python' @('cpf-tools/verification/final-dev/verify-r6-edu-consumer-runtime-contract.py','--root',$root,'--self-test') | Out-Null
     Invoke-Gate 'python-db3-contract' 'python' @('cpf-tools/verification/final-dev/verify-db3-runner-contract.py') | Out-Null
@@ -122,17 +123,16 @@ try {
     }
 
     if ($RunBrowser) {
-        $admFrontendUrl = $env:CPF_FRONTEND_URL
+        $admFrontendUrl = $env:CPF_ADM_FRONTEND_URL
         $admA11yOk = $false
         $admBrowserOk = $false
         if ([string]::IsNullOrWhiteSpace($admFrontendUrl)) {
-            Add-ConfigurationFailure 'adm-browser-input' 'CPF_FRONTEND_URL (ADM) is required for browser validation.'
+            Add-ConfigurationFailure 'adm-browser-input' 'CPF_ADM_FRONTEND_URL is required for browser validation.'
         } else {
             $admA11yOk = Invoke-Gate 'adm-npm-a11y' 'npm.cmd' @('run','test:a11y') (Join-Path $root 'cpf-admin/frontend')
             $admBrowserOk = Invoke-Gate 'adm-playwright' 'npm.cmd' @('run','test:e2e') (Join-Path $root 'cpf-admin/frontend')
         }
 
-        $savedFrontendUrl = $env:CPF_FRONTEND_URL
         $savedAuthState = $env:CPF_E2E_AUTH_STATE
         $savedPrivileged = $env:CPF_E2E_PRIVILEGED_ENDPOINTS
         $savedRouteMatrix = $env:CPF_E2E_ROUTE_MATRIX
@@ -146,7 +146,6 @@ try {
             } elseif ([string]::IsNullOrWhiteSpace($env:CPF_BZA_E2E_AUTH_STATE)) {
                 Add-ConfigurationFailure 'bza-browser-auth-input' 'CPF_BZA_E2E_AUTH_STATE is required for browser validation.'
             } else {
-                $env:CPF_FRONTEND_URL = $env:CPF_BZA_FRONTEND_URL
                 $env:CPF_E2E_AUTH_STATE = $env:CPF_BZA_E2E_AUTH_STATE
                 $env:CPF_E2E_PRIVILEGED_ENDPOINTS = $env:CPF_BZA_E2E_PRIVILEGED_ENDPOINTS
                 $env:CPF_E2E_ROUTE_MATRIX = $env:CPF_BZA_E2E_ROUTE_MATRIX
@@ -157,7 +156,6 @@ try {
             }
         }
         finally {
-            $env:CPF_FRONTEND_URL = $savedFrontendUrl
             $env:CPF_E2E_AUTH_STATE = $savedAuthState
             $env:CPF_E2E_PRIVILEGED_ENDPOINTS = $savedPrivileged
             $env:CPF_E2E_ROUTE_MATRIX = $savedRouteMatrix

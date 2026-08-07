@@ -24,9 +24,9 @@ $businessKey = Safe-Name (Require-Env 'CPF_EDU_BUSINESS_KEY')
 $dataScope = Require-Env 'CPF_EDU_DATA_SCOPE'
 $traceId = Safe-Name (Require-Env 'CPF_EDU_TRACE_ID')
 $fencingToken = [long](Require-Env 'CPF_EDU_FENCING_TOKEN')
-$payloadFile = Require-Env 'CPF_EDU_PAYLOAD_FILE'
-if (-not (Test-Path -LiteralPath $payloadFile -PathType Leaf)) { throw 'payload file missing' }
-$payload = Get-Content -LiteralPath $payloadFile -Raw -Encoding utf8 | ConvertFrom-Json -AsHashtable
+$payloadJson = [Console]::In.ReadToEnd()
+if ([string]::IsNullOrWhiteSpace($payloadJson)) { $payloadJson = '{}' }
+$payload = $payloadJson | ConvertFrom-Json -AsHashtable
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..\..')).Path
 $workBase = Join-Path $repoRoot 'build\cpf-edu-ops'
 $script:WorkRoot = Join-Path $workBase (Join-Path $requirementId $businessKey)

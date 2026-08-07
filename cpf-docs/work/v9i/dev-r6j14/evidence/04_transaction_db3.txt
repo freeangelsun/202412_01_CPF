@@ -1,0 +1,1 @@
+[CPF][R6J][DB3][PASS] vendors=3 source=migration=flyway=install rollback=runtime verify partition=physical archive=durable selfTest=true

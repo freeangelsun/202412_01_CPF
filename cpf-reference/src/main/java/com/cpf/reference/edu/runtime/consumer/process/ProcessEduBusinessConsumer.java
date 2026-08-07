@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
+import java.io.OutputStream;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -50,7 +51,6 @@ public final class ProcessEduBusinessConsumer implements EduBusinessConsumer {
     public EduBusinessConsumerResult invoke(EduConsumerBinding binding,
                                             EduExecutionCommand command,
                                             long fencingToken) {
-        Path payloadFile = null;
         Process process = null;
         Thread outputReader = null;
         try {
@@ -67,15 +67,18 @@ public final class ProcessEduBusinessConsumer implements EduBusinessConsumer {
             environment.put("CPF_EDU_TRACE_ID", command.traceId());
             environment.put("CPF_EDU_FENCING_TOKEN", Long.toString(fencingToken));
 
-            payloadFile = Files.createTempFile("cpf-edu-payload-", ".json");
-            Files.writeString(payloadFile, json.writeValueAsString(command.payload()), StandardCharsets.UTF_8);
-            environment.put("CPF_EDU_PAYLOAD_FILE", payloadFile.toString());
-
             ProcessBuilder builder = new ProcessBuilder(executable)
                     .directory(repositoryRoot.toFile())
                     .redirectErrorStream(true);
-            builder.environment().putAll(environment);
+            Map<String,String> childEnvironment = builder.environment();
+            Map<String,String> parentEnvironment = new HashMap<>(childEnvironment);
+            childEnvironment.clear();
+            copyAllowlistedHostEnvironment(parentEnvironment, childEnvironment);
+            childEnvironment.putAll(environment);
             process = builder.start();
+            try (OutputStream stdin = process.getOutputStream()) {
+                json.writeValue(stdin, command.payload());
+            }
 
             Process startedProcess = process;
             CompletableFuture<String> outputFuture = new CompletableFuture<>();
@@ -115,14 +118,14 @@ public final class ProcessEduBusinessConsumer implements EduBusinessConsumer {
             if (outputReader != null && outputReader.isAlive()) {
                 outputReader.interrupt();
             }
-            if (payloadFile != null) {
-                try {
-                    Files.deleteIfExists(payloadFile);
-                } catch (Exception ignored) {
-                    // The payload contains no secrets and is created under the OS temp directory.
-                    // Cleanup failure is intentionally not allowed to hide the business outcome.
-                }
-            }
+        }
+    }
+
+
+    private static void copyAllowlistedHostEnvironment(Map<String,String> source, Map<String,String> target) {
+        for (String key : List.of("PATH", "Path", "SystemRoot", "WINDIR", "TEMP", "TMP", "HOME", "LANG", "LC_ALL")) {
+            String value = source.get(key);
+            if (value != null && !value.isBlank()) target.put(key, value);
         }
     }
 

@@ -1,0 +1,1 @@
+javac_with_contract_stubs_rc=0

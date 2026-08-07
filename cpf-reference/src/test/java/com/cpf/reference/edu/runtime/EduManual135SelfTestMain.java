@@ -9,7 +9,7 @@ import java.util.*;
 import java.util.concurrent.*;
 
 /**
- * Standalone, dependency-free acceptance test for all 135 executable Manual EDU requirements.
+ * Standalone, dependency-free acceptance test for the 122 executable capabilities represented by the 135-topic Manual EDU catalog.
  * Product runtime remains JDBC-first. The nested memory repository exists only in test scope so
  * the exhaustive source/contract checks finish quickly; file durability is exercised separately.
  */
@@ -17,7 +17,7 @@ public final class EduManual135SelfTestMain {
     public static void main(String[] args) throws Exception {
         Path root = Files.createTempDirectory("cpf-edu135-");
         EduCapabilityRegistry registry = EduFullReferenceTestRegistry.create();
-        if (registry.all().size() != 135) throw new AssertionError("handler count=" + registry.all().size());
+        if (registry.all().size() != 122) throw new AssertionError("handler count=" + registry.all().size());
 
         int contract=0, validation=0, authorization=0, normal=0, duplicate=0;
         int representativeFailure=0, exhaustiveFailure=0, recovery=0, persistence=0, concurrency=0;

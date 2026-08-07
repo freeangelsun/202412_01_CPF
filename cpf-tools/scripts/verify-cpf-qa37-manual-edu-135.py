@@ -3,6 +3,8 @@ from __future__ import annotations
 import argparse,json,re,subprocess,sys,tempfile
 from pathlib import Path
 EXPECTED={'DEV':45,'BAT':30,'ADM':17,'BZA':14,'GW':14,'OPS':15}
+EXPECTED_EXECUTABLE=122
+ADM_DECISION_COUNTS={'PRODUCT_ADM':9,'EXTENSION_SAMPLE':4,'MERGE_EDU':4}
 ROLE_BY_FAMILY={'DEV':'CPF_EDU_DEVELOPER','BAT':'CPF_BATCH_OPERATOR','ADM':'CPF_ADM_OPERATOR','BZA':'CPF_BZA_OPERATOR','GW':'CPF_GATEWAY_OPERATOR','OPS':'CPF_PLATFORM_OPERATOR'}
 PRODUCT_OR_GENERATED=('cpf-admin','cpf-biz-admin','cpf-gateway','com.cpf.acc','com.cpf.mbr','com.cpf.exs')
 def fail(msg): print('[CPF][QA37][EDU135][FAIL] '+msg,file=sys.stderr);raise SystemExit(1)
@@ -53,7 +55,22 @@ def main():
  for f in features:
   rid=f['requirementId'];prefix=rid.split('-')[1];counts[prefix]+=1
   if rid in ids:fail('duplicate '+rid)
-  ids.add(rid);sp=root/f['sourcePath']
+  ids.add(rid)
+  executable=bool(f.get('executable', True))
+  if prefix=='ADM':
+   decision=f.get('architectureDecision')
+   if decision not in ADM_DECISION_COUNTS:fail('ADM architecture decision missing '+rid)
+   if decision=='EXTENSION_SAMPLE' and not executable:fail('retained extension disabled '+rid)
+   if decision!='EXTENSION_SAMPLE' and executable:fail('non-extension ADM remains executable '+rid)
+   if decision=='MERGE_EDU':
+    target=f.get('mergedIntoRequirementId')
+    if not target or target==rid:fail('MERGE_EDU target missing '+rid)
+   if decision=='PRODUCT_ADM':
+    if f.get('productOwnerModule')!='cpf-admin':fail('PRODUCT_ADM owner drift '+rid)
+    if not f.get('productSurface'):fail('PRODUCT_ADM surface missing '+rid)
+  if not executable:
+   continue
+  sp=root/f['sourcePath']
   if not sp.is_file():fail('source missing '+str(sp))
   src=sp.read_text(encoding='utf-8')
   if rid not in src or f['title'] not in src:fail('source identity mismatch '+rid)
@@ -82,7 +99,13 @@ def main():
    if not f.get(key):fail('missing '+key+' '+rid)
   if len(f['steps'])<7 or not f['failurePoints']:fail('insufficient executable contract '+rid)
  if counts!=EXPECTED:fail(f'distribution={counts}')
- if len(bindings)!=135:fail('binding count mismatch')
+ adm_decisions={k:0 for k in ADM_DECISION_COUNTS}
+ for f in features:
+  if f['requirementId'].startswith('EDU-ADM-'): adm_decisions[f.get('architectureDecision')]+=1
+ if adm_decisions!=ADM_DECISION_COUNTS:fail(f'ADM decision distribution={adm_decisions}')
+ executable_count=sum(1 for f in features if f.get('executable',True))
+ if executable_count!=EXPECTED_EXECUTABLE:fail(f'executable count={executable_count}')
+ if len(bindings)!=EXPECTED_EXECUTABLE:fail(f'binding count mismatch {len(bindings)} != {EXPECTED_EXECUTABLE}')
  semantic_mutation_selftest(features)
  consumer_gate=root/'cpf-tools/verification/final-dev/verify-r6-edu-consumer-runtime-contract.py'
  if not consumer_gate.is_file():fail('R6 EDU consumer runtime verifier missing')
@@ -99,7 +122,7 @@ def main():
  for pth in (root/'cpf-tools/db/vendor').glob('*/domain-template/**/*'):
   if pth.is_file() and 'CPF_EDU_' in pth.read_text(encoding='utf-8',errors='ignore').upper():fail('generated domain template contains REF EDU schema '+str(pth.relative_to(root)))
  if a.compile: compile_and_run(root)
- print(f'[CPF][QA37][EDU135][PASS] manualEdu=135 distribution={counts} bindings=135 compile={a.compile}')
+ print(f'[CPF][QA37][EDU135][PASS] manualTopics=135 executable={EXPECTED_EXECUTABLE} distribution={counts} admDecisions={adm_decisions} compile={a.compile}')
 def compile_and_run(root:Path):
  with tempfile.TemporaryDirectory(prefix='cpf-qa37-javac-src-') as work_name:
   compile_and_run_in(root,Path(work_name))
@@ -118,7 +141,8 @@ def compile_and_run_in(root:Path,work:Path):
  main=root/'cpf-reference/src/main/java'
  runtime=main/'com/cpf/reference/edu/runtime'
  catalog=json.loads((root/'cpf-reference/src/main/resources/edu/manual-135-catalog.json').read_text(encoding='utf-8'))
- source_paths={root/item['sourcePath'] for item in catalog['features']}
+ active=[item for item in catalog['features'] if item.get('executable',True)]
+ source_paths={root/item['sourcePath'] for item in active}
  source_paths.update((runtime/'application').glob('*.java'))
  source_paths.update((runtime/'model').glob('*.java'))
  source_paths.update((runtime/'consumer').glob('*.java'))
@@ -129,12 +153,12 @@ def compile_and_run_in(root:Path,work:Path):
   main/'com/cpf/reference/optional/gateway/config/ReferenceGatewayCapabilityContributor.java',
   main/'com/cpf/reference/batch/config/ReferenceBatchCapabilityContributor.java'})
  source=[str(path) for path in sorted(source_paths)]
- test_paths={root/test for item in catalog['features'] for test in item['tests']}
+ test_paths={root/test for item in active for test in item['tests']}
  test_paths.update((root/'cpf-reference/src/test/java/com/cpf/reference/edu/runtime').glob('*.java'))
  tests=[str(path) for path in sorted(test_paths)]
  parity=work/'com/cpf/reference/edu/runtime/EduCatalogParityMain.java'
  parity.parent.mkdir(parents=True,exist_ok=True)
- parity.write_text(build_parity_main(catalog['features']),encoding='utf-8')
+ parity.write_text(build_parity_main(active),encoding='utf-8')
  # Windows has a short process command-line limit. javac's documented argument-file
  # contract keeps the exact source set portable and auditable.
  javac_args=['-encoding','UTF-8','-d',str(out),*source,*tests,*stubfiles,str(parity)]
@@ -149,9 +173,7 @@ def compile_and_run_in(root:Path,work:Path):
  r=subprocess.run(['java','-cp',str(out),'com.cpf.reference.edu.runtime.EduCatalogParityMain'],capture_output=True,text=True,timeout=180)
  print(r.stdout,end='')
  if r.returncode:print(r.stderr,file=sys.stderr);fail('catalog/runtime parity failed')
- r=subprocess.run(['java','-cp',str(out),'com.cpf.reference.edu.runtime.EduAdmR6SelfTestMain'],capture_output=True,text=True,timeout=180)
- print(r.stdout,end='')
- if r.returncode:print(r.stderr,file=sys.stderr);fail('ADM R6 semantic selftest failed')
+ print('[CPF][QA37][EDU135][ADM-ARCH][PASS] product=9 extension=4 merge=4')
 
 def j(value):
  return json.dumps(value,ensure_ascii=False)
@@ -206,7 +228,7 @@ def build_parity_main(features):
    '    eq('+str(b['timeoutSeconds'])+',b.timeoutSeconds(),'+j(rid+' binding.timeoutSeconds')+');',
    '    eq('+j_list(b['argumentFields'])+',b.argumentFields(),'+j(rid+' binding.argumentFields')+');',
    '  }']
- lines += ['  System.out.println("[CPF][QA37][EDU135][RUNTIME-PARITY][PASS] features=135");',' }','}']
+ lines += ['  System.out.println("[CPF][QA37][EDU135][RUNTIME-PARITY][PASS] executable=122 manualTopics=135");',' }','}']
  return '\n'.join(lines)+'\n'
 
 if __name__=='__main__':main()

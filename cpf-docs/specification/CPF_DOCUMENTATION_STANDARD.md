@@ -2,7 +2,7 @@
 
 > Repository: `freeangelsun/202412_01_CPF`
 > Branch: `master`
-> 문서 표준 기준 Commit: `3ed676061246c9db3e44f29e254c0393ecca3929` (`07_02`)
+> 문서 표준 기준 Commit: `cd5baccb02245a980e5998aa0dc9bac579fc019f` (`07_04`)
 > 최상위 요구사항 정본: `cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md`
 
 ## 1. 문서의 정체성과 독자
@@ -130,3 +130,17 @@ README가 참조하는 브로셔 자산은 삭제하지 않는다. 빈 폴더는
 ## 17. 전달 패키지
 
 문서 변경 산출물은 Repository Root 상대경로를 유지한 단일 ZIP으로 제공한다. ZIP에는 최종 신규/수정 파일과 정확한 삭제 Manifest만 넣고 build/log/tmp/bak/.git/IDE/과거본을 넣지 않는다. ZIP SHA-256, 기준 Repository/Branch/Commit, 파일 수와 경로, 신규/수정/삭제, 적용/검증/미검증/Rollback, Commit·Push 미수행 여부를 기록한다.
+
+
+## 18. Current Release 상태와 문서 표현
+
+현재 기준 Commit은 `cd5baccb02245a980e5998aa0dc9bac579fc019f` (`07_04`)이다. 이 Commit에는 전체 프로젝트 Finalization Mandate와 QA Scope 보정이 추가되었고, R6J가 검수한 Product Source는 `3ed676061246c9db3e44f29e254c0393ecca3929` (`07_02`)와 동일하다. R6J 중앙 판정은 `미통과 — RELEASE_BLOCKED`이며 56개 통합 Finding(P0 44/P1 11/P2 1), 34개 직접 재개발 항목이 존재한다.
+
+공식 PDF/DOCX는 현재 Source가 제공하는 기능과 현재 미검증/실패/재확인 필요 경계를 함께 기록한다. QA Finding 전체를 README에 노출하지 않지만, 사용자 절차의 안전성에 영향을 주는 Release workflow, transaction/file/DB logging, Approval UNKNOWN/reconcile, ADM/BZA action permission, OpenAPI drift, EDU security, false-green Gate와 target runtime 미검증은 담당 매뉴얼에서 숨기지 않는다.
+
+`RELEASE_BLOCKED` 상태에서 문서를 Release 승인서처럼 표현하지 않는다. 후속 Product Source가 변경되면 exact result SHA를 다시 기록하고 해당 PDF/DOCX를 같은 변경 단위에서 현행화한다. Source 개선만 확인된 항목은 Runtime/Evidence가 없으면 `완료`로 승격하지 않는다.
+
+
+### 18.1 07_04 Scope Correction
+
+34개 직접 재개발 항목은 전체 프로젝트 Scope가 아니다. 프로젝트 완료 범위는 중앙 Requirement 93/93, Finding 56/56, known direct rework 34/34, 최상위 Requirement 전체, Runtime/GA 전체와 개발·QA 중 자체 발견 결함 전체다. 문서도 이 전체 범위의 Source 변화와 상태 변화에 따라 다시 현행화한다.

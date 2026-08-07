@@ -9,3 +9,6 @@
 - Requirement ledger: `qa/r6i/QA_REQUIREMENT_STATUS.csv`
 - Development instruction: `final-dev-request/CPF_DEVGPT_R6I_EXECUTION_INSTRUCTION.md`
 - Historical QA: `qa/r5i/**` (preserve)
+
+- QA manager development review: `qa/r6i/QA_MANAGER_ADDITIONAL_DEVELOPMENT_REVIEW.md`
+- QA manager hardening ledger: `qa/r6i/QA_MANAGER_HARDENING_REQUIREMENTS.csv`

@@ -10,6 +10,8 @@
 - 최상위 정본: `cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md`
 - QA 정본: `cpf-docs/work/v9i/qa/r6i/QA_FINDINGS.csv`
 - Requirement 정본: `cpf-docs/work/v9i/qa/r6i/QA_REQUIREMENT_STATUS.csv`
+- 통합 관리자 추가 강화 리뷰: `cpf-docs/work/v9i/qa/r6i/QA_MANAGER_ADDITIONAL_DEVELOPMENT_REVIEW.md`
+- 추가 강화 원장: `cpf-docs/work/v9i/qa/r6i/QA_MANAGER_HARDENING_REQUIREMENTS.csv`
 - 현재 QA 판정: **미통과 / Release Blocked**
 
 작업 시작 시 반드시 최신 `origin/master`, HEAD, Working Tree를 다시 확인한다. `77db10ad9aff44ee422795080fb2e96b364c9d65` 이후 Commit이 있으면 `instruction_basis_sha`, `work_start_sha`, `result_commit_sha`, `evidence_source_sha`를 분리하며 과거 Evidence를 자동 승계하지 않는다.
@@ -68,6 +70,36 @@
 - EDU-ADM 17개는 승인/SoD, IDOR/masking, CAS conflict browser, bulk partial result, incident/recovery, topology/trace, notification escalation, session expiry/relogin/CSRF까지 executable example로 구현
 - OPS Sandbox는 Sandbox로 표시하고 제품 Runtime PASS Evidence로 사용 금지
 
+
+### Wave 4 — QA 관리자 추가 상용화 강화
+`MGR-HARDEN-001~012`
+- Repository 전체 Ownership/Public API·SPI/Internal/Consumer 회귀
+- 모든 상태변경 Command reliability 표준화
+- DB3 전체 lifecycle·mixed-version·backup/restore
+- Final artifact SBOM/license/vulnerability/signature
+- Resource/load/soak/backpressure와 Observability/SLI/SLO
+- Repository-wide security negative corpus
+- DR/power-loss/selective rollback
+- LOCAL_DEV/REMOTE/OFFLINE artifact consumer
+- Generator create→runtime→remove→regenerate
+- 양방향 Traceability·Hygiene·Compatibility/Failure Matrix
+
+Wave 4는 QA Finding을 대체하지 않는다. AB-R6-001~040 구현 중 같은 Source와 Gate에 함께 반영하고, 별도 `HARDENING_STATUS.csv`로 수행·검증 상태를 기록한다.
+
+
+## 3.1 공통 원인 우선 처리
+
+ID별 국소 Patch 전에 다음 Root Cause를 묶어 제거한다.
+
+1. Canonical Drift — Route/Menu/Permission/OpenAPI/Generated/EDU Catalog 단일 정본
+2. Runtime-Provenance Disconnect — Source/result/artifact/evidence SHA 결속
+3. Security Capability Boundary — Framework-owned 권한·승인·Secret·proof 강제
+4. Recovery Gap — RUNNING/UNKNOWN/process-kill/DB outage durable reconcile
+5. Synthetic False-Green — 문자열·double·synthetic response를 actual mutation/runtime으로 대체
+6. Template False-Completion — 공통 Wrapper 외 ID별 executable business semantics
+
+각 Root Cause 수정 후 Repository 전체에서 동일 패턴을 검색하고 잠복 결함을 함께 보정한다.
+
 ## 4. 각 Finding 완료 절차
 
 `Acceptance 확인 → 기존 Source/Consumer/호출 경로 추적 → 결함 재현 → 제품 구현 → Test/Assertion → Negative/Concurrency/Recovery → 실제 또는 타당한 대체검증 → Evidence → 원장 갱신 → 독립 자체검수`
@@ -97,6 +129,12 @@ Interface·DTO·Swagger·Sample·문자열 Gate만으로 완료 처리하지 않
 10. `cpf-docs/work/v9i/dev/r6i/HANDOVER.md`
 11. `cpf-docs/work/v9i/dev/r6i/CODEX_REVIEW_REQUEST.md`
 12. Root Overlay ZIP과 ZIP SHA-256
+13. `cpf-docs/work/v9i/dev/r6i/HARDENING_STATUS.csv` — MGR-HARDEN-001~012
+14. `cpf-docs/work/v9i/dev/r6i/RUNTIME_QUALIFICATION_MATRIX.csv`
+15. `cpf-docs/work/v9i/dev/r6i/COMPATIBILITY_MATRIX.csv`
+16. `cpf-docs/work/v9i/dev/r6i/ARTIFACT_SUPPLY_CHAIN_EVIDENCE.md`
+17. `cpf-docs/work/v9i/dev/r6i/TRACEABILITY_MATRIX.csv`
+18. `cpf-docs/work/v9i/dev/r6i/REPOSITORY_HYGIENE_REPORT.md`
 
 ## 6. 검증 필수 묶음
 
@@ -114,6 +152,7 @@ Interface·DTO·Swagger·Sample·문자열 Gate만으로 완료 처리하지 않
 ## 7. 개발GPT 자체 완료 조건
 
 - AB-R6-001~040의 Source 구현 상태가 모두 완료
+- MGR-HARDEN-001~012가 모두 개발 완료되고 실행 대상은 검증 PASS
 - 실행 가능한 필수 Gate는 모두 Exit 0
 - 외부 환경상 미실행 항목은 정확한 재실행 조건과 Evidence 요구를 기록
 - Consumer 없는 추상화, stale generated, false-green, duplicate catalog 없음

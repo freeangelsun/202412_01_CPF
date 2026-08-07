@@ -1,0 +1,13 @@
+﻿hardening_id,priority,area,basis,required_action,acceptance,development_status,verification_status,developer_evidence,updated_at,updated_by
+MGR-HARDEN-001,P0,Architecture/Ownership,최상위 정본 공통 완료 축,Repository 전체 Public API·SPI·Internal·Consumer·Dependency 전수 검산,"Owner/Consumer/의존경계 위반 0, actual consumer evidence",재개발 요청,미검증,,2026-08-07T11:46:00+09:00,통합QA
+MGR-HARDEN-002,P0,Reliability/Commands,최상위 정본 거래·신뢰 표준,모든 상태변경 Command의 idempotency/CAS/UNKNOWN/reconcile/audit 통일,"지원 Command matrix 100%, negative/race/recovery PASS",재개발 요청,미검증,,2026-08-07T11:46:00+09:00,통합QA
+MGR-HARDEN-003,P0,DB/Compatibility,DB3·Migration 정본,Empty/reinstall/seed/all upgrade/rollback/forward/backup/restore/mixed-version DB3,Oracle/PostgreSQL/MariaDB lifecycle exact result SHA PASS,재개발 요청,미검증,,2026-08-07T11:46:00+09:00,통합QA
+MGR-HARDEN-004,P0,Supply-chain,최종 제품화 Gate,Final artifact SBOM/ORT/Syft/Grype/license/signature/trust 검증,"최종 artifact hash와 모든 scan input/output 결속, blocker 0",재개발 요청,미검증,,2026-08-07T11:46:00+09:00,통합QA
+MGR-HARDEN-005,P1,Performance/Resource,공통 Resource 완료 축,Memory/thread/connection/queue/disk/temp/bounded streaming/load/soak/backpressure,예산·limit·cleanup·load evidence와 회귀 threshold,재개발 요청,미검증,,2026-08-07T11:46:00+09:00,통합QA
+MGR-HARDEN-006,P1,Observability/Audit,운영·Observability 정본,Correlation/SLI/SLO/cardinality/masking/alert/audit integrity Runtime 검증,주요 흐름 end-to-end trace 및 tamper/masking negative PASS,재개발 요청,미검증,,2026-08-07T11:46:00+09:00,통합QA
+MGR-HARDEN-007,P0,Security,Security·Privacy·Audit 정본,XSS/CSRF/SSRF/IDOR/injection/path/archive/process/tenant/session/secret negative corpus,전 경계 negative corpus와 log/evidence secret scan PASS,재개발 요청,미검증,,2026-08-07T11:46:00+09:00,통합QA
+MGR-HARDEN-008,P0,DR/Recovery,운영·Compatibility 정본,Backup/restore/DR/split-brain/power-loss/selective rollback/reconcile,"실제 복구 drill과 RPO/RTO evidence, data/artifact consistency",재개발 요청,미검증,,2026-08-07T11:46:00+09:00,통합QA
+MGR-HARDEN-009,P1,Artifact Consumer,Artifact 공급 모드 정본,"LOCAL_DEV/REMOTE/OFFLINE fresh consumer 설치, fallback fail-closed",3 mode consumer build/run and no local fallback,재개발 요청,미검증,,2026-08-07T11:46:00+09:00,통합QA
+MGR-HARDEN-010,P0,Generator,Generator/EDU 정본,create→runtime→remove→regenerate와 DB3/OpenAPI/Frontend parity,"fresh generated domain lifecycle PASS, stale/generated diff 0",재개발 요청,미검증,,2026-08-07T11:46:00+09:00,통합QA
+MGR-HARDEN-011,P1,Traceability/Hygiene,Repository·Evidence 정본,양방향 traceability와 dead/stale/dual-primary/temp/root garbage 제거,"Requirement↔artifact 양방향 100%, hygiene finding 0",재개발 요청,미검증,,2026-08-07T11:46:00+09:00,통합QA
+MGR-HARDEN-012,P0,Compatibility/Failure,최종 제품화 Gate,Topology/instance/version/DB/browser/network/broker/kill 조합 Matrix 실행,"지원 표기 조합만 PASS, 미실행 조합은 미지원 또는 미검증",재개발 요청,미검증,,2026-08-07T11:46:00+09:00,통합QA

@@ -1,6 +1,8 @@
-# CPF Dataset Map
+# CPF V9I Dataset Map
 
-- QA current: `qa/r6i/QA_FINDINGS.csv`, `qa/r6i/QA_REQUIREMENT_STATUS.csv`, `qa/r6i/QA_CROSSWALK.csv`
-- QA history: `qa/r5i/**`
-- Development next: `dev/r6i/**` (developer updates)
-- Development instruction: `final-dev-request/CPF_DEVGPT_R6I_EXECUTION_INSTRUCTION.md`
+- Latest QA ledger: `qa/r6i/QA_FINDINGS.csv`
+- Latest requirement ledger: `qa/r6i/QA_REQUIREMENT_STATUS.csv`
+- Manager hardening ledger: `qa/r6i/QA_MANAGER_HARDENING_REQUIREMENTS.csv`
+- Progress/hardening review: `qa/r6i/QA_MANAGER_ADDITIONAL_DEVELOPMENT_REVIEW.md`
+- Development execution instruction: `final-dev-request/CPF_DEVGPT_R6I_EXECUTION_INSTRUCTION.md`
+- Historical QA: `qa/r5i/**`

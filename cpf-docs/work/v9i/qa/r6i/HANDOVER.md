@@ -6,3 +6,6 @@
 - 다음 시작: 개발GPT는 단일 지침 파일을 읽고 최신 origin/master 재확인 후 Wave 0부터 연속 수행
 - Git write/delete: 미수행
 - Runtime: Java25/Gradle9.1/DB3/Browser/Broker/Multi-process/Codex 미검증
+
+
+Additional management hardening: MGR-HARDEN-001~012. See `QA_MANAGER_ADDITIONAL_DEVELOPMENT_REVIEW.md`.
